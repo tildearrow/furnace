@@ -2317,6 +2317,29 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
+    case DIV_SYSTEM_SUPERVISION: {
+      bool swapDuty=flags.getInt("swapDuty",true);
+
+      if (ImGui::Checkbox(_("Swap noise duty cycles"),&swapDuty)) {
+        altered=true;
+      }
+
+      bool sqStereo=flags.getInt("sqStereo",false);
+
+      if (ImGui::Checkbox(_("Stereo pulse waves"),&sqStereo)) {
+        altered=true;
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("swapDuty",(int)swapDuty);
+        });
+        e->lockSave([&]() {
+          flags.set("sqStereo",(int)sqStereo);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_SM8521:/*  {
       bool noAntiClick=flags.getBool("noAntiClick",false);
 

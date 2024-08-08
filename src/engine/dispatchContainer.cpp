@@ -76,6 +76,7 @@
 #include "platform/vb.h"
 #include "platform/k007232.h"
 #include "platform/ga20.h"
+#include "platform/supervision.h"
 #include "platform/sm8521.h"
 #include "platform/pv1000.h"
 #include "platform/k053260.h"
@@ -683,6 +684,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_GA20:
       dispatch=new DivPlatformGA20;
+      break;
+    case DIV_SYSTEM_SUPERVISION:
+      dispatch=new DivPlatformSupervision;
       break;
     case DIV_SYSTEM_SM8521:
       dispatch=new DivPlatformSM8521;

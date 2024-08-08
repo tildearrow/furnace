@@ -94,6 +94,7 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_GBA_MINMOD=61,
   DIV_INS_BIFURCATOR=62,
   DIV_INS_SID2=63, // coincidence!
+  DIV_INS_SUPERVISION=64,
   DIV_INS_MAX,
   DIV_INS_NULL
 };
