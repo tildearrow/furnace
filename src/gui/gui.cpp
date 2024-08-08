@@ -4355,9 +4355,9 @@ bool FurnaceGUI::loop() {
             }
           }
           if (hasTiunaCompat) {
-            if (ImGui::BeginMenu(_("export TIunA..."))) {
-              drawExportTiuna();
-              ImGui::EndMenu();
+            if (ImGui::MenuItem(_("export TIunA..."))) {
+              curExportType=GUI_EXPORT_TIUNA;
+              displayExport=true;
             }
           }
           int numNDSCompat=0;
@@ -4365,7 +4365,7 @@ bool FurnaceGUI::loop() {
             if (e->song.system[i]==DIV_SYSTEM_NDS) numNDSCompat++;
           }
           if (numNDSCompat>0) {
-            if (ImGui::BeginMenu(_("export furDS music data..."))) {
+            if (ImGui::MenuItem(_("export furDS music data..."))) {
               curExportType=GUI_EXPORT_NDS;
               displayExport=true;
             }
