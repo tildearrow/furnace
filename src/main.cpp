@@ -112,6 +112,9 @@ bool infoMode=false;
 
 bool noReportError=false;
 
+int tiunaFirstBankSize=3072;
+int tiunaOtherBankSize=4096-48;
+
 std::vector<TAParam> params;
 
 #ifdef HAVE_LOCALE
@@ -889,6 +892,39 @@ int main(int argc, char** argv) {
         delete w;
       } else {
         reportError(_("could not write VGM!"));
+      }
+    }
+    if (zsmOutName!="") {
+      // TODO: changing parameters
+      SafeWriter* w=e.saveZSM(60,true,true);
+      if (w!=NULL) {
+        FILE* f=ps_fopen(zsmOutName.c_str(),"wb");
+        if (f!=NULL) {
+          fwrite(w->getFinalBuf(),1,w->size(),f);
+          fclose(f);
+        } else {
+          reportError(fmt::sprintf(_("could not open file! (%s)"),e.getLastError()));
+        }
+        w->finish();
+        delete w;
+      } else {
+        reportError(fmt::sprintf(_("could not write ZSM! (%s)"),e.getLastError()));
+      }
+    }
+    if (tiunaOutName!="") {
+      SafeWriter* w=e.saveTiuna(NULL,"asmBaseLabel",tiunaFirstBankSize,tiunaOtherBankSize);
+      if (w!=NULL) {
+        FILE* f=ps_fopen(tiunaOutName.c_str(),"wb");
+        if (f!=NULL) {
+          fwrite(w->getFinalBuf(),1,w->size(),f);
+          fclose(f);
+        } else {
+          reportError(fmt::sprintf(_("could not open file! (%s)"),e.getLastError()));
+        }
+        w->finish();
+        delete w;
+      } else {
+        reportError(fmt::sprintf("could not write TIunA! (%s)",e.getLastError()));
       }
     }
     if (outName!="") {
