@@ -151,7 +151,7 @@ void DivPlatformSupervision::tick(bool sysTick) {
           }
         }
         ntPos+=chan[i].pitch2;
-        chan[i].freq=ntPos&15;
+        chan[i].freq=15-(ntPos&15);
         unsigned char r = (chan[i].freq<<4)|(chan[i].outVol&0xf);
         if (noiseReg[0] != r) rWrite(0x28,r);
         noiseReg[0] = r;
