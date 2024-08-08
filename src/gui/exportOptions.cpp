@@ -504,6 +504,9 @@ void FurnaceGUI::drawExport() {
     case GUI_EXPORT_TIUNA:
       drawExportTiuna(true);
       break;
+    case GUI_EXPORT_NDS:
+      drawExportNDS(true);
+      break;
     case GUI_EXPORT_AMIGA_VAL:
       drawExportAmigaVal(true);
       break;
