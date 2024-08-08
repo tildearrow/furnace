@@ -28,6 +28,8 @@ void supervision_memorymap_registers_write(uint32 Addr, uint8 Value);
 void supervision_set_mute_mask(uint32 mask);
 void supervision_sound_set_flags(uint32 flags_set);
 
+extern uint8 supervision_dma_mem[65536];
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

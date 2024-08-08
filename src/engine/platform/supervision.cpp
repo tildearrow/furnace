@@ -19,6 +19,7 @@
 
 #include "supervision.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include "furIcons.h"
 #include <math.h>
 
@@ -59,6 +60,9 @@ unsigned char kon[3];
 const char** DivPlatformSupervision::getRegisterSheet() {
   return regCheatSheetSupervision;
 }
+
+
+unsigned char* sampleMem = supervision_dma_mem;
 
 unsigned char duty_swap = 0;
 unsigned char otherFlags = 0;
@@ -107,7 +111,7 @@ void DivPlatformSupervision::tick(bool sysTick) {
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         int f = parent->calcArp(chan[i].note,chan[i].std.arp.val);
-        if (i == 3) {
+        if (i==2 || i==3) {
           chan[i].baseFreq=f;
           //if (chan[i].baseFreq>255) chan[i].baseFreq=255;
           if (chan[i].baseFreq<0) chan[i].baseFreq=0;
@@ -119,6 +123,9 @@ void DivPlatformSupervision::tick(bool sysTick) {
     }
     if (chan[i].std.duty.had) {
       chan[i].duty=chan[i].std.duty.val;
+    }
+    if (chan[i].std.panL.had) {
+      chan[i].pan=chan[i].std.panL.val&3;
     }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
@@ -156,6 +163,25 @@ void DivPlatformSupervision::tick(bool sysTick) {
         if (noiseReg[0] != r) rWrite(0x28,r);
         noiseReg[0] = r;
       }
+      if (chan[i].keyOn && i==2) {
+        if (chan[i].pcm) {
+          int ntPos=chan[i].sampleNote;
+          ntPos+=chan[i].pitch2;
+          chan[i].freq=3-(ntPos&3);
+          int sNum=chan[i].sample;
+          DivSample* sample=parent->getSample(sNum);
+          if (sample!=NULL && sNum>=0 && sNum<parent->song.sampleLen) {
+            unsigned int off=MIN(sampleOff[sNum]+chan[i].hasOffset,sampleOff[sNum]+sampleLen[sNum]);
+            unsigned int len=MAX(sampleLen[sNum]-chan[i].hasOffset,0);
+            chan[i].hasOffset=0;
+            rWrite(0x18,off&0xff);
+            rWrite(0x19,(off>>8&0x3f)|0x80);
+            rWrite(0x1A,MIN(MAX(len>>4,0),255));
+            rWrite(0x1B,chan[i].freq|((chan[i].pan&3)<<2)|((off>>14&7)<<4));
+            rWrite(0x1C,0x80);
+          }
+        }
+      }
       if (chan[i].keyOn) kon[i] = 1;
       if (chan[i].keyOff) kon[i] = 0;
       if (chan[i].keyOn) chan[i].keyOn=false;
@@ -169,7 +195,7 @@ void DivPlatformSupervision::tick(bool sysTick) {
         rWrite(0x13|(i<<2),0xc8);
       } else if (i == 3) {
         rWrite(0x29,0xc8);
-        unsigned char r = ((chan[i].duty&1)^duty_swap)|(0x02|0x10)|(4|8);
+        unsigned char r = ((chan[i].duty&1)^duty_swap)|(0x02|0x10)|(chan[i].pan<<2);
         if (noiseReg[2] != r) rWrite(0x2A,r);
         noiseReg[2] = r;
       }
@@ -191,10 +217,21 @@ void DivPlatformSupervision::tick(bool sysTick) {
 int DivPlatformSupervision::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_PCE);
-
-      chan[c.chan].sampleNote=DIV_NOTE_NULL;
-      chan[c.chan].sampleNoteDelta=0;
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SUPERVISION);
+      if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
+        chan[c.chan].pcm=true;
+      } else {
+        chan[c.chan].pcm=false;
+      }
+      if (chan[c.chan].pcm) {
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].sample=ins->amiga.getSample(c.value);
+          chan[c.chan].sampleNote=c.value;
+        }
+      } else {
+        chan[c.chan].sampleNote=DIV_NOTE_NULL;
+        chan[c.chan].sampleNoteDelta=0;
+      }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=c.chan==3?c.value:NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
@@ -273,6 +310,10 @@ int DivPlatformSupervision::dispatch(DivCommand c) {
     case DIV_CMD_STD_NOISE_MODE:
       chan[c.chan].duty=c.value;
       break;
+    case DIV_CMD_SAMPLE_POS:
+      chan[c.chan].hasOffset=c.value;
+      chan[c.chan].keyOn=true;
+      break;
     case DIV_CMD_LEGATO:
       chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
@@ -280,7 +321,7 @@ int DivPlatformSupervision::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_PCE));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SUPERVISION));
       }
       if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
@@ -400,6 +441,79 @@ void DivPlatformSupervision::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
+const void* DivPlatformSupervision::getSampleMem(int index) {
+  return index==0?sampleMem:NULL;
+}
+
+size_t DivPlatformSupervision::getSampleMemCapacity(int index) {
+  return index==0?65536:0;
+}
+
+size_t DivPlatformSupervision::getSampleMemUsage(int index) {
+  return index==0?sampleMemLen:0;
+}
+
+bool DivPlatformSupervision::isSampleLoaded(int index, int sample) {
+  if (index!=0) return false;
+  if (sample<0 || sample>255) return false;
+  return sampleLoaded[sample];
+}
+
+const DivMemoryComposition* DivPlatformSupervision::getMemCompo(int index) {
+  if (index!=0) return NULL;
+  return &memCompo;
+}
+
+void DivPlatformSupervision::renderSamples(int sysID) {
+  memset(sampleMem,0,getSampleMemCapacity(0));
+  memset(sampleLoaded,0,256*sizeof(bool));
+
+  memCompo=DivMemoryComposition();
+  memCompo.name="Sample Memory";
+
+  size_t memPos=0;
+  for (int i=0; i<parent->song.sampleLen; i++) {
+    DivSample* s=parent->song.sample[i];
+    if (!s->renderOn[0][sysID]) {
+      sampleOff[i]=0;
+      continue;
+    }
+    unsigned int paddedLen=((s->length8>>1)+63)&(~0x3f);
+    logV("%d padded length: %d",i,paddedLen);
+    if ((memPos&(~0x3fff))!=((memPos+paddedLen)&(~0x3fff))) {
+      memPos=(memPos+0x3fff)&(~0x3fff);
+    }
+    if (paddedLen>=4096) {
+      paddedLen=4096;
+    }
+    if (memPos>=getSampleMemCapacity(0)) {
+      logW("out of memory for sample %d!",i);
+      break;
+    }
+    if (memPos+paddedLen>=getSampleMemCapacity(0)) {
+      sampleLen[i] = (getSampleMemCapacity(0)-memPos)>>1;
+      for (size_t i=0; i<(getSampleMemCapacity(0)-memPos)>>1; i++) {
+          sampleMem[memPos+i] = (((s->data8[i*2+0]+128)>>4)<<4&0xf0)|(((s->data8[i*2+1]+128)>>4)&0xf);
+      }
+      logW("out of memory for sample %d!",i);
+    } else {
+      size_t len = MIN((s->length8>>1),paddedLen);
+      sampleLen[i] = (unsigned int)len;
+      for (size_t i=0; i<len>>1; i++) {
+          sampleMem[memPos+i] = (((s->data8[i*2+0]+128)>>4)<<4&0xf0)|(((s->data8[i*2+1]+128)>>4)&0xf);
+      }
+      sampleLoaded[i]=true;
+    }
+    sampleOff[i]=memPos;
+    memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+paddedLen));
+    memPos+=paddedLen;
+  }
+  sampleMemLen=memPos;
+
+  memCompo.capacity=65536;
+  memCompo.used=sampleMemLen;
+}
+
 int DivPlatformSupervision::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
@@ -408,6 +522,8 @@ int DivPlatformSupervision::init(DivEngine* p, int channels, int sugRate, const 
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
+  sampleMemLen=0;
+  memset(sampleMem,0,65536);
   setFlags(flags);
   reset();
   return 4;

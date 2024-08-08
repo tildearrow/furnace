@@ -26,13 +26,16 @@
 
 class DivPlatformSupervision: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
-    int dacPeriod, dacRate, dacOut;
-    unsigned int duty, len;
+    unsigned int duty, len, pan, pcm; // pcm is channel 3 ONLY
+    int sample, hasOffset; // again, for channel 3 ONLY
     bool setPos;
     Channel():
       SharedChannel<signed char>(31),
       duty(0),
       len(0x1f),
+      pan(3),
+      pcm(false),
+      hasOffset(0),
       setPos(false) {}
   };
   Channel chan[4];
@@ -51,6 +54,13 @@ class DivPlatformSupervision: public DivDispatch {
   int tempR[32];
   int coreQuality;
   unsigned char regPool[64];
+  unsigned int sampleOff[256];
+  unsigned int sampleLen[256];
+  bool sampleLoaded[256];
+  DivMemoryComposition memCompo;
+
+  size_t sampleMemLen;
+
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
@@ -72,6 +82,12 @@ class DivPlatformSupervision: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
+    const void* getSampleMem(int index);
+    size_t getSampleMemCapacity(int index);
+    size_t getSampleMemUsage(int index);
+    bool isSampleLoaded(int index, int sample);
+    const DivMemoryComposition* getMemCompo(int index);
+    void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformSupervision();

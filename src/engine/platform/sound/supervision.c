@@ -8,6 +8,8 @@ uint32 UNSCALED_CLOCK = 4000000;
 
 uint32 decrement_tick = 0;
 
+uint8 supervision_dma_mem[65536];
+
 void supervision_sound_set_clock(uint32 clock) {
     UNSCALED_CLOCK = clock;
 }
@@ -169,30 +171,33 @@ void supervision_sound_stream_update(uint8 *stream, uint32 len)
             }
         }
 
-/*
+        chout[2] = 0;
         if (m_dma.on) {
             uint8 sample;
             uint16 addr = m_dma.start + (uint16)m_dma.pos / 2;
             if (addr >= 0x8000 && addr < 0xc000) {
-                sample = memorymap_getRomPointer()[(addr & 0x3fff) | m_dma.ca14to16];
-            }
-            else {
-                sample = Rd6502(addr);
+                sample = supervision_dma_mem[(addr & 0x3fff) | m_dma.ca14to16];
             }
             if (((uint16)m_dma.pos) & 1)
                 s = (sample & 0xf);
             else
                 s = (sample & 0xf0) >> 4;
-            if (m_dma.left)
+            s <<= 2;
+            chout[2] = 0;
+            if (m_dma.left) {
                 *left += s;
-            if (m_dma.right)
+                chout[2] = s;
+            }
+            if (m_dma.right) {
                 *right += s;
+                chout[2] = s;
+            }
             m_dma.pos += m_dma.step;
             if (m_dma.pos >= m_dma.size) {
                 m_dma.on = FALSE;
             }
         }
-*/
+
         if (decrement_tick > SV_DEC_TICK) {
             decrement_tick = 0;
             supervision_sound_decrement();
