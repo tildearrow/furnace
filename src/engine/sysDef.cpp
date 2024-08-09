@@ -713,7 +713,12 @@ void DivEngine::registerSystems() {
     {0x6F, {DIV_CMD_SID3_LFSR_FEEDBACK_BITS, _("6Fxx: Set noise LFSR feedback bits (higher byte)"), effectVal, constVal<2>}},
     {0x70, {DIV_CMD_SID3_LFSR_FEEDBACK_BITS, _("70xx: Set noise LFSR feedback bits (highest bits, 0-3F)"), effectVal, constVal<3>}},
 
-    {0x71, {DIV_CMD_SID3_1_BIT_NOISE, _("71xx: Set noise mode (0: usual noise, 1: 1-bit noise (PCM mode on wave channel))")}},
+    {0x71, {DIV_CMD_C64_RESONANCE, _("71xx: Set filter 1 resonance"), effectVal, constVal<0>}},
+    {0x72, {DIV_CMD_C64_RESONANCE, _("72xx: Set filter 2 resonance"), effectVal, constVal<1>}},
+    {0x73, {DIV_CMD_C64_RESONANCE, _("73xx: Set filter 3 resonance"), effectVal, constVal<2>}},
+    {0x74, {DIV_CMD_C64_RESONANCE, _("74xx: Set filter 4 resonance"), effectVal, constVal<3>}},
+
+    {0x75, {DIV_CMD_SID3_1_BIT_NOISE, _("75xx: Set noise mode (0: usual noise, 1: 1-bit noise (PCM mode on wave channel))")}},
   };
 
   const EffectHandler SID3FineDutyHandler(DIV_CMD_C64_FINE_DUTY, _("5xxx: Set pulse width (0 to FFF)"), effectValLong<12>);
@@ -2185,9 +2190,9 @@ void DivEngine::registerSystems() {
   sysDefs[DIV_SYSTEM_SID3]=new DivSysDef(   
     _("SID3"), NULL, 0xf5, 0, 7, false, true, 0, false, (1U << DIV_SAMPLE_DEPTH_8BIT) | (1U << DIV_SAMPLE_DEPTH_16BIT), 256, 256,
     _("a fantasy sound chip created by LTVA. it is a big rework of SID chip with probably too much features added on top."),
-    {_("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Sample")},
-    {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "PCM"},
-    {DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_PCM},
+    {_("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Wave")},
+    {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "WA"},
+    {DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_WAVE},
     {DIV_INS_SID3, DIV_INS_SID3, DIV_INS_SID3, DIV_INS_SID3, DIV_INS_SID3, DIV_INS_SID3, DIV_INS_SID3},
     {},
     {}, 

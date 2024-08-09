@@ -2879,6 +2879,105 @@ int32_t sid3_process_filters_block(sid3_channel* ch)
     return output;
 }
 
+int32_t sid3_process_wave_channel_filters_block(sid3_wavetable_chan* ch)
+{
+    int32_t output = 0;
+
+    ch->clock_filter++;
+
+    if(ch->clock_filter & 1)
+    {
+        for(uint8_t i = 0; i < SID3_NUM_FILTERS; i++)
+        {
+            if(ch->filt.filt[i].mode & SID3_FILTER_OUTPUT)
+            {
+                output += ch->filt.filt[i].output;
+            }
+        }
+
+        return output;
+    }
+
+    for(uint8_t i = 0; i < SID3_NUM_FILTERS; i++)
+    {
+        ch->filt.filt[i].input = 0;
+    }
+
+    for(uint8_t i = 0; i < SID3_NUM_FILTERS; i++)
+    {
+        if(ch->filt.filt[i].mode & SID3_FILTER_CHANNEL_INPUT)
+        {
+            ch->filt.filt[i].input += ch->output_before_filter;
+        }
+
+        for(uint8_t j = 0; j < SID3_NUM_FILTERS; j++)
+        {
+            if(ch->filt.connection_matrix[i] & (1 << j))
+            {
+                ch->filt.filt[i].input += ch->filt.filt[j].output;
+            }
+        }
+    }
+
+    for(uint8_t i = 0; i < SID3_NUM_FILTERS; i++)
+    {
+        if(ch->filt.filt[i].mode & SID3_FILTER_ENABLE)
+        {
+            float Vi = ch->filt.filt[i].input;
+
+            float dVbp = (ch->filt.filt[i].w0_ceil_1 * ch->filt.filt[i].Vhp);
+            float dVlp = (ch->filt.filt[i].w0_ceil_1 * ch->filt.filt[i].Vbp);
+            ch->filt.filt[i].Vbp += dVbp;
+            ch->filt.filt[i].Vlp += dVlp;
+            ch->filt.filt[i].Vhp = Vi - ch->filt.filt[i].Vlp - (ch->filt.filt[i].Vbp * ch->filt.filt[i]._1024_div_Q);
+
+            float Vo;
+
+            switch(ch->filt.filt[i].mode & SID3_FILTER_MODES_MASK)
+            {
+                case 0x0:
+                default:
+                    Vo = 0;
+                    break;
+                case SID3_FILTER_LP:
+                    Vo = ch->filt.filt[i].Vlp;
+                    break;
+                case SID3_FILTER_HP:
+                    Vo = ch->filt.filt[i].Vhp;
+                    break;
+                case SID3_FILTER_LP | SID3_FILTER_HP:
+                    Vo = ch->filt.filt[i].Vlp + ch->filt.filt[i].Vhp;
+                    break;
+                case SID3_FILTER_BP:
+                    Vo = ch->filt.filt[i].Vbp;
+                    break;
+                case SID3_FILTER_BP | SID3_FILTER_LP:
+                    Vo = ch->filt.filt[i].Vlp + ch->filt.filt[i].Vbp;
+                    break;
+                case SID3_FILTER_BP | SID3_FILTER_HP:
+                    Vo = ch->filt.filt[i].Vhp + ch->filt.filt[i].Vbp;
+                    break;
+                case SID3_FILTER_BP | SID3_FILTER_HP | SID3_FILTER_LP:
+                    Vo = ch->filt.filt[i].Vlp + ch->filt.filt[i].Vbp + ch->filt.filt[i].Vhp;
+                    break;
+            }
+
+            ch->filt.filt[i].output = Vo * ch->filt.filt[i].output_volume / 0xff;
+        }
+        else
+        {
+            ch->filt.filt[i].output = 0;
+        }
+
+        if(ch->filt.filt[i].mode & SID3_FILTER_OUTPUT)
+        {
+            output += ch->filt.filt[i].output;
+        }
+    }
+
+    return output;
+}
+
 void sid3_clock(SID3* sid3)
 {
     //SAFETY_HEADER
@@ -2978,6 +3077,94 @@ void sid3_clock(SID3* sid3)
 
         sid3->channel_output[i] = output;
     }
+
+    //wavetable/streamed PCM sample channel:
+
+    sid3_wavetable_chan* ch = &sid3->wave_chan;
+        
+    uint32_t prev_acc = ch->accumulator;
+
+    ch->accumulator += ch->frequency;
+
+    ch->sync_bit = 0;
+
+    if(ch->accumulator & (1 << SID3_ACC_BITS))
+    {
+        ch->sync_bit = 1;
+    }
+
+    if(ch->flags & SID3_CHAN_ENABLE_HARD_SYNC)
+    {
+        if(ch->hard_sync_src == SID3_NUM_CHANNELS - 1) //wave chan
+        {
+            if(sid3->wave_chan.sync_bit)
+            {
+                ch->accumulator = 0;
+            }
+        }
+        else
+        {
+            if(sid3->chan[ch->hard_sync_src].sync_bit)
+            {
+                ch->accumulator = 0;
+            }
+        }
+    }
+
+    uint32_t acc_state = ch->accumulator;
+
+    if(ch->flags & SID3_CHAN_ENABLE_PHASE_MOD)
+    {
+        ch->accumulator += ch->phase_mod_source == SID3_NUM_CHANNELS - 1 ? ((uint64_t)sid3->wave_channel_output << 18) : ((uint64_t)sid3->channel_output[ch->phase_mod_source] << 18);
+    }
+
+    ch->accumulator &= SID3_ACC_MASK;
+
+    int32_t waveform;
+
+    if(ch->mode)
+    {
+        waveform = (int32_t)ch->streamed_sample - 0x7fff;
+    }
+    else
+    {
+        waveform = ((int32_t)ch->wavetable[(ch->accumulator & SID3_ACC_MASK) >> (SID3_ACC_BITS - 8)] << 8) - 0x7fff;
+    }
+
+    ch->accumulator = acc_state & SID3_ACC_MASK;
+
+    sid3->wave_channel_signal_before_ADSR = waveform;
+
+    if(ch->flags & SID3_CHAN_ENABLE_RING_MOD)
+    {
+        uint8_t ring_mod_src = ch->ring_mod_src == SID3_NUM_CHANNELS ? 0xff : ch->ring_mod_src; //SID3_NUM_CHANNELS = self-mod
+
+        waveform = waveform * (ch->ring_mod_src == 0xff ? sid3->wave_channel_signal_before_ADSR : sid3->channel_signals_before_ADSR[ring_mod_src]) / (int32_t)0xffff; //ring modulation is just multiplication of two signals!
+    }
+
+    sid3_adsr_clock(&ch->adsr);
+
+    ch->output_before_filter = sid3_adsr_output(sid3, &ch->adsr, waveform);
+
+    int32_t output = 0;
+    
+    if((ch->filt.filt[0].mode & SID3_FILTER_ENABLE) || (ch->filt.filt[1].mode & SID3_FILTER_ENABLE) ||
+        (ch->filt.filt[2].mode & SID3_FILTER_ENABLE) || (ch->filt.filt[3].mode & SID3_FILTER_ENABLE))
+    {
+        output = sid3_process_wave_channel_filters_block(ch);
+    }
+    else
+    {
+        output = ch->output_before_filter;
+    }
+
+    if(!sid3->muted[SID3_NUM_CHANNELS - 1])
+    {
+        sid3->output_l += output * ch->panning_left / 0x8f0;
+        sid3->output_r += output * ch->panning_right / 0x8f0;
+    }
+
+    sid3->wave_channel_output = output;
 }
 
 void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
@@ -3027,12 +3214,25 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
             }
             else
             {
-                uint8_t prev_flags = sid3->chan[channel].flags;
+                uint8_t prev_flags = sid3->wave_chan.flags;
                 sid3->wave_chan.flags = data;
 
                 if((prev_flags & SID3_CHAN_ENABLE_GATE) != (sid3->wave_chan.flags & SID3_CHAN_ENABLE_GATE))
                 {
                     sid3_gate_bit(sid3, sid3->wave_chan.flags & SID3_CHAN_ENABLE_GATE, &sid3->wave_chan.adsr);
+                }
+
+                if(sid3->wave_chan.flags & SID3_CHAN_ENV_RESET)
+                {
+                    sid3->wave_chan.adsr.envelope_counter = 0;
+                    sid3->wave_chan.adsr.state = ATTACK;
+                    sid3->wave_chan.adsr.envelope_speed = envspd_a(sid3->wave_chan.adsr.a);
+                    sid3->wave_chan.adsr.hold_zero = false;
+                }
+
+                if(sid3->wave_chan.flags & SID3_CHAN_PHASE_RESET)
+                {
+                    sid3->wave_chan.accumulator = 0;
                 }
 
                 sid3->wave_chan.flags &= ~(SID3_CHAN_ENV_RESET | SID3_CHAN_NOISE_PHASE_RESET | SID3_CHAN_PHASE_RESET);
@@ -3474,6 +3674,24 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
                 sid3->chan[channel].lfsr_taps |= data;
 
                 sid3->chan[channel].lfsr_taps &= 0x3fffffff;
+            }
+            break;
+        }
+        case SID3_REGISTER_STREAMED_SAMPLE_HIGH:
+        {
+            if(channel == SID3_NUM_CHANNELS - 1)
+            {
+                sid3->wave_chan.streamed_sample &= 0x00ff;
+                sid3->wave_chan.streamed_sample |= data << 8;
+            }
+            break;
+        }
+        case SID3_REGISTER_STREAMED_SAMPLE_LOW:
+        {
+            if(channel == SID3_NUM_CHANNELS - 1)
+            {
+                sid3->wave_chan.streamed_sample &= 0xff00;
+                sid3->wave_chan.streamed_sample |= data;
             }
             break;
         }

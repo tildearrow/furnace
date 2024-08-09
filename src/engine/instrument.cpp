@@ -268,6 +268,7 @@ bool DivInstrumentSID3::operator==(const DivInstrumentSID3& other) {
     _C(oneBitNoise) &&
     _C(separateNoisePitch) &&
     _C(special_wave) &&
+    _C(doWavetable) &&
     _C(filt[0]) &&
     _C(filt[1]) &&
     _C(filt[2]) &&
@@ -1254,7 +1255,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     if (sid2!=defaultIns.sid2) {
       featureS2=true;
     }
-    if (sid3!=defaultIns.sid3) {
+    if (sid3!=defaultIns.sid3 || type == DIV_INS_SID3) {
       featureS3=true;
     }
   }

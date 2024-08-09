@@ -3273,7 +3273,8 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
         ins->type==DIV_INS_AY8930 ||
         ins->type==DIV_INS_VRC6 ||
         ins->type==DIV_INS_SU ||
-        ins->type==DIV_INS_NDS) {
+        ins->type==DIV_INS_NDS ||
+        ins->type==DIV_INS_SID3) {
       P(ImGui::Checkbox(_("Use sample"),&ins->amiga.useSample));
       if (ins->type==DIV_INS_X1_010) {
         if (ImGui::InputInt(_("Sample bank slot##BANKSLOT"),&ins->x1_010.bankSlot,1,4)) { PARAMETER
@@ -5893,9 +5894,23 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
 
       P(CWSliderScalar(_("Special wave"),ImGuiDataType_U8,&ins->sid3.special_wave,&_ZERO,&_SID3_SPECIAL_WAVES,sid3SpecialWaveforms[ins->sid3.special_wave % SID3_NUM_SPECIAL_WAVES])); rightClickable
 
+      if(ImGui::Checkbox(_("Wavetable channel"),&ins->sid3.doWavetable))
+      {
+        PARAMETER;
+        ins->std.waveMacro.vZoom=-1;
+        for(int i = 0; i < 256; i++)
+        {
+          ins->std.waveMacro.val[i]=0;
+        }
+      }
+      if (ImGui::IsItemHovered()) 
+      {
+        ImGui::SetTooltip(_("Forces waveform macro to control wavetable index."));
+      }
+
       ImGui::TableNextColumn();
 
-      drawWaveformSID3(ins->sid3.special_wave,ImVec2(80.0f * dpiScale, 60.0f * dpiScale));
+      drawWaveformSID3(ins->sid3.special_wave,ImVec2(160.0f * dpiScale, 110.0f * dpiScale));
 
       ImGui::EndTable();
     }
@@ -6174,8 +6189,14 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
     ImGui::EndTabItem();
   }
 
-  insTabWavetable(ins);
-  insTabSample(ins);
+  if(!ins->amiga.useSample)
+  {
+    insTabWavetable(ins);
+  }
+  if(!ins->sid3.doWavetable)
+  {
+    insTabSample(ins);
+  }
 
   std::vector<FurnaceGUIMacroDesc> macroList;
 
@@ -6209,12 +6230,19 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
     macroList.push_back(FurnaceGUIMacroDesc(_("Arpeggio"),&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
     macroList.push_back(FurnaceGUIMacroDesc(_("Pitch"),&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
 
-    macroList.push_back(FurnaceGUIMacroDesc(_("Duty"),&ins->std.dutyMacro,ins->c64.dutyIsAbs?0:-65535,65535,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+    if(ins->sid3.doWavetable)
+    {
+      int waveCount=MAX(1,e->song.waveLen-1);
+      macroList.push_back(FurnaceGUIMacroDesc(_("Waveform"),&ins->std.waveMacro,0,waveCount,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+    }
+    else
+    {
+      macroList.push_back(FurnaceGUIMacroDesc(_("Duty"),&ins->std.dutyMacro,ins->c64.dutyIsAbs?0:-65535,65535,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+      macroList.push_back(FurnaceGUIMacroDesc(_("Waveform"),&ins->std.waveMacro,0,5,16 * 5,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,true,sid3ShapeBits));
+      macroList.push_back(FurnaceGUIMacroDesc(_("Special Wave"),&ins->std.algMacro,0,SID3_NUM_SPECIAL_WAVES - 1,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,macroSID3SpecialWaves));
+    }
 
-    macroList.push_back(FurnaceGUIMacroDesc(_("Waveform"),&ins->std.waveMacro,0,5,16 * 5,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,true,sid3ShapeBits));
-    macroList.push_back(FurnaceGUIMacroDesc(_("Special Wave"),&ins->std.algMacro,0,SID3_NUM_SPECIAL_WAVES - 1,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,macroSID3SpecialWaves));
-
-    if(ins->sid3.separateNoisePitch)
+    if(ins->sid3.separateNoisePitch && !ins->sid3.doWavetable)
     {
       macroList.push_back(FurnaceGUIMacroDesc(_("Noise Arpeggio"),&ins->std.opMacros[3].amMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.opMacros[3].amMacro.val,true));
       macroList.push_back(FurnaceGUIMacroDesc(_("Noise Pitch"),&ins->std.opMacros[0].arMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode,NULL,false,NULL,false,NULL,false,true));
@@ -6232,7 +6260,11 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
     macroList.push_back(FurnaceGUIMacroDesc(_("Phase Mod Source"),&ins->std.fbMacro,0,SID3_NUM_CHANNELS - 1,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3SourceChan));
 
     macroList.push_back(FurnaceGUIMacroDesc(_("Phase Reset"),&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-    macroList.push_back(FurnaceGUIMacroDesc(_("Noise Phase Reset"),&ins->std.opMacros[1].amMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+
+    if(!ins->sid3.doWavetable)
+    {
+      macroList.push_back(FurnaceGUIMacroDesc(_("Noise Phase Reset"),&ins->std.opMacros[1].amMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+    }
     macroList.push_back(FurnaceGUIMacroDesc(_("Envelope Reset"),&ins->std.opMacros[2].amMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
 
     macroList.push_back(FurnaceGUIMacroDesc(_("Attack"),&ins->std.ex2Macro,0,255,160,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
@@ -6241,9 +6273,16 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
     macroList.push_back(FurnaceGUIMacroDesc(_("Sustain Rate"),&ins->std.ex5Macro,0,255,160,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
     macroList.push_back(FurnaceGUIMacroDesc(_("Release"),&ins->std.ex6Macro,0,255,160,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
 
-    macroList.push_back(FurnaceGUIMacroDesc(_("Noise LFSR bits"),&ins->std.ex7Macro,0,29,16 * 30,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,NULL,true));
-    macroList.push_back(FurnaceGUIMacroDesc(_("1-Bit Noise/Sample Mode"),&ins->std.opMacros[1].arMacro,0,1,32,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,NULL,true));
-    macroList.push_back(FurnaceGUIMacroDesc(_("Wave Mix"),&ins->std.ex8Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3WaveMixMode));
+    if(!ins->sid3.doWavetable)
+    {
+      macroList.push_back(FurnaceGUIMacroDesc(_("Noise LFSR bits"),&ins->std.ex7Macro,0,29,16 * 30,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,NULL,true));
+      macroList.push_back(FurnaceGUIMacroDesc(_("1-Bit Noise"),&ins->std.opMacros[1].arMacro,0,1,32,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,NULL,true));
+      macroList.push_back(FurnaceGUIMacroDesc(_("Wave Mix"),&ins->std.ex8Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3WaveMixMode));
+    }
+    else
+    {
+      macroList.push_back(FurnaceGUIMacroDesc(_("Sample Mode"),&ins->std.opMacros[1].arMacro,0,1,32,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,NULL,true));
+    }
 
     drawMacros(macroList,macroEditStateMacros);
 

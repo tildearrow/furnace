@@ -26,6 +26,7 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
 #define CHIP_FREQBASE 524288
+#define CHIP_DIVIDER 1
 
 const char* regCheatSheetSID3[]={
   "FreqL0", "00",
@@ -82,6 +83,43 @@ void DivPlatformSID3::acquire(short** buf, size_t len)
       regPool[w.addr % SID3_NUM_REGISTERS]=w.val;
       writes.pop();
     }
+
+    if (chan[SID3_NUM_CHANNELS - 1].pcm && chan[SID3_NUM_CHANNELS - 1].dacSample!=-1)
+    {
+      chan[SID3_NUM_CHANNELS - 1].dacPeriod+=chan[SID3_NUM_CHANNELS - 1].dacRate;
+      if (chan[SID3_NUM_CHANNELS - 1].dacPeriod>rate) 
+      {
+        DivSample* s=parent->getSample(chan[SID3_NUM_CHANNELS - 1].dacSample);
+        if (s->samples<=0 || chan[SID3_NUM_CHANNELS - 1].dacPos>=s->samples) 
+        {
+          chan[SID3_NUM_CHANNELS - 1].dacSample=-1;
+          continue;
+        }
+
+        int dacData=s->data16[chan[SID3_NUM_CHANNELS - 1].dacPos] + 32767;
+        chan[SID3_NUM_CHANNELS - 1].dacOut=CLAMP(dacData,0,65535);
+        if (!isMuted[SID3_NUM_CHANNELS - 1]) 
+        {
+          sid3_write(sid3, SID3_REGISTER_STREAMED_SAMPLE_HIGH + (SID3_NUM_CHANNELS - 1) * SID3_REGISTERS_PER_CHANNEL, chan[SID3_NUM_CHANNELS - 1].dacOut >> 8);
+          sid3_write(sid3, SID3_REGISTER_STREAMED_SAMPLE_LOW + (SID3_NUM_CHANNELS - 1) * SID3_REGISTERS_PER_CHANNEL, chan[SID3_NUM_CHANNELS - 1].dacOut & 0xff);
+        } 
+        else 
+        {
+          sid3_write(sid3, SID3_REGISTER_STREAMED_SAMPLE_HIGH + (SID3_NUM_CHANNELS - 1) * SID3_REGISTERS_PER_CHANNEL, 32768 >> 8);
+          sid3_write(sid3, SID3_REGISTER_STREAMED_SAMPLE_LOW + (SID3_NUM_CHANNELS - 1) * SID3_REGISTERS_PER_CHANNEL, 32768 & 0xff);
+        }
+        chan[SID3_NUM_CHANNELS - 1].dacPos++;
+        if (s->isLoopable() && chan[SID3_NUM_CHANNELS - 1].dacPos>=(unsigned int)s->loopEnd) 
+        {
+          chan[SID3_NUM_CHANNELS - 1].dacPos=s->loopStart;
+        } 
+        else if (chan[SID3_NUM_CHANNELS - 1].dacPos>=s->samples) 
+        {
+          chan[SID3_NUM_CHANNELS - 1].dacSample=-1;
+        }
+        chan[SID3_NUM_CHANNELS - 1].dacPeriod-=rate;
+      }
+    }
     
     sid3_clock(sid3);
 
@@ -92,10 +130,12 @@ void DivPlatformSID3::acquire(short** buf, size_t len)
     {
       writeOscBuf=0;
 
-      for(int j = 0; j < SID3_NUM_CHANNELS; j++)
+      for(int j = 0; j < SID3_NUM_CHANNELS - 1; j++)
       {
         oscBuf[j]->data[oscBuf[j]->needle++] = sid3->muted[j] ? 0 : (sid3->channel_output[j] / 4);
       }
+
+      oscBuf[SID3_NUM_CHANNELS - 1]->data[oscBuf[SID3_NUM_CHANNELS - 1]->needle++] = sid3->muted[SID3_NUM_CHANNELS - 1] ? 0 : (sid3->wave_channel_output / 4);
     }
   }
 }
@@ -178,6 +218,18 @@ void DivPlatformSID3::updatePanning(int channel)
   rWrite(SID3_REGISTER_PAN_RIGHT + channel*SID3_REGISTERS_PER_CHANNEL,chan[channel].panRight);
 }
 
+void DivPlatformSID3::updateWave() 
+{
+  int channel = SID3_NUM_CHANNELS - 1;
+
+  for(int i = 0; i < 256; i++)
+  {
+    uint8_t val = ws.output[i & 255];
+    rWrite(SID3_REGISTER_PW_HIGH + channel*SID3_REGISTERS_PER_CHANNEL,i);
+    rWrite(SID3_REGISTER_PW_LOW + channel*SID3_REGISTERS_PER_CHANNEL,val);
+  }
+}
+
 void DivPlatformSID3::tick(bool sysTick) 
 {
   for (int i=0; i<SID3_NUM_CHANNELS; i++) 
@@ -221,8 +273,18 @@ void DivPlatformSID3::tick(bool sysTick)
       updateDuty(i);
     }
     if (chan[i].std.wave.had) {
-      chan[i].wave = chan[i].std.wave.val & 0xff;
-      rWrite(SID3_REGISTER_WAVEFORM + i * SID3_REGISTERS_PER_CHANNEL, chan[i].wave);
+      DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SID3);
+
+      if(i == SID3_NUM_CHANNELS - 1 && ins->sid3.doWavetable)
+      {
+        chan[i].wavetable = chan[i].std.wave.val & 0xff;
+        ws.changeWave1(chan[i].wave);
+      }
+      else
+      {
+        chan[i].wave = chan[i].std.wave.val & 0xff;
+        rWrite(SID3_REGISTER_WAVEFORM + i * SID3_REGISTERS_PER_CHANNEL, chan[i].wave);
+      }
     }
     if (chan[i].std.alg.had) { //special wave
       chan[i].special_wave = chan[i].std.alg.val & 0xff;
@@ -274,6 +336,15 @@ void DivPlatformSID3::tick(bool sysTick)
       if(chan[i].phaseReset)
       {
         flagsChanged = true;
+      }
+
+      if (chan[i].pcm) 
+      {
+        if (chan[i].active && chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) 
+        {
+          chan[i].dacPos=0;
+          chan[i].dacPeriod=0;
+        }
       }
     }
     if (chan[i].std.op[1].am.had) { //noise phase reset
@@ -410,12 +481,26 @@ void DivPlatformSID3::tick(bool sysTick)
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) 
     {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE * 64);
-      //if (chan[i].freq<0) chan[i].freq=0;
-      //if (chan[i].freq>0x1ffff) chan[i].freq=0x1ffff;
 
       if (chan[i].keyOn) 
-      { 
-        rWrite(SID3_REGISTER_WAVEFORM + i * SID3_REGISTERS_PER_CHANNEL, chan[i].wave); //waveform
+      {
+        DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SID3);
+        if(i == SID3_NUM_CHANNELS - 1)
+        {
+          if(ins->sid3.doWavetable)
+          {
+            rWrite(SID3_REGISTER_WAVEFORM + i * SID3_REGISTERS_PER_CHANNEL, 0); //wave channel mode
+          }
+          else
+          {
+            rWrite(SID3_REGISTER_WAVEFORM + i * SID3_REGISTERS_PER_CHANNEL, 1); //wave channel mode
+          }
+        }
+        else
+        {
+          rWrite(SID3_REGISTER_WAVEFORM + i * SID3_REGISTERS_PER_CHANNEL, chan[i].wave);
+        }
+        
         rWrite(SID3_REGISTER_SPECIAL_WAVE + i * SID3_REGISTERS_PER_CHANNEL, chan[i].special_wave); //special wave
 
         rWrite(SID3_REGISTER_ADSR_VOL + i * SID3_REGISTERS_PER_CHANNEL, chan[i].outVol); //set volume
@@ -442,6 +527,19 @@ void DivPlatformSID3::tick(bool sysTick)
 
       updateFreq(i);
 
+      if (chan[i].pcm && i == SID3_NUM_CHANNELS - 1) {
+        double off=1.0;
+        if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
+          DivSample* s=parent->getSample(chan[i].dacSample);
+          if (s->centerRate<1) {
+            off=1.0;
+          } else {
+            off=(double)s->centerRate/8363.0;
+          }
+        }
+        chan[i].dacRate=chan[i].freq*(off / 32.0);
+      }
+
       chan[i].noiseFreqChanged = true;
 
       if(chan[i].independentNoiseFreq)
@@ -449,10 +547,6 @@ void DivPlatformSID3::tick(bool sysTick)
         chan[i].noise_pitch2 = chan[i].pitch2;
       }
 
-      //rWrite(i*7,chan[i].freq&0xff);
-      //rWrite(i*7+1,chan[i].freq>>8);
-      //rWrite(0x1e, (chan[0].noise_mode) | (chan[1].noise_mode << 2) | (chan[2].noise_mode << 4) | ((chan[0].freq >> 16) << 6) | ((chan[1].freq >> 16) << 7));
-      //rWrite(0x1f, (chan[0].mix_mode) | (chan[1].mix_mode << 2) | (chan[2].mix_mode << 4) | ((chan[2].freq >> 16) << 6));
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
@@ -477,6 +571,14 @@ void DivPlatformSID3::tick(bool sysTick)
       chan[i].noiseFreqChanged = false;
     }
   }
+
+  if (chan[SID3_NUM_CHANNELS - 1].active && !chan[SID3_NUM_CHANNELS - 1].pcm) 
+  {
+    if (ws.tick()) 
+    {
+      updateWave();
+    }
+  }
 }
 
 int DivPlatformSID3::dispatch(DivCommand c) {
@@ -495,23 +597,53 @@ int DivPlatformSID3::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
 
-      if (chan[c.chan].insChanged || chan[c.chan].resetDuty || ins->std.waveMacro.len>0) {
-        //chan[c.chan].duty=ins->c64.duty;
-        //rWrite(c.chan*7+2,chan[c.chan].duty&0xff);
-        //rWrite(c.chan*7+3,(chan[c.chan].duty>>8) | (chan[c.chan].outVol << 4));
+      if (ins->amiga.useSample)
+      {
+        chan[c.chan].pcm=true;
       }
-      if (chan[c.chan].insChanged) {
-        /*chan[c.chan].wave = (ins->c64.noiseOn << 3) | (ins->c64.pulseOn << 2) | (ins->c64.sawOn << 1) | (int)(ins->c64.triOn);
-        chan[c.chan].attack=ins->c64.a;
-        chan[c.chan].decay=(ins->c64.s==15)?0:ins->c64.d;
-        chan[c.chan].sustain=ins->c64.s;
-        chan[c.chan].release=ins->c64.r;
-        chan[c.chan].ring=ins->c64.ringMod;
-        chan[c.chan].sync=ins->c64.oscSync;
+      else
+      {
+        chan[c.chan].pcm=false;
+      }
 
-        chan[c.chan].noise_mode = ins->sid3.noiseMode;
-        chan[c.chan].mix_mode = ins->sid3.mixMode;*/
+      if (chan[c.chan].pcm && c.chan == SID3_NUM_CHANNELS - 1) 
+      {
+        if (ins->amiga.useSample) 
+        {
+          if (skipRegisterWrites) break;
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].dacSample=ins->amiga.getSample(c.value);
+            chan[c.chan].sampleNote=c.value;
+            c.value=ins->amiga.getFreq(c.value);
+            chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+          } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+            chan[c.chan].dacSample=ins->amiga.getSample(chan[c.chan].sampleNote);
+            c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
+          }
+          if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) 
+          {
+            chan[c.chan].dacSample=-1;
+            break;
+          }
+          chan[c.chan].dacPos=0;
+          chan[c.chan].dacPeriod=0;
+          if (c.value!=DIV_NOTE_NULL) 
+          {
+            chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+            chan[c.chan].freqChanged=true;
+            chan[c.chan].note=c.value;
+          }
+          chan[c.chan].active=true;
+          chan[c.chan].macroInit(ins);
+          if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+            chan[c.chan].outVol=chan[c.chan].vol;
+          }
+          //chan[c.chan].keyOn=true;
+        }
+      }
 
+      if (chan[c.chan].insChanged) 
+      {
         chan[c.chan].wave = (ins->c64.triOn ? SID3_WAVE_TRIANGLE : 0) | (ins->c64.sawOn ? SID3_WAVE_SAW : 0) |
             (ins->c64.pulseOn ? SID3_WAVE_PULSE : 0) | (ins->c64.noiseOn ? SID3_WAVE_NOISE : 0) | (ins->sid3.specialWaveOn ? SID3_WAVE_SPECIAL : 0); //waveform
         chan[c.chan].special_wave = ins->sid3.special_wave; //special wave
@@ -556,15 +688,15 @@ int DivPlatformSID3::dispatch(DivCommand c) {
             updateFilter(c.chan, j);
           }
         }
-      }
-      if (chan[c.chan].insChanged || chan[c.chan].resetFilter) {
-        /*chan[c.chan].filter=ins->c64.toFilter;
-        if (ins->c64.initFilter) {
-          chan[c.chan].filtCut=ins->c64.cut;
-          chan[c.chan].filtRes=ins->c64.res;
-          chan[c.chan].filtControl=(int)(ins->c64.lp)|(ins->c64.bp<<1)|(ins->c64.hp<<2);
+
+        if(c.chan == SID3_NUM_CHANNELS - 1)
+        {
+          if(!chan[c.chan].pcm)
+          {
+            ws.changeWave1(chan[c.chan].wavetable, false);
+            ws.init(ins,256,255,chan[c.chan].insChanged);
+          }
         }
-        updateFilter(c.chan);*/
       }
       if (chan[c.chan].insChanged) {
         chan[c.chan].insChanged=false;
@@ -747,6 +879,12 @@ int DivPlatformSID3::dispatch(DivCommand c) {
       chan[c.chan].filt[c.value2].cutoff = (c.value & 0xfff) << 4;
       updateFilter(c.chan, c.value2);
       break;
+    case DIV_CMD_C64_RESONANCE:
+      chan[c.chan].filt[c.value2].resonance = c.value & 0xff;
+      updateFilter(c.chan, c.value2);
+      break;
+    case DIV_CMD_SAMPLE_POS:
+      chan[c.chan].dacPos=c.value;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
       break;
@@ -788,6 +926,15 @@ void DivPlatformSID3::notifyInsChange(int ins) {
     if (chan[i].ins==ins) {
       chan[i].insChanged=true;
     }
+  }
+}
+
+void DivPlatformSID3::notifyWaveChange(int wave) 
+{
+  if (chan[SID3_NUM_CHANNELS - 1].wavetable==wave)
+  {
+    ws.changeWave1(wave, false);
+    updateWave();
   }
 }
 
@@ -853,6 +1000,9 @@ void DivPlatformSID3::reset() {
 
     chan[i].noiseLFSRMask = (1 << 29) | (1 << 5) | (1 << 3) | 1; //https://docs.amd.com/v/u/en-US/xapp052 for 30 bits: 30, 6, 4, 1
   }
+
+  ws.setEngine(parent);
+  ws.init(NULL,256,255,false);
 
   sid3_reset(sid3);
   memset(regPool,0,SID3_NUM_REGISTERS);

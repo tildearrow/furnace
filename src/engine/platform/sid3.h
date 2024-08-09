@@ -22,6 +22,7 @@
 
 #include "../dispatch.h"
 #include "../../fixedQueue.h"
+#include "../waveSynth.h"
 #include "sound/sid3.h"
 
 class DivPlatformSID3: public DivDispatch {
@@ -67,6 +68,13 @@ class DivPlatformSID3: public DivDispatch {
     int noise_pitch2;
     bool noise_hasArp;
     bool noise_hasPitch;
+
+    bool pcm;
+    int wavetable;
+
+    long long dacPeriod, dacRate, dacOut;
+    unsigned long long dacPos;
+    int dacSample;
 
     void handleArpNoise(int offset=0) 
     {
@@ -156,7 +164,14 @@ class DivPlatformSID3: public DivDispatch {
       panRight(0xff),
       noiseFreq(0),
       independentNoiseFreq(false),
-      noiseLFSRMask((1 << 29) | (1 << 5) | (1 << 3) | 1) {} //https://docs.amd.com/v/u/en-US/xapp052 for 30 bits: 30, 6, 4, 1
+      noiseLFSRMask((1 << 29) | (1 << 5) | (1 << 3) | 1),
+      pcm(false),
+      wavetable(-1),
+      dacPeriod(0),
+      dacRate(0),
+      dacOut(0),
+      dacPos(0),
+      dacSample(-1) {} //https://docs.amd.com/v/u/en-US/xapp052 for 30 bits: 30, 6, 4, 1
   };
   Channel chan[SID3_NUM_CHANNELS];
   DivDispatchOscBuffer* oscBuf[SID3_NUM_CHANNELS];
@@ -167,6 +182,7 @@ class DivPlatformSID3: public DivDispatch {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,SID3_NUM_REGISTERS * 4> writes;
+  DivWaveSynth ws;
 
   unsigned char writeOscBuf;
 
@@ -186,6 +202,7 @@ class DivPlatformSID3: public DivDispatch {
   void updateDuty(int channel);
   void updateEnvelope(int channel);
   void updatePanning(int channel);
+  void updateWave();
 
   public:
     void acquire(short** buf, size_t len);
@@ -200,6 +217,7 @@ class DivPlatformSID3: public DivDispatch {
     void muteChannel(int ch, bool mute);
     void setFlags(const DivConfig& flags);
     void notifyInsChange(int ins);
+    void notifyWaveChange(int wave); 
     float getPostAmp();
     bool getDCOffRequired();
     DivMacroInt* getChanMacroInt(int ch);
