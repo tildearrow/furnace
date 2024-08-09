@@ -478,13 +478,13 @@ void DivPlatformSupervision::renderSamples(int sysID) {
       sampleOff[i]=0;
       continue;
     }
-    unsigned int paddedLen=((s->length8>>1)+63)&(~0x3f);
+    unsigned int paddedLen=((s->length8>>1)+31)&(~0x1f);
     logV("%d padded length: %d",i,paddedLen);
-    if ((memPos&(~0x3fff))!=((memPos+paddedLen)&(~0x3fff))) {
-      memPos=(memPos+0x3fff)&(~0x3fff);
-    }
     if (paddedLen>=4096) {
       paddedLen=4096;
+    }
+    if ((memPos&(~0x3fff))!=((memPos+paddedLen)&(~0x3fff))) {
+      memPos=(memPos+0x3fff)&(~0x3fff);
     }
     if (memPos>=getSampleMemCapacity(0)) {
       logW("out of memory for sample %d!",i);
@@ -493,7 +493,7 @@ void DivPlatformSupervision::renderSamples(int sysID) {
     if (memPos+paddedLen>=getSampleMemCapacity(0)) {
       sampleLen[i] = (getSampleMemCapacity(0)-memPos)>>1;
       for (size_t i=0; i<(getSampleMemCapacity(0)-memPos)>>1; i++) {
-          sampleMem[memPos+i] = (((s->data8[i*2+0]+128)>>4)<<4&0xf0)|(((s->data8[i*2+1]+128)>>4)&0xf);
+          sampleMem[memPos+i]=(((s->data8[i*2+0]+128)>>4)<<4&0xf0)|(((s->data8[i*2+1]+128)>>4)&0xf);
       }
       logW("out of memory for sample %d!",i);
     } else {

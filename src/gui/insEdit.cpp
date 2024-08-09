@@ -2667,7 +2667,8 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
         ins->type==DIV_INS_AY8930 ||
         ins->type==DIV_INS_VRC6 ||
         ins->type==DIV_INS_SU ||
-        ins->type==DIV_INS_NDS) {
+        ins->type==DIV_INS_NDS || 
+        ins->type==DIV_INS_SUPERVISION) {
       P(ImGui::Checkbox(_("Use sample"),&ins->amiga.useSample));
       if (ins->type==DIV_INS_X1_010) {
         if (ImGui::InputInt(_("Sample bank slot##BANKSLOT"),&ins->x1_010.bankSlot,1,4)) { PARAMETER
@@ -6251,7 +6252,8 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_C219 ||
             ins->type==DIV_INS_NDS ||
             ins->type==DIV_INS_GBA_DMA ||
-            ins->type==DIV_INS_GBA_MINMOD) {
+            ins->type==DIV_INS_GBA_MINMOD ||
+            ins->type==DIV_INS_SUPERVISION) {
           insTabSample(ins);
         }
         if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem("Namco 163")) {
