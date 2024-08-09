@@ -902,6 +902,7 @@ int DivPlatformSID3::dispatch(DivCommand c) {
       break;
     case DIV_CMD_SAMPLE_POS:
       chan[c.chan].dacPos=c.value;
+      break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
       break;
