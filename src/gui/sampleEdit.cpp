@@ -402,6 +402,12 @@ void FurnaceGUI::drawSampleEdit() {
               SAMPLE_WARN(warnLength,_("GBA DMA: sample length will be padded to multiple of 16"));
             }
             break;
+          case DIV_SYSTEM_OPL4:
+          case DIV_SYSTEM_OPL4_DRUMS:
+            if (sample->samples>65535) {
+              SAMPLE_WARN(warnLength,_("OPL4: maximum sample length is 65535"));
+            }
+            break;
           default:
             break;
         }

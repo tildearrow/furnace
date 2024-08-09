@@ -174,7 +174,11 @@ bool DivInstrumentMultiPCM::operator==(const DivInstrumentMultiPCM& other) {
     _C(rc) &&
     _C(lfo) &&
     _C(vib) &&
-    _C(am)
+    _C(am) &&
+    _C(damp) &&
+    _C(pseudoReverb) &&
+    _C(lfoReset) &&
+    _C(levelDirect)
   );
 }
 
@@ -756,6 +760,13 @@ void DivInstrument::writeFeatureMP(SafeWriter* w) {
   w->writeC(multipcm.lfo);
   w->writeC(multipcm.vib);
   w->writeC(multipcm.am);
+
+  /*
+  w->writeC(multipcm.damp);
+  w->writeC(multipcm.pseudoReverb);
+  w->writeC(multipcm.lfoReset);
+  w->writeC(multipcm.levelDirect);
+  */
 
   FEATURE_END;
 }
@@ -2076,6 +2087,13 @@ void DivInstrument::readFeatureMP(SafeReader& reader, short version) {
   multipcm.lfo=reader.readC();
   multipcm.vib=reader.readC();
   multipcm.am=reader.readC();
+
+  /*
+  multipcm.damp=reader.readC();
+  multipcm.pseudoReverb=reader.readC();
+  multipcm.lfoReset=reader.readC();
+  multipcm.levelDirect=reader.readC();
+  */
 
   READ_FEAT_END;
 }

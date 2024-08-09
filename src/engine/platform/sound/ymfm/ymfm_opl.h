@@ -529,7 +529,7 @@ public:
 	// generate samples of sound
 	void generate(output_data *output, uint32_t numsamples = 1);
 
-        fm_engine* debug_fm_engine() { return &m_fm; }
+	fm_engine* debug_fm_engine() { return &m_fm; }
 protected:
 	// internal state
 	uint8_t m_address;               // address register
@@ -577,8 +577,8 @@ public:
 	// generate samples of sound
 	void generate(output_data *output, uint32_t numsamples = 1);
 
-        fm_engine* debug_fm_engine() { return &m_fm; }
-        adpcm_b_engine* debug_adpcm_b_engine() { return &m_adpcm_b; }
+	fm_engine* debug_fm_engine() { return &m_fm; }
+	adpcm_b_engine* debug_adpcm_b_engine() { return &m_adpcm_b; }
 
 protected:
 	// internal state
@@ -628,7 +628,7 @@ public:
 	// generate samples of sound
 	void generate(output_data *output, uint32_t numsamples = 1);
 
-        fm_engine* debug_fm_engine() { return &m_fm; }
+	fm_engine* debug_fm_engine() { return &m_fm; }
 
 protected:
 	// internal state
@@ -677,7 +677,7 @@ public:
 	// generate samples of sound
 	void generate(output_data *output, uint32_t numsamples = 1);
 
-        fm_engine* debug_fm_engine() { return &m_fm; }
+	fm_engine* debug_fm_engine() { return &m_fm; }
 
 protected:
 	// internal state
@@ -791,6 +791,8 @@ public:
 	// generate samples of sound
 	void generate(output_data *output, uint32_t numsamples = 1);
 
+	fm_engine* debug_fm_engine() { return &m_fm; }
+	pcm_engine* debug_pcm_engine() { return &m_pcm; }
 protected:
 	// internal state
 	uint16_t m_address;              // address register

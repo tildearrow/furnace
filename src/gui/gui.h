@@ -1743,6 +1743,7 @@ class FurnaceGUI {
     int opnbCore;
     int opl2Core;
     int opl3Core;
+    int opl4Core;
     int esfmCore;
     int opllCore;
     int ayCore;
@@ -1769,6 +1770,7 @@ class FurnaceGUI {
     int opnbCoreRender;
     int opl2CoreRender;
     int opl3CoreRender;
+    int opl4CoreRender;
     int esfmCoreRender;
     int opllCoreRender;
     int ayCoreRender;
@@ -2002,6 +2004,7 @@ class FurnaceGUI {
       opnbCore(1),
       opl2Core(0),
       opl3Core(0),
+      opl4Core(0),
       esfmCore(0),
       opllCore(0),
       ayCore(0),
@@ -2028,6 +2031,7 @@ class FurnaceGUI {
       opnbCoreRender(1),
       opl2CoreRender(0),
       opl3CoreRender(0),
+      opl4CoreRender(0),
       esfmCoreRender(0),
       opllCoreRender(0),
       ayCoreRender(0),
