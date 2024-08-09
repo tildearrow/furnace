@@ -353,6 +353,13 @@ int DivPlatformSupervision::dispatch(DivCommand c) {
       chan[c.chan].hasOffset=c.value;
       chan[c.chan].keyOn=true;
       break;
+    case DIV_CMD_PANNING: {
+      chan[c.chan].pan=0;
+      if (c.value&0xf0) chan[c.chan].pan|=2;
+      if (c.value2>>4) chan[c.chan].pan|=1;
+      if (chan[c.chan].pan==0) chan[c.chan].pan=3;
+      break;
+    }
     case DIV_CMD_LEGATO:
       chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
@@ -449,13 +456,13 @@ void DivPlatformSupervision::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformSupervision::setFlags(const DivConfig& flags) {
-  if (flags.getInt("swapDuty",0)) {
+  if (flags.getInt("swapDuty",true)) {
     duty_swap=1;
   } else {
     duty_swap=0;
   }
   otherFlags=0;
-  if (flags.getInt("sqStereo",0)) {
+  if (flags.getInt("sqStereo",false)) {
     otherFlags |= 1;
   }
   chipClock=4000000;
