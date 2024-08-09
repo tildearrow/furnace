@@ -45,9 +45,18 @@ struct DivROMExportOutput {
     data(NULL) {}
 };
 
+struct DivROMExportProgress {
+  String name;
+  float amount;
+};
+
 class DivROMExport {
   public:
-    virtual std::vector<DivROMExportOutput> go(DivEngine* e);
+    virtual bool go(DivEngine* eng);
+    virtual void abort();
+    virtual std::vector<DivROMExportOutput> getResult();
+    virtual bool hasFailed();
+    virtual DivROMExportProgress getProgress();
     virtual ~DivROMExport() {}
 };
 
