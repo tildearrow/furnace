@@ -30,7 +30,7 @@ class DivPlatformSupervision: public DivDispatch {
     int sample, hasOffset; // again, for channel 3 ONLY
     bool setPos;
     Channel():
-      SharedChannel<signed char>(31),
+      SharedChannel<signed char>(63),
       duty(0),
       len(0x1f),
       pan(3),

@@ -53,7 +53,7 @@ const char* regCheatSheetSupervision[]={
 };
 
 unsigned char noiseReg[3];
-unsigned char kon[3];
+unsigned char kon[4];
 unsigned char initWrite[4];
 
 const char** DivPlatformSupervision::getRegisterSheet() {
@@ -436,7 +436,7 @@ void DivPlatformSupervision::reset() {
   memset(tempL,0,32*sizeof(int));
   memset(tempR,0,32*sizeof(int));
   memset(noiseReg,0,3*sizeof(unsigned char));
-  memset(kon,0,3*sizeof(unsigned char));
+  memset(kon,0,4*sizeof(unsigned char));
   memset(initWrite,1,sizeof(unsigned char));
   sampleOffset=0;
 }
