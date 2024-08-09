@@ -399,7 +399,7 @@ void DivPlatformSID3::tick(bool sysTick)
           chan[i].oneBitNoise = chan[i].std.op[1].ar.val & 1;
           flagsChanged = true;
         }
-      }  
+      }
     }
     if (chan[i].std.ex8.had) { //wave mix mode
       chan[i].mix_mode = chan[i].std.ex8.val & 0xff;
@@ -664,8 +664,6 @@ int DivPlatformSID3::dispatch(DivCommand c) {
         chan[c.chan].ring = ins->c64.ringMod;
         chan[c.chan].phase = ins->sid3.phase_mod;
         chan[c.chan].oneBitNoise = ins->sid3.oneBitNoise;
-        chan[c.chan].oneBitNoise = ins->sid3.oneBitNoise;
-        chan[c.chan].oneBitNoise = ins->sid3.oneBitNoise;
 
         chan[c.chan].mix_mode = ins->sid2.mixMode;
 
@@ -805,8 +803,18 @@ int DivPlatformSID3::dispatch(DivCommand c) {
       return SID3_MAX_VOL;
       break;
     case DIV_CMD_WAVE:
-      chan[c.chan].wave = c.value & 0xff;
-      rWrite(SID3_REGISTER_WAVEFORM + c.chan * SID3_REGISTERS_PER_CHANNEL, chan[c.chan].wave);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SID3);
+
+      if(c.chan == SID3_NUM_CHANNELS - 1 && ins->sid3.doWavetable)
+      {
+        chan[c.chan].wavetable = c.value & 0xff;
+        ws.changeWave1(chan[c.chan].wave);
+      }
+      else
+      {
+        chan[c.chan].wave = c.value & 0xff;
+        rWrite(SID3_REGISTER_WAVEFORM + c.chan * SID3_REGISTERS_PER_CHANNEL, chan[c.chan].wave);
+      }
       break;
     case DIV_CMD_SID3_SPECIAL_WAVE:
       chan[c.chan].special_wave = c.value % SID3_NUM_SPECIAL_WAVES;
@@ -868,8 +876,18 @@ int DivPlatformSID3::dispatch(DivCommand c) {
       updateNoiseLFSRMask(c.chan);
       break;
     case DIV_CMD_SID3_1_BIT_NOISE:
-      chan[c.chan].oneBitNoise = c.value & 1;
-      updateFlags(c.chan, chan[c.chan].gate);
+      if(c.chan == SID3_NUM_CHANNELS - 1) //wave chan
+      {
+        rWrite(SID3_REGISTER_WAVEFORM + c.chan * SID3_REGISTERS_PER_CHANNEL, c.value & 1); //PCM mode
+      }
+      else
+      {
+        if((uint32_t)chan[c.chan].oneBitNoise != (c.value & 1))
+        {
+          chan[c.chan].oneBitNoise = c.value & 1;
+          updateFlags(c.chan, chan[c.chan].gate);
+        }
+      }
       break;
     case DIV_CMD_C64_FINE_DUTY:
       chan[c.chan].duty = (c.value & 0xfff) << 4;
