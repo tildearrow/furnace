@@ -585,6 +585,7 @@ int DivPlatformSID3::dispatch(DivCommand c) {
   if (c.chan>SID3_NUM_CHANNELS - 1) return 0;
 
   bool updEnv = false;
+  DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SID3);
 
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
@@ -803,8 +804,6 @@ int DivPlatformSID3::dispatch(DivCommand c) {
       return SID3_MAX_VOL;
       break;
     case DIV_CMD_WAVE:
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SID3);
-
       if(c.chan == SID3_NUM_CHANNELS - 1 && ins->sid3.doWavetable)
       {
         chan[c.chan].wavetable = c.value & 0xff;
