@@ -55,6 +55,7 @@ const char* regCheatSheetSupervision[]={
 unsigned char noiseReg[3];
 unsigned char kon[4];
 unsigned char initWrite[4];
+unsigned char initWrite2[4];
 
 const char** DivPlatformSupervision::getRegisterSheet() {
   return regCheatSheetSupervision;
@@ -164,8 +165,11 @@ void DivPlatformSupervision::tick(bool sysTick) {
         ntPos+=chan[i].pitch2;
         chan[i].freq=15-(ntPos&15);
         unsigned char r=(chan[i].freq<<4)|(chan[i].outVol&0xf);
-        if (noiseReg[0] != r) rWrite(0x28,r);
+        rWrite(0x28,r);
         noiseReg[0]=r;
+        rWrite(0x29,0xc8);
+        r=((chan[i].duty&1)^duty_swap)|(0x02|0x10)|(chan[i].pan<<2);
+        rWrite(0x2A,r);
       }
       if (chan[i].keyOn && i==2) {
         if (chan[i].pcm) {
@@ -213,8 +217,21 @@ void DivPlatformSupervision::tick(bool sysTick) {
         rWrite(0x12|(i<<2),(chan[i].outVol&0xf)|((chan[i].duty&3)<<4));
         rWrite(0x13|(i<<2),0xc8);
       } else if (i == 3) {
+        int ntPos=chan[i].baseFreq;
+        if (NEW_ARP_STRAT) {
+          if (chan[i].fixedArp) {
+            ntPos=chan[i].baseNoteOverride;
+          } else {
+            ntPos+=chan[i].arpOff;
+          }
+        }
+        ntPos+=chan[i].pitch2;
+        chan[i].freq=15-(ntPos&15);
+        unsigned char r=(chan[i].freq<<4)|(chan[i].outVol&0xf);
+        if (noiseReg[0] != r) rWrite(0x28,r);
+        noiseReg[0]=r;
         rWrite(0x29,0xc8);
-        unsigned char r=((chan[i].duty&1)^duty_swap)|(0x02|0x10)|(chan[i].pan<<2);
+        r=((chan[i].duty&1)^duty_swap)|(0x02|0x10)|(chan[i].pan<<2);
         if (noiseReg[2] != r) rWrite(0x2A,r);
         noiseReg[2]=r;
       } else if (i==2) {
@@ -436,8 +453,10 @@ void DivPlatformSupervision::reset() {
   memset(tempL,0,32*sizeof(int));
   memset(tempR,0,32*sizeof(int));
   memset(noiseReg,0,3*sizeof(unsigned char));
+  noiseReg[2]=0xff;
   memset(kon,0,4*sizeof(unsigned char));
-  memset(initWrite,1,sizeof(unsigned char));
+  memset(initWrite,1,4*sizeof(unsigned char));
+  memset(initWrite2,1,4*sizeof(unsigned char));
   sampleOffset=0;
 }
 
