@@ -183,6 +183,7 @@ void supervision_sound_stream_update(uint8 *stream, uint32 len)
             else
                 s = (sample & 0xf0) >> 4;
             s <<= 2;
+            s = ((ch_mask>>1)&1)?s:0;
             chout[2] = 0;
             if (m_dma.left) {
                 *left += s;
