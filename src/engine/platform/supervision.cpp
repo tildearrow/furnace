@@ -52,23 +52,27 @@ const char* regCheatSheetSupervision[]={
   NULL
 };
 
-unsigned char freqLo[2];
-unsigned char freqHi[2];
 unsigned char noiseReg[3];
 unsigned char kon[3];
+unsigned char initWrite[4];
 
 const char** DivPlatformSupervision::getRegisterSheet() {
   return regCheatSheetSupervision;
 }
 
 
-unsigned char* sampleMem = supervision_dma_mem;
+unsigned char* sampleMem=supervision_dma_mem;
 
-unsigned char duty_swap = 0;
-unsigned char otherFlags = 0;
+unsigned char duty_swap=0;
+unsigned char otherFlags=0;
 
 void DivPlatformSupervision::acquire(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
+    int mask_bits=0;
+    for (int i=0; i<4; i++)
+      mask_bits |= isMuted[i]?0:8>>i;
+    supervision_set_mute_mask(mask_bits);
+
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
       supervision_memorymap_registers_write(w.addr|0x2000,w.val);
@@ -110,7 +114,7 @@ void DivPlatformSupervision::tick(bool sysTick) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        int f = parent->calcArp(chan[i].note,chan[i].std.arp.val);
+        int f=parent->calcArp(chan[i].note,chan[i].std.arp.val);
         if (i==2 || i==3) {
           chan[i].baseFreq=f;
           //if (chan[i].baseFreq>255) chan[i].baseFreq=255;
@@ -142,12 +146,11 @@ void DivPlatformSupervision::tick(bool sysTick) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock<<1,CHIP_DIVIDER);
         if (chan[i].freq<1) chan[i].freq=1;
         if (chan[i].freq>2047) chan[i].freq=2047;
-        if (freqLo[i] != (chan[i].freq&0xff))
-          rWrite(0x10|(i<<2),chan[i].freq&0xff);
-        freqLo[i] = chan[i].freq&0xff;
-        if (freqHi[i] != ((chan[i].freq>>8)&0xff))
-          rWrite(0x11|(i<<2),(chan[i].freq>>8)&0xff);
-        freqHi[i] = (chan[i].freq>>8)&0xff;
+        if (chan[i].freqChanged || initWrite[i]) {
+            rWrite(0x10|(i<<2),chan[i].freq&0xff);
+            rWrite(0x11|(i<<2),(chan[i].freq>>8)&0x7);
+        }
+        initWrite[i]=0;
       } else if (i == 3) {
         int ntPos=chan[i].baseFreq;
         if (NEW_ARP_STRAT) {
@@ -159,9 +162,9 @@ void DivPlatformSupervision::tick(bool sysTick) {
         }
         ntPos+=chan[i].pitch2;
         chan[i].freq=15-(ntPos&15);
-        unsigned char r = (chan[i].freq<<4)|(chan[i].outVol&0xf);
+        unsigned char r=(chan[i].freq<<4)|(chan[i].outVol&0xf);
         if (noiseReg[0] != r) rWrite(0x28,r);
-        noiseReg[0] = r;
+        noiseReg[0]=r;
       }
       if (chan[i].keyOn && i==2) {
         if (chan[i].pcm) {
@@ -182,8 +185,20 @@ void DivPlatformSupervision::tick(bool sysTick) {
           }
         }
       }
-      if (chan[i].keyOn) kon[i] = 1;
-      if (chan[i].keyOff) kon[i] = 0;
+      if (chan[i].keyOff && i==2) {
+        if (chan[i].pcm) {
+          int ntPos=chan[i].sampleNote;
+          ntPos+=chan[i].pitch2;
+          chan[i].freq=3-(ntPos&3);
+          int sNum=chan[i].sample;
+          DivSample* sample=parent->getSample(sNum);
+          if (sample!=NULL && sNum>=0 && sNum<parent->song.sampleLen) {
+            rWrite(0x1C,0x00);
+          }
+        }
+      }
+      if (chan[i].keyOn) kon[i]=1;
+      if (chan[i].keyOff) kon[i]=0;
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
@@ -195,9 +210,9 @@ void DivPlatformSupervision::tick(bool sysTick) {
         rWrite(0x13|(i<<2),0xc8);
       } else if (i == 3) {
         rWrite(0x29,0xc8);
-        unsigned char r = ((chan[i].duty&1)^duty_swap)|(0x02|0x10)|(chan[i].pan<<2);
+        unsigned char r=((chan[i].duty&1)^duty_swap)|(0x02|0x10)|(chan[i].pan<<2);
         if (noiseReg[2] != r) rWrite(0x2A,r);
-        noiseReg[2] = r;
+        noiseReg[2]=r;
       }
     } else {
       if (i < 2) {
@@ -205,9 +220,9 @@ void DivPlatformSupervision::tick(bool sysTick) {
         rWrite(0x13|(i<<2),0xc8);
       } else if (i == 3) {
         rWrite(0x29,0);
-        unsigned char r = 0;
+        unsigned char r=0;
         if (noiseReg[2] != r) rWrite(0x2A,r);
-        noiseReg[2] = r;
+        noiseReg[2]=r;
       }
     }
 
@@ -346,10 +361,6 @@ int DivPlatformSupervision::dispatch(DivCommand c) {
 
 void DivPlatformSupervision::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  int mask_bits = 0;
-  for (int i=0; i<4; i++)
-    mask_bits |= isMuted[i]?0:8>>i;
-  supervision_set_mute_mask(mask_bits);
 }
 
 void DivPlatformSupervision::forceIns() {
@@ -395,8 +406,7 @@ void DivPlatformSupervision::reset() {
   memset(tempR,0,32*sizeof(int));
   memset(noiseReg,0,3*sizeof(unsigned char));
   memset(kon,0,3*sizeof(unsigned char));
-  memset(freqLo,0,sizeof(unsigned char));
-  memset(freqHi,0,sizeof(unsigned char));
+  memset(initWrite,1,sizeof(unsigned char));
 }
 
 int DivPlatformSupervision::getOutputCount() {
@@ -415,11 +425,11 @@ void DivPlatformSupervision::notifyInsDeletion(void* ins) {
 
 void DivPlatformSupervision::setFlags(const DivConfig& flags) {
   if (flags.getInt("swapDuty",0)) {
-    duty_swap = 1;
+    duty_swap=1;
   } else {
-    duty_swap = 0;
+    duty_swap=0;
   }
-  otherFlags = 0;
+  otherFlags=0;
   if (flags.getInt("sqStereo",0)) {
     otherFlags |= 1;
   }
@@ -491,16 +501,16 @@ void DivPlatformSupervision::renderSamples(int sysID) {
       break;
     }
     if (memPos+paddedLen>=getSampleMemCapacity(0)) {
-      sampleLen[i] = (getSampleMemCapacity(0)-memPos)>>1;
+      sampleLen[i]=(getSampleMemCapacity(0)-memPos)>>1;
       for (size_t i=0; i<(getSampleMemCapacity(0)-memPos)>>1; i++) {
           sampleMem[memPos+i]=(((s->data8[i*2+0]+128)>>4)<<4&0xf0)|(((s->data8[i*2+1]+128)>>4)&0xf);
       }
       logW("out of memory for sample %d!",i);
     } else {
-      size_t len = MIN((s->length8>>1),paddedLen);
-      sampleLen[i] = (unsigned int)len;
+      size_t len=MIN((s->length8>>1),paddedLen);
+      sampleLen[i]=(unsigned int)len;
       for (size_t i=0; i<len>>1; i++) {
-          sampleMem[memPos+i] = (((s->data8[i*2+0]+128)>>4)<<4&0xf0)|(((s->data8[i*2+1]+128)>>4)&0xf);
+          sampleMem[memPos+i]=(((s->data8[i*2+0]+128)>>4)<<4&0xf0)|(((s->data8[i*2+1]+128)>>4)&0xf);
       }
       sampleLoaded[i]=true;
     }
