@@ -15,11 +15,11 @@ it features echo and up to 16 voices.
 
 - `10xx`: **change wave.**
 - `11xy`: **configure echo.**
-  - this effect is kinda odd. this is how it works:
-
-> How do you echo on GBA
->
-> Create an empty instrment and put a very high note of it in channel 1 then do 110x in effect column and set volume column to set feedback and do nothing else on it
+  - this effect is kinda odd. here's how to use it:
+    - create an empty instrument and put a very high note of it in channel 1.
+    - put `110x` in the effect column.
+    - set volume column to set feedback.
+    - don't use the channel for anything else.
 
 - `12xy`: **toggle invert.**
   - `x` left channel.

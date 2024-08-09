@@ -59,13 +59,15 @@ Furnace also allows the SNES to use wavetables (and the wavetable synthesizer) i
     - `00` to `7F` for 0 to 127.
     - `80` to `FF` for -128 to -1.
   - note: be sure the sum of all coefficients is between -128 and 127. sums outside that may result in overflow and therefore clicking.
-  - see [SnesLab](https://sneslab.net/wiki/FIR_Filter) for a full explanation and examples.
+  - see SnesLab for [echo filter explanations and examples](https://sneslab.net/wiki/FIR_Filter#Uses).
 
 ## info
 
 this chip uses the [SNES](../4-instrument/snes.md) instrument editor.
 
 when two channels are joined for pitch modulation, the channel bar will show `mod` on a bracket tying them together.
+
+when using sample offset commands, be sure to open each involved sample in the sample editor, look to the "Info" section at the top-left, and check the "no BRR filters" box. this prevents sound glitches, at the cost of lowering the sample quality to 4-bit.
 
 ## channel status
 
@@ -93,6 +95,8 @@ the following options are available in the Chip Manager window:
 - **Feedback**: sets how much of the echo output will be fed back into the buffer.
 - **Echo volume**: sets echo volume.
 - **Echo filter**: adjusts echo filter.
+- **Dec/Hex**: toggles decimal or hexadecimal mode for the filter settings text entry box to the right.
+  - SnesLab provides [echo filter explanations and examples](https://sneslab.net/wiki/FIR_Filter#Uses). their example filter strings can be pasted directly into the filter settings text entry box if set to Hex mode.
 
 ## ADSR
 

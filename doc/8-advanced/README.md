@@ -8,22 +8,27 @@ as listed in the "Edit" menu:
 
 as listed in the "Window" menu:
 
-- [mixer](mixer.md)
-- [grooves](grooves.md)
-- [channel manager](channels.md)
-- [pattern manager](pat-manager.md)
-- [chip manager](chip-manager.md)
-- [compatibility flags](compat-flags.md)
-- [song comments](comments.md)
-
-- [piano](piano.md)
-- [oscilloscope](osc.md)
-- [oscilloscope (X-Y)](xyosc.md)
-- [oscilloscopes (per-channel)](chanosc.md)
-- [clock](clock.md)
-- [register view](regview.md)
-- [log viewer](log-viewer.md)
-- [stats](stats.md)
+- song
+  - [song comments](../8-advanced/comments.md)
+  - [channels](../8-advanced/channels.md)
+  - [chip manager](../8-advanced/chip-manager.md)
+  - [pattern manager](../8-advanced/pat-manager.md)
+  - [mixer](../8-advanced/mixer.md)
+  - [compatibility flags](../8-advanced/compat-flags.md)
+- visualizers
+  - [oscilloscope](../8-advanced/osc.md)
+  - [oscilloscope (per-channel)](../8-advanced/chanosc.md)
+  - [oscilloscope (X-Y)](../8-advanced/xyosc.md)
+  - volume meter
+- tempo
+  - [clock](../8-advanced/clock.md)
+  - [grooves](../8-advanced/grooves.md)
+- debug
+  - [log viewer](../8-advanced/log-viewer.md)
+  - [register view](../8-advanced/regview.md)
+  - [statistics](../8-advanced/stats.md)
+  - [memory composition](../8-advanced/memory-composition.md)
+- [piano/input pad](../8-advanced/piano.md)
 
 other:
 
