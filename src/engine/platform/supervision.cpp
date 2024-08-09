@@ -65,6 +65,7 @@ unsigned char* sampleMem=supervision_dma_mem;
 
 unsigned char duty_swap=0;
 unsigned char otherFlags=0;
+unsigned int sampleOffset=0;
 
 void DivPlatformSupervision::acquire(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
@@ -175,13 +176,16 @@ void DivPlatformSupervision::tick(bool sysTick) {
           DivSample* sample=parent->getSample(sNum);
           if (sample!=NULL && sNum>=0 && sNum<parent->song.sampleLen) {
             unsigned int off=MIN(sampleOff[sNum]+chan[i].hasOffset,sampleOff[sNum]+sampleLen[sNum]);
-            unsigned int len=MAX(sampleLen[sNum]-chan[i].hasOffset,0);
+            unsigned int len=MAX((((int)sampleLen[sNum])-((int)chan[i].hasOffset)),0);
+            if (len) {
+              rWrite(0x18,off&0xff);
+              rWrite(0x19,(off>>8&0x3f)|0x80);
+              rWrite(0x1A,MIN(MAX(len>>4,0),255));
+              rWrite(0x1B,chan[i].freq|((chan[i].pan&3)<<2)|((off>>14&7)<<4));
+              rWrite(0x1C,0x80);
+            }
+            sampleOffset=chan[i].hasOffset;
             chan[i].hasOffset=0;
-            rWrite(0x18,off&0xff);
-            rWrite(0x19,(off>>8&0x3f)|0x80);
-            rWrite(0x1A,MIN(MAX(len>>4,0),255));
-            rWrite(0x1B,chan[i].freq|((chan[i].pan&3)<<2)|((off>>14&7)<<4));
-            rWrite(0x1C,0x80);
           }
         }
       }
@@ -213,6 +217,26 @@ void DivPlatformSupervision::tick(bool sysTick) {
         unsigned char r=((chan[i].duty&1)^duty_swap)|(0x02|0x10)|(chan[i].pan<<2);
         if (noiseReg[2] != r) rWrite(0x2A,r);
         noiseReg[2]=r;
+      } else if (i==2) {
+        if (chan[i].pcm) {
+          int ntPos=chan[i].sampleNote;
+          ntPos+=chan[i].pitch2;
+          chan[i].freq=3-(ntPos&3);
+          int sNum=chan[i].sample;
+          DivSample* sample=parent->getSample(sNum);
+          if (sample!=NULL && sNum>=0 && sNum<parent->song.sampleLen) {
+            unsigned int off=MIN(sampleOff[sNum]+sampleOffset,sampleOff[sNum]+sampleLen[sNum]);
+            unsigned int len=MAX((((int)sampleLen[sNum])-((int)sampleOffset)),0);
+            if (len) {
+              rWrite(0x1A,MIN(MAX(len>>4,0),255));
+              if (chan[i].outVol==0) {
+                rWrite(0x1B,chan[i].freq|((off>>14&7)<<4));
+              } else {
+                rWrite(0x1B,chan[i].freq|((chan[i].pan&3)<<2)|((off>>14&7)<<4));
+              }
+            }
+          }
+        }
       }
     } else {
       if (i < 2) {
@@ -407,6 +431,7 @@ void DivPlatformSupervision::reset() {
   memset(noiseReg,0,3*sizeof(unsigned char));
   memset(kon,0,3*sizeof(unsigned char));
   memset(initWrite,1,sizeof(unsigned char));
+  sampleOffset=0;
 }
 
 int DivPlatformSupervision::getOutputCount() {
@@ -508,8 +533,8 @@ void DivPlatformSupervision::renderSamples(int sysID) {
       logW("out of memory for sample %d!",i);
     } else {
       size_t len=MIN((s->length8>>1),paddedLen);
-      sampleLen[i]=(unsigned int)len;
-      for (size_t i=0; i<len>>1; i++) {
+      sampleLen[i]=(unsigned int)(len);
+      for (size_t i=0; i<len; i++) {
           sampleMem[memPos+i]=(((s->data8[i*2+0]+128)>>4)<<4&0xf0)|(((s->data8[i*2+1]+128)>>4)&0xf);
       }
       sampleLoaded[i]=true;
