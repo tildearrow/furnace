@@ -24,7 +24,7 @@
 #include "ta-log.h"
 
 template<typename T, size_t items> struct FixedQueue {
-  size_t readPos, writePos;
+  size_t readPos, curSize;
   T data[items];
 
   T& operator[](size_t pos);
@@ -41,17 +41,21 @@ template<typename T, size_t items> struct FixedQueue {
   bool push_back(const T& item);
   void clear();
   bool empty();
+  size_t writePos();
   size_t size();
+  size_t capacity();
   FixedQueue():
     readPos(0),
-    writePos(0) {}
+    curSize(0) {}
 };
 
 template <typename T, size_t items> T& FixedQueue<T,items>::operator[](size_t pos) {
-  if (pos>=size()) {
+  if (pos>=curSize) {
     logW("accessing invalid position. bug!");
   }
-  return data[(readPos+pos)%items];
+  size_t idx=readPos+pos;
+  if (idx>=items) idx-=items;
+  return data[idx];
 }
 
 template <typename T, size_t items> T& FixedQueue<T,items>::front() {
@@ -59,12 +63,13 @@ template <typename T, size_t items> T& FixedQueue<T,items>::front() {
 }
 
 template <typename T, size_t items> T& FixedQueue<T,items>::back() {
-  if (writePos==0) return data[items-1];
-  return data[writePos-1];
+  if (curSize==0) return data[0];
+  size_t idx=readPos+curSize-1;
+  if (idx>=items) idx-=items;
+  return data[idx];
 }
 
 template <typename T, size_t items> bool FixedQueue<T,items>::erase(size_t pos) {
-  size_t curSize=size();
   if (pos>=curSize) {
     logW("accessing invalid position. bug!");
     return false;
@@ -84,72 +89,56 @@ template <typename T, size_t items> bool FixedQueue<T,items>::erase(size_t pos) 
     p1++;
   }
 
-  if (writePos>0) {
-    writePos--;
-  } else {
-    writePos=items-1;
-  }
-  
+  curSize--;  
   return true;
 }
 
 template <typename T, size_t items> bool FixedQueue<T,items>::pop() {
-  if (readPos==writePos) return false;
-  if (++readPos>=items) readPos=0;
+  if (curSize==0) return false;
+  curSize--;
   return true;
 }
 
 template <typename T, size_t items> bool FixedQueue<T,items>::push(const T& item) {
-  if (writePos==(readPos-1)) {
+  if (curSize==items) {
     //logW("queue overflow!");
     return false;
   }
-  if (writePos==items-1 && readPos==0) {
-    //logW("queue overflow!");
-    return false;
-  }
-  data[writePos]=item;
-  if (++writePos>=items) writePos=0;
+  size_t idx=readPos+curSize;
+  if (idx>=items) { idx-=items; }
+  data[idx]=item;
+  curSize++;
   return true;
 }
 
 template <typename T, size_t items> bool FixedQueue<T,items>::pop_front() {
-  if (readPos==writePos) return false;
+  if (curSize==0) return false;
   if (++readPos>=items) readPos=0;
+  curSize--;
   return true;
 }
 
 template <typename T, size_t items> bool FixedQueue<T,items>::push_back(const T& item) {
-  if (writePos==(readPos-1)) {
+  if (curSize==items) {
     //logW("queue overflow!");
     return false;
   }
-  if (writePos==items-1 && readPos==0) {
-    //logW("queue overflow!");
-    return false;
-  }
-  data[writePos]=item;
-  if (++writePos>=items) writePos=0;
+  size_t idx=readPos+curSize;
+  if (idx>=items) { idx-=items; }
+  data[idx]=item;
+  curSize++;
   return true;
 }
 
 template <typename T, size_t items> bool FixedQueue<T,items>::pop_back() {
-  if (readPos==writePos) return false;
-  if (writePos>0) {
-    writePos--;
-  } else {
-    writePos=items-1;
-  }
+  if (curSize==0) return false;
+  curSize--;
   return true;
 }
 
 template <typename T, size_t items> bool FixedQueue<T,items>::push_front(const T& item) {
-  if (readPos==(writePos+1)) {
-    //logW("stack overflow!");
-    return false;
-  }
-  if (readPos==0 && writePos==items-1) {
-    //logW("stack overflow!");
+  if (curSize==items) {
+    //logW("queue overflow!");
     return false;
   }
   if (readPos>0) {
@@ -158,23 +147,31 @@ template <typename T, size_t items> bool FixedQueue<T,items>::push_front(const T
     readPos=items-1;
   }
   data[readPos]=item;
+  curSize++;
   return true;
 }
 
 template <typename T, size_t items> void FixedQueue<T,items>::clear() {
   readPos=0;
-  writePos=0;
+  curSize=0;
 }
 
 template <typename T, size_t items> bool FixedQueue<T,items>::empty() {
-  return (readPos==writePos);
+  return curSize==0;
+}
+
+template <typename T, size_t items> size_t FixedQueue<T,items>::writePos() {
+  size_t idx=readPos+curSize;
+  if (idx>=items) { idx-=items; }
+  return idx;
 }
 
 template <typename T, size_t items> size_t FixedQueue<T,items>::size() {
-  if (readPos>writePos) {
-    return items+writePos-readPos;
-  }
-  return writePos-readPos;
+  return curSize;
+}
+
+template <typename T, size_t items> size_t FixedQueue<T,items>::capacity() {
+  return items;
 }
 
 #endif

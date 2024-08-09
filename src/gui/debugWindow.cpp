@@ -603,7 +603,7 @@ void FurnaceGUI::drawDebug() {
     }
     if (ImGui::TreeNode("Recent Files")) {
       ImGui::Text("Items: %d - Max: %d",(int)recentFile.size(),settings.maxRecentFile);
-      ImGui::Text("readPos: %d - writePos: %d",(int)recentFile.readPos,(int)recentFile.writePos);
+      ImGui::Text("readPos: %d - writePos: %d",(int)recentFile.readPos,(int)recentFile.writePos());
       ImGui::Indent();
       for (size_t i=0; i<recentFile.size(); i++) {
         ImGui::Text("%d: %s",(int)i,recentFile[i].c_str());
