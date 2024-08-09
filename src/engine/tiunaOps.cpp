@@ -347,9 +347,13 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
   std::vector<int> callTicks;
   int cmId=0;
   int cmdSize=renderedCmds.size();
-  std::vector<bool> processed=std::vector<bool>(cmdSize,false);
+  bool* processed=new bool[cmdSize];
+  memset(processed,0,cmdSize*sizeof(bool));
+  logI("max cmId: %d",(MAX(firstBankSize/1024,1))*256);
   while (firstBankSize>768 && cmId<(MAX(firstBankSize/1024,1))*256) {
+    logI("start CM %04x...",cmId);
     std::map<int,TiunaMatches> potentialMatches;
+    logD("scan %d size...",cmdSize-1);
     for (int i=0; i<cmdSize-1;) {
       // continue and skip if it's part of previous confirmed matches
       while (i<cmdSize-1 && processed[i]) i++;
@@ -357,7 +361,8 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
       std::vector<TiunaMatch> match;
       int ch=renderedCmds[i].ch;
       for (int j=i+1; j<cmdSize;) {
-        while (j<cmdSize && processed[i]) j++;
+        if (processed[i]) break;
+        //while (j<cmdSize && processed[i]) j++;
         if (j>=cmdSize) break;
         int k=0;
         int ticks=0;
@@ -421,9 +426,13 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
       }
       i++;
     }
-    if (potentialMatches.empty()) break;
+    if (potentialMatches.empty()) {
+      logV("potentialMatches is empty");
+      break;
+    }
     int maxPMIdx=0;
     int maxPMVal=0;
+    logV("looking through potentialMatches...");
     for (const auto& i: potentialMatches) {
       if (i.second.bytesSaved>maxPMVal) {
         maxPMVal=i.second.bytesSaved;
@@ -431,14 +440,17 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
       }
     }
     int maxPMLen=potentialMatches[maxPMIdx].length;
+    logV("the other step...");
     for (const int i: potentialMatches[maxPMIdx].pos) {
       confirmedMatches.push_back({i,i+maxPMLen,0,cmId});
-      std::fill(processed.begin()+i,processed.begin()+(i+maxPMLen),true);
+      memset(processed+i,1,maxPMLen);
+      //std::fill(processed.begin()+i,processed.begin()+(i+maxPMLen),true);
     }
     callTicks.push_back(potentialMatches[maxPMIdx].ticks);
     logI("CM %04x added: pos=%d,len=%d,matches=%d,saved=%d",cmId,maxPMIdx,maxPMLen,potentialMatches[maxPMIdx].pos.size(),maxPMVal);
     cmId++;
   }
+  delete[] processed;
   std::sort(confirmedMatches.begin(),confirmedMatches.end(),[](const TiunaMatch& l, const TiunaMatch& r){
     return l.pos<r.pos;
   });
