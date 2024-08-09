@@ -155,43 +155,76 @@ void DivPlatformAY8910::runDAC() {
 }
 
 void DivPlatformAY8910::runTFX() {
-  if (selCore) return;
+  /*
+  developer's note: if you are checking for intellivision
+  make sure to add "&& selCore"
+  because for some reason, the register remap doesn't work
+  when the user uses AtomicSSG core
+  */
   int timerPeriod, output;
   for (int i=0; i<3; i++) {
     if (chan[i].active && (chan[i].curPSGMode.val&16) && !(chan[i].curPSGMode.val&8) && chan[i].tfx.mode!=-1) {
+      if (chan[i].tfx.mode == -1 && !isMuted[i]) {
+        /*
+        bug: if in the timer FX macro the user enables
+        and then disables PWM while there is no volume macro
+        there is now a random chance that the resulting output
+        is silent or has volume set incorrectly
+        i've tried to implement a fix, but it seems to be
+        ineffective, so...
+        TODO: actually implement a proper fix
+        */
+        if (intellivision && chan[i].curPSGMode.getEnvelope()) {
+          immWrite(0x08+i,(chan[i].outVol&0xc)<<2);
+          continue;
+        } else {
+          immWrite(0x08+i,(chan[i].outVol&15)|((chan[i].curPSGMode.getEnvelope())<<2));
+          continue;
+        }
+      }
       chan[i].tfx.counter += 1;
       if (chan[i].tfx.counter >= chan[i].tfx.period && chan[i].tfx.mode == 0) {
         chan[i].tfx.counter = 0;
         chan[i].tfx.out ^= 1;
-        output = MAX(0, ((chan[i].tfx.out) ? (chan[i].outVol&15) : (chan[i].tfx.lowBound-(15-chan[i].outVol))));
-        output &= 15;
+        output = ((chan[i].tfx.out) ? chan[i].outVol : (chan[i].tfx.lowBound-(15-chan[i].outVol)));
+        // TODO: fix this stupid crackling noise that happens
+        // everytime the volume changes
+        output = (output <= 0) ? 0 : output; // underflow
+        output = (output >= 15) ? 15 : output; // overflow
+        output &= 15; // i don't know if i need this but i'm too scared to remove it
         if (!isMuted[i]) {
-          immWrite(0x08+i,output|(chan[i].curPSGMode.getEnvelope()<<2));
+          if (intellivision && selCore) {
+            immWrite(0x0b+i,(output&0xc)<<2);
+          } else {
+            immWrite(0x08+i,output|(chan[i].curPSGMode.getEnvelope()<<2));
+          }
         }
       }
       if (chan[i].tfx.counter >= chan[i].tfx.period && chan[i].tfx.mode == 1) {
         chan[i].tfx.counter = 0;
         if (!isMuted[i]) {
-          immWrite(0xd, ayEnvMode);
+          if (intellivision && selCore) {
+            immWrite(0xa, ayEnvMode);
+          } else {
+            immWrite(0xd, ayEnvMode);
+          }
         }
       }
       if (chan[i].tfx.counter >= chan[i].tfx.period && chan[i].tfx.mode == 2) {
         chan[i].tfx.counter = 0;
       }
-      if (chan[i].tfx.mode == -1 && !isMuted[i]) {
-        if (intellivision && chan[i].curPSGMode.getEnvelope()) {
-          immWrite(0x08+i,(chan[i].outVol&0xc)<<2);
-        } else {
-          immWrite(0x08+i,(chan[i].outVol&15)|((chan[i].curPSGMode.getEnvelope())<<2));
-        }
-      }
     }
     if (chan[i].tfx.num > 0) {
-            timerPeriod = chan[i].freq*chan[i].tfx.den/chan[i].tfx.num;
-          } else {
-            timerPeriod = chan[i].freq*chan[i].tfx.den;
-          }
+      timerPeriod = chan[i].freq*chan[i].tfx.den/chan[i].tfx.num;
+    } else {
+      timerPeriod = chan[i].freq*chan[i].tfx.den;
+    }
     if (chan[i].tfx.num > 0 && chan[i].tfx.den > 0) chan[i].tfx.period=timerPeriod+chan[i].tfx.offset;
+    // stupid pitch correction because:
+    // YM2149 half-clock and Sunsoft 5B: timers run an octave too high
+    // on AtomicSSG core timers run 2 octaves too high
+    if (clockSel || sunsoft) chan[i].tfx.period	= chan[i].tfx.period * 2;
+    if (selCore) chan[i].tfx.period = chan[i].tfx.period * 4;
   }
 }
 
@@ -388,6 +421,7 @@ void DivPlatformAY8910::tick(bool sysTick) {
     if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
         chan[i].tfx.counter = 0;
+        chan[i].tfx.out = 0;
         if (chan[i].nextPSGMode.val&8) {
           if (dumpWrites) addWrite(0xffff0002+(i<<8),0);
           if (chan[i].dac.sample<0 || chan[i].dac.sample>=parent->song.sampleLen) {
@@ -726,12 +760,10 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_STD_NOISE_MODE:
-      if (c.value&0xf0 && !(chan[c.chan].nextPSGMode.val&8)) {
-        chan[c.chan].nextPSGMode.val|=16;
-        chan[c.chan].tfx.mode = (c.value&3);
-      }
       if (!(chan[c.chan].nextPSGMode.val&8)) {
-        if (c.value<16) {
+        chan[c.chan].nextPSGMode.val|=16;
+        chan[c.chan].tfx.mode=(((c.value&0xf0)>>4)&3)-1;
+        if ((c.value&15)<16) {
           chan[c.chan].nextPSGMode.val=(c.value+1)&7;
           chan[c.chan].nextPSGMode.val|=chan[c.chan].curPSGMode.val&16;
           if (chan[c.chan].active) {
@@ -805,9 +837,16 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       updateOutSel(true);
       immWrite(14+(c.value?1:0),(c.value?portBVal:portAVal));
       break;
-    case DIV_CMD_AY_AUTO_PWM:
-      chan[c.chan].tfx.offset=c.value;
+    case DIV_CMD_AY_NOISE_MASK_AND:
+      chan[c.chan].tfx.num=c.value>>4;
+      chan[c.chan].tfx.den=c.value&15;
       break;
+    case DIV_CMD_AY_AUTO_PWM: {
+      // best way i could find to do signed :/
+      signed char signVal=c.value;
+      chan[c.chan].tfx.offset=signVal;
+      break;
+    }
     case DIV_CMD_SAMPLE_MODE:
       if (c.value>0) {
         chan[c.chan].nextPSGMode.val|=8;
