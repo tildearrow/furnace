@@ -5917,7 +5917,9 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
 
       ImGui::TableNextColumn();
 
-      drawWaveformSID3(ins->sid3.special_wave,ImVec2(140.0f * dpiScale, 90.0f * dpiScale));
+      CENTER_TEXT(_("Special wave preview"));
+      ImGui::TextUnformatted(_("Special wave preview"));
+      drawWaveformSID3(ins->sid3.special_wave,ImVec2(120.0f * dpiScale, 70.0f * dpiScale));
 
       ImGui::EndTable();
     }
