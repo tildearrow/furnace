@@ -283,6 +283,10 @@ int DivPlatformSupervision::dispatch(DivCommand c) {
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].sample=ins->amiga.getSample(c.value);
           chan[c.chan].sampleNote=c.value;
+          if (c.chan==2) {
+            c.value=ins->amiga.getFreq(c.value);
+            chan[c.chan].sampleNote=c.value;
+          }
         }
       } else {
         chan[c.chan].sampleNote=DIV_NOTE_NULL;
