@@ -2978,6 +2978,19 @@ int32_t sid3_process_wave_channel_filters_block(sid3_wavetable_chan* ch)
                     break;
             }
 
+            if(ch->filt.filt[i].distortion_level > 0)
+            {
+                if(Vo > 0.0)
+                {
+                    Vo = (tanh((Vo / 39767.0) * ch->filt.filt[i].distortion_multiplier) / ch->filt.filt[i].tanh_distortion_multiplier) * 39767.0;
+                }
+                else
+                {
+                    double ahh = (Vo / 39767.0) * ch->filt.filt[i].distortion_multiplier;
+                    Vo = ((exp(ahh) - 1.0) / ch->filt.filt[i].tanh_distortion_multiplier) * 39767.0;
+                }
+            }
+
             ch->filt.filt[i].output = Vo * ch->filt.filt[i].output_volume / 0xff;
         }
         else
