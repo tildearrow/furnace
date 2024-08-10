@@ -51,6 +51,9 @@ struct DivROMExportProgress {
 };
 
 class DivROMExport {
+  std::vector<String> exportLog;
+  std::mutex logLock;
+  void logAppend(String what);
   public:
     virtual bool go(DivEngine* eng);
     virtual void abort();
