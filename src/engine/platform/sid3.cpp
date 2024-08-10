@@ -454,6 +454,13 @@ void DivPlatformSID3::tick(bool sysTick)
         ch_filt->filter_matrix=op->ksl.val & 0xf;
         doUpdateFilter = true;
       }
+      if (op->ksr.had) { //filter mode
+        ch_filt->mode &= ~(SID3_FILTER_LP | SID3_FILTER_HP | SID3_FILTER_BP);
+        if(op->ksr.val & 1) ch_filt->mode |= SID3_FILTER_LP;
+        if(op->ksr.val & 2) ch_filt->mode |= SID3_FILTER_BP;
+        if(op->ksr.val & 4) ch_filt->mode |= SID3_FILTER_HP;
+        doUpdateFilter = true;
+      }
 
       if(doUpdateFilter)
       {
