@@ -143,6 +143,9 @@ typedef struct
     float w0, w0_ceil_1;
     float _1024_div_Q;
 
+    double distortion_multiplier; //pre-calculated distortion multiplier for tanh() simple distortion
+    double tanh_distortion_multiplier; //pre-calculated tanh(distortion multiplier)
+
     uint16_t cutoff;
     uint8_t resonance;
     uint8_t distortion_level;

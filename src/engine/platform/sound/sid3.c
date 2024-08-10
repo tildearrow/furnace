@@ -2484,13 +2484,16 @@ void sid3_set_filter_settings(sid3_filter* filt)
 
     // Multiply with 1.048576 to facilitate division by 1 000 000 by right-
     // shifting 20 times (2 ^ 20 = 1048576).
-    filt->w0 = (2.0*pi*(float)filt->cutoff) / 500000.0 / 5.0; // "/ 12.0" bc we have 16 bit cutoff instead of 12-bit
+    filt->w0 = (2.0*pi*(float)filt->cutoff) / 500000.0 / 5.0; // "/ 5.0" bc we have 16 bit cutoff instead of 12-bit
 
     // Limit f0 to 16kHz to keep 1 cycle filter stable.
     const float w0_max_1 = (2.0*pi*20000.0) / 500000.0;
     filt->w0_ceil_1 = filt->w0 <= w0_max_1 ? filt->w0 : w0_max_1;
 
     filt->_1024_div_Q = (1.0/(0.707 + 4.0*(float)filt->resonance/(float)0x0ff));
+
+    filt->distortion_multiplier = (double)filt->distortion_level / 16.0;
+    filt->tanh_distortion_multiplier = tanh(filt->distortion_multiplier);
 }
 
 int32_t sid3_get_waveform(SID3* sid3, sid3_channel* ch)
@@ -2861,6 +2864,19 @@ int32_t sid3_process_filters_block(sid3_channel* ch)
                 case SID3_FILTER_BP | SID3_FILTER_HP | SID3_FILTER_LP:
                     Vo = ch->filt.filt[i].Vlp + ch->filt.filt[i].Vbp + ch->filt.filt[i].Vhp;
                     break;
+            }
+
+            if(ch->filt.filt[i].distortion_level > 0)
+            {
+                if(Vo > 0.0)
+                {
+                    Vo = (tanh((Vo / 39767.0) * ch->filt.filt[i].distortion_multiplier) / ch->filt.filt[i].tanh_distortion_multiplier) * 39767.0;
+                }
+                else
+                {
+                    double ahh = (Vo / 39767.0) * ch->filt.filt[i].distortion_multiplier;
+                    Vo = ((exp(ahh) - 1.0) / ch->filt.filt[i].tanh_distortion_multiplier) * 39767.0;
+                }
             }
 
             ch->filt.filt[i].output = Vo * ch->filt.filt[i].output_volume / 0xff;
@@ -3541,10 +3557,12 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
             if(channel != SID3_NUM_CHANNELS - 1)
             {
                 sid3->chan[channel].filt.filt[filter].distortion_level = data;
+                sid3_set_filter_settings(&sid3->chan[channel].filt.filt[filter]);
             }
             else
             {
                 sid3->wave_chan.filt.filt[filter].distortion_level = data;
+                sid3_set_filter_settings(&sid3->wave_chan.filt.filt[filter]);
             }
             break;
         }
