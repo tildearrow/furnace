@@ -22,8 +22,11 @@
 class DivExportAmigaValidation: public DivROMExport {
   DivEngine* e;
   std::thread* exportThread;
+  bool running;
   void run();
   public:
     bool go(DivEngine* e);
+    void abort();
+    void wait();
     ~DivExportAmigaValidation() {}
 };

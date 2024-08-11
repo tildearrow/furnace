@@ -271,10 +271,24 @@ void DivExportAmigaValidation::run() {
   output.push_back(DivROMExportOutput("sample.bin",sample));
   output.push_back(DivROMExportOutput("wave.bin",wave));
   output.push_back(DivROMExportOutput("seq.bin",seq));
+
+  running=false;
 }
 
 bool DivExportAmigaValidation::go(DivEngine* eng) {
   e=eng;
+  running=true;
   exportThread=new std::thread(&DivExportAmigaValidation::run,this);
   return true;
+}
+
+void DivExportAmigaValidation::wait() {
+  if (exportThread!=NULL) {
+    exportThread->join();
+    delete exportThread;
+  }
+}
+
+bool DivExportAmigaValidation::isRunning() {
+  return running;
 }

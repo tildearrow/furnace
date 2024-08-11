@@ -62,6 +62,7 @@ class DivROMExport {
     virtual void wait();
     std::vector<DivROMExportOutput>& getResult();
     virtual bool hasFailed();
+    virtual bool isRunning();
     virtual DivROMExportProgress getProgress();
     virtual ~DivROMExport() {}
 };

@@ -51,3 +51,7 @@ void DivROMExport::logAppend(String what) {
 
 void DivROMExport::wait() {
 }
+
+bool DivROMExport::isRunning() {
+  return false;
+}
