@@ -289,6 +289,10 @@ void DivExportAmigaValidation::wait() {
   }
 }
 
+void DivExportAmigaValidation::abort() {
+  wait();
+}
+
 bool DivExportAmigaValidation::isRunning() {
   return running;
 }

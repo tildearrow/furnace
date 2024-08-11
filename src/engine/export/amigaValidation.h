@@ -26,6 +26,7 @@ class DivExportAmigaValidation: public DivROMExport {
   void run();
   public:
     bool go(DivEngine* e);
+    bool isRunning();
     void abort();
     void wait();
     ~DivExportAmigaValidation() {}
