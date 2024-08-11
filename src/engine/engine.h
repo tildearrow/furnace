@@ -697,9 +697,8 @@ class DivEngine {
     // save as .fur.
     // if notPrimary is true then the song will not be altered
     SafeWriter* saveFur(bool notPrimary=false, bool newPatternFormat=true);
-    // build a ROM file (TODO).
-    // specify system to build ROM for.
-    std::vector<DivROMExportOutput> buildROM(DivROMExportOptions sys);
+    // return a ROM exporter.
+    DivROMExport* buildROM(DivROMExportOptions sys);
     // dump to VGM.
     // set trailingTicks to:
     // - 0 to add one tick of trailing

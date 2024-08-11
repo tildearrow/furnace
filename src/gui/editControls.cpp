@@ -619,41 +619,6 @@ void FurnaceGUI::drawMobileControls() {
         if (ImGui::Button(_("Switch to Desktop Mode"))) {
           toggleMobileUI(!mobileUI);
         }
-
-        int numAmiga=0;
-        for (int i=0; i<e->song.systemLen; i++) {
-          if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
-        }
-
-        if (numAmiga) {
-          ImGui::Text(_(
-            "this is NOT ROM export! only use for making sure the\n"
-            "Furnace Amiga emulator is working properly by\n"
-            "comparing it with real Amiga output."
-          ));
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text(_("Directory"));
-          ImGui::SameLine();
-          ImGui::InputText("##AVDPath",&workingDirROMExport);
-          if (ImGui::Button(_("Bake Data"))) {
-            std::vector<DivROMExportOutput> out=e->buildROM(DIV_ROM_AMIGA_VALIDATION);
-            if (workingDirROMExport.size()>0) {
-              if (workingDirROMExport[workingDirROMExport.size()-1]!=DIR_SEPARATOR) workingDirROMExport+=DIR_SEPARATOR_STR;
-            }
-            for (DivROMExportOutput& i: out) {
-              String path=workingDirROMExport+i.name;
-              FILE* outFile=ps_fopen(path.c_str(),"wb");
-              if (outFile!=NULL) {
-                fwrite(i.data->getFinalBuf(),1,i.data->size(),outFile);
-                fclose(outFile);
-              }
-              i.data->finish();
-              delete i.data;
-            }
-            showError(fmt::sprintf(_("Done! Baked %d files."),(int)out.size()));
-          }
-        }
-
         break;
       }
     }

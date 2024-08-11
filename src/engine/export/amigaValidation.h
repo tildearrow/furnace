@@ -20,7 +20,10 @@
 #include "../export.h"
 
 class DivExportAmigaValidation: public DivROMExport {
+  DivEngine* e;
+  std::thread* exportThread;
+  void run();
   public:
-    std::vector<DivROMExportOutput> go(DivEngine* e);
+    bool go(DivEngine* e);
     ~DivExportAmigaValidation() {}
 };
