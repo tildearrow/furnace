@@ -19,8 +19,17 @@
 
 #include "../export.h"
 
+#include <thread>
+
 class DivExportAmigaValidation: public DivROMExport {
+  DivEngine* e;
+  std::thread* exportThread;
+  bool running;
+  void run();
   public:
-    std::vector<DivROMExportOutput> go(DivEngine* e);
+    bool go(DivEngine* e);
+    bool isRunning();
+    void abort();
+    void wait();
     ~DivExportAmigaValidation() {}
 };

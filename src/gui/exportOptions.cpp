@@ -329,21 +329,31 @@ void FurnaceGUI::drawExportAmigaVal(bool onWindow) {
     ImGui::SameLine();
   }
   if (ImGui::Button(_("Bake Data"),ImVec2(200.0f*dpiScale,0))) {
-    std::vector<DivROMExportOutput> out=e->buildROM(DIV_ROM_AMIGA_VALIDATION);
-    if (workingDirROMExport.size()>0) {
-      if (workingDirROMExport[workingDirROMExport.size()-1]!=DIR_SEPARATOR) workingDirROMExport+=DIR_SEPARATOR_STR;
-    }
-    for (DivROMExportOutput& i: out) {
-      String path=workingDirROMExport+i.name;
-      FILE* outFile=ps_fopen(path.c_str(),"wb");
-      if (outFile!=NULL) {
-        fwrite(i.data->getFinalBuf(),1,i.data->size(),outFile);
-        fclose(outFile);
+    DivROMExport* ex=e->buildROM(DIV_ROM_AMIGA_VALIDATION);
+    if (ex->go(e)) {
+      ex->wait();
+      if (ex->hasFailed()) {
+        showError("error!");
+      } else {
+        if (workingDirROMExport.size()>0) {
+          if (workingDirROMExport[workingDirROMExport.size()-1]!=DIR_SEPARATOR) workingDirROMExport+=DIR_SEPARATOR_STR;
+        }
+        for (DivROMExportOutput& i: ex->getResult()) {
+          String path=workingDirROMExport+i.name;
+          FILE* outFile=ps_fopen(path.c_str(),"wb");
+          if (outFile!=NULL) {
+            fwrite(i.data->getFinalBuf(),1,i.data->size(),outFile);
+            fclose(outFile);
+          }
+          i.data->finish();
+          delete i.data;
+        }
+        showError(fmt::sprintf(_("Done! Baked %d files."),(int)ex->getResult().size()));
       }
-      i.data->finish();
-      delete i.data;
+    } else {
+      showError("error!");
     }
-    showError(fmt::sprintf(_("Done! Baked %d files."),(int)out.size()));
+    delete ex;
     ImGui::CloseCurrentPopup();
   }
 }

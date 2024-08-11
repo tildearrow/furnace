@@ -40,8 +40,7 @@ struct SampleBookEntry {
     len(0) {}
 };
 
-std::vector<DivROMExportOutput> DivExportAmigaValidation::go(DivEngine* e) {
-  std::vector<DivROMExportOutput> ret;
+void DivExportAmigaValidation::run() {
   std::vector<WaveEntry> waves;
   std::vector<SampleBookEntry> sampleBook;
   unsigned int wavesDataPtr=0;
@@ -266,12 +265,34 @@ std::vector<DivROMExportOutput> DivExportAmigaValidation::go(DivEngine* e) {
   }
 
   // finish
-  ret.reserve(5);
-  ret.push_back(DivROMExportOutput("sbook.bin",sbook));
-  ret.push_back(DivROMExportOutput("wbook.bin",wbook));
-  ret.push_back(DivROMExportOutput("sample.bin",sample));
-  ret.push_back(DivROMExportOutput("wave.bin",wave));
-  ret.push_back(DivROMExportOutput("seq.bin",seq));
+  output.reserve(5);
+  output.push_back(DivROMExportOutput("sbook.bin",sbook));
+  output.push_back(DivROMExportOutput("wbook.bin",wbook));
+  output.push_back(DivROMExportOutput("sample.bin",sample));
+  output.push_back(DivROMExportOutput("wave.bin",wave));
+  output.push_back(DivROMExportOutput("seq.bin",seq));
 
-  return ret;
+  running=false;
+}
+
+bool DivExportAmigaValidation::go(DivEngine* eng) {
+  e=eng;
+  running=true;
+  exportThread=new std::thread(&DivExportAmigaValidation::run,this);
+  return true;
+}
+
+void DivExportAmigaValidation::wait() {
+  if (exportThread!=NULL) {
+    exportThread->join();
+    delete exportThread;
+  }
+}
+
+void DivExportAmigaValidation::abort() {
+  wait();
+}
+
+bool DivExportAmigaValidation::isRunning() {
+  return running;
 }

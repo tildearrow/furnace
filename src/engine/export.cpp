@@ -21,7 +21,7 @@
 
 #include "export/amigaValidation.h"
 
-std::vector<DivROMExportOutput> DivEngine::buildROM(DivROMExportOptions sys) {
+DivROMExport* DivEngine::buildROM(DivROMExportOptions sys) {
   DivROMExport* exporter=NULL;
   switch (sys) {
     case DIV_ROM_AMIGA_VALIDATION:
@@ -31,7 +31,5 @@ std::vector<DivROMExportOutput> DivEngine::buildROM(DivROMExportOptions sys) {
       exporter=new DivROMExport;
       break;
   }
-  std::vector<DivROMExportOutput> ret=exporter->go(this);
-  delete exporter;
-  return ret;
+  return exporter;
 }

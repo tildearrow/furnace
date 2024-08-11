@@ -20,7 +20,38 @@
 #include "../export.h"
 #include "../../ta-log.h"
 
-std::vector<DivROMExportOutput> DivROMExport::go(DivEngine* e) {
+bool DivROMExport::go(DivEngine* eng) {
   logW("what's this? the null ROM export?");
-  return std::vector<DivROMExportOutput>();
+  return false;
+}
+
+void DivROMExport::abort() {
+}
+
+std::vector<DivROMExportOutput>& DivROMExport::getResult() {
+  return output;
+}
+
+bool DivROMExport::hasFailed() {
+  return true;
+}
+
+DivROMExportProgress DivROMExport::getProgress() {
+  DivROMExportProgress ret;
+  ret.name="Test";
+  ret.amount=0.0f;
+  return ret;
+}
+
+void DivROMExport::logAppend(String what) {
+  logLock.lock();
+  exportLog.push_back(what);
+  logLock.unlock();
+}
+
+void DivROMExport::wait() {
+}
+
+bool DivROMExport::isRunning() {
+  return false;
 }

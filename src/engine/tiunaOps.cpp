@@ -26,53 +26,107 @@
 #include "../ta-log.h"
 
 struct TiunaNew {
-  short pitch=-1;
-  signed char ins=-1;
-  signed char vol=-1;
-  short sync=-1;
+  short pitch;
+  signed char ins;
+  signed char vol;
+  short sync;
+  TiunaNew():
+    pitch(-1),
+    ins(-1),
+    vol(-1),
+    sync(-1) {}
 };
+
 struct TiunaLast {
-  short pitch=0;
-  signed char ins=0;
-  signed char vol=0;
-  int tick=1;
-  bool forcePitch=true;
+  short pitch;
+  signed char ins;
+  signed char vol;
+  int tick;
+  bool forcePitch;
+  TiunaLast():
+    pitch(0),
+    ins(0),
+    vol(0),
+    tick(1),
+    forcePitch(true) {}
 };
+
 struct TiunaCmd {
-  signed char pitchChange=-1;
-  short pitchSet=-1;
-  signed char ins=-1;
-  signed char vol=-1;
-  short sync=-1;
-  short wait=-1;
+  signed char pitchChange;
+  short pitchSet;
+  signed char ins;
+  signed char vol;
+  short sync;
+  short wait;
+  TiunaCmd():
+    pitchChange(-1),
+    pitchSet(-1),
+    ins(-1),
+    vol(-1),
+    sync(-1),
+    wait(-1) {}
 };
+
 struct TiunaBytes {
-  unsigned char ch=0;
-  int ticks=0;
-  unsigned char size=0;
+  unsigned char ch;
+  int ticks;
+  unsigned char size;
   unsigned char buf[16];
   friend bool operator==(const TiunaBytes& l, const TiunaBytes& r) {
     if (l.size!=r.size) return false;
     if (l.ticks!=r.ticks) return false;
     return memcmp(l.buf,r.buf,l.size)==0;
   }
+  TiunaBytes(unsigned char c, int t, unsigned char s, std::initializer_list<unsigned char> b):
+    ch(c),
+    ticks(t),
+    size(s) {
+    // because C++14 does not support data() on initializer_list
+    unsigned char p=0;
+    for (unsigned char i: b) {
+      buf[p++]=i;
+    }
+  }
+  TiunaBytes():
+    ch(0),
+    ticks(0),
+    size(0) {
+    memset(buf,0,16);
+  }
 };
+
 struct TiunaMatch {
   int pos;
   int endPos;
   int size;
   int id;
+  TiunaMatch(int p, int ep, int s, int _i):
+    pos(p),
+    endPos(ep),
+    size(s),
+    id(_i) {}
+  TiunaMatch():
+    pos(0),
+    endPos(0),
+    size(0),
+    id(0) {}
 };
+
 struct TiunaMatches {
-  int bytesSaved=INT32_MIN;
-  int length=0;
-  int ticks=0;
+  int bytesSaved;
+  int length;
+  int ticks;
   std::vector<int> pos;
+  TiunaMatches():
+    bytesSaved(INT32_MIN),
+    length(0),
+    ticks(0) {}
 };
 
 static void writeCmd(std::vector<TiunaBytes>& cmds, TiunaCmd& cmd, unsigned char ch, int& lastWait, int fromTick, int toTick) {
   while (fromTick<toTick) {
     int val=MIN(toTick-fromTick,256);
+    assert(val>0);
     if (lastWait!=val) {
       cmd.wait=val;
       lastWait=val;
@@ -293,9 +347,13 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
   std::vector<int> callTicks;
   int cmId=0;
   int cmdSize=renderedCmds.size();
-  std::vector<bool> processed=std::vector<bool>(cmdSize,false);
+  bool* processed=new bool[cmdSize];
+  memset(processed,0,cmdSize*sizeof(bool));
+  logI("max cmId: %d",(MAX(firstBankSize/1024,1))*256);
   while (firstBankSize>768 && cmId<(MAX(firstBankSize/1024,1))*256) {
+    logI("start CM %04x...",cmId);
     std::map<int,TiunaMatches> potentialMatches;
+    logD("scan %d size...",cmdSize-1);
     for (int i=0; i<cmdSize-1;) {
       // continue and skip if it's part of previous confirmed matches
       while (i<cmdSize-1 && processed[i]) i++;
@@ -303,7 +361,8 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
       std::vector<TiunaMatch> match;
       int ch=renderedCmds[i].ch;
       for (int j=i+1; j<cmdSize;) {
-        while (j<cmdSize && processed[i]) j++;
+        if (processed[i]) break;
+        //while (j<cmdSize && processed[i]) j++;
         if (j>=cmdSize) break;
         int k=0;
         int ticks=0;
@@ -322,7 +381,7 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
           size+=renderedCmds[i+k].size;
           k++;
         }
-        if (size>2) match.push_back({j,j+k,size,0});
+        if (size>2) match.push_back(TiunaMatch(j,j+k,size,0));
         if (k==0) k++;
         j+=k;
       }
@@ -367,9 +426,13 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
       }
       i++;
     }
-    if (potentialMatches.empty()) break;
+    if (potentialMatches.empty()) {
+      logV("potentialMatches is empty");
+      break;
+    }
     int maxPMIdx=0;
     int maxPMVal=0;
+    logV("looking through potentialMatches...");
     for (const auto& i: potentialMatches) {
       if (i.second.bytesSaved>maxPMVal) {
         maxPMVal=i.second.bytesSaved;
@@ -377,14 +440,17 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
       }
     }
     int maxPMLen=potentialMatches[maxPMIdx].length;
+    logV("the other step...");
     for (const int i: potentialMatches[maxPMIdx].pos) {
       confirmedMatches.push_back({i,i+maxPMLen,0,cmId});
-      std::fill(processed.begin()+i,processed.begin()+(i+maxPMLen),true);
+      memset(processed+i,1,maxPMLen);
+      //std::fill(processed.begin()+i,processed.begin()+(i+maxPMLen),true);
     }
     callTicks.push_back(potentialMatches[maxPMIdx].ticks);
     logI("CM %04x added: pos=%d,len=%d,matches=%d,saved=%d",cmId,maxPMIdx,maxPMLen,potentialMatches[maxPMIdx].pos.size(),maxPMVal);
     cmId++;
   }
+  delete[] processed;
   std::sort(confirmedMatches.begin(),confirmedMatches.end(),[](const TiunaMatch& l, const TiunaMatch& r){
     return l.pos<r.pos;
   });
@@ -462,7 +528,7 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
         if (callVisited[cmIter->id]) {
           unsigned char idLo=cmIter->id&0xff;
           unsigned char idHi=cmIter->id>>8;
-          cmd={cmd.ch,0,2,{idHi,idLo}};
+          cmd=TiunaBytes(cmd.ch,0,2,{idHi,idLo});
           i=cmIter->endPos-1;
         } else {
           writeCall=cmIter->id;
@@ -508,11 +574,11 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
   totalSize++;
   logI("total size: %d bytes (%d banks)",totalSize,curBank+1);
   
-  FILE* f=ps_fopen("confirmedMatches.txt","wb");
-  if (f!=NULL) {
-    fwrite(dbg.getFinalBuf(),1,dbg.size(),f);
-    fclose(f);
-  }
+  //FILE* f=ps_fopen("confirmedMatches.txt","wb");
+  //if (f!=NULL) {
+  //  fwrite(dbg.getFinalBuf(),1,dbg.size(),f);
+  //  fclose(f);
+  //}
 
   return w;
 }

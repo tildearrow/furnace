@@ -45,9 +45,25 @@ struct DivROMExportOutput {
     data(NULL) {}
 };
 
+struct DivROMExportProgress {
+  String name;
+  float amount;
+};
+
 class DivROMExport {
+  protected:
+    std::vector<String> exportLog;
+    std::vector<DivROMExportOutput> output;
+    std::mutex logLock;
+    void logAppend(String what);
   public:
-    virtual std::vector<DivROMExportOutput> go(DivEngine* e);
+    virtual bool go(DivEngine* eng);
+    virtual void abort();
+    virtual void wait();
+    std::vector<DivROMExportOutput>& getResult();
+    virtual bool hasFailed();
+    virtual bool isRunning();
+    virtual DivROMExportProgress getProgress();
     virtual ~DivROMExport() {}
 };
 
