@@ -3090,6 +3090,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_SUPERVISION, 1.0f, 0, "")
     }
   );
+  ENTRY(
+    "NEC uPD1771C", {
+      CH(DIV_SYSTEM_UPD1771C, 1.0f, 0, "")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN("DefleMask-compatible","these configurations are compatible with DefleMask.\nselect this if you need to save as .dmf or work with that program.");

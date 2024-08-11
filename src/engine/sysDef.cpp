@@ -1928,6 +1928,20 @@ void DivEngine::registerSystems() {
     }
   );
 
+  sysDefs[DIV_SYSTEM_UPD1771C]=new DivSysDef(
+    _("NEC uPD1771C"), NULL, 0xe4, 0, 1, false, true, 0, false, 0, 0, 0,
+    _("this was an SoC with some funky wavetable/noise hardware"),
+    {_("Wave/Noise")},
+    {"W"},
+    {DIV_CH_NOISE},
+    {DIV_INS_UPD1771C},
+    {},
+    {
+      {0x10, {DIV_CMD_STD_NOISE_MODE, _("10xx: Set duty/waveform (bit 0-3: waveform; bit 4: mode)")}},
+      {0x12, {DIV_CMD_N163_WAVE_POSITION, _("12xx: Set waveform position (0-31)")}},
+    }
+  );
+
   sysDefs[DIV_SYSTEM_SM8521]=new DivSysDef(
     _("Sharp SM8521"), NULL, 0xc8, 0, 3, false, true, 0, false, 0, 32, 16,
     _("a SoC with wavetable sound hardware."),

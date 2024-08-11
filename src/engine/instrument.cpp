@@ -1141,6 +1141,8 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         featureSM=true;
         if (amiga.useSample) featureSL=true;
         break;
+      case DIV_INS_UPD1771C:
+        break;
       case DIV_INS_MAX:
         break;
       case DIV_INS_NULL:

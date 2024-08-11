@@ -142,6 +142,7 @@ enum DivSystem {
   DIV_SYSTEM_BIFURCATOR,
   DIV_SYSTEM_SID2,
   DIV_SYSTEM_SUPERVISION,
+  DIV_SYSTEM_UPD1771C,
 };
 
 enum DivEffectType: unsigned short {

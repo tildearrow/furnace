@@ -52,10 +52,10 @@ const char* regCheatSheetSupervision[]={
   NULL
 };
 
-unsigned char noiseReg[3];
-unsigned char kon[4];
-unsigned char initWrite[4];
-unsigned char initWrite2[4];
+unsigned char supervision_noiseReg[3];
+unsigned char supervision_kon[4];
+unsigned char supervision_initWrite[4];
+unsigned char supervision_initWrite2[4];
 
 const char** DivPlatformSupervision::getRegisterSheet() {
   return regCheatSheetSupervision;
@@ -64,9 +64,9 @@ const char** DivPlatformSupervision::getRegisterSheet() {
 
 unsigned char* sampleMem=supervision_dma_mem;
 
-unsigned char duty_swap=0;
-unsigned char otherFlags=0;
-unsigned int sampleOffset=0;
+unsigned char supervision_duty_swap=0;
+unsigned char supervision_otherFlags=0;
+unsigned int supervision_sampleOffset=0;
 
 void DivPlatformSupervision::acquire(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
@@ -148,11 +148,11 @@ void DivPlatformSupervision::tick(bool sysTick) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock<<1,CHIP_DIVIDER);
         if (chan[i].freq<1) chan[i].freq=1;
         if (chan[i].freq>2047) chan[i].freq=2047;
-        if (chan[i].freqChanged || initWrite[i]) {
+        if (chan[i].freqChanged || supervision_initWrite[i]) {
             rWrite(0x10|(i<<2),chan[i].freq&0xff);
             rWrite(0x11|(i<<2),(chan[i].freq>>8)&0x7);
         }
-        initWrite[i]=0;
+        supervision_initWrite[i]=0;
       } else if (i == 3) {
         int ntPos=chan[i].baseFreq;
         if (NEW_ARP_STRAT) {
@@ -166,9 +166,9 @@ void DivPlatformSupervision::tick(bool sysTick) {
         chan[i].freq=15-(ntPos&15);
         unsigned char r=(chan[i].freq<<4)|(chan[i].outVol&0xf);
         rWrite(0x28,r);
-        noiseReg[0]=r;
+        supervision_noiseReg[0]=r;
         rWrite(0x29,0xc8);
-        r=((chan[i].duty&1)^duty_swap)|(0x02|0x10)|(chan[i].pan<<2);
+        r=((chan[i].duty&1)^supervision_duty_swap)|(0x02|0x10)|(chan[i].pan<<2);
         rWrite(0x2A,r);
       }
       if (chan[i].keyOn && i==2) {
@@ -188,7 +188,7 @@ void DivPlatformSupervision::tick(bool sysTick) {
               rWrite(0x1B,chan[i].freq|((chan[i].pan&3)<<2)|((off>>14&7)<<4));
               rWrite(0x1C,0x80);
             }
-            sampleOffset=chan[i].hasOffset;
+            supervision_sampleOffset=chan[i].hasOffset;
             chan[i].hasOffset=0;
           }
         }
@@ -205,14 +205,14 @@ void DivPlatformSupervision::tick(bool sysTick) {
           }
         }
       }
-      if (chan[i].keyOn) kon[i]=1;
-      if (chan[i].keyOff) kon[i]=0;
+      if (chan[i].keyOn) supervision_kon[i]=1;
+      if (chan[i].keyOff) supervision_kon[i]=0;
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
     }
 
-    if (kon[i]) {
+    if (supervision_kon[i]) {
       if (i < 2) {
         rWrite(0x12|(i<<2),(chan[i].outVol&0xf)|((chan[i].duty&3)<<4));
         rWrite(0x13|(i<<2),0xc8);
@@ -228,12 +228,12 @@ void DivPlatformSupervision::tick(bool sysTick) {
         ntPos+=chan[i].pitch2;
         chan[i].freq=15-(ntPos&15);
         unsigned char r=(chan[i].freq<<4)|(chan[i].outVol&0xf);
-        if (noiseReg[0] != r) rWrite(0x28,r);
-        noiseReg[0]=r;
+        if (supervision_noiseReg[0] != r) rWrite(0x28,r);
+        supervision_noiseReg[0]=r;
         rWrite(0x29,0xc8);
-        r=((chan[i].duty&1)^duty_swap)|(0x02|0x10)|(chan[i].pan<<2);
-        if (noiseReg[2] != r) rWrite(0x2A,r);
-        noiseReg[2]=r;
+        r=((chan[i].duty&1)^supervision_duty_swap)|(0x02|0x10)|(chan[i].pan<<2);
+        if (supervision_noiseReg[2] != r) rWrite(0x2A,r);
+        supervision_noiseReg[2]=r;
       } else if (i==2) {
         if (chan[i].pcm) {
           int ntPos=chan[i].sampleNote;
@@ -242,8 +242,8 @@ void DivPlatformSupervision::tick(bool sysTick) {
           int sNum=chan[i].sample;
           DivSample* sample=parent->getSample(sNum);
           if (sample!=NULL && sNum>=0 && sNum<parent->song.sampleLen) {
-            unsigned int off=MIN(sampleOff[sNum]+sampleOffset,sampleOff[sNum]+sampleLen[sNum]);
-            unsigned int len=MAX((((int)sampleLen[sNum])-((int)sampleOffset)),0);
+            unsigned int off=MIN(sampleOff[sNum]+supervision_sampleOffset,sampleOff[sNum]+sampleLen[sNum]);
+            unsigned int len=MAX((((int)sampleLen[sNum])-((int)supervision_sampleOffset)),0);
             if (len) {
               rWrite(0x1A,MIN(MAX(len>>4,0),255));
               if (chan[i].outVol==0) {
@@ -262,8 +262,8 @@ void DivPlatformSupervision::tick(bool sysTick) {
       } else if (i == 3) {
         rWrite(0x29,0);
         unsigned char r=0;
-        if (noiseReg[2] != r) rWrite(0x2A,r);
-        noiseReg[2]=r;
+        if (supervision_noiseReg[2] != r) rWrite(0x2A,r);
+        supervision_noiseReg[2]=r;
       }
     }
 
@@ -456,12 +456,12 @@ void DivPlatformSupervision::reset() {
   supervision_sound_reset();
   memset(tempL,0,32*sizeof(int));
   memset(tempR,0,32*sizeof(int));
-  memset(noiseReg,0,3*sizeof(unsigned char));
-  noiseReg[2]=0xff;
-  memset(kon,0,4*sizeof(unsigned char));
-  memset(initWrite,1,4*sizeof(unsigned char));
-  memset(initWrite2,1,4*sizeof(unsigned char));
-  sampleOffset=0;
+  memset(supervision_noiseReg,0,3*sizeof(unsigned char));
+  supervision_noiseReg[2]=0xff;
+  memset(supervision_kon,0,4*sizeof(unsigned char));
+  memset(supervision_initWrite,1,4*sizeof(unsigned char));
+  memset(supervision_initWrite2,1,4*sizeof(unsigned char));
+  supervision_sampleOffset=0;
 }
 
 int DivPlatformSupervision::getOutputCount() {
@@ -480,13 +480,13 @@ void DivPlatformSupervision::notifyInsDeletion(void* ins) {
 
 void DivPlatformSupervision::setFlags(const DivConfig& flags) {
   if (flags.getInt("swapDuty",true)) {
-    duty_swap=1;
+    supervision_duty_swap=1;
   } else {
-    duty_swap=0;
+    supervision_duty_swap=0;
   }
-  otherFlags=0;
+  supervision_otherFlags=0;
   if (flags.getInt("sqStereo",false)) {
-    otherFlags |= 1;
+    supervision_otherFlags |= 1;
   }
   chipClock=4000000;
   CHECK_CUSTOM_CLOCK;
@@ -495,7 +495,7 @@ void DivPlatformSupervision::setFlags(const DivConfig& flags) {
     oscBuf[i]->rate=rate;
   }
   supervision_sound_set_clock((unsigned int)chipClock);
-  supervision_sound_set_flags((unsigned int)otherFlags);
+  supervision_sound_set_flags((unsigned int)supervision_otherFlags);
 }
 
 void DivPlatformSupervision::poke(unsigned int addr, unsigned short val) {
