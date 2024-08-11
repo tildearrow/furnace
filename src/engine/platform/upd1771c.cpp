@@ -56,7 +56,7 @@ void DivPlatformUPD1771c::acquire(short** buf, size_t len) {
       writes.pop();
     }
 
-    signed short s = upd1771c_sound_stream_update();
+    signed short s = upd1771c_sound_stream_update()<<3;
 
     for (int i=0; i<1; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=s;
@@ -111,7 +111,8 @@ void DivPlatformUPD1771c::tick(bool sysTick) {
         if (chan[i].duty == 0) {
           rWrite(0,2);
           rWrite(1,(chan[i].wave<<5)|chan[i].pos);
-          rWrite(2,MIN(MAX(chan[i].freq,0),255));
+          float p = ((float)chan[i].freq)/((float)(31-chan[i].pos))*31.0;
+          rWrite(2,MIN(MAX((int)p,0),255));
           rWrite(3,chan[i].outVol);
         } else if (chan[i].duty == 1) {
           rWrite(0,1);
@@ -138,7 +139,8 @@ void DivPlatformUPD1771c::tick(bool sysTick) {
         if (chan[i].duty == 0) {
          rWrite(0,2);
          rWrite(1,(chan[i].wave<<5)|chan[i].pos);
-         rWrite(2,MIN(MAX(chan[i].freq,0),255));
+         float p = ((float)chan[i].freq)/((float)(31-chan[i].pos))*31.0;
+         rWrite(2,MIN(MAX((int)p,0),255));
          rWrite(3,chan[i].outVol);
         } else if (chan[i].duty == 1) {
          rWrite(0,1);
