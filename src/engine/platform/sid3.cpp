@@ -308,6 +308,10 @@ void DivPlatformSID3::tick(bool sysTick)
       panChanged = true;
       chan[i].panRight = chan[i].std.panR.val & 0xff;
     }
+    if (chan[i].std.op[2].ar.had) { //channel signal inversion
+      chan[i].phaseInv = chan[i].std.op[2].ar.val & 3;
+      rWrite(SID3_REGISTER_PHASE_INVERSION + i * SID3_REGISTERS_PER_CHANNEL, chan[i].phaseInv);
+    }
     if (chan[i].std.op[0].am.had) { //key on/off
       chan[i].gate = chan[i].std.op[0].am.val & 1;
       flagsChanged = true;
@@ -329,6 +333,10 @@ void DivPlatformSID3::tick(bool sysTick)
     if (chan[i].std.fb.had) { //phase mod source
       chan[i].phaseSrc = chan[i].std.fb.val & 0xff;
       rWrite(SID3_REGISTER_PHASE_MOD_SRC + i * SID3_REGISTERS_PER_CHANNEL, chan[i].phaseSrc);
+    }
+    if (chan[i].std.op[3].ar.had) { //feedback
+      chan[i].feedback = chan[i].std.op[3].ar.val & 0xff;
+      rWrite(SID3_REGISTER_FEEDBACK + i * SID3_REGISTERS_PER_CHANNEL, chan[i].feedback);
     }
     if (chan[i].std.phaseReset.had) {
       chan[i].phaseReset = chan[i].std.phaseReset.val & 1;
@@ -517,6 +525,9 @@ void DivPlatformSID3::tick(bool sysTick)
         rWrite(SID3_REGISTER_SYNC_SRC + i * SID3_REGISTERS_PER_CHANNEL, chan[i].syncSrc); //hard sync source
         rWrite(SID3_REGISTER_PHASE_MOD_SRC + i * SID3_REGISTERS_PER_CHANNEL, chan[i].phaseSrc); //phase mod source
 
+        rWrite(SID3_REGISTER_PHASE_INVERSION + i * SID3_REGISTERS_PER_CHANNEL, chan[i].phaseInv); //signal inversion
+        rWrite(SID3_REGISTER_FEEDBACK + i * SID3_REGISTERS_PER_CHANNEL, chan[i].feedback); //feedback
+
         updateEnvelope(i);
 
         updateFlags(i, false); //gate off TODO: make it properly?
@@ -677,8 +688,12 @@ int DivPlatformSID3::dispatch(DivCommand c) {
 
         chan[c.chan].ringSrc = ins->sid3.ring_mod_source;
         chan[c.chan].syncSrc = ins->sid3.sync_source;
+        chan[c.chan].phaseSrc = ins->sid3.phase_mod_source;
 
         chan[c.chan].independentNoiseFreq = ins->sid3.separateNoisePitch;
+
+        chan[c.chan].phaseInv = ins->sid3.phaseInv;
+        chan[c.chan].feedback = ins->sid3.feedback;
 
         for(int j = 0; j < SID3_NUM_FILTERS; j++)
         {

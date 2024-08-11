@@ -76,6 +76,9 @@ class DivPlatformSID3: public DivDispatch {
     unsigned long long dacPos;
     int dacSample;
 
+    unsigned char phaseInv;
+    unsigned char feedback;
+
     void handleArpNoise(int offset=0) 
     {
       DivMacroStruct& m = this->std.op[3].am;
@@ -164,14 +167,16 @@ class DivPlatformSID3: public DivDispatch {
       panRight(0xff),
       noiseFreq(0),
       independentNoiseFreq(false),
-      noiseLFSRMask((1 << 29) | (1 << 5) | (1 << 3) | 1),
+      noiseLFSRMask((1 << 29) | (1 << 5) | (1 << 3) | 1), //https://docs.amd.com/v/u/en-US/xapp052 for 30 bits: 30, 6, 4, 1
       pcm(false),
       wavetable(-1),
       dacPeriod(0),
       dacRate(0),
       dacOut(0),
       dacPos(0),
-      dacSample(-1) {} //https://docs.amd.com/v/u/en-US/xapp052 for 30 bits: 30, 6, 4, 1
+      dacSample(-1),
+      phaseInv(0),
+      feedback(0) {}
   };
   Channel chan[SID3_NUM_CHANNELS];
   DivDispatchOscBuffer* oscBuf[SID3_NUM_CHANNELS];

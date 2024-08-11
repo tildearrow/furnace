@@ -874,6 +874,8 @@ struct DivInstrumentSID3
   bool separateNoisePitch;
   unsigned char special_wave;
   bool doWavetable;
+  unsigned char phaseInv;
+  unsigned char feedback;
 
   struct Filter 
   {
@@ -940,7 +942,9 @@ struct DivInstrumentSID3
     oneBitNoise(false),
     separateNoisePitch(false),
     special_wave(0),
-    doWavetable(false)
+    doWavetable(false),
+    phaseInv(0),
+    feedback(0)
     {
       filt[0].mode = 16 | 32; //default settings so filter just works, connect to input and channel output
       filt[0].output_volume = 0xff;

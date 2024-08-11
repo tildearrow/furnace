@@ -42,6 +42,12 @@ enum Flags
     SID3_CHAN_1_BIT_NOISE = 128,
 };
 
+enum PhaseInversion
+{
+    SID3_INV_SIGNAL_RIGHT = 1,
+    SID3_INV_SIGNAL_LEFT = 2,
+};
+
 enum Waveforms
 {
     SID3_WAVE_TRIANGLE = 1,
@@ -127,6 +133,10 @@ enum Registers
 
     SID3_REGISTER_STREAMED_SAMPLE_HIGH = SID3_REGISTER_AFTER_FILT_1ST_REG + 10,
     SID3_REGISTER_STREAMED_SAMPLE_LOW = SID3_REGISTER_AFTER_FILT_1ST_REG + 11,
+
+    SID3_REGISTER_PHASE_INVERSION = SID3_REGISTER_AFTER_FILT_1ST_REG + 12,
+
+    SID3_REGISTER_FEEDBACK = SID3_REGISTER_AFTER_FILT_1ST_REG + 13,
 };
 
 typedef struct
@@ -200,9 +210,13 @@ typedef struct
     uint8_t clock_filter;
 
     uint8_t panning_left, panning_right;
-    bool invert_left, invert_right; //invert channel signal
 
     int32_t output_before_filter;
+
+    uint8_t phase_inv;
+    uint32_t feedback;
+
+    int32_t prev_output, prev_output2;
 } sid3_channel;
 
 typedef struct
@@ -229,9 +243,10 @@ typedef struct
     uint8_t clock_filter;
 
     uint8_t panning_left, panning_right;
-    bool invert_left, invert_right; //invert channel signal
 
     int32_t output_before_filter;
+
+    uint8_t phase_inv;
 } sid3_wavetable_chan;
 
 typedef struct

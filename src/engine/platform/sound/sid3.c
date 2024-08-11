@@ -3061,6 +3061,11 @@ void sid3_clock(SID3* sid3)
             ch->noise_accumulator += ch->phase_mod_source == SID3_NUM_CHANNELS - 1 ? ((uint64_t)sid3->wave_channel_output << 18) : ((uint64_t)sid3->channel_output[ch->phase_mod_source] << 18);
         }
 
+        if(ch->feedback)
+        {
+            ch->accumulator += (ch->prev_output + ch->prev_output2) * ch->feedback;
+        }
+
         ch->accumulator &= SID3_ACC_MASK;
 
         if((prev_noise_acc & ((uint32_t)1 << (SID3_ACC_BITS - 6))) != (ch->noise_accumulator & ((uint32_t)1 << (SID3_ACC_BITS - 6))))
@@ -3097,11 +3102,17 @@ void sid3_clock(SID3* sid3)
         {
             output = ch->output_before_filter;
         }
+        
+        if(ch->feedback)
+        {
+            ch->prev_output2 = ch->prev_output;
+            ch->prev_output = output + 0xffff;
+        }
 
         if(!sid3->muted[i])
         {
-            sid3->output_l += output * ch->panning_left / 0x8f0;
-            sid3->output_r += output * ch->panning_right / 0x8f0;
+            sid3->output_l += output * ch->panning_left / 0x8f0 * ((ch->phase_inv & SID3_INV_SIGNAL_LEFT) ? -1 : 1);
+            sid3->output_r += output * ch->panning_right / 0x8f0 * ((ch->phase_inv & SID3_INV_SIGNAL_RIGHT) ? -1 : 1);
         }
 
         sid3->channel_output[i] = output;
@@ -3189,8 +3200,8 @@ void sid3_clock(SID3* sid3)
 
     if(!sid3->muted[SID3_NUM_CHANNELS - 1])
     {
-        sid3->output_l += output * ch->panning_left / 0x8f0;
-        sid3->output_r += output * ch->panning_right / 0x8f0;
+        sid3->output_l += output * ch->panning_left / 0x8f0 * ((ch->phase_inv & SID3_INV_SIGNAL_LEFT) ? -1 : 1);
+        sid3->output_r += output * ch->panning_right / 0x8f0 * ((ch->phase_inv & SID3_INV_SIGNAL_RIGHT) ? -1 : 1);
     }
 
     sid3->wave_channel_output = output;
@@ -3723,6 +3734,26 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
             {
                 sid3->wave_chan.streamed_sample &= 0xff00;
                 sid3->wave_chan.streamed_sample |= data;
+            }
+            break;
+        }
+        case SID3_REGISTER_PHASE_INVERSION:
+        {
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].phase_inv = data;
+            }
+            else
+            {
+                sid3->wave_chan.phase_inv = data;
+            }
+            break;
+        }
+        case SID3_REGISTER_FEEDBACK:
+        {
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].feedback = (uint32_t)data * (uint32_t)data;
             }
             break;
         }

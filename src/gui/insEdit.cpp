@@ -5915,6 +5915,24 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
         ImGui::SetTooltip(_("Forces waveform macro to control wavetable index."));
       }
 
+      bool invLeft=ins->sid3.phaseInv & SID3_INV_SIGNAL_LEFT;
+      if (ImGui::Checkbox(_("Inv. left"),&invLeft)) { PARAMETER
+        ins->sid3.phaseInv^=SID3_INV_SIGNAL_LEFT;
+      }
+      if (ImGui::IsItemHovered())
+      {
+        ImGui::SetTooltip(_("Invert left channel signal"));
+      }
+      ImGui::SameLine();
+      bool invRight=ins->sid3.phaseInv & SID3_INV_SIGNAL_RIGHT;
+      if (ImGui::Checkbox(_("Inv. right"),&invRight)) { PARAMETER
+        ins->sid3.phaseInv^=SID3_INV_SIGNAL_RIGHT;
+      }
+      if (ImGui::IsItemHovered())
+      {
+        ImGui::SetTooltip(_("Invert right channel signal"));
+      }
+
       ImGui::TableNextColumn();
 
       CENTER_TEXT(_("Special wave preview"));
@@ -5975,6 +5993,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
     strncpy(buffer,macroSID3WaveMixMode(0,(float)ins->sid2.mixMode,NULL).c_str(),40);
     P(CWSliderScalar(_("Wave Mix Mode"),ImGuiDataType_U8,&ins->sid2.mixMode,&_ZERO,&_FOUR,buffer));
     P(CWSliderScalar(_("Duty"),ImGuiDataType_U16,&ins->c64.duty,&_ZERO,&_SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_THIRTY_FIVE)); rightClickable
+    P(CWSliderScalar(_("Feedback"),ImGuiDataType_U8,&ins->sid3.feedback,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE));
     bool resetDuty=ins->c64.resetDuty;
     if (ImGui::Checkbox(_("Reset duty on new note"),&resetDuty)) 
     { PARAMETER
@@ -6261,6 +6280,8 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
     macroList.push_back(FurnaceGUIMacroDesc(_("Panning (left)"),&ins->std.panLMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
     macroList.push_back(FurnaceGUIMacroDesc(_("Panning (right)"),&ins->std.panRMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
 
+    macroList.push_back(FurnaceGUIMacroDesc(_("Channel inversion"),&ins->std.opMacros[2].arMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,minModModeBits));
+
     macroList.push_back(FurnaceGUIMacroDesc(_("Key On/Off"),&ins->std.opMacros[0].amMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
 
     macroList.push_back(FurnaceGUIMacroDesc(_("Special"),&ins->std.ex1Macro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,sid3ControlBits));
@@ -6268,6 +6289,11 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
     macroList.push_back(FurnaceGUIMacroDesc(_("Ring Mod Source"),&ins->std.fmsMacro,0,SID3_NUM_CHANNELS,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3SourceChan));
     macroList.push_back(FurnaceGUIMacroDesc(_("Hard Sync Source"),&ins->std.amsMacro,0,SID3_NUM_CHANNELS - 1,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3SourceChan));
     macroList.push_back(FurnaceGUIMacroDesc(_("Phase Mod Source"),&ins->std.fbMacro,0,SID3_NUM_CHANNELS - 1,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3SourceChan));
+    
+    if(!ins->sid3.doWavetable)
+    {
+      macroList.push_back(FurnaceGUIMacroDesc(_("Feedback"),&ins->std.opMacros[3].arMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+    }
 
     macroList.push_back(FurnaceGUIMacroDesc(_("Phase Reset"),&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
 

@@ -269,6 +269,8 @@ bool DivInstrumentSID3::operator==(const DivInstrumentSID3& other) {
     _C(separateNoisePitch) &&
     _C(special_wave) &&
     _C(doWavetable) &&
+    _C(phaseInv) &&
+    _C(feedback) &&
     _C(filt[0]) &&
     _C(filt[1]) &&
     _C(filt[2]) &&
