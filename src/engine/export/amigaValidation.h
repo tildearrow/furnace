@@ -19,6 +19,8 @@
 
 #include "../export.h"
 
+#include <thread>
+
 class DivExportAmigaValidation: public DivROMExport {
   DivEngine* e;
   std::thread* exportThread;
