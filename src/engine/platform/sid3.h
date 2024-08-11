@@ -136,7 +136,7 @@ class DivPlatformSID3: public DivDispatch {
 
     Channel():
       SharedChannel<signed short>(SID3_MAX_VOL),
-      prevFreq(0x1ffff),
+      prevFreq(0xffffff),
       wave(0),
       special_wave(0),
       attack(0),
@@ -195,6 +195,9 @@ class DivPlatformSID3: public DivDispatch {
   unsigned char regPool[SID3_NUM_REGISTERS];
 
   bool isMuted[SID3_NUM_CHANNELS];
+
+  unsigned char sampleTick; //used to update streamed sample and not clash with other reg writes at high rate samples
+  bool updateSample;
   
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);

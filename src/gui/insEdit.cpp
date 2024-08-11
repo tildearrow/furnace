@@ -5990,14 +5990,21 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
       ImGui::EndTable();
     }
     
-    strncpy(buffer,macroSID3WaveMixMode(0,(float)ins->sid2.mixMode,NULL).c_str(),40);
-    P(CWSliderScalar(_("Wave Mix Mode"),ImGuiDataType_U8,&ins->sid2.mixMode,&_ZERO,&_FOUR,buffer));
-    P(CWSliderScalar(_("Duty"),ImGuiDataType_U16,&ins->c64.duty,&_ZERO,&_SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_THIRTY_FIVE)); rightClickable
-    P(CWSliderScalar(_("Feedback"),ImGuiDataType_U8,&ins->sid3.feedback,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE));
-    bool resetDuty=ins->c64.resetDuty;
-    if (ImGui::Checkbox(_("Reset duty on new note"),&resetDuty)) 
-    { PARAMETER
-      ins->c64.resetDuty=resetDuty;
+    if(!ins->sid3.doWavetable)
+    {
+      strncpy(buffer,macroSID3WaveMixMode(0,(float)ins->sid2.mixMode,NULL).c_str(),40);
+      P(CWSliderScalar(_("Wave Mix Mode"),ImGuiDataType_U8,&ins->sid2.mixMode,&_ZERO,&_FOUR,buffer));
+      P(CWSliderScalar(_("Duty"),ImGuiDataType_U16,&ins->c64.duty,&_ZERO,&_SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_THIRTY_FIVE)); rightClickable
+      P(CWSliderScalar(_("Feedback"),ImGuiDataType_U8,&ins->sid3.feedback,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE));
+      bool resetDuty=ins->c64.resetDuty;
+      if (ImGui::Checkbox(_("Reset duty on new note"),&resetDuty)) 
+      { PARAMETER
+        ins->c64.resetDuty=resetDuty;
+      }
+      if (ImGui::Checkbox(_("Absolute Duty Macro"),&ins->c64.dutyIsAbs)) {
+        ins->std.dutyMacro.vZoom=-1;
+        PARAMETER;
+      }
     }
 
     bool ringMod=ins->c64.ringMod;
@@ -6031,13 +6038,17 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
     P(CWSliderScalar(_("Source channel##pmsrc"),ImGuiDataType_U8,&ins->sid3.phase_mod_source,&_ZERO,&_SID3_NUM_CHANNELS_MINUS_ONE,buffer));
 
     ImGui::Separator();
-    bool sepNoisePitch=ins->sid3.separateNoisePitch;
-    if (ImGui::Checkbox(_("Separate noise pitch"),&sepNoisePitch)) { PARAMETER
-      ins->sid3.separateNoisePitch=sepNoisePitch;
-    }
-    if (ImGui::IsItemHovered()) 
+
+    if(!ins->sid3.doWavetable)
     {
-      ImGui::SetTooltip(_("Make noise pitch independent from other waves' pitch.\nNoise pitch will be controllable via macros."));
+      bool sepNoisePitch=ins->sid3.separateNoisePitch;
+      if (ImGui::Checkbox(_("Separate noise pitch"),&sepNoisePitch)) { PARAMETER
+        ins->sid3.separateNoisePitch=sepNoisePitch;
+      }
+      if (ImGui::IsItemHovered()) 
+      {
+        ImGui::SetTooltip(_("Make noise pitch independent from other waves' pitch.\nNoise pitch will be controllable via macros."));
+      }
     }
 
     for(int i = 0; i < SID3_NUM_FILTERS; i++)
@@ -6209,11 +6220,6 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
       ImGui::EndTable();
     }
 
-    if (ImGui::Checkbox(_("Absolute Duty Macro"),&ins->c64.dutyIsAbs)) {
-      ins->std.dutyMacro.vZoom=-1;
-      PARAMETER;
-    }
-
     ImGui::EndTabItem();
   }
 
@@ -6221,10 +6227,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
   {
     insTabWavetable(ins);
   }
-  if(!ins->sid3.doWavetable)
-  {
-    insTabSample(ins);
-  }
+  insTabSample(ins);
 
   std::vector<FurnaceGUIMacroDesc> macroList;
 

@@ -76,14 +76,6 @@ void DivPlatformSID3::acquire(short** buf, size_t len)
 {
   for (size_t i=0; i<len; i++) 
   {
-    if (!writes.empty()) 
-    {
-      QueuedWrite w=writes.front();
-      sid3_write(sid3, w.addr, w.val);
-      regPool[w.addr % SID3_NUM_REGISTERS]=w.val;
-      writes.pop();
-    }
-
     if (chan[SID3_NUM_CHANNELS - 1].pcm && chan[SID3_NUM_CHANNELS - 1].dacSample!=-1)
     {
       chan[SID3_NUM_CHANNELS - 1].dacPeriod+=chan[SID3_NUM_CHANNELS - 1].dacRate;
@@ -98,7 +90,7 @@ void DivPlatformSID3::acquire(short** buf, size_t len)
 
         int dacData=s->data16[chan[SID3_NUM_CHANNELS - 1].dacPos] + 32767;
         chan[SID3_NUM_CHANNELS - 1].dacOut=CLAMP(dacData,0,65535);
-        if (!isMuted[SID3_NUM_CHANNELS - 1]) 
+        /*if (!isMuted[SID3_NUM_CHANNELS - 1]) 
         {
           sid3_write(sid3, SID3_REGISTER_STREAMED_SAMPLE_HIGH + (SID3_NUM_CHANNELS - 1) * SID3_REGISTERS_PER_CHANNEL, chan[SID3_NUM_CHANNELS - 1].dacOut >> 8);
           sid3_write(sid3, SID3_REGISTER_STREAMED_SAMPLE_LOW + (SID3_NUM_CHANNELS - 1) * SID3_REGISTERS_PER_CHANNEL, chan[SID3_NUM_CHANNELS - 1].dacOut & 0xff);
@@ -107,7 +99,10 @@ void DivPlatformSID3::acquire(short** buf, size_t len)
         {
           sid3_write(sid3, SID3_REGISTER_STREAMED_SAMPLE_HIGH + (SID3_NUM_CHANNELS - 1) * SID3_REGISTERS_PER_CHANNEL, 32768 >> 8);
           sid3_write(sid3, SID3_REGISTER_STREAMED_SAMPLE_LOW + (SID3_NUM_CHANNELS - 1) * SID3_REGISTERS_PER_CHANNEL, 32768 & 0xff);
-        }
+        }*/
+        updateSample = true;
+        sampleTick = 0;
+
         chan[SID3_NUM_CHANNELS - 1].dacPos++;
         if (s->isLoopable() && chan[SID3_NUM_CHANNELS - 1].dacPos>=(unsigned int)s->loopEnd) 
         {
@@ -118,6 +113,61 @@ void DivPlatformSID3::acquire(short** buf, size_t len)
           chan[SID3_NUM_CHANNELS - 1].dacSample=-1;
         }
         chan[SID3_NUM_CHANNELS - 1].dacPeriod-=rate;
+      }
+    }
+
+    sampleTick++;
+
+    if(chan[SID3_NUM_CHANNELS - 1].pcm)
+    {
+      if(sampleTick == 2 && updateSample)
+      {
+        if (!isMuted[SID3_NUM_CHANNELS - 1]) 
+        {
+          sid3_write(sid3, SID3_REGISTER_STREAMED_SAMPLE_HIGH + (SID3_NUM_CHANNELS - 1) * SID3_REGISTERS_PER_CHANNEL, chan[SID3_NUM_CHANNELS - 1].dacOut >> 8);
+          regPool[SID3_REGISTER_STREAMED_SAMPLE_HIGH + (SID3_NUM_CHANNELS - 1) * SID3_REGISTERS_PER_CHANNEL]=chan[SID3_NUM_CHANNELS - 1].dacOut >> 8;
+        } 
+        else 
+        {
+          sid3_write(sid3, SID3_REGISTER_STREAMED_SAMPLE_HIGH + (SID3_NUM_CHANNELS - 1) * SID3_REGISTERS_PER_CHANNEL, 32768 >> 8);
+          regPool[SID3_REGISTER_STREAMED_SAMPLE_HIGH + (SID3_NUM_CHANNELS - 1) * SID3_REGISTERS_PER_CHANNEL]=32768 >> 8;
+        }
+      }
+      else if(sampleTick == 3 && updateSample)
+      {
+        if (!isMuted[SID3_NUM_CHANNELS - 1]) 
+        {
+          sid3_write(sid3, SID3_REGISTER_STREAMED_SAMPLE_LOW + (SID3_NUM_CHANNELS - 1) * SID3_REGISTERS_PER_CHANNEL, chan[SID3_NUM_CHANNELS - 1].dacOut & 0xff);
+          regPool[SID3_REGISTER_STREAMED_SAMPLE_LOW + (SID3_NUM_CHANNELS - 1) * SID3_REGISTERS_PER_CHANNEL]=chan[SID3_NUM_CHANNELS - 1].dacOut & 0xff;
+        }
+        else 
+        {
+          sid3_write(sid3, SID3_REGISTER_STREAMED_SAMPLE_LOW + (SID3_NUM_CHANNELS - 1) * SID3_REGISTERS_PER_CHANNEL, 32768 & 0xff);
+          regPool[SID3_REGISTER_STREAMED_SAMPLE_LOW + (SID3_NUM_CHANNELS - 1) * SID3_REGISTERS_PER_CHANNEL]=32768 & 0xff;
+        }
+
+        sampleTick = 0;
+        updateSample = false;
+      }
+      else
+      {
+        if (!writes.empty()) 
+        {
+          QueuedWrite w=writes.front();
+          sid3_write(sid3, w.addr, w.val);
+          regPool[w.addr % SID3_NUM_REGISTERS]=w.val;
+          writes.pop();
+        }
+      }
+    }
+    else
+    {
+      if (!writes.empty()) 
+      {
+        QueuedWrite w=writes.front();
+        sid3_write(sid3, w.addr, w.val);
+        regPool[w.addr % SID3_NUM_REGISTERS]=w.val;
+        writes.pop();
       }
     }
     
@@ -502,7 +552,7 @@ void DivPlatformSID3::tick(bool sysTick)
         DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SID3);
         if(i == SID3_NUM_CHANNELS - 1)
         {
-          if(ins->sid3.doWavetable)
+          if(ins->sid3.doWavetable && !ins->amiga.useSample)
           {
             rWrite(SID3_REGISTER_WAVEFORM + i * SID3_REGISTERS_PER_CHANNEL, 0); //wave channel mode
           }
@@ -1040,6 +1090,9 @@ void DivPlatformSID3::reset() {
 
     chan[i].noiseLFSRMask = (1 << 29) | (1 << 5) | (1 << 3) | 1; //https://docs.amd.com/v/u/en-US/xapp052 for 30 bits: 30, 6, 4, 1
   }
+
+  sampleTick = 0;
+  updateSample = false;
 
   ws.setEngine(parent);
   ws.init(NULL,256,255,false);
