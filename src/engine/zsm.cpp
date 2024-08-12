@@ -133,14 +133,6 @@ void DivZSM::writePSG(unsigned char a, unsigned char v) {
   } else if (a>=64) {
     return writePCM(a-64,v);
   }
-  if (optimize) {
-    if ((a&3)==3 && v>64) {
-      // Pulse width on non-pulse waves is nonsense and wasteful
-      // No need to preserve state here because the next write that
-      // selects pulse will also set the pulse width in this register
-      v&=0xc0;
-    }
-  }
   if (psgState[psg_PREV][a]==v) {
     if (psgState[psg_NEW][a]!=v) {
       // NEW value is being reset to the same as PREV value
