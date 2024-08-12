@@ -2494,7 +2494,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         chipType=1;
         altered=true;
       }
-      if (ImGui::RadioButton(_("V 47.0.3 (Tri/Saw PW XOR)"),chipType==2)) {
+      if (ImGui::RadioButton(_("V 47.0.2 (Tri/Saw PW XOR)"),chipType==2)) {
         chipType=2;
         altered=true;
       }
