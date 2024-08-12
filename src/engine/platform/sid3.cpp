@@ -276,6 +276,25 @@ void DivPlatformSID3::tick(bool sysTick)
   {
     chan[i].std.next();
 
+    if(sysTick)
+    {
+      if(chan[i].pw_slide != 0)
+      {
+        chan[i].duty -= chan[i].pw_slide;
+        chan[i].duty = CLAMP(chan[i].duty, 0, 0xffff);
+        updateDuty(i);
+      }
+      for(int j = 0; j < SID3_NUM_FILTERS; j++) //filters' slides
+      {
+        if(chan[i].filt[j].cutoff_slide != 0)
+        {
+          chan[i].filt[j].cutoff += chan[i].filt[j].cutoff_slide;
+          chan[i].filt[j].cutoff = CLAMP(chan[i].filt[j].cutoff, 0, 0xffff);
+          updateFilter(i, j);
+        }
+      }
+    }
+
     bool panChanged = false;
     bool flagsChanged = false;
     bool envChanged = false;
@@ -644,6 +663,7 @@ int DivPlatformSID3::dispatch(DivCommand c) {
 
   bool updEnv = false;
   DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SID3);
+  int filter = 0;
 
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
@@ -999,6 +1019,13 @@ int DivPlatformSID3::dispatch(DivCommand c) {
       chan[c.chan].filt[(c.value >> 4) & 3].enabled = c.value & 1;
       updateFilter(c.chan, (c.value >> 4) & 3);
       break;
+    case DIV_CMD_C64_PW_SLIDE:
+      chan[c.chan].pw_slide = c.value * c.value2 * 16;
+      break;
+    case DIV_CMD_C64_CUTOFF_SLIDE:
+      filter = abs(c.value2) - 1;
+      chan[c.chan].filt[filter].cutoff_slide = c.value * (c.value2 > 0 ? 1 : -1) * 16;
+      break;
     case DIV_CMD_SAMPLE_POS:
       chan[c.chan].dacPos=c.value;
       break;
@@ -1108,6 +1135,8 @@ void DivPlatformSID3::reset() {
     {
       chan[i].filt[j].enabled = false;
       updateFilter(i, j);
+
+      chan[i].filt[j].cutoff_slide = 0;
     }
 
     chan[i].panLeft = chan[i].panRight = 0xff;
@@ -1116,6 +1145,8 @@ void DivPlatformSID3::reset() {
     updatePanning(i);
 
     chan[i].noiseLFSRMask = (1 << 29) | (1 << 5) | (1 << 3) | 1; //https://docs.amd.com/v/u/en-US/xapp052 for 30 bits: 30, 6, 4, 1
+
+    chan[i].pw_slide = 0;
   }
 
   sampleTick = 0;

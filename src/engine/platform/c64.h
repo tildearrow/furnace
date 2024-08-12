@@ -37,6 +37,7 @@ class DivPlatformC64: public DivDispatch {
     short duty;
     bool sweepChanged, filter;
     bool resetMask, resetFilter, resetDuty, gate, ring, sync, test;
+    short pw_slide;
     Channel():
       SharedChannel<signed char>(15),
       prevFreq(65535),
@@ -56,7 +57,8 @@ class DivPlatformC64: public DivDispatch {
       gate(true),
       ring(false),
       sync(false),
-      test(false) {}
+      test(false),
+      pw_slide(0) {}
   };
   Channel chan[3];
   DivDispatchOscBuffer* oscBuf[3];
@@ -76,6 +78,7 @@ class DivPlatformC64: public DivDispatch {
   unsigned char writeOscBuf;
   unsigned char sidCore;
   int filtCut, resetTime, initResetTime;
+  short cutoff_slide;
 
   bool keyPriority, sidIs6581, needInitTables, no1EUpdate, multiplyRel, macroRace;
   unsigned char chanOrder[3];

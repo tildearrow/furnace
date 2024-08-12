@@ -113,6 +113,24 @@ void DivPlatformSID2::tick(bool sysTick) {
     bool willUpdateFilter = false;
 
     chan[i].std.next();
+
+    if(sysTick)
+    {
+      if(chan[i].pw_slide != 0)
+      {
+        chan[i].duty -= chan[i].pw_slide;
+        chan[i].duty = CLAMP(chan[i].duty, 0, 0xfff);
+        rWrite(i*7+2,chan[i].duty&0xff);
+        rWrite(i*7+3,(chan[i].duty>>8) | (chan[i].outVol << 4));
+      }
+      if(chan[i].cutoff_slide != 0)
+      {
+        chan[i].filtCut += chan[i].cutoff_slide;
+        chan[i].filtCut = CLAMP(chan[i].filtCut, 0, 0xfff);
+        updateFilter(i);
+      }
+    }
+
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
       rWrite(i*7+3,(chan[i].duty>>8) | (chan[i].outVol << 4));
@@ -521,6 +539,12 @@ int DivPlatformSID2::dispatch(DivCommand c) {
           break;
       }
       break;
+    case DIV_CMD_C64_PW_SLIDE:
+      chan[c.chan].pw_slide = c.value * c.value2;
+      break;
+    case DIV_CMD_C64_CUTOFF_SLIDE:
+      chan[c.chan].cutoff_slide = c.value * c.value2;
+      break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
       break;
@@ -633,6 +657,9 @@ void DivPlatformSID2::reset() {
     chan[i].noise_mode = 0;
 
     rWrite(0x3 + 7 * i,0xf0);
+
+    chan[i].cutoff_slide = 0;
+    chan[i].pw_slide = 0;
   }
 
   sid2->reset();

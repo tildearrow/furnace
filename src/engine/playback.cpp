@@ -278,6 +278,9 @@ const char* cmdName[]={
   "SID3_FILTER_CONNECTION",
   "SID3_FILTER_MATRIX",
   "SID3_FILTER_ENABLE",
+
+  "DIV_CMD_C64_PW_SLIDE",
+  "DIV_CMD_C64_CUTOFF_SLIDE",
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");

@@ -6486,7 +6486,26 @@ void FurnaceGUI::drawInsEdit() {
           }
           for (DivInstrumentType i: insTypeList) {
             if (ImGui::Selectable(insTypes[i][0],insType==i)) {
+              DivInstrumentType prevType = ins->type;
               ins->type=i;
+
+              //clamp some settings
+              if(prevType == DIV_INS_SID3)
+              {
+                ins->c64.a = CLAMP(ins->c64.a, 0, 15);
+                ins->c64.d = CLAMP(ins->c64.a, 0, 15);
+                ins->c64.s = CLAMP(ins->c64.a, 0, 15);
+                ins->c64.r = CLAMP(ins->c64.a, 0, 15);
+
+                ins->c64.duty = CLAMP(ins->c64.a, 0, 0xfff);
+
+                ins->sid2.mixMode = CLAMP(ins->sid2.mixMode, 0, 3);
+              }
+              if(prevType == DIV_INS_SID3 || prevType == DIV_INS_SID2)
+              {
+                ins->c64.cut = CLAMP(ins->c64.cut, 0, 0x7ff);
+                ins->c64.res = CLAMP(ins->c64.res, 0, 0xf);
+              }
 
               // reset macro zoom
               ins->std.volMacro.vZoom=-1;

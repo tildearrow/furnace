@@ -29,7 +29,7 @@ class DivPlatformSID3: public DivDispatch {
   struct Channel: public SharedChannel<signed short> {
     int prevFreq;
     unsigned char wave, special_wave, attack, decay, sustain, sr, release;
-    unsigned short duty;
+    int duty;
     bool resetMask, resetFilter, resetDuty, gate, ring, sync, phase, oneBitNoise;
     bool phaseReset, envReset, phaseResetNoise;
     bool noiseFreqChanged;
@@ -44,13 +44,15 @@ class DivPlatformSID3: public DivDispatch {
 
     struct Filter 
     {
-      unsigned short cutoff;
+      int cutoff;
       unsigned char resonance;
       unsigned char output_volume;
       unsigned char distortion_level;
       unsigned char mode;
       bool enabled;
       unsigned char filter_matrix;
+
+      short cutoff_slide;
 
       Filter():
         cutoff(0),
@@ -59,7 +61,8 @@ class DivPlatformSID3: public DivDispatch {
         distortion_level(0),
         mode(0),
         enabled(false),
-        filter_matrix(0) {}
+        filter_matrix(0),
+        cutoff_slide(0) {}
     } filt[SID3_NUM_FILTERS];
 
     int noise_baseNoteOverride;
@@ -78,6 +81,8 @@ class DivPlatformSID3: public DivDispatch {
 
     unsigned char phaseInv;
     unsigned char feedback;
+
+    short pw_slide;
 
     void handleArpNoise(int offset=0) 
     {
@@ -176,7 +181,8 @@ class DivPlatformSID3: public DivDispatch {
       dacPos(0),
       dacSample(-1),
       phaseInv(0),
-      feedback(0) {}
+      feedback(0),
+      pw_slide(0) {}
   };
   Channel chan[SID3_NUM_CHANNELS];
   DivDispatchOscBuffer* oscBuf[SID3_NUM_CHANNELS];

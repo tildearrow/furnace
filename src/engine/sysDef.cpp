@@ -612,6 +612,12 @@ void DivEngine::registerSystems() {
     {0x1e, {DIV_CMD_C64_EXTENDED, _("1Exy: Change other parameters (LEGACY)")}},
     {0x20, {DIV_CMD_C64_AD, _("20xy: Set attack/decay (x: attack; y: decay)")}},
     {0x21, {DIV_CMD_C64_SR, _("21xy: Set sustain/release (x: sustain; y: release)")}},
+
+    {0x22, {DIV_CMD_C64_PW_SLIDE, _("22xx: Pulse width slide up"), effectVal, constVal<1>}},
+    {0x23, {DIV_CMD_C64_PW_SLIDE, _("23xx: Pulse width slide down"), effectVal, constVal<-1>}},
+
+    {0x24, {DIV_CMD_C64_CUTOFF_SLIDE, _("24xx: Filter cutoff slide up"), effectVal, constVal<1>}},
+    {0x25, {DIV_CMD_C64_CUTOFF_SLIDE, _("25xx: Filter cutoff slide down"), effectVal, constVal<-1>}},
   };
   const EffectHandler c64FineDutyHandler(DIV_CMD_C64_FINE_DUTY, _("3xxx: Set pulse width (0 to FFF)"), effectValLong<12>);
   const EffectHandler c64FineCutoffHandler(DIV_CMD_C64_FINE_CUTOFF, _("4xxx: Set cutoff (0 to 7FF)"), effectValLong<11>);
@@ -684,6 +690,12 @@ void DivEngine::registerSystems() {
     {0x14, {DIV_CMD_C64_FILTER_RESET, _("14xy: Reset cutoff (x: on new note; y: now)")}},
     {0x15, {DIV_CMD_C64_DUTY_RESET, _("15xy: Reset pulse width (x: on new note; y: now)")}},
     {0x16, {DIV_CMD_C64_EXTENDED, _("16xy: Change other parameters")}},
+
+    {0x17, {DIV_CMD_C64_PW_SLIDE, _("17xx: Pulse width slide up"), effectVal, constVal<1>}},
+    {0x18, {DIV_CMD_C64_PW_SLIDE, _("18xx: Pulse width slide down"), effectVal, constVal<-1>}},
+
+    {0x19, {DIV_CMD_C64_CUTOFF_SLIDE, _("19xx: Filter cutoff slide up"), effectVal, constVal<1>}},
+    {0x1A, {DIV_CMD_C64_CUTOFF_SLIDE, _("1Axx: Filter cutoff slide down"), effectVal, constVal<-1>}},
   };
   const EffectHandler SID2FineDutyHandler(DIV_CMD_C64_FINE_DUTY, _("3xxx: Set pulse width (0 to FFF)"), effectValLong<12>);
   const EffectHandler SID2FineCutoffHandler(DIV_CMD_C64_FINE_CUTOFF, _("4xxx: Set cutoff (0 to FFF)"), effectValLong<11>);
@@ -737,6 +749,18 @@ void DivEngine::registerSystems() {
     {0xA1, {DIV_CMD_SID3_FILTER_CONNECTION, _("A1xy: Set filter connection (x: filter (0-3); y: bit 0: connect to channel input; bit 1: connect to channel output)")}},
     {0xA2, {DIV_CMD_SID3_FILTER_MATRIX, _("A2xy: Set filter connection matrix (x: filter (0-3); y: bits 0-3: add filter 1-4 output to filter's input)")}},
     {0xA3, {DIV_CMD_SID3_FILTER_ENABLE, _("A3xy: Enable filter (x: filter (0-3); y: enable)")}},
+
+    {0xA4, {DIV_CMD_C64_PW_SLIDE, _("A4xx: Pulse width slide up"), effectVal, constVal<1>}},
+    {0xA5, {DIV_CMD_C64_PW_SLIDE, _("A5xx: Pulse width slide down"), effectVal, constVal<-1>}},
+
+    {0xA6, {DIV_CMD_C64_CUTOFF_SLIDE, _("A6xx: Filter 1 cutoff slide up"), effectVal, constVal<1>}},
+    {0xA7, {DIV_CMD_C64_CUTOFF_SLIDE, _("A7xx: Filter 1 cutoff slide down"), effectVal, constVal<-1>}},
+    {0xA8, {DIV_CMD_C64_CUTOFF_SLIDE, _("A8xx: Filter 2 cutoff slide up"), effectVal, constVal<2>}},
+    {0xA9, {DIV_CMD_C64_CUTOFF_SLIDE, _("A9xx: Filter 2 cutoff slide down"), effectVal, constVal<-2>}},
+    {0xAA, {DIV_CMD_C64_CUTOFF_SLIDE, _("AAxx: Filter 3 cutoff slide up"), effectVal, constVal<3>}},
+    {0xAB, {DIV_CMD_C64_CUTOFF_SLIDE, _("ABxx: Filter 3 cutoff slide down"), effectVal, constVal<-3>}},
+    {0xAC, {DIV_CMD_C64_CUTOFF_SLIDE, _("ACxx: Filter 4 cutoff slide up"), effectVal, constVal<4>}},
+    {0xAD, {DIV_CMD_C64_CUTOFF_SLIDE, _("ADxx: Filter 4 cutoff slide down"), effectVal, constVal<-4>}},
   };
 
   const EffectHandler SID3FineDutyHandler(DIV_CMD_C64_FINE_DUTY, _("5xxx: Set pulse width (0 to FFF)"), effectValLong<12>);
