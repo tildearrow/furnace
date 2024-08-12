@@ -13,9 +13,9 @@ enum State { ATTACK, DECAY, SUSTAIN, RELEASE }; //for envelope
 #define envspd_factor_a_sr 10
 #define envspd_factor_dr 15
 
-#define envspd_a(rate) ((uint64_t)0xff0000 / ((rate == 0 ? 1 : (rate * envspd_factor_a_sr)) * (rate == 0 ? 1 : (rate * envspd_factor_a_sr))))
-#define envspd_dr(rate) ((uint64_t)0xff0000 / ((rate == 0 ? 1 : (rate * envspd_factor_dr)) * (rate == 0 ? 1 : (rate * envspd_factor_dr))))
-#define envspd_sr(rate) (rate == 0 ? 0 : ((uint64_t)0xff0000 / ((256 - rate) * (256 - rate) * envspd_factor_a_sr * envspd_factor_a_sr)))
+#define envspd_a(rate) ((uint64_t)0xff0000 / ((rate == 0 ? 1 : (rate * envspd_factor_a_sr)) * (rate == 0 ? 1 : (rate * envspd_factor_a_sr * ((float)sid3->clock_rate / 1000000.0)))))
+#define envspd_dr(rate) ((uint64_t)0xff0000 / ((rate == 0 ? 1 : (rate * envspd_factor_dr)) * (rate == 0 ? 1 : (rate * envspd_factor_dr * ((float)sid3->clock_rate / 1000000.0)))))
+#define envspd_sr(rate) (rate == 0 ? 0 : ((uint64_t)0xff0000 / ((256 - rate) * (256 - rate) * envspd_factor_a_sr * envspd_factor_a_sr * ((float)sid3->clock_rate / 1000000.0))))
 
 //these 4 ones are util only
 double square(double x) {
@@ -2352,21 +2352,27 @@ void sid3_reset(SID3* sid3)
     for(int32_t i = 0; i < SID3_NUM_CHANNELS - 1; i++)
     {
         memset(&sid3->chan[i], 0, sizeof(sid3_channel));
-        /*sid3->chan[i].accumulator = 0;
-        sid3->chan[i].adsr.a = 0x20;
-        sid3->chan[i].adsr.d = 0x20;
-        sid3->chan[i].adsr.s = 0x80;
-        sid3->chan[i].adsr.r = 0x17;
-        sid3->chan[i].adsr.vol = 0xf0;*/
         sid3->chan[i].adsr.hold_zero = true;
         sid3->chan[i].lfsr = 0x1;
         sid3->chan[i].lfsr_taps = (1 << 29) | (1 << 5) | (1 << 3) | 1; //https://docs.amd.com/v/u/en-US/xapp052 for 30 bits: 30, 6, 4, 1
-        //....
+
+        for(int j = 0; j < SID3_NUM_FILTERS; j++)
+        {
+            sid3->chan[i].filt.filt[j].Vlp = 0;
+            sid3->chan[i].filt.filt[j].Vbp = 0;
+            sid3->chan[i].filt.filt[j].Vhp = 0;
+        }
     }
 
-    //TODO: wavetable chan
     memset(&sid3->wave_chan, 0, sizeof(sid3_wavetable_chan));
     sid3->wave_chan.adsr.hold_zero = true;
+
+    for(int j = 0; j < SID3_NUM_FILTERS; j++)
+    {
+        sid3->wave_chan.filt.filt[j].Vlp = 0;
+        sid3->wave_chan.filt.filt[j].Vbp = 0;
+        sid3->wave_chan.filt.filt[j].Vhp = 0;
+    }
 }
 
 void sid3_gate_bit(SID3* sid3, uint8_t gate, sid3_channel_adsr* adsr)
@@ -2404,7 +2410,7 @@ void sid3_gate_bit(SID3* sid3, uint8_t gate, sid3_channel_adsr* adsr)
     if(adsr->envelope_counter > 0xff0000) adsr->envelope_counter = 0xff0000;
 }
 
-void sid3_adsr_clock(sid3_channel_adsr* adsr)
+void sid3_adsr_clock(SID3* sid3, sid3_channel_adsr* adsr)
 {
     // Check whether the envelope counter is frozen at zero.
     if (adsr->hold_zero) 
@@ -2478,16 +2484,16 @@ int32_t sid3_adsr_output(SID3* sid3, sid3_channel_adsr* adsr, int32_t input)
     }
 }
 
-void sid3_set_filter_settings(sid3_filter* filt)
+void sid3_set_filter_settings(SID3* sid3, sid3_filter* filt)
 {
     const double pi = 3.1415926535897932385;
 
     // Multiply with 1.048576 to facilitate division by 1 000 000 by right-
     // shifting 20 times (2 ^ 20 = 1048576).
-    filt->w0 = (2.0*pi*(float)filt->cutoff) / 500000.0 / 5.0; // "/ 5.0" bc we have 16 bit cutoff instead of 12-bit
+    filt->w0 = (2.0*pi*(float)filt->cutoff) / ((double)sid3->clock_rate / 2.0) / 5.0; // "/ 5.0" bc we have 16 bit cutoff instead of 12-bit
 
     // Limit f0 to 16kHz to keep 1 cycle filter stable.
-    const float w0_max_1 = (2.0*pi*20000.0) / 500000.0;
+    const float w0_max_1 = (2.0*pi*20000.0) / ((double)sid3->clock_rate / 2.0);
     filt->w0_ceil_1 = filt->w0 <= w0_max_1 ? filt->w0 : w0_max_1;
 
     filt->_1024_div_Q = (1.0/(0.707 + 4.0*(float)filt->resonance/(float)0x0ff));
@@ -3052,67 +3058,100 @@ void sid3_clock(SID3* sid3)
             }
         }
 
-        uint32_t acc_state = ch->accumulator;
-        uint32_t noise_acc_state = ch->noise_accumulator;
+        int32_t waveform = 0;
 
-        if(ch->flags & SID3_CHAN_ENABLE_PHASE_MOD)
+        if(!ch->adsr.hold_zero)
         {
-            ch->accumulator += ch->phase_mod_source == SID3_NUM_CHANNELS - 1 ? ((uint64_t)sid3->wave_channel_output << 18) : ((uint64_t)sid3->channel_output[ch->phase_mod_source] << 18);
-            ch->noise_accumulator += ch->phase_mod_source == SID3_NUM_CHANNELS - 1 ? ((uint64_t)sid3->wave_channel_output << 18) : ((uint64_t)sid3->channel_output[ch->phase_mod_source] << 18);
-        }
+            uint32_t acc_state = ch->accumulator;
+            uint32_t noise_acc_state = ch->noise_accumulator;
 
-        if(ch->feedback)
-        {
-            ch->accumulator += (ch->prev_output + ch->prev_output2) * ch->feedback;
-        }
+            if(ch->flags & SID3_CHAN_ENABLE_PHASE_MOD)
+            {
+                ch->accumulator += ch->phase_mod_source == SID3_NUM_CHANNELS - 1 ? ((uint64_t)sid3->wave_channel_output << 18) : ((uint64_t)sid3->channel_output[ch->phase_mod_source] << 18);
+                ch->noise_accumulator += ch->phase_mod_source == SID3_NUM_CHANNELS - 1 ? ((uint64_t)sid3->wave_channel_output << 18) : ((uint64_t)sid3->channel_output[ch->phase_mod_source] << 18);
+            }
 
-        ch->accumulator &= SID3_ACC_MASK;
+            if(ch->feedback)
+            {
+                ch->accumulator += (ch->prev_output + ch->prev_output2) * ch->feedback;
+            }
 
-        if((prev_noise_acc & ((uint32_t)1 << (SID3_ACC_BITS - 6))) != (ch->noise_accumulator & ((uint32_t)1 << (SID3_ACC_BITS - 6))))
-        {
-            sid3_clock_lfsr(ch);
-        }
+            ch->accumulator &= SID3_ACC_MASK;
+            ch->noise_accumulator &= SID3_ACC_MASK;
 
-        int32_t waveform = sid3_get_waveform(sid3, ch);
+            if((prev_noise_acc & ((uint32_t)1 << (SID3_ACC_BITS - 6))) != (ch->noise_accumulator & ((uint32_t)1 << (SID3_ACC_BITS - 6))))
+            {
+                sid3_clock_lfsr(ch);
+            }
 
-        ch->accumulator = acc_state & SID3_ACC_MASK;
-        ch->noise_accumulator = noise_acc_state & SID3_ACC_MASK;
+            waveform = sid3_get_waveform(sid3, ch);
 
-        sid3->channel_signals_before_ADSR[i] = waveform;
+            ch->accumulator = acc_state & SID3_ACC_MASK;
+            ch->noise_accumulator = noise_acc_state & SID3_ACC_MASK;
 
-        if(ch->flags & SID3_CHAN_ENABLE_RING_MOD)
-        {
-            uint8_t ring_mod_src = ch->ring_mod_src == SID3_NUM_CHANNELS ? i : ch->ring_mod_src; //SID3_NUM_CHANNELS = self-mod
+            sid3->channel_signals_before_ADSR[i] = waveform;
 
-            waveform = waveform * (ch->ring_mod_src == (SID3_NUM_CHANNELS - 1) ? sid3->wave_channel_signal_before_ADSR : sid3->channel_signals_before_ADSR[ring_mod_src]) / (int32_t)0xffff; //ring modulation is just multiplication of two signals!
-        }
+            if(ch->flags & SID3_CHAN_ENABLE_RING_MOD)
+            {
+                uint8_t ring_mod_src = ch->ring_mod_src == SID3_NUM_CHANNELS ? i : ch->ring_mod_src; //SID3_NUM_CHANNELS = self-mod
 
-        sid3_adsr_clock(&ch->adsr);
-
-        ch->output_before_filter = sid3_adsr_output(sid3, &ch->adsr, waveform);
-
-        int32_t output = 0;
-        
-        if((ch->filt.filt[0].mode & SID3_FILTER_ENABLE) || (ch->filt.filt[1].mode & SID3_FILTER_ENABLE) ||
-            (ch->filt.filt[2].mode & SID3_FILTER_ENABLE) || (ch->filt.filt[3].mode & SID3_FILTER_ENABLE))
-        {
-            output = sid3_process_filters_block(ch);
+                waveform = waveform * (ch->ring_mod_src == (SID3_NUM_CHANNELS - 1) ? sid3->wave_channel_signal_before_ADSR : sid3->channel_signals_before_ADSR[ring_mod_src]) / (int32_t)0xffff; //ring modulation is just multiplication of two signals!
+            }
         }
         else
         {
-            output = ch->output_before_filter;
-        }
-        
-        if(ch->feedback)
-        {
-            ch->prev_output2 = ch->prev_output;
-            ch->prev_output = output + 0xffff;
+            ch->accumulator &= SID3_ACC_MASK;
+            ch->noise_accumulator &= SID3_ACC_MASK;
         }
 
-        if(!sid3->muted[i])
+        sid3_adsr_clock(sid3, &ch->adsr);
+
+        int32_t output = 0;
+        
+        if(!ch->adsr.hold_zero)
         {
-            sid3->output_l += output * ch->panning_left / 0x8f0 * ((ch->phase_inv & SID3_INV_SIGNAL_LEFT) ? -1 : 1);
-            sid3->output_r += output * ch->panning_right / 0x8f0 * ((ch->phase_inv & SID3_INV_SIGNAL_RIGHT) ? -1 : 1);
+            ch->output_before_filter = sid3_adsr_output(sid3, &ch->adsr, waveform);
+
+            if((ch->filt.filt[0].mode & SID3_FILTER_ENABLE) || (ch->filt.filt[1].mode & SID3_FILTER_ENABLE) ||
+                (ch->filt.filt[2].mode & SID3_FILTER_ENABLE) || (ch->filt.filt[3].mode & SID3_FILTER_ENABLE))
+            {
+                output = sid3_process_filters_block(ch);
+            }
+            else
+            {
+                output = ch->output_before_filter;
+            }
+            
+            if(ch->feedback)
+            {
+                ch->prev_output2 = ch->prev_output;
+                ch->prev_output = output + 0xffff;
+            }
+
+            if(!sid3->muted[i])
+            {
+                sid3->output_l += output * ch->panning_left / 0x8f0 * ((ch->phase_inv & SID3_INV_SIGNAL_LEFT) ? -1 : 1);
+                sid3->output_r += output * ch->panning_right / 0x8f0 * ((ch->phase_inv & SID3_INV_SIGNAL_RIGHT) ? -1 : 1);
+            }
+        }
+        else
+        {
+            ch->output_before_filter = 0;
+
+            for(int j = 0; j < SID3_NUM_FILTERS; j++)
+            {
+                if(ch->filt.filt[j].mode & SID3_FILTER_ENABLE)
+                {
+                    if(ch->filt.filt[j].output > 0)
+                    {
+                        ch->filt.filt[j].output--;
+                    }
+                    if(ch->filt.filt[j].output < 0)
+                    {
+                        ch->filt.filt[j].output++;
+                    }
+                }
+            }
         }
 
         sid3->channel_output[i] = output;
@@ -3151,57 +3190,86 @@ void sid3_clock(SID3* sid3)
         }
     }
 
-    uint32_t acc_state = ch->accumulator;
+    int32_t waveform = 0;
 
-    if(ch->flags & SID3_CHAN_ENABLE_PHASE_MOD)
+    if(!ch->adsr.hold_zero)
     {
-        ch->accumulator += ch->phase_mod_source == SID3_NUM_CHANNELS - 1 ? ((uint64_t)sid3->wave_channel_output << 18) : ((uint64_t)sid3->channel_output[ch->phase_mod_source] << 18);
-    }
+        uint32_t acc_state = ch->accumulator;
 
-    ch->accumulator &= SID3_ACC_MASK;
+        if(ch->flags & SID3_CHAN_ENABLE_PHASE_MOD)
+        {
+            ch->accumulator += ch->phase_mod_source == SID3_NUM_CHANNELS - 1 ? ((uint64_t)sid3->wave_channel_output << 18) : ((uint64_t)sid3->channel_output[ch->phase_mod_source] << 18);
+        }
 
-    int32_t waveform;
+        ch->accumulator &= SID3_ACC_MASK;
 
-    if(ch->mode)
-    {
-        waveform = (int32_t)ch->streamed_sample - 0x7fff;
+        if(ch->mode)
+        {
+            waveform = (int32_t)ch->streamed_sample - 0x7fff;
+        }
+        else
+        {
+            waveform = ((int32_t)ch->wavetable[(ch->accumulator & SID3_ACC_MASK) >> (SID3_ACC_BITS - 8)] << 8) - 0x7fff;
+        }
+
+        ch->accumulator = acc_state & SID3_ACC_MASK;
+
+        sid3->wave_channel_signal_before_ADSR = waveform;
+
+        if(ch->flags & SID3_CHAN_ENABLE_RING_MOD)
+        {
+            uint8_t ring_mod_src = ch->ring_mod_src == SID3_NUM_CHANNELS ? 0xff : ch->ring_mod_src; //SID3_NUM_CHANNELS = self-mod
+
+            waveform = waveform * (ch->ring_mod_src == 0xff ? sid3->wave_channel_signal_before_ADSR : sid3->channel_signals_before_ADSR[ring_mod_src]) / (int32_t)0xffff; //ring modulation is just multiplication of two signals!
+        }
     }
     else
     {
-        waveform = ((int32_t)ch->wavetable[(ch->accumulator & SID3_ACC_MASK) >> (SID3_ACC_BITS - 8)] << 8) - 0x7fff;
+        ch->accumulator &= SID3_ACC_MASK;
     }
 
-    ch->accumulator = acc_state & SID3_ACC_MASK;
-
-    sid3->wave_channel_signal_before_ADSR = waveform;
-
-    if(ch->flags & SID3_CHAN_ENABLE_RING_MOD)
-    {
-        uint8_t ring_mod_src = ch->ring_mod_src == SID3_NUM_CHANNELS ? 0xff : ch->ring_mod_src; //SID3_NUM_CHANNELS = self-mod
-
-        waveform = waveform * (ch->ring_mod_src == 0xff ? sid3->wave_channel_signal_before_ADSR : sid3->channel_signals_before_ADSR[ring_mod_src]) / (int32_t)0xffff; //ring modulation is just multiplication of two signals!
-    }
-
-    sid3_adsr_clock(&ch->adsr);
-
-    ch->output_before_filter = sid3_adsr_output(sid3, &ch->adsr, waveform);
+    sid3_adsr_clock(sid3, &ch->adsr);
 
     int32_t output = 0;
-    
-    if((ch->filt.filt[0].mode & SID3_FILTER_ENABLE) || (ch->filt.filt[1].mode & SID3_FILTER_ENABLE) ||
-        (ch->filt.filt[2].mode & SID3_FILTER_ENABLE) || (ch->filt.filt[3].mode & SID3_FILTER_ENABLE))
+
+    if(!ch->adsr.hold_zero)
     {
-        output = sid3_process_wave_channel_filters_block(ch);
+        ch->output_before_filter = sid3_adsr_output(sid3, &ch->adsr, waveform);
+        
+        if((ch->filt.filt[0].mode & SID3_FILTER_ENABLE) || (ch->filt.filt[1].mode & SID3_FILTER_ENABLE) ||
+            (ch->filt.filt[2].mode & SID3_FILTER_ENABLE) || (ch->filt.filt[3].mode & SID3_FILTER_ENABLE))
+        {
+            output = sid3_process_wave_channel_filters_block(ch);
+        }
+        else
+        {
+            output = ch->output_before_filter;
+        }
+
+        if(!sid3->muted[SID3_NUM_CHANNELS - 1])
+        {
+            sid3->output_l += output * ch->panning_left / 0x8f0 * ((ch->phase_inv & SID3_INV_SIGNAL_LEFT) ? -1 : 1);
+            sid3->output_r += output * ch->panning_right / 0x8f0 * ((ch->phase_inv & SID3_INV_SIGNAL_RIGHT) ? -1 : 1);
+        }
     }
     else
     {
-        output = ch->output_before_filter;
-    }
+        ch->output_before_filter = 0;
 
-    if(!sid3->muted[SID3_NUM_CHANNELS - 1])
-    {
-        sid3->output_l += output * ch->panning_left / 0x8f0 * ((ch->phase_inv & SID3_INV_SIGNAL_LEFT) ? -1 : 1);
-        sid3->output_r += output * ch->panning_right / 0x8f0 * ((ch->phase_inv & SID3_INV_SIGNAL_RIGHT) ? -1 : 1);
+        for(int j = 0; j < SID3_NUM_FILTERS; j++)
+        {
+            if(ch->filt.filt[j].mode & SID3_FILTER_ENABLE)
+            {
+                if(ch->filt.filt[j].output > 0)
+                {
+                    ch->filt.filt[j].output--;
+                }
+                if(ch->filt.filt[j].output < 0)
+                {
+                    ch->filt.filt[j].output++;
+                }
+            }
+        }
     }
 
     sid3->wave_channel_output = output;
@@ -3501,12 +3569,10 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
             if(channel != SID3_NUM_CHANNELS - 1)
             {
                 sid3->chan[channel].filt.filt[filter].mode = data;
-                //sid3_set_filter_settings(&sid3->chan[channel].filt.filt[filter]);
             }
             else
             {
                 sid3->wave_chan.filt.filt[filter].mode = data;
-                //sid3_set_filter_settings(&sid3->wave_chan.filt.filt[filter]);
             }
             break;
         }
@@ -3521,13 +3587,13 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
             {
                 sid3->chan[channel].filt.filt[filter].cutoff &= 0x00ff;
                 sid3->chan[channel].filt.filt[filter].cutoff |= data << 8;
-                sid3_set_filter_settings(&sid3->chan[channel].filt.filt[filter]);
+                sid3_set_filter_settings(sid3, &sid3->chan[channel].filt.filt[filter]);
             }
             else
             {
                 sid3->wave_chan.filt.filt[filter].cutoff &= 0x00ff;
                 sid3->wave_chan.filt.filt[filter].cutoff |= data << 8;
-                sid3_set_filter_settings(&sid3->wave_chan.filt.filt[filter]);
+                sid3_set_filter_settings(sid3, &sid3->wave_chan.filt.filt[filter]);
             }
             break;
         }
@@ -3542,13 +3608,13 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
             {
                 sid3->chan[channel].filt.filt[filter].cutoff &= 0xff00;
                 sid3->chan[channel].filt.filt[filter].cutoff |= data;
-                sid3_set_filter_settings(&sid3->chan[channel].filt.filt[filter]);
+                sid3_set_filter_settings(sid3, &sid3->chan[channel].filt.filt[filter]);
             }
             else
             {
                 sid3->wave_chan.filt.filt[filter].cutoff &= 0xff00;
                 sid3->wave_chan.filt.filt[filter].cutoff |= data;
-                sid3_set_filter_settings(&sid3->wave_chan.filt.filt[filter]);
+                sid3_set_filter_settings(sid3, &sid3->wave_chan.filt.filt[filter]);
             }
             break;
         }
@@ -3562,12 +3628,12 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
             if(channel != SID3_NUM_CHANNELS - 1)
             {
                 sid3->chan[channel].filt.filt[filter].resonance = data;
-                sid3_set_filter_settings(&sid3->chan[channel].filt.filt[filter]);
+                sid3_set_filter_settings(sid3, &sid3->chan[channel].filt.filt[filter]);
             }
             else
             {
                 sid3->wave_chan.filt.filt[filter].resonance = data;
-                sid3_set_filter_settings(&sid3->wave_chan.filt.filt[filter]);
+                sid3_set_filter_settings(sid3, &sid3->wave_chan.filt.filt[filter]);
             }
             break;
         }
@@ -3581,12 +3647,12 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
             if(channel != SID3_NUM_CHANNELS - 1)
             {
                 sid3->chan[channel].filt.filt[filter].distortion_level = data;
-                sid3_set_filter_settings(&sid3->chan[channel].filt.filt[filter]);
+                sid3_set_filter_settings(sid3, &sid3->chan[channel].filt.filt[filter]);
             }
             else
             {
                 sid3->wave_chan.filt.filt[filter].distortion_level = data;
-                sid3_set_filter_settings(&sid3->wave_chan.filt.filt[filter]);
+                sid3_set_filter_settings(sid3, &sid3->wave_chan.filt.filt[filter]);
             }
             break;
         }
@@ -3766,6 +3832,11 @@ void sid3_set_is_muted(SID3* sid3, uint8_t ch, bool mute)
     SAFETY_HEADER
 
     sid3->muted[ch] = mute;
+}
+
+void sid3_set_clock_rate(SID3* sid3, uint32_t clock)
+{
+    sid3->clock_rate = clock;
 }
 
 void sid3_free(SID3* sid3)

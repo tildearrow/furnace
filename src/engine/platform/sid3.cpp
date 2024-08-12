@@ -90,16 +90,6 @@ void DivPlatformSID3::acquire(short** buf, size_t len)
 
         int dacData=s->data16[chan[SID3_NUM_CHANNELS - 1].dacPos] + 32767;
         chan[SID3_NUM_CHANNELS - 1].dacOut=CLAMP(dacData,0,65535);
-        /*if (!isMuted[SID3_NUM_CHANNELS - 1]) 
-        {
-          sid3_write(sid3, SID3_REGISTER_STREAMED_SAMPLE_HIGH + (SID3_NUM_CHANNELS - 1) * SID3_REGISTERS_PER_CHANNEL, chan[SID3_NUM_CHANNELS - 1].dacOut >> 8);
-          sid3_write(sid3, SID3_REGISTER_STREAMED_SAMPLE_LOW + (SID3_NUM_CHANNELS - 1) * SID3_REGISTERS_PER_CHANNEL, chan[SID3_NUM_CHANNELS - 1].dacOut & 0xff);
-        } 
-        else 
-        {
-          sid3_write(sid3, SID3_REGISTER_STREAMED_SAMPLE_HIGH + (SID3_NUM_CHANNELS - 1) * SID3_REGISTERS_PER_CHANNEL, 32768 >> 8);
-          sid3_write(sid3, SID3_REGISTER_STREAMED_SAMPLE_LOW + (SID3_NUM_CHANNELS - 1) * SID3_REGISTERS_PER_CHANNEL, 32768 & 0xff);
-        }*/
         updateSample = true;
         sampleTick = 0;
 
@@ -1121,7 +1111,16 @@ void DivPlatformSID3::poke(std::vector<DivRegWrite>& wlist) {
 void DivPlatformSID3::setFlags(const DivConfig& flags) {
   chipClock=1000000;
   CHECK_CUSTOM_CLOCK;
+
+  quarterClock=flags.getBool("quarterClock",false);
+
+  if(quarterClock && chipClock >= 1000000 && !parent->isExporting())
+  {
+    chipClock /= 4;
+  }
+
   rate=chipClock;
+  sid3_set_clock_rate(sid3, chipClock);
   for (int i=0; i<SID3_NUM_CHANNELS; i++) {
     oscBuf[i]->rate=rate/8;
   }

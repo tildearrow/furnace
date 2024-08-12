@@ -268,6 +268,7 @@ typedef struct
 
     //emulation-only helpers
     bool muted[SID3_NUM_CHANNELS];
+    uint32_t clock_rate; //in Hz. 1 MHz default
 } SID3;
 
 SID3* sid3_create();
@@ -275,6 +276,7 @@ void sid3_reset(SID3* sid3);
 void sid3_write(SID3* sid3, uint16_t address, uint8_t data);
 void sid3_clock(SID3* sid3);
 void sid3_set_is_muted(SID3* sid3, uint8_t ch, bool mute);
+void sid3_set_clock_rate(SID3* sid3, uint32_t clock);
 void sid3_free(SID3* sid3);
 
 #ifdef __cplusplus

@@ -198,6 +198,7 @@ class DivPlatformSID3: public DivDispatch {
 
   unsigned char sampleTick; //used to update streamed sample and not clash with other reg writes at high rate samples
   bool updateSample;
+  bool quarterClock;
   
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
