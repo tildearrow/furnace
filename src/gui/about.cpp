@@ -180,6 +180,7 @@ const char* aboutLine[]={
   "Slightly Large NC",
   "smaybius",
   "SnugglyBun",
+  "Someone64",
   "Spinning Square Waves",
   "src3453",
   "SuperJet Spade",
