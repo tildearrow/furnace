@@ -24,10 +24,12 @@
 #include "sfWrapper.h"
 #endif
 
-DivSample* DivEngine::sampleFromFile(const char* path) {
+std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
+  std::vector<DivSample*> ret;
+
   if (song.sample.size()>=256) {
     lastError="too many samples!";
-    return NULL;
+    return ret;
   }
   BUSY_BEGIN;
   warnings="";
@@ -58,6 +60,110 @@ DivSample* DivEngine::sampleFromFile(const char* path) {
       }
       extS+=i;
     }
+
+    if(extS == ".pps" || extS == ".ppc" || extS == ".pvi" ||
+      extS == ".pdx" || extS == ".pzi" || extS == ".p86" ||
+      extS == ".p") //sample banks!
+    {
+      String stripPath;
+      const char* pathReduxEnd=strrchr(pathRedux,'.');
+      if (pathReduxEnd==NULL) {
+        stripPath=pathRedux;
+      } else {
+        for (const char* i=pathRedux; i!=pathReduxEnd && (*i); i++) {
+          stripPath+=*i;
+        }
+      }
+
+      FILE* f=ps_fopen(path,"rb");
+      if (f==NULL) {
+        lastError=strerror(errno);
+        return ret;
+      }
+      unsigned char* buf;
+      ssize_t len;
+      if (fseek(f,0,SEEK_END)!=0) {
+        lastError=strerror(errno);
+        fclose(f);
+        return ret;
+      }
+      len=ftell(f);
+      if (len<0) {
+        lastError=strerror(errno);
+        fclose(f);
+        return ret;
+      }
+      if (len==(SIZE_MAX>>1)) {
+        lastError=strerror(errno);
+        fclose(f);
+        return ret;
+      }
+      if (len==0) {
+        lastError=strerror(errno);
+        fclose(f);
+        return ret;
+      }
+      if (fseek(f,0,SEEK_SET)!=0) {
+        lastError=strerror(errno);
+        fclose(f);
+        return ret;
+      }
+      buf=new unsigned char[len];
+      if (fread(buf,1,len,f)!=(size_t)len) {
+        logW("did not read entire sample bank file buffer!");
+        lastError=_LE("did not read entire sample bank file!");
+        delete[] buf;
+        return ret;
+      }
+      fclose(f);
+
+      SafeReader reader = SafeReader(buf,len);
+
+      if(extS == ".pps")
+      {
+        loadPPS(reader,ret,stripPath);
+      }
+      if(extS == ".ppc")
+      {
+        loadPPC(reader,ret,stripPath);
+      }
+      if(extS == ".pvi")
+      {
+        loadPVI(reader,ret,stripPath);
+      }
+      if(extS == ".pdx")
+      {
+        loadPDX(reader,ret,stripPath);
+      }
+      if(extS == ".pzi")
+      {
+        loadPZI(reader,ret,stripPath);
+      }
+      if(extS == ".p86")
+      {
+        loadP86(reader,ret,stripPath);
+      }
+      if(extS == ".p")
+      {
+        loadP(reader,ret,stripPath);
+      }
+
+      if((int)ret.size() > 0)
+      {
+        int counter = 0;
+
+        for(DivSample* s: ret)
+        {
+          s->name = fmt::sprintf("%s sample %d", stripPath, counter);
+          counter++;
+        }
+      }
+
+      delete[] buf; //done with buffer
+      BUSY_END;
+      return ret;
+    }
+
     if (extS==".dmc" || extS==".brr") { // read as .dmc or .brr
       size_t len=0;
       DivSample* sample=new DivSample;
@@ -68,7 +174,7 @@ DivSample* DivEngine::sampleFromFile(const char* path) {
         BUSY_END;
         lastError=fmt::sprintf("could not open file! (%s)",strerror(errno));
         delete sample;
-        return NULL;
+        return ret;
       }
 
       if (fseek(f,0,SEEK_END)<0) {
@@ -76,7 +182,7 @@ DivSample* DivEngine::sampleFromFile(const char* path) {
         BUSY_END;
         lastError=fmt::sprintf("could not get file length! (%s)",strerror(errno));
         delete sample;
-        return NULL;
+        return ret;
       }
 
       len=ftell(f);
@@ -86,7 +192,7 @@ DivSample* DivEngine::sampleFromFile(const char* path) {
         BUSY_END;
         lastError="file is empty!";
         delete sample;
-        return NULL;
+        return ret;
       }
 
       if (len==(SIZE_MAX>>1)) {
@@ -94,7 +200,7 @@ DivSample* DivEngine::sampleFromFile(const char* path) {
         BUSY_END;
         lastError="file is invalid!";
         delete sample;
-        return NULL;
+        return ret;
       }
 
       if (fseek(f,0,SEEK_SET)<0) {
@@ -102,7 +208,7 @@ DivSample* DivEngine::sampleFromFile(const char* path) {
         BUSY_END;
         lastError=fmt::sprintf("could not seek to beginning of file! (%s)",strerror(errno));
         delete sample;
-        return NULL;
+        return ret;
       }
 
       if (extS==".dmc") {
@@ -120,7 +226,7 @@ DivSample* DivEngine::sampleFromFile(const char* path) {
         BUSY_END;
         lastError="wait... is that right? no I don't think so...";
         delete sample;
-        return NULL;
+        return ret;
       }
 
       unsigned char* dataBuf=sample->dataDPCM;
@@ -147,14 +253,14 @@ DivSample* DivEngine::sampleFromFile(const char* path) {
             BUSY_END;
             lastError="BRR sample is empty!";
             delete sample;
-            return NULL;
+            return ret;
           }
         } else if ((len%9)!=0) {
           fclose(f);
           BUSY_END;
           lastError="possibly corrupt BRR sample!";
           delete sample;
-          return NULL;
+          return ret;
         }
       }
 
@@ -163,16 +269,17 @@ DivSample* DivEngine::sampleFromFile(const char* path) {
         BUSY_END;
         lastError=fmt::sprintf("could not read file! (%s)",strerror(errno));
         delete sample;
-        return NULL;
+        return ret;
       }
       BUSY_END;
-      return sample;
+      ret.push_back(sample);
+      return ret;
     }
   }
 
 #ifndef HAVE_SNDFILE
   lastError="Furnace was not compiled with libsndfile!";
-  return NULL;
+  return ret;
 #else
   SF_INFO si;
   SFWrapper sfWrap;
@@ -186,13 +293,13 @@ DivSample* DivEngine::sampleFromFile(const char* path) {
     } else {
       lastError=fmt::sprintf("could not open file! (%s)\nif this is raw sample data, you may import it by right-clicking the Load Sample icon and selecting \"import raw\".",sf_error_number(err));
     }
-    return NULL;
+    return ret;
   }
   if (si.frames>16777215) {
     lastError="this sample is too big! max sample size is 16777215.";
     sfWrap.doClose();
     BUSY_END;
-    return NULL;
+    return ret;
   }
   void* buf=NULL;
   sf_count_t sampleLen=sizeof(short);
@@ -298,14 +405,15 @@ DivSample* DivEngine::sampleFromFile(const char* path) {
   if (sample->centerRate>64000) sample->centerRate=64000;
   sfWrap.doClose();
   BUSY_END;
-  return sample;
+  ret.push_back(sample);
+  return ret;
 #endif
 }
 
 DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian, bool unsign, bool swapNibbles, int rate) {
   if (song.sample.size()>=256) {
     lastError="too many samples!";
-    return NULL;
+    return ret;
   }
   if (channels<1) {
     channels=1;
@@ -362,7 +470,7 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
     BUSY_END;
     lastError="file is empty!";
     delete sample;
-    return NULL;
+    return ret;
   }
 
   if (len==(SIZE_MAX>>1)) {
@@ -370,7 +478,7 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
     BUSY_END;
     lastError="file is invalid!";
     delete sample;
-    return NULL;
+    return ret;
   }
 
   if (fseek(f,0,SEEK_SET)<0) {
@@ -378,7 +486,7 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
     BUSY_END;
     lastError=fmt::sprintf("could not seek to beginning of file! (%s)",strerror(errno));
     delete sample;
-    return NULL;
+    return ret;
   }
 
   lenDivided=len/channels;
@@ -420,7 +528,7 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
     BUSY_END;
     lastError="this sample is too big! max sample size is 16777215.";
     delete sample;
-    return NULL;
+    return ret;
   }
 
   sample->rate=rate;
@@ -435,7 +543,7 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
     lastError=fmt::sprintf("could not read file! (%s)",strerror(errno));
     delete[] buf;
     delete sample;
-    return NULL;
+    return ret;
   }
 
   fclose(f);
