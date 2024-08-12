@@ -5274,8 +5274,6 @@ bool FurnaceGUI::loop() {
               String errs=_("there were some errors while loading samples:\n");
               bool warn=false;
               for (String i: fileDialog->getFileName()) {
-                DivSample*=e->sampleFromFile(i.c_str());
-                if () {
                 std::vector<DivSample*> samples=e->sampleFromFile(i.c_str());
                 if (samples.empty()) {
                   if (fileDialog->getFileName().size()>1) {
@@ -6502,8 +6500,6 @@ centerNextWindow(_("Select Sample"),canvasW,canvasH);
         }
       }
       bool reissueSearch=false;
-
-      if (ImGui::InputTextWithHint("##SysSearch",settings.language == 0 ? "Search..." : _("Search..."),&sampleBankSearchQuery)) reissueSearch=true;
 
       bool anySelected=false;
       float sizeY=ImGui::GetFrameHeightWithSpacing()*pendingSamples.size();

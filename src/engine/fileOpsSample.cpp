@@ -24,6 +24,8 @@
 #include "sfWrapper.h"
 #endif
 
+#define _LE(string) (string)
+
 std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
   std::vector<DivSample*> ret;
 
@@ -413,7 +415,7 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
 DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian, bool unsign, bool swapNibbles, int rate) {
   if (song.sample.size()>=256) {
     lastError="too many samples!";
-    return ret;
+    return NULL;
   }
   if (channels<1) {
     channels=1;
@@ -470,7 +472,7 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
     BUSY_END;
     lastError="file is empty!";
     delete sample;
-    return ret;
+    return NULL;
   }
 
   if (len==(SIZE_MAX>>1)) {
@@ -478,7 +480,7 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
     BUSY_END;
     lastError="file is invalid!";
     delete sample;
-    return ret;
+    return NULL;
   }
 
   if (fseek(f,0,SEEK_SET)<0) {
@@ -486,7 +488,7 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
     BUSY_END;
     lastError=fmt::sprintf("could not seek to beginning of file! (%s)",strerror(errno));
     delete sample;
-    return ret;
+    return NULL;
   }
 
   lenDivided=len/channels;
@@ -528,7 +530,7 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
     BUSY_END;
     lastError="this sample is too big! max sample size is 16777215.";
     delete sample;
-    return ret;
+    return NULL;
   }
 
   sample->rate=rate;
@@ -543,7 +545,7 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
     lastError=fmt::sprintf("could not read file! (%s)",strerror(errno));
     delete[] buf;
     delete sample;
-    return ret;
+    return NULL;
   }
 
   fclose(f);
