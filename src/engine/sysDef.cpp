@@ -719,6 +719,24 @@ void DivEngine::registerSystems() {
     {0x74, {DIV_CMD_C64_RESONANCE, _("74xx: Set filter 4 resonance"), effectVal, constVal<3>}},
 
     {0x75, {DIV_CMD_SID3_1_BIT_NOISE, _("75xx: Set noise mode (0: usual noise, 1: 1-bit noise (PCM mode on wave channel))")}},
+
+    {0x76, {DIV_CMD_SID3_FILTER_OUTPUT_VOLUME, _("76xx: Set filter 1 output volume"), effectVal, constVal<0>}},
+    {0x77, {DIV_CMD_SID3_FILTER_OUTPUT_VOLUME, _("77xx: Set filter 2 output volume"), effectVal, constVal<1>}},
+    {0x78, {DIV_CMD_SID3_FILTER_OUTPUT_VOLUME, _("78xx: Set filter 3 output volume"), effectVal, constVal<2>}},
+    {0x79, {DIV_CMD_SID3_FILTER_OUTPUT_VOLUME, _("79xx: Set filter 4 output volume"), effectVal, constVal<3>}},
+
+    {0x7A, {DIV_CMD_SID3_FILTER_DISTORTION, _("7Axx: Set filter 1 distortion"), effectVal, constVal<0>}},
+    {0x7B, {DIV_CMD_SID3_FILTER_DISTORTION, _("7Bxx: Set filter 2 distortion"), effectVal, constVal<1>}},
+    {0x7C, {DIV_CMD_SID3_FILTER_DISTORTION, _("7Cxx: Set filter 3 distortion"), effectVal, constVal<2>}},
+    {0x7D, {DIV_CMD_SID3_FILTER_DISTORTION, _("7Dxx: Set filter 4 distortion"), effectVal, constVal<3>}},
+
+    {0x7E, {DIV_CMD_FM_FB, _("7Exx: Set feedback")}},
+    {0x7F, {DIV_CMD_SID3_CHANNEL_INVERSION, _("7Fxx: Set channel signal inversion (bit 0: right channel, bit 1: left channel)")}},
+
+    {0xA0, {DIV_CMD_C64_FILTER_MODE, _("A0xy: Set filter mode (x: filter (0-3); y: bit 0: low pass; bit 1: band pass; bit 2: high pass)")}},
+    {0xA1, {DIV_CMD_SID3_FILTER_CONNECTION, _("A1xy: Set filter connection (x: filter (0-3); y: bit 0: connect to channel input; bit 1: connect to channel output)")}},
+    {0xA2, {DIV_CMD_SID3_FILTER_MATRIX, _("A2xy: Set filter connection matrix (x: filter (0-3); y: bits 0-3: add filter 1-4 output to filter's input)")}},
+    {0xA3, {DIV_CMD_SID3_FILTER_ENABLE, _("A3xy: Enable filter (x: filter (0-3); y: enable)")}},
   };
 
   const EffectHandler SID3FineDutyHandler(DIV_CMD_C64_FINE_DUTY, _("5xxx: Set pulse width (0 to FFF)"), effectValLong<12>);

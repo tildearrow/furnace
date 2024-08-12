@@ -954,6 +954,14 @@ int DivPlatformSID3::dispatch(DivCommand c) {
       chan[c.chan].duty = (c.value & 0xfff) << 4;
       updateDuty(c.chan);
       break;
+    case DIV_CMD_FM_FB:
+      chan[c.chan].feedback = c.value & 0xff;
+      rWrite(SID3_REGISTER_FEEDBACK + c.chan * SID3_REGISTERS_PER_CHANNEL, chan[c.chan].feedback);
+      break;
+    case DIV_CMD_SID3_CHANNEL_INVERSION:
+      chan[c.chan].phaseInv = c.value & 3;
+      rWrite(SID3_REGISTER_PHASE_INVERSION + c.chan * SID3_REGISTERS_PER_CHANNEL, chan[c.chan].phaseInv);
+      break;
     case DIV_CMD_C64_FINE_CUTOFF:
       chan[c.chan].filt[c.value2].cutoff = (c.value & 0xfff) << 4;
       updateFilter(c.chan, c.value2);
@@ -961,6 +969,35 @@ int DivPlatformSID3::dispatch(DivCommand c) {
     case DIV_CMD_C64_RESONANCE:
       chan[c.chan].filt[c.value2].resonance = c.value & 0xff;
       updateFilter(c.chan, c.value2);
+      break;
+    case DIV_CMD_SID3_FILTER_OUTPUT_VOLUME:
+      chan[c.chan].filt[c.value2].output_volume = c.value & 0xff;
+      updateFilter(c.chan, c.value2);
+      break;
+    case DIV_CMD_SID3_FILTER_DISTORTION:
+      chan[c.chan].filt[c.value2].distortion_level = c.value & 0xff;
+      updateFilter(c.chan, c.value2);
+      break;
+    case DIV_CMD_C64_FILTER_MODE:
+      chan[c.chan].filt[(c.value >> 4) & 3].mode &= ~(SID3_FILTER_LP | SID3_FILTER_HP | SID3_FILTER_BP);
+      if(c.value & 1) chan[c.chan].filt[(c.value >> 4) & 3].mode |= SID3_FILTER_LP;
+      if(c.value & 2) chan[c.chan].filt[(c.value >> 4) & 3].mode |= SID3_FILTER_BP;
+      if(c.value & 4) chan[c.chan].filt[(c.value >> 4) & 3].mode |= SID3_FILTER_HP;
+      updateFilter(c.chan, (c.value >> 4) & 3);
+      break;
+    case DIV_CMD_SID3_FILTER_CONNECTION:
+      chan[c.chan].filt[(c.value >> 4) & 3].mode &= ~(SID3_FILTER_CHANNEL_INPUT | SID3_FILTER_OUTPUT);
+      if(c.value & 1) chan[c.chan].filt[(c.value >> 4) & 3].mode |= SID3_FILTER_CHANNEL_INPUT;
+      if(c.value & 2) chan[c.chan].filt[(c.value >> 4) & 3].mode |= SID3_FILTER_OUTPUT;
+      updateFilter(c.chan, (c.value >> 4) & 3);
+      break;
+    case DIV_CMD_SID3_FILTER_MATRIX:
+      chan[c.chan].filt[(c.value >> 4) & 3].filter_matrix = c.value & 0xf;
+      updateFilter(c.chan, (c.value >> 4) & 3);
+      break;
+    case DIV_CMD_SID3_FILTER_ENABLE:
+      chan[c.chan].filt[(c.value >> 4) & 3].enabled = c.value & 1;
+      updateFilter(c.chan, (c.value >> 4) & 3);
       break;
     case DIV_CMD_SAMPLE_POS:
       chan[c.chan].dacPos=c.value;

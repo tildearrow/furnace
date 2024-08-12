@@ -272,6 +272,12 @@ const char* cmdName[]={
   "SID3_WAVE_MIX",
   "SID3_LFSR_FEEDBACK_BITS",
   "SID3_1_BIT_NOISE",
+  "SID3_FILTER_DISTORTION",
+  "SID3_FILTER_OUTPUT_VOLUME",
+  "SID3_CHANNEL_INVERSION",
+  "SID3_FILTER_CONNECTION",
+  "SID3_FILTER_MATRIX",
+  "SID3_FILTER_ENABLE",
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");
