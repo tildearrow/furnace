@@ -5,7 +5,7 @@
 // Chip revisions
 // 0: V  0.3.0
 // 1: V 47.0.0 (9-bit volume, phase reset on mute)
-// 2: V 47.0.3 (Pulse Width XOR on Saw and Triangle)
+// 2: V 47.0.2 (Pulse Width XOR on Saw and Triangle)
 
 #include "vera_psg.h"
 
