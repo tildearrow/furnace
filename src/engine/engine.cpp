@@ -3916,6 +3916,9 @@ bool DivEngine::preInit(bool noSafeMode) {
   // register systems
   if (!systemsRegistered) registerSystems();
 
+  // register ROM exports
+  if (!romExportsRegistered) registerROMExports();
+
   // TODO: re-enable with a better approach
   // see issue #1581
   /*

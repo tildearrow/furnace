@@ -465,6 +465,7 @@ class DivEngine {
   bool midiIsDirectProgram;
   bool lowLatency;
   bool systemsRegistered;
+  bool romExportsRegistered;
   bool hasLoadedSomething;
   bool midiOutClock;
   bool midiOutTime;
@@ -1365,6 +1366,7 @@ class DivEngine {
       midiIsDirectProgram(false),
       lowLatency(false),
       systemsRegistered(false),
+      romExportsRegistered(false),
       hasLoadedSomething(false),
       midiOutClock(false),
       midiOutTime(false),

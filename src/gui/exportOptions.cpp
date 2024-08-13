@@ -241,7 +241,27 @@ void FurnaceGUI::drawExportVGM(bool onWindow) {
 
 void FurnaceGUI::drawExportROM(bool onWindow) {
   exitDisabledTimer=1;
-  
+
+  const DivROMExportDef* def=e->getROMExportDef(romTarget);
+
+  ImGui::Text("select target:");
+  if (ImGui::BeginCombo("##ROMTarget",def==NULL?"<select one>":def->name)) {
+    for (int i=0; i<DIV_ROM_MAX; i++) {
+      const DivROMExportDef* newDef=e->getROMExportDef((DivROMExportOptions)i);
+      if (newDef!=NULL) {
+        if (ImGui::Selectable(newDef->name)) {
+          romTarget=(DivROMExportOptions)i;
+        }
+      }
+    }
+    ImGui::EndCombo();
+  }
+
+  if (def!=NULL) {
+    ImGui::Text("by %s",def->author);
+
+    ImGui::TextWrapped("%s",def->description);
+  }
 
   if (onWindow) {
     ImGui::Separator();

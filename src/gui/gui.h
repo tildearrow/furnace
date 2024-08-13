@@ -2680,6 +2680,9 @@ class FurnaceGUI {
   int dmfExportVersion;
   FurnaceGUIExportTypes curExportType;
 
+  // ROM export specific
+  DivROMExportOptions romTarget;
+
   // user presets window
   std::vector<int> selectedUserPreset;
 

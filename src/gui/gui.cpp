@@ -8349,7 +8349,8 @@ FurnaceGUI::FurnaceGUI():
   curTutorial(-1),
   curTutorialStep(0),
   dmfExportVersion(0),
-  curExportType(GUI_EXPORT_NONE) {
+  curExportType(GUI_EXPORT_NONE),
+  romTarget(DIV_ROM_ABSTRACT) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
