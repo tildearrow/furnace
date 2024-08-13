@@ -281,6 +281,7 @@ void FurnaceGUI::drawExportROM(bool onWindow) {
       String asmBaseLabel=romConfig.getString("baseLabel","song");
       int firstBankSize=romConfig.getInt("firstBankSize",3072);
       int otherBankSize=romConfig.getInt("otherBankSize",4096-48);
+      int sysToExport=romConfig.getInt("sysToExport",-1);
 
       // TODO; validate label
       if (ImGui::InputText(_("base song label name"),&asmBaseLabel)) {
@@ -297,30 +298,22 @@ void FurnaceGUI::drawExportROM(bool onWindow) {
         altered=true;
       }
       
-      ImGui::Text(_("chips to export:"));
-      int selected=0;
+      ImGui::Text(_("chip to export:"));
       for (int i=0; i<e->song.systemLen; i++) {
         DivSystem sys=e->song.system[i];
-        bool isTIA=sys==DIV_SYSTEM_TIA;
-        ImGui::BeginDisabled((!isTIA) || (selected>=1));
-        if (ImGui::Checkbox(fmt::sprintf("%d. %s##_SYSV%d",i+1,getSystemName(e->song.system[i]),i).c_str(),&willExport[i])) {
+        bool isTIA=(sys==DIV_SYSTEM_TIA);
+        ImGui::BeginDisabled(!isTIA);
+        if (ImGui::RadioButton(fmt::sprintf("%d. %s##_SYSV%d",i+1,getSystemName(e->song.system[i]),i).c_str(),sysToExport==i)) {
+          sysToExport=i;
           altered=true;
         }
         ImGui::EndDisabled();
-        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-          if (!isTIA) {
-            ImGui::SetTooltip(_("this chip is not supported by the file format!"));
-          } else if (selected>=1) {
-            ImGui::SetTooltip(_("only one Atari TIA is supported!"));
-          }
-        }
-        if (isTIA && willExport[i]) selected++;
-
-        if (altered) {
-          romConfig.set("baseLabel",asmBaseLabel);
-          romConfig.set("firstBankSize",firstBankSize);
-          romConfig.set("otherBankSize",otherBankSize);
-        }
+      }
+      if (altered) {
+        romConfig.set("baseLabel",asmBaseLabel);
+        romConfig.set("firstBankSize",firstBankSize);
+        romConfig.set("otherBankSize",otherBankSize);
+        romConfig.set("sysToExport",sysToExport);
       }
       break;
     }

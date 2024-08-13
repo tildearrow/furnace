@@ -183,16 +183,15 @@ static void writeCmd(std::vector<TiunaBytes>& cmds, TiunaCmd& cmd, unsigned char
 
 void DivExportTiuna::run() {
   int loopOrder, loopOrderRow, loopEnd;
-  int tiaIdx;
   int tick=0;
   SafeWriter* w;
   std::map<int,TiunaCmd> allCmds[2];
 
   // config
-  int* sysToExport=NULL;
   String baseLabel=conf.getString("baseLabel","song");
   int firstBankSize=conf.getInt("firstBankSize",3072);
   int otherBankSize=conf.getInt("otherBankSize",4096-48);
+  int tiaIdx=conf.getInt("sysToExport",-1);
 
   e->stop();
   e->repeatPattern=false;
@@ -210,22 +209,28 @@ void DivExportTiuna::run() {
     w=new SafeWriter;
     w->init();
 
-    tiaIdx=-1;
-
-    for (int i=0; i<e->song.systemLen; i++) {
-      if (sysToExport!=NULL && !sysToExport[i]) continue;
-      if (e->song.system[i]==DIV_SYSTEM_TIA) {
-        tiaIdx=i;
-        e->disCont[i].dispatch->toggleRegisterDump(true);
-        break;
+    if (tiaIdx<0 || tiaIdx>=e->song.systemLen) {
+      tiaIdx=-1;
+      for (int i=0; i<e->song.systemLen; i++) {
+        if (e->song.system[i]==DIV_SYSTEM_TIA) {
+          tiaIdx=i;
+          break;
+        }
       }
-    }
-    if (tiaIdx<0) {
-      logAppend("ERROR: selected TIA system not found");
+      if (tiaIdx<0) {
+        logAppend("ERROR: selected TIA system not found");
+        failed=true;
+        running=false;
+        return;
+      }
+    } else if (e->song.system[tiaIdx]!=DIV_SYSTEM_TIA) {
+      logAppend("ERROR: selected chip is not a TIA!");
       failed=true;
       running=false;
       return;
     }
+
+    e->disCont[tiaIdx].dispatch->toggleRegisterDump(true);
 
     // write patterns
     // bool writeLoop=false;
