@@ -244,7 +244,7 @@ void FurnaceGUI::drawExportROM(bool onWindow) {
 
   const DivROMExportDef* def=e->getROMExportDef(romTarget);
 
-  ImGui::Text("select target:");
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
   if (ImGui::BeginCombo("##ROMTarget",def==NULL?"<select one>":def->name)) {
     for (int i=0; i<DIV_ROM_MAX; i++) {
       const DivROMExportDef* newDef=e->getROMExportDef((DivROMExportOptions)i);
@@ -252,6 +252,7 @@ void FurnaceGUI::drawExportROM(bool onWindow) {
         if (ImGui::Selectable(newDef->name)) {
           romTarget=(DivROMExportOptions)i;
           romMultiFile=newDef->multiOutput;
+          romConfig=DivConfig();
           if (newDef->fileExt==NULL) {
             romFilterName="";
             romFilterExt="";
@@ -271,34 +272,66 @@ void FurnaceGUI::drawExportROM(bool onWindow) {
     ImGui::TextWrapped("%s",def->description);
   }
 
-  /*
-  ImGui::InputText(_("base song label name"),&asmBaseLabel); // TODO: validate label
-  if (ImGui::InputInt(_("max size in first bank"),&tiunaFirstBankSize,1,100)) {
-    if (tiunaFirstBankSize<0) tiunaFirstBankSize=0;
-    if (tiunaFirstBankSize>4096) tiunaFirstBankSize=4096;
-  }
-  if (ImGui::InputInt(_("max size in other banks"),&tiunaOtherBankSize,1,100)) {
-    if (tiunaOtherBankSize<16) tiunaOtherBankSize=16;
-    if (tiunaOtherBankSize>4096) tiunaOtherBankSize=4096;
-  }
-  
-  ImGui::Text(_("chips to export:"));
-  int selected=0;
-  for (int i=0; i<e->song.systemLen; i++) {
-    DivSystem sys=e->song.system[i];
-    bool isTIA=sys==DIV_SYSTEM_TIA;
-    ImGui::BeginDisabled((!isTIA) || (selected>=1));
-    ImGui::Checkbox(fmt::sprintf("%d. %s##_SYSV%d",i+1,getSystemName(e->song.system[i]),i).c_str(),&willExport[i]);
-    ImGui::EndDisabled();
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-      if (!isTIA) {
-        ImGui::SetTooltip(_("this chip is not supported by the file format!"));
-      } else if (selected>=1) {
-        ImGui::SetTooltip(_("only one Atari TIA is supported!"));
+  ImGui::Separator();
+
+  bool altered=false;
+
+  switch (romTarget) {
+    case DIV_ROM_TIUNA: {
+      String asmBaseLabel=romConfig.getString("baseLabel","song");
+      int firstBankSize=romConfig.getInt("firstBankSize",3072);
+      int otherBankSize=romConfig.getInt("otherBankSize",4096-48);
+
+      // TODO; validate label
+      if (ImGui::InputText(_("base song label name"),&asmBaseLabel)) {
+        altered=true;
       }
+      if (ImGui::InputInt(_("max size in first bank"),&firstBankSize,1,100)) {
+        if (firstBankSize<0) firstBankSize=0;
+        if (firstBankSize>4096) firstBankSize=4096;
+        altered=true;
+      }
+      if (ImGui::InputInt(_("max size in other banks"),&otherBankSize,1,100)) {
+        if (otherBankSize<16) otherBankSize=16;
+        if (otherBankSize>4096) otherBankSize=4096;
+        altered=true;
+      }
+      
+      ImGui::Text(_("chips to export:"));
+      int selected=0;
+      for (int i=0; i<e->song.systemLen; i++) {
+        DivSystem sys=e->song.system[i];
+        bool isTIA=sys==DIV_SYSTEM_TIA;
+        ImGui::BeginDisabled((!isTIA) || (selected>=1));
+        if (ImGui::Checkbox(fmt::sprintf("%d. %s##_SYSV%d",i+1,getSystemName(e->song.system[i]),i).c_str(),&willExport[i])) {
+          altered=true;
+        }
+        ImGui::EndDisabled();
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+          if (!isTIA) {
+            ImGui::SetTooltip(_("this chip is not supported by the file format!"));
+          } else if (selected>=1) {
+            ImGui::SetTooltip(_("only one Atari TIA is supported!"));
+          }
+        }
+        if (isTIA && willExport[i]) selected++;
+
+        if (altered) {
+          romConfig.set("baseLabel",asmBaseLabel);
+          romConfig.set("firstBankSize",firstBankSize);
+          romConfig.set("otherBankSize",otherBankSize);
+        }
+      }
+      break;
     }
-    if (isTIA && willExport[i]) selected++;
+    case DIV_ROM_ABSTRACT:
+      ImGui::TextWrapped("%s",_("select a target from the menu at the top of this dialog."));
+      break;
+    default:
+      ImGui::TextWrapped("%s",_("this export method doesn't offer any options."));
+      break;
   }
+  /*
   */
 
   if (onWindow) {

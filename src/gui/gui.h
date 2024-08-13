@@ -1632,9 +1632,6 @@ class FurnaceGUI {
   int cvHiScore;
   int drawHalt;
   int zsmExportTickRate;
-  String asmBaseLabel;
-  int tiunaFirstBankSize;
-  int tiunaOtherBankSize;
   int macroPointSize;
   int waveEditStyle;
   int displayInsTypeListMakeInsSample;
