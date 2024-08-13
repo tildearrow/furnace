@@ -72,6 +72,8 @@ class DivROMExport {
     virtual ~DivROMExport() {}
 };
 
+#define logAppendf(...) logAppend(fmt::sprintf(__VA_ARGS__))
+
 enum DivROMExportReqPolicy {
   // exactly these chips.
   DIV_REQPOL_EXACT=0,
@@ -85,14 +87,18 @@ struct DivROMExportDef {
   const char* name;
   const char* author;
   const char* description;
+  const char* fileType;
+  const char* fileExt;
   std::vector<DivSystem> requisites;
   bool multiOutput;
   DivROMExportReqPolicy requisitePolicy;
 
-  DivROMExportDef(const char* n, const char* a, const char* d, std::initializer_list<DivSystem> req, bool multiOut, DivROMExportReqPolicy reqPolicy):
+  DivROMExportDef(const char* n, const char* a, const char* d, const char* ft, const char* fe, std::initializer_list<DivSystem> req, bool multiOut, DivROMExportReqPolicy reqPolicy):
     name(n),
     author(a),
     description(d),
+    fileType(ft),
+    fileExt(fe),
     multiOutput(multiOut),
     requisitePolicy(reqPolicy) {
     requisites=req;

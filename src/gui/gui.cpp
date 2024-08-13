@@ -1950,15 +1950,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         (settings.autoFillSave)?shortName:""
       );
       break;
-    case GUI_FILE_EXPORT_TIUNA:
-      if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
-      hasOpened=fileDialog->openSave(
-        "Export TIunA",
-        {"assembly files", "*.asm"},
-        workingDirROMExport,
-        dpiScale
-      );
-      break;
     case GUI_FILE_EXPORT_TEXT:
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
       hasOpened=fileDialog->openSave(
@@ -1990,7 +1981,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       } else {
         hasOpened=fileDialog->openSave(
           _("Export ROM"),
-          {romFilterName, romFilterExt},
+          {romFilterName, "*"+romFilterExt},
           workingDirROMExport,
           dpiScale,
           (settings.autoFillSave)?shortName:""
@@ -4324,19 +4315,6 @@ bool FurnaceGUI::loop() {
               ImGui::EndMenu();
             }
           }
-          bool hasTiunaCompat=false;
-          for (int i=0; i<e->song.systemLen; i++) {
-            if (e->song.system[i]==DIV_SYSTEM_TIA) {
-              hasTiunaCompat=true;
-              break;
-            }
-          }
-          if (hasTiunaCompat) {
-            if (ImGui::BeginMenu(_("export TIunA..."))) {
-              drawExportTiuna();
-              ImGui::EndMenu();
-            }
-          }
           if (ImGui::BeginMenu(_("export text..."))) {
             drawExportText();
             ImGui::EndMenu();
@@ -4369,19 +4347,6 @@ bool FurnaceGUI::loop() {
           if (numZSMCompat>0) {
             if (ImGui::MenuItem(_("export ZSM..."))) {
               curExportType=GUI_EXPORT_ZSM;
-              displayExport=true;
-            }
-          }
-          bool hasTiunaCompat=false;
-          for (int i=0; i<e->song.systemLen; i++) {
-            if (e->song.system[i]==DIV_SYSTEM_TIA) {
-              hasTiunaCompat=true;
-              break;
-            }
-          }
-          if (hasTiunaCompat) {
-            if (ImGui::MenuItem(_("export TIunA..."))) {
-              curExportType=GUI_EXPORT_TIUNA;
               displayExport=true;
             }
           }
@@ -4968,7 +4933,6 @@ bool FurnaceGUI::loop() {
           workingDirZSMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_EXPORT_ROM:
-        case GUI_FILE_EXPORT_TIUNA:
         case GUI_FILE_EXPORT_TEXT:
         case GUI_FILE_EXPORT_CMDSTREAM:
           workingDirROMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
@@ -5527,27 +5491,6 @@ bool FurnaceGUI::loop() {
               }
               break;
             }
-            case GUI_FILE_EXPORT_TIUNA: {
-              SafeWriter* w=e->saveTiuna(willExport,asmBaseLabel.c_str(),tiunaFirstBankSize,tiunaOtherBankSize);
-              if (w!=NULL) {
-                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
-                if (f!=NULL) {
-                  fwrite(w->getFinalBuf(),1,w->size(),f);
-                  fclose(f);
-                  pushRecentSys(copyOfName.c_str());
-                } else {
-                  showError("could not open file!");
-                }
-                w->finish();
-                delete w;
-                if (!e->getWarnings().empty()) {
-                  showWarning(e->getWarnings(),GUI_WARN_GENERIC);
-                }
-              } else {
-                showError(fmt::sprintf("Could not write TIunA! (%s)",e->getLastError()));
-              }
-              break;
-            }
             case GUI_FILE_EXPORT_ROM:
               romExportPath=copyOfName;
               pendingExport=e->buildROM(romTarget);
@@ -5833,6 +5776,7 @@ bool FurnaceGUI::loop() {
             pendingExport->abort();
             delete pendingExport;
             pendingExport=NULL;
+            romExportSave=false;
             ImGui::CloseCurrentPopup();
           }
         } else {

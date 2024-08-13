@@ -31,6 +31,7 @@ void DivEngine::registerROMExports() {
   romExportDefs[DIV_ROM_AMIGA_VALIDATION]=new DivROMExportDef(
     "Amiga Validation", "tildearrow",
     "a test export for ensuring Amiga emulation is accurate. do not use!",
+    NULL, NULL,
     {DIV_SYSTEM_AMIGA},
     true, DIV_REQPOL_EXACT
   );
@@ -42,19 +43,21 @@ void DivEngine::registerROMExports() {
     "- https://github.com/mooinglemur/zsmkit (development)\n"
     "- https://github.com/mooinglemur/melodius (player)\n"
     "- https://github.com/ZeroByteOrg/calliope (player)\n",
+    "ZSM file", ".zsm",
     {
       DIV_SYSTEM_YM2151, DIV_SYSTEM_VERA
     },
-    true, DIV_REQPOL_LAX
+    false, DIV_REQPOL_LAX
   );
 
   romExportDefs[DIV_ROM_TIUNA]=new DivROMExportDef(
     "Atari 2600 (TIunA)", "Natt Akuma",
     "advanced driver with software tuning support.\n"
     "see https://github.com/AYCEdemo/twin-tiuna for code.",
+    "assembly files", ".asm",
     {
       DIV_SYSTEM_TIA
     },
-    true, DIV_REQPOL_ANY
+    false, DIV_REQPOL_ANY
   );
 }

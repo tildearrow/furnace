@@ -17,13 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "tiuna.h"
+#include "../engine.h"
+#include "../ta-log.h"
+#include <fmt/printf.h>
 #include <algorithm>
 #include <map>
 #include <tuple>
 #include <vector>
-#include "engine.h"
-#include "../fileutils.h"
-#include "../ta-log.h"
 
 struct TiunaNew {
   short pitch;
@@ -180,140 +181,156 @@ static void writeCmd(std::vector<TiunaBytes>& cmds, TiunaCmd& cmd, unsigned char
   }
 }
 
-SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel, int firstBankSize, int otherBankSize) {
-  stop();
-  repeatPattern=false;
-  shallStop=false;
-  setOrder(0);
-  BUSY_BEGIN_SOFT;
-  // determine loop point
-  // bool stopped=false;
-  int loopOrder=0;
-  int loopOrderRow=0;
-  int loopEnd=0;
-  walkSong(loopOrder,loopOrderRow,loopEnd);
-  logI("loop point: %d %d",loopOrder,loopOrderRow);
-
-  SafeWriter* w=new SafeWriter;
-  w->init();
-
-  int tiaIdx=-1;
-
-  for (int i=0; i<song.systemLen; i++) {
-    if (sysToExport!=NULL && !sysToExport[i]) continue;
-    if (song.system[i]==DIV_SYSTEM_TIA) {
-      tiaIdx=i;
-      disCont[i].dispatch->toggleRegisterDump(true);
-      break;
-    }
-  }
-  if (tiaIdx<0) {
-    lastError="selected TIA system not found";
-    return NULL;
-  }
-
-  // write patterns
-  // bool writeLoop=false;
-  bool done=false;
-  playSub(false);
-  
+void DivExportTiuna::run() {
+  int loopOrder, loopOrderRow, loopEnd;
+  int tiaIdx;
   int tick=0;
-  // int loopTick=-1;
-  TiunaLast last[2];
-  TiunaNew news[2];
+  SafeWriter* w;
   std::map<int,TiunaCmd> allCmds[2];
-  while (!done) {
-    // TODO implement loop
-    // if (loopTick<0 && loopOrder==curOrder && loopOrderRow==curRow
-    //   && (ticks-((tempoAccum+virtualTempoN)/virtualTempoD))<=0
-    // ) {
-    //   writeLoop=true;
-    //   loopTick=tick;
-    //   // invalidate last register state so it always force an absolute write after loop
-    //   for (int i=0; i<2; i++) {
-    //     last[i]=TiunaLast();
-    //     last[i].pitch=-1;
-    //     last[i].ins=-1;
-    //     last[i].vol=-1;
-    //   }
-    // }
-    if (nextTick(false,true) || !playing) {
-      // stopped=!playing;
-      done=true;
-      break;
-    }
-    for (int i=0; i<2; i++) {
-      news[i]=TiunaNew();
-    }
-    // get register dumps
-    std::vector<DivRegWrite>& writes=disCont[tiaIdx].dispatch->getRegisterWrites();
-    for (const DivRegWrite& i: writes) {
-      switch (i.addr) {
-        case 0xfffe0000:
-        case 0xfffe0001:
-          news[i.addr&1].pitch=i.val;
-          break;
-        case 0xfffe0002:
-          news[0].sync=i.val;
-          break;
-        case 0x15:
-        case 0x16:
-          news[i.addr-0x15].ins=i.val;
-          break;
-        case 0x19:
-        case 0x1a:
-          news[i.addr-0x19].vol=i.val;
-          break;
-        default: break;
-      }
-    }
-    writes.clear();
-    // collect changes
-    for (int i=0; i<2; i++) {
-      TiunaCmd cmds;
-      bool hasCmd=false;
-      if (news[i].pitch>=0 && (last[i].forcePitch || news[i].pitch!=last[i].pitch)) {
-        int dt=news[i].pitch-last[i].pitch;
-        if (!last[i].forcePitch && abs(dt)<=16) {
-          if (dt<0) cmds.pitchChange=15-dt;
-          else cmds.pitchChange=dt-1;
-        }
-        else cmds.pitchSet=news[i].pitch;
-        last[i].pitch=news[i].pitch;
-        last[i].forcePitch=false;
-        hasCmd=true;
-      }
-      if (news[i].ins>=0 && news[i].ins!=last[i].ins) {
-        cmds.ins=news[i].ins;
-        last[i].ins=news[i].ins;
-        hasCmd=true;
-      }
-      if (news[i].vol>=0 && news[i].vol!=last[i].vol) {
-        cmds.vol=(news[i].vol-last[i].vol)&0xf;
-        last[i].vol=news[i].vol;
-        hasCmd=true;
-      }
-      if (news[i].sync>=0) {
-        cmds.sync=news[i].sync;
-        hasCmd=true;
-      }
-      if (hasCmd) allCmds[i][tick]=cmds;
-    }
-    cmdStream.clear();
-    tick++;
-  }
-  for (int i=0; i<song.systemLen; i++) {
-    disCont[i].dispatch->getRegisterWrites().clear();
-    disCont[i].dispatch->toggleRegisterDump(false);
-  }
 
-  remainingLoops=-1;
-  playing=false;
-  freelance=false;
-  extValuePresent=false;
-  BUSY_END;
+  // config
+  int* sysToExport=NULL;
+  String baseLabel=conf.getString("baseLabel","song");
+  int firstBankSize=conf.getInt("firstBankSize",3072);
+  int otherBankSize=conf.getInt("otherBankSize",4096-48);
+
+  e->stop();
+  e->repeatPattern=false;
+  e->shallStop=false;
+  e->setOrder(0);
+  e->synchronizedSoft([&]() {
+    // determine loop point
+    // bool stopped=false;
+    loopOrder=0;
+    loopOrderRow=0;
+    loopEnd=0;
+    e->walkSong(loopOrder,loopOrderRow,loopEnd);
+    logAppendf("loop point: %d %d",loopOrder,loopOrderRow);
+
+    w=new SafeWriter;
+    w->init();
+
+    tiaIdx=-1;
+
+    for (int i=0; i<e->song.systemLen; i++) {
+      if (sysToExport!=NULL && !sysToExport[i]) continue;
+      if (e->song.system[i]==DIV_SYSTEM_TIA) {
+        tiaIdx=i;
+        e->disCont[i].dispatch->toggleRegisterDump(true);
+        break;
+      }
+    }
+    if (tiaIdx<0) {
+      logAppend("ERROR: selected TIA system not found");
+      failed=true;
+      running=false;
+      return;
+    }
+
+    // write patterns
+    // bool writeLoop=false;
+    logAppend("recording sequence...");
+    bool done=false;
+    e->playSub(false);
+    
+    // int loopTick=-1;
+    TiunaLast last[2];
+    TiunaNew news[2];
+    while (!done) {
+      // TODO implement loop
+      // if (loopTick<0 && loopOrder==curOrder && loopOrderRow==curRow
+      //   && (ticks-((tempoAccum+virtualTempoN)/virtualTempoD))<=0
+      // ) {
+      //   writeLoop=true;
+      //   loopTick=tick;
+      //   // invalidate last register state so it always force an absolute write after loop
+      //   for (int i=0; i<2; i++) {
+      //     last[i]=TiunaLast();
+      //     last[i].pitch=-1;
+      //     last[i].ins=-1;
+      //     last[i].vol=-1;
+      //   }
+      // }
+      if (e->nextTick(false,true) || !e->playing) {
+        // stopped=!playing;
+        done=true;
+        break;
+      }
+      for (int i=0; i<2; i++) {
+        news[i]=TiunaNew();
+      }
+      // get register dumps
+      std::vector<DivRegWrite>& writes=e->disCont[tiaIdx].dispatch->getRegisterWrites();
+      for (const DivRegWrite& i: writes) {
+        switch (i.addr) {
+          case 0xfffe0000:
+          case 0xfffe0001:
+            news[i.addr&1].pitch=i.val;
+            break;
+          case 0xfffe0002:
+            news[0].sync=i.val;
+            break;
+          case 0x15:
+          case 0x16:
+            news[i.addr-0x15].ins=i.val;
+            break;
+          case 0x19:
+          case 0x1a:
+            news[i.addr-0x19].vol=i.val;
+            break;
+          default: break;
+        }
+      }
+      writes.clear();
+      // collect changes
+      for (int i=0; i<2; i++) {
+        TiunaCmd cmds;
+        bool hasCmd=false;
+        if (news[i].pitch>=0 && (last[i].forcePitch || news[i].pitch!=last[i].pitch)) {
+          int dt=news[i].pitch-last[i].pitch;
+          if (!last[i].forcePitch && abs(dt)<=16) {
+            if (dt<0) cmds.pitchChange=15-dt;
+            else cmds.pitchChange=dt-1;
+          }
+          else cmds.pitchSet=news[i].pitch;
+          last[i].pitch=news[i].pitch;
+          last[i].forcePitch=false;
+          hasCmd=true;
+        }
+        if (news[i].ins>=0 && news[i].ins!=last[i].ins) {
+          cmds.ins=news[i].ins;
+          last[i].ins=news[i].ins;
+          hasCmd=true;
+        }
+        if (news[i].vol>=0 && news[i].vol!=last[i].vol) {
+          cmds.vol=(news[i].vol-last[i].vol)&0xf;
+          last[i].vol=news[i].vol;
+          hasCmd=true;
+        }
+        if (news[i].sync>=0) {
+          cmds.sync=news[i].sync;
+          hasCmd=true;
+        }
+        if (hasCmd) allCmds[i][tick]=cmds;
+      }
+      e->cmdStream.clear();
+      tick++;
+    }
+    for (int i=0; i<e->song.systemLen; i++) {
+      e->disCont[i].dispatch->getRegisterWrites().clear();
+      e->disCont[i].dispatch->toggleRegisterDump(false);
+    }
+
+    e->remainingLoops=-1;
+    e->playing=false;
+    e->freelance=false;
+    e->extValuePresent=false;
+  });
+
+  if (failed) return;
 
   // render commands
+  logAppend("rendering commands...");
   std::vector<TiunaBytes> renderedCmds;
   w->writeText(fmt::format(
     "; Generated by Furnace " DIV_VERSION "\n"
@@ -321,7 +338,7 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
     "; Author: {}\n"
     "; Album:  {}\n"
     "; Subsong #{}: {}\n\n",
-    song.name,song.author,song.category,curSubSongIndex+1,curSubSong->name
+    e->song.name,e->song.author,e->song.category,e->curSubSongIndex+1,e->curSubSong->name
   ));
   for (int i=0; i<2; i++) {
     TiunaCmd lastCmd;
@@ -349,11 +366,20 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
   int cmdSize=renderedCmds.size();
   bool* processed=new bool[cmdSize];
   memset(processed,0,cmdSize*sizeof(bool));
-  logI("max cmId: %d",(MAX(firstBankSize/1024,1))*256);
+  logAppend("compressing! this may take a while.");
+  logAppendf("max cmId: %d",(MAX(firstBankSize/1024,1))*256);
   while (firstBankSize>768 && cmId<(MAX(firstBankSize/1024,1))*256) {
-    logI("start CM %04x...",cmId);
+    if (mustAbort) {
+      logAppend("aborted!");
+      failed=true;
+      running=false;
+      delete[] processed;
+      return;
+    }
+
+    logAppendf("start CM %04x...",cmId);
     std::map<int,TiunaMatches> potentialMatches;
-    logD("scan %d size...",cmdSize-1);
+    logAppendf("scan %d size...",cmdSize-1);
     for (int i=0; i<cmdSize-1;) {
       // continue and skip if it's part of previous confirmed matches
       while (i<cmdSize-1 && processed[i]) i++;
@@ -427,12 +453,12 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
       i++;
     }
     if (potentialMatches.empty()) {
-      logV("potentialMatches is empty");
+      logAppend("potentialMatches is empty");
       break;
     }
     int maxPMIdx=0;
     int maxPMVal=0;
-    logV("looking through potentialMatches...");
+    logAppend("looking through potentialMatches...");
     for (const auto& i: potentialMatches) {
       if (i.second.bytesSaved>maxPMVal) {
         maxPMVal=i.second.bytesSaved;
@@ -440,16 +466,16 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
       }
     }
     int maxPMLen=potentialMatches[maxPMIdx].length;
-    logV("the other step...");
     for (const int i: potentialMatches[maxPMIdx].pos) {
       confirmedMatches.push_back({i,i+maxPMLen,0,cmId});
       memset(processed+i,1,maxPMLen);
       //std::fill(processed.begin()+i,processed.begin()+(i+maxPMLen),true);
     }
     callTicks.push_back(potentialMatches[maxPMIdx].ticks);
-    logI("CM %04x added: pos=%d,len=%d,matches=%d,saved=%d",cmId,maxPMIdx,maxPMLen,potentialMatches[maxPMIdx].pos.size(),maxPMVal);
+    logAppendf("CM %04x added: pos=%d,len=%d,matches=%d,saved=%d",cmId,maxPMIdx,maxPMLen,potentialMatches[maxPMIdx].pos.size(),maxPMVal);
     cmId++;
   }
+  logAppend("generating data...");
   delete[] processed;
   std::sort(confirmedMatches.begin(),confirmedMatches.end(),[](const TiunaMatch& l, const TiunaMatch& r){
     return l.pos<r.pos;
@@ -460,8 +486,10 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
   // overlap check
   for (int i=1; i<(int)confirmedMatches.size(); i++) {
     if (confirmedMatches[i-1].endPos<=confirmedMatches[i].pos) continue;
-    lastError="impossible overlap found in matches list, please report";
-    return NULL;
+    logAppend("ERROR: impossible overlap found in matches list, please report");
+    failed=true;
+    running=false;
+    return;
   }
   SafeWriter dbg;
   dbg.init();
@@ -510,8 +538,10 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
   }
   w->writeC('\n');
   if (totalSize>firstBankSize) {
-    lastError="first bank is not large enough to contain call table";
-    return NULL;
+    logAppend("ERROR: first bank is not large enough to contain call table");
+    failed=true;
+    running=false;
+    return;
   }
 
   int curBank=0;
@@ -572,13 +602,40 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
   }
   w->writeText("    .text x\"e0\"\n    .endsection\n");
   totalSize++;
-  logI("total size: %d bytes (%d banks)",totalSize,curBank+1);
-  
-  //FILE* f=ps_fopen("confirmedMatches.txt","wb");
-  //if (f!=NULL) {
-  //  fwrite(dbg.getFinalBuf(),1,dbg.size(),f);
-  //  fclose(f);
-  //}
+  logAppendf("total size: %d bytes (%d banks)",totalSize,curBank+1);
 
-  return w;
+  output.push_back(DivROMExportOutput("export.asm",w));
+  
+  logAppend("finished!");
+
+  running=false;
+}
+
+bool DivExportTiuna::go(DivEngine* eng) {
+  e=eng;
+  running=true;
+  failed=false;
+  mustAbort=false;
+  exportThread=new std::thread(&DivExportTiuna::run,this);
+  return true;
+}
+
+void DivExportTiuna::wait() {
+  if (exportThread!=NULL) {
+    exportThread->join();
+    delete exportThread;
+  }
+}
+
+void DivExportTiuna::abort() {
+  mustAbort=true;
+  wait();
+}
+
+bool DivExportTiuna::isRunning() {
+  return running;
+}
+
+bool DivExportTiuna::hasFailed() {
+  return failed;
 }

@@ -252,6 +252,13 @@ void FurnaceGUI::drawExportROM(bool onWindow) {
         if (ImGui::Selectable(newDef->name)) {
           romTarget=(DivROMExportOptions)i;
           romMultiFile=newDef->multiOutput;
+          if (newDef->fileExt==NULL) {
+            romFilterName="";
+            romFilterExt="";
+          } else {
+            romFilterName=newDef->fileType;
+            romFilterExt=newDef->fileExt;
+          }
         }
       }
     }
@@ -263,6 +270,36 @@ void FurnaceGUI::drawExportROM(bool onWindow) {
 
     ImGui::TextWrapped("%s",def->description);
   }
+
+  /*
+  ImGui::InputText(_("base song label name"),&asmBaseLabel); // TODO: validate label
+  if (ImGui::InputInt(_("max size in first bank"),&tiunaFirstBankSize,1,100)) {
+    if (tiunaFirstBankSize<0) tiunaFirstBankSize=0;
+    if (tiunaFirstBankSize>4096) tiunaFirstBankSize=4096;
+  }
+  if (ImGui::InputInt(_("max size in other banks"),&tiunaOtherBankSize,1,100)) {
+    if (tiunaOtherBankSize<16) tiunaOtherBankSize=16;
+    if (tiunaOtherBankSize>4096) tiunaOtherBankSize=4096;
+  }
+  
+  ImGui::Text(_("chips to export:"));
+  int selected=0;
+  for (int i=0; i<e->song.systemLen; i++) {
+    DivSystem sys=e->song.system[i];
+    bool isTIA=sys==DIV_SYSTEM_TIA;
+    ImGui::BeginDisabled((!isTIA) || (selected>=1));
+    ImGui::Checkbox(fmt::sprintf("%d. %s##_SYSV%d",i+1,getSystemName(e->song.system[i]),i).c_str(),&willExport[i]);
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      if (!isTIA) {
+        ImGui::SetTooltip(_("this chip is not supported by the file format!"));
+      } else if (selected>=1) {
+        ImGui::SetTooltip(_("only one Atari TIA is supported!"));
+      }
+    }
+    if (isTIA && willExport[i]) selected++;
+  }
+  */
 
   if (onWindow) {
     ImGui::Separator();
@@ -294,56 +331,6 @@ void FurnaceGUI::drawExportZSM(bool onWindow) {
   if (ImGui::Button(_("Export"),ImVec2(200.0f*dpiScale,0))) {
     openFileDialog(GUI_FILE_EXPORT_ZSM);
     ImGui::CloseCurrentPopup();
-  }
-}
-
-void FurnaceGUI::drawExportTiuna(bool onWindow) {
-  exitDisabledTimer=1;
-
-  ImGui::Text(_("for use with TIunA driver. outputs asm source."));
-  ImGui::InputText(_("base song label name"),&asmBaseLabel); // TODO: validate label
-  if (ImGui::InputInt(_("max size in first bank"),&tiunaFirstBankSize,1,100)) {
-    if (tiunaFirstBankSize<0) tiunaFirstBankSize=0;
-    if (tiunaFirstBankSize>4096) tiunaFirstBankSize=4096;
-  }
-  if (ImGui::InputInt(_("max size in other banks"),&tiunaOtherBankSize,1,100)) {
-    if (tiunaOtherBankSize<16) tiunaOtherBankSize=16;
-    if (tiunaOtherBankSize>4096) tiunaOtherBankSize=4096;
-  }
-  
-  ImGui::Text(_("chips to export:"));
-  int selected=0;
-  for (int i=0; i<e->song.systemLen; i++) {
-    DivSystem sys=e->song.system[i];
-    bool isTIA=sys==DIV_SYSTEM_TIA;
-    ImGui::BeginDisabled((!isTIA) || (selected>=1));
-    ImGui::Checkbox(fmt::sprintf("%d. %s##_SYSV%d",i+1,getSystemName(e->song.system[i]),i).c_str(),&willExport[i]);
-    ImGui::EndDisabled();
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-      if (!isTIA) {
-        ImGui::SetTooltip(_("this chip is not supported by the file format!"));
-      } else if (selected>=1) {
-        ImGui::SetTooltip(_("only one Atari TIA is supported!"));
-      }
-    }
-    if (isTIA && willExport[i]) selected++;
-  }
-  if (selected>0) {
-    if (onWindow) {
-      ImGui::Separator();
-      if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
-      ImGui::SameLine();
-    }
-    if (ImGui::Button(_("Export"),ImVec2(200.0f*dpiScale,0))) {
-      openFileDialog(GUI_FILE_EXPORT_TIUNA);
-      ImGui::CloseCurrentPopup();
-    }
-  } else {
-    ImGui::Text(_("nothing to export"));
-    if (onWindow) {
-      ImGui::Separator();
-      if (ImGui::Button(_("Cancel"),ImVec2(400.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
-    }
   }
 }
 
@@ -437,19 +424,6 @@ void FurnaceGUI::drawExport() {
           ImGui::EndTabItem();
         }
       }
-      bool hasTiunaCompat=false;
-      for (int i=0; i<e->song.systemLen; i++) {
-        if (e->song.system[i]==DIV_SYSTEM_TIA) {
-          hasTiunaCompat=true;
-          break;
-        }
-      }
-      if (hasTiunaCompat) {
-        if (ImGui::BeginTabItem("TIunA")) {
-          drawExportTiuna(true);
-          ImGui::EndTabItem();
-        }
-      }
       if (ImGui::BeginTabItem(_("Text"))) {
         drawExportText(true);
         ImGui::EndTabItem();
@@ -476,9 +450,6 @@ void FurnaceGUI::drawExport() {
       break;
     case GUI_EXPORT_ZSM:
       drawExportZSM(true);
-      break;
-    case GUI_EXPORT_TIUNA:
-      drawExportTiuna(true);
       break;
     case GUI_EXPORT_TEXT:
       drawExportText(true);

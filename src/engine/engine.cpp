@@ -3589,6 +3589,12 @@ void DivEngine::synchronized(const std::function<void()>& what) {
   BUSY_END;
 }
 
+void DivEngine::synchronizedSoft(const std::function<void()>& what) {
+  BUSY_BEGIN_SOFT;
+  what();
+  BUSY_END;
+}
+
 void DivEngine::lockSave(const std::function<void()>& what) {
   saveLock.lock();
   what();

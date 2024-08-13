@@ -657,6 +657,7 @@ class DivEngine {
   // add every export method here
   friend class DivROMExport;
   friend class DivExportAmigaValidation;
+  friend class DivExportTiuna;
 
   public:
     DivSong song;
@@ -1298,6 +1299,9 @@ class DivEngine {
 
     // perform secure/sync operation
     void synchronized(const std::function<void()>& what);
+
+    // perform secure/sync operation (soft)
+    void synchronizedSoft(const std::function<void()>& what);
 
     // perform secure/sync song operation
     void lockSave(const std::function<void()>& what);
