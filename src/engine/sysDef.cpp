@@ -761,6 +761,10 @@ void DivEngine::registerSystems() {
     {0xAB, {DIV_CMD_C64_CUTOFF_SLIDE, _("ABxx: Filter 3 cutoff slide down"), effectVal, constVal<-3>}},
     {0xAC, {DIV_CMD_C64_CUTOFF_SLIDE, _("ACxx: Filter 4 cutoff slide up"), effectVal, constVal<4>}},
     {0xAD, {DIV_CMD_C64_CUTOFF_SLIDE, _("ADxx: Filter 4 cutoff slide down"), effectVal, constVal<-4>}},
+
+    {0xAE, {DIV_CMD_SID3_PHASE_RESET, _("AExx: Phase reset on tick xx")}},
+    {0xAF, {DIV_CMD_SID3_NOISE_PHASE_RESET, _("AFxx: Noise phase reset on tick xx")}},
+    {0xB0, {DIV_CMD_SID3_ENVELOPE_RESET, _("B0xx: Envelope reset on tick xx")}},
   };
 
   const EffectHandler SID3FineDutyHandler(DIV_CMD_C64_FINE_DUTY, _("5xxx: Set pulse width (0 to FFF)"), effectValLong<12>);

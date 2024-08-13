@@ -84,6 +84,10 @@ class DivPlatformSID3: public DivDispatch {
 
     short pw_slide;
 
+    short phase_reset_counter;
+    short noise_phase_reset_counter;
+    short envelope_reset_counter;
+
     void handleArpNoise(int offset=0) 
     {
       DivMacroStruct& m = this->std.op[3].am;
@@ -182,7 +186,10 @@ class DivPlatformSID3: public DivDispatch {
       dacSample(-1),
       phaseInv(0),
       feedback(0),
-      pw_slide(0) {}
+      pw_slide(0),
+      phase_reset_counter(-1),
+      noise_phase_reset_counter(-1),
+      envelope_reset_counter(-1) {}
   };
   Channel chan[SID3_NUM_CHANNELS];
   DivDispatchOscBuffer* oscBuf[SID3_NUM_CHANNELS];
@@ -243,6 +250,7 @@ class DivPlatformSID3: public DivDispatch {
     const char** getRegisterSheet();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     int getOutputCount();
+    DivChannelPair getPaired(int ch);
     void quit();
     ~DivPlatformSID3();
 };

@@ -258,7 +258,7 @@ void DivPlatformSID3::updatePanning(int channel)
   rWrite(SID3_REGISTER_PAN_RIGHT + channel*SID3_REGISTERS_PER_CHANNEL,chan[channel].panRight);
 }
 
-void DivPlatformSID3::updateWave() 
+void DivPlatformSID3::updateWave()
 {
   int channel = SID3_NUM_CHANNELS - 1;
 
@@ -272,9 +272,15 @@ void DivPlatformSID3::updateWave()
 
 void DivPlatformSID3::tick(bool sysTick) 
 {
+  bool doUpdateWave = false;
+
   for (int i=0; i<SID3_NUM_CHANNELS; i++) 
   {
     chan[i].std.next();
+
+    bool panChanged = false;
+    bool flagsChanged = false;
+    bool envChanged = false;
 
     if(sysTick)
     {
@@ -293,11 +299,35 @@ void DivPlatformSID3::tick(bool sysTick)
           updateFilter(i, j);
         }
       }
-    }
 
-    bool panChanged = false;
-    bool flagsChanged = false;
-    bool envChanged = false;
+      if(chan[i].phase_reset_counter >= 0)
+      {
+        if(chan[i].phase_reset_counter == 0)
+        {
+          chan[i].phaseReset = true;
+          flagsChanged = true;
+        }
+        chan[i].phase_reset_counter--;
+      }
+      if(chan[i].noise_phase_reset_counter >= 0)
+      {
+        if(chan[i].noise_phase_reset_counter == 0)
+        {
+          chan[i].phaseResetNoise = true;
+          flagsChanged = true;
+        }
+        chan[i].noise_phase_reset_counter--;
+      }
+      if(chan[i].envelope_reset_counter >= 0)
+      {
+        if(chan[i].envelope_reset_counter == 0)
+        {
+          chan[i].envReset = true;
+          flagsChanged = true;
+        }
+        chan[i].envelope_reset_counter--;
+      }
+    }
 
     if (chan[i].std.vol.had) 
     {
@@ -337,7 +367,8 @@ void DivPlatformSID3::tick(bool sysTick)
       if(i == SID3_NUM_CHANNELS - 1 && ins->sid3.doWavetable)
       {
         chan[i].wavetable = chan[i].std.wave.val & 0xff;
-        ws.changeWave1(chan[i].wave);
+        ws.changeWave1(chan[i].wavetable, true);
+        doUpdateWave = true;
       }
       else
       {
@@ -653,8 +684,14 @@ void DivPlatformSID3::tick(bool sysTick)
   {
     if (ws.tick()) 
     {
-      updateWave();
+      doUpdateWave = true;
     }
+  }
+
+  if(doUpdateWave)
+  {
+    updateWave();
+    doUpdateWave = false;
   }
 }
 
@@ -1026,6 +1063,15 @@ int DivPlatformSID3::dispatch(DivCommand c) {
       filter = abs(c.value2) - 1;
       chan[c.chan].filt[filter].cutoff_slide = c.value * (c.value2 > 0 ? 1 : -1) * 16;
       break;
+    case DIV_CMD_SID3_PHASE_RESET:
+      chan[c.chan].phase_reset_counter = c.value;
+      break;
+    case DIV_CMD_SID3_NOISE_PHASE_RESET:
+      chan[c.chan].noise_phase_reset_counter = c.value;
+      break;
+    case DIV_CMD_SID3_ENVELOPE_RESET:
+      chan[c.chan].envelope_reset_counter = c.value;
+      break;
     case DIV_CMD_SAMPLE_POS:
       chan[c.chan].dacPos=c.value;
       break;
@@ -1147,6 +1193,10 @@ void DivPlatformSID3::reset() {
     chan[i].noiseLFSRMask = (1 << 29) | (1 << 5) | (1 << 3) | 1; //https://docs.amd.com/v/u/en-US/xapp052 for 30 bits: 30, 6, 4, 1
 
     chan[i].pw_slide = 0;
+
+    chan[i].phase_reset_counter = -1;
+    chan[i].noise_phase_reset_counter = -1;
+    chan[i].envelope_reset_counter = -1;
   }
 
   sampleTick = 0;
@@ -1192,6 +1242,28 @@ void DivPlatformSID3::setFlags(const DivConfig& flags) {
   for (int i=0; i<SID3_NUM_CHANNELS; i++) {
     oscBuf[i]->rate=rate/8;
   }
+}
+
+DivChannelPair DivPlatformSID3::getPaired(int ch) 
+{
+  if(chan[ch].phase)
+  {
+    return DivChannelPair("phase", chan[ch].phaseSrc);
+  }
+  if(chan[ch].ring)
+  {
+    if(chan[ch].ringSrc == SID3_NUM_CHANNELS)
+    {
+      return DivChannelPair("ring", ch);
+    }
+
+    return DivChannelPair("ring", chan[ch].ringSrc);
+  }
+  if(chan[ch].sync)
+  {
+    return DivChannelPair("sync", chan[ch].syncSrc);
+  }
+  return DivChannelPair();
 }
 
 int DivPlatformSID3::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
