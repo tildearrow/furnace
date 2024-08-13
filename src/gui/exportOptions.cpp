@@ -240,7 +240,18 @@ void FurnaceGUI::drawExportVGM(bool onWindow) {
 }
 
 void FurnaceGUI::drawExportROM(bool onWindow) {
+  exitDisabledTimer=1;
+  
 
+  if (onWindow) {
+    ImGui::Separator();
+    if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    ImGui::SameLine();
+  }
+  if (ImGui::Button(_("Export"),ImVec2(200.0f*dpiScale,0))) {
+    openFileDialog(GUI_FILE_EXPORT_ROM);
+    ImGui::CloseCurrentPopup();
+  }
 }
 
 void FurnaceGUI::drawExportZSM(bool onWindow) {

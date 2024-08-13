@@ -29,6 +29,8 @@ class DivEngine;
 enum DivROMExportOptions {
   DIV_ROM_ABSTRACT=0,
   DIV_ROM_AMIGA_VALIDATION,
+  DIV_ROM_ZSM,
+  DIV_ROM_TIUNA,
 
   DIV_ROM_MAX
 };
@@ -67,24 +69,30 @@ class DivROMExport {
     virtual ~DivROMExport() {}
 };
 
+enum DivROMExportReqPolicy {
+  // exactly these chips.
+  DIV_REQPOL_EXACT=0,
+  // specified chips must be present but any amount of them is acceptable.
+  DIV_REQPOL_ANY,
+  // at least one of the specified chips.
+  DIV_REQPOL_LAX
+};
+
 struct DivROMExportDef {
   const char* name;
   const char* author;
   const char* description;
-  DivSystem requisites[32];
-  int requisitesLen;
+  std::vector<DivSystem> requisites;
   bool multiOutput;
+  DivROMExportReqPolicy requisitePolicy;
 
-  DivROMExportDef(const char* n, const char* a, const char* d, std::initializer_list<DivSystem> req, bool multiOut):
+  DivROMExportDef(const char* n, const char* a, const char* d, std::initializer_list<DivSystem> req, bool multiOut, DivROMExportReqPolicy reqPolicy):
     name(n),
     author(a),
     description(d),
-    multiOutput(multiOut) {
-    requisitesLen=0;
-    memset(requisites,0,32*sizeof(DivSystem));
-    for (DivSystem i: req) {
-      requisites[requisitesLen++]=i;
-    }
+    multiOutput(multiOut),
+    requisitePolicy(reqPolicy) {
+    requisites=req;
   }
 };
 

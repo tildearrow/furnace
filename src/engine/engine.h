@@ -518,6 +518,7 @@ class DivEngine {
   static DivSysDef* sysDefs[DIV_MAX_CHIP_DEFS];
   static DivSystem sysFileMapFur[DIV_MAX_CHIP_DEFS];
   static DivSystem sysFileMapDMF[DIV_MAX_CHIP_DEFS];
+  static DivROMExportDef* romExportDefs[DIV_ROM_MAX];
 
   DivCSPlayer* cmdStreamInt;
 
@@ -624,6 +625,7 @@ class DivEngine {
   bool deinitAudioBackend(bool dueToSwitchMaster=false);
 
   void registerSystems();
+  void registerROMExports();
   void initSongWithDesc(const char* description, bool inBase64=true, bool oldVol=false);
 
   void exchangeIns(int one, int two);
@@ -883,6 +885,9 @@ class DivEngine {
 
     // get sys definition
     const DivSysDef* getSystemDef(DivSystem sys);
+
+    // get ROM export definition
+    const DivROMExportDef* getROMExportDef(DivROMExportOptions opt);
 
     // convert sample rate format
     int fileToDivRate(int frate);
@@ -1466,6 +1471,7 @@ class DivEngine {
       memset(pitchTable,0,4096*sizeof(int));
       memset(effectSlotMap,-1,4096*sizeof(short));
       memset(sysDefs,0,DIV_MAX_CHIP_DEFS*sizeof(void*));
+      memset(romExportDefs,0,DIV_ROM_MAX*sizeof(void*));
       memset(walked,0,8192);
       memset(oscBuf,0,DIV_MAX_OUTPUTS*(sizeof(float*)));
       memset(exportChannelMask,1,DIV_MAX_CHANS*sizeof(bool));
