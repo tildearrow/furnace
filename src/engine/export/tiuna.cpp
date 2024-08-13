@@ -367,8 +367,11 @@ void DivExportTiuna::run() {
   bool* processed=new bool[cmdSize];
   memset(processed,0,cmdSize*sizeof(bool));
   logAppend("compressing! this may take a while.");
-  logAppendf("max cmId: %d",(MAX(firstBankSize/1024,1))*256);
-  while (firstBankSize>768 && cmId<(MAX(firstBankSize/1024,1))*256) {
+  int maxCmId=(MAX(firstBankSize/1024,1))*256;
+  int lastMaxPMVal=100000;
+  logAppendf("max cmId: %d",maxCmId);
+  logAppendf("commands: %d",cmdSize);
+  while (firstBankSize>768 && cmId<maxCmId) {
     if (mustAbort) {
       logAppend("aborted!");
       failed=true;
@@ -377,13 +380,16 @@ void DivExportTiuna::run() {
       return;
     }
 
+    float theOtherSide=pow(1.0/float(MAX(1,lastMaxPMVal)),0.2)*0.98;
+    progress[0].amount=theOtherSide+(1.0-theOtherSide)*((float)cmId/(float)maxCmId);
+
     logAppendf("start CM %04x...",cmId);
     std::map<int,TiunaMatches> potentialMatches;
-    logAppendf("scan %d size...",cmdSize-1);
     for (int i=0; i<cmdSize-1;) {
       // continue and skip if it's part of previous confirmed matches
       while (i<cmdSize-1 && processed[i]) i++;
       if (i>=cmdSize-1) break;
+      progress[1].amount=(float)i/(float)(cmdSize-1);
       std::vector<TiunaMatch> match;
       int ch=renderedCmds[i].ch;
       for (int j=i+1; j<cmdSize;) {
@@ -458,7 +464,6 @@ void DivExportTiuna::run() {
     }
     int maxPMIdx=0;
     int maxPMVal=0;
-    logAppend("looking through potentialMatches...");
     for (const auto& i: potentialMatches) {
       if (i.second.bytesSaved>maxPMVal) {
         maxPMVal=i.second.bytesSaved;
@@ -473,8 +478,11 @@ void DivExportTiuna::run() {
     }
     callTicks.push_back(potentialMatches[maxPMIdx].ticks);
     logAppendf("CM %04x added: pos=%d,len=%d,matches=%d,saved=%d",cmId,maxPMIdx,maxPMLen,potentialMatches[maxPMIdx].pos.size(),maxPMVal);
+    lastMaxPMVal=maxPMVal;
     cmId++;
   }
+  progress[0].amount=1.0f;
+  progress[1].amount=1.0f;
   logAppend("generating data...");
   delete[] processed;
   std::sort(confirmedMatches.begin(),confirmedMatches.end(),[](const TiunaMatch& l, const TiunaMatch& r){
@@ -612,6 +620,11 @@ void DivExportTiuna::run() {
 }
 
 bool DivExportTiuna::go(DivEngine* eng) {
+  progress[0].name="Compression";
+  progress[0].amount=0.0f;
+  progress[1].name="Confirmed Matches";
+  progress[1].amount=0.0f;
+
   e=eng;
   running=true;
   failed=false;
@@ -638,4 +651,9 @@ bool DivExportTiuna::isRunning() {
 
 bool DivExportTiuna::hasFailed() {
   return failed;
+}
+
+DivROMExportProgress DivExportTiuna::getProgress(int index) {
+  if (index<0 || index>2) return progress[2];
+  return progress[index];
 }

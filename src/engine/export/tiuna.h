@@ -24,6 +24,7 @@
 class DivExportTiuna: public DivROMExport {
   DivEngine* e;
   std::thread* exportThread;
+  DivROMExportProgress progress[3];
   bool running, failed, mustAbort;
   void run();
   public:
@@ -32,5 +33,6 @@ class DivExportTiuna: public DivROMExport {
     bool hasFailed();
     void abort();
     void wait();
+    DivROMExportProgress getProgress(int index=0);
     ~DivExportTiuna() {}
 };

@@ -5741,11 +5741,16 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    ImVec2 romExportMinSize=mobileUI?ImVec2(canvasW-(portrait?0:(60.0*dpiScale)),canvasH-60.0*dpiScale):ImVec2(400.0f*dpiScale,200.0f*dpiScale);
+    ImVec2 romExportMaxSize=ImVec2(canvasW-((mobileUI && !portrait)?(60.0*dpiScale):0),canvasH-(mobileUI?(60.0*dpiScale):0));
+
     centerNextWindow(_("ROM Export Progress"),canvasW,canvasH);
+    ImGui::SetNextWindowSizeConstraints(romExportMinSize,romExportMaxSize);
     if (ImGui::BeginPopupModal(_("ROM Export Progress"),NULL)) {
       if (pendingExport==NULL) {
-        ImGui::TextUnformatted(_("...ooooor you could try asking me a new ROM export?"));
-        if (ImGui::Button(_("Erm what the sigma???"))) {
+        ImGui::TextWrapped("%s",_("...ooooor you could try asking me a new ROM export?"));
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::Button(_("Erm what the sigma???"),ImVec2(ImGui::GetContentRegionAvail().x,0.0f))) {
           ImGui::CloseCurrentPopup();
         }
       } else {
@@ -5762,17 +5767,20 @@ bool FurnaceGUI::loop() {
         if (romLogSize.y<60.0f*dpiScale) romLogSize.y=60.0f*dpiScale;
         if (ImGui::BeginChild("Export Log",romLogSize,true)) {
           pendingExport->logLock.lock();
+          ImGui::PushFont(patFont);
           for (String& i: pendingExport->exportLog) {
-            ImGui::TextUnformatted(i.c_str());
+            ImGui::TextWrapped("%s",i.c_str());
           }
           if (romExportSave) {
             ImGui::SetScrollY(ImGui::GetScrollMaxY());
           }
+          ImGui::PopFont();
           pendingExport->logLock.unlock();
         }
         ImGui::EndChild();
         if (pendingExport->isRunning()) {
-          if (ImGui::Button(_("Abort"))) {
+          WAKE_UP;
+          if (ImGui::Button(_("Abort"),ImVec2(ImGui::GetContentRegionAvail().x,0.0f))) {
             pendingExport->abort();
             delete pendingExport;
             pendingExport=NULL;
@@ -5803,16 +5811,18 @@ bool FurnaceGUI::loop() {
             }
             romExportSave=false;
           }
-          if (ImGui::Button(_("OK"))) {
+          if (pendingExport!=NULL) {
+            if (pendingExport->hasFailed()) {
+              ImGui::AlignTextToFramePadding();
+              ImGui::TextUnformatted(_("Error!"));
+              ImGui::SameLine();
+            }
+          }
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Button(_("OK"),ImVec2(ImGui::GetContentRegionAvail().x,0.0f))) {
             delete pendingExport;
             pendingExport=NULL;
             ImGui::CloseCurrentPopup();
-          }
-          if (pendingExport!=NULL) {
-            if (pendingExport->hasFailed()) {
-              ImGui::SameLine();
-              ImGui::TextUnformatted(_("Error!"));
-            }
           }
         }
       }
