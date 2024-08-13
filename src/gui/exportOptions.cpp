@@ -251,6 +251,7 @@ void FurnaceGUI::drawExportROM(bool onWindow) {
       if (newDef!=NULL) {
         if (ImGui::Selectable(newDef->name)) {
           romTarget=(DivROMExportOptions)i;
+          romMultiFile=newDef->multiOutput;
         }
       }
     }
@@ -343,53 +344,6 @@ void FurnaceGUI::drawExportTiuna(bool onWindow) {
       ImGui::Separator();
       if (ImGui::Button(_("Cancel"),ImVec2(400.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
     }
-  }
-}
-
-void FurnaceGUI::drawExportAmigaVal(bool onWindow) {
-  exitDisabledTimer=1;
-
-  ImGui::Text(_(
-    "this is NOT ROM export! only use for making sure the\n"
-    "Furnace Amiga emulator is working properly by\n"
-    "comparing it with real Amiga output."
-  ));
-  ImGui::AlignTextToFramePadding();
-  ImGui::Text(_("Directory"));
-  ImGui::SameLine();
-  ImGui::InputText("##AVDPath",&workingDirROMExport);
-  if (onWindow) {
-    ImGui::Separator();
-    if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
-    ImGui::SameLine();
-  }
-  if (ImGui::Button(_("Bake Data"),ImVec2(200.0f*dpiScale,0))) {
-    DivROMExport* ex=e->buildROM(DIV_ROM_AMIGA_VALIDATION);
-    if (ex->go(e)) {
-      ex->wait();
-      if (ex->hasFailed()) {
-        showError("error!");
-      } else {
-        if (workingDirROMExport.size()>0) {
-          if (workingDirROMExport[workingDirROMExport.size()-1]!=DIR_SEPARATOR) workingDirROMExport+=DIR_SEPARATOR_STR;
-        }
-        for (DivROMExportOutput& i: ex->getResult()) {
-          String path=workingDirROMExport+i.name;
-          FILE* outFile=ps_fopen(path.c_str(),"wb");
-          if (outFile!=NULL) {
-            fwrite(i.data->getFinalBuf(),1,i.data->size(),outFile);
-            fclose(outFile);
-          }
-          i.data->finish();
-          delete i.data;
-        }
-        showError(fmt::sprintf(_("Done! Baked %d files."),(int)ex->getResult().size()));
-      }
-    } else {
-      showError("error!");
-    }
-    delete ex;
-    ImGui::CloseCurrentPopup();
   }
 }
 
@@ -496,16 +450,6 @@ void FurnaceGUI::drawExport() {
           ImGui::EndTabItem();
         }
       }
-      int numAmiga=0;
-      for (int i=0; i<e->song.systemLen; i++) {
-        if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
-      }
-      if (numAmiga && settings.iCannotWait) {
-        if (ImGui::BeginTabItem(_("Amiga Validation"))) {
-          drawExportAmigaVal(true);
-          ImGui::EndTabItem();
-        }
-      }
       if (ImGui::BeginTabItem(_("Text"))) {
         drawExportText(true);
         ImGui::EndTabItem();
@@ -535,9 +479,6 @@ void FurnaceGUI::drawExport() {
       break;
     case GUI_EXPORT_TIUNA:
       drawExportTiuna(true);
-      break;
-    case GUI_EXPORT_AMIGA_VAL:
-      drawExportAmigaVal(true);
       break;
     case GUI_EXPORT_TEXT:
       drawExportText(true);

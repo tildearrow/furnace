@@ -655,7 +655,6 @@ enum FurnaceGUIExportTypes {
   GUI_EXPORT_ZSM,
   GUI_EXPORT_TIUNA,
   GUI_EXPORT_CMD_STREAM,
-  GUI_EXPORT_AMIGA_VAL,
   GUI_EXPORT_TEXT,
   GUI_EXPORT_DMF
 };
@@ -1621,6 +1620,7 @@ class FurnaceGUI {
   bool displayNew, displayExport, displayPalette, fullScreen, preserveChanPos, sysDupCloneChannels, sysDupEnd, noteInputPoly, notifyWaveChange;
   bool wantScrollListIns, wantScrollListWave, wantScrollListSample;
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
+  bool displayExportingROM;
   bool changeCoarse;
   bool mobileEdit;
   bool killGraphics;
@@ -2682,6 +2682,12 @@ class FurnaceGUI {
 
   // ROM export specific
   DivROMExportOptions romTarget;
+  DivConfig romConfig;
+  bool romMultiFile;
+  bool romExportSave;
+  String romFilterName, romFilterExt;
+  String romExportPath;
+  DivROMExport* pendingExport;
 
   // user presets window
   std::vector<int> selectedUserPreset;
@@ -2693,7 +2699,6 @@ class FurnaceGUI {
   void drawExportROM(bool onWindow=false);
   void drawExportZSM(bool onWindow=false);
   void drawExportTiuna(bool onWindow=false);
-  void drawExportAmigaVal(bool onWindow=false);
   void drawExportText(bool onWindow=false);
   void drawExportCommand(bool onWindow=false);
   void drawExportDMF(bool onWindow=false);
