@@ -287,7 +287,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
       if (hasFM && hasPCM) break;
     }
 
-    int pcmChan=hasFM?9:0;
+    int pcmChan=hasFM?18:0;
     int fmChan=hasPCM?32:0;
     int invalidChan=40;
 
@@ -312,6 +312,20 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
         ds.subsong[0]->chanShow[i]=false;
         ds.subsong[0]->chanShowChanOsc[i]=false;
       }
+
+      if (hasFM) {
+        for (int i=0; i<18; i++) {
+          ds.subsong[0]->chanShow[i]=false;
+          ds.subsong[0]->chanShowChanOsc[i]=false;
+        }
+      }
+    }
+
+    if (hasFM) {
+      for (int i=(hasPCM?32:0) + 9; i<(hasPCM?32:0) + 18; i++) {
+        ds.subsong[0]->chanShow[i]=false;
+        ds.subsong[0]->chanShowChanOsc[i]=false;
+      }
     }
 
     logV("numChans: %d",numChans);
@@ -327,7 +341,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
       ds.systemLen++;
     }
     if (hasFM) {
-      ds.system[ds.systemLen]=DIV_SYSTEM_OPL2;
+      ds.system[ds.systemLen]=DIV_SYSTEM_OPL3;
       ds.systemVol[ds.systemLen]=1.0f;
       ds.systemPan[ds.systemLen]=0;
       ds.systemLen++;
