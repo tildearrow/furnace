@@ -4146,10 +4146,9 @@ msgstr "Система-болванка"
 msgid "this is a system designed for testing purposes."
 msgstr "это система, разработанная для тестирования."
 
-# TODO: this reads "are". should be "is".
 #: src/gui/about.cpp:26
 msgid "is proud to present"
-msgstr "с гордостью представляют"
+msgstr "с гордостью представляет"
 
 #: src/gui/about.cpp:30
 msgid "the biggest multi-system chiptune tracker!"
@@ -4181,7 +4180,7 @@ msgstr "-- документация --"
 
 #: src/gui/about.cpp:69
 msgid "-- localization/translation team --"
-msgstr ""
+msgstr "-- команда локализации/перевода --"
 
 #: src/gui/about.cpp:82
 msgid "-- demo songs --"
@@ -4401,11 +4400,11 @@ msgstr "vgsound_emu (версия вторая, модифицированная
 
 #: src/gui/about.cpp:292
 msgid "Impulse Tracker GUS volume table by Jeffrey Lim"
-msgstr ""
+msgstr "таблица громкостей Impulse Tracker GUS за авторством Jeffrey Lim"
 
 #: src/gui/about.cpp:293
 msgid "Schism Tracker IT sample decompression"
-msgstr ""
+msgstr "алгоритм декодирования сэмплов Schism Tracker IT"
 
 #: src/gui/about.cpp:294
 msgid "SM8521 emulator (modified version) by cam900"
@@ -4433,11 +4432,11 @@ msgstr "NDS sound emulator за авторством cam900"
 
 #: src/gui/about.cpp:300
 msgid "SID2 emulator by LTVA (modification of reSID emulator)"
-msgstr ""
+msgstr "эмулятор SID2 за авторством LTVA (модификация эмулятора reSID)"
 
 #: src/gui/about.cpp:301
 msgid "SID3 emulator by LTVA"
-msgstr ""
+msgstr "эмулятор SID3 за авторством LTVA"
 
 #: src/gui/about.cpp:303
 msgid "greetings to:"
@@ -4509,7 +4508,7 @@ msgstr "О Furnace"
 
 #: src/gui/about.cpp:426
 msgid "Unsaved changes! Save changes before playing?"
-msgstr ""
+msgstr "Остались несохранённые изменения! Сохранить изменения перед воспроизведением?"
 
 #: src/gui/channels.cpp:40 src/gui/editControls.cpp:446 src/gui/gui.cpp:6450
 #: src/gui/guiConst.cpp:602
