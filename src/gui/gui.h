@@ -651,6 +651,7 @@ enum FurnaceGUIExportTypes {
 
   GUI_EXPORT_AUDIO=0,
   GUI_EXPORT_VGM,
+  GUI_EXPORT_ROM,
   GUI_EXPORT_ZSM,
   GUI_EXPORT_TIUNA,
   GUI_EXPORT_CMD_STREAM,
@@ -2686,6 +2687,7 @@ class FurnaceGUI {
 
   void drawExportAudio(bool onWindow=false);
   void drawExportVGM(bool onWindow=false);
+  void drawExportROM(bool onWindow=false);
   void drawExportZSM(bool onWindow=false);
   void drawExportTiuna(bool onWindow=false);
   void drawExportAmigaVal(bool onWindow=false);

@@ -239,6 +239,10 @@ void FurnaceGUI::drawExportVGM(bool onWindow) {
   }
 }
 
+void FurnaceGUI::drawExportROM(bool onWindow) {
+
+}
+
 void FurnaceGUI::drawExportZSM(bool onWindow) {
   exitDisabledTimer=1;
 
@@ -434,6 +438,10 @@ void FurnaceGUI::drawExport() {
         drawExportVGM(true);
         ImGui::EndTabItem();
       }
+      if (ImGui::BeginTabItem(_("ROM"))) {
+        drawExportROM(true);
+        ImGui::EndTabItem();
+      }
       int numZSMCompat=0;
       for (int i=0; i<e->song.systemLen; i++) {
         if ((e->song.system[i]==DIV_SYSTEM_VERA) || (e->song.system[i]==DIV_SYSTEM_YM2151)) numZSMCompat++;
@@ -487,6 +495,9 @@ void FurnaceGUI::drawExport() {
       break;
     case GUI_EXPORT_VGM:
       drawExportVGM(true);
+      break;
+    case GUI_EXPORT_ROM:
+      drawExportROM(true);
       break;
     case GUI_EXPORT_ZSM:
       drawExportZSM(true);
