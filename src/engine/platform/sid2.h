@@ -109,6 +109,7 @@ class DivPlatformSID2: public DivDispatch {
     bool isVolGlobal();
     float getPostAmp();
     DivMacroInt* getChanMacroInt(int ch);
+    void getPaired(int ch, std::vector<DivChannelPair>& ret);
     DivChannelModeHints getModeHints(int chan);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);

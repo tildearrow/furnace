@@ -624,6 +624,29 @@ DivMacroInt* DivPlatformC64::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+void DivPlatformC64::getPaired(int ch, std::vector<DivChannelPair>& ret) {
+  if (chan[ch].ring) {
+    if(ch == 0)
+    {
+      ret.push_back(DivChannelPair("ring",2));
+    }
+    else
+    {
+      ret.push_back(DivChannelPair("ring",(ch-1)%3));
+    }
+  }
+  if (chan[ch].sync) {
+    if(ch == 0)
+    {
+      ret.push_back(DivChannelPair("sync",2));
+    }
+    else
+    {
+      ret.push_back(DivChannelPair("sync",(ch-1)%3));
+    }
+  }
+}
+
 DivChannelModeHints DivPlatformC64::getModeHints(int ch) {
   DivChannelModeHints ret;
   ret.count=1;
