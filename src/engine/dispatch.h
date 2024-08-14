@@ -603,10 +603,10 @@ class DivDispatch {
 
     /**
      * get "paired" channels.
-     * @param chan the channel to query.
-     * @return a DivChannelPair.
+     * @param ch the channel to query.
+     * @param ret the DivChannelPair vector of pairs.
      */
-    virtual DivChannelPair getPaired(int chan);
+    virtual void getPaired(int ch, std::vector<DivChannelPair>& ret);
 
     /**
      * get channel mode hints.

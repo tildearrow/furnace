@@ -1109,7 +1109,7 @@ class DivEngine {
     void* getDispatchChanState(int chan);
 
     // get channel pairs
-    DivChannelPair getChanPaired(int chan);
+    void getChanPaired(int chan, std::vector<DivChannelPair>& ret);
 
     // get channel mode hints
     DivChannelModeHints getChanModeHints(int chan);

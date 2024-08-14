@@ -710,11 +710,10 @@ unsigned short DivPlatformSNES::getPan(int ch) {
   return (chan[ch].panL<<8)|chan[ch].panR;
 }
 
-DivChannelPair DivPlatformSNES::getPaired(int ch) {
+void DivPlatformSNES::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   if (chan[ch].pitchMod) {
-    return DivChannelPair("mod",(ch-1)&7);
+    ret.push_back(DivChannelPair("mod",(ch-1)&7));
   }
-  return DivChannelPair();
 }
 
 DivChannelModeHints DivPlatformSNES::getModeHints(int ch) {

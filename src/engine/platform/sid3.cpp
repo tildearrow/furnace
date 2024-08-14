@@ -1244,26 +1244,27 @@ void DivPlatformSID3::setFlags(const DivConfig& flags) {
   }
 }
 
-DivChannelPair DivPlatformSID3::getPaired(int ch) 
+void DivPlatformSID3::getPaired(int ch, std::vector<DivChannelPair>& ret)
 {
   if(chan[ch].phase)
   {
-    return DivChannelPair("phase", chan[ch].phaseSrc);
+    ret.push_back(DivChannelPair("phase", chan[ch].phaseSrc));
   }
   if(chan[ch].ring)
   {
     if(chan[ch].ringSrc == SID3_NUM_CHANNELS)
     {
-      return DivChannelPair("ring", ch);
+      ret.push_back(DivChannelPair("ring", ch));
     }
-
-    return DivChannelPair("ring", chan[ch].ringSrc);
+    else
+    {
+      ret.push_back(DivChannelPair("ring", chan[ch].ringSrc));
+    }
   }
   if(chan[ch].sync)
   {
-    return DivChannelPair("sync", chan[ch].syncSrc);
+    ret.push_back(DivChannelPair("sync", chan[ch].syncSrc));
   }
-  return DivChannelPair();
 }
 
 int DivPlatformSID3::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

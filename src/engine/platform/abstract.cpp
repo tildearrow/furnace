@@ -37,8 +37,8 @@ unsigned short DivDispatch::getPan(int chan) {
   return 0;
 }
 
-DivChannelPair DivDispatch::getPaired(int chan) {
-  return DivChannelPair();
+void DivDispatch::getPaired(int ch, std::vector<DivChannelPair>& ret) {
+  ret.push_back(DivChannelPair());
 }
 
 DivChannelModeHints DivDispatch::getModeHints(int chan) {

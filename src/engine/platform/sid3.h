@@ -250,7 +250,7 @@ class DivPlatformSID3: public DivDispatch {
     const char** getRegisterSheet();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     int getOutputCount();
-    DivChannelPair getPaired(int ch);
+    void getPaired(int ch, std::vector<DivChannelPair>& ret);
     void quit();
     ~DivPlatformSID3();
 };

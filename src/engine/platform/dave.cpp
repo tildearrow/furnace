@@ -525,11 +525,10 @@ unsigned short DivPlatformDave::getPan(int ch) {
 }
 
 // TODO: the rest
-DivChannelPair DivPlatformDave::getPaired(int ch) {
+void DivPlatformDave::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   if (chan[ch].highPass) {
-    DivChannelPair("high",(ch+1)&3);
+    ret.push_back(DivChannelPair("high",(ch+1)&3));
   }
-  return DivChannelPair();
 }
 
 DivChannelModeHints DivPlatformDave::getModeHints(int ch) {
