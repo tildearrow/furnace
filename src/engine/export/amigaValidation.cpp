@@ -70,6 +70,7 @@ void DivExportAmigaValidation::run() {
   bool done=false;
 
   // sample.bin
+  logAppend("writing samples...");
   SafeWriter* sample=new SafeWriter;
   sample->init();
   for (int i=0; i<256; i++) {
@@ -79,6 +80,7 @@ void DivExportAmigaValidation::run() {
   if (sample->tell()&1) sample->writeC(0);
 
   // seq.bin
+  logAppend("making sequence...");
   SafeWriter* seq=new SafeWriter;
   seq->init();
 
@@ -239,6 +241,7 @@ void DivExportAmigaValidation::run() {
   EXTERN_BUSY_END;
 
   // wave.bin
+  logAppend("writing wavetables...");
   SafeWriter* wave=new SafeWriter;
   wave->init();
   for (WaveEntry& i: waves) {
@@ -246,6 +249,7 @@ void DivExportAmigaValidation::run() {
   }
   
   // sbook.bin
+  logAppend("writing sample book...");
   SafeWriter* sbook=new SafeWriter;
   sbook->init();
   for (SampleBookEntry& i: sampleBook) {
@@ -255,6 +259,7 @@ void DivExportAmigaValidation::run() {
   }
 
   // wbook.bin
+  logAppend("writing wavetable book...");
   SafeWriter* wbook=new SafeWriter;
   wbook->init();
   for (WaveEntry& i: waves) {
@@ -271,6 +276,8 @@ void DivExportAmigaValidation::run() {
   output.push_back(DivROMExportOutput("sample.bin",sample));
   output.push_back(DivROMExportOutput("wave.bin",wave));
   output.push_back(DivROMExportOutput("seq.bin",seq));
+
+  logAppend("finished!");
 
   running=false;
 }
@@ -295,4 +302,8 @@ void DivExportAmigaValidation::abort() {
 
 bool DivExportAmigaValidation::isRunning() {
   return running;
+}
+
+bool DivExportAmigaValidation::hasFailed() {
+  return false;
 }

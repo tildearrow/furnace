@@ -36,9 +36,9 @@ bool DivROMExport::hasFailed() {
   return true;
 }
 
-DivROMExportProgress DivROMExport::getProgress() {
+DivROMExportProgress DivROMExport::getProgress(int index) {
   DivROMExportProgress ret;
-  ret.name="Test";
+  ret.name="";
   ret.amount=0.0f;
   return ret;
 }
@@ -54,4 +54,8 @@ void DivROMExport::wait() {
 
 bool DivROMExport::isRunning() {
   return false;
+}
+
+void DivROMExport::setConf(DivConfig& c) {
+  conf=c;
 }
