@@ -24,8 +24,6 @@
 extern FurnaceGUI g;
 #endif
 
-#define _LE(string) (string)
-
 class DivEngine;
 
 //P86 8-bit PCM sample bank
@@ -143,7 +141,7 @@ void DivEngine::loadP86(SafeReader& reader, std::vector<DivSample*>& ret, String
   } 
   catch (EndOfFileException& e) 
   {
-    lastError=_LE("premature end of file");
+    lastError=_("premature end of file");
     logE("premature end of file");
   }
 }

@@ -24,8 +24,6 @@
 extern FurnaceGUI g;
 #endif
 
-#define _LE(string) (string)
-
 class DivEngine;
 
 //PPS AY-3-8910 sample bank
@@ -126,7 +124,7 @@ void DivEngine::loadPPS(SafeReader& reader, std::vector<DivSample*>& ret, String
   } 
   catch (EndOfFileException& e) 
   {
-    lastError=_LE("premature end of file");
+    lastError=_("premature end of file");
     logE("premature end of file");
   }
 }
