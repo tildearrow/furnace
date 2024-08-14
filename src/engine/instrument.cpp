@@ -1741,7 +1741,7 @@ void DivInstrument::readFeature64(SafeReader& reader, bool& volIsCutoff, short v
     next = (unsigned char)reader.readC();
     c64.res|=(next & 0xf)<<4;
 
-    if(version >= 217)
+    if(version >= 218)
     {
       c64.resetDuty = (next & 0x10) ? true : false;
     }
