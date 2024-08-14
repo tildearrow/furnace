@@ -109,6 +109,8 @@ bool safeModeWithAudio=false;
 
 bool infoMode=false;
 
+bool noReportError=false;
+
 std::vector<TAParam> params;
 
 #ifdef HAVE_LOCALE
@@ -196,6 +198,11 @@ TAParamResult pView(String val) {
 
 TAParamResult pConsole(String val) {
   consoleMode=true;
+  return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pQuiet(String val) {
+  noReportError=true;
   return TA_PARAM_SUCCESS;
 }
 
@@ -457,6 +464,7 @@ void initParams() {
   params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (nothing by default)"));
   params.push_back(TAParam("i","info",false,pInfo,"","get info about a song"));
   params.push_back(TAParam("c","console",false,pConsole,"","enable console mode"));
+  params.push_back(TAParam("q","noreport",false,pQuiet,"","do not display message box on error"));
   params.push_back(TAParam("n","nostatus",false,pNoStatus,"","disable playback status in console mode"));
   params.push_back(TAParam("N","nocontrols",false,pNoControls,"","disable standard input controls in console mode"));
 
@@ -475,18 +483,25 @@ void initParams() {
 #ifdef _WIN32
 void reportError(String what) {
   logE("%s",what);
-  MessageBox(NULL,what.c_str(),"Furnace",MB_OK|MB_ICONERROR);
+  if (!noReportError) {
+    MessageBox(NULL,what.c_str(),"Furnace",MB_OK|MB_ICONERROR);
+  }
 }
 #elif defined(ANDROID) || defined(__APPLE__)
 void reportError(String what) {
   logE("%s",what);
 #ifdef HAVE_SDL2
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error",what.c_str(),NULL);
+  if (!noReportError) {
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error",what.c_str(),NULL);
+  }
 #endif
 }
 #else
 void reportError(String what) {
   logE("%s",what);
+  if (!noReportError) {
+    // dummy
+  }
 }
 #endif
 
@@ -715,14 +730,14 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  if (fileName.empty() && (benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+  if (fileName.empty() && (benchMode || infoMode || outName!="" || vgmOutName!="" || zsmOutName!="" || cmdOutName!="")) {
     logE("provide a file!");
     return 1;
   }
 
 #ifdef HAVE_GUI
-  if (e.preInit(consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
-    if (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="") {
+  if (e.preInit(consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || zsmOutName!="" || cmdOutName!="")) {
+    if (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || zsmOutName!="" || cmdOutName!="") {
       logW("engine wants safe mode, but Furnace GUI is not going to start.");
     } else {
       safeMode=true;
@@ -734,7 +749,7 @@ int main(int argc, char** argv) {
   }
 #endif
 
-  if (safeMode && (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+  if (safeMode && (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || zsmOutName!="" || cmdOutName!="")) {
     logE("you can't use safe mode and console/export mode together.");
     return 1;
   }
@@ -743,7 +758,7 @@ int main(int argc, char** argv) {
     e.setAudio(DIV_AUDIO_DUMMY);
   }
 
-  if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",TUT_INTRO_PLAYED)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+  if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",TUT_INTRO_PLAYED)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || zsmOutName!="" || cmdOutName!="")) {
     logI("loading module...");
     FILE* f=ps_fopen(fileName.c_str(),"rb");
     if (f==NULL) {
@@ -835,7 +850,7 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  if (outName!="" || vgmOutName!="" || cmdOutName!="") {
+  if (outName!="" || vgmOutName!="" || zsmOutName!="" || cmdOutName!="") {
     if (cmdOutName!="") {
       SafeWriter* w=e.saveCommand();
       if (w!=NULL) {
@@ -866,6 +881,23 @@ int main(int argc, char** argv) {
         delete w;
       } else {
         reportError(_("could not write VGM!"));
+      }
+    }
+    if (zsmOutName!="") {
+      // TODO: changing parameters
+      SafeWriter* w=e.saveZSM(60,true,true);
+      if (w!=NULL) {
+        FILE* f=ps_fopen(zsmOutName.c_str(),"wb");
+        if (f!=NULL) {
+          fwrite(w->getFinalBuf(),1,w->size(),f);
+          fclose(f);
+        } else {
+          reportError(fmt::sprintf(_("could not open file! (%s)"),e.getLastError()));
+        }
+        w->finish();
+        delete w;
+      } else {
+        reportError(fmt::sprintf(_("could not write ZSM! (%s)"),e.getLastError()));
       }
     }
     if (outName!="") {

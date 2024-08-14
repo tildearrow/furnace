@@ -39,14 +39,25 @@ const char** DivPlatformMSM6295::getRegisterSheet() {
 }
 
 u8 DivPlatformMSM6295::read_byte(u32 address) {
-  if (adpcmMem==NULL || address>=getSampleMemCapacity(0)) {
+  if (adpcmMem==NULL) {
     return 0;
   }
   if (isBanked) {
     if (address<0x400) {
-      return adpcmMem[(bank[(address>>8)&0x3]<<16)|(address&0x3ff)];
+      unsigned int bankedAddress=(bank[(address>>8)&0x3]<<16)|(address&0x3ff);
+      if (bankedAddress>=getSampleMemCapacity(0)) {
+        return 0;
+      }
+      return adpcmMem[bankedAddress&0xffffff];
     }
-    return adpcmMem[(bank[(address>>16)&0x3]<<16)|(address&0xffff)];
+    unsigned int bankedAddress=(bank[(address>>16)&0x3]<<16)|(address&0xffff);
+    if (bankedAddress>=getSampleMemCapacity(0)) {
+      return 0;
+    }
+    return adpcmMem[bankedAddress&0xffffff];
+  }
+  if (address>=getSampleMemCapacity(0)) {
+    return 0;
   }
   return adpcmMem[address&0x3ffff];
 }

@@ -694,6 +694,7 @@ src/engine/configEngine.cpp
 src/engine/dispatchContainer.cpp
 src/engine/engine.cpp
 src/engine/export.cpp
+src/engine/exportDef.cpp
 src/engine/fileOpsIns.cpp
 src/engine/fileOpsSample.cpp
 src/engine/filter.cpp
@@ -711,7 +712,6 @@ src/engine/wavOps.cpp
 src/engine/vgmOps.cpp
 src/engine/zsmOps.cpp
 src/engine/zsm.cpp
-src/engine/tiunaOps.cpp
 
 src/engine/platform/abstract.cpp
 src/engine/platform/genesis.cpp
@@ -789,6 +789,7 @@ src/engine/platform/dummy.cpp
 
 src/engine/export/abstract.cpp
 src/engine/export/amigaValidation.cpp
+src/engine/export/tiuna.cpp
 
 src/engine/effect/abstract.cpp
 src/engine/effect/dummy.cpp

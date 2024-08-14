@@ -3589,6 +3589,12 @@ void DivEngine::synchronized(const std::function<void()>& what) {
   BUSY_END;
 }
 
+void DivEngine::synchronizedSoft(const std::function<void()>& what) {
+  BUSY_BEGIN_SOFT;
+  what();
+  BUSY_END;
+}
+
 void DivEngine::lockSave(const std::function<void()>& what) {
   saveLock.lock();
   what();
@@ -3915,6 +3921,9 @@ bool DivEngine::preInit(bool noSafeMode) {
 
   // register systems
   if (!systemsRegistered) registerSystems();
+
+  // register ROM exports
+  if (!romExportsRegistered) registerROMExports();
 
   // TODO: re-enable with a better approach
   // see issue #1581
