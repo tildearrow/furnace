@@ -4,7 +4,7 @@ a fictional chip created by LTVA. the idea is to fix SID flaws and add more feat
 
 unlike SID, it has per-channel volume control, better ADSR envelope which doesn't have bugs, more waveform mixing modes and the ability to play tonal noise waves.
 
-filter cutoff and resonance ranges were extended, as well as the frequency - finally the chip can hit B-7 note with default clock speed!
+each channel now has its own independent filter. filter cutoff and resonance ranges were extended, as well as the frequency - finally the chip can hit B-7 note with default clock speed!
 
 ## effects
 
