@@ -1254,6 +1254,14 @@ void FurnaceGUI::drawSettings() {
         }
         popDestColor();
 
+        // SUBSECTION CONFIGURATION
+        CONFIG_SUBSECTION(_("Modules import"));
+        bool s3mOPL2B=settings.OPL2s3mImport;
+        if (ImGui::Checkbox(_("Use OPL2 instead of OPL3 for .s3m modules import"),&s3mOPL2B)) {
+          settings.OPL2s3mImport=s3mOPL2B;
+          settingsChanged=true;
+        }
+
         END_SECTION;
       }
       CONFIG_SECTION(_("Audio")) {
@@ -4746,6 +4754,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.vibrationStrength=conf.getFloat("vibrationStrength",0.5f);
     settings.vibrationLength=conf.getInt("vibrationLength",20);
 
+    settings.OPL2s3mImport=conf.getInt("OPL2s3mImport",false);
+
     settings.backupEnable=conf.getInt("backupEnable",1);
     settings.backupInterval=conf.getInt("backupInterval",30);
     settings.backupMaxCopies=conf.getInt("backupMaxCopies",5);
@@ -5330,6 +5340,8 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
     conf.set("vibrationStrength",settings.vibrationStrength);
     conf.set("vibrationLength",settings.vibrationLength);
+
+    conf.set("OPL2s3mImport",settings.OPL2s3mImport);
 
     conf.set("backupEnable",settings.backupEnable);
     conf.set("backupInterval",settings.backupInterval);
