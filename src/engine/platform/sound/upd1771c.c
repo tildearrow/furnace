@@ -1,3 +1,6 @@
+// SOME CODE IS TAKEN FROM MAME'S EMULATION OF THE UPD1771C
+// MADE BY AART1256 IN 2024
+
 #include "upd1771c.h"
 
 #include <string.h>

@@ -1,3 +1,6 @@
+// THIS IS A MODIFIED VERSION OF POTATOR'S SOUND EMULATION CORE
+// MODIFIED BY AART1256 IN 2024
+
 #include "supervision.h"
 
 #include <string.h>

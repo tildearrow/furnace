@@ -281,7 +281,7 @@ void DivPlatformUPD1771c::muteChannel(int ch, bool mute) {
 }
 
 void DivPlatformUPD1771c::forceIns() {
-  for (int i=0; i<4; i++) {
+  for (int i=0; i<1; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
     //chwrite(i,0x05,isMuted[i]?0:chan[i].pan);

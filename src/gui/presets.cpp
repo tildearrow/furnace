@@ -320,6 +320,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_NDS, 1.0f, 0, "")
     }
   );
+  ENTRY(
+    "Watara Supervision", {
+      CH(DIV_SYSTEM_SUPERVISION, 1.0f, 0, "")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN("Computers","let's get to work on chiptune today.");
@@ -1284,6 +1289,11 @@ void FurnaceGUI::initSystemPresets() {
      )
    }
  );
+  ENTRY(
+    "Epoch Super Cassette Vision", {
+      CH(DIV_SYSTEM_UPD1771C, 1.0f, 0, "")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN("Arcade systems","INSERT COIN");
