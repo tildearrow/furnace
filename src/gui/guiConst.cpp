@@ -208,7 +208,7 @@ const char* sampleDepths[DIV_SAMPLE_DEPTH_MAX]={
   "8-bit µ-law PCM",
   "C219 PCM",
   "IMA ADPCM",
-  NULL,
+  "12-bit PCM",
   NULL,
   "16-bit PCM"
 };

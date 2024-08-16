@@ -1635,9 +1635,8 @@ void DivEngine::registerSystems() {
   );
 
   // to Grauw: feel free to change this to 24 during development of OPL4's PCM part.
-  // TODO: add 12-bit sample formats
   sysDefs[DIV_SYSTEM_OPL4]=new DivSysDef(
-    _("Yamaha YMF278B (OPL4)"), NULL, 0xae, 0, 42, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_8BIT)|(1U<<DIV_SAMPLE_DEPTH_16BIT), 0, 0,
+    _("Yamaha YMF278B (OPL4)"), NULL, 0xae, 0, 42, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_8BIT)|(1U<<DIV_SAMPLE_DEPTH_12BIT)|(1U<<DIV_SAMPLE_DEPTH_16BIT), 0, 0,
     _("like OPL3, but this time it also has a 24-channel version of MultiPCM."),
     {_("4OP 1"), _("FM 2"), _("4OP 3"), _("FM 4"), _("4OP 5"), _("FM 6"), _("4OP 7"), _("FM 8"), _("4OP 9"), _("FM 10"), _("4OP 11"), _("FM 12"), _("FM 13"), _("FM 14"), _("FM 15"), _("FM 16"), _("FM 17"), _("FM 18"), _("PCM 1"), _("PCM 2"), _("PCM 3"), _("PCM 4"), _("PCM 5"), _("PCM 6"), _("PCM 7"), _("PCM 8"), _("PCM 9"), _("PCM 10"), _("PCM 11"), _("PCM 12"), _("PCM 13"), _("PCM 14"), _("PCM 15"), _("PCM 16"), _("PCM 17"), _("PCM 18"), _("PCM 19"), _("PCM 20"), _("PCM 21"), _("PCM 22"), _("PCM 23"), _("PCM 24")},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13", "F14", "F15", "F16", "F17", "F18", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17", "P18", "P19", "P20", "P21", "P22", "P23", "P24"},
@@ -1648,9 +1647,8 @@ void DivEngine::registerSystems() {
     fmOPL4PostEffectHandlerMap
   );
 
-  // TODO: same here
   sysDefs[DIV_SYSTEM_OPL4_DRUMS]=new DivSysDef(
-    _("Yamaha YMF278B (OPL4) with drums"), NULL, 0xaf, 0, 44, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_8BIT)|(1U<<DIV_SAMPLE_DEPTH_16BIT), 0, 0,
+    _("Yamaha YMF278B (OPL4) with drums"), NULL, 0xaf, 0, 44, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_8BIT)|(1U<<DIV_SAMPLE_DEPTH_12BIT)|(1U<<DIV_SAMPLE_DEPTH_16BIT), 0, 0,
     _("the OPL4 but with drums mode turned on."),
     {_("4OP 1"), _("FM 2"), _("4OP 3"), _("FM 4"), _("4OP 5"), _("FM 6"), _("4OP 7"), _("FM 8"), _("4OP 9"), _("FM 10"), _("4OP 11"), _("FM 12"), _("FM 13"), _("FM 14"), _("FM 15"), _("Kick/FM 16"), _("Snare"), _("Tom"), _("Top"), _("HiHat"), _("PCM 1"), _("PCM 2"), _("PCM 3"), _("PCM 4"), _("PCM 5"), _("PCM 6"), _("PCM 7"), _("PCM 8"), _("PCM 9"), _("PCM 10"), _("PCM 11"), _("PCM 12"), _("PCM 13"), _("PCM 14"), _("PCM 15"), _("PCM 16"), _("PCM 17"), _("PCM 18"), _("PCM 19"), _("PCM 20"), _("PCM 21"), _("PCM 22"), _("PCM 23"), _("PCM 24")},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13", "F14", "F15", "BD", "SD", "TM", "TP", "HH", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17", "P18", "P19", "P20", "P21", "P22", "P23", "P24"},

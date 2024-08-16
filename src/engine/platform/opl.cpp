@@ -3197,6 +3197,9 @@ void DivPlatformOPL::renderSamples(int sysID) {
         case DIV_SAMPLE_DEPTH_8BIT:
           length=MIN(65535,s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT));
           break;
+        case DIV_SAMPLE_DEPTH_12BIT:
+          length=MIN(98303,s->getLoopEndPosition(DIV_SAMPLE_DEPTH_12BIT));
+          break;
         case DIV_SAMPLE_DEPTH_16BIT:
           length=MIN(131070,s->getLoopEndPosition(DIV_SAMPLE_DEPTH_16BIT));
           break;
@@ -3239,7 +3242,9 @@ void DivPlatformOPL::renderSamples(int sysID) {
         case DIV_SAMPLE_DEPTH_8BIT:
           bitDepth=0;
           break;
-        // TODO: 12 bit PCM
+        case DIV_SAMPLE_DEPTH_12BIT:
+          bitDepth=1;
+          break;
         case DIV_SAMPLE_DEPTH_16BIT:
           bitDepth=2;
           break;
