@@ -59,3 +59,7 @@ CSM is beyond the scope of this documentation. for more information, see this [b
 ## Sega CD
 
 this isn't a mode so much as a chip configuration. it adds the [Ricoh RF5C68](ricoh.md) found in the Sega CD add-on, providing 8 channels of PCM.
+
+## chip config
+
+see [YM2612](ym2612.md) and [SN76489](sms.md) for respective configuration.

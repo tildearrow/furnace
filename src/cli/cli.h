@@ -35,6 +35,8 @@
 
 class FurnaceCLI {
   DivEngine* e;
+  bool disableStatus;
+  bool disableControls;
 
 #ifdef _WIN32
   HANDLE winin;
@@ -46,6 +48,8 @@ class FurnaceCLI {
 #endif
 
   public:
+    void noStatus();
+    void noControls();
     void bindEngine(DivEngine* eng);
     bool loop();
     bool finish();

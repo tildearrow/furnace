@@ -45,3 +45,15 @@ this chip uses the [Generic Sample](../4-instrument/sample.md) instrument editor
 - the maximum rate for sample playback is technically 31469Hz but anything higher than 28867Hz will sound glitchy on hardware.
 - sample lengths and loop will be set to an even number.
 - samples can't be longer than 131070.
+
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Stereo separation**: sets the amount of left/right separation.
+- **Model**: allows you to change the chipset.
+  - Amiga 500 (OCS): has a low-pass filter on top of the user-selectable filter.
+  - Amiga 1200 (AGA): doesn't have the aforementioned low-pass filter.
+- **Chip memory**: more chip memory means more space for samples.
+- **PAL**: run the chip at PAL clock (3.54MHz) instead of NTSC (3.58MHz).
+- **Bypass frequency limits**: when enabled, the ~31KHz frequency limit is disabled, allowing you to play higher notes.

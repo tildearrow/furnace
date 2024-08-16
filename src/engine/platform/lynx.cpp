@@ -135,7 +135,11 @@ void DivPlatformLynx::acquire(short** buf, size_t len) {
             if (isMuted[i]) {
               WRITE_OUTPUT(i,0);
             } else {
-              WRITE_OUTPUT(i,CLAMP((s->data8[chan[i].samplePos]*chan[i].outVol)>>7,-128,127));
+              if (chan[i].samplePos<0 || chan[i].samplePos>=(int)s->samples) {
+                WRITE_OUTPUT(i,0);
+              } else {
+                WRITE_OUTPUT(i,CLAMP((s->data8[chan[i].samplePos]*chan[i].outVol)>>7,-128,127));
+              }
             }
             chan[i].samplePos++;
 
@@ -209,7 +213,11 @@ void DivPlatformLynx::tick(bool sysTick) {
       if (chan[i].std.phaseReset.val==1) {
         if (chan[i].pcm && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
           chan[i].sampleAccum=0;
-          chan[i].samplePos=0;
+          if (chan[i].setPos) {
+            chan[i].setPos=false;
+          } else {
+            chan[i].samplePos=0;
+          }
         }
         WRITE_LFSR(i, 0);
         WRITE_OTHER(i, 0);
@@ -294,7 +302,11 @@ int DivPlatformLynx::dispatch(DivCommand c) {
           c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
         }
         chan[c.chan].sampleAccum=0;
-        chan[c.chan].samplePos=0;
+        if (chan[c.chan].setPos) {
+          chan[c.chan].setPos=false;
+        } else {
+          chan[c.chan].samplePos=0;
+        }
       }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
@@ -399,6 +411,10 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       }
       if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
+      break;
+    case DIV_CMD_SAMPLE_POS:
+      chan[c.chan].samplePos=c.value;
+      chan[c.chan].setPos=true;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 127;

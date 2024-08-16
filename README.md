@@ -80,6 +80,7 @@ for other operating systems, you may [build the source](#developer-info).
   - TED used in Commodore Plus/4
   - Casio PV-1000
   - TIA used in Atari 2600
+    - including software tuning engine (TIunA)
   - POKEY used in Atari 8-bit computers
   - **Game Boy**
     - including SOFTWARE ENVELOPES (zombie mode)
@@ -92,6 +93,8 @@ for other operating systems, you may [build the source](#developer-info).
     - Commander X16 VERA
     - tildearrow Sound Unit
     - PowerNoise
+    - Bifurcator
+    - SID2
     - Generic PCM DAC
 - mix and match sound chips!
   - over 200 ready to use presets from computers, game consoles and arcade boards...
@@ -134,7 +137,7 @@ for other operating systems, you may [build the source](#developer-info).
 ---
 # quick references
 
-- **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, the [official Revolt](https://rvlt.gg/GRPS6tmc) or the [official Discord server](https://discord.gg/EfrwT2wq7z).
+- **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section.
 - **help**: check out the [documentation](doc/README.md).
 
 ## packages
@@ -178,6 +181,8 @@ otherwise, you may also need the following:
 - any other libraries which may be used by SDL
 
 some Linux distributions (e.g. Ubuntu or openSUSE) will require you to install the `-dev` versions of these.
+
+having libintl is recommended for locale support, but if it isn't present, Furnace will use its own implementation.
 
 ## getting the source
 
@@ -258,11 +263,13 @@ Available options:
 | Name | Default | Description |
 | :--: | :-----: | ----------- |
 | `BUILD_GUI` | `ON` | Build the tracker (disable to build only a headless player) |
+| `WITH_LOCALE` | `ON` | Enable language support |
 | `USE_RTMIDI` | `ON` | Build with MIDI support using RtMidi |
 | `USE_SDL2` | `ON` | Build with SDL2 (required to build with GUI) |
 | `USE_SNDFILE` | `ON` | Build with libsndfile (required in order to work with audio files) |
 | `USE_BACKWARD` | `ON` | Use backward-cpp to print a backtrace on crash/abort |
 | `USE_FREETYPE` | `OFF` | Build with FreeType support |
+| `USE_MOMO` | auto\*\*\* | Build a libintl implementation instead of using the system one |
 | `WITH_JACK` | auto\* | Whether to build with JACK support. Auto-detects if JACK is available |
 | `WITH_PORTAUDIO` | `ON` | Whether to build with PortAudio. |
 | `SYSTEM_FFTW` | `OFF` | Use a system-installed version of FFTW instead of the vendored one |
@@ -278,11 +285,14 @@ Available options:
 | `WITH_INSTRUMENTS` | `ON` | Install demo instruments on `make install` |
 | `WITH_WAVETABLES` | `ON` | Install wavetables on `make install` |
 | `SHOW_OPEN_ASSETS_MENU_ENTRY` | `OFF` | Show option to open built-in assets directory (on supported platforms) |
+| `CONSOLE_SUBSYSTEM` | `OFF` | Build with subsystem set to Console on Windows |
 | `FORCE_APPLE_BIN` | `OFF` | Enable installation of binaries (when doing `make install`) to PREFIX/bin on Apple platforms |
 
 (\*) `ON` if system-installed JACK detected, otherwise `OFF`
 
 (\*\*) but consider enabling this & reporting any errors that arise from it!
+
+(\*\*\*) enabled by default if both libintl and setlocale aren't present (MSVC and Android), or on macOS
 
 ## CMake Error
 
@@ -322,6 +332,27 @@ this will play a compatible file and enable the commands view.
 ---
 # frequently asked questions
 
+> where's the manual?
+
+it is in [doc/](doc/README.md).
+
+> is there a tutorial?
+
+[a video tutorial of tracker concepts is available on YouTube](https://www.youtube.com/watch?v=Q37XuOLz0jw). thanks Button Masher!
+
+> can I import VGM or NSF?
+
+nope. it's a feature that's been requested many times, but I don't have plans to implement that yet.
+
+for NSF import, you can use [a modified version of FamiTracker called NSFImport](http://rainwarrior.ca/projects/nes/nsfimport.html), and then import the resulting .ftm into Furnace.
+it's all speed 1 though, so don't expect any songs to be nicely laid out with instruments and all.
+
+> how about MIDI? can I import these?
+
+nope. it's not implemented.
+
+also, Furnace isn't a MIDI tracker.
+
 > it doesn't open under macOS!
 
 this is due to Apple's application signing policy. a workaround is to right click on the Furnace app icon and select Open.
@@ -339,14 +370,6 @@ xattr -d com.apple.quarantine /path/to/Furnace.app
 
 you may need to log out and/or reboot after doing this.
 
-> where's the manual?
-
-it is in [doc/](doc/README.md).
-
-> is there a tutorial?
-
-[a video tutorial (of a previous version) is available on YouTube](https://youtube.com/playlist?list=PLCELB6AsTZUnwv0PC5AAGHjvg47F44YQ1), made by Spinning Square Waves.
-
 > I've lost my song!
 
 Furnace keeps backups of the songs you've worked on before. go to **file > restore backup**.
@@ -358,6 +381,12 @@ Furnace keeps backups of the songs you've worked on before. go to **file > resto
 > ROM export?
 
 **not yet!** coming in 0.7 though, eventually...
+
+> Roland MT-32 support?
+
+MT-32 is used with MIDI in 99.999% of situations. it lacks a direct register interface.
+
+also, Furnace is not a MIDI tracker....
 
 > my .dmf song sounds odd at a certain point
 

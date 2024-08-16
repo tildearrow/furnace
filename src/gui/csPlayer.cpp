@@ -109,18 +109,18 @@ void FurnaceGUI::drawCSPlayer() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!csPlayerOpen) return;
-  if (ImGui::Begin("Command Stream Player",&csPlayerOpen,globalWinFlags)) {
-    if (ImGui::Button("Load")) {
+  if (ImGui::Begin("Command Stream Player",&csPlayerOpen,globalWinFlags,_("Command Stream Player"))) {
+    if (ImGui::Button(_("Load"))) {
       openFileDialog(GUI_FILE_CMDSTREAM_OPEN);
     }
     ImGui::SameLine();
-    if (ImGui::Button("Kill")) {
+    if (ImGui::Button(_("Kill"))) {
       if (!e->killStream()) {
-        showError("Kikai wa mou shindeiru!");
+        showError(_("Kikai wa mou shindeiru!"));
       }
     }
     ImGui::SameLine();
-    if (ImGui::Button("Burn Current Song")) {
+    if (ImGui::Button(_("Burn Current Song"))) {
       SafeWriter* w=e->saveCommand();
       if (w!=NULL) {
         if (!e->playStream(w->getFinalBuf(),w->size())) {
@@ -138,34 +138,34 @@ void FurnaceGUI::drawCSPlayer() {
     if (cs) {
       if (ImGui::BeginTabBar("CSOptions")) {
         int chans=e->getTotalChannelCount();
-        if (ImGui::BeginTabItem("Status")) {
+        if (ImGui::BeginTabItem(_("Status"))) {
           if (ImGui::BeginTable("CSStat",12,ImGuiTableFlags_SizingFixedSame|ImGuiTableFlags_ScrollX|ImGuiTableFlags_Borders)) {
             ImGui::TableSetupScrollFreeze(1,1);
             ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
             ImGui::TableNextColumn();
-            ImGui::Text("channel");
+            ImGui::Text(_("channel"));
             ImGui::TableNextColumn();
-            ImGui::Text("start");
+            ImGui::Text(_("start"));
             ImGui::TableNextColumn();
-            ImGui::Text("PC");
+            ImGui::Text(_("PC"));
             ImGui::TableNextColumn();
-            ImGui::Text("wait");
+            ImGui::Text(_("wait"));
             ImGui::TableNextColumn();
-            ImGui::Text("SP");
+            ImGui::Text(_("SP"));
             ImGui::TableNextColumn();
-            ImGui::Text("note");
+            ImGui::Text(_("note"));
             ImGui::TableNextColumn();
-            ImGui::Text("pitch");
+            ImGui::Text(_("pitch"));
             ImGui::TableNextColumn();
-            ImGui::Text("vol");
+            ImGui::Text(_("vol"));
             ImGui::TableNextColumn();
-            ImGui::Text("vols");
+            ImGui::Text(_("vols"));
             ImGui::TableNextColumn();
-            ImGui::Text("vib");
+            ImGui::Text(_("vib"));
             ImGui::TableNextColumn();
-            ImGui::Text("porta");
+            ImGui::Text(_("porta"));
             ImGui::TableNextColumn();
-            ImGui::Text("arp");
+            ImGui::Text(_("arp"));
 
             for (int i=0; i<chans; i++) {
               DivCSChannelState* state=cs->getChanState(i);
@@ -200,7 +200,7 @@ void FurnaceGUI::drawCSPlayer() {
           }
           ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Trace")) {
+        if (ImGui::BeginTabItem(_("Trace"))) {
           ImGui::PushFont(patFont);
           if (ImGui::BeginTable("CSTrace",chans,ImGuiTableFlags_SizingFixedSame|ImGuiTableFlags_Borders|ImGuiTableFlags_ScrollX)) {
             char tempID[32];
@@ -241,10 +241,10 @@ void FurnaceGUI::drawCSPlayer() {
           ImGui::PopFont();
           ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Disassemble")) {
+        if (ImGui::BeginTabItem(_("Disassemble"))) {
           ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Hex")) {
+        if (ImGui::BeginTabItem(_("Hex"))) {
           ImGui::PushFont(patFont);
           if (ImGui::BeginTable("CSHexPos",chans,ImGuiTableFlags_SizingStretchSame)) {
             ImGui::TableNextRow();

@@ -651,7 +651,7 @@ void DivPlatformGB::reset() {
   immWrite(0x26,0x8f);
   lastPan=0xff;
   immWrite(0x25,procMute());
-  immWrite(0x24,0x77);
+  immWrite(0x24,0xff);
 
   antiClickPeriodCount=0;
   antiClickWavePos=0;
@@ -731,7 +731,8 @@ void DivPlatformGB::setFlags(const DivConfig& flags) {
 void DivPlatformGB::setCoreQuality(unsigned char q) {
   switch (q) {
     case 0:
-      coreQuality=120;
+      // sorry...
+      coreQuality=64;
       break;
     case 1:
       coreQuality=64;

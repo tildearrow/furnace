@@ -107,6 +107,11 @@ int DivDispatch::mapVelocity(int ch, float vel) {
   return round(vel*volMax);
 }
 
+float DivDispatch::getGain(int ch, int vol) {
+  const float volMax=MAX(1,dispatch(DivCommand(DIV_CMD_GET_VOLMAX,MAX(ch,0))));
+  return (float)vol/volMax;
+}
+
 int DivDispatch::getPortaFloor(int ch) {
   return 0x00;
 }

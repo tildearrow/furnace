@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="audio/x-fur">
+    <comment>Furnace module</comment>
+    <magic priority="50">
+      <match type="string" value="-Furnace module-" offset="0" />
+      <!--match type="string" value="\170\234" offset="0" /-->
+    </magic>
+    <glob pattern="*.fur" />
+  </mime-type>
+
+  <mime-type type="audio/x-fui">
+    <comment>Furnace instrument</comment>
+    <magic priority="50">
+      <match type="string" value="-Furnace instr.-" offset="0" />
+      <match type="string" value="FINS" offset="0" />
+    </magic>
+    <glob pattern="*.fui" />
+  </mime-type>
+</mime-info>

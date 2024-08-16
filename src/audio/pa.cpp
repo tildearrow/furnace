@@ -23,6 +23,7 @@
 #ifdef _WIN32
 #include <pa_win_wasapi.h>
 #endif
+#include <fmt/printf.h>
 
 int taPAProcess(const void* in, void* out, unsigned long nframes, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags flags, void* inst) {
   TAAudioPA* instance=(TAAudioPA*)inst;

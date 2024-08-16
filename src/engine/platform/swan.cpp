@@ -60,7 +60,7 @@ void DivPlatformSwan::acquire(short** buf, size_t len) {
       dacPeriod+=dacRate;
       while (dacPeriod>rate) {
         DivSample* s=parent->getSample(dacSample);
-        if (s->samples<=0) {
+        if (s->samples<=0 || dacPos>=s->samples) {
           dacSample=-1;
           dacPeriod=0;
           break;
@@ -262,7 +262,11 @@ int DivPlatformSwan::dispatch(DivCommand c) {
         }
         if (pcm) {
           if (skipRegisterWrites) break;
-          dacPos=0;
+          if (setPos) {
+            setPos=false;
+          } else {
+            dacPos=0;
+          }
           dacPeriod=0;
           if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
             if (c.value!=DIV_NOTE_NULL) {
@@ -435,6 +439,10 @@ int DivPlatformSwan::dispatch(DivCommand c) {
         sampleBank=parent->song.sample.size()/12;
       }
       break;
+    case DIV_CMD_SAMPLE_POS:
+      dacPos=c.value;
+      setPos=true;
+      break;
     case DIV_CMD_PANNING: {
       chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
       calcAndWriteOutVol(c.chan,chan[c.chan].std.vol.will?chan[c.chan].std.vol.val:15);
@@ -556,6 +564,7 @@ void DivPlatformSwan::reset() {
   pcm=false;
   sweep=false;
   furnaceDac=false;
+  setPos=false;
   noise=0;
   dacPeriod=0;
   dacRate=0;

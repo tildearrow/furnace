@@ -45,3 +45,11 @@ additionally, channel 5 offers a modulation/sweep unit. the former is similar to
 ## info
 
 this chip uses the [Virtual Boy](../4-instrument/virtual-boy.md) instrument editor.
+
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Waveform storage mode**: selects how will waveforms be loaded.
+  - Dynamic: allows switching between many waves, but it is not confirmed whether this really works on hardware.
+  - Static: loads the first 5 waves only.

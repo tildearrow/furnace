@@ -24,13 +24,20 @@
 class FurnaceSDLTexture: public FurnaceGUITexture {
   public:
   SDL_Texture* tex;
+  FurnaceGUITextureFormat format;
   FurnaceSDLTexture():
-    tex(NULL) {}
+    tex(NULL),
+    format(GUI_TEXFORMAT_UNKNOWN) {}
 };
 
 ImTextureID FurnaceGUIRenderSDL::getTextureID(FurnaceGUITexture* which) {
   FurnaceSDLTexture* t=(FurnaceSDLTexture*)which;
   return t->tex;
+}
+
+FurnaceGUITextureFormat FurnaceGUIRenderSDL::getTextureFormat(FurnaceGUITexture* which) {
+  FurnaceSDLTexture* t=(FurnaceSDLTexture*)which;
+  return t->format;
 }
 
 bool FurnaceGUIRenderSDL::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
@@ -49,7 +56,11 @@ bool FurnaceGUIRenderSDL::updateTexture(FurnaceGUITexture* which, void* data, in
   return SDL_UpdateTexture(t->tex,NULL,data,pitch)==0;
 }
 
-FurnaceGUITexture* FurnaceGUIRenderSDL::createTexture(bool dynamic, int width, int height, bool interpolate) {
+FurnaceGUITexture* FurnaceGUIRenderSDL::createTexture(bool dynamic, int width, int height, bool interpolate, FurnaceGUITextureFormat format) {
+  if (format!=GUI_TEXFORMAT_ABGR32) {
+    logE("unsupported texture format!");
+    return NULL;
+  }
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,interpolate?"1":"0");
   SDL_Texture* t=SDL_CreateTexture(sdlRend,SDL_PIXELFORMAT_ABGR8888,dynamic?SDL_TEXTUREACCESS_STREAMING:SDL_TEXTUREACCESS_STATIC,width,height);
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"1");
@@ -57,6 +68,7 @@ FurnaceGUITexture* FurnaceGUIRenderSDL::createTexture(bool dynamic, int width, i
   if (t==NULL) return NULL;
   FurnaceSDLTexture* ret=new FurnaceSDLTexture;
   ret->tex=t;
+  ret->format=format;
   return ret;
 }
 
@@ -156,6 +168,10 @@ int FurnaceGUIRenderSDL::getMaxTextureHeight() {
   return renderInfo.max_texture_height;
 }
 
+unsigned int FurnaceGUIRenderSDL::getTextureFormats() {
+  return GUI_TEXFORMAT_ABGR32;
+}
+
 const char* FurnaceGUIRenderSDL::getBackendName() {
   return "SDL Renderer";
 }
@@ -182,7 +198,7 @@ void FurnaceGUIRenderSDL::setSwapInterval(int swapInterval) {
   }
 }
 
-void FurnaceGUIRenderSDL::preInit() {
+void FurnaceGUIRenderSDL::preInit(const DivConfig& conf) {
 }
 
 bool FurnaceGUIRenderSDL::init(SDL_Window* win, int swapInterval) {

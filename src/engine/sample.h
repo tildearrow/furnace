@@ -65,10 +65,10 @@ struct DivSampleHistory {
   unsigned int length, samples;
   DivSampleDepth depth;
   int rate, centerRate, loopStart, loopEnd;
-  bool loop, brrEmphasis, dither;
+  bool loop, brrEmphasis, brrNoFilter, dither;
   DivSampleLoopMode loopMode;
   bool hasSample;
-  DivSampleHistory(void* d, unsigned int l, unsigned int s, DivSampleDepth de, int r, int cr, int ls, int le, bool lp, bool be, bool di, DivSampleLoopMode lm):
+  DivSampleHistory(void* d, unsigned int l, unsigned int s, DivSampleDepth de, int r, int cr, int ls, int le, bool lp, bool be, bool bf, bool di, DivSampleLoopMode lm):
     data((unsigned char*)d),
     length(l),
     samples(s),
@@ -79,10 +79,11 @@ struct DivSampleHistory {
     loopEnd(le),
     loop(lp),
     brrEmphasis(be),
+    brrNoFilter(bf),
     dither(di),
     loopMode(lm),
     hasSample(true) {}
-  DivSampleHistory(DivSampleDepth de, int r, int cr, int ls, int le, bool lp, bool be, bool di, DivSampleLoopMode lm):
+  DivSampleHistory(DivSampleDepth de, int r, int cr, int ls, int le, bool lp, bool be, bool bf, bool di, DivSampleLoopMode lm):
     data(NULL),
     length(0),
     samples(0),
@@ -93,6 +94,7 @@ struct DivSampleHistory {
     loopEnd(le),
     loop(lp),
     brrEmphasis(be),
+    brrNoFilter(bf),
     dither(di),
     loopMode(lm),
     hasSample(false) {}
@@ -118,7 +120,7 @@ struct DivSample {
   // - 13: IMA ADPCM
   // - 16: 16-bit PCM
   DivSampleDepth depth;
-  bool loop, brrEmphasis, dither;
+  bool loop, brrEmphasis, brrNoFilter, dither;
   // valid values are:
   // - 0: Forward loop
   // - 1: Backward loop
@@ -337,6 +339,7 @@ struct DivSample {
     depth(DIV_SAMPLE_DEPTH_16BIT),
     loop(false),
     brrEmphasis(true),
+    brrNoFilter(false),
     dither(false),
     loopMode(DIV_SAMPLE_LOOP_FORWARD),
     data8(NULL),

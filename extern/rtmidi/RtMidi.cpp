@@ -1718,14 +1718,14 @@ static void *alsaMidiHandler( void *ptr )
 
     case SND_SEQ_EVENT_PORT_SUBSCRIBED:
 #if defined(__RTMIDI_DEBUG__)
-      std::cout << "MidiInAlsa::alsaMidiHandler: port connection made!\n";
+      std::cerr << "MidiInAlsa::alsaMidiHandler: port connection made!\n";
 #endif
       break;
 
     case SND_SEQ_EVENT_PORT_UNSUBSCRIBED:
 #if defined(__RTMIDI_DEBUG__)
       std::cerr << "MidiInAlsa::alsaMidiHandler: port connection has closed!\n";
-      std::cout << "sender = " << (int) ev->data.connect.sender.client << ":"
+      std::cerr << "sender = " << (int) ev->data.connect.sender.client << ":"
                 << (int) ev->data.connect.sender.port
                 << ", dest = " << (int) ev->data.connect.dest.client << ":"
                 << (int) ev->data.connect.dest.port
@@ -1805,7 +1805,7 @@ static void *alsaMidiHandler( void *ptr )
           struct timespec y;
           y.tv_nsec = apiData->lastTime.tv_nsec;
           y.tv_sec = apiData->lastTime.tv_sec;
-          if ( x.tv_nsec < y.tv_nsec ) {
+          if ( (long int) x.tv_nsec < y.tv_nsec ) {
               int nsec = (y.tv_nsec - (int)x.tv_nsec) / 1000000000 + 1;
               y.tv_nsec -= 1000000000 * nsec;
               y.tv_sec += nsec;

@@ -31,6 +31,9 @@
 #ifdef HAVE_RENDER_DX11
 #include "render/renderDX11.h"
 #endif
+#ifdef HAVE_RENDER_DX9
+#include "render/renderDX9.h"
+#endif
 #ifdef HAVE_RENDER_METAL
 #include "render/renderMetal.h"
 #endif

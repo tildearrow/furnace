@@ -38,6 +38,7 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
 
     void acquire_combo(short** buf, size_t len);
     void acquire_ymfm(short** buf, size_t len);
+    void acquire_lle(short** buf, size_t len);
 
   public:
     void acquire(short** buf, size_t len);

@@ -44,17 +44,24 @@ class FurnaceMetalTexture: public FurnaceGUITexture {
   public:
   id<MTLTexture> tex;
   int width, height;
+  FurnaceGUITextureFormat format;
   unsigned char* lockedData;
   FurnaceMetalTexture():
     tex(NULL),
     width(0),
     height(0),
+    format(GUI_TEXFORMAT_UNKNOWN),
     lockedData(NULL) {}
 };
 
 ImTextureID FurnaceGUIRenderMetal::getTextureID(FurnaceGUITexture* which) {
   FurnaceMetalTexture* t=(FurnaceMetalTexture*)which;
   return t->tex;
+}
+
+FurnaceGUITextureFormat FurnaceGUIRenderMetal::getTextureFormat(FurnaceGUITexture* which) {
+  FurnaceMetalTexture* t=(FurnaceMetalTexture*)which;
+  return t->format;
 }
 
 bool FurnaceGUIRenderMetal::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
@@ -84,7 +91,11 @@ bool FurnaceGUIRenderMetal::updateTexture(FurnaceGUITexture* which, void* data, 
   return true;
 }
 
-FurnaceGUITexture* FurnaceGUIRenderMetal::createTexture(bool dynamic, int width, int height, bool interpolate) {
+FurnaceGUITexture* FurnaceGUIRenderMetal::createTexture(bool dynamic, int width, int height, bool interpolate, FurnaceGUITextureFormat format) {
+  if (format!=GUI_TEXFORMAT_ABGR32) {
+    logE("unsupported texture format!");
+    return NULL;
+  }
   MTLTextureDescriptor* texDesc=[MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:(NSUInteger)width height:(NSUInteger)height mipmapped:NO];
   texDesc.usage=MTLTextureUsageShaderRead;
   texDesc.storageMode=MTLStorageModeManaged;
@@ -185,6 +196,34 @@ int FurnaceGUIRenderMetal::getWindowFlags() {
   return 0;
 }
 
+int FurnaceGUIRenderMetal::getMaxTextureWidth() {
+  return bigTextures?16384:8192;
+}
+
+int FurnaceGUIRenderMetal::getMaxTextureHeight() {
+  return bigTextures?16384:8192;
+}
+
+unsigned int FurnaceGUIRenderMetal::getTextureFormats() {
+  return GUI_TEXFORMAT_ABGR32;
+}
+
+const char* FurnaceGUIRenderMetal::getBackendName() {
+  return "Metal";
+}
+
+const char* FurnaceGUIRenderMetal::getVendorName() {
+  return vendorName.c_str();
+}
+
+const char* FurnaceGUIRenderMetal::getDeviceName() {
+  return deviceName.c_str();
+}
+
+const char* FurnaceGUIRenderMetal::getAPIVersion() {
+  return apiVersion.c_str();
+}
+
 void FurnaceGUIRenderMetal::setSwapInterval(int swapInterval) {
   if (SDL_RenderSetVSync(sdlRend,(swapInterval>=0)?1:0)!=0) {
     swapIntervalSet=false;
@@ -194,10 +233,37 @@ void FurnaceGUIRenderMetal::setSwapInterval(int swapInterval) {
   }
 }
 
-void FurnaceGUIRenderMetal::preInit() {
+void FurnaceGUIRenderMetal::preInit(const DivConfig& conf) {
   SDL_SetHint(SDL_HINT_RENDER_DRIVER,"metal");
   priv=new FurnaceGUIRenderMetalPrivate;
 }
+
+static const char* metalFamilyNames[]={
+  "Apple1",
+  "Apple2",
+  "Apple3",
+  "Apple4",
+  "Apple5",
+  "Apple6",
+  "Apple7",
+  "Apple8",
+  "Apple9",
+  "Mac1",
+  "Mac2",
+  "Common1",
+  "Common2",
+  "Common3",
+  "Metal3",
+  NULL
+};
+
+static const NSInteger metalFamilies[]={
+  1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009, // Apple
+  2001, 2002, // Mac
+  3001, 3002, 3003, // Common
+  5001, // Metal3
+  0
+};
 
 bool FurnaceGUIRenderMetal::init(SDL_Window* win, int swapInterval) {
   SDL_SetHint(SDL_HINT_RENDER_DRIVER,"metal");
@@ -220,6 +286,24 @@ bool FurnaceGUIRenderMetal::init(SDL_Window* win, int swapInterval) {
   if (priv->context==NULL) {
     logE("Metal layer is NULL!");
     return false;
+  }
+
+  vendorName="N/A";
+  deviceName=[priv->context.device.name UTF8String];
+  apiVersion="";
+
+  bool comma=false;
+  for (int i=0; metalFamilies[i]; i++) {
+    const char* familyName=metalFamilyNames[i];
+    MTLGPUFamily family=(MTLGPUFamily)metalFamilies[i];
+
+    if ([priv->context.device supportsFamily:family]) {
+      if (comma) {
+        apiVersion+=", ";
+      }
+      apiVersion+=familyName;
+      comma=true;
+    }
   }
 
   priv->context.pixelFormat=MTLPixelFormatBGRA8Unorm;

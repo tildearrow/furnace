@@ -14,3 +14,9 @@ additionally, it offers an 8-bit DAC which can be used to play samples. only one
 ## info
 
 this chip uses the [NES](../4-instrument/nes.md) and [Generic Sample](../4-instrument/sample.md) instrument editors.
+
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Clock rate**: sets the rate at which the chip will run.

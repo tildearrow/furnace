@@ -32,7 +32,7 @@ class DivPlatformPCE: public DivDispatch {
     unsigned int dacPos;
     int dacSample;
     unsigned char pan;
-    bool noise, pcm, furnaceDac, deferredWaveUpdate;
+    bool noise, pcm, furnaceDac, deferredWaveUpdate, setPos;
     signed short wave;
     int macroVolMul, noiseSeek;
     DivWaveSynth ws;
@@ -50,6 +50,7 @@ class DivPlatformPCE: public DivDispatch {
       pcm(false),
       furnaceDac(false),
       deferredWaveUpdate(false),
+      setPos(false),
       wave(-1),
       macroVolMul(31),
       noiseSeek(0) {}
@@ -89,6 +90,7 @@ class DivPlatformPCE: public DivDispatch {
     DivSamplePos getSamplePos(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     int mapVelocity(int ch, float vel);
+    float getGain(int ch, int vol);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

@@ -141,12 +141,15 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+     "Game Boy Advance", {}
+  );
+  SUB_ENTRY(
     "Game Boy Advance (no software mixing)", {
       CH(DIV_SYSTEM_GB, 1.0f, 0, "chipType=3"),
       CH(DIV_SYSTEM_GBA_DMA, 0.5f, 0, ""),
     }
   );
-  ENTRY(
+  SUB_ENTRY(
     "Game Boy Advance (with MinMod)", {
       CH(DIV_SYSTEM_GB, 1.0f, 0, "chipType=3"),
       CH(DIV_SYSTEM_GBA_MINMOD, 0.5f, 0, ""),
@@ -254,12 +257,23 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_TIA, 1.0f, 0, "")
     }
   );
+    SUB_ENTRY(
+      "Atari 2600/7800 (with software pitch driver)", {
+        CH(DIV_SYSTEM_TIA, 1.0f, 0, "softwarePitch=1")
+      }
+    );
   ENTRY(
     "Atari 7800 + Ballblazer/Commando", {
       CH(DIV_SYSTEM_TIA, 1.0f, 0, ""),
       CH(DIV_SYSTEM_POKEY, 1.0f, 0, "")
     }
   );
+    SUB_ENTRY(
+      "Atari 7800 (with software pitch driver) + Ballblazer/Commando", {
+        CH(DIV_SYSTEM_TIA, 1.0f, 0, "softwarePitch=1"),
+        CH(DIV_SYSTEM_POKEY, 1.0f, 0, "")
+      }
+    );
   ENTRY(
     "Atari Lynx", {
       CH(DIV_SYSTEM_LYNX, 1.0f, 0, "")
@@ -503,6 +517,11 @@ void FurnaceGUI::initSystemPresets() {
           "rate=55930\n"
           "outDepth=7\n"
         ) // variable rate, Mono DAC
+      }
+    );
+  ENTRY(
+      "NEC PC-6001", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "customClock=3993600")
       }
     );
   ENTRY(
@@ -1202,6 +1221,18 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "FM-7", {
+      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=12"),
+      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5")
+    }
+  );
+   SUB_ENTRY(
+     "FM-7 (extended channel 3)", {
+       CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=12"),
+       CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5")
+     }
+  );
+  ENTRY(
     "FM Towns", {
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=2"), // YM3438
       CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "")
@@ -1245,6 +1276,14 @@ void FurnaceGUI::initSystemPresets() {
       )
     }
   );
+  ENTRY(
+  "Sord M5", {
+    CH(DIV_SYSTEM_SMS, 1.0f, 0,
+      "customClock=1773447\n"
+      "chipType=1\n"
+     )
+   }
+ );
   CATEGORY_END;
 
   CATEGORY_BEGIN("Arcade systems","INSERT COIN");
@@ -2978,6 +3017,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_TIA, 1.0f, 0, "")
     }
   );
+    SUB_ENTRY(
+      "Atari TIA (with software pitch driver)", {
+        CH(DIV_SYSTEM_TIA, 1.0f, 0, "softwarePitch=1")
+      }
+    );
   ENTRY(
     "NES (Ricoh 2A03)", {
       CH(DIV_SYSTEM_NES, 1.0f, 0, "")
@@ -3029,6 +3073,16 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Nintendo DS", {
       CH(DIV_SYSTEM_NDS, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "Bifurcator", {
+      CH(DIV_SYSTEM_BIFURCATOR, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "SID2", {
+      CH(DIV_SYSTEM_SID2, 1.0f, 0, "")
     }
   );
   CATEGORY_END;
@@ -3166,7 +3220,7 @@ FurnaceGUISysDef::FurnaceGUISysDef(const char* n, const char* def, DivEngine* e)
     float panFR=conf.getFloat(nextStr.c_str(),0.0f);
     conf.remove(nextStr.c_str());
     nextStr=fmt::sprintf("flags%d",i);
-    String flags=conf.getString(nextStr.c_str(),"");
+    String flags=taDecodeBase64(conf.getString(nextStr.c_str(),"").c_str());
     conf.remove(nextStr.c_str());
 
     orig.push_back(FurnaceGUISysDefChip(e->systemFromFileFur(id),vol,pan,flags.c_str(),panFR));

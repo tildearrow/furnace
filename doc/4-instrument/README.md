@@ -22,62 +22,64 @@ alternatively, window > instrument editor displays it.
 
 the following instrument types are available:
 
-- [SN76489/Sega PSG](psg.md) - for use with TI SN76489 and derivatives like Sega Master System's PSG.
-- [FM (OPN)](fm-opn.md) - for use with YM2612, YM2203, YM2608, YM2610 and YM2610B.
-- [Game Boy](game-boy.md) - for use with Game Boy APU.
-- [C64](c64.md) - for use with Commodore 64 SID.
-- [Generic Sample](sample.md) for controlling Amiga and other sample channels/chips like YM2612's Channel 6 PCM mode, NES channel 5, Sega PCM, X1-010 and PC Engine's sample playback mode.
-- [PC Engine](pce.md) - for use with PC Engine's wavetable synthesizer.
-- [AY-3-8910/SSG](ay8910.md) - for use with AY-3-8910 PSG sound source and SSG portion in YM2610.
-- [AY8930](ay8930.md) - for use with Microchip AY8930 E-PSG sound source.
-- [TIA](tia.md) - for use with Atari 2600 chip.
-- [SAA1099](saa.md) - for use with Philips SAA1099 PSG sound source.
-- [VIC](vic.md) - for use with VIC-20 sound chip.
-- [PET](pet.md) - for use with Commodore PET.
-- [VRC6](vrc6.md) - for use with VRC6's PSG sound source.
-- [FM (OPLL)](fm-opll.md) - for use with YM2413.
-- [FM (OPL)](fm-opll.md) - for use with YM3526 (OPL), YM3812 (OPL2) and YMF262 (OPL3).
-- [FM (ESFM)](fm-esfm.md) - for use with ESFM.
-- [FDS](fds.md) - for use with Famicom Disk System sound source.
-- [Virtual Boy](virtual-boy.md) - for use with Virtual Boy.
-- [Namco 163](n163.md) - for use with Namco 163.
-- [Konami SCC/Bubble System WSG](scc.md) - for use with Konami SCC and Wavetable portion in Bubble System's sound hardware.
-- [FM (OPZ)](fm-opz.md) - for use with YM2414.
-- [POKEY](pokey.md) - for use with Atari 8-bit computers and their POKEY sound source.
-- [Beeper](beeper.md) - for use with PC Speaker and ZX Spectrum Beeper (SFX-like engine).
-- [WonderSwan](wonderswan.md) - for use with WonderSwan's wavetable synthesizer.
-- [Atari Lynx](lynx.md) - for use with Atari Lynx handheld console.
-- [VERA](vera.md) - for use with Commander X16 VERA.
-- [Seta/Allumer X1-010](x1_010.md) - for use with Wavetable portion in Seta/Allumer X1-010.
-- [ES5506](es5506.md) - for use with Ensoniq ES5506 sound chip.
-- [SNES](snes.md) - for use with SNES.
-- [Sound Unit](su.md) - for use with Sound Unit chip.
-- [Namco WSG](wsg.md) - for use with Namco WSG wavetable chips, including C15 and C30.
-- [FM (OPM)](fm-opm.md) - for use with YM2151.
-- [NES](nes.md) - for use with NES.
-- [MSM6258](msm6258.md) - for use with MSM6258 sample chip.
-- [MSM6295](msm6295.md) - for use with MSM6295 sample chip.
 - [ADPCM-A](adpcm-a.md) - for use with ADPCM-A sample chip.
 - [ADPCM-B](adpcm-b.md) - for use with ADPCM-B sample chip.
-- [SegaPCM](segapcm.md) - for use with SegaPCM sample chip.
-- [QSound](qsound.md) - for use with QSound sample chip.
-- [YMZ280B](ymz280b.md) - for use with YMZ280B sample chip.
-- [RF5C68](rf5c68.md) - for use with RF5C68 sample chip.
-- [MSM5232](msm5232.md) - for use with MSM5232 PSG sound source.
-- [T6W28](t6w28.md) - for use with Toshiba T6W28 PSG sound source.
-- [K007232](k007232.md) - for use with K007232 sample chip.
-- [GA20](ga20.md) - for use with GA20 sample chip.
-- [Pokémon Mini/QuadTone](pokemini.md) - for use with these systems.
-- [SM8521](sm8521.md) - for use with SM8521 chip, used in Tiger Game.com.
-- [PV-1000](pv1000.md) - for use with Casio PV-1000.
-- [K053260](k053260.md) - for use with K053260 sample chip.
-- [TED](ted.md) - for use with Commodore Plus/4 and Commodore 16's TED chip.
+- [Atari Lynx](lynx.md) - for use with Atari Lynx handheld console.
+- [AY-3-8910/SSG](ay8910.md) - for use with AY-3-8910 PSG sound source and SSG portion in YM2610.
+- [AY8930](ay8930.md) - for use with Microchip AY8930 E-PSG sound source.
+- [Beeper](beeper.md) - for use with PC Speaker and ZX Spectrum Beeper (SFX-like engine).
+- [Bifurcator](bifurcator.md) - for use with Bifurcator chip.
 - [C140](c140.md) - for use with C140 sample chip.
 - [C219](c219.md) - for use with C219 sample chip.
-- [PowerNoise](powernoise.md) - for use with PowerNoise chip.
+- [C64](c64.md) - for use with Commodore 64 SID.
 - [Dave](dave.md) - for use with Dave chip.
+- [ES5506](es5506.md) - for use with Ensoniq ES5506 sound chip.
+- [FDS](fds.md) - for use with Famicom Disk System sound source.
+- [FM (ESFM)](fm-esfm.md) - for use with ESFM.
+- [FM (OPL)](fm-opll.md) - for use with YM3526 (OPL), YM3812 (OPL2) and YMF262 (OPL3).
+- [FM (OPLL)](fm-opll.md) - for use with YM2413.
+- [FM (OPM)](fm-opm.md) - for use with YM2151.
+- [FM (OPN)](fm-opn.md) - for use with YM2612, YM2203, YM2608, YM2610 and YM2610B.
+- [FM (OPZ)](fm-opz.md) - for use with YM2414.
+- [GA20](ga20.md) - for use with GA20 sample chip.
 - [Game Boy Advance DMA](gbadma.md) - for use with Game Boy Advance in direct mode.
 - [Game Boy Advance MinMod](gbaminmod.md) - for use with Game Boy Advance with the MinMod software mixing driver.
+- [Game Boy](game-boy.md) - for use with Game Boy APU.
+- [Generic Sample](sample.md) for controlling Amiga and other sample channels/chips like YM2612's Channel 6 PCM mode, NES channel 5, Sega PCM, X1-010 and PC Engine's sample playback mode.
+- [K007232](k007232.md) - for use with K007232 sample chip.
+- [K053260](k053260.md) - for use with K053260 sample chip.
+- [Konami SCC/Bubble System WSG](scc.md) - for use with Konami SCC and Wavetable portion in Bubble System's sound hardware.
+- [MSM5232](msm5232.md) - for use with MSM5232 PSG sound source.
+- [MSM6258](msm6258.md) - for use with MSM6258 sample chip.
+- [MSM6295](msm6295.md) - for use with MSM6295 sample chip.
+- [Namco 163](n163.md) - for use with Namco 163.
+- [Namco WSG](wsg.md) - for use with Namco WSG wavetable chips, including C15 and C30.
+- [NES](nes.md) - for use with NES.
+- [PC Engine](pce.md) - for use with PC Engine's wavetable synthesizer.
+- [PET](pet.md) - for use with Commodore PET.
+- [Pokémon Mini/QuadTone](pokemini.md) - for use with these systems.
+- [POKEY](pokey.md) - for use with Atari 8-bit computers and their POKEY sound source.
+- [PowerNoise](powernoise.md) - for use with PowerNoise chip.
+- [PV-1000](pv1000.md) - for use with Casio PV-1000.
+- [QSound](qsound.md) - for use with QSound sample chip.
+- [RF5C68](rf5c68.md) - for use with RF5C68 sample chip.
+- [SAA1099](saa.md) - for use with Philips SAA1099 PSG sound source.
+- [SegaPCM](segapcm.md) - for use with SegaPCM sample chip.
+- [Seta/Allumer X1-010](x1_010.md) - for use with Wavetable portion in Seta/Allumer X1-010.
+- [SID2](sid2.md) - for use with SID2 fantasy chip.
+- [SM8521](sm8521.md) - for use with SM8521 chip, used in Tiger Game.com.
+- [SN76489/Sega PSG](psg.md) - for use with TI SN76489 and derivatives like Sega Master System's PSG.
+- [SNES](snes.md) - for use with SNES.
+- [Sound Unit](su.md) - for use with Sound Unit chip.
+- [T6W28](t6w28.md) - for use with Toshiba T6W28 PSG sound source.
+- [TED](ted.md) - for use with Commodore Plus/4 and Commodore 16's TED chip.
+- [TIA](tia.md) - for use with Atari 2600 chip.
+- [VERA](vera.md) - for use with Commander X16 VERA.
+- [VIC](vic.md) - for use with VIC-20 sound chip.
+- [Virtual Boy](virtual-boy.md) - for use with Virtual Boy.
+- [VRC6](vrc6.md) - for use with VRC6's PSG sound source.
+- [WonderSwan](wonderswan.md) - for use with WonderSwan's wavetable synthesizer.
+- [YMZ280B](ymz280b.md) - for use with YMZ280B sample chip.
 
 ## macros
 

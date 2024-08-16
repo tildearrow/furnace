@@ -93,6 +93,10 @@ void DivPlatformOPLL::acquire_nuked(short** buf, size_t len) {
 void DivPlatformOPLL::acquire_ymfm(short** buf, size_t len) {
 }
 
+static const unsigned char freakingDrumMap[5]={
+  9, 11, 12, 13, 10
+};
+
 void DivPlatformOPLL::acquire_emu(short** buf, size_t len) {
   thread_local int os;
 
@@ -111,7 +115,7 @@ void DivPlatformOPLL::acquire_emu(short** buf, size_t len) {
 
     for (int i=0; i<11; i++) {
       if (i>=6 && properDrums) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=(-fm_emu->ch_out[i+3])<<3;
+        oscBuf[i]->data[oscBuf[i]->needle++]=(-fm_emu->ch_out[freakingDrumMap[i-6]])<<3;
       } else {
         oscBuf[i]->data[oscBuf[i]->needle++]=(-fm_emu->ch_out[i])<<3;
       }
@@ -688,6 +692,13 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     }
+    case DIV_CMD_WAVE: {
+      if (c.chan>=6 && (crapDrums || properDrums)) break;
+      if (c.chan>=9) break;
+      chan[c.chan].state.opllPreset=c.value&15;
+      rWrite(0x30+c.chan,((15-VOL_SCALE_LOG_BROKEN(chan[c.chan].outVol,15-chan[c.chan].state.op[1].tl,15))&15)|(chan[c.chan].state.opllPreset<<4));
+      break;
+    }
     case DIV_CMD_FM_FB: {
       if (c.chan>=9 && !properDrums) return 0;
       //DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
@@ -1004,7 +1015,7 @@ DivMacroInt* DivPlatformOPLL::getChanMacroInt(int ch) {
 }
 
 DivDispatchOscBuffer* DivPlatformOPLL::getOscBuffer(int ch) {
-  if (ch>=9) return NULL;
+  if (ch>=9 && selCore==0) return NULL;
   return oscBuf[ch];
 }
 
@@ -1013,6 +1024,11 @@ int DivPlatformOPLL::mapVelocity(int ch, float vel) {
   if (vel==0) return 0;
   if (vel>=1.0) return 15;
   return CLAMP(round(16.0-(14.0-log2(vel*127.0)*2.0)),0,15);
+}
+
+float DivPlatformOPLL::getGain(int ch, int vol) {
+  if (vol==0) return 0;
+  return 1.0/pow(10.0,(float)(15-vol)*3.0/20.0);
 }
 
 unsigned char* DivPlatformOPLL::getRegisterPool() {
@@ -1169,7 +1185,11 @@ void DivPlatformOPLL::setFlags(const DivConfig& flags) {
     if (selCore==1) {
       oscBuf[i]->rate=rate;
     } else {
-      oscBuf[i]->rate=rate/2;
+      if (i>=6 && properDrumsSys) {
+        oscBuf[i]->rate=rate;
+      } else {
+        oscBuf[i]->rate=rate/2;
+      }
     }
   }
   noTopHatFreq=flags.getBool("noTopHatFreq",false);

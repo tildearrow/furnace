@@ -51,6 +51,8 @@
 **FM**: frequency modulation. this is a method of generating sound that uses one operator's amplitude to modify another operator's frequency.
 - the FM in Yamaha chips is more accurately called _phase modulation,_ which uses a different method of computation to achieve similar results.
 
+**.ftm**: FamiTracker Module.
+
 **.fui**: a Furnace instrument file.
 
 **.fur**: a Furnace module file.
@@ -63,6 +65,8 @@
 
 **interpolate**: to fill in the area between two values with a smooth ramp of values in between.
 - some sample-based chips can interpolate, filtering out unwanted harmonics.
+
+**.it**: Impulse Tracker module.
 
 **ladder effect**: an inaccurate yet common term for the DAC distortion that affects some Yamaha FM chips.
 
@@ -105,6 +109,8 @@
 
 **register**: a memory location within a sound chip. "register view" shows all the relevant memory of all chips in use.
 
+**.s3m**: ScreamTracker 3 Module.
+
 **sample** (1): a digitally recorded sound. usually stored as some variant of PCM.
 - these can take up a lot of room depending on length and sample rate, thus older systems tend to use short, lower quality samples.
 
@@ -139,5 +145,7 @@
 **wavetable** (1): a very short looping sample.
 
 **wavetable** (2): an ordered group of wavetables(1) used in sequence within a single instrument.
+
+**.xm**: eXtended Module. the file format of songs made with FastTracker 2.
 
 **.zsm**: ZSound Music. a VGM-like file meant specifically for the Commander X16 computer.

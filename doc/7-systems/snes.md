@@ -82,6 +82,18 @@ the following icons are displayed when channel status is enabled in the pattern 
   - ![envelope sustain](status-SNES-env-S.png) envelope sustain
   - ![envelope release](status-SNES-env-R.png) envelope release
 
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Volume scale**: scale volumes to prevent clipping/distortion.
+- **Enable echo**: enables the echo buffer.
+- **Initial echo state**: selects which channels will have echo applied.
+- **Delay**: sets echo length.
+- **Feedback**: sets how much of the echo output will be fed back into the buffer.
+- **Echo volume**: sets echo volume.
+- **Echo filter**: adjusts echo filter.
+
 ## ADSR
 
 | attack | 0→1 time | decay | 1→S time | sustain | ratio | release | S→0 time

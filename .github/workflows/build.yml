@@ -2,7 +2,7 @@ name: Build furnace
 
 on:
   push:
-    branches: master
+    branches: [master, locale]
   pull_request:
     branches: master
 
@@ -11,7 +11,7 @@ defaults:
     shell: bash
 
 env:
-  BUILD_TYPE: RelWithDebInfo
+  BUILD_TYPE: Debug
 
 jobs:
   build:
@@ -22,11 +22,11 @@ jobs:
           - { name: 'Windows MSVC x86_64', os: windows-latest, compiler: msvc, arch: x86_64 }
           #- { name: 'Windows MinGW x86', os: ubuntu-20.04, compiler: mingw, arch: x86 }
           #- { name: 'Windows MinGW x86_64', os: ubuntu-20.04, compiler: mingw, arch: x86_64 }
-          - { name: 'macOS x86_64', os: macos-latest, arch: x86_64 }
+          - { name: 'macOS x86_64', os: macos-12, arch: x86_64 }
           - { name: 'macOS ARM', os: macos-latest, arch: arm64 }
           - { name: 'Linux x86_64', os: ubuntu-20.04, arch: x86_64 }
           #- { name: 'Linux ARM', os: ubuntu-18.04, arch: armhf }
-      fail-fast: false
+      fail-fast: true
 
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
@@ -128,7 +128,8 @@ jobs:
           librtmidi-dev \
           libsndfile1-dev \
           zlib1g-dev \
-          libjack-jackd2-dev
+          libjack-jackd2-dev \
+          gettext
 
     - name: Install Dependencies [Linux armhf]
       if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' && matrix.config.arch == 'armhf' }}
@@ -140,7 +141,8 @@ jobs:
         sudo apt update
         sudo apt install \
           crossbuild-essential-armhf \
-          appstream
+          appstream \
+          gettext
         sudo apt install \
           libsdl2-dev:armhf \
           libfmt-dev:armhf \
@@ -149,6 +151,11 @@ jobs:
           zlib1g-dev:armhf \
           libjack-jackd2-dev:armhf
         ls /usr/arm-linux-gnueabihf/lib
+
+    - name: Build Language Files
+      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
+      run: |
+        ./scripts/build-po.sh
 
     - name: Configure
       run: |
@@ -173,9 +180,9 @@ jobs:
           fi
         elif [ '${{ runner.os }}' == 'macOS' ]; then
           if [ '${{ matrix.config.arch }}' == 'arm64' ]; then
-            CMAKE_EXTRA_ARGS+=('-DCMAKE_OSX_DEPLOYMENT_TARGET="11.0"' '-DCMAKE_OSX_ARCHITECTURES=arm64')
+            CMAKE_EXTRA_ARGS+=('-DCMAKE_OSX_DEPLOYMENT_TARGET="11.0"' '-DCMAKE_OSX_ARCHITECTURES=arm64' '-DMAKE_BUNDLE=ON')
           else
-            CMAKE_EXTRA_ARGS+=('-DCMAKE_OSX_DEPLOYMENT_TARGET="10.9"')
+            CMAKE_EXTRA_ARGS+=('-DCMAKE_OSX_DEPLOYMENT_TARGET="10.9"' '-DCMAKE_OSX_ARCHITECTURES=x86_64' '-DMAKE_BUNDLE=ON' '-DCMAKE_C_FLAGS=-march=core2' '-DCMAKE_CXX_FLAGS=-march=core2')
           fi
         elif [ '${{ runner.os }}' == 'Linux' ] && [ '${{ matrix.config.arch }}' == 'armhf' ]; then
           CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-Linux-armhf.cmake')
@@ -221,6 +228,7 @@ jobs:
 
         cp -v ../LICENSE LICENSE.txt
         cp -v ../res/releaseReadme/unstable-win.txt README.txt
+        cp -vr ../po/locale locale
         cp -vr ../papers ../${binPath}/furnace.exe ./
         if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
           cp -v ../${binPath}/furnace.pdb ./
@@ -233,33 +241,22 @@ jobs:
       if: ${{ runner.os == 'macOS' }}
       run: |
         pushd build
-        retries=0
-        while ! cpack; do
-          echo "TRYING AGAIN..."
-          retries=$((retries+1))
-          if [ $retries -gt 5 ]; then
-            echo "OH NO, WE'VE FAILED..."
-            exit 1
-            break
-          fi
-        done
+
+        echo "preparing bundle"
+        mkdir -p Furnace.app/Contents/Resources
+        cp -v -r ../po/locale Furnace.app/Contents/Resources/locale
+        cp -v ../res/icon.icns Furnace.app/Contents/Resources/Furnace.icns
+
+        codesign --deep -f -s - Furnace.app
 
         echo "making dirs"
-        mkdir orig
         mkdir new
-        echo "attaching"
-        echo "y" | hdiutil attach Furnace-*-Darwin.dmg -readonly -mount required -mountpoint orig
 
         echo "copying"
-        cp -v -r orig/Furnace.app new/Furnace.app
+        cp -v -r Furnace.app new/Furnace.app
+        ln -s /Applications new/Applications
         echo "synchronizing"
         sync
-        echo "detaching"
-        hdiutil detach orig
-
-        echo "removing orig"
-        rmdir orig
-        rm Furnace-*-Darwin.dmg
 
         echo "copying extra stuff"
         cp -v ../LICENSE new/LICENSE.txt
@@ -310,6 +307,8 @@ jobs:
         rm -r share/icons
         rm -r share/licenses
         rm -r share/metainfo
+        rm -r share/mime
+        mv share/locale ..
 
         rmdir share
 

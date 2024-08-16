@@ -6,7 +6,7 @@ when copying pattern data from Furnace, it's stored in the clipboard as plain te
 org.tildearrow.furnace - Pattern Data (144)
 ```
 
-this top line of text is always the same except for the number in parentheses, which is the internal build number. for example, 0.6.2 is `197`.
+this top line of text is always the same except for the number in parentheses, which is the internal build number. for example, 0.6.5 is `215`.
 
 the second line is a number between 0 and 18 (decimal) which indicates which column the clip starts from.
 - `0`: note.

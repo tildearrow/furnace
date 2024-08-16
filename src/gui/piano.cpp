@@ -60,7 +60,7 @@ void FurnaceGUI::drawPiano() {
     ImGui::SetNextWindowPos(ImVec2(patWindowPos.x,patWindowPos.y+patWindowSize.y));
     ImGui::SetNextWindowSize(portrait?ImVec2(canvasW,0.4*canvasW):ImVec2(canvasW-(0.16*canvasH),0.3*canvasH));
   }
-  if (ImGui::Begin("Piano",&pianoOpen,((pianoOptions)?0:ImGuiWindowFlags_NoTitleBar)|ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags)) {
+  if (ImGui::Begin("Piano",&pianoOpen,((pianoOptions)?0:ImGuiWindowFlags_NoTitleBar)|ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags,_("Piano"))) {
     bool oldPianoKeyPressed[180];
     memcpy(oldPianoKeyPressed,pianoKeyPressed,180*sizeof(bool));
     memset(pianoKeyPressed,0,180*sizeof(bool));
@@ -100,38 +100,38 @@ void FurnaceGUI::drawPiano() {
         ImGui::SameLine();
         ImGui::Button(ICON_FA_ELLIPSIS_V "##PianoOptions",optionSize);
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Options");
+          ImGui::SetTooltip(_("Options"));
         }
         if (ImGui::BeginPopupContextItem("PianoOptions",ImGuiPopupFlags_MouseButtonLeft)) {
-          ImGui::Text("Key layout:");
+          ImGui::Text(_("Key layout:"));
           ImGui::Indent();
-          if (ImGui::RadioButton("Automatic",pianoView==PIANO_LAYOUT_AUTOMATIC)) {
+          if (ImGui::RadioButton(_("Automatic"),pianoView==PIANO_LAYOUT_AUTOMATIC)) {
             pianoView=PIANO_LAYOUT_AUTOMATIC;
           }
-          if (ImGui::RadioButton("Standard",pianoView==PIANO_LAYOUT_STANDARD)) {
+          if (ImGui::RadioButton(_("Standard"),pianoView==PIANO_LAYOUT_STANDARD)) {
             pianoView=PIANO_LAYOUT_STANDARD;
           }
-          if (ImGui::RadioButton("Continuous",pianoView==PIANO_LAYOUT_CONTINUOUS)) {
+          if (ImGui::RadioButton(_("Continuous"),pianoView==PIANO_LAYOUT_CONTINUOUS)) {
             pianoView=PIANO_LAYOUT_CONTINUOUS;
           }
           ImGui::Unindent();
-          ImGui::Text("Value input pad:");
+          ImGui::Text(_("Value input pad:"));
           ImGui::Indent();
-          if (ImGui::RadioButton("Disabled",pianoInputPadMode==PIANO_INPUT_PAD_DISABLE)) {
+          if (ImGui::RadioButton(_("Disabled"),pianoInputPadMode==PIANO_INPUT_PAD_DISABLE)) {
             pianoInputPadMode=PIANO_INPUT_PAD_DISABLE;
           }
-          if (ImGui::RadioButton("Replace piano",pianoInputPadMode==PIANO_INPUT_PAD_REPLACE)) {
+          if (ImGui::RadioButton(_("Replace piano"),pianoInputPadMode==PIANO_INPUT_PAD_REPLACE)) {
             pianoInputPadMode=PIANO_INPUT_PAD_REPLACE;
           }
-          if (ImGui::RadioButton("Split (automatic)",pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_AUTO)) {
+          if (ImGui::RadioButton(_("Split (automatic)"),pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_AUTO)) {
             pianoInputPadMode=PIANO_INPUT_PAD_SPLIT_AUTO;
           }
-          if (ImGui::RadioButton("Split (always visible)",pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_VISIBLE)) {
+          if (ImGui::RadioButton(_("Split (always visible)"),pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_VISIBLE)) {
             pianoInputPadMode=PIANO_INPUT_PAD_SPLIT_VISIBLE;
           }
           ImGui::Unindent();
-          ImGui::Checkbox("Share play/edit offset/range",&pianoSharePosition);
-          ImGui::Checkbox("Read-only (can't input notes)",&pianoReadonly);
+          ImGui::Checkbox(_("Share play/edit offset/range"),&pianoSharePosition);
+          ImGui::Checkbox(_("Read-only (can't input notes)"),&pianoReadonly);
           ImGui::EndPopup();
         }
 

@@ -27,6 +27,9 @@
 #include "sound/ymfm/ymfm.h"
 #include "sound/ymfm/ymfm_opn.h"
 #include <string.h>
+extern "C" {
+#include "../../../extern/YM2608-LLE/fmopna_2610.h"
+}
 
 #define CHIP_FREQBASE fmFreqBase
 #define CHIP_DIVIDER fmDivBase
@@ -54,6 +57,17 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     ymfm::ym2610b* fm;
     ymfm::ym2610b::output_data fmout;
     DivPlatformAY8910* ay;
+    fmopna_2610_t fm_lle;
+    unsigned int dacVal;
+    unsigned int dacVal2;
+    int dacOut[2];
+    int rssOut[6];
+    bool lastSH;
+    bool lastSH2;
+    bool lastS;
+    unsigned char rmpx, pmpx, roe, poe, rssCycle, rssSubCycle;
+    unsigned int adMemAddrA;
+    unsigned int adMemAddrB;
   
     unsigned char* adpcmAMem;
     size_t adpcmAMemLen;
@@ -101,6 +115,58 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
 
       OPN2_Reset(&fm_nuked);
       OPN2_SetChipType(&fm_nuked,ym3438_mode_opn);
+
+      memset(&fm_lle,0,sizeof(fmopna_2610_t));
+
+      if (useCombo==2) {
+        fm_lle.input.cs=1;
+        fm_lle.input.rd=0;
+        fm_lle.input.wr=0;
+        fm_lle.input.a0=0;
+        fm_lle.input.a1=0;
+        fm_lle.input.data=0;
+        fm_lle.input.rad=0;
+        fm_lle.input.pad=0;
+        fm_lle.input.test=1;
+
+        fm_lle.input.ic=1;
+        for (size_t h=0; h<576; h++) {
+          FMOPNA_2610_Clock(&fm_lle,0);
+          FMOPNA_2610_Clock(&fm_lle,1);
+        }
+
+        fm_lle.input.ic=0;
+        for (size_t h=0; h<576; h++) {
+          FMOPNA_2610_Clock(&fm_lle,0);
+          FMOPNA_2610_Clock(&fm_lle,1);
+        }
+
+        fm_lle.input.ic=1;
+        for (size_t h=0; h<576; h++) {
+          FMOPNA_2610_Clock(&fm_lle,0);
+          FMOPNA_2610_Clock(&fm_lle,1);
+        }
+
+        for (int i=0; i<6; i++) {
+          rssOut[i]=0;
+        }
+
+        dacVal=0;
+        dacVal2=0;
+        dacOut[0]=0;
+        dacOut[1]=0;
+        lastSH=0;
+        lastSH2=0;
+        lastS=0;
+        rmpx=0;
+        pmpx=0;
+        roe=0;
+        poe=0;
+        rssCycle=0;
+        rssSubCycle=0;
+        adMemAddrA=0;
+        adMemAddrB=0;
+      }
 
       ay->reset();
       ay->getRegisterWrites().clear();
@@ -247,7 +313,11 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       fbAllOps=flags.getBool("fbAllOps",false);
       ssgVol=flags.getInt("ssgVol",128);
       fmVol=flags.getInt("fmVol",256);
-      rate=fm->sample_rate(chipClock);
+      if (useCombo==2) {
+        rate=chipClock/144;
+      } else {
+        rate=fm->sample_rate(chipClock);
+      }
       for (int i=0; i<16; i++) {
         oscBuf[i]->rate=rate;
       }

@@ -272,7 +272,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
   unsigned char maskedVal;
   unsigned int irqv;
   bool isMasked, isReaded;
-  bool irqTrigger;
+  bool irqTrigger, amigaVol, amigaPitch;
   unsigned int curCR;
 
   unsigned char initChanMax, chanMax;
@@ -280,6 +280,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
   es5506_core es5506;
   DivMemoryComposition memCompo;
   unsigned char regPool[4*16*128]; // 7 bit page x 16 registers per page x 32 bit per registers
+
+  void updateNoteChangesAsNeeded(int ch);
 
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);

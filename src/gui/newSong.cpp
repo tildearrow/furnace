@@ -119,8 +119,8 @@ void FurnaceGUI::drawNewSong() {
   std::vector<int> sysDefStack;
 
   ImGui::PushFont(bigFont);
-  ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize("Choose a System!").x)*0.5);
-  ImGui::Text("Choose a System!");
+  ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(_("Choose a System!")).x)*0.5);
+  ImGui::Text(_("Choose a System!"));
   ImGui::PopFont();
 
   ImVec2 avail=ImGui::GetContentRegionAvail();
@@ -130,7 +130,7 @@ void FurnaceGUI::drawNewSong() {
     if (newSongFirstFrame)
       ImGui::SetKeyboardFocusHere();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-    if (ImGui::InputTextWithHint("##SysSearch","Search...",&newSongQuery)) {
+    if (ImGui::InputTextWithHint("##SysSearch",_("Search..."),&newSongQuery)) {
       String lowerCase=newSongQuery;
       for (char& i: lowerCase) {
         if (i>='A' && i<='Z') i+='a'-'A';
@@ -176,9 +176,9 @@ void FurnaceGUI::drawNewSong() {
       if (newSongQuery.empty()) {
         ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
         ImGui::TableNextColumn();
-        ImGui::Text("Categories");
+        ImGui::Text(_("Categories"));
         ImGui::TableNextColumn();
-        ImGui::Text("Systems");
+        ImGui::Text(_("Systems"));
       }
 
       ImGui::TableNextRow();
@@ -207,9 +207,9 @@ void FurnaceGUI::drawNewSong() {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           if (newSongQuery.empty()) {
-            ImGui::Text("no systems here yet!");
+            ImGui::Text(_("no systems here yet!"));
           } else {
-            ImGui::Text("no results");
+            ImGui::Text(_("no results"));
           }
         } else {
           bool alreadyHover=false;
@@ -225,9 +225,9 @@ void FurnaceGUI::drawNewSong() {
   }
   ImGui::EndChild();
 
-  if (ImGui::Button("I'm feeling lucky")) {
+  if (ImGui::Button(_("I'm feeling lucky"))) {
     if (sysCategories.size()==0) {
-      showError("no categories available! what in the world.");
+      showError(_("no categories available! what in the world."));
       ImGui::CloseCurrentPopup();
     } else {
       int tries=0;
@@ -262,7 +262,7 @@ void FurnaceGUI::drawNewSong() {
       }
 
       if (tries>=50) {
-        showError("it appears you're extremely lucky today!");
+        showError(_("it appears you're extremely lucky today!"));
         ImGui::CloseCurrentPopup();
       }
     }
@@ -270,7 +270,7 @@ void FurnaceGUI::drawNewSong() {
 
   ImGui::SameLine();
 
-  if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+  if (ImGui::Button(_("Cancel")) || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
     ImGui::CloseCurrentPopup();
   }
 
@@ -289,6 +289,7 @@ void FurnaceGUI::drawNewSong() {
     selEnd=SelectionPoint();
     cursor=SelectionPoint();
     updateWindowTitle();
+    updateROMExportAvail();
     ImGui::CloseCurrentPopup();
   }
 

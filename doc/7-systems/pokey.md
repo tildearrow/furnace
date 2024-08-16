@@ -43,3 +43,9 @@ this chip uses the [POKEY](../4-instrument/pokey.md) instrument editor.
 when two channels are joined for filtered output, the channel bar will show `filter` on a bracket tying them together.
 
 when two channels are joined for wide period range, the channel bar will show `16-bit` on a bracket tying them together.
+
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **PAL**: run the chip at PAL clock (1.77MHz) instead of NTSC (1.79MHz).

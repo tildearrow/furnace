@@ -128,41 +128,47 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
       if (chan[i].keyOn || chan[i].keyOff) {
         if (chan[i].keyOn && !chan[i].keyOff) {
           rWrite(0x86+(i<<3),3);
-          chan[i].pcm.pos=0;
+          if (chan[i].setPos) {
+            chan[i].setPos=false;
+          } else {
+            chan[i].pcm.pos=0;
+          }
           if (chan[i].furnacePCM) {
             DivSample* s=parent->getSample(chan[i].pcm.sample);
             int loopStart=s->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT);
             int actualLength=(s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT));
             if (actualLength>0xfeff) actualLength=0xfeff;
-            rWrite(0x86+(i<<3),3+((sampleOffSegaPCM[chan[i].pcm.sample]>>16)<<3));
-            rWrite(0x84+(i<<3),(sampleOffSegaPCM[chan[i].pcm.sample])&0xff);
-            rWrite(0x85+(i<<3),(sampleOffSegaPCM[chan[i].pcm.sample]>>8)&0xff);
+            int actualPos=sampleOffSegaPCM[chan[i].pcm.sample]+chan[i].pcm.pos;
+            rWrite(0x86+(i<<3),3+((actualPos>>16)<<3));
+            rWrite(0x84+(i<<3),(actualPos)&0xff);
+            rWrite(0x85+(i<<3),(actualPos>>8)&0xff);
             rWrite(6+(i<<3),sampleEndSegaPCM[chan[i].pcm.sample]);
             if (!s->isLoopable()) {
-              rWrite(0x86+(i<<3),2+((sampleOffSegaPCM[chan[i].pcm.sample]>>16)<<3));
+              rWrite(0x86+(i<<3),2+((actualPos>>16)<<3));
             } else {
-              int loopPos=(sampleOffSegaPCM[chan[i].pcm.sample]&0xffff)+loopStart;
-              logV("sampleOff: %x loopPos: %x",sampleOffSegaPCM[chan[i].pcm.sample],loopPos);
+              int loopPos=(actualPos&0xffff)+loopStart;
+              logV("sampleOff: %x loopPos: %x",actualPos,loopPos);
               rWrite(4+(i<<3),loopPos&0xff);
               rWrite(5+(i<<3),(loopPos>>8)&0xff);
-              rWrite(0x86+(i<<3),((sampleOffSegaPCM[chan[i].pcm.sample]>>16)<<3));
+              rWrite(0x86+(i<<3),((actualPos>>16)<<3));
             }
           } else {
             DivSample* s=parent->getSample(chan[i].pcm.sample);
             int loopStart=s->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT);
             int actualLength=(s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT));
             if (actualLength>0xfeff) actualLength=0xfeff;
-            rWrite(0x86+(i<<3),3+((sampleOffSegaPCM[chan[i].pcm.sample]>>16)<<3));
-            rWrite(0x84+(i<<3),(sampleOffSegaPCM[chan[i].pcm.sample])&0xff);
-            rWrite(0x85+(i<<3),(sampleOffSegaPCM[chan[i].pcm.sample]>>8)&0xff);
+            int actualPos=sampleOffSegaPCM[chan[i].pcm.sample]+chan[i].pcm.pos;
+            rWrite(0x86+(i<<3),3+((actualPos>>16)<<3));
+            rWrite(0x84+(i<<3),(actualPos)&0xff);
+            rWrite(0x85+(i<<3),(actualPos>>8)&0xff);
             rWrite(6+(i<<3),sampleEndSegaPCM[chan[i].pcm.sample]);
             if (!s->isLoopable()) {
-              rWrite(0x86+(i<<3),2+((sampleOffSegaPCM[chan[i].pcm.sample]>>16)<<3));
+              rWrite(0x86+(i<<3),2+((actualPos>>16)<<3));
             } else {
-              int loopPos=(sampleOffSegaPCM[chan[i].pcm.sample]&0xffff)+loopStart;
+              int loopPos=(actualPos&0xffff)+loopStart;
               rWrite(4+(i<<3),loopPos&0xff);
               rWrite(5+(i<<3),(loopPos>>8)&0xff);
-              rWrite(0x86+(i<<3),((sampleOffSegaPCM[chan[i].pcm.sample]>>16)<<3));
+              rWrite(0x86+(i<<3),((actualPos>>16)<<3));
             }
             rWrite(7+(i<<3),chan[i].pcm.freq);
           }
@@ -333,6 +339,13 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       sampleBank=c.value;
       if (sampleBank>(parent->song.sample.size()/12)) {
         sampleBank=parent->song.sample.size()/12;
+      }
+      break;
+    case DIV_CMD_SAMPLE_POS:
+      chan[c.chan].pcm.pos=c.value;
+      chan[c.chan].setPos=true;
+      if (chan[c.chan].active) {
+        chan[c.chan].keyOn=true;
       }
       break;
     case DIV_CMD_MACRO_OFF:

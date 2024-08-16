@@ -8,6 +8,10 @@ the pattern manager is useful for cleaning up stray patterns and as an overview 
 
 **Re-arrange patterns** renumbers patterns to be in sequence, along with changing all references in the order list to match.
 
+**Sort orders** renumbers orders and re-arranges patterns so that they are in order.
+
+**Make patterns unique** will clone all patterns that have been used more than once.
+
 the pattern grid shows each channel and all its patterns. these are color-coded to show how much they're used in the song; these colors can be changed in Settings.
 
 | default color | name in Settings | meaning |

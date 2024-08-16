@@ -23,3 +23,10 @@ the Atari Lynx has a 6502-based CPU with a sound part (this chip is known as MIK
 ## info
 
 this chip uses the [Atari Lynx](../4-instrument/lynx.md) instrument editor.
+
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Consistent frequency across all duties**: uses an algorithm to calculate frequency depending on duty.
+  - make sure you reset phase on each note. otherwise sudden changes in the LFSR may make this option less effective.

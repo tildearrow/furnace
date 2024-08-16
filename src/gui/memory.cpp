@@ -32,7 +32,7 @@ void FurnaceGUI::drawMemory() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!memoryOpen) return;
-  if (ImGui::Begin("Memory Composition",&memoryOpen,globalWinFlags)) {
+  if (ImGui::Begin("Memory Composition",&memoryOpen,globalWinFlags,_("Memory Composition"))) {
     ImDrawList* dl=ImGui::GetWindowDrawList();
     ImGuiWindow* window=ImGui::GetCurrentWindow();
     char tempID[1024];
@@ -143,7 +143,7 @@ void FurnaceGUI::drawMemory() {
                     DivSample* sample=e->getSample(entry.asset);
                     ImGui::Text("%d: %s",curHover,sample->name.c_str());
                     if ((int)entry.type>=(int)DIV_MEMORY_BANK0) {
-                      ImGui::Text("bank %d",(int)entry.type-(int)DIV_MEMORY_BANK0);
+                      ImGui::Text(_("bank %d"),(int)entry.type-(int)DIV_MEMORY_BANK0);
                     }
                     if ((entry.end-entry.begin)>=1024 && settings.memUsageUnit==1) {
                       ImGui::Text("%d-%d ($%x-$%x): %dK ($%x)",(int)entry.begin,(int)entry.end-1,(int)entry.begin,(int)entry.end-1,(int)(entry.end-entry.begin)>>10,(int)(entry.end-entry.begin));
@@ -172,8 +172,8 @@ void FurnaceGUI::drawMemory() {
 
     if (!have) {
       ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeight()+ImGui::GetStyle().ItemSpacing.y)*0.5f);
-      CENTER_TEXT("no chips with memory");
-      ImGui::Text("no chips with memory");
+      CENTER_TEXT(_("no chips with memory"));
+      ImGui::Text(_("no chips with memory"));
     }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_MEMORY;

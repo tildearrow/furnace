@@ -29,7 +29,7 @@ void FurnaceGUI::drawNotes() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!notesOpen) return;
-  if (ImGui::Begin("Song Comments",&notesOpen,globalWinFlags)) {
+  if (ImGui::Begin("Song Comments",&notesOpen,globalWinFlags,_("Song Comments"))) {
     if (ImGui::InputTextMultiline("##SongNotes",&e->song.notes,ImGui::GetContentRegionAvail(),ImGuiInputTextFlags_UndoRedo)) {
       MARK_MODIFIED;
     }

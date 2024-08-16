@@ -263,17 +263,26 @@ int DivPlatformVIC20::dispatch(DivCommand c) {
 
 void DivPlatformVIC20::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  if (mute) {
-    chan[ch].keyOff=true;
-  } else if (chan[ch].active) {
-    chan[ch].keyOn=true;
+  if (chan[ch].onOff) {
+    if (mute) {
+      chan[ch].keyOff=true;
+    } else if (chan[ch].active) {
+      chan[ch].keyOn=true;
+    }
   }
 }
 
 void DivPlatformVIC20::forceIns() {
   for (int i=0; i<4; i++) {
     chan[i].insChanged=true;
-    chan[i].freqChanged=true;
+    // I give up!
+    if (chan[i].onOff) {
+      chan[i].freqChanged=true;
+    } else {
+      chan[i].freqChanged=false;
+      chan[i].keyOff=true;
+      chan[i].keyOn=false;
+    }
     writeOutVol(i);
   }
 }

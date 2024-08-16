@@ -31,6 +31,14 @@ float FurnaceGUIRender::getTextureV(FurnaceGUITexture* which) {
   return 1.0;
 }
 
+FurnaceGUITextureFormat FurnaceGUIRender::getTextureFormat(FurnaceGUITexture* which) {
+  return GUI_TEXFORMAT_UNKNOWN;
+}
+
+bool FurnaceGUIRender::isTextureValid(FurnaceGUITexture* which) {
+  return (which!=NULL);
+}
+
 bool FurnaceGUIRender::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
   return false;
 }
@@ -43,7 +51,7 @@ bool FurnaceGUIRender::updateTexture(FurnaceGUITexture* which, void* data, int p
   return false;
 }
 
-FurnaceGUITexture* FurnaceGUIRender::createTexture(bool dynamic, int width, int height, bool interpolate) {
+FurnaceGUITexture* FurnaceGUIRender::createTexture(bool dynamic, int width, int height, bool interpolate, FurnaceGUITextureFormat format) {
   return NULL;
 }
 
@@ -97,6 +105,10 @@ bool FurnaceGUIRender::supportsDrawOsc() {
   return false;
 }
 
+bool FurnaceGUIRender::areTexturesSquare() {
+  return false;
+}
+
 int FurnaceGUIRender::getWindowFlags() {
   return 0;
 }
@@ -106,6 +118,10 @@ int FurnaceGUIRender::getMaxTextureWidth() {
 }
 
 int FurnaceGUIRender::getMaxTextureHeight() {
+  return 0;
+}
+
+unsigned int FurnaceGUIRender::getTextureFormats() {
   return 0;
 }
 
@@ -128,7 +144,7 @@ const char* FurnaceGUIRender::getAPIVersion() {
 void FurnaceGUIRender::setSwapInterval(int swapInterval) {
 }
 
-void FurnaceGUIRender::preInit() {
+void FurnaceGUIRender::preInit(const DivConfig& conf) {
 }
 
 bool FurnaceGUIRender::init(SDL_Window* win, int swapInterval) {

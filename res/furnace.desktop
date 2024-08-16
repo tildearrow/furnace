@@ -5,4 +5,5 @@ Icon=furnace
 Exec=furnace
 Terminal=false
 Type=Application
+MimeType=audio/x-fur
 Categories=AudioVideo;Audio;

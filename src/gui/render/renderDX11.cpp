@@ -75,6 +75,7 @@ class FurnaceDXTexture: public FurnaceGUITexture {
   ID3D11Texture2D* tex;
   ID3D11ShaderResourceView* view;
   int width, height;
+  FurnaceGUITextureFormat format;
   unsigned char* lockedData;
   bool dynamic;
   FurnaceDXTexture():
@@ -82,6 +83,7 @@ class FurnaceDXTexture: public FurnaceGUITexture {
     view(NULL),
     width(0),
     height(0),
+    format(GUI_TEXFORMAT_UNKNOWN),
     lockedData(NULL),
     dynamic(false) {}
 };
@@ -147,6 +149,11 @@ ImTextureID FurnaceGUIRenderDX11::getTextureID(FurnaceGUITexture* which) {
   return (ImTextureID)t->view;
 }
 
+FurnaceGUITextureFormat FurnaceGUIRenderDX11::getTextureFormat(FurnaceGUITexture* which) {
+  FurnaceDXTexture* t=(FurnaceDXTexture*)which;
+  return t->format;
+}
+
 bool FurnaceGUIRenderDX11::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
   FurnaceDXTexture* t=(FurnaceDXTexture*)which;
   if (t->lockedData!=NULL) return false;
@@ -200,7 +207,7 @@ bool FurnaceGUIRenderDX11::updateTexture(FurnaceGUITexture* which, void* data, i
   return true;
 }
 
-FurnaceGUITexture* FurnaceGUIRenderDX11::createTexture(bool dynamic, int width, int height, bool interpolate) {
+FurnaceGUITexture* FurnaceGUIRenderDX11::createTexture(bool dynamic, int width, int height, bool interpolate, FurnaceGUITextureFormat format) {
   D3D11_TEXTURE2D_DESC texDesc;
   D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc;
   ID3D11Texture2D* tex=NULL;
@@ -214,7 +221,17 @@ FurnaceGUITexture* FurnaceGUIRenderDX11::createTexture(bool dynamic, int width, 
   texDesc.Height=height;
   texDesc.MipLevels=1;
   texDesc.ArraySize=1;
-  texDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM; // ???
+  switch (format) {
+    case GUI_TEXFORMAT_ABGR32:
+      texDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM;
+      break;
+    case GUI_TEXFORMAT_ARGB32:
+      texDesc.Format=DXGI_FORMAT_B8G8R8A8_UNORM;
+      break;
+    default:
+      logE("unsupported texture format!");
+      return NULL;
+  }
   texDesc.SampleDesc.Count=1;
   texDesc.SampleDesc.Quality=0;
   texDesc.Usage=dynamic?D3D11_USAGE_DYNAMIC:D3D11_USAGE_DEFAULT;
@@ -246,6 +263,7 @@ FurnaceGUITexture* FurnaceGUIRenderDX11::createTexture(bool dynamic, int width, 
   ret->tex=tex;
   ret->view=view;
   ret->dynamic=dynamic;
+  ret->format=format;
   return ret;
 }
 
@@ -377,6 +395,10 @@ int FurnaceGUIRenderDX11::getMaxTextureHeight() {
   return maxHeight;
 }
 
+unsigned int FurnaceGUIRenderDX11::getTextureFormats() {
+  return GUI_TEXFORMAT_ABGR32|GUI_TEXFORMAT_ARGB32;
+}
+
 const char* FurnaceGUIRenderDX11::getBackendName() {
   return "DirectX 11";
 }
@@ -397,7 +419,7 @@ void FurnaceGUIRenderDX11::setSwapInterval(int swapInt) {
   swapInterval=swapInt;
 }
 
-void FurnaceGUIRenderDX11::preInit() {
+void FurnaceGUIRenderDX11::preInit(const DivConfig& conf) {
 }
 
 const float wipeVertices[4][4]={

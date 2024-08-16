@@ -191,7 +191,6 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
       ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
       ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
       ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,noteCellSize);
-      demandX=ImGui::GetCursorPosX();
       ImGui::PopStyleColor(3);
     } else {
       if (selectedNote) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
@@ -235,7 +234,6 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
         ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,insCellSize);
-        demandX=ImGui::GetCursorPosX();
         ImGui::PopStyleColor(3);
       } else {
         if (selectedIns) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
@@ -273,7 +271,6 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
         ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,volCellSize);
-        demandX=ImGui::GetCursorPosX();
         ImGui::PopStyleColor(3);
       } else {
         if (selectedVol) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
@@ -326,7 +323,6 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
           ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
           ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
           ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,effectCellSize);
-          demandX=ImGui::GetCursorPosX();
           ImGui::PopStyleColor(3);
         } else {
           if (selectedEffect) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
@@ -356,7 +352,6 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
           ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
           ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
           ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,effectValCellSize);
-          demandX=ImGui::GetCursorPosX();
           ImGui::PopStyleColor(3);
         } else {
           if (selectedEffectVal) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
@@ -407,7 +402,6 @@ void FurnaceGUI::drawPattern() {
       }
     }
   }
-  demandX=0;
   sel1=selStart;
   sel2=selEnd;
   if (sel2.y<sel1.y) {
@@ -436,7 +430,7 @@ void FurnaceGUI::drawPattern() {
     ImGui::SetNextWindowPos(patWindowPos);
     ImGui::SetNextWindowSize(patWindowSize);
   }
-  if (ImGui::Begin("Pattern",&patternOpen,globalWinFlags|(settings.avoidRaisingPattern?ImGuiWindowFlags_NoBringToFrontOnFocus:0)|(settings.cursorFollowsWheel?ImGuiWindowFlags_NoScrollWithMouse:0))) {
+  if (ImGui::Begin("Pattern",&patternOpen,globalWinFlags|(settings.avoidRaisingPattern?ImGuiWindowFlags_NoBringToFrontOnFocus:0)|(settings.cursorFollowsWheel?ImGuiWindowFlags_NoScrollWithMouse:0),_("Pattern"))) {
     if (!mobileUI) {
       patWindowPos=ImGui::GetWindowPos();
       patWindowSize=ImGui::GetWindowSize();
@@ -471,7 +465,7 @@ void FurnaceGUI::drawPattern() {
     ImDrawList* tdl=NULL;
 
     if (chans<1) {
-      ImGui::Text("there aren't any channels to show.");
+      ImGui::Text(_("there aren't any channels to show."));
     } else if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea|((settings.cursorFollowsWheel || wheelCalmDown)?ImGuiTableFlags_NoScrollWithMouse:0))) {
       ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed);
       char chanID[2048];
@@ -495,7 +489,7 @@ void FurnaceGUI::drawPattern() {
         ImGui::OpenPopup("PatternOpt");
       }
       if (ImGui::IsItemHovered() && !mobileUI) {
-        ImGui::SetTooltip("click for pattern options (effect columns/pattern names/visualizer)");
+        ImGui::SetTooltip(_("click for pattern options (effect columns/pattern names/visualizer)"));
       }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         fancyPattern=!fancyPattern;
@@ -507,12 +501,12 @@ void FurnaceGUI::drawPattern() {
       ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,origWinPadding);
       ImGui::PushFont(mainFont);
       if (ImGui::BeginPopup("PatternOpt",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
-        ImGui::Text("Options:");
+        ImGui::Text(_("Options:"));
         ImGui::Indent();
-        ImGui::Checkbox("Effect columns/collapse",&patExtraButtons);
-        ImGui::Checkbox("Pattern names",&patChannelNames);
-        ImGui::Checkbox("Channel group hints",&patChannelPairs);
-        if (ImGui::Checkbox("Visualizer",&fancyPattern)) {
+        ImGui::Checkbox(_("Effect columns/collapse"),&patExtraButtons);
+        ImGui::Checkbox(_("Pattern names"),&patChannelNames);
+        ImGui::Checkbox(_("Channel group hints"),&patChannelPairs);
+        if (ImGui::Checkbox(_("Visualizer"),&fancyPattern)) {
           inhibitMenu=true;
           e->enableCommandStream(fancyPattern);
           e->getCommandStream(cmdStream);
@@ -520,19 +514,19 @@ void FurnaceGUI::drawPattern() {
         }
         ImGui::Unindent();
 
-        ImGui::Text("Channel status:");
+        ImGui::Text(_("Channel status:"));
         ImGui::Indent();
-        if (ImGui::RadioButton("No##_PCS0",patChannelHints==0)) {
+        if (ImGui::RadioButton(_("No##_PCS0"),patChannelHints==0)) {
           patChannelHints=0;
         }
-        if (ImGui::RadioButton("Yes##_PCS1",patChannelHints==1)) {
+        if (ImGui::RadioButton(_("Yes##_PCS1"),patChannelHints==1)) {
           patChannelHints=1;
         }
         /*
-        if (ImGui::RadioButton("Regular##_PCS2",patChannelHints==2)) {
+        if (ImGui::RadioButton(_("Regular##_PCS2"),patChannelHints==2)) {
           patChannelHints=2;
         }
-        if (ImGui::RadioButton("Detailed##_PCS3",patChannelHints==3)) {
+        if (ImGui::RadioButton(_("Detailed##_PCS3"),patChannelHints==3)) {
           patChannelHints=3;
         }*/
         ImGui::Unindent();
@@ -692,7 +686,7 @@ void FurnaceGUI::drawPattern() {
               bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID),0);
               ImU32 col=(hovered || (mobileUI && ImGui::IsMouseDown(ImGuiMouseButton_Left)))?ImGui::GetColorU32(ImGuiCol_HeaderHovered):ImGui::GetColorU32(ImGuiCol_Header);
               dl->AddRectFilled(rect.Min,rect.Max,col);
-              dl->AddText(ImVec2(minLabelArea.x,rect.Min.y),ImGui::GetColorU32(channelTextColor(i)),chanID);
+              dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rect.Min.y),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
             break;
           case 1: { // line
@@ -713,7 +707,7 @@ void FurnaceGUI::drawPattern() {
               ));
               dl->AddRectFilledMultiColor(rect.Min,rect.Max,fadeCol0,fadeCol0,fadeCol,fadeCol);
               dl->AddLine(ImVec2(rect.Min.x,rect.Max.y),ImVec2(rect.Max.x,rect.Max.y),ImGui::GetColorU32(chanHeadBase),2.0f*dpiScale);
-              dl->AddText(ImVec2(minLabelArea.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
+              dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
             break;
           }
@@ -740,14 +734,14 @@ void FurnaceGUI::drawPattern() {
               rMax.x-=3.0f*dpiScale;
               rMax.y-=6.0f*dpiScale;
               dl->AddRectFilledMultiColor(rMin,rMax,fadeCol0,fadeCol0,fadeCol,fadeCol,4.0f*dpiScale);
-              dl->AddText(ImVec2(minLabelArea.x,rect.Min.y+6.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
+              dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rect.Min.y+6.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
             break;
           }
           case 3: // split button
             ImGui::Dummy(ImVec2(1.0f,2.0f*dpiScale));
             //ImGui::SetCursorPosX(minLabelArea.x);
-            ImGui::TextUnformatted(chanID);
+            ImGui::TextNoHashHide("%s",chanID);
             ImGui::SameLine();
             ImGui::PushFont(mainFont);
             ImGui::SmallButton(muted?ICON_FA_VOLUME_OFF:ICON_FA_VOLUME_UP);
@@ -770,7 +764,7 @@ void FurnaceGUI::drawPattern() {
               rMax.x-=3.0f*dpiScale;
               rMax.y-=3.0f*dpiScale;
               dl->AddRect(rMin,rMax,fadeCol,0.0f,2.0*dpiScale);
-              dl->AddText(ImVec2(minLabelArea.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
+              dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
             break;
           }
@@ -791,7 +785,7 @@ void FurnaceGUI::drawPattern() {
               rMax.x-=3.0f*dpiScale;
               rMax.y-=3.0f*dpiScale;
               dl->AddRect(rMin,rMax,fadeCol,4.0f*dpiScale,ImDrawFlags_RoundCornersAll,2.0*dpiScale);
-              dl->AddText(ImVec2(minLabelArea.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
+              dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
             break;
           }
@@ -1167,11 +1161,41 @@ void FurnaceGUI::drawPattern() {
       ImGui::EndDisabled();
       ImGui::PopStyleVar();
       if (demandScrollX) {
-        int totalDemand=demandX-ImGui::GetScrollX();
-        if (totalDemand<80) {
-          ImGui::SetScrollX(demandX-200*dpiScale);
-        } else if (totalDemand>(ImGui::GetWindowWidth()-200*dpiScale)) {
-          ImGui::SetScrollX(demandX+200*dpiScale);
+        float finalX=-fourChars.x;
+        // manually calculate X scroll
+        for (int i=0; i<=cursor.xCoarse; i++) {
+          int fine=(i==cursor.xCoarse)?cursor.xFine:9999;
+          if (!e->curSubSong->chanShow[i]) continue;
+
+          finalX+=noteCellSize.x;
+          // ins
+          if (fine==0) break;
+          if (e->curSubSong->chanCollapse[i]<3) {
+            finalX+=insCellSize.x;
+          }
+          // vol
+          if (fine==1) break;
+          if (e->curSubSong->chanCollapse[i]<2) {
+            finalX+=volCellSize.x;
+          }
+          // effects
+          if (fine==2) break;
+          if (e->curSubSong->chanCollapse[i]<1) {
+            for (int j=0; j<MIN(fine-2,e->curPat[i].effectCols*2); j++) {
+              if (j&1) {
+                finalX+=effectValCellSize.x;
+              } else {
+                finalX+=effectCellSize.x;
+              }
+            }
+          }
+        }
+        float totalDemand=finalX-ImGui::GetScrollX();
+        float availWidth=ImGui::GetWindowWidth();
+        if (totalDemand<(availWidth*0.25f)) {
+          ImGui::SetScrollX(finalX-availWidth*0.25f);
+        } else if (totalDemand>(availWidth*0.7f)) {
+          ImGui::SetScrollX(finalX-availWidth*0.7f);
         }
         demandScrollX=false;
       }
@@ -1393,11 +1417,11 @@ void FurnaceGUI::drawPattern() {
     if (tdl!=NULL && failedNoteOn) {
       ImVec2 winCenter=ImGui::GetWindowPos()+ImGui::GetWindowSize()*0.5f;
       ImGui::PushFont(bigFont);
-      ImVec2 warnHeadSize=ImGui::CalcTextSize("WARNING!!");
+      ImVec2 warnHeadSize=ImGui::CalcTextSize(_("WARNING!!"));
       ImGui::PopFont();
-      ImVec2 warnTextSize1=ImGui::CalcTextSize("this instrument cannot be previewed because");
-      ImVec2 warnTextSize2=ImGui::CalcTextSize("none of the chips can play it");
-      ImVec2 warnTextSize3=ImGui::CalcTextSize("your instrument is in peril!! be careful...");
+      ImVec2 warnTextSize1=ImGui::CalcTextSize(_("this instrument cannot be previewed because"));
+      ImVec2 warnTextSize2=ImGui::CalcTextSize(_("none of the chips can play it"));
+      ImVec2 warnTextSize3=ImGui::CalcTextSize(_("your instrument is in peril!! be careful..."));
 
       float maxTextSize=warnHeadSize.x;
       if (warnTextSize1.x>maxTextSize) maxTextSize=warnTextSize1.x;
@@ -1425,28 +1449,28 @@ void FurnaceGUI::drawPattern() {
         MAX(1,40*dpiScale),
         ImVec2(winCenter.x-warnHeadSize.x*0.5,whereY),
         ImGui::GetColorU32(ImGuiCol_Text),
-        "WARNING!!"
+        _("WARNING!!")
       );
       whereY+=warnHeadSize.y;
 
       tdl->AddText(
         ImVec2(winCenter.x-warnTextSize1.x*0.5,whereY),
         ImGui::GetColorU32(ImGuiCol_Text),
-        "this instrument cannot be previewed because"
+        _("this instrument cannot be previewed because")
       );
       whereY+=warnTextSize1.y;
 
       tdl->AddText(
         ImVec2(winCenter.x-warnTextSize2.x*0.5,whereY),
         ImGui::GetColorU32(ImGuiCol_Text),
-        "none of the chips can play it"
+        _("none of the chips can play it")
       );
       whereY+=warnTextSize2.y;
 
       tdl->AddText(
         ImVec2(winCenter.x-warnTextSize3.x*0.5,whereY),
         ImGui::GetColorU32(ImGuiCol_Text),
-        "your instrument is in peril!! be careful..."
+        _("your instrument is in peril!! be careful...")
       );
       whereY+=warnTextSize3.y;
     }
@@ -1735,7 +1759,5 @@ void FurnaceGUI::drawPattern() {
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PATTERN;
   ImGui::End();
-  //int delta1=SDL_GetPerformanceCounter();
-  //logV("render time: %dµs",(delta1-delta0)/(SDL_GetPerformanceFrequency()/1000000));
 }
 

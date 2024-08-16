@@ -9,7 +9,7 @@
 
 struct VERAChannel {
 	uint16_t freq;
-	uint8_t  volume;
+	uint16_t volume;
 	bool     left, right;
 	uint8_t  pw;
 	uint8_t  waveform;
@@ -20,7 +20,7 @@ struct VERAChannel {
 };
 
 struct VERA_PSG {
-  unsigned int noiseState, noiseOut;
+  unsigned int chipType, noiseState, noiseOut;
   struct VERAChannel channels[16];
 };
 

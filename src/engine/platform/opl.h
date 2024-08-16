@@ -82,6 +82,7 @@ class DivPlatformOPL: public DivDispatch {
     bool lastSH2;
     bool lastSY;
     bool waitingBusy;
+    int downsamplerStep;
     
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
@@ -153,6 +154,7 @@ class DivPlatformOPL: public DivDispatch {
     DivChannelPair getPaired(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     int mapVelocity(int ch, float vel);
+    float getGain(int ch, int vol);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
