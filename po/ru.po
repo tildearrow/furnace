@@ -87,11 +87,11 @@ msgstr "82xx: Панорамирование (правый канал)"
 
 #: src/engine/engine.cpp:87
 msgid "83xy: Panning slide (x0: left; 0y: right)"
-msgstr ""
+msgstr "83xy: Изменение панорамирования (x0: влево; 0y: вправо)"
 
 #: src/engine/engine.cpp:89
 msgid "84xy: Panbrello (x: speed; y: depth)"
-msgstr ""
+msgstr "84xy: Панбрелло (вибрато панорамирования; x: скорость; y: глубина)"
 
 #: src/engine/engine.cpp:91
 msgid "88xy: Set panning (rear channels; x: left; y: right)"
@@ -111,7 +111,7 @@ msgstr "Cxxx: Установить частоту движка трекера (�
 
 #: src/engine/engine.cpp:102
 msgid "DCxx: Delayed mute"
-msgstr ""
+msgstr "DCxx: Отложенное заглушение"
 
 #: src/engine/engine.cpp:104
 msgid "E0xx: Set arp speed"
@@ -140,7 +140,7 @@ msgstr "E5xx: Расстройка (80: без расстройки)"
 
 #: src/engine/engine.cpp:116
 msgid "E6xy: Quick legato (x: time (0-7 up; 8-F down); y: semitones)"
-msgstr ""
+msgstr "E6xy: Быстрое легато (x: после стольких тиков (0-7 вверх; 8-F вниз); y: полутонов)"
 
 #: src/engine/engine.cpp:118
 msgid "E7xx: Macro release"
@@ -148,11 +148,11 @@ msgstr "E7xx: Релиз макросов"
 
 #: src/engine/engine.cpp:120
 msgid "E8xy: Quick legato up (x: time; y: semitones)"
-msgstr ""
+msgstr "E8xy: Быстрое легато вверх (x: после стольких тиков; y: полутонов)"
 
 #: src/engine/engine.cpp:122
 msgid "E9xy: Quick legato down (x: time; y: semitones)"
-msgstr ""
+msgstr "E9xy: Быстрое легато вниз (x: после стольких тиков; y: полутонов)"
 
 #: src/engine/engine.cpp:124
 msgid "EAxx: Legato"
@@ -252,7 +252,7 @@ msgstr "92xx: Начальное смещение сэмпла (старший �
 
 #: src/engine/engine.cpp:193 src/gui/settings.cpp:4159
 msgid "Invalid effect"
-msgstr ""
+msgstr "Неизвестный эффект"
 
 #: src/engine/engine.cpp:289 src/gui/gui.cpp:2383 src/gui/gui.cpp:2547
 #, c-format
@@ -408,23 +408,23 @@ msgstr "ФНЧ"
 
 #: src/engine/platform/opl.cpp:2104
 msgid "4OP"
-msgstr ""
+msgstr "4ОП"
 
 #: src/engine/platform/pce.cpp:543 src/engine/platform/snes.cpp:715
 msgid "mod"
-msgstr ""
+msgstr "мод."
 
 #: src/engine/platform/pokey.cpp:413 src/engine/platform/pokey.cpp:422
 msgid "filter"
-msgstr ""
+msgstr "фильтр"
 
 #: src/engine/platform/pokey.cpp:416 src/engine/platform/pokey.cpp:419
 msgid "16-bit"
-msgstr ""
+msgstr "16-бит."
 
 #: src/engine/platform/sid3.cpp:1251 src/gui/insEdit.cpp:248
 msgid "phase"
-msgstr ""
+msgstr "фаз."
 
 #: src/engine/sysDef.cpp:428 src/engine/sysDef.cpp:442
 msgid "20xx: Set channel mode (bit 0: square; bit 1: noise; bit 2: envelope)"
@@ -463,7 +463,7 @@ msgstr "29xy: Авто-огибающая (x: числитель; y: знаме�
 
 #: src/engine/sysDef.cpp:436
 msgid "2Cxx: Set timer period offset (bit 7: sign)"
-msgstr ""
+msgstr "2Cxx: Поправка к периоду таймера (бит 7: знак)"
 
 #: src/engine/sysDef.cpp:437 src/engine/sysDef.cpp:450
 msgid "2Exx: Write to I/O port A"
@@ -494,6 +494,8 @@ msgid ""
 "2Cxy: Automatic noise frequency (x: mode (0: disable, 1: freq, 2: freq + OR "
 "mask); y: offset)"
 msgstr ""
+"2Cxy: Автоматическая частота шума (x: режим (0: выкл., 1: частота, 2: частота + маска "
+"OR); y: расстройка)"
 
 #: src/engine/sysDef.cpp:457
 msgid "2Dxx: NOT TO BE EMPLOYED BY THE COMPOSER"
@@ -966,11 +968,11 @@ msgstr "23xx: Изменение скважности вниз"
 
 #: src/engine/sysDef.cpp:620
 msgid "24xx: Filter cutoff slide up"
-msgstr ""
+msgstr "24xx: Изменение частоты среза фильтра вверх"
 
 #: src/engine/sysDef.cpp:621
 msgid "25xx: Filter cutoff slide down"
-msgstr ""
+msgstr "25xx: Изменение частоты среза фильтра вниз"
 
 #: src/engine/sysDef.cpp:623 src/engine/sysDef.cpp:701
 msgid "3xxx: Set pulse width (0 to FFF)"
@@ -1144,11 +1146,11 @@ msgstr "18xx: Изменение скважности вниз"
 
 #: src/engine/sysDef.cpp:698
 msgid "19xx: Filter cutoff slide up"
-msgstr ""
+msgstr "19xx: Изменение частоты среза фильтра вверх"
 
 #: src/engine/sysDef.cpp:699
 msgid "1Axx: Filter cutoff slide down"
-msgstr ""
+msgstr "1Axx: Изменение частоты среза фильтра вниз"
 
 #: src/engine/sysDef.cpp:702 src/engine/sysDef.cpp:1823
 msgid "4xxx: Set cutoff (0 to FFF)"
@@ -1159,52 +1161,56 @@ msgid ""
 "60xx: Set waveform (bit 0: triangle; bit 1: saw; bit 2: pulse; bit 3: noise; "
 "bit 4: special wave)"
 msgstr ""
+"60xx: Волна (бит 0: треуг.; бит 1: пила; бит 2: прямоуг.; бит 3: шум; "
+"бит 4: спец. волна)"
 
 #: src/engine/sysDef.cpp:708
 msgid "61xx: Set special wave (00-39)"
-msgstr ""
+msgstr "61xx: Спец. волна (00-39)"
 
 #: src/engine/sysDef.cpp:709
 msgid ""
 "62xx: Modulation control (bit 0: ring mod; bit 1: osc. sync; bit 2: phase "
 "mod)"
 msgstr ""
+"62xx: Управление модуляцией (бит 0: кольцевая модуляция; бит 1: синхр. осц.; бит 2: фазовая "
+"модуляция)"
 
 #: src/engine/sysDef.cpp:710
 msgid "63xy: Reset pulse width (x: on new note; y: now)"
-msgstr ""
+msgstr "63xy: Сбросить скважность (x: на след. ноте; y: сейчас)"
 
 #: src/engine/sysDef.cpp:712
 msgid "64xx: Set ring modulation source channel (0-7)"
-msgstr ""
+msgstr "64xx: Установить источник кольцевой модуляции (0-7)"
 
 #: src/engine/sysDef.cpp:713
 msgid "65xx: Set hard sync source channel (0-6)"
-msgstr ""
+msgstr "65xx: Установить источник синхронизации осцилляторов (0-6)"
 
 #: src/engine/sysDef.cpp:714
 msgid "66xx: Set phase modulation source channel (0-6)"
-msgstr ""
+msgstr "66xx: Установить источник фазовой модуляции (0-6)"
 
 #: src/engine/sysDef.cpp:716
 msgid "67xx: Set attack"
-msgstr ""
+msgstr "67xx: Установить атаку"
 
 #: src/engine/sysDef.cpp:717
 msgid "68xx: Set decay"
-msgstr ""
+msgstr "68xx: Установить спад"
 
 #: src/engine/sysDef.cpp:718
 msgid "69xx: Set sustain level"
-msgstr ""
+msgstr "69xx: Установить уровень сустейна"
 
 #: src/engine/sysDef.cpp:719
 msgid "6Axx: Set sustain rate"
-msgstr ""
+msgstr "6Axx: Установить уклон сустейна"
 
 #: src/engine/sysDef.cpp:720
 msgid "6Bxx: Set release"
-msgstr ""
+msgstr "6Bxx: Установить релиз"
 
 #: src/engine/sysDef.cpp:722
 msgid "6Cxx: Set wave mix mode (0-4)"
