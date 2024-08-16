@@ -5850,7 +5850,8 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
 
 void FurnaceGUI::drawInsSID3(DivInstrument* ins)
 {
-  char buffer[40];
+  char buffer[100];
+  char buffer2[100];
 
   if (ImGui::BeginTabItem("SID3")) 
   {
@@ -6061,7 +6062,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
       }
 
       bool enable=filt->enabled;
-      snprintf(buffer, 40, _("Enable filter %d"), i + 1);
+      snprintf(buffer, 100, _("Enable filter %d"), i + 1);
       if (ImGui::Checkbox(buffer,&enable)) { PARAMETER
         filt->enabled=enable;
       }
@@ -6069,24 +6070,24 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
       if(filt->enabled)
       {
         bool init=filt->init;
-        snprintf(buffer, 40, _("Initialize filter %d"), i + 1);
+        snprintf(buffer, 100, _("Initialize filter %d"), i + 1);
         if (ImGui::Checkbox(buffer,&init)) { PARAMETER
           filt->init=init;
         }
         ImGui::SameLine();
-        snprintf(buffer, 40, _("Connect to channel input##contoinput%d"), i + 1);
+        snprintf(buffer, 100, _("Connect to channel input##contoinput%d"), i + 1);
         bool toInput=filt->mode & SID3_FILTER_CHANNEL_INPUT;
         if (ImGui::Checkbox(buffer,&toInput)) { PARAMETER
           filt->mode ^= SID3_FILTER_CHANNEL_INPUT;
         }
 
-        snprintf(buffer, 40, _("Cutoff##fcut%d"), i + 1);
+        snprintf(buffer, 100, _("Cutoff##fcut%d"), i + 1);
         P(CWSliderScalar(buffer,ImGuiDataType_U16,&filt->cutoff,&_ZERO,&_SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_THIRTY_FIVE)); rightClickable
-        snprintf(buffer, 40, _("Resonance##fres%d"), i + 1);
+        snprintf(buffer, 100, _("Resonance##fres%d"), i + 1);
         P(CWSliderScalar(buffer,ImGuiDataType_U8,&filt->resonance,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
-        snprintf(buffer, 40, _("Output volume##foutvol%d"), i + 1);
+        snprintf(buffer, 100, _("Output volume##foutvol%d"), i + 1);
         P(CWSliderScalar(buffer,ImGuiDataType_U8,&filt->output_volume,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
-        snprintf(buffer, 40, _("Distortion level##fdist%d"), i + 1);
+        snprintf(buffer, 100, _("Distortion level##fdist%d"), i + 1);
         P(CWSliderScalar(buffer,ImGuiDataType_U8,&filt->distortion_level,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
 
         ImGui::AlignTextToFramePadding();
@@ -6095,7 +6096,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
 
         bool lp=filt->mode & SID3_FILTER_LP;
         pushToggleColors(lp);
-        snprintf(buffer, 40, _("low##flow%d"), i + 1);
+        snprintf(buffer, 100, _("low##flow%d"), i + 1);
         if (ImGui::Button(buffer)) { PARAMETER
           filt->mode ^= SID3_FILTER_LP;
         }
@@ -6104,7 +6105,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
 
         bool bp=filt->mode & SID3_FILTER_BP;
         pushToggleColors(bp);
-        snprintf(buffer, 40, _("band##fband%d"), i + 1);
+        snprintf(buffer, 100, _("band##fband%d"), i + 1);
         if (ImGui::Button(buffer)) { PARAMETER
           filt->mode ^= SID3_FILTER_BP;
         }
@@ -6113,7 +6114,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
 
         bool hp=filt->mode & SID3_FILTER_HP;
         pushToggleColors(hp);
-        snprintf(buffer, 40, _("high##fhigh%d"), i + 1);
+        snprintf(buffer, 100, _("high##fhigh%d"), i + 1);
         if (ImGui::Button(buffer)) { PARAMETER
           filt->mode ^= SID3_FILTER_HP;
         }
@@ -6121,17 +6122,83 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
 
 
         ImGui::SameLine();
-        snprintf(buffer, 40, _("Connect to channel output##contooutput%d"), i + 1);
+        snprintf(buffer, 100, _("Connect to channel output##contooutput%d"), i + 1);
         bool toOutput=filt->mode & SID3_FILTER_OUTPUT;
         if (ImGui::Checkbox(buffer,&toOutput)) { PARAMETER
           filt->mode ^= SID3_FILTER_OUTPUT;
         }
 
-        snprintf(buffer, 40, _("Absolute cutoff macro##abscutoff%d"), i + 1);
+        snprintf(buffer, 100, _("Absolute cutoff macro##abscutoff%d"), i + 1);
         bool absCutoff=filt->absoluteCutoff;
         if (ImGui::Checkbox(buffer,&absCutoff)) { PARAMETER
           filt->absoluteCutoff = !filt->absoluteCutoff;
           ins->std.opMacros[i].d2rMacro.vZoom=-1;
+        }
+
+        snprintf(buffer, 100, _("Change cutoff with pitch##bindcutoff%d"), i + 1);
+        P(ImGui::Checkbox(buffer,&filt->bindCutoffToNote));
+        if (ImGui::IsItemHovered()) 
+        {
+          ImGui::SetTooltip(_("Filter cutoff will change with frequency/pitch.\nSee settings below."));
+        }
+
+        if(filt->bindCutoffToNote)
+        {
+          snprintf(buffer, 100, _("Decrease cutoff when pitch increases##decreasecutoff%d"), i + 1);
+          P(ImGui::Checkbox(buffer,&filt->bindCutoffToNoteDir));
+          if (ImGui::IsItemHovered()) 
+          {
+            ImGui::SetTooltip(_("If this is enabled, filter cutoff will decrease if you increase the pitch.\n"
+            "If this is disabled, filter cutoff will increase if you increase the pitch."));
+          }
+
+          snprintf(buffer2, 100, _("%s"), noteNameNormal(filt->bindCutoffToNoteCenter % 12, (short)(filt->bindCutoffToNoteCenter / 12) - 5));
+          snprintf(buffer, 100, _("Cutoff change center note##bindcutcenternote%d"), i + 1);
+          P(CWSliderScalar(buffer,ImGuiDataType_U8,&filt->bindCutoffToNoteCenter,&_ZERO,&_ONE_HUNDRED_SEVENTY_NINE,buffer2)); rightClickable
+          if (ImGui::IsItemHovered()) 
+          {
+            ImGui::SetTooltip(_("The center note for cutoff changes. At this note no cutoff change happens.\nAs pitch goes lower or higher, cutoff changes apply."));
+          }
+
+          snprintf(buffer, 100, _("Cutoff change strength##bindcutstrength%d"), i + 1);
+          P(CWSliderScalar(buffer,ImGuiDataType_U8,&filt->bindCutoffToNoteStrength,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+          if (ImGui::IsItemHovered()) 
+          {
+            ImGui::SetTooltip(_("How much cutoff changes for given pitch change."));
+          }
+        }
+
+        snprintf(buffer, 100, _("Change resonance with pitch##bindres%d"), i + 1);
+        P(ImGui::Checkbox(buffer,&filt->bindResonanceToNote));
+        if (ImGui::IsItemHovered()) 
+        {
+          ImGui::SetTooltip(_("Filter resonance will change with frequency/pitch.\nSee settings below."));
+        }
+
+        if(filt->bindResonanceToNote)
+        {
+          snprintf(buffer, 100, _("Decrease resonance when pitch increases##decreaseres%d"), i + 1);
+          P(ImGui::Checkbox(buffer,&filt->bindResonanceToNoteDir));
+          if (ImGui::IsItemHovered()) 
+          {
+            ImGui::SetTooltip(_("If this is enabled, filter resonance will decrease if you increase the pitch.\n"
+            "If this is disabled, filter resonance will increase if you increase the pitch."));
+          }
+
+          snprintf(buffer2, 100, _("%s"), noteNameNormal(filt->bindResonanceToNoteCenter % 12, (short)(filt->bindResonanceToNoteCenter / 12) - 5));
+          snprintf(buffer, 100, _("Resonance change center note##bindrescenternote%d"), i + 1);
+          P(CWSliderScalar(buffer,ImGuiDataType_U8,&filt->bindResonanceToNoteCenter,&_ZERO,&_ONE_HUNDRED_SEVENTY_NINE,buffer2)); rightClickable
+          if (ImGui::IsItemHovered()) 
+          {
+            ImGui::SetTooltip(_("The center note for resonance changes. At this note no resonance change happens.\nAs pitch goes lower or higher, resonance changes apply."));
+          }
+
+          snprintf(buffer, 100, _("Resonance change strength##bindresstrength%d"), i + 1);
+          P(CWSliderScalar(buffer,ImGuiDataType_U8,&filt->bindResonanceToNoteStrength,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+          if (ImGui::IsItemHovered()) 
+          {
+            ImGui::SetTooltip(_("How much resonance changes for given pitch change."));
+          }
         }
       }
     }
