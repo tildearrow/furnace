@@ -2684,6 +2684,8 @@ class FurnaceGUI {
   String romFilterName, romFilterExt;
   String romExportPath;
   DivROMExport* pendingExport;
+  bool romExportAvail[DIV_ROM_MAX];
+  bool romExportExists;
 
   // user presets window
   std::vector<int> selectedUserPreset;
@@ -2735,6 +2737,7 @@ class FurnaceGUI {
   bool portSet(String label, unsigned int portSetID, int ins, int outs, int activeIns, int activeOuts, int& clickedPort, std::map<unsigned int,ImVec2>& portPos);
 
   void updateWindowTitle();
+  void updateROMExportAvail();
   void autoDetectSystem();
   void autoDetectSystemIter(std::vector<FurnaceGUISysDef>& category, bool& isMatch, std::map<DivSystem,int>& defCountMap, std::map<DivSystem,DivConfig>& defConfMap, std::map<DivSystem,int>& sysCountMap, std::map<DivSystem,DivConfig>& sysConfMap);
   void prepareLayout();

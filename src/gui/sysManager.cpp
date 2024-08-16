@@ -91,6 +91,11 @@ void FurnaceGUI::drawSysManager() {
           if (!e->duplicateSystem(i,sysDupCloneChannels,sysDupEnd)) {
             showError(fmt::sprintf(_("cannot clone chip! (%s)"),e->getLastError()));
           } else {
+            if (e->song.autoSystem) {
+              autoDetectSystem();
+              updateWindowTitle();
+            }
+            updateROMExportAvail();
             MARK_MODIFIED;
           }
         }
@@ -105,6 +110,7 @@ void FurnaceGUI::drawSysManager() {
                 autoDetectSystem();
               }
               updateWindowTitle();
+              updateROMExportAvail();
             } else {
               showError(fmt::sprintf(_("cannot change chip! (%s)"),e->getLastError()));
             }
@@ -143,6 +149,7 @@ void FurnaceGUI::drawSysManager() {
               autoDetectSystem();
             }
             updateWindowTitle();
+            updateROMExportAvail();
             ImGui::CloseCurrentPopup();
           }
           ImGui::EndPopup();
