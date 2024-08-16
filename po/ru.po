@@ -3747,7 +3747,7 @@ msgstr "АДИКМ звуковой чип фирмы OKI, использова�
 #: src/gui/editControls.cpp:437 src/gui/guiConst.cpp:1409
 #: src/gui/insEdit.cpp:3255 src/gui/insEdit.cpp:3294 src/gui/settings.cpp:4255
 msgid "Sample"
-msgstr "Сэмплеры"
+msgstr "Сэмпл"
 
 #: src/engine/sysDef.cpp:1862
 msgid "20xx: Set frequency divider (0-2)"
