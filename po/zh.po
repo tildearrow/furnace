@@ -406,26 +406,26 @@ msgstr ""
 
 #: src/engine/platform/c64.cpp:631 src/engine/platform/c64.cpp:635
 #: src/engine/platform/dave.cpp:532 src/engine/platform/sid2.cpp:605
-#: src/engine/platform/sid2.cpp:609 src/engine/platform/sid3.cpp:1257
-#: src/engine/platform/sid3.cpp:1261 src/gui/insEdit.cpp:243
+#: src/engine/platform/sid2.cpp:609 src/engine/platform/sid3.cpp:1317
+#: src/engine/platform/sid3.cpp:1321 src/gui/insEdit.cpp:243
 #: src/gui/insEdit.cpp:250 src/gui/insEdit.cpp:504
 msgid "ring"
 msgstr ""
 
 #: src/engine/platform/c64.cpp:641 src/engine/platform/c64.cpp:645
 #: src/engine/platform/sid2.cpp:615 src/engine/platform/sid2.cpp:619
-#: src/engine/platform/sid3.cpp:1266 src/gui/insEdit.cpp:242
+#: src/engine/platform/sid3.cpp:1326 src/gui/insEdit.cpp:242
 #: src/gui/insEdit.cpp:249 src/gui/insEdit.cpp:503
 msgid "sync"
 msgstr ""
 
 #: src/engine/platform/dave.cpp:529 src/gui/insEdit.cpp:496
-#: src/gui/insEdit.cpp:7160
+#: src/gui/insEdit.cpp:7172
 msgid "high"
 msgstr ""
 
 #: src/engine/platform/dave.cpp:535 src/gui/insEdit.cpp:494
-#: src/gui/insEdit.cpp:7148
+#: src/gui/insEdit.cpp:7160
 msgid "low"
 msgstr ""
 
@@ -445,7 +445,7 @@ msgstr ""
 msgid "16-bit"
 msgstr ""
 
-#: src/engine/platform/sid3.cpp:1251 src/gui/insEdit.cpp:248
+#: src/engine/platform/sid3.cpp:1311 src/gui/insEdit.cpp:248
 msgid "phase"
 msgstr ""
 
@@ -1627,8 +1627,8 @@ msgstr ""
 #: src/engine/sysDef.cpp:862 src/engine/sysDef.cpp:1044
 #: src/engine/sysDef.cpp:1404 src/engine/sysDef.cpp:1964
 #: src/engine/sysDef.cpp:2010 src/engine/sysDef.cpp:2127
-#: src/engine/sysDef.cpp:2190 src/gui/insEdit.cpp:7965 src/gui/insEdit.cpp:8120
-#: src/gui/insEdit.cpp:8224 src/gui/insEdit.cpp:8316 src/gui/settings.cpp:4044
+#: src/engine/sysDef.cpp:2190 src/gui/insEdit.cpp:7977 src/gui/insEdit.cpp:8132
+#: src/gui/insEdit.cpp:8236 src/gui/insEdit.cpp:8328 src/gui/settings.cpp:4044
 #: src/gui/settings.cpp:4125
 msgid "Noise"
 msgstr "噪声"
@@ -4384,7 +4384,7 @@ msgstr "示波器"
 msgid "Swap"
 msgstr "交换"
 
-#: src/gui/channels.cpp:55 src/gui/effectList.cpp:45 src/gui/insEdit.cpp:6499
+#: src/gui/channels.cpp:55 src/gui/effectList.cpp:45 src/gui/insEdit.cpp:6511
 #: src/gui/sampleEdit.cpp:195 src/gui/settings.cpp:1066
 #: src/gui/settings.cpp:4415 src/gui/songInfo.cpp:40 src/gui/subSongs.cpp:125
 #: src/gui/sysManager.cpp:54 src/gui/userPresets.cpp:368
@@ -4426,28 +4426,28 @@ msgstr "频率"
 
 #: src/gui/chanOsc.cpp:37 src/gui/findReplace.cpp:687
 #: src/gui/findReplace.cpp:943 src/gui/guiConst.cpp:229
-#: src/gui/insEdit.cpp:6327 src/gui/insEdit.cpp:6813 src/gui/insEdit.cpp:6898
-#: src/gui/insEdit.cpp:7906 src/gui/insEdit.cpp:7914 src/gui/insEdit.cpp:7922
-#: src/gui/insEdit.cpp:7932 src/gui/insEdit.cpp:7948 src/gui/insEdit.cpp:7962
-#: src/gui/insEdit.cpp:7974 src/gui/insEdit.cpp:7989 src/gui/insEdit.cpp:8007
-#: src/gui/insEdit.cpp:8013 src/gui/insEdit.cpp:8023 src/gui/insEdit.cpp:8030
-#: src/gui/insEdit.cpp:8036 src/gui/insEdit.cpp:8049 src/gui/insEdit.cpp:8056
-#: src/gui/insEdit.cpp:8063 src/gui/insEdit.cpp:8072 src/gui/insEdit.cpp:8082
-#: src/gui/insEdit.cpp:8090 src/gui/insEdit.cpp:8096 src/gui/insEdit.cpp:8104
-#: src/gui/insEdit.cpp:8111 src/gui/insEdit.cpp:8117 src/gui/insEdit.cpp:8127
-#: src/gui/insEdit.cpp:8139 src/gui/insEdit.cpp:8147 src/gui/insEdit.cpp:8163
-#: src/gui/insEdit.cpp:8177 src/gui/insEdit.cpp:8191 src/gui/insEdit.cpp:8198
-#: src/gui/insEdit.cpp:8209 src/gui/insEdit.cpp:8222 src/gui/insEdit.cpp:8231
-#: src/gui/insEdit.cpp:8238 src/gui/insEdit.cpp:8246 src/gui/insEdit.cpp:8259
-#: src/gui/insEdit.cpp:8264 src/gui/insEdit.cpp:8270 src/gui/insEdit.cpp:8277
-#: src/gui/insEdit.cpp:8285 src/gui/insEdit.cpp:8296 src/gui/insEdit.cpp:8303
-#: src/gui/insEdit.cpp:8311 src/gui/insEdit.cpp:8319 src/gui/insEdit.cpp:8328
-#: src/gui/insEdit.cpp:8336 src/gui/insEdit.cpp:8342 src/gui/insEdit.cpp:8348
-#: src/gui/insEdit.cpp:8354 src/gui/insEdit.cpp:8359 src/gui/insEdit.cpp:8366
-#: src/gui/insEdit.cpp:8373 src/gui/insEdit.cpp:8381 src/gui/insEdit.cpp:8390
-#: src/gui/insEdit.cpp:8398 src/gui/insEdit.cpp:8410 src/gui/insEdit.cpp:8423
-#: src/gui/insEdit.cpp:8434 src/gui/insEdit.cpp:8444 src/gui/insEdit.cpp:8452
-#: src/gui/insEdit.cpp:8462 src/gui/insEdit.cpp:8471 src/gui/mixer.cpp:268
+#: src/gui/insEdit.cpp:6339 src/gui/insEdit.cpp:6825 src/gui/insEdit.cpp:6910
+#: src/gui/insEdit.cpp:7918 src/gui/insEdit.cpp:7926 src/gui/insEdit.cpp:7934
+#: src/gui/insEdit.cpp:7944 src/gui/insEdit.cpp:7960 src/gui/insEdit.cpp:7974
+#: src/gui/insEdit.cpp:7986 src/gui/insEdit.cpp:8001 src/gui/insEdit.cpp:8019
+#: src/gui/insEdit.cpp:8025 src/gui/insEdit.cpp:8035 src/gui/insEdit.cpp:8042
+#: src/gui/insEdit.cpp:8048 src/gui/insEdit.cpp:8061 src/gui/insEdit.cpp:8068
+#: src/gui/insEdit.cpp:8075 src/gui/insEdit.cpp:8084 src/gui/insEdit.cpp:8094
+#: src/gui/insEdit.cpp:8102 src/gui/insEdit.cpp:8108 src/gui/insEdit.cpp:8116
+#: src/gui/insEdit.cpp:8123 src/gui/insEdit.cpp:8129 src/gui/insEdit.cpp:8139
+#: src/gui/insEdit.cpp:8151 src/gui/insEdit.cpp:8159 src/gui/insEdit.cpp:8175
+#: src/gui/insEdit.cpp:8189 src/gui/insEdit.cpp:8203 src/gui/insEdit.cpp:8210
+#: src/gui/insEdit.cpp:8221 src/gui/insEdit.cpp:8234 src/gui/insEdit.cpp:8243
+#: src/gui/insEdit.cpp:8250 src/gui/insEdit.cpp:8258 src/gui/insEdit.cpp:8271
+#: src/gui/insEdit.cpp:8276 src/gui/insEdit.cpp:8282 src/gui/insEdit.cpp:8289
+#: src/gui/insEdit.cpp:8297 src/gui/insEdit.cpp:8308 src/gui/insEdit.cpp:8315
+#: src/gui/insEdit.cpp:8323 src/gui/insEdit.cpp:8331 src/gui/insEdit.cpp:8340
+#: src/gui/insEdit.cpp:8348 src/gui/insEdit.cpp:8354 src/gui/insEdit.cpp:8360
+#: src/gui/insEdit.cpp:8366 src/gui/insEdit.cpp:8371 src/gui/insEdit.cpp:8378
+#: src/gui/insEdit.cpp:8385 src/gui/insEdit.cpp:8393 src/gui/insEdit.cpp:8402
+#: src/gui/insEdit.cpp:8410 src/gui/insEdit.cpp:8422 src/gui/insEdit.cpp:8435
+#: src/gui/insEdit.cpp:8446 src/gui/insEdit.cpp:8456 src/gui/insEdit.cpp:8464
+#: src/gui/insEdit.cpp:8474 src/gui/insEdit.cpp:8483 src/gui/mixer.cpp:268
 #: src/gui/sampleEdit.cpp:1016 src/gui/settings.cpp:266
 #: src/gui/settings.cpp:1115 src/gui/settings.cpp:1496
 #: src/gui/settings.cpp:1508 src/gui/settings.cpp:3373
@@ -5387,7 +5387,7 @@ msgstr ""
 msgid "Bug!"
 msgstr ""
 
-#: src/gui/dataList.cpp:79 src/gui/insEdit.cpp:6545 src/gui/settings.cpp:4252
+#: src/gui/dataList.cpp:79 src/gui/insEdit.cpp:6557 src/gui/settings.cpp:4252
 #: src/gui/util.cpp:107 src/gui/util.cpp:109
 msgid "Unknown"
 msgstr "未知"
@@ -5443,8 +5443,8 @@ msgid "Duplicate"
 msgstr "复制"
 
 #: src/gui/dataList.cpp:361 src/gui/dataList.cpp:746 src/gui/dataList.cpp:881
-#: src/gui/editControls.cpp:497 src/gui/insEdit.cpp:6450
-#: src/gui/insEdit.cpp:6515 src/gui/sampleEdit.cpp:122
+#: src/gui/editControls.cpp:497 src/gui/insEdit.cpp:6462
+#: src/gui/insEdit.cpp:6527 src/gui/sampleEdit.cpp:122
 #: src/gui/sampleEdit.cpp:171 src/gui/waveEdit.cpp:436 src/gui/waveEdit.cpp:468
 msgid "Open"
 msgstr "打开"
@@ -5482,7 +5482,7 @@ msgid "Open (insert; right-click to replace)"
 msgstr "打开(插入; 右键替换)"
 
 #: src/gui/dataList.cpp:422 src/gui/dataList.cpp:759 src/gui/dataList.cpp:905
-#: src/gui/editControls.cpp:502 src/gui/insEdit.cpp:6522
+#: src/gui/editControls.cpp:502 src/gui/insEdit.cpp:6534
 #: src/gui/sampleEdit.cpp:184 src/gui/waveEdit.cpp:475
 msgid "Save"
 msgstr "保存"
@@ -5515,7 +5515,7 @@ msgstr ""
 msgid "save all samples..."
 msgstr ""
 
-#: src/gui/dataList.cpp:457 src/gui/insEdit.cpp:6525
+#: src/gui/dataList.cpp:457 src/gui/insEdit.cpp:6537
 msgid "save as .dmp..."
 msgstr "保存为 .dmp..."
 
@@ -5671,13 +5671,13 @@ msgstr "剪切"
 
 # 记得 销毁所有复制.以区分Dup
 # 已销毁. v0.6.2024B
-#: src/gui/editControls.cpp:48 src/gui/gui.cpp:2859 src/gui/insEdit.cpp:8560
+#: src/gui/editControls.cpp:48 src/gui/gui.cpp:2859 src/gui/insEdit.cpp:8572
 #: src/gui/sampleEdit.cpp:1753
 msgid "copy"
 msgstr "拷贝"
 
 #: src/gui/editControls.cpp:49 src/gui/gui.cpp:2860 src/gui/gui.cpp:2913
-#: src/gui/insEdit.cpp:8565 src/gui/sampleEdit.cpp:1757
+#: src/gui/insEdit.cpp:8577 src/gui/sampleEdit.cpp:1757
 msgid "paste"
 msgstr "粘贴"
 
@@ -5810,7 +5810,7 @@ msgstr "反相"
 msgid "interpolate"
 msgstr "插值"
 
-#: src/gui/editControls.cpp:74 src/gui/gui.cpp:2937 src/gui/insEdit.cpp:8632
+#: src/gui/editControls.cpp:74 src/gui/gui.cpp:2937 src/gui/insEdit.cpp:8644
 msgid "scale"
 msgstr "缩放"
 
@@ -5818,7 +5818,7 @@ msgstr "缩放"
 msgid "fade"
 msgstr "淡出/入"
 
-#: src/gui/editControls.cpp:78 src/gui/gui.cpp:2941 src/gui/insEdit.cpp:8661
+#: src/gui/editControls.cpp:78 src/gui/gui.cpp:2941 src/gui/insEdit.cpp:8673
 msgid "randomize"
 msgstr "随机化"
 
@@ -5859,7 +5859,7 @@ msgstr ""
 "锁存器"
 
 #: src/gui/editControls.cpp:84 src/gui/findReplace.cpp:43
-#: src/gui/insEdit.cpp:8579
+#: src/gui/insEdit.cpp:8591
 msgid "clear"
 msgstr "清除"
 
@@ -5942,7 +5942,7 @@ msgstr "子曲目"
 # end of no translate zone.
 #: src/gui/editControls.cpp:532 src/gui/guiConst.cpp:233
 #: src/gui/guiConst.cpp:582 src/gui/insEdit.cpp:2374 src/gui/insEdit.cpp:3226
-#: src/gui/insEdit.cpp:6931 src/gui/speed.cpp:32 src/gui/speed.cpp:102
+#: src/gui/insEdit.cpp:6943 src/gui/speed.cpp:32 src/gui/speed.cpp:102
 #: src/gui/sysConf.cpp:2201
 msgid "Speed"
 msgstr "速度"
@@ -7188,7 +7188,7 @@ msgstr "小字节模式"
 msgid "Go ahead"
 msgstr "开始"
 
-#: src/gui/gui.cpp:3131 src/gui/insEdit.cpp:8626
+#: src/gui/gui.cpp:3131 src/gui/insEdit.cpp:8638
 msgid "scale..."
 msgstr "缩放..."
 
@@ -7196,7 +7196,7 @@ msgstr "缩放..."
 msgid "Scale"
 msgstr "缩放"
 
-#: src/gui/gui.cpp:3142 src/gui/insEdit.cpp:8654
+#: src/gui/gui.cpp:3142 src/gui/insEdit.cpp:8666
 msgid "randomize..."
 msgstr "随机化..."
 
@@ -7873,7 +7873,7 @@ msgid "Warning"
 msgstr "警告"
 
 #: src/gui/gui.cpp:5736 src/gui/gui.cpp:5951 src/gui/gui.cpp:5952
-#: src/gui/insEdit.cpp:8542
+#: src/gui/insEdit.cpp:8554
 msgid "Error"
 msgstr ""
 
@@ -7919,7 +7919,7 @@ msgstr ""
 msgid "Erm what the sigma???"
 msgstr ""
 
-#: src/gui/gui.cpp:5953 src/gui/insEdit.cpp:6155 src/gui/insEdit.cpp:6188
+#: src/gui/gui.cpp:5953 src/gui/insEdit.cpp:6155 src/gui/insEdit.cpp:6194
 #, c-format
 msgid "%s"
 msgstr ""
@@ -8169,37 +8169,37 @@ msgstr ""
 msgid "Invalid"
 msgstr "无效"
 
-#: src/gui/guiConst.cpp:228 src/gui/insEdit.cpp:6330 src/gui/insEdit.cpp:7910
-#: src/gui/insEdit.cpp:7917 src/gui/insEdit.cpp:7928 src/gui/insEdit.cpp:7936
-#: src/gui/insEdit.cpp:7958 src/gui/insEdit.cpp:7970 src/gui/insEdit.cpp:7980
-#: src/gui/insEdit.cpp:7995 src/gui/insEdit.cpp:8010 src/gui/insEdit.cpp:8019
-#: src/gui/insEdit.cpp:8027 src/gui/insEdit.cpp:8033 src/gui/insEdit.cpp:8043
-#: src/gui/insEdit.cpp:8052 src/gui/insEdit.cpp:8059 src/gui/insEdit.cpp:8066
-#: src/gui/insEdit.cpp:8078 src/gui/insEdit.cpp:8086 src/gui/insEdit.cpp:8093
-#: src/gui/insEdit.cpp:8100 src/gui/insEdit.cpp:8108 src/gui/insEdit.cpp:8114
-#: src/gui/insEdit.cpp:8123 src/gui/insEdit.cpp:8134 src/gui/insEdit.cpp:8144
-#: src/gui/insEdit.cpp:8152 src/gui/insEdit.cpp:8165 src/gui/insEdit.cpp:8182
-#: src/gui/insEdit.cpp:8194 src/gui/insEdit.cpp:8204 src/gui/insEdit.cpp:8214
-#: src/gui/insEdit.cpp:8228 src/gui/insEdit.cpp:8234 src/gui/insEdit.cpp:8242
-#: src/gui/insEdit.cpp:8249 src/gui/insEdit.cpp:8273 src/gui/insEdit.cpp:8281
-#: src/gui/insEdit.cpp:8290 src/gui/insEdit.cpp:8299 src/gui/insEdit.cpp:8307
-#: src/gui/insEdit.cpp:8324 src/gui/insEdit.cpp:8332 src/gui/insEdit.cpp:8338
-#: src/gui/insEdit.cpp:8345 src/gui/insEdit.cpp:8351 src/gui/insEdit.cpp:8356
-#: src/gui/insEdit.cpp:8362 src/gui/insEdit.cpp:8369 src/gui/insEdit.cpp:8377
-#: src/gui/insEdit.cpp:8386 src/gui/insEdit.cpp:8394 src/gui/insEdit.cpp:8402
-#: src/gui/insEdit.cpp:8414 src/gui/insEdit.cpp:8429 src/gui/insEdit.cpp:8440
-#: src/gui/insEdit.cpp:8448 src/gui/insEdit.cpp:8457 src/gui/insEdit.cpp:8467
-#: src/gui/insEdit.cpp:8475 src/gui/settings.cpp:4042
+#: src/gui/guiConst.cpp:228 src/gui/insEdit.cpp:6342 src/gui/insEdit.cpp:7922
+#: src/gui/insEdit.cpp:7929 src/gui/insEdit.cpp:7940 src/gui/insEdit.cpp:7948
+#: src/gui/insEdit.cpp:7970 src/gui/insEdit.cpp:7982 src/gui/insEdit.cpp:7992
+#: src/gui/insEdit.cpp:8007 src/gui/insEdit.cpp:8022 src/gui/insEdit.cpp:8031
+#: src/gui/insEdit.cpp:8039 src/gui/insEdit.cpp:8045 src/gui/insEdit.cpp:8055
+#: src/gui/insEdit.cpp:8064 src/gui/insEdit.cpp:8071 src/gui/insEdit.cpp:8078
+#: src/gui/insEdit.cpp:8090 src/gui/insEdit.cpp:8098 src/gui/insEdit.cpp:8105
+#: src/gui/insEdit.cpp:8112 src/gui/insEdit.cpp:8120 src/gui/insEdit.cpp:8126
+#: src/gui/insEdit.cpp:8135 src/gui/insEdit.cpp:8146 src/gui/insEdit.cpp:8156
+#: src/gui/insEdit.cpp:8164 src/gui/insEdit.cpp:8177 src/gui/insEdit.cpp:8194
+#: src/gui/insEdit.cpp:8206 src/gui/insEdit.cpp:8216 src/gui/insEdit.cpp:8226
+#: src/gui/insEdit.cpp:8240 src/gui/insEdit.cpp:8246 src/gui/insEdit.cpp:8254
+#: src/gui/insEdit.cpp:8261 src/gui/insEdit.cpp:8285 src/gui/insEdit.cpp:8293
+#: src/gui/insEdit.cpp:8302 src/gui/insEdit.cpp:8311 src/gui/insEdit.cpp:8319
+#: src/gui/insEdit.cpp:8336 src/gui/insEdit.cpp:8344 src/gui/insEdit.cpp:8350
+#: src/gui/insEdit.cpp:8357 src/gui/insEdit.cpp:8363 src/gui/insEdit.cpp:8368
+#: src/gui/insEdit.cpp:8374 src/gui/insEdit.cpp:8381 src/gui/insEdit.cpp:8389
+#: src/gui/insEdit.cpp:8398 src/gui/insEdit.cpp:8406 src/gui/insEdit.cpp:8414
+#: src/gui/insEdit.cpp:8426 src/gui/insEdit.cpp:8441 src/gui/insEdit.cpp:8452
+#: src/gui/insEdit.cpp:8460 src/gui/insEdit.cpp:8469 src/gui/insEdit.cpp:8479
+#: src/gui/insEdit.cpp:8487 src/gui/settings.cpp:4042
 msgid "Pitch"
 msgstr "音高"
 
-#: src/gui/guiConst.cpp:230 src/gui/insEdit.cpp:7909 src/gui/insEdit.cpp:7916
-#: src/gui/insEdit.cpp:7927 src/gui/insEdit.cpp:7952 src/gui/insEdit.cpp:8058
-#: src/gui/insEdit.cpp:8099 src/gui/insEdit.cpp:8143 src/gui/insEdit.cpp:8193
-#: src/gui/insEdit.cpp:8213 src/gui/insEdit.cpp:8233 src/gui/insEdit.cpp:8241
-#: src/gui/insEdit.cpp:8254 src/gui/insEdit.cpp:8266 src/gui/insEdit.cpp:8272
-#: src/gui/insEdit.cpp:8288 src/gui/insEdit.cpp:8298 src/gui/insEdit.cpp:8361
-#: src/gui/insEdit.cpp:8393 src/gui/insEdit.cpp:8439 src/gui/insEdit.cpp:8447
+#: src/gui/guiConst.cpp:230 src/gui/insEdit.cpp:7921 src/gui/insEdit.cpp:7928
+#: src/gui/insEdit.cpp:7939 src/gui/insEdit.cpp:7964 src/gui/insEdit.cpp:8070
+#: src/gui/insEdit.cpp:8111 src/gui/insEdit.cpp:8155 src/gui/insEdit.cpp:8205
+#: src/gui/insEdit.cpp:8225 src/gui/insEdit.cpp:8245 src/gui/insEdit.cpp:8253
+#: src/gui/insEdit.cpp:8266 src/gui/insEdit.cpp:8278 src/gui/insEdit.cpp:8284
+#: src/gui/insEdit.cpp:8300 src/gui/insEdit.cpp:8310 src/gui/insEdit.cpp:8373
+#: src/gui/insEdit.cpp:8405 src/gui/insEdit.cpp:8451 src/gui/insEdit.cpp:8459
 #: src/gui/mixer.cpp:279 src/gui/settings.cpp:1126 src/gui/userPresets.cpp:427
 msgid "Panning"
 msgstr "声像"
@@ -8342,7 +8342,7 @@ msgstr ""
 msgid "Instrument List"
 msgstr "乐器列表"
 
-#: src/gui/guiConst.cpp:580 src/gui/insEdit.cpp:6414
+#: src/gui/guiConst.cpp:580 src/gui/insEdit.cpp:6426
 msgid "Instrument Editor"
 msgstr "乐器编辑器"
 
@@ -9128,8 +9128,8 @@ msgstr "所有芯片"
 msgid "FM"
 msgstr ""
 
-#: src/gui/guiConst.cpp:1408 src/gui/insEdit.cpp:6357 src/gui/insEdit.cpp:7941
-#: src/gui/insEdit.cpp:8205 src/gui/insEdit.cpp:8459 src/gui/insEdit.cpp:8481
+#: src/gui/guiConst.cpp:1408 src/gui/insEdit.cpp:6369 src/gui/insEdit.cpp:7953
+#: src/gui/insEdit.cpp:8217 src/gui/insEdit.cpp:8471 src/gui/insEdit.cpp:8493
 msgid "Special"
 msgstr "特殊"
 
@@ -9172,7 +9172,7 @@ msgstr ""
 msgid "Algorithm"
 msgstr ""
 
-#: src/gui/insEdit.cpp:52 src/gui/insEdit.cpp:5999 src/gui/insEdit.cpp:6365
+#: src/gui/insEdit.cpp:52 src/gui/insEdit.cpp:5999 src/gui/insEdit.cpp:6377
 msgid "Feedback"
 msgstr ""
 
@@ -9184,13 +9184,13 @@ msgstr ""
 msgid "LFO > Amp"
 msgstr ""
 
-#: src/gui/insEdit.cpp:52 src/gui/insEdit.cpp:2266 src/gui/insEdit.cpp:6376
-#: src/gui/insEdit.cpp:7942 src/gui/insEdit.cpp:8482 src/gui/sysConf.cpp:727
+#: src/gui/insEdit.cpp:52 src/gui/insEdit.cpp:2266 src/gui/insEdit.cpp:6388
+#: src/gui/insEdit.cpp:7954 src/gui/insEdit.cpp:8494 src/gui/sysConf.cpp:727
 msgid "Attack"
 msgstr ""
 
-#: src/gui/insEdit.cpp:52 src/gui/insEdit.cpp:2306 src/gui/insEdit.cpp:6377
-#: src/gui/insEdit.cpp:7943 src/gui/insEdit.cpp:8483 src/gui/sysConf.cpp:732
+#: src/gui/insEdit.cpp:52 src/gui/insEdit.cpp:2306 src/gui/insEdit.cpp:6389
+#: src/gui/insEdit.cpp:7955 src/gui/insEdit.cpp:8495 src/gui/sysConf.cpp:732
 msgid "Decay"
 msgstr ""
 
@@ -9199,13 +9199,13 @@ msgid "Decay 2"
 msgstr ""
 
 #: src/gui/insEdit.cpp:52 src/gui/insEdit.cpp:716 src/gui/insEdit.cpp:2329
-#: src/gui/insEdit.cpp:6380 src/gui/insEdit.cpp:7945 src/gui/insEdit.cpp:8485
+#: src/gui/insEdit.cpp:6392 src/gui/insEdit.cpp:7957 src/gui/insEdit.cpp:8497
 #: src/gui/settings.cpp:4013 src/gui/sysConf.cpp:742
 msgid "Release"
 msgstr "释放位点"
 
-#: src/gui/insEdit.cpp:52 src/gui/insEdit.cpp:2275 src/gui/insEdit.cpp:6378
-#: src/gui/insEdit.cpp:7944 src/gui/insEdit.cpp:8484 src/gui/sysConf.cpp:737
+#: src/gui/insEdit.cpp:52 src/gui/insEdit.cpp:2275 src/gui/insEdit.cpp:6390
+#: src/gui/insEdit.cpp:7956 src/gui/insEdit.cpp:8496 src/gui/sysConf.cpp:737
 msgid "Sustain"
 msgstr ""
 
@@ -9239,7 +9239,7 @@ msgstr ""
 msgid "AM"
 msgstr ""
 
-#: src/gui/insEdit.cpp:52 src/gui/insEdit.cpp:6676 src/gui/insEdit.cpp:7759
+#: src/gui/insEdit.cpp:52 src/gui/insEdit.cpp:6688 src/gui/insEdit.cpp:7771
 msgid "AM Depth"
 msgstr ""
 
@@ -9260,16 +9260,16 @@ msgid "Vibrato"
 msgstr ""
 
 #: src/gui/insEdit.cpp:52 src/gui/insEdit.cpp:4813 src/gui/insEdit.cpp:5867
-#: src/gui/insEdit.cpp:6335 src/gui/insEdit.cpp:6340 src/gui/insEdit.cpp:7050
-#: src/gui/insEdit.cpp:7926 src/gui/insEdit.cpp:7935 src/gui/insEdit.cpp:7950
-#: src/gui/insEdit.cpp:7967 src/gui/insEdit.cpp:7978 src/gui/insEdit.cpp:7993
-#: src/gui/insEdit.cpp:8009 src/gui/insEdit.cpp:8016 src/gui/insEdit.cpp:8026
-#: src/gui/insEdit.cpp:8032 src/gui/insEdit.cpp:8041 src/gui/insEdit.cpp:8065
-#: src/gui/insEdit.cpp:8075 src/gui/insEdit.cpp:8085 src/gui/insEdit.cpp:8092
-#: src/gui/insEdit.cpp:8107 src/gui/insEdit.cpp:8122 src/gui/insEdit.cpp:8142
-#: src/gui/insEdit.cpp:8149 src/gui/insEdit.cpp:8201 src/gui/insEdit.cpp:8212
-#: src/gui/insEdit.cpp:8225 src/gui/insEdit.cpp:8350 src/gui/insEdit.cpp:8426
-#: src/gui/insEdit.cpp:8446 src/gui/insEdit.cpp:8454 src/gui/insEdit.cpp:8474
+#: src/gui/insEdit.cpp:6347 src/gui/insEdit.cpp:6352 src/gui/insEdit.cpp:7062
+#: src/gui/insEdit.cpp:7938 src/gui/insEdit.cpp:7947 src/gui/insEdit.cpp:7962
+#: src/gui/insEdit.cpp:7979 src/gui/insEdit.cpp:7990 src/gui/insEdit.cpp:8005
+#: src/gui/insEdit.cpp:8021 src/gui/insEdit.cpp:8028 src/gui/insEdit.cpp:8038
+#: src/gui/insEdit.cpp:8044 src/gui/insEdit.cpp:8053 src/gui/insEdit.cpp:8077
+#: src/gui/insEdit.cpp:8087 src/gui/insEdit.cpp:8097 src/gui/insEdit.cpp:8104
+#: src/gui/insEdit.cpp:8119 src/gui/insEdit.cpp:8134 src/gui/insEdit.cpp:8154
+#: src/gui/insEdit.cpp:8161 src/gui/insEdit.cpp:8213 src/gui/insEdit.cpp:8224
+#: src/gui/insEdit.cpp:8237 src/gui/insEdit.cpp:8362 src/gui/insEdit.cpp:8438
+#: src/gui/insEdit.cpp:8458 src/gui/insEdit.cpp:8466 src/gui/insEdit.cpp:8486
 #: src/gui/settings.cpp:3969 src/gui/settings.cpp:4024
 #: src/gui/settings.cpp:4198 src/gui/waveEdit.cpp:731
 msgid "Waveform"
@@ -9307,7 +9307,7 @@ msgstr ""
 msgid "LFO2 > Amp"
 msgstr ""
 
-#: src/gui/insEdit.cpp:58 src/gui/insEdit.cpp:70 src/gui/insEdit.cpp:8392
+#: src/gui/insEdit.cpp:58 src/gui/insEdit.cpp:70 src/gui/insEdit.cpp:8404
 msgid "OP4 Noise Mode"
 msgstr ""
 
@@ -9908,18 +9908,18 @@ msgid "triangle"
 msgstr ""
 
 #: src/gui/insEdit.cpp:431 src/gui/insEdit.cpp:446 src/gui/insEdit.cpp:5876
-#: src/gui/insEdit.cpp:7059
+#: src/gui/insEdit.cpp:7071
 msgid "saw"
 msgstr ""
 
 #: src/gui/insEdit.cpp:432 src/gui/insEdit.cpp:447 src/gui/insEdit.cpp:5882
-#: src/gui/insEdit.cpp:7065
+#: src/gui/insEdit.cpp:7077
 msgid "pulse"
 msgstr ""
 
 #: src/gui/insEdit.cpp:433 src/gui/insEdit.cpp:439 src/gui/insEdit.cpp:448
 #: src/gui/insEdit.cpp:485 src/gui/insEdit.cpp:536 src/gui/insEdit.cpp:541
-#: src/gui/insEdit.cpp:5888 src/gui/insEdit.cpp:7071
+#: src/gui/insEdit.cpp:5888 src/gui/insEdit.cpp:7083
 msgid "noise"
 msgstr ""
 
@@ -10003,11 +10003,11 @@ msgstr ""
 msgid "invert left"
 msgstr ""
 
-#: src/gui/insEdit.cpp:495 src/gui/insEdit.cpp:7154
+#: src/gui/insEdit.cpp:495 src/gui/insEdit.cpp:7166
 msgid "band"
 msgstr ""
 
-#: src/gui/insEdit.cpp:497 src/gui/insEdit.cpp:7167
+#: src/gui/insEdit.cpp:497 src/gui/insEdit.cpp:7179
 msgid "ch3off"
 msgstr ""
 
@@ -10241,10 +10241,10 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:652 src/gui/insEdit.cpp:3836 src/gui/insEdit.cpp:3837
 #: src/gui/insEdit.cpp:4746 src/gui/insEdit.cpp:4816 src/gui/insEdit.cpp:5453
-#: src/gui/insEdit.cpp:5974 src/gui/insEdit.cpp:5975 src/gui/insEdit.cpp:7099
-#: src/gui/insEdit.cpp:7100 src/gui/insEdit.cpp:7730 src/gui/insEdit.cpp:7731
-#: src/gui/insEdit.cpp:7798 src/gui/insEdit.cpp:7799 src/gui/insEdit.cpp:7982
-#: src/gui/insEdit.cpp:7998 src/gui/insEdit.cpp:8020 src/gui/insEdit.cpp:8157
+#: src/gui/insEdit.cpp:5974 src/gui/insEdit.cpp:5975 src/gui/insEdit.cpp:7111
+#: src/gui/insEdit.cpp:7112 src/gui/insEdit.cpp:7742 src/gui/insEdit.cpp:7743
+#: src/gui/insEdit.cpp:7810 src/gui/insEdit.cpp:7811 src/gui/insEdit.cpp:7994
+#: src/gui/insEdit.cpp:8010 src/gui/insEdit.cpp:8032 src/gui/insEdit.cpp:8169
 #: src/gui/settings.cpp:4011 src/gui/settings.cpp:4046
 #, c-format
 msgid "Envelope"
@@ -10263,7 +10263,7 @@ msgid "Wait for Release"
 msgstr ""
 
 #: src/gui/insEdit.cpp:656 src/gui/insEdit.cpp:666 src/gui/insEdit.cpp:717
-#: src/gui/insEdit.cpp:7260 src/gui/sampleEdit.cpp:463
+#: src/gui/insEdit.cpp:7272 src/gui/sampleEdit.cpp:463
 msgid "Loop"
 msgstr "循环"
 
@@ -10283,23 +10283,23 @@ msgstr ""
 msgid "Cutoff Sweep"
 msgstr ""
 
-#: src/gui/insEdit.cpp:671 src/gui/insEdit.cpp:7847
+#: src/gui/insEdit.cpp:671 src/gui/insEdit.cpp:7859
 msgid "Direct"
 msgstr ""
 
-#: src/gui/insEdit.cpp:672 src/gui/insEdit.cpp:7851
+#: src/gui/insEdit.cpp:672 src/gui/insEdit.cpp:7863
 msgid "Decrease (linear)"
 msgstr ""
 
-#: src/gui/insEdit.cpp:673 src/gui/insEdit.cpp:7855
+#: src/gui/insEdit.cpp:673 src/gui/insEdit.cpp:7867
 msgid "Decrease (logarithmic)"
 msgstr ""
 
-#: src/gui/insEdit.cpp:674 src/gui/insEdit.cpp:7859
+#: src/gui/insEdit.cpp:674 src/gui/insEdit.cpp:7871
 msgid "Increase (linear)"
 msgstr ""
 
-#: src/gui/insEdit.cpp:675 src/gui/insEdit.cpp:7863
+#: src/gui/insEdit.cpp:675 src/gui/insEdit.cpp:7875
 msgid "Increase (bent line)"
 msgstr ""
 
@@ -10433,8 +10433,8 @@ msgstr ""
 msgid "Release mode: Passive (delayed release)"
 msgstr ""
 
-#: src/gui/insEdit.cpp:2641 src/gui/insEdit.cpp:2742 src/gui/insEdit.cpp:6820
-#: src/gui/insEdit.cpp:7484 src/gui/settings.cpp:857
+#: src/gui/insEdit.cpp:2641 src/gui/insEdit.cpp:2742 src/gui/insEdit.cpp:6832
+#: src/gui/insEdit.cpp:7496 src/gui/settings.cpp:857
 msgid "Length"
 msgstr "长度"
 
@@ -10514,7 +10514,7 @@ msgstr ""
 msgid "Update Rate"
 msgstr ""
 
-#: src/gui/insEdit.cpp:3233 src/gui/insEdit.cpp:7245 src/gui/insEdit.cpp:7288
+#: src/gui/insEdit.cpp:3233 src/gui/insEdit.cpp:7257 src/gui/insEdit.cpp:7300
 msgid "Amount"
 msgstr ""
 
@@ -10633,12 +10633,12 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:4071 src/gui/insEdit.cpp:4463 src/gui/insEdit.cpp:4569
 #: src/gui/insEdit.cpp:5067 src/gui/insEdit.cpp:5131 src/gui/insEdit.cpp:5731
-#: src/gui/insEdit.cpp:6756
+#: src/gui/insEdit.cpp:6768
 msgid "Block"
 msgstr ""
 
 #: src/gui/insEdit.cpp:4073 src/gui/insEdit.cpp:4468 src/gui/insEdit.cpp:4574
-#: src/gui/insEdit.cpp:5656 src/gui/insEdit.cpp:5742 src/gui/insEdit.cpp:6757
+#: src/gui/insEdit.cpp:5656 src/gui/insEdit.cpp:5742 src/gui/insEdit.cpp:6769
 msgid "FreqNum"
 msgstr ""
 
@@ -10701,7 +10701,7 @@ msgstr ""
 msgid "SSG On"
 msgstr ""
 
-#: src/gui/insEdit.cpp:5870 src/gui/insEdit.cpp:7053
+#: src/gui/insEdit.cpp:5870 src/gui/insEdit.cpp:7065
 msgid "tri"
 msgstr ""
 
@@ -10765,26 +10765,26 @@ msgstr ""
 msgid "R"
 msgstr ""
 
-#: src/gui/insEdit.cpp:5997 src/gui/insEdit.cpp:7175
+#: src/gui/insEdit.cpp:5997 src/gui/insEdit.cpp:7187
 msgid "Wave Mix Mode"
 msgstr ""
 
-#: src/gui/insEdit.cpp:5998 src/gui/insEdit.cpp:6339 src/gui/insEdit.cpp:7117
-#: src/gui/insEdit.cpp:7934 src/gui/insEdit.cpp:7997 src/gui/insEdit.cpp:8039
-#: src/gui/insEdit.cpp:8141 src/gui/insEdit.cpp:8437 src/gui/insEdit.cpp:8473
+#: src/gui/insEdit.cpp:5998 src/gui/insEdit.cpp:6351 src/gui/insEdit.cpp:7129
+#: src/gui/insEdit.cpp:7946 src/gui/insEdit.cpp:8009 src/gui/insEdit.cpp:8051
+#: src/gui/insEdit.cpp:8153 src/gui/insEdit.cpp:8449 src/gui/insEdit.cpp:8485
 #: src/gui/waveEdit.cpp:598
 msgid "Duty"
 msgstr "占空比"
 
-#: src/gui/insEdit.cpp:6001 src/gui/insEdit.cpp:7119
+#: src/gui/insEdit.cpp:6001 src/gui/insEdit.cpp:7131
 msgid "Reset duty on new note"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6005 src/gui/insEdit.cpp:7182
+#: src/gui/insEdit.cpp:6005 src/gui/insEdit.cpp:7194
 msgid "Absolute Duty Macro"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6012 src/gui/insEdit.cpp:7125
+#: src/gui/insEdit.cpp:6012 src/gui/insEdit.cpp:7137
 msgid "Ring Modulation"
 msgstr ""
 
@@ -10792,7 +10792,7 @@ msgstr ""
 msgid "Source channel##rmsrc"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6022 src/gui/insEdit.cpp:7129
+#: src/gui/insEdit.cpp:6022 src/gui/insEdit.cpp:7141
 msgid "Oscillator Sync"
 msgstr ""
 
@@ -10853,9 +10853,9 @@ msgstr ""
 msgid "Distortion level##fdist%d"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6094 src/gui/insEdit.cpp:6310 src/gui/insEdit.cpp:7145
-#: src/gui/insEdit.cpp:7651 src/gui/insEdit.cpp:7939 src/gui/insEdit.cpp:8179
-#: src/gui/insEdit.cpp:8479
+#: src/gui/insEdit.cpp:6094 src/gui/insEdit.cpp:6322 src/gui/insEdit.cpp:7157
+#: src/gui/insEdit.cpp:7663 src/gui/insEdit.cpp:7951 src/gui/insEdit.cpp:8191
+#: src/gui/insEdit.cpp:8491
 msgid "Filter Mode"
 msgstr ""
 
@@ -10926,23 +10926,35 @@ msgstr ""
 msgid "How much cutoff changes for given pitch change."
 msgstr ""
 
-#: src/gui/insEdit.cpp:6171
+#: src/gui/insEdit.cpp:6169
+#, c-format
+msgid "Scale cutoff only once on new note##bindcutnn%d"
+msgstr ""
+
+#: src/gui/insEdit.cpp:6173
+msgid ""
+"Filter cutoff will be changed only once on new note.\n"
+"If this option is disabled, cutoff scaling will be applied\n"
+"every time a pitch change happens."
+msgstr ""
+
+#: src/gui/insEdit.cpp:6177
 #, c-format
 msgid "Change resonance with pitch##bindres%d"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6175
+#: src/gui/insEdit.cpp:6181
 msgid ""
 "Filter resonance will change with frequency/pitch.\n"
 "See settings below."
 msgstr ""
 
-#: src/gui/insEdit.cpp:6180
+#: src/gui/insEdit.cpp:6186
 #, c-format
 msgid "Decrease resonance when pitch increases##decreaseres%d"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6184
+#: src/gui/insEdit.cpp:6190
 msgid ""
 "If this is enabled, filter resonance will decrease if you increase the "
 "pitch.\n"
@@ -10950,811 +10962,823 @@ msgid ""
 "pitch."
 msgstr ""
 
-#: src/gui/insEdit.cpp:6189
+#: src/gui/insEdit.cpp:6195
 #, c-format
 msgid "Resonance change center note##bindrescenternote%d"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6193
+#: src/gui/insEdit.cpp:6199
 msgid ""
 "The center note for resonance changes. At this note no resonance change "
 "happens.\n"
 "As pitch goes lower or higher, resonance changes apply."
 msgstr ""
 
-#: src/gui/insEdit.cpp:6196
+#: src/gui/insEdit.cpp:6202
 #, c-format
 msgid "Resonance change strength##bindresstrength%d"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6200
+#: src/gui/insEdit.cpp:6206
 msgid "How much resonance changes for given pitch change."
 msgstr ""
 
-#: src/gui/insEdit.cpp:6214 src/gui/insEdit.cpp:6215
+#: src/gui/insEdit.cpp:6208
+#, c-format
+msgid "Scale resonance only once on new note##bindresnn%d"
+msgstr ""
+
+#: src/gui/insEdit.cpp:6212
+msgid ""
+"Filter resonance will be changed only once on new note.\n"
+"If this option is disabled, resonance scaling will be applied\n"
+"every time a pitch change happens."
+msgstr ""
+
+#: src/gui/insEdit.cpp:6226 src/gui/insEdit.cpp:6227
 msgid "Filters connection matrix"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6223
+#: src/gui/insEdit.cpp:6235
 msgid "In"
 msgstr ""
 
 # 显然是'输出', 无需翻译.
-#: src/gui/insEdit.cpp:6232 src/gui/waveEdit.cpp:766
+#: src/gui/insEdit.cpp:6244 src/gui/waveEdit.cpp:766
 msgid "Out"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6253
+#: src/gui/insEdit.cpp:6265
 #, c-format
 msgid "Feed signal from channel to filter %d input"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6267
+#: src/gui/insEdit.cpp:6279
 #, c-format
 msgid "Feed signal from filter %d output to filter %d input"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6280
+#: src/gui/insEdit.cpp:6292
 #, c-format
 msgid "Feed signal from filter %d output to channel output"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6303
+#: src/gui/insEdit.cpp:6315
 #, c-format
 msgid "Filter %d macros"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6307 src/gui/insEdit.cpp:7137 src/gui/insEdit.cpp:7140
-#: src/gui/insEdit.cpp:7937 src/gui/insEdit.cpp:8216 src/gui/insEdit.cpp:8477
+#: src/gui/insEdit.cpp:6319 src/gui/insEdit.cpp:7149 src/gui/insEdit.cpp:7152
+#: src/gui/insEdit.cpp:7949 src/gui/insEdit.cpp:8228 src/gui/insEdit.cpp:8489
 msgid "Cutoff"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6308 src/gui/insEdit.cpp:7138 src/gui/insEdit.cpp:7141
-#: src/gui/insEdit.cpp:7938 src/gui/insEdit.cpp:8217 src/gui/insEdit.cpp:8478
+#: src/gui/insEdit.cpp:6320 src/gui/insEdit.cpp:7150 src/gui/insEdit.cpp:7153
+#: src/gui/insEdit.cpp:7950 src/gui/insEdit.cpp:8229 src/gui/insEdit.cpp:8490
 #: src/gui/sampleEdit.cpp:1174
 msgid "Resonance"
 msgstr "谐振"
 
-#: src/gui/insEdit.cpp:6309 src/gui/insEdit.cpp:7940 src/gui/insEdit.cpp:8480
+#: src/gui/insEdit.cpp:6321 src/gui/insEdit.cpp:7952 src/gui/insEdit.cpp:8492
 msgid "Filter Toggle"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6311
+#: src/gui/insEdit.cpp:6323
 msgid "Distortion Level"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6312
+#: src/gui/insEdit.cpp:6324
 msgid "Output Volume"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6313
+#: src/gui/insEdit.cpp:6325
 msgid "Channel Input Connection"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6314
+#: src/gui/insEdit.cpp:6326
 msgid "Channel Output Connection"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6315
+#: src/gui/insEdit.cpp:6327
 msgid "Connection Matrix Row"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6323 src/gui/insEdit.cpp:7898
+#: src/gui/insEdit.cpp:6335 src/gui/insEdit.cpp:7910
 msgid "Macros"
 msgstr "宏"
 
-#: src/gui/insEdit.cpp:6329 src/gui/insEdit.cpp:7907 src/gui/insEdit.cpp:7915
-#: src/gui/insEdit.cpp:7924 src/gui/insEdit.cpp:7933 src/gui/insEdit.cpp:7949
-#: src/gui/insEdit.cpp:7963 src/gui/insEdit.cpp:7975 src/gui/insEdit.cpp:7990
-#: src/gui/insEdit.cpp:8008 src/gui/insEdit.cpp:8014 src/gui/insEdit.cpp:8024
-#: src/gui/insEdit.cpp:8031 src/gui/insEdit.cpp:8037 src/gui/insEdit.cpp:8050
-#: src/gui/insEdit.cpp:8057 src/gui/insEdit.cpp:8064 src/gui/insEdit.cpp:8073
-#: src/gui/insEdit.cpp:8083 src/gui/insEdit.cpp:8091 src/gui/insEdit.cpp:8097
-#: src/gui/insEdit.cpp:8105 src/gui/insEdit.cpp:8112 src/gui/insEdit.cpp:8118
-#: src/gui/insEdit.cpp:8128 src/gui/insEdit.cpp:8140 src/gui/insEdit.cpp:8148
-#: src/gui/insEdit.cpp:8164 src/gui/insEdit.cpp:8178 src/gui/insEdit.cpp:8192
-#: src/gui/insEdit.cpp:8199 src/gui/insEdit.cpp:8210 src/gui/insEdit.cpp:8223
-#: src/gui/insEdit.cpp:8232 src/gui/insEdit.cpp:8239 src/gui/insEdit.cpp:8247
-#: src/gui/insEdit.cpp:8271 src/gui/insEdit.cpp:8278 src/gui/insEdit.cpp:8286
-#: src/gui/insEdit.cpp:8297 src/gui/insEdit.cpp:8304 src/gui/insEdit.cpp:8312
-#: src/gui/insEdit.cpp:8320 src/gui/insEdit.cpp:8329 src/gui/insEdit.cpp:8337
-#: src/gui/insEdit.cpp:8343 src/gui/insEdit.cpp:8349 src/gui/insEdit.cpp:8355
-#: src/gui/insEdit.cpp:8360 src/gui/insEdit.cpp:8367 src/gui/insEdit.cpp:8374
-#: src/gui/insEdit.cpp:8382 src/gui/insEdit.cpp:8391 src/gui/insEdit.cpp:8399
-#: src/gui/insEdit.cpp:8411 src/gui/insEdit.cpp:8424 src/gui/insEdit.cpp:8435
-#: src/gui/insEdit.cpp:8445 src/gui/insEdit.cpp:8453 src/gui/insEdit.cpp:8463
-#: src/gui/insEdit.cpp:8472
+#: src/gui/insEdit.cpp:6341 src/gui/insEdit.cpp:7919 src/gui/insEdit.cpp:7927
+#: src/gui/insEdit.cpp:7936 src/gui/insEdit.cpp:7945 src/gui/insEdit.cpp:7961
+#: src/gui/insEdit.cpp:7975 src/gui/insEdit.cpp:7987 src/gui/insEdit.cpp:8002
+#: src/gui/insEdit.cpp:8020 src/gui/insEdit.cpp:8026 src/gui/insEdit.cpp:8036
+#: src/gui/insEdit.cpp:8043 src/gui/insEdit.cpp:8049 src/gui/insEdit.cpp:8062
+#: src/gui/insEdit.cpp:8069 src/gui/insEdit.cpp:8076 src/gui/insEdit.cpp:8085
+#: src/gui/insEdit.cpp:8095 src/gui/insEdit.cpp:8103 src/gui/insEdit.cpp:8109
+#: src/gui/insEdit.cpp:8117 src/gui/insEdit.cpp:8124 src/gui/insEdit.cpp:8130
+#: src/gui/insEdit.cpp:8140 src/gui/insEdit.cpp:8152 src/gui/insEdit.cpp:8160
+#: src/gui/insEdit.cpp:8176 src/gui/insEdit.cpp:8190 src/gui/insEdit.cpp:8204
+#: src/gui/insEdit.cpp:8211 src/gui/insEdit.cpp:8222 src/gui/insEdit.cpp:8235
+#: src/gui/insEdit.cpp:8244 src/gui/insEdit.cpp:8251 src/gui/insEdit.cpp:8259
+#: src/gui/insEdit.cpp:8283 src/gui/insEdit.cpp:8290 src/gui/insEdit.cpp:8298
+#: src/gui/insEdit.cpp:8309 src/gui/insEdit.cpp:8316 src/gui/insEdit.cpp:8324
+#: src/gui/insEdit.cpp:8332 src/gui/insEdit.cpp:8341 src/gui/insEdit.cpp:8349
+#: src/gui/insEdit.cpp:8355 src/gui/insEdit.cpp:8361 src/gui/insEdit.cpp:8367
+#: src/gui/insEdit.cpp:8372 src/gui/insEdit.cpp:8379 src/gui/insEdit.cpp:8386
+#: src/gui/insEdit.cpp:8394 src/gui/insEdit.cpp:8403 src/gui/insEdit.cpp:8411
+#: src/gui/insEdit.cpp:8423 src/gui/insEdit.cpp:8436 src/gui/insEdit.cpp:8447
+#: src/gui/insEdit.cpp:8457 src/gui/insEdit.cpp:8465 src/gui/insEdit.cpp:8475
+#: src/gui/insEdit.cpp:8484
 msgid "Arpeggio"
 msgstr "琵琶器"
 
-#: src/gui/insEdit.cpp:6341
+#: src/gui/insEdit.cpp:6353
 msgid "Special Wave"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6346
+#: src/gui/insEdit.cpp:6358
 msgid "Noise Arpeggio"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6347
+#: src/gui/insEdit.cpp:6359
 msgid "Noise Pitch"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6350 src/gui/insEdit.cpp:7955 src/gui/insEdit.cpp:7968
-#: src/gui/insEdit.cpp:8017 src/gui/insEdit.cpp:8076 src/gui/insEdit.cpp:8132
-#: src/gui/insEdit.cpp:8150 src/gui/insEdit.cpp:8180 src/gui/insEdit.cpp:8202
-#: src/gui/insEdit.cpp:8226 src/gui/insEdit.cpp:8279 src/gui/insEdit.cpp:8305
-#: src/gui/insEdit.cpp:8322 src/gui/insEdit.cpp:8330 src/gui/insEdit.cpp:8375
-#: src/gui/insEdit.cpp:8384 src/gui/insEdit.cpp:8400 src/gui/insEdit.cpp:8412
-#: src/gui/insEdit.cpp:8427 src/gui/insEdit.cpp:8455 src/gui/insEdit.cpp:8465
+#: src/gui/insEdit.cpp:6362 src/gui/insEdit.cpp:7967 src/gui/insEdit.cpp:7980
+#: src/gui/insEdit.cpp:8029 src/gui/insEdit.cpp:8088 src/gui/insEdit.cpp:8144
+#: src/gui/insEdit.cpp:8162 src/gui/insEdit.cpp:8192 src/gui/insEdit.cpp:8214
+#: src/gui/insEdit.cpp:8238 src/gui/insEdit.cpp:8291 src/gui/insEdit.cpp:8317
+#: src/gui/insEdit.cpp:8334 src/gui/insEdit.cpp:8342 src/gui/insEdit.cpp:8387
+#: src/gui/insEdit.cpp:8396 src/gui/insEdit.cpp:8412 src/gui/insEdit.cpp:8424
+#: src/gui/insEdit.cpp:8439 src/gui/insEdit.cpp:8467 src/gui/insEdit.cpp:8477
 msgid "Panning (left)"
 msgstr "声像 (左)"
 
-#: src/gui/insEdit.cpp:6351 src/gui/insEdit.cpp:7956 src/gui/insEdit.cpp:7969
-#: src/gui/insEdit.cpp:8018 src/gui/insEdit.cpp:8077 src/gui/insEdit.cpp:8133
-#: src/gui/insEdit.cpp:8151 src/gui/insEdit.cpp:8181 src/gui/insEdit.cpp:8203
-#: src/gui/insEdit.cpp:8227 src/gui/insEdit.cpp:8280 src/gui/insEdit.cpp:8306
-#: src/gui/insEdit.cpp:8323 src/gui/insEdit.cpp:8331 src/gui/insEdit.cpp:8376
-#: src/gui/insEdit.cpp:8385 src/gui/insEdit.cpp:8401 src/gui/insEdit.cpp:8413
-#: src/gui/insEdit.cpp:8428 src/gui/insEdit.cpp:8456 src/gui/insEdit.cpp:8466
+#: src/gui/insEdit.cpp:6363 src/gui/insEdit.cpp:7968 src/gui/insEdit.cpp:7981
+#: src/gui/insEdit.cpp:8030 src/gui/insEdit.cpp:8089 src/gui/insEdit.cpp:8145
+#: src/gui/insEdit.cpp:8163 src/gui/insEdit.cpp:8193 src/gui/insEdit.cpp:8215
+#: src/gui/insEdit.cpp:8239 src/gui/insEdit.cpp:8292 src/gui/insEdit.cpp:8318
+#: src/gui/insEdit.cpp:8335 src/gui/insEdit.cpp:8343 src/gui/insEdit.cpp:8388
+#: src/gui/insEdit.cpp:8397 src/gui/insEdit.cpp:8413 src/gui/insEdit.cpp:8425
+#: src/gui/insEdit.cpp:8440 src/gui/insEdit.cpp:8468 src/gui/insEdit.cpp:8478
 msgid "Panning (right)"
 msgstr "声像 (右)"
 
-#: src/gui/insEdit.cpp:6353
+#: src/gui/insEdit.cpp:6365
 msgid "Channel inversion"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6355
+#: src/gui/insEdit.cpp:6367
 msgid "Key On/Off"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6359
+#: src/gui/insEdit.cpp:6371
 msgid "Ring Mod Source"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6360
+#: src/gui/insEdit.cpp:6372
 msgid "Hard Sync Source"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6361
+#: src/gui/insEdit.cpp:6373
 msgid "Phase Mod Source"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6368 src/gui/insEdit.cpp:7911 src/gui/insEdit.cpp:7918
-#: src/gui/insEdit.cpp:7929 src/gui/insEdit.cpp:7959 src/gui/insEdit.cpp:7971
-#: src/gui/insEdit.cpp:7981 src/gui/insEdit.cpp:7996 src/gui/insEdit.cpp:8045
-#: src/gui/insEdit.cpp:8053 src/gui/insEdit.cpp:8060 src/gui/insEdit.cpp:8079
-#: src/gui/insEdit.cpp:8101 src/gui/insEdit.cpp:8124 src/gui/insEdit.cpp:8135
-#: src/gui/insEdit.cpp:8154 src/gui/insEdit.cpp:8183 src/gui/insEdit.cpp:8195
-#: src/gui/insEdit.cpp:8215 src/gui/insEdit.cpp:8235 src/gui/insEdit.cpp:8243
-#: src/gui/insEdit.cpp:8250 src/gui/insEdit.cpp:8255 src/gui/insEdit.cpp:8261
-#: src/gui/insEdit.cpp:8267 src/gui/insEdit.cpp:8274 src/gui/insEdit.cpp:8282
-#: src/gui/insEdit.cpp:8291 src/gui/insEdit.cpp:8300 src/gui/insEdit.cpp:8308
-#: src/gui/insEdit.cpp:8325 src/gui/insEdit.cpp:8333 src/gui/insEdit.cpp:8339
-#: src/gui/insEdit.cpp:8363 src/gui/insEdit.cpp:8370 src/gui/insEdit.cpp:8378
-#: src/gui/insEdit.cpp:8387 src/gui/insEdit.cpp:8395 src/gui/insEdit.cpp:8403
-#: src/gui/insEdit.cpp:8415 src/gui/insEdit.cpp:8430 src/gui/insEdit.cpp:8441
-#: src/gui/insEdit.cpp:8449 src/gui/insEdit.cpp:8458 src/gui/insEdit.cpp:8476
+#: src/gui/insEdit.cpp:6380 src/gui/insEdit.cpp:7923 src/gui/insEdit.cpp:7930
+#: src/gui/insEdit.cpp:7941 src/gui/insEdit.cpp:7971 src/gui/insEdit.cpp:7983
+#: src/gui/insEdit.cpp:7993 src/gui/insEdit.cpp:8008 src/gui/insEdit.cpp:8057
+#: src/gui/insEdit.cpp:8065 src/gui/insEdit.cpp:8072 src/gui/insEdit.cpp:8091
+#: src/gui/insEdit.cpp:8113 src/gui/insEdit.cpp:8136 src/gui/insEdit.cpp:8147
+#: src/gui/insEdit.cpp:8166 src/gui/insEdit.cpp:8195 src/gui/insEdit.cpp:8207
+#: src/gui/insEdit.cpp:8227 src/gui/insEdit.cpp:8247 src/gui/insEdit.cpp:8255
+#: src/gui/insEdit.cpp:8262 src/gui/insEdit.cpp:8267 src/gui/insEdit.cpp:8273
+#: src/gui/insEdit.cpp:8279 src/gui/insEdit.cpp:8286 src/gui/insEdit.cpp:8294
+#: src/gui/insEdit.cpp:8303 src/gui/insEdit.cpp:8312 src/gui/insEdit.cpp:8320
+#: src/gui/insEdit.cpp:8337 src/gui/insEdit.cpp:8345 src/gui/insEdit.cpp:8351
+#: src/gui/insEdit.cpp:8375 src/gui/insEdit.cpp:8382 src/gui/insEdit.cpp:8390
+#: src/gui/insEdit.cpp:8399 src/gui/insEdit.cpp:8407 src/gui/insEdit.cpp:8415
+#: src/gui/insEdit.cpp:8427 src/gui/insEdit.cpp:8442 src/gui/insEdit.cpp:8453
+#: src/gui/insEdit.cpp:8461 src/gui/insEdit.cpp:8470 src/gui/insEdit.cpp:8488
 msgid "Phase Reset"
 msgstr "相位重置"
 
-#: src/gui/insEdit.cpp:6372
+#: src/gui/insEdit.cpp:6384
 msgid "Noise Phase Reset"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6374
+#: src/gui/insEdit.cpp:6386
 msgid "Envelope Reset"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6379
+#: src/gui/insEdit.cpp:6391
 msgid "Sustain Rate"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6384
+#: src/gui/insEdit.cpp:6396
 msgid "Noise LFSR bits"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6385
+#: src/gui/insEdit.cpp:6397
 msgid "1-Bit Noise"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6386 src/gui/insEdit.cpp:8487
+#: src/gui/insEdit.cpp:6398 src/gui/insEdit.cpp:8499
 msgid "Wave Mix"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6390
+#: src/gui/insEdit.cpp:6402
 msgid "Sample Mode"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6417 src/gui/insEdit.cpp:6418
+#: src/gui/insEdit.cpp:6429 src/gui/insEdit.cpp:6430
 msgid "waiting..."
 msgstr ""
 
-#: src/gui/insEdit.cpp:6421 src/gui/insEdit.cpp:6422
+#: src/gui/insEdit.cpp:6433 src/gui/insEdit.cpp:6434
 msgid "no instrument selected"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6434 src/gui/sampleEdit.cpp:111 src/gui/waveEdit.cpp:425
+#: src/gui/insEdit.cpp:6446 src/gui/sampleEdit.cpp:111 src/gui/waveEdit.cpp:425
 msgid "select one..."
 msgstr "选一个..."
 
-#: src/gui/insEdit.cpp:6447 src/gui/insEdit.cpp:6454 src/gui/sampleEdit.cpp:119
+#: src/gui/insEdit.cpp:6459 src/gui/insEdit.cpp:6466 src/gui/sampleEdit.cpp:119
 #: src/gui/sampleEdit.cpp:126 src/gui/waveEdit.cpp:433 src/gui/waveEdit.cpp:440
 msgid "or"
 msgstr "或"
 
-#: src/gui/insEdit.cpp:6456 src/gui/sampleEdit.cpp:128 src/gui/waveEdit.cpp:442
+#: src/gui/insEdit.cpp:6468 src/gui/sampleEdit.cpp:128 src/gui/waveEdit.cpp:442
 msgid "Create New"
 msgstr "新建"
 
 # warring! above
-#: src/gui/insEdit.cpp:6532 src/gui/sampleEdit.cpp:501
+#: src/gui/insEdit.cpp:6544 src/gui/sampleEdit.cpp:501
 #: src/gui/settings.cpp:1669 src/gui/settings.cpp:2281
 #: src/gui/settings.cpp:6976
 msgid "Type"
 msgstr "类型"
 
-#: src/gui/insEdit.cpp:6623
+#: src/gui/insEdit.cpp:6635
 msgid ""
 "none of the currently present chips are able to play this instrument type!"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6651
+#: src/gui/insEdit.cpp:6663
 msgid "FM Macros"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6673 src/gui/insEdit.cpp:6678
+#: src/gui/insEdit.cpp:6685 src/gui/insEdit.cpp:6690
 msgid "LFO Speed"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6677 src/gui/insEdit.cpp:7757
+#: src/gui/insEdit.cpp:6689 src/gui/insEdit.cpp:7769
 msgid "PM Depth"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6679
+#: src/gui/insEdit.cpp:6691
 msgid "LFO Shape"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6682
+#: src/gui/insEdit.cpp:6694
 msgid "OpMask"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6684
+#: src/gui/insEdit.cpp:6696
 msgid "AM Depth 2"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6685
+#: src/gui/insEdit.cpp:6697
 msgid "PM Depth 2"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6686
+#: src/gui/insEdit.cpp:6698
 msgid "LFO2 Speed"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6687
+#: src/gui/insEdit.cpp:6699
 msgid "LFO2 Shape"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6696
+#: src/gui/insEdit.cpp:6708
 #, c-format
 msgid "Operator Macros"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6698
+#: src/gui/insEdit.cpp:6710
 #, c-format
 msgid "OP%d Macros"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6759
+#: src/gui/insEdit.cpp:6771
 msgid "Op. Arpeggio"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6760
+#: src/gui/insEdit.cpp:6772
 msgid "Op. Pitch"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6769
+#: src/gui/insEdit.cpp:6781
 msgid "Op. Panning"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6796
+#: src/gui/insEdit.cpp:6808
 msgid "Use software envelope"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6797
+#: src/gui/insEdit.cpp:6809
 msgid "Initialize envelope on every note"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6798
+#: src/gui/insEdit.cpp:6810
 msgid "Double wave length (GBA only)"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6827 src/gui/insEdit.cpp:6904
+#: src/gui/insEdit.cpp:6839 src/gui/insEdit.cpp:6916
 msgid "Sound Length"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6830 src/gui/insEdit.cpp:6904
+#: src/gui/insEdit.cpp:6842 src/gui/insEdit.cpp:6916
 msgid "Infinity"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6834
+#: src/gui/insEdit.cpp:6846
 msgid "Direction"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6837 src/gui/insEdit.cpp:6907 src/gui/insEdit.cpp:6935
-#: src/gui/insEdit.cpp:7251 src/gui/insEdit.cpp:7294
+#: src/gui/insEdit.cpp:6849 src/gui/insEdit.cpp:6919 src/gui/insEdit.cpp:6947
+#: src/gui/insEdit.cpp:7263 src/gui/insEdit.cpp:7306
 msgid "Up"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6842 src/gui/insEdit.cpp:6912 src/gui/insEdit.cpp:6940
-#: src/gui/insEdit.cpp:7256 src/gui/insEdit.cpp:7299
+#: src/gui/insEdit.cpp:6854 src/gui/insEdit.cpp:6924 src/gui/insEdit.cpp:6952
+#: src/gui/insEdit.cpp:7268 src/gui/insEdit.cpp:7311
 msgid "Down"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6858 src/gui/insEdit.cpp:7196
+#: src/gui/insEdit.cpp:6870 src/gui/insEdit.cpp:7208
 msgid "Hardware Sequence"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6868 src/gui/insEdit.cpp:7206
+#: src/gui/insEdit.cpp:6880 src/gui/insEdit.cpp:7218
 msgid "Tick"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6870 src/gui/insEdit.cpp:7208
+#: src/gui/insEdit.cpp:6882 src/gui/insEdit.cpp:7220
 msgid "Command"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6872 src/gui/insEdit.cpp:7210
+#: src/gui/insEdit.cpp:6884 src/gui/insEdit.cpp:7222
 msgid "Move/Remove"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6901
+#: src/gui/insEdit.cpp:6913
 msgid "Env Length"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6928
+#: src/gui/insEdit.cpp:6940
 msgid "Shift"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6955 src/gui/insEdit.cpp:7316
+#: src/gui/insEdit.cpp:6967 src/gui/insEdit.cpp:7328
 msgid "Ticks"
 msgstr ""
 
-#: src/gui/insEdit.cpp:6974 src/gui/insEdit.cpp:7335 src/gui/insEdit.cpp:7482
+#: src/gui/insEdit.cpp:6986 src/gui/insEdit.cpp:7347 src/gui/insEdit.cpp:7494
 msgid "Position"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7133
+#: src/gui/insEdit.cpp:7145
 msgid "Enable filter"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7134
+#: src/gui/insEdit.cpp:7146
 msgid "Initialize filter"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7174 src/gui/insEdit.cpp:7908 src/gui/insEdit.cpp:8486
+#: src/gui/insEdit.cpp:7186 src/gui/insEdit.cpp:7920 src/gui/insEdit.cpp:8498
 msgid "Noise Mode"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7178
+#: src/gui/insEdit.cpp:7190
 msgid "Absolute Cutoff Macro"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7188
+#: src/gui/insEdit.cpp:7200
 msgid "Don't test before new note"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7193
+#: src/gui/insEdit.cpp:7205
 msgid "Switch roles of frequency and phase reset timer"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7240 src/gui/insEdit.cpp:7283
+#: src/gui/insEdit.cpp:7252 src/gui/insEdit.cpp:7295
 msgid "Period"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7248 src/gui/insEdit.cpp:7291
+#: src/gui/insEdit.cpp:7260 src/gui/insEdit.cpp:7303
 msgid "Bound"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7264
+#: src/gui/insEdit.cpp:7276
 msgid "Flip"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7453
+#: src/gui/insEdit.cpp:7465
 msgid "Load waveform"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7458
+#: src/gui/insEdit.cpp:7470
 msgid ""
 "when enabled, a waveform will be loaded into RAM.\n"
 "when disabled, only the offset and length change."
 msgstr ""
 
-#: src/gui/insEdit.cpp:7462
+#: src/gui/insEdit.cpp:7474
 msgid "Waveform##WAVE"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7470
+#: src/gui/insEdit.cpp:7482
 msgid "Per-channel wave position/length"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7480
+#: src/gui/insEdit.cpp:7492
 msgid "Ch"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7529
+#: src/gui/insEdit.cpp:7541
 msgid "Compatibility mode"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7531
+#: src/gui/insEdit.cpp:7543
 msgid ""
 "only use for compatibility with .dmf modules!\n"
 "- initializes modulation table with first wavetable\n"
 "- does not alter modulation parameters on instrument change"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7533
+#: src/gui/insEdit.cpp:7545
 msgid "Modulation depth"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7537
+#: src/gui/insEdit.cpp:7549
 msgid "Modulation speed"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7541
+#: src/gui/insEdit.cpp:7553
 msgid "Modulation table"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7590
+#: src/gui/insEdit.cpp:7602
 msgid "Set modulation table (channel 5 only)"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7654 src/gui/insEdit.cpp:8184
+#: src/gui/insEdit.cpp:7666 src/gui/insEdit.cpp:8196
 msgid "Filter K1"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7656 src/gui/insEdit.cpp:8185
+#: src/gui/insEdit.cpp:7668 src/gui/insEdit.cpp:8197
 msgid "Filter K2"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7660
+#: src/gui/insEdit.cpp:7672
 msgid "Envelope length"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7663
+#: src/gui/insEdit.cpp:7675
 msgid "Left Volume Ramp"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7665
+#: src/gui/insEdit.cpp:7677
 msgid "Right Volume Ramp"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7668
+#: src/gui/insEdit.cpp:7680
 msgid "Filter K1 Ramp"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7670
+#: src/gui/insEdit.cpp:7682
 msgid "Filter K2 Ramp"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7673
+#: src/gui/insEdit.cpp:7685
 msgid "K1 Ramp Slowdown"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7675
+#: src/gui/insEdit.cpp:7687
 msgid "K2 Ramp Slowdown"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7697
+#: src/gui/insEdit.cpp:7709
 msgid "Attack Rate"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7703
+#: src/gui/insEdit.cpp:7715
 msgid "Decay 1 Rate"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7709
+#: src/gui/insEdit.cpp:7721
 msgid "Decay Level"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7715
+#: src/gui/insEdit.cpp:7727
 msgid "Decay 2 Rate"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7721
+#: src/gui/insEdit.cpp:7733
 msgid "Release Rate"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7727
+#: src/gui/insEdit.cpp:7739
 msgid "Rate Correction"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7755
+#: src/gui/insEdit.cpp:7767
 msgid "LFO Rate"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7766
+#: src/gui/insEdit.cpp:7778
 msgid "Use envelope"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7819
+#: src/gui/insEdit.cpp:7831
 msgid "Sustain/release mode:"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7820
+#: src/gui/insEdit.cpp:7832
 msgid "Direct (cut on release)"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7823
+#: src/gui/insEdit.cpp:7835
 msgid "Effective (linear decrease)"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7826
+#: src/gui/insEdit.cpp:7838
 msgid "Effective (exponential decrease)"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7829
+#: src/gui/insEdit.cpp:7841
 msgid "Delayed (write R on release)"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7839 src/gui/insEdit.cpp:7840
+#: src/gui/insEdit.cpp:7851 src/gui/insEdit.cpp:7852
 msgid "Gain Mode"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7842 src/gui/insEdit.cpp:7843 src/gui/insEdit.cpp:8206
+#: src/gui/insEdit.cpp:7854 src/gui/insEdit.cpp:7855 src/gui/insEdit.cpp:8218
 msgid "Gain"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7876
+#: src/gui/insEdit.cpp:7888
 msgid ""
 "using decrease modes will not produce any sound at all, unless you know what "
 "you are doing.\n"
 "it is recommended to use the Gain macro for decrease instead."
 msgstr ""
 
-#: src/gui/insEdit.cpp:7925 src/gui/insEdit.cpp:8015 src/gui/insEdit.cpp:8211
-#: src/gui/insEdit.cpp:8248
+#: src/gui/insEdit.cpp:7937 src/gui/insEdit.cpp:8027 src/gui/insEdit.cpp:8223
+#: src/gui/insEdit.cpp:8260
 msgid "Duty/Noise"
 msgstr "占空比/噪声"
 
-#: src/gui/insEdit.cpp:7953 src/gui/insEdit.cpp:8289
+#: src/gui/insEdit.cpp:7965 src/gui/insEdit.cpp:8301
 msgid "Surround"
 msgstr "环绕"
 
-#: src/gui/insEdit.cpp:7977 src/gui/insEdit.cpp:7992 src/gui/insEdit.cpp:8098
-#: src/gui/insEdit.cpp:8200 src/gui/insEdit.cpp:8240 src/gui/insEdit.cpp:8425
+#: src/gui/insEdit.cpp:7989 src/gui/insEdit.cpp:8004 src/gui/insEdit.cpp:8110
+#: src/gui/insEdit.cpp:8212 src/gui/insEdit.cpp:8252 src/gui/insEdit.cpp:8437
 msgid "Noise Freq"
 msgstr "噪声频率"
 
-#: src/gui/insEdit.cpp:7983 src/gui/insEdit.cpp:7999 src/gui/insEdit.cpp:8158
+#: src/gui/insEdit.cpp:7995 src/gui/insEdit.cpp:8011 src/gui/insEdit.cpp:8170
 msgid "AutoEnv Num"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7984 src/gui/insEdit.cpp:8000 src/gui/insEdit.cpp:8159
+#: src/gui/insEdit.cpp:7996 src/gui/insEdit.cpp:8012 src/gui/insEdit.cpp:8171
 msgid "AutoEnv Den"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7985 src/gui/insEdit.cpp:8001
+#: src/gui/insEdit.cpp:7997 src/gui/insEdit.cpp:8013
 msgid "Force Period"
 msgstr ""
 
-#: src/gui/insEdit.cpp:7986 src/gui/insEdit.cpp:8002
+#: src/gui/insEdit.cpp:7998 src/gui/insEdit.cpp:8014
 msgid "Env Period"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8003
+#: src/gui/insEdit.cpp:8015
 msgid "Noise AND Mask"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8004
+#: src/gui/insEdit.cpp:8016
 msgid "Noise OR Mask"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8025
+#: src/gui/insEdit.cpp:8037
 msgid "On/Off"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8051
+#: src/gui/insEdit.cpp:8063
 msgid "Patch"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8067
+#: src/gui/insEdit.cpp:8079
 msgid "Mod Depth"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8068
+#: src/gui/insEdit.cpp:8080
 msgid "Mod Speed"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8069
+#: src/gui/insEdit.cpp:8081
 msgid "Mod Position"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8074
+#: src/gui/insEdit.cpp:8086
 msgid "Noise Length"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8084
+#: src/gui/insEdit.cpp:8096
 msgid "Wave Pos"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8087
+#: src/gui/insEdit.cpp:8099
 msgid "Wave Length"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8106
+#: src/gui/insEdit.cpp:8118
 msgid "AUDCTL"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8113 src/gui/insEdit.cpp:8344
+#: src/gui/insEdit.cpp:8125 src/gui/insEdit.cpp:8356
 msgid "Pulse Width"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8130
+#: src/gui/insEdit.cpp:8142
 msgid "Duty/Int"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8136 src/gui/insEdit.cpp:8407
+#: src/gui/insEdit.cpp:8148 src/gui/insEdit.cpp:8419
 msgid "Load LFSR"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8156
+#: src/gui/insEdit.cpp:8168
 msgid "Envelope Mode"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8186 src/gui/settings.cpp:1377
+#: src/gui/insEdit.cpp:8198 src/gui/settings.cpp:1377
 msgid "Outputs"
 msgstr "输出"
 
-#: src/gui/insEdit.cpp:8187 src/gui/insEdit.cpp:8218 src/gui/insEdit.cpp:8383
-#: src/gui/insEdit.cpp:8404 src/gui/insEdit.cpp:8416 src/gui/insEdit.cpp:8431
+#: src/gui/insEdit.cpp:8199 src/gui/insEdit.cpp:8230 src/gui/insEdit.cpp:8395
+#: src/gui/insEdit.cpp:8416 src/gui/insEdit.cpp:8428 src/gui/insEdit.cpp:8443
 #: src/gui/settings.cpp:253
 msgid "Control"
 msgstr "控制"
 
-#: src/gui/insEdit.cpp:8219
+#: src/gui/insEdit.cpp:8231
 msgid "Phase Reset Timer"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8253 src/gui/insEdit.cpp:8260
+#: src/gui/insEdit.cpp:8265 src/gui/insEdit.cpp:8272
 msgid "Freq Divider"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8256
+#: src/gui/insEdit.cpp:8268
 msgid "Clock Divider"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8265
+#: src/gui/insEdit.cpp:8277
 msgid "Global Volume"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8287
+#: src/gui/insEdit.cpp:8299
 msgid "Echo Level"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8292
+#: src/gui/insEdit.cpp:8304
 msgid "Echo Feedback"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8293
+#: src/gui/insEdit.cpp:8305
 msgid "Echo Length"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8313
+#: src/gui/insEdit.cpp:8325
 msgid "Group Ctrl"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8314
+#: src/gui/insEdit.cpp:8326
 msgid "Group Attack"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8315
+#: src/gui/insEdit.cpp:8327
 msgid "Group Decay"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8321
+#: src/gui/insEdit.cpp:8333
 msgid "Noise Type"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8368
+#: src/gui/insEdit.cpp:8380
 msgid "Square/Noise"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8405
+#: src/gui/insEdit.cpp:8417
 msgid "Tap A Location"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8406
+#: src/gui/insEdit.cpp:8418
 msgid "Tap B Location"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8417
+#: src/gui/insEdit.cpp:8429
 msgid "Portion A Length"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8418
+#: src/gui/insEdit.cpp:8430
 msgid "Portion B Length"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8419
+#: src/gui/insEdit.cpp:8431
 msgid "Portion A Offset"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8420
+#: src/gui/insEdit.cpp:8432
 msgid "Portion B Offset"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8464
+#: src/gui/insEdit.cpp:8476
 msgid "Parameter"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8468
+#: src/gui/insEdit.cpp:8480
 msgid "Load Value"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8502
+#: src/gui/insEdit.cpp:8514
 msgid "Timer Macros"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8504
+#: src/gui/insEdit.cpp:8516
 msgid "warning: timer effects are not supported by VGM export!"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8505
+#: src/gui/insEdit.cpp:8517
 msgid "Timer FX"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8506
+#: src/gui/insEdit.cpp:8518
 msgid "TFX Offset"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8507
+#: src/gui/insEdit.cpp:8519
 msgid "Timer Num"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8508
+#: src/gui/insEdit.cpp:8520
 msgid "Timer Den"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8509
+#: src/gui/insEdit.cpp:8521
 msgid "PWM Boundary"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8522
+#: src/gui/insEdit.cpp:8534
 msgid "Octave offset"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8527
+#: src/gui/insEdit.cpp:8539
 msgid "go to Macros for other parameters."
 msgstr ""
 
-#: src/gui/insEdit.cpp:8543
+#: src/gui/insEdit.cpp:8555
 msgid "invalid instrument type! change it first."
 msgstr ""
 
-#: src/gui/insEdit.cpp:8587
+#: src/gui/insEdit.cpp:8599
 msgid "clear contents"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8593
+#: src/gui/insEdit.cpp:8605
 msgid "offset..."
 msgstr "偏移..."
 
-#: src/gui/insEdit.cpp:8594 src/gui/insEdit.cpp:8627
+#: src/gui/insEdit.cpp:8606 src/gui/insEdit.cpp:8639
 msgid "X"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8595 src/gui/insEdit.cpp:8631
+#: src/gui/insEdit.cpp:8607 src/gui/insEdit.cpp:8643
 msgid "Y"
 msgstr ""
 
-#: src/gui/insEdit.cpp:8596
+#: src/gui/insEdit.cpp:8608
 msgid "offset"
 msgstr "偏移"
 
-#: src/gui/insEdit.cpp:8659
+#: src/gui/insEdit.cpp:8671
 msgid "Min"
 msgstr "最小"
 
-#: src/gui/insEdit.cpp:8660
+#: src/gui/insEdit.cpp:8672
 msgid "Max"
 msgstr "最大"
 

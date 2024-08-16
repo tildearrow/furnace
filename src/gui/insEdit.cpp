@@ -6166,6 +6166,12 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
           {
             ImGui::SetTooltip(_("How much cutoff changes for given pitch change."));
           }
+          snprintf(buffer, 100, _("Scale cutoff only once on new note##bindcutnn%d"), i + 1);
+          P(ImGui::Checkbox(buffer,&filt->bindCutoffOnNote));
+          if (ImGui::IsItemHovered()) 
+          {
+            ImGui::SetTooltip(_("Filter cutoff will be changed only once on new note.\nIf this option is disabled, cutoff scaling will be applied\nevery time a pitch change happens."));
+          }
         }
 
         snprintf(buffer, 100, _("Change resonance with pitch##bindres%d"), i + 1);
@@ -6198,6 +6204,12 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
           if (ImGui::IsItemHovered()) 
           {
             ImGui::SetTooltip(_("How much resonance changes for given pitch change."));
+          }
+          snprintf(buffer, 100, _("Scale resonance only once on new note##bindresnn%d"), i + 1);
+          P(ImGui::Checkbox(buffer,&filt->bindResonanceOnNote));
+          if (ImGui::IsItemHovered()) 
+          {
+            ImGui::SetTooltip(_("Filter resonance will be changed only once on new note.\nIf this option is disabled, resonance scaling will be applied\nevery time a pitch change happens."));
           }
         }
       }

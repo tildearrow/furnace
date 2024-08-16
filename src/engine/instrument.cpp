@@ -257,7 +257,6 @@ bool DivInstrumentESFM::Operator::operator==(const DivInstrumentESFM::Operator& 
 
 bool DivInstrumentSID3::operator==(const DivInstrumentSID3& other) {
   return (
-    _C(volume) &&
     _C(sr) &&
     _C(lfsr_taps) &&
     _C(phase_mod) &&
@@ -293,10 +292,12 @@ bool DivInstrumentSID3::Filter::operator==(const DivInstrumentSID3::Filter& othe
     _C(bindCutoffToNoteStrength) &&
     _C(bindCutoffToNoteCenter) &&
     _C(bindCutoffToNoteDir) &&
+    _C(bindCutoffOnNote) &&
     _C(bindResonanceToNote) &&
     _C(bindResonanceToNoteStrength) &&
     _C(bindResonanceToNoteCenter) &&
-    _C(bindResonanceToNoteDir)
+    _C(bindResonanceToNoteDir) &&
+    _C(bindResonanceOnNote)
   );
 }
 
@@ -902,6 +903,55 @@ void DivInstrument::writeFeatureS3(SafeWriter* w) {
   w->writeC(c64.s);
   w->writeC(sid3.sr);
   w->writeC(c64.r);
+
+  w->writeC(
+    (sid3.phase_mod?0x80:0)|
+    (sid3.specialWaveOn?0x40:0)|
+    (sid3.oneBitNoise?0x20:0)|
+    (sid3.separateNoisePitch?0x10:0)|
+    (sid3.doWavetable?8:0)
+  );
+
+  w->writeI(sid3.lfsr_taps);
+  w->writeC(sid3.phase_mod_source);
+  w->writeC(sid3.ring_mod_source);
+  w->writeC(sid3.sync_source);
+  w->writeC(sid3.special_wave);
+  w->writeC(sid3.phaseInv);
+  w->writeC(sid3.feedback);
+
+  w->writeC(4); //number of filters
+
+  for(int i = 0; i < 4; i++)
+  {
+    w->writeC(
+      (sid3.filt[i].enabled?0x80:0)|
+      (sid3.filt[i].init?0x40:0)|
+      (sid3.filt[i].absoluteCutoff?0x20:0)|
+      (sid3.filt[i].bindCutoffToNote?0x10:0)|
+      (sid3.filt[i].bindCutoffToNoteDir?8:0)|
+      (sid3.filt[i].bindCutoffOnNote?4:0)|
+      (sid3.filt[i].bindResonanceToNote?2:0)|
+      (sid3.filt[i].bindResonanceToNoteDir?1:0)
+    );
+
+    w->writeC(
+      (sid3.filt[i].bindResonanceOnNote?0x80:0)
+    );
+
+    w->writeS(sid3.filt[i].cutoff);
+
+    w->writeC(sid3.filt[i].resonance);
+    w->writeC(sid3.filt[i].output_volume);
+    w->writeC(sid3.filt[i].distortion_level);
+    w->writeC(sid3.filt[i].mode);
+    w->writeC(sid3.filt[i].filter_matrix);
+
+    w->writeC(sid3.filt[i].bindCutoffToNoteStrength);
+    w->writeC(sid3.filt[i].bindCutoffToNoteCenter);
+    w->writeC(sid3.filt[i].bindResonanceToNoteStrength);
+    w->writeC(sid3.filt[i].bindResonanceToNoteCenter);
+  }
 
   FEATURE_END;
 }
@@ -1730,7 +1780,14 @@ void DivInstrument::readFeature64(SafeReader& reader, bool& volIsCutoff, short v
     c64.r=next&15;
   }
 
-  c64.duty=reader.readS()&4095;
+  if(type == DIV_INS_SID3)
+  {
+    c64.duty = reader.readS();
+  }
+  else
+  {
+    c64.duty=reader.readS()&4095;
+  }
 
   unsigned short cr=reader.readS();
   c64.cut=cr&4095;
@@ -2277,6 +2334,55 @@ void DivInstrument::readFeatureS3(SafeReader& reader, short version) {
   c64.s=reader.readC();
   sid3.sr=reader.readC();
   c64.r=reader.readC();
+
+  unsigned char next = reader.readC();
+
+  sid3.phase_mod = next&0x80;
+  sid3.specialWaveOn = next&0x40;
+  sid3.oneBitNoise = next&0x20;
+  sid3.separateNoisePitch = next&0x10;
+  sid3.doWavetable = next&8;
+
+  sid3.lfsr_taps = reader.readI();
+  sid3.phase_mod_source = reader.readC();
+  sid3.ring_mod_source = reader.readC();
+  sid3.sync_source = reader.readC();
+  sid3.special_wave = reader.readC();
+  sid3.phaseInv = reader.readC();
+  sid3.feedback = reader.readC();
+
+  unsigned char numFilters = reader.readC();
+
+  for(int i = 0; i < numFilters; i++)
+  {
+    next = reader.readC();
+
+    sid3.filt[i].enabled = next&0x80;
+    sid3.filt[i].init = next&0x40;
+    sid3.filt[i].absoluteCutoff = next&0x20;
+    sid3.filt[i].bindCutoffToNote = next&0x10;
+    sid3.filt[i].bindCutoffToNoteDir = next&8;
+    sid3.filt[i].bindCutoffOnNote = next&4;
+    sid3.filt[i].bindResonanceToNote = next&2;
+    sid3.filt[i].bindResonanceToNoteDir = next&1;
+
+    next = reader.readC();
+
+    sid3.filt[i].bindResonanceOnNote = next&0x80;
+
+    sid3.filt[i].cutoff = reader.readS();
+
+    sid3.filt[i].resonance = reader.readC();
+    sid3.filt[i].output_volume = reader.readC();
+    sid3.filt[i].distortion_level = reader.readC();
+    sid3.filt[i].mode = reader.readC();
+    sid3.filt[i].filter_matrix = reader.readC();
+
+    sid3.filt[i].bindCutoffToNoteStrength = reader.readC();
+    sid3.filt[i].bindCutoffToNoteCenter = reader.readC();
+    sid3.filt[i].bindResonanceToNoteStrength = reader.readC();
+    sid3.filt[i].bindResonanceToNoteCenter = reader.readC();
+  }
 
   READ_FEAT_END;
 }

@@ -864,7 +864,6 @@ struct DivInstrumentSID2 {
 
 struct DivInstrumentSID3 
 {
-  unsigned char volume;
   unsigned char sr;
   unsigned int lfsr_taps;
   bool phase_mod;
@@ -894,11 +893,13 @@ struct DivInstrumentSID3
     unsigned char bindCutoffToNoteStrength; //how much cutoff changes over e.g. 1 semitone
     unsigned char bindCutoffToNoteCenter; //central note of the cutoff change
     bool bindCutoffToNoteDir; //if we decrease or increase cutoff if e.g. we go upper in note space
+    bool bindCutoffOnNote; //only do cutoff scaling once, on new note
 
     bool bindResonanceToNote;
     unsigned char bindResonanceToNoteStrength; //how much resonance changes over e.g. 1 semitone
     unsigned char bindResonanceToNoteCenter; //central note of the resonance change
     bool bindResonanceToNoteDir; //if we decrease or increase resonance if e.g. we go upper in note space
+    bool bindResonanceOnNote; //only do resonance scaling once, on new note
 
     bool operator==(const Filter& other);
     bool operator!=(const Filter& other) 
@@ -919,10 +920,12 @@ struct DivInstrumentSID3
       bindCutoffToNoteStrength(0),
       bindCutoffToNoteCenter(0),
       bindCutoffToNoteDir(false),
+      bindCutoffOnNote(false),
       bindResonanceToNote(false),
       bindResonanceToNoteStrength(0),
       bindResonanceToNoteCenter(0),
-      bindResonanceToNoteDir(false) {}
+      bindResonanceToNoteDir(false),
+      bindResonanceOnNote(false) {}
   } filt[4];
   
   bool operator==(const DivInstrumentSID3& other);
@@ -931,7 +934,6 @@ struct DivInstrumentSID3
     return !(*this==other);
   }
   DivInstrumentSID3():
-    volume(255),
     sr(0),
     lfsr_taps(0),
     phase_mod(false),

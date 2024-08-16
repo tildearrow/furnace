@@ -28,6 +28,10 @@
 #define CHIP_FREQBASE 524288
 #define CHIP_DIVIDER 1
 
+#define CURRENT_FREQ_IN_HZ() ((double)chipClock / pow(2.0, (double)SID3_ACC_BITS) * (double)chan[i].freq)
+#define c_5_FREQ() (parent->song.tuning / pow(2, (12.0 * 9.0 + 9.0) / 12.0))
+#define FREQ_FOR_NOTE(note) (c_5_FREQ() * pow(2, (double)note / 12.0))
+
 const char* regCheatSheetSID3[]={
   "FreqL0", "00",
   "FreqH0", "01",
@@ -278,6 +282,8 @@ void DivPlatformSID3::tick(bool sysTick)
   {
     chan[i].std.next();
 
+    DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SID3);
+
     bool panChanged = false;
     bool flagsChanged = false;
     bool envChanged = false;
@@ -507,7 +513,6 @@ void DivPlatformSID3::tick(bool sysTick)
     for(int j = 0; j < SID3_NUM_FILTERS; j++) //filter macros
     {
       DivMacroInt::IntOp* op = &chan[i].std.op[j];
-      DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SID3);
       DivPlatformSID3::Channel::Filter* ch_filt = &chan[i].filt[j];
       DivInstrumentSID3::Filter* ins_filt = &ins->sid3.filt[j];
 
@@ -634,6 +639,50 @@ void DivPlatformSID3::tick(bool sysTick)
       if (chan[i].freq>0xffffff) chan[i].freq=0xffffff;
 
       updateFreq(i);
+      
+      for(int j = 0; j < SID3_NUM_FILTERS; j++)
+      {
+        bool doUpdateFilter = false;
+
+        if(chan[i].filt[j].bindCutoffToNote && (!ins->sid3.filt[j].bindCutoffOnNote || chan[i].keyOn))
+        {
+          double scaling = CURRENT_FREQ_IN_HZ() / FREQ_FOR_NOTE(chan[i].filt[j].bindCutoffToNoteCenter) - 1.0;
+          if (chan[i].filt[j].bindCutoffToNoteDir)
+          {
+            scaling *= -1.0;
+          }
+
+          int cutoff = ins->sid3.filt[j].cutoff + (int)(scaling * (double)chan[i].filt[j].bindCutoffToNoteStrength * 80.0);
+
+          if(cutoff > 0xffff) cutoff = 0xffff;
+          if(cutoff < 0) cutoff = 0;
+
+          chan[i].filt[j].cutoff = cutoff;
+          doUpdateFilter = true;
+        }
+
+        if(chan[i].filt[j].bindResonanceToNote && (!ins->sid3.filt[j].bindResonanceOnNote || chan[i].keyOn))
+        {
+          double scaling = CURRENT_FREQ_IN_HZ() / FREQ_FOR_NOTE(chan[i].filt[j].bindResonanceToNoteCenter) - 1.0;
+          if (chan[i].filt[j].bindResonanceToNoteDir)
+          {
+            scaling *= -1.0;
+          }
+
+          int res = ins->sid3.filt[j].resonance + (int)(scaling * (double)chan[i].filt[j].bindResonanceToNoteStrength * 80.0 / 256.0);
+
+          if(res > 0xff) res = 0xff;
+          if(res < 0) res = 0;
+
+          chan[i].filt[j].resonance = res;
+          doUpdateFilter = true;
+        }
+
+        if(doUpdateFilter)
+        {
+          updateFilter(i, j);
+        }
+      }
 
       if (chan[i].pcm && i == SID3_NUM_CHANNELS - 1) {
         double off=1.0;
@@ -803,6 +852,17 @@ int DivPlatformSID3::dispatch(DivCommand c) {
             chan[c.chan].filt[j].filter_matrix = ins->sid3.filt[j].filter_matrix;
             chan[c.chan].filt[j].mode = ins->sid3.filt[j].mode;
             chan[c.chan].filt[j].output_volume = ins->sid3.filt[j].output_volume;
+
+            chan[c.chan].filt[j].bindCutoffToNote = ins->sid3.filt[j].bindCutoffToNote;
+            chan[c.chan].filt[j].bindCutoffToNoteStrength = ins->sid3.filt[j].bindCutoffToNoteStrength;
+            chan[c.chan].filt[j].bindCutoffToNoteCenter = ins->sid3.filt[j].bindCutoffToNoteCenter;
+            chan[c.chan].filt[j].bindCutoffToNoteDir = ins->sid3.filt[j].bindCutoffToNoteDir;
+
+            chan[c.chan].filt[j].bindResonanceToNote = ins->sid3.filt[j].bindResonanceToNote;
+            chan[c.chan].filt[j].bindResonanceToNoteStrength = ins->sid3.filt[j].bindResonanceToNoteStrength;
+            chan[c.chan].filt[j].bindResonanceToNoteCenter = ins->sid3.filt[j].bindResonanceToNoteCenter;
+            chan[c.chan].filt[j].bindResonanceToNoteDir = ins->sid3.filt[j].bindResonanceToNoteDir;
+
             updateFilter(c.chan, j);
           }
         }

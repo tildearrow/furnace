@@ -771,6 +771,8 @@ int DivPlatformGBAMinMod::init(DivEngine* p, int channels, int sugRate, const Di
   setFlags(flags);
   reset();
 
+  maxCPU = 0.0; //initialize!
+
   return 16;
 }
 

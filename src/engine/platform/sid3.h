@@ -54,6 +54,16 @@ class DivPlatformSID3: public DivDispatch {
 
       short cutoff_slide;
 
+      bool bindCutoffToNote; //cutoff scaling
+      unsigned char bindCutoffToNoteStrength; //how much cutoff changes over e.g. 1 semitone
+      unsigned char bindCutoffToNoteCenter; //central note of the cutoff change
+      bool bindCutoffToNoteDir; //if we decrease or increase cutoff if e.g. we go upper in note space
+
+      bool bindResonanceToNote;
+      unsigned char bindResonanceToNoteStrength; //how much resonance changes over e.g. 1 semitone
+      unsigned char bindResonanceToNoteCenter; //central note of the resonance change
+      bool bindResonanceToNoteDir; //if we decrease or increase resonance if e.g. we go upper in note space
+
       Filter():
         cutoff(0),
         resonance(0),
@@ -62,7 +72,15 @@ class DivPlatformSID3: public DivDispatch {
         mode(0),
         enabled(false),
         filter_matrix(0),
-        cutoff_slide(0) {}
+        cutoff_slide(0),
+        bindCutoffToNote(false),
+        bindCutoffToNoteStrength(0),
+        bindCutoffToNoteCenter(0),
+        bindCutoffToNoteDir(false),
+        bindResonanceToNote(false),
+        bindResonanceToNoteStrength(0),
+        bindResonanceToNoteCenter(0),
+        bindResonanceToNoteDir(false) {}
     } filt[SID3_NUM_FILTERS];
 
     int noise_baseNoteOverride;
