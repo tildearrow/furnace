@@ -16286,7 +16286,7 @@ msgstr "Альбом"
 
 #: src/gui/songInfo.cpp:79
 msgid "Auto"
-msgstr "Автоматически"
+msgstr "Авто"
 
 #: src/gui/songInfo.cpp:100
 msgid "Tuning (A-4)"
