@@ -1205,37 +1205,37 @@ void FurnaceGUI::initSystemPresets() {
     );
     SUB_ENTRY(
         "Sega TeraDrive", {
-          CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, ""),
           CH(DIV_SYSTEM_YM2612, 1.0f, 0, ""),
           CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
+          CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
       }
     );
       SUB_SUB_ENTRY(
           "Sega TeraDrive (extended channel 3)", {
-            CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, ""),
             CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, ""),
-            CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
+            CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
+            CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
         }
     );
       SUB_SUB_ENTRY(
           "Sega TeraDrive (CSM)", {
-            CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, ""),
             CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, ""),
-            CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
+            CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
+            CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
         }
     );
       SUB_SUB_ENTRY(
           "Sega TeraDrive (DualPCM)", {
-            CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, ""),
             CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, ""),
-            CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
+            CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
+            CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
         }
     );
       SUB_SUB_ENTRY(
           "Sega TeraDrive (DualPCM, extended channel 3)", {
-            CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, ""),
             CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, ""),
-            CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
+            CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
+            CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
         }
     );
   ENTRY(
