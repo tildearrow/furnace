@@ -752,6 +752,88 @@ void FurnaceGUI::autoDetectSystem() {
   }
 }
 
+void FurnaceGUI::updateROMExportAvail() {
+  unsigned char sysReqCount[DIV_SYSTEM_MAX];
+  unsigned char defReqCount[DIV_SYSTEM_MAX];
+
+  memset(sysReqCount,0,DIV_SYSTEM_MAX);
+  for (int i=0; i<e->song.systemLen; i++) {
+    sysReqCount[e->song.system[i]]++;
+  }
+
+  memset(romExportAvail,0,sizeof(bool)*DIV_ROM_MAX);
+  romExportExists=false;
+
+  for (int i=0; i<DIV_ROM_MAX; i++) {
+    const DivROMExportDef* newDef=e->getROMExportDef((DivROMExportOptions)i);
+    if (newDef!=NULL) {
+      // check for viability
+      bool viable=true;
+
+      memset(defReqCount,0,DIV_SYSTEM_MAX);
+      for (DivSystem j: newDef->requisites) {
+        defReqCount[j]++;
+      }
+
+      switch (newDef->requisitePolicy) {
+        case DIV_REQPOL_EXACT:
+          for (int j=0; j<DIV_SYSTEM_MAX; j++) {
+            if (defReqCount[j]!=sysReqCount[j]) {
+              viable=false;
+              break;
+            }
+          }
+          break;
+        case DIV_REQPOL_ANY:
+          for (int j=0; j<DIV_SYSTEM_MAX; j++) {
+            if (defReqCount[j]>sysReqCount[j]) {
+              viable=false;
+              break;
+            }
+          }
+          break;
+        case DIV_REQPOL_LAX:
+          viable=false;
+          for (DivSystem j: newDef->requisites) {
+            if (defReqCount[j]<=sysReqCount[j]) {
+              viable=true;
+              break;
+            }
+          }
+          break;
+      }
+      
+      if (viable) {
+        romExportAvail[i]=true;
+        romExportExists=true;
+      }
+    }
+  }
+
+  if (!romExportAvail[romTarget]) {
+    // find a new one
+    romTarget=DIV_ROM_ABSTRACT;
+    for (int i=0; i<DIV_ROM_MAX; i++) {
+      const DivROMExportDef* newDef=e->getROMExportDef((DivROMExportOptions)i);
+      if (newDef!=NULL) {
+        if (romExportAvail[i]) {
+          romTarget=(DivROMExportOptions)i;
+          romMultiFile=newDef->multiOutput;
+          romConfig=DivConfig();
+          if (newDef->fileExt==NULL) {
+            romFilterName="";
+            romFilterExt="";
+          } else {
+            romFilterName=newDef->fileType;
+            romFilterExt=newDef->fileExt;
+          }
+          break;
+        }
+      }
+    }
+  }
+}
+
 ImVec4 FurnaceGUI::channelColor(int ch) {
   switch (settings.channelColors) {
     case 0:
@@ -2359,6 +2441,7 @@ int FurnaceGUI::load(String path) {
   undoHist.clear();
   redoHist.clear();
   updateWindowTitle();
+  updateROMExportAvail();
   updateScroll(0);
   if (!e->getWarnings().empty()) {
     showWarning(e->getWarnings(),GUI_WARN_GENERIC);
@@ -4301,9 +4384,11 @@ bool FurnaceGUI::loop() {
             drawExportVGM();
             ImGui::EndMenu();
           }
-          if (ImGui::BeginMenu(_("export ROM..."))) {
-            drawExportROM();
-            ImGui::EndMenu();
+          if (romExportExists) {
+            if (ImGui::BeginMenu(_("export ROM..."))) {
+              drawExportROM();
+              ImGui::EndMenu();
+            }
           }
           int numZSMCompat=0;
           for (int i=0; i<e->song.systemLen; i++) {
@@ -4336,9 +4421,11 @@ bool FurnaceGUI::loop() {
             curExportType=GUI_EXPORT_VGM;
             displayExport=true;
           }
-          if (ImGui::MenuItem(_("export ROM..."))) {
-            curExportType=GUI_EXPORT_ROM;
-            displayExport=true;
+          if (romExportExists) {
+            if (ImGui::MenuItem(_("export ROM..."))) {
+              curExportType=GUI_EXPORT_ROM;
+              displayExport=true;
+            }
           }
           int numZSMCompat=0;
           for (int i=0; i<e->song.systemLen; i++) {
@@ -4387,6 +4474,7 @@ bool FurnaceGUI::loop() {
                 autoDetectSystem();
               }
               updateWindowTitle();
+              updateROMExportAvail();
             }
             ImGui::EndMenu();
           }
@@ -4413,6 +4501,7 @@ bool FurnaceGUI::loop() {
                       autoDetectSystem();
                     }
                     updateWindowTitle();
+                    updateROMExportAvail();
                   } else {
                     showError(fmt::sprintf(_("cannot change chip! (%s)"),e->getLastError()));
                   }
@@ -4437,6 +4526,7 @@ bool FurnaceGUI::loop() {
                   autoDetectSystem();
                   updateWindowTitle();
                 }
+                updateROMExportAvail();
               }
             }
             ImGui::EndMenu();
@@ -5695,6 +5785,7 @@ bool FurnaceGUI::loop() {
         selEnd=SelectionPoint();
         cursor=SelectionPoint();
         updateWindowTitle();
+        updateROMExportAvail();
       } else {
         ImGui::OpenPopup(_("New Song"));
       }
@@ -6245,6 +6336,7 @@ bool FurnaceGUI::loop() {
               updateWindowTitle();
               MARK_MODIFIED;
             }
+            updateROMExportAvail();
             ImGui::CloseCurrentPopup();
           }
           ImGui::SameLine();
@@ -7263,6 +7355,7 @@ bool FurnaceGUI::init() {
   }
 
   updateWindowTitle();
+  updateROMExportAvail();
 
   logV("max texture size: %dx%d",rend->getMaxTextureWidth(),rend->getMaxTextureHeight());
 
@@ -8397,7 +8490,8 @@ FurnaceGUI::FurnaceGUI():
   romTarget(DIV_ROM_ABSTRACT),
   romMultiFile(false),
   romExportSave(false),
-  pendingExport(NULL) {
+  pendingExport(NULL),
+  romExportExists(false) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
@@ -8515,6 +8609,8 @@ FurnaceGUI::FurnaceGUI():
   memset(emptyLabel2,0,32);
   // effect sorting
   memset(effectsShow,1,sizeof(bool)*10);
+
+  memset(romExportAvail,0,sizeof(bool)*DIV_ROM_MAX);
 
   strncpy(noteOffLabel,"OFF",32);
   strncpy(noteRelLabel,"===",32);

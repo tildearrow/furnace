@@ -249,16 +249,18 @@ void FurnaceGUI::drawExportROM(bool onWindow) {
     for (int i=0; i<DIV_ROM_MAX; i++) {
       const DivROMExportDef* newDef=e->getROMExportDef((DivROMExportOptions)i);
       if (newDef!=NULL) {
-        if (ImGui::Selectable(newDef->name)) {
-          romTarget=(DivROMExportOptions)i;
-          romMultiFile=newDef->multiOutput;
-          romConfig=DivConfig();
-          if (newDef->fileExt==NULL) {
-            romFilterName="";
-            romFilterExt="";
-          } else {
-            romFilterName=newDef->fileType;
-            romFilterExt=newDef->fileExt;
+        if (romExportAvail[i]) {
+          if (ImGui::Selectable(newDef->name)) {
+            romTarget=(DivROMExportOptions)i;
+            romMultiFile=newDef->multiOutput;
+            romConfig=DivConfig();
+            if (newDef->fileExt==NULL) {
+              romFilterName="";
+              romFilterExt="";
+            } else {
+              romFilterName=newDef->fileType;
+              romFilterExt=newDef->fileExt;
+            }
           }
         }
       }
@@ -436,9 +438,11 @@ void FurnaceGUI::drawExport() {
         drawExportVGM(true);
         ImGui::EndTabItem();
       }
-      if (ImGui::BeginTabItem(_("ROM"))) {
-        drawExportROM(true);
-        ImGui::EndTabItem();
+      if (romExportExists) {
+        if (ImGui::BeginTabItem(_("ROM"))) {
+          drawExportROM(true);
+          ImGui::EndTabItem();
+        }
       }
       int numZSMCompat=0;
       for (int i=0; i<e->song.systemLen; i++) {
