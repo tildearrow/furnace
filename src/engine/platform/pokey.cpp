@@ -410,16 +410,16 @@ DivMacroInt* DivPlatformPOKEY::getChanMacroInt(int ch) {
 void DivPlatformPOKEY::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   switch (ch) {
     case 0:
-      if (audctl&4) ret.push_back(DivChannelPair("filter",2));
+      if (audctl&4) ret.push_back(DivChannelPair(_("filter"),2));
       break;
     case 1:
-      if (audctl&16) ret.push_back(DivChannelPair("16-bit",0));
+      if (audctl&16) ret.push_back(DivChannelPair(_("16-bit"),0));
       break;
     case 2:
-      if (audctl&8) ret.push_back(DivChannelPair("16-bit",3));
+      if (audctl&8) ret.push_back(DivChannelPair(_("16-bit"),3));
       break;
     case 3:
-      if (audctl&2) ret.push_back(DivChannelPair("filter",1));
+      if (audctl&2) ret.push_back(DivChannelPair(_("filter"),1));
       break;
   }
 }

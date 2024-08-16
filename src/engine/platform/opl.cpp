@@ -2101,7 +2101,7 @@ unsigned short DivPlatformOPL::getPan(int ch) {
 void DivPlatformOPL::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   if (oplType==3 && ch<12 && !(ch&1)) {
     if (chan[ch].fourOp) {
-      ret.push_back(DivChannelPair("4OP",ch+1));
+      ret.push_back(DivChannelPair(_("4OP"),ch+1));
     }
   }
 }

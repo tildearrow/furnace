@@ -526,13 +526,13 @@ unsigned short DivPlatformDave::getPan(int ch) {
 
 void DivPlatformDave::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   if (chan[ch].highPass) {
-    ret.push_back(DivChannelPair("high",(ch+1)&3));
+    ret.push_back(DivChannelPair(_("high"),(ch+1)&3));
   }
   if (chan[ch].ringMod) {
-    ret.push_back(DivChannelPair("ring",(ch+2)&3));
+    ret.push_back(DivChannelPair(_("ring"),(ch+2)&3));
   }
   if (chan[ch].lowPass && ch == 3) {
-    ret.push_back(DivChannelPair("low",2));
+    ret.push_back(DivChannelPair(_("low"),2));
   }
 }
 

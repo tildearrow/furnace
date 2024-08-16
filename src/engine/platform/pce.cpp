@@ -540,7 +540,7 @@ unsigned short DivPlatformPCE::getPan(int ch) {
 
 void DivPlatformPCE::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   if (ch==1 && lfoMode>0) {
-    ret.push_back(DivChannelPair("mod",0));
+    ret.push_back(DivChannelPair(_("mod"),0));
   }
 }
 
