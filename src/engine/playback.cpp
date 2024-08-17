@@ -1668,25 +1668,33 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
           chan[i].panPos+=chan[i].panRate;
           chan[i].panPos&=255;
 
-          // calculate...
+          // calculate inverted...
           switch (chan[i].panPos&0xc0) {
             case 0: // center -> right
-              chan[i].panL=0xff-((chan[i].panPos&0x3f)<<2);
-              chan[i].panR=0xff;
+              chan[i].panL=((chan[i].panPos&0x3f)<<2);
+              chan[i].panR=0;
               break;
             case 0x40: // right -> center
-              chan[i].panL=(chan[i].panPos&0x3f)<<2;
-              chan[i].panR=0xff;
+              chan[i].panL=0xff-((chan[i].panPos&0x3f)<<2);
+              chan[i].panR=0;
               break;
             case 0x80: // center -> left
-              chan[i].panL=0xff;
-              chan[i].panR=0xff-((chan[i].panPos&0x3f)<<2);
+              chan[i].panL=0;
+              chan[i].panR=((chan[i].panPos&0x3f)<<2);
               break;
             case 0xc0: // left -> center
-              chan[i].panL=0xff;
-              chan[i].panR=(chan[i].panPos&0x3f)<<2;
+              chan[i].panL=0;
+              chan[i].panR=0xff-((chan[i].panPos&0x3f)<<2);
               break;
           }
+
+          // multiply by depth
+          chan[i].panL=(chan[i].panL*chan[i].panDepth)/15;
+          chan[i].panR=(chan[i].panR*chan[i].panDepth)/15;
+
+          // then invert it to get final panning
+          chan[i].panL^=0xff;
+          chan[i].panR^=0xff;
 
           dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
         }
