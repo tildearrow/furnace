@@ -72,6 +72,19 @@ const char* regCheatSheetSID3[]={
   NULL
 };
 
+typedef struct
+{
+  uint32_t LFSRmask;
+  float freqScaling;
+} noiseFreqData;
+
+const noiseFreqData noiseInterestingWavesData[] = 
+{
+  {524288, 523.0f / 1675.0f}, //wave very close to SID2 noise mode 1 wave
+
+  {0, 0.0f}, //end marker
+};
+
 const char** DivPlatformSID3::getRegisterSheet() {
   return regCheatSheetSID3;
 }
@@ -490,6 +503,7 @@ void DivPlatformSID3::tick(bool sysTick)
     if (chan[i].std.ex7.had) { //noise LFSR feedback bits
       chan[i].noiseLFSRMask = chan[i].std.ex7.val & 0x3fffffff;
       updateNoiseLFSRMask(i);
+      chan[i].noiseFreqChanged = true;
     }
     if (chan[i].std.op[1].ar.had) { //1-bit noise / PCM mode for wavetable chan
       if(i == SID3_NUM_CHANNELS - 1) //wave chan
@@ -714,14 +728,26 @@ void DivPlatformSID3::tick(bool sysTick)
       if(chan[i].independentNoiseFreq)
       {
         chan[i].noiseFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].noise_fixedArp?chan[i].noise_baseNoteOverride:chan[i].noise_arpOff,chan[i].noise_fixedArp,false,2,chan[i].noise_pitch2,chipClock,CHIP_FREQBASE * 64);
-
-        if (chan[i].noiseFreq<0) chan[i].noiseFreq=0;
-        if (chan[i].noiseFreq>0xffffff) chan[i].noiseFreq=0xffffff;
       }
       else
       {
         chan[i].noiseFreq = chan[i].freq;
       }
+
+      bool found = false;
+      int index = 0;
+      while(noiseInterestingWavesData != 0 && !found)
+      {
+        if(noiseInterestingWavesData[index].LFSRmask == chan[i].noiseLFSRMask)
+        {
+          chan[i].noiseFreq *= noiseInterestingWavesData[index].freqScaling;
+          found = true;
+        }
+        index++;
+      }
+
+      if (chan[i].noiseFreq<0) chan[i].noiseFreq=0;
+      if (chan[i].noiseFreq>0xffffff) chan[i].noiseFreq=0xffffff;
 
       updateNoiseFreq(i);
 
@@ -1052,6 +1078,7 @@ int DivPlatformSID3::dispatch(DivCommand c) {
       chan[c.chan].noiseLFSRMask &= ~(0xffU << (8 * c.value2));
       chan[c.chan].noiseLFSRMask |= ((c.value & (c.value2 == 3 ? 0x3f : 0xff)) << (8 * c.value2));
       updateNoiseLFSRMask(c.chan);
+      chan[c.chan].noiseFreqChanged = true;
       break;
     case DIV_CMD_SID3_1_BIT_NOISE:
       if(c.chan == SID3_NUM_CHANNELS - 1) //wave chan
@@ -1250,7 +1277,7 @@ void DivPlatformSID3::reset() {
     chan[i].freq = chan[i].noiseFreq = 0;
     updatePanning(i);
 
-    chan[i].noiseLFSRMask = (1 << 29) | (1 << 5) | (1 << 3) | 1; //https://docs.amd.com/v/u/en-US/xapp052 for 30 bits: 30, 6, 4, 1
+    chan[i].noiseLFSRMask = 1 | (1 << 23) | (1 << 25) | (1 << 29); //https://docs.amd.com/v/u/en-US/xapp052 for 30 bits: 30, 6, 4, 1; but inverted since our LFSR is moving in different direction
 
     chan[i].pw_slide = 0;
 

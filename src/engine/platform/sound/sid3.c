@@ -2254,7 +2254,16 @@ void sid3_clock_lfsr(sid3_channel* ch)
 
 uint16_t sid3_noise(uint32_t lfsr, bool one_bit) 
 {
-    return one_bit ? ((lfsr & 1) ? 0xffff : 0) : (lfsr & 0xffff);
+    return one_bit ? ((lfsr & 1) ? 0xffff : 0) : 
+    
+    ((((lfsr & 1) << 7) |
+    ((lfsr & 4) << 4) |
+    ((lfsr & 0x40) >> 1) |
+    ((lfsr & 0x200) >> 5) |
+    ((lfsr & 0x800) >> 8) |
+    ((lfsr & 0x8000) >> 13) |
+    ((lfsr & 0x40000) >> 17) |
+    ((lfsr & 0x100000) >> 20)) << 8); //bits like in SID
 }
 
 uint16_t sid3_special_wave(SID3* sid3, uint32_t acc, uint8_t wave) 
@@ -2353,8 +2362,8 @@ void sid3_reset(SID3* sid3)
     {
         memset(&sid3->chan[i], 0, sizeof(sid3_channel));
         sid3->chan[i].adsr.hold_zero = true;
-        sid3->chan[i].lfsr = 0x1;
-        sid3->chan[i].lfsr_taps = (1 << 29) | (1 << 5) | (1 << 3) | 1; //https://docs.amd.com/v/u/en-US/xapp052 for 30 bits: 30, 6, 4, 1
+        sid3->chan[i].lfsr = 0x0ffffff; //three MSBs are left as 0
+        sid3->chan[i].lfsr_taps = 1 | (1 << 23) | (1 << 25) | (1 << 29); //https://docs.amd.com/v/u/en-US/xapp052 for 30 bits: 30, 6, 4, 1; but inverted since our LFSR is moving in different direction
 
         for(int j = 0; j < SID3_NUM_FILTERS; j++)
         {
@@ -3044,7 +3053,7 @@ void sid3_clock(SID3* sid3)
                 {
                     ch->accumulator = 0;
                     ch->noise_accumulator = 0;
-                    ch->lfsr = 0x1;
+                    ch->lfsr = 0x0fffffff; //three MSBs are left as 0
                 }
             }
             else
@@ -3053,7 +3062,7 @@ void sid3_clock(SID3* sid3)
                 {
                     ch->accumulator = 0;
                     ch->noise_accumulator = 0;
-                    ch->lfsr = 0x1;
+                    ch->lfsr = 0x0fffffff; //three MSBs are left as 0
                 }
             }
         }
@@ -3315,7 +3324,7 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
                 if(sid3->chan[channel].flags & SID3_CHAN_NOISE_PHASE_RESET)
                 {
                     sid3->chan[channel].noise_accumulator = 0;
-                    sid3->chan[channel].lfsr = 0x1;
+                    sid3->chan[channel].lfsr = 0x0fffffff; //three MSBs are left as 0
                 }
 
                 sid3->chan[channel].flags &= ~(SID3_CHAN_ENV_RESET | SID3_CHAN_NOISE_PHASE_RESET | SID3_CHAN_PHASE_RESET);

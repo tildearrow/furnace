@@ -743,16 +743,16 @@ String macroHoverES5506FilterMode(int id, float val, void* u) {
   String mode="???";
   switch (((int)val)&3) {
     case 0:
-      mode="HP/K2, HP/K2";
+      mode=_("HP/K2, HP/K2");
       break;
     case 1:
-      mode="HP/K2, LP/K1";
+      mode=_("HP/K2, LP/K1");
       break;
     case 2:
-      mode="LP/K2, LP/K2";
+      mode=_("LP/K2, LP/K2");
       break;
     case 3:
-      mode="LP/K2, LP/K1";
+      mode=_("LP/K2, LP/K1");
       break;
     default:
       break;
@@ -797,8 +797,16 @@ String macroSID3SourceChan(int id, float val, void* u)
   }
   else
   {
-    return fmt::sprintf("Channel %d", (int)val + 1);
+    return fmt::sprintf(_("Channel %d"), (int)val + 1);
   }
+}
+
+String macroSID3NoiseLFSR(int id, float val, void* u) 
+{
+  return _("SID2 noise modes:\n\n"
+  "Mode 2: \n"
+  "Mode 3: \n"
+  "Mode 4: ");
 }
 
 String macroSID2WaveMixMode(int id, float val, void* u) 
@@ -2224,7 +2232,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
       ImGui::SetNextItemWidth(availableWidth);
       String& mmlStr=mmlString[index];
       if (ImGui::InputText("##IMacroMML",&mmlStr)) {
-        decodeMMLStr(mmlStr,i.macro->val,i.macro->len,i.macro->loop,i.min,(i.isBitfield)?((1<<(i.isBitfield?i.max:0))-1):i.max,i.macro->rel,i.bit30);
+        decodeMMLStr(mmlStr,i.macro->val,i.macro->len,i.macro->loop,i.min,(i.isBitfield)?((1<<(i.isBitfield?(i.max):0))-1):i.max,i.macro->rel,i.bit30);
       }
       if (!ImGui::IsItemActive()) {
         encodeMMLStr(mmlStr,i.macro->val,i.macro->len,i.macro->loop,i.macro->rel,false,i.bit30);
@@ -6393,7 +6401,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
 
     if(!ins->sid3.doWavetable)
     {
-      macroList.push_back(FurnaceGUIMacroDesc(_("Noise LFSR bits"),&ins->std.ex7Macro,0,29,16 * 30,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,NULL,true));
+      macroList.push_back(FurnaceGUIMacroDesc(_("Noise LFSR bits"),&ins->std.ex7Macro,0,30,16 * 30,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,macroSID3NoiseLFSR,true));
       macroList.push_back(FurnaceGUIMacroDesc(_("1-Bit Noise"),&ins->std.opMacros[1].arMacro,0,1,32,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,NULL,true));
       macroList.push_back(FurnaceGUIMacroDesc(_("Wave Mix"),&ins->std.ex8Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3WaveMixMode));
     }
