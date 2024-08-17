@@ -597,7 +597,7 @@ class DivEngine {
   bool loadDMF(unsigned char* file, size_t len);
   bool loadFur(unsigned char* file, size_t len, int variantID=0);
   bool loadMod(unsigned char* file, size_t len);
-  bool loadS3M(unsigned char* file, size_t len, bool opl2=false);
+  bool loadS3M(unsigned char* file, size_t len);
   bool loadXM(unsigned char* file, size_t len);
   bool loadIT(unsigned char* file, size_t len);
   bool loadFTM(unsigned char* file, size_t len, bool dnft, bool dnftSig, bool eft);
@@ -689,7 +689,7 @@ class DivEngine {
     void createNew(const char* description, String sysName, bool inBase64=true);
     void createNewFromDefaults();
     // load a file.
-    bool load(unsigned char* f, size_t length, const char* nameHint=NULL, bool s3mOPL2=false);
+    bool load(unsigned char* f, size_t length, const char* nameHint=NULL);
     // play a binary command stream.
     bool playStream(unsigned char* f, size_t length);
     // get the playing stream.

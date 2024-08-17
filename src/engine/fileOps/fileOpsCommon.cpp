@@ -19,7 +19,7 @@
 
 #include "fileOpsCommon.h"
 
-bool DivEngine::load(unsigned char* f, size_t slen, const char* nameHint, bool s3mOPL2) {
+bool DivEngine::load(unsigned char* f, size_t slen, const char* nameHint) {
   unsigned char* file;
   size_t len;
   if (slen<21) {
@@ -158,7 +158,7 @@ bool DivEngine::load(unsigned char* f, size_t slen, const char* nameHint, bool s
     return loadIT(file,len);
   } else if (len>=48) {
     if (memcmp(&file[0x2c],DIV_S3M_MAGIC,4)==0) {
-      return loadS3M(file,len,s3mOPL2);
+      return loadS3M(file,len);
     } else if (memcmp(file,DIV_XM_MAGIC,17)==0) {
       return loadXM(file,len);
     }

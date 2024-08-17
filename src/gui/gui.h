@@ -1958,7 +1958,7 @@ class FurnaceGUI {
     unsigned int maxUndoSteps;
     float vibrationStrength;
     int vibrationLength;
-    bool OPL2s3mImport;
+    int s3mOPL3;
     String mainFontPath;
     String headFontPath;
     String patFontPath;
@@ -2215,7 +2215,7 @@ class FurnaceGUI {
       maxUndoSteps(100),
       vibrationStrength(0.5f),
       vibrationLength(20),
-      OPL2s3mImport(false),
+      s3mOPL3(0),
       mainFontPath(""),
       headFontPath(""),
       patFontPath(""),

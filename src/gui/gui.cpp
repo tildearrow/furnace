@@ -2417,7 +2417,7 @@ int FurnaceGUI::load(String path) {
       return 1;
     }
     fclose(f);
-    if (!e->load(file,(size_t)len,path.c_str(),settings.OPL2s3mImport)) {
+    if (!e->load(file,(size_t)len,path.c_str())) {
       lastError=e->getLastError();
       logE("could not open file!");
       return 1;
@@ -4110,7 +4110,7 @@ bool FurnaceGUI::loop() {
       if (!tutorial.introPlayed || settings.alwaysPlayIntro==3 || (settings.alwaysPlayIntro==2 && curFileName.empty())) {
         unsigned char* introTemp=new unsigned char[intro_fur_len];
         memcpy(introTemp,intro_fur,intro_fur_len);
-        e->load(introTemp,intro_fur_len,NULL,settings.OPL2s3mImport);
+        e->load(introTemp,intro_fur_len);
       }
     }
 

@@ -48,9 +48,10 @@ static void readSbiOpData(sbi_t& sbi, SafeReader& reader) {
   sbi.FeedConnect = reader.readC();
 }
 
-bool DivEngine::loadS3M(unsigned char* file, size_t len, bool opl2) {
+bool DivEngine::loadS3M(unsigned char* file, size_t len) {
   struct InvalidHeaderException {};
   bool success=false;
+  bool opl2=!getConfInt("s3mOPL3",0);
   char magic[4]={0,0,0,0};
   SafeReader reader=SafeReader(file,len);
   warnings="";
