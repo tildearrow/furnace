@@ -1677,7 +1677,7 @@ msgstr "Шум"
 msgid "20xy: Set noise mode (x: preset freq/ch3 freq; y: thin pulse/noise)"
 msgstr ""
 "20xy: Режим шума (x: фикс. част./част. 3-го кан.; y: \"тонкая\" прямоуг. "
-"аолна/шум)"
+"волна/шум)"
 
 #: src/engine/sysDef.cpp:820
 msgid "Sega Master System + FM Expansion"
@@ -2328,7 +2328,7 @@ msgstr "37xx: Коэффициент 7 фильтра эхо"
 
 #: src/engine/sysDef.cpp:1091
 msgid "12xx: Toggle echo on this channel"
-msgstr "12xx: Переключить эхо наэтом канале"
+msgstr "12xx: Переключить эхо на этом канале"
 
 #: src/engine/sysDef.cpp:1092
 msgid "13xx: Toggle pitch modulation"
@@ -2629,7 +2629,7 @@ msgstr "Хай-хэт"
 #: src/engine/sysDef.cpp:1571 src/engine/sysDef.cpp:1721
 #: src/engine/sysDef.cpp:1783 src/gui/insEdit.cpp:213
 msgid "Tom"
-msgstr "Там-там"
+msgstr "Том"
 
 #: src/engine/sysDef.cpp:1225 src/engine/sysDef.cpp:1237
 #: src/engine/sysDef.cpp:1250
@@ -2887,7 +2887,7 @@ msgstr "11xx: Установить AUDCTL"
 
 #: src/engine/sysDef.cpp:1335
 msgid "12xx: Toggle two-tone mode"
-msgstr "12xx: Переключить двухголосый режим"
+msgstr "12xx: Переключить двухголосный режим"
 
 #: src/engine/sysDef.cpp:1340
 msgid "Ricoh RF5C68"
@@ -3239,7 +3239,7 @@ msgid ""
 "used in some of Capcom's arcade boards. surround-like sampled sound with "
 "echo."
 msgstr ""
-"использовался в некоторых аркадных автоматах Capcom. сэмпилрованный звук с "
+"использовался в некоторых аркадных автоматах Capcom. сэмплированный звук с "
 "эхо и эффектом окружающего звучания."
 
 #: src/engine/sysDef.cpp:1611 src/engine/sysDef.cpp:1711
@@ -3489,7 +3489,7 @@ msgstr "Yamaha YMF278B (OPL4) с ударными"
 
 #: src/engine/sysDef.cpp:1720
 msgid "the OPL4 but with drums mode turned on."
-msgstr "OPL4 с включёным режимом ударных."
+msgstr "OPL4 с включённым режимом ударных."
 
 #: src/engine/sysDef.cpp:1728
 msgid "11xx: Set filter mode (00 to 03)"
@@ -3501,7 +3501,7 @@ msgstr "14xx: Младший байт коэффициента фильтра K1
 
 #: src/engine/sysDef.cpp:1730
 msgid "15xx: Set filter coefficient K1 high byte (00 to FF)"
-msgstr "15xx: Старыший байт коэффициента фильтра K1 (00-FF)"
+msgstr "15xx: Старший байт коэффициента фильтра K1 (00-FF)"
 
 #: src/engine/sysDef.cpp:1731
 msgid "16xx: Set filter coefficient K2 low byte (00 to FF)"
@@ -3509,7 +3509,7 @@ msgstr "16xx: Младший байт коэффициента фильтра K2
 
 #: src/engine/sysDef.cpp:1732
 msgid "17xx: Set filter coefficient K2 high byte (00 to FF)"
-msgstr "17xx: Старыший байт коэффициента фильтра K2 (00-FF)"
+msgstr "17xx: Старший байт коэффициента фильтра K2 (00-FF)"
 
 #: src/engine/sysDef.cpp:1733
 msgid "18xx: Set filter coefficient K1 slide up (00 to FF)"
@@ -3582,7 +3582,7 @@ msgid ""
 "a sample chip made by Ensoniq, which is the basis for the GF1 chip found in "
 "Gravis' Ultrasound cards."
 msgstr ""
-"сэмплерный чип от Ensoniq, на основе которго была сделан чип GF1, "
+"сэмплерный чип от Ensoniq, на основе которого была сделан чип GF1, "
 "применявшийся в звуковых картах Gravis Ultrasound."
 
 #: src/engine/sysDef.cpp:1759
@@ -4225,7 +4225,7 @@ msgstr "самый большой мультисистемный чиптюн-т
 
 #: src/gui/about.cpp:31
 msgid "featuring DefleMask song compatibility."
-msgstr "совместим с файлами Deflemask."
+msgstr "совместим с файлами DefleMask."
 
 #: src/gui/about.cpp:33
 msgid "> CREDITS <"
@@ -5470,7 +5470,7 @@ msgid ""
 msgstr ""
 "при включении этого флага между нотами без эффекта легато и авто-портаменто "
 "будет вставлено заглушение ноты длиной в один шаг движка.\n"
-"это симуляция повдения некоторых музыкальных драйверов Amiga/SNES.\n"
+"это симуляция поведения некоторых музыкальных драйверов Amiga/SNES.\n"
 "\n"
 "ничего не меняет для C64."
 
@@ -5560,7 +5560,7 @@ msgstr "Остановить"
 # korean: 기계는 이미 죽었습니다!
 #: src/gui/csPlayer.cpp:119
 msgid "Kikai wa mou shindeiru!"
-msgstr "Кикенын ими чукотсыпнида!"
+msgstr ""
 
 #: src/gui/csPlayer.cpp:123
 msgid "Burn Current Song"
@@ -6550,7 +6550,7 @@ msgid ""
 msgstr ""
 "необходим для экспорта DualPCM и MSM6258.\n"
 "\n"
-"повзоляет записывать изменение громкости/направления воспроизведения "
+"позволяет записывать изменение громкости/направления воспроизведения "
 "сэмплов\n"
 "ценой сильного увеличения размера файла."
 
@@ -6628,7 +6628,7 @@ msgid ""
 msgstr ""
 "эта опция позволяет создать бинарный файл,\n"
 "в котором содержится дамп внутренних команд,\n"
-"созданных во время проигрыаания трека.\n"
+"созданных во время проигрывания трека.\n"
 "\n"
 "используйте только при разработке!"
 
@@ -7634,7 +7634,7 @@ msgstr "сбросить компоновку окон"
 
 #: src/gui/gui.cpp:4583 src/gui/settings.cpp:2566
 msgid "Are you sure you want to reset the workspace layout?"
-msgstr "Вы уверены, что хотите сброить компоновку окон интерфейса?"
+msgstr "Вы уверены, что хотите сбросить компоновку окон интерфейса?"
 
 #: src/gui/gui.cpp:4586
 msgid "switch to mobile view"
@@ -7965,7 +7965,7 @@ msgid ""
 msgstr ""
 "Zenity/KDialog недоступны!\n"
 "пожалуйста, установите один из них, или отключите файловый диалог ОС в "
-"настройки > основные."
+"Настройки > Основные."
 
 #: src/gui/gui.cpp:5216
 msgid ""
@@ -8528,7 +8528,7 @@ msgstr "Переключить режим зацикливания паттер�
 
 #: src/gui/guiConst.cpp:563
 msgid "Toggle full-screen"
-msgstr "Перключить полноэкранный режим"
+msgstr "Переключить полноэкранный режим"
 
 #: src/gui/guiConst.cpp:564
 msgid "Request voice from TX81Z"
@@ -9096,7 +9096,7 @@ msgstr "Удалить сэмпл"
 
 #: src/gui/guiConst.cpp:740
 msgid "Edit sample"
-msgstr "Редатировать сэмпл"
+msgstr "Редактировать сэмпл"
 
 #: src/gui/guiConst.cpp:741
 msgid "Sample cursor up"
@@ -10712,7 +10712,7 @@ msgstr "Волна 2"
 
 #: src/gui/insEdit.cpp:3185
 msgid "Resume preview"
-msgstr "Возобовить превью"
+msgstr "Возобновить превью"
 
 #: src/gui/insEdit.cpp:3187
 msgid "Pause preview"
@@ -11611,7 +11611,7 @@ msgid ""
 "when enabled, a waveform will be loaded into RAM.\n"
 "when disabled, only the offset and length change."
 msgstr ""
-"при включении этой опции олна будет загружена в ОЗУ.\n"
+"при включении этой опции волна будет загружена в ОЗУ.\n"
 "если опция выключена, меняться будут только смещение и длина волны."
 
 #: src/gui/insEdit.cpp:7474
@@ -12336,6 +12336,18 @@ msgstr "Соблюдать настройки из окна настроек в�
 #: src/gui/piano.cpp:134
 msgid "Read-only (can't input notes)"
 msgstr "Только чтение (нельзя вводить ноты)"
+
+#: src/gui/presets.cpp:55
+msgid "Game consoles"
+msgstr "Игровые консоли"
+
+#: src/gui/presets.cpp:55
+msgid "let's play some chiptune making games!"
+msgstr "давайте поиграем в создание чиптюнов!"
+
+#: src/gui/presets.cpp:63
+msgid "Sega Genesis (extended channel 3)"
+msgstr "Sega Genesis (расширенный 3-ий канал)"
 
 #: src/gui/regView.cpp:38
 msgid "- no register pool available"
@@ -13150,7 +13162,7 @@ msgstr ""
 "обработка нажатий клавиш для превью инструмента происходит в отдельном "
 "потоке (на поддерживаемых платформах), что позволяет уменьшить задержку "
 "ввода.\n"
-"тем не менее, есть сообщения о вылетах программы при выключённой настройке. "
+"тем не менее, есть сообщения о вылетах программы при включённой настройке. "
 "включите её, если у вас программа вылетает."
 
 #: src/gui/settings.cpp:794
@@ -13518,7 +13530,7 @@ msgid ""
 "it is a VERY bad idea to set this number higher than your CPU core count "
 "(%d)!"
 msgstr ""
-"это ОЧЕНЬ плохая идея - устанавливать это значение большим, чем колчество "
+"это ОЧЕНЬ плохая идея - устанавливать это значение большим, чем количество "
 "ядер ЦП (%d)!"
 
 #: src/gui/settings.cpp:1439
@@ -14162,7 +14174,7 @@ msgstr "Да, но в обратном направлении##csw2"
 
 #: src/gui/settings.cpp:2908
 msgid "How many steps to move with each scroll wheel step?"
-msgstr "На сколько позиций свдигаться при каждом шаге колёсика мыши?"
+msgstr "На сколько позиций сдвигаться при каждом шаге колёсика мыши?"
 
 #: src/gui/settings.cpp:2909
 msgid "One##cws0"
@@ -14952,247 +14964,247 @@ msgstr ""
 
 #: src/gui/settings.cpp:3878
 msgid "Button"
-msgstr ""
+msgstr "Кнопка"
 
 #: src/gui/settings.cpp:3879
 msgid "Button (hovered)"
-msgstr ""
+msgstr "Кнопка (курсор на кнопке)"
 
 #: src/gui/settings.cpp:3880
 msgid "Button (active)"
-msgstr ""
+msgstr "Кнопка (нажатая)"
 
 #: src/gui/settings.cpp:3881
 msgid "Tab"
-msgstr ""
+msgstr "Вкладка"
 
 #: src/gui/settings.cpp:3882
 msgid "Tab (hovered)"
-msgstr ""
+msgstr "Вкладка (курсор на вкладке)"
 
 #: src/gui/settings.cpp:3883
 msgid "Tab (active)"
-msgstr ""
+msgstr "Вкладка (активная)"
 
 #: src/gui/settings.cpp:3884
 msgid "Tab (unfocused)"
-msgstr ""
+msgstr "Вкладка (не текущая)"
 
 #: src/gui/settings.cpp:3885
 msgid "Tab (unfocused and active)"
-msgstr ""
+msgstr "Вкладка (курсор на вкладке, текущая)"
 
 #: src/gui/settings.cpp:3886
 msgid "ImGui header"
-msgstr ""
+msgstr "Заголовок ImGui"
 
 #: src/gui/settings.cpp:3887
 msgid "ImGui header (hovered)"
-msgstr ""
+msgstr "Заголовок ImGui (курсор на заголовке)"
 
 #: src/gui/settings.cpp:3888
 msgid "ImGui header (active)"
-msgstr ""
+msgstr "Заголовок ImGui (активный)"
 
 #: src/gui/settings.cpp:3889
 msgid "Resize grip"
-msgstr ""
+msgstr "Захват для изменения размера окна"
 
 #: src/gui/settings.cpp:3890
 msgid "Resize grip (hovered)"
-msgstr ""
+msgstr "Захват для изменения размера окна (курсор на захвате)"
 
 #: src/gui/settings.cpp:3891
 msgid "Resize grip (active)"
-msgstr ""
+msgstr "Захват для изменения размера окна (активный)"
 
 #: src/gui/settings.cpp:3892
 msgid "Widget background"
-msgstr ""
+msgstr "Задний фон виджета"
 
 #: src/gui/settings.cpp:3893
 msgid "Widget background (hovered)"
-msgstr ""
+msgstr "Задний фон виджета (курсор на виджете)"
 
 #: src/gui/settings.cpp:3894
 msgid "Widget background (active)"
-msgstr ""
+msgstr "Задний фон виджета (активный)"
 
 #: src/gui/settings.cpp:3895
 msgid "Slider grab"
-msgstr ""
+msgstr "Ползунок выставления значения"
 
 #: src/gui/settings.cpp:3896
 msgid "Slider grab (active)"
-msgstr ""
+msgstr "Ползунок выставления значения (активный)"
 
 #: src/gui/settings.cpp:3897
 msgid "Title background (active)"
-msgstr ""
+msgstr "Задний фон заголовка (активный)"
 
 #: src/gui/settings.cpp:3898
 msgid "Checkbox/radio button mark"
-msgstr ""
+msgstr "Маркировка в поле для галочки и радиокнопке"
 
 #: src/gui/settings.cpp:3899
 msgid "Text selection"
-msgstr ""
+msgstr "Выделение текста"
 
 #: src/gui/settings.cpp:3900
 msgid "Line plot"
-msgstr ""
+msgstr "Цвет линий"
 
 #: src/gui/settings.cpp:3901
 msgid "Line plot (hovered)"
-msgstr ""
+msgstr "Цвет линий (курсор на поле)"
 
 #: src/gui/settings.cpp:3902
 msgid "Histogram plot"
-msgstr ""
+msgstr "Столбчатая диаграмма"
 
 #: src/gui/settings.cpp:3903
 msgid "Histogram plot (hovered)"
-msgstr ""
+msgstr "Столбчатая диаграмма (курсор на диаграмме)"
 
 #: src/gui/settings.cpp:3904
 msgid "Table row (even)"
-msgstr ""
+msgstr "Строка таблицы (чётная)"
 
 #: src/gui/settings.cpp:3905
 msgid "Table row (odd)"
-msgstr ""
+msgstr "Строка таблицы (нечётная)"
 
 #: src/gui/settings.cpp:3910
 msgid "Interface (other)"
-msgstr "Интерфейс (другое)"
+msgstr ""
 
 #: src/gui/settings.cpp:3912
 msgid "Window background"
-msgstr ""
+msgstr "Фон окон"
 
 #: src/gui/settings.cpp:3913
 msgid "Sub-window background"
-msgstr ""
+msgstr "Фон подокн"
 
 #: src/gui/settings.cpp:3914
 msgid "Pop-up background"
-msgstr ""
+msgstr "Фон всплывающих окон"
 
 #: src/gui/settings.cpp:3915
 msgid "Modal backdrop"
-msgstr ""
+msgstr "Затенение при возникновении модального окна"
 
 #: src/gui/settings.cpp:3916
 msgid "Header"
-msgstr ""
+msgstr "Заголовок"
 
 #: src/gui/settings.cpp:3918
 msgid "Text (disabled)"
-msgstr ""
+msgstr "Текст (выключенный)"
 
 #: src/gui/settings.cpp:3919
 msgid "Title bar (inactive)"
-msgstr ""
+msgstr "Полоса заголовка (неактивная)"
 
 #: src/gui/settings.cpp:3920
 msgid "Title bar (collapsed)"
-msgstr ""
+msgstr "Полоса заголовка (свёрнутое окно)"
 
 #: src/gui/settings.cpp:3921
 msgid "Menu bar"
-msgstr ""
+msgstr "Полоса меню"
 
 #: src/gui/settings.cpp:3923
 msgid "Border shadow"
-msgstr ""
+msgstr "Тень границы"
 
 #: src/gui/settings.cpp:3924
 msgid "Scroll bar"
-msgstr ""
+msgstr "Полоса прокрутки"
 
 #: src/gui/settings.cpp:3925
 msgid "Scroll bar (hovered)"
-msgstr ""
+msgstr "Полоса прокрутки (курсор на полосе)"
 
 #: src/gui/settings.cpp:3926
 msgid "Scroll bar (clicked)"
-msgstr ""
+msgstr "Полоса прокрутки (нажата)"
 
 #: src/gui/settings.cpp:3927
 msgid "Scroll bar background"
-msgstr ""
+msgstr "Фон полосы прокрутки"
 
 #: src/gui/settings.cpp:3928
 msgid "Separator"
-msgstr ""
+msgstr "Разделитель строк"
 
 #: src/gui/settings.cpp:3929
 msgid "Separator (hover)"
-msgstr ""
+msgstr "Разделитель строк (курсор на разделителе)"
 
 #: src/gui/settings.cpp:3930
 msgid "Separator (active)"
-msgstr ""
+msgstr "Разделитель строк (активный)"
 
 #: src/gui/settings.cpp:3931
 msgid "Docking preview"
-msgstr ""
+msgstr "Превью стыковки окон"
 
 #: src/gui/settings.cpp:3932
 msgid "Docking empty"
-msgstr ""
+msgstr "Пустое поле стыковки окон"
 
 #: src/gui/settings.cpp:3933
 msgid "Table header"
-msgstr ""
+msgstr "Заголовок таблицы"
 
 #: src/gui/settings.cpp:3934
 msgid "Table border (hard)"
-msgstr ""
+msgstr "Заголовок таблицы (жёсткий)"
 
 #: src/gui/settings.cpp:3935
 msgid "Table border (soft)"
-msgstr ""
+msgstr "Заголовок таблицы (мягкий)"
 
 #: src/gui/settings.cpp:3936
 msgid "Drag and drop target"
-msgstr ""
+msgstr "Цель перетаскивания"
 
 #: src/gui/settings.cpp:3937
 msgid "Window switcher (highlight)"
-msgstr ""
+msgstr "Переключатель окон (подсвечен)"
 
 #: src/gui/settings.cpp:3938
 msgid "Window switcher backdrop"
-msgstr ""
+msgstr "Переключатель окон (цвет затенения остального интерфейса)"
 
 #: src/gui/settings.cpp:3942
 msgid "Toggle on"
-msgstr ""
+msgstr "Переключатель вкл."
 
 #: src/gui/settings.cpp:3943
 msgid "Toggle off"
-msgstr ""
+msgstr "Переключатель выкл."
 
 #: src/gui/settings.cpp:3944
 msgid "Playback status"
-msgstr ""
+msgstr "Статус воспроизведения"
 
 #: src/gui/settings.cpp:3945
 msgid "Destructive hint"
-msgstr ""
+msgstr "Подсказка об удалении"
 
 #: src/gui/settings.cpp:3946
 msgid "Warning hint"
-msgstr ""
+msgstr "Подсказка о сообщении"
 
 #: src/gui/settings.cpp:3947
 msgid "Error hint"
-msgstr ""
+msgstr "Подсказка об ошибке"
 
 #: src/gui/settings.cpp:3950
 msgid "File Picker (built-in)"
-msgstr "Меню выбора файлов (встроенное)"
+msgstr ""
 
 #: src/gui/settings.cpp:3951
 msgid "Directory"
@@ -15200,163 +15212,163 @@ msgstr "Папка"
 
 #: src/gui/settings.cpp:3952
 msgid "Song (native)"
-msgstr ""
+msgstr "Файл трека (нативно поддерживается)"
 
 #: src/gui/settings.cpp:3953
 msgid "Song (import)"
-msgstr ""
+msgstr "Файл трека (импорт)"
 
 #: src/gui/settings.cpp:3959
 msgid "Font"
-msgstr ""
+msgstr "Шрифт"
 
 #: src/gui/settings.cpp:3965
 msgid "Background (top-left)"
-msgstr ""
+msgstr "Фон (верхний левый угол)"
 
 #: src/gui/settings.cpp:3966
 msgid "Background (top-right)"
-msgstr ""
+msgstr "Фон (верхний правый угол)"
 
 #: src/gui/settings.cpp:3967
 msgid "Background (bottom-left)"
-msgstr ""
+msgstr "Фон (нижний левый угол)"
 
 #: src/gui/settings.cpp:3968
 msgid "Background (bottom-right)"
-msgstr ""
+msgstr "Фон (нижний правый угол)"
 
 #: src/gui/settings.cpp:3970
 msgid "Waveform (clip)"
-msgstr ""
+msgstr "Волна (зашкал амплитуды)"
 
 #: src/gui/settings.cpp:3971
 msgid "Reference"
-msgstr ""
+msgstr "Образец"
 
 #: src/gui/settings.cpp:3972
 msgid "Guide"
-msgstr ""
+msgstr "Справка"
 
 #: src/gui/settings.cpp:3974
 msgid "Wave (non-mono)"
-msgstr "Волна (не моно)"
+msgstr ""
 
 #: src/gui/settings.cpp:3975
 msgid "Waveform (1)"
-msgstr ""
+msgstr "Волна (1)"
 
 #: src/gui/settings.cpp:3976
 msgid "Waveform (2)"
-msgstr ""
+msgstr "Волна (2)"
 
 #: src/gui/settings.cpp:3977
 msgid "Waveform (3)"
-msgstr ""
+msgstr "Волна (3)"
 
 #: src/gui/settings.cpp:3978
 msgid "Waveform (4)"
-msgstr ""
+msgstr "Волна (4)"
 
 #: src/gui/settings.cpp:3979
 msgid "Waveform (5)"
-msgstr ""
+msgstr "Волна (5)"
 
 #: src/gui/settings.cpp:3980
 msgid "Waveform (6)"
-msgstr ""
+msgstr "Волна (6)"
 
 #: src/gui/settings.cpp:3981
 msgid "Waveform (7)"
-msgstr ""
+msgstr "Волна (7)"
 
 #: src/gui/settings.cpp:3982
 msgid "Waveform (8)"
-msgstr ""
+msgstr "Волна (8)"
 
 #: src/gui/settings.cpp:3983
 msgid "Waveform (9)"
-msgstr ""
+msgstr "Волна (9)"
 
 #: src/gui/settings.cpp:3984
 msgid "Waveform (10)"
-msgstr ""
+msgstr "Волна (10)"
 
 #: src/gui/settings.cpp:3985
 msgid "Waveform (11)"
-msgstr ""
+msgstr "Волна (11)"
 
 #: src/gui/settings.cpp:3986
 msgid "Waveform (12)"
-msgstr ""
+msgstr "Волна (12)"
 
 #: src/gui/settings.cpp:3987
 msgid "Waveform (13)"
-msgstr ""
+msgstr "Волна (13)"
 
 #: src/gui/settings.cpp:3988
 msgid "Waveform (14)"
-msgstr ""
+msgstr "Волна (14)"
 
 #: src/gui/settings.cpp:3989
 msgid "Waveform (15)"
-msgstr ""
+msgstr "Волна (15)"
 
 #: src/gui/settings.cpp:3990
 msgid "Waveform (16)"
-msgstr ""
+msgstr "Волна (16)"
 
 #: src/gui/settings.cpp:3998
 msgid "Clip"
-msgstr ""
+msgstr "Зашкал"
 
 #: src/gui/settings.cpp:4002
 msgid "Order number"
-msgstr ""
+msgstr "Номер строки"
 
 #: src/gui/settings.cpp:4003
 msgid "Playing order background"
-msgstr ""
+msgstr "Фон текущей строки"
 
 #: src/gui/settings.cpp:4004
 msgid "Song loop"
-msgstr ""
+msgstr "Место зацикливания трека"
 
 #: src/gui/settings.cpp:4005
 msgid "Selected order"
-msgstr ""
+msgstr "Выделенный столбец"
 
 #: src/gui/settings.cpp:4006
 msgid "Similar patterns"
-msgstr ""
+msgstr "Похожие паттерны"
 
 #: src/gui/settings.cpp:4007
 msgid "Inactive patterns"
-msgstr ""
+msgstr "Неактивные паттерны"
 
 #: src/gui/settings.cpp:4010
 msgid "Envelope View"
-msgstr "Визуализатор огибающей"
+msgstr ""
 
 #: src/gui/settings.cpp:4012
 msgid "Sustain guide"
-msgstr ""
+msgstr "Визуализация сустейна"
 
 #: src/gui/settings.cpp:4018
 msgid "Algorithm background"
-msgstr ""
+msgstr "Задний фон схемы алгоритма"
 
 #: src/gui/settings.cpp:4019
 msgid "Algorithm lines"
-msgstr ""
+msgstr "Линии схемы алгоритма"
 
 #: src/gui/settings.cpp:4020
 msgid "Modulator"
-msgstr ""
+msgstr "Модулирующий оператор"
 
 #: src/gui/settings.cpp:4021
 msgid "Carrier"
-msgstr ""
+msgstr "Несущий оператор"
 
 #: src/gui/settings.cpp:4026
 msgid ""
@@ -15366,35 +15378,35 @@ msgstr ""
 
 #: src/gui/settings.cpp:4028
 msgid "Mod. accent (primary)"
-msgstr ""
+msgstr "Оттенок модулирующего оператора (основной)"
 
 #: src/gui/settings.cpp:4029
 msgid "Mod. accent (secondary)"
-msgstr ""
+msgstr "Оттенок модулирующего оператора (неосновной)"
 
 #: src/gui/settings.cpp:4030
 msgid "Mod. border"
-msgstr ""
+msgstr "Граница модулирующего оператора"
 
 #: src/gui/settings.cpp:4031
 msgid "Mod. border shadow"
-msgstr ""
+msgstr "Тень границы модулирующего оператора"
 
 #: src/gui/settings.cpp:4033
 msgid "Car. accent (primary)"
-msgstr ""
+msgstr "Оттенок несущего оператора (основной)"
 
 #: src/gui/settings.cpp:4034
 msgid "Car. accent (secondary)"
-msgstr ""
+msgstr "Оттенок несущего оператора (неосновной)"
 
 #: src/gui/settings.cpp:4035
 msgid "Car. border"
-msgstr ""
+msgstr "Граница несущего оператора"
 
 #: src/gui/settings.cpp:4036
 msgid "Car. border shadow"
-msgstr ""
+msgstr "Тень границы несущего оператора"
 
 #: src/gui/settings.cpp:4047
 msgid "Global Parameter"
@@ -15406,83 +15418,83 @@ msgstr ""
 
 #: src/gui/settings.cpp:4052
 msgid "Instrument Types"
-msgstr "Типы инструментов"
+msgstr ""
 
 #: src/gui/settings.cpp:4053
 msgid "FM (OPN)"
-msgstr ""
+msgstr "FM (OPN)"
 
 #: src/gui/settings.cpp:4054
 msgid "SN76489/Sega PSG"
-msgstr ""
+msgstr "SN76489/Sega PSG"
 
 #: src/gui/settings.cpp:4057
 msgid "C64"
-msgstr ""
+msgstr "C64"
 
 #: src/gui/settings.cpp:4058
 msgid "Amiga/Generic Sample"
-msgstr ""
+msgstr "Amiga/Типичный сэмпл"
 
 #: src/gui/settings.cpp:4059
 msgid "PC Engine"
-msgstr ""
+msgstr "PC Engine"
 
 #: src/gui/settings.cpp:4060
 msgid "AY-3-8910/SSG"
-msgstr ""
+msgstr "AY-3-8910/SSG"
 
 #: src/gui/settings.cpp:4061
 msgid "AY8930"
-msgstr ""
+msgstr "AY8930"
 
 #: src/gui/settings.cpp:4062
 msgid "TIA"
-msgstr ""
+msgstr "TIA"
 
 #: src/gui/settings.cpp:4063
 msgid "SAA1099"
-msgstr ""
+msgstr "SAA1099"
 
 #: src/gui/settings.cpp:4064
 msgid "VIC"
-msgstr ""
+msgstr "VIC"
 
 #: src/gui/settings.cpp:4065
 msgid "PET"
-msgstr ""
+msgstr "PET"
 
 #: src/gui/settings.cpp:4066
 msgid "VRC6"
-msgstr ""
+msgstr "VRC6"
 
 #: src/gui/settings.cpp:4068
 msgid "FM (OPLL)"
-msgstr ""
+msgstr "FM (OPLL)"
 
 #: src/gui/settings.cpp:4069
 msgid "FM (OPL)"
-msgstr ""
+msgstr "FM (OPL)"
 
 #: src/gui/settings.cpp:4074
 msgid "FM (OPZ)"
-msgstr ""
+msgstr "FM (OPZ)"
 
 #: src/gui/settings.cpp:4076
 msgid "PC Beeper"
-msgstr ""
+msgstr "PC Beeper"
 
 #: src/gui/settings.cpp:4078
 msgid "Lynx"
-msgstr ""
+msgstr "Lynx"
 
 #: src/gui/settings.cpp:4080
 msgid "X1-010"
-msgstr ""
+msgstr "X1-010"
 
 #: src/gui/settings.cpp:4081
 msgid "ES5506"
-msgstr ""
+msgstr "ES5506"
 
 #: src/gui/settings.cpp:4084
 msgid "Sound Unit"
@@ -15490,31 +15502,31 @@ msgstr "Sound Unit"
 
 #: src/gui/settings.cpp:4086
 msgid "FM (OPL Drums)"
-msgstr ""
+msgstr "FM (OPL, ударные)"
 
 #: src/gui/settings.cpp:4087
 msgid "FM (OPM)"
-msgstr ""
+msgstr "FM (OPM)"
 
 #: src/gui/settings.cpp:4088
 msgid "NES"
-msgstr ""
+msgstr "NES"
 
 #: src/gui/settings.cpp:4089
 msgid "MSM6258"
-msgstr ""
+msgstr "MSM6258"
 
 #: src/gui/settings.cpp:4090
 msgid "MSM6295"
-msgstr ""
+msgstr "MSM6295"
 
 #: src/gui/settings.cpp:4091
 msgid "ADPCM-A"
-msgstr ""
+msgstr "АДИКМ-A"
 
 #: src/gui/settings.cpp:4093
 msgid "Sega PCM"
-msgstr ""
+msgstr "Sega PCM"
 
 #: src/gui/settings.cpp:4094
 msgid "QSound"
@@ -15522,35 +15534,35 @@ msgstr "QSound"
 
 #: src/gui/settings.cpp:4095
 msgid "YMZ280B"
-msgstr ""
+msgstr "YMZ280B"
 
 #: src/gui/settings.cpp:4096
 msgid "RF5C68"
-msgstr ""
+msgstr "RF5C68"
 
 #: src/gui/settings.cpp:4097
 msgid "MSM5232"
-msgstr ""
+msgstr "MSM5232"
 
 #: src/gui/settings.cpp:4098
 msgid "K007232"
-msgstr ""
+msgstr "K007232"
 
 #: src/gui/settings.cpp:4099
 msgid "GA20"
-msgstr ""
+msgstr "GA20"
 
 #: src/gui/settings.cpp:4101
 msgid "SM8521"
-msgstr ""
+msgstr "SM8521"
 
 #: src/gui/settings.cpp:4102
 msgid "PV-1000"
-msgstr ""
+msgstr "PV-1000"
 
 #: src/gui/settings.cpp:4103
 msgid "K053260"
-msgstr ""
+msgstr "K053260"
 
 #: src/gui/settings.cpp:4104
 msgid "TED"
@@ -15558,15 +15570,15 @@ msgstr ""
 
 #: src/gui/settings.cpp:4105
 msgid "C140"
-msgstr ""
+msgstr "C140"
 
 #: src/gui/settings.cpp:4106
 msgid "C219"
-msgstr ""
+msgstr "C219"
 
 #: src/gui/settings.cpp:4107
 msgid "ESFM"
-msgstr ""
+msgstr "ESFM"
 
 #: src/gui/settings.cpp:4112
 msgid "GBA DMA"
@@ -15578,375 +15590,375 @@ msgstr ""
 
 #: src/gui/settings.cpp:4117
 msgid "Other/Unknown"
-msgstr ""
+msgstr "Другой/неизв."
 
 #: src/gui/settings.cpp:4121
 msgid "Single color (background)"
-msgstr ""
+msgstr "Один цвет (фон)"
 
 #: src/gui/settings.cpp:4122
 msgid "Single color (text)"
-msgstr ""
+msgstr "Один цвет (текст)"
 
 #: src/gui/settings.cpp:4128
 msgid "FM operator"
-msgstr ""
+msgstr "FM-оператор"
 
 #: src/gui/settings.cpp:4129
 msgid "Muted"
-msgstr ""
+msgstr "Заглушен"
 
 #: src/gui/settings.cpp:4133
 msgid "Playhead"
-msgstr ""
+msgstr "Указатель воспроизведения"
 
 #: src/gui/settings.cpp:4134
 msgid "Editing"
-msgstr ""
+msgstr "Редактирование"
 
 #: src/gui/settings.cpp:4135
 msgid "Editing (will clone)"
-msgstr ""
+msgstr "Редактирование (будет клонирован)"
 
 #: src/gui/settings.cpp:4136
 msgid "Cursor"
-msgstr ""
+msgstr "Курсор"
 
 #: src/gui/settings.cpp:4137
 msgid "Cursor (hovered)"
-msgstr ""
+msgstr "Курсор (мышь на курсоре)"
 
 #: src/gui/settings.cpp:4138
 msgid "Cursor (clicked)"
-msgstr ""
+msgstr "Курсор (нажат)"
 
 #: src/gui/settings.cpp:4140
 msgid "Selection (hovered)"
-msgstr ""
+msgstr "Выделение (курсор мыши на выделении)"
 
 #: src/gui/settings.cpp:4141
 msgid "Selection (clicked)"
-msgstr ""
+msgstr "Выделение (нажато)"
 
 #: src/gui/settings.cpp:4142
 msgid "Highlight 1"
-msgstr ""
+msgstr "Подсветка 1"
 
 #: src/gui/settings.cpp:4143
 msgid "Highlight 2"
-msgstr ""
+msgstr "Подсветка 2"
 
 #: src/gui/settings.cpp:4144
 msgid "Row number"
-msgstr ""
+msgstr "Номер строки"
 
 #: src/gui/settings.cpp:4145
 msgid "Row number (highlight 1)"
-msgstr ""
+msgstr "Номер строки (подсветка 1)"
 
 #: src/gui/settings.cpp:4146
 msgid "Row number (highlight 2)"
-msgstr ""
+msgstr "Номер строки (подсветка 2)"
 
 #: src/gui/settings.cpp:4148
 msgid "Note (highlight 1)"
-msgstr ""
+msgstr "Нота (подсветка 1)"
 
 #: src/gui/settings.cpp:4149
 msgid "Note (highlight 2)"
-msgstr ""
+msgstr "Нота (подсветка 2)"
 
 #: src/gui/settings.cpp:4150
 msgid "Blank"
-msgstr ""
+msgstr "Пустая ячейка"
 
 #: src/gui/settings.cpp:4151
 msgid "Blank (highlight 1)"
-msgstr ""
+msgstr "Пустая ячейка (подсветка 1)"
 
 #: src/gui/settings.cpp:4152
 msgid "Blank (highlight 2)"
-msgstr ""
+msgstr "Пустая ячейка (подсветка 2)"
 
 #: src/gui/settings.cpp:4154
 msgid "Instrument (invalid type)"
-msgstr ""
+msgstr "Инструмент (неправильный тип)"
 
 #: src/gui/settings.cpp:4155
 msgid "Instrument (out of range)"
-msgstr ""
+msgstr "Инструмент (индекс не соответствует существующему инструменту)"
 
 #: src/gui/settings.cpp:4156
 msgid "Volume (0%)"
-msgstr ""
+msgstr "Громкость (0%)"
 
 #: src/gui/settings.cpp:4157
 msgid "Volume (50%)"
-msgstr ""
+msgstr "Громкость (50%)"
 
 #: src/gui/settings.cpp:4158
 msgid "Volume (100%)"
-msgstr ""
+msgstr "Громкость (100%)"
 
 #: src/gui/settings.cpp:4160
 msgid "Pitch effect"
-msgstr ""
+msgstr "Эффект (частота)"
 
 #: src/gui/settings.cpp:4161
 msgid "Volume effect"
-msgstr ""
+msgstr "Эффект (громкость)"
 
 #: src/gui/settings.cpp:4162
 msgid "Panning effect"
-msgstr ""
+msgstr "Эффект (панорамирование)"
 
 #: src/gui/settings.cpp:4163
 msgid "Song effect"
-msgstr ""
+msgstr "Эффект (трек)"
 
 #: src/gui/settings.cpp:4164
 msgid "Time effect"
-msgstr ""
+msgstr "Эффект (время)"
 
 #: src/gui/settings.cpp:4165
 msgid "Speed effect"
-msgstr ""
+msgstr "Эффект (громкость)"
 
 #: src/gui/settings.cpp:4166
 msgid "Primary specific effect"
-msgstr ""
+msgstr "Основной эффект чипа"
 
 #: src/gui/settings.cpp:4167
 msgid "Secondary specific effect"
-msgstr ""
+msgstr "Вспомогательный эффект чипа"
 
 #: src/gui/settings.cpp:4169
 msgid "External command output"
-msgstr ""
+msgstr "Вывод внешней команды"
 
 #: src/gui/settings.cpp:4170
 msgid "Status: off/disabled"
-msgstr ""
+msgstr "Статус: выкл./отключён"
 
 #: src/gui/settings.cpp:4171
 msgid "Status: off + macro rel"
-msgstr ""
+msgstr "Статус: выкл. + релиз макроса"
 
 #: src/gui/settings.cpp:4172
 msgid "Status: on + macro rel"
-msgstr ""
+msgstr "Статус: вкл. + релиз макроса"
 
 #: src/gui/settings.cpp:4173
 msgid "Status: on"
-msgstr ""
+msgstr "Статус: вкл."
 
 #: src/gui/settings.cpp:4174
 msgid "Status: volume"
-msgstr ""
+msgstr "Статус: громкость"
 
 #: src/gui/settings.cpp:4175
 msgid "Status: pitch"
-msgstr ""
+msgstr "Статус: частота"
 
 #: src/gui/settings.cpp:4176
 msgid "Status: panning"
-msgstr ""
+msgstr "Статус: панорамирование"
 
 #: src/gui/settings.cpp:4177
 msgid "Status: chip (primary)"
-msgstr ""
+msgstr "Статус: основной эффект чипа"
 
 #: src/gui/settings.cpp:4178
 msgid "Status: chip (secondary)"
-msgstr ""
+msgstr "Статус: вспомогательный эффект чипа"
 
 #: src/gui/settings.cpp:4179
 msgid "Status: mixing"
-msgstr ""
+msgstr "Статус: микширование"
 
 #: src/gui/settings.cpp:4180
 msgid "Status: DSP effect"
-msgstr ""
+msgstr "Статус: эффект ЦОС"
 
 #: src/gui/settings.cpp:4181
 msgid "Status: note altering"
-msgstr ""
+msgstr "Статус: изменение ноты"
 
 #: src/gui/settings.cpp:4182
 msgid "Status: misc color 1"
-msgstr ""
+msgstr "Статус: разное (цвет 1)"
 
 #: src/gui/settings.cpp:4183
 msgid "Status: misc color 2"
-msgstr ""
+msgstr "Статус: разное (цвет 2)"
 
 #: src/gui/settings.cpp:4184
 msgid "Status: misc color 3"
-msgstr ""
+msgstr "Статус: разное (цвет 3)"
 
 #: src/gui/settings.cpp:4185
 msgid "Status: attack"
-msgstr ""
+msgstr "Статус: атака"
 
 #: src/gui/settings.cpp:4186
 msgid "Status: decay"
-msgstr ""
+msgstr "Статус: спад"
 
 #: src/gui/settings.cpp:4187
 msgid "Status: sustain"
-msgstr ""
+msgstr "Статус: сустейн"
 
 #: src/gui/settings.cpp:4188
 msgid "Status: release"
-msgstr ""
+msgstr "Статус: релиз"
 
 #: src/gui/settings.cpp:4189
 msgid "Status: decrease linear"
-msgstr ""
+msgstr "Статус: линейное уменьшение"
 
 #: src/gui/settings.cpp:4190
 msgid "Status: decrease exp"
-msgstr ""
+msgstr "Статус: экспоненциальное уменьшение"
 
 #: src/gui/settings.cpp:4191
 msgid "Status: increase"
-msgstr ""
+msgstr "Статус: увеличение"
 
 #: src/gui/settings.cpp:4192
 msgid "Status: bent"
-msgstr ""
+msgstr "Статус: изменена частота"
 
 #: src/gui/settings.cpp:4193
 msgid "Status: direct"
-msgstr ""
+msgstr "Статус: прямой"
 
 #: src/gui/settings.cpp:4199
 msgid "Time background"
-msgstr ""
+msgstr "Фон поля времени"
 
 #: src/gui/settings.cpp:4200
 msgid "Time text"
-msgstr ""
+msgstr "Текст поля времени"
 
 #: src/gui/settings.cpp:4201
 msgid "Loop region"
-msgstr ""
+msgstr "Зацикленная часть"
 
 #: src/gui/settings.cpp:4202
 msgid "Center guide"
-msgstr ""
+msgstr "Центральная полоса"
 
 #: src/gui/settings.cpp:4203
 msgid "Grid"
-msgstr ""
+msgstr "Сетка"
 
 #: src/gui/settings.cpp:4205
 msgid "Selection points"
-msgstr ""
+msgstr "Границы выделения"
 
 #: src/gui/settings.cpp:4206
 msgid "Preview needle"
-msgstr ""
+msgstr "Курсор воспроизведения превью"
 
 #: src/gui/settings.cpp:4207
 msgid "Playing needles"
-msgstr ""
+msgstr "Курсоры воспроизведения"
 
 #: src/gui/settings.cpp:4208
 msgid "Loop markers"
-msgstr ""
+msgstr "Маркеры зацикливания"
 
 #: src/gui/settings.cpp:4209
 msgid "Chip select: disabled"
-msgstr ""
+msgstr "Выбор чипа: выкл."
 
 #: src/gui/settings.cpp:4210
 msgid "Chip select: enabled"
-msgstr ""
+msgstr "Выбор чипа: вкл."
 
 #: src/gui/settings.cpp:4211
 msgid "Chip select: enabled (failure)"
-msgstr ""
+msgstr "Выбор чипа: вкл. (ошибка)"
 
 #: src/gui/settings.cpp:4215
 msgid "Unallocated"
-msgstr ""
+msgstr "Паттерн не используется и память под него не выделена"
 
 #: src/gui/settings.cpp:4216
 msgid "Unused"
-msgstr ""
+msgstr "Паттерн не используется"
 
 #: src/gui/settings.cpp:4217
 msgid "Used"
-msgstr ""
+msgstr "Паттерн используется"
 
 #: src/gui/settings.cpp:4218
 msgid "Overused"
-msgstr ""
+msgstr "Паттерн используется очень часто"
 
 #: src/gui/settings.cpp:4219
 msgid "Really overused"
-msgstr ""
+msgstr "Паттерн используется крайне часто"
 
 #: src/gui/settings.cpp:4220
 msgid "Combo Breaker"
-msgstr ""
+msgstr "Число использований паттерна больше, чем длина трека!"
 
 #: src/gui/settings.cpp:4225
 msgid "Upper key"
-msgstr ""
+msgstr "Верхние клавиши"
 
 #: src/gui/settings.cpp:4226
 msgid "Upper key (feedback)"
-msgstr ""
+msgstr "Верхние клавиши (обратная связь)"
 
 #: src/gui/settings.cpp:4227
 msgid "Upper key (pressed)"
-msgstr ""
+msgstr "Верхние клавиши (нажатые)"
 
 #: src/gui/settings.cpp:4228
 msgid "Lower key"
-msgstr ""
+msgstr "Нижние клавиши"
 
 #: src/gui/settings.cpp:4229
 msgid "Lower key (feedback)"
-msgstr ""
+msgstr "Нижние клавиши (обратная связь)"
 
 #: src/gui/settings.cpp:4230
 msgid "Lower key (pressed)"
-msgstr ""
+msgstr "Нижние клавиши (нажатые)"
 
 #: src/gui/settings.cpp:4234
 msgid "Clock text"
-msgstr ""
+msgstr "Текст часов"
 
 #: src/gui/settings.cpp:4235
 msgid "Beat (off)"
-msgstr ""
+msgstr "Слабая доля"
 
 #: src/gui/settings.cpp:4236
 msgid "Beat (on)"
-msgstr ""
+msgstr "Сильная доля"
 
 #: src/gui/settings.cpp:4241
 msgid "PortSet"
-msgstr ""
+msgstr "Группа портов"
 
 #: src/gui/settings.cpp:4242
 msgid "Port"
-msgstr ""
+msgstr "Порт"
 
 #: src/gui/settings.cpp:4243
 msgid "Port (hidden/unavailable)"
-msgstr ""
+msgstr "Порт (скрыт/недоступен)"
 
 #: src/gui/settings.cpp:4244
 msgid "Connection (selected)"
-msgstr ""
+msgstr "Соединение (выделенное)"
 
 #: src/gui/settings.cpp:4245
 msgid "Connection (other)"
-msgstr ""
+msgstr "Соединение (обычное)"
 
 #: src/gui/settings.cpp:4251
 msgid "Waveform data"
@@ -15954,19 +15966,19 @@ msgstr ""
 
 #: src/gui/settings.cpp:4254
 msgid "Reserved"
-msgstr ""
+msgstr "Зарезерв."
 
 #: src/gui/settings.cpp:4256
 msgid "Sample (alternate 1)"
-msgstr ""
+msgstr "Сэмпл (альтерн. 1)"
 
 #: src/gui/settings.cpp:4257
 msgid "Sample (alternate 2)"
-msgstr ""
+msgstr "Сэмпл (альтерн. 2)"
 
 #: src/gui/settings.cpp:4258
 msgid "Sample (alternate 3)"
-msgstr ""
+msgstr "Сэмпл (альтерн. 3)"
 
 #: src/gui/settings.cpp:4259
 msgid "Wave RAM"
@@ -15974,71 +15986,71 @@ msgstr "ОЗУ волн"
 
 #: src/gui/settings.cpp:4260
 msgid "Wavetable (static)"
-msgstr ""
+msgstr "Волновая таблица (статич.)"
 
 #: src/gui/settings.cpp:4261
 msgid "Echo buffer"
-msgstr ""
+msgstr "Буфер эхо"
 
 #: src/gui/settings.cpp:4262
 msgid "Namco 163 load pos"
-msgstr ""
+msgstr "Namco 163 положение загрузки"
 
 #: src/gui/settings.cpp:4263
 msgid "Namco 163 play pos"
-msgstr ""
+msgstr "Namco 163 положение проигрывания"
 
 #: src/gui/settings.cpp:4264
 msgid "Sample (bank 0)"
-msgstr ""
+msgstr "Сэмпл (банк 0)"
 
 #: src/gui/settings.cpp:4265
 msgid "Sample (bank 1)"
-msgstr ""
+msgstr "Сэмпл (банк 1)"
 
 #: src/gui/settings.cpp:4266
 msgid "Sample (bank 2)"
-msgstr ""
+msgstr "Сэмпл (банк 2)"
 
 #: src/gui/settings.cpp:4267
 msgid "Sample (bank 3)"
-msgstr ""
+msgstr "Сэмпл (банк 3)"
 
 #: src/gui/settings.cpp:4268
 msgid "Sample (bank 4)"
-msgstr ""
+msgstr "Сэмпл (банк 4)"
 
 #: src/gui/settings.cpp:4269
 msgid "Sample (bank 5)"
-msgstr ""
+msgstr "Сэмпл (банк 5)"
 
 #: src/gui/settings.cpp:4270
 msgid "Sample (bank 6)"
-msgstr ""
+msgstr "Сэмпл (банк 6)"
 
 #: src/gui/settings.cpp:4271
 msgid "Sample (bank 7)"
-msgstr ""
+msgstr "Сэмпл (банк 7)"
 
 #: src/gui/settings.cpp:4276
 msgid "Log level: Error"
-msgstr ""
+msgstr "Уровень лога: ошибка"
 
 #: src/gui/settings.cpp:4277
 msgid "Log level: Warning"
-msgstr ""
+msgstr "Уровень лога: предупреждение"
 
 #: src/gui/settings.cpp:4278
 msgid "Log level: Info"
-msgstr ""
+msgstr "Уровень лога: информация"
 
 #: src/gui/settings.cpp:4279
 msgid "Log level: Debug"
-msgstr ""
+msgstr "Уровень лога: отладка"
 
 #: src/gui/settings.cpp:4280
 msgid "Log level: Trace/Verbose"
-msgstr ""
+msgstr "Уровень лога: диагностика/подробный"
 
 #: src/gui/settings.cpp:4285
 msgid "Backup"
@@ -17652,7 +17664,7 @@ msgstr "Масштаб X"
 
 #: src/gui/waveEdit.cpp:897
 msgid "wavetable longer than 256 samples!"
-msgstr "волновая таблица длинее 256 шагов!"
+msgstr "волновая таблица длиннее 256 шагов!"
 
 #: src/gui/waveEdit.cpp:961
 msgid "Scale Y"
@@ -17949,22 +17961,6 @@ msgstr ""
 #~ msgid "help##menubar"
 #~ msgstr "справка##menubar"
 
-#~ msgid ""
-#~ "there were some errors while loading samples:\n"
-#~ "#sggu"
-#~ msgstr "при загрузке сэмплов возникли следующие ошибки:\n"
-
-#~ msgid ""
-#~ "there were some warnings/errors while loading instruments:\n"
-#~ "#sggu"
-#~ msgstr ""
-#~ "при загрузке инструментов возникли следующие ошибки и предупреждения:\n"
-
-#~ msgid ""
-#~ "> %s: cannot load instrument! (%s)\n"
-#~ "#sggu"
-#~ msgstr "> %s: не могу загрузить инструмент! (%s)\n"
-
 #~ msgid "cannot load instrument! ("
 #~ msgstr "не могу загрузить инструмент! ("
 
@@ -18119,15 +18115,6 @@ msgstr ""
 
 #~ msgid "Input Pad###Input Pad"
 #~ msgstr "Панель ввода###Input Pad"
-
-#~ msgid "Game consoles"
-#~ msgstr "Игровые консоли"
-
-#~ msgid "let's play some chiptune making games!"
-#~ msgstr "давайте поиграем в создание чиптюнов!"
-
-#~ msgid "Sega Genesis (extended channel 3)"
-#~ msgstr "Sega Genesis (расширенный 3-ий канал)"
 
 #~ msgid "Sega Genesis (DualPCM, extended channel 3)"
 #~ msgstr "Sega Genesis (DualPCM, расширенный 3-ий канал)"
@@ -19368,988 +19355,8 @@ msgstr ""
 #~ "Отображать подсказку при наведении курсора на чип. Подсказка отображает "
 #~ "название и описание чипа."
 
-#~ msgid "Button##CC_GUI_COLOR_BUTTON"
-#~ msgstr "Кнопка##CC_GUI_COLOR_BUTTON"
-
-#~ msgid "Button (hovered)##CC_GUI_COLOR_BUTTON_HOVER"
-#~ msgstr "Кнопка (курсор на кнопке)##CC_GUI_COLOR_BUTTON_HOVER"
-
-#~ msgid "Button (active)##CC_GUI_COLOR_BUTTON_ACTIVE"
-#~ msgstr "Кнопка (нажатая)##CC_GUI_COLOR_BUTTON_ACTIVE"
-
-#~ msgid "Tab##CC_GUI_COLOR_TAB"
-#~ msgstr "Вкладка##CC_GUI_COLOR_TAB"
-
-#~ msgid "Tab (hovered)##CC_GUI_COLOR_TAB_HOVER"
-#~ msgstr "Вкладка (курсор на вкладке)##CC_GUI_COLOR_TAB_HOVER"
-
-#~ msgid "Tab (active)##CC_GUI_COLOR_TAB_ACTIVE"
-#~ msgstr "Вкладка (активная)##CC_GUI_COLOR_TAB_ACTIVE"
-
-#~ msgid "Tab (unfocused)##CC_GUI_COLOR_TAB_UNFOCUSED"
-#~ msgstr "Вкладка (не текущая)##CC_GUI_COLOR_TAB_UNFOCUSED"
-
-#~ msgid "Tab (unfocused and active)##CC_GUI_COLOR_TAB_UNFOCUSED_ACTIVE"
-#~ msgstr ""
-#~ "Вкладка (курсор на вкладке, текущая)##CC_GUI_COLOR_TAB_UNFOCUSED_ACTIVE"
-
-#~ msgid "ImGui header##CC_GUI_COLOR_IMGUI_HEADER"
-#~ msgstr "Заголовок ImGui##CC_GUI_COLOR_IMGUI_HEADER"
-
-#~ msgid "ImGui header (hovered)##CC_GUI_COLOR_IMGUI_HEADER_HOVER"
-#~ msgstr ""
-#~ "Заголовок ImGui (курсор на заголовке)##CC_GUI_COLOR_IMGUI_HEADER_HOVER"
-
-#~ msgid "ImGui header (active)##CC_GUI_COLOR_IMGUI_HEADER_ACTIVE"
-#~ msgstr "Заголовок ImGui (активный)##CC_GUI_COLOR_IMGUI_HEADER_ACTIVE"
-
-#~ msgid "Resize grip##CC_GUI_COLOR_RESIZE_GRIP"
-#~ msgstr "Захват для изменения размера окна##CC_GUI_COLOR_RESIZE_GRIP"
-
-#~ msgid "Resize grip (hovered)##CC_GUI_COLOR_RESIZE_GRIP_HOVER"
-#~ msgstr ""
-#~ "Захват для изменения размера окна (курсор на "
-#~ "захвате)##CC_GUI_COLOR_RESIZE_GRIP_HOVER"
-
-#~ msgid "Resize grip (active)##CC_GUI_COLOR_RESIZE_GRIP_ACTIVE"
-#~ msgstr ""
-#~ "Захват для изменения размера окна "
-#~ "(активный)##CC_GUI_COLOR_RESIZE_GRIP_ACTIVE"
-
-#~ msgid "Widget background##CC_GUI_COLOR_WIDGET_BACKGROUND"
-#~ msgstr "Задний фон виджета##CC_GUI_COLOR_WIDGET_BACKGROUND"
-
-#~ msgid "Widget background (hovered)##CC_GUI_COLOR_WIDGET_BACKGROUND_HOVER"
-#~ msgstr ""
-#~ "Задний фон виджета (курсор на "
-#~ "виджете)##CC_GUI_COLOR_WIDGET_BACKGROUND_HOVER"
-
-#~ msgid "Widget background (active)##CC_GUI_COLOR_WIDGET_BACKGROUND_ACTIVE"
-#~ msgstr ""
-#~ "Задний фон виджета (активный)##CC_GUI_COLOR_WIDGET_BACKGROUND_ACTIVE"
-
-#~ msgid "Slider grab##CC_GUI_COLOR_SLIDER_GRAB"
-#~ msgstr "Ползунок выставления значения##CC_GUI_COLOR_SLIDER_GRAB"
-
-#~ msgid "Slider grab (active)##CC_GUI_COLOR_SLIDER_GRAB_ACTIVE"
-#~ msgstr ""
-#~ "Ползунок выставления значения (активный)##CC_GUI_COLOR_SLIDER_GRAB_ACTIVE"
-
-#~ msgid "Title background (active)##CC_GUI_COLOR_TITLE_BACKGROUND_ACTIVE"
-#~ msgstr ""
-#~ "Задний фон заголовка (активный)##CC_GUI_COLOR_TITLE_BACKGROUND_ACTIVE"
-
-#~ msgid "Checkbox/radio button mark##CC_GUI_COLOR_CHECK_MARK"
-#~ msgstr ""
-#~ "Маркировка в поле для галочки и радиокнопке##CC_GUI_COLOR_CHECK_MARK"
-
-#~ msgid "Text selection##CC_GUI_COLOR_TEXT_SELECTION"
-#~ msgstr "Выделение текста##CC_GUI_COLOR_TEXT_SELECTION"
-
-#~ msgid "Line plot##CC_GUI_COLOR_PLOT_LINES"
-#~ msgstr "Цвет линий##CC_GUI_COLOR_PLOT_LINES"
-
-#~ msgid "Line plot (hovered)##CC_GUI_COLOR_PLOT_LINES_HOVER"
-#~ msgstr "Цвет линий (курсор на поле)##CC_GUI_COLOR_PLOT_LINES_HOVER"
-
-#~ msgid "Histogram plot##CC_GUI_COLOR_PLOT_HISTOGRAM"
-#~ msgstr "Столбчатая диаграмма##CC_GUI_COLOR_PLOT_HISTOGRAM"
-
-#~ msgid "Histogram plot (hovered)##CC_GUI_COLOR_PLOT_HISTOGRAM_HOVER"
-#~ msgstr ""
-#~ "Столбчатая диаграмма (курсор на "
-#~ "диаграмме)##CC_GUI_COLOR_PLOT_HISTOGRAM_HOVER"
-
-#~ msgid "Table row (even)##CC_GUI_COLOR_TABLE_ROW_EVEN"
-#~ msgstr "Строка таблицы (чётная)##CC_GUI_COLOR_TABLE_ROW_EVEN"
-
-#~ msgid "Table row (odd)##CC_GUI_COLOR_TABLE_ROW_ODD"
-#~ msgstr "Строка таблицы (нечётная)##CC_GUI_COLOR_TABLE_ROW_ODD"
-
-#~ msgid "Background##CC_GUI_COLOR_BACKGROUND"
-#~ msgstr "Задний фон##CC_GUI_COLOR_BACKGROUND"
-
-#~ msgid "Window background##CC_GUI_COLOR_FRAME_BACKGROUND"
-#~ msgstr "Фон окон##CC_GUI_COLOR_FRAME_BACKGROUND"
-
-#~ msgid "Sub-window background##CC_GUI_COLOR_FRAME_BACKGROUND_CHILD"
-#~ msgstr "Фон подокн##CC_GUI_COLOR_FRAME_BACKGROUND_CHILD"
-
-#~ msgid "Pop-up background##CC_GUI_COLOR_FRAME_BACKGROUND_POPUP"
-#~ msgstr "Фон всплывающих окон##CC_GUI_COLOR_FRAME_BACKGROUND_POPUP"
-
-#~ msgid "Modal backdrop##CC_GUI_COLOR_MODAL_BACKDROP"
-#~ msgstr ""
-#~ "Затенение при возникновении модального окна##CC_GUI_COLOR_MODAL_BACKDROP"
-
-#~ msgid "Header##CC_GUI_COLOR_HEADER"
-#~ msgstr "Заголовок##CC_GUI_COLOR_HEADER"
-
-#~ msgid "Text##CC_GUI_COLOR_TEXT"
-#~ msgstr "Текст##CC_GUI_COLOR_TEXT"
-
-#~ msgid "Text (disabled)##CC_GUI_COLOR_TEXT_DISABLED"
-#~ msgstr "Текст (выключенный)##CC_GUI_COLOR_TEXT_DISABLED"
-
-#~ msgid "Title bar (inactive)##CC_GUI_COLOR_TITLE_INACTIVE"
-#~ msgstr "Полоса заголовка (неактивная)##CC_GUI_COLOR_TITLE_INACTIVE"
-
-#~ msgid "Title bar (collapsed)##CC_GUI_COLOR_TITLE_COLLAPSED"
-#~ msgstr "Полоса заголовка (свёрнутое окно)##CC_GUI_COLOR_TITLE_COLLAPSED"
-
-#~ msgid "Menu bar##CC_GUI_COLOR_MENU_BAR"
-#~ msgstr "Полоса меню##CC_GUI_COLOR_MENU_BAR"
-
-#~ msgid "Border##CC_GUI_COLOR_BORDER"
-#~ msgstr "Граница##CC_GUI_COLOR_BORDER"
-
-#~ msgid "Border shadow##CC_GUI_COLOR_BORDER_SHADOW"
-#~ msgstr "Тень границы##CC_GUI_COLOR_BORDER_SHADOW"
-
-#~ msgid "Scroll bar##CC_GUI_COLOR_SCROLL"
-#~ msgstr "Полоса прокрутки##CC_GUI_COLOR_SCROLL"
-
-#~ msgid "Scroll bar (hovered)##CC_GUI_COLOR_SCROLL_HOVER"
-#~ msgstr "Полоса прокрутки (курсор на полосе)##CC_GUI_COLOR_SCROLL_HOVER"
-
-#~ msgid "Scroll bar (clicked)##CC_GUI_COLOR_SCROLL_ACTIVE"
-#~ msgstr "Полоса прокрутки (нажата)##CC_GUI_COLOR_SCROLL_ACTIVE"
-
-#~ msgid "Scroll bar background##CC_GUI_COLOR_SCROLL_BACKGROUND"
-#~ msgstr "Фон полосы прокрутки##CC_GUI_COLOR_SCROLL_BACKGROUND"
-
-#~ msgid "Separator##CC_GUI_COLOR_SEPARATOR"
-#~ msgstr "Разделитель строк##CC_GUI_COLOR_SEPARATOR"
-
-#~ msgid "Separator (hover)##CC_GUI_COLOR_SEPARATOR_HOVER"
-#~ msgstr ""
-#~ "Разделитель строк (курсор на разделителе)##CC_GUI_COLOR_SEPARATOR_HOVER"
-
-#~ msgid "Separator (active)##CC_GUI_COLOR_SEPARATOR_ACTIVE"
-#~ msgstr "Разделитель строк (активный)##CC_GUI_COLOR_SEPARATOR_ACTIVE"
-
-#~ msgid "Docking preview##CC_GUI_COLOR_DOCKING_PREVIEW"
-#~ msgstr "Превью стыковки окон##CC_GUI_COLOR_DOCKING_PREVIEW"
-
-#~ msgid "Docking empty##CC_GUI_COLOR_DOCKING_EMPTY"
-#~ msgstr "Пустое поле стыковки окон##CC_GUI_COLOR_DOCKING_EMPTY"
-
-#~ msgid "Table header##CC_GUI_COLOR_TABLE_HEADER"
-#~ msgstr "Заголовок таблицы##CC_GUI_COLOR_TABLE_HEADER"
-
-#~ msgid "Table border (hard)##CC_GUI_COLOR_TABLE_BORDER_HARD"
-#~ msgstr "Заголовок таблицы (жёсткий)##CC_GUI_COLOR_TABLE_BORDER_HARD"
-
-#~ msgid "Table border (soft)##CC_GUI_COLOR_TABLE_BORDER_SOFT"
-#~ msgstr "Заголовок таблицы (мягкий)##CC_GUI_COLOR_TABLE_BORDER_SOFT"
-
-#~ msgid "Drag and drop target##CC_GUI_COLOR_DRAG_DROP_TARGET"
-#~ msgstr "Цель перетаскивания##CC_GUI_COLOR_DRAG_DROP_TARGET"
-
-#~ msgid "Window switcher (highlight)##CC_GUI_COLOR_NAV_WIN_HIGHLIGHT"
-#~ msgstr "Переключатель окон (подсвечен)##CC_GUI_COLOR_NAV_WIN_HIGHLIGHT"
-
-#~ msgid "Window switcher backdrop##CC_GUI_COLOR_NAV_WIN_BACKDROP"
-#~ msgstr ""
-#~ "Переключатель окон (цвет затенения остального "
-#~ "интерфейса)##CC_GUI_COLOR_NAV_WIN_BACKDROP"
-
-#~ msgid "Toggle on##CC_GUI_COLOR_TOGGLE_ON"
-#~ msgstr "Переключатель вкл.##CC_GUI_COLOR_TOGGLE_ON"
-
-#~ msgid "Toggle off##CC_GUI_COLOR_TOGGLE_OFF"
-#~ msgstr "Переключатель выкл.##CC_GUI_COLOR_TOGGLE_OFF"
-
-#~ msgid "Playback status##CC_GUI_COLOR_PLAYBACK_STAT"
-#~ msgstr "Статус воспроизведения##CC_GUI_COLOR_PLAYBACK_STAT"
-
-#~ msgid "Destructive hint##CC_GUI_COLOR_DESTRUCTIVE"
-#~ msgstr "Подсказка об удалении##CC_GUI_COLOR_DESTRUCTIVE"
-
-#~ msgid "Warning hint##CC_GUI_COLOR_WARNING"
-#~ msgstr "Подсказка о сообщении##CC_GUI_COLOR_WARNING"
-
-#~ msgid "Error hint##CC_GUI_COLOR_ERROR"
-#~ msgstr "Подсказка об ошибке##CC_GUI_COLOR_ERROR"
-
-#~ msgid "Directory##CC_GUI_COLOR_FILE_DIR"
-#~ msgstr "Папка##CC_GUI_COLOR_FILE_DIR"
-
-#~ msgid "Song (native)##CC_GUI_COLOR_FILE_SONG_NATIVE"
-#~ msgstr "Файл трека (нативно поддерживается)##CC_GUI_COLOR_FILE_SONG_NATIVE"
-
-#~ msgid "Song (import)##CC_GUI_COLOR_FILE_SONG_IMPORT"
-#~ msgstr "Файл трека (импорт)##CC_GUI_COLOR_FILE_SONG_IMPORT"
-
-#~ msgid "Instrument##CC_GUI_COLOR_FILE_INSTR"
-#~ msgstr "Инструмент##CC_GUI_COLOR_FILE_INSTR"
-
-#~ msgid "Audio##CC_GUI_COLOR_FILE_AUDIO"
-#~ msgstr "Аудиофайл##CC_GUI_COLOR_FILE_AUDIO"
-
-#~ msgid "Wavetable##CC_GUI_COLOR_FILE_WAVE"
-#~ msgstr "Волновая таблица##CC_GUI_COLOR_FILE_WAVE"
-
-#~ msgid "VGM##CC_GUI_COLOR_FILE_VGM"
-#~ msgstr "VGM##CC_GUI_COLOR_FILE_VGM"
-
-#~ msgid "ZSM##CC_GUI_COLOR_FILE_ZSM"
-#~ msgstr "ZSM##CC_GUI_COLOR_FILE_ZSM"
-
-#~ msgid "Font##CC_GUI_COLOR_FILE_FONT"
-#~ msgstr "Шрифт##CC_GUI_COLOR_FILE_FONT"
-
-#~ msgid "Other##CC_GUI_COLOR_FILE_OTHER"
-#~ msgstr "Другое##CC_GUI_COLOR_FILE_OTHER"
-
-#~ msgid "Border##CC_GUI_COLOR_OSC_BORDER"
-#~ msgstr "Граница осциллографа##CC_GUI_COLOR_OSC_BORDER"
-
-#~ msgid "Background (top-left)##CC_GUI_COLOR_OSC_BG1"
-#~ msgstr "Фон (верхний левый угол)##CC_GUI_COLOR_OSC_BG1"
-
-#~ msgid "Background (top-right)##CC_GUI_COLOR_OSC_BG2"
-#~ msgstr "Фон (верхний правый угол)##CC_GUI_COLOR_OSC_BG2"
-
-#~ msgid "Background (bottom-left)##CC_GUI_COLOR_OSC_BG3"
-#~ msgstr "Фон (нижний левый угол)##CC_GUI_COLOR_OSC_BG3"
-
-#~ msgid "Background (bottom-right)##CC_GUI_COLOR_OSC_BG4"
-#~ msgstr "Фон (нижний правый угол)##CC_GUI_COLOR_OSC_BG4"
-
-#~ msgid "Waveform##CC_GUI_COLOR_OSC_WAVE"
-#~ msgstr "Волна##CC_GUI_COLOR_OSC_WAVE"
-
-#~ msgid "Waveform (clip)##CC_GUI_COLOR_OSC_WAVE_PEAK"
-#~ msgstr "Волна (зашкал амплитуды)##CC_GUI_COLOR_OSC_WAVE_PEAK"
-
-#~ msgid "Reference##CC_GUI_COLOR_OSC_REF"
-#~ msgstr "Образец##CC_GUI_COLOR_OSC_REF"
-
-#~ msgid "Guide##CC_GUI_COLOR_OSC_GUIDE"
-#~ msgstr "Справка##CC_GUI_COLOR_OSC_GUIDE"
-
-#~ msgid "Waveform (1)##CC_GUI_COLOR_OSC_WAVE_CH0"
-#~ msgstr "Волна (1)##CC_GUI_COLOR_OSC_WAVE_CH0"
-
-#~ msgid "Waveform (2)##CC_GUI_COLOR_OSC_WAVE_CH1"
-#~ msgstr "Волна (2)##CC_GUI_COLOR_OSC_WAVE_CH1"
-
-#~ msgid "Waveform (3)##CC_GUI_COLOR_OSC_WAVE_CH2"
-#~ msgstr "Волна (3)##CC_GUI_COLOR_OSC_WAVE_CH2"
-
-#~ msgid "Waveform (4)##CC_GUI_COLOR_OSC_WAVE_CH3"
-#~ msgstr "Волна (4)##CC_GUI_COLOR_OSC_WAVE_CH3"
-
-#~ msgid "Waveform (5)##CC_GUI_COLOR_OSC_WAVE_CH4"
-#~ msgstr "Волна (5)##CC_GUI_COLOR_OSC_WAVE_CH4"
-
-#~ msgid "Waveform (6)##CC_GUI_COLOR_OSC_WAVE_CH5"
-#~ msgstr "Волна (6)##CC_GUI_COLOR_OSC_WAVE_CH5"
-
-#~ msgid "Waveform (7)##CC_GUI_COLOR_OSC_WAVE_CH6"
-#~ msgstr "Волна (7)##CC_GUI_COLOR_OSC_WAVE_CH6"
-
-#~ msgid "Waveform (8)##CC_GUI_COLOR_OSC_WAVE_CH7"
-#~ msgstr "Волна (8)##CC_GUI_COLOR_OSC_WAVE_CH7"
-
-#~ msgid "Waveform (9)##CC_GUI_COLOR_OSC_WAVE_CH8"
-#~ msgstr "Волна (9)##CC_GUI_COLOR_OSC_WAVE_CH8"
-
-#~ msgid "Waveform (10)##CC_GUI_COLOR_OSC_WAVE_CH9"
-#~ msgstr "Волна (10)##CC_GUI_COLOR_OSC_WAVE_CH9"
-
-#~ msgid "Waveform (11)##CC_GUI_COLOR_OSC_WAVE_CH10"
-#~ msgstr "Волна (11)##CC_GUI_COLOR_OSC_WAVE_CH10"
-
-#~ msgid "Waveform (12)##CC_GUI_COLOR_OSC_WAVE_CH11"
-#~ msgstr "Волна (12)##CC_GUI_COLOR_OSC_WAVE_CH11"
-
-#~ msgid "Waveform (13)##CC_GUI_COLOR_OSC_WAVE_CH12"
-#~ msgstr "Волна (13)##CC_GUI_COLOR_OSC_WAVE_CH12"
-
-#~ msgid "Waveform (14)##CC_GUI_COLOR_OSC_WAVE_CH13"
-#~ msgstr "Волна (14)##CC_GUI_COLOR_OSC_WAVE_CH13"
-
-#~ msgid "Waveform (15)##CC_GUI_COLOR_OSC_WAVE_CH14"
-#~ msgstr "Волна (15)##CC_GUI_COLOR_OSC_WAVE_CH14"
-
-#~ msgid "Waveform (16)##CC_GUI_COLOR_OSC_WAVE_CH15"
-#~ msgstr "Волна (16)##CC_GUI_COLOR_OSC_WAVE_CH15"
-
-#~ msgid "Low##CC_GUI_COLOR_VOLMETER_LOW"
-#~ msgstr "Низкий уровень##CC_GUI_COLOR_VOLMETER_LOW"
-
-#~ msgid "High##CC_GUI_COLOR_VOLMETER_HIGH"
-#~ msgstr "Высокий уровень##CC_GUI_COLOR_VOLMETER_HIGH"
-
-#~ msgid "Clip##CC_GUI_COLOR_VOLMETER_PEAK"
-#~ msgstr "Зашкал##CC_GUI_COLOR_VOLMETER_PEAK"
-
-#~ msgid "Order number##CC_GUI_COLOR_ORDER_ROW_INDEX"
-#~ msgstr "Номер строки##CC_GUI_COLOR_ORDER_ROW_INDEX"
-
-#~ msgid "Playing order background##CC_GUI_COLOR_ORDER_ACTIVE"
-#~ msgstr "Фон текущей строки##CC_GUI_COLOR_ORDER_ACTIVE"
-
-#~ msgid "Song loop##CC_GUI_COLOR_SONG_LOOP"
-#~ msgstr "Место зацикливания трека##CC_GUI_COLOR_SONG_LOOP"
-
-#~ msgid "Selected order##CC_GUI_COLOR_ORDER_SELECTED"
-#~ msgstr "Выделенный столбец##CC_GUI_COLOR_ORDER_SELECTED"
-
-#~ msgid "Similar patterns##CC_GUI_COLOR_ORDER_SIMILAR"
-#~ msgstr "Похожие паттерны##CC_GUI_COLOR_ORDER_SIMILAR"
-
-#~ msgid "Inactive patterns##CC_GUI_COLOR_ORDER_INACTIVE"
-#~ msgstr "Неактивные паттерны##CC_GUI_COLOR_ORDER_INACTIVE"
-
-#~ msgid "Envelope##CC_GUI_COLOR_FM_ENVELOPE"
-#~ msgstr "Огибающая##CC_GUI_COLOR_FM_ENVELOPE"
-
-#~ msgid "Sustain guide##CC_GUI_COLOR_FM_ENVELOPE_SUS_GUIDE"
-#~ msgstr "Визуализация сустейна##CC_GUI_COLOR_FM_ENVELOPE_SUS_GUIDE"
-
-#~ msgid "Release##CC_GUI_COLOR_FM_ENVELOPE_RELEASE"
-#~ msgstr "Релиз##CC_GUI_COLOR_FM_ENVELOPE_RELEASE"
-
-#~ msgid "Algorithm background##CC_GUI_COLOR_FM_ALG_BG"
-#~ msgstr "Задний фон схемы алгоритма##CC_GUI_COLOR_FM_ALG_BG"
-
-#~ msgid "Algorithm lines##CC_GUI_COLOR_FM_ALG_LINE"
-#~ msgstr "Линии схемы алгоритма##CC_GUI_COLOR_FM_ALG_LINE"
-
-#~ msgid "Modulator##CC_GUI_COLOR_FM_MOD"
-#~ msgstr "Модулирующий оператор##CC_GUI_COLOR_FM_MOD"
-
-#~ msgid "Carrier##CC_GUI_COLOR_FM_CAR"
-#~ msgstr "Несущий оператор##CC_GUI_COLOR_FM_CAR"
-
-#~ msgid "SSG-EG##CC_GUI_COLOR_FM_SSG"
-#~ msgstr "SSG-EG##CC_GUI_COLOR_FM_SSG"
-
-#~ msgid "Waveform##CC_GUI_COLOR_FM_WAVE"
-#~ msgstr "Волна##CC_GUI_COLOR_FM_WAVE"
-
-#~ msgid "Mod. accent (primary)##CC_GUI_COLOR_FM_PRIMARY_MOD"
-#~ msgstr ""
-#~ "Оттенок модулирующего оператора (основной)##CC_GUI_COLOR_FM_PRIMARY_MOD"
-
-#~ msgid "Mod. accent (secondary)##CC_GUI_COLOR_FM_SECONDARY_MOD"
-#~ msgstr ""
-#~ "Оттенок модулирующего оператора "
-#~ "(неосновной)##CC_GUI_COLOR_FM_SECONDARY_MOD"
-
-#~ msgid "Mod. border##CC_GUI_COLOR_FM_BORDER_MOD"
-#~ msgstr "Граница модулирующего оператора##CC_GUI_COLOR_FM_BORDER_MOD"
-
-#~ msgid "Mod. border shadow##CC_GUI_COLOR_FM_BORDER_SHADOW_MOD"
-#~ msgstr ""
-#~ "Тень границы модулирующего оператора##CC_GUI_COLOR_FM_BORDER_SHADOW_MOD"
-
-#~ msgid "Car. accent (primary)##CC_GUI_COLOR_FM_PRIMARY_CAR"
-#~ msgstr "Оттенок несущего оператора (основной)##CC_GUI_COLOR_FM_PRIMARY_CAR"
-
-#~ msgid "Car. accent (secondary)##CC_GUI_COLOR_FM_SECONDARY_CAR"
-#~ msgstr ""
-#~ "Оттенок несущего оператора (неосновной)##CC_GUI_COLOR_FM_SECONDARY_CAR"
-
-#~ msgid "Car. border##CC_GUI_COLOR_FM_BORDER_CAR"
-#~ msgstr "Граница несущего оператора##CC_GUI_COLOR_FM_BORDER_CAR"
-
-#~ msgid "Car. border shadow##CC_GUI_COLOR_FM_BORDER_SHADOW_CAR"
-#~ msgstr "Тень границы несущего оператора##CC_GUI_COLOR_FM_BORDER_SHADOW_CAR"
-
-#~ msgid "Volume##CC_GUI_COLOR_MACRO_VOLUME"
-#~ msgstr "Громкость##CC_GUI_COLOR_MACRO_VOLUME"
-
-#~ msgid "Pitch##CC_GUI_COLOR_MACRO_PITCH"
-#~ msgstr "Частота##CC_GUI_COLOR_MACRO_PITCH"
-
-#~ msgid "Wave##CC_GUI_COLOR_MACRO_WAVE"
-#~ msgstr "Волна##CC_GUI_COLOR_MACRO_WAVE"
-
-#~ msgid "Other##CC_GUI_COLOR_MACRO_OTHER"
-#~ msgstr "Другое##CC_GUI_COLOR_MACRO_OTHER"
-
-#~ msgid "FM (OPN)##CC_GUI_COLOR_INSTR_FM"
-#~ msgstr "FM (OPN)##CC_GUI_COLOR_INSTR_FM"
-
-#~ msgid "SN76489/Sega PSG##CC_GUI_COLOR_INSTR_STD"
-#~ msgstr "SN76489/Sega PSG##CC_GUI_COLOR_INSTR_STD"
-
-#~ msgid "T6W28##CC_GUI_COLOR_INSTR_T6W28"
-#~ msgstr "T6W28##CC_GUI_COLOR_INSTR_T6W28"
-
-#~ msgid "Game Boy##CC_GUI_COLOR_INSTR_GB"
-#~ msgstr "Game Boy##CC_GUI_COLOR_INSTR_GB"
-
-#~ msgid "C64##CC_GUI_COLOR_INSTR_C64"
-#~ msgstr "C64##CC_GUI_COLOR_INSTR_C64"
-
-#~ msgid "Amiga/Generic Sample##CC_GUI_COLOR_INSTR_AMIGA"
-#~ msgstr "Amiga/Типичный сэмпл##CC_GUI_COLOR_INSTR_AMIGA"
-
-#~ msgid "PC Engine##CC_GUI_COLOR_INSTR_PCE"
-#~ msgstr "PC Engine##CC_GUI_COLOR_INSTR_PCE"
-
-#~ msgid "AY-3-8910/SSG##CC_GUI_COLOR_INSTR_AY"
-#~ msgstr "AY-3-8910/SSG##CC_GUI_COLOR_INSTR_AY"
-
-#~ msgid "AY8930##CC_GUI_COLOR_INSTR_AY8930"
-#~ msgstr "AY8930##CC_GUI_COLOR_INSTR_AY8930"
-
-#~ msgid "TIA##CC_GUI_COLOR_INSTR_TIA"
-#~ msgstr "TIA##CC_GUI_COLOR_INSTR_TIA"
-
-#~ msgid "SAA1099##CC_GUI_COLOR_INSTR_SAA1099"
-#~ msgstr "SAA1099##CC_GUI_COLOR_INSTR_SAA1099"
-
-#~ msgid "VIC##CC_GUI_COLOR_INSTR_VIC"
-#~ msgstr "VIC##CC_GUI_COLOR_INSTR_VIC"
-
-#~ msgid "PET##CC_GUI_COLOR_INSTR_PET"
-#~ msgstr "PET##CC_GUI_COLOR_INSTR_PET"
-
-#~ msgid "VRC6##CC_GUI_COLOR_INSTR_VRC6"
-#~ msgstr "VRC6##CC_GUI_COLOR_INSTR_VRC6"
-
-#~ msgid "VRC6 (saw)##CC_GUI_COLOR_INSTR_VRC6_SAW"
-#~ msgstr "VRC6 (пила)##CC_GUI_COLOR_INSTR_VRC6_SAW"
-
-#~ msgid "FM (OPLL)##CC_GUI_COLOR_INSTR_OPLL"
-#~ msgstr "FM (OPLL)##CC_GUI_COLOR_INSTR_OPLL"
-
-#~ msgid "FM (OPL)##CC_GUI_COLOR_INSTR_OPL"
-#~ msgstr "FM (OPL)##CC_GUI_COLOR_INSTR_OPL"
-
-#~ msgid "FDS##CC_GUI_COLOR_INSTR_FDS"
-#~ msgstr "FDS##CC_GUI_COLOR_INSTR_FDS"
-
-#~ msgid "Virtual Boy##CC_GUI_COLOR_INSTR_VBOY"
-#~ msgstr "Virtual Boy##CC_GUI_COLOR_INSTR_VBOY"
-
-#~ msgid "Namco 163##CC_GUI_COLOR_INSTR_N163"
-#~ msgstr "Namco 163##CC_GUI_COLOR_INSTR_N163"
-
-#~ msgid "Konami SCC##CC_GUI_COLOR_INSTR_SCC"
-#~ msgstr "Konami SCC##CC_GUI_COLOR_INSTR_SCC"
-
-#~ msgid "FM (OPZ)##CC_GUI_COLOR_INSTR_OPZ"
-#~ msgstr "FM (OPZ)##CC_GUI_COLOR_INSTR_OPZ"
-
-#~ msgid "POKEY##CC_GUI_COLOR_INSTR_POKEY"
-#~ msgstr "POKEY##CC_GUI_COLOR_INSTR_POKEY"
-
-#~ msgid "PC Beeper##CC_GUI_COLOR_INSTR_BEEPER"
-#~ msgstr "PC Beeper##CC_GUI_COLOR_INSTR_BEEPER"
-
-#~ msgid "WonderSwan##CC_GUI_COLOR_INSTR_SWAN"
-#~ msgstr "WonderSwan##CC_GUI_COLOR_INSTR_SWAN"
-
-#~ msgid "Lynx##CC_GUI_COLOR_INSTR_MIKEY"
-#~ msgstr "Lynx##CC_GUI_COLOR_INSTR_MIKEY"
-
-#~ msgid "VERA##CC_GUI_COLOR_INSTR_VERA"
-#~ msgstr "VERA##CC_GUI_COLOR_INSTR_VERA"
-
-#~ msgid "X1-010##CC_GUI_COLOR_INSTR_X1_010"
-#~ msgstr "X1-010##CC_GUI_COLOR_INSTR_X1_010"
-
-#~ msgid "ES5506##CC_GUI_COLOR_INSTR_ES5506"
-#~ msgstr "ES5506##CC_GUI_COLOR_INSTR_ES5506"
-
-#~ msgid "MultiPCM##CC_GUI_COLOR_INSTR_MULTIPCM"
-#~ msgstr "MultiPCM##CC_GUI_COLOR_INSTR_MULTIPCM"
-
-#~ msgid "SNES##CC_GUI_COLOR_INSTR_SNES"
-#~ msgstr "SNES##CC_GUI_COLOR_INSTR_SNES"
-
-#~ msgid "Sound Unit##CC_GUI_COLOR_INSTR_SU"
-#~ msgstr "Sound Unit##CC_GUI_COLOR_INSTR_SU"
-
-#~ msgid "Namco WSG##CC_GUI_COLOR_INSTR_NAMCO"
-#~ msgstr "Namco WSG##CC_GUI_COLOR_INSTR_NAMCO"
-
-#~ msgid "FM (OPL Drums)##CC_GUI_COLOR_INSTR_OPL_DRUMS"
-#~ msgstr "FM (OPL, ударные)##CC_GUI_COLOR_INSTR_OPL_DRUMS"
-
-#~ msgid "FM (OPM)##CC_GUI_COLOR_INSTR_OPM"
-#~ msgstr "FM (OPM)##CC_GUI_COLOR_INSTR_OPM"
-
-#~ msgid "NES##CC_GUI_COLOR_INSTR_NES"
-#~ msgstr "NES##CC_GUI_COLOR_INSTR_NES"
-
-#~ msgid "MSM6258##CC_GUI_COLOR_INSTR_MSM6258"
-#~ msgstr "MSM6258##CC_GUI_COLOR_INSTR_MSM6258"
-
-#~ msgid "MSM6295##CC_GUI_COLOR_INSTR_MSM6295"
-#~ msgstr "MSM6295##CC_GUI_COLOR_INSTR_MSM6295"
-
-#~ msgid "ADPCM-A##CC_GUI_COLOR_INSTR_ADPCMA"
-#~ msgstr "АДИКМ-A##CC_GUI_COLOR_INSTR_ADPCMA"
-
-#~ msgid "ADPCM-B##CC_GUI_COLOR_INSTR_ADPCMB"
-#~ msgstr "АДИКМ-B##CC_GUI_COLOR_INSTR_ADPCMB"
-
-#~ msgid "Sega PCM##CC_GUI_COLOR_INSTR_SEGAPCM"
-#~ msgstr "Sega PCM##CC_GUI_COLOR_INSTR_SEGAPCM"
-
-#~ msgid "QSound##CC_GUI_COLOR_INSTR_QSOUND"
-#~ msgstr "QSound##CC_GUI_COLOR_INSTR_QSOUND"
-
-#~ msgid "YMZ280B##CC_GUI_COLOR_INSTR_YMZ280B"
-#~ msgstr "YMZ280B##CC_GUI_COLOR_INSTR_YMZ280B"
-
-#~ msgid "RF5C68##CC_GUI_COLOR_INSTR_RF5C68"
-#~ msgstr "RF5C68##CC_GUI_COLOR_INSTR_RF5C68"
-
-#~ msgid "MSM5232##CC_GUI_COLOR_INSTR_MSM5232"
-#~ msgstr "MSM5232##CC_GUI_COLOR_INSTR_MSM5232"
-
-#~ msgid "K007232##CC_GUI_COLOR_INSTR_K007232"
-#~ msgstr "K007232##CC_GUI_COLOR_INSTR_K007232"
-
-#~ msgid "GA20##CC_GUI_COLOR_INSTR_GA20"
-#~ msgstr "GA20##CC_GUI_COLOR_INSTR_GA20"
-
-#~ msgid "Pokémon Mini##CC_GUI_COLOR_INSTR_POKEMINI"
-#~ msgstr "Pokémon Mini##CC_GUI_COLOR_INSTR_POKEMINI"
-
-#~ msgid "SM8521##CC_GUI_COLOR_INSTR_SM8521"
-#~ msgstr "SM8521##CC_GUI_COLOR_INSTR_SM8521"
-
-#~ msgid "PV-1000##CC_GUI_COLOR_INSTR_PV1000"
-#~ msgstr "PV-1000##CC_GUI_COLOR_INSTR_PV1000"
-
-#~ msgid "K053260##CC_GUI_COLOR_INSTR_K053260"
-#~ msgstr "K053260##CC_GUI_COLOR_INSTR_K053260"
-
-#~ msgid "C140##CC_GUI_COLOR_INSTR_C140"
-#~ msgstr "C140##CC_GUI_COLOR_INSTR_C140"
-
-#~ msgid "C219##CC_GUI_COLOR_INSTR_C219"
-#~ msgstr "C219##CC_GUI_COLOR_INSTR_C219"
-
-#~ msgid "ESFM##CC_GUI_COLOR_INSTR_ESFM"
-#~ msgstr "ESFM##CC_GUI_COLOR_INSTR_ESFM"
-
-#~ msgid "ES5503##CC_GUI_COLOR_INSTR_ES5503"
-#~ msgstr "ES5503##CC_GUI_COLOR_INSTR_ES5503"
-
-#~ msgid "PowerNoise (noise)##CC_GUI_COLOR_INSTR_POWERNOISE"
-#~ msgstr "PowerNoise (шум)##CC_GUI_COLOR_INSTR_POWERNOISE"
-
-#~ msgid "PowerNoise (slope)##CC_GUI_COLOR_INSTR_POWERNOISE_SLOPE"
-#~ msgstr "PowerNoise (скат)##CC_GUI_COLOR_INSTR_POWERNOISE_SLOPE"
-
-#~ msgid "Other/Unknown##CC_GUI_COLOR_INSTR_UNKNOWN"
-#~ msgstr "Другой/неизв.##CC_GUI_COLOR_INSTR_UNKNOWN"
-
-#~ msgid "Single color (background)##CC_GUI_COLOR_CHANNEL_BG"
-#~ msgstr "Один цвет (фон)##CC_GUI_COLOR_CHANNEL_BG"
-
-#~ msgid "Single color (text)##CC_GUI_COLOR_CHANNEL_FG"
-#~ msgstr "Один цвет (текст)##CC_GUI_COLOR_CHANNEL_FG"
-
-#~ msgid "FM##CC_GUI_COLOR_CHANNEL_FM"
-#~ msgstr "FM##CC_GUI_COLOR_CHANNEL_FM"
-
-#~ msgid "Pulse##CC_GUI_COLOR_CHANNEL_PULSE"
-#~ msgstr "Меандр##CC_GUI_COLOR_CHANNEL_PULSE"
-
-#~ msgid "Noise##CC_GUI_COLOR_CHANNEL_NOISE"
-#~ msgstr "Шум##CC_GUI_COLOR_CHANNEL_NOISE"
-
-#~ msgid "PCM##CC_GUI_COLOR_CHANNEL_PCM"
-#~ msgstr "ИКМ##CC_GUI_COLOR_CHANNEL_PCM"
-
-#~ msgid "Wave##CC_GUI_COLOR_CHANNEL_WAVE"
-#~ msgstr "Волна##CC_GUI_COLOR_CHANNEL_WAVE"
-
-#~ msgid "FM operator##CC_GUI_COLOR_CHANNEL_OP"
-#~ msgstr "FM-оператор##CC_GUI_COLOR_CHANNEL_OP"
-
-#~ msgid "Muted##CC_GUI_COLOR_CHANNEL_MUTED"
-#~ msgstr "Заглушен##CC_GUI_COLOR_CHANNEL_MUTED"
-
-#~ msgid "Playhead##CC_GUI_COLOR_PATTERN_PLAY_HEAD"
-#~ msgstr "Указатель воспроизведения##CC_GUI_COLOR_PATTERN_PLAY_HEAD"
-
-#~ msgid "Editing##CC_GUI_COLOR_EDITING"
-#~ msgstr "Редактирование##CC_GUI_COLOR_EDITING"
-
-#~ msgid "Editing (will clone)##CC_GUI_COLOR_EDITING_CLONE"
-#~ msgstr "Редактирование (будет клонирован)##CC_GUI_COLOR_EDITING_CLONE"
-
-#~ msgid "Cursor##CC_GUI_COLOR_PATTERN_CURSOR"
-#~ msgstr "Курсор##CC_GUI_COLOR_PATTERN_CURSOR"
-
-#~ msgid "Cursor (hovered)##CC_GUI_COLOR_PATTERN_CURSOR_HOVER"
-#~ msgstr "Курсор (мышь на курсоре)##CC_GUI_COLOR_PATTERN_CURSOR_HOVER"
-
-#~ msgid "Cursor (clicked)##CC_GUI_COLOR_PATTERN_CURSOR_ACTIVE"
-#~ msgstr "Курсор (нажат)##CC_GUI_COLOR_PATTERN_CURSOR_ACTIVE"
-
-#~ msgid "Selection##CC_GUI_COLOR_PATTERN_SELECTION"
-#~ msgstr "Выделение##CC_GUI_COLOR_PATTERN_SELECTION"
-
-#~ msgid "Selection (hovered)##CC_GUI_COLOR_PATTERN_SELECTION_HOVER"
-#~ msgstr ""
-#~ "Выделение (курсор мыши на выделении)##CC_GUI_COLOR_PATTERN_SELECTION_HOVER"
-
-#~ msgid "Selection (clicked)##CC_GUI_COLOR_PATTERN_SELECTION_ACTIVE"
-#~ msgstr "Выделение (нажато)##CC_GUI_COLOR_PATTERN_SELECTION_ACTIVE"
-
-#~ msgid "Highlight 1##CC_GUI_COLOR_PATTERN_HI_1"
-#~ msgstr "Подсветка 1##CC_GUI_COLOR_PATTERN_HI_1"
-
-#~ msgid "Highlight 2##CC_GUI_COLOR_PATTERN_HI_2"
-#~ msgstr "Подсветка 2##CC_GUI_COLOR_PATTERN_HI_2"
-
-#~ msgid "Row number##CC_GUI_COLOR_PATTERN_ROW_INDEX"
-#~ msgstr "Номер строки##CC_GUI_COLOR_PATTERN_ROW_INDEX"
-
-#~ msgid "Row number (highlight 1)##CC_GUI_COLOR_PATTERN_ROW_INDEX_HI1"
-#~ msgstr "Номер строки (подсветка 1)##CC_GUI_COLOR_PATTERN_ROW_INDEX_HI1"
-
-#~ msgid "Row number (highlight 2)##CC_GUI_COLOR_PATTERN_ROW_INDEX_HI2"
-#~ msgstr "Номер строки (подсветка 2)##CC_GUI_COLOR_PATTERN_ROW_INDEX_HI2"
-
-#~ msgid "Note##CC_GUI_COLOR_PATTERN_ACTIVE"
-#~ msgstr "Нота##CC_GUI_COLOR_PATTERN_ACTIVE"
-
-#~ msgid "Note (highlight 1)##CC_GUI_COLOR_PATTERN_ACTIVE_HI1"
-#~ msgstr "Нота (подсветка 1)##CC_GUI_COLOR_PATTERN_ACTIVE_HI1"
-
-#~ msgid "Note (highlight 2)##CC_GUI_COLOR_PATTERN_ACTIVE_HI2"
-#~ msgstr "Нота (подсветка 2)##CC_GUI_COLOR_PATTERN_ACTIVE_HI2"
-
-#~ msgid "Blank##CC_GUI_COLOR_PATTERN_INACTIVE"
-#~ msgstr "Пустая ячейка##CC_GUI_COLOR_PATTERN_INACTIVE"
-
-#~ msgid "Blank (highlight 1)##CC_GUI_COLOR_PATTERN_INACTIVE_HI1"
-#~ msgstr "Пустая ячейка (подсветка 1)##CC_GUI_COLOR_PATTERN_INACTIVE_HI1"
-
-#~ msgid "Blank (highlight 2)##CC_GUI_COLOR_PATTERN_INACTIVE_HI2"
-#~ msgstr "Пустая ячейка (подсветка 2)##CC_GUI_COLOR_PATTERN_INACTIVE_HI2"
-
-#~ msgid "Instrument##CC_GUI_COLOR_PATTERN_INS"
-#~ msgstr "Инструмент##CC_GUI_COLOR_PATTERN_INS"
-
-#~ msgid "Instrument (invalid type)##CC_GUI_COLOR_PATTERN_INS_WARN"
-#~ msgstr "Инструмент (неправильный тип)##CC_GUI_COLOR_PATTERN_INS_WARN"
-
-#~ msgid "Instrument (out of range)##CC_GUI_COLOR_PATTERN_INS_ERROR"
-#~ msgstr ""
-#~ "Инструмент (индекс не соответствует существующему "
-#~ "инструменту)##CC_GUI_COLOR_PATTERN_INS_ERROR"
-
-#~ msgid "Volume (0%)##CC_GUI_COLOR_PATTERN_VOLUME_MIN"
-#~ msgstr "Громкость (0%)##CC_GUI_COLOR_PATTERN_VOLUME_MIN"
-
-#~ msgid "Volume (50%)##CC_GUI_COLOR_PATTERN_VOLUME_HALF"
-#~ msgstr "Громкость (50%)##CC_GUI_COLOR_PATTERN_VOLUME_HALF"
-
-#~ msgid "Volume (100%)##CC_GUI_COLOR_PATTERN_VOLUME_MAX"
-#~ msgstr "Громкость (100%)##CC_GUI_COLOR_PATTERN_VOLUME_MAX"
-
-#~ msgid "Invalid effect##CC_GUI_COLOR_PATTERN_EFFECT_INVALID"
-#~ msgstr "Неправильный индекс эффекта##CC_GUI_COLOR_PATTERN_EFFECT_INVALID"
-
-#~ msgid "Pitch effect##CC_GUI_COLOR_PATTERN_EFFECT_PITCH"
-#~ msgstr "Эффект (частота)##CC_GUI_COLOR_PATTERN_EFFECT_PITCH"
-
-#~ msgid "Volume effect##CC_GUI_COLOR_PATTERN_EFFECT_VOLUME"
-#~ msgstr "Эффект (громкость)##CC_GUI_COLOR_PATTERN_EFFECT_VOLUME"
-
-#~ msgid "Panning effect##CC_GUI_COLOR_PATTERN_EFFECT_PANNING"
-#~ msgstr "Эффект (панорамирование)##CC_GUI_COLOR_PATTERN_EFFECT_PANNING"
-
-#~ msgid "Song effect##CC_GUI_COLOR_PATTERN_EFFECT_SONG"
-#~ msgstr "Эффект (трек)##CC_GUI_COLOR_PATTERN_EFFECT_SONG"
-
-#~ msgid "Time effect##CC_GUI_COLOR_PATTERN_EFFECT_TIME"
-#~ msgstr "Эффект (время)##CC_GUI_COLOR_PATTERN_EFFECT_TIME"
-
-#~ msgid "Speed effect##CC_GUI_COLOR_PATTERN_EFFECT_SPEED"
-#~ msgstr "Эффект (громкость)##CC_GUI_COLOR_PATTERN_EFFECT_SPEED"
-
-#~ msgid "Primary specific effect##CC_GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY"
-#~ msgstr "Основной эффект чипа##CC_GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY"
-
-#~ msgid "Secondary specific effect##CC_GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY"
-#~ msgstr ""
-#~ "Вспомогательный эффект чипа##CC_GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY"
-
-#~ msgid "Miscellaneous##CC_GUI_COLOR_PATTERN_EFFECT_MISC"
-#~ msgstr "Эффект (рзное)##CC_GUI_COLOR_PATTERN_EFFECT_MISC"
-
-#~ msgid "External command output##CC_GUI_COLOR_EE_VALUE"
-#~ msgstr "Вывод внешней команды##CC_GUI_COLOR_EE_VALUE"
-
-#~ msgid "Status: off/disabled##CC_GUI_COLOR_PATTERN_STATUS_OFF"
-#~ msgstr "Статус: выкл./отключён##CC_GUI_COLOR_PATTERN_STATUS_OFF"
-
-#~ msgid "Status: off + macro rel##CC_GUI_COLOR_PATTERN_STATUS_REL"
-#~ msgstr "Статус: выкл. + релиз макроса##CC_GUI_COLOR_PATTERN_STATUS_REL"
-
-#~ msgid "Status: on + macro rel##CC_GUI_COLOR_PATTERN_STATUS_REL_ON"
-#~ msgstr "Статус: вкл. + релиз макроса##CC_GUI_COLOR_PATTERN_STATUS_REL_ON"
-
-#~ msgid "Status: on##CC_GUI_COLOR_PATTERN_STATUS_ON"
-#~ msgstr "Статус: вкл.##CC_GUI_COLOR_PATTERN_STATUS_ON"
-
-#~ msgid "Status: volume##CC_GUI_COLOR_PATTERN_STATUS_VOLUME"
-#~ msgstr "Статус: громкость##CC_GUI_COLOR_PATTERN_STATUS_VOLUME"
-
-#~ msgid "Status: pitch##CC_GUI_COLOR_PATTERN_STATUS_PITCH"
-#~ msgstr "Статус: частота##CC_GUI_COLOR_PATTERN_STATUS_PITCH"
-
-#~ msgid "Status: panning##CC_GUI_COLOR_PATTERN_STATUS_PANNING"
-#~ msgstr "Статус: панорамирование##CC_GUI_COLOR_PATTERN_STATUS_PANNING"
-
-#~ msgid "Status: chip (primary)##CC_GUI_COLOR_PATTERN_STATUS_SYS1"
-#~ msgstr "Статус: основной эффект чипа##CC_GUI_COLOR_PATTERN_STATUS_SYS1"
-
-#~ msgid "Status: chip (secondary)##CC_GUI_COLOR_PATTERN_STATUS_SYS2"
-#~ msgstr ""
-#~ "Статус: вспомогательный эффект чипа##CC_GUI_COLOR_PATTERN_STATUS_SYS2"
-
-#~ msgid "Status: mixing##CC_GUI_COLOR_PATTERN_STATUS_MIXING"
-#~ msgstr "Статус: микширование##CC_GUI_COLOR_PATTERN_STATUS_MIXING"
-
-#~ msgid "Status: DSP effect##CC_GUI_COLOR_PATTERN_STATUS_DSP"
-#~ msgstr "Статус: эффект ЦОС##CC_GUI_COLOR_PATTERN_STATUS_DSP"
-
-#~ msgid "Status: note altering##CC_GUI_COLOR_PATTERN_STATUS_NOTE"
-#~ msgstr "Статус: изменение ноты##CC_GUI_COLOR_PATTERN_STATUS_NOTE"
-
-#~ msgid "Status: misc color 1##CC_GUI_COLOR_PATTERN_STATUS_MISC1"
-#~ msgstr "Статус: разное (цвет 1)##CC_GUI_COLOR_PATTERN_STATUS_MISC1"
-
-#~ msgid "Status: misc color 2##CC_GUI_COLOR_PATTERN_STATUS_MISC2"
-#~ msgstr "Статус: разное (цвет 2)##CC_GUI_COLOR_PATTERN_STATUS_MISC2"
-
-#~ msgid "Status: misc color 3##CC_GUI_COLOR_PATTERN_STATUS_MISC3"
-#~ msgstr "Статус: разное (цвет 3)##CC_GUI_COLOR_PATTERN_STATUS_MISC3"
-
-#~ msgid "Status: attack##CC_GUI_COLOR_PATTERN_STATUS_ATTACK"
-#~ msgstr "Статус: атака##CC_GUI_COLOR_PATTERN_STATUS_ATTACK"
-
-#~ msgid "Status: decay##CC_GUI_COLOR_PATTERN_STATUS_DECAY"
-#~ msgstr "Статус: спад##CC_GUI_COLOR_PATTERN_STATUS_DECAY"
-
-#~ msgid "Status: sustain##CC_GUI_COLOR_PATTERN_STATUS_SUSTAIN"
-#~ msgstr "Статус: сустейн##CC_GUI_COLOR_PATTERN_STATUS_SUSTAIN"
-
-#~ msgid "Status: release##CC_GUI_COLOR_PATTERN_STATUS_RELEASE"
-#~ msgstr "Статус: релиз##CC_GUI_COLOR_PATTERN_STATUS_RELEASE"
-
-#~ msgid "Status: decrease linear##CC_GUI_COLOR_PATTERN_STATUS_DEC_LINEAR"
-#~ msgstr "Статус: линейное уменьшение##CC_GUI_COLOR_PATTERN_STATUS_DEC_LINEAR"
-
-#~ msgid "Status: decrease exp##CC_GUI_COLOR_PATTERN_STATUS_DEC_EXP"
-#~ msgstr ""
-#~ "Статус: экспоненциальное уменьшение##CC_GUI_COLOR_PATTERN_STATUS_DEC_EXP"
-
-#~ msgid "Status: increase##CC_GUI_COLOR_PATTERN_STATUS_INC"
-#~ msgstr "Статус: увеличение##CC_GUI_COLOR_PATTERN_STATUS_INC"
-
-#~ msgid "Status: bent##CC_GUI_COLOR_PATTERN_STATUS_BENT"
-#~ msgstr "Статус: изменена частота##CC_GUI_COLOR_PATTERN_STATUS_BENT"
-
-#~ msgid "Status: direct##CC_GUI_COLOR_PATTERN_STATUS_DIRECT"
-#~ msgstr "Статус: прямой##CC_GUI_COLOR_PATTERN_STATUS_DIRECT"
-
-#~ msgid "Background##CC_GUI_COLOR_SAMPLE_BG"
-#~ msgstr "Фон##CC_GUI_COLOR_SAMPLE_BG"
-
-#~ msgid "Waveform##CC_GUI_COLOR_SAMPLE_FG"
-#~ msgstr "Волна##CC_GUI_COLOR_SAMPLE_FG"
-
-#~ msgid "Time background##CC_GUI_COLOR_SAMPLE_TIME_BG"
-#~ msgstr "Фон поля времени##CC_GUI_COLOR_SAMPLE_TIME_BG"
-
-#~ msgid "Time text##CC_GUI_COLOR_SAMPLE_TIME_FG"
-#~ msgstr "Текст поля времени##CC_GUI_COLOR_SAMPLE_TIME_FG"
-
-#~ msgid "Loop region##CC_GUI_COLOR_SAMPLE_LOOP"
-#~ msgstr "Зацикленная часть##CC_GUI_COLOR_SAMPLE_LOOP"
-
-#~ msgid "Center guide##CC_GUI_COLOR_SAMPLE_CENTER"
-#~ msgstr "Центральная полоса##CC_GUI_COLOR_SAMPLE_CENTER"
-
-#~ msgid "Grid##CC_GUI_COLOR_SAMPLE_GRID"
-#~ msgstr "Сетка##CC_GUI_COLOR_SAMPLE_GRID"
-
-#~ msgid "Selection##CC_GUI_COLOR_SAMPLE_SEL"
-#~ msgstr "Выделение##CC_GUI_COLOR_SAMPLE_SEL"
-
-#~ msgid "Selection points##CC_GUI_COLOR_SAMPLE_SEL_POINT"
-#~ msgstr "Границы выделения##CC_GUI_COLOR_SAMPLE_SEL_POINT"
-
-#~ msgid "Preview needle##CC_GUI_COLOR_SAMPLE_NEEDLE"
-#~ msgstr "Курсор воспроизведения превью##CC_GUI_COLOR_SAMPLE_NEEDLE"
-
-#~ msgid "Playing needles##CC_GUI_COLOR_SAMPLE_NEEDLE_PLAYING"
-#~ msgstr "Курсоры воспроизведения##CC_GUI_COLOR_SAMPLE_NEEDLE_PLAYING"
-
-#~ msgid "Loop markers##CC_GUI_COLOR_SAMPLE_LOOP_POINT"
-#~ msgstr "Маркеры зацикливания##CC_GUI_COLOR_SAMPLE_LOOP_POINT"
-
-#~ msgid "Chip select: disabled##CC_GUI_COLOR_SAMPLE_CHIP_DISABLED"
-#~ msgstr "Выбор чипа: выкл.##CC_GUI_COLOR_SAMPLE_CHIP_DISABLED"
-
-#~ msgid "Chip select: enabled##CC_GUI_COLOR_SAMPLE_CHIP_ENABLED"
-#~ msgstr "Выбор чипа: вкл.##CC_GUI_COLOR_SAMPLE_CHIP_ENABLED"
-
-#~ msgid "Chip select: enabled (failure)##CC_GUI_COLOR_SAMPLE_CHIP_WARNING"
-#~ msgstr "Выбор чипа: вкл. (ошибка)##CC_GUI_COLOR_SAMPLE_CHIP_WARNING"
-
-#~ msgid "Unallocated##CC_GUI_COLOR_PAT_MANAGER_NULL"
-#~ msgstr ""
-#~ "Паттерн не используется и память под него не "
-#~ "выделена##CC_GUI_COLOR_PAT_MANAGER_NULL"
-
-#~ msgid "Unused##CC_GUI_COLOR_PAT_MANAGER_UNUSED"
-#~ msgstr "Паттерн не используется##CC_GUI_COLOR_PAT_MANAGER_UNUSED"
-
-#~ msgid "Used##CC_GUI_COLOR_PAT_MANAGER_USED"
-#~ msgstr "Паттерн используется##CC_GUI_COLOR_PAT_MANAGER_USED"
-
-#~ msgid "Overused##CC_GUI_COLOR_PAT_MANAGER_OVERUSED"
-#~ msgstr "Паттерн используется очень часто##CC_GUI_COLOR_PAT_MANAGER_OVERUSED"
-
-#~ msgid "Really overused##CC_GUI_COLOR_PAT_MANAGER_EXTREMELY_OVERUSED"
-#~ msgstr ""
-#~ "Паттерн используется крайне "
-#~ "часто##CC_GUI_COLOR_PAT_MANAGER_EXTREMELY_OVERUSED"
-
-#~ msgid "Combo Breaker##CC_GUI_COLOR_PAT_MANAGER_COMBO_BREAKER"
-#~ msgstr ""
-#~ "Число использований паттерна больше, чем длина трека!"
-#~ "##CC_GUI_COLOR_PAT_MANAGER_COMBO_BREAKER"
-
-#~ msgid "Background##CC_GUI_COLOR_PIANO_BACKGROUND"
-#~ msgstr "Фон##CC_GUI_COLOR_PIANO_BACKGROUND"
-
-#~ msgid "Upper key##CC_GUI_COLOR_PIANO_KEY_TOP"
-#~ msgstr "Верхние клавиши##CC_GUI_COLOR_PIANO_KEY_TOP"
-
-#~ msgid "Upper key (feedback)##CC_GUI_COLOR_PIANO_KEY_TOP_HIT"
-#~ msgstr "Верхние клавиши (обратная связь)##CC_GUI_COLOR_PIANO_KEY_TOP_HIT"
-
-#~ msgid "Upper key (pressed)##CC_GUI_COLOR_PIANO_KEY_TOP_ACTIVE"
-#~ msgstr "Верхние клавиши (нажатые)##CC_GUI_COLOR_PIANO_KEY_TOP_ACTIVE"
-
-#~ msgid "Lower key##CC_GUI_COLOR_PIANO_KEY_BOTTOM"
-#~ msgstr "Нижние клавиши##CC_GUI_COLOR_PIANO_KEY_BOTTOM"
-
-#~ msgid "Lower key (feedback)##CC_GUI_COLOR_PIANO_KEY_BOTTOM_HIT"
-#~ msgstr "Нижние клавиши (обратная связь)##CC_GUI_COLOR_PIANO_KEY_BOTTOM_HIT"
-
-#~ msgid "Lower key (pressed)##CC_GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE"
-#~ msgstr "Нижние клавиши (нажатые)##CC_GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE"
-
-#~ msgid "Clock text##CC_GUI_COLOR_CLOCK_TEXT"
-#~ msgstr "Текст часов##CC_GUI_COLOR_CLOCK_TEXT"
-
-#~ msgid "Beat (off)##CC_GUI_COLOR_CLOCK_BEAT_LOW"
-#~ msgstr "Слабая доля##CC_GUI_COLOR_CLOCK_BEAT_LOW"
-
-#~ msgid "Beat (on)##CC_GUI_COLOR_CLOCK_BEAT_HIGH"
-#~ msgstr "Сильная доля##CC_GUI_COLOR_CLOCK_BEAT_HIGH"
-
-#~ msgid "PortSet##CC_GUI_COLOR_PATCHBAY_PORTSET"
-#~ msgstr "Группа портов##CC_GUI_COLOR_PATCHBAY_PORTSET"
-
-#~ msgid "Port##CC_GUI_COLOR_PATCHBAY_PORT"
-#~ msgstr "Порт##CC_GUI_COLOR_PATCHBAY_PORT"
-
-#~ msgid "Port (hidden/unavailable)##CC_GUI_COLOR_PATCHBAY_PORT_HIDDEN"
-#~ msgstr "Порт (скрыт/недоступен)##CC_GUI_COLOR_PATCHBAY_PORT_HIDDEN"
-
-#~ msgid "Connection (selected)##CC_GUI_COLOR_PATCHBAY_CONNECTION"
-#~ msgstr "Соединение (выделенное)##CC_GUI_COLOR_PATCHBAY_CONNECTION"
-
-#~ msgid "Connection (other)##CC_GUI_COLOR_PATCHBAY_CONNECTION_BG"
-#~ msgstr "Соединение (обычное)##CC_GUI_COLOR_PATCHBAY_CONNECTION_BG"
-
-#~ msgid "Background##CC_GUI_COLOR_MEMORY_BG"
-#~ msgstr "Фон##CC_GUI_COLOR_MEMORY_BG"
-
-#~ msgid "Unknown##CC_GUI_COLOR_MEMORY_FREE"
-#~ msgstr "Неизв.##CC_GUI_COLOR_MEMORY_FREE"
-
-#~ msgid "Reserved##CC_GUI_COLOR_MEMORY_RESERVED"
-#~ msgstr "Зарезерв.##CC_GUI_COLOR_MEMORY_RESERVED"
-
-#~ msgid "Sample##CC_GUI_COLOR_MEMORY_SAMPLE"
-#~ msgstr "Сэмпл##CC_GUI_COLOR_MEMORY_SAMPLE"
-
-#~ msgid "Sample (alternate 1)##CC_GUI_COLOR_MEMORY_SAMPLE_ALT1"
-#~ msgstr "Сэмпл (альтерн. 1)##CC_GUI_COLOR_MEMORY_SAMPLE_ALT1"
-
-#~ msgid "Sample (alternate 2)##CC_GUI_COLOR_MEMORY_SAMPLE_ALT2"
-#~ msgstr "Сэмпл (альтерн. 2)##CC_GUI_COLOR_MEMORY_SAMPLE_ALT2"
-
-#~ msgid "Sample (alternate 3)##CC_GUI_COLOR_MEMORY_SAMPLE_ALT3"
-#~ msgstr "Сэмпл (альтерн. 3)##CC_GUI_COLOR_MEMORY_SAMPLE_ALT3"
-
-#~ msgid "Wave RAM##CC_GUI_COLOR_MEMORY_WAVE_RAM"
-#~ msgstr "ОЗУ волн##CC_GUI_COLOR_MEMORY_WAVE_RAM"
-
-#~ msgid "Wavetable (static)##CC_GUI_COLOR_MEMORY_WAVE_STATIC"
-#~ msgstr "Волновая таблица (статич.)##CC_GUI_COLOR_MEMORY_WAVE_STATIC"
-
-#~ msgid "Echo buffer##CC_GUI_COLOR_MEMORY_ECHO"
-#~ msgstr "Буфер эхо##CC_GUI_COLOR_MEMORY_ECHO"
-
-#~ msgid "Namco 163 load pos##CC_GUI_COLOR_MEMORY_N163_LOAD"
-#~ msgstr "Namco 163 положение загрузки##CC_GUI_COLOR_MEMORY_N163_LOAD"
-
-#~ msgid "Namco 163 play pos##CC_GUI_COLOR_MEMORY_N163_PLAY"
-#~ msgstr "Namco 163 положение проигрывания##CC_GUI_COLOR_MEMORY_N163_PLAY"
-
-#~ msgid "Sample (bank 0)##CC_GUI_COLOR_MEMORY_BANK0"
-#~ msgstr "Сэмпл (банк 0)##CC_GUI_COLOR_MEMORY_BANK0"
-
-#~ msgid "Sample (bank 1)##CC_GUI_COLOR_MEMORY_BANK1"
-#~ msgstr "Сэмпл (банк 1)##CC_GUI_COLOR_MEMORY_BANK1"
-
-#~ msgid "Sample (bank 2)##CC_GUI_COLOR_MEMORY_BANK2"
-#~ msgstr "Сэмпл (банк 2)##CC_GUI_COLOR_MEMORY_BANK2"
-
-#~ msgid "Sample (bank 3)##CC_GUI_COLOR_MEMORY_BANK3"
-#~ msgstr "Сэмпл (банк 3)##CC_GUI_COLOR_MEMORY_BANK3"
-
-#~ msgid "Sample (bank 4)##CC_GUI_COLOR_MEMORY_BANK4"
-#~ msgstr "Сэмпл (банк 4)##CC_GUI_COLOR_MEMORY_BANK4"
-
-#~ msgid "Sample (bank 5)##CC_GUI_COLOR_MEMORY_BANK5"
-#~ msgstr "Сэмпл (банк 5)##CC_GUI_COLOR_MEMORY_BANK5"
-
-#~ msgid "Sample (bank 6)##CC_GUI_COLOR_MEMORY_BANK6"
-#~ msgstr "Сэмпл (банк 6)##CC_GUI_COLOR_MEMORY_BANK6"
-
-#~ msgid "Sample (bank 7)##CC_GUI_COLOR_MEMORY_BANK7"
-#~ msgstr "Сэмпл (банк 7)##CC_GUI_COLOR_MEMORY_BANK7"
-
-#~ msgid "Log level: Error##CC_GUI_COLOR_LOGLEVEL_ERROR"
-#~ msgstr "Уровень лога: ошибка##CC_GUI_COLOR_LOGLEVEL_ERROR"
-
-#~ msgid "Log level: Warning##CC_GUI_COLOR_LOGLEVEL_WARNING"
-#~ msgstr "Уровень лога: предупреждение##CC_GUI_COLOR_LOGLEVEL_WARNING"
-
-#~ msgid "Log level: Info##CC_GUI_COLOR_LOGLEVEL_INFO"
-#~ msgstr "Уровень лога: информация##CC_GUI_COLOR_LOGLEVEL_INFO"
-
-#~ msgid "Log level: Debug##CC_GUI_COLOR_LOGLEVEL_DEBUG"
-#~ msgstr "Уровень лога: отладка##CC_GUI_COLOR_LOGLEVEL_DEBUG"
-
-#~ msgid "Log level: Trace/Verbose##CC_GUI_COLOR_LOGLEVEL_TRACE"
-#~ msgstr "Уровень лога: диагностика/подробный##CC_GUI_COLOR_LOGLEVEL_TRACE"
+#~ msgid "ES5503"
+#~ msgstr "ES5503"
 
 #~ msgid "PB used"
 #~ msgstr " ПиБ использовано"
@@ -21124,7 +20131,7 @@ msgstr ""
 #~ msgstr "файл повреждён/нечитаем в секции сэмплов"
 
 #~ msgid "invalid version to save in! this is a bug!"
-#~ msgstr "енправильная версия для сохранения! это баг!"
+#~ msgstr "неправильная версия для сохранения! это баг!"
 
 #~ msgid "multiple systems not possible on .dmf"
 #~ msgstr "несколько чипов/систем невозможно сохранить в .dmf"
@@ -21145,7 +20152,7 @@ msgstr ""
 #~ msgstr "эта система не поддерживается в .dmf"
 
 #~ msgid "maximum .dmf song length is 127"
-#~ msgstr "маскимальная длина трека .dmf составляет 127"
+#~ msgstr "максимальная длина трека .dmf составляет 127"
 
 #~ msgid "maximum number of instruments in .dmf is 128"
 #~ msgstr "максимальное число инструментов в .dmf равно 128"
@@ -21354,7 +20361,7 @@ msgstr ""
 #~ msgstr "18xx: Волна (локальная)"
 
 #~ msgid "14xx: Set waveform (local)"
-#~ msgstr "14xx: Волна (локлаьная)"
+#~ msgstr "14xx: Волна (локальная)"
 
 #~ msgid "17xx: Set waveform (local)"
 #~ msgstr "17xx: Волна (локальная)"

@@ -12110,6 +12110,18 @@ msgstr "使用 play/edit的offset/range"
 msgid "Read-only (can't input notes)"
 msgstr "只读(不能输入)"
 
+#: src/gui/presets.cpp:55
+msgid "Game consoles"
+msgstr ""
+
+#: src/gui/presets.cpp:55
+msgid "let's play some chiptune making games!"
+msgstr ""
+
+#: src/gui/presets.cpp:63
+msgid "Sega Genesis (extended channel 3)"
+msgstr ""
+
 #: src/gui/regView.cpp:38
 msgid "- no register pool available"
 msgstr "- 无寄存器池可显示"

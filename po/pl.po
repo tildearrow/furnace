@@ -12417,6 +12417,18 @@ msgstr ""
 msgid "Read-only (can't input notes)"
 msgstr "Tylko do odczytu (bez możliwości wprowadzania nut)"
 
+#: src/gui/presets.cpp:55
+msgid "Game consoles"
+msgstr "Konsole do gier wideo"
+
+#: src/gui/presets.cpp:55
+msgid "let's play some chiptune making games!"
+msgstr "Zagrajmy w tworzenie chiptunów!"
+
+#: src/gui/presets.cpp:63
+msgid "Sega Genesis (extended channel 3)"
+msgstr "Sega Mega Drive z rozszerzonym kanałem 3"
+
 #: src/gui/regView.cpp:38
 msgid "- no register pool available"
 msgstr "- lista rejestrów niedostępna"
@@ -18291,15 +18303,6 @@ msgstr ""
 
 #~ msgid "Input Pad###Input Pad"
 #~ msgstr "Panel wprowadzania###Input Pad"
-
-#~ msgid "Game consoles"
-#~ msgstr "Konsole do gier wideo"
-
-#~ msgid "let's play some chiptune making games!"
-#~ msgstr "Zagrajmy w tworzenie chiptunów!"
-
-#~ msgid "Sega Genesis (extended channel 3)"
-#~ msgstr "Sega Mega Drive z rozszerzonym kanałem 3"
 
 #~ msgid "Sega Genesis (DualPCM, extended channel 3)"
 #~ msgstr "Sega Mega Drive (DualPCM, z rozszerzonym kanałem 3)"

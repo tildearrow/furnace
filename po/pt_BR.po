@@ -12349,6 +12349,18 @@ msgstr "Compartilhar intervalo/deslocamento entre modo de edição e reproduçã
 msgid "Read-only (can't input notes)"
 msgstr "Somente leitura (não permite tocar notas)"
 
+#: src/gui/presets.cpp:55
+msgid "Game consoles"
+msgstr "Consoles de videogame"
+
+#: src/gui/presets.cpp:55
+msgid "let's play some chiptune making games!"
+msgstr "vamos jogar um pouco de chiptune fazendo jogos!"
+
+#: src/gui/presets.cpp:63
+msgid "Sega Genesis (extended channel 3)"
+msgstr "Sega Mega Drive (canal 3 estendido)"
+
 #: src/gui/regView.cpp:38
 msgid "- no register pool available"
 msgstr "- nenhum mapa de registradores disponível"
@@ -18130,15 +18142,6 @@ msgstr ""
 
 #~ msgid "Input Pad###Input Pad"
 #~ msgstr "Teclado Virtual###Input Pad"
-
-#~ msgid "Game consoles"
-#~ msgstr "Consoles de videogame"
-
-#~ msgid "let's play some chiptune making games!"
-#~ msgstr "vamos jogar um pouco de chiptune fazendo jogos!"
-
-#~ msgid "Sega Genesis (extended channel 3)"
-#~ msgstr "Sega Mega Drive (canal 3 estendido)"
 
 #~ msgid "Sega Genesis (DualPCM, extended channel 3)"
 #~ msgstr "Sega Mega Drive (DualPCM, canal 3 estendido)"

@@ -12370,6 +12370,18 @@ msgstr "Compartir octava/rango de reproducción/edición"
 msgid "Read-only (can't input notes)"
 msgstr "Sólo lectura (sin entrada de notas)"
 
+#: src/gui/presets.cpp:55
+msgid "Game consoles"
+msgstr ""
+
+#: src/gui/presets.cpp:55
+msgid "let's play some chiptune making games!"
+msgstr ""
+
+#: src/gui/presets.cpp:63
+msgid "Sega Genesis (extended channel 3)"
+msgstr ""
+
 #: src/gui/regView.cpp:38
 msgid "- no register pool available"
 msgstr "- no hay lista de registros disponible"

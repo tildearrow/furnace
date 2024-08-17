@@ -52,7 +52,7 @@ void FurnaceGUI::initSystemPresets() {
 
   FurnaceGUISysCategory cat;
 
-  CATEGORY_BEGIN("Game consoles","let's play some chiptune making games!");
+  CATEGORY_BEGIN(_("Game consoles"),_("let's play some chiptune making games!"));
   ENTRY(
     "Sega Genesis", {
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, ""),
@@ -60,7 +60,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
     SUB_ENTRY(
-      "Sega Genesis (extended channel 3)", {
+      _("Sega Genesis (extended channel 3)"), {
         CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, ""),
         CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
       }
