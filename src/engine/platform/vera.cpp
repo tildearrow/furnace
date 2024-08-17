@@ -532,7 +532,7 @@ void DivPlatformVERA::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformVERA::setFlags(const DivConfig& flags) {
-  psg->chipType=flags.getInt("chipType",1);
+  psg->chipType=flags.getInt("chipType",2);
   chipClock=25000000;
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/512;

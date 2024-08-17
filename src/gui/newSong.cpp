@@ -289,6 +289,7 @@ void FurnaceGUI::drawNewSong() {
     selEnd=SelectionPoint();
     cursor=SelectionPoint();
     updateWindowTitle();
+    updateROMExportAvail();
     ImGui::CloseCurrentPopup();
   }
 

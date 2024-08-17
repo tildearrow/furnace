@@ -599,7 +599,6 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_AUDIO_PER_CHANNEL,
   GUI_FILE_EXPORT_VGM,
   GUI_FILE_EXPORT_ZSM,
-  GUI_FILE_EXPORT_TIUNA,
   GUI_FILE_EXPORT_CMDSTREAM,
   GUI_FILE_EXPORT_TEXT,
   GUI_FILE_EXPORT_ROM,
@@ -651,10 +650,9 @@ enum FurnaceGUIExportTypes {
 
   GUI_EXPORT_AUDIO=0,
   GUI_EXPORT_VGM,
+  GUI_EXPORT_ROM,
   GUI_EXPORT_ZSM,
-  GUI_EXPORT_TIUNA,
   GUI_EXPORT_CMD_STREAM,
-  GUI_EXPORT_AMIGA_VAL,
   GUI_EXPORT_TEXT,
   GUI_EXPORT_DMF
 };
@@ -818,6 +816,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_PAT_LATCH,
   GUI_ACTION_PAT_SCROLL_MODE,
   GUI_ACTION_PAT_CLEAR_LATCH,
+  GUI_ACTION_PAT_ABSORB_INSTRUMENT,
   GUI_ACTION_PAT_MAX,
 
   GUI_ACTION_INS_LIST_MIN,
@@ -1622,6 +1621,7 @@ class FurnaceGUI {
   bool wantScrollListIns, wantScrollListWave, wantScrollListSample;
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool displayPendingSamples, replacePendingSample;
+  bool displayExportingROM;
   bool changeCoarse;
   bool mobileEdit;
   bool killGraphics;
@@ -1635,9 +1635,6 @@ class FurnaceGUI {
   int cvHiScore;
   int drawHalt;
   int zsmExportTickRate;
-  String asmBaseLabel;
-  int tiunaFirstBankSize;
-  int tiunaOtherBankSize;
   int macroPointSize;
   int waveEditStyle;
   int displayInsTypeListMakeInsSample;
@@ -1963,6 +1960,7 @@ class FurnaceGUI {
     unsigned int maxUndoSteps;
     float vibrationStrength;
     int vibrationLength;
+    int s3mOPL3;
     String mainFontPath;
     String headFontPath;
     String patFontPath;
@@ -2219,6 +2217,7 @@ class FurnaceGUI {
       maxUndoSteps(100),
       vibrationStrength(0.5f),
       vibrationLength(20),
+      s3mOPL3(0),
       mainFontPath(""),
       headFontPath(""),
       patFontPath(""),
@@ -2682,6 +2681,17 @@ class FurnaceGUI {
   int dmfExportVersion;
   FurnaceGUIExportTypes curExportType;
 
+  // ROM export specific
+  DivROMExportOptions romTarget;
+  DivConfig romConfig;
+  bool romMultiFile;
+  bool romExportSave;
+  String romFilterName, romFilterExt;
+  String romExportPath;
+  DivROMExport* pendingExport;
+  bool romExportAvail[DIV_ROM_MAX];
+  bool romExportExists;
+
   // user presets window
   std::vector<int> selectedUserPreset;
 
@@ -2689,9 +2699,8 @@ class FurnaceGUI {
 
   void drawExportAudio(bool onWindow=false);
   void drawExportVGM(bool onWindow=false);
+  void drawExportROM(bool onWindow=false);
   void drawExportZSM(bool onWindow=false);
-  void drawExportTiuna(bool onWindow=false);
-  void drawExportAmigaVal(bool onWindow=false);
   void drawExportText(bool onWindow=false);
   void drawExportCommand(bool onWindow=false);
   void drawExportDMF(bool onWindow=false);
@@ -2731,6 +2740,7 @@ class FurnaceGUI {
   bool portSet(String label, unsigned int portSetID, int ins, int outs, int activeIns, int activeOuts, int& clickedPort, std::map<unsigned int,ImVec2>& portPos);
 
   void updateWindowTitle();
+  void updateROMExportAvail();
   void autoDetectSystem();
   void autoDetectSystemIter(std::vector<FurnaceGUISysDef>& category, bool& isMatch, std::map<DivSystem,int>& defCountMap, std::map<DivSystem,DivConfig>& defConfMap, std::map<DivSystem,int>& sysCountMap, std::map<DivSystem,DivConfig>& sysConfMap);
   void prepareLayout();

@@ -51,6 +51,7 @@ static void readSbiOpData(sbi_t& sbi, SafeReader& reader) {
 bool DivEngine::loadS3M(unsigned char* file, size_t len) {
   struct InvalidHeaderException {};
   bool success=false;
+  bool opl2=!getConfInt("s3mOPL3",0);
   char magic[4]={0,0,0,0};
   SafeReader reader=SafeReader(file,len);
   warnings="";
@@ -273,11 +274,16 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     bool hasPCM=false;
     bool hasFM=false;
     int numChans=0;
+    int realNumChans=0;
 
-    for (int i=0; i<32; i++) {
-      if (chanSettings[i]==255) continue;
-      if ((chanSettings[i]&127)>=32) continue;
-      if ((chanSettings[i]&127)>=16) {
+    for (int ch=0; ch<32; ch++) {
+      if (chanSettings[ch]!=255) realNumChans++;
+    }
+
+    for (int ch=0; ch<32; ch++) {
+      if (chanSettings[ch]==255) continue;
+      if ((chanSettings[ch]&127)>=32) continue;
+      if ((chanSettings[ch]&127)>=16) {
         hasFM=true;
       } else {
         hasPCM=true;
@@ -287,34 +293,69 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
       if (hasFM && hasPCM) break;
     }
 
-    int pcmChan=hasFM?9:0;
+    int pcmChan=hasFM?(opl2 ? 9 : 18):0;
     int fmChan=hasPCM?32:0;
     int invalidChan=40;
 
-    for (int i=0; i<32; i++) {
-      if (chanSettings[i]==255) {
-        chanMap[i]=invalidChan++;
+    for (int ch=0; ch<32; ch++) {
+      if (chanSettings[ch]==255) {
+        chanMap[ch]=invalidChan++;
         continue;
       }
-      if ((chanSettings[i]&127)>=32) {
-        chanMap[i]=invalidChan++;
+      if ((chanSettings[ch]&127)>=32) {
+        chanMap[ch]=invalidChan++;
         continue;
       }
-      if ((chanSettings[i]&127)>=16) {
-        chanMap[i]=fmChan++;
+      if ((chanSettings[ch]&127)>=16) {
+        chanMap[ch]=fmChan++;
       } else {
-        chanMap[i]=pcmChan++;
+        chanMap[ch]=pcmChan++;
       }
     }
 
+    char buffer[40];
+    int chanIndex = 1;
+
     if (hasPCM) {
-      for (int i=pcmChan; i<32; i++) {
-        ds.subsong[0]->chanShow[i]=false;
-        ds.subsong[0]->chanShowChanOsc[i]=false;
+      for(int ch = 0; ch < pcmChan - (realNumChans - (hasFM ? 9 : 0)); ch++)
+      {
+        ds.subsong[0]->chanShow[ch]=false;
+        ds.subsong[0]->chanShowChanOsc[ch]=false;
+      }
+
+      for (int ch=pcmChan; ch<32; ch++) {
+        ds.subsong[0]->chanShow[ch]=false;
+        ds.subsong[0]->chanShowChanOsc[ch]=false;
+      }
+
+      for(int ch = 0; ch < 32; ch++)
+      {
+        if(ds.subsong[0]->chanShow[ch])
+        {
+          snprintf(buffer, 40, _("Channel %d"), chanIndex);
+          ds.subsong[0]->chanName[ch] = buffer;
+          chanIndex++;
+        }
+      }
+    }
+
+    if (hasFM && !opl2) {
+      for (int ch=(hasPCM?32:0) + 9; ch<(hasPCM?32:0) + 18; ch++) {
+        ds.subsong[0]->chanShow[ch]=false;
+        ds.subsong[0]->chanShowChanOsc[ch]=false;
+      }
+
+      chanIndex = 1;
+
+      for (int ch=(hasPCM?32:0); ch<(hasPCM?32:0) + 9; ch++) {
+        snprintf(buffer, 40, _("FM %d"), chanIndex);
+        ds.subsong[0]->chanName[ch] = buffer;
+        chanIndex++;
       }
     }
 
     logV("numChans: %d",numChans);
+    logV("realNumChans: %d",realNumChans);
 
     ds.systemName="PC";
     if (hasPCM) {
@@ -327,7 +368,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
       ds.systemLen++;
     }
     if (hasFM) {
-      ds.system[ds.systemLen]=DIV_SYSTEM_OPL2;
+      ds.system[ds.systemLen]=opl2 ? DIV_SYSTEM_OPL2 : DIV_SYSTEM_OPL3;
       ds.systemVol[ds.systemLen]=1.0f;
       ds.systemPan[ds.systemLen]=0;
       ds.systemLen++;

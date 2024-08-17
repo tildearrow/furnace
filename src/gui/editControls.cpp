@@ -130,7 +130,7 @@ const bool mobileButtonPersist[32]={
   // page 1
   false,
   false,
-  false,
+  true,
   false,
   true,
   true,

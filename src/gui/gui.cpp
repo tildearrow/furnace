@@ -752,6 +752,88 @@ void FurnaceGUI::autoDetectSystem() {
   }
 }
 
+void FurnaceGUI::updateROMExportAvail() {
+  unsigned char sysReqCount[DIV_SYSTEM_MAX];
+  unsigned char defReqCount[DIV_SYSTEM_MAX];
+
+  memset(sysReqCount,0,DIV_SYSTEM_MAX);
+  for (int i=0; i<e->song.systemLen; i++) {
+    sysReqCount[e->song.system[i]]++;
+  }
+
+  memset(romExportAvail,0,sizeof(bool)*DIV_ROM_MAX);
+  romExportExists=false;
+
+  for (int i=0; i<DIV_ROM_MAX; i++) {
+    const DivROMExportDef* newDef=e->getROMExportDef((DivROMExportOptions)i);
+    if (newDef!=NULL) {
+      // check for viability
+      bool viable=true;
+
+      memset(defReqCount,0,DIV_SYSTEM_MAX);
+      for (DivSystem j: newDef->requisites) {
+        defReqCount[j]++;
+      }
+
+      switch (newDef->requisitePolicy) {
+        case DIV_REQPOL_EXACT:
+          for (int j=0; j<DIV_SYSTEM_MAX; j++) {
+            if (defReqCount[j]!=sysReqCount[j]) {
+              viable=false;
+              break;
+            }
+          }
+          break;
+        case DIV_REQPOL_ANY:
+          for (int j=0; j<DIV_SYSTEM_MAX; j++) {
+            if (defReqCount[j]>sysReqCount[j]) {
+              viable=false;
+              break;
+            }
+          }
+          break;
+        case DIV_REQPOL_LAX:
+          viable=false;
+          for (DivSystem j: newDef->requisites) {
+            if (defReqCount[j]<=sysReqCount[j]) {
+              viable=true;
+              break;
+            }
+          }
+          break;
+      }
+      
+      if (viable) {
+        romExportAvail[i]=true;
+        romExportExists=true;
+      }
+    }
+  }
+
+  if (!romExportAvail[romTarget]) {
+    // find a new one
+    romTarget=DIV_ROM_ABSTRACT;
+    for (int i=0; i<DIV_ROM_MAX; i++) {
+      const DivROMExportDef* newDef=e->getROMExportDef((DivROMExportOptions)i);
+      if (newDef!=NULL) {
+        if (romExportAvail[i]) {
+          romTarget=(DivROMExportOptions)i;
+          romMultiFile=newDef->multiOutput;
+          romConfig=DivConfig();
+          if (newDef->fileExt==NULL) {
+            romFilterName="";
+            romFilterExt="";
+          } else {
+            romFilterName=newDef->fileType;
+            romFilterExt=newDef->fileExt;
+          }
+          break;
+        }
+      }
+    }
+  }
+}
+
 ImVec4 FurnaceGUI::channelColor(int ch) {
   switch (settings.channelColors) {
     case 0:
@@ -1950,15 +2032,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         (settings.autoFillSave)?shortName:""
       );
       break;
-    case GUI_FILE_EXPORT_TIUNA:
-      if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
-      hasOpened=fileDialog->openSave(
-        "Export TIunA",
-        {"assembly files", "*.asm"},
-        workingDirROMExport,
-        dpiScale
-      );
-      break;
     case GUI_FILE_EXPORT_TEXT:
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
       hasOpened=fileDialog->openSave(
@@ -1980,7 +2053,22 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       );
       break;
     case GUI_FILE_EXPORT_ROM:
-      showError(_("Coming soon!"));
+      if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
+      if (romMultiFile) {
+        hasOpened=fileDialog->openSelectDir(
+          _("Export ROM"),
+          workingDirROMExport,
+          dpiScale
+        );
+      } else {
+        hasOpened=fileDialog->openSave(
+          _("Export ROM"),
+          {romFilterName, "*"+romFilterExt},
+          workingDirROMExport,
+          dpiScale,
+          (settings.autoFillSave)?shortName:""
+        );
+      }
       break;
     case GUI_FILE_LOAD_MAIN_FONT:
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
@@ -2353,6 +2441,7 @@ int FurnaceGUI::load(String path) {
   undoHist.clear();
   redoHist.clear();
   updateWindowTitle();
+  updateROMExportAvail();
   updateScroll(0);
   if (!e->getWarnings().empty()) {
     showWarning(e->getWarnings(),GUI_WARN_GENERIC);
@@ -4310,6 +4399,12 @@ bool FurnaceGUI::loop() {
             drawExportVGM();
             ImGui::EndMenu();
           }
+          if (romExportExists) {
+            if (ImGui::BeginMenu(_("export ROM..."))) {
+              drawExportROM();
+              ImGui::EndMenu();
+            }
+          }
           int numZSMCompat=0;
           for (int i=0; i<e->song.systemLen; i++) {
             if ((e->song.system[i]==DIV_SYSTEM_VERA) || (e->song.system[i]==DIV_SYSTEM_YM2151)) numZSMCompat++;
@@ -4317,29 +4412,6 @@ bool FurnaceGUI::loop() {
           if (numZSMCompat>0) {
             if (ImGui::BeginMenu(_("export ZSM..."))) {
               drawExportZSM();
-              ImGui::EndMenu();
-            }
-          }
-          bool hasTiunaCompat=false;
-          for (int i=0; i<e->song.systemLen; i++) {
-            if (e->song.system[i]==DIV_SYSTEM_TIA) {
-              hasTiunaCompat=true;
-              break;
-            }
-          }
-          if (hasTiunaCompat) {
-            if (ImGui::BeginMenu(_("export TIunA..."))) {
-              drawExportTiuna();
-              ImGui::EndMenu();
-            }
-          }
-          int numAmiga=0;
-          for (int i=0; i<e->song.systemLen; i++) {
-            if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
-          }
-          if (numAmiga && settings.iCannotWait) {
-            if (ImGui::BeginMenu(_("export Amiga validation data..."))) {
-              drawExportAmigaVal();
               ImGui::EndMenu();
             }
           }
@@ -4364,6 +4436,12 @@ bool FurnaceGUI::loop() {
             curExportType=GUI_EXPORT_VGM;
             displayExport=true;
           }
+          if (romExportExists) {
+            if (ImGui::MenuItem(_("export ROM..."))) {
+              curExportType=GUI_EXPORT_ROM;
+              displayExport=true;
+            }
+          }
           int numZSMCompat=0;
           for (int i=0; i<e->song.systemLen; i++) {
             if ((e->song.system[i]==DIV_SYSTEM_VERA) || (e->song.system[i]==DIV_SYSTEM_YM2151)) numZSMCompat++;
@@ -4371,29 +4449,6 @@ bool FurnaceGUI::loop() {
           if (numZSMCompat>0) {
             if (ImGui::MenuItem(_("export ZSM..."))) {
               curExportType=GUI_EXPORT_ZSM;
-              displayExport=true;
-            }
-          }
-          bool hasTiunaCompat=false;
-          for (int i=0; i<e->song.systemLen; i++) {
-            if (e->song.system[i]==DIV_SYSTEM_TIA) {
-              hasTiunaCompat=true;
-              break;
-            }
-          }
-          if (hasTiunaCompat) {
-            if (ImGui::MenuItem(_("export TIunA..."))) {
-              curExportType=GUI_EXPORT_TIUNA;
-              displayExport=true;
-            }
-          }
-          int numAmiga=0;
-          for (int i=0; i<e->song.systemLen; i++) {
-            if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
-          }
-          if (numAmiga && settings.iCannotWait) {
-            if (ImGui::MenuItem(_("export Amiga validation data..."))) {
-              curExportType=GUI_EXPORT_AMIGA_VAL;
               displayExport=true;
             }
           }
@@ -4434,6 +4489,7 @@ bool FurnaceGUI::loop() {
                 autoDetectSystem();
               }
               updateWindowTitle();
+              updateROMExportAvail();
             }
             ImGui::EndMenu();
           }
@@ -4460,6 +4516,7 @@ bool FurnaceGUI::loop() {
                       autoDetectSystem();
                     }
                     updateWindowTitle();
+                    updateROMExportAvail();
                   } else {
                     showError(fmt::sprintf(_("cannot change chip! (%s)"),e->getLastError()));
                   }
@@ -4484,6 +4541,7 @@ bool FurnaceGUI::loop() {
                   autoDetectSystem();
                   updateWindowTitle();
                 }
+                updateROMExportAvail();
               }
             }
             ImGui::EndMenu();
@@ -4980,7 +5038,6 @@ bool FurnaceGUI::loop() {
           workingDirZSMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_EXPORT_ROM:
-        case GUI_FILE_EXPORT_TIUNA:
         case GUI_FILE_EXPORT_TEXT:
         case GUI_FILE_EXPORT_CMDSTREAM:
           workingDirROMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
@@ -5075,6 +5132,9 @@ bool FurnaceGUI::loop() {
           }
           if (curFileDialog==GUI_FILE_EXPORT_VGM) {
             checkExtension(".vgm");
+          }
+          if (curFileDialog==GUI_FILE_EXPORT_ROM) {
+            checkExtension(romFilterExt.c_str());
           }
           if (curFileDialog==GUI_FILE_EXPORT_ZSM) {
             checkExtension(".zsm");
@@ -5575,29 +5635,20 @@ bool FurnaceGUI::loop() {
               }
               break;
             }
-            case GUI_FILE_EXPORT_TIUNA: {
-              SafeWriter* w=e->saveTiuna(willExport,asmBaseLabel.c_str(),tiunaFirstBankSize,tiunaOtherBankSize);
-              if (w!=NULL) {
-                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
-                if (f!=NULL) {
-                  fwrite(w->getFinalBuf(),1,w->size(),f);
-                  fclose(f);
-                  pushRecentSys(copyOfName.c_str());
-                } else {
-                  showError("could not open file!");
-                }
-                w->finish();
-                delete w;
-                if (!e->getWarnings().empty()) {
-                  showWarning(e->getWarnings(),GUI_WARN_GENERIC);
-                }
-              } else {
-                showError(fmt::sprintf("Could not write TIunA! (%s)",e->getLastError()));
-              }
-              break;
-            }
             case GUI_FILE_EXPORT_ROM:
-              showError(_("Coming soon!"));
+              romExportPath=copyOfName;
+              pendingExport=e->buildROM(romTarget);
+              if (pendingExport==NULL) {
+                showError("could not create exporter! you may want to report this issue...");
+              } else {
+                pendingExport->setConf(romConfig);
+                if (pendingExport->go(e)) {
+                  displayExportingROM=true;
+                  romExportSave=true;
+                } else {
+                  showError("could not begin exporting process! TODO: elaborate");
+                }
+              }
               break;
             case GUI_FILE_EXPORT_TEXT: {
               SafeWriter* w=e->saveText(false);
@@ -5769,6 +5820,11 @@ bool FurnaceGUI::loop() {
       ImGui::OpenPopup(_("Rendering..."));
     }
 
+    if (displayExportingROM) {
+      displayExportingROM=false;
+      ImGui::OpenPopup(_("ROM Export Progress"));
+    }
+
     if (displayNew) {
       newSongQuery="";
       newSongFirstFrame=true;
@@ -5788,6 +5844,7 @@ bool FurnaceGUI::loop() {
         selEnd=SelectionPoint();
         cursor=SelectionPoint();
         updateWindowTitle();
+        updateROMExportAvail();
       } else {
         ImGui::OpenPopup(_("New Song"));
       }
@@ -5830,6 +5887,94 @@ bool FurnaceGUI::loop() {
       if (!e->isExporting()) {
         e->finishAudioFile();
         ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndPopup();
+    }
+
+    ImVec2 romExportMinSize=mobileUI?ImVec2(canvasW-(portrait?0:(60.0*dpiScale)),canvasH-60.0*dpiScale):ImVec2(400.0f*dpiScale,200.0f*dpiScale);
+    ImVec2 romExportMaxSize=ImVec2(canvasW-((mobileUI && !portrait)?(60.0*dpiScale):0),canvasH-(mobileUI?(60.0*dpiScale):0));
+
+    centerNextWindow(_("ROM Export Progress"),canvasW,canvasH);
+    ImGui::SetNextWindowSizeConstraints(romExportMinSize,romExportMaxSize);
+    if (ImGui::BeginPopupModal(_("ROM Export Progress"),NULL)) {
+      if (pendingExport==NULL) {
+        ImGui::TextWrapped("%s",_("...ooooor you could try asking me a new ROM export?"));
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::Button(_("Erm what the sigma???"),ImVec2(ImGui::GetContentRegionAvail().x,0.0f))) {
+          ImGui::CloseCurrentPopup();
+        }
+      } else {
+        int progIndex=0;
+        while (true) {
+          DivROMExportProgress p=pendingExport->getProgress(progIndex);
+          if (p.name.empty()) break;
+          ImGui::Text("%s: %d%%",p.name.c_str(),(int)round(p.amount*100.0f));
+          ImGui::ProgressBar(p.amount,ImVec2(-FLT_MIN,0));
+          progIndex++;
+        }
+        ImVec2 romLogSize=ImGui::GetContentRegionAvail();
+        romLogSize.y-=ImGui::GetFrameHeightWithSpacing();
+        if (romLogSize.y<60.0f*dpiScale) romLogSize.y=60.0f*dpiScale;
+        if (ImGui::BeginChild("Export Log",romLogSize,true)) {
+          pendingExport->logLock.lock();
+          ImGui::PushFont(patFont);
+          for (String& i: pendingExport->exportLog) {
+            ImGui::TextWrapped("%s",i.c_str());
+          }
+          if (romExportSave) {
+            ImGui::SetScrollY(ImGui::GetScrollMaxY());
+          }
+          ImGui::PopFont();
+          pendingExport->logLock.unlock();
+        }
+        ImGui::EndChild();
+        if (pendingExport->isRunning()) {
+          WAKE_UP;
+          if (ImGui::Button(_("Abort"),ImVec2(ImGui::GetContentRegionAvail().x,0.0f))) {
+            pendingExport->abort();
+            delete pendingExport;
+            pendingExport=NULL;
+            romExportSave=false;
+            ImGui::CloseCurrentPopup();
+          }
+        } else {
+          if (romExportSave) {
+            pendingExport->wait();
+            if (!pendingExport->hasFailed()) {
+              // save files here (romExportPath)
+              for (DivROMExportOutput& i: pendingExport->getResult()) {
+                String path=romExportPath;
+                if (romMultiFile) {
+                  path+=DIR_SEPARATOR_STR;
+                  path+=i.name;
+                }
+                FILE* outFile=ps_fopen(path.c_str(),"wb");
+                if (outFile!=NULL) {
+                  fwrite(i.data->getFinalBuf(),1,i.data->size(),outFile);
+                  fclose(outFile);
+                } else {
+                  // TODO: handle failure here
+                }
+                i.data->finish();
+                delete i.data;
+              }
+            }
+            romExportSave=false;
+          }
+          if (pendingExport!=NULL) {
+            if (pendingExport->hasFailed()) {
+              ImGui::AlignTextToFramePadding();
+              ImGui::TextUnformatted(_("Error!"));
+              ImGui::SameLine();
+            }
+          }
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Button(_("OK"),ImVec2(ImGui::GetContentRegionAvail().x,0.0f))) {
+            delete pendingExport;
+            pendingExport=NULL;
+            ImGui::CloseCurrentPopup();
+          }
+        }
       }
       ImGui::EndPopup();
     }
@@ -6250,6 +6395,7 @@ bool FurnaceGUI::loop() {
               updateWindowTitle();
               MARK_MODIFIED;
             }
+            updateROMExportAvail();
             ImGui::CloseCurrentPopup();
           }
           ImGui::SameLine();
@@ -7450,6 +7596,7 @@ bool FurnaceGUI::init() {
   }
 
   updateWindowTitle();
+  updateROMExportAvail();
 
   logV("max texture size: %dx%d",rend->getMaxTextureWidth(),rend->getMaxTextureHeight());
 
@@ -8137,6 +8284,7 @@ FurnaceGUI::FurnaceGUI():
   displayEditString(false),
   displayPendingSamples(false),
   replacePendingSample(false),
+  displayExportingROM(false),
   changeCoarse(false),
   mobileEdit(false),
   killGraphics(false),
@@ -8150,9 +8298,6 @@ FurnaceGUI::FurnaceGUI():
   vgmExportTrailingTicks(-1),
   drawHalt(10),
   zsmExportTickRate(60),
-  asmBaseLabel(""),
-  tiunaFirstBankSize(3072),
-  tiunaOtherBankSize(4096-48),
   macroPointSize(16),
   waveEditStyle(0),
   displayInsTypeListMakeInsSample(-1),
@@ -8613,7 +8758,12 @@ FurnaceGUI::FurnaceGUI():
   curTutorial(-1),
   curTutorialStep(0),
   dmfExportVersion(0),
-  curExportType(GUI_EXPORT_NONE) {
+  curExportType(GUI_EXPORT_NONE),
+  romTarget(DIV_ROM_ABSTRACT),
+  romMultiFile(false),
+  romExportSave(false),
+  pendingExport(NULL),
+  romExportExists(false) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
@@ -8731,6 +8881,8 @@ FurnaceGUI::FurnaceGUI():
   memset(emptyLabel2,0,32);
   // effect sorting
   memset(effectsShow,1,sizeof(bool)*10);
+
+  memset(romExportAvail,0,sizeof(bool)*DIV_ROM_MAX);
 
   strncpy(noteOffLabel,"OFF",32);
   strncpy(noteRelLabel,"===",32);

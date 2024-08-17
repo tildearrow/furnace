@@ -5,6 +5,7 @@
 // Chip revisions
 // 0: V  0.3.0
 // 1: V 47.0.0 (9-bit volume, phase reset on mute)
+// 2: V 47.0.2 (Pulse Width XOR on Saw and Triangle)
 
 #include "vera_psg.h"
 
@@ -88,8 +89,8 @@ render(struct VERA_PSG* psg, int16_t *left, int16_t *right)
 		uint8_t v = 0;
 		switch (ch->waveform) {
 			case WF_PULSE: v = (ch->phase >> 10) > ch->pw ? 0 : 63; break;
-			case WF_SAWTOOTH: v = ch->phase >> 11; break;
-			case WF_TRIANGLE: v = (ch->phase & 0x10000) ? (~(ch->phase >> 10) & 0x3F) : ((ch->phase >> 10) & 0x3F); break;
+			case WF_SAWTOOTH: v = (ch->phase >> 11) ^ (psg->chipType < 2 ? 0 : (ch->pw ^ 0x3f) & 0x3f); break;
+			case WF_TRIANGLE: v = ((ch->phase & 0x10000) ? (~(ch->phase >> 10) & 0x3F) : ((ch->phase >> 10) & 0x3F)) ^ (psg->chipType < 2 ? 0 : (ch->pw ^ 0x3f) & 0x3f); break;
 			case WF_NOISE: v = ch->noiseval; break;
 		}
 		int8_t sv = (v ^ 0x20);
