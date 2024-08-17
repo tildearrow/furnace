@@ -1,6 +1,6 @@
 # SID2
 
-a fictional chip created by LTVA. the idea is to fix SID flaws and add more features, but not too much.
+a fictional chip created by LTVA. the idea is to fix [SID](c64.md) flaws and add more features, but not too much.
 
 unlike SID, it has per-channel volume control, better ADSR envelope which doesn't have bugs, more waveform mixing modes and the ability to play tonal noise waves.
 
@@ -46,6 +46,10 @@ each channel now has its own independent filter. filter cutoff and resonance ran
     - `9`: phase reset (`y` is a discarded parameter and does not matter)
     - `A`: envelope key on/key off (`y` is `0` (trigger envelope release) or `1` (restart envelope again))
     - `B`: filter on/off (`y` is `0` (disable filter) or `1` (enable filter))
+- `17xx`: **pulse width slide up.** `xx` is speed. `1700` stops the slide.
+- `18xx`: **pulse width slide down.** `xx` is speed. `1800` stops the slide.
+- `19xx`: **filter cutoff slide up.** `xx` is speed. `1900` stops the slide.
+- `1Axx`: **filter cutoff slide down.** `xx` is speed. `1A00` stops the slide.
 - `3xxx`: **set duty cycle.** `xxx` range is `000` to `FFF`.
 - `4xxx`: **set cutoff.** `xxx` range is `000` to `FFF`.
 
