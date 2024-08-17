@@ -865,7 +865,6 @@ struct DivInstrumentSID2 {
 struct DivInstrumentSID3 
 {
   unsigned char sr;
-  unsigned int lfsr_taps;
   bool phase_mod;
   unsigned char phase_mod_source, ring_mod_source, sync_source;
   bool specialWaveOn;
@@ -935,7 +934,6 @@ struct DivInstrumentSID3
   }
   DivInstrumentSID3():
     sr(0),
-    lfsr_taps(0),
     phase_mod(false),
     phase_mod_source(0),
     ring_mod_source(0),

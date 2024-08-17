@@ -258,7 +258,6 @@ bool DivInstrumentESFM::Operator::operator==(const DivInstrumentESFM::Operator& 
 bool DivInstrumentSID3::operator==(const DivInstrumentSID3& other) {
   return (
     _C(sr) &&
-    _C(lfsr_taps) &&
     _C(phase_mod) &&
     _C(phase_mod_source) &&
     _C(ring_mod_source) &&
@@ -904,6 +903,8 @@ void DivInstrument::writeFeatureS3(SafeWriter* w) {
   w->writeC(sid3.sr);
   w->writeC(c64.r);
 
+  w->writeC(sid2.mixMode);
+
   w->writeC(
     (sid3.phase_mod?0x80:0)|
     (sid3.specialWaveOn?0x40:0)|
@@ -912,7 +913,6 @@ void DivInstrument::writeFeatureS3(SafeWriter* w) {
     (sid3.doWavetable?8:0)
   );
 
-  w->writeI(sid3.lfsr_taps);
   w->writeC(sid3.phase_mod_source);
   w->writeC(sid3.ring_mod_source);
   w->writeC(sid3.sync_source);
@@ -2320,7 +2320,12 @@ void DivInstrument::readFeatureS2(SafeReader& reader, short version) {
   unsigned char next=reader.readC();
 
   sid2.volume=next&0xf;
-  sid2.mixMode=(next>>4)&3;
+
+  if(type != DIV_INS_SID3)
+  {
+    sid2.mixMode=(next>>4)&3;
+  }
+  
   sid2.noiseMode=next>>6;
 
   READ_FEAT_END;
@@ -2335,6 +2340,8 @@ void DivInstrument::readFeatureS3(SafeReader& reader, short version) {
   sid3.sr=reader.readC();
   c64.r=reader.readC();
 
+  sid2.mixMode=reader.readC();
+
   unsigned char next = reader.readC();
 
   sid3.phase_mod = next&0x80;
@@ -2343,7 +2350,6 @@ void DivInstrument::readFeatureS3(SafeReader& reader, short version) {
   sid3.separateNoisePitch = next&0x10;
   sid3.doWavetable = next&8;
 
-  sid3.lfsr_taps = reader.readI();
   sid3.phase_mod_source = reader.readC();
   sid3.ring_mod_source = reader.readC();
   sid3.sync_source = reader.readC();
