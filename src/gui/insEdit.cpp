@@ -5896,6 +5896,12 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
       if (ImGui::Button(_("noise"))) { PARAMETER
         ins->c64.noiseOn=!ins->c64.noiseOn;
       }
+      if (ImGui::IsItemHovered()) 
+      {
+        ImGui::SetTooltip(_("Like in SID2, specific noise LFSR feedback bits config can produce tonal waves.\n"
+        "Refer to the manual for LFSR bits macro configurations for which frequency calculation is altered\n"
+        "in a way that makes tonal noise stay in tune."));
+      }
       popToggleColors();
       ImGui::SameLine();
 

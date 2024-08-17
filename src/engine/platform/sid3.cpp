@@ -736,7 +736,7 @@ void DivPlatformSID3::tick(bool sysTick)
 
       bool found = false;
       int index = 0;
-      while(noiseInterestingWavesData != 0 && !found)
+      while(noiseInterestingWavesData[index].LFSRmask != 0 && !found)
       {
         if(noiseInterestingWavesData[index].LFSRmask == chan[i].noiseLFSRMask)
         {
