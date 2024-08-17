@@ -2362,7 +2362,7 @@ void sid3_reset(SID3* sid3)
     {
         memset(&sid3->chan[i], 0, sizeof(sid3_channel));
         sid3->chan[i].adsr.hold_zero = true;
-        sid3->chan[i].lfsr = 0x0ffffff; //three MSBs are left as 0
+        sid3->chan[i].lfsr = 0x3fffffff;
         sid3->chan[i].lfsr_taps = 1 | (1 << 23) | (1 << 25) | (1 << 29); //https://docs.amd.com/v/u/en-US/xapp052 for 30 bits: 30, 6, 4, 1; but inverted since our LFSR is moving in different direction
 
         for(int j = 0; j < SID3_NUM_FILTERS; j++)
@@ -3053,7 +3053,7 @@ void sid3_clock(SID3* sid3)
                 {
                     ch->accumulator = 0;
                     ch->noise_accumulator = 0;
-                    ch->lfsr = 0x0fffffff; //three MSBs are left as 0
+                    ch->lfsr = 0x3fffffff;
                 }
             }
             else
@@ -3062,7 +3062,7 @@ void sid3_clock(SID3* sid3)
                 {
                     ch->accumulator = 0;
                     ch->noise_accumulator = 0;
-                    ch->lfsr = 0x0fffffff; //three MSBs are left as 0
+                    ch->lfsr = 0x3fffffff;
                 }
             }
         }
@@ -3324,7 +3324,7 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
                 if(sid3->chan[channel].flags & SID3_CHAN_NOISE_PHASE_RESET)
                 {
                     sid3->chan[channel].noise_accumulator = 0;
-                    sid3->chan[channel].lfsr = 0x0fffffff; //three MSBs are left as 0
+                    sid3->chan[channel].lfsr = 0x3fffffff;
                 }
 
                 sid3->chan[channel].flags &= ~(SID3_CHAN_ENV_RESET | SID3_CHAN_NOISE_PHASE_RESET | SID3_CHAN_PHASE_RESET);

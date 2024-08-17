@@ -81,6 +81,9 @@ typedef struct
 const noiseFreqData noiseInterestingWavesData[] = 
 {
   {524288, 523.0f / 1675.0f}, //wave very close to SID2 noise mode 1 wave
+  {541065280U, 523.0f / 104.0f / 2.0f}, //smth like vocals
+  {2068, 1.0f}, //wave very close to SID2 noise mode 3 wave
+  {66, 523.0f / 540.0f / 2.0f}, //wave very close to SID2 noise mode 2 wave
 
   {0, 0.0f}, //end marker
 };
