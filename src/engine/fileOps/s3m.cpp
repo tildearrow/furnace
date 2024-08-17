@@ -19,21 +19,6 @@
 
 #include "fileOpsCommon.h"
 
-// SBI and some other OPL containers
-struct sbi_t {
-  uint8_t Mcharacteristics,
-          Ccharacteristics,
-          Mscaling_output,
-          Cscaling_output,
-          Meg_AD,
-          Ceg_AD,
-          Meg_SR,
-          Ceg_SR,
-          Mwave,
-          Cwave,
-          FeedConnect;
-};
-
 static void readSbiOpData(sbi_t& sbi, SafeReader& reader) {
   sbi.Mcharacteristics = reader.readC();
   sbi.Ccharacteristics = reader.readC();

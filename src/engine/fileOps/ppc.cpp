@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "shared.h"
+#include "fileOpsCommon.h"
 
 #ifdef HAVE_GUI
 #include "../gui/gui.h"
