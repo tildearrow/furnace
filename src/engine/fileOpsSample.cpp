@@ -24,8 +24,6 @@
 #include "sfWrapper.h"
 #endif
 
-#define _LE(string) (string)
-
 std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
   std::vector<DivSample*> ret;
 
@@ -113,7 +111,7 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
       buf=new unsigned char[len];
       if (fread(buf,1,len,f)!=(size_t)len) {
         logW("did not read entire sample bank file buffer!");
-        lastError=_LE("did not read entire sample bank file!");
+        lastError=_("did not read entire sample bank file!");
         delete[] buf;
         return ret;
       }

@@ -19,11 +19,6 @@
 
 #include "fileOpsCommon.h"
 
-#ifdef HAVE_GUI
-#include "../gui/gui.h"
-extern FurnaceGUI g;
-#endif
-
 class DivEngine;
 
 //PPS AY-3-8910 sample bank

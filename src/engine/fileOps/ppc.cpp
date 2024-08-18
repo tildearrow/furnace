@@ -19,11 +19,6 @@
 
 #include "fileOpsCommon.h"
 
-#ifdef HAVE_GUI
-#include "../gui/gui.h"
-extern FurnaceGUI g;
-#endif
-
 class DivEngine;
 
 //PPC PMD's YM2608 ADPCM-B sample bank
