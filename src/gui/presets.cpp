@@ -1203,28 +1203,63 @@ void FurnaceGUI::initSystemPresets() {
         CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
       }
     );
+    SUB_ENTRY(
+        "Sega TeraDrive", {
+          CH(DIV_SYSTEM_YM2612, 1.0f, 0, ""),
+          CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
+          CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+      }
+    );
+      SUB_SUB_ENTRY(
+          "Sega TeraDrive (extended channel 3)", {
+            CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, ""),
+            CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
+            CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+        }
+    );
+      SUB_SUB_ENTRY(
+          "Sega TeraDrive (CSM)", {
+            CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, ""),
+            CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
+            CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+        }
+    );
+      SUB_SUB_ENTRY(
+          "Sega TeraDrive (DualPCM)", {
+            CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, ""),
+            CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
+            CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+        }
+    );
+      SUB_SUB_ENTRY(
+          "Sega TeraDrive (DualPCM, extended channel 3)", {
+            CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, ""),
+            CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
+            CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+        }
+    );
   ENTRY(
     "Sharp X1", {
       CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=3")
-    }
+        }
   );
     SUB_ENTRY(
       "Sharp X1 + FM Addon", {
         CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=3"),
         CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2")
-      }
+        }
     );
   ENTRY(
     "Sharp X68000", {
       CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"),
       CH(DIV_SYSTEM_MSM6258, 1.0f, 0, "clockSel=2")
-    }
+        }
   );
   ENTRY(
     "FM-7", {
       CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=12"),
       CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5")
-    }
+        }
   );
    SUB_ENTRY(
      "FM-7 (extended channel 3)", {
