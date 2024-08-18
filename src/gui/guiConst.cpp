@@ -688,6 +688,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("PAT_LATCH", _N("Set note input latch"), 0),
   D("PAT_SCROLL_MODE", _N("Change mobile scroll mode"), 0),
   D("PAT_CLEAR_LATCH", _N("Clear note input latch"), 0),
+  D("PAT_ABSORB_INSTRUMENT", _N("Set current instrument to channel's current instrument column"), 0),
   D("PAT_MAX", "", NOT_AN_ACTION),
 
   D("INS_LIST_MIN", _N("---Instrument list"), NOT_AN_ACTION),

@@ -817,6 +817,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_PAT_LATCH,
   GUI_ACTION_PAT_SCROLL_MODE,
   GUI_ACTION_PAT_CLEAR_LATCH,
+  GUI_ACTION_PAT_ABSORB_INSTRUMENT,
   GUI_ACTION_PAT_MAX,
 
   GUI_ACTION_INS_LIST_MIN,
@@ -1958,6 +1959,7 @@ class FurnaceGUI {
     unsigned int maxUndoSteps;
     float vibrationStrength;
     int vibrationLength;
+    int s3mOPL3;
     String mainFontPath;
     String headFontPath;
     String patFontPath;
@@ -2214,6 +2216,7 @@ class FurnaceGUI {
       maxUndoSteps(100),
       vibrationStrength(0.5f),
       vibrationLength(20),
+      s3mOPL3(0),
       mainFontPath(""),
       headFontPath(""),
       patFontPath(""),

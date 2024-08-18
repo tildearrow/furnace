@@ -14,6 +14,7 @@ right-clicking the view will display the configuration view shown above:
   - **Mode 2**: bias slightly toward more columns.
   - **Mode 3**: always more columns than rows.
 - **Amplitude**: scales amplitude for all oscilloscope views.
+- **Line size**: controls line thickness.
 - **Gradient**: this allows you to use a gradient for determining the waveforms' colors instead of a single color. see the gradient section for more information.
   - if this option is off, a color selector will be displayed. right-click on it for some options:
     - select between the square selector and the color wheel selector.

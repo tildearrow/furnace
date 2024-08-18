@@ -1,25 +1,31 @@
 # settings
 
-the Settings window allows you to change Furnace setting.
+the Settings window allows you to change Furnace settings.
 
-settings are saved when clicking the **OK** or **Apply** buttons at the bottom of the window.
+settings are saved when clicking the **OK** or **Apply** buttons at the bottom of the window, and when closing the program. several backups are kept in the Furnace settings directory.
+
 
 ## General
 
 ### Program
 
+- **Language**: select the language used for the interface. some languages are incomplete, and are listed with their approximate completion percentage.
 - **Render backend**: changing this may help with performace or compatibility issues. the available render backends are:
+  - SDL Renderer: this was the only available render backend prior to the addition of dedicated OpenGL/DirectX backends in 0.6. default on macOS.
+    - it is slower than the other backends.
+  - DirectX 11: works with the majority of graphics chips/cards and is optimized specifically for Windows.
+  - DirectX 9: use if your hardware is incompatible with DirectX 11.
   - OpenGL 3.0: works with the majority of graphics chips/cards (from 2010 onwards). default on Linux.
   - OpenGL 2.0: use if you have a card without OpenGL 3.0 support.
   - OpenGL 1.1: use if your card doesn't even support OpenGL 2.0.
-  - DirectX 11: works with the majority of graphics chips/cards and is optimized specifically for Windows.
-  - SDL Renderer: this was the only available render backend prior to the addition of dedicated OpenGL/DirectX backends in 0.6. default on macOS.
-    - it is slower than the other backends.
   - Software: this is a last resort backend which renders the interface in software. very slow!
-- **Render driver**: this setting appears when using the SDL Renderer backend. it allows you to select an SDL render driver.
+- **Advanced render backend settings**: only applicable with some render backends.
+  - **Render driver**: this setting only appears when using the SDL Renderer backend. it allows you to select an SDL render driver.
+  - OpenGL settings: these only appear when using an OpenGL backend, and should only be adjusted if the display is incorrect.
 - **VSync**: synchronizes rendering to VBlank and eliminates tearing.
 - **Frame rate limit**: allows you to set a frame rate limit (in frames per second).
   - only has effect when VSync is off or not available (e.g. software rendering or force-disabled on driver settings).
+- **Display render time**: displays frame rate and frame render time at the right side of the menu bar.
 - **Late render clear**: this option is only useful when using old versions of Mesa drivers. it force-waits for VBlank by clearing after present, reducing latency.
 - **Power-saving mode**: saves power by lowering the frame rate to 2fps when idle.
   - may cause issues under Mesa drivers!
@@ -49,6 +55,9 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
   - **Remember last values**
 - **Store instrument name in .fui**: when enabled, saving an instrument will store its name. this may increase file size.
 - **Load instrument name from .fui**: when enabled, loading an instrument will use the stored name (if present). otherwise, it will use the file name.
+- **Auto-fill file name when saving**: pre-fill the file name field when saving or exporting.
+  - when saving a module, the existing file name will be auto-filled.
+  - when saving an instrument or sample, its name will be auto-filled.
 
 ### New Song
 
@@ -79,6 +88,11 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 
 - **New instruments are blank**: when enabled, adding FM instruments will make them blank (rather than loading the default one).
 
+### Configuration
+- **Import**: select an exported `.ini` config file to overwrite current settings.
+- **Export**: select an `.ini` file to save current settings.
+- **Factory Reset**: resets all settings to default and purges settings backups.
+
 ## Audio
 
 ### Output
@@ -100,9 +114,7 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 - **Sample rate**: audio output rate.
   - a lower rate decreases quality and isn't really beneficial.
   - if using PortAudio backend, be careful about this value.
-- **Outputs**: number of audio outputs created, up to 16.
-  - only appears when Backend is JACK.
-- **Channels**: mono, stereo or something.
+- **Outputs**: number of audio outputs created, up to 16. default is 2 (stereo).
 - **Buffer size**: size of buffer in both samples and milliseconds.
   - setting this to a low value may cause stuttering/glitches in playback (known as "underruns" or "xruns").
   - setting this to a high value increases latency.
@@ -135,6 +147,7 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 ### MIDI input
 
 - **MIDI input**: input device.
+  - **Rescan MIDI devices**: repopulates list with all currently connected MIDI devices. useful if a device is connected while Furnace is running.
 - **Note input**: enables note input. disable if you intend to use this device only for binding actions.
 - **Velocity input**: enables velocity input when entering notes in the pattern.
 - **Map MIDI channels to direct channels**: when enabled, notes from MIDI channels will be mapped to channels rather than the cursor position.
@@ -291,6 +304,7 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 - **Push value when overwriting instead of clearing it**: in the order list and pattern editors, typing into an already-filled value will shift digits instead of starting fresh. for example:
   - if off: moving the cursor onto the value `A5` and typing a "B" results in `0B`.
   - if on: moving the cursor onto the value `A5` and typing a "B" results in `5B`.
+- **Keyboard note/value input repeat (hold key to input continuously)**
 - **Effect input behavior:**
   - **Move down**: after entering an effect (or effect value), the cursor moves down.
   - **Move to effect value (otherwise move down)**: after entering an effect, the cursor moves to its value. if entering a value, the cursor moves down.
@@ -359,11 +373,7 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 - **Pattern font** font for the pattern view, the order list, and related.
   - if "Custom...", a file path selector will appear.
   - **Size**: font size.
-- **Display Japanese characters**, **Display Chinese (Simplified) characters**, **Display Chinese (Traditional) characters** and **Display Korean characters**: only toggle these options if you have enough graphics memory.
-  - these are a temporary solution until dynamic font atlas is implemented in Dear ImGui.
-
 #### FreeType-specific settings
-
 - **Anti-aliased fonts**: when enabled, fonts will be rendered smooth.
 - **Support bitmap fonts**: this option allows you to enable the loading of bitmap fonts.
   - be noted that this may force non-bitmap fonts to undesired sizes!
@@ -376,6 +386,13 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - **Disable**: only rely upon font hinting data.
   - **Enable**: prefer font hinting data if present.
   - **Force**: ignore font hinting data.
+#### non-specific settings
+- **Oversample**: renders the font internally at higher resolution for visual quality.
+  - higher settings use more video memory.
+  - for pixel or bitmap fonts, set this to **1x**.
+- **Load fallback font**: load an extra font that contains nearly all characters that can be used, in case the selected fonts lack them. uses much video memory
+- **Display Japanese characters**, **Display Chinese (Simplified) characters**, **Display Chinese (Traditional) characters** and **Display Korean characters**: only toggle these options if you have enough graphics memory.
+  - these are a temporary solution until dynamic font atlas is implemented in Dear ImGui.
 
 ### Program
 
@@ -386,15 +403,16 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - **/path/to/file.fur - Furnace**
 - **Display system name on title bar**
 - **Display chip names instead of "multi-system" in title bar**
-- **Export options layout:**
-  - **Sub-menus in File menu**: export options appear in the File menu as sub-menus.
-  - **Modal window with tabs**: a single "export..." option that opens a dialog with export options. this is the default.
-  - **Modal windows with options in File menu**: like Sub-menus in File menu, but instead of being sub-menus, selecting one opens a dialog with export settings.
 - **Status bar:**
   - **Cursor details**
   - **File path**
   - **Cursor details or file path**
   - **Nothing**
+- **Display playback status when playing**: display playback time and current location in the menu bar.
+- **Export options layout:**
+  - **Sub-menus in File menu**: export options appear in the File menu as sub-menus.
+  - **Modal window with tabs**: a single "export..." option that opens a dialog with export options. this is the default.
+  - **Modal windows with options in File menu**: like Sub-menus in File menu, but instead of being sub-menus, selecting one opens a dialog with export settings.
 - **Capitalize menu bar**
 - **Display add/configure/change/remove chip menus in File menu**: if enabled, the "manage chips" item in the file menu is split into the four listed items for quick access.
 
@@ -532,9 +550,9 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 - **Rounded window corners**
 - **Rounded buttons**
 - **Rounded menu corners**
+- **Rounded tabs**
+- **Rounded scrollbars**
 - **Borders around widgets**: draws borders on buttons, checkboxes, text widgets, and the like.
-
-
 
 ## Color
 
@@ -544,9 +562,28 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 - **Export**
 - **Reset defaults**
 - **Guru mode**: exposes all color options (instead of accent colors).
-- **General**
+- **Interface**
+  - **Frame shading**: applies a gradient effect to buttons and input boxes.
   - **Color scheme type:**
     - **Dark**
     - **Light**
-  - **Frame shading**: applies a gradient effect to buttons and input boxes.
+  - **Accent colors**: select main interface colors.
+    - **Primary**
+    - **Secondary**
 - several more categories...
+
+## Backup
+
+### Configuration
+
+- **Enable backup system**: turn on automatic backups of the current open file.
+- **Interval (in seconds)**: time between automatic backups.
+- **Backups per file**: maximum number of backups to store for each file. oldest backups are deleted first.
+
+### Backup Management
+
+- **Purge before**:
+  - **Go**: purge all backups from before the selected date.
+- total space used by all backups:
+  - **Refresh**: recalculate space.
+  - **Delete All**: purge all backups.
