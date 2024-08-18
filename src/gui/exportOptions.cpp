@@ -319,6 +319,29 @@ void FurnaceGUI::drawExportROM(bool onWindow) {
       }
       break;
     }
+    case DIV_ROM_ZSM: {
+      int zsmExportTickRate=romConfig.getInt("zsmrate",60);
+      bool zsmExportLoop=romConfig.getBool("loop",true);
+      bool zsmExportOptimize=romConfig.getBool("optimize",true);
+
+      if (ImGui::InputInt(_("Tick Rate (Hz)"),&zsmExportTickRate,1,2)) {
+        if (zsmExportTickRate<1) zsmExportTickRate=1;
+        if (zsmExportTickRate>44100) zsmExportTickRate=44100;
+        altered=true;
+      }
+      if (ImGui::Checkbox(_("loop"),&zsmExportLoop)) {
+        altered=true;
+      }
+      if (ImGui::Checkbox(_("optimize size"),&zsmExportOptimize)) {
+        altered=true;
+      }
+      if (altered) {
+        romConfig.set("zsmrate",zsmExportTickRate);
+        romConfig.set("loop",zsmExportLoop);
+        romConfig.set("optimize",zsmExportOptimize);
+      }
+      break;
+    }
     case DIV_ROM_ABSTRACT:
       ImGui::TextWrapped("%s",_("select a target from the menu at the top of this dialog."));
       break;
@@ -336,28 +359,6 @@ void FurnaceGUI::drawExportROM(bool onWindow) {
   }
   if (ImGui::Button(_("Export"),ImVec2(200.0f*dpiScale,0))) {
     openFileDialog(GUI_FILE_EXPORT_ROM);
-    ImGui::CloseCurrentPopup();
-  }
-}
-
-void FurnaceGUI::drawExportZSM(bool onWindow) {
-  exitDisabledTimer=1;
-
-  ImGui::Text(_("Commander X16 Zsound Music File"));
-  if (ImGui::InputInt(_("Tick Rate (Hz)"),&zsmExportTickRate,1,2)) {
-    if (zsmExportTickRate<1) zsmExportTickRate=1;
-    if (zsmExportTickRate>44100) zsmExportTickRate=44100;
-  }
-  ImGui::Checkbox(_("loop"),&zsmExportLoop);
-  ImGui::SameLine();
-  ImGui::Checkbox(_("optimize size"),&zsmExportOptimize);
-  if (onWindow) {
-    ImGui::Separator();
-    if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
-    ImGui::SameLine();
-  }
-  if (ImGui::Button(_("Export"),ImVec2(200.0f*dpiScale,0))) {
-    openFileDialog(GUI_FILE_EXPORT_ZSM);
     ImGui::CloseCurrentPopup();
   }
 }
@@ -444,16 +445,6 @@ void FurnaceGUI::drawExport() {
           ImGui::EndTabItem();
         }
       }
-      int numZSMCompat=0;
-      for (int i=0; i<e->song.systemLen; i++) {
-        if ((e->song.system[i]==DIV_SYSTEM_VERA) || (e->song.system[i]==DIV_SYSTEM_YM2151)) numZSMCompat++;
-      }
-      if (numZSMCompat>0) {
-        if (ImGui::BeginTabItem(_("ZSM"))) {
-          drawExportZSM(true);
-          ImGui::EndTabItem();
-        }
-      }
       if (ImGui::BeginTabItem(_("Text"))) {
         drawExportText(true);
         ImGui::EndTabItem();
@@ -477,9 +468,6 @@ void FurnaceGUI::drawExport() {
       break;
     case GUI_EXPORT_ROM:
       drawExportROM(true);
-      break;
-    case GUI_EXPORT_ZSM:
-      drawExportZSM(true);
       break;
     case GUI_EXPORT_TEXT:
       drawExportText(true);
