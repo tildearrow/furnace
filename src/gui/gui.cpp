@@ -6627,7 +6627,9 @@ bool FurnaceGUI::loop() {
       }
       ImGui::EndPopup();
     }
-centerNextWindow(_("Select Sample"),canvasW,canvasH);
+
+    // TODO: fix style
+    centerNextWindow(_("Select Sample"),canvasW,canvasH);
     if (ImGui::BeginPopupModal(_("Select Sample"),NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       bool quitPlease=false;
 
@@ -6673,6 +6675,7 @@ centerNextWindow(_("Select Sample"),canvasW,canvasH);
             } 
             else 
             {
+              // TODO:fixstyle from hereonwards
               ImGuiIO& io = ImGui::GetIO();
               if(ImGui::Checkbox(id.c_str(),&pendingSamples[i].second) && io.KeyShift)
               {
@@ -7830,7 +7833,7 @@ bool FurnaceGUI::init() {
   compatFormats+="*.pdx ";
   compatFormats+="*.pzi ";
   compatFormats+="*.p86 ";
-  compatFormats+="*.p ";
+  compatFormats+="*.p";
   audioLoadFormats[1]=compatFormats;
 
   audioLoadFormats.push_back(_("NES DPCM data"));
