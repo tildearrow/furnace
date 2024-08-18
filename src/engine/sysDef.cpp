@@ -1570,7 +1570,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_OPLL_DRUMS]=new DivSysDef(
     _("Yamaha YM2413 (OPLL) with drums"), NULL, 0xa7, 0, 11, true, false, 0x150, false, 0, 0, 0,
-    _("the OPLL chips but with drums mode turned on."),
+    _("the OPLL chip but with drums mode turned on."),
     {_("FM 1"), _("FM 2"), _("FM 3"), _("FM 4"), _("FM 5"), _("FM 6"), _("Kick"), _("Snare"), _("Tom"), _("Top"), _("HiHat")},
     {"F1", "F2", "F3", "F4", "F5", "F6", "BD", "SD", "TM", "TP", "HH"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
