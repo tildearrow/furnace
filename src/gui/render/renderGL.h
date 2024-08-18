@@ -46,21 +46,27 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
   int sh_oscRender_oscVal;
   bool sh_oscRender_have;
 
+  bool swapIntervalSet;
+  unsigned char glVer;
+
+  int maxWidth, maxHeight;
+  String backendName, vendorName, deviceName, apiVersion;
+
   bool createShader(const char* vertexS, const char* fragmentS, int& vertex, int& fragment, int& program, const char** attribNames);
 
   public:
     ImTextureID getTextureID(FurnaceGUITexture* which);
+    FurnaceGUITextureFormat getTextureFormat(FurnaceGUITexture* which);
     bool lockTexture(FurnaceGUITexture* which, void** data, int* pitch);
     bool unlockTexture(FurnaceGUITexture* which);
     bool updateTexture(FurnaceGUITexture* which, void* data, int pitch);
-    FurnaceGUITexture* createTexture(bool dynamic, int width, int height);
+    FurnaceGUITexture* createTexture(bool dynamic, int width, int height, bool interpolate=true, FurnaceGUITextureFormat format=GUI_TEXFORMAT_ABGR32);
     bool destroyTexture(FurnaceGUITexture* which);
     void setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode);
     void setBlendMode(FurnaceGUIBlendMode mode);
-    const char* getStupidFragment();
-    bool regenOscShader(const char* fragment);
     void clear(ImVec4 color);
     bool newFrame();
+    bool canVSync();
     void createFontsTexture();
     void destroyFontsTexture();
     void renderGUI();
@@ -70,15 +76,29 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
     bool getOutputSize(int& w, int& h);
     bool supportsDrawOsc();
     int getWindowFlags();
-    void preInit();
-    bool init(SDL_Window* win);
+    int getMaxTextureWidth();
+    int getMaxTextureHeight();
+    unsigned int getTextureFormats();
+    const char* getBackendName();
+    const char* getVendorName();
+    const char* getDeviceName();
+    const char* getAPIVersion();
+    void setSwapInterval(int swapInterval);
+    void preInit(const DivConfig& conf);
+    bool init(SDL_Window* win, int swapInterval);
     void initGUI(SDL_Window* win);
     void quitGUI();
     bool quit();
     bool isDead();
+    void setVersion(unsigned char ver);
     FurnaceGUIRenderGL():
       context(NULL),
-      sdlWin(NULL) {
+      sdlWin(NULL),
+      swapIntervalSet(true),
+      glVer(3),
+      maxWidth(0),
+      maxHeight(0),
+      backendName("What?") {
       memset(quadVertex,0,4*3*sizeof(float));
       memset(oscVertex,0,4*5*sizeof(float));
       memset(oscData,0,2048*sizeof(float));

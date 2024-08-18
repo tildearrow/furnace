@@ -48,22 +48,22 @@ void FurnaceGUI::drawPalette() {
   int width=ImGui::GetContentRegionAvail().x;
   ImGui::SetNextItemWidth(width);
 
-  const char* hint="Search...";
+  const char* hint=_("Search...");
   switch (curPaletteType) {
   case CMDPAL_TYPE_RECENT:
-    hint="Search recent files...";
+    hint=_("Search recent files...");
     break;
   case CMDPAL_TYPE_INSTRUMENTS:
-    hint="Search instruments...";
+    hint=_("Search instruments...");
     break;
   case CMDPAL_TYPE_SAMPLES:
-    hint="Search samples...";
+    hint=_("Search samples...");
     break;
   case CMDPAL_TYPE_INSTRUMENT_CHANGE:
-    hint="Search instruments (to change to)...";
+    hint=_("Search instruments (to change to)...");
     break;
   case CMDPAL_TYPE_ADD_CHIP:
-    hint="Search chip (to add)...";
+    hint=_("Search chip (to add)...");
     break;
   }
 
@@ -90,7 +90,7 @@ void FurnaceGUI::drawPalette() {
 
     case CMDPAL_TYPE_INSTRUMENTS:
     case CMDPAL_TYPE_INSTRUMENT_CHANGE:
-      if (matchFuzzy("- None -",paletteQuery.c_str())) {
+      if (matchFuzzy(_("- None -"),paletteQuery.c_str())) {
         paletteSearchResults.push_back(0);
       }
       for (int i=0; i<e->song.insLen; i++) {
@@ -120,7 +120,7 @@ void FurnaceGUI::drawPalette() {
       break;
 
     default:
-      logE("invalid command palette type");
+      logE(_("invalid command palette type"));
       ImGui::CloseCurrentPopup();
       break;
     };
@@ -164,7 +164,7 @@ void FurnaceGUI::drawPalette() {
       case CMDPAL_TYPE_INSTRUMENTS:
       case CMDPAL_TYPE_INSTRUMENT_CHANGE:
         if (id==0) {
-          s="- None -";
+          s=_("- None -");
         } else {
           s=fmt::sprintf("%02X: %s", id-1, e->song.ins[id-1]->name.c_str());
         }
@@ -176,7 +176,7 @@ void FurnaceGUI::drawPalette() {
         s=getSystemName((DivSystem)id);
         break;
       default:
-        logE("invalid command palette type");
+        logE(_("invalid command palette type"));
         break;
       };
 
@@ -196,7 +196,7 @@ void FurnaceGUI::drawPalette() {
     accepted=ImGui::IsKeyPressed(ImGuiKey_Enter);
   }
 
-  if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+  if (ImGui::Button(_("Cancel")) || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
     ImGui::CloseCurrentPopup();
   }
 
@@ -238,7 +238,7 @@ void FurnaceGUI::drawPalette() {
           }
           break;
         default:
-          logE("invalid command palette type");
+          logE(_("invalid command palette type"));
           break;
       };
     }

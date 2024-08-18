@@ -65,7 +65,7 @@ class DivPlatformAY8930: public DivDispatch {
 
       struct DAC {
         int sample, rate, period, pos, out;
-        bool furnaceDAC;
+        bool furnaceDAC, setPos;
 
         DAC():
           sample(-1),
@@ -73,11 +73,13 @@ class DivPlatformAY8930: public DivDispatch {
           period(0),
           pos(0),
           out(0),
-          furnaceDAC(false) {}
+          furnaceDAC(false),
+          setPos(false) {}
       } dac;
 
-      unsigned char autoEnvNum, autoEnvDen, duty;
-      signed char konCycles;
+      unsigned char autoEnvNum, autoEnvDen, duty, autoNoiseMode;
+      signed char konCycles, autoNoiseOff;
+      unsigned short fixedFreq;
       Channel():
         SharedChannel<int>(31),
         envelope(Envelope()),
@@ -87,7 +89,10 @@ class DivPlatformAY8930: public DivDispatch {
         autoEnvNum(0),
         autoEnvDen(0),
         duty(4),
-        konCycles(0) {}
+        autoNoiseMode(0),
+        konCycles(0),
+        autoNoiseOff(0),
+        fixedFreq(0) {}
     };
     Channel chan[3];
     bool isMuted[3];
@@ -133,6 +138,7 @@ class DivPlatformAY8930: public DivDispatch {
     void* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     int mapVelocity(int ch, float vel);
+    float getGain(int ch, int vol);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

@@ -89,6 +89,7 @@ in there, you can modify certain data pertaining to your sample, such as the:
 - **Open**: replaces current sample.
   - right-clicking brings up a menu:
     - **import raw...**: brings up a file selector, then presents a dialog to choose the format of the selected file.
+    - **import raw (replace)...**: same as above, but instead of adding it to the sample list, it replaces the currently selected sample.
 - **Save**: saves current sample to disk.
   - right-clicking brings up a menu:
     - **save raw...**: brings up a file selector, then saves the sample as raw data.
@@ -101,6 +102,9 @@ in there, you can modify certain data pertaining to your sample, such as the:
   - should not be enabled for BRR-type samples.
   - only appears when applicable.
 - **8-bit dither**: applies dithering to samples meant to play back at 8-bit resolution.
+  - only appears when applicable.
+- **no BRR filters**: when encoding to BRR, only use a "4-bit mode" with block filter set to 0.
+  - this allows usage of sample offset effects on SNES.
   - only appears when applicable.
 
 - **Rate**: switches to normal rate values.

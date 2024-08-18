@@ -258,6 +258,14 @@ bool DivInstrumentPowerNoise::operator==(const DivInstrumentPowerNoise& other) {
   return _C(octave);
 }
 
+bool DivInstrumentSID2::operator==(const DivInstrumentSID2& other) {
+  return (
+    _C(volume) &&
+    _C(mixMode) &&
+    _C(noiseMode)
+  );
+}
+
 #undef _C
 
 #define CONSIDER(x,t) \
@@ -473,7 +481,9 @@ void DivInstrument::writeFeature64(SafeWriter* w) {
   w->writeC(((c64.a&15)<<4)|(c64.d&15));
   w->writeC(((c64.s&15)<<4)|(c64.r&15));
   w->writeS(c64.duty);
-  w->writeS((unsigned short)((c64.cut&2047)|(c64.res<<12)));
+  w->writeS((unsigned short)((c64.cut&4095)|((c64.res&15)<<12)));
+
+  w->writeC((c64.res>>4)&15);
 
   FEATURE_END;
 }
@@ -830,6 +840,14 @@ void DivInstrument::writeFeaturePN(SafeWriter* w) {
   FEATURE_END;
 }
 
+void DivInstrument::writeFeatureS2(SafeWriter* w) {
+  FEATURE_BEGIN("S2");
+
+  w->writeC((sid2.volume&15)|((sid2.mixMode&3)<<4)|((sid2.noiseMode&3)<<6));
+
+  FEATURE_END;
+}
+
 void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bool insName) {
   size_t blockStartSeek=0;
   size_t blockEndSeek=0;
@@ -875,6 +893,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   bool featureNE=false;
   bool featureEF=false;
   bool featurePN=false;
+  bool featureS2=false;
 
   bool checkForWL=false;
 
@@ -1112,6 +1131,12 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         featureSM=true;
         featureSL=true;
         break;
+      case DIV_INS_BIFURCATOR:
+        break;
+      case DIV_INS_SID2:
+        feature64=true;
+        featureS2=true;
+        break;
       case DIV_INS_MAX:
         break;
       case DIV_INS_NULL:
@@ -1164,6 +1189,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
     if (powernoise!=defaultIns.powernoise) {
       featurePN=true;
+    }
+    if (sid2!=defaultIns.sid2) {
+      featureS2=true;
     }
   }
 
@@ -1313,6 +1341,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   if (featurePN) {
     writeFeaturePN(w);
   }
+  if (featureS2) {
+    writeFeatureS2(w);
+  }
 
   if (fui && (featureSL || featureWL)) {
     w->write("EN",2);
@@ -1458,6 +1489,12 @@ void DivInstrument::readFeatureMA(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
   unsigned short macroHeaderLen=reader.readS();
+
+  if (macroHeaderLen==0) {
+    logW("invalid macro header length!");
+    READ_FEAT_END;
+    return;
+  }
 
   DivInstrumentMacro* target=&std.volMacro;
 
@@ -1618,8 +1655,12 @@ void DivInstrument::readFeature64(SafeReader& reader, bool& volIsCutoff, short v
   c64.duty=reader.readS()&4095;
 
   unsigned short cr=reader.readS();
-  c64.cut=cr&2047;
+  c64.cut=cr&4095;
   c64.res=cr>>12;
+
+  if (version>=199) {
+    c64.res|=((unsigned char)reader.readC())<<4;
+  }
 
   READ_FEAT_END;
 }
@@ -1680,6 +1721,12 @@ void DivInstrument::readFeatureOx(SafeReader& reader, int op, short version) {
   READ_FEAT_BEGIN;
 
   unsigned short macroHeaderLen=reader.readS();
+
+  if (macroHeaderLen==0) {
+    logW("invalid macro header length!");
+    READ_FEAT_END;
+    return;
+  }
 
   DivInstrumentMacro* target=&std.opMacros[op].amMacro;
 
@@ -2125,6 +2172,18 @@ void DivInstrument::readFeaturePN(SafeReader& reader, short version) {
   READ_FEAT_END;
 }
 
+void DivInstrument::readFeatureS2(SafeReader& reader, short version) {
+  READ_FEAT_BEGIN;
+
+  unsigned char next=reader.readC();
+
+  sid2.volume=next&0xf;
+  sid2.mixMode=(next>>4)&3;
+  sid2.noiseMode=next>>6;
+
+  READ_FEAT_END;
+}
+
 DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song) {
   unsigned char featCode[2];
   bool volIsCutoff=false;
@@ -2197,6 +2256,8 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
       readFeatureEF(reader,version);
     } else if (memcmp(featCode,"PN",2)==0) { // PowerNoise
       readFeaturePN(reader,version);
+    } else if (memcmp(featCode,"S2",2)==0) { // SID2
+      readFeatureS2(reader,version);
     } else {
       if (song==NULL && (memcmp(featCode,"SL",2)==0 || (memcmp(featCode,"WL",2)==0))) {
         // nothing
@@ -3004,6 +3065,8 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version, DivS
   } else if (memcmp(magic,"IN2B",4)==0) { // DIV_FUR_VARIANT_B
     type=1;
   } else if (memcmp(magic,"FINS",4)==0) {
+    type=2;
+  } else if (memcmp(magic,"FINB",4)==0) { // DIV_FUR_VARIANT_B
     type=2;
   } else {
     logE("invalid instrument header!");

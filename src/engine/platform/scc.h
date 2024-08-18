@@ -41,6 +41,7 @@ class DivPlatformSCC: public DivDispatch {
   unsigned char writeOscBuf;
   int lastUpdated34;
 
+  int coreQuality;
   scc_core* scc;
   bool isPlus;
   unsigned char regBase;
@@ -68,6 +69,7 @@ class DivPlatformSCC: public DivDispatch {
     const char** getRegisterSheet();
     void setFlags(const DivConfig& flags);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
+    void setCoreQuality(unsigned char q);
     void setChipModel(bool isPlus);
     void quit();
     ~DivPlatformSCC();

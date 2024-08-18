@@ -138,7 +138,7 @@ void brrEncodeBlock(const short* buf, unsigned char* out, unsigned char range, u
   }
 }
 
-long brrEncode(short* buf, unsigned char* out, long len, long loopStart, unsigned char emphasis) {
+long brrEncode(short* buf, unsigned char* out, long len, long loopStart, unsigned char emphasis, unsigned char noFilter) {
   if (len==0) return 0;
 
   // encoding process:
@@ -157,6 +157,7 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart, unsigne
   long total=0;
   unsigned char filter=0;
   unsigned char range=0;
+  unsigned char numFilters=noFilter?2:4;
 
   short x0=0;
   short x1=0;
@@ -211,7 +212,7 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart, unsigne
     }
 
     // encode
-    for (int j=0; j<4; j++) {
+    for (int j=0; j<numFilters; j++) {
       for (int k=0; k<13; k++) {
         brrEncodeBlock(in,possibleOut[j][k],k,j,&last1[j][k],&last2[j][k],&avgError[j][k]);
       }
@@ -228,7 +229,7 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart, unsigne
         }
       }
     } else {
-      for (int j=0; j<4; j++) {
+      for (int j=0; j<numFilters; j++) {
         for (int k=0; k<13; k++) {
           if (avgError[j][k]<candError) {
             candError=avgError[j][k];
@@ -245,7 +246,7 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart, unsigne
       out[j+1]=possibleOut[filter][range][j];
     }
 
-    for (int j=0; j<4; j++) {
+    for (int j=0; j<numFilters; j++) {
       for (int k=0; k<13; k++) {
         last1[j][k]=last1[filter][range];
         last2[j][k]=last2[filter][range];

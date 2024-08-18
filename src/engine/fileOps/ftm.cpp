@@ -23,7 +23,6 @@
 // portions apparently taken from FamiTracker source, which is under GPLv2+
 
 // TODO:
-// - audit for CVEs
 // - format code?
 
 #include "fileOpsCommon.h"
@@ -258,6 +257,7 @@ const int eff_conversion_050[][2] = {
 };
 
 constexpr int ftEffectMapSize = sizeof(ftEffectMap) / sizeof(int);
+constexpr int eftEffectMapSize = sizeof(eftEffectMap) / sizeof(int);
 
 int convertMacros2A03[5] = {(int)DIV_MACRO_VOL, (int)DIV_MACRO_ARP, (int)DIV_MACRO_PITCH, -1, (int)DIV_MACRO_DUTY};
 int convertMacrosVRC6[5] = {(int)DIV_MACRO_VOL, (int)DIV_MACRO_ARP, (int)DIV_MACRO_PITCH, -1, (int)DIV_MACRO_DUTY};
@@ -434,7 +434,8 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
     bool hasSequence[256][8];
     unsigned char sequenceIndex[256][8];
     unsigned char macro_types[256][8];
-    std::vector<std::vector<DivInstrumentMacro>> macros;
+    std::vector<DivInstrumentMacro> macros[256];
+    std::vector<String> encounteredBlocks;
     unsigned char map_channels[DIV_MAX_CHANS];
     unsigned int hilightA = 4;
     unsigned int hilightB = 16;
@@ -457,13 +458,9 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
     memset(map_channels, 0xfe, DIV_MAX_CHANS * sizeof(unsigned char));
 
     for (int i = 0; i < 256; i++) {
-      std::vector<DivInstrumentMacro> mac;
-
       for (int j = 0; j < 8; j++) {
-        mac.push_back(DivInstrumentMacro(DIV_MACRO_VOL));
+        macros[i].push_back(DivInstrumentMacro(DIV_MACRO_VOL));
       }
-
-      macros.push_back(mac);
     }
 
     if (!reader.seek((dnft && dnft_sig) ? 21 : 18, SEEK_SET)) {
@@ -482,7 +479,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
       return false;
     }
 
-    for (DivSubSong* i : ds.subsong) {
+    for (DivSubSong* i: ds.subsong) {
       i->clearData();
       delete i;
     }
@@ -501,13 +498,30 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
       }
 
       // not the end
-      reader.seek(-3, SEEK_CUR);
+      if (!reader.seek(-3, SEEK_CUR)) {
+        logE("couldn't seek back by 3!");
+        lastError = "couldn't seek back by 3";
+        delete[] file;
+        return false;
+      }
       blockName = reader.readString(16);
       unsigned int blockVersion = (unsigned int)reader.readI();
       unsigned int blockSize = (unsigned int)reader.readI();
       size_t blockStart = reader.tell();
 
       logD("reading block %s (version %d, %d bytes, position %x)", blockName, blockVersion, blockSize, reader.tell());
+
+      for (String& i: encounteredBlocks) {
+        if (blockName==i) {
+          logE("duplicate block %s!",blockName);
+          lastError = "duplicate block "+blockName;
+          ds.unload();
+          delete[] file;
+          return false;
+        }
+      }
+      encounteredBlocks.push_back(blockName);
+
       if (blockName == "PARAMS") {
         // versions 7-9 don't change anything?
         CHECK_BLOCK_VERSION(9);
@@ -529,6 +543,13 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
         tchans = reader.readI();
 
+        if (tchans>=DIV_MAX_CHANS) {
+          logE("invalid channel count! %d",tchans);
+          lastError = "invalid channel count";
+          delete[] file;
+          return false;
+        }
+
         if (tchans == 5) {
           expansions = 0; // This is strange. Sometimes expansion chip is set to 0xFF in files
         }
@@ -538,12 +559,15 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           if (blockVersion >= 7) {
             // advanced Hz control
             int controlType = reader.readI();
-            switch (controlType) {
+            int readHz=reader.readI();
+            if (readHz<=0) {
+              customHz=60.0;
+            } else switch (controlType) {
               case 1:
-                customHz = 1000000.0 / (double)reader.readI();
+                customHz = 1000000.0 / (double)readHz;
                 break;
               default:
-                reader.readI();
+                logW("unsupported tick rate control type %d",controlType);
                 break;
             }
           } else {
@@ -552,6 +576,10 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         } else {
           customHz = reader.readI();
         }
+
+        logV("before clamp: %f",customHz);
+
+        if (customHz>1000.0) customHz=1000.0;
 
         unsigned int newVibrato = 0;
         bool sweepReset = false;
@@ -576,6 +604,12 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
         if ((expansions & 16) && blockVersion >= 5) { // N163 channels
           n163Chans = reader.readI();
+          if (n163Chans<1 || n163Chans>=9) {
+            logE("invalid Namco 163 channel count! %d",n163Chans);
+            lastError = "invalid Namco 163 channel count";
+            delete[] file;
+            return false;
+          }
         }
         if (blockVersion >= 6) {
           speedSplitPoint = reader.readI();
@@ -779,6 +813,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           }
         }
         if (calcChans != tchans) {
+          // TODO: would ignore trigger CVE? too bad if so!
           if (!eft || (eft && (expansions & 8) == 0)) // ignore since I have no idea how to tell apart E-FT versions which do or do not have PCM chan. Yes, this may lead to all the righer channels to be shifted but at least you still get note data!
           {
             logE("channel counts do not match! %d != %d", tchans, calcChans);
@@ -788,17 +823,20 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           }
         }
         if (tchans > DIV_MAX_CHANS) {
-          tchans = DIV_MAX_CHANS;
-          logW("too many channels!");
+          logE("too many channels!");
+          lastError = "too many channels";
+          delete[] file;
+          return false;
         }
         if (blockVersion == 9 && blockSize - (reader.tell() - blockStart) == 2) // weird
         {
-          reader.seek(2, SEEK_CUR);
+          if (!reader.seek(2, SEEK_CUR)) {
+            logE("could not weird-seek by 2!");
+            lastError = "could not weird-seek by 2";
+            delete[] file;
+            return false;
+          }
         }
-        if (eft) {
-          // reader.seek(8,SEEK_CUR);
-        }
-
       } else if (blockName == "INFO") {
         CHECK_BLOCK_VERSION(1);
         ds.name = reader.readString(32);
@@ -831,6 +869,13 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           for (int j = 0; j <= totalSongs; j++) {
             unsigned char effectCols = reader.readC();
 
+            if (effectCols>7) {
+              logE("too many effect columns!");
+              lastError = "too many effect columns";
+              delete[] file;
+              return false;
+            }
+
             if (map_channels[i] == 0xfe) {
               ds.subsong[j]->pat[i].effectCols = 1;
               logV("- song %d has %d effect columns", j, effectCols);
@@ -850,8 +895,6 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
       } else if (blockName == "INSTRUMENTS") {
         CHECK_BLOCK_VERSION(9);
 
-        // reader.seek(blockSize,SEEK_CUR);
-
         ds.insLen = reader.readI();
         if (ds.insLen < 0 || ds.insLen > 256) {
           logE("too many instruments/out of range!");
@@ -870,10 +913,10 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         for (int i = 0; i < ds.insLen; i++) {
           unsigned int insIndex = reader.readI();
           if (insIndex >= ds.ins.size()) {
-            // logE("instrument index %d is out of range!",insIndex);
-            // lastError="instrument index out of range";
-            // delete[] file;
-            // return false;
+            logE("instrument index %d is out of range!",insIndex);
+            lastError="instrument index out of range";
+            delete[] file;
+            return false;
           }
 
           DivInstrument* ins = ds.ins[insIndex];
@@ -937,6 +980,12 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                 if (blockVersion >= 7) {
                   note = reader.readC();
                 }
+                if (note<0 || note>=120) {
+                  logE("DPCM note %d out of range!",note);
+                  lastError = "DPCM note out of range";
+                  delete[] file;
+                  return false;
+                }
                 ins->amiga.noteMap[note].map = (short)((unsigned char)reader.readC()) - 1;
                 unsigned char freq = reader.readC();
                 ins->amiga.noteMap[note].dpcmFreq = (freq & 15);       // 0-15 = 0-15 unlooped, 128-143 = 0-15 looped
@@ -981,8 +1030,9 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
             }
             case DIV_INS_OPLL: {
               ins->fm.opllPreset = (unsigned int)reader.readI();
+              ins->fm.opllPreset&=15;
 
-              unsigned char custom_patch[8] = {0};
+              unsigned char custom_patch[8];
 
               for (int i = 0; i < 8; i++) {
                 custom_patch[i] = reader.readC();
@@ -1020,24 +1070,35 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
               for (int j = 0; j < 64; j++) {
                 wave->data[j] = reader.readC();
               }
-              ins->std.waveMacro.len = 1;
-              ins->std.waveMacro.val[0] = ds.wave.size();
               for (int j = 0; j < 32; j++) {
                 ins->fds.modTable[j] = reader.readC() - 3;
               }
               ins->fds.modSpeed = reader.readI();
               ins->fds.modDepth = reader.readI();
               reader.readI(); // this is delay. currently ignored. TODO.
-              ds.wave.push_back(wave);
-              ds.waveLen++;
+              if (ds.wave.size()>=256) {
+                logW("too many waves! ignoring...");
+                delete wave;
+              } else {
+                ins->std.waveMacro.len = 1;
+                ins->std.waveMacro.val[0] = ds.wave.size();
+                ds.wave.push_back(wave);
+                ds.waveLen++;
+              }
 
               unsigned int a = reader.readI();
               unsigned int b = reader.readI();
 
-              reader.seek(-8, SEEK_CUR);
+              if (!reader.seek(-8, SEEK_CUR)) {
+                logE("couldn't seek back by 8 reading FDS ins");
+                lastError = "couldn't seek back by 8 reading FDS ins";
+                delete[] file;
+                return false;
+              }
 
               if (a < 256 && (b & 0xFF) != 0x00) {
                 // don't look at me like this. I don't know why this should be like this either!
+                logW("a is less than 256 and b is not zero!");
               } else {
                 ins->std.volMacro.len = reader.readC();
                 ins->std.volMacro.loop = reader.readI();
@@ -1112,11 +1173,18 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
               if (blockVersion >= 8) {
                 unsigned int autopos = reader.readI();
-                (void)autopos;
+                logV("autopos: %d",autopos);
               }
 
               unsigned int wave_count = reader.readI();
               size_t waveOff = ds.wave.size();
+
+              if (wave_size>256) {
+                logE("wave size %d out of range",wave_size);
+                lastError = "wave size out of range";
+                delete[] file;
+                return false;
+              }
 
               for (unsigned int ii = 0; ii < wave_count; ii++) {
                 DivWavetable* wave = new DivWavetable();
@@ -1131,6 +1199,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                 if (ds.wave.size()<256) {
                   ds.wave.push_back(wave);
                 } else {
+                  logW("too many waves...");
                   delete wave;
                 }
               }
@@ -1296,16 +1365,30 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                 }
 
                 if (instVersion == 2) {
-                  reader.seek(seek_amount, SEEK_CUR); // what the fuck
+                  // I know right?
+                  if (!reader.seek(seek_amount, SEEK_CUR)) {
+                    logE("EFT seek fail");
+                    lastError = "EFT seek fail";
+                    delete[] file;
+                    return false;
+                  }
                 }
 
+                // this commented out block left here intentionally.
+                // total mess of code style... for with no space, UNDEFINED CHAR, escaping the unescapable, silly var names...
+                // ...whatever.
                 /*for(int tti = 0; tti < 20; tti++)
                 {
                   char aaaa = reader.readC();
                   logV("\'%c\'", aaaa);
                 }*/
               } else {
-                reader.seek(-4, SEEK_CUR);
+                if (!reader.seek(-4, SEEK_CUR)) {
+                  logE("EFT -4 seek fail");
+                  lastError = "EFT -4 seek fail";
+                  delete[] file;
+                  return false;
+                }
               }
 
               break;
@@ -1325,7 +1408,6 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         }
 
         ds.insLen = 128;
-
       } else if (blockName == "SEQUENCES") {
         CHECK_BLOCK_VERSION(6);
 
@@ -1342,6 +1424,14 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
             unsigned int index = reader.readI();
             unsigned int type = reader.readI();
             unsigned char size = reader.readC();
+
+            if (index>=256 || type>=8) {
+              logE("%d: index/type out of range",i);
+              lastError = "sequence index/type out of range";
+              delete[] file;
+              return false;
+            }
+
             macros[index][type].len = size;
 
             for (int j = 0; j < size; j++) {
@@ -1361,11 +1451,33 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           unsigned char* Indices = new unsigned char[128 * 5];
           unsigned char* Types = new unsigned char[128 * 5];
 
+          memset(Indices,0,128*5);
+          memset(Types,0,128*5);
+
           for (unsigned int i = 0; i < seq_count; i++) {
             unsigned int index = reader.readI();
+            if (index>=128*5) {
+              logE("%d: index out of range",i);
+              lastError = "sequence index out of range";
+              delete[] file;
+              return false;
+            }
             Indices[i] = index;
             unsigned int type = reader.readI();
+            if (type>=128*5) {
+              logE("%d: type out of range",i);
+              lastError = "sequence type out of range";
+              delete[] file;
+              return false;
+            }
             Types[i] = type;
+
+            if (index>=256 || type>=8) {
+              logE("%d: index/type out of range",i);
+              lastError = "sequence index/type out of range";
+              delete[] file;
+              return false;
+            }
 
             unsigned char size = reader.readC();
             unsigned int setting = 0;
@@ -1393,7 +1505,6 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
               DivInstrument* ins = ds.ins[k];
               if (sequenceIndex[k][Types[i]] == Indices[i] && ins->type == DIV_INS_NES && hasSequence[k][Types[i]]) {
                 copyMacro(ins, &macros[index][type], Types[i], setting);
-                // memcpy(ins->std.get_macro(DIV_MACRO_VOL + (DivMacroType)Types[i], true), &macros[sequenceIndex[index][type]][type], sizeof(DivInstrumentMacro));
               }
             }
           }
@@ -1412,7 +1523,6 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                     macro_types[k][j] = setting;
 
                     copyMacro(ins, &macros[sequenceIndex[k][j]][j], j, setting);
-                    // memcpy(ins->std.get_macro(DIV_MACRO_VOL + (DivMacroType)j, true), &macros[sequenceIndex[k][j]][j], sizeof(DivInstrumentMacro));
                   }
                 }
               }
@@ -1425,9 +1535,6 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
               unsigned int release = reader.readI();
               unsigned int setting = reader.readI();
 
-              // macros[index][type].rel = release;
-              // macro_types[index][type] = setting;
-
               for (int k = 0; k < (int)ds.ins.size(); k++) {
                 DivInstrument* ins = ds.ins[k];
                 if (sequenceIndex[k][Types[i]] == Indices[i] && ins->type == DIV_INS_NES && hasSequence[k][Types[i]]) {
@@ -1435,7 +1542,6 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                   macro_types[k][Types[i]] = setting;
 
                   copyMacro(ins, &macros[sequenceIndex[k][Types[i]]][Types[i]], Types[i], setting);
-                  // memcpy(ins->std.get_macro(DIV_MACRO_VOL + (DivMacroType)Types[i], true), &macros[sequenceIndex[k][Types[i]]][Types[i]], sizeof(DivInstrumentMacro));
                 }
               }
             }
@@ -1446,12 +1552,11 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         }
       } else if (blockName == "GROOVES") {
         CHECK_BLOCK_VERSION(6);
-        // reader.seek(blockSize,SEEK_CUR);
 
         unsigned char num_grooves = reader.readC();
         int max_groove = 0;
 
-        for (int i = 0; i < 0xff; i++) {
+        for (int i = 0; i < 256; i++) {
           ds.grooves.push_back(DivGroovePattern());
         }
 
@@ -1459,15 +1564,18 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           unsigned char index = reader.readC();
           unsigned char size = reader.readC();
 
-          if (index > max_groove)
+          if (index > max_groove) {
             max_groove = index + 1;
+          }
 
           DivGroovePattern gp;
           gp.len = size;
 
           for (int sz = 0; sz < size; sz++) {
             unsigned char value = reader.readC();
-            gp.val[sz] = value;
+            if (sz<16) {
+              gp.val[sz] = value;
+            }
           }
 
           ds.grooves[index] = gp;
@@ -1488,14 +1596,21 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         if ((reader.tell() - blockStart) != blockSize) {
           logE("block %s size does not match! block size %d curr pos %d", blockName, blockSize, reader.tell() - blockStart);
         }
-
       } else if (blockName == "FRAMES") {
         CHECK_BLOCK_VERSION(3);
 
         for (size_t i = 0; i < ds.subsong.size(); i++) {
           DivSubSong* s = ds.subsong[i];
 
-          s->ordersLen = reader.readI();
+          int framesLen=reader.readI();
+          if (framesLen<1 || framesLen>256) {
+            logE("frames out of range (%d)",framesLen);
+            lastError = "frames out of range";
+            delete[] file;
+            return false;
+          }
+
+          s->ordersLen = framesLen;
           if (blockVersion >= 3) {
             s->speeds.val[0] = reader.readI();
           }
@@ -1510,18 +1625,31 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
               s->virtualTempoN = tempo;
             }
 
-            s->patLen = reader.readI();
+            int patLen=reader.readI();
+            if (patLen<1 || patLen>256) {
+              logE("pattern length out of range");
+              lastError = "pattern length out of range";
+              delete[] file;
+              return false;
+            }
+            s->patLen = patLen;
           }
           int why = tchans;
           if (blockVersion == 1) {
             why = reader.readI();
+            if (why<0 || why>=DIV_MAX_CHANS) {
+              logE("why out of range!");
+              lastError = "why out of range";
+              delete[] file;
+              return false;
+            }
           }
           logV("reading %d and %d orders", tchans, s->ordersLen);
 
           for (int j = 0; j < s->ordersLen; j++) {
             for (int k = 0; k < why; k++) {
               unsigned char o = reader.readC();
-              // logV("%.2x",o);
+              if (map_channels[k]>=DIV_MAX_CHANS) continue;
               s->orders.ord[map_channels[k]][j] = o;
             }
           }
@@ -1533,6 +1661,12 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
         if (blockVersion == 1) {
           int patLenOld = reader.readI();
+          if (patLenOld<1 || patLenOld>=256) {
+            logE("old pattern length out of range");
+            lastError = "old pattern length out of range";
+            delete[] file;
+            return false;
+          }
           for (DivSubSong* i : ds.subsong) {
             i->patLen = patLenOld;
           }
@@ -1553,6 +1687,37 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           logV("patNum: %d",patNum);
           logV("rows: %d",numRows);
 
+          if (subs<0 || subs>=(int)ds.subsong.size()) {
+            logE("subsong out of range!");
+            lastError = "subsong out of range";
+            delete[] file;
+            return false;
+          }
+          if (ch<0 || ch>=DIV_MAX_CHANS) {
+            logE("channel out of range!");
+            lastError = "channel out of range";
+            delete[] file;
+            return false;
+          }
+          if (map_channels[ch]>=DIV_MAX_CHANS) {
+            logE("mapped channel out of range!");
+            lastError = "mapped channel out of range";
+            delete[] file;
+            return false;
+          }
+          if (patNum<0 || patNum>=256) {
+            logE("pattern number out of range!");
+            lastError = "pattern number out of range";
+            delete[] file;
+            return false;
+          }
+          if (numRows<0) {
+            logE("row count is negative!");
+            lastError = "row count is negative";
+            delete[] file;
+            return false;
+          }
+
           DivPattern* pat = ds.subsong[subs]->pat[map_channels[ch]].getPattern(patNum, true);
           for (int i = 0; i < numRows; i++) {
             unsigned int row = 0;
@@ -1560,6 +1725,13 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
               row = (unsigned char)reader.readC();
             } else {
               row = reader.readI();
+            }
+
+            if (row>=256) {
+              logE("row index out of range");
+              lastError = "row index out of range";
+              delete[] file;
+              return false;
             }
 
             unsigned char nextNote = reader.readC();
@@ -1592,6 +1764,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
             }
 
             unsigned char nextIns = reader.readC();
+            // TODO: you sure about 0xff?
             if (map_channels[ch] != 0xff) {
               if (nextIns < 0x40 && nextNote != 0x0d && nextNote != 0x0e) {
                 pat->data[row][2] = nextIns;
@@ -1606,6 +1779,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                 pat->data[row][3] = nextVol;
                 if (map_channels[ch] == vrc6_saw_chan) // scale volume
                 {
+                  // TODO: shouldn't it be 32?
                   pat->data[row][3] = (pat->data[row][3] * 42) / 15;
                 }
 
@@ -1625,12 +1799,8 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
               effectCols = 1;
             }
 
-            logV("effectCols: %d",effectCols);
-
             unsigned char nextEffectVal = 0;
             unsigned char nextEffect = 0;
-
-            //logV("row %d effects are read at %x",row,reader.tell());
 
             for (int j = 0; j < effectCols; j++) {
               nextEffect = reader.readC();
@@ -1727,14 +1897,12 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
               }
 
-              // logW("next effect %d val %d", nextEffect, nextEffectVal);
-
               if (map_channels[ch] != 0xff) {
                 if (nextEffect == 0 && nextEffectVal == 0) {
                   pat->data[row][4 + (j * 2)] = -1;
                   pat->data[row][5 + (j * 2)] = -1;
                 } else {
-                  if (nextEffect < ftEffectMapSize) {
+                  if ((eft && nextEffect<eftEffectMapSize) || (!eft && nextEffect<ftEffectMapSize)) {
                     if (eft) {
                       pat->data[row][4 + (j * 2)] = eftEffectMap[nextEffect];
                       pat->data[row][5 + (j * 2)] = eftEffectMap[nextEffect] == -1 ? -1 : nextEffectVal;
@@ -1782,7 +1950,6 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         }
       } else if (blockName == "DPCM SAMPLES") {
         CHECK_BLOCK_VERSION(1);
-        // reader.seek(blockSize,SEEK_CUR);
         unsigned char num_samples = reader.readC();
 
         for (int i = 0; i < 256; i++) {
@@ -1808,14 +1975,16 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
           unsigned int sample_len = reader.readI();
 
+          if (sample_len>=2097152) {
+            logE("%d: sample too large! %d",index,sample_len);
+            lastError = "sample too large";
+            delete[] file;
+            return false;
+          }
+
           true_size = sample_len + ((1 - (int)sample_len) & 0x0f);
-          sample->lengthDPCM = true_size;
-          sample->samples = true_size * 8;
-
-          sample->dataDPCM = new unsigned char[true_size];
-
+          sample->init(true_size * 8);
           memset(sample->dataDPCM, 0xAA, true_size);
-
           reader.read(sample->dataDPCM, sample_len);
         }
 
@@ -1824,7 +1993,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         for (int i = 255; i > 0; i--) {
           DivSample* s = ds.sample[i];
 
-          if (s->dataDPCM) {
+          if (s->samples>0) {
             last_non_empty_sample = i;
             break;
           }
@@ -1835,20 +2004,41 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         }
 
         ds.sampleLen = ds.sample.size();
-
       } else if (blockName == "SEQUENCES_VRC6") {
         CHECK_BLOCK_VERSION(6);
 
         unsigned char* Indices = new unsigned char[128 * 5];
         unsigned char* Types = new unsigned char[128 * 5];
 
+        memset(Indices,0,128*5);
+        memset(Types,0,128*5);
+
         unsigned int seq_count = reader.readI();
 
         for (unsigned int i = 0; i < seq_count; i++) {
           unsigned int index = reader.readI();
+          if (index>=128*5) {
+            logE("%d: index out of range",i);
+            lastError = "sequence index out of range";
+            delete[] file;
+            return false;
+          }
           Indices[i] = index;
           unsigned int type = reader.readI();
+          if (type>=128*5) {
+            logE("%d: type out of range",i);
+            lastError = "sequence type out of range";
+            delete[] file;
+            return false;
+          }
           Types[i] = type;
+
+          if (index>=256 || type>=8) {
+            logE("%d: index/type out of range",i);
+            lastError = "sequence index/type out of range";
+            delete[] file;
+            return false;
+          }
 
           unsigned char size = reader.readC();
           unsigned int setting = 0;
@@ -1914,9 +2104,6 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
             unsigned int release = reader.readI();
             unsigned int setting = reader.readI();
 
-            // macros[index][type].rel = release;
-            // macro_types[index][type] = setting;
-
             for (int k = 0; k < (int)ds.ins.size(); k++) {
               DivInstrument* ins = ds.ins[k];
               if (sequenceIndex[k][Types[i]] == Indices[i] && ins->type == DIV_INS_VRC6 && hasSequence[k][Types[i]]) {
@@ -1937,18 +2124,39 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         delete[] Types;
       } else if (blockName == "SEQUENCES_N163" || blockName == "SEQUENCES_N106") {
         CHECK_BLOCK_VERSION(1);
-        // reader.seek(blockSize,SEEK_CUR);
 
         unsigned char* Indices = new unsigned char[128 * 5];
         unsigned char* Types = new unsigned char[128 * 5];
+
+        memset(Indices,0,128*5);
+        memset(Types,0,128*5);
 
         unsigned int seq_count = reader.readI();
 
         for (unsigned int i = 0; i < seq_count; i++) {
           unsigned int index = reader.readI();
+          if (index>=128*5) {
+            logE("%d: index out of range",i);
+            lastError = "sequence index out of range";
+            delete[] file;
+            return false;
+          }
           Indices[i] = index;
           unsigned int type = reader.readI();
+          if (type>=128*5) {
+            logE("%d: type out of range",i);
+            lastError = "sequence type out of range";
+            delete[] file;
+            return false;
+          }
           Types[i] = type;
+
+          if (index>=256 || type>=8) {
+            logE("%d: index/type out of range",i);
+            lastError = "sequence index/type out of range";
+            delete[] file;
+            return false;
+          }
 
           unsigned char size = reader.readC();
           unsigned int setting = 0;
@@ -1974,7 +2182,6 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
             DivInstrument* ins = ds.ins[k];
             if (sequenceIndex[k][Types[i]] == Indices[i] && ins->type == DIV_INS_N163 && hasSequence[k][Types[i]]) {
               copyMacro(ins, &macros[index][type], type, setting);
-              // memcpy(ins->std.get_macro(DIV_MACRO_VOL + (DivMacroType)Types[i], true), &macros[sequenceIndex[index][type]][type], sizeof(DivInstrumentMacro));
             }
           }
         }
@@ -1984,18 +2191,39 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
       } else if (blockName == "SEQUENCES_S5B") {
         CHECK_BLOCK_VERSION(1);
-        // reader.seek(blockSize,SEEK_CUR);
 
         unsigned char* Indices = new unsigned char[128 * 5];
         unsigned char* Types = new unsigned char[128 * 5];
+
+        memset(Indices,0,128*5);
+        memset(Types,0,128*5);
 
         unsigned int seq_count = reader.readI();
 
         for (unsigned int i = 0; i < seq_count; i++) {
           unsigned int index = reader.readI();
+          if (index>=128*5) {
+            logE("%d: index out of range",i);
+            lastError = "sequence index out of range";
+            delete[] file;
+            return false;
+          }
           Indices[i] = index;
           unsigned int type = reader.readI();
+          if (type>=128*5) {
+            logE("%d: type out of range",i);
+            lastError = "sequence type out of range";
+            delete[] file;
+            return false;
+          }
           Types[i] = type;
+
+          if (index>=256 || type>=8) {
+            logE("%d: index/type out of range",i);
+            lastError = "sequence index/type out of range";
+            delete[] file;
+            return false;
+          }
 
           unsigned char size = reader.readC();
           unsigned int setting = 0;
@@ -2021,7 +2249,6 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
             DivInstrument* ins = ds.ins[k];
             if (sequenceIndex[k][type] == Indices[i] && ins->type == DIV_INS_AY && hasSequence[k][type]) {
               copyMacro(ins, &macros[index][type], type, setting);
-              // memcpy(ins->std.get_macro(DIV_MACRO_VOL + (DivMacroType)Types[i], true), &macros[sequenceIndex[index][type]][type], sizeof(DivInstrumentMacro));
             }
           }
         }
@@ -2034,13 +2261,35 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         unsigned char* Indices = new unsigned char[128 * 5];
         unsigned char* Types = new unsigned char[128 * 5];
 
+        memset(Indices,0,128*5);
+        memset(Types,0,128*5);
+
         unsigned int seq_count = reader.readI();
 
         for (unsigned int i = 0; i < seq_count; i++) {
           unsigned int index = reader.readI();
+          if (index>=128*5) {
+            logE("%d: index out of range",i);
+            lastError = "sequence index out of range";
+            delete[] file;
+            return false;
+          }
           Indices[i] = index;
           unsigned int type = reader.readI();
+          if (type>=128*5) {
+            logE("%d: type out of range",i);
+            lastError = "sequence type out of range";
+            delete[] file;
+            return false;
+          }
           Types[i] = type;
+
+          if (index>=256 || type>=8) {
+            logE("%d: index/type out of range",i);
+            lastError = "sequence index/type out of range";
+            delete[] file;
+            return false;
+          }
 
           unsigned char size = reader.readC();
           unsigned int setting = 0;
@@ -2066,7 +2315,6 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
             DivInstrument* ins = ds.ins[k];
             if (sequenceIndex[k][type] == Indices[i] && ins->type == DIV_INS_C64 && hasSequence[k][type]) {
               copyMacro(ins, &macros[index][type], type, setting);
-              // memcpy(ins->std.get_macro(DIV_MACRO_VOL + (DivMacroType)Types[i], true), &macros[sequenceIndex[index][type]][type], sizeof(DivInstrumentMacro));
             }
           }
         }
@@ -2075,31 +2323,33 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         delete[] Types;
       } else if (blockName == "JSON") {
         CHECK_BLOCK_VERSION(1);
+        logW("block JSON not supported...");
         reader.seek(blockSize, SEEK_CUR);
       } else if (blockName == "PARAMS_EMU") {
         CHECK_BLOCK_VERSION(1);
+        logW("block PARAMS_EMU not supported...");
         reader.seek(blockSize, SEEK_CUR);
       } else if (blockName == "DETUNETABLES") {
         CHECK_BLOCK_VERSION(1);
+        logW("block DETUNETABLES not supported...");
         reader.seek(blockSize, SEEK_CUR);
       } else if (blockName == "COMMENTS") {
         CHECK_BLOCK_VERSION(1);
-        // reader.seek(blockSize,SEEK_CUR);
         unsigned int display_comment = reader.readI();
-        (void)display_comment;
 
-        char ch = 1;
+        logV("displayComment: %d",display_comment);
 
-        do {
+        char ch = 0;
+
+        // why not readString?
+        while (true) {
           ch = reader.readC();
-          String sss = String() + ch;
-          ds.subsong[0]->notes += sss;
-        } while (ch != 0);
+          if (ch==0) break;
+          ds.subsong[0]->notes += ch;
+        }
 
-        // ds.subsong[0]->notes = reader.readS();
       } else if (blockName == "PARAMS_EXTRA") {
         CHECK_BLOCK_VERSION(3);
-        // reader.seek(blockSize,SEEK_CUR);
         unsigned int linear_pitch = reader.readI();
 
         ds.linearPitch = linear_pitch == 0 ? 0 : 2;
@@ -2112,11 +2362,10 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         }
         if (blockVersion >= 3) {
           unsigned char flats = reader.readC();
-          (void)flats;
+          logV("flats: %d",(int)flats);
         }
       } else if (blockName == "TUNING") {
         CHECK_BLOCK_VERSION(1);
-        // reader.seek(blockSize,SEEK_CUR);
         if (blockVersion == 1) {
           int fineTuneCents = reader.readC() * 100;
           fineTuneCents += reader.readC();
@@ -2125,6 +2374,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         }
       } else if (blockName == "BOOKMARKS") {
         CHECK_BLOCK_VERSION(1);
+        logW("block BOOKMARKS not supported...");
         reader.seek(blockSize, SEEK_CUR);
       } else {
         logE("block %s is unknown!", blockName);
@@ -2151,6 +2401,8 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           int index = i >= (int)ds.insLen ? ((int)ds.insLen - 1) : i;
           if (index < 0)
             index = 0;
+
+          if (index>=(int)ds.ins.size()) continue;
 
           DivInstrument* ins = ds.ins[index];
 

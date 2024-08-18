@@ -21,17 +21,22 @@
 
 class FurnaceGUIRenderSDL: public FurnaceGUIRender {
   SDL_Renderer* sdlRend;
+  SDL_RendererInfo renderInfo;
+  bool hasInfo;
+  bool swapIntervalSet;
   public:
     ImTextureID getTextureID(FurnaceGUITexture* which);
+    FurnaceGUITextureFormat getTextureFormat(FurnaceGUITexture* which);
     bool lockTexture(FurnaceGUITexture* which, void** data, int* pitch);
     bool unlockTexture(FurnaceGUITexture* which);
     bool updateTexture(FurnaceGUITexture* which, void* data, int pitch);
-    FurnaceGUITexture* createTexture(bool dynamic, int width, int height);
+    FurnaceGUITexture* createTexture(bool dynamic, int width, int height, bool interpolate=true, FurnaceGUITextureFormat format=GUI_TEXFORMAT_ABGR32);
     bool destroyTexture(FurnaceGUITexture* which);
     void setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode);
     void setBlendMode(FurnaceGUIBlendMode mode);
     void clear(ImVec4 color);
     bool newFrame();
+    bool canVSync();
     void createFontsTexture();
     void destroyFontsTexture();
     void renderGUI();
@@ -39,11 +44,21 @@ class FurnaceGUIRenderSDL: public FurnaceGUIRender {
     void present();
     bool getOutputSize(int& w, int& h);
     int getWindowFlags();
-    void preInit();
-    bool init(SDL_Window* win);
+    int getMaxTextureWidth();
+    int getMaxTextureHeight();
+    unsigned int getTextureFormats();
+    const char* getBackendName();
+    const char* getVendorName();
+    const char* getDeviceName();
+    const char* getAPIVersion();
+    void setSwapInterval(int swapInterval);
+    void preInit(const DivConfig& conf);
+    bool init(SDL_Window* win, int swapInterval);
     void initGUI(SDL_Window* win);
     void quitGUI();
     bool quit();
     FurnaceGUIRenderSDL():
-      sdlRend(NULL) {}
+      sdlRend(NULL),
+      hasInfo(false),
+      swapIntervalSet(true) {}
 };

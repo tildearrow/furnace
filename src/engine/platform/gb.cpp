@@ -70,7 +70,7 @@ void DivPlatformGB::acquire(short** buf, size_t len) {
       writes.pop();
     }
 
-    GB_advance_cycles(gb,16);
+    GB_advance_cycles(gb,coreQuality);
     buf[0][i]=gb->apu_output.final_sample.left;
     buf[1][i]=gb->apu_output.final_sample.right;
 
@@ -651,7 +651,7 @@ void DivPlatformGB::reset() {
   immWrite(0x26,0x8f);
   lastPan=0xff;
   immWrite(0x25,procMute());
-  immWrite(0x24,0x77);
+  immWrite(0x24,0xff);
 
   antiClickPeriodCount=0;
   antiClickWavePos=0;
@@ -722,9 +722,36 @@ void DivPlatformGB::setFlags(const DivConfig& flags) {
 
   chipClock=4194304;
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/16;
+  rate=chipClock/coreQuality;
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate;
+  }
+}
+
+void DivPlatformGB::setCoreQuality(unsigned char q) {
+  switch (q) {
+    case 0:
+      // sorry...
+      coreQuality=64;
+      break;
+    case 1:
+      coreQuality=64;
+      break;
+    case 2:
+      coreQuality=32;
+      break;
+    case 3:
+      coreQuality=16;
+      break;
+    case 4:
+      coreQuality=4;
+      break;
+    case 5:
+      coreQuality=1;
+      break;
+    default:
+      coreQuality=16;
+      break;
   }
 }
 

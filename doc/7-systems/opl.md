@@ -84,3 +84,14 @@ afterwards everyone moved to Windows and software mixed PCM streaming...
 this chip uses the [FM (OPL)](../4-instrument/fm-opl.md) instrument editor.
 
 when two channels are joined for 4-op mode, the channel bar will show `4OP` on a bracket tying them together.
+
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Clock rate**: sets the rate at which the chip will run.
+
+additionally, in OPL3:
+
+- **Chip type**: sets the chip model. OPL3-L uses resampling.
+- **Compatible panning**: for compatibility with old Furnace.

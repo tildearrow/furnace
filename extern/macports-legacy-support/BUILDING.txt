@@ -1,0 +1,38 @@
+## Building
+
+Usual Makefile project. This project does not require a configure phase.
+
+### Special optional variables
+
+# `PLATFORM`
+
+Darwin version to target against. Detected automatically, but can also 
+be overridden manually to test builds for other OS versions.
+(This is not the macOS version.)
+
+# `FORCE_ARCH`
+
+Architecture to build for. Accepts a single value, not a list.
+
+If your `lipo` binary is new enough and supports the `-archs` flag, you will
+not need to use this variable. Instead, directly build the software
+universally in one pass using the usual `-arch` compiler flags. The
+autodetection, split and merge features will then handle the different
+architectures automatically.
+
+Older versions of `lipo` do not support the `-archs` flag, so automatic
+architecture detection via binary/object file inspection is not be possible
+on older platforms.
+
+In order to avoid an additional dependency on the `cctools` port 
+to provide a newer `lipo` version, this variable was introduced. 
+It disables the automatic architecture detection feature and instead 
+hardcodes the contained value as the target architecture.
+
+Within `MacPorts`, we use it in multi-architecture builds with one
+pass per architecture. Finally, the `MacPorts ``muniversal` PortGroup
+will merge the resulting binaries into one fat/universal binary automatically.
+
+Some symbols must be built multiple times. Each variant will use a different
+data layout and have a special postfix appended to it. The data layouts
+supported and needed depend upon the architecture and (target) OS version.

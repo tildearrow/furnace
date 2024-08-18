@@ -41,7 +41,7 @@ these apply to each operator:
 ![FM ADSR chart](FM-ADSRchart.png)
 
 - **Envelope Scale (RS/KS)**: also known as "Key Scale" or "Rate Scale". determines the degree to which the envelope execution speed increases according to the pitch (0 to 3).
-- **Frequency Multiplier (MULT)**: sets the coarse pitch offset in relation to the note (0 to 15). 0 is -1 octave, 1 is 0 octaves, 2 is 1 octave, 3 is 1 octave 7 semitones, and so on.
+- **Frequency Multiplier (MULT)**: sets the coarse pitch offset in relation to the note (0 to 15). the values follow the harmonic scale. for example, 0 is -1 octave, 1 is 0 octaves, 2 is 1 octave, 3 is 1 octave 7 semitones, and so on.
 - **Fine Detune (DT)**: shifts the pitch a little (0 to 7).
 - **Coarse Detune (DT2)**: shifts the pitch by tens of cents (0 to 3).
 

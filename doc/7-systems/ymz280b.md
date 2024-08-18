@@ -11,3 +11,9 @@ none so far.
 ## info
 
 this chip uses the [YMZ280B](../4-instrument/ymz280b.md) instrument editor.
+
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Clock rate**: sets the rate at which the chip will run.

@@ -12,4 +12,4 @@ the instrument editor for Sega PSG (SMS, and other TI SN76489 derivatives) consi
 - **Panning**: output for left and right channels.
   - only on Game Gear!
 - **Pitch**: fine pitch.
-- **Phase Reset**: trigger restart of waveform.
+- **Phase Reset**: trigger restart of **noise only**.

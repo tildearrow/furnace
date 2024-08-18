@@ -157,7 +157,9 @@ const char** DivPlatformYM2203::getRegisterSheet() {
 }
 
 void DivPlatformYM2203::acquire(short** buf, size_t len) {
-  if (useCombo) {
+  if (useCombo==2) {
+    acquire_lle(buf,len);
+  } else if (useCombo==1) {
     acquire_combo(buf,len);
   } else {
     acquire_ymfm(buf,len);
@@ -289,6 +291,156 @@ void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
     for (int i=3; i<6; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=fmout.data[i-2]<<1;
     }
+  }
+}
+
+static const unsigned char subCycleMap[6]={
+  3, 4, 5, 0, 1, 2
+};
+
+void DivPlatformYM2203::acquire_lle(short** buf, size_t len) {
+  thread_local int fmOut[6];
+
+  for (size_t h=0; h<len; h++) {
+    bool have0=false;
+    bool have1=false;
+    signed char subCycle=0;
+    unsigned char subSubCycle=0;
+
+    for (int i=0; i<6; i++) {
+      fmOut[i]=0;
+    }
+
+    while (true) {
+      bool canWeWrite=fm_lle.prescaler_latch[1]&1;
+
+      if (canWeWrite) {
+        if (delay>0) {
+          if (delay==3) {
+            fm_lle.input.cs=1;
+            fm_lle.input.rd=1;
+            fm_lle.input.wr=1;
+            fm_lle.input.a0=0;
+            fm_lle.input.a1=0;
+            delay=0;
+          } else {
+            fm_lle.input.cs=0;
+            fm_lle.input.rd=0;
+            fm_lle.input.wr=1;
+            fm_lle.input.a0=0;
+            fm_lle.input.a1=0;
+            fm_lle.input.data=0;
+            delay=1;
+          }
+        } else if (!writes.empty()) {
+          QueuedWrite& w=writes.front();
+          if (w.addr==0x2e || w.addr==0x2f) {
+            // ignore prescaler writes since it doesn't work too well
+            fm_lle.input.cs=1;
+            fm_lle.input.rd=1;
+            fm_lle.input.wr=1;
+            fm_lle.input.a1=0;
+            fm_lle.input.a0=0;
+            fm_lle.input.data=0;
+
+            regPool[w.addr&0x1ff]=w.val;
+            writes.pop_front();
+          } else if (w.addrOrVal) {
+            fm_lle.input.cs=0;
+            fm_lle.input.rd=1;
+            fm_lle.input.wr=0;
+            fm_lle.input.a1=0;
+            fm_lle.input.a0=1;
+            fm_lle.input.data=w.val;
+
+            delay=2;
+
+            regPool[w.addr&0x1ff]=w.val;
+            writes.pop_front();
+          } else {
+            fm_lle.input.cs=0;
+            fm_lle.input.rd=1;
+            fm_lle.input.wr=0;
+            fm_lle.input.a1=0;
+            fm_lle.input.a0=0;
+            fm_lle.input.data=w.addr&0xff;
+
+            delay=2;
+
+            w.addrOrVal=true;
+          }
+        } else {
+          fm_lle.input.cs=1;
+          fm_lle.input.rd=1;
+          fm_lle.input.wr=1;
+          fm_lle.input.a0=0;
+          fm_lle.input.a1=0;
+        }
+      }
+
+      FMOPNA_Clock(&fm_lle,0);
+      FMOPNA_Clock(&fm_lle,1);
+
+      if (++subSubCycle>=6) {
+        subSubCycle=0;
+        if (subCycle>=0 && subCycle<6 && fm_lle.ac_fm_output_en) {
+          fmOut[subCycleMap[subCycle]]+=((short)fm_lle.ac_fm_output)<<2;
+        }
+        if (++subCycle>=6) subCycle=0;
+      }
+
+      if (canWeWrite) {
+        if (delay==1) {
+          // check busy status here
+          if (!fm_lle.busy_cnt_en[1]) {
+            delay=0;
+          }
+        }
+      }
+      if (!fm_lle.o_s && lastS) {
+        if (!fm_lle.o_sh1 && lastSH) {
+          dacOut[0]=dacVal^0x8000;
+          have0=true;
+        }
+
+        if (!fm_lle.o_sh2 && lastSH2) {
+          dacOut[1]=dacVal^0x8000;
+          have1=true;
+        }
+
+        dacVal>>=1;
+        dacVal|=(fm_lle.o_opo&1)<<15;
+
+        lastSH=fm_lle.o_sh1;
+        lastSH2=fm_lle.o_sh2;
+      }
+
+      lastS=fm_lle.o_s;
+
+      if (have0 && have1) break;
+    }
+    
+    // chan osc
+    // FM
+    for (int i=0; i<3; i++) {
+      if (fmOut[i]<-32768) fmOut[i]=-32768;
+      if (fmOut[i]>32767) fmOut[i]=32767;
+      oscBuf[i]->data[oscBuf[i]->needle++]=fmOut[i];
+    }
+    // SSG
+    for (int i=0; i<3; i++) {
+      oscBuf[i+3]->data[oscBuf[i+3]->needle++]=fm_lle.o_analog_ch[i]*32767;
+    }
+
+    // DAC
+    int accm1=(short)dacOut[0];
+
+    int outL=((accm1*fmVol)>>8)+fm_lle.o_analog*ssgVol*42;
+
+    if (outL<-32768) outL=-32768;
+    if (outL>32767) outL=32767;
+
+    buf[0][h]=outL;
   }
 }
 
@@ -984,6 +1136,7 @@ void DivPlatformYM2203::reset() {
   OPN2_Reset(&fm_nuked);
   OPN2_SetChipType(&fm_nuked,ym3438_mode_opn);
   fm->reset();
+  memset(&fm_lle,0,sizeof(fmopna_t));
   for (int i=0; i<6; i++) {
     chan[i]=DivPlatformOPN::OPNChannel();
     chan[i].std.setEngine(parent);
@@ -999,6 +1152,46 @@ void DivPlatformYM2203::reset() {
   for (int i=0; i<256; i++) {
     oldWrites[i]=-1;
     pendingWrites[i]=-1;
+  }
+
+  if (useCombo==2) {
+    fm_lle.input.cs=1;
+    fm_lle.input.rd=0;
+    fm_lle.input.wr=0;
+    fm_lle.input.a0=0;
+    fm_lle.input.a1=0;
+    fm_lle.input.data=0;
+    fm_lle.input.ad=0;
+    fm_lle.input.da=0;
+    fm_lle.input.dm=0;
+    fm_lle.input.test=1;
+    fm_lle.input.dt0=0;
+
+    fm_lle.input.ic=1;
+    for (size_t h=0; h<576; h++) {
+      FMOPNA_Clock(&fm_lle,0);
+      FMOPNA_Clock(&fm_lle,1);
+    }
+
+    fm_lle.input.ic=0;
+    for (size_t h=0; h<576; h++) {
+      FMOPNA_Clock(&fm_lle,0);
+      FMOPNA_Clock(&fm_lle,1);
+    }
+
+    fm_lle.input.ic=1;
+    for (size_t h=0; h<576; h++) {
+      FMOPNA_Clock(&fm_lle,0);
+      FMOPNA_Clock(&fm_lle,1);
+    }
+
+    dacVal=0;
+    dacVal2=0;
+    dacOut[0]=0;
+    dacOut[1]=0;
+    lastSH=false;
+    lastSH2=false;
+    lastS=false;
   }
 
   lastBusy=60;
@@ -1097,7 +1290,11 @@ void DivPlatformYM2203::setFlags(const DivConfig& flags) {
   fbAllOps=flags.getBool("fbAllOps",false);
   ssgVol=flags.getInt("ssgVol",128);
   fmVol=flags.getInt("fmVol",256);
-  rate=fm->sample_rate(chipClock);
+  if (useCombo==2) {
+    rate=chipClock/(fmDivBase*2);
+  } else {
+    rate=fm->sample_rate(chipClock);
+  }
   for (int i=0; i<6; i++) {
     oscBuf[i]->rate=rate;
   }

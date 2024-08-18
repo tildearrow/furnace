@@ -102,7 +102,7 @@ void DivPlatformVB::acquire(short** buf, size_t len) {
       regPool[w.addr>>2]=w.val;
       writes.pop();
     }
-    vb->EndFrame(16);
+    vb->EndFrame(coreQuality);
 
     tempL=0;
     tempR=0;
@@ -324,7 +324,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
       chan[c.chan].envHigh&=~3;
       chan[c.chan].envHigh|=(c.value>>4)&3;
       chan[c.chan].envLow=c.value&15;
-      writeEnv(c.chan);
+      writeEnv(c.chan,true);
       break;
     case DIV_CMD_FDS_MOD_DEPTH: // set modulation
       if (c.chan!=4) break;
@@ -539,7 +539,7 @@ void DivPlatformVB::notifyInsDeletion(void* ins) {
 void DivPlatformVB::setFlags(const DivConfig& flags) {
   chipClock=5000000.0;
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/16;
+  rate=chipClock/coreQuality;
   for (int i=0; i<6; i++) {
     oscBuf[i]->rate=rate;
   }
@@ -559,6 +559,32 @@ void DivPlatformVB::poke(unsigned int addr, unsigned short val) {
 
 void DivPlatformVB::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
+}
+
+void DivPlatformVB::setCoreQuality(unsigned char q) {
+  switch (q) {
+    case 0:
+      coreQuality=128;
+      break;
+    case 1:
+      coreQuality=64;
+      break;
+    case 2:
+      coreQuality=32;
+      break;
+    case 3:
+      coreQuality=16;
+      break;
+    case 4:
+      coreQuality=4;
+      break;
+    case 5:
+      coreQuality=1;
+      break;
+    default:
+      coreQuality=16;
+      break;
+  }
 }
 
 int DivPlatformVB::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

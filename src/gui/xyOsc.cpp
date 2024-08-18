@@ -37,26 +37,26 @@ void FurnaceGUI::drawXYOsc() {
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing,ImVec2(0,0));
   }
-  if (ImGui::Begin("Oscilloscope (X-Y)",&xyOscOpen,globalWinFlags)) {
+  if (ImGui::Begin("Oscilloscope (X-Y)",&xyOscOpen,globalWinFlags,_("Oscilloscope (X-Y)"))) {
     if (xyOscOptions) {
       int xyOscXChannelP1 = xyOscXChannel+1;
       int xyOscYChannelP1 = xyOscYChannel+1;
 
-      ImGui::Text("X Channel");
+      ImGui::Text(_("X Channel"));
       ImGui::SameLine();
       if (ImGui::DragInt("##XChannel",&xyOscXChannelP1,1.0f,1,DIV_MAX_OUTPUTS)) {
         xyOscXChannel=MIN(MAX(xyOscXChannelP1,1),DIV_MAX_OUTPUTS)-1;
       } rightClickable
       ImGui::SameLine();
-      ImGui::Checkbox("Invert##X",&xyOscXInvert);
-      ImGui::Text("Y Channel");
+      ImGui::Checkbox(_("Invert##X"),&xyOscXInvert);
+      ImGui::Text(_("Y Channel"));
       ImGui::SameLine();
       if (ImGui::DragInt("##YChannel",&xyOscYChannelP1,1.0f,1,DIV_MAX_OUTPUTS)) {
         xyOscXChannel=MIN(MAX(xyOscYChannelP1,1),DIV_MAX_OUTPUTS)-1;
       } rightClickable
       ImGui::SameLine();
-      ImGui::Checkbox("Invert##Y",&xyOscYInvert);
-      if (ImGui::SliderFloat("Zoom",&xyOscZoom,0.5f,4.0f,"%.2fx")) {
+      ImGui::Checkbox(_("Invert##Y"),&xyOscYInvert);
+      if (ImGui::SliderFloat(_("Zoom"),&xyOscZoom,0.5f,4.0f,"%.2fx")) {
         xyOscZoom=MAX(xyOscZoom,0.0f);
       } rightClickable
       if (ImGui::IsItemHovered()) {
@@ -65,19 +65,19 @@ void FurnaceGUI::drawXYOsc() {
       if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
         xyOscZoom=1.0f;
       }
-      if (ImGui::SliderInt("Samples",&xyOscSamples,2,32768)) {
+      if (ImGui::SliderInt(_("Samples"),&xyOscSamples,2,32768)) {
         xyOscSamples=MIN(MAX(xyOscSamples,2),32768);
       } rightClickable
-      if (ImGui::SliderFloat("Decay Time (ms)",&xyOscDecayTime,1.0f,1000.0f,"%.1f",ImGuiSliderFlags_Logarithmic)) {
+      if (ImGui::SliderFloat(_("Decay Time (ms)"),&xyOscDecayTime,1.0f,1000.0f,"%.1f",ImGuiSliderFlags_Logarithmic)) {
         xyOscDecayTime=MAX(xyOscDecayTime,0.0f);
       } rightClickable
-      if (ImGui::SliderFloat("Intensity",&xyOscIntensity,0.0f,5.0f,"%.2f")) {
+      if (ImGui::SliderFloat(_("Intensity"),&xyOscIntensity,0.0f,5.0f,"%.2f")) {
         xyOscIntensity=MAX(xyOscIntensity,0.0f);
       } rightClickable
-      if (ImGui::SliderFloat("Line Thickness",&xyOscThickness,0.0f,10.0f,"%.2f")) {
+      if (ImGui::SliderFloat(_("Line Thickness"),&xyOscThickness,0.0f,10.0f,"%.2f")) {
         xyOscThickness=MAX(xyOscThickness,0.0f);
       } rightClickable
-      if (ImGui::Button("OK")) {
+      if (ImGui::Button(_("OK"))) {
         xyOscOptions=false;
       }
     } else {
@@ -210,16 +210,20 @@ void FurnaceGUI::drawXYOsc() {
         float valX=20.0f*log10f(fabsf((ImGui::GetMousePos().x-inSqrCenter.x)/scaleX));
         float valY=20.0f*log10f(fabsf((ImGui::GetMousePos().y-inSqrCenter.y)/scaleY));
         if (valX<=-INFINITY && valY<=-INFINITY) {
-          ImGui::SetTooltip("(-Infinity)dB,(-Infinity)dB");
+          ImGui::SetTooltip(_("(-Infinity)dB,(-Infinity)dB"));
         } else if (valX<=-INFINITY) {
-          ImGui::SetTooltip("(-Infinity)dB,%.1fdB",valY);
+          ImGui::SetTooltip(_("(-Infinity)dB,%.1fdB"),valY);
         } else if (valY<=-INFINITY) {
-          ImGui::SetTooltip("%.1fdB,(-Infinity)dB",valY);
+          ImGui::SetTooltip(_("%.1fdB,(-Infinity)dB"),valY);
         } else {
-          ImGui::SetTooltip("%.1fdB,%.1fdB",valX,valY);
+          ImGui::SetTooltip(_("%.1fdB,%.1fdB"),valX,valY);
         }
       }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        xyOscOptions=true;
+      }
+      if (ImGui::IsItemHovered() && CHECK_LONG_HOLD) {
+        NOTIFY_LONG_HOLD;
         xyOscOptions=true;
       }
     }

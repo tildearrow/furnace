@@ -35,7 +35,7 @@ extern "C" {
 #include "../../extern/adpcm/ymb_codec.h"
 #include "../../extern/adpcm/ymz_codec.h"
 }
-#include "../../extern/adpcm-xq/adpcm-lib.h"
+#include "../../extern/adpcm-xq-s/adpcm-lib.h"
 #include "brrUtils.h"
 
 DivSampleHistory::~DivSampleHistory() {
@@ -56,7 +56,7 @@ void DivSample::putSampleData(SafeWriter* w) {
   w->writeC(depth);
   w->writeC(loopMode);
   w->writeC(brrEmphasis);
-  w->writeC(dither);
+  w->writeC((dither?1:0)|(brrNoFilter?2:0));
   w->writeI(loop?loopStart:-1);
   w->writeI(loop?loopEnd:-1);
 
@@ -134,7 +134,9 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
       reader.readC();
     }
     if (version>=159) {
-      dither=reader.readC()&1;
+      signed char c=reader.readC();
+      dither=c&1;
+      if (version>=213) brrNoFilter=c&2;
     } else {
       reader.readC();
     }
@@ -807,8 +809,8 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
   return false;
 }
 
-void DivSample::convert(DivSampleDepth newDepth) {
-  render();
+void DivSample::convert(DivSampleDepth newDepth, unsigned int formatMask) {
+  render(formatMask|(1U<<newDepth));
   depth=newDepth;
   switch (depth) {
     case DIV_SAMPLE_DEPTH_1BIT:
@@ -845,7 +847,7 @@ void DivSample::convert(DivSampleDepth newDepth) {
     default:
       break;
   }
-  render();
+  render(formatMask|(1U<<newDepth));
 }
 
 #define RESAMPLE_BEGIN \
@@ -1289,7 +1291,7 @@ void DivSample::render(unsigned int formatMask) {
         }
         break;
       case DIV_SAMPLE_DEPTH_IMA_ADPCM: // IMA ADPCM
-        if (adpcm_decode_block(data16,dataIMA,lengthIMA,1)==0) logE("oh crap!");
+        if (adpcm_decode_block(data16,dataIMA,lengthIMA,samples)==0) logE("oh crap!");
         break;
       default:
         return;
@@ -1309,6 +1311,7 @@ void DivSample::render(unsigned int formatMask) {
     if (!initInternal(DIV_SAMPLE_DEPTH_1BIT_DPCM,samples)) return;
     int accum=63;
     int next=63;
+    
     for (unsigned int i=0; (i<samples && (i>>3)<lengthDPCM); i++) {
       next=((unsigned short)(data16[i]^0x8000))>>9;
       if (next>accum) {
@@ -1422,7 +1425,7 @@ void DivSample::render(unsigned int formatMask) {
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_BRR)) { // BRR
     int sampleCount=loop?loopEnd:samples;
     if (!initInternal(DIV_SAMPLE_DEPTH_BRR,sampleCount)) return;
-    brrEncode(data16,dataBRR,sampleCount,loop?loopStart:-1,brrEmphasis);
+    brrEncode(data16,dataBRR,sampleCount,loop?loopStart:-1,brrEmphasis,brrNoFilter);
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_VOX)) { // VOX
     if (!initInternal(DIV_SAMPLE_DEPTH_VOX,samples)) return;
@@ -1563,9 +1566,9 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
       duplicate=new unsigned char[getCurBufLen()];
       memcpy(duplicate,getCurBuf(),getCurBufLen());
     }
-    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,dither,loopMode);
+    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,brrNoFilter,dither,loopMode);
   } else {
-    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,dither,loopMode);
+    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,brrNoFilter,dither,loopMode);
   }
   if (!doNotPush) {
     while (!redoHist.empty()) {
@@ -1599,6 +1602,7 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
   loopEnd=h->loopEnd; \
   loop=h->loop; \
   brrEmphasis=h->brrEmphasis; \
+  brrNoFilter=h->brrNoFilter; \
   dither=h->dither; \
   loopMode=h->loopMode;
 

@@ -139,6 +139,10 @@ enum DivSystem {
   DIV_SYSTEM_GBA_DMA,
   DIV_SYSTEM_GBA_MINMOD,
   DIV_SYSTEM_5E01,
+  DIV_SYSTEM_BIFURCATOR,
+  DIV_SYSTEM_SID2,
+
+  DIV_SYSTEM_MAX
 };
 
 enum DivEffectType: unsigned short {
@@ -175,6 +179,11 @@ struct DivSubSong {
   unsigned char chanCollapse[DIV_MAX_CHANS];
   String chanName[DIV_MAX_CHANS];
   String chanShortName[DIV_MAX_CHANS];
+
+  /**
+   * walk through the song and determine loop position.
+   */
+  bool walk(int& loopOrder, int& loopRow, int& loopEnd, int chans, int jumpTreatment, int ignoreJumpAtEnd, int firstPat=0);
 
   void clearData();
   void optimizePatterns();
@@ -331,6 +340,7 @@ struct DivSong {
   bool resetArpPhaseOnNewNote;
   bool ceilVolumeScaling;
   bool oldAlwaysSetVolume;
+  bool oldSampleOffset;
 
   std::vector<DivInstrument*> ins;
   std::vector<DivWavetable*> wave;
@@ -349,6 +359,11 @@ struct DivSong {
   DivInstrument nullIns, nullInsOPLL, nullInsOPL, nullInsOPLDrums, nullInsQSound, nullInsESFM;
   DivWavetable nullWave;
   DivSample nullSample;
+
+  /**
+   * find data past 0Bxx effects and place that into new sub-songs.
+   */
+  void findSubSongs(int chans);
 
   /**
    * clear orders and patterns.
@@ -454,7 +469,8 @@ struct DivSong {
     oldDPCM(false),
     resetArpPhaseOnNewNote(false),
     ceilVolumeScaling(false),
-    oldAlwaysSetVolume(false) {
+    oldAlwaysSetVolume(false),
+    oldSampleOffset(false) {
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=1.0;

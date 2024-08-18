@@ -33,7 +33,7 @@ void FurnaceGUI::drawVolMeter() {
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0,0));
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
   ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing,ImVec2(0,0));
-  if (ImGui::Begin("Volume Meter",&volMeterOpen,globalWinFlags)) {
+  if (ImGui::Begin("Volume Meter",&volMeterOpen,globalWinFlags,_("Volume Meter"))) {
     ImDrawList* dl=ImGui::GetWindowDrawList();
     bool aspectRatio=(ImGui::GetWindowSize().x/ImGui::GetWindowSize().y)>1.0;
 

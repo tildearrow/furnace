@@ -18,3 +18,13 @@ not really - very soon talented programmers found out ways to output much more t
 ## info
 
 this chip uses the [Beeper](../4-instrument/beeper.md) or [Pokémon Mini/QuadTone](../4-instrument/pokemini.md) instrument editor.
+
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **PAL**: run at 3.54MHz instead of 3.58MHz.
+
+QuadTone provides this additional option:
+
+- **Disable hissing**: disables TDM hissing.

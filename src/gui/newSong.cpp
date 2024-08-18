@@ -24,7 +24,7 @@
 
 String sysDefID;
 
-void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& accepted, std::vector<int>& sysDefStack) {
+void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& accepted, std::vector<int>& sysDefStack, bool& alreadyHover) {
   int index=0;
   String sysDefIDLeader="##NS";
   for (int i: sysDefStack) {
@@ -53,16 +53,17 @@ void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& acce
       }
       if (ImGui::IsItemHovered()) isHovered=true;
     } else if (i.subDefs.empty()) {
-      ImGui::TextUnformatted(i.name);
+      ImGui::TextUnformatted(i.name.c_str());
       if (ImGui::IsItemHovered()) isHovered=true;
     }
     if (treeNode) {
       sysDefStack.push_back(index);
-      drawSysDefs(i.subDefs,accepted,sysDefStack);
+      drawSysDefs(i.subDefs,accepted,sysDefStack,alreadyHover);
       sysDefStack.erase(sysDefStack.end()-1);
       ImGui::TreePop();
     }
-    if (isHovered) {
+    if (isHovered && !alreadyHover) {
+      alreadyHover=true;
       if (ImGui::BeginTooltip()) {
         std::map<DivSystem,int> chipCounts;
         std::vector<DivSystem> chips;
@@ -95,13 +96,33 @@ void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& acce
   }
 }
 
+void findInSubs(std::vector<FurnaceGUISysDef>& where, std::vector<FurnaceGUISysDef>& newSongSearchResults, String lowerCase) {
+  for (FurnaceGUISysDef& j: where) {
+    if (!j.orig.empty()) {
+      String lowerCase1=j.name;
+      for (char& i: lowerCase1) {
+        if (i>='A' && i<='Z') i+='a'-'A';
+      }
+      auto lastItem=std::remove_if(lowerCase1.begin(),lowerCase1.end(),[](char c) {
+        return (c==' ' || c=='_' || c=='-');
+      });
+      lowerCase1.erase(lastItem,lowerCase1.end());
+      if (lowerCase1.find(lowerCase)!=String::npos) {
+        newSongSearchResults.push_back(j);
+        newSongSearchResults[newSongSearchResults.size()-1].subDefs.clear();
+      }
+    }
+    findInSubs(j.subDefs,newSongSearchResults,lowerCase);
+  }
+}
+
 void FurnaceGUI::drawNewSong() {
   bool accepted=false;
   std::vector<int> sysDefStack;
 
   ImGui::PushFont(bigFont);
-  ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize("Choose a System!").x)*0.5);
-  ImGui::Text("Choose a System!");
+  ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(_("Choose a System!")).x)*0.5);
+  ImGui::Text(_("Choose a System!"));
   ImGui::PopFont();
 
   ImVec2 avail=ImGui::GetContentRegionAvail();
@@ -111,7 +132,7 @@ void FurnaceGUI::drawNewSong() {
     if (newSongFirstFrame)
       ImGui::SetKeyboardFocusHere();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-    if (ImGui::InputTextWithHint("##SysSearch","Search...",&newSongQuery)) {
+    if (ImGui::InputTextWithHint("##SysSearch",_("Search..."),&newSongQuery)) {
       String lowerCase=newSongQuery;
       for (char& i: lowerCase) {
         if (i>='A' && i<='Z') i+='a'-'A';
@@ -123,26 +144,30 @@ void FurnaceGUI::drawNewSong() {
       newSongSearchResults.clear();
       for (FurnaceGUISysCategory& i: sysCategories) {
         for (FurnaceGUISysDef& j: i.systems) {
-          String lowerCase1=j.name;
-          for (char& i: lowerCase1) {
-            if (i>='A' && i<='Z') i+='a'-'A';
+          if (!j.orig.empty()) {
+            String lowerCase1=j.name;
+            for (char& i: lowerCase1) {
+              if (i>='A' && i<='Z') i+='a'-'A';
+            }
+            auto lastItem=std::remove_if(lowerCase1.begin(),lowerCase1.end(),[](char c) {
+              return (c==' ' || c=='_' || c=='-');
+            });
+            lowerCase1.erase(lastItem,lowerCase1.end());
+            if (lowerCase1.find(lowerCase)!=String::npos) {
+              newSongSearchResults.push_back(j);
+              newSongSearchResults[newSongSearchResults.size()-1].subDefs.clear();
+            }
           }
-          auto lastItem=std::remove_if(lowerCase1.begin(),lowerCase1.end(),[](char c) {
-            return (c==' ' || c=='_' || c=='-');
-          });
-          lowerCase1.erase(lastItem,lowerCase1.end());
-          if (lowerCase1.find(lowerCase)!=String::npos) {
-            newSongSearchResults.push_back(j);
-          }
+          findInSubs(j.subDefs,newSongSearchResults,lowerCase);
         }
-        std::sort(newSongSearchResults.begin(),newSongSearchResults.end(),[](const FurnaceGUISysDef& a, const FurnaceGUISysDef& b) {
-          return strcmp(a.name,b.name)<0;
-        });
-        auto lastItem=std::unique(newSongSearchResults.begin(),newSongSearchResults.end(),[](const FurnaceGUISysDef& a, const FurnaceGUISysDef& b) {
-          return strcmp(a.name,b.name)==0;
-        });
-        newSongSearchResults.erase(lastItem,newSongSearchResults.end());
       }
+      std::sort(newSongSearchResults.begin(),newSongSearchResults.end(),[](const FurnaceGUISysDef& a, const FurnaceGUISysDef& b) {
+        return strcmp(a.name.c_str(),b.name.c_str())<0;
+      });
+      auto lastItem1=std::unique(newSongSearchResults.begin(),newSongSearchResults.end(),[](const FurnaceGUISysDef& a, const FurnaceGUISysDef& b) {
+        return a.name==b.name;
+      });
+      newSongSearchResults.erase(lastItem1,newSongSearchResults.end());
     }
     if (ImGui::BeginTable("sysPicker",newSongQuery.empty()?2:1,ImGuiTableFlags_BordersInnerV)) {
       if (newSongQuery.empty()) {
@@ -153,9 +178,9 @@ void FurnaceGUI::drawNewSong() {
       if (newSongQuery.empty()) {
         ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
         ImGui::TableNextColumn();
-        ImGui::Text("Categories");
+        ImGui::Text(_("Categories"));
         ImGui::TableNextColumn();
-        ImGui::Text("Systems");
+        ImGui::Text(_("Systems"));
       }
 
       ImGui::TableNextRow();
@@ -184,13 +209,14 @@ void FurnaceGUI::drawNewSong() {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           if (newSongQuery.empty()) {
-            ImGui::Text("no systems here yet!");
+            ImGui::Text(_("no systems here yet!"));
           } else {
-            ImGui::Text("no results");
+            ImGui::Text(_("no results"));
           }
         } else {
+          bool alreadyHover=false;
           sysDefStack.push_back(newSongQuery.empty()?newSongCategory:-1);
-          drawSysDefs(category,accepted,sysDefStack);
+          drawSysDefs(category,accepted,sysDefStack,alreadyHover);
           sysDefStack.erase(sysDefStack.end()-1);
         }
         ImGui::EndTable();
@@ -201,9 +227,9 @@ void FurnaceGUI::drawNewSong() {
   }
   ImGui::EndChild();
 
-  if (ImGui::Button("I'm feeling lucky")) {
+  if (ImGui::Button(_("I'm feeling lucky"))) {
     if (sysCategories.size()==0) {
-      showError("no categories available! what in the world.");
+      showError(_("no categories available! what in the world."));
       ImGui::CloseCurrentPopup();
     } else {
       int tries=0;
@@ -238,7 +264,7 @@ void FurnaceGUI::drawNewSong() {
       }
 
       if (tries>=50) {
-        showError("it appears you're extremely lucky today!");
+        showError(_("it appears you're extremely lucky today!"));
         ImGui::CloseCurrentPopup();
       }
     }
@@ -246,7 +272,7 @@ void FurnaceGUI::drawNewSong() {
 
   ImGui::SameLine();
 
-  if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+  if (ImGui::Button(_("Cancel")) || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
     ImGui::CloseCurrentPopup();
   }
 
@@ -265,6 +291,7 @@ void FurnaceGUI::drawNewSong() {
     selEnd=SelectionPoint();
     cursor=SelectionPoint();
     updateWindowTitle();
+    updateROMExportAvail();
     ImGui::CloseCurrentPopup();
   }
 

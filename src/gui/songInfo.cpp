@@ -29,7 +29,7 @@ void FurnaceGUI::drawSongInfo(bool asChild) {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!songInfoOpen && !asChild) return;
-  bool began=asChild?ImGui::BeginChild("Song Info##Song Information"):ImGui::Begin("Song Info##Song Information",&songInfoOpen,globalWinFlags);
+  bool began=asChild?ImGui::BeginChild("Song Info##Song Information"):ImGui::Begin("Song Info##Song Information",&songInfoOpen,globalWinFlags,_("Song Info##Song Information"));
   if (began) {
     if (ImGui::BeginTable("NameAuthor",2,ImGuiTableFlags_SizingStretchProp)) {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
@@ -37,7 +37,7 @@ void FurnaceGUI::drawSongInfo(bool asChild) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::AlignTextToFramePadding();
-      ImGui::Text("Name");
+      ImGui::Text(_("Name"));
       ImGui::TableNextColumn();
       float avail=ImGui::GetContentRegionAvail().x;
       ImGui::SetNextItemWidth(avail);
@@ -47,7 +47,7 @@ void FurnaceGUI::drawSongInfo(bool asChild) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::AlignTextToFramePadding();
-      ImGui::Text("Author");
+      ImGui::Text(_("Author"));
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
       if (ImGui::InputText("##Author",&e->song.author,ImGuiInputTextFlags_UndoRedo)) {
@@ -57,7 +57,7 @@ void FurnaceGUI::drawSongInfo(bool asChild) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::AlignTextToFramePadding();
-      ImGui::Text("Album");
+      ImGui::Text(_("Album"));
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
       if (ImGui::InputText("##Category",&e->song.category,ImGuiInputTextFlags_UndoRedo)) {
@@ -66,7 +66,7 @@ void FurnaceGUI::drawSongInfo(bool asChild) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::AlignTextToFramePadding();
-      ImGui::Text("System");
+      ImGui::Text(_("System"));
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(MAX(16.0f*dpiScale,avail-autoButtonSize-ImGui::GetStyle().ItemSpacing.x));
       if (ImGui::InputText("##SystemName",&e->song.systemName,ImGuiInputTextFlags_UndoRedo)) {
@@ -76,7 +76,7 @@ void FurnaceGUI::drawSongInfo(bool asChild) {
       }
       ImGui::SameLine();
       pushToggleColors(e->song.autoSystem);
-      if (ImGui::Button("Auto")) {
+      if (ImGui::Button(_("Auto"))) {
         e->song.autoSystem=!e->song.autoSystem;
         if (e->song.autoSystem) {
           autoDetectSystem();
@@ -97,7 +97,7 @@ void FurnaceGUI::drawSongInfo(bool asChild) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::AlignTextToFramePadding();
-      ImGui::Text("Tuning (A-4)");
+      ImGui::Text(_("Tuning (A-4)"));
       ImGui::TableNextColumn();
       float tune=e->song.tuning;
       float avail=ImGui::GetContentRegionAvail().x;

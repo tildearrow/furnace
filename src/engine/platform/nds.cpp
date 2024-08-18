@@ -23,7 +23,6 @@
 #include <math.h>
 
 #define CHIP_DIVIDER 32
-#define CLOCK_DIVIDER 128 // for match to output rate
 
 #define rRead8(a) (nds.read8(a))
 #define rWrite8(a,v) {if(!skipRegisterWrites) {nds.write8((a),(v)); regPool[(a)]=(v); if(dumpWrites) addWrite((a),(v)); }}
@@ -71,7 +70,7 @@ const char** DivPlatformNDS::getRegisterSheet() {
 
 void DivPlatformNDS::acquire(short** buf, size_t len) {
   for (size_t i=0; i<len; i++) {
-    nds.tick(CLOCK_DIVIDER);
+    nds.tick(coreQuality);
     int lout=((nds.loutput()-0x200)<<5); // scale to 16 bit
     int rout=((nds.routput()-0x200)<<5); // scale to 16 bit
     if (lout>32767) lout=32767;
@@ -262,6 +261,8 @@ int DivPlatformNDS::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_NDS);
       if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample || (c.chan<8)) {
         chan[c.chan].pcm=true;
+      } else {
+        chan[c.chan].pcm=false;
       }
       if (chan[c.chan].pcm || (c.chan<8)) {
         chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:127;
@@ -561,9 +562,36 @@ void DivPlatformNDS::renderSamples(int sysID) {
 void DivPlatformNDS::setFlags(const DivConfig& flags) {
   isDSi=flags.getBool("chipType",0);
   chipClock=33513982;
-  rate=chipClock/2/CLOCK_DIVIDER;
+  rate=chipClock/2/coreQuality;
   for (int i=0; i<16; i++) {
     oscBuf[i]->rate=rate;
+  }
+  memCompo.capacity=(isDSi?16777216:4194304);
+}
+
+void DivPlatformNDS::setCoreQuality(unsigned char q) {
+  switch (q) {
+    case 0:
+      coreQuality=1024;
+      break;
+    case 1:
+      coreQuality=512;
+      break;
+    case 2:
+      coreQuality=256;
+      break;
+    case 3:
+      coreQuality=128;
+      break;
+    case 4:
+      coreQuality=32;
+      break;
+    case 5:
+      coreQuality=8;
+      break;
+    default:
+      coreQuality=128;
+      break;
   }
 }
 

@@ -15,7 +15,7 @@ fi
 cd linuxbuild
 
 # -DWITH_PORTAUDIO=OFF: Ubuntu 16.04 doesn't like it
-cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O3" -DCMAKE_CXX_FLAGS="-O3 -Wall -Wextra -Wno-unused-parameter -Werror" -DWITH_PORTAUDIO=OFF -DWITH_DEMOS=ON -DWITH_INSTRUMENTS=ON -DWITH_WAVETABLES=ON .. || exit 1
+cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O3" -DCMAKE_CXX_FLAGS="-O3 -Wall -Wextra -Wno-unused-parameter -Werror" -DWITH_PORTAUDIO=OFF -DWITH_DEMOS=ON -DWITH_INSTRUMENTS=ON -DWITH_WAVETABLES=ON -DWITH_LOCALE=ON -DUSE_MOMO=ON .. || exit 1
 make -j4 || exit 1
 
 cd ..
@@ -40,12 +40,13 @@ rm -r share/doc
 mv share/icons ..
 rm -r share/licenses
 rm -r share/metainfo
+mv share/locale ..
 
 mv share/furnace/demos ..
 mv share/furnace/instruments ..
 mv share/furnace/wavetables ..
-rmdir share/furnace || exit 1
-rmdir share || exit 1
+rm -r share/furnace || exit 1
+rm -r share || exit 1
 
 cd ..
 

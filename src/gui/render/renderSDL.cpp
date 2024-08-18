@@ -24,13 +24,20 @@
 class FurnaceSDLTexture: public FurnaceGUITexture {
   public:
   SDL_Texture* tex;
+  FurnaceGUITextureFormat format;
   FurnaceSDLTexture():
-    tex(NULL) {}
+    tex(NULL),
+    format(GUI_TEXFORMAT_UNKNOWN) {}
 };
 
 ImTextureID FurnaceGUIRenderSDL::getTextureID(FurnaceGUITexture* which) {
   FurnaceSDLTexture* t=(FurnaceSDLTexture*)which;
   return t->tex;
+}
+
+FurnaceGUITextureFormat FurnaceGUIRenderSDL::getTextureFormat(FurnaceGUITexture* which) {
+  FurnaceSDLTexture* t=(FurnaceSDLTexture*)which;
+  return t->format;
 }
 
 bool FurnaceGUIRenderSDL::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
@@ -49,12 +56,19 @@ bool FurnaceGUIRenderSDL::updateTexture(FurnaceGUITexture* which, void* data, in
   return SDL_UpdateTexture(t->tex,NULL,data,pitch)==0;
 }
 
-FurnaceGUITexture* FurnaceGUIRenderSDL::createTexture(bool dynamic, int width, int height) {
+FurnaceGUITexture* FurnaceGUIRenderSDL::createTexture(bool dynamic, int width, int height, bool interpolate, FurnaceGUITextureFormat format) {
+  if (format!=GUI_TEXFORMAT_ABGR32) {
+    logE("unsupported texture format!");
+    return NULL;
+  }
+  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,interpolate?"1":"0");
   SDL_Texture* t=SDL_CreateTexture(sdlRend,SDL_PIXELFORMAT_ABGR8888,dynamic?SDL_TEXTUREACCESS_STREAMING:SDL_TEXTUREACCESS_STATIC,width,height);
+  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"1");
 
   if (t==NULL) return NULL;
   FurnaceSDLTexture* ret=new FurnaceSDLTexture;
   ret->tex=t;
+  ret->format=format;
   return ret;
 }
 
@@ -110,6 +124,10 @@ bool FurnaceGUIRenderSDL::newFrame() {
   return ImGui_ImplSDLRenderer2_NewFrame();
 }
 
+bool FurnaceGUIRenderSDL::canVSync() {
+  return swapIntervalSet;
+}
+
 void FurnaceGUIRenderSDL::createFontsTexture() {
   ImGui_ImplSDLRenderer2_CreateFontsTexture();
 }
@@ -140,12 +158,65 @@ int FurnaceGUIRenderSDL::getWindowFlags() {
   return 0;
 }
 
-void FurnaceGUIRenderSDL::preInit() {
+int FurnaceGUIRenderSDL::getMaxTextureWidth() {
+  if (!hasInfo) return 2048;
+  return renderInfo.max_texture_width;
 }
 
-bool FurnaceGUIRenderSDL::init(SDL_Window* win) {
+int FurnaceGUIRenderSDL::getMaxTextureHeight() {
+  if (!hasInfo) return 2048;
+  return renderInfo.max_texture_height;
+}
+
+unsigned int FurnaceGUIRenderSDL::getTextureFormats() {
+  return GUI_TEXFORMAT_ABGR32;
+}
+
+const char* FurnaceGUIRenderSDL::getBackendName() {
+  return "SDL Renderer";
+}
+
+const char* FurnaceGUIRenderSDL::getVendorName() {
+  return "SDL";
+}
+
+const char* FurnaceGUIRenderSDL::getDeviceName() {
+  if (!hasInfo) return "???";
+  return renderInfo.name;
+}
+
+const char* FurnaceGUIRenderSDL::getAPIVersion() {
+  return "N/A";
+}
+
+void FurnaceGUIRenderSDL::setSwapInterval(int swapInterval) {
+  if (SDL_RenderSetVSync(sdlRend,(swapInterval>=0)?1:0)!=0) {
+    swapIntervalSet=false;
+    logW("tried to enable VSync but couldn't!");
+  } else {
+    swapIntervalSet=true;
+  }
+}
+
+void FurnaceGUIRenderSDL::preInit(const DivConfig& conf) {
+}
+
+bool FurnaceGUIRenderSDL::init(SDL_Window* win, int swapInterval) {
   logV("creating SDL renderer...");
-  sdlRend=SDL_CreateRenderer(win,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC|SDL_RENDERER_TARGETTEXTURE);
+  sdlRend=SDL_CreateRenderer(win,-1,SDL_RENDERER_ACCELERATED|((swapInterval>0)?SDL_RENDERER_PRESENTVSYNC:0)|SDL_RENDERER_TARGETTEXTURE);
+  if (sdlRend==NULL) return false;
+  if (SDL_GetRendererInfo(sdlRend,&renderInfo)==0) {
+    hasInfo=true;
+  } else {
+    logE("could not get renderer info! %s",SDL_GetError());
+    hasInfo=false;
+  }
+  if (SDL_RenderSetVSync(sdlRend,(swapInterval>=0)?1:0)!=0) {
+    swapIntervalSet=false;
+    logW("tried to enable VSync but couldn't!");
+  } else {
+    swapIntervalSet=true;
+  }
   logV("(post creation)");
   return (sdlRend!=NULL);
 }

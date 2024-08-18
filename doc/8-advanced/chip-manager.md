@@ -8,6 +8,8 @@ the **chip manager** window allows you to manage chips, including adding, changi
 
 **Clone channel data**: when cloning chips, also copy patterns, pattern names, channel names and other parameters to the clone.
 
+**Clone at end**: instead of inserting the clone directly after the cloned chip, add it to the end.
+
 to move a chip around, click and drag the ![crossed-arrows](chip-manager-move.png) button to the left.
 
 to duplicate a chip, click the **Clone** button.

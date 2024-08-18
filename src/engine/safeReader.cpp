@@ -229,7 +229,7 @@ double SafeReader::readD() {
 }
 #endif
 
-String SafeReader::readString(size_t stlen) {
+String SafeReader::readStringWithEncoding(DivStringEncoding encoding, size_t stlen) {
   String ret;
 #ifdef READ_DEBUG
   logD("SR: reading string len %d at %x",stlen,curSeek);
@@ -243,21 +243,65 @@ String SafeReader::readString(size_t stlen) {
     if (c==0) {
       zero=true;
     }
-    if (!zero) ret.push_back(c);
+    if (!zero) {
+      if (encoding==DIV_ENCODING_LATIN1) {
+        if (c>=0x20) {
+          if (c&0x80) {
+            if (c>=0xa0) {
+              ret.push_back(0xc0|(c>>6));
+              ret.push_back(0x80|(c&63));
+            }
+          } else {
+            ret.push_back(c);
+          }
+        }
+      } else {
+        ret.push_back(c);
+      }
+    }
     curPos++;
   }
   return ret;
 }
 
-String SafeReader::readString() {
+String SafeReader::readStringWithEncoding(DivStringEncoding encoding) {
   String ret;
   unsigned char c;
   if (isEOF()) throw EndOfFileException(this, len);
 
   while (!isEOF() && (c=readC())!=0) {
-    ret.push_back(c);
+    if (encoding==DIV_ENCODING_LATIN1) {
+      if (c>=0x20) {
+        if (c&0x80) {
+          if (c>=0xa0) {
+            ret.push_back(0xc0|(c>>6));
+            ret.push_back(0x80|(c&63));
+          }
+        } else {
+          ret.push_back(c);
+        }
+      }
+    } else {
+      ret.push_back(c);
+    }
   }
   return ret;
+}
+
+String SafeReader::readString() {
+  return readStringWithEncoding(DIV_ENCODING_NONE);
+}
+
+String SafeReader::readString(size_t stlen) {
+  return readStringWithEncoding(DIV_ENCODING_NONE,stlen);
+}
+
+String SafeReader::readStringLatin1() {
+  return readStringWithEncoding(DIV_ENCODING_LATIN1);
+}
+
+String SafeReader::readStringLatin1(size_t stlen) {
+  return readStringWithEncoding(DIV_ENCODING_LATIN1,stlen);
 }
 
 String SafeReader::readStringLine() {

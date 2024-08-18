@@ -217,7 +217,7 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
       }
     }
 
-    if (fm.rhy&0x20) {
+    if (properDrums) {
       for (int i=0; i<melodicChans+1; i++) {
         unsigned char ch=outChanMap[i];
         int chOut=0;
@@ -709,7 +709,7 @@ void DivPlatformOPL::acquire_nukedLLE3(short** buf, size_t len) {
             fm_lle3.input.address=(w.addr&0x100)?3:1;
             fm_lle3.input.data_i=w.val;
             writes.pop();
-            delay=16;
+            delay=18;
           } else {
             fm_lle3.input.cs=0;
             fm_lle3.input.rd=1;
@@ -718,7 +718,7 @@ void DivPlatformOPL::acquire_nukedLLE3(short** buf, size_t len) {
             fm_lle3.input.data_i=w.addr&0xff;
             w.addrOrVal=true;
             // weird. wasn't it 12?
-            delay=16;
+            delay=18;
           }
 
           waitingBusy=true;
@@ -1039,7 +1039,7 @@ void DivPlatformOPL::tick(bool sysTick) {
 
       if (chan[adpcmChan].std.vol.had) {
         chan[adpcmChan].outVol=(chan[adpcmChan].vol*MIN(chan[adpcmChan].macroVolMul,chan[adpcmChan].std.vol.val))/chan[adpcmChan].macroVolMul;
-        immWrite(18,chan[adpcmChan].outVol);
+        immWrite(18,(isMuted[adpcmChan]?0:chan[adpcmChan].outVol));
       }
 
       if (NEW_ARP_STRAT) {
@@ -1217,7 +1217,10 @@ int DivPlatformOPL::toFreq(int freq) {
 
 void DivPlatformOPL::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  if (ch==adpcmChan) return;
+  if (ch==adpcmChan) {
+    immWrite(18,(isMuted[adpcmChan]?0:chan[adpcmChan].outVol));
+    return;
+  }
   if (oplType<3 && ch<melodicChans) {
     fm.channel[outChanMap[ch]].muted=mute;
   }
@@ -1380,7 +1383,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           chan[c.chan].fixedFreq=0;
           if (!chan[c.chan].std.vol.will) {
             chan[c.chan].outVol=chan[c.chan].vol;
-            immWrite(18,chan[c.chan].outVol);
+            immWrite(18,(isMuted[adpcmChan]?0:chan[adpcmChan].outVol));
           }
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].sample=ins->amiga.getSample(c.value);
@@ -1511,7 +1514,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         chan[c.chan].outVol=c.value;
       }
       if (c.chan==adpcmChan) { // ADPCM-B
-        immWrite(18,chan[c.chan].outVol);
+        immWrite(18,(isMuted[adpcmChan]?0:chan[adpcmChan].outVol));
         break;
       }
       int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
@@ -2137,6 +2140,11 @@ int DivPlatformOPL::mapVelocity(int ch, float vel) {
   return CLAMP(round(64.0-(56.0-log2(vel*127.0)*8.0)),0,63);
 }
 
+float DivPlatformOPL::getGain(int ch, int vol) {
+  if (vol==0) return 0;
+  return 1.0/pow(10.0,(float)(63-vol)*0.75/20.0);
+}
+
 unsigned char* DivPlatformOPL::getRegisterPool() {
   return regPool;
 }
@@ -2243,7 +2251,7 @@ void DivPlatformOPL::reset() {
     adpcmB->reset();
 
     // volume
-    immWrite(18,0xff);
+    immWrite(18,(isMuted[adpcmChan]?0:0xff));
     // ADPCM limit
     immWrite(20,0xff);
     immWrite(19,0xff);
@@ -2461,7 +2469,11 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
       switch (flags.getInt("chipType",0)) {
         case 1: // YMF289B
           chipFreqBase=32768*684;
-          rate=chipClock/768;
+          if (emuCore==2) {
+            rate=chipClock/684;
+          } else {
+            rate=chipClock/768;
+          }
           chipRateBase=chipClock/684;
           downsample=true;
           totalOutputs=2; // Stereo output only

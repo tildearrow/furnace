@@ -87,7 +87,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
 
     int softPCMTimer;
 
-    bool extMode, softPCM, noExtMacros, canWriteDAC;
+    bool extMode, softPCM, noExtMacros, canWriteDAC, msw;
     unsigned char useYMFM;
     unsigned char chipType;
     short dacWrite;
@@ -96,6 +96,9 @@ class DivPlatformGenesis: public DivPlatformOPN {
     int llePrevCycle;
     int lleOscData[6];
     int dacShifter, o_lro, o_bco;
+
+    int interruptSim;
+    int interruptSimCycles;
   
     unsigned char dacVolTable[128];
   

@@ -126,6 +126,10 @@ the following instrument types are available:
 - 57: PowerNoise (slope)
 - 58: Dave
 - 59: NDS
+- 60: GBA DMA
+- 61: GBA MinMod
+- 62: Bifurcator
+- 63: SID2
 
 the following feature codes are recognized:
 
@@ -153,6 +157,7 @@ the following feature codes are recognized:
 - `NE`: NES DPCM sample map data
 - `EF`: ESFM ins data
 - `PN`: PowerNoise ins data
+- `S2`: SID2 ins data
 - `EN`: end of features
   - if you find this feature code, stop reading the instrument.
   - it will usually appear only when there sample/wave lists.
@@ -268,7 +273,7 @@ size | description
   1  | macro delay
   1  | macro speed
  ??? | macro data
-     | - length: macro length × word sizs
+     | - length: macro length × word size
 ```
 
 ## interpreting macro mode values
@@ -328,7 +333,8 @@ size | description
   2  | duty
   2  | cutoff/resonance
      | - bit 12-15: resonance
-     | - bit 0-10: cutoff
+     | - bit 0-10: cutoff (0-11 on SID2)
+  1  | upper nibble of resonance (for SID2) (>=199)
 ```
 
 ## C64 compatibility note (>=187)
@@ -668,4 +674,15 @@ NES instruments with DPCM sample maps have both SM and NE features.
 size | description
 -----|------------------------------------
   1  | octave
+```
+
+# SID2 data (S2)
+
+```
+size | description
+-----|------------------------------------
+  1  | parameters
+     | - bit 6-7: noise mode
+     | - bit 4-5: wave mix mode
+     | - bit 0-3: volume
 ```

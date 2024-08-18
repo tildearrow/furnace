@@ -35,6 +35,9 @@ static float oscDebugMin=-1.0;
 static float oscDebugMax=1.0;
 static float oscDebugPower=1.0;
 static int oscDebugRepeat=1;
+static int numApples=1;
+static int getGainChan=0;
+static int getGainVol=0;
 
 static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   if (cmd!=NULL) {
@@ -62,7 +65,7 @@ void FurnaceGUI::drawDebug() {
   }
   if (!debugOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(100.0f*dpiScale,100.0f*dpiScale),ImVec2(canvasW,canvasH));
-  if (ImGui::Begin("Debug",&debugOpen,globalWinFlags|ImGuiWindowFlags_NoDocking)) {
+  if (ImGui::Begin("Debug",&debugOpen,globalWinFlags|ImGuiWindowFlags_NoDocking,_("Debug"))) {
     ImGui::Text("NOTE: use with caution.");
     if (ImGui::TreeNode("Debug Controls")) {
       if (e->isHalted()) {
@@ -154,7 +157,7 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("- depth = %d",ch->vibratoDepth);
           ImGui::Text("- rate = %d",ch->vibratoRate);
           ImGui::Text("- pos = %d",ch->vibratoPos);
-          ImGui::Text("- dir = %d",ch->vibratoDir);
+          ImGui::Text("- shape = %d",ch->vibratoShape);
           ImGui::Text("- fine = %d",ch->vibratoFine);
           ImGui::PopStyleColor();
           ImGui::PushStyleColor(ImGuiCol_Text,(ch->tremoloDepth>0)?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_TEXT]);
@@ -610,6 +613,59 @@ void FurnaceGUI::drawDebug() {
       ImGui::Unindent();
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Texture Test")) {
+      ImGui::Text("Create and Destroy 128 Textures");
+      if (ImGui::Button("No Write")) {
+        for (int i=0; i<128; i++) {
+          FurnaceGUITexture* t=rend->createTexture(false,2048,2048,true,bestTexFormat);
+          if (t==NULL) {
+            showError(fmt::sprintf("Failure! %d",i));
+            break;
+          }
+          rend->destroyTexture(t);
+        }
+      }
+      if (ImGui::Button("Write (update)")) {
+        unsigned char* data=new unsigned char[2048*2048*4];
+        for (int i=0; i<2048*2048*4; i++) {
+          data[i]=rand();
+        }
+        for (int i=0; i<128; i++) {
+          FurnaceGUITexture* t=rend->createTexture(false,2048,2048,true,bestTexFormat);
+          if (t==NULL) {
+            showError(fmt::sprintf("Failure! %d",i));
+            break;
+          }
+          rend->updateTexture(t,data,2048*4);
+          rend->destroyTexture(t);
+        }
+        delete[] data;
+      }
+      if (ImGui::Button("Write (lock)")) {
+        unsigned char* data=NULL;
+        int pitch=0;
+        for (int i=0; i<128; i++) {
+          FurnaceGUITexture* t=rend->createTexture(false,2048,2048,true,bestTexFormat);
+          if (t==NULL) {
+            showError(fmt::sprintf("Failure! %d",i));
+            break;
+          }
+          if (rend->lockTexture(t,(void**)&data,&pitch)) {
+            for (int i=0; i<2048*2048*4; i++) {
+              data[i]=rand();
+            }
+            rend->unlockTexture(t);
+          }
+          rend->destroyTexture(t);
+        }
+      }
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Locale Test")) {
+      ImGui::TextUnformatted(_("This is a language test."));
+      ImGui::TextUnformatted(_("This is another language test."));
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Osc Render Test")) {
       ImGui::InputInt("Length",&oscDebugLen);
       ImGui::InputInt("Height",&oscDebugHeight);
@@ -658,6 +714,20 @@ void FurnaceGUI::drawDebug() {
       } else {
         ImGui::Text("Render Backend does not support osc rendering.");
       }
+      ImGui::TreePop();
+    }
+#ifdef HAVE_LOCALE
+    if (ImGui::TreeNode("Plural Form Test")) {
+      ImGui::InputInt("Number",&numApples);
+      ImGui::Text(ngettext("%d apple","%d apples",numApples),numApples);
+      ImGui::TreePop();
+    }
+#endif
+    if (ImGui::TreeNode("Get Gain Test")) {
+      float realVol=e->getGain(getGainChan,getGainVol);
+      ImGui::InputInt("Chan",&getGainChan);
+      ImGui::InputInt("Vol",&getGainVol);
+      ImGui::Text("result: %.0f%%",realVol*100.0f);
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("User Interface")) {

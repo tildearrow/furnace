@@ -34,9 +34,10 @@ extern "C" {
  * @param len input length (should be a multiple of 16. if it isn't, the output will be padded).
  * @param loopStart beginning of loop area (may be -1 for no loop). this is used to ensure the respective block has no filter in order to loop properly.
  * @param emphasis apply filter to compensate for Gaussian interpolation high frequency loss.
+ * @param noFilter do not use filters in any block. this is used to allow seeking to any sample position.
  * @return number of written samples.
  */
-long brrEncode(short* buf, unsigned char* out, long len, long loopStart, unsigned char emphasis);
+long brrEncode(short* buf, unsigned char* out, long len, long loopStart, unsigned char emphasis, unsigned char noFilter);
 
 /**
  * read len bytes from buf, decode BRR and output to out.

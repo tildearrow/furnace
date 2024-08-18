@@ -65,22 +65,24 @@ class FurnaceGLTexture: public FurnaceGUITexture {
   public:
   GLuint id;
   int width, height;
+  FurnaceGUITextureFormat format;
   unsigned char* lockedData;
   FurnaceGLTexture():
     id(0),
     width(0),
     height(0),
+    format(GUI_TEXFORMAT_UNKNOWN),
     lockedData(NULL) {}
 };
 
 #ifdef USE_GLES
-const char* sh_wipe_srcV=
+const char* sh_wipe_srcV_ES2=
   "attribute vec4 fur_position;\n"
   "void main() {\n"
   " gl_Position=fur_position;\n"
   "}\n";
 
-const char* sh_wipe_srcF=
+const char* sh_wipe_srcF_ES2=
   "uniform float uAlpha;\n"
   "void main() {\n"
   "  gl_FragColor=vec4(0.0,0.0,0.0,uAlpha);\n"
@@ -133,19 +135,33 @@ const char* sh_oscRender_srcF=
   "  }\n"
   "}\n";
 #else
-const char* sh_wipe_srcV=
+const char* sh_wipe_srcV_130=
   "#version 130\n"
   "in vec4 fur_position;\n"
   "void main() {\n"
   " gl_Position=fur_position;\n"
   "}\n";
 
-const char* sh_wipe_srcF=
+const char* sh_wipe_srcF_130=
   "#version 130\n"
   "uniform float uAlpha;\n"
   "out vec4 fur_FragColor;\n"
   "void main() {\n"
   "  fur_FragColor=vec4(0.0,0.0,0.0,uAlpha);\n"
+  "}\n";
+
+const char* sh_wipe_srcV_110=
+  "#version 110\n"
+  "attribute vec4 fur_position;\n"
+  "void main() {\n"
+  " gl_Position=fur_position;\n"
+  "}\n";
+
+const char* sh_wipe_srcF_110=
+  "#version 110\n"
+  "uniform float uAlpha;\n"
+  "void main() {\n"
+  "  gl_FragColor=vec4(0.0,0.0,0.0,uAlpha);\n"
   "}\n";
 
 const char* sh_oscRender_srcV=
@@ -267,6 +283,11 @@ ImTextureID FurnaceGUIRenderGL::getTextureID(FurnaceGUITexture* which) {
   return (ImTextureID)ret;
 }
 
+FurnaceGUITextureFormat FurnaceGUIRenderGL::getTextureFormat(FurnaceGUITexture* which) {
+  FurnaceGLTexture* t=(FurnaceGLTexture*)which;
+  return t->format;
+}
+
 bool FurnaceGUIRenderGL::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
   FurnaceGLTexture* t=(FurnaceGLTexture*)which;
   if (t->lockedData!=NULL) return false;
@@ -301,16 +322,26 @@ bool FurnaceGUIRenderGL::updateTexture(FurnaceGUITexture* which, void* data, int
   return true;
 }
 
-FurnaceGUITexture* FurnaceGUIRenderGL::createTexture(bool dynamic, int width, int height) {
+FurnaceGUITexture* FurnaceGUIRenderGL::createTexture(bool dynamic, int width, int height, bool interpolate, FurnaceGUITextureFormat format) {
+  if (format!=GUI_TEXFORMAT_ABGR32) {
+    logE("unsupported texture format!");
+    return NULL;
+  }
   FurnaceGLTexture* t=new FurnaceGLTexture;
   C(glGenTextures(1,&t->id));
   C(glBindTexture(GL_TEXTURE_2D,t->id));
-  C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR));
-  C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR));
+  if (interpolate) {
+    C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR));
+    C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR));
+  } else {
+    C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST));
+    C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST));
+  }
   C(glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,width,height,0,GL_RGBA,PIXEL_FORMAT,NULL));
   C(furActiveTexture(GL_TEXTURE0));
   t->width=width;
   t->height=height;
+  t->format=format;
   return t;
 }
 
@@ -353,6 +384,10 @@ void FurnaceGUIRenderGL::clear(ImVec4 color) {
 
 bool FurnaceGUIRenderGL::newFrame() {
   return ImGui_ImplOpenGL3_NewFrame();
+}
+
+bool FurnaceGUIRenderGL::canVSync() {
+  return swapIntervalSet;
 }
 
 void FurnaceGUIRenderGL::createFontsTexture() {
@@ -398,6 +433,7 @@ void FurnaceGUIRenderGL::wipe(float alpha) {
 }
 
 void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color, ImVec2 canvasSize, float lineWidth) {
+  if (!sh_oscRender_have) return;
   if (!furUseProgram) return;
   if (!furUniform4fv) return;
   if (!furUniform1f) return;
@@ -522,31 +558,75 @@ int FurnaceGUIRenderGL::getWindowFlags() {
   return SDL_WINDOW_OPENGL;
 }
 
-void FurnaceGUIRenderGL::preInit() {
+int FurnaceGUIRenderGL::getMaxTextureWidth() {
+  return maxWidth;
+}
+
+int FurnaceGUIRenderGL::getMaxTextureHeight() {
+  return maxHeight;
+}
+
+unsigned int FurnaceGUIRenderGL::getTextureFormats() {
+  return GUI_TEXFORMAT_ABGR32;
+}
+
+const char* FurnaceGUIRenderGL::getBackendName() {
+  return backendName.c_str();
+}
+
+const char* FurnaceGUIRenderGL::getVendorName() {
+  return vendorName.c_str();
+}
+
+const char* FurnaceGUIRenderGL::getDeviceName() {
+  return deviceName.c_str();
+}
+
+const char* FurnaceGUIRenderGL::getAPIVersion() {
+  return apiVersion.c_str();
+}
+
+void FurnaceGUIRenderGL::setSwapInterval(int swapInterval) {
+  SDL_GL_SetSwapInterval(swapInterval);
+  if (swapInterval>0 && SDL_GL_GetSwapInterval()==0) {
+    swapIntervalSet=false;
+    logW("tried to enable VSync but couldn't!");
+  } else {
+    swapIntervalSet=true;
+  }
+}
+
+void FurnaceGUIRenderGL::preInit(const DivConfig& conf) {
 #if defined(USE_GLES)
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS,0);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,SDL_GL_CONTEXT_PROFILE_ES);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION,2);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION,0);
 #elif defined(__APPLE__)
-  // not recommended...
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS,SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,SDL_GL_CONTEXT_PROFILE_CORE);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION,3);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION,2);
+  if (glVer==2) {
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION,2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION,0);
+  } else {
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION,3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION,2);
+  }
 #else
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS,0);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION,3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,SDL_GL_CONTEXT_PROFILE_CORE);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION,glVer);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION,0);
 #endif
 
-  SDL_GL_SetAttribute(SDL_GL_RED_SIZE,8);
-  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,8);
-  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,8);
-  SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE,0);
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER,1);
-  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,24);
+  SDL_GL_SetAttribute(SDL_GL_RED_SIZE,conf.getInt("glRedSize",8));
+  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,conf.getInt("glGreenSize",8));
+  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,conf.getInt("glBlueSize",8));
+  SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE,conf.getInt("glAlphaSize",0));
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER,conf.getInt("glDoubleBuffer",1));
+  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,conf.getInt("glDepthSize",24));
+  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE,conf.getInt("glStencilSize",0));
+  SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE,conf.getInt("glBufferSize",32));
 }
 
 #define LOAD_PROC_MANDATORY(_v,_t,_s) \
@@ -562,14 +642,20 @@ void FurnaceGUIRenderGL::preInit() {
     logW(_s " not found"); \
   }
 
-bool FurnaceGUIRenderGL::init(SDL_Window* win) {
+bool FurnaceGUIRenderGL::init(SDL_Window* win, int swapInterval) {
   sdlWin=win;
   context=SDL_GL_CreateContext(win);
   if (context==NULL) {
     return false;
   }
   SDL_GL_MakeCurrent(win,context);
-  SDL_GL_SetSwapInterval(1);
+  SDL_GL_SetSwapInterval(swapInterval);
+  if (swapInterval>0 && SDL_GL_GetSwapInterval()==0) {
+    swapIntervalSet=false;
+    logW("tried to enable VSync but couldn't!");
+  } else {
+    swapIntervalSet=true;
+  }
 
   LOAD_PROC_MANDATORY(furGenBuffers,PFNGLGENBUFFERSPROC,"glGenBuffers");
   LOAD_PROC_MANDATORY(furBindBuffer,PFNGLBINDBUFFERPROC,"glBindBuffer");
@@ -600,25 +686,56 @@ bool FurnaceGUIRenderGL::init(SDL_Window* win) {
 
 #ifndef USE_GLES
   LOAD_PROC_OPTIONAL(furGetGraphicsResetStatusARB,PFNGLGETGRAPHICSRESETSTATUSARBPROC,"glGetGraphicsResetStatusARB");
+#else
+  backendName="OpenGL ES 2.0";
 #endif
+
+  // information
+  const char* next=(const char*)glGetString(GL_VENDOR);
+  if (next==NULL) {
+    vendorName="???";
+  } else {
+    vendorName=next;
+  }
+  next=(const char*)glGetString(GL_RENDERER);
+  if (next==NULL) {
+    deviceName="???";
+  } else {
+    deviceName=next;
+  }
+  next=(const char*)glGetString(GL_VERSION);
+  if (next==NULL) {
+    apiVersion="???";
+  } else {
+    apiVersion=next;
+  }
+
+  int maxSize=1024;
+  glGetIntegerv(GL_MAX_TEXTURE_SIZE,&maxSize);
+
+  maxWidth=maxSize;
+  maxHeight=maxSize;
 
   // texture for osc renderer
-  C(glGenTextures(1,&oscDataTex));
+  if (glVer==3) {
+    C(glGenTextures(1,&oscDataTex));
 #ifdef USE_GLES
-  C(glBindTexture(GL_TEXTURE_2D,oscDataTex));
-  C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST));
-  C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST));
-  C(glTexImage2D(GL_TEXTURE_2D,0,GL_RED_EXT,2048,1,0,GL_RED_EXT,GL_FLOAT,NULL));
+    C(glBindTexture(GL_TEXTURE_2D,oscDataTex));
+    C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST));
+    C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST));
+    C(glTexImage2D(GL_TEXTURE_2D,0,GL_RED_EXT,2048,1,0,GL_RED_EXT,GL_FLOAT,NULL));
 #else
-  C(glBindTexture(GL_TEXTURE_1D,oscDataTex));
-  C(glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_MIN_FILTER,GL_NEAREST));
-  C(glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_MAG_FILTER,GL_NEAREST));
-  C(glTexImage1D(GL_TEXTURE_1D,0,GL_RED,2048,0,GL_RED,GL_FLOAT,NULL));
+    C(glBindTexture(GL_TEXTURE_1D,oscDataTex));
+    C(glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_MIN_FILTER,GL_NEAREST));
+    C(glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_MAG_FILTER,GL_NEAREST));
+    C(glTexImage1D(GL_TEXTURE_1D,0,GL_RED,2048,0,GL_RED,GL_FLOAT,NULL));
 #endif
-  C(furActiveTexture(GL_TEXTURE0));
+    C(furActiveTexture(GL_TEXTURE0));
+  }
 
   // create shaders
-  if ((sh_wipe_have=createShader(sh_wipe_srcV,sh_wipe_srcF,sh_wipe_vertex,sh_wipe_fragment,sh_wipe_program,sh_wipe_attrib))==true) {
+#ifdef USE_GLES
+  if ((sh_wipe_have=createShader(sh_wipe_srcV_ES2,sh_wipe_srcF_ES2,sh_wipe_vertex,sh_wipe_fragment,sh_wipe_program,sh_wipe_attrib))==true) {
     sh_wipe_uAlpha=furGetUniformLocation(sh_wipe_program,"uAlpha");
   }
 
@@ -628,32 +745,30 @@ bool FurnaceGUIRenderGL::init(SDL_Window* win) {
     sh_oscRender_uResolution=furGetUniformLocation(sh_oscRender_program,"uResolution");
     sh_oscRender_oscVal=furGetUniformLocation(sh_oscRender_program,"oscVal");
   }
+#else
+  if (glVer==3) {
+    if ((sh_wipe_have=createShader(sh_wipe_srcV_130,sh_wipe_srcF_130,sh_wipe_vertex,sh_wipe_fragment,sh_wipe_program,sh_wipe_attrib))==true) {
+      sh_wipe_uAlpha=furGetUniformLocation(sh_wipe_program,"uAlpha");
+    }
+
+    if ((sh_oscRender_have=createShader(sh_oscRender_srcV,sh_oscRender_srcF,sh_oscRender_vertex,sh_oscRender_fragment,sh_oscRender_program,sh_oscRender_attrib))==true) {
+      sh_oscRender_uColor=furGetUniformLocation(sh_oscRender_program,"uColor");
+      sh_oscRender_uLineWidth=furGetUniformLocation(sh_oscRender_program,"uLineWidth");
+      sh_oscRender_uResolution=furGetUniformLocation(sh_oscRender_program,"uResolution");
+      sh_oscRender_oscVal=furGetUniformLocation(sh_oscRender_program,"oscVal");
+    }
+  } else {
+    if ((sh_wipe_have=createShader(sh_wipe_srcV_110,sh_wipe_srcF_110,sh_wipe_vertex,sh_wipe_fragment,sh_wipe_program,sh_wipe_attrib))==true) {
+      sh_wipe_uAlpha=furGetUniformLocation(sh_wipe_program,"uAlpha");
+    }
+
+    sh_oscRender_have=false;
+  }
+#endif
 
   C(furGenBuffers(1,&quadBuf));
   C(furGenBuffers(1,&oscVertexBuf));
   return true;
-}
-
-const char* FurnaceGUIRenderGL::getStupidFragment() {
-  return sh_oscRender_srcF;
-}
-
-bool FurnaceGUIRenderGL::regenOscShader(const char* fragment) {
-  if (sh_oscRender_have) {
-    furDeleteProgram(sh_oscRender_program);
-    furDeleteShader(sh_oscRender_vertex);
-    furDeleteShader(sh_oscRender_fragment);
-  }
-  
-  if ((sh_oscRender_have=createShader(sh_oscRender_srcV,fragment,sh_oscRender_vertex,sh_oscRender_fragment,sh_oscRender_program,sh_oscRender_attrib))==true) {
-    sh_oscRender_uColor=furGetUniformLocation(sh_oscRender_program,"uColor");
-    sh_oscRender_uLineWidth=furGetUniformLocation(sh_oscRender_program,"uLineWidth");
-    sh_oscRender_uResolution=furGetUniformLocation(sh_oscRender_program,"uResolution");
-    sh_oscRender_oscVal=furGetUniformLocation(sh_oscRender_program,"oscVal");
-    return true;
-  }
-
-  return false;
 }
 
 void FurnaceGUIRenderGL::initGUI(SDL_Window* win) {
@@ -680,4 +795,15 @@ bool FurnaceGUIRenderGL::isDead() {
    // handled by SDL... I think
    return false;
 #endif
+}
+
+void FurnaceGUIRenderGL::setVersion(unsigned char ver) {
+  glVer=ver;
+  if (glVer==3) {
+    backendName="OpenGL 3.0";
+  } else if (glVer==2) {
+    backendName="OpenGL 2.0";
+  } else {
+    backendName="OpenGL BUG.REPORT";
+  }
 }

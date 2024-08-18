@@ -182,6 +182,7 @@ void DivPlatformC64::tick(bool sysTick) {
           chan[i].duty-=chan[i].std.duty.val;
         }
       }
+      chan[i].duty&=4095;
       rWrite(i*7+2,chan[i].duty&0xff);
       rWrite(i*7+3,chan[i].duty>>8);
     }
@@ -219,6 +220,10 @@ void DivPlatformC64::tick(bool sysTick) {
     }
     if (chan[i].std.ex2.had) {
       filtRes=chan[i].std.ex2.val&15;
+      willUpdateFilter=true;
+    }
+    if (chan[i].std.ex3.had) {
+      chan[i].filter=(chan[i].std.ex3.val&1);
       willUpdateFilter=true;
     }
     if (chan[i].std.ex4.had) {
@@ -726,7 +731,7 @@ void DivPlatformC64::setFlags(const DivConfig& flags) {
     oscBuf[i]->rate=rate/16;
   }
   if (sidCore>0) {
-    rate/=4;
+    rate/=(sidCore==2)?coreQuality:4;
     if (sidCore==1) sid_fp->setSamplingParameters(chipClock,reSIDfp::DECIMATE,rate,0);
   }
   keyPriority=flags.getBool("keyPriority",true);
@@ -754,6 +759,32 @@ void DivPlatformC64::setFlags(const DivConfig& flags) {
       c=1-exp(c*cutRatio);
     }
     fakeCutTable[i]=c;
+  }
+}
+
+void DivPlatformC64::setCoreQuality(unsigned char q) {
+  switch (q) {
+    case 0:
+      coreQuality=32;
+      break;
+    case 1:
+      coreQuality=16;
+      break;
+    case 2:
+      coreQuality=8;
+      break;
+    case 3:
+      coreQuality=4;
+      break;
+    case 4:
+      coreQuality=2;
+      break;
+    case 5:
+      coreQuality=1;
+      break;
+    default:
+      coreQuality=4;
+      break;
   }
 }
 

@@ -20,3 +20,10 @@ currently Furnace does not support the PCM channel's stereo mode, though (except
 ## info
 
 this chip uses the [VERA](../4-instrument/vera.md) and [Generic Sample](../4-instrument/sample.md) instrument editors.
+
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Chip revision**: sets which revision of the chip to use.
+  - V 47.0.0 introduces a slightly different volume table.

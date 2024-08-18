@@ -83,7 +83,7 @@ void DivPlatformPowerNoise::acquire(short** buf, size_t len) {
   short left, right;
 
   for (size_t h=0; h<len; h++) {
-    pwrnoise_step(&pn,32,&left,&right);
+    pwrnoise_step(&pn,coreQuality,&left,&right);
 
     oscBuf[0]->data[oscBuf[0]->needle++]=mapAmp((pn.n1.out_latch&0xf)+(pn.n1.out_latch>>4));
     oscBuf[1]->data[oscBuf[1]->needle++]=mapAmp((pn.n2.out_latch&0xf)+(pn.n2.out_latch>>4));
@@ -307,6 +307,7 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
+          chWrite(c.chan,0x06,isMuted[c.chan]?0:volPan(chan[c.chan].outVol,chan[c.chan].pan));
         }
       }
       break;
@@ -464,7 +465,7 @@ void DivPlatformPowerNoise::reset() {
   rWrite(0,0x87);
   // set per-channel panning
   for (int i=0; i<4; i++) {
-    chWrite(i,0x06,volPan(chan[i].outVol,chan[i].pan));
+    chWrite(i,0x06,isMuted[i]?0:volPan(chan[i].outVol,chan[i].pan));
   }
   // set default params so we have sound
   // noise
@@ -502,7 +503,7 @@ void DivPlatformPowerNoise::setFlags(const DivConfig& flags) {
   chipClock=16000000;
 
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/32;
+  rate=chipClock/coreQuality;
 
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate;
@@ -515,6 +516,32 @@ void DivPlatformPowerNoise::poke(unsigned int addr, unsigned short val) {
 
 void DivPlatformPowerNoise::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
+}
+
+void DivPlatformPowerNoise::setCoreQuality(unsigned char q) {
+  switch (q) {
+    case 0:
+      coreQuality=256;
+      break;
+    case 1:
+      coreQuality=128;
+      break;
+    case 2:
+      coreQuality=64;
+      break;
+    case 3:
+      coreQuality=32;
+      break;
+    case 4:
+      coreQuality=8;
+      break;
+    case 5:
+      coreQuality=1;
+      break;
+    default:
+      coreQuality=32;
+      break;
+  }
 }
 
 int DivPlatformPowerNoise::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

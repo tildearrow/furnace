@@ -5,6 +5,7 @@ nosdl/
 release/
 t/
 winbuild/
+winCbuild/
 win32build/
 xpbuild/
 macbuild/
@@ -34,4 +35,5 @@ res/docpdf/manual.html
 res/docpdf/manual.pdf
 res/docpdf/.venv
 res/docpdf/htmldoc/
+res/fonts/compressed/
 res/furnace.appdata.xml

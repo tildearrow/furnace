@@ -60,7 +60,7 @@ void DivPlatformSwan::acquire(short** buf, size_t len) {
       dacPeriod+=dacRate;
       while (dacPeriod>rate) {
         DivSample* s=parent->getSample(dacSample);
-        if (s->samples<=0) {
+        if (s->samples<=0 || dacPos>=s->samples) {
           dacSample=-1;
           dacPeriod=0;
           break;
@@ -84,8 +84,8 @@ void DivPlatformSwan::acquire(short** buf, size_t len) {
       writes.pop();
     }
     int16_t samp[2]{0, 0};
-    ws->SoundUpdate(16);
-    ws->SoundFlush(samp, 1);
+    ws->SoundUpdate(coreQuality);
+    ws->SoundFlush(samp,1);
     buf[0][h]=samp[0];
     buf[1][h]=samp[1];
     for (int i=0; i<4; i++) {
@@ -262,7 +262,11 @@ int DivPlatformSwan::dispatch(DivCommand c) {
         }
         if (pcm) {
           if (skipRegisterWrites) break;
-          dacPos=0;
+          if (setPos) {
+            setPos=false;
+          } else {
+            dacPos=0;
+          }
           dacPeriod=0;
           if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
             if (c.value!=DIV_NOTE_NULL) {
@@ -435,6 +439,10 @@ int DivPlatformSwan::dispatch(DivCommand c) {
         sampleBank=parent->song.sample.size()/12;
       }
       break;
+    case DIV_CMD_SAMPLE_POS:
+      dacPos=c.value;
+      setPos=true;
+      break;
     case DIV_CMD_PANNING: {
       chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
       calcAndWriteOutVol(c.chan,chan[c.chan].std.vol.will?chan[c.chan].std.vol.val:15);
@@ -556,6 +564,7 @@ void DivPlatformSwan::reset() {
   pcm=false;
   sweep=false;
   furnaceDac=false;
+  setPos=false;
   noise=0;
   dacPeriod=0;
   dacRate=0;
@@ -596,9 +605,35 @@ void DivPlatformSwan::poke(std::vector<DivRegWrite>& wlist) {
 void DivPlatformSwan::setFlags(const DivConfig& flags) {
   chipClock=3072000;
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/16; // = 192000kHz, should be enough
+  rate=chipClock/coreQuality;
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate;
+  }
+}
+
+void DivPlatformSwan::setCoreQuality(unsigned char q) {
+  switch (q) {
+    case 0:
+      coreQuality=96;
+      break;
+    case 1:
+      coreQuality=64;
+      break;
+    case 2:
+      coreQuality=32;
+      break;
+    case 3:
+      coreQuality=16;
+      break;
+    case 4:
+      coreQuality=4;
+      break;
+    case 5:
+      coreQuality=1;
+      break;
+    default:
+      coreQuality=16;
+      break;
   }
 }
 

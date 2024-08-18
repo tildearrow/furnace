@@ -298,7 +298,9 @@ double DivPlatformYM2608::NOTE_ADPCMB(int note) {
 }
 
 void DivPlatformYM2608::acquire(short** buf, size_t len) {
-  if (useCombo) {
+  if (useCombo==2) {
+    acquire_lle(buf,len);
+  } else if (useCombo==1) {
     acquire_combo(buf,len);
   } else {
     acquire_ymfm(buf,len);
@@ -485,6 +487,196 @@ void DivPlatformYM2608::acquire_ymfm(short** buf, size_t len) {
     }
 
     oscBuf[15]->data[oscBuf[15]->needle++]=(abe->get_last_out(0)+abe->get_last_out(1))>>1;
+  }
+}
+
+static const unsigned char subCycleMap[6]={
+  3, 4, 5, 0, 1, 2
+};
+
+void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
+  thread_local int fmOut[6];
+
+  for (size_t h=0; h<len; h++) {
+    bool have0=false;
+    bool have1=false;
+    signed char subCycle=0;
+    unsigned char subSubCycle=0;
+
+    for (int i=0; i<6; i++) {
+      fmOut[i]=0;
+    }
+
+    while (true) {
+      bool canWeWrite=fm_lle.prescaler_latch[1]&1;
+
+      if (canWeWrite) {
+        if (delay>0) {
+          if (delay==3) {
+            fm_lle.input.cs=1;
+            fm_lle.input.rd=1;
+            fm_lle.input.wr=1;
+            fm_lle.input.a0=0;
+            fm_lle.input.a1=0;
+            delay=0;
+          } else {
+            fm_lle.input.cs=0;
+            fm_lle.input.rd=0;
+            fm_lle.input.wr=1;
+            fm_lle.input.a0=0;
+            fm_lle.input.a1=0;
+            fm_lle.input.data=0;
+            delay=1;
+          }
+        } else if (!writes.empty()) {
+          QueuedWrite& w=writes.front();
+          if (w.addr==0x2e || w.addr==0x2f) {
+            // ignore prescaler writes since it doesn't work too well
+            fm_lle.input.cs=1;
+            fm_lle.input.rd=1;
+            fm_lle.input.wr=1;
+            fm_lle.input.a1=0;
+            fm_lle.input.a0=0;
+            fm_lle.input.data=0;
+
+            regPool[w.addr&0x1ff]=w.val;
+            writes.pop_front();
+          } else if (w.addrOrVal) {
+            fm_lle.input.cs=0;
+            fm_lle.input.rd=1;
+            fm_lle.input.wr=0;
+            fm_lle.input.a1=w.addr>>8;
+            fm_lle.input.a0=1;
+            fm_lle.input.data=w.val;
+
+            delay=2;
+
+            regPool[w.addr&0x1ff]=w.val;
+            writes.pop_front();
+          } else {
+            fm_lle.input.cs=0;
+            fm_lle.input.rd=1;
+            fm_lle.input.wr=0;
+            fm_lle.input.a1=w.addr>>8;
+            fm_lle.input.a0=0;
+            fm_lle.input.data=w.addr&0xff;
+
+            delay=2;
+
+            w.addrOrVal=true;
+          }
+        } else {
+          fm_lle.input.cs=1;
+          fm_lle.input.rd=1;
+          fm_lle.input.wr=1;
+          fm_lle.input.a0=0;
+          fm_lle.input.a1=0;
+        }
+      }
+
+      FMOPNA_Clock(&fm_lle,0);
+      FMOPNA_Clock(&fm_lle,1);
+
+      if (++subSubCycle>=6) {
+        subSubCycle=0;
+        if (subCycle>=0 && subCycle<6 && fm_lle.ac_fm_output_en) {
+          fmOut[subCycleMap[subCycle]]+=((short)fm_lle.ac_fm_output)<<2;
+        }
+        if (++subCycle>=6) subCycle=0;
+      }
+
+      if (fm_lle.rss_eclk1) {
+        if (++rssSubCycle>=24) {
+          rssSubCycle=0;
+          rssOut[rssCycle]=(short)fm_lle.last_rss_sample;
+          if (++rssCycle>=6) rssCycle=0;
+        }
+      }
+
+      if (canWeWrite) {
+        if (delay==1) {
+          // check busy status here
+          if (!fm_lle.busy_cnt_en[1]) {
+            delay=0;
+          }
+        }
+      }
+      if (!fm_lle.o_s && lastS) {
+        if (!fm_lle.o_sh1 && lastSH) {
+          dacOut[0]=dacVal^0x8000;
+          have0=true;
+        }
+
+        if (!fm_lle.o_sh2 && lastSH2) {
+          dacOut[1]=dacVal^0x8000;
+          have1=true;
+        }
+
+        dacVal>>=1;
+        dacVal|=(fm_lle.o_opo&1)<<15;
+
+        lastSH=fm_lle.o_sh1;
+        lastSH2=fm_lle.o_sh2;
+      }
+
+      lastS=fm_lle.o_s;
+
+      // ADPCM data bus
+      // thanks nukeykt
+      const int newAddr=(fm_lle.o_dm&255)|(fm_lle.o_a8<<8);
+      if (cas && !fm_lle.o_cas) {
+        adMemAddr&=~0x3fe00;
+        adMemAddr|=newAddr<<9;
+      }
+      if (ras && !fm_lle.o_ras) {
+        adMemAddr&=~0x1ff;
+        adMemAddr|=newAddr;
+      }
+
+      if (fm_lle.o_romcs==0) {
+        fm_lle.input.dm=adpcmBMem[adMemAddr&0x3ffff];
+        fm_lle.input.dt0=fm_lle.input.dm&1;
+      }
+      cas=fm_lle.o_cas;
+      ras=fm_lle.o_ras;
+
+      if (have0 && have1) break;
+    }
+
+    // chan osc
+    // FM
+    for (int i=0; i<6; i++) {
+      if (fmOut[i]<-32768) fmOut[i]=-32768;
+      if (fmOut[i]>32767) fmOut[i]=32767;
+      oscBuf[i]->data[oscBuf[i]->needle++]=fmOut[i];
+    }
+    // SSG
+    for (int i=0; i<3; i++) {
+      oscBuf[i+6]->data[oscBuf[i+6]->needle++]=fm_lle.o_analog_ch[i]*32767;
+    }
+    // RSS
+    for (int i=0; i<6; i++) {
+      if (rssOut[i]<-32768) rssOut[i]=-32768;
+      if (rssOut[i]>32767) rssOut[i]=32767;
+      oscBuf[9+i]->data[oscBuf[9+i]->needle++]=rssOut[i];
+    }
+    // ADPCM
+    oscBuf[15]->data[oscBuf[15]->needle++]=fm_lle.ac_ad_output;
+
+    // DAC
+    int accm1=(short)dacOut[1];
+    int accm2=(short)dacOut[0];
+
+    int outL=((accm1*fmVol)>>8)+fm_lle.o_analog*ssgVol*42;
+    int outR=((accm2*fmVol)>>8)+fm_lle.o_analog*ssgVol*42;
+
+    if (outL<-32768) outL=-32768;
+    if (outL>32767) outL=32767;
+    if (outR<-32768) outR=-32768;
+    if (outR>32767) outR=32767;
+
+    buf[0][h]=outL;
+    buf[1][h]=outR;
   }
 }
 
@@ -764,7 +956,7 @@ void DivPlatformYM2608::tick(bool sysTick) {
       if (chan[15].pan!=(chan[15].std.panL.val&3)) {
         chan[15].pan=chan[15].std.panL.val&3;
         if (!isMuted[15]) {
-          immWrite(0x101,(isMuted[15]?0:(chan[15].pan<<6))|2);
+          immWrite(0x101,(isMuted[15]?0:(chan[15].pan<<6))|1);
           hardResetElapsed++;
         }
       }
@@ -931,7 +1123,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
             int end=sampleOffB[chan[c.chan].sample]+s->lengthB-1;
             immWrite(0x104,(end>>5)&0xff);
             immWrite(0x105,(end>>13)&0xff);
-            immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|2);
+            immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|1);
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].note=c.value;
               chan[c.chan].baseFreq=NOTE_ADPCMB(chan[c.chan].note);
@@ -963,7 +1155,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
             int end=sampleOffB[chan[c.chan].sample]+s->lengthB-1;
             immWrite(0x104,(end>>5)&0xff);
             immWrite(0x105,(end>>13)&0xff);
-            immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|2);
+            immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|1);
             int freq=(65536.0*(double)s->rate)/((double)chipClock/144.0);
             immWrite(0x109,freq&0xff);
             immWrite(0x10a,(freq>>8)&0xff);
@@ -1093,7 +1285,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
         chan[c.chan].pan=(c.value2>0)|((c.value>0)<<1);
       }
       if (c.chan>14) {
-        immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|2);
+        immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|1);
         break;
       }
       if (c.chan>8) {
@@ -1383,7 +1575,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
 void DivPlatformYM2608::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   if (ch>14) { // ADPCM-B
-    immWrite(0x101,(isMuted[ch]?0:(chan[ch].pan<<6))|2);
+    immWrite(0x101,(isMuted[ch]?0:(chan[ch].pan<<6))|1);
   }
   if (ch>8) { // ADPCM-A
     immWrite(0x18+(ch-9),isMuted[ch]?0:((chan[ch].pan<<6)|chan[ch].outVol));
@@ -1438,6 +1630,7 @@ void DivPlatformYM2608::forceIns() {
       chan[i].freqChanged=true;
     }
   }
+  immWrite(0x11,globalRSSVolume&0x3f);
   immWrite(0x22,lfoValue);
   for (int i=9; i<16; i++) {
     chan[i].insChanged=true;
@@ -1500,6 +1693,7 @@ void DivPlatformYM2608::reset() {
   OPN2_Reset(&fm_nuked);
   OPN2_SetChipType(&fm_nuked,ym3438_mode_opn);
   fm->reset();
+  memset(&fm_lle,0,sizeof(fmopna_t));
   for (int i=0; i<16; i++) {
     chan[i]=DivPlatformOPN::OPNChannelStereo();
     chan[i].std.setEngine(parent);
@@ -1521,12 +1715,61 @@ void DivPlatformYM2608::reset() {
     pendingWrites[i]=-1;
   }
 
+  if (useCombo==2) {
+    fm_lle.input.cs=1;
+    fm_lle.input.rd=0;
+    fm_lle.input.wr=0;
+    fm_lle.input.a0=0;
+    fm_lle.input.a1=0;
+    fm_lle.input.data=0;
+    fm_lle.input.ad=0;
+    fm_lle.input.da=0;
+    fm_lle.input.dm=0;
+    fm_lle.input.test=1;
+    fm_lle.input.dt0=0;
+
+    fm_lle.input.ic=1;
+    for (size_t h=0; h<576; h++) {
+      FMOPNA_Clock(&fm_lle,0);
+      FMOPNA_Clock(&fm_lle,1);
+    }
+
+    fm_lle.input.ic=0;
+    for (size_t h=0; h<576; h++) {
+      FMOPNA_Clock(&fm_lle,0);
+      FMOPNA_Clock(&fm_lle,1);
+    }
+
+    fm_lle.input.ic=1;
+    for (size_t h=0; h<576; h++) {
+      FMOPNA_Clock(&fm_lle,0);
+      FMOPNA_Clock(&fm_lle,1);
+    }
+
+    dacVal=0;
+    dacVal2=0;
+    dacOut[0]=0;
+    dacOut[1]=0;
+    lastSH=false;
+    lastSH2=false;
+    lastS=false;
+    cas=0;
+    ras=0;
+    adMemAddr=0;
+  }
+
   lastBusy=60;
   lfoValue=8;
   sampleBank=0;
   writeRSSOff=0;
   writeRSSOn=0;
   globalRSSVolume=0x3f;
+  rssCycle=0;
+  rssSubCycle=0;
+
+  for (int i=0; i<6; i++) {
+    rssOut[i]=0;
+  }
 
   delay=0;
 
@@ -1690,7 +1933,11 @@ void DivPlatformYM2608::setFlags(const DivConfig& flags) {
   fbAllOps=flags.getBool("fbAllOps",false);
   ssgVol=flags.getInt("ssgVol",128);
   fmVol=flags.getInt("fmVol",256);
-  rate=fm->sample_rate(chipClock);
+  if (useCombo==2) {
+    rate=chipClock/(fmDivBase*2);
+  } else {
+    rate=fm->sample_rate(chipClock);
+  }
   for (int i=0; i<16; i++) {
     oscBuf[i]->rate=rate;
   }
@@ -1698,6 +1945,8 @@ void DivPlatformYM2608::setFlags(const DivConfig& flags) {
   immWrite(prescale,0xff);
   ay->setExtClockDiv(chipClock,ayDiv);
   ay->setFlags(ayFlags);
+
+  logV("CLOCK: %d RATE: %d",chipClock,rate);
 }
 
 int DivPlatformYM2608::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

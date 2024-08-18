@@ -25,7 +25,7 @@
 
 IMGUI_IMPL_API bool ImGui_ImplMetal_Init(id<MTLDevice> device);
 IMGUI_IMPL_API void ImGui_ImplMetal_Shutdown();
-IMGUI_IMPL_API void ImGui_ImplMetal_NewFrame(MTLRenderPassDescriptor* renderPassDescriptor);
+IMGUI_IMPL_API bool ImGui_ImplMetal_NewFrame(MTLRenderPassDescriptor* renderPassDescriptor);
 IMGUI_IMPL_API void ImGui_ImplMetal_RenderDrawData(ImDrawData* drawData,
                                                    id<MTLCommandBuffer> commandBuffer,
                                                    id<MTLRenderCommandEncoder> commandEncoder);
@@ -51,7 +51,7 @@ IMGUI_IMPL_API void ImGui_ImplMetal_DestroyDeviceObjects();
 
 IMGUI_IMPL_API bool ImGui_ImplMetal_Init(MTL::Device* device);
 IMGUI_IMPL_API void ImGui_ImplMetal_Shutdown();
-IMGUI_IMPL_API void ImGui_ImplMetal_NewFrame(MTL::RenderPassDescriptor* renderPassDescriptor);
+IMGUI_IMPL_API bool ImGui_ImplMetal_NewFrame(MTL::RenderPassDescriptor* renderPassDescriptor);
 IMGUI_IMPL_API void ImGui_ImplMetal_RenderDrawData(ImDrawData* draw_data,
                                                    MTL::CommandBuffer* commandBuffer,
                                                    MTL::RenderCommandEncoder* commandEncoder);

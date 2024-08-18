@@ -158,7 +158,8 @@ class DivPlatformOPN: public DivPlatformFMBase {
     unsigned char lastExtChPan;
     unsigned short ssgVol;
     unsigned short fmVol;
-    bool extSys, useCombo, fbAllOps;
+    bool extSys, fbAllOps;
+    unsigned char useCombo;
 
     DivConfig ayFlags;
 
@@ -180,10 +181,10 @@ class DivPlatformOPN: public DivPlatformFMBase {
       ssgVol(128),
       fmVol(256),
       extSys(isExtSys),
-      useCombo(false),
-      fbAllOps(false) {}
+      fbAllOps(false),
+      useCombo(0) {}
   public:
-    void setCombo(bool combo) {
+    void setCombo(unsigned char combo) {
       useCombo=combo;
     }
     virtual int mapVelocity(int ch, float vel) {
@@ -197,6 +198,19 @@ class DivPlatformOPN: public DivPlatformFMBase {
       if (ch>=psgChanOffs) return round(15.0*pow(vel,0.33));
       return DivPlatformFMBase::mapVelocity(ch,vel);
     }
+    virtual float getGain(int ch, int vol) {
+      if (vol==0) return 0;
+      if (ch==csmChan) return 1;
+      if (ch==adpcmBChanOffs) return (float)vol/255.0;
+      if (ch>=adpcmAChanOffs) {
+        return 1.0/pow(10.0,(float)(31-vol)*0.75/20.0);
+      }
+      if (ch>=psgChanOffs) {
+        return 1.0/pow(10.0,(float)(15-vol)*1.5/20.0);
+      }
+      return DivPlatformFMBase::getGain(ch,vol);
+    }
+
 };
 
 #endif

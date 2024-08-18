@@ -70,10 +70,11 @@ void DivPlatformDave::acquire(short** buf, size_t len) {
         chan[i].dacPeriod+=chan[i].dacRate;
         while (chan[i].dacPeriod>rate) {
           DivSample* s=parent->getSample(chan[i].dacSample);
-          if (s->samples<=0) {
+          if (s->samples<=0 || chan[i].dacPos>=s->samples) {
             chan[i].dacSample=-1;
             writeControl=true;
             chan[0].writeVol=true;
+            chan[i].dacPeriod-=rate;
             continue;
           }
           signed char dacData=(s->data8[chan[i].dacPos]*chan[i].outVol)>>8;
@@ -196,7 +197,11 @@ void DivPlatformDave::tick(bool sysTick) {
     if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
       if (i>=4) {
         if (chan[i].active && chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
-          chan[i].dacPos=0;
+          if (chan[i].setPos) {
+            chan[i].setPos=false;
+          } else {
+            chan[i].dacPos=0;
+          }
           chan[i].dacPeriod=0;
           chan[i].keyOn=true;
         }
@@ -324,7 +329,11 @@ int DivPlatformDave::dispatch(DivCommand c) {
           chan[c.chan].freqChanged=true;
           chan[c.chan].note=c.value;
         }
-        chan[c.chan].dacPos=0;
+        if (chan[c.chan].setPos) {
+          chan[c.chan].setPos=false;
+        } else {
+          chan[c.chan].dacPos=0;
+        }
         chan[c.chan].dacPeriod=0;
         writeControl=true;
       } else {
@@ -458,6 +467,11 @@ int DivPlatformDave::dispatch(DivCommand c) {
       }
       if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
+      break;
+    case DIV_CMD_SAMPLE_POS:
+      if (c.chan<4) break;
+      chan[c.chan].dacPos=c.value;
+      chan[c.chan].setPos=true;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 63;

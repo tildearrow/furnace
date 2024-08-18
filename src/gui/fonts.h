@@ -23,29 +23,33 @@
 #ifndef _FONTS_H
 #define _FONTS_H
 extern const unsigned int font_exo_compressed_size;
-extern const unsigned int font_exo_compressed_data[];
+extern const unsigned char font_exo_compressed_data[];
 extern const unsigned int font_liberationSans_compressed_size;
-extern const unsigned int font_liberationSans_compressed_data[];
+extern const unsigned char font_liberationSans_compressed_data[];
 extern const unsigned int font_mononoki_compressed_size;
-extern const unsigned int font_mononoki_compressed_data[];
+extern const unsigned char font_mononoki_compressed_data[];
 extern const unsigned int font_plexSans_compressed_size;
-extern const unsigned int font_plexSans_compressed_data[];
+extern const unsigned char font_plexSans_compressed_data[];
+extern const unsigned int font_plexSansJP_compressed_size;
+extern const unsigned char font_plexSansJP_compressed_data[];
+extern const unsigned int font_plexSansKR_compressed_size;
+extern const unsigned char font_plexSansKR_compressed_data[];
 extern const unsigned int font_plexMono_compressed_size;
-extern const unsigned int font_plexMono_compressed_data[];
+extern const unsigned char font_plexMono_compressed_data[];
 extern const unsigned int font_proggyClean_compressed_size;
-extern const unsigned int font_proggyClean_compressed_data[];
+extern const unsigned char font_proggyClean_compressed_data[];
 extern const unsigned int font_ptMono_compressed_size;
-extern const unsigned int font_ptMono_compressed_data[];
+extern const unsigned char font_ptMono_compressed_data[];
 extern const unsigned int font_unifont_compressed_size;
-extern const unsigned int font_unifont_compressed_data[];
+extern const unsigned char font_unifont_compressed_data[];
 extern const unsigned int iconFont_compressed_size;
-extern const unsigned int iconFont_compressed_data[];
+extern const unsigned char iconFont_compressed_data[];
 extern const unsigned int furIcons_compressed_size;
-extern const unsigned int furIcons_compressed_data[];
+extern const unsigned char furIcons_compressed_data[];
 
-extern const unsigned int* builtinFont[];
+extern const unsigned char* builtinFont[];
 extern const unsigned int builtinFontLen[];
-extern const unsigned int* builtinFontM[];
+extern const unsigned char* builtinFontM[];
 extern const unsigned int builtinFontMLen[];
 #endif
 

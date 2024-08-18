@@ -9,6 +9,7 @@ Furnace achieves the authentic sound of videogame hardware by emulating sound ch
 - **YM2612 core**:
   - **Nuked-OPN2**: default core. a little lighter on the CPU than Nuked-OPM.
   - **ymfm**: same as ymfm above.
+  - **YMF276-LLE**: a new core written by the author of the Nuked cores, specifically focused on YMF276 emulation. it is very slow and not useful for real-time playback.
 
 - **SN76489 core**:
   - **MAME**: default core. less accurate than Nuked, but with lower CPU usage. comes from the MAME emulator project.
@@ -34,6 +35,7 @@ Furnace achieves the authentic sound of videogame hardware by emulating sound ch
 - **OPN/OPNA/OPNB cores**:
   - **ymfm only**: lower CPU usage, less accurate FM.
   - **Nuked-OPN2 (FM) + ymfm (SSG/ADPCM)**: default cores. more accurate FM at the cost of more CPU load.
+  - **YM2608-LLE**: a new core written by the author of the Nuked cores. high accuracy, but extremely high CPU usage.
 
 - **OPL/OPL2/Y8950 core**:
   - **Nuked-OPL3**: high quality OPL emulation core. slightly off due to tiny differences between OPL and OPL3, but otherwise it is good.
@@ -47,3 +49,14 @@ Furnace achieves the authentic sound of videogame hardware by emulating sound ch
   - **YMF262-LLE**: a new core written by the author of the Nuked cores. it features extremely accurate emulation.
     - this core uses even more CPU than YM3812-LLE. not suitable for playback or even rendering if you're impatient!
 
+- **ESFM core**:
+  - **ESFMu**: the ESFM emulator. best choice but CPU intensive.
+  - **ESFMu (fast)**: this is a modification of ESFMu to reduce CPU usage at the cost of less accuracy.
+
+- **OPLL core**:
+  - **Nuked-OPLL**: this core is accurate and the default.
+  - **emu2413**: a less accurate core that uses less CPU.
+
+- **AY-3-8910/SSG core**:
+  - **MAME**: default core.
+  - **AtomicSSG**: SSG core extracted from YM2608-LLE.

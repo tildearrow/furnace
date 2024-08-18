@@ -124,6 +124,7 @@ typedef struct
     Bit8u eg_read_inc;
     /* Settings */
     Bit8u chip_type;
+    Bit8u msw;
     /* FM */
     Bit16s fm_op1[6][2];
     Bit16s fm_op2[6];
@@ -201,6 +202,7 @@ typedef struct
 
 void OPN2_Reset(ym3438_t *chip);
 void OPN2_SetChipType(ym3438_t *chip, Bit32u type);
+void OPN2_SetMSW(ym3438_t *chip, Bit32u msw);
 void OPN2_Clock(ym3438_t *chip, Bit16s *buffer);
 void OPN2_Write(ym3438_t *chip, Bit32u port, Bit8u data);
 void OPN2_SetTestPin(ym3438_t *chip, Bit32u value);

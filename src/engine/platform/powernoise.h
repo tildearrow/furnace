@@ -73,6 +73,7 @@ class DivPlatformPowerNoise: public DivDispatch {
   bool isMuted[4];
   unsigned char regPool[32];
   
+  int coreQuality;
   power_noise_t pn;
   
   friend void putDispatchChip(void*,int);
@@ -100,6 +101,7 @@ class DivPlatformPowerNoise: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
+    void setCoreQuality(unsigned char q);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformPowerNoise();

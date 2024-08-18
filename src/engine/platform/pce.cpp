@@ -62,7 +62,7 @@ void DivPlatformPCE::acquire(short** buf, size_t len) {
         chan[i].dacPeriod+=chan[i].dacRate;
         if (chan[i].dacPeriod>rate) {
           DivSample* s=parent->getSample(chan[i].dacSample);
-          if (s->samples<=0) {
+          if (s->samples<=0 || chan[i].dacPos>=s->samples) {
             chan[i].dacSample=-1;
             continue;
           }
@@ -88,17 +88,15 @@ void DivPlatformPCE::acquire(short** buf, size_t len) {
     }
   
     // PCE part
-    cycles=0;
-    while (!writes.empty() && cycles<24) {
+    while (!writes.empty()) {
       QueuedWrite w=writes.front();
-      pce->Write(cycles,w.addr,w.val);
+      pce->Write(0,w.addr,w.val);
       regPool[w.addr&0x0f]=w.val;
-      //cycles+=2;
       writes.pop();
     }
-    memset(tempL,0,24*sizeof(int));
-    memset(tempR,0,24*sizeof(int));
-    pce->Update(24);
+    tempL[0]=0;
+    tempR[0]=0;
+    pce->Update(coreQuality);
     pce->ResetTS(0);
 
     for (int i=0; i<6; i++) {
@@ -206,7 +204,11 @@ void DivPlatformPCE::tick(bool sysTick) {
     if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
       if (chan[i].furnaceDac && chan[i].pcm) {
         if (chan[i].active && chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
-          chan[i].dacPos=0;
+          if (chan[i].setPos) {
+            chan[i].setPos=false;
+          } else {
+            chan[i].dacPos=0;
+          }
           chan[i].dacPeriod=0;
           chWrite(i,0x04,parent->song.disableSampleMacro?0xdf:(0xc0|chan[i].vol));
           addWrite(0xffff0000+(i<<8),chan[i].dacSample);
@@ -304,7 +306,11 @@ int DivPlatformPCE::dispatch(DivCommand c) {
                addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dacSample);
              }
           }
-          chan[c.chan].dacPos=0;
+          if (chan[c.chan].setPos) {
+            chan[c.chan].setPos=false;
+          } else {
+            chan[c.chan].dacPos=0;
+          }
           chan[c.chan].dacPeriod=0;
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
@@ -333,7 +339,11 @@ int DivPlatformPCE::dispatch(DivCommand c) {
           } else {
             if (dumpWrites) addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dacSample);
           }
-          chan[c.chan].dacPos=0;
+          if (chan[c.chan].setPos) {
+            chan[c.chan].setPos=false;
+          } else {
+            chan[c.chan].dacPos=0;
+          }
           chan[c.chan].dacPeriod=0;
           chan[c.chan].dacRate=parent->getSample(chan[c.chan].dacSample)->rate;
           if (dumpWrites) {
@@ -459,6 +469,10 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         sampleBank=parent->song.sample.size()/12;
       }
       break;
+    case DIV_CMD_SAMPLE_POS:
+      chan[c.chan].dacPos=c.value;
+      chan[c.chan].setPos=true;
+      break;
     case DIV_CMD_PANNING: {
       chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
       chWrite(c.chan,0x05,isMuted[c.chan]?0:chan[c.chan].pan);
@@ -561,6 +575,11 @@ int DivPlatformPCE::mapVelocity(int ch, float vel) {
   return round(31.0*pow(vel,0.22));
 }
 
+float DivPlatformPCE::getGain(int ch, int vol) {
+  if (vol==0) return 0;
+  return 1.0/pow(10.0,(float)(31-vol)*3.0/20.0);
+}
+
 unsigned char* DivPlatformPCE::getRegisterPool() {
   return regPool;
 }
@@ -585,7 +604,6 @@ void DivPlatformPCE::reset() {
   lastPan=0xff;
   memset(tempL,0,32*sizeof(int));
   memset(tempR,0,32*sizeof(int));
-  cycles=0;
   curChan=-1;
   sampleBank=0;
   lfoMode=0;
@@ -599,7 +617,6 @@ void DivPlatformPCE::reset() {
   for (int i=0; i<6; i++) {
     chWrite(i,0x05,isMuted[i]?0:chan[i].pan);
   }
-  delay=500;
 }
 
 int DivPlatformPCE::getOutputCount() {
@@ -633,7 +650,7 @@ void DivPlatformPCE::setFlags(const DivConfig& flags) {
   }
   CHECK_CUSTOM_CLOCK;
   antiClickEnabled=!flags.getBool("noAntiClick",false);
-  rate=chipClock/12;
+  rate=chipClock/(coreQuality>>1);
   for (int i=0; i<6; i++) {
     oscBuf[i]->rate=rate;
   }
@@ -651,6 +668,32 @@ void DivPlatformPCE::poke(unsigned int addr, unsigned short val) {
 
 void DivPlatformPCE::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
+}
+
+void DivPlatformPCE::setCoreQuality(unsigned char q) {
+  switch (q) {
+    case 0:
+      coreQuality=192;
+      break;
+    case 1:
+      coreQuality=96;
+      break;
+    case 2:
+      coreQuality=48;
+      break;
+    case 3:
+      coreQuality=24;
+      break;
+    case 4:
+      coreQuality=6;
+      break;
+    case 5:
+      coreQuality=2;
+      break;
+    default:
+      coreQuality=24;
+      break;
+  }
 }
 
 int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

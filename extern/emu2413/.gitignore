@@ -1,0 +1,60 @@
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+
+# OSX metadata
+.DS_Store
+
+# CMake objects
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Makefile
+cmake_install.cmake
+install_manifest.txt
+
+# VS Projects
+*.vcxproj
+*.vcxproj.filters
+Project.VC.opendb
+Project.sdf
+Project.sln
+
+# VS Build Results
+.vs/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+Win32/
+*.dir/
+build/

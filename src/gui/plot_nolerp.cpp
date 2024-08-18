@@ -26,6 +26,8 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 
+#include "../ta-utils.h"
+
 struct FurnacePlotArrayGetterData
 {
     const float* Values;
@@ -183,7 +185,7 @@ void PlotNoLerp(const char* label, const float* values, int values_count, int va
     PlotNoLerpEx(ImGuiPlotType_Lines, label, &Plot_ArrayGetter, (void*)&data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size);
 }
 
-int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char** overlay_text, int bits, ImVec2 frame_size, const bool* values_highlight, ImVec4 highlightColor)
+int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char** overlay_text, int bits, ImVec2 frame_size, const bool* values_highlight, ImVec4 highlightColor, ImVec4 color)
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -232,8 +234,8 @@ int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx),
 
         float t0 = 0.0f;
         ImVec2 tp0 = ImVec2( t0, 0.0f );                       // Point in the normalized space of our target rectangle
-        const ImU32 col_base = ImGui::GetColorU32(ImGuiCol_PlotHistogram);
-        const ImU32 col_hovered = ImGui::GetColorU32(ImGuiCol_PlotHistogramHovered);
+        const ImU32 col_base = ImGui::GetColorU32(color);
+        const ImU32 col_hovered = ImGui::GetColorU32(color);
 
         for (int n = 0; n < res_w; n++)
         {
@@ -270,12 +272,13 @@ int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx),
       float lineHeight=ImGui::GetTextLineHeight()/2.0;
       for (int i=0; i<bits && overlay_text[i]; i++) {
         ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0,0,0,1.0f));
-        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x-1, frame_bb.Min.y-lineHeight-1), ImVec2(frame_bb.Max.x-1,frame_bb.Max.y+lineHeight-1), overlay_text[i], NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
-        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x-1, frame_bb.Min.y-lineHeight+1), ImVec2(frame_bb.Max.x-1,frame_bb.Max.y+lineHeight+1), overlay_text[i], NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
-        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x+1, frame_bb.Min.y-lineHeight-1), ImVec2(frame_bb.Max.x+1,frame_bb.Max.y+lineHeight-1), overlay_text[i], NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
-        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x+1, frame_bb.Min.y-lineHeight+1), ImVec2(frame_bb.Max.x+1,frame_bb.Max.y+lineHeight+1), overlay_text[i], NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
+        const char* text=_(overlay_text[i]);
+        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x-1, frame_bb.Min.y-lineHeight-1), ImVec2(frame_bb.Max.x-1,frame_bb.Max.y+lineHeight-1), text, NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
+        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x-1, frame_bb.Min.y-lineHeight+1), ImVec2(frame_bb.Max.x-1,frame_bb.Max.y+lineHeight+1), text, NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
+        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x+1, frame_bb.Min.y-lineHeight-1), ImVec2(frame_bb.Max.x+1,frame_bb.Max.y+lineHeight-1), text, NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
+        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x+1, frame_bb.Min.y-lineHeight+1), ImVec2(frame_bb.Max.x+1,frame_bb.Max.y+lineHeight+1), text, NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
         ImGui::PopStyleColor();
-        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x, frame_bb.Min.y-lineHeight), ImVec2(frame_bb.Max.x,frame_bb.Max.y+lineHeight), overlay_text[i], NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
+        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x, frame_bb.Min.y-lineHeight), ImVec2(frame_bb.Max.x,frame_bb.Max.y+lineHeight), text, NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
       }
     }
 
@@ -287,10 +290,10 @@ int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx),
     return idx_hovered;
 }
 
-void PlotBitfield(const char* label, const int* values, int values_count, int values_offset, const char** overlay_text, int bits, ImVec2 graph_size, int stride, const bool* values_highlight, ImVec4 highlightColor)
+void PlotBitfield(const char* label, const int* values, int values_count, int values_offset, const char** overlay_text, int bits, ImVec2 graph_size, int stride, const bool* values_highlight, ImVec4 highlightColor, ImVec4 color)
 {
     FurnacePlotIntArrayGetterData data(values, stride);
-    PlotBitfieldEx(label, &Plot_IntArrayGetter, (void*)&data, values_count, values_offset, overlay_text, bits, graph_size, values_highlight, highlightColor);
+    PlotBitfieldEx(label, &Plot_IntArrayGetter, (void*)&data, values_count, values_offset, overlay_text, bits, graph_size, values_highlight, highlightColor, color);
 }
 
 int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_display_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size, ImVec4 color, int highlight, std::string (*hoverFunc)(int,float,void*), void* hoverFuncUser, bool blockMode, std::string (*guideFunc)(float), const bool* values_highlight, ImVec4 highlightColor)

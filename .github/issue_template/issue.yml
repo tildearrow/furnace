@@ -1,0 +1,33 @@
+name: Issue Report
+description: for issues (bugs, annoyances, crashes and similar).
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Suggestions, feature requests, questions, showcase or anything else? Go to the Discussions section.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce (if applicable)
+  - type: textarea
+    id: info
+    attributes:
+      label: Additional Information
+  - type: input
+    id: version
+    attributes:
+      label: Furnace version? (help > about)
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: This is an issue
+      description: By submitting this issue, you affirm that this is an actual issue (not a suggestion, question or otherwise non-issue).
+      options:
+        - label: I hereby certify that the ticket I am submitting is an issue.
+          required: true

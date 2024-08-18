@@ -93,8 +93,45 @@ void DivPlatformOPLL::acquire_nuked(short** buf, size_t len) {
 void DivPlatformOPLL::acquire_ymfm(short** buf, size_t len) {
 }
 
+static const unsigned char freakingDrumMap[5]={
+  9, 11, 12, 13, 10
+};
+
+void DivPlatformOPLL::acquire_emu(short** buf, size_t len) {
+  thread_local int os;
+
+  for (size_t h=0; h<len; h++) {
+    if (!writes.empty()) {
+      QueuedWrite& w=writes.front();
+      OPLL_writeReg(fm_emu,w.addr,w.val);
+      writes.pop();
+    }
+    os=-OPLL_calc(fm_emu);
+    os=os+(os<<1);
+    if (os<-32768) os=-32768;
+    if (os>32767) os=32767;
+    
+    buf[0][h]=os;
+
+    for (int i=0; i<11; i++) {
+      if (i>=6 && properDrums) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=(-fm_emu->ch_out[freakingDrumMap[i-6]])<<3;
+      } else {
+        oscBuf[i]->data[oscBuf[i]->needle++]=(-fm_emu->ch_out[i])<<3;
+      }
+    }
+  }
+}
+
 void DivPlatformOPLL::acquire(short** buf, size_t len) {
-  acquire_nuked(buf,len);
+  switch (selCore) {
+    case 0:
+      acquire_nuked(buf,len);
+      break;
+    case 1:
+      acquire_emu(buf,len);
+      break;
+  }
 }
 
 void DivPlatformOPLL::tick(bool sysTick) {
@@ -357,6 +394,19 @@ int DivPlatformOPLL::toFreq(int freq) {
 
 void DivPlatformOPLL::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
+  if (selCore==1) {
+    OPLL_setMask(fm_emu,
+      (isMuted[0]?1:0)|
+      (isMuted[1]?2:0)|
+      (isMuted[2]?4:0)|
+      (isMuted[3]?8:0)|
+      (isMuted[4]?16:0)|
+      (isMuted[5]?32:0)|
+      (isMuted[6]?64:0)|
+      (isMuted[7]?128:0)|
+      (isMuted[8]?256:0)
+    );
+  }
 }
 
 void DivPlatformOPLL::commitState(int ch, DivInstrument* ins) {
@@ -640,6 +690,13 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
       chan[c.chan].note=c.value;
       chan[c.chan].freqChanged=true;
+      break;
+    }
+    case DIV_CMD_WAVE: {
+      if (c.chan>=6 && (crapDrums || properDrums)) break;
+      if (c.chan>=9) break;
+      chan[c.chan].state.opllPreset=c.value&15;
+      rWrite(0x30+c.chan,((15-VOL_SCALE_LOG_BROKEN(chan[c.chan].outVol,15-chan[c.chan].state.op[1].tl,15))&15)|(chan[c.chan].state.opllPreset<<4));
       break;
     }
     case DIV_CMD_FM_FB: {
@@ -958,7 +1015,7 @@ DivMacroInt* DivPlatformOPLL::getChanMacroInt(int ch) {
 }
 
 DivDispatchOscBuffer* DivPlatformOPLL::getOscBuffer(int ch) {
-  if (ch>=9) return NULL;
+  if (ch>=9 && selCore==0) return NULL;
   return oscBuf[ch];
 }
 
@@ -969,6 +1026,11 @@ int DivPlatformOPLL::mapVelocity(int ch, float vel) {
   return CLAMP(round(16.0-(14.0-log2(vel*127.0)*2.0)),0,15);
 }
 
+float DivPlatformOPLL::getGain(int ch, int vol) {
+  if (vol==0) return 0;
+  return 1.0/pow(10.0,(float)(15-vol)*3.0/20.0);
+}
+
 unsigned char* DivPlatformOPLL::getRegisterPool() {
   return regPool;
 }
@@ -976,6 +1038,10 @@ unsigned char* DivPlatformOPLL::getRegisterPool() {
 int DivPlatformOPLL::getRegisterPoolSize() {
   return 64;
 }
+
+static const unsigned char nukedToEmuPatch[4]={
+  0, 2, 3, 1
+};
 
 void DivPlatformOPLL::reset() {
   while (!writes.empty()) writes.pop();
@@ -1001,6 +1067,22 @@ void DivPlatformOPLL::reset() {
   }
   if (dumpWrites) {
     addWrite(0xffffffff,0);
+  }
+  if (selCore==1) {
+    OPLL_reset(fm_emu);
+    OPLL_setChipType(fm_emu,vrc7?1:0);
+    OPLL_resetPatch(fm_emu,vrc7?1:nukedToEmuPatch[patchSet&3]);
+    OPLL_setMask(fm_emu,
+      (isMuted[0]?1:0)|
+      (isMuted[1]?2:0)|
+      (isMuted[2]?4:0)|
+      (isMuted[3]?8:0)|
+      (isMuted[4]?16:0)|
+      (isMuted[5]?32:0)|
+      (isMuted[6]?64:0)|
+      (isMuted[7]?128:0)|
+      (isMuted[8]?256:0)
+    );
   }
   for (int i=0; i<11; i++) {
     chan[i]=DivPlatformOPLL::Channel();
@@ -1073,8 +1155,8 @@ int DivPlatformOPLL::getPortaFloor(int ch) {
   return (ch>5)?12:0;
 }
 
-void DivPlatformOPLL::setYMFM(bool use) {
-  useYMFM=use;
+void DivPlatformOPLL::setCore(unsigned char which) {
+  selCore=which;
 }
 
 float DivPlatformOPLL::getPostAmp() {
@@ -1093,10 +1175,22 @@ void DivPlatformOPLL::setFlags(const DivConfig& flags) {
     chipClock=COLOR_NTSC;
   }
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/36;
   patchSet=flags.getInt("patchSet",0);
+  if (selCore==1) {
+    rate=chipClock/72;
+  } else {
+    rate=chipClock/36;
+  }
   for (int i=0; i<11; i++) {
-    oscBuf[i]->rate=rate/2;
+    if (selCore==1) {
+      oscBuf[i]->rate=rate;
+    } else {
+      if (i>=6 && properDrumsSys) {
+        oscBuf[i]->rate=rate;
+      } else {
+        oscBuf[i]->rate=rate/2;
+      }
+    }
   }
   noTopHatFreq=flags.getBool("noTopHatFreq",false);
   fixedAll=flags.getBool("fixedAll",true);
@@ -1107,6 +1201,12 @@ int DivPlatformOPLL::init(DivEngine* p, int channels, int sugRate, const DivConf
   dumpWrites=false;
   skipRegisterWrites=false;
   patchSet=0;
+  fm_emu=NULL;
+  if (selCore==1) {
+    fm_emu=OPLL_new(72,1);
+    OPLL_setChipType(fm_emu,vrc7?1:0);
+  }
+  
   for (int i=0; i<11; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
@@ -1120,6 +1220,10 @@ int DivPlatformOPLL::init(DivEngine* p, int channels, int sugRate, const DivConf
 void DivPlatformOPLL::quit() {
   for (int i=0; i<11; i++) {
     delete oscBuf[i];
+  }
+  if (fm_emu!=NULL) {
+    OPLL_delete(fm_emu);
+    fm_emu=NULL;
   }
 }
 

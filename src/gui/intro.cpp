@@ -27,6 +27,8 @@ void FurnaceGUI::drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2&
   FurnaceGUIImage* imgI=getImage(image);
   FurnaceGUITexture* img=getTexture(image);
 
+  if (img==NULL) return;
+
   float squareSize=MAX(introMax.x-introMin.x,introMax.y-introMin.y);
   float uDiff=uvMax.x-uvMin.x;
   float vDiff=uvMax.y-uvMin.y;
@@ -63,10 +65,13 @@ void FurnaceGUI::drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2&
     posAbs.y+rectMin.x*sin(rotate)+rectMax.y*cos(rotate)
   );
 
-  ImVec2 uv0=ImVec2(uvMin.x,uvMin.y);
-  ImVec2 uv1=ImVec2(uvMax.x,uvMin.y);
-  ImVec2 uv2=ImVec2(uvMax.x,uvMax.y);
-  ImVec2 uv3=ImVec2(uvMin.x,uvMax.y);
+  float uScale=rend->getTextureU(img);
+  float vScale=rend->getTextureV(img);
+
+  ImVec2 uv0=ImVec2(uvMin.x*uScale,uvMin.y*vScale);
+  ImVec2 uv1=ImVec2(uvMax.x*uScale,uvMin.y*vScale);
+  ImVec2 uv2=ImVec2(uvMax.x*uScale,uvMax.y*vScale);
+  ImVec2 uv3=ImVec2(uvMin.x*uScale,uvMax.y*vScale);
 
   ImU32 colorConverted=ImGui::GetColorU32(imgColor);
 
@@ -81,7 +86,7 @@ void FurnaceGUI::endIntroTune() {
     e->createNewFromDefaults();
   } else { // load pending song
     if (load(curFileName)>0) {
-      showError(fmt::sprintf("Error while loading file! (%s)",lastError));
+      showError(fmt::sprintf(_("Error while loading file! (%s)"),lastError));
       curFileName="";
       e->createNewFromDefaults();
     }
@@ -114,9 +119,9 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
       ImGui::SetNextWindowSize(ImVec2(canvasW,canvasH));
       if (introPos<0.1) ImGui::SetNextWindowFocus();
     }
-    if (ImGui::Begin(monitor?"IntroMon X":"Intro",NULL,monitor?globalWinFlags:(ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoBackground))) {
+    if (ImGui::Begin(monitor?"IntroMon X":"Intro",NULL,monitor?globalWinFlags:(ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoBackground),monitor?_("IntroMon X"):_("Intro"))) {
       if (monitor) {
-        if (ImGui::Button("Preview")) {
+        if (ImGui::Button(_("Preview"))) {
           introPos=0;
           tutorial.introPlayed=false;
           shortIntro=false;
@@ -168,9 +173,9 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
 
         if (monitor) {
           ImVec2 textPos=ImLerp(top,bottom,ImVec2(0.5,0.5));
-          textPos.x-=ImGui::CalcTextSize("SORRY  NOTHING").x*0.5;
-          textPos.y-=ImGui::CalcTextSize("SORRY  NOTHING").y*0.5;
-          dl->AddText(textPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),"SORRY  NOTHING");
+          textPos.x-=ImGui::CalcTextSize(_("SORRY  NOTHING")).x*0.5;
+          textPos.y-=ImGui::CalcTextSize(_("SORRY  NOTHING")).y*0.5;
+          dl->AddText(textPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),_("SORRY  NOTHING"));
         }
 
         if (introSkip<0.5 || monitor) {
@@ -302,7 +307,7 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
           }
 
           dl->AddRectFilled(top,bottom,ImGui::GetColorU32(ImVec4(0.0,0.0,0.0,CLAMP(introSkip*2.0,0.0,1.0)-CLAMP((introSkip-0.5)*4,0.0,1.0))));
-          if (introSkip<0.5) dl->AddText(ImVec2(8.0*dpiScale,8.0*dpiScale),ImGui::GetColorU32(ImVec4(1.0,1.0,1.0,CLAMP(introSkip*8.0,0.0,1.0))),"hold to skip");
+          if (introSkip<0.5) dl->AddText(ImVec2(8.0*dpiScale,8.0*dpiScale),ImGui::GetColorU32(ImVec4(1.0,1.0,1.0,CLAMP(introSkip*8.0,0.0,1.0))),_("hold to skip"));
         }
       }
 

@@ -227,7 +227,7 @@ void DivPlatformPCMDAC::acquire(short** buf, size_t len) {
     if (isMuted) {
       output=0;
     } else {
-      output=output*chan[0].vol*chan[0].envVol/16384;
+      output=((output*MIN(volMax,chan[0].vol)*MIN(chan[0].envVol,64))>>6)/volMax;
     }
     oscBuf->data[oscBuf->needle++]=((output>>depthScale)<<depthScale)>>1;
     if (outStereo) {
@@ -451,7 +451,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       chan[0].setPos=true;
       break;
     case DIV_CMD_GET_VOLMAX:
-      return 255;
+      return volMax;
       break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
@@ -543,6 +543,8 @@ void DivPlatformPCMDAC::setFlags(const DivConfig& flags) {
   outStereo=flags.getBool("stereo",true);
   interp=flags.getInt("interpolation",0);
   oscBuf->rate=rate;
+  volMax=flags.getInt("volMax",255);
+  if (volMax<1) volMax=1;
 }
 
 int DivPlatformPCMDAC::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

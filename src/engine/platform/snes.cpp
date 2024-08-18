@@ -221,7 +221,7 @@ void DivPlatformSNES::tick(bool sysTick) {
           end=MIN(start+MAX(s->lengthBRR+((s->loop && s->depth!=DIV_SAMPLE_DEPTH_BRR)?9:0),1),getSampleMemCapacity());
           loop=MAX(start,end-1);
           if (chan[i].audPos>0) {
-            start=start+MIN(chan[i].audPos,s->lengthBRR-1)/16*9;
+            start=start+MIN(chan[i].audPos/16*9,end-start);
           }
           if (s->isLoopable()) {
             loop=((s->depth!=DIV_SAMPLE_DEPTH_BRR)?9:0)+start+((s->loopStart/16)*9);
@@ -463,7 +463,6 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_SAMPLE_POS:
-      // may have to remove this
       chan[c.chan].audPos=c.value;
       chan[c.chan].setPos=true;
       break;
@@ -933,7 +932,6 @@ const void* DivPlatformSNES::getSampleMem(int index) {
 }
 
 size_t DivPlatformSNES::getSampleMemCapacity(int index) {
-  // TODO change it based on current echo buffer size
   return index == 0 ? (65536-echoDelay*2048) : 0;
 }
 
@@ -981,6 +979,9 @@ void DivPlatformSNES::renderSamples(int sysID) {
       // inject loop if needed
       if (s->loop) {
         copyOfSampleMem[memPos+actualLength-9]|=3;
+      } else {
+        copyOfSampleMem[memPos+actualLength-9]&=~3;
+        copyOfSampleMem[memPos+actualLength-9]|=1;
       }
       memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength));
       memPos+=actualLength;

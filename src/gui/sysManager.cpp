@@ -38,12 +38,12 @@ void FurnaceGUI::drawSysManager() {
   } else {
     //ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
-  if (ImGui::Begin("Chip Manager",&sysManagerOpen,globalWinFlags)) {
-    ImGui::Checkbox("Preserve channel order",&preserveChanPos);
+  if (ImGui::Begin("Chip Manager",&sysManagerOpen,globalWinFlags,_("Chip Manager"))) {
+    ImGui::Checkbox(_("Preserve channel order"),&preserveChanPos);
     ImGui::SameLine();
-    ImGui::Checkbox("Clone channel data",&sysDupCloneChannels);
+    ImGui::Checkbox(_("Clone channel data"),&sysDupCloneChannels);
     ImGui::SameLine();
-    ImGui::Checkbox("Clone at end",&sysDupEnd);
+    ImGui::Checkbox(_("Clone at end"),&sysDupEnd);
     if (ImGui::BeginTable("SystemList",3)) {
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
       ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
@@ -51,9 +51,9 @@ void FurnaceGUI::drawSysManager() {
       ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
       ImGui::TableNextColumn();
       ImGui::TableNextColumn();
-      ImGui::Text("Name");
+      ImGui::Text(_("Name"));
       ImGui::TableNextColumn();
-      ImGui::Text("Actions");
+      ImGui::Text(_("Actions"));
       for (unsigned char i=0; i<e->song.systemLen; i++) {
         ImGui::PushID(i);
         ImGui::TableNextRow();
@@ -66,7 +66,7 @@ void FurnaceGUI::drawSysManager() {
           ImGui::Button(ICON_FA_ARROWS "##SysDrag");
           ImGui::EndDragDropSource();
         } else if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("(drag to swap chips)");
+          ImGui::SetTooltip(_("(drag to swap chips)"));
         }
         if (ImGui::BeginDragDropTarget()) {
           const ImGuiPayload* dragItem=ImGui::AcceptDragDropPayload("FUR_SYS");
@@ -102,15 +102,20 @@ void FurnaceGUI::drawSysManager() {
           }
         }
         ImGui::TableNextColumn();
-        if (ImGui::Button("Clone##SysDup")) {
+        if (ImGui::Button(_("Clone##SysDup"))) {
           if (!e->duplicateSystem(i,sysDupCloneChannels,sysDupEnd)) {
-            showError("cannot clone chip! ("+e->getLastError()+")");
+            showError(fmt::sprintf(_("cannot clone chip! (%s)"),e->getLastError()));
           } else {
+            if (e->song.autoSystem) {
+              autoDetectSystem();
+              updateWindowTitle();
+            }
+            updateROMExportAvail();
             MARK_MODIFIED;
           }
         }
         ImGui::SameLine();
-        ImGui::Button("Change##SysChange");
+        ImGui::Button(_("Change##SysChange"));
         if (ImGui::BeginPopupContextItem("SysPickerC",ImGuiPopupFlags_MouseButtonLeft)) {
           DivSystem picked=systemPicker();
           if (picked!=DIV_SYSTEM_NULL) {
@@ -120,8 +125,9 @@ void FurnaceGUI::drawSysManager() {
                 autoDetectSystem();
               }
               updateWindowTitle();
+              updateROMExportAvail();
             } else {
-              showError("cannot change chip! ("+e->getLastError()+")");
+              showError(fmt::sprintf(_("cannot change chip! (%s)"),e->getLastError()));
             }
             ImGui::CloseCurrentPopup();
           }
@@ -132,11 +138,11 @@ void FurnaceGUI::drawSysManager() {
         pushDestColor();
         if (ImGui::Button(ICON_FA_TIMES "##SysRemove")) {
           sysToDelete=i;
-          showWarning("Are you sure you want to remove this chip?",GUI_WARN_SYSTEM_DEL);
+          showWarning(_("Are you sure you want to remove this chip?"),GUI_WARN_SYSTEM_DEL);
         }
         popDestColor();
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Remove");
+          ImGui::SetTooltip(_("Remove"));
         }
         ImGui::EndDisabled();
         ImGui::PopID();
@@ -150,7 +156,7 @@ void FurnaceGUI::drawSysManager() {
           DivSystem picked=systemPicker();
           if (picked!=DIV_SYSTEM_NULL) {
             if (!e->addSystem(picked)) {
-              showError("cannot add chip! ("+e->getLastError()+")");
+              showError(fmt::sprintf(_("cannot add chip! (%s)"),e->getLastError()));
             } else {
               MARK_MODIFIED;
             }
@@ -158,6 +164,7 @@ void FurnaceGUI::drawSysManager() {
               autoDetectSystem();
             }
             updateWindowTitle();
+            updateROMExportAvail();
             ImGui::CloseCurrentPopup();
           }
           ImGui::EndPopup();

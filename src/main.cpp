@@ -31,7 +31,7 @@
 #include <windows.h>
 #include <combaseapi.h>
 #include <shellapi.h>
-
+#include "utfutils.h"
 #include "gui/shellScalingStub.h"
 
 typedef HRESULT (WINAPI *SPDA)(PROCESS_DPI_AWARENESS);
@@ -40,6 +40,33 @@ typedef HRESULT (WINAPI *SPDA)(PROCESS_DPI_AWARENESS);
 #include <unistd.h>
 
 struct sigaction termsa;
+#endif
+
+#ifdef SUPPORT_XP
+#define TUT_INTRO_PLAYED true
+#else
+#define TUT_INTRO_PLAYED false
+#endif
+
+#ifdef HAVE_LOCALE
+#ifdef HAVE_MOMO
+#define TA_BINDTEXTDOMAIN momo_bindtextdomain
+#define TA_TEXTDOMAIN momo_textdomain
+#else
+#define TA_BINDTEXTDOMAIN bindtextdomain
+#define TA_TEXTDOMAIN textdomain
+#endif
+
+#ifdef HAVE_SETLOCALE
+#include <locale.h>
+#endif
+
+#ifndef LC_CTYPE
+#define LC_CTYPE 0
+#endif
+#ifndef LC_MESSAGES
+#define LC_MESSAGES 1
+#endif
 #endif
 
 #include "cli/cli.h"
@@ -60,10 +87,9 @@ String outName;
 String vgmOutName;
 String zsmOutName;
 String cmdOutName;
-int loops=1;
 int benchMode=0;
 int subsong=-1;
-DivAudioExportModes outMode=DIV_EXPORT_MODE_ONE;
+DivAudioExportOptions exportOptions;
 
 #ifdef HAVE_GUI
 bool consoleMode=false;
@@ -71,7 +97,11 @@ bool consoleMode=false;
 bool consoleMode=true;
 #endif
 
+bool consoleNoStatus=false;
+bool consoleNoControls=false;
+
 bool displayEngineFailError=false;
+bool displayLocaleFailError=false;
 bool vgmOutDirect=false;
 
 bool safeMode=false;
@@ -79,7 +109,44 @@ bool safeModeWithAudio=false;
 
 bool infoMode=false;
 
+bool noReportError=false;
+
 std::vector<TAParam> params;
+
+#ifdef HAVE_LOCALE
+char reqLocaleCopy[64];
+char localeDir[4096];
+
+const char* localeDirs[]={
+#ifdef __APPLE__
+  "../Resources/locale",
+#endif
+  "locale",
+  ".." DIR_SEPARATOR_STR "share" DIR_SEPARATOR_STR "locale",
+  ".." DIR_SEPARATOR_STR "po" DIR_SEPARATOR_STR "locale",
+#ifdef LOCALE_DIR
+  LOCALE_DIR,
+#endif
+  NULL
+};
+#endif
+
+bool getExePath(char* argv0, char* exePath, size_t maxSize) {
+  if (argv0==NULL) return false;
+#ifdef _WIN32
+  wchar_t exePathW[4096];
+  WString argv0W=utf8To16(argv0);
+  if (GetFullPathNameW(argv0W.c_str(),4095,exePathW,NULL)==0) return false;
+  String exePathS=utf16To8(exePathW);
+  strncpy(exePath,exePathS.c_str(),maxSize);
+#else
+  if (realpath(argv0,exePath)==NULL) return false;
+#endif
+  char* lastChar=strrchr(exePath,DIR_SEPARATOR);
+  if (lastChar==NULL) return false;
+  *lastChar=0;
+  return true;
+}
 
 TAParamResult pHelp(String) {
   printf("usage: furnace [params] [filename]\n"
@@ -105,8 +172,11 @@ TAParamResult pAudio(String val) {
     e.setAudio(DIV_AUDIO_SDL);
   } else if (val=="portaudio") {
     e.setAudio(DIV_AUDIO_PORTAUDIO);
+  } else if (val=="pipe") {
+    e.setAudio(DIV_AUDIO_PIPE);
+    changeLogOutput(stderr);
   } else {
-    logE("invalid value for audio engine! valid values are: jack, sdl, portaudio.");
+    logE("invalid value for audio engine! valid values are: jack, sdl, portaudio, pipe.");
     return TA_PARAM_ERROR;
   }
   return TA_PARAM_SUCCESS;
@@ -128,6 +198,21 @@ TAParamResult pView(String val) {
 
 TAParamResult pConsole(String val) {
   consoleMode=true;
+  return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pQuiet(String val) {
+  noReportError=true;
+  return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pNoStatus(String val) {
+  consoleNoStatus=true;
+  return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pNoControls(String val) {
+  consoleNoControls=true;
   return TA_PARAM_SUCCESS;
 }
 
@@ -212,8 +297,10 @@ TAParamResult pVersion(String) {
   printf("- YM3812-LLE by nukeykt (GPLv2)\n");
   printf("- YMF262-LLE by nukeykt (GPLv2)\n");
   printf("- YMF276-LLE by nukeykt (GPLv2)\n");
+  printf("- YM2608-LLE by nukeykt (GPLv2)\n");
   printf("- ESFMu (modified version) by Kagamiin~ (LGPLv2.1)\n");
   printf("- ymfm by Aaron Giles (BSD 3-clause)\n");
+  printf("- emu2413 by Digital Sound Antiques (MIT)\n");
   printf("- adpcm by superctr (public domain)\n");
   printf("- adpcm-xq by David Bryant (BSD 3-clause)\n");
   printf("- MAME SN76496 emulation core by Nicola Salmoria (BSD 3-clause)\n");
@@ -242,6 +329,8 @@ TAParamResult pVersion(String) {
   printf("- dSID by DefleMask Team (based on jsSID by Hermit) (MIT)\n");
   printf("- Stella by Stella Team (GPLv2)\n");
   printf("- vgsound_emu (second version, modified version) by cam900 (zlib license)\n");
+  printf("- Impulse Tracker GUS volume table by Jeffrey Lim (BSD 3-clause)\n");
+  printf("- Schism Tracker IT sample decompression (GPLv2)\n");
   printf("- MAME GA20 core by Acho A. Tang, R. Belmont, Valley Bell (BSD 3-clause)\n");
   printf("- Atari800 mzpokeysnd POKEY emulator by Michael Borisov (GPLv2)\n");
   printf("- ASAP POKEY emulator by Piotr Fusik ported to C++ by laoo (GPLv2)\n");
@@ -275,9 +364,9 @@ TAParamResult pLoops(String val) {
   try {
     int count=std::stoi(val);
     if (count<0) {
-      loops=0;
+      exportOptions.loops=0;
     } else {
-      loops=count+1;
+      exportOptions.loops=count;
     }
   } catch (std::exception& e) {
     logE("loop count shall be a number.");
@@ -303,11 +392,11 @@ TAParamResult pSubSong(String val) {
 
 TAParamResult pOutMode(String val) {
   if (val=="one") {
-    outMode=DIV_EXPORT_MODE_ONE;
+    exportOptions.mode=DIV_EXPORT_MODE_ONE;
   } else if (val=="persys") {
-    outMode=DIV_EXPORT_MODE_MANY_SYS;
+    exportOptions.mode=DIV_EXPORT_MODE_MANY_SYS;
   } else if (val=="perchan") {
-    outMode=DIV_EXPORT_MODE_MANY_CHAN;
+    exportOptions.mode=DIV_EXPORT_MODE_MANY_CHAN;
   } else {
     logE("invalid value for outmode! valid values are: one, persys and perchan.");
     return TA_PARAM_ERROR;
@@ -364,7 +453,7 @@ bool needsValue(String param) {
 void initParams() {
   params.push_back(TAParam("h","help",false,pHelp,"","display this help"));
 
-  params.push_back(TAParam("a","audio",true,pAudio,"jack|sdl|portaudio","set audio engine (SDL by default)"));
+  params.push_back(TAParam("a","audio",true,pAudio,"jack|sdl|portaudio|pipe","set audio engine (SDL by default)"));
   params.push_back(TAParam("o","output",true,pOutput,"<filename>","output audio to file"));
   params.push_back(TAParam("O","vgmout",true,pVGMOut,"<filename>","output .vgm data"));
   params.push_back(TAParam("D","direct",false,pDirect,"","set VGM export direct stream mode"));
@@ -374,8 +463,11 @@ void initParams() {
   params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (nothing by default)"));
   params.push_back(TAParam("i","info",false,pInfo,"","get info about a song"));
   params.push_back(TAParam("c","console",false,pConsole,"","enable console mode"));
+  params.push_back(TAParam("q","noreport",false,pQuiet,"","do not display message box on error"));
+  params.push_back(TAParam("n","nostatus",false,pNoStatus,"","disable playback status in console mode"));
+  params.push_back(TAParam("N","nocontrols",false,pNoControls,"","disable standard input controls in console mode"));
 
-  params.push_back(TAParam("l","loops",true,pLoops,"<count>","set number of loops (-1 means loop forever)"));
+  params.push_back(TAParam("l","loops",true,pLoops,"<count>","set number of loops"));
   params.push_back(TAParam("s","subsong",true,pSubSong,"<number>","set sub-song"));
   params.push_back(TAParam("o","outmode",true,pOutMode,"one|persys|perchan","set file output mode"));
   params.push_back(TAParam("S","safemode",false,pSafeMode,"","enable safe mode (software rendering and no audio)"));
@@ -390,18 +482,25 @@ void initParams() {
 #ifdef _WIN32
 void reportError(String what) {
   logE("%s",what);
-  MessageBox(NULL,what.c_str(),"Furnace",MB_OK|MB_ICONERROR);
+  if (!noReportError) {
+    MessageBox(NULL,what.c_str(),"Furnace",MB_OK|MB_ICONERROR);
+  }
 }
-#elif defined(ANDROID)
+#elif defined(ANDROID) || defined(__APPLE__)
 void reportError(String what) {
   logE("%s",what);
 #ifdef HAVE_SDL2
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error",what.c_str(),NULL);
+  if (!noReportError) {
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error",what.c_str(),NULL);
+  }
 #endif
 }
 #else
 void reportError(String what) {
   logE("%s",what);
+  if (!noReportError) {
+    // dummy
+  }
 }
 #endif
 
@@ -425,17 +524,18 @@ int main(int argc, char** argv) {
 
   // Windows console thing - thanks dj.tuBIG/MaliceX
 #ifdef _WIN32
-
+#ifndef TA_SUBSYSTEM_CONSOLE
   if (AttachConsole(ATTACH_PARENT_PROCESS)) {
     freopen("CONOUT$", "w", stdout);
     freopen("CONOUT$", "w", stderr);
     freopen("CONIN$", "r", stdin);
   }
 #endif
+#endif
 
   srand(time(NULL));
 
-  initLog();
+  initLog(stdout);
 #ifdef _WIN32
   // set DPI awareness
   HMODULE shcore=LoadLibraryW(L"shcore.dll");
@@ -463,6 +563,101 @@ int main(int argc, char** argv) {
   zsmOutName="";
   cmdOutName="";
 
+  // load config for locale
+  e.prePreInit();
+
+#ifdef HAVE_LOCALE
+  String reqLocale=e.getConfString("locale","");
+  if (!reqLocale.empty()) {
+    if (reqLocale.find(".")==String::npos) {
+      reqLocale+=".UTF-8";
+    }
+  }
+  strncpy(reqLocaleCopy,reqLocale.c_str(),63);
+  if (reqLocale!="en_US.UTF-8") {
+    const char* localeRet=NULL;
+#ifdef HAVE_SETLOCALE
+    if ((localeRet=setlocale(LC_CTYPE,reqLocaleCopy))==NULL) {
+      logE("could not set locale (CTYPE)!");
+      displayLocaleFailError=true;
+    } else {
+      logV("locale: %s",localeRet);
+    }
+    if ((localeRet=setlocale(LC_MESSAGES,reqLocaleCopy))==NULL) {
+      logE("could not set locale (MESSAGES)!");
+      displayLocaleFailError=true;
+#ifdef HAVE_MOMO
+      if (momo_setlocale(LC_MESSAGES,reqLocaleCopy)==NULL) {
+        logV("Momo: could not set locale!");
+      }
+#endif
+    } else {
+      logV("locale: %s",localeRet);
+#ifdef HAVE_MOMO
+      if (momo_setlocale(LC_MESSAGES,localeRet)==NULL) {
+        logV("Momo: could not set locale!");
+      }
+#endif
+    }
+#else
+    if ((localeRet=momo_setlocale(LC_MESSAGES,reqLocaleCopy))==NULL) {
+      logV("Momo: could not set locale!");
+    } else {
+      logV("locale: %s",localeRet);
+    }
+#endif
+
+    char exePath[4096];
+    memset(exePath,0,4096);
+#ifndef ANDROID
+    if (!getExePath(argv[0],exePath,4095)) memset(exePath,0,4096);
+#endif
+
+    memset(localeDir,0,4096);
+
+    bool textDomainBound=false;
+    for (int i=0; localeDirs[i]; i++) {
+#ifdef ANDROID
+      strncpy(localeDir,localeDirs[i],4095);
+#else
+      if (exePath[0]!=0 && localeDirs[i][0]!=DIR_SEPARATOR) {
+        // do you NOT understand what memset IS
+        char* i_s=exePath;
+        for (int i_i=0; i_i<4095; i_i++) {
+          localeDir[i_i]=*i_s;
+          if ((*i_s)==0) break;
+          i_s++;
+        }
+        strncat(localeDir,DIR_SEPARATOR_STR,4095);
+        strncat(localeDir,localeDirs[i],4095);
+      } else {
+        strncpy(localeDir,localeDirs[i],4095);
+      }
+#endif
+      logV("bind text domain: %s",localeDir);
+#ifndef ANDROID
+      if (!dirExists(localeDir)) continue;
+#endif
+      if ((localeRet=TA_BINDTEXTDOMAIN("furnace",localeDir))==NULL) {
+        continue;
+      } else {
+        textDomainBound=true;
+        logV("text domain 1: %s",localeRet);
+        break;
+      }
+    }
+    if (!textDomainBound) {
+      logE("could not bind text domain!");
+    } else {
+      if ((localeRet=TA_TEXTDOMAIN("furnace"))==NULL) {
+        logE("could not text domain!");
+      } else {
+        logV("text domain 2: %s",localeRet);
+      }
+    }
+#endif
+  }
+
   initParams();
 
   // parse arguments
@@ -484,7 +679,7 @@ int main(int argc, char** argv) {
             val=argv[i+1];
             i++;
           } else {
-            reportError(fmt::sprintf("incomplete param %s.",arg.c_str()));
+            reportError(fmt::sprintf(_("incomplete param %s."),arg.c_str()));
             return 1;
           }
         }
@@ -512,7 +707,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  e.setConsoleMode(consoleMode);
+  e.setConsoleMode(consoleMode,!consoleNoStatus);
 
 #ifdef _WIN32
   if (consoleMode) {
@@ -534,14 +729,14 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  if (fileName.empty() && (benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+  if (fileName.empty() && (benchMode || infoMode || outName!="" || vgmOutName!="" || zsmOutName!="" || cmdOutName!="")) {
     logE("provide a file!");
     return 1;
   }
 
 #ifdef HAVE_GUI
-  if (e.preInit(consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
-    if (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="") {
+  if (e.preInit(consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || zsmOutName!="" || cmdOutName!="")) {
+    if (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || zsmOutName!="" || cmdOutName!="") {
       logW("engine wants safe mode, but Furnace GUI is not going to start.");
     } else {
       safeMode=true;
@@ -553,7 +748,7 @@ int main(int argc, char** argv) {
   }
 #endif
 
-  if (safeMode && (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+  if (safeMode && (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || zsmOutName!="" || cmdOutName!="")) {
     logE("you can't use safe mode and console/export mode together.");
     return 1;
   }
@@ -562,17 +757,17 @@ int main(int argc, char** argv) {
     e.setAudio(DIV_AUDIO_DUMMY);
   }
 
-  if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",false)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+  if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",TUT_INTRO_PLAYED)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || zsmOutName!="" || cmdOutName!="")) {
     logI("loading module...");
     FILE* f=ps_fopen(fileName.c_str(),"rb");
     if (f==NULL) {
-      reportError(fmt::sprintf("couldn't open file! (%s)",strerror(errno)));
+      reportError(fmt::sprintf(_("couldn't open file! (%s)"),strerror(errno)));
       e.everythingOK();
       finishLogFile();
       return 1;
     }
     if (fseek(f,0,SEEK_END)<0) {
-      reportError(fmt::sprintf("couldn't open file! (couldn't get file size: %s)",strerror(errno)));
+      reportError(fmt::sprintf(_("couldn't open file! (couldn't get file size: %s)"),strerror(errno)));
       e.everythingOK();
       fclose(f);
       finishLogFile();
@@ -580,7 +775,7 @@ int main(int argc, char** argv) {
     }
     ssize_t len=ftell(f);
     if (len==(SIZE_MAX>>1)) {
-      reportError(fmt::sprintf("couldn't open file! (couldn't get file length: %s)",strerror(errno)));
+      reportError(fmt::sprintf(_("couldn't open file! (couldn't get file length: %s)"),strerror(errno)));
       e.everythingOK();
       fclose(f);
       finishLogFile();
@@ -588,9 +783,9 @@ int main(int argc, char** argv) {
     }
     if (len<1) {
       if (len==0) {
-        reportError("that file is empty!");
+        reportError(_("that file is empty!"));
       } else {
-        reportError(fmt::sprintf("couldn't open file! (tell error: %s)",strerror(errno)));
+        reportError(fmt::sprintf(_("couldn't open file! (tell error: %s)"),strerror(errno)));
       }
       e.everythingOK();
       fclose(f);
@@ -599,7 +794,7 @@ int main(int argc, char** argv) {
     }
     unsigned char* file=new unsigned char[len];
     if (fseek(f,0,SEEK_SET)<0) {
-      reportError(fmt::sprintf("couldn't open file! (size error: %s)",strerror(errno)));
+      reportError(fmt::sprintf(_("couldn't open file! (size error: %s)"),strerror(errno)));
       e.everythingOK();
       fclose(f);
       delete[] file;
@@ -607,7 +802,7 @@ int main(int argc, char** argv) {
       return 1;
     }
     if (fread(file,1,(size_t)len,f)!=(size_t)len) {
-      reportError(fmt::sprintf("couldn't open file! (read error: %s)",strerror(errno)));
+      reportError(fmt::sprintf(_("couldn't open file! (read error: %s)"),strerror(errno)));
       e.everythingOK();
       fclose(f);
       delete[] file;
@@ -616,7 +811,7 @@ int main(int argc, char** argv) {
     }
     fclose(f);
     if (!e.load(file,(size_t)len,fileName.c_str())) {
-      reportError(fmt::sprintf("could not open file! (%s)",e.getLastError()));
+      reportError(fmt::sprintf(_("could not open file! (%s)"),e.getLastError()));
       e.everythingOK();
       finishLogFile();
       return 1;
@@ -630,7 +825,7 @@ int main(int argc, char** argv) {
 
   if (!e.init()) {
     if (consoleMode) {
-      reportError("could not initialize engine!");
+      reportError(_("could not initialize engine!"));
       finishLogFile();
       return 1;
     } else {
@@ -654,7 +849,7 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  if (outName!="" || vgmOutName!="" || cmdOutName!="") {
+  if (outName!="" || vgmOutName!="" || zsmOutName!="" || cmdOutName!="") {
     if (cmdOutName!="") {
       SafeWriter* w=e.saveCommand();
       if (w!=NULL) {
@@ -663,12 +858,12 @@ int main(int argc, char** argv) {
           fwrite(w->getFinalBuf(),1,w->size(),f);
           fclose(f);
         } else {
-          reportError(fmt::sprintf("could not open file! (%s)",e.getLastError()));
+          reportError(fmt::sprintf(_("could not open file! (%s)"),e.getLastError()));
         }
         w->finish();
         delete w;
       } else {
-        reportError("could not write command stream!");
+        reportError(_("could not write command stream!"));
       }
     }
     if (vgmOutName!="") {
@@ -679,17 +874,34 @@ int main(int argc, char** argv) {
           fwrite(w->getFinalBuf(),1,w->size(),f);
           fclose(f);
         } else {
-          reportError(fmt::sprintf("could not open file! (%s)",e.getLastError()));
+          reportError(fmt::sprintf(_("could not open file! (%s)"),e.getLastError()));
         }
         w->finish();
         delete w;
       } else {
-        reportError("could not write VGM!");
+        reportError(_("could not write VGM!"));
+      }
+    }
+    if (zsmOutName!="") {
+      // TODO: changing parameters
+      SafeWriter* w=e.saveZSM(60,true,true);
+      if (w!=NULL) {
+        FILE* f=ps_fopen(zsmOutName.c_str(),"wb");
+        if (f!=NULL) {
+          fwrite(w->getFinalBuf(),1,w->size(),f);
+          fclose(f);
+        } else {
+          reportError(fmt::sprintf(_("could not open file! (%s)"),e.getLastError()));
+        }
+        w->finish();
+        delete w;
+      } else {
+        reportError(fmt::sprintf(_("could not write ZSM! (%s)"),e.getLastError()));
       }
     }
     if (outName!="") {
       e.setConsoleMode(true);
-      e.saveAudio(outName.c_str(),loops,outMode);
+      e.saveAudio(outName.c_str(),exportOptions);
       e.waitAudioFile();
     }
     finishLogFile();
@@ -698,13 +910,19 @@ int main(int argc, char** argv) {
 
   if (consoleMode) {
     bool cliSuccess=false;
+    if (consoleNoStatus) {
+      cli.noStatus();
+    }
+    if (consoleNoControls) {
+      cli.noControls();
+    }
     cli.bindEngine(&e);
     if (!cli.init()) {
-      reportError("error while starting CLI!");
+      reportError(_("error while starting CLI!"));
     } else {
       cliSuccess=true;
     }
-    logI("playing...");
+    logI(_("playing..."));
     e.play();
     if (cliSuccess) {
       cli.loop();
@@ -745,8 +963,18 @@ int main(int argc, char** argv) {
   }
 
   if (displayEngineFailError) {
-    logE("displaying engine fail error.");
-    g.showError("error while initializing audio!");
+    logE(_("displaying engine fail error."));
+    g.showError(_("error while initializing audio!"));
+  }
+
+  if (displayLocaleFailError) {
+#ifndef HAVE_MOMO
+#ifdef __unix__
+    g.showError("could not load language!\napparently your system does not support this language correctly.\nmake sure you've generated language data by editing /etc/locale.gen\nand then running locale-gen as root.");
+#else
+    g.showError("could not load language!\nthis is a bug!");
+#endif
+#endif
   }
 
   if (!fileName.empty()) {

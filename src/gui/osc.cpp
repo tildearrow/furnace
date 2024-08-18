@@ -166,14 +166,14 @@ void FurnaceGUI::drawOsc() {
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing,ImVec2(0,0));
   }
-  if (ImGui::Begin("Oscilloscope",&oscOpen,globalWinFlags)) {
+  if (ImGui::Begin("Oscilloscope",&oscOpen,globalWinFlags,_("Oscilloscope"))) {
     if (oscZoomSlider) {
       if (ImGui::VSliderFloat("##OscZoom",ImVec2(20.0f*dpiScale,ImGui::GetContentRegionAvail().y),&oscZoom,0.5,2.0)) {
         if (oscZoom<0.5) oscZoom=0.5;
         if (oscZoom>2.0) oscZoom=2.0;
       } rightClickable
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("zoom: %.2fx (%.1fdB)",oscZoom,20.0*log10(oscZoom*2.0));
+        ImGui::SetTooltip(_("zoom: %.2fx (%.1fdB)"),oscZoom,20.0*log10(oscZoom*2.0));
       }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
         oscZoom=0.5;
@@ -184,7 +184,7 @@ void FurnaceGUI::drawOsc() {
         if (oscWindowSize>100.0) oscWindowSize=100.0;
       } rightClickable
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("window size: %.1fms",oscWindowSize);
+        ImGui::SetTooltip(_("window size: %.1fms"),oscWindowSize);
       }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
         oscWindowSize=20.0;
@@ -216,15 +216,23 @@ void FurnaceGUI::drawOsc() {
     ImU32 guideColor=ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_GUIDE]);
     ImGui::ItemSize(size,style.FramePadding.y);
     if (ImGui::ItemAdd(rect,ImGui::GetID("wsDisplay"))) {
-      dl->AddRectFilledMultiColor(
-        inRect.Min,
-        inRect.Max,
-        ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_BG1]),
-        ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_BG2]),
-        ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_BG4]),
-        ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_BG3]),
-        settings.oscRoundedCorners?(8.0f*dpiScale):0.0f
-      );
+      if (safeMode || renderBackend==GUI_BACKEND_SOFTWARE) {
+        dl->AddRectFilled(
+          inRect.Min,
+          inRect.Max,
+          ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_BG4])
+        );
+      } else {
+        dl->AddRectFilledMultiColor(
+          inRect.Min,
+          inRect.Max,
+          ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_BG1]),
+          ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_BG2]),
+          ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_BG4]),
+          ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_BG3]),
+          settings.oscRoundedCorners?(8.0f*dpiScale):0.0f
+        );
+      }
 
       dl->AddLine(
         ImLerp(rect.Min,rect.Max,ImVec2(0.0f,0.5f)),
@@ -367,14 +375,14 @@ void FurnaceGUI::drawOsc() {
       dl->Flags=prevFlags;
       
       if (settings.oscBorder) {
-        dl->AddRect(inRect.Min,inRect.Max,borderColor,settings.oscRoundedCorners?(8.0f*dpiScale):0.0f,0,1.5f*dpiScale);
+        dl->AddRect(inRect.Min,inRect.Max,borderColor,(settings.oscRoundedCorners && !(safeMode || renderBackend==GUI_BACKEND_SOFTWARE))?(8.0f*dpiScale):0.0f,0,1.5f*dpiScale);
       }
     }
     if (oscZoomSlider && ImGui::IsItemHovered()) {
       float val=20.0*log10(2.0*fabs(0.5-((ImGui::GetMousePos().y-inRect.Min.y)/(inRect.Max.y-inRect.Min.y))));
       if (val>0.0f) val=0.0f;
       if (val<=-INFINITY) {
-        ImGui::SetTooltip("(-Infinity)dB");
+        ImGui::SetTooltip(_("(-Infinity)dB"));
       } else {
         ImGui::SetTooltip("%.1fdB",val);
       }

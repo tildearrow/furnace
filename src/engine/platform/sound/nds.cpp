@@ -347,7 +347,7 @@ namespace nds_sound_emu
 			case 3: // PSG or Noise
 				m_sample = 0;
 				if (m_psg) // psg
-					m_sample = (duty() == 7) ? -0x8000 : ((m_cur_bitaddr < s32(u32(7) - duty())) ? -0x8000 : 0x7fff);
+					m_sample = (duty() == 7) ? -0x7fff : ((m_cur_bitaddr < s32(u32(7) - duty())) ? -0x7fff : 0x7fff);
 				else if (m_noise) // noise
 					m_sample = m_lfsr_out;
 				break;
@@ -395,10 +395,10 @@ namespace nds_sound_emu
 					m_cur_bitaddr = (m_cur_bitaddr + 1) & 7;
 				else if (m_noise) // noise
 				{
-					if (bitfield(m_lfsr, 1))
+					if (bitfield(m_lfsr, 0))
 					{
 						m_lfsr = (m_lfsr >> 1) ^ 0x6000;
-						m_lfsr_out = -0x8000;
+						m_lfsr_out = -0x7fff;
 					}
 					else
 					{

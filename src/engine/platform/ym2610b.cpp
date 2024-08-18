@@ -297,7 +297,9 @@ const char** DivPlatformYM2610B::getRegisterSheet() {
 }
 
 void DivPlatformYM2610B::acquire(short** buf, size_t len) {
-  if (useCombo) {
+  if (useCombo==2) {
+    acquire_lle(buf,len);
+  } else if (useCombo==1) {
     acquire_combo(buf,len);
   } else {
     acquire_ymfm(buf,len);
@@ -485,6 +487,196 @@ void DivPlatformYM2610B::acquire_ymfm(short** buf, size_t len) {
     }
 
     oscBuf[adpcmBChanOffs]->data[oscBuf[adpcmBChanOffs]->needle++]=(abe->get_last_out(0)+abe->get_last_out(1))>>1;
+  }
+}
+
+static const unsigned char subCycleMap[6]={
+  3, 4, 5, 0, 1, 2
+};
+
+void DivPlatformYM2610B::acquire_lle(short** buf, size_t len) {
+  thread_local int fmOut[6];
+
+  fm_lle.ym2610b=1;
+
+  for (size_t h=0; h<len; h++) {
+    bool have0=false;
+    bool have1=false;
+    signed char subCycle=0;
+    unsigned char subSubCycle=0;
+
+    for (int i=0; i<6; i++) {
+      fmOut[i]=0;
+    }
+
+    while (true) {
+      bool canWeWrite=fm_lle.prescaler_latch[1]&1;
+
+      if (canWeWrite) {
+        if (delay>0) {
+          if (delay==3) {
+            fm_lle.input.cs=1;
+            fm_lle.input.rd=1;
+            fm_lle.input.wr=1;
+            fm_lle.input.a0=0;
+            fm_lle.input.a1=0;
+            delay=0;
+          } else {
+            fm_lle.input.cs=0;
+            fm_lle.input.rd=0;
+            fm_lle.input.wr=1;
+            fm_lle.input.a0=0;
+            fm_lle.input.a1=0;
+            fm_lle.input.data=0;
+            delay=1;
+          }
+        } else if (!writes.empty()) {
+          QueuedWrite& w=writes.front();
+          if (w.addrOrVal) {
+            fm_lle.input.cs=0;
+            fm_lle.input.rd=1;
+            fm_lle.input.wr=0;
+            fm_lle.input.a1=w.addr>>8;
+            fm_lle.input.a0=1;
+            fm_lle.input.data=w.val;
+
+            delay=2;
+
+            regPool[w.addr&0x1ff]=w.val;
+            writes.pop_front();
+          } else {
+            fm_lle.input.cs=0;
+            fm_lle.input.rd=1;
+            fm_lle.input.wr=0;
+            fm_lle.input.a1=w.addr>>8;
+            fm_lle.input.a0=0;
+            fm_lle.input.data=w.addr&0xff;
+
+            delay=2;
+
+            w.addrOrVal=true;
+          }
+        } else {
+          fm_lle.input.cs=1;
+          fm_lle.input.rd=1;
+          fm_lle.input.wr=1;
+          fm_lle.input.a0=0;
+          fm_lle.input.a1=0;
+        }
+      }
+
+      FMOPNA_2610_Clock(&fm_lle,0);
+      FMOPNA_2610_Clock(&fm_lle,1);
+
+      if (++subSubCycle>=6) {
+        subSubCycle=0;
+        if (subCycle>=0 && subCycle<6 && fm_lle.ac_fm_output_en) {
+          fmOut[subCycleMap[subCycle]]+=((short)fm_lle.ac_fm_output)<<2;
+        }
+        if (++subCycle>=6) subCycle=0;
+      }
+
+      if (fm_lle.rss_eclk1) {
+        if (++rssSubCycle>=24) {
+          rssSubCycle=0;
+          rssOut[rssCycle]=(short)fm_lle.last_rss_sample;
+          if (++rssCycle>=6) rssCycle=0;
+        }
+      }
+
+      if (canWeWrite) {
+        if (delay==1) {
+          // check busy status here
+          if (!fm_lle.busy_cnt_en[1]) {
+            delay=0;
+          }
+        }
+      }
+      if (!fm_lle.o_s && lastS) {
+        if (!fm_lle.o_sh1 && lastSH) {
+          dacOut[0]=dacVal^0x8000;
+          have0=true;
+        }
+
+        if (!fm_lle.o_sh2 && lastSH2) {
+          dacOut[1]=dacVal^0x8000;
+          have1=true;
+        }
+
+        dacVal>>=1;
+        dacVal|=(fm_lle.o_opo&1)<<15;
+
+        lastSH=fm_lle.o_sh1;
+        lastSH2=fm_lle.o_sh2;
+      }
+
+      lastS=fm_lle.o_s;
+
+      // ADPCM-A data bus
+      if (fm_lle.o_rmpx && !rmpx) {
+        adMemAddrA&=~0x3ff;
+        adMemAddrA|=(fm_lle.o_rad&0xff)|((fm_lle.o_ra8&3)<<8);
+      }
+      if (!fm_lle.o_rmpx && rmpx) {
+        adMemAddrA&=0x3ff;
+        adMemAddrA|=((fm_lle.o_rad&0xff)|(fm_lle.o_ra8<<8)|(fm_lle.o_ra20<<10))<<10;
+      }
+      if (!fm_lle.o_roe) {
+        fm_lle.input.rad=adpcmAMem[adMemAddrA&0xffffff];
+      }
+      rmpx=fm_lle.o_rmpx;
+
+      // ADPCM-B data bus
+      if (fm_lle.o_pmpx && !pmpx) {
+        adMemAddrB&=~0xfff;
+        adMemAddrB|=(fm_lle.o_pad&0xff)|((fm_lle.o_pa8&15)<<8);
+      }
+      if (!fm_lle.o_pmpx && pmpx) {
+        adMemAddrB&=0xfff;
+        adMemAddrB|=((fm_lle.o_pad&0xff)|((fm_lle.o_pa8&15)<<8))<<12;
+      }
+      if (!fm_lle.o_poe) {
+        fm_lle.input.pad=adpcmBMem[adMemAddrB&0xffffff];
+      }
+      pmpx=fm_lle.o_pmpx;
+
+      if (have0 && have1) break;
+    }
+
+    // chan osc
+    // FM
+    for (int i=0; i<6; i++) {
+      if (fmOut[i]<-32768) fmOut[i]=-32768;
+      if (fmOut[i]>32767) fmOut[i]=32767;
+      oscBuf[i]->data[oscBuf[i]->needle++]=fmOut[i];
+    }
+    // SSG
+    for (int i=0; i<3; i++) {
+      oscBuf[i+6]->data[oscBuf[i+6]->needle++]=fm_lle.o_analog_ch[i]*32767;
+    }
+    // RSS
+    for (int i=0; i<6; i++) {
+      if (rssOut[i]<-32768) rssOut[i]=-32768;
+      if (rssOut[i]>32767) rssOut[i]=32767;
+      oscBuf[9+i]->data[oscBuf[9+i]->needle++]=rssOut[i];
+    }
+    // ADPCM
+    oscBuf[15]->data[oscBuf[15]->needle++]=fm_lle.ac_ad_output;
+
+    // DAC
+    int accm1=(short)dacOut[1];
+    int accm2=(short)dacOut[0];
+
+    int outL=((accm1*fmVol)>>8)+fm_lle.o_analog*ssgVol*42;
+    int outR=((accm2*fmVol)>>8)+fm_lle.o_analog*ssgVol*42;
+
+    if (outL<-32768) outL=-32768;
+    if (outL>32767) outL=32767;
+    if (outR<-32768) outR=-32768;
+    if (outR>32767) outR=32767;
+
+    buf[0][h]=outL;
+    buf[1][h]=outR;
   }
 }
 
@@ -1470,6 +1662,7 @@ void DivPlatformYM2610B::forceIns() {
       chan[i].freqChanged=true;
     }
   }
+  immWrite(0x101,globalADPCMAVolume&0x3f);
   immWrite(0x22,lfoValue);
   for (int i=adpcmAChanOffs; i<=adpcmBChanOffs; i++) {
     chan[i].insChanged=true;

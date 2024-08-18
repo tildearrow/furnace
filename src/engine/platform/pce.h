@@ -32,7 +32,7 @@ class DivPlatformPCE: public DivDispatch {
     unsigned int dacPos;
     int dacSample;
     unsigned char pan;
-    bool noise, pcm, furnaceDac, deferredWaveUpdate;
+    bool noise, pcm, furnaceDac, deferredWaveUpdate, setPos;
     signed short wave;
     int macroVolMul, noiseSeek;
     DivWaveSynth ws;
@@ -50,6 +50,7 @@ class DivPlatformPCE: public DivDispatch {
       pcm(false),
       furnaceDac(false),
       deferredWaveUpdate(false),
+      setPos(false),
       wave(-1),
       macroVolMul(31),
       noiseSeek(0) {}
@@ -68,10 +69,11 @@ class DivPlatformPCE: public DivDispatch {
   FixedQueue<QueuedWrite,512> writes;
   unsigned char lastPan;
 
-  int cycles, curChan, delay;
+  int curChan;
   int tempL[32];
   int tempR[32];
   unsigned char sampleBank, lfoMode, lfoSpeed;
+  int coreQuality;
   PCE_PSG* pce;
   unsigned char regPool[128];
   void updateWave(int ch);
@@ -88,6 +90,7 @@ class DivPlatformPCE: public DivDispatch {
     DivSamplePos getSamplePos(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     int mapVelocity(int ch, float vel);
+    float getGain(int ch, int vol);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
@@ -96,6 +99,7 @@ class DivPlatformPCE: public DivDispatch {
     void muteChannel(int ch, bool mute);
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
+    void setCoreQuality(unsigned char q);
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);

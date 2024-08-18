@@ -38,7 +38,7 @@ class DivPlatformSwan: public DivDispatch {
   Channel chan[4];
   DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
-  bool pcm, sweep, furnaceDac;
+  bool pcm, sweep, furnaceDac, setPos;
   unsigned char sampleBank, noise;
   int dacPeriod, dacRate;
   unsigned int dacPos;
@@ -53,6 +53,7 @@ class DivPlatformSwan: public DivDispatch {
   };
   FixedQueue<QueuedWrite,256> writes;
   FixedQueue<DivRegWrite,2048> postDACWrites;
+  int coreQuality;
   WSwan* ws;
   void updateWave(int ch);
   friend void putDispatchChip(void*,int);
@@ -78,6 +79,7 @@ class DivPlatformSwan: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
+    void setCoreQuality(unsigned char q);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformSwan();

@@ -15,11 +15,11 @@ android {
         }
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 192
-        versionName "0.6.1"
+        versionCode 214
+        versionName "0.6.5"
         externalNativeBuild {
             cmake {
-                arguments "-DANDROID_APP_PLATFORM=android-21", "-DANDROID_STL=c++_static", "-DWARNINGS_ARE_ERRORS=ON"
+                arguments "-DANDROID_APP_PLATFORM=android-21", "-DANDROID_STL=c++_static", "-DWARNINGS_ARE_ERRORS=ON", "-DWITH_LOCALE=ON", "-DUSE_MOMO=ON"
                 // abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
                 abiFilters 'arm64-v8a'
             }

@@ -19,7 +19,11 @@
 
 #include "gui.h"
 #include "../baseutils.h"
+#include "../fileutils.h"
 #include <fmt/printf.h>
+#include "IconsFontAwesome4.h"
+#include <imgui.h>
+#include "misc/cpp/imgui_stdlib.h"
 
 // add system configurations here.
 // every entry is written in the following format:
@@ -137,12 +141,15 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+     "Game Boy Advance", {}
+  );
+  SUB_ENTRY(
     "Game Boy Advance (no software mixing)", {
       CH(DIV_SYSTEM_GB, 1.0f, 0, "chipType=3"),
       CH(DIV_SYSTEM_GBA_DMA, 0.5f, 0, ""),
     }
   );
-  ENTRY(
+  SUB_ENTRY(
     "Game Boy Advance (with MinMod)", {
       CH(DIV_SYSTEM_GB, 1.0f, 0, "chipType=3"),
       CH(DIV_SYSTEM_GBA_MINMOD, 0.5f, 0, ""),
@@ -212,6 +219,19 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_SNES, 1.0f, 0, "")
     }
   );
+    SUB_ENTRY(
+      "Super Game Boy", {
+        CH(DIV_SYSTEM_GB, 1.0f, 0, "customClock=4295455"),
+        CH(DIV_SYSTEM_SNES, 1.0f, 0, "")
+      },
+      "tickRate=61.44697015935724"
+    );
+    SUB_ENTRY(
+      "Super Game Boy 2", {
+        CH(DIV_SYSTEM_GB, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_SNES, 1.0f, 0, "")
+      }
+    );
   ENTRY(
     "Mattel Intellivision", {
       CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=3")
@@ -237,12 +257,23 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_TIA, 1.0f, 0, "")
     }
   );
+    SUB_ENTRY(
+      "Atari 2600/7800 (with software pitch driver)", {
+        CH(DIV_SYSTEM_TIA, 1.0f, 0, "softwarePitch=1")
+      }
+    );
   ENTRY(
     "Atari 7800 + Ballblazer/Commando", {
       CH(DIV_SYSTEM_TIA, 1.0f, 0, ""),
       CH(DIV_SYSTEM_POKEY, 1.0f, 0, "")
     }
   );
+    SUB_ENTRY(
+      "Atari 7800 (with software pitch driver) + Ballblazer/Commando", {
+        CH(DIV_SYSTEM_TIA, 1.0f, 0, "softwarePitch=1"),
+        CH(DIV_SYSTEM_POKEY, 1.0f, 0, "")
+      }
+    );
   ENTRY(
     "Atari Lynx", {
       CH(DIV_SYSTEM_LYNX, 1.0f, 0, "")
@@ -486,6 +517,11 @@ void FurnaceGUI::initSystemPresets() {
           "rate=55930\n"
           "outDepth=7\n"
         ) // variable rate, Mono DAC
+      }
+    );
+  ENTRY(
+      "NEC PC-6001", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "customClock=3993600")
       }
     );
   ENTRY(
@@ -1017,7 +1053,7 @@ void FurnaceGUI::initSystemPresets() {
     );
     SUB_ENTRY(
       "Tandy 1000", {
-        CH(DIV_SYSTEM_SMS, 1.0f, 0, "chipType=5"), // NCR 8496 or SN76496 or Tandy PSSJ(with 8 bit DAC)
+        CH(DIV_SYSTEM_SMS, 1.0f, 0, "chipType=5"), // NCR 8496 or SN76496 or Tandy PSSJ (with 8 bit DAC)
         CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
       }
     );
@@ -1167,22 +1203,69 @@ void FurnaceGUI::initSystemPresets() {
         CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
       }
     );
+    SUB_ENTRY(
+        "Sega TeraDrive", {
+          CH(DIV_SYSTEM_YM2612, 1.0f, 0, ""),
+          CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
+          CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+      }
+    );
+      SUB_SUB_ENTRY(
+          "Sega TeraDrive (extended channel 3)", {
+            CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, ""),
+            CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
+            CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+        }
+    );
+      SUB_SUB_ENTRY(
+          "Sega TeraDrive (CSM)", {
+            CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, ""),
+            CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
+            CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+        }
+    );
+      SUB_SUB_ENTRY(
+          "Sega TeraDrive (DualPCM)", {
+            CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, ""),
+            CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
+            CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+        }
+    );
+      SUB_SUB_ENTRY(
+          "Sega TeraDrive (DualPCM, extended channel 3)", {
+            CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, ""),
+            CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
+            CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+        }
+    );
   ENTRY(
     "Sharp X1", {
       CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=3")
-    }
+        }
   );
     SUB_ENTRY(
       "Sharp X1 + FM Addon", {
         CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=3"),
         CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2")
-      }
+        }
     );
   ENTRY(
     "Sharp X68000", {
       CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"),
       CH(DIV_SYSTEM_MSM6258, 1.0f, 0, "clockSel=2")
-    }
+        }
+  );
+  ENTRY(
+    "FM-7", {
+      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=12"),
+      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5")
+        }
+  );
+   SUB_ENTRY(
+     "FM-7 (extended channel 3)", {
+       CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=12"),
+       CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5")
+     }
   );
   ENTRY(
     "FM Towns", {
@@ -1228,6 +1311,14 @@ void FurnaceGUI::initSystemPresets() {
       )
     }
   );
+  ENTRY(
+  "Sord M5", {
+    CH(DIV_SYSTEM_SMS, 1.0f, 0,
+      "customClock=1773447\n"
+      "chipType=1\n"
+     )
+   }
+ );
   CATEGORY_END;
 
   CATEGORY_BEGIN("Arcade systems","INSERT COIN");
@@ -1236,7 +1327,7 @@ void FurnaceGUI::initSystemPresets() {
     "Alpha Denshi", {}
   );
     SUB_ENTRY(
-      "Alpha denshi Alpha-68K", {
+      "Alpha Denshi Alpha-68K", {
         CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=3"), // 3MHz
         CH(DIV_SYSTEM_OPLL, 1.0f, 0, "clockSel=0"), // 3.58MHz
         CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
@@ -1246,7 +1337,7 @@ void FurnaceGUI::initSystemPresets() {
       }
     );
     SUB_ENTRY(
-      "Alpha denshi Alpha-68K (extended channel 3)", {
+      "Alpha Denshi Alpha-68K (extended channel 3)", {
         CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=3"), // 3MHz
         CH(DIV_SYSTEM_OPLL, 1.0f, 0, "clockSel=0"), // 3.58MHz
         CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
@@ -1256,7 +1347,7 @@ void FurnaceGUI::initSystemPresets() {
       }
     );
     SUB_ENTRY(
-      "Alpha denshi Alpha-68K (drums mode)", {
+      "Alpha Denshi Alpha-68K (drums mode)", {
         CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=3"), // 3MHz
         CH(DIV_SYSTEM_OPLL_DRUMS, 1.0f, 0, "clockSel=0"), // 3.58MHz
         CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
@@ -1266,7 +1357,7 @@ void FurnaceGUI::initSystemPresets() {
       }
     );
     SUB_ENTRY(
-      "Alpha denshi Alpha-68K (extended channel 3; drums mode)", {
+      "Alpha Denshi Alpha-68K (extended channel 3; drums mode)", {
         CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=3"), // 3MHz
         CH(DIV_SYSTEM_OPLL_DRUMS, 1.0f, 0, "clockSel=0"), // 3.58MHz
         CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
@@ -1276,7 +1367,7 @@ void FurnaceGUI::initSystemPresets() {
       }
     );
     SUB_ENTRY(
-      "Alpha denshi Equites", {
+      "Alpha Denshi Equites", {
         CH(DIV_SYSTEM_MSM5232, 1.0f, 0, "customClock=6144000"),
         CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=14"),
         CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
@@ -1354,7 +1445,7 @@ void FurnaceGUI::initSystemPresets() {
     "Capcom", {}
   );
     SUB_ENTRY(
-      "Capcom Exed Eyes", {
+      "Capcom Exed Exes", {
         CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=4"), // 1.5MHz
         CH(DIV_SYSTEM_SMS, 1.0f, 0,
           "clockSel=4\n"
@@ -1430,28 +1521,28 @@ void FurnaceGUI::initSystemPresets() {
       }
     );
     SUB_ENTRY(
-      "Data East Arcade", { // Bad dudes, Robocop, etc
+      "Data East Arcade", { // Bad Dudes, RoboCop, etc
         CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"), // 1.5MHz
         CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=3"), // 3MHz
         CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 to 1.056MHz; various per games or optional
       }
     );
     SUB_ENTRY(
-      "Data East Arcade (extended channel 3)", { // Bad dudes, Robocop, etc
+      "Data East Arcade (extended channel 3)", { // Bad Dudes, RoboCop, etc
         CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"), // 1.5MHz
         CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=3"), // 3MHz
         CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 to 1.056MHz; various per games or optional
       }
     );
     SUB_ENTRY(
-      "Data East Arcade (drums mode)", { // Bad dudes, Robocop, etc
+      "Data East Arcade (drums mode)", { // Bad Dudes, RoboCop, etc
         CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"), // 1.5MHz
         CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=3"), // 3MHz
         CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 to 1.056MHz; various per games or optional
       }
     );
     SUB_ENTRY(
-      "Data East Arcade (extended channel 3; drums mode)", { // Bad dudes, Robocop, etc
+      "Data East Arcade (extended channel 3; drums mode)", { // Bad Dudes, RoboCop, etc
         CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"), // 1.5MHz
         CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=3"), // 3MHz
         CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 to 1.056MHz; various per games or optional
@@ -1477,7 +1568,7 @@ void FurnaceGUI::initSystemPresets() {
         CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4.0275MHz (32.22MHz / 8); optional
         CH(DIV_SYSTEM_MSM6295, 1.0f, 0, ""), // 1.007MHz (32.22MHz / 32)
         CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=8") // 2.014MHz (32.22MHz / 16); optional
-        // HuC6280 is for control them, internal sound isn't used
+        // HuC6280 is for controlling them; internal sound isn't used
       }
     );
     SUB_ENTRY(
@@ -1486,7 +1577,7 @@ void FurnaceGUI::initSystemPresets() {
         CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4.0275MHz (32.22MHz / 8); optional
         CH(DIV_SYSTEM_MSM6295, 1.0f, 0, ""), // 1.007MHz (32.22MHz / 32)
         CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=8") // 2.014MHz (32.22MHz / 16); optional
-        // HuC6280 is for control them, internal sound isn't used
+        // HuC6280 is for controlling them; internal sound isn't used
       }
     );
     SUB_ENTRY(
@@ -2207,13 +2298,13 @@ void FurnaceGUI::initSystemPresets() {
       }
     );
     SUB_ENTRY(
-      "Seibu Kaihatsu Raiden", { // Raiden, Seibu cup soccer, Zero team, etc
+      "Seibu Kaihatsu Raiden", { // Raiden, Seibu Cup Soccer, Zero Team, etc
         CH(DIV_SYSTEM_OPL2, 1.0f, 0, ""), // YM3812 3.58MHz
         CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 or 1.023MHz (28.636363MHz / 28); various per games
       }
     );
     SUB_ENTRY(
-      "Seibu Kaihatsu Raiden (drums mode)", { // Raiden, Seibu cup soccer, Zero team, etc
+      "Seibu Kaihatsu Raiden (drums mode)", { // Raiden, Seibu Cup Soccer, Zero Team, etc
         CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""), // YM3812 3.58MHz
         CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 or 1.023MHz (28.636363MHz / 28); various per games
       }
@@ -2835,7 +2926,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
-    "NDS", {
+    "Nintendo DS", {
       CH(DIV_SYSTEM_NDS, 1.0f, 0, "")
     }
   );
@@ -2961,6 +3052,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_TIA, 1.0f, 0, "")
     }
   );
+    SUB_ENTRY(
+      "Atari TIA (with software pitch driver)", {
+        CH(DIV_SYSTEM_TIA, 1.0f, 0, "softwarePitch=1")
+      }
+    );
   ENTRY(
     "NES (Ricoh 2A03)", {
       CH(DIV_SYSTEM_NES, 1.0f, 0, "")
@@ -3012,6 +3108,16 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Nintendo DS", {
       CH(DIV_SYSTEM_NDS, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "Bifurcator", {
+      CH(DIV_SYSTEM_BIFURCATOR, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "SID2", {
+      CH(DIV_SYSTEM_SID2, 1.0f, 0, "")
     }
   );
   CATEGORY_END;
@@ -3098,11 +3204,9 @@ void FurnaceGUI::initSystemPresets() {
   CATEGORY_END;
 }
 
-FurnaceGUISysDef::FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def, const char* e):
-  name(n),
-  extra(e) {
-  orig=def;
+void FurnaceGUISysDef::bake() {
   int index=0;
+  definition="";
   for (FurnaceGUISysDefChip& i: orig) {
     definition+=fmt::sprintf(
       "id%d=%d\nvol%d=%f\npan%d=%f\nflags%d=%s\n",
@@ -3117,16 +3221,45 @@ FurnaceGUISysDef::FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceG
     );
     index++;
   }
-  if (extra) {
+  if (!extra.empty()) {
     definition+=extra;
   }
 }
 
-// functions for loading/saving user presets
-bool loadUserPresets(bool redundancy) {
-  return true;
+FurnaceGUISysDef::FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def, const char* e):
+  name(n),
+  extra((e==NULL)?"":e) {
+  orig=def;
+  bake();
 }
 
-bool saveUserPresets(bool redundancy) {
-  return true;
+FurnaceGUISysDef::FurnaceGUISysDef(const char* n, const char* def, DivEngine* e):
+  name(n),
+  definition(taDecodeBase64(def)) {
+  // extract definition
+  DivConfig conf;
+  conf.loadFromMemory(definition.c_str());
+  for (int i=0; i<DIV_MAX_CHIPS; i++) {
+    String nextStr=fmt::sprintf("id%d",i);
+    int id=conf.getInt(nextStr.c_str(),0);
+    if (id==0) break;
+    conf.remove(nextStr.c_str());
+
+    nextStr=fmt::sprintf("vol%d",i);
+    float vol=conf.getFloat(nextStr.c_str(),1.0f);
+    conf.remove(nextStr.c_str());
+    nextStr=fmt::sprintf("pan%d",i);
+    float pan=conf.getFloat(nextStr.c_str(),0.0f);
+    conf.remove(nextStr.c_str());
+    nextStr=fmt::sprintf("fr%d",i);
+    float panFR=conf.getFloat(nextStr.c_str(),0.0f);
+    conf.remove(nextStr.c_str());
+    nextStr=fmt::sprintf("flags%d",i);
+    String flags=taDecodeBase64(conf.getString(nextStr.c_str(),"").c_str());
+    conf.remove(nextStr.c_str());
+
+    orig.push_back(FurnaceGUISysDefChip(e->systemFromFileFur(id),vol,pan,flags.c_str(),panFR));
+  }
+  // extract extra
+  extra=conf.toString();
 }

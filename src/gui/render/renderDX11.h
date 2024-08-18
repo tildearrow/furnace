@@ -41,7 +41,7 @@ class FurnaceGUIRenderDX11: public FurnaceGUIRender {
   ID3D11BlendState* omBlendState;
 
   ID3D11Buffer* quadVertex;
-  int outW, outH;
+  int outW, outH, swapInterval;
 
   bool dead;
 
@@ -56,21 +56,26 @@ class FurnaceGUIRenderDX11: public FurnaceGUIRender {
     float padding[7];
   };
 
+  int maxWidth, maxHeight;
+  String vendorName, deviceName, apiVersion;
+
   bool destroyRenderTarget();
   bool createRenderTarget();
 
   public:
     ImTextureID getTextureID(FurnaceGUITexture* which);
+    FurnaceGUITextureFormat getTextureFormat(FurnaceGUITexture* which);
     bool lockTexture(FurnaceGUITexture* which, void** data, int* pitch);
     bool unlockTexture(FurnaceGUITexture* which);
     bool updateTexture(FurnaceGUITexture* which, void* data, int pitch);
-    FurnaceGUITexture* createTexture(bool dynamic, int width, int height);
+    FurnaceGUITexture* createTexture(bool dynamic, int width, int height, bool interpolate=true, FurnaceGUITextureFormat format=GUI_TEXFORMAT_ABGR32);
     bool destroyTexture(FurnaceGUITexture* which);
     void setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode);
     void setBlendMode(FurnaceGUIBlendMode mode);
     void resized(const SDL_Event& ev);
     void clear(ImVec4 color);
     bool newFrame();
+    bool canVSync();
     void createFontsTexture();
     void destroyFontsTexture();
     void renderGUI();
@@ -78,8 +83,16 @@ class FurnaceGUIRenderDX11: public FurnaceGUIRender {
     void present();
     bool getOutputSize(int& w, int& h);
     int getWindowFlags();
-    void preInit();
-    bool init(SDL_Window* win);
+    int getMaxTextureWidth();
+    int getMaxTextureHeight();
+    unsigned int getTextureFormats();
+    const char* getBackendName();
+    const char* getVendorName();
+    const char* getDeviceName();
+    const char* getAPIVersion();
+    void setSwapInterval(int swapInterval);
+    void preInit(const DivConfig& conf);
+    bool init(SDL_Window* win, int swapInterval);
     void initGUI(SDL_Window* win);
     void quitGUI();
     bool quit();
@@ -94,10 +107,13 @@ class FurnaceGUIRenderDX11: public FurnaceGUIRender {
       quadVertex(NULL),
       outW(0),
       outH(0),
+      swapInterval(1),
       dead(false),
       sh_wipe_vertex(NULL),
       sh_wipe_fragment(NULL),
       sh_wipe_inputLayout(NULL),
-      sh_wipe_uniform(NULL) {
+      sh_wipe_uniform(NULL),
+      maxWidth(8192),
+      maxHeight(8192) {
     }
 };

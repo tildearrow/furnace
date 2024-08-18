@@ -28,7 +28,7 @@
 class DivPlatformSegaPCM: public DivDispatch {
   protected:
     struct Channel: public SharedChannel<int> {
-      bool furnacePCM, isNewSegaPCM;
+      bool furnacePCM, isNewSegaPCM, setPos;
       unsigned char chVolL, chVolR;
       unsigned char chPanL, chPanR;
       int macroVolMul;
@@ -44,6 +44,7 @@ class DivPlatformSegaPCM: public DivDispatch {
         SharedChannel<int>(127),
         furnacePCM(false),
         isNewSegaPCM(false),
+        setPos(false),
         chVolL(127),
         chVolR(127),
         chPanL(127),
