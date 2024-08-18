@@ -235,26 +235,26 @@ const char* fxColorsNames[]={
   _N("Miscellaneous")
 };
 
-const char* chanNames[]={
-  "FM",
-  "Pulse",
-  "Noise",
-  "Wavetable",
-  "Sample",
+const char* chanNames[CHANNEL_TYPE_MAX+1]={
+  _N("FM"),
+  _N("Pulse"),
+  _N("Noise"),
+  _N("Wavetable"),
+  _N("Sample"),
   // the "freaks":
-  "Square",
-  "Triangle", // nes
-  "Ext. Operator", 
-  "Drums",
-  "Slope", // powernoiseee
-  "VERA", // Daviiid!!
+  _N("Square"),
+  _N("Triangle"), // NES
+  _N("Saw"), // VRC6
+  _N("Ext. Operator"), 
+  _N("Drums"),
+  _N("Slope"), // PowerNoise
+  _N("Wave"), // not wavetable (VERA, 5E01)
 
-  "Channel", // if neither
-  "Channels" // in case this makes l10n easier
+  _N("Channel"), // if neither
+  _N("Channels") // in case this makes l10n easier
 };
 
-// because someone will complain about the ordering
-unsigned char chanNamesHierarchy[]={0,5,1,2,3,6,9,10,8,4,7,11,12};
+unsigned char chanNamesHierarchy[CHANNEL_TYPE_MAX+1]={0,5,1,3,6,7,2,10,11,9,4,8,12,13};
 
 const FurnaceGUIColors fxColors[256]={
   GUI_COLOR_PATTERN_EFFECT_MISC, // 00

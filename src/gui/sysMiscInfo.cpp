@@ -303,9 +303,10 @@ void FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef) {
 void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
   String info="";
   // same order as chanNames
-  // helper: FM|PU|NO|WA|SA|SQ|TR|OP|DR|SL|VE|CH
-  unsigned char chanCount[12];
-  memset(chanCount,0,sizeof(chanCount));
+  // helper: FM|PU|NO|WA|SA|SQ|TR|SW|OP|DR|SL|VE|CH
+  unsigned char chanCount[CHANNEL_TYPE_MAX];
+  memset(chanCount,0,CHANNEL_TYPE_MAX);
+  // count channel types
   for (int i=0; i<whichDef->channels; i++) {
     switch (whichDef->chanInsType[i][0]) {
       case DIV_INS_STD: // square
@@ -313,23 +314,24 @@ void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
       case DIV_INS_TED:
       case DIV_INS_VIC:
       case DIV_INS_T6W28:
+      case DIV_INS_PV1000:
         if (whichDef->id==0xfd) { // dummy
-          chanCount[11]++;
+          chanCount[CHANNEL_TYPE_OTHER]++;
           break;
         }
         if (whichDef->id==0x9f) { // zx sfx
-          chanCount[1]++;
+          chanCount[CHANNEL_TYPE_PULSE]++;
           break;
         }
         if (whichDef->chanTypes[i]==DIV_CH_NOISE) { // sn/t6w noise
-          chanCount[2]++;
+          chanCount[CHANNEL_TYPE_NOISE]++;
         } else { // DIV_CH_PULSE, any sqr chan
-          chanCount[5]++;
+          chanCount[CHANNEL_TYPE_SQUARE]++;
         }
         break;
       case DIV_INS_NES:
         if (whichDef->chanTypes[i]==DIV_CH_WAVE) {
-          chanCount[6]++; // triangle
+          chanCount[whichDef->id==0xf1?CHANNEL_TYPE_WAVE:CHANNEL_TYPE_TRIANGLE]++; // triangle, wave for 5E01
         } else {
           chanCount[whichDef->chanTypes[i]]++;
         }
@@ -338,46 +340,53 @@ void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
       case DIV_INS_OPL:
       case DIV_INS_OPLL:
         if (whichDef->chanTypes[i]==DIV_CH_OP) {
-          chanCount[0]++; // opl3 4op
+          chanCount[CHANNEL_TYPE_FM]++; // opl3 4op
           break;
         }
         if (whichDef->chanTypes[i]==DIV_CH_NOISE) {
-          chanCount[8]++; // drums
+          chanCount[CHANNEL_TYPE_DRUMS]++; // drums
         } else {
           chanCount[whichDef->chanTypes[i]]++;
         }
         break;
       case DIV_INS_FM:
         if (whichDef->chanTypes[i]==DIV_CH_OP) {
-          chanCount[7]++; // ext. ops
+          chanCount[CHANNEL_TYPE_OPERATOR]++; // ext. ops
         } else if (whichDef->chanTypes[i]==DIV_CH_NOISE) {
           break; // csm timer
         } else {
           chanCount[whichDef->chanTypes[i]]++;
         }
         break;
+      case DIV_INS_ADPCMA:
+      case DIV_INS_ADPCMB:
+        chanCount[CHANNEL_TYPE_SAMPLE]++;
+        break;
+      case DIV_INS_VRC6_SAW:
+        chanCount[CHANNEL_TYPE_SAW]++;
+        break;
       case DIV_INS_POWERNOISE_SLOPE:
-        chanCount[9]++;
+        chanCount[CHANNEL_TYPE_SLOPE]++;
         break;
       case DIV_INS_QSOUND:
-        chanCount[4]++;
+        chanCount[CHANNEL_TYPE_SAMPLE]++;
         break;
       case DIV_INS_NDS:
         if (whichDef->chanTypes[i]!=DIV_CH_PCM) { // the psg chans can also play samples??
-          chanCount[4]++;
+          chanCount[CHANNEL_TYPE_SAMPLE]++;
         }
         chanCount[whichDef->chanTypes[i]]++;
         break;
       case DIV_INS_VERA:
         if (whichDef->chanTypes[i]==DIV_CH_PULSE) {
-          chanCount[10]++;
+          chanCount[CHANNEL_TYPE_WAVE]++;
         } else { // sample chan
-          chanCount[4]++;
+          chanCount[CHANNEL_TYPE_SAMPLE]++;
         }
         break;
       case DIV_INS_DAVE:
         if (whichDef->chanTypes[i]==DIV_CH_WAVE) {
-          chanCount[11]++;
+          chanCount[CHANNEL_TYPE_OTHER]++;
         } else {
           chanCount[whichDef->chanTypes[i]]++;
         }
@@ -388,25 +397,27 @@ void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
       case DIV_INS_SU:
       case DIV_INS_POKEY:
       case DIV_INS_MIKEY:
-        chanCount[11]++;
+      case DIV_INS_BIFURCATOR:
+      case DIV_INS_SID2:
+        chanCount[CHANNEL_TYPE_OTHER]++;
         break;
       default:
         chanCount[whichDef->chanTypes[i]]++;
         break;
     }
   }
-
-  for (int j=0; j<12; j++) {
+  // generate string
+  for (int j=0; j<CHANNEL_TYPE_MAX; j++) {
     unsigned char i=chanNamesHierarchy[j];
     if (chanCount[i]==0) continue;
     if (info.length()!=0) {
       info+=", ";
     }
-    if (i==11) {
+    if (i==CHANNEL_TYPE_OTHER) {
       if (chanCount[i]>1) {
-        info+=fmt::sprintf("%d %s",chanCount[i],chanNames[12]);
+        info+=fmt::sprintf("%d %s",chanCount[i],chanNames[CHANNEL_TYPE_OTHER+1]);
       } else {
-        info+=fmt::sprintf("%d %s",chanCount[i],chanNames[11]);
+        info+=fmt::sprintf("%d %s",chanCount[i],chanNames[CHANNEL_TYPE_OTHER]);
       }
       continue;
     }
