@@ -619,6 +619,17 @@ class DivEngine {
   void loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadWOPL(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+ 
+ //sample banks
+  void loadP(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
+  void loadPPC(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
+  void loadPPS(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
+  void loadPVI(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
+  void loadPDX(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
+  void loadPZI(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
+  void loadP86(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
+
+
 
   int loadSampleROM(String path, ssize_t expectedSize, unsigned char*& ret);
 
@@ -1034,7 +1045,8 @@ class DivEngine {
     int addSamplePtr(DivSample* which);
 
     // get sample from file
-    DivSample* sampleFromFile(const char* path);
+    //DivSample* sampleFromFile(const char* path);
+    std::vector<DivSample*> sampleFromFile(const char* path);
 
     // get raw sample
     DivSample* sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian, bool unsign, bool swapNibbles, int rate);

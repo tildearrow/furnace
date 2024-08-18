@@ -27,7 +27,7 @@ uint8_t DivOPLAInterface::ymfm_external_read(ymfm::access_class type, uint32_t a
       if (adpcmBMem==NULL) {
         return 0;
       }
-      return adpcmBMem[address&0xffffff];
+      return adpcmBMem[address&0x3ffff];
     default:
       return 0;
   }

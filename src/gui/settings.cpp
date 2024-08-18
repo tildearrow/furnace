@@ -4755,7 +4755,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.vibrationStrength=conf.getFloat("vibrationStrength",0.5f);
     settings.vibrationLength=conf.getInt("vibrationLength",20);
 
-    settings.s3mOPL3=conf.getInt("s3mOPL3",0);
+    settings.s3mOPL3=conf.getInt("s3mOPL3",1);
 
     settings.backupEnable=conf.getInt("backupEnable",1);
     settings.backupInterval=conf.getInt("backupInterval",30);
