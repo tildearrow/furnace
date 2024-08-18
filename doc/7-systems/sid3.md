@@ -105,6 +105,12 @@ wave channel has all these features, except, obviously, waveform generation stag
 - `AExx`: **tone phase reset.** `xx` is the tick on which the phase reset happens.
 - `AFxx`: **noise phase reset.** `xx` is the tick on which the phase reset happens.
 - `B0xx`: **envelope reset.** `xx` is the tick on which the envelope reset happens.
+- `B1xy`: **filter cutoff scaling control.** `x` is the filter (`0-3`), and lower 2 bits of `y` control the scaling:
+  - `bit 0`: enable cutoff scaling
+  - `bit 1`: inverse cutoff scaling
+- `B2xy`: **filter resonance scaling control.** `x` is the filter (`0-3`), and lower 2 bits of `y` control the scaling:
+  - `bit 0`: enable resonance scaling
+  - `bit 1`: inverse resonance scaling
 
 ## info
 

@@ -451,10 +451,10 @@ const char* sid3ShapeBits[6]={
 };
 
 const char* sid3FilterMatrixBits[5]={
-  _N("To filter 1"),
-  _N("To filter 2"),
-  _N("To filter 3"),
-  _N("To filter 4"),
+  _N("From filter 1"),
+  _N("From filter 2"),
+  _N("From filter 3"),
+  _N("From filter 4"),
   NULL
 };
 
@@ -780,7 +780,7 @@ String macroSID3SpecialWaves(int id, float val, void* u)
 {
   if((int)val >= SID3_NUM_SPECIAL_WAVES) return "???";
 
-  return sid3SpecialWaveforms[(int)val % SID3_NUM_SPECIAL_WAVES];
+  return _(sid3SpecialWaveforms[(int)val % SID3_NUM_SPECIAL_WAVES]);
 }
 
 String macroSID3SourceChan(int id, float val, void* u) 
@@ -803,24 +803,24 @@ String macroSID3SourceChan(int id, float val, void* u)
 
 String macroSID3NoiseLFSR(int id, float val, void* u) 
 {
-  return _("SID2 noise modes:\n\n"
-  "Mode 2: \n"
-  "Mode 3: \n"
-  "Mode 4: ");
+  return _("values close to SID2 noise modes:\n\n"
+  "Mode 1: 524288\n"
+  "Mode 2: 66\n"
+  "Mode 3: 541065280");
 }
 
 String macroSID2WaveMixMode(int id, float val, void* u) 
 {
   if((int)val > 3) return "???";
 
-  return sid2WaveMixModes[(int)val];
+  return _(sid2WaveMixModes[(int)val]);
 }
 
 String macroSID3WaveMixMode(int id, float val, void* u) 
 {
   if((int)val > 4) return "???";
 
-  return sid3WaveMixModes[(int)val];
+  return _(sid3WaveMixModes[(int)val]);
 }
 
 void addAALine(ImDrawList* dl, const ImVec2& p1, const ImVec2& p2, const ImU32 color, float thickness=1.0f) {
@@ -5914,7 +5914,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
       }
       popToggleColors();
 
-      P(CWSliderScalar(_("Special wave"),ImGuiDataType_U8,&ins->sid3.special_wave,&_ZERO,&_SID3_SPECIAL_WAVES,sid3SpecialWaveforms[ins->sid3.special_wave % SID3_NUM_SPECIAL_WAVES])); rightClickable
+      P(CWSliderScalar(_("Special wave"),ImGuiDataType_U8,&ins->sid3.special_wave,&_ZERO,&_SID3_SPECIAL_WAVES,_(sid3SpecialWaveforms[ins->sid3.special_wave % SID3_NUM_SPECIAL_WAVES]))); rightClickable
 
       if(ImGui::Checkbox(_("Wavetable channel"),&ins->sid3.doWavetable))
       {

@@ -1162,6 +1162,16 @@ int DivPlatformSID3::dispatch(DivCommand c) {
     case DIV_CMD_SID3_ENVELOPE_RESET:
       chan[c.chan].envelope_reset_counter = c.value;
       break;
+    case DIV_CMD_SID3_CUTOFF_SCALING:
+      chan[c.chan].filt[(c.value >> 4) & 3].bindCutoffToNote = c.value & 1;
+      chan[c.chan].filt[(c.value >> 4) & 3].bindCutoffToNoteDir = c.value & 2;
+      chan[c.chan].freqChanged = true;
+      break;
+    case DIV_CMD_SID3_RESONANCE_SCALING:
+      chan[c.chan].filt[(c.value >> 4) & 3].bindResonanceToNote = c.value & 1;
+      chan[c.chan].filt[(c.value >> 4) & 3].bindResonanceToNoteDir = c.value & 2;
+      chan[c.chan].freqChanged = true;
+      break;
     case DIV_CMD_SAMPLE_POS:
       chan[c.chan].dacPos=c.value;
       break;

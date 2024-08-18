@@ -285,6 +285,8 @@ const char* cmdName[]={
   "SID3_PHASE_RESET",
   "SID3_NOISE_PHASE_RESET",
   "SID3_ENVELOPE_RESET",
+  "SID3_CUTOFF_SCALING",
+  "SID3_RESONANCE_SCALING",
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");

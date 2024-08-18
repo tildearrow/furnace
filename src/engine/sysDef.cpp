@@ -766,6 +766,9 @@ void DivEngine::registerSystems() {
     {0xAE, {DIV_CMD_SID3_PHASE_RESET, _("AExx: Phase reset on tick xx")}},
     {0xAF, {DIV_CMD_SID3_NOISE_PHASE_RESET, _("AFxx: Noise phase reset on tick xx")}},
     {0xB0, {DIV_CMD_SID3_ENVELOPE_RESET, _("B0xx: Envelope reset on tick xx")}},
+
+    {0xB1, {DIV_CMD_SID3_CUTOFF_SCALING, _("B1xy: Cutoff scaling control (x: filter (0-3); y: bit 0: enable scaling; bit 1: invert scaling)")}},
+    {0xB2, {DIV_CMD_SID3_RESONANCE_SCALING, _("B2xy: Resonance scaling control (x: filter (0-3); y: bit 0: enable scaling; bit 1: invert scaling)")}},
   };
 
   const EffectHandler SID3FineDutyHandler(DIV_CMD_C64_FINE_DUTY, _("5xxx: Set pulse width (0 to FFF)"), effectValLong<12>);
