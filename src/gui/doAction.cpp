@@ -676,6 +676,17 @@ void FurnaceGUI::doAction(int what) {
       latchTarget=0;
       latchNibble=false;
       break;
+    case GUI_ACTION_PAT_ABSORB_INSTRUMENT: {
+      DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],false);
+      if (!pat) break;
+      for (int i=cursor.y; i>=0; i--) {
+        if (pat->data[i][2] >= 0) {
+          curIns=pat->data[i][2];
+          break;
+        }
+      }
+      break;
+    }
 
     case GUI_ACTION_INS_LIST_ADD:
       if (settings.insTypeMenu) {

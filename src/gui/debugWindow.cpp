@@ -36,6 +36,8 @@ static float oscDebugMax=1.0;
 static float oscDebugPower=1.0;
 static int oscDebugRepeat=1;
 static int numApples=1;
+static int getGainChan=0;
+static int getGainVol=0;
 
 static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   if (cmd!=NULL) {
@@ -721,6 +723,13 @@ void FurnaceGUI::drawDebug() {
       ImGui::TreePop();
     }
 #endif
+    if (ImGui::TreeNode("Get Gain Test")) {
+      float realVol=e->getGain(getGainChan,getGainVol);
+      ImGui::InputInt("Chan",&getGainChan);
+      ImGui::InputInt("Vol",&getGainVol);
+      ImGui::Text("result: %.0f%%",realVol*100.0f);
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("User Interface")) {
       if (ImGui::Button("Inspect")) {
         inspectorOpen=!inspectorOpen;
