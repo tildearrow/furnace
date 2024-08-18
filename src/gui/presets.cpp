@@ -3101,7 +3101,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
-    "NEC uPD1771C", {
+    "NEC μPD1771C", {
       CH(DIV_SYSTEM_UPD1771C, 1.0f, 0, "")
     }
   );

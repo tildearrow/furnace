@@ -283,7 +283,7 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       return "Watara Supervision";
       break;
     case DIV_SYSTEM_UPD1771C:
-      return "uPD1771C";
+      return "μPD1771C";
       break;
     default:
       return FurnaceGUI::getSystemName(sys);
