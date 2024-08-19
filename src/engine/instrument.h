@@ -934,7 +934,7 @@ struct DivInstrument : DivInstrumentPOD {
    */
   FixedQueue<DivInstrumentUndoStep*, 128> undoHist;
   FixedQueue<DivInstrumentUndoStep*, 128> redoHist;
-  void recordUndoStepIfChanged(size_t processTime, const DivInstrument* old);
+  bool recordUndoStepIfChanged(size_t processTime, const DivInstrument* old);
   int undo();
   int redo();
 

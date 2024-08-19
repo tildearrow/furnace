@@ -3704,6 +3704,7 @@ bool FurnaceGUI::loop() {
       ImGui::GetIO().AddKeyEvent(ImGuiKey_Backspace,false);
       injectBackUp=false;
     }
+
     while (SDL_PollEvent(&ev)) {
       WAKE_UP;
       ImGui_ImplSDL2_ProcessEvent(&ev);
@@ -3720,13 +3721,16 @@ bool FurnaceGUI::loop() {
         }
         case SDL_MOUSEBUTTONUP:
           pointUp(ev.button.x,ev.button.y,ev.button.button);
+          insEditMayBeDirty=true;
           break;
         case SDL_MOUSEBUTTONDOWN:
           pointDown(ev.button.x,ev.button.y,ev.button.button);
+          insEditMayBeDirty=true;
           break;
         case SDL_MOUSEWHEEL:
           wheelX+=ev.wheel.x;
           wheelY+=ev.wheel.y;
+          insEditMayBeDirty=true;
           break;
         case SDL_WINDOWEVENT:
           switch (ev.window.event) {
@@ -3803,12 +3807,14 @@ bool FurnaceGUI::loop() {
           if (!ImGui::GetIO().WantCaptureKeyboard) {
             keyDown(ev);
           }
+          insEditMayBeDirty=true;
 #ifdef IS_MOBILE
           injectBackUp=true;
 #endif
           break;
         case SDL_KEYUP:
           // for now
+          insEditMayBeDirty=true;
           break;
         case SDL_DROPFILE:
           if (ev.drop.file!=NULL) {
@@ -7145,6 +7151,11 @@ bool FurnaceGUI::loop() {
       willCommit=false;
     }
 
+    // To check for instrument editor modification, we need an up-to-date `insEditMayBeDirty`
+    // (based on incoming user input events), and we want any possible instrument modifications
+    // to already have been made.
+    checkRecordInstrumentUndoStep();
+
     if (shallDetectScale) {
       if (--shallDetectScale<1) {
         if (settings.dpiScale<0.5f) {
@@ -8311,6 +8322,7 @@ FurnaceGUI::FurnaceGUI():
   localeRequiresKorean(false),
   prevInsData(NULL),
   cachedCurInsPtr(NULL),
+  insEditMayBeDirty(false),
   pendingLayoutImport(NULL),
   pendingLayoutImportLen(0),
   pendingLayoutImportStep(0),
