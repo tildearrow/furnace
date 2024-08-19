@@ -895,7 +895,7 @@ struct MemPatch {
 
   ~MemPatch() {
     if (data) {
-      free(data);
+      delete[] data;
     }
   }
 
