@@ -2022,16 +2022,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         (settings.autoFillSave)?shortName:""
       );
       break;
-    case GUI_FILE_EXPORT_ZSM:
-      if (!dirExists(workingDirZSMExport)) workingDirZSMExport=getHomeDir();
-      hasOpened=fileDialog->openSave(
-        _("Export ZSM"),
-        {_("ZSM file"), "*.zsm"},
-        workingDirZSMExport,
-        dpiScale,
-        (settings.autoFillSave)?shortName:""
-      );
-      break;
     case GUI_FILE_EXPORT_TEXT:
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
       hasOpened=fileDialog->openSave(
@@ -4405,16 +4395,6 @@ bool FurnaceGUI::loop() {
               ImGui::EndMenu();
             }
           }
-          int numZSMCompat=0;
-          for (int i=0; i<e->song.systemLen; i++) {
-            if ((e->song.system[i]==DIV_SYSTEM_VERA) || (e->song.system[i]==DIV_SYSTEM_YM2151)) numZSMCompat++;
-          }
-          if (numZSMCompat>0) {
-            if (ImGui::BeginMenu(_("export ZSM..."))) {
-              drawExportZSM();
-              ImGui::EndMenu();
-            }
-          }
           if (ImGui::BeginMenu(_("export text..."))) {
             drawExportText();
             ImGui::EndMenu();
@@ -4439,16 +4419,6 @@ bool FurnaceGUI::loop() {
           if (romExportExists) {
             if (ImGui::MenuItem(_("export ROM..."))) {
               curExportType=GUI_EXPORT_ROM;
-              displayExport=true;
-            }
-          }
-          int numZSMCompat=0;
-          for (int i=0; i<e->song.systemLen; i++) {
-            if ((e->song.system[i]==DIV_SYSTEM_VERA) || (e->song.system[i]==DIV_SYSTEM_YM2151)) numZSMCompat++;
-          }
-          if (numZSMCompat>0) {
-            if (ImGui::MenuItem(_("export ZSM..."))) {
-              curExportType=GUI_EXPORT_ZSM;
               displayExport=true;
             }
           }
@@ -5034,9 +5004,6 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_EXPORT_VGM:
           workingDirVGMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
-        case GUI_FILE_EXPORT_ZSM:
-          workingDirZSMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
-          break;
         case GUI_FILE_EXPORT_ROM:
         case GUI_FILE_EXPORT_TEXT:
         case GUI_FILE_EXPORT_CMDSTREAM:
@@ -5135,9 +5102,6 @@ bool FurnaceGUI::loop() {
           }
           if (curFileDialog==GUI_FILE_EXPORT_ROM) {
             checkExtension(romFilterExt.c_str());
-          }
-          if (curFileDialog==GUI_FILE_EXPORT_ZSM) {
-            checkExtension(".zsm");
           }
           if (curFileDialog==GUI_FILE_EXPORT_TEXT) {
             checkExtension(".txt");
@@ -5611,27 +5575,6 @@ bool FurnaceGUI::loop() {
                 }
               } else {
                 showError(fmt::sprintf(_("could not write VGM! (%s)"),e->getLastError()));
-              }
-              break;
-            }
-            case GUI_FILE_EXPORT_ZSM: {
-              SafeWriter* w=e->saveZSM(zsmExportTickRate,zsmExportLoop,zsmExportOptimize);
-              if (w!=NULL) {
-                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
-                if (f!=NULL) {
-                  fwrite(w->getFinalBuf(),1,w->size(),f);
-                  fclose(f);
-                  pushRecentSys(copyOfName.c_str());
-                } else {
-                  showError(_("could not open file!"));
-                }
-                w->finish();
-                delete w;
-                if (!e->getWarnings().empty()) {
-                  showWarning(e->getWarnings(),GUI_WARN_GENERIC);
-                }
-              } else {
-                showError(fmt::sprintf(_("Could not write ZSM! (%s)"),e->getLastError()));
               }
               break;
             }
@@ -7879,7 +7822,6 @@ void FurnaceGUI::syncState() {
   workingDirSample=e->getConfString("lastDirSample",workingDir);
   workingDirAudioExport=e->getConfString("lastDirAudioExport",workingDir);
   workingDirVGMExport=e->getConfString("lastDirVGMExport",workingDir);
-  workingDirZSMExport=e->getConfString("lastDirZSMExport",workingDir);
   workingDirROMExport=e->getConfString("lastDirROMExport",workingDir);
   workingDirFont=e->getConfString("lastDirFont",workingDir);
   workingDirColors=e->getConfString("lastDirColors",workingDir);
@@ -8038,7 +7980,6 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("lastDirSample",workingDirSample);
   conf.set("lastDirAudioExport",workingDirAudioExport);
   conf.set("lastDirVGMExport",workingDirVGMExport);
-  conf.set("lastDirZSMExport",workingDirZSMExport);
   conf.set("lastDirROMExport",workingDirROMExport);
   conf.set("lastDirFont",workingDirFont);
   conf.set("lastDirColors",workingDirColors);
@@ -8256,8 +8197,6 @@ FurnaceGUI::FurnaceGUI():
   displayError(false),
   displayExporting(false),
   vgmExportLoop(true),
-  zsmExportLoop(true),
-  zsmExportOptimize(true),
   vgmExportPatternHints(false),
   vgmExportDirectStream(false),
   displayInsTypeList(false),
@@ -8300,7 +8239,6 @@ FurnaceGUI::FurnaceGUI():
   vgmExportVersion(0x171),
   vgmExportTrailingTicks(-1),
   drawHalt(10),
-  zsmExportTickRate(60),
   macroPointSize(16),
   waveEditStyle(0),
   displayInsTypeListMakeInsSample(-1),

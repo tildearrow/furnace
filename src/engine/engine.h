@@ -669,6 +669,7 @@ class DivEngine {
   friend class DivROMExport;
   friend class DivExportAmigaValidation;
   friend class DivExportTiuna;
+  friend class DivExportZSM;
 
   public:
     DivSong song;
@@ -721,8 +722,6 @@ class DivEngine {
     // - -1 to auto-determine trailing
     // - -2 to add a whole loop of trailing
     SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171, bool patternHints=false, bool directStream=false, int trailingTicks=-1);
-    // dump to ZSM.
-    SafeWriter* saveZSM(unsigned int zsmrate=60, bool loop=true, bool optimize=true);
     // dump to TIunA.
     SafeWriter* saveTiuna(const bool* sysToExport, const char* baseLabel, int firstBankSize, int otherBankSize);
     // dump command stream.
