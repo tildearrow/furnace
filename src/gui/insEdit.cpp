@@ -7740,42 +7740,29 @@ void FurnaceGUI::drawInsEdit() {
       
       ImGui::EndPopup();
     }
-  }
+    
+    if (ins) {
+      bool insChanged=ins!=cachedCurInsPtr;
+      bool delayDiff=ImGui::IsMouseDown(ImGuiMouseButton_Left) || ImGui::IsMouseDown(ImGuiMouseButton_Right) || ImGui::GetIO().WantCaptureKeyboard;
 
-  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_INS_EDIT;
-  ImGui::End();
-}
+      // check against the last cached to see if diff -- note that modifications to instruments happen outside
+      // drawInsEdit (e.g. cursor inputs are processed and can directly modify macro data)
+      if (!insChanged && !delayDiff) {
+        ins->recordUndoStepIfChanged(e->processTime, &cachedCurIns);
+      }
 
-void FurnaceGUI::checkRecordInstrumentUndoStep() {
-  if (curIns>=0 && curIns<(int)e->song.ins.size()) {
-    DivInstrument* ins=e->song.ins[curIns];
-
-    // invalidate cachedCurIns/any possible changes if the cachedCurIns was referencing a different
-    // instrument altgoether
-    bool insChanged=ins!=cachedCurInsPtr;
-    if (insChanged) {
-      insEditMayBeDirty=false;
-      cachedCurInsPtr=ins;
-      cachedCurIns=*ins;
-    }
-
-    cachedCurInsPtr=ins;
-
-    // check against the last cached to see if diff -- note that modifications to instruments
-    // happen outside drawInsEdit (e.g. cursor inputs are processed and can directly modify
-    // macro data).  but don't check until we think the user input is complete.
-    bool delayDiff=ImGui::IsMouseDown(ImGuiMouseButton_Left) || ImGui::IsMouseDown(ImGuiMouseButton_Right) || ImGui::GetIO().WantCaptureKeyboard;
-    if (!delayDiff && insEditMayBeDirty) {
-      bool hasChange=ins->recordUndoStepIfChanged(e->processTime, &cachedCurIns);
-      if (hasChange) {
+      if (insChanged || !delayDiff) {
         cachedCurIns=*ins;
       }
-      insEditMayBeDirty=false;
+
+      cachedCurInsPtr=ins;
+    } else {
+      cachedCurInsPtr=NULL;
     }
-  } else {
-    cachedCurInsPtr=NULL;
-    insEditMayBeDirty=false;
   }
+  
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_INS_EDIT;
+  ImGui::End();
 }
 
 void FurnaceGUI::doUndoInstrument() {

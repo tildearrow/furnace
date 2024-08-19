@@ -376,8 +376,6 @@ bool MemPatch::calcDiff(const void* pre, const void* post, size_t inputSize) {
   const unsigned char* preBytes=(const unsigned char*)pre;
   const unsigned char* postBytes=(const unsigned char*)post;
 
-  // @NOTE: consider/profile using a memcmp==0 check to early-out, if it's potentially faster
-  // for the common case, which is no change
   for (size_t ii=0; ii<inputSize; ++ii) {
     if (preBytes[ii] != postBytes[ii]) {
       lastDiff=ii;
@@ -441,7 +439,7 @@ bool DivInstrumentUndoStep::makeUndoPatch(size_t processTime_, const DivInstrume
   return nameValid || podPatch.isValid();
 }
 
-bool DivInstrument::recordUndoStepIfChanged(size_t processTime, const DivInstrument* old) {
+void DivInstrument::recordUndoStepIfChanged(size_t processTime, const DivInstrument* old) {
   DivInstrumentUndoStep step;
 
   // generate a patch to go back to old
@@ -466,10 +464,7 @@ bool DivInstrument::recordUndoStepIfChanged(size_t processTime, const DivInstrum
     undoHist.push_back(stepPtr);
 
     // logI("DivInstrument::undoHist push (%u off, %u size)", stepPtr->podPatch.offset, stepPtr->podPatch.size);
-    return true;
   }
-
-  return false;
 }
 
 int DivInstrument::undo() {
