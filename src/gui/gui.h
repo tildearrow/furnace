@@ -137,6 +137,9 @@ enum FurnaceGUIRenderBackend {
 #define ngettext momo_ngettext
 #endif
 
+#define GUI_EDIT_OCTAVE_MIN -5
+#define GUI_EDIT_OCTAVE_MAX 7
+
 // TODO:
 // - add colors for FM envelope and waveform
 // - maybe add "alternate" color for FM modulators/carriers (a bit difficult)
@@ -818,7 +821,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_PAT_LATCH,
   GUI_ACTION_PAT_SCROLL_MODE,
   GUI_ACTION_PAT_CLEAR_LATCH,
-  GUI_ACTION_PAT_ABSORB_INSTRUMENT,
+  GUI_ACTION_PAT_ADOPT_INSTRUMENT,
   GUI_ACTION_PAT_MAX,
 
   GUI_ACTION_INS_LIST_MIN,
