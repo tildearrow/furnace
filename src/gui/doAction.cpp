@@ -73,8 +73,6 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_UNDO:
       if (curWindow==GUI_WINDOW_SAMPLE_EDIT) {
         doUndoSample();
-      } else if (curWindow==GUI_WINDOW_INS_EDIT) {
-        doUndoInstrument();
       } else {
         doUndo();
       }
@@ -82,8 +80,6 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_REDO:
       if (curWindow==GUI_WINDOW_SAMPLE_EDIT) {
         doRedoSample();
-      } else if (curWindow==GUI_WINDOW_INS_EDIT) {
-        doRedoInstrument();
       } else {
         doRedo();
       }
