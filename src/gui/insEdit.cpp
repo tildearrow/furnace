@@ -7743,7 +7743,7 @@ void FurnaceGUI::drawInsEdit() {
 }
 
 void FurnaceGUI::checkRecordInstrumentUndoStep() {
-  if (curIns>=0 && curIns<(int)e->song.ins.size()) {
+  if (insEditOpen && curIns>=0 && curIns<(int)e->song.ins.size()) {
     DivInstrument* ins=e->song.ins[curIns];
 
     // invalidate cachedCurIns/any possible changes if the cachedCurIns was referencing a different
