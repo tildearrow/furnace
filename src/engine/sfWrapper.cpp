@@ -19,6 +19,7 @@
 
 #include "sfWrapper.h"
 #include "../fileutils.h"
+#include "../ta-log.h"
 #include "sndfile.h"
 
 sf_count_t _vioGetSize(void* user) {
@@ -80,6 +81,7 @@ SNDFILE* SFWrapper::doOpen(const char* path, int mode, SF_INFO* sfinfo) {
   vio.seek=_vioSeek;
   vio.tell=_vioTell;
   vio.write=_vioWrite;
+  logV("SFWrapper: opening %s",path);
 
   const char* modeC="rb";
   if (mode==SFM_WRITE) {
