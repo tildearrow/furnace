@@ -2258,7 +2258,6 @@ class FurnaceGUI {
   DivInstrument* prevInsData;
   DivInstrument cachedCurIns;
   DivInstrument* cachedCurInsPtr;
-  bool insEditMayBeDirty;
 
   unsigned char* pendingLayoutImport;
   size_t pendingLayoutImportLen;
@@ -2925,7 +2924,6 @@ class FurnaceGUI {
   void doUndoSample();
   void doRedoSample();
 
-  void checkRecordInstrumentUndoStep();
   void doUndoInstrument();
   void doRedoInstrument();
 
