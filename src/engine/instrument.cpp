@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <cassert>
 #include "dataErrors.h"
 #include "engine.h"
 #include "instrument.h"
@@ -400,7 +399,11 @@ bool MemPatch::calcDiff(const void* pre, const void* post, size_t inputSize) {
 
 void MemPatch::applyAndReverse(void* target, size_t targetSize) {
   if (size==0) return;
-  assert(offset+size<=targetSize);
+  if (offset+size>targetSize) {
+    logW("MemPatch (offset %d, size %d) exceeds target size (%d), can't apply!",offset,size,targetSize);
+    return;
+  }
+
   unsigned char* targetBytes=(unsigned char*)target;
 
   // swap this->data and its segment on target
