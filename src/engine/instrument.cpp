@@ -363,12 +363,6 @@ void DivInstrument::writeFeatureFM(SafeWriter* w, bool fui) {
   FEATURE_END;
 }
 
-void MemPatch::clear() {
-  data = NULL;
-  offset=0;
-  size=0;
-}
-
 bool MemPatch::calcDiff(const void* pre, const void* post, size_t inputSize) {
   bool diffValid=false;
   size_t firstDiff=0;
@@ -416,11 +410,6 @@ void MemPatch::applyAndReverse(void* target, size_t targetSize) {
   }
 }
 
-void DivInstrumentUndoStep::clear() {
-  podPatch.clear();
-  name.clear();
-}
-
 void DivInstrumentUndoStep::applyAndReverse(DivInstrument* target) {
   if (nameValid) {
     name.swap(target->name);
@@ -462,7 +451,7 @@ bool DivInstrument::recordUndoStepIfChanged(size_t processTime, const DivInstrum
 
     DivInstrumentUndoStep* stepPtr=new DivInstrumentUndoStep;
     *stepPtr=step;
-    step.clear(); // don't let it delete the data ptr that's been copied!
+    step.podPatch.data=NULL; // don't let it delete the data ptr that's been copied!
     undoHist.push_back(stepPtr);
 
     // logI("DivInstrument::undoHist push (%u off, %u size)", stepPtr->podPatch.offset, stepPtr->podPatch.size);

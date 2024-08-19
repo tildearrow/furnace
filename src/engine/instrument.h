@@ -896,10 +896,10 @@ struct MemPatch {
   ~MemPatch() {
     if (data) {
       delete[] data;
+      data=NULL;
     }
   }
 
-  void clear();
   bool calcDiff(const void* pre, const void* post, size_t size);
   void applyAndReverse(void* target, size_t inputSize);
   bool isValid() const { return size>0; }
@@ -921,7 +921,6 @@ struct DivInstrumentUndoStep {
   bool nameValid;
   size_t processTime;
 
-  void clear();
   void applyAndReverse(DivInstrument* target);
   bool makeUndoPatch(size_t processTime_, const DivInstrument* pre, const DivInstrument* post);
 };
