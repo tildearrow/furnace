@@ -67,6 +67,25 @@ void DivPlatformSoundUnit::writeControlUpper(int ch) {
 void DivPlatformSoundUnit::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
     chan[i].std.next();
+    if(sysTick)
+    {
+      if(chan[i].pw_slide != 0)
+      {
+        chan[i].virtual_duty -= chan[i].pw_slide;
+        chan[i].virtual_duty = CLAMP(chan[i].virtual_duty, 0, 0xfff);
+        chan[i].duty = chan[i].virtual_duty >> 5;
+
+        chWrite(i,0x08,chan[i].duty);
+      }
+      if(chan[i].cutoff_slide != 0)
+      {
+        chan[i].cutoff += chan[i].cutoff_slide * 4;
+        chan[i].cutoff = CLAMP(chan[i].cutoff, 0, 0x3fff);
+
+        chWrite(i,0x06,chan[i].cutoff&0xff);
+        chWrite(i,0x07,chan[i].cutoff>>8);
+      }
+    }
     if (chan[i].std.vol.had) {
       DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
       if (ins->type==DIV_INS_AMIGA) {
@@ -86,6 +105,7 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
     }
     if (chan[i].std.duty.had) {
       chan[i].duty=chan[i].std.duty.val;
+      chan[i].virtual_duty = (unsigned short)chan[i].duty << 5;
       chWrite(i,0x08,chan[i].duty);
     }
     if (chan[i].std.wave.had) {
@@ -351,6 +371,7 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
       break;
     case DIV_CMD_STD_NOISE_MODE:
       chan[c.chan].duty=c.value&127;
+      chan[c.chan].virtual_duty = (unsigned short)chan[c.chan].duty << 5;
       chWrite(c.chan,0x08,chan[c.chan].duty);
       break;
     case DIV_CMD_C64_RESONANCE:
@@ -498,6 +519,12 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
       if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_SU(c.chan,chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
+    case DIV_CMD_C64_PW_SLIDE:
+      chan[c.chan].pw_slide = c.value * c.value2;
+      break;
+    case DIV_CMD_C64_CUTOFF_SLIDE:
+      chan[c.chan].cutoff_slide = c.value * c.value2;
+      break;
     case DIV_CMD_GET_VOLMAX:
       return 127;
       break;
@@ -564,6 +591,11 @@ void DivPlatformSoundUnit::reset() {
   for (int i=0; i<8; i++) {
     chan[i]=DivPlatformSoundUnit::Channel();
     chan[i].std.setEngine(parent);
+
+    chan[i].cutoff_slide = 0;
+    chan[i].pw_slide = 0;
+
+    chan[i].virtual_duty = 0x800; //for some reason duty by default is 50%
   }
   if (dumpWrites) {
     addWrite(0xffffffff,0);

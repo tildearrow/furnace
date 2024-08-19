@@ -1822,6 +1822,12 @@ void DivEngine::registerSystems() {
     {0x20, {DIV_CMD_SU_SWEEP_ENABLE, _("20xx: Toggle frequency sweep (bit 0-6: speed; bit 7: direction is up)"), constVal<0>, effectVal}},
     {0x21, {DIV_CMD_SU_SWEEP_ENABLE, _("21xx: Toggle volume sweep (bit 0-4: speed; bit 5: direction is up; bit 6: loop; bit 7: alternate)"), constVal<1>, effectVal}},
     {0x22, {DIV_CMD_SU_SWEEP_ENABLE, _("22xx: Toggle cutoff sweep (bit 0-6: speed; bit 7: direction is up)"), constVal<2>, effectVal}},
+
+    {0x23, {DIV_CMD_C64_PW_SLIDE, _("23xx: Pulse width slide up"), effectVal, constVal<1>}},
+    {0x24, {DIV_CMD_C64_PW_SLIDE, _("24xx: Pulse width slide down"), effectVal, constVal<-1>}},
+
+    {0x25, {DIV_CMD_C64_CUTOFF_SLIDE, _("25xx: Filter cutoff slide up"), effectVal, constVal<1>}},
+    {0x26, {DIV_CMD_C64_CUTOFF_SLIDE, _("26xx: Filter cutoff slide down"), effectVal, constVal<-1>}},
   };
   const EffectHandler suCutoffHandler(DIV_CMD_C64_FINE_CUTOFF, _("4xxx: Set cutoff (0 to FFF)"), effectValLong<12>);
   for (int i=0; i<16; i++) {

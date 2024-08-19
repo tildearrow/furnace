@@ -531,7 +531,7 @@ msgid "17xx: Toggle PCM mode (LEGACY)"
 msgstr ""
 
 #: src/engine/sysDef.cpp:472 src/engine/sysDef.cpp:1746
-#: src/engine/sysDef.cpp:2056
+#: src/engine/sysDef.cpp:2062
 msgid "DFxx: Set sample playback direction (0: normal; 1: reverse)"
 msgstr ""
 
@@ -968,9 +968,9 @@ msgstr ""
 #: src/engine/sysDef.cpp:854 src/engine/sysDef.cpp:1092
 #: src/engine/sysDef.cpp:1142 src/engine/sysDef.cpp:1361
 #: src/engine/sysDef.cpp:1413 src/engine/sysDef.cpp:1683
-#: src/engine/sysDef.cpp:1881 src/engine/sysDef.cpp:1885
-#: src/engine/sysDef.cpp:1986 src/engine/sysDef.cpp:2156
-#: src/engine/sysDef.cpp:2170
+#: src/engine/sysDef.cpp:1887 src/engine/sysDef.cpp:1891
+#: src/engine/sysDef.cpp:1992 src/engine/sysDef.cpp:2162
+#: src/engine/sysDef.cpp:2176
 msgid "10xx: Set waveform"
 msgstr ""
 
@@ -1115,7 +1115,7 @@ msgstr ""
 msgid "1Axx: Filter cutoff slide down"
 msgstr ""
 
-#: src/engine/sysDef.cpp:702 src/engine/sysDef.cpp:1826
+#: src/engine/sysDef.cpp:702 src/engine/sysDef.cpp:1832
 msgid "4xxx: Set cutoff (0 to FFF)"
 msgstr ""
 
@@ -1383,17 +1383,17 @@ msgstr ""
 #: src/engine/sysDef.cpp:1625 src/engine/sysDef.cpp:1665
 #: src/engine/sysDef.cpp:1677 src/engine/sysDef.cpp:1701
 #: src/engine/sysDef.cpp:1762 src/engine/sysDef.cpp:1798
-#: src/engine/sysDef.cpp:1834 src/engine/sysDef.cpp:1846
-#: src/engine/sysDef.cpp:1892 src/engine/sysDef.cpp:1903
-#: src/engine/sysDef.cpp:1914 src/engine/sysDef.cpp:1925
-#: src/engine/sysDef.cpp:1993 src/engine/sysDef.cpp:2003
-#: src/engine/sysDef.cpp:2013 src/engine/sysDef.cpp:2037
-#: src/engine/sysDef.cpp:2050 src/engine/sysDef.cpp:2063
-#: src/engine/sysDef.cpp:2073 src/engine/sysDef.cpp:2084
-#: src/engine/sysDef.cpp:2130 src/engine/sysDef.cpp:2163
-#: src/engine/sysDef.cpp:2179 src/engine/sysDef.cpp:2215
-#: src/engine/sysDef.cpp:2231 src/engine/sysDef.cpp:2243
-#: src/engine/sysDef.cpp:2255
+#: src/engine/sysDef.cpp:1840 src/engine/sysDef.cpp:1852
+#: src/engine/sysDef.cpp:1898 src/engine/sysDef.cpp:1909
+#: src/engine/sysDef.cpp:1920 src/engine/sysDef.cpp:1931
+#: src/engine/sysDef.cpp:1999 src/engine/sysDef.cpp:2009
+#: src/engine/sysDef.cpp:2019 src/engine/sysDef.cpp:2043
+#: src/engine/sysDef.cpp:2056 src/engine/sysDef.cpp:2069
+#: src/engine/sysDef.cpp:2079 src/engine/sysDef.cpp:2090
+#: src/engine/sysDef.cpp:2136 src/engine/sysDef.cpp:2169
+#: src/engine/sysDef.cpp:2185 src/engine/sysDef.cpp:2221
+#: src/engine/sysDef.cpp:2237 src/engine/sysDef.cpp:2249
+#: src/engine/sysDef.cpp:2261
 msgid "Channel 1"
 msgstr ""
 
@@ -1408,17 +1408,17 @@ msgstr ""
 #: src/engine/sysDef.cpp:1625 src/engine/sysDef.cpp:1665
 #: src/engine/sysDef.cpp:1677 src/engine/sysDef.cpp:1701
 #: src/engine/sysDef.cpp:1762 src/engine/sysDef.cpp:1798
-#: src/engine/sysDef.cpp:1834 src/engine/sysDef.cpp:1846
-#: src/engine/sysDef.cpp:1892 src/engine/sysDef.cpp:1903
-#: src/engine/sysDef.cpp:1914 src/engine/sysDef.cpp:1925
-#: src/engine/sysDef.cpp:1993 src/engine/sysDef.cpp:2003
-#: src/engine/sysDef.cpp:2013 src/engine/sysDef.cpp:2037
-#: src/engine/sysDef.cpp:2050 src/engine/sysDef.cpp:2063
-#: src/engine/sysDef.cpp:2073 src/engine/sysDef.cpp:2084
-#: src/engine/sysDef.cpp:2130 src/engine/sysDef.cpp:2163
-#: src/engine/sysDef.cpp:2179 src/engine/sysDef.cpp:2215
-#: src/engine/sysDef.cpp:2231 src/engine/sysDef.cpp:2243
-#: src/engine/sysDef.cpp:2255
+#: src/engine/sysDef.cpp:1840 src/engine/sysDef.cpp:1852
+#: src/engine/sysDef.cpp:1898 src/engine/sysDef.cpp:1909
+#: src/engine/sysDef.cpp:1920 src/engine/sysDef.cpp:1931
+#: src/engine/sysDef.cpp:1999 src/engine/sysDef.cpp:2009
+#: src/engine/sysDef.cpp:2019 src/engine/sysDef.cpp:2043
+#: src/engine/sysDef.cpp:2056 src/engine/sysDef.cpp:2069
+#: src/engine/sysDef.cpp:2079 src/engine/sysDef.cpp:2090
+#: src/engine/sysDef.cpp:2136 src/engine/sysDef.cpp:2169
+#: src/engine/sysDef.cpp:2185 src/engine/sysDef.cpp:2221
+#: src/engine/sysDef.cpp:2237 src/engine/sysDef.cpp:2249
+#: src/engine/sysDef.cpp:2261
 msgid "Channel 2"
 msgstr ""
 
@@ -1432,15 +1432,15 @@ msgstr ""
 #: src/engine/sysDef.cpp:1592 src/engine/sysDef.cpp:1625
 #: src/engine/sysDef.cpp:1665 src/engine/sysDef.cpp:1677
 #: src/engine/sysDef.cpp:1762 src/engine/sysDef.cpp:1798
-#: src/engine/sysDef.cpp:1834 src/engine/sysDef.cpp:1846
-#: src/engine/sysDef.cpp:1892 src/engine/sysDef.cpp:1903
-#: src/engine/sysDef.cpp:1914 src/engine/sysDef.cpp:1925
-#: src/engine/sysDef.cpp:2003 src/engine/sysDef.cpp:2037
-#: src/engine/sysDef.cpp:2050 src/engine/sysDef.cpp:2073
-#: src/engine/sysDef.cpp:2084 src/engine/sysDef.cpp:2130
-#: src/engine/sysDef.cpp:2163 src/engine/sysDef.cpp:2179
-#: src/engine/sysDef.cpp:2215 src/engine/sysDef.cpp:2231
-#: src/engine/sysDef.cpp:2243 src/engine/sysDef.cpp:2255
+#: src/engine/sysDef.cpp:1840 src/engine/sysDef.cpp:1852
+#: src/engine/sysDef.cpp:1898 src/engine/sysDef.cpp:1909
+#: src/engine/sysDef.cpp:1920 src/engine/sysDef.cpp:1931
+#: src/engine/sysDef.cpp:2009 src/engine/sysDef.cpp:2043
+#: src/engine/sysDef.cpp:2056 src/engine/sysDef.cpp:2079
+#: src/engine/sysDef.cpp:2090 src/engine/sysDef.cpp:2136
+#: src/engine/sysDef.cpp:2169 src/engine/sysDef.cpp:2185
+#: src/engine/sysDef.cpp:2221 src/engine/sysDef.cpp:2237
+#: src/engine/sysDef.cpp:2249 src/engine/sysDef.cpp:2261
 msgid "Channel 3"
 msgstr ""
 
@@ -1453,14 +1453,14 @@ msgstr ""
 #: src/engine/sysDef.cpp:1592 src/engine/sysDef.cpp:1625
 #: src/engine/sysDef.cpp:1665 src/engine/sysDef.cpp:1677
 #: src/engine/sysDef.cpp:1762 src/engine/sysDef.cpp:1798
-#: src/engine/sysDef.cpp:1834 src/engine/sysDef.cpp:1846
-#: src/engine/sysDef.cpp:1903 src/engine/sysDef.cpp:1914
-#: src/engine/sysDef.cpp:1925 src/engine/sysDef.cpp:2003
-#: src/engine/sysDef.cpp:2037 src/engine/sysDef.cpp:2050
-#: src/engine/sysDef.cpp:2073 src/engine/sysDef.cpp:2084
-#: src/engine/sysDef.cpp:2163 src/engine/sysDef.cpp:2179
-#: src/engine/sysDef.cpp:2215 src/engine/sysDef.cpp:2243
-#: src/engine/sysDef.cpp:2255
+#: src/engine/sysDef.cpp:1840 src/engine/sysDef.cpp:1852
+#: src/engine/sysDef.cpp:1909 src/engine/sysDef.cpp:1920
+#: src/engine/sysDef.cpp:1931 src/engine/sysDef.cpp:2009
+#: src/engine/sysDef.cpp:2043 src/engine/sysDef.cpp:2056
+#: src/engine/sysDef.cpp:2079 src/engine/sysDef.cpp:2090
+#: src/engine/sysDef.cpp:2169 src/engine/sysDef.cpp:2185
+#: src/engine/sysDef.cpp:2221 src/engine/sysDef.cpp:2249
+#: src/engine/sysDef.cpp:2261
 msgid "Channel 4"
 msgstr ""
 
@@ -1471,12 +1471,12 @@ msgstr ""
 #: src/engine/sysDef.cpp:1449 src/engine/sysDef.cpp:1489
 #: src/engine/sysDef.cpp:1625 src/engine/sysDef.cpp:1665
 #: src/engine/sysDef.cpp:1677 src/engine/sysDef.cpp:1762
-#: src/engine/sysDef.cpp:1798 src/engine/sysDef.cpp:1834
-#: src/engine/sysDef.cpp:1903 src/engine/sysDef.cpp:1914
-#: src/engine/sysDef.cpp:1925 src/engine/sysDef.cpp:2073
-#: src/engine/sysDef.cpp:2084 src/engine/sysDef.cpp:2163
-#: src/engine/sysDef.cpp:2179 src/engine/sysDef.cpp:2243
-#: src/engine/sysDef.cpp:2255
+#: src/engine/sysDef.cpp:1798 src/engine/sysDef.cpp:1840
+#: src/engine/sysDef.cpp:1909 src/engine/sysDef.cpp:1920
+#: src/engine/sysDef.cpp:1931 src/engine/sysDef.cpp:2079
+#: src/engine/sysDef.cpp:2090 src/engine/sysDef.cpp:2169
+#: src/engine/sysDef.cpp:2185 src/engine/sysDef.cpp:2249
+#: src/engine/sysDef.cpp:2261
 msgid "Channel 5"
 msgstr ""
 
@@ -1485,12 +1485,12 @@ msgstr ""
 #: src/engine/sysDef.cpp:1303 src/engine/sysDef.cpp:1345
 #: src/engine/sysDef.cpp:1395 src/engine/sysDef.cpp:1449
 #: src/engine/sysDef.cpp:1625 src/engine/sysDef.cpp:1677
-#: src/engine/sysDef.cpp:1762 src/engine/sysDef.cpp:1834
-#: src/engine/sysDef.cpp:1903 src/engine/sysDef.cpp:1914
-#: src/engine/sysDef.cpp:1925 src/engine/sysDef.cpp:2073
-#: src/engine/sysDef.cpp:2084 src/engine/sysDef.cpp:2163
-#: src/engine/sysDef.cpp:2179 src/engine/sysDef.cpp:2243
-#: src/engine/sysDef.cpp:2255
+#: src/engine/sysDef.cpp:1762 src/engine/sysDef.cpp:1840
+#: src/engine/sysDef.cpp:1909 src/engine/sysDef.cpp:1920
+#: src/engine/sysDef.cpp:1931 src/engine/sysDef.cpp:2079
+#: src/engine/sysDef.cpp:2090 src/engine/sysDef.cpp:2169
+#: src/engine/sysDef.cpp:2185 src/engine/sysDef.cpp:2249
+#: src/engine/sysDef.cpp:2261
 msgid "Channel 6"
 msgstr ""
 
@@ -1498,11 +1498,11 @@ msgstr ""
 #: src/engine/sysDef.cpp:1168 src/engine/sysDef.cpp:1303
 #: src/engine/sysDef.cpp:1345 src/engine/sysDef.cpp:1395
 #: src/engine/sysDef.cpp:1625 src/engine/sysDef.cpp:1677
-#: src/engine/sysDef.cpp:1762 src/engine/sysDef.cpp:1834
-#: src/engine/sysDef.cpp:1903 src/engine/sysDef.cpp:1914
-#: src/engine/sysDef.cpp:1925 src/engine/sysDef.cpp:2073
-#: src/engine/sysDef.cpp:2084 src/engine/sysDef.cpp:2163
-#: src/engine/sysDef.cpp:2179 src/engine/sysDef.cpp:2255
+#: src/engine/sysDef.cpp:1762 src/engine/sysDef.cpp:1840
+#: src/engine/sysDef.cpp:1909 src/engine/sysDef.cpp:1920
+#: src/engine/sysDef.cpp:1931 src/engine/sysDef.cpp:2079
+#: src/engine/sysDef.cpp:2090 src/engine/sysDef.cpp:2169
+#: src/engine/sysDef.cpp:2185 src/engine/sysDef.cpp:2261
 msgid "Channel 7"
 msgstr ""
 
@@ -1510,82 +1510,82 @@ msgstr ""
 #: src/engine/sysDef.cpp:1168 src/engine/sysDef.cpp:1303
 #: src/engine/sysDef.cpp:1345 src/engine/sysDef.cpp:1395
 #: src/engine/sysDef.cpp:1625 src/engine/sysDef.cpp:1677
-#: src/engine/sysDef.cpp:1762 src/engine/sysDef.cpp:1834
-#: src/engine/sysDef.cpp:1903 src/engine/sysDef.cpp:1914
-#: src/engine/sysDef.cpp:1925 src/engine/sysDef.cpp:2073
-#: src/engine/sysDef.cpp:2084 src/engine/sysDef.cpp:2163
-#: src/engine/sysDef.cpp:2179 src/engine/sysDef.cpp:2255
+#: src/engine/sysDef.cpp:1762 src/engine/sysDef.cpp:1840
+#: src/engine/sysDef.cpp:1909 src/engine/sysDef.cpp:1920
+#: src/engine/sysDef.cpp:1931 src/engine/sysDef.cpp:2079
+#: src/engine/sysDef.cpp:2090 src/engine/sysDef.cpp:2169
+#: src/engine/sysDef.cpp:2185 src/engine/sysDef.cpp:2261
 msgid "Channel 8"
 msgstr ""
 
 #: src/engine/sysDef.cpp:791 src/engine/sysDef.cpp:1303
 #: src/engine/sysDef.cpp:1395 src/engine/sysDef.cpp:1625
 #: src/engine/sysDef.cpp:1677 src/engine/sysDef.cpp:1762
-#: src/engine/sysDef.cpp:2073 src/engine/sysDef.cpp:2084
-#: src/engine/sysDef.cpp:2163 src/engine/sysDef.cpp:2179
+#: src/engine/sysDef.cpp:2079 src/engine/sysDef.cpp:2090
+#: src/engine/sysDef.cpp:2169 src/engine/sysDef.cpp:2185
 msgid "Channel 9"
 msgstr ""
 
 #: src/engine/sysDef.cpp:791 src/engine/sysDef.cpp:1303
 #: src/engine/sysDef.cpp:1395 src/engine/sysDef.cpp:1625
 #: src/engine/sysDef.cpp:1677 src/engine/sysDef.cpp:1762
-#: src/engine/sysDef.cpp:2073 src/engine/sysDef.cpp:2084
-#: src/engine/sysDef.cpp:2163 src/engine/sysDef.cpp:2179
+#: src/engine/sysDef.cpp:2079 src/engine/sysDef.cpp:2090
+#: src/engine/sysDef.cpp:2169 src/engine/sysDef.cpp:2185
 msgid "Channel 10"
 msgstr ""
 
 #: src/engine/sysDef.cpp:791 src/engine/sysDef.cpp:1303
 #: src/engine/sysDef.cpp:1395 src/engine/sysDef.cpp:1625
 #: src/engine/sysDef.cpp:1677 src/engine/sysDef.cpp:1762
-#: src/engine/sysDef.cpp:2073 src/engine/sysDef.cpp:2084
-#: src/engine/sysDef.cpp:2163 src/engine/sysDef.cpp:2179
+#: src/engine/sysDef.cpp:2079 src/engine/sysDef.cpp:2090
+#: src/engine/sysDef.cpp:2169 src/engine/sysDef.cpp:2185
 msgid "Channel 11"
 msgstr ""
 
 #: src/engine/sysDef.cpp:791 src/engine/sysDef.cpp:1303
 #: src/engine/sysDef.cpp:1395 src/engine/sysDef.cpp:1625
 #: src/engine/sysDef.cpp:1677 src/engine/sysDef.cpp:1762
-#: src/engine/sysDef.cpp:2073 src/engine/sysDef.cpp:2084
-#: src/engine/sysDef.cpp:2163 src/engine/sysDef.cpp:2179
+#: src/engine/sysDef.cpp:2079 src/engine/sysDef.cpp:2090
+#: src/engine/sysDef.cpp:2169 src/engine/sysDef.cpp:2185
 msgid "Channel 12"
 msgstr ""
 
 #: src/engine/sysDef.cpp:791 src/engine/sysDef.cpp:1303
 #: src/engine/sysDef.cpp:1395 src/engine/sysDef.cpp:1625
 #: src/engine/sysDef.cpp:1677 src/engine/sysDef.cpp:1762
-#: src/engine/sysDef.cpp:2073 src/engine/sysDef.cpp:2084
-#: src/engine/sysDef.cpp:2163 src/engine/sysDef.cpp:2179
+#: src/engine/sysDef.cpp:2079 src/engine/sysDef.cpp:2090
+#: src/engine/sysDef.cpp:2169 src/engine/sysDef.cpp:2185
 msgid "Channel 13"
 msgstr ""
 
 #: src/engine/sysDef.cpp:791 src/engine/sysDef.cpp:1303
 #: src/engine/sysDef.cpp:1395 src/engine/sysDef.cpp:1625
 #: src/engine/sysDef.cpp:1677 src/engine/sysDef.cpp:1762
-#: src/engine/sysDef.cpp:2073 src/engine/sysDef.cpp:2084
-#: src/engine/sysDef.cpp:2163 src/engine/sysDef.cpp:2179
+#: src/engine/sysDef.cpp:2079 src/engine/sysDef.cpp:2090
+#: src/engine/sysDef.cpp:2169 src/engine/sysDef.cpp:2185
 msgid "Channel 14"
 msgstr ""
 
 #: src/engine/sysDef.cpp:791 src/engine/sysDef.cpp:1303
 #: src/engine/sysDef.cpp:1395 src/engine/sysDef.cpp:1625
 #: src/engine/sysDef.cpp:1677 src/engine/sysDef.cpp:1762
-#: src/engine/sysDef.cpp:2073 src/engine/sysDef.cpp:2084
-#: src/engine/sysDef.cpp:2163 src/engine/sysDef.cpp:2179
+#: src/engine/sysDef.cpp:2079 src/engine/sysDef.cpp:2090
+#: src/engine/sysDef.cpp:2169 src/engine/sysDef.cpp:2185
 msgid "Channel 15"
 msgstr ""
 
 #: src/engine/sysDef.cpp:791 src/engine/sysDef.cpp:1303
 #: src/engine/sysDef.cpp:1395 src/engine/sysDef.cpp:1625
 #: src/engine/sysDef.cpp:1677 src/engine/sysDef.cpp:1762
-#: src/engine/sysDef.cpp:2073 src/engine/sysDef.cpp:2084
-#: src/engine/sysDef.cpp:2163 src/engine/sysDef.cpp:2179
+#: src/engine/sysDef.cpp:2079 src/engine/sysDef.cpp:2090
+#: src/engine/sysDef.cpp:2169 src/engine/sysDef.cpp:2185
 msgid "Channel 16"
 msgstr ""
 
 #: src/engine/sysDef.cpp:791 src/engine/sysDef.cpp:792
 #: src/engine/sysDef.cpp:1155 src/engine/sysDef.cpp:1625
-#: src/engine/sysDef.cpp:1860 src/engine/sysDef.cpp:1981
-#: src/engine/sysDef.cpp:2037 src/engine/sysDef.cpp:2038
+#: src/engine/sysDef.cpp:1866 src/engine/sysDef.cpp:1987
+#: src/engine/sysDef.cpp:2043 src/engine/sysDef.cpp:2044
 #: src/gui/settings.cpp:4135
 msgid "PCM"
 msgstr ""
@@ -1610,27 +1610,27 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:812 src/engine/sysDef.cpp:1228
 #: src/engine/sysDef.cpp:1240 src/engine/sysDef.cpp:1253
-#: src/engine/sysDef.cpp:1967 src/engine/sysDef.cpp:2024
+#: src/engine/sysDef.cpp:1973 src/engine/sysDef.cpp:2030
 msgid "Square 1"
 msgstr ""
 
 #: src/engine/sysDef.cpp:812 src/engine/sysDef.cpp:1228
 #: src/engine/sysDef.cpp:1240 src/engine/sysDef.cpp:1253
-#: src/engine/sysDef.cpp:1967 src/engine/sysDef.cpp:2024
+#: src/engine/sysDef.cpp:1973 src/engine/sysDef.cpp:2030
 msgid "Square 2"
 msgstr ""
 
 #: src/engine/sysDef.cpp:812 src/engine/sysDef.cpp:1228
 #: src/engine/sysDef.cpp:1240 src/engine/sysDef.cpp:1253
-#: src/engine/sysDef.cpp:1967 src/engine/sysDef.cpp:2024
+#: src/engine/sysDef.cpp:1973 src/engine/sysDef.cpp:2030
 msgid "Square 3"
 msgstr ""
 
 #: src/engine/sysDef.cpp:812 src/engine/sysDef.cpp:831
 #: src/engine/sysDef.cpp:865 src/engine/sysDef.cpp:1047
-#: src/engine/sysDef.cpp:1407 src/engine/sysDef.cpp:1967
-#: src/engine/sysDef.cpp:2013 src/engine/sysDef.cpp:2130
-#: src/engine/sysDef.cpp:2193 src/gui/insEdit.cpp:7991 src/gui/insEdit.cpp:8146
+#: src/engine/sysDef.cpp:1407 src/engine/sysDef.cpp:1973
+#: src/engine/sysDef.cpp:2019 src/engine/sysDef.cpp:2136
+#: src/engine/sysDef.cpp:2199 src/gui/insEdit.cpp:7991 src/gui/insEdit.cpp:8146
 #: src/gui/insEdit.cpp:8250 src/gui/insEdit.cpp:8342 src/gui/settings.cpp:4053
 #: src/gui/settings.cpp:4134
 msgid "Noise"
@@ -1654,12 +1654,12 @@ msgid "the most popular portable game console of the era."
 msgstr ""
 
 #: src/engine/sysDef.cpp:831 src/engine/sysDef.cpp:865
-#: src/engine/sysDef.cpp:1155 src/engine/sysDef.cpp:2193
+#: src/engine/sysDef.cpp:1155 src/engine/sysDef.cpp:2199
 msgid "Pulse 1"
 msgstr ""
 
 #: src/engine/sysDef.cpp:831 src/engine/sysDef.cpp:865
-#: src/engine/sysDef.cpp:1155 src/engine/sysDef.cpp:2193
+#: src/engine/sysDef.cpp:1155 src/engine/sysDef.cpp:2199
 msgid "Pulse 2"
 msgstr ""
 
@@ -1693,7 +1693,7 @@ msgid "an '80s game console with a wavetable sound chip, popular in Japan."
 msgstr ""
 
 #: src/engine/sysDef.cpp:855 src/engine/sysDef.cpp:1093
-#: src/engine/sysDef.cpp:1886
+#: src/engine/sysDef.cpp:1892
 msgid "11xx: Toggle noise mode"
 msgstr ""
 
@@ -1720,12 +1720,12 @@ msgstr ""
 msgid "Triangle"
 msgstr ""
 
-#: src/engine/sysDef.cpp:865 src/engine/sysDef.cpp:2193
+#: src/engine/sysDef.cpp:865 src/engine/sysDef.cpp:2199
 #: src/gui/insEdit.cpp:3264
 msgid "DPCM"
 msgstr ""
 
-#: src/engine/sysDef.cpp:871 src/engine/sysDef.cpp:2199
+#: src/engine/sysDef.cpp:871 src/engine/sysDef.cpp:2205
 msgid "11xx: Write to delta modulation counter (0 to 7F)"
 msgstr ""
 
@@ -1733,36 +1733,36 @@ msgstr ""
 msgid "12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:873 src/engine/sysDef.cpp:2201
+#: src/engine/sysDef.cpp:873 src/engine/sysDef.cpp:2207
 msgid "13xy: Sweep up (x: time; y: shift)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:874 src/engine/sysDef.cpp:2202
+#: src/engine/sysDef.cpp:874 src/engine/sysDef.cpp:2208
 msgid "14xy: Sweep down (x: time; y: shift)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:875 src/engine/sysDef.cpp:2203
+#: src/engine/sysDef.cpp:875 src/engine/sysDef.cpp:2209
 msgid ""
 "15xx: Set envelope mode (0: envelope, 1: length, 2: looping, 3: constant)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:876 src/engine/sysDef.cpp:2204
+#: src/engine/sysDef.cpp:876 src/engine/sysDef.cpp:2210
 msgid "16xx: Set length counter (refer to manual for a list of values)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:877 src/engine/sysDef.cpp:2205
+#: src/engine/sysDef.cpp:877 src/engine/sysDef.cpp:2211
 msgid "17xx: Set frame counter mode (0: 4-step, 1: 5-step)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:878 src/engine/sysDef.cpp:2206
+#: src/engine/sysDef.cpp:878 src/engine/sysDef.cpp:2212
 msgid "18xx: Select PCM/DPCM mode (0: PCM; 1: DPCM)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:879 src/engine/sysDef.cpp:2207
+#: src/engine/sysDef.cpp:879 src/engine/sysDef.cpp:2213
 msgid "19xx: Set triangle linear counter (0 to 7F; 80 and higher halt)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:880 src/engine/sysDef.cpp:2208
+#: src/engine/sysDef.cpp:880 src/engine/sysDef.cpp:2214
 msgid "20xx: Set DPCM frequency (0 to F)"
 msgstr ""
 
@@ -1823,8 +1823,8 @@ msgstr ""
 #: src/engine/sysDef.cpp:1561 src/engine/sysDef.cpp:1574
 #: src/engine/sysDef.cpp:1639 src/engine/sysDef.cpp:1652
 #: src/engine/sysDef.cpp:1774 src/engine/sysDef.cpp:1786
-#: src/engine/sysDef.cpp:1942 src/engine/sysDef.cpp:1954
-#: src/engine/sysDef.cpp:2099
+#: src/engine/sysDef.cpp:1948 src/engine/sysDef.cpp:1960
+#: src/engine/sysDef.cpp:2105
 msgid "FM 1"
 msgstr ""
 
@@ -1842,8 +1842,8 @@ msgstr ""
 #: src/engine/sysDef.cpp:1574 src/engine/sysDef.cpp:1639
 #: src/engine/sysDef.cpp:1652 src/engine/sysDef.cpp:1714
 #: src/engine/sysDef.cpp:1724 src/engine/sysDef.cpp:1774
-#: src/engine/sysDef.cpp:1786 src/engine/sysDef.cpp:1942
-#: src/engine/sysDef.cpp:1954 src/engine/sysDef.cpp:2099
+#: src/engine/sysDef.cpp:1786 src/engine/sysDef.cpp:1948
+#: src/engine/sysDef.cpp:1960 src/engine/sysDef.cpp:2105
 msgid "FM 2"
 msgstr ""
 
@@ -1857,7 +1857,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1536 src/engine/sysDef.cpp:1548
 #: src/engine/sysDef.cpp:1561 src/engine/sysDef.cpp:1574
 #: src/engine/sysDef.cpp:1774 src/engine/sysDef.cpp:1786
-#: src/engine/sysDef.cpp:1942 src/engine/sysDef.cpp:2099
+#: src/engine/sysDef.cpp:1948 src/engine/sysDef.cpp:2105
 msgid "FM 3"
 msgstr ""
 
@@ -1875,8 +1875,8 @@ msgstr ""
 #: src/engine/sysDef.cpp:1574 src/engine/sysDef.cpp:1639
 #: src/engine/sysDef.cpp:1652 src/engine/sysDef.cpp:1714
 #: src/engine/sysDef.cpp:1724 src/engine/sysDef.cpp:1774
-#: src/engine/sysDef.cpp:1786 src/engine/sysDef.cpp:1942
-#: src/engine/sysDef.cpp:1954 src/engine/sysDef.cpp:2099
+#: src/engine/sysDef.cpp:1786 src/engine/sysDef.cpp:1948
+#: src/engine/sysDef.cpp:1960 src/engine/sysDef.cpp:2105
 msgid "FM 4"
 msgstr ""
 
@@ -2041,8 +2041,8 @@ msgstr ""
 #: src/engine/sysDef.cpp:1512 src/engine/sysDef.cpp:1574
 #: src/engine/sysDef.cpp:1639 src/engine/sysDef.cpp:1652
 #: src/engine/sysDef.cpp:1774 src/engine/sysDef.cpp:1786
-#: src/engine/sysDef.cpp:1942 src/engine/sysDef.cpp:1954
-#: src/engine/sysDef.cpp:2099
+#: src/engine/sysDef.cpp:1948 src/engine/sysDef.cpp:1960
+#: src/engine/sysDef.cpp:2105
 msgid "FM 5"
 msgstr ""
 
@@ -2058,14 +2058,14 @@ msgstr ""
 #: src/engine/sysDef.cpp:1639 src/engine/sysDef.cpp:1652
 #: src/engine/sysDef.cpp:1714 src/engine/sysDef.cpp:1724
 #: src/engine/sysDef.cpp:1774 src/engine/sysDef.cpp:1786
-#: src/engine/sysDef.cpp:2099
+#: src/engine/sysDef.cpp:2105
 msgid "FM 6"
 msgstr ""
 
 #: src/engine/sysDef.cpp:983 src/engine/sysDef.cpp:1124
 #: src/engine/sysDef.cpp:1266 src/engine/sysDef.cpp:1278
 #: src/engine/sysDef.cpp:1372 src/engine/sysDef.cpp:1774
-#: src/engine/sysDef.cpp:2099
+#: src/engine/sysDef.cpp:2105
 msgid "FM 7"
 msgstr ""
 
@@ -2074,7 +2074,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1290 src/engine/sysDef.cpp:1372
 #: src/engine/sysDef.cpp:1524 src/engine/sysDef.cpp:1714
 #: src/engine/sysDef.cpp:1724 src/engine/sysDef.cpp:1774
-#: src/engine/sysDef.cpp:2099
+#: src/engine/sysDef.cpp:2105
 msgid "FM 8"
 msgstr ""
 
@@ -2177,7 +2177,7 @@ msgid ""
 msgstr ""
 
 #: src/engine/sysDef.cpp:1058 src/engine/sysDef.cpp:1355
-#: src/engine/sysDef.cpp:2193 src/engine/sysDef.cpp:2243
+#: src/engine/sysDef.cpp:2199 src/engine/sysDef.cpp:2249
 #: src/gui/editControls.cpp:433 src/gui/settings.cpp:4052
 #: src/gui/settings.cpp:4136
 msgid "Wave"
@@ -2314,7 +2314,7 @@ msgstr ""
 msgid "VRC6 Saw"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1116 src/engine/sysDef.cpp:2185
+#: src/engine/sysDef.cpp:1116 src/engine/sysDef.cpp:2191
 msgid "12xx: Set duty cycle (pulse: 0 to 7)"
 msgstr ""
 
@@ -2330,7 +2330,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1124 src/engine/sysDef.cpp:1266
 #: src/engine/sysDef.cpp:1278 src/engine/sysDef.cpp:1774
-#: src/engine/sysDef.cpp:2099
+#: src/engine/sysDef.cpp:2105
 msgid "FM 9"
 msgstr ""
 
@@ -2448,7 +2448,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1240 src/engine/sysDef.cpp:1253
 #: src/engine/sysDef.cpp:1463 src/engine/sysDef.cpp:1476
 #: src/engine/sysDef.cpp:1639 src/engine/sysDef.cpp:1652
-#: src/engine/sysDef.cpp:1954
+#: src/engine/sysDef.cpp:1960
 msgid "FM 3 OP1"
 msgstr ""
 
@@ -2456,7 +2456,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1240 src/engine/sysDef.cpp:1253
 #: src/engine/sysDef.cpp:1463 src/engine/sysDef.cpp:1476
 #: src/engine/sysDef.cpp:1639 src/engine/sysDef.cpp:1652
-#: src/engine/sysDef.cpp:1954
+#: src/engine/sysDef.cpp:1960
 msgid "FM 3 OP2"
 msgstr ""
 
@@ -2464,7 +2464,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1240 src/engine/sysDef.cpp:1253
 #: src/engine/sysDef.cpp:1463 src/engine/sysDef.cpp:1476
 #: src/engine/sysDef.cpp:1639 src/engine/sysDef.cpp:1652
-#: src/engine/sysDef.cpp:1954
+#: src/engine/sysDef.cpp:1960
 msgid "FM 3 OP3"
 msgstr ""
 
@@ -2472,7 +2472,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1240 src/engine/sysDef.cpp:1253
 #: src/engine/sysDef.cpp:1463 src/engine/sysDef.cpp:1476
 #: src/engine/sysDef.cpp:1639 src/engine/sysDef.cpp:1652
-#: src/engine/sysDef.cpp:1954
+#: src/engine/sysDef.cpp:1960
 msgid "FM 3 OP4"
 msgstr ""
 
@@ -2490,7 +2490,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1215 src/engine/sysDef.cpp:1253
 #: src/engine/sysDef.cpp:1476 src/engine/sysDef.cpp:1561
-#: src/engine/sysDef.cpp:1652 src/engine/sysDef.cpp:1954
+#: src/engine/sysDef.cpp:1652 src/engine/sysDef.cpp:1960
 msgid "CSM Timer"
 msgstr ""
 
@@ -2632,7 +2632,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1290 src/engine/sysDef.cpp:1524
 #: src/engine/sysDef.cpp:1714 src/engine/sysDef.cpp:1724
-#: src/engine/sysDef.cpp:2099
+#: src/engine/sysDef.cpp:2105
 msgid "FM 10"
 msgstr ""
 
@@ -2643,40 +2643,40 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1290 src/engine/sysDef.cpp:1524
 #: src/engine/sysDef.cpp:1714 src/engine/sysDef.cpp:1724
-#: src/engine/sysDef.cpp:2099
+#: src/engine/sysDef.cpp:2105
 msgid "FM 12"
 msgstr ""
 
 #: src/engine/sysDef.cpp:1290 src/engine/sysDef.cpp:1524
 #: src/engine/sysDef.cpp:1714 src/engine/sysDef.cpp:1724
-#: src/engine/sysDef.cpp:2099
+#: src/engine/sysDef.cpp:2105
 msgid "FM 13"
 msgstr ""
 
 #: src/engine/sysDef.cpp:1290 src/engine/sysDef.cpp:1524
 #: src/engine/sysDef.cpp:1714 src/engine/sysDef.cpp:1724
-#: src/engine/sysDef.cpp:2099
+#: src/engine/sysDef.cpp:2105
 msgid "FM 14"
 msgstr ""
 
 #: src/engine/sysDef.cpp:1290 src/engine/sysDef.cpp:1524
 #: src/engine/sysDef.cpp:1714 src/engine/sysDef.cpp:1724
-#: src/engine/sysDef.cpp:2099
+#: src/engine/sysDef.cpp:2105
 msgid "FM 15"
 msgstr ""
 
 #: src/engine/sysDef.cpp:1290 src/engine/sysDef.cpp:1714
-#: src/engine/sysDef.cpp:2099
+#: src/engine/sysDef.cpp:2105
 msgid "FM 16"
 msgstr ""
 
 #: src/engine/sysDef.cpp:1290 src/engine/sysDef.cpp:1714
-#: src/engine/sysDef.cpp:2099
+#: src/engine/sysDef.cpp:2105
 msgid "FM 17"
 msgstr ""
 
 #: src/engine/sysDef.cpp:1290 src/engine/sysDef.cpp:1714
-#: src/engine/sysDef.cpp:2099
+#: src/engine/sysDef.cpp:2105
 msgid "FM 18"
 msgstr ""
 
@@ -2691,42 +2691,42 @@ msgid ""
 msgstr ""
 
 #: src/engine/sysDef.cpp:1303 src/engine/sysDef.cpp:1762
-#: src/engine/sysDef.cpp:2073
+#: src/engine/sysDef.cpp:2079
 msgid "Channel 17"
 msgstr ""
 
 #: src/engine/sysDef.cpp:1303 src/engine/sysDef.cpp:1762
-#: src/engine/sysDef.cpp:2073
+#: src/engine/sysDef.cpp:2079
 msgid "Channel 18"
 msgstr ""
 
 #: src/engine/sysDef.cpp:1303 src/engine/sysDef.cpp:1762
-#: src/engine/sysDef.cpp:2073
+#: src/engine/sysDef.cpp:2079
 msgid "Channel 19"
 msgstr ""
 
 #: src/engine/sysDef.cpp:1303 src/engine/sysDef.cpp:1762
-#: src/engine/sysDef.cpp:2073
+#: src/engine/sysDef.cpp:2079
 msgid "Channel 20"
 msgstr ""
 
 #: src/engine/sysDef.cpp:1303 src/engine/sysDef.cpp:1762
-#: src/engine/sysDef.cpp:2073
+#: src/engine/sysDef.cpp:2079
 msgid "Channel 21"
 msgstr ""
 
 #: src/engine/sysDef.cpp:1303 src/engine/sysDef.cpp:1762
-#: src/engine/sysDef.cpp:2073
+#: src/engine/sysDef.cpp:2079
 msgid "Channel 22"
 msgstr ""
 
 #: src/engine/sysDef.cpp:1303 src/engine/sysDef.cpp:1762
-#: src/engine/sysDef.cpp:2073
+#: src/engine/sysDef.cpp:2079
 msgid "Channel 23"
 msgstr ""
 
 #: src/engine/sysDef.cpp:1303 src/engine/sysDef.cpp:1762
-#: src/engine/sysDef.cpp:2073
+#: src/engine/sysDef.cpp:2079
 msgid "Channel 24"
 msgstr ""
 
@@ -2945,7 +2945,7 @@ msgid ""
 "Furnace provides a thin pulse system."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1455 src/engine/sysDef.cpp:2043
+#: src/engine/sysDef.cpp:1455 src/engine/sysDef.cpp:2049
 msgid "12xx: Set pulse width"
 msgstr ""
 
@@ -3104,45 +3104,45 @@ msgid ""
 msgstr ""
 
 #: src/engine/sysDef.cpp:1614 src/engine/sysDef.cpp:1714
-#: src/engine/sysDef.cpp:1724 src/engine/sysDef.cpp:1873
-#: src/engine/sysDef.cpp:2149
+#: src/engine/sysDef.cpp:1724 src/engine/sysDef.cpp:1879
+#: src/engine/sysDef.cpp:2155
 msgid "PCM 1"
 msgstr ""
 
 #: src/engine/sysDef.cpp:1614 src/engine/sysDef.cpp:1714
-#: src/engine/sysDef.cpp:1724 src/engine/sysDef.cpp:1873
-#: src/engine/sysDef.cpp:1942 src/engine/sysDef.cpp:1954
-#: src/engine/sysDef.cpp:2149
+#: src/engine/sysDef.cpp:1724 src/engine/sysDef.cpp:1879
+#: src/engine/sysDef.cpp:1948 src/engine/sysDef.cpp:1960
+#: src/engine/sysDef.cpp:2155
 msgid "PCM 2"
 msgstr ""
 
 #: src/engine/sysDef.cpp:1614 src/engine/sysDef.cpp:1714
-#: src/engine/sysDef.cpp:1724 src/engine/sysDef.cpp:1873
+#: src/engine/sysDef.cpp:1724 src/engine/sysDef.cpp:1879
 msgid "PCM 3"
 msgstr ""
 
 #: src/engine/sysDef.cpp:1614 src/engine/sysDef.cpp:1714
-#: src/engine/sysDef.cpp:1724 src/engine/sysDef.cpp:1873
+#: src/engine/sysDef.cpp:1724 src/engine/sysDef.cpp:1879
 msgid "PCM 4"
 msgstr ""
 
 #: src/engine/sysDef.cpp:1614 src/engine/sysDef.cpp:1714
-#: src/engine/sysDef.cpp:1724 src/engine/sysDef.cpp:1873
+#: src/engine/sysDef.cpp:1724 src/engine/sysDef.cpp:1879
 msgid "PCM 5"
 msgstr ""
 
 #: src/engine/sysDef.cpp:1614 src/engine/sysDef.cpp:1714
-#: src/engine/sysDef.cpp:1724 src/engine/sysDef.cpp:1873
+#: src/engine/sysDef.cpp:1724 src/engine/sysDef.cpp:1879
 msgid "PCM 6"
 msgstr ""
 
 #: src/engine/sysDef.cpp:1614 src/engine/sysDef.cpp:1714
-#: src/engine/sysDef.cpp:1724 src/engine/sysDef.cpp:1873
+#: src/engine/sysDef.cpp:1724 src/engine/sysDef.cpp:1879
 msgid "PCM 7"
 msgstr ""
 
 #: src/engine/sysDef.cpp:1614 src/engine/sysDef.cpp:1714
-#: src/engine/sysDef.cpp:1724 src/engine/sysDef.cpp:1873
+#: src/engine/sysDef.cpp:1724 src/engine/sysDef.cpp:1879
 msgid "PCM 8"
 msgstr ""
 
@@ -3540,134 +3540,150 @@ msgstr ""
 msgid "22xx: Toggle cutoff sweep (bit 0-6: speed; bit 7: direction is up)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1832 src/gui/presets.cpp:3093
+#: src/engine/sysDef.cpp:1826
+msgid "23xx: Pulse width slide up"
+msgstr ""
+
+#: src/engine/sysDef.cpp:1827
+msgid "24xx: Pulse width slide down"
+msgstr ""
+
+#: src/engine/sysDef.cpp:1829
+msgid "25xx: Filter cutoff slide up"
+msgstr ""
+
+#: src/engine/sysDef.cpp:1830
+msgid "26xx: Filter cutoff slide down"
+msgstr ""
+
+#: src/engine/sysDef.cpp:1838 src/gui/presets.cpp:3093
 msgid "tildearrow Sound Unit"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1833
+#: src/engine/sysDef.cpp:1839
 msgid ""
 "tildearrow's fantasy sound chip. put SID, AY and VERA in a blender, and you "
 "get this!"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1844 src/gui/presets.cpp:2884
+#: src/engine/sysDef.cpp:1850 src/gui/presets.cpp:2884
 msgid "OKI MSM6295"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1845
+#: src/engine/sysDef.cpp:1851
 msgid "an ADPCM sound chip manufactured by OKI and used in many arcade boards."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1852
+#: src/engine/sysDef.cpp:1858
 msgid "20xx: Set chip output rate (0: clock/132; 1: clock/165)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1857 src/gui/presets.cpp:2879
+#: src/engine/sysDef.cpp:1863 src/gui/presets.cpp:2879
 msgid "OKI MSM6258"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1858
+#: src/engine/sysDef.cpp:1864
 msgid "an ADPCM sound chip manufactured by OKI and used in the Sharp X68000."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1859 src/engine/sysDef.cpp:1980
+#: src/engine/sysDef.cpp:1865 src/engine/sysDef.cpp:1986
 #: src/gui/editControls.cpp:437 src/gui/guiConst.cpp:1410
 #: src/gui/insEdit.cpp:3263 src/gui/insEdit.cpp:3302 src/gui/presets.cpp:2846
 #: src/gui/settings.cpp:4264
 msgid "Sample"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1865
+#: src/engine/sysDef.cpp:1871
 msgid "20xx: Set frequency divider (0-2)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1866
+#: src/engine/sysDef.cpp:1872
 msgid "21xx: Select clock rate (0: full; 1: half)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1871 src/gui/presets.cpp:2869
+#: src/engine/sysDef.cpp:1877 src/gui/presets.cpp:2869
 msgid "Yamaha YMZ280B (PCMD8)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1872
+#: src/engine/sysDef.cpp:1878
 msgid ""
 "used in some arcade boards. Can play back either 4-bit ADPCM, 8-bit PCM or "
 "16-bit PCM."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1890 src/gui/presets.cpp:2957
+#: src/engine/sysDef.cpp:1896 src/gui/presets.cpp:2957
 #: src/gui/settings.cpp:4094
 msgid "Namco WSG"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1891
+#: src/engine/sysDef.cpp:1897
 msgid ""
 "a wavetable sound chip used in Pac-Man, among other early Namco arcade games."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1901
+#: src/engine/sysDef.cpp:1907
 msgid "Namco C15 WSG"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1902
+#: src/engine/sysDef.cpp:1908
 msgid ""
 "successor of the original Namco WSG chip, used in later Namco arcade games."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1912
+#: src/engine/sysDef.cpp:1918
 msgid "Namco C30 WSG"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1913
+#: src/engine/sysDef.cpp:1919
 msgid "like Namco C15 but with stereo sound."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1923 src/gui/presets.cpp:2825
+#: src/engine/sysDef.cpp:1929 src/gui/presets.cpp:2825
 msgid "OKI MSM5232"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1924
+#: src/engine/sysDef.cpp:1930
 msgid ""
 "a square wave additive synthesis chip made by OKI. used in some arcade "
 "machines and instruments."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1932
+#: src/engine/sysDef.cpp:1938
 msgid "10xy: Set group control (x: sustain; y: part toggle bitmask)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1933 src/engine/sysDef.cpp:2091
+#: src/engine/sysDef.cpp:1939 src/engine/sysDef.cpp:2097
 msgid "11xx: Set noise mode"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1934
+#: src/engine/sysDef.cpp:1940
 msgid "12xx: Set group attack (0 to 5)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1935
+#: src/engine/sysDef.cpp:1941
 msgid "13xx: Set group decay (0 to 11)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1940 src/gui/presets.cpp:2587
+#: src/engine/sysDef.cpp:1946 src/gui/presets.cpp:2587
 msgid "Yamaha YM2612 (OPN2) with DualPCM"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1941
+#: src/engine/sysDef.cpp:1947
 msgid ""
 "this chip is mostly known for being in the Sega Genesis (but it also was on "
 "the FM Towns computer).\n"
 "this system uses software mixing to provide two sample channels."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1942 src/engine/sysDef.cpp:1954
+#: src/engine/sysDef.cpp:1948 src/engine/sysDef.cpp:1960
 msgid "FM 6/PCM 1"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1952
+#: src/engine/sysDef.cpp:1958
 msgid "Yamaha YM2612 (OPN2) Extended Channel 3 with DualPCM and CSM"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1953
+#: src/engine/sysDef.cpp:1959
 msgid ""
 "this chip is mostly known for being in the Sega Genesis (but it also was on "
 "the FM Towns computer).\n"
@@ -3676,336 +3692,336 @@ msgid ""
 "four operators with independent notes/frequencies."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1965 src/gui/settings.cpp:4064
+#: src/engine/sysDef.cpp:1971 src/gui/settings.cpp:4064
 msgid "T6W28"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1966
+#: src/engine/sysDef.cpp:1972
 msgid ""
 "an SN76489 derivative used in Neo Geo Pocket, has independent stereo volume "
 "and noise channel frequency."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1973
+#: src/engine/sysDef.cpp:1979
 msgid "20xx: Set noise length (0: short, 1: long)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1978 src/gui/presets.cpp:2904
+#: src/engine/sysDef.cpp:1984 src/gui/presets.cpp:2904
 msgid "Generic PCM DAC"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1979
+#: src/engine/sysDef.cpp:1985
 msgid "as generic sample playback as it gets."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1991 src/gui/presets.cpp:2894
+#: src/engine/sysDef.cpp:1997 src/gui/presets.cpp:2894
 msgid "Konami K007232"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1992
+#: src/engine/sysDef.cpp:1998
 msgid "this PCM chip was widely used at Konami arcade boards in 1986-1990."
 msgstr ""
 
-#: src/engine/sysDef.cpp:2001 src/gui/presets.cpp:2899
+#: src/engine/sysDef.cpp:2007 src/gui/presets.cpp:2899
 msgid "Irem GA20"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2002
+#: src/engine/sysDef.cpp:2008
 msgid ""
 "yet another PCM chip from Irem. like Amiga, but less pitch resolution and no "
 "sample loop."
 msgstr ""
 
-#: src/engine/sysDef.cpp:2011 src/gui/presets.cpp:3081
+#: src/engine/sysDef.cpp:2017 src/gui/presets.cpp:3081
 msgid "Sharp SM8521"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2012
+#: src/engine/sysDef.cpp:2018
 msgid "a SoC with wavetable sound hardware."
 msgstr ""
 
-#: src/engine/sysDef.cpp:2022 src/gui/presets.cpp:314
+#: src/engine/sysDef.cpp:2028 src/gui/presets.cpp:314
 msgid "Casio PV-1000"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2023
+#: src/engine/sysDef.cpp:2029
 msgid ""
 "a game console with 3 channels of square wave. it's what happens after "
 "fusing TIA and VIC together."
 msgstr ""
 
-#: src/engine/sysDef.cpp:2030
+#: src/engine/sysDef.cpp:2036
 msgid "10xx: Set ring modulation (0: disable, 1: enable)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2035
+#: src/engine/sysDef.cpp:2041
 msgid "ZX Spectrum Beeper (QuadTone Engine)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2036
+#: src/engine/sysDef.cpp:2042
 msgid ""
 "another ZX Spectrum beeper system with full PWM pulses and 3-level volume "
 "per channel. it also has a pitchable overlay sample channel."
 msgstr ""
 
-#: src/engine/sysDef.cpp:2048 src/gui/presets.cpp:2914
+#: src/engine/sysDef.cpp:2054 src/gui/presets.cpp:2914
 msgid "Konami K053260"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2049
+#: src/engine/sysDef.cpp:2055
 msgid "this PCM chip was widely used at Konami arcade boards in 1990-1992."
 msgstr ""
 
-#: src/engine/sysDef.cpp:2061 src/gui/presets.cpp:2840
+#: src/engine/sysDef.cpp:2067 src/gui/presets.cpp:2840
 msgid "MOS Technology TED"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2062
+#: src/engine/sysDef.cpp:2068
 msgid ""
 "two square waves (one may be turned into noise). used in the Commodore "
 "Plus/4, 16 and 116."
 msgstr ""
 
-#: src/engine/sysDef.cpp:2071 src/gui/presets.cpp:2919
+#: src/engine/sysDef.cpp:2077 src/gui/presets.cpp:2919
 msgid "Namco C140"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2072
+#: src/engine/sysDef.cpp:2078
 msgid "Namco's first PCM chip from 1987. it's pretty good for being so."
 msgstr ""
 
-#: src/engine/sysDef.cpp:2082 src/gui/presets.cpp:2924
+#: src/engine/sysDef.cpp:2088 src/gui/presets.cpp:2924
 msgid "Namco C219"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2083
+#: src/engine/sysDef.cpp:2089
 msgid ""
 "Namco's PCM chip used in their NA-1/2 hardware.\n"
 "very similar to C140, but has noise generator."
 msgstr ""
 
-#: src/engine/sysDef.cpp:2092
+#: src/engine/sysDef.cpp:2098
 msgid "12xy: Set invert mode (x: surround; y: invert)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2097 src/gui/presets.cpp:2718
+#: src/engine/sysDef.cpp:2103 src/gui/presets.cpp:2718
 msgid "ESS ES1xxx series (ESFM)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2098
+#: src/engine/sysDef.cpp:2104
 msgid ""
 "a unique FM synth featured in PC sound cards.\n"
 "based on the OPL3 design, but with lots of its features extended."
 msgstr ""
 
-#: src/engine/sysDef.cpp:2099
+#: src/engine/sysDef.cpp:2105
 msgid "FM 11"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2105
+#: src/engine/sysDef.cpp:2111
 msgid "2Exx: Toggle hard envelope reset on new notes"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2111 src/gui/presets.cpp:3098
+#: src/engine/sysDef.cpp:2117 src/gui/presets.cpp:3098
 msgid "PowerNoise"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2112
+#: src/engine/sysDef.cpp:2118
 msgid ""
 "a fantasy sound chip designed by jvsTSX and The Beesh-Spweesh!\n"
 "used in the Hexheld fantasy console."
 msgstr ""
 
-#: src/engine/sysDef.cpp:2113
+#: src/engine/sysDef.cpp:2119
 msgid "Noise 1"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2113
+#: src/engine/sysDef.cpp:2119
 msgid "Noise 2"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2113
+#: src/engine/sysDef.cpp:2119
 msgid "Noise 3"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2113
+#: src/engine/sysDef.cpp:2119
 msgid "Slope"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2119
+#: src/engine/sysDef.cpp:2125
 msgid ""
 "20xx: Load low byte of noise channel LFSR (00 to FF) or slope channel "
 "accumulator (00 to 7F)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2120
+#: src/engine/sysDef.cpp:2126
 msgid "21xx: Load high byte of noise channel LFSR (00 to FF)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2121
+#: src/engine/sysDef.cpp:2127
 msgid "22xx: Write to I/O port A"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2122
+#: src/engine/sysDef.cpp:2128
 msgid "23xx: Write to I/O port B"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2128 src/gui/presets.cpp:3103
+#: src/engine/sysDef.cpp:2134 src/gui/presets.cpp:3103
 #: src/gui/settings.cpp:4119
 msgid "Dave"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2129
+#: src/engine/sysDef.cpp:2135
 msgid ""
 "this chip was featured in the Enterprise 128 computer. it is similar to "
 "POKEY, but with stereo output."
 msgstr ""
 
-#: src/engine/sysDef.cpp:2130
+#: src/engine/sysDef.cpp:2136
 msgid "DAC Left"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2130
+#: src/engine/sysDef.cpp:2136
 msgid "DAC Right"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2136
+#: src/engine/sysDef.cpp:2142
 msgid "10xx: Set waveform (0 to 4; 0 to 3 on noise)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2137
+#: src/engine/sysDef.cpp:2143
 msgid "11xx: Set noise frequency source (0: fixed; 1-3: channels 1 to 3)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2138
+#: src/engine/sysDef.cpp:2144
 msgid "12xx: Toggle high-pass with next channel"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2139
+#: src/engine/sysDef.cpp:2145
 msgid "13xx: Toggle ring modulation with channel+2"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2140
+#: src/engine/sysDef.cpp:2146
 msgid "14xx: Toggle swap counters (noise only)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2141
+#: src/engine/sysDef.cpp:2147
 msgid "15xx: Toggle low pass (noise only)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2142
+#: src/engine/sysDef.cpp:2148
 msgid "16xx: Set clock divider (0: /2; 1: /3)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2147
+#: src/engine/sysDef.cpp:2153
 msgid "Game Boy Advance DMA Sound"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2148
+#: src/engine/sysDef.cpp:2154
 msgid ""
 "additional PCM FIFO channels in Game Boy Advance driven directly by its DMA "
 "hardware."
 msgstr ""
 
-#: src/engine/sysDef.cpp:2161
+#: src/engine/sysDef.cpp:2167
 msgid "Game Boy Advance MinMod"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2162
+#: src/engine/sysDef.cpp:2168
 msgid ""
 "additional PCM FIFO channels in Game Boy Advance driven by software mixing "
 "to provide up to sixteen sample channels"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2171
+#: src/engine/sysDef.cpp:2177
 msgid "11xy: Set echo channel (x: left/right source; y: delay (0 disables))"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2172
+#: src/engine/sysDef.cpp:2178
 msgid "12xy: Toggle invert (x: left; y: right)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2177 src/gui/presets.cpp:319 src/gui/presets.cpp:2929
+#: src/engine/sysDef.cpp:2183 src/gui/presets.cpp:319 src/gui/presets.cpp:2929
 #: src/gui/presets.cpp:3109 src/gui/settings.cpp:4120
 msgid "Nintendo DS"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2178
+#: src/engine/sysDef.cpp:2184
 msgid "a handheld video game console with two screens. it uses a stylus."
 msgstr ""
 
-#: src/engine/sysDef.cpp:2186
+#: src/engine/sysDef.cpp:2192
 msgid "1Fxx: Set global volume (0 to 7F)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2191
+#: src/engine/sysDef.cpp:2197
 msgid "5E01"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2192
+#: src/engine/sysDef.cpp:2198
 msgid ""
 "a fantasy sound chip created by Euly. it is based on Ricoh 2A03, adding a "
 "couple features such as 32 noise pitches, an extra duty cycle, and three "
 "waveforms (besides triangle)."
 msgstr ""
 
-#: src/engine/sysDef.cpp:2200
+#: src/engine/sysDef.cpp:2206
 msgid ""
 "12xx: Set duty cycle/noise mode/waveform (pulse/wave: 0 to 3; noise: 0 or 1)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2213 src/gui/presets.cpp:3114
+#: src/engine/sysDef.cpp:2219 src/gui/presets.cpp:3114
 #: src/gui/settings.cpp:4123
 msgid "Bifurcator"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2214
+#: src/engine/sysDef.cpp:2220
 msgid "a fantasy sound chip using logistic map iterations to generate sound."
 msgstr ""
 
-#: src/engine/sysDef.cpp:2221
+#: src/engine/sysDef.cpp:2227
 msgid "10xx: Load low byte of channel sample state"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2222
+#: src/engine/sysDef.cpp:2228
 msgid "11xx: Load high byte of channel sample state"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2223
+#: src/engine/sysDef.cpp:2229
 msgid "12xx: Set low byte of channel parameter"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2224
+#: src/engine/sysDef.cpp:2230
 msgid "13xx: Set high byte of channel parameter"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2229 src/gui/presets.cpp:3119
+#: src/engine/sysDef.cpp:2235 src/gui/presets.cpp:3119
 #: src/gui/settings.cpp:4124
 msgid "SID2"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2230
+#: src/engine/sysDef.cpp:2236
 msgid ""
 "a fantasy sound chip created by LTVA. it is similar to the SID chip, but "
 "with many of its problems fixed."
 msgstr ""
 
-#: src/engine/sysDef.cpp:2241 src/gui/presets.cpp:3124
+#: src/engine/sysDef.cpp:2247 src/gui/presets.cpp:3124
 #: src/gui/settings.cpp:4125
 msgid "SID3"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2242
+#: src/engine/sysDef.cpp:2248
 msgid ""
 "a fantasy sound chip created by LTVA. it is a big rework of SID chip with "
 "probably too much features added on top."
 msgstr ""
 
-#: src/engine/sysDef.cpp:2253 src/gui/presets.cpp:3087
+#: src/engine/sysDef.cpp:2259 src/gui/presets.cpp:3087
 msgid "Dummy System"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2254
+#: src/engine/sysDef.cpp:2260
 msgid "this is a system designed for testing purposes."
 msgstr ""
 
