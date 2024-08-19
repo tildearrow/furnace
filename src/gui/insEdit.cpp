@@ -5250,7 +5250,7 @@ void FurnaceGUI::drawInsEdit() {
     ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
   if (ImGui::Begin("Instrument Editor",&insEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking),_("Instrument Editor"))) {
-    DivInstrument* ins=NULL;
+    DivInstrument* ins=nullptr;
     if (curIns==-2) {
       ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()+ImGui::GetStyle().ItemSpacing.y)*0.5f);
       CENTER_TEXT(_("waiting..."));
@@ -7742,8 +7742,8 @@ void FurnaceGUI::drawInsEdit() {
     }
     
     if (ins) {
-      bool insChanged=ins!=cachedCurInsPtr;
-      bool delayDiff=ImGui::IsMouseDown(ImGuiMouseButton_Left) || ImGui::IsMouseDown(ImGuiMouseButton_Right) || ImGui::GetIO().WantCaptureKeyboard;
+      bool insChanged = ins != cachedCurInsPtr;
+      bool delayDiff = ImGui::IsMouseDown(ImGuiMouseButton_Left) || ImGui::IsMouseDown(ImGuiMouseButton_Right) || ImGui::GetIO().WantCaptureKeyboard;
 
       // check against the last cached to see if diff -- note that modifications to instruments happen outside
       // drawInsEdit (e.g. cursor inputs are processed and can directly modify macro data)
@@ -7752,12 +7752,12 @@ void FurnaceGUI::drawInsEdit() {
       }
 
       if (insChanged || !delayDiff) {
-        cachedCurIns=*ins;
+        cachedCurIns = *ins;
       }
 
-      cachedCurInsPtr=ins;
+      cachedCurInsPtr = ins;
     } else {
-      cachedCurInsPtr=NULL;
+      cachedCurInsPtr = nullptr;
     }
   }
   
