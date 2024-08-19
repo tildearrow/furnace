@@ -1025,7 +1025,7 @@ struct DivInstrument : DivInstrumentPOD {
   DivInstrument() :
     name("") {
       // clear and construct DivInstrumentPOD so it doesn't have any garbage in the padding
-      memset((unsigned char*)this, 0, sizeof(DivInstrumentPOD));
+      memset((unsigned char*)(DivInstrumentPOD*)this, 0, sizeof(DivInstrumentPOD));
       new ((DivInstrumentPOD*)this) DivInstrumentPOD;
   }
 };
