@@ -5829,12 +5829,11 @@ bool FurnaceGUI::loop() {
     if (ImGui::BeginPopupModal(_("Rendering..."),NULL,ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
       ImGui::Text(_("Please wait..."));
       int songLengthLambda = songLength;
-      std::vector<int>* songOrdersLengthsLambda = & songOrdersLengths;
       float progress = 0.0f;
       float* progressLambda = &progress;
       if(e->isExporting())
       {
-        e->lockEngine([this, songOrdersLengthsLambda, progressLambda]()
+        e->lockEngine([this, progressLambda]()
         {
           int totalFiles = 0;
           e->getTotalAudioFiles(totalFiles);
