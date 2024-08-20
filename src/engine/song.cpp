@@ -102,7 +102,7 @@ bool DivSubSong::walk(int& loopOrder, int& loopRow, int& loopEnd, int chans, int
   return false;
 }
 
-void DivSubSong::findLength(bool& hasFFxx, std::vector<int>& orders_vec, int& length, int loopOrder, int loopRow, int loopEnd, int chans, int jumpTreatment, int ignoreJumpAtEnd, int firstPat)
+void DivSubSong::findLength(bool& hasFFxx, std::vector<int>& orders_vec, int& length, int& loopOrder, int& loopRow, int& loopEnd, int chans, int jumpTreatment, int ignoreJumpAtEnd, int firstPat)
 {
   length = 0;
   hasFFxx = false;
