@@ -199,6 +199,12 @@ void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {
   }
 }
 
+void DivEngine::findSongLength(bool& hasFFxx, std::vector<int>& orders, int& length, int loopOrder, int loopRow, int loopEnd) {
+  if (curSubSong!=NULL) {
+    curSubSong->findLength(hasFFxx, orders, length, loopOrder, loopRow, loopEnd, chans, song.jumpTreatment, song.ignoreJumpAtEnd);
+  }
+}
+
 #define EXPORT_BUFSIZE 2048
 
 double DivEngine::benchmarkPlayback() {

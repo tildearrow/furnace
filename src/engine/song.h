@@ -185,6 +185,11 @@ struct DivSubSong {
    */
   bool walk(int& loopOrder, int& loopRow, int& loopEnd, int chans, int jumpTreatment, int ignoreJumpAtEnd, int firstPat=0);
 
+  /**
+   * find song length in rows (up to specified loop point). Also find length of every row
+   */
+  void findLength(bool& hasFFxx, std::vector<int>& orders, int& length, int loopOrder, int loopRow, int loopEnd, int chans, int jumpTreatment, int ignoreJumpAtEnd, int firstPat=0);
+
   void clearData();
   void optimizePatterns();
   void rearrangePatterns();

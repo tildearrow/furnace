@@ -1723,6 +1723,10 @@ class FurnaceGUI {
   char emptyLabel[32];
   char emptyLabel2[32];
 
+  std::vector<int> songOrdersLengths; //lengths of all orders (for drawing song export progress)
+  int songLength; //length of all the song in rows
+  bool songHasSongEndCommand; //song has "Song end" command (FFxx)
+
   struct Settings {
     bool settingsChanged;
     int mainFontSize, patFontSize, headFontSize, iconSize;

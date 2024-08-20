@@ -995,7 +995,7 @@ Collapsed=0\n\
 \n\
 [Window][Rendering...]\n\
 Pos=585,342\n\
-Size=114,71\n\
+Size=600,100\n\
 Collapsed=0\n\
 \n\
 [Window][Export VGM##FileDialog]\n\
@@ -2582,6 +2582,12 @@ int FurnaceGUI::loadStream(String path) {
 
 
 void FurnaceGUI::exportAudio(String path, DivAudioExportModes mode) {
+  int loopOrder=0;
+  int loopRow=0;
+  int loopEnd=0;
+  e->walkSong(loopOrder,loopRow,loopEnd);
+  e->findSongLength(songHasSongEndCommand, songOrdersLengths, songLength, loopOrder, loopRow, loopEnd); //for progress estimation
+
   e->saveAudio(path.c_str(),audioExportOptions);
   displayExporting=true;
 }
@@ -5820,8 +5826,49 @@ bool FurnaceGUI::loop() {
     MEASURE_BEGIN(popup);
 
     centerNextWindow(_("Rendering..."),canvasW,canvasH);
-    if (ImGui::BeginPopupModal(_("Rendering..."),NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
+    if (ImGui::BeginPopupModal(_("Rendering..."),NULL,ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
       ImGui::Text(_("Please wait..."));
+      int songLengthLambda = songLength;
+      std::vector<int>* songOrdersLengthsLambda = & songOrdersLengths;
+      float progress = 0.0f;
+      float* progressLambda = &progress;
+      if(e->isExporting())
+      {
+        e->lockEngine([this, songOrdersLengthsLambda, progressLambda]()
+        {
+          int totalFiles = 0;
+          e->getTotalAudioFiles(totalFiles);
+          int loopsLeft = 0;
+          int totalLoops = 0;
+
+          if(!songHasSongEndCommand)
+          {
+            e->getLoopsLeft(loopsLeft);
+            e->getTotalLoops(totalLoops);
+          }
+          int curRow = 0;
+          int curOrder = 0;
+          e->getCurSongPos(curRow, curOrder);
+          int curFile = 0;
+          e->getCurFileIndex(curFile);
+
+          int curPosInRows = curRow;
+
+          for(int i = 0; i < curOrder; i++)
+          {
+            curPosInRows += songOrdersLengths[i];
+          }
+          int lengthOfOneFile = songLength * (totalLoops + 1);
+          int totalLength = lengthOfOneFile * totalFiles;
+
+          *progressLambda = (float)(curPosInRows +
+            (totalLoops - loopsLeft) * songLength +
+            lengthOfOneFile * curFile)
+            / (float)totalLength;
+        });
+      }
+      ImGui::Text(_("%f"), progress);
+      ImGui::ProgressBar(progress,ImVec2(-FLT_MIN,0));
       if (ImGui::Button(_("Abort"))) {
         if (e->haltAudioFile()) {
           ImGui::CloseCurrentPopup();
