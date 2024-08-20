@@ -33,6 +33,77 @@ bool DivEngine::isExporting() {
   return exporting;
 }
 
+void DivEngine::getLoopsLeft(int& loops) {
+  if(totalLoops < 0 || exportLoopCount == 0)
+  {
+    loops = 0;
+    return;
+  }
+  loops = exportLoopCount - 1 - totalLoops;
+}
+
+void DivEngine::getTotalLoops(int& loops) {
+  loops = exportLoopCount - 1;
+}
+
+void DivEngine::getCurSongPos(int& row, int& order) {
+  row = curRow;
+  order = curOrder;
+}
+
+void DivEngine::getTotalAudioFiles(int& files)
+{
+  files = 0;
+
+  switch(exportMode)
+  {
+    case DIV_EXPORT_MODE_ONE:
+    {
+      files = 1;
+      break;
+    }
+    case DIV_EXPORT_MODE_MANY_SYS:
+    {
+      files = 1; //there actually are several files but they are processed in the same loop, so to correctly draw progress we think of them as one file
+      break;
+    }
+    case DIV_EXPORT_MODE_MANY_CHAN:
+    {
+      for(int i = 0; i < chans; i++)
+      {
+        if (exportChannelMask[i]) files++;
+      }
+      break;
+    }
+    default: break;
+  }
+}
+
+void DivEngine::getCurFileIndex(int& file)
+{
+  file = 0;
+
+  switch(exportMode)
+  {
+    case DIV_EXPORT_MODE_ONE:
+    {
+      file = 0;
+      break;
+    }
+    case DIV_EXPORT_MODE_MANY_SYS:
+    {
+      file = 0; //there actually are several files but they are processed in the same loop, so to correctly draw progress we think of them as one file
+      break;
+    }
+    case DIV_EXPORT_MODE_MANY_CHAN:
+    {
+      file = curExportChan;
+      break;
+    }
+    default: break;
+  }
+}
+
 #ifdef HAVE_SNDFILE
 void DivEngine::runExportThread() {
   size_t fadeOutSamples=got.rate*exportFadeOut;
@@ -140,7 +211,11 @@ void DivEngine::runExportThread() {
         sf[i]=NULL;
         si[i].samplerate=got.rate;
         si[i].channels=disCont[i].dispatch->getOutputCount();
-        si[i].format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
+        if (exportFormat==DIV_EXPORT_FORMAT_S16) {
+          si[i].format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
+        } else {
+          si[i].format=SF_FORMAT_WAV|SF_FORMAT_FLOAT;
+        }
       }
 
       for (int i=0; i<song.systemLen; i++) {
@@ -247,6 +322,8 @@ void DivEngine::runExportThread() {
       // take control of audio output
       deinitAudioBackend();
 
+      curExportChan = 0;
+
       float* outBuf[DIV_MAX_OUTPUTS];
       float* outBufFinal;
       for (int i=0; i<exportOutputs; i++) {
@@ -258,6 +335,7 @@ void DivEngine::runExportThread() {
       
       for (int i=0; i<chans; i++) {
         if (!exportChannelMask[i]) continue;
+
         SNDFILE* sf;
         SF_INFO si;
         SFWrapper sfWrap;
@@ -338,6 +416,8 @@ void DivEngine::runExportThread() {
           }
         }
 
+        curExportChan++;
+
         if (sfWrap.doClose()!=0) {
           logE("could not close audio file!");
         }
@@ -378,6 +458,7 @@ void DivEngine::runExportThread() {
       }
       logI("done!");
       exporting=false;
+      curExportChan = 0;
       break;
     }
   }

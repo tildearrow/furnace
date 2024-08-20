@@ -102,6 +102,134 @@ bool DivSubSong::walk(int& loopOrder, int& loopRow, int& loopEnd, int chans, int
   return false;
 }
 
+void DivSubSong::findLength(bool& hasFFxx, std::vector<int>& orders_vec, int& length, int loopOrder, int loopRow, int loopEnd, int chans, int jumpTreatment, int ignoreJumpAtEnd, int firstPat)
+{
+  length = 0;
+  hasFFxx = false;
+
+  loopOrder=0;
+  loopRow=0;
+  loopEnd=-1;
+  int nextOrder=-1;
+  int nextRow=0;
+  int effectVal=0;
+  int lastSuspectedLoopEnd=-1;
+  DivPattern* subPat[DIV_MAX_CHANS];
+  unsigned char wsWalked[8192];
+  memset(wsWalked,0,8192);
+  if (firstPat>0) {
+    memset(wsWalked,255,32*firstPat);
+  }
+  for (int i=firstPat; i<ordersLen; i++) 
+  {
+    bool jumped = false;
+
+    for (int j=0; j<chans; j++) 
+    {
+      subPat[j]=pat[j].getPattern(orders.ord[j][i],false);
+    }
+    if (i>lastSuspectedLoopEnd) 
+    {
+      lastSuspectedLoopEnd=i;
+    }
+    for (int j=nextRow; j<patLen; j++) 
+    {
+      nextRow=0;
+      bool changingOrder=false;
+      bool jumpingOrder=false;
+      if (wsWalked[((i<<5)+(j>>3))&8191]&(1<<(j&7))) 
+      {
+        loopOrder=i;
+        loopRow=j;
+        loopEnd=lastSuspectedLoopEnd;
+        return;
+      }
+      for (int k=0; k<chans; k++) 
+      {
+        for (int l=0; l<pat[k].effectCols; l++) 
+        {
+          effectVal=subPat[k]->data[j][5+(l<<1)];
+          if (effectVal<0) effectVal=0;
+
+          if (subPat[k]->data[j][4+(l<<1)]==0xff) 
+          {
+            hasFFxx = true;
+
+            //FFxx makes YOU SHALL NOT PASS!!! move
+            orders_vec.push_back(j + 1); //order len
+            length += j + 1; //add length of order to song length
+
+            return;
+          }
+
+          if (subPat[k]->data[j][4+(l<<1)]==0x0d) 
+          {
+            if (jumpTreatment==2) 
+            {
+              if ((i<ordersLen-1 || !ignoreJumpAtEnd)) 
+              {
+                nextOrder=i+1;
+                nextRow=effectVal;
+                jumpingOrder=true;
+              }
+            } 
+            else if (jumpTreatment==1) 
+            {
+              if (nextOrder==-1 && (i<ordersLen-1 || !ignoreJumpAtEnd)) 
+              {
+                nextOrder=i+1;
+                nextRow=effectVal;
+                jumpingOrder=true;
+              }
+            } 
+            else 
+            {
+              if ((i<ordersLen-1 || !ignoreJumpAtEnd)) 
+              {
+                if (!changingOrder) 
+                {
+                  nextOrder=i+1;
+                }
+                jumpingOrder=true;
+                nextRow=effectVal;
+              }
+            }
+          } 
+          else if (subPat[k]->data[j][4+(l<<1)]==0x0b) 
+          {
+            if (nextOrder==-1 || jumpTreatment==0) 
+            {
+              nextOrder=effectVal;
+              if (jumpTreatment==1 || jumpTreatment==2 || !jumpingOrder) 
+              {
+                nextRow=0;
+              }
+              changingOrder=true;
+            }
+          }
+        }
+      }
+
+      wsWalked[((i<<5)+(j>>3))&8191]|=1<<(j&7);
+      
+      if (nextOrder!=-1) 
+      {
+        i=nextOrder-1;
+        orders_vec.push_back(j + 1); //order len
+        length += j + 1; //add length of order to song length
+        jumped = true;
+        nextOrder=-1;
+        break;
+      }
+    }
+    if(!jumped) //if no jump occured we add full pattern length
+    {
+      orders_vec.push_back(patLen); //order len
+      length += patLen; //add length of order to song length
+    }
+  }
+}
+
 void DivSubSong::clearData() {
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     pat[i].wipePatterns();
