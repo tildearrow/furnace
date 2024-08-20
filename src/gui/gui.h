@@ -1725,6 +1725,7 @@ class FurnaceGUI {
 
   std::vector<int> songOrdersLengths; //lengths of all orders (for drawing song export progress)
   int songLength; //length of all the song in rows
+  int songLoopedSectionLength; //length of looped part of the song
   bool songHasSongEndCommand; //song has "Song end" command (FFxx)
 
   struct Settings {

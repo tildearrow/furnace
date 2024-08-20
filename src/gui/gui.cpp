@@ -2582,11 +2582,20 @@ int FurnaceGUI::loadStream(String path) {
 
 
 void FurnaceGUI::exportAudio(String path, DivAudioExportModes mode) {
+  songOrdersLengths.clear();
+
   int loopOrder=0;
   int loopRow=0;
   int loopEnd=0;
   e->walkSong(loopOrder,loopRow,loopEnd);
   e->findSongLength(songHasSongEndCommand, songOrdersLengths, songLength, loopOrder, loopRow, loopEnd); //for progress estimation
+
+  songLoopedSectionLength = songLength;
+  for(int i = 0; i < loopOrder; i++)
+  {
+    songLoopedSectionLength -= songOrdersLengths[i];
+  }
+  songLoopedSectionLength -= loopRow;
 
   e->saveAudio(path.c_str(),audioExportOptions);
   displayExporting=true;
@@ -5839,16 +5848,13 @@ bool FurnaceGUI::loop() {
           int loopsLeft = 0;
           int totalLoops = 0;
 
-          if(!songHasSongEndCommand)
-          {
-            e->getLoopsLeft(loopsLeft);
-            e->getTotalLoops(totalLoops);
-          }
           int curRow = 0;
           int curOrder = 0;
           e->getCurSongPos(curRow, curOrder);
           int curFile = 0;
           e->getCurFileIndex(curFile);
+
+          int lengthOfOneFile = songLength;
 
           int curPosInRows = curRow;
 
@@ -5856,7 +5862,22 @@ bool FurnaceGUI::loop() {
           {
             curPosInRows += songOrdersLengths[i];
           }
-          int lengthOfOneFile = songLength * (totalLoops + 1);
+
+          if(!songHasSongEndCommand)
+          {
+            e->getLoopsLeft(loopsLeft);
+            e->getTotalLoops(totalLoops);
+
+            lengthOfOneFile += songLoopedSectionLength * totalLoops;
+
+            if(totalLoops != loopsLeft) //we are going 2nd, 3rd, etc. time through the song
+            {
+              curPosInRows -= (songLength - songLoopedSectionLength); //a hack so progress bar does not jump?
+            }
+          }
+
+          //int lengthOfOneFile = songLength * (totalLoops + 1);
+          //songLoopedSectionLength
           int totalLength = lengthOfOneFile * totalFiles;
 
           *progressLambda = (float)(curPosInRows +
