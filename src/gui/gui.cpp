@@ -2600,7 +2600,7 @@ void FurnaceGUI::exportAudio(String path, DivAudioExportModes mode) {
 
   e->saveAudio(path.c_str(),audioExportOptions);
 
-  int totalFiles = 0;
+  totalFiles = 0;
   e->getTotalAudioFiles(totalFiles);
   int totalLoops = 0;
 
@@ -2620,52 +2620,6 @@ void FurnaceGUI::exportAudio(String path, DivAudioExportModes mode) {
 
   displayExporting=true;
 }
-
-  /*e->lockEngine([this, progressLambda]()
-        {
-          int totalFiles = 0;
-          e->getTotalAudioFiles(totalFiles);
-          int loopsLeft = 0;
-          int totalLoops = 0;
-
-          int curRow = 0;
-          int curOrder = 0;
-          e->getCurSongPos(curRow, curOrder);
-          int curFile = 0;
-          e->getCurFileIndex(curFile);
-
-          int lengthOfOneFile = songLength;
-
-          int curPosInRows = curRow;
-
-          for(int i = 0; i < curOrder; i++)
-          {
-            curPosInRows += songOrdersLengths[i];
-          }
-
-          if(!songHasSongEndCommand)
-          {
-            e->getLoopsLeft(loopsLeft);
-            e->getTotalLoops(totalLoops);
-
-            lengthOfOneFile += songLoopedSectionLength * totalLoops;
-            lengthOfOneFile += songFadeoutSectionLength; //account for fadeout
-
-            if(totalLoops != loopsLeft) //we are going 2nd, 3rd, etc. time through the song
-            {
-              curPosInRows -= (songLength - songLoopedSectionLength); //a hack so progress bar does not jump?
-            }
-          }
-
-          //int lengthOfOneFile = songLength * (totalLoops + 1);
-          //songLoopedSectionLength
-          int totalLength = lengthOfOneFile * totalFiles;
-
-          *progressLambda = (float)(curPosInRows +
-            (totalLoops - loopsLeft) * songLength +
-            lengthOfOneFile * curFile)
-            / (float)totalLength;
-        });*/
 
 void FurnaceGUI::editStr(String* which) {
   editString=which;
@@ -5902,51 +5856,68 @@ bool FurnaceGUI::loop() {
 
     centerNextWindow(_("Rendering..."),canvasW,canvasH);
     if (ImGui::BeginPopupModal(_("Rendering..."),NULL,ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
-      ImGui::Text(_("Please wait..."));
+      if(audioExportOptions.mode != DIV_EXPORT_MODE_MANY_CHAN)
+      {
+        ImGui::Text(_("Please wait..."));
+      }
       float* progressLambda = &curProgress;
+      int curPosInRows = 0;
+      int* curPosInRowsLambda = &curPosInRows;
+      int loopsLeft = 0;
+      int* loopsLeftLambda = &loopsLeft;
+      int totalLoops = 0;
+      int* totalLoopsLambda = &totalLoops;
+      int curFile = 0;
+      int* curFileLambda = &curFile;
       if(e->isExporting())
       {
-        e->lockEngine([this, progressLambda]()
+        e->lockEngine([this, progressLambda, curPosInRowsLambda, curFileLambda, loopsLeftLambda, totalLoopsLambda]()
         {
-          int loopsLeft = 0;
-          int totalLoops = 0;
-
           int curRow = 0;
           int curOrder = 0;
           e->getCurSongPos(curRow, curOrder);
-          int curFile = 0;
-          e->getCurFileIndex(curFile);
+          *curFileLambda = 0;
+          e->getCurFileIndex(*curFileLambda);
 
-          int curPosInRows = curRow;
+          *curPosInRowsLambda = curRow;
 
           for(int i = 0; i < curOrder; i++)
           {
-            curPosInRows += songOrdersLengths[i];
+            *curPosInRowsLambda += songOrdersLengths[i];
           }
 
           if(!songHasSongEndCommand)
           {
-            e->getLoopsLeft(loopsLeft);
-            e->getTotalLoops(totalLoops);
+            e->getLoopsLeft(*loopsLeftLambda);
+            e->getTotalLoops(*totalLoopsLambda);
 
-            if(totalLoops != loopsLeft) //we are going 2nd, 3rd, etc. time through the song
+            if((*totalLoopsLambda) != (*loopsLeftLambda)) //we are going 2nd, 3rd, etc. time through the song
             {
-              curPosInRows -= (songLength - songLoopedSectionLength); //a hack so progress bar does not jump?
+              *curPosInRowsLambda -= (songLength - songLoopedSectionLength); //a hack so progress bar does not jump?
             }
             if(e->getIsFadingOut()) //we are in fadeout??? why it works like that bruh
             {
-              curPosInRows -= (songLength - songLoopedSectionLength); //a hack so progress bar does not jump?
+              *curPosInRowsLambda -= (songLength - songLoopedSectionLength); //a hack so progress bar does not jump?
             }
           }
 
-          *progressLambda = (float)(curPosInRows +
-            (totalLoops - loopsLeft) * songLength +
-            lengthOfOneFile * curFile)
+          *progressLambda = (float)((*curPosInRowsLambda) +
+            ((*totalLoopsLambda) - (*loopsLeftLambda)) * songLength +
+            lengthOfOneFile * (*curFileLambda))
             / (float)totalLength;
         });
       }
-      ImGui::Text(_("%f"), curProgress);
-      ImGui::ProgressBar(curProgress,ImVec2(-FLT_MIN,0));
+
+      ImGui::Text(_("Row %d of %d"), curPosInRows +
+            ((totalLoops) - (loopsLeft)) * songLength, lengthOfOneFile);
+
+      if(audioExportOptions.mode == DIV_EXPORT_MODE_MANY_CHAN)
+      {
+        ImGui::Text(_("Channel %d of %d"), curFile + 1, totalFiles);
+      }
+
+      ImGui::ProgressBar(curProgress,ImVec2(-FLT_MIN,0), fmt::sprintf("%.2f%%", curProgress * 100.0f).c_str());
+
       if (ImGui::Button(_("Abort"))) {
         if (e->haltAudioFile()) {
           ImGui::CloseCurrentPopup();
