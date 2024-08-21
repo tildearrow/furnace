@@ -104,11 +104,16 @@ void DivEngine::getCurFileIndex(int& file)
   }
 }
 
+bool DivEngine::getIsFadingOut()
+{
+  return isFadingOut;
+}
+
 #ifdef HAVE_SNDFILE
 void DivEngine::runExportThread() {
   size_t fadeOutSamples=got.rate*exportFadeOut;
   size_t curFadeOutSample=0;
-  bool isFadingOut=false;
+  isFadingOut=false;
 
   switch (exportMode) {
     case DIV_EXPORT_MODE_ONE: {

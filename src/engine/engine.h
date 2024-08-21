@@ -498,6 +498,7 @@ class DivEngine {
   DivAudioExportModes exportMode;
   DivAudioExportFormats exportFormat;
   double exportFadeOut;
+  bool isFadingOut;
   int exportOutputs;
   bool exportChannelMask[DIV_MAX_CHANS];
   DivConfig conf;
@@ -817,7 +818,7 @@ class DivEngine {
     void walkSong(int& loopOrder, int& loopRow, int& loopEnd);
 
     // find song length in rows (up to specified loop point), and find length of every order
-    void findSongLength(bool& hasFFxx, std::vector<int>& orders, int& length, int loopOrder, int loopRow, int loopEnd);
+    void findSongLength(int loopOrder, int loopRow, double fadeoutLen, int& rowsForFadeout, bool& hasFFxx, std::vector<int>& orders, int& length);
 
     // play (returns whether successful)
     bool play();
@@ -1024,6 +1025,9 @@ class DivEngine {
 
     //get which file is processed right now (progress for e.g. per-channel export)
     void getCurFileIndex(int& file);
+
+    //get fadeout state
+    bool getIsFadingOut();
 
     // add instrument
     int addInstrument(int refChan=0, DivInstrumentType fallbackType=DIV_INS_STD);
@@ -1457,6 +1461,7 @@ class DivEngine {
       exportMode(DIV_EXPORT_MODE_ONE),
       exportFormat(DIV_EXPORT_FORMAT_S16),
       exportFadeOut(0.0),
+      isFadingOut(false),
       exportOutputs(2),
       cmdStreamInt(NULL),
       midiBaseChan(0),
