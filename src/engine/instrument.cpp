@@ -438,8 +438,7 @@ bool DivInstrument::recordUndoStepIfChanged(size_t processTime, const DivInstrum
     
       // make room
     if (undoHist.size()>=undoHist.capacity()) {
-      DivInstrumentUndoStep* step = undoHist.front();
-      delete step;
+      delete undoHist.front();
       undoHist.pop_front();
     }
 
@@ -3462,4 +3461,29 @@ bool DivInstrument::saveDMP(const char* path) {
   fclose(outFile);
   w->finish();
   return true;
+}
+
+DivInstrument::~DivInstrument() {
+  // free undoHist/redoHist
+  while (!undoHist.empty()) {
+    delete undoHist.back();
+    undoHist.pop_back();
+  }
+  while (!redoHist.empty()) {
+    delete redoHist.back();
+    redoHist.pop_back();
+  }
+}
+
+DivInstrument::DivInstrument( const DivInstrument& ins ) {
+  // undo/redo history is specifically not copied
+  *(DivInstrumentPOD*)this=ins;
+  name=ins.name;
+}
+
+DivInstrument& DivInstrument::operator=( const DivInstrument& ins ) {
+  // undo/redo history is specifically not copied
+  *(DivInstrumentPOD*)this=ins;
+  name=ins.name;
+  return *this;
 }

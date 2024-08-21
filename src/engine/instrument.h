@@ -928,6 +928,21 @@ struct DivInstrumentUndoStep {
 struct DivInstrument : DivInstrumentPOD {
   String name;
 
+  DivInstrument() :
+    name("") {
+      // clear and construct DivInstrumentPOD so it doesn't have any garbage in the padding
+      memset((unsigned char*)(DivInstrumentPOD*)this, 0, sizeof(DivInstrumentPOD));
+      new ((DivInstrumentPOD*)this) DivInstrumentPOD;
+  }
+
+  ~DivInstrument();
+
+  /**
+   * copy/assignment to specifically avoid leaking or dangling pointers to undo step
+   */
+  DivInstrument( const DivInstrument& ins );
+  DivInstrument& operator=( const DivInstrument& ins );
+
   /**
    * undo stuff
    */
@@ -1021,11 +1036,5 @@ struct DivInstrument : DivInstrumentPOD {
    * @return whether it was successful.
    */
   bool saveDMP(const char* path);
-  DivInstrument() :
-    name("") {
-      // clear and construct DivInstrumentPOD so it doesn't have any garbage in the padding
-      memset((unsigned char*)(DivInstrumentPOD*)this, 0, sizeof(DivInstrumentPOD));
-      new ((DivInstrumentPOD*)this) DivInstrumentPOD;
-  }
 };
 #endif
