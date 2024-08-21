@@ -2,7 +2,7 @@ name: Build furnace
 
 on:
   push:
-    branches: [master, locale, audio-export-progress-bar]
+    branches: [master, locale]
   pull_request:
     branches: master
 
