@@ -50,6 +50,10 @@ class DivPlatformUPD1771c: public DivDispatch {
   int tempR[32];
   int coreQuality;
   unsigned char regPool[16];
+  // I may add the 3 square waves in noise mode later...
+  unsigned char kon[1];
+  unsigned char initWrite[1];
+
 
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);

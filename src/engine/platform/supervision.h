@@ -58,8 +58,14 @@ class DivPlatformSupervision: public DivDispatch {
   unsigned int sampleLen[256];
   bool sampleLoaded[256];
   DivMemoryComposition memCompo;
-
+  unsigned char* sampleMem;
   size_t sampleMemLen;
+  unsigned char dutySwap;
+  unsigned char otherFlags;
+  unsigned int sampleOffset;
+  unsigned char noiseReg[3];
+  unsigned char kon[4];
+  unsigned char initWrite[4];
 
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);

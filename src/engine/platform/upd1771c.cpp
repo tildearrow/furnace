@@ -32,10 +32,6 @@ const char* regCheatSheetUPD1771c[]={
   NULL
 };
 
-unsigned char upd1771c_kon[4];
-unsigned char upd1771c_initWrite[4];
-unsigned char upd1771c_initWrite2[4];
-
 const char** DivPlatformUPD1771c::getRegisterSheet() {
   return regCheatSheetUPD1771c;
 }
@@ -107,7 +103,7 @@ void DivPlatformUPD1771c::tick(bool sysTick) {
       if (i==0) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       }
-      if (chan[i].freqChanged || upd1771c_initWrite[i] || chan[i].keyOn) {
+      if (chan[i].freqChanged || initWrite[i] || chan[i].keyOn) {
         if (chan[i].duty == 0) {
           rWrite(0,2);
           rWrite(1,(chan[i].wave<<5)|chan[i].pos);
@@ -122,19 +118,19 @@ void DivPlatformUPD1771c::tick(bool sysTick) {
         } else {
           rWrite(0,0);
         }
-        upd1771c_initWrite[i]=0;
+        initWrite[i]=0;
       }
       if (chan[i].keyOff) {
         rWrite(0,0);
       }
-      if (chan[i].keyOn) upd1771c_kon[i]=1;
-      if (chan[i].keyOff) upd1771c_kon[i]=0;
+      if (chan[i].keyOn) kon[i]=1;
+      if (chan[i].keyOff) kon[i]=0;
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
     }
 
-    if (upd1771c_kon[i]) {
+    if (kon[i]) {
       if (i==0) {
         if (chan[i].duty == 0) {
          rWrite(0,2);
@@ -321,9 +317,8 @@ void DivPlatformUPD1771c::reset() {
   //upd1771c_sound_reset();
   memset(tempL,0,32*sizeof(int));
   memset(tempR,0,32*sizeof(int));
-  memset(upd1771c_kon,0,4*sizeof(unsigned char));
-  memset(upd1771c_initWrite,1,4*sizeof(unsigned char));
-  memset(upd1771c_initWrite2,1,4*sizeof(unsigned char));
+  memset(kon,0,1*sizeof(unsigned char));
+  memset(initWrite,1,1*sizeof(unsigned char));
 }
 
 int DivPlatformUPD1771c::getOutputCount() {
