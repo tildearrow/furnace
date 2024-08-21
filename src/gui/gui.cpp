@@ -8800,7 +8800,15 @@ FurnaceGUI::FurnaceGUI():
   romMultiFile(false),
   romExportSave(false),
   pendingExport(NULL),
-  romExportExists(false) {
+  romExportExists(false),
+  songLength(0),
+  songLoopedSectionLength(0),
+  songFadeoutSectionLength(0),
+  songHasSongEndCommand(false),
+  lengthOfOneFile(0),
+  totalLength(0),
+  curProgress(0.0f),
+  totalFiles(0) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
@@ -8920,6 +8928,8 @@ FurnaceGUI::FurnaceGUI():
   memset(effectsShow,1,sizeof(bool)*10);
 
   memset(romExportAvail,0,sizeof(bool)*DIV_ROM_MAX);
+
+  songOrdersLengths.clear();
 
   strncpy(noteOffLabel,"OFF",32);
   strncpy(noteRelLabel,"===",32);
