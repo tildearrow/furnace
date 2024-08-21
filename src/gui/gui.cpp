@@ -8394,6 +8394,14 @@ FurnaceGUI::FurnaceGUI():
   totalBackupSize(0),
   refreshBackups(true),
   learning(-1),
+  songLength(0),
+  songLoopedSectionLength(0),
+  songFadeoutSectionLength(0),
+  songHasSongEndCommand(false),
+  lengthOfOneFile(0),
+  totalLength(0),
+  curProgress(0.0f),
+  totalFiles(0),
   mainFont(NULL),
   iconFont(NULL),
   furIconFont(NULL),
@@ -8800,15 +8808,7 @@ FurnaceGUI::FurnaceGUI():
   romMultiFile(false),
   romExportSave(false),
   pendingExport(NULL),
-  romExportExists(false),
-  songLength(0),
-  songLoopedSectionLength(0),
-  songFadeoutSectionLength(0),
-  songHasSongEndCommand(false),
-  lengthOfOneFile(0),
-  totalLength(0),
-  curProgress(0.0f),
-  totalFiles(0) {
+  romExportExists(false) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
