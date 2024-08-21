@@ -1731,6 +1731,7 @@ class FurnaceGUI {
   int lengthOfOneFile; //length of one rendering pass. song length times num of loops + fadeout
   int totalLength; //total length of render (lengthOfOneFile times num of files for per-channel export)
   float curProgress;
+  int totalFiles;
 
   struct Settings {
     bool settingsChanged;
