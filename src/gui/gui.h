@@ -2922,6 +2922,7 @@ class FurnaceGUI {
   void doExpand(int multiplier, const SelectionPoint& sStart, const SelectionPoint& sEnd);
   void doCollapseSong(int divider);
   void doExpandSong(int multiplier);
+  void doAbsorbInstrument();
   void doUndo();
   void doRedo();
   void doFind();
