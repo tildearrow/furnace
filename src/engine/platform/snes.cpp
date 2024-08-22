@@ -841,6 +841,8 @@ void DivPlatformSNES::reset() {
   memcpy(sampleMem,copyOfSampleMem,65536);
   dsp.init(sampleMem);
   dsp.set_output(NULL,0);
+  dsp.setupInterpolation(interpolationOn);
+
   memset(regPool,0,128);
   // this can't be 0 or channel 1 won't play
   // this can't be 0x100 either as that's used by SPC700 page 1 and the stack
@@ -1023,6 +1025,8 @@ void DivPlatformSNES::setFlags(const DivConfig& flags) {
   initEchoFIR[7]=flags.getInt("echoFilter7",0);
 
   initEchoMask=flags.getInt("echoMask",0);
+
+  interpolationOn=flags.getBool("interpolationOn",true);
 }
 
 int DivPlatformSNES::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

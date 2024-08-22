@@ -27,6 +27,9 @@ public:
 	// output buffer could hold.
 	int sample_count() const;
 
+	// Furnace addition: disable/enable Gaussian interpolation
+	void setupInterpolation(bool interpolate);
+
 // Emulation
 
 	// Resets DSP to power-on state
@@ -122,6 +125,7 @@ public:
 		int hidden_env;         // used by GAIN mode 7, very obscure quirk
 		uint8_t t_envx_out;
 		sample_t out[2];        // Furnace addition, for per-channel oscilloscope
+		bool interpolate;       // Furnace addition, to disable interpolation
 	};
 
   // Furnace addition, gets a voice
