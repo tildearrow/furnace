@@ -69,6 +69,7 @@ class DivPlatformSNES: public DivDispatch {
   bool writeEcho;
   bool writeDryVol;
   bool echoOn;
+  bool interpolationOn;
 
   bool initEchoOn;
   signed char initEchoVolL;
