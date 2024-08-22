@@ -102,6 +102,211 @@ bool DivSubSong::walk(int& loopOrder, int& loopRow, int& loopEnd, int chans, int
   return false;
 }
 
+double calcRowLenInSeconds(const DivGroovePattern& speeds, float hz, int vN, int vD, int timeBaseFromSong) 
+{
+    double hl=1; //count for 1 row
+  if (hl<=0.0) hl=4.0;
+  double timeBase=timeBaseFromSong+1;
+  double speedSum=0;
+  for (int i=0; i<MIN(16,speeds.len); i++) {
+    speedSum+=speeds.val[i];
+  }
+  speedSum/=MAX(1,speeds.len);
+  if (timeBase<1.0) timeBase=1.0;
+  if (speedSum<1.0) speedSum=1.0;
+  if (vD<1) vD=1;
+  //return (60.0 * hz / (timeBase * hl * speedSum)) * (double)vN / (double)vD;
+  return 1.0 / ((60.0*hz/(timeBase*hl*speedSum))*(double)vN/(double)vD / 60.0);
+}
+
+void DivSubSong::findLength(int loopOrder, int loopRow, double fadeoutLen, int& rowsForFadeout, bool& hasFFxx, std::vector<int>& orders_vec, std::vector<DivGroovePattern>& grooves, int& length, int chans, int jumpTreatment, int ignoreJumpAtEnd, int firstPat)
+{
+  length = 0;
+  hasFFxx = false;
+  rowsForFadeout = 0;
+
+  float secondsPerThisRow = 0.0f;
+
+  DivGroovePattern curSpeeds = speeds; //simulate that we are playing the song, track all speed/BPM/tempo/engine rate changes
+  short curVirtualTempoN = virtualTempoN;
+  short curVirtualTempoD = virtualTempoD;
+  float curHz = hz;
+  double curDivider = (double)timeBase;
+
+  double curLen = 0.0; //how many seconds passed since the start of song
+
+  int nextOrder=-1;
+  int nextRow=0;
+  int effectVal=0;
+  int lastSuspectedLoopEnd=-1;
+  DivPattern* subPat[DIV_MAX_CHANS];
+  unsigned char wsWalked[8192];
+  memset(wsWalked,0,8192);
+  if (firstPat>0) {
+    memset(wsWalked,255,32*firstPat);
+  }
+  for (int i=firstPat; i<ordersLen; i++) 
+  {
+    bool jumped = false;
+
+    for (int j=0; j<chans; j++) 
+    {
+      subPat[j]=pat[j].getPattern(orders.ord[j][i],false);
+    }
+    if (i>lastSuspectedLoopEnd) 
+    {
+      lastSuspectedLoopEnd=i;
+    }
+    for (int j=nextRow; j<patLen; j++) 
+    {
+      nextRow=0;
+      bool changingOrder=false;
+      bool jumpingOrder=false;
+      if (wsWalked[((i<<5)+(j>>3))&8191]&(1<<(j&7))) 
+      {
+        return;
+      }
+      for (int k=0; k<chans; k++) 
+      {
+        for (int l=0; l<pat[k].effectCols; l++) 
+        {
+          effectVal=subPat[k]->data[j][5+(l<<1)];
+          if (effectVal<0) effectVal=0;
+
+          if (subPat[k]->data[j][4+(l<<1)]==0xff) 
+          {
+            hasFFxx = true;
+
+            //FFxx makes YOU SHALL NOT PASS!!! move
+            orders_vec.push_back(j + 1); //order len
+            length += j + 1; //add length of order to song length
+
+            return;
+          }
+
+          switch(subPat[k]->data[j][4+(l<<1)]) //track speed/BMP/Hz/tempo changes
+          {
+            case 0x09: // select groove pattern/speed 1
+            {
+              if (grooves.empty()) {
+                if (effectVal>0) curSpeeds.val[0]=effectVal;
+              } else {
+                if (effectVal<(short)grooves.size()) {
+                  curSpeeds=grooves[effectVal];
+                  //curSpeed=0;
+                }
+              }
+              break;
+            }
+            case 0x0f: // speed 1/speed 2
+            {
+              if (curSpeeds.len==2 && grooves.empty()) {
+                if (effectVal>0) curSpeeds.val[1]=effectVal;
+              } else {
+                if (effectVal>0) curSpeeds.val[0]=effectVal;
+              }
+              break;
+            }
+            case 0xfd: // virtual tempo num
+            {
+              if (effectVal>0) curVirtualTempoN=effectVal;
+              break;
+            }
+            case 0xfe: // virtual tempo den
+            {
+              if (effectVal>0) curVirtualTempoD=effectVal;
+              break;
+            }
+            case 0xf0: // set Hz by tempo (set bpm)
+            {
+              curDivider=(double)effectVal*2.0/5.0;
+              if (curDivider<1) curDivider=1;
+              //cycles=got.rate*pow(2,MASTER_CLOCK_PREC)/divider;
+              //clockDrift=0;
+              //subticks=0;
+              break;
+            }
+            default: break;
+          }
+
+          if (subPat[k]->data[j][4+(l<<1)]==0x0d) 
+          {
+            if (jumpTreatment==2) 
+            {
+              if ((i<ordersLen-1 || !ignoreJumpAtEnd)) 
+              {
+                nextOrder=i+1;
+                nextRow=effectVal;
+                jumpingOrder=true;
+              }
+            } 
+            else if (jumpTreatment==1) 
+            {
+              if (nextOrder==-1 && (i<ordersLen-1 || !ignoreJumpAtEnd)) 
+              {
+                nextOrder=i+1;
+                nextRow=effectVal;
+                jumpingOrder=true;
+              }
+            } 
+            else 
+            {
+              if ((i<ordersLen-1 || !ignoreJumpAtEnd)) 
+              {
+                if (!changingOrder) 
+                {
+                  nextOrder=i+1;
+                }
+                jumpingOrder=true;
+                nextRow=effectVal;
+              }
+            }
+          } 
+          else if (subPat[k]->data[j][4+(l<<1)]==0x0b) 
+          {
+            if (nextOrder==-1 || jumpTreatment==0) 
+            {
+              nextOrder=effectVal;
+              if (jumpTreatment==1 || jumpTreatment==2 || !jumpingOrder) 
+              {
+                nextRow=0;
+              }
+              changingOrder=true;
+            }
+          }
+        }
+      }
+
+      if(i > loopOrder || (i == loopOrder && j > loopRow))
+      {
+        if(curLen <= fadeoutLen && fadeoutLen > 0.0) //we count each row fadeout lasts. When our time is greater than fadeout length we successfully counted the number of fadeout rows
+        {
+          secondsPerThisRow = calcRowLenInSeconds(speeds, curHz, curVirtualTempoN, curVirtualTempoD, curDivider);
+          curLen += secondsPerThisRow;
+          rowsForFadeout++;
+        }
+      }
+
+      wsWalked[((i<<5)+(j>>3))&8191]|=1<<(j&7);
+      
+      if (nextOrder!=-1) 
+      {
+        i=nextOrder-1;
+        orders_vec.push_back(j + 1); //order len
+        length += j + 1; //add length of order to song length
+        jumped = true;
+        nextOrder=-1;
+        break;
+      }
+    }
+    if(!jumped) //if no jump occured we add full pattern length
+    {
+      orders_vec.push_back(patLen); //order len
+      length += patLen; //add length of order to song length
+    }
+  }
+}
+
 void DivSubSong::clearData() {
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     pat[i].wipePatterns();

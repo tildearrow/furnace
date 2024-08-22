@@ -995,7 +995,7 @@ Collapsed=0\n\
 \n\
 [Window][Rendering...]\n\
 Pos=585,342\n\
-Size=114,71\n\
+Size=600,100\n\
 Collapsed=0\n\
 \n\
 [Window][Export VGM##FileDialog]\n\
@@ -2582,7 +2582,42 @@ int FurnaceGUI::loadStream(String path) {
 
 
 void FurnaceGUI::exportAudio(String path, DivAudioExportModes mode) {
+  songOrdersLengths.clear();
+
+  int loopOrder=0;
+  int loopRow=0;
+  int loopEnd=0;
+  e->walkSong(loopOrder,loopRow,loopEnd);
+
+  e->findSongLength(loopOrder, loopRow, audioExportOptions.fadeOut, songFadeoutSectionLength, songHasSongEndCommand, songOrdersLengths, songLength); //for progress estimation
+
+  songLoopedSectionLength = songLength;
+  for(int i = 0; i < loopOrder; i++)
+  {
+    songLoopedSectionLength -= songOrdersLengths[i];
+  }
+  songLoopedSectionLength -= loopRow;
+
   e->saveAudio(path.c_str(),audioExportOptions);
+
+  totalFiles = 0;
+  e->getTotalAudioFiles(totalFiles);
+  int totalLoops = 0;
+
+  lengthOfOneFile = songLength;
+
+  if(!songHasSongEndCommand)
+  {
+    e->getTotalLoops(totalLoops);
+
+    lengthOfOneFile += songLoopedSectionLength * totalLoops;
+    lengthOfOneFile += songFadeoutSectionLength; //account for fadeout
+  }
+
+  totalLength = lengthOfOneFile * totalFiles;
+
+  curProgress = 0.0f;
+
   displayExporting=true;
 }
 
@@ -4748,7 +4783,7 @@ bool FurnaceGUI::loop() {
                   info=fmt::sprintf(_("Set volume: %d (%.2X, INVALID!)"),p->data[cursor.y][3],p->data[cursor.y][3]);
                 } else {
                   float realVol=e->getGain(cursor.xCoarse,p->data[cursor.y][3]);
-                  info=fmt::sprintf(_("Set volume: %d (%.2X, %d%%)"),p->data[cursor.y][3],p->data[cursor.y][3],(int)(realVol*100.0f/(float)maxVol));
+                  info=fmt::sprintf(_("Set volume: %d (%.2X, %d%%)"),p->data[cursor.y][3],p->data[cursor.y][3],(int)(realVol*100.0f));
                 }
                 hasInfo=true;
               }
@@ -5820,8 +5855,69 @@ bool FurnaceGUI::loop() {
     MEASURE_BEGIN(popup);
 
     centerNextWindow(_("Rendering..."),canvasW,canvasH);
-    if (ImGui::BeginPopupModal(_("Rendering..."),NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
-      ImGui::Text(_("Please wait..."));
+    if (ImGui::BeginPopupModal(_("Rendering..."),NULL,ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+      if(audioExportOptions.mode != DIV_EXPORT_MODE_MANY_CHAN)
+      {
+        ImGui::Text(_("Please wait..."));
+      }
+      float* progressLambda = &curProgress;
+      int curPosInRows = 0;
+      int* curPosInRowsLambda = &curPosInRows;
+      int loopsLeft = 0;
+      int* loopsLeftLambda = &loopsLeft;
+      int totalLoops = 0;
+      int* totalLoopsLambda = &totalLoops;
+      int curFile = 0;
+      int* curFileLambda = &curFile;
+      if(e->isExporting())
+      {
+        e->lockEngine([this, progressLambda, curPosInRowsLambda, curFileLambda, loopsLeftLambda, totalLoopsLambda]()
+        {
+          int curRow = 0;
+          int curOrder = 0;
+          e->getCurSongPos(curRow, curOrder);
+          *curFileLambda = 0;
+          e->getCurFileIndex(*curFileLambda);
+
+          *curPosInRowsLambda = curRow;
+
+          for(int i = 0; i < curOrder; i++)
+          {
+            *curPosInRowsLambda += songOrdersLengths[i];
+          }
+
+          if(!songHasSongEndCommand)
+          {
+            e->getLoopsLeft(*loopsLeftLambda);
+            e->getTotalLoops(*totalLoopsLambda);
+
+            if((*totalLoopsLambda) != (*loopsLeftLambda)) //we are going 2nd, 3rd, etc. time through the song
+            {
+              *curPosInRowsLambda -= (songLength - songLoopedSectionLength); //a hack so progress bar does not jump?
+            }
+            if(e->getIsFadingOut()) //we are in fadeout??? why it works like that bruh
+            {
+              *curPosInRowsLambda -= (songLength - songLoopedSectionLength); //a hack so progress bar does not jump?
+            }
+          }
+
+          *progressLambda = (float)((*curPosInRowsLambda) +
+            ((*totalLoopsLambda) - (*loopsLeftLambda)) * songLength +
+            lengthOfOneFile * (*curFileLambda))
+            / (float)totalLength;
+        });
+      }
+
+      ImGui::Text(_("Row %d of %d"), curPosInRows +
+            ((totalLoops) - (loopsLeft)) * songLength, lengthOfOneFile);
+
+      if(audioExportOptions.mode == DIV_EXPORT_MODE_MANY_CHAN)
+      {
+        ImGui::Text(_("Channel %d of %d"), curFile + 1, totalFiles);
+      }
+
+      ImGui::ProgressBar(curProgress,ImVec2(-FLT_MIN,0), fmt::sprintf("%.2f%%", curProgress * 100.0f).c_str());
+
       if (ImGui::Button(_("Abort"))) {
         if (e->haltAudioFile()) {
           ImGui::CloseCurrentPopup();
@@ -8305,6 +8401,14 @@ FurnaceGUI::FurnaceGUI():
   bigFont(NULL),
   headFont(NULL),
   fontRange(NULL),
+  songLength(0),
+  songLoopedSectionLength(0),
+  songFadeoutSectionLength(0),
+  songHasSongEndCommand(false),
+  lengthOfOneFile(0),
+  totalLength(0),
+  curProgress(0.0f),
+  totalFiles(0),
   localeRequiresJapanese(false),
   localeRequiresChinese(false),
   localeRequiresChineseTrad(false),
@@ -8824,6 +8928,8 @@ FurnaceGUI::FurnaceGUI():
   memset(effectsShow,1,sizeof(bool)*10);
 
   memset(romExportAvail,0,sizeof(bool)*DIV_ROM_MAX);
+
+  songOrdersLengths.clear();
 
   strncpy(noteOffLabel,"OFF",32);
   strncpy(noteRelLabel,"===",32);

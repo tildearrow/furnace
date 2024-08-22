@@ -1142,13 +1142,6 @@ dirent_mbstowcs_s(
 {
     int error;
 
-#if defined(_MSC_VER)  &&  _MSC_VER >= 1400
-
-    /* Microsoft Visual Studio 2005 or later */
-    error = mbstowcs_s (pReturnValue, wcstr, sizeInWords, mbstr, count);
-
-#else
-
     /* Older Visual Studio or non-Microsoft compiler */
     size_t n;
 
@@ -1179,7 +1172,6 @@ dirent_mbstowcs_s(
 
     }
 
-#endif
     return error;
 }
 
@@ -1230,13 +1222,6 @@ dirent_wcstombs_s(
 {
     int error;
 
-#if defined(_MSC_VER)  &&  _MSC_VER >= 1400
-
-    /* Microsoft Visual Studio 2005 or later */
-    error = wcstombs_s (pReturnValue, mbstr, sizeInBytes, wcstr, count);
-
-#else
-
     /* Older Visual Studio or non-Microsoft compiler */
     size_t n;
 
@@ -1268,7 +1253,6 @@ dirent_wcstombs_s(
 
     }
 
-#endif
     return error;
 }
 
