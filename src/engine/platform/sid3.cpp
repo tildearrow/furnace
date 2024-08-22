@@ -111,7 +111,11 @@ void DivPlatformSID3::acquire(short** buf, size_t len)
         int dacData=s->data16[chan[SID3_NUM_CHANNELS - 1].dacPos] + 32767;
         chan[SID3_NUM_CHANNELS - 1].dacOut=CLAMP(dacData,0,65535);
         updateSample = true;
-        sampleTick = 0;
+
+        if (sampleTick > 2)
+        {
+            sampleTick = 0;
+        }
 
         chan[SID3_NUM_CHANNELS - 1].dacPos++;
         if (s->isLoopable() && chan[SID3_NUM_CHANNELS - 1].dacPos>=(unsigned int)s->loopEnd) 
@@ -123,6 +127,10 @@ void DivPlatformSID3::acquire(short** buf, size_t len)
           chan[SID3_NUM_CHANNELS - 1].dacSample=-1;
         }
         chan[SID3_NUM_CHANNELS - 1].dacPeriod-=rate;
+      }
+      while (chan[SID3_NUM_CHANNELS - 1].dacPeriod > rate)
+      {
+          chan[SID3_NUM_CHANNELS - 1].dacPeriod -= rate;
       }
     }
 
@@ -711,7 +719,7 @@ void DivPlatformSID3::tick(bool sysTick)
             off=(double)s->centerRate/8363.0;
           }
         }
-        chan[i].dacRate=chan[i].freq*(off / 32.0);
+        chan[i].dacRate=chan[i].freq*(off / 32.0)*(double)chipClock/1000000.0;
       }
 
       chan[i].noiseFreqChanged = true;
