@@ -2832,7 +2832,7 @@ class FurnaceGUI {
   void drawMemory();
   void drawCompatFlags();
   void drawPiano();
-  void drawNotes();
+  void drawNotes(bool asChild=false);
   void drawChannels();
   void drawPatManager();
   void drawSysManager();

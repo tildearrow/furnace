@@ -2679,7 +2679,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   w->writeWString(ws,false); // japanese author name
   w->writeS(0); // date
   w->writeWString(L"Furnace (chiptune tracker)",false); // ripper
-  w->writeS(0); // notes
+  ws=utf8To16(song.notes.c_str());
+  w->writeWString(ws,false); // notes
 
   int gd3Len=w->tell()-gd3Off-12;
 
