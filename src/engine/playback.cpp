@@ -641,21 +641,23 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
   // volume
   int volPortaTarget=-1;
-  bool useVolPorta = false;
+  bool noApplyVolume=false;
   for (int j=0; j<curPat[i].effectCols; j++) {
     short effect=pat->data[whatRow][4+(j<<1)];
-    short effectVal=pat->data[whatRow][5+(j<<1)];
-    if (effectVal==-1) effectVal=0;
-    if ((effect==0xd3||effect==0xd4) && effectVal!=0) { // vol porta
-      useVolPorta=true;
-      break;
+    if (effect==0xd3 || effect==0xd4) { // vol porta
+      volPortaTarget=pat->data[whatRow][3]<<8; // can be -256
+
+      short effectVal=pat->data[whatRow][5+(j<<1)];
+      if (effectVal==-1) effectVal=0;
+      effectVal&=255;
+
+      noApplyVolume=effectVal>0; // "D3.." or "D300" shouldn't stop volume from applying
+      break; // technically you could have both D3 and D4... let's not care
     }
   }
   
-  if (pat->data[whatRow][3]!=-1) {
-    if (useVolPorta) {
-      volPortaTarget=pat->data[whatRow][3]<<8;
-    } else if (!song.oldAlwaysSetVolume || disCont[dispatchOfChan[i]].dispatch->getLegacyAlwaysSetVolume() || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->data[whatRow][3]) {
+  if (pat->data[whatRow][3]!=-1 && !noApplyVolume) {
+    if (!song.oldAlwaysSetVolume || disCont[dispatchOfChan[i]].dispatch->getLegacyAlwaysSetVolume() || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->data[whatRow][3]) {
       if (pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0) {
         chan[i].midiAftertouch=true;
       }
@@ -1147,22 +1149,24 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].volSpeedTarget=-1;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
         break;
-      case 0xd3: // volume portamento (vol porta)
+      case 0xd3: { // volume portamento (vol porta)
         // tremolo and vol slides are incompatible
         chan[i].tremoloDepth=0;
         chan[i].tremoloRate=0;
-        chan[i].volSpeed=volPortaTarget>chan[i].volume ? effectVal : -effectVal;
+        chan[i].volSpeed=volPortaTarget<0 ? 0 : volPortaTarget>chan[i].volume ? effectVal : -effectVal;
         chan[i].volSpeedTarget=chan[i].volSpeed==0 ? -1 : volPortaTarget;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE_TARGET,i,chan[i].volSpeed,chan[i].volSpeedTarget));
         break;
-      case 0xd4: // volume portamento fast (vol porta fast)
+      }
+      case 0xd4: { // volume portamento fast (vol porta fast)
         // tremolo and vol slides are incompatible
         chan[i].tremoloDepth=0;
         chan[i].tremoloRate=0;
-        chan[i].volSpeed=volPortaTarget>chan[i].volume ? 256*effectVal : -256*effectVal;
+        chan[i].volSpeed=volPortaTarget<0 ? 0 : volPortaTarget>chan[i].volume ? 256*effectVal : -256*effectVal;
         chan[i].volSpeedTarget=chan[i].volSpeed==0 ? -1 : volPortaTarget;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE_TARGET,i,chan[i].volSpeed,chan[i].volSpeedTarget));
         break;
+      }
       case 0xfc: // delayed note release
         if (song.delayBehavior==2 || effectVal<nextSpeed) {
           chan[i].cut=effectVal+1;
