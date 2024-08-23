@@ -165,8 +165,12 @@ int DivPlatformSMS::snCalcFreq(int ch) {
   if (ch==3) CHIP_DIVIDER=noiseDivider;
   int easyStartingPeriod=16;
   int easyThreshold=round(128.0*12.0*log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/(0.0625*parent->song.tuning))/log(2.0))-384+64;
-  if (parent->song.linearPitch==2 && easyNoise && chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2>(easyThreshold)) {
-    int ret=(((easyStartingPeriod<<7))-(chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2-(easyThreshold)))>>7;
+  int curFreq=chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2+(chan[ch].arpOff<<7);
+  if (chan[ch].fixedArp) {
+    curFreq=chan[ch].baseNoteOverride<<7;
+  }
+  if (parent->song.linearPitch==2 && easyNoise && curFreq>easyThreshold) {
+    int ret=(((easyStartingPeriod<<7))-(curFreq-(easyThreshold)))>>7;
     if (ret<0) ret=0;
     return ret;
   }
