@@ -841,7 +841,7 @@ void DivPlatformSNES::reset() {
   memcpy(sampleMem,copyOfSampleMem,65536);
   dsp.init(sampleMem);
   dsp.set_output(NULL,0);
-  dsp.setupInterpolation(interpolationOn);
+  dsp.setupInterpolation(!interpolationOff);
 
   memset(regPool,0,128);
   // this can't be 0 or channel 1 won't play
@@ -1026,7 +1026,7 @@ void DivPlatformSNES::setFlags(const DivConfig& flags) {
 
   initEchoMask=flags.getInt("echoMask",0);
 
-  interpolationOn=flags.getBool("interpolationOn",true);
+  interpolationOff=flags.getBool("interpolationOff",false);
 }
 
 int DivPlatformSNES::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
