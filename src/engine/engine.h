@@ -157,7 +157,7 @@ struct DivChannelState {
     portaNote(-1),
     volume(0x7f00),
     volSpeed(0),
-    volSpeedTarget(0),
+    volSpeedTarget(-1),
     cut(-1),
     volCut(-1),
     legatoDelay(-1),

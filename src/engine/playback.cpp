@@ -661,7 +661,6 @@ void DivEngine::processRow(int i, bool afterDelay) {
       if (pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0) {
         chan[i].midiAftertouch=true;
       }
-
       chan[i].volume=pat->data[whatRow][3]<<8;
       dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
       dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
@@ -962,6 +961,22 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].cutType=0;
         }
         break;
+      case 0xd3: // volume portamento (vol porta)
+        // tremolo and vol slides are incompatible
+        chan[i].tremoloDepth=0;
+        chan[i].tremoloRate=0;
+        chan[i].volSpeed=volPortaTarget<0 ? 0 : volPortaTarget>chan[i].volume ? effectVal : -effectVal;
+        chan[i].volSpeedTarget=chan[i].volSpeed==0 ? -1 : volPortaTarget;
+        dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE_TARGET,i,chan[i].volSpeed,chan[i].volSpeedTarget));
+        break;
+      case 0xd4: // volume portamento fast (vol porta fast)
+        // tremolo and vol slides are incompatible
+        chan[i].tremoloDepth=0;
+        chan[i].tremoloRate=0;
+        chan[i].volSpeed=volPortaTarget<0 ? 0 : volPortaTarget>chan[i].volume ? 256*effectVal : -256*effectVal;
+        chan[i].volSpeedTarget=chan[i].volSpeed==0 ? -1 : volPortaTarget;
+        dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE_TARGET,i,chan[i].volSpeed,chan[i].volSpeedTarget));
+        break;
       case 0xe0: // arp speed
         if (effectVal>0) {
           curSubSong->arpLen=effectVal;
@@ -1149,24 +1164,6 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].volSpeedTarget=-1;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
         break;
-      case 0xd3: { // volume portamento (vol porta)
-        // tremolo and vol slides are incompatible
-        chan[i].tremoloDepth=0;
-        chan[i].tremoloRate=0;
-        chan[i].volSpeed=volPortaTarget<0 ? 0 : volPortaTarget>chan[i].volume ? effectVal : -effectVal;
-        chan[i].volSpeedTarget=chan[i].volSpeed==0 ? -1 : volPortaTarget;
-        dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE_TARGET,i,chan[i].volSpeed,chan[i].volSpeedTarget));
-        break;
-      }
-      case 0xd4: { // volume portamento fast (vol porta fast)
-        // tremolo and vol slides are incompatible
-        chan[i].tremoloDepth=0;
-        chan[i].tremoloRate=0;
-        chan[i].volSpeed=volPortaTarget<0 ? 0 : volPortaTarget>chan[i].volume ? 256*effectVal : -256*effectVal;
-        chan[i].volSpeedTarget=chan[i].volSpeed==0 ? -1 : volPortaTarget;
-        dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE_TARGET,i,chan[i].volSpeed,chan[i].volSpeedTarget));
-        break;
-      }
       case 0xfc: // delayed note release
         if (song.delayBehavior==2 || effectVal<nextSpeed) {
           chan[i].cut=effectVal+1;

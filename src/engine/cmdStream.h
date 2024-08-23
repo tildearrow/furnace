@@ -56,7 +56,7 @@ struct DivCSChannelState {
     volume(0x7f00),
     volMax(0),
     volSpeed(0),
-    volSpeedTarget(0),
+    volSpeedTarget(-1),
     vibratoDepth(0),
     vibratoRate(0),
     vibratoPos(0),
