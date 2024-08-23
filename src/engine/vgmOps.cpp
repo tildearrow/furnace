@@ -24,7 +24,9 @@
 
 constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
 
-void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, int* setPos, unsigned int* sampleOff8, unsigned int* sampleLen8, size_t bankOffset, bool directStream) {
+// this function is so long
+// may as well make it something else
+void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, int* setPos, unsigned int* sampleOff8, unsigned int* sampleLen8, size_t bankOffset, bool directStream, bool* sampleStoppable) {
   unsigned char baseAddr1=isSecond?0xa0:0x50;
   unsigned char baseAddr2=isSecond?0x80:0;
   unsigned short baseAddr2S=isSecond?0x8000:0;
@@ -647,6 +649,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       logD("writing stream command %x:%x with stream ID %d",write.addr,write.val,streamID);
       switch (write.addr&0xff) {
         case 0: // play sample
+          sampleStoppable[streamID]=true;
           if (write.val<(unsigned int)song.sampleLen) {
             if (playingSample[streamID]!=(int)write.val) {
               pendingFreq[streamID]=write.val;
@@ -685,6 +688,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           }
           break;
         case 1: { // set sample freq
+          sampleStoppable[streamID]=true;
           int realFreq=write.val;
           if (realFreq<0) realFreq=0;
           if (realFreq>44100) realFreq=44100;
@@ -728,11 +732,14 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           break;
         }
         case 2: // stop sample
-          w->writeC(0x94);
-          w->writeC(streamID);
-          loopSample[streamID]=-1;
-          playingSample[streamID]=-1;
-          pendingFreq[streamID]=-1;
+          if (sampleStoppable[streamID]) {
+            w->writeC(0x94);
+            w->writeC(streamID);
+            loopSample[streamID]=-1;
+            playingSample[streamID]=-1;
+            pendingFreq[streamID]=-1;
+            sampleStoppable[streamID]=false;
+          }
           break;
         case 3: // set sample direction
           sampleDir[streamID]=write.val;
@@ -1224,6 +1231,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   bool sampleDir[DIV_MAX_CHANS];
   int pendingFreq[DIV_MAX_CHANS];
   int playingSample[DIV_MAX_CHANS];
+  bool sampleStoppable[DIV_MAX_CHANS];
   int setPos[DIV_MAX_CHANS];
   std::vector<unsigned int> chipVol;
   std::vector<DivDelayedWrite> delayedWrites[DIV_MAX_CHIPS];
@@ -1246,6 +1254,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     playingSample[i]=-1;
     setPos[i]=0;
     sampleDir[i]=false;
+    sampleStoppable[i]=true;
   }
 
   bool writeDACSamples=false;
@@ -2514,7 +2523,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     for (int i=0; i<song.systemLen; i++) {
       std::vector<DivRegWrite>& writes=disCont[i].dispatch->getRegisterWrites();
       for (DivRegWrite& j: writes) {
-        performVGMWrite(w,song.system[i],j,streamIDs[i],loopTimer,loopFreq,loopSample,sampleDir,isSecond[i],pendingFreq,playingSample,setPos,sampleOff8,sampleLen8,bankOffset[i],directStream);
+        performVGMWrite(w,song.system[i],j,streamIDs[i],loopTimer,loopFreq,loopSample,sampleDir,isSecond[i],pendingFreq,playingSample,setPos,sampleOff8,sampleLen8,bankOffset[i],directStream,sampleStoppable);
         writeCount++;
       }
       writes.clear();
@@ -2554,7 +2563,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
             lastOne=i.second.time;
           }
           // write write
-          performVGMWrite(w,song.system[i.first],i.second.write,streamIDs[i.first],loopTimer,loopFreq,loopSample,sampleDir,isSecond[i.first],pendingFreq,playingSample,setPos,sampleOff8,sampleLen8,bankOffset[i.first],directStream);
+          performVGMWrite(w,song.system[i.first],i.second.write,streamIDs[i.first],loopTimer,loopFreq,loopSample,sampleDir,isSecond[i.first],pendingFreq,playingSample,setPos,sampleOff8,sampleLen8,bankOffset[i.first],directStream,sampleStoppable);
           // handle global Furnace commands
 
           writeCount++;
