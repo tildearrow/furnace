@@ -23,8 +23,10 @@
 #include "dataErrors.h"
 #include "../ta-utils.h"
 #include "../pch.h"
+#include "../fixedQueue.h"
 
 struct DivSong;
+struct DivInstrument;
 
 // NOTICE!
 // before adding new instrument types to this struct, please ask me first.
@@ -860,8 +862,7 @@ struct DivInstrumentSID2 {
     noiseMode(0) {}
 };
 
-struct DivInstrument {
-  String name;
+struct DivInstrumentPOD {
   DivInstrumentType type;
   DivInstrumentFM fm;
   DivInstrumentSTD std;
@@ -879,6 +880,77 @@ struct DivInstrument {
   DivInstrumentESFM esfm;
   DivInstrumentPowerNoise powernoise;
   DivInstrumentSID2 sid2;
+
+  DivInstrumentPOD() :
+    type(DIV_INS_FM) {
+  }
+};
+
+struct MemPatch {
+  MemPatch() :
+    data(NULL)
+    , offset(0)
+    , size(0) {
+  }
+
+  ~MemPatch() {
+    if (data) {
+      delete[] data;
+      data=NULL;
+    }
+  }
+
+  bool calcDiff(const void* pre, const void* post, size_t size);
+  void applyAndReverse(void* target, size_t inputSize);
+  bool isValid() const { return size>0; }
+
+  unsigned char* data;
+  size_t offset;
+  size_t size;
+};
+
+struct DivInstrumentUndoStep {
+  DivInstrumentUndoStep() :
+    name(""),
+    nameValid(false),
+    processTime(0) {
+  }
+
+  MemPatch podPatch;
+  String name;
+  bool nameValid;
+  size_t processTime;
+
+  void applyAndReverse(DivInstrument* target);
+  bool makeUndoPatch(size_t processTime_, const DivInstrument* pre, const DivInstrument* post);
+};
+
+struct DivInstrument : DivInstrumentPOD {
+  String name;
+
+  DivInstrument() :
+    name("") {
+      // clear and construct DivInstrumentPOD so it doesn't have any garbage in the padding
+      memset((unsigned char*)(DivInstrumentPOD*)this, 0, sizeof(DivInstrumentPOD));
+      new ((DivInstrumentPOD*)this) DivInstrumentPOD;
+  }
+
+  ~DivInstrument();
+
+  /**
+   * copy/assignment to specifically avoid leaking or dangling pointers to undo step
+   */
+  DivInstrument( const DivInstrument& ins );
+  DivInstrument& operator=( const DivInstrument& ins );
+
+  /**
+   * undo stuff
+   */
+  FixedQueue<DivInstrumentUndoStep*, 128> undoHist;
+  FixedQueue<DivInstrumentUndoStep*, 128> redoHist;
+  bool recordUndoStepIfChanged(size_t processTime, const DivInstrument* old);
+  int undo();
+  int redo();
 
   /**
    * these are internal functions.
@@ -964,9 +1036,5 @@ struct DivInstrument {
    * @return whether it was successful.
    */
   bool saveDMP(const char* path);
-  DivInstrument():
-    name(""),
-    type(DIV_INS_FM) {
-  }
 };
 #endif
