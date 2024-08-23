@@ -1969,7 +1969,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       echoFilter[6]=flags.getInt("echoFilter6",0);
       echoFilter[7]=flags.getInt("echoFilter7",0);
 
-      bool interpolationOn=flags.getBool("interpolationOn",true);
+      bool interpolationOff=flags.getBool("interpolationOff",false);
 
       ImGui::Text(_("Volume scale:"));
       if (CWSliderInt(_("Left##VolScaleL"),&vsL,0,127)) {
@@ -2086,7 +2086,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       ImGui::Text(_("sum: %d"),filterSum);
       ImGui::PopStyleColor();
 
-      if (ImGui::Checkbox(_("Gaussian interpolation"),&interpolationOn)) {
+      if (ImGui::Checkbox(_("Disable Gaussian interpolation"),&interpolationOff)) {
         altered=true;
       }
 
@@ -2108,7 +2108,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           flags.set("echoFilter6",echoFilter[6]);
           flags.set("echoFilter7",echoFilter[7]);
           flags.set("echoMask",echoMask);
-          flags.set("interpolationOn",interpolationOn);
+          flags.set("interpolationOff",interpolationOff);
         });
       }
 
