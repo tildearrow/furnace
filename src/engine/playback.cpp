@@ -67,6 +67,7 @@ const char* cmdName[]={
   "HINT_ARPEGGIO",
   "HINT_VOLUME",
   "HINT_VOL_SLIDE",
+  "HINT_VOL_SLIDE_TARGET",
   "HINT_PORTA",
   "HINT_LEGATO",
 
@@ -639,11 +640,26 @@ void DivEngine::processRow(int i, bool afterDelay) {
   }
 
   // volume
+  int volPortaTarget=-1;
+  bool useVolPorta = false;
+  for (int j=0; j<curPat[i].effectCols; j++) {
+    short effect=pat->data[whatRow][4+(j<<1)];
+    short effectVal=pat->data[whatRow][5+(j<<1)];
+    if (effectVal==-1) effectVal=0;
+    if ((effect==0xd3||effect==0xd4) && effectVal!=0) { // vol porta
+      useVolPorta=true;
+      break;
+    }
+  }
+  
   if (pat->data[whatRow][3]!=-1) {
-    if (!song.oldAlwaysSetVolume || disCont[dispatchOfChan[i]].dispatch->getLegacyAlwaysSetVolume() || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->data[whatRow][3]) {
+    if (useVolPorta) {
+      volPortaTarget=pat->data[whatRow][3]<<8;
+    } else if (!song.oldAlwaysSetVolume || disCont[dispatchOfChan[i]].dispatch->getLegacyAlwaysSetVolume() || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->data[whatRow][3]) {
       if (pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0) {
         chan[i].midiAftertouch=true;
       }
+
       chan[i].volume=pat->data[whatRow][3]<<8;
       dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
       dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
@@ -828,6 +844,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         } else {
           chan[i].volSpeed=0;
         }
+        chan[i].volSpeedTarget=-1;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
         break;
       case 0x06: // vol slide + porta
@@ -869,6 +886,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         } else {
           chan[i].volSpeed=0;
         }
+        chan[i].volSpeedTarget=-1;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
         break;
       case 0x07: // tremolo
@@ -879,6 +897,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].tremoloRate=effectVal>>4;
         if (chan[i].tremoloDepth!=0) {
           chan[i].volSpeed=0;
+          chan[i].volSpeedTarget=-1;
         } else {
           dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
           dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
@@ -898,6 +917,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         } else {
           chan[i].volSpeed=0;
         }
+        chan[i].volSpeedTarget=-1;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
         break;
       case 0x00: // arpeggio
@@ -1077,6 +1097,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].tremoloDepth=0;
         chan[i].tremoloRate=0;
         chan[i].volSpeed=effectVal;
+        chan[i].volSpeedTarget=-1;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
         break;
       case 0xf4: // fine volume ramp down
@@ -1084,6 +1105,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].tremoloDepth=0;
         chan[i].tremoloRate=0;
         chan[i].volSpeed=-effectVal;
+        chan[i].volSpeedTarget=-1;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
         break;
       case 0xf5: // disable macro
@@ -1097,12 +1119,14 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0xf8: // single volume ramp up
         chan[i].volSpeed=0; // add compat flag?
+        chan[i].volSpeedTarget=-1;
         chan[i].volume=MIN(chan[i].volume+effectVal*256,chan[i].volMax);
         dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
         break;
       case 0xf9: // single volume ramp down
         chan[i].volSpeed=0; // add compat flag?
+        chan[i].volSpeedTarget=-1;
         chan[i].volume=MAX(chan[i].volume-effectVal*256,0);
         dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
@@ -1120,9 +1144,25 @@ void DivEngine::processRow(int i, bool afterDelay) {
         } else {
           chan[i].volSpeed=0;
         }
+        chan[i].volSpeedTarget=-1;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
         break;
-
+      case 0xd3: // volume portamento (vol porta)
+        // tremolo and vol slides are incompatible
+        chan[i].tremoloDepth=0;
+        chan[i].tremoloRate=0;
+        chan[i].volSpeed=volPortaTarget>chan[i].volume ? effectVal : -effectVal;
+        chan[i].volSpeedTarget=chan[i].volSpeed==0 ? -1 : volPortaTarget;
+        dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE_TARGET,i,chan[i].volSpeed,chan[i].volSpeedTarget));
+        break;
+      case 0xd4: // volume portamento fast (vol porta fast)
+        // tremolo and vol slides are incompatible
+        chan[i].tremoloDepth=0;
+        chan[i].tremoloRate=0;
+        chan[i].volSpeed=volPortaTarget>chan[i].volume ? 256*effectVal : -256*effectVal;
+        chan[i].volSpeedTarget=chan[i].volSpeed==0 ? -1 : volPortaTarget;
+        dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE_TARGET,i,chan[i].volSpeed,chan[i].volSpeedTarget));
+        break;
       case 0xfc: // delayed note release
         if (song.delayBehavior==2 || effectVal<nextSpeed) {
           chan[i].cut=effectVal+1;
@@ -1590,9 +1630,17 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
           if (chan[i].volSpeed!=0) {
             chan[i].volume=(chan[i].volume&0xff)|(dispatchCmd(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
             chan[i].volume+=chan[i].volSpeed;
-            if (chan[i].volume>chan[i].volMax) {
+            if (chan[i].volSpeedTarget!=-1 && (chan[i].volume==chan[i].volSpeedTarget || (chan[i].volume>chan[i].volSpeedTarget)==(chan[i].volSpeed>0))) {
+              chan[i].volume=chan[i].volSpeedTarget;
+              chan[i].volSpeed=0;
+              chan[i].volSpeedTarget=-1;
+              dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
+              dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+              dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,0));
+            } else if (chan[i].volume>chan[i].volMax) {
               chan[i].volume=chan[i].volMax;
               chan[i].volSpeed=0;
+              chan[i].volSpeedTarget=-1;
               dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
               dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
               dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,0));
@@ -1604,6 +1652,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
               } else {
                 chan[i].volume=0;
               }
+              chan[i].volSpeedTarget=-1;
               dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
               dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
             } else {

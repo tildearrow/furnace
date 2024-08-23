@@ -215,6 +215,10 @@ bool DivCSPlayer::tick() {
           case DIV_CMD_HINT_VOL_SLIDE:
             arg0=(short)stream.readS();
             break;
+          case DIV_CMD_HINT_VOL_SLIDE_TARGET:
+            arg0=(short)stream.readS();
+            arg1=(short)stream.readS();
+            break;
           case DIV_CMD_HINT_LEGATO:
             arg0=(unsigned char)stream.readC();
             if (arg0==0xff) {
@@ -321,6 +325,11 @@ bool DivCSPlayer::tick() {
             break;
           case DIV_CMD_HINT_VOL_SLIDE:
             chan[i].volSpeed=arg0;
+            chan[i].volSpeedTarget=-1;
+            break;
+          case DIV_CMD_HINT_VOL_SLIDE_TARGET:
+            chan[i].volSpeed=arg0;
+            chan[i].volSpeedTarget=arg0==0 ? -1 : arg1;
             break;
           case DIV_CMD_HINT_PITCH:
             chan[i].pitch=arg0;
@@ -356,13 +365,17 @@ bool DivCSPlayer::tick() {
 
     if (sendVolume || chan[i].volSpeed!=0) {
       chan[i].volume+=chan[i].volSpeed;
+      if (chan[i].volSpeedTarget!=-1 && (chan[i].volume==chan[i].volSpeedTarget || (chan[i].volume>chan[i].volSpeedTarget)==(chan[i].volSpeed>0))) {
+        chan[i].volume=chan[i].volSpeedTarget;
+        chan[i].volSpeed=0;
+        chan[i].volSpeedTarget=-1;
+      }
       if (chan[i].volume<0) {
         chan[i].volume=0;
       }
       if (chan[i].volume>chan[i].volMax) {
         chan[i].volume=chan[i].volMax;
       }
-
       e->dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
     }
 
