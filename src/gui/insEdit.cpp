@@ -6658,15 +6658,16 @@ void FurnaceGUI::drawInsEdit() {
       
 
       if (ImGui::BeginTabBar("insEditTab")) {
-        
+        std::vector<FurnaceGUIMacroDesc> macroList;
+
         if(ins->type == DIV_INS_SID3)
         {
           drawInsSID3(ins);
           ImGui::EndTabBar();
-          return;
+          goto insEditEnd;
         }
 
-        std::vector<FurnaceGUIMacroDesc> macroList;
+        
         if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPM || ins->type==DIV_INS_ESFM) {
           char label[32];
           int opCount=4;
@@ -8575,6 +8576,7 @@ void FurnaceGUI::drawInsEdit() {
           }
         }
         ImGui::EndTabBar();
+        insEditEnd:;
       }
       if (settings.insEditColorize) {
         popAccentColors();
