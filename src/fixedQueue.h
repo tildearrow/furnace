@@ -42,6 +42,7 @@ template<typename T, size_t items> struct FixedQueue {
   void clear();
   bool empty();
   size_t size();
+  size_t capacity();
   FixedQueue():
     readPos(0),
     writePos(0) {}
@@ -175,6 +176,10 @@ template <typename T, size_t items> size_t FixedQueue<T,items>::size() {
     return items+writePos-readPos;
   }
   return writePos-readPos;
+}
+
+template <typename T, size_t items> size_t FixedQueue<T,items>::capacity() {
+  return items-1;
 }
 
 #endif

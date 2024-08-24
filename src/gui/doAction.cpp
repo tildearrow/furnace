@@ -73,6 +73,8 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_UNDO:
       if (curWindow==GUI_WINDOW_SAMPLE_EDIT) {
         doUndoSample();
+      } else if (curWindow==GUI_WINDOW_INS_EDIT) {
+        doUndoInstrument();
       } else {
         doUndo();
       }
@@ -80,6 +82,8 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_REDO:
       if (curWindow==GUI_WINDOW_SAMPLE_EDIT) {
         doRedoSample();
+      } else if (curWindow==GUI_WINDOW_INS_EDIT) {
+        doRedoInstrument();
       } else {
         doRedo();
       }
@@ -677,30 +681,7 @@ void FurnaceGUI::doAction(int what) {
       latchNibble=false;
       break;
     case GUI_ACTION_PAT_ABSORB_INSTRUMENT: {
-      DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],false);
-      if (!pat) break;
-      bool foundIns=false;
-      bool foundOctave=false;
-      for (int i=cursor.y; i>=0 && !(foundIns && foundOctave); i--) {
-        // absorb most recent instrument
-        if (!foundIns && pat->data[i][2] >= 0) {
-          curIns=pat->data[i][2];
-          foundIns=true;
-        }
-        // absorb most recent octave (i.e. set curOctave such that the "main row" (QWERTY) of notes
-        // will result in an octave number equal to the previous note).
-        if (!foundOctave && pat->data[i][0] != 0) {
-          // decode octave data (was signed cast to unsigned char)
-          int octave=pat->data[i][1];
-          if (octave>128) octave-=256;
-          // @NOTE the special handling when note==12, which is really an octave above what's
-          // stored in the octave data. without this handling, if you press Q, then
-          // "ABSORB_INSTRUMENT", then Q again, you'd get a different octave!
-          if (pat->data[i][0]==12) octave++;
-          curOctave=CLAMP(octave-1, GUI_EDIT_OCTAVE_MIN, GUI_EDIT_OCTAVE_MAX);
-          foundOctave=true;
-        }
-      }
+      doAbsorbInstrument();
       break;
     }
 

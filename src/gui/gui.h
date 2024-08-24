@@ -2270,6 +2270,9 @@ class FurnaceGUI {
   std::vector<ImWchar> localeExtraRanges;
 
   DivInstrument* prevInsData;
+  DivInstrument cachedCurIns;
+  DivInstrument* cachedCurInsPtr;
+  bool insEditMayBeDirty;
 
   unsigned char* pendingLayoutImport;
   size_t pendingLayoutImportLen;
@@ -2834,7 +2837,7 @@ class FurnaceGUI {
   void drawMemory();
   void drawCompatFlags();
   void drawPiano();
-  void drawNotes();
+  void drawNotes(bool asChild=false);
   void drawChannels();
   void drawPatManager();
   void drawSysManager();
@@ -2924,13 +2927,14 @@ class FurnaceGUI {
   void doExpand(int multiplier, const SelectionPoint& sStart, const SelectionPoint& sEnd);
   void doCollapseSong(int divider);
   void doExpandSong(int multiplier);
+  void doAbsorbInstrument();
   void doUndo();
   void doRedo();
   void doFind();
   void doReplace();
   void doDrag();
   void editOptions(bool topMenu);
-  DivSystem systemPicker();
+  DivSystem systemPicker(bool fullWidth);
   void noteInput(int num, int key, int vol=-1);
   void valueInput(int num, bool direct=false, int target=-1);
   void orderInput(int num);
@@ -2939,6 +2943,10 @@ class FurnaceGUI {
 
   void doUndoSample();
   void doRedoSample();
+
+  void checkRecordInstrumentUndoStep();
+  void doUndoInstrument();
+  void doRedoInstrument();
 
   void play(int row=0);
   void setOrder(unsigned char order, bool forced=false);
