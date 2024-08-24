@@ -2169,8 +2169,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       w->writeI(0);
       w->write(writeADPCM_Y8950[i]->getSampleMem(0),writeADPCM_Y8950[i]->getSampleMemUsage(0));
     }
-    if (writeQSound[i]!=NULL && writeQSound[i]->getSampleMemUsage()>0) {
-      unsigned int blockSize=(writeQSound[i]->getSampleMemUsage()+0xffff)&(~0xffff);
+    if (writeQSound[i]!=NULL && writeQSound[i]->getSampleMemUsage(1)>0) {
+      unsigned int blockSize=(writeQSound[i]->getSampleMemUsage(1)+0xffff)&(~0xffff);
       if (blockSize > 0x1000000) {
         blockSize = 0x1000000;
       }
@@ -2178,7 +2178,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       w->writeC(0x66);
       w->writeC(0x8F);
       w->writeI((blockSize+8)|(i*0x80000000));
-      w->writeI(writeQSound[i]->getSampleMemCapacity());
+      w->writeI(writeQSound[i]->getSampleMemCapacity(1));
       w->writeI(0);
       w->write(writeQSound[i]->getSampleMem(),blockSize);
     }
