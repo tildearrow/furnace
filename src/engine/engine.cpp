@@ -98,6 +98,10 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       break;
     case 0xc0: case 0xc1: case 0xc2: case 0xc3:
       return _("Cxxx: Set tick rate (hz)");
+    case 0xd1:
+      return _("D1xy: Note slide up from below (x: speed; y: semitones)");
+    case 0xd2:
+      return _("D2xy: Note slide down from above (x: speed; y: semitones)");
     case 0xd3:
       return _("D3xx: Volume portamento");
     case 0xd4:

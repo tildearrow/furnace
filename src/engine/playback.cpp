@@ -983,6 +983,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
           dispatchCmd(DivCommand(DIV_CMD_HINT_ARP_TIME,i,curSubSong->arpLen));
         }
         break;
+      case 0xd1: // portamento up from below
+        if (chan[i].doNote) { chan[i].note-=(effectVal&15); }
+        // falthrough
       case 0xe1: // portamento up
         chan[i].portaNote=chan[i].note+(effectVal&15);
         chan[i].portaSpeed=(effectVal>>4)*4;
@@ -1002,6 +1005,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
           if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         }
         break;
+      case 0xd2: // portamento down from above
+        if (chan[i].doNote) { chan[i].note+=(effectVal&15); }
+        // falthrough
       case 0xe2: // portamento down
         chan[i].portaNote=chan[i].note-(effectVal&15);
         chan[i].portaSpeed=(effectVal>>4)*4;
