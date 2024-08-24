@@ -145,6 +145,7 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("- portaNote = %d",ch->portaNote);
           ImGui::Text("- volume = %.4x",ch->volume);
           ImGui::Text("- volSpeed = %d",ch->volSpeed);
+          ImGui::Text("- volSpeedTarget = %d",ch->volSpeedTarget);
           ImGui::Text("- cut = %d",ch->cut);
           ImGui::Text("- rowDelay = %d",ch->rowDelay);
           ImGui::Text("- volMax = %.4x",ch->volMax);

@@ -59,6 +59,7 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
     case DIV_CMD_HINT_VOLUME:
     case DIV_CMD_HINT_PORTA:
     case DIV_CMD_HINT_VOL_SLIDE:
+    case DIV_CMD_HINT_VOL_SLIDE_TARGET:
     case DIV_CMD_HINT_LEGATO:
       w->writeC((unsigned char)c.cmd+0xb4);
       break;
@@ -99,6 +100,10 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
       break;
     case DIV_CMD_HINT_VOL_SLIDE:
       w->writeS(c.value);
+      break;
+    case DIV_CMD_HINT_VOL_SLIDE_TARGET:
+      w->writeS(c.value);
+      w->writeS(c.value2);
       break;
     case DIV_CMD_SAMPLE_MODE:
     case DIV_CMD_SAMPLE_FREQ:
