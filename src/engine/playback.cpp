@@ -1631,14 +1631,27 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
           if (chan[i].volSpeed!=0) {
             chan[i].volume=(chan[i].volume&0xff)|(dispatchCmd(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
             chan[i].volume+=chan[i].volSpeed;
-            if (chan[i].volSpeedTarget!=-1 && (chan[i].volume==chan[i].volSpeedTarget || (chan[i].volume>chan[i].volSpeedTarget)==(chan[i].volSpeed>0))) {
-              chan[i].volume=chan[i].volSpeedTarget;
-              chan[i].volSpeed=0;
-              chan[i].volSpeedTarget=-1;
-              dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
-              dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
-              dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,0));
-            } else if (chan[i].volume>chan[i].volMax) {
+            if (chan[i].volSpeedTarget!=-1) {
+              bool atTarget=false;
+              if (chan[i].volSpeed>0) {
+                atTarget=(chan[i].volume>=chan[i].volSpeedTarget);
+              } else if (chan[i].volSpeed<0) {
+                atTarget=(chan[i].volume<=chan[i].volSpeedTarget);
+              } else {
+                atTarget=true;
+                chan[i].volSpeedTarget=chan[i].volume;
+              }
+
+              if (atTarget) {
+                chan[i].volume=chan[i].volSpeedTarget;
+                chan[i].volSpeed=0;
+                chan[i].volSpeedTarget=-1;
+                dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
+                dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+                dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,0));
+              }
+            }
+            if (chan[i].volume>chan[i].volMax) {
               chan[i].volume=chan[i].volMax;
               chan[i].volSpeed=0;
               chan[i].volSpeedTarget=-1;
