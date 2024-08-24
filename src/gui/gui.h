@@ -2929,7 +2929,7 @@ class FurnaceGUI {
   void doReplace();
   void doDrag();
   void editOptions(bool topMenu);
-  DivSystem systemPicker();
+  DivSystem systemPicker(bool full_width);
   void noteInput(int num, int key, int vol=-1);
   void valueInput(int num, bool direct=false, int target=-1);
   void orderInput(int num);
