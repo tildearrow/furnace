@@ -552,7 +552,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
             bool comparison=(song.delayBehavior==1)?(effectVal<=nextSpeed):(effectVal<(nextSpeed*(curSubSong->timeBase+1)));
             if (song.delayBehavior==2) comparison=true;
             if (comparison) {
-              chan[i].rowDelay=effectVal+1;
+              chan[i].rowDelay=effectVal;
               chan[i].delayOrder=whatOrder;
               chan[i].delayRow=whatRow;
               if (effectVal==nextSpeed) {
@@ -1596,6 +1596,19 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     if (--subticks<=0) {
       subticks=tickMult;
 
+      // apply delayed rows before potentially advancing to a new row, which would overwrite the
+      // delayed row's state before it has a chance to do anything. a typical example would be
+      // a delay scheduling a note-on to be simultaneous with the next row, and the next row also
+      // containing a delayed note. if we don't apply the delayed row first, 
+      for (int i=0; i<chans; i++) {
+        // delay effects
+        if (chan[i].rowDelay>0) {
+          if (--chan[i].rowDelay==0) {
+            processRow(i,true);
+          }
+        }
+      }
+
       if (stepPlay!=1) {
         tempoAccum+=(skipping && virtualTempoN<virtualTempoD)?virtualTempoD:virtualTempoN;
         while (tempoAccum>=virtualTempoD) {
@@ -1626,15 +1639,9 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         // under no circumstances shall the accumulator become this large
         if (tempoAccum>1023) tempoAccum=1023;
       }
+
       // process stuff
       if (!shallStop) for (int i=0; i<chans; i++) {
-        // delay effects
-        if (chan[i].rowDelay>0) {
-          if (--chan[i].rowDelay==0) {
-            processRow(i,true);
-          }
-        }
-
         // retrigger
         if (chan[i].retrigSpeed) {
           if (--chan[i].retrigTick<0) {
