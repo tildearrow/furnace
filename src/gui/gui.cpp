@@ -5861,7 +5861,9 @@ bool FurnaceGUI::loop() {
     MEASURE_BEGIN(popup);
 
     centerNextWindow(_("Rendering..."),canvasW,canvasH);
+    ImGui::SetNextWindowSize(ImVec2(640.0f*dpiScale,0.0f),ImGuiCond_Always);
     if (ImGui::BeginPopupModal(_("Rendering..."),NULL,ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+      WAKE_UP;
       if(audioExportOptions.mode != DIV_EXPORT_MODE_MANY_CHAN)
       {
         ImGui::Text(_("Please wait..."));
