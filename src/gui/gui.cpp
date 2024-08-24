@@ -5861,7 +5861,6 @@ bool FurnaceGUI::loop() {
     MEASURE_BEGIN(popup);
 
     centerNextWindow(_("Rendering..."),canvasW,canvasH);
-    ImGui::SetNextWindowSize(ImVec2(640.0f*dpiScale,0.0f),ImGuiCond_Always);
     if (ImGui::BeginPopupModal(_("Rendering..."),NULL,ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
       WAKE_UP;
       if(audioExportOptions.mode != DIV_EXPORT_MODE_MANY_CHAN)
@@ -5924,7 +5923,7 @@ bool FurnaceGUI::loop() {
         ImGui::Text(_("Channel %d of %d"), curFile + 1, totalFiles);
       }
 
-      ImGui::ProgressBar(curProgress,ImVec2(-FLT_MIN,0), fmt::sprintf("%.2f%%", curProgress * 100.0f).c_str());
+      ImGui::ProgressBar(curProgress,ImVec2(320.0f*dpiScale,0), fmt::sprintf("%.2f%%", curProgress * 100.0f).c_str());
 
       if (ImGui::Button(_("Abort"))) {
         if (e->haltAudioFile()) {
