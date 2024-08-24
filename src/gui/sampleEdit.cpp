@@ -253,8 +253,7 @@ void FurnaceGUI::drawSampleEdit() {
               SAMPLE_WARN(warnLength,"QSound: maximum sample length is 65535");
             }
             break;
-          case DIV_SYSTEM_NES:
-          {
+          case DIV_SYSTEM_NES: {
             if (sample->loop) {
               if (sample->loopStart&511) {
                 int tryWith=(sample->loopStart)&(~511);
@@ -263,7 +262,8 @@ void FurnaceGUI::drawSampleEdit() {
                 SAMPLE_WARN(warnLoopStart,alignHint);
               }
               if ((sample->loopEnd)&127) {
-                int tryWith=(sample->loopEnd + 1)&(~127); //+1 bc of how sample length is treated: https://www.nesdev.org/wiki/APU_DMC
+                // +1 bc of how sample length is treated: https://www.nesdev.org/wiki/APU_DMC
+                int tryWith=(sample->loopEnd + 1)&(~127);
                 if (tryWith>(int)sample->samples) tryWith-=128;
                 String alignHint=fmt::sprintf(_("NES: loop end must be a multiple of 128 (try with %d)"),tryWith);
                 SAMPLE_WARN(warnLoopEnd,alignHint);
