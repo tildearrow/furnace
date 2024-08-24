@@ -61,7 +61,7 @@ if you need to use more samples, you may change the sample bank using effect `EB
 due to limitations in some of those sound chips, some restrictions exist:
 
 - Amiga: maximum frequency is 31469Hz, but anything over 28867 will sound glitchy on hardware. sample lengths and loop will be set to an even number, and your sample can't be longer than 131070.
-- NES: if on DPCM mode, only a limited selection of frequencies is available, and loop position isn't supported (only entire sample).
+- NES: if on DPCM mode, only a limited selection of frequencies is available.
 - SegaPCM: your sample can't be longer than 65535, and the maximum frequency is 31.25KHz.
 - QSound: your sample can't be longer than 65535, and the loop length shall not be greater than 32767.
 - ADPCM-A: no looping supported. your samples will play at around 18.518KHz.

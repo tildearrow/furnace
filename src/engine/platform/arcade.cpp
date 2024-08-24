@@ -761,6 +761,12 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       immWrite(0x19,0x80|pmDepth);
       break;
     }
+    case DIV_CMD_FM_OPMASK:
+      chan[c.chan].opMask=c.value&15;
+      if (chan[c.chan].active) {
+        chan[c.chan].opMaskChanged=true;
+      }
+      break;
     case DIV_CMD_FM_HARD_RESET:
       chan[c.chan].hardReset=c.value;
       break;
