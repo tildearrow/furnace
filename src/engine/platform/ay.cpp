@@ -423,11 +423,11 @@ void DivPlatformAY8910::tick(bool sysTick) {
         chan[i].tfx.counter = 0;
         chan[i].tfx.out = 0;
         if (chan[i].nextPSGMode.val&8) {
-          if (dumpWrites) addWrite(0xffff0002+(i<<8),0);
+          //if (dumpWrites) addWrite(0xffff0002+(i<<8),0);
           if (chan[i].dac.sample<0 || chan[i].dac.sample>=parent->song.sampleLen) {
             if (dumpWrites) {
               rWrite(0x08+i,0);
-              addWrite(0xffff0000+(i<<8),chan[i].dac.sample);
+              //addWrite(0xffff0000+(i<<8),chan[i].dac.sample);
             }
             if (chan[i].dac.setPos) {
               chan[i].dac.setPos=false;
@@ -517,7 +517,7 @@ void DivPlatformAY8910::tick(bool sysTick) {
           }
         }
         chan[i].dac.rate=((double)rate*((sunsoft||clockSel)?8.0:16.0))/(double)(MAX(1,off*chan[i].freq));
-        if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dac.rate);
+        //if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dac.rate);
       }
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>4095) chan[i].freq=4095;
@@ -604,12 +604,12 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
           }
           if (chan[c.chan].dac.sample<0 || chan[c.chan].dac.sample>=parent->song.sampleLen) {
             chan[c.chan].dac.sample=-1;
-            if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
+            //if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
             break;
           } else {
             if (dumpWrites) {
               rWrite(0x08+c.chan,0);
-              addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dac.sample);
+              //addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dac.sample);
             }
           }
           if (chan[c.chan].dac.setPos) {
@@ -637,10 +637,10 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
           chan[c.chan].dac.sample=12*sampleBank+chan[c.chan].note%12;
           if (chan[c.chan].dac.sample>=parent->song.sampleLen) {
             chan[c.chan].dac.sample=-1;
-            if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
+            //if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
             break;
           } else {
-            if (dumpWrites) addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dac.sample);
+            //if (dumpWrites) addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dac.sample);
           }
           if (chan[c.chan].dac.setPos) {
             chan[c.chan].dac.setPos=false;
@@ -651,7 +651,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
           chan[c.chan].dac.rate=parent->getSample(chan[c.chan].dac.sample)->rate*2048;
           if (dumpWrites) {
             rWrite(0x08+c.chan,0);
-            addWrite(0xffff0001+(c.chan<<8),chan[c.chan].dac.rate);
+            //addWrite(0xffff0001+(c.chan<<8),chan[c.chan].dac.rate);
           }
           chan[c.chan].dac.furnaceDAC=false;
         }
@@ -686,7 +686,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].dac.sample=-1;
-      if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
+      //if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
       chan[c.chan].nextPSGMode.val&=~8;
       chan[c.chan].keyOff=true;
       chan[c.chan].active=false;
@@ -867,7 +867,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
     case DIV_CMD_SAMPLE_POS:
       chan[c.chan].dac.pos=c.value;
       chan[c.chan].dac.setPos=true;
-      if (dumpWrites) addWrite(0xffff0005,chan[c.chan].dac.pos);
+      //if (dumpWrites) addWrite(0xffff0005,chan[c.chan].dac.pos);
       break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
