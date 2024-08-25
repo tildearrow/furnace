@@ -475,7 +475,7 @@ class DivEngine {
   int midiOutTimeRate;
   float midiVolExp;
   int softLockCount;
-  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, curExportChan /*for per-channel export progress*/, nextSpeed, elapsedBars, elapsedBeats, curSpeed;
+  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, curExportChan, nextSpeed, elapsedBars, elapsedBeats, curSpeed;
   size_t curSubSongIndex;
   size_t bufferPos;
   double divider;
@@ -1015,19 +1015,19 @@ class DivEngine {
     // get how many loops is left
     void getLoopsLeft(int& loops);
 
-    //get how many loops in total export needs to do
+    // get how many loops in total export needs to do
     void getTotalLoops(int& loops);
 
     // get current position in song
     void getCurSongPos(int& row, int& order);
 
-    //get how many files export needs to create
+    // get how many files export needs to create
     void getTotalAudioFiles(int& files);
 
-    //get which file is processed right now (progress for e.g. per-channel export)
+    // get which file is processed right now (progress for e.g. per-channel export)
     void getCurFileIndex(int& file);
 
-    //get fadeout state
+    // get fadeout state
     bool getIsFadingOut();
 
     // add instrument

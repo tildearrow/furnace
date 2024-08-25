@@ -916,6 +916,9 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       immWrite(0x17,0x80|pmDepth);
       break;
     }
+    case DIV_CMD_FM_OPMASK:
+      // TODO: if OPZ supports op mask
+      break;
     case DIV_CMD_FM_HARD_RESET:
       chan[c.chan].hardReset=c.value;
       break;
