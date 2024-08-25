@@ -680,10 +680,15 @@ void FurnaceGUI::doAction(int what) {
       latchTarget=0;
       latchNibble=false;
       break;
-    case GUI_ACTION_PAT_ABSORB_INSTRUMENT: {
+    case GUI_ACTION_PAT_ABSORB_INSTRUMENT:
       doAbsorbInstrument();
       break;
-    }
+    case GUI_ACTION_PAT_CURSOR_UNDO:
+      doCursorUndo();
+      break;
+    case GUI_ACTION_PAT_CURSOR_REDO:
+      doCursorRedo();
+      break;
 
     case GUI_ACTION_INS_LIST_ADD:
       if (settings.insTypeMenu) {
