@@ -718,8 +718,6 @@ src/engine/wavetable.cpp
 src/engine/waveSynth.cpp
 src/engine/wavOps.cpp
 src/engine/vgmOps.cpp
-src/engine/zsmOps.cpp
-src/engine/zsm.cpp
 
 src/engine/platform/abstract.cpp
 src/engine/platform/genesis.cpp
@@ -798,6 +796,7 @@ src/engine/platform/dummy.cpp
 src/engine/export/abstract.cpp
 src/engine/export/amigaValidation.cpp
 src/engine/export/tiuna.cpp
+src/engine/export/zsm.cpp
 
 src/engine/effect/abstract.cpp
 src/engine/effect/dummy.cpp

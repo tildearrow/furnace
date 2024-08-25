@@ -23,7 +23,7 @@
 #include "guiConst.h"
 #include <imgui.h>
 
-DivSystem FurnaceGUI::systemPicker() {
+DivSystem FurnaceGUI::systemPicker(bool fullWidth) {
   DivSystem ret=DIV_SYSTEM_NULL;
   DivSystem hoveredSys=DIV_SYSTEM_NULL;
   bool reissueSearch=false;
@@ -61,7 +61,7 @@ DivSystem FurnaceGUI::systemPicker() {
       }
     }
   }
-  if (ImGui::BeginTable("SysList",1,ImGuiTableFlags_ScrollY,ImVec2(500.0f*dpiScale,200.0*dpiScale))) {
+ if (ImGui::BeginTable("SysList",1,ImGuiTableFlags_ScrollY,ImVec2(fullWidth ? ImGui::GetContentRegionAvail().x : 500.0f*dpiScale,200.0f*dpiScale))) {
     if (sysSearchQuery.empty()) {
       // display chip list
       for (int j=0; curSysSection[j]; j++) {

@@ -1089,15 +1089,19 @@ void FurnaceGUI::drawSettings() {
           ImGui::PushID(i);
 
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(_("Invert")).x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
-          if (ImGui::BeginCombo("##System",getSystemName(sysID))) {
-            for (int j=0; availableSystems[j]; j++) {
-              if (ImGui::Selectable(getSystemName((DivSystem)availableSystems[j]),sysID==availableSystems[j])) {
-                sysID=(DivSystem)availableSystems[j];
-                settings.initialSys.set(fmt::sprintf("id%d",i),(int)e->systemToFileFur(sysID));
-                settings.initialSys.set(fmt::sprintf("flags%d",i),"");
-                settingsChanged=true;
-              }
+            if (ImGui::BeginCombo("##System",getSystemName(sysID),ImGuiComboFlags_HeightLargest)) {
+
+            sysID=systemPicker(true);
+
+            if (sysID!=DIV_SYSTEM_NULL)
+            {
+              settings.initialSys.set(fmt::sprintf("id%d",i),(int)e->systemToFileFur(sysID));
+              settings.initialSys.set(fmt::sprintf("flags%d",i),"");
+              settingsChanged=true;
+
+              ImGui::CloseCurrentPopup();
             }
+
             ImGui::EndCombo();
           }
 

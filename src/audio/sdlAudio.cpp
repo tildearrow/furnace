@@ -46,7 +46,9 @@ void* TAAudioSDL::getContext() {
 bool TAAudioSDL::quit() {
   if (!initialized) return false;
 
-  SDL_CloseAudioDevice(ai);
+  if (ai!=0) {
+    SDL_CloseAudioDevice(ai);
+  }
 
   if (running) {
     running=false;

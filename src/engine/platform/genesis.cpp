@@ -1463,6 +1463,13 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       }
       break;
     }
+    case DIV_CMD_FM_OPMASK:
+      if (c.chan>=psgChanOffs) break;
+      chan[c.chan].opMask=c.value&15;
+      if (chan[c.chan].active) {
+        chan[c.chan].opMaskChanged=true;
+      }
+      break;
     case DIV_CMD_FM_HARD_RESET:
       if (c.chan>=6) break;
       chan[c.chan].hardReset=c.value;

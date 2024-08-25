@@ -19,6 +19,7 @@
 
 #include "sfWrapper.h"
 #include "../fileutils.h"
+#include "../ta-log.h"
 #include "sndfile.h"
 
 sf_count_t _vioGetSize(void* user) {
@@ -80,6 +81,7 @@ SNDFILE* SFWrapper::doOpen(const char* path, int mode, SF_INFO* sfinfo) {
   vio.seek=_vioSeek;
   vio.tell=_vioTell;
   vio.write=_vioWrite;
+  logV("SFWrapper: opening %s",path);
 
   const char* modeC="rb";
   if (mode==SFM_WRITE) {
@@ -91,10 +93,12 @@ SNDFILE* SFWrapper::doOpen(const char* path, int mode, SF_INFO* sfinfo) {
 
   f=ps_fopen(path,modeC);
   if (f==NULL) {
+    logE("SFWrapper: failed to open (%s)",strerror(errno));
     return NULL;
   }
 
   if (fseek(f,0,SEEK_END)==-1) {
+    logE("SFWrapper: failed to seek to end (%s)",strerror(errno));
     fclose(f);
     f=NULL;
     return NULL;
@@ -102,6 +106,7 @@ SNDFILE* SFWrapper::doOpen(const char* path, int mode, SF_INFO* sfinfo) {
   
   len=ftell(f);
   if (len==(SIZE_MAX>>1)) {
+    logE("SFWrapper: failed to tell (%s)",strerror(errno));
     len=0;
     fclose(f);
     f=NULL;
@@ -109,6 +114,7 @@ SNDFILE* SFWrapper::doOpen(const char* path, int mode, SF_INFO* sfinfo) {
   }
 
   if (fseek(f,0,SEEK_SET)==-1) {
+    logE("SFWrapper: failed to seek to beginning (%s)",strerror(errno));
     len=0;
     fclose(f);
     f=NULL;
@@ -117,5 +123,8 @@ SNDFILE* SFWrapper::doOpen(const char* path, int mode, SF_INFO* sfinfo) {
 
   sf=sf_open_virtual(&vio,mode,sfinfo,this);
   if (sf!=NULL) fileMode=mode;
+  if (sf==NULL) {
+    logE("SFWrapper: WHY IS IT NULL?!");
+  }
   return sf;
 }
