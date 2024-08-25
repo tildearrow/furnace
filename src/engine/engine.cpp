@@ -137,9 +137,9 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
     case 0xf0:
       return _("F0xx: Set tick rate (bpm)");
     case 0xf1:
-      return _("F1xx: Single tick note slide up");
+      return _("F1xx: Single tick pitch up");
     case 0xf2:
-      return _("F2xx: Single tick note slide down");
+      return _("F2xx: Single tick pitch down");
     case 0xf3:
       return _("F3xx: Fine volume slide up");
     case 0xf4:
@@ -151,9 +151,9 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
     case 0xf7:
       return _("F7xx: Restart macro (see manual)");
     case 0xf8:
-      return _("F8xx: Single tick volume slide up");
+      return _("F8xx: Single tick volume up");
     case 0xf9:
-      return _("F9xx: Single tick volume slide down");
+      return _("F9xx: Single tick volume down");
     case 0xfa:
       return _("FAxx: Fast volume slide (0y: down; x0: up)");
     case 0xfc:
