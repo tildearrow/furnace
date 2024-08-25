@@ -345,7 +345,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
         if(chan[i].opsState[j].hasOpPitch) {
           pitch2=chan[i].opsState[j].pitch2;
         }
-        int opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,arp,fixedArp,false,2, pitch2,chipClock,(524288.0 / 4.0) * 261.63 / 306.0,0);
+        int opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,arp,fixedArp,false,2, pitch2,chipClock,(524288.0 / 4.0) * 2093.0 / 2192.0 * chipClock / 4000000.0,0);
         if (opFreq<0) opFreq=0;
         if (opFreq>65280) opFreq=65280;
         int freqt=toFreq(opFreq);
