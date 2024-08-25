@@ -265,6 +265,8 @@ const char* cmdName[]={
   "BIFURCATOR_PARAMETER",
 
   "FDS_MOD_AUTO",
+  
+  "FM_OPMASK",
 
   "SID3_SPECIAL_WAVE",
   "SID3_RING_MOD_SRC",

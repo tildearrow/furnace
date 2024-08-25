@@ -304,6 +304,7 @@ const char* aboutLine[]={
   _N("SID3 emulator by LTVA"),
   "",
   _N("greetings to:"),
+  "floxy!",
   "NEOART Costa Rica",
   "Xenium Demoparty",
   "@party",
