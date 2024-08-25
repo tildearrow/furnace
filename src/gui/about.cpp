@@ -302,6 +302,7 @@ const char* aboutLine[]={
   _N("NDS sound emulator by cam900"),
   "",
   _N("greetings to:"),
+  "floxy!",
   "NEOART Costa Rica",
   "Xenium Demoparty",
   "@party",

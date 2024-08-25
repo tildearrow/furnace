@@ -260,6 +260,7 @@ size | description
      |   - 0xe4: µPD1771C - 1 channel (UNAVAILABLE)
      |   - 0xf0: SID2 - 3 channels
      |   - 0xf1: 5E01 - 5 channels
+     |   - 0xf5: SID3 - 7 channels
      |   - 0xfc: Pong - 1 channel
      |   - 0xfd: Dummy System - 8 channels
      |   - 0xfe: reserved for development

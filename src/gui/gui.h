@@ -1723,13 +1723,13 @@ class FurnaceGUI {
   char emptyLabel[32];
   char emptyLabel2[32];
 
-  std::vector<int> songOrdersLengths; //lengths of all orders (for drawing song export progress)
-  int songLength; //length of all the song in rows
-  int songLoopedSectionLength; //length of looped part of the song
-  int songFadeoutSectionLength; //length of fading part of the song
-  bool songHasSongEndCommand; //song has "Song end" command (FFxx)
-  int lengthOfOneFile; //length of one rendering pass. song length times num of loops + fadeout
-  int totalLength; //total length of render (lengthOfOneFile times num of files for per-channel export)
+  std::vector<int> songOrdersLengths; // lengths of all orders (for drawing song export progress)
+  int songLength; // length of all the song in rows
+  int songLoopedSectionLength; // length of looped part of the song
+  int songFadeoutSectionLength; // length of fading part of the song
+  bool songHasSongEndCommand; // song has "Song end" command (FFxx)
+  int lengthOfOneFile; // length of one rendering pass. song length times num of loops + fadeout
+  int totalLength; // total length of render (lengthOfOneFile times num of files for per-channel export)
   float curProgress;
   int totalFiles;
 
