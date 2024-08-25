@@ -299,18 +299,6 @@ void DivPlatformTX81Z::tick(bool sysTick) {
         rWrite(baseAddr+ADDR_DT2_D2R,(op.d2r&31)|(op.dt2<<6));
       }
 
-      /*if (ImGui::InputInt(_("Block"),&block,1,1)) {
-                  if (block<0) block=0;
-                  if (block>7) block=7;
-                  op.dt=block;
-                }
-                if (ImGui::InputInt(_("FreqNum"),&freqNum,1,16)) {
-                  if (freqNum<0) freqNum=0;
-                  if (freqNum>255) freqNum=255;
-                  op.mult=freqNum>>4;
-                  op.dvb=freqNum&15;
-                }*/
-
       // fixed pitch
       bool freqChangeOp = false;
 
