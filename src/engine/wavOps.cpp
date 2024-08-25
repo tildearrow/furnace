@@ -33,79 +33,70 @@ bool DivEngine::isExporting() {
   return exporting;
 }
 
-void DivEngine::getLoopsLeft(int& loops) {
-  if(totalLoops < 0 || exportLoopCount == 0)
-  {
-    loops = 0;
+void DivEngine::getLoopsLeft(int &loops) {
+  if (totalLoops<0 || exportLoopCount==0) {
+    loops=0;
     return;
   }
-  loops = exportLoopCount - 1 - totalLoops;
+  loops=exportLoopCount-1-totalLoops;
 }
 
-void DivEngine::getTotalLoops(int& loops) {
-  loops = exportLoopCount - 1;
+void DivEngine::getTotalLoops(int &loops) {
+  loops=exportLoopCount-1;
 }
 
-void DivEngine::getCurSongPos(int& row, int& order) {
-  row = curRow;
-  order = curOrder;
+void DivEngine::getCurSongPos(int &row, int &order) {
+  row=curRow;
+  order=curOrder;
 }
 
-void DivEngine::getTotalAudioFiles(int& files)
-{
-  files = 0;
+void DivEngine::getTotalAudioFiles(int &files) {
+  files=0;
 
-  switch(exportMode)
-  {
-    case DIV_EXPORT_MODE_ONE:
-    {
-      files = 1;
+  switch (exportMode) {
+    case DIV_EXPORT_MODE_ONE: {
+      files=1;
       break;
     }
-    case DIV_EXPORT_MODE_MANY_SYS:
-    {
-      files = 1; //there actually are several files but they are processed in the same loop, so to correctly draw progress we think of them as one file
+    case DIV_EXPORT_MODE_MANY_SYS: {
+      files=1; // there actually are several files but they are processed in the same loop, so to correctly draw progress we think of them as one file
       break;
     }
-    case DIV_EXPORT_MODE_MANY_CHAN:
-    {
-      for(int i = 0; i < chans; i++)
-      {
-        if (exportChannelMask[i]) files++;
+    case DIV_EXPORT_MODE_MANY_CHAN: {
+      for (int i=0; i<chans; i++) {
+        if (exportChannelMask[i]) {
+          files++;
+        }
       }
       break;
     }
-    default: break;
+    default:
+      break;
   }
 }
 
-void DivEngine::getCurFileIndex(int& file)
-{
-  file = 0;
+void DivEngine::getCurFileIndex(int &file) {
+  file=0;
 
-  switch(exportMode)
-  {
-    case DIV_EXPORT_MODE_ONE:
-    {
-      file = 0;
+  switch (exportMode) {
+    case DIV_EXPORT_MODE_ONE: {
+      file=0;
       break;
     }
-    case DIV_EXPORT_MODE_MANY_SYS:
-    {
-      file = 0; //there actually are several files but they are processed in the same loop, so to correctly draw progress we think of them as one file
+    case DIV_EXPORT_MODE_MANY_SYS: {
+      file=0; // there actually are several files but they are processed in the same loop, so to correctly draw progress we think of them as one file
       break;
     }
-    case DIV_EXPORT_MODE_MANY_CHAN:
-    {
-      file = curExportChan;
+    case DIV_EXPORT_MODE_MANY_CHAN: {
+      file=curExportChan;
       break;
     }
-    default: break;
+    default:
+      break;
   }
 }
 
-bool DivEngine::getIsFadingOut()
-{
+bool DivEngine::getIsFadingOut() {
   return isFadingOut;
 }
 
@@ -327,7 +318,7 @@ void DivEngine::runExportThread() {
       // take control of audio output
       deinitAudioBackend();
 
-      curExportChan = 0;
+      curExportChan=0;
 
       float* outBuf[DIV_MAX_OUTPUTS];
       float* outBufFinal;
@@ -463,7 +454,7 @@ void DivEngine::runExportThread() {
       }
       logI("done!");
       exporting=false;
-      curExportChan = 0;
+      curExportChan=0;
       break;
     }
   }

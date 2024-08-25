@@ -313,7 +313,7 @@ void DivPlatformNES::tick(bool sysTick) {
     if (chan[i].sweepChanged) {
       chan[i].sweepChanged=false;
       if (i==0) {
-        //rWrite(16+i*5,chan[i].sweep);
+        // rWrite(16+i*5,chan[i].sweep);
       }
     }
     if (i<3) if (chan[i].std.phaseReset.had) {
@@ -354,7 +354,7 @@ void DivPlatformNES::tick(bool sysTick) {
         }
       }
       if (chan[i].keyOff) {
-        //rWrite(16+i*5+2,8);
+        // rWrite(16+i*5+2,8);
         if (i==2) { // triangle
           rWrite(0x4000+i*4,0x00);
         } else {

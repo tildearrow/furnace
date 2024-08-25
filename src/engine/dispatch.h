@@ -266,6 +266,8 @@ enum DivDispatchCmds {
 
   DIV_CMD_FDS_MOD_AUTO,
 
+  DIV_CMD_FM_OPMASK, // (mask)
+
   DIV_CMD_MAX
 };
 
