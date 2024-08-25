@@ -4509,7 +4509,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_DT2));
                 P(CWSliderScalar("##DT2",ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE,tempID)); rightClickable
                 if (ImGui::IsItemHovered()) {
-                  ImGui::SetTooltip(_("Only on YM2151 (OPM)"));
+                  ImGui::SetTooltip(_("Only on YM2151 and YM2414 (OPM and OPZ)"));
                 }
 
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
