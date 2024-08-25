@@ -3804,18 +3804,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             ImGui::TableNextColumn();
             CENTER_VSLIDER;
             bool egtOn=op.egt;
-            if(egtOn)
-            {
-              bool susOn=op.sus;
-              if (ImGui::Checkbox("Pitch control",&susOn)) { PARAMETER
-                op.sus=susOn;
-              }
-              if(ImGui::IsItemHovered())
-              {
-                ImGui::SetTooltip(_("Use op's arpeggio and pitch macros control instead of block/f-num macros"));
-              }
-            }
-            else
+            if(!egtOn)
             {
               P(CWVSliderScalar("##FINE",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dvb,&_ZERO,&_FIFTEEN)); rightClickable
             }
@@ -3847,8 +3836,9 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             bool amOn=op.am;
             if (ins->type==DIV_INS_OPZ) {
               bool egtOn=op.egt;
+              bool susOn=op.sus;
               if (egtOn) {
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY()+0.5*(sliderHeight-ImGui::GetFrameHeight()*4.0-ImGui::GetStyle().ItemSpacing.y*3.0));
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY()+0.5*(sliderHeight-ImGui::GetFrameHeight()*4.0-ImGui::GetStyle().ItemSpacing.y*3.5));
               } else {
                 ImGui::SetCursorPosY(ImGui::GetCursorPosY()+0.5*(sliderHeight-ImGui::GetFrameHeight()*2.0-ImGui::GetStyle().ItemSpacing.y*1.0));
               }
@@ -3859,6 +3849,18 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 op.egt=egtOn;
               }
               if (egtOn) {
+                if (ImGui::Checkbox("Pitch control",&susOn)) { PARAMETER
+                  op.sus=susOn;
+                  // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
+                  ins->std.opMacros[i].ssgMacro.vZoom=-1;
+                  ins->std.opMacros[i].susMacro.vZoom=-1;
+                }
+                if(ImGui::IsItemHovered())
+                {
+                  ImGui::SetTooltip(_("Use op's arpeggio and pitch macros control instead of block/f-num macros"));
+                }
+              }
+              if (egtOn && !susOn) {
                 int block=op.dt;
                 int freqNum=(op.mult<<4)|(op.dvb&15);
                 if (ImGui::InputInt(_("Block"),&block,1,1)) {
@@ -4463,27 +4465,30 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 // params
                 ImGui::Separator();
                 if (egtOn) {
-                  int block=op.dt;
-                  int freqNum=(op.mult<<4)|(op.dvb&15);
-                  ImGui::Text(_("Block"));
-                  ImGui::SameLine();
-                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  ImVec2 cursorAlign=ImGui::GetCursorPos();
-                  if (ImGui::InputInt("##Block",&block,1,1)) {
-                    if (block<0) block=0;
-                    if (block>7) block=7;
-                    op.dt=block;
-                  }
-                  
-                  ImGui::Text(_("Freq"));
-                  ImGui::SameLine();
-                  ImGui::SetCursorPos(ImVec2(cursorAlign.x,ImGui::GetCursorPosY()));
-                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (ImGui::InputInt("##FreqNum",&freqNum,1,16)) {
-                    if (freqNum<0) freqNum=0;
-                    if (freqNum>255) freqNum=255;
-                    op.mult=freqNum>>4;
-                    op.dvb=freqNum&15;
+                  if(!op.sus)
+                  {
+                    int block=op.dt;
+                    int freqNum=(op.mult<<4)|(op.dvb&15);
+                    ImGui::Text(_("Block"));
+                    ImGui::SameLine();
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                    ImVec2 cursorAlign=ImGui::GetCursorPos();
+                    if (ImGui::InputInt("##Block",&block,1,1)) {
+                      if (block<0) block=0;
+                      if (block>7) block=7;
+                      op.dt=block;
+                    }
+                    
+                    ImGui::Text(_("Freq"));
+                    ImGui::SameLine();
+                    ImGui::SetCursorPos(ImVec2(cursorAlign.x,ImGui::GetCursorPosY()));
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                    if (ImGui::InputInt("##FreqNum",&freqNum,1,16)) {
+                      if (freqNum<0) freqNum=0;
+                      if (freqNum>255) freqNum=255;
+                      op.mult=freqNum>>4;
+                      op.dvb=freqNum&15;
+                    }
                   }
                 } else {
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -4613,6 +4618,9 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                   bool susOn=op.sus;
                   if (ImGui::Checkbox("Pitch control",&susOn)) { PARAMETER
                     op.sus=susOn;
+                    // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
+                    ins->std.opMacros[i].ssgMacro.vZoom=-1;
+                    ins->std.opMacros[i].susMacro.vZoom=-1;
                   }
                   if(ImGui::IsItemHovered())
                   {
@@ -4929,6 +4937,9 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               ImGui::SameLine();
               if (ImGui::Checkbox("Pitch control",&susOn)) { PARAMETER
                 op.sus=susOn;
+                // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
+                ins->std.opMacros[i].ssgMacro.vZoom=-1;
+                ins->std.opMacros[i].susMacro.vZoom=-1;
               }
               if(ImGui::IsItemHovered())
               {
@@ -5053,31 +5064,35 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
 
             if (ins->type==DIV_INS_OPZ) {
               if (op.egt) {
-                int block=op.dt;
-                int freqNum=(op.mult<<4)|(op.dvb&15);
+                bool susOn=op.sus;
+                if(!susOn)
+                {
+                  int block=op.dt;
+                  int freqNum=(op.mult<<4)|(op.dvb&15);
 
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (CWSliderInt(FM_NAME(FM_MULT),&block,0,7)) { PARAMETER
-                  if (block<0) block=0;
-                  if (block>7) block=7;
-                  op.dt=block;
-                } rightClickable
-                ImGui::TableNextColumn();
-                ImGui::Text("Block");
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  if (CWSliderInt(FM_NAME(FM_MULT),&block,0,7)) { PARAMETER
+                    if (block<0) block=0;
+                    if (block>7) block=7;
+                    op.dt=block;
+                  } rightClickable
+                  ImGui::TableNextColumn();
+                  ImGui::Text("Block");
 
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (CWSliderInt(FM_NAME(FM_FINE),&freqNum,0,255)) { PARAMETER
-                  if (freqNum<0) freqNum=0;
-                  if (freqNum>255) freqNum=255;
-                  op.mult=freqNum>>4;
-                  op.dvb=freqNum&15;
-                } rightClickable
-                ImGui::TableNextColumn();
-                ImGui::Text(_("FreqNum"));
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  if (CWSliderInt(FM_NAME(FM_FINE),&freqNum,0,255)) { PARAMETER
+                    if (freqNum<0) freqNum=0;
+                    if (freqNum>255) freqNum=255;
+                    op.mult=freqNum>>4;
+                    op.dvb=freqNum&15;
+                  } rightClickable
+                  ImGui::TableNextColumn();
+                  ImGui::Text(_("FreqNum"));
+                }
               } else {
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
