@@ -102,6 +102,15 @@ inline int hScale(int note) {
   return ((note/12)<<4)+(noteMap[note%12]);
 }
 
+int DivPlatformTX81Z::toFreq(int freq) {
+  int block=0;
+  while (freq>0xff) {
+    freq>>=1;
+    block++;
+  }
+  return ((block&7)<<8)|(freq&0xff);
+}
+
 void DivPlatformTX81Z::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
     chan[i].std.next();
@@ -289,6 +298,66 @@ void DivPlatformTX81Z::tick(bool sysTick) {
         op.dt2=m.dt2.val;
         rWrite(baseAddr+ADDR_DT2_D2R,(op.d2r&31)|(op.dt2<<6));
       }
+
+      /*if (ImGui::InputInt(_("Block"),&block,1,1)) {
+                  if (block<0) block=0;
+                  if (block>7) block=7;
+                  op.dt=block;
+                }
+                if (ImGui::InputInt(_("FreqNum"),&freqNum,1,16)) {
+                  if (freqNum<0) freqNum=0;
+                  if (freqNum>255) freqNum=255;
+                  op.mult=freqNum>>4;
+                  op.dvb=freqNum&15;
+                }*/
+
+      // fixed pitch
+      bool freqChangeOp = false;
+
+      if(op.egt)
+      {
+        if (op.sus) {
+          chan[i].handleArpFmOp(freqChangeOp, 0, j); //arp and pitch macros
+          chan[i].handlePitchFmOp(freqChangeOp, j);
+        } else {
+          if (m.ssg.had) { //block and f-num macros
+            op.dt=m.ssg.val&7;
+            rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
+          }
+          if (m.sus.had) {
+            op.mult=(m.sus.val & 0xff) >> 4;
+            op.dvb=(m.sus.val & 0xf);
+            rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
+            rWrite(baseAddr+ADDR_WS_FINE,(op.dvb&15)|(op.ws<<4));
+          }
+        }
+      }
+
+      if(freqChangeOp)
+      {
+        int arp=chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff;
+        int pitch2=chan[i].pitch2;
+        int fixedArp=chan[i].fixedArp;
+        if(chan[i].opsState[j].hasOpArp) {
+          arp=chan[i].opsState[j].fixedArp?chan[i].opsState[j].baseNoteOverride:chan[i].opsState[j].arpOff;
+          fixedArp=chan[i].opsState[j].fixedArp;
+        }
+        if(chan[i].opsState[j].hasOpPitch) {
+          pitch2=chan[i].opsState[j].pitch2;
+        }
+        int opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,arp,fixedArp,false,2, pitch2,chipClock,524288 / 4,0);
+        if (opFreq<0) opFreq=0;
+        if (opFreq>65280) opFreq=65280;
+        int freqt=toFreq(opFreq);
+
+        op.dt=(freqt >> 8) & 7;
+
+        op.mult=(freqt & 0xff) >> 4;
+        op.dvb=(freqt & 0xf);
+
+        rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
+        rWrite(baseAddr+ADDR_WS_FINE,(op.dvb&15)|(op.ws<<4));
+      }
     }
   }
 
@@ -444,6 +513,7 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_OPZ);
 
+      memset(chan[c.chan].opsState, 0, sizeof(chan[c.chan].opsState));
       chan[c.chan].macroInit(ins);
       if (!chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
