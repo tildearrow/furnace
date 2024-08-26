@@ -18,6 +18,10 @@ however, effects are continuous (unless specified), which means you only need to
 - `07xy`: **Tremolo.** changes volume to be "wavy" with a sine LFO. `x` is the speed. `y` is the depth.
   - tremolo is downward only.
   - maximum tremolo depth is -60 volume steps.
+  - ---
+- `D3xx`: **Volume portamento.** slides the volume to the one specified in the volume column. `x` is the slide speed.
+  - a volume _must_ be present with this effect for it to work.
+- `D4xx`: **Volume portamento (fast).** like `D3xx` but four times faster.
 
 ## pitch
 
