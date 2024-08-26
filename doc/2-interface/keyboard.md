@@ -152,6 +152,7 @@ the keys in the "Global hotkeys" section can be used in any window, although not
 | Expand song                                            | —                |
 | Set note input latch                                   | —                |
 | Clear note input latch                                 | —                |
+| Absorb instrument/octave from status at cursor         | —                |
 |                                                        |                  |
 | **Instrument list**                                    |                  |
 | Add instrument                                         | `Insert`         |

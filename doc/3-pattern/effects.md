@@ -15,6 +15,9 @@ however, effects are continuous (unless specified), which means you only need to
 - `F8xx`: **Single tick volume up.** adds `x` to volume.
 - `F9xx`: **Single tick volume down.** subtracts `x` from volume.
   - ---
+- `D3xx`: **Volume portamento.** slides volume toward the new value instead of jumping immediately. `x` is the speed of the slide.
+- `D4xx`: **Volume portamento (fast).** same as `D3xx` but 256× faster.
+  - ---
 - `07xy`: **Tremolo.** changes volume to be "wavy" with a sine LFO. `x` is the speed. `y` is the depth.
   - tremolo is downward only.
   - maximum tremolo depth is -60 volume steps.
