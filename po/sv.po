@@ -4489,7 +4489,7 @@ msgstr ""
 "formatet för ett mönsterändringsdatablock är:\n"
 "67 66 FE ll ll ll 01 oo rr pp pp pp ...\n"
 "- ll: längd, ett 32-bit liten endiannummer\n"
-"- oo: order\n"
+"- oo: sekvens\n"
 "- rr: första rad (en 0Dxx-effekt kan välja en annan rad)\n"
 "- pp: mönsterindex (ett per kanal)\n"
 "\n"
@@ -5397,7 +5397,7 @@ msgstr "Mobilmeny"
 #: src/gui/settings.cpp:3987 src/gui/orders.cpp:232 src/gui/guiConst.cpp:577
 #: src/gui/gui.cpp:5956
 msgid "Orders"
-msgstr "Order"
+msgstr "Sekvenser"
 
 #: src/gui/editControls.cpp:429 src/gui/findReplace.cpp:669
 #: src/gui/findReplace.cpp:914
@@ -5600,7 +5600,7 @@ msgstr "Följ"
 
 #: src/gui/editControls.cpp:1003
 msgid "Ord##FollowOrders"
-msgstr "Order"
+msgstr "FöljSekvenser"
 
 #: src/gui/editControls.cpp:1011
 msgid "Pat##FollowPattern"
@@ -5624,7 +5624,7 @@ msgstr "Redigera kontroller"
 
 #: src/gui/editControls.cpp:1169 src/gui/guiConst.cpp:560
 msgid "Follow orders"
-msgstr "Följ order"
+msgstr "Följ sekvenser"
 
 #: src/gui/editControls.cpp:1170 src/gui/guiConst.cpp:561
 msgid "Follow pattern"
@@ -7985,7 +7985,7 @@ msgstr "Dela"
 
 #: src/gui/settings.cpp:2619
 msgid "Position of buttons in Orders:"
-msgstr "Placering av knappar i beställningar:"
+msgstr "Placering av knappar i Sekvenser:"
 
 #: src/gui/settings.cpp:2621
 msgid "Top##obp0"
@@ -8199,7 +8199,7 @@ msgstr "Scrollar"
 
 #: src/gui/settings.cpp:2860
 msgid "Change order when scrolling outside of pattern bounds:"
-msgstr "Ändra order när du rullar utanför mönstergränserna:"
+msgstr "Ändra sekvensen när du rullar utanför mönstergränserna:"
 
 #: src/gui/settings.cpp:2862
 msgid "No##pscroll0"
@@ -8215,7 +8215,7 @@ msgstr "Ja, och stick nära låten"
 
 #: src/gui/settings.cpp:2877
 msgid "Cursor follows current order when moving it"
-msgstr "Markören följer nuvarande order när den flyttas"
+msgstr "Markören följer den nuvarande sekvensen när den flyttas"
 
 #: src/gui/settings.cpp:2882
 msgid "applies when playback is stopped."
@@ -8563,11 +8563,11 @@ msgstr "Visa menyer för lägg till/konfigurera/ändra/ta bort chip i Arkiv-meny
 
 #: src/gui/settings.cpp:3283
 msgid "Highlight channel at cursor in Orders"
-msgstr "Markera kanal vid markören i Orders"
+msgstr "Markera kanal vid markören i Sekvenser"
 
 #: src/gui/settings.cpp:3288
 msgid "Orders row number format:"
-msgstr "Orderradnummerformat:"
+msgstr "Sekvensradnummerformat:"
 
 #: src/gui/settings.cpp:3290
 msgid "Decimal##orbD"
@@ -8830,7 +8830,7 @@ msgstr "Använd det klassiska vertikala skjutreglaget för makroredigerare"
 
 #: src/gui/settings.cpp:3613
 msgid "Automatic macro step size/horizontal zoom"
-msgstr ""
+msgstr "Automatisk makrostegstorlek/horisontell zoom"
 
 #: src/gui/settings.cpp:3620
 msgid "Wave Editor"
@@ -9394,11 +9394,11 @@ msgstr "Klipp"
 
 #: src/gui/settings.cpp:3988
 msgid "Order number"
-msgstr "Ordernummer"
+msgstr "Sekvensnummer"
 
 #: src/gui/settings.cpp:3989
 msgid "Playing order background"
-msgstr "Spelar orderbakgrund"
+msgstr "Spelar sekvensbakgrund"
 
 #: src/gui/settings.cpp:3990
 msgid "Song loop"
@@ -9406,7 +9406,7 @@ msgstr "Låtloop"
 
 #: src/gui/settings.cpp:3991
 msgid "Selected order"
-msgstr "Vald order"
+msgstr "Vald sekvens"
 
 #: src/gui/settings.cpp:3992
 msgid "Similar patterns"
@@ -10458,53 +10458,53 @@ msgstr "%Y/%m/%d %H:%M"
 
 #: src/gui/orders.cpp:114
 msgid "Add new order"
-msgstr "Lägg till ny order"
+msgstr "Lägg till ny sekvens"
 
 #: src/gui/orders.cpp:125 src/gui/guiConst.cpp:794
 msgid "Remove order"
-msgstr "Ta bort order"
+msgstr "Ta bort sekvens"
 
 #: src/gui/orders.cpp:137
 msgid "Duplicate order (right-click to deep clone)"
-msgstr "Duplicera order (högerklicka för att djupklona)"
+msgstr "Duplicera sekvens (högerklicka för att djupklona)"
 
 #: src/gui/orders.cpp:146 src/gui/guiConst.cpp:795
 msgid "Move order up"
-msgstr "Flytta order upp"
+msgstr "Flytta sekvens upp"
 
 #: src/gui/orders.cpp:155 src/gui/guiConst.cpp:796
 msgid "Move order down"
-msgstr "Flytta order ner"
+msgstr "Flytta sekvens ner"
 
 #: src/gui/orders.cpp:167
 msgid "Place copy of current order at end of song (right-click to deep clone)"
 msgstr ""
-"Placera en kopia av aktuell order på slutet av låten (högerklicka för att "
+"Placera en kopia av den nuvarande sekvensen på slutet av låten (högerklicka för att "
 "klona djupt)"
 
 #: src/gui/orders.cpp:177
 msgid "Order change mode: entire row"
-msgstr "Orderändringsläge: hela raden"
+msgstr "Sekvensändringsläge: hela raden"
 
 #: src/gui/orders.cpp:179
 msgid "Order change mode: one"
-msgstr "Orderändringsläge: en"
+msgstr "Sekvensändringsläge: en"
 
 #: src/gui/orders.cpp:205
 msgid "Order edit mode: Select and type (scroll vertically)"
-msgstr "Orderredigeringsläge: Välj och skriv (rulla vertikalt)"
+msgstr "Sekvensredigeringsläge: Välj och skriv (rulla vertikalt)"
 
 #: src/gui/orders.cpp:207
 msgid "Order edit mode: Select and type (scroll horizontally)"
-msgstr "Orderredigeringsläge: Välj och skriv (rulla horisontellt)"
+msgstr "Sekvensredigeringsläge: Välj och skriv (rulla horisontellt)"
 
 #: src/gui/orders.cpp:209
 msgid "Order edit mode: Select and type (don't scroll)"
-msgstr "Orderredigeringsläge: Välj och skriv (rulla ej)"
+msgstr "Sekvensredigeringsläge: Välj och skriv (rulla ej)"
 
 #: src/gui/orders.cpp:211
 msgid "Order edit mode: Click to change"
-msgstr "Orderredigeringsläge: Klicka för att ändra"
+msgstr "Sekvensredigeringsläge: Klicka för att ändra"
 
 #: src/gui/findReplace.cpp:29
 msgid "ignore"
@@ -10560,7 +10560,7 @@ msgstr "Hitta"
 
 #: src/gui/findReplace.cpp:526 src/gui/findReplace.cpp:535
 msgid "order"
-msgstr "order"
+msgstr "sekvens"
 
 #: src/gui/findReplace.cpp:527 src/gui/findReplace.cpp:537
 msgid "row"
@@ -11148,7 +11148,7 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:72
 msgid "Ignore 0Dxx on the last order"
-msgstr "Ignorera 0Dxx på den senaste order"
+msgstr "Ignorera 0Dxx på den sista sekvensen"
 
 #: src/gui/compatFlags.cpp:74
 msgid ""
@@ -11156,7 +11156,7 @@ msgid ""
 "the last order of a song."
 msgstr ""
 "om detta är på, kommer en hopp till nästa radeffekt inte att ske när den är "
-"på den sista ordern i en låt."
+"på den sista sekvensen av en låt."
 
 #: src/gui/compatFlags.cpp:76
 msgid "Buggy portamento after pitch slide"
@@ -11587,7 +11587,7 @@ msgstr "Simultan hopp (0B+0D) behandling:"
 
 #: src/gui/compatFlags.cpp:302
 msgid "accept 0B+0D to jump to a specific row of an order"
-msgstr "acceptera 0B+0D för att hoppa till en specifik rad i en order"
+msgstr "acceptera 0B+0D för att hoppa till en specifik rad i en sekvens"
 
 #: src/gui/compatFlags.cpp:308
 msgid "only accept the first jump effect"
@@ -12117,11 +12117,11 @@ msgstr "Slå på ljudet för alla kanaler"
 
 #: src/gui/guiConst.cpp:672
 msgid "Go to next order"
-msgstr "Gå till nästa order"
+msgstr "Gå till nästa sekvens"
 
 #: src/gui/guiConst.cpp:673
 msgid "Go to previous order"
-msgstr "Gå till föregående order"
+msgstr "Gå till föregående sekvens"
 
 #: src/gui/guiConst.cpp:674
 msgid "Collapse channel at cursor"
@@ -12505,63 +12505,63 @@ msgstr "Sampleredigerare: Skapa wavetable från urval"
 
 #: src/gui/guiConst.cpp:780
 msgid "---Orders"
-msgstr "---Orders"
+msgstr "---Sekvenser"
 
 #: src/gui/guiConst.cpp:781
 msgid "Previous order"
-msgstr "Föregående order"
+msgstr "Föregående sekvens"
 
 #: src/gui/guiConst.cpp:782
 msgid "Next order"
-msgstr "Nästa order"
+msgstr "Nästa sekvens"
 
 #: src/gui/guiConst.cpp:783
 msgid "Order cursor left"
-msgstr "Ordermarkören till vänster"
+msgstr "Sekvensmarkören till vänster"
 
 #: src/gui/guiConst.cpp:784
 msgid "Order cursor right"
-msgstr "Ordermarkören till höger"
+msgstr "Sekvensmarkören till höger"
 
 #: src/gui/guiConst.cpp:785
 msgid "Increase order value"
-msgstr "Öka ordervärdee"
+msgstr "Öka sekvensvärde"
 
 #: src/gui/guiConst.cpp:786
 msgid "Decrease order value"
-msgstr "Förminska ordervärde"
+msgstr "Förminska sekvensvärde"
 
 #: src/gui/guiConst.cpp:787
 msgid "Switch order edit mode"
-msgstr "Byt orderredigeringsläge"
+msgstr "Byt sekvensredigeringsläge"
 
 #: src/gui/guiConst.cpp:788
 msgid "Order: toggle alter entire row"
-msgstr "Order: växla att ändra hela raden"
+msgstr "Sekvens: växla att ändra hela raden"
 
 #: src/gui/guiConst.cpp:789
 msgid "Add order"
-msgstr "Lägg till order"
+msgstr "Lägg till sekvens"
 
 #: src/gui/guiConst.cpp:790
 msgid "Duplicate order"
-msgstr "Duplicera order"
+msgstr "Duplicera sekvens"
 
 #: src/gui/guiConst.cpp:791
 msgid "Deep clone order"
-msgstr "Djupklona order"
+msgstr "Djupklona sekvens"
 
 #: src/gui/guiConst.cpp:792
 msgid "Copy current order to end of song"
-msgstr "Kopiera aktuell order till slutet av låten"
+msgstr "Kopiera aktuell sekvens till slutet av låten"
 
 #: src/gui/guiConst.cpp:793
 msgid "Deep clone current order to end of song"
-msgstr "Djup kloning av nuvarande order till slutet av låten"
+msgstr "Djupklona den nuvarande sekvensen till slutet av låten"
 
 #: src/gui/guiConst.cpp:797
 msgid "Replay order"
-msgstr "Spela om order"
+msgstr "Spela om sekvensen"
 
 #: src/gui/guiConst.cpp:1397
 msgid "All chips"
@@ -13459,8 +13459,8 @@ msgstr ""
 "- klicka på mönstret eller använd piltangenterna för att flytta markören\n"
 "- värden (instrument, volym, effekter och effektvärden) är i hexadecimal\n"
 "- tryck på enter för att spela/stoppa låten\n"
-"- utöka låten genom att lägga till fler beställningar i orderfönstret\n"
-"- klicka på ordermatrisen för att ändra mönstren för en kanal (vänsterklicka "
+"- utöka låten genom att lägga till fler beställningar i sekvensfönstret\n"
+"- klicka på sekvensmatrisen för att ändra mönstren för en kanal (vänsterklicka "
 "ökar; högerklick minskar)"
 
 #: src/gui/tutorial.cpp:680
@@ -14360,7 +14360,7 @@ msgstr "chiphanteraren"
 
 #: src/gui/gui.cpp:4525
 msgid "orders"
-msgstr "orders"
+msgstr "sekvenser"
 
 #: src/gui/gui.cpp:4527
 msgid "pattern manager"
@@ -14516,12 +14516,12 @@ msgstr " @ %gHz (%g BPM) "
 #: src/gui/gui.cpp:4604
 #, c-format
 msgid "| Order %.2X/%.2X "
-msgstr "| Order %.2X/%.2X "
+msgstr "| Sekvens %.2X/%.2X "
 
 #: src/gui/gui.cpp:4606
 #, c-format
 msgid "| Order %d/%d "
-msgstr "| Order %d/%d "
+msgstr "| Sekvens %d/%d "
 
 #: src/gui/gui.cpp:4610
 #, c-format
@@ -14876,11 +14876,11 @@ msgstr "Kodning:"
 
 #: src/gui/gui.cpp:6387
 msgid "Reverse bit order"
-msgstr "Omvänd bitordning"
+msgstr "Vänd om bitordningen"
 
 #: src/gui/gui.cpp:6429
 msgid "Error! No string provided!"
-msgstr "Fel! Ingen sträng tillhandahålls!"
+msgstr "Fel! Ingen sträng gett ut!"
 
 #: src/gui/gui.cpp:6763
 msgid "it appears I couldn't load these fonts. any setting you can check?"
@@ -14936,7 +14936,7 @@ msgstr "Storlek på alla kolumner till standard"
 
 #: src/gui/gui.cpp:7130
 msgid "Reset order###ResetOrder"
-msgstr "Återställa order"
+msgstr "Återställa sekvens"
 
 #: src/gui/gui.cpp:7132
 msgid "(Main menu bar)"
@@ -15013,7 +15013,7 @@ msgstr "Arrangera om mönster"
 
 #: src/gui/patManager.cpp:50
 msgid "Sort orders"
-msgstr "Sortera orders"
+msgstr "Sortera sekvenser"
 
 #: src/gui/patManager.cpp:57
 msgid "Make patterns unique"
