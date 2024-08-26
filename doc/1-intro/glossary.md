@@ -72,6 +72,8 @@
 
 **LFO**: low frequency oscillator. a wave with a slow period (often below hearing range) used to alter other sounds.
 
+**LFSR**: linear-feedback shift register. an algorithm of generating pseudo-random noise that loops, also known as "periodic noise". depending on the location of the two "taps" used, different lengths of noise loops are generated.
+
 **macro**: a sequence of values automatically applied while a note plays.
 
 **noise bass**: the technique of using a PSG's periodic noise generator with a very short period to create low-frequency sounds.
@@ -86,7 +88,7 @@
 
 **period**: the length of a repeating waveform. as frequency rises, the period shortens.
 
-**periodic noise**: an approximation of random noise generated algorithmically.
+**periodic noise**: an approximation of random noise generated algorithmically with an LFSR.
 - the period is the number of values generated until the algorithm repeats itself.
 
 **phase reset**: to restart a waveform at its initial value.
