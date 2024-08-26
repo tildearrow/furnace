@@ -39,7 +39,7 @@
 #define FURNACE_APP_ID "org.tildearrow.furnace"
 
 #define rightClickable if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) ImGui::SetKeyboardFocusHere(-1);
-#define ctrlWheeling ((ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl)) && wheelY!=0)
+#define ctrlWheeling (isCtrlWheelModifierHeld() && wheelY!=0)
 
 #define handleUnimportant if (settings.insFocusesPattern && patternOpen) {nextWindow=GUI_WINDOW_PATTERN;}
 #define unimportant(x) if (x) {handleUnimportant}
@@ -1804,6 +1804,7 @@ class FurnaceGUI {
     int patRowsBase;
     int orderRowsBase;
     int soloAction;
+    int ctrlWheelModifier;
     int pullDeleteBehavior;
     int wrapHorizontal;
     int wrapVertical;
@@ -2063,6 +2064,7 @@ class FurnaceGUI {
       patRowsBase(0),
       orderRowsBase(1),
       soloAction(0),
+      ctrlWheelModifier(0),
       pullDeleteBehavior(1),
       wrapHorizontal(0),
       wrapVertical(0),
@@ -2738,6 +2740,7 @@ class FurnaceGUI {
   static bool LocalizedComboGetter(void* data, int idx, const char** out_text);
 
   // these ones offer ctrl-wheel fine value changes.
+  bool isCtrlWheelModifierHeld() const;
   bool CWSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format=NULL, ImGuiSliderFlags flags=0);
   bool CWVSliderScalar(const char* label, const ImVec2& size, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format=NULL, ImGuiSliderFlags flags=0);
   bool CWSliderInt(const char* label, int* v, int v_min, int v_max, const char* format="%d", ImGuiSliderFlags flags=0);

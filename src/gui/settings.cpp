@@ -2720,6 +2720,22 @@ void FurnaceGUI::drawSettings() {
         }
         ImGui::Unindent();
 
+        ImGui::Text(_("Modifier for alternate wheel-scrolling (vertical/zoom/slider-input):"));
+        ImGui::Indent();
+        if (ImGui::RadioButton(_("Ctrl or Meta/Cmd##cwm1"),settings.ctrlWheelModifier==0)) {
+          settings.ctrlWheelModifier=0;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton(_("Ctrl##cwm2"),settings.ctrlWheelModifier==1)) {
+          settings.ctrlWheelModifier=1;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton(_("Meta/Cmd##cwm3"),settings.ctrlWheelModifier==2)) {
+          settings.ctrlWheelModifier=2;
+          settingsChanged=true;
+        }
+        ImGui::Unindent();
+
         bool doubleClickColumnB=settings.doubleClickColumn;
         if (ImGui::Checkbox(_("Double click selects entire column"),&doubleClickColumnB)) {
           settings.doubleClickColumn=doubleClickColumnB;
@@ -4819,6 +4835,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
   if (groups&GUI_SETTINGS_BEHAVIOR) {
     settings.soloAction=conf.getInt("soloAction",0);
+    settings.ctrlWheelModifier=conf.getInt("ctrlWheelModifier",0);
     settings.pullDeleteBehavior=conf.getInt("pullDeleteBehavior",1);
     settings.wrapHorizontal=conf.getInt("wrapHorizontal",0);
     settings.wrapVertical=conf.getInt("wrapVertical",0);
@@ -5117,6 +5134,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.patRowsBase,0,1);
   clampSetting(settings.orderRowsBase,0,1);
   clampSetting(settings.soloAction,0,2);
+  clampSetting(settings.ctrlWheelModifier,0,2);
   clampSetting(settings.pullDeleteBehavior,0,1);
   clampSetting(settings.wrapHorizontal,0,2);
   clampSetting(settings.wrapVertical,0,3);
@@ -5404,6 +5422,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   // behavior
   if (groups&GUI_SETTINGS_BEHAVIOR) {
     conf.set("soloAction",settings.soloAction);
+    conf.set("ctrlWheelModifier",settings.ctrlWheelModifier);
     conf.set("pullDeleteBehavior",settings.pullDeleteBehavior);
     conf.set("wrapHorizontal",settings.wrapHorizontal);
     conf.set("wrapVertical",settings.wrapVertical);

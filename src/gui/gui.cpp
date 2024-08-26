@@ -424,6 +424,19 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
     } \
   }
 
+bool FurnaceGUI::isCtrlWheelModifierHeld() const {
+  switch (settings.ctrlWheelModifier) {
+    case 0:
+      return ImGui::IsKeyDown(ImGuiMod_Ctrl) || ImGui::IsKeyDown(ImGuiMod_Super);
+    case 1:
+      return ImGui::IsKeyDown(ImGuiMod_Ctrl);
+    case 2:
+      return ImGui::IsKeyDown(ImGuiMod_Super);
+    default:
+      return false;
+  }
+}
+
 bool FurnaceGUI::CWSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags) {
   flags^=ImGuiSliderFlags_AlwaysClamp;
   if (ImGui::SliderScalar(label,data_type,p_data,p_min,p_max,format,flags)) {
