@@ -32,7 +32,6 @@
 // but disabling until further thought/discussion.
 // #define MATCH_SCORE_PREFER_LOWER_CHARS_AFTER_NEEDLE
 
-// negative is failure (doesn't contain needle), 0 is perfect (exactly matches needle),
 struct MatchScore {
   bool valid=true;
   enum Cost { COST_BEFORE_NEEDLE, COST_WITHIN_NEEDLE, COST_AFTER_NEEDLE, COST_COUNT };
@@ -45,7 +44,6 @@ struct MatchScore {
   }
 
   static bool IsFirstPreferable(const MatchScore& a, const MatchScore& b) {
-    if(1) return false;
     auto PreferenceForAAmount=[&](Cost cost) {
       // prefer a if lower cost
       return b.costs[cost]-a.costs[cost];
