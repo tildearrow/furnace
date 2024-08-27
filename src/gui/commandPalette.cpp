@@ -26,17 +26,78 @@
 #include <ctype.h>
 #include "../ta-log.h"
 
-static inline bool matchFuzzy(const char* haystack, const char* needle) {
+// @TODO: when there's a tie on both within and before-needle costs, we have options.
+// It's reasonable to let the original order stand, but also reasonable to favor
+// minimizing the number of chars that follow afterward. Leaving this code in for now,
+// but disabling until further thought/discussion.
+// #define MATCH_SCORE_PREFER_LOWER_CHARS_AFTER_NEEDLE
+
+// negative is failure (doesn't contain needle), 0 is perfect (exactly matches needle),
+struct MatchScore {
+  bool valid=true;
+  enum Cost { COST_BEFORE_NEEDLE, COST_WITHIN_NEEDLE, COST_AFTER_NEEDLE, COST_COUNT };
+  size_t costs[COST_COUNT] = {0, 0, 0};
+
+  static MatchScore INVALID() {
+    MatchScore score;
+    score.valid=false;
+    return score;
+  }
+
+  static bool IsFirstPreferable(const MatchScore& a, const MatchScore& b) {
+    if(1) return false;
+    auto PreferenceForAAmount=[&](Cost cost) {
+      // prefer a if lower cost
+      return b.costs[cost]-a.costs[cost];
+    };
+
+    if (a.valid && b.valid) {
+      int prefA;
+      prefA=PreferenceForAAmount(COST_WITHIN_NEEDLE);
+      if (prefA!=0) return prefA>0;
+      prefA=PreferenceForAAmount(COST_BEFORE_NEEDLE);
+      if (prefA!=0) return prefA>0;
+#ifdef MATCH_SCORE_PREFER_LOWER_CHARS_AFTER_NEEDLE
+      // prefA=PreferenceForAAmount(COST_AFTER_NEEDLE);
+      // if (prefA!=0) return prefA>0;
+#endif
+      return false;
+    } else {
+      return a.valid;
+    }
+  }
+};
+
+static inline MatchScore matchFuzzy(const char* haystack, const char* needle) {
+  MatchScore score;
   size_t h_i=0; // haystack idx
   size_t n_i=0; // needle idx
   while (needle[n_i]!='\0') {
-    for (; std::tolower(haystack[h_i])!=std::tolower(needle[n_i]); h_i++) {
+    size_t cost=0;
+    for (; std::tolower(haystack[h_i])!=std::tolower(needle[n_i]); h_i++, cost++) {
+      // needle not completed, return invalid
       if (haystack[h_i]=='\0')
-        return false;
+        return MatchScore::INVALID();
     }
+
+    // contribute this run of non-matches toward pre-needle or within-needle cost
+    if (n_i==0) {
+      score.costs[MatchScore::COST_BEFORE_NEEDLE]=cost;
+    } else {
+      score.costs[MatchScore::COST_WITHIN_NEEDLE]+=cost;
+    }
+
     n_i+=1;
   }
-  return true;
+
+#ifdef MATCH_SCORE_PREFER_LOWER_CHARS_AFTER_NEEDLE
+  // count the remaining chars in haystack as a tie-breaker (we won't reach this if it's a failed
+  // match anyway)
+  for (; haystack[h_i]!='\0'; h_i++, score.costs[MatchScore::COST_AFTER_NEEDLE]++) {}
+#endif
+
+  score.valid=true;
+  return score;
 }
 
 void FurnaceGUI::drawPalette() {
@@ -69,43 +130,42 @@ void FurnaceGUI::drawPalette() {
 
   if (ImGui::InputTextWithHint("##CommandPaletteSearch",hint,&paletteQuery) || paletteFirstFrame) {
     paletteSearchResults.clear();
+    std::vector<MatchScore> matchScores;
+
+    auto Evaluate=[&](int i, const char* name) {
+      MatchScore score=matchFuzzy(name,paletteQuery.c_str());
+      if (score.valid) {
+        paletteSearchResults.push_back(i);
+        matchScores.push_back(score);
+      }
+    };
 
     switch (curPaletteType) {
     case CMDPAL_TYPE_MAIN:
       for (int i=0; i<GUI_ACTION_MAX; i++) {
-        if (guiActions[i].defaultBind==-1) continue;
-        if (matchFuzzy(guiActions[i].friendlyName,paletteQuery.c_str())) {
-          paletteSearchResults.push_back(i);
-        }
+        if (guiActions[i].defaultBind==-1) continue; // not a bind
+        Evaluate(i,guiActions[i].friendlyName);
       }
       break;
 
     case CMDPAL_TYPE_RECENT:
       for (int i=0; i<(int)recentFile.size(); i++) {
-        if (matchFuzzy(recentFile[i].c_str(),paletteQuery.c_str())) {
-          paletteSearchResults.push_back(i);
-        }
+        Evaluate(i,recentFile[i].c_str());
       }
       break;
 
     case CMDPAL_TYPE_INSTRUMENTS:
     case CMDPAL_TYPE_INSTRUMENT_CHANGE:
-      if (matchFuzzy(_("- None -"),paletteQuery.c_str())) {
-        paletteSearchResults.push_back(0);
-      }
+      Evaluate(0,_("- None -"));
       for (int i=0; i<e->song.insLen; i++) {
         String s=fmt::sprintf("%02X: %s", i, e->song.ins[i]->name.c_str());
-        if (matchFuzzy(s.c_str(),paletteQuery.c_str())) {
-          paletteSearchResults.push_back(i+1); // because over here ins=0 is 'None'
-        }
+        Evaluate(i+1,s.c_str()); // because over here ins=0 is 'None'
       }
       break;
 
     case CMDPAL_TYPE_SAMPLES:
       for (int i=0; i<e->song.sampleLen; i++) {
-        if (matchFuzzy(e->song.sample[i]->name.c_str(),paletteQuery.c_str())) {
-          paletteSearchResults.push_back(i);
-        }
+        Evaluate(i,e->song.sample[i]->name.c_str());
       }
       break;
 
@@ -113,9 +173,7 @@ void FurnaceGUI::drawPalette() {
       for (int i=0; availableSystems[i]; i++) {
         int ds=availableSystems[i];
         const char* sysname=getSystemName((DivSystem)ds);
-        if (matchFuzzy(sysname,paletteQuery.c_str())) {
-          paletteSearchResults.push_back(ds);
-        }
+        Evaluate(ds,sysname);
       }
       break;
 
@@ -124,6 +182,17 @@ void FurnaceGUI::drawPalette() {
       ImGui::CloseCurrentPopup();
       break;
     };
+
+    // sort indices by match quality
+    std::vector<int> sortingIndices(paletteSearchResults.size());
+    for (size_t i=0; i<sortingIndices.size(); ++i) sortingIndices[i]=(int)i;
+    std::sort(sortingIndices.begin(), sortingIndices.end(), [&](size_t a, size_t b) {
+      return MatchScore::IsFirstPreferable(matchScores[a], matchScores[b]);
+    });
+
+    // update paletteSearchResults from sorted indices (taking care not to stomp while we iterate
+    for (size_t i=0; i<sortingIndices.size(); ++i) sortingIndices[i]=(int)paletteSearchResults[sortingIndices[i]];
+    for (size_t i=0; i<sortingIndices.size(); ++i) paletteSearchResults[i]=sortingIndices[i];
   }
 
   ImVec2 avail=ImGui::GetContentRegionAvail();
