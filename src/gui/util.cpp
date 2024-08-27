@@ -112,3 +112,22 @@ String getKeyName(int key, bool emptyNone) {
   }
   return ret;
 }
+
+String getMultiKeysName(const int* keys, int keyCount, bool emptyNone) {
+  String ret;
+  for (int i=0; i<keyCount; i++) {
+    if (keys[i]==0) continue;
+    if (!ret.empty()) ret+=", ";
+    ret+=getKeyName(keys[i]);
+  }
+
+  if (ret.empty()) {
+    if (emptyNone) {
+      return "";
+    } else {
+      return _("<nothing>");
+    }
+  } else {
+    return ret;
+  }
+}

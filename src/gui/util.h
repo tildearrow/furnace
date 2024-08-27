@@ -31,3 +31,4 @@
 
 String getHomeDir();
 String getKeyName(int key, bool emptyNone=false);
+String getMultiKeysName(const int* keys, int keyCount, bool emptyNone=false);

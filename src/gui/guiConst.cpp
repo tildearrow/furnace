@@ -536,7 +536,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("EXPORT", _N("Export"), 0),
   D("UNDO", _N("Undo"), FURKMOD_CMD|SDLK_z),
 #ifdef __APPLE__
-  D("REDO", _N("Redo"), FURKMOD_CMD|FURKMOD_SHIFT|SDLK_z),
+  D("REDO", _N("Redo"), FURKMOD_CMD|FURKMOD_SHIFT|SDLK_z, FURKMOD_CMD|SDLK_y),
 #else
   D("REDO", _N("Redo"), FURKMOD_CMD|SDLK_y),
 #endif

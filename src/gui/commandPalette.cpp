@@ -73,7 +73,7 @@ void FurnaceGUI::drawPalette() {
     switch (curPaletteType) {
     case CMDPAL_TYPE_MAIN:
       for (int i=0; i<GUI_ACTION_MAX; i++) {
-        if (guiActions[i].defaultBind==-1) continue;
+        if (guiActions[i].isNotABind()) continue;
         if (matchFuzzy(guiActions[i].friendlyName,paletteQuery.c_str())) {
           paletteSearchResults.push_back(i);
         }
