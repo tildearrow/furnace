@@ -695,6 +695,8 @@ src/engine/fileOps/adlib/deps/unlzh.c
 src/engine/fileOps/adlib/deps/unlzss.c
 src/engine/fileOps/adlib/deps/unlzw.c
 
+src/engine/fileOps/adlib/at2.cpp
+
 src/engine/blip_buf.c
 src/engine/brrUtils.c
 src/engine/safeReader.cpp
