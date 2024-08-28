@@ -68,6 +68,13 @@ the following settings are available:
 - **loop**: enables loop. if disabled, the song won't loop.
 - **optimize size**: removes unnecessary commands to reduce size.
 
+## ROM
+
+depending on the system, this option may appear to allow you to export your song to a working ROM image or code that can be built into one. export options are explained in the system's accompanying documentation.
+
+currently, only one system can be exported this way:
+- [Atari 2600 (TIunA)](../7-systems/tia.md)
+
 ## text
 
 this option allows you to export your song as a text file.
