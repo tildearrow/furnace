@@ -503,12 +503,6 @@ void DivExportTiuna::run() {
     running=false;
     return;
   }
-  SafeWriter dbg;
-  dbg.init();
-  dbg.writeText(fmt::format("renderedCmds size={}\n",renderedCmds.size()));
-  for (const auto& i: confirmedMatches) {
-    dbg.writeText(fmt::format("pos={},end={},id={}\n",i.pos,i.endPos,i.id,i.size));
-  }
 
   // write commands
   int totalSize=0;
