@@ -3326,6 +3326,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             ImGui::BeginDisabled(ins->fm.opllPreset==16);
             if (ImGui::Checkbox("4-op",&fourOp)) { PARAMETER
               ins->fm.ops=fourOp?4:2;
+              ins->std.algMacro.vZoom=-1; //reset macro zoom
             }
             ImGui::EndDisabled();
           }
@@ -5468,7 +5469,21 @@ void FurnaceGUI::drawInsEdit() {
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DC),&ins->std.fmsMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DM),&ins->std.amsMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               } else {
-                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_ALG),&ins->std.algMacro,0,7,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+                if(ins->type == DIV_INS_OPL)
+                {
+                  if(ins->fm.ops == 4)
+                  {
+                    macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_ALG),&ins->std.algMacro,0,3,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+                  }
+                  else
+                  {
+                    macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_ALG),&ins->std.algMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER]));
+                  }
+                }
+                else
+                {
+                  macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_ALG),&ins->std.algMacro,0,7,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+                }
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_FB),&ins->std.fbMacro,0,7,96,uiColors[GUI_COLOR_MACRO_OTHER]));
                 if (ins->type!=DIV_INS_OPL && ins->type!=DIV_INS_OPL_DRUMS) {
                   if (ins->type==DIV_INS_OPZ) {
