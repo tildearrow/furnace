@@ -127,7 +127,6 @@ struct TiunaMatches {
 static void writeCmd(std::vector<TiunaBytes>& cmds, TiunaCmd& cmd, unsigned char ch, int& lastWait, int fromTick, int toTick) {
   while (fromTick<toTick) {
     int val=MIN(toTick-fromTick,256);
-    assert(val>0);
     if (lastWait!=val) {
       cmd.wait=val;
       lastWait=val;
