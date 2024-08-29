@@ -676,6 +676,11 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
             version = header.ffver;
 
+            songInfo.patt_len = 64;
+            songInfo.nm_tracks = 18;
+            songInfo.tempo = header.tempo;
+            songInfo.speed = header.speed;
+
             size_t posBegin = reader.tell();
 
             A2T_VARHEADER varheader;
