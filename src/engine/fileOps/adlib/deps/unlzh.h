@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-int LZH_decompress(char *source, char *dest, int source_size, int dest_size);
+int LZH_decompress(unsigned char *source, unsigned char *dest, int source_size, int dest_size);
 
 #ifdef __cplusplus
 } /* extern "C" */

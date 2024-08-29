@@ -33,7 +33,7 @@
 extern "C" {
 #endif
 
-int LZW_decompress(char *source, char *dest, int source_size, int destination_size);
+int LZW_decompress(unsigned char *source, unsigned char *dest, int source_size, int destination_size);
 
 #ifdef __cplusplus
 } /* extern "C" */

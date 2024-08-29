@@ -599,7 +599,7 @@ typedef struct _4op_data {
     uint32_t mode: 1, conn: 3, ch1: 4, ch2: 4, ins1: 8, ins2: 8;
 } t4OP_DATA;
 
-void a2t_depack(char *src, int srcsize, char *dst, int dstsize, int ffver)
+void a2t_depack(unsigned char *src, int srcsize, unsigned char *dst, int dstsize, int ffver)
 {
     switch (ffver) {
     case 1:
@@ -666,6 +666,8 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
         unsigned int len[22] = { 0 };
 
+        int patterns = 0;
+
         tSONGINFO songInfo;
         memset((void*)&songInfo, 0, sizeof(tSONGINFO));
 
@@ -674,7 +676,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             logI("a2t");
 
             A2T_HEADER header;
-            char* hacky = (char*)&header;
+            unsigned char* hacky = (unsigned char*)&header;
             for(int i = 0; i < (int)sizeof(A2T_HEADER); i++)
             {
                 hacky[i] = reader.readC();
@@ -691,10 +693,12 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             songInfo.tempo = header.tempo;
             songInfo.speed = header.speed;
 
+            patterns = header.npatt;
+
             size_t posBegin = reader.tell();
 
             A2T_VARHEADER varheader;
-            hacky = (char*)&varheader;
+            hacky = (unsigned char*)&varheader;
             for(int i = 0; i < (int)sizeof(A2T_VARHEADER); i++)
             {
                 hacky[i] = reader.readC();
@@ -804,7 +808,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             logI("a2m");
 
             A2M_HEADER header;
-            char* hacky = (char*)&header;
+            unsigned char* hacky = (unsigned char*)&header;
             for(int i = 0; i < (int)sizeof(A2M_HEADER); i++)
             {
                 hacky[i] = reader.readC();
@@ -819,6 +823,8 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             //s->ordersLen = songInfo.nm_tracks;
             songInfo.patt_len = 64;
             songInfo.nm_tracks = 18;
+
+            patterns = header.npatt;
 
             int lensize = 0;
             int maxblock = (version < 5 ? header.npatt / 16 : header.npatt / 8) + 1;
@@ -879,9 +885,9 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             {    // 1 - 8
                 //if (len[0] > reader.size()) return INT_MAX;
                 A2M_SONGDATA_V1_8 *data = (A2M_SONGDATA_V1_8 *)calloc(1, sizeof(*data));
-                char* temp = new char[len[0]];
+                unsigned char* temp = new unsigned char[len[0]];
                 reader.read((void*)temp, len[0]);
-                a2t_depack(temp, len[0], (char *)data, sizeof (*data), version);
+                a2t_depack(temp, len[0], (unsigned char *)data, sizeof (*data), version);
                 delete[] temp;
 
                 memcpy(songInfo.songname, data->songname + 1, 42);
@@ -954,17 +960,10 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             }
             else 
             {    // 9 - 14
-                if (len[0] > reader.size() - reader.tell())
-                {
-                    lastError = "incomplete songdata";
-                    delete[] file;
-                    return false;
-                }
-
                 A2M_SONGDATA_V9_14 *data = (A2M_SONGDATA_V9_14 *)calloc(1, sizeof(*data));
-                char* temp = new char[len[0]];
+                unsigned char* temp = new unsigned char[len[0]];
                 reader.read((void*)temp, len[0]);
-                a2t_depack(temp, len[0], (char *)data, sizeof (*data), version);
+                a2t_depack(temp, len[0], (unsigned char *)data, sizeof (*data), version);
                 delete[] temp;
 
                 memcpy(songInfo.songname, data->songname + 1, 42);
@@ -1098,6 +1097,268 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                 for(int i = 0; i < songInfo.nm_tracks; i++)
                 {
                     s->orders.ord[i][j] = songInfo.pattern_order[j];
+                }
+            }
+        }
+
+        if(!isA2t) //a2m, a2m_read_patterns
+        {
+            size_t posBegin = reader.tell();
+            int ssss = 1;
+
+            switch (version) 
+            {
+                case 1:
+                case 2:
+                case 3:
+                case 4: // [4][16][64][9][4]
+                {
+                    tPATTERN_DATA_V1234 *old = (tPATTERN_DATA_V1234 *)calloc(16, sizeof(*old));
+
+                    //memset(adsr_carrier, false, sizeof(adsr_carrier));
+
+                    for (int i = 0; i < 4; i++) 
+                    {
+                        if (!len[i+ssss]) continue;
+
+                        //if (len[i+ssss] > size) return INT_MAX;
+                        if (len[i+ssss] > reader.size() - reader.tell())
+                        {
+                            free(old);
+                            lastError = "incomplete songdata";
+                            delete[] file;
+                            return false;
+                        }
+
+                        unsigned char* temp = new unsigned char[len[i+ssss]];
+                        reader.read((void*)temp, len[i+ssss]);
+                        a2t_depack(temp, len[i+ssss], (unsigned char *)old, 16 * sizeof (*old), version);
+                        delete[] temp;
+
+                        //a2t_depack(src, len[i+ssss], (char *)old, 16 * sizeof (*old), version);
+
+                        for (int p = 0; p < 16; p++) 
+                        { // pattern
+                            if (i * 8 + p >= patterns)
+                                    break;
+                            for (int r = 0; r < 64; r++) // row
+                            for (int c = 0; c < 9; c++) 
+                            { // channel
+                                tADTRACK2_EVENT_V1234 *src = &old[p].row[r].ch[c].ev;
+                                //tADTRACK2_EVENT *dst = get_event_p(i * 16 + p, c, r);
+
+                                //convert_v1234_event(src, c);
+
+                                DivPattern* pat = s->pat[c].getPattern(i * 8 + p, true);
+                                uint8_t note = src->note;
+
+                                if(note == 255)
+                                {
+                                    pat->data[r][0]=101; //key off
+                                }
+                                else if(note <= 96 && note != 0)
+                                {
+                                    note += 1;
+
+                                    pat->data[r][0]=((note)%12);
+                                    pat->data[r][1]=(note)/12;
+
+                                    if(note % 12 == 0)
+                                    {
+                                        pat->data[r][0] = 12; //what the fuck?
+                                        pat->data[r][1]--;
+                                    }
+                                }
+                                
+                                if(src->instr_def > 0)
+                                {
+                                    pat->data[r][2] = src->instr_def - 1; //instrument
+                                }
+
+                                if(src->effect_def != 0 || (src->effect_def == 0 && src->effect != 0))
+                                {
+                                    pat->data[r][4] = src->effect_def;
+                                    pat->data[r][5] = src->effect;
+                                }
+
+                                //dst->note = src->note;
+                                //dst->instr_def = src->instr_def;
+                                //dst->eff[0].def = src->effect_def;
+                                //dst->eff[0].val = src->effect;
+                            }
+                        }
+
+                        //src += len[i+s];
+                        reader.seek(posBegin + len[i+ssss], SEEK_SET);
+                        //size -= len[i+s];
+                        //retval += len[i+s];
+                    }
+
+                    free(old);
+                    break;
+                }
+                case 5:
+                case 6:
+                case 7:
+                case 8: // [8][8][18][64][4]
+                {
+                    tPATTERN_DATA_V5678 *old = (tPATTERN_DATA_V5678 *)calloc(8, sizeof(*old));
+
+                    for (int i = 0; i < 8; i++) {
+                        if (!len[i+ssss]) continue;
+
+                        if (len[i+ssss] > reader.size() - reader.tell())
+                        {
+                            free(old);
+                            lastError = "incomplete songdata";
+                            delete[] file;
+                            return false;
+                        }
+
+                        unsigned char* temp = new unsigned char[len[i+ssss]];
+                        reader.read((void*)temp, len[i+ssss]);
+                        a2t_depack(temp, len[i+ssss], (unsigned char *)old, 8 * sizeof (*old), version);
+                        delete[] temp;
+                        //a2t_depack(src, len[i+ssss], (char *)old, 8 * sizeof (*old), version);
+
+                        for (int p = 0; p < 8; p++) { // pattern
+                            if (i * 8 + p >= patterns)
+                                break;
+                            for (int c = 0; c < 18; c++) // channel
+                            for (int r = 0; r < 64; r++) { // row
+                                tADTRACK2_EVENT_V1234 *src = &old[p].ch[c].row[r].ev;
+                                //tADTRACK2_EVENT *dst = get_event_p(i * 8 + p, c, r);
+
+                                //dst->note = src->note;
+                                //dst->instr_def = src->instr_def;
+                                //dst->eff[0].def = src->effect_def;
+                                //dst->eff[0].val = src->effect;
+
+                                DivPattern* pat = s->pat[c].getPattern(i * 8 + p, true);
+                                uint8_t note = src->note;
+
+                                if(note == 255)
+                                {
+                                    pat->data[r][0]=101; //key off
+                                }
+                                else if(note <= 96 && note != 0)
+                                {
+                                    note += 1;
+
+                                    pat->data[r][0]=((note)%12);
+                                    pat->data[r][1]=(note)/12;
+
+                                    if(note % 12 == 0)
+                                    {
+                                        pat->data[r][0] = 12; //what the fuck?
+                                        pat->data[r][1]--;
+                                    }
+                                }
+                                
+                                if(src->instr_def > 0)
+                                {
+                                    pat->data[r][2] = src->instr_def - 1; //instrument
+                                }
+
+                                if(src->effect_def != 0 || (src->effect_def == 0 && src->effect != 0))
+                                {
+                                    pat->data[r][4] = src->effect_def;
+                                    pat->data[r][5] = src->effect;
+                                }
+                            }
+                        }
+
+                        //src += len[i+s];
+                        reader.seek(posBegin + len[i+ssss], SEEK_SET);
+                        //size -= len[i+s];
+                        //retval += len[i+s];
+                    }
+
+                    free(old);
+                    break;
+                }
+                case 9:
+                case 10:
+                case 11:
+                case 12:
+                case 13:
+                case 14: // [16][8][20][256][6]
+                {
+                    tPATTERN_DATA *old = (tPATTERN_DATA *)calloc(8, sizeof(*old));
+
+                    // 16 groups of 8 patterns
+                    for (int i = 0; i < 16; i++) 
+                    {
+                        if (!len[i+ssss]) continue;
+                        //if (len[i+ssss] > size) return INT_MAX;
+                        if (len[i+ssss] > reader.size() - reader.tell())
+                        {
+                            free(old);
+                            lastError = "incomplete songdata";
+                            delete[] file;
+                            return false;
+                        }
+
+                        unsigned char* temp = new unsigned char[len[i+ssss]];
+                        reader.read((void*)temp, len[i+ssss]);
+                        a2t_depack(temp, len[i+ssss], (unsigned char *)old, 8 * sizeof (*old), version);
+                        delete[] temp;
+                        //a2t_depack(src, len[i+ssss], (char *)old, 8 * sizeof (*old), version);
+                        //src += len[i+ssss];
+                        //size -= len[i+ssss];
+                        reader.seek(posBegin + len[i+ssss], SEEK_SET);
+                        //retval += len[i+ssss];
+
+                        for (int p = 0; p < 8; p++) 
+                        { // pattern
+                            if (i * 8 + p >= patterns)
+                                    break;
+
+                            for (int c = 0; c < songInfo.nm_tracks; c++) // channel
+                            for (int r = 0; r < songInfo.patt_len; r++) { // row
+                                //tADTRACK2_EVENT *dst = get_event_p(i * 8 + p, c, r);
+                                tADTRACK2_EVENT *src = &old[p].ch[c].row[r].ev;
+                                //*dst = *src; // copy struct
+                                DivPattern* pat = s->pat[c].getPattern(i * 8 + p, true);
+                                uint8_t note = src->note;
+
+                                if(note == 255)
+                                {
+                                    pat->data[r][0]=101; //key off
+                                }
+                                else if(note <= 96 && note != 0)
+                                {
+                                    note += 1;
+
+                                    pat->data[r][0]=((note)%12);
+                                    pat->data[r][1]=(note)/12;
+
+                                    if(note % 12 == 0)
+                                    {
+                                        pat->data[r][0] = 12; //what the fuck?
+                                        pat->data[r][1]--;
+                                    }
+                                }
+                                
+                                if(src->instr_def > 0)
+                                {
+                                    pat->data[r][2] = src->instr_def - 1; //instrument
+                                }
+
+                                for(int effe = 0; effe < 2; effe++)
+                                {
+                                    if(src->eff[effe].def != 0 || (src->eff[effe].def == 0 && src->eff[effe].val != 0))
+                                    {
+                                        pat->data[r][4 + effe*2] = src->eff[effe].def;
+                                        pat->data[r][5 + effe*2] = src->eff[effe].val;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    free(old);
+                    break;
                 }
             }
         }

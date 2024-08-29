@@ -397,7 +397,7 @@ int unlzh(in, out)
 }
 #endif
 
-int LZH_decompress(char *source, char *dest, int source_size, int dest_size)
+int LZH_decompress(unsigned char *source, unsigned char *dest, int source_size, int dest_size)
 {
 	unsigned char *ptr;
 	int size_temp;

@@ -160,7 +160,7 @@ error_out:
     free(work_ptr);
 }
 
-int LZW_decompress(char *source, char *dest, int source_size, int destination_size)
+int LZW_decompress(unsigned char *source, unsigned char *dest, int source_size, int destination_size)
 {
     input_ptr = (unsigned char *)source;
     input_size = source_size;
