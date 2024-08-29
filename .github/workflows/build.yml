@@ -2,7 +2,7 @@ name: Build furnace
 
 on:
   push:
-    branches: [master, locale]
+    branches: [master, locale, adlib-import]
   pull_request:
     branches: master
 

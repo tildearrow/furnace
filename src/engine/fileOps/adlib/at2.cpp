@@ -599,28 +599,67 @@ typedef struct _4op_data {
     uint32_t mode: 1, conn: 3, ch1: 4, ch2: 4, ins1: 8, ins2: 8;
 } t4OP_DATA;
 
+void a2t_depack(char *src, int srcsize, char *dst, int dstsize, int ffver)
+{
+    switch (ffver) {
+    case 1:
+    case 5: // sixpack
+        sixdepak((unsigned short *)src, (unsigned char *)dst, srcsize, dstsize);
+        break;
+    case 2:
+    case 6: // lzw
+        LZW_decompress(src, dst, srcsize, dstsize);
+        break;
+    case 3:
+    case 7: // lzss
+        LZSS_decompress(src, dst, srcsize, dstsize);
+        break;
+    case 4:
+    case 8: // unpacked
+        if (dstsize <= srcsize)
+            memcpy(dst, src, srcsize);
+        break;
+    case 9:
+    case 10:
+    case 11: // apack (aPlib)
+        aP_depack(src, dst, srcsize, dstsize);
+        break;
+    case 12:
+    case 13:
+    case 14: // lzh
+        LZH_decompress(src, dst, srcsize, dstsize);
+        break;
+    }
+}
+
 bool DivEngine::loadAT2(unsigned char* file, size_t len) 
 {
     SafeReader reader=SafeReader(file,len);
     warnings="";
 
-    bool isA2t = false;
-
-    int version = 0;
-    int numPatterns = 0;
-
     try 
     {
+        bool isA2t = false;
+
         if(memcmp(file,DIV_A2T_MAGIC, 14) == 0)
         {
             isA2t = true;
         }
 
         DivSong ds;
+        ds.subsong.push_back(new DivSubSong);
+        DivSubSong* s = ds.subsong[0];
         ds.systemLen = 1;
         ds.system[0] = DIV_SYSTEM_OPL3;
 
-        if(isA2t)
+        int version = 0;
+
+        unsigned int len[22] = { 0 };
+
+        tSONGINFO songInfo;
+        memset((void*)&songInfo, 0, sizeof(tSONGINFO));
+
+        if(isA2t) //a2t
         {
             logI("a2t");
 
@@ -636,6 +675,113 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             logI("speed %d", header.speed);
 
             version = header.ffver;
+
+            size_t posBegin = reader.tell();
+
+            A2T_VARHEADER varheader;
+            hacky = (char*)&varheader;
+            for(int i = 0; i < sizeof(A2T_VARHEADER); i++)
+            {
+                hacky[i] = reader.readC();
+            }
+
+            switch (version)
+            {
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                    //if (sizeof(A2T_VARHEADER_V1234) > size)
+                        //return INT_MAX;
+                    for (int i = 0; i < 6; i++)
+                    {
+                        len[i] = UINT16LE(varheader.v1234.len[i]);
+                        //len[i] = UINT16LE(varheader->v1234.len[i]);
+                    }
+
+                    reader.seek(posBegin + sizeof(A2T_VARHEADER_V1234), SEEK_SET);
+                    
+                    break;
+                    //return sizeof(A2T_VARHEADER_V1234);
+                case 5:
+                case 6:
+                case 7:
+                case 8:
+                    //if (sizeof(A2T_VARHEADER_V5678) > size)
+                        //return INT_MAX;
+                    songInfo.common_flag = varheader.v5678.common_flag;
+                    for (int i = 0; i < 10; i++)
+                    {
+                        len[i] = UINT16LE(varheader.v5678.len[i]);
+                        //len[i] = UINT16LE(varheader->v5678.len[i]);
+                    }
+
+                    reader.seek(posBegin + sizeof(A2T_VARHEADER_V5678), SEEK_SET);
+                    //return sizeof(A2T_VARHEADER_V5678);
+                    break;
+                case 9:
+                    //if (sizeof(A2T_VARHEADER_V9) > size)
+                        //return INT_MAX;
+                    songInfo.common_flag = varheader.v9.common_flag;
+                    songInfo.patt_len = UINT16LE(varheader.v9.patt_len);
+                    songInfo.nm_tracks = varheader.v9.nm_tracks;
+                    songInfo.macro_speedup = UINT16LE(varheader.v9.macro_speedup);
+                    for (int i = 0; i < 20; i++)
+                    {
+                        len[i] = UINT32LE(varheader.v9.len[i]);
+                        //len[i] = UINT32LE(varheader->v9.len[i]);
+                    }
+
+                    reader.seek(posBegin + sizeof(A2T_VARHEADER_V9), SEEK_SET);
+                    //return sizeof(A2T_VARHEADER_V9);
+                    break;
+                case 10:
+                    //if (sizeof(A2T_VARHEADER_V10) > size)
+                        //return INT_MAX;
+                    songInfo.common_flag = varheader.v10.common_flag;
+                    songInfo.patt_len = UINT16LE(varheader.v10.patt_len);
+                    songInfo.nm_tracks = varheader.v10.nm_tracks;
+                    songInfo.macro_speedup = UINT16LE(varheader.v10.macro_speedup);
+                    songInfo.flag_4op = varheader.v10.flag_4op;
+                    for (int i = 0; i < 20; i++)
+                    {
+                        songInfo.lock_flags[i] = varheader.v10.lock_flags[i];
+                    }
+                    for (int i = 0; i < 20; i++)
+                    {
+                        len[i] = UINT32LE(varheader.v10.len[i]);
+                    }
+
+                    reader.seek(posBegin + sizeof(A2T_VARHEADER_V10), SEEK_SET);
+                    //return sizeof(A2T_VARHEADER_V10);
+                    break;
+                case 11:
+                case 12:
+                case 13:
+                case 14:
+                    //if (sizeof(A2T_VARHEADER_V11) > size)
+                        //return INT_MAX;
+                    songInfo.common_flag = varheader.v11.common_flag;
+                    songInfo.patt_len = UINT16LE(varheader.v11.patt_len);
+                    songInfo.nm_tracks = varheader.v11.nm_tracks;
+                    songInfo.macro_speedup = UINT16LE(varheader.v11.macro_speedup);
+                    songInfo.flag_4op = varheader.v11.flag_4op;
+                    for (int i = 0; i < 20; i++)
+                    {
+                        songInfo.lock_flags[i] = varheader.v10.lock_flags[i];
+                    }
+                    for (int i = 0; i < 21; i++)
+                    {
+                        len[i] = UINT32LE(varheader.v11.len[i]);
+                    }
+
+                    reader.seek(posBegin + sizeof(A2T_VARHEADER_V11), SEEK_SET);
+                    //return sizeof(A2T_VARHEADER_V11);
+                    break;
+            }
+
+            s->ordersLen = songInfo.nm_tracks;
+            s->patLen = songInfo.patt_len;
         }
 
         if(!isA2t) //a2m
@@ -654,18 +800,28 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             logI("id %s", header.id);
 
             version = header.ffver;
-            numPatterns = header.npatt;
+            
+            //s->ordersLen = songInfo.nm_tracks;
+            songInfo.patt_len = 64;
+            songInfo.nm_tracks = 18;
 
             int lensize = 0;
-            int maxblock = (version < 5 ? numPatterns / 16 : numPatterns / 8) + 1;
-            unsigned int len[21];
+            int maxblock = (version < 5 ? header.npatt / 16 : header.npatt / 8) + 1;
 
             if (version < 5) lensize = 5;         // 1,2,3,4 - uint16_t len[5];
             else if (version < 9) lensize = 9;    // 5,6,7,8 - uint16_t len[9];
             else lensize = 17;                  // 9,10,11 - uint32_t len[17];
 
+            size_t posBegin = reader.tell();
+
             if (version >= 1 && version <= 8) { // 1 - 8
                 //if (lensize * sizeof(uint16_t) > len + sizeof(A2M_HEADER)) return INT_MAX;
+                if (lensize * sizeof(uint16_t) > reader.size() - reader.tell())
+                {
+                    lastError = "incomplete songdata";
+                    delete[] file;
+                    return false;
+                }
 
                 // skip possible rubbish (MARIO.A2M)
                 for (int i = 0; (i < lensize) && (i <= maxblock); i++)
@@ -674,16 +830,208 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                     logI("len 16bit %d %d", i, len[i]);
                 }
 
+                reader.seek(posBegin + lensize * sizeof(uint16_t), SEEK_SET);
                 //return lensize * sizeof(uint16_t);
             } else if (version >= 9 && version <= 14) { // 9 - 14
                 //if (lensize * sizeof(uint32_t) > len + sizeof(A2M_HEADER)) return INT_MAX;
+                if (lensize * sizeof(uint32_t) > reader.size() - reader.tell())
+                {
+                    lastError = "incomplete songdata";
+                    delete[] file;
+                    return false;
+                }
 
                 for (int i = 0; i < lensize; i++)
                 {
                     len[i] = reader.readI(); //UINT32LE(src32[i]);
                     logI("len 32bit %d %d", i, len[i]);
                 }
+
+                reader.seek(posBegin + lensize * sizeof(uint32_t), SEEK_SET);
             }
+        }
+
+        if(!isA2t) //a2m, a2m_read_songdata
+        {
+            if (len[0] > reader.size() - reader.tell())
+            {
+                lastError = "incomplete songdata";
+                delete[] file;
+                return false;
+            }
+
+            if (version < 9) 
+            {    // 1 - 8
+                //if (len[0] > reader.size()) return INT_MAX;
+                A2M_SONGDATA_V1_8 *data = (A2M_SONGDATA_V1_8 *)calloc(1, sizeof(*data));
+                char* temp = new char[len[0]];
+                reader.read((void*)temp, len[0]);
+                a2t_depack(temp, len[0], (char *)data, sizeof (*data), version);
+                delete temp;
+
+                memcpy(songInfo.songname, data->songname + 1, 42);
+                memcpy(songInfo.composer, data->composer + 1, 42);
+
+                // Calculate the real number of used instruments
+                /*int count = 250;
+                while (count && is_data_empty((char *)&data->instr_data[count - 1], sizeof(tINSTR_DATA_V1_8)))
+                    count--;
+
+                instruments_allocate(count);
+
+                for (int i = 0; i < 250; i++)
+                    memcpy(songInfo.instr_names[i], data->instr_names[i] + 1, 32);
+
+                for (int i = 0; i < count; i++) 
+                {
+                    instrument_import_v1_8(i + 1, &data->instr_data[i]);
+                }*/
+
+                memcpy(songInfo.pattern_order, data->pattern_order, 128);
+
+                songInfo.tempo = data->tempo;
+                songInfo.speed = data->speed;
+
+                if (version > 4) { // 5 - 8
+                    songInfo.common_flag = data->common_flag;
+                }
+
+                free(data);
+            }
+            else 
+            {    // 9 - 14
+                if (len[0] > reader.size() - reader.tell())
+                {
+                    lastError = "incomplete songdata";
+                    delete[] file;
+                    return false;
+                }
+
+                A2M_SONGDATA_V9_14 *data = (A2M_SONGDATA_V9_14 *)calloc(1, sizeof(*data));
+                char* temp = new char[len[0]];
+                reader.read((void*)temp, len[0]);
+                a2t_depack(temp, len[0], (char *)data, sizeof (*data), version);
+                delete temp;
+
+                memcpy(songInfo.songname, data->songname + 1, 42);
+                memcpy(songInfo.composer, data->composer + 1, 42);
+
+                // Calculate the real number of used instruments
+                /*int count = 255;
+                while (count && is_data_empty((char *)&data->instr_data[count - 1], sizeof(tINSTR_DATA)))
+                    count--;
+
+                instruments_allocate(count);
+
+                for (int i = 0; i < 255; i++)
+                    memcpy(songInfo.instr_names[i], data->instr_names[i] + 1, 42);
+
+                for (int i = 0; i < count; i++) {
+                    instrument_import(i + 1, &data->instr_data[i]);
+
+                    // Instrument arpegio/vibrato references
+                    tINSTR_DATA_EXT *dst = get_instr(i + 1);
+                    assert(dst);
+                    dst->arpeggio = data->fmreg_table[i].arpeggio_table;
+                    dst->vibrato = data->fmreg_table[i].vibrato_table;
+                }
+
+                // Allocate fmreg macro tables
+                fmreg_table_allocate(count, data->fmreg_table);
+
+                // Allocate arpeggio/vibrato macro tables
+                arpvib_tables_allocate(255, data->arpvib_table);*/
+
+                memcpy(songInfo.pattern_order, data->pattern_order, 128);
+
+                songInfo.tempo = data->tempo;
+                songInfo.speed = data->speed;
+                songInfo.common_flag = data->common_flag;
+                songInfo.patt_len = UINT16LE(data->patt_len);
+                songInfo.nm_tracks = data->nm_tracks;
+                songInfo.macro_speedup = UINT16LE(data->macro_speedup);
+
+                // v10
+                songInfo.flag_4op = data->flag_4op;
+                memcpy(songInfo.lock_flags, data->lock_flags, sizeof(data->lock_flags));
+
+                // v11
+                // NOTE: not used anywhere
+                //memcpy(songinfo->pattern_names, data->pattern_names, 128 * 43);
+
+                //disabled_fmregs_import(count, (bool (*)[28])data->dis_fmreg_col);
+
+                // v12-13
+                // NOTE: not used anywhere
+                //songinfo->ins_4op_flags.num_4op = data->ins_4op_flags.num_4op;
+                //memcpy(songinfo->ins_4op_flags.idx_4op, data->ins_4op_flags.idx_4op, 128);
+                //memcpy(songinfo->reserved_data, data->reserved_data, 1024);
+
+                // v14
+                // NOTE: not used anywhere
+                //songinfo->bpm_data.rows_per_beat = data->bpm_data.rows_per_beat;
+                //songinfo->bpm_data.tempo_finetune = INT16LE(data->bpm_data.tempo_finetune);
+
+                free(data);
+            }
+
+            s->hz = songInfo.tempo;
+            s->speeds.val[0] = songInfo.speed;
+            s->patLen = songInfo.patt_len;
+            
+            logI("tempo %d", songInfo.tempo);
+            logI("speed %d", songInfo.speed);
+            logI("pat length %d", songInfo.patt_len);
+            logI("nm tracks %d", songInfo.nm_tracks);
+
+            s->name = songInfo.songname;
+            ds.name = songInfo.songname;
+            ds.composer = songInfo.composer;
+
+            s->ordersLen = 128;
+            
+            for(int i = 0; i < 128; i++)
+            {
+                if(songInfo.pattern_order[i] > 0x7f)
+                {
+                    s->ordersLen = i;
+                    break;
+                }
+            }
+
+            for(int j = 0; j < s->ordersLen; j++)
+            {
+                for(int i = 0; i < songInfo.nm_tracks; i++)
+                {
+                    s->orders.ord[i][j] = songInfo.pattern_order[j];
+                }
+            }
+        }
+
+        //ds.version=DIV_VERSION_FTM;
+        ds.insLen = ds.ins.size();
+        ds.sampleLen = ds.sample.size();
+        ds.waveLen = ds.wave.size();
+
+        ds.systemName = _("OPL3");
+
+        if (active) quitDispatch();
+        BUSY_BEGIN_SOFT;
+        saveLock.lock();
+        song.unload();
+        song=ds;
+        changeSong(0);
+        recalcChans();
+        saveLock.unlock();
+        BUSY_END;
+
+        if (active) 
+        {
+            initDispatch();
+            BUSY_BEGIN;
+            renderSamples();
+            reset();
+            BUSY_END;
         }
     }
     catch (EndOfFileException& e) 
