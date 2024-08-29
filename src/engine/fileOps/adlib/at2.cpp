@@ -632,6 +632,16 @@ void a2t_depack(char *src, int srcsize, char *dst, int dstsize, int ffver)
     }
 }
 
+bool is_data_empty(char *data, unsigned int size)
+{
+    while (size--) {
+        if (*(char *)data++)
+            return false;
+    }
+
+    return true;
+}
+
 bool DivEngine::loadAT2(unsigned char* file, size_t len) 
 {
     SafeReader reader=SafeReader(file,len);
@@ -878,19 +888,58 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                 memcpy(songInfo.composer, data->composer + 1, 42);
 
                 // Calculate the real number of used instruments
-                /*int count = 250;
+                int count = 250;
                 while (count && is_data_empty((char *)&data->instr_data[count - 1], sizeof(tINSTR_DATA_V1_8)))
                     count--;
 
-                instruments_allocate(count);
+                //instruments_allocate(count);
+                ds.ins.reserve(count);
 
                 for (int i = 0; i < 250; i++)
-                    memcpy(songInfo.instr_names[i], data->instr_names[i] + 1, 32);
-
-                for (int i = 0; i < count; i++) 
                 {
-                    instrument_import_v1_8(i + 1, &data->instr_data[i]);
-                }*/
+                    memcpy(songInfo.instr_names[i], data->instr_names[i] + 1, 32);
+                }
+
+                for (int i = 0; i < count; i++) //instrument import
+                {
+                    ds.ins.push_back(new DivInstrument());
+                    //instrument_import_v1_8(i + 1, &data->instr_data[i]);
+                    tINSTR_DATA_V1_8 *instr_s = &data->instr_data[i];
+                    DivInstrument* ins = ds.ins[i];
+
+                    ins->name = songInfo.instr_names[i];
+                    ins->type = DIV_INS_OPL;
+
+                    ins->fm.op[0].mult = instr_s->fm.multipM;
+                    ins->fm.op[0].ksr = instr_s->fm.ksrM;
+                    ins->fm.op[0].sus = instr_s->fm.sustM;
+                    ins->fm.op[0].vib = instr_s->fm.vibrM;
+                    ins->fm.op[0].am = instr_s->fm.tremM;
+                    ins->fm.op[0].tl = instr_s->fm.volM;
+                    ins->fm.op[0].ksl = instr_s->fm.kslM;
+                    ins->fm.op[0].ar = instr_s->fm.attckM;
+                    ins->fm.op[0].dr = instr_s->fm.decM;
+                    ins->fm.op[0].sl = instr_s->fm.sustM;
+                    ins->fm.op[0].rr = instr_s->fm.relM;
+                    ins->fm.op[0].ws = instr_s->fm.wformM;
+
+                    ins->fm.op[1].mult = instr_s->fm.multipC;
+                    ins->fm.op[1].ksr = instr_s->fm.ksrC;
+                    ins->fm.op[1].sus = instr_s->fm.sustC;
+                    ins->fm.op[1].vib = instr_s->fm.vibrC;
+                    ins->fm.op[1].am = instr_s->fm.tremC;
+                    ins->fm.op[1].tl = instr_s->fm.volC;
+                    ins->fm.op[1].ksl = instr_s->fm.kslC;
+                    ins->fm.op[1].ar = instr_s->fm.attckC;
+                    ins->fm.op[1].dr = instr_s->fm.decC;
+                    ins->fm.op[1].sl = instr_s->fm.sustC;
+                    ins->fm.op[1].rr = instr_s->fm.relC;
+                    ins->fm.op[1].ws = instr_s->fm.wformC;
+
+                    ins->fm.fb = instr_s->fm.feedb;
+                    ins->fm.alg = instr_s->fm.connect;
+                    //todo: panning, finetune
+                }
 
                 memcpy(songInfo.pattern_order, data->pattern_order, 128);
 
@@ -922,30 +971,70 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                 memcpy(songInfo.composer, data->composer + 1, 42);
 
                 // Calculate the real number of used instruments
-                /*int count = 255;
+                int count = 255;
                 while (count && is_data_empty((char *)&data->instr_data[count - 1], sizeof(tINSTR_DATA)))
                     count--;
 
-                instruments_allocate(count);
+                ds.ins.reserve(count);
 
                 for (int i = 0; i < 255; i++)
-                    memcpy(songInfo.instr_names[i], data->instr_names[i] + 1, 42);
+                {
+                    memcpy(songInfo.instr_names[i], data->instr_names[i] + 1, 32);
+                }
 
-                for (int i = 0; i < count; i++) {
-                    instrument_import(i + 1, &data->instr_data[i]);
+                for (int i = 0; i < count; i++) 
+                {
+                    //instrument_import(i + 1, &data->instr_data[i]);
+                    ds.ins.push_back(new DivInstrument());
+                    //instrument_import_v1_8(i + 1, &data->instr_data[i]);
+                    tINSTR_DATA* instr_s = &data->instr_data[i];
+                    DivInstrument* ins = ds.ins[i];
 
                     // Instrument arpegio/vibrato references
-                    tINSTR_DATA_EXT *dst = get_instr(i + 1);
-                    assert(dst);
-                    dst->arpeggio = data->fmreg_table[i].arpeggio_table;
-                    dst->vibrato = data->fmreg_table[i].vibrato_table;
+                    //tINSTR_DATA_EXT *dst = get_instr(i + 1, data->instr_data);
+                    //assert(dst);
+                    //dst->arpeggio = data->fmreg_table[i].arpeggio_table;
+                    //dst->vibrato = data->fmreg_table[i].vibrato_table;
+
+                    ins->name = songInfo.instr_names[i];
+                    ins->type = DIV_INS_OPL;
+
+                    ins->fm.op[0].mult = instr_s->fm.multipM;
+                    ins->fm.op[0].ksr = instr_s->fm.ksrM;
+                    ins->fm.op[0].sus = instr_s->fm.sustM;
+                    ins->fm.op[0].vib = instr_s->fm.vibrM;
+                    ins->fm.op[0].am = instr_s->fm.tremM;
+                    ins->fm.op[0].tl = instr_s->fm.volM;
+                    ins->fm.op[0].ksl = instr_s->fm.kslM;
+                    ins->fm.op[0].ar = instr_s->fm.attckM;
+                    ins->fm.op[0].dr = instr_s->fm.decM;
+                    ins->fm.op[0].sl = instr_s->fm.sustM;
+                    ins->fm.op[0].rr = instr_s->fm.relM;
+                    ins->fm.op[0].ws = instr_s->fm.wformM;
+
+                    ins->fm.op[1].mult = instr_s->fm.multipC;
+                    ins->fm.op[1].ksr = instr_s->fm.ksrC;
+                    ins->fm.op[1].sus = instr_s->fm.sustC;
+                    ins->fm.op[1].vib = instr_s->fm.vibrC;
+                    ins->fm.op[1].am = instr_s->fm.tremC;
+                    ins->fm.op[1].tl = instr_s->fm.volC;
+                    ins->fm.op[1].ksl = instr_s->fm.kslC;
+                    ins->fm.op[1].ar = instr_s->fm.attckC;
+                    ins->fm.op[1].dr = instr_s->fm.decC;
+                    ins->fm.op[1].sl = instr_s->fm.sustC;
+                    ins->fm.op[1].rr = instr_s->fm.relC;
+                    ins->fm.op[1].ws = instr_s->fm.wformC;
+
+                    ins->fm.fb = instr_s->fm.feedb;
+                    ins->fm.alg = instr_s->fm.connect;
+                    //todo: panning, finetune, percvoice
                 }
 
                 // Allocate fmreg macro tables
-                fmreg_table_allocate(count, data->fmreg_table);
+                //fmreg_table_allocate(count, data->fmreg_table);
 
                 // Allocate arpeggio/vibrato macro tables
-                arpvib_tables_allocate(255, data->arpvib_table);*/
+                //arpvib_tables_allocate(255, data->arpvib_table);
 
                 memcpy(songInfo.pattern_order, data->pattern_order, 128);
 
