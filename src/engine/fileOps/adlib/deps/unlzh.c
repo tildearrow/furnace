@@ -108,8 +108,7 @@ void write_buf(uch *ptr, ush size)
 	output_buffer_idx += size;
 }
 
-static void fillbuf(n)  /* Shift bitbuf n bits left, read n bits */
-	int n;
+static void fillbuf(int n)  /* Shift bitbuf n bits left, read n bits */
 {
 	bitbuf <<= n;
 	while (n > bitcount) {
@@ -121,8 +120,7 @@ static void fillbuf(n)  /* Shift bitbuf n bits left, read n bits */
 	bitbuf |= subbitbuf >> (bitcount -= n);
 }
 
-static unsigned getbits(n)
-	int n;
+static unsigned getbits(int n)
 {
 	unsigned x;
 
@@ -140,11 +138,7 @@ static void init_getbits()
 		maketbl.c -- make table for decoding
 ***********************************************************/
 
-static void make_table(nchar, bitlen, tablebits, table)
-	int nchar;
-	uch bitlen[];
-	int tablebits;
-	ush table[];
+static void make_table(int nchar, uch bitlen[], int tablebits, ush table[])
 {
 	ush count[17], weight[17], start[18], *p;
 	unsigned i, k, len, ch, jutbits, avail, nextcode, mask;
@@ -206,10 +200,7 @@ static void make_table(nchar, bitlen, tablebits, table)
 		huf.c -- static Huffman
 ***********************************************************/
 
-static void read_pt_len(nn, nbit, i_special)
-	int nn;
-	int nbit;
-	int i_special;
+static void read_pt_len(int nn, int nbit, int i_special)
 {
 	int i, c, n;
 	unsigned mask;
@@ -342,9 +333,7 @@ static void decode_start()
 
 /* Decode the input and return the number of decoded bytes put in buffer
  */
-static unsigned decode(count, buffer)
-	unsigned count;
-	uch buffer[];
+static unsigned decode(unsigned count, uch buffer[])
 	/* The calling function must keep the number of
 	   bytes to be processed.  This function decodes
 	   either 'count' bytes or 'DIC_SIZE' bytes, whichever

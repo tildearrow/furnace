@@ -665,7 +665,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
             A2T_HEADER header;
             char* hacky = (char*)&header;
-            for(int i = 0; i < sizeof(A2T_HEADER); i++)
+            for(int i = 0; i < (int)sizeof(A2T_HEADER); i++)
             {
                 hacky[i] = reader.readC();
             }
@@ -685,7 +685,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
             A2T_VARHEADER varheader;
             hacky = (char*)&varheader;
-            for(int i = 0; i < sizeof(A2T_VARHEADER); i++)
+            for(int i = 0; i < (int)sizeof(A2T_VARHEADER); i++)
             {
                 hacky[i] = reader.readC();
             }
@@ -795,7 +795,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
             A2M_HEADER header;
             char* hacky = (char*)&header;
-            for(int i = 0; i < sizeof(A2M_HEADER); i++)
+            for(int i = 0; i < (int)sizeof(A2M_HEADER); i++)
             {
                 hacky[i] = reader.readC();
             }
@@ -872,7 +872,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                 char* temp = new char[len[0]];
                 reader.read((void*)temp, len[0]);
                 a2t_depack(temp, len[0], (char *)data, sizeof (*data), version);
-                delete temp;
+                delete[] temp;
 
                 memcpy(songInfo.songname, data->songname + 1, 42);
                 memcpy(songInfo.composer, data->composer + 1, 42);
@@ -916,7 +916,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                 char* temp = new char[len[0]];
                 reader.read((void*)temp, len[0]);
                 a2t_depack(temp, len[0], (char *)data, sizeof (*data), version);
-                delete temp;
+                delete[] temp;
 
                 memcpy(songInfo.songname, data->songname + 1, 42);
                 memcpy(songInfo.composer, data->composer + 1, 42);
