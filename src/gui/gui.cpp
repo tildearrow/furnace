@@ -5905,7 +5905,7 @@ bool FurnaceGUI::loop() {
         ImGui::Text(_("Channel %d of %d"),curFile+1,totalFiles);
       }
 
-      ImGui::ProgressBar(curProgress,ImVec2(320.0f*dpiScale,0),fmt::sprintf("%.2f%%",curProgress*100.0f).c_str());
+      ImGui::ProgressBar(curProgress,ImVec2(600.0f*dpiScale,0),fmt::sprintf("%.2f%%",curProgress*100.0f).c_str());
 
       if (ImGui::Button(_("Abort"))) {
         if (e->haltAudioFile()) {
