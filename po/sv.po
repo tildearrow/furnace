@@ -20,12 +20,12 @@ msgstr "för tidigt slut på filen"
 #: src/engine/fileOps/s3m.cpp:320
 #, c-format
 msgid "Channel %d"
-msgstr ""
+msgstr "Kanal %d"
 
 #: src/engine/fileOps/s3m.cpp:336
 #, c-format
 msgid "FM %d"
-msgstr ""
+msgstr "FM %d"
 
 #: src/engine/sysDef.cpp:428 src/engine/sysDef.cpp:442
 msgid "20xx: Set channel mode (bit 0: square; bit 1: noise; bit 2: envelope)"
@@ -253,7 +253,7 @@ msgstr "5Fxx: Ange decay 2 för operator 4 (0 till 1F)"
 
 #: src/engine/sysDef.cpp:507 src/engine/sysDef.cpp:518
 msgid "60xx: Set operator mask (bits 0-3)"
-msgstr ""
+msgstr "60xx: Ställ in operatörsmask (bits 0-3)"
 
 #: src/engine/sysDef.cpp:512
 msgid "10xx: Set noise frequency (xx: value; 0 disables noise)"
@@ -1799,7 +1799,7 @@ msgstr "15xx: Ställ in modulatortabellen på vågform"
 
 #: src/engine/sysDef.cpp:1059
 msgid "16xy: Automatic modulation speed (x: numerator; y: denominator)"
-msgstr ""
+msgstr "16xy: Automatisk moduleringshastighet (x: täljare; y: nämnare)"
 
 #: src/engine/sysDef.cpp:1064
 msgid "MMC5"
@@ -3672,15 +3672,15 @@ msgstr "Cxxx: Ställ in tickfrekvens (hz)"
 
 #: src/engine/engine.cpp:102
 msgid "D3xx: Volume portamento"
-msgstr ""
+msgstr "D3xx: Portamentovolym"
 
 #: src/engine/engine.cpp:104
 msgid "D4xx: Volume portamento (fast)"
-msgstr ""
+msgstr "D4xx: Portamentovolym (snabb)"
 
 #: src/engine/engine.cpp:106
 msgid "DCxx: Delayed mute"
-msgstr ""
+msgstr "DCxx: Fördröjd tystnad"
 
 #: src/engine/engine.cpp:108
 msgid "E0xx: Set arp speed"
@@ -3748,11 +3748,11 @@ msgstr "F0xx: Ange tickhastighet (bpm)"
 
 #: src/engine/engine.cpp:140
 msgid "F1xx: Single tick pitch up"
-msgstr ""
+msgstr "F1xx: Enkel ticktonhöjd upp"
 
 #: src/engine/engine.cpp:142
 msgid "F2xx: Single tick pitch down"
-msgstr ""
+msgstr "F2xx: Enkel ticktonhöjd ner"
 
 #: src/engine/engine.cpp:144
 msgid "F3xx: Fine volume slide up"
@@ -3776,11 +3776,11 @@ msgstr "F7xx: Starta om makro (se manualen)"
 
 #: src/engine/engine.cpp:154
 msgid "F8xx: Single tick volume up"
-msgstr ""
+msgstr "F8xx: Enkel tickvolym upp"
 
 #: src/engine/engine.cpp:156
 msgid "F9xx: Single tick volume down"
-msgstr ""
+msgstr "F9xx: Enkel tickvolym ned"
 
 #: src/engine/engine.cpp:158
 msgid "FAxx: Fast volume slide (0y: down; x0: up)"
@@ -4320,15 +4320,15 @@ msgstr "spara råsample..."
 
 #: src/gui/dataList.cpp:447
 msgid "save all instruments..."
-msgstr ""
+msgstr "spara alla instrument..."
 
 #: src/gui/dataList.cpp:450
 msgid "save all wavetables..."
-msgstr ""
+msgstr "spara alla wavetables..."
 
 #: src/gui/dataList.cpp:453
 msgid "save all samples..."
-msgstr ""
+msgstr "spara alla samples..."
 
 #: src/gui/dataList.cpp:457 src/gui/insEdit.cpp:5365
 msgid "save as .dmp..."
@@ -4336,7 +4336,7 @@ msgstr "spara som .dmp..."
 
 #: src/gui/dataList.cpp:461 src/gui/dataList.cpp:769 src/gui/dataList.cpp:915
 msgid "save all..."
-msgstr ""
+msgstr "spara alla..."
 
 #: src/gui/dataList.cpp:474 src/gui/dataList.cpp:782 src/gui/dataList.cpp:927
 msgid "Toggle folders/standard view"
@@ -4465,11 +4465,11 @@ msgstr "Inga"
 
 #: src/gui/exportOptions.cpp:90
 msgid "Shown in pattern"
-msgstr ""
+msgstr "Visas i mönster"
 
 #: src/gui/exportOptions.cpp:96
 msgid "Shown in oscilloscope"
-msgstr ""
+msgstr "Visas i oscilloskop"
 
 #: src/gui/exportOptions.cpp:122 src/gui/exportOptions.cpp:226
 #: src/gui/exportOptions.cpp:237 src/gui/exportOptions.cpp:357
@@ -4607,7 +4607,7 @@ msgstr "maxstorlek i andra banker"
 
 #: src/gui/exportOptions.cpp:303
 msgid "chip to export:"
-msgstr ""
+msgstr "chip att exportera:"
 
 #: src/gui/exportOptions.cpp:327
 msgid "Tick Rate (Hz)"
@@ -4619,11 +4619,11 @@ msgstr "optimera storlek"
 
 #: src/gui/exportOptions.cpp:346
 msgid "select a target from the menu at the top of this dialog."
-msgstr ""
+msgstr "välj ett mål från menyn högst upp i denna dialogruta."
 
 #: src/gui/exportOptions.cpp:349
 msgid "this export method doesn't offer any options."
-msgstr ""
+msgstr "denna exportmetod erbjuder inga alternativ."
 
 #: src/gui/exportOptions.cpp:370
 msgid "this option exports the song to a text file.\n"
@@ -5475,7 +5475,7 @@ msgstr "Underlåtar"
 
 #: src/gui/editControls.cpp:536
 msgid "Comments"
-msgstr ""
+msgstr "Kommentarer"
 
 #: src/gui/editControls.cpp:545
 msgid "Channels here..."
@@ -6656,7 +6656,7 @@ msgstr "summa: %d"
 
 #: src/gui/sysConf.cpp:2089
 msgid "Disable Gaussian interpolation"
-msgstr ""
+msgstr "Inaktivera Gaussisk interpolation"
 
 #: src/gui/sysConf.cpp:2146 src/gui/insEdit.cpp:50 src/gui/insEdit.cpp:63
 #: src/gui/insEdit.cpp:75
@@ -12378,7 +12378,7 @@ msgstr "Wavetable: växla mappar/standardvy"
 
 #: src/gui/guiConst.cpp:725
 msgid "Save all wavetables"
-msgstr ""
+msgstr "Spara alla wavetables"
 
 #: src/gui/guiConst.cpp:728
 msgid "---Sample list"
@@ -13639,15 +13639,15 @@ msgstr "för många instrument!"
 
 #: src/gui/doAction.cpp:794
 msgid "this song doesn't have any instruments."
-msgstr ""
+msgstr "denna låt har inga instrument."
 
 #: src/gui/doAction.cpp:921
 msgid "this song doesn't have any wavetables."
-msgstr ""
+msgstr "denna låt har inga wavetables."
 
 #: src/gui/doAction.cpp:1082
 msgid "this song doesn't have any samples."
-msgstr ""
+msgstr "denna låt har inga samples."
 
 #: src/gui/doAction.cpp:1153
 msgid "couldn't paste! make sure your sample is 8 or 16-bit."
@@ -13715,7 +13715,7 @@ msgstr "vols"
 
 #: src/gui/csPlayer.cpp:164
 msgid "volst"
-msgstr ""
+msgstr "volst"
 
 #: src/gui/csPlayer.cpp:166
 msgid "vib"
@@ -13933,7 +13933,7 @@ msgstr "binärfil"
 
 #: src/gui/gui.cpp:2049 src/gui/gui.cpp:2055
 msgid "Export ROM"
-msgstr ""
+msgstr "Exportera ROM"
 
 #: src/gui/gui.cpp:2066 src/gui/gui.cpp:2075 src/gui/gui.cpp:2084
 msgid "Select Font"
@@ -17032,31 +17032,31 @@ msgstr "Vågmix"
 
 #: src/gui/insEdit.cpp:7568
 msgid "Timer Macros"
-msgstr ""
+msgstr "Timermakron"
 
 #: src/gui/insEdit.cpp:7570
 msgid "warning: timer effects are not supported by VGM export!"
-msgstr ""
+msgstr "varning: timereffekter stöds inte av VGM-export!"
 
 #: src/gui/insEdit.cpp:7571
 msgid "Timer FX"
-msgstr ""
+msgstr "Timer FX"
 
 #: src/gui/insEdit.cpp:7572
 msgid "TFX Offset"
-msgstr ""
+msgstr "TFX-offset"
 
 #: src/gui/insEdit.cpp:7573
 msgid "Timer Num"
-msgstr ""
+msgstr "Timertäljare"
 
 #: src/gui/insEdit.cpp:7574
 msgid "Timer Den"
-msgstr ""
+msgstr "Timernämnare"
 
 #: src/gui/insEdit.cpp:7575
 msgid "PWM Boundary"
-msgstr ""
+msgstr "PWM-gräns"
 
 #: src/gui/insEdit.cpp:7588
 msgid "Octave offset"
