@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <ctype.h>
 #include "../ta-log.h"
+#include "util.h"
 
 struct MatchScore {
   size_t charsBeforeNeedle=0;
@@ -249,76 +250,93 @@ void FurnaceGUI::drawPalette() {
   avail.y-=ImGui::GetFrameHeightWithSpacing();
 
   if (ImGui::BeginChild("CommandPaletteList",avail,false,0)) {
-    bool navigated=false;
-    if (ImGui::IsKeyPressed(ImGuiKey_UpArrow) && curPaletteChoice>0) {
-      curPaletteChoice-=1;
-      navigated=true;
-    }
-    if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
-      curPaletteChoice+=1;
-      navigated=true;
-    }
+      bool navigated=false;
+      if (ImGui::IsKeyPressed(ImGuiKey_UpArrow) && curPaletteChoice>0) {
+        curPaletteChoice-=1;
+        navigated=true;
+      }
+      if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
+        curPaletteChoice+=1;
+        navigated=true;
+      }
 
-    if (paletteSearchResults.size()>0 && curPaletteChoice<0) {
-      curPaletteChoice=0;
-      navigated=true;
-    }
-    if (curPaletteChoice>=(int)paletteSearchResults.size()) {
-      curPaletteChoice=paletteSearchResults.size()-1;
-      navigated=true;
-    }
+      if (paletteSearchResults.size()>0 && curPaletteChoice<0) {
+        curPaletteChoice=0;
+        navigated=true;
+      }
+      if (curPaletteChoice>=(int)paletteSearchResults.size()) {
+        curPaletteChoice=paletteSearchResults.size()-1;
+        navigated=true;
+      }
 
-    for (int i=0; i<(int)paletteSearchResults.size(); i++) {
-      bool current=(i==curPaletteChoice);
-      int id=paletteSearchResults[i].id;
+    int columnCount=curPaletteType==CMDPAL_TYPE_MAIN ? 2 : 1;
+    if (ImGui::BeginTable("##commandPaletteTable",columnCount,ImGuiTableFlags_SizingStretchProp)) {
+      // ImGui::TableSetupColumn("##action",ImGuiTableColumnFlags_WidthStretch);
+      // ImGui::TableSetupColumn("##shortcut");
+      for (int i=0; i<(int)paletteSearchResults.size(); i++) {
+        bool current=(i==curPaletteChoice);
+        int id=paletteSearchResults[i].id;
 
-      String s="???";
-      switch (curPaletteType) {
-      case CMDPAL_TYPE_MAIN:
-        s=guiActions[id].friendlyName;
-        break;
-      case CMDPAL_TYPE_RECENT:
-        s=recentFile[id].c_str();
-        break;
-      case CMDPAL_TYPE_INSTRUMENTS:
-      case CMDPAL_TYPE_INSTRUMENT_CHANGE:
-        if (id==0) {
-          s=_("- None -");
-        } else {
-          s=fmt::sprintf("%02X: %s", id-1, e->song.ins[id-1]->name.c_str());
+        String s="???";
+        switch (curPaletteType) {
+        case CMDPAL_TYPE_MAIN:
+          s=guiActions[id].friendlyName;
+          break;
+        case CMDPAL_TYPE_RECENT:
+          s=recentFile[id].c_str();
+          break;
+        case CMDPAL_TYPE_INSTRUMENTS:
+        case CMDPAL_TYPE_INSTRUMENT_CHANGE:
+          if (id==0) {
+            s=_("- None -");
+          } else {
+            s=fmt::sprintf("%02X: %s", id-1, e->song.ins[id-1]->name.c_str());
+          }
+          break;
+        case CMDPAL_TYPE_SAMPLES:
+          s=e->song.sample[id]->name.c_str();
+          break;
+        case CMDPAL_TYPE_ADD_CHIP:
+          s=getSystemName((DivSystem)id);
+          break;
+        default:
+          logE(_("invalid command palette type"));
+          break;
+        };
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+
+        ImGui::PushID(s.c_str());
+        bool selectable=ImGui::Selectable("##paletteSearchItem",current,ImGuiSelectableFlags_SpanAllColumns|ImGuiSelectableFlags_AllowOverlap);
+        const char* str=s.c_str();
+        size_t chCursor=0;
+        const std::vector<int>& highlights=paletteSearchResults[i].highlightChars;
+        for (size_t ch=0; ch<highlights.size(); ch++) {
+          ImGui::SameLine(0.0f,0.0f);
+          ImGui::Text("%.*s", (int)(highlights[ch]-chCursor), str+chCursor);
+          ImGui::SameLine(0.0f,0.0f);
+          ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY], "%.1s", str+highlights[ch]);
+          chCursor=highlights[ch]+1;
         }
-        break;
-      case CMDPAL_TYPE_SAMPLES:
-        s=e->song.sample[id]->name.c_str();
-        break;
-      case CMDPAL_TYPE_ADD_CHIP:
-        s=getSystemName((DivSystem)id);
-        break;
-      default:
-        logE(_("invalid command palette type"));
-        break;
-      };
+        ImGui::SameLine(0.0f,0.0f);
+        ImGui::Text("%.*s", (int)(s.length()-chCursor), str+chCursor);
 
-      ImGui::PushID(s.c_str());
-      bool selectable=ImGui::Selectable("##paletteSearchItem",current,ImGuiSelectableFlags_SpanAllColumns|ImGuiSelectableFlags_AllowOverlap);
-      const char* str=s.c_str();
-      size_t chCursor=0;
-      const std::vector<int>& highlights=paletteSearchResults[i].highlightChars;
-      for (size_t ch=0; ch<highlights.size(); ch++) {
-        ImGui::SameLine(0.0f,0.0f);
-        ImGui::Text("%.*s", (int)(highlights[ch]-chCursor), str+chCursor);
-        ImGui::SameLine(0.0f,0.0f);
-        ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY], "%.1s", str+highlights[ch]);
-        chCursor=highlights[ch]+1;
+        if (curPaletteType==CMDPAL_TYPE_MAIN) {
+          ImGui::TableNextColumn();
+          ImGui::TextColored(uiColors[GUI_COLOR_TEXT_DISABLED], "%s", getKeyName(actionKeys[paletteSearchResults[i].id], true).c_str());
+        }
+
+        if (selectable) {
+          curPaletteChoice=i;
+          accepted=true;
+        }
+
+        ImGui::PopID();
+        
+        if ((navigated || paletteFirstFrame) && current) ImGui::SetScrollHereY();
       }
-      ImGui::SameLine(0.0f,0.0f);
-      ImGui::Text("%.*s", (int)(s.length()-chCursor), str+chCursor);
-      if (selectable) {
-        curPaletteChoice=i;
-        accepted=true;
-      }
-      ImGui::PopID();
-      if ((navigated || paletteFirstFrame) && current) ImGui::SetScrollHereY();
+      ImGui::EndTable();
     }
   }
   ImGui::EndChild();
