@@ -642,6 +642,158 @@ bool is_data_empty(char *data, unsigned int size)
     return true;
 }
 
+void convertAT2effect(unsigned short at2Eff, short* data, int version, short& volume)
+{
+    int eff = at2Eff >> 8;
+    int param = at2Eff & 0xff;
+    int paramUpperNibble = (at2Eff & 0xff) >> 4;
+    int paramLowerNibble = at2Eff & 0xf;
+
+    if(version < 5)
+    {
+        switch(at2Eff >> 8)
+        {
+            case fx_Arpeggio:
+            {
+                break;
+            }
+            
+            default: break;
+        }
+        return;
+    }
+
+    switch(at2Eff >> 8)
+    {
+        case ef_Arpeggio:
+        case ef_FSlideUp:
+        case ef_FSlideDown:
+        case ef_TonePortamento:
+        case ef_Vibrato:
+        case ef_VolSlide:
+        case ef_PositionJump:
+        case ef_PatternBreak:
+        {
+            data[0] = eff;
+            data[1] = param;
+            break;
+        }
+        case ef_TPortamVolSlide:
+        {
+            data[0] = 0x06;
+            data[1] = param;
+            break;
+        }
+        case ef_VibratoVolSlide:
+        {
+            data[0] = 0x05;
+            data[1] = param;
+            break;
+        }
+        case ef_FSlideUpFine:
+        {
+            data[0] = 0xf1;
+            data[1] = param;
+            break;
+        }
+        case ef_FSlideDownFine:
+        {
+            data[0] = 0xf2;
+            data[1] = param;
+            break;
+        }
+        case ef_SetModulatorVol:
+        {
+            data[0] = 0x12;
+            data[1] = 63 - param;
+            break;
+        }
+        case ef_SetInsVolume:
+        {
+            data[0] = 0x13;
+            data[1] = 63 - param; //todo: adapt to volume column??
+            break;
+        }
+        case ef_SetTempo:
+        {
+            data[0] = 0xC0;
+            data[1] = param;
+            break;
+        }
+        case ef_SetSpeed:
+        {
+            data[0] = 0x09;
+            data[1] = param;
+            break;
+        }
+        case ef_TPortamVSlideFine:
+        {
+            //todo
+            break;
+        }
+        case ef_VibratoVSlideFine:
+        {
+            //todo
+            break;
+        }
+        case ef_SetCarrierVol:
+        {
+            data[0] = 0x13;
+            data[1] = 63 - param;
+            break;
+        }
+        case ef_SetWaveform:
+        {
+            if(paramUpperNibble != 0xf)
+            {
+                data[0] = 0x12;
+                data[1] = paramUpperNibble;
+            }
+            if(paramLowerNibble != 0xf)
+            {
+                data[2] = 0x13;
+                data[3] = paramLowerNibble;
+            }
+            break;
+        }
+        case ef_VolSlideFine:
+        {
+            if(paramUpperNibble != 0)
+            {
+                data[0] = 0xf1;
+                data[1] = paramUpperNibble;
+                return;
+            }
+            if(paramLowerNibble != 0)
+            {
+                data[2] = 0xf2;
+                data[3] = paramLowerNibble;
+                return;
+            }
+            break;
+        }
+        case ef_RetrigNote:
+        {
+            data[0] = 0x0C;
+            data[1] = param;
+            break;
+        }
+        case ef_Tremolo:
+        {
+            data[0] = 0x07;
+            data[1] = param;
+            break;
+        }
+        case ef_Tremor:
+        {
+            //todo
+            break;
+        }
+
+        default: break;
+    }
+}
+
 bool DivEngine::loadAT2(unsigned char* file, size_t len) 
 {
     SafeReader reader=SafeReader(file,len);
@@ -1177,8 +1329,10 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                                 if(src->effect_def != 0 || (src->effect_def == 0 && src->effect != 0))
                                 {
-                                    pat->data[r][4] = src->effect_def;
-                                    pat->data[r][5] = src->effect;
+                                    convertAT2effect(((unsigned short)src->effect_def << 8) | src->effect, &pat->data[r][4], version, pat->data[r][3]);
+
+                                    //pat->data[r][4] = src->effect_def;
+                                    //pat->data[r][5] = src->effect;
                                 }
 
                                 //dst->note = src->note;
@@ -1262,8 +1416,10 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                                 if(src->effect_def != 0 || (src->effect_def == 0 && src->effect != 0))
                                 {
-                                    pat->data[r][4] = src->effect_def;
-                                    pat->data[r][5] = src->effect;
+                                    convertAT2effect(((unsigned short)src->effect_def << 8) | src->effect, &pat->data[r][4], version, pat->data[r][3]);
+
+                                    //pat->data[r][4] = src->effect_def;
+                                    //pat->data[r][5] = src->effect;
                                 }
                             }
                         }
@@ -1349,8 +1505,9 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                                 {
                                     if(src->eff[effe].def != 0 || (src->eff[effe].def == 0 && src->eff[effe].val != 0))
                                     {
-                                        pat->data[r][4 + effe*2] = src->eff[effe].def;
-                                        pat->data[r][5 + effe*2] = src->eff[effe].val;
+                                        convertAT2effect(((unsigned short)src->eff[effe].def << 8) | src->eff[effe].val, &pat->data[r][4 + effe*2], version, pat->data[r][3]);
+                                        //pat->data[r][4 + effe*2] = src->eff[effe].def;
+                                        //pat->data[r][5 + effe*2] = src->eff[effe].val;
                                     }
                                 }
                             }
@@ -1369,6 +1526,8 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
         ds.waveLen = ds.wave.size();
 
         ds.systemName = _("OPL3");
+
+        ds.linearPitch = 0;
 
         if (active) quitDispatch();
         BUSY_BEGIN_SOFT;
