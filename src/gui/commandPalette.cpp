@@ -50,6 +50,7 @@ static bool charMatch(const char* a, const char* b) {
 }
 
 // #define MATCH_GREEDY
+// #define RUN_MATCH_TEST
 
 static bool matchFuzzy(const char* haystack, int haystackLen, const char* needle, int needleLen, MatchResult* result) {
   if (needleLen==0) {
@@ -131,6 +132,7 @@ static bool matchFuzzy(const char* haystack, int haystackLen, const char* needle
   return false;
 }
 
+#ifdef RUN_MATCH_TEST
 static void matchFuzzyTest() {
   String hay="a__i_a_i__o";
   String needle="aio";
@@ -138,6 +140,7 @@ static void matchFuzzyTest() {
   matchFuzzy(hay.c_str(), hay.length(), needle.c_str(), needle.length(), &match);
   logI( "match.score.charsWithinNeedle: %d", match.score.charsWithinNeedle );
 }
+#endif
 
 void FurnaceGUI::drawPalette() {
   bool accepted=false;
@@ -167,7 +170,9 @@ void FurnaceGUI::drawPalette() {
     break;
   }
 
-  // matchFuzzyTest();
+#ifdef RUN_MATCH_TEST
+  matchFuzzyTest();
+#endif
 
   if (ImGui::InputTextWithHint("##CommandPaletteSearch",hint,&paletteQuery) || paletteFirstFrame) {
     paletteSearchResults.clear();
@@ -294,10 +299,25 @@ void FurnaceGUI::drawPalette() {
         break;
       };
 
-      if (ImGui::Selectable(s.c_str(),current)) {
+      ImGui::PushID(s.c_str());
+      bool selectable=ImGui::Selectable("##paletteSearchItem",current,ImGuiSelectableFlags_SpanAllColumns|ImGuiSelectableFlags_AllowOverlap);
+      const char* str=s.c_str();
+      size_t chCursor=0;
+      const std::vector<int>& highlights=paletteSearchResults[i].highlightChars;
+      for (size_t ch=0; ch<highlights.size(); ch++) {
+        ImGui::SameLine(0.0f,0.0f);
+        ImGui::Text("%.*s", (int)(highlights[ch]-chCursor), str+chCursor);
+        ImGui::SameLine(0.0f,0.0f);
+        ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY], "%.1s", str+highlights[ch]);
+        chCursor=highlights[ch]+1;
+      }
+      ImGui::SameLine(0.0f,0.0f);
+      ImGui::Text("%.*s", (int)(s.length()-chCursor), str+chCursor);
+      if (selectable) {
         curPaletteChoice=i;
         accepted=true;
       }
+      ImGui::PopID();
       if ((navigated || paletteFirstFrame) && current) ImGui::SetScrollHereY();
     }
   }
