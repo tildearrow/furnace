@@ -26,76 +26,117 @@
 #include <ctype.h>
 #include "../ta-log.h"
 
-// @TODO: when there's a tie on both within and before-needle costs, we have options.
-// It's reasonable to let the original order stand, but also reasonable to favor
-// minimizing the number of chars that follow afterward. Leaving this code in for now,
-// but disabling until further thought/discussion.
-// #define MATCH_SCORE_PREFER_LOWER_CHARS_AFTER_NEEDLE
-
 struct MatchScore {
-  bool valid=true;
-  enum Cost { COST_BEFORE_NEEDLE, COST_WITHIN_NEEDLE, COST_AFTER_NEEDLE, COST_COUNT };
-  size_t costs[COST_COUNT] = {0, 0, 0};
-
-  static MatchScore INVALID() {
-    MatchScore score;
-    score.valid=false;
-    return score;
-  }
-
+  size_t charsBeforeNeedle=0;
+  size_t charsWithinNeedle=0;
   static bool IsFirstPreferable(const MatchScore& a, const MatchScore& b) {
-    auto PreferenceForAAmount=[&](Cost cost) {
-      // prefer a if lower cost
-      return b.costs[cost]-a.costs[cost];
-    };
-
-    if (a.valid && b.valid) {
-      int prefA;
-      prefA=PreferenceForAAmount(COST_WITHIN_NEEDLE);
-      if (prefA!=0) return prefA>0;
-      prefA=PreferenceForAAmount(COST_BEFORE_NEEDLE);
-      if (prefA!=0) return prefA>0;
-#ifdef MATCH_SCORE_PREFER_LOWER_CHARS_AFTER_NEEDLE
-      // prefA=PreferenceForAAmount(COST_AFTER_NEEDLE);
-      // if (prefA!=0) return prefA>0;
-#endif
-      return false;
-    } else {
-      return a.valid;
-    }
+    int aBetter;
+    aBetter=b.charsWithinNeedle-a.charsWithinNeedle;
+    if (aBetter!=0) return aBetter>0;
+    aBetter=b.charsBeforeNeedle-a.charsBeforeNeedle;
+    if (aBetter!=0) return aBetter>0;
+    return false;
   }
 };
 
-static inline MatchScore matchFuzzy(const char* haystack, const char* needle) {
+struct MatchResult {
   MatchScore score;
-  size_t h_i=0; // haystack idx
-  size_t n_i=0; // needle idx
-  while (needle[n_i]!='\0') {
-    size_t cost=0;
-    for (; std::tolower(haystack[h_i])!=std::tolower(needle[n_i]); h_i++, cost++) {
-      // needle not completed, return invalid
-      if (haystack[h_i]=='\0')
-        return MatchScore::INVALID();
-    }
+  std::vector<int> highlightChars;
+};
 
-    // contribute this run of non-matches toward pre-needle or within-needle cost
-    if (n_i==0) {
-      score.costs[MatchScore::COST_BEFORE_NEEDLE]=cost;
-    } else {
-      score.costs[MatchScore::COST_WITHIN_NEEDLE]+=cost;
-    }
+static bool charMatch(const char* a, const char* b) {
+  // stub for future utf8 support, possibly with matching for related chars?
+  return std::tolower(*a)==std::tolower(*b);
+}
 
-    n_i+=1;
+// #define MATCH_GREEDY
+
+static bool matchFuzzy(const char* haystack, int haystackLen, const char* needle, int needleLen, MatchResult* result) {
+  if (needleLen==0) {
+    result->score.charsBeforeNeedle=0;
+    result->score.charsWithinNeedle=0;
+    result->highlightChars.clear();
+    return true;
   }
 
-#ifdef MATCH_SCORE_PREFER_LOWER_CHARS_AFTER_NEEDLE
-  // count the remaining chars in haystack as a tie-breaker (we won't reach this if it's a failed
-  // match anyway)
-  for (; haystack[h_i]!='\0'; h_i++, score.costs[MatchScore::COST_AFTER_NEEDLE]++) {}
+  std::vector<MatchResult> matchPool(needleLen+1);
+  std::vector<MatchResult*> unusedMatches(needleLen+1);
+  std::vector<MatchResult*> matchesByLen(needleLen+1);
+  for (int i=0; i<needleLen+1; i++) {
+    unusedMatches[i]=&matchPool[i];
+    matchesByLen[i]=NULL;
+  }
+
+  for (int hIdx=0; hIdx<haystackLen; hIdx++) {
+    // try to continue our in-flight valid matches
+    for (int matchLen=needleLen-1; matchLen>=0; matchLen--) {
+      MatchResult*& m=matchesByLen[matchLen];
+
+      // ignore null matches except for 0
+      if (matchLen>0 && !m) continue;
+
+#ifdef MATCH_GREEDY
+      // in greedy mode, don't start any new matches once we've already started matching.
+      // this will still return the correct bool result, but its score could be much poorer
+      // than the optimal match.  consider the case:
+      //
+      //    find "gl" in "google"
+      //
+      // greedy will see the match "g...l.", which has charsWithinNeedle of 3, while the
+      // fully algorithm will find the tighter match "...gl.", which has
+      // charsWithinNeedle of 0
+
+      if (matchLen==0 && unusedMatches.size() < matchPool.size()) {
+        continue;
+      }
 #endif
 
-  score.valid=true;
-  return score;
+      // check match!
+      if (charMatch(haystack+hIdx, needle+matchLen)) {
+
+        // pull a fresh match from the pool if necessary
+        if (matchLen==0) {
+          m=unusedMatches.back();
+          unusedMatches.pop_back();
+          m->score.charsBeforeNeedle=hIdx;
+          m->score.charsWithinNeedle=0;
+          m->highlightChars.clear();
+        }
+
+        m->highlightChars.push_back(hIdx);
+
+        // advance, replacing the previous match of an equal len, which can only have been
+        // worse because it existed before us, so we can prune it out
+        if (matchesByLen[matchLen+1]) {
+          unusedMatches.push_back(matchesByLen[matchLen+1]);
+        }
+
+        matchesByLen[matchLen+1]=m;
+        m=NULL;
+
+      } else {
+        // tally up charsWithinNeedle
+        if (matchLen>0) {
+          matchesByLen[matchLen]->score.charsWithinNeedle++;
+        }
+      }
+    }
+  }
+
+  if (matchesByLen[needleLen]) {
+    if (result) *result=*matchesByLen[needleLen];
+    return true;
+  }
+
+  return false;
+}
+
+static void matchFuzzyTest() {
+  String hay="a__i_a_i__o";
+  String needle="aio";
+  MatchResult match;
+  matchFuzzy(hay.c_str(), hay.length(), needle.c_str(), needle.length(), &match);
+  logI( "match.score.charsWithinNeedle: %d", match.score.charsWithinNeedle );
 }
 
 void FurnaceGUI::drawPalette() {
@@ -126,15 +167,19 @@ void FurnaceGUI::drawPalette() {
     break;
   }
 
+  // matchFuzzyTest();
+
   if (ImGui::InputTextWithHint("##CommandPaletteSearch",hint,&paletteQuery) || paletteFirstFrame) {
     paletteSearchResults.clear();
     std::vector<MatchScore> matchScores;
 
-    auto Evaluate=[&](int i, const char* name) {
-      MatchScore score=matchFuzzy(name,paletteQuery.c_str());
-      if (score.valid) {
-        paletteSearchResults.push_back(i);
-        matchScores.push_back(score);
+    auto Evaluate=[&](int i, const char* name, int nameLen) {
+      MatchResult result;
+      if (matchFuzzy(name, nameLen, paletteQuery.c_str(), paletteQuery.length(), &result)) {
+        paletteSearchResults.emplace_back();
+        paletteSearchResults.back().id=i;
+        paletteSearchResults.back().highlightChars=std::move(result.highlightChars);
+        matchScores.push_back(result.score);
       }
     };
 
@@ -142,28 +187,30 @@ void FurnaceGUI::drawPalette() {
     case CMDPAL_TYPE_MAIN:
       for (int i=0; i<GUI_ACTION_MAX; i++) {
         if (guiActions[i].defaultBind==-1) continue; // not a bind
-        Evaluate(i,guiActions[i].friendlyName);
+        Evaluate(i,guiActions[i].friendlyName,strlen(guiActions[i].friendlyName));
       }
       break;
 
     case CMDPAL_TYPE_RECENT:
       for (int i=0; i<(int)recentFile.size(); i++) {
-        Evaluate(i,recentFile[i].c_str());
+        Evaluate(i,recentFile[i].c_str(),recentFile[i].length());
       }
       break;
 
     case CMDPAL_TYPE_INSTRUMENTS:
-    case CMDPAL_TYPE_INSTRUMENT_CHANGE:
-      Evaluate(0,_("- None -"));
+    case CMDPAL_TYPE_INSTRUMENT_CHANGE: {
+      const char* noneStr=_("- None -");
+      Evaluate(0,noneStr,strlen(noneStr));
       for (int i=0; i<e->song.insLen; i++) {
         String s=fmt::sprintf("%02X: %s", i, e->song.ins[i]->name.c_str());
-        Evaluate(i+1,s.c_str()); // because over here ins=0 is 'None'
+        Evaluate(i+1,s.c_str(),s.length()); // because over here ins=0 is 'None'
       }
       break;
+    }
 
     case CMDPAL_TYPE_SAMPLES:
       for (int i=0; i<e->song.sampleLen; i++) {
-        Evaluate(i,e->song.sample[i]->name.c_str());
+        Evaluate(i,e->song.sample[i]->name.c_str(),e->song.sample[i]->name.length());
       }
       break;
 
@@ -171,7 +218,7 @@ void FurnaceGUI::drawPalette() {
       for (int i=0; availableSystems[i]; i++) {
         int ds=availableSystems[i];
         const char* sysname=getSystemName((DivSystem)ds);
-        Evaluate(ds,sysname);
+        Evaluate(ds,sysname,strlen(sysname));
       }
       break;
 
@@ -189,8 +236,8 @@ void FurnaceGUI::drawPalette() {
     });
 
     // update paletteSearchResults from sorted indices (taking care not to stomp while we iterate
-    for (size_t i=0; i<sortingIndices.size(); ++i) sortingIndices[i]=(int)paletteSearchResults[sortingIndices[i]];
-    for (size_t i=0; i<sortingIndices.size(); ++i) paletteSearchResults[i]=sortingIndices[i];
+    std::vector<PaletteSearchResult> paletteSearchResultsCopy=paletteSearchResults;
+    for (size_t i=0; i<sortingIndices.size(); ++i) paletteSearchResults[i]=paletteSearchResultsCopy[sortingIndices[i]];
   }
 
   ImVec2 avail=ImGui::GetContentRegionAvail();
@@ -218,7 +265,7 @@ void FurnaceGUI::drawPalette() {
 
     for (int i=0; i<(int)paletteSearchResults.size(); i++) {
       bool current=(i==curPaletteChoice);
-      int id=paletteSearchResults[i];
+      int id=paletteSearchResults[i].id;
 
       String s="???";
       switch (curPaletteType) {
@@ -273,7 +320,7 @@ void FurnaceGUI::drawPalette() {
 
   if (accepted) {
     if (paletteSearchResults.size()>0) {
-      int i=paletteSearchResults[curPaletteChoice];
+      int i=paletteSearchResults[curPaletteChoice].id;
       switch (curPaletteType) {
         case CMDPAL_TYPE_MAIN:
           doAction(i);
