@@ -27,6 +27,8 @@
 
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 #define chWrite(c,a,v) {rWrite((a)+(c)*16,v)}
+#define rWriteDelay(a,v,d) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v,d)); if (dumpWrites) {addWrite(a,v);} }
+#define chWriteDelay(c,a,v,d) {rWrite((a)+(c)*16,v,d)}
 #define sampleTableAddr(c) (sampleTableBase+(c)*4)
 #define waveTableAddr(c) (sampleTableBase+8*4+(c)*9*16)
 
@@ -77,7 +79,7 @@ void DivPlatformSNES::acquire(short** buf, size_t len) {
         dsp.write(w.addr,w.val);
         regPool[w.addr&0x7f]=w.val;
         writes.pop();
-        delay=(w.addr==0x5c)?8:1;
+        delay=w.delay;
       }
     }
     dsp.set_output(out,1);
@@ -253,7 +255,7 @@ void DivPlatformSNES::tick(bool sysTick) {
     }
   }
   if (koff!=0) {
-    rWrite(0x5c,koff);
+    rWriteDelay(0x5c,koff,8);
   }
   if (writeControl) {
     unsigned char control=(noiseFreq&0x1f)|(echoOn?0:0x20);
@@ -314,7 +316,7 @@ void DivPlatformSNES::tick(bool sysTick) {
     }
   }
   if (koff!=0) {
-    rWrite(0x5c,0);
+    rWriteDelay(0x5c,0,8);
   }
   if (kon!=0) {
     rWrite(0x4c,kon);
@@ -1027,6 +1029,7 @@ void DivPlatformSNES::setFlags(const DivConfig& flags) {
   initEchoMask=flags.getInt("echoMask",0);
 
   interpolationOff=flags.getBool("interpolationOff",false);
+  antiClick=flags.getBool("antiClick",true);
 }
 
 int DivPlatformSNES::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
