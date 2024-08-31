@@ -993,11 +993,6 @@ Pos=339,177\n\
 Size=601,400\n\
 Collapsed=0\n\
 \n\
-[Window][Rendering...]\n\
-Pos=585,342\n\
-Size=600,100\n\
-Collapsed=0\n\
-\n\
 [Window][Export VGM##FileDialog]\n\
 Pos=340,177\n\
 Size=600,400\n\
