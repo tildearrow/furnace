@@ -5854,8 +5854,8 @@ bool FurnaceGUI::loop() {
     MEASURE_BEGIN(popup);
 
     centerNextWindow(_("Rendering..."),canvasW,canvasH);
-    ImGui::SetNextWindowSize(ImVec2(0.0f,0.0f));
-    if (ImGui::BeginPopupModal(_("Rendering..."),NULL,ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoMove)) {
+    // ImGui::SetNextWindowSize(ImVec2(0.0f,0.0f));
+    if (ImGui::BeginPopupModal(_("Rendering..."),NULL,ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoSavedSettings)) {
       // WHAT the HELL?!
       WAKE_UP;
       if (audioExportOptions.mode!=DIV_EXPORT_MODE_MANY_CHAN) {
