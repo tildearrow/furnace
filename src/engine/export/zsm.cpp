@@ -674,7 +674,10 @@ void DivExportZSM::run() {
         if (writes.size()>0)
           logD("zsmOps: Writing %d messages to chip %d",writes.size(),i);
         for (DivRegWrite& write: writes) {
-          if (i==YM) zsm.writeYM(write.addr&0xff,write.val);
+          if (i==YM) {
+            if (done && write.addr==0x08 && (write.val&0x78)>0) continue; // don't process keydown on lookahead
+            zsm.writeYM(write.addr&0xff,write.val);
+          }
           if (i==VERA) {
             if (done && write.addr>=64) continue; // don't process any PCM or sync events on the loop lookahead
             zsm.writePSG(write.addr&0xff,write.val);
