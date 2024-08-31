@@ -5854,6 +5854,7 @@ bool FurnaceGUI::loop() {
     MEASURE_BEGIN(popup);
 
     centerNextWindow(_("Rendering..."),canvasW,canvasH);
+    ImGui::SetNextWindowSize(ImVec2(0.0f,0.0f));
     if (ImGui::BeginPopupModal(_("Rendering..."),NULL,ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoMove)) {
       // WHAT the HELL?!
       WAKE_UP;
@@ -5870,35 +5871,32 @@ bool FurnaceGUI::loop() {
       int curFile=0;
       int* curFileLambda=&curFile;
       if (e->isExporting()) {
-        e->lockEngine([this, progressLambda, curPosInRowsLambda, curFileLambda,
-                       loopsLeftLambda, totalLoopsLambda] () {
-                      int curRow=0; int curOrder=0;
-                      e->getCurSongPos(curRow, curOrder); *curFileLambda=0;
-                      e->getCurFileIndex(*curFileLambda);
-                      *curPosInRowsLambda=curRow; for (int i=0; i<curOrder;
-                                                         i++) {
-                      *curPosInRowsLambda+=songOrdersLengths[i];}
-
-                      if (!songHasSongEndCommand) {
-                      e->getLoopsLeft(*loopsLeftLambda); e->getTotalLoops(*totalLoopsLambda); if ((*totalLoopsLambda)!=(*loopsLeftLambda))        //we are going 2nd, 3rd, etc. time through the song
-                      {
-                      *curPosInRowsLambda-=(songLength-songLoopedSectionLength);        //a hack so progress bar does not jump?
-                      }
-                      if (e->getIsFadingOut())        //we are in fadeout??? why it works like that bruh
-                      {
-                      // LIVE WITH IT damn it
-                      *curPosInRowsLambda-=(songLength-songLoopedSectionLength);        //a hack so progress bar does not jump?
-                      }
-                      }
-                      // this horrible indentation courtesy of `indent`
-                      *progressLambda=(float) ((*curPosInRowsLambda) +                                                 ((*totalLoopsLambda)-                                                 (*loopsLeftLambda)) *                                                 songLength +                                                 lengthOfOneFile *                                                 (*curFileLambda))                      / (float) totalLength;});
+        e->lockEngine(
+          [this, progressLambda, curPosInRowsLambda, curFileLambda, loopsLeftLambda, totalLoopsLambda] () {
+            int curRow=0; int curOrder=0;
+            e->getCurSongPos(curRow, curOrder);
+            *curFileLambda=0;
+            e->getCurFileIndex(*curFileLambda);
+            *curPosInRowsLambda=curRow;
+            for (int i=0; i<curOrder; i++) *curPosInRowsLambda+=songOrdersLengths[i];
+            if (!songHasSongEndCommand) {
+              e->getLoopsLeft(*loopsLeftLambda);
+              e->getTotalLoops(*totalLoopsLambda);
+              if ((*totalLoopsLambda)!=(*loopsLeftLambda)) { // we are going 2nd, 3rd, etc. time through the song
+                *curPosInRowsLambda-=(songLength-songLoopedSectionLength); // a hack so progress bar does not jump?
+              }
+              if (e->getIsFadingOut()) { // we are in fadeout??? why it works like that bruh
+                // LIVE WITH IT damn it
+                *curPosInRowsLambda-=(songLength-songLoopedSectionLength); // a hack so progress bar does not jump?
+              }
+            }
+            *progressLambda=(float)((*curPosInRowsLambda)+((*totalLoopsLambda)-(*loopsLeftLambda))*songLength+lengthOfOneFile*(*curFileLambda))/(float)totalLength;
+          }
+        );
       }
 
       ImGui::Text(_("Row %d of %d"),curPosInRows+((totalLoops)-(loopsLeft))*songLength,lengthOfOneFile);
-
-      if (audioExportOptions.mode==DIV_EXPORT_MODE_MANY_CHAN) {
-        ImGui::Text(_("Channel %d of %d"),curFile+1,totalFiles);
-      }
+      if (audioExportOptions.mode==DIV_EXPORT_MODE_MANY_CHAN) ImGui::Text(_("Channel %d of %d"),curFile+1,totalFiles);
 
       ImGui::ProgressBar(curProgress,ImVec2(320.0f*dpiScale,0),fmt::sprintf("%.2f%%",curProgress*100.0f).c_str());
 
