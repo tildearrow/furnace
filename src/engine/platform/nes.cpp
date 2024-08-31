@@ -175,6 +175,13 @@ void DivPlatformNES::acquire_NSFPlayE(short** buf, size_t len) {
   int out2[2];
   for (size_t i=0; i<len; i++) {
     doPCM;
+
+    if (!writes.empty()) {
+      QueuedWrite w=writes.front();
+      doWrite(w.addr,w.val);
+      regPool[w.addr&0x1f]=w.val;
+      writes.pop();
+    }
   
     e1_NP->Tick(8);
     e2_NP->TickFrameSequence(8);
