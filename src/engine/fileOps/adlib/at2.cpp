@@ -504,6 +504,8 @@ typedef struct {
     uint16_t        macro_speedup;
     uint8_t         flag_4op;
     uint8_t         lock_flags[20];
+
+    char pattern_names[128][43]; //Furnace addition
 } tSONGINFO;
 
 typedef struct {
@@ -1202,7 +1204,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                 // v11
                 // NOTE: not used anywhere
-                //memcpy(songinfo->pattern_names, data->pattern_names, 128 * 43);
+                memcpy(songInfo.pattern_names, data->pattern_names, 128 * 43);
 
                 //disabled_fmregs_import(count, (bool (*)[28])data->dis_fmreg_col);
 
@@ -1282,6 +1284,8 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                             return false;
                         }
 
+                        posBegin = reader.tell();
+
                         unsigned char* temp = new unsigned char[len[i+ssss]];
                         reader.read((void*)temp, len[i+ssss]);
                         a2t_depack(temp, len[i+ssss], (unsigned char *)old, 16 * sizeof (*old), version);
@@ -1301,7 +1305,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                                 //convert_v1234_event(src, c);
 
-                                DivPattern* pat = s->pat[c].getPattern(i * 8 + p, true);
+                                DivPattern* pat = s->pat[c].getPattern(i * 16 + p, true);
                                 uint8_t note = src->note;
 
                                 if(note == 255)
@@ -1368,6 +1372,8 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                             delete[] file;
                             return false;
                         }
+
+                        posBegin = reader.tell();
 
                         unsigned char* temp = new unsigned char[len[i+ssss]];
                         reader.read((void*)temp, len[i+ssss]);
@@ -1455,6 +1461,8 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                             return false;
                         }
 
+                        posBegin = reader.tell();
+
                         unsigned char* temp = new unsigned char[len[i+ssss]];
                         reader.read((void*)temp, len[i+ssss]);
                         a2t_depack(temp, len[i+ssss], (unsigned char *)old, 8 * sizeof (*old), version);
@@ -1518,9 +1526,20 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                     break;
                 }
             }
+
+            if(version >= 11)
+            {
+                for(int i = 0; i < patterns; i++)
+                {
+                    for(int j = 0; j < songInfo.nm_tracks; j++)
+                    {
+                        DivPattern* pat = s->pat[j].getPattern(i, true);
+                        pat->name = (const char*)&songInfo.pattern_names[i][1]; //skip 1st symbol bc it seems to hold weird special byte?
+                    }
+                }
+            }
         }
 
-        //ds.version=DIV_VERSION_FTM;
         ds.insLen = ds.ins.size();
         ds.sampleLen = ds.sample.size();
         ds.waveLen = ds.wave.size();
