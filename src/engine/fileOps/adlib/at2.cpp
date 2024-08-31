@@ -1098,7 +1098,24 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                     ins->fm.fb = instr_s->fm.feedb;
                     ins->fm.alg = instr_s->fm.connect;
-                    //todo: panning, finetune
+
+                    //panning (0=C,1=L,2=R)
+
+                    ins->std.panLMacro.len = 1;
+                    
+                    if(instr_s->panning == 0)
+                    {
+                        ins->std.panLMacro.val[0] = 3;
+                    }
+                    if(instr_s->panning == 1)
+                    {
+                        ins->std.panLMacro.val[0] = 2;
+                    }
+                    if(instr_s->panning == 2)
+                    {
+                        ins->std.panLMacro.val[0] = 1;
+                    }
+                    //todo: finetune
                 }
 
                 memcpy(songInfo.pattern_order, data->pattern_order, 128);
@@ -1180,7 +1197,24 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                     ins->fm.fb = instr_s->fm.feedb;
                     ins->fm.alg = instr_s->fm.connect;
-                    //todo: panning, finetune, percvoice
+                    //todo: finetune, percvoice
+
+                    //panning (0=C,1=L,2=R)
+
+                    ins->std.panLMacro.len = 1;
+                    
+                    if(instr_s->panning == 0)
+                    {
+                        ins->std.panLMacro.val[0] = 3;
+                    }
+                    if(instr_s->panning == 1)
+                    {
+                        ins->std.panLMacro.val[0] = 2;
+                    }
+                    if(instr_s->panning == 2)
+                    {
+                        ins->std.panLMacro.val[0] = 1;
+                    }
                 }
 
                 // Allocate fmreg macro tables
