@@ -259,7 +259,6 @@ void DivPlatformSNES::tick(bool sysTick) {
     if (antiClick) {
       for (int i=0; i<8; i++) {
         if (koff&(1<<i)) {
-          logV("KOFF: %d",i);
           chWrite(i,5,0);
           chWrite(i,7,0x9f);
           chan[i].shallWriteEnv=true;
@@ -330,14 +329,14 @@ void DivPlatformSNES::tick(bool sysTick) {
   if (koff!=0) {
     rWriteDelay(0x5c,0,8);
   }
-  if (kon!=0) {
-    rWrite(0x4c,kon);
-  }
   for (int i=0; i<8; i++) {
     if (chan[i].shallWriteVol) {
       writeOutVol(i);
       chan[i].shallWriteVol=false;
     }
+  }
+  if (kon!=0) {
+    rWrite(0x4c,kon);
   }
 }
 
