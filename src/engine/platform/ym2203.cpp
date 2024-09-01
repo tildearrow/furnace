@@ -173,6 +173,7 @@ void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
     ay->runDAC();
+    ay->runTFX(rate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
@@ -255,6 +256,7 @@ void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
     ay->runDAC();
+    ay->runTFX(rate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
