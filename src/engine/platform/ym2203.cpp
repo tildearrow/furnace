@@ -313,6 +313,16 @@ void DivPlatformYM2203::acquire_lle(short** buf, size_t len) {
       fmOut[i]=0;
     }
 
+    // AY -> OPN
+    ay->runDAC();
+    ay->runTFX(rate);
+    ay->flushWrites();
+    for (DivRegWrite& i: ay->getRegisterWrites()) {
+      if (i.addr>15) continue;
+      immWrite(i.addr&15,i.val);
+    }
+    ay->getRegisterWrites().clear();
+
     while (true) {
       bool canWeWrite=fm_lle.prescaler_latch[1]&1;
 
