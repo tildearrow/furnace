@@ -28,6 +28,10 @@
 #include "deps/unlzss.h"
 #include "deps/unlzw.h"
 
+#ifdef HAVE_MOMO
+#define ngettext momo_ngettext
+#endif
+
 // Macros for extracting little-endian integers from filedata
 #define INT16LE(A) (int16_t)((A[0]) | (A[1] << 8))
 #define UINT16LE(A) (uint16_t)((A[0]) | (A[1] << 8))
@@ -644,12 +648,27 @@ bool is_data_empty(char *data, unsigned int size)
     return true;
 }
 
-void convertAT2effect(unsigned short at2Eff, short* data, int version, short& volume)
+int findEmptyEffectSlot(short* data)
+{
+    for(int i = 0; i < DIV_MAX_EFFECTS; i++)
+    {
+        if(data[4 + i * 2] == -1)
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+void convertAT2effect(unsigned short at2Eff, short* data, int version)
 {
     int eff = at2Eff >> 8;
     int param = at2Eff & 0xff;
     int paramUpperNibble = (at2Eff & 0xff) >> 4;
     int paramLowerNibble = at2Eff & 0xf;
+
+    int emptyEffSlot = findEmptyEffectSlot(data);
 
     if(version < 5)
     {
@@ -676,56 +695,58 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version, short& vo
         case ef_PositionJump:
         case ef_PatternBreak:
         {
-            data[0] = eff;
-            data[1] = param;
+            data[4 + emptyEffSlot * 2] = eff;
+            data[5 + emptyEffSlot * 2] = param;
             break;
         }
         case ef_TPortamVolSlide:
         {
-            data[0] = 0x06;
-            data[1] = param;
+            data[4 + emptyEffSlot * 2] = 0x06;
+            data[5 + emptyEffSlot * 2] = param;
             break;
         }
         case ef_VibratoVolSlide:
         {
-            data[0] = 0x05;
-            data[1] = param;
+            data[4 + emptyEffSlot * 2] = 0x05;
+            data[5 + emptyEffSlot * 2] = param;
             break;
         }
         case ef_FSlideUpFine:
         {
-            data[0] = 0xf1;
-            data[1] = param;
+            data[4 + emptyEffSlot * 2] = 0xf1;
+            data[5 + emptyEffSlot * 2] = param;
             break;
         }
         case ef_FSlideDownFine:
         {
-            data[0] = 0xf2;
-            data[1] = param;
+            data[4 + emptyEffSlot * 2] = 0xf2;
+            data[5 + emptyEffSlot * 2] = param;
             break;
         }
         case ef_SetModulatorVol:
         {
-            data[0] = 0x12;
-            data[1] = 63 - param;
+            data[4 + emptyEffSlot * 2] = 0x12;
+            data[5 + emptyEffSlot * 2] = 63 - param;
             break;
         }
         case ef_SetInsVolume:
         {
-            data[0] = 0x13;
-            data[1] = 63 - param; //todo: adapt to volume column??
+            //data[4 + emptyEffSlot * 2] = 0x13;
+            //data[5 + emptyEffSlot * 2] = 63 - param; //todo: adapt to volume column??
+
+            data[3] = param;
             break;
         }
         case ef_SetTempo:
         {
-            data[0] = 0xC0;
-            data[1] = param;
+            data[4 + emptyEffSlot * 2] = 0xC0;
+            data[5 + emptyEffSlot * 2] = param;
             break;
         }
         case ef_SetSpeed:
         {
-            data[0] = 0x09;
-            data[1] = param;
+            data[4 + emptyEffSlot * 2] = 0x09;
+            data[5 + emptyEffSlot * 2] = param;
             break;
         }
         case ef_TPortamVSlideFine:
@@ -740,16 +761,16 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version, short& vo
         }
         case ef_SetCarrierVol:
         {
-            data[0] = 0x13;
-            data[1] = 63 - param;
+            data[4 + emptyEffSlot * 2] = 0x13;
+            data[5 + emptyEffSlot * 2] = 63 - param;
             break;
         }
         case ef_SetWaveform:
         {
             if(paramUpperNibble != 0xf)
             {
-                data[0] = 0x12;
-                data[1] = paramUpperNibble;
+                data[4 + emptyEffSlot * 2] = 0x12;
+                data[5 + emptyEffSlot * 2] = paramUpperNibble;
             }
             if(paramLowerNibble != 0xf)
             {
@@ -762,28 +783,28 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version, short& vo
         {
             if(paramUpperNibble != 0)
             {
-                data[0] = 0xf1;
-                data[1] = paramUpperNibble;
+                data[4 + emptyEffSlot * 2] = 0xf3;
+                data[5 + emptyEffSlot * 2] = paramUpperNibble;
                 return;
             }
             if(paramLowerNibble != 0)
             {
-                data[2] = 0xf2;
-                data[3] = paramLowerNibble;
+                data[4 + emptyEffSlot * 2] = 0xf4;
+                data[5 + emptyEffSlot * 2] = paramLowerNibble;
                 return;
             }
             break;
         }
         case ef_RetrigNote:
         {
-            data[0] = 0x0C;
-            data[1] = param;
+            data[4 + emptyEffSlot * 2] = 0x0C;
+            data[5 + emptyEffSlot * 2] = param;
             break;
         }
         case ef_Tremolo:
         {
-            data[0] = 0x07;
-            data[1] = param;
+            data[4 + emptyEffSlot * 2] = 0x07;
+            data[5 + emptyEffSlot * 2] = param;
             break;
         }
         case ef_Tremor:
@@ -791,9 +812,700 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version, short& vo
             //todo
             break;
         }
+        case ef_ArpggVSlide:
+        {
+            data[4 + emptyEffSlot * 2] = 0x0A;
+            data[5 + emptyEffSlot * 2] = param;
+
+            //emptyEffSlot = findEmptyEffectSlot(data);
+
+            //data[4 + emptyEffSlot * 2] = eff;
+            //data[5 + emptyEffSlot * 2] = param;
+            break;
+        }
+        case ef_ArpggVSlideFine:
+        {
+            if(paramUpperNibble != 0)
+            {
+                data[4 + emptyEffSlot * 2] = 0xf3;
+                data[5 + emptyEffSlot * 2] = paramUpperNibble;
+                return;
+            }
+            if(paramLowerNibble != 0)
+            {
+                data[4 + emptyEffSlot * 2] = 0xf4;
+                data[5 + emptyEffSlot * 2] = paramLowerNibble;
+                return;
+            }
+
+            //emptyEffSlot = findEmptyEffectSlot(data);
+
+            //data[4 + emptyEffSlot * 2] = eff;
+            //data[5 + emptyEffSlot * 2] = param;
+            break;
+        }
+        case ef_MultiRetrigNote:
+        {
+            //todo
+            break;
+        }
+        case ef_FSlideUpVSlide:
+        {
+            data[4 + emptyEffSlot * 2] = 0x0A;
+            data[5 + emptyEffSlot * 2] = param;
+
+            //emptyEffSlot = findEmptyEffectSlot(data);
+
+            //data[4 + emptyEffSlot * 2] = eff;
+            //data[5 + emptyEffSlot * 2] = param;
+            break;
+        }
+        case ef_FSlideDownVSlide:
+        {
+            data[4 + emptyEffSlot * 2] = 0x0A;
+            data[5 + emptyEffSlot * 2] = param;
+
+            //emptyEffSlot = findEmptyEffectSlot(data);
+
+            //data[4 + emptyEffSlot * 2] = eff;
+            //data[5 + emptyEffSlot * 2] = param;
+            break;
+        }
+        case ef_FSlUpFineVSlide:
+        {
+            if(paramUpperNibble != 0)
+            {
+                data[4 + emptyEffSlot * 2] = 0xf3;
+                data[5 + emptyEffSlot * 2] = paramUpperNibble;
+                return;
+            }
+            if(paramLowerNibble != 0)
+            {
+                data[4 + emptyEffSlot * 2] = 0xf4;
+                data[5 + emptyEffSlot * 2] = paramLowerNibble;
+                return;
+            }
+
+            //emptyEffSlot = findEmptyEffectSlot(data);
+
+            //data[4 + emptyEffSlot * 2] = eff;
+            //data[5 + emptyEffSlot * 2] = param;
+            break;
+        }
+        case ef_FSlDownFineVSlide:
+        {
+            if(paramUpperNibble != 0)
+            {
+                data[4 + emptyEffSlot * 2] = 0xf3;
+                data[5 + emptyEffSlot * 2] = paramUpperNibble;
+                return;
+            }
+            if(paramLowerNibble != 0)
+            {
+                data[4 + emptyEffSlot * 2] = 0xf4;
+                data[5 + emptyEffSlot * 2] = paramLowerNibble;
+                return;
+            }
+
+            //emptyEffSlot = findEmptyEffectSlot(data);
+
+            //data[4 + emptyEffSlot * 2] = eff;
+            //data[5 + emptyEffSlot * 2] = param;
+            break;
+        }
+        case ef_FSlUpVSlF:
+        {
+            if(paramUpperNibble != 0)
+            {
+                data[4 + emptyEffSlot * 2] = 0xf3;
+                data[5 + emptyEffSlot * 2] = paramUpperNibble;
+                return;
+            }
+            if(paramLowerNibble != 0)
+            {
+                data[4 + emptyEffSlot * 2] = 0xf4;
+                data[5 + emptyEffSlot * 2] = paramLowerNibble;
+                return;
+            }
+
+            //emptyEffSlot = findEmptyEffectSlot(data);
+
+            //data[4 + emptyEffSlot * 2] = eff;
+            //data[5 + emptyEffSlot * 2] = param;
+            break;
+        }
+        case ef_FSlDownVSlF:
+        {
+            if(paramUpperNibble != 0)
+            {
+                data[4 + emptyEffSlot * 2] = 0xf3;
+                data[5 + emptyEffSlot * 2] = paramUpperNibble;
+                return;
+            }
+            if(paramLowerNibble != 0)
+            {
+                data[4 + emptyEffSlot * 2] = 0xf4;
+                data[5 + emptyEffSlot * 2] = paramLowerNibble;
+                return;
+            }
+
+            //emptyEffSlot = findEmptyEffectSlot(data);
+
+            //data[4 + emptyEffSlot * 2] = eff;
+            //data[5 + emptyEffSlot * 2] = param;
+            break;
+        }
+        case ef_FSlUpFineVSlF:
+        {
+            if(paramUpperNibble != 0)
+            {
+                data[4 + emptyEffSlot * 2] = 0xf3;
+                data[5 + emptyEffSlot * 2] = paramUpperNibble;
+                return;
+            }
+            if(paramLowerNibble != 0)
+            {
+                data[4 + emptyEffSlot * 2] = 0xf4;
+                data[5 + emptyEffSlot * 2] = paramLowerNibble;
+                return;
+            }
+
+            //emptyEffSlot = findEmptyEffectSlot(data);
+
+            //data[4 + emptyEffSlot * 2] = eff;
+            //data[5 + emptyEffSlot * 2] = param;
+            break;
+        }
+        case ef_FSlDownFineVSlF:
+        {
+            if(paramUpperNibble != 0)
+            {
+                data[4 + emptyEffSlot * 2] = 0xf3;
+                data[5 + emptyEffSlot * 2] = paramUpperNibble;
+                return;
+            }
+            if(paramLowerNibble != 0)
+            {
+                data[4 + emptyEffSlot * 2] = 0xf4;
+                data[5 + emptyEffSlot * 2] = paramLowerNibble;
+                return;
+            }
+
+            //emptyEffSlot = findEmptyEffectSlot(data);
+
+            //data[4 + emptyEffSlot * 2] = eff;
+            //data[5 + emptyEffSlot * 2] = param;
+            break;
+        }
+        case ef_Extended:
+        {
+            switch(paramUpperNibble)
+            {
+                case ef_ex_SetTremDepth:
+                {
+                    //todo
+                    break;
+                }
+                case ef_ex_SetVibDepth:
+                {
+                    data[4 + emptyEffSlot * 2] = 0xE4;
+                    data[5 + emptyEffSlot * 2] = paramLowerNibble;
+                    break;
+                }
+                case ef_ex_SetAttckRateM:
+                {
+                    data[4 + emptyEffSlot * 2] = 0x1A;
+                    data[5 + emptyEffSlot * 2] = paramLowerNibble;
+                    break;
+                }
+                case ef_ex_SetDecayRateM:
+                {
+                    data[4 + emptyEffSlot * 2] = 0x57;
+                    data[5 + emptyEffSlot * 2] = paramLowerNibble;
+                    break;
+                }
+                case ef_ex_SetSustnLevelM:
+                {
+                    data[4 + emptyEffSlot * 2] = 0x51;
+                    data[5 + emptyEffSlot * 2] = (1 << 4) | paramLowerNibble;
+                    break;
+                }
+                case ef_ex_SetRelRateM:
+                {
+                    data[4 + emptyEffSlot * 2] = 0x52;
+                    data[5 + emptyEffSlot * 2] = (1 << 4) | paramLowerNibble;
+                    break;
+                }
+                case ef_ex_SetAttckRateC:
+                {
+                    data[4 + emptyEffSlot * 2] = 0x1B;
+                    data[5 + emptyEffSlot * 2] = paramLowerNibble;
+                    break;
+                }
+                case ef_ex_SetDecayRateC:
+                {
+                    data[4 + emptyEffSlot * 2] = 0x58;
+                    data[5 + emptyEffSlot * 2] = paramLowerNibble;
+                    break;
+                }
+                case ef_ex_SetSustnLevelC:
+                {
+                    data[4 + emptyEffSlot * 2] = 0x51;
+                    data[5 + emptyEffSlot * 2] = (2 << 4) | paramLowerNibble;
+                    break;
+                }
+                case ef_ex_SetRelRateC:
+                {
+                    data[4 + emptyEffSlot * 2] = 0x52;
+                    data[5 + emptyEffSlot * 2] = (2 << 4) | paramLowerNibble;
+                    break;
+                }
+                case ef_ex_SetFeedback:
+                {
+                    data[4 + emptyEffSlot * 2] = 0x11;
+                    data[5 + emptyEffSlot * 2] = paramLowerNibble;
+                    break;
+                }
+                case ef_ex_SetPanningPos:
+                {
+                    data[4 + emptyEffSlot * 2] = 0x88;
+                    
+                    if(paramLowerNibble == 0)
+                    {
+                        data[5 + emptyEffSlot * 2] = 0x80;
+                    }
+                    if(paramLowerNibble == 1)
+                    {
+                        data[5 + emptyEffSlot * 2] = 0;
+                    }
+                    if(paramLowerNibble == 2)
+                    {
+                        data[5 + emptyEffSlot * 2] = 0xFF;
+                    }
+                    break;
+                }
+                case ef_ex_PatternLoop:
+                {
+                    //todo
+                    break;
+                }
+                case ef_ex_PatternLoopRec:
+                {
+                    //todo
+                    break;
+                }
+                case ef_ex_ExtendedCmd2:
+                {
+                    switch(paramLowerNibble)
+                    {
+                        case ef_ex_cmd2_RSS:
+                        {
+                            data[4 + emptyEffSlot * 2] = 0xEC; //todo check if true
+                            data[5 + emptyEffSlot * 2] = 0;
+                        }
+                        default: break;
+                    }
+                }
+
+                default: break;
+            }
+            break;
+        }
+        case ef_Extended2:
+        {
+            switch(paramUpperNibble)
+            {
+                case ef_ex2_NoteDelay:
+                {
+                    data[4 + emptyEffSlot * 2] = 0xED;
+                    data[5 + emptyEffSlot * 2] = paramLowerNibble;
+                    break;
+                }
+                case ef_ex2_NoteCut:
+                {
+                    data[4 + emptyEffSlot * 2] = 0xEC;
+                    data[5 + emptyEffSlot * 2] = paramLowerNibble;
+                    break;
+                }
+                default: break;
+            }
+        }
+        case ef_Extended3:
+        {
+            switch(paramUpperNibble)
+            {
+                case ef_ex3_SetConnection:
+                {
+                    //todo
+                    break;
+                }
+                case ef_ex3_SetMultipM:
+                {
+                    data[4 + emptyEffSlot * 2] = 0x16;
+                    data[5 + emptyEffSlot * 2] = (1 << 4) | paramLowerNibble;
+                    break;
+                }
+                case ef_ex3_SetKslM:
+                {
+                    data[4 + emptyEffSlot * 2] = 0x54;
+                    data[5 + emptyEffSlot * 2] = (1 << 4) | paramLowerNibble;
+                    break;
+                }
+                case ef_ex3_SetTremoloM:
+                {
+                    data[4 + emptyEffSlot * 2] = 0x50;
+                    data[5 + emptyEffSlot * 2] = (1 << 4) | paramLowerNibble;
+                    break;
+                }
+                case ef_ex3_SetVibratoM:
+                {
+                    data[4 + emptyEffSlot * 2] = 0x53;
+                    data[5 + emptyEffSlot * 2] = (1 << 4) | paramLowerNibble;
+                    break;
+                }
+                case ef_ex3_SetKsrM:
+                {
+                    data[4 + emptyEffSlot * 2] = 0x5B;
+                    data[5 + emptyEffSlot * 2] = (1 << 4) | paramLowerNibble;
+                    break;
+                }
+                case ef_ex3_SetSustainM:
+                {
+                    data[4 + emptyEffSlot * 2] = 0x55;
+                    data[5 + emptyEffSlot * 2] = (1 << 4) | paramLowerNibble;
+                    break;
+                }
+                case ef_ex3_SetMultipC:
+                {
+                    data[4 + emptyEffSlot * 2] = 0x16;
+                    data[5 + emptyEffSlot * 2] = (2 << 4) | paramLowerNibble;
+                    break;
+                }
+                case ef_ex3_SetKslC:
+                {
+                    data[4 + emptyEffSlot * 2] = 0x54;
+                    data[5 + emptyEffSlot * 2] = (2 << 4) | paramLowerNibble;
+                    break;
+                }
+                case ef_ex3_SetTremoloC:
+                {
+                    data[4 + emptyEffSlot * 2] = 0x50;
+                    data[5 + emptyEffSlot * 2] = (2 << 4) | paramLowerNibble;
+                    break;
+                }
+                case ef_ex3_SetVibratoC:
+                {
+                    data[4 + emptyEffSlot * 2] = 0x53;
+                    data[5 + emptyEffSlot * 2] = (2 << 4) | paramLowerNibble;
+                    break;
+                }
+                case ef_ex3_SetKsrC:
+                {
+                    data[4 + emptyEffSlot * 2] = 0x5B;
+                    data[5 + emptyEffSlot * 2] = (2 << 4) | paramLowerNibble;
+                    break;
+                }
+                case ef_ex3_SetSustainC:
+                {
+                    data[4 + emptyEffSlot * 2] = 0x55;
+                    data[5 + emptyEffSlot * 2] = (2 << 4) | paramLowerNibble;
+                    break;
+                }
+                default: break;
+            }
+        }
 
         default: break;
     }
+}
+
+bool AT2ReadPatterns(DivSubSong* s, SafeReader& reader, int version, unsigned int* len, int patterns, tSONGINFO& songInfo, int ssss)
+{
+    size_t posBegin = reader.tell();
+
+    switch (version) 
+    {
+        case 1:
+        case 2:
+        case 3:
+        case 4: // [4][16][64][9][4]
+        {
+            tPATTERN_DATA_V1234 *old = (tPATTERN_DATA_V1234 *)calloc(16, sizeof(*old));
+
+            //memset(adsr_carrier, false, sizeof(adsr_carrier));
+
+            for (int i = 0; i < 4; i++) 
+            {
+                if (!len[i+ssss]) continue;
+
+                //if (len[i+ssss] > size) return INT_MAX;
+                if (len[i+ssss] > reader.size() - reader.tell())
+                {
+                    free(old);
+                    //lastError = "incomplete songdata";
+                    //delete[] file;
+                    return false;
+                }
+
+                posBegin = reader.tell();
+
+                unsigned char* temp = new unsigned char[len[i+ssss]];
+                reader.read((void*)temp, len[i+ssss]);
+                a2t_depack(temp, len[i+ssss], (unsigned char *)old, 16 * sizeof (*old), version);
+                delete[] temp;
+
+                //a2t_depack(src, len[i+ssss], (char *)old, 16 * sizeof (*old), version);
+
+                for (int p = 0; p < 16; p++) 
+                { // pattern
+                    if (i * 8 + p >= patterns)
+                            break;
+                    for (int r = 0; r < 64; r++) // row
+                    for (int c = 0; c < 9; c++) 
+                    { // channel
+                        tADTRACK2_EVENT_V1234 *src = &old[p].row[r].ch[c].ev;
+                        //tADTRACK2_EVENT *dst = get_event_p(i * 16 + p, c, r);
+
+                        //convert_v1234_event(src, c);
+
+                        DivPattern* pat = s->pat[c].getPattern(i * 16 + p, true);
+                        uint8_t note = src->note;
+
+                        if(note == 255)
+                        {
+                            pat->data[r][0]=101; //key off
+                        }
+                        else if(note <= 96 && note != 0)
+                        {
+                            note -= 1;
+
+                            pat->data[r][0]=((note)%12);
+                            pat->data[r][1]=(note)/12;
+
+                            if(note % 12 == 0)
+                            {
+                                pat->data[r][0] = 12; //what the fuck?
+                                pat->data[r][1]--;
+                            }
+                        }
+                        
+                        if(src->instr_def > 0 && src->instr_def < 129)
+                        {
+                            pat->data[r][2] = src->instr_def - 1; //instrument
+
+                            if(pat->data[r][0] != -1)
+                            {
+                                pat->data[r][3] = 0x3f; //force max volume on each new note?
+                            }
+                        }
+
+                        if(src->effect_def != 0 || (src->effect_def == 0 && src->effect != 0))
+                        {
+                            convertAT2effect(((unsigned short)src->effect_def << 8) | src->effect, &pat->data[r][0], version);
+
+                            //pat->data[r][4] = src->effect_def;
+                            //pat->data[r][5] = src->effect;
+                        }
+
+                        //dst->note = src->note;
+                        //dst->instr_def = src->instr_def;
+                        //dst->eff[0].def = src->effect_def;
+                        //dst->eff[0].val = src->effect;
+                    }
+                }
+
+                //src += len[i+s];
+                reader.seek(posBegin + len[i+ssss], SEEK_SET);
+                //size -= len[i+s];
+                //retval += len[i+s];
+            }
+
+            free(old);
+            break;
+        }
+        case 5:
+        case 6:
+        case 7:
+        case 8: // [8][8][18][64][4]
+        {
+            tPATTERN_DATA_V5678 *old = (tPATTERN_DATA_V5678 *)calloc(8, sizeof(*old));
+
+            for (int i = 0; i < 8; i++) {
+                if (!len[i+ssss]) continue;
+
+                if (len[i+ssss] > reader.size() - reader.tell())
+                {
+                    free(old);
+                    //lastError = "incomplete songdata";
+                    //delete[] file;
+                    return false;
+                }
+
+                posBegin = reader.tell();
+
+                unsigned char* temp = new unsigned char[len[i+ssss]];
+                reader.read((void*)temp, len[i+ssss]);
+                a2t_depack(temp, len[i+ssss], (unsigned char *)old, 8 * sizeof (*old), version);
+                delete[] temp;
+                //a2t_depack(src, len[i+ssss], (char *)old, 8 * sizeof (*old), version);
+
+                for (int p = 0; p < 8; p++) { // pattern
+                    if (i * 8 + p >= patterns)
+                        break;
+                    for (int c = 0; c < 18; c++) // channel
+                    for (int r = 0; r < 64; r++) { // row
+                        tADTRACK2_EVENT_V1234 *src = &old[p].ch[c].row[r].ev;
+                        //tADTRACK2_EVENT *dst = get_event_p(i * 8 + p, c, r);
+
+                        //dst->note = src->note;
+                        //dst->instr_def = src->instr_def;
+                        //dst->eff[0].def = src->effect_def;
+                        //dst->eff[0].val = src->effect;
+
+                        DivPattern* pat = s->pat[c].getPattern(i * 8 + p, true);
+                        uint8_t note = src->note;
+
+                        if(note == 255)
+                        {
+                            pat->data[r][0]=101; //key off
+                        }
+                        else if(note <= 96 && note != 0)
+                        {
+                            note -= 1;
+
+                            pat->data[r][0]=((note)%12);
+                            pat->data[r][1]=(note)/12;
+
+                            if(note % 12 == 0)
+                            {
+                                pat->data[r][0] = 12; //what the fuck?
+                                pat->data[r][1]--;
+                            }
+                        }
+                        
+                        if(src->instr_def > 0 && src->instr_def < 129)
+                        {
+                            pat->data[r][2] = src->instr_def - 1; //instrument
+
+                            if(pat->data[r][0] != -1)
+                            {
+                                pat->data[r][3] = 0x3f; //force max volume on each new note?
+                            }
+                        }
+
+                        if(src->effect_def != 0 || (src->effect_def == 0 && src->effect != 0))
+                        {
+                            convertAT2effect(((unsigned short)src->effect_def << 8) | src->effect, &pat->data[r][0], version);
+
+                            //pat->data[r][4] = src->effect_def;
+                            //pat->data[r][5] = src->effect;
+                        }
+                    }
+                }
+
+                //src += len[i+s];
+                reader.seek(posBegin + len[i+ssss], SEEK_SET);
+                //size -= len[i+s];
+                //retval += len[i+s];
+            }
+
+            free(old);
+            break;
+        }
+        case 9:
+        case 10:
+        case 11:
+        case 12:
+        case 13:
+        case 14: // [16][8][20][256][6]
+        {
+            tPATTERN_DATA *old = (tPATTERN_DATA *)calloc(8, sizeof(*old));
+
+            // 16 groups of 8 patterns
+            for (int i = 0; i < 16; i++) 
+            {
+                if (!len[i+ssss]) continue;
+                //if (len[i+ssss] > size) return INT_MAX;
+                if (len[i+ssss] > reader.size() - reader.tell())
+                {
+                    free(old);
+                    //lastError = "incomplete songdata";
+                    //delete[] file;
+                    return false;
+                }
+
+                posBegin = reader.tell();
+
+                unsigned char* temp = new unsigned char[len[i+ssss]];
+                reader.read((void*)temp, len[i+ssss]);
+                a2t_depack(temp, len[i+ssss], (unsigned char *)old, 8 * sizeof (*old), version);
+                delete[] temp;
+                //a2t_depack(src, len[i+ssss], (char *)old, 8 * sizeof (*old), version);
+                //src += len[i+ssss];
+                //size -= len[i+ssss];
+                reader.seek(posBegin + len[i+ssss], SEEK_SET);
+                //retval += len[i+ssss];
+
+                for (int p = 0; p < 8; p++) 
+                { // pattern
+                    if (i * 8 + p >= patterns)
+                            break;
+
+                    for (int c = 0; c < songInfo.nm_tracks; c++) // channel
+                    for (int r = 0; r < songInfo.patt_len; r++) { // row
+                        //tADTRACK2_EVENT *dst = get_event_p(i * 8 + p, c, r);
+                        tADTRACK2_EVENT *src = &old[p].ch[c].row[r].ev;
+                        //*dst = *src; // copy struct
+                        DivPattern* pat = s->pat[c].getPattern(i * 8 + p, true);
+                        uint8_t note = src->note;
+
+                        if(note == 255)
+                        {
+                            pat->data[r][0]=101; //key off
+                        }
+                        else if(note <= 96 && note != 0)
+                        {
+                            note -= 1;
+
+                            pat->data[r][0]=((note)%12);
+                            pat->data[r][1]=(note)/12;
+
+                            if(note % 12 == 0)
+                            {
+                                pat->data[r][0] = 12; //what the fuck?
+                                pat->data[r][1]--;
+                            }
+                        }
+                        
+                        if(src->instr_def > 0 && src->instr_def < 129)
+                        {
+                            pat->data[r][2] = src->instr_def - 1; //instrument
+
+                            if(pat->data[r][0] != -1)
+                            {
+                                pat->data[r][3] = 0x3f; //force max volume on each new note?
+                            }
+                        }
+
+                        for(int effe = 0; effe < 2; effe++)
+                        {
+                            if(src->eff[effe].def != 0 || (src->eff[effe].def == 0 && src->eff[effe].val != 0))
+                            {
+                                convertAT2effect(((unsigned short)src->eff[effe].def << 8) | src->eff[effe].val, &pat->data[r][0], version);
+                                //pat->data[r][4 + effe*2] = src->eff[effe].def;
+                                //pat->data[r][5 + effe*2] = src->eff[effe].val;
+                            }
+                        }
+                    }
+                }
+            }
+
+            free(old);
+            break;
+        }
+    }
+
+    return true;
 }
 
 bool DivEngine::loadAT2(unsigned char* file, size_t len) 
@@ -993,7 +1705,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                 //if (lensize * sizeof(uint16_t) > len + sizeof(A2M_HEADER)) return INT_MAX;
                 if (lensize * sizeof(uint16_t) > reader.size() - reader.tell())
                 {
-                    lastError = "incomplete songdata";
+                    lastError = _("Incomplete songdata!");
                     delete[] file;
                     return false;
                 }
@@ -1011,7 +1723,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                 //if (lensize * sizeof(uint32_t) > len + sizeof(A2M_HEADER)) return INT_MAX;
                 if (lensize * sizeof(uint32_t) > reader.size() - reader.tell())
                 {
-                    lastError = "incomplete songdata";
+                    lastError = _("Incomplete songdata!");
                     delete[] file;
                     return false;
                 }
@@ -1030,7 +1742,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
         {
             if (len[0] > reader.size() - reader.tell())
             {
-                lastError = "incomplete songdata";
+                lastError = _("Incomplete songdata!");
                 delete[] file;
                 return false;
             }
@@ -1079,7 +1791,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                     ins->fm.op[0].ksl = instr_s->fm.kslM;
                     ins->fm.op[0].ar = instr_s->fm.attckM;
                     ins->fm.op[0].dr = instr_s->fm.decM;
-                    ins->fm.op[0].sl = instr_s->fm.sustM;
+                    ins->fm.op[0].sl = instr_s->fm.sustnM;
                     ins->fm.op[0].rr = instr_s->fm.relM;
                     ins->fm.op[0].ws = instr_s->fm.wformM;
 
@@ -1092,7 +1804,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                     ins->fm.op[1].ksl = instr_s->fm.kslC;
                     ins->fm.op[1].ar = instr_s->fm.attckC;
                     ins->fm.op[1].dr = instr_s->fm.decC;
-                    ins->fm.op[1].sl = instr_s->fm.sustC;
+                    ins->fm.op[1].sl = instr_s->fm.sustnC;
                     ins->fm.op[1].rr = instr_s->fm.relC;
                     ins->fm.op[1].ws = instr_s->fm.wformC;
 
@@ -1152,6 +1864,8 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                     memcpy(songInfo.instr_names[i], data->instr_names[i] + 1, 32);
                 }
 
+                songInfo.common_flag = data->common_flag;
+
                 for (int i = 0; i < count; i++) 
                 {
                     //instrument_import(i + 1, &data->instr_data[i]);
@@ -1178,7 +1892,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                     ins->fm.op[0].ksl = instr_s->fm.kslM;
                     ins->fm.op[0].ar = instr_s->fm.attckM;
                     ins->fm.op[0].dr = instr_s->fm.decM;
-                    ins->fm.op[0].sl = instr_s->fm.sustM;
+                    ins->fm.op[0].sl = instr_s->fm.sustnM;
                     ins->fm.op[0].rr = instr_s->fm.relM;
                     ins->fm.op[0].ws = instr_s->fm.wformM;
 
@@ -1191,7 +1905,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                     ins->fm.op[1].ksl = instr_s->fm.kslC;
                     ins->fm.op[1].ar = instr_s->fm.attckC;
                     ins->fm.op[1].dr = instr_s->fm.decC;
-                    ins->fm.op[1].sl = instr_s->fm.sustC;
+                    ins->fm.op[1].sl = instr_s->fm.sustnC;
                     ins->fm.op[1].rr = instr_s->fm.relC;
                     ins->fm.op[1].ws = instr_s->fm.wformC;
 
@@ -1289,276 +2003,33 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             }
         }
 
+        /*
+        ┌─────┬────────────────────────────┐
+        │ BiT │ SWiTCH                     │
+        ├─────┼────────────────────────────┤
+        │  0  │ update speed               │
+        │  1  │ track volume lock          │
+        │  2  │ volume peak lock           │
+        │  3  │ tremolo depth              │
+        │  4  │ vibrato depth              │
+        │  5  │ track panning lock         │
+        │  6  │ percussion track extension │
+        │  7  │ volume scaling             │
+        └─────┴────────────────────────────┘
+        */
+
+        if(songInfo.common_flag & 64)
+        {
+            ds.system[0] = DIV_SYSTEM_OPL3_DRUMS;
+        }
+
         if(!isA2t) //a2m, a2m_read_patterns
         {
-            size_t posBegin = reader.tell();
-            int ssss = 1;
-
-            switch (version) 
+            if(AT2ReadPatterns(s, reader, version, len, patterns, songInfo, 1) == false)
             {
-                case 1:
-                case 2:
-                case 3:
-                case 4: // [4][16][64][9][4]
-                {
-                    tPATTERN_DATA_V1234 *old = (tPATTERN_DATA_V1234 *)calloc(16, sizeof(*old));
-
-                    //memset(adsr_carrier, false, sizeof(adsr_carrier));
-
-                    for (int i = 0; i < 4; i++) 
-                    {
-                        if (!len[i+ssss]) continue;
-
-                        //if (len[i+ssss] > size) return INT_MAX;
-                        if (len[i+ssss] > reader.size() - reader.tell())
-                        {
-                            free(old);
-                            lastError = "incomplete songdata";
-                            delete[] file;
-                            return false;
-                        }
-
-                        posBegin = reader.tell();
-
-                        unsigned char* temp = new unsigned char[len[i+ssss]];
-                        reader.read((void*)temp, len[i+ssss]);
-                        a2t_depack(temp, len[i+ssss], (unsigned char *)old, 16 * sizeof (*old), version);
-                        delete[] temp;
-
-                        //a2t_depack(src, len[i+ssss], (char *)old, 16 * sizeof (*old), version);
-
-                        for (int p = 0; p < 16; p++) 
-                        { // pattern
-                            if (i * 8 + p >= patterns)
-                                    break;
-                            for (int r = 0; r < 64; r++) // row
-                            for (int c = 0; c < 9; c++) 
-                            { // channel
-                                tADTRACK2_EVENT_V1234 *src = &old[p].row[r].ch[c].ev;
-                                //tADTRACK2_EVENT *dst = get_event_p(i * 16 + p, c, r);
-
-                                //convert_v1234_event(src, c);
-
-                                DivPattern* pat = s->pat[c].getPattern(i * 16 + p, true);
-                                uint8_t note = src->note;
-
-                                if(note == 255)
-                                {
-                                    pat->data[r][0]=101; //key off
-                                }
-                                else if(note <= 96 && note != 0)
-                                {
-                                    note += 1;
-
-                                    pat->data[r][0]=((note)%12);
-                                    pat->data[r][1]=(note)/12;
-
-                                    if(note % 12 == 0)
-                                    {
-                                        pat->data[r][0] = 12; //what the fuck?
-                                        pat->data[r][1]--;
-                                    }
-                                }
-                                
-                                if(src->instr_def > 0)
-                                {
-                                    pat->data[r][2] = src->instr_def - 1; //instrument
-                                }
-
-                                if(src->effect_def != 0 || (src->effect_def == 0 && src->effect != 0))
-                                {
-                                    convertAT2effect(((unsigned short)src->effect_def << 8) | src->effect, &pat->data[r][4], version, pat->data[r][3]);
-
-                                    //pat->data[r][4] = src->effect_def;
-                                    //pat->data[r][5] = src->effect;
-                                }
-
-                                //dst->note = src->note;
-                                //dst->instr_def = src->instr_def;
-                                //dst->eff[0].def = src->effect_def;
-                                //dst->eff[0].val = src->effect;
-                            }
-                        }
-
-                        //src += len[i+s];
-                        reader.seek(posBegin + len[i+ssss], SEEK_SET);
-                        //size -= len[i+s];
-                        //retval += len[i+s];
-                    }
-
-                    free(old);
-                    break;
-                }
-                case 5:
-                case 6:
-                case 7:
-                case 8: // [8][8][18][64][4]
-                {
-                    tPATTERN_DATA_V5678 *old = (tPATTERN_DATA_V5678 *)calloc(8, sizeof(*old));
-
-                    for (int i = 0; i < 8; i++) {
-                        if (!len[i+ssss]) continue;
-
-                        if (len[i+ssss] > reader.size() - reader.tell())
-                        {
-                            free(old);
-                            lastError = "incomplete songdata";
-                            delete[] file;
-                            return false;
-                        }
-
-                        posBegin = reader.tell();
-
-                        unsigned char* temp = new unsigned char[len[i+ssss]];
-                        reader.read((void*)temp, len[i+ssss]);
-                        a2t_depack(temp, len[i+ssss], (unsigned char *)old, 8 * sizeof (*old), version);
-                        delete[] temp;
-                        //a2t_depack(src, len[i+ssss], (char *)old, 8 * sizeof (*old), version);
-
-                        for (int p = 0; p < 8; p++) { // pattern
-                            if (i * 8 + p >= patterns)
-                                break;
-                            for (int c = 0; c < 18; c++) // channel
-                            for (int r = 0; r < 64; r++) { // row
-                                tADTRACK2_EVENT_V1234 *src = &old[p].ch[c].row[r].ev;
-                                //tADTRACK2_EVENT *dst = get_event_p(i * 8 + p, c, r);
-
-                                //dst->note = src->note;
-                                //dst->instr_def = src->instr_def;
-                                //dst->eff[0].def = src->effect_def;
-                                //dst->eff[0].val = src->effect;
-
-                                DivPattern* pat = s->pat[c].getPattern(i * 8 + p, true);
-                                uint8_t note = src->note;
-
-                                if(note == 255)
-                                {
-                                    pat->data[r][0]=101; //key off
-                                }
-                                else if(note <= 96 && note != 0)
-                                {
-                                    note += 1;
-
-                                    pat->data[r][0]=((note)%12);
-                                    pat->data[r][1]=(note)/12;
-
-                                    if(note % 12 == 0)
-                                    {
-                                        pat->data[r][0] = 12; //what the fuck?
-                                        pat->data[r][1]--;
-                                    }
-                                }
-                                
-                                if(src->instr_def > 0)
-                                {
-                                    pat->data[r][2] = src->instr_def - 1; //instrument
-                                }
-
-                                if(src->effect_def != 0 || (src->effect_def == 0 && src->effect != 0))
-                                {
-                                    convertAT2effect(((unsigned short)src->effect_def << 8) | src->effect, &pat->data[r][4], version, pat->data[r][3]);
-
-                                    //pat->data[r][4] = src->effect_def;
-                                    //pat->data[r][5] = src->effect;
-                                }
-                            }
-                        }
-
-                        //src += len[i+s];
-                        reader.seek(posBegin + len[i+ssss], SEEK_SET);
-                        //size -= len[i+s];
-                        //retval += len[i+s];
-                    }
-
-                    free(old);
-                    break;
-                }
-                case 9:
-                case 10:
-                case 11:
-                case 12:
-                case 13:
-                case 14: // [16][8][20][256][6]
-                {
-                    tPATTERN_DATA *old = (tPATTERN_DATA *)calloc(8, sizeof(*old));
-
-                    // 16 groups of 8 patterns
-                    for (int i = 0; i < 16; i++) 
-                    {
-                        if (!len[i+ssss]) continue;
-                        //if (len[i+ssss] > size) return INT_MAX;
-                        if (len[i+ssss] > reader.size() - reader.tell())
-                        {
-                            free(old);
-                            lastError = "incomplete songdata";
-                            delete[] file;
-                            return false;
-                        }
-
-                        posBegin = reader.tell();
-
-                        unsigned char* temp = new unsigned char[len[i+ssss]];
-                        reader.read((void*)temp, len[i+ssss]);
-                        a2t_depack(temp, len[i+ssss], (unsigned char *)old, 8 * sizeof (*old), version);
-                        delete[] temp;
-                        //a2t_depack(src, len[i+ssss], (char *)old, 8 * sizeof (*old), version);
-                        //src += len[i+ssss];
-                        //size -= len[i+ssss];
-                        reader.seek(posBegin + len[i+ssss], SEEK_SET);
-                        //retval += len[i+ssss];
-
-                        for (int p = 0; p < 8; p++) 
-                        { // pattern
-                            if (i * 8 + p >= patterns)
-                                    break;
-
-                            for (int c = 0; c < songInfo.nm_tracks; c++) // channel
-                            for (int r = 0; r < songInfo.patt_len; r++) { // row
-                                //tADTRACK2_EVENT *dst = get_event_p(i * 8 + p, c, r);
-                                tADTRACK2_EVENT *src = &old[p].ch[c].row[r].ev;
-                                //*dst = *src; // copy struct
-                                DivPattern* pat = s->pat[c].getPattern(i * 8 + p, true);
-                                uint8_t note = src->note;
-
-                                if(note == 255)
-                                {
-                                    pat->data[r][0]=101; //key off
-                                }
-                                else if(note <= 96 && note != 0)
-                                {
-                                    note += 1;
-
-                                    pat->data[r][0]=((note)%12);
-                                    pat->data[r][1]=(note)/12;
-
-                                    if(note % 12 == 0)
-                                    {
-                                        pat->data[r][0] = 12; //what the fuck?
-                                        pat->data[r][1]--;
-                                    }
-                                }
-                                
-                                if(src->instr_def > 0)
-                                {
-                                    pat->data[r][2] = src->instr_def - 1; //instrument
-                                }
-
-                                for(int effe = 0; effe < 2; effe++)
-                                {
-                                    if(src->eff[effe].def != 0 || (src->eff[effe].def == 0 && src->eff[effe].val != 0))
-                                    {
-                                        convertAT2effect(((unsigned short)src->eff[effe].def << 8) | src->eff[effe].val, &pat->data[r][4 + effe*2], version, pat->data[r][3]);
-                                        //pat->data[r][4 + effe*2] = src->eff[effe].def;
-                                        //pat->data[r][5 + effe*2] = src->eff[effe].val;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    free(old);
-                    break;
-                }
+                lastError = _("Incomplete pattern data!");
+                delete[] file;
+                return false;
             }
 
             if(version >= 11)
@@ -1574,13 +2045,39 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             }
         }
 
+        //s->makePatUnique(); //needed for non-continuous to continuous effects conversion
+
+        //todo effects conversion
+
+        //s->optimizePatterns(); //if after converting effects we still have some duplicates
+        //s->rearrangePatterns();
+
+        logI("macro speedup %d", songInfo.macro_speedup);
+
+        if(songInfo.macro_speedup > 1)
+        {
+        #ifdef HAVE_LOCALE
+            warnings += fmt::sprintf(ngettext("In this module macros execution speed is %d time larger than engine rate. Conversion may be inaccurate.",
+                "In this module macros execution speed is %d times larger than engine rate. Conversion may be inaccurate.\n",songInfo.macro_speedup),songInfo.macro_speedup);
+        #else
+            warnings += fmt::sprintf(_GN("In this module macros execution speed is %d time larger than engine rate. Conversion may be inaccurate.",
+                "In this module macros execution speed is %d times larger than engine rate. Conversion may be inaccurate.\n",songInfo.macro_speedup),songInfo.macro_speedup);
+        #endif
+        }
+
         ds.insLen = ds.ins.size();
         ds.sampleLen = ds.sample.size();
         ds.waveLen = ds.wave.size();
 
         ds.systemName = _("OPL3");
 
+        if(songInfo.common_flag & 64)
+        {
+            ds.systemName = _("OPL3 in drums mode");
+        }
+
         ds.linearPitch = 0;
+        ds.pitchMacroIsLinear = false;
 
         if (active) quitDispatch();
         BUSY_BEGIN_SOFT;
