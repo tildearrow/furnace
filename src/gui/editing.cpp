@@ -1846,8 +1846,11 @@ void FurnaceGUI::doAbsorbInstrument() {
       }
 
       // absorb most recent octave (i.e. set curOctave such that the "main row" (QWERTY) of
-      // notes will result in an octave number equal to the previous note).
-      if (!foundOctave && pat->data[i][0] != 0) {
+      // notes will result in an octave number equal to the previous note). make sure to
+      // skip "special note values" like OFF/REL/=== and "none", since there won't be valid
+      // octave values
+      unsigned char note=pat->data[i][0];
+      if (!foundOctave && note!=0 && note!=100 && note!=101 && note!=102) {
         foundOctave=true;
 
         // decode octave data (was signed cast to unsigned char)
