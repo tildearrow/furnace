@@ -162,8 +162,8 @@ void DivPlatformAY8910::runTFX(int runRate) {
   because for some reason, the register remap doesn't work
   when the user uses AtomicSSG core
   */
-  // TODO: this
-  if (runRate==0) runRate=dacRate;
+  float counterRatio=1.0;
+  if (runRate!=0) counterRatio=(double)rate/(double)runRate;
   int timerPeriod, output;
   for (int i=0; i<3; i++) {
     if (chan[i].active && (chan[i].curPSGMode.val&16) && !(chan[i].curPSGMode.val&8) && chan[i].tfx.mode!=-1) {
@@ -185,9 +185,9 @@ void DivPlatformAY8910::runTFX(int runRate) {
           continue;
         }
       }
-      chan[i].tfx.counter += 1;
+      chan[i].tfx.counter += counterRatio;
       if (chan[i].tfx.counter >= chan[i].tfx.period && chan[i].tfx.mode == 0) {
-        chan[i].tfx.counter = 0;
+        chan[i].tfx.counter -= chan[i].tfx.period;
         chan[i].tfx.out ^= 1;
         output = ((chan[i].tfx.out) ? chan[i].outVol : (chan[i].tfx.lowBound-(15-chan[i].outVol)));
         // TODO: fix this stupid crackling noise that happens
@@ -204,7 +204,7 @@ void DivPlatformAY8910::runTFX(int runRate) {
         }
       }
       if (chan[i].tfx.counter >= chan[i].tfx.period && chan[i].tfx.mode == 1) {
-        chan[i].tfx.counter = 0;
+        chan[i].tfx.counter -= chan[i].tfx.period;
         if (!isMuted[i]) {
           if (intellivision && selCore) {
             immWrite(0xa, ayEnvMode);
@@ -214,7 +214,7 @@ void DivPlatformAY8910::runTFX(int runRate) {
         }
       }
       if (chan[i].tfx.counter >= chan[i].tfx.period && chan[i].tfx.mode == 2) {
-        chan[i].tfx.counter = 0;
+        chan[i].tfx.counter -= chan[i].tfx.period;
       }
     }
     if (chan[i].tfx.num > 0) {
