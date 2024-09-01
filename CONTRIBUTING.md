@@ -1,16 +1,19 @@
 # Contributing
 
-contributions to Furnace are welcome!
-
-# Issue reports
+## Issue reports
 
 if you find an issue with Furnace, see the Issues section.
 
-# Suggestions and other types of discussions
+## Suggestions and other types of discussions
 
 see the Discussions section.
-
 **DO NOT USE THE ISSUES SECTION FOR THESE - it is only for ISSUES.**
+
+## Code contributions
+
+Furnace is currently a "solo/monarchy"-led project, rather than community-led (https://wackowiki.org/doc/Org/Articles/5TypesOpenSourceProjects is a nice reference). While contributions are often welcome and appreciated, not all features will be accepted (for example if the maintainer(s) feel they're out of scope or add too much complexity).
+
+tildearrow (project author) holds full discretion over what goes into this repo, so please understand that there's <ins>no guarantee any PR will be accepted, or reviewed within a particular timeframe</ins>. That said, many great features/chips/fixes have come from the community, so please feel free to get involved!
 
 # Other
 
