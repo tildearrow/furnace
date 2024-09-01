@@ -1131,6 +1131,7 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version)
                 }
                 default: break;
             }
+            break;
         }
         case ef_Extended3:
         {
@@ -1215,6 +1216,8 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version)
                 }
                 default: break;
             }
+
+            break;
         }
 
         default: break;
