@@ -61,17 +61,17 @@ void DivPlatformSupervision::acquire(short** buf, size_t len) {
     int mask_bits=0;
     for (int i=0; i<4; i++)
       mask_bits |= isMuted[i]?0:8>>i;
-    supervision_set_mute_mask(mask_bits);
+    supervision_set_mute_mask(&svision,mask_bits);
 
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
-      supervision_memorymap_registers_write(w.addr|0x2000,w.val);
+      supervision_memorymap_registers_write(&svision,w.addr|0x2000,w.val);
       regPool[w.addr&0x3f]=w.val;
       writes.pop();
     }
 
     unsigned char s[6];
-    supervision_sound_stream_update(s,2);
+    supervision_sound_stream_update(&svision,s,2);
     tempL[0]=(((int)s[0])-128)*256;
     tempR[0]=(((int)s[1])-128)*256;
 
@@ -441,7 +441,7 @@ void DivPlatformSupervision::reset() {
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
-  supervision_sound_reset();
+  supervision_sound_reset(&svision);
   memset(tempL,0,32*sizeof(int));
   memset(tempR,0,32*sizeof(int));
   memset(noiseReg,0,3*sizeof(unsigned char));
@@ -481,8 +481,8 @@ void DivPlatformSupervision::setFlags(const DivConfig& flags) {
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate;
   }
-  supervision_sound_set_clock((unsigned int)chipClock);
-  supervision_sound_set_flags((unsigned int)otherFlags);
+  supervision_sound_set_clock(&svision,(unsigned int)chipClock);
+  supervision_sound_set_flags(&svision,(unsigned int)otherFlags);
 }
 
 void DivPlatformSupervision::poke(unsigned int addr, unsigned short val) {
@@ -574,12 +574,14 @@ int DivPlatformSupervision::init(DivEngine* p, int channels, int sugRate, const 
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  sampleMem=supervision_dma_mem;
+  sampleMem=svision.supervision_dma_mem;
   dutySwap=0;
   otherFlags=0;
   sampleOffset=0;
   sampleMemLen=0;
   memset(sampleMem,0,65536);
+  svision.ch_mask=15;
+  svision.flags=1;
   setFlags(flags);
   reset();
   return 4;

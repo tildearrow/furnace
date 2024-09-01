@@ -66,6 +66,7 @@ class DivPlatformSupervision: public DivDispatch {
   unsigned char noiseReg[3];
   unsigned char kon[4];
   unsigned char initWrite[4];
+  struct svision_t svision;
 
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);

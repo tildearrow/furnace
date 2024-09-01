@@ -47,12 +47,12 @@ void DivPlatformUPD1771c::acquire(short** buf, size_t len) {
 
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
-      upd1771c_write_packet(w.addr&15,w.val);
+      upd1771c_write_packet(&scv,w.addr&15,w.val);
       regPool[w.addr&0xf]=w.val;
       writes.pop();
     }
 
-    signed short s = upd1771c_sound_stream_update()<<3;
+    signed short s = (upd1771c_sound_stream_update(&scv)<<3)*((isMuted[0]&1)^1);
 
     for (int i=0; i<1; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=s;
@@ -314,7 +314,7 @@ void DivPlatformUPD1771c::reset() {
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
-  //upd1771c_sound_reset();
+  upd1771c_reset(&scv);
   memset(tempL,0,32*sizeof(int));
   memset(tempR,0,32*sizeof(int));
   memset(kon,0,1*sizeof(unsigned char));
@@ -342,7 +342,7 @@ void DivPlatformUPD1771c::setFlags(const DivConfig& flags) {
   for (int i=0; i<1; i++) {
     oscBuf[i]->rate=rate;
   }
-  upd1771c_sound_set_clock((unsigned int)chipClock,8);
+  upd1771c_sound_set_clock(&scv,(unsigned int)chipClock,8);
 }
 
 void DivPlatformUPD1771c::poke(unsigned int addr, unsigned short val) {

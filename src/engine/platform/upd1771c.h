@@ -53,6 +53,7 @@ class DivPlatformUPD1771c: public DivDispatch {
   // I may add the 3 square waves in noise mode later...
   unsigned char kon[1];
   unsigned char initWrite[1];
+  struct upd1771c_t scv;
 
 
   friend void putDispatchChip(void*,int);

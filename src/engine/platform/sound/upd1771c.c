@@ -216,89 +216,79 @@ const unsigned char noise_tbl[8][256] = {
 
 };
 
-uint8_t upd1771c_packets[16];
-uint8_t upd1771c_mode;
-uint32_t upd1771c_pos;
-uint8_t upd1771c_off;
-uint8_t upd1771c_posc;
-uint8_t upd1771c_wave;
-uint8_t upd1771c_vol;
-uint8_t upd1771c_period;
-uint8_t upd1771c_npos;
-void upd1771c_reset() {
-    memset(upd1771c_packets,0,16);
-    upd1771c_mode = 0;
-    upd1771c_pos = 0;
-    upd1771c_posc = 0;
-    upd1771c_wave = 0;
-    upd1771c_vol = 0;
-    upd1771c_period = 0;
-    upd1771c_off = 0;
-    upd1771c_npos = 0;
+void upd1771c_reset(struct upd1771c_t *scv) {
+    memset(scv->upd1771c_packets,0,16);
+    scv->upd1771c_mode = 0;
+    scv->upd1771c_pos = 0;
+    scv->upd1771c_posc = 0;
+    scv->upd1771c_wave = 0;
+    scv->upd1771c_vol = 0;
+    scv->upd1771c_period = 0;
+    scv->upd1771c_off = 0;
+    scv->upd1771c_npos = 0;
+    //scv->upd1771c_repsamp = 0;
 }
 
-void upd1771c_write_packet(uint8_t ind, uint8_t val) {
-    upd1771c_packets[ind&15] = val;
-    switch (upd1771c_packets[0]) {
+void upd1771c_write_packet(struct upd1771c_t *scv, uint8_t ind, uint8_t val) {
+    scv->upd1771c_packets[ind&15] = val;
+    switch (scv->upd1771c_packets[0]) {
         case 1:
             if (ind == 3) {
-                upd1771c_mode = 1;
-                upd1771c_wave = (upd1771c_packets[1]&0xe0)>>5;
-                upd1771c_off = 0; //?
-                upd1771c_period = upd1771c_packets[2];
-                upd1771c_vol = upd1771c_packets[3]&0x1f;
+                scv->upd1771c_mode = 1;
+                scv->upd1771c_wave = (scv->upd1771c_packets[1]&0xe0)>>5;
+                scv->upd1771c_off = 0; //?
+                scv->upd1771c_period = scv->upd1771c_packets[2];
+                scv->upd1771c_vol = scv->upd1771c_packets[3]&0x1f;
             }
             break;
         case 2:
             if (ind == 3) {
-                upd1771c_mode = 2;
-                upd1771c_wave = (upd1771c_packets[1]&0xe0)>>5;
-                upd1771c_off = upd1771c_packets[1]&0x1f;
-                upd1771c_period = upd1771c_packets[2]<0x20?0x20:upd1771c_packets[2];
-                upd1771c_vol = upd1771c_packets[3]&0x1f;
+                scv->upd1771c_mode = 2;
+                scv->upd1771c_wave = (scv->upd1771c_packets[1]&0xe0)>>5;
+                scv->upd1771c_off = scv->upd1771c_packets[1]&0x1f;
+                scv->upd1771c_period = scv->upd1771c_packets[2]<0x20?0x20:scv->upd1771c_packets[2];
+                scv->upd1771c_vol = scv->upd1771c_packets[3]&0x1f;
             }
             break;
         default:
         case 0:
-            upd1771c_mode = 0;
+            scv->upd1771c_mode = 0;
             break;
     }
 }
 
-int upd1771c_repsamp = 0;
-
-void upd1771c_sound_set_clock(unsigned int clock, unsigned int divi) {
-    upd1771c_repsamp = divi;
+void upd1771c_sound_set_clock(struct upd1771c_t *scv, unsigned int clock, unsigned int divi) {
+    scv->upd1771c_repsamp = divi;
 }
 
-int16_t upd1771c_sound_stream_update() {
+int16_t upd1771c_sound_stream_update(struct upd1771c_t *scv) {
     int16_t s = 0;
-    for (int i = 0; i < upd1771c_repsamp; i++) {
+    for (int i = 0; i < scv->upd1771c_repsamp; i++) {
         s = 0;
-        switch (upd1771c_mode) {
+        switch (scv->upd1771c_mode) {
             case 2:
-                s = ((int16_t)WAVEFORMS[upd1771c_wave][upd1771c_posc])*upd1771c_vol;
-                upd1771c_pos++;
-                if (upd1771c_pos >= upd1771c_period) {
-                    upd1771c_pos=0;
-                    upd1771c_posc++;
-                    if (upd1771c_posc == 32)
-                        upd1771c_posc = upd1771c_off;
+                s = ((int16_t)WAVEFORMS[scv->upd1771c_wave][scv->upd1771c_posc])*scv->upd1771c_vol;
+                scv->upd1771c_pos++;
+                if (scv->upd1771c_pos >= scv->upd1771c_period) {
+                    scv->upd1771c_pos=0;
+                    scv->upd1771c_posc++;
+                    if (scv->upd1771c_posc == 32)
+                        scv->upd1771c_posc = scv->upd1771c_off;
                 }
                 break;
             case 1:
-                upd1771c_pos++;
-                if (upd1771c_pos >= ((((uint32_t)upd1771c_period) + 1)*128)) {
-                    upd1771c_pos=0;
-                    upd1771c_posc++;
-                    if (upd1771c_posc == NOISE_SIZE)
-                        upd1771c_posc = 0;
+                scv->upd1771c_pos++;
+                if (scv->upd1771c_pos >= ((((uint32_t)scv->upd1771c_period) + 1)*128)) {
+                    scv->upd1771c_pos=0;
+                    scv->upd1771c_posc++;
+                    if (scv->upd1771c_posc == NOISE_SIZE)
+                        scv->upd1771c_posc = 0;
                 }
-                uint16_t p = upd1771c_posc;
+                uint16_t p = scv->upd1771c_posc;
                 p = p>=254?253:p;
-                s = ((int16_t)(noise_tbl[upd1771c_wave][p])-127)*upd1771c_vol;
+                s = ((int16_t)(noise_tbl[scv->upd1771c_wave][p])-127)*scv->upd1771c_vol;
                 // inaccurate noise mixing :/
-                // s |= (upd1771c_npos&128)?127*upd1771c_vol:0;
+                // s |= (scv->upd1771c_npos&128)?127*scv->upd1771c_vol:0;
                 break;
             case 0:
             default:
