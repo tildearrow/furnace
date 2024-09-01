@@ -444,6 +444,10 @@ void DivPlatformYM2203::acquire_lle(short** buf, size_t len) {
   }
 }
 
+void DivPlatformYM2203::fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len) {
+  ay->fillStream(stream,sRate,len);
+}
+
 void DivPlatformYM2203::tick(bool sysTick) {
   // PSG
   ay->tick(sysTick);

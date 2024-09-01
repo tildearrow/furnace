@@ -113,14 +113,15 @@ const unsigned char dacLogTableAY[256]={
   15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15
 };
 
-void DivPlatformAY8910::runDAC() {
+void DivPlatformAY8910::runDAC(int runRate) {
+  if (runRate==0) runRate=dacRate;
   for (int i=0; i<3; i++) {
     if (chan[i].active && (chan[i].curPSGMode.val&8) && chan[i].dac.sample!=-1) {
       chan[i].dac.period+=chan[i].dac.rate;
       bool end=false;
       bool changed=false;
       int prevOut=chan[i].dac.out;
-      while (chan[i].dac.period>dacRate && !end) {
+      while (chan[i].dac.period>runRate && !end) {
         DivSample* s=parent->getSample(chan[i].dac.sample);
         if (s->samples<=0 || chan[i].dac.pos<0 || chan[i].dac.pos>=(int)s->samples) {
           chan[i].dac.sample=-1;
@@ -143,7 +144,7 @@ void DivPlatformAY8910::runDAC() {
           end=true;
           break;
         }
-        chan[i].dac.period-=dacRate;
+        chan[i].dac.period-=runRate;
       }
       if (changed && !end) {
         if (!isMuted[i]) {
@@ -154,13 +155,15 @@ void DivPlatformAY8910::runDAC() {
   }
 }
 
-void DivPlatformAY8910::runTFX() {
+void DivPlatformAY8910::runTFX(int runRate) {
   /*
   developer's note: if you are checking for intellivision
   make sure to add "&& selCore"
   because for some reason, the register remap doesn't work
   when the user uses AtomicSSG core
   */
+  // TODO: this
+  if (runRate==0) runRate=dacRate;
   int timerPeriod, output;
   for (int i=0; i<3; i++) {
     if (chan[i].active && (chan[i].curPSGMode.val&16) && !(chan[i].curPSGMode.val&8) && chan[i].tfx.mode!=-1) {
@@ -327,12 +330,9 @@ void DivPlatformAY8910::acquire(short** buf, size_t len) {
 
 void DivPlatformAY8910::fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len) {
   writes.clear();
-  int hrate=(int)(rate/sRate);
   for (size_t i=0; i<len; i++) {
-    for (int h=0; h<hrate; h++) {
-      runDAC();
-      runTFX();
-    }
+    runDAC(sRate);
+    runTFX(sRate);
     while (!writes.empty()) {
       QueuedWrite& w=writes.front();
       stream.push_back(DivDelayedWrite(i,w.addr,w.val));
