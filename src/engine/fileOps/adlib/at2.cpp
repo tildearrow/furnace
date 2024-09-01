@@ -769,13 +769,15 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version)
         {
             if(paramUpperNibble != 0xf)
             {
-                data[4 + emptyEffSlot * 2] = 0x12;
-                data[5 + emptyEffSlot * 2] = paramUpperNibble;
+                data[4 + emptyEffSlot * 2] = 0x2A;
+                data[5 + emptyEffSlot * 2] = (2 << 4) | paramUpperNibble;
             }
             if(paramLowerNibble != 0xf)
             {
-                data[2] = 0x13;
-                data[3] = paramLowerNibble;
+                emptyEffSlot = findEmptyEffectSlot(data);
+
+                data[4 + emptyEffSlot * 2] = 0x2A;
+                data[5 + emptyEffSlot * 2] = (1 << 4) | paramUpperNibble;
             }
             break;
         }
