@@ -57,12 +57,12 @@ const char** DivPlatformSupervision::getRegisterSheet() {
 }
 
 void DivPlatformSupervision::acquire(short** buf, size_t len) {
-  for (size_t h=0; h<len; h++) {
-    int mask_bits=0;
-    for (int i=0; i<4; i++)
-      mask_bits |= isMuted[i]?0:8>>i;
-    supervision_set_mute_mask(&svision,mask_bits);
+  int mask_bits=0;
+  for (int i=0; i<4; i++)
+    mask_bits |= isMuted[i]?0:8>>i;
+  supervision_set_mute_mask(&svision,mask_bits);
 
+  for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
       supervision_memorymap_registers_write(&svision,w.addr|0x2000,w.val);

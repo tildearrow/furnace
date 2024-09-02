@@ -3,8 +3,6 @@
 
 #include "supervision.h"
 
-enum {FALSE, TRUE};
-
 #include <string.h>
 
 #define SV_SAMPLE_RATE ((svision->UNSCALED_CLOCK)/64)
@@ -71,7 +69,7 @@ void supervision_sound_stream_update(struct svision_t *svision, uint8 *stream, u
             chout[j] = 0;
             if (svision->ch[j].size != 0) {
                 if (svision->ch[j].on || channel->count != 0) {
-                    BOOL on = FALSE;
+                    BOOL on = 0;
                     switch (svision->ch[j].waveform) {
                         case 0: // 12.5%
                             on = svision->ch[j].pos < (28 * svision->ch[j].size) >> 5;
@@ -106,7 +104,7 @@ void supervision_sound_stream_update(struct svision_t *svision, uint8 *stream, u
                     // Transition from off to on
                     if (channel->on) {
                         memcpy(&svision->ch[j], channel, sizeof(svision->ch[j]));
-                        channel->on = FALSE;
+                        channel->on = 0;
                     }
                 }
             }
@@ -160,7 +158,7 @@ void supervision_sound_stream_update(struct svision_t *svision, uint8 *stream, u
             }
             svision->m_dma.pos += svision->m_dma.step;
             if (svision->m_dma.pos >= svision->m_dma.size) {
-                svision->m_dma.on = FALSE;
+                svision->m_dma.on = 0;
             }
         }
 
