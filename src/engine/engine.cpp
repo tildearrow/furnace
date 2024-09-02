@@ -520,6 +520,17 @@ void DivEngine::initSongWithDesc(const char* description, bool inBase64, bool ol
   if (song.subsong[0]->hz<1.0) song.subsong[0]->hz=1.0;
   if (song.subsong[0]->hz>999.0) song.subsong[0]->hz=999.0;
 
+  unsigned int chanMask[DIV_MAX_CHANS/32];
+  memset(chanMask,0,sizeof(chanMask));
+  for (unsigned char i=0; i<DIV_MAX_CHANS/32; i++) {
+    chanMask[i]=c.getInt(fmt::sprintf("chanMask%d",i),0xffffffff);
+  }
+  for (unsigned char i=0; i<DIV_MAX_CHANS; i++) {
+    bool showChan=(chanMask[i>>5]>>(i&31))&1;
+    song.subsong[0]->chanShow[i]=showChan;
+    song.subsong[0]->chanShowChanOsc[i]=showChan;
+  }
+
   song.author=getConfString("defaultAuthorName","");
 }
 
