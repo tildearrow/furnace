@@ -107,21 +107,6 @@ void FurnaceGUI::drawChannels() {
         ImGui::PopID();
       }
       ImGui::EndTable();
-
-      // chanmask generator
-      unsigned int chanMask[DIV_MAX_CHANS/32];
-      memset(chanMask,0,sizeof(chanMask));
-      for (unsigned char i=0; i<e->getTotalChannelCount(); i++) {
-        chanMask[i>>5]|=e->curSubSong->chanShow[i]<<(i&31);
-      }
-      if (ImGui::TreeNode("channel mask for user presets")) {
-        String maskText="";
-        for (unsigned char j=0; j<((e->getTotalChannelCount()-1)>>5)+1; j++) maskText+=fmt::sprintf("chanMask%d=%u\n",j,chanMask[j]);
-        ImGui::Indent();
-        ImGui::InputTextMultiline("##chanmaskgen",&maskText,ImVec2(0,0),ImGuiInputTextFlags_ReadOnly);
-        ImGui::Unindent();
-        ImGui::TreePop();
-      }
     }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_CHANNELS;

@@ -476,10 +476,7 @@ void FurnaceGUI::drawUserPresets() {
                 "insert additional settings in `option=value` format.\n"
                 "available options:\n"
                 "- tickRate \n"
-                "- chanMask0 \n"
-                "- chanMask1 \n"
-                "- chanMask2 \n"
-                "- chanMask3 "
+                "- chanMask \n"
               ));
             }
 
