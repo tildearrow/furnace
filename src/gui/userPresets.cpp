@@ -475,7 +475,8 @@ void FurnaceGUI::drawUserPresets() {
               ImGui::SetTooltip(_(
                 "insert additional settings in `option=value` format.\n"
                 "available options:\n"
-                "- tickRate"
+                "- tickRate \n"
+                "- chanMask0-chanMask3 "
               ));
             }
 
