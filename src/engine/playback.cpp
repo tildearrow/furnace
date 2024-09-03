@@ -266,7 +266,8 @@ const char* cmdName[]={
 
   "FDS_MOD_AUTO",
 
-  "FM_OPMASK"
+  "FM_OPMASK",
+  "FM_ALGORITHM"
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");

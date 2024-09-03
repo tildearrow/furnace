@@ -505,6 +505,7 @@ void DivEngine::registerSystems() {
     {0x5e, {DIV_CMD_FM_D2R, _("5Exx: Set decay 2 of operator 3 (0 to 1F)"), constVal<2>, effectValAnd<31>}},
     {0x5f, {DIV_CMD_FM_D2R, _("5Fxx: Set decay 2 of operator 4 (0 to 1F)"), constVal<3>, effectValAnd<31>}},
     {0x60, {DIV_CMD_FM_OPMASK, _("60xx: Set operator mask (bits 0-3)")}},
+    {0x61, {DIV_CMD_FM_ALGORITHM, _("61xx: Set FM algortihm (0 to 7)")}},
   };
 
   EffectHandlerMap fmOPMPostEffectHandlerMap(fmOPNPostEffectHandlerMap);
@@ -528,6 +529,7 @@ void DivEngine::registerSystems() {
     {0x2a, {DIV_CMD_FM_WS, _("2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 7)"), effectOpVal<4>, effectValAnd<7>}},
     {0x2b, {DIV_CMD_FM_EG_SHIFT, _("2Bxy: Set envelope generator shift (x: operator from 1 to 4 (0 for all ops); y: shift from 0 to 3)"), effectOpVal<4>, effectValAnd<3>}},
     {0x2c, {DIV_CMD_FM_FINE, _("2Cxy: Set fine multiplier (x: operator from 1 to 4 (0 for all ops); y: fine)"), effectOpVal<4>, effectValAnd<15>}},
+    {0x2d, {DIV_CMD_FM_ALGORITHM, _("2Dxx: Set FM algortihm (0 to 7)")}},
   });
   const EffectHandler fmOPZFixFreqHandler[4]={
     {DIV_CMD_FM_FIXFREQ, _("3xyy: Set fixed frequency of operator 1 (x: octave from 0 to 7; y: frequency)"), constVal<0>, effectValLong<11>},
@@ -600,6 +602,7 @@ void DivEngine::registerSystems() {
     {0x59, {DIV_CMD_FM_DR, _("59xx: Set decay of operator 3 (0 to F)"), constVal<2>, effectValAnd<15>}},
     {0x5a, {DIV_CMD_FM_DR, _("5Axx: Set decay of operator 4 (0 to F)"), constVal<3>, effectValAnd<15>}},
     {0x5b, {DIV_CMD_FM_KSR, _("5Bxy: Set whether key will scale envelope (x: operator from 1 to 4 (0 for all ops); y: enabled)"), effectOpVal<4>, effectValAnd<1>}},
+    {0x5c, {DIV_CMD_FM_ALGORITHM, _("5Cxx: Set FM algortihm (0 to 1 for 2-op channel, 0 to 3 for 4-op channel (OPL3 only))")}},
   };
 
   EffectHandlerMap c64PostEffectHandlerMap={

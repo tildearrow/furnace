@@ -235,6 +235,15 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       }
       break;
     }
+    case DIV_CMD_FM_ALGORITHM: 
+    {
+      if (c.value<8)
+      {
+        chan[2].state.alg = c.value & 7;
+        rWrite(chanOffs[2]+ADDR_FB_ALG,(chan[2].state.alg&7)|(chan[2].state.fb<<3));
+      }
+      break;
+    }
     case DIV_CMD_FM_RS: {
       if (c.value<0)  {
         for (int i=0; i<4; i++) {
