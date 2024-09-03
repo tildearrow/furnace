@@ -72,6 +72,10 @@ the following options are available in the Chip Manager window:
   - DPCM: the default mode, playing 1-bit DPCM samples as supported by the hardware.
   - PCM: this mode provides crispier samples by writing the delta counter directly. uses a lot of CPU time in console.
 
+## DPCM sample loop
+
+due to hardware limitations, a loop in a DPCM sample must start on a multiple of 512 samples (512, 1024, 1536...) and have a length that is a multiple of 128 plus 8 samples (136, 264, 392...)
+
 ## short noise frequencies (NTSC)
 
 note  | arpeggio | fundamental | MIDI note | pitch

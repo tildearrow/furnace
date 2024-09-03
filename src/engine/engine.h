@@ -54,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev217"
-#define DIV_ENGINE_VERSION 217
+#define DIV_VERSION "dev220"
+#define DIV_ENGINE_VERSION 220
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -518,6 +518,7 @@ class DivEngine {
   std::vector<DivCommand> cmdStream;
   std::vector<DivInstrumentType> possibleInsTypes;
   std::vector<DivEffectContainer> effectInst;
+  std::vector<int> curChanMask;
   static DivSysDef* sysDefs[DIV_MAX_CHIP_DEFS];
   static DivSystem sysFileMapFur[DIV_MAX_CHIP_DEFS];
   static DivSystem sysFileMapDMF[DIV_MAX_CHIP_DEFS];

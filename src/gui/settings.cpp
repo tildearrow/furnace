@@ -2462,6 +2462,8 @@ void FurnaceGUI::drawSettings() {
             uiKeybindConfig(GUI_ACTION_PAT_LATCH);
             uiKeybindConfig(GUI_ACTION_PAT_CLEAR_LATCH);
             uiKeybindConfig(GUI_ACTION_PAT_ABSORB_INSTRUMENT);
+            uiKeybindConfig(GUI_ACTION_PAT_CURSOR_UNDO);
+            uiKeybindConfig(GUI_ACTION_PAT_CURSOR_REDO);
 
             KEYBIND_CONFIG_END;
             ImGui::TreePop();

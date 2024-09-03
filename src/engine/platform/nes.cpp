@@ -175,6 +175,13 @@ void DivPlatformNES::acquire_NSFPlayE(short** buf, size_t len) {
   int out2[2];
   for (size_t i=0; i<len; i++) {
     doPCM;
+
+    if (!writes.empty()) {
+      QueuedWrite w=writes.front();
+      doWrite(w.addr,w.val);
+      regPool[w.addr&0x1f]=w.val;
+      writes.pop();
+    }
   
     e1_NP->Tick(8);
     e2_NP->TickFrameSequence(8);
@@ -436,7 +443,7 @@ void DivPlatformNES::tick(bool sysTick) {
           // https://www.youtube.com/watch?v=vB4P8x2Am6Y
 
           if (lsamp->loopEnd>lsamp->loopStart && goingToLoop) {
-            int loopStartAddr=(sampleOffDPCM[dacSample]+lsamp->loopStart)>>3;
+            int loopStartAddr=sampleOffDPCM[dacSample]+(lsamp->loopStart>>3);
             int loopLen=(lsamp->loopEnd-lsamp->loopStart)>>3;
 
             rWrite(0x4012,(loopStartAddr>>6)&0xff);
@@ -492,14 +499,14 @@ int DivPlatformNES::dispatch(DivCommand c) {
             }
           }
           if (c.value!=DIV_NOTE_NULL) {
-            dacSample=ins->amiga.getSample(c.value);
+            dacSample=(int)ins->amiga.getSample(c.value);
             if (ins->type==DIV_INS_AMIGA) {
               chan[c.chan].sampleNote=c.value;
               c.value=ins->amiga.getFreq(c.value);
               chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
             }
           } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
-            dacSample=ins->amiga.getSample(chan[c.chan].sampleNote);
+            dacSample=(int)ins->amiga.getSample(chan[c.chan].sampleNote);
             if (ins->type==DIV_INS_AMIGA) {
               c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
             }

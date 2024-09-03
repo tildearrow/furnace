@@ -260,6 +260,7 @@ void DivPlatformYM2610::acquire_combo(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
     ay->runDAC();
+    ay->runTFX(rate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
@@ -373,6 +374,7 @@ void DivPlatformYM2610::acquire_ymfm(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
     ay->runDAC();
+    ay->runTFX(rate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
@@ -1509,7 +1511,20 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
     }
     case DIV_CMD_FM_OPMASK:
       if (c.chan>=psgChanOffs) break;
-      chan[c.chan].opMask=c.value&15;
+      switch (c.value>>4) {
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+          chan[c.chan].opMask&=~(1<<((c.value>>4)-1));
+          if (c.value&15) {
+            chan[c.chan].opMask|=(1<<((c.value>>4)-1));
+          }
+          break;
+        default:
+          chan[c.chan].opMask=c.value&15;
+          break;
+      }
       if (chan[c.chan].active) {
         chan[c.chan].opMaskChanged=true;
       }

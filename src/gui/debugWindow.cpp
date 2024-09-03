@@ -731,6 +731,25 @@ void FurnaceGUI::drawDebug() {
       ImGui::Text("result: %.0f%%",realVol*100.0f);
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Cursor Undo Debug")) {
+      auto DrawSpot=[&](const CursorJumpPoint& spot) {
+        ImGui::Text("[%d:%d] <%d:%d, %d>", spot.subSong, spot.order, spot.point.xCoarse, spot.point.xFine, spot.point.y);
+      };
+      if (ImGui::BeginChild("##CursorUndoDebugChild", ImVec2(0, 300), true)) {
+        if (ImGui::BeginTable("##CursorUndoDebug", 2, ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
+          for (size_t row=0; row<MAX(cursorUndoHist.size(),cursorRedoHist.size()); ++row) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            if (row<cursorUndoHist.size()) DrawSpot(cursorUndoHist[cursorUndoHist.size()-row-1]);
+            ImGui::TableNextColumn();
+            if (row<cursorRedoHist.size()) DrawSpot(cursorRedoHist[cursorRedoHist.size()-row-1]);
+          }
+          ImGui::EndTable();
+        }
+      }
+      ImGui::EndChild();
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("User Interface")) {
       if (ImGui::Button("Inspect")) {
         inspectorOpen=!inspectorOpen;
