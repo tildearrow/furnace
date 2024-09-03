@@ -2287,6 +2287,12 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             ds.systemName = _("OPL3 in drums mode");
         }
 
+        for(int i = songInfo.nm_tracks; i < sysDefs[ds.system[0]]->channels; i++)
+        {
+            ds.subsong[0]->chanShow[i]=false;
+            ds.subsong[0]->chanShowChanOsc[i]=false;
+        }
+
         ds.linearPitch = 0;
         ds.pitchMacroIsLinear = false;
 
