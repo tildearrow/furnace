@@ -2752,6 +2752,11 @@ void FurnaceGUI::drawSettings() {
           settings.ctrlWheelModifier=2;
           settingsChanged=true;
         }
+        // technically this key is called Option on mac, but we call it Alt in getKeyName(s)
+        if (ImGui::RadioButton(_("Alt##cwm4"),settings.ctrlWheelModifier==3)) {
+          settings.ctrlWheelModifier=3;
+          settingsChanged=true;
+        }
         ImGui::Unindent();
 
         bool doubleClickColumnB=settings.doubleClickColumn;
@@ -5158,7 +5163,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.patRowsBase,0,1);
   clampSetting(settings.orderRowsBase,0,1);
   clampSetting(settings.soloAction,0,2);
-  clampSetting(settings.ctrlWheelModifier,0,2);
+  clampSetting(settings.ctrlWheelModifier,0,3);
   clampSetting(settings.pullDeleteBehavior,0,1);
   clampSetting(settings.wrapHorizontal,0,2);
   clampSetting(settings.wrapVertical,0,3);
