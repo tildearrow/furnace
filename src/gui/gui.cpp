@@ -432,6 +432,8 @@ bool FurnaceGUI::isCtrlWheelModifierHeld() const {
       return ImGui::IsKeyDown(ImGuiMod_Ctrl);
     case 2:
       return ImGui::IsKeyDown(ImGuiMod_Super);
+    case 3:
+      return ImGui::IsKeyDown(ImGuiMod_Alt);
     default:
       return false;
   }
