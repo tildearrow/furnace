@@ -47,6 +47,34 @@ static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   }
 }
 
+void drawDebugUndoTableItem(const CursorJumpPoint& spot) {
+  ImGui::Text("[%d:%d] <%d:%d, %d>", spot.subSong, spot.order, spot.point.xCoarse, spot.point.xFine, spot.point.y);
+}
+
+void drawDebugUndoTableItem(const DivInstrumentUndoStep* step) {
+  if (step->nameValid) {
+    ImGui::Text("%s", step->name.c_str());
+  } else {
+    ImGui::Text("patch %d:%d", (int)step->podPatch.offset, (int)step->podPatch.size);
+  }
+}
+
+template <typename t_collection> void drawDebugUndoTable(const char* id, t_collection* undo, t_collection* redo) {
+  if (ImGui::BeginChild(id, ImVec2(0, 300), true)) {
+    if (ImGui::BeginTable("##UndoDebugTable", 2, ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
+      for (size_t row=0; row<MAX(undo->size(),redo->size()); ++row) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        if (row<undo->size()) drawDebugUndoTableItem((*undo)[undo->size()-row-1]);
+        ImGui::TableNextColumn();
+        if (row<redo->size()) drawDebugUndoTableItem((*redo)[redo->size()-row-1]);
+      }
+      ImGui::EndTable();
+    }
+  }
+  ImGui::EndChild();
+}
+
 void FurnaceGUI::drawDebug() {
   static int bpOrder;
   static int bpRow;
@@ -732,22 +760,14 @@ void FurnaceGUI::drawDebug() {
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Cursor Undo Debug")) {
-      auto DrawSpot=[&](const CursorJumpPoint& spot) {
-        ImGui::Text("[%d:%d] <%d:%d, %d>", spot.subSong, spot.order, spot.point.xCoarse, spot.point.xFine, spot.point.y);
-      };
-      if (ImGui::BeginChild("##CursorUndoDebugChild", ImVec2(0, 300), true)) {
-        if (ImGui::BeginTable("##CursorUndoDebug", 2, ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
-          for (size_t row=0; row<MAX(cursorUndoHist.size(),cursorRedoHist.size()); ++row) {
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            if (row<cursorUndoHist.size()) DrawSpot(cursorUndoHist[cursorUndoHist.size()-row-1]);
-            ImGui::TableNextColumn();
-            if (row<cursorRedoHist.size()) DrawSpot(cursorRedoHist[cursorRedoHist.size()-row-1]);
-          }
-          ImGui::EndTable();
-        }
+      drawDebugUndoTable("##CursorUndoDebugChild", &cursorUndoHist, &cursorRedoHist);
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Instrument Editor Undo Debug")) {
+      if (curIns>=0 && curIns<(int)e->song.ins.size()) {
+        DivInstrument* ins=e->song.ins[curIns];
+        drawDebugUndoTable("##InstrumentEditorUndoDebugChild", &ins->undoHist, &ins->redoHist);
       }
-      ImGui::EndChild();
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("User Interface")) {
