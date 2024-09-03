@@ -510,6 +510,7 @@ typedef struct {
     uint8_t         lock_flags[20];
 
     char pattern_names[128][43]; //Furnace addition
+    tINS_4OP_FLAGS ins_4op_flags; //Furnace addition
 } tSONGINFO;
 
 typedef struct {
@@ -638,10 +639,10 @@ void a2t_depack(unsigned char *src, int srcsize, unsigned char *dst, int dstsize
     }
 }
 
-bool is_data_empty(char *data, unsigned int size)
+bool is_data_empty(unsigned char *data, unsigned int size)
 {
     while (size--) {
-        if (*(char *)data++)
+        if (*(unsigned char *)data++)
             return false;
     }
 
@@ -1514,6 +1515,162 @@ bool AT2ReadPatterns(DivSubSong* s, SafeReader& reader, int version, unsigned in
     return true;
 }
 
+void a2t_instrument_import_v1_8(DivSong& ds, void* data, int count, bool a2t, tSONGINFO& songInfo)
+{
+    for (int i = 0; i < count; i++) //instrument import
+    {
+        ds.ins.push_back(new DivInstrument());
+        //instrument_import_v1_8(i + 1, &data->instr_data[i]);
+        //tINSTR_DATA_V1_8 *instr_s = &data->instr_data[i];
+        tINSTR_DATA_V1_8 *instr_s;
+
+        if(a2t)
+        {
+            tINSTR_DATA_V1_8 *instr_data = (tINSTR_DATA_V1_8 *)data;
+            instr_s = &instr_data[i];
+        }
+        else
+        {
+            A2M_SONGDATA_V1_8* song_data = (A2M_SONGDATA_V1_8*)data;
+            instr_s = &song_data->instr_data[i];
+        }
+
+        DivInstrument* ins = ds.ins[i];
+
+        ins->name = songInfo.instr_names[i];
+        ins->type = DIV_INS_OPL;
+
+        ins->fm.op[0].mult = instr_s->fm.multipM;
+        ins->fm.op[0].ksr = instr_s->fm.ksrM;
+        ins->fm.op[0].sus = instr_s->fm.sustM;
+        ins->fm.op[0].vib = instr_s->fm.vibrM;
+        ins->fm.op[0].am = instr_s->fm.tremM;
+        ins->fm.op[0].tl = instr_s->fm.volM;
+        ins->fm.op[0].ksl = instr_s->fm.kslM;
+        ins->fm.op[0].ar = instr_s->fm.attckM;
+        ins->fm.op[0].dr = instr_s->fm.decM;
+        ins->fm.op[0].sl = instr_s->fm.sustnM;
+        ins->fm.op[0].rr = instr_s->fm.relM;
+        ins->fm.op[0].ws = instr_s->fm.wformM;
+
+        ins->fm.op[1].mult = instr_s->fm.multipC;
+        ins->fm.op[1].ksr = instr_s->fm.ksrC;
+        ins->fm.op[1].sus = instr_s->fm.sustC;
+        ins->fm.op[1].vib = instr_s->fm.vibrC;
+        ins->fm.op[1].am = instr_s->fm.tremC;
+        ins->fm.op[1].tl = instr_s->fm.volC;
+        ins->fm.op[1].ksl = instr_s->fm.kslC;
+        ins->fm.op[1].ar = instr_s->fm.attckC;
+        ins->fm.op[1].dr = instr_s->fm.decC;
+        ins->fm.op[1].sl = instr_s->fm.sustnC;
+        ins->fm.op[1].rr = instr_s->fm.relC;
+        ins->fm.op[1].ws = instr_s->fm.wformC;
+
+        ins->fm.fb = instr_s->fm.feedb;
+        ins->fm.alg = instr_s->fm.connect;
+
+        //panning (0=C,1=L,2=R)
+
+        ins->std.panLMacro.len = 1;
+        
+        if(instr_s->panning == 0)
+        {
+            ins->std.panLMacro.val[0] = 3;
+        }
+        if(instr_s->panning == 1)
+        {
+            ins->std.panLMacro.val[0] = 2;
+        }
+        if(instr_s->panning == 2)
+        {
+            ins->std.panLMacro.val[0] = 1;
+        }
+        //todo: finetune, 4op
+    }
+}
+
+void a2t_instrument_import(DivSong& ds, void* data, int count, bool a2t, tSONGINFO& songInfo)
+{
+    tINSTR_DATA* instr_data = NULL;
+
+    for (int i = 0; i < count; i++) //instrument import
+    {
+        //instrument_import(i + 1, &data->instr_data[i]);
+        ds.ins.push_back(new DivInstrument());
+        //instrument_import_v1_8(i + 1, &data->instr_data[i]);
+        tINSTR_DATA* instr_s;
+
+        if(a2t)
+        {
+            tINSTR_DATA* instr_data = (tINSTR_DATA*)data;
+            instr_s = &instr_data[i];
+        }
+        else
+        {
+            A2M_SONGDATA_V9_14* song_data = (A2M_SONGDATA_V9_14*)data;
+            instr_s = &song_data->instr_data[i];
+        }
+
+        DivInstrument* ins = ds.ins[i];
+
+        // Instrument arpegio/vibrato references
+        //tINSTR_DATA_EXT *dst = get_instr(i + 1, data->instr_data);
+        //assert(dst);
+        //dst->arpeggio = data->fmreg_table[i].arpeggio_table;
+        //dst->vibrato = data->fmreg_table[i].vibrato_table;
+
+        ins->name = songInfo.instr_names[i];
+        ins->type = DIV_INS_OPL;
+
+        ins->fm.op[0].mult = instr_s->fm.multipM;
+        ins->fm.op[0].ksr = instr_s->fm.ksrM;
+        ins->fm.op[0].sus = instr_s->fm.sustM;
+        ins->fm.op[0].vib = instr_s->fm.vibrM;
+        ins->fm.op[0].am = instr_s->fm.tremM;
+        ins->fm.op[0].tl = instr_s->fm.volM;
+        ins->fm.op[0].ksl = instr_s->fm.kslM;
+        ins->fm.op[0].ar = instr_s->fm.attckM;
+        ins->fm.op[0].dr = instr_s->fm.decM;
+        ins->fm.op[0].sl = instr_s->fm.sustnM;
+        ins->fm.op[0].rr = instr_s->fm.relM;
+        ins->fm.op[0].ws = instr_s->fm.wformM;
+
+        ins->fm.op[1].mult = instr_s->fm.multipC;
+        ins->fm.op[1].ksr = instr_s->fm.ksrC;
+        ins->fm.op[1].sus = instr_s->fm.sustC;
+        ins->fm.op[1].vib = instr_s->fm.vibrC;
+        ins->fm.op[1].am = instr_s->fm.tremC;
+        ins->fm.op[1].tl = instr_s->fm.volC;
+        ins->fm.op[1].ksl = instr_s->fm.kslC;
+        ins->fm.op[1].ar = instr_s->fm.attckC;
+        ins->fm.op[1].dr = instr_s->fm.decC;
+        ins->fm.op[1].sl = instr_s->fm.sustnC;
+        ins->fm.op[1].rr = instr_s->fm.relC;
+        ins->fm.op[1].ws = instr_s->fm.wformC;
+
+        ins->fm.fb = instr_s->fm.feedb;
+        ins->fm.alg = instr_s->fm.connect;
+        //todo: finetune, percvoice, 4op
+
+        //panning (0=C,1=L,2=R)
+
+        ins->std.panLMacro.len = 1;
+        
+        if(instr_s->panning == 0)
+        {
+            ins->std.panLMacro.val[0] = 3;
+        }
+        if(instr_s->panning == 1)
+        {
+            ins->std.panLMacro.val[0] = 2;
+        }
+        if(instr_s->panning == 2)
+        {
+            ins->std.panLMacro.val[0] = 1;
+        }
+    }
+}
+
 bool DivEngine::loadAT2(unsigned char* file, size_t len) 
 {
     SafeReader reader=SafeReader(file,len);
@@ -1744,6 +1901,148 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             }
         }
 
+        if(isA2t) //a2t, a2t_read_instruments
+        {
+            if (len[0] > reader.size() - reader.tell())
+            {
+                lastError = _("Incomplete songdata!");
+                delete[] file;
+                return false;
+            }
+
+            int instnum = (version < 9 ? 250 : 255);
+            int instsize = (version < 9 ? sizeof(tINSTR_DATA_V1_8) : sizeof(tINSTR_DATA));
+            int dstsize = (instnum * instsize) +
+                        (version > 11 ?  sizeof(tBPM_DATA) + sizeof(tINS_4OP_FLAGS) + sizeof(tRESERVED) : 0);
+            char *dst = (char *)calloc(1, dstsize);
+
+            unsigned char* temp = new unsigned char[len[0]];
+            reader.read((void*)temp, len[0]);
+            a2t_depack(temp, len[0], (unsigned char *)dst, dstsize, version);
+            delete[] temp;
+
+            if (version == 14) {
+                //memcpy(&songinfo->bpm_data, dst, sizeof(songinfo->bpm_data));
+                dst += sizeof(tBPM_DATA);
+            }
+
+            if (version >= 12 && version <= 14) {
+                memcpy(&songInfo.ins_4op_flags, dst, sizeof(songInfo.ins_4op_flags));
+                dst += sizeof(tINS_4OP_FLAGS);
+                //memcpy(&songInfo.reserved_data, dst, sizeof(songinfo->reserved_data));
+                dst += sizeof(tRESERVED);
+            }
+
+            // Calculate the real number of used instruments
+            int count = instnum;
+            while (count && is_data_empty((unsigned char*)dst + (count - 1) * instsize, instsize))
+                count--;
+
+            //instruments_allocate(count);
+
+            if (version < 9) 
+            {
+                tINSTR_DATA_V1_8 *instr_data = (tINSTR_DATA_V1_8 *)dst;
+
+                a2t_instrument_import_v1_8(ds, (void*)instr_data, count, true, songInfo);
+            } 
+            else 
+            {
+                tINSTR_DATA *instr_data = (tINSTR_DATA *)dst;
+
+                a2t_instrument_import(ds, (void*)instr_data, count, true, songInfo);
+            }
+
+            free(dst);
+        }
+
+        if(isA2t) //a2t, a2t_read_fmregtable
+        {
+            if(version >= 9)
+            {
+                if (len[1] > reader.size() - reader.tell())
+                {
+                    lastError = _("Incomplete fm regs table data!");
+                    delete[] file;
+                    return false;
+                }
+
+                tFMREG_TABLE *data = (tFMREG_TABLE *)calloc(255, sizeof(tFMREG_TABLE));
+                unsigned char* temp = new unsigned char[len[1]];
+                reader.read((void*)temp, len[1]);
+                a2t_depack(temp, len[1], (unsigned char *)data, 255 * sizeof(tFMREG_TABLE), version);
+                delete[] temp;
+
+                //todo actual regs import
+
+                free(data);
+            }
+        }
+
+        if(isA2t) //a2t, a2t_read_arpvibtable
+        {
+            if(version >= 9)
+            {
+                if (len[2] > reader.size() - reader.tell())
+                {
+                    lastError = _("Incomplete arp/vib table data!");
+                    delete[] file;
+                    return false;
+                }
+
+                tARPVIB_TABLE *arpvib_table = (tARPVIB_TABLE *)calloc(255, sizeof(tARPVIB_TABLE));
+                unsigned char* temp = new unsigned char[len[2]];
+                reader.read((void*)temp, len[2]);
+                a2t_depack(temp, len[2], (unsigned char *)arpvib_table, 255 * sizeof(tARPVIB_TABLE), version);
+                delete[] temp;
+
+                //todo actual arp/vib table import
+
+                free(arpvib_table);
+            }
+        }
+
+        if(isA2t) //a2t, a2t_read_disabled_fmregs
+        {
+            if(version >= 11)
+            {
+                if (len[3] > reader.size() - reader.tell())
+                {
+                    lastError = _("Incomplete disabled fmregs table data!");
+                    delete[] file;
+                    return false;
+                }
+
+                bool (*dis_fmregs)[255][28] = (bool (*)[255][28])calloc(255, 28);
+                unsigned char* temp = new unsigned char[len[3]];
+                reader.read((void*)temp, len[3]);
+                a2t_depack(temp, len[3], (unsigned char *)*dis_fmregs, 255 * 28, version);
+                delete[] temp;
+
+                //todo actual dis fmregs import?
+
+                free(dis_fmregs);
+            }
+        }
+
+        if(isA2t) //a2t, a2t_read_order
+        {
+            int blocknum[14] = {1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 4, 4, 4, 4};
+            int i = blocknum[version - 1];
+
+            if (len[i] > reader.size() - reader.tell())
+            {
+                lastError = _("Incomplete orders data!");
+                delete[] file;
+                return false;
+            }
+
+            unsigned char* temp = new unsigned char[len[i]];
+            reader.read((void*)temp, len[i]);
+            a2t_depack(temp, len[i], (unsigned char *)&songInfo.pattern_order, sizeof(songInfo.pattern_order), version);
+            delete[] temp;
+        }
+
         if(!isA2t) //a2m, a2m_read_songdata
         {
             if (len[0] > reader.size() - reader.tell())
@@ -1767,7 +2066,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                 // Calculate the real number of used instruments
                 int count = 250;
-                while (count && is_data_empty((char *)&data->instr_data[count - 1], sizeof(tINSTR_DATA_V1_8)))
+                while (count && is_data_empty((unsigned char *)&data->instr_data[count - 1], sizeof(tINSTR_DATA_V1_8)))
                     count--;
 
                 //instruments_allocate(count);
@@ -1778,63 +2077,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                     memcpy(songInfo.instr_names[i], data->instr_names[i] + 1, 32);
                 }
 
-                for (int i = 0; i < count; i++) //instrument import
-                {
-                    ds.ins.push_back(new DivInstrument());
-                    //instrument_import_v1_8(i + 1, &data->instr_data[i]);
-                    tINSTR_DATA_V1_8 *instr_s = &data->instr_data[i];
-                    DivInstrument* ins = ds.ins[i];
-
-                    ins->name = songInfo.instr_names[i];
-                    ins->type = DIV_INS_OPL;
-
-                    ins->fm.op[0].mult = instr_s->fm.multipM;
-                    ins->fm.op[0].ksr = instr_s->fm.ksrM;
-                    ins->fm.op[0].sus = instr_s->fm.sustM;
-                    ins->fm.op[0].vib = instr_s->fm.vibrM;
-                    ins->fm.op[0].am = instr_s->fm.tremM;
-                    ins->fm.op[0].tl = instr_s->fm.volM;
-                    ins->fm.op[0].ksl = instr_s->fm.kslM;
-                    ins->fm.op[0].ar = instr_s->fm.attckM;
-                    ins->fm.op[0].dr = instr_s->fm.decM;
-                    ins->fm.op[0].sl = instr_s->fm.sustnM;
-                    ins->fm.op[0].rr = instr_s->fm.relM;
-                    ins->fm.op[0].ws = instr_s->fm.wformM;
-
-                    ins->fm.op[1].mult = instr_s->fm.multipC;
-                    ins->fm.op[1].ksr = instr_s->fm.ksrC;
-                    ins->fm.op[1].sus = instr_s->fm.sustC;
-                    ins->fm.op[1].vib = instr_s->fm.vibrC;
-                    ins->fm.op[1].am = instr_s->fm.tremC;
-                    ins->fm.op[1].tl = instr_s->fm.volC;
-                    ins->fm.op[1].ksl = instr_s->fm.kslC;
-                    ins->fm.op[1].ar = instr_s->fm.attckC;
-                    ins->fm.op[1].dr = instr_s->fm.decC;
-                    ins->fm.op[1].sl = instr_s->fm.sustnC;
-                    ins->fm.op[1].rr = instr_s->fm.relC;
-                    ins->fm.op[1].ws = instr_s->fm.wformC;
-
-                    ins->fm.fb = instr_s->fm.feedb;
-                    ins->fm.alg = instr_s->fm.connect;
-
-                    //panning (0=C,1=L,2=R)
-
-                    ins->std.panLMacro.len = 1;
-                    
-                    if(instr_s->panning == 0)
-                    {
-                        ins->std.panLMacro.val[0] = 3;
-                    }
-                    if(instr_s->panning == 1)
-                    {
-                        ins->std.panLMacro.val[0] = 2;
-                    }
-                    if(instr_s->panning == 2)
-                    {
-                        ins->std.panLMacro.val[0] = 1;
-                    }
-                    //todo: finetune
-                }
+                a2t_instrument_import_v1_8(ds, (void*)data, count, false, songInfo);
 
                 memcpy(songInfo.pattern_order, data->pattern_order, 128);
 
@@ -1860,7 +2103,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                 // Calculate the real number of used instruments
                 int count = 255;
-                while (count && is_data_empty((char *)&data->instr_data[count - 1], sizeof(tINSTR_DATA)))
+                while (count && is_data_empty((unsigned char *)&data->instr_data[count - 1], sizeof(tINSTR_DATA)))
                     count--;
 
                 ds.ins.reserve(count);
@@ -1872,70 +2115,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                 songInfo.common_flag = data->common_flag;
 
-                for (int i = 0; i < count; i++) 
-                {
-                    //instrument_import(i + 1, &data->instr_data[i]);
-                    ds.ins.push_back(new DivInstrument());
-                    //instrument_import_v1_8(i + 1, &data->instr_data[i]);
-                    tINSTR_DATA* instr_s = &data->instr_data[i];
-                    DivInstrument* ins = ds.ins[i];
-
-                    // Instrument arpegio/vibrato references
-                    //tINSTR_DATA_EXT *dst = get_instr(i + 1, data->instr_data);
-                    //assert(dst);
-                    //dst->arpeggio = data->fmreg_table[i].arpeggio_table;
-                    //dst->vibrato = data->fmreg_table[i].vibrato_table;
-
-                    ins->name = songInfo.instr_names[i];
-                    ins->type = DIV_INS_OPL;
-
-                    ins->fm.op[0].mult = instr_s->fm.multipM;
-                    ins->fm.op[0].ksr = instr_s->fm.ksrM;
-                    ins->fm.op[0].sus = instr_s->fm.sustM;
-                    ins->fm.op[0].vib = instr_s->fm.vibrM;
-                    ins->fm.op[0].am = instr_s->fm.tremM;
-                    ins->fm.op[0].tl = instr_s->fm.volM;
-                    ins->fm.op[0].ksl = instr_s->fm.kslM;
-                    ins->fm.op[0].ar = instr_s->fm.attckM;
-                    ins->fm.op[0].dr = instr_s->fm.decM;
-                    ins->fm.op[0].sl = instr_s->fm.sustnM;
-                    ins->fm.op[0].rr = instr_s->fm.relM;
-                    ins->fm.op[0].ws = instr_s->fm.wformM;
-
-                    ins->fm.op[1].mult = instr_s->fm.multipC;
-                    ins->fm.op[1].ksr = instr_s->fm.ksrC;
-                    ins->fm.op[1].sus = instr_s->fm.sustC;
-                    ins->fm.op[1].vib = instr_s->fm.vibrC;
-                    ins->fm.op[1].am = instr_s->fm.tremC;
-                    ins->fm.op[1].tl = instr_s->fm.volC;
-                    ins->fm.op[1].ksl = instr_s->fm.kslC;
-                    ins->fm.op[1].ar = instr_s->fm.attckC;
-                    ins->fm.op[1].dr = instr_s->fm.decC;
-                    ins->fm.op[1].sl = instr_s->fm.sustnC;
-                    ins->fm.op[1].rr = instr_s->fm.relC;
-                    ins->fm.op[1].ws = instr_s->fm.wformC;
-
-                    ins->fm.fb = instr_s->fm.feedb;
-                    ins->fm.alg = instr_s->fm.connect;
-                    //todo: finetune, percvoice
-
-                    //panning (0=C,1=L,2=R)
-
-                    ins->std.panLMacro.len = 1;
-                    
-                    if(instr_s->panning == 0)
-                    {
-                        ins->std.panLMacro.val[0] = 3;
-                    }
-                    if(instr_s->panning == 1)
-                    {
-                        ins->std.panLMacro.val[0] = 2;
-                    }
-                    if(instr_s->panning == 2)
-                    {
-                        ins->std.panLMacro.val[0] = 1;
-                    }
-                }
+                a2t_instrument_import(ds, (void*)data, count, false, songInfo);
 
                 // Allocate fmreg macro tables
                 //fmreg_table_allocate(count, data->fmreg_table);
@@ -1964,8 +2144,8 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                 // v12-13
                 // NOTE: not used anywhere
-                //songinfo->ins_4op_flags.num_4op = data->ins_4op_flags.num_4op;
-                //memcpy(songinfo->ins_4op_flags.idx_4op, data->ins_4op_flags.idx_4op, 128);
+                songInfo.ins_4op_flags.num_4op = data->ins_4op_flags.num_4op;
+                memcpy(songInfo.ins_4op_flags.idx_4op, data->ins_4op_flags.idx_4op, 128);
                 //memcpy(songinfo->reserved_data, data->reserved_data, 1024);
 
                 // v14
@@ -1975,37 +2155,37 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                 free(data);
             }
+        }
 
-            s->hz = songInfo.tempo;
-            s->speeds.val[0] = songInfo.speed;
-            s->patLen = songInfo.patt_len;
-            
-            logI("tempo %d", songInfo.tempo);
-            logI("speed %d", songInfo.speed);
-            logI("pat length %d", songInfo.patt_len);
-            logI("nm tracks %d", songInfo.nm_tracks);
+        s->hz = songInfo.tempo;
+        s->speeds.val[0] = songInfo.speed;
+        s->patLen = songInfo.patt_len;
+        
+        logI("tempo %d", songInfo.tempo);
+        logI("speed %d", songInfo.speed);
+        logI("pat length %d", songInfo.patt_len);
+        logI("nm tracks %d", songInfo.nm_tracks);
 
-            s->name = songInfo.songname;
-            ds.name = songInfo.songname;
-            ds.composer = songInfo.composer;
+        s->name = songInfo.songname;
+        ds.name = songInfo.songname;
+        ds.composer = songInfo.composer;
 
-            s->ordersLen = 128;
-            
-            for(int i = 0; i < 128; i++)
+        s->ordersLen = 128;
+        
+        for(int i = 0; i < 128; i++)
+        {
+            if(songInfo.pattern_order[i] > 0x7f)
             {
-                if(songInfo.pattern_order[i] > 0x7f)
-                {
-                    s->ordersLen = i;
-                    break;
-                }
+                s->ordersLen = i;
+                break;
             }
+        }
 
-            for(int j = 0; j < s->ordersLen; j++)
+        for(int j = 0; j < s->ordersLen; j++)
+        {
+            for(int i = 0; i < songInfo.nm_tracks; i++)
             {
-                for(int i = 0; i < songInfo.nm_tracks; i++)
-                {
-                    s->orders.ord[i][j] = songInfo.pattern_order[j];
-                }
+                s->orders.ord[i][j] = songInfo.pattern_order[j];
             }
         }
 
@@ -2032,6 +2212,31 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
         if(!isA2t) //a2m, a2m_read_patterns
         {
             if(AT2ReadPatterns(s, reader, version, len, patterns, songInfo, 1) == false)
+            {
+                lastError = _("Incomplete pattern data!");
+                delete[] file;
+                return false;
+            }
+
+            if(version >= 11)
+            {
+                for(int i = 0; i < patterns; i++)
+                {
+                    for(int j = 0; j < songInfo.nm_tracks; j++)
+                    {
+                        DivPattern* pat = s->pat[j].getPattern(i, true);
+                        pat->name = (const char*)&songInfo.pattern_names[i][1]; //skip 1st symbol bc it seems to hold weird special byte?
+                    }
+                }
+            }
+        }
+
+        if(isA2t) //a2t, a2t_read_patterns
+        {
+            int blockstart[14] = {2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 5, 5, 5, 5};
+            int ss = blockstart[version - 1];
+
+            if(AT2ReadPatterns(s, reader, version, len, patterns, songInfo, ss) == false)
             {
                 lastError = _("Incomplete pattern data!");
                 delete[] file;
