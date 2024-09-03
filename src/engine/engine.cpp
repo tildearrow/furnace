@@ -520,6 +520,15 @@ void DivEngine::initSongWithDesc(const char* description, bool inBase64, bool ol
   if (song.subsong[0]->hz<1.0) song.subsong[0]->hz=1.0;
   if (song.subsong[0]->hz>999.0) song.subsong[0]->hz=999.0;
 
+  curChanMask=c.getIntList("chanMask",{});
+  for (unsigned char i:curChanMask) {
+    int j=i-1;
+    if (j<0) j=0;
+    if (j>DIV_MAX_CHANS) j=DIV_MAX_CHANS-1;
+    curSubSong->chanShow[j]=false;
+    curSubSong->chanShowChanOsc[j]=false;
+  }
+
   song.author=getConfString("defaultAuthorName","");
 }
 
@@ -754,6 +763,13 @@ int DivEngine::addSubSong() {
   BUSY_BEGIN;
   saveLock.lock();
   song.subsong.push_back(new DivSubSong);
+  for (unsigned char i:curChanMask) {
+    int j=i-1;
+    if (j<0) j=0;
+    if (j>DIV_MAX_CHANS) j=DIV_MAX_CHANS-1;
+    song.subsong.back()->chanShow[j]=false;
+    song.subsong.back()->chanShowChanOsc[j]=false;
+  }
   saveLock.unlock();
   BUSY_END;
   return song.subsong.size()-1;

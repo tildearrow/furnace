@@ -325,6 +325,7 @@ void DivPlatformYM2608::acquire_combo(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
     ay->runDAC();
+    ay->runTFX(rate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
@@ -440,6 +441,7 @@ void DivPlatformYM2608::acquire_ymfm(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
     ay->runDAC();
+    ay->runTFX(rate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
@@ -678,6 +680,10 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
     buf[0][h]=outL;
     buf[1][h]=outR;
   }
+}
+
+void DivPlatformYM2608::fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len) {
+  ay->fillStream(stream,sRate,len);
 }
 
 void DivPlatformYM2608::tick(bool sysTick) {
