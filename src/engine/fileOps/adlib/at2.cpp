@@ -1591,8 +1591,6 @@ void a2t_instrument_import_v1_8(DivSong& ds, void* data, int count, bool a2t, tS
 
 void a2t_instrument_import(DivSong& ds, void* data, int count, bool a2t, tSONGINFO& songInfo)
 {
-    tINSTR_DATA* instr_data = NULL;
-
     for (int i = 0; i < count; i++) //instrument import
     {
         //instrument_import(i + 1, &data->instr_data[i]);
