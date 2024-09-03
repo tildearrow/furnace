@@ -12,6 +12,7 @@ chip configuration is exactly as in the [chip manager](chip-manager.md) window.
 
 the **Advanced** field stores additional settings that are set when a new song is started. these are listed in "option=value" format, one per line.
 - `tickRate`: sets tick rate.
+- `chanMask`: sets which channels to hide. written as a comma-separated list of integers
 
 **Save and Close**: as it says.
 

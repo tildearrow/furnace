@@ -818,6 +818,8 @@ enum FurnaceGUIActions {
   GUI_ACTION_PAT_SCROLL_MODE,
   GUI_ACTION_PAT_CLEAR_LATCH,
   GUI_ACTION_PAT_ABSORB_INSTRUMENT,
+  GUI_ACTION_PAT_CURSOR_UNDO,
+  GUI_ACTION_PAT_CURSOR_REDO,
   GUI_ACTION_PAT_MAX,
 
   GUI_ACTION_INS_LIST_MIN,
@@ -1101,6 +1103,22 @@ struct UndoStep {
     newOrdersLen(0),
     oldPatLen(0),
     newPatLen(0) {}
+};
+
+struct CursorJumpPoint {
+  SelectionPoint point;
+  int order;
+  int subSong;
+  CursorJumpPoint(const SelectionPoint& p, int o, int ss):
+    point(p), order(o), subSong(ss) {}
+  CursorJumpPoint():
+    point(), order(0), subSong(0) {}
+  bool operator== (const CursorJumpPoint& spot) {
+    return point.xCoarse==spot.point.xCoarse && point.xFine==spot.point.xFine && point.y==spot.point.y && order==spot.order && subSong==spot.subSong;
+  }
+  bool operator!= (const CursorJumpPoint& spot) {
+    return !(*this == spot);
+  }
 };
 
 // -1 = any
@@ -2500,6 +2518,8 @@ class FurnaceGUI {
   std::map<unsigned short,DivPattern*> oldPatMap;
   FixedQueue<UndoStep,256> undoHist;
   FixedQueue<UndoStep,256> redoHist;
+  FixedQueue<CursorJumpPoint,256> cursorUndoHist;
+  FixedQueue<CursorJumpPoint,256> cursorRedoHist;
 
   // sample editor specific
   double sampleZoom;
@@ -2935,6 +2955,12 @@ class FurnaceGUI {
   void orderInput(int num);
 
   void doGenerateWave();
+
+  CursorJumpPoint getCurrentCursorJumpPoint();
+  void applyCursorJumpPoint(const CursorJumpPoint& spot);
+  void makeCursorUndo();
+  void doCursorUndo();
+  void doCursorRedo();
 
   void doUndoSample();
   void doRedoSample();
