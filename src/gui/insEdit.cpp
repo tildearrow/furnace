@@ -2677,10 +2677,10 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
       }
     }
     ImGui::AlignTextToFramePadding();
+    if (e->song.sampleLen<1) ImGui::Text("You do not have any samples loaded.\nGo to the \"Samples\" window to add samples.");
     ImGui::Text(_("Sample"));
     ImGui::SameLine();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-    if (e->song.sampleLen<1) ImGui::Text("You do not have any samples loaded.\nGo to the \"Samples\" window to add samples.");
     if (ImGui::BeginCombo("##ISample",sName.c_str())) {
       String id;
       for (int i=0; i<e->song.sampleLen; i++) {
