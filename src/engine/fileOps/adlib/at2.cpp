@@ -511,6 +511,8 @@ typedef struct {
 
     char pattern_names[128][43]; //Furnace addition
     tINS_4OP_FLAGS ins_4op_flags; //Furnace addition
+    tRESERVED reserved_data;       // A2M_SONGDATA_V12_13
+    tBPM_DATA bpm_data;            // A2M_SONGDATA_V14
 } tSONGINFO;
 
 typedef struct {
@@ -1537,7 +1539,10 @@ void a2t_instrument_import_v1_8(DivSong& ds, void* data, int count, bool a2t, tS
 
         DivInstrument* ins = ds.ins[i];
 
-        ins->name = songInfo.instr_names[i];
+        char name[32];
+        memcpy(name, songInfo.instr_names[i], 31);
+        name[31] = '\0';
+        ins->name = name;
         ins->type = DIV_INS_OPL;
 
         ins->fm.op[0].mult = instr_s->fm.multipM;
@@ -1617,7 +1622,10 @@ void a2t_instrument_import(DivSong& ds, void* data, int count, bool a2t, tSONGIN
         //dst->arpeggio = data->fmreg_table[i].arpeggio_table;
         //dst->vibrato = data->fmreg_table[i].vibrato_table;
 
-        ins->name = songInfo.instr_names[i];
+        char name[32];
+        memcpy(name, songInfo.instr_names[i], 31);
+        name[31] = '\0';
+        ins->name = name;
         ins->type = DIV_INS_OPL;
 
         ins->fm.op[0].mult = instr_s->fm.multipM;
@@ -1927,7 +1935,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             if (version >= 12 && version <= 14) {
                 memcpy(&songInfo.ins_4op_flags, dst, sizeof(songInfo.ins_4op_flags));
                 dst += sizeof(tINS_4OP_FLAGS);
-                //memcpy(&songInfo.reserved_data, dst, sizeof(songinfo->reserved_data));
+                memcpy(&songInfo.reserved_data, dst, sizeof(songInfo.reserved_data));
                 dst += sizeof(tRESERVED);
             }
 
@@ -2072,7 +2080,8 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                 for (int i = 0; i < 250; i++)
                 {
-                    memcpy(songInfo.instr_names[i], data->instr_names[i] + 1, 32);
+                    memcpy(songInfo.instr_names[i], data->instr_names[i] + 1, 31);
+                    songInfo.instr_names[i][31] = '\0';
                 }
 
                 a2t_instrument_import_v1_8(ds, (void*)data, count, false, songInfo);
@@ -2108,7 +2117,8 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                 for (int i = 0; i < 255; i++)
                 {
-                    memcpy(songInfo.instr_names[i], data->instr_names[i] + 1, 32);
+                    memcpy(songInfo.instr_names[i], data->instr_names[i] + 1, 31);
+                    songInfo.instr_names[i][31] = '\0';
                 }
 
                 songInfo.common_flag = data->common_flag;
@@ -2125,7 +2135,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                 songInfo.tempo = data->tempo;
                 songInfo.speed = data->speed;
-                songInfo.common_flag = data->common_flag;
+                //songInfo.common_flag = data->common_flag;
                 songInfo.patt_len = UINT16LE(data->patt_len);
                 songInfo.nm_tracks = data->nm_tracks;
                 songInfo.macro_speedup = UINT16LE(data->macro_speedup);
@@ -2144,12 +2154,13 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                 // NOTE: not used anywhere
                 songInfo.ins_4op_flags.num_4op = data->ins_4op_flags.num_4op;
                 memcpy(songInfo.ins_4op_flags.idx_4op, data->ins_4op_flags.idx_4op, 128);
-                //memcpy(songinfo->reserved_data, data->reserved_data, 1024);
+                memcpy(songInfo.reserved_data, data->reserved_data, 1024);
 
                 // v14
                 // NOTE: not used anywhere
-                //songinfo->bpm_data.rows_per_beat = data->bpm_data.rows_per_beat;
-                //songinfo->bpm_data.tempo_finetune = INT16LE(data->bpm_data.tempo_finetune);
+                songInfo.bpm_data.rows_per_beat = data->bpm_data.rows_per_beat;
+                songInfo.bpm_data.tempo_finetune[0] = data->bpm_data.tempo_finetune[0];
+                songInfo.bpm_data.tempo_finetune[1] = data->bpm_data.tempo_finetune[1];
 
                 free(data);
             }
@@ -2202,7 +2213,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
         └─────┴────────────────────────────┘
         */
 
-        if(songInfo.common_flag & 64)
+        if((songInfo.common_flag & 64) || songInfo.nm_tracks > 18)
         {
             ds.system[0] = DIV_SYSTEM_OPL3_DRUMS;
         }
@@ -2214,18 +2225,6 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                 lastError = _("Incomplete pattern data!");
                 delete[] file;
                 return false;
-            }
-
-            if(version >= 11)
-            {
-                for(int i = 0; i < patterns; i++)
-                {
-                    for(int j = 0; j < songInfo.nm_tracks; j++)
-                    {
-                        DivPattern* pat = s->pat[j].getPattern(i, true);
-                        pat->name = (const char*)&songInfo.pattern_names[i][1]; //skip 1st symbol bc it seems to hold weird special byte?
-                    }
-                }
             }
         }
 
@@ -2240,17 +2239,53 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                 delete[] file;
                 return false;
             }
+        }
 
-            if(version >= 11)
+        if(version >= 11)
+        {
+            for(int i = 0; i < patterns; i++)
             {
-                for(int i = 0; i < patterns; i++)
+                for(int j = 0; j < songInfo.nm_tracks; j++)
                 {
-                    for(int j = 0; j < songInfo.nm_tracks; j++)
-                    {
-                        DivPattern* pat = s->pat[j].getPattern(i, true);
-                        pat->name = (const char*)&songInfo.pattern_names[i][1]; //skip 1st symbol bc it seems to hold weird special byte?
-                    }
+                    DivPattern* pat = s->pat[j].getPattern(i, true);
+                    pat->name = (const char*)&songInfo.pattern_names[i][1]; //skip 1st symbol bc it seems to hold weird special byte?
                 }
+            }
+        }
+
+        ds.insLen = ds.ins.size();
+
+        if(version >= 12)
+        {
+            for(int i = 0; i < songInfo.ins_4op_flags.num_4op; i++) //adapt 4-op instruments
+            {
+                int inst_1st = songInfo.ins_4op_flags.idx_4op[i] - 1;
+                int inst_2nd = inst_1st + 1;
+
+                if(inst_2nd >= ds.insLen)
+                {
+                    lastError = _("Incorrect 4-op instrument pair data!");
+                    delete[] file;
+                    return false;
+                }
+
+                DivInstrument* ins1 = ds.ins[inst_1st];
+                DivInstrument* ins2 = ds.ins[inst_2nd];
+
+                DivInstrument temp1;
+                DivInstrument temp2;
+
+                memcpy((void*)&temp1.fm, (void*)&ins1->fm, sizeof(DivInstrumentFM));
+                memcpy((void*)&temp2.fm, (void*)&ins2->fm, sizeof(DivInstrumentFM));
+
+                ins1->fm.alg = ins2->fm.alg | (ins1->fm.alg << 1);
+
+                memcpy((void*)&ins1->fm.op[0], (void*)&temp2.fm.op[0], sizeof(DivInstrumentFM::Operator)); //what the fuck is this ops order jesus
+                memcpy((void*)&ins1->fm.op[1], (void*)&temp1.fm.op[0], sizeof(DivInstrumentFM::Operator));
+                memcpy((void*)&ins1->fm.op[2], (void*)&temp2.fm.op[1], sizeof(DivInstrumentFM::Operator));
+                memcpy((void*)&ins1->fm.op[3], (void*)&temp1.fm.op[1], sizeof(DivInstrumentFM::Operator));
+
+                ins1->fm.ops = 4;
             }
         }
 
@@ -2274,7 +2309,6 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
         #endif
         }
 
-        ds.insLen = ds.ins.size();
         ds.sampleLen = ds.sample.size();
         ds.waveLen = ds.wave.size();
 
