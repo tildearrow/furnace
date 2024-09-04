@@ -1483,7 +1483,7 @@ void FurnaceGUI::insEditResetFixedPitchMacroVZoom(DivInstrument* ins, int op) {
   insEditSanitizeVZoomAndVScroll(ins, &ins->std.opMacros[op].dtMacro);
 }
 
-void FurnaceGUI::insEditInitVScrollAndVZoom(DivInstrument* ins) {
+void FurnaceGUI::insEditInitVZoomAndVScroll(DivInstrument* ins) {
   // reset macro zoom
   ins->std.volMacro.vZoom=-1;
   // arpMacro vZoom doesn't get reset
@@ -1528,6 +1528,10 @@ void FurnaceGUI::insEditInitVScrollAndVZoom(DivInstrument* ins) {
     ins->std.opMacros[j].ksrMacro.vZoom=-1;
   }
 
+  insEditSanitizeVZoomAndVScroll(ins);
+}
+
+void FurnaceGUI::insEditSanitizeVZoomAndVScroll(DivInstrument* ins) {
   std::vector<FurnaceGUIMacroDesc> macroList;
   insEditBuildMacroListAll(ins, macroList);
 
@@ -6247,7 +6251,7 @@ void FurnaceGUI::drawInsEdit() {
           for (DivInstrumentType i: insTypeList) {
             if (ImGui::Selectable(insTypes[i][0],insType==i)) {
               ins->type=i;
-              insEditInitVScrollAndVZoom(ins);
+              insEditInitVZoomAndVScroll(ins);
             }
           }
           ImGui::EndCombo();

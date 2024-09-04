@@ -232,6 +232,7 @@ bool FurnaceGUI::parseSysEx(unsigned char* data, size_t len) {
 
     for (DivInstrument* i: instruments) {
       logI("got instrument from MIDI: %s",i->name);
+      insEditSanitizeVZoomAndVScroll(i);
       e->addInstrumentPtr(i);
       curIns=e->song.insLen-1;
     }

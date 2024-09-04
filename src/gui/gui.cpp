@@ -1829,6 +1829,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
           int sampleCountBefore=e->song.sampleLen;
           std::vector<DivInstrument*> instruments=e->instrumentFromFile(path,false);
           if (!instruments.empty()) {
+            for (DivInstrument* i : instruments) insEditSanitizeVZoomAndVScroll(i);
             if (e->song.sampleLen!=sampleCountBefore) {
               e->renderSamplesP();
             }
@@ -2409,6 +2410,7 @@ int FurnaceGUI::load(String path) {
       return 1;
     }
   }
+  for (DivInstrument* i : e->song.ins) insEditSanitizeVZoomAndVScroll( i );
   backupLock.lock();
   curFileName=path;
   backupLock.unlock();
@@ -3857,6 +3859,7 @@ bool FurnaceGUI::loop() {
             DivWavetable* droppedWave=NULL;
             //DivSample* droppedSample=NULL;
             if (!instruments.empty()) {
+              for (DivInstrument* i : instruments) insEditSanitizeVZoomAndVScroll(i);
               if (e->song.sampleLen!=sampleCountBefore) {
                 e->renderSamplesP();
               }
@@ -5461,6 +5464,7 @@ bool FurnaceGUI::loop() {
               int sampleCountBefore=e->song.sampleLen;
               for (String i: fileDialog->getFileName()) {
                 std::vector<DivInstrument*> insTemp=e->instrumentFromFile(i.c_str(),true,settings.readInsNames);
+                for (DivInstrument* i : insTemp) insEditSanitizeVZoomAndVScroll(i);
                 if (insTemp.empty()) {
                   warn=true;
                   warns+=fmt::sprintf(_("> %s: cannot load instrument! (%s)\n"),i,e->getLastError());
@@ -5512,6 +5516,7 @@ bool FurnaceGUI::loop() {
               int sampleCountBefore=e->song.sampleLen;
               std::vector<DivInstrument*> instruments=e->instrumentFromFile(copyOfName.c_str(),true,settings.readInsNames);
               if (!instruments.empty()) {
+                for (DivInstrument* i : instruments) insEditSanitizeVZoomAndVScroll(i);
                 if (e->song.sampleLen!=sampleCountBefore) {
                   e->renderSamplesP();
                 }
@@ -6538,7 +6543,7 @@ bool FurnaceGUI::loop() {
               }
             }
 
-            insEditInitVScrollAndVZoom(e->song.ins[curIns]);
+            insEditInitVZoomAndVScroll(e->song.ins[curIns]);
             MARK_MODIFIED;
           }
         }

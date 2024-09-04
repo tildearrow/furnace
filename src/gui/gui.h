@@ -3015,8 +3015,9 @@ class FurnaceGUI {
   void insEditBuildMacroListFMBase(DivInstrument* ins, std::vector<FurnaceGUIMacroDesc>& macroList);
   void insEditBuildMacroListFMOP(DivInstrument* ins, std::vector<FurnaceGUIMacroDesc>& macroList, int op);
   void insEditBuildMacroListTimer(DivInstrument* ins, std::vector<FurnaceGUIMacroDesc>& macroList);
-  void insEditInitVScrollAndVZoom(DivInstrument* ins);
+  void insEditInitVZoomAndVScroll(DivInstrument* ins);
   void insEditResetFixedPitchMacroVZoom(DivInstrument* ins, int op);
+  void insEditSanitizeVZoomAndVScroll(DivInstrument* ins);
   void insEditSanitizeVZoomAndVScroll(FurnaceGUIMacroDesc& i);
   void insEditSanitizeVZoomAndVScroll(DivInstrument* ins, DivInstrumentMacro* macro);
 
