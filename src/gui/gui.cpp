@@ -6538,6 +6538,7 @@ bool FurnaceGUI::loop() {
               }
             }
 
+            insEditInitVScrollAndVZoom(e->song.ins[curIns]);
             MARK_MODIFIED;
           }
         }

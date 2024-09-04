@@ -719,6 +719,7 @@ void FurnaceGUI::doAction(int what) {
             e->song.ins[curIns]->esfm.op[i].outLvl=0;
           }
         }
+        insEditInitVScrollAndVZoom(e->song.ins[curIns]);
         wantScrollListIns=true;
         MARK_MODIFIED;
         wavePreviewInit=true;
@@ -1630,6 +1631,7 @@ void FurnaceGUI::doAction(int what) {
         e->song.ins[curIns]->name=sample->name;
         e->song.ins[curIns]->amiga.initSample=curSample;
         if (insType!=DIV_INS_AMIGA) e->song.ins[curIns]->amiga.useSample=true;
+        insEditInitVScrollAndVZoom(e->song.ins[curIns]);
         nextWindow=GUI_WINDOW_INS_EDIT;
         MARK_MODIFIED;
         wavePreviewInit=true;

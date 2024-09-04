@@ -3009,6 +3009,17 @@ class FurnaceGUI {
   void decodeMMLStr(String& source, int* macro, unsigned char& macroLen, unsigned char& macroLoop, int macroMin, int macroMax, unsigned char& macroRel, bool bit30=false);
   void decodeMMLStrW(String& source, int* macro, int& macroLen, int macroMin, int macroMax, bool hex=false);
 
+  int insEditGetOpCount(DivInstrument* ins);
+  void insEditBuildMacroListAll(DivInstrument* ins, std::vector<FurnaceGUIMacroDesc>& macroList);
+  void insEditBuildMacroListBase(DivInstrument* ins, std::vector<FurnaceGUIMacroDesc>& macroList);
+  void insEditBuildMacroListFMBase(DivInstrument* ins, std::vector<FurnaceGUIMacroDesc>& macroList);
+  void insEditBuildMacroListFMOP(DivInstrument* ins, std::vector<FurnaceGUIMacroDesc>& macroList, int op);
+  void insEditBuildMacroListTimer(DivInstrument* ins, std::vector<FurnaceGUIMacroDesc>& macroList);
+  void insEditInitVScrollAndVZoom(DivInstrument* ins);
+  void insEditResetFixedPitchMacroVZoom(DivInstrument* ins, int op);
+  void insEditSanitizeVZoomAndVScroll(FurnaceGUIMacroDesc& i);
+  void insEditSanitizeVZoomAndVScroll(DivInstrument* ins, DivInstrumentMacro* macro);
+
   String encodeKeyMap(std::map<int,int>& map);
   void decodeKeyMap(std::map<int,int>& map, String source);
 
