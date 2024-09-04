@@ -2680,6 +2680,7 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
     ImGui::Text(_("Sample"));
     ImGui::SameLine();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+    if (e->song.sampleLen<1) ImGui::Text("You do not have any samples loaded.\nGo to the \"Samples\" window to add samples.");
     if (ImGui::BeginCombo("##ISample",sName.c_str())) {
       String id;
       for (int i=0; i<e->song.sampleLen; i++) {
@@ -5352,14 +5353,14 @@ void FurnaceGUI::drawInsEdit() {
           doAction(GUI_ACTION_INS_LIST_OPEN_REPLACE);
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("Open"));
+          ImGui::SetTooltip(_("Open instrument"));
         }
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_FLOPPY_O "##IESave")) {
           doAction(GUI_ACTION_INS_LIST_SAVE);
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("Save"));
+          ImGui::SetTooltip(_("Save instrument"));
         }
         if (ImGui::BeginPopupContextItem("InsSaveFormats",ImGuiMouseButton_Right)) {
           if (ImGui::MenuItem(_("save as .dmp..."))) {
