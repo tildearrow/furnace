@@ -32,6 +32,8 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 219: Furnace 0.6.7
+- 218: Furnace 0.6.6
 - 214: Furnace 0.6.5
 - 212: Furnace 0.6.4
 - 201: Furnace 0.6.3
@@ -260,6 +262,7 @@ size | description
      |   - 0xe4: µPD1771C - 1 channel (UNAVAILABLE)
      |   - 0xf0: SID2 - 3 channels
      |   - 0xf1: 5E01 - 5 channels
+     |   - 0xf5: SID3 - 7 channels
      |   - 0xfc: Pong - 1 channel
      |   - 0xfd: Dummy System - 8 channels
      |   - 0xfe: reserved for development

@@ -93,6 +93,10 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 - **Export**: select an `.ini` file to save current settings.
 - **Factory Reset**: resets all settings to default and purges settings backups.
 
+### Import
+
+- **Use OPL3 instead of OPL2 for S3M import**: changes which system is used for the import of S3M files that contain FM channels.
+
 ## Audio
 
 ### Output
