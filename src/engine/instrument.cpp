@@ -363,6 +363,141 @@ void DivInstrument::writeFeatureFM(SafeWriter* w, bool fui) {
   FEATURE_END;
 }
 
+bool MemPatch::calcDiff(const void* pre, const void* post, size_t inputSize) {
+  bool diffValid=false;
+  size_t firstDiff=0;
+  size_t lastDiff=0;
+  const unsigned char* preBytes=(const unsigned char*)pre;
+  const unsigned char* postBytes=(const unsigned char*)post;
+
+  // @NOTE: consider/profile using a memcmp==0 check to early-out, if it's potentially faster
+  // for the common case, which is no change
+  for (size_t ii=0; ii<inputSize; ++ii) {
+    if (preBytes[ii] != postBytes[ii]) {
+      lastDiff=ii;
+      firstDiff=diffValid ? firstDiff : ii;
+      diffValid=true;
+    }
+  }
+
+  if (diffValid) {
+    offset=firstDiff;
+    size=lastDiff - firstDiff + 1;
+    data=new unsigned char[size];
+
+    // the diff is to make pre into post (MemPatch is general, not specific to
+    // undo), so copy from postBytes
+    memcpy(data, postBytes+offset, size);
+  }
+
+  return diffValid;
+}
+
+void MemPatch::applyAndReverse(void* target, size_t targetSize) {
+  if (size==0) return;
+  if (offset+size>targetSize) {
+    logW("MemPatch (offset %d, size %d) exceeds target size (%d), can't apply!",offset,size,targetSize);
+    return;
+  }
+
+  unsigned char* targetBytes=(unsigned char*)target;
+
+  // swap this->data and its segment on target
+  for (size_t ii=0; ii<size; ++ii) {
+    unsigned char tmp=targetBytes[offset+ii];
+    targetBytes[offset+ii] = data[ii];
+    data[ii] = tmp;
+  }
+}
+
+void DivInstrumentUndoStep::applyAndReverse(DivInstrument* target) {
+  if (nameValid) {
+    name.swap(target->name);
+  }
+  podPatch.applyAndReverse((DivInstrumentPOD*)target, sizeof(DivInstrumentPOD));
+}
+
+bool DivInstrumentUndoStep::makeUndoPatch(size_t processTime_, const DivInstrument* pre, const DivInstrument* post) {
+  processTime=processTime_;
+
+  // create the patch that will make post into pre
+  podPatch.calcDiff((const DivInstrumentPOD*)post, (const DivInstrumentPOD*)pre, sizeof(DivInstrumentPOD));
+  if (pre->name!=post->name) {
+    nameValid=true;
+    name=pre->name;
+  }
+
+  return nameValid || podPatch.isValid();
+}
+
+bool DivInstrument::recordUndoStepIfChanged(size_t processTime, const DivInstrument* old) {
+  DivInstrumentUndoStep step;
+
+  // generate a patch to go back to old
+  if (step.makeUndoPatch(processTime, old, this)) {
+    
+      // make room
+    if (undoHist.size()>=undoHist.capacity()) {
+      delete undoHist.front();
+      undoHist.pop_front();
+    }
+
+    // clear redo
+    while (!redoHist.empty()) {
+      delete redoHist.back();
+      redoHist.pop_back();
+    }
+
+    DivInstrumentUndoStep* stepPtr=new DivInstrumentUndoStep;
+    *stepPtr=step;
+    step.podPatch.data=NULL; // don't let it delete the data ptr that's been copied!
+    undoHist.push_back(stepPtr);
+
+    // logI("DivInstrument::undoHist push (%u off, %u size)", stepPtr->podPatch.offset, stepPtr->podPatch.size);
+    return true;
+  }
+
+  return false;
+}
+
+int DivInstrument::undo() {
+  if (undoHist.empty()) return 0;
+
+  DivInstrumentUndoStep* step=undoHist.back();
+  undoHist.pop_back();
+  // logI("DivInstrument::undo (%u off, %u size)", step->podPatch.offset, step->podPatch.size);
+  step->applyAndReverse(this);
+
+  // make room
+  if (redoHist.size()>=redoHist.capacity()) {
+      DivInstrumentUndoStep* step=redoHist.front();
+      delete step;
+      redoHist.pop_front();
+  }
+  redoHist.push_back(step);
+
+  return 1;
+}
+
+int DivInstrument::redo() {
+  if (redoHist.empty()) return 0;
+
+  DivInstrumentUndoStep* step = redoHist.back();
+  redoHist.pop_back();
+  // logI("DivInstrument::redo (%u off, %u size)", step->podPatch.offset, step->podPatch.size);
+  step->applyAndReverse(this);
+
+  // make room
+  if (undoHist.size()>=undoHist.capacity()) {
+      DivInstrumentUndoStep* step=undoHist.front();
+      delete step;
+      undoHist.pop_front();
+  }
+  undoHist.push_back(step);
+
+  return 1;
+}
+
 void DivInstrument::writeMacro(SafeWriter* w, const DivInstrumentMacro& m) {
   if (!m.len) return;
 
@@ -3332,4 +3467,29 @@ bool DivInstrument::saveDMP(const char* path) {
   fclose(outFile);
   w->finish();
   return true;
+}
+
+DivInstrument::~DivInstrument() {
+  // free undoHist/redoHist
+  while (!undoHist.empty()) {
+    delete undoHist.back();
+    undoHist.pop_back();
+  }
+  while (!redoHist.empty()) {
+    delete redoHist.back();
+    redoHist.pop_back();
+  }
+}
+
+DivInstrument::DivInstrument( const DivInstrument& ins ) {
+  // undo/redo history is specifically not copied
+  *(DivInstrumentPOD*)this=ins;
+  name=ins.name;
+}
+
+DivInstrument& DivInstrument::operator=( const DivInstrument& ins ) {
+  // undo/redo history is specifically not copied
+  *(DivInstrumentPOD*)this=ins;
+  name=ins.name;
+  return *this;
 }

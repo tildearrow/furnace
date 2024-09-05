@@ -639,6 +639,8 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         logD("seek not needed...");
       }
 
+      logV("reading sample data (%d)",s->samples);
+
       if (flags&8) { // compressed sample
         unsigned int ret=0;
         logV("decompression begin... (%d)",s->samples);
@@ -672,62 +674,66 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         }
         logV("got: %d",ret);
       } else {
-        if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
-          if (flags&4) { // downmix stereo
-            for (unsigned int i=0; i<s->samples; i++) {
-              short l;
-              if (convert&2) {
-                l=reader.readS_BE();
-              } else {
-                l=reader.readS();
+        try {
+          if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
+            if (flags&4) { // downmix stereo
+              for (unsigned int i=0; i<s->samples; i++) {
+                short l;
+                if (convert&2) {
+                  l=reader.readS_BE();
+                } else {
+                  l=reader.readS();
+                }
+                if (!(convert&1)) {
+                  l^=0x8000;
+                }
+                s->data16[i]=l;
               }
-              if (!(convert&1)) {
-                l^=0x8000;
+              for (unsigned int i=0; i<s->samples; i++) {
+                short r;
+                if (convert&2) {
+                  r=reader.readS_BE();
+                } else {
+                  r=reader.readS();
+                }
+                if (!(convert&1)) {
+                  r^=0x8000;
+                }
+                s->data16[i]=(s->data16[i]+r)>>1;
               }
-              s->data16[i]=l;
-            }
-            for (unsigned int i=0; i<s->samples; i++) {
-              short r;
-              if (convert&2) {
-                r=reader.readS_BE();
-              } else {
-                r=reader.readS();
+            } else {
+              for (unsigned int i=0; i<s->samples; i++) {
+                if (convert&2) {
+                  s->data16[i]=reader.readS_BE()^((convert&1)?0:0x8000);
+                } else {
+                  s->data16[i]=reader.readS()^((convert&1)?0:0x8000);
+                }
               }
-              if (!(convert&1)) {
-                r^=0x8000;
-              }
-              s->data16[i]=(s->data16[i]+r)>>1;
             }
           } else {
-            for (unsigned int i=0; i<s->samples; i++) {
-              if (convert&2) {
-                s->data16[i]=reader.readS_BE()^((convert&1)?0:0x8000);
-              } else {
-                s->data16[i]=reader.readS()^((convert&1)?0:0x8000);
+            if (flags&4) { // downmix stereo
+              for (unsigned int i=0; i<s->samples; i++) {
+                signed char l=reader.readC();
+                if (!(convert&1)) {
+                  l^=0x80;
+                }
+                s->data8[i]=l;
+              }
+              for (unsigned int i=0; i<s->samples; i++) {
+                signed char r=reader.readC();
+                if (!(convert&1)) {
+                  r^=0x80;
+                }
+                s->data8[i]=(s->data8[i]+r)>>1;
+              }
+            } else {
+              for (unsigned int i=0; i<s->samples; i++) {
+                s->data8[i]=reader.readC()^((convert&1)?0:0x80);
               }
             }
           }
-        } else {
-          if (flags&4) { // downmix stereo
-            for (unsigned int i=0; i<s->samples; i++) {
-              signed char l=reader.readC();
-              if (!(convert&1)) {
-                l^=0x80;
-              }
-              s->data8[i]=l;
-            }
-            for (unsigned int i=0; i<s->samples; i++) {
-              signed char r=reader.readC();
-              if (!(convert&1)) {
-                r^=0x80;
-              }
-              s->data8[i]=(s->data8[i]+r)>>1;
-            }
-          } else {
-            for (unsigned int i=0; i<s->samples; i++) {
-              s->data8[i]=reader.readC()^((convert&1)?0:0x80);
-            }
-          }
+        } catch (EndOfFileException& e) {
+          logW("premature end of file...");
         }
       }
 

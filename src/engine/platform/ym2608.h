@@ -93,6 +93,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
 
   public:
     void acquire(short** buf, size_t len);
+    void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);

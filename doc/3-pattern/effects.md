@@ -12,20 +12,27 @@ however, effects are continuous (unless specified), which means you only need to
 - `FAxy`: **Fast volume slide.** same as `0Axy` above but 4× faster.
 - `F3xx`: **Fine volume slide up.** same as `0Ax0` but 64× slower.
 - `F4xx`: **Fine volume slide down.** same as `0A0x` but 64× slower.
-- `F8xx`: **Single tick volume slide up.** adds `x` to volume on first tick only.
-- `F9xx`: **Single tick volume slide down.** subtracts `x` from volume on first tick only.
+- `F8xx`: **Single tick volume up.** adds `x` to volume.
+- `F9xx`: **Single tick volume down.** subtracts `x` from volume.
+  - ---
+- `D3xx`: **Volume portamento.** slides volume toward the new value instead of jumping immediately. `x` is the speed of the slide.
+- `D4xx`: **Volume portamento (fast).** same as `D3xx` but 256× faster.
   - ---
 - `07xy`: **Tremolo.** changes volume to be "wavy" with a sine LFO. `x` is the speed. `y` is the depth.
   - tremolo is downward only.
   - maximum tremolo depth is -60 volume steps.
+  - ---
+- `D3xx`: **Volume portamento.** slides the volume to the one specified in the volume column. `x` is the slide speed.
+  - a volume _must_ be present with this effect for it to work.
+- `D4xx`: **Volume portamento (fast).** like `D3xx` but four times faster.
 
 ## pitch
 
 - `E5xx`: **Set pitch.** `00` is -1 semitone, `80` is base pitch, `FF` is nearly +1 semitone.
 - `01xx`: **Pitch slide up.**
 - `02xx`: **Pitch slide down.**
-- `F1xx`: **Single tick pitch slide up.**
-- `F2xx`: **Single tick pitch slide down.**
+- `F1xx`: **Single tick pitch up.**
+- `F2xx`: **Single tick pitch down.**
   - ---
 - `03xx`: **Portamento.** slides the currently playing note's pitch toward the new note. `x` is the slide speed.
   - a note _must_ be present with this effect for it to work.

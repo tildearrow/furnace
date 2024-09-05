@@ -26,6 +26,8 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 
+#include "../ta-utils.h"
+
 struct FurnacePlotArrayGetterData
 {
     const float* Values;
@@ -270,12 +272,13 @@ int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx),
       float lineHeight=ImGui::GetTextLineHeight()/2.0;
       for (int i=0; i<bits && overlay_text[i]; i++) {
         ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0,0,0,1.0f));
-        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x-1, frame_bb.Min.y-lineHeight-1), ImVec2(frame_bb.Max.x-1,frame_bb.Max.y+lineHeight-1), overlay_text[i], NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
-        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x-1, frame_bb.Min.y-lineHeight+1), ImVec2(frame_bb.Max.x-1,frame_bb.Max.y+lineHeight+1), overlay_text[i], NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
-        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x+1, frame_bb.Min.y-lineHeight-1), ImVec2(frame_bb.Max.x+1,frame_bb.Max.y+lineHeight-1), overlay_text[i], NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
-        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x+1, frame_bb.Min.y-lineHeight+1), ImVec2(frame_bb.Max.x+1,frame_bb.Max.y+lineHeight+1), overlay_text[i], NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
+        const char* text=_(overlay_text[i]);
+        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x-1, frame_bb.Min.y-lineHeight-1), ImVec2(frame_bb.Max.x-1,frame_bb.Max.y+lineHeight-1), text, NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
+        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x-1, frame_bb.Min.y-lineHeight+1), ImVec2(frame_bb.Max.x-1,frame_bb.Max.y+lineHeight+1), text, NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
+        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x+1, frame_bb.Min.y-lineHeight-1), ImVec2(frame_bb.Max.x+1,frame_bb.Max.y+lineHeight-1), text, NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
+        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x+1, frame_bb.Min.y-lineHeight+1), ImVec2(frame_bb.Max.x+1,frame_bb.Max.y+lineHeight+1), text, NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
         ImGui::PopStyleColor();
-        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x, frame_bb.Min.y-lineHeight), ImVec2(frame_bb.Max.x,frame_bb.Max.y+lineHeight), overlay_text[i], NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
+        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x, frame_bb.Min.y-lineHeight), ImVec2(frame_bb.Max.x,frame_bb.Max.y+lineHeight), text, NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
       }
     }
 

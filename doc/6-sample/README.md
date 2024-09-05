@@ -61,7 +61,7 @@ if you need to use more samples, you may change the sample bank using effect `EB
 due to limitations in some of those sound chips, some restrictions exist:
 
 - Amiga: maximum frequency is 31469Hz, but anything over 28867 will sound glitchy on hardware. sample lengths and loop will be set to an even number, and your sample can't be longer than 131070.
-- NES: if on DPCM mode, only a limited selection of frequencies is available, and loop position isn't supported (only entire sample).
+- NES: if on DPCM mode, only a limited selection of frequencies is available.
 - SegaPCM: your sample can't be longer than 65535, and the maximum frequency is 31.25KHz.
 - QSound: your sample can't be longer than 65535, and the loop length shall not be greater than 32767.
 - ADPCM-A: no looping supported. your samples will play at around 18.518KHz.
@@ -89,6 +89,7 @@ in there, you can modify certain data pertaining to your sample, such as the:
 - **Open**: replaces current sample.
   - right-clicking brings up a menu:
     - **import raw...**: brings up a file selector, then presents a dialog to choose the format of the selected file.
+    - **import raw (replace)...**: same as above, but instead of adding it to the sample list, it replaces the currently selected sample.
 - **Save**: saves current sample to disk.
   - right-clicking brings up a menu:
     - **save raw...**: brings up a file selector, then saves the sample as raw data.

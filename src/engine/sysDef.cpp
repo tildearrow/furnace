@@ -433,6 +433,7 @@ void DivEngine::registerSystems() {
     {0x25, {DIV_CMD_AY_ENVELOPE_SLIDE, _("25xx: Envelope slide up"), negEffectVal}},
     {0x26, {DIV_CMD_AY_ENVELOPE_SLIDE, _("26xx: Envelope slide down")}},
     {0x29, {DIV_CMD_AY_AUTO_ENVELOPE, _("29xy: Set auto-envelope (x: numerator; y: denominator)")}},
+    {0x2c, {DIV_CMD_AY_AUTO_PWM, _("2Cxx: Set timer period offset (bit 7: sign)")}},
     {0x2e, {DIV_CMD_AY_IO_WRITE, _("2Exx: Write to I/O port A"), constVal<0>, effectVal}},
     {0x2f, {DIV_CMD_AY_IO_WRITE, _("2Fxx: Write to I/O port B"), constVal<1>, effectVal}},
   };
@@ -503,6 +504,7 @@ void DivEngine::registerSystems() {
     {0x5d, {DIV_CMD_FM_D2R, _("5Dxx: Set decay 2 of operator 2 (0 to 1F)"), constVal<1>, effectValAnd<31>}},
     {0x5e, {DIV_CMD_FM_D2R, _("5Exx: Set decay 2 of operator 3 (0 to 1F)"), constVal<2>, effectValAnd<31>}},
     {0x5f, {DIV_CMD_FM_D2R, _("5Fxx: Set decay 2 of operator 4 (0 to 1F)"), constVal<3>, effectValAnd<31>}},
+    {0x60, {DIV_CMD_FM_OPMASK, _("60xx: Set operator mask (bits 0-3)")}},
   };
 
   EffectHandlerMap fmOPMPostEffectHandlerMap(fmOPNPostEffectHandlerMap);
@@ -513,6 +515,7 @@ void DivEngine::registerSystems() {
     {0x1e, {DIV_CMD_FM_AM_DEPTH, _("1Exx: Set AM depth (0 to 7F)"), effectValAnd<127>}},
     {0x1f, {DIV_CMD_FM_PM_DEPTH, _("1Fxx: Set PM depth (0 to 7F)"), effectValAnd<127>}},
     {0x55, {DIV_CMD_FM_SSG, _("55xy: Set detune 2 (x: operator from 1 to 4 (0 for all ops); y: detune from 0 to 3)"), effectOpVal<4>, effectValAnd<3>}},
+    {0x60, {DIV_CMD_FM_OPMASK, _("60xx: Set operator mask (bits 0-3)")}},
   });
 
   EffectHandlerMap fmOPZPostEffectHandlerMap(fmOPMPostEffectHandlerMap);

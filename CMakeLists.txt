@@ -16,7 +16,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_PROJECT_VERSION_MAJOR 0)
 set(CMAKE_PROJECT_VERSION_MINOR 6)
-set(CMAKE_PROJECT_VERSION_PATCH 5)
+set(CMAKE_PROJECT_VERSION_PATCH 6)
 
 set(BUILD_GUI_DEFAULT ON)
 set(USE_SDL2_DEFAULT ON)
@@ -685,6 +685,14 @@ src/engine/fileOps/text.cpp
 src/engine/fileOps/tfm.cpp
 src/engine/fileOps/xm.cpp
 
+src/engine/fileOps/p.cpp
+src/engine/fileOps/p86.cpp
+src/engine/fileOps/pdx.cpp
+src/engine/fileOps/ppc.cpp
+src/engine/fileOps/pps.cpp
+src/engine/fileOps/pvi.cpp
+src/engine/fileOps/pzi.cpp
+
 src/engine/blip_buf.c
 src/engine/brrUtils.c
 src/engine/safeReader.cpp
@@ -697,6 +705,7 @@ src/engine/configEngine.cpp
 src/engine/dispatchContainer.cpp
 src/engine/engine.cpp
 src/engine/export.cpp
+src/engine/exportDef.cpp
 src/engine/fileOpsIns.cpp
 src/engine/fileOpsSample.cpp
 src/engine/filter.cpp
@@ -712,9 +721,6 @@ src/engine/wavetable.cpp
 src/engine/waveSynth.cpp
 src/engine/wavOps.cpp
 src/engine/vgmOps.cpp
-src/engine/zsmOps.cpp
-src/engine/zsm.cpp
-src/engine/tiunaOps.cpp
 
 src/engine/platform/abstract.cpp
 src/engine/platform/genesis.cpp
@@ -794,6 +800,8 @@ src/engine/platform/dummy.cpp
 
 src/engine/export/abstract.cpp
 src/engine/export/amigaValidation.cpp
+src/engine/export/tiuna.cpp
+src/engine/export/zsm.cpp
 
 src/engine/effect/abstract.cpp
 src/engine/effect/dummy.cpp

@@ -651,7 +651,7 @@ void DivPlatformGB::reset() {
   immWrite(0x26,0x8f);
   lastPan=0xff;
   immWrite(0x25,procMute());
-  immWrite(0x24,0x77);
+  immWrite(0x24,0xff);
 
   antiClickPeriodCount=0;
   antiClickWavePos=0;

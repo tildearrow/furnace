@@ -73,6 +73,8 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_UNDO:
       if (curWindow==GUI_WINDOW_SAMPLE_EDIT) {
         doUndoSample();
+      } else if (curWindow==GUI_WINDOW_INS_EDIT) {
+        doUndoInstrument();
       } else {
         doUndo();
       }
@@ -80,6 +82,8 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_REDO:
       if (curWindow==GUI_WINDOW_SAMPLE_EDIT) {
         doRedoSample();
+      } else if (curWindow==GUI_WINDOW_INS_EDIT) {
+        doRedoInstrument();
       } else {
         doRedo();
       }
@@ -123,16 +127,16 @@ void FurnaceGUI::doAction(int what) {
       pendingStepUpdate=1;
       break;
     case GUI_ACTION_OCTAVE_UP:
-      if (++curOctave>7) {
-        curOctave=7;
+      if (++curOctave>GUI_EDIT_OCTAVE_MAX) {
+        curOctave=GUI_EDIT_OCTAVE_MAX;
       } else {
         e->autoNoteOffAll();
         failedNoteOn=false;
       }
       break;
     case GUI_ACTION_OCTAVE_DOWN:
-      if (--curOctave<-5) {
-        curOctave=-5;
+      if (--curOctave<GUI_EDIT_OCTAVE_MIN) {
+        curOctave=GUI_EDIT_OCTAVE_MIN;
       } else {
         e->autoNoteOffAll();
         failedNoteOn=false;
@@ -675,6 +679,15 @@ void FurnaceGUI::doAction(int what) {
       latchEffectVal=-1;
       latchTarget=0;
       latchNibble=false;
+      break;
+    case GUI_ACTION_PAT_ABSORB_INSTRUMENT:
+      doAbsorbInstrument();
+      break;
+    case GUI_ACTION_PAT_CURSOR_UNDO:
+      doCursorUndo();
+      break;
+    case GUI_ACTION_PAT_CURSOR_REDO:
+      doCursorRedo();
       break;
 
     case GUI_ACTION_INS_LIST_ADD:

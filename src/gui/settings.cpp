@@ -1084,15 +1084,19 @@ void FurnaceGUI::drawSettings() {
           ImGui::PushID(i);
 
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(_("Invert")).x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
-          if (ImGui::BeginCombo("##System",getSystemName(sysID))) {
-            for (int j=0; availableSystems[j]; j++) {
-              if (ImGui::Selectable(getSystemName((DivSystem)availableSystems[j]),sysID==availableSystems[j])) {
-                sysID=(DivSystem)availableSystems[j];
-                settings.initialSys.set(fmt::sprintf("id%d",i),(int)e->systemToFileFur(sysID));
-                settings.initialSys.set(fmt::sprintf("flags%d",i),"");
-                settingsChanged=true;
-              }
+            if (ImGui::BeginCombo("##System",getSystemName(sysID),ImGuiComboFlags_HeightLargest)) {
+
+            sysID=systemPicker(true);
+
+            if (sysID!=DIV_SYSTEM_NULL)
+            {
+              settings.initialSys.set(fmt::sprintf("id%d",i),(int)e->systemToFileFur(sysID));
+              settings.initialSys.set(fmt::sprintf("flags%d",i),"");
+              settingsChanged=true;
+
+              ImGui::CloseCurrentPopup();
             }
+
             ImGui::EndCombo();
           }
 
@@ -1253,6 +1257,14 @@ void FurnaceGUI::drawSettings() {
           showWarning(_("Are you sure you want to reset all Furnace settings?\nYou must restart Furnace after doing so."),GUI_WARN_RESET_CONFIG);
         }
         popDestColor();
+
+        // SUBSECTION IMPORT
+        CONFIG_SUBSECTION(_("Import"));
+        bool s3mOPL3B=settings.s3mOPL3;
+        if (ImGui::Checkbox(_("Use OPL3 instead of OPL2 for S3M import"),&s3mOPL3B)) {
+          settings.s3mOPL3=s3mOPL3B;
+          settingsChanged=true;
+        }
 
         END_SECTION;
       }
@@ -2415,6 +2427,9 @@ void FurnaceGUI::drawSettings() {
           UI_KEYBIND_CONFIG(GUI_ACTION_PAT_EXPAND_SONG);
           UI_KEYBIND_CONFIG(GUI_ACTION_PAT_LATCH);
           UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CLEAR_LATCH);
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_ABSORB_INSTRUMENT);
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_UNDO);
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_REDO);
 
           KEYBIND_CONFIG_END;
           ImGui::TreePop();
@@ -4747,6 +4762,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.vibrationStrength=conf.getFloat("vibrationStrength",0.5f);
     settings.vibrationLength=conf.getInt("vibrationLength",20);
 
+    settings.s3mOPL3=conf.getInt("s3mOPL3",1);
+
     settings.backupEnable=conf.getInt("backupEnable",1);
     settings.backupInterval=conf.getInt("backupInterval",30);
     settings.backupMaxCopies=conf.getInt("backupMaxCopies",5);
@@ -5259,6 +5276,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.backupMaxCopies,1,100);
   clampSetting(settings.autoFillSave,0,1);
   clampSetting(settings.autoMacroStepSize,0,1);
+  clampSetting(settings.s3mOPL3,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
@@ -5331,6 +5349,8 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
     conf.set("vibrationStrength",settings.vibrationStrength);
     conf.set("vibrationLength",settings.vibrationLength);
+
+    conf.set("s3mOPL3",settings.s3mOPL3);
 
     conf.set("backupEnable",settings.backupEnable);
     conf.set("backupInterval",settings.backupInterval);

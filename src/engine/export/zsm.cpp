@@ -18,9 +18,77 @@
  */
 
 #include "zsm.h"
+#include "../engine.h"
 #include "../ta-log.h"
-#include "../utfutils.h"
-#include "song.h"
+#include <fmt/printf.h>
+
+/// DivZSM definitions
+
+#define ZSM_HEADER_SIZE 16
+#define ZSM_VERSION 1
+#define ZSM_YM_CMD 0x40
+#define ZSM_DELAY_CMD 0x80
+#define ZSM_YM_MAX_WRITES 63
+#define ZSM_SYNC_MAX_WRITES 31
+#define ZSM_DELAY_MAX 127
+#define ZSM_EOF ZSM_DELAY_CMD
+
+#define ZSM_EXT ZSM_YM_CMD
+#define ZSM_EXT_PCM 0x00
+#define ZSM_EXT_CHIP 0x40
+#define ZSM_EXT_SYNC 0x80
+#define ZSM_EXT_CUSTOM 0xC0
+
+enum YM_STATE { ym_PREV, ym_NEW, ym_STATES };
+enum PSG_STATE { psg_PREV, psg_NEW, psg_STATES };
+
+class DivZSM {
+  private:
+    struct S_pcmInst {
+      int geometry;
+      unsigned int offset, length, loopPoint;
+      bool isLooped;
+    };
+    SafeWriter* w;
+    int ymState[ym_STATES][256];
+    int psgState[psg_STATES][64];
+    int pcmRateCache;
+    int pcmCtrlRVCache;
+    int pcmCtrlDCCache;
+    unsigned int pcmLoopPointCache;
+    bool pcmIsLooped;
+    std::vector<DivRegWrite> ymwrites;
+    std::vector<DivRegWrite> pcmMeta;
+    std::vector<unsigned char> pcmData;
+    std::vector<unsigned char> pcmCache;
+    std::vector<S_pcmInst> pcmInsts;
+    std::vector<DivRegWrite> syncCache;
+    int loopOffset;
+    int numWrites;
+    int ticks;
+    int tickRate;
+    int ymMask;
+    int psgMask;
+    bool optimize;
+  public:
+    DivZSM();
+    ~DivZSM();
+    void init(unsigned int rate = 60);
+    int getoffset();
+    void writeYM(unsigned char a, unsigned char v);
+    void writePSG(unsigned char a, unsigned char v);
+    void writePCM(unsigned char a, unsigned char v);
+    void writeSync(unsigned char a, unsigned char v);
+    void setOptimize(bool o);
+    void tick(int numticks = 1);
+    void setLoopPoint();
+    SafeWriter* finish();
+  private:
+    void flushWrites();
+    void flushTicks();
+};
+
+/// DivZSM implementation
 
 DivZSM::DivZSM() {
   w=NULL;
@@ -132,14 +200,6 @@ void DivZSM::writePSG(unsigned char a, unsigned char v) {
     return writeSync(0x00,v);
   } else if (a>=64) {
     return writePCM(a-64,v);
-  }
-  if (optimize) {
-    if ((a&3)==3 && v>64) {
-      // Pulse width on non-pulse waves is nonsense and wasteful
-      // No need to preserve state here because the next write that
-      // selects pulse will also set the pulse width in this register
-      v&=0xc0;
-    }
   }
   if (psgState[psg_PREV][a]==v) {
     if (psgState[psg_NEW][a]!=v) {
@@ -454,4 +514,244 @@ void DivZSM::flushTicks() {
     w->writeC(ZSM_DELAY_CMD+ticks);
   }
   ticks=0;
+}
+
+/// ZSM export
+
+constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
+constexpr int MASTER_CLOCK_MASK=(sizeof(void*)==8)?0xff:0;
+
+void DivExportZSM::run() {
+  // settings
+  unsigned int zsmrate=conf.getInt("zsmrate",60);
+  bool loop=conf.getBool("loop",true);
+  bool optimize=conf.getBool("optimize",true);
+
+  // system IDs
+  int VERA=-1;
+  int YM=-1;
+  int IGNORED=0;
+
+  // find indexes for YM and VERA. Ignore other systems.
+  for (int i=0; i<e->song.systemLen; i++) {
+    switch (e->song.system[i]) {
+      case DIV_SYSTEM_VERA:
+        if (VERA>=0) {
+          IGNORED++;
+          break;
+        }
+        VERA=i;
+        logAppendf("VERA detected as chip id %d",i);
+        break;
+      case DIV_SYSTEM_YM2151:
+        if (YM>=0) {
+          IGNORED++;
+          break;
+        }
+        YM=i;
+        logAppendf("YM detected as chip id %d",i);
+        break;
+      default:
+        IGNORED++;
+        logAppendf("Ignoring chip %d systemID %d",i,(int)e->song.system[i]);
+        break;
+    }
+  }
+  if (VERA<0 && YM<0) {
+    logAppend("ERROR: No supported systems for ZSM");
+    failed=true;
+    running=false;
+    return;
+  }
+  if (IGNORED>0) {
+    logAppendf("ZSM export ignoring %d unsupported system%c",IGNORED,IGNORED>1?'s':' ');
+  }
+
+  DivZSM zsm;
+
+  e->stop();
+  e->repeatPattern=false;
+  e->setOrder(0);
+  e->synchronizedSoft([&]() {
+    double origRate=e->got.rate;
+    e->got.rate=zsmrate&0xffff;
+
+    // determine loop point
+    int loopOrder=0;
+    int loopRow=0;
+    int loopEnd=0;
+    e->walkSong(loopOrder,loopRow,loopEnd);
+    logAppendf("loop point: %d %d",loopOrder,loopRow);
+
+    zsm.init(zsmrate);
+
+    // reset the playback state
+    e->curOrder=0;
+    e->freelance=false;
+    e->playing=false;
+    e->extValuePresent=false;
+    e->remainingLoops=-1;
+
+    // Prepare to write song data
+    e->playSub(false);
+    //size_t tickCount=0;
+    bool done=false;
+    bool loopNow=false;
+    int loopPos=-1;
+    int fracWait=0; // accumulates fractional ticks
+    if (VERA>=0) e->disCont[VERA].dispatch->toggleRegisterDump(true);
+    if (YM>=0) {
+      e->disCont[YM].dispatch->toggleRegisterDump(true);
+      // emit LFO initialization commands
+      zsm.writeYM(0x18,0);    // freq=0
+      zsm.writeYM(0x19,0x7F); // AMD =7F
+      zsm.writeYM(0x19,0xFF); // PMD =7F
+      // TODO: incorporate the Furnace meta-command for init data and filter
+      //       out writes to otherwise-unused channels.
+    }
+    // Indicate the song's tuning as a sync meta-event
+    // specified in terms of how many 1/256th semitones
+    // the song is offset from standard A-440 tuning.
+    // This is mainly to benefit visualizations in players
+    // for non-standard tunings so that they can avoid
+    // displaying the entire song held in pitch bend.
+    // Tunings offsets that exceed a half semitone
+    // will simply be represented in a different key
+    // by nature of overflowing the signed char value
+    signed char tuningoffset=(signed char)(round(3072*(log(e->song.tuning/440.0)/log(2))))&0xff;
+    zsm.writeSync(0x01,tuningoffset);
+    // Set optimize flag, which mainly buffers PSG writes
+    // whenever the channel is silent
+    zsm.setOptimize(optimize);
+
+    while (!done) {
+      if (loopPos==-1) {
+        if (loopOrder==e->curOrder && loopRow==e->curRow && loop)
+          loopNow=true;
+        if (loopNow) {
+          // If Virtual Tempo is in use, our exact loop point
+          // might be skipped due to quantization error.
+          // If this happens, the tick immediately following is our loop point.
+          if (e->ticks==1 || !(loopOrder==e->curOrder && loopRow==e->curRow)) {
+            loopPos=zsm.getoffset();
+            zsm.setLoopPoint();
+            loopNow=false;
+          }
+        }
+      }
+      if (e->nextTick() || !e->playing) {
+        done=true;
+        if (!loop) {
+          for (int i=0; i<e->song.systemLen; i++) {
+            e->disCont[i].dispatch->getRegisterWrites().clear();
+          }
+          break;
+        }
+        if (!e->playing) {
+          loopPos=-1;
+        }
+      }
+      // get register dumps
+      for (int j=0; j<2; j++) {
+        int i=0;
+        // dump YM writes first
+        if (j==0) {
+          if (YM<0) {
+            continue;
+          } else {
+            i=YM;
+          }
+        }
+        // dump VERA writes second
+        if (j==1) {
+          if (VERA<0) {
+            continue;
+          } else {
+            i=VERA;
+          }
+        }
+        std::vector<DivRegWrite>& writes=e->disCont[i].dispatch->getRegisterWrites();
+        if (writes.size()>0)
+          logD("zsmOps: Writing %d messages to chip %d",writes.size(),i);
+        for (DivRegWrite& write: writes) {
+          if (i==YM) {
+            if (done && write.addr==0x08 && (write.val&0x78)>0) continue; // don't process keydown on lookahead
+            zsm.writeYM(write.addr&0xff,write.val);
+          }
+          if (i==VERA) {
+            if (done && write.addr>=64) continue; // don't process any PCM or sync events on the loop lookahead
+            zsm.writePSG(write.addr&0xff,write.val);
+          }
+        }
+        writes.clear();
+      }
+
+      // write wait
+      int totalWait=e->cycles>>MASTER_CLOCK_PREC;
+      fracWait+=e->cycles&MASTER_CLOCK_MASK;
+      totalWait+=fracWait>>MASTER_CLOCK_PREC;
+      fracWait&=MASTER_CLOCK_MASK;
+      if (totalWait>0 && !done) {
+        zsm.tick(totalWait);
+        //tickCount+=totalWait;
+      }
+    }
+    // end of song
+
+    // done - close out.
+    e->got.rate=origRate;
+    if (VERA>=0) e->disCont[VERA].dispatch->toggleRegisterDump(false);
+    if (YM>=0) e->disCont[YM].dispatch->toggleRegisterDump(false);
+
+    e->remainingLoops=-1;
+    e->playing=false;
+    e->freelance=false;
+    e->extValuePresent=false;
+  });
+
+  progress[0].amount=1.0f;
+
+  logAppend("finished!");
+
+  output.push_back(DivROMExportOutput("out.zsm",zsm.finish()));
+  running=false;
+}
+
+/// DivExpottZSM - FRONTEND
+
+bool DivExportZSM::go(DivEngine* eng) {
+  progress[0].name="Generate";
+  progress[0].amount=0.0f;
+
+  e=eng;
+  running=true;
+  failed=false;
+  mustAbort=false;
+  exportThread=new std::thread(&DivExportZSM::run,this);
+  return true;
+}
+
+void DivExportZSM::wait() {
+  if (exportThread!=NULL) {
+    exportThread->join();
+    delete exportThread;
+  }
+}
+
+void DivExportZSM::abort() {
+  mustAbort=true;
+  wait();
+}
+
+bool DivExportZSM::isRunning() {
+  return running;
+}
+
+bool DivExportZSM::hasFailed() {
+  return failed;
+}
+
+DivROMExportProgress DivExportZSM::getProgress(int index) {
+  if (index<0 || index>1) return progress[1];
+  return progress[index];
 }

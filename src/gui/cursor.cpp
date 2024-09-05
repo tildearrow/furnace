@@ -69,6 +69,9 @@ void FurnaceGUI::startSelection(int xCoarse, int xFine, int y, bool fullRow) {
     selStart.y=y;
     selEnd.y=y;
   } else {
+    if (xCoarse!=cursor.xCoarse || y!=cursor.y) {
+      makeCursorUndo();
+    }
     cursor.xCoarse=xCoarse;
     cursor.xFine=xFine;
     cursor.y=y;
@@ -208,6 +211,9 @@ void FurnaceGUI::finishSelection() {
 }
 
 void FurnaceGUI::moveCursor(int x, int y, bool select) {
+  if (y>=editStepCoarse || y<=-editStepCoarse || x<=-5 || x>=5 ) {
+    makeCursorUndo();
+  }
   if (!select) {
     finishSelection();
   }
@@ -326,6 +332,7 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
 }
 
 void FurnaceGUI::moveCursorPrevChannel(bool overflow) {
+  makeCursorUndo();
   finishSelection();
   curNibble=false;
 
@@ -354,6 +361,7 @@ void FurnaceGUI::moveCursorPrevChannel(bool overflow) {
 }
 
 void FurnaceGUI::moveCursorNextChannel(bool overflow) {
+  makeCursorUndo();
   finishSelection();
   curNibble=false;
 
@@ -382,6 +390,7 @@ void FurnaceGUI::moveCursorNextChannel(bool overflow) {
 }
 
 void FurnaceGUI::moveCursorTop(bool select) {
+  makeCursorUndo();
   if (!select) {
     finishSelection();
   }
@@ -403,6 +412,7 @@ void FurnaceGUI::moveCursorTop(bool select) {
 }
 
 void FurnaceGUI::moveCursorBottom(bool select) {
+  makeCursorUndo();
   if (!select) {
     finishSelection();
   }

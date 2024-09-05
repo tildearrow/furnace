@@ -119,6 +119,10 @@ Shift-Up    | expand selection upwards
 Shift-Down  | expand selection downwards
 Shift-Left  | expand selection to the left
 Shift-Right | expand selection to the right
+Alt-Up      | move selection up by one
+Alt-Down    | move selection down by one
+Alt-Left    | move selection to previous channel
+Alt-Right   | move selection to next channel
 Backspace   | delete note at cursor and/or pull pattern upwards (configurable)
 Delete      | delete selection
 Insert      | create blank row at cursor position and push pattern

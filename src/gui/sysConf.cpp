@@ -1969,6 +1969,9 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       echoFilter[6]=flags.getInt("echoFilter6",0);
       echoFilter[7]=flags.getInt("echoFilter7",0);
 
+      bool interpolationOff=flags.getBool("interpolationOff",false);
+      bool antiClick=flags.getBool("antiClick",true);
+
       ImGui::Text(_("Volume scale:"));
       if (CWSliderInt(_("Left##VolScaleL"),&vsL,0,127)) {
         if (vsL<0) vsL=0;
@@ -2084,6 +2087,14 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       ImGui::Text(_("sum: %d"),filterSum);
       ImGui::PopStyleColor();
 
+      if (ImGui::Checkbox(_("Disable Gaussian interpolation"),&interpolationOff)) {
+        altered=true;
+      }
+
+      if (ImGui::Checkbox(_("Anti-click"),&antiClick)) {
+        altered=true;
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("volScaleL",127-vsL);
@@ -2102,6 +2113,8 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           flags.set("echoFilter6",echoFilter[6]);
           flags.set("echoFilter7",echoFilter[7]);
           flags.set("echoMask",echoMask);
+          flags.set("interpolationOff",interpolationOff);
+          flags.set("antiClick",antiClick);
         });
       }
 
@@ -2505,7 +2518,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       break;
     }
     case DIV_SYSTEM_VERA: {
-      int chipType=flags.getInt("chipType",1);
+      int chipType=flags.getInt("chipType",2);
 
       ImGui::Text(_("Chip revision:"));
       ImGui::Indent();
@@ -2515,6 +2528,10 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       if (ImGui::RadioButton(_("V 47.0.0 (9-bit volume)"),chipType==1)) {
         chipType=1;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("V 47.0.2 (Tri/Saw PW XOR)"),chipType==2)) {
+        chipType=2;
         altered=true;
       }
       ImGui::Unindent();

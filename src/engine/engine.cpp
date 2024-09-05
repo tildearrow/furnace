@@ -98,6 +98,10 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       break;
     case 0xc0: case 0xc1: case 0xc2: case 0xc3:
       return _("Cxxx: Set tick rate (hz)");
+    case 0xd3:
+      return _("D3xx: Volume portamento");
+    case 0xd4:
+      return _("D4xx: Volume portamento (fast)");
     case 0xdc:
       return _("DCxx: Delayed mute");
     case 0xe0:
@@ -133,9 +137,9 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
     case 0xf0:
       return _("F0xx: Set tick rate (bpm)");
     case 0xf1:
-      return _("F1xx: Single tick note slide up");
+      return _("F1xx: Single tick pitch up");
     case 0xf2:
-      return _("F2xx: Single tick note slide down");
+      return _("F2xx: Single tick pitch down");
     case 0xf3:
       return _("F3xx: Fine volume slide up");
     case 0xf4:
@@ -147,9 +151,9 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
     case 0xf7:
       return _("F7xx: Restart macro (see manual)");
     case 0xf8:
-      return _("F8xx: Single tick volume slide up");
+      return _("F8xx: Single tick volume up");
     case 0xf9:
-      return _("F9xx: Single tick volume slide down");
+      return _("F9xx: Single tick volume down");
     case 0xfa:
       return _("FAxx: Fast volume slide (0y: down; x0: up)");
     case 0xfc:
@@ -196,6 +200,12 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
 void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {
   if (curSubSong!=NULL) {
     curSubSong->walk(loopOrder,loopRow,loopEnd,chans,song.jumpTreatment,song.ignoreJumpAtEnd);
+  }
+}
+
+void DivEngine::findSongLength(int loopOrder, int loopRow, double fadeoutLen, int& rowsForFadeout, bool& hasFFxx, std::vector<int>& orders, int& length) {
+  if (curSubSong!=NULL) {
+    curSubSong->findLength(loopOrder,loopRow,fadeoutLen,rowsForFadeout,hasFFxx,orders,song.grooves,length,chans,song.jumpTreatment,song.ignoreJumpAtEnd);
   }
 }
 
@@ -510,6 +520,15 @@ void DivEngine::initSongWithDesc(const char* description, bool inBase64, bool ol
   if (song.subsong[0]->hz<1.0) song.subsong[0]->hz=1.0;
   if (song.subsong[0]->hz>999.0) song.subsong[0]->hz=999.0;
 
+  curChanMask=c.getIntList("chanMask",{});
+  for (unsigned char i:curChanMask) {
+    int j=i-1;
+    if (j<0) j=0;
+    if (j>DIV_MAX_CHANS) j=DIV_MAX_CHANS-1;
+    curSubSong->chanShow[j]=false;
+    curSubSong->chanShowChanOsc[j]=false;
+  }
+
   song.author=getConfString("defaultAuthorName","");
 }
 
@@ -744,6 +763,13 @@ int DivEngine::addSubSong() {
   BUSY_BEGIN;
   saveLock.lock();
   song.subsong.push_back(new DivSubSong);
+  for (unsigned char i:curChanMask) {
+    int j=i-1;
+    if (j<0) j=0;
+    if (j>DIV_MAX_CHANS) j=DIV_MAX_CHANS-1;
+    song.subsong.back()->chanShow[j]=false;
+    song.subsong.back()->chanShowChanOsc[j]=false;
+  }
   saveLock.unlock();
   BUSY_END;
   return song.subsong.size()-1;
@@ -3589,6 +3615,12 @@ void DivEngine::synchronized(const std::function<void()>& what) {
   BUSY_END;
 }
 
+void DivEngine::synchronizedSoft(const std::function<void()>& what) {
+  BUSY_BEGIN_SOFT;
+  what();
+  BUSY_END;
+}
+
 void DivEngine::lockSave(const std::function<void()>& what) {
   saveLock.lock();
   what();
@@ -3915,6 +3947,9 @@ bool DivEngine::preInit(bool noSafeMode) {
 
   // register systems
   if (!systemsRegistered) registerSystems();
+
+  // register ROM exports
+  if (!romExportsRegistered) registerROMExports();
 
   // TODO: re-enable with a better approach
   // see issue #1581

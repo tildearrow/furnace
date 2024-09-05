@@ -16,7 +16,7 @@ if you find issues (e.g. bugs or annoyances), report them. links below.
 - Furnace on GitHub (project page and issue tracker): https://github.com/tildearrow/furnace
   - issues: https://github.com/tildearrow/furnace/issues
   - discussion: https://github.com/tildearrow/furnace/discussions
-- online manual: https://tildearrow.org/furnace/doc/v0.6.5/
+- online manual: https://tildearrow.org/furnace/doc/v0.6.7/
 
 # notes
 

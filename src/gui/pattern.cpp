@@ -1500,6 +1500,7 @@ void FurnaceGUI::drawPattern() {
             i.cmd==DIV_CMD_HINT_PORTA ||
             i.cmd==DIV_CMD_HINT_LEGATO ||
             i.cmd==DIV_CMD_HINT_VOL_SLIDE ||
+            i.cmd==DIV_CMD_HINT_VOL_SLIDE_TARGET ||
             i.cmd==DIV_CMD_HINT_ARPEGGIO ||
             i.cmd==DIV_CMD_HINT_PITCH ||
             i.cmd==DIV_CMD_HINT_VIBRATO ||

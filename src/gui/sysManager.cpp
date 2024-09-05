@@ -91,13 +91,18 @@ void FurnaceGUI::drawSysManager() {
           if (!e->duplicateSystem(i,sysDupCloneChannels,sysDupEnd)) {
             showError(fmt::sprintf(_("cannot clone chip! (%s)"),e->getLastError()));
           } else {
+            if (e->song.autoSystem) {
+              autoDetectSystem();
+              updateWindowTitle();
+            }
+            updateROMExportAvail();
             MARK_MODIFIED;
           }
         }
         ImGui::SameLine();
         ImGui::Button(_("Change##SysChange"));
         if (ImGui::BeginPopupContextItem("SysPickerC",ImGuiPopupFlags_MouseButtonLeft)) {
-          DivSystem picked=systemPicker();
+          DivSystem picked=systemPicker(false);
           if (picked!=DIV_SYSTEM_NULL) {
             if (e->changeSystem(i,picked,preserveChanPos)) {
               MARK_MODIFIED;
@@ -105,6 +110,7 @@ void FurnaceGUI::drawSysManager() {
                 autoDetectSystem();
               }
               updateWindowTitle();
+              updateROMExportAvail();
             } else {
               showError(fmt::sprintf(_("cannot change chip! (%s)"),e->getLastError()));
             }
@@ -132,7 +138,7 @@ void FurnaceGUI::drawSysManager() {
         ImGui::TableNextColumn();
         ImGui::Button(ICON_FA_PLUS "##SysAdd");
         if (ImGui::BeginPopupContextItem("SysPickerA",ImGuiPopupFlags_MouseButtonLeft)) {
-          DivSystem picked=systemPicker();
+          DivSystem picked=systemPicker(false);
           if (picked!=DIV_SYSTEM_NULL) {
             if (!e->addSystem(picked)) {
               showError(fmt::sprintf(_("cannot add chip! (%s)"),e->getLastError()));
@@ -143,6 +149,7 @@ void FurnaceGUI::drawSysManager() {
               autoDetectSystem();
             }
             updateWindowTitle();
+            updateROMExportAvail();
             ImGui::CloseCurrentPopup();
           }
           ImGui::EndPopup();
