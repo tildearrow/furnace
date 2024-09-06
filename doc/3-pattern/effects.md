@@ -46,7 +46,7 @@ however, effects are continuous (unless specified), which means you only need to
 - `E8xy`: **Quick legato up**. transposes note up by `y` semitones after `x` ticks.
 - `E9xy`: **Quick legato down**. transposes note down by `y` semitones after `x` ticks.
 - `00xy`: **Arpeggio.** this effect produces a rapid cycle between the current note, the note plus `x` semitones and the note plus `y` semitones.
-  - as an example, start with a chord of C-3, G-3, and D#4. The G-3 and D#4 are 7 and 15 semitones higher than the root note, so the corresponding effect is `007F`.
+  - as an example, start with a chord of C-3, G-3, and D#4. the G-3 and D#4 are 7 and 15 semitones higher than the root note, so the corresponding effect is `007F`.
 - `E0xx`: **Set arpeggio speed.** this sets the number of ticks between arpeggio values. default is 1.
   - ---
 - `04xy`: **Vibrato.** makes the pitch oscillate. `x` is the speed, while `y` is the depth.
