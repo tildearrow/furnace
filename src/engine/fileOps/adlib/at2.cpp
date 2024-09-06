@@ -664,6 +664,12 @@ int findEmptyEffectSlot(short* data)
     return -1;
 }
 
+#define MARK_PORTA -2
+#define MARK_VIB -3
+#define MARK_VOL_SLIDE -4
+#define MARK_FINE_PORTA -5
+#define MARK_FINE_VOL_SLIDE -6
+
 void convertAT2effect(unsigned short at2Eff, short* data, int version)
 {
     int eff = at2Eff >> 8;
@@ -678,7 +684,171 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version)
         switch(at2Eff >> 8)
         {
             case fx_Arpeggio:
+            case fx_FSlideUp:
+            case fx_FSlideDown:
             {
+                data[4 + emptyEffSlot * 2] = eff;
+                data[5 + emptyEffSlot * 2] = param;
+                break;
+            }
+            case fx_FSlideUpFine:
+            {
+                data[4 + emptyEffSlot * 2] = 0xf1;
+                data[5 + emptyEffSlot * 2] = param;
+                break;
+            }
+            case fx_FSlideDownFine:
+            {
+                data[4 + emptyEffSlot * 2] = 0xf2;
+                data[5 + emptyEffSlot * 2] = param;
+                break;
+            }
+            case fx_TonePortamento:
+            {
+                data[4 + emptyEffSlot * 2] = 0x03;
+                data[5 + emptyEffSlot * 2] = param;
+                break;
+            }
+            case fx_TPortamVolSlide:
+            {
+                data[4 + emptyEffSlot * 2] = 0x06;
+                data[5 + emptyEffSlot * 2] = param;
+                break;
+            }
+            case fx_Vibrato:
+            {
+                data[4 + emptyEffSlot * 2] = 0x04;
+                data[5 + emptyEffSlot * 2] = param;
+                break;
+            }
+            case fx_VibratoVolSlide:
+            {
+                data[4 + emptyEffSlot * 2] = 0x05;
+                data[5 + emptyEffSlot * 2] = param;
+                break;
+            }
+            case fx_SetOpIntensity:
+            {
+                //todo what the fuck??
+                break;
+            }
+            case fx_SetInsVolume:
+            {
+                data[3] = param;
+                break;
+            }
+            case fx_PatternBreak:
+            {
+                data[4 + emptyEffSlot * 2] = 0x0d;
+                data[5 + emptyEffSlot * 2] = param;
+                break;
+            }
+            case fx_PatternJump:
+            {
+                data[4 + emptyEffSlot * 2] = 0x0b;
+                data[5 + emptyEffSlot * 2] = param;
+                break;
+            }
+            case fx_SetTempo:
+            {
+                data[4 + emptyEffSlot * 2] = 0xC0;
+                data[5 + emptyEffSlot * 2] = param;
+                break;
+            }
+            case fx_SetTimer:
+            {
+                //todo wtf?
+                break;
+            }
+            case fx_Extended:
+            {
+                switch(paramUpperNibble)
+                {
+                    case fx_ex_DefAMdepth:
+                    {
+                        //todo
+                        break;
+                    }
+                    case fx_ex_DefVibDepth:
+                    {
+                        //todo
+                        break;
+                    }
+                    case fx_ex_DefWaveform:
+                    {
+                        //todo
+                        break;
+                    }
+                    case fx_ex_ManSlideUp:
+                    {
+                        //todo
+                        break;
+                    }
+                    case fx_ex_ManSlideDown:
+                    {
+                        //todo
+                        break;
+                    }
+                    case fx_ex_VSlideUp:
+                    {
+                        //todo
+                        break;
+                    }
+                    case fx_ex_VSlideDown:
+                    {
+                        //todo
+                        break;
+                    }
+                    case fx_ex_VSlideUpFine:
+                    {
+                        //todo
+                        break;
+                    }
+                    case fx_ex_VSlideDownFine:
+                    {
+                        //todo
+                        break;
+                    }
+                    case fx_ex_RetrigNote:
+                    {
+                        data[4 + emptyEffSlot * 2] = 0x0C;
+                        data[5 + emptyEffSlot * 2] = paramLowerNibble;
+                        break;
+                    }
+                    case fx_ex_SetAttckRate:
+                    {
+                        //todo
+                        break;
+                    }
+                    case fx_ex_SetDecayRate:
+                    {
+                        //todo
+                        break;
+                    }
+                    case fx_ex_SetSustnLevel:
+                    {
+                        //todo
+                        break;
+                    }
+                    case fx_ex_SetReleaseRate:
+                    {
+                        //todo
+                        break;
+                    }
+                    case fx_ex_SetFeedback:
+                    {
+                        data[4 + emptyEffSlot * 2] = 0x11;
+                        data[5 + emptyEffSlot * 2] = paramLowerNibble;
+                        break;
+                    }
+                    case fx_ex_ExtendedCmd:
+                    {
+                        //todo
+                        break;
+                    }
+
+                    default: break;
+                }
                 break;
             }
             
@@ -700,30 +870,60 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version)
         {
             data[4 + emptyEffSlot * 2] = eff;
             data[5 + emptyEffSlot * 2] = param;
+
+            switch(at2Eff >> 8)
+            {
+                case ef_FSlideUp:
+                case ef_FSlideDown:
+                {
+                    data[4 + (DIV_MAX_EFFECTS - 1) * 2] = MARK_PORTA;
+                    break;
+                }
+                case ef_Vibrato:
+                {
+                    data[4 + (DIV_MAX_EFFECTS - 1) * 2] = MARK_VIB;
+                    break;
+                }
+                case ef_VolSlide:
+                {
+                    data[4 + (DIV_MAX_EFFECTS - 1) * 2] = MARK_VOL_SLIDE;
+                    break;
+                }
+                default: break;
+            }
+            
             break;
         }
         case ef_TPortamVolSlide:
         {
             data[4 + emptyEffSlot * 2] = 0x06;
             data[5 + emptyEffSlot * 2] = param;
+
+            data[4 + (DIV_MAX_EFFECTS - 1) * 2] = MARK_VOL_SLIDE;
             break;
         }
         case ef_VibratoVolSlide:
         {
             data[4 + emptyEffSlot * 2] = 0x05;
             data[5 + emptyEffSlot * 2] = param;
+
+            data[4 + (DIV_MAX_EFFECTS - 1) * 2] = MARK_VOL_SLIDE;
             break;
         }
         case ef_FSlideUpFine:
         {
             data[4 + emptyEffSlot * 2] = 0xf1;
             data[5 + emptyEffSlot * 2] = param;
+
+            data[4 + (DIV_MAX_EFFECTS - 1) * 2] = MARK_FINE_PORTA;
             break;
         }
         case ef_FSlideDownFine:
         {
             data[4 + emptyEffSlot * 2] = 0xf2;
             data[5 + emptyEffSlot * 2] = param;
+
+            data[4 + (DIV_MAX_EFFECTS - 1) * 2] = MARK_FINE_PORTA;
             break;
         }
         case ef_SetModulatorVol:
@@ -754,12 +954,38 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version)
         }
         case ef_TPortamVSlideFine:
         {
-            //todo
+            if(paramUpperNibble != 0)
+            {
+                data[4 + emptyEffSlot * 2] = 0xf3;
+                data[5 + emptyEffSlot * 2] = paramUpperNibble;
+                return;
+            }
+            if(paramLowerNibble != 0)
+            {
+                data[4 + emptyEffSlot * 2] = 0xf4;
+                data[5 + emptyEffSlot * 2] = paramLowerNibble;
+                return;
+            }
+
+            data[4 + (DIV_MAX_EFFECTS - 1) * 2] = MARK_FINE_VOL_SLIDE;
             break;
         }
         case ef_VibratoVSlideFine:
         {
-            //todo
+            if(paramUpperNibble != 0)
+            {
+                data[4 + emptyEffSlot * 2] = 0xf3;
+                data[5 + emptyEffSlot * 2] = paramUpperNibble;
+                return;
+            }
+            if(paramLowerNibble != 0)
+            {
+                data[4 + emptyEffSlot * 2] = 0xf4;
+                data[5 + emptyEffSlot * 2] = paramLowerNibble;
+                return;
+            }
+
+            data[4 + (DIV_MAX_EFFECTS - 1) * 2] = MARK_VIB;
             break;
         }
         case ef_SetCarrierVol:
@@ -822,10 +1048,10 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version)
             data[4 + emptyEffSlot * 2] = 0x0A;
             data[5 + emptyEffSlot * 2] = param;
 
-            //emptyEffSlot = findEmptyEffectSlot(data);
+            emptyEffSlot = findEmptyEffectSlot(data);
 
-            //data[4 + emptyEffSlot * 2] = eff;
-            //data[5 + emptyEffSlot * 2] = param;
+            data[4 + emptyEffSlot * 2] = 0x00;
+            data[5 + emptyEffSlot * 2] = param;
             break;
         }
         case ef_ArpggVSlideFine:
@@ -842,11 +1068,6 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version)
                 data[5 + emptyEffSlot * 2] = paramLowerNibble;
                 return;
             }
-
-            //emptyEffSlot = findEmptyEffectSlot(data);
-
-            //data[4 + emptyEffSlot * 2] = eff;
-            //data[5 + emptyEffSlot * 2] = param;
             break;
         }
         case ef_MultiRetrigNote:
@@ -859,10 +1080,7 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version)
             data[4 + emptyEffSlot * 2] = 0x0A;
             data[5 + emptyEffSlot * 2] = param;
 
-            //emptyEffSlot = findEmptyEffectSlot(data);
-
-            //data[4 + emptyEffSlot * 2] = eff;
-            //data[5 + emptyEffSlot * 2] = param;
+            data[4 + (DIV_MAX_EFFECTS - 1) * 2] = MARK_PORTA;
             break;
         }
         case ef_FSlideDownVSlide:
@@ -870,52 +1088,23 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version)
             data[4 + emptyEffSlot * 2] = 0x0A;
             data[5 + emptyEffSlot * 2] = param;
 
-            //emptyEffSlot = findEmptyEffectSlot(data);
-
-            //data[4 + emptyEffSlot * 2] = eff;
-            //data[5 + emptyEffSlot * 2] = param;
+            data[4 + (DIV_MAX_EFFECTS - 1) * 2] = MARK_PORTA;
             break;
         }
         case ef_FSlUpFineVSlide:
         {
-            if(paramUpperNibble != 0)
-            {
-                data[4 + emptyEffSlot * 2] = 0xf3;
-                data[5 + emptyEffSlot * 2] = paramUpperNibble;
-                return;
-            }
-            if(paramLowerNibble != 0)
-            {
-                data[4 + emptyEffSlot * 2] = 0xf4;
-                data[5 + emptyEffSlot * 2] = paramLowerNibble;
-                return;
-            }
+            data[4 + emptyEffSlot * 2] = 0x0A;
+            data[5 + emptyEffSlot * 2] = param;
 
-            //emptyEffSlot = findEmptyEffectSlot(data);
-
-            //data[4 + emptyEffSlot * 2] = eff;
-            //data[5 + emptyEffSlot * 2] = param;
+            data[4 + (DIV_MAX_EFFECTS - 1) * 2] = MARK_FINE_PORTA;
             break;
         }
         case ef_FSlDownFineVSlide:
         {
-            if(paramUpperNibble != 0)
-            {
-                data[4 + emptyEffSlot * 2] = 0xf3;
-                data[5 + emptyEffSlot * 2] = paramUpperNibble;
-                return;
-            }
-            if(paramLowerNibble != 0)
-            {
-                data[4 + emptyEffSlot * 2] = 0xf4;
-                data[5 + emptyEffSlot * 2] = paramLowerNibble;
-                return;
-            }
+            data[4 + emptyEffSlot * 2] = 0x0A;
+            data[5 + emptyEffSlot * 2] = param;
 
-            //emptyEffSlot = findEmptyEffectSlot(data);
-
-            //data[4 + emptyEffSlot * 2] = eff;
-            //data[5 + emptyEffSlot * 2] = param;
+            data[4 + (DIV_MAX_EFFECTS - 1) * 2] = MARK_FINE_PORTA;
             break;
         }
         case ef_FSlUpVSlF:
@@ -933,10 +1122,7 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version)
                 return;
             }
 
-            //emptyEffSlot = findEmptyEffectSlot(data);
-
-            //data[4 + emptyEffSlot * 2] = eff;
-            //data[5 + emptyEffSlot * 2] = param;
+            data[4 + (DIV_MAX_EFFECTS - 1) * 2] = MARK_PORTA;
             break;
         }
         case ef_FSlDownVSlF:
@@ -954,10 +1140,7 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version)
                 return;
             }
 
-            //emptyEffSlot = findEmptyEffectSlot(data);
-
-            //data[4 + emptyEffSlot * 2] = eff;
-            //data[5 + emptyEffSlot * 2] = param;
+            data[4 + (DIV_MAX_EFFECTS - 1) * 2] = MARK_PORTA;
             break;
         }
         case ef_FSlUpFineVSlF:
@@ -975,10 +1158,7 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version)
                 return;
             }
 
-            //emptyEffSlot = findEmptyEffectSlot(data);
-
-            //data[4 + emptyEffSlot * 2] = eff;
-            //data[5 + emptyEffSlot * 2] = param;
+            data[4 + (DIV_MAX_EFFECTS - 1) * 2] = MARK_FINE_PORTA;
             break;
         }
         case ef_FSlDownFineVSlF:
@@ -996,10 +1176,7 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version)
                 return;
             }
 
-            //emptyEffSlot = findEmptyEffectSlot(data);
-
-            //data[4 + emptyEffSlot * 2] = eff;
-            //data[5 + emptyEffSlot * 2] = param;
+            data[4 + (DIV_MAX_EFFECTS - 1) * 2] = MARK_FINE_PORTA;
             break;
         }
         case ef_Extended:
@@ -1590,7 +1767,7 @@ void a2t_instrument_import_v1_8(DivSong& ds, void* data, int count, bool a2t, tS
         {
             ins->std.panLMacro.val[0] = 1;
         }
-        //todo: finetune, 4op
+        //todo: finetune
     }
 }
 
@@ -1656,7 +1833,7 @@ void a2t_instrument_import(DivSong& ds, void* data, int count, bool a2t, tSONGIN
 
         ins->fm.fb = instr_s->fm.feedb;
         ins->fm.alg = instr_s->fm.connect;
-        //todo: finetune, percvoice, 4op
+        //todo: finetune, percvoice
 
         //panning (0=C,1=L,2=R)
 
@@ -2289,12 +2466,246 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             }
         }
 
-        //s->makePatUnique(); //needed for non-continuous to continuous effects conversion
+        s->makePatUnique(); //needed for non-continuous to continuous effects conversion
 
-        //todo effects conversion
+        for(int c = 0; c < songInfo.nm_tracks; c++)
+        {
+            int porta_dir[2] = { 0 };
+            int fine_porta_dir[2] = { 0 };
+            int vol_slide_dir[2] = { 0 };
+            int fine_vol_slide_dir[2] = { 0 };
 
-        //s->optimizePatterns(); //if after converting effects we still have some duplicates
-        //s->rearrangePatterns();
+            int fine_porta_speed = 0;
+            int fine_vol_slide_speed = 0;
+            int porta_speed = 0;
+            int vib_speed = 0;
+            int vol_slide_speed = 0;
+
+            bool porta[2] = { false };
+            bool vib[2] = { false };
+            bool fine_porta[2] = { false };
+            bool vol_slide[2] = { false };
+            bool fine_vol_slide[2] = { false };
+            
+            for(int p = 0; p < s->ordersLen; p++)
+            {
+                start_patt:;
+
+                for(int r = 0; r < s->patLen; r++)
+                {
+                    start_row:;
+
+                    DivPattern* pat = s->pat[c].getPattern(p, true);
+
+                    short* row_data = pat->data[r];
+
+                    bool pat_jump = false;
+                    bool ord_jump = false;
+                    int pat_jump_row = -1;
+                    int ord_jump_row = -1;
+
+                    porta[0] = false;
+                    vib[0] = false;
+                    fine_porta[0] = false;
+                    vol_slide[0] = false;
+                    fine_vol_slide[0] = false;
+
+                    bool found_fine_porta = false;
+                    bool has_fine_porta = false;
+
+                    for(int eff = 0; eff < DIV_MAX_EFFECTS - 1; eff++)
+                    {
+                        short effect = row_data[4 + eff * 2];
+                        short param = row_data[5 + eff * 2];
+
+                        short curr_mark = row_data[4 + (DIV_MAX_EFFECTS - 1) * 2];
+
+                        if(effect == MARK_PORTA || effect == 0x01 || effect == 0x02)
+                        {
+                            porta[0] = true;
+
+                            if(effect == 0x01 || effect == 0x02)
+                            {
+                                porta_dir[0] = effect == 0x01 ? 1 : -1;
+
+                                if (c == 17)
+                                {
+                                    int y = 0;
+                                }
+
+                                if(porta_speed == param && (porta_dir[0] == porta_dir[1]))
+                                {
+                                    row_data[4 + eff * 2] = -1;
+                                    row_data[5 + eff * 2] = -1; //delete effect
+                                }
+                            }
+
+                            porta_speed = param;
+                        }
+                        if(effect == MARK_VIB || effect == 0x04)
+                        {
+                            vib[0] = true;
+
+                            if(effect == 0x04)
+                            {
+                                if(vib_speed == param)
+                                {
+                                    row_data[4 + eff * 2] = -1;
+                                    row_data[5 + eff * 2] = -1; //delete effect
+                                }
+                            }
+
+                            vib_speed = param;
+                        }
+                        if(effect == MARK_VOL_SLIDE || effect == 0x0A)
+                        {
+                            vol_slide[0] = true;
+
+                            if(effect == 0x0A)
+                            {
+                                if(vib_speed == param)
+                                {
+                                    row_data[4 + eff * 2] = -1;
+                                    row_data[5 + eff * 2] = -1; //delete effect
+                                }
+                            }
+
+                            vol_slide_speed = param;
+                        }
+                        if(effect == MARK_FINE_PORTA || effect == 0xf1 || effect == 0xf2)
+                        {
+                            fine_porta[0] = true;
+                            if(effect == 0xf1 || effect == 0xf2)
+                            {
+                                fine_porta_dir[0] = effect == 0xf1 ? 1 : -1;
+                                found_fine_porta = true;
+                            }
+
+                            fine_porta_speed = param;
+
+                            has_fine_porta = true;
+                        }
+                        if(effect == MARK_FINE_VOL_SLIDE || effect == 0xf3 || effect == 0xf4)
+                        {
+                            fine_vol_slide[0] = true;
+                            if(effect == 0xf3 || effect == 0xf4)
+                            {
+                                fine_vol_slide_dir[0] = effect == 0xf3 ? 1 : -1;
+
+                                if(fine_vol_slide_speed == param && (fine_vol_slide_dir[0] == fine_vol_slide_dir[1]))
+                                {
+                                    row_data[4 + eff * 2] = -1;
+                                    row_data[5 + eff * 2] = -1; //delete effect
+                                }
+                            }
+
+                            fine_vol_slide_speed = param;
+                        }
+                    }
+
+                    if(!has_fine_porta && found_fine_porta) //this effect is non-continuous
+                    {
+                        int emptyEffSlot = findEmptyEffectSlot(row_data);
+
+                        row_data[4 + emptyEffSlot * 2] = fine_porta_dir[0] == 1 ? 0xf1 : 0xf2;
+                        row_data[5 + emptyEffSlot * 2] = fine_porta_speed;
+                    }
+
+                    if(!porta[0] && porta[1]) //place 0200 style effect to end the effect
+                    {
+                        int emptyEffSlot = findEmptyEffectSlot(row_data);
+
+                        row_data[4 + emptyEffSlot * 2] = 0x01;
+                        row_data[5 + emptyEffSlot * 2] = 0;
+                    }
+
+                    if(!vib[0] && vib[1])
+                    {
+                        int emptyEffSlot = findEmptyEffectSlot(row_data);
+
+                        row_data[4 + emptyEffSlot * 2] = 0x04;
+                        row_data[5 + emptyEffSlot * 2] = 0;
+                    }
+
+                    if(!vol_slide[0] && vol_slide[1])
+                    {
+                        int emptyEffSlot = findEmptyEffectSlot(row_data);
+
+                        row_data[4 + emptyEffSlot * 2] = 0x0A;
+                        row_data[5 + emptyEffSlot * 2] = 0;
+                    }
+
+                    if(!fine_vol_slide[0] && fine_vol_slide[1])
+                    {
+                        int emptyEffSlot = findEmptyEffectSlot(row_data);
+
+                        row_data[4 + emptyEffSlot * 2] = 0xF3;
+                        row_data[5 + emptyEffSlot * 2] = 0;
+                    }
+
+                    row_data[4 + (DIV_MAX_EFFECTS - 1) * 2] = -1; //erase continuous effects mark
+
+                    porta_dir[1] = porta_dir[0];
+                    fine_porta_dir[1] = fine_porta_dir[0];
+                    vol_slide_dir[1] = vol_slide_dir[0];
+                    fine_vol_slide_dir[1] = fine_vol_slide_dir[0];
+
+                    porta[1] = porta[0];
+                    vib[1] = vib[0];
+                    fine_porta[1] = fine_porta[0];
+                    vol_slide[1] = vol_slide[0];
+                    fine_vol_slide[1] = fine_vol_slide[0];
+
+                    for(int s_ch = 0; s_ch < songInfo.nm_tracks; s_ch++) //search for 0Dxx/0Bxx and jump accordingly
+                    {
+                        DivPattern* s_pat = s->pat[s_ch].getPattern(p, true);
+                        short* s_row_data = pat->data[r];
+
+                        for(int eff = 0; eff < DIV_MAX_EFFECTS - 1; eff++)
+                        {
+                            if(s_row_data[4 + 2 * eff] == 0x0B && s_row_data[5 + 2 * eff] > p) //so we aren't stuck in infinite loop
+                            {
+                                p = s_row_data[5 + 2 * eff];
+                                goto start_patt;
+                            }
+                            if(s_row_data[4 + 2 * eff] == 0x0D && p < s->ordersLen - 1)
+                            {
+                                p++;
+                                r = s_row_data[5 + 2 * eff];
+                                goto start_row;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        s->optimizePatterns(); //if after converting effects we still have some duplicates
+        s->rearrangePatterns();
+
+        for(int c = 0; c < songInfo.nm_tracks; c++)
+        {
+            int num_fx = 1;
+
+            for(int p = 0; p < s->ordersLen; p++)
+            {
+                for(int r = 0; r < s->patLen; r++)
+                {
+                    DivPattern* pat = s->pat[c].getPattern(s->orders.ord[c][p], true);
+                    short* s_row_data = pat->data[r];
+
+                    for(int eff = 0; eff < DIV_MAX_EFFECTS - 1; eff++)
+                    {
+                        if(s_row_data[4 + 2 * eff] != -1 && eff + 1 > num_fx)
+                        {
+                            num_fx = eff + 1;
+                        }
+                    }
+                }
+            }
+
+            s->pat[c].effectCols = num_fx - 1;
+        }
 
         logI("macro speedup %d", songInfo.macro_speedup);
 
