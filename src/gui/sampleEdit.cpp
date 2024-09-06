@@ -419,6 +419,19 @@ void FurnaceGUI::drawSampleEdit() {
               SAMPLE_WARN(warnLength,_("OPL4: maximum sample length is 65535"));
             }
             break;
+          case DIV_SYSTEM_SUPERVISION:
+            if (sample->loop) {
+              if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
+                SAMPLE_WARN(warnLoopPos,_("Supervision: loop point ignored on sample channel"));
+              }
+            }
+            if (sample->samples&31) {
+              SAMPLE_WARN(warnLength,_("Supervision: sample length will be padded to multiple of 32"));
+            }
+            if (sample->samples>8192) {
+              SAMPLE_WARN(warnLength,_("Supervision: maximum sample length is 8192"));
+            }
+            break;
           default:
             break;
         }

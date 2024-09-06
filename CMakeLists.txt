@@ -645,6 +645,10 @@ src/engine/platform/sound/ga20/iremga20.cpp
 
 src/engine/platform/sound/sm8521.c
 
+src/engine/platform/sound/supervision.c
+
+src/engine/platform/sound/upd1771c.c
+
 src/engine/platform/sound/d65modified.c
 
 src/engine/platform/sound/ted-sound.c
@@ -778,6 +782,8 @@ src/engine/platform/snes.cpp
 src/engine/platform/k007232.cpp
 src/engine/platform/ga20.cpp
 src/engine/platform/sm8521.cpp
+src/engine/platform/supervision.cpp
+src/engine/platform/upd1771c.cpp
 src/engine/platform/pv1000.cpp
 src/engine/platform/k053260.cpp
 src/engine/platform/ted.cpp
