@@ -2501,11 +2501,6 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                     short* row_data = pat->data[r];
 
-                    bool pat_jump = false;
-                    bool ord_jump = false;
-                    int pat_jump_row = -1;
-                    int ord_jump_row = -1;
-
                     porta[0] = false;
                     vib[0] = false;
                     fine_porta[0] = false;
@@ -2520,8 +2515,6 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                         short effect = row_data[4 + eff * 2];
                         short param = row_data[5 + eff * 2];
 
-                        short curr_mark = row_data[4 + (DIV_MAX_EFFECTS - 1) * 2];
-
                         if(effect == MARK_PORTA || effect == 0x01 || effect == 0x02)
                         {
                             porta[0] = true;
@@ -2529,11 +2522,6 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                             if(effect == 0x01 || effect == 0x02)
                             {
                                 porta_dir[0] = effect == 0x01 ? 1 : -1;
-
-                                if (c == 17)
-                                {
-                                    int y = 0;
-                                }
 
                                 if(porta_speed == param && (porta_dir[0] == porta_dir[1]))
                                 {
@@ -2682,7 +2670,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                     for(int s_ch = 0; s_ch < songInfo.nm_tracks; s_ch++) //search for 0Dxx/0Bxx and jump accordingly
                     {
                         DivPattern* s_pat = s->pat[s_ch].getPattern(p, true);
-                        short* s_row_data = pat->data[r];
+                        short* s_row_data = s_pat->data[r];
 
                         for(int eff = 0; eff < DIV_MAX_EFFECTS - 1; eff++)
                         {
@@ -2727,7 +2715,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                 }
             }
 
-            s->pat[c].effectCols = num_fx - 1;
+            s->pat[c].effectCols = num_fx;
         }
 
         logI("macro speedup %d", songInfo.macro_speedup);
