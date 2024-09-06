@@ -2553,7 +2553,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                             if(effect == 0x0A)
                             {
-                                if(vib_speed == param)
+                                if(vol_slide_speed == param)
                                 {
                                     row_data[4 + eff * 2] = -1;
                                     row_data[5 + eff * 2] = -1; //delete effect
