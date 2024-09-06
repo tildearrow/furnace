@@ -132,16 +132,16 @@ void DivPlatformSupervision::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
-      if (i < 2) {
+      if (i<2) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock<<1,CHIP_DIVIDER);
         if (chan[i].freq<1) chan[i].freq=1;
         if (chan[i].freq>2047) chan[i].freq=2047;
-        if (chan[i].freqChanged || initWrite[i]) {
-            rWrite(0x10|(i<<2),chan[i].freq&0xff);
-            rWrite(0x11|(i<<2),(chan[i].freq>>8)&0x7);
+        if (chan[i].freqChanged || chan[i].initWrite) {
+          rWrite(0x10|(i<<2),chan[i].freq&0xff);
+          rWrite(0x11|(i<<2),(chan[i].freq>>8)&0x7);
         }
-        initWrite[i]=0;
-      } else if (i == 3) {
+        chan[i].initWrite=false;
+      } else if (i==3) {
         int ntPos=chan[i].baseFreq;
         if (NEW_ARP_STRAT) {
           if (chan[i].fixedArp) {
@@ -193,15 +193,15 @@ void DivPlatformSupervision::tick(bool sysTick) {
           }
         }
       }
-      if (chan[i].keyOn) kon[i]=1;
-      if (chan[i].keyOff) kon[i]=0;
+      if (chan[i].keyOn) chan[i].kon=true;
+      if (chan[i].keyOff) chan[i].kon=false;
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
     }
 
-    if (kon[i]) {
-      if (i < 2) {
+    if (chan[i].kon) {
+      if (i<2) {
         rWrite(0x12|(i<<2),(chan[i].outVol&0xf)|((chan[i].duty&3)<<4));
         rWrite(0x13|(i<<2),0xc8);
       } else if (i == 3) {
@@ -446,8 +446,6 @@ void DivPlatformSupervision::reset() {
   memset(tempR,0,32*sizeof(int));
   memset(noiseReg,0,3*sizeof(unsigned char));
   noiseReg[2]=0xff;
-  memset(kon,0,4*sizeof(unsigned char));
-  memset(initWrite,1,4*sizeof(unsigned char));
   sampleOffset=0;
 }
 
@@ -564,6 +562,10 @@ void DivPlatformSupervision::renderSamples(int sysID) {
 
   memCompo.capacity=65536;
   memCompo.used=sampleMemLen;
+}
+
+bool DivPlatformSupervision::getDCOffRequired() {
+  return true;
 }
 
 int DivPlatformSupervision::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

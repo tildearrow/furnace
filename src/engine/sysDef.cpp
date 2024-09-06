@@ -1932,7 +1932,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_UPD1771C]=new DivSysDef(
-    _("NEC uPD1771C"), NULL, 0xe4, 0, 1, false, true, 0, false, 0, 0, 0,
+    _("NEC μPD1771C"), NULL, 0xe4, 0, 1, false, true, 0, false, 0, 0, 0,
     _("this was an SoC with some funky wavetable/noise hardware"),
     {_("Wave/Noise")},
     {"W"},

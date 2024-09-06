@@ -26,7 +26,7 @@
 //#define rWrite(a,v) pendingWrites[a]=v;
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_DIVIDER 32
+#define CHIP_DIVIDER 64
 
 const char* regCheatSheetUPD1771c[]={
   NULL
@@ -38,13 +38,6 @@ const char** DivPlatformUPD1771c::getRegisterSheet() {
 
 void DivPlatformUPD1771c::acquire(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
-    /*
-    int mask_bits=0;
-    for (int i=0; i<4; i++)
-      mask_bits |= isMuted[i]?0:8>>i;
-    //upd1771c_set_mute_mask(mask_bits);
-    */
-
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
       upd1771c_write_packet(&scv,w.addr&15,w.val);
@@ -52,13 +45,9 @@ void DivPlatformUPD1771c::acquire(short** buf, size_t len) {
       writes.pop();
     }
 
-    signed short s = (upd1771c_sound_stream_update(&scv)<<3)*((isMuted[0]&1)^1);
-
-    for (int i=0; i<1; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=s;
-    }
-
-    //printf("tempL: %d tempR: %d\n",tempL,tempR);
+    short s=upd1771c_sound_stream_update(&scv)<<3;
+    if (isMuted[0]) s=0;
+    oscBuf[0]->data[oscBuf[0]->needle++]=s;
     buf[0][h]=s;
     buf[1][h]=s;
   }
@@ -135,7 +124,8 @@ void DivPlatformUPD1771c::tick(bool sysTick) {
         if (chan[i].duty == 0) {
          rWrite(0,2);
          rWrite(1,(chan[i].wave<<5)|chan[i].pos);
-         float p = ((float)chan[i].freq)/((float)(31-chan[i].pos))*31.0;
+         // TODO: improve
+         float p = ((float)chan[i].freq)/((float)(32-chan[i].pos))*32.0;
          rWrite(2,MIN(MAX((int)p,0),255));
          rWrite(3,chan[i].outVol);
         } else if (chan[i].duty == 1) {

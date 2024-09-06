@@ -28,7 +28,7 @@ class DivPlatformSupervision: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
     unsigned int duty, len, pan, pcm; // pcm is channel 3 ONLY
     int sample, hasOffset; // again, for channel 3 ONLY
-    bool setPos;
+    bool setPos, kon, initWrite;
     Channel():
       SharedChannel<signed char>(63),
       duty(0),
@@ -36,7 +36,9 @@ class DivPlatformSupervision: public DivDispatch {
       pan(3),
       pcm(false),
       hasOffset(0),
-      setPos(false) {}
+      setPos(false),
+      kon(false),
+      initWrite(true) {}
   };
   Channel chan[4];
   DivDispatchOscBuffer* oscBuf[4];
@@ -64,8 +66,6 @@ class DivPlatformSupervision: public DivDispatch {
   unsigned char otherFlags;
   unsigned int sampleOffset;
   unsigned char noiseReg[3];
-  unsigned char kon[4];
-  unsigned char initWrite[4];
   struct svision_t svision;
 
   friend void putDispatchChip(void*,int);
@@ -95,6 +95,7 @@ class DivPlatformSupervision: public DivDispatch {
     bool isSampleLoaded(int index, int sample);
     const DivMemoryComposition* getMemCompo(int index);
     void renderSamples(int chipID);
+    bool getDCOffRequired();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformSupervision();
