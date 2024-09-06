@@ -1921,6 +1921,33 @@ void DivEngine::registerSystems() {
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
   );
 
+  sysDefs[DIV_SYSTEM_SUPERVISION]=new DivSysDef(
+    _("Watara Supervision"), NULL, 0xe3, 0, 4, false, true, 0, false, 0, 0, 0,
+    _("a handheld that was trying to compete with the Game Boy, but it never succeded."),
+    {_("Pulse 1"), _("Pulse 2"), _("PCM"),  _("Noise")},
+    {"S1", "S2", "PCM", "NO"},
+    {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_NOISE},
+    {DIV_INS_SUPERVISION, DIV_INS_SUPERVISION, DIV_INS_SUPERVISION, DIV_INS_SUPERVISION},
+    {DIV_INS_SUPERVISION, DIV_INS_SUPERVISION, DIV_INS_AMIGA, DIV_INS_SUPERVISION},
+    {
+      {0x12, {DIV_CMD_STD_NOISE_MODE, _("12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1)")}},
+    }
+  );
+
+  sysDefs[DIV_SYSTEM_UPD1771C]=new DivSysDef(
+    _("NEC μPD1771C"), NULL, 0xe4, 0, 1, false, true, 0, false, 0, 0, 0,
+    _("this was an SoC with some funky wavetable/noise hardware"),
+    {_("Wave/Noise")},
+    {"W"},
+    {DIV_CH_NOISE},
+    {DIV_INS_UPD1771C},
+    {},
+    {
+      {0x10, {DIV_CMD_STD_NOISE_MODE, _("10xx: Set duty/waveform (bit 0-3: waveform; bit 4: mode)")}},
+      {0x12, {DIV_CMD_N163_WAVE_POSITION, _("12xx: Set waveform position (0-31)")}},
+    }
+  );
+
   sysDefs[DIV_SYSTEM_SM8521]=new DivSysDef(
     _("Sharp SM8521"), NULL, 0xc8, 0, 3, false, true, 0, false, 0, 32, 16,
     _("a SoC with wavetable sound hardware."),

@@ -75,6 +75,8 @@
 #define ICON_FUR_INS_GBA_MINMOD u8"\ue15f"
 #define ICON_FUR_INS_BIFURCATOR u8"\ue160"
 #define ICON_FUR_INS_SID2 u8"\ue161"
+#define ICON_FUR_INS_SUPERVISION u8"\ue162"
+#define ICON_FUR_INS_UPD1771C u8"\ue163"
 
 // sample editor
 #define ICON_FUR_SAMPLE_APPLY_SILENCE u8"\ue136"
