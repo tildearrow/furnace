@@ -2479,10 +2479,12 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             int fine_vol_slide_speed = 0;
             int porta_speed = 0;
             int vib_speed = 0;
+            int trem_speed = 0;
             int vol_slide_speed = 0;
 
             bool porta[2] = { false };
             bool vib[2] = { false };
+            bool trem[2] = { false };
             bool fine_porta[2] = { false };
             bool vol_slide[2] = { false };
             bool fine_vol_slide[2] = { false };
@@ -2601,6 +2603,18 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                             fine_vol_slide_speed = param;
                         }
+                        if(effect == 0x07)
+                        {
+                            trem[0] = true;
+
+                            if(trem_speed == param)
+                            {
+                                row_data[4 + eff * 2] = -1;
+                                row_data[5 + eff * 2] = -1; //delete effect
+                            }
+
+                            trem_speed = param;
+                        }
                     }
 
                     if(!has_fine_porta && found_fine_porta) //this effect is non-continuous
@@ -2643,6 +2657,14 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                         row_data[5 + emptyEffSlot * 2] = 0;
                     }
 
+                    if(!trem[0] && trem[1])
+                    {
+                        int emptyEffSlot = findEmptyEffectSlot(row_data);
+
+                        row_data[4 + emptyEffSlot * 2] = 0x07;
+                        row_data[5 + emptyEffSlot * 2] = 0;
+                    }
+
                     row_data[4 + (DIV_MAX_EFFECTS - 1) * 2] = -1; //erase continuous effects mark
 
                     porta_dir[1] = porta_dir[0];
@@ -2652,6 +2674,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                     porta[1] = porta[0];
                     vib[1] = vib[0];
+                    trem[1] = trem[0];
                     fine_porta[1] = fine_porta[0];
                     vol_slide[1] = vol_slide[0];
                     fine_vol_slide[1] = fine_vol_slide[0];
