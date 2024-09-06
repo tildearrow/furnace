@@ -364,6 +364,7 @@ bool DivCSPlayer::tick() {
     }
 
     if (sendVolume || chan[i].volSpeed!=0) {
+      int preSpeedVol=chan[i].volume;
       chan[i].volume+=chan[i].volSpeed;
       if (chan[i].volSpeedTarget!=-1) {
         bool atTarget=false;
@@ -377,7 +378,11 @@ bool DivCSPlayer::tick() {
         }
 
         if (atTarget) {
-          chan[i].volume=chan[i].volSpeedTarget;
+          if (chan[i].volSpeed>0) {
+            chan[i].volume=MAX(preSpeedVol,chan[i].volSpeedTarget);
+          } else if (chan[i].volSpeed<0) {
+            chan[i].volume=MIN(preSpeedVol,chan[i].volSpeedTarget);
+          }
           chan[i].volSpeed=0;
           chan[i].volSpeedTarget=-1;
         }

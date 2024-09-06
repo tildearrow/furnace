@@ -1648,6 +1648,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         if (!song.noSlidesOnFirstTick || !firstTick) {
           if (chan[i].volSpeed!=0) {
             chan[i].volume=(chan[i].volume&0xff)|(dispatchCmd(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
+            int preSpeedVol=chan[i].volume;
             chan[i].volume+=chan[i].volSpeed;
             if (chan[i].volSpeedTarget!=-1) {
               bool atTarget=false;
@@ -1661,7 +1662,11 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
               }
 
               if (atTarget) {
-                chan[i].volume=chan[i].volSpeedTarget;
+                if (chan[i].volSpeed>0) {
+                  chan[i].volume=MAX(preSpeedVol,chan[i].volSpeedTarget);
+                } else if (chan[i].volSpeed<0) {
+                  chan[i].volume=MIN(preSpeedVol,chan[i].volSpeedTarget);
+                }
                 chan[i].volSpeed=0;
                 chan[i].volSpeedTarget=-1;
                 dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
