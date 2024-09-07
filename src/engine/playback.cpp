@@ -963,7 +963,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].cutType=0;
         }
         break;
-      case 0xd3: // volume portamento (vol porta)
+      case 0xd3: // volume portamento (vol porta fine))
         // tremolo and vol slides are incompatible
         chan[i].tremoloDepth=0;
         chan[i].tremoloRate=0;
@@ -971,11 +971,11 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].volSpeedTarget=chan[i].volSpeed==0 ? -1 : volPortaTarget;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE_TARGET,i,chan[i].volSpeed,chan[i].volSpeedTarget));
         break;
-      case 0xd4: // volume portamento fast (vol porta fast)
+      case 0xd4: // volume portamento (vol porta)
         // tremolo and vol slides are incompatible
         chan[i].tremoloDepth=0;
         chan[i].tremoloRate=0;
-        chan[i].volSpeed=volPortaTarget<0 ? 0 : volPortaTarget>chan[i].volume ? 256*effectVal : -256*effectVal;
+        chan[i].volSpeed=volPortaTarget<0 ? 0 : volPortaTarget>chan[i].volume ? 16*effectVal : -16*effectVal;
         chan[i].volSpeedTarget=chan[i].volSpeed==0 ? -1 : volPortaTarget;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE_TARGET,i,chan[i].volSpeed,chan[i].volSpeedTarget));
         break;
