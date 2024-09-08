@@ -3157,6 +3157,14 @@ void FurnaceGUI::editOptions(bool topMenu) {
       doScale(scaleMax);
       ImGui::CloseCurrentPopup();
     }
+    if (ImGui::Button(_("Scale 200%"))) { doScale(200.0f); ImGui::CloseCurrentPopup(); }
+    if (ImGui::Button(_("Scale 150%"))) { doScale(150.0f); ImGui::CloseCurrentPopup(); }
+    if (ImGui::Button(_("Scale 125%"))) { doScale(125.0f); ImGui::CloseCurrentPopup(); }
+    if (ImGui::Button(_("Scale 110%"))) { doScale(110.0f); ImGui::CloseCurrentPopup(); }
+    if (ImGui::Button(_("Scale 90%"))) { doScale(90.0f); ImGui::CloseCurrentPopup(); }
+    if (ImGui::Button(_("Scale 80%"))) { doScale(80.0f); ImGui::CloseCurrentPopup(); }
+    if (ImGui::Button(_("Scale 75%"))) { doScale(75.0f); ImGui::CloseCurrentPopup(); }
+    if (ImGui::Button(_("Scale 50%"))) { doScale(50.0f); ImGui::CloseCurrentPopup(); }
     ImGui::EndMenu();
   }
   if (ImGui::BeginMenu(_("randomize..."))) {
