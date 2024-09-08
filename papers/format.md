@@ -590,6 +590,7 @@ size | description
      | - 11: 8-bit μ-law PCM
      | - 12: C219 PCM
      | - 13: IMA ADPCM
+     | - 14: 12-bit PCM (MultiPCM)
      | - 16: 16-bit PCM
   1  | loop direction (>=123) or reserved
      | - 0: forward

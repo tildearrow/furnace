@@ -6569,6 +6569,19 @@ void FurnaceGUI::drawInsEdit() {
               P(CWSliderScalar(_("AM Depth"),ImGuiDataType_U8,&ins->multipcm.am,&_ZERO,&_SEVEN)); rightClickable
               ImGui::EndTable();
             }
+            P(ImGui::Checkbox(_("Damp"),&ins->multipcm.damp));
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip(_("Only for OPL4 PCM."));
+            }
+            P(ImGui::Checkbox(_("Pseudo Reverb"),&ins->multipcm.pseudoReverb));
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip(_("Only for OPL4 PCM."));
+            }
+            P(ImGui::Checkbox(_("LFO Reset"),&ins->multipcm.lfoReset));
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip(_("Only for OPL4 PCM."));
+            }
+            P(ImGui::Checkbox(_("Level Direct"),&ins->multipcm.levelDirect));
             ImGui::EndTabItem();
           }
         }
@@ -7262,6 +7275,9 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc(_("Panning"),&ins->std.panLMacro,-7,7,45,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
               macroList.push_back(FurnaceGUIMacroDesc(_("Pitch"),&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
               macroList.push_back(FurnaceGUIMacroDesc(_("Phase Reset"),&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              macroList.push_back(FurnaceGUIMacroDesc(_("LFO Speed"),&ins->std.ex1Macro,0,7,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc(_("LFO Vib Depth"),&ins->std.fmsMacro,0,7,160,uiColors[GUI_COLOR_MACRO_PITCH]));
+              macroList.push_back(FurnaceGUIMacroDesc(_("LFO AM Depth"),&ins->std.amsMacro,0,7,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               break;
             case DIV_INS_SNES:
               macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,127,160,uiColors[GUI_COLOR_MACRO_VOLUME]));

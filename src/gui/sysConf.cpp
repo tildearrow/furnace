@@ -2543,6 +2543,67 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
+    case DIV_SYSTEM_OPL4:
+    case DIV_SYSTEM_OPL4_DRUMS: {
+      int clockSel=flags.getInt("clockSel",0);
+      int ramSize=flags.getInt("ramSize",0);
+
+      ImGui::Text(_("Clock rate:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("33.8688MHz"),clockSel==0)) {
+        clockSel=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("28.64MHz (NTSC)"),clockSel==1)) {
+        clockSel=1;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("28.38MHz (PAL)"),clockSel==2)) {
+        clockSel=2;
+        altered=true;
+      }
+      ImGui::Unindent();
+
+      ImGui::Text(_("RAM size:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("4MB"),ramSize==0)) {
+        ramSize=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("2MB"),ramSize==1)) {
+        ramSize=1;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("1MB"),ramSize==2)) {
+        ramSize=2;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("640KB"),ramSize==3)) {
+        ramSize=3;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("512KB"),ramSize==4)) {
+        ramSize=4;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("256KB"),ramSize==5)) {
+        ramSize=5;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("128KB"),ramSize==6)) {
+        ramSize=6;
+        altered=true;
+      }
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("clockSel",clockSel);
+          flags.set("ramSize",ramSize);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_PET:
