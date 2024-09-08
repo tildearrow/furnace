@@ -896,12 +896,13 @@ void DivInstrument::writeFeatureMP(SafeWriter* w) {
   w->writeC(multipcm.vib);
   w->writeC(multipcm.am);
 
-  /*
-  w->writeC(multipcm.damp);
-  w->writeC(multipcm.pseudoReverb);
-  w->writeC(multipcm.lfoReset);
-  w->writeC(multipcm.levelDirect);
-  */
+  unsigned char next=(
+    (multipcm.damp?1:0)&
+    (multipcm.pseudoReverb?2:0)&
+    (multipcm.lfoReset?4:0)&
+    (multipcm.levelDirect?8:0)
+  );
+  w->writeC(next);
 
   FEATURE_END;
 }
@@ -2229,12 +2230,13 @@ void DivInstrument::readFeatureMP(SafeReader& reader, short version) {
   multipcm.vib=reader.readC();
   multipcm.am=reader.readC();
 
-  /*
-  multipcm.damp=reader.readC();
-  multipcm.pseudoReverb=reader.readC();
-  multipcm.lfoReset=reader.readC();
-  multipcm.levelDirect=reader.readC();
-  */
+  if (version>=221) {
+    unsigned char next=reader.readC();
+    multipcm.damp=next&1;
+    multipcm.pseudoReverb=next&2;
+    multipcm.lfoReset=next&4;
+    multipcm.levelDirect=next&8;
+  }
 
   READ_FEAT_END;
 }
