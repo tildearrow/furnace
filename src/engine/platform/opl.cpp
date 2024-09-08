@@ -185,10 +185,10 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
   thread_local short o[8];
   thread_local int os[6];
   thread_local ymfm::ymfm_output<2> aOut;
+  thread_local short pcmBuf[24];
 
   for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0; os[2]=0; os[3]=0; os[4]=0; os[5]=0;
-    short pcmBuf[24]={0};
     if (!writes.empty() && --delay<0) {
       delay=1;
       QueuedWrite& w=writes.front();
