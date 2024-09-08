@@ -2515,7 +2515,24 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                     }
 
                     ins->std.arpMacro.loop = songInfo->arpvib_table[arpTableNum].arpeggio.loop_begin;
+                    ins->std.arpMacro.rel = songInfo->arpvib_table[arpTableNum].arpeggio.keyoff_pos;
                     ins->std.arpMacro.speed = songInfo->arpvib_table[arpTableNum].arpeggio.speed;
+                }
+
+                if(songInfo->arpvib_table[vibTableNum].vibrato.length > 0)
+                {
+                    DivInstrument* ins = ds.ins[i];
+
+                    ins->std.pitchMacro.len = songInfo->arpvib_table[vibTableNum].vibrato.length;
+
+                    for(int j = 0; j < ins->std.pitchMacro.len; j++)
+                    {
+                        ins->std.pitchMacro.val[j] = songInfo->arpvib_table[vibTableNum].vibrato.data[j];
+                    }
+
+                    ins->std.pitchMacro.loop = songInfo->arpvib_table[vibTableNum].vibrato.loop_begin;
+                    ins->std.pitchMacro.rel = songInfo->arpvib_table[vibTableNum].vibrato.keyoff_pos;
+                    ins->std.pitchMacro.speed = songInfo->arpvib_table[vibTableNum].vibrato.speed;
                 }
             }
         }
