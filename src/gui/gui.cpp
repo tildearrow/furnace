@@ -388,6 +388,7 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
     setBit30=false;
     macroLen++;
     buf=0;
+    MARK_MODIFIED;
   }
 }
 
