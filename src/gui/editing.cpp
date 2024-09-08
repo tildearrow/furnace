@@ -1307,7 +1307,7 @@ void FurnaceGUI::doPaste(PasteMode mode, int arg, bool readClipboard, String cli
   }
 }
 
-void FurnaceGUI::doChangeIns(int ins) {
+void FurnaceGUI::doChangeIns(int ins, int insFrom) {
   finishSelection();
   prepareUndo(GUI_UNDO_PATTERN_CHANGE_INS);
 
@@ -1317,7 +1317,9 @@ void FurnaceGUI::doChangeIns(int ins) {
     DivPattern* pat=e->curPat[iCoarse].getPattern(e->curOrders->ord[iCoarse][curOrder],true);
     for (int j=selStart.y; j<=selEnd.y; j++) {
       if (pat->data[j][2]!=-1 || !((pat->data[j][0]==0 || pat->data[j][0]==100 || pat->data[j][0]==101 || pat->data[j][0]==102) && pat->data[j][1]==0)) {
-        pat->data[j][2]=ins;
+        if (insFrom==-1 || (pat->data[j][2]==-1 || pat->data[j][2]==insFrom)) {
+          pat->data[j][2]=ins;
+        }
       }
     }
   }

@@ -2933,7 +2933,7 @@ class FurnaceGUI {
   void doPasteFurnace(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int startOff, bool invalidData, UndoRegion ur);
   void doPasteMPT(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int mptFormat, UndoRegion ur);
   void doPaste(PasteMode mode=GUI_PASTE_MODE_NORMAL, int arg=0, bool readClipboard=true, String clipb="");
-  void doChangeIns(int ins);
+  void doChangeIns(int ins, int insFrom=-1);
   void doInterpolate();
   void doFade(int p0, int p1, bool mode);
   void doInvertValues();

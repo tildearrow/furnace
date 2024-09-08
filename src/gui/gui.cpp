@@ -3107,10 +3107,25 @@ void FurnaceGUI::editOptions(bool topMenu) {
     if (e->song.ins.empty()) {
       ImGui::Text(_("no instruments available"));
     }
-    for (size_t i=0; i<e->song.ins.size(); i++) {
-      snprintf(id,4095,"%.2X: %s",(int)i,e->song.ins[i]->name.c_str());
+    if (ImGui::BeginMenu(_("from:"))) {
+      for (size_t fromIdx=0; fromIdx<e->song.ins.size(); fromIdx++) {
+        snprintf(id,4095,"from %.2X: %s##insFrom",(int)fromIdx,e->song.ins[fromIdx]->name.c_str());
+        if (ImGui::BeginMenu(id)) {
+          for (size_t toIdx=0; toIdx<e->song.ins.size(); toIdx++) {
+            snprintf(id,4095,"to %.2X: %s",(int)toIdx,e->song.ins[toIdx]->name.c_str());
+            if (ImGui::MenuItem(id)) {
+              doChangeIns(toIdx,fromIdx);
+            }
+          }
+          ImGui::EndMenu();
+        }
+      }
+      ImGui::EndMenu();
+    }
+    for (size_t toIdx=0; toIdx<e->song.ins.size(); toIdx++) {
+      snprintf(id,4095,"%.2X: %s",(int)toIdx,e->song.ins[toIdx]->name.c_str());
       if (ImGui::MenuItem(id)) {
-        doChangeIns(i);
+        doChangeIns(toIdx);
       }
     }
     ImGui::EndMenu();
