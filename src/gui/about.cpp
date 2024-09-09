@@ -300,6 +300,7 @@ const char* aboutLine[]={
   _N("PowerNoise emulator by scratchminer"),
   _N("ep128emu by Istvan Varga"),
   _N("NDS sound emulator by cam900"),
+  _N("openMSX YMF278 emulator (modified version) by the openMSX developers"),
   "",
   _N("greetings to:"),
   "floxy!",

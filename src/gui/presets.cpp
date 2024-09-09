@@ -524,6 +524,18 @@ void FurnaceGUI::initSystemPresets() {
         ) // variable rate, Mono DAC
       }
     );
+    SUB_ENTRY(
+      "MSX + MoonSound", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
+        CH(DIV_SYSTEM_OPL4, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "MSX + MoonSound (drums mode)", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
+        CH(DIV_SYSTEM_OPL4_DRUMS, 1.0f, 0, "")
+      }
+    );
   ENTRY(
       "NEC PC-6001", {
         CH(DIV_SYSTEM_AY8910, 1.0f, 0, "customClock=3993600")
@@ -1906,6 +1918,30 @@ void FurnaceGUI::initSystemPresets() {
     );
 
   ENTRY(
+    "Psikyo", {}
+  );
+    SUB_ENTRY(
+      "Psikyo 68EC020 hardware with OPL4", {
+        CH(DIV_SYSTEM_OPL4, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Psikyo 68EC020 hardware with OPL4 (drums mode)", {
+        CH(DIV_SYSTEM_OPL4_DRUMS, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Psikyo SH-2 hardware", {
+        CH(DIV_SYSTEM_OPL4, 1.0f, 0, "clockSel=1")
+      }
+    );
+    SUB_ENTRY(
+      "Psikyo SH-2 hardware (drums mode)", {
+        CH(DIV_SYSTEM_OPL4_DRUMS, 1.0f, 0, "clockSel=1")
+      }
+    );
+
+  ENTRY(
     "Sega", {}
   );
     SUB_ENTRY(
@@ -2729,6 +2765,16 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_ESFM, 1.0f, 0, "")
     }
   );
+  ENTRY(
+    "Yamaha YMF278B (OPL4)", {
+      CH(DIV_SYSTEM_OPL4, 1.0f, 0, "")
+    }
+  );
+    SUB_ENTRY(
+      "Yamaha YMF278B (drums mode)", {
+        CH(DIV_SYSTEM_OPL4_DRUMS, 1.0f, 0, "")
+      }
+    );
   if (settings.hiddenSystems) {
     ENTRY(
       "Yamaha YMU759 (MA-2)", {
@@ -2940,6 +2986,16 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_NDS, 1.0f, 0, "")
     }
   );
+  ENTRY(
+    "Yamaha YMF278B (OPL4)", {
+      CH(DIV_SYSTEM_OPL4, 1.0f, 0, "")
+    }
+  );
+    SUB_ENTRY(
+      "Yamaha YMF278B (drums mode)", {
+        CH(DIV_SYSTEM_OPL4_DRUMS, 1.0f, 0, "")
+      }
+    );
   CATEGORY_END;
 
   CATEGORY_BEGIN("Wavetable","chips which use user-specified waveforms to generate sound.");
