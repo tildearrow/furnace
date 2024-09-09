@@ -2153,7 +2153,6 @@ void FurnaceGUI::drawSettings() {
         ImGui::SameLine();
         if (ImGui::Combo("##PCSOutMethod",&settings.pcSpeakerOutMethod,LocalizedComboGetter,pcspkrOutMethods,5)) settingsChanged=true;
 
-        /*
         ImGui::Separator();
         ImGui::Text(_("Sample ROMs:"));
 
@@ -2166,6 +2165,7 @@ void FurnaceGUI::drawSettings() {
           openFileDialog(GUI_FILE_YRW801_ROM_OPEN);
         }
 
+        /*
         ImGui::AlignTextToFramePadding();
         ImGui::Text(_("MultiPCM TG100 path"));
         ImGui::SameLine();
