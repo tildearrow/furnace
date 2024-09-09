@@ -267,7 +267,24 @@ const char* cmdName[]={
   "FDS_MOD_AUTO",
 
   "FM_OPMASK",
-  "FM_ALGORITHM"
+
+  "MULTIPCM_MIX_FM",
+  "MULTIPCM_MIX_PCM",
+  "MULTIPCM_LFO",
+  "MULTIPCM_VIB",
+  "MULTIPCM_AM",
+  "MULTIPCM_AR",
+  "MULTIPCM_D1R",
+  "MULTIPCM_DL",
+  "MULTIPCM_D2R",
+  "MULTIPCM_RR",
+  "MULTIPCM_RC",
+  "MULTIPCM_DAMP",
+  "MULTIPCM_PSEUDO_REVERB",
+  "MULTIPCM_LFO_RESET",
+  "MULTIPCM_LEVEL_DIRECT",
+
+  "FM_ALGORITHM",
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");

@@ -302,6 +302,7 @@ const char* aboutLine[]={
   _N("NDS sound emulator by cam900"),
   _N("Adlib-related formats import routines adapted from"),
   _N("adlib2vgm by SudoMaker"),
+  _N("openMSX YMF278 emulator (modified version) by the openMSX developers"),
   "",
   _N("greetings to:"),
   "floxy!",

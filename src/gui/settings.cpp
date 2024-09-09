@@ -189,6 +189,11 @@ const char* opl3Cores[]={
   "YMF262-LLE"
 };
 
+const char* opl4Cores[]={
+  "Nuked-OPL3 (FM) + openMSX (PCM)",
+  "ymfm"
+};
+
 const char* esfmCores[]={
   "ESFMu",
   _N("ESFMu (fast)")
@@ -2057,6 +2062,17 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::Combo("##OPL3CoreRender",&settings.opl3CoreRender,opl3Cores,3)) settingsChanged=true;
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("OPL4");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPL4Core",&settings.opl4Core,opl4Cores,2)) settingsChanged=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPL4CoreRender",&settings.opl4CoreRender,opl4Cores,2)) settingsChanged=true;
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
@@ -5002,6 +5018,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.opnbCore=conf.getInt("opnbCore",1);
     settings.opl2Core=conf.getInt("opl2Core",0);
     settings.opl3Core=conf.getInt("opl3Core",0);
+    settings.opl4Core=conf.getInt("opl4Core",0);
     settings.esfmCore=conf.getInt("esfmCore",0);
     settings.opllCore=conf.getInt("opllCore",0);
     settings.ayCore=conf.getInt("ayCore",0);
@@ -5030,6 +5047,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.opnbCoreRender=conf.getInt("opnbCoreRender",1);
     settings.opl2CoreRender=conf.getInt("opl2CoreRender",0);
     settings.opl3CoreRender=conf.getInt("opl3CoreRender",0);
+    settings.opl4CoreRender=conf.getInt("opl4CoreRender",0);
     settings.esfmCoreRender=conf.getInt("esfmCoreRender",0);
     settings.opllCoreRender=conf.getInt("opllCoreRender",0);
     settings.ayCoreRender=conf.getInt("ayCoreRender",0);
@@ -5075,6 +5093,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.opnbCore,0,2);
   clampSetting(settings.opl2Core,0,2);
   clampSetting(settings.opl3Core,0,2);
+  clampSetting(settings.opl4Core,0,1);
   clampSetting(settings.esfmCore,0,1);
   clampSetting(settings.opllCore,0,1);
   clampSetting(settings.ayCore,0,1);
@@ -5101,6 +5120,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.opnbCoreRender,0,2);
   clampSetting(settings.opl2CoreRender,0,2);
   clampSetting(settings.opl3CoreRender,0,2);
+  clampSetting(settings.opl4CoreRender,0,1);
   clampSetting(settings.esfmCoreRender,0,1);
   clampSetting(settings.opllCoreRender,0,1);
   clampSetting(settings.ayCoreRender,0,1);
@@ -5591,6 +5611,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("opnbCore",settings.opnbCore);
     conf.set("opl2Core",settings.opl2Core);
     conf.set("opl3Core",settings.opl3Core);
+    conf.set("opl4Core",settings.opl4Core);
     conf.set("esfmCore",settings.esfmCore);
     conf.set("opllCore",settings.opllCore);
     conf.set("ayCore",settings.ayCore);
@@ -5619,6 +5640,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("opnbCoreRender",settings.opnbCoreRender);
     conf.set("opl2CoreRender",settings.opl2CoreRender);
     conf.set("opl3CoreRender",settings.opl3CoreRender);
+    conf.set("opl4CoreRender",settings.opl4CoreRender);
     conf.set("esfmCoreRender",settings.esfmCoreRender);
     conf.set("opllCoreRender",settings.opllCoreRender);
     conf.set("ayCoreRender",settings.ayCoreRender);
@@ -5682,6 +5704,7 @@ void FurnaceGUI::commitSettings() {
     settings.opnbCore!=e->getConfInt("opnbCore",1) ||
     settings.opl2Core!=e->getConfInt("opl2Core",0) ||
     settings.opl3Core!=e->getConfInt("opl3Core",0) ||
+    settings.opl4Core!=e->getConfInt("opl4Core",0) ||
     settings.esfmCore!=e->getConfInt("esfmCore",0) ||
     settings.opllCore!=e->getConfInt("opllCore",0) ||
     settings.ayCore!=e->getConfInt("ayCore",0) ||

@@ -340,6 +340,7 @@ TAParamResult pVersion(String) {
   printf("- ep128emu by Istvan Varga (GPLv2)\n");
   printf("- NDS sound emulator by cam900 (zlib license)\n");
   printf("- Adlib-related formats import routines adapted from adlib2vgm by SudoMaker (AGPL-3.0 license)\n");
+  printf("- openMSX YMF278 emulator (modified version) by the openMSX developers (GPLv2)\n");
   return TA_PARAM_QUIT;
 }
 

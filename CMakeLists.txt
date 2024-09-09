@@ -552,6 +552,7 @@ src/engine/platform/sound/nes/fds.c
 src/engine/platform/sound/nes/mmc5.c
 src/engine/platform/sound/vera_psg.c
 src/engine/platform/sound/vera_pcm.c
+src/engine/platform/sound/ymf278b/ymf278.cpp
 
 src/engine/platform/sound/atomicssg/ssg.c
 

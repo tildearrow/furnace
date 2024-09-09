@@ -612,6 +612,7 @@ struct DivInstrumentFDS {
 struct DivInstrumentMultiPCM {
   unsigned char ar, d1r, dl, d2r, rr, rc;
   unsigned char lfo, vib, am;
+  bool damp, pseudoReverb, lfoReset, levelDirect;
 
   bool operator==(const DivInstrumentMultiPCM& other);
   bool operator!=(const DivInstrumentMultiPCM& other) {
@@ -620,7 +621,11 @@ struct DivInstrumentMultiPCM {
 
   DivInstrumentMultiPCM():
     ar(15), d1r(15), dl(0), d2r(0), rr(15), rc(15),
-    lfo(0), vib(0), am(0) {
+    lfo(0), vib(0), am(0),
+    damp(false),
+    pseudoReverb(false),
+    lfoReset(false),
+    levelDirect(true) {
   }
 };
 
