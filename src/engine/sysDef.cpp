@@ -1942,7 +1942,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SUPERVISION]=new DivSysDef(
-    _("Watara Supervision"), NULL, 0xe3, 0, 4, false, true, 0, false, 0, 0, 0,
+    _("Watara Supervision"), NULL, 0xe3, 0, 4, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     _("a handheld that was trying to compete with the Game Boy, but it never succeded."),
     {_("Pulse 1"), _("Pulse 2"), _("PCM"),  _("Noise")},
     {"S1", "S2", "PCM", "NO"},
