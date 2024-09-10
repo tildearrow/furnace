@@ -3499,8 +3499,8 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
 
         opllPreview.alg=ins->fm.alg;
         opllPreview.fb=patch->fb;
-        opllPreview.fms=patch->dm;
-        opllPreview.ams=patch->dc;
+        opllPreview.fms=patch->dc;
+        opllPreview.ams=patch->dm;
 
         opllPreview.op[0].tl=patch->tl;
         opllPreview.op[1].tl=ins->fm.op[1].tl;
@@ -3510,6 +3510,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           opllPreview.op[i].vib=patch->vib[i];
           opllPreview.op[i].ssgEnv=patch->et[i]?8:0;
           opllPreview.op[i].ksr=patch->ksr[i];
+          opllPreview.op[i].ksl=patch->ksl[i];
           opllPreview.op[i].mult=patch->multi[i];
           opllPreview.op[i].ar=patch->ar[i];
           opllPreview.op[i].dr=patch->dr[i];
