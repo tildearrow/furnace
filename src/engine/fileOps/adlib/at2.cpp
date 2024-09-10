@@ -2546,13 +2546,13 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             int vol_slide_dir[2] = { 0 };
             int fine_vol_slide_dir[2] = { 0 };
 
-            int fine_porta_speed = 0;
-            int fine_vol_slide_speed = 0;
-            int porta_speed = 0;
-            int vib_speed = 0;
-            int trem_speed = 0;
-            int vol_slide_speed = 0;
-            int slide_speed = 0;
+            int fine_porta_speed = -1;
+            int fine_vol_slide_speed = -1;
+            int porta_speed = -1;
+            int vib_speed = -1;
+            int trem_speed = -1;
+            int vol_slide_speed = -1;
+            int slide_speed = -1;
 
             bool porta[2] = { false };
             bool vib[2] = { false };
@@ -2705,6 +2705,8 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                         row_data[4 + emptyEffSlot * 2] = 0x01;
                         row_data[5 + emptyEffSlot * 2] = 0;
+
+                        porta_speed = -1;
                     }
 
                     if(!vib[0] && vib[1])
@@ -2713,6 +2715,8 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                         row_data[4 + emptyEffSlot * 2] = 0x04;
                         row_data[5 + emptyEffSlot * 2] = 0;
+
+                        vib_speed = -1;
                     }
 
                     if(!vol_slide[0] && vol_slide[1])
@@ -2721,6 +2725,8 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                         row_data[4 + emptyEffSlot * 2] = 0x0A;
                         row_data[5 + emptyEffSlot * 2] = 0;
+
+                        vol_slide_speed = -1;
                     }
 
                     if(!fine_vol_slide[0] && fine_vol_slide[1])
@@ -2729,6 +2735,8 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                         row_data[4 + emptyEffSlot * 2] = 0xF3;
                         row_data[5 + emptyEffSlot * 2] = 0;
+
+                        fine_vol_slide_speed = -1;
                     }
 
                     if(!trem[0] && trem[1])
@@ -2737,6 +2745,8 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                         row_data[4 + emptyEffSlot * 2] = 0x07;
                         row_data[5 + emptyEffSlot * 2] = 0;
+
+                        trem_speed = -1;
                     }
 
                     if(!slide[0] && slide[1])
@@ -2745,6 +2755,8 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                         row_data[4 + emptyEffSlot * 2] = 0x03;
                         row_data[5 + emptyEffSlot * 2] = 0;
+
+                        slide_speed = -1;
                     }
 
                     row_data[4 + (DIV_MAX_EFFECTS - 1) * 2] = -1; //erase continuous effects mark
