@@ -947,6 +947,7 @@ void FurnaceGUI::drawWaveEdit() {
                       wave->len=waveGenScaleX;
                       MARK_MODIFIED;
                     });
+                    e->notifyWaveChange(curWave);
                   }
 
                   ImGui::TableNextRow();
@@ -965,6 +966,7 @@ void FurnaceGUI::drawWaveEdit() {
                       wave->max=waveGenScaleY-1;
                       MARK_MODIFIED;
                     });
+                    e->notifyWaveChange(curWave);
                   }
 
                   ImGui::TableNextRow();
@@ -987,6 +989,7 @@ void FurnaceGUI::drawWaveEdit() {
                       }
                       MARK_MODIFIED;
                     });
+                    e->notifyWaveChange(curWave);
                   }
 
                   ImGui::TableNextRow();
@@ -1004,6 +1007,7 @@ void FurnaceGUI::drawWaveEdit() {
                       }
                       MARK_MODIFIED;
                     });
+                    e->notifyWaveChange(curWave);
                   }
 
                   ImGui::TableNextRow();
@@ -1030,6 +1034,7 @@ void FurnaceGUI::drawWaveEdit() {
                       }
                       MARK_MODIFIED;
                     });
+                    e->notifyWaveChange(curWave);
                   }
 
                   ImGui::TableNextRow();
@@ -1049,6 +1054,7 @@ void FurnaceGUI::drawWaveEdit() {
                       }
                       MARK_MODIFIED;
                     });
+                    e->notifyWaveChange(curWave);
                   }
 
                   ImGui::EndTable();
@@ -1092,6 +1098,7 @@ void FurnaceGUI::drawWaveEdit() {
                     }
                     MARK_MODIFIED;
                   });
+                  e->notifyWaveChange(curWave);
                 }
                 if (ImGui::Button(_("Invert"),buttonSizeHalf)) {
                   e->lockEngine([this,wave]() {
@@ -1112,6 +1119,7 @@ void FurnaceGUI::drawWaveEdit() {
                     }
                     MARK_MODIFIED;
                   });
+                  e->notifyWaveChange(curWave);
                 }
 
                 if (ImGui::Button(_("Half"),buttonSizeHalf)) {
@@ -1121,6 +1129,7 @@ void FurnaceGUI::drawWaveEdit() {
                   for (int i=0; i<wave->len; i++) {
                     wave->data[i]=origData[i>>1];
                   }
+                  e->notifyWaveChange(curWave);
                   MARK_MODIFIED;
                 }
                 ImGui::SameLine();
@@ -1131,6 +1140,7 @@ void FurnaceGUI::drawWaveEdit() {
                   for (int i=0; i<wave->len; i++) {
                     wave->data[i]=origData[(i*2)%wave->len];
                   }
+                  e->notifyWaveChange(curWave);
                   MARK_MODIFIED;
                 }
 
@@ -1145,6 +1155,7 @@ void FurnaceGUI::drawWaveEdit() {
                     }
                     MARK_MODIFIED;
                   });
+                  e->notifyWaveChange(curWave);
                 }
                 if (ImGui::Button(_("Randomize"),buttonSize)) {
                   if (wave->max>0) e->lockEngine([this,wave]() {
@@ -1153,6 +1164,7 @@ void FurnaceGUI::drawWaveEdit() {
                     }
                     MARK_MODIFIED;
                   });
+                  e->notifyWaveChange(curWave);
                 }
                 ImGui::EndTabItem();
               }
