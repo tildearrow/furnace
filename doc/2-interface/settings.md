@@ -508,7 +508,7 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 - **Macro step size/horizontal zoom:**
   - **Manual**
   - **Automatic per macro**
-  - **Automatic (use longest macro)
+  - **Automatic (use longest macro)**
 
 ### Wave Editor
 
