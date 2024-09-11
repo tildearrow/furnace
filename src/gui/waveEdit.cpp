@@ -1107,6 +1107,7 @@ void FurnaceGUI::drawWaveEdit() {
                     }
                     MARK_MODIFIED;
                   });
+                  e->notifyWaveChange(curWave);
                 }
                 ImGui::SameLine();
                 if (ImGui::Button(_("Reverse"),buttonSizeHalf)) {
