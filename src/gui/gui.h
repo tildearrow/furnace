@@ -2875,6 +2875,7 @@ class FurnaceGUI {
   void drawXYOsc();
   void drawUserPresets();
 
+  void drawKeybindSettingsTableRow(FurnaceGUIActions actionIdx);
   void parseKeybinds();
   void promptKey(int which, int bindIdx);
   void doAction(int what);

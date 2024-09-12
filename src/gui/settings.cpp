@@ -2166,45 +2166,6 @@ void FurnaceGUI::drawSettings() {
         END_SECTION;
       }
       CONFIG_SECTION(_("Keyboard")) {
-        auto uiKeybindConfig=[&](FurnaceGUIActions actionIdx) {
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted(guiActions[actionIdx].friendlyName);
-            ImGui::TableNextColumn();
-            ImGui::PushID(actionIdx);
-            for (size_t i=0; i<actionKeys[actionIdx].size()+1; i++) {
-              ImGui::PushID(i);
-              if (i>0) ImGui::SameLine();
-              bool isPending=bindSetPending && bindSetTarget==actionIdx && bindSetTargetIdx==(int)i;
-              if (i<actionKeys[actionIdx].size()) {
-                if (ImGui::Button(isPending ? _N("Press key...") : getKeyName(actionKeys[actionIdx][i]).c_str())) {
-                  promptKey(actionIdx, i);
-                  settingsChanged=true;
-                }
-                bool rightClicked=ImGui::IsItemClicked(ImGuiMouseButton_Right);
-                if (!rightClicked) {
-                  ImGui::SameLine(0.0f, 1.0f);
-                }
-                if ( rightClicked || ImGui::Button(ICON_FA_TIMES)) {
-                  actionKeys[actionIdx].erase(actionKeys[actionIdx].begin()+i);
-                  if (isPending) {
-                    bindSetActive=false;
-                    bindSetPending=false;
-                  }
-                  parseKeybinds();
-                }
-              } else {
-                if (ImGui::Button(isPending ? _N("Press key...") : "+")) {
-                  promptKey(actionIdx, i);
-                  settingsChanged=true;
-                }
-              }
-              ImGui::PopID(); // i
-            }
-            ImGui::PopID(); // action
-        };
-        
         // SUBSECTION LAYOUT
         CONFIG_SUBSECTION(_("Keyboard"));
         if (ImGui::Button(_("Import"))) {
@@ -2222,36 +2183,36 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::TreeNode(_("Global hotkeys"))) {
             KEYBIND_CONFIG_BEGIN("keysGlobal");
 
-            uiKeybindConfig(GUI_ACTION_NEW);
-            uiKeybindConfig(GUI_ACTION_CLEAR);
-            uiKeybindConfig(GUI_ACTION_OPEN);
-            uiKeybindConfig(GUI_ACTION_OPEN_BACKUP);
-            uiKeybindConfig(GUI_ACTION_SAVE);
-            uiKeybindConfig(GUI_ACTION_SAVE_AS);
-            uiKeybindConfig(GUI_ACTION_EXPORT);
-            uiKeybindConfig(GUI_ACTION_UNDO);
-            uiKeybindConfig(GUI_ACTION_REDO);
-            uiKeybindConfig(GUI_ACTION_PLAY_TOGGLE);
-            uiKeybindConfig(GUI_ACTION_PLAY);
-            uiKeybindConfig(GUI_ACTION_STOP);
-            uiKeybindConfig(GUI_ACTION_PLAY_START);
-            uiKeybindConfig(GUI_ACTION_PLAY_REPEAT);
-            uiKeybindConfig(GUI_ACTION_PLAY_CURSOR);
-            uiKeybindConfig(GUI_ACTION_STEP_ONE);
-            uiKeybindConfig(GUI_ACTION_OCTAVE_UP);
-            uiKeybindConfig(GUI_ACTION_OCTAVE_DOWN);
-            uiKeybindConfig(GUI_ACTION_INS_UP);
-            uiKeybindConfig(GUI_ACTION_INS_DOWN);
-            uiKeybindConfig(GUI_ACTION_STEP_UP);
-            uiKeybindConfig(GUI_ACTION_STEP_DOWN);
-            uiKeybindConfig(GUI_ACTION_TOGGLE_EDIT);
-            uiKeybindConfig(GUI_ACTION_METRONOME);
-            uiKeybindConfig(GUI_ACTION_REPEAT_PATTERN);
-            uiKeybindConfig(GUI_ACTION_FOLLOW_ORDERS);
-            uiKeybindConfig(GUI_ACTION_FOLLOW_PATTERN);
-            uiKeybindConfig(GUI_ACTION_FULLSCREEN);
-            uiKeybindConfig(GUI_ACTION_TX81Z_REQUEST);
-            uiKeybindConfig(GUI_ACTION_PANIC);
+            drawKeybindSettingsTableRow(GUI_ACTION_NEW);
+            drawKeybindSettingsTableRow(GUI_ACTION_CLEAR);
+            drawKeybindSettingsTableRow(GUI_ACTION_OPEN);
+            drawKeybindSettingsTableRow(GUI_ACTION_OPEN_BACKUP);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAVE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAVE_AS);
+            drawKeybindSettingsTableRow(GUI_ACTION_EXPORT);
+            drawKeybindSettingsTableRow(GUI_ACTION_UNDO);
+            drawKeybindSettingsTableRow(GUI_ACTION_REDO);
+            drawKeybindSettingsTableRow(GUI_ACTION_PLAY_TOGGLE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PLAY);
+            drawKeybindSettingsTableRow(GUI_ACTION_STOP);
+            drawKeybindSettingsTableRow(GUI_ACTION_PLAY_START);
+            drawKeybindSettingsTableRow(GUI_ACTION_PLAY_REPEAT);
+            drawKeybindSettingsTableRow(GUI_ACTION_PLAY_CURSOR);
+            drawKeybindSettingsTableRow(GUI_ACTION_STEP_ONE);
+            drawKeybindSettingsTableRow(GUI_ACTION_OCTAVE_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_OCTAVE_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_STEP_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_STEP_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_TOGGLE_EDIT);
+            drawKeybindSettingsTableRow(GUI_ACTION_METRONOME);
+            drawKeybindSettingsTableRow(GUI_ACTION_REPEAT_PATTERN);
+            drawKeybindSettingsTableRow(GUI_ACTION_FOLLOW_ORDERS);
+            drawKeybindSettingsTableRow(GUI_ACTION_FOLLOW_PATTERN);
+            drawKeybindSettingsTableRow(GUI_ACTION_FULLSCREEN);
+            drawKeybindSettingsTableRow(GUI_ACTION_TX81Z_REQUEST);
+            drawKeybindSettingsTableRow(GUI_ACTION_PANIC);
 
             KEYBIND_CONFIG_END;
             ImGui::TreePop();
@@ -2259,48 +2220,48 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::TreeNode(_("Window activation"))) {
             KEYBIND_CONFIG_BEGIN("keysWindow");
 
-            uiKeybindConfig(GUI_ACTION_WINDOW_FIND);
-            uiKeybindConfig(GUI_ACTION_WINDOW_SETTINGS);
-            uiKeybindConfig(GUI_ACTION_WINDOW_SONG_INFO);
-            uiKeybindConfig(GUI_ACTION_WINDOW_SUBSONGS);
-            uiKeybindConfig(GUI_ACTION_WINDOW_SPEED);
-            uiKeybindConfig(GUI_ACTION_WINDOW_INS_LIST);
-            uiKeybindConfig(GUI_ACTION_WINDOW_WAVE_LIST);
-            uiKeybindConfig(GUI_ACTION_WINDOW_SAMPLE_LIST);
-            uiKeybindConfig(GUI_ACTION_WINDOW_ORDERS);
-            uiKeybindConfig(GUI_ACTION_WINDOW_PATTERN);
-            uiKeybindConfig(GUI_ACTION_WINDOW_MIXER);
-            uiKeybindConfig(GUI_ACTION_WINDOW_GROOVES);
-            uiKeybindConfig(GUI_ACTION_WINDOW_CHANNELS);
-            uiKeybindConfig(GUI_ACTION_WINDOW_PAT_MANAGER);
-            uiKeybindConfig(GUI_ACTION_WINDOW_SYS_MANAGER);
-            uiKeybindConfig(GUI_ACTION_WINDOW_COMPAT_FLAGS);
-            uiKeybindConfig(GUI_ACTION_WINDOW_NOTES);
-            uiKeybindConfig(GUI_ACTION_WINDOW_INS_EDIT);
-            uiKeybindConfig(GUI_ACTION_WINDOW_WAVE_EDIT);
-            uiKeybindConfig(GUI_ACTION_WINDOW_SAMPLE_EDIT);
-            uiKeybindConfig(GUI_ACTION_WINDOW_EDIT_CONTROLS);
-            uiKeybindConfig(GUI_ACTION_WINDOW_PIANO);
-            uiKeybindConfig(GUI_ACTION_WINDOW_OSCILLOSCOPE);
-            uiKeybindConfig(GUI_ACTION_WINDOW_CHAN_OSC);
-            uiKeybindConfig(GUI_ACTION_WINDOW_XY_OSC);
-            uiKeybindConfig(GUI_ACTION_WINDOW_VOL_METER);
-            uiKeybindConfig(GUI_ACTION_WINDOW_CLOCK);
-            uiKeybindConfig(GUI_ACTION_WINDOW_REGISTER_VIEW);
-            uiKeybindConfig(GUI_ACTION_WINDOW_LOG);
-            uiKeybindConfig(GUI_ACTION_WINDOW_STATS);
-            uiKeybindConfig(GUI_ACTION_WINDOW_MEMORY);
-            uiKeybindConfig(GUI_ACTION_WINDOW_EFFECT_LIST);
-            uiKeybindConfig(GUI_ACTION_WINDOW_DEBUG);
-            uiKeybindConfig(GUI_ACTION_WINDOW_CS_PLAYER);
-            uiKeybindConfig(GUI_ACTION_WINDOW_ABOUT);
-            uiKeybindConfig(GUI_ACTION_COLLAPSE_WINDOW);
-            uiKeybindConfig(GUI_ACTION_CLOSE_WINDOW);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_FIND);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_SETTINGS);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_SONG_INFO);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_SUBSONGS);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_SPEED);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_INS_LIST);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_WAVE_LIST);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_SAMPLE_LIST);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_ORDERS);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_PATTERN);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_MIXER);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_GROOVES);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_CHANNELS);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_PAT_MANAGER);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_SYS_MANAGER);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_COMPAT_FLAGS);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_NOTES);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_INS_EDIT);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_WAVE_EDIT);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_SAMPLE_EDIT);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_EDIT_CONTROLS);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_PIANO);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_OSCILLOSCOPE);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_CHAN_OSC);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_XY_OSC);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_VOL_METER);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_CLOCK);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_REGISTER_VIEW);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_LOG);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_STATS);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_MEMORY);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_EFFECT_LIST);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_DEBUG);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_CS_PLAYER);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_ABOUT);
+            drawKeybindSettingsTableRow(GUI_ACTION_COLLAPSE_WINDOW);
+            drawKeybindSettingsTableRow(GUI_ACTION_CLOSE_WINDOW);
 
-            uiKeybindConfig(GUI_ACTION_COMMAND_PALETTE);
-            uiKeybindConfig(GUI_ACTION_CMDPAL_RECENT);
-            uiKeybindConfig(GUI_ACTION_CMDPAL_INSTRUMENTS);
-            uiKeybindConfig(GUI_ACTION_CMDPAL_SAMPLES);
+            drawKeybindSettingsTableRow(GUI_ACTION_COMMAND_PALETTE);
+            drawKeybindSettingsTableRow(GUI_ACTION_CMDPAL_RECENT);
+            drawKeybindSettingsTableRow(GUI_ACTION_CMDPAL_INSTRUMENTS);
+            drawKeybindSettingsTableRow(GUI_ACTION_CMDPAL_SAMPLES);
 
             KEYBIND_CONFIG_END;
             ImGui::TreePop();
@@ -2394,76 +2355,76 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::TreeNode(_("Pattern"))) {
             KEYBIND_CONFIG_BEGIN("keysPattern");
 
-            uiKeybindConfig(GUI_ACTION_PAT_NOTE_UP);
-            uiKeybindConfig(GUI_ACTION_PAT_NOTE_DOWN);
-            uiKeybindConfig(GUI_ACTION_PAT_OCTAVE_UP);
-            uiKeybindConfig(GUI_ACTION_PAT_OCTAVE_DOWN);
-            uiKeybindConfig(GUI_ACTION_PAT_VALUE_UP);
-            uiKeybindConfig(GUI_ACTION_PAT_VALUE_DOWN);
-            uiKeybindConfig(GUI_ACTION_PAT_VALUE_UP_COARSE);
-            uiKeybindConfig(GUI_ACTION_PAT_VALUE_DOWN_COARSE);
-            uiKeybindConfig(GUI_ACTION_PAT_SELECT_ALL);
-            uiKeybindConfig(GUI_ACTION_PAT_CUT);
-            uiKeybindConfig(GUI_ACTION_PAT_COPY);
-            uiKeybindConfig(GUI_ACTION_PAT_PASTE);
-            uiKeybindConfig(GUI_ACTION_PAT_PASTE_MIX);
-            uiKeybindConfig(GUI_ACTION_PAT_PASTE_MIX_BG);
-            uiKeybindConfig(GUI_ACTION_PAT_PASTE_FLOOD);
-            uiKeybindConfig(GUI_ACTION_PAT_PASTE_OVERFLOW);
-            uiKeybindConfig(GUI_ACTION_PAT_CURSOR_UP);
-            uiKeybindConfig(GUI_ACTION_PAT_CURSOR_DOWN);
-            uiKeybindConfig(GUI_ACTION_PAT_CURSOR_LEFT);
-            uiKeybindConfig(GUI_ACTION_PAT_CURSOR_RIGHT);
-            uiKeybindConfig(GUI_ACTION_PAT_CURSOR_UP_ONE);
-            uiKeybindConfig(GUI_ACTION_PAT_CURSOR_DOWN_ONE);
-            uiKeybindConfig(GUI_ACTION_PAT_CURSOR_LEFT_CHANNEL);
-            uiKeybindConfig(GUI_ACTION_PAT_CURSOR_RIGHT_CHANNEL);
-            uiKeybindConfig(GUI_ACTION_PAT_CURSOR_PREVIOUS_CHANNEL);
-            uiKeybindConfig(GUI_ACTION_PAT_CURSOR_NEXT_CHANNEL);
-            uiKeybindConfig(GUI_ACTION_PAT_CURSOR_BEGIN);
-            uiKeybindConfig(GUI_ACTION_PAT_CURSOR_END);
-            uiKeybindConfig(GUI_ACTION_PAT_CURSOR_UP_COARSE);
-            uiKeybindConfig(GUI_ACTION_PAT_CURSOR_DOWN_COARSE);
-            uiKeybindConfig(GUI_ACTION_PAT_SELECTION_UP);
-            uiKeybindConfig(GUI_ACTION_PAT_SELECTION_DOWN);
-            uiKeybindConfig(GUI_ACTION_PAT_SELECTION_LEFT);
-            uiKeybindConfig(GUI_ACTION_PAT_SELECTION_RIGHT);
-            uiKeybindConfig(GUI_ACTION_PAT_SELECTION_UP_ONE);
-            uiKeybindConfig(GUI_ACTION_PAT_SELECTION_DOWN_ONE);
-            uiKeybindConfig(GUI_ACTION_PAT_SELECTION_BEGIN);
-            uiKeybindConfig(GUI_ACTION_PAT_SELECTION_END);
-            uiKeybindConfig(GUI_ACTION_PAT_SELECTION_UP_COARSE);
-            uiKeybindConfig(GUI_ACTION_PAT_SELECTION_DOWN_COARSE);
-            uiKeybindConfig(GUI_ACTION_PAT_MOVE_UP);
-            uiKeybindConfig(GUI_ACTION_PAT_MOVE_DOWN);
-            uiKeybindConfig(GUI_ACTION_PAT_MOVE_LEFT_CHANNEL);
-            uiKeybindConfig(GUI_ACTION_PAT_MOVE_RIGHT_CHANNEL);
-            uiKeybindConfig(GUI_ACTION_PAT_DELETE);
-            uiKeybindConfig(GUI_ACTION_PAT_PULL_DELETE);
-            uiKeybindConfig(GUI_ACTION_PAT_INSERT);
-            uiKeybindConfig(GUI_ACTION_PAT_MUTE_CURSOR);
-            uiKeybindConfig(GUI_ACTION_PAT_SOLO_CURSOR);
-            uiKeybindConfig(GUI_ACTION_PAT_UNMUTE_ALL);
-            uiKeybindConfig(GUI_ACTION_PAT_NEXT_ORDER);
-            uiKeybindConfig(GUI_ACTION_PAT_PREV_ORDER);
-            uiKeybindConfig(GUI_ACTION_PAT_COLLAPSE);
-            uiKeybindConfig(GUI_ACTION_PAT_INCREASE_COLUMNS);
-            uiKeybindConfig(GUI_ACTION_PAT_DECREASE_COLUMNS);
-            uiKeybindConfig(GUI_ACTION_PAT_INTERPOLATE);
-            uiKeybindConfig(GUI_ACTION_PAT_FADE);
-            uiKeybindConfig(GUI_ACTION_PAT_INVERT_VALUES);
-            uiKeybindConfig(GUI_ACTION_PAT_FLIP_SELECTION);
-            uiKeybindConfig(GUI_ACTION_PAT_COLLAPSE_ROWS);
-            uiKeybindConfig(GUI_ACTION_PAT_EXPAND_ROWS);
-            uiKeybindConfig(GUI_ACTION_PAT_COLLAPSE_PAT);
-            uiKeybindConfig(GUI_ACTION_PAT_EXPAND_PAT);
-            uiKeybindConfig(GUI_ACTION_PAT_COLLAPSE_SONG);
-            uiKeybindConfig(GUI_ACTION_PAT_EXPAND_SONG);
-            uiKeybindConfig(GUI_ACTION_PAT_LATCH);
-            uiKeybindConfig(GUI_ACTION_PAT_CLEAR_LATCH);
-            uiKeybindConfig(GUI_ACTION_PAT_ABSORB_INSTRUMENT);
-            uiKeybindConfig(GUI_ACTION_PAT_CURSOR_UNDO);
-            uiKeybindConfig(GUI_ACTION_PAT_CURSOR_REDO);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_NOTE_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_NOTE_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_OCTAVE_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_OCTAVE_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_VALUE_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_VALUE_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_VALUE_UP_COARSE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_VALUE_DOWN_COARSE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SELECT_ALL);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CUT);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_COPY);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_PASTE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_PASTE_MIX);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_PASTE_MIX_BG);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_PASTE_FLOOD);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_PASTE_OVERFLOW);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_LEFT);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_RIGHT);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_UP_ONE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_DOWN_ONE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_LEFT_CHANNEL);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_RIGHT_CHANNEL);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_PREVIOUS_CHANNEL);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_NEXT_CHANNEL);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_BEGIN);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_END);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_UP_COARSE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_DOWN_COARSE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SELECTION_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SELECTION_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SELECTION_LEFT);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SELECTION_RIGHT);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SELECTION_UP_ONE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SELECTION_DOWN_ONE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SELECTION_BEGIN);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SELECTION_END);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SELECTION_UP_COARSE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SELECTION_DOWN_COARSE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_MOVE_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_MOVE_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_MOVE_LEFT_CHANNEL);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_MOVE_RIGHT_CHANNEL);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_DELETE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_PULL_DELETE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_INSERT);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_MUTE_CURSOR);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SOLO_CURSOR);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_UNMUTE_ALL);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_NEXT_ORDER);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_PREV_ORDER);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_COLLAPSE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_INCREASE_COLUMNS);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_DECREASE_COLUMNS);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_INTERPOLATE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_FADE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_INVERT_VALUES);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_FLIP_SELECTION);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_COLLAPSE_ROWS);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_EXPAND_ROWS);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_COLLAPSE_PAT);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_EXPAND_PAT);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_COLLAPSE_SONG);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_EXPAND_SONG);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_LATCH);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CLEAR_LATCH);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_ABSORB_INSTRUMENT);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_UNDO);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_REDO);
 
             KEYBIND_CONFIG_END;
             ImGui::TreePop();
@@ -2471,19 +2432,19 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::TreeNode(_("Instrument list"))) {
             KEYBIND_CONFIG_BEGIN("keysInsList");
 
-            uiKeybindConfig(GUI_ACTION_INS_LIST_ADD);
-            uiKeybindConfig(GUI_ACTION_INS_LIST_DUPLICATE);
-            uiKeybindConfig(GUI_ACTION_INS_LIST_OPEN);
-            uiKeybindConfig(GUI_ACTION_INS_LIST_OPEN_REPLACE);
-            uiKeybindConfig(GUI_ACTION_INS_LIST_SAVE);
-            uiKeybindConfig(GUI_ACTION_INS_LIST_SAVE_DMP);
-            uiKeybindConfig(GUI_ACTION_INS_LIST_MOVE_UP);
-            uiKeybindConfig(GUI_ACTION_INS_LIST_MOVE_DOWN);
-            uiKeybindConfig(GUI_ACTION_INS_LIST_DELETE);
-            uiKeybindConfig(GUI_ACTION_INS_LIST_EDIT);
-            uiKeybindConfig(GUI_ACTION_INS_LIST_UP);
-            uiKeybindConfig(GUI_ACTION_INS_LIST_DOWN);
-            uiKeybindConfig(GUI_ACTION_INS_LIST_DIR_VIEW);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_ADD);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_DUPLICATE);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_OPEN);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_OPEN_REPLACE);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_SAVE);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_SAVE_DMP);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_MOVE_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_MOVE_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_DELETE);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_EDIT);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_DIR_VIEW);
 
             KEYBIND_CONFIG_END;
             ImGui::TreePop();
@@ -2491,20 +2452,20 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::TreeNode(_("Wavetable list"))) {
             KEYBIND_CONFIG_BEGIN("keysWaveList");
 
-            uiKeybindConfig(GUI_ACTION_WAVE_LIST_ADD);
-            uiKeybindConfig(GUI_ACTION_WAVE_LIST_DUPLICATE);
-            uiKeybindConfig(GUI_ACTION_WAVE_LIST_OPEN);
-            uiKeybindConfig(GUI_ACTION_WAVE_LIST_OPEN_REPLACE);
-            uiKeybindConfig(GUI_ACTION_WAVE_LIST_SAVE);
-            uiKeybindConfig(GUI_ACTION_WAVE_LIST_SAVE_DMW);
-            uiKeybindConfig(GUI_ACTION_WAVE_LIST_SAVE_RAW);
-            uiKeybindConfig(GUI_ACTION_WAVE_LIST_MOVE_UP);
-            uiKeybindConfig(GUI_ACTION_WAVE_LIST_MOVE_DOWN);
-            uiKeybindConfig(GUI_ACTION_WAVE_LIST_DELETE);
-            uiKeybindConfig(GUI_ACTION_WAVE_LIST_EDIT);
-            uiKeybindConfig(GUI_ACTION_WAVE_LIST_UP);
-            uiKeybindConfig(GUI_ACTION_WAVE_LIST_DOWN);
-            uiKeybindConfig(GUI_ACTION_WAVE_LIST_DIR_VIEW);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_ADD);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_DUPLICATE);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_OPEN);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_OPEN_REPLACE);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_SAVE);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_SAVE_DMW);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_SAVE_RAW);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_MOVE_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_MOVE_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_DELETE);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_EDIT);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_DIR_VIEW);
 
             KEYBIND_CONFIG_END;
             ImGui::TreePop();
@@ -2512,25 +2473,25 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::TreeNode(_("Sample list"))) {
             KEYBIND_CONFIG_BEGIN("keysSampleList");
 
-            uiKeybindConfig(GUI_ACTION_SAMPLE_LIST_ADD);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_LIST_DUPLICATE);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_CREATE_WAVE);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_LIST_OPEN);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE_RAW);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_LIST_SAVE);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_LIST_SAVE_RAW);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_LIST_MOVE_UP);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_LIST_MOVE_DOWN);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_LIST_DELETE);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_LIST_EDIT);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_LIST_UP);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_LIST_DOWN);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_LIST_PREVIEW);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_LIST_DIR_VIEW);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_LIST_MAKE_MAP);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_ADD);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_DUPLICATE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_CREATE_WAVE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_OPEN);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE_RAW);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_SAVE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_SAVE_RAW);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_MOVE_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_MOVE_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_DELETE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_EDIT);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_PREVIEW);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_DIR_VIEW);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_MAKE_MAP);
 
             KEYBIND_CONFIG_END;
             ImGui::TreePop();
@@ -2538,23 +2499,23 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::TreeNode(_("Orders"))) {
             KEYBIND_CONFIG_BEGIN("keysOrders");
 
-            uiKeybindConfig(GUI_ACTION_ORDERS_UP);
-            uiKeybindConfig(GUI_ACTION_ORDERS_DOWN);
-            uiKeybindConfig(GUI_ACTION_ORDERS_LEFT);
-            uiKeybindConfig(GUI_ACTION_ORDERS_RIGHT);
-            uiKeybindConfig(GUI_ACTION_ORDERS_INCREASE);
-            uiKeybindConfig(GUI_ACTION_ORDERS_DECREASE);
-            uiKeybindConfig(GUI_ACTION_ORDERS_EDIT_MODE);
-            uiKeybindConfig(GUI_ACTION_ORDERS_LINK);
-            uiKeybindConfig(GUI_ACTION_ORDERS_ADD);
-            uiKeybindConfig(GUI_ACTION_ORDERS_DUPLICATE);
-            uiKeybindConfig(GUI_ACTION_ORDERS_DEEP_CLONE);
-            uiKeybindConfig(GUI_ACTION_ORDERS_DUPLICATE_END);
-            uiKeybindConfig(GUI_ACTION_ORDERS_DEEP_CLONE_END);
-            uiKeybindConfig(GUI_ACTION_ORDERS_REMOVE);
-            uiKeybindConfig(GUI_ACTION_ORDERS_MOVE_UP);
-            uiKeybindConfig(GUI_ACTION_ORDERS_MOVE_DOWN);
-            uiKeybindConfig(GUI_ACTION_ORDERS_REPLAY);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_LEFT);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_RIGHT);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_INCREASE);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_DECREASE);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_EDIT_MODE);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_LINK);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_ADD);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_DUPLICATE);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_DEEP_CLONE);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_DUPLICATE_END);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_DEEP_CLONE_END);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_REMOVE);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_MOVE_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_MOVE_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_REPLAY);
 
             KEYBIND_CONFIG_END;
             ImGui::TreePop();
@@ -2562,35 +2523,35 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::TreeNode(_("Sample editor"))) {
             KEYBIND_CONFIG_BEGIN("keysSampleEdit");
 
-            uiKeybindConfig(GUI_ACTION_SAMPLE_SELECT);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_DRAW);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_CUT);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_COPY);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_PASTE);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_PASTE_REPLACE);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_PASTE_MIX);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_SELECT_ALL);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_RESIZE);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_RESAMPLE);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_AMPLIFY);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_NORMALIZE);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_FADE_IN);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_FADE_OUT);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_INSERT);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_SILENCE);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_DELETE);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_TRIM);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_REVERSE);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_INVERT);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_SIGN);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_FILTER);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_PREVIEW);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_STOP_PREVIEW);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_ZOOM_IN);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_ZOOM_OUT);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_ZOOM_AUTO);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_MAKE_INS);
-            uiKeybindConfig(GUI_ACTION_SAMPLE_SET_LOOP);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_SELECT);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_DRAW);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_CUT);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_COPY);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_PASTE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_PASTE_REPLACE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_PASTE_MIX);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_SELECT_ALL);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_RESIZE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_RESAMPLE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_AMPLIFY);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_NORMALIZE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_FADE_IN);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_FADE_OUT);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_INSERT);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_SILENCE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_DELETE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_TRIM);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_REVERSE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_INVERT);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_SIGN);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_FILTER);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_PREVIEW);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_STOP_PREVIEW);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_ZOOM_IN);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_ZOOM_OUT);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_ZOOM_AUTO);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_MAKE_INS);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_SET_LOOP);
 
             KEYBIND_CONFIG_END;
             ImGui::TreePop();
@@ -4683,6 +4644,45 @@ void FurnaceGUI::drawSettings() {
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SETTINGS;
   ImGui::End();
+}
+
+void FurnaceGUI::drawKeybindSettingsTableRow(FurnaceGUIActions actionIdx) {
+  ImGui::TableNextRow();
+  ImGui::TableNextColumn();
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextUnformatted(guiActions[actionIdx].friendlyName);
+  ImGui::TableNextColumn();
+  ImGui::PushID(actionIdx);
+  for (size_t i=0; i<actionKeys[actionIdx].size()+1; i++) {
+    ImGui::PushID(i);
+    if (i>0) ImGui::SameLine();
+    bool isPending=bindSetPending && bindSetTarget==actionIdx && bindSetTargetIdx==(int)i;
+    if (i<actionKeys[actionIdx].size()) {
+      if (ImGui::Button(isPending ? _N("Press key...") : getKeyName(actionKeys[actionIdx][i]).c_str())) {
+        promptKey(actionIdx, i);
+        settingsChanged=true;
+      }
+      bool rightClicked=ImGui::IsItemClicked(ImGuiMouseButton_Right);
+      if (!rightClicked) {
+        ImGui::SameLine(0.0f, 1.0f);
+      }
+      if ( rightClicked || ImGui::Button(ICON_FA_TIMES)) {
+        actionKeys[actionIdx].erase(actionKeys[actionIdx].begin()+i);
+        if (isPending) {
+          bindSetActive=false;
+          bindSetPending=false;
+        }
+        parseKeybinds();
+      }
+    } else {
+      if (ImGui::Button(isPending ? _N("Press key...") : "+")) {
+        promptKey(actionIdx, i);
+        settingsChanged=true;
+      }
+    }
+    ImGui::PopID(); // i
+  }
+  ImGui::PopID(); // action
 }
 
 #define clampSetting(x,minV,maxV) \
