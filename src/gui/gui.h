@@ -2817,8 +2817,7 @@ class FurnaceGUI {
   void actualWaveList();
   void actualSampleList();
 
-  template <typename func_waveItemData>
-  void waveListHorizontalGroup(float* wavePreview, int dir, int count, const func_waveItemData& waveItemData);
+  template <typename func_waveItemData> void waveListHorizontalGroup(float* wavePreview, int dir, int count, const func_waveItemData& waveItemData);
   void insListItem(int index, int dir, int asset);
   void waveListItem(int index, float* wavePreview, int dir, int asset);
   void sampleListItem(int index, int dir, int asset);

@@ -997,8 +997,7 @@ void FurnaceGUI::drawSampleList(bool asChild) {
   }
 }
 
-template <typename func_waveItemData>
-void FurnaceGUI::waveListHorizontalGroup(float* wavePreview, int dir, int count, const func_waveItemData& waveItemData) {
+template <typename func_waveItemData> void FurnaceGUI::waveListHorizontalGroup(float* wavePreview, int dir, int count, const func_waveItemData& waveItemData) {
   if (count==0) return;
 
   float idealWidthMin=225.0f*dpiScale;
