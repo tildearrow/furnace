@@ -391,7 +391,7 @@ size | description
   1  | reset arp effect phase on new note (>=184)
   1  | linear volume scaling rounds up (>=188)
   1  | legacy "always set volume" behavior (>=191)
-  1  | reserved
+  1  | legacy sample offset effect (>=200)
  --- | **speed pattern of first song** (>=139)
   1  | length of speed pattern (fail if this is lower than 0 or higher than 16)
  16  | speed pattern (this overrides speed 1 and speed 2 settings)
