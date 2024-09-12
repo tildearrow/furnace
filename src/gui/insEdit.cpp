@@ -2398,7 +2398,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
 
             // fairly arbitrary scaling logic
             bool shortLabels=(availX<600.0f*dpiScale);
-            float scalarItemWidth=MIN((availX-90.0f*dpiScale)/4, 120.0f*dpiScale);
+            float scalarItemWidth=MIN((availX-90.0f*dpiScale)/colCount, 120.0f*dpiScale);
             if (ImGui::BeginTable("##MacroMetaData",colCount)) {
               if (showLen) ImGui::TableSetupColumn("len",ImGuiTableColumnFlags_WidthStretch,0.0);
               ImGui::TableSetupColumn("stepLen",ImGuiTableColumnFlags_WidthStretch,0.0);
