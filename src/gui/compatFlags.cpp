@@ -200,6 +200,10 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("behavior changed in 0.6.3"));
         }
+        ImGui::Checkbox(_("Broken row delay"),&e->song.brokenRowDelay);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("behavior changed in 0.6.8"));
+        }
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem(_(".mod import"))) {
