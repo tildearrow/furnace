@@ -997,6 +997,37 @@ void FurnaceGUI::drawSampleList(bool asChild) {
   }
 }
 
+template <typename func_waveItemData>
+void FurnaceGUI::waveListHorizontalGroup(float* wavePreview, int dir, int count, const func_waveItemData& waveItemData) {
+  if (count==0) return;
+
+  float idealWidthMin=225.0f*dpiScale;
+  float idealWidthMax=350.0f*dpiScale;
+  float availX=ImGui::GetContentRegionAvail().x;
+  int columnCount=CLAMP((int)(availX/idealWidthMin),1,count);
+  int rowCount=(int)ceilf(count/(float)columnCount);
+  columnCount=(int)ceilf(count/(float)rowCount);
+  float columnWidth=MIN(CLAMP(availX/columnCount,idealWidthMin,idealWidthMax),availX);
+  if (ImGui::BeginTable("##waveListGroupTable", columnCount, ImGuiTableFlags_SizingFixedSame)) {
+    for (int col=0; col<columnCount; col++) {
+      ImGui::TableSetupColumn("##column", ImGuiTableColumnFlags_WidthFixed, columnWidth);
+    }
+    for (int row=0; row<rowCount; row++) {
+      ImGui::TableNextRow();
+      for (int col=0; col<columnCount; col++) {
+        ImGui::TableNextColumn();
+        int idx=row + col*rowCount;
+        if (idx>=count) continue;
+
+        int waveIdx, asset;
+        waveItemData(row + col*rowCount, &waveIdx, &asset);
+        waveListItem(waveIdx, wavePreview, dir, asset);
+      }
+    }
+    ImGui::EndTable();
+  }
+}
+
 void FurnaceGUI::actualWaveList() {
   float wavePreview[257];
 
@@ -1021,10 +1052,17 @@ void FurnaceGUI::actualWaveList() {
         ImGui::EndPopup();
       }
       if (treeNode) {
-        int assetIndex=0;
-        for (int j: i.entries) {
-          waveListItem(j,wavePreview,dirIndex,assetIndex);
-          assetIndex++;
+        if(settings.horizontalDataView) {
+          waveListHorizontalGroup(wavePreview, dirIndex, i.entries.size(), [&](int i_, int* waveIdx, int* asset) {
+            *waveIdx=i.entries[i_];
+            *asset=i_;
+          });
+        } else {
+          int assetIndex=0;
+          for (int j: i.entries) {
+            waveListItem(j,wavePreview,dirIndex,assetIndex);
+            assetIndex++;
+          }
         }
         ImGui::TreePop();
       }
@@ -1037,10 +1075,19 @@ void FurnaceGUI::actualWaveList() {
       });
     }
   } else {
-    for (int i=0; i<(int)e->song.wave.size(); i++) {
+    if(settings.horizontalDataView) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      waveListItem(i,wavePreview,-1,-1);
+      waveListHorizontalGroup(wavePreview, -1, (int)e->song.wave.size(), [&](int i, int* waveIdx, int* asset) {
+        *waveIdx=i;
+        *asset=-1;
+      });
+    } else {
+      for (int i=0; i<(int)e->song.wave.size(); i++) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        waveListItem(i,wavePreview,-1,-1);
+      }
     }
   }
 }

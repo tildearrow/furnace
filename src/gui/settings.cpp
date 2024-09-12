@@ -3575,7 +3575,7 @@ void FurnaceGUI::drawSettings() {
 
         ImGui::BeginDisabled(settings.unifiedDataView);
         bool horizontalDataViewB=settings.horizontalDataView;
-        if (ImGui::Checkbox(_("Horizontal instrument list"),&horizontalDataViewB)) {
+        if (ImGui::Checkbox(_("Horizontal instrument/wavetable list"),&horizontalDataViewB)) {
           settings.horizontalDataView=horizontalDataViewB;
           settingsChanged=true;
         }
