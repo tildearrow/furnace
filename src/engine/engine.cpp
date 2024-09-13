@@ -1647,6 +1647,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   prevMidiTimeDrift=midiTimeDrift;
   clockDrift=0;
   cycles=0;
+  macroMultCycles=0;
   midiClockCycles=0;
   midiClockDrift=0;
   midiTimeCycles=0;
@@ -1721,6 +1722,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   } else {
     clockDrift=0;
     cycles=0;
+    macroMultCycles=0;
     midiClockCycles=0;
     midiClockDrift=0;
     midiTimeCycles=0;
@@ -2078,6 +2080,13 @@ bool DivEngine::isHalted() {
   return halted;
 }
 
+void DivEngine::updateMacroSpeedMult() {
+  BUSY_BEGIN;
+  divider=curSubSong->hz * curSubSong->macroSpeedMult;
+  macroMultCycles = 0;
+  BUSY_END;
+}
+
 const char** DivEngine::getRegisterSheet(int sys) {
   if (sys<0 || sys>=song.systemLen) return NULL;
   return disCont[sys].dispatch->getRegisterSheet();
@@ -2150,7 +2159,7 @@ void DivEngine::reset() {
   elapsedBars=0;
   elapsedBeats=0;
   nextSpeed=speeds.val[0];
-  divider=curSubSong->hz;
+  divider=curSubSong->hz * curSubSong->macroSpeedMult;
   globalPitch=0;
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].dispatch->reset();
@@ -2394,7 +2403,7 @@ float DivEngine::getHz() {
 }
 
 float DivEngine::getCurHz() {
-  return divider;
+  return divider / (float)curSubSong->macroSpeedMult;
 }
 
 short DivEngine::getVirtualTempoN() {
@@ -3703,6 +3712,7 @@ void DivEngine::quitDispatch() {
     disCont[i].quit();
   }
   cycles=0;
+  macroMultCycles=0;
   clockDrift=0;
   midiClockCycles=0;
   midiClockDrift=0;

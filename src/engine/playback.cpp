@@ -1523,6 +1523,14 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
   bool ret=false;
   if (divider<1) divider=1;
 
+  bool advanceSong = false;
+  macroMultCycles++;
+  if(macroMultCycles == curSubSong->macroSpeedMult)
+  {
+    macroMultCycles = 0;
+    advanceSong = true;
+  }
+
   if (lowLatency && !skipping && !inhibitLowLat) {
     tickMult=1000/divider;
     if (tickMult<1) tickMult=1;
@@ -1537,398 +1545,404 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     cycles++;
   }
 
-  if (!pendingNotes.empty()) {
-    bool isOn[DIV_MAX_CHANS];
-    memset(isOn,0,DIV_MAX_CHANS*sizeof(bool));
-    
-    for (int i=pendingNotes.size()-1; i>=0; i--) {
-      if (pendingNotes[i].channel<0 || pendingNotes[i].channel>=chans) continue;
-      if (pendingNotes[i].on) {
-        isOn[pendingNotes[i].channel]=true;
-      } else {
-        if (isOn[pendingNotes[i].channel]) {
-          //logV("erasing off -> on sequence in %d",pendingNotes[i].channel);
-          pendingNotes[i].nop=true;
+  if(advanceSong)
+  {
+    if (!pendingNotes.empty()) {
+      bool isOn[DIV_MAX_CHANS];
+      memset(isOn,0,DIV_MAX_CHANS*sizeof(bool));
+      
+      for (int i=pendingNotes.size()-1; i>=0; i--) {
+        if (pendingNotes[i].channel<0 || pendingNotes[i].channel>=chans) continue;
+        if (pendingNotes[i].on) {
+          isOn[pendingNotes[i].channel]=true;
+        } else {
+          if (isOn[pendingNotes[i].channel]) {
+            //logV("erasing off -> on sequence in %d",pendingNotes[i].channel);
+            pendingNotes[i].nop=true;
+          }
         }
       }
     }
-  }
 
-  while (!pendingNotes.empty()) {
-    DivNoteEvent& note=pendingNotes.front();
-    if (note.nop || note.channel<0 || note.channel>=chans) {
-      pendingNotes.pop_front();
-      continue;
-    }
-    if (note.insChange) {
-      dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,0));
-      pendingNotes.pop_front();
-      continue;
-    }
-    if (note.on) {
-      if (!(midiIsDirect && midiIsDirectProgram && note.fromMIDI)) {
-        dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,1));
+    while (!pendingNotes.empty()) {
+      DivNoteEvent& note=pendingNotes.front();
+      if (note.nop || note.channel<0 || note.channel>=chans) {
+        pendingNotes.pop_front();
+        continue;
       }
-      if (note.volume>=0 && !disCont[dispatchOfChan[note.channel]].dispatch->isVolGlobal()) {
-        float curvedVol=pow((float)note.volume/127.0f,midiVolExp);
-        int mappedVol=disCont[dispatchOfChan[note.channel]].dispatch->mapVelocity(dispatchChanOfChan[note.channel],curvedVol);
-        dispatchCmd(DivCommand(DIV_CMD_VOLUME,note.channel,mappedVol));
+      if (note.insChange) {
+        dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,0));
+        pendingNotes.pop_front();
+        continue;
       }
-      dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,note.channel,note.note));
-      keyHit[note.channel]=true;
-      chan[note.channel].releasing=false;
-      chan[note.channel].noteOnInhibit=true;
-      chan[note.channel].lastIns=note.ins;
-    } else {
-      DivMacroInt* macroInt=disCont[dispatchOfChan[note.channel]].dispatch->getChanMacroInt(dispatchChanOfChan[note.channel]);
-      if (macroInt!=NULL) {
-        if (macroInt->hasRelease && !disCont[dispatchOfChan[note.channel]].dispatch->isVolGlobal()) {
-          dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,note.channel));
+      if (note.on) {
+        if (!(midiIsDirect && midiIsDirectProgram && note.fromMIDI)) {
+          dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,1));
+        }
+        if (note.volume>=0 && !disCont[dispatchOfChan[note.channel]].dispatch->isVolGlobal()) {
+          float curvedVol=pow((float)note.volume/127.0f,midiVolExp);
+          int mappedVol=disCont[dispatchOfChan[note.channel]].dispatch->mapVelocity(dispatchChanOfChan[note.channel],curvedVol);
+          dispatchCmd(DivCommand(DIV_CMD_VOLUME,note.channel,mappedVol));
+        }
+        dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,note.channel,note.note));
+        keyHit[note.channel]=true;
+        chan[note.channel].releasing=false;
+        chan[note.channel].noteOnInhibit=true;
+        chan[note.channel].lastIns=note.ins;
+      } else {
+        DivMacroInt* macroInt=disCont[dispatchOfChan[note.channel]].dispatch->getChanMacroInt(dispatchChanOfChan[note.channel]);
+        if (macroInt!=NULL) {
+          if (macroInt->hasRelease && !disCont[dispatchOfChan[note.channel]].dispatch->isVolGlobal()) {
+            dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,note.channel));
+          } else {
+            dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
+          }
         } else {
           dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
         }
-      } else {
-        dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
       }
+      pendingNotes.pop_front();
     }
-    pendingNotes.pop_front();
   }
 
-  if (!freelance) {
-    if (--subticks<=0) {
-      subticks=tickMult;
+  if(advanceSong)
+  {
+    if (!freelance) {
+      if (--subticks<=0) {
+        subticks=tickMult;
 
-      if (stepPlay!=1) {
-        tempoAccum+=(skipping && virtualTempoN<virtualTempoD)?virtualTempoD:virtualTempoN;
-        while (tempoAccum>=virtualTempoD) {
-          tempoAccum-=virtualTempoD;
-          if (--ticks<=0) {
-            ret=endOfSong;
-            if (shallStopSched) {
-              logV("acknowledging scheduled stop");
-              shallStop=true;
-              break;
-            } else if (endOfSong) {
-              if (song.loopModality!=2) {
-                playSub(true);
-              }
-            }
-            endOfSong=false;
-            if (stepPlay==2) {
-              stepPlay=1;
-              playPosLock.lock();
-              prevOrder=curOrder;
-              prevRow=curRow;
-              playPosLock.unlock();
-            }
-            nextRow();
-            break;
-          }
-        }
-        // under no circumstances shall the accumulator become this large
-        if (tempoAccum>1023) tempoAccum=1023;
-      }
-      // process stuff
-      if (!shallStop) for (int i=0; i<chans; i++) {
-        // delay effects
-        if (chan[i].rowDelay>0) {
-          if (--chan[i].rowDelay==0) {
-            processRow(i,true);
-          }
-        }
-
-        // retrigger
-        if (chan[i].retrigSpeed) {
-          if (--chan[i].retrigTick<0) {
-            chan[i].retrigTick=chan[i].retrigSpeed-1;
-            dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
-            keyHit[i]=true;
-          }
-        }
-
-        // volume slides and tremolo
-        if (!song.noSlidesOnFirstTick || !firstTick) {
-          if (chan[i].volSpeed!=0) {
-            chan[i].volume=(chan[i].volume&0xff)|(dispatchCmd(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
-            int preSpeedVol=chan[i].volume;
-            chan[i].volume+=chan[i].volSpeed;
-            if (chan[i].volSpeedTarget!=-1) {
-              bool atTarget=false;
-              if (chan[i].volSpeed>0) {
-                atTarget=(chan[i].volume>=chan[i].volSpeedTarget);
-              } else if (chan[i].volSpeed<0) {
-                atTarget=(chan[i].volume<=chan[i].volSpeedTarget);
-              } else {
-                atTarget=true;
-                chan[i].volSpeedTarget=chan[i].volume;
-              }
-
-              if (atTarget) {
-                if (chan[i].volSpeed>0) {
-                  chan[i].volume=MAX(preSpeedVol,chan[i].volSpeedTarget);
-                } else if (chan[i].volSpeed<0) {
-                  chan[i].volume=MIN(preSpeedVol,chan[i].volSpeedTarget);
+        if (stepPlay!=1) {
+          tempoAccum+=(skipping && virtualTempoN<virtualTempoD)?virtualTempoD:virtualTempoN;
+          while (tempoAccum>=virtualTempoD) {
+            tempoAccum-=virtualTempoD;
+            if (--ticks<=0) {
+              ret=endOfSong;
+              if (shallStopSched) {
+                logV("acknowledging scheduled stop");
+                shallStop=true;
+                break;
+              } else if (endOfSong) {
+                if (song.loopModality!=2) {
+                  playSub(true);
                 }
+              }
+              endOfSong=false;
+              if (stepPlay==2) {
+                stepPlay=1;
+                playPosLock.lock();
+                prevOrder=curOrder;
+                prevRow=curRow;
+                playPosLock.unlock();
+              }
+              nextRow();
+              break;
+            }
+          }
+          // under no circumstances shall the accumulator become this large
+          if (tempoAccum>1023) tempoAccum=1023;
+        }
+        // process stuff
+        if (!shallStop) for (int i=0; i<chans; i++) {
+          // delay effects
+          if (chan[i].rowDelay>0) {
+            if (--chan[i].rowDelay==0) {
+              processRow(i,true);
+            }
+          }
+
+          // retrigger
+          if (chan[i].retrigSpeed) {
+            if (--chan[i].retrigTick<0) {
+              chan[i].retrigTick=chan[i].retrigSpeed-1;
+              dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
+              keyHit[i]=true;
+            }
+          }
+
+          // volume slides and tremolo
+          if (!song.noSlidesOnFirstTick || !firstTick) {
+            if (chan[i].volSpeed!=0) {
+              chan[i].volume=(chan[i].volume&0xff)|(dispatchCmd(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
+              int preSpeedVol=chan[i].volume;
+              chan[i].volume+=chan[i].volSpeed;
+              if (chan[i].volSpeedTarget!=-1) {
+                bool atTarget=false;
+                if (chan[i].volSpeed>0) {
+                  atTarget=(chan[i].volume>=chan[i].volSpeedTarget);
+                } else if (chan[i].volSpeed<0) {
+                  atTarget=(chan[i].volume<=chan[i].volSpeedTarget);
+                } else {
+                  atTarget=true;
+                  chan[i].volSpeedTarget=chan[i].volume;
+                }
+
+                if (atTarget) {
+                  if (chan[i].volSpeed>0) {
+                    chan[i].volume=MAX(preSpeedVol,chan[i].volSpeedTarget);
+                  } else if (chan[i].volSpeed<0) {
+                    chan[i].volume=MIN(preSpeedVol,chan[i].volSpeedTarget);
+                  }
+                  chan[i].volSpeed=0;
+                  chan[i].volSpeedTarget=-1;
+                  dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
+                  dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+                  dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,0));
+                }
+              }
+              if (chan[i].volume>chan[i].volMax) {
+                chan[i].volume=chan[i].volMax;
                 chan[i].volSpeed=0;
                 chan[i].volSpeedTarget=-1;
                 dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
                 dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
                 dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,0));
-              }
-            }
-            if (chan[i].volume>chan[i].volMax) {
-              chan[i].volume=chan[i].volMax;
-              chan[i].volSpeed=0;
-              chan[i].volSpeedTarget=-1;
-              dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
-              dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
-              dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,0));
-            } else if (chan[i].volume<0) {
-              chan[i].volSpeed=0;
-              dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,0));
-              if (song.legacyVolumeSlides) {
-                chan[i].volume=chan[i].volMax+1;
+              } else if (chan[i].volume<0) {
+                chan[i].volSpeed=0;
+                dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,0));
+                if (song.legacyVolumeSlides) {
+                  chan[i].volume=chan[i].volMax+1;
+                } else {
+                  chan[i].volume=0;
+                }
+                chan[i].volSpeedTarget=-1;
+                dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+                dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
               } else {
-                chan[i].volume=0;
+                dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
               }
-              chan[i].volSpeedTarget=-1;
-              dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
-              dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
-            } else {
-              dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
-            }
-          } else if (chan[i].tremoloDepth>0) {
-            chan[i].tremoloPos+=chan[i].tremoloRate;
-            chan[i].tremoloPos&=127;
-            dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,MAX(0,chan[i].volume-(tremTable[chan[i].tremoloPos]*chan[i].tremoloDepth))>>8));
-          }
-        }
-
-        // panning slides
-        if (chan[i].panSpeed!=0) {
-          int newPanL=chan[i].panL;
-          int newPanR=chan[i].panR;
-          if (chan[i].panSpeed>0) { // right
-            if (newPanR>=0xff) {
-              newPanL-=chan[i].panSpeed;
-            } else {
-              newPanR+=chan[i].panSpeed;
-            }
-          } else { // left
-            if (newPanL>=0xff) {
-              newPanR+=chan[i].panSpeed;
-            } else {
-              newPanL-=chan[i].panSpeed;
+            } else if (chan[i].tremoloDepth>0) {
+              chan[i].tremoloPos+=chan[i].tremoloRate;
+              chan[i].tremoloPos&=127;
+              dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,MAX(0,chan[i].volume-(tremTable[chan[i].tremoloPos]*chan[i].tremoloDepth))>>8));
             }
           }
 
-          if (newPanL<0) newPanL=0;
-          if (newPanL>0xff) newPanL=0xff;
-          if (newPanR<0) newPanR=0;
-          if (newPanR>0xff) newPanR=0xff;
-
-          chan[i].panL=newPanL;
-          chan[i].panR=newPanR;
-
-          dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
-        } else if (chan[i].panDepth>0) {
-          chan[i].panPos+=chan[i].panRate;
-          chan[i].panPos&=255;
-
-          // calculate inverted...
-          switch (chan[i].panPos&0xc0) {
-            case 0: // center -> right
-              chan[i].panL=((chan[i].panPos&0x3f)<<2);
-              chan[i].panR=0;
-              break;
-            case 0x40: // right -> center
-              chan[i].panL=0xff-((chan[i].panPos&0x3f)<<2);
-              chan[i].panR=0;
-              break;
-            case 0x80: // center -> left
-              chan[i].panL=0;
-              chan[i].panR=((chan[i].panPos&0x3f)<<2);
-              break;
-            case 0xc0: // left -> center
-              chan[i].panL=0;
-              chan[i].panR=0xff-((chan[i].panPos&0x3f)<<2);
-              break;
-          }
-
-          // multiply by depth
-          chan[i].panL=(chan[i].panL*chan[i].panDepth)/15;
-          chan[i].panR=(chan[i].panR*chan[i].panDepth)/15;
-
-          // then invert it to get final panning
-          chan[i].panL^=0xff;
-          chan[i].panR^=0xff;
-
-          dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
-        }
-
-        // vibrato
-        if (chan[i].vibratoDepth>0) {
-          chan[i].vibratoPos+=chan[i].vibratoRate;
-          while (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
-
-          chan[i].vibratoPosGiant+=chan[i].vibratoRate;
-          while (chan[i].vibratoPosGiant>=512) chan[i].vibratoPosGiant-=512;
-
-          int vibratoOut=0;
-          switch (chan[i].vibratoShape) {
-            case 1: // sine, up only
-              vibratoOut=MAX(0,vibTable[chan[i].vibratoPos]);
-              break;
-            case 2: // sine, down only
-              vibratoOut=MIN(0,vibTable[chan[i].vibratoPos]);
-              break;
-            case 3: // triangle
-              vibratoOut=(chan[i].vibratoPos&31);
-              if (chan[i].vibratoPos&16) {
-                vibratoOut=32-(chan[i].vibratoPos&31);
+          // panning slides
+          if (chan[i].panSpeed!=0) {
+            int newPanL=chan[i].panL;
+            int newPanR=chan[i].panR;
+            if (chan[i].panSpeed>0) { // right
+              if (newPanR>=0xff) {
+                newPanL-=chan[i].panSpeed;
+              } else {
+                newPanR+=chan[i].panSpeed;
               }
-              if (chan[i].vibratoPos&32) {
-                vibratoOut=-vibratoOut;
+            } else { // left
+              if (newPanL>=0xff) {
+                newPanR+=chan[i].panSpeed;
+              } else {
+                newPanL-=chan[i].panSpeed;
               }
-              vibratoOut<<=3;
-              break;
-            case 4: // ramp up
-              vibratoOut=chan[i].vibratoPos<<1;
-              break;
-            case 5: // ramp down
-              vibratoOut=-chan[i].vibratoPos<<1;
-              break;
-            case 6: // square
-              vibratoOut=(chan[i].vibratoPos>=32)?-127:127;
-              break;
-            case 7: // random (TODO: use LFSR)
-              vibratoOut=(rand()&255)-128;
-              break;
-            case 8: // square up
-              vibratoOut=(chan[i].vibratoPos>=32)?0:127;
-              break;
-            case 9: // square down
-              vibratoOut=(chan[i].vibratoPos>=32)?0:-127;
-              break;
-            case 10: // half sine up
-              vibratoOut=vibTable[chan[i].vibratoPos>>1];
-              break;
-            case 11: // half sine down
-              vibratoOut=vibTable[32|(chan[i].vibratoPos>>1)];
-              break;
-            default: // sine
-              vibratoOut=vibTable[chan[i].vibratoPos];
-              break;
-          }
-          dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibratoOut*chan[i].vibratoFine)>>4)/15)));
-        }
+            }
 
-        // delayed legato
-        if (chan[i].legatoDelay>0) {
-          if (--chan[i].legatoDelay<1) {
-            chan[i].note+=chan[i].legatoTarget;
-            dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
-            dispatchCmd(DivCommand(DIV_CMD_HINT_LEGATO,i,chan[i].note));
-            chan[i].legatoDelay=-1;
-            chan[i].legatoTarget=0;
-          }
-        }
+            if (newPanL<0) newPanL=0;
+            if (newPanL>0xff) newPanL=0xff;
+            if (newPanR<0) newPanR=0;
+            if (newPanR>0xff) newPanR=0xff;
 
-        // portamento and pitch slides
-        if (!song.noSlidesOnFirstTick || !firstTick) {
-          if ((chan[i].keyOn || chan[i].keyOff) && chan[i].portaSpeed>0) {
-            if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch==2?song.pitchSlideSpeed:1),chan[i].portaNote))==2 && chan[i].portaStop && song.targetResetsSlides) {
-              chan[i].portaSpeed=0;
-              dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
-              chan[i].oldNote=chan[i].note;
-              chan[i].note=chan[i].portaNote;
-              chan[i].inPorta=false;
+            chan[i].panL=newPanL;
+            chan[i].panR=newPanR;
+
+            dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
+          } else if (chan[i].panDepth>0) {
+            chan[i].panPos+=chan[i].panRate;
+            chan[i].panPos&=255;
+
+            // calculate inverted...
+            switch (chan[i].panPos&0xc0) {
+              case 0: // center -> right
+                chan[i].panL=((chan[i].panPos&0x3f)<<2);
+                chan[i].panR=0;
+                break;
+              case 0x40: // right -> center
+                chan[i].panL=0xff-((chan[i].panPos&0x3f)<<2);
+                chan[i].panR=0;
+                break;
+              case 0x80: // center -> left
+                chan[i].panL=0;
+                chan[i].panR=((chan[i].panPos&0x3f)<<2);
+                break;
+              case 0xc0: // left -> center
+                chan[i].panL=0;
+                chan[i].panR=0xff-((chan[i].panPos&0x3f)<<2);
+                break;
+            }
+
+            // multiply by depth
+            chan[i].panL=(chan[i].panL*chan[i].panDepth)/15;
+            chan[i].panR=(chan[i].panR*chan[i].panDepth)/15;
+
+            // then invert it to get final panning
+            chan[i].panL^=0xff;
+            chan[i].panR^=0xff;
+
+            dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
+          }
+
+          // vibrato
+          if (chan[i].vibratoDepth>0) {
+            chan[i].vibratoPos+=chan[i].vibratoRate;
+            while (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
+
+            chan[i].vibratoPosGiant+=chan[i].vibratoRate;
+            while (chan[i].vibratoPosGiant>=512) chan[i].vibratoPosGiant-=512;
+
+            int vibratoOut=0;
+            switch (chan[i].vibratoShape) {
+              case 1: // sine, up only
+                vibratoOut=MAX(0,vibTable[chan[i].vibratoPos]);
+                break;
+              case 2: // sine, down only
+                vibratoOut=MIN(0,vibTable[chan[i].vibratoPos]);
+                break;
+              case 3: // triangle
+                vibratoOut=(chan[i].vibratoPos&31);
+                if (chan[i].vibratoPos&16) {
+                  vibratoOut=32-(chan[i].vibratoPos&31);
+                }
+                if (chan[i].vibratoPos&32) {
+                  vibratoOut=-vibratoOut;
+                }
+                vibratoOut<<=3;
+                break;
+              case 4: // ramp up
+                vibratoOut=chan[i].vibratoPos<<1;
+                break;
+              case 5: // ramp down
+                vibratoOut=-chan[i].vibratoPos<<1;
+                break;
+              case 6: // square
+                vibratoOut=(chan[i].vibratoPos>=32)?-127:127;
+                break;
+              case 7: // random (TODO: use LFSR)
+                vibratoOut=(rand()&255)-128;
+                break;
+              case 8: // square up
+                vibratoOut=(chan[i].vibratoPos>=32)?0:127;
+                break;
+              case 9: // square down
+                vibratoOut=(chan[i].vibratoPos>=32)?0:-127;
+                break;
+              case 10: // half sine up
+                vibratoOut=vibTable[chan[i].vibratoPos>>1];
+                break;
+              case 11: // half sine down
+                vibratoOut=vibTable[32|(chan[i].vibratoPos>>1)];
+                break;
+              default: // sine
+                vibratoOut=vibTable[chan[i].vibratoPos];
+                break;
+            }
+            dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibratoOut*chan[i].vibratoFine)>>4)/15)));
+          }
+
+          // delayed legato
+          if (chan[i].legatoDelay>0) {
+            if (--chan[i].legatoDelay<1) {
+              chan[i].note+=chan[i].legatoTarget;
               dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
               dispatchCmd(DivCommand(DIV_CMD_HINT_LEGATO,i,chan[i].note));
+              chan[i].legatoDelay=-1;
+              chan[i].legatoTarget=0;
             }
           }
-        }
 
-        // note cut
-        if (chan[i].cut>0) {
-          if (--chan[i].cut<1) {
-            if (chan[i].cutType==2) {
-              dispatchCmd(DivCommand(DIV_CMD_ENV_RELEASE,i));
-              chan[i].releasing=true;
-            } else {
-              chan[i].oldNote=chan[i].note;
-              //chan[i].note=-1;
-              if (chan[i].inPorta && song.noteOffResetsSlides) {
-                chan[i].keyOff=true;
-                chan[i].keyOn=false;
-                if (chan[i].stopOnOff) {
-                  chan[i].portaNote=-1;
-                  chan[i].portaSpeed=-1;
-                  dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
-                  chan[i].stopOnOff=false;
-                }
-                if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
-                  chan[i].portaNote=-1;
-                  chan[i].portaSpeed=-1;
-                  dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
-                }
-                dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
-                chan[i].scheduledSlideReset=true;
-              }
-              if (chan[i].cutType==1) {
-                dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,i));
-              } else {
-                dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
-              }
-              chan[i].releasing=true;
-            }
-          }
-        }
-
-        // volume cut/mute
-        if (chan[i].volCut>0) {
-          if (--chan[i].volCut<1) {
-            chan[i].volume=0;
-            dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
-            dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
-          }
-        }
-
-        // arpeggio
-        if (chan[i].resetArp) {
-          dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
-          dispatchCmd(DivCommand(DIV_CMD_HINT_LEGATO,i,chan[i].note));
-          chan[i].resetArp=false;
-        }
-        if (song.rowResetsArpPos && firstTick) {
-          chan[i].arpStage=-1;
-        }
-        if (chan[i].arp!=0 && !chan[i].arpYield && chan[i].portaSpeed<1) {
-          if (--chan[i].arpTicks<1) {
-            chan[i].arpTicks=curSubSong->arpLen;
-            chan[i].arpStage++;
-            if (chan[i].arpStage>2) chan[i].arpStage=0;
-            switch (chan[i].arpStage) {
-              case 0:
+          // portamento and pitch slides
+          if (!song.noSlidesOnFirstTick || !firstTick) {
+            if ((chan[i].keyOn || chan[i].keyOff) && chan[i].portaSpeed>0) {
+              if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch==2?song.pitchSlideSpeed:1),chan[i].portaNote))==2 && chan[i].portaStop && song.targetResetsSlides) {
+                chan[i].portaSpeed=0;
+                dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
+                chan[i].oldNote=chan[i].note;
+                chan[i].note=chan[i].portaNote;
+                chan[i].inPorta=false;
                 dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
-                break;
-              case 1:
-                dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp>>4)));
-                break;
-              case 2:
-                dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp&15)));
-                break;
+                dispatchCmd(DivCommand(DIV_CMD_HINT_LEGATO,i,chan[i].note));
+              }
             }
           }
-        } else {
-          chan[i].arpYield=false;
+
+          // note cut
+          if (chan[i].cut>0) {
+            if (--chan[i].cut<1) {
+              if (chan[i].cutType==2) {
+                dispatchCmd(DivCommand(DIV_CMD_ENV_RELEASE,i));
+                chan[i].releasing=true;
+              } else {
+                chan[i].oldNote=chan[i].note;
+                //chan[i].note=-1;
+                if (chan[i].inPorta && song.noteOffResetsSlides) {
+                  chan[i].keyOff=true;
+                  chan[i].keyOn=false;
+                  if (chan[i].stopOnOff) {
+                    chan[i].portaNote=-1;
+                    chan[i].portaSpeed=-1;
+                    dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
+                    chan[i].stopOnOff=false;
+                  }
+                  if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
+                    chan[i].portaNote=-1;
+                    chan[i].portaSpeed=-1;
+                    dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
+                  }
+                  dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+                  chan[i].scheduledSlideReset=true;
+                }
+                if (chan[i].cutType==1) {
+                  dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,i));
+                } else {
+                  dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
+                }
+                chan[i].releasing=true;
+              }
+            }
+          }
+
+          // volume cut/mute
+          if (chan[i].volCut>0) {
+            if (--chan[i].volCut<1) {
+              chan[i].volume=0;
+              dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+              dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
+            }
+          }
+
+          // arpeggio
+          if (chan[i].resetArp) {
+            dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+            dispatchCmd(DivCommand(DIV_CMD_HINT_LEGATO,i,chan[i].note));
+            chan[i].resetArp=false;
+          }
+          if (song.rowResetsArpPos && firstTick) {
+            chan[i].arpStage=-1;
+          }
+          if (chan[i].arp!=0 && !chan[i].arpYield && chan[i].portaSpeed<1) {
+            if (--chan[i].arpTicks<1) {
+              chan[i].arpTicks=curSubSong->arpLen;
+              chan[i].arpStage++;
+              if (chan[i].arpStage>2) chan[i].arpStage=0;
+              switch (chan[i].arpStage) {
+                case 0:
+                  dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+                  break;
+                case 1:
+                  dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp>>4)));
+                  break;
+                case 2:
+                  dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp&15)));
+                  break;
+              }
+            }
+          } else {
+            chan[i].arpYield=false;
+          }
         }
       }
-    }
-  } else {
-    // still tick the subtick counter
-    if (--subticks<=0) {
-      subticks=tickMult;
+    } else {
+      // still tick the subtick counter
+      if (--subticks<=0) {
+        subticks=tickMult;
+      }
     }
   }
 
@@ -1969,21 +1983,24 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
   // system tick
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->tick(subticks==tickMult);
 
-  if (!freelance) {
-    if (stepPlay!=1) {
-      if (!noAccum) {
-        totalTicksR++;
-        totalTicks+=1000000/(divider*tickMult);
+  if(advanceSong)
+  {
+    if (!freelance) {
+      if (stepPlay!=1) {
+        if (!noAccum) {
+          totalTicksR++;
+          totalTicks+=1000000/(divider*tickMult);
+        }
+        if (totalTicks>=1000000) {
+          totalTicks-=1000000;
+          if (totalSeconds<0x7fffffff) totalSeconds++;
+          cmdsPerSecond=totalCmds-lastCmds;
+          lastCmds=totalCmds;
+        }
       }
-      if (totalTicks>=1000000) {
-        totalTicks-=1000000;
-        if (totalSeconds<0x7fffffff) totalSeconds++;
-        cmdsPerSecond=totalCmds-lastCmds;
-        lastCmds=totalCmds;
-      }
-    }
 
-    if (consoleMode && !disableStatusOut && subticks<=1 && !skipping) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000,curOrder,curSubSong->ordersLen,curRow,curSubSong->patLen,cmdsPerSecond);
+      if (consoleMode && !disableStatusOut && subticks<=1 && !skipping) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000,curOrder,curSubSong->ordersLen,curRow,curSubSong->patLen,cmdsPerSecond);
+    }
   }
 
   if (haltOn==DIV_HALT_TICK) halted=true;

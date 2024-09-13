@@ -4701,7 +4701,16 @@ bool FurnaceGUI::loop() {
           info=_("| Groove");
         }
 
-        info+=fmt::sprintf(_(" @ %gHz (%g BPM) "),e->getCurHz(),calcBPM(e->getSpeeds(),e->getCurHz(),e->getVirtualTempoN(),e->getVirtualTempoD()));
+        info+=fmt::sprintf(_(" @ %gHz (%g BPM)"),e->getCurHz(),calcBPM(e->getSpeeds(),e->getCurHz(),e->getVirtualTempoN(),e->getVirtualTempoD()));
+
+        if(e->curSubSong->macroSpeedMult > 1)
+        {
+          info+=fmt::sprintf(_(", macros @ %g Hz "),e->getCurHz() * e->curSubSong->macroSpeedMult);
+        }
+        else
+        {
+          info += fmt::sprintf(" ");
+        }
 
         if (settings.orderRowsBase) {
           info+=fmt::sprintf(_("| Order %.2X/%.2X "),playOrder,e->curSubSong->ordersLen-1);

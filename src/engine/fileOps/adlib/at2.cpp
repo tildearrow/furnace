@@ -2836,6 +2836,8 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             warnings += fmt::sprintf(_GN("In this module macros execution speed is %d time larger than engine rate. Conversion may be inaccurate.",
                 "In this module macros execution speed is %d times larger than engine rate. Conversion may be inaccurate.\n",songInfo->macro_speedup),songInfo->macro_speedup);
         #endif
+
+            s->macroSpeedMult = songInfo->macro_speedup; //most probably tildearrow won't accept this...
         }
 
         ds.sampleLen = ds.sample.size();

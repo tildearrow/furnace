@@ -480,6 +480,7 @@ class DivEngine {
   size_t bufferPos;
   double divider;
   int cycles;
+  int macroMultCycles;
   double clockDrift;
   int midiClockCycles;
   double midiClockDrift;
@@ -1228,6 +1229,9 @@ class DivEngine {
     // is engine halted
     bool isHalted();
 
+    // update speed parameters according to macro speed multiplier
+    void updateMacroSpeedMult();
+
     // get register cheatsheet
     const char** getRegisterSheet(int sys);
 
@@ -1436,6 +1440,7 @@ class DivEngine {
       bufferPos(0),
       divider(60),
       cycles(0),
+      macroMultCycles(0),
       clockDrift(0),
       midiClockCycles(0),
       midiClockDrift(0),

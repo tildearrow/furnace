@@ -205,6 +205,31 @@ void FurnaceGUI::drawSpeed(bool asChild) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::AlignTextToFramePadding();
+      ImGui::Text(_("Macro mult."));
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(halfAvail);
+      int macroMult=e->curSubSong->macroSpeedMult;
+      if (ImGui::InputScalar("##MacroSpeedMult",ImGuiDataType_U8,&macroMult,&_ONE,&_TWO_HUNDRED_FIFTY_FIVE)) { MARK_MODIFIED
+        while((float)macroMult * e->curSubSong->hz > 999.0)
+        {
+          macroMult--;
+        }
+        if(macroMult == 0)
+        {
+          macroMult = 1;
+        }
+        e->curSubSong->macroSpeedMult = macroMult;
+        e->updateMacroSpeedMult();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Macro speed multiplier"));
+      }
+      ImGui::SameLine();
+      ImGui::Text("%.2f Hz",e->curSubSong->hz * (float)e->curSubSong->macroSpeedMult);
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::AlignTextToFramePadding();
       ImGui::Text(_("Highlight"));
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(halfAvail);
