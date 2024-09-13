@@ -58,6 +58,16 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         if (setHz<1) setHz=1;
         if (setHz>999) setHz=999;
         e->setSongRate(setHz);
+
+        while((float)e->curSubSong->macroSpeedMult * e->curSubSong->hz > 999.0)
+        {
+          e->curSubSong->macroSpeedMult--;
+        }
+        if(e->curSubSong->macroSpeedMult == 0)
+        {
+          e->curSubSong->macroSpeedMult = 1;
+        }
+        e->updateMacroSpeedMult();
       }
       if (tempoView) {
         ImGui::SameLine();
