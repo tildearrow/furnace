@@ -518,83 +518,6 @@ typedef struct {
 } tSONGINFO;
 
 typedef struct {
-    uint16_t freq;
-    uint8_t speed;
-} tPORTA_TABLE;
-
-typedef struct {
-    uint8_t state, note, add1, add2;
-} tARPGG_TABLE;
-
-typedef struct {
-    int8_t pos;
-    uint8_t volM, volC;
-} tTREMOR_TABLE;
-
-typedef struct {
-    uint8_t pos, dir, speed, depth;
-    bool fine;
-} tVIBRTREM_TABLE;
-
-typedef struct {
-    uint8_t def, val;
-} tEFFECT_TABLE;
-
-typedef struct {
-    uint16_t fmreg_pos,
-         arpg_pos,
-         vib_pos;
-    uint8_t
-         fmreg_duration,
-         arpg_count,
-         vib_count,
-         vib_delay,
-         fmreg_ins, // fmreg_table
-         arpg_table,
-         vib_table,
-         arpg_note;
-    bool vib_paused;
-    uint16_t vib_freq;
-} tCH_MACRO_TABLE;
-
-typedef struct {
-    tFM_INST_DATA fmpar_table[20]; // TODO: rename to 'fm'
-    bool volume_lock[20];
-    bool vol4op_lock[20];
-    bool peak_lock[20];
-    bool pan_lock[20];
-    uint8_t modulator_vol[20];
-    uint8_t carrier_vol[20];
-    // note/instr_def - memorized across rows
-    // effects - change each row
-    tADTRACK2_EVENT event_table[20];
-    uint8_t voice_table[20];
-    uint16_t freq_table[20];
-    uint16_t zero_fq_table[20];
-    tEFFECT_TABLE effect_table[2][20];
-    uint8_t fslide_table[2][20];
-    tEFFECT_TABLE glfsld_table[2][20];
-    tPORTA_TABLE porta_table[2][20];
-    bool portaFK_table[20];
-    tARPGG_TABLE arpgg_table[2][20];
-    tVIBRTREM_TABLE vibr_table[2][20];
-    tVIBRTREM_TABLE trem_table[2][20];
-    uint8_t retrig_table[2][20];
-    tTREMOR_TABLE tremor_table[2][20];
-    uint8_t panning_table[20];
-    tEFFECT_TABLE last_effect[2][20];
-    uint8_t volslide_type[20];
-    uint8_t notedel_table[20];
-    uint8_t notecut_table[20];
-    int8_t ftune_table[20];
-    bool keyoff_loop[20];
-    uint8_t loopbck_table[20];
-    uint8_t loop_table[20][256];
-    bool reset_chan[20];
-    tCH_MACRO_TABLE macro_table[20];
-} tCHDATA;
-
-typedef struct {
     unsigned int count;
     size_t size;
     tINSTR_DATA_EXT *instruments;
@@ -1407,6 +1330,9 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version)
     }
 }
 
+// AT2 4-op channels are 0+1, 2+3, 4+5, 9+10, 11+12, 13+14, while Furnace's 1st 12 channels can be paired, so we remap.
+const unsigned char at2_channels_map[20] = { 0, 1, 2, 3, 4, 5, 12, 13, 14, 6, 7, 8, 9, 10, 11, 15, 16, 17, 18, 19 };
+
 bool AT2ReadPatterns(DivSubSong* s, SafeReader& reader, int version, unsigned int* len, int patterns, tSONGINFO& songInfo, int ssss)
 {
     size_t posBegin = reader.tell();
@@ -1456,7 +1382,7 @@ bool AT2ReadPatterns(DivSubSong* s, SafeReader& reader, int version, unsigned in
 
                         //convert_v1234_event(src, c);
 
-                        DivPattern* pat = s->pat[c].getPattern(i * 16 + p, true);
+                        DivPattern* pat = s->pat[at2_channels_map[c]].getPattern(i * 16 + p, true);
                         uint8_t note = src->note;
 
                         if(note == 255)
@@ -1550,7 +1476,7 @@ bool AT2ReadPatterns(DivSubSong* s, SafeReader& reader, int version, unsigned in
                         //dst->eff[0].def = src->effect_def;
                         //dst->eff[0].val = src->effect;
 
-                        DivPattern* pat = s->pat[c].getPattern(i * 8 + p, true);
+                        DivPattern* pat = s->pat[at2_channels_map[c]].getPattern(i * 8 + p, true);
                         uint8_t note = src->note;
 
                         if(note == 255)
@@ -1644,7 +1570,7 @@ bool AT2ReadPatterns(DivSubSong* s, SafeReader& reader, int version, unsigned in
                         //tADTRACK2_EVENT *dst = get_event_p(i * 8 + p, c, r);
                         tADTRACK2_EVENT *src = &old[p].ch[c].row[r].ev;
                         //*dst = *src; // copy struct
-                        DivPattern* pat = s->pat[c].getPattern(i * 8 + p, true);
+                        DivPattern* pat = s->pat[at2_channels_map[c]].getPattern(i * 8 + p, true);
                         uint8_t note = src->note;
 
                         if(note == 255)
@@ -1754,20 +1680,20 @@ void a2t_instrument_import_v1_8(DivSong& ds, void* data, int count, bool a2t, tS
         ins->fm.alg = instr_s->fm.connect;
 
         //panning (0=C,1=L,2=R)
-
-        ins->std.panLMacro.len = 1;
         
         if(instr_s->panning == 0)
         {
-            ins->std.panLMacro.val[0] = 3;
+            //ins->std.panLMacro.val[0] = 3;
         }
         if(instr_s->panning == 1)
         {
             ins->std.panLMacro.val[0] = 2;
+            ins->std.panLMacro.len = 1;
         }
         if(instr_s->panning == 2)
         {
             ins->std.panLMacro.val[0] = 1;
+            ins->std.panLMacro.len = 1;
         }
         //todo: finetune
     }
@@ -1848,20 +1774,20 @@ void a2t_instrument_import(DivSong& ds, void* data, int count, bool a2t, tSONGIN
         }
 
         //panning (0=C,1=L,2=R)
-
-        ins->std.panLMacro.len = 1;
         
         if(instr_s->panning == 0)
         {
-            ins->std.panLMacro.val[0] = 3;
+            //ins->std.panLMacro.val[0] = 3;
         }
         if(instr_s->panning == 1)
         {
             ins->std.panLMacro.val[0] = 2;
+            ins->std.panLMacro.len = 1;
         }
         if(instr_s->panning == 2)
         {
             ins->std.panLMacro.val[0] = 1;
+            ins->std.panLMacro.len = 1;
         }
     }
 }
@@ -2374,6 +2300,21 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
         logI("pat length %d", songInfo->patt_len);
         logI("nm tracks %d", songInfo->nm_tracks);
 
+        if (songInfo->nm_tracks > 20 || songInfo->nm_tracks < 9)
+        {
+            lastError = fmt::sprintf(_("Incorrect number of channels (%d)!"), songInfo->nm_tracks);
+            delete[] file;
+            free(songInfo);
+            return false;
+        }
+        if (songInfo->macro_speedup > 20)
+        {
+            lastError = fmt::sprintf(_("Incorrect macro speedup (%d)!"), songInfo->macro_speedup);
+            delete[] file;
+            free(songInfo);
+            return false;
+        }
+
         s->name = songInfo->songname;
         ds.name = songInfo->songname;
         ds.composer = songInfo->composer;
@@ -2850,14 +2791,77 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             ds.systemName = _("OPL3 in drums mode");
         }
 
-        for(int i = songInfo->nm_tracks; i < sysDefs[ds.system[0]]->channels; i++)
+        for(int i = 0; i < sysDefs[ds.system[0]]->channels; i++)
         {
+            nextChan:;
+
             ds.subsong[0]->chanShow[i]=false;
             ds.subsong[0]->chanShowChanOsc[i]=false;
+
+            for(int p = 0; p < s->ordersLen; p++)
+            {
+                for(int r = 0; r < s->patLen; r++)
+                {
+                    DivPattern* pat = s->pat[i].getPattern(s->orders.ord[i][p], true);
+                    short* s_row_data = pat->data[r];
+
+                    for(int eff = 0; eff < 3 + DIV_MAX_EFFECTS * 2; eff++)
+                    {
+                        if((s_row_data[eff] != -1 && eff > 1) || (s_row_data[eff] != 0 && eff < 2))
+                        {
+                            ds.subsong[0]->chanShow[i]=true;
+                            ds.subsong[0]->chanShowChanOsc[i]=true;
+
+                            if(i < sysDefs[ds.system[0]]->channels - 1) 
+                            {
+                                i++;
+                            }
+                            else
+                            {
+                                goto endThis;
+                            }
+
+                            goto nextChan;
+                        }
+                    }
+                }
+            }
         }
+
+        for(int i = 0; i < sysDefs[ds.system[0]]->channels; i++) //apply default panning
+        {
+            DivPattern* pat = s->pat[at2_channels_map[i]].getPattern(s->orders.ord[i][0], true);
+            short* s_row_data = pat->data[0];
+
+            unsigned char pan = 0;
+
+            if((songInfo->lock_flags[i] & 0x3) == 0)
+            {
+                pan = 0x80;
+            }
+            if((songInfo->lock_flags[i] & 0x3) == 1)
+            {
+                pan = 0x00;
+            }
+            if((songInfo->lock_flags[i] & 0x3) == 2)
+            {
+                pan = 0xff;
+            }
+
+            if(pan != 0x80)
+            {
+                int emptyEffSlot = findEmptyEffectSlot(s_row_data);
+
+                s_row_data[4 + emptyEffSlot * 2] = 0x80;
+                s_row_data[5 + emptyEffSlot * 2] = pan;
+            }
+        }
+
+        endThis:;
 
         ds.linearPitch = 0;
         ds.pitchMacroIsLinear = false;
+        ds.pitchSlideSpeed=12;
 
         if (active) quitDispatch();
         BUSY_BEGIN_SOFT;
