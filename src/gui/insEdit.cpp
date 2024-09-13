@@ -2392,48 +2392,68 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
           drawMacroEdit(m,totalFit,availableWidth,index);
 
           if (m.macro->open&1) {
-            if ((m.macro->open&6)==0) {
-              ImGui::Text(_("Length"));
-              ImGui::SameLine();
-              ImGui::SetNextItemWidth(120.0f*dpiScale);
-              int macroLen=m.macro->len;
-              if (ImGui::InputScalar("##IMacroLen",ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { MARK_MODIFIED
-                if (macroLen<0) macroLen=0;
-                if (macroLen>255) macroLen=255;
-                m.macro->len=macroLen;
-              }
-              ImGui::SameLine();
-            }
-            ImGui::Text(_("StepLen"));
-            ImGui::SameLine();
-            ImGui::SetNextItemWidth(120.0f*dpiScale);
-            if (ImGui::InputScalar("##IMacroSpeed",ImGuiDataType_U8,&m.macro->speed,&_ONE,&_THREE)) {
-              if (m.macro->speed<1) m.macro->speed=1;
-              MARK_MODIFIED;
-            }
-            ImGui::SameLine();
-            ImGui::Text(_("Delay"));
-            ImGui::SameLine();
-            ImGui::SetNextItemWidth(120.0f*dpiScale);
-            if (ImGui::InputScalar("##IMacroDelay",ImGuiDataType_U8,&m.macro->delay,&_ONE,&_THREE)) {
-              MARK_MODIFIED;
-            }
-            ImGui::SameLine();
-            {
-              FurnaceGUIMacroDesc& i=m;
-              BUTTON_TO_SET_MODE(ImGui::Button);
-              if ((i.macro->open&6)==0) {
+            bool showLen=((m.macro->open&6)==0);
+            int colCount=showLen ? 4 : 3;
+            float availX=ImGui::GetContentRegionAvail().x;
+
+            // fairly arbitrary scaling logic
+            bool shortLabels=(availX<600.0f*dpiScale);
+            float scalarItemWidth=MIN((availX-90.0f*dpiScale)/colCount, 120.0f*dpiScale);
+            if (ImGui::BeginTable("##MacroMetaData",colCount)) {
+              if (showLen) ImGui::TableSetupColumn("len",ImGuiTableColumnFlags_WidthStretch,0.0);
+              ImGui::TableSetupColumn("stepLen",ImGuiTableColumnFlags_WidthStretch,0.0);
+              ImGui::TableSetupColumn("delay",ImGuiTableColumnFlags_WidthStretch,0.0);
+              ImGui::TableSetupColumn("buttons",ImGuiTableColumnFlags_WidthFixed,0.0);
+
+              ImGui::TableNextRow();
+              if (showLen) {
+                ImGui::TableNextColumn();
+                ImGui::Text(shortLabels ? _("Len##macroEditLengthShortLabel") : _("Length"));
+                if (shortLabels && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", _("Length"));
                 ImGui::SameLine();
-                BUTTON_TO_SET_RELEASE(ImGui::Button);
+                ImGui::SetNextItemWidth(scalarItemWidth);
+                int macroLen=m.macro->len;
+                if (ImGui::InputScalar("##IMacroLen",ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { MARK_MODIFIED
+                  if (macroLen<0) macroLen=0;
+                  if (macroLen>255) macroLen=255;
+                  m.macro->len=macroLen;
+                }
               }
-            }
-            if (m.modeName!=NULL) {
-              bool modeVal=m.macro->mode;
-              String modeName=fmt::sprintf("%s##IMacroMode",m.modeName);
+              ImGui::TableNextColumn();
+              ImGui::Text(shortLabels ? _("SLen##macroEditStepLenShortLabel") : _("StepLen"));
+              if (shortLabels && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", _("StepLen"));
               ImGui::SameLine();
-              if (ImGui::Checkbox(modeName.c_str(),&modeVal)) {
-                m.macro->mode=modeVal;
+              ImGui::SetNextItemWidth(scalarItemWidth);
+              if (ImGui::InputScalar("##IMacroSpeed",ImGuiDataType_U8,&m.macro->speed,&_ONE,&_THREE)) {
+                if (m.macro->speed<1) m.macro->speed=1;
+                MARK_MODIFIED;
               }
+              ImGui::TableNextColumn();
+              ImGui::Text(shortLabels ? _("Del##macroEditDelayShortLabel") : _("Delay"));
+              if (shortLabels && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", _("Delay"));
+              ImGui::SameLine();
+              ImGui::SetNextItemWidth(scalarItemWidth);
+              if (ImGui::InputScalar("##IMacroDelay",ImGuiDataType_U8,&m.macro->delay,&_ONE,&_THREE)) {
+                MARK_MODIFIED;
+              }
+              ImGui::TableNextColumn();
+              {
+                FurnaceGUIMacroDesc& i=m;
+                BUTTON_TO_SET_MODE(ImGui::Button);
+                if ((i.macro->open&6)==0) {
+                  ImGui::SameLine();
+                  BUTTON_TO_SET_RELEASE(ImGui::Button);
+                }
+              }
+              if (m.modeName!=NULL) {
+                bool modeVal=m.macro->mode;
+                String modeName=fmt::sprintf("%s##IMacroMode",m.modeName);
+                ImGui::SameLine();
+                if (ImGui::Checkbox(modeName.c_str(),&modeVal)) {
+                  m.macro->mode=modeVal;
+                }
+              }
+              ImGui::EndTable();
             }
           } else {
             ImGui::Text(_("The heck? No, this isn't even working correctly..."));
