@@ -175,7 +175,11 @@ bool DivInstrumentMultiPCM::operator==(const DivInstrumentMultiPCM& other) {
     _C(rc) &&
     _C(lfo) &&
     _C(vib) &&
-    _C(am)
+    _C(am) &&
+    _C(damp) &&
+    _C(pseudoReverb) &&
+    _C(lfoReset) &&
+    _C(levelDirect)
   );
 }
 
@@ -938,6 +942,14 @@ void DivInstrument::writeFeatureMP(SafeWriter* w) {
   w->writeC(multipcm.vib);
   w->writeC(multipcm.am);
 
+  unsigned char next=(
+    (multipcm.damp?1:0)&
+    (multipcm.pseudoReverb?2:0)&
+    (multipcm.lfoReset?4:0)&
+    (multipcm.levelDirect?8:0)
+  );
+  w->writeC(next);
+
   FEATURE_END;
 }
 
@@ -1385,6 +1397,12 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         feature64=true;
         featureS2=true;
         featureS3=true;
+        break;
+      case DIV_INS_SUPERVISION:
+        featureSM=true;
+        if (amiga.useSample) featureSL=true;
+        break;
+      case DIV_INS_UPD1771C:
         break;
       case DIV_INS_MAX:
         break;
@@ -2336,6 +2354,14 @@ void DivInstrument::readFeatureMP(SafeReader& reader, short version) {
   multipcm.lfo=reader.readC();
   multipcm.vib=reader.readC();
   multipcm.am=reader.readC();
+
+  if (version>=221) {
+    unsigned char next=reader.readC();
+    multipcm.damp=next&1;
+    multipcm.pseudoReverb=next&2;
+    multipcm.lfoReset=next&4;
+    multipcm.levelDirect=next&8;
+  }
 
   READ_FEAT_END;
 }

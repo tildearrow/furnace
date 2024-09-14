@@ -341,6 +341,7 @@ TAParamResult pVersion(String) {
   printf("- NDS sound emulator by cam900 (zlib license)\n");
   printf("- SID2 emulator by LTVA (GPLv2, modification of reSID emulator)\n");
   printf("- SID3 emulator by LTVA (MIT)\n");
+  printf("- openMSX YMF278 emulator (modified version) by the openMSX developers (GPLv2)\n");
   return TA_PARAM_QUIT;
 }
 

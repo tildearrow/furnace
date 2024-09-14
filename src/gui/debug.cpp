@@ -51,6 +51,7 @@
 #include "../engine/platform/pcmdac.h"
 #include "../engine/platform/k007232.h"
 #include "../engine/platform/ga20.h"
+#include "../engine/platform/supervision.h"
 #include "../engine/platform/sm8521.h"
 #include "../engine/platform/pv1000.h"
 #include "../engine/platform/k053260.h"

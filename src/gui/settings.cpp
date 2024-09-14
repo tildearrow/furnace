@@ -189,6 +189,11 @@ const char* opl3Cores[]={
   "YMF262-LLE"
 };
 
+const char* opl4Cores[]={
+  "Nuked-OPL3 (FM) + openMSX (PCM)",
+  "ymfm"
+};
+
 const char* esfmCores[]={
   "ESFMu",
   _N("ESFMu (fast)")
@@ -2061,6 +2066,17 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
+          ImGui::Text("OPL4");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPL4Core",&settings.opl4Core,opl4Cores,2)) settingsChanged=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPL4CoreRender",&settings.opl4CoreRender,opl4Cores,2)) settingsChanged=true;
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
           ImGui::Text("ESFM");
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -2137,7 +2153,6 @@ void FurnaceGUI::drawSettings() {
         ImGui::SameLine();
         if (ImGui::Combo("##PCSOutMethod",&settings.pcSpeakerOutMethod,LocalizedComboGetter,pcspkrOutMethods,5)) settingsChanged=true;
 
-        /*
         ImGui::Separator();
         ImGui::Text(_("Sample ROMs:"));
 
@@ -2150,6 +2165,7 @@ void FurnaceGUI::drawSettings() {
           openFileDialog(GUI_FILE_YRW801_ROM_OPEN);
         }
 
+        /*
         ImGui::AlignTextToFramePadding();
         ImGui::Text(_("MultiPCM TG100 path"));
         ImGui::SameLine();
@@ -2428,6 +2444,8 @@ void FurnaceGUI::drawSettings() {
           UI_KEYBIND_CONFIG(GUI_ACTION_PAT_LATCH);
           UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CLEAR_LATCH);
           UI_KEYBIND_CONFIG(GUI_ACTION_PAT_ABSORB_INSTRUMENT);
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_UNDO);
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_REDO);
 
           KEYBIND_CONFIG_END;
           ImGui::TreePop();
@@ -2716,6 +2734,27 @@ void FurnaceGUI::drawSettings() {
         }
         if (ImGui::RadioButton(_("Double-click##soloD"),settings.soloAction==2)) {
           settings.soloAction=2;
+          settingsChanged=true;
+        }
+        ImGui::Unindent();
+
+        ImGui::Text(_("Modifier for alternate wheel-scrolling (vertical/zoom/slider-input):"));
+        ImGui::Indent();
+        if (ImGui::RadioButton(_("Ctrl or Meta/Cmd##cwm1"),settings.ctrlWheelModifier==0)) {
+          settings.ctrlWheelModifier=0;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton(_("Ctrl##cwm2"),settings.ctrlWheelModifier==1)) {
+          settings.ctrlWheelModifier=1;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton(_("Meta/Cmd##cwm3"),settings.ctrlWheelModifier==2)) {
+          settings.ctrlWheelModifier=2;
+          settingsChanged=true;
+        }
+        // technically this key is called Option on mac, but we call it Alt in getKeyName(s)
+        if (ImGui::RadioButton(_("Alt##cwm4"),settings.ctrlWheelModifier==3)) {
+          settings.ctrlWheelModifier=3;
           settingsChanged=true;
         }
         ImGui::Unindent();
@@ -4126,6 +4165,8 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_GBA_MINMOD,_("GBA MinMod"));
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_BIFURCATOR,_("Bifurcator"));
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_SID2,_("SID2"));
+          UI_COLOR_CONFIG(GUI_COLOR_INSTR_SUPERVISION,_("Supervision"));
+          UI_COLOR_CONFIG(GUI_COLOR_INSTR_UPD1771C,_("μPD1771C"));
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_SID3,_("SID3"));
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_UNKNOWN,_("Other/Unknown"));
           ImGui::TreePop();
@@ -4820,6 +4861,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
   if (groups&GUI_SETTINGS_BEHAVIOR) {
     settings.soloAction=conf.getInt("soloAction",0);
+    settings.ctrlWheelModifier=conf.getInt("ctrlWheelModifier",0);
     settings.pullDeleteBehavior=conf.getInt("pullDeleteBehavior",1);
     settings.wrapHorizontal=conf.getInt("wrapHorizontal",0);
     settings.wrapVertical=conf.getInt("wrapVertical",0);
@@ -4999,6 +5041,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.opnbCore=conf.getInt("opnbCore",1);
     settings.opl2Core=conf.getInt("opl2Core",0);
     settings.opl3Core=conf.getInt("opl3Core",0);
+    settings.opl4Core=conf.getInt("opl4Core",0);
     settings.esfmCore=conf.getInt("esfmCore",0);
     settings.opllCore=conf.getInt("opllCore",0);
     settings.ayCore=conf.getInt("ayCore",0);
@@ -5027,6 +5070,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.opnbCoreRender=conf.getInt("opnbCoreRender",1);
     settings.opl2CoreRender=conf.getInt("opl2CoreRender",0);
     settings.opl3CoreRender=conf.getInt("opl3CoreRender",0);
+    settings.opl4CoreRender=conf.getInt("opl4CoreRender",0);
     settings.esfmCoreRender=conf.getInt("esfmCoreRender",0);
     settings.opllCoreRender=conf.getInt("opllCoreRender",0);
     settings.ayCoreRender=conf.getInt("ayCoreRender",0);
@@ -5072,6 +5116,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.opnbCore,0,2);
   clampSetting(settings.opl2Core,0,2);
   clampSetting(settings.opl3Core,0,2);
+  clampSetting(settings.opl4Core,0,1);
   clampSetting(settings.esfmCore,0,1);
   clampSetting(settings.opllCore,0,1);
   clampSetting(settings.ayCore,0,1);
@@ -5098,6 +5143,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.opnbCoreRender,0,2);
   clampSetting(settings.opl2CoreRender,0,2);
   clampSetting(settings.opl3CoreRender,0,2);
+  clampSetting(settings.opl4CoreRender,0,1);
   clampSetting(settings.esfmCoreRender,0,1);
   clampSetting(settings.opllCoreRender,0,1);
   clampSetting(settings.ayCoreRender,0,1);
@@ -5118,6 +5164,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.patRowsBase,0,1);
   clampSetting(settings.orderRowsBase,0,1);
   clampSetting(settings.soloAction,0,2);
+  clampSetting(settings.ctrlWheelModifier,0,3);
   clampSetting(settings.pullDeleteBehavior,0,1);
   clampSetting(settings.wrapHorizontal,0,2);
   clampSetting(settings.wrapVertical,0,3);
@@ -5405,6 +5452,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   // behavior
   if (groups&GUI_SETTINGS_BEHAVIOR) {
     conf.set("soloAction",settings.soloAction);
+    conf.set("ctrlWheelModifier",settings.ctrlWheelModifier);
     conf.set("pullDeleteBehavior",settings.pullDeleteBehavior);
     conf.set("wrapHorizontal",settings.wrapHorizontal);
     conf.set("wrapVertical",settings.wrapVertical);
@@ -5588,6 +5636,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("opnbCore",settings.opnbCore);
     conf.set("opl2Core",settings.opl2Core);
     conf.set("opl3Core",settings.opl3Core);
+    conf.set("opl4Core",settings.opl4Core);
     conf.set("esfmCore",settings.esfmCore);
     conf.set("opllCore",settings.opllCore);
     conf.set("ayCore",settings.ayCore);
@@ -5616,6 +5665,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("opnbCoreRender",settings.opnbCoreRender);
     conf.set("opl2CoreRender",settings.opl2CoreRender);
     conf.set("opl3CoreRender",settings.opl3CoreRender);
+    conf.set("opl4CoreRender",settings.opl4CoreRender);
     conf.set("esfmCoreRender",settings.esfmCoreRender);
     conf.set("opllCoreRender",settings.opllCoreRender);
     conf.set("ayCoreRender",settings.ayCoreRender);
@@ -5679,6 +5729,7 @@ void FurnaceGUI::commitSettings() {
     settings.opnbCore!=e->getConfInt("opnbCore",1) ||
     settings.opl2Core!=e->getConfInt("opl2Core",0) ||
     settings.opl3Core!=e->getConfInt("opl3Core",0) ||
+    settings.opl4Core!=e->getConfInt("opl4Core",0) ||
     settings.esfmCore!=e->getConfInt("esfmCore",0) ||
     settings.opllCore!=e->getConfInt("opllCore",0) ||
     settings.ayCore!=e->getConfInt("ayCore",0) ||

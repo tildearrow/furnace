@@ -15,16 +15,15 @@ however, effects are continuous (unless specified), which means you only need to
 - `F8xx`: **Single tick volume up.** adds `x` to volume.
 - `F9xx`: **Single tick volume down.** subtracts `x` from volume.
   - ---
-- `D3xx`: **Volume portamento.** slides volume toward the new value instead of jumping immediately. `x` is the speed of the slide.
-- `D4xx`: **Volume portamento (fast).** same as `D3xx` but 256× faster.
+- `D3xx`: **Volume portamento.** slides the volume to the one specified in the volume column. `x` is the slide speed.
+  - a volume _must_ be present with this effect for it to work.
+- `D4xx`: **Volume portamento (fast).** like `D3xx` but 4× faster.
   - ---
 - `07xy`: **Tremolo.** changes volume to be "wavy" with a sine LFO. `x` is the speed. `y` is the depth.
   - tremolo is downward only.
   - maximum tremolo depth is -60 volume steps.
   - ---
-- `D3xx`: **Volume portamento.** slides the volume to the one specified in the volume column. `x` is the slide speed.
-  - a volume _must_ be present with this effect for it to work.
-- `D4xx`: **Volume portamento (fast).** like `D3xx` but four times faster.
+- `DCxx`: **Delayed mute.** sets channel volume to 0 after `xx` ticks.
 
 ## pitch
 
@@ -47,6 +46,7 @@ however, effects are continuous (unless specified), which means you only need to
 - `E8xy`: **Quick legato up**. transposes note up by `y` semitones after `x` ticks.
 - `E9xy`: **Quick legato down**. transposes note down by `y` semitones after `x` ticks.
 - `00xy`: **Arpeggio.** this effect produces a rapid cycle between the current note, the note plus `x` semitones and the note plus `y` semitones.
+  - as an example, start with a chord of C-3, G-3, and D#4. the G-3 and D#4 are 7 and 15 semitones higher than the root note, so the corresponding effect is `007F`.
 - `E0xx`: **Set arpeggio speed.** this sets the number of ticks between arpeggio values. default is 1.
   - ---
 - `04xy`: **Vibrato.** makes the pitch oscillate. `x` is the speed, while `y` is the depth.

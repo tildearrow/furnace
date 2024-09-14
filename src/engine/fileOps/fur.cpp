@@ -2102,6 +2102,16 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
     }
 
+    // SNES no anti-click
+    if (ds.version<220) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_SNES) {
+          ds.systemFlags[i].set("antiClick",false);
+        }
+      }
+    }
+
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();

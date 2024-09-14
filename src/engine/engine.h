@@ -52,10 +52,10 @@ class DivWorkPool;
 #define EXTERN_BUSY_BEGIN_SOFT e->softLocked=true; e->isBusy.lock();
 #define EXTERN_BUSY_END e->isBusy.unlock(); e->softLocked=false;
 
-//#define DIV_UNSTABLE
+#define DIV_UNSTABLE
 
-#define DIV_VERSION "0.6.6"
-#define DIV_ENGINE_VERSION 218
+#define DIV_VERSION "dev222"
+#define DIV_ENGINE_VERSION 222
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -518,6 +518,7 @@ class DivEngine {
   std::vector<DivCommand> cmdStream;
   std::vector<DivInstrumentType> possibleInsTypes;
   std::vector<DivEffectContainer> effectInst;
+  std::vector<int> curChanMask;
   static DivSysDef* sysDefs[DIV_MAX_CHIP_DEFS];
   static DivSystem sysFileMapFur[DIV_MAX_CHIP_DEFS];
   static DivSystem sysFileMapDMF[DIV_MAX_CHIP_DEFS];

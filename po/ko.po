@@ -1,7 +1,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: furnace 0.6.6\n"
+"Project-Id-Version: furnace 0.6.7\n"
 "Last-Translator: 희민Heemin\n"
 "Language-Team: none\n"
 "Language: ko\n"

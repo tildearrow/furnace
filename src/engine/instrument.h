@@ -96,6 +96,8 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_GBA_MINMOD=61,
   DIV_INS_BIFURCATOR=62,
   DIV_INS_SID2=63, // coincidence!
+  DIV_INS_SUPERVISION=64,
+  DIV_INS_UPD1771C=65,
   DIV_INS_SID3=66,
   DIV_INS_MAX,
   DIV_INS_NULL
@@ -612,6 +614,7 @@ struct DivInstrumentFDS {
 struct DivInstrumentMultiPCM {
   unsigned char ar, d1r, dl, d2r, rr, rc;
   unsigned char lfo, vib, am;
+  bool damp, pseudoReverb, lfoReset, levelDirect;
 
   bool operator==(const DivInstrumentMultiPCM& other);
   bool operator!=(const DivInstrumentMultiPCM& other) {
@@ -620,7 +623,11 @@ struct DivInstrumentMultiPCM {
 
   DivInstrumentMultiPCM():
     ar(15), d1r(15), dl(0), d2r(0), rr(15), rc(15),
-    lfo(0), vib(0), am(0) {
+    lfo(0), vib(0), am(0),
+    damp(false),
+    pseudoReverb(false),
+    lfoReset(false),
+    levelDirect(true) {
   }
 };
 

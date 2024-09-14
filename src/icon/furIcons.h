@@ -1,7 +1,7 @@
 // not auto-generated. update every time you change icons.ttf!
 
 #define ICON_MIN_FUR 0xe0f0
-#define ICON_MAX_FUR 0xe161
+#define ICON_MAX_FUR 0xe164
 
 // test
 #define ICON_FUR_TEST0 u8"\ue0f0"
@@ -75,7 +75,9 @@
 #define ICON_FUR_INS_GBA_MINMOD u8"\ue15f"
 #define ICON_FUR_INS_BIFURCATOR u8"\ue160"
 #define ICON_FUR_INS_SID2 u8"\ue161"
-#define ICON_FUR_INS_SID3 u8"\ue162"
+#define ICON_FUR_INS_SUPERVISION u8"\ue162"
+#define ICON_FUR_INS_UPD1771C u8"\ue163"
+#define ICON_FUR_INS_SID3 u8"\ue164"
 
 // sample editor
 #define ICON_FUR_SAMPLE_APPLY_SILENCE u8"\ue136"

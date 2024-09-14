@@ -585,6 +585,11 @@ size | description
   1  | LFO rate
   1  | vibrato depth
   1  | AM depth
+  1  | flags (>=221)
+     | - bit 0: damp
+     | - bit 1: pseudo-reverb
+     | - bit 2: LFO reset
+     | - bit 3: level direct
 ```
 
 # Sound Unit data (SU)

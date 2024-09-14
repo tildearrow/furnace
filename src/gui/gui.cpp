@@ -388,6 +388,7 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
     setBit30=false;
     macroLen++;
     buf=0;
+    MARK_MODIFIED;
   }
 }
 
@@ -423,6 +424,21 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
       } \
     } \
   }
+
+bool FurnaceGUI::isCtrlWheelModifierHeld() const {
+  switch (settings.ctrlWheelModifier) {
+    case 0:
+      return ImGui::IsKeyDown(ImGuiMod_Ctrl) || ImGui::IsKeyDown(ImGuiMod_Super);
+    case 1:
+      return ImGui::IsKeyDown(ImGuiMod_Ctrl);
+    case 2:
+      return ImGui::IsKeyDown(ImGuiMod_Super);
+    case 3:
+      return ImGui::IsKeyDown(ImGuiMod_Alt);
+    default:
+      return false;
+  }
+}
 
 bool FurnaceGUI::CWSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags) {
   flags^=ImGuiSliderFlags_AlwaysClamp;
@@ -993,11 +1009,6 @@ Pos=339,177\n\
 Size=601,400\n\
 Collapsed=0\n\
 \n\
-[Window][Rendering...]\n\
-Pos=585,342\n\
-Size=600,100\n\
-Collapsed=0\n\
-\n\
 [Window][Export VGM##FileDialog]\n\
 Pos=340,177\n\
 Size=600,400\n\
@@ -1216,6 +1227,7 @@ void FurnaceGUI::play(int row) {
   memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
   e->walkSong(loopOrder,loopRow,loopEnd);
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
+  if (followPattern) makeCursorUndo();
   if (!followPattern) e->setOrder(curOrder);
   if (row>0) {
     if (!e->playToRow(row)) {
@@ -5859,7 +5871,8 @@ bool FurnaceGUI::loop() {
     MEASURE_BEGIN(popup);
 
     centerNextWindow(_("Rendering..."),canvasW,canvasH);
-    if (ImGui::BeginPopupModal(_("Rendering..."),NULL,ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoMove)) {
+    // ImGui::SetNextWindowSize(ImVec2(0.0f,0.0f));
+    if (ImGui::BeginPopupModal(_("Rendering..."),NULL,ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoSavedSettings)) {
       // WHAT the HELL?!
       WAKE_UP;
       if (audioExportOptions.mode!=DIV_EXPORT_MODE_MANY_CHAN) {
@@ -5875,35 +5888,32 @@ bool FurnaceGUI::loop() {
       int curFile=0;
       int* curFileLambda=&curFile;
       if (e->isExporting()) {
-        e->lockEngine([this, progressLambda, curPosInRowsLambda, curFileLambda,
-                       loopsLeftLambda, totalLoopsLambda] () {
-                      int curRow=0; int curOrder=0;
-                      e->getCurSongPos(curRow, curOrder); *curFileLambda=0;
-                      e->getCurFileIndex(*curFileLambda);
-                      *curPosInRowsLambda=curRow; for (int i=0; i<curOrder;
-                                                         i++) {
-                      *curPosInRowsLambda+=songOrdersLengths[i];}
-
-                      if (!songHasSongEndCommand) {
-                      e->getLoopsLeft(*loopsLeftLambda); e->getTotalLoops(*totalLoopsLambda); if ((*totalLoopsLambda)!=(*loopsLeftLambda))        //we are going 2nd, 3rd, etc. time through the song
-                      {
-                      *curPosInRowsLambda-=(songLength-songLoopedSectionLength);        //a hack so progress bar does not jump?
-                      }
-                      if (e->getIsFadingOut())        //we are in fadeout??? why it works like that bruh
-                      {
-                      // LIVE WITH IT damn it
-                      *curPosInRowsLambda-=(songLength-songLoopedSectionLength);        //a hack so progress bar does not jump?
-                      }
-                      }
-                      // this horrible indentation courtesy of `indent`
-                      *progressLambda=(float) ((*curPosInRowsLambda) +                                                 ((*totalLoopsLambda)-                                                 (*loopsLeftLambda)) *                                                 songLength +                                                 lengthOfOneFile *                                                 (*curFileLambda))                      / (float) totalLength;});
+        e->lockEngine(
+          [this, progressLambda, curPosInRowsLambda, curFileLambda, loopsLeftLambda, totalLoopsLambda] () {
+            int curRow=0; int curOrder=0;
+            e->getCurSongPos(curRow, curOrder);
+            *curFileLambda=0;
+            e->getCurFileIndex(*curFileLambda);
+            *curPosInRowsLambda=curRow;
+            for (int i=0; i<curOrder; i++) *curPosInRowsLambda+=songOrdersLengths[i];
+            if (!songHasSongEndCommand) {
+              e->getLoopsLeft(*loopsLeftLambda);
+              e->getTotalLoops(*totalLoopsLambda);
+              if ((*totalLoopsLambda)!=(*loopsLeftLambda)) { // we are going 2nd, 3rd, etc. time through the song
+                *curPosInRowsLambda-=(songLength-songLoopedSectionLength); // a hack so progress bar does not jump?
+              }
+              if (e->getIsFadingOut()) { // we are in fadeout??? why it works like that bruh
+                // LIVE WITH IT damn it
+                *curPosInRowsLambda-=(songLength-songLoopedSectionLength); // a hack so progress bar does not jump?
+              }
+            }
+            *progressLambda=(float)((*curPosInRowsLambda)+((*totalLoopsLambda)-(*loopsLeftLambda))*songLength+lengthOfOneFile*(*curFileLambda))/(float)totalLength;
+          }
+        );
       }
 
       ImGui::Text(_("Row %d of %d"),curPosInRows+((totalLoops)-(loopsLeft))*songLength,lengthOfOneFile);
-
-      if (audioExportOptions.mode==DIV_EXPORT_MODE_MANY_CHAN) {
-        ImGui::Text(_("Channel %d of %d"),curFile+1,totalFiles);
-      }
+      if (audioExportOptions.mode==DIV_EXPORT_MODE_MANY_CHAN) ImGui::Text(_("Channel %d of %d"),curFile+1,totalFiles);
 
       ImGui::ProgressBar(curProgress,ImVec2(320.0f*dpiScale,0),fmt::sprintf("%.2f%%",curProgress*100.0f).c_str());
 

@@ -32,6 +32,7 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 219: Furnace 0.6.7
 - 218: Furnace 0.6.6
 - 214: Furnace 0.6.5
 - 212: Furnace 0.6.4
@@ -190,7 +191,7 @@ size | description
      |   - 0x9c: Virtual Boy - 6 channels
      |   - 0x9d: VRC7 - 6 channels
      |   - 0x9e: YM2610B - 16 channels
-     |   - 0x9f: ZX Spectrum (beeper, tildearrow engine) - 6 channels
+     |   - 0x9f: ZX Spectrum (beeper, SFX-like tildearrow engine) - 6 channels
      |   - 0xa0: YM2612 extended - 9 channels
      |   - 0xa1: Konami SCC - 5 channels
      |   - 0xa2: OPL drums (YM3526) - 11 channels
@@ -205,8 +206,8 @@ size | description
      |   - 0xab: MSM6258 - 1 channel
      |   - 0xac: Commander X16 (VERA) - 17 channels
      |   - 0xad: Bubble System WSG - 2 channels
-     |   - 0xae: OPL4 (YMF278B) - 42 channels (UNAVAILABLE)
-     |   - 0xaf: OPL4 drums (YMF278B) - 44 channels (UNAVAILABLE)
+     |   - 0xae: OPL4 (YMF278B) - 42 channels
+     |   - 0xaf: OPL4 drums (YMF278B) - 44 channels
      |   - 0xb0: Seta/Allumer X1-010 - 16 channels
      |   - 0xb1: Ensoniq ES5506 - 32 channels
      |   - 0xb2: Yamaha Y8950 - 10 channels
@@ -257,8 +258,8 @@ size | description
      |   - 0xe0: QSound - 19 channels
      |   - 0xe1: PS1 - 24 channels (UNAVAILABLE)
      |   - 0xe2: C64 (6581) with PCM - 4 channels (UNAVAILABLE)
-     |   - 0xe3: Watara Supervision - 4 channels (UNAVAILABLE)
-     |   - 0xe4: µPD1771C - 1 channel (UNAVAILABLE)
+     |   - 0xe3: Watara Supervision - 4 channels
+     |   - 0xe4: µPD1771C - 1 channel
      |   - 0xf0: SID2 - 3 channels
      |   - 0xf1: 5E01 - 5 channels
      |   - 0xf5: SID3 - 7 channels
@@ -390,7 +391,7 @@ size | description
   1  | reset arp effect phase on new note (>=184)
   1  | linear volume scaling rounds up (>=188)
   1  | legacy "always set volume" behavior (>=191)
-  1  | reserved
+  1  | legacy sample offset effect (>=200)
  --- | **speed pattern of first song** (>=139)
   1  | length of speed pattern (fail if this is lower than 0 or higher than 16)
  16  | speed pattern (this overrides speed 1 and speed 2 settings)
@@ -589,6 +590,7 @@ size | description
      | - 11: 8-bit μ-law PCM
      | - 12: C219 PCM
      | - 13: IMA ADPCM
+     | - 14: 12-bit PCM (MultiPCM)
      | - 16: 16-bit PCM
   1  | loop direction (>=123) or reserved
      | - 0: forward
