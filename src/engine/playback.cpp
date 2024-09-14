@@ -969,7 +969,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
         }
         break;
       case 0xc0: case 0xc1: case 0xc2: case 0xc3: // set Hz
-        divider=(double)(((effect&0x3)<<8)|effectVal);
+        if((double)(((effect&0x3)<<8)|effectVal) * (double)curSubSong->macroSpeedMult > 1025.0) break; //macro rate can't exceed 1025 Hz
+        divider=(double)(((effect&0x3)<<8)|effectVal) * (double)curSubSong->macroSpeedMult;
         if (divider<1) divider=1;
         cycles=got.rate*pow(2,MASTER_CLOCK_PREC)/divider;
         clockDrift=0;
