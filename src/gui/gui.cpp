@@ -3750,6 +3750,8 @@ bool FurnaceGUI::loop() {
       injectBackUp=false;
     }
 
+    int howManyClicks=0;
+
     while (SDL_PollEvent(&ev)) {
       WAKE_UP;
       ImGui_ImplSDL2_ProcessEvent(&ev);
@@ -3771,6 +3773,7 @@ bool FurnaceGUI::loop() {
         case SDL_MOUSEBUTTONDOWN:
           pointDown(ev.button.x,ev.button.y,ev.button.button);
           insEditMayBeDirty=true;
+          howManyClicks++;
           break;
         case SDL_MOUSEWHEEL:
           wheelX+=ev.wheel.x;
@@ -4348,6 +4351,10 @@ bool FurnaceGUI::loop() {
     curWindowLast=curWindow;
     curWindow=GUI_WINDOW_NOTHING;
     editOptsVisible=false;
+
+    if (howManyClicks>=2) {
+      showWarning("Furnace detected CBF·\n(Click Between Frames).\nPlease Uninstall CBF to\nuse Furnace properly.\nProgram will be closed.",GUI_WARN_CBF);
+    }
 
     int nextPlayOrder=0;
     int nextOldRow=0;
@@ -6466,6 +6473,12 @@ bool FurnaceGUI::loop() {
           break;
         case GUI_WARN_GENERIC:
           if (ImGui::Button(_("OK"))) {
+            ImGui::CloseCurrentPopup();
+          }
+          break;
+        case GUI_WARN_CBF:
+          if (ImGui::Button(_("OK"))) {
+            quit=true;
             ImGui::CloseCurrentPopup();
           }
           break;
