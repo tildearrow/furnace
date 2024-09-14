@@ -2981,6 +2981,8 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             }
         }
 
+        endThis:;
+
         for(int i = 0; i < sysDefs[ds.system[0]]->channels; i++) //apply default panning
         {
             DivPattern* pat = s->pat[at2_channels_map[i]].getPattern(s->orders.ord[i][0], true);
@@ -3010,7 +3012,18 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             }
         }
 
-        endThis:;
+        char message[1025 + 52] = { 0 };
+        int currSymbol = 0;
+
+        for(int i = 0; i < 20; i++)
+        {
+            memcpy(&message[currSymbol], &songInfo->reserved_data[51 * i], 51);
+            currSymbol += 51;
+            message[currSymbol] = '\n';
+            currSymbol++;
+        }
+
+        s->notes = message;
 
         ds.linearPitch = 0;
         ds.pitchMacroIsLinear = false;
