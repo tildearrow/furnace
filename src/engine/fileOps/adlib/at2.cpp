@@ -2364,26 +2364,6 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             }
         }
 
-        /*
-        ┌─────┬────────────────────────────┐
-        │ BiT │ SWiTCH                     │
-        ├─────┼────────────────────────────┤
-        │  0  │ update speed               │
-        │  1  │ track volume lock          │
-        │  2  │ volume peak lock           │
-        │  3  │ tremolo depth              │
-        │  4  │ vibrato depth              │
-        │  5  │ track panning lock         │
-        │  6  │ percussion track extension │
-        │  7  │ volume scaling             │
-        └─────┴────────────────────────────┘
-        */
-
-        if((songInfo->common_flag & 64) || songInfo->nm_tracks > 18)
-        {
-            ds.system[0] = DIV_SYSTEM_OPL3_DRUMS;
-        }
-
         if(!isA2t) //a2m, a2m_read_patterns
         {
             if(AT2ReadPatterns(s, reader, version, len, patterns, *songInfo, 1) == false)
@@ -3024,6 +3004,86 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
         }
 
         s->notes = message;
+
+        /*
+        ┌─────┬────────────────────────────┐
+        │ BiT │ SWiTCH                     │
+        ├─────┼────────────────────────────┤
+        │  0  │ update speed               │
+        │  1  │ track volume lock          │
+        │  2  │ volume peak lock           │
+        │  3  │ tremolo depth              │
+        │  4  │ vibrato depth              │
+        │  5  │ track panning lock         │
+        │  6  │ percussion track extension │
+        │  7  │ volume scaling             │
+        └─────┴────────────────────────────┘
+        */
+
+        if((songInfo->common_flag & 64) || songInfo->nm_tracks > 18)
+        {
+            ds.system[0] = DIV_SYSTEM_OPL3_DRUMS;
+        }
+
+        bool foundPlaceForFx = false;
+
+        if(songInfo->common_flag & 8) //tremolo depth
+        {
+            for(int i = 0; i < DIV_MAX_EFFECTS; i++)
+            {
+                for(int j = 0; j < sysDefs[ds.system[0]]->channels; j++)
+                {
+                    DivPattern* pat = s->pat[j].getPattern(s->orders.ord[j][0], true);
+                    short* s_row_data = pat->data[0];
+
+                    int fx = findEmptyEffectSlot(s_row_data);
+
+                    if(fx <= i)
+                    {
+                        s_row_data[4 + fx * 2] = 0x10;
+                        s_row_data[5 + fx * 2] = 1;
+
+                        foundPlaceForFx = true;
+                        break;
+                    }
+                }
+
+                if(foundPlaceForFx)
+                {
+                    break;
+                }
+            }
+        }
+
+        foundPlaceForFx = false;
+
+        if(songInfo->common_flag & 0x10) //vibrato depth
+        {
+            for(int i = 0; i < DIV_MAX_EFFECTS; i++)
+            {
+                for(int j = 0; j < sysDefs[ds.system[0]]->channels; j++)
+                {
+                    DivPattern* pat = s->pat[j].getPattern(s->orders.ord[j][0], true);
+                    short* s_row_data = pat->data[0];
+
+                    int fx = findEmptyEffectSlot(s_row_data);
+
+                    if(fx <= i)
+                    {
+                        s_row_data[4 + fx * 2] = 0x17;
+                        s_row_data[5 + fx * 2] = 1;
+
+                        foundPlaceForFx = true;
+                        break;
+                    }
+                }
+
+                if(foundPlaceForFx)
+                {
+                    break;
+                }
+            }
+        }
 
         ds.linearPitch = 0;
         ds.pitchMacroIsLinear = false;
