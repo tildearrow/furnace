@@ -203,7 +203,7 @@ ex | FM     | OPM       | OPZ       | OPLL  | AY-3-8910  | AY8930     | Lynx    
  W |        | LFO Shape | LFO Shape | Patch | Waveform   | Waveform   |          | Waveform      |
  1 |        | AMD       | AMD       |       |            | Duty       |          | FilterMode    |
  2 |        | PMD       | PMD       |       | Envelope   | Envelope   |          | Resonance     |
- 3 | LFOSpd | LFO Speed | LFO Speed |       | AutoEnvNum | AutoEnvNum |          | Filter toggle |
+ 3 | LFOSpd | LFO Speed | LFO Speed |       | AutoEnvNum | AutoEnvNum |          | Filter Toggle |
  A | ALG    | ALG       | ALG       |       | AutoEnvDen | AutoEnvDen |          | Cutoff        |
  B | FB     | FB        | FB        |       |            | Noise AND  |          |               |
  C | FMS    | FMS       | FMS       |       |            | Noise OR   |          |               |

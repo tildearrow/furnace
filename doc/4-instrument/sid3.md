@@ -40,7 +40,8 @@ the only differences are the lack of an "Use wavetable" option, and the presence
 - **Wave Mix Mode**: dictates how different waves on the same channel are mixed together.
 - **Duty**: specifies the width of a pulse wave (0 to 65535).
 - **Feedback**: specifies the feedback level (0 to 255).
-- **Reset duty on new note**: overwrite current duty value with the one that's specified in the instrument on new note.
+- **Reset duty on new note**: overwrite current duty value with the one that is specified in the instrument on new note.
+  - only useful when using relative duty macro.
 - **Absolute Duty Macro**: when enabled, the duty macro will go from 0 to 65535 (in other words, control the duty directly rather than being relative).
 - **Ring Modulation**: when enabled, the channel's output will be multiplied with the source channel's.
 - **Oscillator Sync**: enables oscillator hard sync. as the source channel's oscillator finishes a cycle, it resets the period of the channel's oscillator, forcing the latter to have the same base frequency. this can produce a harmonically rich sound, the timbre of which can be altered by varying the synchronized oscillator's frequency.

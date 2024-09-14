@@ -383,7 +383,7 @@ void DivPlatformSID3::tick(bool sysTick)
     }
     if (chan[i].std.duty.had) {
       DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SID3);
-      if (ins->c64.dutyIsAbs) {
+      if (ins->sid3.dutyIsAbs) {
         chan[i].duty=chan[i].std.duty.val;
       } else {
         chan[i].duty-=chan[i].std.duty.val;
@@ -846,28 +846,28 @@ int DivPlatformSID3::dispatch(DivCommand c) {
 
       if (chan[c.chan].insChanged) 
       {
-        chan[c.chan].wave = (ins->c64.triOn ? SID3_WAVE_TRIANGLE : 0) | (ins->c64.sawOn ? SID3_WAVE_SAW : 0) |
-            (ins->c64.pulseOn ? SID3_WAVE_PULSE : 0) | (ins->c64.noiseOn ? SID3_WAVE_NOISE : 0) | (ins->sid3.specialWaveOn ? SID3_WAVE_SPECIAL : 0); //waveform
+        chan[c.chan].wave = (ins->sid3.triOn ? SID3_WAVE_TRIANGLE : 0) | (ins->sid3.sawOn ? SID3_WAVE_SAW : 0) |
+            (ins->sid3.pulseOn ? SID3_WAVE_PULSE : 0) | (ins->sid3.noiseOn ? SID3_WAVE_NOISE : 0) | (ins->sid3.specialWaveOn ? SID3_WAVE_SPECIAL : 0); //waveform
         chan[c.chan].special_wave = ins->sid3.special_wave; //special wave
 
-        chan[c.chan].attack=ins->c64.a;
-        chan[c.chan].decay=ins->c64.d;
-        chan[c.chan].sustain=ins->c64.s;
+        chan[c.chan].attack=ins->sid3.a;
+        chan[c.chan].decay=ins->sid3.d;
+        chan[c.chan].sustain=ins->sid3.s;
         chan[c.chan].sr=ins->sid3.sr;
-        chan[c.chan].release=ins->c64.r;
+        chan[c.chan].release=ins->sid3.r;
 
-        if(ins->c64.resetDuty)
+        if(ins->sid3.resetDuty)
         {
-          chan[c.chan].duty=ins->c64.duty;
+          chan[c.chan].duty=ins->sid3.duty;
           updateDuty(c.chan);
         }
 
-        chan[c.chan].sync = ins->c64.oscSync;
-        chan[c.chan].ring = ins->c64.ringMod;
+        chan[c.chan].sync = ins->sid3.oscSync;
+        chan[c.chan].ring = ins->sid3.ringMod;
         chan[c.chan].phase = ins->sid3.phase_mod;
         chan[c.chan].oneBitNoise = ins->sid3.oneBitNoise;
 
-        chan[c.chan].mix_mode = ins->sid2.mixMode;
+        chan[c.chan].mix_mode = ins->sid3.mixMode;
 
         chan[c.chan].ringSrc = ins->sid3.ring_mod_source;
         chan[c.chan].syncSrc = ins->sid3.sync_source;
@@ -1044,7 +1044,7 @@ int DivPlatformSID3::dispatch(DivCommand c) {
     case DIV_CMD_C64_DUTY_RESET:
       if (c.value&15) {
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SID3);
-        chan[c.chan].duty=ins->c64.duty;
+        chan[c.chan].duty=ins->sid3.duty;
         updateDuty(c.chan);
       }
       chan[c.chan].resetDuty=c.value>>4;

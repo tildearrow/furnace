@@ -5874,27 +5874,27 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
       ImGui::AlignTextToFramePadding();
       ImGui::Text(_("Waveform"));
       ImGui::SameLine();
-      pushToggleColors(ins->c64.triOn);
+      pushToggleColors(ins->sid3.triOn);
       if (ImGui::Button(_("tri"))) { PARAMETER
-        ins->c64.triOn=!ins->c64.triOn;
+        ins->sid3.triOn=!ins->sid3.triOn;
       }
       popToggleColors();
       ImGui::SameLine();
-      pushToggleColors(ins->c64.sawOn);
+      pushToggleColors(ins->sid3.sawOn);
       if (ImGui::Button(_("saw"))) { PARAMETER
-        ins->c64.sawOn=!ins->c64.sawOn;
+        ins->sid3.sawOn=!ins->sid3.sawOn;
       }
       popToggleColors();
       ImGui::SameLine();
-      pushToggleColors(ins->c64.pulseOn);
+      pushToggleColors(ins->sid3.pulseOn);
       if (ImGui::Button(_("pulse"))) { PARAMETER
-        ins->c64.pulseOn=!ins->c64.pulseOn;
+        ins->sid3.pulseOn=!ins->sid3.pulseOn;
       }
       popToggleColors();
       ImGui::SameLine();
-      pushToggleColors(ins->c64.noiseOn);
+      pushToggleColors(ins->sid3.noiseOn);
       if (ImGui::Button(_("noise"))) { PARAMETER
-        ins->c64.noiseOn=!ins->c64.noiseOn;
+        ins->sid3.noiseOn=!ins->sid3.noiseOn;
       }
       if (ImGui::IsItemHovered()) 
       {
@@ -5990,41 +5990,41 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      P(CWVSliderScalar("##Attack",sliderSize,ImGuiDataType_U8,&ins->c64.a,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+      P(CWVSliderScalar("##Attack",sliderSize,ImGuiDataType_U8,&ins->sid3.a,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
       ImGui::TableNextColumn();
-      P(CWVSliderScalar("##Decay",sliderSize,ImGuiDataType_U8,&ins->c64.d,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+      P(CWVSliderScalar("##Decay",sliderSize,ImGuiDataType_U8,&ins->sid3.d,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
       ImGui::TableNextColumn();
-      P(CWVSliderScalar("##Sustain",sliderSize,ImGuiDataType_U8,&ins->c64.s,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+      P(CWVSliderScalar("##Sustain",sliderSize,ImGuiDataType_U8,&ins->sid3.s,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
       ImGui::TableNextColumn();
       P(CWVSliderScalar("##SustainRate",sliderSize,ImGuiDataType_U8,&ins->sid3.sr,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
       ImGui::TableNextColumn();
-      P(CWVSliderScalar("##Release",sliderSize,ImGuiDataType_U8,&ins->c64.r,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+      P(CWVSliderScalar("##Release",sliderSize,ImGuiDataType_U8,&ins->sid3.r,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
       ImGui::TableNextColumn();
-      drawSID3Env(0,(ins->c64.a == 0 ? (255) : (256-ins->c64.a)),(ins->c64.d == 0 ? (255) : (256-ins->c64.d)),ins->sid3.sr,255-(ins->c64.r == 255 ? (ins->c64.r - 1) : ins->c64.r),255-ins->c64.s,0,0,0,255,256,255,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type); //the (ins->c64.r == 15 ? (ins->c64.r - 1) : ins->c64.r) is used so release part never becomes horizontal (which isn't the case with SID3 envelope)
+      drawSID3Env(0,(ins->sid3.a == 0 ? (255) : (256-ins->sid3.a)),(ins->sid3.d == 0 ? (255) : (256-ins->sid3.d)),ins->sid3.sr,255-(ins->sid3.r == 255 ? (ins->sid3.r - 1) : ins->sid3.r),255-ins->sid3.s,0,0,0,255,256,255,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type); //the (ins->sid3.r == 15 ? (ins->sid3.r - 1) : ins->sid3.r) is used so release part never becomes horizontal (which isn't the case with SID3 envelope)
 
       ImGui::EndTable();
     }
     
     if(!ins->sid3.doWavetable)
     {
-      strncpy(buffer,macroSID3WaveMixMode(0,(float)ins->sid2.mixMode,NULL).c_str(),40);
-      P(CWSliderScalar(_("Wave Mix Mode"),ImGuiDataType_U8,&ins->sid2.mixMode,&_ZERO,&_FOUR,buffer));
-      P(CWSliderScalar(_("Duty"),ImGuiDataType_U16,&ins->c64.duty,&_ZERO,&_SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_THIRTY_FIVE)); rightClickable
+      strncpy(buffer,macroSID3WaveMixMode(0,(float)ins->sid3.mixMode,NULL).c_str(),40);
+      P(CWSliderScalar(_("Wave Mix Mode"),ImGuiDataType_U8,&ins->sid3.mixMode,&_ZERO,&_FOUR,buffer));
+      P(CWSliderScalar(_("Duty"),ImGuiDataType_U16,&ins->sid3.duty,&_ZERO,&_SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_THIRTY_FIVE)); rightClickable
       P(CWSliderScalar(_("Feedback"),ImGuiDataType_U8,&ins->sid3.feedback,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE));
-      bool resetDuty=ins->c64.resetDuty;
+      bool resetDuty=ins->sid3.resetDuty;
       if (ImGui::Checkbox(_("Reset duty on new note"),&resetDuty)) 
       { PARAMETER
-        ins->c64.resetDuty=resetDuty;
+        ins->sid3.resetDuty=resetDuty;
       }
-      if (ImGui::Checkbox(_("Absolute Duty Macro"),&ins->c64.dutyIsAbs)) {
+      if (ImGui::Checkbox(_("Absolute Duty Macro"),&ins->sid3.dutyIsAbs)) {
         ins->std.dutyMacro.vZoom=-1;
         PARAMETER;
       }
     }
 
-    bool ringMod=ins->c64.ringMod;
+    bool ringMod=ins->sid3.ringMod;
     if (ImGui::Checkbox(_("Ring Modulation"),&ringMod)) { PARAMETER
-      ins->c64.ringMod=ringMod;
+      ins->sid3.ringMod=ringMod;
     }
 
     ImGui::SameLine();
@@ -6032,9 +6032,9 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
     strncpy(buffer,macroSID3SourceChan(0,(float)ins->sid3.ring_mod_source,NULL).c_str(),40);
     P(CWSliderScalar(_("Source channel##rmsrc"),ImGuiDataType_U8,&ins->sid3.ring_mod_source,&_ZERO,&_SID3_NUM_CHANNELS,buffer));
 
-    bool oscSync=ins->c64.oscSync;
+    bool oscSync=ins->sid3.oscSync;
     if (ImGui::Checkbox(_("Oscillator Sync"),&oscSync)) { PARAMETER
-      ins->c64.oscSync=oscSync;
+      ins->sid3.oscSync=oscSync;
     }
 
     ImGui::SameLine();
@@ -6362,7 +6362,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
     }
     else
     {
-      macroList.push_back(FurnaceGUIMacroDesc(_("Duty"),&ins->std.dutyMacro,ins->c64.dutyIsAbs?0:-65535,65535,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+      macroList.push_back(FurnaceGUIMacroDesc(_("Duty"),&ins->std.dutyMacro,ins->sid3.dutyIsAbs?0:-65535,65535,160,uiColors[GUI_COLOR_MACRO_OTHER]));
       macroList.push_back(FurnaceGUIMacroDesc(_("Waveform"),&ins->std.waveMacro,0,5,16 * 5,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,true,sid3ShapeBits));
       macroList.push_back(FurnaceGUIMacroDesc(_("Special Wave"),&ins->std.algMacro,0,SID3_NUM_SPECIAL_WAVES - 1,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,macroSID3SpecialWaves));
     }
@@ -6581,26 +6581,27 @@ void FurnaceGUI::drawInsEdit() {
           }
           for (DivInstrumentType i: insTypeList) {
             if (ImGui::Selectable(insTypes[i][0],insType==i)) {
-              DivInstrumentType prevType = ins->type;
+              //DivInstrumentType prevType = ins->type;
               ins->type=i;
 
+              /* what is this?
               //clamp some settings
               if(prevType == DIV_INS_SID3)
               {
-                ins->c64.a = CLAMP(ins->c64.a, 0, 15);
-                ins->c64.d = CLAMP(ins->c64.a, 0, 15);
-                ins->c64.s = CLAMP(ins->c64.a, 0, 15);
-                ins->c64.r = CLAMP(ins->c64.a, 0, 15);
+                ins->sid3.a = CLAMP(ins->sid3.a, 0, 15);
+                ins->sid3.d = CLAMP(ins->sid3.a, 0, 15);
+                ins->sid3.s = CLAMP(ins->sid3.a, 0, 15);
+                ins->sid3.r = CLAMP(ins->sid3.a, 0, 15);
 
-                ins->c64.duty = CLAMP(ins->c64.a, 0, 0xfff);
+                ins->sid3.duty = CLAMP(ins->sid3.a, 0, 0xfff);
 
-                ins->sid2.mixMode = CLAMP(ins->sid2.mixMode, 0, 3);
+                ins->sid3.mixMode = CLAMP(ins->sid3.mixMode, 0, 3);
               }
               if(prevType == DIV_INS_SID3 || prevType == DIV_INS_SID2)
               {
-                ins->c64.cut = CLAMP(ins->c64.cut, 0, 0x7ff);
-                ins->c64.res = CLAMP(ins->c64.res, 0, 0xf);
-              }
+                ins->sid3.cut = CLAMP(ins->sid3.cut, 0, 0x7ff);
+                ins->sid3.res = CLAMP(ins->sid3.res, 0, 0xf);
+              }*/
 
               // reset macro zoom
               ins->std.volMacro.vZoom=-1;

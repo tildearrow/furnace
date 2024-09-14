@@ -864,9 +864,13 @@ struct DivInstrumentSID2 {
     noiseMode(0) {}
 };
 
-struct DivInstrumentSID3 
+struct DivInstrumentSID3
 {
+  bool triOn, sawOn, pulseOn, noiseOn;
+  unsigned char a, d, s, r;
   unsigned char sr;
+  unsigned short duty;
+  unsigned char ringMod, oscSync;
   bool phase_mod;
   unsigned char phase_mod_source, ring_mod_source, sync_source;
   bool specialWaveOn;
@@ -874,8 +878,11 @@ struct DivInstrumentSID3
   bool separateNoisePitch;
   unsigned char special_wave;
   bool doWavetable;
+  bool dutyIsAbs;
+  bool resetDuty;
   unsigned char phaseInv;
   unsigned char feedback;
+  unsigned char mixMode;
 
   struct Filter 
   {
@@ -935,7 +942,18 @@ struct DivInstrumentSID3
     return !(*this==other);
   }
   DivInstrumentSID3():
+    triOn(false),
+    sawOn(true),
+    pulseOn(false),
+    noiseOn(false),
+    a(0),
+    d(8),
+    s(0),
+    r(0),
     sr(0),
+    duty(2048),
+    ringMod(0),
+    oscSync(0),
     phase_mod(false),
     phase_mod_source(0),
     ring_mod_source(0),
@@ -945,8 +963,11 @@ struct DivInstrumentSID3
     separateNoisePitch(false),
     special_wave(0),
     doWavetable(false),
+    dutyIsAbs(true),
+    resetDuty(false),
     phaseInv(0),
-    feedback(0)
+    feedback(0),
+    mixMode(0)
     {
       filt[0].mode = 16 | 32; //default settings so filter just works, connect to input and channel output
       filt[0].output_volume = 0xff;

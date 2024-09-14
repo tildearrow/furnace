@@ -325,19 +325,19 @@ size | description
      | - bit 2: band pass
      | - bit 1: high pass
      | - bit 0: low pass
-  1  | attack/decay (ignore the values if reading SID3 instrument)
+  1  | attack/decay
      | - bit 4-7: attack
      | - bit 0-3: decay
-  1  | sustain release (ignore the values if reading SID3 instrument)
+  1  | sustain release
      | - bit 4-7: sustain
      | - bit 0-3: release
-  2  | duty (0-4095 for C64/SID2, 0-65535 for SID3)
+  2  | duty
   2  | cutoff/resonance
      | - bit 12-15: resonance
      | - bit 0-10: cutoff (0-11 on SID2)
   1  | upper nibble of resonance (for SID2) (>=199)
      | - bits 0-3 hold this upper nibble
-     | - bit 4: reset duty on new note (>=217)
+     | - bit 4: reset duty on new note (>=222)
 ```
 
 ## C64 compatibility note (>=187)
@@ -686,7 +686,7 @@ size | description
 -----|------------------------------------
   1  | parameters
      | - bit 6-7: noise mode
-     | - bit 4-5: wave mix mode (ignore the value if reading SID3 instrument)
+     | - bit 4-5: wave mix mode
      | - bit 0-3: volume
 ```
 
