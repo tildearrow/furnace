@@ -2463,9 +2463,9 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             for(int i = 0; i < ds.insLen; i++)
             {
                 int arpTableNum = songInfo->fmreg_table[i].arpeggio_table;
-                int vibTableNum = songInfo->fmreg_table[i].vibrato_table;
+                //int vibTableNum = songInfo->fmreg_table[i].vibrato_table;
 
-                /*if(songInfo->arpvib_table[arpTableNum].arpeggio.length > 0)
+                if(songInfo->arpvib_table[arpTableNum].arpeggio.length > 0 && songInfo->arpvib_table[arpTableNum].arpeggio.speed > 0)
                 {
                     DivInstrument* ins = ds.ins[i];
 
@@ -2475,23 +2475,23 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                     {
                         ins->std.arpMacro.val[j] = songInfo->arpvib_table[arpTableNum].arpeggio.data[j] & 127;
 
-                        if(songInfo->arpvib_table[arpTableNum].arpeggio.data[j] & 128)
+                        if((songInfo->arpvib_table[arpTableNum].arpeggio.data[j] & 128) && (songInfo->arpvib_table[arpTableNum].arpeggio.data[j] & 127) != 0)
                         {
                             ins->std.arpMacro.val[j] |= 1 << 30;
                         }
                     }
 
-                    ins->std.pitchMacro.loop = songInfo->arpvib_table[vibTableNum].arpeggio.loop_begin - 1;
+                    ins->std.arpMacro.loop = songInfo->arpvib_table[arpTableNum].arpeggio.loop_begin - 1;
                     
-                    if(songInfo->arpvib_table[vibTableNum].arpeggio.keyoff_pos)
+                    if(songInfo->arpvib_table[arpTableNum].arpeggio.keyoff_pos)
                     {
-                        ins->std.pitchMacro.rel = songInfo->arpvib_table[vibTableNum].arpeggio.keyoff_pos;
+                        ins->std.arpMacro.rel = songInfo->arpvib_table[arpTableNum].arpeggio.keyoff_pos;
                     }
 
                     ins->std.arpMacro.speed = songInfo->arpvib_table[arpTableNum].arpeggio.speed;
-                }*/
+                }
 
-                if(songInfo->arpvib_table[vibTableNum].vibrato.length > 0)
+                /*if(songInfo->arpvib_table[vibTableNum].vibrato.length > 0 && songInfo->arpvib_table[vibTableNum].vibrato.speed > 0)
                 {
                     DivInstrument* ins = ds.ins[i];
 
@@ -2510,7 +2510,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                     }
                     
                     ins->std.pitchMacro.speed = songInfo->arpvib_table[vibTableNum].vibrato.speed;
-                }
+                }*/
 
                 if(songInfo->fmreg_table[i].length > 0) //the big ass unified macro for all the macros...
                 {
