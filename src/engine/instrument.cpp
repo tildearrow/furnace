@@ -664,7 +664,7 @@ void DivInstrument::writeFeature64(SafeWriter* w) {
   w->writeS(c64.duty);
   w->writeS((unsigned short)((c64.cut&4095)|((c64.res&15)<<12)));
 
-  w->writeC(((c64.res>>4)&15) | (c64.resetDuty?0x10:0));
+  w->writeC(((c64.res>>4)&15)|(c64.resetDuty?0x10:0));
 
   FEATURE_END;
 }
@@ -1032,13 +1032,13 @@ void DivInstrument::writeFeatureS2(SafeWriter* w) {
 void DivInstrument::writeFeatureS3(SafeWriter* w) {
   FEATURE_BEGIN("S3");
 
-  w->writeC(c64.a);
-  w->writeC(c64.d);
-  w->writeC(c64.s);
+  w->writeC(sid3.a);
+  w->writeC(sid3.d);
+  w->writeC(sid3.s);
   w->writeC(sid3.sr);
-  w->writeC(c64.r);
+  w->writeC(sid3.r);
 
-  w->writeC(sid2.mixMode);
+  w->writeC(sid3.mixMode);
 
   w->writeC(
     (sid3.phase_mod?0x80:0)|
@@ -1442,7 +1442,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     if (sid2!=defaultIns.sid2) {
       featureS2=true;
     }
-    if (sid3!=defaultIns.sid3 || type == DIV_INS_SID3) {
+    if (sid3!=defaultIns.sid3) {
       featureS3=true;
     }
   }
@@ -1900,42 +1900,25 @@ void DivInstrument::readFeature64(SafeReader& reader, bool& volIsCutoff, short v
   c64.lp=next&1;
 
   next=reader.readC();
-
-  if(type != DIV_INS_SID3)
-  {
-    c64.a=(next>>4)&15;
-    c64.d=next&15;
-  }
+  c64.a=(next>>4)&15;
+  c64.d=next&15;
 
   next=reader.readC();
+  c64.s=(next>>4)&15;
+  c64.r=next&15;
 
-  if(type != DIV_INS_SID3)
-  {
-    c64.s=(next>>4)&15;
-    c64.r=next&15;
-  }
-
-  if(type == DIV_INS_SID3)
-  {
-    c64.duty = reader.readS();
-  }
-  else
-  {
-    c64.duty=reader.readS()&4095;
-  }
+  c64.duty=reader.readS()&4095;
 
   unsigned short cr=reader.readS();
   c64.cut=cr&4095;
   c64.res=cr>>12;
 
-  if (version>=199) 
-  {
-    next = (unsigned char)reader.readC();
-    c64.res|=(next & 0xf)<<4;
+  if (version>=199) {
+    next=(unsigned char)reader.readC();
+    c64.res|=(next&15)<<4;
 
-    if(version >= 218)
-    {
-      c64.resetDuty = (next & 0x10) ? true : false;
+    if (version>=222) {
+      c64.resetDuty=next&0x10;
     }
   }
 
@@ -2455,12 +2438,7 @@ void DivInstrument::readFeatureS2(SafeReader& reader, short version) {
   unsigned char next=reader.readC();
 
   sid2.volume=next&0xf;
-
-  if(type != DIV_INS_SID3)
-  {
-    sid2.mixMode=(next>>4)&3;
-  }
-  
+  sid2.mixMode=(next>>4)&3;
   sid2.noiseMode=next>>6;
 
   READ_FEAT_END;
@@ -2469,60 +2447,61 @@ void DivInstrument::readFeatureS2(SafeReader& reader, short version) {
 void DivInstrument::readFeatureS3(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
-  c64.a=reader.readC();
-  c64.d=reader.readC();
-  c64.s=reader.readC();
+  sid3.a=reader.readC();
+  sid3.d=reader.readC();
+  sid3.s=reader.readC();
   sid3.sr=reader.readC();
-  c64.r=reader.readC();
+  sid3.r=reader.readC();
 
   sid2.mixMode=reader.readC();
 
-  unsigned char next = reader.readC();
+  unsigned char next=reader.readC();
 
-  sid3.phase_mod = next&0x80;
-  sid3.specialWaveOn = next&0x40;
-  sid3.oneBitNoise = next&0x20;
-  sid3.separateNoisePitch = next&0x10;
-  sid3.doWavetable = next&8;
+  sid3.phase_mod=next&0x80;
+  sid3.specialWaveOn=next&0x40;
+  sid3.oneBitNoise=next&0x20;
+  sid3.separateNoisePitch=next&0x10;
+  sid3.doWavetable=next&8;
 
-  sid3.phase_mod_source = reader.readC();
-  sid3.ring_mod_source = reader.readC();
-  sid3.sync_source = reader.readC();
-  sid3.special_wave = reader.readC();
-  sid3.phaseInv = reader.readC();
-  sid3.feedback = reader.readC();
+  sid3.phase_mod_source=reader.readC();
+  sid3.ring_mod_source=reader.readC();
+  sid3.sync_source=reader.readC();
+  sid3.special_wave=reader.readC();
+  sid3.phaseInv=reader.readC();
+  sid3.feedback=reader.readC();
 
-  unsigned char numFilters = reader.readC();
+  unsigned char numFilters=reader.readC();
 
-  for(int i = 0; i < numFilters; i++)
-  {
-    next = reader.readC();
+  for (int i=0; i<numFilters; i++) {
+    if (i>=4) break;
+    
+    next=reader.readC();
 
-    sid3.filt[i].enabled = next&0x80;
-    sid3.filt[i].init = next&0x40;
-    sid3.filt[i].absoluteCutoff = next&0x20;
-    sid3.filt[i].bindCutoffToNote = next&0x10;
-    sid3.filt[i].bindCutoffToNoteDir = next&8;
-    sid3.filt[i].bindCutoffOnNote = next&4;
-    sid3.filt[i].bindResonanceToNote = next&2;
-    sid3.filt[i].bindResonanceToNoteDir = next&1;
+    sid3.filt[i].enabled=next&0x80;
+    sid3.filt[i].init=next&0x40;
+    sid3.filt[i].absoluteCutoff=next&0x20;
+    sid3.filt[i].bindCutoffToNote=next&0x10;
+    sid3.filt[i].bindCutoffToNoteDir=next&8;
+    sid3.filt[i].bindCutoffOnNote=next&4;
+    sid3.filt[i].bindResonanceToNote=next&2;
+    sid3.filt[i].bindResonanceToNoteDir=next&1;
 
-    next = reader.readC();
+    next=reader.readC();
 
-    sid3.filt[i].bindResonanceOnNote = next&0x80;
+    sid3.filt[i].bindResonanceOnNote=next&0x80;
 
-    sid3.filt[i].cutoff = reader.readS();
+    sid3.filt[i].cutoff=reader.readS();
 
-    sid3.filt[i].resonance = reader.readC();
-    sid3.filt[i].output_volume = reader.readC();
-    sid3.filt[i].distortion_level = reader.readC();
-    sid3.filt[i].mode = reader.readC();
-    sid3.filt[i].filter_matrix = reader.readC();
+    sid3.filt[i].resonance=reader.readC();
+    sid3.filt[i].output_volume=reader.readC();
+    sid3.filt[i].distortion_level=reader.readC();
+    sid3.filt[i].mode=reader.readC();
+    sid3.filt[i].filter_matrix=reader.readC();
 
-    sid3.filt[i].bindCutoffToNoteStrength = reader.readC();
-    sid3.filt[i].bindCutoffToNoteCenter = reader.readC();
-    sid3.filt[i].bindResonanceToNoteStrength = reader.readC();
-    sid3.filt[i].bindResonanceToNoteCenter = reader.readC();
+    sid3.filt[i].bindCutoffToNoteStrength=reader.readC();
+    sid3.filt[i].bindCutoffToNoteCenter=reader.readC();
+    sid3.filt[i].bindResonanceToNoteStrength=reader.readC();
+    sid3.filt[i].bindResonanceToNoteCenter=reader.readC();
   }
 
   READ_FEAT_END;

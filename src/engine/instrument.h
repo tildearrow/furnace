@@ -864,8 +864,7 @@ struct DivInstrumentSID2 {
     noiseMode(0) {}
 };
 
-struct DivInstrumentSID3
-{
+struct DivInstrumentSID3 {
   bool triOn, sawOn, pulseOn, noiseOn;
   unsigned char a, d, s, r;
   unsigned char sr;
@@ -884,8 +883,7 @@ struct DivInstrumentSID3
   unsigned char feedback;
   unsigned char mixMode;
 
-  struct Filter 
-  {
+  struct Filter {
     unsigned short cutoff;
     unsigned char resonance;
     unsigned char output_volume;
@@ -895,23 +893,22 @@ struct DivInstrumentSID3
     bool init;
     unsigned char filter_matrix;
 
-    //this is done purely in software
+    // this is done purely in software
     bool absoluteCutoff;
     bool bindCutoffToNote;
-    unsigned char bindCutoffToNoteStrength; //how much cutoff changes over e.g. 1 semitone
-    unsigned char bindCutoffToNoteCenter; //central note of the cutoff change
-    bool bindCutoffToNoteDir; //if we decrease or increase cutoff if e.g. we go upper in note space
-    bool bindCutoffOnNote; //only do cutoff scaling once, on new note
+    unsigned char bindCutoffToNoteStrength; // how much cutoff changes over e.g. 1 semitone
+    unsigned char bindCutoffToNoteCenter; // central note of the cutoff change
+    bool bindCutoffToNoteDir; // if we decrease or increase cutoff if e.g. we go upper in note space
+    bool bindCutoffOnNote; // only do cutoff scaling once, on new note
 
     bool bindResonanceToNote;
-    unsigned char bindResonanceToNoteStrength; //how much resonance changes over e.g. 1 semitone
-    unsigned char bindResonanceToNoteCenter; //central note of the resonance change
-    bool bindResonanceToNoteDir; //if we decrease or increase resonance if e.g. we go upper in note space
-    bool bindResonanceOnNote; //only do resonance scaling once, on new note
+    unsigned char bindResonanceToNoteStrength; // how much resonance changes over e.g. 1 semitone
+    unsigned char bindResonanceToNoteCenter; // central note of the resonance change
+    bool bindResonanceToNoteDir; // if we decrease or increase resonance if e.g. we go upper in note space
+    bool bindResonanceOnNote; // only do resonance scaling once, on new note
 
     bool operator==(const Filter& other);
-    bool operator!=(const Filter& other) 
-    {
+    bool operator!=(const Filter& other) {
       return !(*this==other);
     }
     Filter():
@@ -937,8 +934,7 @@ struct DivInstrumentSID3
   } filt[4];
   
   bool operator==(const DivInstrumentSID3& other);
-  bool operator!=(const DivInstrumentSID3& other) 
-  {
+  bool operator!=(const DivInstrumentSID3& other) {
     return !(*this==other);
   }
   DivInstrumentSID3():
@@ -967,10 +963,9 @@ struct DivInstrumentSID3
     resetDuty(false),
     phaseInv(0),
     feedback(0),
-    mixMode(0)
-    {
-      filt[0].mode = 16 | 32; //default settings so filter just works, connect to input and channel output
-      filt[0].output_volume = 0xff;
+    mixMode(0) {
+      filt[0].mode=16|32; // default settings so filter just works, connect to input and channel output
+      filt[0].output_volume=0xff;
     }
 };
 
