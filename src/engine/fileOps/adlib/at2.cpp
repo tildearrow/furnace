@@ -2411,8 +2411,6 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             }
         }
 
-        ds.insLen = ds.ins.size();
-
         if(version >= 12)
         {
             for(int i = 0; i < songInfo->ins_4op_flags.num_4op; i++) //adapt 4-op instruments
@@ -2882,6 +2880,102 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             }
         }
 
+        /*
+        ┌─────┬──────────────┐
+        │ BiT │ SWiTCH       │
+        ├─────┼──────────────┤
+        │  0  │ tracks 1,2   │
+        │  1  │ tracks 3,4   │
+        │  2  │ tracks 5,6   │
+        │  3  │ tracks 10,11 │
+        │  4  │ tracks 12,13 │
+        │  5  │ tracks 14,15 │
+        │  6  │ %unused%     │
+        │  7  │ %unused%     │
+        └─────┴──────────────┘
+        */
+
+        if(version >= 10)
+        {
+            bool fouropChans[6] = { false };
+
+            for(int i = 0; i < 6; i++)
+            {
+                if(songInfo->flag_4op & (1 << i))
+                {
+                    fouropChans[i] = true;
+                }
+            }
+
+            bool ins4oped[256] = { 0 };
+            int ins4opedindex[256] = { 0 };
+
+            for(int i = 0; i < 12; i += 2) //go through 4-op channels
+            {
+                if(fouropChans[i / 2])
+                {
+                    for(int p = 0; p < s->ordersLen; p++)
+                    {
+                        for(int r = 0; r < s->patLen; r++)
+                        {
+                            DivPattern* pat1 = s->pat[i].getPattern(s->orders.ord[i][p], true);
+                            DivPattern* pat2 = s->pat[i + 1].getPattern(s->orders.ord[i + 1][p], true);
+
+                            if(pat1->data[r][2] != -1 && pat2->data[r][2] != -1) //instruments synced
+                            {
+                                if(pat1->data[r][0] == 0 && pat1->data[r][1] == 0 && (pat2->data[r][0] != 0 || pat2->data[r][1] != 0)) //if one of the patterns is missing note info
+                                {
+                                    pat1->data[r][0] = pat2->data[r][0];
+                                    pat1->data[r][1] = pat2->data[r][1];
+                                }
+                                if(pat2->data[r][0] == 0 && pat2->data[r][1] == 0 && (pat1->data[r][0] != 0 || pat1->data[r][1] != 0))
+                                {
+                                    pat2->data[r][0] = pat1->data[r][0];
+                                    pat2->data[r][1] = pat1->data[r][1];
+                                }
+
+                                int insIndex = pat1->data[r][2];
+                                int insIndex2 = pat2->data[r][2];
+
+                                if(!ins4oped[insIndex])
+                                {
+                                    //now we make a copy of instrument and give it 4-op status and data from 2nd instrument
+
+                                    DivInstrument* ins1 = ds.ins[insIndex];
+                                    DivInstrument* ins2 = ds.ins[insIndex2];
+
+                                    ds.ins.push_back(new DivInstrument());
+
+                                    DivInstrument* ins4op = ds.ins[(int)ds.ins.size() - 1];
+                                    
+                                    ins4op->type = DIV_INS_OPL;
+                                    ins4op->fm.alg = ins2->fm.alg | (ins1->fm.alg << 1);
+                                    ins4op->fm.fb = ins1->fm.fb;
+
+                                    memcpy((void*)&ins4op->fm.op[0], (void*)&ins2->fm.op[0], sizeof(DivInstrumentFM::Operator)); //what the fuck is this ops order jesus
+                                    memcpy((void*)&ins4op->fm.op[1], (void*)&ins1->fm.op[0], sizeof(DivInstrumentFM::Operator));
+                                    memcpy((void*)&ins4op->fm.op[2], (void*)&ins2->fm.op[1], sizeof(DivInstrumentFM::Operator));
+                                    memcpy((void*)&ins4op->fm.op[3], (void*)&ins1->fm.op[1], sizeof(DivInstrumentFM::Operator));
+
+                                    ins4op->fm.ops = 4;
+
+                                    ins4op->name = ins1->name + " + " + ins2->name;
+                                    ins4op->name += " [4-op copy]";
+
+                                    ins4oped[insIndex] = true;
+                                    ins4opedindex[insIndex] = (int)ds.ins.size() - 1;
+                                }
+                                else
+                                {
+                                    pat1->data[r][2] = ins4opedindex[pat1->data[r][2]];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         s->optimizePatterns(); //if after converting effects we still have some duplicates
         s->rearrangePatterns();
 
@@ -2924,6 +3018,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             s->macroSpeedMult = songInfo->macro_speedup; //most probably tildearrow won't accept this...
         }
 
+        ds.insLen = ds.ins.size();
         ds.sampleLen = ds.sample.size();
         ds.waveLen = ds.wave.size();
 
