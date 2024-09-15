@@ -1816,7 +1816,7 @@ void a2t_instrument_import(DivSong& ds, void* data, int count, bool a2t, tSONGIN
 void AT2_adapt_fmregs_macros_len(DivInstrumentMacro* macro, tFMREG_TABLE* fmtable)
 {
     macro->len = fmtable->length;
-    macro->loop = fmtable->loop_begin - 1;
+    macro->loop = fmtable->loop_begin;
     
     if(fmtable->keyoff_pos > 0)
     {
@@ -2446,6 +2446,8 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             }
         }
 
+        ds.insLen = ds.ins.size();
+
         if(version >= 9) //adapt instrument macros
         {
             for(int i = 0; i < ds.insLen; i++)
@@ -2515,10 +2517,15 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
 
                         if(freqSlide != 0 && macroStep->duration != 0)
                         {
-                            hasFreqSlide = true; //pitch macro is also used for vibrato table, but I hope that in 99% cases freq slide is drum instument thing, so I overwrite potential vib table in pitch macro
-                            break;
+                            hasFreqSlide = true;
                         }
                     }
+
+                    songInfo->fmreg_table[i].loop_begin--;
+                    songInfo->fmreg_table[i].keyoff_pos--;
+
+                    int initialLoop = songInfo->fmreg_table[i].loop_begin;
+                    int initialRel = songInfo->fmreg_table[i].keyoff_pos;
 
                     for(int j = 0; j < songInfo->fmreg_table[i].length; j++)
                     {
@@ -2583,6 +2590,19 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                                 }
 
                                 macroPos++;
+                            }
+                            if(macroStep->duration > 1)
+                            {
+                                songInfo->fmreg_table[i].length += macroStep->duration - 1;
+
+                                if(j < initialLoop)
+                                {
+                                    songInfo->fmreg_table[i].loop_begin += macroStep->duration - 1;
+                                }
+                                if(j < initialRel)
+                                {
+                                    songInfo->fmreg_table[i].keyoff_pos += macroStep->duration - 1;
+                                }
                             }
                         }
 
@@ -2956,6 +2976,13 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                                     memcpy((void*)&ins4op->fm.op[1], (void*)&ins1->fm.op[0], sizeof(DivInstrumentFM::Operator));
                                     memcpy((void*)&ins4op->fm.op[2], (void*)&ins2->fm.op[1], sizeof(DivInstrumentFM::Operator));
                                     memcpy((void*)&ins4op->fm.op[3], (void*)&ins1->fm.op[1], sizeof(DivInstrumentFM::Operator));
+
+                                    memcpy((void*)&ins4op->std.volMacro, (void*)&ins1->std.volMacro, sizeof(DivInstrumentMacro) * (int)DIV_MACRO_EX8);
+
+                                    memcpy((void*)&ins4op->std.opMacros[0].amMacro, (void*)&ins2->std.opMacros[0].amMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+                                    memcpy((void*)&ins4op->std.opMacros[1].amMacro, (void*)&ins1->std.opMacros[0].amMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+                                    memcpy((void*)&ins4op->std.opMacros[2].amMacro, (void*)&ins2->std.opMacros[1].amMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+                                    memcpy((void*)&ins4op->std.opMacros[3].amMacro, (void*)&ins1->std.opMacros[1].amMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
 
                                     ins4op->fm.ops = 4;
 
