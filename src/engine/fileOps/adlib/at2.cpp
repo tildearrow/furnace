@@ -1633,6 +1633,128 @@ bool AT2ReadPatterns(DivSubSong* s, SafeReader& reader, int version, unsigned in
     return true;
 }
 
+void AT2_inst_import_v18(DivInstrument* ins, tSONGINFO& songInfo, int i, tINSTR_DATA_V1_8 *instr_s)
+{
+    char name[32];
+    memcpy(name, songInfo.instr_names[i], 31);
+    name[31] = '\0';
+    ins->name = name;
+    ins->type = DIV_INS_OPL;
+
+    ins->fm.op[0].mult = instr_s->fm.multipM;
+    ins->fm.op[0].ksr = instr_s->fm.ksrM;
+    ins->fm.op[0].sus = instr_s->fm.sustM;
+    ins->fm.op[0].vib = instr_s->fm.vibrM;
+    ins->fm.op[0].am = instr_s->fm.tremM;
+    ins->fm.op[0].tl = instr_s->fm.volM;
+    ins->fm.op[0].ksl = instr_s->fm.kslM;
+    ins->fm.op[0].ar = instr_s->fm.attckM;
+    ins->fm.op[0].dr = instr_s->fm.decM;
+    ins->fm.op[0].sl = instr_s->fm.sustnM;
+    ins->fm.op[0].rr = instr_s->fm.relM;
+    ins->fm.op[0].ws = instr_s->fm.wformM;
+
+    ins->fm.op[1].mult = instr_s->fm.multipC;
+    ins->fm.op[1].ksr = instr_s->fm.ksrC;
+    ins->fm.op[1].sus = instr_s->fm.sustC;
+    ins->fm.op[1].vib = instr_s->fm.vibrC;
+    ins->fm.op[1].am = instr_s->fm.tremC;
+    ins->fm.op[1].tl = instr_s->fm.volC;
+    ins->fm.op[1].ksl = instr_s->fm.kslC;
+    ins->fm.op[1].ar = instr_s->fm.attckC;
+    ins->fm.op[1].dr = instr_s->fm.decC;
+    ins->fm.op[1].sl = instr_s->fm.sustnC;
+    ins->fm.op[1].rr = instr_s->fm.relC;
+    ins->fm.op[1].ws = instr_s->fm.wformC;
+
+    ins->fm.fb = instr_s->fm.feedb;
+    ins->fm.alg = instr_s->fm.connect;
+
+    //panning (0=C,1=L,2=R)
+    
+    if(instr_s->panning == 0)
+    {
+        //ins->std.panLMacro.val[0] = 3;
+    }
+    if(instr_s->panning == 1)
+    {
+        ins->std.panLMacro.val[0] = 2;
+        ins->std.panLMacro.len = 1;
+    }
+    if(instr_s->panning == 2)
+    {
+        ins->std.panLMacro.val[0] = 1;
+        ins->std.panLMacro.len = 1;
+    }
+    //todo: finetune
+}
+
+void AT2_inst_import(DivInstrument* ins, tSONGINFO& songInfo, int i, tINSTR_DATA* instr_s)
+{
+    char name[32];
+    memcpy(name, songInfo.instr_names[i], 31);
+    name[31] = '\0';
+    ins->name = name;
+    ins->type = DIV_INS_OPL;
+
+    ins->fm.op[0].mult = instr_s->fm.multipM;
+    ins->fm.op[0].ksr = instr_s->fm.ksrM;
+    ins->fm.op[0].sus = instr_s->fm.sustM;
+    ins->fm.op[0].vib = instr_s->fm.vibrM;
+    ins->fm.op[0].am = instr_s->fm.tremM;
+    ins->fm.op[0].tl = instr_s->fm.volM;
+    ins->fm.op[0].ksl = instr_s->fm.kslM;
+    ins->fm.op[0].ar = instr_s->fm.attckM;
+    ins->fm.op[0].dr = instr_s->fm.decM;
+    ins->fm.op[0].sl = instr_s->fm.sustnM;
+    ins->fm.op[0].rr = instr_s->fm.relM;
+    ins->fm.op[0].ws = instr_s->fm.wformM;
+
+    ins->fm.op[1].mult = instr_s->fm.multipC;
+    ins->fm.op[1].ksr = instr_s->fm.ksrC;
+    ins->fm.op[1].sus = instr_s->fm.sustC;
+    ins->fm.op[1].vib = instr_s->fm.vibrC;
+    ins->fm.op[1].am = instr_s->fm.tremC;
+    ins->fm.op[1].tl = instr_s->fm.volC;
+    ins->fm.op[1].ksl = instr_s->fm.kslC;
+    ins->fm.op[1].ar = instr_s->fm.attckC;
+    ins->fm.op[1].dr = instr_s->fm.decC;
+    ins->fm.op[1].sl = instr_s->fm.sustnC;
+    ins->fm.op[1].rr = instr_s->fm.relC;
+    ins->fm.op[1].ws = instr_s->fm.wformC;
+
+    ins->fm.fb = instr_s->fm.feedb;
+    ins->fm.alg = instr_s->fm.connect;
+    //todo: finetune
+
+    if(instr_s->perc_voice > 1) //not bass drum
+    {
+        ins->type = DIV_INS_OPL_DRUMS;
+
+        if(instr_s->perc_voice > 2) //not snare
+        {
+            memcpy(&ins->fm.op[instr_s->perc_voice - 2], &ins->fm.op[0], sizeof(DivInstrumentFM::Operator));
+        }
+    }
+
+    //panning (0=C,1=L,2=R)
+    
+    if(instr_s->panning == 0)
+    {
+        //ins->std.panLMacro.val[0] = 3;
+    }
+    if(instr_s->panning == 1)
+    {
+        ins->std.panLMacro.val[0] = 2;
+        ins->std.panLMacro.len = 1;
+    }
+    if(instr_s->panning == 2)
+    {
+        ins->std.panLMacro.val[0] = 1;
+        ins->std.panLMacro.len = 1;
+    }
+}
+
 void a2t_instrument_import_v1_8(DivSong& ds, void* data, int count, bool a2t, tSONGINFO& songInfo)
 {
     for (int i = 0; i < count; i++) //instrument import
@@ -1655,58 +1777,7 @@ void a2t_instrument_import_v1_8(DivSong& ds, void* data, int count, bool a2t, tS
 
         DivInstrument* ins = ds.ins[i];
 
-        char name[32];
-        memcpy(name, songInfo.instr_names[i], 31);
-        name[31] = '\0';
-        ins->name = name;
-        ins->type = DIV_INS_OPL;
-
-        ins->fm.op[0].mult = instr_s->fm.multipM;
-        ins->fm.op[0].ksr = instr_s->fm.ksrM;
-        ins->fm.op[0].sus = instr_s->fm.sustM;
-        ins->fm.op[0].vib = instr_s->fm.vibrM;
-        ins->fm.op[0].am = instr_s->fm.tremM;
-        ins->fm.op[0].tl = instr_s->fm.volM;
-        ins->fm.op[0].ksl = instr_s->fm.kslM;
-        ins->fm.op[0].ar = instr_s->fm.attckM;
-        ins->fm.op[0].dr = instr_s->fm.decM;
-        ins->fm.op[0].sl = instr_s->fm.sustnM;
-        ins->fm.op[0].rr = instr_s->fm.relM;
-        ins->fm.op[0].ws = instr_s->fm.wformM;
-
-        ins->fm.op[1].mult = instr_s->fm.multipC;
-        ins->fm.op[1].ksr = instr_s->fm.ksrC;
-        ins->fm.op[1].sus = instr_s->fm.sustC;
-        ins->fm.op[1].vib = instr_s->fm.vibrC;
-        ins->fm.op[1].am = instr_s->fm.tremC;
-        ins->fm.op[1].tl = instr_s->fm.volC;
-        ins->fm.op[1].ksl = instr_s->fm.kslC;
-        ins->fm.op[1].ar = instr_s->fm.attckC;
-        ins->fm.op[1].dr = instr_s->fm.decC;
-        ins->fm.op[1].sl = instr_s->fm.sustnC;
-        ins->fm.op[1].rr = instr_s->fm.relC;
-        ins->fm.op[1].ws = instr_s->fm.wformC;
-
-        ins->fm.fb = instr_s->fm.feedb;
-        ins->fm.alg = instr_s->fm.connect;
-
-        //panning (0=C,1=L,2=R)
-        
-        if(instr_s->panning == 0)
-        {
-            //ins->std.panLMacro.val[0] = 3;
-        }
-        if(instr_s->panning == 1)
-        {
-            ins->std.panLMacro.val[0] = 2;
-            ins->std.panLMacro.len = 1;
-        }
-        if(instr_s->panning == 2)
-        {
-            ins->std.panLMacro.val[0] = 1;
-            ins->std.panLMacro.len = 1;
-        }
-        //todo: finetune
+        AT2_inst_import_v18(ins, songInfo, i, instr_s);
     }
 }
 
@@ -1738,68 +1809,7 @@ void a2t_instrument_import(DivSong& ds, void* data, int count, bool a2t, tSONGIN
         //dst->arpeggio = data->fmreg_table[i].arpeggio_table;
         //dst->vibrato = data->fmreg_table[i].vibrato_table;
 
-        char name[32];
-        memcpy(name, songInfo.instr_names[i], 31);
-        name[31] = '\0';
-        ins->name = name;
-        ins->type = DIV_INS_OPL;
-
-        ins->fm.op[0].mult = instr_s->fm.multipM;
-        ins->fm.op[0].ksr = instr_s->fm.ksrM;
-        ins->fm.op[0].sus = instr_s->fm.sustM;
-        ins->fm.op[0].vib = instr_s->fm.vibrM;
-        ins->fm.op[0].am = instr_s->fm.tremM;
-        ins->fm.op[0].tl = instr_s->fm.volM;
-        ins->fm.op[0].ksl = instr_s->fm.kslM;
-        ins->fm.op[0].ar = instr_s->fm.attckM;
-        ins->fm.op[0].dr = instr_s->fm.decM;
-        ins->fm.op[0].sl = instr_s->fm.sustnM;
-        ins->fm.op[0].rr = instr_s->fm.relM;
-        ins->fm.op[0].ws = instr_s->fm.wformM;
-
-        ins->fm.op[1].mult = instr_s->fm.multipC;
-        ins->fm.op[1].ksr = instr_s->fm.ksrC;
-        ins->fm.op[1].sus = instr_s->fm.sustC;
-        ins->fm.op[1].vib = instr_s->fm.vibrC;
-        ins->fm.op[1].am = instr_s->fm.tremC;
-        ins->fm.op[1].tl = instr_s->fm.volC;
-        ins->fm.op[1].ksl = instr_s->fm.kslC;
-        ins->fm.op[1].ar = instr_s->fm.attckC;
-        ins->fm.op[1].dr = instr_s->fm.decC;
-        ins->fm.op[1].sl = instr_s->fm.sustnC;
-        ins->fm.op[1].rr = instr_s->fm.relC;
-        ins->fm.op[1].ws = instr_s->fm.wformC;
-
-        ins->fm.fb = instr_s->fm.feedb;
-        ins->fm.alg = instr_s->fm.connect;
-        //todo: finetune
-
-        if(instr_s->perc_voice > 1) //not bass drum
-        {
-            ins->type = DIV_INS_OPL_DRUMS;
-
-            if(instr_s->perc_voice > 2) //not snare
-            {
-                memcpy(&ins->fm.op[instr_s->perc_voice - 2], &ins->fm.op[0], sizeof(DivInstrumentFM::Operator));
-            }
-        }
-
-        //panning (0=C,1=L,2=R)
-        
-        if(instr_s->panning == 0)
-        {
-            //ins->std.panLMacro.val[0] = 3;
-        }
-        if(instr_s->panning == 1)
-        {
-            ins->std.panLMacro.val[0] = 2;
-            ins->std.panLMacro.len = 1;
-        }
-        if(instr_s->panning == 2)
-        {
-            ins->std.panLMacro.val[0] = 1;
-            ins->std.panLMacro.len = 1;
-        }
+        AT2_inst_import(ins, songInfo, i, instr_s);
     }
 }
 
