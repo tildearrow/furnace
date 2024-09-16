@@ -950,7 +950,7 @@ struct DivInstrumentSID3 {
     pulseOn(false),
     noiseOn(false),
     a(0),
-    d(8),
+    d(64),
     s(0),
     r(0),
     sr(0),
