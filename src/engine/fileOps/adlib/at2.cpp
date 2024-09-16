@@ -2452,10 +2452,10 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
         {
             for(int i = 0; i < ds.insLen; i++)
             {
-                int arpTableNum = songInfo->fmreg_table[i].arpeggio_table;
-                //int vibTableNum = songInfo->fmreg_table[i].vibrato_table;
+                int arpTableNum = songInfo->fmreg_table[i].arpeggio_table - 1;
+                //int vibTableNum = songInfo->fmreg_table[i].vibrato_table - 1;
 
-                if(songInfo->arpvib_table[arpTableNum].arpeggio.length > 0 && songInfo->arpvib_table[arpTableNum].arpeggio.speed > 0)
+                if(songInfo->arpvib_table[arpTableNum].arpeggio.length > 0 && songInfo->arpvib_table[arpTableNum].arpeggio.speed > 0 && arpTableNum >= 0)
                 {
                     DivInstrument* ins = ds.ins[i];
 
@@ -2481,7 +2481,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                     ins->std.arpMacro.speed = songInfo->arpvib_table[arpTableNum].arpeggio.speed;
                 }
 
-                /*if(songInfo->arpvib_table[vibTableNum].vibrato.length > 0 && songInfo->arpvib_table[vibTableNum].vibrato.speed > 0)
+                /*if(songInfo->arpvib_table[vibTableNum].vibrato.length > 0 && songInfo->arpvib_table[vibTableNum].vibrato.speed > 0 && vibTableNum >= 0)
                 {
                     DivInstrument* ins = ds.ins[i];
 
@@ -2987,7 +2987,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                                     ins4op->fm.ops = 4;
 
                                     ins4op->name = ins1->name + " + " + ins2->name;
-                                    ins4op->name += " [4-op copy]";
+                                    ins4op->name += _(" [4-op copy]");
 
                                     ins4oped[insIndex] = true;
                                     ins4opedindex[insIndex] = (int)ds.ins.size() - 1;
