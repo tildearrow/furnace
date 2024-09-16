@@ -1577,7 +1577,7 @@ void* DivEngine::getDispatchChanState(int ch) {
 
 void DivEngine::getChanPaired(int ch, std::vector<DivChannelPair>& ret) {
   if (ch<0 || ch>=chans) return;
-  disCont[dispatchOfChan[ch]].dispatch->getPaired(dispatchChanOfChan[ch], ret);
+  disCont[dispatchOfChan[ch]].dispatch->getPaired(dispatchChanOfChan[ch],ret);
 }
 
 DivChannelModeHints DivEngine::getChanModeHints(int ch) {

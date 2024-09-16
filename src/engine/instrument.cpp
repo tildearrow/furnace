@@ -1044,6 +1044,14 @@ void DivInstrument::writeFeatureS2(SafeWriter* w) {
 void DivInstrument::writeFeatureS3(SafeWriter* w) {
   FEATURE_BEGIN("S3");
 
+  w->writeC(
+    (sid3.dutyIsAbs?0x80:0)|
+    (sid3.noiseOn?8:0)|
+    (sid3.pulseOn?4:0)|
+    (sid3.sawOn?2:0)|
+    (sid3.triOn?1:0)
+  );
+
   w->writeC(sid3.a);
   w->writeC(sid3.d);
   w->writeC(sid3.s);
@@ -1052,12 +1060,17 @@ void DivInstrument::writeFeatureS3(SafeWriter* w) {
 
   w->writeC(sid3.mixMode);
 
+  w->writeS(sid3.duty);
+
   w->writeC(
     (sid3.phase_mod?0x80:0)|
     (sid3.specialWaveOn?0x40:0)|
     (sid3.oneBitNoise?0x20:0)|
     (sid3.separateNoisePitch?0x10:0)|
-    (sid3.doWavetable?8:0)
+    (sid3.doWavetable?8:0)|
+    (sid3.resetDuty?4:0)|
+    (sid3.oscSync?2:0)|
+    (sid3.ringMod?1:0)
   );
 
   w->writeC(sid3.phase_mod_source);
@@ -1067,10 +1080,9 @@ void DivInstrument::writeFeatureS3(SafeWriter* w) {
   w->writeC(sid3.phaseInv);
   w->writeC(sid3.feedback);
 
-  w->writeC(4); //number of filters
+  w->writeC(4); // number of filters
 
-  for(int i = 0; i < 4; i++)
-  {
+  for (int i=0; i<4; i++) {
     w->writeC(
       (sid3.filt[i].enabled?0x80:0)|
       (sid3.filt[i].init?0x40:0)|
@@ -2473,21 +2485,34 @@ void DivInstrument::readFeatureS2(SafeReader& reader, short version) {
 void DivInstrument::readFeatureS3(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
+  unsigned char next=reader.readC();
+
+  sid3.dutyIsAbs=next&0x80;
+  sid3.noiseOn=next&8;
+  sid3.pulseOn=next&4;
+  sid3.sawOn=next&2;
+  sid3.triOn=next&1;
+
   sid3.a=reader.readC();
   sid3.d=reader.readC();
   sid3.s=reader.readC();
   sid3.sr=reader.readC();
   sid3.r=reader.readC();
 
-  sid2.mixMode=reader.readC();
+  sid3.mixMode=reader.readC();
 
-  unsigned char next=reader.readC();
+  sid3.duty=reader.readS();
+
+  next=reader.readC();
 
   sid3.phase_mod=next&0x80;
   sid3.specialWaveOn=next&0x40;
   sid3.oneBitNoise=next&0x20;
   sid3.separateNoisePitch=next&0x10;
   sid3.doWavetable=next&8;
+  sid3.resetDuty=next&4;
+  sid3.oscSync=next&2;
+  sid3.ringMod=next&1;
 
   sid3.phase_mod_source=reader.readC();
   sid3.ring_mod_source=reader.readC();

@@ -700,23 +700,33 @@ size | description
 ```
 size | description
 -----|------------------------------------
+  1  | flags 1
+     | - bit 7: dutyIsAbs
+     | - bit 3: noise on
+     | - bit 2: pulse on
+     | - bit 1: saw on
+     | - bit 0: triangle on
   1  | attack
   1  | decay
   1  | sustain
   1  | sustain rate
   1  | release
   1  | wave mix mode
-  1  | parameters
+  2  | duty
+  1  | flags 2
      | - bit 7: phase modulation
      | - bit 6: enable special wave
      | - bit 5: 1-bit noise
      | - bit 4: separate noise pitch
-     | - bit 3: wavetable channel
+     | - bit 3: do wavetable
+     | - bit 2: reset duty on new note
+     | - bit 1: osc sync
+     | - bit 0: ring mod
   1  | phase modulation source channel
   1  | ring modulation source channel
   1  | hard sync source channel
   1  | special wave
-  1  | parameters
+  1  | flags 3
      | - bit 1: left channel signal inversion
      | - bit 0: right channel signal inversion
   1  | feedback
