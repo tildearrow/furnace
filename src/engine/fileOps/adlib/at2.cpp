@@ -2453,54 +2453,60 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
             for(int i = 0; i < ds.insLen; i++)
             {
                 int arpTableNum = songInfo->fmreg_table[i].arpeggio_table - 1;
-                //int vibTableNum = songInfo->fmreg_table[i].vibrato_table - 1;
+                int vibTableNum = songInfo->fmreg_table[i].vibrato_table - 1;
 
-                if(songInfo->arpvib_table[arpTableNum].arpeggio.length > 0 && songInfo->arpvib_table[arpTableNum].arpeggio.speed > 0 && arpTableNum >= 0)
+                if(arpTableNum >= 0)
                 {
-                    DivInstrument* ins = ds.ins[i];
-
-                    ins->std.arpMacro.len = songInfo->arpvib_table[arpTableNum].arpeggio.length;
-
-                    for(int j = 0; j < ins->std.arpMacro.len; j++)
+                    if(songInfo->arpvib_table[arpTableNum].arpeggio.length > 0 && songInfo->arpvib_table[arpTableNum].arpeggio.speed > 0)
                     {
-                        ins->std.arpMacro.val[j] = songInfo->arpvib_table[arpTableNum].arpeggio.data[j] & 127;
+                        DivInstrument* ins = ds.ins[i];
 
-                        if((songInfo->arpvib_table[arpTableNum].arpeggio.data[j] & 128) && (songInfo->arpvib_table[arpTableNum].arpeggio.data[j] & 127) != 0)
+                        ins->std.arpMacro.len = songInfo->arpvib_table[arpTableNum].arpeggio.length;
+
+                        for(int j = 0; j < ins->std.arpMacro.len; j++)
                         {
-                            ins->std.arpMacro.val[j] |= 1 << 30;
+                            ins->std.arpMacro.val[j] = songInfo->arpvib_table[arpTableNum].arpeggio.data[j] & 127;
+
+                            if((songInfo->arpvib_table[arpTableNum].arpeggio.data[j] & 128) && (songInfo->arpvib_table[arpTableNum].arpeggio.data[j] & 127) != 0)
+                            {
+                                ins->std.arpMacro.val[j] |= 1 << 30;
+                            }
                         }
-                    }
 
-                    ins->std.arpMacro.loop = songInfo->arpvib_table[arpTableNum].arpeggio.loop_begin - 1;
-                    
-                    if(songInfo->arpvib_table[arpTableNum].arpeggio.keyoff_pos)
-                    {
-                        ins->std.arpMacro.rel = songInfo->arpvib_table[arpTableNum].arpeggio.keyoff_pos;
-                    }
+                        ins->std.arpMacro.loop = songInfo->arpvib_table[arpTableNum].arpeggio.loop_begin - 1;
+                        
+                        if(songInfo->arpvib_table[arpTableNum].arpeggio.keyoff_pos)
+                        {
+                            ins->std.arpMacro.rel = songInfo->arpvib_table[arpTableNum].arpeggio.keyoff_pos;
+                        }
 
-                    ins->std.arpMacro.speed = songInfo->arpvib_table[arpTableNum].arpeggio.speed;
+                        ins->std.arpMacro.speed = songInfo->arpvib_table[arpTableNum].arpeggio.speed;
+                    }
                 }
 
-                /*if(songInfo->arpvib_table[vibTableNum].vibrato.length > 0 && songInfo->arpvib_table[vibTableNum].vibrato.speed > 0 && vibTableNum >= 0)
+                if(vibTableNum >= 0)
                 {
-                    DivInstrument* ins = ds.ins[i];
-
-                    ins->std.pitchMacro.len = songInfo->arpvib_table[vibTableNum].vibrato.length;
-
-                    for(int j = 0; j < ins->std.pitchMacro.len; j++)
+                    if(songInfo->arpvib_table[vibTableNum].vibrato.length > 0 && songInfo->arpvib_table[vibTableNum].vibrato.speed > 0)
                     {
-                        ins->std.pitchMacro.val[j] = songInfo->arpvib_table[vibTableNum].vibrato.data[j];
-                    }
+                        DivInstrument* ins = ds.ins[i];
 
-                    ins->std.pitchMacro.loop = songInfo->arpvib_table[vibTableNum].vibrato.loop_begin - 1;
-                    
-                    if(songInfo->arpvib_table[vibTableNum].vibrato.keyoff_pos)
-                    {
-                        ins->std.pitchMacro.rel = songInfo->arpvib_table[vibTableNum].vibrato.keyoff_pos;
+                        ins->std.pitchMacro.len = songInfo->arpvib_table[vibTableNum].vibrato.length;
+
+                        for(int j = 0; j < ins->std.pitchMacro.len; j++)
+                        {
+                            ins->std.pitchMacro.val[j] = songInfo->arpvib_table[vibTableNum].vibrato.data[j];
+                        }
+
+                        ins->std.pitchMacro.loop = songInfo->arpvib_table[vibTableNum].vibrato.loop_begin - 1;
+                        
+                        if(songInfo->arpvib_table[vibTableNum].vibrato.keyoff_pos)
+                        {
+                            ins->std.pitchMacro.rel = songInfo->arpvib_table[vibTableNum].vibrato.keyoff_pos;
+                        }
+                        
+                        ins->std.pitchMacro.speed = songInfo->arpvib_table[vibTableNum].vibrato.speed;
                     }
-                    
-                    ins->std.pitchMacro.speed = songInfo->arpvib_table[vibTableNum].vibrato.speed;
-                }*/
+                }
 
                 if(songInfo->fmreg_table[i].length > 0) //the big ass unified macro for all the macros...
                 {
@@ -2977,7 +2983,7 @@ bool DivEngine::loadAT2(unsigned char* file, size_t len)
                                     memcpy((void*)&ins4op->fm.op[2], (void*)&ins2->fm.op[1], sizeof(DivInstrumentFM::Operator));
                                     memcpy((void*)&ins4op->fm.op[3], (void*)&ins1->fm.op[1], sizeof(DivInstrumentFM::Operator));
 
-                                    memcpy((void*)&ins4op->std.volMacro, (void*)&ins1->std.volMacro, sizeof(DivInstrumentMacro) * (int)DIV_MACRO_EX8);
+                                    memcpy((void*)&ins4op->std.volMacro, (void*)&ins1->std.volMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_EX8 + 1));
 
                                     memcpy((void*)&ins4op->std.opMacros[0].amMacro, (void*)&ins2->std.opMacros[0].amMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
                                     memcpy((void*)&ins4op->std.opMacros[1].amMacro, (void*)&ins1->std.opMacros[0].amMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
