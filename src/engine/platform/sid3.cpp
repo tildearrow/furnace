@@ -856,12 +856,6 @@ int DivPlatformSID3::dispatch(DivCommand c) {
         chan[c.chan].sr=ins->sid3.sr;
         chan[c.chan].release=ins->sid3.r;
 
-        if(ins->sid3.resetDuty)
-        {
-          chan[c.chan].duty=ins->sid3.duty;
-          updateDuty(c.chan);
-        }
-
         chan[c.chan].sync = ins->sid3.oscSync;
         chan[c.chan].ring = ins->sid3.ringMod;
         chan[c.chan].phase = ins->sid3.phase_mod;
@@ -912,6 +906,11 @@ int DivPlatformSID3::dispatch(DivCommand c) {
             ws.init(ins,256,255,chan[c.chan].insChanged);
           }
         }
+      }
+      if(ins->sid3.resetDuty||chan[c.chan].insChanged)
+      {
+        chan[c.chan].duty=ins->sid3.duty;
+        updateDuty(c.chan);
       }
       if (chan[c.chan].insChanged) {
         chan[c.chan].insChanged=false;
