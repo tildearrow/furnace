@@ -954,7 +954,7 @@ struct DivInstrumentSID3 {
     s(0),
     r(0),
     sr(0),
-    duty(2048),
+    duty(32768),
     ringMod(0),
     oscSync(0),
     phase_mod(false),
