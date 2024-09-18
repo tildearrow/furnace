@@ -19,6 +19,7 @@
 
 #include "opl.h"
 #include "../engine.h"
+#include "../bsr.h"
 #include "../../ta-log.h"
 #include <string.h>
 #include <math.h>
@@ -1386,39 +1387,12 @@ void DivPlatformOPL::tick(bool sysTick) {
         double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
         chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,(524288*768)));
         if (chan[i].freq<0x400) chan[i].freq=0x400;
-        if (chan[i].freq>0x3ffffff) chan[i].freq=0x3ffffff;
-        if (chan[i].freq>=0x2000000) {
+        chan[i].freqH=0;
+        if (chan[i].freq>0x3ffffff) {
+          chan[i].freq=0x3ffffff;
           chan[i].freqH=15;
-        } else if (chan[i].freq>=0x1000000) {
-          chan[i].freqH=14;
-        } else if (chan[i].freq>=0x800000) {
-          chan[i].freqH=13;
-        } else if (chan[i].freq>=0x400000) {
-          chan[i].freqH=12;
-        } else if (chan[i].freq>=0x200000) {
-          chan[i].freqH=11;
-        } else if (chan[i].freq>=0x100000) {
-          chan[i].freqH=10;
-        } else if (chan[i].freq>=0x80000) {
-          chan[i].freqH=9;
-        } else if (chan[i].freq>=0x40000) {
-          chan[i].freqH=8;
-        } else if (chan[i].freq>=0x20000) {
-          chan[i].freqH=7;
-        } else if (chan[i].freq>=0x10000) {
-          chan[i].freqH=6;
-        } else if (chan[i].freq>=0x8000) {
-          chan[i].freqH=5;
-        } else if (chan[i].freq>=0x4000) {
-          chan[i].freqH=4;
-        } else if (chan[i].freq>=0x2000) {
-          chan[i].freqH=3;
-        } else if (chan[i].freq>=0x1000) {
-          chan[i].freqH=2;
         } else if (chan[i].freq>=0x800) {
-          chan[i].freqH=1;
-        } else {
-          chan[i].freqH=0;
+          chan[i].freqH=bsr32(chan[i].freq)-11;
         }
         chan[i].freqL=(chan[i].freq>>chan[i].freqH)&0x3ff;
         chan[i].freqH=8^chan[i].freqH;
@@ -1528,44 +1502,15 @@ void DivPlatformOPL::tick(bool sysTick) {
 #define OPLL_C_NUM 686
 
 int DivPlatformOPL::octave(int freq) {
-  if (freq>=OPLL_C_NUM*64) {
-    return 128;
-  } else if (freq>=OPLL_C_NUM*32) {
-    return 64;
-  } else if (freq>=OPLL_C_NUM*16) {
-    return 32;
-  } else if (freq>=OPLL_C_NUM*8) {
-    return 16;
-  } else if (freq>=OPLL_C_NUM*4) {
-    return 8;
-  } else if (freq>=OPLL_C_NUM*2) {
-    return 4;
-  } else if (freq>=OPLL_C_NUM) {
-    return 2;
-  } else {
-    return 1;
-  }
-  return 1;
+  freq/=OPLL_C_NUM;
+  if (freq==0) return 1;
+  return 1<<bsr(freq);
 }
 
 int DivPlatformOPL::toFreq(int freq) {
-  if (freq>=OPLL_C_NUM*64) {
-    return 0x1c00|((freq>>7)&0x3ff);
-  } else if (freq>=OPLL_C_NUM*32) {
-    return 0x1800|((freq>>6)&0x3ff);
-  } else if (freq>=OPLL_C_NUM*16) {
-    return 0x1400|((freq>>5)&0x3ff);
-  } else if (freq>=OPLL_C_NUM*8) {
-    return 0x1000|((freq>>4)&0x3ff);
-  } else if (freq>=OPLL_C_NUM*4) {
-    return 0xc00|((freq>>3)&0x3ff);
-  } else if (freq>=OPLL_C_NUM*2) {
-    return 0x800|((freq>>2)&0x3ff);
-  } else if (freq>=OPLL_C_NUM) {
-    return 0x400|((freq>>1)&0x3ff);
-  } else {
-    return freq&0x3ff;
-  }
+  int block=freq/OPLL_C_NUM;
+  if (block>0) block=bsr(block);
+  return (block<<10)|((freq>>block)&0x3ff);
 }
 
 void DivPlatformOPL::muteChannel(int ch, bool mute) {

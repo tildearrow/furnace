@@ -27,6 +27,7 @@ extern "C" {
 #include "../../extern/Nuked-OPLL/opll.h"
 }
 #include "../engine/platform/sound/ymfm/ymfm_opz.h"
+#include "../engine/bsr.h"
 
 #define OPN_WRITE(addr,val) \
   OPN2_Write((ym3438_t*)fmPreviewOPN,0,(addr)); \
@@ -388,9 +389,9 @@ void FurnaceGUI::renderFMPreviewESFM(const DivInstrumentFM& params, const DivIns
         double fbase=(mult0?2048.0:1024.0)*pow(2.0,(float)offset/(128.0*12.0));
         int bf=round(fbase);
         int block=0;
-        while (bf>0x3ff) {
-          bf>>=1;
-          block++;
+        if (bf>0x3ff) {
+          block=bsr32(bf)-10;
+          bf>>=block;
         }
         freqL=bf&0xff;
         freqH=((block&7)<<2)|((bf>>8)&3);

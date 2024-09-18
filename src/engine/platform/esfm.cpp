@@ -19,6 +19,7 @@
 
 #include "esfm.h"
 #include "../engine.h"
+#include "../bsr.h"
 #include "../../ta-log.h"
 #include <string.h>
 #include <stdio.h>
@@ -366,21 +367,19 @@ void DivPlatformESFM::tick(bool sysTick) {
 }
 
 int DivPlatformESFM::octave(int freq) {
-  int result=1;
-  while (freq>0x3ff) {
-    freq>>=1;
-    result<<=1;
+  if (freq>0x3ff) {
+    return 1<<(bsr32(freq)-10);
   }
-  return result;
+  return 1;
 }
 
 int DivPlatformESFM::toFreq(int freq) {
   int block=0;
-  while (freq>0x3ff) {
-    freq>>=1;
-    block++;
+  if (freq>0x3ff) {
+    block=bsr32(freq)-10;
+    freq>>=block;
   }
-  return ((block&7)<<10)|(freq&0x3ff);
+  return (block<<10)|(freq&0x3ff);
 }
 
 void DivPlatformESFM::muteChannel(int ch, bool mute) {

@@ -19,6 +19,7 @@
 
 #include "opll.h"
 #include "../engine.h"
+#include "../bsr.h"
 #include "../../ta-log.h"
 #include <string.h>
 #include <math.h>
@@ -352,44 +353,15 @@ void DivPlatformOPLL::tick(bool sysTick) {
 #define OPLL_C_NUM 343
 
 int DivPlatformOPLL::octave(int freq) {
-  if (freq>=OPLL_C_NUM*64) {
-    return 128;
-  } else if (freq>=OPLL_C_NUM*32) {
-    return 64;
-  } else if (freq>=OPLL_C_NUM*16) {
-    return 32;
-  } else if (freq>=OPLL_C_NUM*8) {
-    return 16;
-  } else if (freq>=OPLL_C_NUM*4) {
-    return 8;
-  } else if (freq>=OPLL_C_NUM*2) {
-    return 4;
-  } else if (freq>=OPLL_C_NUM) {
-    return 2;
-  } else {
-    return 1;
-  }
-  return 1;
+  freq/=OPLL_C_NUM;
+  if (freq==0) return 1;
+  return 1<<bsr(freq);
 }
 
 int DivPlatformOPLL::toFreq(int freq) {
-  if (freq>=OPLL_C_NUM*64) {
-    return 0xe00|((freq>>7)&0x1ff);
-  } else if (freq>=OPLL_C_NUM*32) {
-    return 0xc00|((freq>>6)&0x1ff);
-  } else if (freq>=OPLL_C_NUM*16) {
-    return 0xa00|((freq>>5)&0x1ff);
-  } else if (freq>=OPLL_C_NUM*8) {
-    return 0x800|((freq>>4)&0x1ff);
-  } else if (freq>=OPLL_C_NUM*4) {
-    return 0x600|((freq>>3)&0x1ff);
-  } else if (freq>=OPLL_C_NUM*2) {
-    return 0x400|((freq>>2)&0x1ff);
-  } else if (freq>=OPLL_C_NUM) {
-    return 0x200|((freq>>1)&0x1ff);
-  } else {
-    return freq&0x1ff;
-  }
+  int block=freq/OPLL_C_NUM;
+  if (block>0) block=bsr(block);
+  return (block<<9)|((freq>>block)&0x1ff);
 }
 
 void DivPlatformOPLL::muteChannel(int ch, bool mute) {
