@@ -49,6 +49,10 @@ Furnace achieves the authentic sound of videogame hardware by emulating sound ch
   - **YMF262-LLE**: a new core written by the author of the Nuked cores. it features _extremely_ accurate emulation.
     - this core uses even more CPU than YM3812-LLE. not suitable for playback or even rendering if you're impatient!
 
+- **OPL4 core**:
+  - **Nuked-OPL3 (FM) + openMSX (PCM)**: high quality OPL4 emulation core.
+  - **ymfm**: this core is supposed to use less CPU than Nuked-OPL3, but for some reason it actually doesn't.
+
 - **ESFM core**:
   - **ESFMu**: the ESFM emulator. best choice but CPU intensive.
   - **ESFMu (fast)**: this is a modification of ESFMu to reduce CPU usage at the cost of less accuracy.
