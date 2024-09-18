@@ -1797,15 +1797,27 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
   /* logV("f-num: %d block: %d",bf,block); */ \
   return bf|(block<<bits);
 
-int DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int bits) {
+#define CONVERT_FNUM_FIXEDBLOCK(bf,bits,block) \
+  bf>>=(block); \
+  if (bf<0) bf=0; \
+  if (bf>((1<<(bits))-1)) { \
+    bf=(1<<(bits))-1; \
+  } \
+  return bf|((block)<<(bits));
+
+int DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int bits, int fixedBlock) {
   if (song.linearPitch==2) { // full linear
     return (note<<7);
   }
   int bf=calcBaseFreq(clock,divider,note,false);
-  CONVERT_FNUM_BLOCK(bf,bits,note)
+  if (fixedBlock>0) {
+    CONVERT_FNUM_FIXEDBLOCK(bf,bits,fixedBlock-1);
+  } else {
+    CONVERT_FNUM_BLOCK(bf,bits,note);
+  }
 }
 
-int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period, int octave, int pitch2, double clock, double divider, int blockBits) {
+int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period, int octave, int pitch2, double clock, double divider, int blockBits, int fixedBlock) {
   if (song.linearPitch==2) {
     // do frequency calculation here
     int nbase=base+pitch+pitch2;
@@ -1821,7 +1833,11 @@ int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period
            round((clock/fbase)/divider):
            round(fbase*(divider/clock));
     if (blockBits>0) {
-      CONVERT_FNUM_BLOCK(bf,blockBits,nbase>>7)
+      if (fixedBlock>0) {
+        CONVERT_FNUM_FIXEDBLOCK(bf,blockBits,fixedBlock-1);
+      } else {
+        CONVERT_FNUM_BLOCK(bf,blockBits,nbase>>7);
+      }
     } else {
       return bf;
     }

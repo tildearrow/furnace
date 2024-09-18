@@ -295,11 +295,16 @@ void DivPlatformOPLL::tick(bool sysTick) {
 
   for (int i=0; i<11; i++) {
     if (chan[i].freqChanged) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,octave(chan[i].baseFreq)*2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      int mul=2;
+      int fixedBlock=parent->getIns(chan[i].ins)->fm.block;
+      if (parent->song.linearPitch!=2) {
+        mul=octave(chan[i].baseFreq,fixedBlock)*2;
+      }
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,mul,chan[i].pitch2,chipClock,CHIP_FREQBASE);
       if (chan[i].fixedFreq>0 && properDrums) chan[i].freq=chan[i].fixedFreq;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>65535) chan[i].freq=65535;
-      int freqt=toFreq(chan[i].freq);
+      int freqt=toFreq(chan[i].freq,fixedBlock);
       if (freqt>4095) freqt=4095;
       chan[i].freqL=freqt&0xff;
       if (i>=6 && properDrums && (i<9 || !noTopHatFreq)) {
@@ -352,16 +357,26 @@ void DivPlatformOPLL::tick(bool sysTick) {
 
 #define OPLL_C_NUM 343
 
-int DivPlatformOPLL::octave(int freq) {
+int DivPlatformOPLL::octave(int freq, int fixedBlock) {
+  if (fixedBlock>0) {
+    return 1<<(fixedBlock-1);
+  }
   freq/=OPLL_C_NUM;
   if (freq==0) return 1;
   return 1<<bsr(freq);
 }
 
-int DivPlatformOPLL::toFreq(int freq) {
-  int block=freq/OPLL_C_NUM;
-  if (block>0) block=bsr(block);
-  return (block<<9)|((freq>>block)&0x1ff);
+int DivPlatformOPLL::toFreq(int freq, int fixedBlock) {
+  int block=0;
+  if (fixedBlock>0) {
+    block=fixedBlock-1;
+  } else {
+    block=freq/OPLL_C_NUM;
+    if (block>0) block=bsr(block);
+  }
+  freq>>=block;
+  if (freq>0x1ff) freq=0x1ff;
+  return (block<<9)|freq;
 }
 
 void DivPlatformOPLL::muteChannel(int ch, bool mute) {
@@ -622,21 +637,27 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       int destFreq=NOTE_FREQUENCY(c.value2);
       int newFreq;
       bool return2=false;
+      int mul=1;
+      int fixedBlock=0;
+      if (parent->song.linearPitch!=2) {
+        fixedBlock=parent->getIns(chan[c.chan].ins)->fm.block;
+        mul=octave(chan[c.chan].baseFreq,fixedBlock);
+      }
       if (destFreq>chan[c.chan].baseFreq) {
-        newFreq=chan[c.chan].baseFreq+c.value*((parent->song.linearPitch==2)?1:octave(chan[c.chan].baseFreq));
+        newFreq=chan[c.chan].baseFreq+c.value*mul;
         if (newFreq>=destFreq) {
           newFreq=destFreq;
           return2=true;
         }
       } else {
-        newFreq=chan[c.chan].baseFreq-c.value*((parent->song.linearPitch==2)?1:octave(chan[c.chan].baseFreq));
+        newFreq=chan[c.chan].baseFreq-c.value*mul;
         if (newFreq<=destFreq) {
           newFreq=destFreq;
           return2=true;
         }
       }
       /*if (!chan[c.chan].portaPause) {
-        if (octave(chan[c.chan].baseFreq)!=octave(newFreq)) {
+        if (mul!=octave(newFreq,fixedBlock)) {
           chan[c.chan].portaPause=true;
           break;
         }

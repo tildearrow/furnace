@@ -80,8 +80,8 @@ class DivPlatformOPLL: public DivDispatch {
     short oldWrites[256];
     short pendingWrites[256];
 
-    int octave(int freq);
-    int toFreq(int freq);
+    int octave(int freq, int fixedBlock);
+    int toFreq(int freq, int fixedBlock);
     void commitState(int ch, DivInstrument* ins);
     void switchMode(bool mode);
 

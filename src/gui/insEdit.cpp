@@ -49,8 +49,8 @@ const char* ssgEnvTypes[8]={
   _N("Up DOWN")
 };
 
-const char* fmParamNames[3][32]={
-  {_N("Algorithm"), _N("Feedback"), _N("LFO > Freq"), _N("LFO > Amp"), _N("Attack"), _N("Decay"), _N("Decay 2"), _N("Release"), _N("Sustain"), _N("Level"), _N("EnvScale"), _N("Multiplier"), _N("Detune"), _N("Detune 2"), _N("SSG-EG"), _N("AM"), _N("AM Depth"), _N("Vibrato Depth"), _N("Sustained"), _N("Sustained"), _N("Level Scaling"), _N("Sustain"), _N("Vibrato"), _N("Waveform"), _N("Scale Rate"), _N("OP2 Half Sine"), _N("OP1 Half Sine"), _N("EnvShift"), _N("Reverb"), _N("Fine"), _N("LFO2 > Freq"), _N("LFO2 > Amp")},
+const char* fmParamNames[3][33]={
+  {_N("Algorithm"), _N("Feedback"), _N("LFO > Freq"), _N("LFO > Amp"), _N("Attack"), _N("Decay"), _N("Decay 2"), _N("Release"), _N("Sustain"), _N("Level"), _N("EnvScale"), _N("Multiplier"), _N("Detune"), _N("Detune 2"), _N("SSG-EG"), _N("AM"), _N("AM Depth"), _N("Vibrato Depth"), _N("Sustained"), _N("Sustained"), _N("Level Scaling"), _N("Sustain"), _N("Vibrato"), _N("Waveform"), _N("Scale Rate"), _N("OP2 Half Sine"), _N("OP1 Half Sine"), _N("EnvShift"), _N("Reverb"), _N("Fine"), _N("LFO2 > Freq"), _N("LFO2 > Amp"), _N("Block")},
   {"ALG", "FB", "FMS/PMS", "AMS", "AR", "DR", "SR", "RR", "SL", "TL", "KS", "MULT", "DT", "DT2", "SSG-EG", "AM", "AMD", "FMD", "EGT", "EGT", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS/PMS2", "AMS2"},
   {"ALG", "FB", "FMS/PMS", "AMS", "AR", "DR", "D2R", "RR", "SL", "TL", "RS", "MULT", "DT", "DT2", "SSG-EG", "AM", "DAM", "DVB", "EGT", "EGS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS/PMS2", "AMS2"}
 };
@@ -388,7 +388,8 @@ enum FMParams {
   FM_REV=28,
   FM_FINE=29,
   FM_FMS2=30,
-  FM_AMS2=31
+  FM_AMS2=31,
+  FM_BLOCK=32
 };
 
 enum ESFMParams {
@@ -3909,8 +3910,13 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
     }
 
     if (ImGui::BeginTable("fmDetails",3,(ins->type==DIV_INS_ESFM)?ImGuiTableFlags_SizingStretchProp:ImGuiTableFlags_SizingStretchSame)) {
-      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,((ins->type==DIV_INS_ESFM)?0.50f:0.0f));
-      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,((ins->type==DIV_INS_ESFM)?0.15f:0.0f));
+      String blockTxt=_("Any");
+      if (ins->fm.block>=1) {
+        blockTxt=fmt::sprintf("%d",ins->fm.block-1);
+      }
+
+      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,((ins->type==DIV_INS_ESFM)?0.40f:0.0f));
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,((ins->type==DIV_INS_ESFM)?0.25f:0.0f));
       ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,((ins->type==DIV_INS_ESFM)?0.35f:0.0f));
 
       ImGui::TableNextRow();
@@ -3920,6 +3926,9 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           ImGui::TableNextColumn();
           P(CWSliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN)); rightClickable
           P(CWSliderScalar(FM_NAME(FM_FMS),ImGuiDataType_U8,&ins->fm.fms,&_ZERO,&_SEVEN)); rightClickable
+          if (ins->type==DIV_INS_FM) {
+            P(CWSliderScalar(FM_NAME(FM_BLOCK),ImGuiDataType_U8,&ins->fm.block,&_ZERO,&_EIGHT,blockTxt.c_str())); rightClickable
+          }
           ImGui::TableNextColumn();
           P(CWSliderScalar(FM_NAME(FM_ALG),ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&_SEVEN)); rightClickable
           P(CWSliderScalar(FM_NAME(FM_AMS),ImGuiDataType_U8,&ins->fm.ams,&_ZERO,&_THREE)); rightClickable
@@ -3981,6 +3990,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             }
             ImGui::EndDisabled();
           }
+          P(CWSliderScalar(FM_NAME(FM_BLOCK),ImGuiDataType_U8,&ins->fm.block,&_ZERO,&_EIGHT,blockTxt.c_str())); rightClickable
           ImGui::TableNextColumn();
           P(CWSliderScalar(FM_NAME(FM_ALG),ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&algMax)); rightClickable
           if (ins->type==DIV_INS_OPL) {
@@ -4012,6 +4022,10 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             fmOrigin.fms=dc;
           }
           ImGui::EndDisabled();
+          if (ins->fm.opllPreset!=0) {
+            ins->fm.op[1].tl&=15;
+            P(CWSliderScalar(_("Volume##TL"),ImGuiDataType_U8,&ins->fm.op[1].tl,&_FIFTEEN,&_ZERO)); rightClickable
+          }
           ImGui::TableNextColumn();
           if (ImGui::Checkbox(FM_NAME(FM_SUS),&sus)) { PARAMETER
             ins->fm.alg=sus;
@@ -4021,6 +4035,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             fmOrigin.ams=dm;
           }
           ImGui::EndDisabled();
+          P(CWSliderScalar(FM_NAME(FM_BLOCK),ImGuiDataType_U8,&ins->fm.block,&_ZERO,&_EIGHT,blockTxt.c_str())); rightClickable
           ImGui::TableNextColumn();
           if (fmPreviewOn) {
             drawFMPreview(ImVec2(ImGui::GetContentRegionAvail().x,24.0*dpiScale));
@@ -4074,6 +4089,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           P(CWSliderScalar(ESFM_LONG_NAME(ESFM_NOISE),ImGuiDataType_U8,&ins->esfm.noise,&_ZERO,&_THREE,_(esfmNoiseModeNames[ins->esfm.noise&3]))); rightClickable
           ImGui::TextUnformatted(_(esfmNoiseModeDescriptions[ins->esfm.noise&3]));
           ImGui::TableNextColumn();
+          P(CWSliderScalar(FM_NAME(FM_BLOCK),ImGuiDataType_U8,&ins->fm.block,&_ZERO,&_EIGHT,blockTxt.c_str())); rightClickable
           ImGui::TableNextColumn();
           if (fmPreviewOn) {
             drawFMPreview(ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
@@ -4090,6 +4106,9 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           break;
       }
       ImGui::EndTable();
+    }
+    if (ins->type==DIV_INS_OPLL && ins->fm.opllPreset==16) {
+      ImGui::Text(_("this volume slider only works in compatibility (non-drums) system."));
     }
 
     if (((ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL) && ins->fm.opllPreset==16) || ins->type==DIV_INS_OPL_DRUMS) {
@@ -4121,12 +4140,6 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
     bool willDisplayOps=true;
     if (ins->type==DIV_INS_OPLL && ins->fm.opllPreset!=0) willDisplayOps=false;
     if (!willDisplayOps && ins->type==DIV_INS_OPLL) {
-      ins->fm.op[1].tl&=15;
-      P(CWSliderScalar(_("Volume##TL"),ImGuiDataType_U8,&ins->fm.op[1].tl,&_FIFTEEN,&_ZERO)); rightClickable
-      if (ins->fm.opllPreset==16) {
-        ImGui::Text(_("this volume slider only works in compatibility (non-drums) system."));
-      }
-
       // update OPLL preset preview
       if (ins->fm.opllPreset>0 && ins->fm.opllPreset<16) {
         const opll_patch_t* patchROM=NULL;

@@ -192,6 +192,7 @@ size | description
   1  | |x| ALG |x| FB  |
   1  | |FMS2 |AMS| FMS |
   1  | |AM2|4| LLPatch |
+  1  | |xxxxxxx| Block | (>=224)
 -----|------------------------------------
      | **operator data × opCount**
      | /7 6 5 4 3 2 1 0|

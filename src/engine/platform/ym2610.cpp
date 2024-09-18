@@ -647,7 +647,7 @@ void DivPlatformYM2610::tick(bool sysTick) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.arp.val),11);
+        chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.arp.val),11,chan[i].ins);
       }
       chan[i].freqChanged=true;
     }
@@ -799,7 +799,7 @@ void DivPlatformYM2610::tick(bool sysTick) {
     if (i==1 && extMode) continue;
     if (chan[i].freqChanged) {
       if (parent->song.linearPitch==2) {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11,parent->getIns(chan[i].ins)->fm.block);
       } else {
         int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
         int block=(chan[i].baseFreq&0xf800)>>11;
@@ -1200,7 +1200,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       chan[c.chan].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
+        chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[c.chan].ins);
         chan[c.chan].portaPause=false;
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
