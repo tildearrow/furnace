@@ -1346,7 +1346,7 @@ void DivPlatformOPL::tick(bool sysTick) {
         double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
         chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,(524288*768)));
         if (chan[i].freq<0x400) chan[i].freq=0x400;
-        if (chan[i].freq>0x4000000) chan[i].freq=0x4000000;
+        if (chan[i].freq>0x3ffffff) chan[i].freq=0x3ffffff;
         if (chan[i].freq>=0x2000000) {
           chan[i].freqH=15;
         } else if (chan[i].freq>=0x1000000) {
