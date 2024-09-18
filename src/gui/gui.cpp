@@ -1822,7 +1822,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openLoad(
         _("Load Instrument"),
-        {_("all compatible files"), "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn",
+        {_("all compatible files"), "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn *.a2i *.a2b *.a2w *.a2f",
          _("Furnace instrument"), "*.fui",
          _("DefleMask preset"), "*.dmp",
          _("TFM Music Maker instrument"), "*.tfi",
@@ -1838,6 +1838,10 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
          _("VOPM preset bank"), "*.opm",
          _("Wohlstand WOPL bank"), "*.wopl",
          _("Wohlstand WOPN bank"), "*.wopn",
+         _("Adlib Tracker 2 instrument"), "*.a2i",
+         _("Adlib Tracker 2 instrument bank"), "*.a2b",
+         _("Adlib Tracker 2 instrument bank with arp/vib/fm macros"), "*.a2w",
+         _("Adlib Tracker 2 instrument bank with fm macros"), "*.a2f",
          _("all files"), "*"},
         workingDirIns,
         dpiScale,

@@ -565,6 +565,37 @@ void a2t_depack(unsigned char *src, int srcsize, unsigned char *dst, int dstsize
     case 14: // lzh
         LZH_decompress(src, dst, srcsize, dstsize);
         break;
+    default: break;
+    }
+}
+
+void a2i_depack(unsigned char *src, int srcsize, unsigned char *dst, int dstsize, int ffver)
+{
+    switch (ffver) {
+    case 1:
+    case 5: // sixpack
+        sixdepak((unsigned short *)src, (unsigned char *)dst, srcsize, dstsize);
+        break;
+    case 2:
+    case 6: // lzw
+        LZW_decompress(src, dst, srcsize, dstsize);
+        break;
+    case 3:
+    case 7: // lzss
+        LZSS_decompress(src, dst, srcsize, dstsize);
+        break;
+    case 4:
+    case 8: // unpacked
+        if (dstsize <= srcsize)
+            memcpy(dst, src, srcsize);
+        break;
+    case 9: // apack (aPlib)
+        aP_depack(src, dst, srcsize, dstsize);
+        break;
+    case 10: // lzh
+        LZH_decompress(src, dst, srcsize, dstsize);
+        break;
+    default: break;
     }
 }
 
@@ -1826,7 +1857,88 @@ void AT2_adapt_fmregs_macros_len(DivInstrumentMacro* macro, tFMREG_TABLE* fmtabl
     macro->speed = 1; //mostly to overwrite pitch macro...
 }
 
-bool DivEngine::loadAT2(unsigned char* file, size_t len) 
+void DivEngine::loadA2I(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath)
+{
+    reader.seek(SEEK_SET, 0);
+
+    char header[8] = { 0 };
+    reader.read(header, 7);
+
+    if(strncmp(header, "_a2ins_", 7) != 0 && strncmp(header, "_A2ins_", 7) != 0) return; //wtf, docs say nothing about "_A2ins_" sig, but it appears when saving instrument in SDL version of AT2
+
+    reader.readS(); //CRC
+
+    unsigned char version = reader.readC();
+
+    if(version > 10)
+    {
+        lastError=_("Unknown instrument version!");
+        return;
+    }
+
+    logI("a2i version %d", version);
+
+    unsigned char len = reader.readC();
+
+    unsigned char tempSrc[257];
+    memset(tempSrc, 0, 257);
+    reader.read((void*)tempSrc, len);
+    unsigned char tempDest[2550];
+    //memset(tempDest, 0, 2550);
+    a2i_depack(tempSrc, len, tempDest, 2550, version);
+
+    DivInstrument* ins=new DivInstrument;
+
+    tINSTR_DATA_V1_8* insdata18 = (tINSTR_DATA_V1_8*)tempDest;
+    tINSTR_DATA* insdata = (tINSTR_DATA*)tempDest;
+
+    tSONGINFO* songInfo = (tSONGINFO*)calloc(1, sizeof(tSONGINFO));
+    memset(songInfo, 0, sizeof(tSONGINFO));
+
+    if(version < 9)
+    {
+        AT2_inst_import_v18(ins, *songInfo, 0, insdata18);
+    }
+    else
+    {
+        AT2_inst_import(ins, *songInfo, 0, insdata);
+    }
+
+    char insName[40] = { 0 };
+
+    if(version < 9)
+    {
+        memcpy(insName, &tempDest[0xD], 23);
+    }
+    else
+    {
+        memcpy(insName, &tempDest[0xE], 33);
+
+        unsigned char insType = tempDest[0xD];
+
+        if(insType > 1) //not bass drum
+        {
+            ins->type = DIV_INS_OPL_DRUMS;
+
+            if(insType > 2) //not snare
+            {
+                memcpy(&ins->fm.op[insType - 2], &ins->fm.op[0], sizeof(DivInstrumentFM::Operator));
+            }
+        }
+    }
+
+    ins->name = insName;
+
+    if(version < 5)
+    {
+        ins->std.panLMacro.len = 0; //discard panning info
+    }
+
+    ret.push_back(ins);
+    free(songInfo);
+}
+
+bool DivEngine::loadAT2M(unsigned char* file, size_t len) 
 {
     SafeReader reader=SafeReader(file,len);
     warnings="";

@@ -609,8 +609,8 @@ class DivEngine {
   bool loadTFMv1(unsigned char* file, size_t len);
   bool loadTFMv2(unsigned char* file, size_t len);
 
-  //a big pile of adlib formats, sigh
-  bool loadAT2(unsigned char* file, size_t len); //supports both a2m and a2t
+  // a big pile of adlib formats, sigh
+  bool loadAT2M(unsigned char* file, size_t len); // supports both a2m and a2t
 
   void loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadTFI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
@@ -626,6 +626,10 @@ class DivEngine {
   void loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadWOPL(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadA2I(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadA2B(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadA2W(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadA2F(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
  
   //sample banks
   void loadP(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);

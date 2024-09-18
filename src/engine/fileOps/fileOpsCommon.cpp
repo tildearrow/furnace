@@ -157,7 +157,7 @@ bool DivEngine::load(unsigned char* f, size_t slen, const char* nameHint) {
   } else if (memcmp(file,DIV_IT_MAGIC,4)==0) {
     return loadIT(file,len);
   } else if (memcmp(file,DIV_A2M_MAGIC,10)==0 || memcmp(file,DIV_A2T_MAGIC,15)==0) {
-    return loadAT2(file,len);
+    return loadAT2M(file,len);
   } else if (len>=48) {
     if (memcmp(&file[0x2c],DIV_S3M_MAGIC,4)==0) {
       return loadS3M(file,len);
