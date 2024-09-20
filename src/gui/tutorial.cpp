@@ -33,8 +33,7 @@
 
 #define CLICK_TO_COPY(t) ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],t);\
 if (ImGui::IsItemHovered()) {\
-  ImGui::SetTooltip(\
-    (strcmp(ImGui::GetClipboardText(),t)==0)?"copied!":"click to copy");\
+  ImGui::SetTooltip((strcmp(ImGui::GetClipboardText(),t)==0)?"copied!":"click to copy");\
   ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);\
 }\
 if (ImGui::IsItemClicked()) ImGui::SetClipboardText(t);
