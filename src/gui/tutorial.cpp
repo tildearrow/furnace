@@ -31,6 +31,14 @@
 #include <dirent.h>
 #endif
 
+#define CLICK_TO_COPY(t) ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],t);\
+if (ImGui::IsItemHovered()) {\
+  ImGui::SetTooltip(\
+    (strcmp(ImGui::GetClipboardText(),t)==0)?"copied!":"click to copy");\
+  ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);\
+}\
+if (ImGui::IsItemClicked()) ImGui::SetClipboardText(t);
+
 enum FurnaceCVObjectTypes {
   CV_NULL=0,
   CV_PLAYER,
@@ -676,15 +684,23 @@ void FurnaceGUI::drawTutorial() {
       "- click on the Orders matrix to change the patterns of a channel (left click increases; right click decreases)"
     ));
 
+    ImGui::Separator();
+
+    ImGui::TextWrapped(_(
+      "if you are new to trackers, you may check the quick start guide:"
+    ));
+    CLICK_TO_COPY("https://github.com/tildearrow/furnace/blob/master/doc/1-intro/quickstart.md");
     ImGui::TextWrapped(_(
       "if you need help, you may:\n"
       "- read the manual (a file called manual.pdf)\n"
-      "- ask for help in Discussions (https://github.com/tildearrow/furnace/discussions)"
+      "- ask for help in Discussions"
     ));
+    CLICK_TO_COPY("https://github.com/tildearrow/furnace/discussions")
 
     ImGui::Separator();
 
-    ImGui::TextWrapped(_("if you find any issues, be sure to report them! the issue tracker is here: https://github.com/tildearrow/furnace/issues"));
+    ImGui::TextWrapped(_("if you find any issues, be sure to report them! the issue tracker is here:"));
+    CLICK_TO_COPY("https://github.com/tildearrow/furnace/issues")
 
     if (ImGui::Button(_("OK"))) {
       tutorial.protoWelcome=true;
