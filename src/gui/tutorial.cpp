@@ -31,12 +31,16 @@
 #include <dirent.h>
 #endif
 
-#define CLICK_TO_COPY(t) ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],t);\
+#define CLICK_TO_OPEN(t) ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],t);\
 if (ImGui::IsItemHovered()) {\
-  ImGui::SetTooltip((strcmp(ImGui::GetClipboardText(),t)==0)?"copied!":"click to copy");\
+  ImGui::SetTooltip("click to open, right click to copy");\
   ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);\
 }\
-if (ImGui::IsItemClicked()) ImGui::SetClipboardText(t);
+if (ImGui::IsItemClicked()) SDL_OpenURL(t);\
+if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {\
+  ImGui::SetClipboardText(t);\
+  tutorial.popupTimer=0;\
+}
 
 enum FurnaceCVObjectTypes {
   CV_NULL=0,
@@ -688,18 +692,18 @@ void FurnaceGUI::drawTutorial() {
     ImGui::TextWrapped(_(
       "if you are new to trackers, you may check the quick start guide:"
     ));
-    CLICK_TO_COPY("https://github.com/tildearrow/furnace/blob/master/doc/1-intro/quickstart.md");
+    CLICK_TO_OPEN("https://github.com/tildearrow/furnace/blob/master/doc/1-intro/quickstart.md")
     ImGui::TextWrapped(_(
       "if you need help, you may:\n"
       "- read the manual (a file called manual.pdf)\n"
       "- ask for help in Discussions"
     ));
-    CLICK_TO_COPY("https://github.com/tildearrow/furnace/discussions")
+    CLICK_TO_OPEN("https://github.com/tildearrow/furnace/discussions")
 
     ImGui::Separator();
 
     ImGui::TextWrapped(_("if you find any issues, be sure to report them! the issue tracker is here:"));
-    CLICK_TO_COPY("https://github.com/tildearrow/furnace/issues")
+    CLICK_TO_OPEN("https://github.com/tildearrow/furnace/issues")
 
     if (ImGui::Button(_("OK"))) {
       tutorial.protoWelcome=true;
@@ -711,6 +715,18 @@ void FurnaceGUI::drawTutorial() {
       (canvasW-ImGui::GetWindowSize().x)*0.5,
       (canvasH-ImGui::GetWindowSize().y)*0.5
     ));
+
+    if (tutorial.popupTimer<40) {
+      ImDrawList* dl=ImGui::GetForegroundDrawList();
+      const ImVec2 winPos=ImGui::GetWindowPos();
+      const ImVec2 winSize=ImGui::GetWindowSize();
+      const ImVec2 txtSize=ImGui::CalcTextSize("copied!");
+      dl->AddText(ImVec2(
+        winPos.x+(winSize.x-txtSize.x)/2,
+        winPos.y+(winSize.y-txtSize.y*2)
+      ),ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_ACCENT_SECONDARY]),"copied!");
+      tutorial.popupTimer++;
+    }
     ImGui::EndPopup();
   }
 
