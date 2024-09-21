@@ -2619,8 +2619,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       supportsCustomRate=false;
       ImGui::Text(_("nothing to configure"));
       break;
-    case DIV_SYSTEM_SID3:
-    {
+    case DIV_SYSTEM_SID3: {
       bool quarterClock=flags.getBool("quarterClock",false);
       if (ImGui::Checkbox(_("Quarter clock speed"),&quarterClock)) {
         altered=true;

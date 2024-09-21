@@ -22,6 +22,7 @@
 #include "../ta-log.h"
 #include "imgui_internal.h"
 #include "../engine/macroInt.h"
+// i don't know whether this is the right thing to do
 #include "../engine/platform/sound/sid3.h"
 #include "IconsFontAwesome4.h"
 #include "furIcons.h"
@@ -260,7 +261,7 @@ const char* sid3WaveMixModes[6]={
   NULL
 };
 
-const char* sid3SpecialWaveforms[] = {
+const char* sid3SpecialWaveforms[]={
   _N("Sine"),
   _N("Rect. Sine"),
   _N("Abs. Sine"),
@@ -518,7 +519,7 @@ const char* pokeyCtlBits[9]={
   NULL
 };
 
-const char* mikeyFeedbackBits[11] = {
+const char* mikeyFeedbackBits[11]={
   "0", "1", "2", "3", "4", "5", "7", "10", "11", "int", NULL
 };
 
@@ -689,6 +690,10 @@ const int kslMap[4]={
   0, 2, 1, 3
 };
 
+const int _SID3_SPECIAL_WAVES=SID3_NUM_SPECIAL_WAVES-1;
+const int _SID3_NUM_CHANNELS=SID3_NUM_CHANNELS;
+const int _SID3_NUM_CHANNELS_MINUS_ONE=SID3_NUM_CHANNELS-1;
+
 // do not change these!
 // anything other than a checkbox will look ugly!
 //
@@ -776,49 +781,41 @@ String macroLFOWaves(int id, float val, void* u) {
   return "???";
 }
 
-String macroSID3SpecialWaves(int id, float val, void* u) 
-{
-  if((int)val >= SID3_NUM_SPECIAL_WAVES) return "???";
+String macroSID3SpecialWaves(int id, float val, void* u) {
+  if ((int)val<0 || (int)val>=SID3_NUM_SPECIAL_WAVES) return "???";
 
-  return _(sid3SpecialWaveforms[(int)val % SID3_NUM_SPECIAL_WAVES]);
+  return _(sid3SpecialWaveforms[(int)val%SID3_NUM_SPECIAL_WAVES]);
 }
 
-String macroSID3SourceChan(int id, float val, void* u) 
-{
-  if((int)val > SID3_NUM_CHANNELS) return "???";
+String macroSID3SourceChan(int id, float val, void* u) {
+  if ((int)val>SID3_NUM_CHANNELS) return "???";
 
-  if((int)val == SID3_NUM_CHANNELS)
-  {
+  if ((int)val==SID3_NUM_CHANNELS) {
     return _("Self");
-  }
-  else if((int)val == SID3_NUM_CHANNELS - 1)
-  {
+  } else if ((int)val==SID3_NUM_CHANNELS-1) {
     return _("PCM/Wave channel");
-  }
-  else
-  {
-    return fmt::sprintf(_("Channel %d"), (int)val + 1);
+  } else {
+    return fmt::sprintf(_("Channel %d"),(int)val+1);
   }
 }
 
-String macroSID3NoiseLFSR(int id, float val, void* u) 
-{
-  return _("values close to SID2 noise modes:\n\n"
-  "Mode 1: 524288\n"
-  "Mode 2: 66\n"
-  "Mode 3: 541065280");
+String macroSID3NoiseLFSR(int id, float val, void* u) {
+  return _(
+    "values close to SID2 noise modes:\n\n"
+    "Mode 1: 524288\n"
+    "Mode 2: 66\n"
+    "Mode 3: 541065280"
+  );
 }
 
-String macroSID2WaveMixMode(int id, float val, void* u) 
-{
-  if((int)val > 3) return "???";
+String macroSID2WaveMixMode(int id, float val, void* u) {
+  if ((int)val<0 || (int)val>3) return "???";
 
   return _(sid2WaveMixModes[(int)val]);
 }
 
-String macroSID3WaveMixMode(int id, float val, void* u) 
-{
-  if((int)val > 4) return "???";
+String macroSID3WaveMixMode(int id, float val, void* u) {
+  if ((int)val<0 || (int)val>4) return "???";
 
   return _(sid3WaveMixModes[(int)val]);
 }
@@ -1121,8 +1118,7 @@ WaveFunc waveFuncsIns[]={
   absCubSquiTri
 };
 
-void FurnaceGUI::drawWaveformSID3(unsigned char type, const ImVec2& size) 
-{
+void FurnaceGUI::drawWaveformSID3(unsigned char type, const ImVec2& size) {
   ImDrawList* dl=ImGui::GetWindowDrawList();
   ImGuiWindow* window=ImGui::GetCurrentWindow();
 
@@ -1138,62 +1134,50 @@ void FurnaceGUI::drawWaveformSID3(unsigned char type, const ImVec2& size)
   ImGuiStyle& style=ImGui::GetStyle();
   ImU32 color=ImGui::GetColorU32(uiColors[GUI_COLOR_FM_WAVE]);
   ImGui::ItemSize(size,style.FramePadding.y);
-  if (ImGui::ItemAdd(rect,ImGui::GetID("SID3wsDisplay"))) 
-  {
+  if (ImGui::ItemAdd(rect,ImGui::GetID("SID3wsDisplay"))) {
     ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
 
-    if(type < SID3_NUM_UNIQUE_SPECIAL_WAVES)
-    {
-      for (size_t i=0; i<=waveformLen; i++) 
-      {
+    if (type<SID3_NUM_UNIQUE_SPECIAL_WAVES) {
+      for (size_t i=0; i<=waveformLen; i++) {
         float x=(float)i/(float)waveformLen;
-        float y= waveFuncsIns[type](x*2.0*M_PI);
+        float y=waveFuncsIns[type](x*2.0*M_PI);
         waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
       }
-    }
-    else if(type >= SID3_NUM_UNIQUE_SPECIAL_WAVES && type < SID3_NUM_UNIQUE_SPECIAL_WAVES * 2)
-    {
-      for (size_t i=0; i<=waveformLen; i++) 
-      {
+    } else if (type>=SID3_NUM_UNIQUE_SPECIAL_WAVES && type<SID3_NUM_UNIQUE_SPECIAL_WAVES*2) {
+      for (size_t i=0; i<=waveformLen; i++) {
         float x=(float)i/(float)waveformLen;
-        float y= waveFuncsIns[type - SID3_NUM_UNIQUE_SPECIAL_WAVES](x*2.0*M_PI);
+        float y=waveFuncsIns[type-SID3_NUM_UNIQUE_SPECIAL_WAVES](x*2.0*M_PI);
 
-        y *= 2.0f; //clipping
+        y*=2.0f; // clipping
 
-        if(y > 1.0f) y = 1.0f;
-        if(y < -1.0f) y = -1.0f;
+        if (y>1.0f) y=1.0f;
+        if (y<-1.0f) y=-1.0f;
 
         waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.48));
       }
-    }
-    else
-    {
-      if(type == SID3_NUM_UNIQUE_SPECIAL_WAVES * 2)
-      {
-        for (size_t i=0; i<=waveformLen; i++) 
-        {
+    } else {
+      if (type==SID3_NUM_UNIQUE_SPECIAL_WAVES*2) {
+        for (size_t i=0; i<=waveformLen; i++) {
           float x=(float)i/(float)waveformLen;
           float y=triangle(x*2.0*M_PI);
 
-          y *= 2.0f; //clipping
+          y*=2.0f; // clipping
 
-          if(y > 1.0f) y = 1.0f;
-          if(y < -1.0f) y = -1.0f;
+          if (y>1.0f) y=1.0f;
+          if (y<-1.0f) y=-1.0f;
 
           waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
         }
       }
-      if(type == SID3_NUM_UNIQUE_SPECIAL_WAVES * 2 + 1)
-      {
-        for (size_t i=0; i<=waveformLen; i++) 
-        {
+      if (type==SID3_NUM_UNIQUE_SPECIAL_WAVES*2+1) {
+        for (size_t i=0; i<=waveformLen; i++) {
           float x=(float)i/(float)waveformLen;
           float y=saw(x*2.0*M_PI);
 
-          y *= 2.0f; //clipping
+          y*=2.0f; // clipping
 
-          if(y > 1.0f) y = 1.0f;
-          if(y < -1.0f) y = -1.0f;
+          if (y>1.0f) y=1.0f;
+          if (y<-1.0f) y=-1.0f;
 
           waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
         }
@@ -1821,57 +1805,57 @@ void FurnaceGUI::drawSID3Env(unsigned char tl, unsigned char ar, unsigned char d
   if (ImGui::ItemAdd(rect,ImGui::GetID("fmEnv"))) {
     ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
 
-    //Adjust for OPLL global sustain setting
-    if (instType==DIV_INS_OPLL && algOrGlobalSus==1.0){
-      rr = 5.0;
+    // Adjust for OPLL global sustain setting
+    if (instType==DIV_INS_OPLL && algOrGlobalSus==1.0) {
+      rr=5.0;
     }
-    //calculate x positions
-    float arPos=float(maxArDr-(float)ar)/maxArDr; //peak of AR, start of DR
-    float drPos=arPos+(((float)sl/255.0)*(float(maxArDr-(float)dr)/maxArDr)); //end of DR, start of D2R
-    float d2rPos=drPos+(((255.0-(float)sl)/255.0)*(float(255.0-(float)d2r)/255.0)); //End of D2R
-    float rrPos=(float(maxRr-(float)rr)/float(maxRr)); //end of RR
+    // calculate x positions
+    float arPos=float(maxArDr-(float)ar)/maxArDr; // peak of AR, start of DR
+    float drPos=arPos+(((float)sl/255.0)*(float(maxArDr-(float)dr)/maxArDr)); // end of DR, start of D2R
+    float d2rPos=drPos+(((255.0-(float)sl)/255.0)*(float(255.0-(float)d2r)/255.0)); // End of D2R
+    float rrPos=(float(maxRr-(float)rr)/float(maxRr)); // end of RR
 
-    //shrink all the x positions horizontally
+    // shrink all the x positions horizontally
     arPos/=2.0;
     drPos/=2.0;
     d2rPos/=2.0;
     rrPos/=1.0;
 
-    ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.0,1.0)); //the bottom corner
-    ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(arPos,((float)tl/maxTl))); //peak of AR, start of DR
-    ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(drPos,(float)(((float)tl/maxTl)+((float)sl/255.0)-(((float)tl/maxTl)*((float)sl/255.0))))); //end of DR, start of D2R
-    ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(d2rPos,1.0)); //end of D2R
-    ImVec2 posRStart=ImLerp(rect.Min,rect.Max,ImVec2(0.0,((float)tl/maxTl))); //release start
-    ImVec2 posREnd=ImLerp(rect.Min,rect.Max,ImVec2(rrPos,1.0));//release end
-    ImVec2 posSLineHEnd=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)(((float)tl/maxTl)+((float)sl/255.0)-(((float)tl/maxTl)*((float)sl/255.0))))); //sustain horizontal line end
-    ImVec2 posSLineVEnd=ImLerp(rect.Min,rect.Max,ImVec2(drPos,1.0)); //sustain vertical line end
-    ImVec2 posDecayRate0Pt=ImLerp(rect.Min,rect.Max,ImVec2(1.0,((float)tl/maxTl))); //Height of the peak of AR, forever
-    ImVec2 posDecay2Rate0Pt=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)(((float)tl/maxTl)+((float)sl/255.0)-(((float)tl/maxTl)*((float)sl/255.0))))); //Height of the peak of SR, forever
+    ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.0,1.0)); // the bottom corner
+    ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(arPos,((float)tl/maxTl))); // peak of AR, start of DR
+    ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(drPos,(float)(((float)tl/maxTl)+((float)sl/255.0)-(((float)tl/maxTl)*((float)sl/255.0))))); // end of DR, start of D2R
+    ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(d2rPos,1.0)); // end of D2R
+    ImVec2 posRStart=ImLerp(rect.Min,rect.Max,ImVec2(0.0,((float)tl/maxTl))); // release start
+    ImVec2 posREnd=ImLerp(rect.Min,rect.Max,ImVec2(rrPos,1.0));// release end
+    ImVec2 posSLineHEnd=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)(((float)tl/maxTl)+((float)sl/255.0)-(((float)tl/maxTl)*((float)sl/255.0))))); // sustain horizontal line end
+    ImVec2 posSLineVEnd=ImLerp(rect.Min,rect.Max,ImVec2(drPos,1.0)); // sustain vertical line end
+    ImVec2 posDecayRate0Pt=ImLerp(rect.Min,rect.Max,ImVec2(1.0,((float)tl/maxTl))); // Height of the peak of AR, forever
+    ImVec2 posDecay2Rate0Pt=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)(((float)tl/maxTl)+((float)sl/255.0)-(((float)tl/maxTl)*((float)sl/255.0))))); // Height of the peak of SR, forever
 
-    //dl->Flags=ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex;
-    if ((float)ar==0.0) { //if AR = 0, the envelope never starts
-      dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
-      addAALine(dl,pos1,pos4,color); //draw line on ground
-    } else if ((float)dr==0.0 && (float)sl!=0.0) { //if DR = 0 and SL is not 0, then the envelope stays at max volume forever
-      dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
-      //addAALine(dl,pos3,posSLineHEnd,colorS); //draw horiz line through sustain level
-      //addAALine(dl,pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
-      addAALine(dl,pos1,pos2,color); //A
-      addAALine(dl,pos2,posDecayRate0Pt,color); //Line from A to end of graph
-    } else if ((float)d2r==0.0 || ((instType==DIV_INS_OPL || instType==DIV_INS_SNES || instType == DIV_INS_ESFM) && sus==1.0) || (instType==DIV_INS_OPLL && egt!=0.0)) { //envelope stays at the sustain level forever
-      dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
-      addAALine(dl,pos3,posSLineHEnd,colorR); //draw horiz line through sustain level
-      addAALine(dl,pos3,posSLineVEnd,colorR); //draw vert. line through sustain level
-      addAALine(dl,pos1,pos2,color); //A
-      addAALine(dl,pos2,pos3,color); //D
-      addAALine(dl,pos3,posDecay2Rate0Pt,color); //Line from D to end of graph
-    } else { //draw graph normally
-      dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
-      addAALine(dl,pos3,posSLineHEnd,colorR); //draw horiz line through sustain level
-      addAALine(dl,pos3,posSLineVEnd,colorR); //draw vert. line through sustain level
-      addAALine(dl,pos1,pos2,color); //A
-      addAALine(dl,pos2,pos3,color); //D
-      addAALine(dl,pos3,pos4,color); //D2
+    // dl->Flags=ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex;
+    if ((float)ar==0.0) { // if AR = 0, the envelope never starts
+      dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); // draw release as shaded triangle behind everything
+      addAALine(dl,pos1,pos4,color); // draw line on ground
+    } else if ((float)dr==0.0 && (float)sl!=0.0) { // if DR = 0 and SL is not 0, then the envelope stays at max volume forever
+      dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); // draw release as shaded triangle behind everything
+      // addAALine(dl,pos3,posSLineHEnd,colorS); // draw horiz line through sustain level
+      // addAALine(dl,pos3,posSLineVEnd,colorS); // draw vert. line through sustain level
+      addAALine(dl,pos1,pos2,color); // A
+      addAALine(dl,pos2,posDecayRate0Pt,color); // Line from A to end of graph
+    } else if ((float)d2r==0.0 || ((instType==DIV_INS_OPL || instType==DIV_INS_SNES || instType == DIV_INS_ESFM) && sus==1.0) || (instType==DIV_INS_OPLL && egt!=0.0)) { // envelope stays at the sustain level forever
+      dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); // draw release as shaded triangle behind everything
+      addAALine(dl,pos3,posSLineHEnd,colorR); // draw horiz line through sustain level
+      addAALine(dl,pos3,posSLineVEnd,colorR); // draw vert. line through sustain level
+      addAALine(dl,pos1,pos2,color); // A
+      addAALine(dl,pos2,pos3,color); // D
+      addAALine(dl,pos3,posDecay2Rate0Pt,color); // Line from D to end of graph
+    } else { // draw graph normally
+      dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); // draw release as shaded triangle behind everything
+      addAALine(dl,pos3,posSLineHEnd,colorR); // draw horiz line through sustain level
+      addAALine(dl,pos3,posSLineVEnd,colorR); // draw vert. line through sustain level
+      addAALine(dl,pos1,pos2,color); // A
+      addAALine(dl,pos2,pos3,color); // D
+      addAALine(dl,pos3,pos4,color); // D2
     }
     //dl->Flags^=ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex;
   }
@@ -5878,6 +5862,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
   }
 }
 
+// TODO: fix it all.
 void FurnaceGUI::drawInsSID3(DivInstrument* ins)
 {
   char buffer[100];
@@ -6367,81 +6352,6 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
       ImGui::EndTabItem();
     }
   }
-
-  if (ImGui::BeginTabItem(_("Macros"))) 
-  {
-    //ImGui::Text("Size of DivInstrument is too high... exactly %d bytes, of which SID3 shit takes %d bytes", sizeof(DivInstrument), sizeof(DivInstrumentSID3));
-
-    macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,255,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
-
-    macroList.push_back(FurnaceGUIMacroDesc(_("Arpeggio"),&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-    macroList.push_back(FurnaceGUIMacroDesc(_("Pitch"),&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
-
-    if(ins->sid3.doWavetable)
-    {
-      int waveCount=MAX(1,e->song.waveLen-1);
-      macroList.push_back(FurnaceGUIMacroDesc(_("Waveform"),&ins->std.waveMacro,0,waveCount,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
-    }
-    else
-    {
-      macroList.push_back(FurnaceGUIMacroDesc(_("Duty"),&ins->std.dutyMacro,ins->sid3.dutyIsAbs?0:-65535,65535,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-      macroList.push_back(FurnaceGUIMacroDesc(_("Waveform"),&ins->std.waveMacro,0,5,16 * 5,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,true,sid3ShapeBits));
-      macroList.push_back(FurnaceGUIMacroDesc(_("Special Wave"),&ins->std.algMacro,0,SID3_NUM_SPECIAL_WAVES - 1,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,macroSID3SpecialWaves));
-    }
-
-    if(ins->sid3.separateNoisePitch && !ins->sid3.doWavetable)
-    {
-      macroList.push_back(FurnaceGUIMacroDesc(_("Noise Arpeggio"),&ins->std.opMacros[3].amMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.opMacros[3].amMacro.val,true));
-      macroList.push_back(FurnaceGUIMacroDesc(_("Noise Pitch"),&ins->std.opMacros[0].arMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode,NULL,false,NULL,false,NULL,false,true));
-    }
-
-    macroList.push_back(FurnaceGUIMacroDesc(_("Panning (left)"),&ins->std.panLMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
-    macroList.push_back(FurnaceGUIMacroDesc(_("Panning (right)"),&ins->std.panRMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-
-    macroList.push_back(FurnaceGUIMacroDesc(_("Channel inversion"),&ins->std.opMacros[2].arMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,minModModeBits));
-
-    macroList.push_back(FurnaceGUIMacroDesc(_("Key On/Off"),&ins->std.opMacros[0].amMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-
-    macroList.push_back(FurnaceGUIMacroDesc(_("Special"),&ins->std.ex1Macro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,sid3ControlBits));
-
-    macroList.push_back(FurnaceGUIMacroDesc(_("Ring Mod Source"),&ins->std.fmsMacro,0,SID3_NUM_CHANNELS,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3SourceChan));
-    macroList.push_back(FurnaceGUIMacroDesc(_("Hard Sync Source"),&ins->std.amsMacro,0,SID3_NUM_CHANNELS - 1,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3SourceChan));
-    macroList.push_back(FurnaceGUIMacroDesc(_("Phase Mod Source"),&ins->std.fbMacro,0,SID3_NUM_CHANNELS - 1,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3SourceChan));
-    
-    if(!ins->sid3.doWavetable)
-    {
-      macroList.push_back(FurnaceGUIMacroDesc(_("Feedback"),&ins->std.opMacros[3].arMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-    }
-
-    macroList.push_back(FurnaceGUIMacroDesc(_("Phase Reset"),&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-
-    if(!ins->sid3.doWavetable)
-    {
-      macroList.push_back(FurnaceGUIMacroDesc(_("Noise Phase Reset"),&ins->std.opMacros[1].amMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-    }
-    macroList.push_back(FurnaceGUIMacroDesc(_("Envelope Reset"),&ins->std.opMacros[2].amMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-
-    macroList.push_back(FurnaceGUIMacroDesc(_("Attack"),&ins->std.ex2Macro,0,255,160,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
-    macroList.push_back(FurnaceGUIMacroDesc(_("Decay"),&ins->std.ex3Macro,0,255,160,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
-    macroList.push_back(FurnaceGUIMacroDesc(_("Sustain"),&ins->std.ex4Macro,0,255,160,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
-    macroList.push_back(FurnaceGUIMacroDesc(_("Sustain Rate"),&ins->std.ex5Macro,0,255,160,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
-    macroList.push_back(FurnaceGUIMacroDesc(_("Release"),&ins->std.ex6Macro,0,255,160,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
-
-    if(!ins->sid3.doWavetable)
-    {
-      macroList.push_back(FurnaceGUIMacroDesc(_("Noise LFSR bits"),&ins->std.ex7Macro,0,30,16 * 30,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,macroSID3NoiseLFSR,true));
-      macroList.push_back(FurnaceGUIMacroDesc(_("1-Bit Noise"),&ins->std.opMacros[1].arMacro,0,1,32,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,NULL,true));
-      macroList.push_back(FurnaceGUIMacroDesc(_("Wave Mix"),&ins->std.ex8Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3WaveMixMode));
-    }
-    else
-    {
-      macroList.push_back(FurnaceGUIMacroDesc(_("Sample Mode"),&ins->std.opMacros[1].arMacro,0,1,32,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,NULL,true));
-    }
-
-    drawMacros(macroList,macroEditStateMacros);
-
-    ImGui::EndTabItem();
-  }
 }
 
 void FurnaceGUI::drawInsEdit() {
@@ -6682,14 +6592,6 @@ void FurnaceGUI::drawInsEdit() {
 
       if (ImGui::BeginTabBar("insEditTab")) {
         std::vector<FurnaceGUIMacroDesc> macroList;
-
-        // TODO:this is horrible. please change.
-        if(ins->type == DIV_INS_SID3)
-        {
-          drawInsSID3(ins);
-          ImGui::EndTabBar();
-          goto insEditEnd;
-        }
 
         if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPM || ins->type==DIV_INS_ESFM) {
           char label[32];
@@ -7167,9 +7069,9 @@ void FurnaceGUI::drawInsEdit() {
           }
 
           P(CWSliderScalar(_("Duty"),ImGuiDataType_U16,&ins->c64.duty,&_ZERO,&_FOUR_THOUSAND_NINETY_FIVE)); rightClickable
+
           bool resetDuty=ins->c64.resetDuty;
-          if (ImGui::Checkbox(_("Reset duty on new note"),&resetDuty)) 
-          { PARAMETER
+          if (ImGui::Checkbox(_("Reset duty on new note"),&resetDuty)) { PARAMETER
             ins->c64.resetDuty=resetDuty;
           }
 
@@ -7476,6 +7378,9 @@ void FurnaceGUI::drawInsEdit() {
           }
           ImGui::EndChild();
           ImGui::EndTabItem();
+        }
+        if (ins->type==DIV_INS_SID3) {
+          drawInsSID3(ins);
         }
         if (ins->type==DIV_INS_MSM6258 ||
             ins->type==DIV_INS_MSM6295 ||
@@ -8573,7 +8478,62 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc(_("Pitch"),&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
               break;
             case DIV_INS_SID3:
-              // TODO: put stuff here to kill that goto.
+              macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,255,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
+
+              macroList.push_back(FurnaceGUIMacroDesc(_("Arpeggio"),&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Pitch"),&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+
+              if (ins->sid3.doWavetable) {
+                int waveCount=MAX(1,e->song.waveLen-1);
+                macroList.push_back(FurnaceGUIMacroDesc(_("Waveform"),&ins->std.waveMacro,0,waveCount,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              } else {
+                macroList.push_back(FurnaceGUIMacroDesc(_("Duty"),&ins->std.dutyMacro,ins->sid3.dutyIsAbs?0:-65535,65535,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(_("Waveform"),&ins->std.waveMacro,0,5,16 * 5,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,true,sid3ShapeBits));
+                macroList.push_back(FurnaceGUIMacroDesc(_("Special Wave"),&ins->std.algMacro,0,SID3_NUM_SPECIAL_WAVES - 1,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,macroSID3SpecialWaves));
+              }
+
+              if (ins->sid3.separateNoisePitch && !ins->sid3.doWavetable) {
+                macroList.push_back(FurnaceGUIMacroDesc(_("Noise Arpeggio"),&ins->std.opMacros[3].amMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.opMacros[3].amMacro.val,true));
+                macroList.push_back(FurnaceGUIMacroDesc(_("Noise Pitch"),&ins->std.opMacros[0].arMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode,NULL,false,NULL,false,NULL,false,true));
+              }
+
+              macroList.push_back(FurnaceGUIMacroDesc(_("Panning (left)"),&ins->std.panLMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Panning (right)"),&ins->std.panRMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+
+              macroList.push_back(FurnaceGUIMacroDesc(_("Channel inversion"),&ins->std.opMacros[2].arMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,minModModeBits));
+
+              macroList.push_back(FurnaceGUIMacroDesc(_("Key On/Off"),&ins->std.opMacros[0].amMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+
+              macroList.push_back(FurnaceGUIMacroDesc(_("Special"),&ins->std.ex1Macro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,sid3ControlBits));
+
+              macroList.push_back(FurnaceGUIMacroDesc(_("Ring Mod Source"),&ins->std.fmsMacro,0,SID3_NUM_CHANNELS,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3SourceChan));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Hard Sync Source"),&ins->std.amsMacro,0,SID3_NUM_CHANNELS - 1,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3SourceChan));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Phase Mod Source"),&ins->std.fbMacro,0,SID3_NUM_CHANNELS - 1,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3SourceChan));
+              
+              if (!ins->sid3.doWavetable) {
+                macroList.push_back(FurnaceGUIMacroDesc(_("Feedback"),&ins->std.opMacros[3].arMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              }
+
+              macroList.push_back(FurnaceGUIMacroDesc(_("Phase Reset"),&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+
+              if (!ins->sid3.doWavetable) {
+                macroList.push_back(FurnaceGUIMacroDesc(_("Noise Phase Reset"),&ins->std.opMacros[1].amMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              }
+              macroList.push_back(FurnaceGUIMacroDesc(_("Envelope Reset"),&ins->std.opMacros[2].amMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+
+              macroList.push_back(FurnaceGUIMacroDesc(_("Attack"),&ins->std.ex2Macro,0,255,160,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Decay"),&ins->std.ex3Macro,0,255,160,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Sustain"),&ins->std.ex4Macro,0,255,160,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Sustain Rate"),&ins->std.ex5Macro,0,255,160,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Release"),&ins->std.ex6Macro,0,255,160,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
+
+              if (!ins->sid3.doWavetable) {
+                macroList.push_back(FurnaceGUIMacroDesc(_("Noise LFSR bits"),&ins->std.ex7Macro,0,30,16 * 30,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,macroSID3NoiseLFSR,true));
+                macroList.push_back(FurnaceGUIMacroDesc(_("1-Bit Noise"),&ins->std.opMacros[1].arMacro,0,1,32,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,NULL,true));
+                macroList.push_back(FurnaceGUIMacroDesc(_("Wave Mix"),&ins->std.ex8Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3WaveMixMode));
+              } else {
+                macroList.push_back(FurnaceGUIMacroDesc(_("Sample Mode"),&ins->std.opMacros[1].arMacro,0,1,32,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,NULL,true));
+              }
               break;
             case DIV_INS_MAX:
             case DIV_INS_NULL:
@@ -8632,7 +8592,6 @@ void FurnaceGUI::drawInsEdit() {
           }
         }
         ImGui::EndTabBar();
-        insEditEnd:;
       }
       if (settings.insEditColorize) {
         popAccentColors();

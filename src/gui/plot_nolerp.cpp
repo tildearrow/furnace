@@ -228,16 +228,12 @@ int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx),
             const float v0 = values_getter(data, (v_idx + values_offset) % values_count);
             //ImGui::SetTooltip("%d: %8.4g", v_idx, v0);
 
-            if (hoverFunc) 
-            {
+            if (hoverFunc) {
               std::string hoverText=hoverFunc(v_idx,v0,hoverFuncUser);
-              if (!hoverText.empty()) 
-              {
+              if (!hoverText.empty()) {
                 ImGui::SetTooltip("%s",hoverText.c_str());
               }
-            } 
-            else 
-            {
+            } else {
               ImGui::SetTooltip("%d: %d (%X)", v_idx, (int)v0, (int)v0);
             }
 

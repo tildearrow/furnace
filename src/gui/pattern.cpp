@@ -1282,13 +1282,10 @@ void FurnaceGUI::drawPattern() {
       memset(floors,0,4*4*sizeof(unsigned int));
 
       for (int i=0; i<chans; i++) {
-        
-
         std::vector<DivChannelPair> pairs;
-        e->getChanPaired(i, pairs);
+        e->getChanPaired(i,pairs);
 
-        for(DivChannelPair pair: pairs)
-        {
+        for (DivChannelPair pair: pairs) {
           bool isPaired=false;
           int numPairs=0;
           unsigned int pairMin=i;
