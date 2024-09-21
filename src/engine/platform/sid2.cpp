@@ -93,7 +93,10 @@ void DivPlatformSID2::acquire(short** buf, size_t len)
 
       for(int j = 0; j < 3; j++)
       {
-        oscBuf[j]->data[oscBuf[j]->needle++] = sid2->chan_out[j] / 4;
+        int co=sid2->chan_out[j]>>2;
+        if (co<-32768) co=-32768;
+        if (co>32767) co=32767;
+        oscBuf[j]->data[oscBuf[j]->needle++]=co;
       }
     }
   }
