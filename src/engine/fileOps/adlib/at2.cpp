@@ -3115,6 +3115,35 @@ bool DivEngine::loadAT2M(unsigned char* file, size_t len)
                                     pat1->data[r][2] = ins4opedindex[pat1->data[r][2]];
                                 }
                             }
+
+                            if(pat1->data[r][0] == 101)
+                            {
+                                pat2->data[r][0] = 101;
+                            }
+                            else
+                            {
+                                if(pat2->data[r][0] == 101)
+                                {
+                                    pat1->data[r][0] = 101;
+                                }
+                            }
+
+                            for(int eff = 0; eff < DIV_MAX_EFFECTS; eff++)
+                            {
+                                if(pat1->data[r][4 + eff * 2] != pat2->data[r][4 + eff * 2] || pat1->data[r][5 + eff * 2] != pat2->data[r][5 + eff * 2])
+                                {
+                                    if(pat1->data[r][4 + eff * 2] != -1)
+                                    {
+                                        pat2->data[r][4 + eff * 2] = pat1->data[r][4 + eff * 2];
+                                        pat2->data[r][5 + eff * 2] = pat1->data[r][5 + eff * 2];
+                                    }
+                                    else
+                                    {
+                                        pat1->data[r][4 + eff * 2] = pat2->data[r][4 + eff * 2];
+                                        pat1->data[r][5 + eff * 2] = pat2->data[r][5 + eff * 2];
+                                    }
+                                }
+                            }
                         }
                     }
                 }
