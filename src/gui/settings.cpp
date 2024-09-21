@@ -4901,7 +4901,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
     settings.selectAssetOnLoad=conf.getInt("selectAssetOnLoad",1);
 
-    settings.inputRepeat=conf.getInt("inputRepeat",0);
+    settings.inputRepeat=conf.getInt("inputRepeat",1);
   }
 
   if (groups&GUI_SETTINGS_FONT) {

@@ -2237,7 +2237,7 @@ class FurnaceGUI {
       vsync(1),
       frameRateLimit(60),
       displayRenderTime(0),
-      inputRepeat(0),
+      inputRepeat(1),
       glRedSize(8),
       glGreenSize(8),
       glBlueSize(8),
