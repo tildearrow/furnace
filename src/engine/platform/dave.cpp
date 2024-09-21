@@ -531,7 +531,7 @@ void DivPlatformDave::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   if (chan[ch].ringMod) {
     ret.push_back(DivChannelPair(_("ring"),(ch+2)&3));
   }
-  if (chan[ch].lowPass && ch == 3) {
+  if (chan[ch].lowPass && ch==3) {
     ret.push_back(DivChannelPair(_("low"),2));
   }
 }

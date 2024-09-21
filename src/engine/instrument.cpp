@@ -261,7 +261,18 @@ bool DivInstrumentESFM::Operator::operator==(const DivInstrumentESFM::Operator& 
 
 bool DivInstrumentSID3::operator==(const DivInstrumentSID3& other) {
   return (
+    _C(triOn) &&
+    _C(sawOn) &&
+    _C(pulseOn) &&
+    _C(noiseOn) &&
+    _C(a) &&
+    _C(d) &&
+    _C(s) &&
+    _C(r) &&
     _C(sr) &&
+    _C(duty) &&
+    _C(ringMod) &&
+    _C(oscSync) &&
     _C(phase_mod) &&
     _C(phase_mod_source) &&
     _C(ring_mod_source) &&
@@ -271,8 +282,11 @@ bool DivInstrumentSID3::operator==(const DivInstrumentSID3& other) {
     _C(separateNoisePitch) &&
     _C(special_wave) &&
     _C(doWavetable) &&
+    _C(dutyIsAbs) &&
+    _C(resetDuty) &&
     _C(phaseInv) &&
     _C(feedback) &&
+    _C(mixMode) &&
     _C(filt[0]) &&
     _C(filt[1]) &&
     _C(filt[2]) &&

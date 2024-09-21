@@ -977,7 +977,6 @@ struct DivInstrumentSID3 {
 };
 
 struct DivInstrumentPOD {
-  String name;
   DivInstrumentType type;
   DivInstrumentFM fm;
   DivInstrumentSTD std;

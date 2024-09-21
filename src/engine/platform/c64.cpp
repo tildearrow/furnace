@@ -159,19 +159,16 @@ void DivPlatformC64::tick(bool sysTick) {
 
     chan[i].std.next();
 
-    if(sysTick)
-    {
-      if(chan[i].pw_slide != 0)
-      {
-        chan[i].duty -= chan[i].pw_slide;
-        chan[i].duty = CLAMP(chan[i].duty, 0, 0xfff);
+    if (sysTick) {
+      if (chan[i].pw_slide!=0) {
+        chan[i].duty-=chan[i].pw_slide;
+        chan[i].duty=CLAMP(chan[i].duty,0,0xfff);
         rWrite(i*7+2,chan[i].duty&0xff);
-        rWrite(i*7+3,(chan[i].duty>>8) | (chan[i].outVol << 4));
+        rWrite(i*7+3,(chan[i].duty>>8)|(chan[i].outVol<<4));
       }
-      if(cutoff_slide != 0)
-      {
-        filtCut += cutoff_slide;
-        filtCut = CLAMP(filtCut, 0, 0x7ff);
+      if (cutoff_slide!=0) {
+        filtCut+=cutoff_slide;
+        filtCut=CLAMP(filtCut,0,0x7ff);
         updateFilter();
       }
     }
@@ -554,10 +551,10 @@ int DivPlatformC64::dispatch(DivCommand c) {
       rWrite(c.chan*7+6,(chan[c.chan].sustain<<4)|(chan[c.chan].release));
       break;
     case DIV_CMD_C64_PW_SLIDE:
-      chan[c.chan].pw_slide = c.value * c.value2;
+      chan[c.chan].pw_slide=c.value*c.value2;
       break;
     case DIV_CMD_C64_CUTOFF_SLIDE:
-      cutoff_slide = c.value * c.value2;
+      cutoff_slide=c.value*c.value2;
       break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);

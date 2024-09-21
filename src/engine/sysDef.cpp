@@ -2296,8 +2296,8 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SID3]=new DivSysDef(   
-    _("SID3"), NULL, 0xf5, 0, 7, false, true, 0, false, (1U << DIV_SAMPLE_DEPTH_8BIT) | (1U << DIV_SAMPLE_DEPTH_16BIT), 256, 256,
-    _("a fantasy sound chip created by LTVA. it is a big rework of SID chip with probably too much features added on top."),
+    _("SID3"), NULL, 0xf5, 0, 7, false, true, 0, false, (1U<<DIV_SAMPLE_DEPTH_8BIT)|(1U<<DIV_SAMPLE_DEPTH_16BIT), 256, 256,
+    _("a fantasy sound chip created by LTVA. it is a big rework of SID chip with probably too many features added on top."),
     {_("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Wave")},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "WA"},
     {DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_WAVE},

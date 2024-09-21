@@ -114,19 +114,16 @@ void DivPlatformSID2::tick(bool sysTick) {
 
     chan[i].std.next();
 
-    if(sysTick)
-    {
-      if(chan[i].pw_slide != 0)
-      {
-        chan[i].duty -= chan[i].pw_slide;
-        chan[i].duty = CLAMP(chan[i].duty, 0, 0xfff);
+    if (sysTick) {
+      if (chan[i].pw_slide!=0) {
+        chan[i].duty-=chan[i].pw_slide;
+        chan[i].duty=CLAMP(chan[i].duty,0,0xfff);
         rWrite(i*7+2,chan[i].duty&0xff);
-        rWrite(i*7+3,(chan[i].duty>>8) | (chan[i].outVol << 4));
+        rWrite(i*7+3,(chan[i].duty>>8)|(chan[i].outVol<<4));
       }
-      if(chan[i].cutoff_slide != 0)
-      {
-        chan[i].filtCut += chan[i].cutoff_slide;
-        chan[i].filtCut = CLAMP(chan[i].filtCut, 0, 0xfff);
+      if (chan[i].cutoff_slide!=0) {
+        chan[i].filtCut+=chan[i].cutoff_slide;
+        chan[i].filtCut=CLAMP(chan[i].filtCut,0,0xfff);
         updateFilter(i);
       }
     }
@@ -540,10 +537,10 @@ int DivPlatformSID2::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_C64_PW_SLIDE:
-      chan[c.chan].pw_slide = c.value * c.value2;
+      chan[c.chan].pw_slide=c.value*c.value2;
       break;
     case DIV_CMD_C64_CUTOFF_SLIDE:
-      chan[c.chan].cutoff_slide = c.value * c.value2;
+      chan[c.chan].cutoff_slide=c.value*c.value2;
       break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
@@ -600,22 +597,16 @@ DivMacroInt* DivPlatformSID2::getChanMacroInt(int ch) {
 
 void DivPlatformSID2::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   if (chan[ch].ring) {
-    if(ch == 0)
-    {
+    if (ch==0) {
       ret.push_back(DivChannelPair(_("ring"),2));
-    }
-    else
-    {
+    } else {
       ret.push_back(DivChannelPair(_("ring"),(ch-1)%3));
     }
   }
   if (chan[ch].sync) {
-    if(ch == 0)
-    {
+    if (ch==0) {
       ret.push_back(DivChannelPair(_("sync"),2));
-    }
-    else
-    {
+    } else {
       ret.push_back(DivChannelPair(_("sync"),(ch-1)%3));
     }
   }
@@ -626,10 +617,9 @@ DivChannelModeHints DivPlatformSID2::getModeHints(int ch) {
   ret.count=1;
   ret.hint[0]=ICON_FA_BELL_SLASH_O;
   ret.type[0]=0;
-  if (ch == 2 && (chan[ch].filtControl & 8)) {
-      ret.type[0] = 7;
-  }
-  else if (!chan[ch].gate) {
+  if (ch==2 && (chan[ch].filtControl & 8)) {
+    ret.type[0]=7;
+  } else if (!chan[ch].gate) {
     ret.type[0]=4;
   }
 
