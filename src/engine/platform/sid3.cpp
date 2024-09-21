@@ -25,7 +25,7 @@
 
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_FREQBASE 524288
+#define CHIP_FREQBASE 524288*64
 #define CHIP_DIVIDER 1
 
 #define CURRENT_FREQ_IN_HZ() ((double)chipClock / pow(2.0, (double)SID3_ACC_BITS) * (double)chan[i].freq)
@@ -615,7 +615,7 @@ void DivPlatformSID3::tick(bool sysTick)
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) 
     {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE * 64);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
 
       if (chan[i].keyOn) 
       {
@@ -738,7 +738,7 @@ void DivPlatformSID3::tick(bool sysTick)
     {
       if(chan[i].independentNoiseFreq)
       {
-        chan[i].noiseFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].noise_fixedArp?chan[i].noise_baseNoteOverride:chan[i].noise_arpOff,chan[i].noise_fixedArp,false,2,chan[i].noise_pitch2,chipClock,CHIP_FREQBASE * 64);
+        chan[i].noiseFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].noise_fixedArp?chan[i].noise_baseNoteOverride:chan[i].noise_arpOff,chan[i].noise_fixedArp,false,2,chan[i].noise_pitch2,chipClock,CHIP_FREQBASE);
       }
       else
       {
