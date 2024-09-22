@@ -22,7 +22,9 @@
 
 #include "fmsharedbase.h"
 
-#define NOTE_LINEAR(x) (((x)<<7)+baseFreqOff+log2(parent->song.tuning/440.0)*12.0*128.0)
+#define NOTE_LINEAR(x) ((x)<<7)
+#define OFFSET_LINEAR (baseFreqOff+log2(parent->song.tuning/440.0)*12.0*128.0)
+
 
 class DivPlatformOPM: public DivPlatformFMBase {
   protected:
