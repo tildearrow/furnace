@@ -65,6 +65,7 @@ DivSystem FurnaceGUI::systemPicker(bool fullWidth) {
     if (sysSearchQuery.empty()) {
       // display chip list
       for (int j=0; curSysSection[j]; j++) {
+        if (!settings.hiddenSystems && CHECK_HIDDEN_SYSTEM(curSysSection[j])) continue;
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         if (ImGui::Selectable(e->getSystemName((DivSystem)curSysSection[j]),false,0,ImVec2(500.0f*dpiScale,0.0f))) ret=(DivSystem)curSysSection[j];
@@ -75,6 +76,7 @@ DivSystem FurnaceGUI::systemPicker(bool fullWidth) {
     } else {
       // display search results
       for (DivSystem i: sysSearchResults) {
+        if (!settings.hiddenSystems && CHECK_HIDDEN_SYSTEM(i)) continue;
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         if (ImGui::Selectable(e->getSystemName(i),false,0,ImVec2(500.0f*dpiScale,0.0f))) ret=i;

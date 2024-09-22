@@ -1008,7 +1008,11 @@ void FurnaceGUI::drawSettings() {
           for (totalAvailSys=0; availableSystems[totalAvailSys]; totalAvailSys++);
           if (totalAvailSys>0) {
             for (int i=0; i<howMany; i++) {
-              settings.initialSys.set(fmt::sprintf("id%d",i),e->systemToFileFur((DivSystem)availableSystems[rand()%totalAvailSys]));
+              DivSystem theSystem=DIV_SYSTEM_DUMMY;
+              do {
+                theSystem=(DivSystem)availableSystems[rand()%totalAvailSys];
+              } while (!settings.hiddenSystems && CHECK_HIDDEN_SYSTEM(theSystem));
+              settings.initialSys.set(fmt::sprintf("id%d",i),e->systemToFileFur(theSystem));
               settings.initialSys.set(fmt::sprintf("vol%d",i),1.0f);
               settings.initialSys.set(fmt::sprintf("pan%d",i),0.0f);
               settings.initialSys.set(fmt::sprintf("fr%d",i),0.0f);
