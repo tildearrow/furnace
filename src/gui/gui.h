@@ -1836,7 +1836,6 @@ class FurnaceGUI {
     int allowEditDocking;
     int chipNames;
     int overflowHighlight;
-    int partyTime;
     int flatNotes;
     int germanNotation;
     int stepOnDelete;
@@ -2098,7 +2097,6 @@ class FurnaceGUI {
       allowEditDocking(1),
       chipNames(0),
       overflowHighlight(0),
-      partyTime(0),
       germanNotation(0),
       stepOnDelete(0),
       scrollStep(0),

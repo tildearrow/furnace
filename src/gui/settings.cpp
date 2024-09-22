@@ -1231,15 +1231,6 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
-        bool partyTimeB=settings.partyTime;
-        if (ImGui::Checkbox(_("About screen party time"),&partyTimeB)) {
-          settings.partyTime=partyTimeB;
-          settingsChanged=true;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("Warning: may cause epileptic seizures."));
-        }
-
         // SUBSECTION BEHAVIOR
         CONFIG_SUBSECTION(_("Behavior"));
         bool blankInsB=settings.blankIns;
@@ -4959,7 +4950,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
     settings.chipNames=conf.getInt("chipNames",0);
     settings.overflowHighlight=conf.getInt("overflowHighlight",0);
-    settings.partyTime=conf.getInt("partyTime",0);
     settings.flatNotes=conf.getInt("flatNotes",0);
     settings.germanNotation=conf.getInt("germanNotation",0);
 
@@ -5172,7 +5162,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.allowEditDocking,0,1);
   clampSetting(settings.chipNames,0,1);
   clampSetting(settings.overflowHighlight,0,1);
-  clampSetting(settings.partyTime,0,1);
   clampSetting(settings.flatNotes,0,1);
   clampSetting(settings.germanNotation,0,1);
   clampSetting(settings.stepOnDelete,0,1);
@@ -5552,7 +5541,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
     conf.set("chipNames",settings.chipNames);
     conf.set("overflowHighlight",settings.overflowHighlight);
-    conf.set("partyTime",settings.partyTime);
     conf.set("flatNotes",settings.flatNotes);
     conf.set("germanNotation",settings.germanNotation);
 
