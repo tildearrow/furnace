@@ -716,16 +716,16 @@ void FurnaceGUI::drawTutorial() {
       (canvasH-ImGui::GetWindowSize().y)*0.5
     ));
 
-    if (tutorial.popupTimer<40) {
+    if (tutorial.popupTimer<0.6f) {
       ImDrawList* dl=ImGui::GetForegroundDrawList();
       const ImVec2 winPos=ImGui::GetWindowPos();
-      const ImVec2 winSize=ImGui::GetWindowSize();
       const ImVec2 txtSize=ImGui::CalcTextSize("copied!");
+      const ImVec2 winSize=ImGui::GetWindowSize();
       dl->AddText(ImVec2(
         winPos.x+(winSize.x-txtSize.x)/2,
         winPos.y+(winSize.y-txtSize.y*2)
-      ),ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_ACCENT_SECONDARY]),"copied!");
-      tutorial.popupTimer++;
+      ),ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_TOGGLE_ON]),"copied!");
+      tutorial.popupTimer+=ImGui::GetIO().DeltaTime;
     }
     ImGui::EndPopup();
   }

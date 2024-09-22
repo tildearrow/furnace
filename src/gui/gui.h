@@ -2277,7 +2277,7 @@ class FurnaceGUI {
   struct Tutorial {
     bool introPlayed;
     bool protoWelcome;
-    unsigned short popupTimer;
+    double popupTimer;
     Tutorial():
 #ifdef SUPPORT_XP
       introPlayed(true),
@@ -2285,7 +2285,7 @@ class FurnaceGUI {
       introPlayed(false),
 #endif
       protoWelcome(false),
-      popupTimer(65535) {
+      popupTimer(1.0f) {
     }
   } tutorial;
 
