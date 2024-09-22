@@ -2658,13 +2658,12 @@ unsigned short DivPlatformOPL::getPan(int ch) {
   return ((chan[ch].pan&1)<<8)|((chan[ch].pan&2)>>1);
 }
 
-DivChannelPair DivPlatformOPL::getPaired(int ch) {
+void DivPlatformOPL::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   if (oplType==3 && ch<12 && !(ch&1)) {
     if (chan[ch].fourOp) {
-      return DivChannelPair("4OP",ch+1);
+      ret.push_back(DivChannelPair(_("4OP"),ch+1));
     }
   }
-  return DivChannelPair();
 }
 
 DivDispatchOscBuffer* DivPlatformOPL::getOscBuffer(int ch) {

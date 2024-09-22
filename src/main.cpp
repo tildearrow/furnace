@@ -339,8 +339,10 @@ TAParamResult pVersion(String) {
   printf("- PowerNoise emulator by scratchminer (MIT)\n");
   printf("- ep128emu by Istvan Varga (GPLv2)\n");
   printf("- NDS sound emulator by cam900 (zlib license)\n");
-  printf("- Adlib-related formats import routines adapted from adlib2vgm by SudoMaker (AGPL-3.0 license)\n");
+  printf("- SID2 emulator by LTVA (GPLv2, modification of reSID emulator)\n");
+  printf("- SID3 emulator by LTVA (MIT)\n");
   printf("- openMSX YMF278 emulator (modified version) by the openMSX developers (GPLv2)\n");
+  printf("- Adlib-related formats import routines adapted from adlib2vgm by SudoMaker (AGPL-3.0 license)\n");
   return TA_PARAM_QUIT;
 }
 

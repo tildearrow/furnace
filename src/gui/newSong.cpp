@@ -37,7 +37,7 @@ void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& acce
     ImGui::TableNextColumn();
     if (!i.subDefs.empty()) {
       if (i.orig.empty()) {
-        sysDefID=fmt::sprintf("%s%s/%dS",i.name,sysDefIDLeader,index);
+        sysDefID=fmt::sprintf("%s%s/%dS",_(i.name.c_str()),sysDefIDLeader,index);
       } else {
         sysDefID=fmt::sprintf("%s/%dS",sysDefIDLeader,index);
       }
@@ -45,7 +45,7 @@ void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& acce
       ImGui::SameLine();
     }
     if (!i.orig.empty()) {
-      sysDefID=fmt::sprintf("%s%s/%d",i.name,sysDefIDLeader,index);
+      sysDefID=fmt::sprintf("%s%s/%d",_(i.name.c_str()),sysDefIDLeader,index);
       if (ImGui::Selectable(sysDefID.c_str(),false,ImGuiSelectableFlags_DontClosePopups)) {
         nextDesc=i.definition;
         nextDescName=i.name;

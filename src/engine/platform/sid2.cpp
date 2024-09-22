@@ -93,7 +93,10 @@ void DivPlatformSID2::acquire(short** buf, size_t len)
 
       for(int j = 0; j < 3; j++)
       {
-        oscBuf[j]->data[oscBuf[j]->needle++] = sid2->chan_out[j] / 4;
+        int co=sid2->chan_out[j]>>2;
+        if (co<-32768) co=-32768;
+        if (co>32767) co=32767;
+        oscBuf[j]->data[oscBuf[j]->needle++]=co;
       }
     }
   }
@@ -113,6 +116,21 @@ void DivPlatformSID2::tick(bool sysTick) {
     bool willUpdateFilter = false;
 
     chan[i].std.next();
+
+    if (sysTick) {
+      if (chan[i].pw_slide!=0) {
+        chan[i].duty-=chan[i].pw_slide;
+        chan[i].duty=CLAMP(chan[i].duty,0,0xfff);
+        rWrite(i*7+2,chan[i].duty&0xff);
+        rWrite(i*7+3,(chan[i].duty>>8)|(chan[i].outVol<<4));
+      }
+      if (chan[i].cutoff_slide!=0) {
+        chan[i].filtCut+=chan[i].cutoff_slide;
+        chan[i].filtCut=CLAMP(chan[i].filtCut,0,0xfff);
+        updateFilter(i);
+      }
+    }
+
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
       rWrite(i*7+3,(chan[i].duty>>8) | (chan[i].outVol << 4));
@@ -297,7 +315,7 @@ int DivPlatformSID2::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       chan[c.chan].test=false;
 
-      if (chan[c.chan].insChanged || chan[c.chan].resetDuty || ins->std.waveMacro.len>0) {
+      if (((chan[c.chan].insChanged || chan[c.chan].resetDuty || ins->std.waveMacro.len>0) && ins->c64.resetDuty) || chan[c.chan].resetDuty) {
         chan[c.chan].duty=ins->c64.duty;
         rWrite(c.chan*7+2,chan[c.chan].duty&0xff);
         rWrite(c.chan*7+3,(chan[c.chan].duty>>8) | (chan[c.chan].outVol << 4));
@@ -521,6 +539,12 @@ int DivPlatformSID2::dispatch(DivCommand c) {
           break;
       }
       break;
+    case DIV_CMD_C64_PW_SLIDE:
+      chan[c.chan].pw_slide=c.value*c.value2;
+      break;
+    case DIV_CMD_C64_CUTOFF_SLIDE:
+      chan[c.chan].cutoff_slide=c.value*c.value2;
+      break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
       break;
@@ -574,15 +598,31 @@ DivMacroInt* DivPlatformSID2::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+void DivPlatformSID2::getPaired(int ch, std::vector<DivChannelPair>& ret) {
+  if (chan[ch].ring) {
+    if (ch==0) {
+      ret.push_back(DivChannelPair(_("ring"),2));
+    } else {
+      ret.push_back(DivChannelPair(_("ring"),(ch-1)%3));
+    }
+  }
+  if (chan[ch].sync) {
+    if (ch==0) {
+      ret.push_back(DivChannelPair(_("sync"),2));
+    } else {
+      ret.push_back(DivChannelPair(_("sync"),(ch-1)%3));
+    }
+  }
+}
+
 DivChannelModeHints DivPlatformSID2::getModeHints(int ch) {
   DivChannelModeHints ret;
   ret.count=1;
   ret.hint[0]=ICON_FA_BELL_SLASH_O;
   ret.type[0]=0;
-  if (ch == 2 && (chan[ch].filtControl & 8)) {
-      ret.type[0] = 7;
-  }
-  else if (!chan[ch].gate) {
+  if (ch==2 && (chan[ch].filtControl & 8)) {
+    ret.type[0]=7;
+  } else if (!chan[ch].gate) {
     ret.type[0]=4;
   }
 
@@ -633,6 +673,9 @@ void DivPlatformSID2::reset() {
     chan[i].noise_mode = 0;
 
     rWrite(0x3 + 7 * i,0xf0);
+
+    chan[i].cutoff_slide = 0;
+    chan[i].pw_slide = 0;
   }
 
   sid2->reset();
