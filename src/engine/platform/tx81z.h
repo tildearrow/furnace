@@ -68,17 +68,13 @@ class DivPlatformTX81Z: public DivPlatformOPM {
               opsState[o].fixedArp=false;
             }
           }
-          freqChange = true;
-        }
-
-        else
-        {
+          freqChange=true;
+        } else {
           opsState[o].hasOpArp=false;
         }
       }
 
-      void handlePitchFmOp(bool& freqChange, int o)
-      {
+      void handlePitchFmOp(bool& freqChange, int o) {
         DivMacroInt::IntOp& m=this->std.op[o];
 
         if (m.sus.had) {
@@ -90,11 +86,8 @@ class DivPlatformTX81Z: public DivPlatformOPM {
           } else {
             opsState[o].pitch2=m.sus.val;
           }
-          freqChange = true;
-        }
-
-        else
-        {
+          freqChange=true;
+        } else {
           opsState[o].hasOpPitch=false;
         }
       }
@@ -102,8 +95,8 @@ class DivPlatformTX81Z: public DivPlatformOPM {
         FMChannel(),
         chVolL(1),
         chVolR(1) {
-          memset(opsState, 0, sizeof(opsState));
-        }
+        memset(opsState,0,sizeof(opsState));
+      }
     };
     Channel chan[8];
     DivDispatchOscBuffer* oscBuf[8];
