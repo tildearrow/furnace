@@ -1,10 +1,10 @@
 # SID2
 
-a fictional chip created by LTVA. the idea is to fix SID flaws and add more features, but not too much.
+a fictional chip created by LTVA. the idea is to fix [SID](c64.md) flaws and add more features, but not too much.
 
 unlike SID, it has per-channel volume control, better ADSR envelope which doesn't have bugs, more waveform mixing modes and the ability to play tonal noise waves.
 
-filter cutoff and resonance ranges were extended, as well as the frequency - finally the chip can hit B-7 note with default clock speed!
+each channel now has its own independent filter. filter cutoff and resonance ranges were extended, as well as the frequency - finally the chip can hit B-7 note with default clock speed!
 
 ## effects
 
@@ -46,6 +46,14 @@ filter cutoff and resonance ranges were extended, as well as the frequency - fin
     - `9`: phase reset (`y` is a discarded parameter and does not matter)
     - `A`: envelope key on/key off (`y` is `0` (trigger envelope release) or `1` (restart envelope again))
     - `B`: filter on/off (`y` is `0` (disable filter) or `1` (enable filter))
+- `17xx`: **pulse width slide up.**
+  - `xx` is speed. if it is `00`, the slide is stopped.
+- `18xx`: **pulse width slide down.**
+  - `xx` is speed. if it is `00`, the slide is stopped.
+- `19xx`: **filter cutoff slide up.**
+  - `xx` is speed. if it is `00`, the slide is stopped.
+- `1Axx`: **filter cutoff slide down.**
+  - `xx` is speed. if it is `00`, the slide is stopped.
 - `3xxx`: **set duty cycle.** `xxx` range is `000` to `FFF`.
 - `4xxx`: **set cutoff.** `xxx` range is `000` to `FFF`.
 

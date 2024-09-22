@@ -265,8 +265,47 @@ const char* cmdName[]={
   "BIFURCATOR_PARAMETER",
 
   "FDS_MOD_AUTO",
+  
+  "FM_OPMASK",
 
-  "FM_OPMASK"
+  "MULTIPCM_MIX_FM",
+  "MULTIPCM_MIX_PCM",
+  "MULTIPCM_LFO",
+  "MULTIPCM_VIB",
+  "MULTIPCM_AM",
+  "MULTIPCM_AR",
+  "MULTIPCM_D1R",
+  "MULTIPCM_DL",
+  "MULTIPCM_D2R",
+  "MULTIPCM_RR",
+  "MULTIPCM_RC",
+  "MULTIPCM_DAMP",
+  "MULTIPCM_PSEUDO_REVERB",
+  "MULTIPCM_LFO_RESET",
+  "MULTIPCM_LEVEL_DIRECT",
+
+  "SID3_SPECIAL_WAVE",
+  "SID3_RING_MOD_SRC",
+  "SID3_HARD_SYNC_SRC",
+  "SID3_PHASE_MOD_SRC",
+  "SID3_WAVE_MIX",
+  "SID3_LFSR_FEEDBACK_BITS",
+  "SID3_1_BIT_NOISE",
+  "SID3_FILTER_DISTORTION",
+  "SID3_FILTER_OUTPUT_VOLUME",
+  "SID3_CHANNEL_INVERSION",
+  "SID3_FILTER_CONNECTION",
+  "SID3_FILTER_MATRIX",
+  "SID3_FILTER_ENABLE",
+
+  "C64_PW_SLIDE",
+  "C64_CUTOFF_SLIDE",
+
+  "SID3_PHASE_RESET",
+  "SID3_NOISE_PHASE_RESET",
+  "SID3_ENVELOPE_RESET",
+  "SID3_CUTOFF_SCALING",
+  "SID3_RESONANCE_SCALING"
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");
@@ -536,7 +575,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
             bool comparison=(song.delayBehavior==1)?(effectVal<=nextSpeed):(effectVal<(nextSpeed*(curSubSong->timeBase+1)));
             if (song.delayBehavior==2) comparison=true;
             if (comparison) {
-              chan[i].rowDelay=effectVal+1;
+              chan[i].rowDelay=effectVal;
               chan[i].delayOrder=whatOrder;
               chan[i].delayRow=whatRow;
               if (effectVal==nextSpeed) {
@@ -1580,6 +1619,19 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     if (--subticks<=0) {
       subticks=tickMult;
 
+      // apply delayed rows before potentially advancing to a new row, which would overwrite the
+      // delayed row's state before it has a chance to do anything. a typical example would be
+      // a delay scheduling a note-on to be simultaneous with the next row, and the next row also
+      // containing a delayed note. if we don't apply the delayed row first, 
+      for (int i=0; i<chans; i++) {
+        // delay effects
+        if (chan[i].rowDelay>0) {
+          if (--chan[i].rowDelay==0) {
+            processRow(i,true);
+          }
+        }
+      }
+
       if (stepPlay!=1) {
         tempoAccum+=(skipping && virtualTempoN<virtualTempoD)?virtualTempoD:virtualTempoN;
         while (tempoAccum>=virtualTempoD) {
@@ -1610,15 +1662,9 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         // under no circumstances shall the accumulator become this large
         if (tempoAccum>1023) tempoAccum=1023;
       }
+
       // process stuff
       if (!shallStop) for (int i=0; i<chans; i++) {
-        // delay effects
-        if (chan[i].rowDelay>0) {
-          if (--chan[i].rowDelay==0) {
-            processRow(i,true);
-          }
-        }
-
         // retrigger
         if (chan[i].retrigSpeed) {
           if (--chan[i].retrigTick<0) {
@@ -1632,6 +1678,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         if (!song.noSlidesOnFirstTick || !firstTick) {
           if (chan[i].volSpeed!=0) {
             chan[i].volume=(chan[i].volume&0xff)|(dispatchCmd(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
+            int preSpeedVol=chan[i].volume;
             chan[i].volume+=chan[i].volSpeed;
             if (chan[i].volSpeedTarget!=-1) {
               bool atTarget=false;
@@ -1645,7 +1692,11 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
               }
 
               if (atTarget) {
-                chan[i].volume=chan[i].volSpeedTarget;
+                if (chan[i].volSpeed>0) {
+                  chan[i].volume=MAX(preSpeedVol,chan[i].volSpeedTarget);
+                } else if (chan[i].volSpeed<0) {
+                  chan[i].volume=MIN(preSpeedVol,chan[i].volSpeedTarget);
+                }
                 chan[i].volSpeed=0;
                 chan[i].volSpeedTarget=-1;
                 dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));

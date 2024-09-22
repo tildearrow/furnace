@@ -300,6 +300,9 @@ const char* aboutLine[]={
   _N("PowerNoise emulator by scratchminer"),
   _N("ep128emu by Istvan Varga"),
   _N("NDS sound emulator by cam900"),
+  _N("openMSX YMF278 emulator (modified version) by the openMSX developers"),
+  _N("SID2 emulator by LTVA (modification of reSID emulator)"),
+  _N("SID3 emulator by LTVA"),
   "",
   _N("greetings to:"),
   "floxy!",
@@ -343,14 +346,8 @@ void FurnaceGUI::drawAbout() {
     float r=0;
     float g=0;
     float b=0;
-    float peakMix=settings.partyTime?0:0.3;
-    if (settings.partyTime) {
-      for (int j=0; j<e->getAudioDescGot().outChans; j++) {
-        peakMix+=peak[j];
-      }
-      peakMix/=e->getAudioDescGot().outChans;
-    }
-    ImGui::ColorConvertHSVtoRGB(aboutHue,1.0,0.25+MIN(0.75f,peakMix*0.75f),r,g,b);
+    float peakMix=0.3;
+    ImGui::ColorConvertHSVtoRGB(aboutHue,1.0,0.475,r,g,b);
     dl->AddRectFilled(ImVec2(0,0),ImVec2(canvasW,canvasH),0xff000000);
     bool skip=false;
     bool skip2=false;
