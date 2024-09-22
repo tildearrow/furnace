@@ -4476,14 +4476,20 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 op.egt=egtOn;
               }
               if (egtOn) {
-                if (ImGui::Checkbox("Pitch control",&susOn)) { PARAMETER
+                pushWarningColor(susOn && e->song.linearPitch!=2);
+                if (ImGui::Checkbox(_("Pitch control"),&susOn)) { PARAMETER
                   op.sus=susOn;
                   // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
                   ins->std.opMacros[i].ssgMacro.vZoom=-1;
                   ins->std.opMacros[i].susMacro.vZoom=-1;
                 }
+                popWarningColor();
                 if (ImGui::IsItemHovered()) {
-                  ImGui::SetTooltip(_("Use op's arpeggio and pitch macros control instead of block/f-num macros"));
+                  if (susOn && e->song.linearPitch!=2) {
+                    ImGui::SetTooltip(_("only works on linear pitch! go to Compatibility Flags > Pitch/Playback and set Pitch linearity to Full."));
+                  } else {
+                    ImGui::SetTooltip(_("use op's arpeggio and pitch macros control instead of block/f-num macros"));
+                  }
                 }
               }
               if (egtOn && !susOn) {
@@ -5239,14 +5245,20 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                   P(CWSliderScalar("##FINE",ImGuiDataType_U8,&op.dvb,&_ZERO,&_FIFTEEN,tempID)); rightClickable
                 } else {
                   bool susOn=op.sus;
-                  if (ImGui::Checkbox("Pitch control",&susOn)) { PARAMETER
+                  pushWarningColor(susOn && e->song.linearPitch!=2);
+                  if (ImGui::Checkbox(_("Pitch control"),&susOn)) { PARAMETER
                     op.sus=susOn;
                     // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
                     ins->std.opMacros[i].ssgMacro.vZoom=-1;
                     ins->std.opMacros[i].susMacro.vZoom=-1;
                   }
+                  popWarningColor();
                   if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip(_("Use op's arpeggio and pitch macros control instead of block/f-num macros"));
+                    if (susOn && e->song.linearPitch!=2) {
+                      ImGui::SetTooltip(_("only works on linear pitch! go to Compatibility Flags > Pitch/Playback and set Pitch linearity to Full."));
+                    } else {
+                      ImGui::SetTooltip(_("use op's arpeggio and pitch macros control instead of block/f-num macros"));
+                    }
                   }
                 }
 
@@ -5556,14 +5568,20 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             bool susOn=op.sus;
             if (fixedOn) {
               ImGui::SameLine();
-              if (ImGui::Checkbox("Pitch control",&susOn)) { PARAMETER
+              pushWarningColor(susOn && e->song.linearPitch!=2);
+              if (ImGui::Checkbox(_("Pitch control"),&susOn)) { PARAMETER
                 op.sus=susOn;
                 // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
                 ins->std.opMacros[i].ssgMacro.vZoom=-1;
                 ins->std.opMacros[i].susMacro.vZoom=-1;
               }
+              popWarningColor();
               if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip(_("Use op's arpeggio and pitch macros control instead of block/f-num macros"));
+                if (susOn && e->song.linearPitch!=2) {
+                  ImGui::SetTooltip(_("only works on linear pitch! go to Compatibility Flags > Pitch/Playback and set Pitch linearity to Full."));
+                } else {
+                  ImGui::SetTooltip(_("use op's arpeggio and pitch macros control instead of block/f-num macros"));
+                }
               }
             }
           }

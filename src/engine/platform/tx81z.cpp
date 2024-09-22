@@ -108,6 +108,7 @@ int DivPlatformTX81Z::toFreq(int freq) {
     freq>>=1;
     block++;
   }
+  if (block>7) return 0x7ff;
   return ((block&7)<<8)|(freq&0xff);
 }
 
@@ -300,49 +301,51 @@ void DivPlatformTX81Z::tick(bool sysTick) {
       }
 
       // fixed pitch
-      bool freqChangeOp=false;
+      if (parent->song.linearPitch==2) {
+        bool freqChangeOp=false;
 
-      if (op.egt) {
-        if (op.sus) {
-          chan[i].handleArpFmOp(freqChangeOp,0,j); // arp and pitch macros
-          chan[i].handlePitchFmOp(freqChangeOp,j);
-        } else {
-          if (m.ssg.had) { // block and f-num macros
-            op.dt=m.ssg.val&7;
-            rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
+        if (op.egt) {
+          if (op.sus) {
+            chan[i].handleArpFmOp(freqChangeOp,0,j); // arp and pitch macros
+            chan[i].handlePitchFmOp(freqChangeOp,j);
+          } else {
+            if (m.ssg.had) { // block and f-num macros
+              op.dt=m.ssg.val&7;
+              rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
+            }
+            if (m.sus.had) {
+              op.mult=(m.sus.val&0xff)>>4;
+              op.dvb=(m.sus.val&0xf);
+              rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
+              rWrite(baseAddr+ADDR_WS_FINE,(op.dvb&15)|(op.ws<<4));
+            }
           }
-          if (m.sus.had) {
-            op.mult=(m.sus.val&0xff)>>4;
-            op.dvb=(m.sus.val&0xf);
-            rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
-            rWrite(baseAddr+ADDR_WS_FINE,(op.dvb&15)|(op.ws<<4));
+        }
+
+        if (freqChangeOp) {
+          int arp=chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff;
+          int pitch2=chan[i].pitch2;
+          int fixedArp=chan[i].fixedArp;
+          if (chan[i].opsState[j].hasOpArp) {
+            arp=chan[i].opsState[j].fixedArp?chan[i].opsState[j].baseNoteOverride:chan[i].opsState[j].arpOff;
+            fixedArp=chan[i].opsState[j].fixedArp;
           }
+          if (chan[i].opsState[j].hasOpPitch) {
+            pitch2=chan[i].opsState[j].pitch2;
+          }
+          int opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,arp,fixedArp,false,2, pitch2,32.0,COLOR_NTSC/chipClock,0);
+          if (opFreq<0) opFreq=0;
+          if (opFreq>65280) opFreq=65280;
+          int freqt=toFreq(opFreq);
+
+          op.dt=(freqt>>8)&7;
+
+          op.mult=(freqt&0xff)>>4;
+          op.dvb=(freqt&0xf);
+
+          rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
+          rWrite(baseAddr+ADDR_WS_FINE,(op.dvb&15)|(op.ws<<4));
         }
-      }
-
-      if (freqChangeOp) {
-        int arp=chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff;
-        int pitch2=chan[i].pitch2;
-        int fixedArp=chan[i].fixedArp;
-        if (chan[i].opsState[j].hasOpArp) {
-          arp=chan[i].opsState[j].fixedArp?chan[i].opsState[j].baseNoteOverride:chan[i].opsState[j].arpOff;
-          fixedArp=chan[i].opsState[j].fixedArp;
-        }
-        if (chan[i].opsState[j].hasOpPitch) {
-          pitch2=chan[i].opsState[j].pitch2;
-        }
-        int opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,arp,fixedArp,false,2,pitch2,chipClock,(524288.0/4.0)*2093.0/2192.0*chipClock/4000000.0,0);
-        if (opFreq<0) opFreq=0;
-        if (opFreq>65280) opFreq=65280;
-        int freqt=toFreq(opFreq);
-
-        op.dt=(freqt>>8)&7;
-
-        op.mult=(freqt&0xff)>>4;
-        op.dvb=(freqt&0xf);
-
-        rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
-        rWrite(baseAddr+ADDR_WS_FINE,(op.dvb&15)|(op.ws<<4));
       }
     }
   }
@@ -400,6 +403,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
           chan[i].freq+=chan[i].arpOff<<7;
         }
       }
+      chan[i].freq+=OFFSET_LINEAR;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>=(95<<7)) chan[i].freq=(95<<7)-1;
       immWrite(i+0x28,hScale(chan[i].freq>>7));
