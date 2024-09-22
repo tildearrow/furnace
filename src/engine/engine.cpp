@@ -137,9 +137,9 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
     case 0xf0:
       return _("F0xx: Set tick rate (bpm)");
     case 0xf1:
-      return _("F1xx: Single tick note slide up");
+      return _("F1xx: Single tick pitch up");
     case 0xf2:
-      return _("F2xx: Single tick note slide down");
+      return _("F2xx: Single tick pitch down");
     case 0xf3:
       return _("F3xx: Fine volume slide up");
     case 0xf4:
@@ -151,9 +151,9 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
     case 0xf7:
       return _("F7xx: Restart macro (see manual)");
     case 0xf8:
-      return _("F8xx: Single tick volume slide up");
+      return _("F8xx: Single tick volume up");
     case 0xf9:
-      return _("F9xx: Single tick volume slide down");
+      return _("F9xx: Single tick volume down");
     case 0xfa:
       return _("FAxx: Fast volume slide (0y: down; x0: up)");
     case 0xfc:
@@ -520,6 +520,15 @@ void DivEngine::initSongWithDesc(const char* description, bool inBase64, bool ol
   if (song.subsong[0]->hz<1.0) song.subsong[0]->hz=1.0;
   if (song.subsong[0]->hz>999.0) song.subsong[0]->hz=999.0;
 
+  curChanMask=c.getIntList("chanMask",{});
+  for (unsigned char i:curChanMask) {
+    int j=i-1;
+    if (j<0) j=0;
+    if (j>DIV_MAX_CHANS) j=DIV_MAX_CHANS-1;
+    curSubSong->chanShow[j]=false;
+    curSubSong->chanShowChanOsc[j]=false;
+  }
+
   song.author=getConfString("defaultAuthorName","");
 }
 
@@ -754,6 +763,13 @@ int DivEngine::addSubSong() {
   BUSY_BEGIN;
   saveLock.lock();
   song.subsong.push_back(new DivSubSong);
+  for (unsigned char i:curChanMask) {
+    int j=i-1;
+    if (j<0) j=0;
+    if (j>DIV_MAX_CHANS) j=DIV_MAX_CHANS-1;
+    song.subsong.back()->chanShow[j]=false;
+    song.subsong.back()->chanShowChanOsc[j]=false;
+  }
   saveLock.unlock();
   BUSY_END;
   return song.subsong.size()-1;
@@ -1559,9 +1575,9 @@ void* DivEngine::getDispatchChanState(int ch) {
   return disCont[dispatchOfChan[ch]].dispatch->getChanState(dispatchChanOfChan[ch]);
 }
 
-DivChannelPair DivEngine::getChanPaired(int ch) {
-  if (ch<0 || ch>=chans) return DivChannelPair();
-  return disCont[dispatchOfChan[ch]].dispatch->getPaired(dispatchChanOfChan[ch]);
+void DivEngine::getChanPaired(int ch, std::vector<DivChannelPair>& ret) {
+  if (ch<0 || ch>=chans) return;
+  disCont[dispatchOfChan[ch]].dispatch->getPaired(dispatchChanOfChan[ch],ret);
 }
 
 DivChannelModeHints DivEngine::getChanModeHints(int ch) {

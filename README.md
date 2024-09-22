@@ -108,6 +108,7 @@ for other operating systems, you may [build the source](#developer-info).
   - some bug/quirk implementation for increased playback accuracy through compatibility flags
 - VGM export
 - ZSM export for Commander X16
+- TIunA export for Atari 2600
 - modular layout that you may adapt to your needs
 - audio file export - entire song, per chip or per channel
 - quality emulation cores (Nuked, MAME, SameBoy, Mednafen PCE, NSFplay, puNES, reSID, Stella, SAASound, vgsound_emu and ymfm)

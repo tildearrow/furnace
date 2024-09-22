@@ -93,6 +93,10 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 - **Export**: select an `.ini` file to save current settings.
 - **Factory Reset**: resets all settings to default and purges settings backups.
 
+### Import
+
+- **Use OPL3 instead of OPL2 for S3M import**: changes which system is used for the import of S3M files that contain FM channels.
+
 ## Audio
 
 ### Output
@@ -501,6 +505,7 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - **Grid**
   - **Single (with list)**
 - **Use classic macro editor vertical slider**
+- **Automatic macro step size/horizontal zoom**
 
 ### Wave Editor
 
@@ -524,6 +529,8 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 - **Position of Sustain in FM editor:**
   - **Between Decay and Sustain Rate**
   - **After Release Rate**
+  - **After Release Rate, after spacing**
+  - **After TL**
 - **Use separate colors for carriers/modulators in FM editor**
 - **Unsigned FM detune values**: uses the internal representation of detune values, such that detune amounts of -1, -2, and -3 are shown as 5, 6, and 7.
 

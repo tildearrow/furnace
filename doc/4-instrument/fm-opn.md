@@ -39,7 +39,7 @@ these apply to each operator:
 - **Decay Rate 2 (D2R) / Sustain Rate (SR)**: determines the diminishing time for the sound. the higher the value, the shorter the decay. this is the long "tail" of the sound that continues as long as the key is depressed (0 to 31).
 - **Release Rate (RR)**: determines the rate at which the sound disappears after note off. the higher the value, the shorter the release (0 to 15).
 - **Total Level (TL)**: represents the envelope’s highest amplitude, with 0 being the largest and 127 (decimal) the smallest. a change of one unit is about 0.75 dB.
-- **Hardware Envelope Generator (SSG-EG)**: executes the built-in envelope, inherited from AY-3-8910 PSG. speed of execution is controlled via Decay Rate.
+- **Hardware Envelope Generator (SSG-EG)**: executes the built-in envelope, inherited from AY-3-8910 PSG. speed of execution is controlled via envelope parameters.
 
 ![FM ADSR chart](FM-ADSRchart.png)
 

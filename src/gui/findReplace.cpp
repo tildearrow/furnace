@@ -560,6 +560,7 @@ void FurnaceGUI::drawFindReplace() {
                 if (ImGui::TableNextColumn()) {
                   snprintf(tempID,1024,ICON_FA_CHEVRON_RIGHT "##_FR%d",index);
                   if (ImGui::Selectable(tempID)) {
+                    makeCursorUndo();
                     e->changeSongP(i.subsong);
                     if (e->isPlaying()) {
                       followPattern=false;

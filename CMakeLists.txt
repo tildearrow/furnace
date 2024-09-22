@@ -16,7 +16,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_PROJECT_VERSION_MAJOR 0)
 set(CMAKE_PROJECT_VERSION_MINOR 6)
-set(CMAKE_PROJECT_VERSION_PATCH 5)
+set(CMAKE_PROJECT_VERSION_PATCH 6)
 
 set(BUILD_GUI_DEFAULT ON)
 set(USE_SDL2_DEFAULT ON)
@@ -552,6 +552,7 @@ src/engine/platform/sound/nes/fds.c
 src/engine/platform/sound/nes/mmc5.c
 src/engine/platform/sound/vera_psg.c
 src/engine/platform/sound/vera_pcm.c
+src/engine/platform/sound/ymf278b/ymf278.cpp
 
 src/engine/platform/sound/atomicssg/ssg.c
 
@@ -644,6 +645,10 @@ src/engine/platform/sound/ga20/iremga20.cpp
 
 src/engine/platform/sound/sm8521.c
 
+src/engine/platform/sound/supervision.c
+
+src/engine/platform/sound/upd1771c.c
+
 src/engine/platform/sound/d65modified.c
 
 src/engine/platform/sound/ted-sound.c
@@ -664,6 +669,8 @@ src/engine/platform/sound/sid2/wave8580_PST.cc
 src/engine/platform/sound/sid2/wave8580_P_T.cc
 src/engine/platform/sound/sid2/wave8580__ST.cc
 src/engine/platform/sound/sid2/wave.cc
+
+src/engine/platform/sound/sid3.c
 
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
@@ -777,6 +784,8 @@ src/engine/platform/snes.cpp
 src/engine/platform/k007232.cpp
 src/engine/platform/ga20.cpp
 src/engine/platform/sm8521.cpp
+src/engine/platform/supervision.cpp
+src/engine/platform/upd1771c.cpp
 src/engine/platform/pv1000.cpp
 src/engine/platform/k053260.cpp
 src/engine/platform/ted.cpp
@@ -789,6 +798,7 @@ src/engine/platform/gbaminmod.cpp
 src/engine/platform/nds.cpp
 src/engine/platform/bifurcator.cpp
 src/engine/platform/sid2.cpp
+src/engine/platform/sid3.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 

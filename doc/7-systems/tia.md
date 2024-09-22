@@ -27,13 +27,9 @@ Furnace isn't complete without this one...
   - `E`: low pure buzzy
   - `F`: low reedy
 
+## ROM export
 
-
-## info
-
-this chip uses the [TIA](../4-instrument/tia.md) instrument editor.
-
-the arp macro's fixed mode operates differently, writing the direct pitch to the chip. here's a list of pitches.
+a song can be exported to assembly code for use with the TIunA software driver for the Atari 2600. see [TIunA on GitHub](https://github.com/AYCEdemo/twin-tiuna) for explanations of the export options.
 
 ## chip config
 
@@ -46,6 +42,12 @@ the following options are available in the Chip Manager window:
   - **Mono (no distortion)**: process each channel separately to eliminate distortion.
   - **Stereo**: output two channels on left and right.
 - **PAL**: run slower blah blah blah
+
+## info
+
+this chip uses the [TIA](../4-instrument/tia.md) instrument editor.
+
+the arp macro's fixed mode operates differently, writing the direct pitch to the chip. here's a list of pitches.
 
 ### shape 1
 

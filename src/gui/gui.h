@@ -39,7 +39,7 @@
 #define FURNACE_APP_ID "org.tildearrow.furnace"
 
 #define rightClickable if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) ImGui::SetKeyboardFocusHere(-1);
-#define ctrlWheeling ((ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl)) && wheelY!=0)
+#define ctrlWheeling (isCtrlWheelModifierHeld() && wheelY!=0)
 
 #define handleUnimportant if (settings.insFocusesPattern && patternOpen) {nextWindow=GUI_WINDOW_PATTERN;}
 #define unimportant(x) if (x) {handleUnimportant}
@@ -354,6 +354,9 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_GBA_MINMOD,
   GUI_COLOR_INSTR_BIFURCATOR,
   GUI_COLOR_INSTR_SID2,
+  GUI_COLOR_INSTR_SUPERVISION,
+  GUI_COLOR_INSTR_UPD1771C,
+  GUI_COLOR_INSTR_SID3,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_BG,
@@ -818,6 +821,8 @@ enum FurnaceGUIActions {
   GUI_ACTION_PAT_SCROLL_MODE,
   GUI_ACTION_PAT_CLEAR_LATCH,
   GUI_ACTION_PAT_ABSORB_INSTRUMENT,
+  GUI_ACTION_PAT_CURSOR_UNDO,
+  GUI_ACTION_PAT_CURSOR_REDO,
   GUI_ACTION_PAT_MAX,
 
   GUI_ACTION_INS_LIST_MIN,
@@ -1101,6 +1106,22 @@ struct UndoStep {
     newOrdersLen(0),
     oldPatLen(0),
     newPatLen(0) {}
+};
+
+struct CursorJumpPoint {
+  SelectionPoint point;
+  int order;
+  int subSong;
+  CursorJumpPoint(const SelectionPoint& p, int o, int ss):
+    point(p), order(o), subSong(ss) {}
+  CursorJumpPoint():
+    point(), order(0), subSong(0) {}
+  bool operator== (const CursorJumpPoint& spot) {
+    return point.xCoarse==spot.point.xCoarse && point.xFine==spot.point.xFine && point.y==spot.point.y && order==spot.order && subSong==spot.subSong;
+  }
+  bool operator!= (const CursorJumpPoint& spot) {
+    return !(*this == spot);
+  }
 };
 
 // -1 = any
@@ -1752,6 +1773,7 @@ class FurnaceGUI {
     int opnbCore;
     int opl2Core;
     int opl3Core;
+    int opl4Core;
     int esfmCore;
     int opllCore;
     int ayCore;
@@ -1778,6 +1800,7 @@ class FurnaceGUI {
     int opnbCoreRender;
     int opl2CoreRender;
     int opl3CoreRender;
+    int opl4CoreRender;
     int esfmCoreRender;
     int opllCoreRender;
     int ayCoreRender;
@@ -1804,6 +1827,7 @@ class FurnaceGUI {
     int patRowsBase;
     int orderRowsBase;
     int soloAction;
+    int ctrlWheelModifier;
     int pullDeleteBehavior;
     int wrapHorizontal;
     int wrapVertical;
@@ -2012,6 +2036,7 @@ class FurnaceGUI {
       opnbCore(1),
       opl2Core(0),
       opl3Core(0),
+      opl4Core(0),
       esfmCore(0),
       opllCore(0),
       ayCore(0),
@@ -2038,6 +2063,7 @@ class FurnaceGUI {
       opnbCoreRender(1),
       opl2CoreRender(0),
       opl3CoreRender(0),
+      opl4CoreRender(0),
       esfmCoreRender(0),
       opllCoreRender(0),
       ayCoreRender(0),
@@ -2063,6 +2089,7 @@ class FurnaceGUI {
       patRowsBase(0),
       orderRowsBase(1),
       soloAction(0),
+      ctrlWheelModifier(0),
       pullDeleteBehavior(1),
       wrapHorizontal(0),
       wrapVertical(0),
@@ -2210,7 +2237,7 @@ class FurnaceGUI {
       vsync(1),
       frameRateLimit(60),
       displayRenderTime(0),
-      inputRepeat(0),
+      inputRepeat(1),
       glRedSize(8),
       glGreenSize(8),
       glBlueSize(8),
@@ -2500,6 +2527,8 @@ class FurnaceGUI {
   std::map<unsigned short,DivPattern*> oldPatMap;
   FixedQueue<UndoStep,256> undoHist;
   FixedQueue<UndoStep,256> redoHist;
+  FixedQueue<CursorJumpPoint,256> cursorUndoHist;
+  FixedQueue<CursorJumpPoint,256> cursorRedoHist;
 
   // sample editor specific
   double sampleZoom;
@@ -2719,9 +2748,11 @@ class FurnaceGUI {
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
+  void drawWaveformSID3(unsigned char type, const ImVec2& size);
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
   void drawESFMAlgorithm(DivInstrumentESFM& esfm, const ImVec2& size);
   void drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, float maxRr, const ImVec2& size, unsigned short instType);
+  void drawSID3Env(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, float maxRr, const ImVec2& size, unsigned short instType);
   void drawGBEnv(unsigned char vol, unsigned char len, unsigned char sLen, bool dir, const ImVec2& size);
   bool drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu=false);
   void kvsConfig(DivInstrument* ins, bool supportsKVS=true);
@@ -2738,6 +2769,7 @@ class FurnaceGUI {
   static bool LocalizedComboGetter(void* data, int idx, const char** out_text);
 
   // these ones offer ctrl-wheel fine value changes.
+  bool isCtrlWheelModifierHeld() const;
   bool CWSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format=NULL, ImGuiSliderFlags flags=0);
   bool CWVSliderScalar(const char* label, const ImVec2& size, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format=NULL, ImGuiSliderFlags flags=0);
   bool CWSliderInt(const char* label, int* v, int v_min, int v_max, const char* format="%d", ImGuiSliderFlags flags=0);
@@ -2784,6 +2816,7 @@ class FurnaceGUI {
 
   void insTabFMModernHeader(DivInstrument* ins);
   void insTabFM(DivInstrument* ins);
+  void insTabWavetable(DivInstrument* ins);
   void insTabSample(DivInstrument* ins);
 
   void drawOrderButtons();
@@ -2820,6 +2853,7 @@ class FurnaceGUI {
   void drawPattern();
   void drawInsList(bool asChild=false);
   void drawInsEdit();
+  void drawInsSID3(DivInstrument* ins);
   void drawWaveList(bool asChild=false);
   void drawWaveEdit();
   void drawSampleList(bool asChild=false);
@@ -2935,6 +2969,12 @@ class FurnaceGUI {
   void orderInput(int num);
 
   void doGenerateWave();
+
+  CursorJumpPoint getCurrentCursorJumpPoint();
+  void applyCursorJumpPoint(const CursorJumpPoint& spot);
+  void makeCursorUndo();
+  void doCursorUndo();
+  void doCursorRedo();
 
   void doUndoSample();
   void doRedoSample();
