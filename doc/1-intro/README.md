@@ -30,6 +30,6 @@ once familiar with the tracker, look to [9-guides](../9-guides/README.md) for us
 
 [Furnace Tutorials](https://youtube.com/playlist?list=PLCELB6AsTZUnwv0PC5AAGHjvg47F44YQ1): video tutorials created by Spinning Square Waves. be noted that these may not apply to the current version.
 
-# questions?
+## for more information
 
 see the [frequently asked questions](faq.md).

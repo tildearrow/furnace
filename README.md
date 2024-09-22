@@ -4,7 +4,7 @@
 
 the biggest multi-system chiptune tracker ever made!
 
-[downloads](#downloads) | [help/discussion](#quick-references) | [developer info](#developer-info) | [Unix/Linux packages](#packages)
+[downloads](#downloads) | [discussion/help](#quick-references) | [developer info](#developer-info) | [Unix/Linux packages](#packages)
 
 ---
 ## downloads
@@ -138,7 +138,7 @@ for other operating systems, you may [build the source](#developer-info).
 ---
 # quick references
 
-- **help**: check out the [documentation](doc/README.md), [quick start guide](doc/1-intro/quickstart.md), and [FAQ](doc/1-intro/faq.md)
+- **help**: check out the [documentation](doc/README.md), [quick start guide](doc/1-intro/quickstart.md), and [frequently asked questions (FAQ)](doc/1-intro/faq.md).
 - **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section.
 
 ## packages

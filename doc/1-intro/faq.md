@@ -8,7 +8,7 @@ the [quick start guide](quickstart.md) and [concepts list](concepts.md) are grea
 
 ### is there an Android build?
 
-yes and no. Furnace has been successfully built for Android and it even has some rudimentary touch UI support, but it's extremely unfinished and extremely unsupported. there are many good reasons that it's not in the official releases yet.
+yes and no. Furnace can be successfully built for Android and it even has some rudimentary touch UI support, but it's extremely unfinished and extremely unsupported. there are many good reasons that it's not in the official releases yet.
 
 ### is there an iOS build?
 
@@ -22,19 +22,19 @@ there are no plans for this.
 
 Furnace keeps backups of the songs you've worked on before. go to **file > restore backup**.
 
-## tracking
+## workflow
 
 ### how do I compose in 6/8, 5/4, or other time signatures?
 
 set the pattern length to a multiple of the number of beats (6 or 5 as mentioned above). don't forget to change the row highlight values to match!
 
-### how do I track triplets, quintuplets, or other tuplets?
+### how do I do triplets, quintuplets, or other tuplets?
 
 there are two common methods:
 - use delay commands (`EDxx`) to offset notes into their correct places. this is good for the occasional set of tuplets, but if you expect to use a lot of them...
 - plan ahead for the song to have them by making your pattern length a multiple of that number. remember to adjust row highlight values to match.
 
-depending on the tempo of the song, it may only be possible to get perfectly even tuplets by changing the tick rate. mind that the result may not be authentic to hardware.
+depending on the tempo of the song, it may only be possible to get perfectly even tuplets by changing the tick rate. mind that this may hinder playback in games or sound engines that use the vertical blank interval for their timing.
 
 ### why do certain notes not play low enough, high enough, or in tune?
 
@@ -46,7 +46,7 @@ no. both tracker and format are built on that scale and tuning.
 
 ### can I add effects to the output like EQ or reverb?
 
-not yet, but it's in the early planning stages.
+not yet, but it's in the early development stage.
 
 ## chips
 
@@ -57,10 +57,6 @@ it's in the plans, with no target date.
 ### will Furnace support the Sega Saturn?
 
 it also is in the plans, with no target date.
-
-### will Furnace support more Yamaha FM chips?
-
-once a chip has an available emulation cores written in C++ and licensed under GPL2, it'll be considered for addition.
 
 ### will Furnace support the Nintendo 64?
 
@@ -84,7 +80,7 @@ nope. Furnace is not a MIDI tracker.
 
 ### why does this imported file sound wrong?
 
-Furnace makes every attempt to import non-Furnace files as accurately and completely as possible, but there are fundamental differences between formats that cannot be directly translated. an import from a non-Furnace format should always be considered the starting point of a conversion, not a final product.
+There are fundamental differences between formats that cannot be directly translated. an import should always be considered the starting point of a conversion, not a final product.
 
 ### can I import VGM or NSF?
 
@@ -95,7 +91,7 @@ it's all speed 1 though, so don't expect any songs to be nicely laid out with in
 
 ### how can I use an SF2 soundfont?
 
-one way is to use [OpenMPT](https://openmpt.org/) to open the SF2 file, and save WAV files from there.
+one way is to use [OpenMPT](https://openmpt.org/) to open the SF2 file, and save WAV files from there. [Polyphone](https://www.polyphone.io/) is another way.
 
 ### how do I import instruments from this SNES game?
 
@@ -119,7 +115,7 @@ nope. Furnace is not a MIDI tracker.
 
 ### why does this exported VGM sound weird when I play it in other software?
 
-just as Furnace offers a choice of emulation cores, VGM players may use different cores with varying degrees of accuracy. also, some aspects of a song may not be supported by the VGM format, such as chip clock speeds or mixer levels.
+just as Furnace offers a choice of emulation cores, VGM players may use different cores with varying degrees of accuracy. also, some aspects of a song may not be supported by the VGM format, such as chip clock speeds.
 
 ### why does this exported DMF sound wrong in DefleMask?
 
@@ -127,12 +123,12 @@ while Furnace did start life as a DMF player, it's grown in functionality quite 
 
 ### when will Furnace be able to export to a ROM for a particular system or an emulated music format?
 
-each system will need its own method of converting Furnace tracker files into code that can be played back on hardware. this requires writing a driver for the hardware in question, which is no small task. that having been said, there are several efforts in progress, both for direct export from Furnace itself and external converters such as [furSPC](https://github.com/AnnoyedArt1256/furSPC), [furNES](https://github.com/AnnoyedArt1256/furNES), and [furC64](https://github.com/AnnoyedArt1256/furC64).
+each system will need its own method of converting Furnace songs into code that can be played back on hardware. this requires writing a driver for the hardware in question, which is no small task. that having been said, there are several efforts in progress, both for direct export from Furnace itself and external converters such as [furSPC](https://github.com/AnnoyedArt1256/furSPC), [furNES](https://github.com/AnnoyedArt1256/furNES), and [furC64](https://github.com/AnnoyedArt1256/furC64).
 
 ### can Furnace export MP3/OGG/FLAC files?
 
-not presently. for now, use an external converter such as ffmpeg.
+not presently. for now, use an external converter such as FFmpeg.
 
-## more help
+## other
 
 if a question isn't answered within this manual, check in the [GitHub Discussions](https://github.com/tildearrow/furnace/discussions) to see if it's answered there, and post if needed.

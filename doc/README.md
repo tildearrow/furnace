@@ -5,8 +5,8 @@ this is the manual for Furnace, the chiptune tracker.
 the index follows.
 
 1. [introduction](1-intro/README.md)
-	- [quick start guide](1-intro/quickstart.md)
-	- [FAQ](1-intro/faq.md)
+  - [quick start guide](1-intro/quickstart.md)
+  - [FAQ](1-intro/faq.md)
 2. [interface](2-interface/README.md)
 3. [patterns](3-pattern/README.md)
 4. [instruments](4-instrument/README.md)
