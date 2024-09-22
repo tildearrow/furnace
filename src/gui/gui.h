@@ -356,6 +356,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_SID2,
   GUI_COLOR_INSTR_SUPERVISION,
   GUI_COLOR_INSTR_UPD1771C,
+  GUI_COLOR_INSTR_SID3,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_BG,
@@ -2236,7 +2237,7 @@ class FurnaceGUI {
       vsync(1),
       frameRateLimit(60),
       displayRenderTime(0),
-      inputRepeat(0),
+      inputRepeat(1),
       glRedSize(8),
       glGreenSize(8),
       glBlueSize(8),
@@ -2749,9 +2750,11 @@ class FurnaceGUI {
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
+  void drawWaveformSID3(unsigned char type, const ImVec2& size);
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
   void drawESFMAlgorithm(DivInstrumentESFM& esfm, const ImVec2& size);
   void drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, float maxRr, const ImVec2& size, unsigned short instType);
+  void drawSID3Env(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, float maxRr, const ImVec2& size, unsigned short instType);
   void drawGBEnv(unsigned char vol, unsigned char len, unsigned char sLen, bool dir, const ImVec2& size);
   bool drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu=false);
   void kvsConfig(DivInstrument* ins, bool supportsKVS=true);
@@ -2815,6 +2818,7 @@ class FurnaceGUI {
 
   void insTabFMModernHeader(DivInstrument* ins);
   void insTabFM(DivInstrument* ins);
+  void insTabWavetable(DivInstrument* ins);
   void insTabSample(DivInstrument* ins);
 
   void drawOrderButtons();
@@ -2851,6 +2855,7 @@ class FurnaceGUI {
   void drawPattern();
   void drawInsList(bool asChild=false);
   void drawInsEdit();
+  void drawInsSID3(DivInstrument* ins);
   void drawWaveList(bool asChild=false);
   void drawWaveEdit();
   void drawSampleList(bool asChild=false);
