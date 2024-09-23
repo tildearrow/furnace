@@ -455,11 +455,11 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
     unsigned char n163_chans[8] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
     unsigned char vrc7_chans[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
     unsigned char s5b_chans[3] = {0xff, 0xff, 0xff};
+    unsigned char ay8930_chans[3] = {0xff, 0xff, 0xff};
 
     // these two seem to go unused, but why?
     unsigned char vrc6_chans[2] = {0xff, 0xff};
     unsigned char mmc5_chans[2] = {0xff, 0xff};
-    unsigned char ay8930_chans[3] = {0xff, 0xff, 0xff};
 
     int total_chans = 0;
 
@@ -1953,7 +1953,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                       }
                     }
                     for (int v = 0; v < 3; v++) {
-                      if (map_channels[ch] == s5b_chans[v]) {
+                      if (map_channels[ch] == s5b_chans[v] || map_channels[ch] == ay8930_chans[v]) {
                         if (pat->data[row][4 + (j * 2)] == 0x22 && (pat->data[row][5 + (j * 2)] & 0xf0) != 0) {
                           pat->data[row][4 + (7 * 2)] = -666; //marker
                         }
@@ -2465,8 +2465,8 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                     //Sets envelope period to the note period shifted by x and envelope type y.
                     //Approximate envelope frequency is note frequency * (2^|x - 8|) / 32.
 
-                    int ftAutoEnv = ds.subsong[j]->pat[ii].data[k]->data[l][5 + hh*2] >> 4;
-                    int autoEnvDen = 32;
+                    int ftAutoEnv = (ds.subsong[j]->pat[ii].data[k]->data[l][5 + hh*2] >> 4) & 15;
+                    int autoEnvDen = 16; // ???? with 32 it's an octave lower...
                     int autoEnvNum = (1 << (abs(ftAutoEnv - 8)));
 
                     while(autoEnvNum >= 2 && autoEnvDen >= 2)
@@ -2485,6 +2485,8 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                   }
                 }
               }
+
+              ds.subsong[j]->pat[ii].data[k]->data[l][4 + (7 * 2)] = -1; //delete marker
             }
           }
         }
