@@ -33,11 +33,14 @@
 
 #define CLICK_TO_OPEN(t) ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],t);\
 if (ImGui::IsItemHovered()) {\
-  ImGui::SetTooltip("click to open, right click to copy");\
+  ImGui::SetTooltip("click to open");\
   ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);\
 }\
 if (ImGui::IsItemClicked()) SDL_OpenURL(t);\
-if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {\
+ImGui::SameLine();\
+ImGui::Text(ICON_FA_CLIPBOARD);\
+if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) ImGui::SetTooltip("click to copy");\
+if (ImGui::IsItemClicked()) {\
   ImGui::SetClipboardText(t);\
   tutorial.popupTimer=0;\
 }
