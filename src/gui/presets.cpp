@@ -1336,11 +1336,6 @@ void FurnaceGUI::initSystemPresets() {
      )
    }
  );
-  ENTRY(
-    "Epoch Super Cassette Vision", {
-      CH(DIV_SYSTEM_UPD1771C, 1.0f, 0, "")
-    }
-  );
   CATEGORY_END;
 
   CATEGORY_BEGIN(_("Arcade systems"),_("INSERT COIN"));
@@ -1406,11 +1401,6 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     _("Atari"), {}
   );
-    SUB_ENTRY(
-      _("Pong"), {
-        CH(DIV_SYSTEM_PONG, 1.0f, 0, "")
-      }
-    );
     SUB_ENTRY(
       _("Atari Klax"), { 
         CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=7") // 0.895MHz (3.579545MHz / 4)
@@ -2775,13 +2765,6 @@ void FurnaceGUI::initSystemPresets() {
         CH(DIV_SYSTEM_OPL4_DRUMS, 1.0f, 0, "")
       }
     );
-  if (settings.hiddenSystems) {
-    ENTRY(
-      _("Yamaha YMU759 (MA-2)"), {
-        CH(DIV_SYSTEM_YMU759, 1.0f, 0, "")
-      }
-    );
-  }
   CATEGORY_END;
 
   CATEGORY_BEGIN(_("Square"),_("these chips generate square/pulse tones only (but may include noise)."));
@@ -2880,11 +2863,6 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     _("OKI MSM5232"), {
       CH(DIV_SYSTEM_MSM5232, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    _("Pong"), {
-      CH(DIV_SYSTEM_PONG, 1.0f, 0, "")
     }
   );
   ENTRY(
@@ -3194,11 +3172,6 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     _("Watara Supervision"), {
       CH(DIV_SYSTEM_SUPERVISION, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    _("NEC μPD1771C"), {
-      CH(DIV_SYSTEM_UPD1771C, 1.0f, 0, "")
     }
   );
   CATEGORY_END;

@@ -4432,7 +4432,10 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           if (ins->type==DIV_INS_OPZ) {
             ImGui::TableNextColumn();
             CENTER_VSLIDER;
-            P(CWVSliderScalar("##FINE",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dvb,&_ZERO,&_FIFTEEN)); rightClickable
+            bool egtOn=op.egt;
+            if (!egtOn) {
+              P(CWVSliderScalar("##FINE",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dvb,&_ZERO,&_FIFTEEN)); rightClickable
+            }
           }
 
           if (ins->type==DIV_INS_ESFM) {
@@ -4461,8 +4464,9 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             bool amOn=op.am;
             if (ins->type==DIV_INS_OPZ) {
               bool egtOn=op.egt;
+              bool susOn=op.sus;
               if (egtOn) {
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY()+0.5*(sliderHeight-ImGui::GetFrameHeight()*4.0-ImGui::GetStyle().ItemSpacing.y*3.0));
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY()+0.5*(sliderHeight-ImGui::GetFrameHeight()*4.0-ImGui::GetStyle().ItemSpacing.y*3.5));
               } else {
                 ImGui::SetCursorPosY(ImGui::GetCursorPosY()+0.5*(sliderHeight-ImGui::GetFrameHeight()*2.0-ImGui::GetStyle().ItemSpacing.y*1.0));
               }
@@ -4473,6 +4477,23 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 op.egt=egtOn;
               }
               if (egtOn) {
+                pushWarningColor(susOn && e->song.linearPitch!=2);
+                if (ImGui::Checkbox(_("Pitch control"),&susOn)) { PARAMETER
+                  op.sus=susOn;
+                  // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
+                  ins->std.opMacros[i].ssgMacro.vZoom=-1;
+                  ins->std.opMacros[i].susMacro.vZoom=-1;
+                }
+                popWarningColor();
+                if (ImGui::IsItemHovered()) {
+                  if (susOn && e->song.linearPitch!=2) {
+                    ImGui::SetTooltip(_("only works on linear pitch! go to Compatibility Flags > Pitch/Playback and set Pitch linearity to Full."));
+                  } else {
+                    ImGui::SetTooltip(_("use op's arpeggio and pitch macros control instead of block/f-num macros"));
+                  }
+                }
+              }
+              if (egtOn && !susOn) {
                 int block=op.dt;
                 int freqNum=(op.mult<<4)|(op.dvb&15);
                 if (ImGui::InputInt(_("Block"),&block,1,1)) {
@@ -5077,27 +5098,29 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 // params
                 ImGui::Separator();
                 if (egtOn) {
-                  int block=op.dt;
-                  int freqNum=(op.mult<<4)|(op.dvb&15);
-                  ImGui::Text(_("Block"));
-                  ImGui::SameLine();
-                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  ImVec2 cursorAlign=ImGui::GetCursorPos();
-                  if (ImGui::InputInt("##Block",&block,1,1)) {
-                    if (block<0) block=0;
-                    if (block>7) block=7;
-                    op.dt=block;
-                  }
-                  
-                  ImGui::Text(_("Freq"));
-                  ImGui::SameLine();
-                  ImGui::SetCursorPos(ImVec2(cursorAlign.x,ImGui::GetCursorPosY()));
-                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (ImGui::InputInt("##FreqNum",&freqNum,1,16)) {
-                    if (freqNum<0) freqNum=0;
-                    if (freqNum>255) freqNum=255;
-                    op.mult=freqNum>>4;
-                    op.dvb=freqNum&15;
+                  if (!op.sus) {
+                    int block=op.dt;
+                    int freqNum=(op.mult<<4)|(op.dvb&15);
+                    ImGui::Text(_("Block"));
+                    ImGui::SameLine();
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                    ImVec2 cursorAlign=ImGui::GetCursorPos();
+                    if (ImGui::InputInt("##Block",&block,1,1)) {
+                      if (block<0) block=0;
+                      if (block>7) block=7;
+                      op.dt=block;
+                    }
+                    
+                    ImGui::Text(_("Freq"));
+                    ImGui::SameLine();
+                    ImGui::SetCursorPos(ImVec2(cursorAlign.x,ImGui::GetCursorPosY()));
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                    if (ImGui::InputInt("##FreqNum",&freqNum,1,16)) {
+                      if (freqNum<0) freqNum=0;
+                      if (freqNum>255) freqNum=255;
+                      op.mult=freqNum>>4;
+                      op.dvb=freqNum&15;
+                    }
                   }
                 } else {
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -5118,7 +5141,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_DT2));
                 P(CWSliderScalar("##DT2",ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE,tempID)); rightClickable
                 if (ImGui::IsItemHovered()) {
-                  ImGui::SetTooltip(_("Only on YM2151 (OPM)"));
+                  ImGui::SetTooltip(_("Only on YM2151 and YM2414 (OPM and OPZ)"));
                 }
 
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -5221,6 +5244,23 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                   snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_FINE));
                   P(CWSliderScalar("##FINE",ImGuiDataType_U8,&op.dvb,&_ZERO,&_FIFTEEN,tempID)); rightClickable
+                } else {
+                  bool susOn=op.sus;
+                  pushWarningColor(susOn && e->song.linearPitch!=2);
+                  if (ImGui::Checkbox(_("Pitch control"),&susOn)) { PARAMETER
+                    op.sus=susOn;
+                    // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
+                    ins->std.opMacros[i].ssgMacro.vZoom=-1;
+                    ins->std.opMacros[i].susMacro.vZoom=-1;
+                  }
+                  popWarningColor();
+                  if (ImGui::IsItemHovered()) {
+                    if (susOn && e->song.linearPitch!=2) {
+                      ImGui::SetTooltip(_("only works on linear pitch! go to Compatibility Flags > Pitch/Playback and set Pitch linearity to Full."));
+                    } else {
+                      ImGui::SetTooltip(_("use op's arpeggio and pitch macros control instead of block/f-num macros"));
+                    }
+                  }
                 }
 
                 ImGui::TableNextColumn();
@@ -5526,6 +5566,25 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             if (ImGui::Checkbox(_("Fixed"),&fixedOn)) { PARAMETER
               op.egt=fixedOn;
             }
+            bool susOn=op.sus;
+            if (fixedOn) {
+              ImGui::SameLine();
+              pushWarningColor(susOn && e->song.linearPitch!=2);
+              if (ImGui::Checkbox(_("Pitch control"),&susOn)) { PARAMETER
+                op.sus=susOn;
+                // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
+                ins->std.opMacros[i].ssgMacro.vZoom=-1;
+                ins->std.opMacros[i].susMacro.vZoom=-1;
+              }
+              popWarningColor();
+              if (ImGui::IsItemHovered()) {
+                if (susOn && e->song.linearPitch!=2) {
+                  ImGui::SetTooltip(_("only works on linear pitch! go to Compatibility Flags > Pitch/Playback and set Pitch linearity to Full."));
+                } else {
+                  ImGui::SetTooltip(_("use op's arpeggio and pitch macros control instead of block/f-num macros"));
+                }
+              }
+            }
           }
 
           //52.0 controls vert scaling; default 96
@@ -5644,31 +5703,34 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
 
             if (ins->type==DIV_INS_OPZ) {
               if (op.egt) {
-                int block=op.dt;
-                int freqNum=(op.mult<<4)|(op.dvb&15);
+                bool susOn=op.sus;
+                if (!susOn) {
+                  int block=op.dt;
+                  int freqNum=(op.mult<<4)|(op.dvb&15);
 
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (CWSliderInt(FM_NAME(FM_MULT),&block,0,7)) { PARAMETER
-                  if (block<0) block=0;
-                  if (block>7) block=7;
-                  op.dt=block;
-                } rightClickable
-                ImGui::TableNextColumn();
-                ImGui::Text("Block");
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  if (CWSliderInt(FM_NAME(FM_MULT),&block,0,7)) { PARAMETER
+                    if (block<0) block=0;
+                    if (block>7) block=7;
+                    op.dt=block;
+                  } rightClickable
+                  ImGui::TableNextColumn();
+                  ImGui::Text("Block");
 
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (CWSliderInt(FM_NAME(FM_FINE),&freqNum,0,255)) { PARAMETER
-                  if (freqNum<0) freqNum=0;
-                  if (freqNum>255) freqNum=255;
-                  op.mult=freqNum>>4;
-                  op.dvb=freqNum&15;
-                } rightClickable
-                ImGui::TableNextColumn();
-                ImGui::Text(_("FreqNum"));
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  if (CWSliderInt(FM_NAME(FM_FINE),&freqNum,0,255)) { PARAMETER
+                    if (freqNum<0) freqNum=0;
+                    if (freqNum>255) freqNum=255;
+                    op.mult=freqNum>>4;
+                    op.dvb=freqNum&15;
+                  } rightClickable
+                  ImGui::TableNextColumn();
+                  ImGui::Text(_("FreqNum"));
+                }
               } else {
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
@@ -6651,6 +6713,13 @@ void FurnaceGUI::drawInsEdit() {
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_EGS),&ins->std.opMacros[ordi].egtMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               } else if (ins->type==DIV_INS_ESFM) {
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_TL),&ins->std.opMacros[ordi].tlMacro,0,maxTl,128,uiColors[GUI_COLOR_MACRO_VOLUME]));
+                if (ins->esfm.op[ordi].fixed) {
+                  macroList.push_back(FurnaceGUIMacroDesc(_("Block"),&ins->std.opMacros[ordi].ssgMacro,0,7,64,uiColors[GUI_COLOR_MACRO_PITCH],true));
+                  macroList.push_back(FurnaceGUIMacroDesc(_("FreqNum"),&ins->std.opMacros[ordi].dtMacro,0,1023,160,uiColors[GUI_COLOR_MACRO_PITCH]));
+                } else {
+                  macroList.push_back(FurnaceGUIMacroDesc(_("Op. Arpeggio"),&ins->std.opMacros[ordi].ssgMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.opMacros[ordi].ssgMacro.val,true));
+                  macroList.push_back(FurnaceGUIMacroDesc(_("Op. Pitch"),&ins->std.opMacros[ordi].dtMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode,NULL,false,NULL,false,NULL,false,true));
+                }
                 macroList.push_back(FurnaceGUIMacroDesc(ESFM_NAME(ESFM_DELAY),&ins->std.opMacros[ordi].dt2Macro,0,7,64,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AR),&ins->std.opMacros[ordi].arMacro,0,maxArDr,64,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DR),&ins->std.opMacros[ordi].drMacro,0,maxArDr,64,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
@@ -6661,14 +6730,6 @@ void FurnaceGUI::drawInsEdit() {
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_WS),&ins->std.opMacros[ordi].wsMacro,0,7,64,uiColors[GUI_COLOR_MACRO_OTHER]));
                 macroList.push_back(FurnaceGUIMacroDesc(ESFM_NAME(ESFM_OUTLVL),&ins->std.opMacros[ordi].egtMacro,0,7,64,uiColors[GUI_COLOR_MACRO_VOLUME]));
                 macroList.push_back(FurnaceGUIMacroDesc(ESFM_NAME(ESFM_MODIN),&ins->std.opMacros[ordi].d2rMacro,0,7,64,uiColors[GUI_COLOR_MACRO_VOLUME]));
-                if (ins->esfm.op[ordi].fixed) {
-                  macroList.push_back(FurnaceGUIMacroDesc(_("Block"),&ins->std.opMacros[ordi].ssgMacro,0,7,64,uiColors[GUI_COLOR_MACRO_PITCH],true));
-                  macroList.push_back(FurnaceGUIMacroDesc(_("FreqNum"),&ins->std.opMacros[ordi].dtMacro,0,1023,160,uiColors[GUI_COLOR_MACRO_PITCH]));
-                } else {
-                  macroList.push_back(FurnaceGUIMacroDesc(_("Op. Arpeggio"),&ins->std.opMacros[ordi].ssgMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.opMacros[ordi].ssgMacro.val,true));
-                  macroList.push_back(FurnaceGUIMacroDesc(_("Op. Pitch"),&ins->std.opMacros[ordi].dtMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode,NULL,false,NULL,false,NULL,false,true));
-                }
-
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AM),&ins->std.opMacros[ordi].amMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_VIB),&ins->std.opMacros[ordi].vibMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DAM),&ins->std.opMacros[ordi].damMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
@@ -6676,7 +6737,7 @@ void FurnaceGUI::drawInsEdit() {
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_KSR),&ins->std.opMacros[ordi].ksrMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_SUS),&ins->std.opMacros[ordi].susMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
                 macroList.push_back(FurnaceGUIMacroDesc(_("Op. Panning"),&ins->std.opMacros[ordi].rsMacro,0,2,40,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
-              } else {
+              } else if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM) {
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_TL),&ins->std.opMacros[ordi].tlMacro,0,maxTl,128,uiColors[GUI_COLOR_MACRO_VOLUME]));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AR),&ins->std.opMacros[ordi].arMacro,0,maxArDr,64,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DR),&ins->std.opMacros[ordi].drMacro,0,maxArDr,64,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
@@ -6686,7 +6747,7 @@ void FurnaceGUI::drawInsEdit() {
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_RS),&ins->std.opMacros[ordi].rsMacro,0,3,32,uiColors[GUI_COLOR_MACRO_OTHER]));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_MULT),&ins->std.opMacros[ordi].multMacro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DT),&ins->std.opMacros[ordi].dtMacro,0,7,64,uiColors[GUI_COLOR_MACRO_PITCH]));
-                if (ins->type==DIV_INS_OPM || ins->type==DIV_INS_OPZ) {
+                if (ins->type==DIV_INS_OPM) {
                   macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DT2),&ins->std.opMacros[ordi].dt2Macro,0,3,32,uiColors[GUI_COLOR_MACRO_PITCH]));
                 }
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AM),&ins->std.opMacros[ordi].amMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
@@ -6694,6 +6755,28 @@ void FurnaceGUI::drawInsEdit() {
                 if (ins->type==DIV_INS_FM) {
                   macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_SSG),&ins->std.opMacros[ordi].ssgMacro,0,4,64,uiColors[GUI_COLOR_MACRO_ENVELOPE],false,NULL,NULL,true,ssgEnvBits));
                 }
+              } else if (ins->type==DIV_INS_OPZ) {
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_TL),&ins->std.opMacros[ordi].tlMacro,0,maxTl,128,uiColors[GUI_COLOR_MACRO_VOLUME]));
+                if (ins->fm.op[ordi].egt) {
+                  if (!ins->fm.op[ordi].sus) {
+                    macroList.push_back(FurnaceGUIMacroDesc(_("Block"),&ins->std.opMacros[ordi].ssgMacro,0,7,64,uiColors[GUI_COLOR_MACRO_PITCH],true));
+                    macroList.push_back(FurnaceGUIMacroDesc(_("FreqNum"),&ins->std.opMacros[ordi].susMacro,0,255,160,uiColors[GUI_COLOR_MACRO_PITCH]));
+                  } else {
+                    macroList.push_back(FurnaceGUIMacroDesc(_("Op. Arpeggio"),&ins->std.opMacros[ordi].ssgMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.opMacros[ordi].ssgMacro.val,true));
+                    macroList.push_back(FurnaceGUIMacroDesc(_("Op. Pitch"),&ins->std.opMacros[ordi].susMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode,NULL,false,NULL,false,NULL,false,true));
+                  }
+                }
+                
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AR),&ins->std.opMacros[ordi].arMacro,0,maxArDr,64,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DR),&ins->std.opMacros[ordi].drMacro,0,maxArDr,64,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_D2R),&ins->std.opMacros[ordi].d2rMacro,0,31,64,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_RR),&ins->std.opMacros[ordi].rrMacro,0,15,64,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_SL),&ins->std.opMacros[ordi].slMacro,0,15,64,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_RS),&ins->std.opMacros[ordi].rsMacro,0,3,32,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_MULT),&ins->std.opMacros[ordi].multMacro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DT),&ins->std.opMacros[ordi].dtMacro,0,7,64,uiColors[GUI_COLOR_MACRO_PITCH]));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DT2),&ins->std.opMacros[ordi].dt2Macro,0,3,32,uiColors[GUI_COLOR_MACRO_PITCH]));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AM),&ins->std.opMacros[ordi].amMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               }
               drawMacros(macroList,macroEditStateOP[ordi]);
               ImGui::PopID();

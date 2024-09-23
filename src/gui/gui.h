@@ -70,6 +70,9 @@
 
 #define FM_PREVIEW_SIZE 512
 
+#define CHECK_HIDDEN_SYSTEM(x) \
+  (x==DIV_SYSTEM_YMU759 || x==DIV_SYSTEM_UPD1771C || x==DIV_SYSTEM_DUMMY || x==DIV_SYSTEM_SEGAPCM_COMPAT || x==DIV_SYSTEM_PONG)
+
 enum FurnaceGUIRenderBackend {
   GUI_BACKEND_SDL=0,
   GUI_BACKEND_GL3,
@@ -1836,7 +1839,6 @@ class FurnaceGUI {
     int allowEditDocking;
     int chipNames;
     int overflowHighlight;
-    int partyTime;
     int flatNotes;
     int germanNotation;
     int stepOnDelete;
@@ -2098,7 +2100,6 @@ class FurnaceGUI {
       allowEditDocking(1),
       chipNames(0),
       overflowHighlight(0),
-      partyTime(0),
       germanNotation(0),
       stepOnDelete(0),
       scrollStep(0),

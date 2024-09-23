@@ -138,7 +138,7 @@ for other operating systems, you may [build the source](#developer-info).
 ---
 # quick references
 
-- **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section.
+- **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, or the [Discord](https://discord.gg/QhA26dXD23).
 - **help**: check out the [documentation](doc/README.md).
 
 ## packages

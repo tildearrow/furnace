@@ -362,6 +362,7 @@ void DivPlatformArcade::tick(bool sysTick) {
           chan[i].freq+=chan[i].arpOff<<7;
         }
       }
+      chan[i].freq+=OFFSET_LINEAR;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>=(95<<7)) chan[i].freq=(95<<7)-1;
       immWrite(i+0x28,hScale(chan[i].freq>>7));
