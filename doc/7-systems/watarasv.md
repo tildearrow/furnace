@@ -11,6 +11,10 @@ these are 2 pulse wave channels (same as on GB), barely working PCM channel and 
 
 this chip uses the [Watara Supervision](../4-instrument/vatarasv.md) and [Generic Sample](../4-instrument/sample.md) instrument editors.
 
+### sample info
+
+sample channel is 4-bit DMA channel with 4 frequencies assigned to sample octaves (C2, C3, C4, C5; C, C#, D, D# in furnace respectively). max sample size is 4 kilobytes (8192 samples).
+
 ## chip config
 
 the following options are available in the Chip Manager window:
