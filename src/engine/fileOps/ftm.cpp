@@ -2482,6 +2482,8 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                     }
 
                     ds.subsong[j]->pat[ii].data[k]->data[l][5 + hh*2] = (ds.subsong[j]->pat[ii].data[k]->data[l][5 + hh*2] & 0xf) << 4;
+
+                    converted = true;
                   }
                 }
               }
