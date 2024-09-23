@@ -2429,12 +2429,29 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
     }
 
     // famitracker is not fucking strict with what instrument types can be used on any channel. This leads to e.g. 2A03 instuments being used on VRC6 channels.
-    // Furnace is way more strict, so NES instrument in VRC6 channel just does not play. To fix this, we are creating copies of instruments, changing their type to please Furnace system.
-    // I kinda did the same in klystrack import, tbh.
+    // Furnace is way more strict, so NES instrument in VRC6 channel just does not play properly. To fix this, we are creating copies of instruments, changing their type to please Furnace system.
+    // I kinda did the same in klystrack import, tbh. - LTVA
 
-    // actually, this is wrong. Furnace is very lax regarding instrument usage. you can put an OPM instrument in OPL channel and yeah, it'll sound weird but it'll work.
+    // actually, this is wrong. Furnace is very lax regarding instrument usage. you can put an OPM instrument in OPL channel and yeah, it'll sound weird but it'll work. - tildearrow
 
-    /*
+    // I don't trust you
+
+    // where did you get that assumption from? did you make it up?
+    // first you go "I don't trust you" on me and then you drop this. couldn't
+    // you at least look around a bit?!
+
+    // since when do 2A03 and VRC6 duties match? who said that they do?
+    // Furnace wasn't designed to automatically convert duties of wrong instrument types, damn it!
+
+    // on top of that, you didn't have to drop this. AT ALL.
+    // instrument conversion is simpler than eating with a fork. you just copy the
+    // instruments and DON'T FORGET TO CONVERT DUTY MACROS (!!), than adapt VRC6 sawtooth volume and that's it.
+    // really? were these simplifications in import necessary? it isn't a new compat flag, after all.
+
+    // oh man....
+
+    // P.S. Duties conversion is based on what I really hear in FamiTracker when using wrong instrument type (and what I see on Audacity "oscilloscope") - LTVA
+
     int ins_vrc6_conv[256][2];
     int ins_vrc6_saw_conv[256][2];
     int ins_nes_conv[256][2]; // vrc6 (or whatever) -> nes
@@ -2469,7 +2486,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                   DivInstrument* insnew = new DivInstrument;
                   ds.ins.push_back(insnew);
 
-                  copyInstrument(ds.ins[ds.ins.size() - 1], ins);
+                  *ds.ins[ds.ins.size() - 1] = *ins;
 
                   ds.ins[ds.ins.size() - 1]->name += " [VRC6 copy]";
                   ds.ins[ds.ins.size() - 1]->amiga.useSample = false;
@@ -2477,11 +2494,11 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
                   ds.ins[ds.ins.size() - 1]->type = DIV_INS_VRC6;
 
-                  if (ins->std.get_macro(DIV_MACRO_DUTY, false)->len > 0) {
-                    for (int mm = 0; mm < ins->std.get_macro(DIV_MACRO_DUTY, false)->len; mm++) {
-                      if (ds.ins[ds.ins.size() - 1]->std.get_macro(DIV_MACRO_DUTY, false)->val[mm] < 4) {
-                        int vall = ins->std.get_macro(DIV_MACRO_DUTY, false)->val[mm];
-                        ds.ins[ds.ins.size() - 1]->std.get_macro(DIV_MACRO_DUTY, false)->val[mm] = convert_vrc6_duties[vall];
+                  if (ins->std.dutyMacro.len > 0) {
+                    for (int mm = 0; mm < ins->std.dutyMacro.len; mm++) {
+                      if (ds.ins[ds.ins.size() - 1]->std.dutyMacro.val[mm] < 4) {
+                        int vall = ins->std.dutyMacro.val[mm];
+                        ds.ins[ds.ins.size() - 1]->std.dutyMacro.val[mm] = convert_vrc6_duties[vall];
                       }
                     }
                   }
@@ -2521,7 +2538,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                   DivInstrument* insnew = new DivInstrument;
                   ds.ins.push_back(insnew);
 
-                  copyInstrument(ds.ins[ds.ins.size() - 1], ins);
+                  *ds.ins[ds.ins.size() - 1] = *ins;
 
                   ds.ins[ds.ins.size() - 1]->name += " [VRC6 saw copy]";
                   ds.ins[ds.ins.size() - 1]->amiga.useSample = false;
@@ -2529,11 +2546,11 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
                   ds.ins[ds.ins.size() - 1]->type = DIV_INS_VRC6_SAW;
 
-                  if (ins->std.get_macro(DIV_MACRO_VOL, false)->len > 0) {
-                    for (int mm = 0; mm < ins->std.get_macro(DIV_MACRO_VOL, false)->len; mm++) {
-                      if (ds.ins[ds.ins.size() - 1]->std.get_macro(DIV_MACRO_VOL, false)->val[mm] < 16) {
-                        int vall = ins->std.get_macro(DIV_MACRO_VOL, false)->val[mm];
-                        ds.ins[ds.ins.size() - 1]->std.get_macro(DIV_MACRO_VOL, false)->val[mm] = vall * 42 / 15;
+                  if (ins->std.volMacro.len > 0) {
+                    for (int mm = 0; mm < ins->std.volMacro.len; mm++) {
+                      if (ds.ins[ds.ins.size() - 1]->std.volMacro.val[mm] < 16) {
+                        int vall = ins->std.volMacro.val[mm];
+                        ds.ins[ds.ins.size() - 1]->std.volMacro.val[mm] = vall * 42 / 15;
                       }
                     }
                   }
@@ -2573,32 +2590,32 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                   DivInstrument* insnew = new DivInstrument;
                   ds.ins.push_back(insnew);
 
-                  copyInstrument(ds.ins[ds.ins.size() - 1], ins);
+                  *ds.ins[ds.ins.size() - 1] = *ins;
 
                   ds.ins[ds.ins.size() - 1]->name += " [NES copy]";
 
                   ds.ins[ds.ins.size() - 1]->type = DIV_INS_NES;
 
                   if (ins->type == DIV_INS_VRC6) {
-                    if (insnew->std.get_macro(DIV_MACRO_DUTY, false)->len > 0) // convert duties for NES
+                    if (insnew->std.dutyMacro.len > 0) // convert duties for NES
                     {
-                      for (int mm = 0; mm < insnew->std.get_macro(DIV_MACRO_DUTY, false)->len; mm++) {
-                        switch (insnew->std.get_macro(DIV_MACRO_DUTY, false)->val[mm]) {
+                      for (int mm = 0; mm < insnew->std.dutyMacro.len; mm++) {
+                        switch (insnew->std.dutyMacro.val[mm]) {
                           case 0:
                           case 1: {
-                            insnew->std.get_macro(DIV_MACRO_DUTY, false)->val[mm] = 0;
+                            insnew->std.dutyMacro.val[mm] = 0;
                             break;
                           }
                           case 2:
                           case 3:
                           case 4:
                           case 5: {
-                            insnew->std.get_macro(DIV_MACRO_DUTY, false)->val[mm] = 1;
+                            insnew->std.dutyMacro.val[mm] = 1;
                             break;
                           }
                           case 6:
                           case 7: {
-                            insnew->std.get_macro(DIV_MACRO_DUTY, false)->val[mm] = 2;
+                            insnew->std.dutyMacro.val[mm] = 2;
                             break;
                           }
                           default:
@@ -2652,7 +2669,6 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         }
       }
     }
-    */
 
     ds.delayBehavior=0;
 
