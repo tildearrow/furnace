@@ -40,10 +40,6 @@ depending on the tempo of the song, it may only be possible to get perfectly eve
 
 each chip has its own set of limitations regarding what frequencies it can play. if these limits are likely to be found in normal tracking, they'll be mentioned in [that chip's documentation](../7-systems/).
 
-### does Furnace support tunings other than twelve tone equal temperament?
-
-no. both tracker and format are built on that scale and tuning.
-
 ### can I add effects to the output like EQ or reverb?
 
 not yet, but it's in the early development stage.
