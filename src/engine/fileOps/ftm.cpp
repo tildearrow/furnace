@@ -268,11 +268,9 @@ int convertMacrosSID[5] = {(int)DIV_MACRO_VOL, (int)DIV_MACRO_ARP, (int)DIV_MACR
 
 int convert_vrc6_duties[4] = {1, 3, 7, 3};
 
-int findEmptyFx(short* data)
-{
-  for(int i = 0; i < 7; i++)
-  {
-    if(data[4 + i*2] == -1) return i;
+int findEmptyFx(short* data) {
+  for (int i=0; i<7; i++) {
+    if (data[4+i*2]==-1) return i;
   }
   return -1;
 }
@@ -2456,27 +2454,27 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           for (int l = 0; l < ds.subsong[j]->patLen; l++) {
             if (ds.subsong[j]->pat[ii].data[k]->data[l][4 + 7*2] == -666) {
               bool converted = false;
-              for(int hh = 0; hh < 7; hh++) {
-                if(ds.subsong[j]->pat[ii].data[k]->data[l][4 + hh*2] == 0x22 && !converted) {
+              // for()? if()? THESE ARE NOT FUNCTIONS!
+              for (int hh = 0; hh < 7; hh++) { // oh and now you 1TBS up. oh man...
+                if (ds.subsong[j]->pat[ii].data[k]->data[l][4 + hh*2] == 0x22 && !converted) {
                   int slot = findEmptyFx(ds.subsong[j]->pat[ii].data[k]->data[l]);
-                  if(slot != -1) {
-                    //Hxy - Envelope automatic pitch
+                  if (slot != -1) {
+                    // space your comments damn it!
+                    // Hxy - Envelope automatic pitch
 
-                    //Sets envelope period to the note period shifted by x and envelope type y.
-                    //Approximate envelope frequency is note frequency * (2^|x - 8|) / 32.
+                    // Sets envelope period to the note period shifted by x and envelope type y.
+                    // Approximate envelope frequency is note frequency * (2^|x - 8|) / 32.
 
                     int ftAutoEnv = (ds.subsong[j]->pat[ii].data[k]->data[l][5 + hh*2] >> 4) & 15;
                     int autoEnvDen = 16; // ???? with 32 it's an octave lower...
                     int autoEnvNum = (1 << (abs(ftAutoEnv - 8)));
 
-                    while(autoEnvNum >= 2 && autoEnvDen >= 2)
-                    {
+                    while (autoEnvNum >= 2 && autoEnvDen >= 2) {
                       autoEnvDen /= 2;
                       autoEnvNum /= 2;
                     }
 
-                    if(autoEnvDen < 16 && autoEnvNum < 16)
-                    {
+                    if (autoEnvDen < 16 && autoEnvNum < 16) {
                       ds.subsong[j]->pat[ii].data[k]->data[l][4 + slot*2] = 0x29;
                       ds.subsong[j]->pat[ii].data[k]->data[l][5 + slot*2] = (autoEnvNum << 4) | autoEnvDen;
                     }
@@ -2495,23 +2493,19 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
       }
     }
 
-    for (size_t j = 0; j < ds.subsong.size(); j++) { //open hidden effect columns
+    for (size_t j = 0; j < ds.subsong.size(); j++) { // open hidden effect columns
+      // what are your rules for spacing, really?
       DivSubSong* s = ds.subsong[j];
-      for(int c = 0; c < total_chans; c++)
-      {
+      for (int c = 0; c < total_chans; c++) {
         int num_fx = 1;
 
-        for(int p = 0; p < s->ordersLen; p++)
-        {
-          for(int r = 0; r < s->patLen; r++)
-          {
+        for (int p = 0; p < s->ordersLen; p++) {
+          for (int r = 0; r < s->patLen; r++) {
             DivPattern* pat = s->pat[c].getPattern(s->orders.ord[c][p], true);
             short* s_row_data = pat->data[r];
 
-            for(int eff = 0; eff < DIV_MAX_EFFECTS - 1; eff++)
-            {
-              if(s_row_data[4 + 2 * eff] != -1 && eff + 1 > num_fx)
-              {
+            for (int eff = 0; eff < DIV_MAX_EFFECTS - 1; eff++) {
+              if (s_row_data[4 + 2 * eff] != -1 && eff + 1 > num_fx) {
                   num_fx = eff + 1;
               }
             }
@@ -2528,23 +2522,10 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
     // actually, this is wrong. Furnace is very lax regarding instrument usage. you can put an OPM instrument in OPL channel and yeah, it'll sound weird but it'll work. - tildearrow
 
-    // I don't trust you
-
-    // where did you get that assumption from? did you make it up?
-    // first you go "I don't trust you" on me and then you drop this. couldn't
-    // you at least look around a bit?!
-
-    // since when do 2A03 and VRC6 duties match? who said that they do?
-    // Furnace wasn't designed to automatically convert duties of wrong instrument types, damn it!
-
-    // on top of that, you didn't have to drop this. AT ALL.
-    // instrument conversion is simpler than eating with a fork. you just copy the
-    // instruments and DON'T FORGET TO CONVERT DUTY MACROS (!!), than adapt VRC6 sawtooth volume and that's it.
-    // really? were these simplifications in import necessary? it isn't a new compat flag, after all.
-
-    // oh man....
-
     // P.S. Duties conversion is based on what I really hear in FamiTracker when using wrong instrument type (and what I see on Audacity "oscilloscope") - LTVA
+
+    // is that the best you could do? paste my rant from that other commit and change a couple words?
+    // at least be creative next time...
 
     int ins_vrc6_conv[256][2];
     int ins_vrc6_saw_conv[256][2];
@@ -2570,13 +2551,12 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
             if (ds.subsong[j]->pat[ii].data[k] == NULL)
               continue;
             for (int l = 0; l < ds.subsong[j]->patLen; l++) {
-              if (ds.subsong[j]->pat[ii].data[k]->data[l][2] == i) // instrument
-              {
+              // 1TBS > GNU
+              if (ds.subsong[j]->pat[ii].data[k]->data[l][2] == i) { // instrument
                 DivInstrument* ins = ds.ins[i];
                 bool go_to_end = false;
 
-                if (ins->type != DIV_INS_VRC6 && (ii == vrc6_chans[0] || ii == vrc6_chans[1])) // we encountered non-VRC6 instrument on VRC6 channel
-                {
+                if (ins->type != DIV_INS_VRC6 && (ii == vrc6_chans[0] || ii == vrc6_chans[1])) { // we encountered non-VRC6 instrument on VRC6 channel
                   DivInstrument* insnew = new DivInstrument;
                   ds.ins.push_back(insnew);
 
