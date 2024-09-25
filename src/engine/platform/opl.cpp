@@ -1218,11 +1218,12 @@ void DivPlatformOPL::tick(bool sysTick) {
 
   memset(weWillWriteRRLater,0,64*sizeof(bool));
 
+  unsigned char opMask=(int)(chan[0].fourOp)|(chan[2].fourOp<<1)|(chan[4].fourOp<<2)|(chan[6].fourOp<<3)|(chan[8].fourOp<<4)|(chan[10].fourOp<<5);
+
+  // write ops which are being enabled
   if (update4OpMask) {
-    update4OpMask=false;
     if (oplType==3) {
-      unsigned char opMask=(int)(chan[0].fourOp)|(chan[2].fourOp<<1)|(chan[4].fourOp<<2)|(chan[6].fourOp<<3)|(chan[8].fourOp<<4)|(chan[10].fourOp<<5);
-      immWrite(0x104,opMask);
+      immWrite(0x104,opMask|oldOpMask);
       //printf("updating opMask to %.2x\n",opMask);
     }
   }
@@ -1249,6 +1250,16 @@ void DivPlatformOPL::tick(bool sysTick) {
         hardResetElapsed++;
       }
     }
+  }
+
+  // and now the ones being disabled
+  if (update4OpMask) {
+    update4OpMask=false;
+    if (oplType==3) {
+      immWrite(0x104,opMask);
+      //printf("updating opMask to %.2x\n",opMask);
+    }
+    oldOpMask=opMask;
   }
 
   // update drums
@@ -2719,6 +2730,7 @@ void DivPlatformOPL::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,768);
 
+  oldOpMask=0;
   dacVal=0;
   dacVal2=0;
   dacOut=0;

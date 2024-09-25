@@ -115,6 +115,7 @@ class DivPlatformOPL: public DivDispatch {
     bool lastSY;
     bool waitingBusy;
     int downsamplerStep;
+    unsigned char oldOpMask;
     
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
