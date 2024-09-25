@@ -723,7 +723,7 @@ void FurnaceGUI::drawTutorial() {
       (canvasH-ImGui::GetWindowSize().y)*0.5
     ));
 
-    if (tutorial.popupTimer<0.6f) {
+    if (tutorial.popupTimer<2.0f) {
       ImDrawList* dl=ImGui::GetForegroundDrawList();
       const ImVec2 winPos=ImGui::GetWindowPos();
       const ImVec2 txtSize=ImGui::CalcTextSize("copied!");

@@ -2285,7 +2285,7 @@ class FurnaceGUI {
       introPlayed(false),
 #endif
       protoWelcome(false),
-      popupTimer(1.0f) {
+      popupTimer(10.0f) {
     }
   } tutorial;
 
