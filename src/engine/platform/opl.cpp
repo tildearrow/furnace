@@ -494,6 +494,16 @@ void DivPlatformOPL::acquire_ymfm3(short** buf, size_t len) {
 
     fm_ymfm3->generate(&out,1);
 
+    if (downsample) {
+      // 49716-44100
+      downsamplerStep+=5616;
+      if (downsamplerStep>=44100) {
+        downsamplerStep-=44100;
+        h--;
+        continue;
+      }
+    }
+
     buf[0][h]=out.data[0]>>1;
     if (totalOutputs>1) {
       buf[1][h]=out.data[1]>>1;
@@ -2730,6 +2740,7 @@ void DivPlatformOPL::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,768);
 
+  downsamplerStep=0;
   oldOpMask=0;
   dacVal=0;
   dacVal2=0;
