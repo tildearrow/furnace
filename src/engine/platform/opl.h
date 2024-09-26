@@ -151,7 +151,7 @@ class DivPlatformOPL: public DivDispatch {
     // 2: YM3812-LLE/YMF262-LLE
     unsigned char emuCore;
 
-    bool update4OpMask, pretendYMU, downsample, compatPan;
+    bool update4OpMask, pretendYMU, downsample, compatPan, compatYPitch;
   
     short oldWrites[768];
     short pendingWrites[768];

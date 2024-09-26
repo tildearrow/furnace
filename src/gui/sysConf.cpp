@@ -1757,6 +1757,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_Y8950:
     case DIV_SYSTEM_Y8950_DRUMS: {
       int clockSel=flags.getInt("clockSel",0);
+      bool compatYPitch=flags.getBool("compatYPitch",false);
 
       ImGui::Text(_("Clock rate:"));
       ImGui::Indent();
@@ -1786,9 +1787,16 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       ImGui::Unindent();
 
+      if ((type==DIV_SYSTEM_Y8950 || type==DIV_SYSTEM_Y8950_DRUMS) && compatYPitch) {
+        if (ImGui::Checkbox(_("ADPCM channel one octave up (compatibility)"),&compatYPitch)) {
+          altered=true;
+        }
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
+          flags.set("compatYPitch",compatYPitch);
         });
       }
       break;
