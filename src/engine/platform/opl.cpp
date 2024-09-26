@@ -1275,9 +1275,9 @@ void DivPlatformOPL::tick(bool sysTick) {
   // update drums
   if (properDrums) {
     bool updateDrums=false;
-    for (int i=melodicChans; i<totalChans; i++) {
+    for (int i=melodicChans; i<melodicChans+5; i++) {
       if (chan[i].keyOn || chan[i].keyOff) {
-        drumState&=~(1<<(totalChans-i-1));
+        drumState&=~(1<<(melodicChans+4-i));
         updateDrums=true;
         chan[i].keyOff=false;
       }
@@ -1463,7 +1463,7 @@ void DivPlatformOPL::tick(bool sysTick) {
       } else {
         if (chan[i].keyOn) {
           immWrite(chanMap[i]+ADDR_FREQH,chan[i].freqH);
-          if (!isMuted[i]) drumState|=(1<<(totalChans-i-1));
+          if (!isMuted[i]) drumState|=(1<<(melodicChans+4-i));
           updateDrums=true;
           chan[i].keyOn=false;
         } else if (chan[i].freqChanged) {
