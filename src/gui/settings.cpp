@@ -1394,7 +1394,7 @@ void FurnaceGUI::drawSettings() {
             settingsChanged=true;
           }
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("common values:\n- 1 for mono\n- 2 for stereo\n- 4 for quadraphonic\n- 6 for 5.1 surround\n- 8 for 7.1 surround"));
+            ImGui::SetTooltip(_("common values:\n- 1 for mono\n- 2 for stereo"));
           }
 
           ImGui::TableNextRow();

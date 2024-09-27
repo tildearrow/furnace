@@ -2111,6 +2111,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
     }
 
+    // Y8950 broken ADPCM pitch
+    if (ds.version<223) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_Y8950 || ds.system[i]==DIV_SYSTEM_Y8950_DRUMS) {
+          ds.systemFlags[i].set("compatYPitch",true);
+        }
+      }
+    }
+
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;

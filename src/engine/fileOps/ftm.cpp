@@ -268,6 +268,13 @@ int convertMacrosSID[5] = {(int)DIV_MACRO_VOL, (int)DIV_MACRO_ARP, (int)DIV_MACR
 
 int convert_vrc6_duties[4] = {1, 3, 7, 3};
 
+int findEmptyFx(short* data) {
+  for (int i=0; i<7; i++) {
+    if (data[4+i*2]==-1) return i;
+  }
+  return -1;
+}
+
 void copyMacro(DivInstrument* ins, DivInstrumentMacro* from, int macro_type, int setting) {
   DivInstrumentMacro* to = NULL;
 
@@ -445,6 +452,8 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
     unsigned char vrc6_saw_chan = 0xff;
     unsigned char n163_chans[8] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
     unsigned char vrc7_chans[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+    unsigned char s5b_chans[3] = {0xff, 0xff, 0xff};
+    unsigned char ay8930_chans[3] = {0xff, 0xff, 0xff};
 
     // these two seem to go unused, but why?
     unsigned char vrc6_chans[2] = {0xff, 0xff};
@@ -734,6 +743,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
           for (int ch = 0; ch < 3; ch++) {
             map_channels[curr_chan] = map_ch;
+            s5b_chans[ch] = map_ch;
             curr_chan++;
             map_ch++;
           }
@@ -743,6 +753,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
           for (int ch = 0; ch < 3; ch++) {
             map_channels[curr_chan] = map_ch;
+            ay8930_chans[ch] = map_ch;
             curr_chan++;
             map_ch++;
           }
@@ -1939,6 +1950,13 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                         }
                       }
                     }
+                    for (int v = 0; v < 3; v++) {
+                      if (map_channels[ch] == s5b_chans[v] || map_channels[ch] == ay8930_chans[v]) {
+                        if (pat->data[row][4 + (j * 2)] == 0x22 && (pat->data[row][5 + (j * 2)] & 0xf0) != 0) {
+                          pat->data[row][4 + (7 * 2)] = -666; //marker
+                        }
+                      }
+                    }
                   } else {
                     pat->data[row][4 + (j * 2)] = -1;
                     pat->data[row][5 + (j * 2)] = -1;
@@ -2428,13 +2446,87 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
       }
     }
 
+    for (int ii = 0; ii < total_chans; ii++) {
+      for (size_t j = 0; j < ds.subsong.size(); j++) {
+        for (int k = 0; k < DIV_MAX_PATTERNS; k++) {
+          if (ds.subsong[j]->pat[ii].data[k] == NULL)
+            continue;
+          for (int l = 0; l < ds.subsong[j]->patLen; l++) {
+            if (ds.subsong[j]->pat[ii].data[k]->data[l][4 + 7*2] == -666) {
+              bool converted = false;
+              // for()? if()? THESE ARE NOT FUNCTIONS!
+              for (int hh = 0; hh < 7; hh++) { // oh and now you 1TBS up. oh man...
+                if (ds.subsong[j]->pat[ii].data[k]->data[l][4 + hh*2] == 0x22 && !converted) {
+                  int slot = findEmptyFx(ds.subsong[j]->pat[ii].data[k]->data[l]);
+                  if (slot != -1) {
+                    // space your comments damn it!
+                    // Hxy - Envelope automatic pitch
+
+                    // Sets envelope period to the note period shifted by x and envelope type y.
+                    // Approximate envelope frequency is note frequency * (2^|x - 8|) / 32.
+
+                    int ftAutoEnv = (ds.subsong[j]->pat[ii].data[k]->data[l][5 + hh*2] >> 4) & 15;
+                    int autoEnvDen = 16; // ???? with 32 it's an octave lower...
+                    int autoEnvNum = (1 << (abs(ftAutoEnv - 8)));
+
+                    while (autoEnvNum >= 2 && autoEnvDen >= 2) {
+                      autoEnvDen /= 2;
+                      autoEnvNum /= 2;
+                    }
+
+                    if (autoEnvDen < 16 && autoEnvNum < 16) {
+                      ds.subsong[j]->pat[ii].data[k]->data[l][4 + slot*2] = 0x29;
+                      ds.subsong[j]->pat[ii].data[k]->data[l][5 + slot*2] = (autoEnvNum << 4) | autoEnvDen;
+                    }
+
+                    ds.subsong[j]->pat[ii].data[k]->data[l][5 + hh*2] = (ds.subsong[j]->pat[ii].data[k]->data[l][5 + hh*2] & 0xf) << 4;
+
+                    converted = true;
+                  }
+                }
+              }
+
+              ds.subsong[j]->pat[ii].data[k]->data[l][4 + (7 * 2)] = -1; //delete marker
+            }
+          }
+        }
+      }
+    }
+
+    for (size_t j = 0; j < ds.subsong.size(); j++) { // open hidden effect columns
+      // what are your rules for spacing, really?
+      DivSubSong* s = ds.subsong[j];
+      for (int c = 0; c < total_chans; c++) {
+        int num_fx = 1;
+
+        for (int p = 0; p < s->ordersLen; p++) {
+          for (int r = 0; r < s->patLen; r++) {
+            DivPattern* pat = s->pat[c].getPattern(s->orders.ord[c][p], true);
+            short* s_row_data = pat->data[r];
+
+            for (int eff = 0; eff < DIV_MAX_EFFECTS - 1; eff++) {
+              if (s_row_data[4 + 2 * eff] != -1 && eff + 1 > num_fx) {
+                  num_fx = eff + 1;
+              }
+            }
+          }
+        }
+
+        s->pat[c].effectCols = num_fx;
+      }
+    }
+
     // famitracker is not fucking strict with what instrument types can be used on any channel. This leads to e.g. 2A03 instuments being used on VRC6 channels.
-    // Furnace is way more strict, so NES instrument in VRC6 channel just does not play. To fix this, we are creating copies of instruments, changing their type to please Furnace system.
-    // I kinda did the same in klystrack import, tbh.
+    // Furnace is way more strict, so NES instrument in VRC6 channel just does not play properly. To fix this, we are creating copies of instruments, changing their type to please Furnace system.
+    // I kinda did the same in klystrack import, tbh. - LTVA
 
-    // actually, this is wrong. Furnace is very lax regarding instrument usage. you can put an OPM instrument in OPL channel and yeah, it'll sound weird but it'll work.
+    // actually, this is wrong. Furnace is very lax regarding instrument usage. you can put an OPM instrument in OPL channel and yeah, it'll sound weird but it'll work. - tildearrow
 
-    /*
+    // P.S. Duties conversion is based on what I really hear in FamiTracker when using wrong instrument type (and what I see on Audacity "oscilloscope") - LTVA
+
+    // is that the best you could do? paste my rant from that other commit and change a couple words?
+    // at least be creative next time...
+
     int ins_vrc6_conv[256][2];
     int ins_vrc6_saw_conv[256][2];
     int ins_nes_conv[256][2]; // vrc6 (or whatever) -> nes
@@ -2459,17 +2551,16 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
             if (ds.subsong[j]->pat[ii].data[k] == NULL)
               continue;
             for (int l = 0; l < ds.subsong[j]->patLen; l++) {
-              if (ds.subsong[j]->pat[ii].data[k]->data[l][2] == i) // instrument
-              {
+              // 1TBS > GNU
+              if (ds.subsong[j]->pat[ii].data[k]->data[l][2] == i) { // instrument
                 DivInstrument* ins = ds.ins[i];
                 bool go_to_end = false;
 
-                if (ins->type != DIV_INS_VRC6 && (ii == vrc6_chans[0] || ii == vrc6_chans[1])) // we encountered non-VRC6 instrument on VRC6 channel
-                {
+                if (ins->type != DIV_INS_VRC6 && (ii == vrc6_chans[0] || ii == vrc6_chans[1])) { // we encountered non-VRC6 instrument on VRC6 channel
                   DivInstrument* insnew = new DivInstrument;
                   ds.ins.push_back(insnew);
 
-                  copyInstrument(ds.ins[ds.ins.size() - 1], ins);
+                  *ds.ins[ds.ins.size() - 1] = *ins;
 
                   ds.ins[ds.ins.size() - 1]->name += " [VRC6 copy]";
                   ds.ins[ds.ins.size() - 1]->amiga.useSample = false;
@@ -2477,11 +2568,11 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
                   ds.ins[ds.ins.size() - 1]->type = DIV_INS_VRC6;
 
-                  if (ins->std.get_macro(DIV_MACRO_DUTY, false)->len > 0) {
-                    for (int mm = 0; mm < ins->std.get_macro(DIV_MACRO_DUTY, false)->len; mm++) {
-                      if (ds.ins[ds.ins.size() - 1]->std.get_macro(DIV_MACRO_DUTY, false)->val[mm] < 4) {
-                        int vall = ins->std.get_macro(DIV_MACRO_DUTY, false)->val[mm];
-                        ds.ins[ds.ins.size() - 1]->std.get_macro(DIV_MACRO_DUTY, false)->val[mm] = convert_vrc6_duties[vall];
+                  if (ins->std.dutyMacro.len > 0) {
+                    for (int mm = 0; mm < ins->std.dutyMacro.len; mm++) {
+                      if (ds.ins[ds.ins.size() - 1]->std.dutyMacro.val[mm] < 4) {
+                        int vall = ins->std.dutyMacro.val[mm];
+                        ds.ins[ds.ins.size() - 1]->std.dutyMacro.val[mm] = convert_vrc6_duties[vall];
                       }
                     }
                   }
@@ -2521,7 +2612,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                   DivInstrument* insnew = new DivInstrument;
                   ds.ins.push_back(insnew);
 
-                  copyInstrument(ds.ins[ds.ins.size() - 1], ins);
+                  *ds.ins[ds.ins.size() - 1] = *ins;
 
                   ds.ins[ds.ins.size() - 1]->name += " [VRC6 saw copy]";
                   ds.ins[ds.ins.size() - 1]->amiga.useSample = false;
@@ -2529,11 +2620,11 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
                   ds.ins[ds.ins.size() - 1]->type = DIV_INS_VRC6_SAW;
 
-                  if (ins->std.get_macro(DIV_MACRO_VOL, false)->len > 0) {
-                    for (int mm = 0; mm < ins->std.get_macro(DIV_MACRO_VOL, false)->len; mm++) {
-                      if (ds.ins[ds.ins.size() - 1]->std.get_macro(DIV_MACRO_VOL, false)->val[mm] < 16) {
-                        int vall = ins->std.get_macro(DIV_MACRO_VOL, false)->val[mm];
-                        ds.ins[ds.ins.size() - 1]->std.get_macro(DIV_MACRO_VOL, false)->val[mm] = vall * 42 / 15;
+                  if (ins->std.volMacro.len > 0) {
+                    for (int mm = 0; mm < ins->std.volMacro.len; mm++) {
+                      if (ds.ins[ds.ins.size() - 1]->std.volMacro.val[mm] < 16) {
+                        int vall = ins->std.volMacro.val[mm];
+                        ds.ins[ds.ins.size() - 1]->std.volMacro.val[mm] = vall * 42 / 15;
                       }
                     }
                   }
@@ -2573,32 +2664,32 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                   DivInstrument* insnew = new DivInstrument;
                   ds.ins.push_back(insnew);
 
-                  copyInstrument(ds.ins[ds.ins.size() - 1], ins);
+                  *ds.ins[ds.ins.size() - 1] = *ins;
 
                   ds.ins[ds.ins.size() - 1]->name += " [NES copy]";
 
                   ds.ins[ds.ins.size() - 1]->type = DIV_INS_NES;
 
                   if (ins->type == DIV_INS_VRC6) {
-                    if (insnew->std.get_macro(DIV_MACRO_DUTY, false)->len > 0) // convert duties for NES
+                    if (insnew->std.dutyMacro.len > 0) // convert duties for NES
                     {
-                      for (int mm = 0; mm < insnew->std.get_macro(DIV_MACRO_DUTY, false)->len; mm++) {
-                        switch (insnew->std.get_macro(DIV_MACRO_DUTY, false)->val[mm]) {
+                      for (int mm = 0; mm < insnew->std.dutyMacro.len; mm++) {
+                        switch (insnew->std.dutyMacro.val[mm]) {
                           case 0:
                           case 1: {
-                            insnew->std.get_macro(DIV_MACRO_DUTY, false)->val[mm] = 0;
+                            insnew->std.dutyMacro.val[mm] = 0;
                             break;
                           }
                           case 2:
                           case 3:
                           case 4:
                           case 5: {
-                            insnew->std.get_macro(DIV_MACRO_DUTY, false)->val[mm] = 1;
+                            insnew->std.dutyMacro.val[mm] = 1;
                             break;
                           }
                           case 6:
                           case 7: {
-                            insnew->std.get_macro(DIV_MACRO_DUTY, false)->val[mm] = 2;
+                            insnew->std.dutyMacro.val[mm] = 2;
                             break;
                           }
                           default:
@@ -2652,7 +2743,6 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         }
       }
     }
-    */
 
     ds.delayBehavior=0;
 

@@ -1628,10 +1628,11 @@ class FurnaceGUI {
   String mmlStringSNES[DIV_MAX_CHIPS];
   String folderString;
 
+  struct PaletteSearchResult { int id; std::vector<int> highlightChars; };
   std::vector<DivSystem> sysSearchResults;
   std::vector<std::pair<DivSample*,bool>> sampleBankSearchResults;
   std::vector<FurnaceGUISysDef> newSongSearchResults;
-  std::vector<int> paletteSearchResults;
+  std::vector<PaletteSearchResult> paletteSearchResults;
   FixedQueue<String,32> recentFile;
   std::vector<DivInstrumentType> makeInsTypeList;
   std::vector<FurnaceGUIWaveSizeEntry> waveSizeList;
