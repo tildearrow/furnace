@@ -90,6 +90,7 @@ const char* aboutLine[]={
   "aloelucidity",
   "AmigaX",
   "AquaDoesStuff",
+  "AstralBlue",
   "AURORA*FIELDS",
   "Background2982",
   "battybeats",
