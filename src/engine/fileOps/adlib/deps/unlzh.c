@@ -20,19 +20,19 @@ typedef unsigned char uch;
 
 /* decode.c */
 
-static unsigned	decode	(unsigned count, uch buffer[]);
+static unsigned int	decode	(unsigned int count, uch buffer[]);
 static void decode_start (void);
 
 /* huf.c */
 static void huf_decode_start (void);
-static unsigned decode_c		(void);
-static unsigned decode_p		(void);
+static unsigned int decode_c		(void);
+static unsigned int decode_p		(void);
 static void read_pt_len		(int nn, int nbit, int i_special);
 static void read_c_len		(void);
 
 /* io.c */
 static void fillbuf		(int n);
-static unsigned getbits	(int n);
+static unsigned int getbits	(int n);
 static void init_getbits (void);
 
 /* maketbl.c */
@@ -42,7 +42,7 @@ static void make_table (int nchar, uch bitlen[],
 
 
 #define DICBIT		14 /* 13 */
-#define DIC_SIZE	((unsigned) 1 << DICBIT)
+#define DIC_SIZE	((unsigned int) 1 << DICBIT)
 
 #ifndef CHAR_BIT
 #  define CHAR_BIT 8
@@ -79,7 +79,7 @@ static ush left[2 * NC - 1];
 static ush right[2 * NC - 1];
 static uch c_len[NC];
 static uch pt_len[NPT];
-static unsigned blocksize;
+static unsigned int blocksize;
 static ush pt_table[256];
 static ush c_table[4096];
 
@@ -87,12 +87,12 @@ static ush c_table[4096];
 		io.c -- input/output
 ***********************************************************/
 
-static ush		bitbuf;
-static unsigned	subbitbuf;
-static int		bitcount;
+static ush			bitbuf;
+static unsigned int	subbitbuf;
+static int			bitcount;
 
 uch *input_buffer, *output_buffer;
-unsigned input_buffer_idx, output_buffer_idx, input_buffer_size;
+unsigned int input_buffer_idx, output_buffer_idx, input_buffer_size;
 
 static uch try_byte()
 {
@@ -113,16 +113,16 @@ static void fillbuf(int n)  /* Shift bitbuf n bits left, read n bits */
 	bitbuf <<= n;
 	while (n > bitcount) {
 		bitbuf |= subbitbuf << (n -= bitcount);
-		subbitbuf = (unsigned)try_byte();
+		subbitbuf = (unsigned int)try_byte();
 		if ((int)subbitbuf == EOF) subbitbuf = 0;
 		bitcount = CHAR_BIT;
 	}
 	bitbuf |= subbitbuf >> (bitcount -= n);
 }
 
-static unsigned getbits(int n)
+static unsigned int getbits(int n)
 {
-	unsigned x;
+	unsigned int x;
 
 	x = bitbuf >> (BITBUFSIZ - n);	fillbuf(n);
 	return x;
@@ -141,10 +141,10 @@ static void init_getbits()
 static void make_table(int nchar, uch bitlen[], int tablebits, ush table[])
 {
 	ush count[17], weight[17], start[18], *p;
-	unsigned i, k, len, ch, jutbits, avail, nextcode, mask;
+	unsigned int i, k, len, ch, jutbits, avail, nextcode, mask;
 
 	for (i = 1; i <= 16; i++) count[i] = 0;
-	for (i = 0; i < (unsigned)nchar; i++) count[bitlen[i]]++;
+	for (i = 0; i < (unsigned int)nchar; i++) count[bitlen[i]]++;
 
 	start[1] = 0;
 	for (i = 1; i <= 16; i++)
@@ -153,12 +153,12 @@ static void make_table(int nchar, uch bitlen[], int tablebits, ush table[])
 		printf("Bad table\n");
 
 	jutbits = 16 - tablebits;
-	for (i = 1; i <= (unsigned)tablebits; i++) {
+	for (i = 1; i <= (unsigned int)tablebits; i++) {
 		start[i] >>= jutbits;
-		weight[i] = (unsigned) 1 << (tablebits - i);
+		weight[i] = (unsigned int) 1 << (tablebits - i);
 	}
 	while (i <= 16) {
-		weight[i] = (unsigned) 1 << (16 - i);
+		weight[i] = (unsigned int) 1 << (16 - i);
 		i++;
 	}
 
@@ -169,12 +169,12 @@ static void make_table(int nchar, uch bitlen[], int tablebits, ush table[])
 	}
 
 	avail = nchar;
-	mask = (unsigned) 1 << (15 - tablebits);
-	for (ch = 0; ch < (unsigned)nchar; ch++) {
+	mask = (unsigned int) 1 << (15 - tablebits);
+	for (ch = 0; ch < (unsigned int)nchar; ch++) {
 		if ((len = bitlen[ch]) == 0) continue;
 		nextcode = start[len] + weight[len];
-		if (len <= (unsigned)tablebits) {
-			if ((unsigned) 1 << tablebits < nextcode)
+		if (len <= (unsigned int)tablebits) {
+			if ((unsigned int) 1 << tablebits < nextcode)
 				printf("Bad table\n");
 			for (i = start[len]; i < nextcode; i++) table[i] = ch;
 		} else {
@@ -203,7 +203,7 @@ static void make_table(int nchar, uch bitlen[], int tablebits, ush table[])
 static void read_pt_len(int nn, int nbit, int i_special)
 {
 	int i, c, n;
-	unsigned mask;
+	unsigned int mask;
 
 	n = getbits(nbit);
 	if (n == 0) {
@@ -215,7 +215,7 @@ static void read_pt_len(int nn, int nbit, int i_special)
 		while (i < n) {
 			c = bitbuf >> (BITBUFSIZ - 3);
 			if (c == 7) {
-				mask = (unsigned) 1 << (BITBUFSIZ - 1 - 3);
+				mask = (unsigned int) 1 << (BITBUFSIZ - 1 - 3);
 				while (mask & bitbuf) {	 mask >>= 1;  c++;	}
 				if (16 < c)
 					printf("Bad table\n");
@@ -235,7 +235,7 @@ static void read_pt_len(int nn, int nbit, int i_special)
 static void read_c_len()
 {
 	int i, c, n;
-	unsigned mask;
+	unsigned int mask;
 
 	n = getbits(CBIT);
 	if (n == 0) {
@@ -247,7 +247,7 @@ static void read_c_len()
 		while (i < n) {
 			c = pt_table[bitbuf >> (BITBUFSIZ - 8)];
 			if (c >= NT) {
-				mask = (unsigned) 1 << (BITBUFSIZ - 1 - 8);
+				mask = (unsigned int) 1 << (BITBUFSIZ - 1 - 8);
 				do {
 					if (bitbuf & mask) c = right[c];
 					else			   c = left [c];
@@ -267,9 +267,9 @@ static void read_c_len()
 	}
 }
 
-static unsigned decode_c()
+static unsigned int decode_c()
 {
-	unsigned j, mask;
+	unsigned int j, mask;
 
 	if (blocksize == 0) {
 		blocksize = getbits(16);
@@ -283,7 +283,7 @@ static unsigned decode_c()
 	blocksize--;
 	j = c_table[bitbuf >> (BITBUFSIZ - 12)];
 	if (j >= NC) {
-		mask = (unsigned) 1 << (BITBUFSIZ - 1 - 12);
+		mask = (unsigned int) 1 << (BITBUFSIZ - 1 - 12);
 		do {
 			if (bitbuf & mask) j = right[j];
 			else			   j = left [j];
@@ -294,13 +294,13 @@ static unsigned decode_c()
 	return j;
 }
 
-static unsigned decode_p()
+static unsigned int decode_p()
 {
-	unsigned j, mask;
+	unsigned int j, mask;
 
 	j = pt_table[bitbuf >> (BITBUFSIZ - 8)];
 	if (j >= NP) {
-		mask = (unsigned) 1 << (BITBUFSIZ - 1 - 8);
+		mask = (unsigned int) 1 << (BITBUFSIZ - 1 - 8);
 		do {
 			if (bitbuf & mask) j = right[j];
 			else			   j = left [j];
@@ -308,7 +308,7 @@ static unsigned decode_p()
 		} while (j >= NP);
 	}
 	fillbuf((int) pt_len[j]);
-	if (j != 0) j = ((unsigned) 1 << (j - 1)) + getbits((int) (j - 1));
+	if (j != 0) j = ((unsigned int) 1 << (j - 1)) + getbits((int) (j - 1));
 	return j;
 }
 
@@ -333,7 +333,7 @@ static void decode_start()
 
 /* Decode the input and return the number of decoded bytes put in buffer
  */
-static unsigned decode(unsigned count, uch buffer[])
+static unsigned int decode(unsigned count, uch buffer[])
 	/* The calling function must keep the number of
 	   bytes to be processed.  This function decodes
 	   either 'count' bytes or 'DIC_SIZE' bytes, whichever
@@ -343,8 +343,8 @@ static unsigned decode(unsigned count, uch buffer[])
 	   before calling this function.
 	 */
 {
-	static unsigned i;
-	unsigned r, c;
+	static unsigned int i;
+	unsigned int r, c;
 
 	r = 0;
 	while (--j >= 0) {
@@ -382,13 +382,13 @@ int unlzh(in, out)
 	int in;
 	int out;
 {
-	unsigned n;
+	unsigned int n;
 	ifd = in;
 	ofd = out;
 
 	decode_start();
 	while (!done) {
-		n = decode((unsigned) DIC_SIZE, window);
+		n = decode((unsigned int) DIC_SIZE, window);
 		if (!test && n > 0) {
 			write_buf(out, (char*)window, n);
 		}

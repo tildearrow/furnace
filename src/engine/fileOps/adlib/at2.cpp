@@ -1884,7 +1884,7 @@ void DivEngine::loadA2I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     memset(tempSrc, 0, 257);
     reader.read((void*)tempSrc, len);
     unsigned char tempDest[2550];
-    //memset(tempDest, 0, 2550);
+    memset(tempDest, 0, 2550);
     a2i_depack(tempSrc, len, tempDest, 2550, version);
 
     DivInstrument* ins=new DivInstrument;
