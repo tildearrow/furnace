@@ -505,11 +505,19 @@ void FurnaceGUI::syncTutorial() {
   tutorial.introPlayed=e->getConfBool("tutIntroPlayed",false);
 #endif
   tutorial.protoWelcome=e->getConfBool("tutProtoWelcome2",false);
+  tutorial.importedMOD=e->getConfBool("tutImportedMOD",false);
+  tutorial.importedS3M=e->getConfBool("tutImportedS3M",false);
+  tutorial.importedXM=e->getConfBool("tutImportedXM",false);
+  tutorial.importedIT=e->getConfBool("tutImportedIT",false);
 }
 
 void FurnaceGUI::commitTutorial() {
   e->setConf("tutIntroPlayed",tutorial.introPlayed);
   e->setConf("tutProtoWelcome2",tutorial.protoWelcome);
+  e->setConf("tutImportedMOD",tutorial.importedMOD);
+  e->setConf("tutImportedS3M",tutorial.importedS3M);
+  e->setConf("tutImportedXM",tutorial.importedXM);
+  e->setConf("tutImportedIT",tutorial.importedIT);
 }
 
 void FurnaceGUI::initRandomDemoSong() {
