@@ -886,51 +886,6 @@ void FurnaceGUI::drawTutorial() {
   }
 }
 
-// helper functions
-
-void FurnaceGUI::highlightWindow(const char* winName) {
-  ImDrawList* dl=ImGui::GetWindowDrawList();
-  ImU32 col=ImGui::GetColorU32(uiColors[GUI_COLOR_MODAL_BACKDROP]);
-
-  ImGuiWindow* win=ImGui::FindWindowByName(winName);
-  if (win!=NULL) {
-    ImVec2 start=win->Pos;
-    ImVec2 end=ImVec2(
-      start.x+win->Size.x,
-      start.y+win->Size.y
-    );
-
-    dl->AddRectFilled(
-      ImVec2(0,0),
-      ImVec2(start.x,canvasH),
-      col
-    );
-    dl->AddRectFilled(
-      ImVec2(start.x,0),
-      ImVec2(canvasW,start.y),
-      col
-    );
-    dl->AddRectFilled(
-      ImVec2(end.x,start.y),
-      ImVec2(canvasW,canvasH),
-      col
-    );
-    dl->AddRectFilled(
-      ImVec2(start.x,end.y),
-      ImVec2(end.x,canvasH),
-      col
-    );
-
-    dl->AddRect(start,end,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),0,0,3.0f*dpiScale);
-  } else {
-    dl->AddRectFilled(
-      ImVec2(0,0),
-      ImVec2(canvasW,canvasH),
-      col
-    );
-  }
-}
-
 // CV
 // 320x224
 
