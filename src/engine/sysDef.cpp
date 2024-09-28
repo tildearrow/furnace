@@ -514,7 +514,7 @@ void DivEngine::registerSystems() {
     {0x18, {DIV_CMD_FM_LFO_WAVE, _("18xx: Set LFO waveform (0 saw, 1 square, 2 triangle, 3 noise)")}},
     {0x1e, {DIV_CMD_FM_AM_DEPTH, _("1Exx: Set AM depth (0 to 7F)"), effectValAnd<127>}},
     {0x1f, {DIV_CMD_FM_PM_DEPTH, _("1Fxx: Set PM depth (0 to 7F)"), effectValAnd<127>}},
-    {0x55, {DIV_CMD_FM_SSG, _("55xy: Set detune 2 (x: operator from 1 to 4 (0 for all ops); y: detune from 0 to 3)"), effectOpVal<4>, effectValAnd<3>}},
+    {0x55, {DIV_CMD_FM_DT2, _("55xy: Set detune 2 (x: operator from 1 to 4 (0 for all ops); y: detune from 0 to 3)"), effectOpVal<4>, effectValAnd<3>}},
     {0x60, {DIV_CMD_FM_OPMASK, _("60xx: Set operator mask (bits 0-3)")}},
   });
 
