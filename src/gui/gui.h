@@ -650,6 +650,7 @@ enum FurnaceGUIWarnings {
   GUI_WARN_CLEAR_HISTORY,
   GUI_WARN_CV,
   GUI_WARN_RESET_CONFIG,
+  GUI_WARN_IMPORT,
   GUI_WARN_GENERIC
 };
 
@@ -2279,13 +2280,18 @@ class FurnaceGUI {
   struct Tutorial {
     bool introPlayed;
     bool protoWelcome;
+    bool importedMOD, importedS3M, importedXM, importedIT;
     Tutorial():
 #ifdef SUPPORT_XP
       introPlayed(true),
 #else
       introPlayed(false),
 #endif
-      protoWelcome(false) {
+      protoWelcome(false),
+      importedMOD(false),
+      importedS3M(false),
+      importedXM(false),
+      importedIT(false) {
     }
   } tutorial;
 
@@ -2838,8 +2844,6 @@ class FurnaceGUI {
 
   void pushToggleColors(bool status);
   void popToggleColors();
-
-  void highlightWindow(const char* winName);
 
   FurnaceGUIImage* getImage(FurnaceGUIImages image);
   FurnaceGUITexture* getTexture(FurnaceGUIImages image, FurnaceGUIBlendMode blendMode=GUI_BLEND_MODE_BLEND);

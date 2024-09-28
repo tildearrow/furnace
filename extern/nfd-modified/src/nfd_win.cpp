@@ -466,6 +466,15 @@ nfdresult_t NFD_OpenDialog( const std::vector<std::string>& filterList,
         goto end;
     }
 
+    // Set the file name
+    if (defaultFileName!=NULL) {
+      std::wstring defFileName=utf8To16(defaultFileName);
+      result = fileOpenDialog->SetFileName(defFileName.c_str());
+      if ( !SUCCEEDED(result) ) {
+        // ignore
+      }
+    }
+
     // Pass the callback
     winEvents=new NFDWinEvents(selCallback);
     if ( !SUCCEEDED(fileOpenDialog->Advise(winEvents,&eventID)) ) {
@@ -577,6 +586,15 @@ nfdresult_t NFD_OpenDialogMultiple( const std::vector<std::string>& filterList,
         goto end;
     }
 
+    // Set the file name
+    if (defaultFileName!=NULL) {
+      std::wstring defFileName=utf8To16(defaultFileName);
+      result = fileOpenDialog->SetFileName(defFileName.c_str());
+      if ( !SUCCEEDED(result) ) {
+        // ignore
+      }
+    }
+
     // Pass the callback
     winEvents=new NFDWinEvents(selCallback);
     if ( !SUCCEEDED(fileOpenDialog->Advise(winEvents,&eventID)) ) {
@@ -684,6 +702,15 @@ nfdresult_t NFD_SaveDialog( const std::vector<std::string>& filterList,
     if ( !SetDefaultPath( fileSaveDialog, defaultPath ) )
     {
         goto end;
+    }
+
+    // Set the file name
+    if (defaultFileName!=NULL) {
+      std::wstring defFileName=utf8To16(defaultFileName);
+      result = fileSaveDialog->SetFileName(defFileName.c_str());
+      if ( !SUCCEEDED(result) ) {
+        // ignore
+      }
     }
 
     // Set a flag for no history

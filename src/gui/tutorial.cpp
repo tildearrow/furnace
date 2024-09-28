@@ -505,11 +505,19 @@ void FurnaceGUI::syncTutorial() {
   tutorial.introPlayed=e->getConfBool("tutIntroPlayed",false);
 #endif
   tutorial.protoWelcome=e->getConfBool("tutProtoWelcome2",false);
+  tutorial.importedMOD=e->getConfBool("tutImportedMOD",false);
+  tutorial.importedS3M=e->getConfBool("tutImportedS3M",false);
+  tutorial.importedXM=e->getConfBool("tutImportedXM",false);
+  tutorial.importedIT=e->getConfBool("tutImportedIT",false);
 }
 
 void FurnaceGUI::commitTutorial() {
   e->setConf("tutIntroPlayed",tutorial.introPlayed);
   e->setConf("tutProtoWelcome2",tutorial.protoWelcome);
+  e->setConf("tutImportedMOD",tutorial.importedMOD);
+  e->setConf("tutImportedS3M",tutorial.importedS3M);
+  e->setConf("tutImportedXM",tutorial.importedXM);
+  e->setConf("tutImportedIT",tutorial.importedIT);
 }
 
 void FurnaceGUI::initRandomDemoSong() {
@@ -875,51 +883,6 @@ void FurnaceGUI::drawTutorial() {
       }
       cvOpen=false;
     }
-  }
-}
-
-// helper functions
-
-void FurnaceGUI::highlightWindow(const char* winName) {
-  ImDrawList* dl=ImGui::GetWindowDrawList();
-  ImU32 col=ImGui::GetColorU32(uiColors[GUI_COLOR_MODAL_BACKDROP]);
-
-  ImGuiWindow* win=ImGui::FindWindowByName(winName);
-  if (win!=NULL) {
-    ImVec2 start=win->Pos;
-    ImVec2 end=ImVec2(
-      start.x+win->Size.x,
-      start.y+win->Size.y
-    );
-
-    dl->AddRectFilled(
-      ImVec2(0,0),
-      ImVec2(start.x,canvasH),
-      col
-    );
-    dl->AddRectFilled(
-      ImVec2(start.x,0),
-      ImVec2(canvasW,start.y),
-      col
-    );
-    dl->AddRectFilled(
-      ImVec2(end.x,start.y),
-      ImVec2(canvasW,canvasH),
-      col
-    );
-    dl->AddRectFilled(
-      ImVec2(start.x,end.y),
-      ImVec2(end.x,canvasH),
-      col
-    );
-
-    dl->AddRect(start,end,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),0,0,3.0f*dpiScale);
-  } else {
-    dl->AddRectFilled(
-      ImVec2(0,0),
-      ImVec2(canvasW,canvasH),
-      col
-    );
   }
 }
 

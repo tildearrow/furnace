@@ -149,6 +149,12 @@ nfdresult_t NFD_OpenDialog( const std::vector<std::string>& filterList,
     // Set the starting directory
     SetDefaultPath(dialog, defaultPath);
 
+    // Set the file name
+    if (defaultFileName!=NULL) {
+      NSString* defFileName=[NSString stringWithUTF8String:defaultFileName];
+      [dialog setNameFieldStringValue:defFileName];
+    }
+
     nfdresult_t nfdResult = NFD_CANCEL;
     if ( [dialog runModal] == NSModalResponseOK )
     {
@@ -192,6 +198,12 @@ nfdresult_t NFD_OpenDialogMultiple( const std::vector<std::string>& filterList,
 
     // Set the starting directory
     SetDefaultPath(dialog, defaultPath);
+
+    // Set the file name
+    if (defaultFileName!=NULL) {
+      NSString* defFileName=[NSString stringWithUTF8String:defaultFileName];
+      [dialog setNameFieldStringValue:defFileName];
+    }
     
     nfdresult_t nfdResult = NFD_CANCEL;
     if ( [dialog runModal] == NSModalResponseOK )
@@ -238,6 +250,12 @@ nfdresult_t NFD_SaveDialog( const std::vector<std::string>& filterList,
 
     // Set the starting directory
     SetDefaultPath(dialog, defaultPath);
+
+    // Set the file name
+    if (defaultFileName!=NULL) {
+      NSString* defFileName=[NSString stringWithUTF8String:defaultFileName];
+      [dialog setNameFieldStringValue:defFileName];
+    }
 
     nfdresult_t nfdResult = NFD_CANCEL;
     if ( [dialog runModal] == NSModalResponseOK )
