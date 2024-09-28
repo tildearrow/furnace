@@ -1879,6 +1879,7 @@ void DivEngine::loadA2I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     logI("a2i version %d", version);
 
     unsigned char len = reader.readC();
+    len++; // WHAT
 
     unsigned char tempSrc[257];
     memset(tempSrc, 0, 257);
