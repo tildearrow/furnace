@@ -18,13 +18,15 @@ struct NFDState {
   String header;
   std::vector<String> filter;
   String path;
+  String defFileName;
   FileDialogSelectCallback clickCallback;
-  NFDState(unsigned char save, String h, std::vector<String> filt, String pa, FileDialogSelectCallback cc, bool multi):
+  NFDState(unsigned char save, String h, std::vector<String> filt, String pa, FileDialogSelectCallback cc, bool multi, String defFN):
     isSave(save),
     allowMultiple(multi),
     header(h),
     filter(filt),
     path(pa),
+    defFileName(defFN),
     clickCallback(cc) {
   }
 };
@@ -40,12 +42,12 @@ void _nfdThread(const NFDState state, std::atomic<bool>* ok, std::vector<String>
   if (state.isSave==2) {
     ret=NFD_PickFolder(state.path.c_str(),&out);
   } else if (state.isSave==1) {
-    ret=NFD_SaveDialog(state.filter,state.path.c_str(),&out,state.clickCallback);
+    ret=NFD_SaveDialog(state.filter,state.path.c_str(),&out,state.clickCallback,state.defFileName.empty()?NULL:state.defFileName.c_str());
   } else {
     if (state.allowMultiple) {
-      ret=NFD_OpenDialogMultiple(state.filter,state.path.c_str(),&paths,state.clickCallback);
+      ret=NFD_OpenDialogMultiple(state.filter,state.path.c_str(),&paths,state.clickCallback,state.defFileName.empty()?NULL:state.defFileName.c_str());
     } else {
-      ret=NFD_OpenDialog(state.filter,state.path.c_str(),&out,state.clickCallback);
+      ret=NFD_OpenDialog(state.filter,state.path.c_str(),&out,state.clickCallback,state.defFileName.empty()?NULL:state.defFileName.c_str());
     }
   }
 
@@ -131,9 +133,9 @@ bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, S
 #ifdef USE_NFD
     dialogOK=false;
 #ifdef NFD_NON_THREADED
-    _nfdThread(NFDState(0,header,filter,path,clickCallback,allowMultiple),&dialogOK,&nfdResult,&hasError);
+    _nfdThread(NFDState(0,header,filter,path,clickCallback,allowMultiple,hint),&dialogOK,&nfdResult,&hasError);
 #else
-    dialogO=new std::thread(_nfdThread,NFDState(0,header,filter,path,clickCallback,allowMultiple),&dialogOK,&nfdResult,&hasError);
+    dialogO=new std::thread(_nfdThread,NFDState(0,header,filter,path,clickCallback,allowMultiple,hint),&dialogOK,&nfdResult,&hasError);
 #endif
 #elif defined(ANDROID)
     hasError=false;
@@ -223,9 +225,9 @@ bool FurnaceGUIFileDialog::openSave(String header, std::vector<String> filter, S
 #ifdef USE_NFD
     dialogOK=false;
 #ifdef NFD_NON_THREADED
-    _nfdThread(NFDState(1,header,filter,path,NULL,false),&dialogOK,&nfdResult,&hasError);
+    _nfdThread(NFDState(1,header,filter,path,NULL,false,hint),&dialogOK,&nfdResult,&hasError);
 #else
-    dialogS=new std::thread(_nfdThread,NFDState(1,header,filter,path,NULL,false),&dialogOK,&nfdResult,&hasError);
+    dialogS=new std::thread(_nfdThread,NFDState(1,header,filter,path,NULL,false,hint),&dialogOK,&nfdResult,&hasError);
 #endif
 #elif defined(ANDROID)
     hasError=false;
@@ -303,9 +305,9 @@ bool FurnaceGUIFileDialog::openSelectDir(String header, String path, double dpiS
 #ifdef USE_NFD
     dialogOK=false;
 #ifdef NFD_NON_THREADED
-    _nfdThread(NFDState(2,header,std::vector<String>(),path,NULL,false),&dialogOK,&nfdResult,&hasError);
+    _nfdThread(NFDState(2,header,std::vector<String>(),path,NULL,false,""),&dialogOK,&nfdResult,&hasError);
 #else
-    dialogF=new std::thread(_nfdThread,NFDState(2,header,std::vector<String>(),path,NULL,false),&dialogOK,&nfdResult,&hasError);
+    dialogF=new std::thread(_nfdThread,NFDState(2,header,std::vector<String>(),path,NULL,false,""),&dialogOK,&nfdResult,&hasError);
 #endif
 #elif defined(ANDROID)
     hasError=true;
