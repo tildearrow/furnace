@@ -136,6 +136,7 @@ option(WITH_INSTRUMENTS "Install instruments" ON)
 option(WITH_WAVETABLES "Install wavetables" ON)
 option(SHOW_OPEN_ASSETS_MENU_ENTRY "Show option to open built-in assets directory (on supported platforms)" OFF)
 option(CONSOLE_SUBSYSTEM "Build Furnace with Console subsystem on Windows" OFF)
+option(FLATPAK_WORKAROUNDS "Enable Flatpak-specific workaround for system file picker" OFF)
 if (APPLE)
   option(FORCE_APPLE_BIN "Force enable binary installation to /bin" OFF)
   option(MAKE_BUNDLE "Make a bundle" OFF)
@@ -157,6 +158,10 @@ TEST_BIG_ENDIAN(IS_BIG_ENDIAN)
 
 if (IS_BIG_ENDIAN)
   list(APPEND DEPENDENCIES_DEFINES "TA_BIG_ENDIAN")
+endif()
+
+if (FLATPAK_WORKAROUNDS)
+  list(APPEND DEPENDENCIES_DEFINES "FLATPAK_WORKAROUNDS")
 endif()
 
 set(DEPENDENCIES_COMPILE_OPTIONS "")

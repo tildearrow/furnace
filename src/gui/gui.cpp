@@ -2855,24 +2855,6 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
     fileName+=x; \
   }
 
-#define checkExtensionDual(x,y,fallback) \
-  String lowerCase=fileName; \
-  for (char& i: lowerCase) { \
-    if (i>='A' && i<='Z') i+='a'-'A'; \
-  } \
-  if (lowerCase.size()<4 || (lowerCase.rfind(x)!=lowerCase.size()-4 && lowerCase.rfind(y)!=lowerCase.size()-4)) { \
-    fileName+=fallback; \
-  }
-
-#define checkExtensionTriple(x,y,z,fallback) \
-  String lowerCase=fileName; \
-  for (char& i: lowerCase) { \
-    if (i>='A' && i<='Z') i+='a'-'A'; \
-  } \
-  if (lowerCase.size()<4 || (lowerCase.rfind(x)!=lowerCase.size()-4 && lowerCase.rfind(y)!=lowerCase.size()-4 && lowerCase.rfind(z)!=lowerCase.size()-4)) { \
-    fileName+=fallback; \
-  }
-
 #define drawOpMask(m) \
   ImGui::PushFont(patFont); \
   ImGui::PushID("om_" #m); \
@@ -5146,7 +5128,13 @@ bool FurnaceGUI::loop() {
         } else {
           fileName=fileDialog->getFileName()[0];
         }
+#ifdef FLATPAK_WORKAROUNDS
+        // https://github.com/tildearrow/furnace/issues/2096
+        // Flatpak Portals mangling our path hinders us from adding extension
+        if (fileName!="" && !settings.sysFileDialog) {
+#else
         if (fileName!="") {
+#endif
           if (curFileDialog==GUI_FILE_SAVE) {
             checkExtension(".fur");
           }
