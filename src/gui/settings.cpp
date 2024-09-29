@@ -3653,11 +3653,21 @@ void FurnaceGUI::drawSettings() {
         }
 
         ImGui::BeginDisabled(settings.macroLayout==2);
-        bool autoMacroStepSizeB=settings.autoMacroStepSize;
-        if (ImGui::Checkbox(_("Automatic macro step size/horizontal zoom"),&autoMacroStepSizeB)) {
-          settings.autoMacroStepSize=autoMacroStepSizeB;
+        ImGui::Text(_("Macro step size/horizontal zoom:"));
+        ImGui::Indent();
+        if (ImGui::RadioButton(_("Manual"),settings.autoMacroStepSize==0)) {
+          settings.autoMacroStepSize=0;
           settingsChanged=true;
         }
+        if (ImGui::RadioButton(_("Automatic per macro"),settings.autoMacroStepSize==1)) {
+          settings.autoMacroStepSize=1;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton(_("Automatic (use longest macro)"),settings.autoMacroStepSize==2)) {
+          settings.autoMacroStepSize=2;
+          settingsChanged=true;
+        }
+        ImGui::Unindent();
         ImGui::EndDisabled();
 
         // SUBSECTION WAVE EDITOR
@@ -5359,7 +5369,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.backupInterval,10,86400);
   clampSetting(settings.backupMaxCopies,1,100);
   clampSetting(settings.autoFillSave,0,1);
-  clampSetting(settings.autoMacroStepSize,0,1);
+  clampSetting(settings.autoMacroStepSize,0,2);
   clampSetting(settings.s3mOPL3,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;

@@ -505,7 +505,10 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - **Grid**
   - **Single (with list)**
 - **Use classic macro editor vertical slider**
-- **Automatic macro step size/horizontal zoom**
+- **Macro step size/horizontal zoom:**
+  - **Manual**
+  - **Automatic per macro**
+  - **Automatic (use longest macro)**
 
 ### Wave Editor
 
