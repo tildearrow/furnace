@@ -1498,13 +1498,24 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         case SDLK_LGUI: case SDLK_RGUI:
         case SDLK_LSHIFT: case SDLK_RSHIFT:
           bindSetPending=false;
-          actionKeys[bindSetTarget]=(mapped&(~FURK_MASK))|0xffffff;
+          actionKeys[bindSetTarget][bindSetTargetIdx]=(mapped&(~FURK_MASK))|0xffffff;
           break;
         default:
-          actionKeys[bindSetTarget]=mapped;
+          actionKeys[bindSetTarget][bindSetTargetIdx]=mapped;
+
+          // de-dupe with an n^2 algorithm that will never ever be a problem (...but for real though)
+          for (size_t i=0; i<actionKeys[bindSetTarget].size(); i++) {
+            for (size_t j=i+1; j<actionKeys[bindSetTarget].size(); j++) {
+              if (actionKeys[bindSetTarget][i]==actionKeys[bindSetTarget][j]) {
+                actionKeys[bindSetTarget].erase(actionKeys[bindSetTarget].begin()+j);
+              }
+            }
+          }
+
           bindSetActive=false;
           bindSetPending=false;
           bindSetTarget=0;
+          bindSetTargetIdx=0;
           bindSetPrevValue=0;
           parseKeybinds();
           break;
@@ -3542,8 +3553,12 @@ void FurnaceGUI::pointDown(int x, int y, int button) {
   if (bindSetActive) {
     bindSetActive=false;
     bindSetPending=false;
-    actionKeys[bindSetTarget]=bindSetPrevValue;
+    actionKeys[bindSetTarget][bindSetTargetIdx]=bindSetPrevValue;
+    if (bindSetTargetIdx==(int)actionKeys[bindSetTarget].size()-1 && bindSetPrevValue<=0) {
+      actionKeys[bindSetTarget].pop_back();
+    }
     bindSetTarget=0;
+    bindSetTargetIdx=0;
     bindSetPrevValue=0;
   }
   if (introPos<11.0 && !shortIntro) {
@@ -8666,6 +8681,7 @@ FurnaceGUI::FurnaceGUI():
   waveDragMax(0),
   waveDragActive(false),
   bindSetTarget(0),
+  bindSetTargetIdx(0),
   bindSetPrevValue(0),
   bindSetActive(false),
   bindSetPending(false),
@@ -8892,8 +8908,6 @@ FurnaceGUI::FurnaceGUI():
   opMaskTransposeValue.vol=true;
   opMaskTransposeValue.effect=false;
   opMaskTransposeValue.effectVal=true;
-
-  memset(actionKeys,0,GUI_ACTION_MAX*sizeof(int));
 
   memset(patChanX,0,sizeof(float)*(DIV_MAX_CHANS+1));
   memset(patChanSlideY,0,sizeof(float)*(DIV_MAX_CHANS+1));

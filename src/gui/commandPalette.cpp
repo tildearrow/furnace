@@ -192,7 +192,7 @@ void FurnaceGUI::drawPalette() {
     switch (curPaletteType) {
     case CMDPAL_TYPE_MAIN:
       for (int i=0; i<GUI_ACTION_MAX; i++) {
-        if (guiActions[i].defaultBind==-1) continue; // not a bind
+        if (guiActions[i].isNotABind()) continue;
         Evaluate(i,guiActions[i].friendlyName,strlen(guiActions[i].friendlyName));
       }
       break;
@@ -324,7 +324,7 @@ void FurnaceGUI::drawPalette() {
 
         if (curPaletteType==CMDPAL_TYPE_MAIN) {
           ImGui::TableNextColumn();
-          ImGui::TextColored(uiColors[GUI_COLOR_TEXT_DISABLED], "%s", getKeyName(actionKeys[paletteSearchResults[i].id], true).c_str());
+          ImGui::TextColored(uiColors[GUI_COLOR_TEXT_DISABLED], "%s", getMultiKeysName(actionKeys[paletteSearchResults[i].id].data(),actionKeys[paletteSearchResults[i].id].size(),true).c_str());
         }
 
         if (selectable) {
