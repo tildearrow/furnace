@@ -24,7 +24,7 @@
 class DivExportSAPR: public DivROMExport {
   DivEngine* e;
   std::thread* exportThread;
-  DivROMExportProgress progress[3];
+  DivROMExportProgress progress[2];
   bool running, failed, mustAbort;
   void run();
   public:

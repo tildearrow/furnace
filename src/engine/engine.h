@@ -671,6 +671,7 @@ class DivEngine {
   // add every export method here
   friend class DivROMExport;
   friend class DivExportAmigaValidation;
+  friend class DivExportSAPR;
   friend class DivExportTiuna;
   friend class DivExportZSM;
 

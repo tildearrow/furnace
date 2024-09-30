@@ -37,6 +37,7 @@ const char* aboutLine[]={
   _N("A M 4 N (intro tune)"),
   "Adam Lederer",
   "akumanatt",
+  "asiekierka",
   "cam900",
   "djtuBIG-MaliceX",
   "Eknous",
