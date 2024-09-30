@@ -115,7 +115,7 @@ void DivExportSAPR::run() {
     std::array<uint8_t, 9> currRegs;
 
     while (!done) {
-      if (e->nextTick() || !e->playing) {
+      if (e->nextTick(false,true) || !e->playing) {
         done=true;
         for (int i=0; i<e->song.systemLen; i++) {
           e->disCont[i].dispatch->getRegisterWrites().clear();
