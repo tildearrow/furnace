@@ -4896,12 +4896,12 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
       if (guiActions[i].isNotABind()) continue;
 
       // use { -1 } as a fallback to let us know there was an issue
-      actionKeys[i]=conf.getIntList(String("keybind_GUI_ACTION_")+String(guiActions[i].name),{ -1 });
+      actionKeys[i]=conf.getIntList(String("keybind_GUI_ACTION_")+String(guiActions[i].name),{-1});
       if (actionKeys[i].size()==1 && actionKeys[i][0]==-1) {
         actionKeys[i]=guiActions[i].defaultBind;
       } else {
         for (size_t j=0; j<actionKeys[i].size(); j++) {
-          if (actionKeys[i][j]<=0) {
+          if (actionKeys[i][j]==-1) {
             actionKeys[i].erase(actionKeys[i].begin()+j);
           }
         }
