@@ -44,16 +44,6 @@ void DivExportSAPR::run() {
   int sapScanlines=0; // TODO: property!
   int POKEY=-1;
   int IGNORED=0;
-  bool palTiming=(e->song.systemFlags[POKEY].getInt("clockSel",0) != 0);
-  int scanlinesPerFrame = (palTiming?312:262);
-  size_t tickCount=0;
-  std::vector<std::array<uint8_t, 9>> regs;
-
-  if (sapScanlines <= 0) {
-    sapScanlines = scanlinesPerFrame;
-  }
-  //double sapRate = (palTiming?49.86:59.92) * scanlinesPerFrame / sapScanlines;
-  double sapRate = (palTiming?50:60) * (double)scanlinesPerFrame / (double)sapScanlines;
 
   // Locate system index.
   for (int i=0; i<e->song.systemLen; i++) {
@@ -81,6 +71,18 @@ void DivExportSAPR::run() {
   if (IGNORED>0) {
     logAppendf("WARNING: SAP export ignoring %d unsupported system%c",IGNORED,IGNORED>1?'s':' ');
   }
+
+  bool palTiming=(e->song.systemFlags[POKEY].getInt("clockSel",0) != 0);
+  int scanlinesPerFrame = (palTiming?312:262);
+  size_t tickCount=0;
+  std::vector<std::array<uint8_t, 9>> regs;
+
+  if (sapScanlines <= 0) {
+    sapScanlines = scanlinesPerFrame;
+  }
+  //double sapRate = (palTiming?49.86:59.92) * scanlinesPerFrame / sapScanlines;
+  double sapRate = (palTiming?50:60) * (double)scanlinesPerFrame / (double)sapScanlines;
+
 
   e->stop();
   e->repeatPattern=false;
