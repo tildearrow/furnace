@@ -1229,7 +1229,7 @@ void FurnaceGUI::play(int row) {
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
   if (followPattern) makeCursorUndo();
   if (!followPattern) e->setOrder(curOrder);
-  if (row>0) {
+  if (row>=0) {
     if (!e->playToRow(row)) {
       showError(_("the song is over!"));
     }

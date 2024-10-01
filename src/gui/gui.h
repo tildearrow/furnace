@@ -2997,7 +2997,7 @@ class FurnaceGUI {
   void doUndoInstrument();
   void doRedoInstrument();
 
-  void play(int row=0);
+  void play(int row=-1);
   void setOrder(unsigned char order, bool forced=false);
   void stop();
   void endIntroTune();
