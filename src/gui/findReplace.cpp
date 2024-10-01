@@ -622,7 +622,6 @@ void FurnaceGUI::drawFindReplace() {
                 }
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x/2);
                 bool updateNote1=false;
-                bool showOct=i.note<128;
                 int note1=i.note%12;
                 int oct1=i.note/12;
                 if (ImGui::BeginCombo("##NN1",tempID)) {
@@ -647,7 +646,7 @@ void FurnaceGUI::drawFindReplace() {
                   ImGui::EndCombo();
                 }
                 ImGui::SameLine();
-                if (showOct) {
+                if (i.note<128) {
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x/2);
                   if (ImGui::InputScalar("##NNO1",ImGuiDataType_S32,&oct1)) {
                     if (oct1<-5) oct1=-5;
