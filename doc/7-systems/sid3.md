@@ -1,26 +1,26 @@
 # SID3
 
-a fictional chip created by LTVA. the idea is to stay vaguely in [SID](c64.md)-like category of chips, but add a lot of features and more channels.
+a fictional chip created by LTVA. the idea is to stay vaguely in the [SID](c64.md)-like category of chips, but add a lot of features and more channels.
 
-chip has 6 synth channels and one channel capable of playing wavetable or streamed samples.
+the chip has 6 synth channels and one channel capable of playing wavetable or streamed samples.
 
 each of synth channels has the following:
 
 - two phase accumulator based oscillators, one for tone and one for noise LFSR clocking; frequency range is from 0.001Hz to around 15kHz at default clock speed.
 - 5 waveform types which can be enabled in any combination: pulse (with 16-bit pulse width control), triangle, sawtooth, noise and so called special wave.
   - there are 58 different special waves, including all [OPL3](opl.md) and [OPZ](opz.md) waveforms, their clipped versions, cubed sawtooth and triangle variations, and more...
-  - noise is generated from 30-bit LFSR. like in C64, eight of the bits are used to form 8-bit noise signal. user can adjust feedback freely, any bit can be feedback bit. some feedback bits configurations produce very short looped noise which is perceived as tone. see SID3 instrument description for notable feedback bits configurations which are automatically detected by Furnace: upon detection noise frequency is adjusted in such a way that fundamental frequency of such tonal noise becomes the note frequency the channel is currently playing (noise stays in tune).
+  - noise is generated from 30-bit LFSR. like in C64, eight of the bits are used to form 8-bit noise signal. user can adjust feedback freely, any bit can be a feedback bit. some feedback bits' configurations produce very short looped noise which is perceived as tone. see the [SID3 instrument description](../4-instrument/sid3.md) for notable feedback bit configurations which are automatically detected by Furnace: upon detection noise frequency is adjusted in such a way that fundamental frequency of such tonal noise becomes the note frequency the channel is currently playing (noise stays in tune).
     - 1-bit noise mode is available for [AY](ay8910.md) fans. it this mode the highest LFSR bit is read as output. by rapidly switching between usual and 1-bit noise modes one can produce interesting rattling-like percussive sound.
 - 5 waveform mixing modes: 8580 SID (C64's combined waves; mode does bitwise AND with noise and special wave), bitwise AND, bitwise OR, bitwise XOR and sum of oscillators' signals.
 - hard sync between channels. each channel can have any other channel as sync source, even itself.
 - ring modulation between channels. each channel can have any other channel as modulation source, even itself. when you self-modulate, you effectively square the signal, but the behavior is a bit different.
 - phase modulation between channels. each channel can have any other channel as modulation source, even itself. when you self-modulate, you have an effect similar to enabling strong feedback. channel output after filters is used as modulation source.
 - ADSR envelope with sustain rate setting (how fast sound decays when envelope is in sustain phase).
-- 4 independent filters. each filter has its own cutoff, resonance, output volume, mode, on/off and distortion setting. each filter can be connected to channel's ADSR output. each filter's output can be routed to the final channel output. each filter output can be connected to each filter's input (full connection matrix).
+- 4 independent filters. each filter has its own cutoff, resonance, output volume, mode, on/off, and distortion setting. each filter can be connected to channel's ADSR output. each filter's output can be routed to the final channel output. each filter output can be connected to each filter's input (full connection matrix).
   - distortion is a simple asymmetrical distortion with hyperbolic tangent function for positive half of the wave and exponential function for negative half.
   - several filters can be chained for flexible subtractive synth or to increase filter's slope (which is 12 dB/octave for a single filter).
   - multiple filter modes can be selected simultaneously. for example, selecting both "low" and "high" results in a bandstop (notch) filter.
-- adjustable feedback. feedback saves two previous channel's outputs and adds them to accumulator on the next step before computing waveform signal.
+- adjustable feedback. feedback saves two previous channel's outputs and adds them to an accumulator on the next step before computing the waveform signal.
 - fine control over left and right channel panning.
 - left and right channels' signals can be inverted to create simple "surround" sound.
 
@@ -66,7 +66,9 @@ wave channel has all these features, except, obviously, waveform generation stag
 - `72xx`: **set filter 2 resonance.** `xx` range is `00` to `FF`.
 - `73xx`: **set filter 3 resonance.** `xx` range is `00` to `FF`.
 - `74xx`: **set filter 4 resonance.** `xx` range is `00` to `FF`.
-- `75xx`: **set noise/wave channel mode.** `xx` range is `00` to `01`. on synth channels `00` sets usual noise mode and `01` sets 1-bit noise mode. on wave channel `00` sets wavetable mode and `01` sets streamed PCM sample playback mode.
+- `75xx`: **set noise/wave channel mode.** `xx` range is `00` to `01`.
+  - on synth channels `00` sets usual noise mode and `01` sets 1-bit noise mode.
+  - on wave channel `00` sets wavetable mode and `01` sets streamed PCM sample playback mode.
 - `76xx`: **set filter 1 output volume.** `xx` range is `00` to `FF`.
 - `77xx`: **set filter 2 output volume.** `xx` range is `00` to `FF`.
 - `78xx`: **set filter 3 output volume.** `xx` range is `00` to `FF`.
@@ -120,4 +122,4 @@ this chip uses the [SID3](../4-instrument/sid3.md) instrument editor.
 
 the following options are available in the Chip Manager window:
 
-- **Quarter clock speed**: make chip run on quarter the default clock rate (1MHz is default). this lowers CPU load almost 4 times at the cost of filters becoming unstable or having different timbre at high cutoff and resonance settings. option affects the chip only in playback mode. when you render module into audio file, option is not applied.
+- **Quarter clock speed**: make chip run at quarter the default clock rate (1MHz is default). this lowers CPU load almost 4 times at the cost of filters becoming unstable or having different timbre at high cutoff and resonance settings. this option affects the chip only in playback mode. when rendering a module into an audio file, this option is not applied.
