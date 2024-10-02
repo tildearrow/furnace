@@ -2118,7 +2118,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
             if ((i.macro->vScroll+i.macro->vZoom)>(i.max-i.min)) {
               i.macro->vScroll=(i.max-i.min)-i.macro->vZoom;
             }
-          } else if (!settings.autoMacroStepSize) {
+          } else if (settings.autoMacroStepSize==0) {
             macroPointSize+=wheelY;
             if (macroPointSize<1) macroPointSize=1;
             if (macroPointSize>256) macroPointSize=256;
@@ -2486,7 +2486,13 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
 
 void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state) {
   int index=0;
+  int maxMacroLen=0;
   float reservedSpace=(settings.oldMacroVSlider)?(20.0f*dpiScale+ImGui::GetStyle().ItemSpacing.x):ImGui::GetStyle().ScrollbarSize;
+
+  for (FurnaceGUIMacroDesc& m: macros) {
+    if (m.macro->len>maxMacroLen) maxMacroLen=m.macro->len;
+  }
+
   switch (settings.macroLayout) {
     case 0: {
       if (ImGui::BeginTable("MacroSpace",2)) {
@@ -2501,7 +2507,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
         ImGui::TableNextColumn();
         float lenAvail=ImGui::GetContentRegionAvail().x;
         //ImGui::Dummy(ImVec2(120.0f*dpiScale,dpiScale));
-        if (!settings.autoMacroStepSize) {
+        if (settings.autoMacroStepSize==0) {
           ImGui::SetNextItemWidth(120.0f*dpiScale);
           if (ImGui::InputInt("##MacroPointSize",&macroPointSize,1,4)) {
             if (macroPointSize<1) macroPointSize=1;
@@ -2512,11 +2518,13 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
         float availableWidth=ImGui::GetContentRegionAvail().x-reservedSpace;
         int totalFit=MIN(255,availableWidth/MAX(1,macroPointSize*dpiScale));
         int scrollMax=0;
-        if (settings.autoMacroStepSize) totalFit=1;
+        if (settings.autoMacroStepSize!=0) totalFit=1;
         for (FurnaceGUIMacroDesc& i: macros) {
           if (i.macro->len>scrollMax) scrollMax=i.macro->len;
-          if (settings.autoMacroStepSize) {
+          if (settings.autoMacroStepSize==1) {
             if ((i.macro->open&6)==0 && totalFit<i.macro->len) totalFit=i.macro->len;
+          } else if (settings.autoMacroStepSize==2) {
+            if ((i.macro->open&6)==0 && totalFit<maxMacroLen) totalFit=maxMacroLen;
           }
         }
         scrollMax-=totalFit;
@@ -2671,7 +2679,22 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         for (size_t i=0; i<macros.size(); i++) {
-          if (ImGui::Selectable(macros[i].displayName,state.selectedMacro==(int)i)) {
+          // include macro len if non-zero, making particularly clear at-a-glance which macros
+          // have non-zero len (i.e. are active). and calculate how big we need to be to leave some
+          // extra space so the column doesn't change size when len is changed under typical
+          // circumstances (really don't want to move buttons while mouse is being clicked or held).
+          char buf[256];
+          float stretchX=ImGui::CalcTextSize(buf).x;
+
+          if (macros[i].macro->len>0) {
+            snprintf(buf,255,"%s [%d]###%s",macros[i].displayName,macros[i].macro->len,macros[i].displayName);
+          } else {
+            snprintf(buf,255,"%s",macros[i].displayName);
+          }
+
+          ImVec2 size=ImGui::CalcTextSize(buf);
+          size.x=MAX(stretchX,size.x);
+          if (ImGui::Selectable(buf,state.selectedMacro==(int)i,0,size)) {
             state.selectedMacro=i;
           }
         }
@@ -2697,7 +2720,8 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
           for (FurnaceGUIMacroDesc& i: macros) {
             if (i.macro->len>scrollMax) scrollMax=i.macro->len;
           }
-          if (settings.autoMacroStepSize) totalFit=MAX(1,m.macro->len);
+          if (settings.autoMacroStepSize==1) totalFit=MAX(1,m.macro->len);
+          else if (settings.autoMacroStepSize==2) totalFit=MAX(1,maxMacroLen);
           scrollMax-=totalFit;
           if (scrollMax<0) scrollMax=0;
           if (macroDragScroll>scrollMax) {
@@ -2711,7 +2735,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
           }
           ImGui::EndDisabled();
 
-          if (!settings.autoMacroStepSize) {
+          if (settings.autoMacroStepSize==0) {
             ImGui::SameLine();
             ImGui::Button(ICON_FA_SEARCH_PLUS "##MacroZoomB");
             if (ImGui::BeginPopupContextItem("MacroZoomP",ImGuiPopupFlags_MouseButtonLeft)) {

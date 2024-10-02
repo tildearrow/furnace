@@ -64,3 +64,5 @@ double cubAbsTri(double x);
 double cubQuartTri(double x);
 double cubSquiTri(double x);
 double absCubSquiTri(double x);
+
+String getMultiKeysName(const int* keys, int keyCount, bool emptyNone=false);

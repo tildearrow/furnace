@@ -308,23 +308,11 @@ const char* specificControls[18]={
   ImGui::PopID();
 
 #define KEYBIND_CONFIG_BEGIN(id) \
-  if (ImGui::BeginTable(id,2)) {
+  if (ImGui::BeginTable(id,2,ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX|ImGuiTableFlags_NoClip)) {
 
 #define KEYBIND_CONFIG_END \
     ImGui::EndTable(); \
   }
-
-#define UI_KEYBIND_CONFIG(what) \
-  ImGui::TableNextRow(); \
-  ImGui::TableNextColumn(); \
-  ImGui::AlignTextToFramePadding();\
-  ImGui::TextUnformatted(guiActions[what].friendlyName); \
-  ImGui::TableNextColumn(); \
-  if (ImGui::Button(fmt::sprintf("%s##KC_" #what,(bindSetPending && bindSetTarget==what)?_N("Press key..."):getKeyName(actionKeys[what])).c_str())) { \
-    promptKey(what); \
-    settingsChanged=true; \
-  } \
-  if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) actionKeys[what]=0;
 
 #define CONFIG_SUBSECTION(what) \
   if (_subInit) { \
@@ -341,7 +329,7 @@ const char* specificControls[18]={
     bool _subInit=false; \
     ImVec2 settingsViewSize=ImGui::GetContentRegionAvail(); \
     settingsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y; \
-    if (ImGui::BeginChild("SettingsView",settingsViewSize))
+    if (ImGui::BeginChild("SettingsView",settingsViewSize,false))
 
 #define END_SECTION } \
   ImGui::EndChild(); \
@@ -533,12 +521,18 @@ void FurnaceGUI::purgeBackups(int year, int month, int day) {
   refreshBackups=true;
 }
 
-void FurnaceGUI::promptKey(int which) {
+void FurnaceGUI::promptKey(int which, int bindIdx) {
   bindSetTarget=which;
+  bindSetTargetIdx=bindIdx;
   bindSetActive=true;
   bindSetPending=true;
-  bindSetPrevValue=actionKeys[which];
-  actionKeys[which]=0;
+  if (bindIdx>=(int)actionKeys[which].size()) {
+    bindSetPrevValue=0;
+    actionKeys[which].push_back(0);
+  } else {
+    bindSetPrevValue=actionKeys[which][bindIdx];
+    actionKeys[which][bindIdx]=0;
+  }
 }
 
 struct MappedInput {
@@ -2196,382 +2190,385 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::Button(_("Reset defaults"))) {
           showWarning(_("Are you sure you want to reset the keyboard settings?"),GUI_WARN_RESET_KEYBINDS);
         }
-        if (ImGui::TreeNode(_("Global hotkeys"))) {
-          KEYBIND_CONFIG_BEGIN("keysGlobal");
+        if (ImGui::BeginChild("##HotkeysList",ImVec2(0,0),false,ImGuiWindowFlags_HorizontalScrollbar)) {
+          if (ImGui::TreeNode(_("Global hotkeys"))) {
+            KEYBIND_CONFIG_BEGIN("keysGlobal");
 
-          UI_KEYBIND_CONFIG(GUI_ACTION_NEW);
-          UI_KEYBIND_CONFIG(GUI_ACTION_CLEAR);
-          UI_KEYBIND_CONFIG(GUI_ACTION_OPEN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_OPEN_BACKUP);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAVE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAVE_AS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_EXPORT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_UNDO);
-          UI_KEYBIND_CONFIG(GUI_ACTION_REDO);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PLAY_TOGGLE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PLAY);
-          UI_KEYBIND_CONFIG(GUI_ACTION_STOP);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PLAY_START);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PLAY_REPEAT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PLAY_CURSOR);
-          UI_KEYBIND_CONFIG(GUI_ACTION_STEP_ONE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_OCTAVE_UP);
-          UI_KEYBIND_CONFIG(GUI_ACTION_OCTAVE_DOWN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_INS_UP);
-          UI_KEYBIND_CONFIG(GUI_ACTION_INS_DOWN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_STEP_UP);
-          UI_KEYBIND_CONFIG(GUI_ACTION_STEP_DOWN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_TOGGLE_EDIT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_METRONOME);
-          UI_KEYBIND_CONFIG(GUI_ACTION_REPEAT_PATTERN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_FOLLOW_ORDERS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_FOLLOW_PATTERN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_FULLSCREEN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_TX81Z_REQUEST);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PANIC);
+            drawKeybindSettingsTableRow(GUI_ACTION_NEW);
+            drawKeybindSettingsTableRow(GUI_ACTION_CLEAR);
+            drawKeybindSettingsTableRow(GUI_ACTION_OPEN);
+            drawKeybindSettingsTableRow(GUI_ACTION_OPEN_BACKUP);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAVE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAVE_AS);
+            drawKeybindSettingsTableRow(GUI_ACTION_EXPORT);
+            drawKeybindSettingsTableRow(GUI_ACTION_UNDO);
+            drawKeybindSettingsTableRow(GUI_ACTION_REDO);
+            drawKeybindSettingsTableRow(GUI_ACTION_PLAY_TOGGLE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PLAY);
+            drawKeybindSettingsTableRow(GUI_ACTION_STOP);
+            drawKeybindSettingsTableRow(GUI_ACTION_PLAY_START);
+            drawKeybindSettingsTableRow(GUI_ACTION_PLAY_REPEAT);
+            drawKeybindSettingsTableRow(GUI_ACTION_PLAY_CURSOR);
+            drawKeybindSettingsTableRow(GUI_ACTION_STEP_ONE);
+            drawKeybindSettingsTableRow(GUI_ACTION_OCTAVE_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_OCTAVE_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_STEP_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_STEP_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_TOGGLE_EDIT);
+            drawKeybindSettingsTableRow(GUI_ACTION_METRONOME);
+            drawKeybindSettingsTableRow(GUI_ACTION_REPEAT_PATTERN);
+            drawKeybindSettingsTableRow(GUI_ACTION_FOLLOW_ORDERS);
+            drawKeybindSettingsTableRow(GUI_ACTION_FOLLOW_PATTERN);
+            drawKeybindSettingsTableRow(GUI_ACTION_FULLSCREEN);
+            drawKeybindSettingsTableRow(GUI_ACTION_TX81Z_REQUEST);
+            drawKeybindSettingsTableRow(GUI_ACTION_PANIC);
 
-          KEYBIND_CONFIG_END;
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode(_("Window activation"))) {
-          KEYBIND_CONFIG_BEGIN("keysWindow");
-
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_FIND);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SETTINGS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SONG_INFO);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SUBSONGS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SPEED);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_INS_LIST);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_WAVE_LIST);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SAMPLE_LIST);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_ORDERS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_PATTERN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_MIXER);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_GROOVES);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_CHANNELS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_PAT_MANAGER);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SYS_MANAGER);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_COMPAT_FLAGS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_NOTES);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_INS_EDIT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_WAVE_EDIT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SAMPLE_EDIT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_EDIT_CONTROLS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_PIANO);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_OSCILLOSCOPE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_CHAN_OSC);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_XY_OSC);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_VOL_METER);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_CLOCK);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_REGISTER_VIEW);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_LOG);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_STATS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_MEMORY);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_EFFECT_LIST);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_DEBUG);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_CS_PLAYER);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_ABOUT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_COLLAPSE_WINDOW);
-          UI_KEYBIND_CONFIG(GUI_ACTION_CLOSE_WINDOW);
-
-          UI_KEYBIND_CONFIG(GUI_ACTION_COMMAND_PALETTE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_CMDPAL_RECENT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_CMDPAL_INSTRUMENTS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_CMDPAL_SAMPLES);
-
-          KEYBIND_CONFIG_END;
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode(_("Note input"))) {
-          std::vector<MappedInput> sorted;
-          if (ImGui::BeginTable("keysNoteInput",4)) {
-            for (std::map<int,int>::value_type& i: noteKeys) {
-              std::vector<MappedInput>::iterator j;
-              for (j=sorted.begin(); j!=sorted.end(); j++) {
-                if (j->val>i.second) {
-                  break;
-                }
-              }
-              sorted.insert(j,MappedInput(i.first,i.second));
-            }
-
-            static char id[4096];
-
-            ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-            ImGui::TableNextColumn();
-            ImGui::Text(_("Key"));
-            ImGui::TableNextColumn();
-            ImGui::Text(_("Type"));
-            ImGui::TableNextColumn();
-            ImGui::Text(_("Value"));
-            ImGui::TableNextColumn();
-            ImGui::Text(_("Remove"));
-
-            for (MappedInput& i: sorted) {
-              ImGui::TableNextRow();
-              ImGui::TableNextColumn();
-              ImGui::Text("%s",SDL_GetScancodeName((SDL_Scancode)i.scan));
-              ImGui::TableNextColumn();
-              if (i.val==102) {
-                snprintf(id,4095,_("Macro release##SNType_%d"),i.scan);
-                if (ImGui::Button(id)) {
-                  noteKeys[i.scan]=0;
-                }
-              } else if (i.val==101) {
-                snprintf(id,4095,_("Note release##SNType_%d"),i.scan);
-                if (ImGui::Button(id)) {
-                  noteKeys[i.scan]=102;
-                }
-              } else if (i.val==100) {
-                snprintf(id,4095,_("Note off##SNType_%d"),i.scan);
-                if (ImGui::Button(id)) {
-                  noteKeys[i.scan]=101;
-                }
-              } else {
-                snprintf(id,4095,_("Note##SNType_%d"),i.scan);
-                if (ImGui::Button(id)) {
-                  noteKeys[i.scan]=100;
-                }
-              }
-              ImGui::TableNextColumn();
-              if (i.val<100) {
-                snprintf(id,4095,"##SNValue_%d",i.scan);
-                if (ImGui::InputInt(id,&i.val,1,12)) {
-                  if (i.val<0) i.val=0;
-                  if (i.val>96) i.val=96;
-                  noteKeys[i.scan]=i.val;
-                  settingsChanged=true;
-                }
-              }
-              ImGui::TableNextColumn();
-              snprintf(id,4095,ICON_FA_TIMES "##SNRemove_%d",i.scan);
-              if (ImGui::Button(id)) {
-                noteKeys.erase(i.scan);
-                settingsChanged=true;
-              }
-            }
-            ImGui::EndTable();
-
-            if (ImGui::BeginCombo("##SNAddNew",_("Add..."))) {
-              for (int i=0; i<SDL_NUM_SCANCODES; i++) {
-                const char* sName=SDL_GetScancodeName((SDL_Scancode)i);
-                if (sName==NULL) continue;
-                if (sName[0]==0) continue;
-                snprintf(id,4095,"%s##SNNewKey_%d",sName,i);
-                if (ImGui::Selectable(id)) {
-                  noteKeys[(SDL_Scancode)i]=0;
-                  settingsChanged=true;
-                }
-              }
-              ImGui::EndCombo();
-            }
+            KEYBIND_CONFIG_END;
+            ImGui::TreePop();
           }
-          ImGui::TreePop();
+          if (ImGui::TreeNode(_("Window activation"))) {
+            KEYBIND_CONFIG_BEGIN("keysWindow");
+
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_FIND);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_SETTINGS);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_SONG_INFO);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_SUBSONGS);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_SPEED);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_INS_LIST);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_WAVE_LIST);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_SAMPLE_LIST);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_ORDERS);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_PATTERN);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_MIXER);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_GROOVES);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_CHANNELS);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_PAT_MANAGER);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_SYS_MANAGER);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_COMPAT_FLAGS);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_NOTES);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_INS_EDIT);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_WAVE_EDIT);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_SAMPLE_EDIT);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_EDIT_CONTROLS);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_PIANO);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_OSCILLOSCOPE);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_CHAN_OSC);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_XY_OSC);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_VOL_METER);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_CLOCK);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_REGISTER_VIEW);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_LOG);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_STATS);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_MEMORY);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_EFFECT_LIST);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_DEBUG);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_CS_PLAYER);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_ABOUT);
+            drawKeybindSettingsTableRow(GUI_ACTION_COLLAPSE_WINDOW);
+            drawKeybindSettingsTableRow(GUI_ACTION_CLOSE_WINDOW);
+
+            drawKeybindSettingsTableRow(GUI_ACTION_COMMAND_PALETTE);
+            drawKeybindSettingsTableRow(GUI_ACTION_CMDPAL_RECENT);
+            drawKeybindSettingsTableRow(GUI_ACTION_CMDPAL_INSTRUMENTS);
+            drawKeybindSettingsTableRow(GUI_ACTION_CMDPAL_SAMPLES);
+
+            KEYBIND_CONFIG_END;
+            ImGui::TreePop();
+          }
+          if (ImGui::TreeNode(_("Note input"))) {
+            std::vector<MappedInput> sorted;
+            if (ImGui::BeginTable("keysNoteInput",4)) {
+              for (std::map<int,int>::value_type& i: noteKeys) {
+                std::vector<MappedInput>::iterator j;
+                for (j=sorted.begin(); j!=sorted.end(); j++) {
+                  if (j->val>i.second) {
+                    break;
+                  }
+                }
+                sorted.insert(j,MappedInput(i.first,i.second));
+              }
+
+              static char id[4096];
+
+              ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+              ImGui::TableNextColumn();
+              ImGui::Text(_("Key"));
+              ImGui::TableNextColumn();
+              ImGui::Text(_("Type"));
+              ImGui::TableNextColumn();
+              ImGui::Text(_("Value"));
+              ImGui::TableNextColumn();
+              ImGui::Text(_("Remove"));
+
+              for (MappedInput& i: sorted) {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("%s",SDL_GetScancodeName((SDL_Scancode)i.scan));
+                ImGui::TableNextColumn();
+                if (i.val==102) {
+                  snprintf(id,4095,_("Macro release##SNType_%d"),i.scan);
+                  if (ImGui::Button(id)) {
+                    noteKeys[i.scan]=0;
+                  }
+                } else if (i.val==101) {
+                  snprintf(id,4095,_("Note release##SNType_%d"),i.scan);
+                  if (ImGui::Button(id)) {
+                    noteKeys[i.scan]=102;
+                  }
+                } else if (i.val==100) {
+                  snprintf(id,4095,_("Note off##SNType_%d"),i.scan);
+                  if (ImGui::Button(id)) {
+                    noteKeys[i.scan]=101;
+                  }
+                } else {
+                  snprintf(id,4095,_("Note##SNType_%d"),i.scan);
+                  if (ImGui::Button(id)) {
+                    noteKeys[i.scan]=100;
+                  }
+                }
+                ImGui::TableNextColumn();
+                if (i.val<100) {
+                  snprintf(id,4095,"##SNValue_%d",i.scan);
+                  if (ImGui::InputInt(id,&i.val,1,12)) {
+                    if (i.val<0) i.val=0;
+                    if (i.val>96) i.val=96;
+                    noteKeys[i.scan]=i.val;
+                    settingsChanged=true;
+                  }
+                }
+                ImGui::TableNextColumn();
+                snprintf(id,4095,ICON_FA_TIMES "##SNRemove_%d",i.scan);
+                if (ImGui::Button(id)) {
+                  noteKeys.erase(i.scan);
+                  settingsChanged=true;
+                }
+              }
+              ImGui::EndTable();
+
+              if (ImGui::BeginCombo("##SNAddNew",_("Add..."))) {
+                for (int i=0; i<SDL_NUM_SCANCODES; i++) {
+                  const char* sName=SDL_GetScancodeName((SDL_Scancode)i);
+                  if (sName==NULL) continue;
+                  if (sName[0]==0) continue;
+                  snprintf(id,4095,"%s##SNNewKey_%d",sName,i);
+                  if (ImGui::Selectable(id)) {
+                    noteKeys[(SDL_Scancode)i]=0;
+                    settingsChanged=true;
+                  }
+                }
+                ImGui::EndCombo();
+              }
+            }
+            ImGui::TreePop();
+          }
+          if (ImGui::TreeNode(_("Pattern"))) {
+            KEYBIND_CONFIG_BEGIN("keysPattern");
+
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_NOTE_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_NOTE_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_OCTAVE_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_OCTAVE_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_VALUE_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_VALUE_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_VALUE_UP_COARSE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_VALUE_DOWN_COARSE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SELECT_ALL);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CUT);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_COPY);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_PASTE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_PASTE_MIX);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_PASTE_MIX_BG);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_PASTE_FLOOD);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_PASTE_OVERFLOW);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_LEFT);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_RIGHT);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_UP_ONE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_DOWN_ONE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_LEFT_CHANNEL);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_RIGHT_CHANNEL);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_PREVIOUS_CHANNEL);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_NEXT_CHANNEL);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_BEGIN);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_END);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_UP_COARSE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_DOWN_COARSE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SELECTION_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SELECTION_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SELECTION_LEFT);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SELECTION_RIGHT);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SELECTION_UP_ONE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SELECTION_DOWN_ONE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SELECTION_BEGIN);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SELECTION_END);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SELECTION_UP_COARSE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SELECTION_DOWN_COARSE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_MOVE_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_MOVE_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_MOVE_LEFT_CHANNEL);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_MOVE_RIGHT_CHANNEL);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_DELETE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_PULL_DELETE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_INSERT);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_MUTE_CURSOR);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_SOLO_CURSOR);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_UNMUTE_ALL);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_NEXT_ORDER);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_PREV_ORDER);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_COLLAPSE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_INCREASE_COLUMNS);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_DECREASE_COLUMNS);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_INTERPOLATE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_FADE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_INVERT_VALUES);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_FLIP_SELECTION);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_COLLAPSE_ROWS);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_EXPAND_ROWS);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_COLLAPSE_PAT);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_EXPAND_PAT);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_COLLAPSE_SONG);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_EXPAND_SONG);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_LATCH);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CLEAR_LATCH);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_ABSORB_INSTRUMENT);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_UNDO);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_CURSOR_REDO);
+
+            KEYBIND_CONFIG_END;
+            ImGui::TreePop();
+          }
+          if (ImGui::TreeNode(_("Instrument list"))) {
+            KEYBIND_CONFIG_BEGIN("keysInsList");
+
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_ADD);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_DUPLICATE);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_OPEN);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_OPEN_REPLACE);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_SAVE);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_SAVE_DMP);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_MOVE_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_MOVE_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_DELETE);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_EDIT);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_INS_LIST_DIR_VIEW);
+
+            KEYBIND_CONFIG_END;
+            ImGui::TreePop();
+          }
+          if (ImGui::TreeNode(_("Wavetable list"))) {
+            KEYBIND_CONFIG_BEGIN("keysWaveList");
+
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_ADD);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_DUPLICATE);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_OPEN);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_OPEN_REPLACE);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_SAVE);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_SAVE_DMW);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_SAVE_RAW);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_MOVE_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_MOVE_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_DELETE);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_EDIT);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_WAVE_LIST_DIR_VIEW);
+
+            KEYBIND_CONFIG_END;
+            ImGui::TreePop();
+          }
+          if (ImGui::TreeNode(_("Sample list"))) {
+            KEYBIND_CONFIG_BEGIN("keysSampleList");
+
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_ADD);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_DUPLICATE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_CREATE_WAVE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_OPEN);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE_RAW);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_SAVE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_SAVE_RAW);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_MOVE_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_MOVE_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_DELETE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_EDIT);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_PREVIEW);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_DIR_VIEW);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_LIST_MAKE_MAP);
+
+            KEYBIND_CONFIG_END;
+            ImGui::TreePop();
+          }
+          if (ImGui::TreeNode(_("Orders"))) {
+            KEYBIND_CONFIG_BEGIN("keysOrders");
+
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_LEFT);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_RIGHT);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_INCREASE);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_DECREASE);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_EDIT_MODE);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_LINK);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_ADD);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_DUPLICATE);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_DEEP_CLONE);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_DUPLICATE_END);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_DEEP_CLONE_END);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_REMOVE);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_MOVE_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_MOVE_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDERS_REPLAY);
+
+            KEYBIND_CONFIG_END;
+            ImGui::TreePop();
+          }
+          if (ImGui::TreeNode(_("Sample editor"))) {
+            KEYBIND_CONFIG_BEGIN("keysSampleEdit");
+
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_SELECT);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_DRAW);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_CUT);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_COPY);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_PASTE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_PASTE_REPLACE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_PASTE_MIX);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_SELECT_ALL);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_RESIZE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_RESAMPLE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_AMPLIFY);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_NORMALIZE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_FADE_IN);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_FADE_OUT);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_INSERT);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_SILENCE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_DELETE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_TRIM);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_REVERSE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_INVERT);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_SIGN);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_FILTER);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_PREVIEW);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_STOP_PREVIEW);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_ZOOM_IN);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_ZOOM_OUT);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_ZOOM_AUTO);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_MAKE_INS);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_SET_LOOP);
+
+            KEYBIND_CONFIG_END;
+            ImGui::TreePop();
+          }
         }
-        if (ImGui::TreeNode(_("Pattern"))) {
-          KEYBIND_CONFIG_BEGIN("keysPattern");
-
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_NOTE_UP);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_NOTE_DOWN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_OCTAVE_UP);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_OCTAVE_DOWN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_VALUE_UP);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_VALUE_DOWN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_VALUE_UP_COARSE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_VALUE_DOWN_COARSE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SELECT_ALL);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CUT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_COPY);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_PASTE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_PASTE_MIX);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_PASTE_MIX_BG);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_PASTE_FLOOD);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_PASTE_OVERFLOW);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_UP);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_DOWN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_LEFT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_RIGHT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_UP_ONE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_DOWN_ONE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_LEFT_CHANNEL);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_RIGHT_CHANNEL);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_PREVIOUS_CHANNEL);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_NEXT_CHANNEL);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_BEGIN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_END);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_UP_COARSE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_DOWN_COARSE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SELECTION_UP);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SELECTION_DOWN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SELECTION_LEFT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SELECTION_RIGHT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SELECTION_UP_ONE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SELECTION_DOWN_ONE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SELECTION_BEGIN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SELECTION_END);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SELECTION_UP_COARSE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SELECTION_DOWN_COARSE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_MOVE_UP);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_MOVE_DOWN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_MOVE_LEFT_CHANNEL);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_MOVE_RIGHT_CHANNEL);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_DELETE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_PULL_DELETE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_INSERT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_MUTE_CURSOR);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SOLO_CURSOR);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_UNMUTE_ALL);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_NEXT_ORDER);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_PREV_ORDER);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_COLLAPSE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_INCREASE_COLUMNS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_DECREASE_COLUMNS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_INTERPOLATE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_FADE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_INVERT_VALUES);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_FLIP_SELECTION);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_COLLAPSE_ROWS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_EXPAND_ROWS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_COLLAPSE_PAT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_EXPAND_PAT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_COLLAPSE_SONG);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_EXPAND_SONG);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_LATCH);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CLEAR_LATCH);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_ABSORB_INSTRUMENT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_UNDO);
-          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_REDO);
-
-          KEYBIND_CONFIG_END;
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode(_("Instrument list"))) {
-          KEYBIND_CONFIG_BEGIN("keysInsList");
-
-          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_ADD);
-          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_DUPLICATE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_OPEN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_OPEN_REPLACE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_SAVE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_SAVE_DMP);
-          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_MOVE_UP);
-          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_MOVE_DOWN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_DELETE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_EDIT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_UP);
-          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_DOWN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_DIR_VIEW);
-
-          KEYBIND_CONFIG_END;
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode(_("Wavetable list"))) {
-          KEYBIND_CONFIG_BEGIN("keysWaveList");
-
-          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_ADD);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_DUPLICATE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_OPEN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_OPEN_REPLACE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_SAVE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_SAVE_DMW);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_SAVE_RAW);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_MOVE_UP);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_MOVE_DOWN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_DELETE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_EDIT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_UP);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_DOWN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_DIR_VIEW);
-
-          KEYBIND_CONFIG_END;
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode(_("Sample list"))) {
-          KEYBIND_CONFIG_BEGIN("keysSampleList");
-
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_ADD);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_DUPLICATE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_CREATE_WAVE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_OPEN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE_RAW);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_SAVE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_SAVE_RAW);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_MOVE_UP);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_MOVE_DOWN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_DELETE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_EDIT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_UP);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_DOWN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_PREVIEW);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_DIR_VIEW);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_MAKE_MAP);
-
-          KEYBIND_CONFIG_END;
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode(_("Orders"))) {
-          KEYBIND_CONFIG_BEGIN("keysOrders");
-
-          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_UP);
-          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_DOWN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_LEFT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_RIGHT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_INCREASE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_DECREASE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_EDIT_MODE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_LINK);
-          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_ADD);
-          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_DUPLICATE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_DEEP_CLONE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_DUPLICATE_END);
-          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_DEEP_CLONE_END);
-          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_REMOVE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_MOVE_UP);
-          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_MOVE_DOWN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_REPLAY);
-
-          KEYBIND_CONFIG_END;
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode(_("Sample editor"))) {
-          KEYBIND_CONFIG_BEGIN("keysSampleEdit");
-
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_SELECT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_DRAW);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_CUT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_COPY);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_PASTE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_PASTE_REPLACE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_PASTE_MIX);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_SELECT_ALL);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_RESIZE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_RESAMPLE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_AMPLIFY);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_NORMALIZE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_FADE_IN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_FADE_OUT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_INSERT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_SILENCE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_DELETE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_TRIM);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_REVERSE);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_INVERT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_SIGN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_FILTER);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_PREVIEW);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_STOP_PREVIEW);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_ZOOM_IN);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_ZOOM_OUT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_ZOOM_AUTO);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_MAKE_INS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_SET_LOOP);
-
-          KEYBIND_CONFIG_END;
-          ImGui::TreePop();
-        }
+        ImGui::EndChild();
         END_SECTION;
       }
       CONFIG_SECTION(_("Interface")) {
@@ -3591,7 +3588,7 @@ void FurnaceGUI::drawSettings() {
 
         ImGui::BeginDisabled(settings.unifiedDataView);
         bool horizontalDataViewB=settings.horizontalDataView;
-        if (ImGui::Checkbox(_("Horizontal instrument list"),&horizontalDataViewB)) {
+        if (ImGui::Checkbox(_("Horizontal instrument/wavetable list"),&horizontalDataViewB)) {
           settings.horizontalDataView=horizontalDataViewB;
           settingsChanged=true;
         }
@@ -3656,11 +3653,21 @@ void FurnaceGUI::drawSettings() {
         }
 
         ImGui::BeginDisabled(settings.macroLayout==2);
-        bool autoMacroStepSizeB=settings.autoMacroStepSize;
-        if (ImGui::Checkbox(_("Automatic macro step size/horizontal zoom"),&autoMacroStepSizeB)) {
-          settings.autoMacroStepSize=autoMacroStepSizeB;
+        ImGui::Text(_("Macro step size/horizontal zoom:"));
+        ImGui::Indent();
+        if (ImGui::RadioButton(_("Manual"),settings.autoMacroStepSize==0)) {
+          settings.autoMacroStepSize=0;
           settingsChanged=true;
         }
+        if (ImGui::RadioButton(_("Automatic per macro"),settings.autoMacroStepSize==1)) {
+          settings.autoMacroStepSize=1;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton(_("Automatic (use longest macro)"),settings.autoMacroStepSize==2)) {
+          settings.autoMacroStepSize=2;
+          settingsChanged=true;
+        }
+        ImGui::Unindent();
         ImGui::EndDisabled();
 
         // SUBSECTION WAVE EDITOR
@@ -4684,6 +4691,45 @@ void FurnaceGUI::drawSettings() {
   ImGui::End();
 }
 
+void FurnaceGUI::drawKeybindSettingsTableRow(FurnaceGUIActions actionIdx) {
+  ImGui::TableNextRow();
+  ImGui::TableNextColumn();
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextUnformatted(guiActions[actionIdx].friendlyName);
+  ImGui::TableNextColumn();
+  ImGui::PushID(actionIdx);
+  for (size_t i=0; i<actionKeys[actionIdx].size()+1; i++) {
+    ImGui::PushID(i);
+    if (i>0) ImGui::SameLine();
+    bool isPending=bindSetPending && bindSetTarget==actionIdx && bindSetTargetIdx==(int)i;
+    if (i<actionKeys[actionIdx].size()) {
+      if (ImGui::Button(isPending?_N("Press key..."):getKeyName(actionKeys[actionIdx][i]).c_str())) {
+        promptKey(actionIdx,i);
+        settingsChanged=true;
+      }
+      bool rightClicked=ImGui::IsItemClicked(ImGuiMouseButton_Right);
+      if (!rightClicked) {
+        ImGui::SameLine(0.0f, 1.0f);
+      }
+      if (rightClicked || ImGui::Button(ICON_FA_TIMES)) {
+        actionKeys[actionIdx].erase(actionKeys[actionIdx].begin()+i);
+        if (isPending) {
+          bindSetActive=false;
+          bindSetPending=false;
+        }
+        parseKeybinds();
+      }
+    } else {
+      if (ImGui::Button(isPending?_N("Press key..."):"+")) {
+        promptKey(actionIdx,i);
+        settingsChanged=true;
+      }
+    }
+    ImGui::PopID(); // i
+  }
+  ImGui::PopID(); // action
+}
+
 #define clampSetting(x,minV,maxV) \
   if (x<minV) { \
     x=minV; \
@@ -4847,8 +4893,19 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   if (groups&GUI_SETTINGS_KEYBOARD) {
     // keybinds
     for (int i=0; i<GUI_ACTION_MAX; i++) {
-      if (guiActions[i].defaultBind==-1) continue; // not a bind
-      actionKeys[i]=conf.getInt(String("keybind_GUI_ACTION_")+String(guiActions[i].name),guiActions[i].defaultBind);
+      if (guiActions[i].isNotABind()) continue;
+
+      // use { -1 } as a fallback to let us know there was an issue
+      actionKeys[i]=conf.getIntList(String("keybind_GUI_ACTION_")+String(guiActions[i].name),{-1});
+      if (actionKeys[i].size()==1 && actionKeys[i][0]==-1) {
+        actionKeys[i]=guiActions[i].defaultBind;
+      } else {
+        for (size_t j=0; j<actionKeys[i].size(); j++) {
+          if (actionKeys[i][j]==-1) {
+            actionKeys[i].erase(actionKeys[i].begin()+j);
+          }
+        }
+      }
     }
 
     decodeKeyMap(noteKeys,conf.getString("noteKeys",DEFAULT_NOTE_KEYS));
@@ -5312,7 +5369,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.backupInterval,10,86400);
   clampSetting(settings.backupMaxCopies,1,100);
   clampSetting(settings.autoFillSave,0,1);
-  clampSetting(settings.autoMacroStepSize,0,1);
+  clampSetting(settings.autoMacroStepSize,0,2);
   clampSetting(settings.s3mOPL3,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
@@ -5435,7 +5492,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   if (groups&GUI_SETTINGS_KEYBOARD) {
     // keybinds
     for (int i=0; i<GUI_ACTION_MAX; i++) {
-      if (guiActions[i].defaultBind==-1) continue; // not a bind
+      if (guiActions[i].isNotABind()) continue;
       conf.set(String("keybind_GUI_ACTION_")+String(guiActions[i].name),actionKeys[i]);
     }
 
@@ -5850,7 +5907,9 @@ bool FurnaceGUI::importKeybinds(String path) {
       for (int i=0; i<GUI_ACTION_MAX; i++) {
         try {
           if (key.first==guiActions[i].name) {
-            actionKeys[i]=std::stoi(key.second);
+            // old versions didn't support multi-bind
+            actionKeys[i].clear();
+            actionKeys[i].push_back(std::stoi(key.second));
             break;
           }
         } catch (std::out_of_range& e) {
@@ -6006,63 +6065,33 @@ void FurnaceGUI::resetColors() {
 
 void FurnaceGUI::resetKeybinds() {
   for (int i=0; i<GUI_ACTION_MAX; i++) {
-    if (guiActions[i].defaultBind==-1) continue;
+    if (guiActions[i].defaultBind.empty()) continue;
     actionKeys[i]=guiActions[i].defaultBind;
   }
   decodeKeyMap(noteKeys,DEFAULT_NOTE_KEYS);
   parseKeybinds();
 }
 
+void FurnaceGUI::assignActionMap(std::map<int,int>& actionMap, int first, int last) {
+  actionMap.clear();
+  for (int i=first; i<=last; i++) {
+    for (int key: actionKeys[i]) {
+      if (key&FURK_MASK) {
+        actionMap[key]=i;
+      }
+    }
+  }
+}
+
+
 void FurnaceGUI::parseKeybinds() {
-  actionMapGlobal.clear();
-  actionMapPat.clear();
-  actionMapInsList.clear();
-  actionMapWaveList.clear();
-  actionMapSampleList.clear();
-  actionMapSample.clear();
-  actionMapOrders.clear();
-
-  for (int i=GUI_ACTION_GLOBAL_MIN+1; i<GUI_ACTION_GLOBAL_MAX; i++) {
-    if (actionKeys[i]&FURK_MASK) {
-      actionMapGlobal[actionKeys[i]]=i;
-    }
-  }
-
-  for (int i=GUI_ACTION_PAT_MIN+1; i<GUI_ACTION_PAT_MAX; i++) {
-    if (actionKeys[i]&FURK_MASK) {
-      actionMapPat[actionKeys[i]]=i;
-    }
-  }
-
-  for (int i=GUI_ACTION_INS_LIST_MIN+1; i<GUI_ACTION_INS_LIST_MAX; i++) {
-    if (actionKeys[i]&FURK_MASK) {
-      actionMapInsList[actionKeys[i]]=i;
-    }
-  }
-
-  for (int i=GUI_ACTION_WAVE_LIST_MIN+1; i<GUI_ACTION_WAVE_LIST_MAX; i++) {
-    if (actionKeys[i]&FURK_MASK) {
-      actionMapWaveList[actionKeys[i]]=i;
-    }
-  }
-
-  for (int i=GUI_ACTION_SAMPLE_LIST_MIN+1; i<GUI_ACTION_SAMPLE_LIST_MAX; i++) {
-    if (actionKeys[i]&FURK_MASK) {
-      actionMapSampleList[actionKeys[i]]=i;
-    }
-  }
-
-  for (int i=GUI_ACTION_SAMPLE_MIN+1; i<GUI_ACTION_SAMPLE_MAX; i++) {
-    if (actionKeys[i]&FURK_MASK) {
-      actionMapSample[actionKeys[i]]=i;
-    }
-  }
-
-  for (int i=GUI_ACTION_ORDERS_MIN+1; i<GUI_ACTION_ORDERS_MAX; i++) {
-    if (actionKeys[i]&FURK_MASK) {
-      actionMapOrders[actionKeys[i]]=i;
-    }
-  }
+  assignActionMap(actionMapGlobal, GUI_ACTION_GLOBAL_MIN+1, GUI_ACTION_GLOBAL_MAX-1);
+  assignActionMap(actionMapPat, GUI_ACTION_PAT_MIN+1, GUI_ACTION_PAT_MAX-1);
+  assignActionMap(actionMapInsList, GUI_ACTION_INS_LIST_MIN+1, GUI_ACTION_INS_LIST_MAX-1);
+  assignActionMap(actionMapWaveList, GUI_ACTION_WAVE_LIST_MIN+1, GUI_ACTION_WAVE_LIST_MAX-1);
+  assignActionMap(actionMapSampleList, GUI_ACTION_SAMPLE_LIST_MIN+1, GUI_ACTION_SAMPLE_LIST_MAX-1);
+  assignActionMap(actionMapSample, GUI_ACTION_SAMPLE_MIN+1, GUI_ACTION_SAMPLE_MAX-1);
+  assignActionMap(actionMapOrders, GUI_ACTION_ORDERS_MIN+1, GUI_ACTION_ORDERS_MAX-1);
 }
 
 void FurnaceGUI::pushAccentColors(const ImVec4& one, const ImVec4& two, const ImVec4& border, const ImVec4& borderShadow) {

@@ -60,4 +60,18 @@ void DivEngine::registerROMExports() {
     },
     false, DIV_REQPOL_ANY
   );
+
+  romExportDefs[DIV_ROM_SAP_R]=new DivROMExportDef(
+    "Atari 8-bit SAP-R", "asiekierka",
+    "SAP type R export for POKEY songs.\n"
+    "register dump-based, unlike normal SAP.\n"
+    "for playback, you may use:\n"
+    "- Altirra\n"
+    "- lzss-sap (https://github.com/dmsc/lzss-sap/)",
+    "SAP files", ".sap",
+    {
+      DIV_SYSTEM_POKEY
+    },
+    false, DIV_REQPOL_EXACT
+  );
 }

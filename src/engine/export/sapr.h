@@ -17,31 +17,22 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "engine.h"
+#include "../export.h"
 
-#include "export/amigaValidation.h"
-#include "export/sapr.h"
-#include "export/tiuna.h"
-#include "export/zsm.h"
+#include <thread>
 
-DivROMExport* DivEngine::buildROM(DivROMExportOptions sys) {
-  DivROMExport* exporter=NULL;
-  switch (sys) {
-    case DIV_ROM_AMIGA_VALIDATION:
-      exporter=new DivExportAmigaValidation;
-      break;
-    case DIV_ROM_TIUNA:
-      exporter=new DivExportTiuna;
-      break;
-    case DIV_ROM_ZSM:
-      exporter=new DivExportZSM;
-      break;
-    case DIV_ROM_SAP_R:
-      exporter=new DivExportSAPR;
-      break;
-    default:
-      exporter=new DivROMExport;
-      break;
-  }
-  return exporter;
-}
+class DivExportSAPR: public DivROMExport {
+  DivEngine* e;
+  std::thread* exportThread;
+  DivROMExportProgress progress[2];
+  bool running, failed, mustAbort;
+  void run();
+  public:
+    bool go(DivEngine* e);
+    bool isRunning();
+    bool hasFailed();
+    void abort();
+    void wait();
+    DivROMExportProgress getProgress(int index=0);
+    ~DivExportSAPR() {}
+};
