@@ -2684,13 +2684,14 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
           // extra space so the column doesn't change size when len is changed under typical
           // circumstances (really don't want to move buttons while mouse is being clicked or held).
           char buf[256];
-          float stretchX=ImGui::CalcTextSize(buf).x;
 
           if (macros[i].macro->len>0) {
             snprintf(buf,255,"%s [%d]###%s",macros[i].displayName,macros[i].macro->len,macros[i].displayName);
           } else {
             snprintf(buf,255,"%s",macros[i].displayName);
           }
+          float stretchX=ImGui::CalcTextSize(buf).x;
+
 
           ImVec2 size=ImGui::CalcTextSize(buf);
           size.x=MAX(stretchX,size.x);
