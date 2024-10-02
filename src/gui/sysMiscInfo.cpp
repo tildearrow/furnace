@@ -303,7 +303,7 @@ void FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef) {
 void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
   String info="";
   // same order as chanNames
-  // helper: FM|PU|NO|WA|SA|SQ|TR|SW|OP|DR|SL|VE|CH
+  // helper: FM|PU|NO|WA|SA | SQ|TR|SW|OP|DR|SL|WV|CH
   unsigned char chanCount[CHANNEL_TYPE_MAX];
   memset(chanCount,0,CHANNEL_TYPE_MAX);
   // count channel types
@@ -391,6 +391,12 @@ void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
           chanCount[whichDef->chanTypes[i]]++;
         }
         break;
+      case DIV_INS_SWAN:
+        if (whichDef->chanTypes[i]!=DIV_CH_WAVE) {
+          chanCount[CHANNEL_TYPE_WAVETABLE]++;
+        }
+        chanCount[whichDef->chanTypes[i]]++;
+        break;
       case DIV_INS_C64: // uncategorizable (by me)
       case DIV_INS_TIA:
       case DIV_INS_PET:
@@ -421,7 +427,7 @@ void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
       }
       continue;
     }
-    info+=fmt::sprintf("%d x %s",chanCount[i],chanNames[i]);
+    info+=fmt::sprintf("%d × %s",chanCount[i],chanNames[i]);
   }
   ImGui::Text("%s",info.c_str());
 }
