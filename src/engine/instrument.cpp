@@ -1421,6 +1421,10 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         break;
       case DIV_INS_SID3:
         featureS3=true;
+        checkForWL=true;
+        featureSM=true;
+        if (amiga.useSample) featureSL=true;
+        if (ws.enabled) featureWS=true;
         break;
       case DIV_INS_SUPERVISION:
         featureSM=true;
