@@ -1420,8 +1420,6 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         featureS2=true;
         break;
       case DIV_INS_SID3:
-        feature64=true;
-        featureS2=true;
         featureS3=true;
         break;
       case DIV_INS_SUPERVISION:
@@ -1527,7 +1525,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
   }
 
-  if (featureFM || !fui) {
+  if (featureFM || featureS3 || !fui) {
     // check FM macros
     int opCount=4;
     bool storeExtendedAsWell=true;
@@ -2539,7 +2537,7 @@ void DivInstrument::readFeatureS3(SafeReader& reader, short version) {
 
   for (int i=0; i<numFilters; i++) {
     if (i>=4) break;
-    
+
     next=reader.readC();
 
     sid3.filt[i].enabled=next&0x80;
