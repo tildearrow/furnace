@@ -1265,6 +1265,10 @@ DivDispatchOscBuffer* DivPlatformSID3::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
+unsigned short DivPlatformSID3::getPan(int ch) {
+  return (chan[ch].panLeft<<8)|chan[ch].panRight;
+}
+
 unsigned char* DivPlatformSID3::getRegisterPool() {
   return regPool;
 }
