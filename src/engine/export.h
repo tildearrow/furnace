@@ -29,6 +29,9 @@ class DivEngine;
 enum DivROMExportOptions {
   DIV_ROM_ABSTRACT=0,
   DIV_ROM_AMIGA_VALIDATION,
+  DIV_ROM_ZSM,
+  DIV_ROM_TIUNA,
+  DIV_ROM_SAP_R,
 
   DIV_ROM_MAX
 };
@@ -45,30 +48,61 @@ struct DivROMExportOutput {
     data(NULL) {}
 };
 
+struct DivROMExportProgress {
+  String name;
+  float amount;
+};
+
 class DivROMExport {
+  protected:
+    DivConfig conf;
+    std::vector<DivROMExportOutput> output;
+    void logAppend(String what);
   public:
-    virtual std::vector<DivROMExportOutput> go(DivEngine* e);
+    std::vector<String> exportLog;
+    std::mutex logLock;
+
+    void setConf(DivConfig& c);
+    virtual bool go(DivEngine* eng);
+    virtual void abort();
+    virtual void wait();
+    std::vector<DivROMExportOutput>& getResult();
+    virtual bool hasFailed();
+    virtual bool isRunning();
+    virtual DivROMExportProgress getProgress(int index=0);
     virtual ~DivROMExport() {}
+};
+
+#define logAppendf(...) logAppend(fmt::sprintf(__VA_ARGS__))
+
+enum DivROMExportReqPolicy {
+  // exactly these chips.
+  DIV_REQPOL_EXACT=0,
+  // specified chips must be present but any amount of them is acceptable.
+  DIV_REQPOL_ANY,
+  // at least one of the specified chips.
+  DIV_REQPOL_LAX
 };
 
 struct DivROMExportDef {
   const char* name;
   const char* author;
   const char* description;
-  DivSystem requisites[32];
-  int requisitesLen;
+  const char* fileType;
+  const char* fileExt;
+  std::vector<DivSystem> requisites;
   bool multiOutput;
+  DivROMExportReqPolicy requisitePolicy;
 
-  DivROMExportDef(const char* n, const char* a, const char* d, std::initializer_list<DivSystem> req, bool multiOut):
+  DivROMExportDef(const char* n, const char* a, const char* d, const char* ft, const char* fe, std::initializer_list<DivSystem> req, bool multiOut, DivROMExportReqPolicy reqPolicy):
     name(n),
     author(a),
     description(d),
-    multiOutput(multiOut) {
-    requisitesLen=0;
-    memset(requisites,0,32*sizeof(DivSystem));
-    for (DivSystem i: req) {
-      requisites[requisitesLen++]=i;
-    }
+    fileType(ft),
+    fileExt(fe),
+    multiOutput(multiOut),
+    requisitePolicy(reqPolicy) {
+    requisites=req;
   }
 };
 

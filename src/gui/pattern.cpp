@@ -686,7 +686,7 @@ void FurnaceGUI::drawPattern() {
               bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID),0);
               ImU32 col=(hovered || (mobileUI && ImGui::IsMouseDown(ImGuiMouseButton_Left)))?ImGui::GetColorU32(ImGuiCol_HeaderHovered):ImGui::GetColorU32(ImGuiCol_Header);
               dl->AddRectFilled(rect.Min,rect.Max,col);
-              dl->AddText(ImVec2(minLabelArea.x,rect.Min.y),ImGui::GetColorU32(channelTextColor(i)),chanID);
+              dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rect.Min.y),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
             break;
           case 1: { // line
@@ -707,7 +707,7 @@ void FurnaceGUI::drawPattern() {
               ));
               dl->AddRectFilledMultiColor(rect.Min,rect.Max,fadeCol0,fadeCol0,fadeCol,fadeCol);
               dl->AddLine(ImVec2(rect.Min.x,rect.Max.y),ImVec2(rect.Max.x,rect.Max.y),ImGui::GetColorU32(chanHeadBase),2.0f*dpiScale);
-              dl->AddText(ImVec2(minLabelArea.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
+              dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
             break;
           }
@@ -734,14 +734,14 @@ void FurnaceGUI::drawPattern() {
               rMax.x-=3.0f*dpiScale;
               rMax.y-=6.0f*dpiScale;
               dl->AddRectFilledMultiColor(rMin,rMax,fadeCol0,fadeCol0,fadeCol,fadeCol,4.0f*dpiScale);
-              dl->AddText(ImVec2(minLabelArea.x,rect.Min.y+6.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
+              dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rect.Min.y+6.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
             break;
           }
           case 3: // split button
             ImGui::Dummy(ImVec2(1.0f,2.0f*dpiScale));
             //ImGui::SetCursorPosX(minLabelArea.x);
-            ImGui::TextUnformatted(chanID);
+            ImGui::TextNoHashHide("%s",chanID);
             ImGui::SameLine();
             ImGui::PushFont(mainFont);
             ImGui::SmallButton(muted?ICON_FA_VOLUME_OFF:ICON_FA_VOLUME_UP);
@@ -764,7 +764,7 @@ void FurnaceGUI::drawPattern() {
               rMax.x-=3.0f*dpiScale;
               rMax.y-=3.0f*dpiScale;
               dl->AddRect(rMin,rMax,fadeCol,0.0f,2.0*dpiScale);
-              dl->AddText(ImVec2(minLabelArea.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
+              dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
             break;
           }
@@ -785,7 +785,7 @@ void FurnaceGUI::drawPattern() {
               rMax.x-=3.0f*dpiScale;
               rMax.y-=3.0f*dpiScale;
               dl->AddRect(rMin,rMax,fadeCol,4.0f*dpiScale,ImDrawFlags_RoundCornersAll,2.0*dpiScale);
-              dl->AddText(ImVec2(minLabelArea.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
+              dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
             break;
           }
@@ -1282,116 +1282,120 @@ void FurnaceGUI::drawPattern() {
       memset(floors,0,4*4*sizeof(unsigned int));
 
       for (int i=0; i<chans; i++) {
-        bool isPaired=false;
-        int numPairs=0;
-        unsigned int pairMin=i;
-        unsigned int pairMax=i;
-        unsigned char curFloor=0;
-        if (!e->curSubSong->chanShow[i]) {
-          continue;
-        }
+        std::vector<DivChannelPair> pairs;
+        e->getChanPaired(i,pairs);
 
-        DivChannelPair pairs=e->getChanPaired(i);
-        for (int j=0; j<8; j++) {
-          if (pairs.pairs[j]==-1) continue;
-          int pairCh=e->dispatchFirstChan[i]+pairs.pairs[j];
-          if (!e->curSubSong->chanShow[pairCh]) {
+        for (DivChannelPair pair: pairs) {
+          bool isPaired=false;
+          int numPairs=0;
+          unsigned int pairMin=i;
+          unsigned int pairMax=i;
+          unsigned char curFloor=0;
+          if (!e->curSubSong->chanShow[i]) {
             continue;
           }
-          isPaired=true;
-          if ((unsigned int)pairCh<pairMin) pairMin=pairCh;
-          if ((unsigned int)pairCh>pairMax) pairMax=pairCh;
-        }
 
-        if (!isPaired) continue;
-
-        float posY=chanHeadBottom;
-
-        // find a free floor
-        while (curFloor<4) {
-          bool free=true;
-          for (unsigned int j=pairMin; j<=pairMax; j++) {
-            const unsigned int j0=j>>5;
-            const unsigned int j1=1U<<(j&31);
-            if (floors[curFloor][j0]&j1) {
-              free=false;
-              break;
+          for (int j=0; j<8; j++) {
+            if (pair.pairs[j]==-1) continue;
+            int pairCh=e->dispatchFirstChan[i]+pair.pairs[j];
+            if (!e->curSubSong->chanShow[pairCh]) {
+              continue;
             }
-          }
-          if (free) break;
-          curFloor++;
-        }
-        if (curFloor<4) {
-          // occupy floor
-          floors[curFloor][pairMin>>5]|=1U<<(pairMin&31);
-          floors[curFloor][pairMax>>5]|=1U<<(pairMax&31);
-        }
-
-        pos=(patChanX[i+1]+patChanX[i])*0.5;
-        posCenter=pos;
-        posMin=pos;
-        posMax=pos;
-        numPairs++;
-
-        if (pairs.label==NULL) {
-          textSize=ImGui::CalcTextSize("???");
-        } else {
-          textSize=ImGui::CalcTextSize(pairs.label);
-        }
-
-        posY+=(textSize.y+ImGui::GetStyle().ItemSpacing.y)*curFloor;
-
-        tdl->AddLine(
-          ImVec2(pos,chanHeadBottom),
-          ImVec2(pos,posY+textSize.y),
-          ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
-          2.0f*dpiScale
-        );
-
-        for (int j=0; j<8; j++) {
-          if (pairs.pairs[j]==-1) continue;
-          int pairCh=e->dispatchFirstChan[i]+pairs.pairs[j];
-          if (!e->curSubSong->chanShow[pairCh]) {
-            continue;
+            isPaired=true;
+            if ((unsigned int)pairCh<pairMin) pairMin=pairCh;
+            if ((unsigned int)pairCh>pairMax) pairMax=pairCh;
           }
 
-          pos=(patChanX[pairCh+1]+patChanX[pairCh])*0.5;
-          posCenter+=pos;
+          if (!isPaired) continue;
+
+          float posY=chanHeadBottom;
+
+          // find a free floor
+          while (curFloor<4) {
+            bool free=true;
+            for (unsigned int j=pairMin; j<=pairMax; j++) {
+              const unsigned int j0=j>>5;
+              const unsigned int j1=1U<<(j&31);
+              if (floors[curFloor][j0]&j1) {
+                free=false;
+                break;
+              }
+            }
+            if (free) break;
+            curFloor++;
+          }
+          if (curFloor<4) {
+            // occupy floor
+            floors[curFloor][pairMin>>5]|=1U<<(pairMin&31);
+            floors[curFloor][pairMax>>5]|=1U<<(pairMax&31);
+          }
+
+          pos=(patChanX[i+1]+patChanX[i])*0.5;
+          posCenter=pos;
+          posMin=pos;
+          posMax=pos;
           numPairs++;
-          if (pos<posMin) posMin=pos;
-          if (pos>posMax) posMax=pos;
+
+          if (pair.label==NULL) {
+            textSize=ImGui::CalcTextSize("???");
+          } else {
+            textSize=ImGui::CalcTextSize(pair.label);
+          }
+
+          posY+=(textSize.y+ImGui::GetStyle().ItemSpacing.y)*curFloor;
+
           tdl->AddLine(
             ImVec2(pos,chanHeadBottom),
             ImVec2(pos,posY+textSize.y),
             ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
             2.0f*dpiScale
           );
-        }
 
-        posCenter/=numPairs;
+          for (int j=0; j<8; j++) {
+            if (pair.pairs[j]==-1) continue;
+            int pairCh=e->dispatchFirstChan[i]+pair.pairs[j];
+            if (!e->curSubSong->chanShow[pairCh]) {
+              continue;
+            }
 
-        if (pairs.label==NULL) {
-          tdl->AddLine(
-            ImVec2(posMin,posY+textSize.y),
-            ImVec2(posMax,posY+textSize.y),
-            ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
-            2.0f*dpiScale
-          );
-        } else {
-          tdl->AddLine(
-            ImVec2(posMin,posY+textSize.y),
-            ImVec2(posCenter-textSize.x*0.5-6.0f*dpiScale,posY+textSize.y),
-            ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
-            2.0f*dpiScale
-          );
-          tdl->AddLine(
-            ImVec2(posCenter+textSize.x*0.5+6.0f*dpiScale,posY+textSize.y),
-            ImVec2(posMax,posY+textSize.y),
-            ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
-            2.0f*dpiScale
-          );
+            pos=(patChanX[pairCh+1]+patChanX[pairCh])*0.5;
+            posCenter+=pos;
+            numPairs++;
+            if (pos<posMin) posMin=pos;
+            if (pos>posMax) posMax=pos;
+            tdl->AddLine(
+              ImVec2(pos,chanHeadBottom),
+              ImVec2(pos,posY+textSize.y),
+              ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+              2.0f*dpiScale
+            );
+          }
 
-          delayedLabels.push_back(DelayedLabel(posCenter,posY,textSize,pairs.label));
+          posCenter/=numPairs;
+
+          if (pair.label==NULL) {
+            tdl->AddLine(
+              ImVec2(posMin,posY+textSize.y),
+              ImVec2(posMax,posY+textSize.y),
+              ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+              2.0f*dpiScale
+            );
+          } else {
+            tdl->AddLine(
+              ImVec2(posMin,posY+textSize.y),
+              ImVec2(posCenter-textSize.x*0.5-6.0f*dpiScale,posY+textSize.y),
+              ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+              2.0f*dpiScale
+            );
+            tdl->AddLine(
+              ImVec2(posCenter+textSize.x*0.5+6.0f*dpiScale,posY+textSize.y),
+              ImVec2(posMax,posY+textSize.y),
+              ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+              2.0f*dpiScale
+            );
+
+            delayedLabels.push_back(DelayedLabel(posCenter,posY,textSize,pair.label));
+          }
         }
       }
 
@@ -1500,6 +1504,7 @@ void FurnaceGUI::drawPattern() {
             i.cmd==DIV_CMD_HINT_PORTA ||
             i.cmd==DIV_CMD_HINT_LEGATO ||
             i.cmd==DIV_CMD_HINT_VOL_SLIDE ||
+            i.cmd==DIV_CMD_HINT_VOL_SLIDE_TARGET ||
             i.cmd==DIV_CMD_HINT_ARPEGGIO ||
             i.cmd==DIV_CMD_HINT_PITCH ||
             i.cmd==DIV_CMD_HINT_VIBRATO ||

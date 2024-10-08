@@ -1,7 +1,6 @@
-# to-do for 0.6.6
+# to-do for 0.6.8
 
-- fix possible issues when moving selection
-- fix Metal intro crash
+- OPL3 mute fix
 
 # to-do long term
 
@@ -10,3 +9,5 @@
 - new pattern renderer - performance improvements
 - new info header
 - unlimited channels and chips
+- fix possible issues when moving selection
+- fix Metal intro crash

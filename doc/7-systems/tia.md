@@ -27,7 +27,21 @@ Furnace isn't complete without this one...
   - `E`: low pure buzzy
   - `F`: low reedy
 
+## ROM export
 
+a song can be exported to assembly code for use with the TIunA software driver for the Atari 2600. see [TIunA on GitHub](https://github.com/AYCEdemo/twin-tiuna) for explanations of the export options.
+
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Software pitch driver**: use TIunA, a software pitch driver similar to TIATune. it increases pitch precision by rapidly switching between two pitches.
+- **Old pitch table**: use an older method to calculate pitch. only for compatibility.
+- **Mixing mode**: changes mixing mode.
+  - **Mono**: normal output.
+  - **Mono (no distortion)**: process each channel separately to eliminate distortion.
+  - **Stereo**: output two channels on left and right.
+- **PAL**: run slower blah blah blah
 
 ## info
 

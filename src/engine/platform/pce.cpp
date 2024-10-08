@@ -538,11 +538,10 @@ unsigned short DivPlatformPCE::getPan(int ch) {
   return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
 }
 
-DivChannelPair DivPlatformPCE::getPaired(int ch) {
+void DivPlatformPCE::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   if (ch==1 && lfoMode>0) {
-    return DivChannelPair("mod",0);
+    ret.push_back(DivChannelPair(_("mod"),0));
   }
-  return DivChannelPair();
 }
 
 DivChannelModeHints DivPlatformPCE::getModeHints(int ch) {
@@ -573,6 +572,11 @@ DivDispatchOscBuffer* DivPlatformPCE::getOscBuffer(int ch) {
 
 int DivPlatformPCE::mapVelocity(int ch, float vel) {
   return round(31.0*pow(vel,0.22));
+}
+
+float DivPlatformPCE::getGain(int ch, int vol) {
+  if (vol==0) return 0;
+  return 1.0/pow(10.0,(float)(31-vol)*3.0/20.0);
 }
 
 unsigned char* DivPlatformPCE::getRegisterPool() {

@@ -2678,6 +2678,15 @@ static bool ImFontAtlasBuildWithStbTruetype(ImFontAtlas* atlas)
     // 7. Allocate texture
     atlas->TexHeight = (atlas->Flags & ImFontAtlasFlags_NoPowerOfTwoHeight) ? (atlas->TexHeight + 1) : ImUpperPowerOfTwo(atlas->TexHeight);
     atlas->TexUvScale = ImVec2(1.0f / atlas->TexWidth, 1.0f / atlas->TexHeight);
+
+    if (atlas->Flags & ImFontAtlasFlags_Square) {
+      if (atlas->TexWidth>atlas->TexHeight) {
+        atlas->TexHeight=atlas->TexWidth;
+      } else {
+        atlas->TexWidth=atlas->TexHeight;
+      }
+    }
+
     atlas->TexPixelsAlpha8 = (unsigned char*)IM_ALLOC(atlas->TexWidth * atlas->TexHeight);
     memset(atlas->TexPixelsAlpha8, 0, atlas->TexWidth * atlas->TexHeight);
     spc.pixels = atlas->TexPixelsAlpha8;

@@ -192,7 +192,7 @@ void writeSubEntries(FILE* f, std::vector<FurnaceGUISysDef>& entries, int depth)
     String safeName;
     safeName.reserve(i.name.size());
     bool beginning=false;
-    for (char j: i.name) {
+    for (unsigned char j: i.name) {
       if (beginning && j==' ') continue;
       if (j=='=') continue;
       if (j<0x20) continue;
@@ -392,7 +392,7 @@ void FurnaceGUI::drawUserPresets() {
               tempID=fmt::sprintf("%s##USystem",getSystemName(chip.sys));
               ImGui::Button(tempID.c_str(),ImVec2(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(_("Invert")).x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0,0));
               if (ImGui::BeginPopupContextItem("SysPickerCU",ImGuiPopupFlags_MouseButtonLeft)) {
-                DivSystem picked=systemPicker();
+                DivSystem picked=systemPicker(false);
                 if (picked!=DIV_SYSTEM_NULL) {
                   chip.sys=picked;
                   mustBake=true;
@@ -456,7 +456,7 @@ void FurnaceGUI::drawUserPresets() {
 
             ImGui::Button(ICON_FA_PLUS "##SysAddU");
             if (ImGui::BeginPopupContextItem("SysPickerU",ImGuiPopupFlags_MouseButtonLeft)) {
-              DivSystem picked=systemPicker();
+              DivSystem picked=systemPicker(false);
               if (picked!=DIV_SYSTEM_NULL) {
                 preset->orig.push_back(FurnaceGUISysDefChip(picked,1.0f,0.0f,""));
                 mustBake=true;
@@ -475,7 +475,8 @@ void FurnaceGUI::drawUserPresets() {
               ImGui::SetTooltip(_(
                 "insert additional settings in `option=value` format.\n"
                 "available options:\n"
-                "- tickRate"
+                "- tickRate \n"
+                "- chanMask \n"
               ));
             }
 

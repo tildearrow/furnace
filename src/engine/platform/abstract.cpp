@@ -37,8 +37,7 @@ unsigned short DivDispatch::getPan(int chan) {
   return 0;
 }
 
-DivChannelPair DivDispatch::getPaired(int chan) {
-  return DivChannelPair();
+void DivDispatch::getPaired(int ch, std::vector<DivChannelPair>& ret) {
 }
 
 DivChannelModeHints DivDispatch::getModeHints(int chan) {
@@ -105,6 +104,11 @@ bool DivDispatch::isVolGlobal() {
 int DivDispatch::mapVelocity(int ch, float vel) {
   const int volMax=MAX(1,dispatch(DivCommand(DIV_CMD_GET_VOLMAX,MAX(ch,0))));
   return round(vel*volMax);
+}
+
+float DivDispatch::getGain(int ch, int vol) {
+  const float volMax=MAX(1,dispatch(DivCommand(DIV_CMD_GET_VOLMAX,MAX(ch,0))));
+  return (float)vol/volMax;
 }
 
 int DivDispatch::getPortaFloor(int ch) {

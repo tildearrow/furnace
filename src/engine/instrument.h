@@ -23,8 +23,10 @@
 #include "dataErrors.h"
 #include "../ta-utils.h"
 #include "../pch.h"
+#include "../fixedQueue.h"
 
 struct DivSong;
+struct DivInstrument;
 
 // NOTICE!
 // before adding new instrument types to this struct, please ask me first.
@@ -94,6 +96,9 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_GBA_MINMOD=61,
   DIV_INS_BIFURCATOR=62,
   DIV_INS_SID2=63, // coincidence!
+  DIV_INS_SUPERVISION=64,
+  DIV_INS_UPD1771C=65,
+  DIV_INS_SID3=66,
   DIV_INS_MAX,
   DIV_INS_NULL
 };
@@ -425,7 +430,7 @@ struct DivInstrumentC64 {
   unsigned char a, d, s, r;
   unsigned short duty;
   unsigned char ringMod, oscSync;
-  bool toFilter, initFilter, dutyIsAbs, filterIsAbs, noTest;
+  bool toFilter, initFilter, dutyIsAbs, filterIsAbs, noTest, resetDuty;
   unsigned char res;
   unsigned short cut;
   bool hp, lp, bp, ch3off;
@@ -452,6 +457,7 @@ struct DivInstrumentC64 {
     dutyIsAbs(false),
     filterIsAbs(false),
     noTest(false),
+    resetDuty(true),
     res(0),
     cut(0),
     hp(false),
@@ -608,6 +614,7 @@ struct DivInstrumentFDS {
 struct DivInstrumentMultiPCM {
   unsigned char ar, d1r, dl, d2r, rr, rc;
   unsigned char lfo, vib, am;
+  bool damp, pseudoReverb, lfoReset, levelDirect;
 
   bool operator==(const DivInstrumentMultiPCM& other);
   bool operator!=(const DivInstrumentMultiPCM& other) {
@@ -616,7 +623,11 @@ struct DivInstrumentMultiPCM {
 
   DivInstrumentMultiPCM():
     ar(15), d1r(15), dl(0), d2r(0), rr(15), rc(15),
-    lfo(0), vib(0), am(0) {
+    lfo(0), vib(0), am(0),
+    damp(false),
+    pseudoReverb(false),
+    lfoReset(false),
+    levelDirect(true) {
   }
 };
 
@@ -860,8 +871,112 @@ struct DivInstrumentSID2 {
     noiseMode(0) {}
 };
 
-struct DivInstrument {
-  String name;
+struct DivInstrumentSID3 {
+  bool triOn, sawOn, pulseOn, noiseOn;
+  unsigned char a, d, s, r;
+  unsigned char sr;
+  unsigned short duty;
+  unsigned char ringMod, oscSync;
+  bool phase_mod;
+  unsigned char phase_mod_source, ring_mod_source, sync_source;
+  bool specialWaveOn;
+  bool oneBitNoise;
+  bool separateNoisePitch;
+  unsigned char special_wave;
+  bool doWavetable;
+  bool dutyIsAbs;
+  bool resetDuty;
+  unsigned char phaseInv;
+  unsigned char feedback;
+  unsigned char mixMode;
+
+  struct Filter {
+    unsigned short cutoff;
+    unsigned char resonance;
+    unsigned char output_volume;
+    unsigned char distortion_level;
+    unsigned char mode;
+    bool enabled;
+    bool init;
+    unsigned char filter_matrix;
+
+    // this is done purely in software
+    bool absoluteCutoff;
+    bool bindCutoffToNote;
+    unsigned char bindCutoffToNoteStrength; // how much cutoff changes over e.g. 1 semitone
+    unsigned char bindCutoffToNoteCenter; // central note of the cutoff change
+    bool bindCutoffToNoteDir; // if we decrease or increase cutoff if e.g. we go upper in note space
+    bool bindCutoffOnNote; // only do cutoff scaling once, on new note
+
+    bool bindResonanceToNote;
+    unsigned char bindResonanceToNoteStrength; // how much resonance changes over e.g. 1 semitone
+    unsigned char bindResonanceToNoteCenter; // central note of the resonance change
+    bool bindResonanceToNoteDir; // if we decrease or increase resonance if e.g. we go upper in note space
+    bool bindResonanceOnNote; // only do resonance scaling once, on new note
+
+    bool operator==(const Filter& other);
+    bool operator!=(const Filter& other) {
+      return !(*this==other);
+    }
+    Filter():
+      cutoff(0),
+      resonance(0),
+      output_volume(0),
+      distortion_level(0),
+      mode(0),
+      enabled(false),
+      init(false),
+      filter_matrix(0),
+      absoluteCutoff(false),
+      bindCutoffToNote(false),
+      bindCutoffToNoteStrength(0),
+      bindCutoffToNoteCenter(0),
+      bindCutoffToNoteDir(false),
+      bindCutoffOnNote(false),
+      bindResonanceToNote(false),
+      bindResonanceToNoteStrength(0),
+      bindResonanceToNoteCenter(0),
+      bindResonanceToNoteDir(false),
+      bindResonanceOnNote(false) {}
+  } filt[4];
+  
+  bool operator==(const DivInstrumentSID3& other);
+  bool operator!=(const DivInstrumentSID3& other) {
+    return !(*this==other);
+  }
+  DivInstrumentSID3():
+    triOn(false),
+    sawOn(true),
+    pulseOn(false),
+    noiseOn(false),
+    a(0),
+    d(64),
+    s(0),
+    r(0),
+    sr(0),
+    duty(32768),
+    ringMod(0),
+    oscSync(0),
+    phase_mod(false),
+    phase_mod_source(0),
+    ring_mod_source(0),
+    sync_source(0),
+    specialWaveOn(false),
+    oneBitNoise(false),
+    separateNoisePitch(false),
+    special_wave(0),
+    doWavetable(false),
+    dutyIsAbs(true),
+    resetDuty(false),
+    phaseInv(0),
+    feedback(0),
+    mixMode(0) {
+      filt[0].mode=16|32; // default settings so filter just works, connect to input and channel output
+      filt[0].output_volume=0xff;
+    }
+};
+
+struct DivInstrumentPOD {
   DivInstrumentType type;
   DivInstrumentFM fm;
   DivInstrumentSTD std;
@@ -879,6 +994,78 @@ struct DivInstrument {
   DivInstrumentESFM esfm;
   DivInstrumentPowerNoise powernoise;
   DivInstrumentSID2 sid2;
+  DivInstrumentSID3 sid3;
+
+  DivInstrumentPOD() :
+    type(DIV_INS_FM) {
+  }
+};
+
+struct MemPatch {
+  MemPatch() :
+    data(NULL)
+    , offset(0)
+    , size(0) {
+  }
+
+  ~MemPatch() {
+    if (data) {
+      delete[] data;
+      data=NULL;
+    }
+  }
+
+  bool calcDiff(const void* pre, const void* post, size_t size);
+  void applyAndReverse(void* target, size_t inputSize);
+  bool isValid() const { return size>0; }
+
+  unsigned char* data;
+  size_t offset;
+  size_t size;
+};
+
+struct DivInstrumentUndoStep {
+  DivInstrumentUndoStep() :
+    name(""),
+    nameValid(false),
+    processTime(0) {
+  }
+
+  MemPatch podPatch;
+  String name;
+  bool nameValid;
+  size_t processTime;
+
+  void applyAndReverse(DivInstrument* target);
+  bool makeUndoPatch(size_t processTime_, const DivInstrument* pre, const DivInstrument* post);
+};
+
+struct DivInstrument : DivInstrumentPOD {
+  String name;
+
+  DivInstrument() :
+    name("") {
+      // clear and construct DivInstrumentPOD so it doesn't have any garbage in the padding
+      memset((unsigned char*)(DivInstrumentPOD*)this, 0, sizeof(DivInstrumentPOD));
+      new ((DivInstrumentPOD*)this) DivInstrumentPOD;
+  }
+
+  ~DivInstrument();
+
+  /**
+   * copy/assignment to specifically avoid leaking or dangling pointers to undo step
+   */
+  DivInstrument( const DivInstrument& ins );
+  DivInstrument& operator=( const DivInstrument& ins );
+
+  /**
+   * undo stuff
+   */
+  FixedQueue<DivInstrumentUndoStep*, 128> undoHist;
+  FixedQueue<DivInstrumentUndoStep*, 128> redoHist;
+  bool recordUndoStepIfChanged(size_t processTime, const DivInstrument* old);
+  int undo();
+  int redo();
 
   /**
    * these are internal functions.
@@ -906,6 +1093,7 @@ struct DivInstrument {
   void writeFeatureEF(SafeWriter* w);
   void writeFeaturePN(SafeWriter* w);
   void writeFeatureS2(SafeWriter* w);
+  void writeFeatureS3(SafeWriter* w);
 
   void readFeatureNA(SafeReader& reader, short version);
   void readFeatureFM(SafeReader& reader, short version);
@@ -929,6 +1117,7 @@ struct DivInstrument {
   void readFeatureEF(SafeReader& reader, short version);
   void readFeaturePN(SafeReader& reader, short version);
   void readFeatureS2(SafeReader& reader, short version);
+  void readFeatureS3(SafeReader& reader, short version);
 
   DivDataErrors readInsDataOld(SafeReader& reader, short version);
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);
@@ -964,9 +1153,5 @@ struct DivInstrument {
    * @return whether it was successful.
    */
   bool saveDMP(const char* path);
-  DivInstrument():
-    name(""),
-    type(DIV_INS_FM) {
-  }
 };
 #endif

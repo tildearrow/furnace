@@ -67,6 +67,7 @@ enum DivDispatchCmds {
   DIV_CMD_HINT_ARPEGGIO, // (note1, note2)
   DIV_CMD_HINT_VOLUME, // (vol)
   DIV_CMD_HINT_VOL_SLIDE, // (amount, oneTick)
+  DIV_CMD_HINT_VOL_SLIDE_TARGET, // (amount, target)
   DIV_CMD_HINT_PORTA, // (target, speed)
   DIV_CMD_HINT_LEGATO, // (note)
 
@@ -262,6 +263,50 @@ enum DivDispatchCmds {
 
   DIV_CMD_BIFURCATOR_STATE_LOAD,
   DIV_CMD_BIFURCATOR_PARAMETER,
+
+  DIV_CMD_FDS_MOD_AUTO,
+
+  DIV_CMD_FM_OPMASK, // (mask)
+
+  DIV_CMD_MULTIPCM_MIX_FM, // (value)
+  DIV_CMD_MULTIPCM_MIX_PCM, // (value)
+  DIV_CMD_MULTIPCM_LFO, // (value)
+  DIV_CMD_MULTIPCM_VIB, // (value)
+  DIV_CMD_MULTIPCM_AM, // (value)
+  DIV_CMD_MULTIPCM_AR, // (value)
+  DIV_CMD_MULTIPCM_D1R, // (value)
+  DIV_CMD_MULTIPCM_DL, // (value)
+  DIV_CMD_MULTIPCM_D2R, // (value)
+  DIV_CMD_MULTIPCM_RC, // (value)
+  DIV_CMD_MULTIPCM_RR, // (value)
+  DIV_CMD_MULTIPCM_DAMP, // (value)
+  DIV_CMD_MULTIPCM_PSEUDO_REVERB, // (value)
+  DIV_CMD_MULTIPCM_LFO_RESET, // (value)
+  DIV_CMD_MULTIPCM_LEVEL_DIRECT, // (value)
+  
+  DIV_CMD_SID3_SPECIAL_WAVE,
+  DIV_CMD_SID3_RING_MOD_SRC,
+  DIV_CMD_SID3_HARD_SYNC_SRC,
+  DIV_CMD_SID3_PHASE_MOD_SRC,
+  DIV_CMD_SID3_WAVE_MIX,
+  DIV_CMD_SID3_LFSR_FEEDBACK_BITS,
+  DIV_CMD_SID3_1_BIT_NOISE,
+  DIV_CMD_SID3_FILTER_DISTORTION,
+  DIV_CMD_SID3_FILTER_OUTPUT_VOLUME,
+  DIV_CMD_SID3_CHANNEL_INVERSION,
+  DIV_CMD_SID3_FILTER_CONNECTION,
+  DIV_CMD_SID3_FILTER_MATRIX,
+  DIV_CMD_SID3_FILTER_ENABLE,
+
+  DIV_CMD_C64_PW_SLIDE,
+  DIV_CMD_C64_CUTOFF_SLIDE,
+
+  DIV_CMD_SID3_PHASE_RESET,
+  DIV_CMD_SID3_NOISE_PHASE_RESET,
+  DIV_CMD_SID3_ENVELOPE_RESET,
+
+  DIV_CMD_SID3_CUTOFF_SCALING,
+  DIV_CMD_SID3_RESONANCE_SCALING,
 
   DIV_CMD_MAX
 };
@@ -580,10 +625,10 @@ class DivDispatch {
 
     /**
      * get "paired" channels.
-     * @param chan the channel to query.
-     * @return a DivChannelPair.
+     * @param ch the channel to query.
+     * @param ret the DivChannelPair vector of pairs.
      */
-    virtual DivChannelPair getPaired(int chan);
+    virtual void getPaired(int ch, std::vector<DivChannelPair>& ret);
 
     /**
      * get channel mode hints.
@@ -680,6 +725,14 @@ class DivDispatch {
      * @return output volume.
      */
     virtual int mapVelocity(int ch, float vel);
+
+    /**
+     * map chip volume to gain.
+     * @param ch the chip channel. -1 means N/A.
+     * @param vol input volume.
+     * @return output gain fron 0.0 to 1.0.
+     */
+    virtual float getGain(int ch, int vol);
 
     /**
      * get the lowest note in a portamento.

@@ -2094,7 +2094,32 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
           ds.systemFlags[i].set("oldPitch",true);
         }
       }
+    } else if (ds.version<217) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_VERA) {
+          ds.systemFlags[i].set("chipType",1);
+        }
+      }
     }
+
+    // SNES no anti-click
+    if (ds.version<220) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_SNES) {
+          ds.systemFlags[i].set("antiClick",false);
+        }
+      }
+    }
+
+    // Y8950 broken ADPCM pitch
+    if (ds.version<223) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_Y8950 || ds.system[i]==DIV_SYSTEM_Y8950_DRUMS) {
+          ds.systemFlags[i].set("compatYPitch",true);
+        }
+      }
+    }
+
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;

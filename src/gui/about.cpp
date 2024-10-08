@@ -35,7 +35,9 @@ const char* aboutLine[]={
   _N("-- program --"),
   "tildearrow",
   _N("A M 4 N (intro tune)"),
+  "Adam Lederer",
   "akumanatt",
+  "asiekierka",
   "cam900",
   "djtuBIG-MaliceX",
   "Eknous",
@@ -75,7 +77,7 @@ const char* aboutLine[]={
   "Polski: freq-mod, PoznańskiSzybkowiec",
   "Português (Brasil): Kagamiin~",
   "Русский: Background2982, LTVA",
-  "Slovenčina: Mr. Hassium",
+  "Slovenčina: Wegfrei",
   "Svenska: RevvoBolt",
   "ไทย: akumanatt",
   "",
@@ -89,11 +91,13 @@ const char* aboutLine[]={
   "aloelucidity",
   "AmigaX",
   "AquaDoesStuff",
+  "AstralBlue",
   "AURORA*FIELDS",
   "Background2982",
   "battybeats",
   "bbqzzd",
   "Bernie",
+  "billimanmcjonnson",
   "BlastBrothers",
   "Blaze Weednix",
   "BlueElectric05",
@@ -112,6 +116,7 @@ const char* aboutLine[]={
   "dmKaltsit",
   "Dolce",
   "dumbut",
+  "Eggo1423",
   "Eknous",
   "Electric Keet",
   "EntropyAuthor",
@@ -146,6 +151,7 @@ const char* aboutLine[]={
   "MelonadeM",
   "Miker",
   "Molkirill",
+  "MrCoolDude",
   "NeoWar",
   "Nerreave",
   "niffuM",
@@ -157,6 +163,7 @@ const char* aboutLine[]={
   "Pale Moon",
   "PeyPey",
   "PichuMario",
+  "pixelated",
   "Poltvick",
   "PotaJoe",
   "potatoTeto",
@@ -176,6 +183,7 @@ const char* aboutLine[]={
   "Slightly Large NC",
   "smaybius",
   "SnugglyBun",
+  "Someone64",
   "Spinning Square Waves",
   "src3453",
   "SuperJet Spade",
@@ -201,6 +209,7 @@ const char* aboutLine[]={
   "Ultraprogramer",
   "UserSniper",
   "Weeppiko",
+  "Wegfrei",
   "Xan",
   "Yuzu4K",
   "Zabir",
@@ -293,17 +302,16 @@ const char* aboutLine[]={
   _N("PowerNoise emulator by scratchminer"),
   _N("ep128emu by Istvan Varga"),
   _N("NDS sound emulator by cam900"),
+  _N("openMSX YMF278 emulator (modified version) by the openMSX developers"),
+  _N("SID2 emulator by LTVA (modification of reSID emulator)"),
+  _N("SID3 emulator by LTVA"),
   "",
   _N("greetings to:"),
+  "floxy!",
   "NEOART Costa Rica",
   "Xenium Demoparty",
   "@party",
   _N("all members of Deflers of Noice!"),
-  "",
-  "fuckings to:",
-  "cream",
-  "Monsia",
-  "SynthetikGiblets",
   "",
   _N("copyright © 2021-2024 tildearrow"),
   _N("(and contributors)."),
@@ -340,14 +348,8 @@ void FurnaceGUI::drawAbout() {
     float r=0;
     float g=0;
     float b=0;
-    float peakMix=settings.partyTime?0:0.3;
-    if (settings.partyTime) {
-      for (int j=0; j<e->getAudioDescGot().outChans; j++) {
-        peakMix+=peak[j];
-      }
-      peakMix/=e->getAudioDescGot().outChans;
-    }
-    ImGui::ColorConvertHSVtoRGB(aboutHue,1.0,0.25+MIN(0.75f,peakMix*0.75f),r,g,b);
+    float peakMix=0.3;
+    ImGui::ColorConvertHSVtoRGB(aboutHue,1.0,0.475,r,g,b);
     dl->AddRectFilled(ImVec2(0,0),ImVec2(canvasW,canvasH),0xff000000);
     bool skip=false;
     bool skip2=false;

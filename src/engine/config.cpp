@@ -115,6 +115,8 @@ void DivConfig::parseLine(const char* line) {
 
 bool DivConfig::loadFromFile(const char* path, bool createOnFail, bool redundancy) {
   char line[4096];
+  String lineStr;
+  lineStr.reserve(4096);
   logD("opening config for read: %s",path);
 
   FILE* f=NULL;
@@ -210,7 +212,15 @@ bool DivConfig::loadFromFile(const char* path, bool createOnFail, bool redundanc
     if (fgets(line,4095,f)==NULL) {
       break;
     }
-    parseLine(line);
+    lineStr+=line;
+    if (!lineStr.empty() && !feof(f)) {
+      if (lineStr[lineStr.size()-1]!='\n') {
+        continue;
+      }
+    }
+    parseLine(lineStr.c_str());
+    lineStr="";
+    lineStr.reserve(4096);
   }
   logD("end of file (%s)",strerror(errno));
   fclose(f);

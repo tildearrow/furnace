@@ -362,6 +362,7 @@ void DivPlatformArcade::tick(bool sysTick) {
           chan[i].freq+=chan[i].arpOff<<7;
         }
       }
+      chan[i].freq+=OFFSET_LINEAR;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>=(95<<7)) chan[i].freq=(95<<7)-1;
       immWrite(i+0x28,hScale(chan[i].freq>>7));
@@ -761,6 +762,25 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       immWrite(0x19,0x80|pmDepth);
       break;
     }
+    case DIV_CMD_FM_OPMASK:
+      switch (c.value>>4) {
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+          chan[c.chan].opMask&=~(1<<((c.value>>4)-1));
+          if (c.value&15) {
+            chan[c.chan].opMask|=(1<<((c.value>>4)-1));
+          }
+          break;
+        default:
+          chan[c.chan].opMask=c.value&15;
+          break;
+      }
+      if (chan[c.chan].active) {
+        chan[c.chan].opMaskChanged=true;
+      }
+      break;
     case DIV_CMD_FM_HARD_RESET:
       chan[c.chan].hardReset=c.value;
       break;

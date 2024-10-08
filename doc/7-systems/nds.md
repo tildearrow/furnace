@@ -16,3 +16,8 @@ additionally, the last 8 channels may be put in "PSG mode", featuring 6 channels
 
 this chip uses the [Nintendo DS](../4-instrument/nds.md) instrument editor.
 
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Model**: set the amount of memory available for samples.

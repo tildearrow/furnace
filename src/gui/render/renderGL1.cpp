@@ -225,6 +225,10 @@ int FurnaceGUIRenderGL1::getWindowFlags() {
   return SDL_WINDOW_OPENGL;
 }
 
+bool FurnaceGUIRenderGL1::areTexturesSquare() {
+  return true;
+}
+
 int FurnaceGUIRenderGL1::getMaxTextureWidth() {
   return maxWidth;
 }

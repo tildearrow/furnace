@@ -12,6 +12,8 @@
 
 **asset**: an instrument, wavetable or sample.
 
+**bit**: a single binary on-off value.
+
 **bitbang**: to achieve PCM sound by sending a rapid stream of volume commands to a non-PCM channel.
 
 **bitmask**: a set of bits which represent individual single-bit toggles or groups representing small numbers. these are explained fully in the [hexadecimal primer](hex.md).
@@ -51,6 +53,8 @@
 **FM**: frequency modulation. this is a method of generating sound that uses one operator's amplitude to modify another operator's frequency.
 - the FM in Yamaha chips is more accurately called _phase modulation,_ which uses a different method of computation to achieve similar results.
 
+**.ftm**: FamiTracker Module.
+
 **.fui**: a Furnace instrument file.
 
 **.fur**: a Furnace module file.
@@ -64,9 +68,13 @@
 **interpolate**: to fill in the area between two values with a smooth ramp of values in between.
 - some sample-based chips can interpolate, filtering out unwanted harmonics.
 
+**.it**: Impulse Tracker module.
+
 **ladder effect**: an inaccurate yet common term for the DAC distortion that affects some Yamaha FM chips.
 
 **LFO**: low frequency oscillator. a wave with a slow period (often below hearing range) used to alter other sounds.
+
+**LFSR**: linear-feedback shift register. a method to generate pseudo-random noise that loops, also known as "periodic noise". within a sequence of on-off bits, it does math to combine the bits at specified locations called "taps", then shifts the whole sequence and adds the resulting bit on the end, guaranteeing a different state for the next pass. depending on the locations of the taps, different lengths of noise loops are generated; for short loops, this will affect their tone.
 
 **macro**: a sequence of values automatically applied while a note plays.
 
@@ -82,7 +90,7 @@
 
 **period**: the length of a repeating waveform. as frequency rises, the period shortens.
 
-**periodic noise**: an approximation of random noise generated algorithmically.
+**periodic noise**: an approximation of random noise generated algorithmically with an LFSR.
 - the period is the number of values generated until the algorithm repeats itself.
 
 **phase reset**: to restart a waveform at its initial value.
@@ -105,6 +113,8 @@
 
 **register**: a memory location within a sound chip. "register view" shows all the relevant memory of all chips in use.
 
+**.s3m**: ScreamTracker 3 Module.
+
 **sample** (1): a digitally recorded sound. usually stored as some variant of PCM.
 - these can take up a lot of room depending on length and sample rate, thus older systems tend to use short, lower quality samples.
 
@@ -121,6 +131,8 @@
 - this is equivalent to a pulse wave with a duty of 50%.
 
 **supersaw**: a sound made up of multiple saw waves at slightly different frequencies to achieve a chorusing effect.
+
+**tap**: a specified bit location within an LFSR.
 
 **tick rate**: the number of times per second that the sound engine moves forward. all notes and effects are quantized to this rate.
 - this usually corresponds to the frame rate the system uses for video, approximately 60 for NTSC and 50 for PAL.
@@ -139,5 +151,7 @@
 **wavetable** (1): a very short looping sample.
 
 **wavetable** (2): an ordered group of wavetables(1) used in sequence within a single instrument.
+
+**.xm**: eXtended Module. the file format of songs made with FastTracker 2.
 
 **.zsm**: ZSound Music. a VGM-like file meant specifically for the Commander X16 computer.

@@ -27,7 +27,12 @@ uint8_t DivOPLAInterface::ymfm_external_read(ymfm::access_class type, uint32_t a
       if (adpcmBMem==NULL) {
         return 0;
       }
-      return adpcmBMem[address&0xffffff];
+      return adpcmBMem[address&0x3ffff];
+    case ymfm::ACCESS_PCM:
+      if (pcmMem==NULL) {
+        return 0;
+      }
+      return pcmMem[address&0x3fffff];
     default:
       return 0;
   }
@@ -35,4 +40,11 @@ uint8_t DivOPLAInterface::ymfm_external_read(ymfm::access_class type, uint32_t a
 }
 
 void DivOPLAInterface::ymfm_external_write(ymfm::access_class type, uint32_t address, uint8_t data) {
+}
+
+byte DivYMF278MemoryInterface::operator[](unsigned address) const {
+  if (memory && address<size) {
+    return memory[address];
+  }
+  return 0;
 }

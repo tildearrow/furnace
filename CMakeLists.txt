@@ -16,7 +16,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_PROJECT_VERSION_MAJOR 0)
 set(CMAKE_PROJECT_VERSION_MINOR 6)
-set(CMAKE_PROJECT_VERSION_PATCH 5)
+set(CMAKE_PROJECT_VERSION_PATCH 6)
 
 set(BUILD_GUI_DEFAULT ON)
 set(USE_SDL2_DEFAULT ON)
@@ -136,6 +136,7 @@ option(WITH_INSTRUMENTS "Install instruments" ON)
 option(WITH_WAVETABLES "Install wavetables" ON)
 option(SHOW_OPEN_ASSETS_MENU_ENTRY "Show option to open built-in assets directory (on supported platforms)" OFF)
 option(CONSOLE_SUBSYSTEM "Build Furnace with Console subsystem on Windows" OFF)
+option(FLATPAK_WORKAROUNDS "Enable Flatpak-specific workaround for system file picker" OFF)
 if (APPLE)
   option(FORCE_APPLE_BIN "Force enable binary installation to /bin" OFF)
   option(MAKE_BUNDLE "Make a bundle" OFF)
@@ -157,6 +158,10 @@ TEST_BIG_ENDIAN(IS_BIG_ENDIAN)
 
 if (IS_BIG_ENDIAN)
   list(APPEND DEPENDENCIES_DEFINES "TA_BIG_ENDIAN")
+endif()
+
+if (FLATPAK_WORKAROUNDS)
+  list(APPEND DEPENDENCIES_DEFINES "FLATPAK_WORKAROUNDS")
 endif()
 
 set(DEPENDENCIES_COMPILE_OPTIONS "")
@@ -552,6 +557,7 @@ src/engine/platform/sound/nes/fds.c
 src/engine/platform/sound/nes/mmc5.c
 src/engine/platform/sound/vera_psg.c
 src/engine/platform/sound/vera_pcm.c
+src/engine/platform/sound/ymf278b/ymf278.cpp
 
 src/engine/platform/sound/atomicssg/ssg.c
 
@@ -644,6 +650,10 @@ src/engine/platform/sound/ga20/iremga20.cpp
 
 src/engine/platform/sound/sm8521.c
 
+src/engine/platform/sound/supervision.c
+
+src/engine/platform/sound/upd1771c.c
+
 src/engine/platform/sound/d65modified.c
 
 src/engine/platform/sound/ted-sound.c
@@ -665,6 +675,8 @@ src/engine/platform/sound/sid2/wave8580_P_T.cc
 src/engine/platform/sound/sid2/wave8580__ST.cc
 src/engine/platform/sound/sid2/wave.cc
 
+src/engine/platform/sound/sid3.c
+
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
 src/engine/platform/ym2610Interface.cpp
@@ -681,6 +693,14 @@ src/engine/fileOps/text.cpp
 src/engine/fileOps/tfm.cpp
 src/engine/fileOps/xm.cpp
 
+src/engine/fileOps/p.cpp
+src/engine/fileOps/p86.cpp
+src/engine/fileOps/pdx.cpp
+src/engine/fileOps/ppc.cpp
+src/engine/fileOps/pps.cpp
+src/engine/fileOps/pvi.cpp
+src/engine/fileOps/pzi.cpp
+
 src/engine/blip_buf.c
 src/engine/brrUtils.c
 src/engine/safeReader.cpp
@@ -693,6 +713,7 @@ src/engine/configEngine.cpp
 src/engine/dispatchContainer.cpp
 src/engine/engine.cpp
 src/engine/export.cpp
+src/engine/exportDef.cpp
 src/engine/fileOpsIns.cpp
 src/engine/fileOpsSample.cpp
 src/engine/filter.cpp
@@ -708,9 +729,6 @@ src/engine/wavetable.cpp
 src/engine/waveSynth.cpp
 src/engine/wavOps.cpp
 src/engine/vgmOps.cpp
-src/engine/zsmOps.cpp
-src/engine/zsm.cpp
-src/engine/tiunaOps.cpp
 
 src/engine/platform/abstract.cpp
 src/engine/platform/genesis.cpp
@@ -771,6 +789,8 @@ src/engine/platform/snes.cpp
 src/engine/platform/k007232.cpp
 src/engine/platform/ga20.cpp
 src/engine/platform/sm8521.cpp
+src/engine/platform/supervision.cpp
+src/engine/platform/upd1771c.cpp
 src/engine/platform/pv1000.cpp
 src/engine/platform/k053260.cpp
 src/engine/platform/ted.cpp
@@ -783,11 +803,15 @@ src/engine/platform/gbaminmod.cpp
 src/engine/platform/nds.cpp
 src/engine/platform/bifurcator.cpp
 src/engine/platform/sid2.cpp
+src/engine/platform/sid3.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 
 src/engine/export/abstract.cpp
 src/engine/export/amigaValidation.cpp
+src/engine/export/sapr.cpp
+src/engine/export/tiuna.cpp
+src/engine/export/zsm.cpp
 
 src/engine/effect/abstract.cpp
 src/engine/effect/dummy.cpp
@@ -1074,6 +1098,7 @@ if (WITH_LOCALE)
         message(FATAL_ERROR "Could not find libintl! Try enabling USE_MOMO.")
       endif()
       list(APPEND DEPENDENCIES_DEFINES HAVE_LOCALE)
+      list(APPEND DEPENDENCIES_DEFINES GNULIB_overrides_sprintf)
       list(APPEND DEPENDENCIES_INCLUDE_DIRS ${Intl_INCLUDE_DIRS})
       list(APPEND DEPENDENCIES_LIBRARIES ${Intl_LIBRARIES})
       message(STATUS "Using libintl (system)")

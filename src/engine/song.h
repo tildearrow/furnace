@@ -141,6 +141,11 @@ enum DivSystem {
   DIV_SYSTEM_5E01,
   DIV_SYSTEM_BIFURCATOR,
   DIV_SYSTEM_SID2,
+  DIV_SYSTEM_SUPERVISION,
+  DIV_SYSTEM_UPD1771C,
+  DIV_SYSTEM_SID3,
+
+  DIV_SYSTEM_MAX
 };
 
 enum DivEffectType: unsigned short {
@@ -182,6 +187,11 @@ struct DivSubSong {
    * walk through the song and determine loop position.
    */
   bool walk(int& loopOrder, int& loopRow, int& loopEnd, int chans, int jumpTreatment, int ignoreJumpAtEnd, int firstPat=0);
+
+  /**
+   * find song length in rows (up to specified loop point).
+   */
+  void findLength(int loopOrder, int loopRow, double fadeoutLen, int& rowsForFadeout, bool& hasFFxx, std::vector<int>& orders, std::vector<DivGroovePattern>& grooves, int& length, int chans, int jumpTreatment, int ignoreJumpAtEnd, int firstPat=0);
 
   void clearData();
   void optimizePatterns();

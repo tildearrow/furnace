@@ -43,6 +43,7 @@ class FurnaceGUIRenderGL1: public FurnaceGUIRender {
     void clear(ImVec4 color);
     bool newFrame();
     bool canVSync();
+    bool areTexturesSquare();
     void createFontsTexture();
     void destroyFontsTexture();
     void renderGUI();

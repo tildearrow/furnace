@@ -33,12 +33,12 @@ class SoundUnit {
   int rcycle[8];
   unsigned int lfsr[8];
   signed char ns[8];
-  int fns[8];
-  int nsL[8];
-  int nsR[8];
-  int nslow[8];
-  int nshigh[8];
-  int nsband[8];
+  short fns[8];
+  short nsL[8];
+  short nsR[8];
+  short nslow[8];
+  short nshigh[8];
+  short nsband[8];
   int tnsL, tnsR;
   unsigned char ilBufPeriod;
   unsigned short ilBufPos;

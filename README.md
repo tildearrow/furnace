@@ -4,7 +4,7 @@
 
 the biggest multi-system chiptune tracker ever made!
 
-[downloads](#downloads) | [discussion/help](#quick-references) | [developer info](#developer-info) | [Unix/Linux packages](#packages) | [FAQ](#frequently-asked-questions)
+[downloads](#downloads) | [discussion/help](#quick-references) | [developer info](#developer-info) | [Unix/Linux packages](#packages)
 
 ---
 ## downloads
@@ -36,7 +36,7 @@ for other operating systems, you may [build the source](#developer-info).
     - AY-3-8910/YM2149(F) used in several computers and game consoles
     - Commodore VIC used in the VIC-20
     - Microchip AY8930
-    - TI SN76489 used in Sega Master System and BBC Micro
+    - TI SN76489 used in Sega Master System, BBC Micro, and many others
     - PC Speaker
     - Philips SAA1099 used in SAM Coupé
     - OKI MSM5232 used in some arcade boards
@@ -98,7 +98,7 @@ for other operating systems, you may [build the source](#developer-info).
     - Generic PCM DAC
 - mix and match sound chips!
   - over 200 ready to use presets from computers, game consoles and arcade boards...
-  - ...or create your own - up to 32 of them or a total of 128 channels!
+  - ...or create your own presets - up to 32 chips or a total of 128 channels!
 - DefleMask compatibility
   - loads .dmf modules from all versions (beta 1 to 1.1.9)
   - saves .dmf modules - both modern and legacy
@@ -108,6 +108,7 @@ for other operating systems, you may [build the source](#developer-info).
   - some bug/quirk implementation for increased playback accuracy through compatibility flags
 - VGM export
 - ZSM export for Commander X16
+- TIunA export for Atari 2600
 - modular layout that you may adapt to your needs
 - audio file export - entire song, per chip or per channel
 - quality emulation cores (Nuked, MAME, SameBoy, Mednafen PCE, NSFplay, puNES, reSID, Stella, SAASound, vgsound_emu and ymfm)
@@ -137,8 +138,8 @@ for other operating systems, you may [build the source](#developer-info).
 ---
 # quick references
 
-- **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, the [official Revolt](https://rvlt.gg/GRPS6tmc) or the [official Discord server](https://discord.gg/EfrwT2wq7z).
-- **help**: check out the [documentation](doc/README.md).
+- **help**: check out the [documentation](doc/README.md), [quick start guide](doc/1-intro/quickstart.md), and [frequently asked questions (FAQ)](doc/1-intro/faq.md).
+- **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, or the [Discord](https://discord.gg/QhA26dXD23).
 
 ## packages
 
@@ -330,54 +331,7 @@ this will play a compatible file and enable the commands view.
 **note that console mode may not work correctly on Windows. you may have to quit using the Task Manager.**
 
 ---
-# frequently asked questions
 
-> it doesn't open under macOS!
-
-this is due to Apple's application signing policy. a workaround is to right click on the Furnace app icon and select Open.
-
-> it says "Furnace" is damaged and can't be opened!
-
-**as of Monterey, this workaround no longer works (especially on ARM).** yeah, Apple has decided to be strict on the matter.
-if you happen to be on that version (or later), use this workaround instead (on a Terminal):
-
-```
-xattr -d com.apple.quarantine /path/to/Furnace.app
-```
-
-(replace /path/to/ with the path where Furnace.app is located)
-
-you may need to log out and/or reboot after doing this.
-
-> where's the manual?
-
-it is in [doc/](doc/README.md).
-
-> is there a tutorial?
-
-[a video tutorial (of a previous version) is available on YouTube](https://youtube.com/playlist?list=PLCELB6AsTZUnwv0PC5AAGHjvg47F44YQ1), made by Spinning Square Waves.
-
-> I've lost my song!
-
-Furnace keeps backups of the songs you've worked on before. go to **file > restore backup**.
-
-> .spc export?
-
-**not yet!** coming in 0.7 though, eventually...
-
-> ROM export?
-
-**not yet!** coming in 0.7 though, eventually...
-
-> my .dmf song sounds odd at a certain point
-
-Furnace's .dmf compatibility isn't perfect and it's mostly because DefleMask does things different.
-
-> my song sounds terrible after saving as .dmf!
-
-you should only save as .dmf if you're really sure, because the DefleMask format has several limitations. save in Furnace song format instead (.fur).
-
----
 # footnotes
 
 copyright (C) 2021-2024 tildearrow and contributors.

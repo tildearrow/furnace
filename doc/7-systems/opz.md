@@ -117,3 +117,10 @@ no plans have been made for TX81Z MIDI passthrough, because:
 ## info
 
 this chip uses the [FM (OPZ)](../4-instrument/fm-opz.md) instrument editor.
+
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Pseudo-PAL**: run the chip on a PAL clock. such a configuration has never been used in hardware.
+- **Broken pitch macro/slides**: due to an oversight, pitch slides were twice as fast in older versions of Furnace. this option exists for compatibility.

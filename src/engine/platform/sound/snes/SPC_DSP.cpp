@@ -135,24 +135,30 @@ static short const gauss [512] =
 1299,1300,1300,1301,1302,1302,1303,1303,1303,1304,1304,1304,1304,1304,1305,1305,
 };
 
+void SPC_DSP::setupInterpolation(bool interpolate){for(int i=0;i<voice_count;i++){m.voices[i].interpolate=interpolate;}}
+
 inline int SPC_DSP::interpolate( voice_t const* v )
 {
 	// Make pointers into gaussian based on fractional position between samples
-	int offset = v->interp_pos >> 4 & 0xFF;
-	short const* fwd = gauss + 255 - offset;
-	short const* rev = gauss       + offset; // mirror left half of gaussian
+	if (v->interpolate) {
+		int offset = v->interp_pos >> 4 & 0xFF;
+		short const* fwd = gauss + 255 - offset;
+		short const* rev = gauss       + offset; // mirror left half of gaussian
 
-	int const* in = &v->buf [(v->interp_pos >> 12) + v->buf_pos];
-	int out;
-	out  = (fwd [  0] * in [0]) >> 11;
-	out += (fwd [256] * in [1]) >> 11;
-	out += (rev [256] * in [2]) >> 11;
-	out = (int16_t) out;
-	out += (rev [  0] * in [3]) >> 11;
+		int const* in = &v->buf [(v->interp_pos >> 12) + v->buf_pos];
+		int out;
+		out  = (fwd [  0] * in [0]) >> 11;
+		out += (fwd [256] * in [1]) >> 11;
+		out += (rev [256] * in [2]) >> 11;
+		out = (int16_t) out;
+		out += (rev [  0] * in [3]) >> 11;
 
-	CLAMP16( out );
-	out &= ~1;
-	return out;
+		CLAMP16( out );
+		out &= ~1;
+		return out;
+	} else {
+		return v->buf [(v->interp_pos >> 12) + v->buf_pos]; //Furnace addition -- no interpolation
+	}
 }
 
 

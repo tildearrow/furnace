@@ -87,6 +87,18 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
       }
     }
     ImGui::SameLine();
+    if (ImGui::SmallButton(_("Shown in pattern"))) {
+      for (int i=0; i<DIV_MAX_CHANS; i++) {
+        audioExportOptions.channelMask[i]=e->curSubSong->chanShow[i];
+      }
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton(_("Shown in oscilloscope"))) {
+      for (int i=0; i<DIV_MAX_CHANS; i++) {
+        audioExportOptions.channelMask[i]=e->curSubSong->chanShowChanOsc[i];
+      }
+    }
+    ImGui::SameLine();
     if (ImGui::SmallButton(_("Invert"))) {
       for (int i=0; i<DIV_MAX_CHANS; i++) {
         audioExportOptions.channelMask[i]=!audioExportOptions.channelMask[i];
@@ -227,111 +239,126 @@ void FurnaceGUI::drawExportVGM(bool onWindow) {
   }
 }
 
-void FurnaceGUI::drawExportZSM(bool onWindow) {
+void FurnaceGUI::drawExportROM(bool onWindow) {
   exitDisabledTimer=1;
 
-  ImGui::Text(_("Commander X16 Zsound Music File"));
-  if (ImGui::InputInt(_("Tick Rate (Hz)"),&zsmExportTickRate,1,2)) {
-    if (zsmExportTickRate<1) zsmExportTickRate=1;
-    if (zsmExportTickRate>44100) zsmExportTickRate=44100;
+  const DivROMExportDef* def=e->getROMExportDef(romTarget);
+
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+  if (ImGui::BeginCombo("##ROMTarget",def==NULL?"<select one>":def->name)) {
+    for (int i=0; i<DIV_ROM_MAX; i++) {
+      const DivROMExportDef* newDef=e->getROMExportDef((DivROMExportOptions)i);
+      if (newDef!=NULL) {
+        if (romExportAvail[i]) {
+          if (ImGui::Selectable(newDef->name)) {
+            romTarget=(DivROMExportOptions)i;
+            romMultiFile=newDef->multiOutput;
+            romConfig=DivConfig();
+            if (newDef->fileExt==NULL) {
+              romFilterName="";
+              romFilterExt="";
+            } else {
+              romFilterName=newDef->fileType;
+              romFilterExt=newDef->fileExt;
+            }
+          }
+        }
+      }
+    }
+    ImGui::EndCombo();
   }
-  ImGui::Checkbox(_("loop"),&zsmExportLoop);
-  ImGui::SameLine();
-  ImGui::Checkbox(_("optimize size"),&zsmExportOptimize);
+
+  if (def!=NULL) {
+    ImGui::Text("by %s",def->author);
+
+    ImGui::TextWrapped("%s",def->description);
+  }
+
+  ImGui::Separator();
+
+  bool altered=false;
+
+  switch (romTarget) {
+    case DIV_ROM_TIUNA: {
+      String asmBaseLabel=romConfig.getString("baseLabel","song");
+      int firstBankSize=romConfig.getInt("firstBankSize",3072);
+      int otherBankSize=romConfig.getInt("otherBankSize",4096-48);
+      int sysToExport=romConfig.getInt("sysToExport",-1);
+
+      // TODO; validate label
+      if (ImGui::InputText(_("base song label name"),&asmBaseLabel)) {
+        altered=true;
+      }
+      if (ImGui::InputInt(_("max size in first bank"),&firstBankSize,1,100)) {
+        if (firstBankSize<0) firstBankSize=0;
+        if (firstBankSize>4096) firstBankSize=4096;
+        altered=true;
+      }
+      if (ImGui::InputInt(_("max size in other banks"),&otherBankSize,1,100)) {
+        if (otherBankSize<16) otherBankSize=16;
+        if (otherBankSize>4096) otherBankSize=4096;
+        altered=true;
+      }
+      
+      ImGui::Text(_("chip to export:"));
+      for (int i=0; i<e->song.systemLen; i++) {
+        DivSystem sys=e->song.system[i];
+        bool isTIA=(sys==DIV_SYSTEM_TIA);
+        ImGui::BeginDisabled(!isTIA);
+        if (ImGui::RadioButton(fmt::sprintf("%d. %s##_SYSV%d",i+1,getSystemName(e->song.system[i]),i).c_str(),sysToExport==i)) {
+          sysToExport=i;
+          altered=true;
+        }
+        ImGui::EndDisabled();
+      }
+      if (altered) {
+        romConfig.set("baseLabel",asmBaseLabel);
+        romConfig.set("firstBankSize",firstBankSize);
+        romConfig.set("otherBankSize",otherBankSize);
+        romConfig.set("sysToExport",sysToExport);
+      }
+      break;
+    }
+    case DIV_ROM_ZSM: {
+      int zsmExportTickRate=romConfig.getInt("zsmrate",60);
+      bool zsmExportLoop=romConfig.getBool("loop",true);
+      bool zsmExportOptimize=romConfig.getBool("optimize",true);
+
+      if (ImGui::InputInt(_("Tick Rate (Hz)"),&zsmExportTickRate,1,2)) {
+        if (zsmExportTickRate<1) zsmExportTickRate=1;
+        if (zsmExportTickRate>44100) zsmExportTickRate=44100;
+        altered=true;
+      }
+      if (ImGui::Checkbox(_("loop"),&zsmExportLoop)) {
+        altered=true;
+      }
+      if (ImGui::Checkbox(_("optimize size"),&zsmExportOptimize)) {
+        altered=true;
+      }
+      if (altered) {
+        romConfig.set("zsmrate",zsmExportTickRate);
+        romConfig.set("loop",zsmExportLoop);
+        romConfig.set("optimize",zsmExportOptimize);
+      }
+      break;
+    }
+    case DIV_ROM_ABSTRACT:
+      ImGui::TextWrapped("%s",_("select a target from the menu at the top of this dialog."));
+      break;
+    default:
+      ImGui::TextWrapped("%s",_("this export method doesn't offer any options."));
+      break;
+  }
+  /*
+  */
+
   if (onWindow) {
     ImGui::Separator();
     if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
     ImGui::SameLine();
   }
   if (ImGui::Button(_("Export"),ImVec2(200.0f*dpiScale,0))) {
-    openFileDialog(GUI_FILE_EXPORT_ZSM);
-    ImGui::CloseCurrentPopup();
-  }
-}
-
-void FurnaceGUI::drawExportTiuna(bool onWindow) {
-  exitDisabledTimer=1;
-
-  ImGui::Text(_("for use with TIunA driver. outputs asm source."));
-  ImGui::InputText(_("base song label name"),&asmBaseLabel); // TODO: validate label
-  if (ImGui::InputInt(_("max size in first bank"),&tiunaFirstBankSize,1,100)) {
-    if (tiunaFirstBankSize<0) tiunaFirstBankSize=0;
-    if (tiunaFirstBankSize>4096) tiunaFirstBankSize=4096;
-  }
-  if (ImGui::InputInt(_("max size in other banks"),&tiunaOtherBankSize,1,100)) {
-    if (tiunaOtherBankSize<16) tiunaOtherBankSize=16;
-    if (tiunaOtherBankSize>4096) tiunaOtherBankSize=4096;
-  }
-  
-  ImGui::Text(_("chips to export:"));
-  int selected=0;
-  for (int i=0; i<e->song.systemLen; i++) {
-    DivSystem sys=e->song.system[i];
-    bool isTIA=sys==DIV_SYSTEM_TIA;
-    ImGui::BeginDisabled((!isTIA) || (selected>=1));
-    ImGui::Checkbox(fmt::sprintf("%d. %s##_SYSV%d",i+1,getSystemName(e->song.system[i]),i).c_str(),&willExport[i]);
-    ImGui::EndDisabled();
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-      if (!isTIA) {
-        ImGui::SetTooltip(_("this chip is not supported by the file format!"));
-      } else if (selected>=1) {
-        ImGui::SetTooltip(_("only one Atari TIA is supported!"));
-      }
-    }
-    if (isTIA && willExport[i]) selected++;
-  }
-  if (selected>0) {
-    if (onWindow) {
-      ImGui::Separator();
-      if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
-      ImGui::SameLine();
-    }
-    if (ImGui::Button(_("Export"),ImVec2(200.0f*dpiScale,0))) {
-      openFileDialog(GUI_FILE_EXPORT_TIUNA);
-      ImGui::CloseCurrentPopup();
-    }
-  } else {
-    ImGui::Text(_("nothing to export"));
-    if (onWindow) {
-      ImGui::Separator();
-      if (ImGui::Button(_("Cancel"),ImVec2(400.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
-    }
-  }
-}
-
-void FurnaceGUI::drawExportAmigaVal(bool onWindow) {
-  exitDisabledTimer=1;
-
-  ImGui::Text(_(
-    "this is NOT ROM export! only use for making sure the\n"
-    "Furnace Amiga emulator is working properly by\n"
-    "comparing it with real Amiga output."
-  ));
-  ImGui::AlignTextToFramePadding();
-  ImGui::Text(_("Directory"));
-  ImGui::SameLine();
-  ImGui::InputText("##AVDPath",&workingDirROMExport);
-  if (onWindow) {
-    ImGui::Separator();
-    if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
-    ImGui::SameLine();
-  }
-  if (ImGui::Button(_("Bake Data"),ImVec2(200.0f*dpiScale,0))) {
-    std::vector<DivROMExportOutput> out=e->buildROM(DIV_ROM_AMIGA_VALIDATION);
-    if (workingDirROMExport.size()>0) {
-      if (workingDirROMExport[workingDirROMExport.size()-1]!=DIR_SEPARATOR) workingDirROMExport+=DIR_SEPARATOR_STR;
-    }
-    for (DivROMExportOutput& i: out) {
-      String path=workingDirROMExport+i.name;
-      FILE* outFile=ps_fopen(path.c_str(),"wb");
-      if (outFile!=NULL) {
-        fwrite(i.data->getFinalBuf(),1,i.data->size(),outFile);
-        fclose(outFile);
-      }
-      i.data->finish();
-      delete i.data;
-    }
-    showError(fmt::sprintf(_("Done! Baked %d files."),(int)out.size()));
+    openFileDialog(GUI_FILE_EXPORT_ROM);
     ImGui::CloseCurrentPopup();
   }
 }
@@ -412,36 +439,9 @@ void FurnaceGUI::drawExport() {
         drawExportVGM(true);
         ImGui::EndTabItem();
       }
-      int numZSMCompat=0;
-      for (int i=0; i<e->song.systemLen; i++) {
-        if ((e->song.system[i]==DIV_SYSTEM_VERA) || (e->song.system[i]==DIV_SYSTEM_YM2151)) numZSMCompat++;
-      }
-      if (numZSMCompat>0) {
-        if (ImGui::BeginTabItem(_("ZSM"))) {
-          drawExportZSM(true);
-          ImGui::EndTabItem();
-        }
-      }
-      bool hasTiunaCompat=false;
-      for (int i=0; i<e->song.systemLen; i++) {
-        if (e->song.system[i]==DIV_SYSTEM_TIA) {
-          hasTiunaCompat=true;
-          break;
-        }
-      }
-      if (hasTiunaCompat) {
-        if (ImGui::BeginTabItem("TIunA")) {
-          drawExportTiuna(true);
-          ImGui::EndTabItem();
-        }
-      }
-      int numAmiga=0;
-      for (int i=0; i<e->song.systemLen; i++) {
-        if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
-      }
-      if (numAmiga && settings.iCannotWait) {
-        if (ImGui::BeginTabItem(_("Amiga Validation"))) {
-          drawExportAmigaVal(true);
+      if (romExportExists) {
+        if (ImGui::BeginTabItem(_("ROM"))) {
+          drawExportROM(true);
           ImGui::EndTabItem();
         }
       }
@@ -466,14 +466,8 @@ void FurnaceGUI::drawExport() {
     case GUI_EXPORT_VGM:
       drawExportVGM(true);
       break;
-    case GUI_EXPORT_ZSM:
-      drawExportZSM(true);
-      break;
-    case GUI_EXPORT_TIUNA:
-      drawExportTiuna(true);
-      break;
-    case GUI_EXPORT_AMIGA_VAL:
-      drawExportAmigaVal(true);
+    case GUI_EXPORT_ROM:
+      drawExportROM(true);
       break;
     case GUI_EXPORT_TEXT:
       drawExportText(true);
@@ -496,10 +490,6 @@ void FurnaceGUI::drawExport() {
       }
       if (ImGui::Button(_("Set pitch linearity to Partial"))) {
         e->song.linearPitch=1;
-        ImGui::CloseCurrentPopup();
-      }
-      if (ImGui::Button(_("Enable multi-threading settings"))) {
-        settings.showPool=1;
         ImGui::CloseCurrentPopup();
       }
       if (ImGui::Button(_("Set fat to max"))) {

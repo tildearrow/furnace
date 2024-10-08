@@ -20,18 +20,28 @@
 #include "engine.h"
 
 #include "export/amigaValidation.h"
+#include "export/sapr.h"
+#include "export/tiuna.h"
+#include "export/zsm.h"
 
-std::vector<DivROMExportOutput> DivEngine::buildROM(DivROMExportOptions sys) {
+DivROMExport* DivEngine::buildROM(DivROMExportOptions sys) {
   DivROMExport* exporter=NULL;
   switch (sys) {
     case DIV_ROM_AMIGA_VALIDATION:
       exporter=new DivExportAmigaValidation;
       break;
+    case DIV_ROM_TIUNA:
+      exporter=new DivExportTiuna;
+      break;
+    case DIV_ROM_ZSM:
+      exporter=new DivExportZSM;
+      break;
+    case DIV_ROM_SAP_R:
+      exporter=new DivExportSAPR;
+      break;
     default:
       exporter=new DivROMExport;
       break;
   }
-  std::vector<DivROMExportOutput> ret=exporter->go(this);
-  delete exporter;
-  return ret;
+  return exporter;
 }

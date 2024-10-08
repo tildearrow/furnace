@@ -161,6 +161,8 @@ void FurnaceGUI::drawCSPlayer() {
             ImGui::TableNextColumn();
             ImGui::Text(_("vols"));
             ImGui::TableNextColumn();
+            ImGui::Text(_("volst"));
+            ImGui::TableNextColumn();
             ImGui::Text(_("vib"));
             ImGui::TableNextColumn();
             ImGui::Text(_("porta"));
@@ -188,6 +190,8 @@ void FurnaceGUI::drawCSPlayer() {
               ImGui::Text("$%.4X",state->volume);
               ImGui::TableNextColumn();
               ImGui::Text("%+d",state->volSpeed);
+              ImGui::TableNextColumn();
+              ImGui::Text("%+d",state->volSpeedTarget);
               ImGui::TableNextColumn();
               ImGui::Text("%d/%d (%d)",state->vibratoDepth,state->vibratoRate,state->vibratoPos);
               ImGui::TableNextColumn();

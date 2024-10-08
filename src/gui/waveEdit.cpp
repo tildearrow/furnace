@@ -19,6 +19,7 @@
 
 #define _USE_MATH_DEFINES
 #include "gui.h"
+#include "util.h"
 #include "plot_nolerp.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
@@ -39,111 +40,6 @@ const char* waveInterpolations[4]={
   _N("Cosine"),
   _N("Cubic")
 };
-
-double sinus(double x) {
-  return sin(x);
-}
-double rectSin(double x) {
-  return sin(x) > 0 ? sin(x) : 0;
-}
-double absSin(double x) {
-  return fabs(sin(x));
-}
-
-double square(double x) {
-  return fmod(x, (2 * M_PI)) >= M_PI ? -1 : 1;
-}
-double rectSquare(double x) {
-  return square(x) > 0 ? square(x) : 0;
-}
-
-double quartSin(double x) {
-  return absSin(x) * rectSquare(2 * x);
-}
-double squiSin(double x) {
-  return sin(x) >= 0 ? sin(2 * x) : 0;
-}
-double squiAbsSin(double x) {
-  return fabs(squiSin(x));
-}
-
-double saw(double x) {
-  return atan(tan(x / 2)) / (M_PI / 2);
-}
-double rectSaw(double x) {
-  return saw(x) > 0 ? saw(x) : 0;
-}
-double absSaw(double x) {
-  return saw(x) < 0 ? saw(x) + 1 : saw(x);
-}
-
-
-double cubSaw(double x) {
-  return pow(saw(x), 3);
-}
-double rectCubSaw(double x) {
-  return pow(rectSaw(x), 3);
-}
-double absCubSaw(double x) {
-  return pow(absSaw(x), 3);
-}
-
-double cubSine(double x) {
-  return pow(sin(x), 3);
-}
-double rectCubSin(double x) {
-  return pow(rectSin(x), 3);
-}
-double absCubSin(double x) {
-  return pow(absSin(x), 3);
-}
-double quartCubSin(double x) {
-  return pow(quartSin(x), 3);
-}
-double squishCubSin(double x) {
-  return pow(squiSin(x), 3);
-}
-double squishAbsCubSin(double x) {
-  return pow(squiAbsSin(x), 3);
-}
-
-double triangle(double x) {
-  return asin(sin(x)) / (M_PI / 2);
-}
-double rectTri(double x) {
-  return triangle(x) > 0 ? triangle(x) : 0;
-}
-double absTri(double x) {
-  return fabs(triangle(x));
-}
-double quartTri(double x) {
-  return absTri(x) * rectSquare(2 * x);
-}
-double squiTri(double x) {
-  return sin(x) >= 0 ? triangle(2 * x) : 0;
-}
-double absSquiTri(double x) {
-  return fabs(squiTri(x));
-}
-
-double cubTriangle(double x) {
-  return pow(triangle(x), 3);
-}
-double cubRectTri(double x) {
-  return pow(rectTri(x), 3);
-}
-double cubAbsTri(double x) {
-  return pow(absTri(x), 3);
-}
-double cubQuartTri(double x) {
-  return pow(quartTri(x), 3);
-}
-double cubSquiTri(double x) {
-  return pow(squiTri(x), 3);
-}
-double absCubSquiTri(double x) {
-  return fabs(cubSquiTri(x));
-}
 
 typedef double (*WaveFunc) (double a);
 
@@ -495,7 +391,7 @@ void FurnaceGUI::drawWaveEdit() {
         ImGui::TableNextColumn();
         ImGui::Text(_("Width"));
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("use a width of:\n- any on Amiga/N163\n- 32 on Game Boy, PC Engine, SCC, Konami Bubble System, Namco WSG, Virtual Boy and WonderSwan\n- 64 on FDS\n- 128 on X1-010\nany other widths will be scaled during playback."));
+          ImGui::SetTooltip(_("use a width of:\n- any on Amiga/N163\n- 32 on Game Boy, PC Engine, SCC, Konami Bubble System, Namco WSG, Virtual Boy and WonderSwan\n- 64 on FDS\n- 128 on X1-010\n- 256 on SID3\nany other widths will be scaled during playback."));
         }
         ImGui::SameLine();
         ImGui::SetNextItemWidth(96.0f*dpiScale);
@@ -509,7 +405,7 @@ void FurnaceGUI::drawWaveEdit() {
         ImGui::SameLine();
         ImGui::Text(_("Height"));
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("use a height of:\n- 16 for Game Boy, WonderSwan, Namco WSG, Konami Bubble System, X1-010 Envelope shape and N163\n- 32 for PC Engine\n- 64 for FDS and Virtual Boy\n- 256 for X1-010 and SCC\nany other heights will be scaled during playback."));
+          ImGui::SetTooltip(_("use a height of:\n- 16 for Game Boy, WonderSwan, Namco WSG, Konami Bubble System, X1-010 Envelope shape and N163\n- 32 for PC Engine\n- 64 for FDS and Virtual Boy\n- 256 for X1-010, SCC and SID3\nany other heights will be scaled during playback."));
         }
         ImGui::SameLine();
         ImGui::SetNextItemWidth(96.0f*dpiScale);
@@ -947,6 +843,7 @@ void FurnaceGUI::drawWaveEdit() {
                       wave->len=waveGenScaleX;
                       MARK_MODIFIED;
                     });
+                    e->notifyWaveChange(curWave);
                   }
 
                   ImGui::TableNextRow();
@@ -965,6 +862,7 @@ void FurnaceGUI::drawWaveEdit() {
                       wave->max=waveGenScaleY-1;
                       MARK_MODIFIED;
                     });
+                    e->notifyWaveChange(curWave);
                   }
 
                   ImGui::TableNextRow();
@@ -987,6 +885,7 @@ void FurnaceGUI::drawWaveEdit() {
                       }
                       MARK_MODIFIED;
                     });
+                    e->notifyWaveChange(curWave);
                   }
 
                   ImGui::TableNextRow();
@@ -1004,6 +903,7 @@ void FurnaceGUI::drawWaveEdit() {
                       }
                       MARK_MODIFIED;
                     });
+                    e->notifyWaveChange(curWave);
                   }
 
                   ImGui::TableNextRow();
@@ -1030,6 +930,7 @@ void FurnaceGUI::drawWaveEdit() {
                       }
                       MARK_MODIFIED;
                     });
+                    e->notifyWaveChange(curWave);
                   }
 
                   ImGui::TableNextRow();
@@ -1049,6 +950,7 @@ void FurnaceGUI::drawWaveEdit() {
                       }
                       MARK_MODIFIED;
                     });
+                    e->notifyWaveChange(curWave);
                   }
 
                   ImGui::EndTable();
@@ -1092,6 +994,7 @@ void FurnaceGUI::drawWaveEdit() {
                     }
                     MARK_MODIFIED;
                   });
+                  e->notifyWaveChange(curWave);
                 }
                 if (ImGui::Button(_("Invert"),buttonSizeHalf)) {
                   e->lockEngine([this,wave]() {
@@ -1100,6 +1003,7 @@ void FurnaceGUI::drawWaveEdit() {
                     }
                     MARK_MODIFIED;
                   });
+                  e->notifyWaveChange(curWave);
                 }
                 ImGui::SameLine();
                 if (ImGui::Button(_("Reverse"),buttonSizeHalf)) {
@@ -1112,6 +1016,7 @@ void FurnaceGUI::drawWaveEdit() {
                     }
                     MARK_MODIFIED;
                   });
+                  e->notifyWaveChange(curWave);
                 }
 
                 if (ImGui::Button(_("Half"),buttonSizeHalf)) {
@@ -1121,6 +1026,7 @@ void FurnaceGUI::drawWaveEdit() {
                   for (int i=0; i<wave->len; i++) {
                     wave->data[i]=origData[i>>1];
                   }
+                  e->notifyWaveChange(curWave);
                   MARK_MODIFIED;
                 }
                 ImGui::SameLine();
@@ -1131,6 +1037,7 @@ void FurnaceGUI::drawWaveEdit() {
                   for (int i=0; i<wave->len; i++) {
                     wave->data[i]=origData[(i*2)%wave->len];
                   }
+                  e->notifyWaveChange(curWave);
                   MARK_MODIFIED;
                 }
 
@@ -1145,6 +1052,7 @@ void FurnaceGUI::drawWaveEdit() {
                     }
                     MARK_MODIFIED;
                   });
+                  e->notifyWaveChange(curWave);
                 }
                 if (ImGui::Button(_("Randomize"),buttonSize)) {
                   if (wave->max>0) e->lockEngine([this,wave]() {
@@ -1153,6 +1061,7 @@ void FurnaceGUI::drawWaveEdit() {
                     }
                     MARK_MODIFIED;
                   });
+                  e->notifyWaveChange(curWave);
                 }
                 ImGui::EndTabItem();
               }

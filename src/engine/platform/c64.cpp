@@ -158,6 +158,21 @@ void DivPlatformC64::tick(bool sysTick) {
     int i=chanOrder[_i];
 
     chan[i].std.next();
+
+    if (sysTick) {
+      if (chan[i].pw_slide!=0) {
+        chan[i].duty-=chan[i].pw_slide;
+        chan[i].duty=CLAMP(chan[i].duty,0,0xfff);
+        rWrite(i*7+2,chan[i].duty&0xff);
+        rWrite(i*7+3,(chan[i].duty>>8)|(chan[i].outVol<<4));
+      }
+      if (cutoff_slide!=0) {
+        filtCut+=cutoff_slide;
+        filtCut=CLAMP(filtCut,0,0x7ff);
+        updateFilter();
+      }
+    }
+
     if (chan[i].std.vol.had) {
       vol=MIN(15,chan[i].std.vol.val);
       willUpdateFilter=true;
@@ -220,6 +235,10 @@ void DivPlatformC64::tick(bool sysTick) {
     }
     if (chan[i].std.ex2.had) {
       filtRes=chan[i].std.ex2.val&15;
+      willUpdateFilter=true;
+    }
+    if (chan[i].std.ex3.had) {
+      chan[i].filter=(chan[i].std.ex3.val&1);
       willUpdateFilter=true;
     }
     if (chan[i].std.ex4.had) {
@@ -301,7 +320,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].test=false;
-      if (chan[c.chan].insChanged || chan[c.chan].resetDuty || ins->std.waveMacro.len>0) {
+      if (((chan[c.chan].insChanged || chan[c.chan].resetDuty || ins->std.waveMacro.len>0) && ins->c64.resetDuty) || chan[c.chan].resetDuty) {
         chan[c.chan].duty=ins->c64.duty;
         rWrite(c.chan*7+2,chan[c.chan].duty&0xff);
         rWrite(c.chan*7+3,chan[c.chan].duty>>8);
@@ -531,6 +550,12 @@ int DivPlatformC64::dispatch(DivCommand c) {
       chan[c.chan].release=c.value&15;
       rWrite(c.chan*7+6,(chan[c.chan].sustain<<4)|(chan[c.chan].release));
       break;
+    case DIV_CMD_C64_PW_SLIDE:
+      chan[c.chan].pw_slide=c.value*c.value2;
+      break;
+    case DIV_CMD_C64_CUTOFF_SLIDE:
+      cutoff_slide=c.value*c.value2;
+      break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
       break;
@@ -596,6 +621,23 @@ DivMacroInt* DivPlatformC64::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+void DivPlatformC64::getPaired(int ch, std::vector<DivChannelPair>& ret) {
+  if (chan[ch].ring) {
+    if (ch==0){
+      ret.push_back(DivChannelPair(_("ring"),2));
+    } else {
+      ret.push_back(DivChannelPair(_("ring"),(ch-1)%3));
+    }
+  }
+  if (chan[ch].sync) {
+    if (ch==0) {
+      ret.push_back(DivChannelPair(_("sync"),2));
+    } else {
+      ret.push_back(DivChannelPair(_("sync"),(ch-1)%3));
+    }
+  }
+}
+
 DivChannelModeHints DivPlatformC64::getModeHints(int ch) {
   DivChannelModeHints ret;
   ret.count=1;
@@ -649,7 +691,10 @@ void DivPlatformC64::reset() {
     chan[i].std.setEngine(parent);
     fakeLow[i]=0;
     fakeBand[i]=0;
+    chan[i].pw_slide=0;
   }
+
+  cutoff_slide=0;
 
   if (sidCore==2) {
     dSID_init(sid_d,chipClock,rate,sidIs6581?6581:8580,needInitTables);
