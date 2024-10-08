@@ -1600,6 +1600,53 @@ struct PendingDrawOsc {
 
 struct FurnaceCV;
 
+enum SettingsTypes {
+  SETTING_CHECKBOX
+};
+
+struct SettingDef {
+  void* data;
+  const char* name;
+  const char* tooltip;
+  SettingsTypes type;
+
+  SettingDef():
+    data(NULL),
+    name(NULL),
+    tooltip(NULL),
+    type((SettingsTypes)0) {}
+
+  SettingDef(void* d, const char* n, const char* t, SettingsTypes p) {
+    data=d;
+    name=n;
+    tooltip=t;
+    type=p;
+  }
+};
+
+struct SettingsCategory {
+  int id;
+  const char* name;
+  std::vector<SettingsCategory> children;
+  std::vector<SettingDef> settings;
+  bool expandChild;
+
+  SettingsCategory():
+    id(0),
+    name(NULL),
+    children({}),
+    settings({}),
+    expandChild(false) {}
+  
+  SettingsCategory(int i, const char* n, std::initializer_list<SettingsCategory> c, std::initializer_list<SettingDef> s):
+    expandChild(false) {
+    id=i;
+    name=n;
+    children=c;
+    settings=s;
+  }
+};
+
 class FurnaceGUI {
   DivEngine* e;
 
@@ -1760,7 +1807,11 @@ class FurnaceGUI {
   int totalFiles;
 
   struct Settings {
+    SettingsCategory categories[10];
+    SettingsCategory activeCategory; // yes a boring copy
+    ImGuiTextFilter filter;
     bool settingsChanged;
+
     int mainFontSize, patFontSize, headFontSize, iconSize;
     int audioEngine;
     int audioQuality;
@@ -2922,6 +2973,11 @@ class FurnaceGUI {
 
   void readConfig(DivConfig& conf, FurnaceGUISettingGroups groups=GUI_SETTINGS_ALL);
   void writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups=GUI_SETTINGS_ALL);
+
+  void setupSettingsCategories();
+  void drawSettingsCategory(SettingsCategory* cat);
+  void drawSettingsCategories();
+  void drawSettingsItems();
 
   void syncSettings();
   void commitSettings();

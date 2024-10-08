@@ -33,6 +33,7 @@
 #include "misc/freetype/imgui_freetype.h"
 #include "scaling.h"
 #include <fmt/printf.h>
+#include <imgui.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -347,6 +348,107 @@ const char* specificControls[18]={
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); \
   if (ImGui::Combo("##" _name "QR",&settings._render,LocalizedComboGetter,coreQualities,6)) settingsChanged=true;
 
+#define SETTINGS_CHANGED settings.settingsChanged=true;
+
+void FurnaceGUI::setupSettingsCategories() {
+  settings.categories[0]=SettingsCategory(1,"General", 
+    {
+      SettingsCategory(2,"child",
+        {},
+        {
+          SettingDef(&settingsChanged, "setting", "its a setting", SETTING_CHECKBOX),
+          SettingDef(&settingsChanged, "setting 2", "its a setting", SETTING_CHECKBOX),
+          SettingDef(&settingsChanged, "setting 3", "its a setting", SETTING_CHECKBOX),
+          SettingDef(&settingsChanged, "setting 4", "its a setting", SETTING_CHECKBOX)
+        }
+      ),SettingsCategory(3,"child 2",
+        {},
+        {
+          SettingDef(&settingsChanged, "setting", "its a setting", SETTING_CHECKBOX),
+          SettingDef(&settingsChanged, "setting 2", "its a setting", SETTING_CHECKBOX),
+          SettingDef(&settingsChanged, "setting 3", "its a setting", SETTING_CHECKBOX),
+          SettingDef(&settingsChanged, "setting 4", "its a setting", SETTING_CHECKBOX)
+        }
+      )
+    },
+    {
+      SettingDef(&settingsChanged, "general setting", "its a setting", SETTING_CHECKBOX)
+    }
+  );
+
+  settings.categories[1]=SettingsCategory(4,"General 2", 
+    {
+      SettingsCategory(5,"child",
+        {},
+        {
+          SettingDef(&settingsChanged, "setting", "its a setting", SETTING_CHECKBOX),
+          SettingDef(&settingsChanged, "setting 2", "its a setting", SETTING_CHECKBOX),
+          SettingDef(&settingsChanged, "setting 3", "its a setting", SETTING_CHECKBOX),
+          SettingDef(&settingsChanged, "setting 4", "its a setting", SETTING_CHECKBOX)
+        }
+      ),SettingsCategory(6,"child 2",
+        {},
+        {
+          SettingDef(&settingsChanged, "setting", "its a setting", SETTING_CHECKBOX),
+          SettingDef(&settingsChanged, "setting 2", "its a setting", SETTING_CHECKBOX),
+          SettingDef(&settingsChanged, "setting 3", "its a setting", SETTING_CHECKBOX),
+          SettingDef(&settingsChanged, "setting 4", "its a setting", SETTING_CHECKBOX)
+        }
+      )
+    },
+    {
+      SettingDef(&settingsChanged, "general setting", "its a setting", SETTING_CHECKBOX)
+    }
+  );
+}
+
+void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {
+  if (cat->children.size()>0) {
+    ImGuiTreeNodeFlags f=ImGuiTreeNodeFlags_OpenOnDoubleClick;
+    if (settings.activeCategory.id==cat->id) f|=ImGuiTreeNodeFlags_Selected;
+    cat->expandChild=ImGui::TreeNodeEx(cat->name,f);
+    if (ImGui::IsItemClicked()) {
+      settings.activeCategory=*cat;
+    }
+  } else { // a lonely child...
+    if (ImGui::Selectable(cat->name,settings.activeCategory.id==cat->id)) {
+      settings.activeCategory=*cat;
+    }
+  }
+  if (cat->children.size()>0 && cat->expandChild) {
+    ImGui::Indent();
+    for (SettingsCategory child:cat->children) drawSettingsCategory(&child);
+    ImGui::Unindent();
+    ImGui::TreePop();
+  }
+}
+
+void FurnaceGUI::drawSettingsCategories() {
+  for (int i=0;i<2;i++) {
+    drawSettingsCategory(&settings.categories[i]);
+  }
+}
+
+void FurnaceGUI::drawSettingsItems() {
+  if (settings.activeCategory.name==NULL) return;
+  for (SettingDef s:settings.activeCategory.settings) {
+    switch (s.type) {
+      case SETTING_CHECKBOX: {
+        if (ImGui::Checkbox(s.name, (bool*)s.data)) SETTINGS_CHANGED;
+        if (s.tooltip) {
+          ImGui::SameLine();
+          ImGui::TextColored(ImVec4(0.5f,0.5f,0.5f,0.9f),"(?)");
+          if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) {
+            ImGui::SetTooltip("%s",s.tooltip);
+          }
+        }
+        break;
+      }
+      default: break;
+    }
+  }
+}
+
 String stripName(String what) {
   String ret;
   for (char& i: what) {
@@ -570,6 +672,22 @@ void FurnaceGUI::drawSettings() {
     }
     if (ImGui::BeginTabBar("settingsTab")) {
       // NEW SETTINGS HERE
+      CONFIG_SECTION("test") {
+        CONFIG_SUBSECTION("here");
+        if (ImGui::BeginTable("set3", 2,ImGuiTableFlags_Resizable|ImGuiTableFlags_BordersInner)) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          if (ImGui::BeginChild("SettingCategories",ImGui::GetContentRegionAvail(),false)) {
+            settings.filter.Draw(_("Search"));
+            drawSettingsCategories();
+            ImGui::EndChild();
+          }
+          ImGui::TableNextColumn();
+          drawSettingsItems();
+          ImGui::EndTable();
+        }
+        END_SECTION;
+      }
       CONFIG_SECTION(_("General")) {
         // SUBSECTION PROGRAM
         CONFIG_SUBSECTION(_("Program"));

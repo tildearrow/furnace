@@ -8978,4 +8978,6 @@ FurnaceGUI::FurnaceGUI():
   strncpy(macroRelLabel,"REL",32);
   strncpy(emptyLabel,"...",32);
   strncpy(emptyLabel2,"..",32);
+
+  setupSettingsCategories();
 }
