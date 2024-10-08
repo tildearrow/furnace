@@ -1261,7 +1261,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
     SUB_ENTRY(
-      _("Sharp X1 + FM Addon"), {
+      _("Sharp X1 + FM add-on"), {
         CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=3"),
         CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2")
       }
@@ -2077,13 +2077,13 @@ void FurnaceGUI::initSystemPresets() {
       }
     );
     SUB_ENTRY(
-      _("Seta 1 + FM addon"), {
+      _("Seta 1 + FM add-on"), {
         CH(DIV_SYSTEM_X1_010, 1.0f, 0, ""),
         CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=2") // Discrete YM3438
       }
     );
     SUB_ENTRY(
-      _("Seta 1 + FM addon (extended channel 3)"), {
+      _("Seta 1 + FM add-on (extended channel 3)"), {
         CH(DIV_SYSTEM_X1_010, 1.0f, 0, ""),
         CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=2") // Discrete YM3438
       }
