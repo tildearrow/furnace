@@ -7777,7 +7777,7 @@ void FurnaceGUI::drawInsEdit() {
             if (ImGui::IsItemHovered()) {
               ImGui::SetTooltip(_("Only for OPL4 PCM."));
             }
-            P(ImGui::Checkbox(_("Level Direct"),&ins->multipcm.levelDirect));
+            P(ImGui::Checkbox(_("Disable volume change ramp"),&ins->multipcm.levelDirect));
             ImGui::EndTabItem();
           }
         }
