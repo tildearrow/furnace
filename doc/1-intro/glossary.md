@@ -61,7 +61,7 @@
 
 **.fuw**: a Furnace wavetable file.
 
-**hard-pan**: sounds can only be panned to the center, 100% left, or 100% right. this often appears as on/off toggles for the left and right channels.
+**hard-pan**: sounds can only be panned to the center, 100% left, or 100% right. this often appears as on/off toggles for the left and right channels in the instrument editor's panning macro.
 
 **Hz**: hertz. a unit representing divisions of one second. 1 Hz means once per second; 100 Hz means one hundred times per second. also, _kHz_ (kilohertz, one thousand per second) and _MHz_ (megahertz, one million per second).
 
