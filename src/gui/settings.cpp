@@ -357,7 +357,8 @@ void FurnaceGUI::setupSettingsCategories() {
         {},
         {
           new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
-          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
+          new SettingDefSliderInt(&settings.metroVol,"metroVol","Metronome volume","the volume of the metronome",100,0,200,"%d%%"),
+          new SettingDefSliderFloat(&settings.doubleClickTime,"doubleClickTime","Mouse double click time",NULL,0.3f,0.02f,1.0f,"%g s"),
         }
       ),SettingsCategory(3,"child 2",
         {},

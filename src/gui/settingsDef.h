@@ -20,8 +20,6 @@
 #ifndef SETTINGSDEF_H
 #define SETTINGSDEF_H
 
-#define SETTINGS_CHANGED settingsChanged=true;
-
 #define clampSetting(x,minV,maxV) \
   if (x<minV) { \
     x=minV; \
@@ -74,8 +72,8 @@ class SettingDefCheckbox : public SettingDef {
       conf->set(name,(*(bool*)data)?1:0);
     }
     void loadSetting(DivConfig* conf){
-      *(bool*)data=conf->getInt(name, fallback?1:0);
-      clampSetting(*(bool*)data,0,1);
+      *(int*)data=conf->getInt(name, fallback?1:0);
+      clampSetting(*(int*)data,0,1);
     }
     SettingDefCheckbox():
       data(NULL),
@@ -88,6 +86,231 @@ class SettingDefCheckbox : public SettingDef {
       friendlyName=_friendlyName;
       tooltip=_tooltip;
       fallback=_fallback;
+    }
+};
+
+class SettingDefSliderInt : public SettingDef {
+  void* data;
+  String name;
+  const char* friendlyName;
+  const char* tooltip;
+
+  bool fallback;
+  int minV, maxV;
+  const char* sliderFmt;
+  ImGuiSliderFlags f;
+  public:
+    void drawSetting(bool& changed) {
+      if (ImGui::SliderInt(friendlyName, (int*)data, minV, maxV, sliderFmt, f)) {
+        clampSetting(*(int*)data, minV, maxV);
+        changed=true;
+      }
+      if (tooltip) {
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(0.5f,0.5f,0.5f,0.9f),"(?)");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) {
+          ImGui::SetTooltip("%s",tooltip);
+        }
+      }
+    }
+    void saveSetting(DivConfig* conf) {
+      conf->set(name,*(int*)data);
+    }
+    void loadSetting(DivConfig* conf){
+      *(int*)data=conf->getInt(name, fallback);
+      clampSetting(*(int*)data,minV,maxV);
+    }
+    SettingDefSliderInt():
+      data(NULL),
+      name(""),
+      friendlyName(""),
+      tooltip(""),
+      minV(0),
+      maxV(0),
+      sliderFmt(""),
+      f(0) {}
+    SettingDefSliderInt(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, int min, int max):
+      sliderFmt("%d"),
+      f(0) {
+      data=_data;
+      name=_name;
+      friendlyName=_friendlyName;
+      tooltip=_tooltip;
+      fallback=_fallback;
+      minV=min;
+      maxV=max;
+    }
+    SettingDefSliderInt(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, int min, int max, const char* fmt):
+      f(0) {
+      data=_data;
+      name=_name;
+      friendlyName=_friendlyName;
+      tooltip=_tooltip;
+      fallback=_fallback;
+      minV=min;
+      maxV=max;
+      sliderFmt=fmt;
+    }
+    SettingDefSliderInt(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, int min, int max, const char* fmt, ImGuiSliderFlags flags) {
+      data=_data;
+      name=_name;
+      friendlyName=_friendlyName;
+      tooltip=_tooltip;
+      fallback=_fallback;
+      minV=min;
+      maxV=max;
+      sliderFmt=fmt;
+      f=flags;
+    }
+};
+
+class SettingDefSliderFloat : public SettingDef {
+  void* data;
+  String name;
+  const char* friendlyName;
+  const char* tooltip;
+
+  bool fallback;
+  float minV, maxV;
+  const char* sliderFmt;
+  ImGuiSliderFlags f;
+  public:
+    void drawSetting(bool& changed) {
+      if (ImGui::SliderFloat(friendlyName, (float*)data, minV, maxV, sliderFmt, f)) {
+        clampSetting(*(float*)data, minV, maxV);
+        changed=true;
+      }
+      if (tooltip) {
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(0.5f,0.5f,0.5f,0.9f),"(?)");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) {
+          ImGui::SetTooltip("%s",tooltip);
+        }
+      }
+    }
+    void saveSetting(DivConfig* conf) {
+      conf->set(name,*(float*)data);
+    }
+    void loadSetting(DivConfig* conf){
+      *(float*)data=conf->getFloat(name, fallback);
+      clampSetting(*(float*)data,minV,maxV);
+    }
+    SettingDefSliderFloat():
+      data(NULL),
+      name(""),
+      friendlyName(""),
+      tooltip(""),
+      minV(0),
+      maxV(0),
+      sliderFmt(""),
+      f(0) {}
+    SettingDefSliderFloat(float* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, float min, float max):
+      sliderFmt("%g"),
+      f(0) {
+      data=_data;
+      name=_name;
+      friendlyName=_friendlyName;
+      tooltip=_tooltip;
+      fallback=_fallback;
+      minV=min;
+      maxV=max;
+    }
+    SettingDefSliderFloat(float* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, float min, float max, const char* fmt):
+      f(0) {
+      data=_data;
+      name=_name;
+      friendlyName=_friendlyName;
+      tooltip=_tooltip;
+      fallback=_fallback;
+      minV=min;
+      maxV=max;
+      sliderFmt=fmt;
+    }
+    SettingDefSliderFloat(float* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, float min, float max, const char* fmt, ImGuiSliderFlags flags) {
+      data=_data;
+      name=_name;
+      friendlyName=_friendlyName;
+      tooltip=_tooltip;
+      fallback=_fallback;
+      minV=min;
+      maxV=max;
+      sliderFmt=fmt;
+      f=flags;
+    }
+};
+
+class SettingDefInputInt : public SettingDef {
+  void* data;
+  String name;
+  const char* friendlyName;
+  const char* tooltip;
+
+  bool fallback;
+  int minV, maxV;
+  const char* sliderFmt;
+  ImGuiInputTextFlags f;
+  public:
+    void drawSetting(bool& changed) {
+      if (ImGui::InputScalar(friendlyName, ImGuiDataType_S32, (int*)data, NULL, NULL, sliderFmt, f)) {
+        clampSetting(*(int*)data, minV, maxV);
+        changed=true;
+      }
+      if (tooltip) {
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(0.5f,0.5f,0.5f,0.9f),"(?)");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) {
+          ImGui::SetTooltip("%s",tooltip);
+        }
+      }
+    }
+    void saveSetting(DivConfig* conf) {
+      conf->set(name,*(int*)data);
+    }
+    void loadSetting(DivConfig* conf){
+      *(int*)data=conf->getInt(name, fallback);
+      clampSetting(*(int*)data,minV,maxV);
+    }
+    SettingDefInputInt():
+      data(NULL),
+      name(""),
+      friendlyName(""),
+      tooltip(""),
+      minV(0),
+      maxV(0),
+      sliderFmt(""),
+      f(0) {}
+    SettingDefInputInt(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, int min, int max):
+      sliderFmt("%d"),
+      f(0) {
+      data=_data;
+      name=_name;
+      friendlyName=_friendlyName;
+      tooltip=_tooltip;
+      fallback=_fallback;
+      minV=min;
+      maxV=max;
+    }
+    SettingDefInputInt(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, int min, int max, const char* fmt):
+      f(0) {
+      data=_data;
+      name=_name;
+      friendlyName=_friendlyName;
+      tooltip=_tooltip;
+      fallback=_fallback;
+      minV=min;
+      maxV=max;
+      sliderFmt=fmt;
+    }
+    SettingDefInputInt(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, int min, int max, const char* fmt, ImGuiInputTextFlags flags) {
+      data=_data;
+      name=_name;
+      friendlyName=_friendlyName;
+      tooltip=_tooltip;
+      fallback=_fallback;
+      minV=min;
+      maxV=max;
+      sliderFmt=fmt;
+      f=flags;
     }
 };
 
