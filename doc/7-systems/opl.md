@@ -7,14 +7,14 @@ however, it also had a [drums mode](opll.md), and later chips in the series adde
 
 the original OPL (Yamaha YM3526) was present as an expansion for the Commodore 64 and MSX computers (erm, a variant of it). it only had 9 two-operator channels and drums mode.
 
-Y8950 is essentially the same chip, but with one channel of ADPCM sampling, exactly the same as the one found in YM2608.
+Y8950 is essentially the same chip, but with one additional channel for ADPCM sample playback, behaving in a similar way as the one found in YM2608.
 
 its successor, the OPL2 (Yamaha YM3812), added 3 more waveforms and was one of the more popular chips because it was present on the AdLib card for PC.
 later Creative would borrow the chip to make the Sound Blaster, and totally destroyed AdLib's dominance.
 
 the OPL3 (Yamaha YMF262) added 9 more channels, 4 more waveforms, rudimentary 4-operator mode (pairing up to 12 channels to make up to six 4-operator channels), quadraphonic output and some other things.
 
-the OPL4 (Yamaha YMF278) retains the FM block from OPL3, but adds *twenty four* sample channels on top! samples are 44100 Hz, can be between 8, 12 or 16-bit, stereo (with 16 different levels) and can read PCM data from ROM or SRAM (up to 4 MB).
+the OPL4 (Yamaha YMF278) retains the FM block from OPL3, but adds 24 sample channels on top! samples are 44100 Hz, can be between 8, 12 or 16-bit, stereo (with 16 different levels) and can read PCM data from ROM or SRAM (up to 4 MB).
 
 afterwards everyone moved to Windows and software mixed PCM streaming...
 
