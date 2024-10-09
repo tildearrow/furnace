@@ -47,9 +47,9 @@ class DivPlatformYM2608: public DivPlatformOPN {
       0, 1, 2, 4, 5, 6
     };
 
-    OPNChannelStereo chan[16];
-    DivDispatchOscBuffer* oscBuf[16];
-    bool isMuted[16];
+    OPNChannelStereo chan[17];
+    DivDispatchOscBuffer* oscBuf[17];
+    bool isMuted[17];
     ym3438_t fm_nuked;
     ymfm::ym2608* fm;
     ymfm::ym2608::output_data fmout;
@@ -92,6 +92,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     void acquire_lle(short** buf, size_t len);
 
   public:
+    bool isCSM;
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
@@ -120,10 +121,12 @@ class DivPlatformYM2608: public DivPlatformOPN {
     void renderSamples(int chipID);
     void setFlags(const DivConfig& flags);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
+    void setCSM(bool isCSM);
     void quit();
     DivPlatformYM2608():
       DivPlatformOPN(2, 6, 9, 15, 16, 9440540.0, 72, 32),
-      prescale(0x2d) {}
+      prescale(0x2d),
+      isCSM(false) {}
     ~DivPlatformYM2608();
 };
 #endif

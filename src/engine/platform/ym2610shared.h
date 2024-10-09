@@ -49,9 +49,9 @@ class DivYM2610Interface: public ymfm::ymfm_interface {
 
 class DivPlatformYM2610Base: public DivPlatformOPN {
   protected:
-    OPNChannelStereo chan[16];
-    DivDispatchOscBuffer* oscBuf[16];
-    bool isMuted[16];
+    OPNChannelStereo chan[17];
+    DivDispatchOscBuffer* oscBuf[17];
+    bool isMuted[17];
 
     ym3438_t fm_nuked;
     ymfm::ym2610b* fm;
@@ -318,7 +318,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       } else {
         rate=fm->sample_rate(chipClock);
       }
-      for (int i=0; i<16; i++) {
+      for (int i=0; i<17; i++) {
         oscBuf[i]->rate=rate;
       }
     }
@@ -328,7 +328,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       ayFlags.set("chipType",1);
       dumpWrites=false;
       skipRegisterWrites=false;
-      for (int i=0; i<16; i++) {
+      for (int i=0; i<17; i++) {
         isMuted[i]=false;
         oscBuf[i]=new DivDispatchOscBuffer;
       }
@@ -350,7 +350,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     }
 
     void quit() {
-      for (int i=0; i<16; i++) {
+      for (int i=0; i<17; i++) {
         delete oscBuf[i];
       }
       ay->quit();
