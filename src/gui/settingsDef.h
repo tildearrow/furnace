@@ -95,7 +95,7 @@ class SettingDefSliderInt : public SettingDef {
   const char* friendlyName;
   const char* tooltip;
 
-  bool fallback;
+  int fallback;
   int minV, maxV;
   const char* sliderFmt;
   ImGuiSliderFlags f;
@@ -170,7 +170,7 @@ class SettingDefSliderFloat : public SettingDef {
   const char* friendlyName;
   const char* tooltip;
 
-  bool fallback;
+  float fallback;
   float minV, maxV;
   const char* sliderFmt;
   ImGuiSliderFlags f;
@@ -245,7 +245,7 @@ class SettingDefInputInt : public SettingDef {
   const char* friendlyName;
   const char* tooltip;
 
-  bool fallback;
+  int fallback;
   int minV, maxV;
   const char* sliderFmt;
   ImGuiInputTextFlags f;
@@ -311,6 +311,49 @@ class SettingDefInputInt : public SettingDef {
       maxV=max;
       sliderFmt=fmt;
       f=flags;
+    }
+};
+
+class SettingDefDropdown : public SettingDef {
+  void* data;
+  String name;
+  const char* friendlyName;
+  const char* tooltip;
+
+  bool fallback;
+  const char** options;
+  int optionsCount;
+  public:
+    void drawSetting(bool& changed) {
+      if (ImGui::Combo(friendlyName,(options[*(int*)data]),options,optionsCount)) {
+        changed=true;
+      }
+      if (tooltip) {
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(0.5f,0.5f,0.5f,0.9f),"(?)");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) {
+          ImGui::SetTooltip("%s",tooltip);
+        }
+      }
+    }
+    void saveSetting(DivConfig* conf) {
+      conf->set(name,(*(bool*)data)?1:0);
+    }
+    void loadSetting(DivConfig* conf){
+      *(int*)data=conf->getInt(name, fallback?1:0);
+      clampSetting(*(int*)data,0,1);
+    }
+    SettingDefCheckbox():
+      data(NULL),
+      name(""),
+      friendlyName(""),
+      tooltip("") {}
+    SettingDefCheckbox(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback) {
+      data=_data;
+      name=_name;
+      friendlyName=_friendlyName;
+      tooltip=_tooltip;
+      fallback=_fallback;
     }
 };
 
