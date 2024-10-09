@@ -46,6 +46,8 @@
 #include <dirent.h>
 #endif
 
+#include "settingsDef.h"
+
 #define DEFAULT_NOTE_KEYS "5:7;6:4;7:3;8:16;10:6;11:8;12:24;13:10;16:11;17:9;18:26;19:28;20:12;21:17;22:1;23:19;24:23;25:5;26:14;27:2;28:21;29:0;30:100;31:13;32:15;34:18;35:20;36:22;38:25;39:27;43:100;46:101;47:29;48:31;53:102;"
 
 #if defined(_WIN32) || defined(__APPLE__) || defined(IS_MOBILE)
@@ -348,31 +350,27 @@ const char* specificControls[18]={
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); \
   if (ImGui::Combo("##" _name "QR",&settings._render,LocalizedComboGetter,coreQualities,6)) settingsChanged=true;
 
-#define SETTINGS_CHANGED settings.settingsChanged=true;
-
 void FurnaceGUI::setupSettingsCategories() {
   settings.categories[0]=SettingsCategory(1,"General", 
     {
       SettingsCategory(2,"child",
         {},
         {
-          SettingDef(&settingsChanged, "setting", "its a setting", SETTING_CHECKBOX),
-          SettingDef(&settingsChanged, "setting 2", "its a setting", SETTING_CHECKBOX),
-          SettingDef(&settingsChanged, "setting 3", "its a setting", SETTING_CHECKBOX),
-          SettingDef(&settingsChanged, "setting 4", "its a setting", SETTING_CHECKBOX)
+          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
+          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
         }
       ),SettingsCategory(3,"child 2",
         {},
         {
-          SettingDef(&settingsChanged, "setting", "its a setting", SETTING_CHECKBOX),
-          SettingDef(&settingsChanged, "setting 2", "its a setting", SETTING_CHECKBOX),
-          SettingDef(&settingsChanged, "setting 3", "its a setting", SETTING_CHECKBOX),
-          SettingDef(&settingsChanged, "setting 4", "its a setting", SETTING_CHECKBOX)
+          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
+          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
+          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
+          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
         }
       )
     },
     {
-      SettingDef(&settingsChanged, "general setting", "its a setting", SETTING_CHECKBOX)
+      new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
     }
   );
 
@@ -381,23 +379,23 @@ void FurnaceGUI::setupSettingsCategories() {
       SettingsCategory(5,"child",
         {},
         {
-          SettingDef(&settingsChanged, "setting", "its a setting", SETTING_CHECKBOX),
-          SettingDef(&settingsChanged, "setting 2", "its a setting", SETTING_CHECKBOX),
-          SettingDef(&settingsChanged, "setting 3", "its a setting", SETTING_CHECKBOX),
-          SettingDef(&settingsChanged, "setting 4", "its a setting", SETTING_CHECKBOX)
+          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
+          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
+          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
+          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
         }
       ),SettingsCategory(6,"child 2",
         {},
         {
-          SettingDef(&settingsChanged, "setting", "its a setting", SETTING_CHECKBOX),
-          SettingDef(&settingsChanged, "setting 2", "its a setting", SETTING_CHECKBOX),
-          SettingDef(&settingsChanged, "setting 3", "its a setting", SETTING_CHECKBOX),
-          SettingDef(&settingsChanged, "setting 4", "its a setting", SETTING_CHECKBOX)
+          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
+          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
+          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
+          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
         }
       )
     },
     {
-      SettingDef(&settingsChanged, "general setting", "its a setting", SETTING_CHECKBOX)
+      new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
     }
   );
 }
@@ -431,22 +429,7 @@ void FurnaceGUI::drawSettingsCategories() {
 
 void FurnaceGUI::drawSettingsItems() {
   if (settings.activeCategory.name==NULL) return;
-  for (SettingDef s:settings.activeCategory.settings) {
-    switch (s.type) {
-      case SETTING_CHECKBOX: {
-        if (ImGui::Checkbox(s.name, (bool*)s.data)) SETTINGS_CHANGED;
-        if (s.tooltip) {
-          ImGui::SameLine();
-          ImGui::TextColored(ImVec4(0.5f,0.5f,0.5f,0.9f),"(?)");
-          if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) {
-            ImGui::SetTooltip("%s",s.tooltip);
-          }
-        }
-        break;
-      }
-      default: break;
-    }
-  }
+  for (SettingDef* s:settings.activeCategory.settings) s->drawSetting(settingsChanged);
 }
 
 String stripName(String what) {
@@ -4847,14 +4830,6 @@ void FurnaceGUI::drawKeybindSettingsTableRow(FurnaceGUIActions actionIdx) {
   }
   ImGui::PopID(); // action
 }
-
-#define clampSetting(x,minV,maxV) \
-  if (x<minV) { \
-    x=minV; \
-  } \
-  if (x>maxV) { \
-    x=maxV; \
-  }
 
 void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   if (groups&GUI_SETTINGS_GENERAL) {

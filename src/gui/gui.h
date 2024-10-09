@@ -1600,51 +1600,41 @@ struct PendingDrawOsc {
 
 struct FurnaceCV;
 
-enum SettingsTypes {
-  SETTING_CHECKBOX
+class SettingDef {
+    void* data;
+    String name;
+    const char* friendlyName;
+    const char* tooltip;
+  public:
+    virtual void drawSetting(bool& changed);
+    virtual void saveSetting(DivConfig* conf);
+    virtual void loadSetting(DivConfig* conf);
 };
 
-struct SettingDef {
-  void* data;
-  const char* name;
-  const char* tooltip;
-  SettingsTypes type;
+class SettingsCategory {
+  public:
+    int id;
+    const char* name;
+    std::vector<SettingsCategory> children;
+    std::vector<SettingDef*> settings;
+    bool expandChild;
+    void saveCaterofySettings();
+    void loadCategorySettings();
 
-  SettingDef():
-    data(NULL),
-    name(NULL),
-    tooltip(NULL),
-    type((SettingsTypes)0) {}
+    SettingsCategory():
+      id(0),
+      name(NULL),
+      children({}),
+      settings({}),
+      expandChild(false) {}
 
-  SettingDef(void* d, const char* n, const char* t, SettingsTypes p) {
-    data=d;
-    name=n;
-    tooltip=t;
-    type=p;
-  }
-};
-
-struct SettingsCategory {
-  int id;
-  const char* name;
-  std::vector<SettingsCategory> children;
-  std::vector<SettingDef> settings;
-  bool expandChild;
-
-  SettingsCategory():
-    id(0),
-    name(NULL),
-    children({}),
-    settings({}),
-    expandChild(false) {}
-  
-  SettingsCategory(int i, const char* n, std::initializer_list<SettingsCategory> c, std::initializer_list<SettingDef> s):
-    expandChild(false) {
-    id=i;
-    name=n;
-    children=c;
-    settings=s;
-  }
+    SettingsCategory(int i, const char* n, std::initializer_list<SettingsCategory> c, std::initializer_list<SettingDef*> s):
+      expandChild(false) {
+      id=i;
+      name=n;
+      children=c;
+      settings=s;
+    }
 };
 
 class FurnaceGUI {
