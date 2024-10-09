@@ -22,7 +22,7 @@ you may use this tab to set up ES5506-specific parameters:
 - **Damp**: enforce quickly fading out the sample over 11 ms.
 - **Pseudo Reverb**: enables reverb-like effect.
 - **LFO Reset**: disables and resets LFO.
-- **Level Direct**: this register is propietary and should be set to ON.
+- **Disable volume change ramp**: if set to "on", volume change interpolation is disabled.
 
 ## Macros
 
