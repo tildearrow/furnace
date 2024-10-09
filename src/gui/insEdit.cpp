@@ -2684,13 +2684,14 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
           // extra space so the column doesn't change size when len is changed under typical
           // circumstances (really don't want to move buttons while mouse is being clicked or held).
           char buf[256];
-          float stretchX=ImGui::CalcTextSize(buf).x;
 
           if (macros[i].macro->len>0) {
             snprintf(buf,255,"%s [%d]###%s",macros[i].displayName,macros[i].macro->len,macros[i].displayName);
           } else {
             snprintf(buf,255,"%s",macros[i].displayName);
           }
+          float stretchX=ImGui::CalcTextSize(buf).x;
+
 
           ImVec2 size=ImGui::CalcTextSize(buf);
           size.x=MAX(stretchX,size.x);
@@ -8125,12 +8126,24 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc(_("Waveform"),&ins->std.waveMacro,0,7,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
               macroList.push_back(FurnaceGUIMacroDesc(_("Pitch"),&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
               break;
-            case DIV_INS_BEEPER:
+            case DIV_INS_BEEPER: {
+              bool zxPresent=false;
+
+              for (int i=0; i<e->song.systemLen; i++) {
+                if (e->song.system[i]==DIV_SYSTEM_SFX_BEEPER) {
+                  zxPresent=true;
+                  break;
+                }
+              }
+
               macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,1,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc(_("Arpeggio"),&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc(_("Pulse Width"),&ins->std.dutyMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              if (zxPresent) {
+                macroList.push_back(FurnaceGUIMacroDesc(_("Pulse Width"),&ins->std.dutyMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              }
               macroList.push_back(FurnaceGUIMacroDesc(_("Pitch"),&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
               break;
+            }
             case DIV_INS_SWAN:
               macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc(_("Arpeggio"),&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));

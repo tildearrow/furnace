@@ -260,6 +260,7 @@ class DivPlatformSID3: public DivDispatch {
     void notifyWaveChange(int wave); 
     float getPostAmp();
     bool getDCOffRequired();
+    unsigned short getPan(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivChannelModeHints getModeHints(int chan);
     void notifyInsDeletion(void* ins);
