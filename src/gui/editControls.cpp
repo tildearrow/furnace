@@ -508,7 +508,7 @@ void FurnaceGUI::drawMobileControls() {
           mobileMenuOpen=false;
           doAction(GUI_ACTION_SAVE_AS);
         }
-
+        ImGui::SameLine();
         if (ImGui::Button(_("Export"))) {
           doAction(GUI_ACTION_EXPORT);
         }
@@ -531,6 +531,10 @@ void FurnaceGUI::drawMobileControls() {
           }
           if (ImGui::BeginTabItem(_("Speed"))) {
             drawSpeed(true);
+            ImGui::EndTabItem();
+          }
+          if (ImGui::BeginTabItem(_("Comments"))) {
+            drawNotes(true);
             ImGui::EndTabItem();
           }
           ImGui::EndTabBar();

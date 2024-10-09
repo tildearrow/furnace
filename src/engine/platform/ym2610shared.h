@@ -108,6 +108,10 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     }
   
   public:
+    void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len) {
+      ay->fillStream(stream,sRate,len);
+    }
+
     void reset() {
       writeADPCMAOff=0;
       writeADPCMAOn=0;

@@ -678,6 +678,7 @@ void FurnaceGUI::doPasteFurnace(PasteMode mode, int arg, bool readClipboard, Str
 
   if (readClipboard) {
     if (settings.cursorPastePos) {
+      makeCursorUndo();
       cursor.y=j;
       if (cursor.y>=e->curSubSong->patLen) cursor.y=e->curSubSong->patLen-1;
       selStart=cursor;
@@ -1220,6 +1221,7 @@ void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String 
 
   if (readClipboard) {
     if (settings.cursorPastePos) {
+      makeCursorUndo();
       cursor.y=j;
       if (cursor.y>=e->curSubSong->patLen) cursor.y=e->curSubSong->patLen-1;
       selStart=cursor;
@@ -1823,6 +1825,55 @@ void FurnaceGUI::doExpandSong(int multiplier) {
   if (e->isPlaying()) e->play();
 }
 
+void FurnaceGUI::doAbsorbInstrument() {
+  bool foundIns=false;
+  bool foundOctave=false;
+  auto foundAll = [&]() { return foundIns && foundOctave; };
+
+  // search this order and all prior until we find all the data we need
+  int orderIdx=curOrder;
+  for (; orderIdx>=0 && !foundAll(); orderIdx--) {
+    DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][orderIdx],false);
+    if (!pat) continue;
+
+    // start on current row when searching current order, but start from end when searching
+    // prior orders.
+    int searchStartRow=orderIdx==curOrder ? cursor.y : e->curSubSong->patLen-1;
+    for (int i=searchStartRow; i>=0 && !foundAll(); i--) {
+
+      // absorb most recent instrument
+      if (!foundIns && pat->data[i][2] >= 0) {
+        foundIns=true;
+        curIns=pat->data[i][2];
+      }
+
+      // absorb most recent octave (i.e. set curOctave such that the "main row" (QWERTY) of
+      // notes will result in an octave number equal to the previous note). make sure to
+      // skip "special note values" like OFF/REL/=== and "none", since there won't be valid
+      // octave values
+      unsigned char note=pat->data[i][0];
+      if (!foundOctave && note!=0 && note!=100 && note!=101 && note!=102) {
+        foundOctave=true;
+
+        // decode octave data (was signed cast to unsigned char)
+        int octave=pat->data[i][1];
+        if (octave>128) octave-=256;
+
+        // @NOTE the special handling when note==12, which is really an octave above what's
+        // stored in the octave data. without this handling, if you press Q, then
+        // "ABSORB_INSTRUMENT", then Q again, you'd get a different octave!
+        if (pat->data[i][0]==12) octave++;
+        curOctave=CLAMP(octave-1, GUI_EDIT_OCTAVE_MIN, GUI_EDIT_OCTAVE_MAX);
+      }
+    }
+  }
+
+  // if no instrument has been set at this point, the only way to match it is to use "none"
+  if (!foundIns) curIns=-1;
+
+  logD("doAbsorbInstrument -- searched %d orders", curOrder-orderIdx);
+}
+
 void FurnaceGUI::doDrag() {
   int len=dragEnd.xCoarse-dragStart.xCoarse+1;
 
@@ -2011,4 +2062,53 @@ void FurnaceGUI::doRedo() {
   }
 
   redoHist.pop_back();
+}
+
+CursorJumpPoint FurnaceGUI::getCurrentCursorJumpPoint() {
+  return CursorJumpPoint(cursor, curOrder, e->getCurrentSubSong());
+}
+
+void FurnaceGUI::applyCursorJumpPoint(const CursorJumpPoint& spot) {
+  cursor=spot.point;
+  curOrder=MIN(e->curSubSong->ordersLen-1, spot.order);
+  e->setOrder(curOrder);
+  e->changeSongP(spot.subSong);
+  if (!settings.cursorMoveNoScroll) {
+    updateScroll(cursor.y);
+  }
+}
+
+void FurnaceGUI::makeCursorUndo() {
+  CursorJumpPoint spot = getCurrentCursorJumpPoint();
+  if (!cursorUndoHist.empty() && spot == cursorUndoHist.back()) return;
+  
+  if (cursorUndoHist.size()>=settings.maxUndoSteps) cursorUndoHist.pop_front();
+  cursorUndoHist.push_back(spot);
+
+  // redo history no longer relevant, we've changed timeline
+  cursorRedoHist.clear();
+}
+
+void FurnaceGUI::doCursorUndo() {
+  if (cursorUndoHist.empty()) return;
+
+  // allow returning to current spot
+  if (cursorRedoHist.size()>=settings.maxUndoSteps) cursorRedoHist.pop_front();
+  cursorRedoHist.push_back(getCurrentCursorJumpPoint());
+
+  // apply spot
+  applyCursorJumpPoint(cursorUndoHist.back());
+  cursorUndoHist.pop_back();
+}
+
+void FurnaceGUI::doCursorRedo() {
+if (cursorRedoHist.empty()) return;
+
+  // allow returning to current spot
+  if (cursorUndoHist.size()>=settings.maxUndoSteps) cursorUndoHist.pop_front();
+  cursorUndoHist.push_back(getCurrentCursorJumpPoint());
+
+  // apply spot
+  applyCursorJumpPoint(cursorRedoHist.back());
+  cursorRedoHist.pop_back();
 }

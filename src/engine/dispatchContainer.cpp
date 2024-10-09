@@ -76,6 +76,8 @@
 #include "platform/vb.h"
 #include "platform/k007232.h"
 #include "platform/ga20.h"
+#include "platform/supervision.h"
+#include "platform/upd1771c.h"
 #include "platform/sm8521.h"
 #include "platform/pv1000.h"
 #include "platform/k053260.h"
@@ -90,6 +92,7 @@
 #include "platform/nds.h"
 #include "platform/bifurcator.h"
 #include "platform/sid2.h"
+#include "platform/sid3.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
 #include "song.h"
@@ -724,6 +727,12 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_GA20:
       dispatch=new DivPlatformGA20;
       break;
+    case DIV_SYSTEM_SUPERVISION:
+      dispatch=new DivPlatformSupervision;
+      break;
+    case DIV_SYSTEM_UPD1771C:
+      dispatch=new DivPlatformUPD1771c;
+      break;
     case DIV_SYSTEM_SM8521:
       dispatch=new DivPlatformSM8521;
       if (isRender) {
@@ -799,6 +808,27 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_SID2:
       dispatch=new DivPlatformSID2;
+      break;
+    case DIV_SYSTEM_SID3:
+      dispatch=new DivPlatformSID3;
+      break;
+    case DIV_SYSTEM_OPL4:
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(4,false);
+      if (isRender) {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl4CoreRender",0));
+      } else {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl4Core",0));
+      }
+      break;
+    case DIV_SYSTEM_OPL4_DRUMS:
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(4,true);
+      if (isRender) {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl4CoreRender",0));
+      } else {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl4Core",0));
+      }
       break;
     case DIV_SYSTEM_DUMMY:
       dispatch=new DivPlatformDummy;

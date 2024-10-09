@@ -47,6 +47,7 @@ void DivROMExport::logAppend(String what) {
   logLock.lock();
   exportLog.push_back(what);
   logLock.unlock();
+  logD("export: %s",what);
 }
 
 void DivROMExport::wait() {

@@ -173,6 +173,7 @@ void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
     ay->runDAC();
+    ay->runTFX(rate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
@@ -255,6 +256,7 @@ void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
     ay->runDAC();
+    ay->runTFX(rate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
@@ -310,6 +312,16 @@ void DivPlatformYM2203::acquire_lle(short** buf, size_t len) {
     for (int i=0; i<6; i++) {
       fmOut[i]=0;
     }
+
+    // AY -> OPN
+    ay->runDAC();
+    ay->runTFX(rate);
+    ay->flushWrites();
+    for (DivRegWrite& i: ay->getRegisterWrites()) {
+      if (i.addr>15) continue;
+      immWrite(i.addr&15,i.val);
+    }
+    ay->getRegisterWrites().clear();
 
     while (true) {
       bool canWeWrite=fm_lle.prescaler_latch[1]&1;
@@ -442,6 +454,10 @@ void DivPlatformYM2203::acquire_lle(short** buf, size_t len) {
 
     buf[0][h]=outL;
   }
+}
+
+void DivPlatformYM2203::fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len) {
+  ay->fillStream(stream,sRate,len);
 }
 
 void DivPlatformYM2203::tick(bool sysTick) {
@@ -1044,6 +1060,26 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
       }
       break;
     }
+    case DIV_CMD_FM_OPMASK:
+      if (c.chan>=psgChanOffs) break;
+      switch (c.value>>4) {
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+          chan[c.chan].opMask&=~(1<<((c.value>>4)-1));
+          if (c.value&15) {
+            chan[c.chan].opMask|=(1<<((c.value>>4)-1));
+          }
+          break;
+        default:
+          chan[c.chan].opMask=c.value&15;
+          break;
+      }
+      if (chan[c.chan].active) {
+        chan[c.chan].opMaskChanged=true;
+      }
+      break;
     case DIV_CMD_FM_HARD_RESET:
       chan[c.chan].hardReset=c.value;
       break;

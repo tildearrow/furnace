@@ -40,19 +40,22 @@ typedef enum {
 nfdresult_t NFD_OpenDialog( const std::vector<std::string>& filterList,
                             const nfdchar_t *defaultPath,
                             nfdchar_t **outPath,
-                            nfdselcallback_t selCallback = NULL );
+                            nfdselcallback_t selCallback = NULL,
+                            const nfdchar_t *defaultFileName = NULL );
 
 /* multiple file open dialog */    
 nfdresult_t NFD_OpenDialogMultiple( const std::vector<std::string>& filterList,
                                     const nfdchar_t *defaultPath,
                                     nfdpathset_t *outPaths,
-                                    nfdselcallback_t selCallback = NULL );
+                                    nfdselcallback_t selCallback = NULL,
+                            const nfdchar_t *defaultFileName = NULL );
 
 /* save dialog */
 nfdresult_t NFD_SaveDialog( const std::vector<std::string>& filterList,
                             const nfdchar_t *defaultPath,
                             nfdchar_t **outPath,
-                            nfdselcallback_t selCallback = NULL );
+                            nfdselcallback_t selCallback = NULL,
+                            const nfdchar_t *defaultFileName = NULL );
 
 
 /* select folder dialog */

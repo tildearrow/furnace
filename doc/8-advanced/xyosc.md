@@ -2,7 +2,7 @@
 
 also called "vectorscope", this is similar to the normal oscilloscope in that it draws audio output as a waveform, but instead of being one-dimensional and going from left to right, it is plotted in two dimensions (usually X represents left output and Y represents right output).
 
-(TODO: image)
+![oscilloscope (X-Y)](xyosc.png)
 
 right-clicking the X-Y oscilloscope window displays settings:
 - **X Channel**: the output channel which will affect the X (horizontal) axis. default is 1 (left).

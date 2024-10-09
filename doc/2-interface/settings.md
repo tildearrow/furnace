@@ -93,6 +93,10 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 - **Export**: select an `.ini` file to save current settings.
 - **Factory Reset**: resets all settings to default and purges settings backups.
 
+### Import
+
+- **Use OPL3 instead of OPL2 for S3M import**: changes which system is used for the import of S3M files that contain FM channels.
+
 ## Audio
 
 ### Output
@@ -484,7 +488,7 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 
 - **Unified instrument/wavetable/sample list**: combines all three types of assets into one list.
   - the buttons act as appropriate to the currently selected asset or header.
-- **Horizontal instrument list**: when there are more instruments than there is room to display them...
+- **Horizontal instrument/wavetable list**: when there are more instruments/wavetables than there is room to display them...
   - if on, scroll horizontally through multiple columns.
   - if off, scroll vertically in one long column.
   - only appears if "Unified instrument/wavetable/sample list" is off.
@@ -501,6 +505,10 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - **Grid**
   - **Single (with list)**
 - **Use classic macro editor vertical slider**
+- **Macro step size/horizontal zoom:**
+  - **Manual**
+  - **Automatic per macro**
+  - **Automatic (use longest macro)**
 
 ### Wave Editor
 
@@ -524,6 +532,8 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 - **Position of Sustain in FM editor:**
   - **Between Decay and Sustain Rate**
   - **After Release Rate**
+  - **After Release Rate, after spacing**
+  - **After TL**
 - **Use separate colors for carriers/modulators in FM editor**
 - **Unsigned FM detune values**: uses the internal representation of detune values, such that detune amounts of -1, -2, and -3 are shown as 5, 6, and 7.
 

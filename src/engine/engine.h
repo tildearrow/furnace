@@ -54,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev217"
-#define DIV_ENGINE_VERSION 217
+#define DIV_VERSION "dev223"
+#define DIV_ENGINE_VERSION 223
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -133,7 +133,7 @@ struct DivAudioExportOptions {
 struct DivChannelState {
   std::vector<DivDelayedCommand> delayed;
   int note, oldNote, lastIns, pitch, portaSpeed, portaNote;
-  int volume, volSpeed, cut, volCut, legatoDelay, legatoTarget, rowDelay, volMax;
+  int volume, volSpeed, volSpeedTarget, cut, volCut, legatoDelay, legatoTarget, rowDelay, volMax;
   int delayOrder, delayRow, retrigSpeed, retrigTick;
   int vibratoDepth, vibratoRate, vibratoPos, vibratoPosGiant, vibratoShape, vibratoFine;
   int tremoloDepth, tremoloRate, tremoloPos;
@@ -157,6 +157,7 @@ struct DivChannelState {
     portaNote(-1),
     volume(0x7f00),
     volSpeed(0),
+    volSpeedTarget(-1),
     cut(-1),
     volCut(-1),
     legatoDelay(-1),
@@ -474,7 +475,7 @@ class DivEngine {
   int midiOutTimeRate;
   float midiVolExp;
   int softLockCount;
-  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, curExportChan /*for per-channel export progress*/, nextSpeed, elapsedBars, elapsedBeats, curSpeed;
+  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, curExportChan, nextSpeed, elapsedBars, elapsedBeats, curSpeed;
   size_t curSubSongIndex;
   size_t bufferPos;
   double divider;
@@ -517,6 +518,7 @@ class DivEngine {
   std::vector<DivCommand> cmdStream;
   std::vector<DivInstrumentType> possibleInsTypes;
   std::vector<DivEffectContainer> effectInst;
+  std::vector<int> curChanMask;
   static DivSysDef* sysDefs[DIV_MAX_CHIP_DEFS];
   static DivSystem sysFileMapFur[DIV_MAX_CHIP_DEFS];
   static DivSystem sysFileMapDMF[DIV_MAX_CHIP_DEFS];
@@ -669,6 +671,7 @@ class DivEngine {
   // add every export method here
   friend class DivROMExport;
   friend class DivExportAmigaValidation;
+  friend class DivExportSAPR;
   friend class DivExportTiuna;
   friend class DivExportZSM;
 
@@ -1014,19 +1017,19 @@ class DivEngine {
     // get how many loops is left
     void getLoopsLeft(int& loops);
 
-    //get how many loops in total export needs to do
+    // get how many loops in total export needs to do
     void getTotalLoops(int& loops);
 
     // get current position in song
     void getCurSongPos(int& row, int& order);
 
-    //get how many files export needs to create
+    // get how many files export needs to create
     void getTotalAudioFiles(int& files);
 
-    //get which file is processed right now (progress for e.g. per-channel export)
+    // get which file is processed right now (progress for e.g. per-channel export)
     void getCurFileIndex(int& file);
 
-    //get fadeout state
+    // get fadeout state
     bool getIsFadingOut();
 
     // add instrument
@@ -1149,7 +1152,7 @@ class DivEngine {
     void* getDispatchChanState(int chan);
 
     // get channel pairs
-    DivChannelPair getChanPaired(int chan);
+    void getChanPaired(int chan, std::vector<DivChannelPair>& ret);
 
     // get channel mode hints
     DivChannelModeHints getChanModeHints(int chan);

@@ -31,3 +31,38 @@
 
 String getHomeDir();
 String getKeyName(int key, bool emptyNone=false);
+
+double sinus(double x);
+double rectSin(double x);
+double absSin(double x);
+double square(double x);
+double rectSquare(double x);
+double quartSin(double x);
+double squiSin(double x);
+double squiAbsSin(double x);
+double saw(double x);
+double rectSaw(double x);
+double absSaw(double x);
+double cubSaw(double x);
+double rectCubSaw(double x);
+double absCubSaw(double x);
+double cubSine(double x);
+double rectCubSin(double x);
+double absCubSin(double x);
+double quartCubSin(double x);
+double squishCubSin(double x);
+double squishAbsCubSin(double x);
+double triangle(double x);
+double rectTri(double x);
+double absTri(double x);
+double quartTri(double x);
+double squiTri(double x);
+double absSquiTri(double x);
+double cubTriangle(double x);
+double cubRectTri(double x);
+double cubAbsTri(double x);
+double cubQuartTri(double x);
+double cubSquiTri(double x);
+double absCubSquiTri(double x);
+
+String getMultiKeysName(const int* keys, int keyCount, bool emptyNone=false);
