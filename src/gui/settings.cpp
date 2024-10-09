@@ -290,6 +290,12 @@ const char* specificControls[18]={
   _N("Effect 8 value")
 };
 
+const char* someRadioSettings[3]={
+  "Yes",
+  "No",
+  "idk"
+};
+
 #define SAMPLE_RATE_SELECTABLE(x) \
   if (ImGui::Selectable(#x,settings.audioRate==x)) { \
     settings.audioRate=x; \
@@ -359,6 +365,8 @@ void FurnaceGUI::setupSettingsCategories() {
           new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
           new SettingDefSliderInt(&settings.metroVol,"metroVol","Metronome volume","the volume of the metronome",100,0,200,"%d%%"),
           new SettingDefSliderFloat(&settings.doubleClickTime,"doubleClickTime","Mouse double click time",NULL,0.3f,0.02f,1.0f,"%g s"),
+          new SettingDefDropdown(&settings.arcadeCore,"arcadeCore","YM2151 core",NULL,0,arcadeCores,2),
+          new SettingDefRadio(&settings.alwaysPlayIntro,"alwaysPlayIntro","Are you okay?",NULL,0,someRadioSettings,3),
         }
       ),SettingsCategory(3,"child 2",
         {},

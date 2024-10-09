@@ -79,7 +79,8 @@ class SettingDefCheckbox : public SettingDef {
       data(NULL),
       name(""),
       friendlyName(""),
-      tooltip("") {}
+      tooltip(""),
+      fallback(0) {}
     SettingDefCheckbox(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback) {
       data=_data;
       name=_name;
@@ -320,13 +321,20 @@ class SettingDefDropdown : public SettingDef {
   const char* friendlyName;
   const char* tooltip;
 
-  bool fallback;
+  int fallback;
   const char** options;
   int optionsCount;
+  ImGuiComboFlags f;
   public:
     void drawSetting(bool& changed) {
-      if (ImGui::Combo(friendlyName,(options[*(int*)data]),options,optionsCount)) {
-        changed=true;
+      if (ImGui::BeginCombo(friendlyName,options[*(int*)data],f)) {
+        for (unsigned short i=0; i<optionsCount; i++) {
+          if (ImGui::Selectable(options[i],i==*(int*)data)) {
+            *(int*)data=i;
+            changed=true;
+          }
+        }
+        ImGui::EndCombo();
       }
       if (tooltip) {
         ImGui::SameLine();
@@ -343,17 +351,88 @@ class SettingDefDropdown : public SettingDef {
       *(int*)data=conf->getInt(name, fallback?1:0);
       clampSetting(*(int*)data,0,1);
     }
-    SettingDefCheckbox():
+    SettingDefDropdown():
       data(NULL),
       name(""),
       friendlyName(""),
-      tooltip("") {}
-    SettingDefCheckbox(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback) {
+      tooltip(""),
+      fallback(0),
+      options(NULL),
+      optionsCount(0),
+      f(0) {}
+    SettingDefDropdown(int* _data, String _name, const char* _friendlyName, const char* _tooltip, int _fallback, const char** _options, int _optionsCount):
+      f(0) {
       data=_data;
       name=_name;
       friendlyName=_friendlyName;
       tooltip=_tooltip;
       fallback=_fallback;
+      options=_options;
+      optionsCount=_optionsCount;
+    }
+    SettingDefDropdown(int* _data, String _name, const char* _friendlyName, const char* _tooltip, int _fallback, const char** _options, int _optionsCount, ImGuiComboFlags flags) {
+      data=_data;
+      name=_name;
+      friendlyName=_friendlyName;
+      tooltip=_tooltip;
+      fallback=_fallback;
+      options=_options;
+      optionsCount=_optionsCount;
+      f=flags;
+    }
+};
+
+class SettingDefRadio : public SettingDef {
+  void* data;
+  String name;
+  const char* friendlyName;
+  const char* tooltip;
+
+  int fallback;
+  const char** options;
+  int optionsCount;
+  public:
+    void drawSetting(bool& changed) {
+      ImGui::Text("%s",friendlyName);
+      ImGui::Indent();
+      for (unsigned short i=0; i<optionsCount; i++) {
+        if (ImGui::RadioButton(options[i],i==*(int*)data)) {
+          *(int*)data=i;
+          changed=true;
+        }
+      }
+      ImGui::Unindent();
+      if (tooltip) {
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(0.5f,0.5f,0.5f,0.9f),"(?)");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) {
+          ImGui::SetTooltip("%s",tooltip);
+        }
+      }
+    }
+    void saveSetting(DivConfig* conf) {
+      conf->set(name,(*(bool*)data)?1:0);
+    }
+    void loadSetting(DivConfig* conf){
+      *(int*)data=conf->getInt(name, fallback?1:0);
+      clampSetting(*(int*)data,0,1);
+    }
+    SettingDefRadio():
+      data(NULL),
+      name(""),
+      friendlyName(""),
+      tooltip(""),
+      fallback(0),
+      options(NULL),
+      optionsCount(0) {}
+    SettingDefRadio(int* _data, String _name, const char* _friendlyName, const char* _tooltip, int _fallback, const char** _options, int _optionsCount) {
+      data=_data;
+      name=_name;
+      friendlyName=_friendlyName;
+      tooltip=_tooltip;
+      fallback=_fallback;
+      options=_options;
+      optionsCount=_optionsCount;
     }
 };
 
