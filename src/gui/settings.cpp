@@ -5092,8 +5092,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.macroLayout=conf.getInt("macroLayout",0);
     settings.controlLayout=conf.getInt("controlLayout",3);
     settings.classicChipOptions=conf.getInt("classicChipOptions",0);
-    settings.chipManagerTooltip=conf.getInt("chipManagerTooltip",0);
-    settings.sysTooltipChanInfoStyle=conf.getInt("sysTooltipChanInfoStyle",0);
+    settings.chipManagerTooltip=conf.getInt("chipManagerTooltip",1);
+    settings.sysTooltipChanInfoStyle=conf.getInt("sysTooltipChanInfoStyle",3);
   }
 
   if (groups&GUI_SETTINGS_COLOR) {

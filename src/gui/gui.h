@@ -2260,8 +2260,8 @@ class FurnaceGUI {
       vibrationStrength(0.5f),
       vibrationLength(20),
       s3mOPL3(1),
-      chipManagerTooltip(1), // poll?
-      sysTooltipChanInfoStyle(3), // poll?
+      chipManagerTooltip(1),
+      sysTooltipChanInfoStyle(3),
       mainFontPath(""),
       headFontPath(""),
       patFontPath(""),
