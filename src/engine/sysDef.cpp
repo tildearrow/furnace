@@ -1219,7 +1219,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_YM2203_EXT]=new DivSysDef(
     _("Yamaha YM2203 (OPN) Extended Channel 3"), NULL, 0xb6, 0, 9, true, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
-    _("cost-reduced version of the OPM with a different register layout and no stereo...\n...but it has a built-in AY-3-8910! (actually an YM2149)\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies"),
+    _("cost-reduced version of the OPM with a different register layout and no stereo...\n...but it has a built-in AY-3-8910! (actually an YM2149)\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies."),
     {_("FM 1"), _("FM 2"), _("FM 3 OP1"), _("FM 3 OP2"), _("FM 3 OP3"), _("FM 3 OP4"), _("PSG 1"), _("PSG 2"), _("PSG 3")},
     {"F1", "F2", "O1", "O2", "O3", "O4", "S1", "S2", "S3"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
@@ -1232,7 +1232,8 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_YM2203_CSM]=new DivSysDef(
     _("Yamaha YM2203 (OPN) CSM"), NULL, 0xc3, 0, 10, true, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
-    _("cost-reduced version of the OPM with a different register layout and no stereo...\n...but it has a built-in AY-3-8910! (actually an YM2149)\nCSM blah blah"),
+    _("cost-reduced version of the OPM with a different register layout and no stereo...\n...but it has a built-in AY-3-8910! (actually an YM2149)\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies."
+    "\nthis one includes CSM mode control for special effects on Channel 3."),
     {_("FM 1"), _("FM 2"), _("FM 3 OP1"), _("FM 3 OP2"), _("FM 3 OP3"), _("FM 3 OP4"), _("CSM Timer"), _("PSG 1"), _("PSG 2"), _("PSG 3")},
     {"F1", "F2", "O1", "O2", "O3", "O4", "CSM", "S1", "S2", "S3"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_NOISE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
@@ -1257,7 +1258,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_YM2608_EXT]=new DivSysDef(
     _("Yamaha YM2608 (OPNA) Extended Channel 3"), NULL, 0xb7, 0, 19, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
-    _("OPN but twice the FM channels, stereo makes a come-back and has rhythm and ADPCM channels.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies"),
+    _("OPN but twice the FM channels, stereo makes a come-back and has rhythm and ADPCM channels.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies."),
     {_("FM 1"), _("FM 2"), _("FM 3 OP1"), _("FM 3 OP2"), _("FM 3 OP3"), _("FM 3 OP4"), _("FM 4"), _("FM 5"), _("FM 6"), _("Square 1"), _("Square 2"), _("Square 3"), _("Kick"), _("Snare"), _("Top"), _("HiHat"), _("Tom"), _("Rim"), _("ADPCM")},
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "S1", "S2", "S3", "BD", "SD", "TP", "HH", "TM", "RM", "P"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_PCM},
@@ -1270,7 +1271,8 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_YM2608_CSM]=new DivSysDef(
     _("Yamaha YM2608 (OPNA) CSM"), NULL, 0xc4, 0, 20, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
-    _("OPN but twice the FM channels, stereo makes a come-back and has rhythm and ADPCM channels.\nCSM blah blah"),
+    _("OPN but twice the FM channels, stereo makes a come-back and has rhythm and ADPCM channels.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies.\n"
+    "this one includes CSM mode control for special effects on Channel 3."),
     {_("FM 1"), _("FM 2"), _("FM 3 OP1"), _("FM 3 OP2"), _("FM 3 OP3"), _("FM 3 OP4"), _("FM 4"), _("FM 5"), _("FM 6"), _("CSM Timer"), _("Square 1"), _("Square 2"), _("Square 3"), _("Kick"), _("Snare"), _("Top"), _("HiHat"), _("Tom"), _("Rim"), _("ADPCM")},
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "CSM", "S1", "S2", "S3", "BD", "SD", "TP", "HH", "TM", "RM", "P"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_PCM},
@@ -1669,7 +1671,8 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_YM2610B_CSM]=new DivSysDef(
     _("Yamaha YM2610B (OPNB2) CSM"), NULL, 0xc5, 0, 20, true, false, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
-    _("so Taito asked Yamaha if they could get the two missing FM channels back, and Yamaha gladly provided them with this chip.\nCSM blah blah"),
+    _("so Taito asked Yamaha if they could get the two missing FM channels back, and Yamaha gladly provided them with this chip.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies."
+    "\nthis one includes CSM mode control for special effects on Channel 3."),
     {_("FM 1"), _("FM 2"), _("FM 3 OP1"), _("FM 3 OP2"), _("FM 3 OP3"), _("FM 3 OP4"), _("FM 4"), _("FM 5"), _("FM 6"), _("CSM Timer"), _("PSG 1"), _("PSG 2"), _("PSG 3"), _("ADPCM-A 1"), _("ADPCM-A 2"), _("ADPCM-A 3"), _("ADPCM-A 4"), _("ADPCM-A 5"), _("ADPCM-A 6"), _("ADPCM-B")},
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "CSM", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
@@ -1981,7 +1984,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_YM2612_DUALPCM_EXT]=new DivSysDef(
     _("Yamaha YM2612 (OPN2) Extended Channel 3 with DualPCM and CSM"), NULL, 0xbd, 0, 11, true, false, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
-    _("this chip is mostly known for being in the Sega Genesis (but it also was on the FM Towns computer).\nthis system uses software mixing to provide two sample channels.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies."),
+    _("this chip is mostly known for being in the Sega Genesis (but it also was on the FM Towns computer).\nthis system uses software mixing to provide two sample channels.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies.\nthis one includes CSM mode control for special effects on Channel 3."),
     {_("FM 1"), _("FM 2"), _("FM 3 OP1"), _("FM 3 OP2"), _("FM 3 OP3"), _("FM 3 OP4"), _("FM 4"), _("FM 5"), _("FM 6/PCM 1"), _("PCM 2"), _("CSM Timer")},
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "P1", "P2", "CSM"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_NOISE},
