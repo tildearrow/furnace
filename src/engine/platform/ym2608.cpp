@@ -280,9 +280,9 @@ const char** DivPlatformYM2608::getRegisterSheet() {
 }
 
 double DivPlatformYM2608::NOTE_OPNB(int ch, int note) {
-  if (ch>8) { // ADPCM-B
+  if (ch>(8+isCSM)) { // ADPCM-B
     return NOTE_ADPCMB(note);
-  } else if (ch>5) { // PSG
+  } else if (ch>(5+isCSM)) { // PSG
     return NOTE_PERIODIC(note);
   }
   // FM
@@ -290,8 +290,8 @@ double DivPlatformYM2608::NOTE_OPNB(int ch, int note) {
 }
 
 double DivPlatformYM2608::NOTE_ADPCMB(int note) {
-  if (chan[15].sample>=0 && chan[15].sample<parent->song.sampleLen) {
-    double off=65535.0*(double)(parent->getSample(chan[15].sample)->centerRate)/8363.0;
+  if (chan[15+isCSM].sample>=0 && chan[15+isCSM].sample<parent->song.sampleLen) {
+    double off=65535.0*(double)(parent->getSample(chan[15+isCSM].sample)->centerRate)/8363.0;
     return parent->calcBaseFreq((double)chipClock/144,off,note,false);
   }
   return 0;
@@ -404,7 +404,7 @@ void DivPlatformYM2608::acquire_combo(short** buf, size_t len) {
     buf[1][h]=os[1];
 
     
-    for (int i=0; i<psgChanOffs; i++) {
+    for (int i=0; i<(psgChanOffs-isCSM); i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fm_nuked.ch_out[i]<<1,-32768,32767);
     }
 
@@ -961,8 +961,8 @@ void DivPlatformYM2608::tick(bool sysTick) {
     if (chan[(15+isCSM)].std.panL.had) {
       if (chan[(15+isCSM)].pan!=(chan[(15+isCSM)].std.panL.val&3)) {
         chan[(15+isCSM)].pan=chan[(15+isCSM)].std.panL.val&3;
-        if (!isMuted[15]) {
-          immWrite(0x101,(isMuted[15]?0:(chan[(15+isCSM)].pan<<6))|1);
+        if (!isMuted[(15 + isCSM)]) {
+          immWrite(0x101,(isMuted[(15 + isCSM)]?0:(chan[(15+isCSM)].pan<<6))|1);
           hardResetElapsed++;
         }
       }
@@ -1308,7 +1308,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
         immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|1);
         break;
       }
-      if (c.chan>8) {
+      if (c.chan>(8 + isCSM)) {
         immWrite(0x18+(c.chan-(9+isCSM)),isMuted[c.chan]?0:((chan[c.chan].pan<<6)|chan[c.chan].outVol));
         break;
       }
@@ -1647,8 +1647,8 @@ void DivPlatformYM2608::muteChannel(int ch, bool mute) {
     immWrite(0x18+(ch-9),isMuted[ch]?0:((chan[ch].pan<<6)|chan[ch].outVol));
     return;
   }
-  if (ch>5) { // PSG
-    ay->muteChannel(ch-6,mute);
+  if (ch>(5+isCSM)) { // PSG
+    ay->muteChannel(ch-(6+isCSM),mute);
     return;
   }
   // FM
@@ -1698,7 +1698,7 @@ void DivPlatformYM2608::forceIns() {
   }
   immWrite(0x11,globalRSSVolume&0x3f);
   immWrite(0x22,lfoValue);
-  for (int i=(+isCSM); i<(16+isCSM); i++) {
+  for (int i=(9+isCSM); i<(16+isCSM); i++) {
     chan[i].insChanged=true;
     if (i>(14+isCSM)) { // ADPCM-B
       immWrite(0x10b,chan[i].outVol);
@@ -1721,7 +1721,7 @@ void* DivPlatformYM2608::getChanState(int ch) {
 }
 
 DivMacroInt* DivPlatformYM2608::getChanMacroInt(int ch) {
-  if (ch>=(6+isCSM) && ch<(9+isCSM)) return ay->getChanMacroInt(ch-6);
+  if (ch>=(6+isCSM) && ch<(9+isCSM)) return ay->getChanMacroInt(ch-(6+isCSM));
   return &chan[ch].std;
 }
 
@@ -1760,7 +1760,7 @@ void DivPlatformYM2608::reset() {
   OPN2_SetChipType(&fm_nuked,ym3438_mode_opn);
   fm->reset();
   memset(&fm_lle,0,sizeof(fmopna_t));
-  for (int i=0; i<16; i++) {
+  for (int i=0; i<17; i++) {
     chan[i]=DivPlatformOPN::OPNChannelStereo();
     chan[i].std.setEngine(parent);
   }
@@ -1774,7 +1774,7 @@ void DivPlatformYM2608::reset() {
   for (int i=(9+isCSM); i<(15+isCSM); i++) {
     chan[i].vol=0x1f;
   }
-  chan[15].vol=0xff;
+  chan[15+isCSM].vol=0xff;
 
   for (int i=0; i<512; i++) {
     oldWrites[i]=-1;
@@ -2004,7 +2004,7 @@ void DivPlatformYM2608::setFlags(const DivConfig& flags) {
   } else {
     rate=fm->sample_rate(chipClock);
   }
-  for (int i=0; i<(16+isCSM); i++) {
+  for (int i=0; i<17; i++) {
     oscBuf[i]->rate=rate;
   }
   immWrite(0x2d,0xff);
@@ -2024,7 +2024,7 @@ int DivPlatformYM2608::init(DivEngine* p, int channels, int sugRate, const DivCo
   iface.sampleBank=0;
   dumpWrites=false;
   skipRegisterWrites=false;
-  for (int i=0; i<16+isCSM; i++) {
+  for (int i=0; i<17; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
@@ -2041,6 +2041,10 @@ int DivPlatformYM2608::init(DivEngine* p, int channels, int sugRate, const DivCo
 
 void DivPlatformYM2608::setCSM(bool isCSM) {
   this->isCSM=isCSM;
+  psgChanOffs=6+isCSM; // doing this hurts me...
+  adpcmAChanOffs=9+isCSM;
+  adpcmBChanOffs=15+isCSM;
+  chanNum=16+isCSM;
   if (isCSM) {
     csmChan=6;
   } else {
