@@ -3331,7 +3331,7 @@ void FurnaceGUI::drawSettings() {
           settings.sysTooltipChanInfoStyle=1;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Color... things?##stciCO",settings.sysTooltipChanInfoStyle==2)) {
+        if (ImGui::RadioButton("Color tiles##stciCO",settings.sysTooltipChanInfoStyle==2)) {
           settings.sysTooltipChanInfoStyle=2; // retext!!!
           settingsChanged=true;
         }
