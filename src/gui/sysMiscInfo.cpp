@@ -18,6 +18,9 @@
  */
  
 #include "gui.h"
+#include "guiConst.h"
+#include "misc/cpp/imgui_stdlib.h"
+#include <fmt/printf.h>
 
 const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
   switch (sys) {
@@ -289,4 +292,148 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       return FurnaceGUI::getSystemName(sys);
       break;
   }
+}
+
+void FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef) {
+  ImDrawList* dl=ImGui::GetWindowDrawList();
+  const ImVec2 p=ImGui::GetCursorScreenPos();
+  float scaler=5.0f*dpiScale;
+  float x=p.x+dpiScale;
+  for (int i=0; i<whichDef->channels; i++) {
+    dl->AddRectFilled(ImVec2(x,p.y),ImVec2(x+2.0f*scaler,p.y+4.0f*scaler),ImGui::GetColorU32(uiColors[whichDef->chanTypes[i]+GUI_COLOR_CHANNEL_FM]),scaler);
+    x+=3.0f*scaler;
+  }
+  ImGui::Dummy(ImVec2(0,4*scaler));
+}
+
+void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
+  String info="";
+  // same order as chanNames
+  // helper: FM|PU|NO|WA|SA | SQ|TR|SW|OP|DR|SL|WV|CH
+  unsigned char chanCount[CHANNEL_TYPE_MAX];
+  memset(chanCount,0,CHANNEL_TYPE_MAX);
+  // count channel types
+  for (int i=0; i<whichDef->channels; i++) {
+    switch (whichDef->chanInsType[i][0]) {
+      case DIV_INS_STD: // square
+      case DIV_INS_BEEPER:
+      case DIV_INS_TED:
+      case DIV_INS_VIC:
+      case DIV_INS_T6W28:
+      case DIV_INS_PV1000:
+        if (whichDef->id==0xfd) { // dummy
+          chanCount[CHANNEL_TYPE_OTHER]++;
+          break;
+        }
+        if (whichDef->id==0x9f) { // zx sfx
+          chanCount[CHANNEL_TYPE_PULSE]++;
+          break;
+        }
+        if (whichDef->chanTypes[i]==DIV_CH_NOISE) { // sn/t6w noise
+          chanCount[CHANNEL_TYPE_NOISE]++;
+        } else { // DIV_CH_PULSE, any sqr chan
+          chanCount[CHANNEL_TYPE_SQUARE]++;
+        }
+        break;
+      case DIV_INS_NES:
+        if (whichDef->chanTypes[i]==DIV_CH_WAVE) {
+          chanCount[whichDef->id==0xf1?CHANNEL_TYPE_WAVE:CHANNEL_TYPE_TRIANGLE]++; // triangle, wave for 5E01
+        } else {
+          chanCount[whichDef->chanTypes[i]]++;
+        }
+        break;
+      case DIV_INS_OPL_DRUMS:
+      case DIV_INS_OPL:
+      case DIV_INS_OPLL:
+        if (whichDef->chanTypes[i]==DIV_CH_OP) {
+          chanCount[CHANNEL_TYPE_FM]++; // opl3 4op
+          break;
+        }
+        if (whichDef->chanTypes[i]==DIV_CH_NOISE) {
+          chanCount[CHANNEL_TYPE_DRUMS]++; // drums
+        } else {
+          chanCount[whichDef->chanTypes[i]]++;
+        }
+        break;
+      case DIV_INS_FM:
+        if (whichDef->chanTypes[i]==DIV_CH_OP) {
+          chanCount[CHANNEL_TYPE_OPERATOR]++; // ext. ops
+        } else if (whichDef->chanTypes[i]==DIV_CH_NOISE) {
+          break; // csm timer
+        } else {
+          chanCount[whichDef->chanTypes[i]]++;
+        }
+        break;
+      case DIV_INS_ADPCMA:
+      case DIV_INS_ADPCMB:
+        chanCount[CHANNEL_TYPE_SAMPLE]++;
+        break;
+      case DIV_INS_VRC6_SAW:
+        chanCount[CHANNEL_TYPE_SAW]++;
+        break;
+      case DIV_INS_POWERNOISE_SLOPE:
+        chanCount[CHANNEL_TYPE_SLOPE]++;
+        break;
+      case DIV_INS_QSOUND:
+        chanCount[CHANNEL_TYPE_SAMPLE]++;
+        break;
+      case DIV_INS_NDS:
+        if (whichDef->chanTypes[i]!=DIV_CH_PCM) { // the psg chans can also play samples??
+          chanCount[CHANNEL_TYPE_SAMPLE]++;
+        }
+        chanCount[whichDef->chanTypes[i]]++;
+        break;
+      case DIV_INS_VERA:
+        if (whichDef->chanTypes[i]==DIV_CH_PULSE) {
+          chanCount[CHANNEL_TYPE_WAVE]++;
+        } else { // sample chan
+          chanCount[CHANNEL_TYPE_SAMPLE]++;
+        }
+        break;
+      case DIV_INS_DAVE:
+        if (whichDef->chanTypes[i]==DIV_CH_WAVE) {
+          chanCount[CHANNEL_TYPE_OTHER]++;
+        } else {
+          chanCount[whichDef->chanTypes[i]]++;
+        }
+        break;
+      case DIV_INS_SWAN:
+        if (whichDef->chanTypes[i]!=DIV_CH_WAVE) {
+          chanCount[CHANNEL_TYPE_WAVETABLE]++;
+        }
+        chanCount[whichDef->chanTypes[i]]++;
+        break;
+      case DIV_INS_C64: // uncategorizable (by me)
+      case DIV_INS_TIA:
+      case DIV_INS_PET:
+      case DIV_INS_SU:
+      case DIV_INS_POKEY:
+      case DIV_INS_MIKEY:
+      case DIV_INS_BIFURCATOR:
+      case DIV_INS_SID2:
+        chanCount[CHANNEL_TYPE_OTHER]++;
+        break;
+      default:
+        chanCount[whichDef->chanTypes[i]]++;
+        break;
+    }
+  }
+  // generate string
+  for (int j=0; j<CHANNEL_TYPE_MAX; j++) {
+    unsigned char i=chanNamesHierarchy[j];
+    if (chanCount[i]==0) continue;
+    if (info.length()!=0) {
+      info+=", ";
+    }
+    if (i==CHANNEL_TYPE_OTHER) {
+      if (chanCount[i]>1) {
+        info+=fmt::sprintf("%d %s",chanCount[i],chanNames[CHANNEL_TYPE_OTHER+1]);
+      } else {
+        info+=fmt::sprintf("%d %s",chanCount[i],chanNames[CHANNEL_TYPE_OTHER]);
+      }
+      continue;
+    }
+    info+=fmt::sprintf("%d × %s",chanCount[i],chanNames[i]);
+  }
+  ImGui::Text("%s",info.c_str());
 }

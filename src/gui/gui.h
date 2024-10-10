@@ -2040,6 +2040,8 @@ class FurnaceGUI {
     float vibrationStrength;
     int vibrationLength;
     int s3mOPL3;
+    int chipManagerTooltip;
+    int sysTooltipChanInfoStyle;
     String mainFontPath;
     String headFontPath;
     String patFontPath;
@@ -2299,6 +2301,8 @@ class FurnaceGUI {
       vibrationStrength(0.5f),
       vibrationLength(20),
       s3mOPL3(1),
+      chipManagerTooltip(1),
+      sysTooltipChanInfoStyle(3),
       mainFontPath(""),
       headFontPath(""),
       patFontPath(""),
@@ -2322,6 +2326,7 @@ class FurnaceGUI {
     bool introPlayed;
     bool protoWelcome;
     bool importedMOD, importedS3M, importedXM, importedIT;
+    double popupTimer;
     Tutorial():
 #ifdef SUPPORT_XP
       introPlayed(true),
@@ -2332,7 +2337,8 @@ class FurnaceGUI {
       importedMOD(false),
       importedS3M(false),
       importedXM(false),
-      importedIT(false) {
+      importedIT(false),
+      popupTimer(10.0f) {
     }
   } tutorial;
 
@@ -2937,6 +2943,8 @@ class FurnaceGUI {
   void drawTutorial();
   void drawXYOsc();
   void drawUserPresets();
+  void drawSystemChannelInfo(const DivSysDef* whichDef);
+  void drawSystemChannelInfoText(const DivSysDef* whichDef);
 
   void assignActionMap(std::map<int,int>& actionMap, int first, int last);
   void drawKeybindSettingsTableRow(FurnaceGUIActions actionIdx);
