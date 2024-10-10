@@ -2281,6 +2281,7 @@ class FurnaceGUI {
     bool introPlayed;
     bool protoWelcome;
     bool importedMOD, importedS3M, importedXM, importedIT;
+    double popupTimer;
     Tutorial():
 #ifdef SUPPORT_XP
       introPlayed(true),
@@ -2291,7 +2292,8 @@ class FurnaceGUI {
       importedMOD(false),
       importedS3M(false),
       importedXM(false),
-      importedIT(false) {
+      importedIT(false),
+      popupTimer(10.0f) {
     }
   } tutorial;
 
