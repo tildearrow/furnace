@@ -363,23 +363,16 @@ void FurnaceGUI::setupSettingsCategories() {
         {},
         {
           new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
-          new SettingDefSliderInt(&settings.metroVol,"metroVol","Metronome volume","the volume of the metronome",100,0,200,"%d%%"),
-          new SettingDefSliderFloat(&settings.doubleClickTime,"doubleClickTime","Mouse double click time",NULL,0.3f,0.02f,1.0f,"%g s"),
-          new SettingDefDropdown(&settings.arcadeCore,"arcadeCore","YM2151 core",NULL,0,arcadeCores,2),
-          new SettingDefRadio(&settings.alwaysPlayIntro,"alwaysPlayIntro","Are you okay?",NULL,0,someRadioSettings,3),
         }
       ),SettingsCategory(3,"child 2",
         {},
         {
-          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
-          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
-          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
-          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
+          new SettingDefSliderInt(&settings.metroVol,"metroVol","Metronome volume","the volume of the metronome",100,0,200,"%d%%"),
         }
       )
     },
     {
-      new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
+      new SettingDefRadio(&settings.alwaysPlayIntro,"alwaysPlayIntro","Are you okay?",NULL,0,someRadioSettings,3),
     }
   );
 
@@ -388,24 +381,16 @@ void FurnaceGUI::setupSettingsCategories() {
       SettingsCategory(5,"child",
         {},
         {
-          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
-          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
-          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
-          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
+          new SettingDefDropdown(&settings.arcadeCore,"arcadeCore","YM2151 core",NULL,0,arcadeCores,2),
         }
       ),SettingsCategory(6,"child 2",
         {},
         {
-          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
-          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
-          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
-          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
+          new SettingDefSliderFloat(&settings.doubleClickTime,"doubleClickTime","Mouse double click time",NULL,0.3f,0.02f,1.0f,"%g s"),
         }
       )
     },
-    {
-      new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
-    }
+    {}
   );
 }
 
@@ -436,9 +421,26 @@ void FurnaceGUI::drawSettingsCategories() {
   }
 }
 
+void FurnaceGUI::searchDrawSettingItems(SettingsCategory* cat) {
+  if (cat->children.size()>0) {
+    for (SettingsCategory child:cat->children) {
+      searchDrawSettingItems(&child);
+    }
+  }
+  for (SettingDef* s:cat->settings) {
+    if (s->passesFilter(&settings.filter, 0b11)) s->drawSetting(settingsChanged);
+  }
+}
+
 void FurnaceGUI::drawSettingsItems() {
-  if (settings.activeCategory.name==NULL) return;
-  for (SettingDef* s:settings.activeCategory.settings) s->drawSetting(settingsChanged);
+  if (settings.filter.IsActive()) {
+    for (unsigned char i=0; i<2; i++) {
+      searchDrawSettingItems(&settings.categories[i]);
+    }
+  } else {
+    if (settings.activeCategory.name==NULL) return;
+    for (SettingDef* s:settings.activeCategory.settings) s->drawSetting(settingsChanged);
+  }
 }
 
 String stripName(String what) {

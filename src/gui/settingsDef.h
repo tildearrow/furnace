@@ -33,9 +33,14 @@
 
 // abstract functions
 
+bool SettingDef::passesFilter(ImGuiTextFilter* filter, unsigned char toWhat) {
+  return (filter->PassFilter(friendlyName) && (toWhat&1)) ||
+         (filter->PassFilter(tooltip) && (toWhat&2));
+}
+
 void SettingDef::drawSetting(bool& changed) {
   ImGui::Text("%s",friendlyName);
-  if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) ImGui::SetTooltip("%s",tooltip);
+  if (tooltip && ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) ImGui::SetTooltip("%s",tooltip);
 }
 
 void SettingDef::saveSetting(DivConfig* conf) {
@@ -56,6 +61,10 @@ class SettingDefCheckbox : public SettingDef {
 
   bool fallback;
   public:
+    bool passesFilter(ImGuiTextFilter* filter, unsigned char toWhat) {
+      return (filter->PassFilter(friendlyName) && toWhat&1) ||
+             (filter->PassFilter(tooltip) && toWhat&2);
+    }
     void drawSetting(bool& changed) {
       if (ImGui::Checkbox(friendlyName, (bool*)data)) {
         changed=true;
@@ -101,6 +110,10 @@ class SettingDefSliderInt : public SettingDef {
   const char* sliderFmt;
   ImGuiSliderFlags f;
   public:
+    bool passesFilter(ImGuiTextFilter* filter, unsigned char toWhat) {
+      return (filter->PassFilter(friendlyName) && toWhat&1) ||
+             (filter->PassFilter(tooltip) && toWhat&2);
+    }
     void drawSetting(bool& changed) {
       if (ImGui::SliderInt(friendlyName, (int*)data, minV, maxV, sliderFmt, f)) {
         clampSetting(*(int*)data, minV, maxV);
@@ -176,6 +189,10 @@ class SettingDefSliderFloat : public SettingDef {
   const char* sliderFmt;
   ImGuiSliderFlags f;
   public:
+    bool passesFilter(ImGuiTextFilter* filter, unsigned char toWhat) {
+      return (filter->PassFilter(friendlyName) && toWhat&1) ||
+             (filter->PassFilter(tooltip) && toWhat&2);
+    }
     void drawSetting(bool& changed) {
       if (ImGui::SliderFloat(friendlyName, (float*)data, minV, maxV, sliderFmt, f)) {
         clampSetting(*(float*)data, minV, maxV);
@@ -251,6 +268,10 @@ class SettingDefInputInt : public SettingDef {
   const char* sliderFmt;
   ImGuiInputTextFlags f;
   public:
+    bool passesFilter(ImGuiTextFilter* filter, unsigned char toWhat) {
+      return (filter->PassFilter(friendlyName) && toWhat&1) ||
+             (filter->PassFilter(tooltip) && toWhat&2);
+    }
     void drawSetting(bool& changed) {
       if (ImGui::InputScalar(friendlyName, ImGuiDataType_S32, (int*)data, NULL, NULL, sliderFmt, f)) {
         clampSetting(*(int*)data, minV, maxV);
@@ -326,6 +347,10 @@ class SettingDefDropdown : public SettingDef {
   int optionsCount;
   ImGuiComboFlags f;
   public:
+    bool passesFilter(ImGuiTextFilter* filter, unsigned char toWhat) {
+      return (filter->PassFilter(friendlyName) && toWhat&1) ||
+             (filter->PassFilter(tooltip) && toWhat&2);
+    }
     void drawSetting(bool& changed) {
       if (ImGui::BeginCombo(friendlyName,options[*(int*)data],f)) {
         for (unsigned short i=0; i<optionsCount; i++) {
@@ -392,6 +417,10 @@ class SettingDefRadio : public SettingDef {
   const char** options;
   int optionsCount;
   public:
+    bool passesFilter(ImGuiTextFilter* filter, unsigned char toWhat) {
+      return (filter->PassFilter(friendlyName) && toWhat&1) ||
+             (filter->PassFilter(tooltip) && toWhat&2);
+    }
     void drawSetting(bool& changed) {
       ImGui::Text("%s",friendlyName);
       ImGui::Indent();

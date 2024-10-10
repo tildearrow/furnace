@@ -1606,6 +1606,7 @@ class SettingDef {
     const char* friendlyName;
     const char* tooltip;
   public:
+    virtual bool passesFilter(ImGuiTextFilter* filter, unsigned char toWhat);
     virtual void drawSetting(bool& changed);
     virtual void saveSetting(DivConfig* conf);
     virtual void loadSetting(DivConfig* conf);
@@ -2975,6 +2976,7 @@ class FurnaceGUI {
   void setupSettingsCategories();
   void drawSettingsCategory(SettingsCategory* cat);
   void drawSettingsCategories();
+  void searchDrawSettingItems(SettingsCategory* cat);
   void drawSettingsItems();
 
   void syncSettings();
