@@ -1798,7 +1798,7 @@ class FurnaceGUI {
   int totalFiles;
 
   struct Settings {
-    SettingsCategory categories[10];
+    std::vector<SettingsCategory> categories;
     SettingsCategory activeCategory; // yes a boring copy
     ImGuiTextFilter filter;
     bool settingsChanged;
@@ -2977,7 +2977,6 @@ class FurnaceGUI {
 
   void setupSettingsCategories();
   void drawSettingsCategory(SettingsCategory* cat);
-  void drawSettingsCategories();
   void searchDrawSettingItems(SettingsCategory* cat);
   void drawSettingsItems();
 

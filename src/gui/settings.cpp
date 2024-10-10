@@ -356,42 +356,28 @@ const char* someRadioSettings[3]={
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); \
   if (ImGui::Combo("##" _name "QR",&settings._render,LocalizedComboGetter,coreQualities,6)) settingsChanged=true;
 
+// NEW NEW SETTINGS HERE
 void FurnaceGUI::setupSettingsCategories() {
-  settings.categories[0]=SettingsCategory(1,"General", 
-    {
-      SettingsCategory(2,"child",
-        {},
-        {
+  settings.categories={
+    SettingsCategory(1,"General",{
+        SettingsCategory(2,"child",{},{
           new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
-        }
-      ),SettingsCategory(3,"child 2",
-        {},
-        {
+        }),SettingsCategory(3,"child 2",{},{
           new SettingDefSliderInt(&settings.metroVol,"metroVol","Metronome volume","the volume of the metronome",100,0,200,"%d%%"),
-        }
-      )
-    },
-    {
-      new SettingDefRadio(&settings.alwaysPlayIntro,"alwaysPlayIntro","Are you okay?",NULL,0,someRadioSettings,3),
-    }
-  );
-
-  settings.categories[1]=SettingsCategory(4,"General 2", 
-    {
-      SettingsCategory(5,"child",
-        {},
-        {
+        })
+      },{
+        new SettingDefRadio(&settings.alwaysPlayIntro,"alwaysPlayIntro","Are you okay?",NULL,0,someRadioSettings,3),
+      }
+    ),
+    SettingsCategory(4,"General 2",{
+        SettingsCategory(5,"child",{},{
           new SettingDefDropdown(&settings.arcadeCore,"arcadeCore","YM2151 core",NULL,0,arcadeCores,2),
-        }
-      ),SettingsCategory(6,"child 2",
-        {},
-        {
+        }),SettingsCategory(6,"child 2",{},{
           new SettingDefSliderFloat(&settings.doubleClickTime,"doubleClickTime","Mouse double click time",NULL,0.3f,0.02f,1.0f,"%g s"),
-        }
-      )
-    },
-    {}
-  );
+        })
+      },{}
+    )
+  };
 }
 
 void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {
@@ -415,12 +401,6 @@ void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {
   }
 }
 
-void FurnaceGUI::drawSettingsCategories() {
-  for (int i=0;i<2;i++) {
-    drawSettingsCategory(&settings.categories[i]);
-  }
-}
-
 void FurnaceGUI::searchDrawSettingItems(SettingsCategory* cat) {
   if (cat->children.size()>0) {
     for (SettingsCategory child:cat->children) {
@@ -434,8 +414,8 @@ void FurnaceGUI::searchDrawSettingItems(SettingsCategory* cat) {
 
 void FurnaceGUI::drawSettingsItems() {
   if (settings.filter.IsActive()) {
-    for (unsigned char i=0; i<2; i++) {
-      searchDrawSettingItems(&settings.categories[i]);
+    for (SettingsCategory cat:settings.categories) {
+      searchDrawSettingItems(&cat);
     }
   } else {
     if (settings.activeCategory.name==NULL) return;
@@ -679,20 +659,22 @@ void FurnaceGUI::drawSettings() {
               ImGui::Text("Search where:");
               ImGui::Indent();
               if (ImGui::RadioButton("Setting names", settings.searchDepth==1)) {
-                  settings.searchDepth=1;
+                settings.searchDepth=1;
               }
               if (ImGui::RadioButton("Setting descriptions", settings.searchDepth==2)) {
-                  settings.searchDepth=2;
+                settings.searchDepth=2;
               }
               if (ImGui::RadioButton("Setting names and descriptions", settings.searchDepth==3)) {
-                  settings.searchDepth=3;
+                settings.searchDepth=3;
               }
               ImGui::Unindent();
               ImGui::EndPopup();
             }
 
-            drawSettingsCategories();
-            
+            for (SettingsCategory cat:settings.categories) {
+              drawSettingsCategory(&cat);
+            }
+
             ImGui::EndChild();
           }
           ImGui::TableNextColumn();
