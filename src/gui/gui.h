@@ -1614,7 +1614,6 @@ class SettingDef {
 
 class SettingsCategory {
   public:
-    int id;
     const char* name;
     std::vector<SettingsCategory> children;
     std::vector<SettingDef*> settings;
@@ -1623,15 +1622,13 @@ class SettingsCategory {
     void loadCategorySettings();
 
     SettingsCategory():
-      id(0),
       name(NULL),
       children({}),
       settings({}),
       expandChild(false) {}
 
-    SettingsCategory(int i, const char* n, std::initializer_list<SettingsCategory> c, std::initializer_list<SettingDef*> s):
+    SettingsCategory(const char* n, std::initializer_list<SettingsCategory> c, std::initializer_list<SettingDef*> s):
       expandChild(false) {
-      id=i;
       name=n;
       children=c;
       settings=s;

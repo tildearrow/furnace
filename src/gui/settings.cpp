@@ -359,31 +359,45 @@ const char* someRadioSettings[3]={
 // NEW NEW SETTINGS HERE
 void FurnaceGUI::setupSettingsCategories() {
   settings.categories={
-    SettingsCategory(1,"General",{
-        SettingsCategory(2,"child",{},{
+    SettingsCategory("General",{
+        SettingsCategory("child",{},{
           new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
-        }),SettingsCategory(3,"child 2",{},{
+        }),SettingsCategory("child 2",{},{
           new SettingDefSliderInt(&settings.metroVol,"metroVol","Metronome volume","the volume of the metronome",100,0,200,"%d%%"),
         })
       },{
         new SettingDefRadio(&settings.alwaysPlayIntro,"alwaysPlayIntro","Are you okay?",NULL,0,someRadioSettings,3),
       }
     ),
-    SettingsCategory(4,"General 2",{
-        SettingsCategory(5,"child",{},{
+    SettingsCategory("General 2",{
+        SettingsCategory("child",{},{
           new SettingDefDropdown(&settings.arcadeCore,"arcadeCore","YM2151 core",NULL,0,arcadeCores,2),
-        }),SettingsCategory(6,"child 2",{},{
+        }),SettingsCategory("child 2",{},{
           new SettingDefSliderFloat(&settings.doubleClickTime,"doubleClickTime","Mouse double click time",NULL,0.3f,0.02f,1.0f,"%g s"),
         })
       },{}
-    )
+    ),
+    SettingsCategory("Window",{},{
+#ifndef IS_MOBILE
+      new SettingDefCheckbox(&settings.saveWindowPos,"saveWindowPos",_("Remember window position"),_("remembers the window's last position on start-up."),true),
+#endif
+      new SettingDefCheckbox(&settings.moveWindowTitle,"moveWindowTitle",_("Only allow window movement when clicking on title bar"),NULL,true),
+      new SettingDefCheckbox(&settings.centerPopup,"centerPopup",_("Center pop-up windows"),NULL,true),
+
+      new SettingDefCheckbox(&settings.roundedWindows,"roundedWindows",_("Rounded window corners"),NULL,GUI_DECORATIONS_DEFAULT),
+      new SettingDefCheckbox(&settings.roundedButtons,"roundedButtons",_("Rounded buttons"),NULL,GUI_DECORATIONS_DEFAULT),
+      new SettingDefCheckbox(&settings.roundedMenus,"roundedMenus",_("Rounded menu corners"),NULL,false),
+      new SettingDefCheckbox(&settings.roundedTabs,"roundedTabs",_("Rounded tabs"),NULL,GUI_DECORATIONS_DEFAULT),
+      new SettingDefCheckbox(&settings.roundedScrollbars,"roundedScrollbars",_("Rounded scrollbars"),NULL,GUI_DECORATIONS_DEFAULT),
+      new SettingDefCheckbox(&settings.frameBorders,"frameBorders",_("Borders around widgets"),NULL,false),
+    })
   };
 }
 
 void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {
   if (cat->children.size()>0) {
     ImGuiTreeNodeFlags f=ImGuiTreeNodeFlags_OpenOnDoubleClick;
-    if (settings.activeCategory.id==cat->id) f|=ImGuiTreeNodeFlags_Selected;
+    if (settings.activeCategory.name==cat->name) f|=ImGuiTreeNodeFlags_Selected;
     cat->expandChild=ImGui::TreeNodeEx(cat->name,f);
     if (ImGui::IsItemClicked()) {
       settings.activeCategory=*cat;
@@ -395,7 +409,7 @@ void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {
       ImGui::TreePop();
     }
   } else { // a lonely child...
-    if (ImGui::Selectable(cat->name,settings.activeCategory.id==cat->id)) {
+    if (ImGui::Selectable(cat->name,settings.activeCategory.name==cat->name)) {
       settings.activeCategory=*cat;
     }
   }
@@ -648,39 +662,40 @@ void FurnaceGUI::drawSettings() {
       // NEW SETTINGS HERE
       CONFIG_SECTION("test") {
         CONFIG_SUBSECTION("here");
-        if (ImGui::BeginTable("set3", 2,ImGuiTableFlags_Resizable|ImGuiTableFlags_BordersInner)) {
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          if (ImGui::BeginChild("SettingCategories",ImGui::GetContentRegionAvail(),false)) {
-            settings.filter.Draw(_("Search"));
-            ImGui::SameLine();
-            ImGui::Button(ICON_FA_BARS "##SettingsSearchDepth");
-            if (ImGui::BeginPopupContextItem("SettingsSearchDepth",ImGuiPopupFlags_MouseButtonLeft)) {
-              ImGui::Text("Search where:");
-              ImGui::Indent();
-              if (ImGui::RadioButton("Setting names", settings.searchDepth==1)) {
-                settings.searchDepth=1;
-              }
-              if (ImGui::RadioButton("Setting descriptions", settings.searchDepth==2)) {
-                settings.searchDepth=2;
-              }
-              if (ImGui::RadioButton("Setting names and descriptions", settings.searchDepth==3)) {
-                settings.searchDepth=3;
-              }
-              ImGui::Unindent();
-              ImGui::EndPopup();
-            }
 
-            for (SettingsCategory cat:settings.categories) {
-              drawSettingsCategory(&cat);
-            }
-
-            ImGui::EndChild();
-          }
-          ImGui::TableNextColumn();
-          drawSettingsItems();
-          ImGui::EndTable();
+  if (ImGui::BeginTable("set3", 2,ImGuiTableFlags_Resizable|ImGuiTableFlags_BordersInner)) {
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    if (ImGui::BeginChild("SettingCategories",ImGui::GetContentRegionAvail(),false)) {
+      settings.filter.Draw(_("Search"));
+      ImGui::SameLine();
+      ImGui::Button(ICON_FA_BARS "##SettingsSearchDepth");
+      if (ImGui::BeginPopupContextItem("SettingsSearchDepth",ImGuiPopupFlags_MouseButtonLeft)) {
+        ImGui::Text("Search where:");
+        ImGui::Indent();
+        if (ImGui::RadioButton("Setting names", settings.searchDepth==1)) {
+          settings.searchDepth=1;
         }
+        if (ImGui::RadioButton("Setting descriptions", settings.searchDepth==2)) {
+          settings.searchDepth=2;
+        }
+        if (ImGui::RadioButton("Setting names and descriptions", settings.searchDepth==3)) {
+          settings.searchDepth=3;
+        }
+        ImGui::Unindent();
+        ImGui::EndPopup();
+      }
+      for (SettingsCategory cat:settings.categories) drawSettingsCategory(&cat);
+      ImGui::EndChild();
+    }
+    ImGui::TableNextColumn();
+    drawSettingsItems();
+    if ((strncmp(settings.filter.InputBuf,"Cheats",7)==0) && !nonLatchNibble) {
+      ImGui::Text("gotta unlock them first!");
+    }
+    ImGui::EndTable();
+  }
+
         END_SECTION;
       }
       CONFIG_SECTION(_("General")) {
