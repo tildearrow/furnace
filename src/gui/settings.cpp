@@ -3315,32 +3315,6 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
-        bool chipManagerTooltipB=settings.chipManagerTooltip;
-        if (ImGui::Checkbox("Show system tooltips in the chip manager",&chipManagerTooltipB)) {
-          settings.chipManagerTooltip=chipManagerTooltipB;
-          settingsChanged=true;
-        }
-
-        ImGui::Text("System tooltip channel information style:");
-        ImGui::Indent();
-        if (ImGui::RadioButton("None##stciNO",settings.sysTooltipChanInfoStyle==0)) {
-          settings.sysTooltipChanInfoStyle=0;
-          settingsChanged=true;
-        }
-        if (ImGui::RadioButton("Text##stciTX",settings.sysTooltipChanInfoStyle==1)) {
-          settings.sysTooltipChanInfoStyle=1;
-          settingsChanged=true;
-        }
-        if (ImGui::RadioButton("Color... things?##stciCO",settings.sysTooltipChanInfoStyle==2)) {
-          settings.sysTooltipChanInfoStyle=2; // retext!!!
-          settingsChanged=true;
-        }
-        if (ImGui::RadioButton("Both##stciTC",settings.sysTooltipChanInfoStyle==3)) {
-          settings.sysTooltipChanInfoStyle=3;
-          settingsChanged=true;
-        }
-        ImGui::Unindent();
-
         // SUBSECTION ORDERS
         CONFIG_SUBSECTION(_("Orders"));
         // sorry. temporarily disabled until ImGui has a way to add separators in tables arbitrarily.
@@ -5092,8 +5066,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.macroLayout=conf.getInt("macroLayout",0);
     settings.controlLayout=conf.getInt("controlLayout",3);
     settings.classicChipOptions=conf.getInt("classicChipOptions",0);
-    settings.chipManagerTooltip=conf.getInt("chipManagerTooltip",1);
-    settings.sysTooltipChanInfoStyle=conf.getInt("sysTooltipChanInfoStyle",3);
   }
 
   if (groups&GUI_SETTINGS_COLOR) {
@@ -5399,8 +5371,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.autoFillSave,0,1);
   clampSetting(settings.autoMacroStepSize,0,2);
   clampSetting(settings.s3mOPL3,0,1);
-  clampSetting(settings.chipManagerTooltip,0,1);
-  clampSetting(settings.sysTooltipChanInfoStyle,0,3);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
@@ -5687,8 +5657,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("macroLayout",settings.macroLayout);
     conf.set("controlLayout",settings.controlLayout);
     conf.set("classicChipOptions",settings.classicChipOptions);
-    conf.set("chipManagerTooltip",settings.chipManagerTooltip);
-    conf.set("sysTooltipChanInfoStyle",settings.sysTooltipChanInfoStyle);
   }
 
   // color

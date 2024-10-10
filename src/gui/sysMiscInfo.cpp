@@ -300,7 +300,7 @@ void FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef) {
   float scaler=5.0f*dpiScale;
   float x=p.x+dpiScale;
   for (int i=0; i<whichDef->channels; i++) {
-    dl->AddRectFilled(ImVec2(x,p.y),ImVec2(x+2.0f*scaler,p.y+4.0f*scaler),ImGui::GetColorU32(uiColors[whichDef->chanTypes[i]+GUI_COLOR_CHANNEL_FM]),scaler);
+    dl->AddRectFilled(ImVec2(x,p.y),ImVec2(x+2.0f*scaler,p.y+1.0f*scaler),ImGui::GetColorU32(uiColors[whichDef->chanTypes[i]+GUI_COLOR_CHANNEL_FM]),scaler);
     x+=3.0f*scaler;
   }
   ImGui::Dummy(ImVec2(0,4*scaler));
