@@ -134,7 +134,8 @@ static nfdresult_t AllocPathSet( NSArray *urls, nfdpathset_t *pathset )
 nfdresult_t NFD_OpenDialog( const std::vector<std::string>& filterList,
                             const nfdchar_t *defaultPath,
                             nfdchar_t **outPath,
-                            nfdselcallback_t selCallback )
+                            nfdselcallback_t selCallback,
+                            const nfdchar_t *defaultFileName )
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
@@ -147,6 +148,12 @@ nfdresult_t NFD_OpenDialog( const std::vector<std::string>& filterList,
 
     // Set the starting directory
     SetDefaultPath(dialog, defaultPath);
+
+    // Set the file name
+    if (defaultFileName!=NULL) {
+      NSString* defFileName=[NSString stringWithUTF8String:defaultFileName];
+      [dialog setNameFieldStringValue:defFileName];
+    }
 
     nfdresult_t nfdResult = NFD_CANCEL;
     if ( [dialog runModal] == NSModalResponseOK )
@@ -177,7 +184,8 @@ nfdresult_t NFD_OpenDialog( const std::vector<std::string>& filterList,
 nfdresult_t NFD_OpenDialogMultiple( const std::vector<std::string>& filterList,
                                     const nfdchar_t *defaultPath,
                                     nfdpathset_t *outPaths,
-                                    nfdselcallback_t selCallback )
+                                    nfdselcallback_t selCallback,
+                            const nfdchar_t *defaultFileName )
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     NSWindow *keyWindow = [[NSApplication sharedApplication] keyWindow];
@@ -190,6 +198,12 @@ nfdresult_t NFD_OpenDialogMultiple( const std::vector<std::string>& filterList,
 
     // Set the starting directory
     SetDefaultPath(dialog, defaultPath);
+
+    // Set the file name
+    if (defaultFileName!=NULL) {
+      NSString* defFileName=[NSString stringWithUTF8String:defaultFileName];
+      [dialog setNameFieldStringValue:defFileName];
+    }
     
     nfdresult_t nfdResult = NFD_CANCEL;
     if ( [dialog runModal] == NSModalResponseOK )
@@ -222,7 +236,8 @@ nfdresult_t NFD_OpenDialogMultiple( const std::vector<std::string>& filterList,
 nfdresult_t NFD_SaveDialog( const std::vector<std::string>& filterList,
                             const nfdchar_t *defaultPath,
                             nfdchar_t **outPath,
-                            nfdselcallback_t selCallback )
+                            nfdselcallback_t selCallback,
+                            const nfdchar_t *defaultFileName )
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     NSWindow *keyWindow = [[NSApplication sharedApplication] keyWindow];
@@ -235,6 +250,12 @@ nfdresult_t NFD_SaveDialog( const std::vector<std::string>& filterList,
 
     // Set the starting directory
     SetDefaultPath(dialog, defaultPath);
+
+    // Set the file name
+    if (defaultFileName!=NULL) {
+      NSString* defFileName=[NSString stringWithUTF8String:defaultFileName];
+      [dialog setNameFieldStringValue:defFileName];
+    }
 
     nfdresult_t nfdResult = NFD_CANCEL;
     if ( [dialog runModal] == NSModalResponseOK )

@@ -253,16 +253,27 @@ void FurnaceGUI::drawSampleEdit() {
               SAMPLE_WARN(warnLength,"QSound: maximum sample length is 65535");
             }
             break;
-          case DIV_SYSTEM_NES:
+          case DIV_SYSTEM_NES: {
             if (sample->loop) {
-              if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
-                SAMPLE_WARN(warnLoopPos,_("NES: loop point ignored on DPCM (may only loop entire sample)"));
+              if (sample->loopStart&511) {
+                int tryWith=(sample->loopStart)&(~511);
+                if (tryWith>(int)sample->samples) tryWith-=512;
+                String alignHint=fmt::sprintf(_("NES: loop start must be a multiple of 512 (try with %d)"),tryWith);
+                SAMPLE_WARN(warnLoopStart,alignHint);
+              }
+              if ((sample->loopEnd-8)&127) {
+                int tryWith=(sample->loopEnd-8)&(~127);
+                if (tryWith>(int)sample->samples) tryWith-=128;
+                tryWith+=8; // +1 bc of how sample length is treated: https://www.nesdev.org/wiki/APU_DMC
+                String alignHint=fmt::sprintf(_("NES: loop end must be a multiple of 128 (try with %d)"),tryWith);
+                SAMPLE_WARN(warnLoopEnd,alignHint);
               }
             }
             if (sample->samples>32648) {
               SAMPLE_WARN(warnLength,_("NES: maximum DPCM sample length is 32648"));
             }
             break;
+          }
           case DIV_SYSTEM_X1_010:
             if (sample->loop) {
               SAMPLE_WARN(warnLoop,_("X1-010: samples can't loop"));
@@ -400,6 +411,25 @@ void FurnaceGUI::drawSampleEdit() {
             }
             if (sample->samples&15) {
               SAMPLE_WARN(warnLength,_("GBA DMA: sample length will be padded to multiple of 16"));
+            }
+            break;
+          case DIV_SYSTEM_OPL4:
+          case DIV_SYSTEM_OPL4_DRUMS:
+            if (sample->samples>65535) {
+              SAMPLE_WARN(warnLength,_("OPL4: maximum sample length is 65535"));
+            }
+            break;
+          case DIV_SYSTEM_SUPERVISION:
+            if (sample->loop) {
+              if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
+                SAMPLE_WARN(warnLoopPos,_("Supervision: loop point ignored on sample channel"));
+              }
+            }
+            if (sample->samples&31) {
+              SAMPLE_WARN(warnLength,_("Supervision: sample length will be padded to multiple of 32"));
+            }
+            if (sample->samples>8192) {
+              SAMPLE_WARN(warnLength,_("Supervision: maximum sample length is 8192"));
             }
             break;
           default:

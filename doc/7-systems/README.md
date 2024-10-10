@@ -102,6 +102,7 @@ this is the full list of chips that Furnace supports.
 - [SAA1099](saa1099.md)
 - [SegaPCM](segapcm.md)
 - [SID2](sid2.md)
+- [SID3](sid3.md)
 - [SM8521](sm8521.md)
 - [SN76489/Sega PSG](sms.md)
 - [SNES](snes.md)

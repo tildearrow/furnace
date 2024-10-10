@@ -127,7 +127,6 @@ struct TiunaMatches {
 static void writeCmd(std::vector<TiunaBytes>& cmds, TiunaCmd& cmd, unsigned char ch, int& lastWait, int fromTick, int toTick) {
   while (fromTick<toTick) {
     int val=MIN(toTick-fromTick,256);
-    assert(val>0);
     if (lastWait!=val) {
       cmd.wait=val;
       lastWait=val;
@@ -503,12 +502,6 @@ void DivExportTiuna::run() {
     failed=true;
     running=false;
     return;
-  }
-  SafeWriter dbg;
-  dbg.init();
-  dbg.writeText(fmt::format("renderedCmds size={}\n",renderedCmds.size()));
-  for (const auto& i: confirmedMatches) {
-    dbg.writeText(fmt::format("pos={},end={},id={}\n",i.pos,i.endPos,i.id,i.size));
   }
 
   // write commands

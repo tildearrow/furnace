@@ -561,12 +561,11 @@ float DivPlatformC140::getPostAmp() {
   return 3.0f;
 }
 
-DivChannelPair DivPlatformC140::getPaired(int ch) {
-  if (!is219) return DivChannelPair();
+void DivPlatformC140::getPaired(int ch, std::vector<DivChannelPair>& ret) {
+  if (!is219) return;
   if ((ch&3)==0) {
-    return DivChannelPair(bankLabel[ch>>2],ch+1,ch+2,ch+3,-1,-1,-1,-1,-1);
+    ret.push_back(DivChannelPair(bankLabel[ch>>2],ch+1,ch+2,ch+3,-1,-1,-1,-1,-1));
   }
-  return DivChannelPair();
 }
 
 const void* DivPlatformC140::getSampleMem(int index) {

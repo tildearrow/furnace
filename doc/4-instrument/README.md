@@ -67,6 +67,7 @@ the following instrument types are available:
 - [SegaPCM](segapcm.md) - for use with SegaPCM sample chip.
 - [Seta/Allumer X1-010](x1_010.md) - for use with Wavetable portion in Seta/Allumer X1-010.
 - [SID2](sid2.md) - for use with SID2 fantasy chip.
+- [SID3](sid3.md) - for use with SID3 fantasy chip.
 - [SM8521](sm8521.md) - for use with SM8521 chip, used in Tiger Game.com.
 - [SN76489/Sega PSG](psg.md) - for use with TI SN76489 and derivatives like Sega Master System's PSG.
 - [SNES](snes.md) - for use with SNES.

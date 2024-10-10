@@ -20,7 +20,9 @@
 #include "engine.h"
 
 #include "export/amigaValidation.h"
+#include "export/sapr.h"
 #include "export/tiuna.h"
+#include "export/zsm.h"
 
 DivROMExport* DivEngine::buildROM(DivROMExportOptions sys) {
   DivROMExport* exporter=NULL;
@@ -30,6 +32,12 @@ DivROMExport* DivEngine::buildROM(DivROMExportOptions sys) {
       break;
     case DIV_ROM_TIUNA:
       exporter=new DivExportTiuna;
+      break;
+    case DIV_ROM_ZSM:
+      exporter=new DivExportZSM;
+      break;
+    case DIV_ROM_SAP_R:
+      exporter=new DivExportSAPR;
       break;
     default:
       exporter=new DivROMExport;

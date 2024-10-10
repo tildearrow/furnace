@@ -508,7 +508,7 @@ void FurnaceGUI::drawMobileControls() {
           mobileMenuOpen=false;
           doAction(GUI_ACTION_SAVE_AS);
         }
-
+        ImGui::SameLine();
         if (ImGui::Button(_("Export"))) {
           doAction(GUI_ACTION_EXPORT);
         }
@@ -531,6 +531,10 @@ void FurnaceGUI::drawMobileControls() {
           }
           if (ImGui::BeginTabItem(_("Speed"))) {
             drawSpeed(true);
+            ImGui::EndTabItem();
+          }
+          if (ImGui::BeginTabItem(_("Comments"))) {
+            drawNotes(true);
             ImGui::EndTabItem();
           }
           ImGui::EndTabBar();
@@ -616,6 +620,10 @@ void FurnaceGUI::drawMobileControls() {
           mobileMenuPos=0.0f;
           aboutOpen=true;
         }
+        ImGui::SameLine();
+        if (ImGui::Button(_("WelcPopup"))) {
+          tutorial.protoWelcome=false;
+        }
         if (ImGui::Button(_("Switch to Desktop Mode"))) {
           toggleMobileUI(!mobileUI);
         }
@@ -647,8 +655,8 @@ void FurnaceGUI::drawEditControls() {
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
-            if (curOctave>7) curOctave=7;
-            if (curOctave<-5) curOctave=-5;
+            if (curOctave>GUI_EDIT_OCTAVE_MAX) curOctave=GUI_EDIT_OCTAVE_MAX;
+            if (curOctave<GUI_EDIT_OCTAVE_MIN) curOctave=GUI_EDIT_OCTAVE_MIN;
             e->autoNoteOffAll();
             failedNoteOn=false;
 
@@ -808,8 +816,8 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         ImGui::SetNextItemWidth(96.0f*dpiScale);
         if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
-          if (curOctave>7) curOctave=7;
-          if (curOctave<-5) curOctave=-5;
+          if (curOctave>GUI_EDIT_OCTAVE_MAX) curOctave=GUI_EDIT_OCTAVE_MAX;
+          if (curOctave<GUI_EDIT_OCTAVE_MIN) curOctave=GUI_EDIT_OCTAVE_MIN;
           e->autoNoteOffAll();
           failedNoteOn=false;
 
@@ -926,8 +934,8 @@ void FurnaceGUI::drawEditControls() {
         float avail=ImGui::GetContentRegionAvail().x;
         ImGui::SetNextItemWidth(avail);
         if (ImGui::InputInt("##Octave",&curOctave,0,0)) {
-          if (curOctave>7) curOctave=7;
-          if (curOctave<-5) curOctave=-5;
+          if (curOctave>GUI_EDIT_OCTAVE_MAX) curOctave=GUI_EDIT_OCTAVE_MAX;
+          if (curOctave<GUI_EDIT_OCTAVE_MIN) curOctave=GUI_EDIT_OCTAVE_MIN;
           e->autoNoteOffAll();
           failedNoteOn=false;
 
@@ -1093,8 +1101,8 @@ void FurnaceGUI::drawEditControls() {
         float avail=ImGui::GetContentRegionAvail().x;
         ImGui::SetNextItemWidth(avail);
         if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
-          if (curOctave>7) curOctave=7;
-          if (curOctave<-5) curOctave=-5;
+          if (curOctave>GUI_EDIT_OCTAVE_MAX) curOctave=GUI_EDIT_OCTAVE_MAX;
+          if (curOctave<GUI_EDIT_OCTAVE_MIN) curOctave=GUI_EDIT_OCTAVE_MIN;
           e->autoNoteOffAll();
           failedNoteOn=false;
 

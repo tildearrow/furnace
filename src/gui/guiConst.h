@@ -43,9 +43,17 @@ enum FurnaceGUIChanTypes {
 struct FurnaceGUIActionDef {
   const char* name;
   const char* friendlyName;
-  int defaultBind;
-  FurnaceGUIActionDef(const char* n, const char* fn, int db):
-    name(n), friendlyName(fn), defaultBind(db) {}
+  std::vector<int> defaultBind;
+  bool isNotABind() const { return defaultBind.size()==1 && defaultBind[0]==-1; }
+  FurnaceGUIActionDef(const char* n, const char* fn, int db) :
+    name(n), friendlyName(fn) {
+    if (db!=0) defaultBind.push_back(db);
+  }
+  FurnaceGUIActionDef(const char* n, const char* fn, int db, int db2):
+    name(n), friendlyName(fn) {
+    if (db!=0) defaultBind.push_back(db);
+    if (db2!=0) defaultBind.push_back(db);
+  }
 };
 
 struct FurnaceGUIColorDef {

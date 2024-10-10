@@ -146,7 +146,8 @@ void SoundUnit::NextSample(short* l, short* r) {
         }
       }
     }
-    fns[i]=ns[i]*chan[i].vol*((chan[i].flags0&8)?4:2);
+    fns[i]=ns[i]*chan[i].vol;
+    if (!(chan[i].flags0&8)) fns[i]>>=1;
     if ((chan[i].flags0&0xe0)!=0) {
       int ff=chan[i].cutoff;
       nslow[i]=nslow[i]+(((ff)*nsband[i])>>16);
@@ -259,12 +260,12 @@ void SoundUnit::NextSample(short* l, short* r) {
 
   // mix
   if (dsOut) {
-    tnsL=nsL[dsChannel]<<1;
-    tnsR=nsR[dsChannel]<<1;
+    tnsL=nsL[dsChannel]<<3;
+    tnsR=nsR[dsChannel]<<3;
     dsChannel=(dsChannel+1)&7;
   } else {
-    tnsL=(nsL[0]+nsL[1]+nsL[2]+nsL[3]+nsL[4]+nsL[5]+nsL[6]+nsL[7])>>2;
-    tnsR=(nsR[0]+nsR[1]+nsR[2]+nsR[3]+nsR[4]+nsR[5]+nsR[6]+nsR[7])>>2;
+    tnsL=(nsL[0]+nsL[1]+nsL[2]+nsL[3]+nsL[4]+nsL[5]+nsL[6]+nsL[7]);
+    tnsR=(nsR[0]+nsR[1]+nsR[2]+nsR[3]+nsR[4]+nsR[5]+nsR[6]+nsR[7]);
 
     IL1=minval(32767,maxval(-32767,tnsL))>>8;
     IL2=minval(32767,maxval(-32767,tnsR))>>8;

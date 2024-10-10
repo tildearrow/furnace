@@ -34,5 +34,6 @@ class TAAudioSDL: public TAAudio {
     std::vector<String> listAudioDevices();
     bool init(TAAudioDesc& request, TAAudioDesc& response);
     TAAudioSDL():
+      ai(0),
       audioSysStarted(false) {}
 };

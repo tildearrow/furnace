@@ -158,9 +158,10 @@ the following feature codes are recognized:
 - `EF`: ESFM ins data
 - `PN`: PowerNoise ins data
 - `S2`: SID2 ins data
+- `S3`: SID3 ins data
 - `EN`: end of features
   - if you find this feature code, stop reading the instrument.
-  - it will usually appear only when there sample/wave lists.
+  - it will usually appear only when there are sample/wave lists.
   - instruments in a .fur shall end with this feature code.
 
 # instrument name (NA)
@@ -335,6 +336,8 @@ size | description
      | - bit 12-15: resonance
      | - bit 0-10: cutoff (0-11 on SID2)
   1  | upper nibble of resonance (for SID2) (>=199)
+     | - bits 0-3 hold this upper nibble
+     | - bit 4: reset duty on new note (>=222)
 ```
 
 ## C64 compatibility note (>=187)
@@ -582,6 +585,11 @@ size | description
   1  | LFO rate
   1  | vibrato depth
   1  | AM depth
+  1  | flags (>=221)
+     | - bit 0: damp
+     | - bit 1: pseudo-reverb
+     | - bit 2: LFO reset
+     | - bit 3: level direct
 ```
 
 # Sound Unit data (SU)
@@ -685,4 +693,79 @@ size | description
      | - bit 6-7: noise mode
      | - bit 4-5: wave mix mode
      | - bit 0-3: volume
+```
+
+# SID3 data (S3)
+
+```
+size | description
+-----|------------------------------------
+  1  | flags 1
+     | - bit 7: dutyIsAbs
+     | - bit 3: noise on
+     | - bit 2: pulse on
+     | - bit 1: saw on
+     | - bit 0: triangle on
+  1  | attack
+  1  | decay
+  1  | sustain
+  1  | sustain rate
+  1  | release
+  1  | wave mix mode
+  2  | duty
+  1  | flags 2
+     | - bit 7: phase modulation
+     | - bit 6: enable special wave
+     | - bit 5: 1-bit noise
+     | - bit 4: separate noise pitch
+     | - bit 3: do wavetable
+     | - bit 2: reset duty on new note
+     | - bit 1: osc sync
+     | - bit 0: ring mod
+  1  | phase modulation source channel
+  1  | ring modulation source channel
+  1  | hard sync source channel
+  1  | special wave
+  1  | flags 3
+     | - bit 1: left channel signal inversion
+     | - bit 0: right channel signal inversion
+  1  | feedback
+  1  | number of filters
+```
+
+then, `number of filters` times, come settings for each filter:
+
+```
+size | description
+-----|------------------------------------
+  1  | parameters
+     | - bit 7: enable filter
+     | - bit 6: initialize filter
+     | - bit 5: absolute cutoff macro
+     | - bit 4: enable cutoff scaling
+     | - bit 3: decrease cutoff when pitch increases (for cutoff scaling)
+     | - bit 2: scale cutoff only once, on new note
+     | - bit 1: enable resonance scaling
+     | - bit 0: decrease resonance when pitch increases (for resonance scaling)
+  1  | parameters
+     | - bit 7: scale resonance only once, on new note
+  2  | filter cutoff
+  1  | filter resonance
+  1  | filter output volume
+  1  | filter distortion level
+  1  | filter mode:
+     | - bit 5: connect filter output to channel master output
+     | - bit 4: connect filter input to channel ADSR output
+     | - bit 2: band pass
+     | - bit 1: high pass
+     | - bit 0: low pass
+  1  | matrix connection:
+     | - bit 3: connect output of filter 4 to input
+     | - bit 2: connect output of filter 3 to input
+     | - bit 1: connect output of filter 2 to input
+     | - bit 0: connect output of filter 1 to input
+  1  | cutoff scaling level
+  1  | cutoff scaling center note: `0` is `c_5`, `1` is `c+5`, ..., `179` is `B-9`
+  1  | resonance scaling level
+  1  | resonance scaling center note: `0` is `c_5`, `1` is `c+5`, ..., `179` is `B-9` 
 ```

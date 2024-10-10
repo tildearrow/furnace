@@ -231,7 +231,9 @@ jobs:
         cp -vr ../po/locale locale
         cp -vr ../papers ../${binPath}/furnace.exe ./
         if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
-          cp -v ../${binPath}/furnace.pdb ./
+          if [ -e ../${binPath}/furnace.pdb ]; then
+            cp -v ../${binPath}/furnace.pdb ./
+          fi
         fi
         sha256sum ../${binPath}/furnace.exe > checksum.txt
 

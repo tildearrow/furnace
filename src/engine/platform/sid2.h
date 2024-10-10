@@ -36,7 +36,8 @@ class DivPlatformSID2: public DivDispatch {
     unsigned char noise_mode;
     unsigned char mix_mode;
     int filtCut;
-    bool do_pw_sweep_writes, do_cutoff_sweep_writes;
+    short cutoff_slide;
+    short pw_slide;
     Channel():
       SharedChannel<signed char>(15),
       prevFreq(0x1ffff),
@@ -60,8 +61,8 @@ class DivPlatformSID2: public DivDispatch {
       noise_mode(0),
       mix_mode(0),
       filtCut(0),
-      do_pw_sweep_writes(false),
-      do_cutoff_sweep_writes(false) {}
+      cutoff_slide(0),
+      pw_slide(0) {}
   };
   Channel chan[3];
   DivDispatchOscBuffer* oscBuf[3];
@@ -108,6 +109,7 @@ class DivPlatformSID2: public DivDispatch {
     bool isVolGlobal();
     float getPostAmp();
     DivMacroInt* getChanMacroInt(int ch);
+    void getPaired(int ch, std::vector<DivChannelPair>& ret);
     DivChannelModeHints getModeHints(int chan);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);

@@ -69,6 +69,8 @@ class DivPlatformSNES: public DivDispatch {
   bool writeEcho;
   bool writeDryVol;
   bool echoOn;
+  bool interpolationOff;
+  bool antiClick;
 
   bool initEchoOn;
   signed char initEchoVolL;
@@ -81,8 +83,10 @@ class DivPlatformSNES: public DivDispatch {
   struct QueuedWrite {
     unsigned char addr;
     unsigned char val;
-    QueuedWrite(): addr(0), val(0) {}
-    QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
+    unsigned char delay;
+    unsigned char padding;
+    QueuedWrite(): addr(0), val(0), delay(0), padding(0) {}
+    QueuedWrite(unsigned char a, unsigned char v, unsigned char d=0): addr(a), val(v), delay(d), padding(0) {}
   };
   FixedQueue<QueuedWrite,256> writes;
 
@@ -102,7 +106,7 @@ class DivPlatformSNES: public DivDispatch {
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
-    DivChannelPair getPaired(int chan);
+    void getPaired(int ch, std::vector<DivChannelPair>& ret);
     DivChannelModeHints getModeHints(int chan);
     DivSamplePos getSamplePos(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);

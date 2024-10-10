@@ -12,6 +12,8 @@
 
 **asset**: an instrument, wavetable or sample.
 
+**bit**: a single binary on-off value.
+
 **bitbang**: to achieve PCM sound by sending a rapid stream of volume commands to a non-PCM channel.
 
 **bitmask**: a set of bits which represent individual single-bit toggles or groups representing small numbers. these are explained fully in the [hexadecimal primer](hex.md).
@@ -27,9 +29,9 @@
 - changing this may change aspects of how some chips work, most notably pitch.
 - some chips cannot operate at anything other than their designed clock rate.
 
-**cursor (1)**: the marker of input focus. anything typed will happen at the cursor's location.
+**cursor** (1): the marker of input focus. anything typed will happen at the cursor's location.
 
-**cursor (2)**: the pointer controlled by a mouse or similar input. clicking when the cursor(2) is in a valid area will place the cursor(1) there.
+**cursor** (2): the pointer controlled by a mouse or similar input. clicking when the cursor(2) is in a valid area will place the cursor(1) there.
 
 **DAC**: digital analog converter. this converts a digital representation of sound into actual output.
 
@@ -59,7 +61,7 @@
 
 **.fuw**: a Furnace wavetable file.
 
-**hard-pan**: sounds can only be panned all the way to one side or the other, not in-between.
+**hard-pan**: sounds can only be panned to the center, 100% left, or 100% right. this often appears in the instrument editor's panning macro as on/off toggles for the left and right channels.
 
 **Hz**: hertz. a unit representing divisions of one second. 1 Hz means once per second; 100 Hz means one hundred times per second. also, _kHz_ (kilohertz, one thousand per second) and _MHz_ (megahertz, one million per second).
 
@@ -71,6 +73,8 @@
 **ladder effect**: an inaccurate yet common term for the DAC distortion that affects some Yamaha FM chips.
 
 **LFO**: low frequency oscillator. a wave with a slow period (often below hearing range) used to alter other sounds.
+
+**LFSR**: linear-feedback shift register. a method to generate pseudo-random noise that loops, also known as "periodic noise". within a sequence of on-off bits, it does math to combine the bits at specified locations called "taps", then shifts the whole sequence and adds the resulting bit on the end, guaranteeing a different state for the next pass. depending on the locations of the taps, different lengths of noise loops are generated; for short loops, this will affect their tone.
 
 **macro**: a sequence of values automatically applied while a note plays.
 
@@ -86,7 +90,7 @@
 
 **period**: the length of a repeating waveform. as frequency rises, the period shortens.
 
-**periodic noise**: an approximation of random noise generated algorithmically.
+**periodic noise**: an approximation of random noise generated algorithmically with an LFSR.
 - the period is the number of values generated until the algorithm repeats itself.
 
 **phase reset**: to restart a waveform at its initial value.
@@ -127,6 +131,8 @@
 - this is equivalent to a pulse wave with a duty of 50%.
 
 **supersaw**: a sound made up of multiple saw waves at slightly different frequencies to achieve a chorusing effect.
+
+**tap**: a specified bit location within an LFSR.
 
 **tick rate**: the number of times per second that the sound engine moves forward. all notes and effects are quantized to this rate.
 - this usually corresponds to the frame rate the system uses for video, approximately 60 for NTSC and 50 for PAL.
