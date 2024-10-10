@@ -32,19 +32,21 @@
 #endif
 
 #ifndef IS_MOBILE
-#define CLICK_TO_OPEN(t) ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],t);\
-if (ImGui::IsItemHovered()) {\
-  ImGui::SetTooltip("click to open");\
-  ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);\
-}\
-if (ImGui::IsItemClicked()) SDL_OpenURL(t); \
-ImGui::SameLine();\
-ImGui::Text(ICON_FA_CLIPBOARD);\
-if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) ImGui::SetTooltip("click to copy");\
-if (ImGui::IsItemClicked()) {\
-  ImGui::SetClipboardText(t);\
-  tutorial.popupTimer=0;\
-}
+#define CLICK_TO_OPEN(t) ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],t); \
+  if (ImGui::IsItemHovered()) { \
+    ImGui::SetTooltip("click to open"); \
+    ImGui::SetMouseCursor(ImGuiMouseCursor_Hand); \
+    if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) { \
+      SDL_OpenURL(t); \
+    } \
+  } \
+  ImGui::SameLine(); \
+  ImGui::Text(ICON_FA_CLIPBOARD); \
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) ImGui::SetTooltip("click to copy"); \
+  if (ImGui::IsItemClicked()) { \
+    ImGui::SetClipboardText(t); \
+    tutorial.popupTimer=0; \
+  }
 #else
 #define CLICK_TO_OPEN(t) ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],t); if (ImGui::IsItemClicked()) SDL_OpenURL(t);
 #endif
