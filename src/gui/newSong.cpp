@@ -21,6 +21,7 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include <fmt/printf.h>
 #include <algorithm>
+#include <imgui.h>
 
 String sysDefID;
 
@@ -81,6 +82,7 @@ void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& acce
           ImGui::PushTextWrapPos(MIN(scrW*dpiScale,400.0f*dpiScale));
           ImGui::Text("%s (x%d): ",sysDef->name,chipCounts[chip]);
           ImGui::Text("%s",sysDef->description);
+          ImGui::Separator();
           if (settings.sysTooltipChanInfoStyle&1) drawSystemChannelInfoText(sysDef);
           if (settings.sysTooltipChanInfoStyle&2) drawSystemChannelInfo(sysDef);
           ImGui::PopTextWrapPos();
