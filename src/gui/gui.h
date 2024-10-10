@@ -1802,6 +1802,7 @@ class FurnaceGUI {
     SettingsCategory activeCategory; // yes a boring copy
     ImGuiTextFilter filter;
     bool settingsChanged;
+    int searchDepth;
 
     int mainFontSize, patFontSize, headFontSize, iconSize;
     int audioEngine;
@@ -2064,6 +2065,7 @@ class FurnaceGUI {
 
     Settings():
       settingsChanged(false),
+      searchDepth(3),
       mainFontSize(GUI_FONT_SIZE_DEFAULT),
       patFontSize(GUI_FONT_SIZE_DEFAULT),
       headFontSize(27),

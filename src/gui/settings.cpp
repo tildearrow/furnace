@@ -402,16 +402,16 @@ void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {
     if (ImGui::IsItemClicked()) {
       settings.activeCategory=*cat;
     }
+    if (cat->expandChild) {
+      ImGui::Indent();
+      for (SettingsCategory child:cat->children) drawSettingsCategory(&child);
+      ImGui::Unindent();
+      ImGui::TreePop();
+    }
   } else { // a lonely child...
     if (ImGui::Selectable(cat->name,settings.activeCategory.id==cat->id)) {
       settings.activeCategory=*cat;
     }
-  }
-  if (cat->children.size()>0 && cat->expandChild) {
-    ImGui::Indent();
-    for (SettingsCategory child:cat->children) drawSettingsCategory(&child);
-    ImGui::Unindent();
-    ImGui::TreePop();
   }
 }
 
@@ -428,7 +428,7 @@ void FurnaceGUI::searchDrawSettingItems(SettingsCategory* cat) {
     }
   }
   for (SettingDef* s:cat->settings) {
-    if (s->passesFilter(&settings.filter, 0b11)) s->drawSetting(settingsChanged);
+    if (s->passesFilter(&settings.filter, settings.searchDepth)) s->drawSetting(settingsChanged);
   }
 }
 
@@ -673,7 +673,26 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextColumn();
           if (ImGui::BeginChild("SettingCategories",ImGui::GetContentRegionAvail(),false)) {
             settings.filter.Draw(_("Search"));
+            ImGui::SameLine();
+            ImGui::Button(ICON_FA_BARS "##SettingsSearchDepth");
+            if (ImGui::BeginPopupContextItem("SettingsSearchDepth",ImGuiPopupFlags_MouseButtonLeft)) {
+              ImGui::Text("Search where:");
+              ImGui::Indent();
+              if (ImGui::RadioButton("Setting names", settings.searchDepth==1)) {
+                  settings.searchDepth=1;
+              }
+              if (ImGui::RadioButton("Setting descriptions", settings.searchDepth==2)) {
+                  settings.searchDepth=2;
+              }
+              if (ImGui::RadioButton("Setting names and descriptions", settings.searchDepth==3)) {
+                  settings.searchDepth=3;
+              }
+              ImGui::Unindent();
+              ImGui::EndPopup();
+            }
+
             drawSettingsCategories();
+            
             ImGui::EndChild();
           }
           ImGui::TableNextColumn();
