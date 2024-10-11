@@ -413,8 +413,21 @@ void FurnaceGUI::searchDrawSettingItems(SettingsCategory* cat) {
       searchDrawSettingItems(&child);
     }
   }
+  bool anyFound=false;
   for (SettingDef* s:cat->settings) {
-    if (s->passesFilter(&settings.filter, settings.searchDepth)) s->drawSetting(settingsChanged);
+    if (s->passesFilter(&settings.filter, settings.searchDepth)) {
+      anyFound=true;
+      break;
+    }
+  }
+  if (anyFound) {
+    ImGui::Text("%s:",cat->name);
+    ImGui::Indent();
+    for (SettingDef* s:cat->settings) {
+      if (s->passesFilter(&settings.filter, settings.searchDepth)) s->drawSetting(settingsChanged);
+    }
+    ImGui::Unindent();
+    ImGui::Separator();
   }
 }
 
@@ -681,9 +694,12 @@ void FurnaceGUI::drawSettings() {
       ImGui::EndChild();
     }
     ImGui::TableNextColumn();
-    drawSettingsItems();
-    if ((strncmp(settings.filter.InputBuf,"Cheats",7)==0) && !nonLatchNibble) {
-      ImGui::Text("gotta unlock them first!");
+    if (ImGui::BeginChild("SettingsItems",ImGui::GetContentRegionAvail(),false)) {
+      drawSettingsItems();
+      if ((strncmp(settings.filter.InputBuf,"Cheats",7)==0) && !nonLatchNibble) {
+        ImGui::Text("gotta unlock them first!");
+      }
+      ImGui::EndChild();
     }
     ImGui::EndTable();
   }
