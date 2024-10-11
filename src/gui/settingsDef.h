@@ -423,6 +423,13 @@ class SettingDefRadio : public SettingDef {
     }
     void drawSetting(bool& changed) {
       ImGui::Text("%s",friendlyName);
+      if (tooltip) {
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(0.5f,0.5f,0.5f,0.9f),"(?)");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) {
+          ImGui::SetTooltip("%s",tooltip);
+        }
+      }
       ImGui::Indent();
       for (unsigned short i=0; i<optionsCount; i++) {
         if (ImGui::RadioButton(options[i],i==*(int*)data)) {
@@ -431,13 +438,6 @@ class SettingDefRadio : public SettingDef {
         }
       }
       ImGui::Unindent();
-      if (tooltip) {
-        ImGui::SameLine();
-        ImGui::TextColored(ImVec4(0.5f,0.5f,0.5f,0.9f),"(?)");
-        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) {
-          ImGui::SetTooltip("%s",tooltip);
-        }
-      }
     }
     void saveSetting(DivConfig* conf) {
       conf->set(name,(*(bool*)data)?1:0);

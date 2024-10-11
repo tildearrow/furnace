@@ -290,10 +290,9 @@ const char* specificControls[18]={
   _N("Effect 8 value")
 };
 
-const char* someRadioSettings[3]={
-  "Yes",
-  "No",
-  "idk"
+const char* oscRenderEngines[2]={
+  _("ImGui line plot"),
+  _("GLSL (if available)")
 };
 
 #define SAMPLE_RATE_SELECTABLE(x) \
@@ -359,25 +358,18 @@ const char* someRadioSettings[3]={
 // NEW NEW SETTINGS HERE
 void FurnaceGUI::setupSettingsCategories() {
   settings.categories={
-    SettingsCategory("General",{
-        SettingsCategory("child",{},{
-          new SettingDefCheckbox(&settings.audioHiPass,"audioHiPass","DC offset correction", "apply a high pass filter to the output to remove DC offsets from the audio",true),
-        }),SettingsCategory("child 2",{},{
-          new SettingDefSliderInt(&settings.metroVol,"metroVol","Metronome volume","the volume of the metronome",100,0,200,"%d%%"),
-        })
-      },{
-        new SettingDefRadio(&settings.alwaysPlayIntro,"alwaysPlayIntro","Are you okay?",NULL,0,someRadioSettings,3),
-      }
-    ),
-    SettingsCategory("General 2",{
-        SettingsCategory("child",{},{
-          new SettingDefDropdown(&settings.arcadeCore,"arcadeCore","YM2151 core",NULL,0,arcadeCores,2),
-        }),SettingsCategory("child 2",{},{
-          new SettingDefSliderFloat(&settings.doubleClickTime,"doubleClickTime","Mouse double click time",NULL,0.3f,0.02f,1.0f,"%g s"),
-        })
-      },{}
-    ),
-    SettingsCategory("Window",{},{
+    SettingsCategory("Window",{
+      SettingsCategory("Oscilloscope",{},{
+        new SettingDefRadio(&settings.shaderOsc,"shaderOsc",_("Oscilloscope rendering engine:"),_("render using either Dear ImGui's built-in line drawing functions or GLSL."),0,oscRenderEngines,2),
+        new SettingDefCheckbox(&settings.oscRoundedCorners,"oscRoundedCorners",_("Rounded corners"),NULL,GUI_DECORATIONS_DEFAULT),
+        new SettingDefCheckbox(&settings.oscBorder,"oscBorder",_("Border"),NULL,1),
+        new SettingDefCheckbox(&settings.oscMono,"oscMono",_("Mono"),NULL,1),
+        new SettingDefCheckbox(&settings.oscAntiAlias,"oscAntiAlias",_("Anti-aliased"),NULL,1),
+        new SettingDefCheckbox(&settings.oscTakesEntireWindow,"oscTakesEntireWindow",_("Fill entire window"),NULL,0),
+        new SettingDefCheckbox(&settings.oscEscapesBoundary,"oscEscapesBoundary",_("Waveform goes out of bounds"),NULL,0),
+        new SettingDefSliderFloat(&settings.oscLineSize,"oscLineSize",_("Line size"),NULL,1.0f,0.25f,16.0f,"%.1f"),
+      }),
+    },{
 #ifndef IS_MOBILE
       new SettingDefCheckbox(&settings.saveWindowPos,"saveWindowPos",_("Remember window position"),_("remembers the window's last position on start-up."),true),
 #endif
