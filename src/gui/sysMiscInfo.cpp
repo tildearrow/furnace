@@ -300,8 +300,8 @@ void FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef) {
   float scaler=5.0f*dpiScale;
   float x=p.x+dpiScale;
   for (int i=0; i<whichDef->channels; i++) {
-    dl->AddRectFilled(ImVec2(x,p.y),ImVec2(x+2.0f*scaler,p.y+1.0f*scaler),ImGui::GetColorU32(uiColors[whichDef->chanTypes[i]+GUI_COLOR_CHANNEL_FM]),scaler);
-    x+=3.0f*scaler;
+    dl->AddRectFilled(ImVec2(x,p.y),ImVec2(x+1.5f*scaler,p.y+1.0f*scaler),ImGui::GetColorU32(uiColors[whichDef->chanTypes[i]+GUI_COLOR_CHANNEL_FM]),scaler);
+    x+=2.0f*scaler;
   }
   ImGui::Dummy(ImVec2(0,4*scaler));
 }
@@ -341,6 +341,10 @@ void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
         } else {
           chanCount[whichDef->chanTypes[i]]++;
         }
+        break;
+      case DIV_INS_AY:
+      case DIV_INS_AY8930:
+        chanCount[CHANNEL_TYPE_PSG]++;
         break;
       case DIV_INS_OPL_DRUMS:
       case DIV_INS_OPL:
@@ -402,6 +406,13 @@ void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
           chanCount[CHANNEL_TYPE_WAVETABLE]++;
         }
         chanCount[whichDef->chanTypes[i]]++;
+        break;
+      case DIV_INS_SID3:
+        if (whichDef->chanTypes[i]!=DIV_CH_WAVE) {
+          chanCount[CHANNEL_TYPE_OTHER]++;
+        } else {
+          chanCount[CHANNEL_TYPE_WAVE]++;
+        }
         break;
       case DIV_INS_C64: // uncategorizable (by me)
       case DIV_INS_TIA:

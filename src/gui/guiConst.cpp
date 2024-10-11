@@ -252,6 +252,7 @@ const char* chanNames[CHANNEL_TYPE_MAX+1]={
   _N("Drums"),
   _N("Slope"), // PowerNoise
   _N("Wave"), // not wavetable (VERA, 5E01)
+  _N("PSG"),
 
   _N("Channel"), // if neither
   _N("Channels") // in case this makes l10n easier
