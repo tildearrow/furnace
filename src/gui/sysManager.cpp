@@ -88,14 +88,15 @@ void FurnaceGUI::drawSysManager() {
           isNotCollapsed=false;
           ImGui::TreePop();
         }
-        if (ImGui::IsItemHovered(ImGuiHoveredFlags_Stationary) && isNotCollapsed && settings.chipManagerTooltip) {
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_Stationary) && isNotCollapsed) {
           if (e->song.system[i]!=DIV_SYSTEM_NULL) {
             const DivSysDef* sysDef=e->getSystemDef(e->song.system[i]);
             if (ImGui::BeginTooltip()) {
               ImGui::PushTextWrapPos(420.0f*dpiScale); // arbitrary constant
               ImGui::TextWrapped("%s",sysDef->description);
-              if (settings.sysTooltipChanInfoStyle&1) drawSystemChannelInfoText(sysDef);
-              if (settings.sysTooltipChanInfoStyle&2) drawSystemChannelInfo(sysDef);
+              ImGui::Separator();
+              drawSystemChannelInfoText(sysDef);
+              drawSystemChannelInfo(sysDef);
               ImGui::PopTextWrapPos();
               ImGui::EndTooltip();
             }

@@ -9,7 +9,7 @@ for sample settings, see [the Sample instrument editor](sample.md).
 ## MultiPCM
 
 MultiPCM contains an ADSR envelope, not unlike Yamaha OPN/OPM envelpes, and simple LFO, also similiar to that found in OPN.
-you may use this tab to set up ES5506-specific parameters:
+you may use this tab to set up MultiPCM-specific parameters:
 
 - **AR**: sets attack rate.
 - **D1R**: sets Decay 1 rate.
@@ -28,7 +28,6 @@ you may use this tab to set up ES5506-specific parameters:
 
 - **Volume**: volume sequence.
 - **Arpeggio**: pitch sequence.
-- **Filter Mode**: sets filter mode.
 - **Panning**: output level for left and right channels (from -3 to +3).
 - **Pitch**: fine pitch.
 - **Phase Reset**: trigger restart of waveform.
