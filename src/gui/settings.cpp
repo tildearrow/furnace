@@ -384,6 +384,8 @@ void FurnaceGUI::setupSettingsCategories() {
       new SettingDefCheckbox(&settings.frameBorders,"frameBorders",_("Borders around widgets"),NULL,false),
     })
   };
+
+  settings.activeCategory=settings.categories[0];
 }
 
 void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {
@@ -421,7 +423,7 @@ void FurnaceGUI::searchDrawSettingItems(SettingsCategory* cat) {
     }
   }
   if (anyFound) {
-    ImGui::Text("%s:",cat->name);
+    ImGui::BulletText("%s",cat->name);
     ImGui::Indent();
     for (SettingDef* s:cat->settings) {
       if (s->passesFilter(&settings.filter, settings.searchDepth)) s->drawSetting(settingsChanged);
