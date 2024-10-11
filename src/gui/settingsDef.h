@@ -20,6 +20,7 @@
 #ifndef SETTINGSDEF_H
 #define SETTINGSDEF_H
 
+#include <cstdarg>
 #define clampSetting(x,minV,maxV) \
   if (x<minV) { \
     x=minV; \
@@ -462,6 +463,35 @@ class SettingDefRadio : public SettingDef {
       fallback=_fallback;
       options=_options;
       optionsCount=_optionsCount;
+    }
+};
+
+class SettingDefDummyText : public SettingDef {
+  const char* fmt;
+  va_list args;
+  public:
+    bool passesFilter(ImGuiTextFilter* filter, unsigned char toWhat) {
+      (void)filter;
+      (void)toWhat;
+      return false;
+    }
+    void drawSetting(bool& changed) {
+      (void)changed;
+      ImGui::Text(fmt,args);
+    }
+    void saveSetting(DivConfig* conf) {
+      (void)conf;
+    }
+    void loadSetting(DivConfig* conf) {
+      (void)conf;
+    }
+    SettingDefDummyText():
+      fmt(NULL) {}
+    SettingDefDummyText(const char* _fmt, ...) {
+      fmt=_fmt;
+      va_list args;
+      va_start(args,_fmt);
+      va_end(args);
     }
 };
 

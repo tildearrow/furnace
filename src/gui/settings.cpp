@@ -360,6 +360,7 @@ void FurnaceGUI::setupSettingsCategories() {
   settings.categories={
     SettingsCategory("Window",{
       SettingsCategory("Oscilloscope",{},{
+        new SettingDefDummyText("%c",&settingsChanged),
         new SettingDefRadio(&settings.shaderOsc,"shaderOsc",_("Oscilloscope rendering engine:"),_("render using either Dear ImGui's built-in line drawing functions or GLSL."),0,oscRenderEngines,2),
         new SettingDefCheckbox(&settings.oscRoundedCorners,"oscRoundedCorners",_("Rounded corners"),NULL,GUI_DECORATIONS_DEFAULT),
         new SettingDefCheckbox(&settings.oscBorder,"oscBorder",_("Border"),NULL,1),
