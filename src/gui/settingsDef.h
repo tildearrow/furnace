@@ -489,7 +489,6 @@ class SettingDefDummyText : public SettingDef {
       fmt(NULL) {}
     SettingDefDummyText(const char* _fmt, ...) {
       fmt=_fmt;
-      va_list args;
       va_start(args,_fmt);
       va_end(args);
     }
