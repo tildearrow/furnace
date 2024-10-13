@@ -65,6 +65,7 @@ void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& acce
     if (isHovered && !alreadyHover) {
       alreadyHover=true;
       if (ImGui::BeginTooltip()) {
+        ImGui::Dummy(ImVec2(400.0f*dpiScale,0.0f));
         std::map<DivSystem,int> chipCounts;
         std::vector<DivSystem> chips;
         for (FurnaceGUISysDefChip chip: i.orig) {
