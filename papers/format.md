@@ -226,10 +226,10 @@ size | description
      |   - 0xbf: T6W28 - 4 channels
      |   - 0xc0: PCM DAC - 1 channel
      |   - 0xc1: YM2612 CSM - 10 channels
-     |   - 0xc2: Neo Geo CSM (YM2610) - 18 channels (UNAVAILABLE)
-     |   - 0xc3: YM2203 CSM - 10 channels (UNAVAILABLE)
-     |   - 0xc4: YM2608 CSM - 20 channels (UNAVAILABLE)
-     |   - 0xc5: YM2610B CSM - 20 channels (UNAVAILABLE)
+     |   - 0xc2: Neo Geo CSM (YM2610) - 18 channels
+     |   - 0xc3: YM2203 CSM - 10 channels
+     |   - 0xc4: YM2608 CSM - 20 channels
+     |   - 0xc5: YM2610B CSM - 20 channels
      |   - 0xc6: K007232 - 2 channels
      |   - 0xc7: GA20 - 4 channels
      |   - 0xc8: SM8521 - 3 channels
