@@ -291,7 +291,7 @@ void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
     }
 
     for (int i=(3+isCSM); i<(6+isCSM); i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=fmout.data[i-2+isCSM]<<1;
+      oscBuf[i]->data[oscBuf[i]->needle++]=fmout.data[i-(2+isCSM)]<<1;
     }
   }
 }
