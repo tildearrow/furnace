@@ -1173,56 +1173,48 @@ void FurnaceGUI::initSystemPresets() {
   );
     SUB_ENTRY(
       _("ZX Spectrum (128K) with TurboSound FM"), {
-        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1"),
         CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=1"),
         CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=1")
       }
     );
       SUB_SUB_ENTRY(
         _("ZX Spectrum (128K) with TurboSound FM (extended channel 3 on first OPN)"), {
-          CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1"),
           CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=1"),
           CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=1")
         }
       );
       SUB_SUB_ENTRY(
         _("ZX Spectrum (128K) with TurboSound FM (extended channel 3 on second OPN)"), {
-          CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1"),
           CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=1"),
           CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=1")
         }
       );
       SUB_SUB_ENTRY(
         _("ZX Spectrum (128K) with TurboSound FM (extended channel 3 on both OPNs)"), {
-          CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1"),
           CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=1"),
           CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=1")
         }
       );
       SUB_SUB_ENTRY(
         _("ZX Spectrum (128K) with TurboSound FM (CSM on first OPN)"), {
-          CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1"),
           CH(DIV_SYSTEM_YM2203_CSM, 1.0f, 0, "clockSel=1"),
           CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=1")
         }
       );
       SUB_SUB_ENTRY(
         _("ZX Spectrum (128K) with TurboSound FM (CSM on second OPN)"), {
-          CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1"),
           CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=1"),
           CH(DIV_SYSTEM_YM2203_CSM, 1.0f, 0, "clockSel=1")
         }
       );
       SUB_SUB_ENTRY(
         _("ZX Spectrum (128K) with TurboSound FM (CSM on both OPNs)"), {
-          CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1"),
           CH(DIV_SYSTEM_YM2203_CSM, 1.0f, 0, "clockSel=1"),
           CH(DIV_SYSTEM_YM2203_CSM, 1.0f, 0, "clockSel=1")
         }
       );
     SUB_ENTRY(
       _("ZX Spectrum (128K) with TurboSound"), {
-        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1"),
         CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1"), // or YM2149
         CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1") // or YM2149
       }
