@@ -252,6 +252,11 @@ void FurnaceGUI::initSystemPresets() {
         CH(DIV_SYSTEM_YM2610_FULL_EXT, 1.0f, 0, "clockSel=1")
       }
     );
+    SUB_ENTRY(
+      _("Neo Geo AES (CSM)"), {
+        CH(DIV_SYSTEM_YM2610_CSM, 1.0f, 0, "clockSel=1")
+      }
+    );
   ENTRY(
     _("Atari 2600/7800"), {
       CH(DIV_SYSTEM_TIA, 1.0f, 0, "")
@@ -573,6 +578,12 @@ void FurnaceGUI::initSystemPresets() {
       _("NEC PC-88 (with PC-8801-23; extended channel 3)"), {
         CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
         CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1") // external
+      }
+    );
+    SUB_ENTRY(
+      _("NEC PC-88 (with PC-8801-23; CSM)"), {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2608_CSM, 1.0f, 0, "clockSel=1") // external
       }
     );
     SUB_ENTRY(
@@ -2574,6 +2585,11 @@ void FurnaceGUI::initSystemPresets() {
         CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=3")
       }
     );
+    SUB_ENTRY(
+      _("Yamaha YM2203 (CSM)"), {
+        CH(DIV_SYSTEM_YM2203_CSM, 1.0f, 0, "clockSel=3")
+      }
+    );
   ENTRY(
     _("Yamaha YM2608 (OPNA)"), {
       CH(DIV_SYSTEM_YM2608, 1.0f, 0, "")
@@ -2582,6 +2598,11 @@ void FurnaceGUI::initSystemPresets() {
     SUB_ENTRY(
       _("Yamaha YM2608 (extended channel 3)"), {
         CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      _("Yamaha YM2608 (CSM)"), {
+        CH(DIV_SYSTEM_YM2608_CSM, 1.0f, 0, "")
       }
     );
   ENTRY(
@@ -2594,6 +2615,11 @@ void FurnaceGUI::initSystemPresets() {
         CH(DIV_SYSTEM_YM2610_FULL_EXT, 1.0f, 0, "")
       }
     );
+    SUB_ENTRY(
+      _("Yamaha YM2610 (CSM)"), {
+        CH(DIV_SYSTEM_YM2610_CSM, 1.0f, 0, "")
+      }
+    );
   ENTRY(
     _("Yamaha YM2610B (OPNB2)"), {
       CH(DIV_SYSTEM_YM2610B, 1.0f, 0, "")
@@ -2602,6 +2628,11 @@ void FurnaceGUI::initSystemPresets() {
     SUB_ENTRY(
       _("Yamaha YM2610B (extended channel 3)"), {
         CH(DIV_SYSTEM_YM2610B_EXT, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      _("Yamaha YM2610B (CSM)"), {
+        CH(DIV_SYSTEM_YM2610B_CSM, 1.0f, 0, "")
       }
     );
   ENTRY(
