@@ -916,7 +916,7 @@ void FurnaceGUI::drawFindReplace() {
             int note1=queryReplaceNote%12;
             int oct1=queryReplaceNote/12;
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x/2);
-            if (ImGui::BeginCombo("##NN1",tempID)) {
+            if (ImGui::BeginCombo("##NRValueC",tempID)) {
               for (int i=0; i<12; i++) {
                 snprintf(tempID,1024,"%c%c",noteNames[i+72][0],(noteNames[i+72][1]=='-')?' ':noteNames[i+72][1]);
                 if (ImGui::Selectable(tempID,note1==i)) {
@@ -938,7 +938,7 @@ void FurnaceGUI::drawFindReplace() {
             ImGui::SameLine();
             if (queryReplaceNote<128) {
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x/2);
-              if (ImGui::InputScalar("##NNO1",ImGuiDataType_S32,&oct1)) {
+              if (ImGui::InputScalar("##NRValueCO",ImGuiDataType_S32,&oct1)) {
                 if (oct1<-5) oct1=-5;
                 if (oct1>9) oct1=9;
                 updateNote=true;
