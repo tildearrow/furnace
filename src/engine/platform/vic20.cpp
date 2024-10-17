@@ -317,7 +317,7 @@ void DivPlatformVIC20::reset() {
     chan[i]=Channel();
     chan[i].std.setEngine(parent);
   }
-  vic_sound_machine_init(vic,rate,chipClock);
+  vic_sound_machine_init(vic,rate,chipClock,filterOff);
   hasWaveWrite=false;
   rWrite(14,15);
   // hack: starting noise channel right away after this would result in a dead
@@ -336,6 +336,7 @@ void DivPlatformVIC20::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformVIC20::setFlags(const DivConfig& flags) {
+  filterOff=flags.getBool("filterOff",false);
   if (flags.getInt("clockSel",0)) {
     chipClock=COLOR_PAL/4.0;
   } else {
