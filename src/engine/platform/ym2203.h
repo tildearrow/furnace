@@ -28,10 +28,6 @@ extern "C" {
 
 #include "ay.h"
 
-class DivYM2203Interface: public ymfm::ymfm_interface {
-
-};
-
 class DivPlatformYM2203: public DivPlatformOPN {
   protected:
     const unsigned short chanOffs[3]={
@@ -48,7 +44,7 @@ class DivPlatformYM2203: public DivPlatformOPN {
     ym3438_t fm_nuked;
     ymfm::ym2203* fm;
     ymfm::ym2203::output_data fmout;
-    DivYM2203Interface iface;
+    DivOPNInterface iface;
     fmopna_t fm_lle;
     unsigned int dacVal;
     unsigned int dacVal2;
@@ -73,7 +69,7 @@ class DivPlatformYM2203: public DivPlatformOPN {
     void acquire_lle(short** buf, size_t len);
 
   public:
-    bool isCSM;
+    unsigned char isCSM;
     void acquire(short** buf, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
@@ -100,7 +96,7 @@ class DivPlatformYM2203: public DivPlatformOPN {
     DivPlatformYM2203():
       DivPlatformOPN(2, 3, 6, 6, 6, 4720270.0, 36, 16),
       prescale(0x2d),
-      isCSM(false) {}
+      isCSM(0) {}
     ~DivPlatformYM2203();
 };
 #endif

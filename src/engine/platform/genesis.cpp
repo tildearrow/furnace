@@ -28,7 +28,7 @@
 
 #define IS_REALLY_MUTED(x) (isMuted[x] && (x<5 || !softPCM || (isMuted[5] && isMuted[6])))
 
-void DivYM2612Interface::ymfm_set_timer(uint32_t tnum, int32_t duration_in_clocks) {
+void DivOPNInterface::ymfm_set_timer(uint32_t tnum, int32_t duration_in_clocks) {
   if (tnum==1) {
     setB=duration_in_clocks;
   } else if (tnum==0) {
@@ -36,16 +36,16 @@ void DivYM2612Interface::ymfm_set_timer(uint32_t tnum, int32_t duration_in_clock
   }
 }
 
-void DivYM2612Interface::clock() {
+void DivOPNInterface::clock(int cycles) {
   if (setA>=0) {
-    countA-=144;
+    countA-=cycles;
     if (countA<0) {
       m_engine->engine_timer_expired(0);
       countA+=setA;
     }
   }
   if (setB>=0) {
-    countB-=144;
+    countB-=cycles;
     if (countB<0) {
       m_engine->engine_timer_expired(1);
       countB+=setB;

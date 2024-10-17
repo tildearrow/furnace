@@ -41,7 +41,7 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
     void acquire_lle(short** buf, size_t len);
 
   public:
-    bool isCSM;
+    unsigned char isCSM;
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
@@ -67,7 +67,7 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
     void quit();
     DivPlatformYM2610B():
       DivPlatformYM2610Base(2,6,9,15,16),
-      isCSM(false) {}
+      isCSM(0) {}
     ~DivPlatformYM2610B();
 };
 #endif

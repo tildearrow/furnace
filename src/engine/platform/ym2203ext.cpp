@@ -19,7 +19,6 @@
 
 #include "ym2203ext.h"
 #include "../engine.h"
-#include <math.h>
 
 #define CHIP_FREQBASE fmFreqBase
 #define CHIP_DIVIDER fmDivBase
@@ -787,7 +786,7 @@ void DivPlatformYM2203Ext::quit() {
 }
 
 void DivPlatformYM2203Ext::setCSM(bool isCSM) {
-  this->isCSM=isCSM;
+  this->isCSM=isCSM?1:0;
   if (isCSM) {
     csmChan=3;
   }

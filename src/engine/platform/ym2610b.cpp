@@ -18,7 +18,6 @@
  */
 
 #include "ym2610b.h"
-#include <math.h>
 
 const char* regCheatSheetYM2610B[]={
   // SSG
@@ -1864,7 +1863,7 @@ int DivPlatformYM2610B::init(DivEngine* p, int channels, int sugRate, const DivC
 }
 
 void DivPlatformYM2610B::setCSM(bool isCSM) {
-  this->isCSM=isCSM;
+  this->isCSM=isCSM?1:0;
   psgChanOffs=6+isCSM; // doing this hurts me...
   adpcmAChanOffs=9+isCSM;
   adpcmBChanOffs=15+isCSM;

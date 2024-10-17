@@ -26,19 +26,6 @@ extern "C" {
 #include "../../../extern/YMF276-LLE/fmopn2.h"
 }
 
-class DivYM2612Interface: public ymfm::ymfm_interface {
-  int setA, setB;
-  int countA, countB;
-
-  public:
-    void clock();
-    void ymfm_set_timer(uint32_t tnum, int32_t duration_in_clocks);
-    DivYM2612Interface():
-      ymfm::ymfm_interface(),
-      countA(0),
-      countB(0) {}
-};
-
 class DivPlatformGenesis: public DivPlatformOPN {
   protected:
     const unsigned short chanOffs[6]={
@@ -83,7 +70,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
 
     ymfm::ym2612* fm_ymfm;
     ymfm::ym2612::output_data out_ymfm;
-    DivYM2612Interface iface;
+    DivOPNInterface iface;
 
     int softPCMTimer;
 

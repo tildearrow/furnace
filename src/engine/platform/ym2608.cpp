@@ -18,11 +18,9 @@
  */
 
 #include "ym2608.h"
-#include "sound/ymfm/ymfm.h"
 #include "../engine.h"
 #include "../../ta-log.h"
 #include <string.h>
-#include <math.h>
 
 #define CHIP_FREQBASE fmFreqBase
 #define CHIP_DIVIDER fmDivBase
@@ -462,6 +460,7 @@ void DivPlatformYM2608::acquire_ymfm(short** buf, size_t len) {
     }
     
     fm->generate(&fmout);
+    iface.clock(48);
 
     os[0]=((fmout.data[0]*fmVol)>>8)+((fmout.data[2]*ssgVol)>>8);
     if (os[0]<-32768) os[0]=-32768;
@@ -2040,7 +2039,7 @@ int DivPlatformYM2608::init(DivEngine* p, int channels, int sugRate, const DivCo
 }
 
 void DivPlatformYM2608::setCSM(bool isCSM) {
-  this->isCSM=isCSM;
+  this->isCSM=isCSM?1:0;
   psgChanOffs=6+isCSM; // doing this hurts me...
   adpcmAChanOffs=9+isCSM;
   adpcmBChanOffs=15+isCSM;

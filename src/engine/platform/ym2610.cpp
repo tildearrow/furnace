@@ -18,7 +18,6 @@
  */
 
 #include "ym2610.h"
-#include <math.h>
 
 const char* regCheatSheetYM2610[]={
   // SSG
@@ -395,6 +394,7 @@ void DivPlatformYM2610::acquire_ymfm(short** buf, size_t len) {
     }
     
     fm->generate(&fmout);
+    iface.clock();
 
     os[0]+=((fmout.data[0]*fmVol)>>8)+((fmout.data[2]*ssgVol)>>8);
     if (os[0]<-32768) os[0]=-32768;
@@ -1791,7 +1791,7 @@ int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, const DivCo
 }
 
 void DivPlatformYM2610::setCSM(bool isCSM) {
-  this->isCSM=isCSM;
+  this->isCSM=isCSM?1:0;
   psgChanOffs=4+isCSM; // doing this hurts me...
   adpcmAChanOffs=7+isCSM;
   adpcmBChanOffs=13+isCSM;

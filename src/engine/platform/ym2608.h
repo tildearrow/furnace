@@ -28,7 +28,7 @@ extern "C" {
 
 #include "ay.h"
 
-class DivYM2608Interface: public ymfm::ymfm_interface {
+class DivYM2608Interface: public DivOPNInterface {
   public:
     unsigned char* adpcmBMem;
     int sampleBank;
@@ -92,7 +92,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     void acquire_lle(short** buf, size_t len);
 
   public:
-    bool isCSM;
+    unsigned char isCSM;
     void acquire(short** buf, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
@@ -127,7 +127,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     DivPlatformYM2608():
       DivPlatformOPN(2, 6, 9, 15, 16, 9440540.0, 72, 32),
       prescale(0x2d),
-      isCSM(false) {}
+      isCSM(0) {}
     ~DivPlatformYM2608();
 };
 #endif

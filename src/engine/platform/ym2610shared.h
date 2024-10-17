@@ -34,7 +34,7 @@ extern "C" {
 #define CHIP_FREQBASE fmFreqBase
 #define CHIP_DIVIDER fmDivBase
 
-class DivYM2610Interface: public ymfm::ymfm_interface {
+class DivYM2610Interface: public DivOPNInterface {
   public:
     unsigned char* adpcmAMem;
     unsigned char* adpcmBMem;
