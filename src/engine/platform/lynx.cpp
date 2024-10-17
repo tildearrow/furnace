@@ -236,6 +236,7 @@ void DivPlatformLynx::tick(bool sysTick) {
           }
         }
         chan[i].sampleFreq=off*parent->calcFreq(chan[i].sampleBaseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+        if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].sampleFreq);
       } else {
         if (chan[i].lfsr >= 0) {
           WRITE_LFSR(i, (chan[i].lfsr&0xff));
@@ -307,6 +308,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
         } else {
           chan[c.chan].samplePos=0;
         }
+        if (dumpWrites) addWrite(0xffff0000+(c.chan<<8),chan[c.chan].sample);
       }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
@@ -331,6 +333,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       chan[c.chan].macroInit(NULL);
       if (chan[c.chan].pcm) {
         chan[c.chan].pcm=false;
+        if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
       }
       break;
     case DIV_CMD_LYNX_LFSR_LOAD:
