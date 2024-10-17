@@ -32,6 +32,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include <stdbool.h>
 
 struct sound_vic20_s {
     unsigned char div;
@@ -56,13 +57,14 @@ struct sound_vic20_s {
     float highpassbeta;
     float lowpassbuf;
     float lowpassbeta;
+    bool filter_off;
 
     uint16_t noise_LFSR;
     uint8_t noise_LFSR0_old;
 };
 typedef struct sound_vic20_s sound_vic20_t;
 
-int vic_sound_machine_init(sound_vic20_t *snd, int speed, int cycles_per_sec);
+int vic_sound_machine_init(sound_vic20_t *snd, int speed, int cycles_per_sec, bool filter_off);
 void vic_sound_machine_store(sound_vic20_t *snd, uint16_t addr, uint8_t value);
 int vic_sound_machine_calculate_samples(sound_vic20_t *snd, int16_t *pbuf, int nr, int soc, int scc, uint32_t delta_t);
 void vic_sound_clock(sound_vic20_t *snd, uint32_t cycles);

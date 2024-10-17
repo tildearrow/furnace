@@ -92,6 +92,7 @@ int vic_sound_machine_calculate_samples(sound_vic20_t *snd, int16_t *pbuf, int n
     int s = 0;
     int i;
     float o;
+    float v;
     int16_t vicbuf;
     int samples_to_do;
 
@@ -100,9 +101,14 @@ int vic_sound_machine_calculate_samples(sound_vic20_t *snd, int16_t *pbuf, int n
         snd->leftover_cycles += samples_to_do - snd->cycles_per_sample;
         vic_sound_clock(snd, samples_to_do);
 
-        o = snd->lowpassbuf - snd->highpassbuf;
-        snd->highpassbuf += snd->highpassbeta * (snd->lowpassbuf - snd->highpassbuf);
-        snd->lowpassbuf += snd->lowpassbeta * (voltagefunction[(((snd->accum * 7) / snd->accum_cycles) + 1) * snd->volume] - snd->lowpassbuf);
+        v = voltagefunction[(((snd->accum * 7) / snd->accum_cycles) + 1) * snd->volume];
+        if (snd->filter_off) {
+            o = v;
+        } else {
+            o = snd->lowpassbuf - snd->highpassbuf;
+            snd->highpassbuf += snd->highpassbeta * (snd->lowpassbuf - snd->highpassbuf);
+            snd->lowpassbuf += snd->lowpassbeta * (v - snd->lowpassbuf);
+        }
 
         if (o < -32768) {
             vicbuf = -32768;
@@ -202,7 +208,7 @@ void vic_sound_machine_store(sound_vic20_t *snd, uint16_t addr, uint8_t value)
     }
 }
 
-int vic_sound_machine_init(sound_vic20_t *snd, int speed, int cycles_per_sec)
+int vic_sound_machine_init(sound_vic20_t *snd, int speed, int cycles_per_sec, bool filter_off)
 {
     uint32_t i;
     float dt;
@@ -214,6 +220,7 @@ int vic_sound_machine_init(sound_vic20_t *snd, int speed, int cycles_per_sec)
 
     snd->lowpassbuf = 0.0f;
     snd->highpassbuf = 0.0f;
+    snd->filter_off = filter_off;
 
     snd->speed = speed;
 
