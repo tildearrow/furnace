@@ -1687,6 +1687,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         if (!hasLynx) {
           hasLynx=disCont[i].dispatch->chipClock;
           willExport[i]=true;
+          // once again
+          writeDACSamples=true;
         } else if (!(hasLynx&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=true;
@@ -2537,6 +2539,26 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           w->writeC(1);
           w->writeC(0);
           streamID++;
+          break;
+        case DIV_SYSTEM_LYNX:
+          for (int j=0; j<4; j++) {
+            w->writeC(0x90);
+            w->writeC(streamID);
+            w->writeC(isSecond[i]?0xa9:0x29);
+            w->writeC(0); // port
+            w->writeC(0x22+(j<<3)); // output write
+
+            w->writeC(0x91);
+            w->writeC(streamID);
+            w->writeC(0);
+            w->writeC(1);
+            w->writeC(0);
+
+            w->writeC(0x92);
+            w->writeC(streamID);
+            w->writeI(16000); // default
+            streamID++;
+          }
           break;
         default:
           break;
