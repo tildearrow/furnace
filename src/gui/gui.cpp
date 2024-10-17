@@ -8709,6 +8709,7 @@ FurnaceGUI::FurnaceGUI():
   fadeMin(0),
   fadeMax(255),
   collapseAmount(2),
+  playheadY(0.0f),
   scaleMax(100.0f),
   fadeMode(false),
   randomMode(false),

@@ -75,6 +75,10 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   ImGui::TableNextRow(0,lineHeight);
   ImGui::TableNextColumn();
   float cursorPosY=ImGui::GetCursorPos().y-ImGui::GetScrollY();
+  // store playhead position on the screen
+  if (ord==playOrder && oldRow==i) {
+    playheadY=ImGui::GetCursorScreenPos().y;
+  }
   // check if the row is visible
   if (cursorPosY<-lineHeight || cursorPosY>ImGui::GetWindowSize().y) {
     return;
@@ -1483,7 +1487,7 @@ void FurnaceGUI::drawPattern() {
     if (fancyPattern) { // visualizer
       e->getCommandStream(cmdStream);
       ImDrawList* dl=ImGui::GetWindowDrawList();
-      ImVec2 off=ImVec2(0.0f,ImGui::GetWindowPos().y);
+      ImVec2 off=ImVec2(0.0f,0.0f);
 
       ImVec2 winMin=ImGui::GetWindowPos();
       ImVec2 winMax=ImVec2(
@@ -1616,7 +1620,7 @@ void FurnaceGUI::drawPattern() {
         for (int j=0; j<num; j++) {
           ImVec2 partPos=ImVec2(
             off.x+patChanX[i.chan]+fmod(rand(),width),
-            off.y+(ImGui::GetWindowHeight()*0.5f)+randRange(0,patFont->FontSize)
+            off.y+(playheadY)+randRange(0,patFont->FontSize)
           );
 
           if (partPos.x<winMin.x || partPos.y<winMin.y || partPos.x>winMax.x || partPos.y>winMax.y) continue;

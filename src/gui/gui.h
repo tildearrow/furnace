@@ -2528,6 +2528,7 @@ class FurnaceGUI {
   SelectionPoint sel1, sel2;
   int dummyRows;
   int transposeAmount, randomizeMin, randomizeMax, fadeMin, fadeMax, collapseAmount;
+  float playheadY;
   float scaleMax;
   bool fadeMode, randomMode, haveHitBounds;
   signed char pendingStepUpdate;
