@@ -615,7 +615,7 @@ void FurnaceGUI::drawFindReplace() {
                 } else if (i.note==128) {
                   snprintf(tempID,1024,"%s##NOFF",noteOffLabel);
                 } else if (i.note>=-60 && i.note<120) {
-                  snprintf(tempID,1024,"%s",noteNames[i.note+60]);
+                  snprintf(tempID,1024,"%c%c",noteNames[i.note+60][0],(noteNames[i.note+60][1]=='-')?' ':noteNames[i.note+60][1]);
                 } else {
                   snprintf(tempID,1024,"???");
                   i.note=0;
@@ -664,7 +664,7 @@ void FurnaceGUI::drawFindReplace() {
                   i.noteMax=0;
                 }
                 if (i.noteMax>=-60 && i.noteMax<120) {
-                  snprintf(tempID,1024,"%s",noteNames[i.noteMax+60]);
+                  snprintf(tempID,1024,"%c%c",noteNames[i.noteMax+60][0],(noteNames[i.noteMax+60][1]=='-')?' ':noteNames[i.noteMax+60][1]);
                 } else {
                   snprintf(tempID,1024,"???");
                 }
@@ -907,7 +907,7 @@ void FurnaceGUI::drawFindReplace() {
             } else if (queryReplaceNote==128) {
               snprintf(tempID,1024,"%s##NOFF",noteOffLabel);
             } else if (queryReplaceNote>=-60 && queryReplaceNote<120) {
-              snprintf(tempID,1024,"%s",noteNames[queryReplaceNote+60]);
+              snprintf(tempID,1024,"%c%c",noteNames[queryReplaceNote+60][0],(noteNames[queryReplaceNote+60][1]=='-')?' ':noteNames[queryReplaceNote+60][1]);
             } else {
               snprintf(tempID,1024,"???");
               queryReplaceNote=0;
