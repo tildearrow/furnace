@@ -383,6 +383,8 @@ struct DivRegWrite {
    *   - xx is the instance ID
    *   - data is the sample position
    * - 0xffffffff: reset
+   * - 0xfffffffe: add delay
+   *   - data is the delay
    */
   unsigned int addr;
   unsigned int val;

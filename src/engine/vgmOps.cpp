@@ -2686,9 +2686,15 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     // get register dumps and put them into delayed writes
     int writeNum=0;
     for (int i=0; i<song.systemLen; i++) {
+      int curDelay=0;
       std::vector<DivRegWrite>& writes=disCont[i].dispatch->getRegisterWrites();
       for (DivRegWrite& j: writes) {
-        sortedWrites.push_back(std::pair<int,DivDelayedWrite>(i,DivDelayedWrite(0,writeNum++,j.addr,j.val)));
+        if (j.addr==0xfffffffe) { // delay
+          curDelay+=(double)j.val*(44100.0/(double)disCont[i].dispatch->rate);
+          if (curDelay>totalWait) curDelay=totalWait-1;
+        } else {
+          sortedWrites.push_back(std::pair<int,DivDelayedWrite>(i,DivDelayedWrite(curDelay,writeNum++,j.addr,j.val)));
+        }
       }
       writes.clear();
     }
