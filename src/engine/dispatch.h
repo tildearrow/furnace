@@ -394,9 +394,18 @@ struct DivRegWrite {
 
 struct DivDelayedWrite {
   int time;
+  // this variable is internal.
+  // it is used by VGM export to make sure these writes are in order.
+  // do not change.
+  int order;
   DivRegWrite write;
+  DivDelayedWrite(int t, int o, unsigned int a, unsigned int v):
+    time(t),
+    order(o),
+    write(a,v) {}
   DivDelayedWrite(int t, unsigned int a, unsigned int v):
     time(t),
+    order(0),
     write(a,v) {}
 };
 

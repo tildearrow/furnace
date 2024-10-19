@@ -2679,17 +2679,21 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         }
       }
     }
-    // get register dumps
+
+    // calculate number of samples in this tick
+    int totalWait=cycles>>MASTER_CLOCK_PREC;
+
+    // get register dumps and put them into delayed writes
+    int writeNum=0;
     for (int i=0; i<song.systemLen; i++) {
       std::vector<DivRegWrite>& writes=disCont[i].dispatch->getRegisterWrites();
       for (DivRegWrite& j: writes) {
-        performVGMWrite(w,song.system[i],j,streamIDs[i],loopTimer,loopFreq,loopSample,sampleDir,isSecond[i],pendingFreq,playingSample,setPos,sampleOff8,sampleLen8,bankOffset[i],directStream,sampleStoppable);
-        writeCount++;
+        sortedWrites.push_back(std::pair<int,DivDelayedWrite>(i,DivDelayedWrite(0,writeNum++,j.addr,j.val)));
       }
       writes.clear();
     }
-    // check whether we need to loop
-    int totalWait=cycles>>MASTER_CLOCK_PREC;
+
+    // handle direct stream writes
     if (directStream) {
       // render stream of all chips
       for (int i=0; i<song.systemLen; i++) {
@@ -2699,40 +2703,43 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         }
         delayedWrites[i].clear();
       }
+    }
 
-      if (!sortedWrites.empty()) {
-        // sort if more than one chip
-        if (song.systemLen>1) {
-          std::sort(sortedWrites.begin(),sortedWrites.end(),[](const std::pair<int,DivDelayedWrite>& a, const std::pair<int,DivDelayedWrite>& b) -> bool {
-            return a.second.time<b.second.time;
-          });
+    // put writes
+    if (!sortedWrites.empty()) {
+      // sort writes
+      std::sort(sortedWrites.begin(),sortedWrites.end(),[](const std::pair<int,DivDelayedWrite>& a, const std::pair<int,DivDelayedWrite>& b) -> bool {
+        if (a.second.time==b.second.time) {
+          return a.second.order<b.second.order;
         }
+        return a.second.time<b.second.time;
+      });
 
-        // write it out
-        int lastOne=0;
-        for (std::pair<int,DivDelayedWrite>& i: sortedWrites) {
-          if (i.second.time>lastOne) {
-            // write delay
-            int delay=i.second.time-lastOne;
-            if (delay>16) {
-              w->writeC(0x61);
-              w->writeS(delay);
-            } else if (delay>0) {
-              w->writeC(0x70+delay-1);
-            }
-            lastOne=i.second.time;
+      // write it out
+      int lastOne=0;
+      for (std::pair<int,DivDelayedWrite>& i: sortedWrites) {
+        if (i.second.time>lastOne) {
+          // write delay
+          int delay=i.second.time-lastOne;
+          if (delay>16) {
+            w->writeC(0x61);
+            w->writeS(delay);
+          } else if (delay>0) {
+            w->writeC(0x70+delay-1);
           }
-          // write write
-          performVGMWrite(w,song.system[i.first],i.second.write,streamIDs[i.first],loopTimer,loopFreq,loopSample,sampleDir,isSecond[i.first],pendingFreq,playingSample,setPos,sampleOff8,sampleLen8,bankOffset[i.first],directStream,sampleStoppable);
-          // handle global Furnace commands
-
-          writeCount++;
+          lastOne=i.second.time;
         }
-        sortedWrites.clear();
-        totalWait-=lastOne;
-        tickCount+=lastOne;
+        // write write
+        performVGMWrite(w,song.system[i.first],i.second.write,streamIDs[i.first],loopTimer,loopFreq,loopSample,sampleDir,isSecond[i.first],pendingFreq,playingSample,setPos,sampleOff8,sampleLen8,bankOffset[i.first],directStream,sampleStoppable);
+        writeCount++;
       }
-    } else {
+      sortedWrites.clear();
+      totalWait-=lastOne;
+      tickCount+=lastOne;
+    }
+
+    // handle streams
+    if (!directStream) {
       for (int i=0; i<streamID; i++) {
         if (loopSample[i]>=0) {
           loopTimer[i]-=(loopFreq[i]/44100.0)*(double)totalWait;
@@ -2786,6 +2793,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         }
       }
     }
+
     // write wait
     if (totalWait>0) {
       if (totalWait==735) {
