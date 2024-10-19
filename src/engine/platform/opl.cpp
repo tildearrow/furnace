@@ -190,33 +190,37 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0; os[2]=0; os[3]=0; os[4]=0; os[5]=0;
     if (!writes.empty() && --delay<0) {
-      delay=1;
       QueuedWrite& w=writes.front();
-      if (w.addr>=0x200) {
-        pcm.writeReg(w.addr&0xff,w.val);
-        regPool[0x200|(w.addr&0xff)]=w.val;
+      if (w.addr==0xfffffffe) {
+        delay=w.val;
       } else {
-        switch (w.addr) {
-          case 8:
-            if (adpcmChan>=0) {
-              adpcmB->write(w.addr-7,(w.val&15)|0x80);
-              OPL3_WriteReg(&fm,w.addr,w.val&0xc0);
-            } else {
+        delay=1;
+        if (w.addr>=0x200) {
+          pcm.writeReg(w.addr&0xff,w.val);
+          regPool[0x200|(w.addr&0xff)]=w.val;
+        } else {
+          switch (w.addr) {
+            case 8:
+              if (adpcmChan>=0) {
+                adpcmB->write(w.addr-7,(w.val&15)|0x80);
+                OPL3_WriteReg(&fm,w.addr,w.val&0xc0);
+              } else {
+                OPL3_WriteReg(&fm,w.addr,w.val);
+              }
+              break;
+            case 7: case 9: case 10: case 11: case 12: case 13: case 14: case 15: case 16: case 17: case 18: case 21: case 22: case 23:
+              if (adpcmChan>=0) {
+                adpcmB->write(w.addr-7,w.val);
+              } else {
+                OPL3_WriteReg(&fm,w.addr,w.val);
+              }
+              break;
+            default:
               OPL3_WriteReg(&fm,w.addr,w.val);
-            }
-            break;
-          case 7: case 9: case 10: case 11: case 12: case 13: case 14: case 15: case 16: case 17: case 18: case 21: case 22: case 23:
-            if (adpcmChan>=0) {
-              adpcmB->write(w.addr-7,w.val);
-            } else {
-              OPL3_WriteReg(&fm,w.addr,w.val);
-            }
-            break;
-          default:
-            OPL3_WriteReg(&fm,w.addr,w.val);
-            break;
+              break;
+          }
+          regPool[w.addr&511]=w.val;
         }
-        regPool[w.addr&511]=w.val;
       }
       writes.pop();
     }
@@ -353,11 +357,11 @@ void DivPlatformOPL::acquire_ymfm1(short** buf, size_t len) {
 
   for (size_t h=0; h<len; h++) {
     if (!writes.empty() && --delay<0) {
-      delay=1;
       QueuedWrite& w=writes.front();
 
       fm_ymfm1->write(0,w.addr);
       fm_ymfm1->write(1,w.val);
+      delay=1;
 
       regPool[w.addr&511]=w.val;
       writes.pop();
@@ -395,11 +399,11 @@ void DivPlatformOPL::acquire_ymfm2(short** buf, size_t len) {
 
   for (size_t h=0; h<len; h++) {
     if (!writes.empty() && --delay<0) {
-      delay=1;
       QueuedWrite& w=writes.front();
 
       fm_ymfm2->write(0,w.addr);
       fm_ymfm2->write(1,w.val);
+      delay=1;
 
       regPool[w.addr&511]=w.val;
       writes.pop();
@@ -438,11 +442,11 @@ void DivPlatformOPL::acquire_ymfm8950(short** buf, size_t len) {
 
   for (size_t h=0; h<len; h++) {
     if (!writes.empty() && --delay<0) {
-      delay=1;
       QueuedWrite& w=writes.front();
 
       fm_ymfm8950->write(0,w.addr);
       fm_ymfm8950->write(1,w.val);
+      delay=1;
 
       regPool[w.addr&511]=w.val;
       writes.pop();
@@ -482,11 +486,11 @@ void DivPlatformOPL::acquire_ymfm3(short** buf, size_t len) {
 
   for (size_t h=0; h<len; h++) {
     if (!writes.empty() && --delay<0) {
-      delay=1;
       QueuedWrite& w=writes.front();
 
       fm_ymfm3->write((w.addr&0x100)?2:0,w.addr);
       fm_ymfm3->write(1,w.val);
+      delay=1;
 
       regPool[w.addr&511]=w.val;
       writes.pop();
@@ -582,11 +586,11 @@ void DivPlatformOPL::acquire_ymfm4(short** buf, size_t len) {
 
   for (size_t h=0; h<len; h++) {
     if (!writes.empty() && --delay<0) {
-      delay=1;
       QueuedWrite& w=writes.front();
 
       fm_ymfm4->write((w.addr&0x200)?4:(w.addr&0x100)?2:0,w.addr);
       fm_ymfm4->write((w.addr&0x200)?5:1,w.val);
+      delay=1;
 
       regPool[(w.addr&0x200)?(0x200+(w.addr&255)):(w.addr&511)]=w.val;
       writes.pop();
@@ -1480,9 +1484,7 @@ void DivPlatformOPL::tick(bool sysTick) {
 
   // hard reset handling
   if (mustHardReset) {
-    for (unsigned int i=hardResetElapsed; i<128; i++) {
-      immWrite(0x3f,i&0xff);
-    }
+    immWrite(0xfffffffe,128-hardResetElapsed);
     for (int i=0x80; i<0xa0; i++) {
       if (weWillWriteRRLater[i-0x80]) {
         immWrite(i,pendingWrites[i]&0xff);

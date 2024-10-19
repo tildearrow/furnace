@@ -55,10 +55,14 @@ void DivPlatformArcade::acquire_nuked(short** buf, size_t len) {
   thread_local int o[2];
 
   for (size_t h=0; h<len; h++) {
+    if (delay>0) delay--;
     for (int i=0; i<8; i++) {
-      if (!writes.empty() && !fm.write_busy) {
+      if (delay<=0 && !writes.empty() && !fm.write_busy) {
         QueuedWrite& w=writes.front();
-        if (w.addrOrVal) {
+        if (w.addr==0xfffffffe) {
+          delay=w.val;
+          writes.pop_front();
+        } else if (w.addrOrVal) {
           OPM_Write(&fm,1,w.val);
           regPool[w.addr&0xff]=w.val;
           //printf("write: %x = %.2x\n",w.addr,w.val);
@@ -101,11 +105,15 @@ void DivPlatformArcade::acquire_ymfm(short** buf, size_t len) {
     if (!writes.empty()) {
       if (--delay<1) {
         QueuedWrite& w=writes.front();
-        fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
-        fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
-        regPool[w.addr&0xff]=w.val;
+        if (w.addr==0xfffffffe) {
+          delay=w.val;
+        } else {
+          fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
+          fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
+          regPool[w.addr&0xff]=w.val;
+          delay=1;
+        }
         writes.pop_front();
-        delay=1;
       }
     }
 
@@ -380,9 +388,7 @@ void DivPlatformArcade::tick(bool sysTick) {
 
   // hard reset handling
   if (mustHardReset) {
-    for (unsigned int i=hardResetElapsed; i<hardResetCycles; i++) {
-      immWrite(0x1f,i&0xff);
-    }
+    immWrite(0xfffffffe,hardResetCycles-hardResetElapsed);
     for (int i=0; i<8; i++) {
       if ((chan[i].keyOn || chan[i].opMaskChanged) && chan[i].hardReset) {
         // restore SL/RR

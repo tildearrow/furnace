@@ -693,9 +693,7 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
 
     // hard reset handling
     if (mustHardReset) {
-      for (unsigned int i=hardResetElapsed; i<hardResetCycles; i++) {
-        immWrite(0xf0,i&0xff);
-      }
+      immWrite(0xfffffffe,hardResetCycles-hardResetElapsed);
       for (int i=0; i<4; i++) {
         if (opChan[i].keyOn && opChan[i].hardReset) {
           // restore SL/RR

@@ -67,11 +67,15 @@ void DivPlatformTX81Z::acquire(short** buf, size_t len) {
     if (!writes.empty()) {
       if (--delay<1) {
         QueuedWrite& w=writes.front();
-        fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
-        fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
-        regPool[w.addr&0xff]=w.val;
+        if (w.addr==0xfffffffe) {
+          delay=w.val;
+        } else {
+          fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
+          fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
+          regPool[w.addr&0xff]=w.val;
+          delay=1;
+        }
         writes.pop_front();
-        delay=1;
       }
     }
     
@@ -419,9 +423,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
 
   // hard reset handling
   if (mustHardReset) {
-    for (unsigned int i=hardResetElapsed; i<hardResetCycles; i++) {
-      immWrite(0x1f,i&0xff);
-    }
+    immWrite(0xfffffffe,hardResetCycles-hardResetElapsed);
     for (int i=0; i<8; i++) {
       if (chan[i].keyOn && chan[i].hardReset) {
         // restore SL/RR

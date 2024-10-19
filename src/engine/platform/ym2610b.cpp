@@ -338,7 +338,10 @@ void DivPlatformYM2610B::acquire_combo(short** buf, size_t len) {
         if (--delay<1 && !(fm->read(0)&0x80)) {
           QueuedWrite& w=writes.front();
 
-          if (w.addr<=0x1c || (w.addr>=0x100 && w.addr<=0x12d)) {
+          if (w.addr==0xfffffffe) {
+            delay=w.val;
+            writes.pop_front();
+          } else if (w.addr<=0x1c || (w.addr>=0x100 && w.addr<=0x12d)) {
             // ymfm write
             fm->write(0x0+((w.addr>>8)<<1),w.addr);
             fm->write(0x1+((w.addr>>8)<<1),w.val);
@@ -451,11 +454,15 @@ void DivPlatformYM2610B::acquire_ymfm(short** buf, size_t len) {
     if (!writes.empty()) {
       if (--delay<1 && !(fm->read(0)&0x80)) {
         QueuedWrite& w=writes.front();
-        fm->write(0x0+((w.addr>>8)<<1),w.addr);
-        fm->write(0x1+((w.addr>>8)<<1),w.val);
-        regPool[w.addr&0x1ff]=w.val;
+        if (w.addr==0xfffffffe) {
+          delay=w.val;
+        } else {
+          fm->write(0x0+((w.addr>>8)<<1),w.addr);
+          fm->write(0x1+((w.addr>>8)<<1),w.val);
+          regPool[w.addr&0x1ff]=w.val;
+          delay=1;
+        }
         writes.pop_front();
-        delay=1;
       }
     }
     
@@ -1024,9 +1031,7 @@ void DivPlatformYM2610B::tick(bool sysTick) {
 
   // hard reset handling
   if (mustHardReset) {
-    for (unsigned int i=hardResetElapsed; i<hardResetCycles; i++) {
-      immWrite(0xf0,i&0xff);
-    }
+    immWrite(0xfffffffe,hardResetCycles-hardResetElapsed);
     for (int i=0; i<(psgChanOffs-isCSM); i++) {
       if (i==2 && extMode) continue;
       if ((chan[i].keyOn || chan[i].opMaskChanged) && chan[i].hardReset) {
