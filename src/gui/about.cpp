@@ -142,7 +142,6 @@ const char* aboutLine[]={
   "LovelyA72",
   "LTVA",
   "LunaMoth",
-  "Lunathir",
   "LVintageNerd",
   "Mahbod Karamoozian",
   "masicbemester",
