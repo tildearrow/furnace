@@ -2,7 +2,7 @@ name: Build furnace
 
 on:
   push:
-    branches: [master, locale]
+    branches: [master, theUltimateFix]
   pull_request:
     branches: master
 
