@@ -334,8 +334,8 @@ jobs:
         name: ${{ steps.package-identify.outputs.id }}
         path: ${{ steps.package-identify.outputs.filename }}
 
-    - name: Upload Metal artifact
-      if: ${{ github.repository == 'tildearrow/furnace' && github.ref_name == 'metal' }}
+    - name: Upload 30xx artifact
+      if: ${{ github.repository == 'tildearrow/furnace' && github.ref_name == 'theUltimateFix' }}
       uses: actions/upload-artifact@v4.3.0
       with:
         name: ${{ steps.package-identify.outputs.id }}
