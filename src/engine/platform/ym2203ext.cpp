@@ -787,6 +787,8 @@ void DivPlatformYM2203Ext::setCSM(bool isCSM) {
   this->isCSM=isCSM?1:0;
   if (isCSM) {
     csmChan=3;
+  } else {
+    csmChan=6;
   }
 }
 

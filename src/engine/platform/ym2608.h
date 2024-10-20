@@ -125,7 +125,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     void setCSM(bool isCSM);
     void quit();
     DivPlatformYM2608():
-      DivPlatformOPN(2, 6, 9, 15, 16, 9440540.0, 72, 32),
+      DivPlatformOPN(2, 6, 9, 15, 16, 9440540.0, 72, 32, false, 16),
       prescale(0x2d),
       isCSM(0) {}
     ~DivPlatformYM2608();
