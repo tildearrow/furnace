@@ -487,11 +487,11 @@ void DivPlatformYM2608::acquire_ymfm(short** buf, size_t len) {
 
     ssge->get_last_out(ssgOut);
     for (int i=(6+isCSM); i<(9+isCSM); i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=ssgOut.data[i-6]<<1;
+      oscBuf[i]->data[oscBuf[i]->needle++]=ssgOut.data[i-6-isCSM]<<1;
     }
 
     for (int i=(9+isCSM); i<(15+isCSM); i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(adpcmAChan[i-9]->get_last_out(0)+adpcmAChan[i-9]->get_last_out(1))>>1;
+      oscBuf[i]->data[oscBuf[i]->needle++]=(adpcmAChan[i-9-isCSM]->get_last_out(0)+adpcmAChan[i-9]->get_last_out(1))>>1;
     }
 
     oscBuf[15+isCSM]->data[oscBuf[15+isCSM]->needle++]=(abe->get_last_out(0)+abe->get_last_out(1))>>1;
