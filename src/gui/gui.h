@@ -1798,7 +1798,6 @@ class FurnaceGUI {
     std::vector<SettingsCategory> categories;
     SettingsCategory activeCategory; // yes a boring copy
     ImGuiTextFilter filter;
-    bool settingsChanged;
     int searchDepth;
 
     int mainFontSize, patFontSize, headFontSize, iconSize;
@@ -2059,7 +2058,6 @@ class FurnaceGUI {
     DivConfig initialSys;
 
     Settings():
-      settingsChanged(false),
       searchDepth(3),
       mainFontSize(GUI_FONT_SIZE_DEFAULT),
       patFontSize(GUI_FONT_SIZE_DEFAULT),
