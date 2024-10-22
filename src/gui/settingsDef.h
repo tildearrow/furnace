@@ -54,7 +54,7 @@ void SettingDef::loadSetting(DivConfig* conf) {
 
 // children
 
-class SettingDefCheckbox : public SettingDef {
+class SettingCheckbox : public SettingDef {
   void* data;
   String name;
   const char* friendlyName;
@@ -85,13 +85,13 @@ class SettingDefCheckbox : public SettingDef {
       *(int*)data=conf->getInt(name, fallback?1:0);
       clampSetting(*(int*)data,0,1);
     }
-    SettingDefCheckbox():
+    SettingCheckbox():
       data(NULL),
       name(""),
       friendlyName(""),
       tooltip(""),
       fallback(0) {}
-    SettingDefCheckbox(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback) {
+    SettingCheckbox(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback) {
       data=_data;
       name=_name;
       friendlyName=_friendlyName;
@@ -100,7 +100,7 @@ class SettingDefCheckbox : public SettingDef {
     }
 };
 
-class SettingDefSliderInt : public SettingDef {
+class SettingSliderInt : public SettingDef {
   void* data;
   String name;
   const char* friendlyName;
@@ -135,7 +135,7 @@ class SettingDefSliderInt : public SettingDef {
       *(int*)data=conf->getInt(name, fallback);
       clampSetting(*(int*)data,minV,maxV);
     }
-    SettingDefSliderInt():
+    SettingSliderInt():
       data(NULL),
       name(""),
       friendlyName(""),
@@ -144,7 +144,7 @@ class SettingDefSliderInt : public SettingDef {
       maxV(0),
       sliderFmt(""),
       f(0) {}
-    SettingDefSliderInt(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, int min, int max):
+    SettingSliderInt(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, int min, int max):
       sliderFmt("%d"),
       f(0) {
       data=_data;
@@ -155,7 +155,7 @@ class SettingDefSliderInt : public SettingDef {
       minV=min;
       maxV=max;
     }
-    SettingDefSliderInt(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, int min, int max, const char* fmt):
+    SettingSliderInt(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, int min, int max, const char* fmt):
       f(0) {
       data=_data;
       name=_name;
@@ -166,7 +166,7 @@ class SettingDefSliderInt : public SettingDef {
       maxV=max;
       sliderFmt=fmt;
     }
-    SettingDefSliderInt(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, int min, int max, const char* fmt, ImGuiSliderFlags flags) {
+    SettingSliderInt(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, int min, int max, const char* fmt, ImGuiSliderFlags flags) {
       data=_data;
       name=_name;
       friendlyName=_friendlyName;
@@ -179,7 +179,7 @@ class SettingDefSliderInt : public SettingDef {
     }
 };
 
-class SettingDefSliderFloat : public SettingDef {
+class SettingSliderFloat : public SettingDef {
   void* data;
   String name;
   const char* friendlyName;
@@ -214,7 +214,7 @@ class SettingDefSliderFloat : public SettingDef {
       *(float*)data=conf->getFloat(name, fallback);
       clampSetting(*(float*)data,minV,maxV);
     }
-    SettingDefSliderFloat():
+    SettingSliderFloat():
       data(NULL),
       name(""),
       friendlyName(""),
@@ -223,7 +223,7 @@ class SettingDefSliderFloat : public SettingDef {
       maxV(0),
       sliderFmt(""),
       f(0) {}
-    SettingDefSliderFloat(float* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, float min, float max):
+    SettingSliderFloat(float* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, float min, float max):
       sliderFmt("%g"),
       f(0) {
       data=_data;
@@ -234,7 +234,7 @@ class SettingDefSliderFloat : public SettingDef {
       minV=min;
       maxV=max;
     }
-    SettingDefSliderFloat(float* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, float min, float max, const char* fmt):
+    SettingSliderFloat(float* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, float min, float max, const char* fmt):
       f(0) {
       data=_data;
       name=_name;
@@ -245,7 +245,7 @@ class SettingDefSliderFloat : public SettingDef {
       maxV=max;
       sliderFmt=fmt;
     }
-    SettingDefSliderFloat(float* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, float min, float max, const char* fmt, ImGuiSliderFlags flags) {
+    SettingSliderFloat(float* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, float min, float max, const char* fmt, ImGuiSliderFlags flags) {
       data=_data;
       name=_name;
       friendlyName=_friendlyName;
@@ -258,7 +258,7 @@ class SettingDefSliderFloat : public SettingDef {
     }
 };
 
-class SettingDefInputInt : public SettingDef {
+class SettingInputInt : public SettingDef {
   void* data;
   String name;
   const char* friendlyName;
@@ -293,7 +293,7 @@ class SettingDefInputInt : public SettingDef {
       *(int*)data=conf->getInt(name, fallback);
       clampSetting(*(int*)data,minV,maxV);
     }
-    SettingDefInputInt():
+    SettingInputInt():
       data(NULL),
       name(""),
       friendlyName(""),
@@ -302,7 +302,7 @@ class SettingDefInputInt : public SettingDef {
       maxV(0),
       sliderFmt(""),
       f(0) {}
-    SettingDefInputInt(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, int min, int max):
+    SettingInputInt(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, int min, int max):
       sliderFmt("%d"),
       f(0) {
       data=_data;
@@ -313,7 +313,7 @@ class SettingDefInputInt : public SettingDef {
       minV=min;
       maxV=max;
     }
-    SettingDefInputInt(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, int min, int max, const char* fmt):
+    SettingInputInt(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, int min, int max, const char* fmt):
       f(0) {
       data=_data;
       name=_name;
@@ -324,7 +324,7 @@ class SettingDefInputInt : public SettingDef {
       maxV=max;
       sliderFmt=fmt;
     }
-    SettingDefInputInt(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, int min, int max, const char* fmt, ImGuiInputTextFlags flags) {
+    SettingInputInt(int* _data, String _name, const char* _friendlyName, const char* _tooltip, bool _fallback, int min, int max, const char* fmt, ImGuiInputTextFlags flags) {
       data=_data;
       name=_name;
       friendlyName=_friendlyName;
@@ -337,7 +337,7 @@ class SettingDefInputInt : public SettingDef {
     }
 };
 
-class SettingDefDropdown : public SettingDef {
+class SettingDropdown : public SettingDef {
   void* data;
   String name;
   const char* friendlyName;
@@ -377,7 +377,7 @@ class SettingDefDropdown : public SettingDef {
       *(int*)data=conf->getInt(name, fallback?1:0);
       clampSetting(*(int*)data,0,1);
     }
-    SettingDefDropdown():
+    SettingDropdown():
       data(NULL),
       name(""),
       friendlyName(""),
@@ -386,7 +386,7 @@ class SettingDefDropdown : public SettingDef {
       options(NULL),
       optionsCount(0),
       f(0) {}
-    SettingDefDropdown(int* _data, String _name, const char* _friendlyName, const char* _tooltip, int _fallback, const char** _options, int _optionsCount):
+    SettingDropdown(int* _data, String _name, const char* _friendlyName, const char* _tooltip, int _fallback, const char** _options, int _optionsCount):
       f(0) {
       data=_data;
       name=_name;
@@ -396,7 +396,7 @@ class SettingDefDropdown : public SettingDef {
       options=_options;
       optionsCount=_optionsCount;
     }
-    SettingDefDropdown(int* _data, String _name, const char* _friendlyName, const char* _tooltip, int _fallback, const char** _options, int _optionsCount, ImGuiComboFlags flags) {
+    SettingDropdown(int* _data, String _name, const char* _friendlyName, const char* _tooltip, int _fallback, const char** _options, int _optionsCount, ImGuiComboFlags flags) {
       data=_data;
       name=_name;
       friendlyName=_friendlyName;
@@ -408,7 +408,7 @@ class SettingDefDropdown : public SettingDef {
     }
 };
 
-class SettingDefRadio : public SettingDef {
+class SettingRadio : public SettingDef {
   void* data;
   String name;
   const char* friendlyName;
@@ -447,7 +447,7 @@ class SettingDefRadio : public SettingDef {
       *(int*)data=conf->getInt(name, fallback?1:0);
       clampSetting(*(int*)data,0,1);
     }
-    SettingDefRadio():
+    SettingRadio():
       data(NULL),
       name(""),
       friendlyName(""),
@@ -455,7 +455,7 @@ class SettingDefRadio : public SettingDef {
       fallback(0),
       options(NULL),
       optionsCount(0) {}
-    SettingDefRadio(int* _data, String _name, const char* _friendlyName, const char* _tooltip, int _fallback, const char** _options, int _optionsCount) {
+    SettingRadio(int* _data, String _name, const char* _friendlyName, const char* _tooltip, int _fallback, const char** _options, int _optionsCount) {
       data=_data;
       name=_name;
       friendlyName=_friendlyName;
@@ -466,7 +466,7 @@ class SettingDefRadio : public SettingDef {
     }
 };
 
-class SettingDefDummyText : public SettingDef {
+class SettingDummyText : public SettingDef {
   const char* fmt;
   va_list args;
   public:
@@ -485,9 +485,9 @@ class SettingDefDummyText : public SettingDef {
     void loadSetting(DivConfig* conf) {
       (void)conf;
     }
-    SettingDefDummyText():
+    SettingDummyText():
       fmt(NULL) {}
-    SettingDefDummyText(const char* _fmt, ...) {
+    SettingDummyText(const char* _fmt, ...) {
       fmt=_fmt;
       va_start(args,_fmt);
       va_end(args);

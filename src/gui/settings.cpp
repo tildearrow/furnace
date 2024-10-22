@@ -360,29 +360,29 @@ void FurnaceGUI::setupSettingsCategories() {
   settings.categories={
     SettingsCategory("Window",{
       SettingsCategory("Oscilloscope",{},{
-        new SettingDefDummyText("%c",&settingsChanged),
-        new SettingDefRadio(&settings.shaderOsc,"shaderOsc",_("Oscilloscope rendering engine:"),_("render using either Dear ImGui's built-in line drawing functions or GLSL."),0,oscRenderEngines,2),
-        new SettingDefCheckbox(&settings.oscRoundedCorners,"oscRoundedCorners",_("Rounded corners"),NULL,GUI_DECORATIONS_DEFAULT),
-        new SettingDefCheckbox(&settings.oscBorder,"oscBorder",_("Border"),NULL,1),
-        new SettingDefCheckbox(&settings.oscMono,"oscMono",_("Mono"),NULL,1),
-        new SettingDefCheckbox(&settings.oscAntiAlias,"oscAntiAlias",_("Anti-aliased"),NULL,1),
-        new SettingDefCheckbox(&settings.oscTakesEntireWindow,"oscTakesEntireWindow",_("Fill entire window"),NULL,0),
-        new SettingDefCheckbox(&settings.oscEscapesBoundary,"oscEscapesBoundary",_("Waveform goes out of bounds"),NULL,0),
-        new SettingDefSliderFloat(&settings.oscLineSize,"oscLineSize",_("Line size"),NULL,1.0f,0.25f,16.0f,"%.1f"),
+        new SettingDummyText("%c",&settingsChanged),
+        new SettingRadio(&settings.shaderOsc,"shaderOsc",_("Oscilloscope rendering engine:"),_("render using either Dear ImGui's built-in line drawing functions or GLSL."),0,oscRenderEngines,2),
+        new SettingCheckbox(&settings.oscRoundedCorners,"oscRoundedCorners",_("Rounded corners"),NULL,GUI_DECORATIONS_DEFAULT),
+        new SettingCheckbox(&settings.oscBorder,"oscBorder",_("Border"),NULL,1),
+        new SettingCheckbox(&settings.oscMono,"oscMono",_("Mono"),NULL,1),
+        new SettingCheckbox(&settings.oscAntiAlias,"oscAntiAlias",_("Anti-aliased"),NULL,1),
+        new SettingCheckbox(&settings.oscTakesEntireWindow,"oscTakesEntireWindow",_("Fill entire window"),NULL,0),
+        new SettingCheckbox(&settings.oscEscapesBoundary,"oscEscapesBoundary",_("Waveform goes out of bounds"),NULL,0),
+        new SettingSliderFloat(&settings.oscLineSize,"oscLineSize",_("Line size"),NULL,1.0f,0.25f,16.0f,"%.1f"),
       }),
     },{
 #ifndef IS_MOBILE
-      new SettingDefCheckbox(&settings.saveWindowPos,"saveWindowPos",_("Remember window position"),_("remembers the window's last position on start-up."),true),
+      new SettingCheckbox(&settings.saveWindowPos,"saveWindowPos",_("Remember window position"),_("remembers the window's last position on start-up."),true),
 #endif
-      new SettingDefCheckbox(&settings.moveWindowTitle,"moveWindowTitle",_("Only allow window movement when clicking on title bar"),NULL,true),
-      new SettingDefCheckbox(&settings.centerPopup,"centerPopup",_("Center pop-up windows"),NULL,true),
+      new SettingCheckbox(&settings.moveWindowTitle,"moveWindowTitle",_("Only allow window movement when clicking on title bar"),NULL,true),
+      new SettingCheckbox(&settings.centerPopup,"centerPopup",_("Center pop-up windows"),NULL,true),
 
-      new SettingDefCheckbox(&settings.roundedWindows,"roundedWindows",_("Rounded window corners"),NULL,GUI_DECORATIONS_DEFAULT),
-      new SettingDefCheckbox(&settings.roundedButtons,"roundedButtons",_("Rounded buttons"),NULL,GUI_DECORATIONS_DEFAULT),
-      new SettingDefCheckbox(&settings.roundedMenus,"roundedMenus",_("Rounded menu corners"),NULL,false),
-      new SettingDefCheckbox(&settings.roundedTabs,"roundedTabs",_("Rounded tabs"),NULL,GUI_DECORATIONS_DEFAULT),
-      new SettingDefCheckbox(&settings.roundedScrollbars,"roundedScrollbars",_("Rounded scrollbars"),NULL,GUI_DECORATIONS_DEFAULT),
-      new SettingDefCheckbox(&settings.frameBorders,"frameBorders",_("Borders around widgets"),NULL,false),
+      new SettingCheckbox(&settings.roundedWindows,"roundedWindows",_("Rounded window corners"),NULL,GUI_DECORATIONS_DEFAULT),
+      new SettingCheckbox(&settings.roundedButtons,"roundedButtons",_("Rounded buttons"),NULL,GUI_DECORATIONS_DEFAULT),
+      new SettingCheckbox(&settings.roundedMenus,"roundedMenus",_("Rounded menu corners"),NULL,false),
+      new SettingCheckbox(&settings.roundedTabs,"roundedTabs",_("Rounded tabs"),NULL,GUI_DECORATIONS_DEFAULT),
+      new SettingCheckbox(&settings.roundedScrollbars,"roundedScrollbars",_("Rounded scrollbars"),NULL,GUI_DECORATIONS_DEFAULT),
+      new SettingCheckbox(&settings.frameBorders,"frameBorders",_("Borders around widgets"),NULL,false),
     })
   };
 
