@@ -37,6 +37,7 @@ class DivPlatformVIC20: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
   bool hasWaveWrite;
+  bool filterOff;
 
   unsigned char regPool[16];
   sound_vic20_t* vic;

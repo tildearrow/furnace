@@ -1358,6 +1358,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   bool writeNESSamples=false;
   bool writePCESamples=false;
   bool writeVOXSamples=false;
+  bool writeLynxSamples=false;
   DivDispatch* writeADPCM_OPNA[2]={NULL,NULL};
   DivDispatch* writeADPCM_OPNB[2]={NULL,NULL};
   DivDispatch* writeADPCM_Y8950[2]={NULL,NULL};
@@ -1687,6 +1688,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         if (!hasLynx) {
           hasLynx=disCont[i].dispatch->chipClock;
           willExport[i]=true;
+          writeLynxSamples=true;
         } else if (!(hasLynx&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=true;
@@ -2232,6 +2234,17 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     }
   }
 
+  if (writeLynxSamples && !directStream) for (int i=0; i<song.sampleLen; i++) {
+    DivSample* sample=song.sample[i];
+    w->writeC(0x67);
+    w->writeC(0x66);
+    w->writeC(8);
+    w->writeI(sample->length8);
+    for (unsigned int j=0; j<sample->length8; j++) {
+      w->writeC(sample->data8[j]);
+    }
+  }
+
   for (int i=0; i<2; i++) {
     // SegaPCM
     if (writeSegaPCM[i]!=NULL && writeSegaPCM[i]->getSampleMemUsage(0)>0) {
@@ -2537,6 +2550,26 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           w->writeC(1);
           w->writeC(0);
           streamID++;
+          break;
+        case DIV_SYSTEM_LYNX:
+          for (int j=0; j<4; j++) {
+            w->writeC(0x90);
+            w->writeC(streamID);
+            w->writeC(isSecond[i]?0xa9:0x29);
+            w->writeC(0); // port
+            w->writeC(0x22+(j<<3)); // output write
+
+            w->writeC(0x91);
+            w->writeC(streamID);
+            w->writeC(8);
+            w->writeC(1);
+            w->writeC(0);
+
+            w->writeC(0x92);
+            w->writeC(streamID);
+            w->writeI(16000); // default
+            streamID++;
+          }
           break;
         default:
           break;

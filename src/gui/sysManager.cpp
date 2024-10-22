@@ -92,7 +92,8 @@ void FurnaceGUI::drawSysManager() {
           if (e->song.system[i]!=DIV_SYSTEM_NULL) {
             const DivSysDef* sysDef=e->getSystemDef(e->song.system[i]);
             if (ImGui::BeginTooltip()) {
-              ImGui::PushTextWrapPos(420.0f*dpiScale); // arbitrary constant
+              ImGui::Dummy(ImVec2(MIN(scrW*dpiScale,400.0f*dpiScale),0.0f));
+              ImGui::PushTextWrapPos(MIN(scrW*dpiScale,400.0f*dpiScale)); // arbitrary constant
               ImGui::TextWrapped("%s",sysDef->description);
               ImGui::Separator();
               drawSystemChannelInfoText(sysDef);

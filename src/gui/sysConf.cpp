@@ -2612,6 +2612,25 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
+    case DIV_SYSTEM_VIC20: {
+      bool sysPal=flags.getInt("clockSel",0);
+      bool filterOff=flags.getBool("filterOff",false);
+
+      if (ImGui::Checkbox(_("PAL"),&sysPal)) {
+        altered=true;
+      }
+      if (ImGui::Checkbox(_("Disable filtering"),&filterOff)) {
+        altered=true;
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("clockSel",(int)sysPal);
+          flags.set("filterOff",filterOff);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_PET:

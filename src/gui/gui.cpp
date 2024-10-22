@@ -1229,7 +1229,7 @@ void FurnaceGUI::play(int row) {
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
   if (followPattern) makeCursorUndo();
   if (!followPattern) e->setOrder(curOrder);
-  if (row>0) {
+  if (row>=0) {
     if (!e->playToRow(row)) {
       showError(_("the song is over!"));
     }
@@ -1472,7 +1472,6 @@ void FurnaceGUI::orderInput(int num) {
 
 void FurnaceGUI::keyDown(SDL_Event& ev) {
   if (introPos<11.0 && !shortIntro) return;
-  if (ImGuiFileDialog::Instance()->IsOpened()) return;
   if (aboutOpen) return;
   if (cvOpen) return;
 
@@ -1490,162 +1489,102 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
     mapped|=FURKMOD_SHIFT;
   }
 
-  if (bindSetActive) {
-    if (!ev.key.repeat) {
-      switch (ev.key.keysym.sym) {
-        case SDLK_LCTRL: case SDLK_RCTRL:
-        case SDLK_LALT: case SDLK_RALT:
-        case SDLK_LGUI: case SDLK_RGUI:
-        case SDLK_LSHIFT: case SDLK_RSHIFT:
-          bindSetPending=false;
-          actionKeys[bindSetTarget][bindSetTargetIdx]=(mapped&(~FURK_MASK))|0xffffff;
-          break;
-        default:
-          actionKeys[bindSetTarget][bindSetTargetIdx]=mapped;
+  if (!ImGuiFileDialog::Instance()->IsOpened()) {
+    if (bindSetActive) {
+      if (!ev.key.repeat) {
+        switch (ev.key.keysym.sym) {
+          case SDLK_LCTRL: case SDLK_RCTRL:
+          case SDLK_LALT: case SDLK_RALT:
+          case SDLK_LGUI: case SDLK_RGUI:
+          case SDLK_LSHIFT: case SDLK_RSHIFT:
+            bindSetPending=false;
+            actionKeys[bindSetTarget][bindSetTargetIdx]=(mapped&(~FURK_MASK))|0xffffff;
+            break;
+          default:
+            actionKeys[bindSetTarget][bindSetTargetIdx]=mapped;
 
-          // de-dupe with an n^2 algorithm that will never ever be a problem (...but for real though)
-          for (size_t i=0; i<actionKeys[bindSetTarget].size(); i++) {
-            for (size_t j=i+1; j<actionKeys[bindSetTarget].size(); j++) {
-              if (actionKeys[bindSetTarget][i]==actionKeys[bindSetTarget][j]) {
-                actionKeys[bindSetTarget].erase(actionKeys[bindSetTarget].begin()+j);
+            // de-dupe with an n^2 algorithm that will never ever be a problem (...but for real though)
+            for (size_t i=0; i<actionKeys[bindSetTarget].size(); i++) {
+              for (size_t j=i+1; j<actionKeys[bindSetTarget].size(); j++) {
+                if (actionKeys[bindSetTarget][i]==actionKeys[bindSetTarget][j]) {
+                  actionKeys[bindSetTarget].erase(actionKeys[bindSetTarget].begin()+j);
+                }
               }
             }
-          }
 
-          bindSetActive=false;
-          bindSetPending=false;
-          bindSetTarget=0;
-          bindSetTargetIdx=0;
-          bindSetPrevValue=0;
-          parseKeybinds();
-          break;
+            bindSetActive=false;
+            bindSetPending=false;
+            bindSetTarget=0;
+            bindSetTargetIdx=0;
+            bindSetPrevValue=0;
+            parseKeybinds();
+            break;
+        }
       }
+      return;
     }
-    return;
-  }
 
-  if (latchTarget) {
-    if (mapped==SDLK_DELETE || mapped==SDLK_BACKSPACE) {
-      switch (latchTarget) {
-        case 1:
-          latchIns=-1;
-          break;
-        case 2:
-          latchVol=-1;
-          break;
-        case 3:
-          latchEffect=-1;
-          break;
-        case 4:
-          latchEffectVal=-1;
-          break;
-      }
-    } else {
-      auto it=valueKeys.find(ev.key.keysym.sym);
-      if (it!=valueKeys.cend()) {
-        int num=it->second;
+    if (latchTarget) {
+      if (mapped==SDLK_DELETE || mapped==SDLK_BACKSPACE) {
         switch (latchTarget) {
-          case 1: // instrument
-            changeLatch(latchIns);
+          case 1:
+            latchIns=-1;
             break;
-          case 2: // volume
-            changeLatch(latchVol);
+          case 2:
+            latchVol=-1;
             break;
-          case 3: // effect
-            changeLatch(latchEffect);
+          case 3:
+            latchEffect=-1;
             break;
-          case 4: // effect value
-            changeLatch(latchEffectVal);
+          case 4:
+            latchEffectVal=-1;
             break;
         }
+      } else {
+        auto it=valueKeys.find(ev.key.keysym.sym);
+        if (it!=valueKeys.cend()) {
+          int num=it->second;
+          switch (latchTarget) {
+            case 1: // instrument
+              changeLatch(latchIns);
+              break;
+            case 2: // volume
+              changeLatch(latchVol);
+              break;
+            case 3: // effect
+              changeLatch(latchEffect);
+              break;
+            case 4: // effect value
+              changeLatch(latchEffectVal);
+              break;
+          }
+        }
       }
+      return;
     }
-    return;
-  }
 
-  if (sampleMapWaitingInput) {
-    switch (sampleMapColumn) {
-      case 0: {
-        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
-          alterSampleMap(0,-1);
-          return;
-        }
-        auto it=valueKeys.find(ev.key.keysym.sym);
-        if (it!=valueKeys.cend()) {
-          int num=it->second;
-          if (num<10) {
-            alterSampleMap(0,num);
+    if (sampleMapWaitingInput) {
+      switch (sampleMapColumn) {
+        case 0: {
+          if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+            alterSampleMap(0,-1);
             return;
           }
+          auto it=valueKeys.find(ev.key.keysym.sym);
+          if (it!=valueKeys.cend()) {
+            int num=it->second;
+            if (num<10) {
+              alterSampleMap(0,num);
+              return;
+            }
+          }
+          break;
         }
-        break;
-      }
-      case 1: {
-        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
-          alterSampleMap(1,-1);
-          return;
-        }
-        auto it=noteKeys.find(ev.key.keysym.scancode);
-        if (it!=noteKeys.cend()) {
-          int key=it->second;
-          int num=12*curOctave+key;
-
-          if (num<-60) num=-60; // C-(-5)
-          if (num>119) num=119; // B-9
-
-          alterSampleMap(1,num);
-          return;
-        }
-        break;
-      }
-      case 2: {
-        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
-          alterSampleMap(2,-1);
-          return;
-        }
-        auto it=valueKeys.find(ev.key.keysym.sym);
-        if (it!=valueKeys.cend()) {
-          int num=it->second;
-          if (num<10) {
-            alterSampleMap(2,num);
+        case 1: {
+          if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+            alterSampleMap(1,-1);
             return;
           }
-        }
-        break;
-      }
-      case 3: {
-        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
-          alterSampleMap(3,-1);
-          return;
-        }
-        auto it=valueKeys.find(ev.key.keysym.sym);
-        if (it!=valueKeys.cend()) {
-          int num=it->second;
-          if (num<16) {
-            alterSampleMap(3,num);
-            return;
-          }
-        }
-        break;
-      }
-    }
-  }
-
-  // PER-WINDOW KEYS
-  switch (curWindow) {
-    case GUI_WINDOW_PATTERN: {
-      auto actionI=actionMapPat.find(mapped);
-      if (actionI!=actionMapPat.cend()) {
-        int action=actionI->second;
-        if (action>0) {
-          doAction(action);
-          return;
-        }
-      }
-      // pattern input otherwise
-      if (mapped&(FURKMOD_ALT|FURKMOD_CTRL|FURKMOD_META|FURKMOD_SHIFT)) break;
-      if (!ev.key.repeat || settings.inputRepeat) {
-        if (cursor.xFine==0) { // note
           auto it=noteKeys.find(ev.key.keysym.scancode);
           if (it!=noteKeys.cend()) {
             int key=it->second;
@@ -1654,86 +1593,148 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
             if (num<-60) num=-60; // C-(-5)
             if (num>119) num=119; // B-9
 
-            if (edit) {
-              noteInput(num,key);
-            }
+            alterSampleMap(1,num);
+            return;
           }
-        } else if (edit) { // value
+          break;
+        }
+        case 2: {
+          if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+            alterSampleMap(2,-1);
+            return;
+          }
           auto it=valueKeys.find(ev.key.keysym.sym);
           if (it!=valueKeys.cend()) {
             int num=it->second;
-            valueInput(num);
+            if (num<10) {
+              alterSampleMap(2,num);
+              return;
+            }
+          }
+          break;
+        }
+        case 3: {
+          if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+            alterSampleMap(3,-1);
+            return;
+          }
+          auto it=valueKeys.find(ev.key.keysym.sym);
+          if (it!=valueKeys.cend()) {
+            int num=it->second;
+            if (num<16) {
+              alterSampleMap(3,num);
+              return;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    // PER-WINDOW KEYS
+    switch (curWindow) {
+      case GUI_WINDOW_PATTERN: {
+        auto actionI=actionMapPat.find(mapped);
+        if (actionI!=actionMapPat.cend()) {
+          int action=actionI->second;
+          if (action>0) {
+            doAction(action);
+            return;
           }
         }
-      }
-      break;
-    }
-    case GUI_WINDOW_ORDERS: {
-      auto actionI=actionMapOrders.find(mapped);
-      if (actionI!=actionMapOrders.cend()) {
-        int action=actionI->second;
-        if (action>0) {
-          doAction(action);
-          return;
+        // pattern input otherwise
+        if (mapped&(FURKMOD_ALT|FURKMOD_CTRL|FURKMOD_META|FURKMOD_SHIFT)) break;
+        if (!ev.key.repeat || settings.inputRepeat) {
+          if (cursor.xFine==0) { // note
+            auto it=noteKeys.find(ev.key.keysym.scancode);
+            if (it!=noteKeys.cend()) {
+              int key=it->second;
+              int num=12*curOctave+key;
+
+              if (num<-60) num=-60; // C-(-5)
+              if (num>119) num=119; // B-9
+
+              if (edit) {
+                noteInput(num,key);
+              }
+            }
+          } else if (edit) { // value
+            auto it=valueKeys.find(ev.key.keysym.sym);
+            if (it!=valueKeys.cend()) {
+              int num=it->second;
+              valueInput(num);
+            }
+          }
         }
+        break;
       }
-      // order input otherwise
-      if (mapped&(FURKMOD_ALT|FURKMOD_CTRL|FURKMOD_META|FURKMOD_SHIFT)) break;
-      if (orderEditMode!=0) {
-        auto it=valueKeys.find(ev.key.keysym.sym);
-        if (it!=valueKeys.cend()) {
-          int num=it->second;
-          orderInput(num);
+      case GUI_WINDOW_ORDERS: {
+        auto actionI=actionMapOrders.find(mapped);
+        if (actionI!=actionMapOrders.cend()) {
+          int action=actionI->second;
+          if (action>0) {
+            doAction(action);
+            return;
+          }
         }
-      }
-      break;
-    }
-    case GUI_WINDOW_SAMPLE_EDIT: {
-      auto actionI=actionMapSample.find(mapped);
-      if (actionI!=actionMapSample.cend()) {
-        int action=actionI->second;
-        if (action>0) {
-          doAction(action);
-          return;
+        // order input otherwise
+        if (mapped&(FURKMOD_ALT|FURKMOD_CTRL|FURKMOD_META|FURKMOD_SHIFT)) break;
+        if (orderEditMode!=0) {
+          auto it=valueKeys.find(ev.key.keysym.sym);
+          if (it!=valueKeys.cend()) {
+            int num=it->second;
+            orderInput(num);
+          }
         }
+        break;
       }
-      break;
-    }
-    case GUI_WINDOW_INS_LIST: {
-      auto actionI=actionMapInsList.find(mapped);
-      if (actionI!=actionMapInsList.cend()) {
-        int action=actionI->second;
-        if (action>0) {
-          doAction(action);
-          return;
+      case GUI_WINDOW_SAMPLE_EDIT: {
+        auto actionI=actionMapSample.find(mapped);
+        if (actionI!=actionMapSample.cend()) {
+          int action=actionI->second;
+          if (action>0) {
+            doAction(action);
+            return;
+          }
         }
+        break;
       }
-      break;
-    }
-    case GUI_WINDOW_WAVE_LIST: {
-      auto actionI=actionMapWaveList.find(mapped);
-      if (actionI!=actionMapWaveList.cend()) {
-        int action=actionI->second;
-        if (action>0) {
-          doAction(action);
-          return;
+      case GUI_WINDOW_INS_LIST: {
+        auto actionI=actionMapInsList.find(mapped);
+        if (actionI!=actionMapInsList.cend()) {
+          int action=actionI->second;
+          if (action>0) {
+            doAction(action);
+            return;
+          }
         }
+        break;
       }
-      break;
-    }
-    case GUI_WINDOW_SAMPLE_LIST: {
-      auto actionI=actionMapSampleList.find(mapped);
-      if (actionI!=actionMapSampleList.cend()) {
-        int action=actionI->second;
-        if (action>0) {
-          doAction(action);
-          return;
+      case GUI_WINDOW_WAVE_LIST: {
+        auto actionI=actionMapWaveList.find(mapped);
+        if (actionI!=actionMapWaveList.cend()) {
+          int action=actionI->second;
+          if (action>0) {
+            doAction(action);
+            return;
+          }
         }
+        break;
       }
-      break;
+      case GUI_WINDOW_SAMPLE_LIST: {
+        auto actionI=actionMapSampleList.find(mapped);
+        if (actionI!=actionMapSampleList.cend()) {
+          int action=actionI->second;
+          if (action>0) {
+            doAction(action);
+            return;
+          }
+        }
+        break;
+      }
+      default:
+        break;
     }
-    default:
-      break;
   }
 
   // GLOBAL KEYS
@@ -1741,6 +1742,9 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
   if (actionI!=actionMapGlobal.cend()) {
     int action=actionI->second;
     if (action>0) {
+      if (ImGuiFileDialog::Instance()->IsOpened()) {
+        if (action!=GUI_ACTION_OCTAVE_UP && action!=GUI_ACTION_OCTAVE_DOWN) return;
+      }
       doAction(action);
       return;
     }
@@ -8709,6 +8713,7 @@ FurnaceGUI::FurnaceGUI():
   fadeMin(0),
   fadeMax(255),
   collapseAmount(2),
+  playheadY(0.0f),
   scaleMax(100.0f),
   fadeMode(false),
   randomMode(false),

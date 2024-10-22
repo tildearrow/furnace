@@ -68,10 +68,20 @@ class DivPlatformLynx: public DivDispatch {
   bool isMuted[4];
   bool tuned;
   std::unique_ptr<Lynx::Mikey> mikey;  
+  struct QueuedWrite {
+    unsigned char addr;
+    unsigned char val;
+    QueuedWrite(): addr(0), val(9) {}
+    QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
+  };
+  FixedQueue<QueuedWrite,512> writes;
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
+
+  void processDAC(int sRate);
   public:
     void acquire(short** buf, size_t len);
+    void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);

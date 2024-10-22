@@ -22,6 +22,7 @@
 
 #include "fmsharedbase.h"
 #include "../../../extern/opn/ym3438.h"
+#include "sound/ymfm/ymfm_opn.h"
 
 #define PLEASE_HELP_ME(_targetChan) \
   int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,0,false); \
@@ -86,6 +87,19 @@
 
 #define IS_EXTCH_MUTED (isOpMuted[0] && isOpMuted[1] && isOpMuted[2] && isOpMuted[3])
 
+class DivOPNInterface: public ymfm::ymfm_interface {
+  int setA, setB;
+  int countA, countB;
+
+  public:
+    void clock(int cycles=144);
+    void ymfm_set_timer(uint32_t tnum, int32_t duration_in_clocks);
+    DivOPNInterface():
+      ymfm::ymfm_interface(),
+      countA(0),
+      countB(0) {}
+};
+
 class DivPlatformOPN: public DivPlatformFMBase {
   protected:
     const unsigned short ADDR_MULT_DT=0x30;
@@ -148,7 +162,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
         pan(3) {}
     };
 
-    const int extChanOffs, psgChanOffs, adpcmAChanOffs, adpcmBChanOffs, chanNum;
+    int extChanOffs, psgChanOffs, adpcmAChanOffs, adpcmBChanOffs, chanNum; // i really wanted to keep this constant...
 
     double fmFreqBase;
     unsigned int fmDivBase;
