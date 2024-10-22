@@ -1995,6 +1995,7 @@ class FurnaceGUI {
     int backupMaxCopies;
     int autoFillSave;
     int autoMacroStepSize;
+    int backgroundPlay;
     unsigned int maxUndoSteps;
     float vibrationStrength;
     int vibrationLength;
@@ -2254,6 +2255,7 @@ class FurnaceGUI {
       backupMaxCopies(5),
       autoFillSave(0),
       autoMacroStepSize(0),
+      backgroundPlay(0),
       maxUndoSteps(100),
       vibrationStrength(0.5f),
       vibrationLength(20),

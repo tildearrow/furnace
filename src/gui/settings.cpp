@@ -1260,6 +1260,16 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
+#ifdef ANDROID
+        // SUBSECTION ANDROID
+        CONFIG_SUBSECTION(_("Android"));
+        bool backgroundPlayB=settings.backgroundPlay;
+        if (ImGui::Checkbox(_("Enable background playback (restart!)"),&backgroundPlayB)) {
+          settings.backgroundPlay=backgroundPlayB;
+          settingsChanged=true;
+        }
+#endif
+
         END_SECTION;
       }
       CONFIG_SECTION(_("Audio")) {
@@ -4850,6 +4860,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.autoFillSave=conf.getInt("autoFillSave",0);
 
     settings.locale=conf.getString("locale","");
+
+    settings.backgroundPlay=conf.getInt("backgroundPlay",0);
   }
 
   if (groups&GUI_SETTINGS_AUDIO) {
@@ -5371,6 +5383,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.autoFillSave,0,1);
   clampSetting(settings.autoMacroStepSize,0,2);
   clampSetting(settings.s3mOPL3,0,1);
+  clampSetting(settings.backgroundPlay,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
@@ -5453,6 +5466,8 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("autoFillSave",settings.autoFillSave);
 
     conf.set("locale",settings.locale);
+
+    conf.set("backgroundPlay",settings.backgroundPlay);
   }
 
   // audio
