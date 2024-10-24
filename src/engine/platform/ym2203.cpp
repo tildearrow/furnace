@@ -1398,6 +1398,7 @@ int DivPlatformYM2203::init(DivEngine* p, int channels, int sugRate, const DivCo
   fm->set_fidelity(ymfm::OPN_FIDELITY_MIN);
   // YM2149, 2MHz
   ay=new DivPlatformAY8910(true,chipClock,ayDiv);
+  ay->setCore(0);
   ay->init(p,3,sugRate,ayFlags);
   ay->toggleRegisterDump(true);
   setFlags(flags);
