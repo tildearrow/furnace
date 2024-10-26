@@ -108,8 +108,7 @@ void DivEngine::loadPZI(SafeReader& reader, std::vector<DivSample*>& ret, String
 
     for(int i = 0; i < PZI_BANK_SIZE; i++)
     {
-        if (headers[i].start_pointer < MAX_SANITY_CAP && headers[i].sample_length < MAX_SANITY_CAP &&
-            headers[i].loop_start < MAX_SANITY_CAP && headers[i].loop_end < MAX_SANITY_CAP &&
+      if (headers[i].start_pointer < MAX_SANITY_CAP && headers[i].sample_length < MAX_SANITY_CAP &&
             headers[i].start_pointer > 0 && headers[i].sample_length > 0)
         {
             DivSample* s = new DivSample;
