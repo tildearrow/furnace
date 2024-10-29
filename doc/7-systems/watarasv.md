@@ -9,7 +9,7 @@ these are 2 pulse wave channels (same as on GB), barely working PCM channel and 
   - range is `0` to `3 ` for pulses and `0` to `1` for noise.
 ## info
 
-this chip uses the [Watara Supervision](../4-instrument/vatarasv.md) and [Generic Sample](../4-instrument/sample.md) instrument editors.
+this chip uses the [Watara Supervision](../4-instrument/watarasv.md) and [Generic Sample](../4-instrument/sample.md) instrument editors.
 
 ### sample info
 
