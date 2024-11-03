@@ -356,6 +356,8 @@ const char* oscRenderEngines[2]={
   if (ImGui::Combo("##" _name "QR",&settings._render,LocalizedComboGetter,coreQualities,6)) settingsChanged=true;
 
 // NEW NEW SETTINGS HERE
+  int a=0;
+  const char* t[2]={"1","2"};
 void FurnaceGUI::setupSettingsCategories() {
   settings.categories={
     SettingsCategory("Window",{
@@ -369,6 +371,7 @@ void FurnaceGUI::setupSettingsCategories() {
         new SettingCheckbox(&settings.oscTakesEntireWindow,"oscTakesEntireWindow",_("Fill entire window"),NULL,0),
         new SettingCheckbox(&settings.oscEscapesBoundary,"oscEscapesBoundary",_("Waveform goes out of bounds"),NULL,0),
         new SettingSliderFloat(&settings.oscLineSize,"oscLineSize",_("Line size"),NULL,1.0f,0.25f,16.0f,"%.1f"),
+        new SettingDropdown(&a,"","test!",NULL,0,t,2,0,[]() {logW("hello!");}),
       }),
     },{
 #ifndef IS_MOBILE

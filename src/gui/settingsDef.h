@@ -72,7 +72,7 @@ class SettingCheckbox : public SettingDef {
       }
       if (tooltip) {
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(0.5f,0.5f,0.5f,0.9f),"(?)");
+        ImGui::TextDisabled("(?)");
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) {
           ImGui::SetTooltip("%s",tooltip);
         }
@@ -122,7 +122,7 @@ class SettingSliderInt : public SettingDef {
       }
       if (tooltip) {
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(0.5f,0.5f,0.5f,0.9f),"(?)");
+        ImGui::TextDisabled("(?)");
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) {
           ImGui::SetTooltip("%s",tooltip);
         }
@@ -201,7 +201,7 @@ class SettingSliderFloat : public SettingDef {
       }
       if (tooltip) {
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(0.5f,0.5f,0.5f,0.9f),"(?)");
+        ImGui::TextDisabled("(?)");
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) {
           ImGui::SetTooltip("%s",tooltip);
         }
@@ -280,7 +280,7 @@ class SettingInputInt : public SettingDef {
       }
       if (tooltip) {
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(0.5f,0.5f,0.5f,0.9f),"(?)");
+        ImGui::TextDisabled("(?)");
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) {
           ImGui::SetTooltip("%s",tooltip);
         }
@@ -347,6 +347,7 @@ class SettingDropdown : public SettingDef {
   const char** options;
   int optionsCount;
   ImGuiComboFlags f;
+  std::function<void()> interact;
   public:
     bool passesFilter(ImGuiTextFilter* filter, unsigned char toWhat) {
       return (filter->PassFilter(friendlyName) && toWhat&1) ||
@@ -358,13 +359,14 @@ class SettingDropdown : public SettingDef {
           if (ImGui::Selectable(options[i],i==*(int*)data)) {
             *(int*)data=i;
             changed=true;
+            interact();
           }
         }
         ImGui::EndCombo();
       }
       if (tooltip) {
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(0.5f,0.5f,0.5f,0.9f),"(?)");
+        ImGui::TextDisabled("(?)");
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) {
           ImGui::SetTooltip("%s",tooltip);
         }
@@ -385,9 +387,11 @@ class SettingDropdown : public SettingDef {
       fallback(0),
       options(NULL),
       optionsCount(0),
-      f(0) {}
+      f(0),
+      interact([]{}) {}
     SettingDropdown(int* _data, String _name, const char* _friendlyName, const char* _tooltip, int _fallback, const char** _options, int _optionsCount):
-      f(0) {
+      f(0),
+      interact([]{}) {
       data=_data;
       name=_name;
       friendlyName=_friendlyName;
@@ -396,7 +400,8 @@ class SettingDropdown : public SettingDef {
       options=_options;
       optionsCount=_optionsCount;
     }
-    SettingDropdown(int* _data, String _name, const char* _friendlyName, const char* _tooltip, int _fallback, const char** _options, int _optionsCount, ImGuiComboFlags flags) {
+    SettingDropdown(int* _data, String _name, const char* _friendlyName, const char* _tooltip, int _fallback, const char** _options, int _optionsCount, ImGuiComboFlags flags):
+      interact([]{}) {
       data=_data;
       name=_name;
       friendlyName=_friendlyName;
@@ -405,6 +410,17 @@ class SettingDropdown : public SettingDef {
       options=_options;
       optionsCount=_optionsCount;
       f=flags;
+    }
+    SettingDropdown(int* _data, String _name, const char* _friendlyName, const char* _tooltip, int _fallback, const char** _options, int _optionsCount, ImGuiComboFlags flags, std::function<void()> _interact) {
+      data=_data;
+      name=_name;
+      friendlyName=_friendlyName;
+      tooltip=_tooltip;
+      fallback=_fallback;
+      options=_options;
+      optionsCount=_optionsCount;
+      f=flags;
+      interact=_interact;
     }
 };
 
@@ -426,7 +442,7 @@ class SettingRadio : public SettingDef {
       ImGui::Text("%s",friendlyName);
       if (tooltip) {
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(0.5f,0.5f,0.5f,0.9f),"(?)");
+        ImGui::TextDisabled("(?)");
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) {
           ImGui::SetTooltip("%s",tooltip);
         }
