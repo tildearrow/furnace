@@ -52,6 +52,9 @@ void SettingDef::loadSetting(DivConfig* conf) {
   *(int*)data=conf->getInt(name, 0);
 }
 
+SettingDef::~SettingDef() {
+}
+
 // children
 
 class SettingCheckbox : public SettingDef {
@@ -97,6 +100,8 @@ class SettingCheckbox : public SettingDef {
       friendlyName=_friendlyName;
       tooltip=_tooltip;
       fallback=_fallback;
+    }
+    ~SettingCheckbox() {
     }
 };
 
@@ -177,6 +182,8 @@ class SettingSliderInt : public SettingDef {
       sliderFmt=fmt;
       f=flags;
     }
+    ~SettingSliderInt() {
+    }
 };
 
 class SettingSliderFloat : public SettingDef {
@@ -255,6 +262,8 @@ class SettingSliderFloat : public SettingDef {
       maxV=max;
       sliderFmt=fmt;
       f=flags;
+    }
+    ~SettingSliderFloat() {
     }
 };
 
@@ -335,6 +344,8 @@ class SettingInputInt : public SettingDef {
       sliderFmt=fmt;
       f=flags;
     }
+    ~SettingInputInt() {
+    }
 };
 
 class SettingDropdown : public SettingDef {
@@ -347,19 +358,21 @@ class SettingDropdown : public SettingDef {
   const char** options;
   int optionsCount;
   ImGuiComboFlags f;
-  std::function<void()> interact;
+  std::function<void()> interactFunc;
+  std::function<void()> setupFunc;
   public:
     bool passesFilter(ImGuiTextFilter* filter, unsigned char toWhat) {
       return (filter->PassFilter(friendlyName) && toWhat&1) ||
              (filter->PassFilter(tooltip) && toWhat&2);
     }
     void drawSetting(bool& changed) {
+      setupFunc();
       if (ImGui::BeginCombo(friendlyName,options[*(int*)data],f)) {
         for (unsigned short i=0; i<optionsCount; i++) {
           if (ImGui::Selectable(options[i],i==*(int*)data)) {
             *(int*)data=i;
             changed=true;
-            interact();
+            interactFunc();
           }
         }
         ImGui::EndCombo();
@@ -388,10 +401,12 @@ class SettingDropdown : public SettingDef {
       options(NULL),
       optionsCount(0),
       f(0),
-      interact([]{}) {}
+      interactFunc([]{}),
+      setupFunc([]{}) {}
     SettingDropdown(int* _data, String _name, const char* _friendlyName, const char* _tooltip, int _fallback, const char** _options, int _optionsCount):
       f(0),
-      interact([]{}) {
+      interactFunc([]{}),
+      setupFunc([]{}) {
       data=_data;
       name=_name;
       friendlyName=_friendlyName;
@@ -401,7 +416,8 @@ class SettingDropdown : public SettingDef {
       optionsCount=_optionsCount;
     }
     SettingDropdown(int* _data, String _name, const char* _friendlyName, const char* _tooltip, int _fallback, const char** _options, int _optionsCount, ImGuiComboFlags flags):
-      interact([]{}) {
+      interactFunc([]{}),
+      setupFunc([]{}) {
       data=_data;
       name=_name;
       friendlyName=_friendlyName;
@@ -411,7 +427,8 @@ class SettingDropdown : public SettingDef {
       optionsCount=_optionsCount;
       f=flags;
     }
-    SettingDropdown(int* _data, String _name, const char* _friendlyName, const char* _tooltip, int _fallback, const char** _options, int _optionsCount, ImGuiComboFlags flags, std::function<void()> _interact) {
+    SettingDropdown(int* _data, String _name, const char* _friendlyName, const char* _tooltip, int _fallback, const char** _options, int _optionsCount, ImGuiComboFlags flags, std::function<void()> _interactFunc):
+      setupFunc([]{}) {
       data=_data;
       name=_name;
       friendlyName=_friendlyName;
@@ -420,7 +437,21 @@ class SettingDropdown : public SettingDef {
       options=_options;
       optionsCount=_optionsCount;
       f=flags;
-      interact=_interact;
+      interactFunc=_interactFunc;
+    }
+    SettingDropdown(int* _data, String _name, const char* _friendlyName, const char* _tooltip, int _fallback, const char** _options, int _optionsCount, ImGuiComboFlags flags, std::function<void()> _interactFunc, std::function<void()> _setupFunc) {
+      data=_data;
+      name=_name;
+      friendlyName=_friendlyName;
+      tooltip=_tooltip;
+      fallback=_fallback;
+      options=_options;
+      optionsCount=_optionsCount;
+      f=flags;
+      interactFunc=_interactFunc;
+      setupFunc=_setupFunc;
+    }
+    ~SettingDropdown() {
     }
 };
 
@@ -480,6 +511,8 @@ class SettingRadio : public SettingDef {
       options=_options;
       optionsCount=_optionsCount;
     }
+    ~SettingRadio() {
+    }
 };
 
 class SettingDummyText : public SettingDef {
@@ -507,6 +540,8 @@ class SettingDummyText : public SettingDef {
       fmt=_fmt;
       va_start(args,_fmt);
       va_end(args);
+    }
+    ~SettingDummyText() {
     }
 };
 

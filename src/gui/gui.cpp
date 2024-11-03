@@ -8286,6 +8286,9 @@ bool FurnaceGUI::finish(bool saveConfig) {
     SDL_HapticClose(vibrator);
   }
 
+  for (SettingsCategory i:settings.categories) destroySettingsCategories(i);
+  settings.categories.clear();
+
   for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
     if (oscValues[i]) {
       delete[] oscValues[i];

@@ -1610,6 +1610,7 @@ class SettingDef {
     virtual void drawSetting(bool& changed);
     virtual void saveSetting(DivConfig* conf);
     virtual void loadSetting(DivConfig* conf);
+    virtual ~SettingDef();
 };
 
 class SettingsCategory {
@@ -2968,6 +2969,7 @@ class FurnaceGUI {
   void writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups=GUI_SETTINGS_ALL);
 
   void setupSettingsCategories();
+  void destroySettingsCategories(SettingsCategory& cat);
   void drawSettingsCategory(SettingsCategory* cat);
   void searchDrawSettingItems(SettingsCategory* cat);
   void drawSettingsItems();

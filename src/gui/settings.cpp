@@ -295,6 +295,11 @@ const char* oscRenderEngines[2]={
   _("GLSL (if available)")
 };
 
+const char* memUsageUnits[2]={
+  _("Bytes##MUU0"),
+  _("Kilobytes##MUU1")
+};
+
 #define SAMPLE_RATE_SELECTABLE(x) \
   if (ImGui::Selectable(#x,settings.audioRate==x)) { \
     settings.audioRate=x; \
@@ -361,6 +366,9 @@ const char* oscRenderEngines[2]={
 void FurnaceGUI::setupSettingsCategories() {
   settings.categories={
     SettingsCategory("Window",{
+      SettingsCategory("Memory Composition",{},{
+        new SettingRadio(&settings.memUsageUnit,"memUsageUnit",_("Chip memory usage unit:"),NULL,1,memUsageUnits,2),
+      }),
       SettingsCategory("Oscilloscope",{},{
         new SettingDummyText("%c",&settingsChanged),
         new SettingRadio(&settings.shaderOsc,"shaderOsc",_("Oscilloscope rendering engine:"),_("render using either Dear ImGui's built-in line drawing functions or GLSL."),0,oscRenderEngines,2),
@@ -390,6 +398,19 @@ void FurnaceGUI::setupSettingsCategories() {
   };
 
   settings.activeCategory=settings.categories[0];
+}
+
+void FurnaceGUI::destroySettingsCategories(SettingsCategory& cat) {
+  if (cat.children.size()>0) {
+    for (SettingsCategory i:cat.children) {
+      destroySettingsCategories(i);
+    }
+  }
+  for (SettingDef* i:cat.settings) {
+    delete i;
+  }
+  cat.settings.clear();
+  cat.children.clear();
 }
 
 void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {
@@ -674,41 +695,41 @@ void FurnaceGUI::drawSettings() {
       CONFIG_SECTION("test") {
         CONFIG_SUBSECTION("here");
 
-  if (ImGui::BeginTable("set3", 2,ImGuiTableFlags_Resizable|ImGuiTableFlags_BordersInner)) {
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-    if (ImGui::BeginChild("SettingCategories",ImGui::GetContentRegionAvail(),false)) {
-      settings.filter.Draw(_("Search"));
-      ImGui::SameLine();
-      ImGui::Button(ICON_FA_BARS "##SettingsSearchDepth");
-      if (ImGui::BeginPopupContextItem("SettingsSearchDepth",ImGuiPopupFlags_MouseButtonLeft)) {
-        ImGui::Text("Search where:");
-        ImGui::Indent();
-        if (ImGui::RadioButton("Setting names", settings.searchDepth==1)) {
-          settings.searchDepth=1;
+    if (ImGui::BeginTable("set3", 2,ImGuiTableFlags_Resizable|ImGuiTableFlags_BordersInner)) {
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      if (ImGui::BeginChild("SettingCategories",ImGui::GetContentRegionAvail(),false)) {
+        settings.filter.Draw(_("Search"));
+        ImGui::SameLine();
+        ImGui::Button(ICON_FA_BARS "##SettingsSearchDepth");
+        if (ImGui::BeginPopupContextItem("SettingsSearchDepth",ImGuiPopupFlags_MouseButtonLeft)) {
+          ImGui::Text("Search where:");
+          ImGui::Indent();
+          if (ImGui::RadioButton("Setting names", settings.searchDepth==1)) {
+            settings.searchDepth=1;
+          }
+          if (ImGui::RadioButton("Setting descriptions", settings.searchDepth==2)) {
+            settings.searchDepth=2;
+          }
+          if (ImGui::RadioButton("Setting names and descriptions", settings.searchDepth==3)) {
+            settings.searchDepth=3;
+          }
+          ImGui::Unindent();
+          ImGui::EndPopup();
         }
-        if (ImGui::RadioButton("Setting descriptions", settings.searchDepth==2)) {
-          settings.searchDepth=2;
-        }
-        if (ImGui::RadioButton("Setting names and descriptions", settings.searchDepth==3)) {
-          settings.searchDepth=3;
-        }
-        ImGui::Unindent();
-        ImGui::EndPopup();
+        for (SettingsCategory cat:settings.categories) drawSettingsCategory(&cat);
+        ImGui::EndChild();
       }
-      for (SettingsCategory cat:settings.categories) drawSettingsCategory(&cat);
-      ImGui::EndChild();
-    }
-    ImGui::TableNextColumn();
-    if (ImGui::BeginChild("SettingsItems",ImGui::GetContentRegionAvail(),false)) {
-      drawSettingsItems();
-      if ((strncmp(settings.filter.InputBuf,"Cheats",7)==0) && !nonLatchNibble) {
-        ImGui::Text("gotta unlock them first!");
+      ImGui::TableNextColumn();
+      if (ImGui::BeginChild("SettingsItems",ImGui::GetContentRegionAvail(),false)) {
+        drawSettingsItems();
+        if ((strncmp(settings.filter.InputBuf,"Cheats",7)==0) && !nonLatchNibble) {
+          ImGui::Text("gotta unlock them first!");
+        }
+        ImGui::EndChild();
       }
-      ImGui::EndChild();
+      ImGui::EndTable();
     }
-    ImGui::EndTable();
-  }
 
         END_SECTION;
       }
