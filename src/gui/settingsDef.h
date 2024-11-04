@@ -386,11 +386,11 @@ class SettingDropdown : public SettingDef {
       }
     }
     void saveSetting(DivConfig* conf) {
-      conf->set(name,(*(bool*)data)?1:0);
+      conf->set(name,(*(int*)data));
     }
     void loadSetting(DivConfig* conf){
-      *(int*)data=conf->getInt(name, fallback?1:0);
-      clampSetting(*(int*)data,0,1);
+      *(int*)data=conf->getInt(name, fallback);
+      clampSetting(*(int*)data,0,optionsCount-1);
     }
     SettingDropdown():
       data(NULL),
@@ -452,6 +452,112 @@ class SettingDropdown : public SettingDef {
       setupFunc=_setupFunc;
     }
     ~SettingDropdown() {
+    }
+};
+
+class SettingDropdownText : public SettingDef {
+  void* data;
+  String name;
+  const char* friendlyName;
+  const char* tooltip;
+
+  String fallback;
+  const char** options;
+  int optionsCount;
+  ImGuiComboFlags f;
+  std::function<void()> interactFunc;
+  std::function<void()> setupFunc;
+  public:
+    bool passesFilter(ImGuiTextFilter* filter, unsigned char toWhat) {
+      return (filter->PassFilter(friendlyName) && toWhat&1) ||
+             (filter->PassFilter(tooltip) && toWhat&2);
+    }
+    void drawSetting(bool& changed) {
+      setupFunc();
+      if (ImGui::BeginCombo(friendlyName,(*(String*)data).c_str(),f)) {
+        for (unsigned short i=0; i<optionsCount; i++) {
+          if (ImGui::Selectable(options[i],String(options[i])==*(String*)data)) {
+            *(String*)data=options[i];
+            changed=true;
+            interactFunc();
+          }
+        }
+        ImGui::EndCombo();
+      }
+      if (tooltip) {
+        ImGui::SameLine();
+        ImGui::TextDisabled("(?)");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) {
+          ImGui::SetTooltip("%s",tooltip);
+        }
+      }
+    }
+    void saveSetting(DivConfig* conf) {
+      conf->set(name,*(String*)data);
+    }
+    void loadSetting(DivConfig* conf){
+      *(String*)data=conf->getString(name, fallback);
+    }
+    SettingDropdownText():
+      data(NULL),
+      name(""),
+      friendlyName(""),
+      tooltip(""),
+      fallback(0),
+      options(NULL),
+      optionsCount(0),
+      f(0),
+      interactFunc([]{}),
+      setupFunc([]{}) {}
+    SettingDropdownText(String* _data, String _name, const char* _friendlyName, const char* _tooltip, String _fallback, const char** _options, int _optionsCount):
+      f(0),
+      interactFunc([]{}),
+      setupFunc([]{}) {
+      data=_data;
+      name=_name;
+      friendlyName=_friendlyName;
+      tooltip=_tooltip;
+      fallback=_fallback;
+      options=_options;
+      optionsCount=_optionsCount;
+    }
+    SettingDropdownText(String* _data, String _name, const char* _friendlyName, const char* _tooltip, String _fallback, const char** _options, int _optionsCount, ImGuiComboFlags flags):
+      interactFunc([]{}),
+      setupFunc([]{}) {
+      data=_data;
+      name=_name;
+      friendlyName=_friendlyName;
+      tooltip=_tooltip;
+      fallback=_fallback;
+      options=_options;
+      optionsCount=_optionsCount;
+      f=flags;
+    }
+    SettingDropdownText(String* _data, String _name, const char* _friendlyName, const char* _tooltip, String _fallback, const char** _options, int _optionsCount, ImGuiComboFlags flags, std::function<void()> _interactFunc):
+      setupFunc([]{}) {
+      data=_data;
+      name=_name;
+      friendlyName=_friendlyName;
+      tooltip=_tooltip;
+      fallback=_fallback;
+      options=_options;
+      optionsCount=_optionsCount;
+      f=flags;
+      interactFunc=_interactFunc;
+    }
+    SettingDropdownText(String* _data, String _name, const char* _friendlyName, const char* _tooltip, String _fallback, const char** _options, int _optionsCount, ImGuiComboFlags flags, std::function<void()> _interactFunc, std::function<void()> _setupFunc) {
+      data=_data;
+      name=_name;
+      friendlyName=_friendlyName;
+      tooltip=_tooltip;
+      fallback=_fallback;
+      options=_options;
+      optionsCount=_optionsCount;
+      f=flags;
+      interactFunc=_interactFunc;
+      setupFunc=_setupFunc;
+    }
+    ~SettingDropdownText() {
     }
 };
 

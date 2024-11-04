@@ -300,6 +300,33 @@ const char* memUsageUnits[2]={
   _("Kilobytes##MUU1")
 };
 
+const char* renderBackends[]={
+#ifdef HAVE_RENDER_SDL
+  "SDL",
+#endif
+#ifdef HAVE_RENDER_DX11
+  "DirectX 11",
+#endif
+#ifdef HAVE_RENDER_DX9
+  "DirectX 9",
+#endif
+#ifdef HAVE_RENDER_METAL
+  "Metal",
+#endif
+#ifdef HAVE_RENDER_GL
+#ifdef USE_GLES
+  "OpenGL ES 2.0",
+#else
+  "OpenGL 3.0",
+  "OpenGL 2.0",
+#endif
+#endif
+#ifdef HAVE_RENDER_GL1
+  "OpenGL 1.1",
+#endif
+  "Software"
+};
+
 #define SAMPLE_RATE_SELECTABLE(x) \
   if (ImGui::Selectable(#x,settings.audioRate==x)) { \
     settings.audioRate=x; \
@@ -365,6 +392,9 @@ const char* memUsageUnits[2]={
   const char* t[2]={"1","2"};
 void FurnaceGUI::setupSettingsCategories() {
   settings.categories={
+    SettingsCategory("Program",{},{
+      new SettingDropdownText(&settings.renderBackend,"renderBackend",_("Render backend"),NULL,GUI_BACKEND_DEFAULT_NAME,renderBackends,(int)(sizeof(renderBackends)/sizeof(const char*))),
+    }),
     SettingsCategory("Window",{
       SettingsCategory("Memory Composition",{},{
         new SettingRadio(&settings.memUsageUnit,"memUsageUnit",_("Chip memory usage unit:"),NULL,1,memUsageUnits,2),
