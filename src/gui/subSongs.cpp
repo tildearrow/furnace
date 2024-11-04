@@ -132,7 +132,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
       MARK_MODIFIED;
     }
 
-    if (!asChild && ImGui::GetContentRegionAvail().y>(10.0f*dpiScale)) {
+    if (ImGui::GetContentRegionAvail().y>(10.0f*dpiScale)) {
       if (ImGui::InputTextMultiline("##SubSongNotes",&e->curSubSong->notes,ImGui::GetContentRegionAvail(),ImGuiInputTextFlags_UndoRedo)) {
         MARK_MODIFIED;
       }

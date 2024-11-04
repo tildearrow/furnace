@@ -2679,17 +2679,86 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         }
       }
     }
-    // get register dumps
+
+    auto runStreams=[&](int runTime, int& wtAccum) -> int {
+      if (!directStream) {
+        for (int i=0; i<streamID; i++) {
+          if (loopSample[i]>=0) {
+            loopTimer[i]-=(loopFreq[i]/44100.0)*(double)runTime;
+          }
+        }
+        bool haveNegatives=false;
+        for (int i=0; i<streamID; i++) {
+          if (loopSample[i]>=0) {
+            if (loopTimer[i]<0) {
+              haveNegatives=true;
+            }
+          }
+        }
+        while (haveNegatives) {
+          // finish all negatives
+          int nextToTouch=-1;
+          for (int i=0; i<streamID; i++) {
+            if (loopSample[i]>=0) {
+              if (loopTimer[i]<0) {
+                if (nextToTouch>=0) {
+                  if (loopTimer[nextToTouch]>loopTimer[i]) nextToTouch=i;
+                } else {
+                  nextToTouch=i;
+                }
+              }
+            }
+          }
+          if (nextToTouch>=0) {
+            double waitTime=runTime+(loopTimer[nextToTouch]*(44100.0/MAX(1,loopFreq[nextToTouch])));
+            if (waitTime>0) {
+              w->writeC(0x61);
+              w->writeS(waitTime);
+              logV("wait is: %f",waitTime);
+              runTime-=waitTime;
+              wtAccum+=waitTime;
+            }
+            if (loopSample[nextToTouch]<song.sampleLen) {
+              DivSample* sample=song.sample[loopSample[nextToTouch]];
+              // insert loop
+              if (sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)<sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)) {
+                w->writeC(0x93);
+                w->writeC(nextToTouch);
+                w->writeI(sampleOff8[loopSample[nextToTouch]]+sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT));
+                w->writeC(0x81);
+                w->writeI(sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)-sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT));
+              }
+            }
+            loopSample[nextToTouch]=-1;
+          } else {
+            haveNegatives=false;
+          }
+        }
+      }
+
+      return runTime;
+    };
+
+    // calculate number of samples in this tick
+    int totalWait=cycles>>MASTER_CLOCK_PREC;
+
+    // get register dumps and put them into delayed writes
+    int writeNum=0;
     for (int i=0; i<song.systemLen; i++) {
+      int curDelay=0;
       std::vector<DivRegWrite>& writes=disCont[i].dispatch->getRegisterWrites();
       for (DivRegWrite& j: writes) {
-        performVGMWrite(w,song.system[i],j,streamIDs[i],loopTimer,loopFreq,loopSample,sampleDir,isSecond[i],pendingFreq,playingSample,setPos,sampleOff8,sampleLen8,bankOffset[i],directStream,sampleStoppable);
-        writeCount++;
+        if (j.addr==0xfffffffe) { // delay
+          curDelay+=(double)j.val*(44100.0/(double)disCont[i].dispatch->rate);
+          if (curDelay>totalWait) curDelay=totalWait-1;
+        } else {
+          sortedWrites.push_back(std::pair<int,DivDelayedWrite>(i,DivDelayedWrite(curDelay,writeNum++,j.addr,j.val)));
+        }
       }
       writes.clear();
     }
-    // check whether we need to loop
-    int totalWait=cycles>>MASTER_CLOCK_PREC;
+
+    // handle direct stream writes
     if (directStream) {
       // render stream of all chips
       for (int i=0; i<song.systemLen; i++) {
@@ -2699,93 +2768,51 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         }
         delayedWrites[i].clear();
       }
-
-      if (!sortedWrites.empty()) {
-        // sort if more than one chip
-        if (song.systemLen>1) {
-          std::sort(sortedWrites.begin(),sortedWrites.end(),[](const std::pair<int,DivDelayedWrite>& a, const std::pair<int,DivDelayedWrite>& b) -> bool {
-            return a.second.time<b.second.time;
-          });
-        }
-
-        // write it out
-        int lastOne=0;
-        for (std::pair<int,DivDelayedWrite>& i: sortedWrites) {
-          if (i.second.time>lastOne) {
-            // write delay
-            int delay=i.second.time-lastOne;
-            if (delay>16) {
-              w->writeC(0x61);
-              w->writeS(delay);
-            } else if (delay>0) {
-              w->writeC(0x70+delay-1);
-            }
-            lastOne=i.second.time;
-          }
-          // write write
-          performVGMWrite(w,song.system[i.first],i.second.write,streamIDs[i.first],loopTimer,loopFreq,loopSample,sampleDir,isSecond[i.first],pendingFreq,playingSample,setPos,sampleOff8,sampleLen8,bankOffset[i.first],directStream,sampleStoppable);
-          // handle global Furnace commands
-
-          writeCount++;
-        }
-        sortedWrites.clear();
-        totalWait-=lastOne;
-        tickCount+=lastOne;
-      }
-    } else {
-      for (int i=0; i<streamID; i++) {
-        if (loopSample[i]>=0) {
-          loopTimer[i]-=(loopFreq[i]/44100.0)*(double)totalWait;
-        }
-      }
-      bool haveNegatives=false;
-      for (int i=0; i<streamID; i++) {
-        if (loopSample[i]>=0) {
-          if (loopTimer[i]<0) {
-            haveNegatives=true;
-          }
-        }
-      }
-      while (haveNegatives) {
-        // finish all negatives
-        int nextToTouch=-1;
-        for (int i=0; i<streamID; i++) {
-          if (loopSample[i]>=0) {
-            if (loopTimer[i]<0) {
-              if (nextToTouch>=0) {
-                if (loopTimer[nextToTouch]>loopTimer[i]) nextToTouch=i;
-              } else {
-                nextToTouch=i;
-              }
-            }
-          }
-        }
-        if (nextToTouch>=0) {
-          double waitTime=totalWait+(loopTimer[nextToTouch]*(44100.0/MAX(1,loopFreq[nextToTouch])));
-          if (waitTime>0) {
-            w->writeC(0x61);
-            w->writeS(waitTime);
-            logV("wait is: %f",waitTime);
-            totalWait-=waitTime;
-            tickCount+=waitTime;
-          }
-          if (loopSample[nextToTouch]<song.sampleLen) {
-            DivSample* sample=song.sample[loopSample[nextToTouch]];
-            // insert loop
-            if (sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)<sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)) {
-              w->writeC(0x93);
-              w->writeC(nextToTouch);
-              w->writeI(sampleOff8[loopSample[nextToTouch]]+sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT));
-              w->writeC(0x81);
-              w->writeI(sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)-sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT));
-            }
-          }
-          loopSample[nextToTouch]=-1;
-        } else {
-          haveNegatives=false;
-        }
-      }
     }
+
+    // put writes
+    if (!sortedWrites.empty()) {
+      // sort writes
+      std::sort(sortedWrites.begin(),sortedWrites.end(),[](const std::pair<int,DivDelayedWrite>& a, const std::pair<int,DivDelayedWrite>& b) -> bool {
+        if (a.second.time==b.second.time) {
+          return a.second.order<b.second.order;
+        }
+        return a.second.time<b.second.time;
+      });
+
+      // write it out
+      int lastOne=0;
+      for (std::pair<int,DivDelayedWrite>& i: sortedWrites) {
+        if (i.second.time>lastOne) {
+          // write delay
+          int delay=i.second.time-lastOne;
+          // handle streams
+          int wtAccum1=0;
+          delay=runStreams(delay,wtAccum1);
+          // ????
+
+          if (delay>16) {
+            w->writeC(0x61);
+            w->writeS(delay);
+          } else if (delay>0) {
+            w->writeC(0x70+delay-1);
+          }
+          lastOne=i.second.time;
+        }
+        // write write
+        performVGMWrite(w,song.system[i.first],i.second.write,streamIDs[i.first],loopTimer,loopFreq,loopSample,sampleDir,isSecond[i.first],pendingFreq,playingSample,setPos,sampleOff8,sampleLen8,bankOffset[i.first],directStream,sampleStoppable);
+        writeCount++;
+      }
+      sortedWrites.clear();
+      totalWait-=lastOne;
+      tickCount+=lastOne;
+    }
+
+    // handle streams
+    int wtAccum=0;
+    totalWait=runStreams(totalWait,wtAccum);
+    tickCount+=wtAccum;
+
     // write wait
     if (totalWait>0) {
       if (totalWait==735) {

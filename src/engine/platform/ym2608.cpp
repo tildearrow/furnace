@@ -338,7 +338,10 @@ void DivPlatformYM2608::acquire_combo(short** buf, size_t len) {
         if (--delay<1 && !(fm->read(0)&0x80)) {
           QueuedWrite& w=writes.front();
 
-          if (w.addr<=0x1d || w.addr==0x2d || w.addr==0x2e || w.addr==0x2f || (w.addr>=0x100 && w.addr<=0x12d)) {
+          if (w.addr==0xfffffffe) {
+            delay=w.val;
+            writes.pop_front();
+          } else if (w.addr<=0x1d || w.addr==0x2d || w.addr==0x2e || w.addr==0x2f || (w.addr>=0x100 && w.addr<=0x12d)) {
             // ymfm write
             fm->write(0x0+((w.addr>>8)<<1),w.addr);
             fm->write(0x1+((w.addr>>8)<<1),w.val);
@@ -451,11 +454,15 @@ void DivPlatformYM2608::acquire_ymfm(short** buf, size_t len) {
     if (!writes.empty()) {
       if (--delay<1) {
         QueuedWrite& w=writes.front();
-        fm->write(0x0+((w.addr>>8)<<1),w.addr);
-        fm->write(0x1+((w.addr>>8)<<1),w.val);
-        regPool[w.addr&0x1ff]=w.val;
+        if (w.addr==0xfffffffe) {
+          delay=w.val*4;
+        } else {
+          fm->write(0x0+((w.addr>>8)<<1),w.addr);
+          fm->write(0x1+((w.addr>>8)<<1),w.val);
+          regPool[w.addr&0x1ff]=w.val;
+          delay=4;
+        }
         writes.pop_front();
-        delay=4;
       }
     }
     
@@ -480,11 +487,11 @@ void DivPlatformYM2608::acquire_ymfm(short** buf, size_t len) {
 
     ssge->get_last_out(ssgOut);
     for (int i=(6+isCSM); i<(9+isCSM); i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=ssgOut.data[i-6]<<1;
+      oscBuf[i]->data[oscBuf[i]->needle++]=ssgOut.data[i-6-isCSM]<<1;
     }
 
     for (int i=(9+isCSM); i<(15+isCSM); i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(adpcmAChan[i-9]->get_last_out(0)+adpcmAChan[i-9]->get_last_out(1))>>1;
+      oscBuf[i]->data[oscBuf[i]->needle++]=(adpcmAChan[i-9-isCSM]->get_last_out(0)+adpcmAChan[i-9]->get_last_out(1))>>1;
     }
 
     oscBuf[15+isCSM]->data[oscBuf[15+isCSM]->needle++]=(abe->get_last_out(0)+abe->get_last_out(1))>>1;
@@ -1028,9 +1035,7 @@ void DivPlatformYM2608::tick(bool sysTick) {
 
   // hard reset handling
   if (mustHardReset) {
-    for (unsigned int i=hardResetElapsed; i<hardResetCycles; i++) {
-      immWrite(0xf0,i&0xff);
-    }
+    immWrite(0xfffffffe,hardResetCycles-hardResetElapsed);
     for (int i=0; i<6; i++) {
       if (i==2 && extMode) continue;
       if ((chan[i].keyOn || chan[i].opMaskChanged) && chan[i].hardReset) {
@@ -2031,6 +2036,7 @@ int DivPlatformYM2608::init(DivEngine* p, int channels, int sugRate, const DivCo
   fm->set_fidelity(ymfm::OPN_FIDELITY_MIN);
   // YM2149, 2MHz
   ay=new DivPlatformAY8910(true,chipClock,ayDiv,48);
+  ay->setCore(0);
   ay->init(p,3,sugRate,ayFlags);
   ay->toggleRegisterDump(true);
   setFlags(flags);

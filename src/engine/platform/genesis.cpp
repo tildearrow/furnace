@@ -142,11 +142,16 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     processDAC(rate);
 
+    if (delay>0) delay--;
+
     os[0]=0; os[1]=0;
     for (int i=0; i<6; i++) {
-      if (!writes.empty()) {
+      if (delay<=0 && !writes.empty()) {
         QueuedWrite& w=writes.front();
-        if (w.addrOrVal) {
+        if (w.addr==0xfffffffe) {
+          delay=w.val*3;
+          writes.pop_front();
+        } else if (w.addrOrVal) {
           //logV("%.3x=%.2x",w.addr,w.val);
           OPN2_Write(&fm,0x1+((w.addr>>8)<<1),w.val);
           regPool[w.addr&0x1ff]=w.val;
@@ -223,13 +228,19 @@ void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
 
   for (size_t h=0; h<len; h++) {
     processDAC(rate);
+
+    if (delay>0) delay--;
   
     os[0]=0; os[1]=0;
-    if (!writes.empty()) {
+    if (delay<=0 && !writes.empty()) {
       QueuedWrite& w=writes.front();
-      fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
-      fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
-      regPool[w.addr&0x1ff]=w.val;
+      if (w.addr==0xfffffffe) {
+        delay=w.val;
+      } else {
+        fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
+        fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
+        regPool[w.addr&0x1ff]=w.val;
+      }
       writes.pop_front();
 
       if (dacWrite>=0) {
@@ -372,9 +383,14 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
 
     //lleCycle=0;
 
-    if (!writes.empty()) {
+    if (delay>0) delay--;
+
+    if (delay<=0 && !writes.empty()) {
       QueuedWrite& w=writes.front();
-      if (w.addrOrVal) {
+      if (w.addr==0xfffffffe) {
+        delay=w.val;
+        writes.pop_front();
+      } else if (w.addrOrVal) {
         //logV("%.3x=%.2x",w.addr,w.val);
         //OPN2_Write(&fm,0x1+((w.addr>>8)<<1),w.val);
         was_reg_write=true;
@@ -871,9 +887,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
 
   // hard reset handling
   if (mustHardReset) {
-    for (unsigned int i=hardResetElapsed; i<hardResetCycles; i++) {
-      immWrite(0xf0,i&0xff);
-    }
+    immWrite(0xfffffffe,hardResetCycles-hardResetElapsed);
     for (int i=0; i<csmChan; i++) {
       if (i==2 && extMode) continue;
       if ((chan[i].keyOn || chan[i].opMaskChanged) && chan[i].hardReset) {
@@ -1712,6 +1726,7 @@ void DivPlatformGenesis::reset() {
   dacWrite=-1;
   canWriteDAC=true;
   interruptSim=0;
+  delay=0;
 
   if (softPCM) {
     chan[5].dacMode=true;

@@ -187,7 +187,10 @@ void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
         if (--delay<1 && !(fm->read(0)&0x80)) {
           QueuedWrite& w=writes.front();
 
-          if (w.addr<=0x1c || w.addr==0x2d || w.addr==0x2e || w.addr==0x2f) {
+          if (w.addr==0xfffffffe) {
+            delay=w.val;
+            writes.pop_front();
+          } else if (w.addr<=0x1c || w.addr==0x2d || w.addr==0x2e || w.addr==0x2f) {
             // ymfm write
             fm->write(0x0,w.addr);
             fm->write(0x1,w.val);
@@ -267,11 +270,15 @@ void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
     if (!writes.empty()) {
       if (--delay<1) {
         QueuedWrite& w=writes.front();
-        fm->write(0x0,w.addr);
-        fm->write(0x1,w.val);
-        regPool[w.addr&0xff]=w.val;
+        if (w.addr==0xfffffffe) {
+          delay=w.val*6;
+        } else {
+          fm->write(0x0,w.addr);
+          fm->write(0x1,w.val);
+          regPool[w.addr&0xff]=w.val;
+          delay=6;
+        }
         writes.pop_front();
-        delay=6;
       }
     }
     
@@ -661,9 +668,7 @@ void DivPlatformYM2203::tick(bool sysTick) {
 
   // hard reset handling
   if (mustHardReset) {
-    for (unsigned int i=hardResetElapsed; i<hardResetCycles; i++) {
-      immWrite(0xf0,i&0xff);
-    }
+    immWrite(0xfffffffe,hardResetCycles-hardResetElapsed);
     for (int i=0; i<3; i++) {
       if (i==2 && extMode) continue;
       if ((chan[i].keyOn || chan[i].opMaskChanged) && chan[i].hardReset) {
@@ -1393,6 +1398,7 @@ int DivPlatformYM2203::init(DivEngine* p, int channels, int sugRate, const DivCo
   fm->set_fidelity(ymfm::OPN_FIDELITY_MIN);
   // YM2149, 2MHz
   ay=new DivPlatformAY8910(true,chipClock,ayDiv);
+  ay->setCore(0);
   ay->init(p,3,sugRate,ayFlags);
   ay->toggleRegisterDump(true);
   setFlags(flags);

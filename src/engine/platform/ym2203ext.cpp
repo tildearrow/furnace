@@ -595,9 +595,7 @@ void DivPlatformYM2203Ext::tick(bool sysTick) {
 
     // hard reset handling
     if (mustHardReset) {
-      for (unsigned int i=hardResetElapsed; i<hardResetCycles; i++) {
-        immWrite(0xf0,i&0xff);
-      }
+      immWrite(0xfffffffe,hardResetCycles-hardResetElapsed);
       for (int i=0; i<4; i++) {
         if (opChan[i].keyOn && opChan[i].hardReset) {
           // restore SL/RR
@@ -789,6 +787,8 @@ void DivPlatformYM2203Ext::setCSM(bool isCSM) {
   this->isCSM=isCSM?1:0;
   if (isCSM) {
     csmChan=3;
+  } else {
+    csmChan=6;
   }
 }
 
