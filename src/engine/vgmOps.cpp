@@ -2680,6 +2680,65 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       }
     }
 
+    auto runStreams=[&](int runTime, int& wtAccum) -> int {
+      if (!directStream) {
+        for (int i=0; i<streamID; i++) {
+          if (loopSample[i]>=0) {
+            loopTimer[i]-=(loopFreq[i]/44100.0)*(double)runTime;
+          }
+        }
+        bool haveNegatives=false;
+        for (int i=0; i<streamID; i++) {
+          if (loopSample[i]>=0) {
+            if (loopTimer[i]<0) {
+              haveNegatives=true;
+            }
+          }
+        }
+        while (haveNegatives) {
+          // finish all negatives
+          int nextToTouch=-1;
+          for (int i=0; i<streamID; i++) {
+            if (loopSample[i]>=0) {
+              if (loopTimer[i]<0) {
+                if (nextToTouch>=0) {
+                  if (loopTimer[nextToTouch]>loopTimer[i]) nextToTouch=i;
+                } else {
+                  nextToTouch=i;
+                }
+              }
+            }
+          }
+          if (nextToTouch>=0) {
+            double waitTime=runTime+(loopTimer[nextToTouch]*(44100.0/MAX(1,loopFreq[nextToTouch])));
+            if (waitTime>0) {
+              w->writeC(0x61);
+              w->writeS(waitTime);
+              logV("wait is: %f",waitTime);
+              runTime-=waitTime;
+              wtAccum+=waitTime;
+            }
+            if (loopSample[nextToTouch]<song.sampleLen) {
+              DivSample* sample=song.sample[loopSample[nextToTouch]];
+              // insert loop
+              if (sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)<sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)) {
+                w->writeC(0x93);
+                w->writeC(nextToTouch);
+                w->writeI(sampleOff8[loopSample[nextToTouch]]+sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT));
+                w->writeC(0x81);
+                w->writeI(sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)-sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT));
+              }
+            }
+            loopSample[nextToTouch]=-1;
+          } else {
+            haveNegatives=false;
+          }
+        }
+      }
+
+      return runTime;
+    };
+
     // calculate number of samples in this tick
     int totalWait=cycles>>MASTER_CLOCK_PREC;
 
@@ -2727,6 +2786,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         if (i.second.time>lastOne) {
           // write delay
           int delay=i.second.time-lastOne;
+          // handle streams
+          int wtAccum1=0;
+          delay=runStreams(delay,wtAccum1);
+          // ????
+
           if (delay>16) {
             w->writeC(0x61);
             w->writeS(delay);
@@ -2745,60 +2809,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     }
 
     // handle streams
-    if (!directStream) {
-      for (int i=0; i<streamID; i++) {
-        if (loopSample[i]>=0) {
-          loopTimer[i]-=(loopFreq[i]/44100.0)*(double)totalWait;
-        }
-      }
-      bool haveNegatives=false;
-      for (int i=0; i<streamID; i++) {
-        if (loopSample[i]>=0) {
-          if (loopTimer[i]<0) {
-            haveNegatives=true;
-          }
-        }
-      }
-      while (haveNegatives) {
-        // finish all negatives
-        int nextToTouch=-1;
-        for (int i=0; i<streamID; i++) {
-          if (loopSample[i]>=0) {
-            if (loopTimer[i]<0) {
-              if (nextToTouch>=0) {
-                if (loopTimer[nextToTouch]>loopTimer[i]) nextToTouch=i;
-              } else {
-                nextToTouch=i;
-              }
-            }
-          }
-        }
-        if (nextToTouch>=0) {
-          double waitTime=totalWait+(loopTimer[nextToTouch]*(44100.0/MAX(1,loopFreq[nextToTouch])));
-          if (waitTime>0) {
-            w->writeC(0x61);
-            w->writeS(waitTime);
-            logV("wait is: %f",waitTime);
-            totalWait-=waitTime;
-            tickCount+=waitTime;
-          }
-          if (loopSample[nextToTouch]<song.sampleLen) {
-            DivSample* sample=song.sample[loopSample[nextToTouch]];
-            // insert loop
-            if (sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)<sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)) {
-              w->writeC(0x93);
-              w->writeC(nextToTouch);
-              w->writeI(sampleOff8[loopSample[nextToTouch]]+sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT));
-              w->writeC(0x81);
-              w->writeI(sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)-sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT));
-            }
-          }
-          loopSample[nextToTouch]=-1;
-        } else {
-          haveNegatives=false;
-        }
-      }
-    }
+    int wtAccum=0;
+    totalWait=runStreams(totalWait,wtAccum);
+    tickCount+=wtAccum;
 
     // write wait
     if (totalWait>0) {
