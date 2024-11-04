@@ -556,7 +556,7 @@ void DivEngine::registerSystems() {
     {0x10, {DIV_CMD_WAVE, _("10xx: Set patch (0 to F)")}},
     {0x11, {DIV_CMD_FM_FB, _("11xx: Set feedback (0 to 7)")}},
     {0x12, {DIV_CMD_FM_TL, _("12xx: Set level of operator 1 (0 highest, 3F lowest)"), constVal<0>, effectVal}},
-    {0x13, {DIV_CMD_FM_TL, _("13xx: Set level of operator 2 (0 highest, 3F lowest)"), constVal<1>, effectVal}},
+    {0x13, {DIV_CMD_FM_TL, _("13xx: Set level of operator 2 (0 highest, F lowest)"), constVal<1>, effectVal}},
     {0x16, {DIV_CMD_FM_MULT, _("16xy: Set operator multiplier (x: operator from 1 to 2; y: multiplier)"), effectOpValNoZero<2>, effectValAnd<15>}},
     {0x19, {DIV_CMD_FM_AR, _("19xx: Set attack of all operators (0 to F)"), constVal<-1>, effectValAnd<15>}},
     {0x1a, {DIV_CMD_FM_AR, _("1Axx: Set attack of operator 1 (0 to F)"), constVal<0>, effectValAnd<15>}},
