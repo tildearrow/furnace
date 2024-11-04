@@ -693,7 +693,7 @@ void DivPlatformYM2610Ext::muteChannel(int ch, bool mute) {
 }
 
 void DivPlatformYM2610Ext::forceIns() {
-  for (int i=0; i<psgChanOffs; i++) {
+  for (int i=0; i<(psgChanOffs-isCSM); i++) {
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
