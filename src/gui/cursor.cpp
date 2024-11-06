@@ -211,7 +211,7 @@ void FurnaceGUI::finishSelection() {
 }
 
 void FurnaceGUI::moveCursor(int x, int y, bool select) {
-  if (y>=editStepCoarse || y<=-editStepCoarse || x<=-5 || x>=5 ) {
+  if (y>=editStepCoarse || y<=-editStepCoarse || x<=-5 || x>=5) {
     makeCursorUndo();
   }
   if (!select) {
