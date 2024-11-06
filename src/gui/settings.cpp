@@ -725,10 +725,11 @@ void FurnaceGUI::drawSettings() {
       CONFIG_SECTION("test") {
         CONFIG_SUBSECTION("here");
 
-    if (ImGui::BeginTable("set3", 2,ImGuiTableFlags_Resizable|ImGuiTableFlags_BordersInner)) {
+    bool vertical=ImGui::GetWindowSize().y>ImGui::GetWindowSize().x;
+    if (ImGui::BeginTable("set3", vertical?1:2,ImGuiTableFlags_Resizable|ImGuiTableFlags_BordersInner)) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      if (ImGui::BeginChild("SettingCategories",ImGui::GetContentRegionAvail(),false)) {
+      if (ImGui::BeginChild("SettingCategories",vertical?ImGui::GetContentRegionAvail()/ImVec2(1.0f,3.0f):ImGui::GetContentRegionAvail(),false)) {
         settings.filter.Draw(_("Search"));
         ImGui::SameLine();
         ImGui::Button(ICON_FA_BARS "##SettingsSearchDepth");
@@ -748,16 +749,17 @@ void FurnaceGUI::drawSettings() {
           ImGui::EndPopup();
         }
         for (SettingsCategory cat:settings.categories) drawSettingsCategory(&cat);
-        ImGui::EndChild();
       }
+      ImGui::EndChild();
+      if (ImGui::GetWindowSize().y>ImGui::GetWindowSize().x) ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      if (ImGui::BeginChild("SettingsItems",ImGui::GetContentRegionAvail(),false)) {
+      if (ImGui::BeginChild("SettingsItems",vertical?ImVec2(0.0f,0.0f):ImGui::GetContentRegionAvail(),false)) {
         drawSettingsItems();
         if ((strncmp(settings.filter.InputBuf,"Cheats",7)==0) && !nonLatchNibble) {
           ImGui::Text("gotta unlock them first!");
         }
-        ImGui::EndChild();
       }
+      ImGui::EndChild();
       ImGui::EndTable();
     }
 
