@@ -621,18 +621,18 @@ class SettingRadio : public SettingDef {
     }
 };
 
-class SettingDummyText : public SettingDef {
-  const char* fmt;
-  va_list args;
+class SettingDummy : public SettingDef {
+  std::function<void()> action;
+  bool alwaysShow;
   public:
     bool passesFilter(ImGuiTextFilter* filter, unsigned char toWhat) {
       (void)filter;
       (void)toWhat;
-      return false;
+      return alwaysShow;
     }
     void drawSetting(bool& changed) {
       (void)changed;
-      ImGui::Text(fmt,args);
+      action();
     }
     void saveSetting(DivConfig* conf) {
       (void)conf;
@@ -640,14 +640,18 @@ class SettingDummyText : public SettingDef {
     void loadSetting(DivConfig* conf) {
       (void)conf;
     }
-    SettingDummyText():
-      fmt(NULL) {}
-    SettingDummyText(const char* _fmt, ...) {
-      fmt=_fmt;
-      va_start(args,_fmt);
-      va_end(args);
+    SettingDummy():
+      action([]{}),
+      alwaysShow(false) {}
+    SettingDummy(std::function<void()> _action):
+      alwaysShow(false) {
+      action=_action;
     }
-    ~SettingDummyText() {
+    SettingDummy(std::function<void()> _action, bool _alwaysShow) {
+      action=_action;
+      alwaysShow=_alwaysShow;
+    }
+    ~SettingDummy() {
     }
 };
 

@@ -400,7 +400,7 @@ void FurnaceGUI::setupSettingsCategories() {
         new SettingRadio(&settings.memUsageUnit,"memUsageUnit",_("Chip memory usage unit:"),NULL,1,memUsageUnits,2),
       }),
       SettingsCategory("Oscilloscope",{},{
-        new SettingDummyText("%c",&settingsChanged),
+        new SettingDummy([this]{ImGui::Text("changed: %s",settingsChanged?"yes":"no");}),
         new SettingRadio(&settings.shaderOsc,"shaderOsc",_("Oscilloscope rendering engine:"),_("render using either Dear ImGui's built-in line drawing functions or GLSL."),0,oscRenderEngines,2),
         new SettingCheckbox(&settings.oscRoundedCorners,"oscRoundedCorners",_("Rounded corners"),NULL,GUI_DECORATIONS_DEFAULT),
         new SettingCheckbox(&settings.oscBorder,"oscBorder",_("Border"),NULL,1),
