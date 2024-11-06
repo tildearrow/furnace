@@ -466,14 +466,12 @@ class SettingDropdownText : public SettingDef {
   int optionsCount;
   ImGuiComboFlags f;
   std::function<void()> interactFunc;
-  std::function<void()> setupFunc;
   public:
     bool passesFilter(ImGuiTextFilter* filter, unsigned char toWhat) {
       return (filter->PassFilter(friendlyName) && toWhat&1) ||
              (filter->PassFilter(tooltip) && toWhat&2);
     }
     void drawSetting(bool& changed) {
-      setupFunc();
       if (ImGui::BeginCombo(friendlyName,(*(String*)data).c_str(),f)) {
         for (unsigned short i=0; i<optionsCount; i++) {
           if (ImGui::Selectable(options[i],String(options[i])==*(String*)data)) {
@@ -507,12 +505,10 @@ class SettingDropdownText : public SettingDef {
       options(NULL),
       optionsCount(0),
       f(0),
-      interactFunc([]{}),
-      setupFunc([]{}) {}
+      interactFunc([]{}) {}
     SettingDropdownText(String* _data, String _name, const char* _friendlyName, const char* _tooltip, String _fallback, const char** _options, int _optionsCount):
       f(0),
-      interactFunc([]{}),
-      setupFunc([]{}) {
+      interactFunc([]{}) {
       data=_data;
       name=_name;
       friendlyName=_friendlyName;
@@ -522,8 +518,7 @@ class SettingDropdownText : public SettingDef {
       optionsCount=_optionsCount;
     }
     SettingDropdownText(String* _data, String _name, const char* _friendlyName, const char* _tooltip, String _fallback, const char** _options, int _optionsCount, ImGuiComboFlags flags):
-      interactFunc([]{}),
-      setupFunc([]{}) {
+      interactFunc([]{}) {
       data=_data;
       name=_name;
       friendlyName=_friendlyName;
@@ -533,8 +528,7 @@ class SettingDropdownText : public SettingDef {
       optionsCount=_optionsCount;
       f=flags;
     }
-    SettingDropdownText(String* _data, String _name, const char* _friendlyName, const char* _tooltip, String _fallback, const char** _options, int _optionsCount, ImGuiComboFlags flags, std::function<void()> _interactFunc):
-      setupFunc([]{}) {
+    SettingDropdownText(String* _data, String _name, const char* _friendlyName, const char* _tooltip, String _fallback, const char** _options, int _optionsCount, ImGuiComboFlags flags, std::function<void()> _interactFunc) {
       data=_data;
       name=_name;
       friendlyName=_friendlyName;
@@ -544,18 +538,6 @@ class SettingDropdownText : public SettingDef {
       optionsCount=_optionsCount;
       f=flags;
       interactFunc=_interactFunc;
-    }
-    SettingDropdownText(String* _data, String _name, const char* _friendlyName, const char* _tooltip, String _fallback, const char** _options, int _optionsCount, ImGuiComboFlags flags, std::function<void()> _interactFunc, std::function<void()> _setupFunc) {
-      data=_data;
-      name=_name;
-      friendlyName=_friendlyName;
-      tooltip=_tooltip;
-      fallback=_fallback;
-      options=_options;
-      optionsCount=_optionsCount;
-      f=flags;
-      interactFunc=_interactFunc;
-      setupFunc=_setupFunc;
     }
     ~SettingDropdownText() {
     }
@@ -623,12 +605,11 @@ class SettingRadio : public SettingDef {
 
 class SettingDummy : public SettingDef {
   std::function<void()> action;
-  bool alwaysShow;
   public:
     bool passesFilter(ImGuiTextFilter* filter, unsigned char toWhat) {
       (void)filter;
       (void)toWhat;
-      return alwaysShow;
+      return false;
     }
     void drawSetting(bool& changed) {
       (void)changed;
@@ -641,15 +622,9 @@ class SettingDummy : public SettingDef {
       (void)conf;
     }
     SettingDummy():
-      action([]{}),
-      alwaysShow(false) {}
-    SettingDummy(std::function<void()> _action):
-      alwaysShow(false) {
+      action([]{}) {}
+    SettingDummy(std::function<void()> _action) {
       action=_action;
-    }
-    SettingDummy(std::function<void()> _action, bool _alwaysShow) {
-      action=_action;
-      alwaysShow=_alwaysShow;
     }
     ~SettingDummy() {
     }
