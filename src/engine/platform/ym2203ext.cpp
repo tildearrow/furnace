@@ -595,7 +595,7 @@ void DivPlatformYM2203Ext::tick(bool sysTick) {
 
     // hard reset handling
     if (mustHardReset) {
-      immWrite(0xfffffffe,hardResetCycles-hardResetElapsed);
+      immWrite(0xfffffffe,(hardResetCycles-hardResetElapsed)*3);
       for (int i=0; i<4; i++) {
         if (opChan[i].keyOn && opChan[i].hardReset) {
           // restore SL/RR
