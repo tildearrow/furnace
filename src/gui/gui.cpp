@@ -3864,7 +3864,7 @@ bool FurnaceGUI::loop() {
         }
 #endif
         case SDL_KEYDOWN:
-          if (!ImGui::GetIO().WantCaptureKeyboard) {
+          if (!ImGui::GetIO().WantCaptureKeyboard || (ImGuiFileDialog::Instance()->IsOpened() && !ImGui::GetIO().WantTextInput)) {
             keyDown(ev);
           }
           insEditMayBeDirty=true;
