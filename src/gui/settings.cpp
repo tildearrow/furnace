@@ -409,7 +409,10 @@ void FurnaceGUI::setupSettingsCategories() {
         new SettingCheckbox(&settings.oscTakesEntireWindow,"oscTakesEntireWindow",_("Fill entire window"),NULL,0),
         new SettingCheckbox(&settings.oscEscapesBoundary,"oscEscapesBoundary",_("Waveform goes out of bounds"),NULL,0),
         new SettingSliderFloat(&settings.oscLineSize,"oscLineSize",_("Line size"),NULL,1.0f,0.25f,16.0f,"%.1f"),
-        new SettingDropdown(&a,"","test!",NULL,0,t,2,0,[]() {logW("hello!");}),
+        new SettingUnion({
+          new SettingDropdown(&a,"","test!",NULL,0,t,2,0,[]() {logW("hello!");}),
+          new SettingDummy([this]{ImGui::Text("this text will appear if the setting above does!");}),
+        }),
       }),
     },{
 #ifndef IS_MOBILE

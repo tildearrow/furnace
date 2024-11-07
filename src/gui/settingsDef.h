@@ -20,7 +20,8 @@
 #ifndef SETTINGSDEF_H
 #define SETTINGSDEF_H
 
-#include <cstdarg>
+#include "gui.h"
+
 #define clampSetting(x,minV,maxV) \
   if (x<minV) { \
     x=minV; \
@@ -28,9 +29,6 @@
   if (x>maxV) { \
     x=maxV; \
   }
-
-#include "gui.h"
-#include <imgui.h>
 
 // abstract functions
 
@@ -627,6 +625,30 @@ class SettingDummy : public SettingDef {
       action=_action;
     }
     ~SettingDummy() {
+    }
+};
+
+class SettingUnion : public SettingDef {
+  std::vector<SettingDef*> settings;
+  public:
+    bool passesFilter(ImGuiTextFilter* filter, unsigned char toWhat) {
+      bool ret=false;
+      for (SettingDef* i:settings) ret |= i->passesFilter(filter, toWhat);
+      return ret;
+    }
+    void drawSetting(bool& changed) {
+      for (SettingDef* i:settings) i->drawSetting(changed);
+    }
+    void saveSetting(DivConfig* conf) {
+      for (SettingDef* i:settings) i->saveSetting(conf);
+    }
+    void loadSetting(DivConfig* conf) {
+      for (SettingDef* i:settings) i->loadSetting(conf);
+    }
+    SettingUnion():
+      settings({}) {}
+    SettingUnion(std::vector<SettingDef*> _settings) {
+      settings=_settings;
     }
 };
 
