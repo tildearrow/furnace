@@ -650,6 +650,9 @@ class SettingUnion : public SettingDef {
     SettingUnion(std::vector<SettingDef*> _settings) {
       settings=_settings;
     }
+    ~SettingUnion() {
+      for (SettingDef* i:settings) delete i;
+    }
 };
 
 #endif
