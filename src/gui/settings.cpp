@@ -387,6 +387,8 @@ const char* renderBackends[]={
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); \
   if (ImGui::Combo("##" _name "QR",&settings._render,LocalizedComboGetter,coreQualities,6)) settingsChanged=true;
 
+#define SHOW_IF(b) [this]{return b;}
+
 // NEW NEW SETTINGS HERE
   int a=0;
   const char* t[2]={"1","2"};
@@ -412,7 +414,7 @@ void FurnaceGUI::setupSettingsCategories() {
         new SettingUnion({
           new SettingDropdown(&a,"","test!",NULL,0,t,2,0,[]() {logW("hello!");}),
           new SettingDummy([this]{ImGui::Text("this text will appear if the setting above does!");}),
-        }),
+        },SHOW_IF(!settings.oscMono)),
       }),
     },{
 #ifndef IS_MOBILE

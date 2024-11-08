@@ -21,6 +21,7 @@
 #define SETTINGSDEF_H
 
 #include "gui.h"
+#include <imgui.h>
 
 #define clampSetting(x,minV,maxV) \
   if (x<minV) { \
@@ -357,14 +358,12 @@ class SettingDropdown : public SettingDef {
   int optionsCount;
   ImGuiComboFlags f;
   std::function<void()> interactFunc;
-  std::function<void()> setupFunc;
   public:
     bool passesFilter(ImGuiTextFilter* filter, unsigned char toWhat) {
       return (filter->PassFilter(friendlyName) && toWhat&1) ||
              (filter->PassFilter(tooltip) && toWhat&2);
     }
     void drawSetting(bool& changed) {
-      setupFunc();
       if (ImGui::BeginCombo(friendlyName,options[*(int*)data],f)) {
         for (unsigned short i=0; i<optionsCount; i++) {
           if (ImGui::Selectable(options[i],i==*(int*)data)) {
@@ -399,12 +398,10 @@ class SettingDropdown : public SettingDef {
       options(NULL),
       optionsCount(0),
       f(0),
-      interactFunc([]{}),
-      setupFunc([]{}) {}
+      interactFunc([]{}) {}
     SettingDropdown(int* _data, String _name, const char* _friendlyName, const char* _tooltip, int _fallback, const char** _options, int _optionsCount):
       f(0),
-      interactFunc([]{}),
-      setupFunc([]{}) {
+      interactFunc([]{}) {
       data=_data;
       name=_name;
       friendlyName=_friendlyName;
@@ -414,8 +411,7 @@ class SettingDropdown : public SettingDef {
       optionsCount=_optionsCount;
     }
     SettingDropdown(int* _data, String _name, const char* _friendlyName, const char* _tooltip, int _fallback, const char** _options, int _optionsCount, ImGuiComboFlags flags):
-      interactFunc([]{}),
-      setupFunc([]{}) {
+      interactFunc([]{}) {
       data=_data;
       name=_name;
       friendlyName=_friendlyName;
@@ -425,8 +421,7 @@ class SettingDropdown : public SettingDef {
       optionsCount=_optionsCount;
       f=flags;
     }
-    SettingDropdown(int* _data, String _name, const char* _friendlyName, const char* _tooltip, int _fallback, const char** _options, int _optionsCount, ImGuiComboFlags flags, std::function<void()> _interactFunc):
-      setupFunc([]{}) {
+    SettingDropdown(int* _data, String _name, const char* _friendlyName, const char* _tooltip, int _fallback, const char** _options, int _optionsCount, ImGuiComboFlags flags, std::function<void()> _interactFunc) {
       data=_data;
       name=_name;
       friendlyName=_friendlyName;
@@ -447,7 +442,6 @@ class SettingDropdown : public SettingDef {
       optionsCount=_optionsCount;
       f=flags;
       interactFunc=_interactFunc;
-      setupFunc=_setupFunc;
     }
     ~SettingDropdown() {
     }
@@ -629,14 +623,19 @@ class SettingDummy : public SettingDef {
 };
 
 class SettingUnion : public SettingDef {
+  const char* label;
   std::vector<SettingDef*> settings;
+  std::function<bool()> showUnion;
+  bool showLabel;
   public:
     bool passesFilter(ImGuiTextFilter* filter, unsigned char toWhat) {
-      bool ret=false;
+      bool ret=filter->PassFilter(label);
       for (SettingDef* i:settings) ret |= i->passesFilter(filter, toWhat);
       return ret;
     }
     void drawSetting(bool& changed) {
+      if (!showUnion()) return;
+      if (showLabel) ImGui::Text("%s",label);
       for (SettingDef* i:settings) i->drawSetting(changed);
     }
     void saveSetting(DivConfig* conf) {
@@ -646,9 +645,33 @@ class SettingUnion : public SettingDef {
       for (SettingDef* i:settings) i->loadSetting(conf);
     }
     SettingUnion():
-      settings({}) {}
-    SettingUnion(std::vector<SettingDef*> _settings) {
+      label(NULL),
+      settings({}),
+      showUnion([]{return true;}),
+      showLabel(false) {}
+    SettingUnion(std::vector<SettingDef*> _settings):
+      label(NULL),
+      showUnion([]{return true;}),
+      showLabel(false) {
       settings=_settings;
+    }
+    SettingUnion(const char* _label, std::vector<SettingDef*> _settings):
+      showUnion([]{return true;}),
+      showLabel(false) {
+      label=_label;
+      settings=_settings;
+    }
+    SettingUnion(std::vector<SettingDef*> _settings, std::function<bool()> _showUnion):
+      label(NULL),
+      showLabel(false) {
+      settings=_settings;
+      showUnion=_showUnion;
+    }
+    SettingUnion(const char* _label, bool _showLabel, std::vector<SettingDef*> _settings, std::function<bool()> _showUnion) {
+      label=_label;
+      settings=_settings;
+      showLabel=_showLabel;
+      showUnion=_showUnion;
     }
     ~SettingUnion() {
       for (SettingDef* i:settings) delete i;
