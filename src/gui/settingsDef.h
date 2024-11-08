@@ -635,7 +635,7 @@ class SettingUnion : public SettingDef {
         if (ret) return true;
         ret |= i->passesFilter(filter, toWhat);
       }
-      return false;
+      return ret;
     }
     void drawSetting(bool& changed) {
       if (!showUnion()) return;
