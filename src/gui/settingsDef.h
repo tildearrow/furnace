@@ -629,9 +629,13 @@ class SettingUnion : public SettingDef {
   bool showLabel;
   public:
     bool passesFilter(ImGuiTextFilter* filter, unsigned char toWhat) {
+      if (!showUnion()) return false;
       bool ret=filter->PassFilter(label);
-      for (SettingDef* i:settings) ret |= i->passesFilter(filter, toWhat);
-      return ret;
+      for (SettingDef* i:settings) {
+        if (ret) return true;
+        ret |= i->passesFilter(filter, toWhat);
+      }
+      return false;
     }
     void drawSetting(bool& changed) {
       if (!showUnion()) return;
