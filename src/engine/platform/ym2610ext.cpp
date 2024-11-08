@@ -416,6 +416,16 @@ void DivPlatformYM2610Ext::tick(bool sysTick) {
   int hardResetElapsed=0;
   bool mustHardReset=false;
 
+  if (extMode && !noExtMacros) for (int i=0; i<4; i++) {
+    opChan[i].std.next();
+
+    if (opChan[i].std.phaseReset.had) {
+      if (opChan[i].std.phaseReset.val==1 && opChan[i].active) {
+        opChan[i].keyOn=true;
+      }
+    }
+  }
+
   if (extMode) {
     bool writeSomething=false;
     unsigned char writeMask=2;
@@ -442,8 +452,6 @@ void DivPlatformYM2610Ext::tick(bool sysTick) {
   }
 
   if (extMode && !noExtMacros) for (int i=0; i<4; i++) {
-    opChan[i].std.next();
-
     if (opChan[i].std.vol.had) {
       opChan[i].outVol=VOL_SCALE_LOG_BROKEN(opChan[i].vol,MIN(127,opChan[i].std.vol.val),127);
       unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[orderedOps[i]];
