@@ -510,6 +510,11 @@ void DivPlatformSegaPCM::renderSamples(int sysID) {
   
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* sample=parent->getSample(i);
+    if (!sample->renderOn[0][sysID]) {
+      sampleOffSegaPCM[i]=0;
+      continue;
+    }
+
     unsigned int alignedSize=sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT);
     if (alignedSize>=65279) alignedSize=65279;
     if ((memPos&(~0xffff))!=((memPos+alignedSize)&(~0xffff))) {

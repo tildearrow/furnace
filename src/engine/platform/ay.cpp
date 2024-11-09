@@ -196,6 +196,7 @@ void DivPlatformAY8910::runTFX(int runRate) {
         output = (output >= 15) ? 15 : output; // overflow
         output &= 15; // i don't know if i need this but i'm too scared to remove it
         if (!isMuted[i]) {
+          // TODO: ???????
           if (intellivision && selCore) {
             immWrite(0x0b+i,(output&0xc)<<2);
           } else {
@@ -206,6 +207,7 @@ void DivPlatformAY8910::runTFX(int runRate) {
       if (chan[i].tfx.counter >= chan[i].tfx.period && chan[i].tfx.mode == 1) {
         chan[i].tfx.counter -= chan[i].tfx.period;
         if (!isMuted[i]) {
+          // TODO: ???????
           if (intellivision && selCore) {
             immWrite(0xa, ayEnvMode);
           } else {
@@ -227,7 +229,7 @@ void DivPlatformAY8910::runTFX(int runRate) {
     // YM2149 half-clock and Sunsoft 5B: timers run an octave too high
     // on AtomicSSG core timers run 2 octaves too high
     if (clockSel || sunsoft) chan[i].tfx.period	= chan[i].tfx.period * 2;
-    if (selCore) chan[i].tfx.period = chan[i].tfx.period * 4;
+    if (selCore && !intellivision) chan[i].tfx.period = chan[i].tfx.period * 4;
   }
 }
 
@@ -321,7 +323,7 @@ void DivPlatformAY8910::acquire_atomic(short** buf, size_t len) {
 }
 
 void DivPlatformAY8910::acquire(short** buf, size_t len) {
-  if (selCore) {
+  if (selCore && !intellivision) {
     acquire_atomic(buf,len);
   } else {
     acquire_mame(buf,len);
@@ -1103,13 +1105,6 @@ void DivPlatformAY8910::setFlags(const DivConfig& flags) {
         break;
     }
     CHECK_CUSTOM_CLOCK;
-    if (selCore) {
-      rate=chipClock/2;
-      dacRate=chipClock*2;
-    } else {
-      rate=chipClock/8;
-      dacRate=rate;
-    }
   }
   for (int i=0; i<3; i++) {
     oscBuf[i]->rate=rate;
@@ -1148,6 +1143,18 @@ void DivPlatformAY8910::setFlags(const DivConfig& flags) {
   }
   ay->device_start();
   ay->device_reset();
+
+  if (selCore && !intellivision) {
+    rate=chipClock/2;
+    dacRate=chipClock*2;
+    if (sunsoft || clockSel) {
+      rate=chipClock/4;
+      dacRate=chipClock/2;
+    }
+  } else {
+    rate=chipClock/8;
+    dacRate=rate;
+  }
 
   stereo=flags.getBool("stereo",false);
   stereoSep=flags.getInt("stereoSep",0)&255;

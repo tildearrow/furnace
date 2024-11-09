@@ -2575,6 +2575,9 @@ int DivEngine::addInstrument(int refChan, DivInstrumentType fallbackType) {
   DivInstrument* ins=new DivInstrument;
   int insCount=(int)song.ins.size();
   DivInstrumentType prefType;
+  if (refChan>chans) {
+    refChan=chans-1;
+  }
   if (refChan<0) {
     prefType=fallbackType;
   } else {

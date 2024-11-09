@@ -229,8 +229,9 @@ void DivPlatformLynx::tick(bool sysTick) {
     }
 
     if (chan[i].std.ex1.had) {
-      WRITE_LFSR(i, chan[i].std.ex1.val&0xff);
-      WRITE_OTHER(i, (chan[i].std.ex1.val&0xf00)>>4);
+      chan[i].lfsr=chan[i].std.ex1.val&0xfff;
+      chan[i].freqChanged=true;
+      chan[i].updateLFSR=true;
     }
 
     if (chan[i].std.phaseReset.had) {
@@ -243,8 +244,8 @@ void DivPlatformLynx::tick(bool sysTick) {
             chan[i].samplePos=0;
           }
         }
-        WRITE_LFSR(i, 0);
-        WRITE_OTHER(i, 0);
+        chan[i].freqChanged=true;
+        chan[i].updateLFSR=true;
       }
     }
 
@@ -262,10 +263,9 @@ void DivPlatformLynx::tick(bool sysTick) {
         chan[i].sampleFreq=off*parent->calcFreq(chan[i].sampleBaseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
         if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].sampleFreq);
       } else {
-        if (chan[i].lfsr >= 0) {
+        if (chan[i].updateLFSR) {
           WRITE_LFSR(i, (chan[i].lfsr&0xff));
           WRITE_OTHER(i, ((chan[i].lfsr&0xf00)>>4));
-          chan[i].lfsr=-1;
         }
         if (chan[i].std.duty.had) {
           chan[i].duty=chan[i].std.duty.val;
@@ -341,8 +341,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
         chan[c.chan].actualNote=c.value;
-        if (chan[c.chan].lfsr<0)
-          chan[c.chan].lfsr=0;
+        chan[c.chan].updateLFSR=true;
       }
       chan[c.chan].active=true;
       WRITE_VOLUME(c.chan,(isMuted[c.chan]?0:(chan[c.chan].vol&127)));
@@ -365,6 +364,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
     case DIV_CMD_LYNX_LFSR_LOAD:
       chan[c.chan].freqChanged=true;
       chan[c.chan].lfsr=c.value;
+      chan[c.chan].updateLFSR=true;
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:

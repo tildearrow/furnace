@@ -50,7 +50,7 @@ std::vector<FurnaceGUISysDef>* digDeep(std::vector<FurnaceGUISysDef>& entries, i
 
 bool FurnaceGUI::loadUserPresets(bool redundancy, String path, bool append) {
   if (path.empty()) path=e->getConfigPath()+PRESETS_FILE;
-  String line;
+  String line, lineStr;
   logD("opening user presets: %s",path);
 
   FILE* f=NULL;
@@ -145,19 +145,27 @@ bool FurnaceGUI::loadUserPresets(bool redundancy, String path, bool append) {
   if (!append) userCategory->systems.clear();
 
   char nextLine[4096];
+  lineStr="";
   while (!feof(f)) {
     if (fgets(nextLine,4095,f)==NULL) {
       break;
     }
+    lineStr+=nextLine;
+    if (!lineStr.empty() && !feof(f)) {
+      if (lineStr[lineStr.size()-1]!='\n') {
+        continue;
+      }
+    }
+
     int indent=0;
     bool readIndent=true;
     bool keyOrValue=false;
     String key="";
     String value="";
-    for (char* i=nextLine; *i; i++) {
-      if ((*i)=='\n') break;
+    for (char i: lineStr) {
+      if (i=='\n') break;
       if (readIndent) {
-        if ((*i)==' ') {
+        if (i==' ') {
           indent++;
         } else {
           readIndent=false;
@@ -165,12 +173,12 @@ bool FurnaceGUI::loadUserPresets(bool redundancy, String path, bool append) {
       }
       if (!readIndent) {
         if (keyOrValue) {
-          value+=*i;
+          value+=i;
         } else {
-          if ((*i)=='=') {
+          if (i=='=') {
             keyOrValue=true;
           } else {
-            key+=*i;
+            key+=i;
           }
         }
       }
@@ -181,6 +189,9 @@ bool FurnaceGUI::loadUserPresets(bool redundancy, String path, bool append) {
       std::vector<FurnaceGUISysDef>* where=digDeep(userCategory->systems,indent);
       where->push_back(FurnaceGUISysDef(key.c_str(),value.c_str(),e));
     }
+
+    lineStr="";
+    lineStr.reserve(4096);
   }
 
   fclose(f);

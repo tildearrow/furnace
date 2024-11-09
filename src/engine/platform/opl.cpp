@@ -358,12 +358,15 @@ void DivPlatformOPL::acquire_ymfm1(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     if (!writes.empty() && --delay<0) {
       QueuedWrite& w=writes.front();
+      if (w.addr==0xfffffffe) {
+        delay=w.val;
+      } else {
+        fm_ymfm1->write(0,w.addr);
+        fm_ymfm1->write(1,w.val);
+        delay=1;
 
-      fm_ymfm1->write(0,w.addr);
-      fm_ymfm1->write(1,w.val);
-      delay=1;
-
-      regPool[w.addr&511]=w.val;
+        regPool[w.addr&511]=w.val;
+      }
       writes.pop();
     }
 
@@ -400,12 +403,15 @@ void DivPlatformOPL::acquire_ymfm2(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     if (!writes.empty() && --delay<0) {
       QueuedWrite& w=writes.front();
+      if (w.addr==0xfffffffe) {
+        delay=w.val;
+      } else {
+        fm_ymfm2->write(0,w.addr);
+        fm_ymfm2->write(1,w.val);
+        delay=1;
 
-      fm_ymfm2->write(0,w.addr);
-      fm_ymfm2->write(1,w.val);
-      delay=1;
-
-      regPool[w.addr&511]=w.val;
+        regPool[w.addr&511]=w.val;
+      }
       writes.pop();
     }
 
@@ -443,12 +449,15 @@ void DivPlatformOPL::acquire_ymfm8950(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     if (!writes.empty() && --delay<0) {
       QueuedWrite& w=writes.front();
+      if (w.addr==0xfffffffe) {
+        delay=w.val;
+      } else {
+        fm_ymfm8950->write(0,w.addr);
+        fm_ymfm8950->write(1,w.val);
+        delay=1;
 
-      fm_ymfm8950->write(0,w.addr);
-      fm_ymfm8950->write(1,w.val);
-      delay=1;
-
-      regPool[w.addr&511]=w.val;
+        regPool[w.addr&511]=w.val;
+      }
       writes.pop();
     }
 
@@ -487,12 +496,15 @@ void DivPlatformOPL::acquire_ymfm3(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     if (!writes.empty() && --delay<0) {
       QueuedWrite& w=writes.front();
+      if (w.addr==0xfffffffe) {
+        delay=w.val;
+      } else {
+        fm_ymfm3->write((w.addr&0x100)?2:0,w.addr);
+        fm_ymfm3->write(1,w.val);
+        delay=1;
 
-      fm_ymfm3->write((w.addr&0x100)?2:0,w.addr);
-      fm_ymfm3->write(1,w.val);
-      delay=1;
-
-      regPool[w.addr&511]=w.val;
+        regPool[w.addr&511]=w.val;
+      }
       writes.pop();
     }
 
@@ -587,12 +599,15 @@ void DivPlatformOPL::acquire_ymfm4(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     if (!writes.empty() && --delay<0) {
       QueuedWrite& w=writes.front();
+      if (w.addr==0xfffffffe) {
+        delay=w.val;
+      } else {
+        fm_ymfm4->write((w.addr&0x200)?4:(w.addr&0x100)?2:0,w.addr);
+        fm_ymfm4->write((w.addr&0x200)?5:1,w.val);
+        delay=1;
 
-      fm_ymfm4->write((w.addr&0x200)?4:(w.addr&0x100)?2:0,w.addr);
-      fm_ymfm4->write((w.addr&0x200)?5:1,w.val);
-      delay=1;
-
-      regPool[(w.addr&0x200)?(0x200+(w.addr&255)):(w.addr&511)]=w.val;
+        regPool[(w.addr&0x200)?(0x200+(w.addr&255)):(w.addr&511)]=w.val;
+      }
       writes.pop();
     }
 
