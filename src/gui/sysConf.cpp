@@ -935,13 +935,21 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           chipType=2;
           altered=true;
         }
+        pushWarningColor(chipType==3 && settings.ayCore==1);
         if (ImGui::RadioButton(_("AY-3-8914"),chipType==3)) {
           chipType=3;
           altered=true;
         }
+        popWarningColor();
         ImGui::Unindent();
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("note: AY-3-8914 is not supported by the VGM format!"));
+          if (ImGui::BeginTooltip()) {
+            ImGui::TextUnformatted(_("note: AY-3-8914 is not supported by the VGM format!"));
+            if (settings.ayCore==1) {
+              ImGui::TextUnformatted(_("AtomicSSG will not emulate AY-3-8914. falling back to MAME!"));
+            }
+            ImGui::EndTooltip();
+          }
         }
       }
       ImGui::BeginDisabled(type==DIV_SYSTEM_AY8910 && chipType==2);

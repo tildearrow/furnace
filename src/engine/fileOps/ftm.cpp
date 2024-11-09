@@ -2751,6 +2751,16 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
     ds.sampleLen = ds.sample.size();
     ds.waveLen = ds.wave.size();
 
+    // check whether virtual tempo is inside range
+    for (DivSubSong* i: ds.subsong) {
+      while (i->virtualTempoD>255) {
+        i->virtualTempoD>>=1;
+        i->virtualTempoN>>=1;
+      }
+      if (i->virtualTempoN<1) i->virtualTempoN=1;
+      if (i->virtualTempoD<1) i->virtualTempoD=1;
+    }
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();

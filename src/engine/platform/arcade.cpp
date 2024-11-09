@@ -60,7 +60,7 @@ void DivPlatformArcade::acquire_nuked(short** buf, size_t len) {
       if (delay<=0 && !writes.empty() && !fm.write_busy) {
         QueuedWrite& w=writes.front();
         if (w.addr==0xfffffffe) {
-          delay=w.val;
+          delay=w.val*2;
           writes.pop_front();
         } else if (w.addrOrVal) {
           OPM_Write(&fm,1,w.val);

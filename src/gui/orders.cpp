@@ -272,11 +272,12 @@ void FurnaceGUI::drawOrders() {
           ImGui::SetNextWindowScroll(ImVec2(-1.0f,nextOrdScroll));
         }
       }
+      ImVec2 clipBegin=ImGui::GetCursorScreenPos();
+      ImVec2 clipEnd=clipBegin+ImGui::GetContentRegionAvail();
       if (ImGui::BeginTable("OrdersTable",1+displayChans,(tooSmall?ImGuiTableFlags_SizingFixedFit:ImGuiTableFlags_SizingStretchSame)|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY)) {
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,prevSpacing);
         ImGui::TableSetupScrollFreeze(1,1);
         ImGui::TableNextRow(0,lineHeight);
-        ImVec2 ra=ImGui::GetContentRegionAvail();
         ImGui::TableNextColumn();
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_ORDER_ROW_INDEX]);
         for (int i=0; i<e->getTotalChannelCount(); i++) {
@@ -284,18 +285,25 @@ void FurnaceGUI::drawOrders() {
           ImGui::TableNextColumn();
           ImGui::TextNoHashHide("%s",e->getChannelShortName(i));
         }
+        // OH MY FREAKING. just let me sleep.
+        clipBegin.y+=lineHeight;
         ImGui::PopStyleColor();
         for (int i=0; i<e->curSubSong->ordersLen; i++) {
           ImGui::TableNextRow(0,lineHeight);
           if (playOrder==i && e->isPlaying()) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_ORDER_ACTIVE]));
           ImGui::TableNextColumn();
           if (curOrder==i) {
+            if (ImGui::GetCurrentWindowRead()->ScrollbarY) {
+              clipEnd.x-=ImGui::GetStyle().ScrollbarSize;
+            }
             // draw a border
+            ImGui::PushClipRect(clipBegin,clipEnd,false);
             ImDrawList* dl=ImGui::GetWindowDrawList();
             ImVec2 rBegin=ImGui::GetCursorScreenPos();
             rBegin.y-=ImGui::GetStyle().CellPadding.y;
-            ImVec2 rEnd=ImVec2(rBegin.x+ra.x,rBegin.y+lineHeight);
+            ImVec2 rEnd=ImVec2(clipEnd.x,rBegin.y+lineHeight);
             dl->AddRect(rBegin,rEnd,ImGui::GetColorU32(uiColors[GUI_COLOR_ORDER_SELECTED]),2.0f*dpiScale);
+            ImGui::PopClipRect();
           }
           ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_ORDER_ROW_INDEX]);
           bool highlightLoop=(i>=loopOrder && i<=loopEnd);

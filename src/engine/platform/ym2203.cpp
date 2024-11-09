@@ -188,7 +188,7 @@ void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
           QueuedWrite& w=writes.front();
 
           if (w.addr==0xfffffffe) {
-            delay=w.val;
+            delay=w.val*24;
             writes.pop_front();
           } else if (w.addr<=0x1c || w.addr==0x2d || w.addr==0x2e || w.addr==0x2f) {
             // ymfm write
@@ -271,7 +271,7 @@ void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
       if (--delay<1) {
         QueuedWrite& w=writes.front();
         if (w.addr==0xfffffffe) {
-          delay=w.val*6;
+          delay=w.val*3;
         } else {
           fm->write(0x0,w.addr);
           fm->write(0x1,w.val);
@@ -668,7 +668,7 @@ void DivPlatformYM2203::tick(bool sysTick) {
 
   // hard reset handling
   if (mustHardReset) {
-    immWrite(0xfffffffe,hardResetCycles-hardResetElapsed);
+    immWrite(0xfffffffe,(hardResetCycles-hardResetElapsed)*3);
     for (int i=0; i<3; i++) {
       if (i==2 && extMode) continue;
       if ((chan[i].keyOn || chan[i].opMaskChanged) && chan[i].hardReset) {
