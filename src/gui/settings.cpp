@@ -388,48 +388,51 @@ const char* renderBackends[]={
   if (ImGui::Combo("##" _name "QR",&settings._render,LocalizedComboGetter,coreQualities,6)) settingsChanged=true;
 
 #define SHOW_IF(b) [this]{return b;}
+#define SettingSeparator() SettingDummy([]{ImGui::Separator();})
 
 // NEW NEW SETTINGS HERE
   int a=0;
   const char* t[2]={"1","2"};
 void FurnaceGUI::setupSettingsCategories() {
   settings.categories={
-    SettingsCategory("Program",{},{
+    SettingsCategory("Program",{
+      SettingsCategory("Window",{
+        SettingsCategory("Memory Composition",{},{
+          new SettingRadio(&settings.memUsageUnit,"memUsageUnit",_("Chip memory usage unit:"),NULL,1,memUsageUnits,2),
+        }),
+        SettingsCategory("Oscilloscope",{},{
+          new SettingRadio(&settings.shaderOsc,"shaderOsc",_("Oscilloscope rendering engine:"),_("render using either Dear ImGui's built-in line drawing functions or GLSL."),0,oscRenderEngines,2),
+          new SettingCheckbox(&settings.oscRoundedCorners,"oscRoundedCorners",_("Rounded corners"),NULL,GUI_DECORATIONS_DEFAULT),
+          new SettingCheckbox(&settings.oscBorder,"oscBorder",_("Border"),NULL,1),
+          new SettingCheckbox(&settings.oscMono,"oscMono",_("Mono"),NULL,1),
+          new SettingCheckbox(&settings.oscAntiAlias,"oscAntiAlias",_("Anti-aliased"),NULL,1),
+          new SettingCheckbox(&settings.oscTakesEntireWindow,"oscTakesEntireWindow",_("Fill entire window"),NULL,0),
+          new SettingCheckbox(&settings.oscEscapesBoundary,"oscEscapesBoundary",_("Waveform goes out of bounds"),NULL,0),
+          new SettingSliderFloat(&settings.oscLineSize,"oscLineSize",_("Line size"),NULL,1.0f,0.25f,16.0f,"%.1f"),
+          new SettingSeparator(),
+          new SettingDummy([this]{ImGui::Text("settings changed: %s",settingsChanged?"yes":"no");}),
+          new SettingUnion({
+            new SettingDropdown(&a,"","test!",NULL,0,t,2,0,[]() {logW("hello!");}),
+            new SettingDummy([this]{ImGui::Text("this text will appear if the setting above does!");}),
+          },SHOW_IF(!settings.oscMono)),
+        }),
+      },{
+#ifndef IS_MOBILE
+        new SettingCheckbox(&settings.saveWindowPos,"saveWindowPos",_("Remember window position"),_("remembers the window's last position on start-up."),true),
+#endif
+        new SettingCheckbox(&settings.moveWindowTitle,"moveWindowTitle",_("Only allow window movement when clicking on title bar"),NULL,true),
+        new SettingCheckbox(&settings.centerPopup,"centerPopup",_("Center pop-up windows"),NULL,true),
+        new SettingSeparator(),
+
+        new SettingCheckbox(&settings.roundedWindows,"roundedWindows",_("Rounded window corners"),NULL,GUI_DECORATIONS_DEFAULT),
+        new SettingCheckbox(&settings.roundedButtons,"roundedButtons",_("Rounded buttons"),NULL,GUI_DECORATIONS_DEFAULT),
+        new SettingCheckbox(&settings.roundedMenus,"roundedMenus",_("Rounded menu corners"),NULL,false),
+        new SettingCheckbox(&settings.roundedTabs,"roundedTabs",_("Rounded tabs"),NULL,GUI_DECORATIONS_DEFAULT),
+        new SettingCheckbox(&settings.roundedScrollbars,"roundedScrollbars",_("Rounded scrollbars"),NULL,GUI_DECORATIONS_DEFAULT),
+        new SettingCheckbox(&settings.frameBorders,"frameBorders",_("Borders around widgets"),NULL,false),
+      })},{
       new SettingDropdownText(&settings.renderBackend,"renderBackend",_("Render backend"),NULL,GUI_BACKEND_DEFAULT_NAME,renderBackends,(int)(sizeof(renderBackends)/sizeof(const char*))),
     }),
-    SettingsCategory("Window",{
-      SettingsCategory("Memory Composition",{},{
-        new SettingRadio(&settings.memUsageUnit,"memUsageUnit",_("Chip memory usage unit:"),NULL,1,memUsageUnits,2),
-      }),
-      SettingsCategory("Oscilloscope",{},{
-        new SettingDummy([this]{ImGui::Text("changed: %s",settingsChanged?"yes":"no");}),
-        new SettingRadio(&settings.shaderOsc,"shaderOsc",_("Oscilloscope rendering engine:"),_("render using either Dear ImGui's built-in line drawing functions or GLSL."),0,oscRenderEngines,2),
-        new SettingCheckbox(&settings.oscRoundedCorners,"oscRoundedCorners",_("Rounded corners"),NULL,GUI_DECORATIONS_DEFAULT),
-        new SettingCheckbox(&settings.oscBorder,"oscBorder",_("Border"),NULL,1),
-        new SettingCheckbox(&settings.oscMono,"oscMono",_("Mono"),NULL,1),
-        new SettingCheckbox(&settings.oscAntiAlias,"oscAntiAlias",_("Anti-aliased"),NULL,1),
-        new SettingCheckbox(&settings.oscTakesEntireWindow,"oscTakesEntireWindow",_("Fill entire window"),NULL,0),
-        new SettingCheckbox(&settings.oscEscapesBoundary,"oscEscapesBoundary",_("Waveform goes out of bounds"),NULL,0),
-        new SettingSliderFloat(&settings.oscLineSize,"oscLineSize",_("Line size"),NULL,1.0f,0.25f,16.0f,"%.1f"),
-        new SettingUnion({
-          new SettingDropdown(&a,"","test!",NULL,0,t,2,0,[]() {logW("hello!");}),
-          new SettingDummy([this]{ImGui::Text("this text will appear if the setting above does!");}),
-        },SHOW_IF(!settings.oscMono)),
-      }),
-    },{
-#ifndef IS_MOBILE
-      new SettingCheckbox(&settings.saveWindowPos,"saveWindowPos",_("Remember window position"),_("remembers the window's last position on start-up."),true),
-#endif
-      new SettingCheckbox(&settings.moveWindowTitle,"moveWindowTitle",_("Only allow window movement when clicking on title bar"),NULL,true),
-      new SettingCheckbox(&settings.centerPopup,"centerPopup",_("Center pop-up windows"),NULL,true),
-
-      new SettingCheckbox(&settings.roundedWindows,"roundedWindows",_("Rounded window corners"),NULL,GUI_DECORATIONS_DEFAULT),
-      new SettingCheckbox(&settings.roundedButtons,"roundedButtons",_("Rounded buttons"),NULL,GUI_DECORATIONS_DEFAULT),
-      new SettingCheckbox(&settings.roundedMenus,"roundedMenus",_("Rounded menu corners"),NULL,false),
-      new SettingCheckbox(&settings.roundedTabs,"roundedTabs",_("Rounded tabs"),NULL,GUI_DECORATIONS_DEFAULT),
-      new SettingCheckbox(&settings.roundedScrollbars,"roundedScrollbars",_("Rounded scrollbars"),NULL,GUI_DECORATIONS_DEFAULT),
-      new SettingCheckbox(&settings.frameBorders,"frameBorders",_("Borders around widgets"),NULL,false),
-    })
   };
 
   settings.activeCategory=settings.categories[0];
@@ -457,9 +460,10 @@ void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {
       settings.activeCategory=*cat;
     }
     if (cat->expandChild) {
-      ImGui::Indent();
+      float indentSize=ImGui::CalcTextSize("-").x*dpiScale;
+      ImGui::Indent(indentSize);
       for (SettingsCategory child:cat->children) drawSettingsCategory(&child);
-      ImGui::Unindent();
+      ImGui::Unindent(indentSize);
       ImGui::TreePop();
     }
   } else { // a lonely child...
