@@ -1603,16 +1603,23 @@ struct FurnaceCV;
 struct Setting {
     const char* friendlyName;
     std::function<void()> draw;
+    std::function<bool()> drawCondition;
   public:
     bool passesFilter(ImGuiTextFilter* filter) {
       return filter->PassFilter(friendlyName);
     };
     void drawSetting() {
-      draw();
+      if (drawCondition()) draw();
     }
-    Setting(const char* _friendlyName, std::function<void()> _draw) {
+    Setting(const char* _friendlyName, std::function<void()> _draw):
+      drawCondition([]{return true;}) {
       friendlyName=_friendlyName;
       draw=_draw;
+    }
+    Setting(const char* _friendlyName, std::function<void()> _draw, std::function<bool()> _drawCondition) {
+      friendlyName=_friendlyName;
+      draw=_draw;
+      drawCondition=_drawCondition;
     }
     ~Setting() {};
 };
