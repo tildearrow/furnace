@@ -1106,9 +1106,6 @@ void DivPlatformAY8910::setFlags(const DivConfig& flags) {
     }
     CHECK_CUSTOM_CLOCK;
   }
-  for (int i=0; i<3; i++) {
-    oscBuf[i]->rate=rate;
-  }
 
   if (ay!=NULL) delete ay;
   switch (flags.getInt("chipType",0)) {
@@ -1154,6 +1151,10 @@ void DivPlatformAY8910::setFlags(const DivConfig& flags) {
   } else {
     rate=chipClock/8;
     dacRate=rate;
+  }
+
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->rate=rate;
   }
 
   stereo=flags.getBool("stereo",false);
