@@ -3270,6 +3270,7 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
       ImGui::GetIO().IniFilename=NULL;
       ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_InertialScrollEnable;
       ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NoHoverColors;
+      ImGui::GetIO().AlwaysScrollText=true;
       fileDialog->mobileUI=true;
     } else {
       ImGui::GetIO().IniFilename=NULL;
@@ -3279,6 +3280,7 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
       }
       ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_InertialScrollEnable;
       ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NoHoverColors;
+      ImGui::GetIO().AlwaysScrollText=false;
       fileDialog->mobileUI=false;
     }
   }

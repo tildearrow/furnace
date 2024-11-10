@@ -2099,6 +2099,7 @@ struct ImGuiIO
     // ScrollText options
     float       ScrollTextSpeed;                // = 100.0f;
     float       ScrollTextSpacing;              // = 8.0f;
+    bool        AlwaysScrollText;               // = false          // Always scroll scroll texts
 
     // Miscellaneous options
     bool        MouseDrawCursor;                // = false          // Request ImGui to draw a mouse cursor for you (if you are on a platform without a mouse cursor). Cannot be easily renamed to 'io.ConfigXXX' because this is frequently used by backend implementations.

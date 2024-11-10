@@ -563,12 +563,12 @@ void ImGui::ScrollText(ImGuiID id, const char* text, const ImVec2& pos, ImVec2 s
   float textPos=storage->GetFloat(id,0.0f);
 
   dl->PushClipRect(minArea,maxArea,true);
-  if (hovered || alwaysScroll) {
+  if (hovered || alwaysScroll || g.IO.AlwaysScrollText) {
     minArea.x-=textPos;
   }
   dl->AddText(minArea,ImGui::GetColorU32(ImGuiCol_Text),text);
-  if ((hovered || alwaysScroll) && !mustNotScroll) {
-    textPos+=ImGui::GetIO().DeltaTime*g.IO.ScrollTextSpeed;
+  if ((hovered || alwaysScroll || g.IO.AlwaysScrollText) && !mustNotScroll) {
+    textPos+=g.IO.DeltaTime*g.IO.ScrollTextSpeed;
     if (textPos>textSize.x) {
       textPos-=textSize.x+size.x+g.IO.ScrollTextSpacing;
     }

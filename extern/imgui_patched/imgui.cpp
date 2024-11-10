@@ -1308,6 +1308,7 @@ ImGuiIO::ImGuiIO()
     // ScrollText options
     ScrollTextSpeed = 100.0f;
     ScrollTextSpacing = 8.0f;
+    AlwaysScrollText = false;
 
     // Miscellaneous options
     MouseDrawCursor = false;
