@@ -266,6 +266,7 @@ void DivPlatformLynx::tick(bool sysTick) {
         if (chan[i].updateLFSR) {
           WRITE_LFSR(i, (chan[i].lfsr&0xff));
           WRITE_OTHER(i, ((chan[i].lfsr&0xf00)>>4));
+          chan[i].updateLFSR=false;
         }
         if (chan[i].std.duty.had) {
           chan[i].duty=chan[i].std.duty.val;
