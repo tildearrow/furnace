@@ -548,24 +548,6 @@ void FurnaceGUI::sameLineMaybe(float width) {
   if (ImGui::GetContentRegionAvail().x<width) ImGui::NewLine();
 }
 
-void FurnaceGUI::ScrollText(ImGuiID id, const char* text, const ImVec2& size, bool alwaysScroll) {
-  ImDrawList* dl=ImGui::GetWindowDrawList();
-  ImGuiWindow* window=ImGui::GetCurrentWindow();
-
-  ImVec2 minArea=window->DC.CursorPos;
-  ImVec2 maxArea=ImVec2(
-    minArea.x+size.x,
-    minArea.y+size.y
-  );
-  ImRect rect=ImRect(minArea,maxArea);
-  ImGuiStyle& style=ImGui::GetStyle();
-  ImGui::ItemSize(size,style.FramePadding.y);
-  if (ImGui::ItemAdd(rect,id)) {
-    // TODO
-    dl->AddText(minArea,ImGui::GetColorU32(ImGuiCol_Text),text);
-  }
-}
-
 const char* FurnaceGUI::getSystemName(DivSystem which) {
   /*
   if (settings.chipNames) {

@@ -528,6 +528,59 @@ void ImGui::BulletTextV(const char* fmt, va_list args)
 }
 
 //-------------------------------------------------------------------------
+// [SECTION] Widgets: ScrollText (tildearrow)
+//-------------------------------------------------------------------------
+// - ScrollText()
+//-------------------------------------------------------------------------
+
+void ImGui::ScrollText(ImGuiID id, const char* text, const ImVec2& pos, ImVec2 size, bool alwaysScroll) {
+  ImGuiContext& g = *GImGui;
+  ImGuiWindow* window=g.CurrentWindow;
+  ImDrawList* dl=window->DrawList;
+  ImGuiStorage* storage=GetStateStorage();
+
+  ImVec2 textSize=ImGui::CalcTextSize(text);
+  bool mustNotScroll=false;
+
+  if (size.x==0) {
+    size.x=((window->DC.CurrentColumns || g.CurrentTable) ? window->WorkRect.Max : window->ContentRegionRect.Max).x-pos.x;
+    if (textSize.x<size.x) {
+      size.x=textSize.x;
+      mustNotScroll=true;
+    }
+  }
+  if (size.y==0) {
+    size.y=ImGui::GetFontSize();
+  }
+
+  ImVec2 minArea=pos;
+  ImVec2 maxArea=ImVec2(
+    minArea.x+size.x,
+    minArea.y+size.y
+  );
+  ImRect rect=ImRect(minArea,maxArea);
+  bool hovered=ImGui::IsMouseHoveringRect(rect.Min,rect.Max);
+  float textPos=storage->GetFloat(id,0.0f);
+
+  dl->PushClipRect(minArea,maxArea,true);
+  if (hovered || alwaysScroll) {
+    minArea.x-=textPos;
+  }
+  dl->AddText(minArea,ImGui::GetColorU32(ImGuiCol_Text),text);
+  if ((hovered || alwaysScroll) && !mustNotScroll) {
+    textPos+=ImGui::GetIO().DeltaTime*g.IO.ScrollTextSpeed;
+    if (textPos>textSize.x) {
+      textPos-=textSize.x+size.x+g.IO.ScrollTextSpacing;
+    }
+    g.IO.IsSomethingHappening=true;
+  } else {
+    textPos=0.0;
+  }
+  storage->SetFloat(id,textPos);
+  dl->PopClipRect();
+}
+
+//-------------------------------------------------------------------------
 // [SECTION] Widgets: Main
 //-------------------------------------------------------------------------
 // - ButtonBehavior() [Internal]
@@ -1283,8 +1336,9 @@ bool ImGui::Checkbox(const char* label, bool* v)
     ImVec2 label_pos = ImVec2(check_bb.Max.x + style.ItemInnerSpacing.x, check_bb.Min.y + style.FramePadding.y);
     if (g.LogEnabled)
         LogRenderedText(&label_pos, mixed_value ? "[~]" : *v ? "[x]" : "[ ]");
-    if (label_size.x > 0.0f)
-        RenderText(label_pos, label);
+    if (label_size.x > 0.0f) {
+        ScrollText(id, label, label_pos, ImVec2(0,0), hovered);
+    }
 
     IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags | ImGuiItemStatusFlags_Checkable | (*v ? ImGuiItemStatusFlags_Checked : 0));
     return pressed;
