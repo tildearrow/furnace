@@ -1600,24 +1600,28 @@ struct PendingDrawOsc {
 
 struct FurnaceCV;
 
-class SettingDef {
-    void* data;
-    String name;
+struct Setting {
     const char* friendlyName;
-    const char* tooltip;
+    std::function<void()> draw;
   public:
-    virtual bool passesFilter(ImGuiTextFilter* filter, unsigned char toWhat);
-    virtual void drawSetting(bool& changed);
-    virtual void saveSetting(DivConfig* conf);
-    virtual void loadSetting(DivConfig* conf);
-    virtual ~SettingDef();
+    bool passesFilter(ImGuiTextFilter* filter) {
+      return filter->PassFilter(friendlyName);
+    };
+    void drawSetting() {
+      draw();
+    }
+    Setting(const char* _friendlyName, std::function<void()> _draw) {
+      friendlyName=_friendlyName;
+      draw=_draw;
+    }
+    ~Setting() {};
 };
 
 class SettingsCategory {
   public:
     const char* name;
     std::vector<SettingsCategory> children;
-    std::vector<SettingDef*> settings;
+    std::vector<Setting*> settings;
     bool expandChild;
     void saveCaterofySettings();
     void loadCategorySettings();
@@ -1628,7 +1632,7 @@ class SettingsCategory {
       settings({}),
       expandChild(false) {}
 
-    SettingsCategory(const char* n, std::initializer_list<SettingsCategory> c, std::initializer_list<SettingDef*> s):
+    SettingsCategory(const char* n, std::initializer_list<SettingsCategory> c, std::initializer_list<Setting*> s):
       expandChild(false) {
       name=n;
       children=c;
@@ -1799,7 +1803,6 @@ class FurnaceGUI {
     std::vector<SettingsCategory> categories;
     SettingsCategory activeCategory; // yes a boring copy
     ImGuiTextFilter filter;
-    int searchDepth;
 
     int mainFontSize, patFontSize, headFontSize, iconSize;
     int audioEngine;
@@ -2060,7 +2063,6 @@ class FurnaceGUI {
     DivConfig initialSys;
 
     Settings():
-      searchDepth(3),
       mainFontSize(GUI_FONT_SIZE_DEFAULT),
       patFontSize(GUI_FONT_SIZE_DEFAULT),
       headFontSize(27),

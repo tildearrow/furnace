@@ -46,7 +46,13 @@
 #include <dirent.h>
 #endif
 
-#include "settingsDef.h"
+#define clampSetting(x,minV,maxV) \
+  if (x<minV) { \
+    x=minV; \
+  } \
+  if (x>maxV) { \
+    x=maxV; \
+  }
 
 #define DEFAULT_NOTE_KEYS "5:7;6:4;7:3;8:16;10:6;11:8;12:24;13:10;16:11;17:9;18:26;19:28;20:12;21:17;22:1;23:19;24:23;25:5;26:14;27:2;28:21;29:0;30:100;31:13;32:15;34:18;35:20;36:22;38:25;39:27;43:100;46:101;47:29;48:31;53:102;"
 
@@ -290,43 +296,6 @@ const char* specificControls[18]={
   _N("Effect 8 value")
 };
 
-const char* oscRenderEngines[2]={
-  _("ImGui line plot"),
-  _("GLSL (if available)")
-};
-
-const char* memUsageUnits[2]={
-  _("Bytes##MUU0"),
-  _("Kilobytes##MUU1")
-};
-
-const char* renderBackends[]={
-#ifdef HAVE_RENDER_SDL
-  "SDL",
-#endif
-#ifdef HAVE_RENDER_DX11
-  "DirectX 11",
-#endif
-#ifdef HAVE_RENDER_DX9
-  "DirectX 9",
-#endif
-#ifdef HAVE_RENDER_METAL
-  "Metal",
-#endif
-#ifdef HAVE_RENDER_GL
-#ifdef USE_GLES
-  "OpenGL ES 2.0",
-#else
-  "OpenGL 3.0",
-  "OpenGL 2.0",
-#endif
-#endif
-#ifdef HAVE_RENDER_GL1
-  "OpenGL 1.1",
-#endif
-  "Software"
-};
-
 #define SAMPLE_RATE_SELECTABLE(x) \
   if (ImGui::Selectable(#x,settings.audioRate==x)) { \
     settings.audioRate=x; \
@@ -387,51 +356,45 @@ const char* renderBackends[]={
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); \
   if (ImGui::Combo("##" _name "QR",&settings._render,LocalizedComboGetter,coreQualities,6)) settingsChanged=true;
 
-#define SHOW_IF(b) [this]{return b;}
-#define SettingSeparator() SettingDummy([]{ImGui::Separator();})
-
 // NEW NEW SETTINGS HERE
   int a=0;
   const char* t[2]={"1","2"};
 void FurnaceGUI::setupSettingsCategories() {
   settings.categories={
-    SettingsCategory("Program",{
-      SettingsCategory("Window",{
-        SettingsCategory("Memory Composition",{},{
-          new SettingRadio(&settings.memUsageUnit,"memUsageUnit",_("Chip memory usage unit:"),NULL,1,memUsageUnits,2),
-        }),
-        SettingsCategory("Oscilloscope",{},{
-          new SettingRadio(&settings.shaderOsc,"shaderOsc",_("Oscilloscope rendering engine:"),_("render using either Dear ImGui's built-in line drawing functions or GLSL."),0,oscRenderEngines,2),
-          new SettingCheckbox(&settings.oscRoundedCorners,"oscRoundedCorners",_("Rounded corners"),NULL,GUI_DECORATIONS_DEFAULT),
-          new SettingCheckbox(&settings.oscBorder,"oscBorder",_("Border"),NULL,1),
-          new SettingCheckbox(&settings.oscMono,"oscMono",_("Mono"),NULL,1),
-          new SettingCheckbox(&settings.oscAntiAlias,"oscAntiAlias",_("Anti-aliased"),NULL,1),
-          new SettingCheckbox(&settings.oscTakesEntireWindow,"oscTakesEntireWindow",_("Fill entire window"),NULL,0),
-          new SettingCheckbox(&settings.oscEscapesBoundary,"oscEscapesBoundary",_("Waveform goes out of bounds"),NULL,0),
-          new SettingSliderFloat(&settings.oscLineSize,"oscLineSize",_("Line size"),NULL,1.0f,0.25f,16.0f,"%.1f"),
-          new SettingSeparator(),
-          new SettingDummy([this]{ImGui::Text("settings changed: %s",settingsChanged?"yes":"no");}),
-          new SettingUnion({
-            new SettingDropdown(&a,"","test!",NULL,0,t,2,0,[]() {logW("hello!");}),
-            new SettingDummy([this]{ImGui::Text("this text will appear if the setting above does!");}),
-          },SHOW_IF(!settings.oscMono)),
-        }),
-      },{
-#ifndef IS_MOBILE
-        new SettingCheckbox(&settings.saveWindowPos,"saveWindowPos",_("Remember window position"),_("remembers the window's last position on start-up."),true),
+    SettingsCategory("Program",{},{
+#ifdef HAVE_LOCALE
+      new Setting(_("Language"),[this] {
+        String curLocale=settings.locale;
+        const char* localeRestart=locales[0][2];
+        if (curLocale=="") {
+          curLocale="<System>";
+        } else {
+          for (int i=1; locales[i][0]; i++) {
+            if (strcmp(curLocale.c_str(),locales[i][1])==0) {
+              curLocale=locales[i][0];
+              break;
+            }
+          }
+        }
+        if (ImGui::BeginCombo(_("Language"),curLocale.c_str())) {
+          for (int i=0; locales[i][0]; i++) {
+            if (ImGui::Selectable(locales[i][0],strcmp(settings.locale.c_str(),locales[i][1])==0)) {
+              settings.locale=locales[i][1];
+              settingsChanged=true;
+            }
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("%s",locales[i][2]);
+            }
+          }
+          ImGui::EndCombo();
+        } else {
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("%s",localeRestart);
+          }
+        }
+      }),
 #endif
-        new SettingCheckbox(&settings.moveWindowTitle,"moveWindowTitle",_("Only allow window movement when clicking on title bar"),NULL,true),
-        new SettingCheckbox(&settings.centerPopup,"centerPopup",_("Center pop-up windows"),NULL,true),
-        new SettingSeparator(),
-
-        new SettingCheckbox(&settings.roundedWindows,"roundedWindows",_("Rounded window corners"),NULL,GUI_DECORATIONS_DEFAULT),
-        new SettingCheckbox(&settings.roundedButtons,"roundedButtons",_("Rounded buttons"),NULL,GUI_DECORATIONS_DEFAULT),
-        new SettingCheckbox(&settings.roundedMenus,"roundedMenus",_("Rounded menu corners"),NULL,false),
-        new SettingCheckbox(&settings.roundedTabs,"roundedTabs",_("Rounded tabs"),NULL,GUI_DECORATIONS_DEFAULT),
-        new SettingCheckbox(&settings.roundedScrollbars,"roundedScrollbars",_("Rounded scrollbars"),NULL,GUI_DECORATIONS_DEFAULT),
-        new SettingCheckbox(&settings.frameBorders,"frameBorders",_("Borders around widgets"),NULL,false),
-      })},{
-      new SettingDropdownText(&settings.renderBackend,"renderBackend",_("Render backend"),NULL,GUI_BACKEND_DEFAULT_NAME,renderBackends,(int)(sizeof(renderBackends)/sizeof(const char*))),
+      
     }),
   };
 
@@ -444,7 +407,7 @@ void FurnaceGUI::destroySettingsCategories(SettingsCategory& cat) {
       destroySettingsCategories(i);
     }
   }
-  for (SettingDef* i:cat.settings) {
+  for (Setting* i:cat.settings) {
     delete i;
   }
   cat.settings.clear();
@@ -480,8 +443,8 @@ void FurnaceGUI::searchDrawSettingItems(SettingsCategory* cat) {
     }
   }
   bool anyFound=false;
-  for (SettingDef* s:cat->settings) {
-    if (s->passesFilter(&settings.filter, settings.searchDepth)) {
+  for (Setting* s:cat->settings) {
+    if (s->passesFilter(&settings.filter)) {
       anyFound=true;
       break;
     }
@@ -489,8 +452,8 @@ void FurnaceGUI::searchDrawSettingItems(SettingsCategory* cat) {
   if (anyFound) {
     ImGui::BulletText("%s",cat->name);
     ImGui::Indent();
-    for (SettingDef* s:cat->settings) {
-      if (s->passesFilter(&settings.filter, settings.searchDepth)) s->drawSetting(settingsChanged);
+    for (Setting* s:cat->settings) {
+      if (s->passesFilter(&settings.filter)) s->drawSetting();
     }
     ImGui::Unindent();
     ImGui::Separator();
@@ -504,7 +467,7 @@ void FurnaceGUI::drawSettingsItems() {
     }
   } else {
     if (settings.activeCategory.name==NULL) return;
-    for (SettingDef* s:settings.activeCategory.settings) s->drawSetting(settingsChanged);
+    for (Setting* s:settings.activeCategory.settings) s->drawSetting();
   }
 }
 
@@ -740,23 +703,6 @@ void FurnaceGUI::drawSettings() {
       ImGui::TableNextColumn();
       if (ImGui::BeginChild("SettingCategories",vertical?ImGui::GetContentRegionAvail()/ImVec2(1.0f,3.0f):ImGui::GetContentRegionAvail(),false)) {
         settings.filter.Draw(_("Search"));
-        ImGui::SameLine();
-        ImGui::Button(ICON_FA_BARS "##SettingsSearchDepth");
-        if (ImGui::BeginPopupContextItem("SettingsSearchDepth",ImGuiPopupFlags_MouseButtonLeft)) {
-          ImGui::Text("Search where:");
-          ImGui::Indent();
-          if (ImGui::RadioButton("Setting names", settings.searchDepth==1)) {
-            settings.searchDepth=1;
-          }
-          if (ImGui::RadioButton("Setting descriptions", settings.searchDepth==2)) {
-            settings.searchDepth=2;
-          }
-          if (ImGui::RadioButton("Setting names and descriptions", settings.searchDepth==3)) {
-            settings.searchDepth=3;
-          }
-          ImGui::Unindent();
-          ImGui::EndPopup();
-        }
         for (SettingsCategory cat:settings.categories) drawSettingsCategory(&cat);
       }
       ImGui::EndChild();
