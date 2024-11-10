@@ -38,17 +38,6 @@ extern "C" {
 #include "../../extern/Nuked-OPLL/opll.h"
 }
 
-const char* ssgEnvTypes[8]={
-  _N("Down Down Down"),
-  _N("Down."),
-  _N("Down Up Down Up"),
-  _N("Down UP"),
-  _N("Up Up Up"),
-  _N("Up."),
-  _N("Up Down Up Down"),
-  _N("Up DOWN")
-};
-
 const char* fmParamNames[3][32]={
   {_N("Algorithm"), _N("Feedback"), _N("LFO > Freq"), _N("LFO > Amp"), _N("Attack"), _N("Decay"), _N("Decay 2"), _N("Release"), _N("Sustain"), _N("Level"), _N("EnvScale"), _N("Multiplier"), _N("Detune"), _N("Detune 2"), _N("SSG-EG"), _N("AM"), _N("AM Depth"), _N("Vibrato Depth"), _N("Sustained"), _N("Sustained"), _N("Level Scaling"), _N("Sustain"), _N("Vibrato"), _N("Waveform"), _N("Scale Rate"), _N("OP2 Half Sine"), _N("OP1 Half Sine"), _N("EnvShift"), _N("Reverb"), _N("Fine"), _N("LFO2 > Freq"), _N("LFO2 > Amp")},
   {"ALG", "FB", "FMS/PMS", "AMS", "AR", "DR", "SR", "RR", "SL", "TL", "KS", "MULT", "DT", "DT2", "SSG-EG", "AM", "AMD", "FMD", "EGT", "EGT", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS/PMS2", "AMS2"},
@@ -4552,7 +4541,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
 
               ImGui::SameLine();
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-              if (CWSliderScalar("##SSG",ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,_(ssgEnvTypes[ssgEnv]))) { PARAMETER
+              if (CWSliderScalar("##SSG",ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,"%d")) { PARAMETER
                 op.ssgEnv=(op.ssgEnv&8)|(ssgEnv&7);
               }
             }
@@ -4969,7 +4958,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
 
                 ImGui::SameLine();
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (CWSliderScalar("##SSG",ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,_(ssgEnvTypes[ssgEnv]))) { PARAMETER
+                if (CWSliderScalar("##SSG",ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,"%d")) { PARAMETER
                   op.ssgEnv=(op.ssgEnv&8)|(ssgEnv&7);
                 }
                 
@@ -5807,7 +5796,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (CWSliderScalar("##SSG",ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,_(ssgEnvTypes[ssgEnv]))) { PARAMETER
+                if (CWSliderScalar("##SSG",ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,"%d")) { PARAMETER
                   op.ssgEnv=(op.ssgEnv&8)|(ssgEnv&7);
                 } rightClickable
                 ImGui::TableNextColumn();
