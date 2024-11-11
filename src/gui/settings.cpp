@@ -33,7 +33,6 @@
 #include "misc/freetype/imgui_freetype.h"
 #include "scaling.h"
 #include <fmt/printf.h>
-#include <imgui.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -45,14 +44,6 @@
 #include <unistd.h>
 #include <dirent.h>
 #endif
-
-#define clampSetting(x,minV,maxV) \
-  if (x<minV) { \
-    x=minV; \
-  } \
-  if (x>maxV) { \
-    x=maxV; \
-  }
 
 #define DEFAULT_NOTE_KEYS "5:7;6:4;7:3;8:16;10:6;11:8;12:24;13:10;16:11;17:9;18:26;19:28;20:12;21:17;22:1;23:19;24:23;25:5;26:14;27:2;28:21;29:0;30:100;31:13;32:15;34:18;35:20;36:22;38:25;39:27;43:100;46:101;47:29;48:31;53:102;"
 
@@ -577,24 +568,6 @@ void FurnaceGUI::setupSettingsCategories() {
         ImGui::Unindent();
       }),
     }),
-#ifdef IS_MOBILE
-    SettingsCategory(_("Vibration"),{},{
-      SETTING(_("Strength"),{
-        if (ImGui::SliderFloat(_("Strength"),&settings.vibrationStrength,0.0f,1.0f)) {
-          if (settings.vibrationStrength<0.0f) settings.vibrationStrength=0.0f;
-          if (settings.vibrationStrength>1.0f) settings.vibrationStrength=1.0f;
-          SETTINGS_CHANGED;
-        }
-      }),
-      SETTING(_("Length"),{
-        if (ImGui::SliderInt(_("Length"),&settings.vibrationLength,10,500)) {
-          if (settings.vibrationLength<10) settings.vibrationLength=10;
-          if (settings.vibrationLength>500) settings.vibrationLength=500;
-          SETTINGS_CHANGED;
-        }
-      }),
-    }),
-#endif
     SettingsCategory(_("File"),{},{
       SETTING(_("Use system file picker"),{
         bool sysFileDialogB=settings.sysFileDialog;
@@ -723,8 +696,333 @@ void FurnaceGUI::setupSettingsCategories() {
       })
     }),
     SettingsCategory(_("New Song"),{},{
-      
-    })
+      SETTING(_("Initial system:"),{
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text(_("Initial system:"));
+        ImGui::SameLine();
+        if (ImGui::Button(_("Current system"))) {
+          settings.initialSys.clear();
+          for (int i=0; i<e->song.systemLen; i++) {
+            settings.initialSys.set(fmt::sprintf("id%d",i),e->systemToFileFur(e->song.system[i]));
+            settings.initialSys.set(fmt::sprintf("vol%d",i),(float)e->song.systemVol[i]);
+            settings.initialSys.set(fmt::sprintf("pan%d",i),(float)e->song.systemPan[i]);
+            settings.initialSys.set(fmt::sprintf("fr%d",i),(float)e->song.systemPanFR[i]);
+            settings.initialSys.set(fmt::sprintf("flags%d",i),e->song.systemFlags[i].toBase64());
+          }
+          settings.initialSysName=e->song.systemName;
+          SETTINGS_CHANGED;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("Randomize"))) {
+          settings.initialSys.clear();
+          int howMany=1+rand()%3;
+          int totalAvailSys=0;
+          for (totalAvailSys=0; availableSystems[totalAvailSys]; totalAvailSys++);
+          if (totalAvailSys>0) {
+            for (int i=0; i<howMany; i++) {
+              DivSystem theSystem=DIV_SYSTEM_DUMMY;
+              do {
+                theSystem=(DivSystem)availableSystems[rand()%totalAvailSys];
+              } while (!settings.hiddenSystems && CHECK_HIDDEN_SYSTEM(theSystem));
+              settings.initialSys.set(fmt::sprintf("id%d",i),e->systemToFileFur(theSystem));
+              settings.initialSys.set(fmt::sprintf("vol%d",i),1.0f);
+              settings.initialSys.set(fmt::sprintf("pan%d",i),0.0f);
+              settings.initialSys.set(fmt::sprintf("fr%d",i),0.0f);
+              settings.initialSys.set(fmt::sprintf("flags%d",i),"");
+            }
+          } else {
+            settings.initialSys.set("id0",e->systemToFileFur(DIV_SYSTEM_DUMMY));
+            settings.initialSys.set("vol0",1.0f);
+            settings.initialSys.set("pan0",0.0f);
+            settings.initialSys.set("fr0",0.0f);
+            settings.initialSys.set("flags0","");
+            howMany=1;
+          }
+          // randomize system name
+          std::vector<String> wordPool[6];
+          for (int i=0; i<howMany; i++) {
+            int wpPos=0;
+            DivSystem sysID=e->systemFromFileFur(settings.initialSys.getInt(fmt::sprintf("id%d",i),0));
+            String sName=e->getSystemName(sysID);
+            String nameWord;
+            sName+=" ";
+            for (char& i: sName) {
+              if (i==' ') {
+                if (nameWord!="") {
+                  wordPool[wpPos++].push_back(nameWord);
+                  if (wpPos>=6) break;
+                  nameWord="";
+                }
+              } else {
+                nameWord+=i;
+              }
+            }
+          }
+          settings.initialSysName="";
+          for (int i=0; i<6; i++) {
+            if (wordPool[i].empty()) continue;
+            settings.initialSysName+=wordPool[i][rand()%wordPool[i].size()];
+            settings.initialSysName+=" ";
+          }
+          SETTINGS_CHANGED;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("Reset to defaults"))) {
+          settings.initialSys.clear();
+          settings.initialSys.set("id0",e->systemToFileFur(DIV_SYSTEM_YM2612));
+          settings.initialSys.set("vol0",1.0f);
+          settings.initialSys.set("pan0",0.0f);
+          settings.initialSys.set("fr0",0.0f);
+          settings.initialSys.set("flags0","");
+          settings.initialSys.set("id1",e->systemToFileFur(DIV_SYSTEM_SMS));
+          settings.initialSys.set("vol1",0.5f);
+          settings.initialSys.set("pan1",0.0f);
+          settings.initialSys.set("fr1",0.0f);
+          settings.initialSys.set("flags1","");
+          settings.initialSysName="Sega Genesis/Mega Drive";
+          SETTINGS_CHANGED;
+        }
+      }),
+      SETTING(_("Name"),{
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text(_("Name"));
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::InputText("##InitSysName",&settings.initialSysName)) SETTINGS_CHANGED;
+      }),
+      SETTING(_("Initial system:"),{ // not the real setting name but gotta find it somehow
+        int sysCount=0;
+        int doRemove=-1;
+        for (size_t i=0; settings.initialSys.getInt(fmt::sprintf("id%d",i),0); i++) {
+          DivSystem sysID=e->systemFromFileFur(settings.initialSys.getInt(fmt::sprintf("id%d",i),0));
+          float sysVol=settings.initialSys.getFloat(fmt::sprintf("vol%d",i),0);
+          float sysPan=settings.initialSys.getFloat(fmt::sprintf("pan%d",i),0);
+          float sysPanFR=settings.initialSys.getFloat(fmt::sprintf("fr%d",i),0);
+
+          sysCount=i+1;
+
+          //bool doRemove=false;
+          bool doInvert=(sysVol<0);
+          float vol=fabs(sysVol);
+          ImGui::PushID(i);
+
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(_("Invert")).x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
+          if (ImGui::BeginCombo("##System",getSystemName(sysID),ImGuiComboFlags_HeightLargest)) {
+            sysID=systemPicker(true);
+
+            if (sysID!=DIV_SYSTEM_NULL) {
+              settings.initialSys.set(fmt::sprintf("id%d",i),(int)e->systemToFileFur(sysID));
+              settings.initialSys.set(fmt::sprintf("flags%d",i),"");
+              SETTINGS_CHANGED;
+              ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndCombo();
+          }
+
+          ImGui::SameLine();
+          if (ImGui::Checkbox(_("Invert"),&doInvert)) {
+            sysVol=-sysVol;
+            settings.initialSys.set(fmt::sprintf("vol%d",i),sysVol);
+            SETTINGS_CHANGED;
+          }
+          ImGui::SameLine();
+          //ImGui::BeginDisabled(settings.initialSys.size()<=4);
+          pushDestColor();
+          if (ImGui::Button(ICON_FA_MINUS "##InitSysRemove")) {
+            doRemove=i;
+            SETTINGS_CHANGED;
+          }
+          popDestColor();
+          //ImGui::EndDisabled();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
+          if (CWSliderFloat(_("Volume"),&vol,0.0f,3.0f)) {
+            if (doInvert) {
+              if (vol<0.0001) vol=0.0001;
+            }
+            if (vol<0) vol=0;
+            if (vol>10) vol=10;
+            sysVol=doInvert?-vol:vol;
+            settings.initialSys.set(fmt::sprintf("vol%d",i),(float)sysVol);
+            SETTINGS_CHANGED;
+          } rightClickable
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
+          if (CWSliderFloat(_("Panning"),&sysPan,-1.0f,1.0f)) {
+            if (sysPan<-1.0f) sysPan=-1.0f;
+            if (sysPan>1.0f) sysPan=1.0f;
+            settings.initialSys.set(fmt::sprintf("pan%d",i),(float)sysPan);
+            SETTINGS_CHANGED;
+          } rightClickable
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
+          if (CWSliderFloat(_("Front/Rear"),&sysPanFR,-1.0f,1.0f)) {
+            if (sysPanFR<-1.0f) sysPanFR=-1.0f;
+            if (sysPanFR>1.0f) sysPanFR=1.0f;
+            settings.initialSys.set(fmt::sprintf("fr%d",i),(float)sysPanFR);
+            SETTINGS_CHANGED;
+          } rightClickable
+
+          // oh please MSVC don't cry
+          if (ImGui::TreeNode(_("Configure"))) {
+            String sysFlagsS=settings.initialSys.getString(fmt::sprintf("flags%d",i),"");
+            DivConfig sysFlags;
+            sysFlags.loadFromBase64(sysFlagsS.c_str());
+            if (drawSysConf(-1,i,sysID,sysFlags,false)) {
+              settings.initialSys.set(fmt::sprintf("flags%d",i),sysFlags.toBase64());
+            }
+            ImGui::TreePop();
+            SETTINGS_CHANGED;
+          }
+
+          ImGui::PopID();
+        }
+
+        if (doRemove>=0 && sysCount>1) {
+          for (int i=doRemove; i<sysCount-1; i++) {
+            int sysID=settings.initialSys.getInt(fmt::sprintf("id%d",i+1),0);
+            float sysVol=settings.initialSys.getFloat(fmt::sprintf("vol%d",i+1),0);
+            float sysPan=settings.initialSys.getFloat(fmt::sprintf("pan%d",i+1),0);
+            float sysPanFR=settings.initialSys.getFloat(fmt::sprintf("fr%d",i+1),0);
+            String sysFlags=settings.initialSys.getString(fmt::sprintf("flags%d",i+1),"");
+            settings.initialSys.set(fmt::sprintf("id%d",i),sysID);
+            settings.initialSys.set(fmt::sprintf("vol%d",i),sysVol);
+            settings.initialSys.set(fmt::sprintf("pan%d",i),sysPan);
+            settings.initialSys.set(fmt::sprintf("fr%d",i),sysPanFR);
+            settings.initialSys.set(fmt::sprintf("flags%d",i),sysFlags);
+          }
+
+          settings.initialSys.remove(fmt::sprintf("id%d",sysCount-1));
+          settings.initialSys.remove(fmt::sprintf("vol%d",sysCount-1));
+          settings.initialSys.remove(fmt::sprintf("pan%d",sysCount-1));
+          settings.initialSys.remove(fmt::sprintf("fr%d",sysCount-1));
+          settings.initialSys.remove(fmt::sprintf("flags%d",sysCount-1));
+        }
+
+        if (sysCount<32) if (ImGui::Button(ICON_FA_PLUS "##InitSysAdd")) {
+          settings.initialSys.set(fmt::sprintf("id%d",sysCount),(int)e->systemToFileFur(DIV_SYSTEM_YM2612));
+          settings.initialSys.set(fmt::sprintf("vol%d",sysCount),1.0f);
+          settings.initialSys.set(fmt::sprintf("pan%d",sysCount),0.0f);
+          settings.initialSys.set(fmt::sprintf("fr%d",sysCount),0.0f);
+          settings.initialSys.set(fmt::sprintf("flags%d",sysCount),"");
+        }
+      }),
+      SETTING(_("When creating new song:"),{
+        ImGui::Text(_("When creating new song:"));
+        ImGui::Indent();
+        if (ImGui::RadioButton(_("Display system preset selector##NSB0"),settings.newSongBehavior==0)) {
+          settings.newSongBehavior=0;
+          SETTINGS_CHANGED;
+        }
+        if (ImGui::RadioButton(_("Start with initial system##NSB1"),settings.newSongBehavior==1)) {
+          settings.newSongBehavior=1;
+          SETTINGS_CHANGED;
+        }
+        ImGui::Unindent();
+      }),
+      SETTING(_("Default author name"),{
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text(_("Default author name"));
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::InputText("##DefAuthName", &settings.defaultAuthorName)) SETTINGS_CHANGED;
+      })
+    }),
+    SettingsCategory(_("Start-up"),{},{
+      SETTING(_("Play intro on start-up:"),{
+        ImGui::Text(_("Play intro on start-up:"));
+        ImGui::Indent();
+        if (ImGui::RadioButton(_("No##pis0"),settings.alwaysPlayIntro==0)) {
+          settings.alwaysPlayIntro=0;
+          SETTINGS_CHANGED;
+        }
+        if (ImGui::RadioButton(_("Short##pis1"),settings.alwaysPlayIntro==1)) {
+          settings.alwaysPlayIntro=1;
+          SETTINGS_CHANGED;
+        }
+        if (ImGui::RadioButton(_("Full (short when loading song)##pis2"),settings.alwaysPlayIntro==2)) {
+          settings.alwaysPlayIntro=2;
+          SETTINGS_CHANGED;
+        }
+        if (ImGui::RadioButton(_("Full (always)##pis3"),settings.alwaysPlayIntro==3)) {
+          settings.alwaysPlayIntro=3;
+          SETTINGS_CHANGED;
+        }
+        ImGui::Unindent();
+      }),
+      SETTING(_("Disable fade-in during start-up"),{
+        bool disableFadeInB=settings.disableFadeIn;
+        if (ImGui::Checkbox(_("Disable fade-in during start-up"),&disableFadeInB)) {
+          settings.disableFadeIn=disableFadeInB;
+          SETTINGS_CHANGED;
+        }
+      })
+    }),
+    SettingsCategory(_("Behavior"),{},{
+      SETTING(_("New instruments are blank"),{
+        bool blankInsB=settings.blankIns;
+        if (ImGui::Checkbox(_("New instruments are blank"),&blankInsB)) {
+          settings.blankIns=blankInsB;
+          SETTINGS_CHANGED;
+        }
+      })
+    }),
+    SettingsCategory(_("Configuration"),{},{ // these donn belond here...
+      SETTING(NULL,{
+        if (ImGui::Button(_("Import"))) {
+          openFileDialog(GUI_FILE_IMPORT_CONFIG);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("Export"))) {
+          openFileDialog(GUI_FILE_EXPORT_CONFIG);
+        }
+        pushDestColor();
+        if (ImGui::Button(_("Factory Reset"))) {
+          showWarning(_("Are you sure you want to reset all Furnace settings?\nYou must restart Furnace after doing so."),GUI_WARN_RESET_CONFIG);
+        }
+        popDestColor();
+      })
+    }),
+    SettingsCategory(_("Import"),{},{
+      SETTING(_("Use OPL3 instead of OPL2 for S3M import"),{
+        bool s3mOPL3B=settings.s3mOPL3;
+        if (ImGui::Checkbox(_("Use OPL3 instead of OPL2 for S3M import"),&s3mOPL3B)) {
+          settings.s3mOPL3=s3mOPL3B;
+          SETTINGS_CHANGED;
+        }
+      })
+    }),
+#ifndef IS_MOBILE
+    SettingsCategory(_("Android"),{
+      SettingsCategory(_("Vibrator"),{},{
+        SETTING(_("Strength"),{
+          if (ImGui::SliderFloat(_("Strength"),&settings.vibrationStrength,0.0f,1.0f)) {
+            if (settings.vibrationStrength<0.0f) settings.vibrationStrength=0.0f;
+            if (settings.vibrationStrength>1.0f) settings.vibrationStrength=1.0f;
+            SETTINGS_CHANGED;
+          }
+        }),
+        SETTING(_("Length"),{
+          if (ImGui::SliderInt(_("Length"),&settings.vibrationLength,10,500,"%d ms")) {
+            if (settings.vibrationLength<10) settings.vibrationLength=10;
+            if (settings.vibrationLength>500) settings.vibrationLength=500;
+            SETTINGS_CHANGED;
+          }
+        }),
+      })
+    },{
+      SETTING(_("Enable background playback (restart!)"),{
+        bool backgroundPlayB=settings.backgroundPlay;
+        if (ImGui::Checkbox(_("Enable background playback (restart!)"),&backgroundPlayB)) {
+          settings.backgroundPlay=backgroundPlayB;
+          SETTINGS_CHANGED;
+        }
+      })
+    }),
+#endif
+    },{}),
+    SettingsCategory(_("Audio"),{
+      SettingsCategory(_("Output"),{},{
+
+      })
     },{})
   };
 
@@ -1033,7 +1331,9 @@ void FurnaceGUI::drawSettings() {
       ImGui::TableNextColumn();
       if (ImGui::BeginChild("SettingCategories",vertical?ImGui::GetContentRegionAvail()/ImVec2(1.0f,3.0f):ImGui::GetContentRegionAvail(),false)) {
         settings.filter.Draw(_("Search"));
+        ImGui::BeginDisabled(settings.filter.IsActive());
         for (SettingsCategory cat:settings.categories) drawSettingsCategory(&cat);
+        ImGui::EndDisabled();
       }
       ImGui::EndChild();
       if (ImGui::GetWindowSize().y>ImGui::GetWindowSize().x) ImGui::TableNextRow();
@@ -1047,305 +1347,6 @@ void FurnaceGUI::drawSettings() {
       ImGui::EndChild();
       ImGui::EndTable();
     }
-
-        END_SECTION;
-      }
-      CONFIG_SECTION(_("General")) {
-
-
-
-        // SUBSECTION NEW SONG
-        CONFIG_SUBSECTION(_("New Song"));
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Initial system:"));
-        ImGui::SameLine();
-        if (ImGui::Button(_("Current system"))) {
-          settings.initialSys.clear();
-          for (int i=0; i<e->song.systemLen; i++) {
-            settings.initialSys.set(fmt::sprintf("id%d",i),e->systemToFileFur(e->song.system[i]));
-            settings.initialSys.set(fmt::sprintf("vol%d",i),(float)e->song.systemVol[i]);
-            settings.initialSys.set(fmt::sprintf("pan%d",i),(float)e->song.systemPan[i]);
-            settings.initialSys.set(fmt::sprintf("fr%d",i),(float)e->song.systemPanFR[i]);
-            settings.initialSys.set(fmt::sprintf("flags%d",i),e->song.systemFlags[i].toBase64());
-          }
-          settings.initialSysName=e->song.systemName;
-          SETTINGS_CHANGED;
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(_("Randomize"))) {
-          settings.initialSys.clear();
-          int howMany=1+rand()%3;
-          int totalAvailSys=0;
-          for (totalAvailSys=0; availableSystems[totalAvailSys]; totalAvailSys++);
-          if (totalAvailSys>0) {
-            for (int i=0; i<howMany; i++) {
-              DivSystem theSystem=DIV_SYSTEM_DUMMY;
-              do {
-                theSystem=(DivSystem)availableSystems[rand()%totalAvailSys];
-              } while (!settings.hiddenSystems && CHECK_HIDDEN_SYSTEM(theSystem));
-              settings.initialSys.set(fmt::sprintf("id%d",i),e->systemToFileFur(theSystem));
-              settings.initialSys.set(fmt::sprintf("vol%d",i),1.0f);
-              settings.initialSys.set(fmt::sprintf("pan%d",i),0.0f);
-              settings.initialSys.set(fmt::sprintf("fr%d",i),0.0f);
-              settings.initialSys.set(fmt::sprintf("flags%d",i),"");
-            }
-          } else {
-            settings.initialSys.set("id0",e->systemToFileFur(DIV_SYSTEM_DUMMY));
-            settings.initialSys.set("vol0",1.0f);
-            settings.initialSys.set("pan0",0.0f);
-            settings.initialSys.set("fr0",0.0f);
-            settings.initialSys.set("flags0","");
-            howMany=1;
-          }
-          // randomize system name
-          std::vector<String> wordPool[6];
-          for (int i=0; i<howMany; i++) {
-            int wpPos=0;
-            DivSystem sysID=e->systemFromFileFur(settings.initialSys.getInt(fmt::sprintf("id%d",i),0));
-            String sName=e->getSystemName(sysID);
-            String nameWord;
-            sName+=" ";
-            for (char& i: sName) {
-              if (i==' ') {
-                if (nameWord!="") {
-                  wordPool[wpPos++].push_back(nameWord);
-                  if (wpPos>=6) break;
-                  nameWord="";
-                }
-              } else {
-                nameWord+=i;
-              }
-            }
-          }
-          settings.initialSysName="";
-          for (int i=0; i<6; i++) {
-            if (wordPool[i].empty()) continue;
-            settings.initialSysName+=wordPool[i][rand()%wordPool[i].size()];
-            settings.initialSysName+=" ";
-          }
-          SETTINGS_CHANGED;
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(_("Reset to defaults"))) {
-          settings.initialSys.clear();
-          settings.initialSys.set("id0",e->systemToFileFur(DIV_SYSTEM_YM2612));
-          settings.initialSys.set("vol0",1.0f);
-          settings.initialSys.set("pan0",0.0f);
-          settings.initialSys.set("fr0",0.0f);
-          settings.initialSys.set("flags0","");
-          settings.initialSys.set("id1",e->systemToFileFur(DIV_SYSTEM_SMS));
-          settings.initialSys.set("vol1",0.5f);
-          settings.initialSys.set("pan1",0.0f);
-          settings.initialSys.set("fr1",0.0f);
-          settings.initialSys.set("flags1","");
-          settings.initialSysName="Sega Genesis/Mega Drive";
-          SETTINGS_CHANGED;
-        }
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Name"));
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::InputText("##InitSysName",&settings.initialSysName)) SETTINGS_CHANGED;
-
-        int sysCount=0;
-        int doRemove=-1;
-        for (size_t i=0; settings.initialSys.getInt(fmt::sprintf("id%d",i),0); i++) {
-          DivSystem sysID=e->systemFromFileFur(settings.initialSys.getInt(fmt::sprintf("id%d",i),0));
-          float sysVol=settings.initialSys.getFloat(fmt::sprintf("vol%d",i),0);
-          float sysPan=settings.initialSys.getFloat(fmt::sprintf("pan%d",i),0);
-          float sysPanFR=settings.initialSys.getFloat(fmt::sprintf("fr%d",i),0);
-
-          sysCount=i+1;
-
-          //bool doRemove=false;
-          bool doInvert=(sysVol<0);
-          float vol=fabs(sysVol);
-          ImGui::PushID(i);
-
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(_("Invert")).x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
-            if (ImGui::BeginCombo("##System",getSystemName(sysID),ImGuiComboFlags_HeightLargest)) {
-
-            sysID=systemPicker(true);
-
-            if (sysID!=DIV_SYSTEM_NULL)
-            {
-              settings.initialSys.set(fmt::sprintf("id%d",i),(int)e->systemToFileFur(sysID));
-              settings.initialSys.set(fmt::sprintf("flags%d",i),"");
-              SETTINGS_CHANGED;
-
-              ImGui::CloseCurrentPopup();
-            }
-
-            ImGui::EndCombo();
-          }
-
-          ImGui::SameLine();
-          if (ImGui::Checkbox(_("Invert"),&doInvert)) {
-            sysVol=-sysVol;
-            settings.initialSys.set(fmt::sprintf("vol%d",i),sysVol);
-            SETTINGS_CHANGED;
-          }
-          ImGui::SameLine();
-          //ImGui::BeginDisabled(settings.initialSys.size()<=4);
-          pushDestColor();
-          if (ImGui::Button(ICON_FA_MINUS "##InitSysRemove")) {
-            doRemove=i;
-            SETTINGS_CHANGED;
-          }
-          popDestColor();
-          //ImGui::EndDisabled();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
-          if (CWSliderFloat(_("Volume"),&vol,0.0f,3.0f)) {
-            if (doInvert) {
-              if (vol<0.0001) vol=0.0001;
-            }
-            if (vol<0) vol=0;
-            if (vol>10) vol=10;
-            sysVol=doInvert?-vol:vol;
-            settings.initialSys.set(fmt::sprintf("vol%d",i),(float)sysVol);
-            SETTINGS_CHANGED;
-          } rightClickable
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
-          if (CWSliderFloat(_("Panning"),&sysPan,-1.0f,1.0f)) {
-            if (sysPan<-1.0f) sysPan=-1.0f;
-            if (sysPan>1.0f) sysPan=1.0f;
-            settings.initialSys.set(fmt::sprintf("pan%d",i),(float)sysPan);
-            SETTINGS_CHANGED;
-          } rightClickable
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
-          if (CWSliderFloat(_("Front/Rear"),&sysPanFR,-1.0f,1.0f)) {
-            if (sysPanFR<-1.0f) sysPanFR=-1.0f;
-            if (sysPanFR>1.0f) sysPanFR=1.0f;
-            settings.initialSys.set(fmt::sprintf("fr%d",i),(float)sysPanFR);
-            SETTINGS_CHANGED;
-          } rightClickable
-
-          // oh please MSVC don't cry
-          if (ImGui::TreeNode(_("Configure"))) {
-            String sysFlagsS=settings.initialSys.getString(fmt::sprintf("flags%d",i),"");
-            DivConfig sysFlags;
-            sysFlags.loadFromBase64(sysFlagsS.c_str());
-            if (drawSysConf(-1,i,sysID,sysFlags,false)) {
-              settings.initialSys.set(fmt::sprintf("flags%d",i),sysFlags.toBase64());
-            }
-            ImGui::TreePop();
-            SETTINGS_CHANGED;
-          }
-
-          ImGui::PopID();
-        }
-
-        if (doRemove>=0 && sysCount>1) {
-          for (int i=doRemove; i<sysCount-1; i++) {
-            int sysID=settings.initialSys.getInt(fmt::sprintf("id%d",i+1),0);
-            float sysVol=settings.initialSys.getFloat(fmt::sprintf("vol%d",i+1),0);
-            float sysPan=settings.initialSys.getFloat(fmt::sprintf("pan%d",i+1),0);
-            float sysPanFR=settings.initialSys.getFloat(fmt::sprintf("fr%d",i+1),0);
-            String sysFlags=settings.initialSys.getString(fmt::sprintf("flags%d",i+1),"");
-            settings.initialSys.set(fmt::sprintf("id%d",i),sysID);
-            settings.initialSys.set(fmt::sprintf("vol%d",i),sysVol);
-            settings.initialSys.set(fmt::sprintf("pan%d",i),sysPan);
-            settings.initialSys.set(fmt::sprintf("fr%d",i),sysPanFR);
-            settings.initialSys.set(fmt::sprintf("flags%d",i),sysFlags);
-          }
-
-          settings.initialSys.remove(fmt::sprintf("id%d",sysCount-1));
-          settings.initialSys.remove(fmt::sprintf("vol%d",sysCount-1));
-          settings.initialSys.remove(fmt::sprintf("pan%d",sysCount-1));
-          settings.initialSys.remove(fmt::sprintf("fr%d",sysCount-1));
-          settings.initialSys.remove(fmt::sprintf("flags%d",sysCount-1));
-        }
-
-        if (sysCount<32) if (ImGui::Button(ICON_FA_PLUS "##InitSysAdd")) {
-          settings.initialSys.set(fmt::sprintf("id%d",sysCount),(int)e->systemToFileFur(DIV_SYSTEM_YM2612));
-          settings.initialSys.set(fmt::sprintf("vol%d",sysCount),1.0f);
-          settings.initialSys.set(fmt::sprintf("pan%d",sysCount),0.0f);
-          settings.initialSys.set(fmt::sprintf("fr%d",sysCount),0.0f);
-          settings.initialSys.set(fmt::sprintf("flags%d",sysCount),"");
-        }
-
-        ImGui::Text(_("When creating new song:"));
-        ImGui::Indent();
-        if (ImGui::RadioButton(_("Display system preset selector##NSB0"),settings.newSongBehavior==0)) {
-          settings.newSongBehavior=0;
-          SETTINGS_CHANGED;
-        }
-        if (ImGui::RadioButton(_("Start with initial system##NSB1"),settings.newSongBehavior==1)) {
-          settings.newSongBehavior=1;
-          SETTINGS_CHANGED;
-        }
-        if (ImGui::InputText(_("Default author name"), &settings.defaultAuthorName)) SETTINGS_CHANGED;
-        ImGui::Unindent();
-
-        // SUBSECTION START-UP
-        CONFIG_SUBSECTION(_("Start-up"));
-        ImGui::Text(_("Play intro on start-up:"));
-        ImGui::Indent();
-        if (ImGui::RadioButton(_("No##pis0"),settings.alwaysPlayIntro==0)) {
-          settings.alwaysPlayIntro=0;
-          SETTINGS_CHANGED;
-        }
-        if (ImGui::RadioButton(_("Short##pis1"),settings.alwaysPlayIntro==1)) {
-          settings.alwaysPlayIntro=1;
-          SETTINGS_CHANGED;
-        }
-        if (ImGui::RadioButton(_("Full (short when loading song)##pis2"),settings.alwaysPlayIntro==2)) {
-          settings.alwaysPlayIntro=2;
-          SETTINGS_CHANGED;
-        }
-        if (ImGui::RadioButton(_("Full (always)##pis3"),settings.alwaysPlayIntro==3)) {
-          settings.alwaysPlayIntro=3;
-          SETTINGS_CHANGED;
-        }
-        ImGui::Unindent();
-
-        bool disableFadeInB=settings.disableFadeIn;
-        if (ImGui::Checkbox(_("Disable fade-in during start-up"),&disableFadeInB)) {
-          settings.disableFadeIn=disableFadeInB;
-          SETTINGS_CHANGED;
-        }
-
-        // SUBSECTION BEHAVIOR
-        CONFIG_SUBSECTION(_("Behavior"));
-        bool blankInsB=settings.blankIns;
-        if (ImGui::Checkbox(_("New instruments are blank"),&blankInsB)) {
-          settings.blankIns=blankInsB;
-          SETTINGS_CHANGED;
-        }
-
-        // SUBSECTION CONFIGURATION
-        CONFIG_SUBSECTION(_("Configuration"));
-        if (ImGui::Button(_("Import"))) {
-          openFileDialog(GUI_FILE_IMPORT_CONFIG);
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(_("Export"))) {
-          openFileDialog(GUI_FILE_EXPORT_CONFIG);
-        }
-        pushDestColor();
-        if (ImGui::Button(_("Factory Reset"))) {
-          showWarning(_("Are you sure you want to reset all Furnace settings?\nYou must restart Furnace after doing so."),GUI_WARN_RESET_CONFIG);
-        }
-        popDestColor();
-
-        // SUBSECTION IMPORT
-        CONFIG_SUBSECTION(_("Import"));
-        bool s3mOPL3B=settings.s3mOPL3;
-        if (ImGui::Checkbox(_("Use OPL3 instead of OPL2 for S3M import"),&s3mOPL3B)) {
-          settings.s3mOPL3=s3mOPL3B;
-          SETTINGS_CHANGED;
-        }
-
-#ifdef ANDROID
-        // SUBSECTION ANDROID
-        CONFIG_SUBSECTION(_("Android"));
-        bool backgroundPlayB=settings.backgroundPlay;
-        if (ImGui::Checkbox(_("Enable background playback (restart!)"),&backgroundPlayB)) {
-          settings.backgroundPlay=backgroundPlayB;
-          SETTINGS_CHANGED;
-        }
-#endif
 
         END_SECTION;
       }
@@ -4816,6 +4817,14 @@ void FurnaceGUI::drawKeybindSettingsTableRow(FurnaceGUIActions actionIdx) {
   }
   ImGui::PopID(); // action
 }
+
+#define clampSetting(x,minV,maxV) \
+  if (x<minV) { \
+    x=minV; \
+  } \
+  if (x>maxV) { \
+    x=maxV; \
+  }
 
 void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   if (groups&GUI_SETTINGS_GENERAL) {

@@ -1639,6 +1639,12 @@ class SettingsCategory {
       settings({}),
       expandChild(false) {}
 
+    /**
+     * settings category constructor.
+     * @param n category name.
+     * @param c subcategories.
+     * @param s category settings.
+     */
     SettingsCategory(const char* n, std::initializer_list<SettingsCategory> c, std::initializer_list<Setting*> s):
       expandChild(false) {
       name=n;
