@@ -33,6 +33,7 @@
 #include "misc/freetype/imgui_freetype.h"
 #include "scaling.h"
 #include <fmt/printf.h>
+#include <imgui.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -1044,7 +1045,7 @@ void FurnaceGUI::destroySettingsCategories(SettingsCategory& cat) {
 
 void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {
   if (cat->children.size()>0) {
-    ImGuiTreeNodeFlags f=ImGuiTreeNodeFlags_OpenOnDoubleClick;
+    ImGuiTreeNodeFlags f=ImGuiTreeNodeFlags_SpanFullWidth|ImGuiTreeNodeFlags_OpenOnArrow|ImGuiTreeNodeFlags_OpenOnDoubleClick;
     if (settings.activeCategory.name==cat->name) f|=ImGuiTreeNodeFlags_Selected;
     cat->expandChild=ImGui::TreeNodeEx(cat->name,f);
     if (ImGui::IsItemClicked()) {
