@@ -364,7 +364,8 @@ const char* specificControls[18]={
   const char* t[2]={"1","2"};
 void FurnaceGUI::setupSettingsCategories() {
   settings.categories={
-    SettingsCategory("Program",{},{
+  SettingsCategory(_("General"),{
+    SettingsCategory(_("Program"),{},{
 #ifdef HAVE_LOCALE
       SETTING(_("Language"),{
         String curLocale=settings.locale;
@@ -529,7 +530,202 @@ void FurnaceGUI::setupSettingsCategories() {
           ImGui::SetTooltip(_("may cause issues with high-polling-rate mice when previewing notes."));
         }
       }),
+      SETTING(_("Per-channel oscilloscope threads"),{
+        pushWarningColor(settings.chanOscThreads>cpuCores,settings.chanOscThreads>(cpuCores*2));
+        if (ImGui::InputInt(_("Per-channel oscilloscope threads"),&settings.chanOscThreads)) {
+          if (settings.chanOscThreads<0) settings.chanOscThreads=0;
+          if (settings.chanOscThreads>(cpuCores*3)) settings.chanOscThreads=cpuCores*3;
+          if (settings.chanOscThreads>256) settings.chanOscThreads=256;
+          SETTINGS_CHANGED;
+        }
+        if (settings.chanOscThreads>=(cpuCores*3)) {
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("you're being silly, aren't you? that's enough."));
+          }
+        } else if (settings.chanOscThreads>(cpuCores*2)) {
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("what are you doing? stop!"));
+          }
+        } else if (settings.chanOscThreads>cpuCores) {
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("it is a bad idea to set this number higher than your CPU core count (%d)!"),cpuCores);
+          }
+        }
+        popWarningColor();
+      }),
+      SETTING(_("Oscilloscope rendering engine:"),{
+        ImGui::Text(_("Oscilloscope rendering engine:"));
+        ImGui::Indent();
+        if (ImGui::RadioButton(_("ImGui line plot"),settings.shaderOsc==0)) {
+          settings.shaderOsc=0;
+          SETTINGS_CHANGED;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("render using Dear ImGui's built-in line drawing functions."));
+        }
+        if (ImGui::RadioButton(_("GLSL (if available)"),settings.shaderOsc==1)) {
+          settings.shaderOsc=1;
+          SETTINGS_CHANGED;
+        }
+        if (ImGui::IsItemHovered()) {
+#ifdef USE_GLES
+          ImGui::SetTooltip(_("render using shaders that run on the graphics card.\nonly available in OpenGL ES 2.0 render backend."));
+#else
+          ImGui::SetTooltip(_("render using shaders that run on the graphics card.\nonly available in OpenGL 3.0 render backend."));
+#endif
+        }
+        ImGui::Unindent();
+      }),
     }),
+#ifdef IS_MOBILE
+    SettingsCategory(_("Vibration"),{},{
+      SETTING(_("Strength"),{
+        if (ImGui::SliderFloat(_("Strength"),&settings.vibrationStrength,0.0f,1.0f)) {
+          if (settings.vibrationStrength<0.0f) settings.vibrationStrength=0.0f;
+          if (settings.vibrationStrength>1.0f) settings.vibrationStrength=1.0f;
+          SETTINGS_CHANGED;
+        }
+      }),
+      SETTING(_("Length"),{
+        if (ImGui::SliderInt(_("Length"),&settings.vibrationLength,10,500)) {
+          if (settings.vibrationLength<10) settings.vibrationLength=10;
+          if (settings.vibrationLength>500) settings.vibrationLength=500;
+          SETTINGS_CHANGED;
+        }
+      }),
+    }),
+#endif
+    SettingsCategory(_("File"),{},{
+      SETTING(_("Use system file picker"),{
+        bool sysFileDialogB=settings.sysFileDialog;
+        if (ImGui::Checkbox(_("Use system file picker"),&sysFileDialogB)) {
+          settings.sysFileDialog=sysFileDialogB;
+          SETTINGS_CHANGED;
+        }
+      }),
+      SETTING(_("Number of recent files"),{
+        if (ImGui::InputInt(_("Number of recent files"),&settings.maxRecentFile,1,5)) {
+          if (settings.maxRecentFile<0) settings.maxRecentFile=0;
+          if (settings.maxRecentFile>30) settings.maxRecentFile=30;
+          SETTINGS_CHANGED;
+        }
+      }),
+      SETTING(_("Compress when saving"),{
+        bool compressB=settings.compress;
+        if (ImGui::Checkbox(_("Compress when saving"),&compressB)) {
+          settings.compress=compressB;
+          SETTINGS_CHANGED;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("use zlib to compress saved songs."));
+        }
+      }),
+      SETTING(_("Save unused patterns"),{
+        bool saveUnusedPatternsB=settings.saveUnusedPatterns;
+        if (ImGui::Checkbox(_("Save unused patterns"),&saveUnusedPatternsB)) {
+          settings.saveUnusedPatterns=saveUnusedPatternsB;
+          SETTINGS_CHANGED;
+        }
+      }),
+      SETTING(_("Use new pattern format when saving"),{
+        bool newPatternFormatB=settings.newPatternFormat;
+        if (ImGui::Checkbox(_("Use new pattern format when saving"),&newPatternFormatB)) {
+          settings.newPatternFormat=newPatternFormatB;
+          SETTINGS_CHANGED;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("use a packed format which saves space when saving songs.\ndisable if you need compatibility with older Furnace and/or tools\nwhich do not support this format."));
+        }
+      }),
+      SETTING(_("Don't apply compatibility flags when loading .dmf"),{
+        bool noDMFCompatB=settings.noDMFCompat;
+        if (ImGui::Checkbox(_("Don't apply compatibility flags when loading .dmf"),&noDMFCompatB)) {
+          settings.noDMFCompat=noDMFCompatB;
+          SETTINGS_CHANGED;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("do not report any issues arising from the use of this option!"));
+        }
+      }),
+      SETTING(_("Play after opening song:"),{
+        ImGui::Text(_("Play after opening song:"));
+        ImGui::Indent();
+        if (ImGui::RadioButton(_("No##pol0"),settings.playOnLoad==0)) {
+          settings.playOnLoad=0;
+          SETTINGS_CHANGED;
+        }
+        if (ImGui::RadioButton(_("Only if already playing##pol1"),settings.playOnLoad==1)) {
+          settings.playOnLoad=1;
+          SETTINGS_CHANGED;
+        }
+        if (ImGui::RadioButton(_("Yes##pol0"),settings.playOnLoad==2)) {
+          settings.playOnLoad=2;
+          SETTINGS_CHANGED;
+        }
+        ImGui::Unindent();
+      }),
+      SETTING(_("Audio export loop/fade out time:"),{
+        ImGui::Text(_("Audio export loop/fade out time:"));
+        ImGui::Indent();
+        if (ImGui::RadioButton(_("Set to these values on start-up:##fot0"),settings.persistFadeOut==0)) {
+          settings.persistFadeOut=0;
+          SETTINGS_CHANGED;
+        }
+        ImGui::BeginDisabled(settings.persistFadeOut);
+        ImGui::Indent();
+        if (ImGui::InputInt(_("Loops"),&settings.exportLoops,1,2)) {
+          if (settings.exportLoops<0) settings.exportLoops=0;
+          audioExportOptions.loops=settings.exportLoops;
+          SETTINGS_CHANGED;
+        }
+        if (ImGui::InputDouble(_("Fade out (seconds)"),&settings.exportFadeOut,1.0,2.0,"%.1f")) {
+          if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
+          audioExportOptions.fadeOut=settings.exportFadeOut;
+          SETTINGS_CHANGED;
+        }
+        ImGui::Unindent();
+        ImGui::EndDisabled();
+        if (ImGui::RadioButton(_("Remember last values##fot1"),settings.persistFadeOut==1)) {
+          settings.persistFadeOut=1;
+          SETTINGS_CHANGED;
+        }
+        ImGui::Unindent();
+      }),
+      SETTING(_("Store instrument name in .fui"),{
+        bool writeInsNamesB=settings.writeInsNames;
+        if (ImGui::Checkbox(_("Store instrument name in .fui"),&writeInsNamesB)) {
+          settings.writeInsNames=writeInsNamesB;
+          SETTINGS_CHANGED;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("when enabled, saving an instrument will store its name.\nthis may increase file size."));
+        }
+      }),
+      SETTING(_("Load instrument name from .fui"),{
+        bool readInsNamesB=settings.readInsNames;
+        if (ImGui::Checkbox(_("Load instrument name from .fui"),&readInsNamesB)) {
+          settings.readInsNames=readInsNamesB;
+          SETTINGS_CHANGED;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("when enabled, loading an instrument will use the stored name (if present).\notherwise, it will use the file name."));
+        }
+      }),
+      SETTING(_("Auto-fill file name when saving"),{
+        bool autoFillSaveB=settings.autoFillSave;
+        if (ImGui::Checkbox(_("Auto-fill file name when saving"),&autoFillSaveB)) {
+          settings.autoFillSave=autoFillSaveB;
+          SETTINGS_CHANGED;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("fill the file name field with an appropriate file name when saving or exporting."));
+        }
+      })
+    }),
+    SettingsCategory(_("New Song"),{},{
+      
+    })
+    },{})
   };
 
   settings.activeCategory=settings.categories[0];
@@ -855,186 +1051,8 @@ void FurnaceGUI::drawSettings() {
         END_SECTION;
       }
       CONFIG_SECTION(_("General")) {
-        // SUBSECTION PROGRAM
-        CONFIG_SUBSECTION(_("Program"));
 
-        pushWarningColor(settings.chanOscThreads>cpuCores,settings.chanOscThreads>(cpuCores*2));
-        if (ImGui::InputInt(_("Per-channel oscilloscope threads"),&settings.chanOscThreads)) {
-          if (settings.chanOscThreads<0) settings.chanOscThreads=0;
-          if (settings.chanOscThreads>(cpuCores*3)) settings.chanOscThreads=cpuCores*3;
-          if (settings.chanOscThreads>256) settings.chanOscThreads=256;
-          SETTINGS_CHANGED;
-        }
-        if (settings.chanOscThreads>=(cpuCores*3)) {
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("you're being silly, aren't you? that's enough."));
-          }
-        } else if (settings.chanOscThreads>(cpuCores*2)) {
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("what are you doing? stop!"));
-          }
-        } else if (settings.chanOscThreads>cpuCores) {
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("it is a bad idea to set this number higher than your CPU core count (%d)!"),cpuCores);
-          }
-        }
-        popWarningColor();
 
-        ImGui::Text(_("Oscilloscope rendering engine:"));
-        ImGui::Indent();
-        if (ImGui::RadioButton(_("ImGui line plot"),settings.shaderOsc==0)) {
-          settings.shaderOsc=0;
-          SETTINGS_CHANGED;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("render using Dear ImGui's built-in line drawing functions."));
-        }
-        if (ImGui::RadioButton(_("GLSL (if available)"),settings.shaderOsc==1)) {
-          settings.shaderOsc=1;
-          SETTINGS_CHANGED;
-        }
-        if (ImGui::IsItemHovered()) {
-#ifdef USE_GLES
-          ImGui::SetTooltip(_("render using shaders that run on the graphics card.\nonly available in OpenGL ES 2.0 render backend."));
-#else
-          ImGui::SetTooltip(_("render using shaders that run on the graphics card.\nonly available in OpenGL 3.0 render backend."));
-#endif
-        }
-        ImGui::Unindent();
-
-#ifdef IS_MOBILE
-        // SUBSECTION VIBRATION
-        CONFIG_SUBSECTION(_("Vibration"));
-
-        if (ImGui::SliderFloat(_("Strength"),&settings.vibrationStrength,0.0f,1.0f)) {
-          if (settings.vibrationStrength<0.0f) settings.vibrationStrength=0.0f;
-          if (settings.vibrationStrength>1.0f) settings.vibrationStrength=1.0f;
-          SETTINGS_CHANGED;
-        }
-
-        if (ImGui::SliderInt(_("Length"),&settings.vibrationLength,10,500)) {
-          if (settings.vibrationLength<10) settings.vibrationLength=10;
-          if (settings.vibrationLength>500) settings.vibrationLength=500;
-          SETTINGS_CHANGED;
-        }
-#endif
-
-        // SUBSECTION FILE
-        CONFIG_SUBSECTION(_("File"));
-
-        bool sysFileDialogB=settings.sysFileDialog;
-        if (ImGui::Checkbox(_("Use system file picker"),&sysFileDialogB)) {
-          settings.sysFileDialog=sysFileDialogB;
-          SETTINGS_CHANGED;
-        }
-
-        if (ImGui::InputInt(_("Number of recent files"),&settings.maxRecentFile,1,5)) {
-          if (settings.maxRecentFile<0) settings.maxRecentFile=0;
-          if (settings.maxRecentFile>30) settings.maxRecentFile=30;
-          SETTINGS_CHANGED;
-        }
-
-        bool compressB=settings.compress;
-        if (ImGui::Checkbox(_("Compress when saving"),&compressB)) {
-          settings.compress=compressB;
-          SETTINGS_CHANGED;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("use zlib to compress saved songs."));
-        }
-
-        bool saveUnusedPatternsB=settings.saveUnusedPatterns;
-        if (ImGui::Checkbox(_("Save unused patterns"),&saveUnusedPatternsB)) {
-          settings.saveUnusedPatterns=saveUnusedPatternsB;
-          SETTINGS_CHANGED;
-        }
-
-        bool newPatternFormatB=settings.newPatternFormat;
-        if (ImGui::Checkbox(_("Use new pattern format when saving"),&newPatternFormatB)) {
-          settings.newPatternFormat=newPatternFormatB;
-          SETTINGS_CHANGED;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("use a packed format which saves space when saving songs.\ndisable if you need compatibility with older Furnace and/or tools\nwhich do not support this format."));
-        }
-
-        bool noDMFCompatB=settings.noDMFCompat;
-        if (ImGui::Checkbox(_("Don't apply compatibility flags when loading .dmf"),&noDMFCompatB)) {
-          settings.noDMFCompat=noDMFCompatB;
-          SETTINGS_CHANGED;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("do not report any issues arising from the use of this option!"));
-        }
-
-        ImGui::Text(_("Play after opening song:"));
-        ImGui::Indent();
-        if (ImGui::RadioButton(_("No##pol0"),settings.playOnLoad==0)) {
-          settings.playOnLoad=0;
-          SETTINGS_CHANGED;
-        }
-        if (ImGui::RadioButton(_("Only if already playing##pol1"),settings.playOnLoad==1)) {
-          settings.playOnLoad=1;
-          SETTINGS_CHANGED;
-        }
-        if (ImGui::RadioButton(_("Yes##pol0"),settings.playOnLoad==2)) {
-          settings.playOnLoad=2;
-          SETTINGS_CHANGED;
-        }
-        ImGui::Unindent();
-
-        ImGui::Text(_("Audio export loop/fade out time:"));
-        ImGui::Indent();
-        if (ImGui::RadioButton(_("Set to these values on start-up:##fot0"),settings.persistFadeOut==0)) {
-          settings.persistFadeOut=0;
-          SETTINGS_CHANGED;
-        }
-        ImGui::BeginDisabled(settings.persistFadeOut);
-        ImGui::Indent();
-        if (ImGui::InputInt(_("Loops"),&settings.exportLoops,1,2)) {
-          if (settings.exportLoops<0) settings.exportLoops=0;
-          audioExportOptions.loops=settings.exportLoops;
-          SETTINGS_CHANGED;
-        }
-        if (ImGui::InputDouble(_("Fade out (seconds)"),&settings.exportFadeOut,1.0,2.0,"%.1f")) {
-          if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
-          audioExportOptions.fadeOut=settings.exportFadeOut;
-          SETTINGS_CHANGED;
-        }
-        ImGui::Unindent();
-        ImGui::EndDisabled();
-        if (ImGui::RadioButton(_("Remember last values##fot1"),settings.persistFadeOut==1)) {
-          settings.persistFadeOut=1;
-          SETTINGS_CHANGED;
-        }
-        ImGui::Unindent();
-
-        bool writeInsNamesB=settings.writeInsNames;
-        if (ImGui::Checkbox(_("Store instrument name in .fui"),&writeInsNamesB)) {
-          settings.writeInsNames=writeInsNamesB;
-          SETTINGS_CHANGED;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("when enabled, saving an instrument will store its name.\nthis may increase file size."));
-        }
-
-        bool readInsNamesB=settings.readInsNames;
-        if (ImGui::Checkbox(_("Load instrument name from .fui"),&readInsNamesB)) {
-          settings.readInsNames=readInsNamesB;
-          SETTINGS_CHANGED;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("when enabled, loading an instrument will use the stored name (if present).\notherwise, it will use the file name."));
-        }
-
-        bool autoFillSaveB=settings.autoFillSave;
-        if (ImGui::Checkbox(_("Auto-fill file name when saving"),&autoFillSaveB)) {
-          settings.autoFillSave=autoFillSaveB;
-          SETTINGS_CHANGED;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("fill the file name field with an appropriate file name when saving or exporting."));
-        }
 
         // SUBSECTION NEW SONG
         CONFIG_SUBSECTION(_("New Song"));
