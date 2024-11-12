@@ -1305,6 +1305,11 @@ ImGuiIO::ImGuiIO()
     // Inertial scrolling options (when ImGuiConfigFlags_InertialScrollEnable is set)
     ConfigInertialScrollToleranceSqr = 36.0f;
 
+    // ScrollText options
+    ScrollTextSpeed = 100.0f;
+    ScrollTextSpacing = 8.0f;
+    AlwaysScrollText = false;
+
     // Miscellaneous options
     MouseDrawCursor = false;
 #ifdef __APPLE__

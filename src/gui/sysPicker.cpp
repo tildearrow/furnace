@@ -69,7 +69,7 @@ DivSystem FurnaceGUI::systemPicker(bool fullWidth) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         if (ImGui::Selectable(e->getSystemName((DivSystem)curSysSection[j]),false,0,ImVec2(500.0f*dpiScale,0.0f))) ret=(DivSystem)curSysSection[j];
-        if (ImGui::IsItemHovered()) {
+        if (ImGui::IsItemHovered() && hoveredSys==DIV_SYSTEM_NULL) {
           hoveredSys=(DivSystem)curSysSection[j];
         }
       }
@@ -80,7 +80,7 @@ DivSystem FurnaceGUI::systemPicker(bool fullWidth) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         if (ImGui::Selectable(e->getSystemName(i),false,0,ImVec2(500.0f*dpiScale,0.0f))) ret=i;
-        if (ImGui::IsItemHovered()) {
+        if (ImGui::IsItemHovered() && hoveredSys==DIV_SYSTEM_NULL) {
           hoveredSys=i;
         }
       }

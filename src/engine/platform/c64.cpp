@@ -214,8 +214,12 @@ void DivPlatformC64::tick(bool sysTick) {
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.alg.had && (_i==2 || macroRace)) { // new cutoff macro
-      DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_C64);
+    bool condition=chan[i].std.alg.will;
+    DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_C64);
+    if ((!ins->c64.filterIsAbs) || macroRace) {
+      condition=chan[i].std.alg.had;
+    }
+    if (condition) { // new cutoff macro
       if (ins->c64.filterIsAbs) {
         filtCut=MIN(2047,chan[i].std.alg.val);
       } else {

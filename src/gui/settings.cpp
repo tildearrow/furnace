@@ -6564,6 +6564,8 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly=settings.moveWindowTitle;
   ImGui::GetIO().ConfigInertialScrollToleranceSqr=pow(dpiScale*4.0f,2.0f);
   ImGui::GetIO().MouseDoubleClickTime=settings.doubleClickTime;
+  ImGui::GetIO().ScrollTextSpacing=8.0*dpiScale;
+  ImGui::GetIO().ScrollTextSpeed=60.0*dpiScale;
 
   for (int i=0; i<256; i++) {
     ImVec4& base=uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH];
