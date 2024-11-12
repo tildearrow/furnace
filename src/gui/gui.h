@@ -2990,6 +2990,8 @@ class FurnaceGUI {
   void drawSettingsCategory(SettingsCategory* cat);
   void searchDrawSettingItems(SettingsCategory* cat);
   void drawSettingsItems();
+  // settings helper functions (made part of FurnaceGUI to be able to pass to lambdas)
+  String stripName(String what);
 
   void syncSettings();
   void commitSettings();

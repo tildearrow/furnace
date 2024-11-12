@@ -1242,7 +1242,111 @@ void FurnaceGUI::setupSettingsCategories() {
           }
         })
       })
-    },{})
+    },{}),
+    SettingsCategory(_("MIDI"),{
+      SettingsCategory(_("MIDI input"),{},{
+        SETTING(_("MIDI input"),{
+          String midiInName=settings.midiInDevice.empty()?_("<disabled>"):settings.midiInDevice;
+          bool hasToReloadMidi=false;
+          if (ImGui::BeginCombo("##MidiInDevice",midiInName.c_str())) {
+            if (ImGui::Selectable(_("<disabled>"),settings.midiInDevice.empty())) {
+              settings.midiInDevice="";
+              hasToReloadMidi=true;
+              SETTINGS_CHANGED;
+            }
+            for (String& i: e->getMidiIns()) {
+              if (ImGui::Selectable(i.c_str(),i==settings.midiInDevice)) {
+                settings.midiInDevice=i;
+                hasToReloadMidi=true;
+                SETTINGS_CHANGED;
+              }
+            }
+            ImGui::EndCombo();
+          }
+
+          ImGui::SameLine();
+          if (ImGui::Button(_("Re-scan MIDI devices"))) {
+            e->rescanMidiDevices();
+            audioEngineChanged=true;
+            settingsChanged=false;
+          }
+
+          if (hasToReloadMidi) {
+            midiMap.read(e->getConfigPath()+DIR_SEPARATOR_STR+"midiIn_"+stripName(settings.midiInDevice)+".cfg");
+            midiMap.compile();
+          }
+        }),
+        SETTING(_("Note input"),{
+          if (ImGui::Checkbox(_("Note input"),&midiMap.noteInput)) SETTINGS_CHANGED;
+        }),
+        SETTING(_("Velocity input"),{
+          if (ImGui::Checkbox(_("Velocity input"),&midiMap.volInput)) SETTINGS_CHANGED;
+        }),
+        // TODO
+        //ImGui::Checkbox(_("Use raw velocity value (don't map from linear to log)"),&midiMap.rawVolume);
+        //ImGui::Checkbox(_("Polyphonic/chord input"),&midiMap.polyInput);
+        // then convert to new new settings
+        SETTING(_("Map MIDI channels to direct channels"),{
+          if (ImGui::Checkbox(_("Map MIDI channels to direct channels"),&midiMap.directChannel)) {
+            e->setMidiDirect(midiMap.directChannel);
+            e->setMidiDirectProgram(midiMap.directChannel && midiMap.directProgram);
+            SETTINGS_CHANGED;
+          }
+        }),
+        SETTING_COND(_("Program change pass-through"),{
+          if (ImGui::Checkbox(_("Program change pass-through"),&midiMap.directProgram)) {
+            e->setMidiDirectProgram(midiMap.directChannel && midiMap.directProgram);
+            SETTINGS_CHANGED;
+          }
+        },midiMap.directChannel),
+        SETTING(_("Map Yamaha FM voice data to instruments"),{
+          if (ImGui::Checkbox(_("Map Yamaha FM voice data to instruments"),&midiMap.yamahaFMResponse)) SETTINGS_CHANGED;
+        }),
+        SETTING_COND(_("Program change is instrument selection"),{
+          if (ImGui::Checkbox(_("Program change is instrument selection"),&midiMap.programChange)) SETTINGS_CHANGED;
+        },!(midiMap.directChannel && midiMap.directProgram)),
+        //ImGui::Checkbox(_("Listen to MIDI clock"),&midiMap.midiClock);
+        //ImGui::Checkbox(_("Listen to MIDI time code"),&midiMap.midiTimeCode);
+        SETTING(_("Value input style"),{
+          if (ImGui::Combo(_("Value input style"),&midiMap.valueInputStyle,LocalizedComboGetter,valueInputStyles,7)) SETTINGS_CHANGED;
+        }),
+        SETTING_COND(_("Control##valueCCS"),{
+          if (ImGui::InputInt(_("Control##valueCCS"),&midiMap.valueInputControlSingle,1,16)) {
+            if (midiMap.valueInputControlSingle<0) midiMap.valueInputControlSingle=0;
+            if (midiMap.valueInputControlSingle>127) midiMap.valueInputControlSingle=127;
+            SETTINGS_CHANGED;
+          }
+        },midiMap.valueInputStyle==6),
+        SETTING_COND(_("CC of upper nibble##valueCC1"),{
+          if (ImGui::InputInt(_("CC of upper nibble##valueCC1"),&midiMap.valueInputControlMSB,1,16)) {
+            if (midiMap.valueInputControlMSB<0) midiMap.valueInputControlMSB=0;
+            if (midiMap.valueInputControlMSB>127) midiMap.valueInputControlMSB=127;
+            SETTINGS_CHANGED;
+          }
+        },midiMap.valueInputStyle==4),
+        SETTING_COND(_("MSB CC##valueCC1"),{
+          if (ImGui::InputInt(_("MSB CC##valueCC1"),&midiMap.valueInputControlMSB,1,16)) {
+            if (midiMap.valueInputControlMSB<0) midiMap.valueInputControlMSB=0;
+            if (midiMap.valueInputControlMSB>127) midiMap.valueInputControlMSB=127;
+            SETTINGS_CHANGED;
+          }
+        },midiMap.valueInputStyle==5),
+        SETTING_COND(_("CC of lower nibble##valueCC2"),{
+          if (ImGui::InputInt(_("CC of lower nibble##valueCC2"),&midiMap.valueInputControlLSB,1,16)) {
+            if (midiMap.valueInputControlLSB<0) midiMap.valueInputControlLSB=0;
+            if (midiMap.valueInputControlLSB>127) midiMap.valueInputControlLSB=127;
+            SETTINGS_CHANGED;
+          }
+        },midiMap.valueInputStyle==4),
+        SETTING_COND(_("LSB CC##valueCC2"),{
+          if (ImGui::InputInt(_("LSB CC##valueCC2"),&midiMap.valueInputControlLSB,1,16)) {
+            if (midiMap.valueInputControlLSB<0) midiMap.valueInputControlLSB=0;
+            if (midiMap.valueInputControlLSB>127) midiMap.valueInputControlLSB=127;
+            SETTINGS_CHANGED;
+          }
+        },midiMap.valueInputStyle==5),
+      })
+    },{}),
   };
 
   settings.activeCategory=settings.categories[0];
@@ -1318,7 +1422,7 @@ void FurnaceGUI::drawSettingsItems() {
   }
 }
 
-String stripName(String what) {
+String FurnaceGUI::stripName(String what) {
   String ret;
   for (char& i: what) {
     if ((i>='A' && i<='Z') || (i>='a' && i<='z') || (i>='0' && i<='9')) {
@@ -1572,83 +1676,8 @@ void FurnaceGUI::drawSettings() {
 
       CONFIG_SECTION(_("MIDI")) {
         // SUBSECTION MIDI INPUT
-        CONFIG_SUBSECTION(_("MIDI input"));
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("MIDI input"));
-        ImGui::SameLine();
-        String midiInName=settings.midiInDevice.empty()?_("<disabled>"):settings.midiInDevice;
-        bool hasToReloadMidi=false;
-        if (ImGui::BeginCombo("##MidiInDevice",midiInName.c_str())) {
-          if (ImGui::Selectable(_("<disabled>"),settings.midiInDevice.empty())) {
-            settings.midiInDevice="";
-            hasToReloadMidi=true;
-            SETTINGS_CHANGED;
-          }
-          for (String& i: e->getMidiIns()) {
-            if (ImGui::Selectable(i.c_str(),i==settings.midiInDevice)) {
-              settings.midiInDevice=i;
-              hasToReloadMidi=true;
-              SETTINGS_CHANGED;
-            }
-          }
-          ImGui::EndCombo();
-        }
+        
 
-        ImGui::SameLine();
-        if (ImGui::Button(_("Re-scan MIDI devices"))) {
-          e->rescanMidiDevices();
-          audioEngineChanged=true;
-          settingsChanged=false;
-        }
-
-        if (hasToReloadMidi) {
-          midiMap.read(e->getConfigPath()+DIR_SEPARATOR_STR+"midiIn_"+stripName(settings.midiInDevice)+".cfg");
-          midiMap.compile();
-        }
-
-        if (ImGui::Checkbox(_("Note input"),&midiMap.noteInput)) SETTINGS_CHANGED;
-        if (ImGui::Checkbox(_("Velocity input"),&midiMap.volInput)) SETTINGS_CHANGED;
-        // TODO
-        //ImGui::Checkbox(_("Use raw velocity value (don't map from linear to log)"),&midiMap.rawVolume);
-        //ImGui::Checkbox(_("Polyphonic/chord input"),&midiMap.polyInput);
-        if (ImGui::Checkbox(_("Map MIDI channels to direct channels"),&midiMap.directChannel)) {
-          e->setMidiDirect(midiMap.directChannel);
-          e->setMidiDirectProgram(midiMap.directChannel && midiMap.directProgram);
-          SETTINGS_CHANGED;
-        }
-        if (midiMap.directChannel) {
-          if (ImGui::Checkbox(_("Program change pass-through"),&midiMap.directProgram)) {
-            e->setMidiDirectProgram(midiMap.directChannel && midiMap.directProgram);
-            SETTINGS_CHANGED;
-          }
-        }
-        if (ImGui::Checkbox(_("Map Yamaha FM voice data to instruments"),&midiMap.yamahaFMResponse)) SETTINGS_CHANGED;
-        if (!(midiMap.directChannel && midiMap.directProgram)) {
-          if (ImGui::Checkbox(_("Program change is instrument selection"),&midiMap.programChange)) SETTINGS_CHANGED;
-        }
-        //ImGui::Checkbox(_("Listen to MIDI clock"),&midiMap.midiClock);
-        //ImGui::Checkbox(_("Listen to MIDI time code"),&midiMap.midiTimeCode);
-        if (ImGui::Combo(_("Value input style"),&midiMap.valueInputStyle,LocalizedComboGetter,valueInputStyles,7)) SETTINGS_CHANGED;
-        if (midiMap.valueInputStyle>3) {
-          if (midiMap.valueInputStyle==6) {
-            if (ImGui::InputInt(_("Control##valueCCS"),&midiMap.valueInputControlSingle,1,16)) {
-              if (midiMap.valueInputControlSingle<0) midiMap.valueInputControlSingle=0;
-              if (midiMap.valueInputControlSingle>127) midiMap.valueInputControlSingle=127;
-              SETTINGS_CHANGED;
-            }
-          } else {
-            if (ImGui::InputInt((midiMap.valueInputStyle==4)?_("CC of upper nibble##valueCC1"):_("MSB CC##valueCC1"),&midiMap.valueInputControlMSB,1,16)) {
-              if (midiMap.valueInputControlMSB<0) midiMap.valueInputControlMSB=0;
-              if (midiMap.valueInputControlMSB>127) midiMap.valueInputControlMSB=127;
-              SETTINGS_CHANGED;
-            }
-            if (ImGui::InputInt((midiMap.valueInputStyle==4)?_("CC of lower nibble##valueCC2"):_("LSB CC##valueCC2"),&midiMap.valueInputControlLSB,1,16)) {
-              if (midiMap.valueInputControlLSB<0) midiMap.valueInputControlLSB=0;
-              if (midiMap.valueInputControlLSB>127) midiMap.valueInputControlLSB=127;
-              SETTINGS_CHANGED;
-            }
-          }
-        }
         if (ImGui::TreeNode(_("Per-column control change"))) {
           for (int i=0; i<18; i++) {
             ImGui::PushID(i);
