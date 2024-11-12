@@ -966,7 +966,7 @@ void FurnaceGUI::setupSettingsCategories() {
         }
       })
     }),
-    SettingsCategory(_("Configuration"),{},{ // these donn belond here...
+    SettingsCategory(_("Configuration"),{},{
       SETTING(NULL,{
         if (ImGui::Button(_("Import"))) {
           openFileDialog(GUI_FILE_IMPORT_CONFIG);
@@ -991,7 +991,7 @@ void FurnaceGUI::setupSettingsCategories() {
         }
       })
     }),
-#ifndef IS_MOBILE
+#ifdef IS_MOBILE
     SettingsCategory(_("Android"),{
       SettingsCategory(_("Vibrator"),{},{
         SETTING(_("Strength"),{
@@ -1022,7 +1022,225 @@ void FurnaceGUI::setupSettingsCategories() {
     },{}),
     SettingsCategory(_("Audio"),{
       SettingsCategory(_("Output"),{},{
-
+#if defined(HAVE_JACK) || defined(HAVE_PA)
+        SETTING(_("Backend"),{
+          int prevAudioEngine=settings.audioEngine;
+          if (ImGui::BeginCombo(_("Backend"),audioBackends[settings.audioEngine])) {
+#ifdef HAVE_JACK
+            if (ImGui::Selectable("JACK",settings.audioEngine==DIV_AUDIO_JACK)) {
+              settings.audioEngine=DIV_AUDIO_JACK;
+              SETTINGS_CHANGED;
+            }
+#endif
+            if (ImGui::Selectable("SDL",settings.audioEngine==DIV_AUDIO_SDL)) {
+              settings.audioEngine=DIV_AUDIO_SDL;
+              SETTINGS_CHANGED;
+            }
+#ifdef HAVE_PA
+            if (ImGui::Selectable("PortAudio",settings.audioEngine==DIV_AUDIO_PORTAUDIO)) {
+              settings.audioEngine=DIV_AUDIO_PORTAUDIO;
+              SETTINGS_CHANGED;
+            }
+#endif
+            if (settings.audioEngine!=prevAudioEngine) {
+              audioEngineChanged=true;
+              settings.audioDevice="";
+              settings.audioChans=2;
+            }
+            ImGui::EndCombo();
+          }
+        }),
+#endif
+        SETTING_COND(_("Driver"),{
+          if (ImGui::BeginCombo(_("Driver"),settings.sdlAudioDriver.empty()?_("Automatic"):settings.sdlAudioDriver.c_str())) {
+            if (ImGui::Selectable(_("Automatic"),settings.sdlAudioDriver.empty())) {
+              settings.sdlAudioDriver="";
+              SETTINGS_CHANGED;
+            }
+            for (String& i: availAudioDrivers) {
+              if (ImGui::Selectable(i.c_str(),i==settings.sdlAudioDriver)) {
+                settings.sdlAudioDriver=i;
+                SETTINGS_CHANGED;
+              }
+            }
+            ImGui::EndCombo();
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("you may need to restart Furnace for this setting to take effect."));
+          }
+        },settings.audioEngine==DIV_AUDIO_SDL),
+        SETTING(_("Device"),{
+          if (audioEngineChanged) {
+            // ImGui::BeginDisabled();
+            if (ImGui::BeginCombo(_("Device"),_("<click on OK or Apply first>"))) {
+              ImGui::Text(_("ALERT - TRESPASSER DETECTED"));
+              if (ImGui::IsItemHovered()) {
+                showError(_("you have been arrested for trying to engage with a disabled combo box."));
+                ImGui::CloseCurrentPopup();
+              }
+              ImGui::EndCombo();
+            }
+            // ImGui::EndDisabled();
+          } else {
+            String audioDevName=settings.audioDevice.empty()?_("<System default>"):settings.audioDevice;
+            if (ImGui::BeginCombo(_("Device"),audioDevName.c_str())) {
+              if (ImGui::Selectable(_("<System default>"),settings.audioDevice.empty())) {
+                settings.audioDevice="";
+                SETTINGS_CHANGED;
+              }
+              for (String& i: e->getAudioDevices()) {
+                if (ImGui::Selectable(i.c_str(),i==settings.audioDevice)) {
+                  settings.audioDevice=i;
+                  SETTINGS_CHANGED;
+                }
+              }
+              ImGui::EndCombo();
+            }
+          }
+        }),
+        SETTING(_("Sample rate"),{
+          String sr=fmt::sprintf("%d",settings.audioRate);
+          if (ImGui::BeginCombo(_("Sample rate"),sr.c_str())) {
+            SAMPLE_RATE_SELECTABLE(8000);
+            SAMPLE_RATE_SELECTABLE(16000);
+            SAMPLE_RATE_SELECTABLE(22050);
+            SAMPLE_RATE_SELECTABLE(32000);
+            SAMPLE_RATE_SELECTABLE(44100);
+            SAMPLE_RATE_SELECTABLE(48000);
+            SAMPLE_RATE_SELECTABLE(88200);
+            SAMPLE_RATE_SELECTABLE(96000);
+            SAMPLE_RATE_SELECTABLE(192000);
+            ImGui::EndCombo();
+          }
+        }),
+        SETTING(_("Outputs"),{
+          if (ImGui::InputInt(_("Outputs"),&settings.audioChans,1,2)) {
+            if (settings.audioChans<1) settings.audioChans=1;
+            if (settings.audioChans>16) settings.audioChans=16;
+            SETTINGS_CHANGED;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("common values:\n- 1 for mono\n- 2 for stereo"));
+          }
+        }),
+        SETTING(_("Buffer size"),{
+          String bs=fmt::sprintf(_("%d (latency: ~%.1fms)"),settings.audioBufSize,2000.0*(double)settings.audioBufSize/(double)MAX(1,settings.audioRate));
+          if (ImGui::BeginCombo(_("Buffer size"),bs.c_str())) {
+            BUFFER_SIZE_SELECTABLE(64);
+            BUFFER_SIZE_SELECTABLE(128);
+            BUFFER_SIZE_SELECTABLE(256);
+            BUFFER_SIZE_SELECTABLE(512);
+            BUFFER_SIZE_SELECTABLE(1024);
+            BUFFER_SIZE_SELECTABLE(2048);
+            ImGui::EndCombo();
+          }
+        }),
+        SETTING(_("Multi-threaded (EXPERIMENTAL)"),{
+          bool renderPoolThreadsB=(settings.renderPoolThreads>0);
+          if (ImGui::Checkbox(_("Multi-threaded (EXPERIMENTAL)"),&renderPoolThreadsB)) {
+            if (renderPoolThreadsB) {
+              settings.renderPoolThreads=2;
+            } else {
+              settings.renderPoolThreads=0;
+            }
+            SETTINGS_CHANGED;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("runs chip emulation on separate threads.\nmay increase performance when using heavy emulation cores.\n\nwarnings:\n- experimental!\n- only useful on multi-chip songs."));
+          }
+        }),
+        SETTING_COND(_("Number of threads"),{
+          pushWarningColor(settings.renderPoolThreads>cpuCores,settings.renderPoolThreads>cpuCores);
+          if (ImGui::InputInt(_("Number of threads"),&settings.renderPoolThreads)) {
+            if (settings.renderPoolThreads<2) settings.renderPoolThreads=2;
+            if (settings.renderPoolThreads>32) settings.renderPoolThreads=32;
+            SETTINGS_CHANGED;
+          }
+          if (settings.renderPoolThreads>=DIV_MAX_CHIPS) {
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip(_("that's the limit!"));
+            }
+          } else if (settings.renderPoolThreads>cpuCores) {
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip(_("it is a VERY bad idea to set this number higher than your CPU core count (%d)!"),cpuCores);
+            }
+          }
+          popWarningColor();
+        },settings.renderPoolThreads>0),
+        SETTING(_("Low-latency mode"),{
+          bool lowLatencyB=settings.lowLatency;
+          if (ImGui::Checkbox(_("Low-latency mode"),&lowLatencyB)) {
+            settings.lowLatency=lowLatencyB;
+            SETTINGS_CHANGED;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("reduces latency by running the engine faster than the tick rate.\nuseful for live playback/jam mode.\n\nwarning: only enable if your buffer size is small (10ms or less)."));
+          }
+        }),
+        SETTING(_("Force mono audio"),{
+          bool forceMonoB=settings.forceMono;
+          if (ImGui::Checkbox(_("Force mono audio"),&forceMonoB)) {
+            settings.forceMono=forceMonoB;
+            SETTINGS_CHANGED;
+          }
+        }),
+        SETTING_COND(_("Exclusive mode"),{
+          bool wasapiExB=settings.wasapiEx;
+          if (ImGui::Checkbox(_("Exclusive mode"),&wasapiExB)) {
+            settings.wasapiEx=wasapiExB;
+            SETTINGS_CHANGED;
+          }
+        },settings.audioEngine==DIV_AUDIO_PORTAUDIO && settings.audioDevice.find("[Windows WASAPI] ")==0),
+        SETTING(NULL,{
+          TAAudioDesc& audioWant=e->getAudioDescWant();
+          TAAudioDesc& audioGot=e->getAudioDescGot();
+#ifdef HAVE_LOCALE
+          ImGui::Text(ngettext("want: %d samples @ %.0fHz (%d channel)","want: %d samples @ %.0fHz (%d channels)",audioWant.outChans),audioWant.bufsize,audioWant.rate,audioWant.outChans);
+          ImGui::Text(ngettext("got: %d samples @ %.0fHz (%d channel)","got: %d samples @ %.0fHz (%d channels)",audioGot.outChans),audioGot.bufsize,audioGot.rate,audioGot.outChans);
+#else
+          ImGui::Text(_GN("want: %d samples @ %.0fHz (%d channel)","want: %d samples @ %.0fHz (%d channels)",audioWant.outChans),audioWant.bufsize,audioWant.rate,audioWant.outChans);
+          ImGui::Text(_GN("got: %d samples @ %.0fHz (%d channel)","got: %d samples @ %.0fHz (%d channels)",audioGot.outChans),audioGot.bufsize,audioGot.rate,audioGot.outChans);
+#endif
+        }),
+      }),
+      SettingsCategory(_("Mixing"),{},{
+        SETTING(_("Quality"),{
+          if (ImGui::Combo(_("Quality"),&settings.audioQuality,LocalizedComboGetter,audioQualities,2)) SETTINGS_CHANGED;
+        }),
+        SETTING(_("Software clipping"),{
+          bool clampSamplesB=settings.clampSamples;
+          if (ImGui::Checkbox(_("Software clipping"),&clampSamplesB)) {
+            settings.clampSamples=clampSamplesB;
+            SETTINGS_CHANGED;
+          }
+        }),
+        SETTING(_("DC offset correction"),{
+          bool audioHiPassB=settings.audioHiPass;
+          if (ImGui::Checkbox(_("DC offset correction"),&audioHiPassB)) {
+            settings.audioHiPass=audioHiPassB;
+            SETTINGS_CHANGED;
+          }
+        })
+      }),
+      SettingsCategory(_("Metronome"),{},{
+        SETTING(_("Volume"),{
+          if (ImGui::SliderInt(_("Volume##metr"),&settings.metroVol,0,200,"%d%%")) {
+            if (settings.metroVol<0) settings.metroVol=0;
+            if (settings.metroVol>200) settings.metroVol=200;
+            e->setMetronomeVol(((float)settings.metroVol)/100.0f);
+            SETTINGS_CHANGED;
+          }
+        })
+      }),
+      SettingsCategory(_("Sample preview"),{},{
+        SETTING(_("Volume"),{
+          if (ImGui::SliderInt(_("Volume##smpr"),&settings.sampleVol,0,100,"%d%%")) {
+            if (settings.sampleVol<0) settings.sampleVol=0;
+            if (settings.sampleVol>100) settings.sampleVol=100;
+            e->setSamplePreviewVol(((float)settings.sampleVol)/100.0f);
+            SETTINGS_CHANGED;
+          }
+        })
       })
     },{})
   };
@@ -1351,266 +1569,7 @@ void FurnaceGUI::drawSettings() {
 
         END_SECTION;
       }
-      CONFIG_SECTION(_("Audio")) {
-        // SUBSECTION OUTPUT
-        CONFIG_SUBSECTION(_("Output"));
-        if (ImGui::BeginTable("##Output",2)) {
-          ImGui::TableSetupColumn("##Label",ImGuiTableColumnFlags_WidthFixed);
-          ImGui::TableSetupColumn("##Combo",ImGuiTableColumnFlags_WidthStretch);
-#if defined(HAVE_JACK) || defined(HAVE_PA)
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text(_("Backend"));
-          ImGui::TableNextColumn();
-          int prevAudioEngine=settings.audioEngine;
-          if (ImGui::BeginCombo("##Backend",audioBackends[settings.audioEngine])) {
-#ifdef HAVE_JACK
-            if (ImGui::Selectable("JACK",settings.audioEngine==DIV_AUDIO_JACK)) {
-              settings.audioEngine=DIV_AUDIO_JACK;
-              SETTINGS_CHANGED;
-            }
-#endif
-            if (ImGui::Selectable("SDL",settings.audioEngine==DIV_AUDIO_SDL)) {
-              settings.audioEngine=DIV_AUDIO_SDL;
-              SETTINGS_CHANGED;
-            }
-#ifdef HAVE_PA
-            if (ImGui::Selectable("PortAudio",settings.audioEngine==DIV_AUDIO_PORTAUDIO)) {
-              settings.audioEngine=DIV_AUDIO_PORTAUDIO;
-              SETTINGS_CHANGED;
-            }
-#endif
-            if (settings.audioEngine!=prevAudioEngine) {
-              audioEngineChanged=true;
-              settings.audioDevice="";
-              settings.audioChans=2;
-            }
-            ImGui::EndCombo();
-          }
-#endif
 
-          if (settings.audioEngine==DIV_AUDIO_SDL) {
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::AlignTextToFramePadding();
-            ImGui::Text(_("Driver"));
-            ImGui::TableNextColumn();
-            if (ImGui::BeginCombo("##SDLADriver",settings.sdlAudioDriver.empty()?_("Automatic"):settings.sdlAudioDriver.c_str())) {
-              if (ImGui::Selectable(_("Automatic"),settings.sdlAudioDriver.empty())) {
-                settings.sdlAudioDriver="";
-                SETTINGS_CHANGED;
-              }
-              for (String& i: availAudioDrivers) {
-                if (ImGui::Selectable(i.c_str(),i==settings.sdlAudioDriver)) {
-                  settings.sdlAudioDriver=i;
-                  SETTINGS_CHANGED;
-                }
-              }
-              ImGui::EndCombo();
-            }
-            if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip(_("you may need to restart Furnace for this setting to take effect."));
-            }
-          }
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text(_("Device"));
-          ImGui::TableNextColumn();
-          if (audioEngineChanged) {
-            ImGui::BeginDisabled();
-            if (ImGui::BeginCombo("##AudioDevice",_("<click on OK or Apply first>"))) {
-              ImGui::Text(_("ALERT - TRESPASSER DETECTED"));
-              if (ImGui::IsItemHovered()) {
-                showError(_("you have been arrested for trying to engage with a disabled combo box."));
-                ImGui::CloseCurrentPopup();
-              }
-              ImGui::EndCombo();
-            }
-            ImGui::EndDisabled();
-          } else {
-            String audioDevName=settings.audioDevice.empty()?_("<System default>"):settings.audioDevice;
-            if (ImGui::BeginCombo("##AudioDevice",audioDevName.c_str())) {
-              if (ImGui::Selectable(_("<System default>"),settings.audioDevice.empty())) {
-                settings.audioDevice="";
-                SETTINGS_CHANGED;
-              }
-              for (String& i: e->getAudioDevices()) {
-                if (ImGui::Selectable(i.c_str(),i==settings.audioDevice)) {
-                  settings.audioDevice=i;
-                  SETTINGS_CHANGED;
-                }
-              }
-              ImGui::EndCombo();
-            }
-          }
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text(_("Sample rate"));
-          ImGui::TableNextColumn();
-          String sr=fmt::sprintf("%d",settings.audioRate);
-          if (ImGui::BeginCombo("##SampleRate",sr.c_str())) {
-            SAMPLE_RATE_SELECTABLE(8000);
-            SAMPLE_RATE_SELECTABLE(16000);
-            SAMPLE_RATE_SELECTABLE(22050);
-            SAMPLE_RATE_SELECTABLE(32000);
-            SAMPLE_RATE_SELECTABLE(44100);
-            SAMPLE_RATE_SELECTABLE(48000);
-            SAMPLE_RATE_SELECTABLE(88200);
-            SAMPLE_RATE_SELECTABLE(96000);
-            SAMPLE_RATE_SELECTABLE(192000);
-            ImGui::EndCombo();
-          }
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text(_("Outputs"));
-          ImGui::TableNextColumn();
-          if (ImGui::InputInt("##AudioChansI",&settings.audioChans,1,2)) {
-            if (settings.audioChans<1) settings.audioChans=1;
-            if (settings.audioChans>16) settings.audioChans=16;
-            SETTINGS_CHANGED;
-          }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("common values:\n- 1 for mono\n- 2 for stereo"));
-          }
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text(_("Buffer size"));
-          ImGui::TableNextColumn();
-          String bs=fmt::sprintf(_("%d (latency: ~%.1fms)"),settings.audioBufSize,2000.0*(double)settings.audioBufSize/(double)MAX(1,settings.audioRate));
-          if (ImGui::BeginCombo("##BufferSize",bs.c_str())) {
-            BUFFER_SIZE_SELECTABLE(64);
-            BUFFER_SIZE_SELECTABLE(128);
-            BUFFER_SIZE_SELECTABLE(256);
-            BUFFER_SIZE_SELECTABLE(512);
-            BUFFER_SIZE_SELECTABLE(1024);
-            BUFFER_SIZE_SELECTABLE(2048);
-            ImGui::EndCombo();
-          }
-          ImGui::EndTable();
-        }
-
-        bool renderPoolThreadsB=(settings.renderPoolThreads>0);
-        if (ImGui::Checkbox(_("Multi-threaded (EXPERIMENTAL)"),&renderPoolThreadsB)) {
-          if (renderPoolThreadsB) {
-            settings.renderPoolThreads=2;
-          } else {
-            settings.renderPoolThreads=0;
-          }
-          SETTINGS_CHANGED;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("runs chip emulation on separate threads.\nmay increase performance when using heavy emulation cores.\n\nwarnings:\n- experimental!\n- only useful on multi-chip songs."));
-        }
-
-        if (renderPoolThreadsB) {
-          pushWarningColor(settings.renderPoolThreads>cpuCores,settings.renderPoolThreads>cpuCores);
-          if (ImGui::InputInt(_("Number of threads"),&settings.renderPoolThreads)) {
-            if (settings.renderPoolThreads<2) settings.renderPoolThreads=2;
-            if (settings.renderPoolThreads>32) settings.renderPoolThreads=32;
-            SETTINGS_CHANGED;
-          }
-          if (settings.renderPoolThreads>=DIV_MAX_CHIPS) {
-            if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip(_("that's the limit!"));
-            }
-          } else if (settings.renderPoolThreads>cpuCores) {
-            if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip(_("it is a VERY bad idea to set this number higher than your CPU core count (%d)!"),cpuCores);
-            }
-          }
-          popWarningColor();
-        }
-
-        bool lowLatencyB=settings.lowLatency;
-        if (ImGui::Checkbox(_("Low-latency mode"),&lowLatencyB)) {
-          settings.lowLatency=lowLatencyB;
-          SETTINGS_CHANGED;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("reduces latency by running the engine faster than the tick rate.\nuseful for live playback/jam mode.\n\nwarning: only enable if your buffer size is small (10ms or less)."));
-        }
-
-        bool forceMonoB=settings.forceMono;
-        if (ImGui::Checkbox(_("Force mono audio"),&forceMonoB)) {
-          settings.forceMono=forceMonoB;
-          SETTINGS_CHANGED;
-        }
-
-        if (settings.audioEngine==DIV_AUDIO_PORTAUDIO) {
-          if (settings.audioDevice.find("[Windows WASAPI] ")==0) {
-            bool wasapiExB=settings.wasapiEx;
-            if (ImGui::Checkbox(_("Exclusive mode"),&wasapiExB)) {
-              settings.wasapiEx=wasapiExB;
-              SETTINGS_CHANGED;
-            }
-          }
-        }
-
-        TAAudioDesc& audioWant=e->getAudioDescWant();
-        TAAudioDesc& audioGot=e->getAudioDescGot();
-
-#ifdef HAVE_LOCALE
-        ImGui::Text(ngettext("want: %d samples @ %.0fHz (%d channel)","want: %d samples @ %.0fHz (%d channels)",audioWant.outChans),audioWant.bufsize,audioWant.rate,audioWant.outChans);
-        ImGui::Text(ngettext("got: %d samples @ %.0fHz (%d channel)","got: %d samples @ %.0fHz (%d channels)",audioGot.outChans),audioGot.bufsize,audioGot.rate,audioGot.outChans);
-#else
-        ImGui::Text(_GN("want: %d samples @ %.0fHz (%d channel)","want: %d samples @ %.0fHz (%d channels)",audioWant.outChans),audioWant.bufsize,audioWant.rate,audioWant.outChans);
-        ImGui::Text(_GN("got: %d samples @ %.0fHz (%d channel)","got: %d samples @ %.0fHz (%d channels)",audioGot.outChans),audioGot.bufsize,audioGot.rate,audioGot.outChans);
-#endif
-
-        // SUBSECTION MIXING
-        CONFIG_SUBSECTION(_("Mixing"));
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Quality"));
-        ImGui::SameLine();
-        if (ImGui::Combo("##Quality",&settings.audioQuality,LocalizedComboGetter,audioQualities,2)) SETTINGS_CHANGED;
-        
-        bool clampSamplesB=settings.clampSamples;
-        if (ImGui::Checkbox(_("Software clipping"),&clampSamplesB)) {
-          settings.clampSamples=clampSamplesB;
-          SETTINGS_CHANGED;
-        }
-
-        bool audioHiPassB=settings.audioHiPass;
-        if (ImGui::Checkbox(_("DC offset correction"),&audioHiPassB)) {
-          settings.audioHiPass=audioHiPassB;
-          SETTINGS_CHANGED;
-        }
-
-        // SUBSECTION METRONOME
-        CONFIG_SUBSECTION(_("Metronome"));
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Volume"));
-        ImGui::SameLine();
-        if (ImGui::SliderInt("##MetroVol",&settings.metroVol,0,200,"%d%%")) {
-          if (settings.metroVol<0) settings.metroVol=0;
-          if (settings.metroVol>200) settings.metroVol=200;
-          e->setMetronomeVol(((float)settings.metroVol)/100.0f);
-          SETTINGS_CHANGED;
-        }
-
-        // SUBSECTION SAMPLE PREVIEW
-        CONFIG_SUBSECTION(_("Sample preview"));
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Volume"));
-        ImGui::SameLine();
-        if (ImGui::SliderInt("##SampleVol",&settings.sampleVol,0,100,"%d%%")) {
-          if (settings.sampleVol<0) settings.sampleVol=0;
-          if (settings.sampleVol>100) settings.sampleVol=100;
-          e->setSamplePreviewVol(((float)settings.sampleVol)/100.0f);
-          SETTINGS_CHANGED;
-        }
-
-        END_SECTION;
-      }
       CONFIG_SECTION(_("MIDI")) {
         // SUBSECTION MIDI INPUT
         CONFIG_SUBSECTION(_("MIDI input"));
