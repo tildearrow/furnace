@@ -336,18 +336,6 @@ const char* specificControls[18]={
   ImGui::EndChild(); \
   ImGui::EndTabItem();
 
-#define CORE_QUALITY(_name,_play,_render) \
-  ImGui::TableNextRow(); \
-  ImGui::TableNextColumn(); \
-  ImGui::AlignTextToFramePadding(); \
-  ImGui::Text(_name); \
-  ImGui::TableNextColumn(); \
-  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); \
-  if (ImGui::Combo("##" _name "Q",&settings._play,LocalizedComboGetter,coreQualities,6)) SETTINGS_CHANGED; \
-  ImGui::TableNextColumn(); \
-  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); \
-  if (ImGui::Combo("##" _name "QR",&settings._render,LocalizedComboGetter,coreQualities,6)) SETTINGS_CHANGED;
-
 #define SETTING(n,f) new Setting(n,[this]f)
 
 #define SETTING_COND(n,f,c) new Setting(n,[this]f,[this]{return c;})
@@ -389,6 +377,48 @@ const char* specificControls[18]={
             ImGui::Unindent(); \
             ImGui::PopID(); \
           },(midiMap.valueInputSpecificStyle[i]>0) && (midiMap.valueInputSpecificStyle[i]!=3)) \
+
+#define EMU_CORES(sysL,setC,setCR,arr) \
+        SETTING(sysL,{ \
+          const float comboSize=ImGui::GetContentRegionAvail().x/2.0-ImGui::CalcTextSize("AVGPNL").x; /* average part number length*/ \
+          if (ImGui::BeginTable("##" sysL "Cores", 3)) { \
+            ImGui::TableSetupColumn("##sys",ImGuiTableColumnFlags_WidthStretch); \
+            ImGui::TableSetupColumn("##core",ImGuiTableColumnFlags_WidthFixed); \
+            ImGui::TableSetupColumn("##coreRend",ImGuiTableColumnFlags_WidthFixed); \
+            ImGui::TableNextRow(); \
+            ImGui::TableNextColumn(); \
+            ImGui::AlignTextToFramePadding(); \
+            ImGui::ScrollText(ImGui::GetID(sysL),sysL,ImGui::GetCursorScreenPos()); \
+            ImGui::TableNextColumn(); \
+            ImGui::SetNextItemWidth(comboSize); \
+            if (ImGui::Combo("##" sysL "C",&setC,arr,sizeof(arr)/sizeof(const char*))) SETTINGS_CHANGED; \
+            ImGui::TableNextColumn(); \
+            ImGui::SetNextItemWidth(comboSize); \
+            if (ImGui::Combo("##" sysL "CR",&setCR,arr,sizeof(arr)/sizeof(const char*))) SETTINGS_CHANGED; \
+            ImGui::EndTable(); \
+          } \
+        })
+
+#define CORE_QUALITY(_name,_play,_render) \
+        SETTING(_name,{ \
+          const float comboSize=ImGui::GetContentRegionAvail().x/2.0-ImGui::CalcTextSize("averagsysname").x; /* average system name*/ \
+          if (ImGui::BeginTable("##" _name "Cores", 3)) { \
+            ImGui::TableSetupColumn("##sys",ImGuiTableColumnFlags_WidthStretch); \
+            ImGui::TableSetupColumn("##core",ImGuiTableColumnFlags_WidthFixed); \
+            ImGui::TableSetupColumn("##coreRend",ImGuiTableColumnFlags_WidthFixed); \
+            ImGui::TableNextRow(); \
+            ImGui::TableNextColumn(); \
+            ImGui::AlignTextToFramePadding(); \
+            ImGui::ScrollText(ImGui::GetID(_name),_name,ImGui::GetCursorScreenPos()); \
+            ImGui::TableNextColumn(); \
+            ImGui::SetNextItemWidth(comboSize); \
+            if (ImGui::Combo("##" _name "Q",&settings._play,LocalizedComboGetter,coreQualities,6)) SETTINGS_CHANGED; \
+            ImGui::TableNextColumn(); \
+            ImGui::SetNextItemWidth(comboSize); \
+            if (ImGui::Combo("##" _name "QR",&settings._render,LocalizedComboGetter,coreQualities,6)) SETTINGS_CHANGED; \
+            ImGui::EndTable(); \
+          } \
+        })
 
 // NEW NEW SETTINGS HERE
 void FurnaceGUI::setupSettingsCategories() {
@@ -1417,8 +1447,336 @@ void FurnaceGUI::setupSettingsCategories() {
           }
           ImGui::PlotLines("##VolCurveDisplay",curve,128,0,_("Volume curve"),0.0,127.0,ImVec2(200.0f*dpiScale,200.0f*dpiScale));
         }),
+        SETTING(_("Actions:"),{
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text(_("Actions:"));
+          ImGui::SameLine();
+          if (ImGui::Button(ICON_FA_PLUS "##AddAction")) {
+            midiMap.binds.push_back(MIDIBind());
+            SETTINGS_CHANGED;
+          }
+          ImGui::SameLine();
+          if (ImGui::Button(ICON_FA_EXTERNAL_LINK "##AddLearnAction")) {
+            midiMap.binds.push_back(MIDIBind());
+            learning=midiMap.binds.size()-1;
+            SETTINGS_CHANGED;
+          }
+          if (learning!=-1) {
+            ImGui::SameLine();
+            ImGui::Text(_("(learning! press a button or move a slider/knob/something on your device.)"));
+          }
+
+          if (ImGui::BeginTable("MIDIActions",7)) {
+            ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.2);
+            ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.1);
+            ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.3);
+            ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,0.2);
+            ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch,0.5);
+            ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("c6",ImGuiTableColumnFlags_WidthFixed);
+
+            ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+            ImGui::TableNextColumn();
+            ImGui::Text(_("Type"));
+            ImGui::TableNextColumn();
+            ImGui::Text(_("Channel"));
+            ImGui::TableNextColumn();
+            ImGui::Text(_("Note/Control"));
+            ImGui::TableNextColumn();
+            ImGui::Text(_("Velocity/Value"));
+            ImGui::TableNextColumn();
+            ImGui::Text(_("Action"));
+            ImGui::TableNextColumn();
+            ImGui::TableNextColumn();
+
+            for (size_t i=0; i<midiMap.binds.size(); i++) {
+              MIDIBind& bind=midiMap.binds[i];
+              char bindID[1024];
+              ImGui::PushID(i);
+              ImGui::TableNextRow();
+
+              ImGui::TableNextColumn();
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+              if (ImGui::BeginCombo("##BType",messageTypes[bind.type])) {
+                for (int j=8; j<15; j++) {
+                  if (ImGui::Selectable(messageTypes[j],bind.type==j)) {
+                    bind.type=j;
+                    SETTINGS_CHANGED;
+                  }
+                }
+                ImGui::EndCombo();
+              }
+
+              ImGui::TableNextColumn();
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+              if (ImGui::BeginCombo("##BChannel",messageChannels[bind.channel])) {
+                if (ImGui::Selectable(messageChannels[16],bind.channel==16)) {
+                  bind.channel=16;
+                  SETTINGS_CHANGED;
+                }
+                for (int j=0; j<16; j++) {
+                  if (ImGui::Selectable(messageChannels[j],bind.channel==j)) {
+                    bind.channel=j;
+                    SETTINGS_CHANGED;
+                  }
+                }
+                ImGui::EndCombo();
+              }
+
+              ImGui::TableNextColumn();
+              if (bind.data1==128) {
+                snprintf(bindID,1024,_("Any"));
+              } else {
+                const char* nName="???";
+                if ((bind.data1+60)>0 && (bind.data1+60)<180) {
+                  nName=noteNames[bind.data1+60];
+                }
+                snprintf(bindID,1024,"%d (0x%.2X, %s)",bind.data1,bind.data1,nName);
+              }
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+              if (ImGui::BeginCombo("##BValue1",bindID)) {
+                if (ImGui::Selectable(_("Any"),bind.data1==128)) {
+                  bind.data1=128;
+                  SETTINGS_CHANGED;
+                }
+                for (int j=0; j<128; j++) {
+                  const char* nName="???";
+                  if ((j+60)>0 && (j+60)<180) {
+                    nName=noteNames[j+60];
+                  }
+                  snprintf(bindID,1024,"%d (0x%.2X, %s)##BV1_%d",j,j,nName,j);
+                  if (ImGui::Selectable(bindID,bind.data1==j)) {
+                    bind.data1=j;
+                    SETTINGS_CHANGED;
+                  }
+                }
+                ImGui::EndCombo();
+              }
+
+              ImGui::TableNextColumn();
+              if (bind.data2==128) {
+                snprintf(bindID,1024,_("Any"));
+              } else {
+                snprintf(bindID,1024,"%d (0x%.2X)",bind.data2,bind.data2);
+              }
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+              if (ImGui::BeginCombo("##BValue2",bindID)) {
+                if (ImGui::Selectable(_("Any"),bind.data2==128)) {
+                  bind.data2=128;
+                  SETTINGS_CHANGED;
+                }
+                for (int j=0; j<128; j++) {
+                  snprintf(bindID,1024,"%d (0x%.2X)##BV2_%d",j,j,j);
+                  if (ImGui::Selectable(bindID,bind.data2==j)) {
+                    bind.data2=j;
+                    SETTINGS_CHANGED;
+                  }
+                }
+                ImGui::EndCombo();
+              }
+
+              ImGui::TableNextColumn();
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+              if (ImGui::BeginCombo("##BAction",(bind.action==0)?_("--none--"):guiActions[bind.action].friendlyName)) {
+                if (ImGui::Selectable(_("--none--"),bind.action==0)) {
+                  bind.action=0;
+                  SETTINGS_CHANGED;
+                }
+                for (int j=0; j<GUI_ACTION_MAX; j++) {
+                  if (strcmp(guiActions[j].friendlyName,"")==0) continue;
+                  if (strstr(guiActions[j].friendlyName,"---")==guiActions[j].friendlyName) {
+                    ImGui::TextUnformatted(guiActions[j].friendlyName);
+                  } else {
+                    snprintf(bindID,1024,"%s##BA_%d",_(guiActions[j].friendlyName),j);
+                    if (ImGui::Selectable(bindID,bind.action==j)) {
+                      bind.action=j;
+                      SETTINGS_CHANGED;
+                    }
+                  }
+                }
+                ImGui::EndCombo();
+              }
+
+              ImGui::TableNextColumn();
+              pushToggleColors(learning==(int)i);
+              if (ImGui::Button((learning==(int)i)?(_("waiting...##BLearn")):(_("Learn##BLearn")))) {
+                if (learning==(int)i) {
+                  learning=-1;
+                } else {
+                  learning=i;
+                }
+                SETTINGS_CHANGED;
+              }
+              popToggleColors();
+
+              ImGui::TableNextColumn();
+              if (ImGui::Button(ICON_FA_TIMES "##BRemove")) {
+                midiMap.binds.erase(midiMap.binds.begin()+i);
+                if (learning==(int)i) learning=-1;
+                i--;
+                SETTINGS_CHANGED;
+              }
+
+              ImGui::PopID();
+            }
+            ImGui::EndTable();
+          }
+        })
+      }),
+      SettingsCategory(_("MIDI output"),{},{
+        SETTING(_("MIDI output"),{
+          String midiOutName=settings.midiOutDevice.empty()?_("<disabled>"):settings.midiOutDevice;
+          if (ImGui::BeginCombo(_("MIDI output"),midiOutName.c_str())) {
+            if (ImGui::Selectable(_("<disabled>"),settings.midiOutDevice.empty())) {
+              settings.midiOutDevice="";
+              SETTINGS_CHANGED;
+            }
+            for (String& i: e->getMidiIns()) {
+              if (ImGui::Selectable(i.c_str(),i==settings.midiOutDevice)) {
+                settings.midiOutDevice=i;
+                SETTINGS_CHANGED;
+              }
+            }
+            ImGui::EndCombo();
+          }
+        }),
+        SETTING(_("Output mode:"),{
+          ImGui::Text(_("Output mode:"));
+          ImGui::Indent();
+          if (ImGui::RadioButton(_("Off (use for TX81Z)"),settings.midiOutMode==0)) {
+            settings.midiOutMode=0;
+            SETTINGS_CHANGED;
+          }
+          if (ImGui::RadioButton(_("Melodic"),settings.midiOutMode==1)) {
+            settings.midiOutMode=1;
+            SETTINGS_CHANGED;
+          }
+          /*
+          if (ImGui::RadioButton(_("Light Show (use for Launchpad)"),settings.midiOutMode==2)) {
+            settings.midiOutMode=2;
+            SETTINGS_CHANGED;
+          }*/
+          ImGui::Unindent();
+        }),
+        SETTING(_("Send Program Change"),{
+          bool midiOutProgramChangeB=settings.midiOutProgramChange;
+          if (ImGui::Checkbox(_("Send Program Change"),&midiOutProgramChangeB)) {
+            settings.midiOutProgramChange=midiOutProgramChangeB;
+            SETTINGS_CHANGED;
+          }
+        }),
+        SETTING(_("Send MIDI clock"),{
+          bool midiOutClockB=settings.midiOutClock;
+          if (ImGui::Checkbox(_("Send MIDI clock"),&midiOutClockB)) {
+            settings.midiOutClock=midiOutClockB;
+            SETTINGS_CHANGED;
+          }
+        }),
+        SETTING(_("Send MIDI timecode"),{
+          bool midiOutTimeB=settings.midiOutTime;
+          if (ImGui::Checkbox(_("Send MIDI timecode"),&midiOutTimeB)) {
+            settings.midiOutTime=midiOutTimeB;
+            SETTINGS_CHANGED;
+          }
+        }),
+        SETTING_COND(_("Timecode frame rate:"),{
+          ImGui::Text(_("Timecode frame rate:"));
+          ImGui::Indent();
+          if (ImGui::RadioButton(_("Closest to Tick Rate"),settings.midiOutTimeRate==0)) {
+            settings.midiOutTimeRate=0;
+            SETTINGS_CHANGED;
+          }
+          if (ImGui::RadioButton(_("Film (24fps)"),settings.midiOutTimeRate==1)) {
+            settings.midiOutTimeRate=1;
+            SETTINGS_CHANGED;
+          }
+          if (ImGui::RadioButton(_("PAL (25fps)"),settings.midiOutTimeRate==2)) {
+            settings.midiOutTimeRate=2;
+            SETTINGS_CHANGED;
+          }
+          if (ImGui::RadioButton(_("NTSC drop (29.97fps)"),settings.midiOutTimeRate==3)) {
+            settings.midiOutTimeRate=3;
+            SETTINGS_CHANGED;
+          }
+          if (ImGui::RadioButton(_("NTSC non-drop (30fps)"),settings.midiOutTimeRate==4)) {
+            settings.midiOutTimeRate=4;
+            SETTINGS_CHANGED;
+          }
+          ImGui::Unindent();
+        },settings.midiOutTime)
       })
     },{}),
+    SettingsCategory(_("Emulation"),{
+      SettingsCategory(_("Cores"),{},{
+        EMU_CORES("YM2151", settings.arcadeCore, settings.arcadeCoreRender, arcadeCores),
+        EMU_CORES("YM2612", settings.ym2612Core, settings.ym2612CoreRender, ym2612Cores),
+        EMU_CORES("SN76489", settings.snCore, settings.snCoreRender, snCores),
+        EMU_CORES("NES", settings.nesCore, settings.nesCoreRender, nesCores),
+        EMU_CORES("FDS", settings.fdsCore, settings.fdsCoreRender, nesCores),
+        EMU_CORES("SID", settings.c64Core, settings.c64CoreRender, c64Cores),
+        EMU_CORES("POKEY", settings.pokeyCore, settings.pokeyCoreRender, pokeyCores),
+        EMU_CORES("OPN", settings.opn1Core, settings.opn1CoreRender, opnCores),
+        EMU_CORES("OPNA", settings.opnaCore, settings.opnaCoreRender, opnCores),
+        EMU_CORES("OPNB", settings.opnbCore, settings.opnbCoreRender, opnCores),
+        EMU_CORES("OPL/OPL2/Y8950", settings.opl2Core, settings.opl2Core, opl2Cores),
+        EMU_CORES("OPL3", settings.opl3Core, settings.opl3CoreRender, opl3Cores),
+        EMU_CORES("OPL4", settings.opl4Core, settings.opl4CoreRender, opl4Cores),
+        EMU_CORES("ESFM", settings.esfmCore, settings.esfmCoreRender, esfmCores),
+        EMU_CORES("OPLL", settings.opllCore, settings.opllCoreRender, opllCores),
+        EMU_CORES("AY-3-8910/SSG", settings.ayCore, settings.ayCoreRender, ayCores),
+      }),
+      SettingsCategory(_("Quality"),{},{
+        CORE_QUALITY("Bubble System WSG",bubsysQuality,bubsysQualityRender),
+        CORE_QUALITY("Game Boy",gbQuality,gbQualityRender),
+        CORE_QUALITY("Nintendo DS",ndsQuality,ndsQualityRender),
+        CORE_QUALITY("PC Engine",pceQuality,pceQualityRender),
+        CORE_QUALITY("PowerNoise",pnQuality,pnQualityRender),
+        CORE_QUALITY("SAA1099",saaQuality,saaQualityRender),
+        CORE_QUALITY("SCC",sccQuality,sccQualityRender),
+        CORE_QUALITY("SID (dSID)",dsidQuality,dsidQualityRender),
+        CORE_QUALITY("SM8521",smQuality,smQualityRender),
+        CORE_QUALITY("Virtual Boy",vbQuality,vbQualityRender),
+        CORE_QUALITY("WonderSwan",swanQuality,swanQualityRender),
+      }),
+      SettingsCategory(_("Other"),{},{
+        SETTING(_("PC Speaker strategy"),{
+          if (ImGui::Combo(_("PC Speaker strategy"),&settings.pcSpeakerOutMethod,LocalizedComboGetter,pcspkrOutMethods,5)) SETTINGS_CHANGED;
+        }),
+        SETTING(NULL,{ // subsection?
+          ImGui::Separator();
+          ImGui::Text(_("Sample ROMs:"));
+        }),
+        SETTING(_("OPL4 YRW801 path"),{
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text(_("OPL4 YRW801 path"));
+          ImGui::SameLine();
+          ImGui::InputText("##YRW801Path",&settings.yrw801Path);
+          ImGui::SameLine();
+          if (ImGui::Button(ICON_FA_FOLDER "##YRW801Load")) {
+            openFileDialog(GUI_FILE_YRW801_ROM_OPEN);
+          }
+        })
+        /*
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text(_("MultiPCM TG100 path"));
+        ImGui::SameLine();
+        ImGui::InputText("##TG100Path",&settings.tg100Path);
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_FOLDER "##TG100Load")) {
+          openFileDialog(GUI_FILE_TG100_ROM_OPEN);
+        }
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text(_("MultiPCM MU5 path"));
+        ImGui::SameLine();
+        ImGui::InputText("##MU5Path",&settings.mu5Path);
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_FOLDER "##MU5Load")) {
+          openFileDialog(GUI_FILE_MU5_ROM_OPEN);
+        }
+        */
+      })
+    },{})
   };
 
   settings.activeCategory=settings.categories[0];
@@ -1724,8 +2082,8 @@ void FurnaceGUI::drawSettings() {
     if (ImGui::BeginTable("set3", vertical?1:2,ImGuiTableFlags_Resizable|ImGuiTableFlags_BordersInner)) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
+      settings.filter.Draw(_("Search"));
       if (ImGui::BeginChild("SettingCategories",vertical?ImGui::GetContentRegionAvail()/ImVec2(1.0f,3.0f):ImGui::GetContentRegionAvail(),false)) {
-        settings.filter.Draw(_("Search"));
         ImGui::BeginDisabled(settings.filter.IsActive());
         for (SettingsCategory cat:settings.categories) drawSettingsCategory(&cat);
         ImGui::EndDisabled();
@@ -1746,546 +2104,6 @@ void FurnaceGUI::drawSettings() {
         END_SECTION;
       }
 
-      CONFIG_SECTION(_("MIDI")) {
-        // SUBSECTION MIDI INPUT
-        
-
-       
-        
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Actions:"));
-        ImGui::SameLine();
-        if (ImGui::Button(ICON_FA_PLUS "##AddAction")) {
-          midiMap.binds.push_back(MIDIBind());
-          SETTINGS_CHANGED;
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(ICON_FA_EXTERNAL_LINK "##AddLearnAction")) {
-          midiMap.binds.push_back(MIDIBind());
-          learning=midiMap.binds.size()-1;
-          SETTINGS_CHANGED;
-        }
-        if (learning!=-1) {
-          ImGui::SameLine();
-          ImGui::Text(_("(learning! press a button or move a slider/knob/something on your device.)"));
-        }
-
-        if (ImGui::BeginTable("MIDIActions",7)) {
-          ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.2);
-          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.1);
-          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.3);
-          ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,0.2);
-          ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch,0.5);
-          ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthFixed);
-          ImGui::TableSetupColumn("c6",ImGuiTableColumnFlags_WidthFixed);
-
-          ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-          ImGui::TableNextColumn();
-          ImGui::Text(_("Type"));
-          ImGui::TableNextColumn();
-          ImGui::Text(_("Channel"));
-          ImGui::TableNextColumn();
-          ImGui::Text(_("Note/Control"));
-          ImGui::TableNextColumn();
-          ImGui::Text(_("Velocity/Value"));
-          ImGui::TableNextColumn();
-          ImGui::Text(_("Action"));
-          ImGui::TableNextColumn();
-          ImGui::TableNextColumn();
-
-          for (size_t i=0; i<midiMap.binds.size(); i++) {
-            MIDIBind& bind=midiMap.binds[i];
-            char bindID[1024];
-            ImGui::PushID(i);
-            ImGui::TableNextRow();
-
-            ImGui::TableNextColumn();
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::BeginCombo("##BType",messageTypes[bind.type])) {
-              for (int j=8; j<15; j++) {
-                if (ImGui::Selectable(messageTypes[j],bind.type==j)) {
-                  bind.type=j;
-                  SETTINGS_CHANGED;
-                }
-              }
-              ImGui::EndCombo();
-            }
-
-            ImGui::TableNextColumn();
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::BeginCombo("##BChannel",messageChannels[bind.channel])) {
-              if (ImGui::Selectable(messageChannels[16],bind.channel==16)) {
-                bind.channel=16;
-                SETTINGS_CHANGED;
-              }
-              for (int j=0; j<16; j++) {
-                if (ImGui::Selectable(messageChannels[j],bind.channel==j)) {
-                  bind.channel=j;
-                  SETTINGS_CHANGED;
-                }
-              }
-              ImGui::EndCombo();
-            }
-
-            ImGui::TableNextColumn();
-            if (bind.data1==128) {
-              snprintf(bindID,1024,_("Any"));
-            } else {
-              const char* nName="???";
-              if ((bind.data1+60)>0 && (bind.data1+60)<180) {
-                nName=noteNames[bind.data1+60];
-              }
-              snprintf(bindID,1024,"%d (0x%.2X, %s)",bind.data1,bind.data1,nName);
-            }
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::BeginCombo("##BValue1",bindID)) {
-              if (ImGui::Selectable(_("Any"),bind.data1==128)) {
-                bind.data1=128;
-                SETTINGS_CHANGED;
-              }
-              for (int j=0; j<128; j++) {
-                const char* nName="???";
-                if ((j+60)>0 && (j+60)<180) {
-                  nName=noteNames[j+60];
-                }
-                snprintf(bindID,1024,"%d (0x%.2X, %s)##BV1_%d",j,j,nName,j);
-                if (ImGui::Selectable(bindID,bind.data1==j)) {
-                  bind.data1=j;
-                  SETTINGS_CHANGED;
-                }
-              }
-              ImGui::EndCombo();
-            }
-
-            ImGui::TableNextColumn();
-            if (bind.data2==128) {
-              snprintf(bindID,1024,_("Any"));
-            } else {
-              snprintf(bindID,1024,"%d (0x%.2X)",bind.data2,bind.data2);
-            }
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::BeginCombo("##BValue2",bindID)) {
-              if (ImGui::Selectable(_("Any"),bind.data2==128)) {
-                bind.data2=128;
-                SETTINGS_CHANGED;
-              }
-              for (int j=0; j<128; j++) {
-                snprintf(bindID,1024,"%d (0x%.2X)##BV2_%d",j,j,j);
-                if (ImGui::Selectable(bindID,bind.data2==j)) {
-                  bind.data2=j;
-                  SETTINGS_CHANGED;
-                }
-              }
-              ImGui::EndCombo();
-            }
-
-            ImGui::TableNextColumn();
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::BeginCombo("##BAction",(bind.action==0)?_("--none--"):guiActions[bind.action].friendlyName)) {
-              if (ImGui::Selectable(_("--none--"),bind.action==0)) {
-                bind.action=0;
-                SETTINGS_CHANGED;
-              }
-              for (int j=0; j<GUI_ACTION_MAX; j++) {
-                if (strcmp(guiActions[j].friendlyName,"")==0) continue;
-                if (strstr(guiActions[j].friendlyName,"---")==guiActions[j].friendlyName) {
-                  ImGui::TextUnformatted(guiActions[j].friendlyName);
-                } else {
-                  snprintf(bindID,1024,"%s##BA_%d",_(guiActions[j].friendlyName),j);
-                  if (ImGui::Selectable(bindID,bind.action==j)) {
-                    bind.action=j;
-                    SETTINGS_CHANGED;
-                  }
-                }
-              }
-              ImGui::EndCombo();
-            }
-
-            ImGui::TableNextColumn();
-            pushToggleColors(learning==(int)i);
-            if (ImGui::Button((learning==(int)i)?(_("waiting...##BLearn")):(_("Learn##BLearn")))) {
-              if (learning==(int)i) {
-                learning=-1;
-              } else {
-                learning=i;
-              }
-              SETTINGS_CHANGED;
-            }
-            popToggleColors();
-
-            ImGui::TableNextColumn();
-            if (ImGui::Button(ICON_FA_TIMES "##BRemove")) {
-              midiMap.binds.erase(midiMap.binds.begin()+i);
-              if (learning==(int)i) learning=-1;
-              i--;
-              SETTINGS_CHANGED;
-            }
-
-            ImGui::PopID();
-          }
-          ImGui::EndTable();
-        }
-
-        // SUBSECTION MIDI OUTPUT
-        CONFIG_SUBSECTION(_("MIDI output"));
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("MIDI output"));
-        ImGui::SameLine();
-        String midiOutName=settings.midiOutDevice.empty()?_("<disabled>"):settings.midiOutDevice;
-        if (ImGui::BeginCombo("##MidiOutDevice",midiOutName.c_str())) {
-          if (ImGui::Selectable(_("<disabled>"),settings.midiOutDevice.empty())) {
-            settings.midiOutDevice="";
-            SETTINGS_CHANGED;
-          }
-          for (String& i: e->getMidiIns()) {
-            if (ImGui::Selectable(i.c_str(),i==settings.midiOutDevice)) {
-              settings.midiOutDevice=i;
-              SETTINGS_CHANGED;
-            }
-          }
-          ImGui::EndCombo();
-        }
-
-        ImGui::Text(_("Output mode:"));
-        ImGui::Indent();
-        if (ImGui::RadioButton(_("Off (use for TX81Z)"),settings.midiOutMode==0)) {
-          settings.midiOutMode=0;
-          SETTINGS_CHANGED;
-        }
-        if (ImGui::RadioButton(_("Melodic"),settings.midiOutMode==1)) {
-          settings.midiOutMode=1;
-          SETTINGS_CHANGED;
-        }
-        /*
-        if (ImGui::RadioButton(_("Light Show (use for Launchpad)"),settings.midiOutMode==2)) {
-          settings.midiOutMode=2;
-        }*/
-        ImGui::Unindent();
-
-        bool midiOutProgramChangeB=settings.midiOutProgramChange;
-        if (ImGui::Checkbox(_("Send Program Change"),&midiOutProgramChangeB)) {
-          settings.midiOutProgramChange=midiOutProgramChangeB;
-          SETTINGS_CHANGED;
-        }
-
-        bool midiOutClockB=settings.midiOutClock;
-        if (ImGui::Checkbox(_("Send MIDI clock"),&midiOutClockB)) {
-          settings.midiOutClock=midiOutClockB;
-          SETTINGS_CHANGED;
-        }
-
-        bool midiOutTimeB=settings.midiOutTime;
-        if (ImGui::Checkbox(_("Send MIDI timecode"),&midiOutTimeB)) {
-          settings.midiOutTime=midiOutTimeB;
-          SETTINGS_CHANGED;
-        }
-
-        if (settings.midiOutTime) {
-          ImGui::Text(_("Timecode frame rate:"));
-          ImGui::Indent();
-          if (ImGui::RadioButton(_("Closest to Tick Rate"),settings.midiOutTimeRate==0)) {
-            settings.midiOutTimeRate=0;
-            SETTINGS_CHANGED;
-          }
-          if (ImGui::RadioButton(_("Film (24fps)"),settings.midiOutTimeRate==1)) {
-            settings.midiOutTimeRate=1;
-            SETTINGS_CHANGED;
-          }
-          if (ImGui::RadioButton(_("PAL (25fps)"),settings.midiOutTimeRate==2)) {
-            settings.midiOutTimeRate=2;
-            SETTINGS_CHANGED;
-          }
-          if (ImGui::RadioButton(_("NTSC drop (29.97fps)"),settings.midiOutTimeRate==3)) {
-            settings.midiOutTimeRate=3;
-            SETTINGS_CHANGED;
-          }
-          if (ImGui::RadioButton(_("NTSC non-drop (30fps)"),settings.midiOutTimeRate==4)) {
-            settings.midiOutTimeRate=4;
-            SETTINGS_CHANGED;
-          }
-          ImGui::Unindent();
-        }
-
-        END_SECTION;
-      }
-      CONFIG_SECTION(_("Emulation")) {
-        // SUBSECTION CORES
-        CONFIG_SUBSECTION(_("Cores"));
-        if (ImGui::BeginTable("##Cores",3)) {
-          ImGui::TableSetupColumn("##System",ImGuiTableColumnFlags_WidthFixed);
-          ImGui::TableSetupColumn("##PlaybackCores",ImGuiTableColumnFlags_WidthStretch);
-          ImGui::TableSetupColumn("##RenderCores",ImGuiTableColumnFlags_WidthStretch);
-          ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-          ImGui::TableNextColumn();
-          ImGui::Text(_("System"));
-          ImGui::TableNextColumn();
-          ImGui::Text(_("Playback Core(s)"));
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("used for playback"));
-          }
-          ImGui::TableNextColumn();
-          ImGui::Text(_("Render Core(s)"));
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("used in audio export"));
-          }
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text("YM2151");
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##ArcadeCore",&settings.arcadeCore,arcadeCores,2)) SETTINGS_CHANGED;
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##ArcadeCoreRender",&settings.arcadeCoreRender,arcadeCores,2)) SETTINGS_CHANGED;
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text("YM2612");
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##YM2612Core",&settings.ym2612Core,ym2612Cores,3)) SETTINGS_CHANGED;
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##YM2612CoreRender",&settings.ym2612CoreRender,ym2612Cores,3)) SETTINGS_CHANGED;
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text("SN76489");
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##SNCore",&settings.snCore,snCores,2)) SETTINGS_CHANGED;
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##SNCoreRender",&settings.snCoreRender,snCores,2)) SETTINGS_CHANGED;
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text("NES");
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##NESCore",&settings.nesCore,nesCores,2)) SETTINGS_CHANGED;
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##NESCoreRender",&settings.nesCoreRender,nesCores,2)) SETTINGS_CHANGED;
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text("FDS");
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##FDSCore",&settings.fdsCore,nesCores,2)) SETTINGS_CHANGED;
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##FDSCoreRender",&settings.fdsCoreRender,nesCores,2)) SETTINGS_CHANGED;
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text("SID");
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##C64Core",&settings.c64Core,c64Cores,3)) SETTINGS_CHANGED;
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##C64CoreRender",&settings.c64CoreRender,c64Cores,3)) SETTINGS_CHANGED;
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text("POKEY");
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##POKEYCore",&settings.pokeyCore,pokeyCores,2)) SETTINGS_CHANGED;
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##POKEYCoreRender",&settings.pokeyCoreRender,pokeyCores,2)) SETTINGS_CHANGED;
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text("OPN");
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##OPNCore",&settings.opn1Core,opnCores,3)) SETTINGS_CHANGED;
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##OPNCoreRender",&settings.opn1CoreRender,opnCores,3)) SETTINGS_CHANGED;
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text("OPNA");
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##OPNACore",&settings.opnaCore,opnCores,3)) SETTINGS_CHANGED;
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##OPNACoreRender",&settings.opnaCoreRender,opnCores,3)) SETTINGS_CHANGED;
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text("OPNB");
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##OPNBCore",&settings.opnbCore,opnCores,3)) SETTINGS_CHANGED;
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##OPNBCoreRender",&settings.opnbCoreRender,opnCores,3)) SETTINGS_CHANGED;
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text("OPL/OPL2/Y8950");
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##OPL2Core",&settings.opl2Core,opl2Cores,3)) SETTINGS_CHANGED;
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##OPL2CoreRender",&settings.opl2CoreRender,opl2Cores,3)) SETTINGS_CHANGED;
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text("OPL3");
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##OPL3Core",&settings.opl3Core,opl3Cores,3)) SETTINGS_CHANGED;
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##OPL3CoreRender",&settings.opl3CoreRender,opl3Cores,3)) SETTINGS_CHANGED;
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text("OPL4");
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##OPL4Core",&settings.opl4Core,opl4Cores,2)) SETTINGS_CHANGED;
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##OPL4CoreRender",&settings.opl4CoreRender,opl4Cores,2)) SETTINGS_CHANGED;
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text("ESFM");
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##ESFMCore",&settings.esfmCore,LocalizedComboGetter,esfmCores,2)) SETTINGS_CHANGED;
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##ESFMCoreRender",&settings.esfmCoreRender,LocalizedComboGetter,esfmCores,2)) SETTINGS_CHANGED;
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text("OPLL");
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##OPLLCore",&settings.opllCore,opllCores,2)) SETTINGS_CHANGED;
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##OPLLCoreRender",&settings.opllCoreRender,opllCores,2)) SETTINGS_CHANGED;
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text("AY-3-8910/SSG");
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##AYCore",&settings.ayCore,ayCores,2)) SETTINGS_CHANGED;
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##AYCoreRender",&settings.ayCoreRender,ayCores,2)) SETTINGS_CHANGED;
-
-          ImGui::EndTable();
-        }
-
-        // SUBSECTION OTHER
-        CONFIG_SUBSECTION(_("Quality"));
-        if (ImGui::BeginTable("##CoreQual",3)) {
-          ImGui::TableSetupColumn("##System",ImGuiTableColumnFlags_WidthFixed);
-          ImGui::TableSetupColumn("##PlaybackCores",ImGuiTableColumnFlags_WidthStretch);
-          ImGui::TableSetupColumn("##RenderCores",ImGuiTableColumnFlags_WidthStretch);
-          ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-          ImGui::TableNextColumn();
-          ImGui::Text(_("System"));
-          ImGui::TableNextColumn();
-          ImGui::Text(_("Playback"));
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("used for playback"));
-          }
-          ImGui::TableNextColumn();
-          ImGui::Text(_("Render"));
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("used in audio export"));
-          }
-
-          CORE_QUALITY("Bubble System WSG",bubsysQuality,bubsysQualityRender);
-          CORE_QUALITY("Game Boy",gbQuality,gbQualityRender);
-          CORE_QUALITY("Nintendo DS",ndsQuality,ndsQualityRender);
-          CORE_QUALITY("PC Engine",pceQuality,pceQualityRender);
-          CORE_QUALITY("PowerNoise",pnQuality,pnQualityRender);
-          CORE_QUALITY("SAA1099",saaQuality,saaQualityRender);
-          CORE_QUALITY("SCC",sccQuality,sccQualityRender);
-          CORE_QUALITY("SID (dSID)",dsidQuality,dsidQualityRender);
-          CORE_QUALITY("SM8521",smQuality,smQualityRender);
-          CORE_QUALITY("Virtual Boy",vbQuality,vbQualityRender);
-          CORE_QUALITY("WonderSwan",swanQuality,swanQualityRender);
-
-          ImGui::EndTable();
-        }
-
-        // SUBSECTION OTHER
-        CONFIG_SUBSECTION(_("Other"));
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("PC Speaker strategy"));
-        ImGui::SameLine();
-        if (ImGui::Combo("##PCSOutMethod",&settings.pcSpeakerOutMethod,LocalizedComboGetter,pcspkrOutMethods,5)) SETTINGS_CHANGED;
-
-        ImGui::Separator();
-        ImGui::Text(_("Sample ROMs:"));
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("OPL4 YRW801 path"));
-        ImGui::SameLine();
-        ImGui::InputText("##YRW801Path",&settings.yrw801Path);
-        ImGui::SameLine();
-        if (ImGui::Button(ICON_FA_FOLDER "##YRW801Load")) {
-          openFileDialog(GUI_FILE_YRW801_ROM_OPEN);
-        }
-
-        /*
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("MultiPCM TG100 path"));
-        ImGui::SameLine();
-        ImGui::InputText("##TG100Path",&settings.tg100Path);
-        ImGui::SameLine();
-        if (ImGui::Button(ICON_FA_FOLDER "##TG100Load")) {
-          openFileDialog(GUI_FILE_TG100_ROM_OPEN);
-        }
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("MultiPCM MU5 path"));
-        ImGui::SameLine();
-        ImGui::InputText("##MU5Path",&settings.mu5Path);
-        ImGui::SameLine();
-        if (ImGui::Button(ICON_FA_FOLDER "##MU5Load")) {
-          openFileDialog(GUI_FILE_MU5_ROM_OPEN);
-        }
-        */
-
-        END_SECTION;
-      }
       CONFIG_SECTION(_("Keyboard")) {
         // SUBSECTION LAYOUT
         CONFIG_SUBSECTION(_("Keyboard"));
