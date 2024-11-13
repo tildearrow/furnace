@@ -349,11 +349,48 @@ const char* specificControls[18]={
   if (ImGui::Combo("##" _name "QR",&settings._render,LocalizedComboGetter,coreQualities,6)) SETTINGS_CHANGED;
 
 #define SETTING(n,f) new Setting(n,[this]f)
+
 #define SETTING_COND(n,f,c) new Setting(n,[this]f,[this]{return c;})
+
+#define SETTING_SEPARATOR() new Setting(NULL,[]{ImGui::Separator();})
+
 #define SETTINGS_CHANGED settingsChanged=true
+
+#define MIDI_SPECIFIC_CONTROL(i) \
+          SETTING(specificControls[i],{ \
+            ImGui::PushID(i); \
+            if (ImGui::Combo(specificControls[i],&midiMap.valueInputSpecificStyle[i],LocalizedComboGetter,valueSInputStyles,4)) SETTINGS_CHANGED; \
+            ImGui::PopID(); \
+          }), \
+          SETTING_COND(_("Control##valueCCS"),{ \
+            ImGui::PushID(i); \
+            ImGui::Indent(); \
+            if (ImGui::InputInt(_("Control##valueCCS"),&midiMap.valueInputSpecificSingle[i],1,16)) { \
+              if (midiMap.valueInputSpecificSingle[i]<0) midiMap.valueInputSpecificSingle[i]=0; \
+              if (midiMap.valueInputSpecificSingle[i]>127) midiMap.valueInputSpecificSingle[i]=127; \
+              SETTINGS_CHANGED; \
+            } \
+            ImGui::Unindent(); \
+            ImGui::PopID(); \
+          },midiMap.valueInputSpecificStyle[i]==3), \
+          SETTING_COND(_("Control##valueCCS"),{ \
+            ImGui::PushID(i); \
+            ImGui::Indent(); \
+            if (ImGui::InputInt(_("MSB CC##valueCC1"),&midiMap.valueInputSpecificMSB[i],1,16)) { \
+              if (midiMap.valueInputSpecificMSB[i]<0) midiMap.valueInputSpecificMSB[i]=0; \
+              if (midiMap.valueInputSpecificMSB[i]>127) midiMap.valueInputSpecificMSB[i]=127; \
+              SETTINGS_CHANGED; \
+            } \
+            if (ImGui::InputInt(_("LSB CC##valueCC2"),&midiMap.valueInputSpecificLSB[i],1,16)) { \
+              if (midiMap.valueInputSpecificLSB[i]<0) midiMap.valueInputSpecificLSB[i]=0; \
+              if (midiMap.valueInputSpecificLSB[i]>127) midiMap.valueInputSpecificLSB[i]=127; \
+              SETTINGS_CHANGED; \
+            } \
+            ImGui::Unindent(); \
+            ImGui::PopID(); \
+          },(midiMap.valueInputSpecificStyle[i]>0) && (midiMap.valueInputSpecificStyle[i]!=3)) \
+
 // NEW NEW SETTINGS HERE
-  int a=0;
-  const char* t[2]={"1","2"};
 void FurnaceGUI::setupSettingsCategories() {
   settings.categories={
   SettingsCategory(_("General"),{
@@ -1244,7 +1281,28 @@ void FurnaceGUI::setupSettingsCategories() {
       })
     },{}),
     SettingsCategory(_("MIDI"),{
-      SettingsCategory(_("MIDI input"),{},{
+      SettingsCategory(_("MIDI input"),{
+        SettingsCategory(_("Per-column control change"),{},{
+          MIDI_SPECIFIC_CONTROL(0),
+          MIDI_SPECIFIC_CONTROL(1),
+          MIDI_SPECIFIC_CONTROL(2),
+          MIDI_SPECIFIC_CONTROL(3),
+          MIDI_SPECIFIC_CONTROL(4),
+          MIDI_SPECIFIC_CONTROL(5),
+          MIDI_SPECIFIC_CONTROL(6),
+          MIDI_SPECIFIC_CONTROL(7),
+          MIDI_SPECIFIC_CONTROL(8),
+          MIDI_SPECIFIC_CONTROL(9),
+          MIDI_SPECIFIC_CONTROL(10),
+          MIDI_SPECIFIC_CONTROL(11),
+          MIDI_SPECIFIC_CONTROL(12),
+          MIDI_SPECIFIC_CONTROL(13),
+          MIDI_SPECIFIC_CONTROL(14),
+          MIDI_SPECIFIC_CONTROL(15),
+          MIDI_SPECIFIC_CONTROL(16),
+          MIDI_SPECIFIC_CONTROL(17),
+        })
+      },{
         SETTING(_("MIDI input"),{
           String midiInName=settings.midiInDevice.empty()?_("<disabled>"):settings.midiInDevice;
           bool hasToReloadMidi=false;
@@ -1345,6 +1403,20 @@ void FurnaceGUI::setupSettingsCategories() {
             SETTINGS_CHANGED;
           }
         },midiMap.valueInputStyle==5),
+        SETTING_SEPARATOR(),
+        SETTING(_("Volume curve"),{
+          if (ImGui::SliderFloat(_("Volume curve"),&midiMap.volExp,0.01,8.0,"%.2f")) {
+            if (midiMap.volExp<0.01) midiMap.volExp=0.01;
+            if (midiMap.volExp>8.0) midiMap.volExp=8.0;
+            e->setMidiVolExp(midiMap.volExp);
+            SETTINGS_CHANGED;
+          } rightClickable
+          float curve[128];
+          for (int i=0; i<128; i++) {
+            curve[i]=(int)(pow((double)i/127.0,midiMap.volExp)*127.0);
+          }
+          ImGui::PlotLines("##VolCurveDisplay",curve,128,0,_("Volume curve"),0.0,127.0,ImVec2(200.0f*dpiScale,200.0f*dpiScale));
+        }),
       })
     },{}),
   };
@@ -1678,47 +1750,8 @@ void FurnaceGUI::drawSettings() {
         // SUBSECTION MIDI INPUT
         
 
-        if (ImGui::TreeNode(_("Per-column control change"))) {
-          for (int i=0; i<18; i++) {
-            ImGui::PushID(i);
-            if (ImGui::Combo(specificControls[i],&midiMap.valueInputSpecificStyle[i],LocalizedComboGetter,valueSInputStyles,4)) SETTINGS_CHANGED;
-            if (midiMap.valueInputSpecificStyle[i]>0) {
-              ImGui::Indent();
-              if (midiMap.valueInputSpecificStyle[i]==3) {
-                if (ImGui::InputInt(_("Control##valueCCS"),&midiMap.valueInputSpecificSingle[i],1,16)) {
-                  if (midiMap.valueInputSpecificSingle[i]<0) midiMap.valueInputSpecificSingle[i]=0;
-                  if (midiMap.valueInputSpecificSingle[i]>127) midiMap.valueInputSpecificSingle[i]=127;
-                  SETTINGS_CHANGED;
-                }
-              } else {
-                if (ImGui::InputInt((midiMap.valueInputSpecificStyle[i]==4)?_("CC of upper nibble##valueCC1"):_("MSB CC##valueCC1"),&midiMap.valueInputSpecificMSB[i],1,16)) {
-                  if (midiMap.valueInputSpecificMSB[i]<0) midiMap.valueInputSpecificMSB[i]=0;
-                  if (midiMap.valueInputSpecificMSB[i]>127) midiMap.valueInputSpecificMSB[i]=127;
-                  SETTINGS_CHANGED;
-                }
-                if (ImGui::InputInt((midiMap.valueInputSpecificStyle[i]==4)?_("CC of lower nibble##valueCC2"):_("LSB CC##valueCC2"),&midiMap.valueInputSpecificLSB[i],1,16)) {
-                  if (midiMap.valueInputSpecificLSB[i]<0) midiMap.valueInputSpecificLSB[i]=0;
-                  if (midiMap.valueInputSpecificLSB[i]>127) midiMap.valueInputSpecificLSB[i]=127;
-                  SETTINGS_CHANGED;
-                }
-              }
-              ImGui::Unindent();
-            }
-            ImGui::PopID();
-          }
-          ImGui::TreePop();
-        }
-        if (ImGui::SliderFloat(_("Volume curve"),&midiMap.volExp,0.01,8.0,"%.2f")) {
-          if (midiMap.volExp<0.01) midiMap.volExp=0.01;
-          if (midiMap.volExp>8.0) midiMap.volExp=8.0;
-          e->setMidiVolExp(midiMap.volExp);
-          SETTINGS_CHANGED;
-        } rightClickable
-        float curve[128];
-        for (int i=0; i<128; i++) {
-          curve[i]=(int)(pow((double)i/127.0,midiMap.volExp)*127.0);
-        }
-        ImGui::PlotLines("##VolCurveDisplay",curve,128,0,_("Volume curve"),0.0,127.0,ImVec2(200.0f*dpiScale,200.0f*dpiScale));
+       
+        
 
         ImGui::AlignTextToFramePadding();
         ImGui::Text(_("Actions:"));
