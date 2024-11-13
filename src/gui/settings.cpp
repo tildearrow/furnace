@@ -1804,10 +1804,9 @@ void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {
       settings.activeCategory=*cat;
     }
     if (cat->expandChild) {
-      float indentSize=ImGui::CalcTextSize("-").x*dpiScale;
-      ImGui::Indent(indentSize);
+      ImGui::Indent();
       for (SettingsCategory child:cat->children) drawSettingsCategory(&child);
-      ImGui::Unindent(indentSize);
+      ImGui::Unindent();
       ImGui::TreePop();
     }
   } else { // a lonely child...
