@@ -1708,7 +1708,7 @@ class FurnaceGUI {
   bool safeMode;
   bool midiWakeUp;
   bool makeDrumkitMode;
-  bool audioEngineChanged, settingsChanged, debugFFT;
+  bool audioEngineChanged, settingsChanged, purgeDateChanged, debugFFT;
   bool willExport[DIV_MAX_CHIPS];
   int vgmExportVersion;
   int vgmExportTrailingTicks;

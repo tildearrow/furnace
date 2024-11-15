@@ -3614,6 +3614,330 @@ void FurnaceGUI::setupSettingsCategories() {
           SETTINGS_CHANGED;
         }
       })
+    }),
+    SettingsCategory(_("Backup"),{
+      SettingsCategory(_("Backup Management"),{},{
+        SETTING(_("Backup Management"),{
+          purgeDateChanged=false;
+
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text(_("Purge before:"));
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(60.0f*dpiScale);
+          if (ImGui::InputInt("##PYear",&purgeYear,0,0)) purgeDateChanged=true;
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(40.0f*dpiScale);
+          if (ImGui::InputInt("##PMonth",&purgeMonth,0,0)) purgeDateChanged=true;
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(40.0f*dpiScale);
+          if (ImGui::InputInt("##PDay",&purgeDay,0,0)) purgeDateChanged=true;
+
+          if (purgeDateChanged) {
+            // check month/day validity
+            time_t thisMakesNoSense=time(NULL);
+            bool tmFailed=false;
+            struct tm curTime;
+#ifdef _WIN32
+            struct tm* tempTM=localtime(&thisMakesNoSense);
+            if (tempTM==NULL) {
+              memset(&curTime,0,sizeof(struct tm));
+              tmFailed=true;
+            } else {
+              memcpy(&curTime,tempTM,sizeof(struct tm));
+            }
+#else
+            if (localtime_r(&thisMakesNoSense,&curTime)==NULL) {
+              memset(&curTime,0,sizeof(struct tm));
+              tmFailed=true;
+            }
+#endif
+
+            // don't allow dates in the future
+            if (!tmFailed) {
+              int curYear=curTime.tm_year+1900;
+              int curMonth=curTime.tm_mon+1;
+              int curDay=curTime.tm_mday;
+
+              if (purgeYear<1) purgeYear=1;
+              if (purgeYear>curYear) purgeYear=curYear;
+
+              if (purgeYear==curYear) {
+                if (purgeMonth>curMonth) purgeMonth=curMonth;
+
+                if (purgeMonth==curMonth) {
+                  if (purgeDay>curDay) purgeDay=curDay;
+                }
+              }
+            }
+
+            // general checks
+            if (purgeYear<1) purgeYear=1;
+            if (purgeMonth<1) purgeMonth=1;
+            if (purgeMonth>12) purgeMonth=12;
+            if (purgeDay<1) purgeDay=1;
+
+            // 1752 calendar alignment
+            if (purgeYear==1752 && purgeMonth==9) {
+              if (purgeDay>2 && purgeDay<14) purgeDay=2;
+            }
+            if (purgeMonth==2) {
+              // leap year
+              if ((purgeYear&3)==0 && ((purgeYear%100)!=0 || (purgeYear%400)==0)) {
+                if (purgeDay>29) purgeDay=29;
+              } else {
+                if (purgeDay>28) purgeDay=28;
+              }
+            } else if (purgeMonth==1 || purgeMonth==3 || purgeMonth==5 || purgeMonth==7 || purgeMonth==8 || purgeMonth==10 || purgeMonth==12) {
+              if (purgeDay>31) purgeDay=31;
+            } else {
+              if (purgeDay>30) purgeDay=30;
+            }
+          }
+          ImGui::SameLine();
+          if (ImGui::Button(_("Go##PDate"))) {
+            purgeBackups(purgeYear,purgeMonth,purgeDay);
+          }
+          backupEntryLock.lock();
+          ImGui::AlignTextToFramePadding();
+          if (totalBackupSize>=(1ULL<<50ULL)) {
+            ImGui::Text(_("%" PRIu64 "PB used"),totalBackupSize>>50);
+          } else if (totalBackupSize>=(1ULL<<40ULL)) {
+            ImGui::Text(_("%" PRIu64 "TB used"),totalBackupSize>>40);
+          } else if (totalBackupSize>=(1ULL<<30ULL)) {
+            ImGui::Text(_("%" PRIu64 "GB used"),totalBackupSize>>30);
+          } else if (totalBackupSize>=(1ULL<<20ULL)) {
+            ImGui::Text(_("%" PRIu64 "MB used"),totalBackupSize>>20);
+          } else if (totalBackupSize>=(1ULL<<10ULL)) {
+            ImGui::Text(_("%" PRIu64 "KB used"),totalBackupSize>>10);
+          } else {
+            ImGui::Text(_("%" PRIu64 " bytes used"),totalBackupSize);
+          }
+
+          ImGui::SameLine();
+
+          if (ImGui::Button(_("Refresh"))) {
+            refreshBackups=true;
+          }
+          ImGui::SameLine();
+          if (ImGui::Button(_("Delete all"))) {
+            purgeBackups(0,0,0);
+          }
+
+          if (ImGui::BeginTable("BackupList",3,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders)) {
+            ImGui::TableSetupColumn(_("Name"),ImGuiTableColumnFlags_WidthStretch,0.6f);
+            ImGui::TableSetupColumn(_("Size"),ImGuiTableColumnFlags_WidthStretch,0.15f);
+            ImGui::TableSetupColumn(_("Latest"),ImGuiTableColumnFlags_WidthStretch,0.25f);
+
+            ImGui::TableHeadersRow();
+
+            for (FurnaceGUIBackupEntry& i: backupEntries) {
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::TextUnformatted(i.name.c_str());
+              ImGui::TableNextColumn();
+              if (i.size>=(1ULL<<50ULL)) {
+                ImGui::Text(_("%" PRIu64 "P"),i.size>>50);
+              } else if (i.size>=(1ULL<<40ULL)) {
+                ImGui::Text(_("%" PRIu64 "T"),i.size>>40);
+              } else if (i.size>=(1ULL<<30ULL)) {
+                ImGui::Text(_("%" PRIu64 "G"),i.size>>30);
+              } else if (i.size>=(1ULL<<20ULL)) {
+                ImGui::Text(_("%" PRIu64 "M"),i.size>>20);
+              } else if (i.size>=(1ULL<<10ULL)) {
+                ImGui::Text(_("%" PRIu64 "K"),i.size>>10);
+              } else {
+                ImGui::Text(_("%" PRIu64 ""),i.size);
+              }
+              ImGui::TableNextColumn();
+              ImGui::Text("%d-%02d-%02d",i.lastEntryTime.tm_year+1900,i.lastEntryTime.tm_mon+1,i.lastEntryTime.tm_mday);
+            }
+
+            ImGui::EndTable();
+          }
+          backupEntryLock.unlock();
+          if (refreshBackups) {
+            refreshBackups=false;
+            if (backupEntryTask.valid()) backupEntryTask.get();
+            backupEntryTask=std::async(std::launch::async,[this]() -> bool {
+              backupEntryLock.lock();
+              backupEntries.clear();
+              totalBackupSize=0;
+              backupEntryLock.unlock();
+
+#ifdef _WIN32
+              String findPath=backupPath+String(DIR_SEPARATOR_STR)+String("*.fur");
+              WString findPathW=utf8To16(findPath.c_str());
+              WIN32_FIND_DATAW next;
+              HANDLE backDir=FindFirstFileW(findPathW.c_str(),&next);
+              if (backDir!=INVALID_HANDLE_VALUE) {
+                do {
+                  FurnaceGUIBackupEntry nextEntry;
+                  String cFileNameU=utf16To8(next.cFileName);
+                  if (!splitBackupName(cFileNameU.c_str(),nextEntry.name,nextEntry.lastEntryTime)) continue;
+
+                  nextEntry.size=(((uint64_t)next.nFileSizeHigh)<<32)|next.nFileSizeLow;
+
+                  backupEntryLock.lock();
+                  backupEntries.push_back(nextEntry);
+                  totalBackupSize+=nextEntry.size;
+                  backupEntryLock.unlock();
+                } while (FindNextFileW(backDir,&next)!=0);
+                FindClose(backDir);
+              }
+#else
+              DIR* backDir=opendir(backupPath.c_str());
+              if (backDir==NULL) {
+                logW("could not open backups dir!");
+                return false;
+              }
+              while (true) {
+                FurnaceGUIBackupEntry nextEntry;
+                struct stat nextStat;
+                struct dirent* next=readdir(backDir);
+                if (next==NULL) break;
+                if (strcmp(next->d_name,".")==0) continue;
+                if (strcmp(next->d_name,"..")==0) continue;
+                if (!splitBackupName(next->d_name,nextEntry.name,nextEntry.lastEntryTime)) continue;
+
+                String nextPath=backupPath+DIR_SEPARATOR_STR+next->d_name;
+
+                if (stat(nextPath.c_str(),&nextStat)>=0) {
+                  nextEntry.size=nextStat.st_size;
+                }
+
+                backupEntryLock.lock();
+                backupEntries.push_back(nextEntry);
+                totalBackupSize+=nextEntry.size;
+                backupEntryLock.unlock();
+              }
+              closedir(backDir);
+#endif
+
+              // sort and merge
+              backupEntryLock.lock();
+              std::sort(backupEntries.begin(),backupEntries.end(),[](const FurnaceGUIBackupEntry& a, const FurnaceGUIBackupEntry& b) -> bool {
+                int sc=strcmp(a.name.c_str(),b.name.c_str());
+                if (sc==0) {
+                  if (a.lastEntryTime.tm_year==b.lastEntryTime.tm_year) {
+                    if (a.lastEntryTime.tm_mon==b.lastEntryTime.tm_mon) {
+                      if (a.lastEntryTime.tm_mday==b.lastEntryTime.tm_mday) {
+                        if (a.lastEntryTime.tm_hour==b.lastEntryTime.tm_hour) {
+                          if (a.lastEntryTime.tm_min==b.lastEntryTime.tm_min) {
+                            return (a.lastEntryTime.tm_sec<b.lastEntryTime.tm_sec);
+                          } else {
+                            return (a.lastEntryTime.tm_min<b.lastEntryTime.tm_min);
+                          }
+                        } else {
+                          return (a.lastEntryTime.tm_hour<b.lastEntryTime.tm_hour);
+                        }
+                      } else {
+                        return (a.lastEntryTime.tm_mday<b.lastEntryTime.tm_mday);
+                      }
+                    } else {
+                      return (a.lastEntryTime.tm_mon<b.lastEntryTime.tm_mon);
+                    }
+                  } else {
+                    return (a.lastEntryTime.tm_year<b.lastEntryTime.tm_year);
+                  }
+                }
+
+                return sc<0;
+              });
+              for (size_t i=1; i<backupEntries.size(); i++) {
+                FurnaceGUIBackupEntry& prevEntry=backupEntries[i-1];
+                FurnaceGUIBackupEntry& thisEntry=backupEntries[i];
+
+                if (thisEntry.name==prevEntry.name) {
+                  thisEntry.size+=prevEntry.size;
+                  backupEntries.erase(backupEntries.begin()+i);
+                  i--;
+                }
+              }
+              backupEntryLock.unlock();
+              return true;
+            });
+          }
+        })
+      })
+    },{
+      SETTING(_("Enable backup system"),{
+        bool backupEnableB=settings.backupEnable;
+        if (ImGui::Checkbox(_("Enable backup system"),&backupEnableB)) {
+          settings.backupEnable=backupEnableB;
+          SETTINGS_CHANGED;
+        }
+      }),
+      SETTING(_("Interval (in seconds)"),{
+        if (ImGui::InputInt(_("Interval (in seconds)"),&settings.backupInterval)) {
+          if (settings.backupInterval<10) settings.backupInterval=10;
+          if (settings.backupInterval>86400) settings.backupInterval=86400;
+        }
+      }),
+      SETTING(_("Backups per file"),{
+        if (ImGui::InputInt(_("Backups per file"),&settings.backupMaxCopies)) {
+          if (settings.backupMaxCopies<1) settings.backupMaxCopies=1;
+          if (settings.backupMaxCopies>100) settings.backupMaxCopies=100;
+        }
+      })
+    }),
+    SettingsCategory(_("Cheat Codes"),{},{
+      // ok, so you decided to read the code.
+      // these are the cheat codes:
+      // "Debug" - toggles mobile UI
+      // "Nice Amiga cover of the song!" - enables hidden systems (YMU759/Dummy)
+      // "42 63" - enables all instrument types
+      // "4-bit FDS" - enables partial pitch linearity option
+      // "Power of the Chip" - enables options for multi-threaded audio (isnt that already enabled by default? maybe remove?)
+      // "btcdbcb" - use modern UI padding
+      // 
+      // "????" - enables stuff
+      SETTING(_("Cheat Codes"),{
+        ImGui::PushFont(headFont);
+        ImGui::Text(_("Enter code:"));
+        ImGui::PopFont();
+        ImGui::InputText("##CheatCode",&mmlString[31]);
+        if (ImGui::Button(_("Submit"))) {
+          unsigned int checker=0x11111111;
+          unsigned int checker1=0;
+          int index=0;
+          mmlString[30]=_("invalid code");
+
+          for (char& i: mmlString[31]) {
+            checker^=((unsigned int)i)<<index;
+            checker1+=i;
+            checker=(checker>>1|(((checker)^(checker>>2)^(checker>>3)^(checker>>5))&1)<<31);
+            checker1<<=1;
+            index=(index+1)&31;
+          }
+          if (checker==0x90888b65 && checker1==0x1482) {
+            mmlString[30]=_("toggled alternate UI");
+            toggleMobileUI(!mobileUI);
+          }
+          if (checker==0x5a42a113 && checker1==0xe4ef451e) {
+            mmlString[30]=_(":smile: :star_struck: :sunglasses: :ok_hand:");
+            settings.hiddenSystems=!settings.hiddenSystems;
+          }
+          if (checker==0xe888896b && checker1==0xbde) {
+            mmlString[30]=_("enabled all instrument types");
+            settings.displayAllInsTypes=!settings.displayAllInsTypes;
+          }
+          if (checker==0x3f88abcc && checker1==0xf4a6) {
+            mmlString[30]=_("OK, if I bring your Partial pitch linearity will you stop bothering me?");
+            settings.displayPartial=1;
+          }
+          if (checker==0x94222d83 && checker1==0x6600) {
+            mmlString[30]=_("enabled \"comfortable\" mode");
+            ImGuiStyle& sty=ImGui::GetStyle();
+            sty.FramePadding=ImVec2(20.0f*dpiScale,20.0f*dpiScale);
+            sty.ItemSpacing=ImVec2(10.0f*dpiScale,10.0f*dpiScale);
+            sty.ItemInnerSpacing=ImVec2(10.0f*dpiScale,10.0f*dpiScale);
+            settingsOpen=false;
+          }
+
+          mmlString[31]="";
+        }
+        ImGui::Text("%s",mmlString[30].c_str());
+      })
     })
   };
 
@@ -3627,13 +3951,19 @@ void FurnaceGUI::destroySettingsCategories(SettingsCategory& cat) {
     }
   }
   for (Setting* i:cat.settings) {
-    delete i;
+    if (i) {
+      delete i;
+      i=NULL;
+    }
   }
   cat.settings.clear();
   cat.children.clear();
 }
 
 void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {
+  if (!nonLatchNibble) {
+    if (strncmp(cat->name, _("Cheat Codes"), 12)==0) return;
+  }
   if (cat->children.size()>0) {
     ImGuiTreeNodeFlags f=ImGuiTreeNodeFlags_SpanFullWidth|ImGuiTreeNodeFlags_OpenOnArrow|ImGuiTreeNodeFlags_OpenOnDoubleClick;
     if (settings.activeCategory.name==cat->name) f|=ImGuiTreeNodeFlags_Selected;
@@ -4337,331 +4667,6 @@ void FurnaceGUI::drawSettings() {
         END_SECTION;
       }
 
-      CONFIG_SECTION(_("Backup")) {
-        // SUBSECTION SETTINGS
-        CONFIG_SUBSECTION(_("Configuration"));
-
-        bool backupEnableB=settings.backupEnable;
-        if (ImGui::Checkbox(_("Enable backup system"),&backupEnableB)) {
-          settings.backupEnable=backupEnableB;
-          SETTINGS_CHANGED;
-        }
-
-        if (ImGui::InputInt(_("Interval (in seconds)"),&settings.backupInterval)) {
-          if (settings.backupInterval<10) settings.backupInterval=10;
-          if (settings.backupInterval>86400) settings.backupInterval=86400;
-        }
-
-        if (ImGui::InputInt(_("Backups per file"),&settings.backupMaxCopies)) {
-          if (settings.backupMaxCopies<1) settings.backupMaxCopies=1;
-          if (settings.backupMaxCopies>100) settings.backupMaxCopies=100;
-        }
-
-        // SUBSECTION SETTINGS
-        CONFIG_SUBSECTION(_("Backup Management"));
-        bool purgeDateChanged=false;
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Purge before:"));
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(60.0f*dpiScale);
-        if (ImGui::InputInt("##PYear",&purgeYear,0,0)) purgeDateChanged=true;
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(40.0f*dpiScale);
-        if (ImGui::InputInt("##PMonth",&purgeMonth,0,0)) purgeDateChanged=true;
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(40.0f*dpiScale);
-        if (ImGui::InputInt("##PDay",&purgeDay,0,0)) purgeDateChanged=true;
-
-        if (purgeDateChanged) {
-          // check month/day validity
-          time_t thisMakesNoSense=time(NULL);
-          bool tmFailed=false;
-          struct tm curTime;
-#ifdef _WIN32
-          struct tm* tempTM=localtime(&thisMakesNoSense);
-          if (tempTM==NULL) {
-            memset(&curTime,0,sizeof(struct tm));
-            tmFailed=true;
-          } else {
-            memcpy(&curTime,tempTM,sizeof(struct tm));
-          }
-#else
-          if (localtime_r(&thisMakesNoSense,&curTime)==NULL) {
-            memset(&curTime,0,sizeof(struct tm));
-            tmFailed=true;
-          }
-#endif
-
-          // don't allow dates in the future
-          if (!tmFailed) {
-            int curYear=curTime.tm_year+1900;
-            int curMonth=curTime.tm_mon+1;
-            int curDay=curTime.tm_mday;
-
-            if (purgeYear<1) purgeYear=1;
-            if (purgeYear>curYear) purgeYear=curYear;
-
-            if (purgeYear==curYear) {
-              if (purgeMonth>curMonth) purgeMonth=curMonth;
-
-              if (purgeMonth==curMonth) {
-                if (purgeDay>curDay) purgeDay=curDay;
-              }
-            }
-          }
-
-          // general checks
-          if (purgeYear<1) purgeYear=1;
-          if (purgeMonth<1) purgeMonth=1;
-          if (purgeMonth>12) purgeMonth=12;
-          if (purgeDay<1) purgeDay=1;
-
-          // 1752 calendar alignment
-          if (purgeYear==1752 && purgeMonth==9) {
-            if (purgeDay>2 && purgeDay<14) purgeDay=2;
-          }
-          if (purgeMonth==2) {
-            // leap year
-            if ((purgeYear&3)==0 && ((purgeYear%100)!=0 || (purgeYear%400)==0)) {
-              if (purgeDay>29) purgeDay=29;
-            } else {
-              if (purgeDay>28) purgeDay=28;
-            }
-          } else if (purgeMonth==1 || purgeMonth==3 || purgeMonth==5 || purgeMonth==7 || purgeMonth==8 || purgeMonth==10 || purgeMonth==12) {
-            if (purgeDay>31) purgeDay=31;
-          } else {
-            if (purgeDay>30) purgeDay=30;
-          }
-        }
-
-        ImGui::SameLine();
-        if (ImGui::Button(_("Go##PDate"))) {
-          purgeBackups(purgeYear,purgeMonth,purgeDay);
-        }
-
-        backupEntryLock.lock();
-        ImGui::AlignTextToFramePadding();
-        if (totalBackupSize>=(1ULL<<50ULL)) {
-          ImGui::Text(_("%" PRIu64 "PB used"),totalBackupSize>>50);
-        } else if (totalBackupSize>=(1ULL<<40ULL)) {
-          ImGui::Text(_("%" PRIu64 "TB used"),totalBackupSize>>40);
-        } else if (totalBackupSize>=(1ULL<<30ULL)) {
-          ImGui::Text(_("%" PRIu64 "GB used"),totalBackupSize>>30);
-        } else if (totalBackupSize>=(1ULL<<20ULL)) {
-          ImGui::Text(_("%" PRIu64 "MB used"),totalBackupSize>>20);
-        } else if (totalBackupSize>=(1ULL<<10ULL)) {
-          ImGui::Text(_("%" PRIu64 "KB used"),totalBackupSize>>10);
-        } else {
-          ImGui::Text(_("%" PRIu64 " bytes used"),totalBackupSize);
-        }
-
-        ImGui::SameLine();
-
-        if (ImGui::Button(_("Refresh"))) {
-          refreshBackups=true;
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(_("Delete all"))) {
-          purgeBackups(0,0,0);
-        }
-
-        if (ImGui::BeginTable("BackupList",3,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders)) {
-          ImGui::TableSetupColumn(_("Name"),ImGuiTableColumnFlags_WidthStretch,0.6f);
-          ImGui::TableSetupColumn(_("Size"),ImGuiTableColumnFlags_WidthStretch,0.15f);
-          ImGui::TableSetupColumn(_("Latest"),ImGuiTableColumnFlags_WidthStretch,0.25f);
-
-          ImGui::TableHeadersRow();
-
-          for (FurnaceGUIBackupEntry& i: backupEntries) {
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::TextUnformatted(i.name.c_str());
-            ImGui::TableNextColumn();
-            if (i.size>=(1ULL<<50ULL)) {
-              ImGui::Text(_("%" PRIu64 "P"),i.size>>50);
-            } else if (i.size>=(1ULL<<40ULL)) {
-              ImGui::Text(_("%" PRIu64 "T"),i.size>>40);
-            } else if (i.size>=(1ULL<<30ULL)) {
-              ImGui::Text(_("%" PRIu64 "G"),i.size>>30);
-            } else if (i.size>=(1ULL<<20ULL)) {
-              ImGui::Text(_("%" PRIu64 "M"),i.size>>20);
-            } else if (i.size>=(1ULL<<10ULL)) {
-              ImGui::Text(_("%" PRIu64 "K"),i.size>>10);
-            } else {
-              ImGui::Text(_("%" PRIu64 ""),i.size);
-            }
-            ImGui::TableNextColumn();
-            ImGui::Text("%d-%02d-%02d",i.lastEntryTime.tm_year+1900,i.lastEntryTime.tm_mon+1,i.lastEntryTime.tm_mday);
-          }
-
-          ImGui::EndTable();
-        }
-        backupEntryLock.unlock();
-        if (refreshBackups) {
-          refreshBackups=false;
-          if (backupEntryTask.valid()) backupEntryTask.get();
-          backupEntryTask=std::async(std::launch::async,[this]() -> bool {
-            backupEntryLock.lock();
-            backupEntries.clear();
-            totalBackupSize=0;
-            backupEntryLock.unlock();
-
-#ifdef _WIN32
-            String findPath=backupPath+String(DIR_SEPARATOR_STR)+String("*.fur");
-            WString findPathW=utf8To16(findPath.c_str());
-            WIN32_FIND_DATAW next;
-            HANDLE backDir=FindFirstFileW(findPathW.c_str(),&next);
-            if (backDir!=INVALID_HANDLE_VALUE) {
-              do {
-                FurnaceGUIBackupEntry nextEntry;
-                String cFileNameU=utf16To8(next.cFileName);
-                if (!splitBackupName(cFileNameU.c_str(),nextEntry.name,nextEntry.lastEntryTime)) continue;
-
-                nextEntry.size=(((uint64_t)next.nFileSizeHigh)<<32)|next.nFileSizeLow;
-
-                backupEntryLock.lock();
-                backupEntries.push_back(nextEntry);
-                totalBackupSize+=nextEntry.size;
-                backupEntryLock.unlock();
-              } while (FindNextFileW(backDir,&next)!=0);
-              FindClose(backDir);
-            }
-#else
-            DIR* backDir=opendir(backupPath.c_str());
-            if (backDir==NULL) {
-              logW("could not open backups dir!");
-              return false;
-            }
-            while (true) {
-              FurnaceGUIBackupEntry nextEntry;
-              struct stat nextStat;
-              struct dirent* next=readdir(backDir);
-              if (next==NULL) break;
-              if (strcmp(next->d_name,".")==0) continue;
-              if (strcmp(next->d_name,"..")==0) continue;
-              if (!splitBackupName(next->d_name,nextEntry.name,nextEntry.lastEntryTime)) continue;
-
-              String nextPath=backupPath+DIR_SEPARATOR_STR+next->d_name;
-
-              if (stat(nextPath.c_str(),&nextStat)>=0) {
-                nextEntry.size=nextStat.st_size;
-              }
-
-              backupEntryLock.lock();
-              backupEntries.push_back(nextEntry);
-              totalBackupSize+=nextEntry.size;
-              backupEntryLock.unlock();
-            }
-            closedir(backDir);
-#endif
-
-            // sort and merge
-            backupEntryLock.lock();
-            std::sort(backupEntries.begin(),backupEntries.end(),[](const FurnaceGUIBackupEntry& a, const FurnaceGUIBackupEntry& b) -> bool {
-              int sc=strcmp(a.name.c_str(),b.name.c_str());
-              if (sc==0) {
-                if (a.lastEntryTime.tm_year==b.lastEntryTime.tm_year) {
-                  if (a.lastEntryTime.tm_mon==b.lastEntryTime.tm_mon) {
-                    if (a.lastEntryTime.tm_mday==b.lastEntryTime.tm_mday) {
-                      if (a.lastEntryTime.tm_hour==b.lastEntryTime.tm_hour) {
-                        if (a.lastEntryTime.tm_min==b.lastEntryTime.tm_min) {
-                          return (a.lastEntryTime.tm_sec<b.lastEntryTime.tm_sec);
-                        } else {
-                          return (a.lastEntryTime.tm_min<b.lastEntryTime.tm_min);
-                        }
-                      } else {
-                        return (a.lastEntryTime.tm_hour<b.lastEntryTime.tm_hour);
-                      }
-                    } else {
-                      return (a.lastEntryTime.tm_mday<b.lastEntryTime.tm_mday);
-                    }
-                  } else {
-                    return (a.lastEntryTime.tm_mon<b.lastEntryTime.tm_mon);
-                  }
-                } else {
-                  return (a.lastEntryTime.tm_year<b.lastEntryTime.tm_year);
-                }
-              }
-
-              return sc<0;
-            });
-            for (size_t i=1; i<backupEntries.size(); i++) {
-              FurnaceGUIBackupEntry& prevEntry=backupEntries[i-1];
-              FurnaceGUIBackupEntry& thisEntry=backupEntries[i];
-
-              if (thisEntry.name==prevEntry.name) {
-                thisEntry.size+=prevEntry.size;
-                backupEntries.erase(backupEntries.begin()+i);
-                i--;
-              }
-            }
-            backupEntryLock.unlock();
-            return true;
-          });
-        }
-
-        END_SECTION;
-      }
-      if (nonLatchNibble) {
-        // ok, so you decided to read the code.
-        // these are the cheat codes:
-        // "Debug" - toggles mobile UI
-        // "Nice Amiga cover of the song!" - enables hidden systems (YMU759/Dummy)
-        // "42 63" - enables all instrument types
-        // "4-bit FDS" - enables partial pitch linearity option
-        // "Power of the Chip" - enables options for multi-threaded audio
-        // "btcdbcb" - use modern UI padding
-        // "????" - enables stuff
-        CONFIG_SECTION(_("Cheat Codes")) {
-          // SUBSECTION ENTER CODE:
-          CONFIG_SUBSECTION(_("Enter code:"));
-          ImGui::InputText("##CheatCode",&mmlString[31]);
-          if (ImGui::Button(_("Submit"))) {
-            unsigned int checker=0x11111111;
-            unsigned int checker1=0;
-            int index=0;
-            mmlString[30]=_("invalid code");
-
-            for (char& i: mmlString[31]) {
-              checker^=((unsigned int)i)<<index;
-              checker1+=i;
-              checker=(checker>>1|(((checker)^(checker>>2)^(checker>>3)^(checker>>5))&1)<<31);
-              checker1<<=1;
-              index=(index+1)&31;
-            }
-            if (checker==0x90888b65 && checker1==0x1482) {
-              mmlString[30]=_("toggled alternate UI");
-              toggleMobileUI(!mobileUI);
-            }
-            if (checker==0x5a42a113 && checker1==0xe4ef451e) {
-              mmlString[30]=_(":smile: :star_struck: :sunglasses: :ok_hand:");
-              settings.hiddenSystems=!settings.hiddenSystems;
-            }
-            if (checker==0xe888896b && checker1==0xbde) {
-              mmlString[30]=_("enabled all instrument types");
-              settings.displayAllInsTypes=!settings.displayAllInsTypes;
-            }
-            if (checker==0x3f88abcc && checker1==0xf4a6) {
-              mmlString[30]=_("OK, if I bring your Partial pitch linearity will you stop bothering me?");
-              settings.displayPartial=1;
-            }
-            if (checker==0x94222d83 && checker1==0x6600) {
-              mmlString[30]=_("enabled \"comfortable\" mode");
-              ImGuiStyle& sty=ImGui::GetStyle();
-              sty.FramePadding=ImVec2(20.0f*dpiScale,20.0f*dpiScale);
-              sty.ItemSpacing=ImVec2(10.0f*dpiScale,10.0f*dpiScale);
-              sty.ItemInnerSpacing=ImVec2(10.0f*dpiScale,10.0f*dpiScale);
-              settingsOpen=false;
-            }
-
-            mmlString[31]="";
-          }
-          ImGui::Text("%s",mmlString[30].c_str());
-
-          END_SECTION;
-        }
-      }
       ImGui::EndTabBar();
     }
     ImGui::Separator();

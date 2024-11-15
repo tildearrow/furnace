@@ -8382,6 +8382,7 @@ FurnaceGUI::FurnaceGUI():
   makeDrumkitMode(false),
   audioEngineChanged(false),
   settingsChanged(false),
+  purgeDateChanged(false),
   debugFFT(false),
   vgmExportVersion(0x171),
   vgmExportTrailingTicks(-1),
