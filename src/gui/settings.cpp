@@ -32,6 +32,7 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include "misc/freetype/imgui_freetype.h"
 #include "scaling.h"
+#include <cstdio>
 #include <fmt/printf.h>
 
 #ifdef _WIN32
@@ -387,7 +388,7 @@ const char* specificControls[18]={
         SETTING((guiActions[x].friendlyName),{ /*ISSUE: guiActions[x].friendlyName here is NULL?!?!?!*/ \
           const char* friendlyName=guiActions[x].friendlyName; \
           char temp[2048]; \
-          sprintf(temp, "##%sKey",friendlyName); \
+          snprintf(temp, 2048, "##%sKey",friendlyName); \
           if (ImGui::BeginTable(temp, 2)) { \
             ImGui::TableSetupColumn("##label",ImGuiTableColumnFlags_WidthStretch,1.0f); \
             ImGui::TableSetupColumn("##keyInputs",ImGuiTableColumnFlags_WidthStretch,5.0f); \
@@ -1773,7 +1774,7 @@ void FurnaceGUI::setupSettingsCategories() {
         SETTING(_("PC Speaker strategy"),{
           if (ImGui::Combo(_("PC Speaker strategy"),&settings.pcSpeakerOutMethod,LocalizedComboGetter,pcspkrOutMethods,5)) SETTINGS_CHANGED;
         }),
-        SETTING(NULL,{ // subsection?
+        Setting(NULL,[]{ // subsection?
           ImGui::Separator();
           ImGui::Text(_("Sample ROMs:"));
         }),
