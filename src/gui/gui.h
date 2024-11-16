@@ -1628,7 +1628,7 @@ class SettingsCategory {
   public:
     const char* name;
     std::vector<SettingsCategory> children;
-    std::vector<Setting*> settings;
+    std::vector<Setting> settings;
     bool expandChild;
     void saveCaterofySettings();
     void loadCategorySettings();
@@ -1645,7 +1645,7 @@ class SettingsCategory {
      * @param c subcategories.
      * @param s category settings.
      */
-    SettingsCategory(const char* n, std::initializer_list<SettingsCategory> c, std::initializer_list<Setting*> s):
+    SettingsCategory(const char* n, std::initializer_list<SettingsCategory> c, std::initializer_list<Setting> s):
       expandChild(false) {
       name=n;
       children=c;
@@ -2986,7 +2986,6 @@ class FurnaceGUI {
   void writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups=GUI_SETTINGS_ALL);
 
   void setupSettingsCategories();
-  void destroySettingsCategories(SettingsCategory& cat);
   void drawSettingsCategory(SettingsCategory* cat);
   void searchDrawSettingItems(SettingsCategory* cat);
   void drawSettingsItems();

@@ -33,7 +33,6 @@
 #include "misc/freetype/imgui_freetype.h"
 #include "scaling.h"
 #include <fmt/printf.h>
-#include <imgui.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -300,41 +299,13 @@ const char* specificControls[18]={
     SETTINGS_CHANGED; \
   }
 
-#define KEYBIND_CONFIG_BEGIN(id) \
-  if (ImGui::BeginTable(id,2,ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX|ImGuiTableFlags_NoClip)) {
+#define SETTING(n,f) Setting(n,[this]f)
 
-#define KEYBIND_CONFIG_END \
-    ImGui::EndTable(); \
-  }
+#define SETTING_COND(n,f,c) Setting(n,[this]f,[this]{return c;})
 
-#define CONFIG_SUBSECTION(what) \
-  if (_subInit) { \
-    ImGui::Separator(); \
-  } else { \
-    _subInit=true; \
-  } \
-  ImGui::PushFont(headFont); \
-  ImGui::TextUnformatted(what); \
-  ImGui::PopFont();
+#define SETTING_SEPARATOR Setting(NULL,[]{ImGui::Separator();})
 
-#define CONFIG_SECTION(what) \
-  if (ImGui::BeginTabItem(what)) { \
-    bool _subInit=false; \
-    ImVec2 settingsViewSize=ImGui::GetContentRegionAvail(); \
-    settingsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y; \
-    if (ImGui::BeginChild("SettingsView",settingsViewSize,false))
-
-#define END_SECTION } \
-  ImGui::EndChild(); \
-  ImGui::EndTabItem();
-
-#define SETTING(n,f) new Setting(n,[this]f)
-
-#define SETTING_COND(n,f,c) new Setting(n,[this]f,[this]{return c;})
-
-#define SETTING_SEPARATOR new Setting(NULL,[]{ImGui::Separator();})
-
-#define SETTING_NEWLINE new Setting(NULL,[]{ImGui::NewLine();})
+#define SETTING_NEWLINE Setting(NULL,[]{ImGui::NewLine();})
 
 #define SETTINGS_CHANGED settingsChanged=true
 
@@ -374,20 +345,19 @@ const char* specificControls[18]={
 
 #define EMU_CORES(sysL,setC,setCR,arr) \
         SETTING(sysL,{ \
-          const float comboSize=ImGui::GetContentRegionAvail().x/2.0-ImGui::CalcTextSize("AVGPNL").x; /* average part number length*/ \
           if (ImGui::BeginTable("##" sysL "Cores", 3)) { \
-            ImGui::TableSetupColumn("##sys",ImGuiTableColumnFlags_WidthStretch); \
-            ImGui::TableSetupColumn("##core",ImGuiTableColumnFlags_WidthFixed); \
-            ImGui::TableSetupColumn("##coreRend",ImGuiTableColumnFlags_WidthFixed); \
+            ImGui::TableSetupColumn("##sys",ImGuiTableColumnFlags_WidthStretch,1.0f); \
+            ImGui::TableSetupColumn("##core",ImGuiTableColumnFlags_WidthStretch,2.5f); \
+            ImGui::TableSetupColumn("##coreRend",ImGuiTableColumnFlags_WidthStretch,2.5f); \
             ImGui::TableNextRow(); \
             ImGui::TableNextColumn(); \
             ImGui::AlignTextToFramePadding(); \
             ImGui::ScrollText(ImGui::GetID(sysL),sysL,ImGui::GetCursorScreenPos()); \
             ImGui::TableNextColumn(); \
-            ImGui::SetNextItemWidth(comboSize); \
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); \
             if (ImGui::Combo("##" sysL "C",&setC,arr,sizeof(arr)/sizeof(const char*))) SETTINGS_CHANGED; \
             ImGui::TableNextColumn(); \
-            ImGui::SetNextItemWidth(comboSize); \
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); \
             if (ImGui::Combo("##" sysL "CR",&setCR,arr,sizeof(arr)/sizeof(const char*))) SETTINGS_CHANGED; \
             ImGui::EndTable(); \
           } \
@@ -395,21 +365,68 @@ const char* specificControls[18]={
 
 #define CORE_QUALITY(_name,_play,_render) \
         SETTING(_name,{ \
-          const float comboSize=ImGui::GetContentRegionAvail().x/2.0-ImGui::CalcTextSize("averagsysname").x; /* average system name*/ \
           if (ImGui::BeginTable("##" _name "Cores", 3)) { \
-            ImGui::TableSetupColumn("##sys",ImGuiTableColumnFlags_WidthStretch); \
-            ImGui::TableSetupColumn("##core",ImGuiTableColumnFlags_WidthFixed); \
-            ImGui::TableSetupColumn("##coreRend",ImGuiTableColumnFlags_WidthFixed); \
+            ImGui::TableSetupColumn("##sys",ImGuiTableColumnFlags_WidthStretch,1.0f); \
+            ImGui::TableSetupColumn("##core",ImGuiTableColumnFlags_WidthStretch,2.0f); \
+            ImGui::TableSetupColumn("##coreRend",ImGuiTableColumnFlags_WidthStretch,2.0f); \
             ImGui::TableNextRow(); \
             ImGui::TableNextColumn(); \
             ImGui::AlignTextToFramePadding(); \
             ImGui::ScrollText(ImGui::GetID(_name),_name,ImGui::GetCursorScreenPos()); \
             ImGui::TableNextColumn(); \
-            ImGui::SetNextItemWidth(comboSize); \
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); \
             if (ImGui::Combo("##" _name "Q",&settings._play,LocalizedComboGetter,coreQualities,6)) SETTINGS_CHANGED; \
             ImGui::TableNextColumn(); \
-            ImGui::SetNextItemWidth(comboSize); \
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); \
             if (ImGui::Combo("##" _name "QR",&settings._render,LocalizedComboGetter,coreQualities,6)) SETTINGS_CHANGED; \
+            ImGui::EndTable(); \
+          } \
+        })
+
+#define KEYBIND(x) \
+        SETTING((guiActions[x].friendlyName),{ /*ISSUE: guiActions[x].friendlyName here is NULL?!?!?!*/ \
+          const char* friendlyName=guiActions[x].friendlyName; \
+          char temp[2048]; \
+          sprintf(temp, "##%sKey",friendlyName); \
+          if (ImGui::BeginTable(temp, 2)) { \
+            ImGui::TableSetupColumn("##label",ImGuiTableColumnFlags_WidthStretch,1.0f); \
+            ImGui::TableSetupColumn("##keyInputs",ImGuiTableColumnFlags_WidthStretch,5.0f); \
+            ImGui::TableNextRow(); \
+            ImGui::TableNextColumn(); \
+            ImGui::AlignTextToFramePadding(); \
+            ImGui::ScrollText(x,friendlyName,ImGui::GetCursorScreenPos()); \
+            ImGui::TableNextColumn(); \
+            ImGui::PushID(x); \
+            for (size_t i=0; i<actionKeys[x].size()+1; i++) { \
+              ImGui::PushID(i); \
+              if (i>0) ImGui::SameLine(); \
+              bool isPending=bindSetPending && bindSetTarget==x && bindSetTargetIdx==(int)i; \
+              if (i<actionKeys[x].size()) { \
+                if (ImGui::Button(isPending?_N("Press key..."):getKeyName(actionKeys[x][i]).c_str())) { \
+                  promptKey(x,i); \
+                  SETTINGS_CHANGED; \
+                } \
+                bool rightClicked=ImGui::IsItemClicked(ImGuiMouseButton_Right); \
+                if (!rightClicked) { \
+                  ImGui::SameLine(0.0f, 1.0f); \
+                } \
+                if (rightClicked || ImGui::Button(ICON_FA_TIMES)) { \
+                  actionKeys[x].erase(actionKeys[x].begin()+i); \
+                  if (isPending) { \
+                    bindSetActive=false; \
+                    bindSetPending=false; \
+                  } \
+                  parseKeybinds(); \
+                } \
+              } else { \
+                if (ImGui::Button(isPending?_N("Press key..."):ICON_FA_PLUS)) { \
+                  promptKey(x,i); \
+                  SETTINGS_CHANGED; \
+                } \
+              } \
+              ImGui::PopID(); /*i*/ \
+            } \
+            ImGui::PopID(); /*action*/ \
             ImGui::EndTable(); \
           } \
         })
@@ -1791,6 +1808,98 @@ void FurnaceGUI::setupSettingsCategories() {
         */
       })
     },{}),
+    SettingsCategory(_("Keyboard"),{
+      SettingsCategory(_("Global hotkeys"),{},{
+        KEYBIND(GUI_ACTION_NEW),
+        KEYBIND(GUI_ACTION_CLEAR),
+        KEYBIND(GUI_ACTION_OPEN),
+        KEYBIND(GUI_ACTION_OPEN_BACKUP),
+        KEYBIND(GUI_ACTION_SAVE),
+        KEYBIND(GUI_ACTION_SAVE_AS),
+        KEYBIND(GUI_ACTION_EXPORT),
+        KEYBIND(GUI_ACTION_UNDO),
+        KEYBIND(GUI_ACTION_REDO),
+        KEYBIND(GUI_ACTION_PLAY_TOGGLE),
+        KEYBIND(GUI_ACTION_PLAY),
+        KEYBIND(GUI_ACTION_STOP),
+        KEYBIND(GUI_ACTION_PLAY_START),
+        KEYBIND(GUI_ACTION_PLAY_REPEAT),
+        KEYBIND(GUI_ACTION_PLAY_CURSOR),
+        KEYBIND(GUI_ACTION_STEP_ONE),
+        KEYBIND(GUI_ACTION_OCTAVE_UP),
+        KEYBIND(GUI_ACTION_OCTAVE_DOWN),
+        KEYBIND(GUI_ACTION_INS_UP),
+        KEYBIND(GUI_ACTION_INS_DOWN),
+        KEYBIND(GUI_ACTION_STEP_UP),
+        KEYBIND(GUI_ACTION_STEP_DOWN),
+        KEYBIND(GUI_ACTION_TOGGLE_EDIT),
+        KEYBIND(GUI_ACTION_METRONOME),
+        KEYBIND(GUI_ACTION_REPEAT_PATTERN),
+        KEYBIND(GUI_ACTION_FOLLOW_ORDERS),
+        KEYBIND(GUI_ACTION_FOLLOW_PATTERN),
+        KEYBIND(GUI_ACTION_FULLSCREEN),
+        KEYBIND(GUI_ACTION_TX81Z_REQUEST),
+        KEYBIND(GUI_ACTION_PANIC),
+      }),
+      SettingsCategory(_("Window activation"),{},{
+        KEYBIND(GUI_ACTION_WINDOW_FIND),
+        KEYBIND(GUI_ACTION_WINDOW_SETTINGS),
+        KEYBIND(GUI_ACTION_WINDOW_SONG_INFO),
+        KEYBIND(GUI_ACTION_WINDOW_SUBSONGS),
+        KEYBIND(GUI_ACTION_WINDOW_SPEED),
+        KEYBIND(GUI_ACTION_WINDOW_INS_LIST),
+        KEYBIND(GUI_ACTION_WINDOW_WAVE_LIST),
+        KEYBIND(GUI_ACTION_WINDOW_SAMPLE_LIST),
+        KEYBIND(GUI_ACTION_WINDOW_ORDERS),
+        KEYBIND(GUI_ACTION_WINDOW_PATTERN),
+        KEYBIND(GUI_ACTION_WINDOW_MIXER),
+        KEYBIND(GUI_ACTION_WINDOW_GROOVES),
+        KEYBIND(GUI_ACTION_WINDOW_CHANNELS),
+        KEYBIND(GUI_ACTION_WINDOW_PAT_MANAGER),
+        KEYBIND(GUI_ACTION_WINDOW_SYS_MANAGER),
+        KEYBIND(GUI_ACTION_WINDOW_COMPAT_FLAGS),
+        KEYBIND(GUI_ACTION_WINDOW_NOTES),
+        KEYBIND(GUI_ACTION_WINDOW_INS_EDIT),
+        KEYBIND(GUI_ACTION_WINDOW_WAVE_EDIT),
+        KEYBIND(GUI_ACTION_WINDOW_SAMPLE_EDIT),
+        KEYBIND(GUI_ACTION_WINDOW_EDIT_CONTROLS),
+        KEYBIND(GUI_ACTION_WINDOW_PIANO),
+        KEYBIND(GUI_ACTION_WINDOW_OSCILLOSCOPE),
+        KEYBIND(GUI_ACTION_WINDOW_CHAN_OSC),
+        KEYBIND(GUI_ACTION_WINDOW_XY_OSC),
+        KEYBIND(GUI_ACTION_WINDOW_VOL_METER),
+        KEYBIND(GUI_ACTION_WINDOW_CLOCK),
+        KEYBIND(GUI_ACTION_WINDOW_REGISTER_VIEW),
+        KEYBIND(GUI_ACTION_WINDOW_LOG),
+        KEYBIND(GUI_ACTION_WINDOW_STATS),
+        KEYBIND(GUI_ACTION_WINDOW_MEMORY),
+        KEYBIND(GUI_ACTION_WINDOW_EFFECT_LIST),
+        KEYBIND(GUI_ACTION_WINDOW_DEBUG),
+        KEYBIND(GUI_ACTION_WINDOW_CS_PLAYER),
+        KEYBIND(GUI_ACTION_WINDOW_ABOUT),
+        KEYBIND(GUI_ACTION_COLLAPSE_WINDOW),
+        KEYBIND(GUI_ACTION_CLOSE_WINDOW),
+
+        KEYBIND(GUI_ACTION_COMMAND_PALETTE),
+        KEYBIND(GUI_ACTION_CMDPAL_RECENT),
+        KEYBIND(GUI_ACTION_CMDPAL_INSTRUMENTS),
+        KEYBIND(GUI_ACTION_CMDPAL_SAMPLES),
+      })
+    },{
+      SETTING(_("Keyboard"),{
+        if (ImGui::Button(_("Import"))) {
+          openFileDialog(GUI_FILE_IMPORT_KEYBINDS);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("Export"))) {
+          openFileDialog(GUI_FILE_EXPORT_KEYBINDS);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("Reset defaults"))) {
+          showWarning(_("Are you sure you want to reset the keyboard settings?"),GUI_WARN_RESET_KEYBINDS);
+        }
+      })
+    }),
     SettingsCategory(_("Interface"),{
       SettingsCategory(_("Layout"),{},{
         SETTING(_("Workspace layout:"),{
@@ -3885,22 +3994,6 @@ void FurnaceGUI::setupSettingsCategories() {
   settings.activeCategory=settings.categories[0];
 }
 
-void FurnaceGUI::destroySettingsCategories(SettingsCategory& cat) {
-  if (cat.children.size()>0) {
-    for (SettingsCategory i:cat.children) {
-      destroySettingsCategories(i);
-    }
-  }
-  for (Setting* i:cat.settings) {
-    if (i) {
-      delete i;
-      i=NULL;
-    }
-  }
-  cat.settings.clear();
-  cat.children.clear();
-}
-
 void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {
   if (cat->children.size()>0) {
     ImGuiTreeNodeFlags f=ImGuiTreeNodeFlags_SpanFullWidth|ImGuiTreeNodeFlags_OpenOnArrow|ImGuiTreeNodeFlags_OpenOnDoubleClick;
@@ -3929,8 +4022,8 @@ void FurnaceGUI::searchDrawSettingItems(SettingsCategory* cat) {
     }
   }
   bool anyFound=false;
-  for (Setting* s:cat->settings) {
-    if (s->passesFilter(&settings.filter)) {
+  for (Setting s:cat->settings) {
+    if (s.passesFilter(&settings.filter)) {
       anyFound=true;
       break;
     }
@@ -3938,8 +4031,8 @@ void FurnaceGUI::searchDrawSettingItems(SettingsCategory* cat) {
   if (anyFound) {
     ImGui::BulletText("%s",cat->name);
     ImGui::Indent();
-    for (Setting* s:cat->settings) {
-      if (s->passesFilter(&settings.filter)) s->drawSetting();
+    for (Setting s:cat->settings) {
+      if (s.passesFilter(&settings.filter)) s.drawSetting();
     }
     ImGui::Unindent();
     ImGui::Separator();
@@ -3953,7 +4046,7 @@ void FurnaceGUI::drawSettingsItems() {
     }
   } else {
     if (settings.activeCategory.name==NULL) return;
-    for (Setting* s:settings.activeCategory.settings) s->drawSetting();
+    for (Setting s:settings.activeCategory.settings) s.drawSetting();
   }
 }
 
@@ -4178,17 +4271,17 @@ void FurnaceGUI::drawSettings() {
         settingsOpen=false;
       }
     }
-    if (ImGui::BeginTabBar("settingsTab")) {
-      // NEW SETTINGS HERE
-      CONFIG_SECTION("test") {
-        CONFIG_SUBSECTION("here");
 
     bool vertical=ImGui::GetWindowSize().y>ImGui::GetWindowSize().x;
-    if (ImGui::BeginTable("set3", vertical?1:2,ImGuiTableFlags_Resizable|ImGuiTableFlags_BordersInner)) {
+    ImVec2 settingsViewSize=ImGui::GetContentRegionAvail();
+    settingsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y;
+    if (ImGui::BeginTable("set3", vertical?1:2,ImGuiTableFlags_Resizable|ImGuiTableFlags_BordersOuterH,settingsViewSize)) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       settings.filter.Draw(_("Search"));
-      if (ImGui::BeginChild("SettingCategories",vertical?ImGui::GetContentRegionAvail()/ImVec2(1.0f,3.0f):ImGui::GetContentRegionAvail(),false)) {
+      ImVec2 settingsCatViewSize=ImGui::GetContentRegionAvail();
+      settingsCatViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y;
+      if (ImGui::BeginChild("SettingCategories",vertical?settingsCatViewSize/ImVec2(1.0f,3.0f):settingsCatViewSize,false)) {
         ImGui::BeginDisabled(settings.filter.IsActive());
         for (SettingsCategory cat:settings.categories) drawSettingsCategory(&cat);
         ImGui::EndDisabled();
@@ -4196,9 +4289,11 @@ void FurnaceGUI::drawSettings() {
       ImGui::EndChild();
       if (ImGui::GetWindowSize().y>ImGui::GetWindowSize().x) ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      if (ImGui::BeginChild("SettingsItems",vertical?ImVec2(0.0f,0.0f):ImGui::GetContentRegionAvail(),false)) {
+      ImVec2 settingsItemsViewSize=ImGui::GetContentRegionAvail();
+      settingsItemsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y;
+      if (ImGui::BeginChild("SettingsItems",settingsItemsViewSize)) {
         drawSettingsItems();
-        if ((strncmp(settings.filter.InputBuf,"Cheats",7)==0) && !nonLatchNibble) {
+        if ((strncmp(settings.filter.InputBuf,"cheat",6)==0) && !nonLatchNibble) {
           ImGui::Text("gotta unlock them first!");
         }
       }
@@ -4206,10 +4301,7 @@ void FurnaceGUI::drawSettings() {
       ImGui::EndTable();
     }
 
-        END_SECTION;
-      }
-
-      CONFIG_SECTION(_("Keyboard")) {
+      /*CONFIG_SECTION(_("Keyboard")) {
         // SUBSECTION LAYOUT
         CONFIG_SUBSECTION(_("Keyboard"));
         if (ImGui::Button(_("Import"))) {
@@ -4603,11 +4695,9 @@ void FurnaceGUI::drawSettings() {
         }
         ImGui::EndChild();
         END_SECTION;
-      }
+      }*/
 
-      ImGui::EndTabBar();
-    }
-    ImGui::Separator();
+    // ImGui::Separator();
     if (ImGui::Button(_("OK##SettingsOK"))) {
       settingsOpen=false;
       willCommit=true;
@@ -4634,42 +4724,6 @@ void FurnaceGUI::drawSettings() {
 }
 
 void FurnaceGUI::drawKeybindSettingsTableRow(FurnaceGUIActions actionIdx) {
-  ImGui::TableNextRow();
-  ImGui::TableNextColumn();
-  ImGui::AlignTextToFramePadding();
-  ImGui::TextUnformatted(guiActions[actionIdx].friendlyName);
-  ImGui::TableNextColumn();
-  ImGui::PushID(actionIdx);
-  for (size_t i=0; i<actionKeys[actionIdx].size()+1; i++) {
-    ImGui::PushID(i);
-    if (i>0) ImGui::SameLine();
-    bool isPending=bindSetPending && bindSetTarget==actionIdx && bindSetTargetIdx==(int)i;
-    if (i<actionKeys[actionIdx].size()) {
-      if (ImGui::Button(isPending?_N("Press key..."):getKeyName(actionKeys[actionIdx][i]).c_str())) {
-        promptKey(actionIdx,i);
-        SETTINGS_CHANGED;
-      }
-      bool rightClicked=ImGui::IsItemClicked(ImGuiMouseButton_Right);
-      if (!rightClicked) {
-        ImGui::SameLine(0.0f, 1.0f);
-      }
-      if (rightClicked || ImGui::Button(ICON_FA_TIMES)) {
-        actionKeys[actionIdx].erase(actionKeys[actionIdx].begin()+i);
-        if (isPending) {
-          bindSetActive=false;
-          bindSetPending=false;
-        }
-        parseKeybinds();
-      }
-    } else {
-      if (ImGui::Button(isPending?_N("Press key..."):"+")) {
-        promptKey(actionIdx,i);
-        SETTINGS_CHANGED;
-      }
-    }
-    ImGui::PopID(); // i
-  }
-  ImGui::PopID(); // action
 }
 
 #define clampSetting(x,minV,maxV) \

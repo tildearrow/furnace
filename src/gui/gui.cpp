@@ -670,7 +670,7 @@ void FurnaceGUI::updateWindowTitle() {
             // "btcdbcb" - use modern UI padding
             // 
             // "????" - enables stuff
-            new Setting(_("Cheat Codes"),[this]{
+            Setting(_("Cheat Codes"),[this]{
               ImGui::PushFont(headFont);
               ImGui::Text(_("Enter code:"));
               ImGui::PopFont();
@@ -8351,7 +8351,6 @@ bool FurnaceGUI::finish(bool saveConfig) {
     SDL_HapticClose(vibrator);
   }
 
-  for (SettingsCategory i:settings.categories) destroySettingsCategories(i);
   settings.categories.clear();
 
   for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
