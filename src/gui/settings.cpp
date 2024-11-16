@@ -489,7 +489,7 @@ void FurnaceGUI::setupSettingsCategories() {
           }
         }),
 #endif
-        SETTING(_("Render backend"),{
+        Setting(_("Render backend"),[this]{
           String curRenderBackend=settings.renderBackend.empty()?GUI_BACKEND_DEFAULT_NAME:settings.renderBackend;
           if (ImGui::BeginCombo(_("Render backend"),curRenderBackend.c_str())) {
 #ifdef HAVE_RENDER_SDL
@@ -644,7 +644,7 @@ void FurnaceGUI::setupSettingsCategories() {
           }
           popWarningColor();
         }),
-        SETTING(_("Oscilloscope rendering engine:"),{
+        Setting(_("Oscilloscope rendering engine:"),[this]{
           ImGui::Text(_("Oscilloscope rendering engine:"));
           ImGui::Indent();
           if (ImGui::RadioButton(_("ImGui line plot"),settings.shaderOsc==0)) {
@@ -1122,7 +1122,7 @@ void FurnaceGUI::setupSettingsCategories() {
     SettingsCategory(_("Audio"),{
       SettingsCategory(_("Output"),{},{
 #if defined(HAVE_JACK) || defined(HAVE_PA)
-        SETTING(_("Backend"),{
+        Setting(_("Backend"),[this]{
           int prevAudioEngine=settings.audioEngine;
           if (ImGui::BeginCombo(_("Backend"),audioBackends[settings.audioEngine])) {
 #ifdef HAVE_JACK
@@ -1290,7 +1290,7 @@ void FurnaceGUI::setupSettingsCategories() {
             SETTINGS_CHANGED;
           }
         },settings.audioEngine==DIV_AUDIO_PORTAUDIO && settings.audioDevice.find("[Windows WASAPI] ")==0),
-        SETTING(NULL,{
+        Setting(NULL,[this]{
           TAAudioDesc& audioWant=e->getAudioDescWant();
           TAAudioDesc& audioGot=e->getAudioDescGot();
 #ifdef HAVE_LOCALE
@@ -3727,7 +3727,7 @@ void FurnaceGUI::setupSettingsCategories() {
     }),
     SettingsCategory(_("Backup"),{
       SettingsCategory(_("Backup Management"),{},{
-        SETTING(_("Backup Management"),{
+        Setting(_("Backup Management"),[this]{
           purgeDateChanged=false;
 
           ImGui::AlignTextToFramePadding();
