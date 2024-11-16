@@ -2746,7 +2746,7 @@ void FurnaceGUI::setupSettingsCategories() {
           }
           ImGui::Unindent();
         }),
-        SETTING(NULL,{
+        Setting(NULL,[]{
           ImGui::Text(_("Pattern view labels:"));
         }),
         SETTING(_("Note off (3-char)"),{
@@ -2784,7 +2784,7 @@ void FurnaceGUI::setupSettingsCategories() {
           ImGui::SameLine();
           ImGui::Text(_("Empty field (2-char)"));
         }),
-        SETTING(NULL,{
+        Setting(NULL,{
           ImGui::Text(_("Pattern view spacing after:"));
         }),
         SETTING(_("Note"),{
@@ -3460,7 +3460,7 @@ void FurnaceGUI::setupSettingsCategories() {
 
         UI_COLOR_CONFIG(GUI_COLOR_FM_SSG,_("SSG-EG")),
         UI_COLOR_CONFIG(GUI_COLOR_FM_WAVE,_("Waveform")),
-        SETTING(NULL,{ImGui::TextWrapped(_("(the following colors only apply when \"Use separate colors for carriers/modulators in FM editor\" is on!)"));}),
+        Setting(NULL,{ImGui::TextWrapped(_("(the following colors only apply when \"Use separate colors for carriers/modulators in FM editor\" is on!)"));}),
         UI_COLOR_CONFIG(GUI_COLOR_FM_PRIMARY_MOD,_("Mod. accent (primary)")),
         UI_COLOR_CONFIG(GUI_COLOR_FM_SECONDARY_MOD,_("Mod. accent (secondary)")),
         UI_COLOR_CONFIG(GUI_COLOR_FM_BORDER_MOD,_("Mod. border")),
