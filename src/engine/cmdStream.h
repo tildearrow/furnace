@@ -37,7 +37,7 @@ struct DivCSChannelState {
   int volume, volMax, volSpeed, volSpeedTarget;
   int vibratoDepth, vibratoRate, vibratoPos;
   int portaTarget, portaSpeed;
-  unsigned char arp, arpStage, arpTicks;
+  unsigned char arp, arpStage, arpTicks, arpLen;
 
   unsigned int callStack[8];
   unsigned char callStackPos;
@@ -65,6 +65,7 @@ struct DivCSChannelState {
     arp(0),
     arpStage(0),
     arpTicks(0),
+    arpLen(1),
     callStackPos(0),
     tracePos(0) {
     for (int i=0; i<DIV_MAX_CSTRACE; i++) {

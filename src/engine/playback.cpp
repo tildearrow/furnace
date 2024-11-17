@@ -1020,8 +1020,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0xe0: // arp speed
         if (effectVal>0) {
-          curSubSong->arpLen=effectVal;
-          dispatchCmd(DivCommand(DIV_CMD_HINT_ARP_TIME,i,curSubSong->arpLen));
+          if (song.arpSpeedGlobal) {
+            curSubSong->arpLen=effectVal;
+          } else {
+            chan[i].arpLen=effectVal;
+          }
+          dispatchCmd(DivCommand(DIV_CMD_HINT_ARP_TIME,i,effectVal));
         }
         break;
       case 0xe1: // portamento up
@@ -1933,7 +1937,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         }
         if (chan[i].arp!=0 && !chan[i].arpYield && chan[i].portaSpeed<1) {
           if (--chan[i].arpTicks<1) {
-            chan[i].arpTicks=curSubSong->arpLen;
+            chan[i].arpTicks=song.arpSpeedGlobal?curSubSong->arpLen:chan[i].arpLen;
             chan[i].arpStage++;
             if (chan[i].arpStage>2) chan[i].arpStage=0;
             switch (chan[i].arpStage) {
