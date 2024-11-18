@@ -33,7 +33,8 @@
 #include "misc/freetype/imgui_freetype.h"
 #include "scaling.h"
 #include <fmt/printf.h>
-// if there is some redundant #includes here, its clangd.
+#include <imgui.h>
+// if there is some redundant #include here, its clangd.
 #ifdef _WIN32
 #include <windows.h>
 #include <shlobj.h>
@@ -384,7 +385,7 @@ const char* specificControls[18]={
         })
 
 #define KEYBIND(x) \
-        SETTING((guiActions[x].friendlyName),{ /*ISSUE: guiActions[x].friendlyName here is NULL?!?!?!*/ \
+        SETTING((guiActions[x].friendlyName),{ \
           const char* friendlyName=guiActions[x].friendlyName; \
           char temp[2048]; \
           snprintf(temp, 2048, "##%sKey",friendlyName); \
@@ -4256,24 +4257,32 @@ void FurnaceGUI::setupSettingsCategories() {
 }
 
 void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {
+  bool filterActive=settings.filter.IsActive();
+  ImGui::PushID(cat->name);
   if (cat->children.size()>0) {
     ImGuiTreeNodeFlags f=ImGuiTreeNodeFlags_SpanFullWidth|ImGuiTreeNodeFlags_OpenOnArrow|ImGuiTreeNodeFlags_OpenOnDoubleClick;
     if (settings.activeCategory.name==cat->name) f|=ImGuiTreeNodeFlags_Selected;
+    ImGui::BeginDisabled(filterActive && !settings.filter.PassFilter(cat->name));
+    if (filterActive) f|=ImGuiTreeNodeFlags_DefaultOpen;
     cat->expandChild=ImGui::TreeNodeEx(cat->name,f);
+    ImGui::EndDisabled();
     if (ImGui::IsItemClicked()) {
       settings.activeCategory=*cat;
     }
-    if (cat->expandChild) {
+    if (cat->expandChild || filterActive) {
       ImGui::Indent();
       for (SettingsCategory child:cat->children) drawSettingsCategory(&child);
       ImGui::Unindent();
       ImGui::TreePop();
     }
   } else { // a lonely child...
-    if (ImGui::Selectable(cat->name,settings.activeCategory.name==cat->name)) {
+    ImGui::BeginDisabled(filterActive && !settings.filter.PassFilter(cat->name));
+    if (ImGui::Selectable(cat->name,settings.activeCategory.id==cat->id)) {
       settings.activeCategory=*cat;
     }
+    ImGui::EndDisabled();
   }
+  ImGui::PopID();
 }
 
 void FurnaceGUI::searchDrawSettingItems(SettingsCategory* cat) {
@@ -4301,12 +4310,10 @@ void FurnaceGUI::searchDrawSettingItems(SettingsCategory* cat) {
 }
 
 void FurnaceGUI::drawSettingsItems() {
-  if (settings.filter.IsActive()) {
-    for (SettingsCategory cat:settings.categories) {
-      searchDrawSettingItems(&cat);
-    }
+  if (settings.filter.IsActive() && settings.activeCategory.id==0) {
+    for (SettingsCategory cat:settings.categories) searchDrawSettingItems(&cat);
   } else {
-    if (settings.activeCategory.name==NULL) return;
+    if (settings.activeCategory.id==0) return;
     for (Setting s:settings.activeCategory.settings) s.drawSetting();
   }
 }
@@ -4530,13 +4537,11 @@ void FurnaceGUI::drawSettings() {
     if (ImGui::BeginTable("set3", vertical?1:2,ImGuiTableFlags_Resizable|ImGuiTableFlags_BordersOuterH,settingsViewSize)) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      settings.filter.Draw(_("Search"));
+      if (settings.filter.Draw(_("Search"))) settings.activeCategory=SettingsCategory();
       ImVec2 settingsCatViewSize=ImGui::GetContentRegionAvail();
       settingsCatViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y;
       if (ImGui::BeginChild("SettingCategories",vertical?settingsCatViewSize/ImVec2(1.0f,3.0f):settingsCatViewSize,false)) {
-        ImGui::BeginDisabled(settings.filter.IsActive());
         for (SettingsCategory cat:settings.categories) drawSettingsCategory(&cat);
-        ImGui::EndDisabled();
       }
       ImGui::EndChild();
       if (ImGui::GetWindowSize().y>ImGui::GetWindowSize().x) ImGui::TableNextRow();
@@ -4552,7 +4557,7 @@ void FurnaceGUI::drawSettings() {
       ImGui::EndChild();
       ImGui::EndTable();
     }
-    // ImGui::Separator();
+
     if (ImGui::Button(_("OK##SettingsOK"))) {
       settingsOpen=false;
       willCommit=true;

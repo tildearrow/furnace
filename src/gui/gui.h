@@ -1635,14 +1635,14 @@ struct Setting {
 
 class SettingsCategory {
   public:
+    unsigned long long int id;
     const char* name;
     std::vector<SettingsCategory> children;
     std::vector<Setting> settings;
     bool expandChild;
-    void saveCaterofySettings();
-    void loadCategorySettings();
 
     SettingsCategory():
+      id(0),
       name(NULL),
       children({}),
       settings({}),
@@ -1659,6 +1659,7 @@ class SettingsCategory {
       name=n;
       children=c;
       settings=s;
+      id=(unsigned long long int)name+(unsigned long long int)&children;
     }
 };
 
