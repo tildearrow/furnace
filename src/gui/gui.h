@@ -1600,6 +1600,15 @@ struct PendingDrawOsc {
 
 struct FurnaceCV;
 
+struct MappedInput {
+  int scan;
+  int val;
+  MappedInput():
+    scan(SDL_SCANCODE_UNKNOWN), val(0) {}
+  MappedInput(int s, int v):
+    scan(s), val(v) {}
+};
+
 struct Setting {
     const char* friendlyName;
     std::function<void()> draw;

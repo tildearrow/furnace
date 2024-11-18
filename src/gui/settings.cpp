@@ -1885,6 +1885,93 @@ void FurnaceGUI::setupSettingsCategories() {
         KEYBIND(GUI_ACTION_CMDPAL_INSTRUMENTS),
         KEYBIND(GUI_ACTION_CMDPAL_SAMPLES),
       }),
+      SettingsCategory(_("Note input"),{},{
+        SETTING(_("Note input"),{
+          std::vector<MappedInput> sorted; /* not a fan of the sorting. modifying the note value will make it jump */
+          if (ImGui::BeginTable("keysNoteInput",4)) {
+            for (std::map<int,int>::value_type& i: noteKeys) {
+              std::vector<MappedInput>::iterator j;
+              for (j=sorted.begin(); j!=sorted.end(); j++) {
+                if (j->val>i.second) {
+                  break;
+                }
+              }
+              sorted.insert(j,MappedInput(i.first,i.second));
+            }
+  
+            static char id[4096];
+  
+            ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+            ImGui::TableNextColumn();
+            ImGui::Text(_("Key"));
+            ImGui::TableNextColumn();
+            ImGui::Text(_("Type"));
+            ImGui::TableNextColumn();
+            ImGui::Text(_("Value"));
+            ImGui::TableNextColumn();
+            ImGui::Text(_("Remove"));
+  
+            for (MappedInput& i: sorted) {
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::Text("%s",SDL_GetScancodeName((SDL_Scancode)i.scan));
+              ImGui::TableNextColumn();
+              if (i.val==102) {
+                snprintf(id,4095,_("Macro release##SNType_%d"),i.scan);
+                if (ImGui::Button(id)) {
+                  noteKeys[i.scan]=0;
+                }
+              } else if (i.val==101) {
+                snprintf(id,4095,_("Note release##SNType_%d"),i.scan);
+                if (ImGui::Button(id)) {
+                  noteKeys[i.scan]=102;
+                }
+              } else if (i.val==100) {
+                snprintf(id,4095,_("Note off##SNType_%d"),i.scan);
+                if (ImGui::Button(id)) {
+                  noteKeys[i.scan]=101;
+                }
+              } else {
+                snprintf(id,4095,_("Note##SNType_%d"),i.scan);
+                if (ImGui::Button(id)) {
+                  noteKeys[i.scan]=100;
+                }
+              }
+              ImGui::TableNextColumn();
+              if (i.val<100) {
+                snprintf(id,4095,"##SNValue_%d",i.scan);
+                if (ImGui::InputInt(id,&i.val,1,12)) {
+                  if (i.val<0) i.val=0;
+                  if (i.val>96) i.val=96;
+                  noteKeys[i.scan]=i.val;
+                  SETTINGS_CHANGED;
+                }
+              }
+              ImGui::TableNextColumn();
+              snprintf(id,4095,ICON_FA_TIMES "##SNRemove_%d",i.scan);
+              if (ImGui::Button(id)) {
+                noteKeys.erase(i.scan);
+                SETTINGS_CHANGED;
+              }
+            }
+            ImGui::EndTable();
+  
+            if (ImGui::BeginCombo("##SNAddNew",_("Add..."))) {
+              for (int i=0; i<SDL_NUM_SCANCODES; i++) {
+                const char* sName=SDL_GetScancodeName((SDL_Scancode)i);
+                if (sName==NULL) continue;
+                if (sName[0]==0) continue;
+                snprintf(id,4095,"%s##SNNewKey_%d",sName,i);
+                if (ImGui::Selectable(id)) {
+                  noteKeys[(SDL_Scancode)i]=0;
+                  SETTINGS_CHANGED;
+                }
+              }
+              ImGui::EndCombo();
+            }
+          }
+        })
+      }),
       SettingsCategory(_("Pattern"),{},{
         KEYBIND(GUI_ACTION_PAT_NOTE_UP),
         KEYBIND(GUI_ACTION_PAT_NOTE_DOWN),
@@ -4412,15 +4499,6 @@ void FurnaceGUI::promptKey(int which, int bindIdx) {
   }
 }
 
-struct MappedInput {
-  int scan;
-  int val;
-  MappedInput():
-    scan(SDL_SCANCODE_UNKNOWN), val(0) {}
-  MappedInput(int s, int v):
-    scan(s), val(v) {}
-};
-
 void FurnaceGUI::drawSettings() {
   if (nextWindow==GUI_WINDOW_SETTINGS) {
     settingsOpen=true;
@@ -4474,112 +4552,6 @@ void FurnaceGUI::drawSettings() {
       ImGui::EndChild();
       ImGui::EndTable();
     }
-
-      /*CONFIG_SECTION(_("Keyboard")) {
-        // SUBSECTION LAYOUT
-        CONFIG_SUBSECTION(_("Keyboard"));
-        if (ImGui::Button(_("Import"))) {
-          openFileDialog(GUI_FILE_IMPORT_KEYBINDS);
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(_("Export"))) {
-          openFileDialog(GUI_FILE_EXPORT_KEYBINDS);
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(_("Reset defaults"))) {
-          showWarning(_("Are you sure you want to reset the keyboard settings?"),GUI_WARN_RESET_KEYBINDS);
-        }
-        if (ImGui::BeginChild("##HotkeysList",ImVec2(0,0),false,ImGuiWindowFlags_HorizontalScrollbar)) {
-          if (ImGui::TreeNode(_("Global hotkeys"))) {
-            KEYBIND_CONFIG_BEGIN("keysGlobal");
-
-          if (ImGui::TreeNode(_("Note input"))) {
-            std::vector<MappedInput> sorted;
-            if (ImGui::BeginTable("keysNoteInput",4)) {
-              for (std::map<int,int>::value_type& i: noteKeys) {
-                std::vector<MappedInput>::iterator j;
-                for (j=sorted.begin(); j!=sorted.end(); j++) {
-                  if (j->val>i.second) {
-                    break;
-                  }
-                }
-                sorted.insert(j,MappedInput(i.first,i.second));
-              }
-
-              static char id[4096];
-
-              ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-              ImGui::TableNextColumn();
-              ImGui::Text(_("Key"));
-              ImGui::TableNextColumn();
-              ImGui::Text(_("Type"));
-              ImGui::TableNextColumn();
-              ImGui::Text(_("Value"));
-              ImGui::TableNextColumn();
-              ImGui::Text(_("Remove"));
-
-              for (MappedInput& i: sorted) {
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text("%s",SDL_GetScancodeName((SDL_Scancode)i.scan));
-                ImGui::TableNextColumn();
-                if (i.val==102) {
-                  snprintf(id,4095,_("Macro release##SNType_%d"),i.scan);
-                  if (ImGui::Button(id)) {
-                    noteKeys[i.scan]=0;
-                  }
-                } else if (i.val==101) {
-                  snprintf(id,4095,_("Note release##SNType_%d"),i.scan);
-                  if (ImGui::Button(id)) {
-                    noteKeys[i.scan]=102;
-                  }
-                } else if (i.val==100) {
-                  snprintf(id,4095,_("Note off##SNType_%d"),i.scan);
-                  if (ImGui::Button(id)) {
-                    noteKeys[i.scan]=101;
-                  }
-                } else {
-                  snprintf(id,4095,_("Note##SNType_%d"),i.scan);
-                  if (ImGui::Button(id)) {
-                    noteKeys[i.scan]=100;
-                  }
-                }
-                ImGui::TableNextColumn();
-                if (i.val<100) {
-                  snprintf(id,4095,"##SNValue_%d",i.scan);
-                  if (ImGui::InputInt(id,&i.val,1,12)) {
-                    if (i.val<0) i.val=0;
-                    if (i.val>96) i.val=96;
-                    noteKeys[i.scan]=i.val;
-                    SETTINGS_CHANGED;
-                  }
-                }
-                ImGui::TableNextColumn();
-                snprintf(id,4095,ICON_FA_TIMES "##SNRemove_%d",i.scan);
-                if (ImGui::Button(id)) {
-                  noteKeys.erase(i.scan);
-                  SETTINGS_CHANGED;
-                }
-              }
-              ImGui::EndTable();
-
-              if (ImGui::BeginCombo("##SNAddNew",_("Add..."))) {
-                for (int i=0; i<SDL_NUM_SCANCODES; i++) {
-                  const char* sName=SDL_GetScancodeName((SDL_Scancode)i);
-                  if (sName==NULL) continue;
-                  if (sName[0]==0) continue;
-                  snprintf(id,4095,"%s##SNNewKey_%d",sName,i);
-                  if (ImGui::Selectable(id)) {
-                    noteKeys[(SDL_Scancode)i]=0;
-                    SETTINGS_CHANGED;
-                  }
-                }
-                ImGui::EndCombo();
-              }
-            }
-            ImGui::TreePop();
-          }
-    */
     // ImGui::Separator();
     if (ImGui::Button(_("OK##SettingsOK"))) {
       settingsOpen=false;
