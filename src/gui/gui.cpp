@@ -8016,6 +8016,8 @@ bool FurnaceGUI::init() {
   audioLoadFormats.push_back(_("all files"));
   audioLoadFormats.push_back("*");
 
+  setupSettingsCategories();
+
   logI("done!");
   return true;
 }
@@ -9052,6 +9054,4 @@ FurnaceGUI::FurnaceGUI():
   strncpy(macroRelLabel,"REL",32);
   strncpy(emptyLabel,"...",32);
   strncpy(emptyLabel2,"..",32);
-
-  setupSettingsCategories();
 }

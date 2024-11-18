@@ -32,9 +32,8 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include "misc/freetype/imgui_freetype.h"
 #include "scaling.h"
-#include <cstdio>
 #include <fmt/printf.h>
-
+// if there is some redundant #includes here, its clangd.
 #ifdef _WIN32
 #include <windows.h>
 #include <shlobj.h>
