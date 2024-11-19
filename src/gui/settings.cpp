@@ -22,7 +22,6 @@
 #include "ImGuiFileDialog.h"
 #include "../ta-log.h"
 #include "../fileutils.h"
-#include "../utfutils.h"
 #include "misc/freetype/imgui_freetype.h"
 
 void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {

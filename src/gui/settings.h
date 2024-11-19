@@ -21,6 +21,7 @@
 #include "imgui_internal.h"
 #include "fonts.h"
 #include "util.h"
+#include "../utfutils.h"
 #include "guiConst.h"
 #include "intConst.h"
 #include "IconsFontAwesome4.h"
