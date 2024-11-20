@@ -23,10 +23,10 @@
 #include "../ta-log.h"
 #include "../fileutils.h"
 #include "misc/freetype/imgui_freetype.h"
+#include <imgui.h>
 
 void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {
   bool filterActive=settings.filter.IsActive();
-  ImGui::PushID(cat->id);
   if (cat->children.size()>0) {
     ImGuiTreeNodeFlags f=ImGuiTreeNodeFlags_SpanFullWidth|ImGuiTreeNodeFlags_OpenOnArrow|ImGuiTreeNodeFlags_OpenOnDoubleClick;
     if (settings.activeCategory.name==cat->name) f|=ImGuiTreeNodeFlags_Selected;
@@ -50,7 +50,6 @@ void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {
     }
     ImGui::EndDisabled();
   }
-  ImGui::PopID();
 }
 
 void FurnaceGUI::searchDrawSettingItems(SettingsCategory* cat) {
@@ -312,10 +311,11 @@ void FurnaceGUI::drawSettings() {
         for (SettingsCategory cat:settings.categories) drawSettingsCategory(&cat);
       }
       ImGui::EndChild();
-      if (ImGui::GetWindowSize().y>ImGui::GetWindowSize().x) ImGui::TableNextRow();
+      if (vertical) ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImVec2 settingsItemsViewSize=ImGui::GetContentRegionAvail();
       settingsItemsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y;
+      if (vertical) ImGui::Separator();
       if (ImGui::BeginChild("SettingsItems",settingsItemsViewSize)) {
         drawSettingsItems();
         if ((strncmp(settings.filter.InputBuf,"cheat",6)==0) && !nonLatchNibble) {
