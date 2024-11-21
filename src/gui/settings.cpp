@@ -41,7 +41,7 @@ void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {
       ImGui::Indent();
       for (SettingsCategory child:cat->children) drawSettingsCategory(&child);
       ImGui::Unindent();
-      ImGui::TreePop();
+      if (cat->expandChild) ImGui::TreePop();
     }
   } else { // a lonely child...
     ImGui::BeginDisabled(filterActive && !settings.filter.PassFilter(cat->name));
