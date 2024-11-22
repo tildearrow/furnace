@@ -23,7 +23,6 @@
 #include "../ta-log.h"
 #include "../fileutils.h"
 #include "misc/freetype/imgui_freetype.h"
-#include <imgui.h>
 
 void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {
   bool filterActive=settings.filter.IsActive();
@@ -37,10 +36,12 @@ void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {
     if (ImGui::IsItemClicked()) {
       settings.activeCategory=*cat;
     }
+    float indentWidth=ImGui::GetStyle().IndentSpacing;
+    if (!cat->expandChild) indentWidth*=2.0f;
     if (cat->expandChild || filterActive) {
-      ImGui::Indent();
+      ImGui::Indent(indentWidth);
       for (SettingsCategory child:cat->children) drawSettingsCategory(&child);
-      ImGui::Unindent();
+      ImGui::Unindent(indentWidth);
       if (cat->expandChild) ImGui::TreePop();
     }
   } else { // a lonely child...
