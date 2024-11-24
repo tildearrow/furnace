@@ -131,7 +131,7 @@ option(SYSTEM_ZLIB "Use a system-installed version of zlib instead of the vendor
 option(SYSTEM_SDL2 "Use a system-installed version of SDL2 instead of the vendored one" ${SYSTEM_SDL2_DEFAULT})
 option(SUPPORT_XP "Build a Windows XP-compatible binary" OFF)
 option(WARNINGS_ARE_ERRORS "Whether warnings in furnace's C++ code should be treated as errors" OFF)
-option(WITH_DEMOS "Install demo songs" ON)
+option(WITH_DEMOS "Install demo songs (NOTE: demo songs are NOT under GPL!)" OFF)
 option(WITH_INSTRUMENTS "Install instruments" ON)
 option(WITH_WAVETABLES "Install wavetables" ON)
 option(SHOW_OPEN_ASSETS_MENU_ENTRY "Show option to open built-in assets directory (on supported platforms)" OFF)

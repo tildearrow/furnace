@@ -282,7 +282,7 @@ Available options:
 | `SYSTEM_FREETYPE` | `OFF` | Use a system-installed version of FreeType instead of the vendored one |
 | `SUPPORT_XP` | `OFF` | Build a Windows XP-compatible binary |
 | `WARNINGS_ARE_ERRORS` | `OFF`\*\* | Whether warnings in furnace's C++ code should be treated as errors |
-| `WITH_DEMOS` | `ON` | Install demo songs on `make install` |
+| `WITH_DEMOS` | `OFF` | Install demo songs on `make install` |
 | `WITH_INSTRUMENTS` | `ON` | Install demo instruments on `make install` |
 | `WITH_WAVETABLES` | `ON` | Install wavetables on `make install` |
 | `SHOW_OPEN_ASSETS_MENU_ENTRY` | `OFF` | Show option to open built-in assets directory (on supported platforms) |
