@@ -88,8 +88,8 @@ void DivPlatformMSM6258::acquire(short** buf, size_t len) {
       buf[1][h]=0;
       oscBuf[0]->data[oscBuf[0]->needle++]=0;
     } else {
-      buf[0][h]=(msmPan&2)?msmOut:0;
-      buf[1][h]=(msmPan&1)?msmOut:0;
+      buf[0][h]=(msmPan&2)?0:msmOut;
+      buf[1][h]=(msmPan&1)?0:msmOut;
       oscBuf[0]->data[oscBuf[0]->needle++]=msmPan?(msmOut>>1):0;
     }
   }
@@ -109,7 +109,7 @@ void DivPlatformMSM6258::tick(bool sysTick) {
       if (chan[i].std.panL.had) {
         if (chan[i].pan!=(chan[i].std.panL.val&3)) {
           chan[i].pan=chan[i].std.panL.val&3;
-          rWrite(2,chan[i].pan);
+          rWrite(2,(~chan[i].pan)&3);
         }
       }
       if (chan[i].std.ex1.had) {
@@ -256,7 +256,7 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
       } else {
         chan[c.chan].pan=(c.value2>0)|((c.value>0)<<1);
       }
-      rWrite(2,chan[c.chan].pan);
+      rWrite(2,(~chan[c.chan].pan)&3);
       break;
     }
     case DIV_CMD_LEGATO: {
@@ -296,7 +296,7 @@ void DivPlatformMSM6258::forceIns() {
   }
   rWrite(12,rateSel);
   rWrite(8,clockSel);
-  rWrite(2,chan[0].pan);
+  rWrite(2,(~chan[0].pan)&3);
 }
 
 void* DivPlatformMSM6258::getChanState(int ch) {
@@ -339,7 +339,7 @@ void DivPlatformMSM6258::reset() {
   msmDividerCount=0;
   msmClock=0;
   msmClockCount=0;
-  msmPan=3;
+  msmPan=0;
   rateSel=2;
   clockSel=0;
   updateSampleFreq=true;
