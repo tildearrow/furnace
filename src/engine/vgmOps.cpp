@@ -1162,6 +1162,9 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
     case DIV_SYSTEM_MSM6258:
       w->writeC(0xb7);
       w->writeC(baseAddr2|(write.addr&0x7f));
+      if (write.addr==2){ // invert pan
+        write.val = (~write.val) & 3;
+      }
       w->writeC(write.val);
       logV("MSM write to %.2x %.2x",write.addr,write.val);
       break;
