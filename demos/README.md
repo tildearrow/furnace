@@ -39,6 +39,7 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - dmKaltsit
 - Dolce
 - dumbut
+- Echodalia
 - Eggo1423
 - Eknous
 - Electric Keet
