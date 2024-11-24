@@ -113,6 +113,7 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
         logW("did not read entire sample bank file buffer!");
         lastError=_("did not read entire sample bank file!");
         delete[] buf;
+        fclose(f);
         return ret;
       }
       fclose(f);
@@ -271,6 +272,7 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
         delete sample;
         return ret;
       }
+      fclose(f);
       BUSY_END;
       ret.push_back(sample);
       return ret;
