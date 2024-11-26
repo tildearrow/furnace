@@ -261,39 +261,39 @@ Example: `cmake -DBUILD_GUI=OFF -DWARNINGS_ARE_ERRORS=ON ..`
 
 Available options:
 
-| Name | Default | Description |
-| :--: | :-----: | ----------- |
-| `BUILD_GUI` | `ON` | Build the tracker (disable to build only a headless player) |
-| `WITH_LOCALE` | `ON` | Enable language support |
-| `USE_RTMIDI` | `ON` | Build with MIDI support using RtMidi |
-| `USE_SDL2` | `ON` | Build with SDL2 (required to build with GUI) |
-| `USE_SNDFILE` | `ON` | Build with libsndfile (required in order to work with audio files) |
-| `USE_BACKWARD` | `ON` | Use backward-cpp to print a backtrace on crash/abort |
-| `USE_FREETYPE` | `OFF` | Build with FreeType support |
-| `USE_MOMO` | auto\*\*\* | Build a libintl implementation instead of using the system one |
-| `WITH_JACK` | auto\* | Whether to build with JACK support. Auto-detects if JACK is available |
-| `WITH_PORTAUDIO` | `ON` | Whether to build with PortAudio. |
-| `SYSTEM_FFTW` | `OFF` | Use a system-installed version of FFTW instead of the vendored one |
-| `SYSTEM_FMT` | `OFF` | Use a system-installed version of fmt instead of the vendored one |
-| `SYSTEM_LIBSNDFILE` | `OFF` | Use a system-installed version of libsndfile instead of the vendored one |
-| `SYSTEM_RTMIDI` | `OFF` | Use a system-installed version of RtMidi instead of the vendored one |
-| `SYSTEM_ZLIB` | `OFF` | Use a system-installed version of zlib instead of the vendored one |
-| `SYSTEM_SDL2` | `OFF` | Use a system-installed version of SDL2 instead of the vendored one |
-| `SYSTEM_FREETYPE` | `OFF` | Use a system-installed version of FreeType instead of the vendored one |
-| `SUPPORT_XP` | `OFF` | Build a Windows XP-compatible binary |
-| `WARNINGS_ARE_ERRORS` | `OFF`\*\* | Whether warnings in furnace's C++ code should be treated as errors |
-| `WITH_DEMOS` | `ON` | Install demo songs on `make install` |
-| `WITH_INSTRUMENTS` | `ON` | Install demo instruments on `make install` |
-| `WITH_WAVETABLES` | `ON` | Install wavetables on `make install` |
-| `SHOW_OPEN_ASSETS_MENU_ENTRY` | `OFF` | Show option to open built-in assets directory (on supported platforms) |
-| `CONSOLE_SUBSYSTEM` | `OFF` | Build with subsystem set to Console on Windows |
-| `FORCE_APPLE_BIN` | `OFF` | Enable installation of binaries (when doing `make install`) to PREFIX/bin on Apple platforms |
+| Name                          |Default| Description
+| :---------------------------: | :---: | ---------------------------------------------------------------------------------------------
+| `BUILD_GUI`                   | `ON`  | Build the tracker (disable to build only a headless player)
+| `WITH_LOCALE`                 | `ON`  | Enable language support
+| `USE_RTMIDI`                  | `ON`  | Build with MIDI support using RtMidi
+| `USE_SDL2`                    | `ON`  | Build with SDL2 (required to build with GUI)
+| `USE_SNDFILE`                 | `ON`  | Build with libsndfile (required in order to work with audio files)
+| `USE_BACKWARD`                | `ON`  | Use backward-cpp to print a backtrace on crash/abort
+| `USE_FREETYPE`                | `OFF` | Build with FreeType support
+| `USE_MOMO`                    | auto¹ | Build a libintl implementation instead of using the system one
+| `WITH_JACK`                   | auto² | Whether to build with JACK support. Auto-detects if JACK is available
+| `WITH_PORTAUDIO`              | `ON`  | Whether to build with PortAudio.
+| `SYSTEM_FFTW`                 | `OFF` | Use a system-installed version of FFTW instead of the vendored one
+| `SYSTEM_FMT`                  | `OFF` | Use a system-installed version of fmt instead of the vendored one
+| `SYSTEM_LIBSNDFILE`           | `OFF` | Use a system-installed version of libsndfile instead of the vendored one
+| `SYSTEM_RTMIDI`               | `OFF` | Use a system-installed version of RtMidi instead of the vendored one
+| `SYSTEM_ZLIB`                 | `OFF` | Use a system-installed version of zlib instead of the vendored one
+| `SYSTEM_SDL2`                 | `OFF` | Use a system-installed version of SDL2 instead of the vendored one
+| `SYSTEM_FREETYPE`             | `OFF` | Use a system-installed version of FreeType instead of the vendored one
+| `SUPPORT_XP`                  | `OFF` | Build a Windows XP-compatible binary
+| `WARNINGS_ARE_ERRORS`         | `OFF`³| Whether warnings in furnace's C++ code should be treated as errors
+| `WITH_DEMOS`                  | `OFF` | Install demo songs on `make install`
+| `WITH_INSTRUMENTS`            | `ON`  | Install demo instruments on `make install`
+| `WITH_WAVETABLES`             | `ON`  | Install wavetables on `make install`
+| `SHOW_OPEN_ASSETS_MENU_ENTRY` | `OFF` | Show option to open built-in assets directory (on supported platforms)
+| `CONSOLE_SUBSYSTEM`           | `OFF` | Build with subsystem set to Console on Windows
+| `FORCE_APPLE_BIN`             | `OFF` | Enable installation of binaries (when doing `make install`) to PREFIX/bin on Apple platforms
 
-(\*) `ON` if system-installed JACK detected, otherwise `OFF`
+(¹) enabled by default if both libintl and setlocale aren't present (MSVC and Android), or on macOS
 
-(\*\*) but consider enabling this & reporting any errors that arise from it!
+(²) `ON` if system-installed JACK detected, otherwise `OFF`
 
-(\*\*\*) enabled by default if both libintl and setlocale aren't present (MSVC and Android), or on macOS
+(³) but consider enabling this and reporting any errors that arise from it!
 
 ## CMake Error
 

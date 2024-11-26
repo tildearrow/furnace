@@ -1340,8 +1340,8 @@ void FurnaceGUI::drawSampleEdit() {
                 for (int i=0; i<sampleCrossFadeLoopLength; i++) {
                   double f1=pow(i*l,evar);
                   double f2=pow((sampleCrossFadeLoopLength-i)*l,evar);
-                  signed char out=(signed char)(((double)sample->data8[crossFadeInput])*f1+((double)sample->data8[crossFadeOutput])*f2);
-                  sample->data8[crossFadeOutput]=out;
+                  double out=((double)sample->data8[crossFadeInput])*f1+((double)sample->data8[crossFadeOutput])*f2;
+                  sample->data8[crossFadeOutput]=(signed char)CLAMP(out,-128,127);
                   crossFadeInput++;
                   crossFadeOutput++;
                 }
@@ -1351,8 +1351,8 @@ void FurnaceGUI::drawSampleEdit() {
                 for (int i=0; i<sampleCrossFadeLoopLength; i++) {
                   double f1=std::pow(i*l,evar);
                   double f2=std::pow((sampleCrossFadeLoopLength-i)*l,evar);
-                  short out=(short)(((double)sample->data16[crossFadeInput])*f1+((double)sample->data16[crossFadeOutput])*f2);
-                  sample->data16[crossFadeOutput]=out;
+                  double out=((double)sample->data16[crossFadeInput])*f1+((double)sample->data16[crossFadeOutput])*f2;
+                  sample->data16[crossFadeOutput]=(short)CLAMP(out,-32768,32767);
                   crossFadeInput++;
                   crossFadeOutput++;
                 }
