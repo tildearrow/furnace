@@ -352,9 +352,6 @@ void FurnaceGUI::drawSettings() {
   ImGui::End();
 }
 
-void FurnaceGUI::drawKeybindSettingsTableRow(FurnaceGUIActions actionIdx) {
-}
-
 #define clampSetting(x,minV,maxV) \
   if (x<minV) { \
     x=minV; \
