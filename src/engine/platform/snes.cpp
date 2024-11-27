@@ -841,7 +841,7 @@ void DivPlatformSNES::initEcho() {
 
   for (DivMemoryEntry& i: memCompo.entries) {
     if (i.type==DIV_MEMORY_ECHO) {
-      i.begin=(65536-echoDelay*2048);
+      i.begin=(0xf800-echoDelay*2048);
     }
   }
   memCompo.used=sampleMemLen+echoDelay*2048;
@@ -946,7 +946,7 @@ const void* DivPlatformSNES::getSampleMem(int index) {
 }
 
 size_t DivPlatformSNES::getSampleMemCapacity(int index) {
-  return index == 0 ? (65536-echoDelay*2048) : 0;
+  return index == 0 ? (0xf800-echoDelay*2048) : 0;
 }
 
 size_t DivPlatformSNES::getSampleMemUsage(int index) {
@@ -1010,7 +1010,9 @@ void DivPlatformSNES::renderSamples(int sysID) {
   }
   sampleMemLen=memPos;
 
-  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_ECHO,"Echo Buffer",-1,(65536-echoDelay*2048),65536));
+  // even if the delay is 0, the DSP will still operate the first buffer sample
+  // so the ARAM buffer size becomes 4 bytes when the delay is 0
+  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_ECHO,"Echo Buffer",-1,(0xf800-echoDelay*2048),echoDelay==0?0xf804:0xf800));
 
   memCompo.capacity=65536;
   memCompo.used=sampleMemLen+echoDelay*2048;
