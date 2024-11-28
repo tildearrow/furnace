@@ -3078,7 +3078,7 @@ void FurnaceGUI::insTabWavetable(DivInstrument* ins)
         wavePreviewHeight=31;
         break;
     }
-    if (ImGui::Checkbox(_("Enable synthesizer"),&ins->ws.enabled)) {
+    if (ImGui::Checkbox(_("Enable synthesizer"),&ins->ws.enabled)) { PARAMETER
       wavePreviewInit=true;
     }
     if (ins->ws.enabled) {
