@@ -4611,7 +4611,7 @@ void FurnaceGUI::drawSettings() {
               FurnaceGUIBackupEntry& thisEntry=backupEntries[i];
 
               if (thisEntry.name==prevEntry.name) {
-                thisEntry.size+=prevEntry.size;
+                prevEntry.size+=thisEntry.size;
                 backupEntries.erase(backupEntries.begin()+i);
                 i--;
               }
