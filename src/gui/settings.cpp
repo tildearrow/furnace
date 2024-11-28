@@ -33,6 +33,7 @@
 #include "misc/freetype/imgui_freetype.h"
 #include "scaling.h"
 #include <fmt/printf.h>
+#include <imgui.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -3840,6 +3841,14 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         } rightClickable
 
+        // SUBSECTION SONG COMMENTS
+        CONFIG_SUBSECTION(_("Song Comments"));
+        bool songNotesWrapB=settings.songNotesWrap;
+        if (ImGui::Checkbox(_("Wrap text"), &songNotesWrapB)) {
+          settings.songNotesWrap=songNotesWrapB;
+          settingsChanged=true;
+        }
+
         // SUBSECTION WINDOWS
         CONFIG_SUBSECTION(_("Windows"));
         bool roundedWindowsB=settings.roundedWindows;
@@ -5004,6 +5013,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.oscAntiAlias=conf.getInt("oscAntiAlias",1);
     settings.oscLineSize=conf.getFloat("oscLineSize",1.0f);
 
+    settings.songNotesWrap=conf.getInt("songNotesWrap", 0);
+
     settings.channelColors=conf.getInt("channelColors",1);
     settings.channelTextColors=conf.getInt("channelTextColors",0);
     settings.channelStyle=conf.getInt("channelStyle",1);
@@ -5363,6 +5374,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.playbackTime,0,1);
   clampSetting(settings.shaderOsc,0,1);
   clampSetting(settings.oscLineSize,0.25f,16.0f);
+  clampSetting(settings.songNotesWrap, 0, 1);
   clampSetting(settings.cursorWheelStep,0,1);
   clampSetting(settings.vsync,0,4);
   clampSetting(settings.frameRateLimit,0,1000);
@@ -5597,6 +5609,8 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("oscMono",settings.oscMono);
     conf.set("oscAntiAlias",settings.oscAntiAlias);
     conf.set("oscLineSize",settings.oscLineSize);
+
+    conf.set("songNotesWrap",settings.songNotesWrap);
 
     conf.set("channelColors",settings.channelColors);
     conf.set("channelTextColors",settings.channelTextColors);
