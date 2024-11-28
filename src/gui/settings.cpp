@@ -33,7 +33,6 @@
 #include "misc/freetype/imgui_freetype.h"
 #include "scaling.h"
 #include <fmt/printf.h>
-#include <imgui.h>
 
 #ifdef _WIN32
 #include <windows.h>
