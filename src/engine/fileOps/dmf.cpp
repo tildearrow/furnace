@@ -23,6 +23,7 @@
 // - 27: v1.1.7
 //   - current format version
 //   - adds sample start/end points
+//   - 1.2 introduces MSX2 (AY+SCC)
 // - 26: v1.1.3
 //   - changes height of FDS wave to 6-bit (it was 4-bit before)
 // - 25: v1.1
@@ -414,7 +415,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         ins->type=DIV_INS_OPM;
       }
       if (ds.system[0]==DIV_SYSTEM_MSX2) {
-        ins->type=DIV_INS_SCC;
+        ins->type=DIV_INS_AY;
       }
       if ((ds.system[0]==DIV_SYSTEM_NES || ds.system[0]==DIV_SYSTEM_NES_VRC7 || ds.system[0]==DIV_SYSTEM_NES_FDS) && ins->type==DIV_INS_STD) {
         ins->type=DIV_INS_NES;
@@ -843,6 +844,13 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
               if (i==5 && pat->data[k][2]!=-1) {
                 if (pat->data[k][2]>=0 && pat->data[k][2]<ds.insLen) {
                   ds.ins[pat->data[k][2]]->type=DIV_INS_FDS;
+                }
+              }
+            }
+            if (ds.system[0]==DIV_SYSTEM_MSX2) {
+              if (i>=3 && pat->data[k][2]!=-1) {
+                if (pat->data[k][2]>=0 && pat->data[k][2]<ds.insLen) {
+                  ds.ins[pat->data[k][2]]->type=DIV_INS_SCC;
                 }
               }
             }
