@@ -1185,6 +1185,9 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_FDS) {
       isFlat=true;
     }
+    if (song.system[0]==DIV_SYSTEM_AY8910 && song.system[1]==DIV_SYSTEM_SCC) {
+      isFlat=true;
+    }
   }
   // fail if more than one system
   if (!isFlat && song.systemLen!=1) {
@@ -1214,6 +1217,12 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   if (version<25 && song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_FDS) {
     logE("FDS not supported in 1.0/legacy .dmf!");
     lastError="FDS not supported in 1.0/legacy .dmf!";
+    return NULL;
+  }
+  // fail if the system is SCC and version<25
+  if (version<25 && song.system[0]==DIV_SYSTEM_AY8910 && song.system[1]==DIV_SYSTEM_SCC) {
+    logE("AY + SCC not supported in 1.0/legacy .dmf!");
+    lastError="AY + SCC not supported in 1.0/legacy .dmf!";
     return NULL;
   }
   // fail if the system is Furnace-exclusive
@@ -1277,6 +1286,9 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   } else if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_FDS) {
     w->writeC(systemToFileDMF(DIV_SYSTEM_NES_FDS));
     sys=DIV_SYSTEM_NES_FDS;
+  } else if (song.system[0]==DIV_SYSTEM_AY8910 && song.system[1]==DIV_SYSTEM_SCC) {
+    w->writeC(systemToFileDMF(DIV_SYSTEM_MSX2));
+    sys=DIV_SYSTEM_MSX2;
   } else {
     w->writeC(systemToFileDMF(song.system[0]));
     sys=song.system[0];
