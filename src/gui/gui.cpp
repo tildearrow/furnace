@@ -7221,9 +7221,10 @@ bool FurnaceGUI::loop() {
     }
     drawTimeEnd=SDL_GetPerformanceCounter();
     swapTimeBegin=SDL_GetPerformanceCounter();
-    if (!settings.vsync || !rend->canVSync()) {
-      if (settings.frameRateLimit>0) {
-        unsigned int presentDelay=SDL_GetPerformanceFrequency()/settings.frameRateLimit;
+    framerateoverride=cvOpen?60:settings.frameRateLimit; // uh..
+    if (framerateoverride > 0|| !settings.vsync || !rend->canVSync()) {
+      if (framerateoverride>0) {
+        unsigned int presentDelay=SDL_GetPerformanceFrequency()/framerateoverride;
         if ((nextPresentTime-swapTimeBegin)<presentDelay) {
 #ifdef _WIN32
           unsigned int mDivider=SDL_GetPerformanceFrequency()/1000;
