@@ -7222,7 +7222,7 @@ bool FurnaceGUI::loop() {
     drawTimeEnd=SDL_GetPerformanceCounter();
     swapTimeBegin=SDL_GetPerformanceCounter();
     framerateoverride=cvOpen?60:settings.frameRateLimit; // uh..
-    if (framerateoverride > 0|| !settings.vsync || !rend->canVSync()) {
+    if (framerateoverride > 0 || !settings.vsync || !rend->canVSync()) {
       if (framerateoverride>0) {
         unsigned int presentDelay=SDL_GetPerformanceFrequency()/framerateoverride;
         if ((nextPresentTime-swapTimeBegin)<presentDelay) {
