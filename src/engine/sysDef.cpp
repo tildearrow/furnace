@@ -970,7 +970,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_MSX2]=new DivSysDef(
-    _("MSX + SCC"), NULL, 0, 0x0a, 8, true, false, 0, true, 0, 0, 0,
+    _("MSX + SCC"), NULL, 0, 0x0a, 8, false, true, 0, true, 0, 0, 0,
     "<COMPOUND SYSTEM!>",
     {}, {}, {}, {}
   );
