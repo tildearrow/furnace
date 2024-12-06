@@ -2809,8 +2809,8 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
     }
   }
   if (sampleDragActive) {
-    int x=samplePos+round(double(dragX-sampleDragStart.x)*sampleZoom);
-    int x1=samplePos+round(double(dragX-sampleDragStart.x+1)*sampleZoom);
+    int x=samplePos+floor(double(dragX-sampleDragStart.x)*sampleZoom);
+    int x1=samplePos+floor(double(dragX-sampleDragStart.x+1)*sampleZoom);
     if (x<0) x=0;
     if (sampleDragMode) {
       if (x>=(int)sampleDragLen) x=sampleDragLen-1;

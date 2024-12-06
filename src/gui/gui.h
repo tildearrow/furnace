@@ -2001,6 +2001,7 @@ class FurnaceGUI {
     float vibrationStrength;
     int vibrationLength;
     int s3mOPL3;
+    int songNotesWrap;
     String mainFontPath;
     String headFontPath;
     String patFontPath;
@@ -2261,6 +2262,7 @@ class FurnaceGUI {
       vibrationStrength(0.5f),
       vibrationLength(20),
       s3mOPL3(1),
+      songNotesWrap(0),
       mainFontPath(""),
       headFontPath(""),
       patFontPath(""),
