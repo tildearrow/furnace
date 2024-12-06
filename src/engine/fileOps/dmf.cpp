@@ -413,6 +413,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       if (ds.system[0]==DIV_SYSTEM_ARCADE) {
         ins->type=DIV_INS_OPM;
       }
+      if (ds.system[0]==DIV_SYSTEM_MSX2) {
+        ins->type=DIV_INS_SCC;
+      }
       if ((ds.system[0]==DIV_SYSTEM_NES || ds.system[0]==DIV_SYSTEM_NES_VRC7 || ds.system[0]==DIV_SYSTEM_NES_FDS) && ins->type==DIV_INS_STD) {
         ins->type=DIV_INS_NES;
       }
@@ -722,6 +725,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         }
         if (ds.system[0]==DIV_SYSTEM_NES_FDS) {
           wave->max=63;
+        }
+        if (ds.system[0]==DIV_SYSTEM_MSX2) {
+          wave->max=255;
         }
         if (wave->len>65) {
           logE("invalid wave length %d. are we doing something wrong?",wave->len);
@@ -1069,6 +1075,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.systemLen=2;
       ds.system[0]=DIV_SYSTEM_YM2151;
       ds.system[1]=DIV_SYSTEM_SEGAPCM_COMPAT;
+    }
+    if (ds.system[0]==DIV_SYSTEM_MSX2) {
+      ds.systemLen=2;
+      ds.system[0]=DIV_SYSTEM_AY8910;
+      ds.system[1]=DIV_SYSTEM_SCC;
     }
     if (ds.system[0]==DIV_SYSTEM_SMS_OPLL) {
       ds.systemLen=2;
