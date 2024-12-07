@@ -326,15 +326,6 @@ void FurnaceGUI::drawSettings() {
       ImGui::EndChild();
       ImGui::EndTable();
     }
-/*
-        // SUBSECTION SONG COMMENTS
-        CONFIG_SUBSECTION(_("Song Comments"));
-        bool songNotesWrapB=settings.songNotesWrap;
-        if (ImGui::Checkbox(_("Wrap text"), &songNotesWrapB)) {
-          settings.songNotesWrap=songNotesWrapB;
-          settingsChanged=true;
-        }
-*/
     if (ImGui::Button(_("OK##SettingsOK"))) {
       settingsOpen=false;
       willCommit=true;

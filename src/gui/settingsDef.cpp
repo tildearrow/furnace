@@ -3301,6 +3301,15 @@ void FurnaceGUI::setupSettingsCategories() {
           } rightClickable
         })
       }),
+      SettingsCategory(_("Song Comments"),{},{
+        SETTING(_("Wrap text"),{
+          bool songNotesWrapB=settings.songNotesWrap;
+          if (ImGui::Checkbox(_("Wrap text"), &songNotesWrapB)) {
+            settings.songNotesWrap=songNotesWrapB;
+            settingsChanged=true;
+          }
+        }),
+      }),
       SettingsCategory(_("Windows"),{},{
         SETTING(_("Rounded window corners"),{
           bool roundedWindowsB=settings.roundedWindows;
@@ -3773,7 +3782,7 @@ void FurnaceGUI::setupSettingsCategories() {
         }
       })
     }),
-    SettingsCategory(_("Backup"),{
+    SettingsCategory(_("Backup"),{ // FIXME: backups table in search results is very very big
       SettingsCategory(_("Backup Management"),{},{
         Setting(_("Backup Management"),[this]{
           purgeDateChanged=false;
@@ -4006,7 +4015,7 @@ void FurnaceGUI::setupSettingsCategories() {
                 FurnaceGUIBackupEntry& thisEntry=backupEntries[i];
 
                 if (thisEntry.name==prevEntry.name) {
-                  thisEntry.size+=prevEntry.size;
+                  prevEntry.size+=thisEntry.size;
                   backupEntries.erase(backupEntries.begin()+i);
                   i--;
                 }
