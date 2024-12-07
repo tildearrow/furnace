@@ -793,6 +793,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             } else if (ds.system[0]==DIV_SYSTEM_GENESIS && ds.version<0x0e && pat->data[k][1]>0 && i>5) {
               // ditto
               pat->data[k][1]--;
+            } else if (ds.system[0]==DIV_SYSTEM_MSX2 && pat->data[k][1]>0 && i<3) {
+              // why the hell?
+              pat->data[k][1]++;
             }
             if (ds.version<0x12) {
               if (ds.system[0]==DIV_SYSTEM_GB && i==3 && pat->data[k][1]>0) {
@@ -1066,6 +1069,24 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       }
     }
 
+    // AY+SCC stuff
+    if (ds.system[0]==DIV_SYSTEM_MSX2) {
+      for (DivInstrument* i: ds.ins) {
+        if (i->type==DIV_INS_AY) {
+          // move wave macro
+          i->std.waveMacro.len=i->std.dutyMacro.len;
+          i->std.waveMacro.loop=i->std.dutyMacro.loop;
+          i->std.waveMacro.mode=i->std.dutyMacro.mode;
+          i->std.waveMacro.open=i->std.dutyMacro.open;
+          memcpy(i->std.waveMacro.val,i->std.dutyMacro.val,sizeof(i->std.waveMacro.val));
+          for (int j=0; j<i->std.waveMacro.len; j++) {
+            i->std.waveMacro.val[j]++;
+          }
+          i->std.dutyMacro.len=0;
+        }
+      }
+    }
+
     // handle compound systems
     if (ds.system[0]==DIV_SYSTEM_GENESIS) {
       ds.systemLen=2;
@@ -1088,6 +1109,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.systemLen=2;
       ds.system[0]=DIV_SYSTEM_AY8910;
       ds.system[1]=DIV_SYSTEM_SCC;
+      ds.systemFlags[0].set("chipType",1);
     }
     if (ds.system[0]==DIV_SYSTEM_SMS_OPLL) {
       ds.systemLen=2;
@@ -1187,6 +1209,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     }
     if (song.system[0]==DIV_SYSTEM_AY8910 && song.system[1]==DIV_SYSTEM_SCC) {
       isFlat=true;
+      addWarning("your song will sound different. I am not going to bother adding further compatibility.");
     }
   }
   // fail if more than one system
