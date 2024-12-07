@@ -969,6 +969,12 @@ void DivEngine::registerSystems() {
     fmExtChEffectHandlerMap
   );
 
+  sysDefs[DIV_SYSTEM_MSX2]=new DivSysDef(
+    _("MSX + SCC"), NULL, 0, 0x0a, 8, false, true, 0, true, 0, 0, 0,
+    "<COMPOUND SYSTEM!>",
+    {}, {}, {}, {}
+  );
+
   sysDefs[DIV_SYSTEM_AY8910]=new DivSysDef(
     _("AY-3-8910"), NULL, 0x80, 0, 3, false, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     _("this chip is everywhere! ZX Spectrum, MSX, Amstrad CPC, Intellivision, Vectrex...\nthe discovery of envelope bass helped it beat the SN76489 with ease."),

@@ -61,7 +61,7 @@ DivSystem FurnaceGUI::systemPicker(bool fullWidth) {
       }
     }
   }
- if (ImGui::BeginTable("SysList",1,ImGuiTableFlags_ScrollY,ImVec2(fullWidth ? ImGui::GetContentRegionAvail().x : 500.0f*dpiScale,200.0f*dpiScale))) {
+ if (ImGui::BeginTable("SysList",1,ImGuiTableFlags_ScrollY|ImGuiTableFlags_BordersOuterH,ImVec2(fullWidth ? ImGui::GetContentRegionAvail().x : 500.0f*dpiScale,200.0f*dpiScale))) {
     if (sysSearchQuery.empty()) {
       // display chip list
       for (int j=0; curSysSection[j]; j++) {
@@ -87,7 +87,6 @@ DivSystem FurnaceGUI::systemPicker(bool fullWidth) {
     }
     ImGui::EndTable();
   }
-  ImGui::Separator();
   if (ImGui::BeginChild("SysDesc",ImVec2(0.0f,150.0f*dpiScale),false,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse)) {
     if (hoveredSys!=DIV_SYSTEM_NULL) {
       const DivSysDef* sysDef=e->getSystemDef(hoveredSys);
