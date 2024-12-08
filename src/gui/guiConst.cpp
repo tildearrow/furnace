@@ -758,6 +758,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WAVE_LIST_SAVE", _N("Save wavetable"), 0),
   D("WAVE_LIST_SAVE_DMW", _N("Save wavetable (.dmw)"), 0),
   D("WAVE_LIST_SAVE_RAW", _N("Save wavetable (raw)"), 0),
+  D("WAVE_LIST_CREATE_SAMPLE", _N("Create sample from wavetable"),0),
   D("WAVE_LIST_MOVE_UP", _N("Move wavetable up in list"), FURKMOD_SHIFT|SDLK_UP),
   D("WAVE_LIST_MOVE_DOWN", _N("Move wavetable down in list"), FURKMOD_SHIFT|SDLK_DOWN),
   D("WAVE_LIST_DELETE", _N("Delete wavetable"), 0),

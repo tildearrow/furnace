@@ -379,6 +379,13 @@ void FurnaceGUI::drawWaveEdit() {
           ImGui::EndPopup();
         }
         ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_UPLOAD)) {
+          doAction(GUI_ACTION_WAVE_LIST_CREATE_SAMPLE);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("create sample from wavetable"));
+        }
+        ImGui::SameLine();
 
         if (ImGui::RadioButton(_("Steps"),waveEditStyle==0)) {
           waveEditStyle=0;
