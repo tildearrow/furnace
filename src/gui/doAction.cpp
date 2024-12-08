@@ -885,12 +885,11 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_WAVE_LIST_CREATE_SAMPLE:
       if (curWave>=0 && curWave<(int)e->song.wave.size()) {
-        DivSample* prevSample=e->getSample(curSample);
         curSample=e->addSample();
         if (curSample==-1) {
           showError(_("too many samples!"));
         } else {
-          e->lockEngine([this,prevSample]() {
+          e->lockEngine([this]() {
             DivSample* sample=e->getSample(curSample);
             if (sample!=NULL) {
               unsigned int waveLen=e->song.wave[curWave]->len;
