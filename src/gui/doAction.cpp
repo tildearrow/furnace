@@ -883,6 +883,38 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WAVE_LIST_SAVE_RAW:
       if (curWave>=0 && curWave<(int)e->song.wave.size()) openFileDialog(GUI_FILE_WAVE_SAVE_RAW);
       break;
+    case GUI_ACTION_WAVE_LIST_CREATE_SAMPLE:
+      if (curWave>=0 && curWave<(int)e->song.wave.size()) {
+        DivSample* prevSample=e->getSample(curSample);
+        curSample=e->addSample();
+        if (curSample==-1) {
+          showError(_("too many samples!"));
+        } else {
+          e->lockEngine([this,prevSample]() {
+            DivSample* sample=e->getSample(curSample);
+            if (sample!=NULL) {
+              unsigned int waveLen=e->song.wave[curWave]->len;
+              sample->rate=(int)round(261.343f*waveLen); // c3
+              sample->centerRate=(int)round(261.343f*waveLen); // c3
+              sample->loopStart=0;
+              sample->loopEnd=waveLen;
+              sample->loop=true;
+              sample->loopMode=(DivSampleLoopMode)0;
+              sample->depth=(DivSampleDepth)8;
+              if (sample->init(waveLen)) {
+                for (unsigned short i=0; i<waveLen; i++) {
+                  sample->data8[i]=e->song.wave[curWave]->data[i]-waveLen/2;
+                }
+              }
+            }
+            e->renderSamples();
+          });
+          wantScrollListSample=true;
+          MARK_MODIFIED;
+        }
+        updateSampleTex=true;
+      }
+      break;
     case GUI_ACTION_WAVE_LIST_MOVE_UP:
       if (e->moveWaveUp(curWave)) {
         curWave--;
