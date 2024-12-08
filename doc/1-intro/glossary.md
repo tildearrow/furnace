@@ -16,6 +16,9 @@
 
 **bitbang**: to achieve PCM sound by sending a rapid stream of volume commands to a non-PCM channel.
 
+**bit depth**: the number of bits used for each sample in a PCM stream. 16-bit is considered high quality; lower bit depths introduce more noise and distortion, especially for quieter samples.
+- the "1-bit DPCM" sample type has 6-bit amplitude resolution, but each sample is represented by only 1 bit indicating whether its amplitude differs from the previous sample by one step up or down.
+
 **bitmask**: a set of bits which represent individual single-bit toggles or groups representing small numbers. these are explained fully in the [hexadecimal primer](hex.md).
 
 **BRR**: a lossy sample format used by the SNES. it has a fixed compression ratio; groups of 32 bytes (16 samples) are encoded in 9 bytes each.

@@ -558,6 +558,10 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 - **Fill entire window**: removes the gap between the waveform and the edge of the window.
 - **Waveform goes out of bounds**: allows the waveform to draw past the top and bottom of the oscilloscope.
 
+### Song Comments
+
+- **Wrap text**: visually breaks long lines at the width of the text box. does not affect the text itself.
+
 ### Windows
 
 - **Rounded window corners**
