@@ -20,7 +20,7 @@ a single `09xx` command will switch to the matching numbered groove pattern.
 
 ## tempo
 
-this is a non-exhaustive list of grooves and their equivalent tempo in BPM when using NTSC or PAL tick rates (60 or 50) and row highlight values of 4 and 16. for more accurate tempos, differing tick rates, or differing row highlight values, use the [groove calculator](https://pineight.com/ft/calcgroove.html) (courtesy of Damian Yerrick).
+this is a non-exhaustive list of grooves and their equivalent tempo in BPM when using NTSC or PAL tick rates (60 or 50) and row highlight values of 4 and 16. for more accurate tempos, differing tick rates, or differing row highlight values, use this [groove calculator](https://pineight.com/ft/calcgroove.html) (courtesy of Damian Yerrick).
 
 BPM NTSC | BPM PAL | groove                 | | BPM NTSC | BPM PAL | groove
 --------:|--------:|:-----------------------|-|---------:|--------:|:----------------------
