@@ -862,7 +862,7 @@ int main(int argc, char** argv) {
           fwrite(w->getFinalBuf(),1,w->size(),f);
           fclose(f);
         } else {
-          reportError(fmt::sprintf(_("could not open file! (%s)"),e.getLastError()));
+          reportError(fmt::sprintf(_("could not open file! (%s)"),cmdOutName.c_str()));
         }
         w->finish();
         delete w;
@@ -878,7 +878,7 @@ int main(int argc, char** argv) {
           fwrite(w->getFinalBuf(),1,w->size(),f);
           fclose(f);
         } else {
-          reportError(fmt::sprintf(_("could not open file! (%s)"),e.getLastError()));
+          reportError(fmt::sprintf(_("could not open file! (%s)"),vgmOutName.c_str()));
         }
         w->finish();
         delete w;
@@ -900,7 +900,7 @@ int main(int argc, char** argv) {
           fwrite(w->getFinalBuf(),1,w->size(),f);
           fclose(f);
         } else {
-          reportError(fmt::sprintf(_("could not open file! (%s)"),e.getLastError()));
+          reportError(fmt::sprintf(_("could not open file! (%s)"),txtOutName.c_str()));
         }
         w->finish();
         delete w;
