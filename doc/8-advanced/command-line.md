@@ -84,6 +84,9 @@ the following parameters may be used:
 - `-cmdout path`: output command stream dump to `path`.
   - you must provide a file, otherwise Furnace will quit.
 
+- `-txtout path`: output text file export to `path`.
+  - you must provide a file, otherwise Furnace will quit.
+
 ## COMMAND LINE INTERFACE
 
 Furnace provides a command-line interface (CLI) player which may be activated through the `-console` option.
