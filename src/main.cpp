@@ -86,6 +86,7 @@ FurnaceCLI cli;
 String outName;
 String vgmOutName;
 String cmdOutName;
+String txtOutName;
 int benchMode=0;
 int subsong=-1;
 DivAudioExportOptions exportOptions;
@@ -437,6 +438,12 @@ TAParamResult pCmdOut(String val) {
   return TA_PARAM_SUCCESS;
 }
 
+TAParamResult pTxtOut(String val) {
+  txtOutName=val;
+  e.setAudio(DIV_AUDIO_DUMMY);
+  return TA_PARAM_SUCCESS;
+}
+
 bool needsValue(String param) {
   for (size_t i=0; i<params.size(); i++) {
     if (params[i].name==param) {
@@ -454,6 +461,7 @@ void initParams() {
   params.push_back(TAParam("O","vgmout",true,pVGMOut,"<filename>","output .vgm data"));
   params.push_back(TAParam("D","direct",false,pDirect,"","set VGM export direct stream mode"));
   params.push_back(TAParam("C","cmdout",true,pCmdOut,"<filename>","output command stream"));
+  params.push_back(TAParam("t","txtout",true,pTxtOut,"<filename>","export as text file"));
   params.push_back(TAParam("L","loglevel",true,pLogLevel,"debug|info|warning|error","set the log level (info by default)"));
   params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (nothing by default)"));
   params.push_back(TAParam("i","info",false,pInfo,"","get info about a song"));
@@ -549,6 +557,7 @@ int main(int argc, char** argv) {
   outName="";
   vgmOutName="";
   cmdOutName="";
+  txtOutName="";
 
   // load config for locale
   e.prePreInit();
@@ -716,14 +725,14 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  if (fileName.empty() && (benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+  if (fileName.empty() && (benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="" || txtOutName!="")) {
     logE("provide a file!");
     return 1;
   }
 
 #ifdef HAVE_GUI
-  if (e.preInit(consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
-    if (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="") {
+  if (e.preInit(consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="" || txtOutName!="")) {
+    if (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="" || txtOutName!="") {
       logW("engine wants safe mode, but Furnace GUI is not going to start.");
     } else {
       safeMode=true;
@@ -735,7 +744,7 @@ int main(int argc, char** argv) {
   }
 #endif
 
-  if (safeMode && (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+  if (safeMode && (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="" || txtOutName!="")) {
     logE("you can't use safe mode and console/export mode together.");
     return 1;
   }
@@ -752,7 +761,7 @@ int main(int argc, char** argv) {
 #endif
 
 
-  if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",TUT_INTRO_PLAYED)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+  if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",TUT_INTRO_PLAYED)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="" || txtOutName!="")) {
     logI("loading module...");
     FILE* f=ps_fopen(fileName.c_str(),"rb");
     if (f==NULL) {
@@ -844,7 +853,7 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  if (outName!="" || vgmOutName!="" || cmdOutName!="") {
+  if (outName!="" || vgmOutName!="" || cmdOutName!="" || txtOutName!="") {
     if (cmdOutName!="") {
       SafeWriter* w=e.saveCommand();
       if (w!=NULL) {
@@ -881,6 +890,23 @@ int main(int argc, char** argv) {
       e.setConsoleMode(true);
       e.saveAudio(outName.c_str(),exportOptions);
       e.waitAudioFile();
+    }
+    if (txtOutName!="") {
+      e.setConsoleMode(true);
+      SafeWriter* w=e.saveText(false);
+      if (w!=NULL) {
+        FILE* f=fopen(txtOutName.c_str(),"wb");
+        if (f!=NULL) {
+          fwrite(w->getFinalBuf(),1,w->size(),f);
+          fclose(f);
+        } else {
+          reportError(fmt::sprintf(_("could not open file! (%s)"),e.getLastError()));
+        }
+        w->finish();
+        delete w;
+      } else {
+        reportError(_("could not write txt!"));
+      }
     }
     finishLogFile();
     return 0;
