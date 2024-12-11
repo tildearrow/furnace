@@ -565,13 +565,13 @@ bool DivSample::initInternal(DivSampleDepth d, int count) {
       if (dataA!=NULL) delete[] dataA;
       lengthA=(count+1)/2;
       dataA=new unsigned char[(lengthA+255)&(~0xff)];
-      memset(dataA,0,(lengthA+255)&(~0xff));
+      memset(dataA,0x80,(lengthA+255)&(~0xff));
       break;
     case DIV_SAMPLE_DEPTH_ADPCM_B: // ADPCM-B
       if (dataB!=NULL) delete[] dataB;
       lengthB=(count+1)/2;
       dataB=new unsigned char[(lengthB+255)&(~0xff)];
-      memset(dataB,0,(lengthB+255)&(~0xff));
+      memset(dataB,0x80,(lengthB+255)&(~0xff));
       break;
     case DIV_SAMPLE_DEPTH_ADPCM_K: // K05 ADPCM
       if (dataK!=NULL) delete[] dataK;
