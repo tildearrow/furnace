@@ -892,17 +892,18 @@ void FurnaceGUI::doAction(int what) {
           e->lockEngine([this]() {
             DivSample* sample=e->getSample(curSample);
             if (sample!=NULL) {
-              unsigned int waveLen=e->song.wave[curWave]->len;
-              sample->rate=(int)round(261.343f*waveLen); // c3
-              sample->centerRate=(int)round(261.343f*waveLen); // c3
+              DivWavetable* wave=e->song.wave[curWave];
+              unsigned int waveLen=wave->len;
+              sample->rate=(int)round(261.625565301*waveLen); // c3
+              sample->centerRate=(int)round(261.625565301*waveLen); // c3
               sample->loopStart=0;
               sample->loopEnd=waveLen;
               sample->loop=true;
-              sample->loopMode=(DivSampleLoopMode)0;
-              sample->depth=(DivSampleDepth)8;
+              sample->loopMode=DIV_SAMPLE_LOOP_FORWARD;
+              sample->depth=DIV_SAMPLE_DEPTH_8BIT;
               if (sample->init(waveLen)) {
                 for (unsigned short i=0; i<waveLen; i++) {
-                  sample->data8[i]=e->song.wave[curWave]->data[i]-waveLen/2;
+                  sample->data8[i]=wave->data[i]-waveLen/2;
                 }
               }
             }
