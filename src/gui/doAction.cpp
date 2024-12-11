@@ -903,7 +903,7 @@ void FurnaceGUI::doAction(int what) {
               sample->depth=DIV_SAMPLE_DEPTH_8BIT;
               if (sample->init(waveLen)) {
                 for (unsigned short i=0; i<waveLen; i++) {
-                  sample->data8[i]=wave->data[i]-waveLen/2;
+                  sample->data8[i]=((wave->data[i]*256)/(wave->max+1))-128;
                 }
               }
             }
