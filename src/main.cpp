@@ -725,14 +725,16 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  if (fileName.empty() && (benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="" || txtOutName!="")) {
+  const bool outputMode = outName!="" || vgmOutName!="" || cmdOutName!="" || txtOutName!="";
+
+  if (fileName.empty() && (benchMode || infoMode || outputMode)) {
     logE("provide a file!");
     return 1;
   }
 
 #ifdef HAVE_GUI
-  if (e.preInit(consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="" || txtOutName!="")) {
-    if (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="" || txtOutName!="") {
+  if (e.preInit(consoleMode || benchMode || infoMode || outputMode)) {
+    if (consoleMode || benchMode || infoMode || outputMode) {
       logW("engine wants safe mode, but Furnace GUI is not going to start.");
     } else {
       safeMode=true;
@@ -744,7 +746,7 @@ int main(int argc, char** argv) {
   }
 #endif
 
-  if (safeMode && (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="" || txtOutName!="")) {
+  if (safeMode && (consoleMode || benchMode || infoMode || outputMode)) {
     logE("you can't use safe mode and console/export mode together.");
     return 1;
   }
@@ -761,7 +763,7 @@ int main(int argc, char** argv) {
 #endif
 
 
-  if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",TUT_INTRO_PLAYED)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="" || txtOutName!="")) {
+  if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",TUT_INTRO_PLAYED)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || infoMode || outputMode)) {
     logI("loading module...");
     FILE* f=ps_fopen(fileName.c_str(),"rb");
     if (f==NULL) {
@@ -853,7 +855,7 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  if (outName!="" || vgmOutName!="" || cmdOutName!="" || txtOutName!="") {
+  if (outputMode) {
     if (cmdOutName!="") {
       SafeWriter* w=e.saveCommand();
       if (w!=NULL) {
