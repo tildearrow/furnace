@@ -919,6 +919,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAMPLE_MAKE_INS,
   GUI_ACTION_SAMPLE_SET_LOOP,
   GUI_ACTION_SAMPLE_CREATE_WAVE,
+  GUI_ACTION_SAMPLE_CREATE_WAVE_SEQ,
   GUI_ACTION_SAMPLE_MAX,
 
   GUI_ACTION_ORDERS_MIN,
@@ -2556,6 +2557,7 @@ class FurnaceGUI {
   int resampleStrat;
   float amplifyVol;
   int sampleSelStart, sampleSelEnd;
+  int sampleToWaveSeqWaveSize;
   bool sampleInfo, sampleCompatRate;
   bool sampleDragActive, sampleDragMode, sampleDrag16, sampleZoomAuto;
   // 0: start
