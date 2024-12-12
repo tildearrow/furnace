@@ -1728,7 +1728,7 @@ void FurnaceGUI::doAction(int what) {
           wave->min=0;
           wave->max=255;
           wave->len=sampleToWaveSeqWaveSize;
-          if (i*sampleToWaveSeqWaveSize>sample->samples) wave->len-=sample->samples;
+          if ((i+1)*sampleToWaveSeqWaveSize>sample->samples) wave->len=sample->samples%sampleToWaveSeqWaveSize;
           for (int j=0; j<sampleToWaveSeqWaveSize; j++) {
             wave->data[j]=(((unsigned short)sample->data16[j+i*sampleToWaveSeqWaveSize]&0xff00)>>8)^0x80;
           }
