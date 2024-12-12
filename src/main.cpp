@@ -857,7 +857,7 @@ int main(int argc, char** argv) {
     if (cmdOutName!="") {
       SafeWriter* w=e.saveCommand();
       if (w!=NULL) {
-        FILE* f=fopen(cmdOutName.c_str(),"wb");
+        FILE* f=ps_fopen(cmdOutName.c_str(),"wb");
         if (f!=NULL) {
           fwrite(w->getFinalBuf(),1,w->size(),f);
           fclose(f);
@@ -873,7 +873,7 @@ int main(int argc, char** argv) {
     if (vgmOutName!="") {
       SafeWriter* w=e.saveVGM(NULL,true,0x171,false,vgmOutDirect);
       if (w!=NULL) {
-        FILE* f=fopen(vgmOutName.c_str(),"wb");
+        FILE* f=ps_fopen(vgmOutName.c_str(),"wb");
         if (f!=NULL) {
           fwrite(w->getFinalBuf(),1,w->size(),f);
           fclose(f);
@@ -895,7 +895,7 @@ int main(int argc, char** argv) {
       e.setConsoleMode(true);
       SafeWriter* w=e.saveText(false);
       if (w!=NULL) {
-        FILE* f=fopen(txtOutName.c_str(),"wb");
+        FILE* f=ps_fopen(txtOutName.c_str(),"wb");
         if (f!=NULL) {
           fwrite(w->getFinalBuf(),1,w->size(),f);
           fclose(f);
