@@ -905,7 +905,7 @@ int main(int argc, char** argv) {
         w->finish();
         delete w;
       } else {
-        reportError(_("could not write txt!"));
+        reportError(_("could not write text!"));
       }
     }
     finishLogFile();
