@@ -19,7 +19,6 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <string.h>
 #include "pch.h"
 #ifdef HAVE_SDL2
 #include "SDL_events.h"
@@ -921,13 +920,17 @@ int main(int argc, char** argv) {
       e.setConsoleMode(true);
       // select ROM target type
       DivROMExportOptions romTarget = DIV_ROM_ABSTRACT;
+      String lowerCase=romOutName;
+      for (char& i: lowerCase) {
+        if (i>='A' && i<='Z') i+='a'-'A';
+      }
       for (int i=0; i<DIV_ROM_MAX; i++) {
         DivROMExportOptions opt = (DivROMExportOptions)i;
         if (e.isROMExportViable(opt)) {
           const DivROMExportDef* newDef=e.getROMExportDef((DivROMExportOptions)i);
           if (newDef->fileExt &&
-              romOutName.length()>=strlen(newDef->fileExt) &&
-              !stricmp(newDef->fileExt,romOutName.c_str()+(romOutName.length()-strlen(newDef->fileExt)))) {
+              lowerCase.length()>=strlen(newDef->fileExt) &&
+              lowerCase.substr(lowerCase.length()-strlen(newDef->fileExt))==newDef->fileExt) {
             romTarget = opt;
             break; // extension matched, stop searching
           }
