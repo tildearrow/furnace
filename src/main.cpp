@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 #include "pch.h"
 #ifdef HAVE_SDL2
 #include "SDL_events.h"
