@@ -288,6 +288,7 @@ TAParamResult pVersion(String) {
   printf("- Portable File Dialogs by Sam Hocevar (WTFPL)\n");
   printf("- Native File Dialog (modified version) by Frogtoss Games (zlib license)\n");
   printf("- FFTW by Matteo Frigo and Steven G. Johnson (GPLv2)\n");
+  printf("- Lua (MIT)\n");
   printf("- Nuked-OPM by nukeykt (LGPLv2.1)\n");
   printf("- Nuked-OPN2 by nukeykt (LGPLv2.1)\n");
   printf("- Nuked-OPL3 by nukeykt (LGPLv2.1)\n");
