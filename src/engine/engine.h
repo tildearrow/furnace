@@ -908,6 +908,8 @@ class DivEngine {
 
     // get ROM export definition
     const DivROMExportDef* getROMExportDef(DivROMExportOptions opt);
+    // check whether ROM export option is viable for current song
+    bool isROMExportViable(DivROMExportOptions opt);
 
     // convert sample rate format
     int fileToDivRate(int frate);

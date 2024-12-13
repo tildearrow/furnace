@@ -81,6 +81,10 @@ the following parameters may be used:
 - `-cmdout path`: output command stream dump to `path`.
   - you must provide a file, otherwise Furnace will quit.
 
+- `-romout path`: output ROM file export to `path`.
+  - you must provide a file, otherwise Furnace will quit.
+  - there must be an available ROM export target for the system.
+
 - `-txtout path`: output text file export to `path`.
   - you must provide a file, otherwise Furnace will quit.
 
