@@ -91,6 +91,7 @@ String txtOutName;
 int benchMode=0;
 int subsong=-1;
 DivAudioExportOptions exportOptions;
+DivConfig romExportConfig;
 
 #ifdef HAVE_GUI
 bool consoleMode=false;
@@ -445,6 +446,18 @@ TAParamResult pROMOut(String val) {
   return TA_PARAM_SUCCESS;
 }
 
+TAParamResult pROMConf(String val) {
+  size_t eqSplit=val.find_first_of('=');
+  if (eqSplit==String::npos) {
+    logE("invalid romconf parameter, must contain '=' as in: <key>=<value>");
+    return TA_PARAM_ERROR;
+  }
+  String key=val.substr(0,eqSplit);
+  String param=val.substr(eqSplit+1);
+  romExportConfig.set(key,param);
+  return TA_PARAM_SUCCESS;
+}
+
 TAParamResult pTxtOut(String val) {
   txtOutName=val;
   e.setAudio(DIV_AUDIO_DUMMY);
@@ -469,6 +482,7 @@ void initParams() {
   params.push_back(TAParam("D","direct",false,pDirect,"","set VGM export direct stream mode"));
   params.push_back(TAParam("C","cmdout",true,pCmdOut,"<filename>","output command stream"));
   params.push_back(TAParam("r","romout",true,pROMOut,"<filename>","export ROM file"));
+  params.push_back(TAParam("R","romconf",true,pROMConf,"<key>=<value>","set configuration parameter for ROM export"));
   params.push_back(TAParam("t","txtout",true,pTxtOut,"<filename>","export as text file"));
   params.push_back(TAParam("L","loglevel",true,pLogLevel,"debug|info|warning|error","set the log level (info by default)"));
   params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (nothing by default)"));
@@ -922,12 +936,11 @@ int main(int argc, char** argv) {
         }
       }
       if (romTarget > DIV_ROM_ABSTRACT && romTarget < DIV_ROM_MAX) {
-        DivConfig romConfig; // TODO: no current way to pass config, maybe serialize them to .fur file?
         DivROMExport* pendingExport = e.buildROM(romTarget);
         if (pendingExport==NULL) {
           reportError(_("could not create exporter! you may want to report this issue..."));
         } else {
-          pendingExport->setConf(romConfig);
+          pendingExport->setConf(romExportConfig);
           if (pendingExport->go(&e)) {
             pendingExport->wait();
             if (!pendingExport->hasFailed()) {
