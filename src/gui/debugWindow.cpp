@@ -26,8 +26,6 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 
-#include <lua.hpp>
-
 PendingDrawOsc _debugDo;
 static float oscDebugData[2048];
 static int oscDebugLen=800;
@@ -740,9 +738,6 @@ void FurnaceGUI::drawDebug() {
       ImGui::InputInt("Chan",&getGainChan);
       ImGui::InputInt("Vol",&getGainVol);
       ImGui::Text("result: %.0f%%",realVol*100.0f);
-      ImGui::TreePop();
-    }
-    if (ImGui::TreeNode("Script Test")) {
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Cursor Undo Debug")) {

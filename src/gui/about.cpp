@@ -120,6 +120,7 @@ const char* aboutLine[]={
   _N("Weak-JACK by x42"),
   _N("RtMidi by Gary P. Scavone"),
   _N("FFTW by Matteo Frigo and Steven G. Johnson"),
+  _N("Lua"),
   _N("backward-cpp by Google"),
   _N("adpcm by superctr"),
   _N("adpcm-xq by David Bryant"),

@@ -3727,6 +3727,7 @@ bool FurnaceGUI::loop() {
   DECLARE_METRIC(log)
   DECLARE_METRIC(effectList)
   DECLARE_METRIC(userPresets)
+  DECLARE_METRIC(scripting)
   DECLARE_METRIC(popup)
 
 #ifdef IS_MOBILE
@@ -4333,6 +4334,7 @@ bool FurnaceGUI::loop() {
         IMPORT_CLOSE(memoryOpen);
         IMPORT_CLOSE(csPlayerOpen);
         IMPORT_CLOSE(userPresetsOpen);
+        IMPORT_CLOSE(scriptingOpen)
       } else if (pendingLayoutImportStep==1) {
         // let the UI settle
       } else if (pendingLayoutImportStep==2) {
@@ -4643,6 +4645,9 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem(_("user systems..."),BIND_FOR(GUI_ACTION_WINDOW_USER_PRESETS))) {
           userPresetsOpen=true;
         }
+        if (ImGui::MenuItem(_("scripts..."),BIND_FOR(GUI_ACTION_WINDOW_SCRIPTING))) {
+          scriptingOpen=true;
+        }
         if (ImGui::MenuItem(_("settings..."),BIND_FOR(GUI_ACTION_WINDOW_SETTINGS))) {
           syncSettings();
           settingsOpen=true;
@@ -4919,6 +4924,7 @@ bool FurnaceGUI::loop() {
       MEASURE(regView,drawRegView());
       MEASURE(memory,drawMemory());
       MEASURE(userPresets,drawUserPresets());
+      MEASURE(scripting,drawScripting());
       MEASURE(patManager,drawPatManager());
     } else {
       globalWinFlags=0;
@@ -4963,6 +4969,7 @@ bool FurnaceGUI::loop() {
       MEASURE(log,drawLog());
       MEASURE(effectList,drawEffectList());
       MEASURE(userPresets,drawUserPresets());
+      MEASURE(scripting,drawScripting());
     }
 
     // release selection if mouse released
@@ -7788,6 +7795,9 @@ bool FurnaceGUI::init() {
 
   userEvents=SDL_RegisterEvents(1);
 
+  logD("initializing script engine...");
+  initScriptEngine();
+
   e->setMidiCallback([this](const TAMidiMessage& msg) -> int {
     if (introPos<11.0) return -2;
     midiLock.lock();
@@ -8003,6 +8013,7 @@ void FurnaceGUI::syncState() {
   findOpen=e->getConfBool("findOpen",false);
   spoilerOpen=e->getConfBool("spoilerOpen",false);
   userPresetsOpen=e->getConfBool("userPresetsOpen",false);
+  scriptingOpen=e->getConfBool("scriptingOpen",false);
 
   insListDir=e->getConfBool("insListDir",false);
   waveListDir=e->getConfBool("waveListDir",false);
@@ -8158,6 +8169,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("findOpen",findOpen);
   conf.set("spoilerOpen",spoilerOpen);
   conf.set("userPresetsOpen",userPresetsOpen);
+  conf.set("scriptingOpen",scriptingOpen);
 
   // commit dir state
   conf.set("insListDir",insListDir);
@@ -8538,6 +8550,7 @@ FurnaceGUI::FurnaceGUI():
   csPlayerOpen(false),
   cvOpen(false),
   userPresetsOpen(false),
+  scriptingOpen(false),
   cvNotSerious(false),
   shortIntro(false),
   insListDir(false),
@@ -8851,7 +8864,9 @@ FurnaceGUI::FurnaceGUI():
   romMultiFile(false),
   romExportSave(false),
   pendingExport(NULL),
-  romExportExists(false) {
+  romExportExists(false),
+  playgroundState(NULL),
+  playgroundRet(-1) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;

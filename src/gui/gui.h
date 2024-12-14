@@ -34,6 +34,8 @@
 #include <tuple>
 #include "../pch.h"
 
+#include <lua.hpp>
+
 #include "fileDialog.h"
 
 #define FURNACE_APP_ID "org.tildearrow.furnace"
@@ -548,6 +550,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_MEMORY,
   GUI_WINDOW_CS_PLAYER,
   GUI_WINDOW_USER_PRESETS,
+  GUI_WINDOW_SCRIPTING,
   GUI_WINDOW_SPOILER
 };
 
@@ -750,6 +753,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_MEMORY,
   GUI_ACTION_WINDOW_CS_PLAYER,
   GUI_ACTION_WINDOW_USER_PRESETS,
+  GUI_ACTION_WINDOW_SCRIPTING,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -2338,7 +2342,7 @@ class FurnaceGUI {
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
-  bool groovesOpen, xyOscOpen, memoryOpen, csPlayerOpen, cvOpen, userPresetsOpen;
+  bool groovesOpen, xyOscOpen, memoryOpen, csPlayerOpen, cvOpen, userPresetsOpen, scriptingOpen;
 
   bool cvNotSerious;
 
@@ -2753,6 +2757,13 @@ class FurnaceGUI {
   // user presets window
   std::vector<int> selectedUserPreset;
 
+  // scripting
+  lua_State* playgroundState;
+  std::vector<lua_State*> scriptStates;
+  int playgroundRet;
+  String playgroundData;
+  String playgroundStatus;
+
   std::vector<String> randomDemoSong;
 
   void drawExportAudio(bool onWindow=false);
@@ -2904,6 +2915,7 @@ class FurnaceGUI {
   void drawTutorial();
   void drawXYOsc();
   void drawUserPresets();
+  void drawScripting();
   void drawSystemChannelInfo(const DivSysDef* whichDef);
   void drawSystemChannelInfoText(const DivSysDef* whichDef);
 
@@ -3049,12 +3061,18 @@ class FurnaceGUI {
   bool initRender();
   bool quitRender();
 
+  void initScriptEngine();
+
   ImFont* addFontZlib(const void* data, size_t len, float size_pixels, const ImFontConfig* font_cfg=NULL, const ImWchar* glyph_ranges=NULL);
 
   const char* getSystemName(DivSystem which);
   const char* getSystemPartNumber(DivSystem sys, DivConfig& flags);
 
   public:
+    // used by script engine
+    int sc_getRow(lua_State* s);
+
+    // other
     void editStr(String* which);
     void showWarning(String what, FurnaceGUIWarnings type);
     void showError(String what);
