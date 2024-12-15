@@ -2195,7 +2195,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     w->writeC(0);
     w->writeI(sample->length8);
     for (unsigned int j=0; j<sample->length8; j++) {
-      w->writeC((unsigned char)sample->data8[j]+0x80);
+      w->writeC((unsigned char)sample->data8[j]^0x80);
     }
   }
 
@@ -2206,7 +2206,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     w->writeC(7);
     w->writeI(sample->length8);
     for (unsigned int j=0; j<sample->length8; j++) {
-      w->writeC(((unsigned char)sample->data8[j]+0x80)>>1);
+      w->writeC(((unsigned char)sample->data8[j]^0x80)>>1);
     }
     bankOffsetNESCurrent+=sample->length8;
   }
@@ -2218,7 +2218,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     w->writeC(5);
     w->writeI(sample->length8);
     for (unsigned int j=0; j<sample->length8; j++) {
-      w->writeC(((unsigned char)sample->data8[j]+0x80)>>3);
+      w->writeC(((unsigned char)sample->data8[j]^0x80)>>3);
     }
   }
 
