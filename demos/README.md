@@ -7,6 +7,7 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 # contributors
 
 - 0x5066
+- aarchMoth
 - Abstract 64
 - Aburtos
 - ActualNK358
@@ -101,7 +102,6 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - scooblee
 - sheffield^2
 - sillygoose
-- Slightly Large NC
 - smaybius
 - SnugglyBun
 - Someone64
