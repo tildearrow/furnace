@@ -23,17 +23,118 @@
 
 static FurnaceGUI* externGUI;
 
+#define CHECK_ARGS(x) \
+  if (lua_gettop(s)<x) { \
+    lua_pushliteral(s,"invalid argument count!"); \
+    lua_error(s); \
+    return 0; \
+  }
+
+#define CHECK_TYPE_NUMBER(x) \
+  if (!lua_isnumber(s,x)) { \
+    lua_pushliteral(s,"invalid argument type"); \
+    lua_error(s); \
+    return 0; \
+  }
+
 /// FUNCTIONS (C++)
 
-int FurnaceGUI::sc_getRow(lua_State* s) {
+int FurnaceGUI::sc_getCursor(lua_State* s) {
+  lua_pushinteger(s,cursor.xCoarse);
+  lua_pushinteger(s,cursor.xFine);
+  lua_pushinteger(s,cursor.y);
+  return 3;
+}
+
+int FurnaceGUI::sc_setCursor(lua_State* s) {
+  CHECK_ARGS(3);
+
+  CHECK_TYPE_NUMBER(0);
+  CHECK_TYPE_NUMBER(1);
+  CHECK_TYPE_NUMBER(2);
+
+  cursor.xCoarse=lua_tonumber(s,0);
+  cursor.xFine=lua_tonumber(s,1);
+  cursor.y=lua_tonumber(s,2);
+
+  return 0;
+}
+
+int FurnaceGUI::sc_getSelStart(lua_State* s) {
+  lua_pushinteger(s,selStart.xCoarse);
+  lua_pushinteger(s,selStart.xFine);
+  lua_pushinteger(s,selStart.y);
+  return 3;
+}
+
+int FurnaceGUI::sc_setSelStart(lua_State* s) {
+  CHECK_ARGS(3);
+
+  CHECK_TYPE_NUMBER(0);
+  CHECK_TYPE_NUMBER(1);
+  CHECK_TYPE_NUMBER(2);
+
+  selStart.xCoarse=lua_tonumber(s,0);
+  selStart.xFine=lua_tonumber(s,1);
+  selStart.y=lua_tonumber(s,2);
+
+  return 0;
+}
+
+int FurnaceGUI::sc_getSelEnd(lua_State* s) {
+  lua_pushinteger(s,selEnd.xCoarse);
+  lua_pushinteger(s,selEnd.xFine);
+  lua_pushinteger(s,selEnd.y);
+  return 3;
+}
+
+int FurnaceGUI::sc_setSelEnd(lua_State* s) {
+  CHECK_ARGS(3);
+
+  CHECK_TYPE_NUMBER(0);
+  CHECK_TYPE_NUMBER(1);
+  CHECK_TYPE_NUMBER(2);
+
+  selEnd.xCoarse=lua_tonumber(s,0);
+  selEnd.xFine=lua_tonumber(s,1);
+  selEnd.y=lua_tonumber(s,2);
+
+  return 0;
+}
+
+int FurnaceGUI::sc_getCurRow(lua_State* s) {
   lua_pushinteger(s,e->getRow());
   return 1;
 }
 
 /// FUNCTIONS (C)
 
-static int _getRow(lua_State* s) {
-  return externGUI->sc_getRow(s);
+static int _getCursor(lua_State* s) {
+  return externGUI->sc_getCursor(s);
+}
+
+static int _setCursor(lua_State* s) {
+  return externGUI->sc_setCursor(s);
+}
+
+static int _getSelStart(lua_State* s) {
+  return externGUI->sc_getSelStart(s);
+}
+
+static int _setSelStart(lua_State* s) {
+  return externGUI->sc_setSelStart(s);
+}
+
+static int _getSelEnd(lua_State* s) {
+  return externGUI->sc_getSelEnd(s);
+}
+
+static int _setSelEnd(lua_State* s) {
+  return externGUI->sc_setSelEnd(s);
+}
+
+static int _getCurRow(lua_State* s) {
+  return externGUI->sc_getCurRow(s);
 }
 
 /// INTERNAL
@@ -46,7 +147,13 @@ void FurnaceGUI::initScriptEngine() {
     logE("could not create script playground state!");
   } else {
     luaL_openlibs(playgroundState);
-    lua_register(playgroundState,"getRow",_getRow);
+    lua_register(playgroundState,"getCursor",_getCursor);
+    lua_register(playgroundState,"setCursor",_setCursor);
+    lua_register(playgroundState,"getSelStart",_getSelStart);
+    lua_register(playgroundState,"setSelStart",_setSelStart);
+    lua_register(playgroundState,"getSelEnd",_getSelEnd);
+    lua_register(playgroundState,"setSelEnd",_setSelEnd);
+    lua_register(playgroundState,"getCurRow",_getCurRow);
   }
 }
 

@@ -3069,10 +3069,117 @@ class FurnaceGUI {
   const char* getSystemPartNumber(DivSystem sys, DivConfig& flags);
 
   public:
-    // used by script engine
-    int sc_getRow(lua_State* s);
+    ///// used by script engine
 
-    // other
+    /// CURSOR STATE
+    // -> xCoarse, xFine, y
+    int sc_getCursor(lua_State* s);
+    // xCoarse, xFine, y
+    int sc_setCursor(lua_State* s);
+    // -> xCoarse, xFine, y
+    int sc_getSelStart(lua_State* s);
+    // xCoarse, xFine, y
+    int sc_setSelStart(lua_State* s);
+    // -> xCoarse, xFine, y
+    int sc_getSelEnd(lua_State* s);
+    // xCoarse, xFine, y
+    int sc_setSelEnd(lua_State* s);
+
+    /// PLAYBACK STATE
+    int sc_getCurOrder(lua_State* s);
+    int sc_getCurRow(lua_State* s);
+    int sc_getCurTick(lua_State* s);
+    int sc_getCurSpeeds(lua_State* s);
+    int sc_getPlayTimeSec(lua_State* s);
+    int sc_getPlayTimeMicro(lua_State* s);
+    int sc_getPlayTimeTicks(lua_State* s);
+
+    /// DATA ACQUISITION
+    int sc_getChanCount(lua_State* s);
+
+    /// SONG MANIPULATION
+    int sc_getSongName(lua_State* s);
+    int sc_setSongName(lua_State* s);
+    int sc_getSongAuthor(lua_State* s);
+    int sc_setSongAuthor(lua_State* s);
+    int sc_getSongAlbum(lua_State* s);
+    int sc_setSongAlbum(lua_State* s);
+    int sc_getSongSysName(lua_State* s);
+    int sc_setSongSysName(lua_State* s);
+    int sc_getSongTuning(lua_State* s);
+    int sc_setSongTuning(lua_State* s);
+    int sc_getSongComments(lua_State* s);
+    int sc_setSongComments(lua_State* s);
+
+    /// SUB-SONG MANIPULATION
+    int sc_getSubSongName(lua_State* s);
+    int sc_setSubSongName(lua_State* s);
+    int sc_getSubSongComments(lua_State* s);
+    int sc_setSubSongComments(lua_State* s);
+    int sc_getSongRate(lua_State* s);
+    int sc_setSongRate(lua_State* s);
+    int sc_getSongVirtualTempo(lua_State* s);
+    int sc_setSongVirtualTempo(lua_State* s);
+    int sc_getSongDivider(lua_State* s);
+    int sc_setSongDivider(lua_State* s);
+    int sc_getSongHighlights(lua_State* s);
+    int sc_setSongHighlights(lua_State* s);
+    int sc_getSongSpeeds(lua_State* s);
+    int sc_setSongSpeeds(lua_State* s);
+    int sc_getSongLength(lua_State* s);
+    int sc_setSongLength(lua_State* s);
+    int sc_getPatLength(lua_State* s);
+    int sc_setPatLength(lua_State* s);
+
+    /// INSTRUMENT MANIPULATION (TODO)
+    int sc_createIns(lua_State* s);
+    int sc_deleteIns(lua_State* s);
+
+    /// WAVETABLE MANIPULATION
+    int sc_createWave(lua_State* s);
+    int sc_deleteWave(lua_State* s);
+    int sc_getWaveWidth(lua_State* s);
+    int sc_setWaveWidth(lua_State* s);
+    int sc_getWaveHeight(lua_State* s);
+    int sc_setWaveHeight(lua_State* s);
+    int sc_getWaveData(lua_State* s);
+    int sc_setWaveData(lua_State* s);
+
+    /// SAMPLE MANIPULATION
+    int sc_createSample(lua_State* s);
+    int sc_deleteSample(lua_State* s);
+    int sc_getSampleLength(lua_State* s);
+    int sc_setSampleLength(lua_State* s);
+    int sc_getSampleType(lua_State* s);
+    int sc_setSampleType(lua_State* s);
+    int sc_getSampleLoop(lua_State* s);
+    int sc_setSampleLoop(lua_State* s);
+    int sc_getSampleRate(lua_State* s);
+    int sc_setSampleRate(lua_State* s);
+    int sc_getSampleCompatRate(lua_State* s);
+    int sc_setSampleCompatRate(lua_State* s);
+    int sc_getSampleData(lua_State* s);
+    int sc_setSampleData(lua_State* s);
+    int sc_isSampleEditable(lua_State* s);
+    int sc_renderSamples(lua_State* s);
+
+    /// ORDER MANIPULATION
+    // chan, order -> val
+    int sc_getOrder(lua_State* s);
+    // chan, order, val
+    int sc_setOrder(lua_State* s);
+
+    /// PATTERN MANIPULATION
+    // chan, row, pos, [order], [subsong] -> val
+    int sc_getPattern(lua_State* s);
+    // chan, row, pos, val, [order], [subsong]
+    int sc_setPattern(lua_State* s);
+    // chan, row, pos, [pat], [subsong] -> val
+    int sc_getPatternDirect(lua_State* s);
+    // chan, row, pos, val, [pat], [subsong]
+    int sc_setPatternDirect(lua_State* s);
+
+    /// other
     void editStr(String* which);
     void showWarning(String what, FurnaceGUIWarnings type);
     void showError(String what);
