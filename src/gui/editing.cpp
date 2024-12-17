@@ -1722,6 +1722,9 @@ void FurnaceGUI::doCollapseSong(int divider) {
       }
     }
   }
+
+  MARK_MODIFIED;
+
   // magic
   unsigned char* subSongInfoCopy=new unsigned char[1024];
   memcpy(subSongInfoCopy,e->curSubSong,1024);
@@ -1802,6 +1805,9 @@ void FurnaceGUI::doExpandSong(int multiplier) {
       }
     }
   }
+
+  MARK_MODIFIED;
+
   // magic
   unsigned char* subSongInfoCopy=new unsigned char[1024];
   memcpy(subSongInfoCopy,e->curSubSong,1024);

@@ -78,10 +78,10 @@ the following parameters may be used:
 
 **export (other)**
 
-- `-zsmout path`: output Zsound Music data for Commander X16.
+- `-cmdout path`: output command stream dump to `path`.
   - you must provide a file, otherwise Furnace will quit.
 
-- `-cmdout path`: output command stream dump to `path`.
+- `-txtout path`: output text file export to `path`.
   - you must provide a file, otherwise Furnace will quit.
 
 ## COMMAND LINE INTERFACE

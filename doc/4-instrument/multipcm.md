@@ -8,7 +8,7 @@ for sample settings, see [the Sample instrument editor](sample.md).
 
 ## MultiPCM
 
-MultiPCM contains an ADSR envelope, not unlike Yamaha OPN/OPM envelopes, and simple LFO, also similiar to that found in OPN.
+MultiPCM contains an ADSR envelope, not unlike Yamaha OPN/OPM envelopes, and simple LFO, also similar to that found in OPN.
 
 you may use this tab to set up MultiPCM-specific parameters:
 

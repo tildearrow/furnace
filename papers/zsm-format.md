@@ -1,12 +1,12 @@
-# ZSM format specification
+The canonical location of this document can be found at https://github.com/X16Community/x16-docs/blob/master/X16%20Reference%20-%20Appendix%20G%20-%20ZSM%20File%20Format.md
 
 #### Zsound Repo
 
-ZSM is part of the Zsound suite of Commander X16 audio tools found at:  
+The Zsound suite of Commander X16 audio tools contains the original ZSM reference player, found at:  
 https://github.com/ZeroByteOrg/zsound/
 
-An alternative library with PCM support, ZSMKit, is avalable at:  
-https://github.com/mooinglemur/ZSMKit
+A newer, more flexible, and more recently maintained library with PCM support, ZSMKit, is avalable at:  
+https://github.com/mooinglemur/ZSMKit/
 
 #### Current ZSM Revision: 1
 
@@ -149,14 +149,28 @@ Players implementing this channel should implement detection routines during ini
 
 An expansion HW write will contain the following data:
 
-Chip ID|Number of writes (`N`)| `N` tuples of data
---|--|--
-one byte|one byte|N * tuple_size bytes
+Chip ID|`nnnnnn-1` bytes of data
+--|--
+one byte|nnnnnn-1 bytes
 
-- The total number of bytes MUST equal exactly the number of bytes specified in the preceding EXTCMD.
-- The tuple_size is determined by the needs of the device, and thus will be specified per-device along with its chip ID assignment. This is likely to be 1-3 bytes for most devices.
+- The length of the EXTCMD `nnnnnn` encompasses the chip_id byte and the data bytes which follow.
 
-There are currently no supported expansion HW IDs assigned.
+##### Chip IDs
+* 0x00 - reserved
+* 0x01 - MIDI 1 (Primary MIDI)
+    * MIDI data embedded in ZSM is limited to status bytes 0x80-0xF8 inclusive, and their arguments, i.e. data which is intended to be transmitted to a synthesizer.
+    * Metadata such as MIDI header data, ticks per beat, track names, lyrics, and tempo are not included in the data.
+    * Delta times are not embedded in the MIDI data. Native ZSM delays are used instead.
+    * With the exception of multiple EXTCMDs for the same Chip ID within the same tick, the first byte of data must be a status byte 0x80-0xF8.
+    * Status continuation is not permitted from prior ticks, but is allowed within the same tick.
+        * This restriction allows for simultaneous access to the MIDI device by multiple agents, such as a song player and sound effects player on non-overlapping MIDI channels.
+    * An example of an EXTCMD containing a single note-on event might look as follows: `0x40 0x44 0x01 0x90 0x69 0x7F`
+* 0x02 - MIDI 2 (Secondary MIDI)
+    * A second separate MIDI stream can be used by players that support multiple active MIDI devices. The data format and restrictions are the same as for Chip ID 0x01.
+* 0x03 - reserved
+* 0x70-0x7F - Private use area
+    * These will be ignored by the stock reference players, but can be used for testing or for custom purposes for a particular application.
+* 0x80-0xFF - reserved for possible expansion to 15-bit chip IDs
 
 #### 2: Synchronization Events
 
