@@ -985,6 +985,7 @@ class DivEngine {
     void virtualTempoChanged();
 
     // get time
+    int getTotalTicksR(); // engine ticks
     int getTotalTicks(); // 1/1000000th of a second
     int getTotalSeconds();
 

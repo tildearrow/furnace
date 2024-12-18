@@ -23,8 +23,13 @@
 
 static FurnaceGUI* externGUI;
 
+#define _CF(x) \
+  static int _ ## x(lua_State* s) { \
+    return externGUI->sc_ ## x(s); \
+  }
+
 #define CHECK_ARGS(x) \
-  if (lua_gettop(s)<x) { \
+  if (lua_gettop(s)!=x) { \
     lua_pushliteral(s,"invalid argument count!"); \
     lua_error(s); \
     return 0; \
@@ -32,6 +37,13 @@ static FurnaceGUI* externGUI;
 
 #define CHECK_TYPE_NUMBER(x) \
   if (!lua_isnumber(s,x)) { \
+    lua_pushliteral(s,"invalid argument type"); \
+    lua_error(s); \
+    return 0; \
+  }
+
+#define CHECK_TYPE_STRING(x) \
+  if (!lua_isstring(s,x)) { \
     lua_pushliteral(s,"invalid argument type"); \
     lua_error(s); \
     return 0; \
@@ -45,20 +57,22 @@ int FurnaceGUI::sc_getCursor(lua_State* s) {
   lua_pushinteger(s,cursor.y);
   return 3;
 }
+_CF(getCursor)
 
 int FurnaceGUI::sc_setCursor(lua_State* s) {
   CHECK_ARGS(3);
 
-  CHECK_TYPE_NUMBER(0);
   CHECK_TYPE_NUMBER(1);
   CHECK_TYPE_NUMBER(2);
+  CHECK_TYPE_NUMBER(3);
 
-  cursor.xCoarse=lua_tonumber(s,0);
-  cursor.xFine=lua_tonumber(s,1);
-  cursor.y=lua_tonumber(s,2);
+  cursor.xCoarse=lua_tointeger(s,1);
+  cursor.xFine=lua_tointeger(s,2);
+  cursor.y=lua_tointeger(s,3);
 
   return 0;
 }
+_CF(setCursor)
 
 int FurnaceGUI::sc_getSelStart(lua_State* s) {
   lua_pushinteger(s,selStart.xCoarse);
@@ -66,20 +80,22 @@ int FurnaceGUI::sc_getSelStart(lua_State* s) {
   lua_pushinteger(s,selStart.y);
   return 3;
 }
+_CF(getSelStart)
 
 int FurnaceGUI::sc_setSelStart(lua_State* s) {
   CHECK_ARGS(3);
 
-  CHECK_TYPE_NUMBER(0);
   CHECK_TYPE_NUMBER(1);
   CHECK_TYPE_NUMBER(2);
+  CHECK_TYPE_NUMBER(3);
 
-  selStart.xCoarse=lua_tonumber(s,0);
-  selStart.xFine=lua_tonumber(s,1);
-  selStart.y=lua_tonumber(s,2);
+  selStart.xCoarse=lua_tointeger(s,1);
+  selStart.xFine=lua_tointeger(s,2);
+  selStart.y=lua_tointeger(s,3);
 
   return 0;
 }
+_CF(setSelStart)
 
 int FurnaceGUI::sc_getSelEnd(lua_State* s) {
   lua_pushinteger(s,selEnd.xCoarse);
@@ -87,55 +103,154 @@ int FurnaceGUI::sc_getSelEnd(lua_State* s) {
   lua_pushinteger(s,selEnd.y);
   return 3;
 }
+_CF(getSelEnd)
 
 int FurnaceGUI::sc_setSelEnd(lua_State* s) {
   CHECK_ARGS(3);
 
-  CHECK_TYPE_NUMBER(0);
   CHECK_TYPE_NUMBER(1);
   CHECK_TYPE_NUMBER(2);
+  CHECK_TYPE_NUMBER(3);
 
-  selEnd.xCoarse=lua_tonumber(s,0);
-  selEnd.xFine=lua_tonumber(s,1);
-  selEnd.y=lua_tonumber(s,2);
+  selEnd.xCoarse=lua_tointeger(s,1);
+  selEnd.xFine=lua_tointeger(s,2);
+  selEnd.y=lua_tointeger(s,3);
 
   return 0;
 }
+_CF(setSelEnd)
+
+int FurnaceGUI::sc_getCurOrder(lua_State* s) {
+  lua_pushinteger(s,e->getOrder());
+  return 1;
+}
+_CF(getCurOrder)
 
 int FurnaceGUI::sc_getCurRow(lua_State* s) {
   lua_pushinteger(s,e->getRow());
   return 1;
 }
+_CF(getCurRow)
 
-/// FUNCTIONS (C)
-
-static int _getCursor(lua_State* s) {
-  return externGUI->sc_getCursor(s);
+int FurnaceGUI::sc_getPlayTimeSec(lua_State* s) {
+  lua_pushinteger(s,e->getTotalSeconds());
+  return 1;
 }
+_CF(getPlayTimeSec)
 
-static int _setCursor(lua_State* s) {
-  return externGUI->sc_setCursor(s);
+int FurnaceGUI::sc_getPlayTimeMicro(lua_State* s) {
+  lua_pushinteger(s,e->getTotalTicks());
+  return 1;
 }
+_CF(getPlayTimeMicro)
 
-static int _getSelStart(lua_State* s) {
-  return externGUI->sc_getSelStart(s);
+int FurnaceGUI::sc_getPlayTimeTicks(lua_State* s) {
+  lua_pushinteger(s,e->getTotalTicksR());
+  return 1;
 }
+_CF(getPlayTimeTicks)
 
-static int _setSelStart(lua_State* s) {
-  return externGUI->sc_setSelStart(s);
+int FurnaceGUI::sc_isPlaying(lua_State* s) {
+  lua_pushboolean(s,e->isPlaying());
+  return 1;
 }
+_CF(isPlaying)
 
-static int _getSelEnd(lua_State* s) {
-  return externGUI->sc_getSelEnd(s);
+int FurnaceGUI::sc_getChanCount(lua_State* s) {
+  lua_pushinteger(s,e->getTotalChannelCount());
+  return 1;
 }
+_CF(getChanCount)
 
-static int _setSelEnd(lua_State* s) {
-  return externGUI->sc_setSelEnd(s);
+int FurnaceGUI::sc_getSongName(lua_State* s) {
+  lua_pushstring(s,e->song.name.c_str());
+  return 1;
 }
+_CF(getSongName)
 
-static int _getCurRow(lua_State* s) {
-  return externGUI->sc_getCurRow(s);
+int FurnaceGUI::sc_setSongName(lua_State* s) {
+  CHECK_ARGS(1);
+  CHECK_TYPE_STRING(1);
+
+  e->song.name=lua_tostring(s,1);
+  return 0;
 }
+_CF(setSongName)
+
+int FurnaceGUI::sc_getSongAuthor(lua_State* s) {
+  lua_pushstring(s,e->song.author.c_str());
+  return 1;
+}
+_CF(getSongAuthor)
+
+int FurnaceGUI::sc_setSongAuthor(lua_State* s) {
+  CHECK_ARGS(1);
+  CHECK_TYPE_STRING(1);
+
+  e->song.author=lua_tostring(s,1);
+  return 0;
+}
+_CF(setSongAuthor)
+
+int FurnaceGUI::sc_getSongAlbum(lua_State* s) {
+  lua_pushstring(s,e->song.category.c_str());
+  return 1;
+}
+_CF(getSongAlbum)
+
+int FurnaceGUI::sc_setSongAlbum(lua_State* s) {
+  CHECK_ARGS(1);
+  CHECK_TYPE_STRING(1);
+
+  e->song.category=lua_tostring(s,1);
+  return 0;
+}
+_CF(setSongAlbum)
+
+int FurnaceGUI::sc_getSongSysName(lua_State* s) {
+  lua_pushstring(s,e->song.systemName.c_str());
+  return 1;
+}
+_CF(getSongSysName)
+
+int FurnaceGUI::sc_setSongSysName(lua_State* s) {
+  CHECK_ARGS(1);
+  CHECK_TYPE_STRING(1);
+
+  e->song.systemName=lua_tostring(s,1);
+  return 0;
+}
+_CF(setSongSysName)
+
+int FurnaceGUI::sc_getSongTuning(lua_State* s) {
+  lua_pushnumber(s,e->song.tuning);
+  return 1;
+}
+_CF(getSongTuning)
+
+int FurnaceGUI::sc_setSongTuning(lua_State* s) {
+  CHECK_ARGS(1);
+  CHECK_TYPE_NUMBER(1);
+
+  e->song.tuning=lua_tonumber(s,1);
+  return 0;
+}
+_CF(setSongTuning)
+
+int FurnaceGUI::sc_getSongComments(lua_State* s) {
+  lua_pushstring(s,e->song.notes.c_str());
+  return 1;
+}
+_CF(getSongComments)
+
+int FurnaceGUI::sc_setSongComments(lua_State* s) {
+  CHECK_ARGS(1);
+  CHECK_TYPE_STRING(1);
+
+  e->song.notes=lua_tostring(s,1);
+  return 0;
+}
+_CF(setSongComments)
 
 /// INTERNAL
 
@@ -153,7 +268,25 @@ void FurnaceGUI::initScriptEngine() {
     lua_register(playgroundState,"setSelStart",_setSelStart);
     lua_register(playgroundState,"getSelEnd",_getSelEnd);
     lua_register(playgroundState,"setSelEnd",_setSelEnd);
+    lua_register(playgroundState,"getCurOrder",_getCurOrder);
     lua_register(playgroundState,"getCurRow",_getCurRow);
+    lua_register(playgroundState,"getPlayTimeSec",_getPlayTimeSec);
+    lua_register(playgroundState,"getPlayTimeMicro",_getPlayTimeMicro);
+    lua_register(playgroundState,"getPlayTimeTicks",_getPlayTimeTicks);
+    lua_register(playgroundState,"isPlaying",_isPlaying);
+    lua_register(playgroundState,"getChanCount",_getChanCount);
+    lua_register(playgroundState,"getSongName",_getSongName);
+    lua_register(playgroundState,"setSongName",_setSongName);
+    lua_register(playgroundState,"getSongAuthor",_getSongAuthor);
+    lua_register(playgroundState,"setSongAuthor",_setSongAuthor);
+    lua_register(playgroundState,"getSongAlbum",_getSongAlbum);
+    lua_register(playgroundState,"setSongAlbum",_setSongAlbum);
+    lua_register(playgroundState,"getSongSysName",_getSongSysName);
+    lua_register(playgroundState,"setSongSysName",_setSongSysName);
+    lua_register(playgroundState,"getSongTuning",_getSongTuning);
+    lua_register(playgroundState,"setSongTuning",_setSongTuning);
+    lua_register(playgroundState,"getSongComments",_getSongComments);
+    lua_register(playgroundState,"setSongComments",_setSongComments);
   }
 }
 

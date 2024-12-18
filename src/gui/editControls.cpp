@@ -597,6 +597,10 @@ void FurnaceGUI::drawMobileControls() {
         if (ImGui::Button(_("PatManager"))) {
           patManagerOpen=!patManagerOpen;
         }
+        ImGui::SameLine();
+        if (ImGui::Button(_("Scripts"))) {
+          scriptingOpen=!scriptingOpen;
+        }
 
         ImGui::Separator();
 

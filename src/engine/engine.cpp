@@ -2421,6 +2421,10 @@ int DivEngine::getTotalTicks() {
   return totalTicks;
 }
 
+int DivEngine::getTotalTicksR() {
+  return totalTicksR;
+}
+
 bool DivEngine::getRepeatPattern() {
   return repeatPattern;
 }

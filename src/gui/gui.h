@@ -3093,6 +3093,7 @@ class FurnaceGUI {
     int sc_getPlayTimeSec(lua_State* s);
     int sc_getPlayTimeMicro(lua_State* s);
     int sc_getPlayTimeTicks(lua_State* s);
+    int sc_isPlaying(lua_State* s);
 
     /// DATA ACQUISITION
     int sc_getChanCount(lua_State* s);
