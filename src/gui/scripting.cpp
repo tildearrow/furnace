@@ -35,6 +35,18 @@ static FurnaceGUI* externGUI;
     return 0; \
   }
 
+#define CHECK_ARGS_RANGE(x,y) \
+  if (lua_gettop(s)<x || lua_gettop(s)>y) { \
+    lua_pushliteral(s,"invalid argument count!"); \
+    lua_error(s); \
+    return 0; \
+  }
+
+#define SC_ERROR(x) \
+  lua_pushliteral(s,"invalid argument count!"); \
+  lua_error(s); \
+  return 0;
+
 #define CHECK_TYPE_NUMBER(x) \
   if (!lua_isnumber(s,x)) { \
     lua_pushliteral(s,"invalid argument type"); \
@@ -48,6 +60,9 @@ static FurnaceGUI* externGUI;
     lua_error(s); \
     return 0; \
   }
+
+#define REG_FUNC(x) \
+  lua_register(playgroundState,#x,_ ## x);
 
 /// FUNCTIONS (C++)
 
@@ -252,6 +267,41 @@ int FurnaceGUI::sc_setSongComments(lua_State* s) {
 }
 _CF(setSongComments)
 
+int FurnaceGUI::sc_getSubSongName(lua_State* s) {
+  CHECK_ARGS_RANGE(0,1);
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>0) {
+    int index=lua_tointeger(s,1);
+    if (index<0 || index>(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+  }
+
+  lua_pushstring(s,sub->name.c_str());
+  return 1;
+}
+_CF(getSubSongName)
+
+int FurnaceGUI::sc_setSubSongName(lua_State* s) {
+  CHECK_ARGS_RANGE(1,2);
+  CHECK_TYPE_STRING(1);
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>1) {
+    int index=lua_tointeger(s,2);
+    if (index<0 || index>(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+  }
+
+  sub->name=lua_tostring(s,1);
+  return 1;
+}
+_CF(setSubSongName)
+
 /// INTERNAL
 
 void FurnaceGUI::initScriptEngine() {
@@ -262,31 +312,33 @@ void FurnaceGUI::initScriptEngine() {
     logE("could not create script playground state!");
   } else {
     luaL_openlibs(playgroundState);
-    lua_register(playgroundState,"getCursor",_getCursor);
-    lua_register(playgroundState,"setCursor",_setCursor);
-    lua_register(playgroundState,"getSelStart",_getSelStart);
-    lua_register(playgroundState,"setSelStart",_setSelStart);
-    lua_register(playgroundState,"getSelEnd",_getSelEnd);
-    lua_register(playgroundState,"setSelEnd",_setSelEnd);
-    lua_register(playgroundState,"getCurOrder",_getCurOrder);
-    lua_register(playgroundState,"getCurRow",_getCurRow);
-    lua_register(playgroundState,"getPlayTimeSec",_getPlayTimeSec);
-    lua_register(playgroundState,"getPlayTimeMicro",_getPlayTimeMicro);
-    lua_register(playgroundState,"getPlayTimeTicks",_getPlayTimeTicks);
-    lua_register(playgroundState,"isPlaying",_isPlaying);
-    lua_register(playgroundState,"getChanCount",_getChanCount);
-    lua_register(playgroundState,"getSongName",_getSongName);
-    lua_register(playgroundState,"setSongName",_setSongName);
-    lua_register(playgroundState,"getSongAuthor",_getSongAuthor);
-    lua_register(playgroundState,"setSongAuthor",_setSongAuthor);
-    lua_register(playgroundState,"getSongAlbum",_getSongAlbum);
-    lua_register(playgroundState,"setSongAlbum",_setSongAlbum);
-    lua_register(playgroundState,"getSongSysName",_getSongSysName);
-    lua_register(playgroundState,"setSongSysName",_setSongSysName);
-    lua_register(playgroundState,"getSongTuning",_getSongTuning);
-    lua_register(playgroundState,"setSongTuning",_setSongTuning);
-    lua_register(playgroundState,"getSongComments",_getSongComments);
-    lua_register(playgroundState,"setSongComments",_setSongComments);
+    REG_FUNC(getCursor);
+    REG_FUNC(setCursor);
+    REG_FUNC(getSelStart);
+    REG_FUNC(setSelStart);
+    REG_FUNC(getSelEnd);
+    REG_FUNC(setSelEnd);
+    REG_FUNC(getCurOrder);
+    REG_FUNC(getCurRow);
+    REG_FUNC(getPlayTimeSec);
+    REG_FUNC(getPlayTimeMicro);
+    REG_FUNC(getPlayTimeTicks);
+    REG_FUNC(isPlaying);
+    REG_FUNC(getChanCount);
+    REG_FUNC(getSongName);
+    REG_FUNC(setSongName);
+    REG_FUNC(getSongAuthor);
+    REG_FUNC(setSongAuthor);
+    REG_FUNC(getSongAlbum);
+    REG_FUNC(setSongAlbum);
+    REG_FUNC(getSongSysName);
+    REG_FUNC(setSongSysName);
+    REG_FUNC(getSongTuning);
+    REG_FUNC(setSongTuning);
+    REG_FUNC(getSongComments);
+    REG_FUNC(setSongComments);
+    REG_FUNC(getSubSongName);
+    REG_FUNC(setSubSongName);
   }
 }
 
