@@ -61,6 +61,13 @@ static FurnaceGUI* externGUI;
     return 0; \
   }
 
+#define CHECK_TYPE_TABLE(x) \
+  if (!lua_istable(s,x)) { \
+    lua_pushliteral(s,"invalid argument type"); \
+    lua_error(s); \
+    return 0; \
+  }
+
 #define REG_FUNC(x) \
   lua_register(playgroundState,#x,_ ## x);
 
@@ -298,9 +305,332 @@ int FurnaceGUI::sc_setSubSongName(lua_State* s) {
   }
 
   sub->name=lua_tostring(s,1);
-  return 1;
+  return 0;
 }
 _CF(setSubSongName)
+
+int FurnaceGUI::sc_getSubSongComments(lua_State* s) {
+  CHECK_ARGS_RANGE(0,1);
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>0) {
+    int index=lua_tointeger(s,1);
+    if (index<0 || index>(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+  }
+
+  lua_pushstring(s,sub->notes.c_str());
+  return 1;
+}
+_CF(getSubSongComments)
+
+int FurnaceGUI::sc_setSubSongComments(lua_State* s) {
+  CHECK_ARGS_RANGE(1,2);
+  CHECK_TYPE_STRING(1);
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>1) {
+    int index=lua_tointeger(s,2);
+    if (index<0 || index>(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+  }
+
+  sub->notes=lua_tostring(s,1);
+  return 0;
+}
+_CF(setSubSongComments)
+
+int FurnaceGUI::sc_getSongRate(lua_State* s) {
+  CHECK_ARGS_RANGE(0,1);
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>0) {
+    int index=lua_tointeger(s,1);
+    if (index<0 || index>(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+  }
+
+  lua_pushnumber(s,sub->hz);
+  return 1;
+}
+_CF(getSongRate)
+
+int FurnaceGUI::sc_setSongRate(lua_State* s) {
+  CHECK_ARGS_RANGE(1,2);
+  CHECK_TYPE_NUMBER(1);
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>1) {
+    int index=lua_tointeger(s,2);
+    if (index<0 || index>(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+  }
+
+  sub->hz=lua_tonumber(s,1);
+  return 0;
+}
+_CF(setSongRate)
+
+int FurnaceGUI::sc_getSongVirtualTempo(lua_State* s) {
+  CHECK_ARGS_RANGE(0,1);
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>0) {
+    int index=lua_tointeger(s,1);
+    if (index<0 || index>(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+    lua_pop(s,1);
+  }
+
+  lua_pushnumber(s,sub->virtualTempoN);
+  lua_pushnumber(s,sub->virtualTempoD);
+
+  return 2;
+}
+_CF(getSongVirtualTempo)
+
+int FurnaceGUI::sc_setSongVirtualTempo(lua_State* s) {
+  CHECK_ARGS_RANGE(2,3);
+  CHECK_TYPE_NUMBER(1);
+  CHECK_TYPE_NUMBER(2);
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>2) {
+    int index=lua_tointeger(s,3);
+    if (index<0 || index>(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+    lua_pop(s,1);
+  }
+
+  sub->virtualTempoN=lua_tointeger(s,1);
+  sub->virtualTempoD=lua_tointeger(s,2);
+  return 0;
+}
+_CF(setSongVirtualTempo)
+
+int FurnaceGUI::sc_getSongDivider(lua_State* s) {
+  CHECK_ARGS_RANGE(0,1);
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>0) {
+    int index=lua_tointeger(s,1);
+    if (index<0 || index>(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+  }
+
+  lua_pushinteger(s,sub->timeBase);
+  return 1;
+}
+_CF(getSongDivider)
+
+int FurnaceGUI::sc_setSongDivider(lua_State* s) {
+  CHECK_ARGS_RANGE(1,2);
+  CHECK_TYPE_NUMBER(1);
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>1) {
+    int index=lua_tointeger(s,2);
+    if (index<0 || index>(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+  }
+
+  sub->timeBase=lua_tointeger(s,1);
+  return 0;
+}
+_CF(setSongDivider)
+
+int FurnaceGUI::sc_getSongHighlights(lua_State* s) {
+  CHECK_ARGS_RANGE(0,1);
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>0) {
+    int index=lua_tointeger(s,1);
+    if (index<0 || index>(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+    lua_pop(s,1);
+  }
+
+  lua_pushnumber(s,sub->hilightA);
+  lua_pushnumber(s,sub->hilightB);
+
+  return 2;
+}
+_CF(getSongHighlights)
+
+int FurnaceGUI::sc_setSongHighlights(lua_State* s) {
+  CHECK_ARGS_RANGE(2,3);
+  CHECK_TYPE_NUMBER(1);
+  CHECK_TYPE_NUMBER(2);
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>2) {
+    int index=lua_tointeger(s,3);
+    if (index<0 || index>(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+    lua_pop(s,1);
+  }
+
+  sub->hilightA=lua_tointeger(s,1);
+  sub->hilightB=lua_tointeger(s,2);
+  return 0;
+}
+_CF(setSongHighlights)
+
+int FurnaceGUI::sc_getSongSpeeds(lua_State* s) {
+  CHECK_ARGS_RANGE(0,1);
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>0) {
+    int index=lua_tointeger(s,1);
+    if (index<0 || index>(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+    lua_pop(s,1);
+  }
+
+  lua_createtable(s,sub->speeds.len,0);
+  for (int i=0; i<sub->speeds.len; i++) {
+    lua_pushinteger(s,sub->speeds.val[i]);
+    lua_seti(s,1,i+1);
+  }
+
+  return 1;
+}
+_CF(getSongSpeeds)
+
+int FurnaceGUI::sc_setSongSpeeds(lua_State* s) {
+  CHECK_ARGS_RANGE(1,2);
+  CHECK_TYPE_TABLE(1);
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>2) {
+    int index=lua_tointeger(s,3);
+    if (index<0 || index>(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+    lua_pop(s,1);
+  }
+
+  sub->speeds.len=1;
+  memset(sub->speeds.val,6,sizeof(sub->speeds.val));
+  
+  lua_pushnil(s);
+  while (lua_next(s,1)) {
+    if (!lua_isinteger(s,2)) {
+      // ignore other keys
+      lua_pop(s,1);
+      continue;
+    }
+    CHECK_TYPE_NUMBER(3);
+    int index=lua_tointeger(s,2)-1;
+    int speed=lua_tointeger(s,3);
+
+    if (index<0 || index>=16) {
+      // ignore invalid index
+      lua_pop(s,1);
+      continue;
+    }
+    sub->speeds.val[index]=speed;
+    if (sub->speeds.len<=index) sub->speeds.len=index+1;
+
+    lua_pop(s,1);
+  }
+
+  return 0;
+}
+_CF(setSongSpeeds)
+
+int FurnaceGUI::sc_getSongLength(lua_State* s) {
+  CHECK_ARGS_RANGE(0,1);
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>0) {
+    int index=lua_tointeger(s,1);
+    if (index<0 || index>(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+  }
+
+  lua_pushinteger(s,sub->ordersLen);
+  return 1;
+}
+_CF(getSongLength)
+
+int FurnaceGUI::sc_setSongLength(lua_State* s) {
+  CHECK_ARGS_RANGE(1,2);
+  CHECK_TYPE_NUMBER(1);
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>1) {
+    int index=lua_tointeger(s,2);
+    if (index<0 || index>(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+  }
+
+  sub->ordersLen=lua_tointeger(s,1);
+  return 0;
+}
+_CF(setSongLength)
+
+int FurnaceGUI::sc_getPatLength(lua_State* s) {
+  CHECK_ARGS_RANGE(0,1);
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>0) {
+    int index=lua_tointeger(s,1);
+    if (index<0 || index>(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+  }
+
+  lua_pushinteger(s,sub->patLen);
+  return 1;
+}
+_CF(getPatLength)
+
+int FurnaceGUI::sc_setPatLength(lua_State* s) {
+  CHECK_ARGS_RANGE(1,2);
+  CHECK_TYPE_NUMBER(1);
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>1) {
+    int index=lua_tointeger(s,2);
+    if (index<0 || index>(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+  }
+
+  sub->patLen=lua_tointeger(s,1);
+  return 0;
+}
+_CF(setPatLength)
 
 /// INTERNAL
 
@@ -339,6 +669,22 @@ void FurnaceGUI::initScriptEngine() {
     REG_FUNC(setSongComments);
     REG_FUNC(getSubSongName);
     REG_FUNC(setSubSongName);
+    REG_FUNC(getSubSongComments);
+    REG_FUNC(setSubSongComments);
+    REG_FUNC(getSongRate);
+    REG_FUNC(setSongRate);
+    REG_FUNC(getSongVirtualTempo);
+    REG_FUNC(setSongVirtualTempo);
+    REG_FUNC(getSongDivider);
+    REG_FUNC(setSongDivider);
+    REG_FUNC(getSongHighlights);
+    REG_FUNC(setSongHighlights);
+    REG_FUNC(getSongSpeeds);
+    REG_FUNC(setSongSpeeds);
+    REG_FUNC(getSongLength);
+    REG_FUNC(setSongLength);
+    REG_FUNC(getPatLength);
+    REG_FUNC(setPatLength);
   }
 }
 
