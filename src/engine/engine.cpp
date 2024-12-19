@@ -3248,6 +3248,20 @@ bool DivEngine::moveSampleDown(int which) {
   return true;
 }
 
+bool DivEngine::swapInstruments(int a, int b) {
+  if (a<0 || a>=(int)song.ins.size() || b<0 || b>=(int)song.ins.size()) return false;
+  BUSY_BEGIN;
+  DivInstrument* temp=song.ins[a];
+  saveLock.lock();
+  song.ins[a]=song.ins[b];
+  song.ins[b]=temp;
+  moveAsset(song.insDir,a,b);
+  exchangeIns(a,b);
+  saveLock.unlock();
+  BUSY_END;
+  return true;
+}
+
 void DivEngine::autoPatchbay() {
   song.patchbay.clear();
   for (unsigned int i=0; i<song.systemLen; i++) {

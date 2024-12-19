@@ -138,8 +138,10 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
         const ImGuiPayload* payload=ImGui::AcceptDragDropPayload("FUR_INS");
         if (payload!=NULL) {
           int targetIns=i;
-          printf("From %d to %d\n",insToMove,targetIns);
-          // TODO: actually swap the instruments
+          if (insToMove!=targetIns && e->swapInstruments(insToMove,targetIns)) {
+            MARK_MODIFIED;
+            curIns=targetIns;
+          }
           insToMove=-1;
           ImGui::EndDragDropTarget();
         }

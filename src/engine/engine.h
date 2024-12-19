@@ -1107,6 +1107,9 @@ class DivEngine {
     bool moveWaveDown(int which);
     bool moveSampleDown(int which);
 
+    // swap things
+    bool swapInstruments(int a, int b);
+
     // automatic patchbay
     void autoPatchbay();
     void autoPatchbayP();
