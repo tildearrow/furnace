@@ -133,6 +133,9 @@ void FurnaceGUI::drawSysManager() {
             }
             ImGui::CloseCurrentPopup();
           }
+          if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+            ImGui::CloseCurrentPopup();
+          }
           ImGui::EndPopup();
         }
         ImGui::SameLine();
@@ -167,6 +170,9 @@ void FurnaceGUI::drawSysManager() {
             }
             updateWindowTitle();
             updateROMExportAvail();
+            ImGui::CloseCurrentPopup();
+          }
+          if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
             ImGui::CloseCurrentPopup();
           }
           ImGui::EndPopup();
