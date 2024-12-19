@@ -481,7 +481,7 @@ void initParams() {
   params.push_back(TAParam("O","vgmout",true,pVGMOut,"<filename>","output .vgm data"));
   params.push_back(TAParam("D","direct",false,pDirect,"","set VGM export direct stream mode"));
   params.push_back(TAParam("C","cmdout",true,pCmdOut,"<filename>","output command stream"));
-  params.push_back(TAParam("r","romout",true,pROMOut,"<filename>","export ROM file"));
+  params.push_back(TAParam("r","romout",true,pROMOut,"<filename|path>","export ROM file, or path for multi-file export"));
   params.push_back(TAParam("R","romconf",true,pROMConf,"<key>=<value>","set configuration parameter for ROM export"));
   params.push_back(TAParam("t","txtout",true,pTxtOut,"<filename>","export as text file"));
   params.push_back(TAParam("L","loglevel",true,pLogLevel,"debug|info|warning|error","set the log level (info by default)"));
