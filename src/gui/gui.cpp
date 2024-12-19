@@ -8653,6 +8653,7 @@ FurnaceGUI::FurnaceGUI():
   opToMove(-1),
   assetToMove(-1),
   dirToMove(-1),
+  insToMove(-1),
   transposeAmount(0),
   randomizeMin(0),
   randomizeMax(255),

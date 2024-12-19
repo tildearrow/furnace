@@ -127,6 +127,23 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
     if (insListDir) {
       DRAG_SOURCE(dir,asset,"FUR_INSDIR");
       DRAG_TARGET(dir,asset,e->song.insDir,"FUR_INSDIR");
+    } else {
+      if (ImGui::BeginDragDropSource()) {
+        insToMove=i;
+        ImGui::SetDragDropPayload("FUR_INS",NULL,0,ImGuiCond_Once);
+        ImGui::Button(ICON_FA_ARROWS "##AssetDrag");
+        ImGui::EndDragDropSource();
+      }
+      if (ImGui::BeginDragDropTarget()) {
+        const ImGuiPayload* payload=ImGui::AcceptDragDropPayload("FUR_INS");
+        if (payload!=NULL) {
+          int targetIns=i;
+          printf("From %d to %d\n",insToMove,targetIns);
+          // TODO: actually swap the instruments
+          insToMove=-1;
+          ImGui::EndDragDropTarget();
+        }
+      }
     }
 
     if (ImGui::BeginPopupContextItem("InsRightMenu")) {
