@@ -1109,6 +1109,8 @@ class DivEngine {
 
     // swap things
     bool swapInstruments(int a, int b);
+    bool swapWaves(int a, int b);
+    bool swapSamples(int a, int b);
 
     // automatic patchbay
     void autoPatchbay();

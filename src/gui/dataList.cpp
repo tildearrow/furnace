@@ -31,7 +31,7 @@ const char* sampleNote[12]={
   "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
 };
 
-#define DRAG_SOURCE(_d,_a,_c) \
+#define DIR_DRAG_SOURCE(_d,_a,_c) \
   if (ImGui::BeginDragDropSource()) { \
     dirToMove=_d; \
     assetToMove=_a; \
@@ -40,7 +40,7 @@ const char* sampleNote[12]={
     ImGui::EndDragDropSource(); \
   }
 
-#define DRAG_TARGET(_d,_a,_type,_c) \
+#define DIR_DRAG_TARGET(_d,_a,_type,_c) \
   if (ImGui::BeginDragDropTarget()) { \
     const ImGuiPayload* dragItem=ImGui::AcceptDragDropPayload(_c); \
     if (dragItem!=NULL) { \
@@ -68,6 +68,49 @@ const char* sampleNote[12]={
       } \
     } \
     ImGui::EndDragDropTarget(); \
+  }
+
+#define SIMPLE_DRAG_SOURCE(_c,_toMoveVar) \
+  if (ImGui::BeginDragDropSource()) { \
+    _toMoveVar=i; \
+    ImGui::SetDragDropPayload(_c,NULL,0,ImGuiCond_Once); \
+    ImGui::Button(ICON_FA_ARROWS "##AssetDrag"); \
+    ImGui::EndDragDropSource(); \
+  }
+
+#define SIMPLE_DRAG_TARGET(_c,_toMoveVar,_curVar,_swapFn,_moveUpFn,_moveDownFn) \
+  if (ImGui::BeginDragDropTarget()) { \
+    const ImGuiPayload* payload=ImGui::AcceptDragDropPayload(_c); \
+    if (payload!=NULL) { \
+      int target=i; \
+      bool markModified=false; \
+      if (_toMoveVar!=target) { \
+        if (ImGui::IsKeyPressed(ImGuiKey_ModCtrl)) { \
+          markModified=_swapFn(_toMoveVar,target); \
+        } else { \
+          while (_toMoveVar>target) { \
+            if (_moveUpFn(_toMoveVar)) { \
+              _toMoveVar--; \
+            } else { \
+              break; \
+            } \
+          } \
+          while (_toMoveVar<target) { \
+            if (_moveDownFn(_toMoveVar)) { \
+              _toMoveVar++; \
+            } else { \
+              break; \
+            } \
+          } \
+        } \
+        _curVar=target; \
+      } \
+      if (markModified) { \
+        MARK_MODIFIED; \
+      } \
+      _toMoveVar=-1; \
+      ImGui::EndDragDropTarget(); \
+    } \
   }
 
 void FurnaceGUI::insListItem(int i, int dir, int asset) {
@@ -125,27 +168,11 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
   }
   if (i>=0) {
     if (insListDir) {
-      DRAG_SOURCE(dir,asset,"FUR_INSDIR");
-      DRAG_TARGET(dir,asset,e->song.insDir,"FUR_INSDIR");
+      DIR_DRAG_SOURCE(dir,asset,"FUR_INSDIR");
+      DIR_DRAG_TARGET(dir,asset,e->song.insDir,"FUR_INSDIR");
     } else {
-      if (ImGui::BeginDragDropSource()) {
-        insToMove=i;
-        ImGui::SetDragDropPayload("FUR_INS",NULL,0,ImGuiCond_Once);
-        ImGui::Button(ICON_FA_ARROWS "##AssetDrag");
-        ImGui::EndDragDropSource();
-      }
-      if (ImGui::BeginDragDropTarget()) {
-        const ImGuiPayload* payload=ImGui::AcceptDragDropPayload("FUR_INS");
-        if (payload!=NULL) {
-          int targetIns=i;
-          if (insToMove!=targetIns && e->swapInstruments(insToMove,targetIns)) {
-            MARK_MODIFIED;
-            curIns=targetIns;
-          }
-          insToMove=-1;
-          ImGui::EndDragDropTarget();
-        }
-      }
+      SIMPLE_DRAG_SOURCE("FUR_INS",insToMove);
+      SIMPLE_DRAG_TARGET("FUR_INS",insToMove,curIns,e->swapInstruments,e->moveInsUp,e->moveInsDown);
     }
 
     if (ImGui::BeginPopupContextItem("InsRightMenu")) {
@@ -210,8 +237,11 @@ void FurnaceGUI::waveListItem(int i, float* wavePreview, int dir, int asset) {
     }
   }
   if (waveListDir || (settings.unifiedDataView && insListDir)) {
-    DRAG_SOURCE(dir,asset,"FUR_WAVEDIR");
-    DRAG_TARGET(dir,asset,e->song.waveDir,"FUR_WAVEDIR");
+    DIR_DRAG_SOURCE(dir,asset,"FUR_WAVEDIR");
+    DIR_DRAG_TARGET(dir,asset,e->song.waveDir,"FUR_WAVEDIR");
+  } else {
+    SIMPLE_DRAG_SOURCE("FUR_WAVE",waveToMove);
+    SIMPLE_DRAG_TARGET("FUR_WAVE",waveToMove,curWave,e->swapWaves,e->moveWaveUp,e->moveWaveDown);
   }
   ImGui::SameLine();
   ImGui::SetCursorPos(curPos);
@@ -251,8 +281,11 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
     }
   }
   if (sampleListDir || (settings.unifiedDataView && insListDir)) {
-    DRAG_SOURCE(dir,asset,"FUR_SDIR");
-    DRAG_TARGET(dir,asset,e->song.sampleDir,"FUR_SDIR");
+    DIR_DRAG_SOURCE(dir,asset,"FUR_SDIR");
+    DIR_DRAG_TARGET(dir,asset,e->song.sampleDir,"FUR_SDIR");
+  } else {
+    SIMPLE_DRAG_SOURCE("FUR_SAMPLE",sampleToMove);
+    SIMPLE_DRAG_TARGET("FUR_SAMPLE",sampleToMove,curSample,e->swapSamples,e->moveSampleUp,e->moveSampleDown);
   }
   ImGui::SameLine();
   ImGui::TextNoHashHide("%s",sample->name.c_str());
@@ -645,8 +678,8 @@ void FurnaceGUI::drawInsList(bool asChild) {
           String nodeName=fmt::sprintf("%s %s##_ADI%d",i.name.empty()?ICON_FA_FOLDER_O:ICON_FA_FOLDER,i.name.empty()?_("<uncategorized>"):i.name,i.name.empty()?-1:dirIndex);
           String popupID=fmt::sprintf("DirRightMenu%d",dirIndex);
           bool treeNode=ImGui::TreeNodeEx(nodeName.c_str(),ImGuiTreeNodeFlags_SpanAvailWidth|(i.name.empty()?ImGuiTreeNodeFlags_DefaultOpen:0));
-          DRAG_SOURCE(dirIndex,-1,"FUR_INSDIR");
-          DRAG_TARGET(dirIndex,-1,e->song.insDir,"FUR_INSDIR");
+          DIR_DRAG_SOURCE(dirIndex,-1,"FUR_INSDIR");
+          DIR_DRAG_TARGET(dirIndex,-1,e->song.insDir,"FUR_INSDIR");
           if (ImGui::BeginPopupContextItem(popupID.c_str())) {
             if (ImGui::MenuItem(_("rename..."))) {
               editStr(&i.name);
@@ -1059,8 +1092,8 @@ void FurnaceGUI::actualWaveList() {
       String nodeName=fmt::sprintf("%s %s##_ADW%d",i.name.empty()?ICON_FA_FOLDER_O:ICON_FA_FOLDER,i.name.empty()?_("<uncategorized>"):i.name,i.name.empty()?-1:dirIndex);
       String popupID=fmt::sprintf("DirRightMenu%d",dirIndex);
       bool treeNode=ImGui::TreeNodeEx(nodeName.c_str(),ImGuiTreeNodeFlags_SpanAvailWidth|(i.name.empty()?ImGuiTreeNodeFlags_DefaultOpen:0));
-      DRAG_SOURCE(dirIndex,-1,"FUR_WAVEDIR");
-      DRAG_TARGET(dirIndex,-1,e->song.waveDir,"FUR_WAVEDIR");
+      DIR_DRAG_SOURCE(dirIndex,-1,"FUR_WAVEDIR");
+      DIR_DRAG_TARGET(dirIndex,-1,e->song.waveDir,"FUR_WAVEDIR");
       if (ImGui::BeginPopupContextItem(popupID.c_str())) {
         if (ImGui::MenuItem(_("rename..."))) {
           editStr(&i.name);
@@ -1121,8 +1154,8 @@ void FurnaceGUI::actualSampleList() {
       String nodeName=fmt::sprintf("%s %s##_ADS%d",i.name.empty()?ICON_FA_FOLDER_O:ICON_FA_FOLDER,i.name.empty()?_("<uncategorized>"):i.name,i.name.empty()?-1:dirIndex);
       String popupID=fmt::sprintf("DirRightMenu%d",dirIndex);
       bool treeNode=ImGui::TreeNodeEx(nodeName.c_str(),ImGuiTreeNodeFlags_SpanAvailWidth|(i.name.empty()?ImGuiTreeNodeFlags_DefaultOpen:0));
-      DRAG_SOURCE(dirIndex,-1,"FUR_SDIR");
-      DRAG_TARGET(dirIndex,-1,e->song.sampleDir,"FUR_SDIR");
+      DIR_DRAG_SOURCE(dirIndex,-1,"FUR_SDIR");
+      DIR_DRAG_TARGET(dirIndex,-1,e->song.sampleDir,"FUR_SDIR");
       if (ImGui::BeginPopupContextItem(popupID.c_str())) {
         if (ImGui::MenuItem(_("rename..."))) {
           editStr(&i.name);

@@ -2523,7 +2523,8 @@ class FurnaceGUI {
   std::map<FurnaceGUIImages,FurnaceGUIImage*> images;
 
   int chanToMove, sysToMove, sysToDelete, opToMove;
-  int assetToMove, dirToMove, insToMove;
+  int assetToMove, dirToMove;
+  int insToMove, waveToMove, sampleToMove;
 
   ImVec2 patWindowPos, patWindowSize;
 
