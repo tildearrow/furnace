@@ -3125,6 +3125,12 @@ class FurnaceGUI {
     /// INTERFACE STATE
     int sc_getEditOrder(lua_State* s);
     int sc_registerMenuEntry(lua_State* s);
+    int sc_getCurIns(lua_State* s);
+    int sc_getCurWave(lua_State* s);
+    int sc_getCurSample(lua_State* s);
+    int sc_setCurIns(lua_State* s);
+    int sc_setCurWave(lua_State* s);
+    int sc_setCurSample(lua_State* s);
 
     /// SONG MANIPULATION
     int sc_getSongName(lua_State* s);

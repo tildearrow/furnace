@@ -246,6 +246,7 @@ _CF(registerMenuEntry) {
   if (menu==NULL) {
     scriptMenus.push_back(FurnaceGUIScriptMenu());
     menu=&scriptMenus[scriptMenus.size()-1];
+    menu->name=menuName;
   }
   FurnaceGUIScriptAction action;
   action.name=menuEntry;
@@ -253,6 +254,49 @@ _CF(registerMenuEntry) {
   action.state=s;
   menu->entries.push_back(action);
 
+  return 0;
+}
+
+_CF(getCurIns) {
+  lua_pushinteger(s,curIns);
+  return 1;
+}
+
+_CF(getCurWave) {
+  lua_pushinteger(s,curWave);
+  return 1;
+}
+
+_CF(getCurSample) {
+  lua_pushinteger(s,curSample);
+  return 1;
+}
+
+_CF(setCurIns) {
+  CHECK_ARGS(1);
+  CHECK_TYPE_NUMBER(1);
+
+  curIns=lua_tointeger(s,1);
+  wavePreviewInit=true;
+  updateFMPreview=true;
+  return 0;
+}
+
+_CF(setCurWave) {
+  CHECK_ARGS(1);
+  CHECK_TYPE_NUMBER(1);
+
+  curWave=lua_tointeger(s,1);
+  return 0;
+}
+
+_CF(setCurSample) {
+  CHECK_ARGS(1);
+  CHECK_TYPE_NUMBER(1);
+
+  curSample=lua_tointeger(s,1);
+  samplePos=0;
+  updateSampleTex=true;
   return 0;
 }
 
@@ -1596,8 +1640,12 @@ _CF(setPatternDirect) {
 /// INTERNAL
 
 void FurnaceGUI::runScriptFunction(lua_State* s, int id) {
+  logD("calling script function %d",id);
   lua_rawgeti(s,LUA_REGISTRYINDEX,id);
-  lua_pcall(s,0,0,0);
+  int result=lua_pcall(s,0,LUA_MULTRET,0);
+  if (result!=LUA_OK) {
+    showError("WE GOT A PROBLEM...");
+  }
 }
 
 void FurnaceGUI::resetScriptState(lua_State* s) {
@@ -1650,6 +1698,12 @@ void FurnaceGUI::initScriptEngine() {
     REG_FUNC(getCurSubSong);
     REG_FUNC(getEditOrder);
     REG_FUNC(registerMenuEntry);
+    REG_FUNC(getCurIns);
+    REG_FUNC(getCurWave);
+    REG_FUNC(getCurSample);
+    REG_FUNC(setCurIns);
+    REG_FUNC(setCurWave);
+    REG_FUNC(setCurSample);
     REG_FUNC(getSongName);
     REG_FUNC(setSongName);
     REG_FUNC(getSongAuthor);
