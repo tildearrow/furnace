@@ -3149,8 +3149,11 @@ class FurnaceGUI {
     /// SAMPLE MANIPULATION
     int sc_createSample(lua_State* s);
     int sc_deleteSample(lua_State* s);
+    // in samples
     int sc_getSampleLength(lua_State* s);
     int sc_setSampleLength(lua_State* s);
+    // in bytes
+    int sc_getSampleSize(lua_State* s);
     int sc_getSampleType(lua_State* s);
     int sc_setSampleType(lua_State* s);
     int sc_getSampleLoop(lua_State* s);
@@ -3165,9 +3168,9 @@ class FurnaceGUI {
     int sc_renderSamples(lua_State* s);
 
     /// ORDER MANIPULATION
-    // chan, order -> val
+    // chan, order, [subsong] -> val
     int sc_getOrder(lua_State* s);
-    // chan, order, val
+    // chan, order, val, [subsong]
     int sc_setOrder(lua_State* s);
 
     /// PATTERN MANIPULATION
