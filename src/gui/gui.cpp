@@ -4723,6 +4723,16 @@ bool FurnaceGUI::loop() {
         }
         ImGui::EndMenu();
       }
+      for (FurnaceGUIScriptMenu& i: scriptMenus) {
+        if (ImGui::BeginMenu(i.name.c_str())) {
+          for (FurnaceGUIScriptAction& j: i.entries) {
+            if (ImGui::MenuItem(j.name.c_str())) {
+              runScriptFunction(j.state,j.function);
+            }
+          }
+          ImGui::EndMenu();
+        }
+      }
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PLAYBACK_STAT]);
       if (e->isPlaying() && settings.playbackTime) {
         int totalTicks=e->getTotalTicks();

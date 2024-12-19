@@ -1605,6 +1605,19 @@ struct PendingDrawOsc {
 
 struct FurnaceCV;
 
+struct FurnaceGUIScriptAction {
+  String name;
+  int function;
+  lua_State* state;
+  FurnaceGUIScriptAction():
+    state(NULL) {}
+};
+
+struct FurnaceGUIScriptMenu {
+  String name;
+  std::vector<FurnaceGUIScriptAction> entries;
+};
+
 class FurnaceGUI {
   DivEngine* e;
 
@@ -2758,6 +2771,7 @@ class FurnaceGUI {
   std::vector<int> selectedUserPreset;
 
   // scripting
+  std::vector<FurnaceGUIScriptMenu> scriptMenus;
   lua_State* playgroundState;
   std::vector<lua_State*> scriptStates;
   int playgroundRet;
@@ -3061,6 +3075,8 @@ class FurnaceGUI {
   bool initRender();
   bool quitRender();
 
+  void runScriptFunction(lua_State* s, int id);
+  void resetScriptState(lua_State* s);
   void initScriptEngine();
 
   ImFont* addFontZlib(const void* data, size_t len, float size_pixels, const ImFontConfig* font_cfg=NULL, const ImWchar* glyph_ranges=NULL);
@@ -3072,6 +3088,8 @@ class FurnaceGUI {
     ///// used by script engine
 
     /// GENERAL
+    int sc_version(lua_State* s);
+    int sc_versionStr(lua_State* s);
     int sc_showError(lua_State* s);
 
     /// CURSOR STATE
@@ -3097,9 +3115,16 @@ class FurnaceGUI {
     int sc_getPlayTimeMicro(lua_State* s);
     int sc_getPlayTimeTicks(lua_State* s);
     int sc_isPlaying(lua_State* s);
+    int sc_isRunning(lua_State* s);
+    int sc_isFreelance(lua_State* s);
 
-    /// DATA ACQUISITION
+    /// ENGINE STATE
     int sc_getChanCount(lua_State* s);
+    int sc_getCurSubSong(lua_State* s);
+
+    /// INTERFACE STATE
+    int sc_getEditOrder(lua_State* s);
+    int sc_registerMenuEntry(lua_State* s);
 
     /// SONG MANIPULATION
     int sc_getSongName(lua_State* s);
@@ -3181,9 +3206,9 @@ class FurnaceGUI {
     int sc_getPattern(lua_State* s);
     // chan, row, pos, val, [order], [subsong]
     int sc_setPattern(lua_State* s);
-    // chan, row, pos, [pat], [subsong] -> val
+    // chan, row, pos, pat, [subsong] -> val
     int sc_getPatternDirect(lua_State* s);
-    // chan, row, pos, val, [pat], [subsong]
+    // chan, row, pos, val, pat, [subsong]
     int sc_setPatternDirect(lua_State* s);
 
     /// other

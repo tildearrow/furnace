@@ -44,12 +44,19 @@ static FurnaceGUI* externGUI;
   }
 
 #define SC_ERROR(x) \
-  lua_pushliteral(s,"invalid argument count!"); \
+  lua_pushliteral(s,x); \
   lua_error(s); \
   return 0;
 
 #define CHECK_TYPE_BOOLEAN(x) \
   if (!lua_isboolean(s,x)) { \
+    lua_pushliteral(s,"invalid argument type"); \
+    lua_error(s); \
+    return 0; \
+  }
+
+#define CHECK_TYPE_FUNCTION(x) \
+  if (!lua_isfunction(s,x)) { \
     lua_pushliteral(s,"invalid argument type"); \
     lua_error(s); \
     return 0; \
@@ -82,6 +89,16 @@ static FurnaceGUI* externGUI;
   lua_setfield(playgroundState,-2,#x);
 
 /// FUNCTIONS
+
+_CF(version) {
+  lua_pushinteger(s,DIV_ENGINE_VERSION);
+  return 1;
+}
+
+_CF(versionStr) {
+  lua_pushliteral(s,DIV_VERSION);
+  return 1;
+}
 
 _CF(showError) {
   CHECK_ARGS(1);
@@ -184,9 +201,59 @@ _CF(isPlaying) {
   return 1;
 }
 
+_CF(isRunning) {
+  lua_pushboolean(s,e->isRunning());
+  return 1;
+}
+
+_CF(isFreelance) {
+  lua_pushboolean(s,e->isFreelance());
+  return 1;
+}
+
 _CF(getChanCount) {
   lua_pushinteger(s,e->getTotalChannelCount());
   return 1;
+}
+
+_CF(getCurSubSong) {
+  lua_pushinteger(s,e->getCurrentSubSong());
+  return 1;
+}
+
+_CF(getEditOrder) {
+  lua_pushinteger(s,curOrder);
+  return 1;
+}
+
+_CF(registerMenuEntry) {
+  CHECK_ARGS(3);
+  CHECK_TYPE_STRING(1);
+  CHECK_TYPE_STRING(2);
+  CHECK_TYPE_FUNCTION(3);
+
+  const char* menuName=lua_tostring(s,1);
+  const char* menuEntry=lua_tostring(s,2);
+  int funcID=luaL_ref(s,LUA_REGISTRYINDEX);
+
+  FurnaceGUIScriptMenu* menu=NULL;
+  for (FurnaceGUIScriptMenu& i: scriptMenus) {
+    if (i.name==menuName) {
+      menu=&i;
+      break;
+    }
+  }
+  if (menu==NULL) {
+    scriptMenus.push_back(FurnaceGUIScriptMenu());
+    menu=&scriptMenus[scriptMenus.size()-1];
+  }
+  FurnaceGUIScriptAction action;
+  action.name=menuEntry;
+  action.function=funcID;
+  action.state=s;
+  menu->entries.push_back(action);
+
+  return 0;
 }
 
 _CF(getSongName) {
@@ -1389,18 +1456,15 @@ _CF(setPattern) {
 }
 
 _CF(getPatternDirect) {
-  CHECK_ARGS_RANGE(3,5);
+  CHECK_ARGS_RANGE(4,5);
   CHECK_TYPE_NUMBER(1);
   CHECK_TYPE_NUMBER(2);
   CHECK_TYPE_NUMBER(3);
+  CHECK_TYPE_NUMBER(4);
 
-  int pat=curOrder;
-  if (lua_gettop(s)>3) {
-    CHECK_TYPE_NUMBER(4);
-    pat=lua_tointeger(s,4);
-    if (pat<0 || pat>=DIV_MAX_PATTERNS) {
-      SC_ERROR("invalid order");
-    }
+  int pat=lua_tointeger(s,4);
+  if (pat<0 || pat>=DIV_MAX_PATTERNS) {
+    SC_ERROR("invalid pattern");
   }
 
   DivSubSong* sub=e->curSubSong;
@@ -1452,18 +1516,15 @@ _CF(getPatternDirect) {
 }
 
 _CF(setPatternDirect) {
-  CHECK_ARGS_RANGE(4,6);
+  CHECK_ARGS_RANGE(5,6);
   CHECK_TYPE_NUMBER(1);
   CHECK_TYPE_NUMBER(2);
   CHECK_TYPE_NUMBER(3);
+  CHECK_TYPE_NUMBER(5);
 
-  int pat=0;
-  if (lua_gettop(s)>4) {
-    CHECK_TYPE_NUMBER(5);
-    pat=lua_tointeger(s,5);
-    if (pat<0 || pat>=DIV_MAX_PATTERNS) {
-      SC_ERROR("invalid order");
-    }
+  int pat=lua_tointeger(s,5);
+  if (pat<0 || pat>=DIV_MAX_PATTERNS) {
+    SC_ERROR("invalid pattern");
   }
 
   DivSubSong* sub=e->curSubSong;
@@ -1534,6 +1595,30 @@ _CF(setPatternDirect) {
 
 /// INTERNAL
 
+void FurnaceGUI::runScriptFunction(lua_State* s, int id) {
+  lua_rawgeti(s,LUA_REGISTRYINDEX,id);
+  lua_pcall(s,0,0,0);
+}
+
+void FurnaceGUI::resetScriptState(lua_State* s) {
+  lua_settop(s,0);
+  for (size_t i=0; i<scriptMenus.size(); i++) {
+    FurnaceGUIScriptMenu& menu=scriptMenus[i];
+    for (size_t j=0; j<menu.entries.size(); j++) {
+      FurnaceGUIScriptAction& entry=menu.entries[j];
+      if (entry.state==s) {
+        luaL_unref(s,LUA_REGISTRYINDEX,entry.function);
+        menu.entries.erase(menu.entries.begin()+j);
+        j--;
+      }
+    }
+    if (menu.entries.empty()) {
+      scriptMenus.erase(scriptMenus.begin()+i);
+      i--;
+    }
+  }
+}
+
 void FurnaceGUI::initScriptEngine() {
   externGUI=this;
 
@@ -1544,6 +1629,8 @@ void FurnaceGUI::initScriptEngine() {
     luaL_openlibs(playgroundState);
     lua_newtable(playgroundState);
     lua_setglobal(playgroundState,"fur");
+    REG_FUNC(version);
+    REG_FUNC(versionStr);
     REG_FUNC(showError);
     REG_FUNC(getCursor);
     REG_FUNC(setCursor);
@@ -1557,7 +1644,12 @@ void FurnaceGUI::initScriptEngine() {
     REG_FUNC(getPlayTimeMicro);
     REG_FUNC(getPlayTimeTicks);
     REG_FUNC(isPlaying);
+    REG_FUNC(isRunning);
+    REG_FUNC(isFreelance);
     REG_FUNC(getChanCount);
+    REG_FUNC(getCurSubSong);
+    REG_FUNC(getEditOrder);
+    REG_FUNC(registerMenuEntry);
     REG_FUNC(getSongName);
     REG_FUNC(setSongName);
     REG_FUNC(getSongAuthor);
@@ -1640,7 +1732,7 @@ void FurnaceGUI::drawScripting() {
       }
       if (ImGui::BeginTabItem("Playground")) {
         if (ImGui::Button("Run")) {
-          lua_settop(playgroundState,0);
+          resetScriptState(playgroundState);
           playgroundRet=luaL_loadstring(playgroundState,playgroundData.c_str());
           if (playgroundRet==LUA_OK) {
             playgroundRet=lua_pcall(playgroundState,0,LUA_MULTRET,0);

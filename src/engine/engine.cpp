@@ -2451,6 +2451,10 @@ bool DivEngine::isRunning() {
   return playing;
 }
 
+bool DivEngine::isFreelance() {
+  return freelance;
+}
+
 bool DivEngine::isStepping() {
   return !(stepPlay==0);
 }
