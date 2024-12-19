@@ -77,7 +77,9 @@ static FurnaceGUI* externGUI;
   }
 
 #define REG_FUNC(x) \
-  lua_register(playgroundState,#x,_ ## x);
+  lua_getglobal(playgroundState,"fur"); \
+  lua_pushcfunction(playgroundState,_ ## x); \
+  lua_setfield(playgroundState,-2,#x);
 
 /// FUNCTIONS
 
@@ -1540,6 +1542,8 @@ void FurnaceGUI::initScriptEngine() {
     logE("could not create script playground state!");
   } else {
     luaL_openlibs(playgroundState);
+    lua_newtable(playgroundState);
+    lua_setglobal(playgroundState,"fur");
     REG_FUNC(showError);
     REG_FUNC(getCursor);
     REG_FUNC(setCursor);
