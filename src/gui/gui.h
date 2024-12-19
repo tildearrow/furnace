@@ -3071,6 +3071,9 @@ class FurnaceGUI {
   public:
     ///// used by script engine
 
+    /// GENERAL
+    int sc_showError(lua_State* s);
+
     /// CURSOR STATE
     // -> xCoarse, xFine, y
     int sc_getCursor(lua_State* s);

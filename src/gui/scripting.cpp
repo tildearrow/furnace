@@ -81,6 +81,14 @@ static FurnaceGUI* externGUI;
 
 /// FUNCTIONS
 
+_CF(showError) {
+  CHECK_ARGS(1);
+  CHECK_TYPE_STRING(1);
+
+  showError(lua_tostring(s,1));
+  return 0;
+}
+
 _CF(getCursor) {
   lua_pushinteger(s,cursor.xCoarse);
   lua_pushinteger(s,cursor.xFine);
@@ -1532,6 +1540,7 @@ void FurnaceGUI::initScriptEngine() {
     logE("could not create script playground state!");
   } else {
     luaL_openlibs(playgroundState);
+    REG_FUNC(showError);
     REG_FUNC(getCursor);
     REG_FUNC(setCursor);
     REG_FUNC(getSelStart);
