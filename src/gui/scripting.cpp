@@ -263,7 +263,7 @@ _CF(getSubSongName) {
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>0) {
     int index=lua_tointeger(s,1);
-    if (index<0 || index>(int)e->song.subsong.size()) {
+    if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
     }
     sub=e->song.subsong[index];
@@ -280,7 +280,7 @@ _CF(setSubSongName) {
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>1) {
     int index=lua_tointeger(s,2);
-    if (index<0 || index>(int)e->song.subsong.size()) {
+    if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
     }
     sub=e->song.subsong[index];
@@ -296,7 +296,7 @@ _CF(getSubSongComments) {
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>0) {
     int index=lua_tointeger(s,1);
-    if (index<0 || index>(int)e->song.subsong.size()) {
+    if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
     }
     sub=e->song.subsong[index];
@@ -313,7 +313,7 @@ _CF(setSubSongComments) {
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>1) {
     int index=lua_tointeger(s,2);
-    if (index<0 || index>(int)e->song.subsong.size()) {
+    if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
     }
     sub=e->song.subsong[index];
@@ -329,7 +329,7 @@ _CF(getSongRate) {
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>0) {
     int index=lua_tointeger(s,1);
-    if (index<0 || index>(int)e->song.subsong.size()) {
+    if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
     }
     sub=e->song.subsong[index];
@@ -346,7 +346,7 @@ _CF(setSongRate) {
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>1) {
     int index=lua_tointeger(s,2);
-    if (index<0 || index>(int)e->song.subsong.size()) {
+    if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
     }
     sub=e->song.subsong[index];
@@ -362,7 +362,7 @@ _CF(getSongVirtualTempo) {
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>0) {
     int index=lua_tointeger(s,1);
-    if (index<0 || index>(int)e->song.subsong.size()) {
+    if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
     }
     sub=e->song.subsong[index];
@@ -383,7 +383,7 @@ _CF(setSongVirtualTempo) {
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>2) {
     int index=lua_tointeger(s,3);
-    if (index<0 || index>(int)e->song.subsong.size()) {
+    if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
     }
     sub=e->song.subsong[index];
@@ -401,7 +401,7 @@ _CF(getSongDivider) {
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>0) {
     int index=lua_tointeger(s,1);
-    if (index<0 || index>(int)e->song.subsong.size()) {
+    if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
     }
     sub=e->song.subsong[index];
@@ -418,7 +418,7 @@ _CF(setSongDivider) {
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>1) {
     int index=lua_tointeger(s,2);
-    if (index<0 || index>(int)e->song.subsong.size()) {
+    if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
     }
     sub=e->song.subsong[index];
@@ -434,7 +434,7 @@ _CF(getSongHighlights) {
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>0) {
     int index=lua_tointeger(s,1);
-    if (index<0 || index>(int)e->song.subsong.size()) {
+    if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
     }
     sub=e->song.subsong[index];
@@ -455,7 +455,7 @@ _CF(setSongHighlights) {
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>2) {
     int index=lua_tointeger(s,3);
-    if (index<0 || index>(int)e->song.subsong.size()) {
+    if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
     }
     sub=e->song.subsong[index];
@@ -473,7 +473,7 @@ _CF(getSongSpeeds) {
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>0) {
     int index=lua_tointeger(s,1);
-    if (index<0 || index>(int)e->song.subsong.size()) {
+    if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
     }
     sub=e->song.subsong[index];
@@ -496,7 +496,7 @@ _CF(setSongSpeeds) {
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>2) {
     int index=lua_tointeger(s,3);
-    if (index<0 || index>(int)e->song.subsong.size()) {
+    if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
     }
     sub=e->song.subsong[index];
@@ -537,7 +537,7 @@ _CF(getSongLength) {
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>0) {
     int index=lua_tointeger(s,1);
-    if (index<0 || index>(int)e->song.subsong.size()) {
+    if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
     }
     sub=e->song.subsong[index];
@@ -554,7 +554,7 @@ _CF(setSongLength) {
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>1) {
     int index=lua_tointeger(s,2);
-    if (index<0 || index>(int)e->song.subsong.size()) {
+    if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
     }
     sub=e->song.subsong[index];
@@ -570,7 +570,7 @@ _CF(getPatLength) {
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>0) {
     int index=lua_tointeger(s,1);
-    if (index<0 || index>(int)e->song.subsong.size()) {
+    if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
     }
     sub=e->song.subsong[index];
@@ -587,7 +587,7 @@ _CF(setPatLength) {
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>1) {
     int index=lua_tointeger(s,2);
-    if (index<0 || index>(int)e->song.subsong.size()) {
+    if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
     }
     sub=e->song.subsong[index];
@@ -1171,6 +1171,357 @@ _CF(renderSamples) {
   return 0;
 }
 
+_CF(getOrder) {
+  CHECK_ARGS_RANGE(2,3);
+  CHECK_TYPE_NUMBER(1);
+  CHECK_TYPE_NUMBER(2);
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>2) {
+    int index=lua_tointeger(s,3);
+    if (index<0 || index>=(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+  }
+
+  int chan=lua_tointeger(s,1);
+  int order=lua_tointeger(s,2);
+
+  if (chan<0 || chan>=DIV_MAX_CHANS) {
+    SC_ERROR("channel out of range");
+  }
+  if (order<0 || order>=DIV_MAX_PATTERNS) {
+    SC_ERROR("order out of range");
+  }
+
+  lua_pushinteger(s,sub->orders.ord[chan][order]);
+
+  return 1;
+}
+
+_CF(setOrder) {
+  CHECK_ARGS_RANGE(3,4);
+  CHECK_TYPE_NUMBER(1);
+  CHECK_TYPE_NUMBER(2);
+  CHECK_TYPE_NUMBER(3);
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>3) {
+    int index=lua_tointeger(s,4);
+    if (index<0 || index>=(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+  }
+
+  int chan=lua_tointeger(s,1);
+  int order=lua_tointeger(s,2);
+  int val=lua_tointeger(s,3);
+
+  if (chan<0 || chan>=DIV_MAX_CHANS) {
+    SC_ERROR("channel out of range");
+  }
+  if (order<0 || order>=DIV_MAX_PATTERNS) {
+    SC_ERROR("order out of range");
+  }
+  if (val<0 || val>=DIV_MAX_PATTERNS) {
+    SC_ERROR("value out of range");
+  }
+
+  sub->orders.ord[chan][order]=val;
+
+  return 0;
+}
+
+_CF(getPattern) {
+  CHECK_ARGS_RANGE(3,5);
+  CHECK_TYPE_NUMBER(1);
+  CHECK_TYPE_NUMBER(2);
+  CHECK_TYPE_NUMBER(3);
+
+  int order=curOrder;
+  if (lua_gettop(s)>3) {
+    CHECK_TYPE_NUMBER(4);
+    order=lua_tointeger(s,4);
+    if (order<0 || order>=DIV_MAX_PATTERNS) {
+      SC_ERROR("invalid order");
+    }
+  }
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>4) {
+    int index=lua_tointeger(s,5);
+    if (index<0 || index>=(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+  }
+
+  int chan=lua_tointeger(s,1);
+  int row=lua_tointeger(s,2);
+  int pos=lua_tointeger(s,3);
+
+  if (chan<0 || chan>=DIV_MAX_CHANS) {
+    SC_ERROR("channel out of range");
+  }
+  if (row<0 || row>=DIV_MAX_ROWS) {
+    SC_ERROR("row out of range");
+  }
+  if (pos<0 || pos>=2+DIV_MAX_EFFECTS*2) {
+    SC_ERROR("position out of range");
+  }
+
+  DivPattern* p=sub->pat[chan].getPattern(sub->orders.ord[chan][order],false);
+
+  if (pos==0) { // map note/octave to a single value
+    if (p->data[row][0]==100) {
+      lua_pushinteger(s,120);
+    } else if (p->data[row][0]==101) {
+      lua_pushinteger(s,121);
+    } else if (p->data[row][0]==102) {
+      lua_pushinteger(s,122);
+    } else if (p->data[row][0]==0 && p->data[row][1]==0) {
+      lua_pushnil(s);
+    } else {
+      lua_pushinteger(s,p->data[row][0]+(((signed char)p->data[row][1])*12));
+    }
+  } else {
+    if (p->data[row][pos+1]==-1) {
+      lua_pushnil(s);
+    } else {
+      lua_pushinteger(s,p->data[row][pos+1]);
+    }
+  }
+
+  return 1;
+}
+
+_CF(setPattern) {
+  CHECK_ARGS_RANGE(4,6);
+  CHECK_TYPE_NUMBER(1);
+  CHECK_TYPE_NUMBER(2);
+  CHECK_TYPE_NUMBER(3);
+
+  int order=curOrder;
+  if (lua_gettop(s)>4) {
+    CHECK_TYPE_NUMBER(5);
+    order=lua_tointeger(s,5);
+    if (order<0 || order>=DIV_MAX_PATTERNS) {
+      SC_ERROR("invalid order");
+    }
+  }
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>5) {
+    int index=lua_tointeger(s,6);
+    if (index<0 || index>=(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+  }
+
+  int chan=lua_tointeger(s,1);
+  int row=lua_tointeger(s,2);
+  int pos=lua_tointeger(s,3);
+
+  if (chan<0 || chan>=DIV_MAX_CHANS) {
+    SC_ERROR("channel out of range");
+  }
+  if (row<0 || row>=DIV_MAX_ROWS) {
+    SC_ERROR("row out of range");
+  }
+  if (pos<0 || pos>=2+DIV_MAX_EFFECTS*2) {
+    SC_ERROR("position out of range");
+  }
+
+  DivPattern* p=sub->pat[chan].getPattern(sub->orders.ord[chan][order],true);
+
+  if (lua_isnil(s,4)) {
+    // clear out
+    if (pos==0) {
+      p->data[row][0]=0;
+      p->data[row][1]=0;
+    } else {
+      p->data[row][pos+1]=-1;
+    }
+  } else if (lua_isinteger(s,4)) {
+    int val=lua_tointeger(s,4);
+
+    if (pos==0) { // map single value to a note/octave
+      if (val<-60 || val>122) {
+        SC_ERROR("value out of range (-60 to 122)");
+      }
+      val+=60;
+      if (val>=180) {
+        p->data[row][0]=val-80;
+        p->data[row][1]=0;
+      } else {
+        if ((val%12)==0) {
+          p->data[row][0]=12;
+          p->data[row][1]=(unsigned char)((val/12)-6);
+        } else {
+          p->data[row][0]=(val%12);
+          p->data[row][1]=(unsigned char)((val/12)-5);
+        }
+      }
+    } else {
+      if (val<0 || val>255) {
+        SC_ERROR("value out of range (0-255)");
+      }
+      p->data[row][pos+1]=val;
+    }
+  } else {
+    SC_ERROR("value is not a number or nil");
+  }
+
+  return 0;
+}
+
+_CF(getPatternDirect) {
+  CHECK_ARGS_RANGE(3,5);
+  CHECK_TYPE_NUMBER(1);
+  CHECK_TYPE_NUMBER(2);
+  CHECK_TYPE_NUMBER(3);
+
+  int pat=curOrder;
+  if (lua_gettop(s)>3) {
+    CHECK_TYPE_NUMBER(4);
+    pat=lua_tointeger(s,4);
+    if (pat<0 || pat>=DIV_MAX_PATTERNS) {
+      SC_ERROR("invalid order");
+    }
+  }
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>4) {
+    int index=lua_tointeger(s,5);
+    if (index<0 || index>=(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+  }
+
+  int chan=lua_tointeger(s,1);
+  int row=lua_tointeger(s,2);
+  int pos=lua_tointeger(s,3);
+
+  if (chan<0 || chan>=DIV_MAX_CHANS) {
+    SC_ERROR("channel out of range");
+  }
+  if (row<0 || row>=DIV_MAX_ROWS) {
+    SC_ERROR("row out of range");
+  }
+  if (pos<0 || pos>=2+DIV_MAX_EFFECTS*2) {
+    SC_ERROR("position out of range");
+  }
+
+  DivPattern* p=sub->pat[chan].getPattern(pat,false);
+
+  if (pos==0) { // map note/octave to a single value
+    if (p->data[row][0]==100) {
+      lua_pushinteger(s,120);
+    } else if (p->data[row][0]==101) {
+      lua_pushinteger(s,121);
+    } else if (p->data[row][0]==102) {
+      lua_pushinteger(s,122);
+    } else if (p->data[row][0]==0 && p->data[row][1]==0) {
+      lua_pushnil(s);
+    } else {
+      lua_pushinteger(s,p->data[row][0]+(((signed char)p->data[row][1])*12));
+    }
+  } else {
+    if (p->data[row][pos+1]==-1) {
+      lua_pushnil(s);
+    } else {
+      lua_pushinteger(s,p->data[row][pos+1]);
+    }
+  }
+
+  return 1;
+}
+
+_CF(setPatternDirect) {
+  CHECK_ARGS_RANGE(4,6);
+  CHECK_TYPE_NUMBER(1);
+  CHECK_TYPE_NUMBER(2);
+  CHECK_TYPE_NUMBER(3);
+
+  int pat=0;
+  if (lua_gettop(s)>4) {
+    CHECK_TYPE_NUMBER(5);
+    pat=lua_tointeger(s,5);
+    if (pat<0 || pat>=DIV_MAX_PATTERNS) {
+      SC_ERROR("invalid order");
+    }
+  }
+
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>5) {
+    int index=lua_tointeger(s,6);
+    if (index<0 || index>=(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+  }
+
+  int chan=lua_tointeger(s,1);
+  int row=lua_tointeger(s,2);
+  int pos=lua_tointeger(s,3);
+
+  if (chan<0 || chan>=DIV_MAX_CHANS) {
+    SC_ERROR("channel out of range");
+  }
+  if (row<0 || row>=DIV_MAX_ROWS) {
+    SC_ERROR("row out of range");
+  }
+  if (pos<0 || pos>=2+DIV_MAX_EFFECTS*2) {
+    SC_ERROR("position out of range");
+  }
+
+  DivPattern* p=sub->pat[chan].getPattern(pat,true);
+
+  if (lua_isnil(s,4)) {
+    // clear out
+    if (pos==0) {
+      p->data[row][0]=0;
+      p->data[row][1]=0;
+    } else {
+      p->data[row][pos+1]=-1;
+    }
+  } else if (lua_isinteger(s,4)) {
+    int val=lua_tointeger(s,4);
+
+    if (pos==0) { // map single value to a note/octave
+      if (val<-60 || val>122) {
+        SC_ERROR("value out of range (-60 to 122)");
+      }
+      val+=60;
+      if (val>=180) {
+        p->data[row][0]=val-80;
+        p->data[row][1]=0;
+      } else {
+        if ((val%12)==0) {
+          p->data[row][0]=12;
+          p->data[row][1]=(unsigned char)((val/12)-6);
+        } else {
+          p->data[row][0]=(val%12);
+          p->data[row][1]=(unsigned char)((val/12)-5);
+        }
+      }
+    } else {
+      if (val<0 || val>255) {
+        SC_ERROR("value out of range (0-255)");
+      }
+      p->data[row][pos+1]=val;
+    }
+  } else {
+    SC_ERROR("value is not a number or nil");
+  }
+
+  return 0;
+}
+
 /// INTERNAL
 
 void FurnaceGUI::initScriptEngine() {
@@ -1251,6 +1602,12 @@ void FurnaceGUI::initScriptEngine() {
     REG_FUNC(setSampleData);
     REG_FUNC(isSampleEditable);
     REG_FUNC(renderSamples);
+    REG_FUNC(getOrder);
+    REG_FUNC(setOrder);
+    REG_FUNC(getPattern);
+    REG_FUNC(setPattern);
+    REG_FUNC(getPatternDirect);
+    REG_FUNC(setPatternDirect);
   }
 }
 
