@@ -970,8 +970,8 @@ _CF(setSampleLength) {
       SC_ERROR("value out of range");
     }
     bool errored=false;
-    e->lockEngine([this,sample,&errored,index]() {
-      if (!sample->resize(resizeSize)) {
+    e->lockEngine([this,sample,&errored,index,val]() {
+      if (!sample->resize(val)) {
         errored=true;
       } else {
         e->renderSamples(index);
