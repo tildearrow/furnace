@@ -25,6 +25,51 @@ const DivROMExportDef* DivEngine::getROMExportDef(DivROMExportOptions opt) {
   return romExportDefs[opt];
 }
 
+bool DivEngine::isROMExportViable(DivROMExportOptions opt)
+{
+  const DivROMExportDef* newDef=getROMExportDef(opt);
+  if (newDef==NULL) {
+    return false;
+  }
+
+  unsigned char sysReqCount[DIV_SYSTEM_MAX];
+  memset(sysReqCount,0,DIV_SYSTEM_MAX);
+  for (int i=0; i<song.systemLen; i++) {
+    sysReqCount[song.system[i]]++;
+  }
+
+  unsigned char defReqCount[DIV_SYSTEM_MAX];
+  memset(defReqCount,0,DIV_SYSTEM_MAX);
+  for (DivSystem j: newDef->requisites) {
+    defReqCount[j]++;
+  }
+
+  switch (newDef->requisitePolicy) {
+    case DIV_REQPOL_EXACT:
+      for (int j=0; j<DIV_SYSTEM_MAX; j++) {
+        if (defReqCount[j]!=sysReqCount[j]) {
+          return false;
+        }
+      }
+      break;
+    case DIV_REQPOL_ANY:
+      for (int j=0; j<DIV_SYSTEM_MAX; j++) {
+        if (defReqCount[j]>sysReqCount[j]) {
+          return false;
+        }
+      }
+      break;
+    case DIV_REQPOL_LAX:
+      for (DivSystem j: newDef->requisites) {
+        if (defReqCount[j]<=sysReqCount[j]) {
+          return true;
+        }
+      }
+      return false;
+  }
+  return true;
+}
+
 void DivEngine::registerROMExports() {
   logD("registering ROM exports...");
 

@@ -10,7 +10,7 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 ### Program
 
 - **Language**: select the language used for the interface. some languages are incomplete, and are listed with their approximate completion percentage.
-- **Render backend**: changing this may help with performace or compatibility issues. the available render backends are:
+- **Render backend**: changing this may help with performance or compatibility issues. the available render backends are:
   - SDL Renderer: this was the only available render backend prior to the addition of dedicated OpenGL/DirectX backends in 0.6. default on macOS.
     - it is slower than the other backends.
   - DirectX 11: works with the majority of graphics chips/cards and is optimized specifically for Windows.

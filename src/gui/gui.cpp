@@ -769,60 +769,13 @@ void FurnaceGUI::autoDetectSystem() {
 }
 
 void FurnaceGUI::updateROMExportAvail() {
-  unsigned char sysReqCount[DIV_SYSTEM_MAX];
-  unsigned char defReqCount[DIV_SYSTEM_MAX];
-
-  memset(sysReqCount,0,DIV_SYSTEM_MAX);
-  for (int i=0; i<e->song.systemLen; i++) {
-    sysReqCount[e->song.system[i]]++;
-  }
-
   memset(romExportAvail,0,sizeof(bool)*DIV_ROM_MAX);
   romExportExists=false;
 
   for (int i=0; i<DIV_ROM_MAX; i++) {
-    const DivROMExportDef* newDef=e->getROMExportDef((DivROMExportOptions)i);
-    if (newDef!=NULL) {
-      // check for viability
-      bool viable=true;
-
-      memset(defReqCount,0,DIV_SYSTEM_MAX);
-      for (DivSystem j: newDef->requisites) {
-        defReqCount[j]++;
-      }
-
-      switch (newDef->requisitePolicy) {
-        case DIV_REQPOL_EXACT:
-          for (int j=0; j<DIV_SYSTEM_MAX; j++) {
-            if (defReqCount[j]!=sysReqCount[j]) {
-              viable=false;
-              break;
-            }
-          }
-          break;
-        case DIV_REQPOL_ANY:
-          for (int j=0; j<DIV_SYSTEM_MAX; j++) {
-            if (defReqCount[j]>sysReqCount[j]) {
-              viable=false;
-              break;
-            }
-          }
-          break;
-        case DIV_REQPOL_LAX:
-          viable=false;
-          for (DivSystem j: newDef->requisites) {
-            if (defReqCount[j]<=sysReqCount[j]) {
-              viable=true;
-              break;
-            }
-          }
-          break;
-      }
-      
-      if (viable) {
-        romExportAvail[i]=true;
-        romExportExists=true;
-      }
+    if (e->isROMExportViable((DivROMExportOptions)i)) {
+      romExportAvail[i]=true;
+      romExportExists=true;
     }
   }
 
@@ -1259,7 +1212,7 @@ void FurnaceGUI::stop() {
   if (followPattern && wasPlaying) {
     nextScroll=-1.0f;
     nextAddScroll=0.0f;
-    cursor.y=oldRow;
+    e->getPlayPos(curOrder, cursor.y);
     if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && !selecting) {
       selStart=cursor;
       selEnd=cursor;

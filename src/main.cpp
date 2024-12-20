@@ -86,10 +86,12 @@ FurnaceCLI cli;
 String outName;
 String vgmOutName;
 String cmdOutName;
+String romOutName;
 String txtOutName;
 int benchMode=0;
 int subsong=-1;
 DivAudioExportOptions exportOptions;
+DivConfig romExportConfig;
 
 #ifdef HAVE_GUI
 bool consoleMode=false;
@@ -439,6 +441,24 @@ TAParamResult pCmdOut(String val) {
   return TA_PARAM_SUCCESS;
 }
 
+TAParamResult pROMOut(String val) {
+  romOutName=val;
+  e.setAudio(DIV_AUDIO_DUMMY);
+  return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pROMConf(String val) {
+  size_t eqSplit=val.find_first_of('=');
+  if (eqSplit==String::npos) {
+    logE("invalid romconf parameter, must contain '=' as in: <key>=<value>");
+    return TA_PARAM_ERROR;
+  }
+  String key=val.substr(0,eqSplit);
+  String param=val.substr(eqSplit+1);
+  romExportConfig.set(key,param);
+  return TA_PARAM_SUCCESS;
+}
+
 TAParamResult pTxtOut(String val) {
   txtOutName=val;
   e.setAudio(DIV_AUDIO_DUMMY);
@@ -462,6 +482,8 @@ void initParams() {
   params.push_back(TAParam("O","vgmout",true,pVGMOut,"<filename>","output .vgm data"));
   params.push_back(TAParam("D","direct",false,pDirect,"","set VGM export direct stream mode"));
   params.push_back(TAParam("C","cmdout",true,pCmdOut,"<filename>","output command stream"));
+  params.push_back(TAParam("r","romout",true,pROMOut,"<filename|path>","export ROM file, or path for multi-file export"));
+  params.push_back(TAParam("R","romconf",true,pROMConf,"<key>=<value>","set configuration parameter for ROM export"));
   params.push_back(TAParam("t","txtout",true,pTxtOut,"<filename>","export as text file"));
   params.push_back(TAParam("L","loglevel",true,pLogLevel,"debug|info|warning|error","set the log level (info by default)"));
   params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (nothing by default)"));
@@ -558,6 +580,7 @@ int main(int argc, char** argv) {
   outName="";
   vgmOutName="";
   cmdOutName="";
+  romOutName="";
   txtOutName="";
 
   // load config for locale
@@ -726,7 +749,7 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  const bool outputMode = outName!="" || vgmOutName!="" || cmdOutName!="" || txtOutName!="";
+  const bool outputMode = outName!="" || vgmOutName!="" || cmdOutName!="" || romOutName!="" || txtOutName!="";
 
   if (fileName.empty() && (benchMode || infoMode || outputMode)) {
     logE("provide a file!");
@@ -893,6 +916,63 @@ int main(int argc, char** argv) {
       e.setConsoleMode(true);
       e.saveAudio(outName.c_str(),exportOptions);
       e.waitAudioFile();
+    }
+    if (romOutName!="") {
+      e.setConsoleMode(true);
+      // select ROM target type
+      DivROMExportOptions romTarget = DIV_ROM_ABSTRACT;
+      String lowerCase=romOutName;
+      for (char& i: lowerCase) {
+        if (i>='A' && i<='Z') i+='a'-'A';
+      }
+      for (int i=0; i<DIV_ROM_MAX; i++) {
+        DivROMExportOptions opt = (DivROMExportOptions)i;
+        if (e.isROMExportViable(opt)) {
+          const DivROMExportDef* newDef=e.getROMExportDef((DivROMExportOptions)i);
+          if (newDef->fileExt &&
+              lowerCase.length()>=strlen(newDef->fileExt) &&
+              lowerCase.substr(lowerCase.length()-strlen(newDef->fileExt))==newDef->fileExt) {
+            romTarget = opt;
+            break; // extension matched, stop searching
+          }
+          if (romTarget == DIV_ROM_ABSTRACT) {
+            romTarget = opt; // use first viable, but keep searching for extension match
+          }
+        }
+      }
+      if (romTarget > DIV_ROM_ABSTRACT && romTarget < DIV_ROM_MAX) {
+        DivROMExport* pendingExport = e.buildROM(romTarget);
+        if (pendingExport==NULL) {
+          reportError(_("could not create exporter! you may want to report this issue..."));
+        } else {
+          pendingExport->setConf(romExportConfig);
+          if (pendingExport->go(&e)) {
+            pendingExport->wait();
+            if (!pendingExport->hasFailed()) {
+              for (DivROMExportOutput& i: pendingExport->getResult()) {
+                String path=romOutName;
+                if (e.getROMExportDef(romTarget)->multiOutput) {
+                  path+=DIR_SEPARATOR_STR;
+                  path+=i.name;
+                }
+                FILE* f=ps_fopen(path.c_str(),"wb");
+                if (f!=NULL) {
+                  fwrite(i.data->getFinalBuf(),1,i.data->size(),f);
+                  fclose(f);
+                } else {
+                  reportError(fmt::sprintf(_("could not open file! (%s)"),strerror(errno)));
+                }
+              }
+            } else {
+              reportError(fmt::sprintf(_("ROM export failed! (%s)"),e.getLastError()));
+            }
+          } else {
+            reportError(_("could not begin exporting process! TODO: elaborate"));
+          }
+        }
+      } else {
+        reportError(_("no matching ROM export target is available."));
+      }
     }
     if (txtOutName!="") {
       e.setConsoleMode(true);
