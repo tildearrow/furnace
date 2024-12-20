@@ -86,7 +86,8 @@ static FurnaceGUI* externGUI;
 #define REG_FUNC(x) \
   lua_getglobal(playgroundState,"fur"); \
   lua_pushcfunction(playgroundState,_ ## x); \
-  lua_setfield(playgroundState,-2,#x);
+  lua_setfield(playgroundState,-2,#x); \
+  lua_pop(playgroundState,1);
 
 /// FUNCTIONS
 
