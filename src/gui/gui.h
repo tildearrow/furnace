@@ -3212,19 +3212,27 @@ class FurnaceGUI {
     int sc_renderSamples(lua_State* s);
 
     /// ORDER MANIPULATION
-    // chan, order, [subsong] -> val
+    // chan, order -> val
+    // subsong, chan, order -> val
     int sc_getOrder(lua_State* s);
-    // chan, order, val, [subsong]
+    // chan, order, val
+    // subsong, chan, order, val
     int sc_setOrder(lua_State* s);
 
     /// PATTERN MANIPULATION
-    // chan, row, pos, [order], [subsong] -> val
+    // chan, row, pos -> val
+    // order, chan, row, pos -> val
+    // subsong, order, chan, row, pos -> val
     int sc_getPattern(lua_State* s);
-    // chan, row, pos, val, [order], [subsong]
+    // chan, row, pos, val
+    // order, chan, row, pos, val
+    // subsong, order, chan, row, pos, val
     int sc_setPattern(lua_State* s);
-    // chan, row, pos, pat, [subsong] -> val
+    // pat, chan, row, pos -> val
+    // subsong, pat, chan, row, pos -> val
     int sc_getPatternDirect(lua_State* s);
-    // chan, row, pos, val, pat, [subsong]
+    // pat, chan, row, pos, val
+    // subsong, pat, chan, row, pos, val
     int sc_setPatternDirect(lua_State* s);
 
     /// other
