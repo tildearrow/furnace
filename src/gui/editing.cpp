@@ -902,9 +902,7 @@ unsigned int convertEffectMPT_MPTM(unsigned char symbol, unsigned int val) {
   return convertEffectMPT_IT(symbol,val);
 }
 
-// TODO: fix code style
-void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int mptFormat, UndoRegion ur)
-{
+void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int mptFormat, UndoRegion ur) {
   DETERMINE_LAST;
 
   int j=cursor.y;
@@ -913,35 +911,27 @@ void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String 
 
   memset(note,0,4);
 
-  for(size_t i=1; i<data.size() && j<e->curSubSong->patLen; i++)
-  {
+  for (size_t i=1; i<data.size() && j<e->curSubSong->patLen; i++) {
     size_t charPos=1;
     int iCoarse=cursor.xCoarse;
     int iFine=0;
-
     String& line=data[i];
-
-    while (charPos<line.size() && iCoarse<lastChannel)
-    {
+    while (charPos<line.size() && iCoarse<lastChannel) {
       DivPattern* pat=e->curPat[iCoarse].getPattern(e->curOrders->ord[iCoarse][curOrder],true);
-      if (line[charPos]=='|' && charPos != 0) // MPT format starts every pattern line with '|'
-      {
+      if (line[charPos]=='|' && charPos!=0) { // MPT format starts every pattern line with '|'
         iCoarse++;
-
-        if (iCoarse<lastChannel) while (!e->curSubSong->chanShow[iCoarse])
-        {
-          iCoarse++;
-          if (iCoarse>=lastChannel) break;
+        if (iCoarse<lastChannel) {
+          while (!e->curSubSong->chanShow[iCoarse]) {
+            iCoarse++;
+            if (iCoarse>=lastChannel) break;
+          }
         }
-
         iFine=0;
         charPos++;
         continue;
       }
-      if (iFine==0) // note
-      {
-        if (charPos>=line.size())
-        {
+      if (iFine==0) { // note
+        if (charPos>=line.size()) {
           invalidData=true;
           break;
         }
@@ -963,228 +953,167 @@ void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String 
           continue;
         }
 
-        if (strcmp(note,"...")==0 || strcmp(note,"   ")==0)
-        {
+        if (strcmp(note,"...")==0 || strcmp(note,"   ")==0) {
           // do nothing.
-        } 
-        
-        else 
-        {
-          if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_INS_BG) || (pat->data[j][0]==0 && pat->data[j][1]==0)) 
-          {
-            if (!decodeNote(note,pat->data[j][0],pat->data[j][1]))
-            {
-              if(strcmp(note, "^^^") == 0)
-              {
+        } else {
+          if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_INS_BG) || (pat->data[j][0]==0 && pat->data[j][1]==0)) {
+            if (!decodeNote(note,pat->data[j][0],pat->data[j][1])) {
+              if (strcmp(note, "^^^")==0) {
                 pat->data[j][0]=100;
                 pat->data[j][1]=0;
-              }
-              else if(strcmp(note, "~~~") == 0 || strcmp(note, "===") == 0)
-              {
+              } else if (strcmp(note, "~~~")==0 || strcmp(note,"===")==0) {
                 pat->data[j][0]=101;
                 pat->data[j][1]=0;
-              }
-              else
-              {
+              } else {
                 invalidData=true;
               }
-              
               break;
-            }
-            else
-            {
+            } else {
               pat->data[j][1]--; // MPT is one octave higher...
             }
-
             if (mode==GUI_PASTE_MODE_INS_BG || mode==GUI_PASTE_MODE_INS_FG) pat->data[j][2]=arg;
           }
         }
-      } 
-      else if (iFine==1) // instrument
-      {
-        if (charPos>=line.size())
-        {
+      } else if (iFine==1) { // instrument
+        if (charPos>=line.size()) {
           invalidData=true;
           break;
         }
         note[0]=line[charPos++];
-        if (charPos>=line.size())
-        {
+        if (charPos>=line.size()) {
           invalidData=true;
           break;
         }
         note[1]=line[charPos++];
         note[2]=0;
 
-        if (iFine==1)
-        {
-          if (!opMaskPaste.ins || mode==GUI_PASTE_MODE_INS_BG || mode==GUI_PASTE_MODE_INS_FG)
-          {
+        if (iFine==1) {
+          if (!opMaskPaste.ins || mode==GUI_PASTE_MODE_INS_BG || mode==GUI_PASTE_MODE_INS_FG) {
             iFine++;
             continue;
           }
         }
 
-        if (strcmp(note,"..")==0 || strcmp(note,"  ")==0)
-        {
+        if (strcmp(note,"..")==0 || strcmp(note,"  ")==0) {
           if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_MIX_FG ||
-                mode==GUI_PASTE_MODE_INS_BG || mode==GUI_PASTE_MODE_INS_FG))
-          {
+                mode==GUI_PASTE_MODE_INS_BG || mode==GUI_PASTE_MODE_INS_FG)) {
             pat->data[j][iFine+1]=-1;
           }
-        } 
-        else 
-        {
+        } else {
           unsigned int val=0;
-          if (sscanf(note,"%2d",&val)!=1) 
-          {
+          if (sscanf(note,"%2d",&val)!=1) {
             invalidData=true;
             break;
           }
 
-          if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_INS_BG) || pat->data[j][iFine+1]==-1) 
-          {
-            pat->data[j][iFine+1]=val - 1;
+          if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_INS_BG) || pat->data[j][iFine+1]==-1) {
+            pat->data[j][iFine+1]=val-1;
           }
         }
-      }
-      else
-      { // volume and effects
-        if (charPos>=line.size())
-        {
+      } else { // volume and effects
+        if (charPos>=line.size()) {
           invalidData=true;
           break;
         }
         note[0]=line[charPos++];
-        if (charPos>=line.size())
-        {
+        if (charPos>=line.size()) {
           invalidData=true;
           break;
         }
         note[1]=line[charPos++];
-        if (charPos>=line.size())
-        {
+        if (charPos>=line.size()) {
           invalidData=true;
           break;
         }
         note[2]=line[charPos++];
         note[3]=0;
 
-        if (iFine==2)
-        {
-          if (!opMaskPaste.vol)
-          {
-            iFine++;
-            continue;
-          }
-        } 
-        
-        else if ((iFine&1)==0) 
-        {
-          if (!opMaskPaste.effectVal) 
-          {
-            iFine++;
-            continue;
-          }
-        } 
-        else if ((iFine&1)==1) 
-        {
-          if (!opMaskPaste.effect) 
-          {
+        if (iFine==2) {
+          if (!opMaskPaste.vol) {
             iFine++;
             continue;
           }
         }
 
-        if (strcmp(note,"...")==0 || strcmp(note,"   ")==0)
-        {
+        else if ((iFine&1)==0) {
+          if (!opMaskPaste.effectVal) {
+            iFine++;
+            continue;
+          }
+        } else if ((iFine&1)==1) {
+          if (!opMaskPaste.effect) {
+            iFine++;
+            continue;
+          }
+        }
+
+        if (strcmp(note,"...")==0 || strcmp(note,"   ")==0) {
           if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_MIX_FG ||
                 mode==GUI_PASTE_MODE_INS_BG || mode==GUI_PASTE_MODE_INS_FG))
           {
             pat->data[j][iFine+1]=-1;
           }
-        } 
-        else 
-        {
+        } else {
           unsigned int val=0;
-          unsigned char symbol = '\0';
+          unsigned char symbol='\0';
 
-          symbol = note[0];
+          symbol=note[0];
 
-          if(iFine == 2)
-          {
+          if (iFine==2) {
             sscanf(&note[1],"%2d",&val);
-          }
-          else
-          {
+          } else {
             sscanf(&note[1],"%2X",&val);
           }
 
-          if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_INS_BG) || pat->data[j][iFine+1]==-1) 
-          {
+          if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_INS_BG) || pat->data[j][iFine+1]==-1) {
             // if (iFine<(3+e->curPat[iCoarse].effectCols*2)) pat->data[j][iFine+1]=val;
-            if(iFine == 2) // volume
-            {
-              switch(symbol)
-              {
+            if (iFine==2) { // volume
+              switch(symbol) {
                 case 'v':
                 {
                   pat->data[j][iFine+1]=val;
                   break;
                 }
-                
                 default:
                   break;
               }
-            }
-            else // effect
-            {
-              unsigned int eff = 0;
-              
-              if(mptFormat == 0)
-              {
-                eff = convertEffectMPT_MOD(symbol, val); // up to 4 effects stored in one variable
-
-                if(((eff & 0x0f00) >> 8) == 0x0C) // set volume
-                {
-                  pat->data[j][iFine]=eff & 0xff;
+            } else { // effect
+              unsigned int eff=0;
+              if (mptFormat==0) {
+                eff=convertEffectMPT_MOD(symbol, val); // up to 4 effects stored in one variable
+                if (((eff&0x0f00)>>8)==0x0C) { // set volume
+                  pat->data[j][iFine]=eff&0xff;
                 }
               }
 
-              if(mptFormat == 1)
-              {
-                eff = convertEffectMPT_S3M(symbol, val);
+              if (mptFormat==1) {
+                eff=convertEffectMPT_S3M(symbol, val);
               }
 
-              if(mptFormat == 2 || mptFormat == 3) // set volume
-              {
-                eff = convertEffectMPT_XM(symbol, val);
-                
-                if(((eff & 0x0f00) >> 8) == 0x0C)
+              if (mptFormat==2 || mptFormat==3) { // set volume
+                eff=convertEffectMPT_XM(symbol, val);
+
+                if (((eff&0x0f00)>>8)==0x0C)
                 {
-                  pat->data[j][iFine]=eff & 0xff;
+                  pat->data[j][iFine]=eff&0xff;
                 }
               }
 
-              if(mptFormat == 4 || mptFormat == 5)
-              {
-                eff = convertEffectMPT_IT(symbol, val);
+              if (mptFormat==4|| mptFormat==5) {
+                eff=convertEffectMPT_IT(symbol, val);
               }
 
-              if(mptFormat == 6)
-              {
-                eff = convertEffectMPT_MPTM(symbol, val);
+              if (mptFormat==6) {
+                eff=convertEffectMPT_MPTM(symbol, val);
               }
 
-              pat->data[j][iFine+1]=((eff & 0xff00) >> 8);
-              pat->data[j][iFine+2]=(eff & 0xff);
+              pat->data[j][iFine+1]=((eff&0xff00)>>8);
+              pat->data[j][iFine+2]=(eff&0xff);
 
-              if(eff > 0xffff)
-              {
-                pat->data[j][iFine+3]=((eff & 0xff000000) >> 24);
-                pat->data[j][iFine+4]=((eff & 0xff0000) >> 16);
+              if (eff>0xffff) {
+                pat->data[j][iFine+3]=((eff&0xff000000)>>24);
+                pat->data[j][iFine+4]=((eff&0xff0000)>>16);
               }
-              
             }
           }
         }
@@ -1192,29 +1121,25 @@ void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String 
 
       iFine++;
 
-      if(charPos >= line.size() - 1)
-      {
-        invalidData = false;
+      if (charPos>=line.size()-1) {
+        invalidData=false;
         break;
       }
     }
-    
-    if (invalidData)
-    {
+
+    if (invalidData) {
       logW(_("invalid clipboard data! failed at line %d char %d"),i,charPos);
       logW("%s",line.c_str());
       break;
     }
 
     j++;
-    if (mode==GUI_PASTE_MODE_OVERFLOW && j>=e->curSubSong->patLen && curOrder<e->curSubSong->ordersLen-1)
-    {
+    if (mode==GUI_PASTE_MODE_OVERFLOW && j>=e->curSubSong->patLen && curOrder<e->curSubSong->ordersLen-1) {
       j=0;
       curOrder++;
     }
 
-    if (mode==GUI_PASTE_MODE_FLOOD && i==data.size()-1)
-    {
+    if (mode==GUI_PASTE_MODE_FLOOD && i==data.size()-1) {
       i=1;
     }
   }

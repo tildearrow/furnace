@@ -512,4 +512,7 @@ void FurnaceGUI::drawExport() {
       }
       break;
   }
+  if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+    ImGui::CloseCurrentPopup();
+  }
 }
