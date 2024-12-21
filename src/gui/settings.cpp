@@ -1493,7 +1493,7 @@ void FurnaceGUI::drawSettings() {
         ImGui::Text(_("Quality"));
         ImGui::SameLine();
         if (ImGui::Combo("##Quality",&settings.audioQuality,LocalizedComboGetter,audioQualities,2)) settingsChanged=true;
-        
+
         bool clampSamplesB=settings.clampSamples;
         if (ImGui::Checkbox(_("Software clipping"),&clampSamplesB)) {
           settings.clampSamples=clampSamplesB;
@@ -2685,6 +2685,12 @@ void FurnaceGUI::drawSettings() {
         bool insFocusesPatternB=settings.insFocusesPattern;
         if (ImGui::Checkbox(_("Focus pattern editor when selecting instrument"),&insFocusesPatternB)) {
           settings.insFocusesPattern=insFocusesPatternB;
+          settingsChanged=true;
+        }
+
+        bool draggableDataViewB=settings.draggableDataView;
+        if (ImGui::Checkbox(_("Draggable instruments/samples/waves"),&draggableDataViewB)) {
+          settings.draggableDataView=draggableDataViewB;
           settingsChanged=true;
         }
 
@@ -4953,13 +4959,14 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.cursorMoveNoScroll=conf.getInt("cursorMoveNoScroll",0);
 
     settings.notePreviewBehavior=conf.getInt("notePreviewBehavior",1);
-    
+
     settings.absorbInsInput=conf.getInt("absorbInsInput",0);
-    
+
     settings.moveWindowTitle=conf.getInt("moveWindowTitle",1);
 
     settings.doubleClickColumn=conf.getInt("doubleClickColumn",1);
     settings.dragMovesSelection=conf.getInt("dragMovesSelection",2);
+    settings.draggableDataView=conf.getInt("draggableDataView",1);
 
     settings.cursorFollowsOrder=conf.getInt("cursorFollowsOrder",1);
 
@@ -5397,7 +5404,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.backgroundPlay,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
-  if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
+  if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
 }
 
 void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
@@ -5446,10 +5453,10 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("blankIns",settings.blankIns);
 
     conf.set("saveWindowPos",settings.saveWindowPos);
-    
+
     conf.set("saveUnusedPatterns",settings.saveUnusedPatterns);
     conf.set("maxRecentFile",settings.maxRecentFile);
-    
+
     conf.set("persistFadeOut",settings.persistFadeOut);
     conf.set("exportLoops",settings.exportLoops);
     conf.set("exportFadeOut",settings.exportFadeOut);
@@ -5532,7 +5539,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("pullDeleteBehavior",settings.pullDeleteBehavior);
     conf.set("wrapHorizontal",settings.wrapHorizontal);
     conf.set("wrapVertical",settings.wrapVertical);
-    
+
     conf.set("stepOnDelete",settings.stepOnDelete);
     conf.set("scrollStep",settings.scrollStep);
     conf.set("avoidRaisingPattern",settings.avoidRaisingPattern);
@@ -5540,7 +5547,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("stepOnInsert",settings.stepOnInsert);
     conf.set("effectCursorDir",settings.effectCursorDir);
     conf.set("cursorPastePos",settings.cursorPastePos);
-    
+
     conf.set("effectDeletionAltersValue",settings.effectDeletionAltersValue);
 
     conf.set("pushNibble",settings.pushNibble);
@@ -5548,16 +5555,17 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("cursorMoveNoScroll",settings.cursorMoveNoScroll);
 
     conf.set("notePreviewBehavior",settings.notePreviewBehavior);
-    
+
     conf.set("absorbInsInput",settings.absorbInsInput);
-    
+
     conf.set("moveWindowTitle",settings.moveWindowTitle);
-    
+
     conf.set("doubleClickColumn",settings.doubleClickColumn);
     conf.set("dragMovesSelection",settings.dragMovesSelection);
-    
+    conf.set("draggableDataView",settings.draggableDataView);
+
     conf.set("cursorFollowsOrder",settings.cursorFollowsOrder);
-    
+
     conf.set("insertBehavior",settings.insertBehavior);
     conf.set("pullDeleteRow",settings.pullDeleteRow);
     conf.set("cursorFollowsWheel",settings.cursorFollowsWheel);
@@ -5565,7 +5573,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("removeInsOff",settings.removeInsOff);
     conf.set("removeVolOff",settings.removeVolOff);
     conf.set("insTypeMenu",settings.insTypeMenu);
-    
+
     conf.set("selectAssetOnLoad",settings.selectAssetOnLoad);
 
     conf.set("inputRepeat",settings.inputRepeat);
@@ -6307,7 +6315,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
       }
     }
   }
-  
+
   if (updateFonts) {
     // chan osc work pool
     if (chanOscWorkPool!=NULL) {
@@ -6503,7 +6511,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   sty.ScaleAllSizes(dpiScale);
 
   ImGui::GetStyle()=sty;
-  
+
   updateSampleTex=true;
 
   ImGui::GetIO().ConfigInputTrickleEventQueue=settings.eventDelay;

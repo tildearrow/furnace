@@ -71,7 +71,7 @@ const char* sampleNote[12]={
   }
 
 #define SIMPLE_DRAG_SOURCE(_c,_toMoveVar) \
-  if (ImGui::BeginDragDropSource()) { \
+  if (settings.draggableDataView && ImGui::BeginDragDropSource()) { \
     _toMoveVar=i; \
     ImGui::SetDragDropPayload(_c,NULL,0,ImGuiCond_Once); \
     ImGui::Button(ICON_FA_ARROWS "##AssetDrag"); \
@@ -79,7 +79,7 @@ const char* sampleNote[12]={
   }
 
 #define SIMPLE_DRAG_TARGET(_c,_toMoveVar,_curVar,_swapFn,_moveUpFn,_moveDownFn) \
-  if (ImGui::BeginDragDropTarget()) { \
+  if (settings.draggableDataView && ImGui::BeginDragDropTarget()) { \
     const ImGuiPayload* payload=ImGui::AcceptDragDropPayload(_c); \
     if (payload!=NULL) { \
       int target=i; \
@@ -129,7 +129,7 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_STD+ins->type]);
       insIcon=insTypes[ins->type];
     }
-  
+
     switch (settings.insIconsStyle) {
       case 1:
         name=fmt::sprintf("%s##_INS%d",insIcon[1],i);
