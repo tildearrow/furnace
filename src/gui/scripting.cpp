@@ -301,6 +301,71 @@ _CF(setCurSample) {
   return 0;
 }
 
+_CF(getOctave) {
+  lua_pushinteger(s,curOctave);
+  return 1;
+}
+
+_CF(getEditStep) {
+  lua_pushinteger(s,editStep);
+  return 1;
+}
+
+_CF(getEditStepCoarse) {
+  lua_pushinteger(s,editStepCoarse);
+  return 1;
+}
+
+_CF(getOrderEditMode) {
+  lua_pushinteger(s,orderEditMode);
+  return 1;
+}
+
+_CF(getOrderCursor) {
+  lua_pushinteger(s,orderCursor);
+  return 1;
+}
+
+_CF(setOctave) {
+  CHECK_ARGS(1);
+  CHECK_TYPE_NUMBER(1);
+
+  curOctave=lua_tointeger(s,1);
+  return 0;
+}
+
+_CF(setEditStep) {
+  CHECK_ARGS(1);
+  CHECK_TYPE_NUMBER(1);
+
+  editStep=lua_tointeger(s,1);
+  return 0;
+}
+
+_CF(setEditStepCoarse) {
+  CHECK_ARGS(1);
+  CHECK_TYPE_NUMBER(1);
+
+  editStepCoarse=lua_tointeger(s,1);
+  return 0;
+}
+
+_CF(setOrderEditMode) {
+  CHECK_ARGS(1);
+  CHECK_TYPE_NUMBER(1);
+
+  orderEditMode=lua_tointeger(s,1);
+  return 0;
+}
+
+_CF(setOrderCursor) {
+  CHECK_ARGS(1);
+  CHECK_TYPE_NUMBER(1);
+
+  orderCursor=lua_tointeger(s,1);
+  return 0;
+}
+
 _CF(getSongName) {
   lua_pushstring(s,e->song.name.c_str());
   return 1;
@@ -1703,6 +1768,16 @@ void FurnaceGUI::initScriptEngine() {
     REG_FUNC(setCurIns);
     REG_FUNC(setCurWave);
     REG_FUNC(setCurSample);
+    REG_FUNC(getOctave);
+    REG_FUNC(getEditStep);
+    REG_FUNC(getEditStepCoarse);
+    REG_FUNC(getOrderEditMode);
+    REG_FUNC(getOrderCursor);
+    REG_FUNC(setOctave);
+    REG_FUNC(setEditStep);
+    REG_FUNC(setEditStepCoarse);
+    REG_FUNC(setOrderEditMode);
+    REG_FUNC(setOrderCursor);
     REG_FUNC(getSongName);
     REG_FUNC(setSongName);
     REG_FUNC(getSongAuthor);
