@@ -84,10 +84,10 @@ static FurnaceGUI* externGUI;
   }
 
 #define REG_FUNC(x) \
-  lua_getglobal(playgroundState,"fur"); \
-  lua_pushcfunction(playgroundState,_ ## x); \
-  lua_setfield(playgroundState,-2,#x); \
-  lua_pop(playgroundState,1);
+  lua_getglobal(s,"fur"); \
+  lua_pushcfunction(s,_ ## x); \
+  lua_setfield(s,-2,#x); \
+  lua_pop(s,1);
 
 /// FUNCTIONS
 
@@ -1731,6 +1731,111 @@ void FurnaceGUI::resetScriptState(lua_State* s) {
   }
 }
 
+void FurnaceGUI::bindScriptFunctions(lua_State* s) {
+  lua_newtable(s);
+  lua_setglobal(s,"fur");
+  REG_FUNC(version);
+  REG_FUNC(versionStr);
+  REG_FUNC(showError);
+  REG_FUNC(getCursor);
+  REG_FUNC(setCursor);
+  REG_FUNC(getSelStart);
+  REG_FUNC(setSelStart);
+  REG_FUNC(getSelEnd);
+  REG_FUNC(setSelEnd);
+  REG_FUNC(getCurOrder);
+  REG_FUNC(getCurRow);
+  REG_FUNC(getPlayTimeSec);
+  REG_FUNC(getPlayTimeMicro);
+  REG_FUNC(getPlayTimeTicks);
+  REG_FUNC(isPlaying);
+  REG_FUNC(isRunning);
+  REG_FUNC(isFreelance);
+  REG_FUNC(getChanCount);
+  REG_FUNC(getCurSubSong);
+  REG_FUNC(getEditOrder);
+  REG_FUNC(registerMenuEntry);
+  REG_FUNC(getCurIns);
+  REG_FUNC(getCurWave);
+  REG_FUNC(getCurSample);
+  REG_FUNC(setCurIns);
+  REG_FUNC(setCurWave);
+  REG_FUNC(setCurSample);
+  REG_FUNC(getOctave);
+  REG_FUNC(getEditStep);
+  REG_FUNC(getEditStepCoarse);
+  REG_FUNC(getOrderEditMode);
+  REG_FUNC(getOrderCursor);
+  REG_FUNC(setOctave);
+  REG_FUNC(setEditStep);
+  REG_FUNC(setEditStepCoarse);
+  REG_FUNC(setOrderEditMode);
+  REG_FUNC(setOrderCursor);
+  REG_FUNC(getSongName);
+  REG_FUNC(setSongName);
+  REG_FUNC(getSongAuthor);
+  REG_FUNC(setSongAuthor);
+  REG_FUNC(getSongAlbum);
+  REG_FUNC(setSongAlbum);
+  REG_FUNC(getSongSysName);
+  REG_FUNC(setSongSysName);
+  REG_FUNC(getSongTuning);
+  REG_FUNC(setSongTuning);
+  REG_FUNC(getSongComments);
+  REG_FUNC(setSongComments);
+  REG_FUNC(getSubSongName);
+  REG_FUNC(setSubSongName);
+  REG_FUNC(getSubSongComments);
+  REG_FUNC(setSubSongComments);
+  REG_FUNC(getSongRate);
+  REG_FUNC(setSongRate);
+  REG_FUNC(getSongVirtualTempo);
+  REG_FUNC(setSongVirtualTempo);
+  REG_FUNC(getSongDivider);
+  REG_FUNC(setSongDivider);
+  REG_FUNC(getSongHighlights);
+  REG_FUNC(setSongHighlights);
+  REG_FUNC(getSongSpeeds);
+  REG_FUNC(setSongSpeeds);
+  REG_FUNC(getSongLength);
+  REG_FUNC(setSongLength);
+  REG_FUNC(getPatLength);
+  REG_FUNC(setPatLength);
+  REG_FUNC(createIns);
+  REG_FUNC(deleteIns);
+  REG_FUNC(createWave);
+  REG_FUNC(deleteWave);
+  REG_FUNC(getWaveWidth);
+  REG_FUNC(setWaveWidth);
+  REG_FUNC(getWaveHeight);
+  REG_FUNC(setWaveHeight);
+  REG_FUNC(getWaveData);
+  REG_FUNC(setWaveData);
+  REG_FUNC(createSample);
+  REG_FUNC(deleteSample);
+  REG_FUNC(getSampleLength);
+  REG_FUNC(setSampleLength);
+  REG_FUNC(getSampleSize);
+  REG_FUNC(getSampleType);
+  REG_FUNC(setSampleType);
+  REG_FUNC(getSampleLoop);
+  REG_FUNC(setSampleLoop);
+  REG_FUNC(getSampleRate);
+  REG_FUNC(setSampleRate);
+  REG_FUNC(getSampleCompatRate);
+  REG_FUNC(setSampleCompatRate);
+  REG_FUNC(getSampleData);
+  REG_FUNC(setSampleData);
+  REG_FUNC(isSampleEditable);
+  REG_FUNC(renderSamples);
+  REG_FUNC(getOrder);
+  REG_FUNC(setOrder);
+  REG_FUNC(getPattern);
+  REG_FUNC(setPattern);
+  REG_FUNC(getPatternDirect);
+  REG_FUNC(setPatternDirect);
+}
+
 void FurnaceGUI::initScriptEngine() {
   externGUI=this;
 
@@ -1739,108 +1844,7 @@ void FurnaceGUI::initScriptEngine() {
     logE("could not create script playground state!");
   } else {
     luaL_openlibs(playgroundState);
-    lua_newtable(playgroundState);
-    lua_setglobal(playgroundState,"fur");
-    REG_FUNC(version);
-    REG_FUNC(versionStr);
-    REG_FUNC(showError);
-    REG_FUNC(getCursor);
-    REG_FUNC(setCursor);
-    REG_FUNC(getSelStart);
-    REG_FUNC(setSelStart);
-    REG_FUNC(getSelEnd);
-    REG_FUNC(setSelEnd);
-    REG_FUNC(getCurOrder);
-    REG_FUNC(getCurRow);
-    REG_FUNC(getPlayTimeSec);
-    REG_FUNC(getPlayTimeMicro);
-    REG_FUNC(getPlayTimeTicks);
-    REG_FUNC(isPlaying);
-    REG_FUNC(isRunning);
-    REG_FUNC(isFreelance);
-    REG_FUNC(getChanCount);
-    REG_FUNC(getCurSubSong);
-    REG_FUNC(getEditOrder);
-    REG_FUNC(registerMenuEntry);
-    REG_FUNC(getCurIns);
-    REG_FUNC(getCurWave);
-    REG_FUNC(getCurSample);
-    REG_FUNC(setCurIns);
-    REG_FUNC(setCurWave);
-    REG_FUNC(setCurSample);
-    REG_FUNC(getOctave);
-    REG_FUNC(getEditStep);
-    REG_FUNC(getEditStepCoarse);
-    REG_FUNC(getOrderEditMode);
-    REG_FUNC(getOrderCursor);
-    REG_FUNC(setOctave);
-    REG_FUNC(setEditStep);
-    REG_FUNC(setEditStepCoarse);
-    REG_FUNC(setOrderEditMode);
-    REG_FUNC(setOrderCursor);
-    REG_FUNC(getSongName);
-    REG_FUNC(setSongName);
-    REG_FUNC(getSongAuthor);
-    REG_FUNC(setSongAuthor);
-    REG_FUNC(getSongAlbum);
-    REG_FUNC(setSongAlbum);
-    REG_FUNC(getSongSysName);
-    REG_FUNC(setSongSysName);
-    REG_FUNC(getSongTuning);
-    REG_FUNC(setSongTuning);
-    REG_FUNC(getSongComments);
-    REG_FUNC(setSongComments);
-    REG_FUNC(getSubSongName);
-    REG_FUNC(setSubSongName);
-    REG_FUNC(getSubSongComments);
-    REG_FUNC(setSubSongComments);
-    REG_FUNC(getSongRate);
-    REG_FUNC(setSongRate);
-    REG_FUNC(getSongVirtualTempo);
-    REG_FUNC(setSongVirtualTempo);
-    REG_FUNC(getSongDivider);
-    REG_FUNC(setSongDivider);
-    REG_FUNC(getSongHighlights);
-    REG_FUNC(setSongHighlights);
-    REG_FUNC(getSongSpeeds);
-    REG_FUNC(setSongSpeeds);
-    REG_FUNC(getSongLength);
-    REG_FUNC(setSongLength);
-    REG_FUNC(getPatLength);
-    REG_FUNC(setPatLength);
-    REG_FUNC(createIns);
-    REG_FUNC(deleteIns);
-    REG_FUNC(createWave);
-    REG_FUNC(deleteWave);
-    REG_FUNC(getWaveWidth);
-    REG_FUNC(setWaveWidth);
-    REG_FUNC(getWaveHeight);
-    REG_FUNC(setWaveHeight);
-    REG_FUNC(getWaveData);
-    REG_FUNC(setWaveData);
-    REG_FUNC(createSample);
-    REG_FUNC(deleteSample);
-    REG_FUNC(getSampleLength);
-    REG_FUNC(setSampleLength);
-    REG_FUNC(getSampleSize);
-    REG_FUNC(getSampleType);
-    REG_FUNC(setSampleType);
-    REG_FUNC(getSampleLoop);
-    REG_FUNC(setSampleLoop);
-    REG_FUNC(getSampleRate);
-    REG_FUNC(setSampleRate);
-    REG_FUNC(getSampleCompatRate);
-    REG_FUNC(setSampleCompatRate);
-    REG_FUNC(getSampleData);
-    REG_FUNC(setSampleData);
-    REG_FUNC(isSampleEditable);
-    REG_FUNC(renderSamples);
-    REG_FUNC(getOrder);
-    REG_FUNC(setOrder);
-    REG_FUNC(getPattern);
-    REG_FUNC(setPattern);
-    REG_FUNC(getPatternDirect);
-    REG_FUNC(setPatternDirect);
+    bindScriptFunctions(playgroundState);
   }
 }
 

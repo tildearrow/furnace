@@ -3077,6 +3077,7 @@ class FurnaceGUI {
 
   void runScriptFunction(lua_State* s, int id);
   void resetScriptState(lua_State* s);
+  void bindScriptFunctions(lua_State* s);
   void initScriptEngine();
 
   ImFont* addFontZlib(const void* data, size_t len, float size_pixels, const ImFontConfig* font_cfg=NULL, const ImWchar* glyph_ranges=NULL);
@@ -3091,6 +3092,7 @@ class FurnaceGUI {
     int sc_version(lua_State* s);
     int sc_versionStr(lua_State* s);
     int sc_showError(lua_State* s);
+    int sc_test(lua_State* s);
 
     /// CURSOR STATE
     // -> xCoarse, xFine, y
@@ -3117,10 +3119,12 @@ class FurnaceGUI {
     int sc_isPlaying(lua_State* s);
     int sc_isRunning(lua_State* s);
     int sc_isFreelance(lua_State* s);
+    int sc_resetEngine(lua_State* s);
 
     /// ENGINE STATE
     int sc_getChanCount(lua_State* s);
     int sc_getCurSubSong(lua_State* s);
+    int sc_setCurSubSong(lua_State* s);
 
     /// INTERFACE STATE
     int sc_getEditOrder(lua_State* s);
@@ -3143,6 +3147,7 @@ class FurnaceGUI {
     int sc_setOrderCursor(lua_State* s);
 
     /// SONG MANIPULATION
+    int sc_createNewSong(lua_State* s);
     int sc_getSongName(lua_State* s);
     int sc_setSongName(lua_State* s);
     int sc_getSongAuthor(lua_State* s);
@@ -3175,6 +3180,13 @@ class FurnaceGUI {
     int sc_setSongLength(lua_State* s);
     int sc_getPatLength(lua_State* s);
     int sc_setPatLength(lua_State* s);
+
+    /// HIGH-LEVEL FUNCTIONS
+    int sc_exchangeIns(lua_State* s);
+    int sc_exchangeWave(lua_State* s);
+    int sc_exchangeSample(lua_State* s);
+    int sc_swapChannels(lua_State* s);
+    int sc_stompChannel(lua_State* s);
 
     /// INSTRUMENT MANIPULATION (TODO)
     int sc_createIns(lua_State* s);
