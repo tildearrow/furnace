@@ -312,11 +312,6 @@ void FurnaceGUI::drawSettings() {
         for (SettingsCategory cat:settings.categories) drawSettingsCategory(&cat);
       }
 /* interface > mouse
-        bool draggableDataViewB=settings.draggableDataView;
-        if (ImGui::Checkbox(_("Draggable instruments/samples/waves"),&draggableDataViewB)) {
-          settings.draggableDataView=draggableDataViewB;
-          settingsChanged=true;
-        }
 */
       ImGui::EndChild();
       if (vertical) ImGui::TableNextRow();
