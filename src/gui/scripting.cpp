@@ -1453,7 +1453,7 @@ _CF(getPattern) {
   if (row<0 || row>=DIV_MAX_ROWS) {
     SC_ERROR("row out of range");
   }
-  if (pos<0 || pos>=2+DIV_MAX_EFFECTS*2) {
+  if (pos<0 || pos>2+DIV_MAX_EFFECTS*2) {
     SC_ERROR("position out of range");
   }
 
@@ -1516,7 +1516,7 @@ _CF(setPattern) {
   if (row<0 || row>=DIV_MAX_ROWS) {
     SC_ERROR("row out of range");
   }
-  if (pos<0 || pos>=2+DIV_MAX_EFFECTS*2) {
+  if (pos<0 || pos>2+DIV_MAX_EFFECTS*2) {
     SC_ERROR("position out of range");
   }
 
@@ -1594,7 +1594,7 @@ _CF(getPatternDirect) {
   if (row<0 || row>=DIV_MAX_ROWS) {
     SC_ERROR("row out of range");
   }
-  if (pos<0 || pos>=2+DIV_MAX_EFFECTS*2) {
+  if (pos<0 || pos>2+DIV_MAX_EFFECTS*2) {
     SC_ERROR("position out of range");
   }
 
@@ -1654,7 +1654,7 @@ _CF(setPatternDirect) {
   if (row<0 || row>=DIV_MAX_ROWS) {
     SC_ERROR("row out of range");
   }
-  if (pos<0 || pos>=2+DIV_MAX_EFFECTS*2) {
+  if (pos<0 || pos>2+DIV_MAX_EFFECTS*2) {
     SC_ERROR("position out of range");
   }
 
