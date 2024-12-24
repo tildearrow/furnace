@@ -2434,7 +2434,7 @@ void FurnaceGUI::setupSettingsCategories() {
           if (ImGui::Combo(_("Main font"),&settings.mainFont,LocalizedComboGetter,mainFonts,7)) SETTINGS_CHANGED;
         }),
         SETTING_COND(_("Main font"),{
-          ImGui::InputText("##MainFontPath",&settings.mainFontPath);
+          if (ImGui::InputText("##MainFontPath",&settings.mainFontPath)) SETTINGS_CHANGED;
           ImGui::SameLine();
           if (ImGui::Button(ICON_FA_FOLDER "##MainFontLoad")) {
             openFileDialog(GUI_FILE_LOAD_MAIN_FONT);
@@ -2453,7 +2453,7 @@ void FurnaceGUI::setupSettingsCategories() {
           if (ImGui::Combo(_("Header font"),&settings.headFont,LocalizedComboGetter,mainFonts,7)) SETTINGS_CHANGED;
         }),
         SETTING_COND(_("Header font"),{
-          ImGui::InputText("##HeadFontPath",&settings.headFontPath);
+          if (ImGui::InputText("##HeadFontPath",&settings.headFontPath)) SETTINGS_CHANGED;
           ImGui::SameLine();
           if (ImGui::Button(ICON_FA_FOLDER "##HeadFontLoad")) {
             openFileDialog(GUI_FILE_LOAD_HEAD_FONT);
@@ -2472,7 +2472,7 @@ void FurnaceGUI::setupSettingsCategories() {
           if (ImGui::Combo(_("Pattern font"),&settings.patFont,LocalizedComboGetter,mainFonts,7)) SETTINGS_CHANGED;
         }),
         SETTING_COND(_("Pattern font"),{
-          ImGui::InputText("##PatFontPath",&settings.patFontPath);
+          if (ImGui::InputText("##PatFontPath",&settings.patFontPath)) SETTINGS_CHANGED;
           ImGui::SameLine();
           if (ImGui::Button(ICON_FA_FOLDER "##PatFontLoad")) {
             openFileDialog(GUI_FILE_LOAD_PAT_FONT);

@@ -311,8 +311,6 @@ void FurnaceGUI::drawSettings() {
       if (ImGui::BeginChild("SettingCategories",vertical?settingsCatViewSize/ImVec2(1.0f,3.0f):settingsCatViewSize,false)) {
         for (SettingsCategory cat:settings.categories) drawSettingsCategory(&cat);
       }
-/* interface > mouse
-*/
       ImGui::EndChild();
       if (vertical) ImGui::TableNextRow();
       ImGui::TableNextColumn();
