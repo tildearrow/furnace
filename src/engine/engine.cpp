@@ -3256,6 +3256,53 @@ bool DivEngine::moveSampleDown(int which) {
   return true;
 }
 
+bool DivEngine::swapInstruments(int a, int b) {
+  if (a<0 || a>=(int)song.ins.size() || b<0 || b>=(int)song.ins.size()) return false;
+  BUSY_BEGIN;
+  DivInstrument* temp=song.ins[a];
+  saveLock.lock();
+  song.ins[a]=song.ins[b];
+  song.ins[b]=temp;
+  moveAsset(song.insDir,a,b);
+  exchangeIns(a,b);
+  saveLock.unlock();
+  BUSY_END;
+  return true;
+}
+
+bool DivEngine::swapWaves(int a, int b) {
+  if (a<0 || a>=(int)song.wave.size() || b<0 || b>=(int)song.wave.size()) return false;
+  BUSY_BEGIN;
+  DivWavetable* temp=song.wave[a];
+  saveLock.lock();
+  song.wave[a]=song.wave[b];
+  song.wave[b]=temp;
+  exchangeWave(a,b);
+  moveAsset(song.waveDir,a,b);
+  saveLock.unlock();
+  BUSY_END;
+  return true;
+}
+
+bool DivEngine::swapSamples(int a, int b) {
+  if (a<0 || a>=(int)song.sample.size() || b<0 || b>=(int)song.sample.size()) return false;
+  BUSY_BEGIN;
+  sPreview.sample=-1;
+  sPreview.pos=0;
+  sPreview.dir=false;
+  DivSample* temp=song.sample[a];
+  saveLock.lock();
+  song.sample[a]=song.sample[b];
+  song.sample[b]=temp;
+  exchangeSample(a,b);
+  moveAsset(song.sampleDir,a,b);
+  saveLock.unlock();
+  renderSamples();
+  BUSY_END;
+  return true;
+}
+
+
 void DivEngine::autoPatchbay() {
   song.patchbay.clear();
   for (unsigned int i=0; i<song.systemLen; i++) {
