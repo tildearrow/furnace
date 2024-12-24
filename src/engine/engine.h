@@ -1111,6 +1111,11 @@ class DivEngine {
     bool moveWaveDown(int which);
     bool moveSampleDown(int which);
 
+    // swap things
+    bool swapInstruments(int a, int b);
+    bool swapWaves(int a, int b);
+    bool swapSamples(int a, int b);
+
     // automatic patchbay
     void autoPatchbay();
     void autoPatchbayP();
