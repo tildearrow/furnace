@@ -5317,6 +5317,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.doubleClickColumn,0,1);
   clampSetting(settings.blankIns,0,1);
   clampSetting(settings.dragMovesSelection,0,2);
+  clampSetting(settings.draggableDataView,0,1);
   clampSetting(settings.unsignedDetune,0,1);
   clampSetting(settings.noThreadedInput,0,1);
   clampSetting(settings.saveWindowPos,0,1);
