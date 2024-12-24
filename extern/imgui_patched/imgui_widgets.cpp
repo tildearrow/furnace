@@ -539,7 +539,7 @@ void ImGui::ScrollText(ImGuiID id, const char* text, const ImVec2& pos, ImVec2 s
   ImDrawList* dl=window->DrawList;
   ImGuiStorage* storage=GetStateStorage();
 
-  ImVec2 textSize=ImGui::CalcTextSize(text);
+  ImVec2 textSize=ImGui::CalcTextSize(text, NULL, true);
   bool mustNotScroll=false;
 
   if (size.x==0) {

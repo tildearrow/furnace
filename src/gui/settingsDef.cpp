@@ -2064,6 +2064,13 @@ void FurnaceGUI::setupSettingsCategories() {
             SETTINGS_CHANGED;
           }
         }),
+        SETTING(_("Draggable instruments/samples/waves"),{
+          bool draggableDataViewB=settings.draggableDataView;
+          if (ImGui::Checkbox(_("Draggable instruments/samples/waves"),&draggableDataViewB)) {
+            settings.draggableDataView=draggableDataViewB;
+            SETTINGS_CHANGED;
+          }
+        }),
         SETTING(_("Note preview behavior:"),{
           ImGui::Text(_("Note preview behavior:"));
           ImGui::Indent();

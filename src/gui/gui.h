@@ -854,6 +854,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WAVE_LIST_SAVE,
   GUI_ACTION_WAVE_LIST_SAVE_DMW,
   GUI_ACTION_WAVE_LIST_SAVE_RAW,
+  GUI_ACTION_WAVE_LIST_CREATE_SAMPLE,
   GUI_ACTION_WAVE_LIST_MOVE_UP,
   GUI_ACTION_WAVE_LIST_MOVE_DOWN,
   GUI_ACTION_WAVE_LIST_DELETE,
@@ -1856,7 +1857,7 @@ class FurnaceGUI {
     int pnQuality;
     int saaQuality;
     int sccQuality;
-    int smQuality; 
+    int smQuality;
     int swanQuality;
     int vbQuality;
     int arcadeCoreRender;
@@ -1883,7 +1884,7 @@ class FurnaceGUI {
     int pnQualityRender;
     int saaQualityRender;
     int sccQualityRender;
-    int smQualityRender; 
+    int smQualityRender;
     int swanQualityRender;
     int vbQualityRender;
     int pcSpeakerOutMethod;
@@ -1979,6 +1980,7 @@ class FurnaceGUI {
     int doubleClickColumn;
     int blankIns;
     int dragMovesSelection;
+    int draggableDataView;
     int cursorFollowsOrder;
     int unsignedDetune;
     int noThreadedInput;
@@ -2240,6 +2242,7 @@ class FurnaceGUI {
       doubleClickColumn(1),
       blankIns(0),
       dragMovesSelection(1),
+      draggableDataView(1),
       cursorFollowsOrder(1),
       unsignedDetune(0),
       noThreadedInput(0),
@@ -2588,6 +2591,7 @@ class FurnaceGUI {
 
   int chanToMove, sysToMove, sysToDelete, opToMove;
   int assetToMove, dirToMove;
+  int insToMove, waveToMove, sampleToMove;
 
   ImVec2 patWindowPos, patWindowSize;
 
@@ -2753,7 +2757,7 @@ class FurnaceGUI {
   bool pianoReadonly;
   int pianoOffset, pianoOffsetEdit;
   int pianoView, pianoInputPadMode;
-  
+
   // effect sorting / searching
   bool effectsShow[10];
   ImGuiTextFilter effectSearch;

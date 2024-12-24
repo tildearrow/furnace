@@ -2000,8 +2000,17 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
   if (!freelance) {
     if (stepPlay!=1) {
       if (!noAccum) {
+        double dt=divider*tickMult;
+        if (skipping) {
+          dt*=(double)virtualTempoN/(double)MAX(1,virtualTempoD);
+        }
         totalTicksR++;
-        totalTicks+=1000000/(divider*tickMult);
+        totalTicks+=1000000/dt;
+        totalTicksOff+=fmod(1000000.0,dt);
+        while (totalTicksOff>=dt) {
+          totalTicksOff-=dt;
+          totalTicks++;
+        }
       }
       if (totalTicks>=1000000) {
         totalTicks-=1000000;

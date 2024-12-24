@@ -17,7 +17,7 @@ to reset to show matching settings update the search bar
 ### Program
 
 - **Language**: select the language used for the interface. some languages are incomplete, and are listed with their approximate completion percentage.
-- **Render backend**: changing this may help with performace or compatibility issues. the available render backends are:
+- **Render backend**: changing this may help with performance or compatibility issues. the available render backends are:
   - SDL Renderer: this was the only available render backend prior to the addition of dedicated OpenGL/DirectX backends in 0.6. default on macOS.
     - it is slower than the other backends.
   - DirectX 11: works with the majority of graphics chips/cards and is optimized specifically for Windows.
@@ -564,6 +564,10 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - slight performance cost and slightly buggy.
 - **Fill entire window**: removes the gap between the waveform and the edge of the window.
 - **Waveform goes out of bounds**: allows the waveform to draw past the top and bottom of the oscilloscope.
+
+### Song Comments
+
+- **Wrap text**: visually breaks long lines at the width of the text box. does not affect the text itself.
 
 ### Windows
 

@@ -78,10 +78,30 @@ the following parameters may be used:
 
 **export (other)**
 
-- `-zsmout path`: output Zsound Music data for Commander X16.
+- `-cmdout path`: output command stream dump to `path`.
   - you must provide a file, otherwise Furnace will quit.
 
-- `-cmdout path`: output command stream dump to `path`.
+- `-romout path`: output ROM file export to `path`.
+  - you must provide a file, otherwise Furnace will quit.
+  - there must be an available ROM export target for the system.
+
+- `-romconf key=value`: set a configuration parameter for `-romout`.
+  - you may use this multiple times to set multiple parameters.
+  - Amiga Validation
+    - no parameters.
+  - Commander X16 ZSM
+    - `zsmrate`: tick rate (Hz), default: `60`
+    - `loop`: loop song, default: `true`
+    - `optimize`: optimize size, default: `true`
+  - Atari 2600 (TIunA)
+    - `baseLabel`: base song label name, default: `song`
+    - `firstBankSize`: max size in first bank, default: `3072`
+    - `otherBankSize`: max size in other banks, default: `4048`
+    - `sysToExport`: TIA chip index, default: `-1` (find first)
+  - Atari 8-bit SAP-R
+    - no parameters.
+
+- `-txtout path`: output text file export to `path`.
   - you must provide a file, otherwise Furnace will quit.
 
 ## COMMAND LINE INTERFACE
