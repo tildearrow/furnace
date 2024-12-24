@@ -3692,7 +3692,7 @@ msgstr "82xx: Ustaw panning (prawy kanał"
 
 #: src/engine/engine.cpp:87
 msgid "83xy: Panning slide (x0: left; 0y: right)"
-msgstr ""
+msgstr "83xy: Portamento panningu (x0: lewo; 0y: prawo)"
 
 #: src/engine/engine.cpp:89
 msgid "84xy: Panbrello (x: speed; y: depth)"
@@ -4018,7 +4018,7 @@ msgstr ""
 
 #: src/main.cpp:777
 msgid "that file is empty!"
-msgstr ""
+msgstr "ten plik jest pusty!"
 
 #: src/main.cpp:779
 #, c-format
@@ -4042,19 +4042,19 @@ msgstr "nie udało się otworzyć pliku! (%s)"
 
 #: src/main.cpp:819
 msgid "could not initialize engine!"
-msgstr ""
+msgstr "nie udało się uruchomić silnika!"
 
 #: src/main.cpp:857
 msgid "could not write command stream!"
-msgstr ""
+msgstr "nie udało się zapisać strumienia komend!"
 
 #: src/main.cpp:873
 msgid "could not write VGM!"
-msgstr ""
+msgstr "nie udało zapisać się pliku VGM!"
 
 #: src/main.cpp:895
 msgid "error while starting CLI!"
-msgstr ""
+msgstr "błąd podczas uruchamiania wiersza poleceń!"
 
 #: src/main.cpp:899
 msgid "playing..."
@@ -4745,7 +4745,7 @@ msgstr "gratulacje! odkryłeś tajny panel."
 
 #: src/gui/exportOptions.cpp:483
 msgid "Toggle hidden systems"
-msgstr "Włącz ukryhte systemy"
+msgstr "Włącz ukryte systemy"
 
 #: src/gui/exportOptions.cpp:487
 msgid "Toggle all instrument types"
@@ -4996,7 +4996,7 @@ msgstr "Opcje:"
 
 #: src/gui/pattern.cpp:506
 msgid "Effect columns/collapse"
-msgstr "Roszerzanie kolumn efektów"
+msgstr "Poszerzanie kolumn efektów"
 
 #: src/gui/pattern.cpp:507
 msgid "Pattern names"
@@ -5226,11 +5226,11 @@ msgstr ""
 "- %D: numer kanału (zaczynając od 1)\n"
 "- %n: nuta kanału\n"
 "- %i: nazwa instrumentu\n"
-"- %I: numer instrumentu (dziesietny)\n"
+"- %I: numer instrumentu (dziesiętny)\n"
 "- %x: numer instrumentu (szesnastkowy)\n"
-"- %s: nazwa ukladu\n"
-"- %p: numer wewnetrzny ukladu\n"
-"- %S: ID ukladu\n"
+"- %s: nazwa układu\n"
+"- %p: numer wewnętrzny układu\n"
+"- %S: ID układu\n"
 "- %v: Głośność (dziesiętna)\n"
 "- %V: Głośność (w procentach)\n"
 "- %b: Głośność (szesnastkowa)\n"
@@ -5473,7 +5473,7 @@ msgstr "Nowy"
 
 #: src/gui/editControls.cpp:491 src/gui/doAction.cpp:38 src/gui/gui.cpp:4371
 msgid "Unsaved changes! Save changes before creating a new song?"
-msgstr "Niezapisane zmiany! Zapisać zmiany przed srtworzeniem nowego utworu?"
+msgstr "Niezapisane zmiany! Zapisać zmiany przed stworzeniem nowego utworu?"
 
 #: src/gui/editControls.cpp:507
 msgid "Save as..."
@@ -6440,7 +6440,7 @@ msgstr "Stopnie głośności Amigi (64)"
 
 #: src/gui/sysConf.cpp:1309
 msgid "Amiga-like pitch (non-linear pitch only)"
-msgstr "Amigopodobna tablica wysokości tonów (tylko dla nie-liniowej tablicy wysokości"
+msgstr "Amigo-podobna tablica wysokości tonów (tylko dla nie-liniowej tablicy wysokości"
 
 #: src/gui/sysConf.cpp:1345 src/gui/sysConf.cpp:1767
 msgid "3.54MHz (PAL)"
@@ -7567,7 +7567,7 @@ msgid ""
 "Are you sure you want to reset all Furnace settings?\n"
 "You must restart Furnace after doing so."
 msgstr ""
-"Czy jeśteś pewien że chcesz zresetować wszystkie ustawienia Furnace?\n"
+"Czy jesteś pewien że chcesz zresetować wszystkie ustawienia Furnace?\n"
 "Będzie niezbędne ponowne uruchomienie Furnace."
 
 #: src/gui/settings.cpp:1264
@@ -7769,7 +7769,7 @@ msgstr "Przypisz dane głosu FM do instrumentu"
 
 #: src/gui/settings.cpp:1585
 msgid "Program change is instrument selection"
-msgstr "Zmiana programu to wyubór instrumentu"
+msgstr "Zmiana programu to wybór instrumentu"
 
 #: src/gui/settings.cpp:1589
 msgid "Value input style"
@@ -8090,7 +8090,7 @@ msgstr "Nie wywołuj edytora wzorców po naciśnięciu przycisku"
 
 #: src/gui/settings.cpp:2666
 msgid "Focus pattern editor when selecting instrument"
-msgstr "UStaw skupienie na edyorze wzorców podczas wyboru instrumentu"
+msgstr "Ustaw skupienie na edytorze wzorców podczas wyboru instrumentu"
 
 #: src/gui/settings.cpp:2671
 msgid "Note preview behavior:"
@@ -8414,7 +8414,7 @@ msgstr "Wył. (miękkie)"
 
 #: src/gui/settings.cpp:3070
 msgid "Slight##fh1"
-msgstr "Lekkei"
+msgstr "Lekkie"
 
 #: src/gui/settings.cpp:3074
 msgid "Normal##fh2"
@@ -8586,7 +8586,7 @@ msgstr "nazwa_pliku.fur - Furnace##tbar2"
 
 #: src/gui/settings.cpp:3212
 msgid "/path/to/file.fur - Furnace##tbar3"
-msgstr "/scieżka/do/pliku.fur - Furnace##tbar3"
+msgstr "/ścieżka/do/pliku.fur - Furnace##tbar3"
 
 #: src/gui/settings.cpp:3220
 msgid "Display system name on title bar"
@@ -8775,43 +8775,43 @@ msgstr "Pasek głośności kanału:"
 
 #: src/gui/settings.cpp:3455
 msgid "None##CHV0"
-msgstr ""
+msgstr "Żaden"
 
 #: src/gui/settings.cpp:3459
 msgid "Simple##CHV1"
-msgstr ""
+msgstr "Prosty"
 
 #: src/gui/settings.cpp:3463
 msgid "Stereo##CHV2"
-msgstr ""
+msgstr "Stereo"
 
 #: src/gui/settings.cpp:3467
 msgid "Real##CHV3"
-msgstr ""
+msgstr "Prawdziwy"
 
 #: src/gui/settings.cpp:3471
 msgid "Real (stereo)##CHV4"
-msgstr ""
+msgstr "Prawdziwy (stereo)"
 
 #: src/gui/settings.cpp:3477
 msgid "Channel feedback style:"
-msgstr "Tryb podświetlenia nagłowka kanału"
+msgstr "Tryb podświetlenia nagłówka kanału"
 
 #: src/gui/settings.cpp:3479
 msgid "Off##CHF0"
-msgstr ""
+msgstr "Wył."
 
 #: src/gui/settings.cpp:3483
 msgid "Note##CHF1"
-msgstr ""
+msgstr "Nuta"
 
 #: src/gui/settings.cpp:3487
 msgid "Volume##CHF2"
-msgstr ""
+msgstr "Głośność"
 
 #: src/gui/settings.cpp:3491
 msgid "Active##CHF3"
-msgstr ""
+msgstr "Aktywność"
 
 #: src/gui/settings.cpp:3497
 msgid "Channel font:"
@@ -8819,11 +8819,11 @@ msgstr "Czcionka nagłówka kanału:"
 
 #: src/gui/settings.cpp:3499
 msgid "Regular##CHFont0"
-msgstr ""
+msgstr "Zwykła"
 
 #: src/gui/settings.cpp:3503
 msgid "Monospace##CHFont1"
-msgstr ""
+msgstr "O stałej szerokości"
 
 #: src/gui/settings.cpp:3510
 msgid "Center channel name"
@@ -8835,15 +8835,15 @@ msgstr "Kolory nagłówków kanałów"
 
 #: src/gui/settings.cpp:3517
 msgid "Single##CHC0"
-msgstr ""
+msgstr "Proste"
 
 #: src/gui/settings.cpp:3521
 msgid "Channel type##CHC1"
-msgstr ""
+msgstr "Według typu kanału"
 
 #: src/gui/settings.cpp:3525
 msgid "Instrument type##CHC2"
-msgstr ""
+msgstr "Według typu instrumentu"
 
 #: src/gui/settings.cpp:3531
 msgid "Channel name colors:"
@@ -8851,15 +8851,15 @@ msgstr "Kolory nazwy kanału:"
 
 #: src/gui/settings.cpp:3533
 msgid "Single##CTC0"
-msgstr ""
+msgstr "Proste"
 
 #: src/gui/settings.cpp:3537
 msgid "Channel type##CTC1"
-msgstr "Typ kanału"
+msgstr "Według typu kanału"
 
 #: src/gui/settings.cpp:3541
 msgid "Instrument type##CTC2"
-msgstr "Typ instrumentu"
+msgstr "Według typu instrumentu"
 
 #: src/gui/settings.cpp:3550
 msgid "Unified instrument/wavetable/sample list"
@@ -8915,7 +8915,7 @@ msgstr "Użyj klasycznego pionowego paska przewijania"
 
 #: src/gui/settings.cpp:3626
 msgid "Automatic macro step size/horizontal zoom"
-msgstr ""
+msgstr "Automatyczna długość kroku makra/poziomego zoomu"
 
 #: src/gui/settings.cpp:3633
 msgid "Wave Editor"
@@ -8959,7 +8959,7 @@ msgstr "Nowoczesny##fml0"
 
 #: src/gui/settings.cpp:3670
 msgid "Modern with more labels##fml7"
-msgstr ""
+msgstr "Nowoczesny z większą ilością podpisów"
 
 #: src/gui/settings.cpp:3674
 msgid "Compact (2x2, classic)##fml1"
@@ -9380,7 +9380,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:3972
 msgid "Font"
-msgstr ""
+msgstr "Czcionka"
 
 #: src/gui/settings.cpp:3978
 msgid "Background (top-left)"
@@ -9499,7 +9499,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:4015
 msgid "Order number"
-msgstr ""
+msgstr "Numer wzorca"
 
 #: src/gui/settings.cpp:4016
 msgid "Playing order background"
@@ -9507,7 +9507,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:4017
 msgid "Song loop"
-msgstr ""
+msgstr "Zapętlenie utworu"
 
 #: src/gui/settings.cpp:4018
 msgid "Selected order"
@@ -9519,7 +9519,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:4020
 msgid "Inactive patterns"
-msgstr ""
+msgstr "Nieaktywne wzorce"
 
 #: src/gui/settings.cpp:4023
 msgid "Envelope View"
@@ -9631,7 +9631,7 @@ msgstr "Globalny parametr"
 
 #: src/gui/settings.cpp:4062
 msgid "Step Highlight"
-msgstr "Podkreslenie wiersza"
+msgstr "Podkreślenie wiersza"
 
 #: src/gui/settings.cpp:4065
 msgid "Instrument Types"
@@ -12208,7 +12208,7 @@ msgstr "Przeskocz do poprzedniego wiersza matrycy wzorców"
 
 #: src/gui/guiConst.cpp:674
 msgid "Collapse channel at cursor"
-msgstr "Skróc zaznaczony kursor"
+msgstr "Skróć zaznaczony kursor"
 
 #: src/gui/guiConst.cpp:675
 msgid "Increase effect columns"
@@ -13294,7 +13294,7 @@ msgid ""
 "%d bytes free"
 msgstr ""
 "%s (%s)\n"
-"wolnych %d bajów"
+"wolnych %d bajtów"
 
 #: src/gui/sampleEdit.cpp:871
 msgid ""
@@ -13541,7 +13541,7 @@ msgstr "Witamy!"
 
 #: src/gui/tutorial.cpp:661
 msgid "welcome to Furnace, the biggest open-source chiptune tracker!"
-msgstr ""
+msgstr "witamy w Furnace, największym otwartoźródłowym trackerze!"
 
 #: src/gui/tutorial.cpp:665
 msgid "here are some tips to get you started:"
@@ -15105,31 +15105,31 @@ msgstr "Dane Bit Rate Reduction SNESa"
 
 #: src/gui/gui.cpp:7878
 msgid "PMD YM2608 ADPCM-B sample bank"
-msgstr ""
+msgstr "Bank sampli ADPCM formatu PMD dla YM2608"
 
 #: src/gui/gui.cpp:7881
 msgid "PDR 4-bit AY-3-8910 sample bank"
-msgstr ""
+msgstr "Bank 4-bitowych sampli formatu PMD dla AY-3-8910"
 
 #: src/gui/gui.cpp:7884
 msgid "FMP YM2608 ADPCM-B sample bank"
-msgstr ""
+msgstr "Bank sampli ADPCM formatu FMP dla YM2608"
 
 #: src/gui/gui.cpp:7887
 msgid "MDX OKI ADPCM sample bank"
-msgstr ""
+msgstr "Bank sampli formatu MDX OKI ADPCM"
 
 #: src/gui/gui.cpp:7890
 msgid "FMP 8-bit PCM sample bank"
-msgstr ""
+msgstr "Bank 8-bitowych sampli formatu FMP PPZ"
 
 #: src/gui/gui.cpp:7893
 msgid "PMD 8-bit PCM sample bank"
-msgstr ""
+msgstr "Bank 8-bitowych sampli formatu PMDPPZ"
 
 #: src/gui/gui.cpp:7896
 msgid "PMD OKI ADPCM sample bank"
-msgstr ""
+msgstr "Bank sampli formatu PMD OKI ADPCM"
 
 #: src/gui/gui.cpp:8261
 msgid "Unsaved changes! Save changes before quitting?"
