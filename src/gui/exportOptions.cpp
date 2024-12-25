@@ -26,6 +26,19 @@
 void FurnaceGUI::drawExportAudio(bool onWindow) {
   exitDisabledTimer=1;
 
+  const char *formats[] = {"wav", "mp3", "ogg", "some other formats"};
+  int formats_size=sizeof(formats)/sizeof(formats[0]);
+
+  ImGui::Text(_("file format:"));
+  if (ImGui::BeginCombo(_("file format"),exportFormat.c_str())) {
+    for (int i=0; i<formats_size; i++) {
+      if (ImGui::Selectable(formats[i])) {
+        exportFormat=formats[i];
+      }
+    }
+    ImGui::EndCombo();
+  }
+
   ImGui::Text(_("Export type:"));
 
   ImGui::Indent();
@@ -299,7 +312,7 @@ void FurnaceGUI::drawExportROM(bool onWindow) {
         if (otherBankSize>4096) otherBankSize=4096;
         altered=true;
       }
-      
+
       ImGui::Text(_("chip to export:"));
       for (int i=0; i<e->song.systemLen; i++) {
         DivSystem sys=e->song.system[i];
@@ -382,7 +395,7 @@ void FurnaceGUI::drawExportText(bool onWindow) {
 
 void FurnaceGUI::drawExportCommand(bool onWindow) {
   exitDisabledTimer=1;
-  
+
   ImGui::Text(_(
     "this option exports a text or binary file which\n"
     "contains a dump of the internal command stream\n"
