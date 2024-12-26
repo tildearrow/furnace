@@ -130,7 +130,7 @@ bool FurnaceGUI::loadUserPresets(bool redundancy, String path, bool append) {
   FurnaceGUISysCategory* userCategory=NULL;
 
   for (FurnaceGUISysCategory& i: sysCategories) {
-    if (strcmp(i.name,"User")==0) {
+    if (strcmp(i.name,_("User"))==0) {
       userCategory=&i;
       break;
     }
@@ -226,7 +226,7 @@ bool FurnaceGUI::saveUserPresets(bool redundancy, String path) {
   FurnaceGUISysCategory* userCategory=NULL;
 
   for (FurnaceGUISysCategory& i: sysCategories) {
-    if (strcmp(i.name,"User")==0) {
+    if (strcmp(i.name,_("User"))==0) {
       userCategory=&i;
       break;
     }
@@ -336,7 +336,7 @@ void FurnaceGUI::drawUserPresets() {
   if (ImGui::Begin("User Systems",&userPresetsOpen,globalWinFlags,_("User Systems"))) {
     FurnaceGUISysCategory* userCategory=NULL;
     for (FurnaceGUISysCategory& i: sysCategories) {
-      if (strcmp(i.name,"User")==0) {
+      if (strcmp(i.name,_("User"))==0) {
         userCategory=&i;
         break;
       }

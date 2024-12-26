@@ -198,7 +198,7 @@ void FurnaceGUI::drawNewSong() {
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("%s",i.description);
           }
-          if (strcmp(i.name,"User")==0) ImGui::Separator();
+          if (strcmp(i.name,_("User"))==0) ImGui::Separator();
           index++;
         }
       }
