@@ -44,8 +44,10 @@ class SFWrapper {
     sf_count_t ioWrite(const void* ptr, sf_count_t count);
     sf_count_t ioTell();
 
+    void initVio();
     int doClose();
     SNDFILE* doOpen(const char* path, int mode, SF_INFO* sfinfo);
+    SNDFILE* doOpenFromWriteFd(int fd, SF_INFO* sfinfo);
     SFWrapper():
       f(NULL),
       len(0),

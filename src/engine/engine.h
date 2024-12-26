@@ -499,6 +499,7 @@ class DivEngine {
   DivAudioEngines audioEngine;
   DivAudioExportModes exportMode;
   DivAudioExportFormats exportFormat;
+  String exportFileExtNoDot;
   double exportFadeOut;
   bool isFadingOut;
   int exportOutputs;
@@ -623,8 +624,8 @@ class DivEngine {
   void loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadWOPL(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
- 
- //sample banks
+
+  // sample banks
   void loadP(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
   void loadPPC(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
   void loadPPS(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
@@ -632,8 +633,6 @@ class DivEngine {
   void loadPDX(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
   void loadPZI(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
   void loadP86(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
-
-
 
   int loadSampleROM(String path, ssize_t expectedSize, unsigned char*& ret);
 
@@ -734,7 +733,7 @@ class DivEngine {
     // export to text
     SafeWriter* saveText(bool separatePatterns=true);
     // export to an audio file
-    bool saveAudio(const char* path, DivAudioExportOptions options);
+    bool saveAudio(const char* path, DivAudioExportOptions options, const char *fileExt);
     // wait for audio export to finish
     void waitAudioFile();
     // stop audio file export

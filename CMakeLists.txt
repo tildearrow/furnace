@@ -481,6 +481,7 @@ src/subprocess.cpp
 src/baseutils.cpp
 src/fileutils.cpp
 src/utfutils.cpp
+src/stringutils.cpp
 
 extern/itcompress/compression.c
 

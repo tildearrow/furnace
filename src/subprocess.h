@@ -29,7 +29,6 @@ public:
     int writeFd;
     Pipe(): readFd(-1), writeFd(-1) {}
     Pipe(int pipeArr[2]): readFd(pipeArr[0]), writeFd(pipeArr[1]) {}
-    ~Pipe();
   };
 
 private:
@@ -40,6 +39,7 @@ private:
 
 public:
   Subprocess(std::vector<String> args);
+  ~Subprocess();
 
   // enables stdin piping, and returns a file descriptor to the writable end
   // should only be called before start()

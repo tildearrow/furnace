@@ -2583,9 +2583,6 @@ int FurnaceGUI::loadStream(String path) {
 void FurnaceGUI::exportAudio(String path, DivAudioExportModes mode) {
   songOrdersLengths.clear();
 
-  const FurnaceGUIExportFormat *ef=&exportFormats[curAudioExportFormat];
-  const char *extNoDot=&ef->fileExt[1];
-
   int loopOrder=0;
   int loopRow=0;
   int loopEnd=0;
@@ -2599,7 +2596,8 @@ void FurnaceGUI::exportAudio(String path, DivAudioExportModes mode) {
   }
   songLoopedSectionLength-=loopRow;
 
-  e->saveAudio(path.c_str(),audioExportOptions);
+  const FurnaceGUIExportFormat& ef=exportFormats[curAudioExportFormat];
+  e->saveAudio(path.c_str(),audioExportOptions,ef.fileExt);
 
   totalFiles=0;
   e->getTotalAudioFiles(totalFiles);

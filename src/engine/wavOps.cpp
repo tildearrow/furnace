@@ -20,6 +20,7 @@
 #include "engine.h"
 #include "../ta-log.h"
 #include "../subprocess.h"
+#include "../stringutils.h"
 #ifdef HAVE_SNDFILE
 #include "sfWrapper.h"
 #endif
@@ -120,92 +121,106 @@ void DivEngine::runExportThread() {
         si.format=SF_FORMAT_WAV|SF_FORMAT_FLOAT;
       }
 
-      // TODO: receive format! and check if we really need to pipe it out
-      std::vector<String> args={"echo", "hello world!"};
-      Subprocess proc(args);
-      if (!proc.start()) {
-        logE("failed to start subprocess!\n");
-        // int writeFd=proc.pipeStdin(); // TODO
-      } else {
-        proc.wait();
-      }
-
-      sf=sfWrap.doOpen(exportPath.c_str(),SFM_WRITE,&si);
-      if (sf==NULL) {
-        logE("could not open file for writing! (%s)",sf_strerror(NULL));
-        exporting=false;
-        return;
-      }
-
-      float* outBuf[DIV_MAX_OUTPUTS];
-      float* outBufFinal;
-      for (int i=0; i<exportOutputs; i++) {
-        outBuf[i]=new float[EXPORT_BUFSIZE];
-      }
-      outBufFinal=new float[EXPORT_BUFSIZE*exportOutputs];
-
-      // take control of audio output
-      deinitAudioBackend();
-      playSub(false);
-
-      logI("rendering to file...");
-
-      while (playing) {
-        size_t total=0;
-        nextBuf(NULL,outBuf,0,exportOutputs,EXPORT_BUFSIZE);
-        if (totalProcessed>EXPORT_BUFSIZE) {
-          logE("error: total processed is bigger than export bufsize! %d>%d",totalProcessed,EXPORT_BUFSIZE);
-          totalProcessed=EXPORT_BUFSIZE;
+      const auto doExport=[&](){
+        if (sf==NULL) {
+          logE("could not initialize export");
+          exporting=false;
+          return;
         }
-        int fi=0;
-        for (int i=0; i<(int)totalProcessed; i++) {
-          total++;
-          if (isFadingOut) {
-            double mul=(1.0-((double)curFadeOutSample/(double)fadeOutSamples));
-            for (int j=0; j<exportOutputs; j++) {
-              outBufFinal[fi++]=MAX(-1.0f,MIN(1.0f,outBuf[j][i]))*mul;
+
+        float* outBuf[DIV_MAX_OUTPUTS];
+        float* outBufFinal;
+        for (int i=0; i<exportOutputs; i++) {
+          outBuf[i]=new float[EXPORT_BUFSIZE];
+        }
+        outBufFinal=new float[EXPORT_BUFSIZE*exportOutputs];
+
+        // take control of audio output
+        deinitAudioBackend();
+        playSub(false);
+
+        logI("rendering to file...");
+
+        while (playing) {
+          size_t total=0;
+          nextBuf(NULL,outBuf,0,exportOutputs,EXPORT_BUFSIZE);
+          if (totalProcessed>EXPORT_BUFSIZE) {
+            logE("error: total processed is bigger than export bufsize! %d>%d",totalProcessed,EXPORT_BUFSIZE);
+            totalProcessed=EXPORT_BUFSIZE;
+          }
+          int fi=0;
+          for (int i=0; i<(int)totalProcessed; i++) {
+            total++;
+            if (isFadingOut) {
+              double mul=(1.0-((double)curFadeOutSample/(double)fadeOutSamples));
+              for (int j=0; j<exportOutputs; j++) {
+                outBufFinal[fi++]=MAX(-1.0f,MIN(1.0f,outBuf[j][i]))*mul;
+              }
+              if (++curFadeOutSample>=fadeOutSamples) {
+                playing=false;
+                break;
+              }
+            } else {
+              for (int j=0; j<exportOutputs; j++) {
+                outBufFinal[fi++]=MAX(-1.0f,MIN(1.0f,outBuf[j][i]));
+              }
+              if (lastLoopPos>-1 && i>=lastLoopPos && totalLoops>=exportLoopCount) {
+                logD("start fading out...");
+                isFadingOut=true;
+                if (fadeOutSamples==0) break;
+              }
             }
-            if (++curFadeOutSample>=fadeOutSamples) {
-              playing=false;
-              break;
-            }
-          } else {
-            for (int j=0; j<exportOutputs; j++) {
-              outBufFinal[fi++]=MAX(-1.0f,MIN(1.0f,outBuf[j][i]));
-            }
-            if (lastLoopPos>-1 && i>=lastLoopPos && totalLoops>=exportLoopCount) {
-              logD("start fading out...");
-              isFadingOut=true;
-              if (fadeOutSamples==0) break;
-            }
+          }
+
+          if (sf_writef_float(sf,outBufFinal,total)!=(int)total) {
+            logE("error: failed to write entire buffer!");
+            break;
           }
         }
 
-        if (sf_writef_float(sf,outBufFinal,total)!=(int)total) {
-          logE("error: failed to write entire buffer!");
-          break;
+        delete[] outBufFinal;
+        for (int i=0; i<exportOutputs; i++) {
+          delete[] outBuf[i];
+        }
+
+        if (sfWrap.doClose()!=0) {
+          logE("could not close audio file!");
+        }
+
+        if (initAudioBackend()) {
+          for (int i=0; i<song.systemLen; i++) {
+            disCont[i].setRates(got.rate);
+            disCont[i].setQuality(lowQuality,dcHiPass);
+          }
+          if (!output->setRun(true)) {
+            logE("error while activating audio!");
+          }
+        }
+      };
+
+      if (exportFileExtNoDot=="wav") {
+        sf=sfWrap.doOpen(exportPath.c_str(),SFM_WRITE,&si);
+        doExport();
+      } else {
+        std::vector<String> args={"tee", "test.txt"}; // TODO: build args
+        Subprocess proc(args);
+        int writeFd=proc.pipeStdin();
+        if (writeFd==-1) {
+          logE("failed to create stdin pipe for subprocess");
+        } if (proc.start()) {
+          sf=sfWrap.doOpenFromWriteFd(writeFd,&si);
+          doExport();
+          logI("waiting for ffmpeg to finish...");
+          int code = proc.wait();
+          if (code!=0) {
+            logE("ffmpeg failed to export successfully"); // TODO: actually show this in the UI? (it might be a good idea to read the output from ffmpeg, in that case)
+          }
+        } else {
+          logE("failed to start subprocess");
         }
       }
 
-      delete[] outBufFinal;
-      for (int i=0; i<exportOutputs; i++) {
-        delete[] outBuf[i];
-      }
-
-      if (sfWrap.doClose()!=0) {
-        logE("could not close audio file!");
-      }
-
-      if (initAudioBackend()) {
-        for (int i=0; i<song.systemLen; i++) {
-          disCont[i].setRates(got.rate);
-          disCont[i].setQuality(lowQuality,dcHiPass);
-        }
-        if (!output->setRun(true)) {
-          logE("error while activating audio!");
-        }
-      }
-      logI("done!");
+      logI("exporting done!");
       exporting=false;
       break;
     }
@@ -481,7 +496,7 @@ bool DivEngine::shallSwitchCores() {
   return true;
 }
 
-bool DivEngine::saveAudio(const char* path, DivAudioExportOptions options) {
+bool DivEngine::saveAudio(const char* path, DivAudioExportOptions options, const char *fileExt) {
 #ifndef HAVE_SNDFILE
   logE("Furnace was not compiled with libsndfile. cannot export!");
   return false;
@@ -490,17 +505,15 @@ bool DivEngine::saveAudio(const char* path, DivAudioExportOptions options) {
   exportMode=options.mode;
   exportFormat=options.format;
   exportFadeOut=options.fadeOut;
+  if (fileExt[0]=='.') {
+    exportFileExtNoDot=&fileExt[1];
+  } else {
+    exportFileExtNoDot=fileExt;
+  }
+
   memcpy(exportChannelMask,options.channelMask,DIV_MAX_CHANS*sizeof(bool));
   if (exportMode!=DIV_EXPORT_MODE_ONE) {
-    // remove extension
-    String lowerCase=exportPath;
-    for (char& i: lowerCase) {
-      if (i>='A' && i<='Z') i+='a'-'A';
-    }
-    size_t extPos=lowerCase.rfind(".wav");
-    if (extPos!=String::npos) {
-      exportPath=exportPath.substr(0,extPos);
-    }
+    removeFileExt(exportPath,exportFileExtNoDot.c_str());
   }
   exporting=true;
   stopExport=false;

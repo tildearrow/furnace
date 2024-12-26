@@ -75,12 +75,16 @@ int SFWrapper::doClose() {
   return ret;
 }
 
-SNDFILE* SFWrapper::doOpen(const char* path, int mode, SF_INFO* sfinfo) {
+void SFWrapper::initVio() {
   vio.get_filelen=_vioGetSize;
   vio.read=_vioRead;
   vio.seek=_vioSeek;
   vio.tell=_vioTell;
   vio.write=_vioWrite;
+}
+
+SNDFILE* SFWrapper::doOpen(const char* path, int mode, SF_INFO* sfinfo) {
+  initVio();
   logV("SFWrapper: opening %s",path);
 
   const char* modeC="rb";
@@ -103,7 +107,7 @@ SNDFILE* SFWrapper::doOpen(const char* path, int mode, SF_INFO* sfinfo) {
     f=NULL;
     return NULL;
   }
-  
+
   len=ftell(f);
   if (len==(SIZE_MAX>>1)) {
     logE("SFWrapper: failed to tell (%s)",strerror(errno));
@@ -123,6 +127,24 @@ SNDFILE* SFWrapper::doOpen(const char* path, int mode, SF_INFO* sfinfo) {
 
   sf=sf_open_virtual(&vio,mode,sfinfo,this);
   if (sf!=NULL) fileMode=mode;
+  if (sf==NULL) {
+    logE("SFWrapper: WHY IS IT NULL?!");
+  }
+  return sf;
+}
+
+SNDFILE* SFWrapper::doOpenFromWriteFd(int writeFd, SF_INFO* sfinfo) {
+  f=fdopen(writeFd,"w");
+  if (f==NULL) {
+    logE("SFWrapper: failed to open file descriptor %d (pipe) as file: %s",writeFd,strerror(errno));
+    return NULL;
+  }
+
+  initVio();
+  len=0; // I am hoping this is not used when writing
+  fileMode=SFM_WRITE;
+
+  sf=sf_open_virtual(&vio,SFM_WRITE,sfinfo,this);
   if (sf==NULL) {
     logE("SFWrapper: WHY IS IT NULL?!");
   }

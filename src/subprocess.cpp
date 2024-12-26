@@ -19,6 +19,7 @@
 
 #include <unistd.h>
 #include "subprocess.h"
+#include "ta-log.h"
 
 #define tryMakePipe(_arrVar) \
   int _arrVar[2]; \
@@ -27,21 +28,27 @@
     return -1; \
   }
 
-Subprocess::Pipe::~Pipe() {
-  // FIXME: should we close both ends of the pipe?
-  if (writeFd!=-1)
-    close(writeFd);
-  if (readFd!=-1)
-    close(readFd);
-}
-
 Subprocess::Subprocess(std::vector<String> args):
   args(args)
 {}
 
+Subprocess::~Subprocess() {
+  logD("closing pipes!");
+  const auto closePipe = [](Subprocess::Pipe& p){
+    if (p.readFd!=-1)
+      close(p.readFd);
+    if (p.writeFd!=-1)
+      close(p.writeFd);
+  };
+  closePipe(stdinPipe);
+  closePipe(stdoutPipe);
+  closePipe(stderrPipe);
+}
+
 int Subprocess::pipeStdin() {
   tryMakePipe(arr);
   stdinPipe=Subprocess::Pipe(arr);
+  logD("made pipe, fds (%d,%d) ~ (%d,%d)\n",arr[0],arr[1],stdinPipe.writeFd,stdinPipe.readFd);
   return stdinPipe.writeFd;
 }
 

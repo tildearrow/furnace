@@ -913,7 +913,7 @@ int main(int argc, char** argv) {
     }
     if (outName!="") {
       e.setConsoleMode(true);
-      e.saveAudio(outName.c_str(),exportOptions);
+      e.saveAudio(outName.c_str(),exportOptions,"wav");
       e.waitAudioFile();
     }
     if (romOutName!="") {
