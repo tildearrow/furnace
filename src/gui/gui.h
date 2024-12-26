@@ -1616,7 +1616,7 @@ struct Setting {
     std::function<bool()> drawCondition;
   public:
     bool passesFilter(ImGuiTextFilter* filter) {
-      return drawCondition() && filter->PassFilter(friendlyName);
+      return drawCondition() && filter->PassFilter(_(friendlyName));
     };
     void drawSetting() {
       if (drawCondition()) draw();

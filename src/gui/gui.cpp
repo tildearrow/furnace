@@ -659,7 +659,7 @@ void FurnaceGUI::updateWindowTitle() {
       if (checker==0x5ec4497d && checker1==0x6347ee) {
         nonLatchNibble=true;
         settings.categories.push_back(
-          SettingsCategory(_("Cheat Codes"),{},{
+          SettingsCategory(_N("Cheat Codes"),{},{
             // ok, so you decided to read the code.
             // these are the cheat codes:
             // "Debug" - toggles mobile UI
@@ -670,7 +670,7 @@ void FurnaceGUI::updateWindowTitle() {
             // "btcdbcb" - use modern UI padding
             // 
             // "????" - enables stuff
-            Setting(_("Cheat Codes"),[this]{
+            Setting(_N("Cheat Codes"),[this]{
               ImGui::PushFont(headFont);
               ImGui::Text(_("Enter code:"));
               ImGui::PopFont();

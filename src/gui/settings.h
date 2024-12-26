@@ -87,12 +87,12 @@
 #define SETTINGS_CHANGED settingsChanged=true
 
 #define MIDI_SPECIFIC_CONTROL(i) \
-          SETTING(specificControls[i],{ \
+          SETTING(_N(specificControls[i]),{ \
             ImGui::PushID(i); \
             if (ImGui::Combo(specificControls[i],&midiMap.valueInputSpecificStyle[i],LocalizedComboGetter,valueSInputStyles,4)) SETTINGS_CHANGED; \
             ImGui::PopID(); \
           }), \
-          SETTING_COND(_("Control##valueCCS"),{ \
+          SETTING_COND(_N("Control##valueCCS"),{ \
             ImGui::PushID(i); \
             ImGui::Indent(); \
             if (ImGui::InputInt(_("Control##valueCCS"),&midiMap.valueInputSpecificSingle[i],1,16)) { \
@@ -103,7 +103,7 @@
             ImGui::Unindent(); \
             ImGui::PopID(); \
           },midiMap.valueInputSpecificStyle[i]==3), \
-          SETTING_COND(_("Control##valueCCS"),{ \
+          SETTING_COND(_N("Control##valueCCS"),{ \
             ImGui::PushID(i); \
             ImGui::Indent(); \
             if (ImGui::InputInt(_("MSB CC##valueCC1"),&midiMap.valueInputSpecificMSB[i],1,16)) { \
@@ -161,7 +161,7 @@
         })
 
 #define KEYBIND(x) \
-        SETTING((guiActions[x].friendlyName),{ \
+        SETTING(_N(guiActions[x].friendlyName),{ \
           const char* friendlyName=guiActions[x].friendlyName; \
           char temp[2048]; \
           snprintf(temp, 2048, "##%sKey",friendlyName); \
@@ -171,7 +171,7 @@
             ImGui::TableNextRow(); \
             ImGui::TableNextColumn(); \
             ImGui::AlignTextToFramePadding(); \
-            ImGui::ScrollText(x,friendlyName,ImGui::GetCursorScreenPos()); \
+            ImGui::ScrollText(x,_(friendlyName),ImGui::GetCursorScreenPos()); \
             ImGui::TableNextColumn(); \
             ImGui::PushID(x); \
             for (size_t i=0; i<actionKeys[x].size()+1; i++) { \
@@ -179,7 +179,7 @@
               if (i>0) ImGui::SameLine(); \
               bool isPending=bindSetPending && bindSetTarget==x && bindSetTargetIdx==(int)i; \
               if (i<actionKeys[x].size()) { \
-                if (ImGui::Button(isPending?_N("Press key..."):getKeyName(actionKeys[x][i]).c_str())) { \
+                if (ImGui::Button(isPending?_("Press key..."):getKeyName(actionKeys[x][i]).c_str())) { \
                   promptKey(x,i); \
                   SETTINGS_CHANGED; \
                 } \
@@ -196,7 +196,7 @@
                   parseKeybinds(); \
                 } \
               } else { \
-                if (ImGui::Button(isPending?_N("Press key..."):ICON_FA_PLUS)) { \
+                if (ImGui::Button(isPending?_("Press key..."):ICON_FA_PLUS)) { \
                   promptKey(x,i); \
                   SETTINGS_CHANGED; \
                 } \
@@ -209,9 +209,9 @@
         })
 
 #define UI_COLOR_CONFIG(what,label) \
-  SETTING(label,{ \
+  SETTING(_N(label),{ \
     ImGui::PushID(what); \
-    if (ImGui::ColorEdit4(label,(float*)&uiColors[what])) { \
+    if (ImGui::ColorEdit4(_(label),(float*)&uiColors[what])) { \
       applyUISettings(false); \
       SETTINGS_CHANGED; \
     } \
@@ -219,9 +219,9 @@
   })
 
 #define UI_COLOR_CONFIG_COND(what,label,cond) \
-  SETTING_COND(label,{ \
+  SETTING_COND(_N(label),{ \
     ImGui::PushID(what); \
-    if (ImGui::ColorEdit4(label,(float*)&uiColors[what])) { \
+    if (ImGui::ColorEdit4(_(label),(float*)&uiColors[what])) { \
       applyUISettings(false); \
       SETTINGS_CHANGED; \
     } \

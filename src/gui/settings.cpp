@@ -28,10 +28,10 @@ void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {
   bool filterActive=settings.filter.IsActive();
   if (cat->children.size()>0) {
     ImGuiTreeNodeFlags f=ImGuiTreeNodeFlags_SpanFullWidth|ImGuiTreeNodeFlags_OpenOnArrow|ImGuiTreeNodeFlags_OpenOnDoubleClick;
-    if (settings.activeCategory.name==cat->name) f|=ImGuiTreeNodeFlags_Selected;
-    ImGui::BeginDisabled(filterActive && !settings.filter.PassFilter(cat->name));
+    if (settings.activeCategory.id==cat->id) f|=ImGuiTreeNodeFlags_Selected;
+    ImGui::BeginDisabled(filterActive && !settings.filter.PassFilter(_(cat->name)));
     if (filterActive) f|=ImGuiTreeNodeFlags_DefaultOpen;
-    cat->expandChild=ImGui::TreeNodeEx(cat->name,f);
+    cat->expandChild=ImGui::TreeNodeEx(_(cat->name),f);
     ImGui::EndDisabled();
     if (ImGui::IsItemClicked()) {
       settings.activeCategory=*cat;
@@ -45,8 +45,8 @@ void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {
       if (cat->expandChild) ImGui::TreePop();
     }
   } else { // a lonely child...
-    ImGui::BeginDisabled(filterActive && !settings.filter.PassFilter(cat->name));
-    if (ImGui::Selectable(cat->name,settings.activeCategory.id==cat->id)) {
+    ImGui::BeginDisabled(filterActive && !settings.filter.PassFilter(_(cat->name)));
+    if (ImGui::Selectable(_(cat->name),settings.activeCategory.id==cat->id)) {
       settings.activeCategory=*cat;
     }
     ImGui::EndDisabled();
@@ -67,7 +67,7 @@ void FurnaceGUI::searchDrawSettingItems(SettingsCategory* cat) {
     }
   }
   if (anyFound) {
-    ImGui::BulletText("%s",cat->name);
+    ImGui::BulletText("%s",_(cat->name));
     ImGui::Indent();
     for (Setting s:cat->settings) {
       if (s.passesFilter(&settings.filter)) s.drawSetting();
@@ -320,7 +320,7 @@ void FurnaceGUI::drawSettings() {
       if (ImGui::BeginChild("SettingsItems",settingsItemsViewSize)) {
         drawSettingsItems();
         if ((strncmp(settings.filter.InputBuf,"cheat",6)==0) && !nonLatchNibble) {
-          ImGui::Text("gotta unlock them first!");
+          ImGui::Text(_("gotta unlock them first!"));
         }
       }
       ImGui::EndChild();
