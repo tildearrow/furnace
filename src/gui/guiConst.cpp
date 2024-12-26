@@ -1215,10 +1215,10 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
 
 #define D(_n,_fe,_gp) FurnaceGUIExportFormat(_n,_fe,_gp)
 extern const FurnaceGUIExportFormat exportFormats[EXPORT_FORMAT_COUNT]={
-  D("Wave file", "wav", "*.wav"),
-  D("FLAC file", "flac", "*.flac"),
-  D("OGG file", "ogg", "*.ogg"),
-  D("MP3 file", "mp3", "*.mp3"),
+  D("Wave file",".wav","*.wav"),
+  D("FLAC file",".flac","*.flac"),
+  D("OGG file",".ogg","*.ogg"),
+  D("MP3 file",".mp3","*.mp3"),
 };
 #undef D
 

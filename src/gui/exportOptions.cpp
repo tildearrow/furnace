@@ -27,7 +27,7 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
   exitDisabledTimer=1;
 
   const auto formatEF = [](const FurnaceGUIExportFormat *ef) {
-    return fmt::sprintf("%s (.%s)",ef->name,ef->fileExt);
+    return fmt::sprintf("%s (%s)",_(ef->name),ef->fileExt);
   };
 
   ImGui::Text(_("file format:"));

@@ -19,6 +19,7 @@
 
 #include "engine.h"
 #include "../ta-log.h"
+#include "../subprocess.h"
 #ifdef HAVE_SNDFILE
 #include "sfWrapper.h"
 #endif
@@ -119,6 +120,16 @@ void DivEngine::runExportThread() {
         si.format=SF_FORMAT_WAV|SF_FORMAT_FLOAT;
       }
 
+      // TODO: receive format! and check if we really need to pipe it out
+      std::vector<String> args={"echo", "hello world!"};
+      Subprocess proc(args);
+      if (!proc.start()) {
+        logE("failed to start subprocess!\n");
+        // int writeFd=proc.pipeStdin(); // TODO
+      } else {
+        proc.wait();
+      }
+
       sf=sfWrap.doOpen(exportPath.c_str(),SFM_WRITE,&si);
       if (sf==NULL) {
         logE("could not open file for writing! (%s)",sf_strerror(NULL));
@@ -169,7 +180,7 @@ void DivEngine::runExportThread() {
             }
           }
         }
-        
+
         if (sf_writef_float(sf,outBufFinal,total)!=(int)total) {
           logE("error: failed to write entire buffer!");
           break;
@@ -328,7 +339,7 @@ void DivEngine::runExportThread() {
       outBufFinal=new float[EXPORT_BUFSIZE*exportOutputs];
 
       logI("rendering to files...");
-      
+
       for (int i=0; i<chans; i++) {
         if (!exportChannelMask[i]) continue;
 
@@ -366,7 +377,7 @@ void DivEngine::runExportThread() {
             disCont[dispatchOfChan[j]].dispatch->muteChannel(dispatchChanOfChan[j],isMuted[j]);
           }
         }
-        
+
         curOrder=0;
         prevOrder=0;
         curFadeOutSample=0;

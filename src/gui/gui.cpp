@@ -2580,9 +2580,11 @@ int FurnaceGUI::loadStream(String path) {
   return 0;
 }
 
-
 void FurnaceGUI::exportAudio(String path, DivAudioExportModes mode) {
   songOrdersLengths.clear();
+
+  const FurnaceGUIExportFormat *ef=&exportFormats[curAudioExportFormat];
+  const char *extNoDot=&ef->fileExt[1];
 
   int loopOrder=0;
   int loopRow=0;
@@ -5110,11 +5112,14 @@ bool FurnaceGUI::loop() {
           if (curFileDialog==GUI_FILE_SAVE_DMF_LEGACY) {
             checkExtension(".dmf");
           }
-          if (curFileDialog==GUI_FILE_SAMPLE_SAVE ||
-              curFileDialog==GUI_FILE_EXPORT_AUDIO_ONE ||
+          if (curFileDialog==GUI_FILE_SAMPLE_SAVE) {
+            checkExtension(".wav");
+          }
+          if (curFileDialog==GUI_FILE_EXPORT_AUDIO_ONE ||
               curFileDialog==GUI_FILE_EXPORT_AUDIO_PER_SYS ||
               curFileDialog==GUI_FILE_EXPORT_AUDIO_PER_CHANNEL) {
-            checkExtension(".wav");
+            const FurnaceGUIExportFormat *ef=&exportFormats[curAudioExportFormat];
+            checkExtension(ef->fileExt);
           }
           if (curFileDialog==GUI_FILE_INS_SAVE) {
             checkExtension(".fui");
