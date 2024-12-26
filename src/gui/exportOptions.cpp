@@ -26,14 +26,16 @@
 void FurnaceGUI::drawExportAudio(bool onWindow) {
   exitDisabledTimer=1;
 
-  const char *formats[] = {"wav", "mp3", "ogg", "some other formats"};
-  int formats_size=sizeof(formats)/sizeof(formats[0]);
+  const auto formatEF = [](const FurnaceGUIExportFormat *ef) {
+    return fmt::sprintf("%s (.%s)",ef->name,ef->fileExt);
+  };
 
   ImGui::Text(_("file format:"));
-  if (ImGui::BeginCombo(_("file format"),exportFormat.c_str())) {
-    for (int i=0; i<formats_size; i++) {
-      if (ImGui::Selectable(formats[i])) {
-        exportFormat=formats[i];
+  const FurnaceGUIExportFormat *currentFormat=&exportFormats[curAudioExportFormat];
+  if (ImGui::BeginCombo(_("file format"),formatEF(currentFormat).c_str())) {
+    for (int i=0; i<EXPORT_FORMAT_COUNT; i++) {
+      if (ImGui::Selectable(formatEF(&exportFormats[i]).c_str())) {
+        curAudioExportFormat=i;
       }
     }
     ImGui::EndCombo();
@@ -159,7 +161,6 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
 void FurnaceGUI::drawExportVGM(bool onWindow) {
   exitDisabledTimer=1;
 
-  ImGui::Text(_("settings:"));
   if (ImGui::BeginCombo(_("format version"),fmt::sprintf("%d.%.2x",vgmExportVersion>>8,vgmExportVersion&0xff).c_str())) {
     for (int i=0; i<7; i++) {
       if (ImGui::Selectable(fmt::sprintf("%d.%.2x",vgmVersions[i]>>8,vgmVersions[i]&0xff).c_str(),vgmExportVersion==vgmVersions[i])) {

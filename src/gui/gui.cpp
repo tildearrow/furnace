@@ -1962,36 +1962,42 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale
       );
       break;
-    case GUI_FILE_EXPORT_AUDIO_ONE:
+    case GUI_FILE_EXPORT_AUDIO_ONE: {
       if (!dirExists(workingDirAudioExport)) workingDirAudioExport=getHomeDir();
+      const FurnaceGUIExportFormat *ef=&exportFormats[curAudioExportFormat];
       hasOpened=fileDialog->openSave(
         _("Export Audio"),
-        {_("Wave file"), "*.wav"},
+        {_(ef->name), ef->globPattern},
         workingDirAudioExport,
         dpiScale,
         (settings.autoFillSave)?shortName:""
       );
       break;
-    case GUI_FILE_EXPORT_AUDIO_PER_SYS:
+    }
+    case GUI_FILE_EXPORT_AUDIO_PER_SYS: {
       if (!dirExists(workingDirAudioExport)) workingDirAudioExport=getHomeDir();
+      const FurnaceGUIExportFormat *ef=&exportFormats[curAudioExportFormat];
       hasOpened=fileDialog->openSave(
         _("Export Audio"),
-        {_("Wave file"), "*.wav"},
+        {_(ef->name), ef->globPattern},
         workingDirAudioExport,
         dpiScale,
         (settings.autoFillSave)?shortName:""
       );
       break;
-    case GUI_FILE_EXPORT_AUDIO_PER_CHANNEL:
+    }
+    case GUI_FILE_EXPORT_AUDIO_PER_CHANNEL: {
       if (!dirExists(workingDirAudioExport)) workingDirAudioExport=getHomeDir();
+      const FurnaceGUIExportFormat *ef=&exportFormats[curAudioExportFormat];
       hasOpened=fileDialog->openSave(
         _("Export Audio"),
-        {_("Wave file"), "*.wav"},
+        {_(ef->name), ef->globPattern},
         workingDirAudioExport,
         dpiScale,
         (settings.autoFillSave)?shortName:""
       );
       break;
+    }
     case GUI_FILE_EXPORT_VGM:
       if (!dirExists(workingDirVGMExport)) workingDirVGMExport=getHomeDir();
       hasOpened=fileDialog->openSave(
@@ -8275,6 +8281,7 @@ FurnaceGUI::FurnaceGUI():
   sampleTexW(0),
   sampleTexH(0),
   updateSampleTex(true),
+  curAudioExportFormat(0),
   quit(false),
   warnQuit(false),
   willCommit(false),
@@ -8807,8 +8814,7 @@ FurnaceGUI::FurnaceGUI():
   romMultiFile(false),
   romExportSave(false),
   pendingExport(NULL),
-  romExportExists(false),
-  exportFormat("wav") {
+  romExportExists(false) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;

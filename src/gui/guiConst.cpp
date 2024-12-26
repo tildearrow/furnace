@@ -248,7 +248,7 @@ const char* chanNames[CHANNEL_TYPE_MAX+1]={
   _N("Square"),
   _N("Triangle"), // NES
   _N("Saw"), // VRC6
-  _N("Ext. Operator"), 
+  _N("Ext. Operator"),
   _N("Drums"),
   _N("Slope"), // PowerNoise
   _N("Wave"), // not wavetable (VERA, 5E01)
@@ -1210,6 +1210,15 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
 
   D(GUI_COLOR_EE_VALUE,"",ImVec4(0.0f,1.0f,1.0f,1.0f)),
   D(GUI_COLOR_PLAYBACK_STAT,"",ImVec4(0.6f,0.6f,0.6f,1.0f)),
+};
+#undef D
+
+#define D(_n,_fe,_gp) FurnaceGUIExportFormat(_n,_fe,_gp)
+extern const FurnaceGUIExportFormat exportFormats[EXPORT_FORMAT_COUNT]={
+  D("Wave file", "wav", "*.wav"),
+  D("FLAC file", "flac", "*.flac"),
+  D("OGG file", "ogg", "*.ogg"),
+  D("MP3 file", "mp3", "*.mp3"),
 };
 #undef D
 
