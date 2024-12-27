@@ -202,23 +202,27 @@ void DivEngine::runExportThread() {
         sf=sfWrap.doOpen(exportPath.c_str(),SFM_WRITE,&si);
         doExport();
       } else {
-        std::vector<String> args={"xxd"}; // TODO: build args
-        Subprocess proc(args);
+        std::vector<String> command={"ffmpeg","-f","wav","-i","pipe:0","-f",exportFileExtNoDot,exportPath};
+        Subprocess proc(command);
         int writeFd=proc.pipeStdin();
         if (writeFd==-1) {
           logE("failed to create stdin pipe for subprocess");
-        } if (proc.start()) {
+        } else if (proc.start()) {
           // TODO: check if program has errored out already or else it might freeze :)
           sf=sfWrap.doOpenFromWriteFd(writeFd,&si);
           doExport();
-          proc.closeStdinPipe(false); // be sure we closed the write pipe to avoid stalling ffmpeg
+
+          // be sure we closed the write pipe to avoid stalling ffmpeg
+          proc.closeStdinPipe(false);
+
           logI("waiting for ffmpeg to finish...");
           int code = proc.wait();
           if (code!=0) {
-            logE("ffmpeg failed to export successfully"); // TODO: actually show this in the UI? (it might be a good idea to read the output from ffmpeg, in that case)
+            // TODO: actually show this in the UI? (it might be a good idea to read the output from ffmpeg, in that case)
+            logE("ffmpeg failed to export successfully");
           }
         } else {
-          logE("failed to start subprocess");
+          logE("failed to start ffmpeg subprocess");
         }
       }
 
