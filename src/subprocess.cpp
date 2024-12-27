@@ -18,6 +18,7 @@
  */
 
 #include <unistd.h>
+#include <sys/wait.h>
 #include "subprocess.h"
 #include "ta-log.h"
 
@@ -28,45 +29,54 @@
     return -1; \
   }
 
+void Subprocess::Pipe::close(bool careAboutError) {
+  const auto closeFd=[careAboutError](int& fd) {
+    if (fd==-1) return;
+    if (::close(fd)==-1 && careAboutError) {
+      logE("(Subprocess::Pipe::close) failed to close fd %d: %s", fd, strerror(errno));
+      return;
+    }
+    fd=-1;
+  };
+  closeFd(readFd);
+  closeFd(writeFd);
+}
+
 Subprocess::Subprocess(std::vector<String> args):
   args(args)
 {}
 
 Subprocess::~Subprocess() {
-  logD("closing pipes!");
-  const auto closePipe = [](Subprocess::Pipe& p){
-    if (p.readFd!=-1)
-      close(p.readFd);
-    if (p.writeFd!=-1)
-      close(p.writeFd);
-  };
-  closePipe(stdinPipe);
-  closePipe(stdoutPipe);
-  closePipe(stderrPipe);
+  stdinPipe.close();
+  stdoutPipe.close();
+  stderrPipe.close();
 }
 
 int Subprocess::pipeStdin() {
+  if (isRunning()) return -1;
   tryMakePipe(arr);
   stdinPipe=Subprocess::Pipe(arr);
-  logD("made pipe, fds (%d,%d) ~ (%d,%d)\n",arr[0],arr[1],stdinPipe.writeFd,stdinPipe.readFd);
   return stdinPipe.writeFd;
 }
 
 int Subprocess::pipeStdout() {
+  if (isRunning()) return -1;
   tryMakePipe(arr);
   stdinPipe=Subprocess::Pipe(arr);
   return stdinPipe.readFd;
 }
 
 int Subprocess::pipeStderr() {
+  if (isRunning()) return -1;
   tryMakePipe(arr);
   stdinPipe=Subprocess::Pipe(arr);
   return stdinPipe.readFd;
 }
 
 bool Subprocess::start() {
-  childPid=fork();
+  if (isRunning()) return false;
 
+  childPid=fork();
   if (childPid==-1 || args.size()==0) {
     return false;
   }
@@ -74,15 +84,19 @@ bool Subprocess::start() {
   if (childPid==0) {
     // child process
 
-    // set the desired pipes
+    // connect the desired pipes to the main file descriptors
+    // and then close the original copies (to avoid stalling)
     if (stdinPipe.readFd!=-1) {
       dup2(stdinPipe.readFd,STDIN_FILENO);
+      stdinPipe.close();
     }
     if (stdoutPipe.writeFd!=-1) {
       dup2(stdoutPipe.writeFd,STDOUT_FILENO);
+      stdoutPipe.close();
     }
     if (stderrPipe.writeFd!=-1) {
       dup2(stderrPipe.writeFd,STDERR_FILENO);
+      stderrPipe.close();
     }
 
     // could not find a guaranteed way to cast a vector<String> to a char*[] so let's just create our own array and copy stuff to it
@@ -98,12 +112,43 @@ bool Subprocess::start() {
     exit(127); // reachable if the execution fails - no need to log, just exit with a bad value and the parent process should be able to detect
   } else {
     // parent process
+
+    // attempt to close the ends not used by the parent process
+    // (to avoid stalling)
+    const auto closeEnd=[](int& fd) {
+      if (fd!=-1) return;
+      close(fd);
+      fd=-1;
+    };
+    closeEnd(stdinPipe.readFd);
+    closeEnd(stdinPipe.writeFd);
+    closeEnd(stdinPipe.writeFd);
+
     return true;
   }
 }
 
 int Subprocess::wait() {
-  // TODO
+  if (!isRunning()) return -1;
+
+  int status;
+  pid_t result=waitpid(childPid,&status,WUNTRACED|WCONTINUED);
+  if (result==-1) {
+    return -1;
+  }
+
+  // at this point, we have waited the process to finish
   childPid=-1;
-  return -1;
+  if (!WIFEXITED(status)) {
+    return -1;
+  }
+  return WEXITSTATUS(status);
+}
+
+bool Subprocess::isRunning() const {
+  return childPid!=-1;
+}
+
+void Subprocess::closeStdinPipe(bool careAboutError) {
+  stdinPipe.close(careAboutError);
 }

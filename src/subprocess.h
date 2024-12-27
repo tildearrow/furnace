@@ -27,13 +27,13 @@ public:
   struct Pipe {
     int readFd;
     int writeFd;
+    void close(bool careAboutError=true);
     Pipe(): readFd(-1), writeFd(-1) {}
     Pipe(int pipeArr[2]): readFd(pipeArr[0]), writeFd(pipeArr[1]) {}
   };
 
 private:
   std::vector<String> args;
-  bool isRunning=false;
   pid_t childPid=-1;
   Pipe stdinPipe, stdoutPipe, stderrPipe;
 
@@ -41,28 +41,25 @@ public:
   Subprocess(std::vector<String> args);
   ~Subprocess();
 
-  // enables stdin piping, and returns a file descriptor to the writable end
-  // should only be called before start()
-  // returns -1 on error
+  // These functions enable piping, and return a file descriptor to an end of the created pipe.
+  // On stdin, it's the writable end; on stdout and stderr, it's the readable end.
+  // These should only be called before start(). They return -1 on error.
   int pipeStdin();
-
-  // enables stdout piping, and returns a file decriptor to the readable end
-  // should only be called before start()
-  // returns -1 on error
   int pipeStdout();
-
-  // enables stderr piping, and returns a file decriptor to the readable end
-  // should only be called before start()
-  // returns -1 on error
   int pipeStderr();
 
-  // starts the subprocess
+  void closeStdinPipe(bool careAboutError);
+
+  // starts the subprocess.
   // returns whether it successfully started
   bool start();
 
-  // waits for the process to finish and returns its exit code
+  // waits for the process to finish and returns its exit code.
   // should only be called after start()
   int wait();
+
+  // checks whether the subprocess is on running-mode
+  bool isRunning() const;
 };
 
 #endif

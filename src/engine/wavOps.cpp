@@ -202,14 +202,16 @@ void DivEngine::runExportThread() {
         sf=sfWrap.doOpen(exportPath.c_str(),SFM_WRITE,&si);
         doExport();
       } else {
-        std::vector<String> args={"tee", "test.txt"}; // TODO: build args
+        std::vector<String> args={"xxd"}; // TODO: build args
         Subprocess proc(args);
         int writeFd=proc.pipeStdin();
         if (writeFd==-1) {
           logE("failed to create stdin pipe for subprocess");
         } if (proc.start()) {
+          // TODO: check if program has errored out already or else it might freeze :)
           sf=sfWrap.doOpenFromWriteFd(writeFd,&si);
           doExport();
+          proc.closeStdinPipe(false); // be sure we closed the write pipe to avoid stalling ffmpeg
           logI("waiting for ffmpeg to finish...");
           int code = proc.wait();
           if (code!=0) {
