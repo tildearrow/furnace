@@ -22,6 +22,9 @@
 #include "subprocess.h"
 #include "ta-log.h"
 
+#include <poll.h>
+#include <signal.h>
+
 #define TRY_MAKE_PIPE(_arrVar) \
   int _arrVar[2]; \
   int status=pipe(_arrVar); \
@@ -170,4 +173,35 @@ bool Subprocess::getExitCodeNoWait(int *outCode) {
 
 void Subprocess::closeStdinPipe(bool careAboutError) {
   stdinPipe.close(careAboutError);
+}
+
+bool Subprocess::waitStdinOrExit() {
+  // I've lost my patience completely so let's just throw a sleep call here. Fuck this.
+
+  struct pollfd pf;
+  pf.fd=stdinPipe.writeFd;
+  pf.events=POLLOUT;
+
+  while (true) {
+    int pollResult=poll(&pf,1,250); // FIXME: ACTUALLY WAIT! until a signal is caught or the polling ends (). Right now the CPU usage isn't all that high but there's an overhead here I think. I tried with ppoll() but didn't manage to make it work
+    if (pollResult==-1) {
+      logE("failed to use ppoll (%s)\n",strerror(errno));
+      return false;
+    }
+
+    if (pollResult > 0) return true;
+
+    // TODO: refactor this (getExitCodeNoWait() might work but it's not 100% analogous)
+    int status;
+    int result=waitpid(childPid,&status,WNOHANG);
+    if (result!=0) {
+      if ((result==-1 && errno==ECHILD) || (result==0 && WIFEXITED(status))) {
+        // pipe closed!
+        return false;
+      } else {
+        logE("unknown waitpid result");
+        return false;
+      }
+    }
+  }
 }

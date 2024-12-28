@@ -21,6 +21,7 @@
 #include "../ta-log.h"
 #include "../subprocess.h"
 #include "../stringutils.h"
+
 #ifdef HAVE_SNDFILE
 #include "sfWrapper.h"
 #endif
@@ -102,32 +103,104 @@ bool DivEngine::getIsFadingOut() {
   return isFadingOut;
 }
 
+class SndfileWavWriter {
+  private:
+    SNDFILE* sf;
+    SF_INFO si;
+    SFWrapper sfWrap;
+  public:
+    bool open(DivEngine* e, SF_INFO info, const char* exportPath) {
+      si=info;
+      sf=sfWrap.doOpen(exportPath,SFM_WRITE,&si);
+      if (sf==NULL) {
+        return false;
+      }
+
+      return true;
+    }
+
+    void close() {
+      if (sfWrap.doClose()!=0) {
+        logE("could not close audio file!");
+      }
+    }
+
+    bool write(float* buf, sf_count_t count) {
+      return sf_writef_float(sf,buf,count)==count;
+    }
+};
+
+class SndfileToProcWriter {
+  private:
+    Subprocess* proc;
+    SNDFILE* sf;
+    SF_INFO si;
+    SFWrapper sfWrap;
+  public:
+    SndfileToProcWriter():
+      proc(NULL) {}
+
+    bool open(DivEngine* e, SF_INFO info, Subprocess* proc_, int writeFd) {
+      proc=proc_;
+      si=info;
+
+      sf=sfWrap.doOpenFromWriteFd(writeFd,&si);
+      if (sf==NULL) {
+        return false;
+      }
+
+      if (!sfWrap.disableBlockingWrite()) {
+        logE("could not disable blocking write");
+        sfWrap.doClose();
+        return false;
+      }
+
+      return true;
+    }
+
+    void close() {
+      if (sfWrap.doClose()!=0) {
+        logE("could not close audio file!");
+      }
+    }
+
+    bool write(float* buf, sf_count_t count) {
+      while (true) {
+        if (sf_writef_float(sf,buf,count)==count) {
+          logD("successful write...");
+          return true;
+        }
+
+        logD("buffer got full; waiting...");
+        if (!proc->waitStdinOrExit()) {
+          logE("subprocess died before reading all the audio data");
+          return false;
+        }
+      }
+    }
+};
+
 #ifdef HAVE_SNDFILE
 void DivEngine::runExportThread() {
   size_t fadeOutSamples=got.rate*exportFadeOut;
   size_t curFadeOutSample=0;
   isFadingOut=false;
 
+  const auto makeSfInfo=[this]() {
+    SF_INFO si;
+    si.samplerate=got.rate;
+    si.channels=exportOutputs;
+    if (exportFormat==DIV_EXPORT_FORMAT_S16) {
+      si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
+    } else {
+      si.format=SF_FORMAT_WAV|SF_FORMAT_FLOAT;
+    }
+    return si;
+  };
+
   switch (exportMode) {
     case DIV_EXPORT_MODE_ONE: {
-      SNDFILE* sf;
-      SF_INFO si;
-      SFWrapper sfWrap;
-      si.samplerate=got.rate;
-      si.channels=exportOutputs;
-      if (exportFormat==DIV_EXPORT_FORMAT_S16) {
-        si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
-      } else {
-        si.format=SF_FORMAT_WAV|SF_FORMAT_FLOAT;
-      }
-
-      const auto doExport=[&](auto&& continueCheck) {
-        if (sf==NULL) {
-          logE("could not initialize export");
-          exporting=false;
-          return;
-        }
-
+      const auto doExport=[&fadeOutSamples,&curFadeOutSample,this](auto wr) {
         float* outBuf[DIV_MAX_OUTPUTS];
         float* outBufFinal;
         for (int i=0; i<exportOutputs; i++) {
@@ -172,23 +245,17 @@ void DivEngine::runExportThread() {
             }
           }
 
-          // FIXME: make this not cause issues when the subprocess dies
-          // at this point I think the best way to do it is to make an alternate SFWrapper that operates specifically with a Subprocess's pipe and, when writing, it does it on non-blocking mode and constantly checks if the
-          // a good idea might also be to use ppoll(). don't know how that works but I think I can figure it out. the harder part will be doing the multiple-implementations without outright code duplication
-          if (!continueCheck()) break;
-          if (sf_writef_float(sf,outBufFinal,total)!=(int)total) {
+          if (!wr->write(outBufFinal,total)) {
             logE("error: failed to write entire buffer!");
             break;
           }
         }
 
+        wr->close();
+
         delete[] outBufFinal;
         for (int i=0; i<exportOutputs; i++) {
           delete[] outBuf[i];
-        }
-
-        if (sfWrap.doClose()!=0) {
-          logE("could not close audio file!");
         }
 
         if (initAudioBackend()) {
@@ -203,8 +270,13 @@ void DivEngine::runExportThread() {
       };
 
       if (exportFileExtNoDot=="wav") {
-        sf=sfWrap.doOpen(exportPath.c_str(),SFM_WRITE,&si);
-        doExport([]() { return true; });
+        SndfileWavWriter wr;
+        if (!wr.open(this,makeSfInfo(),exportPath.c_str())) {
+          logE("could not initialize export writer");
+          exporting=false;
+          return;
+        }
+        doExport(&wr);
       } else {
         // build command vector
         std::vector<String> command={"ffmpeg","-y","-f","wav","-i","pipe:0","-f",exportFileExtNoDot};
@@ -215,32 +287,26 @@ void DivEngine::runExportThread() {
         int writeFd=proc.pipeStdin();
         if (writeFd==-1) {
           logE("failed to create stdin pipe for subprocess");
-        } else if (proc.start()) {
-          sf=sfWrap.doOpenFromWriteFd(writeFd,&si);
-
-          const auto checkProcAlive=[&proc]() {
-            int code;
-            if (proc.getExitCodeNoWait(&code)) {
-              logE("ffmpeg subprocess was abruptly interrupted; aborting export");
-              return false;
-            }
-            return true;
-          };
-          doExport(checkProcAlive);
-
-          // be sure we closed the write pipe to avoid stalling ffmpeg
-          proc.closeStdinPipe(false);
-
-          logI("waiting for ffmpeg to finish...");
-
-          int code;
-          if (!(proc.getExitCode(&code,true) && code==0)) {
-            logE("ffmpeg failed to export successfully");
-            // TODO: actually show this in the UI? (it might be a good idea to read the output from ffmpeg, in that case)
-          }
-        } else {
-          logE("failed to start ffmpeg subprocess");
+          exporting=false;
+          return;
         }
+
+        if (!proc.start()) {
+          logE("failed to start ffmpeg subprocess");
+          exporting=false;
+          return;
+        }
+
+        SndfileToProcWriter wr;
+        if (!wr.open(this,makeSfInfo(),&proc,writeFd)) {
+          logE("could not initialize export writer");
+          exporting=false;
+          return;
+        }
+        doExport(&wr);
+
+        // be sure we closed the write pipe to avoid stalling ffmpeg
+        proc.closeStdinPipe(false);
       }
 
       logI("exporting done!");

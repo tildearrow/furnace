@@ -65,6 +65,10 @@ public:
   // returns whether it successfully started
   bool start();
 
+  // waits for the stdin pipe (write end) to be writable, or for the subprocess
+  // to die
+  bool waitStdinOrExit();
+
   // tries to get the subprocess's exit code.
   // if `wait` is true, waits for the subprocess to finish and sets its exit code to `outCode`.
   // if not, just checks if it has finished already.

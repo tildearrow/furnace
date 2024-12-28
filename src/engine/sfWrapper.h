@@ -24,6 +24,7 @@
 
 #ifndef _SFWRAPPER_H
 #define _SFWRAPPER_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -31,11 +32,15 @@
 #include "../ta-utils.h"
 
 class SFWrapper {
-  FILE* f;
+  // manage both a file pointer and a file descriptor for flexibility
+  FILE* fp;
+  int fd;
+
   size_t len;
   SF_VIRTUAL_IO vio;
   SNDFILE* sf;
   int fileMode;
+  bool blockingWrite;
 
   public:
     sf_count_t ioGetSize();
@@ -48,11 +53,14 @@ class SFWrapper {
     int doClose();
     SNDFILE* doOpen(const char* path, int mode, SF_INFO* sfinfo);
     SNDFILE* doOpenFromWriteFd(int fd, SF_INFO* sfinfo);
+    bool disableBlockingWrite();
     SFWrapper():
-      f(NULL),
+      fp(NULL),
+      fd(-1),
       len(0),
       sf(NULL),
-      fileMode(0) {}
+      fileMode(0),
+      blockingWrite(true) {}
 };
 
 #endif
