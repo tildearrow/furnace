@@ -27,6 +27,7 @@
 #include "util.h"
 #include "../ta-log.h"
 #include "../fileutils.h"
+#include "../stringutils.h"
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "ImGuiFileDialog.h"
@@ -2809,10 +2810,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
 }
 
 #define checkExtension(x) \
-  String lowerCase=fileName; \
-  for (char& i: lowerCase) { \
-    if (i>='A' && i<='Z') i+='a'-'A'; \
-  } \
+  String lowerCase=lowerCaseCopy(fileName.c_str()); \
   if (lowerCase.size()<strlen(x) || lowerCase.rfind(x)!=lowerCase.size()-strlen(x)) { \
     fileName+=x; \
   }
