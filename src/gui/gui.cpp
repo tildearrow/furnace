@@ -8206,6 +8206,8 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("xyOscIntensity",xyOscIntensity);
   conf.set("xyOscThickness",xyOscThickness);
 
+  conf.set("audioExportFfmpegFlags",audioExportOptions.ffmpegFlags);
+
   // commit recent files
   for (int i=0; i<30; i++) {
     String key=fmt::sprintf("recentFile%d",i);
