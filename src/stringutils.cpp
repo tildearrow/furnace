@@ -43,3 +43,13 @@ void removeFileExt(String& str, const char* ext) {
     str=str.substr(0,extPos);
   }
 }
+
+void splitString(const String& str, char sep, std::vector<String>& out) {
+  size_t start=0, end=0;
+  while (end!=String::npos) {
+    end=str.find(sep,start);
+    String s=str.substr(start,end-start);
+    if (s.size()>0) out.push_back(s);
+    start=end+1;
+  }
+}

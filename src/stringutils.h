@@ -28,4 +28,7 @@ String lowerCaseCopy(const char* str);
 // the leading dot in `ext` is optional (e.g., both `.wav` and `wav` are accepted)
 void removeFileExt(String& str, const char* ext);
 
+// split `str`, using `sep` as a separator, and pushing the parts into the back of the `out` vector
+void splitString(const String& str, char sep, std::vector<String>& out);
+
 #endif

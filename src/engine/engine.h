@@ -109,6 +109,8 @@ enum DivAudioExportFormats {
 struct DivAudioExportOptions {
   DivAudioExportModes mode;
   DivAudioExportFormats format;
+  String fileExt;
+  String ffmpegFlags;
   int sampleRate;
   int chans;
   int loops;
@@ -118,6 +120,8 @@ struct DivAudioExportOptions {
   DivAudioExportOptions():
     mode(DIV_EXPORT_MODE_ONE),
     format(DIV_EXPORT_FORMAT_S16),
+    fileExt("wav"),
+    ffmpegFlags(""),
     sampleRate(44100),
     chans(2),
     loops(0),
@@ -500,6 +504,7 @@ class DivEngine {
   DivAudioExportModes exportMode;
   DivAudioExportFormats exportFormat;
   String exportFileExtNoDot;
+  String exportFfmpegFlags;
   double exportFadeOut;
   bool isFadingOut;
   int exportOutputs;
@@ -733,7 +738,7 @@ class DivEngine {
     // export to text
     SafeWriter* saveText(bool separatePatterns=true);
     // export to an audio file
-    bool saveAudio(const char* path, DivAudioExportOptions options, const char *fileExt);
+    bool saveAudio(const char* path, DivAudioExportOptions options);
     // wait for audio export to finish
     void waitAudioFile();
     // stop audio file export

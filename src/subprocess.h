@@ -32,10 +32,19 @@ public:
     Pipe(int pipeArr[2]): readFd(pipeArr[0]), writeFd(pipeArr[1]) {}
   };
 
+  enum Status {
+    SUBPROCESS_NOT_STARTED,
+    SUBPROCESS_RUNNING,
+    SUBPROCESS_FINISHED
+  };
+
 private:
   std::vector<String> args;
   pid_t childPid=-1;
+  int exitCode=-1;
+  int statusCode;
   Pipe stdinPipe, stdoutPipe, stderrPipe;
+  Status status=SUBPROCESS_NOT_STARTED;
 
 public:
   Subprocess(std::vector<String> args);
@@ -48,18 +57,23 @@ public:
   int pipeStdout();
   int pipeStderr();
 
-  void closeStdinPipe(bool careAboutError);
+  void closeStdinPipe(bool careAboutError=true);
+  // void closeStdoutPipe(bool careAboutError=true);
+  // void closeStderrPipe(bool careAboutError=true);
 
   // starts the subprocess.
   // returns whether it successfully started
   bool start();
 
-  // waits for the process to finish and returns its exit code.
-  // should only be called after start()
-  int wait();
+  // tries to get the subprocess's exit code.
+  // if `wait` is true, waits for the subprocess to finish and sets its exit code to `outCode`.
+  // if not, just checks if it has finished already.
+  // returns whether it has succeeded.
+  bool getExitCode(int *outCode, bool wait);
 
-  // checks whether the subprocess is on running-mode
-  bool isRunning() const;
+  // simpler versions of `getExitCode`
+  bool waitForExitCode(int *outCode);
+  bool getExitCodeNoWait(int *outCode);
 };
 
 #endif

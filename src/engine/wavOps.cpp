@@ -121,7 +121,7 @@ void DivEngine::runExportThread() {
         si.format=SF_FORMAT_WAV|SF_FORMAT_FLOAT;
       }
 
-      const auto doExport=[&](){
+      const auto doExport=[&](auto&& continueCheck) {
         if (sf==NULL) {
           logE("could not initialize export");
           exporting=false;
@@ -172,6 +172,10 @@ void DivEngine::runExportThread() {
             }
           }
 
+          // FIXME: make this not cause issues when the subprocess dies
+          // at this point I think the best way to do it is to make an alternate SFWrapper that operates specifically with a Subprocess's pipe and, when writing, it does it on non-blocking mode and constantly checks if the
+          // a good idea might also be to use ppoll(). don't know how that works but I think I can figure it out. the harder part will be doing the multiple-implementations without outright code duplication
+          if (!continueCheck()) break;
           if (sf_writef_float(sf,outBufFinal,total)!=(int)total) {
             logE("error: failed to write entire buffer!");
             break;
@@ -200,26 +204,39 @@ void DivEngine::runExportThread() {
 
       if (exportFileExtNoDot=="wav") {
         sf=sfWrap.doOpen(exportPath.c_str(),SFM_WRITE,&si);
-        doExport();
+        doExport([]() { return true; });
       } else {
-        std::vector<String> command={"ffmpeg","-f","wav","-i","pipe:0","-f",exportFileExtNoDot,exportPath};
+        // build command vector
+        std::vector<String> command={"ffmpeg","-y","-f","wav","-i","pipe:0","-f",exportFileExtNoDot};
+        splitString(exportFfmpegFlags,' ',command);
+        command.push_back(exportPath);
+
         Subprocess proc(command);
         int writeFd=proc.pipeStdin();
         if (writeFd==-1) {
           logE("failed to create stdin pipe for subprocess");
         } else if (proc.start()) {
-          // TODO: check if program has errored out already or else it might freeze :)
           sf=sfWrap.doOpenFromWriteFd(writeFd,&si);
-          doExport();
+
+          const auto checkProcAlive=[&proc]() {
+            int code;
+            if (proc.getExitCodeNoWait(&code)) {
+              logE("ffmpeg subprocess was abruptly interrupted; aborting export");
+              return false;
+            }
+            return true;
+          };
+          doExport(checkProcAlive);
 
           // be sure we closed the write pipe to avoid stalling ffmpeg
           proc.closeStdinPipe(false);
 
           logI("waiting for ffmpeg to finish...");
-          int code = proc.wait();
-          if (code!=0) {
-            // TODO: actually show this in the UI? (it might be a good idea to read the output from ffmpeg, in that case)
+
+          int code;
+          if (!(proc.getExitCode(&code,true) && code==0)) {
             logE("ffmpeg failed to export successfully");
+            // TODO: actually show this in the UI? (it might be a good idea to read the output from ffmpeg, in that case)
           }
         } else {
           logE("failed to start ffmpeg subprocess");
@@ -502,7 +519,7 @@ bool DivEngine::shallSwitchCores() {
   return true;
 }
 
-bool DivEngine::saveAudio(const char* path, DivAudioExportOptions options, const char *fileExt) {
+bool DivEngine::saveAudio(const char* path, DivAudioExportOptions options) {
 #ifndef HAVE_SNDFILE
   logE("Furnace was not compiled with libsndfile. cannot export!");
   return false;
@@ -511,6 +528,9 @@ bool DivEngine::saveAudio(const char* path, DivAudioExportOptions options, const
   exportMode=options.mode;
   exportFormat=options.format;
   exportFadeOut=options.fadeOut;
+  exportFfmpegFlags=options.ffmpegFlags;
+
+  const char* fileExt=options.fileExt.c_str();
   if (fileExt[0]=='.') {
     exportFileExtNoDot=&fileExt[1];
   } else {

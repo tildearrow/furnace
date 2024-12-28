@@ -26,19 +26,24 @@
 void FurnaceGUI::drawExportAudio(bool onWindow) {
   exitDisabledTimer=1;
 
-  const auto formatEF = [](const FurnaceGUIExportFormat *ef) {
-    return fmt::sprintf("%s (%s)",_(ef->name),ef->fileExt);
+  const auto formatEF = [](const FurnaceGUIExportFormat& ef) {
+    return fmt::sprintf("%s (%s)",_(ef.name),ef.fileExt);
   };
 
-  ImGui::Text(_("file format:"));
-  const FurnaceGUIExportFormat *currentFormat=&exportFormats[curAudioExportFormat];
+  const FurnaceGUIExportFormat& currentFormat=exportFormats[curAudioExportFormat];
   if (ImGui::BeginCombo(_("file format"),formatEF(currentFormat).c_str())) {
     for (int i=0; i<EXPORT_FORMAT_COUNT; i++) {
-      if (ImGui::Selectable(formatEF(&exportFormats[i]).c_str())) {
+      const FurnaceGUIExportFormat& ef=exportFormats[i];
+      if (ImGui::Selectable(formatEF(ef).c_str())) {
         curAudioExportFormat=i;
+        audioExportOptions.fileExt=ef.fileExt;
       }
     }
     ImGui::EndCombo();
+  }
+
+  if (curAudioExportFormat>0) {
+    ImGui::InputText(_("extra ffmpeg flags"),&audioExportOptions.ffmpegFlags,ImGuiInputTextFlags_UndoRedo);
   }
 
   ImGui::Text(_("Export type:"));
@@ -49,7 +54,7 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
   }
   if (ImGui::RadioButton(_("multiple files (one per chip)"),audioExportOptions.mode==DIV_EXPORT_MODE_MANY_SYS)) {
     audioExportOptions.mode=DIV_EXPORT_MODE_MANY_SYS;
-        }
+  }
   if (ImGui::RadioButton(_("multiple files (one per channel)"),audioExportOptions.mode==DIV_EXPORT_MODE_MANY_CHAN)) {
     audioExportOptions.mode=DIV_EXPORT_MODE_MANY_CHAN;
   }

@@ -5406,6 +5406,9 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
+
+  // audioExportOptions.ffmpegFlags=conf.getString("audioExportOptions.ffmpegFlags","");
+  // logD("got audioExportOptions.ffmpegFlags=%s",audioExportOptions.ffmpegFlags);
 }
 
 void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
@@ -5461,6 +5464,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("persistFadeOut",settings.persistFadeOut);
     conf.set("exportLoops",settings.exportLoops);
     conf.set("exportFadeOut",settings.exportFadeOut);
+
 
     conf.set("doubleClickTime",settings.doubleClickTime);
     conf.set("disableFadeIn",settings.disableFadeIn);
@@ -5774,6 +5778,9 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("tg100Path",settings.tg100Path);
     conf.set("mu5Path",settings.mu5Path);
   }
+
+  // logD("setting audioExportOptions.ffmpegFlags=%s",audioExportOptions.ffmpegFlags);
+  // conf.set("audioExportOptions.ffmpegFlags",audioExportOptions.ffmpegFlags);
 }
 
 void FurnaceGUI::syncSettings() {

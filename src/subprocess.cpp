@@ -22,7 +22,7 @@
 #include "subprocess.h"
 #include "ta-log.h"
 
-#define tryMakePipe(_arrVar) \
+#define TRY_MAKE_PIPE(_arrVar) \
   int _arrVar[2]; \
   int status=pipe(_arrVar); \
   if (status==-1) { \
@@ -53,28 +53,31 @@ Subprocess::~Subprocess() {
 }
 
 int Subprocess::pipeStdin() {
-  if (isRunning()) return -1;
-  tryMakePipe(arr);
+  if (status!=SUBPROCESS_NOT_STARTED) return -1;
+
+  TRY_MAKE_PIPE(arr);
   stdinPipe=Subprocess::Pipe(arr);
   return stdinPipe.writeFd;
 }
 
 int Subprocess::pipeStdout() {
-  if (isRunning()) return -1;
-  tryMakePipe(arr);
+  if (status!=SUBPROCESS_NOT_STARTED) return -1;
+
+  TRY_MAKE_PIPE(arr);
   stdinPipe=Subprocess::Pipe(arr);
   return stdinPipe.readFd;
 }
 
 int Subprocess::pipeStderr() {
-  if (isRunning()) return -1;
-  tryMakePipe(arr);
+  if (status!=SUBPROCESS_NOT_STARTED) return -1;
+
+  TRY_MAKE_PIPE(arr);
   stdinPipe=Subprocess::Pipe(arr);
   return stdinPipe.readFd;
 }
 
 bool Subprocess::start() {
-  if (isRunning()) return false;
+  if (status!=SUBPROCESS_NOT_STARTED) return -1;
 
   childPid=fork();
   if (childPid==-1 || args.size()==0) {
@@ -128,25 +131,41 @@ bool Subprocess::start() {
   }
 }
 
-int Subprocess::wait() {
-  if (!isRunning()) return -1;
+bool Subprocess::getExitCode(int *outCode, bool wait) {
+  if (status==SUBPROCESS_NOT_STARTED) {
+    return false;
+  } else if (status==SUBPROCESS_FINISHED) {
+    *outCode=statusCode;
+    return true;
+  }
 
   int status;
-  pid_t result=waitpid(childPid,&status,WUNTRACED|WCONTINUED);
+  int flags=WUNTRACED|WCONTINUED;
+  if (!wait) flags|=WNOHANG;
+  pid_t result=waitpid(childPid,&status,flags);
+
   if (result==-1) {
-    return -1;
+    logE("failed to check status of child %lld: %s\n",childPid,strerror(errno));
+    return false;
   }
 
-  // at this point, we have waited the process to finish
+  if (result==0) return false;
+  if (!WIFEXITED(status)) return false;
+
+  // at this point, the process has finished
+  status=SUBPROCESS_FINISHED;
   childPid=-1;
-  if (!WIFEXITED(status)) {
-    return -1;
-  }
-  return WEXITSTATUS(status);
+  statusCode=WEXITSTATUS(status);
+  *outCode=statusCode;
+  return true;
 }
 
-bool Subprocess::isRunning() const {
-  return childPid!=-1;
+bool Subprocess::waitForExitCode(int *outCode) {
+  return getExitCode(outCode,true);
+}
+
+bool Subprocess::getExitCodeNoWait(int *outCode) {
+  return getExitCode(outCode,false);
 }
 
 void Subprocess::closeStdinPipe(bool careAboutError) {
