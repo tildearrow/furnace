@@ -21,6 +21,8 @@
 #include "../ta-log.h"
 #include "../subprocess.h"
 #include "../stringutils.h"
+#include <fcntl.h>
+#include <unistd.h>
 
 #ifdef HAVE_SNDFILE
 #include "sfWrapper.h"
@@ -109,7 +111,7 @@ class SndfileWavWriter {
     SF_INFO si;
     SFWrapper sfWrap;
   public:
-    bool open(DivEngine* e, SF_INFO info, const char* exportPath) {
+    bool open(SF_INFO info, const char* exportPath) {
       si=info;
       sf=sfWrap.doOpen(exportPath,SFM_WRITE,&si);
       if (sf==NULL) {
@@ -125,33 +127,33 @@ class SndfileWavWriter {
       }
     }
 
-    bool write(float* buf, sf_count_t count) {
-      return sf_writef_float(sf,buf,count)==count;
+    bool write(float* samples, sf_count_t count) {
+      return sf_writef_float(sf,samples,count)==count;
     }
 };
 
-class SndfileToProcWriter {
+class ProcWriter {
   private:
     Subprocess* proc;
-    SNDFILE* sf;
-    SF_INFO si;
-    SFWrapper sfWrap;
+    int writeFd;
+    int format;
   public:
-    SndfileToProcWriter():
-      proc(NULL) {}
+    ProcWriter():
+      proc(NULL),
+      writeFd(-1) {}
 
-    bool open(DivEngine* e, SF_INFO info, Subprocess* proc_, int writeFd) {
+    bool open(Subprocess* proc_, int writeFd_, int format) {
       proc=proc_;
-      si=info;
+      writeFd=writeFd_;
 
-      sf=sfWrap.doOpenFromWriteFd(writeFd,&si);
-      if (sf==NULL) {
+      int flags=fcntl(writeFd,F_GETFL);
+      if (flags==-1) {
+        logE("error with fcntl (%s)",strerror(errno));
         return false;
       }
-
-      if (!sfWrap.disableBlockingWrite()) {
-        logE("could not disable blocking write");
-        sfWrap.doClose();
+      flags|=O_NONBLOCK;
+      if (fcntl(writeFd,F_SETFL,flags)==-1) {
+        logE("error with fcntl (%s)",strerror(errno));
         return false;
       }
 
@@ -159,23 +161,34 @@ class SndfileToProcWriter {
     }
 
     void close() {
-      if (sfWrap.doClose()!=0) {
-        logE("could not close audio file!");
-      }
+      ::close(writeFd);
     }
 
-    bool write(float* buf, sf_count_t count) {
-      while (true) {
-        if (sf_writef_float(sf,buf,count)==count) {
-          logD("successful write...");
-          return true;
-        }
+    bool write(float* samples, size_t count) {
+      const auto doWrite=[this](void* buf, size_t size) {
+        while (true) {
+          if (::write(writeFd,buf,size)==(ssize_t)size) return true;
 
-        logD("buffer got full; waiting...");
-        if (!proc->waitStdinOrExit()) {
-          logE("subprocess died before reading all the audio data");
-          return false;
+          logD("buffer got full; waiting...");
+          if (!proc->waitStdinOrExit()) {
+            logE("subprocess died before reading all the audio data");
+            return false;
+          }
         }
+      };
+
+      if (format==DIV_EXPORT_FORMAT_S16) {
+        size_t size=count*2;
+        uint8_t buf[size];
+        for (size_t i=0; i<size;) {
+          // little endian
+          int16_t sample=32767*samples[i];
+          buf[i++]=(uint8_t)(sample>>8);
+          buf[i++]=(uint8_t)sample;
+        }
+        return doWrite(buf,size);
+      } else {
+        return doWrite(samples,count*sizeof(float));
       }
     }
 };
@@ -190,10 +203,14 @@ void DivEngine::runExportThread() {
     SF_INFO si;
     si.samplerate=got.rate;
     si.channels=exportOutputs;
-    if (exportFormat==DIV_EXPORT_FORMAT_S16) {
+    switch (exportFormat) {
+    case DIV_EXPORT_FORMAT_S16:
       si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
-    } else {
+      break;
+    case DIV_EXPORT_FORMAT_F32:
+    default:
       si.format=SF_FORMAT_WAV|SF_FORMAT_FLOAT;
+      break;
     }
     return si;
   };
@@ -271,17 +288,35 @@ void DivEngine::runExportThread() {
 
       if (exportFileExtNoDot=="wav") {
         SndfileWavWriter wr;
-        if (!wr.open(this,makeSfInfo(),exportPath.c_str())) {
+        if (!wr.open(makeSfInfo(),exportPath.c_str())) {
           logE("could not initialize export writer");
           exporting=false;
           return;
         }
         doExport(&wr);
       } else {
+        String inputFormatArg=(exportFormat==DIV_EXPORT_FORMAT_S16)?"s16le":"f32le";
+
         // build command vector
-        std::vector<String> command={"ffmpeg","-y","-f","wav","-i","pipe:0","-f",exportFileExtNoDot};
+        std::vector<String> command={
+          "ffmpeg","-y",
+          "-v","verbose",
+          "-f",inputFormatArg,
+          "-ar",fmt::sprintf("%ld",(long int)got.rate), // sample rate
+          "-ac",fmt::sprintf("%d",exportOutputs), // channel amount
+          // "-guess_layout_max","0",
+          "-i","pipe:0",
+          "-f",exportFileExtNoDot
+        };
         splitString(exportFfmpegFlags,' ',command);
         command.push_back(exportPath);
+
+        String totalCommand;
+        for (const String& s : command) {
+          totalCommand+=s;
+          totalCommand+=" ";
+        }
+        logD("command: %s",totalCommand);
 
         Subprocess proc(command);
         int writeFd=proc.pipeStdin();
@@ -297,8 +332,8 @@ void DivEngine::runExportThread() {
           return;
         }
 
-        SndfileToProcWriter wr;
-        if (!wr.open(this,makeSfInfo(),&proc,writeFd)) {
+        ProcWriter wr;
+        if (!wr.open(&proc,writeFd,exportFormat)) {
           logE("could not initialize export writer");
           exporting=false;
           return;

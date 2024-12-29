@@ -23,61 +23,60 @@
 #include "ta-utils.h"
 
 class Subprocess {
-public:
-  struct Pipe {
-    int readFd;
-    int writeFd;
-    void close(bool careAboutError=true);
-    Pipe(): readFd(-1), writeFd(-1) {}
-    Pipe(int pipeArr[2]): readFd(pipeArr[0]), writeFd(pipeArr[1]) {}
-  };
+  public:
+    struct Pipe {
+      int readFd;
+      int writeFd;
+      void close(bool careAboutError=true);
+      Pipe(): readFd(-1), writeFd(-1) {}
+      Pipe(int pipeArr[2]): readFd(pipeArr[0]), writeFd(pipeArr[1]) {}
+    };
 
-  enum Status {
-    SUBPROCESS_NOT_STARTED,
-    SUBPROCESS_RUNNING,
-    SUBPROCESS_FINISHED
-  };
+    enum Status {
+      SUBPROCESS_NOT_STARTED,
+      SUBPROCESS_RUNNING,
+      SUBPROCESS_FINISHED
+    };
 
-private:
-  std::vector<String> args;
-  pid_t childPid=-1;
-  int exitCode=-1;
-  int statusCode;
-  Pipe stdinPipe, stdoutPipe, stderrPipe;
-  Status status=SUBPROCESS_NOT_STARTED;
+  private:
+    std::vector<String> args;
+    pid_t childPid=-1;
+    int statusCode;
+    Pipe stdinPipe, stdoutPipe, stderrPipe;
+    Status status=SUBPROCESS_NOT_STARTED;
 
-public:
-  Subprocess(std::vector<String> args);
-  ~Subprocess();
+  public:
+    Subprocess(std::vector<String> args);
+    ~Subprocess();
 
-  // These functions enable piping, and return a file descriptor to an end of the created pipe.
-  // On stdin, it's the writable end; on stdout and stderr, it's the readable end.
-  // These should only be called before start(). They return -1 on error.
-  int pipeStdin();
-  int pipeStdout();
-  int pipeStderr();
+    // These functions enable piping, and return a file descriptor to an end of the created pipe.
+    // On stdin, it's the writable end; on stdout and stderr, it's the readable end.
+    // These should only be called before start(). They return -1 on error.
+    int pipeStdin();
+    int pipeStdout();
+    int pipeStderr();
 
-  void closeStdinPipe(bool careAboutError=true);
-  // void closeStdoutPipe(bool careAboutError=true);
-  // void closeStderrPipe(bool careAboutError=true);
+    void closeStdinPipe(bool careAboutError=true);
+    // void closeStdoutPipe(bool careAboutError=true);
+    // void closeStderrPipe(bool careAboutError=true);
 
-  // starts the subprocess.
-  // returns whether it successfully started
-  bool start();
+    // starts the subprocess.
+    // returns whether it successfully started
+    bool start();
 
-  // waits for the stdin pipe (write end) to be writable, or for the subprocess
-  // to die
-  bool waitStdinOrExit();
+    // waits for the stdin pipe (write end) to be writable, or for the subprocess
+    // to die
+    bool waitStdinOrExit();
 
-  // tries to get the subprocess's exit code.
-  // if `wait` is true, waits for the subprocess to finish and sets its exit code to `outCode`.
-  // if not, just checks if it has finished already.
-  // returns whether it has succeeded.
-  bool getExitCode(int *outCode, bool wait);
+    // tries to get the subprocess's exit code.
+    // if `wait` is true, waits for the subprocess to finish and sets its exit code to `outCode`.
+    // if not, just checks if it has finished already.
+    // returns whether it has succeeded.
+    bool getExitCode(int *outCode, bool wait);
 
-  // simpler versions of `getExitCode`
-  bool waitForExitCode(int *outCode);
-  bool getExitCodeNoWait(int *outCode);
+    // simpler versions of `getExitCode`
+    bool waitForExitCode(int *outCode);
+    bool getExitCodeNoWait(int *outCode);
 };
 
 #endif

@@ -176,14 +176,13 @@ void Subprocess::closeStdinPipe(bool careAboutError) {
 }
 
 bool Subprocess::waitStdinOrExit() {
-  // I've lost my patience completely so let's just throw a sleep call here. Fuck this.
-
   struct pollfd pf;
   pf.fd=stdinPipe.writeFd;
   pf.events=POLLOUT;
 
   while (true) {
-    int pollResult=poll(&pf,1,250); // FIXME: ACTUALLY WAIT! until a signal is caught or the polling ends (). Right now the CPU usage isn't all that high but there's an overhead here I think. I tried with ppoll() but didn't manage to make it work
+    // I've lost my patience completely so let's just throw a poll call with a timeout here.
+    int pollResult=poll(&pf,1,250);
     if (pollResult==-1) {
       logE("failed to use ppoll (%s)\n",strerror(errno));
       return false;
@@ -191,7 +190,7 @@ bool Subprocess::waitStdinOrExit() {
 
     if (pollResult > 0) return true;
 
-    // TODO: refactor this (getExitCodeNoWait() might work but it's not 100% analogous)
+    // TODO: refactor this (getExitCodeNoWait() might work but it's not 100% the same thing)
     int status;
     int result=waitpid(childPid,&status,WNOHANG);
     if (result!=0) {

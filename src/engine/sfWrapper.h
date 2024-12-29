@@ -40,7 +40,6 @@ class SFWrapper {
   SF_VIRTUAL_IO vio;
   SNDFILE* sf;
   int fileMode;
-  bool blockingWrite;
 
   public:
     sf_count_t ioGetSize();
@@ -53,14 +52,12 @@ class SFWrapper {
     int doClose();
     SNDFILE* doOpen(const char* path, int mode, SF_INFO* sfinfo);
     SNDFILE* doOpenFromWriteFd(int fd, SF_INFO* sfinfo);
-    bool disableBlockingWrite();
     SFWrapper():
       fp(NULL),
       fd(-1),
       len(0),
       sf(NULL),
-      fileMode(0),
-      blockingWrite(true) {}
+      fileMode(0) {}
 };
 
 #endif

@@ -64,7 +64,7 @@ sf_count_t SFWrapper::ioRead(void* ptr, sf_count_t count) {
 }
 
 sf_count_t SFWrapper::ioWrite(const void* ptr, sf_count_t count) {
-  return write(fd,ptr,count);
+  return fwrite(ptr,1,count,fp);
 }
 
 sf_count_t SFWrapper::ioTell() {
@@ -159,20 +159,4 @@ SNDFILE* SFWrapper::doOpenFromWriteFd(int writeFd, SF_INFO* sfinfo) {
     logE("SFWrapper: WHY IS IT NULL?!");
   }
   return sf;
-}
-
-bool SFWrapper::disableBlockingWrite() {
-  int flags=fcntl(fd,F_GETFL);
-  if (flags==-1) {
-    logE("error with fcntl (%s)",strerror(errno));
-    return false;
-  }
-  flags|=O_NONBLOCK;
-  if (fcntl(fd,F_SETFL,flags)==-1) {
-    logE("error with fcntl (%s)",strerror(errno));
-    return false;
-  }
-
-  blockingWrite=false;
-  return true;
 }
