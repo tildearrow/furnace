@@ -1,7 +1,14 @@
 set(TARGET_PREFIX ${CMAKE_SYSTEM_PROCESSOR}-w64-mingw32)
 
-set(CMAKE_C_COMPILER ${TARGET_PREFIX}-gcc-posix)
-set(CMAKE_CXX_COMPILER ${TARGET_PREFIX}-g++-posix)
+find_program(found_posix ${TARGET_PREFIX}-gcc-posix)
+if (found_posix)
+    set(CMAKE_C_COMPILER ${TARGET_PREFIX}-gcc-posix)
+    set(CMAKE_CXX_COMPILER ${TARGET_PREFIX}-g++-posix)
+else()
+    set(CMAKE_C_COMPILER ${TARGET_PREFIX}-gcc)
+    set(CMAKE_CXX_COMPILER ${TARGET_PREFIX}-g++)
+endif()
+
 set(PKG_CONFIG_EXECUTABLE ${TARGET_PREFIX}-pkg-config)
 
 set(CMAKE_FIND_ROOT_PATH /usr/${TARGET_PREFIX})
