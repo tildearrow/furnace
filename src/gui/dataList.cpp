@@ -91,6 +91,7 @@ const char* sampleNote[12]={
           while (_toMoveVar>target) { \
             if (_moveUpFn(_toMoveVar)) { \
               _toMoveVar--; \
+              markModified=true; \
             } else { \
               break; \
             } \
@@ -98,6 +99,7 @@ const char* sampleNote[12]={
           while (_toMoveVar<target) { \
             if (_moveDownFn(_toMoveVar)) { \
               _toMoveVar++; \
+              markModified=true; \
             } else { \
               break; \
             } \
