@@ -155,15 +155,6 @@ void DivPlatformYMZ280B::tick(bool sysTick) {
           start=sampleOff[chan[i].sample];
           end=MIN(start+s->getCurBufLen(),getSampleMemCapacity()-1);
         }
-        if (chan[i].audPos>0) {
-          switch (s->depth) {
-            case DIV_SAMPLE_DEPTH_YMZ_ADPCM: start+=chan[i].audPos/2; break;
-            case DIV_SAMPLE_DEPTH_8BIT: start+=chan[i].audPos; break;
-            case DIV_SAMPLE_DEPTH_16BIT: start+=chan[i].audPos*2; break;
-            default: break;
-          }
-          start=MIN(start,end);
-        }
         if (s->isLoopable()) {
           switch (s->depth) {
             case DIV_SAMPLE_DEPTH_YMZ_ADPCM: loopStart=start+s->loopStart/2; loopEnd=start+s->loopEnd/2; break;
@@ -173,6 +164,15 @@ void DivPlatformYMZ280B::tick(bool sysTick) {
           }
           loopEnd=MIN(loopEnd,end);
           loopStart=MIN(loopStart,loopEnd);
+        }
+        if (chan[i].audPos>0) {
+          switch (s->depth) {
+            case DIV_SAMPLE_DEPTH_YMZ_ADPCM: start+=chan[i].audPos/2; break;
+            case DIV_SAMPLE_DEPTH_8BIT: start+=chan[i].audPos; break;
+            case DIV_SAMPLE_DEPTH_16BIT: start+=chan[i].audPos*2; break;
+            default: break;
+          }
+          start=MIN(start,end);
         }
         rWrite(0x01+i*4,ctrl&~0x80); // force keyoff first
         rWrite(0x20+i*4,(start>>16)&0xff);
