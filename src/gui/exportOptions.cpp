@@ -26,6 +26,12 @@
 void FurnaceGUI::drawExportAudio(bool onWindow) {
   exitDisabledTimer=1;
 
+#ifdef _WIN32
+  const bool allowNonWav=false;
+#else
+  const bool allowNonWav=true;
+#endif
+
   const auto formatEF = [](const FurnaceGUIExportFormat& ef) {
     return fmt::sprintf("%s (%s)",_(ef.name),ef.fileExt);
   };
@@ -34,13 +40,18 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
   if (ImGui::BeginCombo(_("file format"),formatEF(currentFormat).c_str())) {
     for (int i=0; i<EXPORT_FORMAT_COUNT; i++) {
       const FurnaceGUIExportFormat& ef=exportFormats[i];
+      if (!allowNonWav && i>0) ImGui::BeginDisabled();
       if (ImGui::Selectable(formatEF(ef).c_str())) {
         curAudioExportFormat=i;
         audioExportOptions.fileExt=ef.fileExt;
       }
+      if (!allowNonWav && i>0) ImGui::EndDisabled();
     }
     ImGui::EndCombo();
   }
+#ifdef _WIN32
+  ImGui::Text("Note: non-wav file formats are not yet supported on windows. Sorry!");
+#endif
 
   if (curAudioExportFormat>0) {
     ImGui::InputText(_("extra ffmpeg flags"),&audioExportOptions.ffmpegFlags,ImGuiInputTextFlags_UndoRedo);

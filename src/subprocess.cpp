@@ -17,11 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <unistd.h>
-#include <sys/wait.h>
 #include "subprocess.h"
 #include "ta-log.h"
 
+#ifndef _WIN32
+#include <unistd.h>
+#include <sys/wait.h>
 #include <poll.h>
 #include <signal.h>
 
@@ -204,3 +205,4 @@ bool Subprocess::waitStdinOrExit() {
     }
   }
 }
+#endif

@@ -22,6 +22,7 @@
 
 #include "ta-utils.h"
 
+#ifndef _WIN32 // TODO: windows impl
 class Subprocess {
   public:
     struct Pipe {
@@ -78,5 +79,6 @@ class Subprocess {
     bool waitForExitCode(int *outCode);
     bool getExitCodeNoWait(int *outCode);
 };
+#endif
 
 #endif

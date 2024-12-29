@@ -19,10 +19,13 @@
 
 #include "engine.h"
 #include "../ta-log.h"
-#include "../subprocess.h"
 #include "../stringutils.h"
+#include "../subprocess.h"
+
+#ifndef _WIN32
 #include <fcntl.h>
 #include <unistd.h>
+#endif
 
 #ifdef HAVE_SNDFILE
 #include "sfWrapper.h"
@@ -132,6 +135,7 @@ class SndfileWavWriter {
     }
 };
 
+#ifndef _WIN32
 class ProcWriter {
   private:
     Subprocess* proc;
@@ -192,6 +196,7 @@ class ProcWriter {
       }
     }
 };
+#endif
 
 #ifdef HAVE_SNDFILE
 void DivEngine::runExportThread() {
@@ -295,6 +300,9 @@ void DivEngine::runExportThread() {
         }
         doExport(&wr);
       } else {
+#ifdef _WIN32
+        logE("ffmpeg export is not yet supported");
+#else
         String inputFormatArg=(exportFormat==DIV_EXPORT_FORMAT_S16)?"s16le":"f32le";
 
         // build command vector
@@ -342,6 +350,7 @@ void DivEngine::runExportThread() {
 
         // be sure we closed the write pipe to avoid stalling ffmpeg
         proc.closeStdinPipe(false);
+#endif
       }
 
       logI("exporting done!");
