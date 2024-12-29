@@ -21,8 +21,11 @@
 #include "../fileutils.h"
 #include "../ta-log.h"
 #include "sndfile.h"
+
+#ifndef _WIN32
 #include <fcntl.h>
 #include <unistd.h>
+#endif
 
 sf_count_t _vioGetSize(void* user) {
   return ((SFWrapper*)user)->ioGetSize();
