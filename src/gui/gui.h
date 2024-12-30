@@ -3194,6 +3194,8 @@ class FurnaceGUI {
     /// INSTRUMENT MANIPULATION (TODO)
     int sc_createIns(lua_State* s);
     int sc_deleteIns(lua_State* s);
+    int sc_getInsName(lua_State* s);
+    int sc_getInsType(lua_State* s);
 
     /// WAVETABLE MANIPULATION
     int sc_createWave(lua_State* s);
