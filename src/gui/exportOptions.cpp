@@ -40,6 +40,7 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
   if (ImGui::BeginCombo(_("file format"),formatEF(currentFormat).c_str())) {
     for (int i=0; i<EXPORT_FORMAT_COUNT; i++) {
       const FurnaceGUIExportFormat& ef=exportFormats[i];
+
       if (!allowNonWav && i>0) ImGui::BeginDisabled();
       if (ImGui::Selectable(formatEF(ef).c_str())) {
         curAudioExportFormat=i;

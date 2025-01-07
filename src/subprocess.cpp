@@ -176,6 +176,14 @@ void Subprocess::closeStdinPipe(bool careAboutError) {
   stdinPipe.close(careAboutError);
 }
 
+void Subprocess::closeStdoutPipe(bool careAboutError) {
+  stdoutPipe.close(careAboutError);
+}
+
+void Subprocess::closeStderrPipe(bool careAboutError) {
+  stderrPipe.close(careAboutError);
+}
+
 bool Subprocess::waitStdinOrExit() {
   struct pollfd pf;
   pf.fd=stdinPipe.writeFd;
@@ -189,9 +197,9 @@ bool Subprocess::waitStdinOrExit() {
       return false;
     }
 
-    if (pollResult > 0) return true;
+    if (pollResult>0) return true;
 
-    // TODO: refactor this (getExitCodeNoWait() might work but it's not 100% the same thing)
+    // TODO: refactor this, it's ugly! (getExitCodeNoWait() might work but it's not 100% the same thing)
     int status;
     int result=waitpid(childPid,&status,WNOHANG);
     if (result!=0) {

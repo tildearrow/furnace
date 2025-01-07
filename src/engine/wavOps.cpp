@@ -146,9 +146,10 @@ class ProcWriter {
       proc(NULL),
       writeFd(-1) {}
 
-    bool open(Subprocess* proc_, int writeFd_, int format) {
+    bool open(Subprocess* proc_, int writeFd_, int format_) {
       proc=proc_;
       writeFd=writeFd_;
+      format=format_;
 
       int flags=fcntl(writeFd,F_GETFL);
       if (flags==-1) {
@@ -182,17 +183,23 @@ class ProcWriter {
       };
 
       if (format==DIV_EXPORT_FORMAT_S16) {
-        size_t size=count*2;
+        // convert the float samples to signed 16-bit ints, then write raw LE bytes into the stream.
+        size_t sampleSize=sizeof(int16_t);
+        size_t size=sampleSize*count;
         uint8_t buf[size];
-        for (size_t i=0; i<size;) {
-          // little endian
-          int16_t sample=32767*samples[i];
-          buf[i++]=(uint8_t)(sample>>8);
-          buf[i++]=(uint8_t)sample;
+        for (size_t i=0; i<count; i++) {
+          int16_t sample=32767.0*samples[i];
+          uint16_t sampleU=*(uint16_t*)&sample; // converting to uint so we can get raw bytes without worrying
+          size_t target=i*sampleSize;
+          buf[target]=(uint8_t)sampleU;
+          buf[target+1]=(uint8_t)(sampleU>>8);
         }
         return doWrite(buf,size);
-      } else {
+      } else if (format==DIV_EXPORT_FORMAT_F32) {
         return doWrite(samples,count*sizeof(float));
+      } else {
+        logE("invalid export format: %d",format);
+        return false;
       }
     }
 };

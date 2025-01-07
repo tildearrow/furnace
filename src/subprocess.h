@@ -58,8 +58,8 @@ class Subprocess {
     int pipeStderr();
 
     void closeStdinPipe(bool careAboutError=true);
-    // void closeStdoutPipe(bool careAboutError=true);
-    // void closeStderrPipe(bool careAboutError=true);
+    void closeStdoutPipe(bool careAboutError=true);
+    void closeStderrPipe(bool careAboutError=true);
 
     // starts the subprocess.
     // returns whether it successfully started
