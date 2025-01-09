@@ -23,7 +23,6 @@
 #include <fmt/printf.h>
 
 constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
-constexpr int MASTER_CLOCK_MASK=(sizeof(void*)==8)?0xff:0;
 
 static void writeWait(std::vector<uint8_t>& data, unsigned int newWait) {
   if (newWait==1) data.push_back(0xff);
@@ -59,8 +58,8 @@ void DivExportS98::run() {
     running=false;
     return;
   }
-  size_t dataPos=0;
-  size_t loopPos=-1;
+  int dataPos=0;
+  int loopPos=-1;
 
   // write header
   int rateNum=10;
@@ -133,6 +132,7 @@ void DivExportS98::run() {
       case DIV_SYSTEM_SMS:
         sys=16;
         break;
+      default: break;
     }
     int pan=0;
     int mixPan=0;
@@ -155,6 +155,7 @@ void DivExportS98::run() {
       case DIV_SYSTEM_SMS:
         pan=mixPan;
         break;
+      default: break;
     }
     w->writeI(sys);
     w->writeI(dispatch->chipClock);
@@ -226,6 +227,7 @@ void DivExportS98::run() {
           });
           break;
         }
+        default: break;
       }
       progress[0].amount=(float)idx/toExport.size();
     }
@@ -237,9 +239,6 @@ void DivExportS98::run() {
     bool writeLoop=false;
     bool alreadyWroteLoop=false;
     bool done=false;
-    int loopTickSong=-1;
-    int songTick=0;
-    int fracWait=0; // accumulates fractional ticks
     std::vector<size_t> tickPos;
     std::vector<int> tickSample;
     bool trailing=false;
@@ -263,7 +262,6 @@ void DivExportS98::run() {
           }
         }
       }
-      songTick++;
       tickPos.push_back(data.size());
       if (e->nextTick(false,true)) {
         if (trailing) beenOneLoopAlready=true;
@@ -296,10 +294,6 @@ void DivExportS98::run() {
             break;
         }
         if (e->song.loopModality!=2) countDown=0;
-
-        if (countDown>0 && !beenOneLoopAlready) {
-          loopTickSong++;
-        }
       }
       if (countDown<=0 || !e->playing || beenOneLoopAlready) {
         done=true;
@@ -377,7 +371,6 @@ void DivExportS98::run() {
         writeLoop=false;
         alreadyWroteLoop=true;
         loopPos=data.size();
-        loopTickSong=songTick;
       }
     }
     // end of song
@@ -400,7 +393,7 @@ void DivExportS98::run() {
   w->write(data.data(),data.size());
 
   // write tags
-  size_t tagPos=w->tell();
+  int tagPos=w->tell();
   String notes;
   for (char i: e->song.notes) {
     if (i=='\n') notes.append("\ncomment=");
