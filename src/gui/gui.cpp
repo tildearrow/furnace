@@ -5334,35 +5334,24 @@ bool FurnaceGUI::loop() {
                   } else {;
                     showError(e->getLastError());
                   }
-                } 
-                else 
-                {
-                  if((int)samples.size() == 1)
-                  {
-                    if (e->addSamplePtr(samples[0]) == -1)
-                    {
-                      if (fileDialog->getFileName().size()>1)
-                      {
+                } else {
+                  if ((int)samples.size()==1) {
+                    if (e->addSamplePtr(samples[0])==-1) {
+                      if (fileDialog->getFileName().size()>1) {
                         warn=true;
                         errs+=fmt::sprintf("- %s: %s\n",i,e->getLastError());
-                      } 
-                      else 
-                      {
+                      } else {
                         showError(e->getLastError());
                       }
-                    } 
-                    else 
-                    {
+                    } else {
                       MARK_MODIFIED;
                     }
-                  }
-                  else
-                  {
-                    for (DivSample* s: samples) { //ask which samples to load!
+                  } else {
+                    for (DivSample* s: samples) { // ask which samples to load!
                       pendingSamples.push_back(std::make_pair(s,false));
                     }
                     displayPendingSamples=true;
-                    replacePendingSample = false;
+                    replacePendingSample=false;
                   }
                 }
               }
