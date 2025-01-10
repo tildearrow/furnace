@@ -929,6 +929,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         sample->centerRate=sample->rate;
         pitch=reader.readC();
         vol=reader.readC();
+
+        if (pitch<0 || pitch>10) {
+          logW("%d: sample pitch is wrong! (%d)",i,pitch);
+          pitch=5;
+        }
       }
       if (ds.version<=0x08) {
         sample->rate=ymuSampleRate*400;
