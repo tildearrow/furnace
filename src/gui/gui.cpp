@@ -6654,13 +6654,16 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
-    // TODO: fix style
     centerNextWindow(_("Select Sample"),canvasW,canvasH);
     if (ImGui::BeginPopupModal(_("Select Sample"),NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       bool quitPlease=false;
 
       ImGui::AlignTextToFramePadding();
-      ImGui::Text(_("this is a sample bank! select which ones to load:"));
+      if (/*settings.polySamples*/1) { // TODO: detect whether loaded samples are from a multichannel sample
+        ImGui::Text(_("this sample has multiple channels! select which ones to load:"));
+      } else {
+        ImGui::Text(_("this is a sample bank! select which ones to load:"));
+      }
       ImGui::SameLine();
       if (ImGui::Button(_("All"))) {
         for (std::pair<DivSample*,bool>& i: pendingSamples) {
@@ -6677,43 +6680,31 @@ bool FurnaceGUI::loop() {
 
       bool anySelected=false;
       float sizeY=ImGui::GetFrameHeightWithSpacing()*pendingSamples.size();
-      if (sizeY>(canvasH-180.0*dpiScale)) 
-      {
+      if (sizeY>(canvasH-180.0*dpiScale)) {
         sizeY=canvasH-180.0*dpiScale;
         if (sizeY<60.0*dpiScale) sizeY=60.0*dpiScale;
       }
-      if (ImGui::BeginTable("PendingSamplesList",1,ImGuiTableFlags_ScrollY,ImVec2(0.0f,sizeY))) 
-      {
-        if (sampleBankSearchQuery.empty())
-        {
-          for (size_t i=0; i<pendingSamples.size(); i++) 
-          {
+      if (ImGui::BeginTable("PendingSamplesList",1,ImGuiTableFlags_ScrollY,ImVec2(0.0f,sizeY))) {
+        // whats this search query thing? i dont see any search inputs
+        // looking at the git blame for here... incomplete backport?
+        if (sampleBankSearchQuery.empty()) {
+          for (size_t i=0; i<pendingSamples.size(); i++) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             String id=fmt::sprintf("%d: %s",(int)i,pendingSamples[i].first->name);
-            if (pendingInsSingle) 
-            {
-              if (ImGui::Selectable(id.c_str())) 
-              {
+            if (pendingInsSingle) {
+              if (ImGui::Selectable(id.c_str())) {
                 pendingSamples[i].second=true;
                 quitPlease=true;
               }
-            } 
-            else 
-            {
-              // TODO:fixstyle from hereonwards
+            } else {
               ImGuiIO& io = ImGui::GetIO();
-              if(ImGui::Checkbox(id.c_str(),&pendingSamples[i].second) && io.KeyShift)
-              {
-                for(int jj = (int)i - 1; jj >= 0; jj--)
-                {
-                  if(pendingSamples[jj].second) //pressed shift and there's selected item above
-                  {
-                    for(int k = jj; k < (int)i; k++)
-                    {
+              if (ImGui::Checkbox(id.c_str(),&pendingSamples[i].second) && io.KeyShift) {
+                for (int jj = (int)i - 1; jj >= 0; jj--) {
+                  if (pendingSamples[jj].second) { // pressed shift and there's selected item above
+                    for (int k = jj; k < (int)i; k++) {
                       pendingSamples[k].second = true;
                     }
-
                     break;
                   }
                 }
@@ -6721,53 +6712,40 @@ bool FurnaceGUI::loop() {
             }
             if (pendingSamples[i].second) anySelected=true;
           }
-        }
-        else //display search results
-        {
-          if(reissueSearch)
-          {
+        } else { // display search results
+          if (reissueSearch) {
             String lowerCase=sampleBankSearchQuery;
 
-            for (char& ii: lowerCase) 
-            {
+            for (char& ii: lowerCase) {
               if (ii>='A' && ii<='Z') ii+='a'-'A';
             }
 
             sampleBankSearchResults.clear();
-            for (int j=0; j < (int)pendingSamples.size(); j++) 
-            {
+            for (int j=0; j < (int)pendingSamples.size(); j++) {
               String lowerCase1 = pendingSamples[j].first->name;
 
-              for (char& ii: lowerCase1) 
-              {
+              for (char& ii: lowerCase1) {
                 if (ii>='A' && ii<='Z') ii+='a'-'A';
               }
 
-              if (lowerCase1.find(lowerCase)!=String::npos) 
-              {
+              if (lowerCase1.find(lowerCase)!=String::npos) {
                 sampleBankSearchResults.push_back(std::make_pair(pendingSamples[j].first, pendingSamples[j].second));
               }
             }
           }
 
-          for (size_t i=0; i<sampleBankSearchResults.size(); i++)
-          {
+          for (size_t i=0; i<sampleBankSearchResults.size(); i++) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             String id=fmt::sprintf("%d: %s",(int)i,sampleBankSearchResults[i].first->name);
 
             ImGuiIO& io = ImGui::GetIO();
-            if(ImGui::Checkbox(id.c_str(),&sampleBankSearchResults[i].second) && io.KeyShift)
-            {
-              for(int jj = (int)i - 1; jj >= 0; jj--)
-              {
-                if(sampleBankSearchResults[jj].second) //pressed shift and there's selected item above
-                {
-                  for(int k = jj; k < (int)i; k++)
-                  {
+            if(ImGui::Checkbox(id.c_str(),&sampleBankSearchResults[i].second) && io.KeyShift) {
+              for(int jj = (int)i - 1; jj >= 0; jj--) {
+                if(sampleBankSearchResults[jj].second) { // pressed shift and there's selected item above
+                  for(int k = jj; k < (int)i; k++) {
                     sampleBankSearchResults[k].second = true;
                   }
-
                   break;
                 }
               }
@@ -6775,14 +6753,10 @@ bool FurnaceGUI::loop() {
             if (sampleBankSearchResults[i].second) anySelected=true;
           }
 
-          for (size_t i=0; i<pendingSamples.size(); i++)
-          {
-            if(sampleBankSearchResults.size() > 0)
-            {
-              for (size_t j=0; j<sampleBankSearchResults.size(); j++)
-              {
-                if(sampleBankSearchResults[j].first == pendingSamples[i].first && sampleBankSearchResults[j].second && pendingSamples[i].first != NULL)
-                {
+          for (size_t i=0; i<pendingSamples.size(); i++) {
+            if(sampleBankSearchResults.size() > 0) {
+              for (size_t j=0; j<sampleBankSearchResults.size(); j++) {
+                if(sampleBankSearchResults[j].first == pendingSamples[i].first && sampleBankSearchResults[j].second && pendingSamples[i].first != NULL) {
                   pendingSamples[i].second = true;
                   if (pendingSamples[i].second) anySelected=true;
                   break;
@@ -6807,32 +6781,25 @@ bool FurnaceGUI::loop() {
         }
         quitPlease=true;
       }
-      if (quitPlease) 
-      {
+      if (quitPlease) {
         ImGui::CloseCurrentPopup();
-        int counter = 0;
-        for (std::pair<DivSample*,bool>& i: pendingSamples) 
-        {
-          if (!i.second)
-          {
+        int counter=0;
+        for (std::pair<DivSample*,bool>& i: pendingSamples) {
+          if (!i.second) {
             delete i.first;
-          }
-          else
-          {
-            if(counter == 0 && replacePendingSample)
-            {
+          } else {
+            if (counter==0 && replacePendingSample) {
               *e->song.sample[curSample]=*i.first;
-              replacePendingSample = false;
-            }
-            else
-            {
+              replacePendingSample=false;
+            } else {
               e->addSamplePtr(i.first);
             }
+            MARK_MODIFIED
           }
           counter++;
         }
 
-        curSample = (int)e->song.sample.size() - 1;
+        curSample=(int)e->song.sample.size()-1;
         pendingSamples.clear();
       }
 

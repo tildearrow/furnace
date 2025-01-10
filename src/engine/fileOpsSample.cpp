@@ -20,6 +20,9 @@
 #include "engine.h"
 #include "../ta-log.h"
 #include "../fileutils.h"
+#include "sample.h"
+#include <cstddef>
+#include <fmt/printf.h>
 #ifdef HAVE_SNDFILE
 #include "sfWrapper.h"
 #endif
@@ -61,10 +64,9 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
       extS+=i;
     }
 
-    if(extS == ".pps" || extS == ".ppc" || extS == ".pvi" ||
-      extS == ".pdx" || extS == ".pzi" || extS == ".p86" ||
-      extS == ".p") //sample banks!
-    {
+    if (extS == ".pps" || extS == ".ppc" || extS == ".pvi" ||
+        extS == ".pdx" || extS == ".pzi" || extS == ".p86" ||
+        extS == ".p") { // sample banks!
       String stripPath;
       const char* pathReduxEnd=strrchr(pathRedux,'.');
       if (pathReduxEnd==NULL) {
@@ -120,47 +122,38 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
 
       SafeReader reader = SafeReader(buf,len);
 
-      if(extS == ".pps")
-      {
+      if (extS == ".pps") {
         loadPPS(reader,ret,stripPath);
       }
-      if(extS == ".ppc")
-      {
+      if (extS == ".ppc") {
         loadPPC(reader,ret,stripPath);
       }
-      if(extS == ".pvi")
-      {
+      if (extS == ".pvi") {
         loadPVI(reader,ret,stripPath);
       }
-      if(extS == ".pdx")
-      {
+      if (extS == ".pdx") {
         loadPDX(reader,ret,stripPath);
       }
-      if(extS == ".pzi")
-      {
+      if (extS == ".pzi") {
         loadPZI(reader,ret,stripPath);
       }
-      if(extS == ".p86")
-      {
+      if (extS == ".p86") {
         loadP86(reader,ret,stripPath);
       }
-      if(extS == ".p")
-      {
+      if (extS == ".p") {
         loadP(reader,ret,stripPath);
       }
 
-      if((int)ret.size() > 0)
-      {
-        int counter = 0;
+      if((int)ret.size()>0) {
+        int counter=0;
 
-        for(DivSample* s: ret)
-        {
-          s->name = fmt::sprintf("%s sample %d", stripPath, counter);
+        for(DivSample* s: ret) {
+          s->name=fmt::sprintf("%s sample %d", stripPath, counter);
           counter++;
         }
       }
 
-      delete[] buf; //done with buffer
+      delete[] buf; // done with buffer
       BUSY_END;
       return ret;
     }
@@ -327,87 +320,142 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
       logW("sample read size mismatch!");
     }
   }
-  DivSample* sample=new DivSample;
   int sampleCount=(int)song.sample.size();
-  sample->name=stripPath;
+  const int sampleChans=si.channels;
+  const bool isNotMono=sampleChans>1;
+  DivSample** samples=NULL;
+  if (isNotMono) {
+    samples=new DivSample*[sampleChans+1];
+  } else {
+    samples=new DivSample*;
+  }
+  for (int c=0; c<sampleChans+(isNotMono?1:0); c++) {
+    samples[c]=new DivSample;
+    if (isNotMono) {
+      if (c==sampleChans) {
+        samples[c]->name=stripPath+"_mono";
+      } else {
+        if (sampleChans==2) {
+          samples[c]->name=stripPath+("_L\00_R"+3*c);
+        } else {
+          samples[c]->name=fmt::sprintf("%s_%d",stripPath.c_str(),c);
+        }
+      }
+    } else {
+      samples[c]->name=stripPath;
+    }
+    if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8) {
+      samples[c]->depth=DIV_SAMPLE_DEPTH_8BIT;
+    } else {
+      samples[c]->depth=DIV_SAMPLE_DEPTH_16BIT;
+    }
+    samples[c]->init(si.frames);
+  }
 
   int index=0;
   if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8) {
-    sample->depth=DIV_SAMPLE_DEPTH_8BIT;
-  } else {
-    sample->depth=DIV_SAMPLE_DEPTH_16BIT;
-  }
-  sample->init(si.frames);
-  if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8) {
-    for (int i=0; i<si.frames*si.channels; i+=si.channels) {
-      int averaged=0;
-      for (int j=0; j<si.channels; j++) {
-        averaged+=((int)((unsigned char*)buf)[i+j])-128;
+    for (int i=0; i<si.frames*sampleChans; i+=sampleChans) {
+      int averaged=0,perCh=0;
+      for (int j=0; j<sampleChans; j++) {
+        perCh=((int)((unsigned char*)buf)[i+j])-128;
+        if (isNotMono) {
+          averaged+=perCh;
+          samples[j]->data8[index]=perCh;
+        }
       }
-      averaged/=si.channels;
-      sample->data8[index++]=averaged;
+      if (isNotMono) {
+        averaged/=sampleChans;
+        samples[sampleChans]->data8[index]=averaged;
+      } else {
+        samples[0]->data8[index]=perCh;
+      }
+      index++;
     }
     delete[] (unsigned char*)buf;
   } else if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_FLOAT)  {
-    for (int i=0; i<si.frames*si.channels; i+=si.channels) {
-      float averaged=0.0f;
-      for (int j=0; j<si.channels; j++) {
-        averaged+=((float*)buf)[i+j];
+    for (int i=0; i<si.frames*sampleChans; i+=sampleChans) {
+      float averaged=0.0f,perCh=0.0f;
+      for (int j=0; j<sampleChans; j++) {
+        perCh=((float*)buf)[i+j];
+        averaged+=perCh;
+        if (perCh<-32768.0) perCh=-32768.0;
+        if (perCh>32767.0) perCh=32767.0;
+        if (isNotMono) samples[j]->data16[index]=perCh;
       }
-      averaged/=si.channels;
-      averaged*=32767.0;
-      if (averaged<-32768.0) averaged=-32768.0;
-      if (averaged>32767.0) averaged=32767.0;
-      sample->data16[index++]=averaged;
+      if (isNotMono) {
+        averaged/=sampleChans;
+        averaged*=32767.0;
+        samples[sampleChans]->data16[index]=averaged;
+      } else {
+        samples[0]->data16[index]=perCh;
+      }
+      index++;
     }
     delete[] (float*)buf;
   } else {
-    for (int i=0; i<si.frames*si.channels; i+=si.channels) {
-      int averaged=0;
-      for (int j=0; j<si.channels; j++) {
-        averaged+=((short*)buf)[i+j];
+    for (int i=0; i<si.frames*sampleChans; i+=sampleChans) {
+      int averaged=0,perCh=0;
+      for (int j=0; j<sampleChans; j++) {
+        perCh=((short*)buf)[i+j];
+        if (isNotMono) {
+          averaged+=perCh;
+          samples[j]->data16[index]=perCh;
+        }
       }
-      averaged/=si.channels;
-      sample->data16[index++]=averaged;
+      if (isNotMono) {
+        averaged/=sampleChans;
+        samples[sampleChans]->data16[index]=averaged;
+      } else {
+        samples[0]->data16[index]=perCh;
+      }
+      index++;
     }
     delete[] (short*)buf;
   }
 
-  sample->rate=si.samplerate;
-  if (sample->rate<4000) sample->rate=4000;
-  if (sample->rate>96000) sample->rate=96000;
-  sample->centerRate=si.samplerate;
-
-  SF_INSTRUMENT inst;
-  if (sf_command(f, SFC_GET_INSTRUMENT, &inst, sizeof(inst)) == SF_TRUE)
-  {
-    // There's no documentation on libsndfile detune range, but the code
-    // implies -50..50. Yet when loading a file you can get a >50 value.
-    // disabled for now
-    /*
-    if(inst.detune > 50)
-      inst.detune = inst.detune - 100;
-    short pitch = ((0x3c-inst.basenote)*100) + inst.detune;
-    sample->centerRate=si.samplerate*pow(2.0,pitch/(12.0 * 100.0));
-    */
-    if(inst.loop_count && inst.loops[0].mode >= SF_LOOP_FORWARD)
-    {
-      sample->loop=true;
-      sample->loopMode=(DivSampleLoopMode)(inst.loops[0].mode-SF_LOOP_FORWARD);
-      sample->loopStart=inst.loops[0].start;
-      sample->loopEnd=inst.loops[0].end;
-      if(inst.loops[0].end < (unsigned int)sampleCount)
-        sampleCount=inst.loops[0].end;
-    }
-    else
-      sample->loop=false;
+  for (int c=0; c<sampleChans+(isNotMono?1:0); c++) {
+    samples[c]->rate=si.samplerate;
+    if (samples[c]->rate<4000) samples[c]->rate=4000;
+    if (samples[c]->rate>96000) samples[c]->rate=96000;
+    samples[c]->centerRate=si.samplerate;
   }
 
-  if (sample->centerRate<100) sample->centerRate=100;
-  if (sample->centerRate>384000) sample->centerRate=384000;
+  SF_INSTRUMENT inst;
+  if (sf_command(f, SFC_GET_INSTRUMENT, &inst, sizeof(inst)) == SF_TRUE) {
+    for (int c=0; c<sampleChans+(isNotMono?1:0); c++) {
+      // There's no documentation on libsndfile detune range, but the code
+      // implies -50..50. Yet when loading a file you can get a >50 value.
+      // disabled for now
+      /*
+      if(inst.detune > 50)
+        inst.detune = inst.detune - 100;
+      short pitch = ((0x3c-inst.basenote)*100) + inst.detune;
+      samples[c]->centerRate=si.samplerate*pow(2.0,pitch/(12.0 * 100.0));
+      */
+      if (inst.loop_count && inst.loops[0].mode >= SF_LOOP_FORWARD) {
+        samples[c]->loop=true;
+        samples[c]->loopMode=(DivSampleLoopMode)(inst.loops[0].mode-SF_LOOP_FORWARD);
+        samples[c]->loopStart=inst.loops[0].start;
+        samples[c]->loopEnd=inst.loops[0].end;
+        if (inst.loops[0].end<(unsigned int)sampleCount) {
+          sampleCount=inst.loops[0].end; // ?
+        }
+      } else {
+       samples[c]->loop=false;
+      }
+    }
+  }
+
+  for (int c=0; c<sampleChans+(isNotMono?1:0); c++) {
+    if (samples[c]->centerRate<100) samples[c]->centerRate=100;
+    if (samples[c]->centerRate>384000) samples[c]->centerRate=384000;
+    ret.push_back(samples[c]);
+  }
+  delete[] samples;
+  samples=NULL;
+
   sfWrap.doClose();
   BUSY_END;
-  ret.push_back(sample);
   return ret;
 #endif
 }
