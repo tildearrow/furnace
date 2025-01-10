@@ -72,7 +72,7 @@ struct FurnaceGUIExportFormat {
   FurnaceGUIExportFormat(const char *n, const char *fe, const char *gp):
     name(n), fileExt(fe), globPattern(gp) {}
 };
-#define EXPORT_FORMAT_COUNT 4
+#define EXPORT_FORMAT_COUNT 6
 
 extern const int opOrder[4];
 extern const char* noteNames[180];

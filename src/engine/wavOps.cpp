@@ -321,7 +321,7 @@ void DivEngine::runExportThread() {
           "-ac",fmt::sprintf("%d",exportOutputs), // channel amount
           // "-guess_layout_max","0",
           "-i","pipe:0",
-          "-f",exportFileExtNoDot
+          // "-f",exportFileExtNoDot
         };
         splitString(exportFfmpegFlags,' ',command);
         command.push_back(exportPath);
@@ -355,7 +355,7 @@ void DivEngine::runExportThread() {
         }
         doExport(&wr);
 
-        // be sure we closed the write pipe to avoid stalling ffmpeg
+        // be sure we closed the write pipe to avoid stalling the child process
         proc.closeStdinPipe(false);
 #endif
       }

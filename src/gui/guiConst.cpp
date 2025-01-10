@@ -1219,6 +1219,8 @@ extern const FurnaceGUIExportFormat exportFormats[EXPORT_FORMAT_COUNT]={
   D("FLAC file",".flac","*.flac"),
   D("OGG file",".ogg","*.ogg"),
   D("MP3 file",".mp3","*.mp3"),
+  D("M4A file",".m4a","*.m4a"),
+  D("OPUS file",".opus","*.opus"),
 };
 #undef D
 
