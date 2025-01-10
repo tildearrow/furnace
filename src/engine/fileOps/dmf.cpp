@@ -910,7 +910,8 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       int vol=50;
       short* data;
       unsigned char* adpcmData;
-      if (length<0) {
+      // I don't think a sample can be that big
+      if (length<0 || length>(1<<29L)) {
         logE("invalid sample length %d. are we doing something wrong?",length);
         lastError="file is corrupt or unreadable at samples";
         delete[] file;
