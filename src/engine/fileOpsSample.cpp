@@ -20,9 +20,6 @@
 #include "engine.h"
 #include "../ta-log.h"
 #include "../fileutils.h"
-#include "sample.h"
-#include <cstddef>
-#include <fmt/printf.h>
 #ifdef HAVE_SNDFILE
 #include "sfWrapper.h"
 #endif

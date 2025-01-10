@@ -6740,9 +6740,9 @@ bool FurnaceGUI::loop() {
             String id=fmt::sprintf("%d: %s",(int)i,sampleBankSearchResults[i].first->name);
 
             ImGuiIO& io = ImGui::GetIO();
-            if(ImGui::Checkbox(id.c_str(),&sampleBankSearchResults[i].second) && io.KeyShift) {
+            if (ImGui::Checkbox(id.c_str(),&sampleBankSearchResults[i].second) && io.KeyShift) {
               for(int jj = (int)i - 1; jj >= 0; jj--) {
-                if(sampleBankSearchResults[jj].second) { // pressed shift and there's selected item above
+                if (sampleBankSearchResults[jj].second) { // pressed shift and there's selected item above
                   for(int k = jj; k < (int)i; k++) {
                     sampleBankSearchResults[k].second = true;
                   }
@@ -6754,9 +6754,9 @@ bool FurnaceGUI::loop() {
           }
 
           for (size_t i=0; i<pendingSamples.size(); i++) {
-            if(sampleBankSearchResults.size() > 0) {
+            if (sampleBankSearchResults.size() > 0) {
               for (size_t j=0; j<sampleBankSearchResults.size(); j++) {
-                if(sampleBankSearchResults[j].first == pendingSamples[i].first && sampleBankSearchResults[j].second && pendingSamples[i].first != NULL) {
+                if (sampleBankSearchResults[j].first == pendingSamples[i].first && sampleBankSearchResults[j].second && pendingSamples[i].first != NULL) {
                   pendingSamples[i].second = true;
                   if (pendingSamples[i].second) anySelected=true;
                   break;
