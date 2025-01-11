@@ -6675,7 +6675,7 @@ bool FurnaceGUI::loop() {
           i.second=false;
         }
       }
-      bool reissueSearch=false;
+      // bool reissueSearch=false;
 
       bool anySelected=false;
       float sizeY=ImGui::GetFrameHeightWithSpacing()*pendingSamples.size();
