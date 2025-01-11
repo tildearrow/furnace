@@ -141,10 +141,10 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
         loadP(reader,ret,stripPath);
       }
 
-      if((int)ret.size()>0) {
+      if ((int)ret.size()>0) {
         int counter=0;
 
-        for(DivSample* s: ret) {
+        for (DivSample* s: ret) {
           s->name=fmt::sprintf("%s sample %d", stripPath, counter);
           counter++;
         }
@@ -382,6 +382,8 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
       if (isNotMono) {
         averaged/=sampleChans;
         averaged*=32767.0;
+        if (averaged<-32768.0) averaged=-32768.0;
+        if (averaged>32767.0) averaged=32767.0;
         samples[sampleChans]->data16[index]=averaged;
       } else {
         samples[0]->data16[index]=perCh;
