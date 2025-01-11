@@ -119,4 +119,14 @@ void DivEngine::registerROMExports() {
     },
     false, DIV_REQPOL_EXACT
   );
+
+  romExportDefs[DIV_ROM_IPOD]=new DivROMExportDef(
+    "iPod .tone alarm", "AArt1256",
+    "this is very cursed...",
+    "alarm tone files", ".tone",
+    {
+      DIV_SYSTEM_PCSPKR
+    },
+    false, DIV_REQPOL_ANY
+  );
 }

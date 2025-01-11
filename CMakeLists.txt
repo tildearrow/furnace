@@ -812,6 +812,7 @@ src/engine/export/amigaValidation.cpp
 src/engine/export/sapr.cpp
 src/engine/export/tiuna.cpp
 src/engine/export/zsm.cpp
+src/engine/export/ipod.cpp
 
 src/engine/effect/abstract.cpp
 src/engine/effect/dummy.cpp
