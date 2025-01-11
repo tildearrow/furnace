@@ -333,7 +333,7 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
         samples[c]->name=stripPath;
       } else {
         if (sampleChans==2) {
-          samples[c]->name=stripPath+("_L\00_R"+3*c);
+          samples[c]->name=stripPath+(&"_L\00_R"[3*c]);
         } else {
           samples[c]->name=fmt::sprintf("%s_%d",stripPath.c_str(),c);
         }
