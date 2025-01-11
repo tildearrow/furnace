@@ -5350,6 +5350,18 @@ bool FurnaceGUI::loop() {
                     for (DivSample* s: samples) { // ask which samples to load!
                       pendingSamples.push_back(std::make_pair(s,false));
                     }
+                    const char* ext=strrchr(i.c_str(),'.');
+                    String extS;
+                    for (; *ext; ext++) {
+                      char i=*ext;
+                      if (i>='A' && i<='Z') {
+                        i+='a'-'A';
+                      }
+                      extS+=i;
+                    }
+                    isPendingSampleBank=(extS == ".pps" || extS == ".ppc" || extS == ".pvi" ||
+                        extS == ".pdx" || extS == ".pzi" || extS == ".p86" ||
+                        extS == ".p");
                     displayPendingSamples=true;
                     replacePendingSample=false;
                   }
@@ -6648,11 +6660,9 @@ bool FurnaceGUI::loop() {
       bool quitPlease=false;
 
       ImGui::AlignTextToFramePadding();
-      if (/*settings.polySamples*/1) { // TODO: detect whether loaded samples are from a multichannel sample
-        ImGui::Text(_("this sample has multiple channels! select which ones to load:"));
-      } else {
-        ImGui::Text(_("this is a sample bank! select which ones to load:"));
-      }
+      ImGui::Text("%s %s",
+        isPendingSampleBank?_("this is a sample bank!"):_("this sample has multiple channels!"),
+        replacePendingSample?_("select which ones to replace with:"):_("select which ones to load:"));
       ImGui::SameLine();
       if (ImGui::Button(_("All"))) {
         for (std::pair<DivSample*,bool>& i: pendingSamples) {
@@ -6676,11 +6686,13 @@ bool FurnaceGUI::loop() {
       if (ImGui::BeginTable("PendingSamplesList",1,ImGuiTableFlags_ScrollY,ImVec2(0.0f,sizeY))) {
         // whats this search query thing? i dont see any search inputs
         // looking at the git blame for here... incomplete backport?
-        if (sampleBankSearchQuery.empty()) {
+        // disabling for now...
+        // if (sampleBankSearchQuery.empty()) {
           for (size_t i=0; i<pendingSamples.size(); i++) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             String id=fmt::sprintf("%d: %s",(int)i,pendingSamples[i].first->name);
+            if (i==pendingSamples.size()-1) id+=" (mono)";
             if (pendingInsSingle) {
               if (ImGui::Selectable(id.c_str())) {
                 pendingSamples[i].second=true;
@@ -6701,7 +6713,7 @@ bool FurnaceGUI::loop() {
             }
             if (pendingSamples[i].second) anySelected=true;
           }
-        } else { // display search results
+        /* } else { // display search results
           if (reissueSearch) {
             String lowerCase=sampleBankSearchQuery;
 
@@ -6753,7 +6765,7 @@ bool FurnaceGUI::loop() {
               }
             }
           }
-        }
+        }*/
         ImGui::EndTable();
       }
 
@@ -6788,7 +6800,7 @@ bool FurnaceGUI::loop() {
           counter++;
         }
 
-        curSample=(int)e->song.sample.size()-1;
+        if (!replacePendingSample) curSample=(int)e->song.sample.size()-1;
         pendingSamples.clear();
       }
 
@@ -8270,6 +8282,7 @@ FurnaceGUI::FurnaceGUI():
   displayEditString(false),
   displayPendingSamples(false),
   replacePendingSample(false),
+  isPendingSampleBank(false),
   displayExportingROM(false),
   changeCoarse(false),
   mobileEdit(false),

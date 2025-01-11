@@ -330,7 +330,7 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
     samples[c]=new DivSample;
     if (isNotMono) {
       if (c==sampleChans) {
-        samples[c]->name=stripPath+"_mono";
+        samples[c]->name=stripPath;
       } else {
         if (sampleChans==2) {
           samples[c]->name=stripPath+("_L\00_R"+3*c);
