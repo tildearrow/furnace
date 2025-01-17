@@ -23,40 +23,58 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include <imgui.h>
 
+// Enforces `_val` being an index on a container of size `_size`.
+#define CLAMP_TO_SIZE(_val,_size) \
+  if (_size==0||_val<0) _val=0; \
+  else if (_val>=(int)_size) _val=(int)_size-1;
+
 void FurnaceGUI::drawExportAudio(bool onWindow) {
   exitDisabledTimer=1;
+  CLAMP_TO_SIZE(audioExportOptions.curCommandWriterIndex,audioExportOptions.commandExportWriterDefs.size());
 
 #ifdef _WIN32
-  const bool allowNonWav=false;
+  const bool isWin32=true;
 #else
-  const bool allowNonWav=true;
+  const bool isWin32=false;
 #endif
 
-  const auto formatEF = [](const FurnaceGUIExportFormat& ef) {
-    return fmt::sprintf("%s (%s)",_(ef.name),ef.fileExt);
+  const bool allowCommandWriter=!isWin32;
+  const char* sndfileDesc="Wave file (.wav) (libsndfile)";
+
+  const auto getCurrentFormatDesc=[this,sndfileDesc]() -> String {
+    switch (audioExportOptions.curWriter) {
+    case DIV_EXPORT_WRITER_SNDFILE:
+      return sndfileDesc;
+    case DIV_EXPORT_WRITER_COMMAND:
+      return audioExportOptions.commandExportWriterDefs[audioExportOptions.curCommandWriterIndex].name.c_str();
+    default:
+      return "???";
+    }
   };
 
-  const FurnaceGUIExportFormat& currentFormat=exportFormats[curAudioExportFormat];
-  if (ImGui::BeginCombo(_("file format"),formatEF(currentFormat).c_str())) {
-    for (int i=0; i<EXPORT_FORMAT_COUNT; i++) {
-      const FurnaceGUIExportFormat& ef=exportFormats[i];
-
-      if (!allowNonWav && i>0) ImGui::BeginDisabled();
-      if (ImGui::Selectable(formatEF(ef).c_str())) {
-        curAudioExportFormat=i;
-        audioExportOptions.fileExt=ef.fileExt;
+  if (ImGui::BeginCombo(_("file format"),getCurrentFormatDesc().c_str())) {
+    if (ImGui::Selectable(sndfileDesc)) {
+      audioExportOptions.curWriter=DIV_EXPORT_WRITER_SNDFILE;
+      audioExportOptions.curCommandWriterIndex=0;
+    }
+    for (size_t i=0; i<audioExportOptions.commandExportWriterDefs.size(); i++) {
+      if (!allowCommandWriter) ImGui::BeginDisabled();
+      if (ImGui::Selectable(audioExportOptions.commandExportWriterDefs[i].name.c_str())) {
+        audioExportOptions.curWriter=DIV_EXPORT_WRITER_COMMAND;
+        audioExportOptions.curCommandWriterIndex=i;
       }
-      if (!allowNonWav && i>0) ImGui::EndDisabled();
+      if (!allowCommandWriter) ImGui::EndDisabled();
     }
     ImGui::EndCombo();
   }
-#ifdef _WIN32
-  ImGui::Text("Note: non-wav file formats are not yet supported on windows. Sorry!");
-#endif
 
-  if (curAudioExportFormat>0) {
-    ImGui::InputText(_("extra ffmpeg flags"),&audioExportOptions.ffmpegFlags,ImGuiInputTextFlags_UndoRedo);
+#ifdef _WIN32
+  ImGui::Text("Note: custom-command exports (including via ffmpeg) are not yet supported on Windows. Sorry!");
+#else
+  if (audioExportOptions.curWriter==DIV_EXPORT_WRITER_COMMAND) {
+    ImGui::InputText(_("extra flags"),&audioExportOptions.extraFlags,ImGuiInputTextFlags_UndoRedo);
   }
+#endif
 
   ImGui::Text(_("Export type:"));
 

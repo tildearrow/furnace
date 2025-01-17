@@ -1727,6 +1727,15 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
     }
   }
 
+  const auto getAudioExportGlob=[this]() -> std::vector<String> {
+    if (audioExportOptions.curWriter==DIV_EXPORT_WRITER_SNDFILE) {
+      return {_("Wave file"), "*.wav"};
+    } else {
+      const DivAudioCommandExportDef& ed=audioExportOptions.commandExportWriterDefs[audioExportOptions.curCommandWriterIndex];
+      return {_(ed.name.c_str()), fmt::sprintf("*.%s",ed.fileExt)};
+    }
+  };
+
   switch (type) {
     case GUI_FILE_OPEN:
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
@@ -1965,10 +1974,9 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       break;
     case GUI_FILE_EXPORT_AUDIO_ONE: {
       if (!dirExists(workingDirAudioExport)) workingDirAudioExport=getHomeDir();
-      const FurnaceGUIExportFormat *ef=&exportFormats[curAudioExportFormat];
       hasOpened=fileDialog->openSave(
         _("Export Audio"),
-        {_(ef->name), ef->globPattern},
+        getAudioExportGlob(),
         workingDirAudioExport,
         dpiScale,
         (settings.autoFillSave)?shortName:""
@@ -1977,10 +1985,9 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
     }
     case GUI_FILE_EXPORT_AUDIO_PER_SYS: {
       if (!dirExists(workingDirAudioExport)) workingDirAudioExport=getHomeDir();
-      const FurnaceGUIExportFormat *ef=&exportFormats[curAudioExportFormat];
       hasOpened=fileDialog->openSave(
         _("Export Audio"),
-        {_(ef->name), ef->globPattern},
+        getAudioExportGlob(),
         workingDirAudioExport,
         dpiScale,
         (settings.autoFillSave)?shortName:""
@@ -1989,10 +1996,9 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
     }
     case GUI_FILE_EXPORT_AUDIO_PER_CHANNEL: {
       if (!dirExists(workingDirAudioExport)) workingDirAudioExport=getHomeDir();
-      const FurnaceGUIExportFormat *ef=&exportFormats[curAudioExportFormat];
       hasOpened=fileDialog->openSave(
         _("Export Audio"),
-        {_(ef->name), ef->globPattern},
+        getAudioExportGlob(),
         workingDirAudioExport,
         dpiScale,
         (settings.autoFillSave)?shortName:""
@@ -5113,8 +5119,12 @@ bool FurnaceGUI::loop() {
           if (curFileDialog==GUI_FILE_EXPORT_AUDIO_ONE ||
               curFileDialog==GUI_FILE_EXPORT_AUDIO_PER_SYS ||
               curFileDialog==GUI_FILE_EXPORT_AUDIO_PER_CHANNEL) {
-            const FurnaceGUIExportFormat *ef=&exportFormats[curAudioExportFormat];
-            checkExtension(ef->fileExt);
+            if (audioExportOptions.curWriter==DIV_EXPORT_WRITER_SNDFILE) {
+              checkExtension(".wav");
+            } else {
+              String ext=fmt::sprintf(".%s",audioExportOptions.commandExportWriterDefs[audioExportOptions.curCommandWriterIndex].fileExt);
+              checkExtension(ext.c_str());
+            }
           }
           if (curFileDialog==GUI_FILE_INS_SAVE) {
             checkExtension(".fui");
@@ -8206,7 +8216,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("xyOscIntensity",xyOscIntensity);
   conf.set("xyOscThickness",xyOscThickness);
 
-  conf.set("audioExportFfmpegFlags",audioExportOptions.ffmpegFlags);
+  conf.set("audioExportExtraFlags",audioExportOptions.extraFlags);
 
   // commit recent files
   for (int i=0; i<30; i++) {
@@ -8283,7 +8293,6 @@ FurnaceGUI::FurnaceGUI():
   sampleTexW(0),
   sampleTexH(0),
   updateSampleTex(true),
-  curAudioExportFormat(0),
   quit(false),
   warnQuit(false),
   willCommit(false),

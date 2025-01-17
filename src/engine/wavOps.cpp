@@ -205,6 +205,44 @@ class ProcWriter {
 };
 #endif
 
+#include <iomanip>
+
+std::vector<String> substituteArgs(const std::vector<String>& args, const std::map<String, String>& defs) {
+  std::vector<String> result;
+  for (const String& arg : args) {
+    String finalArg;
+    size_t start=0;
+    while (start<arg.size()) {
+      size_t end=arg.find('%',start);
+      if (end==start) {
+        // we found a % right where we are
+
+        size_t secondEnd=arg.find('%',start+1);
+        if (secondEnd==end+1) {
+          // we got another % right after - it's an escaped %
+          finalArg.push_back('%');
+        } else if (secondEnd==String::npos) {
+          // we would error but let's just not substitute
+          finalArg.append(arg,start);
+          start=end;
+        } else {
+          String key=arg.substr(end+1,secondEnd-(end+1));
+          if (defs.find(key)!=defs.end()) {
+            finalArg.append(defs.at(key));
+          }
+        }
+        start=(secondEnd==String::npos)?(String::npos):(secondEnd+1);
+      } else {
+        // we found a % more ahead (or got to the end of the string)
+        finalArg.append(arg,start,end-start);
+        start=end;
+      }
+    }
+    result.push_back(finalArg);
+  }
+  return result;
+}
+
 #ifdef HAVE_SNDFILE
 void DivEngine::runExportThread() {
   size_t fadeOutSamples=got.rate*exportFadeOut;
@@ -298,7 +336,7 @@ void DivEngine::runExportThread() {
         }
       };
 
-      if (exportFileExtNoDot=="wav") {
+      if (exportWriter==DIV_EXPORT_WRITER_SNDFILE) {
         SndfileWavWriter wr;
         if (!wr.open(makeSfInfo(),exportPath.c_str())) {
           logE("could not initialize export writer");
@@ -306,34 +344,42 @@ void DivEngine::runExportThread() {
           return;
         }
         doExport(&wr);
-      } else {
+      } else if (exportWriter==DIV_EXPORT_WRITER_COMMAND) {
 #ifdef _WIN32
         logE("ffmpeg export is not yet supported");
 #else
         String inputFormatArg=(exportFormat==DIV_EXPORT_FORMAT_S16)?"s16le":"f32le";
 
-        // build command vector
-        std::vector<String> command={
-          "ffmpeg","-y",
-          "-v","verbose",
-          "-f",inputFormatArg,
-          "-ar",fmt::sprintf("%ld",(long int)got.rate), // sample rate
-          "-ac",fmt::sprintf("%d",exportOutputs), // channel amount
-          // "-guess_layout_max","0",
-          "-i","pipe:0",
-          // "-f",exportFileExtNoDot
+        std::map<String, String> defMap;
+        defMap["ffmpeg"]="ffmpeg";
+        defMap["input_format"]=inputFormatArg;
+        defMap["sample_rate"]=fmt::sprintf("%ld",(long int)got.rate);
+        defMap["channel_count"]=fmt::sprintf("%d",exportOutputs);
+        defMap["extra_flags"]=exportExtraFlags; // FIXME: the flags won't be split!!! whoops
+        defMap["output_file"]=exportPath;
+
+        const auto vec2str=[](const std::vector<String>& vec) {
+          String output;
+          output+="[";
+          for (size_t i=0; i<vec.size(); i++) {
+            output+='"';
+            output+=vec[i];
+            output+='"';
+            if (i<vec.size()-1)
+              output+=", ";
+          }
+          output+="]";
+          return output;
         };
-        splitString(exportFfmpegFlags,' ',command);
-        command.push_back(exportPath);
 
-        String totalCommand;
-        for (const String& s : command) {
-          totalCommand+=s;
-          totalCommand+=" ";
-        }
-        logD("command: %s",totalCommand);
+        std::vector<String> args;
+        splitString(exportCommand,' ',args);
 
-        Subprocess proc(command);
+        logD("Before replacing: %s",vec2str(args));
+        args=substituteArgs(args,defMap);
+        logD("After replacing: %s",vec2str(args));
+
+        Subprocess proc(args);
         int writeFd=proc.pipeStdin();
         if (writeFd==-1) {
           logE("failed to create stdin pipe for subprocess");
@@ -645,13 +691,15 @@ bool DivEngine::saveAudio(const char* path, DivAudioExportOptions options) {
   exportMode=options.mode;
   exportFormat=options.format;
   exportFadeOut=options.fadeOut;
-  exportFfmpegFlags=options.ffmpegFlags;
+  exportWriter=options.curWriter;
+  exportExtraFlags=options.extraFlags;
 
-  const char* fileExt=options.fileExt.c_str();
-  if (fileExt[0]=='.') {
-    exportFileExtNoDot=&fileExt[1];
+  if (exportWriter==DIV_EXPORT_WRITER_SNDFILE) {
+    exportFileExtNoDot="wav";
   } else {
-    exportFileExtNoDot=fileExt;
+    DivAudioCommandExportDef& def=options.commandExportWriterDefs[options.curCommandWriterIndex];
+    exportCommand=def.commandTemplate;
+    exportFileExtNoDot=def.fileExt;
   }
 
   memcpy(exportChannelMask,options.channelMask,DIV_MAX_CHANS*sizeof(bool));

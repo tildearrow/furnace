@@ -5407,7 +5407,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
 
-  audioExportOptions.ffmpegFlags=conf.getString("audioExportFfmpegFlags","");
+  audioExportOptions.extraFlags=conf.getString("audioExportExtraFlags","");
 }
 
 void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {

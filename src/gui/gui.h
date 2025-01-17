@@ -1629,7 +1629,6 @@ class FurnaceGUI {
   String mmlStringW, grooveString, grooveListString, mmlStringModTable;
   String mmlStringSNES[DIV_MAX_CHIPS];
   String folderString;
-  int curAudioExportFormat;
 
   struct PaletteSearchResult { int id; std::vector<int> highlightChars; };
   std::vector<DivSystem> sysSearchResults;
