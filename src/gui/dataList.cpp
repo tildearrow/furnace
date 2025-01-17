@@ -71,47 +71,51 @@ const char* sampleNote[12]={
   }
 
 #define SIMPLE_DRAG_SOURCE(_c,_toMoveVar) \
-  if (settings.draggableDataView && ImGui::BeginDragDropSource()) { \
-    _toMoveVar=i; \
-    ImGui::SetDragDropPayload(_c,NULL,0,ImGuiCond_Once); \
-    ImGui::Button(ICON_FA_ARROWS "##AssetDrag"); \
-    ImGui::EndDragDropSource(); \
+  if (settings.draggableDataView) { \
+    if (ImGui::BeginDragDropSource()) { \
+      _toMoveVar=i; \
+      ImGui::SetDragDropPayload(_c,NULL,0,ImGuiCond_Once); \
+      ImGui::Button(ICON_FA_ARROWS "##AssetDrag"); \
+      ImGui::EndDragDropSource(); \
+    } \
   }
 
 #define SIMPLE_DRAG_TARGET(_c,_toMoveVar,_curVar,_swapFn,_moveUpFn,_moveDownFn) \
-  if (settings.draggableDataView && ImGui::BeginDragDropTarget()) { \
-    const ImGuiPayload* payload=ImGui::AcceptDragDropPayload(_c); \
-    if (payload!=NULL) { \
-      int target=i; \
-      bool markModified=false; \
-      if (_toMoveVar!=target) { \
-        if (ImGui::IsKeyDown(ImGuiKey_ModCtrl)) { \
-          markModified=_swapFn(_toMoveVar,target); \
-        } else { \
-          while (_toMoveVar>target) { \
-            if (_moveUpFn(_toMoveVar)) { \
-              _toMoveVar--; \
-              markModified=true; \
-            } else { \
-              break; \
+  if (settings.draggableDataView) { \
+    if (ImGui::BeginDragDropTarget()) { \
+      const ImGuiPayload* payload=ImGui::AcceptDragDropPayload(_c); \
+      if (payload!=NULL) { \
+        int target=i; \
+        bool markModified=false; \
+        if (_toMoveVar!=target) { \
+          if (ImGui::IsKeyDown(ImGuiKey_ModCtrl)) { \
+            markModified=_swapFn(_toMoveVar,target); \
+          } else { \
+            while (_toMoveVar>target) { \
+              if (_moveUpFn(_toMoveVar)) { \
+                _toMoveVar--; \
+                markModified=true; \
+              } else { \
+                break; \
+              } \
+            } \
+            while (_toMoveVar<target) { \
+              if (_moveDownFn(_toMoveVar)) { \
+                _toMoveVar++; \
+                markModified=true; \
+              } else { \
+                break; \
+              } \
             } \
           } \
-          while (_toMoveVar<target) { \
-            if (_moveDownFn(_toMoveVar)) { \
-              _toMoveVar++; \
-              markModified=true; \
-            } else { \
-              break; \
-            } \
-          } \
+          _curVar=target; \
         } \
-        _curVar=target; \
+        if (markModified) { \
+          MARK_MODIFIED; \
+        } \
+        _toMoveVar=-1; \
+        ImGui::EndDragDropTarget(); \
       } \
-      if (markModified) { \
-        MARK_MODIFIED; \
-      } \
-      _toMoveVar=-1; \
-      ImGui::EndDragDropTarget(); \
     } \
   }
 
