@@ -200,11 +200,14 @@ bool DivCSPlayer::tick() {
           case DIV_CMD_HINT_PITCH:
             arg0=(signed char)stream.readC();
             break;
-          case DIV_CMD_PANNING:
           case DIV_CMD_HINT_VIBRATO:
           case DIV_CMD_HINT_ARPEGGIO:
           case DIV_CMD_HINT_PORTA:
             arg0=(signed char)stream.readC();
+            arg1=(unsigned char)stream.readC();
+            break;
+          case DIV_CMD_PANNING:
+            arg0=(unsigned char)stream.readC();
             arg1=(unsigned char)stream.readC();
             break;
           case DIV_CMD_PRE_PORTA:
