@@ -7,7 +7,6 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 # contributors
 
 - 0x5066
-- aarchMoth
 - Abstract 64
 - Aburtos
 - ActualNK358
