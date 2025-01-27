@@ -393,14 +393,14 @@ void DivPlatformES5506::tick(bool sysTick) {
     }
     // filter slide
     if (!chan[i].keyOn) {
-      if (chan[i].k1Slide!=0 && chan[i].filter.k1>0 && chan[i].filter.k1<65535) {
+      if (chan[i].k1Slide!=0) {
         signed int next=CLAMP(chan[i].filter.k1+chan[i].k1Slide,0,65535);
         if (chan[i].filter.k1!=next) {
           chan[i].filter.k1=next;
           chan[i].filterChanged.k1=1;
         }
       }
-      if (chan[i].k2Slide!=0 && chan[i].filter.k2>0 && chan[i].filter.k2<65535) {
+      if (chan[i].k2Slide!=0) {
         signed int next=CLAMP(chan[i].filter.k2+chan[i].k2Slide,0,65535);
         if (chan[i].filter.k2!=next) {
           chan[i].filter.k2=next;
