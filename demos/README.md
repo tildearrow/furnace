@@ -7,7 +7,6 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 # contributors
 
 - 0x5066
-- aarchMoth
 - Abstract 64
 - Aburtos
 - ActualNK358
@@ -16,12 +15,14 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - aloelucidity
 - AmigaX
 - AquaDoesStuff
+- asikwus
 - AstralBlue
 - Background2982
 - battybeats
 - bbqzzd
 - Bernie
 - billimanmcjonnson
+- biolizardshadow
 - BlastBrothers
 - Blaze Weednix
 - BlueElectric05
@@ -134,6 +135,7 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - Xan
 - Yuzu4K
 - Zabir
+- Zaxinoth Digital
 - Zaxolotl
 - ZoomTen (Zumi)
 

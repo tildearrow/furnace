@@ -676,6 +676,10 @@ void FurnaceGUI::doPasteFurnace(PasteMode mode, int arg, bool readClipboard, Str
     }
   }
 
+  if (mode==GUI_PASTE_MODE_OVERFLOW && !e->isPlaying()) {
+    setOrder(curOrder);
+  }
+
   if (readClipboard) {
     if (settings.cursorPastePos) {
       makeCursorUndo();
