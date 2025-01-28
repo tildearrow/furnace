@@ -3910,7 +3910,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
     }
 
     if (ImGui::BeginTable("fmDetails",3,(ins->type==DIV_INS_ESFM)?ImGuiTableFlags_SizingStretchProp:ImGuiTableFlags_SizingStretchSame)) {
-      String blockTxt=_("Any");
+      String blockTxt=_("Automatic");
       if (ins->fm.block>=1) {
         blockTxt=fmt::sprintf("%d",ins->fm.block-1);
       }
@@ -3983,17 +3983,16 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           ImGui::TableNextColumn();
           ins->fm.alg&=algMax;
           P(CWSliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN)); rightClickable
+          P(CWSliderScalar(FM_NAME(FM_BLOCK),ImGuiDataType_U8,&ins->fm.block,&_ZERO,&_EIGHT,blockTxt.c_str())); rightClickable
+          ImGui::TableNextColumn();
+          P(CWSliderScalar(FM_NAME(FM_ALG),ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&algMax)); rightClickable
           if (ins->type==DIV_INS_OPL) {
             ImGui::BeginDisabled(ins->fm.opllPreset==16);
             if (ImGui::Checkbox("4-op",&fourOp)) { PARAMETER
               ins->fm.ops=fourOp?4:2;
             }
             ImGui::EndDisabled();
-          }
-          P(CWSliderScalar(FM_NAME(FM_BLOCK),ImGuiDataType_U8,&ins->fm.block,&_ZERO,&_EIGHT,blockTxt.c_str())); rightClickable
-          ImGui::TableNextColumn();
-          P(CWSliderScalar(FM_NAME(FM_ALG),ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&algMax)); rightClickable
-          if (ins->type==DIV_INS_OPL) {
+            ImGui::SameLine();
             if (ImGui::Checkbox(_("Drums"),&drums)) { PARAMETER
               ins->fm.opllPreset=drums?16:0;
             }
@@ -4018,10 +4017,8 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           ImGui::TableNextColumn();
           ImGui::BeginDisabled(ins->fm.opllPreset!=0);
           P(CWSliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&fmOrigin.fb,&_ZERO,&_SEVEN)); rightClickable
-          if (ImGui::Checkbox(FM_NAME(FM_DC),&dc)) { PARAMETER
-            fmOrigin.fms=dc;
-          }
           ImGui::EndDisabled();
+          P(CWSliderScalar(FM_NAME(FM_BLOCK),ImGuiDataType_U8,&ins->fm.block,&_ZERO,&_EIGHT,blockTxt.c_str())); rightClickable
           if (ins->fm.opllPreset!=0) {
             ins->fm.op[1].tl&=15;
             P(CWSliderScalar(_("Volume##TL"),ImGuiDataType_U8,&ins->fm.op[1].tl,&_FIFTEEN,&_ZERO)); rightClickable
@@ -4031,11 +4028,14 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             ins->fm.alg=sus;
           }
           ImGui::BeginDisabled(ins->fm.opllPreset!=0);
+          if (ImGui::Checkbox(FM_NAME(FM_DC),&dc)) { PARAMETER
+            fmOrigin.fms=dc;
+          }
+          ImGui::SameLine();
           if (ImGui::Checkbox(FM_NAME(FM_DM),&dm)) { PARAMETER
             fmOrigin.ams=dm;
           }
           ImGui::EndDisabled();
-          P(CWSliderScalar(FM_NAME(FM_BLOCK),ImGuiDataType_U8,&ins->fm.block,&_ZERO,&_EIGHT,blockTxt.c_str())); rightClickable
           ImGui::TableNextColumn();
           if (fmPreviewOn) {
             drawFMPreview(ImVec2(ImGui::GetContentRegionAvail().x,24.0*dpiScale));
