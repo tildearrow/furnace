@@ -126,8 +126,8 @@ class DivPlatformESFM: public DivDispatch {
   short oldWrites[ESFM_REG_POOL_SIZE];
   short pendingWrites[ESFM_REG_POOL_SIZE];
 
-  int octave(int freq);
-  int toFreq(int freq);
+  int octave(int freq, int fixedBlock);
+  int toFreq(int freq, int fixedBlock);
   void commitState(int ch, DivInstrument* ins);
 
   friend void putDispatchChip(void*,int);

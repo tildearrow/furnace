@@ -24,10 +24,10 @@
 #include "../../../extern/opn/ym3438.h"
 #include "sound/ymfm/ymfm_opn.h"
 
-#define PLEASE_HELP_ME(_targetChan) \
+#define PLEASE_HELP_ME(_targetChan,blk) \
   int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,0,false); \
   int boundaryTop=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,12,false); \
-  int destFreq=NOTE_FNUM_BLOCK(c.value2,11); \
+  int destFreq=NOTE_FNUM_BLOCK(c.value2,11,blk); \
   int newFreq; \
   bool return2=false; \
   if (_targetChan.portaPause) { \

@@ -409,6 +409,7 @@ void DivInstrument::writeFeatureFM(SafeWriter* w, bool fui) {
   w->writeC(((fm.alg&7)<<4)|(fm.fb&7));
   w->writeC(((fm.fms2&7)<<5)|((fm.ams&3)<<3)|(fm.fms&7));
   w->writeC(((fm.ams2&3)<<6)|((fm.ops==4)?32:0)|(fm.opllPreset&31));
+  w->writeC(fm.block&15);
 
   // operator data
   for (int i=0; i<opCount; i++) {
@@ -1740,6 +1741,11 @@ void DivInstrument::readFeatureFM(SafeReader& reader, short version) {
   fm.ams2=(next>>6)&3;
   fm.ops=(next&32)?4:2;
   fm.opllPreset=next&31;
+
+  if (version>=224) {
+    next=reader.readC();
+    fm.block=next&15;
+  }
 
   // read operators
   for (int i=0; i<opCount; i++) {

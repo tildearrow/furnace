@@ -169,8 +169,8 @@ class DivPlatformOPL: public DivDispatch {
 
     DivMemoryComposition memCompo;
 
-    int octave(int freq);
-    int toFreq(int freq);
+    int octave(int freq, int fixedBlock);
+    int toFreq(int freq, int fixedBlock);
     double NOTE_ADPCMB(int note);
     void commitState(int ch, DivInstrument* ins);
 

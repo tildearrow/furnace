@@ -97,7 +97,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
         return NOTE_PERIODIC(note);
       }
       // FM
-      return NOTE_FNUM_BLOCK(note,11);
+      return NOTE_FNUM_BLOCK(note,11,chan[ch].state.block);
     }
     double NOTE_ADPCMB(int note) {
       if (chan[adpcmBChanOffs].sample>=0 && chan[adpcmBChanOffs].sample<parent->song.sampleLen) {
