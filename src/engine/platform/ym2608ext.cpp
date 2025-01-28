@@ -93,7 +93,7 @@ int DivPlatformYM2608Ext::dispatch(DivCommand c) {
       opChan[ch].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
-        opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11,opChan[ch].ins);
+        opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[extChanOffs].state.block);
         opChan[ch].portaPause=false;
         opChan[ch].note=c.value;
         opChan[ch].freqChanged=true;
@@ -188,7 +188,7 @@ int DivPlatformYM2608Ext::dispatch(DivCommand c) {
         }
         break;
       }
-      PLEASE_HELP_ME(opChan[ch]);
+      PLEASE_HELP_ME(opChan[ch],chan[extChanOffs].state.block);
       break;
     }
     case DIV_CMD_LEGATO: {
@@ -197,7 +197,7 @@ int DivPlatformYM2608Ext::dispatch(DivCommand c) {
         commitStateExt(ch,ins);
         opChan[ch].insChanged=false;
       }
-      opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11,opChan[ch].ins);
+      opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[extChanOffs].state.block);
       opChan[ch].freqChanged=true;
       break;
     }
@@ -472,7 +472,7 @@ void DivPlatformYM2608Ext::tick(bool sysTick) {
 
     if (opChan[i].std.arp.had) {
       if (!opChan[i].inPorta) {
-        opChan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(opChan[i].note,opChan[i].std.arp.val),11,opChan[i].ins);
+        opChan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(opChan[i].note,opChan[i].std.arp.val),11,chan[extChanOffs].state.block);
       }
       opChan[i].freqChanged=true;
     }
@@ -594,7 +594,7 @@ void DivPlatformYM2608Ext::tick(bool sysTick) {
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
       if (parent->song.linearPitch==2) {
-        opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,4,opChan[i].pitch2,chipClock,CHIP_FREQBASE,11,parent->getIns(chan[i].ins)->fm.block);
+        opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,4,opChan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[extChanOffs].state.block);
       } else {
         int fNum=parent->calcFreq(opChan[i].baseFreq&0x7ff,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,4,opChan[i].pitch2);
         int block=(opChan[i].baseFreq&0xf800)>>11;

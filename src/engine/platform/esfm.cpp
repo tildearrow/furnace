@@ -293,7 +293,7 @@ void DivPlatformESFM::tick(bool sysTick) {
   for (int i=0; i<18; i++) {
     if (chan[i].freqChanged) {
       int mul=2;
-      int fixedBlock=parent->getIns(chan[i].ins)->fm.block;
+      int fixedBlock=chan[i].state.fm.block;
       if (parent->song.linearPitch!=2) {
         mul=octave(chan[i].baseFreq,fixedBlock)*2;
       }
@@ -527,7 +527,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       int mul=1;
       int fixedBlock=0;
       if (parent->song.linearPitch!=2) {
-        fixedBlock=parent->getIns(chan[c.chan].ins)->fm.block;
+        fixedBlock=chan[c.chan].state.fm.block;
         mul=octave(chan[c.chan].baseFreq,fixedBlock);
       }
       if (destFreq>chan[c.chan].baseFreq) {
