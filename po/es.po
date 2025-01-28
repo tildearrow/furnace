@@ -10979,8 +10979,8 @@ msgid "all members of Deflers of Noice!"
 msgstr "¡todos los miembros de Deflers of Noice!"
 
 #: src/gui/about.cpp:311
-msgid "copyright © 2021-2024 tildearrow"
-msgstr "copyright © 2021-2024 tildearrow"
+msgid "copyright © 2021-2025 tildearrow"
+msgstr "copyright © 2021-2025 tildearrow"
 
 #: src/gui/about.cpp:312
 msgid "(and contributors)."

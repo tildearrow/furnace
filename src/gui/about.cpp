@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -178,7 +178,7 @@ const char* aboutLine[]={
   "@party",
   _N("all members of Deflers of Noice!"),
   "",
-  _N("copyright © 2021-2024 tildearrow"),
+  _N("copyright © 2021-2025 tildearrow"),
   _N("(and contributors)."),
   _N("licensed under GPLv2+! see"),
   _N("LICENSE for more information."),
