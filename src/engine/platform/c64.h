@@ -33,15 +33,23 @@
 class DivPlatformC64: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
     int prevFreq, testWhen;
+    unsigned int audPos, pcmPos;
+    int sample, pcmPeriod, pcmRate, pcmOut;
     unsigned char sweep, wave, attack, decay, sustain, release;
     short duty;
-    bool sweepChanged, filter;
+    bool sweepChanged, filter, setPos, pcm;
     bool resetMask, resetFilter, resetDuty, gate, ring, sync, test;
     short pw_slide;
     Channel():
       SharedChannel<signed char>(15),
       prevFreq(65535),
       testWhen(0),
+      audPos(0),
+      pcmPos(0),
+      sample(-1),
+      pcmPeriod(0),
+      pcmRate(0),
+      pcmOut(0),
       sweep(0),
       wave(0),
       attack(0),
@@ -51,6 +59,8 @@ class DivPlatformC64: public DivDispatch {
       duty(0),
       sweepChanged(false),
       filter(false),
+      setPos(false),
+      pcm(false),
       resetMask(false),
       resetFilter(false),
       resetDuty(false),
@@ -60,11 +70,11 @@ class DivPlatformC64: public DivDispatch {
       test(false),
       pw_slide(0) {}
   };
-  Channel chan[3];
-  DivDispatchOscBuffer* oscBuf[3];
-  bool isMuted[3];
-  float fakeLow[3];
-  float fakeBand[3];
+  Channel chan[4];
+  DivDispatchOscBuffer* oscBuf[4];
+  bool isMuted[4];
+  float fakeLow[4];
+  float fakeBand[4];
   float fakeCutTable[2048];
   struct QueuedWrite {
       unsigned char addr;
