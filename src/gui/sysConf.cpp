@@ -680,7 +680,8 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       break;
     }
     case DIV_SYSTEM_C64_8580:
-    case DIV_SYSTEM_C64_6581: {
+    case DIV_SYSTEM_C64_6581:
+    case DIV_SYSTEM_C64_PCM: {
       int clockSel=flags.getInt("clockSel",0);
       bool keyPriority=flags.getBool("keyPriority",true);
       bool no1EUpdate=flags.getBool("no1EUpdate",false);

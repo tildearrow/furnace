@@ -33,8 +33,8 @@
 class DivPlatformC64: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
     int prevFreq, testWhen;
-    unsigned int audPos, pcmPos;
-    int sample, pcmPeriod, pcmRate, pcmOut;
+    unsigned int audPos;
+    int pcmPos, sample, pcmPeriod, pcmRate, pcmOut;
     unsigned char sweep, wave, attack, decay, sustain, release;
     short duty;
     bool sweepChanged, filter, setPos, pcm;
@@ -49,7 +49,7 @@ class DivPlatformC64: public DivDispatch {
       sample(-1),
       pcmPeriod(0),
       pcmRate(0),
-      pcmOut(0),
+      pcmOut(15),
       sweep(0),
       wave(0),
       attack(0),
@@ -88,6 +88,7 @@ class DivPlatformC64: public DivDispatch {
   unsigned char writeOscBuf;
   unsigned char sidCore;
   int filtCut, resetTime, initResetTime;
+  int pcmCycle, lineRate;
   short cutoff_slide;
 
   bool keyPriority, sidIs6581, needInitTables, no1EUpdate, multiplyRel, macroRace;
@@ -105,10 +106,12 @@ class DivPlatformC64: public DivDispatch {
 
   inline short runFakeFilter(unsigned char ch, int in);
 
+  void processDAC(int sRate);
   void acquire_classic(short* bufL, short* bufR, size_t start, size_t len);
   void acquire_fp(short* bufL, short* bufR, size_t start, size_t len);
 
   void updateFilter();
+  void updateVolume();
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);

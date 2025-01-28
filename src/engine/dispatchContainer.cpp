@@ -328,6 +328,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       ((DivPlatformNES*)dispatch)->set5E01(false);
       break;
     case DIV_SYSTEM_C64_6581:
+    case DIV_SYSTEM_C64_PCM:
       dispatch=new DivPlatformC64;
       if (isRender) {
         ((DivPlatformC64*)dispatch)->setCore(eng->getConfInt("c64CoreRender",1));

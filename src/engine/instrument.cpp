@@ -37,6 +37,7 @@ bool DivInstrumentFM::operator==(const DivInstrumentFM& other) {
     _C(ams2) &&
     _C(ops) &&
     _C(opllPreset) &&
+    _C(block) &&
     _C(fixedDrums) &&
     _C(kickFreq) &&
     _C(snareHatFreq) &&
