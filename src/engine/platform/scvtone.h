@@ -22,7 +22,7 @@
 
 #include "../dispatch.h"
 #include "../../fixedQueue.h"
-#include "sound/upd1771c.h"
+#include "sound/upd1771.h"
 
 class DivPlatformSCVTone: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
@@ -52,8 +52,11 @@ class DivPlatformSCVTone: public DivDispatch {
   unsigned char regPool[16];
   unsigned char kon[4];
   unsigned char initWrite[4];
-  struct upd1771c_t scv;
+  upd1771c_device scv;
 
+  unsigned char packet[16];
+
+  bool writePacket;
 
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);

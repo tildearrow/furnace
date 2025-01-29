@@ -653,7 +653,6 @@ src/engine/platform/sound/sm8521.c
 src/engine/platform/sound/supervision.c
 
 src/engine/platform/sound/upd1771.cpp
-src/engine/platform/sound/upd1771c.c
 
 src/engine/platform/sound/d65modified.c
 

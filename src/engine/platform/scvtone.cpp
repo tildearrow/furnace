@@ -24,7 +24,7 @@
 #include <math.h>
 
 //#define rWrite(a,v) pendingWrites[a]=v;
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {packet[a]=v; writePacket=true; if (dumpWrites) {addWrite(a,v);} }
 
 #define CHIP_DIVIDER 64
 
@@ -40,22 +40,22 @@ void DivPlatformSCVTone::acquire(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
-      upd1771c_write_packet(&scv,w.addr&15,w.val);
+      scv.write(w.val);
       regPool[w.addr&0xf]=w.val;
       writes.pop();
     }
 
-    short s=upd1771c_sound_stream_update(&scv)<<3;
+    scv.sound_stream_update(&buf[0][h],1);
+    /*
     if (isMuted[0]) s=0;
     oscBuf[0]->data[oscBuf[0]->needle++]=s;
     buf[0][h]=s;
-    buf[1][h]=s;
+    buf[1][h]=s;*/
   }
 }
 
 void DivPlatformSCVTone::tick(bool sysTick) {
   for (int i=0; i<1; i++) {
-
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&31,MIN(31,chan[i].std.vol.val),31);
@@ -143,6 +143,21 @@ void DivPlatformSCVTone::tick(bool sysTick) {
       }
     }
 
+  }
+
+  // if need be, write packet
+  if (writePacket) {
+    writePacket=false;
+    int len=1;
+    if (packet[0]==2) {
+      len=4;
+    } else if (packet[0]==1) {
+      len=10;
+    }
+
+    for (int i=0; i<len; i++) {
+      writes.push(QueuedWrite(0,packet[i]));
+    }
   }
 }
 
@@ -304,15 +319,17 @@ void DivPlatformSCVTone::reset() {
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
-  upd1771c_reset(&scv);
+  scv.device_reset();
   memset(tempL,0,32*sizeof(int));
   memset(tempR,0,32*sizeof(int));
   memset(kon,0,1*sizeof(unsigned char));
   memset(initWrite,1,1*sizeof(unsigned char));
+  memset(packet,0,16);
+  writePacket=false;
 }
 
 int DivPlatformSCVTone::getOutputCount() {
-  return 2;
+  return 1;
 }
 
 bool DivPlatformSCVTone::keyOffAffectsArp(int ch) {
@@ -328,11 +345,11 @@ void DivPlatformSCVTone::notifyInsDeletion(void* ins) {
 void DivPlatformSCVTone::setFlags(const DivConfig& flags) {
   chipClock=6000000;
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/32;
+  rate=chipClock/4;
   for (int i=0; i<1; i++) {
     oscBuf[i]->rate=rate;
   }
-  upd1771c_sound_set_clock(&scv,(unsigned int)chipClock,8);
+  //upd1771c_sound_set_clock(&scv,(unsigned int)chipClock,8);
 }
 
 void DivPlatformSCVTone::poke(unsigned int addr, unsigned short val) {
