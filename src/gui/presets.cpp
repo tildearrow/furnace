@@ -1561,13 +1561,23 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
-  _("Sord M5"), {
-    CH(DIV_SYSTEM_SMS, 1.0f, 0,
-      "customClock=1773447\n"
-      "chipType=1\n"
-     )
-   }
- );
+    _("Sord M5"), {
+      CH(DIV_SYSTEM_SMS, 1.0f, 0,
+        "customClock=1773447\n"
+        "chipType=1\n"
+      )
+    }
+  );
+  ENTRY(
+    "Epoch Super Cassette Vision (wave mode)", {
+      CH(DIV_SYSTEM_UPD1771C, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "Epoch Super Cassette Vision (tone mode)", {
+      CH(DIV_SYSTEM_UPD1771C_TONE, 1.0f, 0, "")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN(_("Arcade systems"),_("INSERT COIN"));

@@ -2061,8 +2061,8 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_UPD1771C]=new DivSysDef(
-    _("NEC μPD1771C"), NULL, 0xe4, 0, 1, false, true, 0, false, 0, 0, 0,
-    _("this was an SoC with some funky wavetable/noise hardware"),
+    _("NEC μPD1771C-017 (wave mode)"), NULL, 0xe4, 0, 1, false, true, 0, false, 0, 0, 0,
+    _("a microcontroller which has been used as a sound generator in the Super Cassette Vision. this is the waveform mode."),
     {_("Wave/Noise")},
     {"W"},
     {DIV_CH_NOISE},
@@ -2072,6 +2072,17 @@ void DivEngine::registerSystems() {
       {0x10, {DIV_CMD_STD_NOISE_MODE, _("10xx: Set duty/waveform (bit 0-3: waveform; bit 4: mode)")}},
       {0x12, {DIV_CMD_N163_WAVE_POSITION, _("12xx: Set waveform position (0-31)")}},
     }
+  );
+
+  sysDefs[DIV_SYSTEM_UPD1771C_TONE]=new DivSysDef(
+    _("NEC μPD1771C-017 (tone mode)"), NULL, 0xe5, 0, 4, false, true, 0, false, 0, 0, 0,
+    _("a microcontroller which has been used as a sound generator in the Super Cassette Vision. this is the tone mode."),
+    {_("Square 1"), _("Square 2"), _("Square 3"), _("Noise")},
+    {"W"},
+    {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE},
+    {DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_UPD1771C},
+    {},
+    {}
   );
 
   sysDefs[DIV_SYSTEM_SM8521]=new DivSysDef(

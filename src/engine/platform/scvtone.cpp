@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "upd1771c.h"
+#include "scvtone.h"
 #include "../engine.h"
 #include "../../ta-log.h"
 #include "furIcons.h"
@@ -28,15 +28,15 @@
 
 #define CHIP_DIVIDER 64
 
-const char* regCheatSheetUPD1771c[]={
+const char* regCheatSheetUPD1771cTone[]={
   NULL
 };
 
-const char** DivPlatformUPD1771c::getRegisterSheet() {
-  return regCheatSheetUPD1771c;
+const char** DivPlatformSCVTone::getRegisterSheet() {
+  return regCheatSheetUPD1771cTone;
 }
 
-void DivPlatformUPD1771c::acquire(short** buf, size_t len) {
+void DivPlatformSCVTone::acquire(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -53,7 +53,7 @@ void DivPlatformUPD1771c::acquire(short** buf, size_t len) {
   }
 }
 
-void DivPlatformUPD1771c::tick(bool sysTick) {
+void DivPlatformSCVTone::tick(bool sysTick) {
   for (int i=0; i<1; i++) {
 
     chan[i].std.next();
@@ -146,7 +146,7 @@ void DivPlatformUPD1771c::tick(bool sysTick) {
   }
 }
 
-int DivPlatformUPD1771c::dispatch(DivCommand c) {
+int DivPlatformSCVTone::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_UPD1771C);
@@ -262,11 +262,11 @@ int DivPlatformUPD1771c::dispatch(DivCommand c) {
   return 1;
 }
 
-void DivPlatformUPD1771c::muteChannel(int ch, bool mute) {
+void DivPlatformSCVTone::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
 }
 
-void DivPlatformUPD1771c::forceIns() {
+void DivPlatformSCVTone::forceIns() {
   for (int i=0; i<1; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
@@ -274,31 +274,31 @@ void DivPlatformUPD1771c::forceIns() {
   }
 }
 
-void* DivPlatformUPD1771c::getChanState(int ch) {
+void* DivPlatformSCVTone::getChanState(int ch) {
   return &chan[ch];
 }
 
-DivMacroInt* DivPlatformUPD1771c::getChanMacroInt(int ch) {
+DivMacroInt* DivPlatformSCVTone::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
-DivDispatchOscBuffer* DivPlatformUPD1771c::getOscBuffer(int ch) {
+DivDispatchOscBuffer* DivPlatformSCVTone::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
-unsigned char* DivPlatformUPD1771c::getRegisterPool() {
+unsigned char* DivPlatformSCVTone::getRegisterPool() {
   return regPool;
 }
 
-int DivPlatformUPD1771c::getRegisterPoolSize() {
+int DivPlatformSCVTone::getRegisterPoolSize() {
   return 16;
 }
 
-void DivPlatformUPD1771c::reset() {
+void DivPlatformSCVTone::reset() {
   writes.clear();
   memset(regPool,0,16);
   for (int i=0; i<1; i++) {
-    chan[i]=DivPlatformUPD1771c::Channel();
+    chan[i]=DivPlatformSCVTone::Channel();
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
@@ -311,21 +311,21 @@ void DivPlatformUPD1771c::reset() {
   memset(initWrite,1,1*sizeof(unsigned char));
 }
 
-int DivPlatformUPD1771c::getOutputCount() {
+int DivPlatformSCVTone::getOutputCount() {
   return 2;
 }
 
-bool DivPlatformUPD1771c::keyOffAffectsArp(int ch) {
+bool DivPlatformSCVTone::keyOffAffectsArp(int ch) {
   return true;
 }
 
-void DivPlatformUPD1771c::notifyInsDeletion(void* ins) {
+void DivPlatformSCVTone::notifyInsDeletion(void* ins) {
   for (int i=0; i<1; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }
 
-void DivPlatformUPD1771c::setFlags(const DivConfig& flags) {
+void DivPlatformSCVTone::setFlags(const DivConfig& flags) {
   chipClock=6000000;
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/32;
@@ -335,15 +335,15 @@ void DivPlatformUPD1771c::setFlags(const DivConfig& flags) {
   upd1771c_sound_set_clock(&scv,(unsigned int)chipClock,8);
 }
 
-void DivPlatformUPD1771c::poke(unsigned int addr, unsigned short val) {
+void DivPlatformSCVTone::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }
 
-void DivPlatformUPD1771c::poke(std::vector<DivRegWrite>& wlist) {
+void DivPlatformSCVTone::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-int DivPlatformUPD1771c::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
+int DivPlatformSCVTone::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
@@ -356,11 +356,11 @@ int DivPlatformUPD1771c::init(DivEngine* p, int channels, int sugRate, const Div
   return 1;
 }
 
-void DivPlatformUPD1771c::quit() {
+void DivPlatformSCVTone::quit() {
   for (int i=0; i<1; i++) {
     delete oscBuf[i];
   }
 }
 
-DivPlatformUPD1771c::~DivPlatformUPD1771c() {
+DivPlatformSCVTone::~DivPlatformSCVTone() {
 }
