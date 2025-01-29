@@ -2078,7 +2078,7 @@ void DivEngine::registerSystems() {
     _("NEC μPD1771C-017 (tone mode)"), NULL, 0xe5, 0, 4, false, true, 0, false, 0, 0, 0,
     _("a microcontroller which has been used as a sound generator in the Super Cassette Vision. this is the tone mode."),
     {_("Square 1"), _("Square 2"), _("Square 3"), _("Noise")},
-    {"W"},
+    {"S1", "S2", "S3", "NO"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE},
     {DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_UPD1771C},
     {},
