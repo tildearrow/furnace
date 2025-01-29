@@ -593,6 +593,7 @@ void upd1771c_device::sound_stream_update(short* output, int len)
 			break;
 
 		case STATE_NOISE:
+      // TODO: improve this
 			for (int sampindex = 0; sampindex < len; sampindex++)
 			{
 				//"wavetable-LFSR" component
@@ -611,7 +612,7 @@ void upd1771c_device::sound_stream_update(short* output, int len)
 				signed char res[3];
 				for (int i = 0; i < 3; ++i)
 				{
-					res[i] = m_n_value[i] * 127;
+					res[i] = m_n_value[i];
 					m_n_ppos[i]++;
 					if (m_n_ppos[i] >= m_n_period[i])
 					{
@@ -625,10 +626,10 @@ void upd1771c_device::sound_stream_update(short* output, int len)
         chout[2]=res[2] * m_n_volume[2];
         chout[3]=wlfsr_val * m_nw_volume;
 				output[sampindex]=
-							((chout[3]) |
-							(chout[0]) |
-							(chout[1]) |
-							(chout[2])) * 8;
+							((chout[3]) + // TODO: this is mixed with "mix" instruction rather than add
+							(chout[0]) +
+							(chout[1]) +
+							(chout[2])) * 32 * 8;
 
         
 			}
