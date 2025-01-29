@@ -46,11 +46,8 @@ void DivPlatformSCVWave::acquire(short** buf, size_t len) {
     }
 
     scv.sound_stream_update(&buf[0][h],1);
-    /*
-    if (isMuted[0]) s=0;
-    oscBuf[0]->data[oscBuf[0]->needle++]=s;
-    buf[0][h]=s;
-    buf[1][h]=s;*/
+    if (isMuted[0]) buf[0][h]=0;
+    oscBuf[0]->data[oscBuf[0]->needle++]=buf[0][h];
   }
 }
 
@@ -92,26 +89,6 @@ void DivPlatformSCVWave::tick(bool sysTick) {
       if (i==0) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       }
-      if (chan[i].freqChanged || initWrite[i] || chan[i].keyOn) {
-        if (chan[i].duty == 0) {
-          rWrite(0,2);
-          rWrite(1,(chan[i].wave<<5)|chan[i].pos);
-          float p = ((float)chan[i].freq)/((float)(31-chan[i].pos))*31.0;
-          rWrite(2,MIN(MAX((int)p,0),255));
-          rWrite(3,chan[i].outVol);
-        } else if (chan[i].duty == 1) {
-          rWrite(0,1);
-          rWrite(1,(chan[i].wave<<5));
-          rWrite(2,MIN(MAX(chan[i].freq>>7,0),255));
-          rWrite(3,chan[i].outVol);
-        } else {
-          rWrite(0,0);
-        }
-        initWrite[i]=0;
-      }
-      if (chan[i].keyOff) {
-        rWrite(0,0);
-      }
       if (chan[i].keyOn) kon[i]=1;
       if (chan[i].keyOff) kon[i]=0;
       if (chan[i].keyOn) chan[i].keyOn=false;
@@ -122,19 +99,19 @@ void DivPlatformSCVWave::tick(bool sysTick) {
     if (kon[i]) {
       if (i==0) {
         if (chan[i].duty == 0) {
-         rWrite(0,2);
-         rWrite(1,(chan[i].wave<<5)|chan[i].pos);
-         // TODO: improve
-         float p = ((float)chan[i].freq)/((float)(32-chan[i].pos))*32.0;
-         rWrite(2,MIN(MAX((int)p,0),255));
-         rWrite(3,chan[i].outVol);
+          rWrite(0,2);
+          rWrite(1,(chan[i].wave<<5)|chan[i].pos);
+          // TODO: improve
+          float p = ((float)chan[i].freq)/((float)(31-chan[i].pos))*31.0;
+          rWrite(2,MIN(MAX((int)p,0),255));
+          rWrite(3,chan[i].outVol);
         } else if (chan[i].duty == 1) {
-         rWrite(0,1);
-         rWrite(1,(chan[i].wave<<5));
-         rWrite(2,MIN(MAX(chan[i].freq>>7,0),255));
-         rWrite(3,chan[i].outVol);
+          rWrite(0,1);
+          rWrite(1,(chan[i].wave<<5));
+          rWrite(2,MIN(MAX(chan[i].freq>>7,0),255));
+          rWrite(3,chan[i].outVol);
         } else {
-         rWrite(0,0);
+          rWrite(0,0);
         }
       }
     } else {

@@ -29,6 +29,8 @@ public:
 	// sound stream update overrides
 	void sound_stream_update(short* output, int len);
 
+  short chout[4];
+
 private:
 	static constexpr unsigned MAX_PACKET_SIZE = 0x8000;
 

@@ -50,8 +50,6 @@ class DivPlatformSCVTone: public DivDispatch {
   int tempR[32];
   int coreQuality;
   unsigned char regPool[16];
-  unsigned char kon[4];
-  unsigned char initWrite[4];
   upd1771c_device scv;
 
   unsigned char packet[16];
