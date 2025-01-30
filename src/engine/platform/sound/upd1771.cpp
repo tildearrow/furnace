@@ -622,15 +622,15 @@ void upd1771c_device::sound_stream_update(short* output, int len)
 					}
 				}
 				//not quite, but close.
-        chout[0]=res[0] * m_n_volume[0];
-        chout[1]=res[1] * m_n_volume[1];
-        chout[2]=res[2] * m_n_volume[2];
+        chout[0]=res[0] * m_n_volume[0] * 4;
+        chout[1]=res[1] * m_n_volume[1] * 4;
+        chout[2]=res[2] * m_n_volume[2] * 4;
         chout[3]=wlfsr_val * m_nw_volume;
 				output[sampindex]=
 							((chout[3]) + // TODO: this is mixed with "mix" instruction rather than add
 							(chout[0]) +
 							(chout[1]) +
-							(chout[2])) * 32 * 8;
+							(chout[2])) * 32 * 2;
 
         
 			}
