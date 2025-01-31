@@ -980,7 +980,7 @@ void DivPlatformYM2610B::tick(bool sysTick) {
   if (chan[adpcmBChanOffs].freqChanged || chan[adpcmBChanOffs].keyOn || chan[adpcmBChanOffs].keyOff) {
     if (chan[adpcmBChanOffs].furnacePCM) {
       if (chan[adpcmBChanOffs].sample>=0 && chan[adpcmBChanOffs].sample<parent->song.sampleLen) {
-        double off=65535.0*(double)(parent->getSample(chan[adpcmBChanOffs].sample)->centerRate)/8363.0;
+        double off=65535.0*(double)(parent->getSample(chan[adpcmBChanOffs].sample)->centerRate)/8372.0;
         chan[adpcmBChanOffs].freq=parent->calcFreq(chan[adpcmBChanOffs].baseFreq,chan[adpcmBChanOffs].pitch,chan[adpcmBChanOffs].fixedArp?chan[adpcmBChanOffs].baseNoteOverride:chan[adpcmBChanOffs].arpOff,chan[adpcmBChanOffs].fixedArp,false,4,chan[adpcmBChanOffs].pitch2,(double)chipClock/144,off);
       } else {
         chan[adpcmBChanOffs].freq=0;
@@ -1158,7 +1158,7 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
             immWrite(0x14,(end>>8)&0xff);
             immWrite(0x15,end>>16);
             immWrite(0x11,isMuted[c.chan]?0:(chan[c.chan].pan<<6));
-            int freq=(65536.0*(double)s->rate)/((double)chipClock/144.0);
+            int freq=(65535.0*(double)s->rate)/((double)chipClock/144.0);
             immWrite(0x19,freq&0xff);
             immWrite(0x1a,(freq>>8)&0xff);
             immWrite(0x1b,chan[c.chan].outVol);
