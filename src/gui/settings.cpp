@@ -2728,6 +2728,18 @@ void FurnaceGUI::drawSettings() {
           settings.dragMovesSelection=2;
           settingsChanged=true;
         }
+        if (ImGui::RadioButton(_("Yes (copy)##dms3"),settings.dragMovesSelection==3)) {
+          settings.dragMovesSelection=3;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton(_("Yes (while holding Ctrl only and copy)##dms4"),settings.dragMovesSelection==4)) {
+          settings.dragMovesSelection=4;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton(_("Yes (holding Ctrl copies)##dms5"),settings.dragMovesSelection==5)) {
+          settings.dragMovesSelection=5;
+          settingsChanged=true;
+        }
         ImGui::Unindent();
 
         ImGui::Text(_("Toggle channel solo on:"));
@@ -5316,7 +5328,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.effectValCellSpacing,0,32);
   clampSetting(settings.doubleClickColumn,0,1);
   clampSetting(settings.blankIns,0,1);
-  clampSetting(settings.dragMovesSelection,0,2);
+  clampSetting(settings.dragMovesSelection,0,5);
   clampSetting(settings.draggableDataView,0,1);
   clampSetting(settings.unsignedDetune,0,1);
   clampSetting(settings.noThreadedInput,0,1);

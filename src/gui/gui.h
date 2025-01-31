@@ -2984,7 +2984,7 @@ class FurnaceGUI {
   void doRedo();
   void doFind();
   void doReplace();
-  void doDrag();
+  void doDrag(bool copy=false);
   void editOptions(bool topMenu);
   DivSystem systemPicker(bool fullWidth);
   void noteInput(int num, int key, int vol=-1);

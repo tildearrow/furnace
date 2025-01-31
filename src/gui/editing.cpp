@@ -1809,15 +1809,15 @@ void FurnaceGUI::doAbsorbInstrument() {
   logD("doAbsorbInstrument -- searched %d orders", curOrder-orderIdx);
 }
 
-void FurnaceGUI::doDrag() {
+void FurnaceGUI::doDrag(bool copy) {
   int len=dragEnd.xCoarse-dragStart.xCoarse+1;
 
   if (len<1) return;
   
   prepareUndo(GUI_UNDO_PATTERN_DRAG);
 
-  // copy and clear
-  String c=doCopy(true,false,dragStart,dragEnd);
+  // copy and clear (if copy is false)
+  String c=doCopy(!copy,false,dragStart,dragEnd);
 
   logV(_("copy: %s"),c);
 

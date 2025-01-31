@@ -409,6 +409,7 @@ void DivPlatformMSM6258::setFlags(const DivConfig& flags) {
   for (int i=0; i<1; i++) {
     oscBuf[i]->rate=rate;
   }
+  variableRate=flags.getBool("variableRate",false);
 }
 
 int DivPlatformMSM6258::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
