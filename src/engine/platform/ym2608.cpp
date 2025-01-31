@@ -289,7 +289,7 @@ double DivPlatformYM2608::NOTE_OPNB(int ch, int note) {
 
 double DivPlatformYM2608::NOTE_ADPCMB(int note) {
   if (chan[15+isCSM].sample>=0 && chan[15+isCSM].sample<parent->song.sampleLen) {
-    double off=65535.0*(double)(parent->getSample(chan[15+isCSM].sample)->centerRate)/8363.0;
+    double off=65535.0*(double)(parent->getSample(chan[15+isCSM].sample)->centerRate)/8372.0;
     return parent->calcBaseFreq((double)chipClock/144,off,note,false);
   }
   return 0;
@@ -982,7 +982,7 @@ void DivPlatformYM2608::tick(bool sysTick) {
   if (chan[(15+isCSM)].freqChanged || chan[(15+isCSM)].keyOn || chan[(15+isCSM)].keyOff) {
     if (chan[(15+isCSM)].furnacePCM) {
       if (chan[(15+isCSM)].sample>=0 && chan[(15+isCSM)].sample<parent->song.sampleLen) {
-        double off=65535.0*(double)(parent->getSample(chan[(15+isCSM)].sample)->centerRate)/8363.0;
+        double off=65535.0*(double)(parent->getSample(chan[(15+isCSM)].sample)->centerRate)/8372.0;
         chan[(15+isCSM)].freq=parent->calcFreq(chan[(15+isCSM)].baseFreq,chan[(15+isCSM)].pitch,chan[(15+isCSM)].fixedArp?chan[(15+isCSM)].baseNoteOverride:chan[(15+isCSM)].arpOff,chan[(15+isCSM)].fixedArp,false,4,chan[(15+isCSM)].pitch2,(double)chipClock/144,off);
       } else {
         chan[(15+isCSM)].freq=0;
@@ -1166,7 +1166,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
             immWrite(0x104,(end>>5)&0xff);
             immWrite(0x105,(end>>13)&0xff);
             immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|1);
-            int freq=(65536.0*(double)s->rate)/((double)chipClock/144.0);
+            int freq=(65535.0*(double)s->rate)/((double)chipClock/144.0);
             immWrite(0x109,freq&0xff);
             immWrite(0x10a,(freq>>8)&0xff);
             immWrite(0x10b,chan[c.chan].outVol);
