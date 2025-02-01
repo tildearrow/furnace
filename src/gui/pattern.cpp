@@ -904,6 +904,7 @@ void FurnaceGUI::drawPattern() {
             } else if (e->curSubSong->chanCollapse[i]>0) {
               e->curSubSong->chanCollapse[i]--;
             }
+            finishSelection();
           }
           if (!e->curSubSong->chanCollapse[i]) {
             ImGui::SameLine();
@@ -912,6 +913,7 @@ void FurnaceGUI::drawPattern() {
             if (ImGui::SmallButton(chanID)) {
               e->curPat[i].effectCols--;
               if (e->curPat[i].effectCols<1) e->curPat[i].effectCols=1;
+              finishSelection();
             }
             ImGui::EndDisabled();
             ImGui::SameLine();
@@ -920,6 +922,7 @@ void FurnaceGUI::drawPattern() {
             if (ImGui::SmallButton(chanID)) {
               e->curPat[i].effectCols++;
               if (e->curPat[i].effectCols>DIV_MAX_EFFECTS) e->curPat[i].effectCols=DIV_MAX_EFFECTS;
+              finishSelection();
             }
             ImGui::EndDisabled();
           }
