@@ -3822,6 +3822,12 @@ bool FurnaceGUI::loop() {
           if (!ImGui::GetIO().WantCaptureKeyboard || (ImGuiFileDialog::Instance()->IsOpened() && !ImGui::GetIO().WantTextInput)) {
             keyDown(ev);
           }
+          if (introPos<11.0 && !shortIntro) {
+            if (ev.key.keysym.scancode==SDL_SCANCODE_SPACE || ev.key.keysym.scancode==SDL_SCANCODE_ESCAPE || ev.key.keysym.scancode==SDL_SCANCODE_RETURN) {
+              introSkip=0.5;
+            }
+            introSkipDo=true;
+          }
           insEditMayBeDirty=true;
 #ifdef IS_MOBILE
           injectBackUp=true;
@@ -3830,6 +3836,9 @@ bool FurnaceGUI::loop() {
         case SDL_KEYUP:
           // for now
           insEditMayBeDirty=true;
+          if (introPos<11.0 && introSkip<0.5 && !shortIntro) {
+            introSkipDo=false;
+          }
           break;
         case SDL_DROPFILE:
           if (ev.drop.file!=NULL) {
