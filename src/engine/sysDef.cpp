@@ -353,9 +353,6 @@ int DivEngine::minVGMVersion(DivSystem which) {
   return sysDefs[which]->vgmVersion;
 }
 
-#define IS_YM2610 (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT || sysOfChan[ch]==DIV_SYSTEM_YM2610_FULL || sysOfChan[ch]==DIV_SYSTEM_YM2610_FULL_EXT || sysOfChan[ch]==DIV_SYSTEM_YM2610B || sysOfChan[ch]==DIV_SYSTEM_YM2610B_EXT)
-#define IS_OPM_LIKE (sysOfChan[ch]==DIV_SYSTEM_YM2151 || sysOfChan[ch]==DIV_SYSTEM_OPZ)
-
 #define OP_EFFECT_MULTI(x,c,op,mask) \
   case x: \
     dispatchCmd(DivCommand(c,ch,op,effectVal&mask)); \
