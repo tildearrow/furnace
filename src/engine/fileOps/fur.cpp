@@ -864,6 +864,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
     if (ds.version<200) {
       ds.oldSampleOffset=true;
     }
+    if (ds.version<224) {
+      ds.arpSpeedGlobal=true;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved

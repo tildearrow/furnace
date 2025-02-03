@@ -355,7 +355,11 @@ bool DivCSPlayer::tick() {
             chan[i].arp=(((unsigned char)arg0)<<4)|(arg1&15);
             break;
           case DIV_CMD_HINT_ARP_TIME:
-            arpSpeed=arg0;
+            if (e->song.arpSpeedGlobal) {
+              arpSpeed=arg0;
+            } else {
+              chan[i].arpLen=arg0;
+            }
             break;
           default: // dispatch it
             e->dispatchCmd(DivCommand((DivDispatchCmds)command,i,arg0,arg1));
@@ -425,7 +429,7 @@ bool DivCSPlayer::tick() {
         }
         chan[i].arpStage++;
         if (chan[i].arpStage>=3) chan[i].arpStage=0;
-        chan[i].arpTicks=arpSpeed;
+        chan[i].arpTicks=(e->song.arpSpeedGlobal)?arpSpeed:chan[i].arpLen;
       }
       chan[i].arpTicks--;
     }
@@ -463,6 +467,7 @@ bool DivCSPlayer::init() {
   for (int i=0; i<e->getTotalChannelCount(); i++) {
     chan[i].volMax=(e->getDispatch(e->dispatchOfChan[i])->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,e->dispatchChanOfChan[i]))<<8)|0xff;
     chan[i].volume=chan[i].volMax;
+    chan[i].arpLen=1;
   }
 
   for (int i=0; i<64; i++) {

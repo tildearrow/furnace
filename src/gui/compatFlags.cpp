@@ -200,6 +200,10 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("behavior changed in 0.6.3"));
         }
+        ImGui::Checkbox(_("Global arpeggio speed (E0xx)"),&e->song.arpSpeedGlobal);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("when enabled, E0xx will affect all channels simultaneously."));
+        }
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem(_(".mod import"))) {

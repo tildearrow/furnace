@@ -217,6 +217,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.delayBehavior=0;
       ds.jumpTreatment=2;
       ds.oldAlwaysSetVolume=true;
+      ds.arpSpeedGlobal=true;
 
       // 1.1 compat flags
       if (ds.version>24) {
