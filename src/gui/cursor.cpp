@@ -204,6 +204,18 @@ void FurnaceGUI::finishSelection() {
   if (e->curSubSong->chanCollapse[selEnd.xCoarse] && selEnd.xFine>=(3-e->curSubSong->chanCollapse[selEnd.xCoarse])) {
     selEnd.xFine=2+e->curPat[selEnd.xCoarse].effectCols*2;
   }
+  if (selStart.xFine<0) {
+    selStart.xFine=0;
+  }
+  if (selEnd.xFine<0) {
+    selEnd.xFine=0;
+  }
+  if (selStart.xFine>(2+e->curPat[selStart.xCoarse].effectCols*2)) {
+    selStart.xFine=2+e->curPat[selStart.xCoarse].effectCols*2;
+  }
+  if (selEnd.xFine>(2+e->curPat[selEnd.xCoarse].effectCols*2)) {
+    selEnd.xFine=2+e->curPat[selEnd.xCoarse].effectCols*2;
+  }
 
   logV(_("finish selection: %d.%d,%d - %d.%d,%d"),selStart.xCoarse,selStart.xFine,selStart.y,selEnd.xCoarse,selEnd.xFine,selEnd.y);
 
