@@ -672,6 +672,7 @@ class DivEngine {
   // add every export method here
   friend class DivROMExport;
   friend class DivExportAmigaValidation;
+  friend class DivExportS98;
   friend class DivExportSAPR;
   friend class DivExportTiuna;
   friend class DivExportZSM;
@@ -727,8 +728,8 @@ class DivEngine {
     // - -1 to auto-determine trailing
     // - -2 to add a whole loop of trailing
     SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171, bool patternHints=false, bool directStream=false, int trailingTicks=-1);
-    // dump to TIunA.
-    SafeWriter* saveTiuna(const bool* sysToExport, const char* baseLabel, int firstBankSize, int otherBankSize);
+    // generate reset writes for a particular system
+    std::vector<DivRegWrite> generateResetWrites(DivSystem sys);
     // dump command stream.
     SafeWriter* saveCommand();
     // export to text
