@@ -1376,10 +1376,10 @@ void FurnaceGUI::drawSampleEdit() {
       }
       sameLineMaybe();
       if (ImGui::Button(ICON_FA_PLAY_CIRCLE "##PreviewSampleFromCursor")) {
-        e->previewSample(curSample, -1, sampleSelStart);
+        e->previewSample(curSample, -1, sampleSelStart, sampleSelEnd == sampleSelStart ? -1 : sampleSelEnd);
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_("Preview sample from cursor"));
+        ImGui::SetTooltip(_("Preview sample from cursor or selection only"));
       }
       sameLineMaybe();
       if (ImGui::Button(ICON_FA_STOP "##StopSample")) {
