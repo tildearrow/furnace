@@ -273,9 +273,16 @@ void FurnaceGUI::doSelectAll() {
   } else {
     int selStartX=0;
     int selEndX=0;
+    int chanCount=e->getTotalChannelCount();
     // find row position
     for (SelectionPoint i; i.xCoarse!=selStart.xCoarse || i.xFine!=selStart.xFine; selStartX++) {
       i.xFine++;
+      if (i.xCoarse>=chanCount) {
+        logE("xCoarse of selStart iterator went too far!");
+        showError("you have found a bug. please report it now.");
+        i.xCoarse=chanCount-1;
+        break;
+      }
       if (i.xFine>=3+e->curPat[i.xCoarse].effectCols*2) {
         i.xFine=0;
         i.xCoarse++;
@@ -283,6 +290,12 @@ void FurnaceGUI::doSelectAll() {
     }
     for (SelectionPoint i; i.xCoarse!=selEnd.xCoarse || i.xFine!=selEnd.xFine; selEndX++) {
       i.xFine++;
+      if (i.xCoarse>=chanCount) {
+        logE("xCoarse of selEnd iterator went too far!");
+        showError("you have found a bug. please report it now.");
+        i.xCoarse=chanCount-1;
+        break;
+      }
       if (i.xFine>=3+e->curPat[i.xCoarse].effectCols*2) {
         i.xFine=0;
         i.xCoarse++;
