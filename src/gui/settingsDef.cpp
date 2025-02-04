@@ -19,6 +19,7 @@
 
 #include "gui.h"
 #include "settings.h"
+#include <imgui.h>
 
 // name, locale, restart message
 const char* locales[][3]={
@@ -1675,7 +1676,7 @@ void FurnaceGUI::setupSettingsCategories() {
       }),
       SettingsCategory(_N("Note input"),{},{
         SETTING(_N("Note input"),{
-          std::vector<MappedInput> sorted; /* not a fan of the sorting. modifying the note value will make it jump */
+          std::vector<MappedInput> sorted; /* not a fan of the sorting. modifying the note value will make it jump. edit: yup (#2345) */
           if (ImGui::BeginTable("keysNoteInput",4)) {
             for (std::map<int,int>::value_type& i: noteKeys) {
               std::vector<MappedInput>::iterator j;
@@ -1708,21 +1709,25 @@ void FurnaceGUI::setupSettingsCategories() {
                 snprintf(id,4095,_("Macro release##SNType_%d"),i.scan);
                 if (ImGui::Button(id)) {
                   noteKeys[i.scan]=0;
+                  SETTINGS_CHANGED;
                 }
               } else if (i.val==101) {
                 snprintf(id,4095,_("Note release##SNType_%d"),i.scan);
                 if (ImGui::Button(id)) {
                   noteKeys[i.scan]=102;
+                  SETTINGS_CHANGED;
                 }
               } else if (i.val==100) {
                 snprintf(id,4095,_("Note off##SNType_%d"),i.scan);
                 if (ImGui::Button(id)) {
                   noteKeys[i.scan]=101;
+                  SETTINGS_CHANGED;
                 }
               } else {
                 snprintf(id,4095,_("Note##SNType_%d"),i.scan);
                 if (ImGui::Button(id)) {
                   noteKeys[i.scan]=100;
+                  SETTINGS_CHANGED;
                 }
               }
               ImGui::TableNextColumn();
@@ -3909,7 +3914,7 @@ void FurnaceGUI::setupSettingsCategories() {
             purgeBackups(0,0,0);
           }
 
-          if (ImGui::BeginTable("BackupList",3,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders)) {
+          if (ImGui::BeginTable("BackupList",3,ImGuiTableFlags_Borders|(settings.filter.IsActive()?0:ImGuiTableFlags_ScrollY))) {
             ImGui::TableSetupColumn(_("Name"),ImGuiTableColumnFlags_WidthStretch,0.6f);
             ImGui::TableSetupColumn(_("Size"),ImGuiTableColumnFlags_WidthStretch,0.15f);
             ImGui::TableSetupColumn(_("Latest"),ImGuiTableColumnFlags_WidthStretch,0.25f);
