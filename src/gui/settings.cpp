@@ -311,19 +311,6 @@ void FurnaceGUI::drawSettings() {
       if (ImGui::BeginChild("SettingCategories",vertical?settingsCatViewSize/ImVec2(1.0f,3.0f):settingsCatViewSize,false)) {
         for (SettingsCategory cat:settings.categories) drawSettingsCategory(&cat);
       }
-// allow dragging selection
-/*        if (ImGui::RadioButton(_("Yes (copy)##dms3"),settings.dragMovesSelection==3)) {
-          settings.dragMovesSelection=3;
-          settingsChanged=true;
-        }
-        if (ImGui::RadioButton(_("Yes (while holding Ctrl only and copy)##dms4"),settings.dragMovesSelection==4)) {
-          settings.dragMovesSelection=4;
-          settingsChanged=true;
-        }
-        if (ImGui::RadioButton(_("Yes (holding Ctrl copies)##dms5"),settings.dragMovesSelection==5)) {
-          settings.dragMovesSelection=5;
-          settingsChanged=true;
-        }*/
       ImGui::EndChild();
       if (vertical) ImGui::TableNextRow();
       ImGui::TableNextColumn();
