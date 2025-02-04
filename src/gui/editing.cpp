@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -273,9 +273,16 @@ void FurnaceGUI::doSelectAll() {
   } else {
     int selStartX=0;
     int selEndX=0;
+    int chanCount=e->getTotalChannelCount();
     // find row position
     for (SelectionPoint i; i.xCoarse!=selStart.xCoarse || i.xFine!=selStart.xFine; selStartX++) {
       i.xFine++;
+      if (i.xCoarse>=chanCount) {
+        logE("xCoarse of selStart iterator went too far!");
+        showError("you have found a bug. please report it now.");
+        i.xCoarse=chanCount-1;
+        break;
+      }
       if (i.xFine>=3+e->curPat[i.xCoarse].effectCols*2) {
         i.xFine=0;
         i.xCoarse++;
@@ -283,6 +290,12 @@ void FurnaceGUI::doSelectAll() {
     }
     for (SelectionPoint i; i.xCoarse!=selEnd.xCoarse || i.xFine!=selEnd.xFine; selEndX++) {
       i.xFine++;
+      if (i.xCoarse>=chanCount) {
+        logE("xCoarse of selEnd iterator went too far!");
+        showError("you have found a bug. please report it now.");
+        i.xCoarse=chanCount-1;
+        break;
+      }
       if (i.xFine>=3+e->curPat[i.xCoarse].effectCols*2) {
         i.xFine=0;
         i.xCoarse++;
@@ -674,6 +687,10 @@ void FurnaceGUI::doPasteFurnace(PasteMode mode, int arg, bool readClipboard, Str
     if (mode==GUI_PASTE_MODE_FLOOD && i==data.size()-1) {
       i=1;
     }
+  }
+
+  if (mode==GUI_PASTE_MODE_OVERFLOW && !e->isPlaying()) {
+    setOrder(curOrder);
   }
 
   if (readClipboard) {
@@ -1805,15 +1822,15 @@ void FurnaceGUI::doAbsorbInstrument() {
   logD("doAbsorbInstrument -- searched %d orders", curOrder-orderIdx);
 }
 
-void FurnaceGUI::doDrag() {
+void FurnaceGUI::doDrag(bool copy) {
   int len=dragEnd.xCoarse-dragStart.xCoarse+1;
 
   if (len<1) return;
   
   prepareUndo(GUI_UNDO_PATTERN_DRAG);
 
-  // copy and clear
-  String c=doCopy(true,false,dragStart,dragEnd);
+  // copy and clear (if copy is false)
+  String c=doCopy(!copy,false,dragStart,dragEnd);
 
   logV(_("copy: %s"),c);
 

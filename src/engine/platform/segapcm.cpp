@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -146,7 +146,7 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
             if (!s->isLoopable()) {
               rWrite(0x86+(i<<3),2+((actualPos>>16)<<3));
             } else {
-              int loopPos=(actualPos&0xffff)+loopStart;
+              int loopPos=(sampleOffSegaPCM[chan[i].pcm.sample]&0xffff)+loopStart;
               logV("sampleOff: %x loopPos: %x",actualPos,loopPos);
               rWrite(4+(i<<3),loopPos&0xff);
               rWrite(5+(i<<3),(loopPos>>8)&0xff);
@@ -165,7 +165,7 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
             if (!s->isLoopable()) {
               rWrite(0x86+(i<<3),2+((actualPos>>16)<<3));
             } else {
-              int loopPos=(actualPos&0xffff)+loopStart;
+              int loopPos=(sampleOffSegaPCM[chan[i].pcm.sample]&0xffff)+loopStart;
               rWrite(4+(i<<3),loopPos&0xff);
               rWrite(5+(i<<3),(loopPos>>8)&0xff);
               rWrite(0x86+(i<<3),((actualPos>>16)<<3));

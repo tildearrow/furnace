@@ -652,7 +652,7 @@ src/engine/platform/sound/sm8521.c
 
 src/engine/platform/sound/supervision.c
 
-src/engine/platform/sound/upd1771c.c
+src/engine/platform/sound/upd1771.cpp
 
 src/engine/platform/sound/d65modified.c
 
@@ -790,7 +790,8 @@ src/engine/platform/k007232.cpp
 src/engine/platform/ga20.cpp
 src/engine/platform/sm8521.cpp
 src/engine/platform/supervision.cpp
-src/engine/platform/upd1771c.cpp
+src/engine/platform/scvwave.cpp
+src/engine/platform/scvtone.cpp
 src/engine/platform/pv1000.cpp
 src/engine/platform/k053260.cpp
 src/engine/platform/ted.cpp

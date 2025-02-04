@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -198,7 +198,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
           int period=data[1]+((data[0]&0x0f)<<8);
           if (period>0 && period<0x0fff) {
             short note=(short)round(log2(3424.0/period)*12);
-            dstrow[0]=((note-1)%12)+1;
+            dstrow[0]=((note+11)%12)+1;
             dstrow[1]=(note-1)/12+1;
             if (period<114) {
               bypassLimits=true;

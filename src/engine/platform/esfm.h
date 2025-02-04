@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -126,8 +126,8 @@ class DivPlatformESFM: public DivDispatch {
   short oldWrites[ESFM_REG_POOL_SIZE];
   short pendingWrites[ESFM_REG_POOL_SIZE];
 
-  int octave(int freq);
-  int toFreq(int freq);
+  int octave(int freq, int fixedBlock);
+  int toFreq(int freq, int fixedBlock);
   void commitState(int ch, DivInstrument* ins);
 
   friend void putDispatchChip(void*,int);

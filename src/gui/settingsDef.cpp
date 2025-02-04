@@ -19,7 +19,6 @@
 
 #include "gui.h"
 #include "settings.h"
-#include <imgui.h>
 
 // name, locale, restart message
 const char* locales[][3]={
@@ -2107,6 +2106,18 @@ void FurnaceGUI::setupSettingsCategories() {
           if (ImGui::RadioButton(_("Yes (while holding Ctrl only)##dms2"),settings.dragMovesSelection==2)) {
             settings.dragMovesSelection=2;
             SETTINGS_CHANGED;
+          }
+          if (ImGui::RadioButton(_("Yes (copy)##dms3"),settings.dragMovesSelection==3)) {
+            settings.dragMovesSelection=3;
+            settingsChanged=true;
+          }
+          if (ImGui::RadioButton(_("Yes (while holding Ctrl only and copy)##dms4"),settings.dragMovesSelection==4)) {
+            settings.dragMovesSelection=4;
+            settingsChanged=true;
+          }
+          if (ImGui::RadioButton(_("Yes (holding Ctrl copies)##dms5"),settings.dragMovesSelection==5)) {
+            settings.dragMovesSelection=5;
+            settingsChanged=true;
           }
           ImGui::Unindent();
         }),

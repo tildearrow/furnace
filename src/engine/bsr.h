@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ static inline int bsr32(unsigned int v) {
 
 static inline int bsr(unsigned short v) {
   if (v) {
-    return 32 - __builtin_clz(v);
+    return 32-__builtin_clz(v);
   } else {
     return -1;
   }
@@ -52,7 +52,7 @@ static inline int bsr(unsigned short v) {
 
 static inline int bsr32(unsigned int v) {
   if (v) {
-    return 32 - __builtin_clz(v);
+    return 32-__builtin_clz(v);
   } else {
     return -1;
   }
@@ -61,25 +61,52 @@ static inline int bsr32(unsigned int v) {
 #else
 
 static inline int bsr(unsigned short v) {
-  unsigned short mask = 0x8000;
-  for (int i = 16; i >= 0; --i) {
-    if (v&mask)
-      return i;
-    mask>>=1;
+  if (v==0) return -1;
+  if (v&0x8000) return 16;
+  int o=16;
+  if (!(v&0xff00)) {
+    o-=8;
+    v<<=8;
+    if (v&0x8000) return o;
   }
-
-  return -1;
+  if (!(v&0xf000)) {
+    o-=4;
+    v<<=4;
+    if (v&0x8000) return o;
+  }
+  if (!(v&0xc000)) {
+    o-=2;
+    v<<=2;
+    if (v&0x8000) return o;
+  }
+  return (v&0x8000) ? o : o-1;
 }
 
 static inline int bsr32(unsigned int v) {
-  unsigned int mask = 0x80000000;
-  for (int i = 32; i >= 0; --i) {
-    if (v&mask)
-      return i;
-    mask>>=1;
+  if (v==0) return -1;
+  if (v&0x80000000) return 32;
+  int o=32;
+  if (!(v&0xffff0000)) {
+    o-=16;
+    v<<=16;
+    if (v&0x80000000) return o;
   }
-
-  return -1;
+  if (!(v&0xff000000)) {
+    o-=8;
+    v<<=8;
+    if (v&0x80000000) return o;
+  }
+  if (!(v&0xf0000000)) {
+    o-=4;
+    v<<=4;
+    if (v&0x80000000) return o;
+  }
+  if (!(v&0xc0000000)) {
+    o-=2;
+    v<<=2;
+    if (v&0x80000000) return o;
+  }
+  return (v&0x80000000) ? o : o-1;
 }
 
 #endif

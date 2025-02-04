@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,15 +33,23 @@
 class DivPlatformC64: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
     int prevFreq, testWhen;
+    unsigned int audPos;
+    int pcmPos, sample, pcmPeriod, pcmRate, pcmOut;
     unsigned char sweep, wave, attack, decay, sustain, release;
     short duty;
-    bool sweepChanged, filter;
+    bool sweepChanged, filter, setPos, pcm;
     bool resetMask, resetFilter, resetDuty, gate, ring, sync, test;
     short pw_slide;
     Channel():
       SharedChannel<signed char>(15),
       prevFreq(65535),
       testWhen(0),
+      audPos(0),
+      pcmPos(0),
+      sample(-1),
+      pcmPeriod(0),
+      pcmRate(0),
+      pcmOut(15),
       sweep(0),
       wave(0),
       attack(0),
@@ -51,6 +59,8 @@ class DivPlatformC64: public DivDispatch {
       duty(0),
       sweepChanged(false),
       filter(false),
+      setPos(false),
+      pcm(false),
       resetMask(false),
       resetFilter(false),
       resetDuty(false),
@@ -60,11 +70,11 @@ class DivPlatformC64: public DivDispatch {
       test(false),
       pw_slide(0) {}
   };
-  Channel chan[3];
-  DivDispatchOscBuffer* oscBuf[3];
-  bool isMuted[3];
-  float fakeLow[3];
-  float fakeBand[3];
+  Channel chan[4];
+  DivDispatchOscBuffer* oscBuf[4];
+  bool isMuted[4];
+  float fakeLow[4];
+  float fakeBand[4];
   float fakeCutTable[2048];
   struct QueuedWrite {
       unsigned char addr;
@@ -78,6 +88,7 @@ class DivPlatformC64: public DivDispatch {
   unsigned char writeOscBuf;
   unsigned char sidCore;
   int filtCut, resetTime, initResetTime;
+  int pcmCycle, lineRate;
   short cutoff_slide;
 
   bool keyPriority, sidIs6581, needInitTables, no1EUpdate, multiplyRel, macroRace;
@@ -95,10 +106,12 @@ class DivPlatformC64: public DivDispatch {
 
   inline short runFakeFilter(unsigned char ch, int in);
 
+  void processDAC(int sRate);
   void acquire_classic(short* bufL, short* bufR, size_t start, size_t len);
   void acquire_fp(short* bufL, short* bufR, size_t start, size_t len);
 
   void updateFilter();
+  void updateVolume();
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
