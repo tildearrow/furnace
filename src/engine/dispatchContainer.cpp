@@ -339,6 +339,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
         ((DivPlatformC64*)dispatch)->setCoreQuality(eng->getConfInt("dsidQuality",3));
       }
       ((DivPlatformC64*)dispatch)->setChipModel(true);
+      ((DivPlatformC64*)dispatch)->setSoftPCM(sys==DIV_SYSTEM_C64_PCM);
       break;
     case DIV_SYSTEM_C64_8580:
       dispatch=new DivPlatformC64;
@@ -350,6 +351,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
         ((DivPlatformC64*)dispatch)->setCoreQuality(eng->getConfInt("dsidQuality",3));
       }
       ((DivPlatformC64*)dispatch)->setChipModel(false);
+      ((DivPlatformC64*)dispatch)->setSoftPCM(false);
       break;
     case DIV_SYSTEM_YM2151:
       dispatch=new DivPlatformArcade;

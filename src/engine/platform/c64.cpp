@@ -69,7 +69,9 @@ short DivPlatformC64::runFakeFilter(unsigned char ch, int in) {
   if (!(regPool[0x17]&(1<<ch))) {
     if (regPool[0x18]&0x80 && ch==2) return 0;
     float fin=in;
-    fin*=(float)(regPool[0x18]&15)/20.0f;
+    if (noSoftPCM) {
+      fin*=(float)(regPool[0x18]&15)/20.0f;
+    }
     return CLAMP(fin,-32768,32767);
   }
 
@@ -96,7 +98,9 @@ short DivPlatformC64::runFakeFilter(unsigned char ch, int in) {
     fout+=tmp;
   }
 
-  fout*=(float)(regPool[0x18]&15)/20.0f;
+  if (noSoftPCM) {
+    fout*=(float)(regPool[0x18]&15)/20.0f;
+  }
   return CLAMP(fout,-32768,32767);
 }
 
@@ -967,6 +971,10 @@ void DivPlatformC64::setCoreQuality(unsigned char q) {
       coreQuality=4;
       break;
   }
+}
+
+void DivPlatformC64::setSoftPCM(bool isSoft) {
+  noSoftPCM=!isSoft;
 }
 
 int DivPlatformC64::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
