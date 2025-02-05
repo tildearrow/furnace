@@ -4,6 +4,13 @@ the Settings window allows you to change Furnace settings.
 
 settings are saved when clicking the **OK** or **Apply** buttons at the bottom of the window, and when closing the program. several backups are kept in the Furnace settings directory.
 
+## temp description on search bar
+
+when starting a search, the selected category gets unselected.
+settings with matching names (labels) get shown
+categories with mathcing names get highlighted (non-matching get disabled)
+selecting a mathcing category shows the settings of that category
+to reset to show matching settings update the search bar
 
 ## General
 

@@ -1604,6 +1604,69 @@ struct PendingDrawOsc {
 
 struct FurnaceCV;
 
+struct MappedInput {
+  int scan;
+  int val;
+  MappedInput():
+    scan(SDL_SCANCODE_UNKNOWN), val(0) {}
+  MappedInput(int s, int v):
+    scan(s), val(v) {}
+};
+
+struct Setting {
+    const char* friendlyName;
+    std::function<void()> draw;
+    std::function<bool()> drawCondition;
+  public:
+    bool passesFilter(ImGuiTextFilter* filter) {
+      return drawCondition() && filter->PassFilter(_(friendlyName));
+    };
+    void drawSetting() {
+      if (drawCondition()) draw();
+    }
+    Setting(const char* _friendlyName, std::function<void()> _draw):
+      drawCondition([]{return true;}) {
+      friendlyName=_friendlyName;
+      draw=_draw;
+    }
+    Setting(const char* _friendlyName, std::function<void()> _draw, std::function<bool()> _drawCondition) {
+      friendlyName=_friendlyName;
+      draw=_draw;
+      drawCondition=_drawCondition;
+    }
+    ~Setting() {};
+};
+
+class SettingsCategory {
+  public:
+    unsigned long long int id;
+    const char* name;
+    std::vector<SettingsCategory> children;
+    std::vector<Setting> settings;
+    bool expandChild;
+
+    SettingsCategory():
+      id(0),
+      name(NULL),
+      children({}),
+      settings({}),
+      expandChild(false) {}
+
+    /**
+     * settings category constructor.
+     * @param n category name.
+     * @param c subcategories.
+     * @param s category settings.
+     */
+    SettingsCategory(const char* n, std::initializer_list<SettingsCategory> c, std::initializer_list<Setting> s):
+      expandChild(false) {
+      name=n;
+      children=c;
+      settings=s;
+      id=(unsigned long long int)name+(unsigned long long int)&children;
+    }
+};
+
 class FurnaceGUI {
   DivEngine* e;
 
@@ -1659,7 +1722,7 @@ class FurnaceGUI {
   bool safeMode;
   bool midiWakeUp;
   bool makeDrumkitMode;
-  bool audioEngineChanged, settingsChanged, debugFFT;
+  bool audioEngineChanged, settingsChanged, purgeDateChanged, debugFFT;
   bool willExport[DIV_MAX_CHIPS];
   int vgmExportVersion;
   int vgmExportTrailingTicks;
@@ -1764,7 +1827,10 @@ class FurnaceGUI {
   int totalFiles;
 
   struct Settings {
-    bool settingsChanged;
+    std::vector<SettingsCategory> categories;
+    SettingsCategory activeCategory; // yes a boring copy
+    ImGuiTextFilter filter;
+
     int mainFontSize, patFontSize, headFontSize, iconSize;
     int audioEngine;
     int audioQuality;
@@ -2026,7 +2092,6 @@ class FurnaceGUI {
     DivConfig initialSys;
 
     Settings():
-      settingsChanged(false),
       mainFontSize(GUI_FONT_SIZE_DEFAULT),
       patFontSize(GUI_FONT_SIZE_DEFAULT),
       headFontSize(27),
@@ -2914,7 +2979,6 @@ class FurnaceGUI {
   void drawSystemChannelInfoText(const DivSysDef* whichDef);
 
   void assignActionMap(std::map<int,int>& actionMap, int first, int last);
-  void drawKeybindSettingsTableRow(FurnaceGUIActions actionIdx);
   void parseKeybinds();
   void promptKey(int which, int bindIdx);
   void doAction(int what);
@@ -2938,6 +3002,13 @@ class FurnaceGUI {
 
   void readConfig(DivConfig& conf, FurnaceGUISettingGroups groups=GUI_SETTINGS_ALL);
   void writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups=GUI_SETTINGS_ALL);
+
+  void setupSettingsCategories();
+  void drawSettingsCategory(SettingsCategory* cat);
+  void searchDrawSettingItems(SettingsCategory* cat);
+  void drawSettingsItems();
+  // settings helper functions (made part of FurnaceGUI to be able to pass to lambdas)
+  String stripName(String what);
 
   void syncSettings();
   void commitSettings();
