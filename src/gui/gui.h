@@ -1602,6 +1602,15 @@ struct PendingDrawOsc {
     lineSize(0.0f) {}
 };
 
+struct MappedInput {
+  int scan;
+  int val;
+  MappedInput():
+    scan(SDL_SCANCODE_UNKNOWN), val(0) {}
+  MappedInput(int s, int v):
+    scan(s), val(v) {}
+};
+
 struct FurnaceCV;
 
 class FurnaceGUI {
@@ -2450,6 +2459,7 @@ class FurnaceGUI {
 
   // SDL_Scancode,int
   std::map<int,int> noteKeys;
+  std::vector<MappedInput> noteKeysRaw;
   // SDL_Keycode,int
   std::map<int,int> valueKeys;
 
@@ -3037,6 +3047,8 @@ class FurnaceGUI {
   bool parseSysEx(unsigned char* data, size_t len);
 
   void applyUISettings(bool updateFonts=true);
+  void decompileNoteKeys();
+  void compileNoteKeys();
   void initSystemPresets();
 
   void initRandomDemoSong();
