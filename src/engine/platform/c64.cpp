@@ -373,7 +373,7 @@ void DivPlatformC64::tick(bool sysTick) {
       if (s->centerRate<1) {
         off=1.0;
       } else {
-        off=(double)s->centerRate/8363.0;
+        off=(double)s->centerRate/parent->getCenterRate();
       }
     }
     chan[i].pcmRate=off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,2,1);

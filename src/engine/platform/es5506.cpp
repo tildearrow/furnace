@@ -490,7 +490,7 @@ void DivPlatformES5506::tick(bool sysTick) {
             if (center<1) {
               off=1.0;
             } else {
-              off=(double)center/8363.0;
+              off=(double)center/parent->getCenterRate();
             }
             if (ins->amiga.useNoteMap) {
               //chan[i].pcm.note=next;
@@ -654,7 +654,7 @@ void DivPlatformES5506::tick(bool sysTick) {
           if (center<1) {
             off=1.0;
           } else {
-            off=(double)center/8363.0;
+            off=(double)center/parent->getCenterRate();
           }
           chan[i].pcm.loopStart=(chan[i].pcm.start+(s->loopStart<<11))&0xfffff800;
           chan[i].pcm.loopEnd=(chan[i].pcm.start+((s->loopEnd)<<11))&0xffffff80;

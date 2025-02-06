@@ -145,7 +145,7 @@ void DivPlatformGA20::tick(bool sysTick) {
         if (s->centerRate<1) {
           off=1.0;
         } else {
-          off=8363.0/s->centerRate;
+          off=parent->getCenterRate()/s->centerRate;
         }
       }
       DivSample* s=parent->getSample(chan[i].sample);

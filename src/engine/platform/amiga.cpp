@@ -429,7 +429,7 @@ void DivPlatformAmiga::tick(bool sysTick) {
       if (s->centerRate<1) {
         off=1.0;
       } else {
-        off=8363.0/(double)s->centerRate;
+        off=parent->getCenterRate()/(double)s->centerRate;
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {

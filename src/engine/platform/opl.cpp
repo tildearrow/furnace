@@ -1004,7 +1004,7 @@ void DivPlatformOPL::acquire(short** buf, size_t len) {
 double DivPlatformOPL::NOTE_ADPCMB(int note) {
   if (adpcmChan<0) return 0;
   if (chan[adpcmChan].sample>=0 && chan[adpcmChan].sample<parent->song.sampleLen) {
-    double off=65535.0*(double)(parent->getSample(chan[adpcmChan].sample)->centerRate)/8363.0;
+    double off=65535.0*(double)(parent->getSample(chan[adpcmChan].sample)->centerRate)/parent->getCenterRate();
     return parent->calcBaseFreq((double)chipClock/(compatYPitch?144:72),off,note,false);
   }
   return 0;
@@ -1334,7 +1334,7 @@ void DivPlatformOPL::tick(bool sysTick) {
     }
     if (chan[adpcmChan].freqChanged || chan[adpcmChan].keyOn || chan[adpcmChan].keyOff) {
       if (chan[adpcmChan].sample>=0 && chan[adpcmChan].sample<parent->song.sampleLen) {
-        double off=65535.0*(double)(parent->getSample(chan[adpcmChan].sample)->centerRate)/8363.0;
+        double off=65535.0*(double)(parent->getSample(chan[adpcmChan].sample)->centerRate)/parent->getCenterRate();
         chan[adpcmChan].freq=parent->calcFreq(chan[adpcmChan].baseFreq,chan[adpcmChan].pitch,chan[adpcmChan].fixedArp?chan[adpcmChan].baseNoteOverride:chan[adpcmChan].arpOff,chan[adpcmChan].fixedArp,false,4,chan[adpcmChan].pitch2,(double)chipClock/(compatYPitch?144:72),off);
       } else {
         chan[adpcmChan].freq=0;
@@ -1384,7 +1384,7 @@ void DivPlatformOPL::tick(bool sysTick) {
       if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
         DivSample* s=parent->getSample(chan[i].sample);
         unsigned char ctrl=0;
-        double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
+        double off=(s->centerRate>=1)?((double)s->centerRate/parent->getCenterRate()):1.0;
         chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,(524288*768)));
         if (chan[i].freq<0x400) chan[i].freq=0x400;
         chan[i].freqH=0;

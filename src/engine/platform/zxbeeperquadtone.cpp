@@ -154,7 +154,7 @@ void DivPlatformZXBeeperQuadTone::tick(bool sysTick) {
       double off=CHIP_DIVIDER;
       if (curSample>=0 && curSample<parent->song.sampleLen) {
         DivSample* s=parent->getSample(curSample);
-        off=(s->centerRate>=1)?(CHIP_DIVIDER*(double)s->centerRate/8363.0):CHIP_DIVIDER;
+        off=(s->centerRate>=1)?(CHIP_DIVIDER*(double)s->centerRate/parent->getCenterRate()):CHIP_DIVIDER;
       }
       chan[4].freq=parent->calcFreq(chan[4].baseFreq,chan[4].pitch,chan[4].fixedArp?chan[4].baseNoteOverride:chan[4].arpOff,chan[4].fixedArp,true,2,chan[4].pitch2,chipClock,off);
       if (chan[4].freq>258) chan[4].freq=258;

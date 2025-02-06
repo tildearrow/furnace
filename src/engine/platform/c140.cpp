@@ -214,7 +214,7 @@ void DivPlatformC140::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivSample* s=parent->getSample(chan[i].sample);
       unsigned char ctrl=0;
-      double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
+      double off=(s->centerRate>=1)?((double)s->centerRate/parent->getCenterRate()):1.0;
       chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE));
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>65535) chan[i].freq=65535;

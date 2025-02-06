@@ -295,7 +295,7 @@ void DivPlatformGBAMinMod::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivSample* s=parent->getSample(chan[i].sample);
-      double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
+      double off=(s->centerRate>=1)?((double)s->centerRate/parent->getCenterRate()):1.0;
       chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE));
       if (chan[i].keyOn) {
         unsigned int start, end, loop;

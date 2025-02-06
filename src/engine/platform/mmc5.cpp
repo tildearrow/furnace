@@ -161,7 +161,7 @@ void DivPlatformMMC5::tick(bool sysTick) {
       double off=1.0;
       if (dacSample>=0 && dacSample<parent->song.sampleLen) {
         DivSample* s=parent->getSample(dacSample);
-        off=(double)s->centerRate/8363.0;
+        off=(double)s->centerRate/parent->getCenterRate();
       }
       dacRate=MIN(chan[2].freq*off,32000);
       if (dumpWrites) addWrite(0xffff0001,dacRate);

@@ -839,6 +839,9 @@ class DivEngine {
     // reset playback state
     void syncReset();
 
+    // get C-4 rate for samples
+    double getCenterRate();
+
     // sample preview query
     bool isPreviewingSample();
     int getSamplePreviewSample();

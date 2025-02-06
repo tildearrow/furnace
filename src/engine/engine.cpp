@@ -2353,6 +2353,10 @@ double DivEngine::getSamplePreviewRate() {
   return sPreview.rate;
 }
 
+double DivEngine::getCenterRate() {
+  return song.oldCenterRate?8363.0:8372.0;
+}
+
 String DivEngine::getConfigPath() {
   return configPath;
 }
@@ -2897,6 +2901,7 @@ int DivEngine::addSample() {
   DivSample* sample=new DivSample;
   int sampleCount=(int)song.sample.size();
   sample->name=fmt::sprintf(_("Sample %d"),sampleCount);
+  sample->centerRate=getCenterRate();
   song.sample.push_back(sample);
   song.sampleLen=sampleCount+1;
   sPreview.sample=-1;

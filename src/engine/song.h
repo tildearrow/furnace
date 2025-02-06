@@ -352,6 +352,8 @@ struct DivSong {
   bool ceilVolumeScaling;
   bool oldAlwaysSetVolume;
   bool oldSampleOffset;
+  // TODO: this flag is not saved to the file yet.
+  bool oldCenterRate;
 
   std::vector<DivInstrument*> ins;
   std::vector<DivWavetable*> wave;
@@ -481,7 +483,8 @@ struct DivSong {
     resetArpPhaseOnNewNote(false),
     ceilVolumeScaling(false),
     oldAlwaysSetVolume(false),
-    oldSampleOffset(false) {
+    oldSampleOffset(false),
+    oldCenterRate(true) {
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=1.0;

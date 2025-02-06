@@ -142,7 +142,7 @@ void DivPlatformK053260::tick(bool sysTick) {
         if (s->centerRate<1) {
           off=1.0;
         } else {
-          off=8363.0/s->centerRate;
+          off=parent->getCenterRate()/s->centerRate;
         }
       }
       chan[i].freq=0x1000-(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER));

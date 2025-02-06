@@ -239,7 +239,7 @@ void DivPlatformDave::tick(bool sysTick) {
         double off=1.0;
         if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
           DivSample* s=parent->getSample(chan[i].dacSample);
-          off=(double)s->centerRate/8363.0;
+          off=(double)s->centerRate/parent->getCenterRate();
         }
         chan[i].dacRate=chan[i].freq*off;
       } else {

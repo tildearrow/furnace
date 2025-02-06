@@ -158,7 +158,7 @@ int DivPlatformVERA::calcNoteFreq(int ch, int note) {
       if (s->centerRate<1) {
         off=65536.0;
       } else {
-        off=65536.0*(s->centerRate/8363.0);
+        off=65536.0*(s->centerRate/parent->getCenterRate());
       }
     }
     return (int)(parent->calcBaseFreq(chipClock,off,note,false));
@@ -230,10 +230,10 @@ void DivPlatformVERA::tick(bool sysTick) {
       DivSample* s=parent->getSample(chan[16].pcm.sample);
       lastCenterRate=s->centerRate;
       if (s->centerRate>=1) {
-        off=65536.0*(s->centerRate/8363.0);
+        off=65536.0*(s->centerRate/parent->getCenterRate());
       }
     } else if (lastCenterRate>=1) {
-      off=65536.0*(lastCenterRate/8363.0);
+      off=65536.0*(lastCenterRate/parent->getCenterRate());
     }
     chan[16].freq=parent->calcFreq(chan[16].baseFreq,chan[16].pitch,chan[16].fixedArp?chan[16].baseNoteOverride:chan[16].arpOff,chan[16].fixedArp,false,8,chan[16].pitch2,chipClock,off);
     if (chan[16].freq>128) chan[16].freq=128;

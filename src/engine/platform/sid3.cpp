@@ -716,7 +716,7 @@ void DivPlatformSID3::tick(bool sysTick)
           if (s->centerRate<1) {
             off=1.0;
           } else {
-            off=(double)s->centerRate/8363.0;
+            off=(double)s->centerRate/parent->getCenterRate();
           }
         }
         chan[i].dacRate=chan[i].freq*(off / 32.0)*(double)chipClock/1000000.0;

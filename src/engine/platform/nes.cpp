@@ -391,7 +391,7 @@ void DivPlatformNES::tick(bool sysTick) {
       double off=1.0;
       if (dacSample>=0 && dacSample<parent->song.sampleLen) {
         DivSample* s=parent->getSample(dacSample);
-        off=(double)s->centerRate/8363.0;
+        off=(double)s->centerRate/parent->getCenterRate();
       }
       dacRate=MIN(chan[4].freq*off,32000);
       if (chan[4].keyOn) {

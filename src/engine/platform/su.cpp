@@ -234,7 +234,7 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
           if (sample->centerRate<1) {
             off=0.25;
           } else {
-            off=(double)sample->centerRate/(8363.0*4.0);
+            off=(double)sample->centerRate/(parent->getCenterRate()*4.0);
           }
           chan[i].freq=(double)chan[i].freq*off;
         }

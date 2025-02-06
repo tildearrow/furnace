@@ -249,7 +249,7 @@ double DivPlatformX1_010::NoteX1_010(int ch, int note) {
       if (s->centerRate<1) {
         off=8192.0;
       } else {
-        off=8192.0*(s->centerRate/8363.0);
+        off=8192.0*(s->centerRate/parent->getCenterRate());
       }
     }
     return parent->calcBaseFreq(chipClock,off,note,false);
@@ -474,7 +474,7 @@ void DivPlatformX1_010::tick(bool sysTick) {
           if (s->centerRate<1) {
             off=8192.0;
           } else {
-            off=8192.0*(s->centerRate/8363.0);
+            off=8192.0*(s->centerRate/parent->getCenterRate());
           }
         }
       }

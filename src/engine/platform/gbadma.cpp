@@ -159,7 +159,7 @@ void DivPlatformGBADMA::tick(bool sysTick) {
       double off=1.0;
       if (!chan[i].useWave && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
         DivSample* s=parent->getSample(chan[i].sample);
-        off=(s->centerRate>=1)?(8363.0/(double)s->centerRate):1.0;
+        off=(s->centerRate>=1)?(parent->getCenterRate()/(double)s->centerRate):1.0;
       }
       chan[i].freq=off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
 
