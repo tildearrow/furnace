@@ -53,6 +53,7 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - Fragmare
 - freq-mod
 - gtr3qq
+- Heckett Heriot
 - Heemin
 - Hortus
 - ifrit05
