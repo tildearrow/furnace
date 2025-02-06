@@ -1427,7 +1427,7 @@ void FurnaceGUI::doScale(float top) {
   makeUndo(GUI_UNDO_PATTERN_SCALE);
 }
 
-void FurnaceGUI::doRandomize(int bottom, int top, bool mode) {
+void FurnaceGUI::doRandomize(int bottom, int top, bool mode, bool eff, int effVal) {
   finishSelection();
   prepareUndo(GUI_UNDO_PATTERN_RANDOMIZE);
 
@@ -1462,6 +1462,9 @@ void FurnaceGUI::doRandomize(int bottom, int top, bool mode) {
             pat->data[j][iFine+1]=value|(value2<<4);
           } else {
             pat->data[j][iFine+1]=value;
+          }
+          if (eff && iFine>2 && (iFine&1)) {
+            pat->data[j][iFine+1]=effVal;
           }
         }
       }

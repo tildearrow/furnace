@@ -3166,9 +3166,17 @@ void FurnaceGUI::editOptions(bool topMenu) {
         if (randomizeMax>255) randomizeMax=255;
       }
     }
-    // TODO: add an option to set effect to specific value?
+    if (selStart.xFine>2 || selEnd.xFine>2 || selStart.xCoarse!=selEnd.xCoarse) {
+      ImGui::Checkbox(_("Set effect"),&randomizeEffect);
+      if (randomizeEffect) {
+        if (ImGui::InputScalar(_("Effect"),ImGuiDataType_S32,&randomizeEffectVal,&_ONE,&_SIXTEEN,"%.2X",ImGuiInputTextFlags_CharsHexadecimal)) {
+          if (randomizeEffectVal<0) randomizeEffectVal=0;
+          if (randomizeEffectVal>255) randomizeEffectVal=255;
+        }
+      }
+    }
     if (ImGui::Button(_("Randomize"))) {
-      doRandomize(randomizeMin,randomizeMax,randomMode);
+      doRandomize(randomizeMin,randomizeMax,randomMode,randomizeEffect,randomizeEffectVal);
       ImGui::CloseCurrentPopup();
     }
     ImGui::EndMenu();
@@ -8671,11 +8679,13 @@ FurnaceGUI::FurnaceGUI():
   fadeMin(0),
   fadeMax(255),
   collapseAmount(2),
+  randomizeEffectVal(0),
   playheadY(0.0f),
   scaleMax(100.0f),
   fadeMode(false),
   randomMode(false),
   haveHitBounds(false),
+  randomizeEffect(false),
   pendingStepUpdate(0),
   oldOrdersLen(0),
   sampleZoom(1.0),

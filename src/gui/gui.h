@@ -2548,10 +2548,10 @@ class FurnaceGUI {
   ImVec2 noteCellSize, insCellSize, volCellSize, effectCellSize, effectValCellSize;
   SelectionPoint sel1, sel2;
   int dummyRows;
-  int transposeAmount, randomizeMin, randomizeMax, fadeMin, fadeMax, collapseAmount;
+  int transposeAmount, randomizeMin, randomizeMax, fadeMin, fadeMax, collapseAmount, randomizeEffectVal;
   float playheadY;
   float scaleMax;
-  bool fadeMode, randomMode, haveHitBounds;
+  bool fadeMode, randomMode, haveHitBounds, randomizeEffect;
   signed char pendingStepUpdate;
 
   int oldOrdersLen;
@@ -2986,7 +2986,7 @@ class FurnaceGUI {
   void doFade(int p0, int p1, bool mode);
   void doInvertValues();
   void doScale(float top);
-  void doRandomize(int bottom, int top, bool mode);
+  void doRandomize(int bottom, int top, bool mode, bool eff, int effVal);
   void doFlip();
   void doCollapse(int divider, const SelectionPoint& sStart, const SelectionPoint& sEnd);
   void doExpand(int multiplier, const SelectionPoint& sStart, const SelectionPoint& sEnd);
