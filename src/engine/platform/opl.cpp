@@ -1713,34 +1713,37 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           chan[c.chan].freqChanged=true;
           chan[c.chan].note=c.value;
         }
-        if (ins->type==DIV_INS_MULTIPCM) {
-          chan[c.chan].lfo=ins->multipcm.lfo;
-          chan[c.chan].vib=ins->multipcm.vib;
-          chan[c.chan].am=ins->multipcm.am;
-          chan[c.chan].ar=ins->multipcm.ar;
-          chan[c.chan].d1r=ins->multipcm.d1r;
-          chan[c.chan].dl=ins->multipcm.dl;
-          chan[c.chan].d2r=ins->multipcm.d2r;
-          chan[c.chan].rc=ins->multipcm.rc;
-          chan[c.chan].rr=ins->multipcm.rr;
-          chan[c.chan].damp=ins->multipcm.damp;
-          chan[c.chan].pseudoReverb=ins->multipcm.pseudoReverb;
-          chan[c.chan].levelDirect=ins->multipcm.levelDirect;
-          chan[c.chan].lfoReset=ins->multipcm.lfoReset;
-        } else {
-          chan[c.chan].lfo=0;
-          chan[c.chan].vib=0;
-          chan[c.chan].am=0;
-          chan[c.chan].ar=15;
-          chan[c.chan].d1r=15;
-          chan[c.chan].dl=0;
-          chan[c.chan].d2r=0;
-          chan[c.chan].rc=15;
-          chan[c.chan].rr=15;
-          chan[c.chan].damp=false;
-          chan[c.chan].pseudoReverb=false;
-          chan[c.chan].levelDirect=true;
-          chan[c.chan].lfoReset=false;
+        if (chan[c.chan].insChanged) {
+          if (ins->type==DIV_INS_MULTIPCM) {
+            chan[c.chan].lfo=ins->multipcm.lfo;
+            chan[c.chan].vib=ins->multipcm.vib;
+            chan[c.chan].am=ins->multipcm.am;
+            chan[c.chan].ar=ins->multipcm.ar;
+            chan[c.chan].d1r=ins->multipcm.d1r;
+            chan[c.chan].dl=ins->multipcm.dl;
+            chan[c.chan].d2r=ins->multipcm.d2r;
+            chan[c.chan].rc=ins->multipcm.rc;
+            chan[c.chan].rr=ins->multipcm.rr;
+            chan[c.chan].damp=ins->multipcm.damp;
+            chan[c.chan].pseudoReverb=ins->multipcm.pseudoReverb;
+            chan[c.chan].levelDirect=ins->multipcm.levelDirect;
+            chan[c.chan].lfoReset=ins->multipcm.lfoReset;
+          } else {
+            chan[c.chan].lfo=0;
+            chan[c.chan].vib=0;
+            chan[c.chan].am=0;
+            chan[c.chan].ar=15;
+            chan[c.chan].d1r=15;
+            chan[c.chan].dl=0;
+            chan[c.chan].d2r=0;
+            chan[c.chan].rc=15;
+            chan[c.chan].rr=15;
+            chan[c.chan].damp=false;
+            chan[c.chan].pseudoReverb=false;
+            chan[c.chan].levelDirect=true;
+            chan[c.chan].lfoReset=false;
+          }
+          chan[c.chan].insChanged=false;
         }
         chan[c.chan].active=true;
         chan[c.chan].keyOn=true;
