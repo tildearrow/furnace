@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,9 +67,9 @@ enum DivDispatchCmds {
   DIV_CMD_HINT_ARPEGGIO, // (note1, note2)
   DIV_CMD_HINT_VOLUME, // (vol)
   DIV_CMD_HINT_VOL_SLIDE, // (amount, oneTick)
-  DIV_CMD_HINT_VOL_SLIDE_TARGET, // (amount, target)
   DIV_CMD_HINT_PORTA, // (target, speed)
   DIV_CMD_HINT_LEGATO, // (note)
+  DIV_CMD_HINT_VOL_SLIDE_TARGET, // (amount, target)
 
   DIV_CMD_SAMPLE_MODE, // (enabled)
   DIV_CMD_SAMPLE_FREQ, // (frequency)
@@ -948,7 +948,7 @@ class DivDispatch {
 #define NOTE_FREQUENCY(x) parent->calcBaseFreq(chipClock,CHIP_FREQBASE,x,false)
 
 // this is a special case definition. only use it for f-num/block-based chips.
-#define NOTE_FNUM_BLOCK(x,bits) parent->calcBaseFreqFNumBlock(chipClock,CHIP_FREQBASE,x,bits)
+#define NOTE_FNUM_BLOCK(x,bits,blk) parent->calcBaseFreqFNumBlock(chipClock,CHIP_FREQBASE,x,bits,blk)
 
 // this is for volume scaling calculation.
 #define VOL_SCALE_LINEAR(x,y,range) ((parent->song.ceilVolumeScaling)?((((x)*(y))+(range-1))/(range)):(((x)*(y))/(range)))

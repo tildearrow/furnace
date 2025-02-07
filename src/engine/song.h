@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -145,6 +145,8 @@ enum DivSystem {
   DIV_SYSTEM_SUPERVISION,
   DIV_SYSTEM_UPD1771C,
   DIV_SYSTEM_SID3,
+  DIV_SYSTEM_C64_PCM,
+  DIV_SYSTEM_UPD1771C_TONE,
 
   DIV_SYSTEM_MAX
 };
@@ -350,6 +352,8 @@ struct DivSong {
   bool ceilVolumeScaling;
   bool oldAlwaysSetVolume;
   bool oldSampleOffset;
+  // TODO: this flag is not saved to the file yet.
+  bool oldCenterRate;
 
   std::vector<DivInstrument*> ins;
   std::vector<DivWavetable*> wave;
@@ -479,7 +483,8 @@ struct DivSong {
     resetArpPhaseOnNewNote(false),
     ceilVolumeScaling(false),
     oldAlwaysSetVolume(false),
-    oldSampleOffset(false) {
+    oldSampleOffset(false),
+    oldCenterRate(true) {
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=1.0;

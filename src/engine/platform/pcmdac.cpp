@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -292,7 +292,7 @@ void DivPlatformPCMDAC::tick(bool sysTick) {
     double off=1.0;
     if (!chan[0].useWave && chan[0].sample>=0 && chan[0].sample<parent->song.sampleLen) {
       DivSample* s=parent->getSample(chan[0].sample);
-      off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
+      off=(s->centerRate>=1)?((double)s->centerRate/parent->getCenterRate()):1.0;
     }
     chan[0].freq=off*parent->calcFreq(chan[0].baseFreq,chan[0].pitch,chan[0].fixedArp?chan[0].baseNoteOverride:chan[0].arpOff,chan[0].fixedArp,false,2,chan[0].pitch2,chipClock,CHIP_FREQBASE);
     if (chan[0].freq>16777215) chan[0].freq=16777215;

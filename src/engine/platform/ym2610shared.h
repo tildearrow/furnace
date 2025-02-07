@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -97,11 +97,11 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
         return NOTE_PERIODIC(note);
       }
       // FM
-      return NOTE_FNUM_BLOCK(note,11);
+      return NOTE_FNUM_BLOCK(note,11,chan[ch].state.block);
     }
     double NOTE_ADPCMB(int note) {
       if (chan[adpcmBChanOffs].sample>=0 && chan[adpcmBChanOffs].sample<parent->song.sampleLen) {
-        double off=65535.0*(double)(parent->getSample(chan[adpcmBChanOffs].sample)->centerRate)/8363.0;
+        double off=65535.0*(double)(parent->getSample(chan[adpcmBChanOffs].sample)->centerRate)/parent->getCenterRate();
         return parent->calcBaseFreq((double)chipClock/144,off,note,false);
       }
       return 0;
