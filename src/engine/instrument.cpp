@@ -959,9 +959,9 @@ void DivInstrument::writeFeatureMP(SafeWriter* w) {
   w->writeC(multipcm.am);
 
   unsigned char next=(
-    (multipcm.damp?1:0)&
-    (multipcm.pseudoReverb?2:0)&
-    (multipcm.lfoReset?4:0)&
+    (multipcm.damp?1:0)|
+    (multipcm.pseudoReverb?2:0)|
+    (multipcm.lfoReset?4:0)|
     (multipcm.levelDirect?8:0)
   );
   w->writeC(next);
