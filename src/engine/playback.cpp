@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,9 +67,9 @@ const char* cmdName[]={
   "HINT_ARPEGGIO",
   "HINT_VOLUME",
   "HINT_VOL_SLIDE",
-  "HINT_VOL_SLIDE_TARGET",
   "HINT_PORTA",
   "HINT_LEGATO",
+  "HINT_VOL_SLIDE_TARGET",
 
   "SAMPLE_MODE",
   "SAMPLE_FREQ",

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -257,7 +257,7 @@ void DivPlatformLynx::tick(bool sysTick) {
           if (s->centerRate<1) {
             off=1.0;
           } else {
-            off=(double)s->centerRate/8363.0;
+            off=(double)s->centerRate/parent->getCenterRate();
           }
         }
         chan[i].sampleFreq=off*parent->calcFreq(chan[i].sampleBaseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);

@@ -7,7 +7,7 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 # contributors
 
 - 0x5066
-- aarchMoth
+- 4sythe
 - Abstract 64
 - Aburtos
 - ActualNK358
@@ -54,6 +54,7 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - Fragmare
 - freq-mod
 - gtr3qq
+- Heckett Heriot
 - Heemin
 - Hortus
 - ifrit05
@@ -124,6 +125,7 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - TheDuccinator
 - theloredev
 - The Beesh-Spweesh!
+- The Goofy-Mouse
 - TheRealHedgehogSonic
 - tildearrow
 - tom\_atom

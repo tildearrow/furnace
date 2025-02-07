@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -598,7 +598,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
           }
 
-          int sampleNote=round(64.0+(128.0*12.0*log((double)targetRate/8363.0)/log(2.0)));
+          int sampleNote=round(64.0+(128.0*12.0*log((double)targetRate/e->getCenterRate())/log(2.0)));
           int sampleNoteCoarse=60+(sampleNote>>7);
           int sampleNoteFine=(sampleNote&127)-64;
 
@@ -662,7 +662,7 @@ void FurnaceGUI::drawSampleEdit() {
           if (coarseChanged) { MARK_MODIFIED
             sampleNote=((sampleNoteCoarse-60)<<7)+sampleNoteFine;
 
-            targetRate=8363.0*pow(2.0,(double)sampleNote/(128.0*12.0));
+            targetRate=e->getCenterRate()*pow(2.0,(double)sampleNote/(128.0*12.0));
             if (targetRate<100) targetRate=100;
             if (targetRate>384000) targetRate=384000;
 
@@ -685,7 +685,7 @@ void FurnaceGUI::drawSampleEdit() {
 
             sampleNote=((sampleNoteCoarse-60)<<7)+sampleNoteFine;
 
-            targetRate=round(8363.0*pow(2.0,(double)sampleNote/(128.0*12.0)));
+            targetRate=round(e->getCenterRate()*pow(2.0,(double)sampleNote/(128.0*12.0)));
 
             if (targetRate==prevSampleRate) {
               if (prevFine==sampleNoteFine) {
@@ -1373,6 +1373,13 @@ void FurnaceGUI::drawSampleEdit() {
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(_("Preview sample"));
+      }
+      sameLineMaybe();
+      if (ImGui::Button(ICON_FA_PLAY_CIRCLE "##PreviewSampleFromCursor")) {
+        e->previewSample(curSample, -1, sampleSelStart, sampleSelEnd == sampleSelStart ? -1 : sampleSelEnd);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Preview sample from cursor or selection only"));
       }
       sameLineMaybe();
       if (ImGui::Button(ICON_FA_STOP "##StopSample")) {

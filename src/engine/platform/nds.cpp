@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -160,7 +160,7 @@ void DivPlatformNDS::tick(bool sysTick) {
           case DIV_SAMPLE_DEPTH_16BIT: ctrl=0x20; break;
           default: break;
         }
-        double off=(s->centerRate>=1)?(8363.0/(double)s->centerRate):1.0;
+        double off=(s->centerRate>=1)?(parent->getCenterRate()/(double)s->centerRate):1.0;
         chan[i].freq=0x10000-(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER));
         if (chan[i].freq<0) chan[i].freq=0;
         if (chan[i].freq>65535) chan[i].freq=65535;

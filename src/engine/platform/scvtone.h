@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,14 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _UPD1771C_H
-#define _UPD1771C_H
+#ifndef _SCV_TONE_H
+#define _SCV_TONE_H
 
 #include "../dispatch.h"
 #include "../../fixedQueue.h"
-#include "sound/upd1771c.h"
+#include "sound/upd1771.h"
 
-class DivPlatformUPD1771c: public DivDispatch {
+class DivPlatformSCVTone: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
     unsigned int wave;
     int pos, duty;
@@ -34,8 +34,8 @@ class DivPlatformUPD1771c: public DivDispatch {
       pos(0),
       duty(0) {}
   };
-  Channel chan[1];
-  DivDispatchOscBuffer* oscBuf[1];
+  Channel chan[4];
+  DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
   struct QueuedWrite {
     unsigned char addr;
@@ -50,10 +50,11 @@ class DivPlatformUPD1771c: public DivDispatch {
   int tempR[32];
   int coreQuality;
   unsigned char regPool[16];
-  unsigned char kon[1];
-  unsigned char initWrite[1];
-  struct upd1771c_t scv;
+  upd1771c_device scv;
 
+  unsigned char packet[16];
+
+  bool writePacket;
 
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
@@ -78,7 +79,7 @@ class DivPlatformUPD1771c: public DivDispatch {
     const char** getRegisterSheet();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
-    ~DivPlatformUPD1771c();
+    ~DivPlatformSCVTone();
 };
 
 #endif

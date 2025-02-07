@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -119,7 +119,7 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
         double off=1.0;
         if (chan[i].pcm.sample>=0 && chan[i].pcm.sample<parent->song.sampleLen) {
           DivSample* s=parent->getSample(chan[i].pcm.sample);
-          off=(double)s->centerRate/8363.0;
+          off=(double)s->centerRate/parent->getCenterRate();
         }
         chan[i].pcm.freq=MIN(255,((rate*0.5)+(off*parent->song.tuning*pow(2.0,double(chan[i].freq+512)/(128.0*12.0)))*255)/rate)+(oldSlides?chan[i].pitch2:0);
         rWrite(7+(i<<3),chan[i].pcm.freq);

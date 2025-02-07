@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@ bool DivInstrumentFM::operator==(const DivInstrumentFM& other) {
     _C(ams2) &&
     _C(ops) &&
     _C(opllPreset) &&
+    _C(block) &&
     _C(fixedDrums) &&
     _C(kickFreq) &&
     _C(snareHatFreq) &&
@@ -409,6 +410,7 @@ void DivInstrument::writeFeatureFM(SafeWriter* w, bool fui) {
   w->writeC(((fm.alg&7)<<4)|(fm.fb&7));
   w->writeC(((fm.fms2&7)<<5)|((fm.ams&3)<<3)|(fm.fms&7));
   w->writeC(((fm.ams2&3)<<6)|((fm.ops==4)?32:0)|(fm.opllPreset&31));
+  w->writeC(fm.block&15);
 
   // operator data
   for (int i=0; i<opCount; i++) {
@@ -957,9 +959,9 @@ void DivInstrument::writeFeatureMP(SafeWriter* w) {
   w->writeC(multipcm.am);
 
   unsigned char next=(
-    (multipcm.damp?1:0)&
-    (multipcm.pseudoReverb?2:0)&
-    (multipcm.lfoReset?4:0)&
+    (multipcm.damp?1:0)|
+    (multipcm.pseudoReverb?2:0)|
+    (multipcm.lfoReset?4:0)|
     (multipcm.levelDirect?8:0)
   );
   w->writeC(next);
@@ -1740,6 +1742,11 @@ void DivInstrument::readFeatureFM(SafeReader& reader, short version) {
   fm.ams2=(next>>6)&3;
   fm.ops=(next&32)?4:2;
   fm.opllPreset=next&31;
+
+  if (version>=224) {
+    next=reader.readC();
+    fm.block=next&15;
+  }
 
   // read operators
   for (int i=0; i<opCount; i++) {
