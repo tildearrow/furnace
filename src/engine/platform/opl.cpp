@@ -1523,6 +1523,7 @@ int DivPlatformOPL::toFreq(int freq, int fixedBlock) {
     block=freq/OPLL_C_NUM;
     if (block>0) block=bsr(block);
   }
+  if (block>7) block=7;
   freq>>=block;
   if (freq>0x3ff) freq=0x3ff;
   return (block<<10)|freq;
