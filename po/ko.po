@@ -10779,7 +10779,7 @@ msgstr "MAME SN76496 by Nicola Salmoria"
 
 #: src/gui/about.cpp:265
 msgid "MAME AY-3-8910 by Couriersud"
-msgstr MAME AY-3-8910 by Couriersud""
+msgstr "MAME AY-3-8910 by Couriersud"
 
 #: src/gui/about.cpp:266
 msgid "with AY8930 fixes by Eulous, cam900 and Grauw"
@@ -12164,31 +12164,31 @@ msgstr ""
 
 #: src/gui/guiConst.cpp:711
 msgid "Add wavetable"
-msgstr ""
+msgstr "웨이브테이블 추가"
 
 #: src/gui/guiConst.cpp:712
 msgid "Duplicate wavetable"
-msgstr ""
+msgstr "웨이브테이블 복제"
 
 #: src/gui/guiConst.cpp:713
 msgid "Open wavetable"
-msgstr ""
+msgstr "웨이브테이블 열기"
 
 #: src/gui/guiConst.cpp:714
 msgid "Open wavetable (replace current)"
-msgstr ""
+msgstr "웨이브테이블 열기 (교체)"
 
 #: src/gui/guiConst.cpp:715
 msgid "Save wavetable"
-msgstr ""
+msgstr "웨이브테이블 저장"
 
 #: src/gui/guiConst.cpp:716
 msgid "Save wavetable (.dmw)"
-msgstr ""
+msgstr "웨이브테이블 저장 (.dmw)"
 
 #: src/gui/guiConst.cpp:717
 msgid "Save wavetable (raw)"
-msgstr ""
+msgstr "웨이브테이블 저장 (원시 데이터)"
 
 #: src/gui/guiConst.cpp:718
 msgid "Move wavetable up in list"
