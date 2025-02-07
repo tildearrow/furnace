@@ -1352,7 +1352,7 @@ msgid ""
 "four operators with independent notes/frequencies."
 msgstr "네오 지오와 같지만 SNK가 핀을 연결하지 않아서 ADPCM-B 채널이 없습니다.\n"
 "이것은 두 번째 FM 채널을 독립적인 음/주파수를 가진 4개의 오퍼레이터로 바꾸는 "
-"확장 채널 모드입니다.
+"확장 채널 모드입니다."
 
 #: src/engine/sysDef.cpp:852 src/engine/sysDef.cpp:1459
 #: src/engine/sysDef.cpp:1472
@@ -1652,7 +1652,7 @@ msgstr "36xx: 에코 필터 계수 6 설정"
 
 #: src/engine/sysDef.cpp:1000
 msgid "37xx: Set echo filter coefficient 7"
-msgstr "37xx: 에코 필터 계수 7 설정
+msgstr "37xx: 에코 필터 계수 7 설정"
 
 #: src/engine/sysDef.cpp:1005
 msgid "12xx: Toggle echo on this channel"
@@ -1835,7 +1835,7 @@ msgid ""
 msgstr ""
 "OPM의 원가 절감된 버전으로 다른 레지스터 레이아웃을 가지고 있고 스테레오가 없"
 "습니다...\n"
-"...그러나 이것은 AY-3-8910을 내장하고 있습니다! (사실 YM2149이지만요.)"
+"...하지만 이것은 AY-3-8910을 내장하고 있습니다! (사실 YM2149 입니다.)"
 
 #: src/engine/sysDef.cpp:1111
 msgid "Yamaha YM2203 (OPN) Extended Channel 3"
@@ -1851,7 +1851,7 @@ msgid ""
 msgstr ""
 "OPM의 원가 절감된 버전으로 다른 레지스터 레이아웃을 가지고 있고 스테레오가 없"
 "습니다...\n"
-"...그러나 이것은 AY-3-8910을 내장하고 있습니다! (사실 YM2149이지만요.)\n"
+"...하지만 이것은 AY-3-8910을 내장하고 있습니다! (사실 YM2149 입니다.)\n"
 "이것은 세 번째 FM 채널을 독립적인 음/주파수를 가진 4개의 오퍼레이터로 변환하"
 "는 확장 채널 모드입니다."
 
@@ -1900,7 +1900,7 @@ msgid ""
 msgstr ""
 "OPM의 원가 절감된 버전으로 다른 레지스터 레이아웃을 가지고 있고 스테레오가 없"
 "습니다...\n"
-"...그러나 이것은 AY-3-8910을 내장하고 있습니다! (사실 YM2149이지만요.)\n"
+"...하지만 이것은 AY-3-8910을 내장하고 있습니다! (사실 YM2149 입니다.)\n"
 "CSM 뭐시기"
 
 #: src/engine/sysDef.cpp:1126 src/engine/sysDef.cpp:1164
@@ -10422,7 +10422,7 @@ msgstr ""
 #: src/gui/gui.cpp:6231 src/gui/gui.cpp:6243 src/gui/gui.cpp:6397
 #: src/gui/gui.cpp:6419 src/gui/gui.cpp:6435 src/gui/gui.cpp:6446
 msgid "Yes"
-msgstr ""
+msgstr "예"
 
 #: src/gui/settings.cpp:6999 src/gui/findReplace.cpp:828 src/gui/gui.cpp:6066
 #: src/gui/gui.cpp:6090 src/gui/gui.cpp:6114 src/gui/gui.cpp:6138
@@ -10431,19 +10431,19 @@ msgstr ""
 #: src/gui/gui.cpp:6414 src/gui/gui.cpp:6430 src/gui/gui.cpp:6440
 #: src/gui/gui.cpp:6453
 msgid "No"
-msgstr ""
+msgstr "아니요"
 
 #: src/gui/settings.cpp:7000
 msgid "%Y/%m/%d %H:%M"
-msgstr ""
+msgstr "%Y/%m/%d %H:%M"
 
 #: src/gui/orders.cpp:114
 msgid "Add new order"
-msgstr ""
+msgstr "새 오더 추가"
 
 #: src/gui/orders.cpp:125 src/gui/guiConst.cpp:798
 msgid "Remove order"
-msgstr ""
+msgstr "오더 제거"
 
 #: src/gui/orders.cpp:137
 msgid "Duplicate order (right-click to deep clone)"
@@ -10487,43 +10487,43 @@ msgstr ""
 
 #: src/gui/findReplace.cpp:29
 msgid "ignore"
-msgstr ""
+msgstr "무시"
 
 #: src/gui/findReplace.cpp:30
 msgid "equals"
-msgstr ""
+msgstr "만약 다음과 같을 시"
 
 #: src/gui/findReplace.cpp:31
 msgid "not equal"
-msgstr ""
+msgstr "만약 다음이 아닐 시"
 
 #: src/gui/findReplace.cpp:32
 msgid "between"
-msgstr ""
+msgstr "만약 다음 범위 내일 시"
 
 #: src/gui/findReplace.cpp:33
 msgid "not between"
-msgstr ""
+msgstr "만약 다음 범위가 아닐 시"
 
 #: src/gui/findReplace.cpp:34
 msgid "any"
-msgstr ""
+msgstr "모두"
 
 #: src/gui/findReplace.cpp:35 src/gui/guiConst.cpp:217
 msgid "none"
-msgstr ""
+msgstr "미지정"
 
 #: src/gui/findReplace.cpp:39
 msgid "set"
-msgstr ""
+msgstr "다음으로 바꾸기"
 
 #: src/gui/findReplace.cpp:40
 msgid "add"
-msgstr ""
+msgstr "다음으로 추가하기"
 
 #: src/gui/findReplace.cpp:41
 msgid "add (overflow)"
-msgstr ""
+msgstr "다음으로 추가하기 (오버플로)"
 
 #: src/gui/findReplace.cpp:42
 msgid "scale %"
@@ -10755,75 +10755,75 @@ msgstr ""
 
 #: src/gui/about.cpp:259
 msgid "Nuked-OPL3/OPLL/OPM/OPN2/PSG by nukeykt"
-msgstr ""
+msgstr "Nuked-OPL3/OPLL/OPM/OPN2/PSG by nukeykt"
 
 #: src/gui/about.cpp:260
 msgid "YM3812-LLE, YMF262-LLE, YMF276-LLE and YM2608-LLE by nukeykt"
-msgstr ""
+msgstr "YM3812-LLE, YMF262-LLE, YMF276-LLE and YM2608-LLE by nukeykt"
 
 #: src/gui/about.cpp:261
 msgid "ESFMu (modified version) by Kagamiin~"
-msgstr ""
+msgstr "ESFMu (수정된 버전) by Kagamiin~"
 
 #: src/gui/about.cpp:262
 msgid "ymfm by Aaron Giles"
-msgstr ""
+msgstr "ymfm by Aaron Giles"
 
 #: src/gui/about.cpp:263
 msgid "emu2413 by Digital Sound Antiques"
-msgstr ""
+msgstr "emu2413 by Digital Sound Antiques"
 
 #: src/gui/about.cpp:264
 msgid "MAME SN76496 by Nicola Salmoria"
-msgstr ""
+msgstr "MAME SN76496 by Nicola Salmoria"
 
 #: src/gui/about.cpp:265
 msgid "MAME AY-3-8910 by Couriersud"
-msgstr ""
+msgstr MAME AY-3-8910 by Couriersud""
 
 #: src/gui/about.cpp:266
 msgid "with AY8930 fixes by Eulous, cam900 and Grauw"
-msgstr ""
+msgstr "Eulous, cam900 및 Grauw의 AY8930 수정 사항 포함"
 
 #: src/gui/about.cpp:267
 msgid "MAME SAA1099 by Juergen Buchmueller and Manuel Abadia"
-msgstr ""
+msgstr "MAME SAA1099 by Juergen Buchmueller and Manuel Abadia"
 
 #: src/gui/about.cpp:268
 msgid "MAME Namco WSG by Nicola Salmoria and Aaron Giles"
-msgstr ""
+msgstr "MAME Namco WSG by Nicola Salmoria and Aaron Giles"
 
 #: src/gui/about.cpp:269
 msgid "MAME RF5C68 core by Olivier Galibert and Aaron Giles"
-msgstr ""
+msgstr "MAME RF5C68 core by Olivier Galibert and Aaron Giles"
 
 #: src/gui/about.cpp:270
 msgid "MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya"
-msgstr ""
+msgstr "MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya"
 
 #: src/gui/about.cpp:271
 msgid "MAME MSM6258 core by Barry Rodewald"
-msgstr ""
+msgstr "MAME MSM6258 core by Barry Rodewald"
 
 #: src/gui/about.cpp:272
 msgid "MAME YMZ280B core by Aaron Giles"
-msgstr ""
+msgstr "MAME YMZ280B core by Aaron Giles"
 
 #: src/gui/about.cpp:273
 msgid "MAME GA20 core by Acho A. Tang and R. Belmont"
-msgstr ""
+msgstr "MAME GA20 core by Acho A. Tang and R. Belmont"
 
 #: src/gui/about.cpp:274
 msgid "MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert"
-msgstr ""
+msgstr "MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert"
 
 #: src/gui/about.cpp:275
 msgid "SAASound by Dave Hooper and Simon Owen"
-msgstr ""
+msgstr "SAASound by Dave Hooper and Simon Owen"
 
 #: src/gui/about.cpp:276
 msgid "SameBoy by Lior Halphon"
-msgstr ""
+msgstr "SameBoy by Lior Halphon"
 
 #: src/gui/about.cpp:277
 msgid "Mednafen PCE, WonderSwan, T6W28 and Virtual Boy audio cores"
@@ -10938,7 +10938,7 @@ msgid "all members of Deflers of Noice!"
 msgstr ""
 
 #: src/gui/about.cpp:311
-msgid "copyright © 2021-2024 tildearrow"
+msgid "copyright © 2021-2025 tildearrow"
 msgstr ""
 
 #: src/gui/about.cpp:312
