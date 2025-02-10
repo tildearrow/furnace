@@ -2338,7 +2338,7 @@ void DivEngine::stopWavePreviewNoLock() {
 }
 
 bool DivEngine::isPreviewingSample() {
-  return (sPreview.sample>=0 && sPreview.sample<(int)song.sample.size());
+  return (sPreview.sample>=0 && sPreview.sample<(int)song.sample.size() && sPreview.pos!=sPreview.pEnd);
 }
 
 int DivEngine::getSamplePreviewSample() {
