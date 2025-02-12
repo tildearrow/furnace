@@ -1133,7 +1133,7 @@ msgid ""
 "hardware battle."
 msgstr ""
 "2000년대 휴대 전화에 널리 쓰였던 칩입니다.\n"
-"나름대로의 입지가 있었지만, 현재는 MP3에 밀려 자취를 감추었습니다."
+"나름대로의 입지가 있었지만, MP3에 밀린 뒤 모바일 하드웨어계에서 자취를 감추었습니다."
 
 #: src/engine/sysDef.cpp:702 src/engine/sysDef.cpp:759
 #: src/engine/sysDef.cpp:810 src/engine/sysDef.cpp:822
@@ -1410,7 +1410,7 @@ msgstr "게임보이"
 
 #: src/engine/sysDef.cpp:741
 msgid "the most popular portable game console of the era."
-msgstr "수많은 사람들에게 사랑받았던 그 시절의 휴대용 게임기입니다."
+msgstr "수많은 사람들에게 사랑받았던 그 시절의 가장 유명한 휴대용 게임기입니다."
 
 #: src/engine/sysDef.cpp:742 src/engine/sysDef.cpp:776
 #: src/engine/sysDef.cpp:1066 src/engine/sysDef.cpp:2104
@@ -1473,8 +1473,8 @@ msgid ""
 "also known as Famicom in Japan, it's the most well-known game console of the "
 "'80s."
 msgstr ""
-"80년대를 대표하는 게임기입니다. 한국과 일본에서는 패미컴(패밀리 컴퓨터)으로 "
-"발표되었습니다."
+"80년대를 대표하는 게임기입니다. 일본에서는 패미컴(패밀리 컴퓨터)라는 이름으로 "
+"알려져 있습니다."
 
 #: src/engine/sysDef.cpp:776 src/gui/insEdit.cpp:200 src/gui/insEdit.cpp:324
 #: src/gui/insEdit.cpp:658 src/gui/waveEdit.cpp:31 src/gui/waveEdit.cpp:217
@@ -1571,7 +1571,7 @@ msgid ""
 "like Neo Geo, but lacking the ADPCM-B channel since they couldn't connect "
 "the pins."
 msgstr ""
-"네오 지오와 비슷하나, ADPCM-B 채널의 핀 연결이 제거되어 빠져 있는 것입니다."
+"네오 지오와 비슷하나, ADPCM-B 채널이 핀 연결이 제거된 이유로 빠져 있는 것입니다."
 
 #: src/engine/sysDef.cpp:840 src/engine/sysDef.cpp:852
 #: src/engine/sysDef.cpp:894 src/engine/sysDef.cpp:906
@@ -1728,8 +1728,8 @@ msgid ""
 "four operators with independent notes/frequencies."
 msgstr ""
 "네오 지오와 비슷하나, ADPCM-B 채널의 핀 연결이 제거되어 빠져 있는 것입니다.\n"
-"채널 2 확장 모드는, 칩의 2번째 FM 채널의 4개 오퍼레이터를 분리하여 각각 다른 "
-"높이의 음을 낼 수 있게 하는 모드입니다."
+"해당 칩은 2번째 FM 채널의 4개 오퍼레이터를 분리하여 각각 다른 높이의 음을 "
+"낼 수 있게 하는 채널 확장 모드가 활성화되어 있습니다."
 
 #: src/engine/sysDef.cpp:852 src/engine/sysDef.cpp:1459
 #: src/engine/sysDef.cpp:1472
@@ -1763,7 +1763,7 @@ msgid ""
 msgstr ""
 "정말이지 어디를 가든 볼 수 있는 칩입니다. (예시만 들어도 ZX 스펙트럼, MSX, 암"
 "스트레드 CPC, 인텔리비죤, 벡트렉스 등등..)\n"
-"엔벨로프 베이스를 통하여 이 칩은 간단히 SN76489보다 우위를 점할 수 있었습니"
+"엔벨로프 베이스를 통하여 이 칩은 간단히 SN76489를 이길 수 있었습니"
 "다."
 
 #: src/engine/sysDef.cpp:875
@@ -2112,7 +2112,7 @@ msgid ""
 "cost-reduced version of the OPL with 16 patches and only one of them is user-"
 "configurable."
 msgstr ""
-"OPL을 저렴하게 만든 것으로, 악기는 16가지 패치(1가지만 직접 설정 가능) 중에"
+"OPL을 저렴하게 만든 것으로, 악기는 16가지 패치(1가지만 유저가 직접 설정 가능) 중에"
 "서 선택하여 사용해야 합니다."
 
 #: src/engine/sysDef.cpp:1035 src/engine/sysDef.cpp:1177
@@ -2235,8 +2235,8 @@ msgstr ""
 "OPM을 원가절감한 것으로 레지스터 구조가 OPM과 다르며 스테레오 출력이 불가합니"
 "다.\n"
 "...대신 AY-3-8910이 내장되어 있습니다. (엄밀히 말하자면 YM2149)\n"
-"채널 3 확장 모드는, 칩의 3번째 FM 채널의 4개 오퍼레이터를 분리하여 각각 다른 "
-"높이의 음을 낼 수 있게 하는 모드입니다."
+"해당 칩은 3번째 FM 채널의 4개 오퍼레이터를 분리하여 각각 다른 높이의 음을 "
+"낼 수 있게 하는 채널 확장 모드가 활성화되어 있습니다."
 
 #: src/engine/sysDef.cpp:1113 src/engine/sysDef.cpp:1126
 #: src/engine/sysDef.cpp:1151 src/engine/sysDef.cpp:1164
@@ -2302,7 +2302,7 @@ msgid ""
 "ADPCM channels."
 msgstr ""
 "OPN에서 채널 수가 2배로 늘어났고, 스테레오 출력이 부활했으며, 리듬 채널과 "
-"ADPCM 채널이 추가된 버전입니다. "
+"ADPCM 채널이 추가된 버전입니다."
 
 #: src/engine/sysDef.cpp:1139 src/engine/sysDef.cpp:1151
 #: src/engine/sysDef.cpp:1164 src/engine/sysDef.cpp:1485
@@ -2367,8 +2367,8 @@ msgid ""
 msgstr ""
 "OPN에서 채널 수가 2배로 늘어났고, 스테레오 출력이 부활했으며, 리듬 채널과 "
 "ADPCM 채널이 추가된 버전입니다. \n"
-"채널 3 확장 모드는, 칩의 3번째 FM 채널의 4개 오퍼레이터를 분리하여 각각 다른 "
-"높이의 음을 낼 수 있게 하는 모드입니다."
+"해당 칩은 3번째 FM 채널의 4개 오퍼레이터를 분리하여 각각 다른 높이의 음을 "
+"낼 수 있게 하는 채널 확장 모드가 활성화되어 있습니다."
 
 #: src/engine/sysDef.cpp:1162
 msgid "Yamaha YM2608 (OPNA) CSM"
@@ -2735,8 +2735,8 @@ msgid ""
 "like OPLL, but even more cost reductions applied. three FM channels went "
 "missing, and drums mode did as well..."
 msgstr ""
-"OPLL과 유사하지만, 추가적인 원가 절감을 위해 FM 채널 3개와 드럼 모드 기능을 제"
-"거한 버전입니다."
+"OPLL과 유사하지만, 추가적인 원가 절감을 위해 FM 채널 3개와 드럼 모드가 제"
+"거된 것입니다."
 
 #: src/engine/sysDef.cpp:1346
 msgid "Yamaha YM2610B (OPNB2)"
@@ -2765,8 +2765,8 @@ msgid ""
 "...a bunch of thin pulses and tons of other interesting stuff!\n"
 "Furnace provides a thin pulse system."
 msgstr ""
-"ZX 스펙트럼은 기본적인 비퍼만 가지고 있습니다...\n"
-"얇은 펄스와 몇가지 흥미로운 일!\n"
+"ZX 스펙트럼은 얇은 사각파 여러 개와 다른 흥미로운 이것저것이 되는...\n"
+"...기본적인 비퍼만 가지고 있었습니다!\n"
 "Furnace 트래커는 얇은 펄스 시스템을 제공합니다."
 
 #: src/engine/sysDef.cpp:1366 src/engine/sysDef.cpp:1954
@@ -2790,8 +2790,8 @@ msgid ""
 msgstr ""
 "메가 드라이브에 사용된 것으로 유명한 칩입니다. (그 외에도 FM Towns 컴퓨터에 탑"
 "재되기도 했습니다.)\n"
-"채널 3 확장 모드는, 칩의 3번째 FM 채널의 4개 오퍼레이터를 분리하여 각각 다른 "
-"높이의 음을 낼 수 있게 하는 모드입니다."
+"해당 칩은 3번째 FM 채널의 4개 오퍼레이터를 분리하여 각각 다른 높이의 음을 "
+"낼 수 있게 하는 채널 확장 모드가 활성화되어 있습니다."
 
 #: src/engine/sysDef.cpp:1385
 msgid "Yamaha YM2612 (OPN2) CSM"
@@ -2881,8 +2881,8 @@ msgstr ""
 "SNK의 Neo Geo 아케이드 기판들과 게임기에 사용된 칩입니다.\n"
 "OPNA와 유사하나, 리듬 채널들이 ADPCM 채널들로 교체되었고 FM 채널 두 개가 빠"
 "진 것입니다.\n"
-"채널 2 확장 모드는, 칩의 2번째 FM 채널의 4개 오퍼레이터를 분리하여 각각 다른 "
-"높이의 음을 낼 수 있게 하는 모드입니다."
+"해당 칩은 2번째 FM 채널의 4개 오퍼레이터를 분리하여 각각 다른 높이의 음을 "
+"낼 수 있게 하는 채널 확장 모드가 활성되어 있습니다."
 
 #: src/engine/sysDef.cpp:1470
 msgid "Yamaha YM2610 (OPNB) CSM"
@@ -3074,8 +3074,8 @@ msgid ""
 "four operators with independent notes/frequencies."
 msgstr ""
 "타이토의 요청에 따라 OPNB에서 FM 채널 수를 다시 2개 늘린 것입니다.\n"
-"채널 3 확장 모드는, 칩의 3번째 FM 채널의 4개 오퍼레이터를 분리하여 각각 다른 "
-"높이의 음을 낼 수 있게 하는 모드입니다."
+"해당 칩은 3번째 FM 채널의 4개 오퍼레이터를 분리하여 각각 다른 높이의 음을 "
+"낼 수 있게 하는 채널 확장 모드가 활성화되어 있습니다."
 
 #: src/engine/sysDef.cpp:1561
 msgid "Yamaha YM2610B (OPNB2) CSM"
@@ -3098,7 +3098,7 @@ msgstr "세가PCM (호환 5채널 모드)"
 msgid ""
 "this is the same thing as SegaPCM, but only exposes 5 of the channels for "
 "compatibility with DefleMask."
-msgstr "SegaPCM과 동일하나, DefleMask와의 호환을 위해 5개의 채널만 사용합니다."
+msgstr "SegaPCM과 동일하나, DefleMask와의 호환을 위해 5개의 채널만 보이게 합니다."
 
 #: src/engine/sysDef.cpp:1586
 msgid "Seta/Allumer X1-010"
@@ -3551,8 +3551,8 @@ msgstr ""
 "메가 드라이브에 사용된 것으로 유명한 칩입니다. (그 외에도 FM Towns 컴퓨터에 "
 "탑재되기도 했습니다.)\n"
 "이 시스템은 소프트웨어 믹싱을 통해 두개의 샘플 채널을 제공합니다.\n"
-"채널 3 확장 모드는, 칩의 3번째 FM 채널의 4개 오퍼레이터를 분리하여 각각 다른 "
-"높이의 음을 낼 수 있게 하는 모드입니다."
+"해당 칩은 3번째 FM 채널의 4개 오퍼레이터를 분리하여 각각 다른 높이의 음을 "
+"낼 수 있게 하는 채널 확장 모드가 활성화되어 있습니다."
 
 #: src/engine/sysDef.cpp:1876 src/gui/settings.cpp:4068
 msgid "T6W28"
@@ -3605,7 +3605,7 @@ msgstr "샤프 SM8521"
 
 #: src/engine/sysDef.cpp:1923
 msgid "a SoC with wavetable sound hardware."
-msgstr "웨이브테이블 사운드 하드웨어를 가진 하나의 SoC입니다."
+msgstr "웨이브테이블 사운드 하드웨어를 가진 SoC입니다."
 
 #: src/engine/sysDef.cpp:1933
 msgid "Casio PV-1000"
@@ -3688,7 +3688,7 @@ msgid ""
 "a unique FM synth featured in PC sound cards.\n"
 "based on the OPL3 design, but with lots of its features extended."
 msgstr ""
-"컴퓨터용 사운드 카드에 쓰인 특이한 FM 신시사이저입니다.\n"
+"컴퓨터용 사운드 카드에 탑재되었던 특이한 FM 신시사이저입니다.\n"
 "OPL3을 기반으로 한 칩이나, 상당히 많은 기능들이 추가되어 있습니다."
 
 #: src/engine/sysDef.cpp:2010
@@ -3709,7 +3709,7 @@ msgid ""
 "used in the Hexheld fantasy console."
 msgstr ""
 "jvx와 The Beesh-Spweesh!가 디자인한 가상의 사운드칩입니다.\n"
-"실제로 존재하지는 않는 Hexheld 콘솔에 사용되었습니다."
+"가상의 Hexheld 콘솔에 사용되었습니다."
 
 #: src/engine/sysDef.cpp:2024
 msgid "Noise 1"
@@ -5207,7 +5207,7 @@ msgstr ""
 
 #: src/gui/csPlayer.cpp:119
 msgid "Kikai wa mou shindeiru!"
-msgstr "The machine is already dead!"
+msgstr "이 기계는 이미 죽어 있다!"
 
 #: src/gui/csPlayer.cpp:123
 msgid "Burn Current Song"
@@ -5357,7 +5357,7 @@ msgstr "악기 대체하기..."
 
 #: src/gui/dataList.cpp:368
 msgid "load instrument from TX81Z"
-msgstr "TX81Z로부터 악기 가져오기"
+msgstr "TX81Z에서 악기 가져오기"
 
 #: src/gui/dataList.cpp:374
 msgid "replace wavetable..."
@@ -5427,7 +5427,7 @@ msgstr "모두 저장..."
 
 #: src/gui/dataList.cpp:474 src/gui/dataList.cpp:782 src/gui/dataList.cpp:927
 msgid "Toggle folders/standard view"
-msgstr "폴더식 보기/일반 보기 토글"
+msgstr "폴더식 보기/일반 보기 전환"
 
 #: src/gui/dataList.cpp:496 src/gui/dataList.cpp:790 src/gui/dataList.cpp:935
 #: src/gui/subSongs.cpp:55
@@ -5516,11 +5516,11 @@ msgstr ""
 
 #: src/gui/doAction.cpp:45 src/gui/gui.cpp:4378
 msgid "Unsaved changes! Save changes before opening another file?"
-msgstr "변경 사항이 존재합니다! 다른 파일을 열기 전에 저장하시겠습니까?"
+msgstr "변경 사항을 저장하지 않으셨습니다! 다른 파일을 열기 전에 저장하시겠습니까?"
 
 #: src/gui/doAction.cpp:52
 msgid "Unsaved changes! Save changes before opening backup?"
-msgstr "변경 사항이 존재합니다! 백업 파일을 열기 전에 저장하시겠습니까?"
+msgstr "변경 사항을 저장하지 않으셨습니다! 백업 파일을 열기 전에 저장하시겠습니까?"
 
 #: src/gui/doAction.cpp:62 src/gui/gui.cpp:4414 src/gui/gui.cpp:5177
 #: src/gui/gui.cpp:5215 src/gui/gui.cpp:5221 src/gui/gui.cpp:6059
@@ -6301,7 +6301,7 @@ msgstr ""
 "이 옵션은 곡을 재생할 때 생성되는 내부 명령 스트림의\n"
 "덤프를 포함하는 텍스트 또는 바이너리 파일을 내보냅니다.\n"
 "\n"
-"기술/개발 용도만!"
+"기술/개발 용도로만 사용하십시오!"
 
 #: src/gui/exportOptions.cpp:408
 msgid ""
@@ -6310,7 +6310,7 @@ msgid ""
 "dmf."
 msgstr ""
 "DefleMask 모듈 포맷으로 내보냅니다.\n"
-"기존 dmf를 정말, 정말로 다운그레이드하는 경우에만 수행합니다."
+"기존 dmf를 정말, 정말로 다운그레이드하는 경우에만 사용하십시오."
 
 #: src/gui/exportOptions.cpp:412
 msgid "format version:"
@@ -6383,8 +6383,8 @@ msgid ""
 "yeah, it's a bug. write a bug report in the GitHub page and tell me how did "
 "you get here."
 msgstr ""
-"맞아요, 이것은 버그에요. Github에 버그 리포트를 작성하고 어떻게 버그가 발생했"
-"는지 알려주세요.\t"
+"맞습니다, 이것은 버그입니다. Github에 버그 리포트를 작성하고 어떻게 버그가 발생했"
+"는지 알려주십시오.\t"
 
 #: src/gui/findReplace.cpp:29
 msgid "ignore"
@@ -6691,7 +6691,7 @@ msgstr ""
 
 #: src/gui/gui.cpp:1862 src/gui/gui.cpp:1872
 msgid "Save Instrument"
-msgstr ""
+msgstr "악기 저장"
 
 #: src/gui/gui.cpp:1882
 msgid "Save All Instruments"
@@ -6802,15 +6802,15 @@ msgstr ""
 
 #: src/gui/gui.cpp:2121
 msgid "Select User Presets File"
-msgstr ""
+msgstr "유저 프리셋 파일을 선택하십시오."
 
 #: src/gui/gui.cpp:2130
 msgid "Select Settings File"
-msgstr ""
+msgstr "설정 파일을 선택하십시오."
 
 #: src/gui/gui.cpp:2139
 msgid "Export Colors"
-msgstr ""
+msgstr "색상 파일 내보내기"
 
 #: src/gui/gui.cpp:2148
 msgid "Export Keybinds"
@@ -6822,11 +6822,11 @@ msgstr "레이아웃 파일 내보내기"
 
 #: src/gui/gui.cpp:2166
 msgid "Export User Presets"
-msgstr ""
+msgstr "유저 프리셋 파일 내보내기"
 
 #: src/gui/gui.cpp:2175
 msgid "Export Settings"
-msgstr ""
+msgstr "설정 파일 내내기"
 
 #: src/gui/gui.cpp:2186
 msgid "Load ROM"
@@ -7610,6 +7610,16 @@ msgid ""
 "- FM (OPLL)\n"
 "- FDS"
 msgstr ""
+"악기를 저장하는 도중 오류가 발생하였습니다! 아래 목록의 악기 타입들만 "
+"지원됩니다:\n"
+"- FM (OPN)\n"
+"- SN76489/Sega PSG\n"
+"- Game Boy\n"
+"- PC Engine\n"
+"- NES\n"
+"- C64\n"
+"- FM (OPLL)\n"
+"- FDS"
 
 #: src/gui/gui.cpp:5337
 msgid "there were some errors while loading samples:\n"
@@ -7621,7 +7631,7 @@ msgstr ""
 
 #: src/gui/gui.cpp:5436 src/gui/gui.cpp:5445
 msgid "could not save sample! open Log Viewer for more information."
-msgstr ""
+msgstr "샘플을 저장하지 못했습니다! 로그 보기에서 관련 추가적인 정보를 확인하실 수 있습니다."
 
 #: src/gui/gui.cpp:5464
 msgid "there were some warnings/errors while loading instruments:\n"
@@ -7630,12 +7640,12 @@ msgstr ""
 #: src/gui/gui.cpp:5470
 #, c-format
 msgid "> %s: cannot load instrument! (%s)\n"
-msgstr ""
+msgstr "> %s: 악기를 불러오지 못했습니다! (%s)\n"
 
 #: src/gui/gui.cpp:5488 src/gui/gui.cpp:5542
 #, c-format
 msgid "cannot load instrument! (%s)"
-msgstr ""
+msgstr "악기를 불러오지 못했습니다! (%s)"
 
 #: src/gui/gui.cpp:5494
 msgid ""
@@ -7985,7 +7995,7 @@ msgstr "변경 사항이 존재합니다! 프로그램을 종료하기 전에 �
 
 #: src/gui/guiConst.cpp:127
 msgid "Generic Sample"
-msgstr ""
+msgstr "공용 샘플"
 
 #: src/gui/guiConst.cpp:149 src/gui/settings.cpp:4080
 msgid "VRC6 (saw)"
@@ -8203,7 +8213,7 @@ msgstr "샘플 편집기"
 
 #: src/gui/guiConst.cpp:594
 msgid "Debug Menu"
-msgstr ""
+msgstr "디버그 메뉴"
 
 #: src/gui/guiConst.cpp:595
 msgid "Oscilloscope (master)"
@@ -8356,11 +8366,11 @@ msgstr ""
 
 #: src/gui/guiConst.cpp:644
 msgid "Move cursor to previous channel"
-msgstr ""
+msgstr "이전 채널로 커서 옮기기"
 
 #: src/gui/guiConst.cpp:645
 msgid "Move cursor to next channel"
-msgstr ""
+msgstr "다음 채널로 커서 옮기기"
 
 #: src/gui/guiConst.cpp:646
 msgid "Move cursor to next channel (overflow)"
@@ -8372,7 +8382,7 @@ msgstr ""
 
 #: src/gui/guiConst.cpp:648
 msgid "Move cursor to beginning of pattern"
-msgstr ""
+msgstr "패턴의 시작 지점으로 커서 옮기기"
 
 #: src/gui/guiConst.cpp:649
 msgid "Move cursor to end of pattern"
@@ -8592,7 +8602,7 @@ msgstr ""
 
 #: src/gui/guiConst.cpp:706
 msgid "Instruments: toggle folders/standard view"
-msgstr "악기 보기 방식 바꾸기 (폴더/기본)"
+msgstr "악기: 폴더 보기/기본 보기 전환"
 
 #: src/gui/guiConst.cpp:707
 msgid "Save all instruments"
@@ -8656,7 +8666,7 @@ msgstr ""
 
 #: src/gui/guiConst.cpp:724
 msgid "Wavetables: toggle folders/standard view"
-msgstr "웨이브테이블 보기 방식 바꾸기 (폴더/기본)"
+msgstr "웨이브테이블: 폴더 보기/기본 보기 전환"
 
 #: src/gui/guiConst.cpp:725
 msgid "Save all wavetables"
@@ -8684,11 +8694,11 @@ msgstr "샘플 열기 (현재의 것 대체)"
 
 #: src/gui/guiConst.cpp:733
 msgid "Import raw sample data"
-msgstr ""
+msgstr "원시 샘플 데이터 불러오기"
 
 #: src/gui/guiConst.cpp:734
 msgid "Import raw sample data (replace current)"
-msgstr ""
+msgstr "원시 샘플 데이터 불러오기 (현재의 것 대체)"
 
 #: src/gui/guiConst.cpp:735
 msgid "Save sample"
@@ -8696,7 +8706,7 @@ msgstr "샘플 저장"
 
 #: src/gui/guiConst.cpp:736
 msgid "Save sample (raw)"
-msgstr ""
+msgstr "샘플 저장 (raw)"
 
 #: src/gui/guiConst.cpp:737
 msgid "Move sample up in list"
@@ -8728,15 +8738,15 @@ msgstr "샘플 미리듣기"
 
 #: src/gui/guiConst.cpp:744 src/gui/sampleEdit.cpp:1363
 msgid "Stop sample preview"
-msgstr "샘플 미리 듣기 중지"
+msgstr "샘플 미리듣기 중지"
 
 #: src/gui/guiConst.cpp:745
 msgid "Samples: Toggle folders/standard view"
-msgstr "샘플 보기 방식 바꾸기 (폴더/기본)"
+msgstr "샘플: 폴더 보기/기본 보기 전환"
 
 #: src/gui/guiConst.cpp:746
 msgid "Samples: Make me a drum kit"
-msgstr ""
+msgstr "샘플: 드럼 키트로 만들기"
 
 #: src/gui/guiConst.cpp:747
 msgid "Save all samples"
@@ -8748,27 +8758,27 @@ msgstr "---샘플 편집기"
 
 #: src/gui/guiConst.cpp:751
 msgid "Sample editor mode: Select"
-msgstr ""
+msgstr "샘플 편집기 모드: 선택하기"
 
 #: src/gui/guiConst.cpp:752
 msgid "Sample editor mode: Draw"
-msgstr ""
+msgstr "샘플 편집기 모드: 그리기"
 
 #: src/gui/guiConst.cpp:753
 msgid "Sample editor: Cut"
-msgstr ""
+msgstr "샘플 편집기: 잘라내기"
 
 #: src/gui/guiConst.cpp:754
 msgid "Sample editor: Copy"
-msgstr ""
+msgstr "샘플 편집기: 복사하기"
 
 #: src/gui/guiConst.cpp:755
 msgid "Sample editor: Paste"
-msgstr ""
+msgstr "샘플 편집기: 붙여넣기"
 
 #: src/gui/guiConst.cpp:756
 msgid "Sample editor: Paste replace"
-msgstr ""
+msgstr "샘플 편집기: 대체하여 붙여넣기"
 
 #: src/gui/guiConst.cpp:757
 msgid "Sample editor: Paste mix"
@@ -8944,7 +8954,7 @@ msgstr ""
 
 #: src/gui/guiConst.cpp:1401
 msgid "All chips"
-msgstr ""
+msgstr "모든 칩"
 
 #: src/gui/guiConst.cpp:1402 src/gui/settings.cpp:4135 src/gui/waveEdit.cpp:668
 msgid "FM"
@@ -8953,7 +8963,7 @@ msgstr ""
 #: src/gui/guiConst.cpp:1405 src/gui/insEdit.cpp:7006 src/gui/insEdit.cpp:7272
 #: src/gui/insEdit.cpp:7526 src/gui/insEdit.cpp:7548
 msgid "Special"
-msgstr ""
+msgstr "특수"
 
 #: src/gui/insEdit.cpp:39
 msgid "Down Down Down"
@@ -9059,11 +9069,11 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:50 src/gui/insEdit.cpp:5489 src/gui/insEdit.cpp:6567
 msgid "AM Depth"
-msgstr ""
+msgstr "AM 강도"
 
 #: src/gui/insEdit.cpp:50
 msgid "Vibrato Depth"
-msgstr ""
+msgstr "비브라토 강도"
 
 #: src/gui/insEdit.cpp:50
 msgid "Sustained"
@@ -9075,7 +9085,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:50
 msgid "Vibrato"
-msgstr ""
+msgstr "비브라토"
 
 #: src/gui/insEdit.cpp:50 src/gui/insEdit.cpp:4199 src/gui/insEdit.cpp:5863
 #: src/gui/insEdit.cpp:6991 src/gui/insEdit.cpp:7000 src/gui/insEdit.cpp:7015
@@ -9090,7 +9100,7 @@ msgstr ""
 #: src/gui/settings.cpp:3982 src/gui/settings.cpp:4037
 #: src/gui/settings.cpp:4210 src/gui/waveEdit.cpp:730
 msgid "Waveform"
-msgstr ""
+msgstr "파형"
 
 #: src/gui/insEdit.cpp:50
 msgid "Scale Rate"
@@ -9110,7 +9120,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:50
 msgid "Reverb"
-msgstr ""
+msgstr "리버브"
 
 #: src/gui/insEdit.cpp:50
 msgid "Fine"
@@ -9266,11 +9276,11 @@ msgstr "3. 일렉트릭 기타"
 
 #: src/gui/insEdit.cpp:121
 msgid "4. Organ"
-msgstr ""
+msgstr "4. 오르간"
 
 #: src/gui/insEdit.cpp:123
 msgid "6. Saxophone"
-msgstr ""
+msgstr "6. 색소폰"
 
 #: src/gui/insEdit.cpp:125
 msgid "8. Street Organ"
@@ -9282,11 +9292,11 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:127
 msgid "10. Electric Piano"
-msgstr ""
+msgstr "10. 일렉트릭 피아노"
 
 #: src/gui/insEdit.cpp:128
 msgid "11. Bass"
-msgstr ""
+msgstr "11. 베이스"
 
 #: src/gui/insEdit.cpp:130
 msgid "13. Chime"
@@ -9298,7 +9308,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:132
 msgid "15. Noise"
-msgstr ""
+msgstr "15. 노이즈"
 
 #: src/gui/insEdit.cpp:137
 msgid "1. Strings"
@@ -9310,19 +9320,19 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:141
 msgid "5. Flute"
-msgstr ""
+msgstr "5. 플루트"
 
 #: src/gui/insEdit.cpp:142
 msgid "6. Marimba"
-msgstr ""
+msgstr "6. 마림바"
 
 #: src/gui/insEdit.cpp:144
 msgid "8. Harmonica"
-msgstr ""
+msgstr "8. 하모니카"
 
 #: src/gui/insEdit.cpp:145
 msgid "9. Tuba"
-msgstr ""
+msgstr "9. 튜바"
 
 #: src/gui/insEdit.cpp:146
 msgid "10. Synth Brass"
@@ -9330,7 +9340,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:147
 msgid "11. Short Saw"
-msgstr ""
+msgstr "11. 짧은 톱니파"
 
 #: src/gui/insEdit.cpp:149
 msgid "13. Electric Guitar 2"
@@ -9362,11 +9372,11 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:166
 msgid "10. Xylophone"
-msgstr ""
+msgstr "10. 실로폰"
 
 #: src/gui/insEdit.cpp:167
 msgid "11. Vibraphone"
-msgstr ""
+msgstr "11. 비브라폰"
 
 #: src/gui/insEdit.cpp:168
 msgid "12. Brass"
@@ -9374,7 +9384,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:169
 msgid "13. Bass Guitar"
-msgstr ""
+msgstr "13. 베이스 기타"
 
 #: src/gui/insEdit.cpp:170
 msgid "14. Synth"
@@ -9382,7 +9392,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:171
 msgid "15. Chorus"
-msgstr ""
+msgstr "15. 코러스"
 
 #: src/gui/insEdit.cpp:177 src/gui/insEdit.cpp:188 src/gui/insEdit.cpp:199
 #: src/gui/waveEdit.cpp:30 src/gui/waveEdit.cpp:192
@@ -9731,11 +9741,11 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:483 src/gui/mixer.cpp:29
 msgid "right"
-msgstr "우"
+msgstr ""
 
 #: src/gui/insEdit.cpp:484 src/gui/mixer.cpp:28
 msgid "left"
-msgstr "좌"
+msgstr ""
 
 #: src/gui/insEdit.cpp:485
 msgid "rear right"
@@ -11292,7 +11302,7 @@ msgstr ""
 
 #: src/gui/regView.cpp:38
 msgid "- no register pool available"
-msgstr "- 사용 가능한 레지스터가 없습니다"
+msgstr "- 사용 가능한 레지스터 풀이 없습니다"
 
 #: src/gui/sampleEdit.cpp:65
 #, c-format
