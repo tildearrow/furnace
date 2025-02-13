@@ -2,7 +2,7 @@
 // OK, sorry for inserting the define here but I'm so tired of this extension
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -3175,9 +3175,17 @@ void FurnaceGUI::editOptions(bool topMenu) {
         if (randomizeMax>255) randomizeMax=255;
       }
     }
-    // TODO: add an option to set effect to specific value?
+    if (selStart.xFine>2 || selEnd.xFine>2 || selStart.xCoarse!=selEnd.xCoarse) {
+      ImGui::Checkbox(_("Set effect"),&randomizeEffect);
+      if (randomizeEffect) {
+        if (ImGui::InputScalar(_("Effect"),ImGuiDataType_S32,&randomizeEffectVal,&_ONE,&_SIXTEEN,"%.2X",ImGuiInputTextFlags_CharsHexadecimal)) {
+          if (randomizeEffectVal<0) randomizeEffectVal=0;
+          if (randomizeEffectVal>255) randomizeEffectVal=255;
+        }
+      }
+    }
     if (ImGui::Button(_("Randomize"))) {
-      doRandomize(randomizeMin,randomizeMax,randomMode);
+      doRandomize(randomizeMin,randomizeMax,randomMode,randomizeEffect,randomizeEffectVal);
       ImGui::CloseCurrentPopup();
     }
     ImGui::EndMenu();
@@ -3831,6 +3839,12 @@ bool FurnaceGUI::loop() {
           if (!ImGui::GetIO().WantCaptureKeyboard || (ImGuiFileDialog::Instance()->IsOpened() && !ImGui::GetIO().WantTextInput)) {
             keyDown(ev);
           }
+          if (introPos<11.0 && !shortIntro) {
+            if (ev.key.keysym.scancode==SDL_SCANCODE_SPACE || ev.key.keysym.scancode==SDL_SCANCODE_ESCAPE || ev.key.keysym.scancode==SDL_SCANCODE_RETURN) {
+              introSkip=0.5;
+            }
+            introSkipDo=true;
+          }
           insEditMayBeDirty=true;
 #ifdef IS_MOBILE
           injectBackUp=true;
@@ -3839,6 +3853,9 @@ bool FurnaceGUI::loop() {
         case SDL_KEYUP:
           // for now
           insEditMayBeDirty=true;
+          if (introPos<11.0 && introSkip<0.5 && !shortIntro) {
+            introSkipDo=false;
+          }
           break;
         case SDL_DROPFILE:
           if (ev.drop.file!=NULL) {
@@ -8680,11 +8697,13 @@ FurnaceGUI::FurnaceGUI():
   fadeMin(0),
   fadeMax(255),
   collapseAmount(2),
+  randomizeEffectVal(0),
   playheadY(0.0f),
   scaleMax(100.0f),
   fadeMode(false),
   randomMode(false),
   haveHitBounds(false),
+  randomizeEffect(false),
   pendingStepUpdate(0),
   oldOrdersLen(0),
   sampleZoom(1.0),

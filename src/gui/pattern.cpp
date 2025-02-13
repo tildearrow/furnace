@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -904,6 +904,7 @@ void FurnaceGUI::drawPattern() {
             } else if (e->curSubSong->chanCollapse[i]>0) {
               e->curSubSong->chanCollapse[i]--;
             }
+            finishSelection();
           }
           if (!e->curSubSong->chanCollapse[i]) {
             ImGui::SameLine();
@@ -912,6 +913,7 @@ void FurnaceGUI::drawPattern() {
             if (ImGui::SmallButton(chanID)) {
               e->curPat[i].effectCols--;
               if (e->curPat[i].effectCols<1) e->curPat[i].effectCols=1;
+              finishSelection();
             }
             ImGui::EndDisabled();
             ImGui::SameLine();
@@ -920,6 +922,7 @@ void FurnaceGUI::drawPattern() {
             if (ImGui::SmallButton(chanID)) {
               e->curPat[i].effectCols++;
               if (e->curPat[i].effectCols>DIV_MAX_EFFECTS) e->curPat[i].effectCols=DIV_MAX_EFFECTS;
+              finishSelection();
             }
             ImGui::EndDisabled();
           }

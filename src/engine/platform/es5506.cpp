@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -393,14 +393,14 @@ void DivPlatformES5506::tick(bool sysTick) {
     }
     // filter slide
     if (!chan[i].keyOn) {
-      if (chan[i].k1Slide!=0 && chan[i].filter.k1>0 && chan[i].filter.k1<65535) {
+      if (chan[i].k1Slide!=0) {
         signed int next=CLAMP(chan[i].filter.k1+chan[i].k1Slide,0,65535);
         if (chan[i].filter.k1!=next) {
           chan[i].filter.k1=next;
           chan[i].filterChanged.k1=1;
         }
       }
-      if (chan[i].k2Slide!=0 && chan[i].filter.k2>0 && chan[i].filter.k2<65535) {
+      if (chan[i].k2Slide!=0) {
         signed int next=CLAMP(chan[i].filter.k2+chan[i].k2Slide,0,65535);
         if (chan[i].filter.k2!=next) {
           chan[i].filter.k2=next;
@@ -490,7 +490,7 @@ void DivPlatformES5506::tick(bool sysTick) {
             if (center<1) {
               off=1.0;
             } else {
-              off=(double)center/8363.0;
+              off=(double)center/parent->getCenterRate();
             }
             if (ins->amiga.useNoteMap) {
               //chan[i].pcm.note=next;
@@ -654,7 +654,7 @@ void DivPlatformES5506::tick(bool sysTick) {
           if (center<1) {
             off=1.0;
           } else {
-            off=(double)center/8363.0;
+            off=(double)center/parent->getCenterRate();
           }
           chan[i].pcm.loopStart=(chan[i].pcm.start+(s->loopStart<<11))&0xfffff800;
           chan[i].pcm.loopEnd=(chan[i].pcm.start+((s->loopEnd)<<11))&0xffffff80;

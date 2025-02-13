@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,9 @@
 #include <SDL.h>
 #include <fftw3.h>
 #include <stdint.h>
+#ifndef PRIu64
+#include <inttypes.h>
+#endif
 #include <initializer_list>
 #include <future>
 #include <memory>
@@ -71,7 +74,7 @@
 #define FM_PREVIEW_SIZE 512
 
 #define CHECK_HIDDEN_SYSTEM(x) \
-  (x==DIV_SYSTEM_YMU759 || x==DIV_SYSTEM_UPD1771C || x==DIV_SYSTEM_DUMMY || x==DIV_SYSTEM_SEGAPCM_COMPAT || x==DIV_SYSTEM_PONG)
+  (x==DIV_SYSTEM_YMU759 || x==DIV_SYSTEM_DUMMY || x==DIV_SYSTEM_SEGAPCM_COMPAT || x==DIV_SYSTEM_PONG)
 
 enum FurnaceGUIRenderBackend {
   GUI_BACKEND_SDL=0,
@@ -1599,6 +1602,15 @@ struct PendingDrawOsc {
     lineSize(0.0f) {}
 };
 
+struct MappedInput {
+  int scan;
+  int val;
+  MappedInput():
+    scan(SDL_SCANCODE_UNKNOWN), val(0) {}
+  MappedInput(int s, int v):
+    scan(s), val(v) {}
+};
+
 struct FurnaceCV;
 
 class FurnaceGUI {
@@ -2448,6 +2460,7 @@ class FurnaceGUI {
 
   // SDL_Scancode,int
   std::map<int,int> noteKeys;
+  std::vector<MappedInput> noteKeysRaw;
   // SDL_Keycode,int
   std::map<int,int> valueKeys;
 
@@ -2536,10 +2549,10 @@ class FurnaceGUI {
   ImVec2 noteCellSize, insCellSize, volCellSize, effectCellSize, effectValCellSize;
   SelectionPoint sel1, sel2;
   int dummyRows;
-  int transposeAmount, randomizeMin, randomizeMax, fadeMin, fadeMax, collapseAmount;
+  int transposeAmount, randomizeMin, randomizeMax, fadeMin, fadeMax, collapseAmount, randomizeEffectVal;
   float playheadY;
   float scaleMax;
-  bool fadeMode, randomMode, haveHitBounds;
+  bool fadeMode, randomMode, haveHitBounds, randomizeEffect;
   signed char pendingStepUpdate;
 
   int oldOrdersLen;
@@ -2974,7 +2987,7 @@ class FurnaceGUI {
   void doFade(int p0, int p1, bool mode);
   void doInvertValues();
   void doScale(float top);
-  void doRandomize(int bottom, int top, bool mode);
+  void doRandomize(int bottom, int top, bool mode, bool eff, int effVal);
   void doFlip();
   void doCollapse(int divider, const SelectionPoint& sStart, const SelectionPoint& sEnd);
   void doExpand(int multiplier, const SelectionPoint& sStart, const SelectionPoint& sEnd);
@@ -2985,7 +2998,7 @@ class FurnaceGUI {
   void doRedo();
   void doFind();
   void doReplace();
-  void doDrag();
+  void doDrag(bool copy=false);
   void editOptions(bool topMenu);
   DivSystem systemPicker(bool fullWidth);
   void noteInput(int num, int key, int vol=-1);
@@ -3035,6 +3048,8 @@ class FurnaceGUI {
   bool parseSysEx(unsigned char* data, size_t len);
 
   void applyUISettings(bool updateFonts=true);
+  void decompileNoteKeys();
+  void compileNoteKeys();
   void initSystemPresets();
 
   void initRandomDemoSong();

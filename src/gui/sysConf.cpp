@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -680,7 +680,8 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       break;
     }
     case DIV_SYSTEM_C64_8580:
-    case DIV_SYSTEM_C64_6581: {
+    case DIV_SYSTEM_C64_6581:
+    case DIV_SYSTEM_C64_PCM: {
       int clockSel=flags.getInt("clockSel",0);
       bool keyPriority=flags.getBool("keyPriority",true);
       bool no1EUpdate=flags.getBool("no1EUpdate",false);
@@ -2648,6 +2649,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_BIFURCATOR:
     case DIV_SYSTEM_POWERNOISE:
     case DIV_SYSTEM_UPD1771C:
+    case DIV_SYSTEM_UPD1771C_TONE:
       break;
     case DIV_SYSTEM_YMU759:
     case DIV_SYSTEM_ESFM:
