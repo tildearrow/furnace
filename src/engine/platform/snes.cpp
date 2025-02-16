@@ -383,6 +383,11 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       }
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
+      // this is the fix. it needs testing.
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+        if (chan[c.chan].outVol!=chan[c.chan].vol) chan[c.chan].shallWriteVol=true;
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       chan[c.chan].insChanged=false;
       break;
     }
