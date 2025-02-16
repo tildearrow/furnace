@@ -5375,7 +5375,7 @@ msgstr "모바일 메뉴"
 #: src/gui/settings.cpp:4014 src/gui/orders.cpp:232 src/gui/guiConst.cpp:577
 #: src/gui/gui.cpp:6290
 msgid "Orders"
-msgstr "열"
+msgstr "순서"
 
 #: src/gui/editControls.cpp:429 src/gui/findReplace.cpp:669
 #: src/gui/findReplace.cpp:914
@@ -5583,7 +5583,7 @@ msgstr "추적."
 
 #: src/gui/editControls.cpp:972
 msgid "Ord##FollowOrders"
-msgstr "열##FollowOrders"
+msgstr "순서##FollowOrders"
 
 #: src/gui/editControls.cpp:980
 msgid "Pat##FollowPattern"
@@ -7960,7 +7960,7 @@ msgstr "분할##ecl3"
 
 #: src/gui/settings.cpp:2632
 msgid "Position of buttons in Orders:"
-msgstr "열에서의 버튼 위치:"
+msgstr "순서 창에서의 버튼 위치:"
 
 #: src/gui/settings.cpp:2634
 msgid "Top##obp0"
@@ -8533,11 +8533,11 @@ msgstr "파일 메뉴에 칩 추가/구성/변경/제거 메뉴 표시"
 
 #: src/gui/settings.cpp:3296
 msgid "Highlight channel at cursor in Orders"
-msgstr "커서가 있는 열의 채널 강조 표시"
+msgstr "커서가 있는 순서의 채널 강조 표시"
 
 #: src/gui/settings.cpp:3301
 msgid "Orders row number format:"
-msgstr "열 행 숫자 포멧:"
+msgstr "순서 행 숫자 포멧:"
 
 #: src/gui/settings.cpp:3303
 msgid "Decimal##orbD"
