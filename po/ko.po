@@ -1561,16 +1561,16 @@ msgstr ""
 #: src/engine/sysDef.cpp:958 src/gui/settings.cpp:139 src/gui/settings.cpp:209
 #: src/gui/settings.cpp:4009
 msgid "Low"
-msgstr "낮은 음"
+msgstr "낮음"
 
 #: src/engine/sysDef.cpp:958
 msgid "Mid"
-msgstr "중간 음"
+msgstr "중간"
 
 #: src/engine/sysDef.cpp:958 src/gui/settings.cpp:138 src/gui/settings.cpp:211
 #: src/gui/settings.cpp:4010
 msgid "High"
-msgstr "높은 음"
+msgstr "높음"
 
 #: src/engine/sysDef.cpp:967
 msgid "Commodore PET"
