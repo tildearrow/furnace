@@ -472,6 +472,7 @@ void DivPlatformVB::reset() {
   modulation=0;
   modType=false;
   memset(modTable,0,32);
+  updateROMWaves();
   // set per-channel initial values
   for (int i=0; i<6; i++) {
     chWrite(i,0x01,isMuted[i]?0:chan[i].pan);
@@ -483,7 +484,6 @@ void DivPlatformVB::reset() {
       chWrite(i,0x06,i);
     }
   }
-  updateROMWaves();
   delay=500;
 }
 

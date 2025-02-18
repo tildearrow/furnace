@@ -2478,12 +2478,12 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
 
       ImGui::Text(_("Waveform storage mode:"));
       ImGui::Indent();
-      if (ImGui::RadioButton(_("Dynamic (unconfirmed)"),!romMode)) {
-        romMode=false;
-        altered=true;
-      }
       if (ImGui::RadioButton(_("Static (up to 5 waves)"),romMode)) {
         romMode=true;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("Dynamic (phase reset on wave change!)"),!romMode)) {
+        romMode=false;
         altered=true;
       }
       ImGui::Unindent();
