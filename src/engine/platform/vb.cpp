@@ -235,13 +235,8 @@ void DivPlatformVB::tick(bool sysTick) {
 
   // trigger wave changes
   if (mustUpdateWaves && !romMode) {
-    //rWrite(0x580,1);
     if (!screwThis) {
-      chWrite(0,0x00,0x00);
-      chWrite(1,0x00,0x00);
-      chWrite(2,0x00,0x00);
-      chWrite(3,0x00,0x00);
-      chWrite(4,0x00,0x00);
+      rWrite(0x580,1);
     }
     for (int i=0; i<5; i++) {
       //if (chan[i].deferredWaveUpdate) {
