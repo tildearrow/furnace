@@ -40,6 +40,7 @@
 #include <math.h>
 #include <float.h>
 #include <fmt/printf.h>
+#include <chrono>
 
 void process(void* u, float** in, float** out, int inChans, int outChans, unsigned int size) {
   ((DivEngine*)u)->nextBuf(in,out,inChans,outChans,size);
