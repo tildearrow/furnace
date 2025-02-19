@@ -39,13 +39,13 @@ code_c
 init:
   ; set up sample data if necessary
   lea sampleDataPtr(pc),a0
-  lea sampleData(pc),a1
+  move.l #sampleData,a1
   move.l a1,(a0)
   lea state(pc),a0
   move.b #0,2(a0)
 
   ; TypeOfMem(sampleData)
-  lea sampleData(pc),a1
+  move.l #sampleData,a1
   move.l execBase,a6
   jsr (exec_TypeOfMem,a6)
   btst #1,d0
@@ -71,7 +71,7 @@ initC:
 
   ; copy memory
   move.l d0,a1
-  lea sampleData(pc),a0
+  move.l #sampleData,a0
   move.l #wavetable,d2
   subi.l #sampleData,d2
 
