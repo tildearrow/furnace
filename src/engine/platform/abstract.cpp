@@ -23,6 +23,9 @@
 void DivDispatch::acquire(short** buf, size_t len) {
 }
 
+void DivDispatch::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) {
+}
+
 void DivDispatch::fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len) {
 }
 
@@ -124,6 +127,10 @@ float DivDispatch::getPostAmp() {
 }
 
 bool DivDispatch::getDCOffRequired() {
+  return false;
+}
+
+bool DivDispatch::hasAcquireDirect() {
   return false;
 }
 
