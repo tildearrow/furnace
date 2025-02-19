@@ -246,7 +246,7 @@ void DivPlatformVB::tick(bool sysTick) {
     }
     if (!screwThis) {
       // restore channel state...
-      for (int i=0; i<5; i++) {
+      for (int i=0; i<6; i++) {
         if (chan[i].intWritten) {
           chWrite(i,0x00,0x80);
         }
