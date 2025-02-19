@@ -193,7 +193,7 @@ struct TFMParsePatternInfo {
   DivSong* ds;
   int* insNumMaps;
   bool v2;
-  unsigned char loop_pos;
+  unsigned char loopPos;
 };
 
 void TFMParsePattern(struct TFMParsePatternInfo info) {
@@ -510,7 +510,7 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
             chVolumeSlide[j]=true;
             break;
           default:
-    break;
+            break;
           }
         }
       }
@@ -518,25 +518,25 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
   }
 
   if (lastPatSeen>1) {
-    // clone the last pattern 
+    // clone the last pattern
     info.maxPat++;
     for (int i=0;i<6;i++) {
-      int last_pat_num = info.ds->subsong[0]->orders.ord[i][info.ds->subsong[0]->ordersLen - 1];
-      DivPattern* new_pat = new DivPattern;
-      DivPattern* last_pat = info.ds->subsong[0]->pat[i].data[last_pat_num];
-      last_pat->copyOn(new_pat);
+      int lastPatNum = info.ds->subsong[0]->orders.ord[i][info.ds->subsong[0]->ordersLen - 1];
+      DivPattern* newPat = new DivPattern;
+      DivPattern* lastPat = info.ds->subsong[0]->pat[i].data[lastPatNum];
+      lastPat->copyOn(newPat);
 
       info.ds->subsong[0]->orders.ord[i][info.ds->subsong[0]->ordersLen - 1] = info.maxPat;
-      new_pat->data[info.patLens[last_pat_num]-1][4+(usedEffectsCol*4)] = 0x0B;
-      new_pat->data[info.patLens[last_pat_num]-1][5+(usedEffectsCol*4)] = info.loop_pos;
-      info.ds->subsong[0]->pat[i].data[info.maxPat] = new_pat;
+      newPat->data[info.patLens[lastPatNum]-1][4+(usedEffectsCol*4)] = 0x0B;
+      newPat->data[info.patLens[lastPatNum]-1][5+(usedEffectsCol*4)] = info.loopPos;
+      info.ds->subsong[0]->pat[i].data[info.maxPat] = newPat;
     }
   } else {
     for (int i=0;i<6;i++) {
-      int last_pat_num = info.ds->subsong[0]->orders.ord[i][info.ds->subsong[0]->ordersLen - 1];
-      DivPattern* last_pat = info.ds->subsong[0]->pat[i].data[last_pat_num];
-      last_pat->data[info.patLens[last_pat_num]-1][4+(usedEffectsCol*4)] = 0x0B;
-      last_pat->data[info.patLens[last_pat_num]-1][5+(usedEffectsCol*4)] = info.loop_pos;
+      int lastPatNum = info.ds->subsong[0]->orders.ord[i][info.ds->subsong[0]->ordersLen - 1];
+      DivPattern* lastPat = info.ds->subsong[0]->pat[i].data[lastPatNum];
+      lastPat->data[info.patLens[lastPatNum]-1][4+(usedEffectsCol*4)] = 0x0B;
+      lastPat->data[info.patLens[lastPatNum]-1][5+(usedEffectsCol*4)] = info.loopPos;
     }
   }
 }
@@ -578,8 +578,8 @@ bool DivEngine::loadTFMv1(unsigned char* file, size_t len) {
     }
     ds.subsong[0]->ordersLen=reader.readCNoRLE();
 
-    // order loop position, unused
-    unsigned char loop_pos = reader.readCNoRLE();
+    // order loop position
+    unsigned char loopPos = reader.readCNoRLE();
 
     ds.createdDate=TFMparseDate(reader.readSNoRLE());
     ds.revisionDate=TFMparseDate(reader.readSNoRLE());
@@ -705,7 +705,7 @@ bool DivEngine::loadTFMv1(unsigned char* file, size_t len) {
     info.patLens=patLens;
     info.reader=&reader;
     info.v2=false;
-    info.loop_pos=loop_pos;
+    info.loopPos=loopPos;
     TFMParsePattern(info);
 
     if (active) quitDispatch();
@@ -778,8 +778,8 @@ bool DivEngine::loadTFMv2(unsigned char* file, size_t len) {
     }
     ds.subsong[0]->ordersLen=reader.readCNoRLE();
 
-    // order loop position, unused
-    unsigned char loop_pos = reader.readCNoRLE();
+    // order loop position
+    unsigned char loopPos = reader.readCNoRLE();
 
     ds.createdDate=TFMparseDate(reader.readSNoRLE());
     ds.revisionDate=TFMparseDate(reader.readSNoRLE());
@@ -905,7 +905,7 @@ bool DivEngine::loadTFMv2(unsigned char* file, size_t len) {
     info.patLens=patLens;
     info.reader=&reader;
     info.v2=true;
-    info.loop_pos=loop_pos;
+    info.loopPos=loopPos;
     TFMParsePattern(info);
 
     if (active) quitDispatch();
@@ -930,7 +930,7 @@ bool DivEngine::loadTFMv2(unsigned char* file, size_t len) {
   } catch(InvalidHeaderException& e) {
     lastError="invalid info header!";
   }
-  
+
   delete[] file;
   return success;
 }
