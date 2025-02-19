@@ -27,22 +27,27 @@
 
 class DivPlatformVB: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
+    int antiClickPeriodCount, antiClickWavePos;
     unsigned char pan, envLow, envHigh;
-    bool noise, deferredWaveUpdate;
+    bool noise, deferredWaveUpdate, intWritten;
     signed short wave;
     DivWaveSynth ws;
     Channel():
       SharedChannel<signed char>(15),
+      antiClickPeriodCount(0),
+      antiClickWavePos(0),
       pan(255),
       envLow(0),
       envHigh(0),
       noise(false),
       deferredWaveUpdate(false),
+      intWritten(false),
       wave(-1) {}
   };
   Channel chan[6];
   DivDispatchOscBuffer* oscBuf[6];
   bool isMuted[6];
+  bool antiClickEnabled, screwThis;
   struct QueuedWrite {
     unsigned short addr;
     unsigned char val;

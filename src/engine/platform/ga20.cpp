@@ -86,7 +86,7 @@ void DivPlatformGA20::acquire(short** buf, size_t len) {
 }
 
 u8 DivPlatformGA20::read_byte(u32 address) {
-  if ((sampleMem!=NULL) && (address<getSampleMemCapacity())) {
+  if ((sampleMem!=NULL) && (address<0x100000)) {
     return sampleMem[address&0xfffff];
   }
   return 0;

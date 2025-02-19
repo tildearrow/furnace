@@ -127,8 +127,9 @@ void DivPlatformVB::updateWave(int ch) {
   if (ch>=5) return;
 
   for (int i=0; i<32; i++) {
-    rWrite((ch<<7)+(i<<2),chan[ch].ws.output[i]);
+    rWrite((ch<<7)+(i<<2),chan[ch].ws.output[(i+chan[ch].antiClickWavePos)&31]);
   }
+  chan[ch].antiClickWavePos&=31;
 }
 
 void DivPlatformVB::writeEnv(int ch, bool upperByteToo) {
@@ -139,7 +140,17 @@ void DivPlatformVB::writeEnv(int ch, bool upperByteToo) {
 }
 
 void DivPlatformVB::tick(bool sysTick) {
+  bool mustUpdateWaves=false;
+
   for (int i=0; i<6; i++) {
+    // anti-click
+    int actualFreq=2047-chan[i].freq;
+    if (antiClickEnabled && !screwThis && sysTick && actualFreq>0) {
+      chan[i].antiClickPeriodCount+=(chipClock/MAX(parent->getCurHz(),1.0f));
+      chan[i].antiClickWavePos+=chan[i].antiClickPeriodCount/actualFreq;
+      chan[i].antiClickPeriodCount%=actualFreq;
+    }
+
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
@@ -192,10 +203,16 @@ void DivPlatformVB::tick(bool sysTick) {
     }
     if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
       chWrite(i,0x00,0x80);
+      chan[i].intWritten=true;
+      chan[i].antiClickWavePos=0;
+      chan[i].antiClickPeriodCount=0;
     }
     if (chan[i].active) {
       if (chan[i].ws.tick() || (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1)) {
-        updateWave(i);
+        if (!romMode) {
+          chan[i].deferredWaveUpdate=true;
+        }
+        mustUpdateWaves=true;
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
@@ -213,6 +230,27 @@ void DivPlatformVB::tick(bool sysTick) {
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
+    }
+  }
+
+  // trigger wave changes
+  if (mustUpdateWaves && !romMode) {
+    if (!screwThis) {
+      rWrite(0x580,1);
+    }
+    for (int i=0; i<5; i++) {
+      //if (chan[i].deferredWaveUpdate) {
+        //chan[i].deferredWaveUpdate=false;
+        updateWave(i);
+      //}
+    }
+    if (!screwThis) {
+      // restore channel state...
+      for (int i=0; i<6; i++) {
+        if (chan[i].intWritten) {
+          chWrite(i,0x00,0x80);
+        }
+      }
     }
   }
 }
@@ -472,10 +510,12 @@ void DivPlatformVB::reset() {
   modulation=0;
   modType=false;
   memset(modTable,0,32);
+  updateROMWaves();
   // set per-channel initial values
   for (int i=0; i<6; i++) {
     chWrite(i,0x01,isMuted[i]?0:chan[i].pan);
     chWrite(i,0x05,0x00);
+    chan[i].intWritten=true;
     chWrite(i,0x00,0x80);
     if (romMode) {
       chWrite(i,0x06,0);
@@ -483,7 +523,6 @@ void DivPlatformVB::reset() {
       chWrite(i,0x06,i);
     }
   }
-  updateROMWaves();
   delay=500;
 }
 
@@ -545,6 +584,8 @@ void DivPlatformVB::setFlags(const DivConfig& flags) {
   }
 
   romMode=flags.getBool("romMode",false);
+  antiClickEnabled=!flags.getBool("noAntiClick",false);
+  screwThis=flags.getBool("screwThis",false);
 
   if (vb!=NULL) {
     delete vb;
