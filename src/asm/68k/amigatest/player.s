@@ -22,8 +22,96 @@ AUD1VOL = $b8
 AUD2VOL = $c8
 AUD3VOL = $d8
 
+execBase = $4
+exec_AllocMem = -198
+exec_FreeMem = -210
+exec_AddIntServer = -168
+exec_RemIntServer = -174
+exec_Wait = -318
+exec_TypeOfMem = -534
+
+SIGBREAKF_CTRL_C = $1000
+
 code_c
+
+;;; PROGRAM CODE
+
 init:
+  ; set up sample data if necessary
+  lea sampleDataPtr(pc),a0
+  lea sampleData(pc),a1
+  move.l a1,(a0)
+  lea state(pc),a0
+  move.b #0,2(a0)
+
+  ; TypeOfMem(sampleData)
+  lea sampleData(pc),a1
+  move.l execBase,a6
+  jsr (exec_TypeOfMem,a6)
+  btst #1,d0
+  bne init0
+
+  ; allocate sample data in chip memory and copy to it
+  lea state(pc),a0
+  move.b #1,2(a0)
+  ; AllocMem(sizeof(sampleData),MEMF_PUBLIC|MEMF_CHIP)
+  move.l #wavetable,d0 ; sizeof(sampleData)
+  subi.l #sampleData,d0
+  move.l #$3,d1
+  move.l execBase,a6
+  jsr (exec_AllocMem,a6)
+  ; check success
+  bne initC
+  ; failed
+  move.l #1,d0
+  rts
+initC:
+  lea sampleDataPtr(pc),a0
+  move.l d0,(a0)
+
+  ; copy memory
+  move.l d0,a1
+  lea sampleData(pc),a0
+  move.l #wavetable,d2
+  subi.l #sampleData,d2
+
+copySampleLoop:
+  move.w (a0)+,(a1)+
+  subq.l #2,d2
+  bne copySampleLoop
+
+init0:
+  ; allocate interrupt
+  ; AllocMem(sizeof(struct Interrupt),MEMF_PUBLIC|MEMF_CLEAR)
+  move.l #24,d0 ; sizeof(struct Interrupt)
+  move.l #$10001,d1
+  move.l execBase,a6
+  jsr (exec_AllocMem,a6)
+  ; check success
+  bne init1
+  ; failed
+  bsr freeSampleData
+  move.l #1,d0
+  rts
+init1:
+  ; store
+  lea state(pc),a0
+  move.l d0,4(a0)
+  
+  ; set up interrupt
+  move.l d0,a0
+  ; struct Node
+  move.b #2,8(a0)      ; ln_Type
+  move.b #-60,9(a0)    ; ln_Pri
+  lea nodeName(pc),a1  ; ln_Name
+  move.l a1,10(a0)
+  lea state(pc),a1     ; is_Data
+  add.l #8,a1
+  move.l a1,14(a0)
+  lea nextTick(pc),a1  ; is_Code (!!!)
+  move.l a1,18(a0)
+
+  ; start audio
   move.b #2,$bfe001
   lea chipBase,a0
   move.w #15,DMACON(a0)
@@ -34,56 +122,90 @@ waitCon:
 
   move.w #$8200,DMACON(a0)
   move.w #$40,AUD0VOL(a0)
-  move.w #$40,AUD1VOL(a0)
+  move.w #$39,AUD1VOL(a0)
   move.w #$40,AUD2VOL(a0)
   move.w #$40,AUD3VOL(a0)
   lea seqAddr(pc),a0
   lea sequence(pc),a1
   move.l a1,(a0)
 main:
+  ; setup interrupt
+  ; AddIntServer(INTB_VERTB,state+4)
+  move.l #5,d0
+  lea state(pc),a2
+  add.l #4,a2
+  move.l (a2),a1
+  move.l execBase,a6
+  jsr (exec_AddIntServer,a6)
+
+main1:
+  ; wait until break
   bsr waitVBlank
 
-  move.w #$000,d4
-  move.w d4,COLOR00
-
-  lea chipBase,a0
-  btst.b #2,POTGOR(a0)
-  bne next
-
-  lea state(pc),a0
-  move.w #1,2(a0)
-
-next:
-  bsr nextTick
-
-  lea state(pc),a0
-  tst.w 2(a0)
-  beq main
 finish:
+  ; kill interrupt
+  ; RemIntServer(INTB_VERTB,state+4)
+  move.l #5,d0
+  lea state(pc),a2
+  add.l #4,a2
+  move.l (a2),a1
+  move.l execBase,a6
+  jsr (exec_RemIntServer,a6)
+
   lea chipBase,a0
   move.w #15,DMACON(a0)
+
+  ; free interrupt data
+  ; FreeMem(state+4,sizeof(struct Interrupt))
+  lea state(pc),a2
+  add.l #4,a2
+  move.l (a2),a1
+  move.l #24,d0 ; sizeof(struct Interrupt)
+  move.l execBase,a6
+  jsr (exec_FreeMem,a6)
+
+  bsr freeSampleData
   clr.l d0
   rts
 
+freeSampleData:
+  lea state(pc),a0
+  move.b 2(a0),d0
+  tst.b d0
+  beq noFreeNeeded
+
+  move.l sampleDataPtr(pc),a1
+  move.l #wavetable,d0 ; sizeof(sampleData)
+  subi.l #sampleData,d0
+  move.l execBase,a6
+  jsr (exec_FreeMem,a6)
+
+noFreeNeeded:
+  rts
+
+;;; PLAYER CODE
+
 waitVBlank:
-  move.l (VPOSR),d0
-  and.l #$1ff00,d0
-  cmp.l #$bc00,d0
-  bne waitVBlank
-waitVBlank2:
-  move.l (VPOSR),d0
-  and.l #$1ff00,d0
-  cmp.l #$bd00,d0
-  bne waitVBlank2
+  ; Wait(SIGBREAKF_CTRL_C)
+  move.l #SIGBREAKF_CTRL_C,d0
+  move.l execBase,a6
+  jsr (exec_Wait,a6)
   rts
 
 nextTick:
+  ; save registers
+  movem.l d0-d7/a0-a7,-(sp)
+
+  move.w #$0ff,d1
+  move.w d1,COLOR00
+
   lea state(pc),a4
   move.w (a4),d0
   subi.w #1,d0
   bmi nextTick0
   move.w d0,(a4)
-  rts
+  bra endNextTick
+
 nextTick0:
   move.l seqAddr(pc),a2
 nextTick1:
@@ -182,7 +304,7 @@ sampleWrite:
   or.b (a2)+,d2
   lsl.l #8,d2
   or.b (a2)+,d2
-  lea sampleData,a0
+  move.l sampleDataPtr(pc),a0
   add.l a0,d2
   lea chipBase,a0
   move.b d1,d0
@@ -216,7 +338,7 @@ chanSampleBook:
   bsr getSampleBook
 
   ; write loc/len
-  lea sampleData,a0
+  move.l sampleDataPtr(pc),a0
   add.l a0,d2
   lea chipBase,a0
   move.b d1,d0
@@ -241,7 +363,7 @@ chanWaveChange:
   add.l #wavetable,d2
   move.l d2,a0
 
-  lea sampleData,a1
+  move.l sampleDataPtr(pc),a1
   andi.l #$30,d1
   lsl.l #4,d1
   adda.l d1,a1
@@ -262,7 +384,7 @@ chanWaveBookB:
   move.b (a2)+,d3
   bsr getWaveBook
 
-  lea sampleData,a1
+  move.l sampleDataPtr(pc),a1
   andi.l #$30,d1
   lsl.l #4,d1
   adda.l d1,a1
@@ -280,7 +402,7 @@ chanWaveBookW:
   or.b (a2)+,d3
   bsr getWaveBook
 
-  lea sampleData,a1
+  move.l sampleDataPtr(pc),a1
   andi.l #$30,d1
   lsl.l #4,d1
   adda.l d1,a1
@@ -308,8 +430,15 @@ invalidCmd:
 endTick:
   lea seqAddr(pc),a3
   move.l a2,(a3)
-  move.w #$000,d4
+  bra endNextTick
+
+endNextTick:
+  move.w #$222,d4
   move.w d4,COLOR00
+
+  movem.l (sp)+,d0-d7/a0-a7
+  move.l #chipBase,a0
+  moveq.l #0,d0
   rts
 
 ; a0: source. a1: destination. d2: length.
@@ -354,12 +483,21 @@ getSampleBook:
 data_c
   cnop 0,4
 
+nodeName:
+  dc.b "amigatest", 0
+
 curColor:
   dc.w 0
 
 state:
   dc.w 0 ; ticks
-  dc.w 0 ; quit
+  dc.w 0 ; had to copy?
+  dc.l 0 ; interrupt pointer
+  dc.l 0 ; interrupt data
+  cnop 0,4
+
+sampleDataPtr:
+  dc.l 0
   cnop 0,4
 
 seqAddr:
@@ -377,6 +515,7 @@ waveBook:
 sequence:
   incbin "seq.bin"
   cnop 0,4
+
 
 sampleData:
   incbin "sample.bin"
