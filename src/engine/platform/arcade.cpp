@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,10 +55,14 @@ void DivPlatformArcade::acquire_nuked(short** buf, size_t len) {
   thread_local int o[2];
 
   for (size_t h=0; h<len; h++) {
+    if (delay>0) delay--;
     for (int i=0; i<8; i++) {
-      if (!writes.empty() && !fm.write_busy) {
+      if (delay<=0 && !writes.empty() && !fm.write_busy) {
         QueuedWrite& w=writes.front();
-        if (w.addrOrVal) {
+        if (w.addr==0xfffffffe) {
+          delay=w.val*2;
+          writes.pop_front();
+        } else if (w.addrOrVal) {
           OPM_Write(&fm,1,w.val);
           regPool[w.addr&0xff]=w.val;
           //printf("write: %x = %.2x\n",w.addr,w.val);
@@ -101,11 +105,15 @@ void DivPlatformArcade::acquire_ymfm(short** buf, size_t len) {
     if (!writes.empty()) {
       if (--delay<1) {
         QueuedWrite& w=writes.front();
-        fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
-        fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
-        regPool[w.addr&0xff]=w.val;
+        if (w.addr==0xfffffffe) {
+          delay=w.val;
+        } else {
+          fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
+          fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
+          regPool[w.addr&0xff]=w.val;
+          delay=1;
+        }
         writes.pop_front();
-        delay=1;
       }
     }
 
@@ -362,6 +370,7 @@ void DivPlatformArcade::tick(bool sysTick) {
           chan[i].freq+=chan[i].arpOff<<7;
         }
       }
+      chan[i].freq+=OFFSET_LINEAR;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>=(95<<7)) chan[i].freq=(95<<7)-1;
       immWrite(i+0x28,hScale(chan[i].freq>>7));
@@ -379,9 +388,7 @@ void DivPlatformArcade::tick(bool sysTick) {
 
   // hard reset handling
   if (mustHardReset) {
-    for (unsigned int i=hardResetElapsed; i<hardResetCycles; i++) {
-      immWrite(0x1f,i&0xff);
-    }
+    immWrite(0xfffffffe,hardResetCycles-hardResetElapsed);
     for (int i=0; i<8; i++) {
       if ((chan[i].keyOn || chan[i].opMaskChanged) && chan[i].hardReset) {
         // restore SL/RR

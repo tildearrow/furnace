@@ -2,7 +2,7 @@
 // OK, sorry for inserting the define here but I'm so tired of this extension
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -425,6 +425,21 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
     } \
   }
 
+bool FurnaceGUI::isCtrlWheelModifierHeld() const {
+  switch (settings.ctrlWheelModifier) {
+    case 0:
+      return ImGui::IsKeyDown(ImGuiMod_Ctrl) || ImGui::IsKeyDown(ImGuiMod_Super);
+    case 1:
+      return ImGui::IsKeyDown(ImGuiMod_Ctrl);
+    case 2:
+      return ImGui::IsKeyDown(ImGuiMod_Super);
+    case 3:
+      return ImGui::IsKeyDown(ImGuiMod_Alt);
+    default:
+      return false;
+  }
+}
+
 bool FurnaceGUI::CWSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags) {
   flags^=ImGuiSliderFlags_AlwaysClamp;
   if (ImGui::SliderScalar(label,data_type,p_data,p_min,p_max,format,flags)) {
@@ -754,60 +769,13 @@ void FurnaceGUI::autoDetectSystem() {
 }
 
 void FurnaceGUI::updateROMExportAvail() {
-  unsigned char sysReqCount[DIV_SYSTEM_MAX];
-  unsigned char defReqCount[DIV_SYSTEM_MAX];
-
-  memset(sysReqCount,0,DIV_SYSTEM_MAX);
-  for (int i=0; i<e->song.systemLen; i++) {
-    sysReqCount[e->song.system[i]]++;
-  }
-
   memset(romExportAvail,0,sizeof(bool)*DIV_ROM_MAX);
   romExportExists=false;
 
   for (int i=0; i<DIV_ROM_MAX; i++) {
-    const DivROMExportDef* newDef=e->getROMExportDef((DivROMExportOptions)i);
-    if (newDef!=NULL) {
-      // check for viability
-      bool viable=true;
-
-      memset(defReqCount,0,DIV_SYSTEM_MAX);
-      for (DivSystem j: newDef->requisites) {
-        defReqCount[j]++;
-      }
-
-      switch (newDef->requisitePolicy) {
-        case DIV_REQPOL_EXACT:
-          for (int j=0; j<DIV_SYSTEM_MAX; j++) {
-            if (defReqCount[j]!=sysReqCount[j]) {
-              viable=false;
-              break;
-            }
-          }
-          break;
-        case DIV_REQPOL_ANY:
-          for (int j=0; j<DIV_SYSTEM_MAX; j++) {
-            if (defReqCount[j]>sysReqCount[j]) {
-              viable=false;
-              break;
-            }
-          }
-          break;
-        case DIV_REQPOL_LAX:
-          viable=false;
-          for (DivSystem j: newDef->requisites) {
-            if (defReqCount[j]<=sysReqCount[j]) {
-              viable=true;
-              break;
-            }
-          }
-          break;
-      }
-      
-      if (viable) {
-        romExportAvail[i]=true;
-        romExportExists=true;
-      }
+    if (e->isROMExportViable((DivROMExportOptions)i)) {
+      romExportAvail[i]=true;
+      romExportExists=true;
     }
   }
 
@@ -1214,7 +1182,7 @@ void FurnaceGUI::play(int row) {
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
   if (followPattern) makeCursorUndo();
   if (!followPattern) e->setOrder(curOrder);
-  if (row>0) {
+  if (row>=0) {
     if (!e->playToRow(row)) {
       showError(_("the song is over!"));
     }
@@ -1244,7 +1212,7 @@ void FurnaceGUI::stop() {
   if (followPattern && wasPlaying) {
     nextScroll=-1.0f;
     nextAddScroll=0.0f;
-    cursor.y=oldRow;
+    e->getPlayPos(curOrder, cursor.y);
     if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && !selecting) {
       selStart=cursor;
       selEnd=cursor;
@@ -1457,7 +1425,6 @@ void FurnaceGUI::orderInput(int num) {
 
 void FurnaceGUI::keyDown(SDL_Event& ev) {
   if (introPos<11.0 && !shortIntro) return;
-  if (ImGuiFileDialog::Instance()->IsOpened()) return;
   if (aboutOpen) return;
   if (cvOpen) return;
 
@@ -1475,151 +1442,102 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
     mapped|=FURKMOD_SHIFT;
   }
 
-  if (bindSetActive) {
-    if (!ev.key.repeat) {
-      switch (ev.key.keysym.sym) {
-        case SDLK_LCTRL: case SDLK_RCTRL:
-        case SDLK_LALT: case SDLK_RALT:
-        case SDLK_LGUI: case SDLK_RGUI:
-        case SDLK_LSHIFT: case SDLK_RSHIFT:
-          bindSetPending=false;
-          actionKeys[bindSetTarget]=(mapped&(~FURK_MASK))|0xffffff;
-          break;
-        default:
-          actionKeys[bindSetTarget]=mapped;
-          bindSetActive=false;
-          bindSetPending=false;
-          bindSetTarget=0;
-          bindSetPrevValue=0;
-          parseKeybinds();
-          break;
-      }
-    }
-    return;
-  }
+  if (!ImGuiFileDialog::Instance()->IsOpened()) {
+    if (bindSetActive) {
+      if (!ev.key.repeat) {
+        switch (ev.key.keysym.sym) {
+          case SDLK_LCTRL: case SDLK_RCTRL:
+          case SDLK_LALT: case SDLK_RALT:
+          case SDLK_LGUI: case SDLK_RGUI:
+          case SDLK_LSHIFT: case SDLK_RSHIFT:
+            bindSetPending=false;
+            actionKeys[bindSetTarget][bindSetTargetIdx]=(mapped&(~FURK_MASK))|0xffffff;
+            break;
+          default:
+            actionKeys[bindSetTarget][bindSetTargetIdx]=mapped;
 
-  if (latchTarget) {
-    if (mapped==SDLK_DELETE || mapped==SDLK_BACKSPACE) {
-      switch (latchTarget) {
-        case 1:
-          latchIns=-1;
-          break;
-        case 2:
-          latchVol=-1;
-          break;
-        case 3:
-          latchEffect=-1;
-          break;
-        case 4:
-          latchEffectVal=-1;
-          break;
+            // de-dupe with an n^2 algorithm that will never ever be a problem (...but for real though)
+            for (size_t i=0; i<actionKeys[bindSetTarget].size(); i++) {
+              for (size_t j=i+1; j<actionKeys[bindSetTarget].size(); j++) {
+                if (actionKeys[bindSetTarget][i]==actionKeys[bindSetTarget][j]) {
+                  actionKeys[bindSetTarget].erase(actionKeys[bindSetTarget].begin()+j);
+                }
+              }
+            }
+
+            bindSetActive=false;
+            bindSetPending=false;
+            bindSetTarget=0;
+            bindSetTargetIdx=0;
+            bindSetPrevValue=0;
+            parseKeybinds();
+            break;
+        }
       }
-    } else {
-      auto it=valueKeys.find(ev.key.keysym.sym);
-      if (it!=valueKeys.cend()) {
-        int num=it->second;
+      return;
+    }
+
+    if (latchTarget) {
+      if (mapped==SDLK_DELETE || mapped==SDLK_BACKSPACE) {
         switch (latchTarget) {
-          case 1: // instrument
-            changeLatch(latchIns);
+          case 1:
+            latchIns=-1;
             break;
-          case 2: // volume
-            changeLatch(latchVol);
+          case 2:
+            latchVol=-1;
             break;
-          case 3: // effect
-            changeLatch(latchEffect);
+          case 3:
+            latchEffect=-1;
             break;
-          case 4: // effect value
-            changeLatch(latchEffectVal);
+          case 4:
+            latchEffectVal=-1;
             break;
         }
+      } else {
+        auto it=valueKeys.find(ev.key.keysym.sym);
+        if (it!=valueKeys.cend()) {
+          int num=it->second;
+          switch (latchTarget) {
+            case 1: // instrument
+              changeLatch(latchIns);
+              break;
+            case 2: // volume
+              changeLatch(latchVol);
+              break;
+            case 3: // effect
+              changeLatch(latchEffect);
+              break;
+            case 4: // effect value
+              changeLatch(latchEffectVal);
+              break;
+          }
+        }
       }
+      return;
     }
-    return;
-  }
 
-  if (sampleMapWaitingInput) {
-    switch (sampleMapColumn) {
-      case 0: {
-        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
-          alterSampleMap(0,-1);
-          return;
-        }
-        auto it=valueKeys.find(ev.key.keysym.sym);
-        if (it!=valueKeys.cend()) {
-          int num=it->second;
-          if (num<10) {
-            alterSampleMap(0,num);
+    if (sampleMapWaitingInput) {
+      switch (sampleMapColumn) {
+        case 0: {
+          if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+            alterSampleMap(0,-1);
             return;
           }
+          auto it=valueKeys.find(ev.key.keysym.sym);
+          if (it!=valueKeys.cend()) {
+            int num=it->second;
+            if (num<10) {
+              alterSampleMap(0,num);
+              return;
+            }
+          }
+          break;
         }
-        break;
-      }
-      case 1: {
-        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
-          alterSampleMap(1,-1);
-          return;
-        }
-        auto it=noteKeys.find(ev.key.keysym.scancode);
-        if (it!=noteKeys.cend()) {
-          int key=it->second;
-          int num=12*curOctave+key;
-
-          if (num<-60) num=-60; // C-(-5)
-          if (num>119) num=119; // B-9
-
-          alterSampleMap(1,num);
-          return;
-        }
-        break;
-      }
-      case 2: {
-        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
-          alterSampleMap(2,-1);
-          return;
-        }
-        auto it=valueKeys.find(ev.key.keysym.sym);
-        if (it!=valueKeys.cend()) {
-          int num=it->second;
-          if (num<10) {
-            alterSampleMap(2,num);
+        case 1: {
+          if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+            alterSampleMap(1,-1);
             return;
           }
-        }
-        break;
-      }
-      case 3: {
-        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
-          alterSampleMap(3,-1);
-          return;
-        }
-        auto it=valueKeys.find(ev.key.keysym.sym);
-        if (it!=valueKeys.cend()) {
-          int num=it->second;
-          if (num<16) {
-            alterSampleMap(3,num);
-            return;
-          }
-        }
-        break;
-      }
-    }
-  }
-
-  // PER-WINDOW KEYS
-  switch (curWindow) {
-    case GUI_WINDOW_PATTERN: {
-      auto actionI=actionMapPat.find(mapped);
-      if (actionI!=actionMapPat.cend()) {
-        int action=actionI->second;
-        if (action>0) {
-          doAction(action);
-          return;
-        }
-      }
-      // pattern input otherwise
-      if (mapped&(FURKMOD_ALT|FURKMOD_CTRL|FURKMOD_META|FURKMOD_SHIFT)) break;
-      if (!ev.key.repeat || settings.inputRepeat) {
-        if (cursor.xFine==0) { // note
           auto it=noteKeys.find(ev.key.keysym.scancode);
           if (it!=noteKeys.cend()) {
             int key=it->second;
@@ -1628,86 +1546,148 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
             if (num<-60) num=-60; // C-(-5)
             if (num>119) num=119; // B-9
 
-            if (edit) {
-              noteInput(num,key);
-            }
+            alterSampleMap(1,num);
+            return;
           }
-        } else if (edit) { // value
+          break;
+        }
+        case 2: {
+          if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+            alterSampleMap(2,-1);
+            return;
+          }
           auto it=valueKeys.find(ev.key.keysym.sym);
           if (it!=valueKeys.cend()) {
             int num=it->second;
-            valueInput(num);
+            if (num<10) {
+              alterSampleMap(2,num);
+              return;
+            }
+          }
+          break;
+        }
+        case 3: {
+          if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+            alterSampleMap(3,-1);
+            return;
+          }
+          auto it=valueKeys.find(ev.key.keysym.sym);
+          if (it!=valueKeys.cend()) {
+            int num=it->second;
+            if (num<16) {
+              alterSampleMap(3,num);
+              return;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    // PER-WINDOW KEYS
+    switch (curWindow) {
+      case GUI_WINDOW_PATTERN: {
+        auto actionI=actionMapPat.find(mapped);
+        if (actionI!=actionMapPat.cend()) {
+          int action=actionI->second;
+          if (action>0) {
+            doAction(action);
+            return;
           }
         }
-      }
-      break;
-    }
-    case GUI_WINDOW_ORDERS: {
-      auto actionI=actionMapOrders.find(mapped);
-      if (actionI!=actionMapOrders.cend()) {
-        int action=actionI->second;
-        if (action>0) {
-          doAction(action);
-          return;
+        // pattern input otherwise
+        if (mapped&(FURKMOD_ALT|FURKMOD_CTRL|FURKMOD_META|FURKMOD_SHIFT)) break;
+        if (!ev.key.repeat || settings.inputRepeat) {
+          if (cursor.xFine==0) { // note
+            auto it=noteKeys.find(ev.key.keysym.scancode);
+            if (it!=noteKeys.cend()) {
+              int key=it->second;
+              int num=12*curOctave+key;
+
+              if (num<-60) num=-60; // C-(-5)
+              if (num>119) num=119; // B-9
+
+              if (edit) {
+                noteInput(num,key);
+              }
+            }
+          } else if (edit) { // value
+            auto it=valueKeys.find(ev.key.keysym.sym);
+            if (it!=valueKeys.cend()) {
+              int num=it->second;
+              valueInput(num);
+            }
+          }
         }
+        break;
       }
-      // order input otherwise
-      if (mapped&(FURKMOD_ALT|FURKMOD_CTRL|FURKMOD_META|FURKMOD_SHIFT)) break;
-      if (orderEditMode!=0) {
-        auto it=valueKeys.find(ev.key.keysym.sym);
-        if (it!=valueKeys.cend()) {
-          int num=it->second;
-          orderInput(num);
+      case GUI_WINDOW_ORDERS: {
+        auto actionI=actionMapOrders.find(mapped);
+        if (actionI!=actionMapOrders.cend()) {
+          int action=actionI->second;
+          if (action>0) {
+            doAction(action);
+            return;
+          }
         }
-      }
-      break;
-    }
-    case GUI_WINDOW_SAMPLE_EDIT: {
-      auto actionI=actionMapSample.find(mapped);
-      if (actionI!=actionMapSample.cend()) {
-        int action=actionI->second;
-        if (action>0) {
-          doAction(action);
-          return;
+        // order input otherwise
+        if (mapped&(FURKMOD_ALT|FURKMOD_CTRL|FURKMOD_META|FURKMOD_SHIFT)) break;
+        if (orderEditMode!=0) {
+          auto it=valueKeys.find(ev.key.keysym.sym);
+          if (it!=valueKeys.cend()) {
+            int num=it->second;
+            orderInput(num);
+          }
         }
+        break;
       }
-      break;
-    }
-    case GUI_WINDOW_INS_LIST: {
-      auto actionI=actionMapInsList.find(mapped);
-      if (actionI!=actionMapInsList.cend()) {
-        int action=actionI->second;
-        if (action>0) {
-          doAction(action);
-          return;
+      case GUI_WINDOW_SAMPLE_EDIT: {
+        auto actionI=actionMapSample.find(mapped);
+        if (actionI!=actionMapSample.cend()) {
+          int action=actionI->second;
+          if (action>0) {
+            doAction(action);
+            return;
+          }
         }
+        break;
       }
-      break;
-    }
-    case GUI_WINDOW_WAVE_LIST: {
-      auto actionI=actionMapWaveList.find(mapped);
-      if (actionI!=actionMapWaveList.cend()) {
-        int action=actionI->second;
-        if (action>0) {
-          doAction(action);
-          return;
+      case GUI_WINDOW_INS_LIST: {
+        auto actionI=actionMapInsList.find(mapped);
+        if (actionI!=actionMapInsList.cend()) {
+          int action=actionI->second;
+          if (action>0) {
+            doAction(action);
+            return;
+          }
         }
+        break;
       }
-      break;
-    }
-    case GUI_WINDOW_SAMPLE_LIST: {
-      auto actionI=actionMapSampleList.find(mapped);
-      if (actionI!=actionMapSampleList.cend()) {
-        int action=actionI->second;
-        if (action>0) {
-          doAction(action);
-          return;
+      case GUI_WINDOW_WAVE_LIST: {
+        auto actionI=actionMapWaveList.find(mapped);
+        if (actionI!=actionMapWaveList.cend()) {
+          int action=actionI->second;
+          if (action>0) {
+            doAction(action);
+            return;
+          }
         }
+        break;
       }
-      break;
+      case GUI_WINDOW_SAMPLE_LIST: {
+        auto actionI=actionMapSampleList.find(mapped);
+        if (actionI!=actionMapSampleList.cend()) {
+          int action=actionI->second;
+          if (action>0) {
+            doAction(action);
+            return;
+          }
+        }
+        break;
+      }
+      default:
+        break;
     }
-    default:
-      break;
   }
 
   // GLOBAL KEYS
@@ -1715,6 +1695,9 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
   if (actionI!=actionMapGlobal.cend()) {
     int action=actionI->second;
     if (action>0) {
+      if (ImGuiFileDialog::Instance()->IsOpened()) {
+        if (action!=GUI_ACTION_OCTAVE_UP && action!=GUI_ACTION_OCTAVE_DOWN) return;
+      }
       doAction(action);
       return;
     }
@@ -2445,6 +2428,20 @@ int FurnaceGUI::load(String path) {
     // warn the user
     showWarning(_("you have loaded a backup!\nif you need to, please save it somewhere.\n\nDO NOT RELY ON THE BACKUP SYSTEM FOR AUTO-SAVE!\nFurnace will not save backups of backups."),GUI_WARN_GENERIC);
   }
+
+  // if this is a PC module import, warn the user on the first import.
+  if (!tutorial.importedMOD && e->song.version==DIV_VERSION_MOD) {
+    showWarning(_("you have imported a ProTracker/SoundTracker/PC module!\nkeep the following in mind:\n\n- Furnace is not a replacement for your MOD player\n- import is not perfect. your song may sound different:\n  - E6x pattern loop is not supported\n\nhave fun!"),GUI_WARN_IMPORT);
+  }
+  if (!tutorial.importedS3M && e->song.version==DIV_VERSION_S3M) {
+    showWarning(_("you have imported a Scream Tracker 3 module!\nkeep the following in mind:\n\n- Furnace is not a replacement for your S3M player\n- import is not perfect. your song may sound different:\n  - OPL instruments may be detuned\n\nhave fun!"),GUI_WARN_IMPORT);
+  }
+  if (!tutorial.importedXM && e->song.version==DIV_VERSION_XM) {
+    showWarning(_("you have imported a FastTracker II module!\nkeep the following in mind:\n\n- Furnace is not a replacement for your XM player\n- import is not perfect. your song may sound different:\n  - envelopes have been converted to macros\n  - global volume changes are not supported\n\nhave fun!"),GUI_WARN_IMPORT);
+  }
+  if (!tutorial.importedIT && e->song.version==DIV_VERSION_IT) {
+    showWarning(_("you have imported an Impulse Tracker module!\nkeep the following in mind:\n\n- Furnace is not a replacement for your IT player\n- import is not perfect. your song may sound different:\n  - envelopes have been converted to macros\n  - global volume changes are not supported\n  - channel volume changes are not supported\n  - New Note Actions (NNA) are not supported\n\nhave fun!"),GUI_WARN_IMPORT);
+  }
   return 0;
 }
 
@@ -2765,8 +2762,8 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
     }
   }
   if (sampleDragActive) {
-    int x=samplePos+round(double(dragX-sampleDragStart.x)*sampleZoom);
-    int x1=samplePos+round(double(dragX-sampleDragStart.x+1)*sampleZoom);
+    int x=samplePos+floor(double(dragX-sampleDragStart.x)*sampleZoom);
+    int x1=samplePos+floor(double(dragX-sampleDragStart.x+1)*sampleZoom);
     if (x<0) x=0;
     if (sampleDragMode) {
       if (x>=(int)sampleDragLen) x=sampleDragLen-1;
@@ -2813,24 +2810,6 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
   } \
   if (lowerCase.size()<strlen(x) || lowerCase.rfind(x)!=lowerCase.size()-strlen(x)) { \
     fileName+=x; \
-  }
-
-#define checkExtensionDual(x,y,fallback) \
-  String lowerCase=fileName; \
-  for (char& i: lowerCase) { \
-    if (i>='A' && i<='Z') i+='a'-'A'; \
-  } \
-  if (lowerCase.size()<4 || (lowerCase.rfind(x)!=lowerCase.size()-4 && lowerCase.rfind(y)!=lowerCase.size()-4)) { \
-    fileName+=fallback; \
-  }
-
-#define checkExtensionTriple(x,y,z,fallback) \
-  String lowerCase=fileName; \
-  for (char& i: lowerCase) { \
-    if (i>='A' && i<='Z') i+='a'-'A'; \
-  } \
-  if (lowerCase.size()<4 || (lowerCase.rfind(x)!=lowerCase.size()-4 && lowerCase.rfind(y)!=lowerCase.size()-4 && lowerCase.rfind(z)!=lowerCase.size()-4)) { \
-    fileName+=fallback; \
   }
 
 #define drawOpMask(m) \
@@ -3187,9 +3166,17 @@ void FurnaceGUI::editOptions(bool topMenu) {
         if (randomizeMax>255) randomizeMax=255;
       }
     }
-    // TODO: add an option to set effect to specific value?
+    if (selStart.xFine>2 || selEnd.xFine>2 || selStart.xCoarse!=selEnd.xCoarse) {
+      ImGui::Checkbox(_("Set effect"),&randomizeEffect);
+      if (randomizeEffect) {
+        if (ImGui::InputScalar(_("Effect"),ImGuiDataType_S32,&randomizeEffectVal,&_ONE,&_SIXTEEN,"%.2X",ImGuiInputTextFlags_CharsHexadecimal)) {
+          if (randomizeEffectVal<0) randomizeEffectVal=0;
+          if (randomizeEffectVal>255) randomizeEffectVal=255;
+        }
+      }
+    }
     if (ImGui::Button(_("Randomize"))) {
-      doRandomize(randomizeMin,randomizeMax,randomMode);
+      doRandomize(randomizeMin,randomizeMax,randomMode,randomizeEffect,randomizeEffectVal);
       ImGui::CloseCurrentPopup();
     }
     ImGui::EndMenu();
@@ -3244,6 +3231,7 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
       ImGui::GetIO().IniFilename=NULL;
       ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_InertialScrollEnable;
       ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NoHoverColors;
+      ImGui::GetIO().AlwaysScrollText=true;
       fileDialog->mobileUI=true;
     } else {
       ImGui::GetIO().IniFilename=NULL;
@@ -3253,6 +3241,7 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
       }
       ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_InertialScrollEnable;
       ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NoHoverColors;
+      ImGui::GetIO().AlwaysScrollText=false;
       fileDialog->mobileUI=false;
     }
   }
@@ -3513,8 +3502,12 @@ void FurnaceGUI::pointDown(int x, int y, int button) {
   if (bindSetActive) {
     bindSetActive=false;
     bindSetPending=false;
-    actionKeys[bindSetTarget]=bindSetPrevValue;
+    actionKeys[bindSetTarget][bindSetTargetIdx]=bindSetPrevValue;
+    if (bindSetTargetIdx==(int)actionKeys[bindSetTarget].size()-1 && bindSetPrevValue<=0) {
+      actionKeys[bindSetTarget].pop_back();
+    }
     bindSetTarget=0;
+    bindSetTargetIdx=0;
     bindSetPrevValue=0;
   }
   if (introPos<11.0 && !shortIntro) {
@@ -3834,8 +3827,14 @@ bool FurnaceGUI::loop() {
         }
 #endif
         case SDL_KEYDOWN:
-          if (!ImGui::GetIO().WantCaptureKeyboard) {
+          if (!ImGui::GetIO().WantCaptureKeyboard || (ImGuiFileDialog::Instance()->IsOpened() && !ImGui::GetIO().WantTextInput)) {
             keyDown(ev);
+          }
+          if (introPos<11.0 && !shortIntro) {
+            if (ev.key.keysym.scancode==SDL_SCANCODE_SPACE || ev.key.keysym.scancode==SDL_SCANCODE_ESCAPE || ev.key.keysym.scancode==SDL_SCANCODE_RETURN) {
+              introSkip=0.5;
+            }
+            introSkipDo=true;
           }
           insEditMayBeDirty=true;
 #ifdef IS_MOBILE
@@ -3845,6 +3844,9 @@ bool FurnaceGUI::loop() {
         case SDL_KEYUP:
           // for now
           insEditMayBeDirty=true;
+          if (introPos<11.0 && introSkip<0.5 && !shortIntro) {
+            introSkipDo=false;
+          }
           break;
         case SDL_DROPFILE:
           if (ev.drop.file!=NULL) {
@@ -4679,6 +4681,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem(_("debug menu"),BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) debugOpen=!debugOpen;
         if (ImGui::MenuItem(_("inspector"))) inspectorOpen=!inspectorOpen;
         if (ImGui::MenuItem(_("panic"),BIND_FOR(GUI_ACTION_PANIC))) e->syncReset();
+        if (ImGui::MenuItem(_("welcome screen"))) tutorial.protoWelcome=false;
         if (ImGui::MenuItem(_("about..."),BIND_FOR(GUI_ACTION_WINDOW_ABOUT))) {
           aboutOpen=true;
           aboutScroll=0;
@@ -5102,7 +5105,13 @@ bool FurnaceGUI::loop() {
         } else {
           fileName=fileDialog->getFileName()[0];
         }
+#ifdef FLATPAK_WORKAROUNDS
+        // https://github.com/tildearrow/furnace/issues/2096
+        // Flatpak Portals mangling our path hinders us from adding extension
+        if (fileName!="" && !settings.sysFileDialog) {
+#else
         if (fileName!="") {
+#endif
           if (curFileDialog==GUI_FILE_SAVE) {
             checkExtension(".fur");
           }
@@ -5379,44 +5388,33 @@ bool FurnaceGUI::loop() {
               }
               break;
             }
-             case GUI_FILE_SAMPLE_OPEN_REPLACE: 
-            {
+            case GUI_FILE_SAMPLE_OPEN_REPLACE: {
               std::vector<DivSample*> samples=e->sampleFromFile(copyOfName.c_str());
-              if (samples.empty()) 
-              {
+              if (samples.empty()) {
                 showError(e->getLastError());
-              } 
-              else 
-              {
-                if((int)samples.size() == 1)
-                {
-                  if (curSample>=0 && curSample<(int)e->song.sample.size()) 
-                  {
-                    DivSample* s = samples[0];
-                    e->lockEngine([this, s]()
-                    {
+              } else {
+                if ((int)samples.size()==1) {
+                  if (curSample>=0 && curSample<(int)e->song.sample.size()) {
+                    DivSample* s=samples[0];
+                    e->lockEngine([this,s]() {
                       // if it crashes here please tell me...
                       DivSample* oldSample=e->song.sample[curSample];
-                      e->song.sample[curSample]= s;
+                      e->song.sample[curSample]=s;
                       delete oldSample;
                       e->renderSamples();
                       MARK_MODIFIED;
                     });
                     updateSampleTex=true;
-                  } 
-                  else 
-                  {
+                  } else {
                     showError(_("...but you haven't selected a sample!"));
                     delete samples[0];
                   }
-                }
-                else
-                {
-                  for (DivSample* s: samples) { //ask which samples to load!
+                } else {
+                  for (DivSample* s: samples) { // ask which samples to load!
                     pendingSamples.push_back(std::make_pair(s,false));
                   }
                   displayPendingSamples=true;
-                  replacePendingSample = true;
+                  replacePendingSample=true;
                 }
               }
               break;
@@ -5501,6 +5499,7 @@ bool FurnaceGUI::loop() {
                   int instrumentCount=-1;
                   for (DivInstrument* i: instruments) {
                     instrumentCount=e->addInstrumentPtr(i);
+                    MARK_MODIFIED;
                   }
                   if (instrumentCount>=0 && settings.selectAssetOnLoad) {
                     curIns=instrumentCount-1;
@@ -5528,6 +5527,7 @@ bool FurnaceGUI::loop() {
                 } else { // replace with the only instrument
                   if (curIns>=0 && curIns<(int)e->song.ins.size()) {
                     *e->song.ins[curIns]=*instruments[0];
+                    MARK_MODIFIED;
                   } else {
                     showError(_("...but you haven't selected an instrument!"));
                   }
@@ -6446,6 +6446,26 @@ bool FurnaceGUI::loop() {
           popDestColor();
           ImGui::SameLine();
           if (ImGui::Button(_("No"))) {
+            ImGui::CloseCurrentPopup();
+          }
+          break;
+        case GUI_WARN_IMPORT:
+          if (ImGui::Button(_("Got it"))) {
+            switch (e->song.version) {
+              case DIV_VERSION_MOD:
+                tutorial.importedMOD=true;
+                break;
+              case DIV_VERSION_S3M:
+                tutorial.importedS3M=true;
+                break;
+              case DIV_VERSION_XM:
+                tutorial.importedXM=true;
+                break;
+              case DIV_VERSION_IT:
+                tutorial.importedIT=true;
+                break;
+            }
+            commitTutorial();
             ImGui::CloseCurrentPopup();
           }
           break;
@@ -8617,6 +8637,7 @@ FurnaceGUI::FurnaceGUI():
   waveDragMax(0),
   waveDragActive(false),
   bindSetTarget(0),
+  bindSetTargetIdx(0),
   bindSetPrevValue(0),
   bindSetActive(false),
   bindSetPending(false),
@@ -8649,16 +8670,22 @@ FurnaceGUI::FurnaceGUI():
   opToMove(-1),
   assetToMove(-1),
   dirToMove(-1),
+  insToMove(-1),
+  waveToMove(-1),
+  sampleToMove(-1),
   transposeAmount(0),
   randomizeMin(0),
   randomizeMax(255),
   fadeMin(0),
   fadeMax(255),
   collapseAmount(2),
+  randomizeEffectVal(0),
+  playheadY(0.0f),
   scaleMax(100.0f),
   fadeMode(false),
   randomMode(false),
   haveHitBounds(false),
+  randomizeEffect(false),
   pendingStepUpdate(0),
   oldOrdersLen(0),
   sampleZoom(1.0),
@@ -8843,8 +8870,6 @@ FurnaceGUI::FurnaceGUI():
   opMaskTransposeValue.vol=true;
   opMaskTransposeValue.effect=false;
   opMaskTransposeValue.effectVal=true;
-
-  memset(actionKeys,0,GUI_ACTION_MAX*sizeof(int));
 
   memset(patChanX,0,sizeof(float)*(DIV_MAX_CHANS+1));
   memset(patChanSlideY,0,sizeof(float)*(DIV_MAX_CHANS+1));

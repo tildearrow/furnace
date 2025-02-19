@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -200,11 +200,14 @@ bool DivCSPlayer::tick() {
           case DIV_CMD_HINT_PITCH:
             arg0=(signed char)stream.readC();
             break;
-          case DIV_CMD_PANNING:
           case DIV_CMD_HINT_VIBRATO:
           case DIV_CMD_HINT_ARPEGGIO:
           case DIV_CMD_HINT_PORTA:
             arg0=(signed char)stream.readC();
+            arg1=(unsigned char)stream.readC();
+            break;
+          case DIV_CMD_PANNING:
+            arg0=(unsigned char)stream.readC();
             arg1=(unsigned char)stream.readC();
             break;
           case DIV_CMD_PRE_PORTA:
@@ -364,6 +367,7 @@ bool DivCSPlayer::tick() {
     }
 
     if (sendVolume || chan[i].volSpeed!=0) {
+      int preSpeedVol=chan[i].volume;
       chan[i].volume+=chan[i].volSpeed;
       if (chan[i].volSpeedTarget!=-1) {
         bool atTarget=false;
@@ -377,7 +381,11 @@ bool DivCSPlayer::tick() {
         }
 
         if (atTarget) {
-          chan[i].volume=chan[i].volSpeedTarget;
+          if (chan[i].volSpeed>0) {
+            chan[i].volume=MAX(preSpeedVol,chan[i].volSpeedTarget);
+          } else if (chan[i].volSpeed<0) {
+            chan[i].volume=MIN(preSpeedVol,chan[i].volSpeedTarget);
+          }
           chan[i].volSpeed=0;
           chan[i].volSpeedTarget=-1;
         }

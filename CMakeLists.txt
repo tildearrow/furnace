@@ -131,11 +131,12 @@ option(SYSTEM_ZLIB "Use a system-installed version of zlib instead of the vendor
 option(SYSTEM_SDL2 "Use a system-installed version of SDL2 instead of the vendored one" ${SYSTEM_SDL2_DEFAULT})
 option(SUPPORT_XP "Build a Windows XP-compatible binary" OFF)
 option(WARNINGS_ARE_ERRORS "Whether warnings in furnace's C++ code should be treated as errors" OFF)
-option(WITH_DEMOS "Install demo songs" ON)
+option(WITH_DEMOS "Install demo songs (NOTE: demo songs are NOT under GPL!)" OFF)
 option(WITH_INSTRUMENTS "Install instruments" ON)
 option(WITH_WAVETABLES "Install wavetables" ON)
 option(SHOW_OPEN_ASSETS_MENU_ENTRY "Show option to open built-in assets directory (on supported platforms)" OFF)
 option(CONSOLE_SUBSYSTEM "Build Furnace with Console subsystem on Windows" OFF)
+option(FLATPAK_WORKAROUNDS "Enable Flatpak-specific workaround for system file picker" OFF)
 if (APPLE)
   option(FORCE_APPLE_BIN "Force enable binary installation to /bin" OFF)
   option(MAKE_BUNDLE "Make a bundle" OFF)
@@ -157,6 +158,10 @@ TEST_BIG_ENDIAN(IS_BIG_ENDIAN)
 
 if (IS_BIG_ENDIAN)
   list(APPEND DEPENDENCIES_DEFINES "TA_BIG_ENDIAN")
+endif()
+
+if (FLATPAK_WORKAROUNDS)
+  list(APPEND DEPENDENCIES_DEFINES "FLATPAK_WORKAROUNDS")
 endif()
 
 set(DEPENDENCIES_COMPILE_OPTIONS "")
@@ -647,7 +652,7 @@ src/engine/platform/sound/sm8521.c
 
 src/engine/platform/sound/supervision.c
 
-src/engine/platform/sound/upd1771c.c
+src/engine/platform/sound/upd1771.cpp
 
 src/engine/platform/sound/d65modified.c
 
@@ -669,6 +674,8 @@ src/engine/platform/sound/sid2/wave8580_PST.cc
 src/engine/platform/sound/sid2/wave8580_P_T.cc
 src/engine/platform/sound/sid2/wave8580__ST.cc
 src/engine/platform/sound/sid2/wave.cc
+
+src/engine/platform/sound/sid3.c
 
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
@@ -783,7 +790,8 @@ src/engine/platform/k007232.cpp
 src/engine/platform/ga20.cpp
 src/engine/platform/sm8521.cpp
 src/engine/platform/supervision.cpp
-src/engine/platform/upd1771c.cpp
+src/engine/platform/scvwave.cpp
+src/engine/platform/scvtone.cpp
 src/engine/platform/pv1000.cpp
 src/engine/platform/k053260.cpp
 src/engine/platform/ted.cpp
@@ -796,11 +804,13 @@ src/engine/platform/gbaminmod.cpp
 src/engine/platform/nds.cpp
 src/engine/platform/bifurcator.cpp
 src/engine/platform/sid2.cpp
+src/engine/platform/sid3.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 
 src/engine/export/abstract.cpp
 src/engine/export/amigaValidation.cpp
+src/engine/export/sapr.cpp
 src/engine/export/tiuna.cpp
 src/engine/export/zsm.cpp
 
@@ -922,7 +932,7 @@ src/gui/subSongs.cpp
 src/gui/sysConf.cpp
 src/gui/sysEx.cpp
 src/gui/sysManager.cpp
-src/gui/sysPartNumber.cpp
+src/gui/sysMiscInfo.cpp
 src/gui/sysPicker.cpp
 src/gui/tutorial.cpp
 src/gui/userPresets.cpp

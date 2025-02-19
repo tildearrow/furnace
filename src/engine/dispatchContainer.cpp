@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,7 +77,8 @@
 #include "platform/k007232.h"
 #include "platform/ga20.h"
 #include "platform/supervision.h"
-#include "platform/upd1771c.h"
+#include "platform/scvwave.h"
+#include "platform/scvtone.h"
 #include "platform/sm8521.h"
 #include "platform/pv1000.h"
 #include "platform/k053260.h"
@@ -92,6 +93,7 @@
 #include "platform/nds.h"
 #include "platform/bifurcator.h"
 #include "platform/sid2.h"
+#include "platform/sid3.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
 #include "song.h"
@@ -327,6 +329,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       ((DivPlatformNES*)dispatch)->set5E01(false);
       break;
     case DIV_SYSTEM_C64_6581:
+    case DIV_SYSTEM_C64_PCM:
       dispatch=new DivPlatformC64;
       if (isRender) {
         ((DivPlatformC64*)dispatch)->setCore(eng->getConfInt("c64CoreRender",1));
@@ -336,6 +339,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
         ((DivPlatformC64*)dispatch)->setCoreQuality(eng->getConfInt("dsidQuality",3));
       }
       ((DivPlatformC64*)dispatch)->setChipModel(true);
+      ((DivPlatformC64*)dispatch)->setSoftPCM(sys==DIV_SYSTEM_C64_PCM);
       break;
     case DIV_SYSTEM_C64_8580:
       dispatch=new DivPlatformC64;
@@ -347,6 +351,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
         ((DivPlatformC64*)dispatch)->setCoreQuality(eng->getConfInt("dsidQuality",3));
       }
       ((DivPlatformC64*)dispatch)->setChipModel(false);
+      ((DivPlatformC64*)dispatch)->setSoftPCM(false);
       break;
     case DIV_SYSTEM_YM2151:
       dispatch=new DivPlatformArcade;
@@ -373,6 +378,16 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       } else {
         ((DivPlatformYM2610Ext*)dispatch)->setCombo(eng->getConfInt("opnbCore",1));
       }
+      ((DivPlatformYM2610Ext*)dispatch)->setCSM(0);
+      break;
+    case DIV_SYSTEM_YM2610_CSM:
+      dispatch=new DivPlatformYM2610Ext;
+      if (isRender) {
+        ((DivPlatformYM2610Ext*)dispatch)->setCombo(eng->getConfInt("opnbCoreRender",1));
+      } else {
+        ((DivPlatformYM2610Ext*)dispatch)->setCombo(eng->getConfInt("opnbCore",1));
+      }
+      ((DivPlatformYM2610Ext*)dispatch)->setCSM(1);
       break;
     case DIV_SYSTEM_YM2610B:
       dispatch=new DivPlatformYM2610B;
@@ -389,6 +404,16 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       } else {
         ((DivPlatformYM2610BExt*)dispatch)->setCombo(eng->getConfInt("opnbCore",1));
       }
+      ((DivPlatformYM2610BExt*)dispatch)->setCSM(0);
+      break;
+    case DIV_SYSTEM_YM2610B_CSM:
+      dispatch=new DivPlatformYM2610BExt;
+      if (isRender) {
+        ((DivPlatformYM2610BExt*)dispatch)->setCombo(eng->getConfInt("opnbCoreRender",1));
+      } else {
+        ((DivPlatformYM2610BExt*)dispatch)->setCombo(eng->getConfInt("opnbCore",1));
+      }
+      ((DivPlatformYM2610BExt*)dispatch)->setCSM(1);
       break;
     case DIV_SYSTEM_AMIGA:
       dispatch=new DivPlatformAmiga;
@@ -430,6 +455,16 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       } else {
         ((DivPlatformYM2203Ext*)dispatch)->setCombo(eng->getConfInt("opn1Core",1));
       }
+      ((DivPlatformYM2203Ext*)dispatch)->setCSM(0);
+      break;
+    case DIV_SYSTEM_YM2203_CSM:
+      dispatch=new DivPlatformYM2203Ext;
+      if (isRender) {
+        ((DivPlatformYM2203Ext*)dispatch)->setCombo(eng->getConfInt("opn1CoreRender",1));
+      } else {
+        ((DivPlatformYM2203Ext*)dispatch)->setCombo(eng->getConfInt("opn1Core",1));
+      }
+      ((DivPlatformYM2203Ext*)dispatch)->setCSM(1);
       break;
     case DIV_SYSTEM_YM2608:
       dispatch=new DivPlatformYM2608;
@@ -446,6 +481,16 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       } else {
         ((DivPlatformYM2608Ext*)dispatch)->setCombo(eng->getConfInt("opnaCore",1));
       }
+      ((DivPlatformYM2608Ext*)dispatch)->setCSM(0);
+      break;
+    case DIV_SYSTEM_YM2608_CSM:
+      dispatch=new DivPlatformYM2608Ext;
+      if (isRender) {
+        ((DivPlatformYM2608Ext*)dispatch)->setCombo(eng->getConfInt("opnaCoreRender",1));
+      } else {
+        ((DivPlatformYM2608Ext*)dispatch)->setCombo(eng->getConfInt("opnaCore",1));
+      }
+      ((DivPlatformYM2608Ext*)dispatch)->setCSM(1);
       break;
     case DIV_SYSTEM_OPLL:
     case DIV_SYSTEM_OPLL_DRUMS:
@@ -690,7 +735,10 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       dispatch=new DivPlatformSupervision;
       break;
     case DIV_SYSTEM_UPD1771C:
-      dispatch=new DivPlatformUPD1771c;
+      dispatch=new DivPlatformSCVWave;
+      break;
+    case DIV_SYSTEM_UPD1771C_TONE:
+      dispatch=new DivPlatformSCVTone;
       break;
     case DIV_SYSTEM_SM8521:
       dispatch=new DivPlatformSM8521;
@@ -767,6 +815,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_SID2:
       dispatch=new DivPlatformSID2;
+      break;
+    case DIV_SYSTEM_SID3:
+      dispatch=new DivPlatformSID3;
       break;
     case DIV_SYSTEM_OPL4:
       dispatch=new DivPlatformOPL;

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,11 +67,15 @@ void DivPlatformTX81Z::acquire(short** buf, size_t len) {
     if (!writes.empty()) {
       if (--delay<1) {
         QueuedWrite& w=writes.front();
-        fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
-        fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
-        regPool[w.addr&0xff]=w.val;
+        if (w.addr==0xfffffffe) {
+          delay=w.val;
+        } else {
+          fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
+          fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
+          regPool[w.addr&0xff]=w.val;
+          delay=1;
+        }
         writes.pop_front();
-        delay=1;
       }
     }
     
@@ -100,6 +104,16 @@ static unsigned char noteMap[12]={
 
 inline int hScale(int note) {
   return ((note/12)<<4)+(noteMap[note%12]);
+}
+
+int DivPlatformTX81Z::toFreq(int freq) {
+  int block=0;
+  while (freq>0xff) {
+    freq>>=1;
+    block++;
+  }
+  if (block>7) return 0x7ff;
+  return ((block&7)<<8)|(freq&0xff);
 }
 
 void DivPlatformTX81Z::tick(bool sysTick) {
@@ -289,6 +303,54 @@ void DivPlatformTX81Z::tick(bool sysTick) {
         op.dt2=m.dt2.val;
         rWrite(baseAddr+ADDR_DT2_D2R,(op.d2r&31)|(op.dt2<<6));
       }
+
+      // fixed pitch
+      if (parent->song.linearPitch==2) {
+        bool freqChangeOp=false;
+
+        if (op.egt) {
+          if (op.sus) {
+            chan[i].handleArpFmOp(freqChangeOp,0,j); // arp and pitch macros
+            chan[i].handlePitchFmOp(freqChangeOp,j);
+          } else {
+            if (m.ssg.had) { // block and f-num macros
+              op.dt=m.ssg.val&7;
+              rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
+            }
+            if (m.sus.had) {
+              op.mult=(m.sus.val&0xff)>>4;
+              op.dvb=(m.sus.val&0xf);
+              rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
+              rWrite(baseAddr+ADDR_WS_FINE,(op.dvb&15)|(op.ws<<4));
+            }
+          }
+        }
+
+        if (freqChangeOp) {
+          int arp=chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff;
+          int pitch2=chan[i].pitch2;
+          int fixedArp=chan[i].fixedArp;
+          if (chan[i].opsState[j].hasOpArp) {
+            arp=chan[i].opsState[j].fixedArp?chan[i].opsState[j].baseNoteOverride:chan[i].opsState[j].arpOff;
+            fixedArp=chan[i].opsState[j].fixedArp;
+          }
+          if (chan[i].opsState[j].hasOpPitch) {
+            pitch2=chan[i].opsState[j].pitch2;
+          }
+          int opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,arp,fixedArp,false,2, pitch2,32.0,COLOR_NTSC/chipClock,0);
+          if (opFreq<0) opFreq=0;
+          if (opFreq>65280) opFreq=65280;
+          int freqt=toFreq(opFreq);
+
+          op.dt=(freqt>>8)&7;
+
+          op.mult=(freqt&0xff)>>4;
+          op.dvb=(freqt&0xf);
+
+          rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
+          rWrite(baseAddr+ADDR_WS_FINE,(op.dvb&15)|(op.ws<<4));
+        }
+      }
     }
   }
 
@@ -345,6 +407,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
           chan[i].freq+=chan[i].arpOff<<7;
         }
       }
+      chan[i].freq+=OFFSET_LINEAR;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>=(95<<7)) chan[i].freq=(95<<7)-1;
       immWrite(i+0x28,hScale(chan[i].freq>>7));
@@ -360,9 +423,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
 
   // hard reset handling
   if (mustHardReset) {
-    for (unsigned int i=hardResetElapsed; i<hardResetCycles; i++) {
-      immWrite(0x1f,i&0xff);
-    }
+    immWrite(0xfffffffe,hardResetCycles-hardResetElapsed);
     for (int i=0; i<8; i++) {
       if (chan[i].keyOn && chan[i].hardReset) {
         // restore SL/RR
@@ -444,6 +505,7 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_OPZ);
 
+      memset(chan[c.chan].opsState,0,sizeof(chan[c.chan].opsState));
       chan[c.chan].macroInit(ins);
       if (!chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;

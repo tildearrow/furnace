@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,26 @@
 #include "../utfutils.h"
 #else
 #include <dirent.h>
+#endif
+
+#ifndef IS_MOBILE
+#define CLICK_TO_OPEN(t) ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],t); \
+  if (ImGui::IsItemHovered()) { \
+    ImGui::SetTooltip("click to open"); \
+    ImGui::SetMouseCursor(ImGuiMouseCursor_Hand); \
+    if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) { \
+      SDL_OpenURL(t); \
+    } \
+  } \
+  ImGui::SameLine(); \
+  ImGui::Text(ICON_FA_CLIPBOARD); \
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) ImGui::SetTooltip("click to copy"); \
+  if (ImGui::IsItemClicked()) { \
+    ImGui::SetClipboardText(t); \
+    tutorial.popupTimer=0; \
+  }
+#else
+#define CLICK_TO_OPEN(t) ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],t); if (ImGui::IsItemClicked()) SDL_OpenURL(t);
 #endif
 
 enum FurnaceCVObjectTypes {
@@ -505,11 +525,19 @@ void FurnaceGUI::syncTutorial() {
   tutorial.introPlayed=e->getConfBool("tutIntroPlayed",false);
 #endif
   tutorial.protoWelcome=e->getConfBool("tutProtoWelcome2",false);
+  tutorial.importedMOD=e->getConfBool("tutImportedMOD",false);
+  tutorial.importedS3M=e->getConfBool("tutImportedS3M",false);
+  tutorial.importedXM=e->getConfBool("tutImportedXM",false);
+  tutorial.importedIT=e->getConfBool("tutImportedIT",false);
 }
 
 void FurnaceGUI::commitTutorial() {
   e->setConf("tutIntroPlayed",tutorial.introPlayed);
   e->setConf("tutProtoWelcome2",tutorial.protoWelcome);
+  e->setConf("tutImportedMOD",tutorial.importedMOD);
+  e->setConf("tutImportedS3M",tutorial.importedS3M);
+  e->setConf("tutImportedXM",tutorial.importedXM);
+  e->setConf("tutImportedIT",tutorial.importedIT);
 }
 
 void FurnaceGUI::initRandomDemoSong() {
@@ -676,15 +704,23 @@ void FurnaceGUI::drawTutorial() {
       "- click on the Orders matrix to change the patterns of a channel (left click increases; right click decreases)"
     ));
 
+    ImGui::Separator();
+
+    ImGui::TextWrapped(_(
+      "if you are new to trackers, you may check the quick start guide:"
+    ));
+    CLICK_TO_OPEN("https://github.com/tildearrow/furnace/blob/master/doc/1-intro/quickstart.md")
     ImGui::TextWrapped(_(
       "if you need help, you may:\n"
       "- read the manual (a file called manual.pdf)\n"
-      "- ask for help in Discussions (https://github.com/tildearrow/furnace/discussions)"
+      "- ask for help in Discussions"
     ));
+    CLICK_TO_OPEN("https://github.com/tildearrow/furnace/discussions")
 
     ImGui::Separator();
 
-    ImGui::TextWrapped(_("if you find any issues, be sure to report them! the issue tracker is here: https://github.com/tildearrow/furnace/issues"));
+    ImGui::TextWrapped(_("if you find any issues, be sure to report them! the issue tracker is here:"));
+    CLICK_TO_OPEN("https://github.com/tildearrow/furnace/issues")
 
     if (ImGui::Button(_("OK"))) {
       tutorial.protoWelcome=true;
@@ -696,6 +732,18 @@ void FurnaceGUI::drawTutorial() {
       (canvasW-ImGui::GetWindowSize().x)*0.5,
       (canvasH-ImGui::GetWindowSize().y)*0.5
     ));
+
+    if (tutorial.popupTimer<2.0f) {
+      ImDrawList* dl=ImGui::GetForegroundDrawList();
+      const ImVec2 winPos=ImGui::GetWindowPos();
+      const ImVec2 txtSize=ImGui::CalcTextSize("copied!");
+      const ImVec2 winSize=ImGui::GetWindowSize();
+      dl->AddText(ImVec2(
+        winPos.x+(winSize.x-txtSize.x)/2,
+        winPos.y+(winSize.y-txtSize.y*2)
+      ),ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_TOGGLE_ON]),"copied!");
+      tutorial.popupTimer+=ImGui::GetIO().DeltaTime;
+    }
     ImGui::EndPopup();
   }
 
@@ -875,51 +923,6 @@ void FurnaceGUI::drawTutorial() {
       }
       cvOpen=false;
     }
-  }
-}
-
-// helper functions
-
-void FurnaceGUI::highlightWindow(const char* winName) {
-  ImDrawList* dl=ImGui::GetWindowDrawList();
-  ImU32 col=ImGui::GetColorU32(uiColors[GUI_COLOR_MODAL_BACKDROP]);
-
-  ImGuiWindow* win=ImGui::FindWindowByName(winName);
-  if (win!=NULL) {
-    ImVec2 start=win->Pos;
-    ImVec2 end=ImVec2(
-      start.x+win->Size.x,
-      start.y+win->Size.y
-    );
-
-    dl->AddRectFilled(
-      ImVec2(0,0),
-      ImVec2(start.x,canvasH),
-      col
-    );
-    dl->AddRectFilled(
-      ImVec2(start.x,0),
-      ImVec2(canvasW,start.y),
-      col
-    );
-    dl->AddRectFilled(
-      ImVec2(end.x,start.y),
-      ImVec2(canvasW,canvasH),
-      col
-    );
-    dl->AddRectFilled(
-      ImVec2(start.x,end.y),
-      ImVec2(end.x,canvasH),
-      col
-    );
-
-    dl->AddRect(start,end,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),0,0,3.0f*dpiScale);
-  } else {
-    dl->AddRectFilled(
-      ImVec2(0,0),
-      ImVec2(canvasW,canvasH),
-      col
-    );
   }
 }
 

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -249,7 +249,7 @@ double DivPlatformX1_010::NoteX1_010(int ch, int note) {
       if (s->centerRate<1) {
         off=8192.0;
       } else {
-        off=8192.0*(s->centerRate/8363.0);
+        off=8192.0*(s->centerRate/parent->getCenterRate());
       }
     }
     return parent->calcBaseFreq(chipClock,off,note,false);
@@ -474,7 +474,7 @@ void DivPlatformX1_010::tick(bool sysTick) {
           if (s->centerRate<1) {
             off=8192.0;
           } else {
-            off=8192.0*(s->centerRate/8363.0);
+            off=8192.0*(s->centerRate/parent->getCenterRate());
           }
         }
       }

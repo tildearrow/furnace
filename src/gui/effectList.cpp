@@ -36,7 +36,8 @@ void FurnaceGUI::drawEffectList() {
       ImGui::EndPopup();
     }
     
-    if (ImGui::BeginTable("effectList",2)) {
+    if (ImGui::BeginTable("effectList",2,ImGuiTableFlags_ScrollY)) {
+      ImGui::TableSetupScrollFreeze(0, 1);
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
 

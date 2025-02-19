@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,7 +86,7 @@ void DivPlatformGA20::acquire(short** buf, size_t len) {
 }
 
 u8 DivPlatformGA20::read_byte(u32 address) {
-  if ((sampleMem!=NULL) && (address<getSampleMemCapacity())) {
+  if ((sampleMem!=NULL) && (address<0x100000)) {
     return sampleMem[address&0xfffff];
   }
   return 0;
@@ -145,7 +145,7 @@ void DivPlatformGA20::tick(bool sysTick) {
         if (s->centerRate<1) {
           off=1.0;
         } else {
-          off=8363.0/s->centerRate;
+          off=parent->getCenterRate()/s->centerRate;
         }
       }
       DivSample* s=parent->getSample(chan[i].sample);

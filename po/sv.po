@@ -64,7 +64,7 @@ msgstr "29xy: Ange auto-ADSR (x: täljare; y: nämnare)"
 
 #: src/engine/sysDef.cpp:436
 msgid "2Cxx: Set timer period offset (bit 7: sign)"
-msgstr ""
+msgstr "2Cxx: Ställ in timerperiodsoffset (bit 7: tecken)"
 
 #: src/engine/sysDef.cpp:437 src/engine/sysDef.cpp:450
 msgid "2Exx: Write to I/O port A"
@@ -7541,7 +7541,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:1264
 msgid "Use OPL3 instead of OPL2 for S3M import"
-msgstr ""
+msgstr "Använd OPL3 i stället för OPL2 för S3M-importering"
 
 #: src/gui/settings.cpp:1273
 msgid "Output"
@@ -11024,8 +11024,8 @@ msgid "all members of Deflers of Noice!"
 msgstr "alla medlemmar i Deflers of Noice!"
 
 #: src/gui/about.cpp:311
-msgid "copyright © 2021-2024 tildearrow"
-msgstr "upphovsrätt © 2021-2024 tildearrow"
+msgid "copyright © 2021-2025 tildearrow"
+msgstr "upphovsrätt © 2021-2025 tildearrow"
 
 #: src/gui/about.cpp:312
 msgid "(and contributors)."
@@ -11367,7 +11367,7 @@ msgstr ""
 "jag försöker inte få det att se ut som en med alla dessa flaggor.\n"
 "\n"
 "och hur är det med de andra flaggorna som inte har med DefleMask att göra? "
-"de är för .mod import, framtida FamiTracker-import och personlig smak!\n"
+"de är för .mod import, framtid FamiTracker-import och personlig smak!\n"
 "\n"
 "slut på tjatet"
 

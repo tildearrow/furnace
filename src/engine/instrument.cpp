@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@ bool DivInstrumentFM::operator==(const DivInstrumentFM& other) {
     _C(ams2) &&
     _C(ops) &&
     _C(opllPreset) &&
+    _C(block) &&
     _C(fixedDrums) &&
     _C(kickFreq) &&
     _C(snareHatFreq) &&
@@ -106,6 +107,7 @@ bool DivInstrumentC64::operator==(const DivInstrumentC64& other) {
     _C(dutyIsAbs) &&
     _C(filterIsAbs) &&
     _C(noTest) &&
+    _C(resetDuty) &&
     _C(res) &&
     _C(cut) &&
     _C(hp) &&
@@ -258,6 +260,65 @@ bool DivInstrumentESFM::Operator::operator==(const DivInstrumentESFM::Operator& 
   );
 }
 
+bool DivInstrumentSID3::operator==(const DivInstrumentSID3& other) {
+  return (
+    _C(triOn) &&
+    _C(sawOn) &&
+    _C(pulseOn) &&
+    _C(noiseOn) &&
+    _C(a) &&
+    _C(d) &&
+    _C(s) &&
+    _C(r) &&
+    _C(sr) &&
+    _C(duty) &&
+    _C(ringMod) &&
+    _C(oscSync) &&
+    _C(phase_mod) &&
+    _C(phase_mod_source) &&
+    _C(ring_mod_source) &&
+    _C(sync_source) &&
+    _C(specialWaveOn) &&
+    _C(oneBitNoise) &&
+    _C(separateNoisePitch) &&
+    _C(special_wave) &&
+    _C(doWavetable) &&
+    _C(dutyIsAbs) &&
+    _C(resetDuty) &&
+    _C(phaseInv) &&
+    _C(feedback) &&
+    _C(mixMode) &&
+    _C(filt[0]) &&
+    _C(filt[1]) &&
+    _C(filt[2]) &&
+    _C(filt[3])
+  );
+}
+
+bool DivInstrumentSID3::Filter::operator==(const DivInstrumentSID3::Filter& other) {
+  return (
+    _C(cutoff) &&
+    _C(resonance) &&
+    _C(output_volume) &&
+    _C(distortion_level) &&
+    _C(mode) &&
+    _C(enabled) &&
+    _C(init) &&
+    _C(filter_matrix) &&
+    _C(absoluteCutoff) &&
+    _C(bindCutoffToNote) &&
+    _C(bindCutoffToNoteStrength) &&
+    _C(bindCutoffToNoteCenter) &&
+    _C(bindCutoffToNoteDir) &&
+    _C(bindCutoffOnNote) &&
+    _C(bindResonanceToNote) &&
+    _C(bindResonanceToNoteStrength) &&
+    _C(bindResonanceToNoteCenter) &&
+    _C(bindResonanceToNoteDir) &&
+    _C(bindResonanceOnNote)
+  );
+}
+
 bool DivInstrumentPowerNoise::operator==(const DivInstrumentPowerNoise& other) {
   return _C(octave);
 }
@@ -349,6 +410,7 @@ void DivInstrument::writeFeatureFM(SafeWriter* w, bool fui) {
   w->writeC(((fm.alg&7)<<4)|(fm.fb&7));
   w->writeC(((fm.fms2&7)<<5)|((fm.ams&3)<<3)|(fm.fms&7));
   w->writeC(((fm.ams2&3)<<6)|((fm.ops==4)?32:0)|(fm.opllPreset&31));
+  w->writeC(fm.block&15);
 
   // operator data
   for (int i=0; i<opCount; i++) {
@@ -622,7 +684,7 @@ void DivInstrument::writeFeature64(SafeWriter* w) {
   w->writeS(c64.duty);
   w->writeS((unsigned short)((c64.cut&4095)|((c64.res&15)<<12)));
 
-  w->writeC((c64.res>>4)&15);
+  w->writeC(((c64.res>>4)&15)|(c64.resetDuty?0x10:0));
 
   FEATURE_END;
 }
@@ -897,9 +959,9 @@ void DivInstrument::writeFeatureMP(SafeWriter* w) {
   w->writeC(multipcm.am);
 
   unsigned char next=(
-    (multipcm.damp?1:0)&
-    (multipcm.pseudoReverb?2:0)&
-    (multipcm.lfoReset?4:0)&
+    (multipcm.damp?1:0)|
+    (multipcm.pseudoReverb?2:0)|
+    (multipcm.lfoReset?4:0)|
     (multipcm.levelDirect?8:0)
   );
   w->writeC(next);
@@ -995,6 +1057,80 @@ void DivInstrument::writeFeatureS2(SafeWriter* w) {
   FEATURE_END;
 }
 
+void DivInstrument::writeFeatureS3(SafeWriter* w) {
+  FEATURE_BEGIN("S3");
+
+  w->writeC(
+    (sid3.dutyIsAbs?0x80:0)|
+    (sid3.noiseOn?8:0)|
+    (sid3.pulseOn?4:0)|
+    (sid3.sawOn?2:0)|
+    (sid3.triOn?1:0)
+  );
+
+  w->writeC(sid3.a);
+  w->writeC(sid3.d);
+  w->writeC(sid3.s);
+  w->writeC(sid3.sr);
+  w->writeC(sid3.r);
+
+  w->writeC(sid3.mixMode);
+
+  w->writeS(sid3.duty);
+
+  w->writeC(
+    (sid3.phase_mod?0x80:0)|
+    (sid3.specialWaveOn?0x40:0)|
+    (sid3.oneBitNoise?0x20:0)|
+    (sid3.separateNoisePitch?0x10:0)|
+    (sid3.doWavetable?8:0)|
+    (sid3.resetDuty?4:0)|
+    (sid3.oscSync?2:0)|
+    (sid3.ringMod?1:0)
+  );
+
+  w->writeC(sid3.phase_mod_source);
+  w->writeC(sid3.ring_mod_source);
+  w->writeC(sid3.sync_source);
+  w->writeC(sid3.special_wave);
+  w->writeC(sid3.phaseInv);
+  w->writeC(sid3.feedback);
+
+  w->writeC(4); // number of filters
+
+  for (int i=0; i<4; i++) {
+    w->writeC(
+      (sid3.filt[i].enabled?0x80:0)|
+      (sid3.filt[i].init?0x40:0)|
+      (sid3.filt[i].absoluteCutoff?0x20:0)|
+      (sid3.filt[i].bindCutoffToNote?0x10:0)|
+      (sid3.filt[i].bindCutoffToNoteDir?8:0)|
+      (sid3.filt[i].bindCutoffOnNote?4:0)|
+      (sid3.filt[i].bindResonanceToNote?2:0)|
+      (sid3.filt[i].bindResonanceToNoteDir?1:0)
+    );
+
+    w->writeC(
+      (sid3.filt[i].bindResonanceOnNote?0x80:0)
+    );
+
+    w->writeS(sid3.filt[i].cutoff);
+
+    w->writeC(sid3.filt[i].resonance);
+    w->writeC(sid3.filt[i].output_volume);
+    w->writeC(sid3.filt[i].distortion_level);
+    w->writeC(sid3.filt[i].mode);
+    w->writeC(sid3.filt[i].filter_matrix);
+
+    w->writeC(sid3.filt[i].bindCutoffToNoteStrength);
+    w->writeC(sid3.filt[i].bindCutoffToNoteCenter);
+    w->writeC(sid3.filt[i].bindResonanceToNoteStrength);
+    w->writeC(sid3.filt[i].bindResonanceToNoteCenter);
+  }
+
+  FEATURE_END;
+}
+
 void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bool insName) {
   size_t blockStartSeek=0;
   size_t blockEndSeek=0;
@@ -1041,6 +1177,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   bool featureEF=false;
   bool featurePN=false;
   bool featureS2=false;
+  bool featureS3=false;
 
   bool checkForWL=false;
 
@@ -1284,6 +1421,13 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         feature64=true;
         featureS2=true;
         break;
+      case DIV_INS_SID3:
+        featureS3=true;
+        checkForWL=true;
+        featureSM=true;
+        if (amiga.useSample) featureSL=true;
+        if (ws.enabled) featureWS=true;
+        break;
       case DIV_INS_SUPERVISION:
         featureSM=true;
         if (amiga.useSample) featureSL=true;
@@ -1346,6 +1490,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     if (sid2!=defaultIns.sid2) {
       featureS2=true;
     }
+    if (sid3!=defaultIns.sid3) {
+      featureS3=true;
+    }
   }
 
   // check ins name
@@ -1384,7 +1531,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
   }
 
-  if (featureFM || !fui) {
+  if (featureFM || featureS3 || !fui) {
     // check FM macros
     int opCount=4;
     bool storeExtendedAsWell=true;
@@ -1497,6 +1644,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   if (featureS2) {
     writeFeatureS2(w);
   }
+  if (featureS3) {
+    writeFeatureS3(w);
+  }
 
   if (fui && (featureSL || featureWL)) {
     w->write("EN",2);
@@ -1592,6 +1742,11 @@ void DivInstrument::readFeatureFM(SafeReader& reader, short version) {
   fm.ams2=(next>>6)&3;
   fm.ops=(next&32)?4:2;
   fm.opllPreset=next&31;
+
+  if (version>=224) {
+    next=reader.readC();
+    fm.block=next&15;
+  }
 
   // read operators
   for (int i=0; i<opCount; i++) {
@@ -1812,7 +1967,12 @@ void DivInstrument::readFeature64(SafeReader& reader, bool& volIsCutoff, short v
   c64.res=cr>>12;
 
   if (version>=199) {
-    c64.res|=((unsigned char)reader.readC())<<4;
+    next=(unsigned char)reader.readC();
+    c64.res|=(next&15)<<4;
+
+    if (version>=222) {
+      c64.resetDuty=next&0x10;
+    }
   }
 
   READ_FEAT_END;
@@ -2345,6 +2505,82 @@ void DivInstrument::readFeatureS2(SafeReader& reader, short version) {
   READ_FEAT_END;
 }
 
+void DivInstrument::readFeatureS3(SafeReader& reader, short version) {
+  READ_FEAT_BEGIN;
+
+  unsigned char next=reader.readC();
+
+  sid3.dutyIsAbs=next&0x80;
+  sid3.noiseOn=next&8;
+  sid3.pulseOn=next&4;
+  sid3.sawOn=next&2;
+  sid3.triOn=next&1;
+
+  sid3.a=reader.readC();
+  sid3.d=reader.readC();
+  sid3.s=reader.readC();
+  sid3.sr=reader.readC();
+  sid3.r=reader.readC();
+
+  sid3.mixMode=reader.readC();
+
+  sid3.duty=reader.readS();
+
+  next=reader.readC();
+
+  sid3.phase_mod=next&0x80;
+  sid3.specialWaveOn=next&0x40;
+  sid3.oneBitNoise=next&0x20;
+  sid3.separateNoisePitch=next&0x10;
+  sid3.doWavetable=next&8;
+  sid3.resetDuty=next&4;
+  sid3.oscSync=next&2;
+  sid3.ringMod=next&1;
+
+  sid3.phase_mod_source=reader.readC();
+  sid3.ring_mod_source=reader.readC();
+  sid3.sync_source=reader.readC();
+  sid3.special_wave=reader.readC();
+  sid3.phaseInv=reader.readC();
+  sid3.feedback=reader.readC();
+
+  unsigned char numFilters=reader.readC();
+
+  for (int i=0; i<numFilters; i++) {
+    if (i>=4) break;
+
+    next=reader.readC();
+
+    sid3.filt[i].enabled=next&0x80;
+    sid3.filt[i].init=next&0x40;
+    sid3.filt[i].absoluteCutoff=next&0x20;
+    sid3.filt[i].bindCutoffToNote=next&0x10;
+    sid3.filt[i].bindCutoffToNoteDir=next&8;
+    sid3.filt[i].bindCutoffOnNote=next&4;
+    sid3.filt[i].bindResonanceToNote=next&2;
+    sid3.filt[i].bindResonanceToNoteDir=next&1;
+
+    next=reader.readC();
+
+    sid3.filt[i].bindResonanceOnNote=next&0x80;
+
+    sid3.filt[i].cutoff=reader.readS();
+
+    sid3.filt[i].resonance=reader.readC();
+    sid3.filt[i].output_volume=reader.readC();
+    sid3.filt[i].distortion_level=reader.readC();
+    sid3.filt[i].mode=reader.readC();
+    sid3.filt[i].filter_matrix=reader.readC();
+
+    sid3.filt[i].bindCutoffToNoteStrength=reader.readC();
+    sid3.filt[i].bindCutoffToNoteCenter=reader.readC();
+    sid3.filt[i].bindResonanceToNoteStrength=reader.readC();
+    sid3.filt[i].bindResonanceToNoteCenter=reader.readC();
+  }
+
+  READ_FEAT_END;
+}
+
 DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song) {
   unsigned char featCode[2];
   bool volIsCutoff=false;
@@ -2419,6 +2655,8 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
       readFeaturePN(reader,version);
     } else if (memcmp(featCode,"S2",2)==0) { // SID2
       readFeatureS2(reader,version);
+    } else if (memcmp(featCode,"S3",2)==0) { // SID3
+      readFeatureS3(reader,version);
     } else {
       if (song==NULL && (memcmp(featCode,"SL",2)==0 || (memcmp(featCode,"WL",2)==0))) {
         // nothing

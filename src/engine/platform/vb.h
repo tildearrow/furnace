@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,22 +27,27 @@
 
 class DivPlatformVB: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
+    int antiClickPeriodCount, antiClickWavePos;
     unsigned char pan, envLow, envHigh;
-    bool noise, deferredWaveUpdate;
+    bool noise, deferredWaveUpdate, intWritten;
     signed short wave;
     DivWaveSynth ws;
     Channel():
       SharedChannel<signed char>(15),
+      antiClickPeriodCount(0),
+      antiClickWavePos(0),
       pan(255),
       envLow(0),
       envHigh(0),
       noise(false),
       deferredWaveUpdate(false),
+      intWritten(false),
       wave(-1) {}
   };
   Channel chan[6];
   DivDispatchOscBuffer* oscBuf[6];
   bool isMuted[6];
+  bool antiClickEnabled, screwThis;
   struct QueuedWrite {
     unsigned short addr;
     unsigned char val;

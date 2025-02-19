@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,6 +44,7 @@ class DivPlatformYM2203Ext: public DivPlatformYM2203 {
     void notifyInsDeletion(void* ins);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
+    void setCSM(bool isCSM);
     ~DivPlatformYM2203Ext();
 };
 

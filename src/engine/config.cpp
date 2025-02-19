@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -115,6 +115,8 @@ void DivConfig::parseLine(const char* line) {
 
 bool DivConfig::loadFromFile(const char* path, bool createOnFail, bool redundancy) {
   char line[4096];
+  String lineStr;
+  lineStr.reserve(4096);
   logD("opening config for read: %s",path);
 
   FILE* f=NULL;
@@ -210,7 +212,15 @@ bool DivConfig::loadFromFile(const char* path, bool createOnFail, bool redundanc
     if (fgets(line,4095,f)==NULL) {
       break;
     }
-    parseLine(line);
+    lineStr+=line;
+    if (!lineStr.empty() && !feof(f)) {
+      if (lineStr[lineStr.size()-1]!='\n') {
+        continue;
+      }
+    }
+    parseLine(lineStr.c_str());
+    lineStr="";
+    lineStr.reserve(4096);
   }
   logD("end of file (%s)",strerror(errno));
   fclose(f);

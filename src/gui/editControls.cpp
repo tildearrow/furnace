@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -106,7 +106,7 @@ const int mobileButtonActions[32]={
   0,
 
   // page 3
-  0,
+  GUI_ACTION_CMDPAL_INSTRUMENT_CHANGE,
   GUI_ACTION_WINDOW_FIND,
   GUI_ACTION_PAT_COLLAPSE_ROWS,
   GUI_ACTION_PAT_EXPAND_ROWS,
@@ -620,6 +620,10 @@ void FurnaceGUI::drawMobileControls() {
           mobileMenuPos=0.0f;
           aboutOpen=true;
         }
+        ImGui::SameLine();
+        if (ImGui::Button(_("WelcPopup"))) {
+          tutorial.protoWelcome=false;
+        }
         if (ImGui::Button(_("Switch to Desktop Mode"))) {
           toggleMobileUI(!mobileUI);
         }
@@ -1020,7 +1024,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_PLAY_CIRCLE "##PlayAgain")) {
           e->setRepeatPattern(false);
-          play();
+          play(0);
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("Play from the beginning of this pattern"));
@@ -1028,7 +1032,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_STEP_FORWARD "##PlayRepeat")) {
           e->setRepeatPattern(true);
-          play();
+          play(0);
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("Repeat from the beginning of this pattern"));
