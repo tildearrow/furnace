@@ -11,7 +11,7 @@ but hey, Furnace supports it, so...
 the Atari Lynx has a 6502-based CPU with a sound part (this chip is known as MIKEY). it has the following sound capabilities:
 - 4 channels of LFSR-based sound, which can be modulated with different frequencies (×0, ×1, ×2, ×3, ×4, ×5, ×7, ×10, and ×11) to create square waves and wavetable-like results.
   - likewise, when a lot of the modulators are activated, this can provide a "pseudo-white noise"-like effect, which can be useful for drums and sound effects.
-- hard stereo panning capabilities via the `08xx` effect command.
+- soft stereo panning capabilities via the `08xx` effect command.
 - four 8-bit DACs (Digital to Analog Converter), one for each voice. this allows for sample playback (at the cost of CPU time and memory).
 - a variety of pitches to choose from, and they go from 32Hz to "above the range of human hearing", according to Atari.
 

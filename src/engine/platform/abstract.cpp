@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,8 +37,7 @@ unsigned short DivDispatch::getPan(int chan) {
   return 0;
 }
 
-DivChannelPair DivDispatch::getPaired(int chan) {
-  return DivChannelPair();
+void DivDispatch::getPaired(int ch, std::vector<DivChannelPair>& ret) {
 }
 
 DivChannelModeHints DivDispatch::getModeHints(int chan) {

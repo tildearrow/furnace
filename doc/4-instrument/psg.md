@@ -1,6 +1,6 @@
 # Sega PSG instrument editor
 
-the instrument editor for Sega PSG (SMS, and other TI SN76489 derivatives) consists of these macros:
+the instrument editor for Sega PSG, SMS, and other TI SN76489 derivatives consists of these macros:
 
 - **Volume**: volume sequence.
 - **Arpeggio**: pitch sequence.

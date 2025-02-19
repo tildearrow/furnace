@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev221"
-#define DIV_ENGINE_VERSION 221
+#define DIV_VERSION "dev224"
+#define DIV_ENGINE_VERSION 224
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -487,6 +487,7 @@ class DivEngine {
   double midiTimeDrift;
   int stepPlay;
   int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, curMidiClock, curMidiTime, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
+  double totalTicksOff;
   int curMidiTimePiece, curMidiTimeCode;
   unsigned char extValue, pendingMetroTick;
   DivGroovePattern speeds;
@@ -671,6 +672,7 @@ class DivEngine {
   // add every export method here
   friend class DivROMExport;
   friend class DivExportAmigaValidation;
+  friend class DivExportSAPR;
   friend class DivExportTiuna;
   friend class DivExportZSM;
 
@@ -803,10 +805,10 @@ class DivEngine {
     double calcBaseFreq(double clock, double divider, int note, bool period);
 
     // calculate base frequency in f-num/block format
-    int calcBaseFreqFNumBlock(double clock, double divider, int note, int bits);
+    int calcBaseFreqFNumBlock(double clock, double divider, int note, int bits, int fixedBlock);
 
     // calculate frequency/period
-    int calcFreq(int base, int pitch, int arp, bool arpFixed, bool period=false, int octave=0, int pitch2=0, double clock=1.0, double divider=1.0, int blockBits=0);
+    int calcFreq(int base, int pitch, int arp, bool arpFixed, bool period=false, int octave=0, int pitch2=0, double clock=1.0, double divider=1.0, int blockBits=0, int fixedBlock=0);
 
     // calculate arpeggio
     int calcArp(int note, int arp, int offset=0);
@@ -836,6 +838,9 @@ class DivEngine {
 
     // reset playback state
     void syncReset();
+
+    // get C-4 rate for samples
+    double getCenterRate();
 
     // sample preview query
     bool isPreviewingSample();
@@ -906,6 +911,8 @@ class DivEngine {
 
     // get ROM export definition
     const DivROMExportDef* getROMExportDef(DivROMExportOptions opt);
+    // check whether ROM export option is viable for current song
+    bool isROMExportViable(DivROMExportOptions opt);
 
     // convert sample rate format
     int fileToDivRate(int frate);
@@ -1103,6 +1110,11 @@ class DivEngine {
     bool moveWaveDown(int which);
     bool moveSampleDown(int which);
 
+    // swap things
+    bool swapInstruments(int a, int b);
+    bool swapWaves(int a, int b);
+    bool swapSamples(int a, int b);
+
     // automatic patchbay
     void autoPatchbay();
     void autoPatchbayP();
@@ -1151,7 +1163,7 @@ class DivEngine {
     void* getDispatchChanState(int chan);
 
     // get channel pairs
-    DivChannelPair getChanPaired(int chan);
+    void getChanPaired(int chan, std::vector<DivChannelPair>& ret);
 
     // get channel mode hints
     DivChannelModeHints getChanModeHints(int chan);
@@ -1450,6 +1462,7 @@ class DivEngine {
       lastCmds(0),
       cmdsPerSecond(0),
       globalPitch(0),
+      totalTicksOff(0.0),
       curMidiTimePiece(0),
       curMidiTimeCode(0),
       extValue(0),

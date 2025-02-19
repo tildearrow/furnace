@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,6 +75,10 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   ImGui::TableNextRow(0,lineHeight);
   ImGui::TableNextColumn();
   float cursorPosY=ImGui::GetCursorPos().y-ImGui::GetScrollY();
+  // store playhead position on the screen
+  if (ord==playOrder && oldRow==i) {
+    playheadY=ImGui::GetCursorScreenPos().y;
+  }
   // check if the row is visible
   if (cursorPosY<-lineHeight || cursorPosY>ImGui::GetWindowSize().y) {
     return;
@@ -900,6 +904,7 @@ void FurnaceGUI::drawPattern() {
             } else if (e->curSubSong->chanCollapse[i]>0) {
               e->curSubSong->chanCollapse[i]--;
             }
+            finishSelection();
           }
           if (!e->curSubSong->chanCollapse[i]) {
             ImGui::SameLine();
@@ -908,6 +913,7 @@ void FurnaceGUI::drawPattern() {
             if (ImGui::SmallButton(chanID)) {
               e->curPat[i].effectCols--;
               if (e->curPat[i].effectCols<1) e->curPat[i].effectCols=1;
+              finishSelection();
             }
             ImGui::EndDisabled();
             ImGui::SameLine();
@@ -916,6 +922,7 @@ void FurnaceGUI::drawPattern() {
             if (ImGui::SmallButton(chanID)) {
               e->curPat[i].effectCols++;
               if (e->curPat[i].effectCols>DIV_MAX_EFFECTS) e->curPat[i].effectCols=DIV_MAX_EFFECTS;
+              finishSelection();
             }
             ImGui::EndDisabled();
           }
@@ -1282,116 +1289,120 @@ void FurnaceGUI::drawPattern() {
       memset(floors,0,4*4*sizeof(unsigned int));
 
       for (int i=0; i<chans; i++) {
-        bool isPaired=false;
-        int numPairs=0;
-        unsigned int pairMin=i;
-        unsigned int pairMax=i;
-        unsigned char curFloor=0;
-        if (!e->curSubSong->chanShow[i]) {
-          continue;
-        }
+        std::vector<DivChannelPair> pairs;
+        e->getChanPaired(i,pairs);
 
-        DivChannelPair pairs=e->getChanPaired(i);
-        for (int j=0; j<8; j++) {
-          if (pairs.pairs[j]==-1) continue;
-          int pairCh=e->dispatchFirstChan[i]+pairs.pairs[j];
-          if (!e->curSubSong->chanShow[pairCh]) {
+        for (DivChannelPair pair: pairs) {
+          bool isPaired=false;
+          int numPairs=0;
+          unsigned int pairMin=i;
+          unsigned int pairMax=i;
+          unsigned char curFloor=0;
+          if (!e->curSubSong->chanShow[i]) {
             continue;
           }
-          isPaired=true;
-          if ((unsigned int)pairCh<pairMin) pairMin=pairCh;
-          if ((unsigned int)pairCh>pairMax) pairMax=pairCh;
-        }
 
-        if (!isPaired) continue;
-
-        float posY=chanHeadBottom;
-
-        // find a free floor
-        while (curFloor<4) {
-          bool free=true;
-          for (unsigned int j=pairMin; j<=pairMax; j++) {
-            const unsigned int j0=j>>5;
-            const unsigned int j1=1U<<(j&31);
-            if (floors[curFloor][j0]&j1) {
-              free=false;
-              break;
+          for (int j=0; j<8; j++) {
+            if (pair.pairs[j]==-1) continue;
+            int pairCh=e->dispatchFirstChan[i]+pair.pairs[j];
+            if (!e->curSubSong->chanShow[pairCh]) {
+              continue;
             }
-          }
-          if (free) break;
-          curFloor++;
-        }
-        if (curFloor<4) {
-          // occupy floor
-          floors[curFloor][pairMin>>5]|=1U<<(pairMin&31);
-          floors[curFloor][pairMax>>5]|=1U<<(pairMax&31);
-        }
-
-        pos=(patChanX[i+1]+patChanX[i])*0.5;
-        posCenter=pos;
-        posMin=pos;
-        posMax=pos;
-        numPairs++;
-
-        if (pairs.label==NULL) {
-          textSize=ImGui::CalcTextSize("???");
-        } else {
-          textSize=ImGui::CalcTextSize(pairs.label);
-        }
-
-        posY+=(textSize.y+ImGui::GetStyle().ItemSpacing.y)*curFloor;
-
-        tdl->AddLine(
-          ImVec2(pos,chanHeadBottom),
-          ImVec2(pos,posY+textSize.y),
-          ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
-          2.0f*dpiScale
-        );
-
-        for (int j=0; j<8; j++) {
-          if (pairs.pairs[j]==-1) continue;
-          int pairCh=e->dispatchFirstChan[i]+pairs.pairs[j];
-          if (!e->curSubSong->chanShow[pairCh]) {
-            continue;
+            isPaired=true;
+            if ((unsigned int)pairCh<pairMin) pairMin=pairCh;
+            if ((unsigned int)pairCh>pairMax) pairMax=pairCh;
           }
 
-          pos=(patChanX[pairCh+1]+patChanX[pairCh])*0.5;
-          posCenter+=pos;
+          if (!isPaired) continue;
+
+          float posY=chanHeadBottom;
+
+          // find a free floor
+          while (curFloor<4) {
+            bool free=true;
+            for (unsigned int j=pairMin; j<=pairMax; j++) {
+              const unsigned int j0=j>>5;
+              const unsigned int j1=1U<<(j&31);
+              if (floors[curFloor][j0]&j1) {
+                free=false;
+                break;
+              }
+            }
+            if (free) break;
+            curFloor++;
+          }
+          if (curFloor<4) {
+            // occupy floor
+            floors[curFloor][pairMin>>5]|=1U<<(pairMin&31);
+            floors[curFloor][pairMax>>5]|=1U<<(pairMax&31);
+          }
+
+          pos=(patChanX[i+1]+patChanX[i])*0.5;
+          posCenter=pos;
+          posMin=pos;
+          posMax=pos;
           numPairs++;
-          if (pos<posMin) posMin=pos;
-          if (pos>posMax) posMax=pos;
+
+          if (pair.label==NULL) {
+            textSize=ImGui::CalcTextSize("???");
+          } else {
+            textSize=ImGui::CalcTextSize(pair.label);
+          }
+
+          posY+=(textSize.y+ImGui::GetStyle().ItemSpacing.y)*curFloor;
+
           tdl->AddLine(
             ImVec2(pos,chanHeadBottom),
             ImVec2(pos,posY+textSize.y),
             ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
             2.0f*dpiScale
           );
-        }
 
-        posCenter/=numPairs;
+          for (int j=0; j<8; j++) {
+            if (pair.pairs[j]==-1) continue;
+            int pairCh=e->dispatchFirstChan[i]+pair.pairs[j];
+            if (!e->curSubSong->chanShow[pairCh]) {
+              continue;
+            }
 
-        if (pairs.label==NULL) {
-          tdl->AddLine(
-            ImVec2(posMin,posY+textSize.y),
-            ImVec2(posMax,posY+textSize.y),
-            ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
-            2.0f*dpiScale
-          );
-        } else {
-          tdl->AddLine(
-            ImVec2(posMin,posY+textSize.y),
-            ImVec2(posCenter-textSize.x*0.5-6.0f*dpiScale,posY+textSize.y),
-            ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
-            2.0f*dpiScale
-          );
-          tdl->AddLine(
-            ImVec2(posCenter+textSize.x*0.5+6.0f*dpiScale,posY+textSize.y),
-            ImVec2(posMax,posY+textSize.y),
-            ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
-            2.0f*dpiScale
-          );
+            pos=(patChanX[pairCh+1]+patChanX[pairCh])*0.5;
+            posCenter+=pos;
+            numPairs++;
+            if (pos<posMin) posMin=pos;
+            if (pos>posMax) posMax=pos;
+            tdl->AddLine(
+              ImVec2(pos,chanHeadBottom),
+              ImVec2(pos,posY+textSize.y),
+              ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+              2.0f*dpiScale
+            );
+          }
 
-          delayedLabels.push_back(DelayedLabel(posCenter,posY,textSize,pairs.label));
+          posCenter/=numPairs;
+
+          if (pair.label==NULL) {
+            tdl->AddLine(
+              ImVec2(posMin,posY+textSize.y),
+              ImVec2(posMax,posY+textSize.y),
+              ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+              2.0f*dpiScale
+            );
+          } else {
+            tdl->AddLine(
+              ImVec2(posMin,posY+textSize.y),
+              ImVec2(posCenter-textSize.x*0.5-6.0f*dpiScale,posY+textSize.y),
+              ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+              2.0f*dpiScale
+            );
+            tdl->AddLine(
+              ImVec2(posCenter+textSize.x*0.5+6.0f*dpiScale,posY+textSize.y),
+              ImVec2(posMax,posY+textSize.y),
+              ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+              2.0f*dpiScale
+            );
+
+            delayedLabels.push_back(DelayedLabel(posCenter,posY,textSize,pair.label));
+          }
         }
       }
 
@@ -1479,7 +1490,7 @@ void FurnaceGUI::drawPattern() {
     if (fancyPattern) { // visualizer
       e->getCommandStream(cmdStream);
       ImDrawList* dl=ImGui::GetWindowDrawList();
-      ImVec2 off=ImVec2(0.0f,ImGui::GetWindowPos().y);
+      ImVec2 off=ImVec2(0.0f,0.0f);
 
       ImVec2 winMin=ImGui::GetWindowPos();
       ImVec2 winMax=ImVec2(
@@ -1612,7 +1623,7 @@ void FurnaceGUI::drawPattern() {
         for (int j=0; j<num; j++) {
           ImVec2 partPos=ImVec2(
             off.x+patChanX[i.chan]+fmod(rand(),width),
-            off.y+(ImGui::GetWindowHeight()*0.5f)+randRange(0,patFont->FontSize)
+            off.y+(playheadY)+randRange(0,patFont->FontSize)
           );
 
           if (partPos.x<winMin.x || partPos.y<winMin.y || partPos.x>winMax.x || partPos.y>winMax.y) continue;

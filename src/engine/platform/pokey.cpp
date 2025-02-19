@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -407,22 +407,21 @@ DivMacroInt* DivPlatformPOKEY::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
-DivChannelPair DivPlatformPOKEY::getPaired(int ch) {
+void DivPlatformPOKEY::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   switch (ch) {
     case 0:
-      if (audctl&4) return DivChannelPair("filter",2);
+      if (audctl&4) ret.push_back(DivChannelPair(_("filter"),2));
       break;
     case 1:
-      if (audctl&16) return DivChannelPair("16-bit",0);
+      if (audctl&16) ret.push_back(DivChannelPair(_("16-bit"),0));
       break;
     case 2:
-      if (audctl&8) return DivChannelPair("16-bit",3);
+      if (audctl&8) ret.push_back(DivChannelPair(_("16-bit"),3));
       break;
     case 3:
-      if (audctl&2) return DivChannelPair("filter",1);
+      if (audctl&2) ret.push_back(DivChannelPair(_("filter"),1));
       break;
   }
-  return DivChannelPair();
 }
 
 DivDispatchOscBuffer* DivPlatformPOKEY::getOscBuffer(int ch) {

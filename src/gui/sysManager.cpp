@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,9 +82,26 @@ void FurnaceGUI::drawSysManager() {
           ImGui::EndDragDropTarget();
         }
         ImGui::TableNextColumn();
+        bool isNotCollapsed=true;
         if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSM%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
           drawSysConf(i,i,e->song.system[i],e->song.systemFlags[i],true);
+          isNotCollapsed=false;
           ImGui::TreePop();
+        }
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_Stationary) && isNotCollapsed) {
+          if (e->song.system[i]!=DIV_SYSTEM_NULL) {
+            const DivSysDef* sysDef=e->getSystemDef(e->song.system[i]);
+            if (ImGui::BeginTooltip()) {
+              ImGui::Dummy(ImVec2(MIN(scrW*dpiScale,400.0f*dpiScale),0.0f));
+              ImGui::PushTextWrapPos(MIN(scrW*dpiScale,400.0f*dpiScale)); // arbitrary constant
+              ImGui::TextWrapped("%s",sysDef->description);
+              ImGui::Separator();
+              drawSystemChannelInfoText(sysDef);
+              drawSystemChannelInfo(sysDef);
+              ImGui::PopTextWrapPos();
+              ImGui::EndTooltip();
+            }
+          }
         }
         ImGui::TableNextColumn();
         if (ImGui::Button(_("Clone##SysDup"))) {
@@ -114,6 +131,9 @@ void FurnaceGUI::drawSysManager() {
             } else {
               showError(fmt::sprintf(_("cannot change chip! (%s)"),e->getLastError()));
             }
+            ImGui::CloseCurrentPopup();
+          }
+          if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
             ImGui::CloseCurrentPopup();
           }
           ImGui::EndPopup();
@@ -150,6 +170,9 @@ void FurnaceGUI::drawSysManager() {
             }
             updateWindowTitle();
             updateROMExportAvail();
+            ImGui::CloseCurrentPopup();
+          }
+          if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
             ImGui::CloseCurrentPopup();
           }
           ImGui::EndPopup();

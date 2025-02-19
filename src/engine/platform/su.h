@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +38,9 @@ class DivPlatformSoundUnit: public DivDispatch {
     signed short wave;
     unsigned short hwSeqPos;
     short hwSeqDelay;
+    short cutoff_slide;
+    short pw_slide;
+    short virtual_duty;
     Channel():
       SharedChannel<signed char>(127),
       cutoff(16383),
@@ -71,7 +74,10 @@ class DivPlatformSoundUnit: public DivDispatch {
       syncTimer(0),
       wave(0),
       hwSeqPos(0),
-      hwSeqDelay(0) {}
+      hwSeqDelay(0),
+      cutoff_slide(0),
+      pw_slide(0),
+      virtual_duty(0) {}
   };
   Channel chan[8];
   DivDispatchOscBuffer* oscBuf[8];

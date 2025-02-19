@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -239,7 +239,7 @@ void DivPlatformDave::tick(bool sysTick) {
         double off=1.0;
         if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
           DivSample* s=parent->getSample(chan[i].dacSample);
-          off=(double)s->centerRate/8363.0;
+          off=(double)s->centerRate/parent->getCenterRate();
         }
         chan[i].dacRate=chan[i].freq*off;
       } else {
@@ -524,12 +524,16 @@ unsigned short DivPlatformDave::getPan(int ch) {
   return (chan[ch].panL<<8)|chan[ch].panR;
 }
 
-// TODO: the rest
-DivChannelPair DivPlatformDave::getPaired(int ch) {
+void DivPlatformDave::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   if (chan[ch].highPass) {
-    DivChannelPair("high",(ch+1)&3);
+    ret.push_back(DivChannelPair(_("high"),(ch+1)&3));
   }
-  return DivChannelPair();
+  if (chan[ch].ringMod) {
+    ret.push_back(DivChannelPair(_("ring"),(ch+2)&3));
+  }
+  if (chan[ch].lowPass && ch==3) {
+    ret.push_back(DivChannelPair(_("low"),2));
+  }
 }
 
 DivChannelModeHints DivPlatformDave::getModeHints(int ch) {

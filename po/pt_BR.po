@@ -10990,8 +10990,8 @@ msgid "all members of Deflers of Noice!"
 msgstr "todos os membros de Deflers of Noice!"
 
 #: src/gui/about.cpp:311
-msgid "copyright © 2021-2024 tildearrow"
-msgstr "copyright © 2021-2024 tildearrow"
+msgid "copyright © 2021-2025 tildearrow"
+msgstr "copyright © 2021-2025 tildearrow"
 
 #: src/gui/about.cpp:312
 msgid "(and contributors)."
@@ -14315,11 +14315,11 @@ msgstr "configurações..."
 
 #: src/gui/gui.cpp:4623
 msgid "Window"
-msgstr ""
+msgstr "Janela"
 
 #: src/gui/gui.cpp:4623
 msgid "window"
-msgstr ""
+msgstr "janela"
 
 #: src/gui/gui.cpp:4624
 msgid "song"
@@ -14459,11 +14459,11 @@ msgstr "spoiler"
 
 #: src/gui/gui.cpp:4680
 msgid "Help"
-msgstr ""
+msgstr "Ajuda"
 
 #: src/gui/gui.cpp:4680
 msgid "help"
-msgstr ""
+msgstr "ajuda"
 
 #: src/gui/gui.cpp:4682
 msgid "debug menu"

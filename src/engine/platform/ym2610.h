@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,6 +45,7 @@ class DivPlatformYM2610: public DivPlatformYM2610Base {
     void acquire_lle(short** buf, size_t len);
     
   public:
+    unsigned char isCSM;
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
@@ -66,9 +67,11 @@ class DivPlatformYM2610: public DivPlatformYM2610Base {
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
+    void setCSM(bool isCSM);
     void quit();
     DivPlatformYM2610():
-      DivPlatformYM2610Base(1,4,7,13,14) {}
+      DivPlatformYM2610Base(1,4,7,13,14),
+      isCSM(0) {}
     ~DivPlatformYM2610();
 };
 #endif

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,10 +36,67 @@ class DivPlatformTX81Z: public DivPlatformOPM {
 
     struct Channel: public FMChannel {
       unsigned char chVolL, chVolR;
+
+      struct {
+        int baseNoteOverride;
+        bool fixedArp;
+        int arpOff;
+        int pitch2;
+        bool hasOpArp;
+        bool hasOpPitch;
+      } opsState[4];
+
+      void handleArpFmOp(bool& freqChange, int offset=0, int o=0) {
+        DivMacroInt::IntOp& m=this->std.op[o];
+        if (m.ssg.had) {
+          opsState[o].hasOpArp=true;
+
+          if (m.ssg.val<0) {
+            if (!(m.ssg.val&0x40000000)) {
+              opsState[o].baseNoteOverride=(m.ssg.val|0x40000000)+offset;
+              opsState[o].fixedArp=true;
+            } else {
+              opsState[o].arpOff=m.ssg.val;
+              opsState[o].fixedArp=false;
+            }
+          } else {
+            if (m.ssg.val&0x40000000) {
+              opsState[o].baseNoteOverride=(m.ssg.val&(~0x40000000))+offset;
+              opsState[o].fixedArp=true;
+            } else {
+              opsState[o].arpOff=m.ssg.val;
+              opsState[o].fixedArp=false;
+            }
+          }
+          freqChange=true;
+        } else {
+          opsState[o].hasOpArp=false;
+        }
+      }
+
+      void handlePitchFmOp(bool& freqChange, int o) {
+        DivMacroInt::IntOp& m=this->std.op[o];
+
+        if (m.sus.had) {
+          opsState[o].hasOpPitch=true;
+
+          if (m.sus.mode) {
+            opsState[o].pitch2+=m.sus.val;
+            CLAMP_VAR(opsState[o].pitch2,-131071,131071);
+          } else {
+            opsState[o].pitch2=m.sus.val;
+          }
+          freqChange=true;
+        } else {
+          opsState[o].hasOpPitch=false;
+        }
+      }
       Channel():
         FMChannel(),
         chVolL(1),
-        chVolR(1) {}
+        chVolR(1) {
+        memset(opsState,0,sizeof(opsState));
+      }
     };
     Channel chan[8];
     DivDispatchOscBuffer* oscBuf[8];

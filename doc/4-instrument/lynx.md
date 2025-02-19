@@ -19,10 +19,11 @@ note that using samples on Lynx is CPU expensive!
 - **Panning (right)**: output level for right channel.
 - **Pitch**: fine pitch.
 - **Phase Reset**: trigger restart of waveform/LFSR reset.
+- **Load LFSR**: load a value to the LFSR.
 
 ## audio generation description
 
-Atari Lynx generates sound using a 12-bit linear feedback shift register with configurable tap. nine separate bits can be enabled to be the source of feedback: 0, 1, 2, 3, 4, 5, 7, 10 and 11. to generate _any_ sound at least one bit _must_ be enabled.
+Atari Lynx generates sound using a 12-bit linear feedback shift register (LFSR) with configurable tap. nine separate bits can be enabled to be the source of feedback: 0, 1, 2, 3, 4, 5, 7, 10 and 11. to generate _any_ sound at least one bit _must_ be enabled.
 
 ### LFSR-based synthesis
 

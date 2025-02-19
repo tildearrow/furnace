@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,9 +67,9 @@ enum DivDispatchCmds {
   DIV_CMD_HINT_ARPEGGIO, // (note1, note2)
   DIV_CMD_HINT_VOLUME, // (vol)
   DIV_CMD_HINT_VOL_SLIDE, // (amount, oneTick)
-  DIV_CMD_HINT_VOL_SLIDE_TARGET, // (amount, target)
   DIV_CMD_HINT_PORTA, // (target, speed)
   DIV_CMD_HINT_LEGATO, // (note)
+  DIV_CMD_HINT_VOL_SLIDE_TARGET, // (amount, target)
 
   DIV_CMD_SAMPLE_MODE, // (enabled)
   DIV_CMD_SAMPLE_FREQ, // (frequency)
@@ -283,6 +283,30 @@ enum DivDispatchCmds {
   DIV_CMD_MULTIPCM_PSEUDO_REVERB, // (value)
   DIV_CMD_MULTIPCM_LFO_RESET, // (value)
   DIV_CMD_MULTIPCM_LEVEL_DIRECT, // (value)
+  
+  DIV_CMD_SID3_SPECIAL_WAVE,
+  DIV_CMD_SID3_RING_MOD_SRC,
+  DIV_CMD_SID3_HARD_SYNC_SRC,
+  DIV_CMD_SID3_PHASE_MOD_SRC,
+  DIV_CMD_SID3_WAVE_MIX,
+  DIV_CMD_SID3_LFSR_FEEDBACK_BITS,
+  DIV_CMD_SID3_1_BIT_NOISE,
+  DIV_CMD_SID3_FILTER_DISTORTION,
+  DIV_CMD_SID3_FILTER_OUTPUT_VOLUME,
+  DIV_CMD_SID3_CHANNEL_INVERSION,
+  DIV_CMD_SID3_FILTER_CONNECTION,
+  DIV_CMD_SID3_FILTER_MATRIX,
+  DIV_CMD_SID3_FILTER_ENABLE,
+
+  DIV_CMD_C64_PW_SLIDE,
+  DIV_CMD_C64_CUTOFF_SLIDE,
+
+  DIV_CMD_SID3_PHASE_RESET,
+  DIV_CMD_SID3_NOISE_PHASE_RESET,
+  DIV_CMD_SID3_ENVELOPE_RESET,
+
+  DIV_CMD_SID3_CUTOFF_SCALING,
+  DIV_CMD_SID3_RESONANCE_SCALING,
 
   DIV_CMD_MAX
 };
@@ -359,6 +383,8 @@ struct DivRegWrite {
    *   - xx is the instance ID
    *   - data is the sample position
    * - 0xffffffff: reset
+   * - 0xfffffffe: add delay
+   *   - data is the delay
    */
   unsigned int addr;
   unsigned int val;
@@ -370,9 +396,18 @@ struct DivRegWrite {
 
 struct DivDelayedWrite {
   int time;
+  // this variable is internal.
+  // it is used by VGM export to make sure these writes are in order.
+  // do not change.
+  int order;
   DivRegWrite write;
+  DivDelayedWrite(int t, int o, unsigned int a, unsigned int v):
+    time(t),
+    order(o),
+    write(a,v) {}
   DivDelayedWrite(int t, unsigned int a, unsigned int v):
     time(t),
+    order(0),
     write(a,v) {}
 };
 
@@ -601,10 +636,10 @@ class DivDispatch {
 
     /**
      * get "paired" channels.
-     * @param chan the channel to query.
-     * @return a DivChannelPair.
+     * @param ch the channel to query.
+     * @param ret the DivChannelPair vector of pairs.
      */
-    virtual DivChannelPair getPaired(int chan);
+    virtual void getPaired(int ch, std::vector<DivChannelPair>& ret);
 
     /**
      * get channel mode hints.
@@ -913,7 +948,7 @@ class DivDispatch {
 #define NOTE_FREQUENCY(x) parent->calcBaseFreq(chipClock,CHIP_FREQBASE,x,false)
 
 // this is a special case definition. only use it for f-num/block-based chips.
-#define NOTE_FNUM_BLOCK(x,bits) parent->calcBaseFreqFNumBlock(chipClock,CHIP_FREQBASE,x,bits)
+#define NOTE_FNUM_BLOCK(x,bits,blk) parent->calcBaseFreqFNumBlock(chipClock,CHIP_FREQBASE,x,bits,blk)
 
 // this is for volume scaling calculation.
 #define VOL_SCALE_LINEAR(x,y,range) ((parent->song.ceilVolumeScaling)?((((x)*(y))+(range-1))/(range)):(((x)*(y))/(range)))

@@ -57,6 +57,7 @@ private:
 	struct channel_def
 	{
 		channel_def() :
+                        sample(0),
 			rate(0),
 			pos(0),
 			counter(0),
@@ -67,6 +68,7 @@ private:
 		{
 		}
 
+                int sample;
 		u32 rate;
 		u32 pos;
 		u32 counter;

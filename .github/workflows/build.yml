@@ -2,7 +2,7 @@ name: Build furnace
 
 on:
   push:
-    branches: [master, locale]
+    branches: [master, theUltimateFix]
   pull_request:
     branches: master
 
@@ -22,7 +22,7 @@ jobs:
           - { name: 'Windows MSVC x86_64', os: windows-latest, compiler: msvc, arch: x86_64 }
           #- { name: 'Windows MinGW x86', os: ubuntu-20.04, compiler: mingw, arch: x86 }
           #- { name: 'Windows MinGW x86_64', os: ubuntu-20.04, compiler: mingw, arch: x86_64 }
-          - { name: 'macOS x86_64', os: macos-12, arch: x86_64 }
+          - { name: 'macOS x86_64', os: macos-13, arch: x86_64 }
           - { name: 'macOS ARM', os: macos-latest, arch: arm64 }
           - { name: 'Linux x86_64', os: ubuntu-20.04, arch: x86_64 }
           #- { name: 'Linux ARM', os: ubuntu-18.04, arch: armhf }
@@ -334,8 +334,8 @@ jobs:
         name: ${{ steps.package-identify.outputs.id }}
         path: ${{ steps.package-identify.outputs.filename }}
 
-    - name: Upload Metal artifact
-      if: ${{ github.repository == 'tildearrow/furnace' && github.ref_name == 'metal' }}
+    - name: Upload 30xx artifact
+      if: ${{ github.repository == 'tildearrow/furnace' && github.ref_name == 'theUltimateFix' }}
       uses: actions/upload-artifact@v4.3.0
       with:
         name: ${{ steps.package-identify.outputs.id }}

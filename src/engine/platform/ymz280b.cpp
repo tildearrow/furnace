@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -139,7 +139,7 @@ void DivPlatformYMZ280B::tick(bool sysTick) {
         case DIV_SAMPLE_DEPTH_16BIT: ctrl=0x60; break;
         default: ctrl=0;
       }
-      double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
+      double off=(s->centerRate>=1)?((double)s->centerRate/parent->getCenterRate()):1.0;
       chan[i].freq=(int)round(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE)/256.0)-1;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>511) chan[i].freq=511;
@@ -155,15 +155,6 @@ void DivPlatformYMZ280B::tick(bool sysTick) {
           start=sampleOff[chan[i].sample];
           end=MIN(start+s->getCurBufLen(),getSampleMemCapacity()-1);
         }
-        if (chan[i].audPos>0) {
-          switch (s->depth) {
-            case DIV_SAMPLE_DEPTH_YMZ_ADPCM: start+=chan[i].audPos/2; break;
-            case DIV_SAMPLE_DEPTH_8BIT: start+=chan[i].audPos; break;
-            case DIV_SAMPLE_DEPTH_16BIT: start+=chan[i].audPos*2; break;
-            default: break;
-          }
-          start=MIN(start,end);
-        }
         if (s->isLoopable()) {
           switch (s->depth) {
             case DIV_SAMPLE_DEPTH_YMZ_ADPCM: loopStart=start+s->loopStart/2; loopEnd=start+s->loopEnd/2; break;
@@ -173,6 +164,15 @@ void DivPlatformYMZ280B::tick(bool sysTick) {
           }
           loopEnd=MIN(loopEnd,end);
           loopStart=MIN(loopStart,loopEnd);
+        }
+        if (chan[i].audPos>0) {
+          switch (s->depth) {
+            case DIV_SAMPLE_DEPTH_YMZ_ADPCM: start+=chan[i].audPos/2; break;
+            case DIV_SAMPLE_DEPTH_8BIT: start+=chan[i].audPos; break;
+            case DIV_SAMPLE_DEPTH_16BIT: start+=chan[i].audPos*2; break;
+            default: break;
+          }
+          start=MIN(start,end);
         }
         rWrite(0x01+i*4,ctrl&~0x80); // force keyoff first
         rWrite(0x20+i*4,(start>>16)&0xff);

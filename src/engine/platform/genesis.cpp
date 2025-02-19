@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
 
 #define IS_REALLY_MUTED(x) (isMuted[x] && (x<5 || !softPCM || (isMuted[5] && isMuted[6])))
 
-void DivYM2612Interface::ymfm_set_timer(uint32_t tnum, int32_t duration_in_clocks) {
+void DivOPNInterface::ymfm_set_timer(uint32_t tnum, int32_t duration_in_clocks) {
   if (tnum==1) {
     setB=duration_in_clocks;
   } else if (tnum==0) {
@@ -36,16 +36,16 @@ void DivYM2612Interface::ymfm_set_timer(uint32_t tnum, int32_t duration_in_clock
   }
 }
 
-void DivYM2612Interface::clock() {
+void DivOPNInterface::clock(int cycles) {
   if (setA>=0) {
-    countA-=144;
+    countA-=cycles;
     if (countA<0) {
       m_engine->engine_timer_expired(0);
       countA+=setA;
     }
   }
   if (setB>=0) {
-    countB-=144;
+    countB-=cycles;
     if (countB<0) {
       m_engine->engine_timer_expired(1);
       countB+=setB;
@@ -142,11 +142,16 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     processDAC(rate);
 
+    if (delay>0) delay--;
+
     os[0]=0; os[1]=0;
     for (int i=0; i<6; i++) {
-      if (!writes.empty()) {
+      if (delay<=0 && !writes.empty()) {
         QueuedWrite& w=writes.front();
-        if (w.addrOrVal) {
+        if (w.addr==0xfffffffe) {
+          delay=w.val*3;
+          writes.pop_front();
+        } else if (w.addrOrVal) {
           //logV("%.3x=%.2x",w.addr,w.val);
           OPN2_Write(&fm,0x1+((w.addr>>8)<<1),w.val);
           regPool[w.addr&0x1ff]=w.val;
@@ -223,13 +228,19 @@ void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
 
   for (size_t h=0; h<len; h++) {
     processDAC(rate);
+
+    if (delay>0) delay--;
   
     os[0]=0; os[1]=0;
-    if (!writes.empty()) {
+    if (delay<=0 && !writes.empty()) {
       QueuedWrite& w=writes.front();
-      fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
-      fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
-      regPool[w.addr&0x1ff]=w.val;
+      if (w.addr==0xfffffffe) {
+        delay=w.val;
+      } else {
+        fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
+        fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
+        regPool[w.addr&0x1ff]=w.val;
+      }
       writes.pop_front();
 
       if (dacWrite>=0) {
@@ -372,9 +383,14 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
 
     //lleCycle=0;
 
-    if (!writes.empty()) {
+    if (delay>0) delay--;
+
+    if (delay<=0 && !writes.empty()) {
       QueuedWrite& w=writes.front();
-      if (w.addrOrVal) {
+      if (w.addr==0xfffffffe) {
+        delay=w.val;
+        writes.pop_front();
+      } else if (w.addrOrVal) {
         //logV("%.3x=%.2x",w.addr,w.val);
         //OPN2_Write(&fm,0x1+((w.addr>>8)<<1),w.val);
         was_reg_write=true;
@@ -641,7 +657,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
         chan[i].handleArp();
       } else if (chan[i].std.arp.had) {
         if (!chan[i].inPorta) {
-          chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.arp.val),11);
+          chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.arp.val),11,chan[i].state.block);
         }
         chan[i].freqChanged=true;
       }
@@ -822,7 +838,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
       if (parent->song.linearPitch==2) {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[i].state.block);
       } else {
         int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
         int block=(chan[i].baseFreq&0xf800)>>11;
@@ -849,7 +865,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
           if (s->centerRate<1) {
             off=1.0;
           } else {
-            off=(double)s->centerRate/8363.0;
+            off=(double)s->centerRate/parent->getCenterRate();
           }
         }
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,1,1);
@@ -871,9 +887,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
 
   // hard reset handling
   if (mustHardReset) {
-    for (unsigned int i=hardResetElapsed; i<hardResetCycles; i++) {
-      immWrite(0xf0,i&0xff);
-    }
+    immWrite(0xfffffffe,hardResetCycles-hardResetElapsed);
     for (int i=0; i<csmChan; i++) {
       if (i==2 && extMode) continue;
       if ((chan[i].keyOn || chan[i].opMaskChanged) && chan[i].hardReset) {
@@ -1070,7 +1084,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       chan[c.chan].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
+        chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[c.chan].state.block);
         chan[c.chan].portaPause=false;
         chan[c.chan].note=c.value;
         chan[c.chan].freqChanged=true;
@@ -1221,7 +1235,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         }
         break;
       }
-      PLEASE_HELP_ME(chan[c.chan]);
+      PLEASE_HELP_ME(chan[c.chan],chan[c.chan].state.block);
       break;
     }
     case DIV_CMD_SAMPLE_MODE: {
@@ -1260,7 +1274,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           commitState(c.chan,ins);
           chan[c.chan].insChanged=false;
         }
-        chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
+        chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[c.chan].state.block);
       }
       chan[c.chan].note=c.value;
       chan[c.chan].freqChanged=true;
@@ -1712,6 +1726,7 @@ void DivPlatformGenesis::reset() {
   dacWrite=-1;
   canWriteDAC=true;
   interruptSim=0;
+  delay=0;
 
   if (softPCM) {
     chan[5].dacMode=true;
