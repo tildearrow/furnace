@@ -33,7 +33,7 @@ by default the LFSR is configured to produce square waves, by having a single ta
 - **Pitch**: fine pitch.
 - **Phase Reset**: trigger reloading the LFSR.
 - **Control**: channel settings:
-  - **slope AM**: when enabled, this channel's output and the slope channel go through amplitude modulation. The final output plays in the slope channel.
+  - **slope AM**: when enabled, this channel's output and the slope channel go through amplitude modulation. the final output plays in the slope channel.
   - **tap B**: enables use of two taps for the LFSR.
 - **Tap A Location**: sets the position of the first tap.
 - **Tap B Location**: sets the position of the second tap.
