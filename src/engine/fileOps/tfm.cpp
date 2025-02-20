@@ -521,9 +521,9 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
     // clone the last pattern
     info.maxPat++;
     for (int i=0;i<6;i++) {
-      int lastPatNum = info.ds->subsong[0]->orders.ord[i][info.ds->subsong[0]->ordersLen - 1];
-      DivPattern* newPat = new DivPattern;
-      DivPattern* lastPat = info.ds->subsong[0]->pat[i].data[lastPatNum];
+      int lastPatNum=info.ds->subsong[0]->orders.ord[i][info.ds->subsong[0]->ordersLen - 1];
+      DivPattern* newPat=info.ds->subsong[0]->pat[i].getPattern(info.maxPat,true);
+      DivPattern* lastPat=info.ds->subsong[0]->pat[i].data[lastPatNum];
       lastPat->copyOn(newPat);
 
       info.ds->subsong[0]->orders.ord[i][info.ds->subsong[0]->ordersLen - 1] = info.maxPat;
@@ -533,8 +533,8 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
     }
   } else {
     for (int i=0;i<6;i++) {
-      int lastPatNum = info.ds->subsong[0]->orders.ord[i][info.ds->subsong[0]->ordersLen - 1];
-      DivPattern* lastPat = info.ds->subsong[0]->pat[i].data[lastPatNum];
+      int lastPatNum=info.ds->subsong[0]->orders.ord[i][info.ds->subsong[0]->ordersLen - 1];
+      DivPattern* lastPat=info.ds->subsong[0]->pat[i].data[lastPatNum];
       lastPat->data[info.patLens[lastPatNum]-1][4+(usedEffectsCol*4)] = 0x0B;
       lastPat->data[info.patLens[lastPatNum]-1][5+(usedEffectsCol*4)] = info.loopPos;
     }
