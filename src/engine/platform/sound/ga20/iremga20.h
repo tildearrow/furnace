@@ -38,7 +38,7 @@ public:
 	void write(u32 offset, u8 data);
 	u8 read(u32 offset);
 
-	inline void set_mute(const int ch, const bool mute) { m_channel[ch & 3].mute = mute; }
+	inline void set_mute(const int ch, const bool mute) { m_channel[ch & 3].mute = mute; m_channel[ch & 3].hot = true; }
   inline unsigned int get_position(const int ch) {
     return m_channel[ch&3].pos;
   }
@@ -63,8 +63,10 @@ private:
 			counter(0),
 			end(0),
 			volume(0),
+      output(0),
 			play(0),
-			mute(false)
+			mute(false),
+      hot(false)
 		{
 		}
 
@@ -74,8 +76,10 @@ private:
 		u32 counter;
 		u32 end;
 		u32 volume;
+    int output;
 		bool play;
 		bool mute;
+    bool hot;
 	};
 
 	u8 m_regs[0x20];
