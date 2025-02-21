@@ -7025,6 +7025,22 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
       }
     }
 
+    // four fallback fonts
+    if (settings.loadJapanese ||
+        settings.loadChinese ||
+        settings.loadChineseTraditional ||
+        settings.loadKorean ||
+        localeRequiresJapanese ||
+        localeRequiresChinese ||
+        localeRequiresChineseTrad ||
+        localeRequiresKorean ||
+        settings.loadFallback) {
+      patFont=addFontZlib(font_plexMono_compressed_data,font_plexMono_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1,fontRange);
+      patFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1,fontRange);
+      patFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1,fontRange);
+      patFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1,fontRange);
+    }
+
     // 0x39B = Λ
     // Հայերեն
     // 한국어
