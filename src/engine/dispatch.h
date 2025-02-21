@@ -23,7 +23,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../pch.h"
-#include "blip_buf.h"
 #include "config.h"
 #include "chipUtils.h"
 #include "defines.h"
@@ -589,14 +588,6 @@ class DivDispatch {
     virtual void acquire(short** buf, size_t len);
 
     /**
-     * fill a buffer with sound data (direct access to blip_buf).
-     * @param bb pointers to blip_buf instances.
-     * @param the offset to the first sample (use this when calling blip_add_delta).
-     * @param len the amount of samples to fill.
-     */
-    virtual void acquireDirect(blip_buffer_t** bb, size_t off, size_t len);
-
-    /**
      * fill a write stream with data (e.g. for software-mixed PCM).
      * @param stream the write stream.
      * @param rate stream rate (e.g. 44100 for VGM).
@@ -785,12 +776,6 @@ class DivDispatch {
      * @return truth.
      */
     virtual bool getWantPreNote();
-
-    /**
-     * check whether acquireDirect is available.
-     * @return whether it is.
-     */
-    virtual bool hasAcquireDirect();
 
     /**
      * get minimum chip clock.
