@@ -267,11 +267,13 @@ int DivPlatformVB::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
-      if (chan[c.chan].insChanged && ins->fds.initModTableWithFirstWave) {
+      if (c.chan==4 && chan[c.chan].insChanged && ins->fds.initModTableWithFirstWave) {
+        chWrite(4,0x00,0x00);
         for (int i=0; i<32; i++) {
           modTable[i]=ins->fds.modTable[i];
           rWrite(0x280+(i<<2),modTable[i]);
         }
+        chWrite(4,0x00,0x80);
       }
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
@@ -393,6 +395,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
     case DIV_CMD_FDS_MOD_WAVE: { // set modulation wave
       if (c.chan!=4) break;
       DivWavetable* wt=parent->getWave(c.value);
+      chWrite(4,0x00,0x00);
       for (int i=0; i<32; i++) {
         if (wt->max<1 || wt->len<1) {
           modTable[i]=0;
@@ -405,6 +408,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
           rWrite(0x280+(i<<2),modTable[i]);
         }
       }
+      chWrite(4,0x00,0x80);
       break;
     }
     case DIV_CMD_PANNING: {
