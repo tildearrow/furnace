@@ -152,6 +152,14 @@ void DivPlatformVB::tick(bool sysTick) {
     }
 
     chan[i].std.next();
+    // this is handled first to work around an envelope problem
+    // once envelope is over, you cannot enable it again unless you retrigger the channel
+    if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
+      chWrite(i,0x00,0x80);
+      chan[i].intWritten=true;
+      chan[i].antiClickWavePos=0;
+      chan[i].antiClickPeriodCount=0;
+    }
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
       writeEnv(i);
@@ -200,12 +208,6 @@ void DivPlatformVB::tick(bool sysTick) {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
       chan[i].freqChanged=true;
-    }
-    if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
-      chWrite(i,0x00,0x80);
-      chan[i].intWritten=true;
-      chan[i].antiClickWavePos=0;
-      chan[i].antiClickPeriodCount=0;
     }
     if (chan[i].active) {
       if (chan[i].ws.tick() || (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1)) {
