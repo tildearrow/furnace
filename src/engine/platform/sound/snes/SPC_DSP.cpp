@@ -29,6 +29,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 // TODO: add to blargg_endian.h
 #define GET_LE16SA( addr )      ((BOOST::int16_t) GET_LE16( addr ))
 #define GET_LE16A( addr )       GET_LE16( addr )
+#define GET_LE32A( addr )       GET_LE32( addr )
 #define SET_LE16A( addr, data ) SET_LE16( addr, data )
 
 static BOOST::uint8_t const initial_regs [SPC_DSP::register_count] =
@@ -303,7 +304,7 @@ inline void SPC_DSP::run_envelope( voice_t* const v )
 inline void SPC_DSP::decode_brr( voice_t* v )
 {
 	// Arrange the four input nybbles in 0xABCD order for easy decoding
-	int nybbles = m.t_brr_byte * 0x100 + m.ram [(v->brr_addr + v->brr_offset + 1) & 0xFFFF];
+	int nybbles = m.t_brr_byte * 0x100 + m.ram [(v->brr_addr + v->brr_offset + 1) & 0x3FFFFF];
 	
 	int const header = m.t_brr_header;
 	
@@ -402,7 +403,7 @@ MISC_CLOCK( 30 )
 
 inline VOICE_CLOCK( V1 )
 {
-	m.t_dir_addr = (m.t_dir * 0x100 + m.t_srcn * 4) & 0xffff;
+	m.t_dir_addr = (m.t_dir * 0x100 + m.t_srcn * 8) & 0x3fffff;
 	m.t_srcn = VREG(v->regs,srcn);
 }
 inline VOICE_CLOCK( V2 )
@@ -410,8 +411,8 @@ inline VOICE_CLOCK( V2 )
 	// Read sample pointer (ignored if not needed)
 	uint8_t const* entry = &m.ram [m.t_dir_addr];
 	if ( !v->kon_delay )
-		entry += 2;
-	m.t_brr_next_addr = GET_LE16A( entry );
+		entry += 4;
+	m.t_brr_next_addr = GET_LE32A( entry );
 	
 	m.t_adsr0 = VREG(v->regs,adsr0);
 	
@@ -425,7 +426,7 @@ inline VOICE_CLOCK( V3a )
 inline VOICE_CLOCK( V3b )
 {
 	// Read BRR header and byte
-	m.t_brr_byte   = m.ram [(v->brr_addr + v->brr_offset) & 0xFFFF];
+	m.t_brr_byte   = m.ram [(v->brr_addr + v->brr_offset) & 0x3FFFFF];
 	m.t_brr_header = m.ram [v->brr_addr]; // brr_addr doesn't need masking
 }
 VOICE_CLOCK( V3c )
@@ -526,7 +527,7 @@ VOICE_CLOCK( V4 )
 		{
 			// Start decoding next BRR block
 			assert( v->brr_offset == brr_block_size );
-			v->brr_addr = (v->brr_addr + brr_block_size) & 0xFFFF;
+			v->brr_addr = (v->brr_addr + brr_block_size) & 0x3FFFFF;
 			if ( m.t_brr_header & 1 )
 			{
 				v->brr_addr = m.t_brr_next_addr;
@@ -623,7 +624,7 @@ ECHO_CLOCK( 22 )
 	if ( ++m.echo_hist_pos >= &m.echo_hist [echo_hist_size] )
 		m.echo_hist_pos = m.echo_hist;
 	
-	m.t_echo_ptr = (m.t_esa * 0x100 + m.echo_offset) & 0xFFFF;
+	m.t_echo_ptr = 0x3F0000 | ((m.t_esa * 0x100 + m.echo_offset) & 0xFFFF);
 	echo_read( 0 );
 	
 	// FIR (using l and r temporaries below helps compiler optimize)

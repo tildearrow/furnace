@@ -29,8 +29,8 @@
 #define chWrite(c,a,v) {rWrite((a)+(c)*16,v)}
 #define rWriteDelay(a,v,d) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v,d)); if (dumpWrites) {addWrite(a,v);} }
 #define chWriteDelay(c,a,v,d) {rWrite((a)+(c)*16,v,d)}
-#define sampleTableAddr(c) (sampleTableBase+(c)*4)
-#define waveTableAddr(c) (sampleTableBase+8*4+(c)*9*16)
+#define sampleTableAddr(c) (sampleTableBase+(c)*8)
+#define waveTableAddr(c) (sampleTableBase+8*8+(c)*9*16)
 
 const char* regCheatSheetSNESDSP[]={
   "VxVOLL", "x0",
@@ -235,8 +235,12 @@ void DivPlatformSNES::tick(bool sysTick) {
         }
         sampleMem[tabAddr+0]=start&0xff;
         sampleMem[tabAddr+1]=start>>8;
-        sampleMem[tabAddr+2]=loop&0xff;
-        sampleMem[tabAddr+3]=loop>>8;
+        sampleMem[tabAddr+2]=start>>16;
+        sampleMem[tabAddr+3]=start>>24;
+        sampleMem[tabAddr+4]=loop&0xff;
+        sampleMem[tabAddr+5]=loop>>8;
+        sampleMem[tabAddr+6]=loop>>16;
+        sampleMem[tabAddr+7]=loop>>24;
         kon|=(1<<i);
         koff|=(1<<i);
         chan[i].keyOn=false;
@@ -846,7 +850,7 @@ void DivPlatformSNES::initEcho() {
 
   for (DivMemoryEntry& i: memCompo.entries) {
     if (i.type==DIV_MEMORY_ECHO) {
-      i.begin=(0xf800-echoDelay*2048);
+      i.begin=(0x3ff800-echoDelay*2048);
     }
   }
   memCompo.used=sampleMemLen+echoDelay*2048;
@@ -855,7 +859,7 @@ void DivPlatformSNES::initEcho() {
 void DivPlatformSNES::reset() {
   writes.clear();
 
-  memcpy(sampleMem,copyOfSampleMem,65536);
+  memcpy(sampleMem,copyOfSampleMem,4194304);
   dsp.init(sampleMem);
   dsp.set_output(NULL,0);
   dsp.setupInterpolation(!interpolationOff);
@@ -951,7 +955,7 @@ const void* DivPlatformSNES::getSampleMem(int index) {
 }
 
 size_t DivPlatformSNES::getSampleMemCapacity(int index) {
-  return index == 0 ? (0xf800-echoDelay*2048) : 0;
+  return index == 0 ? (0x3ff800-echoDelay*2048) : 0;
 }
 
 size_t DivPlatformSNES::getSampleMemUsage(int index) {
@@ -970,7 +974,7 @@ const DivMemoryComposition* DivPlatformSNES::getMemCompo(int index) {
 }
 
 void DivPlatformSNES::renderSamples(int sysID) {
-  memset(copyOfSampleMem,0,65536);
+  memset(copyOfSampleMem,0,4194304);
   memset(sampleOff,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
 
@@ -978,11 +982,11 @@ void DivPlatformSNES::renderSamples(int sysID) {
   memCompo.name="SPC/DSP Memory";
 
   memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_RESERVED,"State",-1,0,sampleTableBase));
-  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_RESERVED,"Sample Directory",-1,sampleTableBase,sampleTableBase+8*4));
-  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_WAVE_RAM,"Wave RAM",-1,sampleTableBase+8*4,sampleTableBase+8*4+8*9*16));
+  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_RESERVED,"Sample Directory",-1,sampleTableBase,sampleTableBase+8*8));
+  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_WAVE_RAM,"Wave RAM",-1,sampleTableBase+8*4,sampleTableBase+8*8+8*9*16));
 
   // skip past sample table and wavetable buffer
-  size_t memPos=sampleTableBase+8*4+8*9*16;
+  size_t memPos=sampleTableBase+8*8+8*9*16;
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
     if (!s->renderOn[0][sysID]) {
@@ -1017,11 +1021,11 @@ void DivPlatformSNES::renderSamples(int sysID) {
 
   // even if the delay is 0, the DSP will still operate the first buffer sample
   // so the ARAM buffer size becomes 4 bytes when the delay is 0
-  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_ECHO,"Echo Buffer",-1,(0xf800-echoDelay*2048),echoDelay==0?0xf804:0xf800));
+  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_ECHO,"Echo Buffer",-1,(0x3ff800-echoDelay*2048),echoDelay==0?0x3ff804:0x3ff800));
 
-  memCompo.capacity=65536;
+  memCompo.capacity=4194304;
   memCompo.used=sampleMemLen+echoDelay*2048;
-  memcpy(sampleMem,copyOfSampleMem,65536);
+  memcpy(sampleMem,copyOfSampleMem,4194304);
 }
 
 void DivPlatformSNES::setFlags(const DivConfig& flags) {
@@ -1056,6 +1060,8 @@ int DivPlatformSNES::init(DivEngine* p, int channels, int sugRate, const DivConf
   sampleMemLen=0;
   chipClock=1024000;
   rate=chipClock/32;
+  sampleMem=new signed char[4194304];
+  copyOfSampleMem=new signed char[4194304];
   for (int i=0; i<8; i++) {
     oscBuf[i]=new DivDispatchOscBuffer;
     oscBuf[i]->rate=rate;

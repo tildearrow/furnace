@@ -1088,8 +1088,8 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SNES]=new DivSysDef(
-    _("SNES"), NULL, 0x87, 0, 8, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_BRR, 0, 16,
-    _("FM? nah... samples! Nintendo's answer to Sega."),
+    _("SNES but more memory"), NULL, 0x87, 0, 8, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_BRR, 0, 16,
+    _("this is SNES after adding more sample memory to it"),
     {_("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8")},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
