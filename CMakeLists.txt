@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.0...3.16)
 
 if (APPLE)
   set(MACOSX_DEPLOYMENT_TARGET 10.9)
@@ -310,7 +310,7 @@ if (WITH_PORTAUDIO)
     set(PA_BUILD_SHARED_LIBS OFF CACHE BOOL "Build dynamic library" FORCE)
     # don't - Furnace has its own implementation
     set(PA_USE_JACK OFF CACHE BOOL "Enable support for JACK Audio Connection Kit" FORCE)
-    add_subdirectory(extern/portaudio EXCLUDE_FROM_ALL)
+    add_subdirectory(extern/portaudio-modified EXCLUDE_FROM_ALL)
     list(APPEND DEPENDENCIES_LIBRARIES PortAudio)
     message(STATUS "Using vendored PortAudio")
   endif()
