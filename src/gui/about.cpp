@@ -72,7 +72,7 @@ const char* aboutLine[]={
   "Bahasa Indonesia: ZoomTen (Zumi)",
   "Español: CrimsonZN, ThaCuber, tildearrow",
   "Հայերեն: Eknous",
-  "한국어: Heemin, leejh20",
+  "한국어: Heemin, leejh20, Nicknamé",
   "Nederlands: Lunathir",
   "Polski: freq-mod, PoznańskiSzybkowiec",
   "Português (Brasil): Kagamiin~",
