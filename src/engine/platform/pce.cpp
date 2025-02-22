@@ -153,8 +153,8 @@ void DivPlatformPCE::tick(bool sysTick) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].vol&31,MIN(31,chan[i].std.vol.val),31);
-      if (chan[i].furnaceDac && chan[i].pcm) {
-        // ignore for now
+      if (chan[i].pcm) {
+        chWrite(i,0x04,0xc0|chan[i].outVol);
       } else {
         chWrite(i,0x04,0x80|chan[i].outVol);
       }
@@ -400,8 +400,12 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
-          if (chan[c.chan].active && !chan[c.chan].pcm) {
-            chWrite(c.chan,0x04,0x80|chan[c.chan].outVol);
+          if (chan[c.chan].active) {
+            if (chan[c.chan].pcm) {
+              chWrite(c.chan,0x04,0xc0|chan[c.chan].outVol);
+            } else {
+              chWrite(c.chan,0x04,0x80|chan[c.chan].outVol);
+            }
           }
         }
       }
