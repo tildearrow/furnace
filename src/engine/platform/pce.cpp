@@ -282,6 +282,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         chan[c.chan].pcm=false;
         chan[c.chan].sampleNote=DIV_NOTE_NULL;
         chan[c.chan].sampleNoteDelta=0;
+        if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
       }
       if (chan[c.chan].pcm) {
         if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
