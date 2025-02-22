@@ -4153,7 +4153,7 @@ msgstr "DISCULPA  NADA"
 
 #: src/gui/intro.cpp:310
 msgid "hold to skip"
-msgstr "sostén para saltar"
+msgstr "sostener para saltar"
 
 #: src/gui/dataList.cpp:76
 msgid "Bug!"
