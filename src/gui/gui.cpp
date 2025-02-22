@@ -569,6 +569,12 @@ void FurnaceGUI::addScroll(int amount) {
   haveHitBounds=false;
 }
 
+void FurnaceGUI::addScrollX(int amount) {
+  float lineHeight=(patFont->FontSize+2*dpiScale);
+  nextAddScrollX=lineHeight*amount;
+  haveHitBounds=false;
+}
+
 void FurnaceGUI::setFileName(String name) {
 #ifdef _WIN32
   wchar_t ret[4096];
@@ -3571,13 +3577,19 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
 }
 
 void FurnaceGUI::pointMotion(int x, int y, int xrel, int yrel) {
-  if (selecting) {
+  if (selecting && (!mobileUI || mobilePatSel)) {
     // detect whether we have to scroll
     if (y<patWindowPos.y+2.0f*dpiScale) {
       addScroll(-1);
     }
     if (y>patWindowPos.y+patWindowSize.y-2.0f*dpiScale) {
       addScroll(1);
+    }
+    if (x<patWindowPos.x+(mobileUI?40.0f:4.0f)*dpiScale) {
+      addScrollX(-1);
+    }
+    if (x>patWindowPos.x+patWindowSize.x-(mobileUI?40.0f:4.0f)*dpiScale) {
+      addScrollX(1);
     }
   }
   if (macroDragActive || macroLoopDragActive || waveDragActive || sampleDragActive || orderScrollLocked) {
@@ -8546,6 +8558,7 @@ FurnaceGUI::FurnaceGUI():
   dragMobileMenu(false),
   dragMobileEditButton(false),
   wantGrooveListFocus(false),
+  mobilePatSel(false),
   lastAssetType(0),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),

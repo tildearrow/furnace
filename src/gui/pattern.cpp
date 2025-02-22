@@ -154,6 +154,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
     ImGui::InhibitInertialScroll();
     NOTIFY_LONG_HOLD;
+    mobilePatSel=true;
   }
   ImGui::PopStyleColor();
   // for each column
@@ -210,6 +211,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
       ImGui::InhibitInertialScroll();
       NOTIFY_LONG_HOLD;
+      mobilePatSel=true;
     }
     ImGui::PopStyleColor();
 
@@ -253,6 +255,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
       if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
         ImGui::InhibitInertialScroll();
         NOTIFY_LONG_HOLD;
+        mobilePatSel=true;
       }
       ImGui::PopStyleColor();
     }
@@ -290,6 +293,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
       if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
         ImGui::InhibitInertialScroll();
         NOTIFY_LONG_HOLD;
+        mobilePatSel=true;
       }
       ImGui::PopStyleColor();
     }
@@ -342,6 +346,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
           ImGui::InhibitInertialScroll();
           NOTIFY_LONG_HOLD;
+          mobilePatSel=true;
         }
 
         // effect value
@@ -371,6 +376,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
           ImGui::InhibitInertialScroll();
           NOTIFY_LONG_HOLD;
+          mobilePatSel=true;
         }
         ImGui::PopStyleColor();
       }
@@ -465,6 +471,7 @@ void FurnaceGUI::drawPattern() {
       ImGui::SetNextWindowScroll(ImVec2(-1.0f,nextScroll));
       nextScroll=-1.0f;
       nextAddScroll=0.0f;
+      nextAddScrollX=0.0f;
     }
     ImDrawList* tdl=NULL;
 
@@ -479,6 +486,10 @@ void FurnaceGUI::drawPattern() {
         ImGui::SetScrollY(ImGui::GetScrollY()+nextAddScroll);
         nextScroll=-1.0f;
         nextAddScroll=0.0f;
+      }
+      if (nextAddScrollX!=0.0f) {
+        ImGui::SetScrollX(ImGui::GetScrollX()+nextAddScrollX);
+        nextAddScrollX=0.0f;
       }
       
       ImGui::TableSetupScrollFreeze(1,1);

@@ -2366,6 +2366,7 @@ class FurnaceGUI {
   bool selecting, selectingFull, dragging, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
   bool collapseWindow, demandScrollX, fancyPattern, firstFrame, tempoView, waveHex, waveSigned, waveGenVisible, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
   bool keepLoopAlive, keepGrooveAlive, orderScrollLocked, orderScrollTolerance, dragMobileMenu, dragMobileEditButton, wantGrooveListFocus;
+  bool mobilePatSel;
   unsigned char lastAssetType;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   std::atomic<FurnaceGUIWindows> curWindowThreadSafe;
@@ -2517,7 +2518,7 @@ class FurnaceGUI {
   int bindSetTarget, bindSetTargetIdx, bindSetPrevValue;
   bool bindSetActive, bindSetPending;
 
-  float nextScroll, nextAddScroll, orderScroll, orderScrollSlideOrigin;
+  float nextScroll, nextAddScroll, nextAddScrollX, orderScroll, orderScrollSlideOrigin;
 
   ImVec2 orderScrollRealOrigin;
   ImVec2 dragMobileMenuOrigin;
@@ -3084,6 +3085,7 @@ class FurnaceGUI {
     void enableSafeMode();
     void updateScroll(int amount);
     void addScroll(int amount);
+    void addScrollX(int amount);
     void setFileName(String name);
     void runBackupThread();
     void pushPartBlend();
