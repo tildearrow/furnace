@@ -20,12 +20,12 @@ msgstr "fin de archivo prematuro"
 #: src/engine/fileOps/s3m.cpp:320 src/gui/insEdit.cpp:799
 #, c-format
 msgid "Channel %d"
-msgstr ""
+msgstr "Canal %d"
 
 #: src/engine/fileOps/s3m.cpp:336
 #, c-format
 msgid "FM %d"
-msgstr ""
+msgstr "FM %d"
 
 #: src/engine/sysDef.cpp:425 src/engine/sysDef.cpp:439
 msgid "20xx: Set channel mode (bit 0: square; bit 1: noise; bit 2: envelope)"
@@ -65,7 +65,7 @@ msgstr "29xy: Activar auto-envelope (x: numerador; y: denominador)"
 
 #: src/engine/sysDef.cpp:433
 msgid "2Cxx: Set timer period offset (bit 7: sign)"
-msgstr ""
+msgstr "2Cxx: Ajustar desplazamiento del período del temporizador (bit 7: signo)"
 
 #: src/engine/sysDef.cpp:434 src/engine/sysDef.cpp:447
 msgid "2Exx: Write to I/O port A"
@@ -255,7 +255,7 @@ msgstr "5Fxx: Cambiar caída 2 del operador 4 (0 a 1F)"
 
 #: src/engine/sysDef.cpp:504 src/engine/sysDef.cpp:515
 msgid "60xx: Set operator mask (bits 0-3)"
-msgstr ""
+msgstr "60xx: Ajustar máscara de operador (bits 0-3)"
 
 #: src/engine/sysDef.cpp:509
 msgid "10xx: Set noise frequency (xx: value; 0 disables noise)"
@@ -389,7 +389,7 @@ msgstr "12xx: Cambiar nivel del operador 1 (0 más alto, 3F más bajo)"
 
 #: src/engine/sysDef.cpp:556
 msgid "13xx: Set level of operator 2 (0 highest, F lowest)"
-msgstr ""
+msgstr "13xx: Cambiar nivel del operador 2 (0 más alto, F más bajo)"
 
 #: src/engine/sysDef.cpp:557
 msgid "16xy: Set operator multiplier (x: operator from 1 to 2; y: multiplier)"
@@ -543,63 +543,63 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:604
 msgid "1Exy: FM global level (x: left, y: right; 0 to 7)"
-msgstr ""
+msgstr "1Exy: Nivel global FM (x: izquierda, y: derecha; de 0 a 7)"
 
 #: src/engine/sysDef.cpp:605
 msgid "1Fxy: PCM global level (x: left, y: right; 0 to 7)"
-msgstr ""
+msgstr "1Fxy: Nivel global PCM (x: izquierda, y: derecha; de 0 a 7)"
 
 #: src/engine/sysDef.cpp:606
 msgid "20xx: PCM LFO Rate (0 to 7)"
-msgstr ""
+msgstr "20xx: PCM Velocidad del LFO (de 0 a 7)"
 
 #: src/engine/sysDef.cpp:607
 msgid "21xx: PCM LFO PM Depth (0 to 7)"
-msgstr ""
+msgstr "21xx: PCM Profundidad de modulación de fase LFO (de 0 a 7)"
 
 #: src/engine/sysDef.cpp:608
 msgid "22xx: PCM LFO AM Depth (0 to 7)"
-msgstr ""
+msgstr "22xx: PCM Profundidad de modulación de amplitud LFO (de 0 a 7)"
 
 #: src/engine/sysDef.cpp:609
 msgid "23xx: PCM Attack Rate (0 to 15)"
-msgstr ""
+msgstr "23xx: PCM Velocidad de ataque (de 0 a 15)"
 
 #: src/engine/sysDef.cpp:610
 msgid "24xx: PCM Decay 1 Rate (0 to 15)"
-msgstr ""
+msgstr "24xx: PCM Velocidad de caída 1 (de 0 a 15)"
 
 #: src/engine/sysDef.cpp:611
 msgid "25xx: PCM Decay Level (0 to 15)"
-msgstr ""
+msgstr "25xx: PCM Nivel de caída (de 0 a 15)"
 
 #: src/engine/sysDef.cpp:612
 msgid "26xx: PCM Decay 2 Rate (0 to 15)"
-msgstr ""
+msgstr "26xx: PCM Velocidad de caída 2 (de 0 a 15)"
 
 #: src/engine/sysDef.cpp:613
 msgid "27xx: PCM Release Rate (0 to 15)"
-msgstr ""
+msgstr "27xx: PCM Velocidad de lanzamiento (de 0 a 15)"
 
 #: src/engine/sysDef.cpp:614
 msgid "28xx: PCM Rate Correction (0 to 15)"
-msgstr ""
+msgstr "28xx: PCM Corrección de velocidad (de 0 a 15)"
 
 #: src/engine/sysDef.cpp:615
 msgid "2Cxx: PCM Damp"
-msgstr ""
+msgstr "2Cxx: PCM Tapón"
 
 #: src/engine/sysDef.cpp:616
 msgid "2Dxx: PCM Pseudo Reverb"
-msgstr ""
+msgstr "2Dxx: PCM Seudo Reverb"
 
 #: src/engine/sysDef.cpp:617
 msgid "2Exx: PCM LFO Reset"
-msgstr ""
+msgstr "2Exx: PCM Reiniciar LFO"
 
 #: src/engine/sysDef.cpp:618
 msgid "2Fxx: PCM Level Direct"
-msgstr ""
+msgstr "2Fxx: PCM Nivel Directo"
 
 #: src/engine/sysDef.cpp:622 src/engine/sysDef.cpp:705
 msgid ""
@@ -658,19 +658,19 @@ msgstr "21xy: Ajustar sostenido/lanzamiento (x: sostenido; y: lanzamiento)"
 
 #: src/engine/sysDef.cpp:635
 msgid "22xx: Pulse width slide up"
-msgstr ""
+msgstr "22xx: Deslizar ancho de pulso arriba"
 
 #: src/engine/sysDef.cpp:636
 msgid "23xx: Pulse width slide down"
-msgstr ""
+msgstr "23xx: Deslizar ancho de pulso abajo"
 
 #: src/engine/sysDef.cpp:638
 msgid "24xx: Filter cutoff slide up"
-msgstr ""
+msgstr "24xx: Deslizar límite del filtro arriba"
 
 #: src/engine/sysDef.cpp:639
 msgid "25xx: Filter cutoff slide down"
-msgstr ""
+msgstr "25xx: Deslizar límite del filtro abajo"
 
 #: src/engine/sysDef.cpp:641 src/engine/sysDef.cpp:719
 msgid "3xxx: Set pulse width (0 to FFF)"
@@ -791,7 +791,7 @@ msgid ""
 "3xyy: Set fixed frequency F-num of operator 2 (x: high 2 bits from 4 to 7; "
 "y: low 8 bits of F-num)"
 msgstr ""
-"3xyy: Cambiar frecuencia fija op 1 (x: alto 2 bits de 0 a 3; y: bajo 8 bits "
+"3xyy: Cambiar frecuencia fija op 2 (x: alto 2 bits de 0 a 3; y: bajo 8 bits "
 "de F-núm)"
 
 #: src/engine/sysDef.cpp:697
@@ -799,14 +799,14 @@ msgid ""
 "3xyy: Set fixed frequency F-num of operator 3 (x: high 2 bits from 8 to B; "
 "y: low 8 bits of F-num)"
 msgstr ""
-"3xyy: Cambiar frecuencia fija op 1 (x: alto 2 bits de 0 a 3; y: bajo 8 bits "
+"3xyy: Cambiar frecuencia fija op 3 (x: alto 2 bits de 0 a 3; y: bajo 8 bits "
 "de F-núm)"
 
 #: src/engine/sysDef.cpp:698
 msgid ""
 "3xyy: Set fixed frequency F-num of operator 4 (x: high 2 bits from C to F; "
 "y: low 8 bits of F-num)"
-msgstr "No me da ganas de traducir esta porquería"
+msgstr "3xyy: Cambiar frecuencia fija op 4 (x: alto 2 bits de 0 a 3; y: bajo 8 bits de F-núm)"
 
 #: src/engine/sysDef.cpp:706
 msgid "11xx: Set resonance (0 to FF)"
@@ -838,19 +838,19 @@ msgstr "16xy: Cambiar otros parámetros"
 
 #: src/engine/sysDef.cpp:713
 msgid "17xx: Pulse width slide up"
-msgstr ""
+msgstr "17xx: Deslizar ancho de pulso arriba"
 
 #: src/engine/sysDef.cpp:714
 msgid "18xx: Pulse width slide down"
-msgstr ""
+msgstr "18xx: Deslizar ancho de pulso abajo"
 
 #: src/engine/sysDef.cpp:716
 msgid "19xx: Filter cutoff slide up"
-msgstr ""
+msgstr "19xx: Filtro corteapagado slida arriba"
 
 #: src/engine/sysDef.cpp:717
 msgid "1Axx: Filter cutoff slide down"
-msgstr ""
+msgstr "1Axx: Filtro corteapagado slida abajo"
 
 #: src/engine/sysDef.cpp:720 src/engine/sysDef.cpp:1863
 msgid "4xxx: Set cutoff (0 to FFF)"
@@ -861,242 +861,251 @@ msgid ""
 "60xx: Set waveform (bit 0: triangle; bit 1: saw; bit 2: pulse; bit 3: noise; "
 "bit 4: special wave)"
 msgstr ""
+"60xx: Cambiar onda (bit 0: triángulo; bit 1: sierra; bit 2: pulso; bit 3: ruido; bit 4: onda especial)"
 
 #: src/engine/sysDef.cpp:726
 msgid "61xx: Set special wave (00-39)"
-msgstr ""
+msgstr "61xx: Seleccionar onda especial (00-39)"
 
 #: src/engine/sysDef.cpp:727
 msgid ""
 "62xx: Modulation control (bit 0: ring mod; bit 1: osc. sync; bit 2: phase "
 "mod)"
 msgstr ""
+"62xx: Control de modulación (bit 0: anillo; bit 1: sincronizar; bit 2: fase)"
 
 #: src/engine/sysDef.cpp:728
 msgid "63xy: Reset pulse width (x: on new note; y: now)"
-msgstr ""
+msgstr "63xy: Reiniciar ancho de pulso (x: en las siguientes notas; y: ahora)"
 
 #: src/engine/sysDef.cpp:730
 msgid "64xx: Set ring modulation source channel (0-7)"
-msgstr ""
+msgstr "64xx: Cambiar canal de origen del modulador de anillo (0-7)"
 
 #: src/engine/sysDef.cpp:731
 msgid "65xx: Set hard sync source channel (0-6)"
-msgstr ""
+msgstr "65xx: Cambiar canal de origen de la sincronización dura (0-6)"
 
 #: src/engine/sysDef.cpp:732
 msgid "66xx: Set phase modulation source channel (0-6)"
-msgstr ""
+msgstr "66xx: Cambiar canal de origen del modulador de fase (0-6)"
 
 #: src/engine/sysDef.cpp:734
 msgid "67xx: Set attack"
-msgstr ""
+msgstr "67xx: Ajustar ataque"
 
 #: src/engine/sysDef.cpp:735
 msgid "68xx: Set decay"
-msgstr ""
+msgstr "68xx: Ajustar caída"
 
 #: src/engine/sysDef.cpp:736
 msgid "69xx: Set sustain level"
-msgstr ""
+msgstr "69xx: Ajustar nivel de sostenido"
 
 #: src/engine/sysDef.cpp:737
 msgid "6Axx: Set sustain rate"
-msgstr ""
+msgstr "6Axx: Ajustar rata de sostenido"
 
 #: src/engine/sysDef.cpp:738
 msgid "6Bxx: Set release"
-msgstr ""
+msgstr "6Bxx: Ajustar lanzamiento"
 
 #: src/engine/sysDef.cpp:740
 msgid "6Cxx: Set wave mix mode (0-4)"
-msgstr ""
+msgstr "6Cxx: Cambiar modo de mezcla de onda (0-4)"
 
 #: src/engine/sysDef.cpp:742
 msgid "6Dxx: Set noise LFSR feedback bits (low byte)"
-msgstr ""
+msgstr "6Dxx: Ajustar los bits de retroalimentación del LFSR (byte inferior)"
 
 #: src/engine/sysDef.cpp:743
 msgid "6Exx: Set noise LFSR feedback bits (medium byte)"
-msgstr ""
+msgstr "6Exx: Ajustar los bits de retroalimentación del LFSR (byte medio)"
 
 #: src/engine/sysDef.cpp:744
 msgid "6Fxx: Set noise LFSR feedback bits (higher byte)"
-msgstr ""
+msgstr "6Fxx: Ajustar los bits de retroalimentación del LFSR (byte superior)"
 
 #: src/engine/sysDef.cpp:745
 msgid "70xx: Set noise LFSR feedback bits (highest bits, 0-3F)"
-msgstr ""
+msgstr "70xx: Ajustar los bits de retroalimentación del LFSR (bits superiores, 0-3F)"
 
 #: src/engine/sysDef.cpp:747
 msgid "71xx: Set filter 1 resonance"
-msgstr ""
+msgstr "71xx: Cambiar resonancia del filtro 1"
 
 #: src/engine/sysDef.cpp:748
 msgid "72xx: Set filter 2 resonance"
-msgstr ""
+msgstr "72xx: Cambiar resonancia del filtro 2"
 
 #: src/engine/sysDef.cpp:749
 msgid "73xx: Set filter 3 resonance"
-msgstr ""
+msgstr "73xx: Cambiar resonancia del filtro 3"
 
 #: src/engine/sysDef.cpp:750
 msgid "74xx: Set filter 4 resonance"
-msgstr ""
+msgstr "74xx: Cambiar resonancia del filtro 4"
 
 #: src/engine/sysDef.cpp:752
 msgid ""
 "75xx: Set noise mode (0: usual noise, 1: 1-bit noise (PCM mode on wave "
 "channel))"
 msgstr ""
+"75xx: Cambiar modo de ruido (0: ruido usual, 1: ruido de 1-bit (modo PCM en canal de onda))"
 
 #: src/engine/sysDef.cpp:754
 msgid "76xx: Set filter 1 output volume"
-msgstr ""
+msgstr "76xx: Ajustar volumen de salida del filtro 1"
 
 #: src/engine/sysDef.cpp:755
 msgid "77xx: Set filter 2 output volume"
-msgstr ""
+msgstr "77xx: Ajustar volumen de salida del filtro 2"
 
 #: src/engine/sysDef.cpp:756
 msgid "78xx: Set filter 3 output volume"
-msgstr ""
+msgstr "78xx: Ajustar volumen de salida del filtro 3"
 
 #: src/engine/sysDef.cpp:757
 msgid "79xx: Set filter 4 output volume"
-msgstr ""
+msgstr "79xx: Ajustar volumen de salida del filtro 4"
 
 #: src/engine/sysDef.cpp:759
 msgid "7Axx: Set filter 1 distortion"
-msgstr ""
+msgstr "7Axx: Ajustar distorción del filtro 1"
 
 #: src/engine/sysDef.cpp:760
 msgid "7Bxx: Set filter 2 distortion"
-msgstr ""
+msgstr "7Bxx: Ajustar distorción del filtro 1xx: Ajustar distorción del filtro 2"
 
 #: src/engine/sysDef.cpp:761
 msgid "7Cxx: Set filter 3 distortion"
-msgstr ""
+msgstr "7Cxx: Ajustar distorción del filtro 3"
 
 #: src/engine/sysDef.cpp:762
 msgid "7Dxx: Set filter 4 distortion"
-msgstr ""
+msgstr "7Dxx: Ajustar distorción del filtro 1xx: Ajustar distorción del filtro 4"
 
 #: src/engine/sysDef.cpp:764
 msgid "7Exx: Set feedback"
-msgstr ""
+msgstr "7Exx: Ajustar retroalimentación"
 
 #: src/engine/sysDef.cpp:765
 msgid ""
 "7Fxx: Set channel signal inversion (bit 0: right channel, bit 1: left "
 "channel)"
 msgstr ""
+"7Fxx: Ajustar inversión de la señal del canal (bit 0: canal derecho, bit 1: canal izquierdo)"
 
 #: src/engine/sysDef.cpp:767
 msgid ""
 "A0xy: Set filter mode (x: filter (0-3); y: bit 0: low pass; bit 1: band "
 "pass; bit 2: high pass)"
 msgstr ""
+"A0xy: Cambiar modo del filtro (x: filtro (0-3); y: bit 0: paso bajo; bit 1: paso de banda; bit 2: paso alto)"
 
 #: src/engine/sysDef.cpp:768
 msgid ""
 "A1xy: Set filter connection (x: filter (0-3); y: bit 0: connect to channel "
 "input; bit 1: connect to channel output)"
 msgstr ""
+"A1xy: Cambiar conexión del filtro (x: filtro (0-3); y: bit 0: conectar a la entrada del canal; bit 1: conectar a la salida del canal)"
 
 #: src/engine/sysDef.cpp:769
 msgid ""
 "A2xy: Set filter connection matrix (x: filter (0-3); y: bits 0-3: add filter "
 "1-4 output to filter's input)"
 msgstr ""
+"A2xy: Ajustar matriz de conexión del filtro (x: filtro (0-3); y: bits 0-3: añadir filtro 1-4 salida a la entrada del filtro)"
 
 #: src/engine/sysDef.cpp:770
 msgid "A3xy: Enable filter (x: filter (0-3); y: enable)"
-msgstr ""
+msgstr "A3xy: Activar filtro (x: filtro (0-3); y: activar)"
 
 #: src/engine/sysDef.cpp:772
 msgid "A4xx: Pulse width slide up"
-msgstr ""
+msgstr "A4xx: Deslizar ancho de pulso arriba"
 
 #: src/engine/sysDef.cpp:773
 msgid "A5xx: Pulse width slide down"
-msgstr ""
+msgstr "A5xx: Deslizar ancho de pulso abajo"
 
 #: src/engine/sysDef.cpp:775
 msgid "A6xx: Filter 1 cutoff slide up"
-msgstr ""
+msgstr "A6xx: Deslizar corteapagado del filtro 1 arriba"
 
 #: src/engine/sysDef.cpp:776
 msgid "A7xx: Filter 1 cutoff slide down"
-msgstr ""
+msgstr "A7xx: Deslizar corteapagado del filtro 1 abajo"
 
 #: src/engine/sysDef.cpp:777
 msgid "A8xx: Filter 2 cutoff slide up"
-msgstr ""
+msgstr "A8xx: Deslizar corteapagado del filtro 2 arriba"
 
 #: src/engine/sysDef.cpp:778
 msgid "A9xx: Filter 2 cutoff slide down"
-msgstr ""
+msgstr "A9xx: Deslizar corteapagado del filtro 2 abajo"
 
 #: src/engine/sysDef.cpp:779
 msgid "AAxx: Filter 3 cutoff slide up"
-msgstr ""
+msgstr "AAxx: Deslizar corteapagado del filtro 3 arriba"
 
 #: src/engine/sysDef.cpp:780
 msgid "ABxx: Filter 3 cutoff slide down"
-msgstr ""
+msgstr "ABxx: Deslizar corteapagado del filtro 3 abajo"
 
 #: src/engine/sysDef.cpp:781
 msgid "ACxx: Filter 4 cutoff slide up"
-msgstr ""
+msgstr "ACxx: Deslizar corteapagado del filtro 4 arriba"
 
 #: src/engine/sysDef.cpp:782
 msgid "ADxx: Filter 4 cutoff slide down"
-msgstr ""
+msgstr "ADxx: Deslizar corteapagado del filtro 4 abajo"
 
 #: src/engine/sysDef.cpp:784
 msgid "AExx: Phase reset on tick xx"
-msgstr ""
+msgstr "AExx: Reiniciar fase en tick xx"
 
 #: src/engine/sysDef.cpp:785
 msgid "AFxx: Noise phase reset on tick xx"
-msgstr ""
+msgstr "AFxx: Reiniciar fase del ruido en tick xx"
 
 #: src/engine/sysDef.cpp:786
 msgid "B0xx: Envelope reset on tick xx"
-msgstr ""
+msgstr "B0xx: Reiniciar envuelto en tick xx"
 
 #: src/engine/sysDef.cpp:788
 msgid ""
 "B1xy: Cutoff scaling control (x: filter (0-3); y: bit 0: enable scaling; bit "
 "1: invert scaling)"
 msgstr ""
+"B1xx: Control de escala del corteapagado (x: filtro (0-3); y: bit 0: activar escala; bit 1: invertir escala)"
 
 #: src/engine/sysDef.cpp:789
 msgid ""
 "B2xy: Resonance scaling control (x: filter (0-3); y: bit 0: enable scaling; "
 "bit 1: invert scaling)"
 msgstr ""
+"B2xx: Control de escala de la resonancia (x: filtro (0-3); y: bit 0: activar escala; bit 1: invertir escala)"
 
 #: src/engine/sysDef.cpp:792
 msgid "5xxx: Set pulse width (0 to FFF)"
-msgstr ""
+msgstr "5xxx: Ajustar ancho de pulso (0 a FFF)"
 
 #: src/engine/sysDef.cpp:793
 msgid "1xxx: Set cutoff of filter 1 (0 to FFF)"
-msgstr ""
+msgstr "1xxx: Ajustar corte del filtro 1 (0 a FFF)"
 
 #: src/engine/sysDef.cpp:794
 msgid "2xxx: Set cutoff of filter 2 (0 to FFF)"
-msgstr ""
+msgstr "2xxx: Ajustar corte del filtro 2 (0 a FFF)"
 
 #: src/engine/sysDef.cpp:795
 msgid "3xxx: Set cutoff of filter 3 (0 to FFF)"
-msgstr ""
+msgstr "3xxx: Ajustar corte del filtro 3 (0 a FFF)"
 
 #: src/engine/sysDef.cpp:796
 msgid "4xxx: Set cutoff of filter 4 (0 to FFF)"
-msgstr ""
+msgstr "4xxx: Ajustar corte del filtro 4 (0 a FFF)"
 
 #: src/engine/sysDef.cpp:807
 msgid "Yamaha YMU759 (MA-2)"
@@ -1338,7 +1347,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:822
 msgid "Sega Genesis Extended Channel 3"
-msgstr ""
+msgstr "Sega Genesis Canal 3 Extendido"
 
 #: src/engine/sysDef.cpp:828 src/gui/presets.cpp:3273 src/gui/sysConf.cpp:167
 msgid "TI SN76489"
@@ -2168,7 +2177,7 @@ msgstr "15xx: Cargar una onda en la tabla de modulación"
 
 #: src/engine/sysDef.cpp:1172
 msgid "16xy: Automatic modulation speed (x: numerator; y: denominator)"
-msgstr ""
+msgstr "16xy: Velocidad de modulación automática (x: numerador; y: denominador)"
 
 #: src/engine/sysDef.cpp:1177 src/gui/presets.cpp:3570
 msgid "MMC5"
@@ -2364,7 +2373,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1263
 msgid "Yamaha YM2608 (OPNA) Extended Channel 3"
-msgstr ""
+msgstr "Yamaha YM2608 (OPNA) Canal 3 Extendido"
 
 #: src/engine/sysDef.cpp:1264
 msgid ""
@@ -2373,6 +2382,10 @@ msgid ""
 "this one is in Extended Channel mode, which turns the third FM channel into "
 "four operators with independent notes/frequencies."
 msgstr ""
+"OPN con dos veces los canales FM, modo estéreo, canal ADPCM y canales de "
+"percusión."
+"este está en modo de Canal Extendido, que transforma al tercer canal FM en "
+"cuatro operadores con frecuencias/notas independientes."
 
 #: src/engine/sysDef.cpp:1276
 msgid "Yamaha YM2608 (OPNA) CSM"
