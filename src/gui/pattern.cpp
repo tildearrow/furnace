@@ -167,7 +167,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     int chanVolMax=e->getMaxVolumeChan(j);
     if (chanVolMax<1) chanVolMax=1;
     const DivPattern* pat=patCache[j];
-    ImGui::TableNextColumn();
+    if (!ImGui::TableNextColumn()) {
+      continue;
+    }
     for (int k=mustSetXOf; k<=j; k++)  {
       patChanX[k]=ImGui::GetCursorScreenPos().x;
     }
@@ -478,9 +480,29 @@ void FurnaceGUI::drawPattern() {
     if (chans<1) {
       ImGui::Text(_("there aren't any channels to show."));
     } else if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea|((settings.cursorFollowsWheel || wheelCalmDown)?ImGuiTableFlags_NoScrollWithMouse:0))) {
-      ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed);
       char chanID[2048];
       float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
+
+      // this could be moved somewhere else for performance...
+      float oneCharSize=ImGui::CalcTextSize("A").x;
+      fourChars=ImVec2(oneCharSize*4.0f,lineHeight);
+      threeChars=ImVec2(oneCharSize*3.0f,lineHeight);
+      twoChars=ImVec2(oneCharSize*2.0f,lineHeight);
+      oneChar=ImVec2(oneCharSize,lineHeight);
+
+      noteCellSize=threeChars;
+      noteCellSize.x+=(float)settings.noteCellSpacing*dpiScale;
+      insCellSize=twoChars;
+      insCellSize.x+=(float)settings.insCellSpacing*dpiScale;
+      volCellSize=twoChars;
+      volCellSize.x+=(float)settings.volCellSpacing*dpiScale;
+      effectCellSize=twoChars;
+      effectCellSize.x+=(float)settings.effectCellSpacing*dpiScale;
+      effectValCellSize=twoChars;
+      effectValCellSize.x+=(float)settings.effectValCellSpacing*dpiScale;
+
+      // and now set things up
+      ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed,fourChars.x);
 
       if (nextAddScroll!=0.0f) {
         ImGui::SetScrollY(ImGui::GetScrollY()+nextAddScroll);
@@ -495,7 +517,18 @@ void FurnaceGUI::drawPattern() {
       ImGui::TableSetupScrollFreeze(1,1);
       for (int i=0; i<chans; i++) {
         if (!e->curSubSong->chanShow[i]) continue;
-        ImGui::TableSetupColumn(fmt::sprintf("c%d",i).c_str(),ImGuiTableColumnFlags_WidthFixed);
+        float chanWidth=noteCellSize.x;
+        if (e->curSubSong->chanCollapse[i]<3) {
+          chanWidth+=insCellSize.x;
+        }
+        if (e->curSubSong->chanCollapse[i]<2) {
+          chanWidth+=volCellSize.x;
+        }
+        if (e->curSubSong->chanCollapse[i]<1) {
+          chanWidth+=(effectCellSize.x+effectValCellSize.x)*e->curPat[i].effectCols;
+        }
+
+        ImGui::TableSetupColumn(fmt::sprintf("c%d",i).c_str(),ImGuiTableColumnFlags_WidthFixed,chanWidth);
       }
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
@@ -1116,22 +1149,6 @@ void FurnaceGUI::drawPattern() {
       if (e->hasExtValue()) {
         ImGui::TextColored(uiColors[GUI_COLOR_EE_VALUE]," %.2X",e->getExtValue());
       }
-      float oneCharSize=ImGui::CalcTextSize("A").x;
-      fourChars=ImVec2(oneCharSize*4.0f,lineHeight);
-      threeChars=ImVec2(oneCharSize*3.0f,lineHeight);
-      twoChars=ImVec2(oneCharSize*2.0f,lineHeight);
-      //ImVec2 oneChar=ImVec2(oneCharSize,lineHeight);
-
-      noteCellSize=threeChars;
-      noteCellSize.x+=(float)settings.noteCellSpacing*dpiScale;
-      insCellSize=twoChars;
-      insCellSize.x+=(float)settings.insCellSpacing*dpiScale;
-      volCellSize=twoChars;
-      volCellSize.x+=(float)settings.volCellSpacing*dpiScale;
-      effectCellSize=twoChars;
-      effectCellSize.x+=(float)settings.effectCellSpacing*dpiScale;
-      effectValCellSize=twoChars;
-      effectValCellSize.x+=(float)settings.effectValCellSpacing*dpiScale;
 
       dummyRows=(ImGui::GetWindowSize().y/lineHeight)/2;
 
