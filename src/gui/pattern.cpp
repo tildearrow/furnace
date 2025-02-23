@@ -140,9 +140,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   ImGui::PushStyleColor(ImGuiCol_Text,rowIndexColor);
   
   if (settings.patRowsBase==1) {
-    snprintf(id,63," %.2X ##PR_%d",i,i);
+    snprintf(id,63," %.2X ###PR_%d",i,i);
   } else {
-    snprintf(id,63,"%3d ##PR_%d",i,i);
+    snprintf(id,63,"%3d ###PR_%d",i,i);
   }
   ImGui::Selectable(id,false,ImGuiSelectableFlags_NoPadWithHalfSpacing,fourChars);
   if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
@@ -187,7 +187,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     bool cursorVol=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==2 && curWindowLast==GUI_WINDOW_PATTERN);
 
     // note
-    snprintf(id,63,"%.31s##PN_%d_%d",noteName(pat->data[i][0],pat->data[i][1]),i,j);
+    snprintf(id,63,"%.31s###PN_%d_%d",noteName(pat->data[i][0],pat->data[i][1]),i,j);
     if (pat->data[i][0]==0 && pat->data[i][1]==0) {
       ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
     } else {
@@ -222,7 +222,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
       // instrument
       if (pat->data[i][2]==-1) {
         ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
-        snprintf(id,63,"%.31s##PI_%d_%d",emptyLabel2,i,j);
+        snprintf(id,63,"%.31s###PI_%d_%d",emptyLabel2,i,j);
       } else {
         if (pat->data[i][2]<0 || pat->data[i][2]>=e->song.insLen) {
           ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS_ERROR]);
@@ -234,7 +234,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
           }
         }
-        snprintf(id,63,"%.2X##PI_%d_%d",pat->data[i][2],i,j);
+        snprintf(id,63,"%.2X###PI_%d_%d",pat->data[i][2],i,j);
       }
       ImGui::SameLine(0.0f,0.0f);
       if (cursorIns) {
@@ -265,13 +265,13 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     if (e->curSubSong->chanCollapse[j]<2) {
       // volume
       if (pat->data[i][3]==-1) {
-        snprintf(id,63,"%.31s##PV_%d_%d",emptyLabel2,i,j);
+        snprintf(id,63,"%.31s###PV_%d_%d",emptyLabel2,i,j);
         ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
       } else {
         int volColor=(pat->data[i][3]*127)/chanVolMax;
         if (volColor>127) volColor=127;
         if (volColor<0) volColor=0;
-        snprintf(id,63,"%.2X##PV_%d_%d",pat->data[i][3],i,j);
+        snprintf(id,63,"%.2X###PV_%d_%d",pat->data[i][3],i,j);
         ImGui::PushStyleColor(ImGuiCol_Text,volColors[volColor]);
       }
       ImGui::SameLine(0.0f,0.0f);
@@ -311,19 +311,19 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         
         // effect
         if (pat->data[i][index]==-1) {
-          snprintf(id,63,"%.31s##PE%d_%d_%d",emptyLabel2,k,i,j);
+          snprintf(id,63,"%.31s###PE%d_%d_%d",emptyLabel2,k,i,j);
           ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
         } else {
           if (pat->data[i][index]>0xff) {
-            snprintf(id,63,"??##PE%d_%d_%d",k,i,j);
+            snprintf(id,63,"??###PE%d_%d_%d",k,i,j);
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
           } else if (pat->data[i][index]>=0x10 || settings.oneDigitEffects==0) {
             const unsigned char data=pat->data[i][index];
-            snprintf(id,63,"%.2X##PE%d_%d_%d",data,k,i,j);
+            snprintf(id,63,"%.2X###PE%d_%d_%d",data,k,i,j);
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
           } else {
             const unsigned char data=pat->data[i][index];
-            snprintf(id,63," %.1X##PE%d_%d_%d",data,k,i,j);
+            snprintf(id,63," %.1X###PE%d_%d_%d",data,k,i,j);
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
           }
         }
@@ -353,9 +353,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
 
         // effect value
         if (pat->data[i][index+1]==-1) {
-          snprintf(id,63,"%.31s##PF%d_%d_%d",emptyLabel2,k,i,j);
+          snprintf(id,63,"%.31s###PF%d_%d_%d",emptyLabel2,k,i,j);
         } else {
-          snprintf(id,63,"%.2X##PF%d_%d_%d",pat->data[i][index+1],k,i,j);
+          snprintf(id,63,"%.2X###PF%d_%d_%d",pat->data[i][index+1],k,i,j);
         }
         ImGui::SameLine(0.0f,0.0f);
         if (cursorEffectVal) {
@@ -533,7 +533,7 @@ void FurnaceGUI::drawPattern() {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       float lpwStart=ImGui::GetCursorPosX();
-      if (ImGui::Selectable(" ++##ExtraChannelButtons",false,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
+      if (ImGui::Selectable(" ++###ExtraChannelButtons",false,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
         ImGui::OpenPopup("PatternOpt");
       }
       if (ImGui::IsItemHovered() && !mobileUI) {
@@ -564,17 +564,17 @@ void FurnaceGUI::drawPattern() {
 
         ImGui::Text(_("Channel status:"));
         ImGui::Indent();
-        if (ImGui::RadioButton(_("No##_PCS0"),patChannelHints==0)) {
+        if (ImGui::RadioButton(_("No###_PCS0"),patChannelHints==0)) {
           patChannelHints=0;
         }
-        if (ImGui::RadioButton(_("Yes##_PCS1"),patChannelHints==1)) {
+        if (ImGui::RadioButton(_("Yes###_PCS1"),patChannelHints==1)) {
           patChannelHints=1;
         }
         /*
-        if (ImGui::RadioButton(_("Regular##_PCS2"),patChannelHints==2)) {
+        if (ImGui::RadioButton(_("Regular###_PCS2"),patChannelHints==2)) {
           patChannelHints=2;
         }
-        if (ImGui::RadioButton(_("Detailed##_PCS3"),patChannelHints==3)) {
+        if (ImGui::RadioButton(_("Detailed###_PCS3"),patChannelHints==3)) {
           patChannelHints=3;
         }*/
         ImGui::Unindent();
@@ -940,7 +940,7 @@ void FurnaceGUI::drawPattern() {
         
         // extra buttons
         if (patExtraButtons) {
-          snprintf(chanID,2048,"%c##_HCH%d",e->curSubSong->chanCollapse[i]?'+':'-',i);
+          snprintf(chanID,2048,"%c###_HCH%d",e->curSubSong->chanCollapse[i]?'+':'-',i);
           ImGui::SetCursorPosX(ImGui::GetCursorPosX()+4.0f*dpiScale);
           if (ImGui::SmallButton(chanID)) {
             if (e->curSubSong->chanCollapse[i]==0) {
@@ -952,7 +952,7 @@ void FurnaceGUI::drawPattern() {
           }
           if (!e->curSubSong->chanCollapse[i]) {
             ImGui::SameLine();
-            snprintf(chanID,2048,"<##_LCH%d",i);
+            snprintf(chanID,2048,"<###_LCH%d",i);
             ImGui::BeginDisabled(e->curPat[i].effectCols<=1);
             if (ImGui::SmallButton(chanID)) {
               e->curPat[i].effectCols--;
@@ -962,7 +962,7 @@ void FurnaceGUI::drawPattern() {
             ImGui::EndDisabled();
             ImGui::SameLine();
             ImGui::BeginDisabled(e->curPat[i].effectCols>=DIV_MAX_EFFECTS);
-            snprintf(chanID,2048,">##_RCH%d",i);
+            snprintf(chanID,2048,">###_RCH%d",i);
             if (ImGui::SmallButton(chanID)) {
               e->curPat[i].effectCols++;
               if (e->curPat[i].effectCols>DIV_MAX_EFFECTS) e->curPat[i].effectCols=DIV_MAX_EFFECTS;
@@ -976,7 +976,7 @@ void FurnaceGUI::drawPattern() {
         if (patChannelNames) {
           DivPattern* pat=e->curPat[i].getPattern(e->curOrders->ord[i][ord],true);
           ImGui::PushFont(mainFont);
-          snprintf(chanID,2048," %s##PatName%d",pat->name.c_str(),i);
+          snprintf(chanID,2048," %s###PatName%d",pat->name.c_str(),i);
           if (ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
             editStr(&pat->name);
           }
