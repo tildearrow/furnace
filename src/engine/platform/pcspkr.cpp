@@ -294,7 +294,7 @@ void DivPlatformPCSpeaker::beepFreq(int freq, int delay) {
 }
 
 void DivPlatformPCSpeaker::acquire_real(blip_buffer_t** bb, size_t off, size_t len) {
-  int out=0;
+  //int out=0;
   if (lastOn!=on || lastFreq!=freq) {
     lastOn=on;
     lastFreq=freq;
