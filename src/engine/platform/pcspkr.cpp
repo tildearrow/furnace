@@ -293,13 +293,15 @@ void DivPlatformPCSpeaker::beepFreq(int freq, int delay) {
   realOutCond.notify_one();
 }
 
-void DivPlatformPCSpeaker::acquire_real(short** buf, size_t len) {
+void DivPlatformPCSpeaker::acquire_real(blip_buffer_t** bb, size_t off, size_t len) {
   int out=0;
   if (lastOn!=on || lastFreq!=freq) {
     lastOn=on;
     lastFreq=freq;
     beepFreq((on && !isMuted[0])?freq:0,parent->getBufferPos());
   }
+  // TODO: direct chanOsc API!
+  /*
   for (size_t i=0; i<len; i++) {
     if (on) {
       pos-=PCSPKR_DIVIDER;
@@ -316,8 +318,9 @@ void DivPlatformPCSpeaker::acquire_real(short** buf, size_t len) {
     } else {
       oscBuf->data[oscBuf->needle++]=0;
     }
-    buf[0][i]=0;
+    //buf[0][i]=0;
   }
+  */
 }
 
 void DivPlatformPCSpeaker::acquire(short** buf, size_t len) {
@@ -331,8 +334,13 @@ void DivPlatformPCSpeaker::acquire(short** buf, size_t len) {
     case 2:
       acquire_piezo(buf,len);
       break;
+  }
+}
+
+void DivPlatformPCSpeaker::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) {
+  switch (speakerType) {
     case 3:
-      acquire_real(buf,len);
+      acquire_real(bb,off,len);
       break;
   }
 }
@@ -596,6 +604,10 @@ void DivPlatformPCSpeaker::reset() {
 
 bool DivPlatformPCSpeaker::keyOffAffectsArp(int ch) {
   return true;
+}
+
+bool DivPlatformPCSpeaker::hasAcquireDirect() {
+  return (speakerType==0 || speakerType==3);
 }
 
 void DivPlatformPCSpeaker::setFlags(const DivConfig& flags) {

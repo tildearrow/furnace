@@ -70,10 +70,11 @@ class DivPlatformPCSpeaker: public DivDispatch {
   void acquire_unfilt(short** buf, size_t len);
   void acquire_cone(short** buf, size_t len);
   void acquire_piezo(short** buf, size_t len);
-  void acquire_real(short** buf, size_t len);
+  void acquire_real(blip_buffer_t** bb, size_t off, size_t len);
 
   public:
     void pcSpeakerThread();
+    void acquireDirect(blip_buffer_t** bb, size_t off, size_t len);
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
@@ -86,6 +87,7 @@ class DivPlatformPCSpeaker: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
+    bool hasAcquireDirect();
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
     void notifyPlaybackStop();

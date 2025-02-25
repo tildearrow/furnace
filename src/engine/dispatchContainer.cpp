@@ -155,18 +155,22 @@ void DivDispatchContainer::grow(size_t size) {
 void DivDispatchContainer::acquire(size_t offset, size_t count) {
   CHECK_MISSING_BUFS;
 
-  for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
-    if (i>=outs) {
-      bbInMapped[i]=NULL;
-    } else {
-      if (bbIn[i]==NULL) {
+  if (dispatch->hasAcquireDirect()) {
+    dispatch->acquireDirect(bb,offset,count);
+  } else {
+    for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+      if (i>=outs) {
         bbInMapped[i]=NULL;
       } else {
-        bbInMapped[i]=&bbIn[i][offset];
+        if (bbIn[i]==NULL) {
+          bbInMapped[i]=NULL;
+        } else {
+          bbInMapped[i]=&bbIn[i][offset];
+        }
       }
     }
+    dispatch->acquire(bbInMapped,count);
   }
-  dispatch->acquire(bbInMapped,count);
 }
 
 void DivDispatchContainer::flush(size_t count) {
@@ -181,35 +185,37 @@ void DivDispatchContainer::flush(size_t count) {
 void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) {
   CHECK_MISSING_BUFS;
 
-  if (dcOffCompensation && runtotal>0) {
-    dcOffCompensation=false;
-    if (hiPass) {
+  if (!dispatch->hasAcquireDirect()) {
+    if (dcOffCompensation && runtotal>0) {
+      dcOffCompensation=false;
+      if (hiPass) {
+        for (int i=0; i<outs; i++) {
+          if (bbIn[i]==NULL) continue;
+          prevSample[i]=bbIn[i][0];
+        }
+      }
+    }
+    if (lowQuality) {
       for (int i=0; i<outs; i++) {
         if (bbIn[i]==NULL) continue;
-        prevSample[i]=bbIn[i][0];
+        if (bb[i]==NULL) continue;
+        for (size_t j=0; j<runtotal; j++) {
+          if (bbIn[i][j]==temp[i]) continue;
+          temp[i]=bbIn[i][j];
+          blip_add_delta_fast(bb[i],j,temp[i]-prevSample[i]);
+          prevSample[i]=temp[i];
+        }
       }
-    }
-  }
-  if (lowQuality) {
-    for (int i=0; i<outs; i++) {
-      if (bbIn[i]==NULL) continue;
-      if (bb[i]==NULL) continue;
-      for (size_t j=0; j<runtotal; j++) {
-        if (bbIn[i][j]==temp[i]) continue;
-        temp[i]=bbIn[i][j];
-        blip_add_delta_fast(bb[i],j,temp[i]-prevSample[i]);
-        prevSample[i]=temp[i];
-      }
-    }
-  } else {
-    for (int i=0; i<outs; i++) {
-      if (bbIn[i]==NULL) continue;
-      if (bb[i]==NULL) continue;
-      for (size_t j=0; j<runtotal; j++) {
-        if (bbIn[i][j]==temp[i]) continue;
-        temp[i]=bbIn[i][j];
-        blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
-        prevSample[i]=temp[i];
+    } else {
+      for (int i=0; i<outs; i++) {
+        if (bbIn[i]==NULL) continue;
+        if (bb[i]==NULL) continue;
+        for (size_t j=0; j<runtotal; j++) {
+          if (bbIn[i][j]==temp[i]) continue;
+          temp[i]=bbIn[i][j];
+          blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
+          prevSample[i]=temp[i];
+        }
       }
     }
   }
