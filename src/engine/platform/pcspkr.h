@@ -51,8 +51,8 @@ class DivPlatformPCSpeaker: public DivDispatch {
   FixedQueue<RealQueueVal,2048> realQueue;
   std::mutex realQueueLock;
   bool isMuted[1];
-  bool on, flip, lastOn, realOutEnabled, resetPhase;
-  int pos, speakerType, beepFD, realOutMethod;
+  bool on, flip, lastOn, realOutEnabled, resetPhase, posToggle;
+  int pos, oldOut, speakerType, beepFD, realOutMethod;
   float low, band;
   float low2, high2, band2;
   float low3, band3;
@@ -67,7 +67,7 @@ class DivPlatformPCSpeaker: public DivDispatch {
 
   void beepFreq(int freq, int delay=0);
 
-  void acquire_unfilt(short** buf, size_t len);
+  void acquire_unfilt(blip_buffer_t** bb, size_t off, size_t len);
   void acquire_cone(short** buf, size_t len);
   void acquire_piezo(short** buf, size_t len);
   void acquire_real(blip_buffer_t** bb, size_t off, size_t len);
