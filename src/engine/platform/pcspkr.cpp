@@ -194,31 +194,47 @@ const char** DivPlatformPCSpeaker::getRegisterSheet() {
 
 void DivPlatformPCSpeaker::acquire_unfilt(blip_buffer_t** bb, size_t off, size_t len) {
   int out=0;
+  int freq1=freq+1;
+  int timeToNextToggle=0;
   if (on) {
     // just in case
+    if (pos>freq1) {
+      pos=freq1;
+    }
+    if (pos>(freq>>1)) {
+      posToggle=true;
+      timeToNextToggle=pos-(freq>>1);
+    } else {
+      posToggle=false;
+      timeToNextToggle=pos;
+    }
     out=(posToggle && !isMuted[0])?32767:0;
     blip_add_delta(bb[0],off,out-oldOut);
     oldOut=out;
     if (freq>=1) {
-      if (pos>freq) pos=freq;
       size_t boff=off;
       size_t i=len;
       while (true) {
-        if ((int)i<pos) {
+        if ((int)i<timeToNextToggle) {
           pos-=i;
           break;
         }
-        i-=pos;
-        boff+=pos;
-        posToggle=!posToggle;
+        i-=timeToNextToggle;
+        boff+=timeToNextToggle;
+        pos-=timeToNextToggle;
+        if (pos<=0) {
+          pos=freq1;
+        }
+        if (pos>(freq>>1)) {
+          posToggle=true;
+          timeToNextToggle=pos-(freq>>1);
+        } else {
+          posToggle=false;
+          timeToNextToggle=pos;
+        }
         out=(posToggle && !isMuted[0])?32767:0;
         blip_add_delta(bb[0],boff,out-oldOut);
         oldOut=out;
-        if (freq&1) {
-          pos=(freq>>1)+(posToggle?1:0);
-        } else {
-          pos=freq>>1;
-        }
       }
     }
   } else {
@@ -396,7 +412,6 @@ void DivPlatformPCSpeaker::tick(bool sysTick) {
       }
       if (freq!=chan[i].freq && resetPhase) {
         pos=0;
-        posToggle=false;
       }
       freq=chan[i].freq;
       if (chan[i].keyOn) chan[i].keyOn=false;
