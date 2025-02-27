@@ -210,6 +210,8 @@ void DivPlatformPCSpeaker::acquire_unfilt(blip_buffer_t** bb, size_t off, size_t
     }
     out=(posToggle && !isMuted[0])?32767:0;
     blip_add_delta(bb[0],off,out-oldOut);
+    oscBuf->data[oscBuf->needle++]=oscBufPos;
+    oscBuf->data[oscBuf->needle++]=out;
     oldOut=out;
     if (freq>=1) {
       size_t boff=off;
@@ -222,6 +224,7 @@ void DivPlatformPCSpeaker::acquire_unfilt(blip_buffer_t** bb, size_t off, size_t
         i-=timeToNextToggle;
         boff+=timeToNextToggle;
         pos-=timeToNextToggle;
+        oscBufPos+=timeToNextToggle;
         if (pos<=0) {
           pos=freq1;
         }
@@ -234,6 +237,8 @@ void DivPlatformPCSpeaker::acquire_unfilt(blip_buffer_t** bb, size_t off, size_t
         }
         out=(posToggle && !isMuted[0])?32767:0;
         blip_add_delta(bb[0],boff,out-oldOut);
+        oscBuf->data[oscBuf->needle++]=oscBufPos;
+        oscBuf->data[oscBuf->needle++]=out;
         oldOut=out;
       }
     }
@@ -641,6 +646,10 @@ bool DivPlatformPCSpeaker::hasAcquireDirect() {
   return (speakerType==0 || speakerType==3);
 }
 
+bool DivPlatformPCSpeaker::isOscBufPositional() {
+  return (speakerType==0 || speakerType==3);
+}
+
 void DivPlatformPCSpeaker::setFlags(const DivConfig& flags) {
   switch (flags.getInt("clockSel",0)) {
     case 1: // PC-98
@@ -705,6 +714,7 @@ int DivPlatformPCSpeaker::init(DivEngine* p, int channels, int sugRate, const Di
   for (int i=0; i<1; i++) {
     isMuted[i]=false;
   }
+  oscBufPos=0;
   oscBuf=new DivDispatchOscBuffer;
   setFlags(flags);
 

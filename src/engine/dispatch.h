@@ -424,6 +424,7 @@ struct DivSamplePos {
     freq(0) {}
 };
 
+// the actual output of all DivDispatchOscBuffer instanced runs at 65536Hz.
 struct DivDispatchOscBuffer {
   bool follow;
   unsigned int rate;
@@ -432,6 +433,20 @@ struct DivDispatchOscBuffer {
   unsigned short followNeedle;
   short data[65536];
 
+  // TODO: all of this
+  inline void putSample(unsigned short pos, short val) {
+    unsigned short realPos=needle+pos;
+    if (val==0xffff) {
+      data[needle+pos]=0xfffe;
+      return;
+    }
+    data[needle+pos]=val;
+  }
+  inline void begin(unsigned short len) {
+  }
+  inline void end(unsigned short len) {
+    needle+=len;
+  }
   DivDispatchOscBuffer():
     follow(true),
     rate(65536),
