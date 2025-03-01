@@ -428,6 +428,7 @@ struct DivSamplePos {
 struct DivDispatchOscBuffer {
   bool follow;
   unsigned int rate;
+  size_t rateMul;
   unsigned short needle;
   unsigned short readNeedle;
   unsigned short followNeedle;
@@ -446,6 +447,9 @@ struct DivDispatchOscBuffer {
   }
   inline void end(unsigned short len) {
     needle+=len;
+  }
+  void setRate(unsigned int r) {
+
   }
   DivDispatchOscBuffer():
     follow(true),
