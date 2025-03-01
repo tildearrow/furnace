@@ -439,7 +439,6 @@ struct DivDispatchOscBuffer {
   bool follow;
   short data[65536];
 
-  // TODO: all of this
   inline void putSample(uintmax_t pos, short val) {
     unsigned short realPos=needle+((needleSub+pos*rateMul)>>OSCBUF_PREC);
     if (val==-1) {
@@ -454,8 +453,10 @@ struct DivDispatchOscBuffer {
     unsigned short start=needle;
     unsigned short end=needle+calc;
 
+    //logD("C %d %d %d",len,calc,rate);
+
     if (end<start) {
-      logE("ELS %d %d %d",end,start,calc);
+      //logE("ELS %d %d %d",end,start,calc);
       memset(&data[start],-1,(0x10000-start)*sizeof(short));
       memset(data,-1,end*sizeof(short));
       data[needle]=lastSample;
@@ -466,8 +467,8 @@ struct DivDispatchOscBuffer {
   }
   inline void end(unsigned short len) {
     uintmax_t calc=len*rateMul;
-    if (((calc&OSCBUF_MASK)+needleSub)>=(OSCBUF_MASK+1UL)) {
-      needle++;
+    if (((calc&OSCBUF_MASK)+needleSub)>OSCBUF_MASK) {
+      calc+=1UL<<OSCBUF_PREC;
     }
     needleSub=(needleSub+calc)&OSCBUF_MASK;
     needle+=calc>>OSCBUF_PREC;

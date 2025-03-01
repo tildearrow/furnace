@@ -474,9 +474,10 @@ void FurnaceGUI::drawChanOsc() {
                 short lastSample=0;
                 memset(fft->inBuf,0,FURNACE_FFT_SIZE*sizeof(double));
                 if (displaySize2<FURNACE_FFT_SIZE) {
-                  for (int j=0; j<FURNACE_FFT_SIZE; j++) {
+                  for (int j=-FURNACE_FFT_SIZE; j<FURNACE_FFT_SIZE; j++) {
                     const short newData=buf->data[(unsigned short)(fft->needle-displaySize2+((j*displaySize2)/(FURNACE_FFT_SIZE)))];
                     if (newData!=-1) lastSample=newData;
+                    if (j<0) continue;
                     fft->inBuf[j]=(double)lastSample/32768.0;
                     if (fft->inBuf[j]>0.001 || fft->inBuf[j]<-0.001) fft->loudEnough=true;
                     fft->inBuf[j]*=0.55-0.45*cos(M_PI*(double)j/(double)(FURNACE_FFT_SIZE>>1));
@@ -693,17 +694,19 @@ void FurnaceGUI::drawChanOsc() {
                     }
                   }
                 } else {
-                  String dStr=fmt::sprintf("DS: %d P: %d",displaySize,precision);
+                  String dStr=fmt::sprintf("DS: %d P: %d\nMAX: %d",displaySize,precision,(short)((fft->needle+displaySize)-fft->relatedBuf->needle));
                   dl->AddText(inRect.Min,0xffffffff,dStr.c_str());
                   if (displaySize<precision) {
                     float y=0;
-                    for (unsigned short j=0; j<precision; j++) {
+                    for (int j=-2048; j<precision; j++) {
                       const short y_s=buf->data[(unsigned short)(fft->needle+(j*displaySize/precision))];
                       if (y_s!=-1) {
                         y=(float)y_s/32768.0f;
+                        if (j<0) continue;
                         if (minLevel>y) minLevel=y;
                         if (maxLevel<y) maxLevel=y;
                       }
+                      if (j<0) continue;
                       float yOut=y-dcOff;
                       if (yOut<-0.5f) yOut=-0.5f;
                       if (yOut>0.5f) yOut=0.5f;
@@ -712,16 +715,18 @@ void FurnaceGUI::drawChanOsc() {
                     }
                   } else {
                     float y=0;
-                    int k=0;
-                    for (unsigned short j=fft->needle; j!=fft->needle+displaySize; j++, k++) {
+                    int k=-2048;
+                    for (unsigned short j=fft->needle-2048; j!=fft->needle+displaySize; j++, k++) {
                       const short y_s=buf->data[j];
                       const int kTex=(k*precision)/displaySize;
                       if (kTex>=precision) break;
                       if (y_s!=-1) {
                         y=(float)y_s/32768.0f;
+                        if (k<0) continue;
                         if (minLevel>y) minLevel=y;
                         if (maxLevel<y) maxLevel=y;
                       }
+                      if (kTex<0) continue;
                       float yOut=y-dcOff;
                       if (yOut<-0.5f) yOut=-0.5f;
                       if (yOut>0.5f) yOut=0.5f;

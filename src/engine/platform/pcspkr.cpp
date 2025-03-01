@@ -211,7 +211,7 @@ void DivPlatformPCSpeaker::acquire_unfilt(blip_buffer_t** bb, size_t off, size_t
     }
     out=(posToggle && !isMuted[0])?32767:0;
     blip_add_delta(bb[0],off,out-oldOut);
-    oscBuf->data[oscBuf->needle++]=out;
+    oscBuf->putSample(0,out);
     oldOut=out;
     if (freq>=1) {
       size_t boff=off;
