@@ -2064,9 +2064,7 @@ void DivEngine::stop() {
   for (int i=0; i<chans; i++) {
     DivDispatchOscBuffer* buf=disCont[dispatchOfChan[i]].dispatch->getOscBuffer(dispatchChanOfChan[i]);
     if (buf!=NULL) {
-      memset(buf->data,0,65536*sizeof(short));
-      buf->needle=0;
-      buf->readNeedle=0;
+      buf->reset();
     }
   }
   BUSY_END;

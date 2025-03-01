@@ -60,6 +60,10 @@ void DivPlatformGA20::acquire(short** buf, size_t len) {
     }
   }
 
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     if ((--delay)<=0) {
       delay=MAX(0,delay);
@@ -80,8 +84,12 @@ void DivPlatformGA20::acquire(short** buf, size_t len) {
     ga20.sound_stream_update(buffer,1);
     buf[0][h]=(signed int)(ga20Buf[0][h]+ga20Buf[1][h]+ga20Buf[2][h]+ga20Buf[3][h])>>2;
     for (int i=0; i<4; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=ga20Buf[i][h]>>1;
+      oscBuf[i]->putSample(h,ga20Buf[i][h]>>1);
     }
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -403,7 +411,7 @@ void DivPlatformGA20::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/4;
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

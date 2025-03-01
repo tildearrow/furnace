@@ -4181,8 +4181,9 @@ bool FurnaceGUI::loop() {
         for (int i=0; i<e->getTotalChannelCount(); i++) {
           DivDispatchOscBuffer* buf=e->getOscBuffer(i);
           if (buf!=NULL) {
-            buf->needle=0;
-            buf->readNeedle=0;
+            //buf->needle=0;
+            //buf->readNeedle=0;
+            // TODO: should we reset here?
           }
         }
       });

@@ -424,40 +424,79 @@ struct DivSamplePos {
     freq(0) {}
 };
 
+constexpr uintmax_t OSCBUF_PREC=(sizeof(uintmax_t)>=8)?32:16;
+constexpr uintmax_t OSCBUF_MASK=(1UL<<OSCBUF_PREC)-1;
+
 // the actual output of all DivDispatchOscBuffer instanced runs at 65536Hz.
 struct DivDispatchOscBuffer {
-  bool follow;
-  unsigned int rate;
-  size_t rateMul;
+  uintmax_t rate;
+  uintmax_t rateMul;
+  unsigned int needleSub;
   unsigned short needle;
   unsigned short readNeedle;
   unsigned short followNeedle;
+  unsigned short lastSample;
+  bool follow;
   short data[65536];
 
   // TODO: all of this
-  inline void putSample(unsigned short pos, short val) {
-    unsigned short realPos=needle+pos;
-    if (val==0xffff) {
-      data[needle+pos]=0xfffe;
+  inline void putSample(uintmax_t pos, short val) {
+    unsigned short realPos=needle+((needleSub+pos*rateMul)>>OSCBUF_PREC);
+    if (val==-1) {
+      data[realPos]=0xfffe;
       return;
     }
-    data[needle+pos]=val;
+    lastSample=val;
+    data[realPos]=val;
   }
   inline void begin(unsigned short len) {
+    uintmax_t calc=(needleSub+len*rateMul)>>OSCBUF_PREC;
+    unsigned short start=needle;
+    unsigned short end=needle+calc;
+
+    if (end<start) {
+      logE("ELS %d %d %d",end,start,calc);
+      memset(&data[start],-1,(0x10000-start)*sizeof(short));
+      memset(data,-1,end*sizeof(short));
+      data[needle]=lastSample;
+      return;
+    }
+    memset(&data[start],-1,calc*sizeof(short));
+    data[needle]=lastSample;
   }
   inline void end(unsigned short len) {
-    needle+=len;
+    uintmax_t calc=len*rateMul;
+    if (((calc&OSCBUF_MASK)+needleSub)>=(OSCBUF_MASK+1UL)) {
+      needle++;
+    }
+    needleSub=(needleSub+calc)&OSCBUF_MASK;
+    needle+=calc>>OSCBUF_PREC;
+    data[needle]=lastSample;
+  }
+  void reset() {
+    memset(data,-1,65536*sizeof(short));
+    needle=0;
+    readNeedle=0;
+    followNeedle=0;
+    needleSub=0;
+    lastSample=0;
   }
   void setRate(unsigned int r) {
-
+    double rateMulD=65536.0/(double)r;
+    rateMulD*=(double)(1UL<<OSCBUF_PREC);
+    rate=r;
+    rateMul=(uintmax_t)rateMulD;
   }
   DivDispatchOscBuffer():
-    follow(true),
     rate(65536),
+    rateMul(1UL<<OSCBUF_PREC),
+    needleSub(0),
     needle(0),
     readNeedle(0),
-    followNeedle(0) {
-    memset(data,0,65536*sizeof(short));
+    followNeedle(0),
+    lastSample(0),
+    follow(true) {
+    memset(data,-1,65536*sizeof(short));
   }
 };
 

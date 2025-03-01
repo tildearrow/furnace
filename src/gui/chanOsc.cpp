@@ -102,14 +102,14 @@ void FurnaceGUI::calcChanOsc() {
     }
     if (buf!=NULL && e->curSubSong->chanShowChanOsc[i]) {
       // 30ms should be enough
-      int displaySize=(float)(buf->rate)*0.03f;
+      int displaySize=65536.0f*0.03f;
       if (e->isRunning()) {
         short minLevel=32767;
         short maxLevel=-32768;
         unsigned short needlePos=buf->needle;
-        needlePos-=displaySize;
-        for (unsigned short i=0; i<512; i++) {
-          short y=buf->data[(unsigned short)(needlePos+(i*displaySize/512))];
+        for (unsigned short i=needlePos-displaySize; i!=needlePos; i++) {
+          short y=buf->data[i];
+          if (y==-1) continue;
           if (minLevel>y) minLevel=y;
           if (maxLevel<y) maxLevel=y;
         }
@@ -460,17 +460,36 @@ void FurnaceGUI::drawChanOsc() {
                 // I have a feeling this could be simplified to two FFTs or even one...
                 // if you know how, please tell me
 
+                // TODO: utterly broken!
+
                 // initialization
                 double phase=0.0;
-                int displaySize=(float)(buf->rate)*(fft->windowSize/1000.0f);
+                int displaySize=65536.0f*(fft->windowSize/1000.0f);
+                int displaySize2=65536.0f*(fft->windowSize/500.0f);
                 fft->loudEnough=false;
                 fft->needle=buf->needle;
 
                 // first FFT
-                for (int j=0; j<FURNACE_FFT_SIZE; j++) {
-                  fft->inBuf[j]=(double)buf->data[(unsigned short)(fft->needle-displaySize*2+((j*displaySize*2)/(FURNACE_FFT_SIZE)))]/32768.0;
-                  if (fft->inBuf[j]>0.001 || fft->inBuf[j]<-0.001) fft->loudEnough=true;
-                  fft->inBuf[j]*=0.55-0.45*cos(M_PI*(double)j/(double)(FURNACE_FFT_SIZE>>1));
+                int k=0;
+                short lastSample=0;
+                memset(fft->inBuf,0,FURNACE_FFT_SIZE*sizeof(double));
+                if (displaySize2<FURNACE_FFT_SIZE) {
+                  for (int j=0; j<FURNACE_FFT_SIZE; j++) {
+                    const short newData=buf->data[(unsigned short)(fft->needle-displaySize2+((j*displaySize2)/(FURNACE_FFT_SIZE)))];
+                    if (newData!=-1) lastSample=newData;
+                    fft->inBuf[j]=(double)lastSample/32768.0;
+                    if (fft->inBuf[j]>0.001 || fft->inBuf[j]<-0.001) fft->loudEnough=true;
+                    fft->inBuf[j]*=0.55-0.45*cos(M_PI*(double)j/(double)(FURNACE_FFT_SIZE>>1));
+                  }
+                } else {
+                  for (unsigned short j=fft->needle-displaySize2; j!=fft->needle; j++, k++) {
+                    const int kIn=(k*FURNACE_FFT_SIZE)/displaySize2;
+                    if (kIn>=FURNACE_FFT_SIZE) break;
+                    if (buf->data[j]!=-1) lastSample=buf->data[j];
+                    fft->inBuf[kIn]=(double)lastSample/32768.0;
+                    if (fft->inBuf[kIn]>0.001 || fft->inBuf[kIn]<-0.001) fft->loudEnough=true;
+                    fft->inBuf[kIn]*=0.55-0.45*cos(M_PI*(double)kIn/(double)(FURNACE_FFT_SIZE>>1));
+                  }
                 }
 
                 // only proceed if not quiet
@@ -615,7 +634,8 @@ void FurnaceGUI::drawChanOsc() {
                   }
                 }
               } else {
-                int displaySize=(float)(buf->rate)*(chanOscWindowSize/1000.0f);
+                int displaySize=65536.0f*(chanOscWindowSize/1000.0f);
+                int displaySize2=65536.0f*(chanOscWindowSize/500.0f);
 
                 float minLevel=1.0f;
                 float maxLevel=-1.0f;
@@ -654,7 +674,7 @@ void FurnaceGUI::drawChanOsc() {
                     }
                   }
                   if (fft->loudEnough) {
-                    String cPhase=fmt::sprintf("\n%.1f (b: %d t: %d)",fft->waveLen,fft->waveLenBottom,fft->waveLenTop);
+                    String cPhase=fmt::sprintf("\n%.1f (b: %d t: %d)\nSIZES: %d, %d, %d",fft->waveLen,fft->waveLenBottom,fft->waveLenTop,displaySize,displaySize2,FURNACE_FFT_SIZE);
                     dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
 
                     dl->AddLine(
@@ -673,31 +693,48 @@ void FurnaceGUI::drawChanOsc() {
                     }
                   }
                 } else {
-                  for (unsigned short j=0; j<precision; j++) {
-                    float y=(float)buf->data[(unsigned short)(fft->needle+(j*displaySize/precision))]/32768.0f;
-                    if (minLevel>y) minLevel=y;
-                    if (maxLevel<y) maxLevel=y;
+                  String dStr=fmt::sprintf("DS: %d P: %d",displaySize,precision);
+                  dl->AddText(inRect.Min,0xffffffff,dStr.c_str());
+                  if (displaySize<precision) {
+                    float y=0;
+                    for (unsigned short j=0; j<precision; j++) {
+                      const short y_s=buf->data[(unsigned short)(fft->needle+(j*displaySize/precision))];
+                      if (y_s!=-1) {
+                        y=(float)y_s/32768.0f;
+                        if (minLevel>y) minLevel=y;
+                        if (maxLevel<y) maxLevel=y;
+                      }
+                      float yOut=y-dcOff;
+                      if (yOut<-0.5f) yOut=-0.5f;
+                      if (yOut>0.5f) yOut=0.5f;
+                      yOut*=chanOscAmplify*2.0f;
+                      fft->oscTex[j]=yOut;
+                    }
+                  } else {
+                    float y=0;
+                    int k=0;
+                    for (unsigned short j=fft->needle; j!=fft->needle+displaySize; j++, k++) {
+                      const short y_s=buf->data[j];
+                      const int kTex=(k*precision)/displaySize;
+                      if (kTex>=precision) break;
+                      if (y_s!=-1) {
+                        y=(float)y_s/32768.0f;
+                        if (minLevel>y) minLevel=y;
+                        if (maxLevel<y) maxLevel=y;
+                      }
+                      float yOut=y-dcOff;
+                      if (yOut<-0.5f) yOut=-0.5f;
+                      if (yOut>0.5f) yOut=0.5f;
+                      yOut*=chanOscAmplify*2.0f;
+                      fft->oscTex[kTex]=yOut;
+                    }
                   }
                   dcOff=(minLevel+maxLevel)*0.5f;
 
-                  if (rend->supportsDrawOsc() && settings.shaderOsc) {
-                    for (unsigned short j=0; j<precision; j++) {
-                      float y=(float)buf->data[(unsigned short)(fft->needle+(j*displaySize/precision))]/32768.0f;
-                      y-=dcOff;
-                      if (y<-0.5f) y=-0.5f;
-                      if (y>0.5f) y=0.5f;
-                      y*=chanOscAmplify*2.0f;
-                      fft->oscTex[j]=y;
-                    }
-                  } else {
+                  if (!(rend->supportsDrawOsc() && settings.shaderOsc)) {
                     for (unsigned short j=0; j<precision; j++) {
                       float x=(float)j/(float)precision;
-                      float y=(float)buf->data[(unsigned short)(fft->needle+(j*displaySize/precision))]/32768.0f;
-                      y-=dcOff;
-                      if (y<-0.5f) y=-0.5f;
-                      if (y>0.5f) y=0.5f;
-                      y*=chanOscAmplify;
-                      waveform[j]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
+                      waveform[j]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-fft->oscTex[j]*0.5f));
                     }
                   }
                 }

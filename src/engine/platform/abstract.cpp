@@ -134,10 +134,6 @@ bool DivDispatch::hasAcquireDirect() {
   return false;
 }
 
-bool DivDispatch::isOscBufPositional() {
-  return false;
-}
-
 bool DivDispatch::getWantPreNote() {
   return false;
 }
