@@ -8569,6 +8569,7 @@ FurnaceGUI::FurnaceGUI():
   lastPatternWidth(0.0f),
   longThreshold(0.48f),
   buttonLongThreshold(0.20f),
+  lastAudioLoadsPos(0),
   latchNote(-1),
   latchIns(-2),
   latchVol(-1),
@@ -8936,6 +8937,8 @@ FurnaceGUI::FurnaceGUI():
 
   memset(keyHit,0,sizeof(float)*DIV_MAX_CHANS);
   memset(keyHit1,0,sizeof(float)*DIV_MAX_CHANS);
+
+  memset(lastAudioLoads,0,sizeof(float)*120);
 
   memset(pianoKeyHit,0,sizeof(float)*180);
   memset(pianoKeyPressed,0,sizeof(bool)*180);

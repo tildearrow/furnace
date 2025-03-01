@@ -2379,6 +2379,9 @@ class FurnaceGUI {
   String nextDesc;
   String nextDescName;
 
+  float lastAudioLoads[120];
+  int lastAudioLoadsPos;
+
   OperationMask opMaskDelete, opMaskPullDelete, opMaskInsert, opMaskPaste, opMaskTransposeNote, opMaskTransposeValue;
   OperationMask opMaskInterpolate, opMaskFade, opMaskInvertVal, opMaskScale;
   OperationMask opMaskRandomize, opMaskFlip, opMaskCollapseExpand;
