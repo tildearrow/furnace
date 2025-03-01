@@ -550,8 +550,11 @@ void FurnaceGUI::drawChanOsc() {
                     double dft[2];
                     dft[0]=0.0;
                     dft[1]=0.0;
-                    for (int j=fft->needle-1-(displaySize>>1)-(int)fft->waveLen, k=0; k<fft->waveLen; j++, k++) {
-                      double one=((double)buf->data[j&0xffff]/32768.0);
+                    lastSample=0;
+                    for (int j=fft->needle-1-displaySize-(int)fft->waveLen, k=-(displaySize>>1); k<fft->waveLen; j++, k++) {
+                      if (buf->data[j&0xffff]!=-1) lastSample=buf->data[j&0xffff];
+                      if (k<0) continue;
+                      double one=((double)lastSample/32768.0);
                       double two=(double)k*(-2.0*M_PI)/fft->waveLen;
                       dft[0]+=one*cos(two);
                       dft[1]+=one*sin(two);
@@ -559,6 +562,8 @@ void FurnaceGUI::drawChanOsc() {
 
                     // calculate and lock into phase
                     phase=(0.5+(atan2(dft[1],dft[0])/(2.0*M_PI)));
+
+                    fft->debugPhase=phase;
 
                     if (fft->waveCorr) {
                       fft->needle-=(phase+(fft->phaseOff*2))*fft->waveLen;
@@ -675,7 +680,7 @@ void FurnaceGUI::drawChanOsc() {
                     }
                   }
                   if (fft->loudEnough) {
-                    String cPhase=fmt::sprintf("\n%.1f (b: %d t: %d)\nSIZES: %d, %d, %d",fft->waveLen,fft->waveLenBottom,fft->waveLenTop,displaySize,displaySize2,FURNACE_FFT_SIZE);
+                    String cPhase=fmt::sprintf("\n%.1f (b: %d t: %d)\nSIZES: %d, %d, %d\nPHASE %f",fft->waveLen,fft->waveLenBottom,fft->waveLenTop,displaySize,displaySize2,FURNACE_FFT_SIZE,fft->debugPhase);
                     dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
 
                     dl->AddLine(
@@ -688,13 +693,18 @@ void FurnaceGUI::drawChanOsc() {
                       ImLerp(inRect.Min,inRect.Max,ImVec2((double)fft->waveLenTop/(double)FURNACE_FFT_SIZE,1.0)),
                       0xff00ff00
                     );
+                    dl->AddLine(
+                      ImLerp(inRect.Min,inRect.Max,ImVec2(0.75-(fft->debugPhase*0.25),0.0)),
+                      ImLerp(inRect.Min,inRect.Max,ImVec2(0.75-(fft->debugPhase*0.25),1.0)),
+                      0xff00ffff
+                    );
                   } else {
                     if (debugFFT) {
                       dl->AddText(inRect.Min,0xffffffff,"\nquiet");
                     }
                   }
                 } else {
-                  String dStr=fmt::sprintf("DS: %d P: %d\nMAX: %d",displaySize,precision,(short)((fft->needle+displaySize)-fft->relatedBuf->needle));
+                  String dStr=fmt::sprintf("DS: %d P: %d\nMAX: %d\nPHASE %f",displaySize,precision,(short)((fft->needle+displaySize)-fft->relatedBuf->needle),fft->debugPhase);
                   dl->AddText(inRect.Min,0xffffffff,dStr.c_str());
                   if (displaySize<precision) {
                     float y=0;
