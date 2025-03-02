@@ -154,6 +154,12 @@ void DivPlatformLynx::processDAC(int sRate) {
 }
 
 void DivPlatformLynx::acquire(short** buf, size_t len) {
+  thread_local int chanBuf[4];
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     processDAC(rate);
 
@@ -163,7 +169,15 @@ void DivPlatformLynx::acquire(short** buf, size_t len) {
       writes.pop_front();
     }
 
-    mikey->sampleAudio(buf[0]+h,buf[1]+h,1,oscBuf);
+    mikey->sampleAudio(buf[0]+h,buf[1]+h,1,chanBuf);
+
+    for (int i=0; i<4; i++) {
+      oscBuf[i]->putSample(h,chanBuf[i]);
+    }
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -555,7 +569,7 @@ void DivPlatformLynx::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/128;
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

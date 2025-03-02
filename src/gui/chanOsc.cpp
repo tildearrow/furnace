@@ -460,8 +460,6 @@ void FurnaceGUI::drawChanOsc() {
                 // I have a feeling this could be simplified to two FFTs or even one...
                 // if you know how, please tell me
 
-                // TODO: utterly broken!
-
                 // initialization
                 double phase=0.0;
                 int displaySize=65536.0f*(fft->windowSize/1000.0f);
