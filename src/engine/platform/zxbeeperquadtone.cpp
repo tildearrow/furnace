@@ -30,6 +30,10 @@ const char** DivPlatformZXBeeperQuadTone::getRegisterSheet() {
 }
 
 void DivPlatformZXBeeperQuadTone::acquire(short** buf, size_t len) {
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     bool sampleActive=false;
     if (curSample>=0 && curSample<parent->song.sampleLen) {
@@ -51,12 +55,12 @@ void DivPlatformZXBeeperQuadTone::acquire(short** buf, size_t len) {
     if (sampleActive) {
       buf[0][h]=chan[4].out?32767:0;
       if (outputClock==0) {
-        oscBuf[0]->data[oscBuf[0]->needle++]=0;
-        oscBuf[1]->data[oscBuf[1]->needle++]=0;
-        oscBuf[2]->data[oscBuf[2]->needle++]=0;
-        oscBuf[3]->data[oscBuf[3]->needle++]=0;
+        oscBuf[0]->putSample(h,0);
+        oscBuf[1]->putSample(h,0);
+        oscBuf[2]->putSample(h,0);
+        oscBuf[3]->putSample(h,0);
       }
-      oscBuf[4]->data[oscBuf[4]->needle++]=buf[0][h];
+      oscBuf[4]->putSample(h,buf[0][h]);
     } else {
       int ch=outputClock/2;
       int b=ch*4;
@@ -72,7 +76,7 @@ void DivPlatformZXBeeperQuadTone::acquire(short** buf, size_t len) {
         } else {
           oscOut=16383;
         }
-        oscBuf[ch]->data[oscBuf[ch]->needle++]=oscOut;
+        oscBuf[ch]->putSample(h,oscOut);
       }
       if (!isMuted[ch]) o=chan[ch].out&0x10;
       if (noHiss) {
@@ -85,9 +89,13 @@ void DivPlatformZXBeeperQuadTone::acquire(short** buf, size_t len) {
         buf[0][h]=o?32767:0;
       }
       chan[ch].out<<=1;
-      oscBuf[4]->data[oscBuf[4]->needle++]=0;
+      oscBuf[4]->putSample(h,0);
     }
     outputClock=(outputClock+1)&7;
+  }
+
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -385,10 +393,9 @@ void DivPlatformZXBeeperQuadTone::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/40;
   noHiss=flags.getBool("noHiss",false);
-  for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate/8;
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->setRate(rate);
   }
-  oscBuf[4]->rate=rate;
 }
 
 void DivPlatformZXBeeperQuadTone::poke(unsigned int addr, unsigned short val) {

@@ -55,6 +55,10 @@ const char** DivPlatformPCE::getRegisterSheet() {
 }
 
 void DivPlatformPCE::acquire(short** buf, size_t len) {
+  for (int i=0; i<6; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     // PCM part
     for (int i=0; i<6; i++) {
@@ -100,7 +104,7 @@ void DivPlatformPCE::acquire(short** buf, size_t len) {
     pce->ResetTS(0);
 
     for (int i=0; i<6; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(pce->channel[i].blip_prev_samp[0]+pce->channel[i].blip_prev_samp[1],-32768,32767);
+      oscBuf[i]->putSample(h,CLAMP(pce->channel[i].blip_prev_samp[0]+pce->channel[i].blip_prev_samp[1],-32768,32767));
     }
 
     tempL[0]=(tempL[0]>>1)+(tempL[0]>>2);
@@ -114,6 +118,10 @@ void DivPlatformPCE::acquire(short** buf, size_t len) {
     //printf("tempL: %d tempR: %d\n",tempL,tempR);
     buf[0][h]=tempL[0];
     buf[1][h]=tempR[0];
+  }
+
+  for (int i=0; i<6; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -656,7 +664,7 @@ void DivPlatformPCE::setFlags(const DivConfig& flags) {
   antiClickEnabled=!flags.getBool("noAntiClick",false);
   rate=chipClock/(coreQuality>>1);
   for (int i=0; i<6; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 
   if (pce!=NULL) {

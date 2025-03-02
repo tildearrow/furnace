@@ -28,6 +28,10 @@ const char** DivPlatformZXBeeper::getRegisterSheet() {
 }
 
 void DivPlatformZXBeeper::acquire(short** buf, size_t len) {
+  for (int i=0; i<1; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   bool o=false;
   for (size_t h=0; h<len; h++) {
     // clock here
@@ -47,7 +51,7 @@ void DivPlatformZXBeeper::acquire(short** buf, size_t len) {
       }
       o=sampleOut;
       buf[0][h]=o?16384:0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=o?16384:-16384;
+      oscBuf[0]->putSample(h,o?16384:-16384);
       continue;
     }
 
@@ -65,7 +69,11 @@ void DivPlatformZXBeeper::acquire(short** buf, size_t len) {
     if (++curChan>=6) curChan=0;
     
     buf[0][h]=o?16384:0;
-    oscBuf[0]->data[oscBuf[0]->needle++]=o?16384:-16384;
+    oscBuf[0]->putSample(h,o?16384:-16384);
+  }
+
+  for (int i=0; i<1; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -304,7 +312,7 @@ void DivPlatformZXBeeper::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/4;
   for (int i=0; i<6; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

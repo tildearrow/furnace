@@ -39,6 +39,10 @@ const char** DivPlatformTIA::getRegisterSheet() {
 }
 
 void DivPlatformTIA::acquire(short** buf, size_t len) {
+  for (int i=0; i<2; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     if (softwarePitch) {
       int i=-1;
@@ -75,9 +79,13 @@ void DivPlatformTIA::acquire(short** buf, size_t len) {
     }
     if (++chanOscCounter>=114) {
       chanOscCounter=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=tia.myChannelOut[0];
-      oscBuf[1]->data[oscBuf[1]->needle++]=tia.myChannelOut[1];
+      oscBuf[0]->putSample(h,tia.myChannelOut[0]);
+      oscBuf[1]->putSample(h,tia.myChannelOut[1]);
     }
+  }
+  
+  for (int i=0; i<2; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -471,7 +479,7 @@ void DivPlatformTIA::setFlags(const DivConfig& flags) {
   softwarePitch=flags.getBool("softwarePitch",false);
   oldPitch=flags.getBool("oldPitch",false);
   for (int i=0; i<2; i++) {
-    oscBuf[i]->rate=rate/114;
+    oscBuf[i]->setRate(rate);
   }
   tia.reset(mixingType);
 }

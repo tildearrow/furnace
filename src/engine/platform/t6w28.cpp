@@ -36,6 +36,10 @@ const char** DivPlatformT6W28::getRegisterSheet() {
 }
 
 void DivPlatformT6W28::acquire(short** buf, size_t len) {
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     cycles=0;
     while (!writes.empty() && cycles<16) {
@@ -54,7 +58,7 @@ void DivPlatformT6W28::acquire(short** buf, size_t len) {
     tempL=0;
     tempR=0;
     for (int i=0; i<4; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(out[i][1].curValue+out[i][2].curValue)<<7;
+      oscBuf[i]->putSample(h,(out[i][1].curValue+out[i][2].curValue)<<7);
       tempL+=out[i][1].curValue<<7;
       tempR+=out[i][2].curValue<<7;
     }
@@ -66,6 +70,10 @@ void DivPlatformT6W28::acquire(short** buf, size_t len) {
     
     buf[0][h]=tempL;
     buf[1][h]=tempR;
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -364,7 +372,7 @@ void DivPlatformT6W28::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/16;
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
   easyNoise=!flags.getBool("noEasyNoise",false);
 

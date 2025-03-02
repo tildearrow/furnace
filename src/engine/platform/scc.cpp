@@ -81,14 +81,22 @@ const char** DivPlatformSCC::getRegisterSheet() {
 }
 
 void DivPlatformSCC::acquire(short** buf, size_t len) {
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     scc->tick(coreQuality);
     short out=(short)scc->out()<<5;
     buf[0][h]=out;
 
     for (int i=0; i<5; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=scc->voice_out(i)<<7;
+      oscBuf[i]->putSample(h,scc->voice_out(i)<<7);
     }
+  }
+
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -385,7 +393,7 @@ void DivPlatformSCC::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/(coreQuality>>1);
   for (int i=0; i<5; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

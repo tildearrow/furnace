@@ -354,9 +354,7 @@ void DivPlatformPCSpeaker::acquire_real(blip_buffer_t** bb, size_t off, size_t l
         }
       }
       out=(pos>(freq>>1) && !isMuted[0])?32767:0;
-      oscBuf->data[oscBuf->needle++]=out;
     } else {
-      oscBuf->data[oscBuf->needle++]=0;
     }
     //buf[0][i]=0;
   }

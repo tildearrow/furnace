@@ -37,6 +37,8 @@ const char** DivPlatformSCVWave::getRegisterSheet() {
 }
 
 void DivPlatformSCVWave::acquire(short** buf, size_t len) {
+  oscBuf[0]->begin(len);
+
   for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -47,8 +49,10 @@ void DivPlatformSCVWave::acquire(short** buf, size_t len) {
 
     scv.sound_stream_update(&buf[0][h],1);
     if (isMuted[0]) buf[0][h]=0;
-    oscBuf[0]->data[oscBuf[0]->needle++]=buf[0][h];
+    oscBuf[0]->putSample(h,buf[0][h]);
   }
+
+  oscBuf[0]->end(len);
 }
 
 void DivPlatformSCVWave::tick(bool sysTick) {
@@ -324,9 +328,8 @@ void DivPlatformSCVWave::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/4;
   for (int i=0; i<1; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
-  //upd1771c_sound_set_clock(&scv,(unsigned int)chipClock,8);
 }
 
 void DivPlatformSCVWave::poke(unsigned int addr, unsigned short val) {

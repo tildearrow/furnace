@@ -323,7 +323,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
         rate=fm->sample_rate(chipClock);
       }
       for (int i=0; i<17; i++) {
-        oscBuf[i]->rate=rate;
+        oscBuf[i]->setRate(rate);
       }
     }
 
