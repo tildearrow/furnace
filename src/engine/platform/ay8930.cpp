@@ -173,6 +173,10 @@ void DivPlatformAY8930::acquire(short** buf, size_t len) {
     }
   }
 
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t i=0; i<len; i++) {
     runDAC();
     checkWrites();
@@ -186,9 +190,13 @@ void DivPlatformAY8930::acquire(short** buf, size_t len) {
       buf[1][i]=buf[0][i];
     }
 
-    oscBuf[0]->data[oscBuf[0]->needle++]=ayBuf[0][0]<<2;
-    oscBuf[1]->data[oscBuf[1]->needle++]=ayBuf[1][0]<<2;
-    oscBuf[2]->data[oscBuf[2]->needle++]=ayBuf[2][0]<<2;
+    oscBuf[0]->putSample(i,ayBuf[0][0]<<2);
+    oscBuf[1]->putSample(i,ayBuf[1][0]<<2);
+    oscBuf[2]->putSample(i,ayBuf[2][0]<<2);
+  }
+
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -923,7 +931,7 @@ void DivPlatformAY8930::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/4;
   for (int i=0; i<3; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 
   stereo=flags.getBool("stereo",false);

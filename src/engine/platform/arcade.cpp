@@ -54,6 +54,10 @@ const char** DivPlatformArcade::getRegisterSheet() {
 void DivPlatformArcade::acquire_nuked(short** buf, size_t len) {
   thread_local int o[2];
 
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     if (delay>0) delay--;
     for (int i=0; i<8; i++) {
@@ -81,7 +85,7 @@ void DivPlatformArcade::acquire_nuked(short** buf, size_t len) {
 
     for (int i=0; i<8; i++) {
       int chOut=(int16_t)fm.ch_out[i];
-      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(chOut<<1,-32768,32767);
+      oscBuf[i]->putSample(h,CLAMP(chOut<<1,-32768,32767));
     }
 
     if (o[0]<-32768) o[0]=-32768;
@@ -93,12 +97,20 @@ void DivPlatformArcade::acquire_nuked(short** buf, size_t len) {
     buf[0][h]=o[0];
     buf[1][h]=o[1];
   }
+
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->end(len);
+  }
 }
 
 void DivPlatformArcade::acquire_ymfm(short** buf, size_t len) {
   thread_local int os[2];
 
   ymfm::ym2151::fm_engine* fme=fm_ymfm->debug_engine();
+
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->begin(len);
+  }
 
   for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
@@ -121,7 +133,7 @@ void DivPlatformArcade::acquire_ymfm(short** buf, size_t len) {
 
     for (int i=0; i<8; i++) {
       int chOut=fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1);
-      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(chOut,-32768,32767);
+      oscBuf[i]->putSample(h,CLAMP(chOut,-32768,32767));
     }
 
     os[0]=out_ymfm.data[0];
@@ -134,6 +146,10 @@ void DivPlatformArcade::acquire_ymfm(short** buf, size_t len) {
 
     buf[0][h]=os[0];
     buf[1][h]=os[1];
+  }
+
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -964,7 +980,7 @@ void DivPlatformArcade::setFlags(const DivConfig& flags) {
 
   rate=chipClock/64;
   for (int i=0; i<8; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

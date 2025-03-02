@@ -704,8 +704,10 @@ void FurnaceGUI::drawChanOsc() {
                     }
                   }
                 } else {
+                  /*
                   String dStr=fmt::sprintf("DS: %d P: %d\nMAX: %d\nPHASE %f",displaySize,precision,(short)((fft->needle+displaySize)-fft->relatedBuf->needle),fft->debugPhase);
                   dl->AddText(inRect.Min,0xffffffff,dStr.c_str());
+                  */
                   if (displaySize<precision) {
                     float y=0;
                     for (int j=-2048; j<precision; j++) {

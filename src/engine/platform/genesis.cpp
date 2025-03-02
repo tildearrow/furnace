@@ -1840,7 +1840,7 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
     rate=chipClock/36;
   }
   for (int i=0; i<10; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

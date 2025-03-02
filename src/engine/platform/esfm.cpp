@@ -40,6 +40,9 @@
 
 void DivPlatformESFM::acquire(short** buf, size_t len) {
   thread_local short o[2];
+  for (int i=0; i<18; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t h=0; h<len; h++) {
     if (!writes.empty()) {
       QueuedWrite& w=writes.front();
@@ -52,11 +55,14 @@ void DivPlatformESFM::acquire(short** buf, size_t len) {
 
     ESFM_generate(&chip,o);
     for (int c=0; c<18; c++) {
-      oscBuf[c]->data[oscBuf[c]->needle++]=ESFM_get_channel_output_native(&chip,c);
+      oscBuf[c]->putSample(h,ESFM_get_channel_output_native(&chip,c));
     }
 
     buf[0][h]=o[0];
     buf[1][h]=o[1];
+  }
+  for (int i=0; i<18; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -1068,6 +1074,9 @@ void DivPlatformESFM::poke(std::vector<DivRegWrite>& wlist) {
 void DivPlatformESFM::setFlags(const DivConfig& flags) {
   chipClock=COLOR_NTSC*4.0;
   rate=chipClock/288.0;
+  for (int i=0; i<18; i++) {
+    oscBuf[i]->setRate(rate);
+  }
 }
 
 void DivPlatformESFM::setFast(bool fast) {
