@@ -918,12 +918,12 @@ void DivPlatformC64::setFlags(const DivConfig& flags) {
   }
   CHECK_CUSTOM_CLOCK;
   rate=chipClock;
-  for (int i=0; i<4; i++) {
-    oscBuf[i]->setRate(rate);
-  }
   if (sidCore>0) {
     rate/=(sidCore==2)?coreQuality:4;
     if (sidCore==1) sid_fp->setSamplingParameters(chipClock,reSIDfp::DECIMATE,rate,0);
+  }
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->setRate(rate);
   }
   keyPriority=flags.getBool("keyPriority",true);
   no1EUpdate=flags.getBool("no1EUpdate",false);
