@@ -252,7 +252,7 @@ void FurnaceGUI::drawDebug() {
               ImGui::TableNextColumn();
               ImGui::Text("Follow");
               ImGui::TableNextColumn();
-              ImGui::Text("Address");
+              ImGui::Text("Needle");
               ImGui::TableNextColumn();
               ImGui::Text("Data");
 

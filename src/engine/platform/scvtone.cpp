@@ -37,6 +37,10 @@ const char** DivPlatformSCVTone::getRegisterSheet() {
 }
 
 void DivPlatformSCVTone::acquire(short** buf, size_t len) {
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -46,10 +50,14 @@ void DivPlatformSCVTone::acquire(short** buf, size_t len) {
     }
 
     scv.sound_stream_update(&buf[0][h],1);
-    oscBuf[0]->data[oscBuf[0]->needle++]=scv.chout[0]<<3;
-    oscBuf[1]->data[oscBuf[1]->needle++]=scv.chout[1]<<3;
-    oscBuf[2]->data[oscBuf[2]->needle++]=scv.chout[2]<<3;
-    oscBuf[3]->data[oscBuf[3]->needle++]=scv.chout[3]<<3;
+    oscBuf[0]->putSample(h,scv.chout[0]<<3);
+    oscBuf[1]->putSample(h,scv.chout[1]<<3);
+    oscBuf[2]->putSample(h,scv.chout[2]<<3);
+    oscBuf[3]->putSample(h,scv.chout[3]<<3);
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -334,7 +342,7 @@ void DivPlatformSCVTone::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/4;
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
   //upd1771c_sound_set_clock(&scv,(unsigned int)chipClock,8);
 }

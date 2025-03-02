@@ -257,6 +257,10 @@ void DivPlatformAY8910::acquire_mame(short** buf, size_t len) {
     }
   }
 
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   if (sunsoft) {
     for (size_t i=0; i<len; i++) {
       runDAC();
@@ -267,9 +271,9 @@ void DivPlatformAY8910::acquire_mame(short** buf, size_t len) {
       buf[0][i]=ayBuf[0][0];
       buf[1][i]=buf[0][i];
 
-      oscBuf[0]->data[oscBuf[0]->needle++]=CLAMP(sunsoftVolTable[31-(ay->lastIndx&31)]<<3,-32768,32767);
-      oscBuf[1]->data[oscBuf[1]->needle++]=CLAMP(sunsoftVolTable[31-((ay->lastIndx>>5)&31)]<<3,-32768,32767);
-      oscBuf[2]->data[oscBuf[2]->needle++]=CLAMP(sunsoftVolTable[31-((ay->lastIndx>>10)&31)]<<3,-32768,32767);
+      oscBuf[0]->putSample(i,CLAMP(sunsoftVolTable[31-(ay->lastIndx&31)]<<3,-32768,32767));
+      oscBuf[1]->putSample(i,CLAMP(sunsoftVolTable[31-((ay->lastIndx>>5)&31)]<<3,-32768,32767));
+      oscBuf[2]->putSample(i,CLAMP(sunsoftVolTable[31-((ay->lastIndx>>10)&31)]<<3,-32768,32767));
     }
   } else {
     for (size_t i=0; i<len; i++) {
@@ -286,14 +290,21 @@ void DivPlatformAY8910::acquire_mame(short** buf, size_t len) {
         buf[1][i]=buf[0][i];
       }
 
-      oscBuf[0]->data[oscBuf[0]->needle++]=ayBuf[0][0]<<2;
-      oscBuf[1]->data[oscBuf[1]->needle++]=ayBuf[1][0]<<2;
-      oscBuf[2]->data[oscBuf[2]->needle++]=ayBuf[2][0]<<2;
+      oscBuf[0]->putSample(i,ayBuf[0][0]<<2);
+      oscBuf[1]->putSample(i,ayBuf[1][0]<<2);
+      oscBuf[2]->putSample(i,ayBuf[2][0]<<2);
     }
+  }
+
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
 void DivPlatformAY8910::acquire_atomic(short** buf, size_t len) {
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t i=0; i<len; i++) {
     runDAC();
     runTFX();
@@ -316,9 +327,12 @@ void DivPlatformAY8910::acquire_atomic(short** buf, size_t len) {
       buf[1][i]=buf[0][i];
     }
 
-    oscBuf[0]->data[oscBuf[0]->needle++]=ay_atomic.o_analog[0];
-    oscBuf[1]->data[oscBuf[1]->needle++]=ay_atomic.o_analog[1];
-    oscBuf[2]->data[oscBuf[2]->needle++]=ay_atomic.o_analog[2];
+    oscBuf[0]->putSample(i,ay_atomic.o_analog[0]);
+    oscBuf[1]->putSample(i,ay_atomic.o_analog[1]);
+    oscBuf[2]->putSample(i,ay_atomic.o_analog[2]);
+  }
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -1154,7 +1168,7 @@ void DivPlatformAY8910::setFlags(const DivConfig& flags) {
   }
 
   for (int i=0; i<3; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 
   stereo=flags.getBool("stereo",false);

@@ -94,6 +94,10 @@ const char** DivPlatformVB::getRegisterSheet() {
 }
 
 void DivPlatformVB::acquire(short** buf, size_t len) {
+  for (int i=0; i<6; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     cycles=0;
     if (!writes.empty()) {
@@ -107,7 +111,7 @@ void DivPlatformVB::acquire(short** buf, size_t len) {
     tempL=0;
     tempR=0;
     for (int i=0; i<6; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(vb->last_output[i][0]+vb->last_output[i][1])*8;
+      oscBuf[i]->putSample(h,(vb->last_output[i][0]+vb->last_output[i][1])*8);
       tempL+=vb->last_output[i][0];
       tempR+=vb->last_output[i][1];
     }
@@ -119,6 +123,10 @@ void DivPlatformVB::acquire(short** buf, size_t len) {
     
     buf[0][h]=tempL;
     buf[1][h]=tempR;
+  }
+
+  for (int i=0; i<6; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -586,7 +594,7 @@ void DivPlatformVB::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/coreQuality;
   for (int i=0; i<6; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 
   romMode=flags.getBool("romMode",false);

@@ -265,6 +265,10 @@ const char** DivPlatformQSound::getRegisterSheet() {
 }
 
 void DivPlatformQSound::acquire(short** buf, size_t len) {
+  for (int i=0; i<19; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     qsound_update(&chip);
     buf[0][h]=chip.out[0];
@@ -274,8 +278,12 @@ void DivPlatformQSound::acquire(short** buf, size_t len) {
       int data=chip.voice_output[i]<<1;
       if (data<-32768) data=-32768;
       if (data>32767) data=32767;
-      oscBuf[i]->data[oscBuf[i]->needle++]=data;
+      oscBuf[i]->putSample(h,data);
     }
+  }
+
+  for (int i=0; i<19; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -861,7 +869,7 @@ int DivPlatformQSound::init(DivEngine* p, int channels, int sugRate, const DivCo
   reset();
 
   for (int i=0; i<19; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
   return 19;
 }

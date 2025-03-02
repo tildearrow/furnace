@@ -2379,6 +2379,9 @@ class FurnaceGUI {
   String nextDesc;
   String nextDescName;
 
+  float lastAudioLoads[120];
+  int lastAudioLoadsPos;
+
   OperationMask opMaskDelete, opMaskPullDelete, opMaskInsert, opMaskPaste, opMaskTransposeNote, opMaskTransposeValue;
   OperationMask opMaskInterpolate, opMaskFade, opMaskInvertVal, opMaskScale;
   OperationMask opMaskRandomize, opMaskFlip, opMaskCollapseExpand;
@@ -2633,7 +2636,7 @@ class FurnaceGUI {
     double inBufPosFrac;
     double waveLen;
     int waveLenBottom, waveLenTop, relatedCh;
-    float pitch, windowSize, phaseOff;
+    float pitch, windowSize, phaseOff, debugPhase, dcOff;
     unsigned short needle;
     bool ready, loudEnough, waveCorr;
     fftw_plan plan;
@@ -2654,6 +2657,8 @@ class FurnaceGUI {
       pitch(0.0f),
       windowSize(1.0f),
       phaseOff(0.0f),
+      debugPhase(0.0f),
+      dcOff(0.0f),
       needle(0),
       ready(false),
       loudEnough(false),

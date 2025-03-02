@@ -41,6 +41,10 @@ double DivPlatformSoundUnit::NOTE_SU(int ch, int note) {
 }
 
 void DivPlatformSoundUnit::acquire(short** buf, size_t len) {
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -49,8 +53,12 @@ void DivPlatformSoundUnit::acquire(short** buf, size_t len) {
     }
     su->NextSample(&buf[0][h],&buf[1][h]);
     for (int i=0; i<8; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=su->GetSample(i);
+      oscBuf[i]->putSample(h,su->GetSample(i));
     }
+  }
+  
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -646,7 +654,7 @@ void DivPlatformSoundUnit::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/4;
   for (int i=0; i<8; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
   bool echoOn=flags.getBool("echo",false);
   initIlCtrl=3|(echoOn?4:0);

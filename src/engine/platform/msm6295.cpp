@@ -63,6 +63,10 @@ u8 DivPlatformMSM6295::read_byte(u32 address) {
 }
 
 void DivPlatformMSM6295::acquire(short** buf, size_t len) {
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+  
   for (size_t h=0; h<len; h++) {
     if (delay<=0) {
       if (!writes.empty()) {
@@ -106,9 +110,13 @@ void DivPlatformMSM6295::acquire(short** buf, size_t len) {
     if (++updateOsc>=22) {
       updateOsc=0;
       for (int i=0; i<4; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=msm.voice_out(i)<<5;
+        oscBuf[i]->putSample(h,msm.voice_out(i)<<5);
       }
     }
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -560,7 +568,7 @@ void DivPlatformMSM6295::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/3;
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate/22;
+    oscBuf[i]->setRate(rate);;
   }
   if (rateSel!=rateSelInit) {
     rWrite(12,!rateSelInit);

@@ -111,6 +111,9 @@ const char** DivPlatformES5506::getRegisterSheet() {
 }
 
 void DivPlatformES5506::acquire(short** buf, size_t len) {
+  for (int i=0; i<chanMax; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t h=0; h<len; h++) {
     // convert 32 bit access to 8 bit host interface
     while (!hostIntf32.empty()) {
@@ -166,8 +169,11 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
       buf[(o<<1)|1][h]=es5506.rout(o);
     }
     for (int i=chanMax; i>=0; i--) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(es5506.voice_lout(i)+es5506.voice_rout(i))>>5;
+      oscBuf[i]->putSample(h,(es5506.voice_lout(i)+es5506.voice_rout(i))>>5);
     }
+  }
+  for (int i=0; i<chanMax; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -1259,7 +1265,7 @@ void DivPlatformES5506::setFlags(const DivConfig& flags) {
 
   rate=chipClock/(16*(initChanMax+1)); // 2 E clock tick (16 CLKIN tick) per voice / 4
   for (int i=0; i<32; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

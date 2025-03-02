@@ -171,14 +171,23 @@ void DivPlatformNamcoWSG::acquire(short** buf, size_t len) {
     regPool[w.addr&0x3f]=w.val;
     writes.pop();
   }
+
+  for (int i=0; i<chans; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     short* bufC[2]={
       buf[0]+h, buf[1]+h
     };
     namco->sound_stream_update(bufC,1);
     for (int i=0; i<chans; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(namco->m_channel_list[i].last_out*chans)>>1;
+      oscBuf[i]->putSample(h,(namco->m_channel_list[i].last_out*chans)>>1);
     }
+  }
+
+  for (int i=0; i<chans; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -579,7 +588,7 @@ void DivPlatformNamcoWSG::setFlags(const DivConfig& flags) {
   rate=chipClock/32;
   namco->device_clock_changed(96000);
   for (int i=0; i<chans; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
   newNoise=flags.getBool("newNoise",true);
   romMode=flags.getBool("romMode",false);

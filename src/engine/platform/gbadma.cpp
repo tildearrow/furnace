@@ -29,6 +29,9 @@ void DivPlatformGBADMA::acquire(short** buf, size_t len) {
   // HLE for now
   int outL[2]={0,0};
   int outR[2]={0,0};
+  for (int i=0; i<2; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t h=0; h<len; h++) {
     // internal mixing is always 10-bit
     for (int i=0; i<2; i++) {
@@ -87,7 +90,7 @@ void DivPlatformGBADMA::acquire(short** buf, size_t len) {
         outL[i]=(chan[i].pan&2)?out:0;
         outR[i]=(chan[i].pan&1)?out:0;
       }
-      oscBuf[i]->data[oscBuf[i]->needle++]=(short)((outL[i]+outR[i])<<5);
+      oscBuf[i]->putSample(h,(short)((outL[i]+outR[i])<<5));
     }
     int l=outL[0]+outL[1];
     int r=outR[0]+outR[1];
@@ -99,6 +102,9 @@ void DivPlatformGBADMA::acquire(short** buf, size_t len) {
     if (r>32767) r=32767;
     buf[0][h]=(short)l;
     buf[1][h]=(short)r;
+  }
+  for (int i=0; i<2; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -493,7 +499,7 @@ void DivPlatformGBADMA::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock>>outDepth;
   for (int i=0; i<2; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

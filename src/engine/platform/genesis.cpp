@@ -139,6 +139,10 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
   thread_local short o[2];
   thread_local int os[2];
 
+  for (int i=0; i<7; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     processDAC(rate);
 
@@ -193,18 +197,18 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
       if (i==5) {
         if (fm.dacen) {
           if (softPCM) {
-            oscBuf[5]->data[oscBuf[5]->needle++]=chan[5].dacOutput<<6;
-            oscBuf[6]->data[oscBuf[6]->needle++]=chan[6].dacOutput<<6;
+            oscBuf[5]->putSample(h,chan[5].dacOutput<<6);
+            oscBuf[6]->putSample(h,chan[6].dacOutput<<6);
           } else {
-            oscBuf[i]->data[oscBuf[i]->needle++]=((fm.dacdata^0x100)-0x100)<<6;
-            oscBuf[6]->data[oscBuf[6]->needle++]=0;
+            oscBuf[i]->putSample(h,((fm.dacdata^0x100)-0x100)<<6);
+            oscBuf[6]->putSample(h,0);
           }
         } else {
-          oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fm.ch_out[i]<<(chipType==2?1:6),-32768,32767);
-          oscBuf[6]->data[oscBuf[6]->needle++]=0;
+          oscBuf[i]->putSample(h,CLAMP(fm.ch_out[i]<<(chipType==2?1:6),-32768,32767));
+          oscBuf[6]->putSample(h,0);
         }
       } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fm.ch_out[i]<<(chipType==2?1:6),-32768,32767);
+        oscBuf[i]->putSample(h,CLAMP(fm.ch_out[i]<<(chipType==2?1:6),-32768,32767));
       }
     }
     
@@ -219,12 +223,20 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
     buf[0][h]=os[0];
     buf[1][h]=os[1];
   }
+
+  for (int i=0; i<7; i++) {
+    oscBuf[i]->end(len);
+  }
 }
 
 void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
   thread_local int os[2];
 
   ymfm::ym2612::fm_engine* fme=fm_ymfm->debug_engine();
+
+  for (int i=0; i<7; i++) {
+    oscBuf[i]->begin(len);
+  }
 
   for (size_t h=0; h<len; h++) {
     processDAC(rate);
@@ -278,18 +290,18 @@ void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
       if (i==5) {
         if (fm_ymfm->debug_dac_enable()) {
           if (softPCM) {
-            oscBuf[5]->data[oscBuf[5]->needle++]=chan[5].dacOutput<<6;
-            oscBuf[6]->data[oscBuf[6]->needle++]=chan[6].dacOutput<<6;
+            oscBuf[5]->putSample(h,chan[5].dacOutput<<6);
+            oscBuf[6]->putSample(h,chan[6].dacOutput<<6);
           } else {
-            oscBuf[i]->data[oscBuf[i]->needle++]=((fm_ymfm->debug_dac_data()^0x100)-0x100)<<6;
-            oscBuf[6]->data[oscBuf[6]->needle++]=0;
+            oscBuf[i]->putSample(h,((fm_ymfm->debug_dac_data()^0x100)-0x100)<<6);
+            oscBuf[6]->putSample(h,0);
           }
         } else {
-          oscBuf[i]->data[oscBuf[i]->needle++]=chOut;
-          oscBuf[6]->data[oscBuf[6]->needle++]=0;
+          oscBuf[i]->putSample(h,chOut);
+          oscBuf[6]->putSample(h,0);
         }
       } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=chOut;
+        oscBuf[i]->putSample(h,chOut);
       }
     }
     
@@ -302,6 +314,10 @@ void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
     buf[0][h]=os[0];
     buf[1][h]=os[1];
   }
+
+  for (int i=0; i<7; i++) {
+    oscBuf[i]->end(len);
+  }
 }
 
 const unsigned char chanMap276[6]={
@@ -309,7 +325,7 @@ const unsigned char chanMap276[6]={
 };
 
 // thanks LTVA
-void DivPlatformGenesis::acquire276OscSub() {
+inline void DivPlatformGenesis::acquire276OscSub(int h) {
   if (fm_276.fsm_cnt2[1]==0 && llePrevCycle!=0) {
     lleCycle=0;
   }
@@ -326,22 +342,22 @@ void DivPlatformGenesis::acquire276OscSub() {
 
       for (int i=0; i<6; i++) {
         if ((softPCM && ((chanMap276[i]!=5) || !chan[5].dacMode)) || (!softPCM)) {
-          oscBuf[chanMap276[i]]->data[oscBuf[chanMap276[i]]->needle++]=lleOscData[i];
+          oscBuf[chanMap276[i]]->putSample(h,lleOscData[i]);
         }
         lleOscData[i]=0;
       }
 
       if (softPCM && chan[5].dacMode) {
-        oscBuf[5]->data[oscBuf[5]->needle++]=chan[5].dacOutput<<6;
-        oscBuf[6]->data[oscBuf[6]->needle++]=chan[6].dacOutput<<6;
+        oscBuf[5]->putSample(h,chan[5].dacOutput<<6);
+        oscBuf[6]->putSample(h,chan[6].dacOutput<<6);
       } else {
-        oscBuf[6]->data[oscBuf[6]->needle++]=0;
+        oscBuf[6]->putSample(h,0);
       }
     }
   } else {
     for (int i=0; i<6; i++) {
       if (lleCycle==((7+i)*12)) {
-        oscBuf[i]->data[oscBuf[i]->needle]=(fm_276.osc_out>>1)*8;
+        oscBuf[i]->putSample(h,(fm_276.osc_out>>1)*4);
       }
     }
 
@@ -351,18 +367,15 @@ void DivPlatformGenesis::acquire276OscSub() {
       lleCycle=0;
 
       for (int i=0; i<6; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle]>>=1;
+        // we cannot do this anymore
+        //oscBuf[i]->putSample(h,>>=1);
       }
 
       if (softPCM && chan[5].dacMode) {
-        oscBuf[5]->data[oscBuf[5]->needle]=chan[5].dacOutput<<6;
-        oscBuf[6]->data[oscBuf[6]->needle]=chan[6].dacOutput<<6;
+        oscBuf[5]->putSample(h,chan[5].dacOutput<<6);
+        oscBuf[6]->putSample(h,chan[6].dacOutput<<6);
       } else {
-        oscBuf[6]->data[oscBuf[6]->needle]=0;
-      }
-
-      for (int i=0; i<7; i++) {
-        oscBuf[i]->needle++;
+        oscBuf[6]->putSample(h,0);
       }
     }
   }
@@ -370,6 +383,10 @@ void DivPlatformGenesis::acquire276OscSub() {
 
 // thanks LTVA
 void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
+  for (int i=0; i<7; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     processDAC(rate);
 
@@ -402,14 +419,14 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
         sum_l+=fm_276.out_l;
         sum_r+=fm_276.out_r;
 
-        acquire276OscSub();
+        acquire276OscSub(h);
 
         fm_276.input.wr=0;
         FMOPN2_Clock(&fm_276,1);
         sum_l+=fm_276.out_l;
         sum_r+=fm_276.out_r;
 
-        acquire276OscSub();
+        acquire276OscSub(h);
 
         if (chipType==2) {
           if (!o_bco && fm_276.o_bco) {
@@ -432,13 +449,13 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
           sum_l+=fm_276.out_l;
           sum_r+=fm_276.out_r;
 
-          acquire276OscSub();
+          acquire276OscSub(h);
 
           FMOPN2_Clock(&fm_276,1);
           sum_l+=fm_276.out_l;
           sum_r+=fm_276.out_r;
 
-          acquire276OscSub();
+          acquire276OscSub(h);
 
           if (chipType==2) {
             if (!o_bco && fm_276.o_bco) {
@@ -465,13 +482,13 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
         sum_r+=fm_276.out_r;
         fm_276.input.wr=0;
 
-        acquire276OscSub();
+        acquire276OscSub(h);
 
         FMOPN2_Clock(&fm_276,1);
         sum_l+=fm_276.out_l;
         sum_r+=fm_276.out_r;
 
-        acquire276OscSub();
+        acquire276OscSub(h);
 
         if (chipType==2) {
           if (!o_bco && fm_276.o_bco) {
@@ -494,13 +511,13 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
           sum_l+=fm_276.out_l;
           sum_r+=fm_276.out_r;
 
-          acquire276OscSub();
+          acquire276OscSub(h);
 
           FMOPN2_Clock(&fm_276,1);
           sum_l+=fm_276.out_l;
           sum_r+=fm_276.out_r;
 
-          acquire276OscSub();
+          acquire276OscSub(h);
 
           if (chipType==2) {
             if (!o_bco && fm_276.o_bco) {
@@ -549,13 +566,13 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
       sum_l+=fm_276.out_l;
       sum_r+=fm_276.out_r;
 
-      acquire276OscSub();
+      acquire276OscSub(h);
 
       FMOPN2_Clock(&fm_276,1);
       sum_l+=fm_276.out_l;
       sum_r+=fm_276.out_r;
 
-      acquire276OscSub();
+      acquire276OscSub(h);
 
       if (chipType==2) {
         if (!o_bco && fm_276.o_bco) {
@@ -581,6 +598,10 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
       buf[0][h]=(sum_l*3)>>2;
       buf[1][h]=(sum_r*3)>>2;
     }
+  }
+
+  for (int i=0; i<7; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -1840,7 +1861,7 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
     rate=chipClock/36;
   }
   for (int i=0; i<10; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

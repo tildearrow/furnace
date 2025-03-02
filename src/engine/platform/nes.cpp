@@ -106,6 +106,10 @@ void DivPlatformNES::doWrite(unsigned short addr, unsigned char data) {
   }
 
 void DivPlatformNES::acquire_puNES(short** buf, size_t len) {
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t i=0; i<len; i++) {
     doPCM;
 
@@ -127,18 +131,27 @@ void DivPlatformNES::acquire_puNES(short** buf, size_t len) {
     buf[0][i]=sample;
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=isMuted[0]?0:(nes->S1.output<<11);
-      oscBuf[1]->data[oscBuf[1]->needle++]=isMuted[1]?0:(nes->S2.output<<11);
-      oscBuf[2]->data[oscBuf[2]->needle++]=isMuted[2]?0:(nes->TR.output<<11);
-      oscBuf[3]->data[oscBuf[3]->needle++]=isMuted[3]?0:(nes->NS.output<<11);
-      oscBuf[4]->data[oscBuf[4]->needle++]=isMuted[4]?0:(nes->DMC.output<<8);
+      oscBuf[0]->putSample(i,isMuted[0]?0:(nes->S1.output<<11));
+      oscBuf[1]->putSample(i,isMuted[1]?0:(nes->S2.output<<11));
+      oscBuf[2]->putSample(i,isMuted[2]?0:(nes->TR.output<<11));
+      oscBuf[3]->putSample(i,isMuted[3]?0:(nes->NS.output<<11));
+      oscBuf[4]->putSample(i,isMuted[4]?0:(nes->DMC.output<<8));
     }
+  }
+
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
 void DivPlatformNES::acquire_NSFPlay(short** buf, size_t len) {
   int out1[2];
   int out2[2];
+
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t i=0; i<len; i++) {
     doPCM;
 
@@ -161,18 +174,27 @@ void DivPlatformNES::acquire_NSFPlay(short** buf, size_t len) {
     buf[0][i]=sample;
     if (++writeOscBuf>=4) {
       writeOscBuf=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=nes1_NP->out[0]<<11;
-      oscBuf[1]->data[oscBuf[1]->needle++]=nes1_NP->out[1]<<11;
-      oscBuf[2]->data[oscBuf[2]->needle++]=nes2_NP->out[0]<<11;
-      oscBuf[3]->data[oscBuf[3]->needle++]=nes2_NP->out[1]<<11;
-      oscBuf[4]->data[oscBuf[4]->needle++]=nes2_NP->out[2]<<8;
+      oscBuf[0]->putSample(i,nes1_NP->out[0]<<11);
+      oscBuf[1]->putSample(i,nes1_NP->out[1]<<11);
+      oscBuf[2]->putSample(i,nes2_NP->out[0]<<11);
+      oscBuf[3]->putSample(i,nes2_NP->out[1]<<11);
+      oscBuf[4]->putSample(i,nes2_NP->out[2]<<8);
     }
+  }
+
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
 void DivPlatformNES::acquire_NSFPlayE(short** buf, size_t len) {
   int out1[2];
   int out2[2];
+
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t i=0; i<len; i++) {
     doPCM;
 
@@ -195,12 +217,16 @@ void DivPlatformNES::acquire_NSFPlayE(short** buf, size_t len) {
     buf[0][i]=sample;
     if (++writeOscBuf>=4) {
       writeOscBuf=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=e1_NP->out[0]<<11;
-      oscBuf[1]->data[oscBuf[1]->needle++]=e1_NP->out[1]<<11;
-      oscBuf[2]->data[oscBuf[2]->needle++]=e2_NP->out[0]<<11;
-      oscBuf[3]->data[oscBuf[3]->needle++]=e2_NP->out[1]<<11;
-      oscBuf[4]->data[oscBuf[4]->needle++]=e2_NP->out[2]<<8;
+      oscBuf[0]->putSample(i,e1_NP->out[0]<<11);
+      oscBuf[1]->putSample(i,e1_NP->out[1]<<11);
+      oscBuf[2]->putSample(i,e2_NP->out[0]<<11);
+      oscBuf[3]->putSample(i,e2_NP->out[1]<<11);
+      oscBuf[4]->putSample(i,e2_NP->out[2]<<8);
     }
+  }
+
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -929,7 +955,7 @@ void DivPlatformNES::setFlags(const DivConfig& flags) {
     rate/=8;
   }
   for (int i=0; i<5; i++) {
-    oscBuf[i]->rate=rate/(useNP?4:32);
+    oscBuf[i]->setRate(rate);
   }
   
   dpcmModeDefault=flags.getBool("dpcmMode",true);

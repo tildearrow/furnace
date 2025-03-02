@@ -47,7 +47,11 @@ const char** DivPlatformVRC6::getRegisterSheet() {
 }
 
 void DivPlatformVRC6::acquire(short** buf, size_t len) {
-  for (size_t i=0; i<len; i++) {
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->begin(len);
+  }
+
+  for (size_t h=0; h<len; h++) {
     // PCM part
     for (int i=0; i<2; i++) {
       if (chan[i].pcm && chan[i].dacSample!=-1) {
@@ -81,15 +85,15 @@ void DivPlatformVRC6::acquire(short** buf, size_t len) {
     int sample=vrc6.out()<<9; // scale to 16 bit
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
-    buf[0][i]=sample;
+    buf[0][h]=sample;
 
     // Oscilloscope buffer part
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
       for (int i=0; i<2; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=vrc6.pulse_out(i)<<11;
+        oscBuf[i]->putSample(h,vrc6.pulse_out(i)<<11);
       }
-      oscBuf[2]->data[oscBuf[2]->needle++]=vrc6.sawtooth_out()<<10;
+      oscBuf[2]->putSample(h,vrc6.sawtooth_out()<<10);
     }
 
     // Command part
@@ -127,6 +131,10 @@ void DivPlatformVRC6::acquire(short** buf, size_t len) {
       }
       writes.pop();
     }
+  }
+
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -541,7 +549,7 @@ void DivPlatformVRC6::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock;
   for (int i=0; i<3; i++) {
-    oscBuf[i]->rate=rate/32;
+    oscBuf[i]->setRate(rate);
   }
 }
 

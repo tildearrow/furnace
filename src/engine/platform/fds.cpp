@@ -56,6 +56,7 @@ const char** DivPlatformFDS::getRegisterSheet() {
 }
 
 void DivPlatformFDS::acquire_puNES(short* buf, size_t len) {
+  oscBuf->begin(len);
   for (size_t i=0; i<len; i++) {
     extcl_apu_tick_FDS(fds);
     int sample=isMuted[0]?0:fds->snd.main.output;
@@ -64,13 +65,15 @@ void DivPlatformFDS::acquire_puNES(short* buf, size_t len) {
     buf[i]=sample;
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
-      oscBuf->data[oscBuf->needle++]=sample*3;
+      oscBuf->putSample(i,sample*3);
     }
   }
+  oscBuf->end(len);
 }
 
 void DivPlatformFDS::acquire_NSFPlay(short* buf, size_t len) {
   int out[2];
+  oscBuf->begin(len);
   for (size_t i=0; i<len; i++) {
     fds_NP->Tick(1);
     fds_NP->Render(out);
@@ -80,9 +83,10 @@ void DivPlatformFDS::acquire_NSFPlay(short* buf, size_t len) {
     buf[i]=sample;
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
-      oscBuf->data[oscBuf->needle++]=sample*3;
+      oscBuf->putSample(i,sample*3);
     }
   }
+  oscBuf->end(len);
 }
 
 void DivPlatformFDS::doWrite(unsigned short addr, unsigned char data) {
@@ -486,7 +490,7 @@ void DivPlatformFDS::setFlags(const DivConfig& flags) {
   }
   CHECK_CUSTOM_CLOCK;
   rate=chipClock;
-  oscBuf->rate=rate/32;
+  oscBuf->setRate(rate);
   if (useNP) {
     fds_NP->SetClock(rate);
     fds_NP->SetRate(rate);

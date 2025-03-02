@@ -82,6 +82,10 @@ const char** DivPlatformAmiga::getRegisterSheet() {
 void DivPlatformAmiga::acquire(short** buf, size_t len) {
   thread_local int outL, outR, output;
 
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     if (--delay<0) delay=0;
     if (!writes.empty() && delay<=0) {
@@ -182,9 +186,10 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
           outL+=(output*sep2)>>7;
           outR+=(output*sep1)>>7;
         }
-        oscBuf[i]->data[oscBuf[i]->needle++]=(amiga.nextOut[i]*MIN(64,amiga.audVol[i]&127))<<1;
+        oscBuf[i]->putSample(h,(amiga.nextOut[i]*MIN(64,amiga.audVol[i]&127))<<1);
       } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=0;
+        // TODO: we can remove this!
+        oscBuf[i]->putSample(h,0);
       }
     }
 
@@ -194,6 +199,10 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
     filter[1][1]+=(filtConst*(filter[1][0]-filter[1][1]))>>12;
     buf[0][h]=filter[0][1];
     buf[1][h]=filter[1][1];
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -826,7 +835,7 @@ void DivPlatformAmiga::setFlags(const DivConfig& flags) {
   
   rate=chipClock/AMIGA_DIVIDER;
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
   int sep=flags.getInt("stereoSep",0)&127;
   sep1=sep+127;

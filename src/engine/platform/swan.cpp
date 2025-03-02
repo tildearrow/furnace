@@ -54,6 +54,10 @@ const char** DivPlatformSwan::getRegisterSheet() {
 }
 
 void DivPlatformSwan::acquire(short** buf, size_t len) {
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     // PCM part
     if (pcm && dacSample!=-1) {
@@ -89,8 +93,12 @@ void DivPlatformSwan::acquire(short** buf, size_t len) {
     buf[0][h]=samp[0];
     buf[1][h]=samp[1];
     for (int i=0; i<4; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(ws->sample_cache[i][0]+ws->sample_cache[i][1])<<6;
+      oscBuf[i]->putSample(h,(ws->sample_cache[i][0]+ws->sample_cache[i][1])<<6);
     }
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -607,7 +615,7 @@ void DivPlatformSwan::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/coreQuality;
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

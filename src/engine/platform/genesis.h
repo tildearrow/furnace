@@ -94,7 +94,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
 
     inline void processDAC(int iRate);
     inline void commitState(int ch, DivInstrument* ins);
-    void acquire276OscSub();
+    inline void acquire276OscSub(int h);
     void acquire_nuked(short** buf, size_t len);
     void acquire_nuked276(short** buf, size_t len);
     void acquire_ymfm(short** buf, size_t len);

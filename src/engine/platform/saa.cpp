@@ -71,7 +71,13 @@ void DivPlatformSAA1099::acquire_saaSound(short** buf, size_t len) {
     regPool[w.addr&0x1f]=w.val;
     writes.pop();
   }
+  for (int i=0; i<6; i++) {
+    oscBuf[i]->begin(len);
+  }
   saa_saaSound->GenerateMany((unsigned char*)saaBuf[0],len,oscBuf);
+  for (int i=0; i<6; i++) {
+    oscBuf[i]->end(len);
+  }
 #ifdef TA_BIG_ENDIAN
   for (size_t i=0; i<len; i++) {
     buf[0][i]=(short)((((unsigned short)saaBuf[0][i<<1])<<8)|(((unsigned short)saaBuf[0][i<<1])>>8));

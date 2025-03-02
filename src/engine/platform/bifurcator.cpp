@@ -48,6 +48,9 @@ void DivPlatformBifurcator::acquire(short** buf, size_t len) {
     chan[i].chVolL=regPool[i*8+6];
     chan[i].chVolR=regPool[i*8+7];
   }
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t h=0; h<len; h++) {
     int l=0;
     int r=0;
@@ -62,12 +65,15 @@ void DivPlatformBifurcator::acquire(short** buf, size_t len) {
       int out=chan[i].curx-32768;
       int outL=out*chan[i].chVolL/256;
       int outR=out*chan[i].chVolR/256;
-      oscBuf[i]->data[oscBuf[i]->needle++]=(short)((outL+outR)/2);
+      oscBuf[i]->putSample(h,(short)((outL+outR)/2));
       l+=outL/4;
       r+=outR/4;
     }
     buf[0][h]=(short)l;
     buf[1][h]=(short)r;
+  }
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
   for (int i=0; i<4; i++) {
     regPool[i*8]=chan[i].curx&0xff;
@@ -347,7 +353,7 @@ void DivPlatformBifurcator::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/16;
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

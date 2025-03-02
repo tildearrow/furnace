@@ -69,7 +69,11 @@ const char** DivPlatformNDS::getRegisterSheet() {
 }
 
 void DivPlatformNDS::acquire(short** buf, size_t len) {
-  for (size_t i=0; i<len; i++) {
+  for (int i=0; i<16; i++) {
+    oscBuf[i]->begin(len);
+  }
+
+  for (size_t h=0; h<len; h++) {
     nds.tick(coreQuality);
     int lout=((nds.loutput()-0x200)<<5); // scale to 16 bit
     int rout=((nds.routput()-0x200)<<5); // scale to 16 bit
@@ -77,12 +81,16 @@ void DivPlatformNDS::acquire(short** buf, size_t len) {
     if (lout<-32768) lout=-32768;
     if (rout>32767) rout=32767;
     if (rout<-32768) rout=-32768;
-    buf[0][i]=lout;
-    buf[1][i]=rout;
+    buf[0][h]=lout;
+    buf[1][h]=rout;
 
     for (int i=0; i<16; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(nds.chan_lout(i)+nds.chan_rout(i))>>1;
+      oscBuf[i]->putSample(h,(nds.chan_lout(i)+nds.chan_rout(i))>>1);
     }
+  }
+
+  for (int i=0; i<16; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -564,7 +572,7 @@ void DivPlatformNDS::setFlags(const DivConfig& flags) {
   chipClock=33513982;
   rate=chipClock/2/coreQuality;
   for (int i=0; i<16; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
   memCompo.capacity=(isDSi?16777216:4194304);
 }

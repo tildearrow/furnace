@@ -55,6 +55,10 @@ inline void DivPlatformK007232::chWrite(unsigned char ch, unsigned int addr, uns
 }
 
 void DivPlatformK007232::acquire(short** buf, size_t len) {
+  for (int i=0; i<2; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     if ((--delay)<=0) {
       delay=MAX(0,delay);
@@ -81,7 +85,7 @@ void DivPlatformK007232::acquire(short** buf, size_t len) {
       if (++oscDivider>=8) {
         oscDivider=0;
         for (int i=0; i<2; i++) {
-          oscBuf[i]->data[oscBuf[i]->needle++]=(lout[i]+rout[i])<<3;
+          oscBuf[i]->putSample(h,(lout[i]+rout[i])<<3);
         }
       }
     } else {
@@ -91,10 +95,14 @@ void DivPlatformK007232::acquire(short** buf, size_t len) {
       if (++oscDivider>=8) {
         oscDivider=0;
         for (int i=0; i<2; i++) {
-          oscBuf[i]->data[oscBuf[i]->needle++]=out[i]<<4;
+          oscBuf[i]->putSample(h,out[i]<<4);
         }
       }
     }
+  }
+
+  for (int i=0; i<2; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -490,7 +498,7 @@ void DivPlatformK007232::setFlags(const DivConfig& flags) {
   stereo=flags.getBool("stereo",false);
   for (int i=0; i<2; i++) {
     chan[i].volumeChanged=true;
-    oscBuf[i]->rate=rate/8;
+    oscBuf[i]->setRate(rate);
   }
 }
 
