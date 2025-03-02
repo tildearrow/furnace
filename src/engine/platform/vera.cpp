@@ -66,7 +66,7 @@ void DivPlatformVERA::acquire(short** buf, size_t len) {
   // argument right into both could cause an overflow
   short whyCallItBuf[4][128];
   size_t pos=0;
-  size_t lenCopy=0;
+  size_t lenCopy=len;
   DivSample* s=parent->getSample(chan[16].pcm.sample);
   while (lenCopy>0) {
     if (s->samples>0 && chan[16].pcm.pos<s->samples) {

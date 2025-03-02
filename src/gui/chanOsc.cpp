@@ -643,7 +643,6 @@ void FurnaceGUI::drawChanOsc() {
 
                 float minLevel=1.0f;
                 float maxLevel=-1.0f;
-                float dcOff=0.0f;
 
                 if (debugFFT) {
                   // FFT debug code!
@@ -717,7 +716,8 @@ void FurnaceGUI::drawChanOsc() {
                         if (maxLevel<y) maxLevel=y;
                       }
                       if (j<0) continue;
-                      float yOut=y-dcOff;
+                      float yOut=y-fft->dcOff;
+                      fft->dcOff+=(y-fft->dcOff)*0.001;
                       if (yOut<-0.5f) yOut=-0.5f;
                       if (yOut>0.5f) yOut=0.5f;
                       yOut*=chanOscAmplify*2.0f;
@@ -737,14 +737,15 @@ void FurnaceGUI::drawChanOsc() {
                         if (maxLevel<y) maxLevel=y;
                       }
                       if (kTex<0) continue;
-                      float yOut=y-dcOff;
+                      float yOut=y-fft->dcOff;
+                      fft->dcOff+=(y-fft->dcOff)*0.001;
                       if (yOut<-0.5f) yOut=-0.5f;
                       if (yOut>0.5f) yOut=0.5f;
                       yOut*=chanOscAmplify*2.0f;
                       fft->oscTex[kTex]=yOut;
                     }
                   }
-                  dcOff=(minLevel+maxLevel)*0.5f;
+                  //dcOff=(minLevel+maxLevel)*0.5f;
 
                   if (!(rend->supportsDrawOsc() && settings.shaderOsc)) {
                     for (unsigned short j=0; j<precision; j++) {

@@ -102,7 +102,7 @@ void DivPlatformTX81Z::acquire(short** buf, size_t len) {
   }
 
   for (int i=0; i<8; i++) {
-    oscBuf[i]->begin(len);
+    oscBuf[i]->end(len);
   }
 }
 

@@ -92,7 +92,7 @@ void DivPlatformMSM6258::acquire(short** buf, size_t len) {
     } else {
       buf[0][h]=(msmPan&2)?0:msmOut;
       buf[1][h]=(msmPan&1)?0:msmOut;
-      oscBuf[0]->putSample(h,msmPan?(msmOut>>1):0);
+      oscBuf[0]->putSample(h,(msmPan!=3)?(msmOut>>1):0);
     }
   }
 
