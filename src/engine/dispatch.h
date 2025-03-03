@@ -424,15 +424,14 @@ struct DivSamplePos {
     freq(0) {}
 };
 
-constexpr size_t OSCBUF_PREC=(sizeof(size_t)>=8)?32:16;
+constexpr size_t OSCBUF_PREC=(sizeof(size_t)>=8)?16:16;
 constexpr size_t OSCBUF_MASK=(UINTMAX_C(1)<<OSCBUF_PREC)-1;
 
 // the actual output of all DivDispatchOscBuffer instanced runs at 65536Hz.
 struct DivDispatchOscBuffer {
   size_t rate;
   size_t rateMul;
-  unsigned int needleSub;
-  unsigned short needle;
+  unsigned int needle;
   unsigned short readNeedle;
   unsigned short followNeedle;
   unsigned short lastSample;
@@ -440,18 +439,18 @@ struct DivDispatchOscBuffer {
   short data[65536];
 
   inline void putSample(size_t pos, short val) {
-    unsigned short realPos=needle+((needleSub+pos*rateMul)>>OSCBUF_PREC);
+    unsigned short realPos=((needle+pos*rateMul)>>OSCBUF_PREC);
     if (val==-1) {
       data[realPos]=0xfffe;
       return;
     }
-    lastSample=val;
+    //lastSample=val;
     data[realPos]=val;
   }
   inline void begin(unsigned short len) {
-    size_t calc=(needleSub+len*rateMul)>>OSCBUF_PREC;
-    unsigned short start=needle;
-    unsigned short end=needle+calc;
+    size_t calc=(len*rateMul);
+    unsigned short start=needle>>16;
+    unsigned short end=(needle+calc)>>16;
 
     //logD("C %d %d %d",len,calc,rate);
 
@@ -459,27 +458,22 @@ struct DivDispatchOscBuffer {
       //logE("ELS %d %d %d",end,start,calc);
       memset(&data[start],-1,(0x10000-start)*sizeof(short));
       memset(data,-1,end*sizeof(short));
-      data[needle]=lastSample;
+      //data[needle>>16]=lastSample;
       return;
     }
-    memset(&data[start],-1,calc*sizeof(short));
-    data[needle]=lastSample;
+    memset(&data[start],-1,(end-start)*sizeof(short));
+    //data[needle>>16]=lastSample;
   }
   inline void end(unsigned short len) {
     size_t calc=len*rateMul;
-    if (((calc&OSCBUF_MASK)+needleSub)>OSCBUF_MASK) {
-      calc+=UINTMAX_C(1)<<OSCBUF_PREC;
-    }
-    needleSub=(needleSub+calc)&OSCBUF_MASK;
-    needle+=calc>>OSCBUF_PREC;
-    data[needle]=lastSample;
+    needle+=calc;
+    //data[needle>>16]=lastSample;
   }
   void reset() {
     memset(data,-1,65536*sizeof(short));
     needle=0;
     readNeedle=0;
     followNeedle=0;
-    needleSub=0;
     lastSample=0;
   }
   void setRate(unsigned int r) {
@@ -491,7 +485,6 @@ struct DivDispatchOscBuffer {
   DivDispatchOscBuffer():
     rate(65536),
     rateMul(UINTMAX_C(1)<<OSCBUF_PREC),
-    needleSub(0),
     needle(0),
     readNeedle(0),
     followNeedle(0),

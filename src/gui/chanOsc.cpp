@@ -106,7 +106,7 @@ void FurnaceGUI::calcChanOsc() {
       if (e->isRunning()) {
         short minLevel=32767;
         short maxLevel=-32768;
-        unsigned short needlePos=buf->needle;
+        unsigned short needlePos=buf->needle>>16;
         for (unsigned short i=needlePos-displaySize; i!=needlePos; i++) {
           short y=buf->data[i];
           if (y==-1) continue;
@@ -421,7 +421,7 @@ void FurnaceGUI::drawChanOsc() {
           if (fft_->relatedBuf!=NULL) {
             // prepare
             if (centerSettingReset) {
-              fft_->relatedBuf->readNeedle=fft_->relatedBuf->needle;
+              fft_->relatedBuf->readNeedle=fft_->relatedBuf->needle>>16;
             }
 
             // check FFT status existence
@@ -465,7 +465,7 @@ void FurnaceGUI::drawChanOsc() {
                 int displaySize=65536.0f*(fft->windowSize/1000.0f);
                 int displaySize2=65536.0f*(fft->windowSize/500.0f);
                 fft->loudEnough=false;
-                fft->needle=buf->needle;
+                fft->needle=buf->needle>>16;
 
                 // first FFT
                 int k=0;
