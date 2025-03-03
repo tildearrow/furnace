@@ -87,11 +87,12 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
   }
 
   for (size_t h=0; h<len; h++) {
-    if (--delay<0) delay=0;
+    delay-=AMIGA_DIVIDER;
+    if (delay<0) delay=0;
     if (!writes.empty() && delay<=0) {
       QueuedWrite w=writes.front();
 
-      if (w.addr==0x96 && !(w.val&0x8000)) delay=4096/AMIGA_DIVIDER;
+      if (w.addr==0x96 && !(w.val&0x8000)) delay=6144;
 
       amiga.write(w.addr,w.val);
       writes.pop();
