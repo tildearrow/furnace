@@ -380,6 +380,10 @@ void DivPlatformAmiga::acquireDirect(blip_buffer_t** bb, size_t off, size_t len)
   }
 }
 
+void DivPlatformAmiga::postProcess(short* buf, int outIndex, size_t len, int sampleRate) {
+  //buf[0]=32767;
+}
+
 void DivPlatformAmiga::irq(int ch) {
   // disable interrupt
   rWrite(0x9a,128<<ch);

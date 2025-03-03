@@ -140,6 +140,7 @@ class DivPlatformAmiga: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     void acquireDirect(blip_buffer_t** bb, size_t off, size_t len);
+    void postProcess(short* buf, int outIndex, size_t len, int sampleRate);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);

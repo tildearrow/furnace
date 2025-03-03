@@ -659,6 +659,15 @@ class DivDispatch {
     virtual void acquireDirect(blip_buffer_t** bb, size_t off, size_t len);
 
     /**
+     * post-process a rendered sound buffer.
+     * @param buf pointers to output buffers.
+     * @param outIndex the output index.
+     * @param len the number of samples in the buffer.
+     * @param sampleRate the current audio output rate (usually 44100 or 48000).
+     */
+    virtual void postProcess(short* buf, int outIndex, size_t len, int sampleRate);
+
+    /**
      * fill a write stream with data (e.g. for software-mixed PCM).
      * @param stream the write stream.
      * @param rate stream rate (e.g. 44100 for VGM).

@@ -225,12 +225,8 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) 
     if (bb[i]==NULL) continue;
     blip_end_frame(bb[i],runtotal);
     blip_read_samples(bb[i],bbOut[i]+offset,size,0);
+    dispatch->postProcess(bbOut[i]+offset,i,size,rateMemory);
   }
-  /*if (totalRead<(int)size && totalRead>0) {
-    for (size_t i=totalRead; i<size; i++) {
-      bbOut[0][i]=bbOut[0][totalRead-1];//bbOut[0][totalRead];
-    }
-  }*/
 }
 
 void DivDispatchContainer::clear() {
