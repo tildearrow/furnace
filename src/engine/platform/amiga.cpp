@@ -207,6 +207,179 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
   }
 }
 
+void DivPlatformAmiga::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) {
+  thread_local int outL, outR, output;
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+
+  size_t pos=off;
+  int runCount=1;
+  for (size_t h=0; h<len; h++) {
+    // skip heuristic
+    runCount=len-h;
+    //logI("FRAME START - at most %d",runCount);
+    /*
+    if (!bypassLimits) {
+      if ((228-amiga.hPos)<runCount) {
+        runCount=(228-amiga.hPos);
+        logV("HPOS: setting the runCount to %d",runCount);
+      }
+    }*/
+    if (delay<runCount) {
+      if (!writes.empty()) {
+        runCount=delay;
+        //logV("DELAY: setting the runCount to %d",runCount);
+      }
+    }
+    for (int i=0; i<4; i++) {
+      if (!amiga.mustDMA[i] && !amiga.audEn[i]) continue;
+      if (amiga.audTick[i]<runCount) {
+        runCount=amiga.audTick[i];
+        //logV("AUDTICK[%d]: setting the runCount to %d",i,runCount);
+      }
+    }
+    for (int i=0; i<4; i++) {
+      if (amiga.incLoc[i] && (bypassLimits)) {
+        //logV("WILL COUNT because %d+%d>=228",amiga.hPos,runCount);
+        runCount=1;
+        break;
+      }
+    }
+    if (runCount>0) {
+      pos+=runCount-1;
+      h+=runCount-1;
+    } else {
+      runCount=1;
+    }
+    //logV("runCount: %d",runCount);
+
+    delay-=runCount;
+    if (delay<0) delay=0;
+    if (!writes.empty() && delay<=0) {
+      QueuedWrite w=writes.front();
+
+      //logV("THE WRITE %x = %x",w.addr,w.val);
+
+      if (w.addr==0x96 && !(w.val&0x8000)) delay=6144;
+
+      amiga.write(w.addr,w.val);
+      writes.pop();
+    }
+
+    bool hsync=bypassLimits;
+    outL=0;
+    outR=0;
+
+    // TODO:
+    // - improve DMA overrun behavior
+    // - does V/P mod really work like that?
+    if (!bypassLimits) {
+      amiga.hPos+=runCount;
+      if (amiga.hPos>=228) {
+        amiga.hPos-=228;
+        hsync=true;
+      }
+    }
+    for (int i=0; i<4; i++) {
+      // run DMA
+      if (amiga.audEn[i]) amiga.mustDMA[i]=true;
+      if (amiga.dmaEn && amiga.mustDMA[i] && !amiga.audIr[i]) {
+        amiga.audTick[i]-=runCount;
+        if (amiga.audTick[i]<0) {
+          amiga.audTick[i]+=MAX(runCount,amiga.audPer[i]);
+          if (amiga.audByte[i]) {
+            // read next samples
+            if (!amiga.incLoc[i]) {
+              amiga.audDat[0][i]=sampleMem[(amiga.dmaLoc[i])&chipMask];
+              amiga.audDat[1][i]=sampleMem[(amiga.dmaLoc[i]+1)&chipMask];
+              amiga.incLoc[i]=true;
+            }
+
+            amiga.audWord[i]=!amiga.audWord[i];
+          }
+
+          amiga.mustDMA[i]=amiga.audEn[i];
+
+          amiga.audByte[i]=!amiga.audByte[i];
+          if (!amiga.audByte[i] && (amiga.useV[i] || amiga.useP[i])) {
+            amiga.nextOut2[i]=((unsigned char)amiga.audDat[0][i])<<8|((unsigned char)amiga.audDat[1][i]);
+            if (i<3) {
+              if (amiga.useV[i] && amiga.useP[i]) {
+                if (amiga.audWord[i]) {
+                  amiga.audPer[i+1]=amiga.nextOut2[i];
+                } else {
+                  amiga.audVol[i+1]=amiga.nextOut2[i];
+                }
+              } else if (amiga.useV[i]) {
+                amiga.audVol[i+1]=amiga.nextOut2[i];
+              } else {
+                amiga.audPer[i+1]=amiga.nextOut2[i];
+              }
+            }
+          } else if (!amiga.useV[i] && !amiga.useP[i]) {
+            amiga.nextOut[i]=amiga.audDat[amiga.audByte[i]][i];
+          }
+        }
+
+        if (hsync) {
+          if (amiga.incLoc[i]) {
+            amiga.incLoc[i]=false;
+            amiga.dmaLoc[i]+=2;
+            // check for length
+            if ((--amiga.dmaLen[i])==0) {
+              if (amiga.audInt[i]) {
+                amiga.audIr[i]=true;
+                irq(i);
+              }
+              amiga.dmaLoc[i]=amiga.audLoc[i];
+              amiga.dmaLen[i]=amiga.audLen[i];
+            }
+          }
+        }
+      }
+
+      // output
+      if (!isMuted[i]) {
+        if ((amiga.audVol[i]&127)>=64) {
+          output=amiga.nextOut[i]<<6;
+        } else if ((amiga.audVol[i]&127)==0) {
+          output=0;
+        } else {
+          output=amiga.nextOut[i]*amiga.audVol[i];
+        }
+        if (i==0 || i==3) {
+          outL+=(output*sep1)>>7;
+          outR+=(output*sep2)>>7;
+        } else {
+          outL+=(output*sep2)>>7;
+          outR+=(output*sep1)>>7;
+        }
+        oscBuf[i]->putSample(h,(amiga.nextOut[i]*MIN(64,amiga.audVol[i]&127))<<1);
+      } else {
+        // TODO: we can remove this!
+        oscBuf[i]->putSample(h,0);
+      }
+    }
+
+    if (outL!=oldOut[0]) {
+      blip_add_delta(bb[0],pos,outL-oldOut[0]);
+      oldOut[0]=outL;
+    }
+    if (outR!=oldOut[1]) {
+      blip_add_delta(bb[1],pos,outR-oldOut[1]);
+      oldOut[1]=outR;
+    }
+    
+    pos++;
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
+  }
+}
+
 void DivPlatformAmiga::irq(int ch) {
   // disable interrupt
   rWrite(0x9a,128<<ch);
@@ -773,6 +946,8 @@ void DivPlatformAmiga::reset() {
   filtConst=filterOn?filtConstOn:filtConstOff;
   updateADKCon=true;
   delay=0;
+  oldOut[0]=0;
+  oldOut[1]=0;
 
   amiga=Amiga();
   // enable DMA
@@ -784,6 +959,10 @@ int DivPlatformAmiga::getOutputCount() {
 }
 
 bool DivPlatformAmiga::keyOffAffectsArp(int ch) {
+  return true;
+}
+
+bool DivPlatformAmiga::hasAcquireDirect() {
   return true;
 }
 
@@ -834,7 +1013,7 @@ void DivPlatformAmiga::setFlags(const DivConfig& flags) {
   }
   CHECK_CUSTOM_CLOCK;
   
-  rate=chipClock/AMIGA_DIVIDER;
+  rate=chipClock;
   for (int i=0; i<4; i++) {
     oscBuf[i]->setRate(rate);
   }

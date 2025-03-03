@@ -61,6 +61,7 @@ class DivPlatformAmiga: public DivDispatch {
   bool filterOn;
   bool updateADKCon;
   short delay;
+  short oldOut[2];
 
   struct Amiga {
     // register state
@@ -138,6 +139,7 @@ class DivPlatformAmiga: public DivDispatch {
 
   public:
     void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t off, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -150,6 +152,7 @@ class DivPlatformAmiga: public DivDispatch {
     void muteChannel(int ch, bool mute);
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
+    bool hasAcquireDirect();
     DivMacroInt* getChanMacroInt(int ch);
     DivSamplePos getSamplePos(int ch);
     void setFlags(const DivConfig& flags);
