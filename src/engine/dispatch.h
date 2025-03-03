@@ -424,13 +424,13 @@ struct DivSamplePos {
     freq(0) {}
 };
 
-constexpr uintmax_t OSCBUF_PREC=(sizeof(uintmax_t)>=8)?32:16;
-constexpr uintmax_t OSCBUF_MASK=(1UL<<OSCBUF_PREC)-1;
+constexpr size_t OSCBUF_PREC=(sizeof(size_t)>=8)?32:16;
+constexpr size_t OSCBUF_MASK=(1UL<<OSCBUF_PREC)-1;
 
 // the actual output of all DivDispatchOscBuffer instanced runs at 65536Hz.
 struct DivDispatchOscBuffer {
-  uintmax_t rate;
-  uintmax_t rateMul;
+  size_t rate;
+  size_t rateMul;
   unsigned int needleSub;
   unsigned short needle;
   unsigned short readNeedle;
@@ -439,7 +439,7 @@ struct DivDispatchOscBuffer {
   bool follow;
   short data[65536];
 
-  inline void putSample(uintmax_t pos, short val) {
+  inline void putSample(size_t pos, short val) {
     unsigned short realPos=needle+((needleSub+pos*rateMul)>>OSCBUF_PREC);
     if (val==-1) {
       data[realPos]=0xfffe;
@@ -449,7 +449,7 @@ struct DivDispatchOscBuffer {
     data[realPos]=val;
   }
   inline void begin(unsigned short len) {
-    uintmax_t calc=(needleSub+len*rateMul)>>OSCBUF_PREC;
+    size_t calc=(needleSub+len*rateMul)>>OSCBUF_PREC;
     unsigned short start=needle;
     unsigned short end=needle+calc;
 
@@ -466,7 +466,7 @@ struct DivDispatchOscBuffer {
     data[needle]=lastSample;
   }
   inline void end(unsigned short len) {
-    uintmax_t calc=len*rateMul;
+    size_t calc=len*rateMul;
     if (((calc&OSCBUF_MASK)+needleSub)>OSCBUF_MASK) {
       calc+=UINTMAX_C(1)<<OSCBUF_PREC;
     }
@@ -486,7 +486,7 @@ struct DivDispatchOscBuffer {
     double rateMulD=65536.0/(double)r;
     rateMulD*=(double)(UINTMAX_C(1)<<OSCBUF_PREC);
     rate=r;
-    rateMul=(uintmax_t)rateMulD;
+    rateMul=(size_t)rateMulD;
   }
   DivDispatchOscBuffer():
     rate(65536),
