@@ -521,7 +521,6 @@ void putDispatchChip(void* data, int type) {
       DivPlatformGA20* ch=(DivPlatformGA20*)data;
       ImGui::Text("> GA20");
       COMMON_CHIP_DEBUG;
-      ImGui::Text("- delay: %.2x",ch->delay);
       COMMON_CHIP_DEBUG_BOOL;
       break;
     }

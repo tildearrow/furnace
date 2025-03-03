@@ -58,7 +58,6 @@ class DivPlatformGA20: public DivDispatch, public iremga20_intf {
   unsigned int sampleOffGA20[256];
   bool sampleLoaded[256];
 
-  int delay;
   int oldOut;
 
   short* ga20Buf[4];
