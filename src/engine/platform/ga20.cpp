@@ -84,7 +84,7 @@ void DivPlatformGA20::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) 
     oscBuf[i]->begin(len);
   }
 
-  for (size_t h=off; h<off+len; h++) {
+  for (size_t h=0; h<len; h++) {
     size_t advance=0;
     if (!writes.empty()) {
       QueuedWrite& w=writes.front();
@@ -93,7 +93,7 @@ void DivPlatformGA20::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) 
       writes.pop();
     } else {
       // heuristic
-      advance=off+len-h-1;
+      advance=len-h-1;
 
       for (int i=0; i<4; i++) {
         if (!ga20.m_channel[i].play) continue;
@@ -109,7 +109,7 @@ void DivPlatformGA20::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) 
     h+=advance;
     const int out=(signed int)(ga20Buf[0]+ga20Buf[1]+ga20Buf[2]+ga20Buf[3])>>2;
     if (out!=oldOut) {
-      blip_add_delta(bb[0],h,out-oldOut);
+      blip_add_delta(bb[0],off+h,out-oldOut);
       oldOut=out;
     }
     for (int i=0; i<4; i++) {
