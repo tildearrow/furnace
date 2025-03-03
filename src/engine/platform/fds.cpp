@@ -75,16 +75,13 @@ void DivPlatformFDS::acquire_NSFPlay(short* buf, size_t len) {
   int out[2];
   oscBuf->begin(len);
   for (size_t i=0; i<len; i++) {
-    fds_NP->Tick(1);
+    fds_NP->Tick(16);
     fds_NP->Render(out);
     int sample=isMuted[0]?0:(out[0]<<1);
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
     buf[i]=sample;
-    if (++writeOscBuf>=32) {
-      writeOscBuf=0;
-      oscBuf->putSample(i,sample*3);
-    }
+    oscBuf->putSample(i,sample*3);
   }
   oscBuf->end(len);
 }
@@ -489,11 +486,14 @@ void DivPlatformFDS::setFlags(const DivConfig& flags) {
     chipClock=COLOR_NTSC/2.0;
   }
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock;
-  oscBuf->setRate(rate);
   if (useNP) {
-    fds_NP->SetClock(rate);
+    rate=chipClock/16;
+    oscBuf->setRate(rate);
+    fds_NP->SetClock(chipClock);
     fds_NP->SetRate(rate);
+  } else {
+    rate=chipClock;
+    oscBuf->setRate(rate);
   }
 }
 
