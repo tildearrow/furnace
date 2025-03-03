@@ -88,7 +88,6 @@ class DivPlatformPCSpeaker: public DivDispatch {
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
     bool hasAcquireDirect();
-    bool isOscBufPositional();
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
     void notifyPlaybackStop();

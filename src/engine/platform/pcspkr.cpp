@@ -650,10 +650,6 @@ bool DivPlatformPCSpeaker::hasAcquireDirect() {
   return (speakerType==0 || speakerType==3);
 }
 
-bool DivPlatformPCSpeaker::isOscBufPositional() {
-  return (speakerType==0 || speakerType==3);
-}
-
 void DivPlatformPCSpeaker::setFlags(const DivConfig& flags) {
   switch (flags.getInt("clockSel",0)) {
     case 1: // PC-98
