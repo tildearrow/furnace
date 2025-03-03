@@ -425,7 +425,7 @@ struct DivSamplePos {
 };
 
 constexpr size_t OSCBUF_PREC=(sizeof(size_t)>=8)?32:16;
-constexpr size_t OSCBUF_MASK=(1UL<<OSCBUF_PREC)-1;
+constexpr size_t OSCBUF_MASK=(UINTMAX_C(1)<<OSCBUF_PREC)-1;
 
 // the actual output of all DivDispatchOscBuffer instanced runs at 65536Hz.
 struct DivDispatchOscBuffer {
