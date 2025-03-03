@@ -468,7 +468,7 @@ struct DivDispatchOscBuffer {
   inline void end(unsigned short len) {
     uintmax_t calc=len*rateMul;
     if (((calc&OSCBUF_MASK)+needleSub)>OSCBUF_MASK) {
-      calc+=1UL<<OSCBUF_PREC;
+      calc+=UINTMAX_C(1)<<OSCBUF_PREC;
     }
     needleSub=(needleSub+calc)&OSCBUF_MASK;
     needle+=calc>>OSCBUF_PREC;
@@ -484,13 +484,13 @@ struct DivDispatchOscBuffer {
   }
   void setRate(unsigned int r) {
     double rateMulD=65536.0/(double)r;
-    rateMulD*=(double)(1UL<<OSCBUF_PREC);
+    rateMulD*=(double)(UINTMAX_C(1)<<OSCBUF_PREC);
     rate=r;
     rateMul=(uintmax_t)rateMulD;
   }
   DivDispatchOscBuffer():
     rate(65536),
-    rateMul(1UL<<OSCBUF_PREC),
+    rateMul(UINTMAX_C(1)<<OSCBUF_PREC),
     needleSub(0),
     needle(0),
     readNeedle(0),
