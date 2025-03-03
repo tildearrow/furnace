@@ -66,6 +66,46 @@ void DivPlatformESFM::acquire(short** buf, size_t len) {
   }
 }
 
+void DivPlatformESFM::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) {
+  thread_local short o[2];
+  unsigned int sharedNeedlePos=oscBuf[0]->needle;
+  for (int i=0; i<18; i++) {
+    oscBuf[i]->begin(len);
+  }
+  size_t pos=off;
+  for (size_t h=0; h<len; h++) {
+    if (!writes.empty()) {
+      QueuedWrite& w=writes.front();
+      ESFM_write_reg_buffered_fast(&chip,w.addr,w.val);
+      if (w.addr<ESFM_REG_POOL_SIZE) {
+        regPool[w.addr]=w.val;
+      }
+      writes.pop();
+    }
+
+    ESFM_generate(&chip,o);
+    const unsigned int shiftedNeedlePos=sharedNeedlePos>>OSCBUF_PREC;
+    for (int c=0; c<18; c++) {
+      putSampleIKnowWhatIAmDoing(oscBuf[c],shiftedNeedlePos,ESFM_get_channel_output_native(&chip,c));
+    }
+    sharedNeedlePos+=oscBuf[0]->rateMul;
+
+    if (o[0]!=oldOut[0]) {
+      blip_add_delta(bb[0],pos,oldOut[0]-o[0]);
+      oldOut[0]=o[0];
+    }
+    if (o[1]!=oldOut[1]) {
+      blip_add_delta(bb[1],pos,oldOut[1]-o[1]);
+      oldOut[1]=o[1];
+    }
+
+    pos++;
+  }
+  for (int i=0; i<18; i++) {
+    oscBuf[i]->end(len);
+  }
+}
+
 void DivPlatformESFM::tick(bool sysTick) {
   for (int i=0; i<18; i++) {
     chan[i].std.next();
@@ -1024,6 +1064,9 @@ void DivPlatformESFM::reset() {
     chan[i].vol=0x3f;
     chan[i].outVol=0x3f;
   }
+
+  oldOut[0]=0;
+  oldOut[1]=0;
 }
 
 int DivPlatformESFM::getOutputCount() {
@@ -1036,6 +1079,10 @@ bool DivPlatformESFM::keyOffAffectsArp(int ch) {
 
 bool DivPlatformESFM::keyOffAffectsPorta(int ch) {
   return false;
+}
+
+bool DivPlatformESFM::hasAcquireDirect() {
+  return true;
 }
 
 bool DivPlatformESFM::getLegacyAlwaysSetVolume() {
