@@ -60,6 +60,7 @@ void DivPlatformPCE::acquire(short** buf, size_t len) {
 void DivPlatformPCE::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) {
   for (int i=0; i<6; i++) {
     oscBuf[i]->begin(len);
+    pce->channel[i].oscBuf=oscBuf[i];
   }
 
   pce->bb[0]=bb[0];
@@ -130,10 +131,6 @@ void DivPlatformPCE::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) {
       writes.pop();
     }
 
-    /*
-    for (int i=0; i<6; i++) {
-      oscBuf[i]->putSample(h,CLAMP(pce->channel[i].blip_prev_samp[0]+pce->channel[i].blip_prev_samp[1],-32768,32767));
-    }*/
     h+=advance;
   }
   pce->Update(pos);

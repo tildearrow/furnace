@@ -78,6 +78,8 @@ inline void PCE_PSG::UpdateOutputSub(const int32_t timestamp, psg_channel *ch, c
  if (delta[0]) blip_add_delta(bb[0],timestamp,delta[0]);
  if (delta[1]) blip_add_delta(bb[1],timestamp,delta[1]);
 
+ ch->oscBuf->putSample(timestamp-ch->lasttsbase,CLAMP(samp0+samp1,-32768,32767));
+
  ch->blip_prev_samp[0] = samp0;
  ch->blip_prev_samp[1] = samp1;
 
@@ -407,11 +409,13 @@ PCE_PSG::PCE_PSG(int want_revision)
   bb[1]=NULL;
 
   lastts = 0;
+  lasttsbase = 0;
   for(int ch = 0; ch < 6; ch++)
   {
    channel[ch].blip_prev_samp[0] = 0;
    channel[ch].blip_prev_samp[1] = 0;
    channel[ch].lastts = 0;
+   channel[ch].lasttsbase = 0;
   }
 
   SetVolume(1.0);  // Will build dbtable in the process.
@@ -749,9 +753,12 @@ void PCE_PSG::Update(int32_t timestamp)
 void PCE_PSG::ResetTS(int32_t ts_base)
 {
  lastts = ts_base;
+ lasttsbase = ts_base;
 
- for(int chc = 0; chc < 6; chc++)
+ for(int chc = 0; chc < 6; chc++) {
   channel[chc].lastts = ts_base;
+  channel[chc].lasttsbase = ts_base;
+ }
 }
 
 void PCE_PSG::Power(const int32_t timestamp)
