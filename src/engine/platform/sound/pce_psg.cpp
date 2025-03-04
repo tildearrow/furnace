@@ -75,8 +75,8 @@ inline void PCE_PSG::UpdateOutputSub(const int32_t timestamp, psg_channel *ch, c
  delta[0] = samp0 - ch->blip_prev_samp[0];
  delta[1] = samp1 - ch->blip_prev_samp[1];
 
- blip_add_delta(bb[0],timestamp,delta[0]);
- blip_add_delta(bb[1],timestamp,delta[1]);
+ if (delta[0]) blip_add_delta(bb[0],timestamp,delta[0]);
+ if (delta[1]) blip_add_delta(bb[1],timestamp,delta[1]);
 
  ch->blip_prev_samp[0] = samp0;
  ch->blip_prev_samp[1] = samp1;
