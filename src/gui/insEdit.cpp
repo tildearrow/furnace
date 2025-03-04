@@ -338,6 +338,12 @@ const char* sid3SpecialWaveforms[]={
   _N("Clipped Saw")
 };
 
+const char* xattrTypeNames[3] = {
+  _N("String"),
+  _N("Unsigned integer"),
+  _N("Integer")
+};
+
 const bool opIsOutput[8][4]={
   {false,false,false,true},
   {false,false,false,true},
@@ -8635,6 +8641,72 @@ void FurnaceGUI::drawInsEdit() {
           }
 
           drawMacros(macroList,macroEditStateMacros);
+          ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Attributes")) {
+          if (ImGui::BeginTable("AttrTable", 4)) {
+            ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+            ImGui::TableNextColumn();
+            ImGui::Text(_("Name"));
+            ImGui::TableNextColumn();
+            ImGui::Text(_("Type"));
+            ImGui::TableNextColumn();
+            ImGui::Text(_("Value"));
+            ImGui::TableNextColumn();
+            ImGui::Text(_("Actions"));
+            for (unsigned int i=0;i<ins->std.xattrs.size();i++) {
+              ImGui::PushID(i);
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              if (ImGui::InputText("##AttrName", &ins->std.xattrs[i].name, ImGuiInputTextFlags_UndoRedo)) {
+                MARK_MODIFIED;
+              }
+              ImGui::TableNextColumn();
+              if (ImGui::BeginCombo("##AttrType",xattrTypeNames[ins->std.xattrs[i].type])) {
+                if (ImGui::Selectable(_("String"), ins->std.xattrs[i].type==DIV_XATTR_STRING)) {
+                  MARK_MODIFIED;
+                  ins->std.xattrs[i].type = DIV_XATTR_STRING;
+                }
+                if (ImGui::Selectable(_("Unsigned integer"), ins->std.xattrs[i].type==DIV_XATTR_UINT)) {
+                  MARK_MODIFIED;
+                  ins->std.xattrs[i].type = DIV_XATTR_UINT;
+                }
+                if (ImGui::Selectable(_("Integer"), ins->std.xattrs[i].type==DIV_XATTR_INT)) {
+                  MARK_MODIFIED;
+                  ins->std.xattrs[i].type = DIV_XATTR_INT;
+                }
+                ImGui::EndCombo();
+              }
+              ImGui::TableNextColumn();
+              switch (ins->std.xattrs[i].type) {
+                case DIV_XATTR_STRING:
+                if (ImGui::InputText("##AttrValue", &ins->std.xattrs[i].str_val, ImGuiInputTextFlags_UndoRedo)) {
+                  MARK_MODIFIED;
+                }
+                break;
+                case DIV_XATTR_UINT:
+                case DIV_XATTR_INT:
+                if (ImGui::InputInt("##AttrValue", &ins->std.xattrs[i].int_val, ImGuiInputTextFlags_UndoRedo)) {
+                  MARK_MODIFIED;
+                }
+                break;
+              }
+              ImGui::TableNextColumn();
+              if (ImGui::Button(ICON_FA_TIMES "##AttrRemove")) {
+              }
+              ImGui::PopID();
+            }
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            if (ImGui::Button(ICON_FA_PLUS)) {
+              ins->std.xattrs.push_back(DivInstrumentXattr());
+            }
+            ImGui::EndTable();
+          }
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_AY) {

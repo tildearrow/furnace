@@ -24,6 +24,7 @@
 #include "../ta-utils.h"
 #include "../pch.h"
 #include "../fixedQueue.h"
+#include <vector>
 
 struct DivSong;
 struct DivInstrument;
@@ -147,6 +148,12 @@ enum DivMacroTypeOp: unsigned char {
   DIV_MACRO_OP_VIB,
   DIV_MACRO_OP_WS,
   DIV_MACRO_OP_KSR,
+};
+
+enum DivXattrType: unsigned char {
+  DIV_XATTR_STRING,
+  DIV_XATTR_UINT,
+  DIV_XATTR_INT
 };
 
 // FM operator structure:
@@ -289,6 +296,21 @@ struct DivInstrumentMacro {
   }
 };
 
+struct DivInstrumentXattr {
+  String name;
+  DivXattrType type;
+  //union {
+    String str_val;
+    int int_val;
+  //};
+
+  DivInstrumentXattr():
+    name("example.empty"),
+    type(DIV_XATTR_STRING),
+    str_val(),
+    int_val(0) {};
+};
+
 struct DivInstrumentSTD {
   DivInstrumentMacro volMacro;
   DivInstrumentMacro arpMacro;
@@ -310,6 +332,7 @@ struct DivInstrumentSTD {
   DivInstrumentMacro ex6Macro;
   DivInstrumentMacro ex7Macro;
   DivInstrumentMacro ex8Macro;
+  std::vector<DivInstrumentXattr> xattrs;
 
   struct OpMacro {
     // ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
@@ -363,7 +386,8 @@ struct DivInstrumentSTD {
     ex5Macro(DIV_MACRO_EX5),
     ex6Macro(DIV_MACRO_EX6),
     ex7Macro(DIV_MACRO_EX7),
-    ex8Macro(DIV_MACRO_EX8) {
+    ex8Macro(DIV_MACRO_EX8),
+    xattrs() {
     for (int i=0; i<4; i++) {
       opMacros[i].amMacro.macroType=DIV_MACRO_OP_AM+(i<<5);
       opMacros[i].arMacro.macroType=DIV_MACRO_OP_AR+(i<<5);
@@ -1119,6 +1143,7 @@ struct DivInstrument : DivInstrumentPOD {
   void readFeaturePN(SafeReader& reader, short version);
   void readFeatureS2(SafeReader& reader, short version);
   void readFeatureS3(SafeReader& reader, short version);
+  void readFeatureXA(SafeReader& reader, short version);
 
   DivDataErrors readInsDataOld(SafeReader& reader, short version);
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);

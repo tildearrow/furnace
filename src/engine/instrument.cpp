@@ -2581,6 +2581,38 @@ void DivInstrument::readFeatureS3(SafeReader& reader, short version) {
   READ_FEAT_END;
 }
 
+void DivInstrument::readFeatureXA(SafeReader& reader, short version) {
+  READ_FEAT_BEGIN;
+  DivInstrumentXattr xattr;
+
+  while (true) {
+    xattr.name=reader.readString();
+
+    if (!xattr.name.length()) {
+      break;
+    }
+    xattr.type=(DivXattrType)reader.readC();
+
+    switch (xattr.type) {
+      case DIV_XATTR_STRING:
+      xattr.str_val=reader.readString();
+      break;
+      case DIV_XATTR_UINT:
+      case DIV_XATTR_INT: {
+        unsigned char byte=reader.readC();
+
+        do {
+          xattr.int_val <<= 7;
+          xattr.int_val |= byte & 0x7F;
+          byte = reader.readC();
+        } while (byte & 0x80);
+        break;
+      }
+    }
+    std.xattrs.push_back(xattr);
+  }
+  READ_FEAT_END;
+}
 DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song) {
   unsigned char featCode[2];
   bool volIsCutoff=false;
@@ -2657,6 +2689,8 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
       readFeatureS2(reader,version);
     } else if (memcmp(featCode,"S3",2)==0) { // SID3
       readFeatureS3(reader,version);
+    } else if (memcmp(featCode,"XA",2)==0) { // extended attributes
+      readFeatureXA(reader,version);
     } else {
       if (song==NULL && (memcmp(featCode,"SL",2)==0 || (memcmp(featCode,"WL",2)==0))) {
         // nothing
