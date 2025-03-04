@@ -82,8 +82,9 @@ void DivPlatformPCE::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) {
     for (int i=0; i<6; i++) {
       if (chan[i].pcm && chan[i].dacSample!=-1) {
         if (chan[i].dacRate<=0) continue;
-        remainTime=(rate-chan[i].dacPeriod)/chan[i].dacRate;
+        remainTime=(rate-chan[i].dacPeriod+chan[i].dacRate-1)/chan[i].dacRate;
         if (remainTime<advance) advance=remainTime;
+        if (remainTime<1) advance=1;
       }
     }
 
@@ -128,7 +129,6 @@ void DivPlatformPCE::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) {
       regPool[w.addr&0x0f]=w.val;
       writes.pop();
     }
-    pce->Update(pos);
 
     /*
     for (int i=0; i<6; i++) {
@@ -136,6 +136,7 @@ void DivPlatformPCE::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) {
     }*/
     h+=advance;
   }
+  pce->Update(pos);
 
   for (int i=0; i<6; i++) {
     oscBuf[i]->end(len);
@@ -261,7 +262,7 @@ void DivPlatformPCE::tick(bool sysTick) {
             off=parent->getCenterRate()/(double)s->centerRate;
           }
         }
-        chan[i].dacRate=((double)chipClock/2)/MAX(1,off*chan[i].freq);
+        chan[i].dacRate=(double)chipClock/(4*MAX(1,off*chan[i].freq));
         if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dacRate);
       }
       if (chan[i].freq<1) chan[i].freq=1;
