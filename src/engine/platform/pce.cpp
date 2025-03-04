@@ -66,12 +66,31 @@ void DivPlatformPCE::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) {
   pce->bb[1]=bb[1];
 
   size_t pos=off;
-  for (size_t h=0; h<len; h++) {
-    // PCM part
-    /*
+  pce->ResetTS(pos);
+
+  while (!writes.empty()) {
+    QueuedWrite w=writes.front();
+    pce->Write(pos,w.addr,w.val);
+    regPool[w.addr&0x0f]=w.val;
+    writes.pop();
+  }
+
+  for (size_t h=0; h<len;) {
+    int advance=len-h;
+    // heuristic
+    int remainTime=9;
     for (int i=0; i<6; i++) {
       if (chan[i].pcm && chan[i].dacSample!=-1) {
-        chan[i].dacPeriod+=chan[i].dacRate;
+        if (chan[i].dacRate<=0) continue;
+        remainTime=(rate-chan[i].dacPeriod)/chan[i].dacRate;
+        if (remainTime<advance) advance=remainTime;
+      }
+    }
+
+    // PCM part
+    for (int i=0; i<6; i++) {
+      if (chan[i].pcm && chan[i].dacSample!=-1) {
+        chan[i].dacPeriod+=chan[i].dacRate*advance;
         if (chan[i].dacPeriod>rate) {
           DivSample* s=parent->getSample(chan[i].dacSample);
           if (s->samples<=0 || chan[i].dacPos>=s->samples) {
@@ -97,25 +116,25 @@ void DivPlatformPCE::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) {
           chan[i].dacPeriod-=rate;
         }
       }
-    }*/
+    }
   
     // PCE part
     // WHAT?????????
-    pce->ResetTS(pos);
+    pos+=advance;
+
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
       pce->Write(pos,w.addr,w.val);
       regPool[w.addr&0x0f]=w.val;
       writes.pop();
     }
-    pce->Update(len+pos);
-    break;
+    pce->Update(pos);
 
     /*
     for (int i=0; i<6; i++) {
       oscBuf[i]->putSample(h,CLAMP(pce->channel[i].blip_prev_samp[0]+pce->channel[i].blip_prev_samp[1],-32768,32767));
     }*/
-    pos++;
+    h+=advance;
   }
 
   for (int i=0; i<6; i++) {
