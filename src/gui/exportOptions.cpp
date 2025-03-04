@@ -342,6 +342,82 @@ void FurnaceGUI::drawExportROM(bool onWindow) {
       }
       break;
     }
+    case DIV_ROM_S98: {
+      float tickRate=romConfig.getFloat("s98rate",e->getHz());
+      bool loop=romConfig.getBool("loop",true);
+      int trailingTicks=romConfig.getInt("trailingTicks",-1);
+      std::vector<int> toExport=romConfig.getIntList("toExport",{});
+      bool toExportBool[DIV_MAX_CHIPS];
+      memset(toExportBool,toExport.empty(),sizeof(toExportBool));
+      for (auto& i: toExport) {
+        if (i>=0 && i<DIV_MAX_CHIPS) toExportBool[i]=true;
+      }
+      if (toExport.empty()) altered=true;
+
+      if (ImGui::InputFloat(_("tick rate (hz)"),&tickRate,1,10)) {
+        if (tickRate<1) tickRate=1;
+        if (tickRate>100000) tickRate=100000;
+        altered=true;
+      }
+      if (ImGui::Checkbox(_("loop"),&loop)) {
+        altered=true;
+      }
+      if (loop && e->song.loopModality==2) {
+        ImGui::Text(_("loop trail:"));
+        ImGui::Indent();
+        if (ImGui::RadioButton(_("auto-detect"),trailingTicks==-1)) {
+          trailingTicks=-1;
+          altered=true;
+        }
+        if (ImGui::RadioButton(_("add one loop"),trailingTicks==-2)) {
+          trailingTicks=-2;
+          altered=true;
+        }
+        if (ImGui::RadioButton(_("custom"),trailingTicks>=0)) {
+          trailingTicks=0;
+          altered=true;
+        }
+        if (trailingTicks>=0) {
+          ImGui::SameLine();
+          if (ImGui::InputInt("##TrailTicks",&trailingTicks,1,100)) {
+            if (trailingTicks<0) trailingTicks=0;
+            altered=true;
+          }
+        }
+        ImGui::Unindent();
+      }
+      ImGui::Text(_("chips to export:"));
+      const DivROMExportDef* newDef=e->getROMExportDef(DIV_ROM_S98);
+      toExport.clear();
+      for (int i=0; i<e->song.systemLen; i++) {
+        DivSystem sys=e->song.system[i];
+        bool unsupported=true;
+        if (newDef!=NULL) {
+          for (auto i: newDef->requisites) {
+            if (sys==i) {
+              unsupported=false;
+              break;
+            }
+          }
+        }
+        // Like VGM, S98 doesn't support AY-3-8914
+        if (sys==DIV_SYSTEM_AY8910) unsupported=e->song.systemFlags[i].getInt("chipType",0)==3;
+        if (unsupported) toExportBool[i]=false;
+        ImGui::BeginDisabled(unsupported);
+        if (ImGui::Checkbox(fmt::sprintf("%d. %s##_SYSV%d",i+1,getSystemName(e->song.system[i]),i).c_str(),&toExportBool[i])) {
+          altered=true;
+        }
+        ImGui::EndDisabled();
+        if (toExportBool[i]) toExport.push_back(i);
+      }
+      if (altered) {
+        romConfig.set("s98rate",tickRate);
+        romConfig.set("loop",loop);
+        romConfig.set("trailingTicks",trailingTicks);
+        romConfig.set("toExport",toExport);
+      }
+      break;
+    }
     case DIV_ROM_ABSTRACT:
       ImGui::TextWrapped("%s",_("select a target from the menu at the top of this dialog."));
       break;
