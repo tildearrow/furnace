@@ -70,34 +70,15 @@ static const int scale_tab[] =
 
 inline void PCE_PSG::UpdateOutputSub(const int32_t timestamp, psg_channel *ch, const int32_t samp0, const int32_t samp1)
 {
-  if (timestamp>0) return;
-  HRBufs[0][timestamp]+=samp0;
-  HRBufs[1][timestamp]+=samp1;
-  /*
  int32_t delta[2];
 
  delta[0] = samp0 - ch->blip_prev_samp[0];
  delta[1] = samp1 - ch->blip_prev_samp[1];
 
- const int16_t* c = Phase_Filter[(timestamp >> 1) & 1];
- const int32_t l = (timestamp >> 2) & 0xFFFF;
+ if (delta[0]) blip_add_delta(bb[0],timestamp,delta[0]);
+ if (delta[1]) blip_add_delta(bb[1],timestamp,delta[1]);
 
- HRBufs[0][l + 0] += delta[0] * c[0];
- HRBufs[0][l + 1] += delta[0] * c[1];
- HRBufs[0][l + 2] += delta[0] * c[2];
- HRBufs[0][l + 3] += delta[0] * c[3];
- HRBufs[0][l + 4] += delta[0] * c[4];
- HRBufs[0][l + 5] += delta[0] * c[5];
- HRBufs[0][l + 6] += delta[0] * c[6];
-
- HRBufs[1][l + 0] += delta[1] * c[0];
- HRBufs[1][l + 1] += delta[1] * c[1];
- HRBufs[1][l + 2] += delta[1] * c[2];
- HRBufs[1][l + 3] += delta[1] * c[3];
- HRBufs[1][l + 4] += delta[1] * c[4];
- HRBufs[1][l + 5] += delta[1] * c[5];
- HRBufs[1][l + 6] += delta[1] * c[6];
- */
+ ch->oscBuf->putSample(timestamp-ch->lasttsbase,CLAMP(samp0+samp1,-32768,32767));
 
  ch->blip_prev_samp[0] = samp0;
  ch->blip_prev_samp[1] = samp1;
@@ -405,7 +386,7 @@ void PSG_SetRegister(const unsigned int id, const uint32_t value)
 }
 #endif
 
-PCE_PSG::PCE_PSG(int32_t* hr_l, int32_t* hr_r, int want_revision)
+PCE_PSG::PCE_PSG(int want_revision)
 {
   //printf("Test: %u, %u\n", sizeof(psg_channel), (uint8_t*)&channel[0].balance - (uint8_t*)&channel[0].waveform[0]);
 
@@ -424,15 +405,17 @@ PCE_PSG::PCE_PSG(int32_t* hr_l, int32_t* hr_r, int want_revision)
     UpdateOutput_Accum = &PCE_PSG::UpdateOutput_Accum_HuC6280A;
     break;
   }
-  HRBufs[0] = hr_l;
-  HRBufs[1] = hr_r;
+  bb[0]=NULL;
+  bb[1]=NULL;
 
   lastts = 0;
+  lasttsbase = 0;
   for(int ch = 0; ch < 6; ch++)
   {
    channel[ch].blip_prev_samp[0] = 0;
    channel[ch].blip_prev_samp[1] = 0;
    channel[ch].lastts = 0;
+   channel[ch].lasttsbase = 0;
   }
 
   SetVolume(1.0);  // Will build dbtable in the process.
@@ -770,9 +753,12 @@ void PCE_PSG::Update(int32_t timestamp)
 void PCE_PSG::ResetTS(int32_t ts_base)
 {
  lastts = ts_base;
+ lasttsbase = ts_base;
 
- for(int chc = 0; chc < 6; chc++)
+ for(int chc = 0; chc < 6; chc++) {
   channel[chc].lastts = ts_base;
+  channel[chc].lasttsbase = ts_base;
+ }
 }
 
 void PCE_PSG::Power(const int32_t timestamp)

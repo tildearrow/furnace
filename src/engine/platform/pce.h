@@ -70,8 +70,6 @@ class DivPlatformPCE: public DivDispatch {
   unsigned char lastPan;
 
   int curChan;
-  int tempL[32];
-  int tempR[32];
   unsigned char sampleBank, lfoMode, lfoSpeed;
   int coreQuality;
   PCE_PSG* pce;
@@ -81,6 +79,7 @@ class DivPlatformPCE: public DivDispatch {
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t off, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -99,6 +98,7 @@ class DivPlatformPCE: public DivDispatch {
     void muteChannel(int ch, bool mute);
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
+    bool hasAcquireDirect();
     void setCoreQuality(unsigned char q);
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);

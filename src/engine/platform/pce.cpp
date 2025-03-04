@@ -34,7 +34,7 @@
     rWrite(a,v); \
   }
 
-#define CHIP_DIVIDER 32
+#define CHIP_DIVIDER 64
 
 const char* regCheatSheetPCE[]={
   "Select", "0",
@@ -55,15 +55,44 @@ const char** DivPlatformPCE::getRegisterSheet() {
 }
 
 void DivPlatformPCE::acquire(short** buf, size_t len) {
+}
+
+void DivPlatformPCE::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) {
   for (int i=0; i<6; i++) {
     oscBuf[i]->begin(len);
+    pce->channel[i].oscBuf=oscBuf[i];
   }
 
-  for (size_t h=0; h<len; h++) {
+  pce->bb[0]=bb[0];
+  pce->bb[1]=bb[1];
+
+  size_t pos=off;
+  pce->ResetTS(pos);
+
+  while (!writes.empty()) {
+    QueuedWrite w=writes.front();
+    pce->Write(pos,w.addr,w.val);
+    regPool[w.addr&0x0f]=w.val;
+    writes.pop();
+  }
+
+  for (size_t h=0; h<len;) {
+    int advance=len-h;
+    // heuristic
+    int remainTime=9;
+    for (int i=0; i<6; i++) {
+      if (chan[i].pcm && chan[i].dacSample!=-1) {
+        if (chan[i].dacRate<=0) continue;
+        remainTime=(rate-chan[i].dacPeriod+chan[i].dacRate-1)/chan[i].dacRate;
+        if (remainTime<advance) advance=remainTime;
+        if (remainTime<1) advance=1;
+      }
+    }
+
     // PCM part
     for (int i=0; i<6; i++) {
       if (chan[i].pcm && chan[i].dacSample!=-1) {
-        chan[i].dacPeriod+=chan[i].dacRate;
+        chan[i].dacPeriod+=chan[i].dacRate*advance;
         if (chan[i].dacPeriod>rate) {
           DivSample* s=parent->getSample(chan[i].dacSample);
           if (s->samples<=0 || chan[i].dacPos>=s->samples) {
@@ -92,33 +121,19 @@ void DivPlatformPCE::acquire(short** buf, size_t len) {
     }
   
     // PCE part
+    // WHAT?????????
+    pos+=advance;
+
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
-      pce->Write(0,w.addr,w.val);
+      pce->Write(pos,w.addr,w.val);
       regPool[w.addr&0x0f]=w.val;
       writes.pop();
     }
-    tempL[0]=0;
-    tempR[0]=0;
-    pce->Update(coreQuality);
-    pce->ResetTS(0);
 
-    for (int i=0; i<6; i++) {
-      oscBuf[i]->putSample(h,CLAMP(pce->channel[i].blip_prev_samp[0]+pce->channel[i].blip_prev_samp[1],-32768,32767));
-    }
-
-    tempL[0]=(tempL[0]>>1)+(tempL[0]>>2);
-    tempR[0]=(tempR[0]>>1)+(tempR[0]>>2);
-
-    if (tempL[0]<-32768) tempL[0]=-32768;
-    if (tempL[0]>32767) tempL[0]=32767;
-    if (tempR[0]<-32768) tempR[0]=-32768;
-    if (tempR[0]>32767) tempR[0]=32767;
-    
-    //printf("tempL: %d tempR: %d\n",tempL,tempR);
-    buf[0][h]=tempL[0];
-    buf[1][h]=tempR[0];
+    h+=advance;
   }
+  pce->Update(pos);
 
   for (int i=0; i<6; i++) {
     oscBuf[i]->end(len);
@@ -244,7 +259,7 @@ void DivPlatformPCE::tick(bool sysTick) {
             off=parent->getCenterRate()/(double)s->centerRate;
           }
         }
-        chan[i].dacRate=((double)chipClock/2)/MAX(1,off*chan[i].freq);
+        chan[i].dacRate=(double)chipClock/(4*MAX(1,off*chan[i].freq));
         if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dacRate);
       }
       if (chan[i].freq<1) chan[i].freq=1;
@@ -614,8 +629,6 @@ void DivPlatformPCE::reset() {
   }
   pce->Power(0);
   lastPan=0xff;
-  memset(tempL,0,32*sizeof(int));
-  memset(tempR,0,32*sizeof(int));
   curChan=-1;
   sampleBank=0;
   lfoMode=0;
@@ -639,6 +652,10 @@ bool DivPlatformPCE::keyOffAffectsArp(int ch) {
   return true;
 }
 
+bool DivPlatformPCE::hasAcquireDirect() {
+  return true;
+}
+
 void DivPlatformPCE::notifyWaveChange(int wave) {
   for (int i=0; i<6; i++) {
     if (chan[i].wave==wave) {
@@ -656,13 +673,13 @@ void DivPlatformPCE::notifyInsDeletion(void* ins) {
 
 void DivPlatformPCE::setFlags(const DivConfig& flags) {
   if (flags.getInt("clockSel",0)) { // technically there is no PAL PC Engine but oh well...
-    chipClock=COLOR_PAL*4.0/5.0;
+    chipClock=COLOR_PAL*8.0/5.0;
   } else {
-    chipClock=COLOR_NTSC;
+    chipClock=COLOR_NTSC*2.0;
   }
   CHECK_CUSTOM_CLOCK;
   antiClickEnabled=!flags.getBool("noAntiClick",false);
-  rate=chipClock/(coreQuality>>1);
+  rate=chipClock;
   for (int i=0; i<6; i++) {
     oscBuf[i]->setRate(rate);
   }
@@ -671,7 +688,7 @@ void DivPlatformPCE::setFlags(const DivConfig& flags) {
     delete pce;
     pce=NULL;
   }
-  pce=new PCE_PSG(tempL,tempR,flags.getInt("chipType",0)?PCE_PSG::REVISION_HUC6280A:PCE_PSG::REVISION_HUC6280);
+  pce=new PCE_PSG(flags.getInt("chipType",0)?PCE_PSG::REVISION_HUC6280A:PCE_PSG::REVISION_HUC6280);
 }
 
 void DivPlatformPCE::poke(unsigned int addr, unsigned short val) {

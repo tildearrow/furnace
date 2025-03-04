@@ -459,7 +459,7 @@ struct DivDispatchOscBuffer {
     //lastSample=val;
     data[pos]=val;
   }*/
-  inline void begin(unsigned short len) {
+  inline void begin(size_t len) {
     size_t calc=(len*rateMul);
     unsigned short start=needle>>16;
     unsigned short end=(needle+calc)>>16;
@@ -476,7 +476,7 @@ struct DivDispatchOscBuffer {
     memset(&data[start],-1,(end-start)*sizeof(short));
     //data[needle>>16]=lastSample;
   }
-  inline void end(unsigned short len) {
+  inline void end(size_t len) {
     size_t calc=len*rateMul;
     needle+=calc;
     //data[needle>>16]=lastSample;
