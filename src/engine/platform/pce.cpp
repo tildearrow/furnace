@@ -168,7 +168,7 @@ void DivPlatformPCE::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
     // anti-click
     if (antiClickEnabled && sysTick && chan[i].freq>0) {
-      chan[i].antiClickPeriodCount+=(chipClock/MAX(parent->getCurHz(),1.0f));
+      chan[i].antiClickPeriodCount+=((chipClock>>1)/MAX(parent->getCurHz(),1.0f));
       chan[i].antiClickWavePos+=chan[i].antiClickPeriodCount/chan[i].freq;
       chan[i].antiClickPeriodCount%=chan[i].freq;
     }
