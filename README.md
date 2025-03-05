@@ -321,7 +321,7 @@ cmake -G Xcode ..
 
 ...and then load the project on Xcode or type `xcodebuild`.
 
-### CMake options
+## CMake options
 
 to add an option from the command-line, add it before the two dots: `-D<NAME>=<VALUE>`  
 Example: `cmake -DBUILD_GUI=OFF -DWARNINGS_ARE_ERRORS=ON ..`
@@ -362,9 +362,40 @@ Available options:
 
 (³) but consider enabling this and reporting any errors that arise from it!
 
-## CMake Error
+## troubleshooting
 
-if it says something about a missing subdirectory in `extern`, then either:
+sometimes things go wrong and you can't proceed any further.
+
+this guide may help you in that case.
+
+### "command not found", "not a valid command", and similar
+
+either you forgot to install something, it's not in your PATH or you are using the wrong environment.
+
+#### compiler
+
+if building with the Visual Studio command line tools, make sure you have started the native tools command prompt. [Microsoft has a guide here](https://learn.microsoft.com/en-us/cpp/build/how-to-enable-a-64-bit-visual-cpp-toolset-on-the-command-line?view=msvc-170).
+
+
+if building with MinGW, make sure you have started the MSYS2 MINGW64 environment.
+
+#### CMake or Git
+
+did you install these?
+
+if you installed them through Visual Studio or MinGW, you may have to set the environment as I described above.
+
+### CMake errors
+
+#### No source or binary directory provided
+
+the two dots after the `cmake` command are important. it tells CMake where the CMakeLists.txt file is at (two dots mean "parent directory", which makes sense since we are in the `build` directory inside the Furnace repo).
+
+read the compilation guide again.
+
+#### add\_subdirectory missing
+
+if it says something about a missing directory in `extern`, then either:
 
 1. you didn't set up submodules, or
 2. you downloaded the source as a .zip or .tar.gz. don't do this.
@@ -372,6 +403,50 @@ if it says something about a missing subdirectory in `extern`, then either:
 if 1, you may run `git submodule update --init --recursive`. this will initialize submodules.
 
 if 2, clone this repo.
+
+#### NMake Makefiles
+
+if CMake says something about NMake, then it means it couldn't find Visual Studio, or it didn't feel like finding Visual Studio.
+
+try running CMake again but tell it to use the Visual Studio generator (`-G "Visual Studio 17 2022"`). type `cmake --help` for a list of generators.
+
+#### CMake was unable to find a build program
+
+don't run CMake standalone unless you have Visual Studio or a compiler installed.
+
+if you are in the MSYS2 MINGW64 environment, make sure you installed `mingw-w64-x86_64-cmake` instead of `cmake`. restart the environment after doing so.
+
+#### Does not match the generator used previously
+
+yeah I know you probably hit this error right now. delete the build directory (or just CMakeCache.txt and CMakeFiles) and try again.
+
+#### The C compiler is not able to compile a simple test program
+
+something is really wrong, or you are trying to use a compiler outside of an environment.
+launch the appropriate environment and try again.
+
+if you are using MSYS2, make sure you have launched the MINGW64 environment. do **not** install `gcc`! instead, install `mingw-w64-x86_64-gcc`.
+
+#### ALSA API requested but no ALSA dev libraries found
+
+install the ALSA development libraries (libasound-dev or something like that).
+
+also make sure you've installed the rest of dependencies so you don't hit one of the errors below...
+
+#### Compatibility with CMake < 3.5 has been removed from CMake
+
+CMake 4.0 has removed support for cmake\_minimum\_required earlier than 3.5. Furnace 0.6.8 has been updated for this, but if you are building an older version, pass `-DCMAKE_POLICY_VERSION_MINIMUM=3.5` to CMake so you can force it to succeed.
+
+### Furnace errors
+
+#### The code execution cannot proceed because libintl-8.dll was not found
+
+this is because sadly libintl (what we use for language support) only exists as a dynamic library (a .dll) on Windows. run CMake again with `-DUSE_MOMO=ON` and then build to fix it.
+
+#### x11 not available/SDL not configured with OpenGL/GLX support
+
+make sure you have installed the Mesa and X11 development libraries. use your package manager to do so.
+re-build Furnace afterwards.
 
 ## console usage
 
