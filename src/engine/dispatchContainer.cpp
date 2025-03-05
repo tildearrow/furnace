@@ -173,12 +173,12 @@ void DivDispatchContainer::acquire(size_t offset, size_t count) {
   }
 }
 
-void DivDispatchContainer::flush(size_t count) {
+void DivDispatchContainer::flush(size_t offset, size_t count) {
   int outs=dispatch->getOutputCount();
 
   for (int i=0; i<outs; i++) {
     if (bb[i]==NULL) continue;
-    blip_read_samples(bb[i],bbOut[i],count,0);
+    blip_read_samples(bb[i],bbOut[i]+offset,count,0);
   }
 }
 

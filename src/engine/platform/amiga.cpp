@@ -381,7 +381,21 @@ void DivPlatformAmiga::acquireDirect(blip_buffer_t** bb, size_t off, size_t len)
 }
 
 void DivPlatformAmiga::postProcess(short* buf, int outIndex, size_t len, int sampleRate) {
-  //buf[0]=32767;
+  // filtering
+  if (amigaModel) {
+    filtConstOff=4000;
+    filtConstOn=sin(M_PI*8000.0/((double)sampleRate*2.0))*4096.0;
+  } else {
+    filtConstOff=sin(M_PI*16000.0/((double)sampleRate*2.0))*4096.0;
+    filtConstOn=sin(M_PI*5500.0/((double)sampleRate*2.0))*4096.0;
+  }
+  filtConst=filterOn?filtConstOn:filtConstOff;
+
+  for (size_t i=0; i<len; i++) {
+    filter[outIndex][0]+=(filtConst*(buf[i]-filter[outIndex][0]))>>12;
+    filter[outIndex][1]+=(filtConst*(filter[outIndex][0]-filter[outIndex][1]))>>12;
+    buf[i]=filter[outIndex][1];
+  }
 }
 
 void DivPlatformAmiga::irq(int ch) {
