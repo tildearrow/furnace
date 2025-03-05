@@ -82,14 +82,13 @@ const char** DivPlatformAmiga::getRegisterSheet() {
 void DivPlatformAmiga::acquire(short** buf, size_t len) {
 }
 
-void DivPlatformAmiga::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) {
+void DivPlatformAmiga::acquireDirect(blip_buffer_t** bb, size_t len) {
   thread_local int outL, outR, output;
 
   for (int i=0; i<4; i++) {
     oscBuf[i]->begin(len);
   }
 
-  size_t pos=off;
   int runCount=1;
   for (size_t h=0; h<len; h++) {
     // skip heuristic
@@ -119,7 +118,6 @@ void DivPlatformAmiga::acquireDirect(blip_buffer_t** bb, size_t off, size_t len)
       }
     }
     if (runCount>0) {
-      pos+=runCount-1;
       h+=runCount-1;
     } else {
       runCount=1;
@@ -234,15 +232,13 @@ void DivPlatformAmiga::acquireDirect(blip_buffer_t** bb, size_t off, size_t len)
     }
 
     if (outL!=oldOut[0]) {
-      blip_add_delta(bb[0],pos,outL-oldOut[0]);
+      blip_add_delta(bb[0],h,outL-oldOut[0]);
       oldOut[0]=outL;
     }
     if (outR!=oldOut[1]) {
-      blip_add_delta(bb[1],pos,outR-oldOut[1]);
+      blip_add_delta(bb[1],h,outR-oldOut[1]);
       oldOut[1]=outR;
     }
-    
-    pos++;
   }
 
   for (int i=0; i<4; i++) {

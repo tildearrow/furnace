@@ -192,7 +192,7 @@ const char** DivPlatformPCSpeaker::getRegisterSheet() {
   return regCheatSheetPCSpeaker;
 }
 
-void DivPlatformPCSpeaker::acquire_unfilt(blip_buffer_t** bb, size_t off, size_t len) {
+void DivPlatformPCSpeaker::acquire_unfilt(blip_buffer_t** bb, size_t len) {
   int out=0;
   int freq1=freq+1;
   int timeToNextToggle=0;
@@ -210,12 +210,11 @@ void DivPlatformPCSpeaker::acquire_unfilt(blip_buffer_t** bb, size_t off, size_t
       timeToNextToggle=pos;
     }
     out=(posToggle && !isMuted[0])?32767:0;
-    blip_add_delta(bb[0],off,out-oldOut);
+    blip_add_delta(bb[0],0,out-oldOut);
     oscBuf->putSample(0,out);
     oldOut=out;
     if (freq>=1) {
-      size_t boff=off;
-      size_t oscOff=0;
+      size_t boff=0;
       size_t i=len;
       while (true) {
         if ((int)i<timeToNextToggle) {
@@ -224,7 +223,6 @@ void DivPlatformPCSpeaker::acquire_unfilt(blip_buffer_t** bb, size_t off, size_t
         }
         i-=timeToNextToggle;
         boff+=timeToNextToggle;
-        oscOff+=timeToNextToggle;
         pos-=timeToNextToggle;
         if (pos<=0) {
           pos=freq1;
@@ -238,13 +236,13 @@ void DivPlatformPCSpeaker::acquire_unfilt(blip_buffer_t** bb, size_t off, size_t
         }
         out=(posToggle && !isMuted[0])?32767:0;
         blip_add_delta(bb[0],boff,out-oldOut);
-        oscBuf->putSample(oscOff,out);
+        oscBuf->putSample(boff,out);
         oldOut=out;
       }
     }
   } else {
     out=0;
-    blip_add_delta(bb[0],off,out-oldOut);
+    blip_add_delta(bb[0],0,out-oldOut);
     oscBuf->putSample(0,out);
     oldOut=out;
   }
@@ -333,7 +331,7 @@ void DivPlatformPCSpeaker::beepFreq(int freq, int delay) {
   realOutCond.notify_one();
 }
 
-void DivPlatformPCSpeaker::acquire_real(blip_buffer_t** bb, size_t off, size_t len) {
+void DivPlatformPCSpeaker::acquire_real(blip_buffer_t** bb, size_t len) {
   //int out=0;
   if (lastOn!=on || lastFreq!=freq) {
     lastOn=on;
@@ -372,13 +370,13 @@ void DivPlatformPCSpeaker::acquire(short** buf, size_t len) {
   }
 }
 
-void DivPlatformPCSpeaker::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) {
+void DivPlatformPCSpeaker::acquireDirect(blip_buffer_t** bb, size_t len) {
   switch (speakerType) {
     case 0:
-      acquire_unfilt(bb,off,len);
+      acquire_unfilt(bb,len);
       break;
     case 3:
-      acquire_real(bb,off,len);
+      acquire_real(bb,len);
       break;
   }
 }

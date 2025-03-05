@@ -74,7 +74,7 @@ class DivPlatformGA20: public DivDispatch, public iremga20_intf {
   void chWrite(unsigned char ch, unsigned int addr, unsigned char val);
   public:
     virtual u8 read_byte(u32 address) override;
-    virtual void acquireDirect(blip_buffer_t** bb, size_t off, size_t len) override;
+    virtual void acquireDirect(blip_buffer_t** bb, size_t len) override;
     virtual void acquire(short** buf, size_t len) override;
     virtual int dispatch(DivCommand c) override;
     virtual void* getChanState(int chan) override;

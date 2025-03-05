@@ -181,7 +181,7 @@ class DivPlatformESFM: public DivDispatch {
 
   public:
     void acquire(short** buf, size_t len);
-    void acquireDirect(blip_buffer_t** bb, size_t off, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);

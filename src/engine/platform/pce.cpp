@@ -57,7 +57,7 @@ const char** DivPlatformPCE::getRegisterSheet() {
 void DivPlatformPCE::acquire(short** buf, size_t len) {
 }
 
-void DivPlatformPCE::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) {
+void DivPlatformPCE::acquireDirect(blip_buffer_t** bb, size_t len) {
   for (int i=0; i<6; i++) {
     oscBuf[i]->begin(len);
     pce->channel[i].oscBuf=oscBuf[i];
@@ -66,7 +66,7 @@ void DivPlatformPCE::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) {
   pce->bb[0]=bb[0];
   pce->bb[1]=bb[1];
 
-  size_t pos=off;
+  size_t pos=0;
   pce->ResetTS(pos);
 
   while (!writes.empty()) {

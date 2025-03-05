@@ -77,7 +77,7 @@ void DivPlatformGA20::acquire(short** buf, size_t len) {
   }
 }
 
-void DivPlatformGA20::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) {
+void DivPlatformGA20::acquireDirect(blip_buffer_t** bb, size_t len) {
   thread_local short ga20Buf[4];
 
   for (int i=0; i<4; i++) {
@@ -109,7 +109,7 @@ void DivPlatformGA20::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) 
     h+=advance;
     const int out=(signed int)(ga20Buf[0]+ga20Buf[1]+ga20Buf[2]+ga20Buf[3])>>2;
     if (out!=oldOut) {
-      blip_add_delta(bb[0],off+h,out-oldOut);
+      blip_add_delta(bb[0],h,out-oldOut);
       oldOut=out;
     }
     for (int i=0; i<4; i++) {

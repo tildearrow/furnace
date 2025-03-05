@@ -66,13 +66,12 @@ void DivPlatformESFM::acquire(short** buf, size_t len) {
   }
 }
 
-void DivPlatformESFM::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) {
+void DivPlatformESFM::acquireDirect(blip_buffer_t** bb, size_t len) {
   thread_local short o[2];
   unsigned int sharedNeedlePos=oscBuf[0]->needle;
   for (int i=0; i<18; i++) {
     oscBuf[i]->begin(len);
   }
-  size_t pos=off;
   for (size_t h=0; h<len; h++) {
     if (!writes.empty()) {
       QueuedWrite& w=writes.front();
@@ -91,15 +90,13 @@ void DivPlatformESFM::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) 
     sharedNeedlePos+=oscBuf[0]->rateMul;
 
     if (o[0]!=oldOut[0]) {
-      blip_add_delta(bb[0],pos,oldOut[0]-o[0]);
+      blip_add_delta(bb[0],h,oldOut[0]-o[0]);
       oldOut[0]=o[0];
     }
     if (o[1]!=oldOut[1]) {
-      blip_add_delta(bb[1],pos,oldOut[1]-o[1]);
+      blip_add_delta(bb[1],h,oldOut[1]-o[1]);
       oldOut[1]=o[1];
     }
-
-    pos++;
   }
   for (int i=0; i<18; i++) {
     oscBuf[i]->end(len);

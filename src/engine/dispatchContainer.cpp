@@ -152,11 +152,11 @@ void DivDispatchContainer::grow(size_t size) {
   } \
   if (mustClear) clear(); \
 
-void DivDispatchContainer::acquire(size_t offset, size_t count) {
+void DivDispatchContainer::acquire(size_t count) {
   CHECK_MISSING_BUFS;
 
   if (dispatch->hasAcquireDirect()) {
-    dispatch->acquireDirect(bb,offset,count);
+    dispatch->acquireDirect(bb,count);
   } else {
     for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
       if (i>=outs) {
@@ -165,7 +165,7 @@ void DivDispatchContainer::acquire(size_t offset, size_t count) {
         if (bbIn[i]==NULL) {
           bbInMapped[i]=NULL;
         } else {
-          bbInMapped[i]=&bbIn[i][offset];
+          bbInMapped[i]=bbIn[i];
         }
       }
     }

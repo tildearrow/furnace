@@ -2510,7 +2510,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
                 logD("growing dispatch %p bbIn to %d",(void*)dc,total+256);
                 dc->grow(total+256);
               }
-              dc->acquire(0,total);
+              dc->acquire(total);
               dc->fillBuf(total,dc->runPos,dc->cycles);
               dc->runPos+=dc->cycles;
             },&disCont[i]);
@@ -2544,7 +2544,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
                 logD("growing dispatch %p bbIn to %d",(void*)dc,total+256);
                 dc->grow(total+256);
               }
-              dc->acquire(0,total);
+              dc->acquire(total);
               dc->fillBuf(total,dc->runPos,dc->cycles);
             },&disCont[i]);
           }

@@ -67,14 +67,14 @@ class DivPlatformPCSpeaker: public DivDispatch {
 
   void beepFreq(int freq, int delay=0);
 
-  void acquire_unfilt(blip_buffer_t** bb, size_t off, size_t len);
+  void acquire_unfilt(blip_buffer_t** bb, size_t len);
   void acquire_cone(short** buf, size_t len);
   void acquire_piezo(short** buf, size_t len);
-  void acquire_real(blip_buffer_t** bb, size_t off, size_t len);
+  void acquire_real(blip_buffer_t** bb, size_t len);
 
   public:
     void pcSpeakerThread();
-    void acquireDirect(blip_buffer_t** bb, size_t off, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
