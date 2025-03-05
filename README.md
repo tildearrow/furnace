@@ -309,6 +309,12 @@ cmake -G Xcode ..
 
 ...and then load the project on Xcode or type `xcodebuild`.
 
+### notes
+
+once you've created the build directory with `mkdir`, you don't have to do that again. just `cd` to it when you want to build Furnace.
+
+once you ran CMake successfully, you don't have to run it again every time you make a change. just run `make`, `ninja`, `xcodebuild` or `msbuild`.
+
 ## CMake options
 
 to add an option from the command-line, add it before the two dots: `-D<NAME>=<VALUE>`  
