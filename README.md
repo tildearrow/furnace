@@ -169,7 +169,6 @@ if you can't download these artifacts (because GitHub requires you to be logged 
 
 - CMake
 - Git (for cloning the repository)
-- JACK (optional, macOS/Linux only)
 - a C/C++ compiler (e.g. Visual Studio or MinGW on Windows, Xcode (the command-line tools are enough) on macOS or GCC on Linux)
 
 if building under Windows or macOS, no additional dependencies are required.
@@ -179,11 +178,58 @@ otherwise, you may also need the following:
 - libx11
 - libasound
 - libGL
+- JACK (optional, macOS/Linux only)
 - any other libraries which may be used by SDL
 
-some Linux distributions (e.g. Ubuntu or openSUSE) will require you to install the `-dev` versions of these.
+some Linux distributions (e.g. Ubuntu or openSUSE) will require you to install the `-dev`/`-devel` versions of these.
 
-having libintl is recommended for locale support, but if it isn't present, Furnace will use its own implementation.
+on Linux, having libintl is recommended for locale support, but if it isn't present, Furnace will use its own implementation.
+
+## development environment setup (Windows)
+
+this little section will teach you how to get either Visual Studio or MinGW ready for building Furnace.
+
+### MinGW through MSYS2
+
+I recommend you to use this because the compiler produces faster builds and it doesn't use a lot of disk space.
+there's some command line-fu in here, so I hope you're prepared.
+
+install it through [MSYS2](https://www.msys2.org/), a Linux-like environment for Windows.
+follow the guide up to step 4.
+
+MSYS2 provides a variety of environments, but we'll work with the MINGW64 one. don't "run MSYS2 now". go to the Start menu and launch MSYS2 with the MINGW64 environment (blue icon).
+
+we'll install a couple packages, including GCC, CMake, Git and Ninja.
+type the following in the MSYS2 console, and then press Enter.
+
+```
+pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja mingw-w64-x86_64-gcc git
+```
+
+when prompted to, type Y and press Enter again.
+
+proceed to the "getting the source" section.
+
+### Visual Studio (the real one)
+
+if you are patient enough, can stand 50GB of stuff and want the Microsoft experience, you may install [Visual Studio](https://visualstudio.microsoft.com) (no, not "Code"... that's just a text editor with IDE features). it is an easy-to-use IDE and compiler that comes in both free and paid versions.
+
+the installer also lets you install Git and CMake. Visual Studio integrates nicely with these.
+however I recommend you install Git standalone so you can clone the repo correctly.
+
+## development environment setup (macOS)
+
+install the Xcode command line tools. open a Terminal and type:
+
+```
+xcode-select --install
+```
+
+if you would like to, and are able to use the App Store, feel free to get Xcode instead.
+
+## development environment setup (Linux/Unix-like)
+
+get GCC, Git and CMake through your package manager.
 
 ## getting the source
 
@@ -198,33 +244,52 @@ cd furnace
 
 ## compilation
 
-your typical CMake project.
+### Windows using MSVC/Visual Studio
 
-### Windows using MSVC
+if you've downloaded the entirety of Visual Studio, including the IDE:
 
-as of now tildearrow uses MinGW for Windows builds, but thanks to OPNA2608 this works again!
+#### let Visual Studio do the work for you
 
-from the developer tools command prompt:
+make sure you installed CMake through the Visual Studio installer.
+just open the CMake project and you're good to go.
+
+#### nah, leave it to me instead
+
+make sure CMake is installed. `cd` to the Furnace directory and then:
 
 ```
 mkdir build
 cd build
-cmake ..
+cmake -G "Visual Studio 17 2022" ..
 ```
 
 then open the solution file in Visual Studio and build.
 
-alternatively, do:
+### Windows using MSVC/Visual Studio (command line tools only)
+
+open a developer tools command prompt, and run CMake as described in the previous section.
+
+afterwards, build Furnace by using:
 
 ```
 msbuild ALL_BUILD.vcxproj
 ```
 
-### Windows using MinGW
+### Windows using MinGW (through MSYS2)
 
-setting up MinGW is a bit more complicated. two benefits are a faster, hotter Furnace, and Windows XP support.
+open the MSYS2 MINGW64 environment. `cd` to the Furnace directory and then do:
 
-however, one huge drawback is lack of backtrace support, so you'll have to use gdb when diagnosing a crash.
+```
+mkdir build
+cd build
+cmake ..
+ninja
+```
+
+### bonus: Windows using MinGW (standalone)
+
+although I recommend you install MSYS2 and get MinGW from there, there also is [a standalone MinGW](https://www.mingw-w64.org/downloads/#mingw-w64-builds) available.
+if you happen to use that, then do:
 
 ```
 mkdir build
@@ -233,9 +298,9 @@ cmake -G "MinGW Makefiles" ..
 mingw32-make
 ```
 
-you may use "MSYS Makefiles" instead, depending on how you installed MinGW.
-
 ### macOS, Linux and other Unix/Unix-like
+
+the process is straightforward.
 
 ```
 mkdir build
@@ -243,6 +308,8 @@ cd build
 cmake ..
 make
 ```
+
+#### I like Xcode
 
 on macOS you may do the following instead:
 
@@ -256,7 +323,7 @@ cmake -G Xcode ..
 
 ### CMake options
 
-To add an option from the command-line: `-D<NAME>=<VALUE>`  
+to add an option from the command-line, add it before the two dots: `-D<NAME>=<VALUE>`  
 Example: `cmake -DBUILD_GUI=OFF -DWARNINGS_ARE_ERRORS=ON ..`
 
 Available options:
