@@ -286,18 +286,6 @@ cmake ..
 ninja
 ```
 
-### bonus: Windows using MinGW (standalone)
-
-although I recommend you install MSYS2 and get MinGW from there, there also is [a standalone MinGW](https://www.mingw-w64.org/downloads/#mingw-w64-builds) available.
-if you happen to use that, then do:
-
-```
-mkdir build
-cd build
-cmake -G "MinGW Makefiles" ..
-mingw32-make
-```
-
 ### macOS, Linux and other Unix/Unix-like
 
 the process is straightforward.
