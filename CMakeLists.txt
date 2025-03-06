@@ -146,7 +146,7 @@ else()
   set(MAKE_BUNDLE OFF)
 endif()
 
-set(DEPENDENCIES_INCLUDE_DIRS extern/IconFontCppHeaders src/icon)
+set(DEPENDENCIES_INCLUDE_DIRS extern/IconFontCppHeaders extern/blip_buf src/icon)
 
 if (ANDROID AND NOT TERMUX)
   set(DEPENDENCIES_DEFINES "IS_MOBILE")
@@ -542,6 +542,8 @@ extern/YM2608-LLE/fmopna_2612.c
 
 extern/pwrnoise/pwrnoise.c
 
+extern/blip_buf/blip_buf.c
+
 src/pch.cpp
 
 src/engine/platform/sound/sn76496.cpp
@@ -701,7 +703,6 @@ src/engine/fileOps/pps.cpp
 src/engine/fileOps/pvi.cpp
 src/engine/fileOps/pzi.cpp
 
-src/engine/blip_buf.c
 src/engine/brrUtils.c
 src/engine/safeReader.cpp
 src/engine/safeWriter.cpp

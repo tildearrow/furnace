@@ -24,7 +24,7 @@
 #define __MDFN_HW_SOUND_PCE_PSG_PCE_PSG_H
 
 #include <stdint.h>
-#include "../../blip_buf.h"
+#include "blip_buf.h"
 #include "../../dispatch.h"
 
 class PCE_PSG;
