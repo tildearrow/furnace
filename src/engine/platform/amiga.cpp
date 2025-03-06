@@ -251,14 +251,14 @@ void DivPlatformAmiga::postProcess(short* buf, int outIndex, size_t len, int sam
   double filtFreq=100000.0;
   if (filterOn) {
     if (amigaModel) {
-      filtFreq=8000.0;
+      filtFreq=12000.0;
     } else {
-      filtFreq=5500.0;
+      filtFreq=8000.0;
     }
   } else {
-    if (!amigaModel) filtFreq=16000.0;
+    if (!amigaModel) filtFreq=18000.0;
   }
-  if (filtFreq>=(sampleRate/2)) return;
+  if (filtFreq>=((double)sampleRate/2)) return;
   filtConst=sin(M_PI*filtFreq/((double)sampleRate*2.0))*4096.0;
 
   for (size_t i=0; i<len; i++) {
