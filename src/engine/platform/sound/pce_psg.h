@@ -52,7 +52,6 @@ struct psg_channel
   int32_t samp_accum;         // The result of adding up all the samples in the waveform buffer(part of an optimization for high-frequency playback).
   int32_t blip_prev_samp[2];
   int32_t lastts;
-  int32_t lasttsbase;
 
   uint16_t frequency;       /* Channel frequency */
   uint8_t balance;          /* Channel balance */
@@ -187,7 +186,6 @@ class PCE_PSG
   bool vol_pending;
 
   int32_t lastts;
-  int32_t lasttsbase;
   int revision;
 
   int32_t dbtable_volonly[32];
