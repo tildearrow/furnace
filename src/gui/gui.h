@@ -1799,7 +1799,6 @@ class FurnaceGUI {
     int dsidQuality;
     int gbQuality;
     int ndsQuality;
-    int pceQuality;
     int pnQuality;
     int saaQuality;
     int sccQuality;
@@ -1826,7 +1825,6 @@ class FurnaceGUI {
     int dsidQualityRender;
     int gbQualityRender;
     int ndsQualityRender;
-    int pceQualityRender;
     int pnQualityRender;
     int saaQualityRender;
     int sccQualityRender;
@@ -2064,7 +2062,6 @@ class FurnaceGUI {
       dsidQuality(3),
       gbQuality(3),
       ndsQuality(3),
-      pceQuality(3),
       pnQuality(3),
       saaQuality(3),
       sccQuality(3),
@@ -2091,7 +2088,6 @@ class FurnaceGUI {
       dsidQualityRender(3),
       gbQualityRender(3),
       ndsQualityRender(3),
-      pceQualityRender(3),
       pnQualityRender(3),
       saaQualityRender(3),
       sccQualityRender(3),

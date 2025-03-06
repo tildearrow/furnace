@@ -699,32 +699,6 @@ void DivPlatformPCE::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-void DivPlatformPCE::setCoreQuality(unsigned char q) {
-  switch (q) {
-    case 0:
-      coreQuality=192;
-      break;
-    case 1:
-      coreQuality=96;
-      break;
-    case 2:
-      coreQuality=48;
-      break;
-    case 3:
-      coreQuality=24;
-      break;
-    case 4:
-      coreQuality=6;
-      break;
-    case 5:
-      coreQuality=2;
-      break;
-    default:
-      coreQuality=24;
-      break;
-  }
-}
-
 int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;

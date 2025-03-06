@@ -71,7 +71,6 @@ class DivPlatformPCE: public DivDispatch {
 
   int curChan;
   unsigned char sampleBank, lfoMode, lfoSpeed;
-  int coreQuality;
   PCE_PSG* pce;
   unsigned char regPool[128];
   void updateWave(int ch);
@@ -99,7 +98,6 @@ class DivPlatformPCE: public DivDispatch {
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
     bool hasAcquireDirect();
-    void setCoreQuality(unsigned char q);
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);

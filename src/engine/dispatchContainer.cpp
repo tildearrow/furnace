@@ -315,11 +315,6 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_PCE:
       dispatch=new DivPlatformPCE;
-      if (isRender) {
-        ((DivPlatformPCE*)dispatch)->setCoreQuality(eng->getConfInt("pceQualityRender",3));
-      } else {
-        ((DivPlatformPCE*)dispatch)->setCoreQuality(eng->getConfInt("pceQuality",3));
-      }
       break;
     case DIV_SYSTEM_NES:
       dispatch=new DivPlatformNES;
