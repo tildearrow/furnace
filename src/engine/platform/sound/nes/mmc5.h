@@ -28,45 +28,45 @@
 #endif
 
 EXTERNC struct _mmc5 {
-	BYTE prg_mode;
-	BYTE chr_mode;
-	BYTE ext_mode;
-	BYTE nmt_mode[4];
-	BYTE prg_ram_write[2];
-	BYTE prg_bank[4];
-	uint32_t prg_ram_bank[4][2];
-	BYTE chr_last;
-	WORD chr_high;
-	WORD chr_s[8];
-	WORD chr_b[4];
-	BYTE ext_ram[0x400];
-	BYTE fill_table[0x400];
-	BYTE fill_tile;
-	BYTE fill_attr;
-	BYTE split;
-	BYTE split_st_tile;
-	BYTE split_side;
-	BYTE split_scrl;
-	BYTE split_in_reg;
-	BYTE split_x;
-	BYTE split_y;
-	WORD split_tile;
-	uint32_t split_bank;
-	BYTE factor[2];
-	WORD product;
-	_apuSquare S3, S4;
-	struct _mmc5_pcm {
-		BYTE enabled;
-		BYTE output;
-		BYTE amp;
-	} pcm;
-	BYTE filler[50];
+  BYTE prg_mode;
+  BYTE chr_mode;
+  BYTE ext_mode;
+  BYTE nmt_mode[4];
+  BYTE prg_ram_write[2];
+  BYTE prg_bank[4];
+  uint32_t prg_ram_bank[4][2];
+  BYTE chr_last;
+  WORD chr_high;
+  WORD chr_s[8];
+  WORD chr_b[4];
+  BYTE ext_ram[0x400];
+  BYTE fill_table[0x400];
+  BYTE fill_tile;
+  BYTE fill_attr;
+  BYTE split;
+  BYTE split_st_tile;
+  BYTE split_side;
+  BYTE split_scrl;
+  BYTE split_in_reg;
+  BYTE split_x;
+  BYTE split_y;
+  WORD split_tile;
+  uint32_t split_bank;
+  BYTE factor[2];
+  WORD product;
+  _apuSquare S3, S4;
+  struct _mmc5_pcm {
+    BYTE enabled;
+    BYTE output;
+    BYTE amp;
+  } pcm;
+  BYTE filler[50];
 
-	/* ------------------------------------------------------- */
-	/* questi valori non e' necessario salvarli nei savestates */
-	/* ------------------------------------------------------- */
-	/* */ BYTE clocked;                                     /* */
-	/* ------------------------------------------------------- */
+  /* ------------------------------------------------------- */
+  /* questi valori non e' necessario salvarli nei savestates */
+  /* ------------------------------------------------------- */
+  /* */ BYTE clocked;                                     /* */
+  /* ------------------------------------------------------- */
 };
 
 EXTERNC void map_init_MMC5(struct _mmc5* mmc5);
