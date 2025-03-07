@@ -42,6 +42,9 @@ void map_init_MMC5(struct _mmc5* mmc5) {
   mmc5->oscBuf[0] = NULL;
   mmc5->oscBuf[1] = NULL;
   mmc5->oscBuf[2] = NULL;
+
+  mmc5->S3.timer = 2048;
+  mmc5->S4.timer = 2048;
 }
 void extcl_cpu_wr_mem_MMC5(struct _mmc5* mmc5, int ts, WORD address, BYTE value) {
   if (address < 0x5000) {

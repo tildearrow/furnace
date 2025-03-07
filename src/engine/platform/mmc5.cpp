@@ -63,14 +63,28 @@ void DivPlatformMMC5::acquireDirect(blip_buffer_t** bb, size_t len) {
   extcl_envelope_clock_MMC5(mmc5);
   extcl_length_clock_MMC5(mmc5);
   for (size_t i=0; i<len; i++) {
-    /*
+    // heuristic
+    int pcmAdvance=1;
+    if (dacSample==-1) {
+      break;
+    } else {
+      pcmAdvance=len-i;
+      if (dacPeriod>0) {
+        int remainTime=(rate-dacPeriod+dacRate-1)/dacRate;
+        if (remainTime<pcmAdvance) pcmAdvance=remainTime;
+        if (remainTime<1) pcmAdvance=1;
+      }
+    }
+
+    i+=pcmAdvance-1;
+
     if (dacSample!=-1) {
-      dacPeriod+=dacRate;
+      dacPeriod+=dacRate*pcmAdvance;
       if (dacPeriod>=rate) {
         DivSample* s=parent->getSample(dacSample);
         if (s->samples>0 && dacPos<s->samples) {
           if (!isMuted[2]) {
-            rWrite(0x5011,((unsigned char)s->data8[dacPos]+0x80));
+            extcl_cpu_wr_mem_MMC5(mmc5,i,0x5011,((unsigned char)s->data8[dacPos]+0x80));
           }
           dacPos++;
           if (s->isLoopable() && dacPos>=(unsigned int)s->loopEnd) {
@@ -84,33 +98,8 @@ void DivPlatformMMC5::acquireDirect(blip_buffer_t** bb, size_t len) {
         }
       }
     }
-    */
-  
-    
-    extcl_apu_tick_MMC5(mmc5,len);
-    break;
-    /*
-    if (mmc5->clocked) {
-      mmc5->clocked=false;
-    }
-    int sample=isMuted[0]?0:(mmc5->S3.output*10);
-    if (!isMuted[1]) {
-      sample+=mmc5->S4.output*10;
-    }
-    if (!isMuted[2]) {
-      sample+=mmc5->pcm.output*2;
-    }
-    if (sample>32767) sample=32767;
-    if (sample<-32768) sample=-32768;
-    buf[0][i]=sample;
-
-    if (++writeOscBuf>=32) {
-      writeOscBuf=0;
-      oscBuf[0]->putSample(i,isMuted[0]?0:((mmc5->S3.output)<<11));
-      oscBuf[1]->putSample(i,isMuted[1]?0:((mmc5->S4.output)<<11));
-      oscBuf[2]->putSample(i,isMuted[2]?0:((mmc5->pcm.output)<<7));
-    }*/
   }
+  extcl_apu_tick_MMC5(mmc5,len);
 
   for (int i=0; i<3; i++) {
     oscBuf[i]->end(len);
