@@ -69,7 +69,7 @@ void DivPlatformMMC5::acquireDirect(blip_buffer_t** bb, size_t len) {
       break;
     } else {
       pcmAdvance=len-i;
-      if (dacPeriod>0) {
+      if (dacRate>0) {
         int remainTime=(rate-dacPeriod+dacRate-1)/dacRate;
         if (remainTime<pcmAdvance) pcmAdvance=remainTime;
         if (remainTime<1) pcmAdvance=1;
