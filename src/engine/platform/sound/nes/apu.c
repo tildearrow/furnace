@@ -281,11 +281,6 @@ void apu_tick(struct NESAPU* a, BYTE *hwtick) {
 		}
 	}
 
-        // TODO
-	/*if (snd_apu_tick) {
-		snd_apu_tick();
-	}*/
-
 	a->r4011.cycles++;
 }
 void apu_turn_on(struct NESAPU* a, BYTE apu_type) {
