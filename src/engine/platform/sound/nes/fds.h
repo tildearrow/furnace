@@ -23,13 +23,7 @@
 
 enum fds_operations { FDS_OP_NONE, FDS_OP_READ, FDS_OP_WRITE };
 
-#if defined (__cplusplus)
-#define EXTERNC extern "C"
-#else
-#define EXTERNC
-#endif
-
-EXTERNC struct _fds {
+struct _fds {
   // snd
   BYTE enabled_snd_reg;
   struct _fds_snd {
@@ -86,8 +80,8 @@ EXTERNC struct _fds {
   } snd;
 };
 
-EXTERNC void extcl_apu_tick_FDS(struct _fds* fds);
-EXTERNC void fds_reset(struct _fds* fds);
+void extcl_apu_tick_FDS(struct _fds* fds);
+void fds_reset(struct _fds* fds);
 
 #undef EXTERNC
 

@@ -406,20 +406,14 @@ typedef struct _apuDMC {
   BYTE tick_type;
 }  _apuDMC;
 
-#if defined (__cplusplus)
-#define EXTERNC extern "C"
-#else
-#define EXTERNC
-#endif
-
-EXTERNC struct _nla_table {
+struct _nla_table {
     SWORD pulse[32];
     SWORD tnd[203];
 };
 
 extern struct _nla_table nla_table;
 
-EXTERNC struct NESAPU {
+struct NESAPU {
   _apu apu;
   _r4011 r4011;
   _r4015 r4015;
@@ -538,9 +532,7 @@ static const WORD dmc_rate[3][16] = {
   }
 };
 
-EXTERNC void apu_tick(struct NESAPU* a, int len);
-EXTERNC void apu_turn_on(struct NESAPU* a, BYTE apu_type);
-
-#undef EXTERNC
+void apu_tick(struct NESAPU* a, int len);
+void apu_turn_on(struct NESAPU* a, BYTE apu_type);
 
 #endif /* APU_H_ */

@@ -21,13 +21,7 @@
 
 #include "apu.h"
 
-#if defined (__cplusplus)
-#define EXTERNC extern "C"
-#else
-#define EXTERNC
-#endif
-
-EXTERNC struct _mmc5 {
+struct _mmc5 {
   BYTE prg_mode;
   BYTE chr_mode;
   BYTE ext_mode;
@@ -69,12 +63,10 @@ EXTERNC struct _mmc5 {
   /* ------------------------------------------------------- */
 };
 
-EXTERNC void map_init_MMC5(struct _mmc5* mmc5);
-EXTERNC void extcl_cpu_wr_mem_MMC5(struct _mmc5* mmc5, WORD address, BYTE value);
-EXTERNC void extcl_length_clock_MMC5(struct _mmc5* mmc5);
-EXTERNC void extcl_envelope_clock_MMC5(struct _mmc5* mmc5);
-EXTERNC void extcl_apu_tick_MMC5(struct _mmc5* mmc5);
-
-#undef EXTERNC
+void map_init_MMC5(struct _mmc5* mmc5);
+void extcl_cpu_wr_mem_MMC5(struct _mmc5* mmc5, WORD address, BYTE value);
+void extcl_length_clock_MMC5(struct _mmc5* mmc5);
+void extcl_envelope_clock_MMC5(struct _mmc5* mmc5);
+void extcl_apu_tick_MMC5(struct _mmc5* mmc5);
 
 #endif /* MAPPER_MMC5_H_ */

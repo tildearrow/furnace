@@ -376,5 +376,4 @@ void apu_turn_on(struct NESAPU* a, BYTE apu_type) {
   a->S2.timer=2048;
   a->TR.timer=2048;
   a->NS.timer=0x0FE4;
-  //a->DMC.=0x01AC;
 }

@@ -554,9 +554,9 @@ src/engine/platform/sound/segapcm.cpp
 src/engine/platform/sound/gb/apu.c
 src/engine/platform/sound/gb/timing.c
 src/engine/platform/sound/pce_psg.cpp
-src/engine/platform/sound/nes/apu.c
-src/engine/platform/sound/nes/fds.c
-src/engine/platform/sound/nes/mmc5.c
+src/engine/platform/sound/nes/apu.cpp
+src/engine/platform/sound/nes/fds.cpp
+src/engine/platform/sound/nes/mmc5.cpp
 src/engine/platform/sound/vera_psg.c
 src/engine/platform/sound/vera_pcm.c
 src/engine/platform/sound/ymf278b/ymf278.cpp
