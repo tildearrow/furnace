@@ -1182,8 +1182,11 @@ void FurnaceGUI::drawSampleEdit() {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(_("Apply filter"));
       }
+      float minCutoff=10.0f;
+      float maxCutoff=sample->centerRate*0.5f;
       if (openSampleFilterOpt) {
         openSampleFilterOpt=false;
+        sampleFilterFirstFrame=true;
         ImGui::OpenPopup("SFilterOpt");
       }
       if (ImGui::BeginPopupContextItem("SFilterOpt",ImGuiPopupFlags_MouseButtonLeft)) {
@@ -1191,12 +1194,9 @@ void FurnaceGUI::drawSampleEdit() {
         float bandP=sampleFilterB*100.0f;
         float highP=sampleFilterH*100.0f;
         float resP=sampleFilterRes*100.0f;
-        float minCutoff=10.0f;
-        float maxCutoff=sample->centerRate*0.5f;
         ImGui::Text(_("Cutoff:"));
 
         ImGui::Checkbox(_("Sweep (2 frequencies)"),&sampleFilterSweep);
-
         if (sampleFilterSweep) {
           if (ImGui::SliderFloat(_("From"),&sampleFilterCutStart,minCutoff,maxCutoff,"%.0f Hz")) {
             if (sampleFilterCutStart<minCutoff) sampleFilterCutStart=minCutoff;
@@ -1307,6 +1307,15 @@ void FurnaceGUI::drawSampleEdit() {
           MARK_MODIFIED;
           ImGui::CloseCurrentPopup();
         }
+
+        if (sampleFilterFirstFrame) {
+          if (sampleFilterCutStart<minCutoff) sampleFilterCutStart=minCutoff;
+          if (sampleFilterCutStart>maxCutoff) sampleFilterCutStart=maxCutoff;
+          if (sampleFilterCutEnd<minCutoff) sampleFilterCutEnd=minCutoff;
+          if (sampleFilterCutEnd>maxCutoff) sampleFilterCutEnd=maxCutoff;
+          sampleFilterFirstFrame=false;
+        }
+
         ImGui::EndPopup();
       }
       ImGui::EndDisabled();

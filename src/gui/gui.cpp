@@ -8732,6 +8732,7 @@ FurnaceGUI::FurnaceGUI():
   sampleFilterCutStart(16000.0f),
   sampleFilterCutEnd(100.0f),
   sampleFilterSweep(true),
+  sampleFilterFirstFrame(true),
   sampleCrossFadeLoopLength(0),
   sampleCrossFadeLoopLaw(50),
   sampleFilterPower(1),
