@@ -2125,7 +2125,6 @@ void FurnaceGUI::drawSettings() {
           CORE_QUALITY("Nintendo DS",ndsQuality,ndsQualityRender);
           CORE_QUALITY("PowerNoise",pnQuality,pnQualityRender);
           CORE_QUALITY("SAA1099",saaQuality,saaQualityRender);
-          CORE_QUALITY("SCC",sccQuality,sccQualityRender);
           CORE_QUALITY("SID (dSID)",dsidQuality,dsidQualityRender);
           CORE_QUALITY("SM8521",smQuality,smQualityRender);
           CORE_QUALITY("Virtual Boy",vbQuality,vbQualityRender);
@@ -5136,7 +5135,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.ndsQuality=conf.getInt("ndsQuality",3);
     settings.pnQuality=conf.getInt("pnQuality",3);
     settings.saaQuality=conf.getInt("saaQuality",3);
-    settings.sccQuality=conf.getInt("sccQuality",3);
     settings.smQuality=conf.getInt("smQuality",3);
     settings.swanQuality=conf.getInt("swanQuality",3);
     settings.vbQuality=conf.getInt("vbQuality",3);
@@ -5164,7 +5162,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.ndsQualityRender=conf.getInt("ndsQualityRender",3);
     settings.pnQualityRender=conf.getInt("pnQualityRender",3);
     settings.saaQualityRender=conf.getInt("saaQualityRender",3);
-    settings.sccQualityRender=conf.getInt("sccQualityRender",3);
     settings.smQualityRender=conf.getInt("smQualityRender",3);
     settings.swanQualityRender=conf.getInt("swanQualityRender",3);
     settings.vbQualityRender=conf.getInt("vbQualityRender",3);
@@ -5208,7 +5205,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.ndsQuality,0,5);
   clampSetting(settings.pnQuality,0,5);
   clampSetting(settings.saaQuality,0,5);
-  clampSetting(settings.sccQuality,0,5);
   clampSetting(settings.smQuality,0,5);
   clampSetting(settings.swanQuality,0,5);
   clampSetting(settings.vbQuality,0,5);
@@ -5234,7 +5230,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.ndsQualityRender,0,5);
   clampSetting(settings.pnQualityRender,0,5);
   clampSetting(settings.saaQualityRender,0,5);
-  clampSetting(settings.sccQualityRender,0,5);
   clampSetting(settings.smQualityRender,0,5);
   clampSetting(settings.swanQualityRender,0,5);
   clampSetting(settings.vbQualityRender,0,5);
@@ -5734,7 +5729,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("ndsQuality",settings.ndsQuality);
     conf.set("pnQuality",settings.pnQuality);
     conf.set("saaQuality",settings.saaQuality);
-    conf.set("sccQuality",settings.sccQuality);
     conf.set("smQuality",settings.smQuality);
     conf.set("swanQuality",settings.swanQuality);
     conf.set("vbQuality",settings.vbQuality);
@@ -5762,7 +5756,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("ndsQualityRender",settings.ndsQualityRender);
     conf.set("pnQualityRender",settings.pnQualityRender);
     conf.set("saaQualityRender",settings.saaQualityRender);
-    conf.set("sccQualityRender",settings.sccQualityRender);
     conf.set("smQualityRender",settings.smQualityRender);
     conf.set("swanQualityRender",settings.swanQualityRender);
     conf.set("vbQualityRender",settings.vbQualityRender);
@@ -5824,7 +5817,6 @@ void FurnaceGUI::commitSettings() {
     settings.ndsQuality!=e->getConfInt("ndsQuality",3) ||
     settings.pnQuality!=e->getConfInt("pnQuality",3) ||
     settings.saaQuality!=e->getConfInt("saaQuality",3) ||
-    settings.sccQuality!=e->getConfInt("sccQuality",3) ||
     settings.smQuality!=e->getConfInt("smQuality",3) ||
     settings.swanQuality!=e->getConfInt("swanQuality",3) ||
     settings.vbQuality!=e->getConfInt("vbQuality",3) ||

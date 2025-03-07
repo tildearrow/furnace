@@ -672,20 +672,10 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_SCC:
       dispatch=new DivPlatformSCC;
       ((DivPlatformSCC*)dispatch)->setChipModel(false);
-      if (isRender) {
-        ((DivPlatformSCC*)dispatch)->setCoreQuality(eng->getConfInt("sccQualityRender",3));
-      } else {
-        ((DivPlatformSCC*)dispatch)->setCoreQuality(eng->getConfInt("sccQuality",3));
-      }
       break;
     case DIV_SYSTEM_SCC_PLUS:
       dispatch=new DivPlatformSCC;
       ((DivPlatformSCC*)dispatch)->setChipModel(true);
-      if (isRender) {
-        ((DivPlatformSCC*)dispatch)->setCoreQuality(eng->getConfInt("sccQualityRender",3));
-      } else {
-        ((DivPlatformSCC*)dispatch)->setCoreQuality(eng->getConfInt("sccQuality",3));
-      }
       break;
     case DIV_SYSTEM_YMZ280B:
       dispatch=new DivPlatformYMZ280B;

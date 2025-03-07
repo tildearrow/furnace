@@ -81,19 +81,17 @@ const char** DivPlatformSCC::getRegisterSheet() {
 }
 
 void DivPlatformSCC::acquire(short** buf, size_t len) {
+}
+
+void DivPlatformSCC::acquireDirect(blip_buffer_t** bb, size_t len) {
   for (int i=0; i<5; i++) {
     oscBuf[i]->begin(len);
   }
 
-  for (size_t h=0; h<len; h++) {
-    scc->tick(coreQuality);
-    short out=(short)scc->out()<<5;
-    buf[0][h]=out;
-
-    for (int i=0; i<5; i++) {
-      oscBuf[i]->putSample(h,scc->voice_out(i)<<7);
-    }
-  }
+  scc->tick(len,bb[0],oscBuf);
+    //for (int i=0; i<5; i++) {
+    //  oscBuf[i]->putSample(h,scc->voice_out(i)<<7);
+    //}
 
   for (int i=0; i<5; i++) {
     oscBuf[i]->end(len);
@@ -346,6 +344,10 @@ int DivPlatformSCC::getOutputCount() {
   return 1;
 }
 
+bool DivPlatformSCC::hasAcquireDirect() {
+  return true;
+}
+
 void DivPlatformSCC::notifyWaveChange(int wave) {
   for (int i=0; i<5; i++) {
     if (chan[i].wave==wave) {
@@ -391,35 +393,9 @@ void DivPlatformSCC::setFlags(const DivConfig& flags) {
       break;
   }
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/(coreQuality>>1);
+  rate=chipClock*2;
   for (int i=0; i<5; i++) {
     oscBuf[i]->setRate(rate);
-  }
-}
-
-void DivPlatformSCC::setCoreQuality(unsigned char q) {
-  switch (q) {
-    case 0:
-      coreQuality=128;
-      break;
-    case 1:
-      coreQuality=64;
-      break;
-    case 2:
-      coreQuality=32;
-      break;
-    case 3:
-      coreQuality=16;
-      break;
-    case 4:
-      coreQuality=8;
-      break;
-    case 5:
-      coreQuality=2;
-      break;
-    default:
-      coreQuality=16;
-      break;
   }
 }
 
