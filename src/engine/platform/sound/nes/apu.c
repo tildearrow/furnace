@@ -177,11 +177,109 @@ void apu_tick(struct NESAPU* a, BYTE *hwtick) {
 	 * eseguo un ticket per ogni canale
 	 * valorizzandone l'output.
 	 */
-	square_tick(a->S1, 0, a->apu.clocked)
-	square_tick(a->S2, 0, a->apu.clocked)
-	triangle_tick()
-	noise_tick()
-	dmc_tick()
+        // SQUARE 1 TICK
+	if (!(--a->S1.frequency)) {
+		square_output(a->S1, 0)
+		a->S1.frequency = (a->S1.timer + 1) << 1;
+		a->S1.sequencer = (a->S1.sequencer + 1) & 0x07;
+		a->apu.clocked = TRUE;
+	}
+
+        // SQUARE 2 TICK
+	if (!(--a->S2.frequency)) {
+		square_output(a->S2, 0)
+		a->S2.frequency = (a->S2.timer + 1) << 1;
+		a->S2.sequencer = (a->S2.sequencer + 1) & 0x07;
+		a->apu.clocked = TRUE;
+	}
+
+        // TRIANGLE TICK
+	if (!(--a->TR.frequency)) {
+		a->TR.frequency = a->TR.timer + 1;
+		if (a->TR.length.value && a->TR.linear.value) {
+			a->TR.sequencer = (a->TR.sequencer + 1) & 0x1F;
+			triangle_output()
+			a->apu.clocked = TRUE;
+		}
+	}
+
+        // NOISE TICK
+	if (!(--a->NS.frequency)) {
+		if (a->NS.mode) {
+			a->NS.shift = (a->NS.shift >> 1) | (((a->NS.shift ^ (a->NS.shift >> 6)) & 0x0001) << 14);
+		} else {
+			a->NS.shift = (a->NS.shift >> 1) | (((a->NS.shift ^ (a->NS.shift >> 1)) & 0x0001) << 14);
+		}
+		a->NS.shift &= 0x7FFF;
+		noise_output()
+		a->NS.frequency = noise_timer[a->apu.type][a->NS.timer];
+		a->apu.clocked = TRUE;
+	}
+
+        // DMC TICK
+	if (!(--a->DMC.frequency)) {
+		if (!a->DMC.silence) {
+			if (!(a->DMC.shift & 0x01)) {
+				if (a->DMC.counter > 1) {
+					a->DMC.counter -= 2;
+				}
+			} else {
+				if (a->DMC.counter < 126) {
+					a->DMC.counter += 2;
+				}
+			}
+		}
+		a->DMC.shift >>= 1;
+		dmc_output();
+		if (!(--a->DMC.counter_out)) {
+			a->DMC.counter_out = 8;
+			if (!a->DMC.empty) {
+				a->DMC.shift = a->DMC.buffer;
+				a->DMC.empty = TRUE;
+				a->DMC.silence = FALSE;
+			} else {
+				a->DMC.silence = TRUE;
+			}
+		}
+		a->DMC.frequency = dmc_rate[a->apu.type][a->DMC.rate_index];
+		a->apu.clocked = TRUE;
+	}
+	if (a->DMC.empty && a->DMC.remain) {
+		BYTE tick = 4;
+		switch (a->DMC.tick_type) {
+			case DMC_CPU_WRITE:
+				tick = 3;
+				break;
+			case DMC_R4014:
+				tick = 2;
+				break;
+			case DMC_NNL_DMA:
+				tick = 1;
+				break;
+		}
+		{
+			a->DMC.buffer = a->readDMC(a->readDMCUser,a->DMC.address);
+		}
+		/* incremento gli hwtick da compiere */
+		if (hwtick) { hwtick[0] += tick; }
+		/* e naturalmente incremento anche quelli eseguiti dall'opcode */
+		a->apu.cpu_cycles += tick;
+		/* salvo a che ciclo dell'istruzione avviene il dma */
+		a->DMC.dma_cycle = a->apu.cpu_opcode_cycle;
+		/* il DMC non e' vuoto */
+		a->DMC.empty = FALSE;
+		if (++a->DMC.address > 0xFFFF) {
+			a->DMC.address = 0x8000;
+		}
+		if (!(--a->DMC.remain)) {
+			if (a->DMC.loop) {
+				a->DMC.remain = a->DMC.length;
+				a->DMC.address = a->DMC.address_start;
+			} else if (a->DMC.irq_enabled) {
+				a->r4015.value |= 0x80;
+			}
+		}
+	}
 
         // TODO
 	/*if (snd_apu_tick) {

@@ -102,6 +102,19 @@ void extcl_envelope_clock_MMC5(struct _mmc5* mmc5) {
 	envelope_run(mmc5->S4)
 }
 void extcl_apu_tick_MMC5(struct _mmc5* mmc5) {
-	square_tick(mmc5->S3, 0, mmc5->clocked)
-	square_tick(mmc5->S4, 0, mmc5->clocked)
+        // SQUARE 3 TICK
+	if (!(--mmc5->S3.frequency)) {
+		square_output(mmc5->S3, 0)
+		mmc5->S3.frequency = (mmc5->S3.timer + 1) << 1;
+		mmc5->S3.sequencer = (mmc5->S3.sequencer + 1) & 0x07;
+		mmc5->clocked = TRUE;
+	}
+
+        // SQUARE 4 TICK
+	if (!(--mmc5->S4.frequency)) {
+		square_output(mmc5->S4, 0)
+		mmc5->S4.frequency = (mmc5->S4.timer + 1) << 1;
+		mmc5->S4.sequencer = (mmc5->S4.sequencer + 1) & 0x07;
+		mmc5->clocked = TRUE;
+	}
 }
