@@ -8,15 +8,27 @@
 
 #include "vrcvi.hpp"
 
-void vrcvi_core::tick()
+int vrcvi_core::predict() {
+  const int p0=m_pulse[0].predict();
+  const int p1=m_pulse[1].predict();
+  const int s=m_sawtooth.predict();
+
+  int ret=p0;
+  if (p1<ret) ret=p1;
+  if (s<ret) ret=s;
+  if (ret<1) ret=1;
+  return ret;
+}
+
+void vrcvi_core::tick(int cycles)
 {
 	m_out = 0;
 	if (!m_control.m_halt)	// Halt flag
 	{
 		// tick per each clock
-		m_out += m_pulse[0].get_output();	 // add 4 bit pulse output
-    m_out += m_pulse[1].get_output();
-		m_out += m_sawtooth.get_output();  // add 5 bit sawtooth output
+		m_out += m_pulse[0].get_output(cycles);	 // add 4 bit pulse output
+    m_out += m_pulse[1].get_output(cycles);
+		m_out += m_sawtooth.get_output(cycles);  // add 5 bit sawtooth output
 	}
 }
 
@@ -30,7 +42,18 @@ void vrcvi_core::reset()
 	m_out = 0;
 }
 
-bool vrcvi_core::alu_t::tick()
+int vrcvi_core::alu_t::predict() {
+  if (!m_divider.m_enable) return 65535;
+  if (m_host.m_control.m_shift&2) {
+    return bitfield(m_counter, 8, 4);
+  } else if (m_host.m_control.m_shift&1) {
+    return bitfield(m_counter, 4, 8);
+  }
+
+  return m_counter&0xfff;
+}
+
+bool vrcvi_core::alu_t::tick(int cycles)
 {
 	if (m_divider.m_enable)
 	{
@@ -38,8 +61,8 @@ bool vrcvi_core::alu_t::tick()
 		// post decrement
 		if (m_host.m_control.m_shift&2)
 		{
-			m_counter = (m_counter & 0x0ff) | (bitfield(bitfield(m_counter, 8, 4) - 1, 0, 4) << 8);
-			m_counter = (m_counter & 0xf00) | (bitfield(bitfield(m_counter, 0, 8) - 1, 0, 8) << 0);
+			m_counter = (m_counter & 0x0ff) | (bitfield(bitfield(m_counter, 8, 4) - cycles, 0, 4) << 8);
+			m_counter = (m_counter & 0xf00) | (bitfield(bitfield(m_counter, 0, 8) - cycles, 0, 8) << 0);
 
       if (bitfield(temp, 8, 4) == 0)
       {
@@ -49,8 +72,8 @@ bool vrcvi_core::alu_t::tick()
 		}
 		else if (m_host.m_control.m_shift&1)
 		{
-			m_counter = (m_counter & 0x00f) | (bitfield(bitfield(m_counter, 4, 8) - 1, 0, 8) << 4);
-			m_counter = (m_counter & 0xff0) | (bitfield(bitfield(m_counter, 0, 4) - 1, 0, 4) << 0);
+			m_counter = (m_counter & 0x00f) | (bitfield(bitfield(m_counter, 4, 8) - cycles, 0, 8) << 4);
+			m_counter = (m_counter & 0xff0) | (bitfield(bitfield(m_counter, 0, 4) - cycles, 0, 4) << 0);
 
       if (bitfield(temp, 4, 8) == 0)
       {
@@ -60,7 +83,7 @@ bool vrcvi_core::alu_t::tick()
 		}
 		else
 		{
-			m_counter = (m_counter-1)&0xfff; //bitfield(bitfield(m_counter, 0, 12) - 1, 0, 12);
+			m_counter = (m_counter-cycles)&0xfff; //bitfield(bitfield(m_counter, 0, 12) - 1, 0, 12);
       if (!(temp&0xfff)) {
         m_counter = m_divider.m_divider;
         return true;
@@ -72,14 +95,14 @@ bool vrcvi_core::alu_t::tick()
 	return false;
 }
 
-bool vrcvi_core::pulse_t::tick()
+bool vrcvi_core::pulse_t::tick(int cycles)
 {
 	if (!m_divider.m_enable)
 	{
 		return false;
 	}
 
-	if (vrcvi_core::alu_t::tick())
+	if (vrcvi_core::alu_t::tick(cycles))
 	{
 		m_cycle = (m_cycle+1)&15;
 	}
@@ -87,14 +110,14 @@ bool vrcvi_core::pulse_t::tick()
 	return m_control.m_mode ? true : ((m_cycle > m_control.m_duty) ? true : false);
 }
 
-bool vrcvi_core::sawtooth_t::tick()
+bool vrcvi_core::sawtooth_t::tick(int cycles)
 {
 	if (!m_divider.m_enable)
 	{
 		return false;
 	}
 
-	if (vrcvi_core::alu_t::tick())
+	if (vrcvi_core::alu_t::tick(cycles))
 	{
 		if ((m_cycle++)&1)
 		{  // Even step only
@@ -109,23 +132,24 @@ bool vrcvi_core::sawtooth_t::tick()
 	return (m_accum != 0);
 }
 
-s8 vrcvi_core::pulse_t::get_output()
+s8 vrcvi_core::pulse_t::get_output(int cycles)
 {
 	// add 4 bit pulse output
-	m_out = tick() ? m_control.m_volume : 0;
+	m_out = tick(cycles) ? m_control.m_volume : 0;
 	return m_out;
 }
 
-s8 vrcvi_core::sawtooth_t::get_output()
+s8 vrcvi_core::sawtooth_t::get_output(int cycles)
 {
 	// add 5 bit sawtooth output
-	m_out = tick() ? ((m_accum>>3)&31) : 0;
+	m_out = tick(cycles) ? ((m_accum>>3)&31) : 0;
 	return m_out;
 }
 
 void vrcvi_core::alu_t::reset()
 {
 	m_divider.reset();
+        m_divider.m_divider = 1023;
 	m_counter = 0;
 	m_cycle	  = 0;
 	m_out	  = 0;
@@ -135,6 +159,7 @@ void vrcvi_core::pulse_t::reset()
 {
 	vrcvi_core::alu_t::reset();
 	m_control.reset();
+        m_divider.m_divider = 1023;
 }
 
 void vrcvi_core::sawtooth_t::reset()
@@ -142,6 +167,7 @@ void vrcvi_core::sawtooth_t::reset()
 	vrcvi_core::alu_t::reset();
 	m_rate	= 0;
 	m_accum = 0;
+        m_divider.m_divider = 1023;
 }
 
 bool vrcvi_core::timer_t::tick()
