@@ -324,6 +324,12 @@ void apu_tick(struct NESAPU* a, int len) {
       blip_add_delta(a->bb,a->timestamp,sample-a->lastSample);
       a->lastSample=sample;
     }
+    // output chan osc
+    a->S1.oscBuf->putSample(a->timestamp,a->muted[0]?0:(a->S1.output<<11));
+    a->S2.oscBuf->putSample(a->timestamp,a->muted[1]?0:(a->S2.output<<11));
+    a->TR.oscBuf->putSample(a->timestamp,a->muted[2]?0:(a->TR.output<<11));
+    a->NS.oscBuf->putSample(a->timestamp,a->muted[3]?0:(a->NS.output<<11));
+    a->DMC.oscBuf->putSample(a->timestamp,a->muted[4]?0:(a->DMC.output<<8));
     
     rem-=advance;
     a->timestamp++;

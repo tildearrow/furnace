@@ -23,6 +23,7 @@
 
 #include "common.h"
 #include "blip_buf.h"
+#include "../../../dispatch.h"
 
 enum dmc_types_of_dma { DMC_NORMAL, DMC_CPU_WRITE, DMC_R4014, DMC_NNL_DMA };
 enum apu_channels { APU_S1, APU_S2, APU_TR, APU_NS, APU_DMC, APU_EXTRA, APU_MASTER };
@@ -341,6 +342,8 @@ typedef struct _apuSquare {
   _length_counter length;
   /* output */
   SWORD output;
+  /* Furnace: chan osc buffer */
+  DivDispatchOscBuffer* oscBuf;
 } _apuSquare;
 typedef struct _apuTriangle {
   /* timer */
@@ -355,6 +358,8 @@ typedef struct _apuTriangle {
   BYTE sequencer;
   /* output */
   SWORD output;
+  /* Furnace: chan osc buffer */
+  DivDispatchOscBuffer* oscBuf;
 } _apuTriangle;
 typedef struct _apuNoise {
   /* timer */
@@ -375,6 +380,8 @@ typedef struct _apuNoise {
   BYTE sequencer;
   /* output */
   SWORD output;
+  /* Furnace: chan osc buffer */
+  DivDispatchOscBuffer* oscBuf;
 } _apuNoise;
 typedef struct _apuDMC {
   /* ogni quanti cicli devo generare un output */
@@ -404,6 +411,9 @@ typedef struct _apuDMC {
 
   /* misc */
   BYTE tick_type;
+  
+  /* Furnace: chan osc buffer */
+  DivDispatchOscBuffer* oscBuf;
 }  _apuDMC;
 
 struct _nla_table {

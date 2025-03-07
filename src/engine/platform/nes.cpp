@@ -112,6 +112,11 @@ void DivPlatformNES::acquire_puNES(blip_buffer_t** bb, size_t len) {
 
   nes->timestamp=0;
   nes->bb=bb[0];
+  nes->S1.oscBuf=oscBuf[0];
+  nes->S2.oscBuf=oscBuf[1];
+  nes->TR.oscBuf=oscBuf[2];
+  nes->NS.oscBuf=oscBuf[3];
+  nes->DMC.oscBuf=oscBuf[4];
 
   for (size_t i=0; i<len; i++) {
     // heuristic
@@ -140,16 +145,6 @@ void DivPlatformNES::acquire_puNES(blip_buffer_t** bb, size_t len) {
     i+=pcmAdvance-1;
 
     doPCM;
-  
-    /*
-    if (++writeOscBuf>=32) {
-      writeOscBuf=0;
-      oscBuf[0]->putSample(i,isMuted[0]?0:(nes->S1.output<<11));
-      oscBuf[1]->putSample(i,isMuted[1]?0:(nes->S2.output<<11));
-      oscBuf[2]->putSample(i,isMuted[2]?0:(nes->TR.output<<11));
-      oscBuf[3]->putSample(i,isMuted[3]?0:(nes->NS.output<<11));
-      oscBuf[4]->putSample(i,isMuted[4]?0:(nes->DMC.output<<8));
-    }*/
   }
   apu_tick(nes,len);
 
