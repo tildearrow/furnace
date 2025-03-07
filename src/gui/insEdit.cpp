@@ -8688,9 +8688,16 @@ void FurnaceGUI::drawInsEdit() {
                   MARK_MODIFIED;
                 }
                 break;
-                case DIV_XATTR_UINT:
+                case DIV_XATTR_UINT: {
+                  // this is stupid
+                  unsigned int int_step = 1;
+                  if (ImGui::InputScalar("##AttrValue", ImGuiDataType_U32, &ins->std.xattrs[i].uint_val, &int_step)) {
+                    MARK_MODIFIED;
+                  }
+                }
+                break;
                 case DIV_XATTR_INT:
-                if (ImGui::InputInt("##AttrValue", &ins->std.xattrs[i].int_val, ImGuiInputTextFlags_UndoRedo)) {
+                if (ImGui::InputInt("##AttrValue", &ins->std.xattrs[i].int_val)) {
                   MARK_MODIFIED;
                 }
                 break;

@@ -299,10 +299,12 @@ struct DivInstrumentMacro {
 struct DivInstrumentXattr {
   String name;
   DivXattrType type;
-  //union {
-    String str_val;
+
+  String str_val;
+  union {
+    unsigned int uint_val;
     int int_val;
-  //};
+  };
 
   DivInstrumentXattr():
     name("example.empty"),
