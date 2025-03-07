@@ -21,268 +21,316 @@
 #include <string.h>
 #include "apu.h"
 
-void apu_tick(struct NESAPU* a, BYTE *hwtick) {
-  /* sottraggo il numero di cicli eseguiti */
-  a->apu.cycles--;
-  /*
-   * questo flag sara' a TRUE solo nel ciclo
-   * in cui viene eseguito il length counter.
-   */
-  a->apu.length_clocked = FALSE;
-  /*
-   * se e' settato il delay del $4017, essendo
-   * questo il ciclo successivo, valorizzo il
-   * registro.
-   */
+void apu_tick(struct NESAPU* a, int len) {
+  if (len<=a->timestamp) return;
+
+  int rem=len-a->timestamp;
+  if (rem>1) {
+    // output now just in case
+    int sample=(pulse_output(a)+tnd_output(a))<<6;
+    if (sample!=a->lastSample) {  
+      blip_add_delta(a->bb,a->timestamp,sample-a->lastSample);
+      a->lastSample=sample;
+    }
+  }
+
+  while (rem>0) {
+    // predict advance
+    int advance=rem;
+    if (a->r4017.jitter.delay) {
+      advance=1;
+    }
+    if (advance>a->apu.cycles) {
+      advance=a->apu.cycles;
+    }
+    if (advance>a->S1.frequency) {
+      advance=a->S1.frequency;
+    }
+    if (advance>a->S2.frequency) {
+      advance=a->S2.frequency;
+    }
+    if (advance>a->TR.frequency) {
+      advance=a->TR.frequency;
+    }
+    if (advance>a->NS.frequency) {
+      advance=a->NS.frequency;
+    }
+    if (advance>a->DMC.frequency) {
+      advance=a->DMC.frequency;
+    }
+    if (advance<1) advance=1;
+
+    /* sottraggo il numero di cicli eseguiti */
+    a->apu.cycles-=advance;
+    /*
+    * questo flag sara' a TRUE solo nel ciclo
+    * in cui viene eseguito il length counter.
+    */
+    a->apu.length_clocked = FALSE;
+    /*
+    * se e' settato il delay del $4017, essendo
+    * questo il ciclo successivo, valorizzo il
+    * registro.
+    */
 #if defined (VECCHIA_GESTIONE_JITTER)
-  if (r4017.jitter.delay) {
-    r4017.jitter.delay = FALSE;
-    r4017_jitter();
-  }
+    if (r4017.jitter.delay) {
+      r4017.jitter.delay = FALSE;
+      r4017_jitter();
+    }
 #else
-  if (a->r4017.jitter.delay) {
-    a->r4017.jitter.delay = FALSE;
-    r4017_jitter(0)
-  }
-  r4017_reset_frame()
+    if (a->r4017.jitter.delay) {
+      a->r4017.jitter.delay = FALSE;
+      r4017_jitter(0)
+    }
+    r4017_reset_frame()
 #endif
 
-  /* quando apu.cycles e' a 0 devo eseguire uno step */
-  if (!a->apu.cycles) {
-    switch (a->apu.step) {
-      case 0:
-        /*
-         * nel mode 1 devo eseguire il
-         * length counter e lo sweep.
-         */
-        if (a->apu.mode == APU_48HZ) {
-          length_clock()
-          sweep_clock()
-        }
-        envelope_clock()
-        /* triangle's linear counter */
-        linear_clock()
-        /* passo al prossimo step */
-        apu_change_step(++a->apu.step);
-        break;
-      case 1:
-        /* nel mode 0 devo eseguire il length counter */
-        if (a->apu.mode == APU_60HZ) {
-          length_clock()
-          sweep_clock()
-        }
-        envelope_clock()
-        /* triangle's linear counter */
-        linear_clock()
-        /* passo al prossimo step */
-        apu_change_step(++a->apu.step);
-        break;
-      case 2:
-        /*
-         * nel mode 1 devo eseguire il
-         * length counter e lo sweep.
-         */
-        if (a->apu.mode == APU_48HZ) {
-          length_clock()
-          sweep_clock()
-        }
-        envelope_clock()
-        /* triangle's linear counter */
-        linear_clock()
-        /* passo al prossimo step */
-        apu_change_step(++a->apu.step);
-        break;
-      case 3:
-        /*
-         * gli step 3, 4 e 5 settano il bit 6 del $4015
-         * ma solo nel 4 genero un IRQ.
-         */
-        if (a->apu.mode == APU_60HZ) {
+    /* quando apu.cycles e' a 0 devo eseguire uno step */
+    if (!a->apu.cycles) {
+      switch (a->apu.step) {
+        case 0:
           /*
-           * se e' a 0 il bit 6 del $4017 (interrupt
-           * inhibit flag) allora devo generare un IRQ.
-           */
-          if (!(a->r4017.value & 0x40)) {
-            /* setto il bit 6 del $4015 */
-            a->r4015.value |= 0x40;
+          * nel mode 1 devo eseguire il
+          * length counter e lo sweep.
+          */
+          if (a->apu.mode == APU_48HZ) {
+            length_clock()
+            sweep_clock()
           }
-        } else {
-          /* nel mode 1 devo eseguire l'envelope */
           envelope_clock()
           /* triangle's linear counter */
           linear_clock()
-        }
-        /* passo al prossimo step */
-        apu_change_step(++a->apu.step);
-        break;
-      case 4:
-        /*
-         * gli step 3, 4 e 5 settano il bit 6 del $4015
-         * ma solo nel 4 genero un IRQ.
-         */
-        if (a->apu.mode == APU_60HZ) {
-          length_clock()
-          sweep_clock()
+          /* passo al prossimo step */
+          apu_change_step(++a->apu.step);
+          break;
+        case 1:
+          /* nel mode 0 devo eseguire il length counter */
+          if (a->apu.mode == APU_60HZ) {
+            length_clock()
+            sweep_clock()
+          }
           envelope_clock()
           /* triangle's linear counter */
           linear_clock()
+          /* passo al prossimo step */
+          apu_change_step(++a->apu.step);
+          break;
+        case 2:
           /*
-           * se e' a 0 il bit 6 del $4017 (interrupt
-           * inhibit flag) allora devo generare un IRQ.
-           */
-          if (!(a->r4017.value & 0x40)) {
-            /* setto il bit 6 del $4015 */
-            a->r4015.value |= 0x40;
+          * nel mode 1 devo eseguire il
+          * length counter e lo sweep.
+          */
+          if (a->apu.mode == APU_48HZ) {
+            length_clock()
+            sweep_clock()
           }
-        }
-        /* passo al prossimo step */
-        apu_change_step(++a->apu.step);
-        break;
-      case 5:
-        /*
-         * gli step 3, 4 e 5 settano il bit 6 del $4015
-         * ma solo nel 4 genero un IRQ.
-         */
-        if (a->apu.mode == APU_60HZ) {
+          envelope_clock()
+          /* triangle's linear counter */
+          linear_clock()
+          /* passo al prossimo step */
+          apu_change_step(++a->apu.step);
+          break;
+        case 3:
           /*
-           * se e' a 0 il bit 6 del $4017 (interrupt
-           * inhibit flag) allora devo generare un IRQ.
-           */
-          if (!(a->r4017.value & 0x40)) {
-            /* setto il bit 6 del $4015 */
-            a->r4015.value |= 0x40;
+          * gli step 3, 4 e 5 settano il bit 6 del $4015
+          * ma solo nel 4 genero un IRQ.
+          */
+          if (a->apu.mode == APU_60HZ) {
+            /*
+            * se e' a 0 il bit 6 del $4017 (interrupt
+            * inhibit flag) allora devo generare un IRQ.
+            */
+            if (!(a->r4017.value & 0x40)) {
+              /* setto il bit 6 del $4015 */
+              a->r4015.value |= 0x40;
+            }
+          } else {
+            /* nel mode 1 devo eseguire l'envelope */
+            envelope_clock()
+            /* triangle's linear counter */
+            linear_clock()
           }
-          a->apu.step++;
+          /* passo al prossimo step */
+          apu_change_step(++a->apu.step);
+          break;
+        case 4:
+          /*
+          * gli step 3, 4 e 5 settano il bit 6 del $4015
+          * ma solo nel 4 genero un IRQ.
+          */
+          if (a->apu.mode == APU_60HZ) {
+            length_clock()
+            sweep_clock()
+            envelope_clock()
+            /* triangle's linear counter */
+            linear_clock()
+            /*
+            * se e' a 0 il bit 6 del $4017 (interrupt
+            * inhibit flag) allora devo generare un IRQ.
+            */
+            if (!(a->r4017.value & 0x40)) {
+              /* setto il bit 6 del $4015 */
+              a->r4015.value |= 0x40;
+            }
+          }
+          /* passo al prossimo step */
+          apu_change_step(++a->apu.step);
+          break;
+        case 5:
+          /*
+          * gli step 3, 4 e 5 settano il bit 6 del $4015
+          * ma solo nel 4 genero un IRQ.
+          */
+          if (a->apu.mode == APU_60HZ) {
+            /*
+            * se e' a 0 il bit 6 del $4017 (interrupt
+            * inhibit flag) allora devo generare un IRQ.
+            */
+            if (!(a->r4017.value & 0x40)) {
+              /* setto il bit 6 del $4015 */
+              a->r4015.value |= 0x40;
+            }
+            a->apu.step++;
+          } else {
+            /* nel mode 1 devo ricominciare il ciclo */
+            a->apu.step = 0;
+          }
+          /* passo al prossimo step */
+          apu_change_step(a->apu.step);
+          break;
+        case 6:
+          /* da qui ci passo solo nel mode 0 */
+          envelope_clock()
+          /* triangle's linear counter */
+          linear_clock()
+          /* questo e' il passaggio finale del mode 0 */
+          a->apu.step = 1;
+          /* passo al prossimo step */
+          apu_change_step(a->apu.step);
+          break;
+      }
+    }
+
+    /*
+    * eseguo un ticket per ogni canale
+    * valorizzandone l'output.
+    */
+    // SQUARE 1 TICK
+    if (!(a->S1.frequency-=advance)) {
+      square_output(a->S1, 0)
+      a->S1.frequency = (a->S1.timer + 1) << 1;
+      a->S1.sequencer = (a->S1.sequencer + 1) & 0x07;
+    }
+
+    // SQUARE 2 TICK
+    if (!(a->S2.frequency-=advance)) {
+      square_output(a->S2, 0)
+      a->S2.frequency = (a->S2.timer + 1) << 1;
+      a->S2.sequencer = (a->S2.sequencer + 1) & 0x07;
+    }
+
+    // TRIANGLE TICK
+    if (!(a->TR.frequency-=advance)) {
+      a->TR.frequency = a->TR.timer + 1;
+      if (a->TR.length.value && a->TR.linear.value) {
+        a->TR.sequencer = (a->TR.sequencer + 1) & 0x1F;
+        triangle_output()
+      }
+    }
+
+    // NOISE TICK
+    if (!(a->NS.frequency-=advance)) {
+      if (a->NS.mode) {
+        a->NS.shift = (a->NS.shift >> 1) | (((a->NS.shift ^ (a->NS.shift >> 6)) & 0x0001) << 14);
+      } else {
+        a->NS.shift = (a->NS.shift >> 1) | (((a->NS.shift ^ (a->NS.shift >> 1)) & 0x0001) << 14);
+      }
+      a->NS.shift &= 0x7FFF;
+      noise_output()
+      a->NS.frequency = noise_timer[a->apu.type][a->NS.timer];
+    }
+
+    // DMC TICK
+    if (!(a->DMC.frequency-=advance)) {
+      if (!a->DMC.silence) {
+        if (!(a->DMC.shift & 0x01)) {
+          if (a->DMC.counter > 1) {
+            a->DMC.counter -= 2;
+          }
         } else {
-          /* nel mode 1 devo ricominciare il ciclo */
-          a->apu.step = 0;
+          if (a->DMC.counter < 126) {
+            a->DMC.counter += 2;
+          }
         }
-        /* passo al prossimo step */
-        apu_change_step(a->apu.step);
-        break;
-      case 6:
-        /* da qui ci passo solo nel mode 0 */
-        envelope_clock()
-        /* triangle's linear counter */
-        linear_clock()
-        /* questo e' il passaggio finale del mode 0 */
-        a->apu.step = 1;
-        /* passo al prossimo step */
-        apu_change_step(a->apu.step);
-        break;
-    }
-  }
-
-  /*
-   * eseguo un ticket per ogni canale
-   * valorizzandone l'output.
-   */
-  // SQUARE 1 TICK
-  if (!(--a->S1.frequency)) {
-    square_output(a->S1, 0)
-    a->S1.frequency = (a->S1.timer + 1) << 1;
-    a->S1.sequencer = (a->S1.sequencer + 1) & 0x07;
-    a->apu.clocked = TRUE;
-  }
-
-  // SQUARE 2 TICK
-  if (!(--a->S2.frequency)) {
-    square_output(a->S2, 0)
-    a->S2.frequency = (a->S2.timer + 1) << 1;
-    a->S2.sequencer = (a->S2.sequencer + 1) & 0x07;
-    a->apu.clocked = TRUE;
-  }
-
-  // TRIANGLE TICK
-  if (!(--a->TR.frequency)) {
-    a->TR.frequency = a->TR.timer + 1;
-    if (a->TR.length.value && a->TR.linear.value) {
-      a->TR.sequencer = (a->TR.sequencer + 1) & 0x1F;
-      triangle_output()
-      a->apu.clocked = TRUE;
-    }
-  }
-
-  // NOISE TICK
-  if (!(--a->NS.frequency)) {
-    if (a->NS.mode) {
-      a->NS.shift = (a->NS.shift >> 1) | (((a->NS.shift ^ (a->NS.shift >> 6)) & 0x0001) << 14);
-    } else {
-      a->NS.shift = (a->NS.shift >> 1) | (((a->NS.shift ^ (a->NS.shift >> 1)) & 0x0001) << 14);
-    }
-    a->NS.shift &= 0x7FFF;
-    noise_output()
-    a->NS.frequency = noise_timer[a->apu.type][a->NS.timer];
-    a->apu.clocked = TRUE;
-  }
-
-  // DMC TICK
-  if (!(--a->DMC.frequency)) {
-    if (!a->DMC.silence) {
-      if (!(a->DMC.shift & 0x01)) {
-        if (a->DMC.counter > 1) {
-          a->DMC.counter -= 2;
+      }
+      a->DMC.shift >>= 1;
+      dmc_output();
+      if (!(--a->DMC.counter_out)) {
+        a->DMC.counter_out = 8;
+        if (!a->DMC.empty) {
+          a->DMC.shift = a->DMC.buffer;
+          a->DMC.empty = TRUE;
+          a->DMC.silence = FALSE;
+        } else {
+          a->DMC.silence = TRUE;
         }
-      } else {
-        if (a->DMC.counter < 126) {
-          a->DMC.counter += 2;
+      }
+      a->DMC.frequency = dmc_rate[a->apu.type][a->DMC.rate_index];
+    }
+    if (a->DMC.empty && a->DMC.remain) {
+      BYTE tick = 4;
+      switch (a->DMC.tick_type) {
+        case DMC_CPU_WRITE:
+          tick = 3;
+          break;
+        case DMC_R4014:
+          tick = 2;
+          break;
+        case DMC_NNL_DMA:
+          tick = 1;
+          break;
+      }
+      {
+        a->DMC.buffer = a->readDMC(a->readDMCUser,a->DMC.address);
+      }
+      /* e naturalmente incremento anche quelli eseguiti dall'opcode */
+      a->apu.cpu_cycles += tick;
+      /* salvo a che ciclo dell'istruzione avviene il dma */
+      a->DMC.dma_cycle = a->apu.cpu_opcode_cycle;
+      /* il DMC non e' vuoto */
+      a->DMC.empty = FALSE;
+      if (++a->DMC.address > 0xFFFF) {
+        a->DMC.address = 0x8000;
+      }
+      if (!(--a->DMC.remain)) {
+        if (a->DMC.loop) {
+          a->DMC.remain = a->DMC.length;
+          a->DMC.address = a->DMC.address_start;
+        } else if (a->DMC.irq_enabled) {
+          a->r4015.value |= 0x80;
         }
       }
     }
-    a->DMC.shift >>= 1;
-    dmc_output();
-    if (!(--a->DMC.counter_out)) {
-      a->DMC.counter_out = 8;
-      if (!a->DMC.empty) {
-        a->DMC.shift = a->DMC.buffer;
-        a->DMC.empty = TRUE;
-        a->DMC.silence = FALSE;
-      } else {
-        a->DMC.silence = TRUE;
-      }
-    }
-    a->DMC.frequency = dmc_rate[a->apu.type][a->DMC.rate_index];
-    a->apu.clocked = TRUE;
-  }
-  if (a->DMC.empty && a->DMC.remain) {
-    BYTE tick = 4;
-    switch (a->DMC.tick_type) {
-      case DMC_CPU_WRITE:
-        tick = 3;
-        break;
-      case DMC_R4014:
-        tick = 2;
-        break;
-      case DMC_NNL_DMA:
-        tick = 1;
-        break;
-    }
-    {
-      a->DMC.buffer = a->readDMC(a->readDMCUser,a->DMC.address);
-    }
-    /* incremento gli hwtick da compiere */
-    if (hwtick) { hwtick[0] += tick; }
-    /* e naturalmente incremento anche quelli eseguiti dall'opcode */
-    a->apu.cpu_cycles += tick;
-    /* salvo a che ciclo dell'istruzione avviene il dma */
-    a->DMC.dma_cycle = a->apu.cpu_opcode_cycle;
-    /* il DMC non e' vuoto */
-    a->DMC.empty = FALSE;
-    if (++a->DMC.address > 0xFFFF) {
-      a->DMC.address = 0x8000;
-    }
-    if (!(--a->DMC.remain)) {
-      if (a->DMC.loop) {
-        a->DMC.remain = a->DMC.length;
-        a->DMC.address = a->DMC.address_start;
-      } else if (a->DMC.irq_enabled) {
-        a->r4015.value |= 0x80;
-      }
-    }
-  }
 
-  a->r4011.cycles++;
+    a->r4011.cycles+=advance;
+    if (advance&1) {
+      a->apu.odd_cycle=!a->apu.odd_cycle;
+    }
+
+    // output sample
+    a->timestamp+=advance-1;
+    int sample=(pulse_output(a)+tnd_output(a))<<6;
+    if (sample!=a->lastSample) {  
+      blip_add_delta(a->bb,a->timestamp,sample-a->lastSample);
+      a->lastSample=sample;
+    }
+    
+    rem-=advance;
+    a->timestamp++;
+  }
+  a->timestamp=len;
 }
+
 void apu_turn_on(struct NESAPU* a, BYTE apu_type) {
   memset(&a->apu, 0x00, sizeof(a->apu));
   memset(&a->r4015, 0x00, sizeof(a->r4015));
@@ -322,4 +370,5 @@ void apu_turn_on(struct NESAPU* a, BYTE apu_type) {
   a->apu.odd_cycle = 0;
   // come non viene inizializzato? Vorrei qualche spiegazione...
   a->r4011.frames = 0;
+  a->lastSample = 0;
 }

@@ -62,7 +62,7 @@ const char** DivPlatformNES::getRegisterSheet() {
   return regCheatSheetNES;
 }
 
-void DivPlatformNES::doWrite(unsigned short addr, unsigned char data) {
+void DivPlatformNES::doWrite(int ts, unsigned short addr, unsigned char data) {
   if (useNP) {
     if (isE) {
       e1_NP->Write(addr,data);
@@ -72,13 +72,13 @@ void DivPlatformNES::doWrite(unsigned short addr, unsigned char data) {
       nes2_NP->Write(addr,data);
     }
   } else {
-    apu_wr_reg(nes,addr,data);
+    apu_wr_reg(nes,ts,addr,data);
   }
 }
 
 #define doPCM \
   if (!dpcmMode && dacSample!=-1) { \
-    dacPeriod+=dacRate; \
+    dacPeriod+=dacRate*pcmAdvance; \
     if (dacPeriod>=rate) { \
       DivSample* s=parent->getSample(dacSample); \
       if (s->samples>0 && dacPos<s->samples) { \
@@ -86,10 +86,10 @@ void DivPlatformNES::doWrite(unsigned short addr, unsigned char data) {
           unsigned char next=((unsigned char)s->data8[dacPos]+0x80)>>1; \
           if (dacAntiClickOn && dacAntiClick<next) { \
             dacAntiClick+=8; \
-            doWrite(0x4011,dacAntiClick); \
+            doWrite(i,0x4011,dacAntiClick); \
           } else { \
             dacAntiClickOn=false; \
-            doWrite(0x4011,next); \
+            doWrite(i,0x4011,next); \
           } \
         } \
         dacPos++; \
@@ -105,30 +105,43 @@ void DivPlatformNES::doWrite(unsigned short addr, unsigned char data) {
     } \
   }
 
-void DivPlatformNES::acquire_puNES(short** buf, size_t len) {
+void DivPlatformNES::acquire_puNES(blip_buffer_t** bb, size_t len) {
   for (int i=0; i<5; i++) {
     oscBuf[i]->begin(len);
   }
 
+  nes->timestamp=0;
+  nes->bb=bb[0];
+
   for (size_t i=0; i<len; i++) {
-    doPCM;
+    // heuristic
+    int pcmAdvance=1;
+    if (writes.empty()) {
+      if (dpcmMode || dacSample==-1) {
+        break;
+      } else {
+        pcmAdvance=len-i;
+        if (dacPeriod>0) {
+          int remainTime=(rate-dacPeriod+dacRate-1)/dacRate;
+          if (remainTime<pcmAdvance) pcmAdvance=remainTime;
+          if (remainTime<1) pcmAdvance=1;
+        }
+      }
+    }
 
     if (!writes.empty()) {
+      pcmAdvance=1;
       QueuedWrite w=writes.front();
-      doWrite(w.addr,w.val);
+      doWrite(i,w.addr,w.val);
       regPool[w.addr&0x1f]=w.val;
       writes.pop();
     }
+
+    i+=pcmAdvance-1;
+
+    doPCM;
   
-    apu_tick(nes,NULL);
-    nes->apu.odd_cycle=!nes->apu.odd_cycle;
-    if (nes->apu.clocked) {
-      nes->apu.clocked=false;
-    }
-    int sample=(pulse_output(nes)+tnd_output(nes))<<6;
-    if (sample>32767) sample=32767;
-    if (sample<-32768) sample=-32768;
-    buf[0][i]=sample;
+    /*
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
       oscBuf[0]->putSample(i,isMuted[0]?0:(nes->S1.output<<11));
@@ -136,8 +149,9 @@ void DivPlatformNES::acquire_puNES(short** buf, size_t len) {
       oscBuf[2]->putSample(i,isMuted[2]?0:(nes->TR.output<<11));
       oscBuf[3]->putSample(i,isMuted[3]?0:(nes->NS.output<<11));
       oscBuf[4]->putSample(i,isMuted[4]?0:(nes->DMC.output<<8));
-    }
+    }*/
   }
+  apu_tick(nes,len);
 
   for (int i=0; i<5; i++) {
     oscBuf[i]->end(len);
@@ -147,6 +161,7 @@ void DivPlatformNES::acquire_puNES(short** buf, size_t len) {
 void DivPlatformNES::acquire_NSFPlay(short** buf, size_t len) {
   int out1[2];
   int out2[2];
+  const int pcmAdvance=1;
 
   for (int i=0; i<5; i++) {
     oscBuf[i]->begin(len);
@@ -157,7 +172,7 @@ void DivPlatformNES::acquire_NSFPlay(short** buf, size_t len) {
 
     if (!writes.empty()) {
       QueuedWrite w=writes.front();
-      doWrite(w.addr,w.val);
+      doWrite(i,w.addr,w.val);
       regPool[w.addr&0x1f]=w.val;
       writes.pop();
     }
@@ -190,6 +205,7 @@ void DivPlatformNES::acquire_NSFPlay(short** buf, size_t len) {
 void DivPlatformNES::acquire_NSFPlayE(short** buf, size_t len) {
   int out1[2];
   int out2[2];
+  const int pcmAdvance=1;
 
   for (int i=0; i<5; i++) {
     oscBuf[i]->begin(len);
@@ -200,7 +216,7 @@ void DivPlatformNES::acquire_NSFPlayE(short** buf, size_t len) {
 
     if (!writes.empty()) {
       QueuedWrite w=writes.front();
-      doWrite(w.addr,w.val);
+      doWrite(i,w.addr,w.val);
       regPool[w.addr&0x1f]=w.val;
       writes.pop();
     }
@@ -231,15 +247,17 @@ void DivPlatformNES::acquire_NSFPlayE(short** buf, size_t len) {
 }
 
 void DivPlatformNES::acquire(short** buf, size_t len) {
-  if (useNP) {
-    if (isE) {
-      acquire_NSFPlayE(buf,len);
-    } else {
-      acquire_NSFPlay(buf,len);
-    }
+  if (!useNP) return;
+  if (isE) {
+    acquire_NSFPlayE(buf,len);
   } else {
-    acquire_puNES(buf,len);
+    acquire_NSFPlay(buf,len);
   }
+}
+
+void DivPlatformNES::acquireDirect(blip_buffer_t** bb, size_t len) {
+  if (useNP) return;
+  acquire_puNES(bb,len);
 }
 
 static unsigned char noiseTable[253]={
@@ -918,6 +936,10 @@ void DivPlatformNES::reset() {
 
 bool DivPlatformNES::keyOffAffectsArp(int ch) {
   return true;
+}
+
+bool DivPlatformNES::hasAcquireDirect() {
+  return (!useNP && !isE);
 }
 
 void DivPlatformNES::setFlags(const DivConfig& flags) {

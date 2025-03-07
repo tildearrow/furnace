@@ -39,7 +39,9 @@
     r2006.value++;\
   }
 
-INLINE static void apu_wr_reg(struct NESAPU* a, WORD address, BYTE value) {
+INLINE static void apu_wr_reg(struct NESAPU* a, int ts, WORD address, BYTE value) {
+  apu_tick(a,ts);
+
   if (!(address & 0x0010)) {
     /* -------------------- square 1 --------------------*/
     if (address <= 0x4003) {
@@ -200,7 +202,6 @@ INLINE static void apu_wr_reg(struct NESAPU* a, WORD address, BYTE value) {
         } else {
           a->DMC.counter = a->DMC.output = value;
         }
-        a->apu.clocked = TRUE;
 
         a->r4011.cycles = a->r4011.frames = 0;
         a->r4011.value = value;

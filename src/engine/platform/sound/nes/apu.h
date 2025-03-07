@@ -22,6 +22,7 @@
 #define APU_H_
 
 #include "common.h"
+#include "blip_buf.h"
 
 enum dmc_types_of_dma { DMC_NORMAL, DMC_CPU_WRITE, DMC_R4014, DMC_NNL_DMA };
 enum apu_channels { APU_S1, APU_S2, APU_TR, APU_NS, APU_DMC, APU_EXTRA, APU_MASTER };
@@ -277,12 +278,6 @@ typedef struct _apu {
   int cpu_cycles;
   int cpu_opcode_cycle;
   BYTE odd_cycle;
-
-  /* ------------------------------------------------------- */
-  /* questi valori non e' necessario salvarli nei savestates */
-  /* ------------------------------------------------------- */
-  /* */ BYTE clocked;                                     /* */
-  /* ------------------------------------------------------- */
 } _apu;
 typedef struct _r4011 {
   BYTE value;
@@ -433,8 +428,11 @@ EXTERNC struct NESAPU {
   _apuTriangle TR;
   _apuNoise NS;
   _apuDMC DMC;
+  blip_buffer_t* bb;
   void* readDMCUser;
   unsigned char (*readDMC)(void*,unsigned short);
+  int timestamp;
+  int lastSample;
   unsigned char muted[5];
 };
 
@@ -540,7 +538,7 @@ static const WORD dmc_rate[3][16] = {
   }
 };
 
-EXTERNC void apu_tick(struct NESAPU* a, BYTE *hwtick);
+EXTERNC void apu_tick(struct NESAPU* a, int len);
 EXTERNC void apu_turn_on(struct NESAPU* a, BYTE apu_type);
 
 #undef EXTERNC
