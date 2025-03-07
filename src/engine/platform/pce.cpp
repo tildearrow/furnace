@@ -93,7 +93,7 @@ void DivPlatformPCE::acquireDirect(blip_buffer_t** bb, size_t len) {
     for (int i=0; i<6; i++) {
       if (chan[i].pcm && chan[i].dacSample!=-1) {
         chan[i].dacPeriod+=chan[i].dacRate*advance;
-        if (chan[i].dacPeriod>rate) {
+        if (chan[i].dacPeriod>=rate) {
           DivSample* s=parent->getSample(chan[i].dacSample);
           if (s->samples<=0 || chan[i].dacPos>=s->samples) {
             chan[i].dacSample=-1;
