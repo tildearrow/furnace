@@ -35,11 +35,20 @@ void map_init_MMC5(struct _mmc5* mmc5) {
   mmc5->S3.length.value = 0;
   mmc5->S4.length.enabled = 0;
   mmc5->S4.length.value = 0;
+
+  mmc5->timestamp = 0;
+  mmc5->lastSample = 0;
+  mmc5->bb = NULL;
+  mmc5->oscBuf[0] = NULL;
+  mmc5->oscBuf[1] = NULL;
+  mmc5->oscBuf[2] = NULL;
 }
-void extcl_cpu_wr_mem_MMC5(struct _mmc5* mmc5, WORD address, BYTE value) {
+void extcl_cpu_wr_mem_MMC5(struct _mmc5* mmc5, int ts, WORD address, BYTE value) {
   if (address < 0x5000) {
     return;
   }
+
+  extcl_apu_tick_MMC5(mmc5,ts);
 
   switch (address) {
     case 0x5000:
@@ -71,16 +80,18 @@ void extcl_cpu_wr_mem_MMC5(struct _mmc5* mmc5, WORD address, BYTE value) {
       mmc5->pcm.output = 0;
       if (mmc5->pcm.enabled) {
         mmc5->pcm.output = mmc5->pcm.amp;
+        mmc5->oscBuf[2]->putSample(mmc5->timestamp,mmc5->muted[2]?0:(mmc5->pcm.output<<7));
       }
-      mmc5->clocked = TRUE;
+      //mmc5->clocked = TRUE;
       return;
     case 0x5011:
       mmc5->pcm.amp = value;
       mmc5->pcm.output = 0;
       if (mmc5->pcm.enabled) {
         mmc5->pcm.output = mmc5->pcm.amp;
+        mmc5->oscBuf[2]->putSample(mmc5->timestamp,mmc5->muted[2]?0:(mmc5->pcm.output<<7));
       }
-      mmc5->clocked = TRUE;
+      //mmc5->clocked = TRUE;
       return;
     case 0x5015:
       if (!(mmc5->S3.length.enabled = value & 0x01)) {
@@ -100,20 +111,70 @@ void extcl_envelope_clock_MMC5(struct _mmc5* mmc5) {
   envelope_run(mmc5->S3)
   envelope_run(mmc5->S4)
 }
-void extcl_apu_tick_MMC5(struct _mmc5* mmc5) {
-        // SQUARE 3 TICK
-  if (!(--mmc5->S3.frequency)) {
-    square_output(mmc5->S3, 0)
-    mmc5->S3.frequency = (mmc5->S3.timer + 1) << 1;
-    mmc5->S3.sequencer = (mmc5->S3.sequencer + 1) & 0x07;
-    mmc5->clocked = TRUE;
+void extcl_apu_tick_MMC5(struct _mmc5* mmc5, int len) {
+  if (len<=mmc5->timestamp) return;
+
+  int rem=len-mmc5->timestamp;
+  if (rem>1) {
+    // output now just in case
+    int sample=mmc5->muted[0]?0:(mmc5->S3.output*10);
+    if (!mmc5->muted[1]) {
+      sample+=mmc5->S4.output*10;
+    }
+    if (!mmc5->muted[2]) {
+      sample+=mmc5->pcm.output*2;
+    }
+    if (sample!=mmc5->lastSample) {  
+      blip_add_delta(mmc5->bb,mmc5->timestamp,sample-mmc5->lastSample);
+      mmc5->lastSample=sample;
+    }
   }
 
-        // SQUARE 4 TICK
-  if (!(--mmc5->S4.frequency)) {
-    square_output(mmc5->S4, 0)
-    mmc5->S4.frequency = (mmc5->S4.timer + 1) << 1;
-    mmc5->S4.sequencer = (mmc5->S4.sequencer + 1) & 0x07;
-    mmc5->clocked = TRUE;
+  while (rem>0) {
+    // predict advance
+    int advance=rem;
+    if (advance>mmc5->S3.frequency) {
+      advance=mmc5->S3.frequency;
+    }
+    if (advance>mmc5->S4.frequency) {
+      advance=mmc5->S4.frequency;
+    }
+    if (advance<1) advance=1;
+
+    int postTS=mmc5->timestamp+advance-1;
+
+    // SQUARE 3 TICK
+    if (!(mmc5->S3.frequency-=advance)) {
+      square_output(mmc5->S3, 0)
+      mmc5->S3.frequency = (mmc5->S3.timer + 1) << 1;
+      mmc5->S3.sequencer = (mmc5->S3.sequencer + 1) & 0x07;
+      mmc5->oscBuf[0]->putSample(postTS,mmc5->muted[0]?0:(mmc5->S3.output<<11));
+    }
+
+    // SQUARE 4 TICK
+    if (!(mmc5->S4.frequency-=advance)) {
+      square_output(mmc5->S4, 0)
+      mmc5->S4.frequency = (mmc5->S4.timer + 1) << 1;
+      mmc5->S4.sequencer = (mmc5->S4.sequencer + 1) & 0x07;
+      mmc5->oscBuf[1]->putSample(postTS,mmc5->muted[1]?0:(mmc5->S4.output<<11));
+    }
+
+    // output sample
+    mmc5->timestamp=postTS;
+    int sample=mmc5->muted[0]?0:(mmc5->S3.output*10);
+    if (!mmc5->muted[1]) {
+      sample+=mmc5->S4.output*10;
+    }
+    if (!mmc5->muted[2]) {
+      sample+=mmc5->pcm.output*2;
+    }
+    if (sample!=mmc5->lastSample) {  
+      blip_add_delta(mmc5->bb,mmc5->timestamp,sample-mmc5->lastSample);
+      mmc5->lastSample=sample;
+    }
+    
+    rem-=advance;
+    mmc5->timestamp++;
   }
+  mmc5->timestamp=len;
 }

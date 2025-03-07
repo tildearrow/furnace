@@ -24,7 +24,7 @@
 
 #define CHIP_DIVIDER 16
 
-#define rWrite(a,v) if (!skipRegisterWrites) {extcl_cpu_wr_mem_MMC5(mmc5,a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite((a),v)); if (dumpWrites) {addWrite(a,v);} }
 
 const char* regCheatSheetMMC5[]={
   "S0Volume", "5000",
@@ -43,12 +43,27 @@ const char** DivPlatformMMC5::getRegisterSheet() {
   return regCheatSheetMMC5;
 }
 
-void DivPlatformMMC5::acquire(short** buf, size_t len) {
+void DivPlatformMMC5::acquireDirect(blip_buffer_t** bb, size_t len) {
   for (int i=0; i<3; i++) {
     oscBuf[i]->begin(len);
+    mmc5->oscBuf[i]=oscBuf[i];
   }
 
+  mmc5->bb=bb[0];
+  mmc5->timestamp=0;
+
+  while (!writes.empty()) {
+    QueuedWrite w=writes.front();
+    regPool[(w.addr)&0x7f]=w.val;
+    extcl_cpu_wr_mem_MMC5(mmc5,0,w.addr,w.val);
+    writes.pop();
+  }
+
+  // TODO: does this matter?
+  extcl_envelope_clock_MMC5(mmc5);
+  extcl_length_clock_MMC5(mmc5);
   for (size_t i=0; i<len; i++) {
+    /*
     if (dacSample!=-1) {
       dacPeriod+=dacRate;
       if (dacPeriod>=rate) {
@@ -69,10 +84,12 @@ void DivPlatformMMC5::acquire(short** buf, size_t len) {
         }
       }
     }
+    */
   
-    extcl_envelope_clock_MMC5(mmc5);
-    extcl_length_clock_MMC5(mmc5);
-    extcl_apu_tick_MMC5(mmc5);
+    
+    extcl_apu_tick_MMC5(mmc5,len);
+    break;
+    /*
     if (mmc5->clocked) {
       mmc5->clocked=false;
     }
@@ -92,7 +109,7 @@ void DivPlatformMMC5::acquire(short** buf, size_t len) {
       oscBuf[0]->putSample(i,isMuted[0]?0:((mmc5->S3.output)<<11));
       oscBuf[1]->putSample(i,isMuted[1]?0:((mmc5->S4.output)<<11));
       oscBuf[2]->putSample(i,isMuted[2]?0:((mmc5->pcm.output)<<7));
-    }
+    }*/
   }
 
   for (int i=0; i<3; i++) {
@@ -364,6 +381,7 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
 
 void DivPlatformMMC5::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
+  mmc5->muted[ch]=mute;
 }
 
 void DivPlatformMMC5::forceIns() {
@@ -415,11 +433,19 @@ void DivPlatformMMC5::reset() {
   map_init_MMC5(mmc5);
   memset(regPool,0,128);
 
+  mmc5->muted[0]=isMuted[0];
+  mmc5->muted[1]=isMuted[1];
+  mmc5->muted[2]=isMuted[2];
+
   rWrite(0x5015,0x03);
   rWrite(0x5010,0x00);
 }
 
 bool DivPlatformMMC5::keyOffAffectsArp(int ch) {
+  return true;
+}
+
+bool DivPlatformMMC5::hasAcquireDirect() {
   return true;
 }
 

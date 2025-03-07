@@ -54,19 +54,18 @@ struct _mmc5 {
     BYTE output;
     BYTE amp;
   } pcm;
-  BYTE filler[50];
+  int timestamp;
+  int lastSample;
+  BYTE muted[3];
 
-  /* ------------------------------------------------------- */
-  /* questi valori non e' necessario salvarli nei savestates */
-  /* ------------------------------------------------------- */
-  /* */ BYTE clocked;                                     /* */
-  /* ------------------------------------------------------- */
+  blip_buffer_t* bb;
+  DivDispatchOscBuffer* oscBuf[5];
 };
 
 void map_init_MMC5(struct _mmc5* mmc5);
-void extcl_cpu_wr_mem_MMC5(struct _mmc5* mmc5, WORD address, BYTE value);
+void extcl_cpu_wr_mem_MMC5(struct _mmc5* mmc5, int ts, WORD address, BYTE value);
 void extcl_length_clock_MMC5(struct _mmc5* mmc5);
 void extcl_envelope_clock_MMC5(struct _mmc5* mmc5);
-void extcl_apu_tick_MMC5(struct _mmc5* mmc5);
+void extcl_apu_tick_MMC5(struct _mmc5* mmc5, int len);
 
 #endif /* MAPPER_MMC5_H_ */
