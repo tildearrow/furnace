@@ -342,8 +342,6 @@ typedef struct _apuSquare {
   _length_counter length;
   /* output */
   SWORD output;
-  /* Furnace: chan osc buffer */
-  DivDispatchOscBuffer* oscBuf;
 } _apuSquare;
 typedef struct _apuTriangle {
   /* timer */
@@ -358,8 +356,6 @@ typedef struct _apuTriangle {
   BYTE sequencer;
   /* output */
   SWORD output;
-  /* Furnace: chan osc buffer */
-  DivDispatchOscBuffer* oscBuf;
 } _apuTriangle;
 typedef struct _apuNoise {
   /* timer */
@@ -380,8 +376,6 @@ typedef struct _apuNoise {
   BYTE sequencer;
   /* output */
   SWORD output;
-  /* Furnace: chan osc buffer */
-  DivDispatchOscBuffer* oscBuf;
 } _apuNoise;
 typedef struct _apuDMC {
   /* ogni quanti cicli devo generare un output */
@@ -411,9 +405,6 @@ typedef struct _apuDMC {
 
   /* misc */
   BYTE tick_type;
-  
-  /* Furnace: chan osc buffer */
-  DivDispatchOscBuffer* oscBuf;
 }  _apuDMC;
 
 struct _nla_table {
@@ -438,6 +429,7 @@ struct NESAPU {
   int timestamp;
   int lastSample;
   unsigned char muted[5];
+  DivDispatchOscBuffer* oscBuf[5];
 };
 
 /* apuPeriod[mode][type][cycles] */

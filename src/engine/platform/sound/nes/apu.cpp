@@ -220,6 +220,7 @@ void apu_tick(struct NESAPU* a, int len) {
       square_output(a->S1, 0)
       a->S1.frequency = (a->S1.timer + 1) << 1;
       a->S1.sequencer = (a->S1.sequencer + 1) & 0x07;
+      a->oscBuf[0]->putSample(a->timestamp,a->muted[0]?0:(a->S1.output<<11));
     }
 
     // SQUARE 2 TICK
@@ -227,6 +228,7 @@ void apu_tick(struct NESAPU* a, int len) {
       square_output(a->S2, 0)
       a->S2.frequency = (a->S2.timer + 1) << 1;
       a->S2.sequencer = (a->S2.sequencer + 1) & 0x07;
+      a->oscBuf[1]->putSample(a->timestamp,a->muted[1]?0:(a->S2.output<<11));
     }
 
     // TRIANGLE TICK
@@ -235,6 +237,7 @@ void apu_tick(struct NESAPU* a, int len) {
       if (a->TR.length.value && a->TR.linear.value) {
         a->TR.sequencer = (a->TR.sequencer + 1) & 0x1F;
         triangle_output()
+        a->oscBuf[2]->putSample(a->timestamp,a->muted[2]?0:(a->TR.output<<11));
       }
     }
 
@@ -248,6 +251,7 @@ void apu_tick(struct NESAPU* a, int len) {
       a->NS.shift &= 0x7FFF;
       noise_output()
       a->NS.frequency = noise_timer[a->apu.type][a->NS.timer];
+      a->oscBuf[3]->putSample(a->timestamp,a->muted[3]?0:(a->NS.output<<11));
     }
 
     // DMC TICK
@@ -276,6 +280,7 @@ void apu_tick(struct NESAPU* a, int len) {
         }
       }
       a->DMC.frequency = dmc_rate[a->apu.type][a->DMC.rate_index];
+      a->oscBuf[4]->putSample(a->timestamp,a->muted[4]?0:(a->DMC.output<<8));
     }
     if (a->DMC.empty && a->DMC.remain) {
       BYTE tick = 4;
@@ -324,12 +329,6 @@ void apu_tick(struct NESAPU* a, int len) {
       blip_add_delta(a->bb,a->timestamp,sample-a->lastSample);
       a->lastSample=sample;
     }
-    // output chan osc
-    a->S1.oscBuf->putSample(a->timestamp,a->muted[0]?0:(a->S1.output<<11));
-    a->S2.oscBuf->putSample(a->timestamp,a->muted[1]?0:(a->S2.output<<11));
-    a->TR.oscBuf->putSample(a->timestamp,a->muted[2]?0:(a->TR.output<<11));
-    a->NS.oscBuf->putSample(a->timestamp,a->muted[3]?0:(a->NS.output<<11));
-    a->DMC.oscBuf->putSample(a->timestamp,a->muted[4]?0:(a->DMC.output<<8));
     
     rem-=advance;
     a->timestamp++;

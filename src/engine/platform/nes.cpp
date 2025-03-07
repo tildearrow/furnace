@@ -108,15 +108,11 @@ void DivPlatformNES::doWrite(int ts, unsigned short addr, unsigned char data) {
 void DivPlatformNES::acquire_puNES(blip_buffer_t** bb, size_t len) {
   for (int i=0; i<5; i++) {
     oscBuf[i]->begin(len);
+    nes->oscBuf[i]=oscBuf[i];
   }
 
   nes->timestamp=0;
   nes->bb=bb[0];
-  nes->S1.oscBuf=oscBuf[0];
-  nes->S2.oscBuf=oscBuf[1];
-  nes->TR.oscBuf=oscBuf[2];
-  nes->NS.oscBuf=oscBuf[3];
-  nes->DMC.oscBuf=oscBuf[4];
 
   for (size_t i=0; i<len; i++) {
     // heuristic

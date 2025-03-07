@@ -202,6 +202,7 @@ INLINE static void apu_wr_reg(struct NESAPU* a, int ts, WORD address, BYTE value
         } else {
           a->DMC.counter = a->DMC.output = value;
         }
+        a->oscBuf[4]->putSample(a->timestamp,a->muted[4]?0:(a->DMC.output<<8));
 
         a->r4011.cycles = a->r4011.frames = 0;
         a->r4011.value = value;
