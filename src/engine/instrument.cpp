@@ -1131,6 +1131,56 @@ void DivInstrument::writeFeatureS3(SafeWriter* w) {
   FEATURE_END;
 }
 
+void DivInstrument::writeFeatureXA(SafeWriter* w) {
+  FEATURE_BEGIN("XA");
+  for (auto const i : this->std.xattrs) {
+    w->writeString(i.name, false);
+    w->writeC(i.type);
+    switch (i.type) {
+      case DIV_XATTR_STRING:
+      w->writeString(i.str_val, false);
+      break;
+      case DIV_XATTR_UINT: {
+        unsigned int value = i.uint_val;
+        unsigned char vlq_byte = 0;
+
+        while (value) {
+          vlq_byte = value & 0x7F;
+          value >>= 7;
+          vlq_byte |= (value != 0) << 7;
+          w->writeC(vlq_byte);
+        }
+        break;
+      }
+      case DIV_XATTR_INT: {
+        unsigned int value = i.uint_val;
+        unsigned char vlq_byte = 0;
+
+        // write initial VLQ byte (which contains sign bit)
+        if (i.int_val < 0) {
+          value = -value;
+          vlq_byte |= 0x40;
+        }
+
+        vlq_byte |= value & 0x3F;
+        value >>= 6;
+        vlq_byte |= (value != 0) << 7;
+        w->writeC(vlq_byte);
+
+        while (value) {
+          vlq_byte = value & 0x7F;
+          value >>= 7;
+          vlq_byte |= (value != 0) << 7;
+          w->writeC(vlq_byte);
+        }
+        break;
+      }
+    }
+  }
+  // a empty string, as feature termination
+  w->writeC(0);
+  FEATURE_END;
+}
 void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bool insName) {
   size_t blockStartSeek=0;
   size_t blockEndSeek=0;
@@ -1178,6 +1228,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   bool featurePN=false;
   bool featureS2=false;
   bool featureS3=false;
+  bool featureXA=false;
 
   bool checkForWL=false;
 
@@ -1575,6 +1626,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
   }
 
+  if (!std.xattrs.empty()) {
+    featureXA = true;
+  }
   // write features
   if (featureNA) {
     writeFeatureNA(w);
@@ -1646,6 +1700,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   }
   if (featureS3) {
     writeFeatureS3(w);
+  }
+  if (featureXA) {
+    writeFeatureXA(w);
   }
 
   if (fui && (featureSL || featureWL)) {
@@ -2597,19 +2654,39 @@ void DivInstrument::readFeatureXA(SafeReader& reader, short version) {
       case DIV_XATTR_STRING:
       xattr.str_val=reader.readString();
       break;
-      case DIV_XATTR_UINT:
+      case DIV_XATTR_UINT: {
+        unsigned char byte=0;
+        unsigned int shift_count=0;
+        do {
+          byte = reader.readC();
+          xattr.uint_val |= (byte & 0x7F) << shift_count;
+          shift_count += 7;
+        } while (byte & 0x80);
+        break;
+      }
       case DIV_XATTR_INT: {
         unsigned char byte=reader.readC();
+        unsigned char sign_bit=0;
+        unsigned int shift_count=6;
 
-        do {
-          xattr.int_val <<= 7;
-          xattr.int_val |= byte & 0x7F;
-          byte = reader.readC();
-        } while (byte & 0x80);
+        sign_bit = byte & 0x40;
+        xattr.uint_val |= byte & 0x3F;
+        while (byte & 0x80) {
+          byte=reader.readC();
+          xattr.uint_val |= (byte & 0x7F) << shift_count;
+          shift_count += 7;
+        }
+
+        // if the sign bit is on in the first byte of the VLQ encoded integer,
+        // negate the integer
+        if (sign_bit) {
+          xattr.int_val = -xattr.int_val;
+        }
         break;
       }
     }
     std.xattrs.push_back(xattr);
+    xattr = DivInstrumentXattr();
   }
   READ_FEAT_END;
 }
