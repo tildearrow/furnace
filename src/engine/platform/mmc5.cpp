@@ -405,6 +405,7 @@ float DivPlatformMMC5::getPostAmp() {
 }
 
 void DivPlatformMMC5::reset() {
+  while (!writes.empty()) writes.pop();
   for (int i=0; i<3; i++) {
     chan[i]=DivPlatformMMC5::Channel();
     chan[i].std.setEngine(parent);
