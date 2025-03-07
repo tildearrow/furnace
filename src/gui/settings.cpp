@@ -2127,7 +2127,6 @@ void FurnaceGUI::drawSettings() {
           CORE_QUALITY("SAA1099",saaQuality,saaQualityRender);
           CORE_QUALITY("SID (dSID)",dsidQuality,dsidQualityRender);
           CORE_QUALITY("SM8521",smQuality,smQualityRender);
-          CORE_QUALITY("Virtual Boy",vbQuality,vbQualityRender);
           CORE_QUALITY("WonderSwan",swanQuality,swanQualityRender);
 
           ImGui::EndTable();
@@ -5137,7 +5136,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.saaQuality=conf.getInt("saaQuality",3);
     settings.smQuality=conf.getInt("smQuality",3);
     settings.swanQuality=conf.getInt("swanQuality",3);
-    settings.vbQuality=conf.getInt("vbQuality",3);
 
     settings.arcadeCoreRender=conf.getInt("arcadeCoreRender",1);
     settings.ym2612CoreRender=conf.getInt("ym2612CoreRender",0);
@@ -5164,7 +5162,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.saaQualityRender=conf.getInt("saaQualityRender",3);
     settings.smQualityRender=conf.getInt("smQualityRender",3);
     settings.swanQualityRender=conf.getInt("swanQualityRender",3);
-    settings.vbQualityRender=conf.getInt("vbQualityRender",3);
 
     settings.pcSpeakerOutMethod=conf.getInt("pcSpeakerOutMethod",0);
 
@@ -5207,7 +5204,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.saaQuality,0,5);
   clampSetting(settings.smQuality,0,5);
   clampSetting(settings.swanQuality,0,5);
-  clampSetting(settings.vbQuality,0,5);
   clampSetting(settings.arcadeCoreRender,0,1);
   clampSetting(settings.ym2612CoreRender,0,2);
   clampSetting(settings.snCoreRender,0,1);
@@ -5232,7 +5228,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.saaQualityRender,0,5);
   clampSetting(settings.smQualityRender,0,5);
   clampSetting(settings.swanQualityRender,0,5);
-  clampSetting(settings.vbQualityRender,0,5);
   clampSetting(settings.pcSpeakerOutMethod,0,4);
   clampSetting(settings.mainFont,0,6);
   clampSetting(settings.patFont,0,6);
@@ -5731,7 +5726,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("saaQuality",settings.saaQuality);
     conf.set("smQuality",settings.smQuality);
     conf.set("swanQuality",settings.swanQuality);
-    conf.set("vbQuality",settings.vbQuality);
 
     conf.set("arcadeCoreRender",settings.arcadeCoreRender);
     conf.set("ym2612CoreRender",settings.ym2612CoreRender);
@@ -5758,7 +5752,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("saaQualityRender",settings.saaQualityRender);
     conf.set("smQualityRender",settings.smQualityRender);
     conf.set("swanQualityRender",settings.swanQualityRender);
-    conf.set("vbQualityRender",settings.vbQualityRender);
 
     conf.set("pcSpeakerOutMethod",settings.pcSpeakerOutMethod);
 
@@ -5819,7 +5812,6 @@ void FurnaceGUI::commitSettings() {
     settings.saaQuality!=e->getConfInt("saaQuality",3) ||
     settings.smQuality!=e->getConfInt("smQuality",3) ||
     settings.swanQuality!=e->getConfInt("swanQuality",3) ||
-    settings.vbQuality!=e->getConfInt("vbQuality",3) ||
     settings.audioQuality!=e->getConfInt("audioQuality",0) ||
     settings.audioHiPass!=e->getConfInt("audioHiPass",1)
   );
