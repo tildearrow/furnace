@@ -18,10 +18,6 @@ void vrcvi_core::tick()
     m_out += m_pulse[1].get_output();
 		m_out += m_sawtooth.get_output();  // add 5 bit sawtooth output
 	}
-	if (m_timer.tick())
-	{
-		m_timer.counter_tick();
-	}
 }
 
 void vrcvi_core::reset()
