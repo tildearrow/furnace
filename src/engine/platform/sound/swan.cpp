@@ -49,27 +49,29 @@
    }
 
 
-#define SYNCSAMPLE(wt)	/* \
+#define SYNCSAMPLE(wt)	\
    {	\
-    int32_t left = sample_cache[ch][0], right = sample_cache[ch][1];	\
-    WaveSynth.offset_inline(wt, left - last_val[ch][0], sbuf[0]);	\
-    WaveSynth.offset_inline(wt, right - last_val[ch][1], sbuf[1]);	\
-    last_val[ch][0] = left;	\
-    last_val[ch][1] = right;	\
-   } */
+    int32_t left = sample_cache[ch][0] << 5, right = sample_cache[ch][1] << 5;	\
+    if (left!=last_val[ch][0]) { \
+      blip_add_delta(sbuf[0], wt, left - last_val[ch][0]);	\
+      last_val[ch][0] = left;	\
+    } \
+    if (right!=last_val[ch][1]) { \
+      blip_add_delta(sbuf[1], wt, right - last_val[ch][1]);	\
+      last_val[ch][1] = right;	\
+    } \
+    oscBuf[ch]->putSample(wt,(left+right)<<1); \
+   }
 
 #define SYNCSAMPLE_NOISE(wt) SYNCSAMPLE(wt)
 
-void WSwan::SoundUpdate(uint32_t v30mz_timestamp)
+void WSwan::SoundUpdate(void)
 {
  int32_t run_time;
 
  //printf("%d\n", v30mz_timestamp);
  //printf("%02x %02x\n", control, noise_control);
  run_time = v30mz_timestamp - last_ts;
-
- for(int y = 0; y < 2; y++)
-  sbuf[y] = 0;
 
  for(unsigned int ch = 0; ch < 4; ch++)
  {
@@ -85,6 +87,7 @@ void WSwan::SoundUpdate(uint32_t v30mz_timestamp)
   else if(ch == 2 && (control & 0x40) && sweep_value) // Sweep
   {
    uint32_t tmp_pt = 2048 - period[ch];
+   uint32_t meow_timestamp = v30mz_timestamp - run_time;
    uint32_t tmp_run_time = run_time;
 
    while(tmp_run_time)
@@ -106,6 +109,7 @@ void WSwan::SoundUpdate(uint32_t v30mz_timestamp)
      }
     }
 
+    meow_timestamp += sub_run_time;
     if(tmp_pt > 4)
     {
      period_counter[ch] -= sub_run_time;
@@ -114,6 +118,7 @@ void WSwan::SoundUpdate(uint32_t v30mz_timestamp)
       sample_pos[ch] = (sample_pos[ch] + 1) & 0x1F;
 
       MK_SAMPLE_CACHE;
+      SYNCSAMPLE(meow_timestamp + period_counter[ch]);
       period_counter[ch] += tmp_pt;
      }
     }
@@ -162,8 +167,6 @@ void WSwan::SoundUpdate(uint32_t v30mz_timestamp)
     }
    }
   }
-  sbuf[0] += sample_cache[ch][0];
-  sbuf[1] += sample_cache[ch][1];
  }
 
  if(HVoiceCtrl & 0x80)
@@ -181,21 +184,25 @@ void WSwan::SoundUpdate(uint32_t v30mz_timestamp)
   sample >>= 5;
 
   int32_t left, right;
-  left  = (HVoiceChanCtrl & 0x40) ? sample : 0;
-  right = (HVoiceChanCtrl & 0x20) ? sample : 0;
+  left  = (HVoiceChanCtrl & 0x40) ? (sample << 5) : 0;
+  right = (HVoiceChanCtrl & 0x20) ? (sample << 5) : 0;
 
-  // WaveSynth.offset_inline(v30mz_timestamp, left - last_hv_val[0], sbuf[0]);
-  // WaveSynth.offset_inline(v30mz_timestamp, right - last_hv_val[1], sbuf[1]);
-  // last_hv_val[0] = left;
-  // last_hv_val[1] = right;
-  sbuf[0] += left;
-  sbuf[1] += right;
+  if (left!=last_hv_val[0]) {
+    blip_add_delta(sbuf[0], v30mz_timestamp, left - last_hv_val[0]);
+    last_hv_val[0] = left;
+  }
+  if (right!=last_hv_val[1]) {
+    blip_add_delta(sbuf[1], v30mz_timestamp, right - last_hv_val[1]);
+    last_hv_val[1] = right;
+  }
  }
  last_ts = v30mz_timestamp;
 }
 
 void WSwan::SoundWrite(uint32_t A, uint8_t V)
 {
+ SoundUpdate();
+
  if(A >= 0x80 && A <= 0x87)
  {
   int ch = (A - 0x80) >> 1;
@@ -262,10 +269,13 @@ void WSwan::SoundWrite(uint32_t A, uint8_t V)
   case 0x95: HyperVoice = V; break; // Pick a port, any port?!
   //default: printf("%04x:%02x\n", A, V); break;
  }
+ SoundUpdate();
 }
 
 uint8_t WSwan::SoundRead(uint32_t A)
 {
+ SoundUpdate();
+
  if(A >= 0x80 && A <= 0x87)
  {
   int ch = (A - 0x80) >> 1;
@@ -303,22 +313,8 @@ int32_t WSwan::SoundFlush(int16_t *SoundBuf, const int32_t MaxSoundFrames)
 {
 	int32_t FrameCount = 0;
 
-	if(SoundBuf)
-	{
-	 for(int y = 0; y < 2; y++)
-	 {
-	  // sbuf[y]->end_frame(v30mz_timestamp);
-	  // FrameCount = sbuf[y]->read_samples(SoundBuf + y, MaxSoundFrames, true);
-	  int32_t left = sbuf[0];
-	  int32_t right = sbuf[1];
-	  if (left >= 0x400) left = 0x3FF;
-	  else if (left < -0x400) left = -0x400;
-	  if (right >= 0x400) left = 0x3FF;
-	  else if (right < -0x400) left = -0x400;
-	  SoundBuf[0] = (int16_t)left << 5;
-	  SoundBuf[1] = (int16_t)right << 5;
-	 }
-	}
+	SoundUpdate();
+
 
 	last_ts = 0;
 
@@ -326,51 +322,11 @@ int32_t WSwan::SoundFlush(int16_t *SoundBuf, const int32_t MaxSoundFrames)
 }
 
 // Call before wsRAM is updated
-// void WSwan::SoundCheckRAMWrite(uint32_t A)
-// {
-//  if((A >> 6) == SampleRAMPos)
-//   SoundUpdate();
-// }
-
-// static void RedoVolume(void)
-// {
-//  WaveSynth.volume(2.5);
-// }
-
-// void WSwan::SoundInit(void)
-// {
-//  for(int i = 0; i < 2; i++)
-//  {
-//   sbuf[i] = new Blip_Buffer();
-
-//   sbuf[i]->set_sample_rate(0 ? 0 : 44100, 60);
-//   sbuf[i]->clock_rate((long)(3072000));
-//   sbuf[i]->bass_freq(20);
-//  }
-
-//  RedoVolume();
-// }
-
-// void WSwan::SoundKill(void)
-// {
-//  for(int i = 0; i < 2; i++)
-//  {
-//   if(sbuf[i])
-//   {
-//    delete sbuf[i];
-//    sbuf[i] = NULL;
-//   }
-//  }
-
-// }
-
-// bool WSwan::SetSoundRate(uint32_t rate)
-// {
-//  for(int i = 0; i < 2; i++)
-//   sbuf[i]->set_sample_rate(rate?rate:44100, 60);
-
-//  return(true);
-// }
+void WSwan::SoundCheckRAMWrite(uint32_t A)
+{
+ if((A >> 6) == SampleRAMPos)
+  SoundUpdate();
+}
 
 void WSwan::SoundReset(void)
 {
@@ -394,7 +350,7 @@ void WSwan::SoundReset(void)
  nreg = 0;
 
  memset(sample_cache, 0, sizeof(sample_cache));
- // memset(last_val, 0, sizeof(last_val));
+ memset(last_val, 0, sizeof(last_val));
  last_v_val = 0;
 
  HyperVoice = 0;
@@ -402,8 +358,6 @@ void WSwan::SoundReset(void)
  HVoiceCtrl = 0;
  HVoiceChanCtrl = 0;
 
- for(int y = 0; y < 2; y++)
-  // sbuf[y]->clear();
-  sbuf[y] = 0;
  last_ts = 0;
+ v30mz_timestamp = 0;
 }

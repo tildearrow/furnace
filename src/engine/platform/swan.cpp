@@ -53,16 +53,36 @@ const char** DivPlatformSwan::getRegisterSheet() {
   return regCheatSheetWS;
 }
 
-void DivPlatformSwan::acquire(short** buf, size_t len) {
+void DivPlatformSwan::acquireDirect(blip_buffer_t** bb, size_t len) {
   for (int i=0; i<4; i++) {
     oscBuf[i]->begin(len);
+    ws->oscBuf[i]=oscBuf[i];
   }
 
+  ws->sbuf[0]=bb[0];
+  ws->sbuf[1]=bb[1];
+
   for (size_t h=0; h<len; h++) {
+    ws->v30mz_timestamp=h;
+    // heuristic
+    int pcmAdvance=1;
+    if (writes.empty()) {
+      if (!pcm || dacSample==-1) {
+        break;
+      } else {
+        pcmAdvance=len-h;
+        if (dacRate>0) {
+          int remainTime=(rate-dacPeriod+dacRate-1)/dacRate;
+          if (remainTime<pcmAdvance) pcmAdvance=remainTime;
+          if (remainTime<1) pcmAdvance=1;
+        }
+      }
+    }
+
     // PCM part
     if (pcm && dacSample!=-1) {
-      dacPeriod+=dacRate;
-      while (dacPeriod>rate) {
+      dacPeriod+=dacRate*pcmAdvance;
+      while (dacPeriod>=rate) {
         DivSample* s=parent->getSample(dacSample);
         if (s->samples<=0 || dacPos>=s->samples) {
           dacSample=-1;
@@ -78,24 +98,26 @@ void DivPlatformSwan::acquire(short** buf, size_t len) {
         dacPeriod-=rate;
       }
     }
+
+    h+=pcmAdvance-1;
   
     // the rest
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
       regPool[w.addr]=w.val;
-      if (w.addr<0x40) ws->SoundWrite(w.addr|0x80,w.val);
-      else ws->RAMWrite(w.addr&0x3f,w.val);
+      if (w.addr<0x40) {
+        ws->SoundWrite(w.addr|0x80,w.val);
+      } else {
+        ws->SoundCheckRAMWrite(w.addr&0x3f);
+        ws->RAMWrite(w.addr&0x3f,w.val);
+      }
       writes.pop();
     }
-    int16_t samp[2]{0, 0};
-    ws->SoundUpdate(coreQuality);
-    ws->SoundFlush(samp,1);
-    buf[0][h]=samp[0];
-    buf[1][h]=samp[1];
-    for (int i=0; i<4; i++) {
-      oscBuf[i]->putSample(h,(ws->sample_cache[i][0]+ws->sample_cache[i][1])<<6);
-    }
   }
+
+  ws->v30mz_timestamp=len;
+  ws->SoundUpdate();
+  ws->SoundFlush(NULL,0);
 
   for (int i=0; i<4; i++) {
     oscBuf[i]->end(len);
@@ -587,6 +609,10 @@ int DivPlatformSwan::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformSwan::hasAcquireDirect() {
+  return true;
+}
+
 void DivPlatformSwan::notifyWaveChange(int wave) {
   for (int i=0; i<4; i++) {
     if (chan[i].wave==wave) {
@@ -613,35 +639,9 @@ void DivPlatformSwan::poke(std::vector<DivRegWrite>& wlist) {
 void DivPlatformSwan::setFlags(const DivConfig& flags) {
   chipClock=3072000;
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/coreQuality;
+  rate=chipClock;
   for (int i=0; i<4; i++) {
     oscBuf[i]->setRate(rate);
-  }
-}
-
-void DivPlatformSwan::setCoreQuality(unsigned char q) {
-  switch (q) {
-    case 0:
-      coreQuality=96;
-      break;
-    case 1:
-      coreQuality=64;
-      break;
-    case 2:
-      coreQuality=32;
-      break;
-    case 3:
-      coreQuality=16;
-      break;
-    case 4:
-      coreQuality=4;
-      break;
-    case 5:
-      coreQuality=1;
-      break;
-    default:
-      coreQuality=16;
-      break;
   }
 }
 

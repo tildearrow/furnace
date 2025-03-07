@@ -620,11 +620,6 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_SWAN:
       dispatch=new DivPlatformSwan;
-      if (isRender) {
-        ((DivPlatformSwan*)dispatch)->setCoreQuality(eng->getConfInt("swanQualityRender",3));
-      } else {
-        ((DivPlatformSwan*)dispatch)->setCoreQuality(eng->getConfInt("swanQuality",3));
-      }
       break;
     case DIV_SYSTEM_T6W28:
       dispatch=new DivPlatformT6W28;
