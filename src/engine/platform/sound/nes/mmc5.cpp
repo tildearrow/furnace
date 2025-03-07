@@ -24,7 +24,6 @@ enum { MODE0, MODE1, MODE2, MODE3 };
 enum { CHR_S, CHR_B };
 enum { SPLIT_LEFT, SPLIT_RIGHT = 0x40 };
 
-const BYTE filler_attrib[4] = {0x00, 0x55, 0xAA, 0xFF};
 BYTE prg_ram_mode;
 
 void map_init_MMC5(struct _mmc5* mmc5) {
