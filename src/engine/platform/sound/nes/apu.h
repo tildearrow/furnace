@@ -211,7 +211,11 @@ enum apu_mode { APU_60HZ, APU_48HZ };
   square.sweep.negate = value & 0x08
 #define square_reg2(square)\
   /* timer (low 8 bits) */\
-  square.timer = (square.timer & 0x0700) | value
+  square.timer = (square.timer & 0x0700) | value;\
+  if (!square.firstTime) {\
+    square.frequency=1;\
+    square.firstTime=1;\
+  }
 #define square_reg3(square,length_clocked)\
   /* length counter */\
   /*\
@@ -232,7 +236,11 @@ enum apu_mode { APU_60HZ, APU_48HZ };
   /*The correct behaviour is to reset the duty cycle sequencers but not the clock dividers*/\
   /*square.frequency = 1;*/\
   /* sequencer */\
-  square.sequencer = 0
+  square.sequencer = 0;\
+  if (!square.firstTime) {\
+    square.frequency=1;\
+    square.firstTime=1;\
+  }
 #define init_nla_table(p, t)\
 {\
   WORD i;\
@@ -328,6 +336,8 @@ typedef struct _apuSquare {
   DBWORD timer;
   /* ogni quanti cicli devo generare un output */
   WORD frequency;
+  /* optimization */
+  BYTE firstTime;
   /* duty */
   BYTE duty;
   /* envelope */
@@ -354,6 +364,8 @@ typedef struct _apuTriangle {
   _length_counter length;
   /* sequencer */
   BYTE sequencer;
+  /* optimization */
+  BYTE firstTime;
   /* output */
   SWORD output;
 } _apuTriangle;
@@ -374,6 +386,8 @@ typedef struct _apuNoise {
   _length_counter length;
   /* sequencer */
   BYTE sequencer;
+  /* optimization */
+  BYTE firstTime;
   /* output */
   SWORD output;
 } _apuNoise;

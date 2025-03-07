@@ -105,6 +105,10 @@ INLINE static void apu_wr_reg(struct NESAPU* a, int ts, WORD address, BYTE value
       if (address == 0x400A) {
         /* timer (low 8 bits) */
         a->TR.timer = (a->TR.timer & 0x0700) | value;
+        if (!a->TR.firstTime) {
+          a->TR.firstTime=1;
+          a->TR.frequency=1;
+        }
         return;
       }
       if (address == 0x400B) {
@@ -127,6 +131,10 @@ INLINE static void apu_wr_reg(struct NESAPU* a, int ts, WORD address, BYTE value
          * automaticamente l'halt flag del triangle.
          */
         a->TR.linear.halt = TRUE;
+        if (!a->TR.firstTime) {
+          a->TR.firstTime=1;
+          a->TR.frequency=1;
+        }
         return;
       }
       return;
@@ -143,6 +151,10 @@ INLINE static void apu_wr_reg(struct NESAPU* a, int ts, WORD address, BYTE value
       if (address == 0x400E) {
         a->NS.mode = value & 0x80;
         a->NS.timer = value & 0x0F;
+        if (!a->NS.firstTime) {
+          a->NS.firstTime=1;
+          a->NS.frequency=1;
+        }
         return;
       }
       if (address == 0x400F) {
