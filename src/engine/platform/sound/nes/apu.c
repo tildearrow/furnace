@@ -371,4 +371,10 @@ void apu_turn_on(struct NESAPU* a, BYTE apu_type) {
   // come non viene inizializzato? Vorrei qualche spiegazione...
   a->r4011.frames = 0;
   a->lastSample = 0;
+
+  a->S1.timer=2048;
+  a->S2.timer=2048;
+  a->TR.timer=2048;
+  a->NS.timer=0x0FE4;
+  //a->DMC.=0x01AC;
 }
