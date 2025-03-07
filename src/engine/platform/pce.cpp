@@ -79,7 +79,7 @@ void DivPlatformPCE::acquireDirect(blip_buffer_t** bb, size_t len) {
   for (size_t h=0; h<len;) {
     int advance=len-h;
     // heuristic
-    int remainTime=9;
+    int remainTime=0;
     for (int i=0; i<6; i++) {
       if (chan[i].pcm && chan[i].dacSample!=-1) {
         if (chan[i].dacRate<=0) continue;
