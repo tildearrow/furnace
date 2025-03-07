@@ -631,11 +631,6 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_VBOY:
       dispatch=new DivPlatformVB;
-      if (isRender) {
-        ((DivPlatformVB*)dispatch)->setCoreQuality(eng->getConfInt("vbQualityRender",3));
-      } else {
-        ((DivPlatformVB*)dispatch)->setCoreQuality(eng->getConfInt("vbQuality",3));
-      }
       break;
     case DIV_SYSTEM_VERA:
       dispatch=new DivPlatformVERA;

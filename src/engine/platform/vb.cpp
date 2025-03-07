@@ -93,37 +93,26 @@ const char** DivPlatformVB::getRegisterSheet() {
   return regCheatSheetVB;
 }
 
-void DivPlatformVB::acquire(short** buf, size_t len) {
+void DivPlatformVB::acquireDirect(blip_buffer_t** bb, size_t len) {
   for (int i=0; i<6; i++) {
     oscBuf[i]->begin(len);
+    vb->oscBuf[i]=oscBuf[i];
   }
+
+  vb->bb[0]=bb[0];
+  vb->bb[1]=bb[1];
 
   for (size_t h=0; h<len; h++) {
-    cycles=0;
     if (!writes.empty()) {
       QueuedWrite w=writes.front();
-      vb->Write(cycles,w.addr,w.val);
+      vb->Write(h,w.addr,w.val);
       regPool[w.addr>>2]=w.val;
       writes.pop();
+    } else {
+      break;
     }
-    vb->EndFrame(coreQuality);
-
-    tempL=0;
-    tempR=0;
-    for (int i=0; i<6; i++) {
-      oscBuf[i]->putSample(h,(vb->last_output[i][0]+vb->last_output[i][1])*8);
-      tempL+=vb->last_output[i][0];
-      tempR+=vb->last_output[i][1];
-    }
-
-    if (tempL<-32768) tempL=-32768;
-    if (tempL>32767) tempL=32767;
-    if (tempR<-32768) tempR=-32768;
-    if (tempR>32767) tempR=32767;
-    
-    buf[0][h]=tempL;
-    buf[1][h]=tempR;
   }
+  vb->EndFrame(len);
 
   for (int i=0; i<6; i++) {
     oscBuf[i]->end(len);
@@ -519,7 +508,6 @@ void DivPlatformVB::reset() {
   vb->Power();
   tempL=0;
   tempR=0;
-  cycles=0;
   curChan=-1;
   modulation=0;
   modType=false;
@@ -545,6 +533,10 @@ int DivPlatformVB::getOutputCount() {
 }
 
 bool DivPlatformVB::keyOffAffectsArp(int ch) {
+  return true;
+}
+
+bool DivPlatformVB::hasAcquireDirect() {
   return true;
 }
 
@@ -592,7 +584,7 @@ void DivPlatformVB::notifyInsDeletion(void* ins) {
 void DivPlatformVB::setFlags(const DivConfig& flags) {
   chipClock=5000000.0;
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/coreQuality;
+  rate=chipClock;
   for (int i=0; i<6; i++) {
     oscBuf[i]->setRate(rate);
   }
@@ -614,32 +606,6 @@ void DivPlatformVB::poke(unsigned int addr, unsigned short val) {
 
 void DivPlatformVB::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
-}
-
-void DivPlatformVB::setCoreQuality(unsigned char q) {
-  switch (q) {
-    case 0:
-      coreQuality=128;
-      break;
-    case 1:
-      coreQuality=64;
-      break;
-    case 2:
-      coreQuality=32;
-      break;
-    case 3:
-      coreQuality=16;
-      break;
-    case 4:
-      coreQuality=4;
-      break;
-    case 5:
-      coreQuality=1;
-      break;
-    default:
-      coreQuality=16;
-      break;
-  }
 }
 
 int DivPlatformVB::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

@@ -44,14 +44,6 @@ VSU::~VSU()
 
 void VSU::SetSoundRate(double rate)
 {
-  /*
- for(int y = 0; y < 2; y++)
- {
-  sbuf[y].set_sample_rate(rate ? rate : 44100, 50);
-  sbuf[y].clock_rate((long)(VB_MASTER_CLOCK / 4));
-  sbuf[y].bass_freq(20);
- }
- */
 }
 
 void VSU::Power(void)
@@ -106,7 +98,7 @@ void VSU::Write(int timestamp, unsigned int A, unsigned char V)
  //
  A &= 0x7FF;
 
- //Update(timestamp);
+ Update(timestamp);
 
  //printf("VSU Write: %d, %08x %02x\n", timestamp, A, V);
 
@@ -262,14 +254,19 @@ void VSU::Update(int timestamp)
  for(int ch = 0; ch < 6; ch++)
  {
   int clocks = timestamp - last_ts;
-  //int running_timestamp = last_ts;
+  int running_timestamp = last_ts;
 
   // Output sound here
   CalcCurrentOutput(ch, left, right);
-  /*Synth.offset_inline(running_timestamp, left - last_output[ch][0], &sbuf[0]);
-  Synth.offset_inline(running_timestamp, right - last_output[ch][1], &sbuf[1]);*/
-  last_output[ch][0] = left;
-  last_output[ch][1] = right;
+  if (left!=last_output[ch][0]) {
+    blip_add_delta(bb[0],running_timestamp,left - last_output[ch][0]);
+    last_output[ch][0] = left;
+  }
+  if (right!=last_output[ch][1]) {
+    blip_add_delta(bb[1],running_timestamp,right - last_output[ch][1]);
+    last_output[ch][1] = right;
+  }
+  oscBuf[ch]->putSample(running_timestamp,(left+right)*8);
 
   if(!(IntlControl[ch] & 0x80))
    continue;
@@ -430,16 +427,19 @@ void VSU::Update(int timestamp)
     } // end if(ch == 4)
    } // end while(EffectsClockDivider[ch] <= 0)
    clocks -= chunk_clocks;
-   //running_timestamp += chunk_clocks;
+   running_timestamp += chunk_clocks;
 
    // Output sound here too.
    CalcCurrentOutput(ch, left, right);
-   /*
-   Synth.offset_inline(running_timestamp, left - last_output[ch][0], &sbuf[0]);
-   Synth.offset_inline(running_timestamp, right - last_output[ch][1], &sbuf[1]);
-   */
-   last_output[ch][0] = left;
-   last_output[ch][1] = right;
+   if (left!=last_output[ch][0]) {
+     blip_add_delta(bb[0],running_timestamp,left - last_output[ch][0]);
+     last_output[ch][0] = left;
+   }
+   if (right!=last_output[ch][1]) {
+     blip_add_delta(bb[1],running_timestamp,right - last_output[ch][1]);
+     last_output[ch][1] = right;
+   }
+   oscBuf[ch]->putSample(running_timestamp,(left+right)*8);
   }
  }
  last_ts = timestamp;
@@ -452,17 +452,6 @@ int VSU::EndFrame(int timestamp)
 
  Update(timestamp);
  last_ts = 0;
-
- /*
- if(SoundBuf)
- {
-  for(int y = 0; y < 2; y++)
-  {
-   sbuf[y].end_frame(timestamp);
-   ret = sbuf[y].read_samples(SoundBuf + y, SoundBufMaxSize, 1);
-  }
- }
- */
 
  return ret;
 }
