@@ -54,6 +54,15 @@ namespace nds_sound_emu
 		m_routput = 0;
 	}
 
+  s32 nds_sound_t::predict() {
+    s32 ret=INT32_MAX;
+    for (u8 i = 0; i < 16; i++) {
+      const s32 next=m_channel[i].predict();
+      if (next<ret) ret=next;
+    }
+    return ret;
+  }
+
 	void nds_sound_t::tick(s32 cycle)
 	{
 		m_loutput = m_routput = (m_bias & 0x3ff);
@@ -327,6 +336,11 @@ namespace nds_sound_emu
 			m_routput = (m_output * rvol()) >> 7;
 		}
 	}
+
+  s32 nds_sound_t::channel_t::predict() {
+    if (!m_playing) return INT32_MAX;
+    return m_counter-m_freq;
+  }
 
 	void nds_sound_t::channel_t::fetch()
 	{

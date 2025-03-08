@@ -121,6 +121,7 @@ namespace nds_sound_emu
 
 			void reset();
 			void tick(s32 cycle);
+      s32 predict();
 
 			// host accesses
 			u32 read32(u32 addr);
@@ -205,6 +206,7 @@ namespace nds_sound_emu
 					void write(u32 offset, u32 data, u32 mask = ~0);
 
 					void update(s32 cycle);
+          s32 predict();
 
 					// getters
 					// control word
