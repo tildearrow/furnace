@@ -38,6 +38,7 @@ Tech info: https://problemkaputt.de/gbatek.htm
 */
 
 #include "nds.hpp"
+#include <stdlib.h>
 
 namespace nds_sound_emu
 {
