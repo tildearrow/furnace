@@ -1144,12 +1144,13 @@ void DivInstrument::writeFeatureXA(SafeWriter* w) {
         unsigned int value = i.uint_val;
         unsigned char vlq_byte = 0;
 
-        while (value) {
+        do {
           vlq_byte = value & 0x7F;
           value >>= 7;
           vlq_byte |= (value != 0) << 7;
           w->writeC(vlq_byte);
-        }
+        } while (value);
+
         break;
       }
       case DIV_XATTR_INT: {
