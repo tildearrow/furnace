@@ -159,6 +159,7 @@ the following feature codes are recognized:
 - `PN`: PowerNoise ins data
 - `S2`: SID2 ins data
 - `S3`: SID3 ins data
+- `XA`: extended attributes
 - `EN`: end of features
   - if you find this feature code, stop reading the instrument.
   - it will usually appear only when there are sample/wave lists.
@@ -770,3 +771,26 @@ size | description
   1  | resonance scaling level
   1  | resonance scaling center note: `0` is `c_5`, `1` is `c+5`, ..., `179` is `B-9` 
 ```
+
+# extended attributes (XA)
+
+for each attribute, up until a empty string (null byte only) is encountered for an attribute's name.
+```
+size | description
+-----|------------------------------------
+ STR | name
+  1  | attribute type
+     | - 0: string attribute
+     | - 1: unsigned integer attribute
+     | - 2: integer attribute
+     | - 3: floating-point attribute
+     | - 4: boolean attribute (false)
+     | - 5: boolean attribute (true)
+```
+
+if the attribute is a string, then a string is followed afterwards.
+if the attribute is an unsigned integer, the integer value encoded in LEB128 is followed afterwards.
+however, if the attribute is a integer, the first byte will only have 6 bits of data, the 7th bit in the first byte will be used as the sign bit of the whole integer.
+if the 7th bit in the first byte is on, the integer should be negated after decoding.
+if the attribute is a float, a 32-bit floating-point integer is followed afterwards.
+boolean attributes have their value encoded in the type itself.
