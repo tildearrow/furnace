@@ -1133,8 +1133,13 @@ void DivInstrument::writeFeatureS3(SafeWriter* w) {
 
 void DivInstrument::writeFeatureXA(SafeWriter* w) {
   FEATURE_BEGIN("XA");
-  for (auto const i : this->std.xattrs) {
+  for (auto const &i : this->std.xattrs) {
     w->writeString(i.name, false);
+    if ((i.type & ~1) == DIV_XATTR_BOOLEAN) {
+      // handle boolean data type here
+      w->writeC(i.type | i.bool_val);
+      continue;
+    }
     w->writeC(i.type);
     switch (i.type) {
       case DIV_XATTR_STRING:
@@ -1176,6 +1181,12 @@ void DivInstrument::writeFeatureXA(SafeWriter* w) {
         }
         break;
       }
+      case DIV_XATTR_FLOAT32:
+      w->writeF(i.float_val);
+      break;
+      default:
+      // this should be unreachable
+      break;
     }
   }
   // a empty string, as feature termination
@@ -2650,6 +2661,13 @@ void DivInstrument::readFeatureXA(SafeReader& reader, short version) {
       break;
     }
     xattr.type=(DivXattrType)reader.readC();
+    if ((xattr.type & ~1) == DIV_XATTR_BOOLEAN) {
+      xattr.bool_val = xattr.type & 1;
+      xattr.type = DIV_XATTR_BOOLEAN;
+      std.xattrs.push_back(xattr);
+      xattr = DivInstrumentXattr();
+      continue;
+    }
 
     switch (xattr.type) {
       case DIV_XATTR_STRING:
@@ -2685,6 +2703,12 @@ void DivInstrument::readFeatureXA(SafeReader& reader, short version) {
         }
         break;
       }
+      case DIV_XATTR_FLOAT32:
+      xattr.float_val = reader.readF();
+      break;
+      default:
+      // this should be unreachable
+      break;
     }
     std.xattrs.push_back(xattr);
     xattr = DivInstrumentXattr();

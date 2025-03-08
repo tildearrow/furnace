@@ -153,7 +153,12 @@ enum DivMacroTypeOp: unsigned char {
 enum DivXattrType: unsigned char {
   DIV_XATTR_STRING,
   DIV_XATTR_UINT,
-  DIV_XATTR_INT
+  DIV_XATTR_INT,
+  DIV_XATTR_FLOAT32,
+
+  // the bool value is stored directly in the type
+  // as the least significant bit.
+  DIV_XATTR_BOOLEAN,
 };
 
 // FM operator structure:
@@ -304,6 +309,8 @@ struct DivInstrumentXattr {
   union {
     unsigned int uint_val;
     int int_val;
+    float float_val;
+    bool bool_val;
   };
 
   DivInstrumentXattr():

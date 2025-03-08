@@ -338,10 +338,12 @@ const char* sid3SpecialWaveforms[]={
   _N("Clipped Saw")
 };
 
-const char* xattrTypeNames[3] = {
+const char* xattrTypeNames[5] = {
   _N("String"),
   _N("Unsigned integer"),
-  _N("Integer")
+  _N("Integer"),
+  _N("Float"),
+  _N("Boolean"),
 };
 
 const bool opIsOutput[8][4]={
@@ -8679,6 +8681,14 @@ void FurnaceGUI::drawInsEdit() {
                   MARK_MODIFIED;
                   ins->std.xattrs[i].type = DIV_XATTR_INT;
                 }
+                if (ImGui::Selectable(_("Float"), ins->std.xattrs[i].type==DIV_XATTR_FLOAT32)) {
+                  MARK_MODIFIED;
+                  ins->std.xattrs[i].type = DIV_XATTR_FLOAT32;
+                }
+                if (ImGui::Selectable(_("Boolean"), ins->std.xattrs[i].type==DIV_XATTR_BOOLEAN)) {
+                  MARK_MODIFIED;
+                  ins->std.xattrs[i].type = DIV_XATTR_BOOLEAN;
+                }
                 ImGui::EndCombo();
               }
               ImGui::TableNextColumn();
@@ -8698,6 +8708,16 @@ void FurnaceGUI::drawInsEdit() {
                 break;
                 case DIV_XATTR_INT:
                 if (ImGui::InputInt("##AttrValue", &ins->std.xattrs[i].int_val)) {
+                  MARK_MODIFIED;
+                }
+                break;
+                case DIV_XATTR_FLOAT32:
+                if (ImGui::InputFloat("##AttrValue", &ins->std.xattrs[i].float_val)) {
+                  MARK_MODIFIED;
+                }
+                break;
+                case DIV_XATTR_BOOLEAN:
+                if (ImGui::Checkbox("##AttrValue", &ins->std.xattrs[i].bool_val)) {
                   MARK_MODIFIED;
                 }
                 break;
