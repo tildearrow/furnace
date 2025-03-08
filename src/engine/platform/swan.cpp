@@ -421,6 +421,17 @@ int DivPlatformSwan::dispatch(DivCommand c) {
         rWrite(0x0c,c.value&0xff);
       }
       break;
+    case DIV_CMD_WS_GLOBAL_SPEAKER_VOLUME:
+      if (c.value <= 1) {
+        rWrite(0x11,0x09|(3<<1));
+      } else if (c.value <= 3) {
+        rWrite(0x11,0x09|(2<<1));
+      } else if (c.value <= 7) {
+        rWrite(0x11,0x09|(1<<1));
+      } else {
+        rWrite(0x11,0x09|(0<<1));
+      }
+      break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_PERIODIC(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
@@ -631,7 +642,7 @@ void DivPlatformSwan::setFlags(const DivConfig& flags) {
   chipClock=3072000;
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/128;
-  stereo=flags.getBool("stereo",false);
+  stereo=flags.getBool("stereo",true);
   for (int i=0; i<4; i++) {
     oscBuf[i]->setRate(rate);
   }
