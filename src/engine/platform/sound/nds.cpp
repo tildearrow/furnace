@@ -408,7 +408,9 @@ namespace nds_sound_emu
           blip_add_delta(m_bb[1],i,m_routput-routput);
           m_routput=routput;
         }
-        m_oscBuf->putSample(i,(loutput+routput)>>1);
+        if (m_loutput!=loutput || m_routput!=routput) {
+          m_oscBuf->putSample(i,(loutput+routput)>>1);
+        }
       }
     }
     m_lastts = timestamp;
