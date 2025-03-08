@@ -123,7 +123,7 @@ class DivPlatformAY8930: public DivDispatch {
     short oldWrites[32];
     short pendingWrites[32];
 
-    void runDAC();
+    void runDAC(int advance);
     void checkWrites();
     void updateOutSel(bool immediate=false);
     void immWrite(unsigned char a, unsigned char v);

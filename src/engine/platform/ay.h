@@ -157,8 +157,8 @@ class DivPlatformAY8910: public DivDispatch {
     friend void putDispatchChan(void*,int,int);
   
   public:
-    void runDAC(int runRate=0);
-    void runTFX(int runRate=0);
+    void runDAC(int runRate=0, int advance=1);
+    void runTFX(int runRate=0, int advance=1);
     void setExtClockDiv(unsigned int eclk=COLOR_NTSC, unsigned char ediv=8);
     void acquire(short** buf, size_t len);
     void acquireDirect(blip_buffer_t** bb, size_t len);

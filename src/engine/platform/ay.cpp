@@ -113,15 +113,15 @@ const unsigned char dacLogTableAY[256]={
   15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15
 };
 
-void DivPlatformAY8910::runDAC(int runRate) {
+void DivPlatformAY8910::runDAC(int runRate, int advance) {
   if (runRate==0) runRate=dacRate;
   for (int i=0; i<3; i++) {
     if (chan[i].active && (chan[i].curPSGMode.val&8) && chan[i].dac.sample!=-1) {
-      chan[i].dac.period+=chan[i].dac.rate;
+      chan[i].dac.period+=chan[i].dac.rate*advance;
       bool end=false;
       bool changed=false;
       int prevOut=chan[i].dac.out;
-      while (chan[i].dac.period>runRate && !end) {
+      while (chan[i].dac.period>=runRate && !end) {
         DivSample* s=parent->getSample(chan[i].dac.sample);
         if (s->samples<=0 || chan[i].dac.pos<0 || chan[i].dac.pos>=(int)s->samples) {
           chan[i].dac.sample=-1;
@@ -155,14 +155,14 @@ void DivPlatformAY8910::runDAC(int runRate) {
   }
 }
 
-void DivPlatformAY8910::runTFX(int runRate) {
+void DivPlatformAY8910::runTFX(int runRate, int advance) {
   /*
   developer's note: if you are checking for intellivision
   make sure to add "&& selCore"
   because for some reason, the register remap doesn't work
   when the user uses AtomicSSG core
   */
-  float counterRatio=1.0;
+  float counterRatio=advance;
   if (runRate!=0) counterRatio=(double)rate/(double)runRate;
   int timerPeriod, output;
   for (int i=0; i<3; i++) {
@@ -255,59 +255,73 @@ void DivPlatformAY8910::acquire_mame(blip_buffer_t** bb, size_t len) {
     oscBuf[i]->begin(len);
   }
 
-  //logV("%d, %d, %d",ay->noise_enable(0),ay->noise_enable(1),ay->noise_enable(2));
-
   for (size_t i=0; i<len; i++) {
     int advance=len-i;
     bool careAboutEnv=false;
     bool careAboutNoise=false;
     // heuristic
-    for (int j=0; j<3; j++) {
-      // tone counter
-      if (!ay->tone_enable(j) && ay->m_tone[j].volume!=0) {
-        const int period=MAX(1,ay->m_tone[j].period)*(ay->m_step_mul<<1);
-        const int remain=(period-ay->m_tone[j].count)>>1;
-        if (remain<advance) {
-          advance=remain;
-        }
-      }
-
-      // count me in if I have noise enabled
-      if (!ay->noise_enable(j) && ay->m_tone[j].volume!=0) {
-        careAboutNoise=true;
-      }
-
-      // envelope check
-      if (ay->m_tone[j].volume&16) {
-        careAboutEnv=true;
-      }
-    }
-    // envelope
-    if (careAboutEnv) {
-      if (ay->m_envelope[0].holding==0) {
-        const int periodEnv=MAX(1,ay->m_envelope[0].period)*ay->m_env_step_mul;
-        const int remainEnv=periodEnv-ay->m_envelope[0].count;
-        if (remainEnv<advance) {
-          advance=remainEnv;
-        }
-      }
-    }
-    // noise
-    if (careAboutNoise) {
-      const int noisePeriod=((int)ay->noise_period())*ay->m_step_mul;
-      const int noiseRemain=noisePeriod-ay->m_count_noise;
-      if (noiseRemain<advance) {
-        advance=noiseRemain;
-      }
-    }
-
-    //runDAC();
-    //runTFX();
-
-    if (!writes.empty() || advance<1) {
-      //logV("must write, advance is 1");
+    if (!writes.empty()) {
       advance=1;
+    } else {
+      for (int j=0; j<3; j++) {
+        // tone counter
+        if (!ay->tone_enable(j) && ay->m_tone[j].volume!=0) {
+          const int period=MAX(1,ay->m_tone[j].period)*(ay->m_step_mul<<1);
+          const int remain=(period-ay->m_tone[j].count)>>1;
+          if (remain<advance) {
+            advance=remain;
+          }
+        }
+
+        // count me in if I have noise enabled
+        if (!ay->noise_enable(j) && ay->m_tone[j].volume!=0) {
+          careAboutNoise=true;
+        }
+
+        // envelope check
+        if (ay->m_tone[j].volume&16) {
+          careAboutEnv=true;
+        }
+
+        // DAC
+        if (chan[j].active && (chan[j].curPSGMode.val&8) && chan[j].dac.sample!=-1) {
+          if (chan[j].dac.rate<=0) continue;
+          const int remainTime=(rate-chan[j].dac.period+chan[j].dac.rate-1)/chan[j].dac.rate;
+          if (remainTime<advance) advance=remainTime;
+        }
+
+        // TFX
+        if (chan[j].active && (chan[j].curPSGMode.val&16) && !(chan[j].curPSGMode.val&8) && chan[j].tfx.mode!=-1) {
+          const int remainTime=chan[j].tfx.period-chan[j].tfx.counter;
+          if (remainTime<advance) advance=remainTime;
+        }
+
+        if (advance<=1) break;
+      }
+      // envelope
+      if (careAboutEnv) {
+        if (ay->m_envelope[0].holding==0) {
+          const int periodEnv=MAX(1,ay->m_envelope[0].period)*ay->m_env_step_mul;
+          const int remainEnv=periodEnv-ay->m_envelope[0].count;
+          if (remainEnv<advance) {
+            advance=remainEnv;
+          }
+        }
+      }
+      // noise
+      if (careAboutNoise) {
+        const int noisePeriod=((int)ay->noise_period())*ay->m_step_mul;
+        const int noiseRemain=noisePeriod-ay->m_count_noise;
+        if (noiseRemain<advance) {
+          advance=noiseRemain;
+        }
+      }
     }
+
+    if (advance<1) advance=1;
+
+    runDAC(0,advance);
+    runTFX(0,advance);
     checkWrites();
 
     ay->sound_stream_update(ayBuf,advance);
@@ -360,8 +374,8 @@ void DivPlatformAY8910::acquire_atomic(short** buf, size_t len) {
     oscBuf[i]->begin(len);
   }
   for (size_t i=0; i<len; i++) {
-    runDAC();
-    runTFX();
+    runDAC(0,1);
+    runTFX(0,1);
 
     if (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -404,8 +418,8 @@ void DivPlatformAY8910::acquire(short** buf, size_t len) {
 void DivPlatformAY8910::fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len) {
   writes.clear();
   for (size_t i=0; i<len; i++) {
-    runDAC(sRate);
-    runTFX(sRate);
+    runDAC(sRate,1);
+    runTFX(sRate,1);
     while (!writes.empty()) {
       QueuedWrite& w=writes.front();
       stream.push_back(DivDelayedWrite(i,w.addr,w.val));

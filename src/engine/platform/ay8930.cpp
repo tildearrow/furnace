@@ -109,14 +109,14 @@ const unsigned char dacLogTableAY8930[256]={
   30, 30, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31
 };
 
-void DivPlatformAY8930::runDAC() {
+void DivPlatformAY8930::runDAC(int advance) {
   for (int i=0; i<3; i++) {
     if (chan[i].active && (chan[i].curPSGMode.val&8) && chan[i].dac.sample!=-1) {
-      chan[i].dac.period+=chan[i].dac.rate;
+      chan[i].dac.period+=chan[i].dac.rate*advance;
       bool end=false;
       bool changed=false;
       int prevOut=chan[i].dac.out;
-      while (chan[i].dac.period>rate && !end) {
+      while (chan[i].dac.period>=rate && !end) {
         DivSample* s=parent->getSample(chan[i].dac.sample);
         if (s->samples<=0 || chan[i].dac.pos<0 || chan[i].dac.pos>=(int)s->samples) {
           chan[i].dac.sample=-1;
@@ -172,28 +172,59 @@ void DivPlatformAY8930::acquireDirect(blip_buffer_t** bb, size_t len) {
 
   for (size_t i=0; i<len; i++) {
     int advance=len-i;
+    bool careAboutNoise=false;
     // heuristic
-    for (int j=0; j<3; j++) {
-      // tone counter
-      const int period=MAX(1,ay->m_tone[j].period)*(ay->m_step_mul<<1);
-      const int remain=(period-ay->m_tone[j].count)>>5;
-      if (remain<advance) advance=remain;
+    if (!writes.empty()) {
+      advance=1;
+    } else {
+      for (int j=0; j<3; j++) {
+        // tone counter
+        if (!ay->tone_enable(j) && ay->m_tone[j].volume!=0) {
+          const int period=MAX(1,ay->m_tone[j].period)*(ay->m_step_mul<<1);
+          const int remain=(period-ay->m_tone[j].count)>>5;
+          if (remain<advance) {
+            advance=remain;
+          }
+        }
 
-      // envelope
-      if (ay->m_envelope[j].holding==0) {
-        const int periodEnv=MAX(1,ay->m_envelope[j].period)*ay->m_env_step_mul;
-        const int remainEnv=periodEnv-ay->m_envelope[j].count;
-        if (remainEnv<advance) advance=remainEnv;
+        // count me in if I have noise enabled
+        if (!ay->noise_enable(j) && ay->m_tone[j].volume!=0) {
+          careAboutNoise=true;
+        }
+
+        // envelope check
+        if (ay->m_tone[j].volume&32) {
+          if (ay->m_envelope[j].holding==0) {
+            const int periodEnv=MAX(1,ay->m_envelope[j].period)*ay->m_env_step_mul;
+            const int remainEnv=periodEnv-ay->m_envelope[j].count;
+            if (remainEnv<advance) {
+              advance=remainEnv;
+            }
+          }
+        }
+
+        // DAC
+        if (chan[j].active && (chan[j].curPSGMode.val&8) && chan[j].dac.sample!=-1) {
+          if (chan[j].dac.rate<=0) continue;
+          const int remainTime=(rate-chan[j].dac.period+chan[j].dac.rate-1)/chan[j].dac.rate;
+          if (remainTime<advance) advance=remainTime;
+        }
+
+        if (advance<=1) break;
+      }
+      // noise
+      if (careAboutNoise) {
+        const int noisePeriod=((int)ay->noise_period())*ay->m_step_mul;
+        const int noiseRemain=noisePeriod-ay->m_count_noise;
+        if (noiseRemain<advance) {
+          advance=noiseRemain;
+        }
       }
     }
-    // noise
-    const int noisePeriod=((int)ay->noise_period())*ay->m_step_mul;
-    const int noiseRemain=noisePeriod-ay->m_count_noise;
-    if (noiseRemain<advance) advance=noiseRemain;
-    
-    //runDAC();
 
-    if (!writes.empty() || advance<1) advance=1;
+    if (advance<1) advance=1;
+    
+    runDAC(advance);
     checkWrites();
 
     ay->sound_stream_update(ayBuf,advance);
