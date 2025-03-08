@@ -1035,167 +1035,165 @@ void ay8910_device::ay8910_write_reg(int r, int v)
 //  sound_stream_update - handle a stream update
 //-------------------------------------------------
 
-void ay8910_device::sound_stream_update(short* outputs, int outLen)
+void ay8910_device::sound_stream_update(short* outputs, int advance)
 {
-	tone_t *tone;
-	envelope_t *envelope;
+  tone_t *tone;
+  envelope_t *envelope;
 
-	int samples = outLen;
+  /* hack to prevent us from hanging when starting filtered outputs */
+  if (!m_ready)
+  {
+    for (int chan = 0; chan < m_streams; chan++)
+      outputs[chan]=0;
+  }
 
-	/* hack to prevent us from hanging when starting filtered outputs */
-	if (!m_ready)
-	{
-		for (int chan = 0; chan < m_streams; chan++)
-			outputs[chan]=0;
-	}
+  /* The 8910 has three outputs, each output is the mix of one of the three */
+  /* tone generators and of the (single) noise generator. The two are mixed */
+  /* BEFORE going into the DAC. The formula to mix each channel is: */
+  /* (ToneOn | ToneDisable) & (NoiseOn | NoiseDisable). */
+  /* Note that this means that if both tone and noise are disabled, the output */
+  /* is 1, not 0, and can be modulated changing the volume. */
 
-	/* The 8910 has three outputs, each output is the mix of one of the three */
-	/* tone generators and of the (single) noise generator. The two are mixed */
-	/* BEFORE going into the DAC. The formula to mix each channel is: */
-	/* (ToneOn | ToneDisable) & (NoiseOn | NoiseDisable). */
-	/* Note that this means that if both tone and noise are disabled, the output */
-	/* is 1, not 0, and can be modulated changing the volume. */
+  /* loop? kill the loop and optimize! */
+  for (int chan = 0; chan < NUM_CHANNELS; chan++)
+  {
+    tone = &m_tone[chan];
+    const int period = std::max<int>(1, tone->period) * (m_step_mul << 1);
+    tone->count += advance << (is_expanded_mode() ? 5 : ((m_feature & PSG_HAS_EXPANDED_MODE) ? 0 : 1));
+                      if (tone->count>=period) {
+                        tone->duty_cycle = (tone->duty_cycle - (tone->count/period)) & 0x1f;
+                        tone->output = is_expanded_mode() ? BIT(duty_cycle[tone_duty(tone)], tone->duty_cycle) : BIT(tone->duty_cycle, 0);
+                        tone->count = tone->count % period;
+                      }
+  }
 
-	/* buffering loop */
-	for (int sampindex = 0; sampindex < samples; sampindex++)
-	{
-		for (int chan = 0; chan < NUM_CHANNELS; chan++)
-		{
-			tone = &m_tone[chan];
-			const int period = std::max<int>(1, tone->period) * (m_step_mul << 1);
-			tone->count += is_expanded_mode() ? 32 : ((m_feature & PSG_HAS_EXPANDED_MODE) ? 1 : 2);
-                        if (tone->count>=period) {
-                          tone->duty_cycle = (tone->duty_cycle - (tone->count/period)) & 0x1f;
-                          tone->output = is_expanded_mode() ? BIT(duty_cycle[tone_duty(tone)], tone->duty_cycle) : BIT(tone->duty_cycle, 0);
-                          tone->count = tone->count % period;
-                        }
-		}
+  const int period_noise = (int)(noise_period()) * m_step_mul;
+  m_count_noise+=advance;
+  while (m_count_noise >= period_noise)
+  {
+    /* toggle the prescaler output. Noise is no different to
+     * channels.
+     */
+    m_count_noise -= period_noise;
+    m_prescale_noise = (m_prescale_noise + 1) & ((m_feature & PSG_HAS_EXPANDED_MODE) ? 3 : 1);
 
-		const int period_noise = (int)(noise_period()) * m_step_mul;
-		if ((++m_count_noise) >= period_noise)
-		{
-			/* toggle the prescaler output. Noise is no different to
-			 * channels.
-			 */
-			m_count_noise = 0;
-			m_prescale_noise = (m_prescale_noise + 1) & ((m_feature & PSG_HAS_EXPANDED_MODE) ? 3 : 1);
+    if (is_expanded_mode()) // AY8930 noise generator rate is twice? compares as compatibility mode
+    {
+      // This is called "Noise value" on the docs, but is a counter whose period is determined by the LFSR.
+      // Using AND/OR gates, specific periods can be "filtered" out.
+      // A square wave can be generated through this behavior, which can be used for crude AM pulse width modulation.
 
-			if (is_expanded_mode()) // AY8930 noise generator rate is twice? compares as compatibility mode
-			{
-				// This is called "Noise value" on the docs, but is a counter whose period is determined by the LFSR.
-				// Using AND/OR gates, specific periods can be "filtered" out.
-				// A square wave can be generated through this behavior, which can be used for crude AM pulse width modulation.
+      // The period of the noise is determined by this value.
+      // The least significant byte of the LFSR is bitwise ANDed with the AND mask, and then bitwise ORed with the OR mask.
+      if ((++m_noise_value) >= (((unsigned char)(m_rng) & noise_and()) | noise_or())) // Clock the noise value.
+      {
+        m_noise_value = 0;
 
-				// The period of the noise is determined by this value.
-				// The least significant byte of the LFSR is bitwise ANDed with the AND mask, and then bitwise ORed with the OR mask.
-				if ((++m_noise_value) >= (((unsigned char)(m_rng) & noise_and()) | noise_or())) // Clock the noise value.
-				{
-					m_noise_value = 0;
+        // When everything is finally said and done, a 1bit latch is flipped.
+        // This is the final output of the noise, to be multiplied by the tone and envelope generators of the channel.
+        m_noise_out ^= 1;
 
-					// When everything is finally said and done, a 1bit latch is flipped.
-					// This is the final output of the noise, to be multiplied by the tone and envelope generators of the channel.
-					m_noise_out ^= 1;
+        noise_rng_tick();
+      }
+    }
+    else if (!m_prescale_noise)
+      noise_rng_tick();
+  }
 
-					noise_rng_tick();
-				}
-			}
-			else if (!m_prescale_noise)
-				noise_rng_tick();
-		}
+  for (int chan = 0; chan < NUM_CHANNELS; chan++)
+  {
+    tone = &m_tone[chan];
+    m_vol_enabled[chan] = (tone->output | (unsigned char)tone_enable(chan)) & (noise_output() | (unsigned char)noise_enable(chan));
+  }
 
-		for (int chan = 0; chan < NUM_CHANNELS; chan++)
-		{
-			tone = &m_tone[chan];
-			m_vol_enabled[chan] = (tone->output | (unsigned char)tone_enable(chan)) & (noise_output() | (unsigned char)noise_enable(chan));
-		}
+  /* update envelope */
+  // who cares about env 1/2 on 8910
+  for (int chan = 0; chan < (is_expanded_mode() ? NUM_CHANNELS : 1); chan++)
+  {
+    envelope = &m_envelope[chan];
+    if (envelope->holding == 0)
+    {
+      const int period = std::max<int>(1, envelope->period) * m_env_step_mul;
+      envelope->count += advance;
+      if (envelope->count >= period)
+      {
+        envelope->count %= period;
+        envelope->step--;
 
-		/* update envelope */
-		for (int chan = 0; chan < NUM_CHANNELS; chan++)
-		{
-			envelope = &m_envelope[chan];
-			if (envelope->holding == 0)
-			{
-				const int period = std::max<int>(1, envelope->period) * m_env_step_mul;
-				if ((++envelope->count) >= period)
-				{
-					envelope->count = 0;
-					envelope->step--;
+        /* check envelope current position */
+        if (envelope->step < 0)
+        {
+          if (envelope->hold)
+          {
+            if (envelope->alternate)
+              envelope->attack ^= m_env_step_mask;
+            envelope->holding = 1;
+            envelope->step = 0;
+          }
+          else
+          {
+            /* if CountEnv has looped an odd number of times (usually 1), */
+            /* invert the output. */
+            if (envelope->alternate && (envelope->step & (m_env_step_mask + 1)))
+              envelope->attack ^= m_env_step_mask;
 
-					/* check envelope current position */
-					if (envelope->step < 0)
-					{
-						if (envelope->hold)
-						{
-							if (envelope->alternate)
-								envelope->attack ^= m_env_step_mask;
-							envelope->holding = 1;
-							envelope->step = 0;
-						}
-						else
-						{
-							/* if CountEnv has looped an odd number of times (usually 1), */
-							/* invert the output. */
-							if (envelope->alternate && (envelope->step & (m_env_step_mask + 1)))
-								envelope->attack ^= m_env_step_mask;
+            envelope->step &= m_env_step_mask;
+          }
+        }
 
-							envelope->step &= m_env_step_mask;
-						}
-					}
+      }
+    }
+    envelope->volume = (envelope->step ^ envelope->attack);
+  }
 
-				}
-			}
-			envelope->volume = (envelope->step ^ envelope->attack);
-		}
-
-		if (m_streams == 3)
-		{
-			for (int chan = 0; chan < NUM_CHANNELS; chan++)
-			{
-				tone = &m_tone[chan];
-				if (tone_envelope(tone) != 0)
-				{
-					envelope = &m_envelope[get_envelope_chan(chan)];
-					unsigned int env_volume = envelope->volume;
-					if (m_feature & PSG_HAS_EXPANDED_MODE)
-					{
-						if (!is_expanded_mode())
-						{
-							env_volume >>= 1;
-							if (m_feature & PSG_EXTENDED_ENVELOPE) // AY8914 Has a two bit tone_envelope field
-								outputs[chan]=m_vol_table[chan][m_vol_enabled[chan] ? env_volume >> (3-tone_envelope(tone)) : 0];
-							else
-								outputs[chan]=m_vol_table[chan][m_vol_enabled[chan] ? env_volume : 0];
-						}
-						else
-						{
-							if (m_feature & PSG_EXTENDED_ENVELOPE) // AY8914 Has a two bit tone_envelope field
-								outputs[chan]=m_env_table[chan][m_vol_enabled[chan] ? env_volume >> (3-tone_envelope(tone)) : 0];
-							else
-								outputs[chan]=m_env_table[chan][m_vol_enabled[chan] ? env_volume : 0];
-						}
-					}
-					else
-					{
-						if (m_feature & PSG_EXTENDED_ENVELOPE) // AY8914 Has a two bit tone_envelope field
-							outputs[chan]=m_env_table[chan][m_vol_enabled[chan] ? env_volume >> (3-tone_envelope(tone)) : 0];
-						else
-							outputs[chan]=m_env_table[chan][m_vol_enabled[chan] ? env_volume : 0];
-					}
-				}
-				else
-				{
-					if (is_expanded_mode())
-						outputs[chan]=m_env_table[chan][m_vol_enabled[chan] ? tone_volume(tone) : 0];
-					else
-						outputs[chan]=m_vol_table[chan][m_vol_enabled[chan] ? tone_volume(tone) : 0];
-				}
-			}
-		}
-		else
-		{
-			outputs[0]=mix_3D();
-		}
-	}
+  if (m_streams == 3)
+  {
+    for (int chan = 0; chan < NUM_CHANNELS; chan++)
+    {
+      tone = &m_tone[chan];
+      if (tone_envelope(tone) != 0)
+      {
+        envelope = &m_envelope[get_envelope_chan(chan)];
+        unsigned int env_volume = envelope->volume;
+        if (m_feature & PSG_HAS_EXPANDED_MODE)
+        {
+          if (!is_expanded_mode())
+          {
+            env_volume >>= 1;
+            if (m_feature & PSG_EXTENDED_ENVELOPE) // AY8914 Has a two bit tone_envelope field
+              outputs[chan]=m_vol_table[chan][m_vol_enabled[chan] ? env_volume >> (3-tone_envelope(tone)) : 0];
+            else
+              outputs[chan]=m_vol_table[chan][m_vol_enabled[chan] ? env_volume : 0];
+          }
+          else
+          {
+            if (m_feature & PSG_EXTENDED_ENVELOPE) // AY8914 Has a two bit tone_envelope field
+              outputs[chan]=m_env_table[chan][m_vol_enabled[chan] ? env_volume >> (3-tone_envelope(tone)) : 0];
+            else
+              outputs[chan]=m_env_table[chan][m_vol_enabled[chan] ? env_volume : 0];
+          }
+        }
+        else
+        {
+          if (m_feature & PSG_EXTENDED_ENVELOPE) // AY8914 Has a two bit tone_envelope field
+            outputs[chan]=m_env_table[chan][m_vol_enabled[chan] ? env_volume >> (3-tone_envelope(tone)) : 0];
+          else
+            outputs[chan]=m_env_table[chan][m_vol_enabled[chan] ? env_volume : 0];
+        }
+      }
+      else
+      {
+        if (is_expanded_mode())
+          outputs[chan]=m_env_table[chan][m_vol_enabled[chan] ? tone_volume(tone) : 0];
+        else
+          outputs[chan]=m_vol_table[chan][m_vol_enabled[chan] ? tone_volume(tone) : 0];
+      }
+    }
+  }
+  else
+  {
+    outputs[0]=mix_3D();
+  }
 }
 
 void ay8910_device::build_mixer_table()

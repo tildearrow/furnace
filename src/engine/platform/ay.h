@@ -128,6 +128,7 @@ class DivPlatformAY8910: public DivDispatch {
     ssg_t ay_atomic;
 
     int delay;
+    int lastOut[2];
 
     bool extMode;
     unsigned int extClock;
@@ -149,7 +150,7 @@ class DivPlatformAY8910: public DivDispatch {
     void checkWrites();
     void updateOutSel(bool immediate=false);
 
-    void acquire_mame(short** buf, size_t len);
+    void acquire_mame(blip_buffer_t** bb, size_t len);
     void acquire_atomic(short** buf, size_t len);
   
     friend void putDispatchChip(void*,int);
@@ -160,6 +161,7 @@ class DivPlatformAY8910: public DivDispatch {
     void runTFX(int runRate=0);
     void setExtClockDiv(unsigned int eclk=COLOR_NTSC, unsigned char ediv=8);
     void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
@@ -177,6 +179,7 @@ class DivPlatformAY8910: public DivDispatch {
     void setFlags(const DivConfig& flags);
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
+    bool hasAcquireDirect();
     DivMacroInt* getChanMacroInt(int ch);
     DivSamplePos getSamplePos(int ch);
     bool getLegacyAlwaysSetVolume();
