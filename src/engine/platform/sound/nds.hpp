@@ -5,6 +5,17 @@
 NDS sound emulator
 by cam900
 
+MODIFIED BY TILDEARROW!!!
+MODIFIED BY TILDEARROW!!!
+MODIFIED BY TILDEARROW!!!
+MODIFIED BY TILDEARROW!!!
+MODIFIED BY TILDEARROW!!!
+MODIFIED BY TILDEARROW!!!
+
+making it SUPER CLEAR to comply with the license
+this is NOT the original version! for the original version, git checkout
+any commit from January 2025.
+
 This file is licensed under zlib license.
 
 ============================================================================
@@ -39,6 +50,10 @@ Tech info: https://problemkaputt.de/gbatek.htm
 
 #ifndef NDS_SOUND_EMU_H
 #define NDS_SOUND_EMU_H
+
+#include <stdlib.h>
+#include "blip_buf.h"
+#include "../../dispatch.h"
 
 namespace nds_sound_emu
 {
@@ -116,12 +131,16 @@ namespace nds_sound_emu
 				, m_bias(0)
 				, m_loutput(0)
 				, m_routput(0)
+				, m_lastts(0)
 			{
 			}
 
 			void reset();
+			void resetTS(u32 what);
 			void tick(s32 cycle);
-      s32 predict();
+			s32 predict();
+			void set_bb(blip_buffer_t* bbLeft, blip_buffer_t* bbRight);
+			void set_oscbuf(DivDispatchOscBuffer** oscBuf);
 
 			// host accesses
 			u32 read32(u32 addr);
@@ -178,11 +197,22 @@ namespace nds_sound_emu
 						, m_psg(psg)
 						, m_noise(noise)
 
+						, m_bb{NULL,NULL}
+						, m_oscBuf(NULL)
+
 						, m_control(0)
 						, m_sourceaddr(0)
 						, m_freq(0)
 						, m_loopstart(0)
 						, m_length(0)
+						, m_ctl_volume(0)
+						, m_ctl_voldiv(0)
+						, m_ctl_hold(0)
+						, m_ctl_pan(0)
+						, m_ctl_duty(0)
+						, m_ctl_repeat(0)
+						, m_ctl_format(0)
+						, m_ctl_busy(0)
 						, m_playing(false)
 						, m_adpcm_out(0)
 						, m_adpcm_index(0)
@@ -199,6 +229,7 @@ namespace nds_sound_emu
 						, m_output(0)
 						, m_loutput(0)
 						, m_routput(0)
+						, m_lastts(0)
 					{
 					}
 
@@ -206,7 +237,10 @@ namespace nds_sound_emu
 					void write(u32 offset, u32 data, u32 mask = ~0);
 
 					void update(s32 cycle);
-          s32 predict();
+					void set_bb(blip_buffer_t* bbLeft, blip_buffer_t* bbRight) { m_bb[0] = bbLeft; m_bb[1] = bbRight; }
+					void set_oscbuf(DivDispatchOscBuffer* oscBuf) { m_oscBuf = oscBuf; }
+					void resetTS(u32 what) { m_lastts = what; }
+					s32 predict();
 
 					// getters
 					// control word
@@ -223,18 +257,18 @@ namespace nds_sound_emu
 					const u8 m_voldiv_shift[4] = {0, 1, 2, 4};
 
 					// control bits
-					s32 volume() const  { return bitfield(m_control, 0, 7); } // global volume
-					u32 voldiv() const  { return m_voldiv_shift[bitfield(m_control, 8, 2)]; } // volume shift
-					bool hold() const   { return bitfield(m_control, 15); } // hold bit
-					u32 pan() const     { return bitfield(m_control, 16, 7); } // panning (0...127, 0 = left, 127 = right, 64 = half)
-					u32 duty() const    { return bitfield(m_control, 24, 3); } // PSG duty
-					u32 repeat() const  { return bitfield(m_control, 27, 2); } // Repeat mode (Manual, Loop infinitely, One-shot)
-					u32 format() const  { return bitfield(m_control, 29, 2); } // Sound Format (PCM8, PCM16, ADPCM, PSG/Noise when exists)
-					bool busy() const   { return bitfield(m_control, 31); } // Busy flag
+					s32 volume() const  { return m_ctl_volume; } // global volume
+					u32 voldiv() const  { return m_ctl_voldiv; } // volume shift
+					bool hold() const   { return m_ctl_hold; } // hold bit
+					u32 pan() const     { return m_ctl_pan; } // panning (0...127, 0 = left, 127 = right, 64 = half)
+					u32 duty() const    { return m_ctl_duty; } // PSG duty
+					u32 repeat() const  { return m_ctl_repeat; } // Repeat mode (Manual, Loop infinitely, One-shot)
+					u32 format() const  { return m_ctl_format; } // Sound Format (PCM8, PCM16, ADPCM, PSG/Noise when exists)
+					bool busy() const   { return m_ctl_busy; } // Busy flag
 
 					// calculated values
-					s32 lvol() const    { return (pan() == 0x7f) ? 0 : 128 - pan(); } // calculated left volume
-					s32 rvol() const    { return (pan() == 0x7f) ? 128 : pan(); } // calculated right volume
+					s32 lvol() const    { return (m_ctl_pan == 0x7f) ? 0 : 128 - m_ctl_pan; } // calculated left volume
+					s32 rvol() const    { return (m_ctl_pan == 0x7f) ? 128 : m_ctl_pan; } // calculated right volume
 
 					// calculated address
 					u32 addr() const    { return (m_sourceaddr & ~3) + (m_cur_bitaddr >> 3) + (m_cur_state == STATE_POST_LOOP ? ((m_loopstart + m_cur_addr) << 2) : (m_cur_addr << 2)); }
@@ -251,12 +285,26 @@ namespace nds_sound_emu
 					bool m_psg             = false;   // PSG Enable
 					bool m_noise           = false;   // Noise Enable
 
+					// blip_buf
+					blip_buffer_t* m_bb[2];
+					DivDispatchOscBuffer* m_oscBuf;
+
 					// registers
 					u32 m_control    = 0; // Control
 					u32 m_sourceaddr = 0; // Source Address
 					u16 m_freq       = 0; // Frequency
 					u16 m_loopstart  = 0; // Loop Start
 					u32 m_length     = 0; // Length
+
+                                        // exploded control
+                                        s32 m_ctl_volume  = 0; // Volume (0-6)
+                                        u32 m_ctl_voldiv  = 0; // Volume Shift (8-9)
+                                        bool m_ctl_hold  = 0; // Hold (15)
+                                        u32 m_ctl_pan     = 0; // Panning (16-22)
+                                        u32 m_ctl_duty    = 0; // Duty (24-26)
+                                        u32 m_ctl_repeat  = 0; // Repeat Mode (27-28)
+                                        u32 m_ctl_format  = 0; // Sound Format (29-30)
+                                        bool m_ctl_busy  = 0; // Busy Flag (31)
 
 					// internal states
 					bool m_playing         = false;   // playing flag
@@ -275,6 +323,7 @@ namespace nds_sound_emu
 					s32 m_output           = 0;       // current output
 					s32 m_loutput          = 0;       // current left output
 					s32 m_routput          = 0;       // current right output
+					u32 m_lastts           = 0;       // running timestamp
 			};
 
 			class capture_t
@@ -411,6 +460,7 @@ namespace nds_sound_emu
 			u32 m_bias = 0; // output bias
 			s32 m_loutput = 0; // left output
 			s32 m_routput = 0; // right output
+			u32 m_lastts = 0; // running timestamp
 	};
 }; // namespace nds_sound_emu
 
