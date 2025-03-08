@@ -164,23 +164,59 @@ void DivPlatformAY8930::checkWrites() {
   }
 }
 
-void DivPlatformAY8930::acquire(short** buf, size_t len) {
+void DivPlatformAY8930::acquireDirect(blip_buffer_t** bb, size_t len) {
   thread_local short ayBuf[3];
   for (int i=0; i<3; i++) {
     oscBuf[i]->begin(len);
   }
 
   for (size_t i=0; i<len; i++) {
-    runDAC();
+    int advance=len-i;
+    // heuristic
+    for (int j=0; j<3; j++) {
+      // tone counter
+      const int period=MAX(1,ay->m_tone[j].period)*(ay->m_step_mul<<1);
+      const int remain=(period-ay->m_tone[j].count)>>5;
+      if (remain<advance) advance=remain;
+
+      // envelope
+      if (ay->m_envelope[j].holding==0) {
+        const int periodEnv=MAX(1,ay->m_envelope[j].period)*ay->m_env_step_mul;
+        const int remainEnv=periodEnv-ay->m_envelope[j].count;
+        if (remainEnv<advance) advance=remainEnv;
+      }
+    }
+    // noise
+    const int noisePeriod=((int)ay->noise_period())*ay->m_step_mul;
+    const int noiseRemain=noisePeriod-ay->m_count_noise;
+    if (noiseRemain<advance) advance=noiseRemain;
+    
+    //runDAC();
+
+    if (!writes.empty() || advance<1) advance=1;
     checkWrites();
 
-    ay->sound_stream_update(ayBuf,1);
+    ay->sound_stream_update(ayBuf,advance);
+    i+=advance-1;
+
     if (stereo) {
-      buf[0][i]=ayBuf[0]+ayBuf[1]+((ayBuf[2]*stereoSep)>>8);
-      buf[1][i]=((ayBuf[0]*stereoSep)>>8)+ayBuf[1]+ayBuf[2];
+      int out0=ayBuf[0]+ayBuf[1]+((ayBuf[2]*stereoSep)>>8);
+      int out1=((ayBuf[0]*stereoSep)>>8)+ayBuf[1]+ayBuf[2];
+      if (lastOut[0]!=out0) {
+        blip_add_delta(bb[0],i,out0-lastOut[0]);
+        lastOut[0]=out0;
+      }
+      if (lastOut[1]!=out1) {
+        blip_add_delta(bb[1],i,out1-lastOut[1]);
+        lastOut[1]=out1;
+      }
     } else {
-      buf[0][i]=ayBuf[0]+ayBuf[1]+ayBuf[2];
-      buf[1][i]=buf[0][i];
+      int out=ayBuf[0]+ayBuf[1]+ayBuf[2];
+      if (lastOut[0]!=out) {
+        blip_add_delta(bb[0],i,out-lastOut[0]);
+        blip_add_delta(bb[1],i,out-lastOut[0]);
+        lastOut[0]=out;
+      }
     }
 
     oscBuf[0]->putSample(i,ayBuf[0]<<2);
@@ -832,6 +868,8 @@ void DivPlatformAY8930::reset() {
   ayNoiseAnd=2;
   ayNoiseOr=0;
   delay=0;
+  lastOut[0]=0;
+  lastOut[1]=0;
 
   extMode=false;
   bank=false;
@@ -851,6 +889,10 @@ int DivPlatformAY8930::getOutputCount() {
 }
 
 bool DivPlatformAY8930::keyOffAffectsArp(int ch) {
+  return true;
+}
+
+bool DivPlatformAY8930::hasAcquireDirect() {
   return true;
 }
 

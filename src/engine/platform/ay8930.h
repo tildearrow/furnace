@@ -114,6 +114,7 @@ class DivPlatformAY8930: public DivDispatch {
     unsigned char sampleBank;
 
     int delay;
+    int lastOut[2];
 
     bool extMode, stereo, clockSel;
     bool ioPortA, ioPortB;
@@ -131,7 +132,7 @@ class DivPlatformAY8930: public DivDispatch {
     friend void putDispatchChan(void*,int,int);
   
   public:
-    void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -146,6 +147,7 @@ class DivPlatformAY8930: public DivDispatch {
     void setFlags(const DivConfig& flags);
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
+    bool hasAcquireDirect();
     DivMacroInt* getChanMacroInt(int ch);
     DivSamplePos getSamplePos(int ch);
     bool getLegacyAlwaysSetVolume();
