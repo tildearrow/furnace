@@ -165,14 +165,7 @@ void DivPlatformAY8930::checkWrites() {
 }
 
 void DivPlatformAY8930::acquire(short** buf, size_t len) {
-  if (ayBufLen<len) {
-    ayBufLen=len;
-    for (int i=0; i<3; i++) {
-      delete[] ayBuf[i];
-      ayBuf[i]=new short[ayBufLen];
-    }
-  }
-
+  thread_local short ayBuf[3];
   for (int i=0; i<3; i++) {
     oscBuf[i]->begin(len);
   }
@@ -183,16 +176,16 @@ void DivPlatformAY8930::acquire(short** buf, size_t len) {
 
     ay->sound_stream_update(ayBuf,1);
     if (stereo) {
-      buf[0][i]=ayBuf[0][0]+ayBuf[1][0]+((ayBuf[2][0]*stereoSep)>>8);
-      buf[1][i]=((ayBuf[0][0]*stereoSep)>>8)+ayBuf[1][0]+ayBuf[2][0];
+      buf[0][i]=ayBuf[0]+ayBuf[1]+((ayBuf[2]*stereoSep)>>8);
+      buf[1][i]=((ayBuf[0]*stereoSep)>>8)+ayBuf[1]+ayBuf[2];
     } else {
-      buf[0][i]=ayBuf[0][0]+ayBuf[1][0]+ayBuf[2][0];
+      buf[0][i]=ayBuf[0]+ayBuf[1]+ayBuf[2];
       buf[1][i]=buf[0][i];
     }
 
-    oscBuf[0]->putSample(i,ayBuf[0][0]<<2);
-    oscBuf[1]->putSample(i,ayBuf[1][0]<<2);
-    oscBuf[2]->putSample(i,ayBuf[2][0]<<2);
+    oscBuf[0]->putSample(i,ayBuf[0]<<2);
+    oscBuf[1]->putSample(i,ayBuf[1]<<2);
+    oscBuf[2]->putSample(i,ayBuf[2]<<2);
   }
 
   for (int i=0; i<3; i++) {
@@ -949,8 +942,6 @@ int DivPlatformAY8930::init(DivEngine* p, int channels, int sugRate, const DivCo
   setFlags(flags);
   ay=new ay8930_device(rate,clockSel);
   ay->device_start();
-  ayBufLen=65536;
-  for (int i=0; i<3; i++) ayBuf[i]=new short[ayBufLen];
   reset();
   return 3;
 }
@@ -958,7 +949,6 @@ int DivPlatformAY8930::init(DivEngine* p, int channels, int sugRate, const DivCo
 void DivPlatformAY8930::quit() {
   for (int i=0; i<3; i++) {
     delete oscBuf[i];
-    delete[] ayBuf[i];
   }
   delete ay;
 }

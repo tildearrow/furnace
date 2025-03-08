@@ -145,8 +145,6 @@ class DivPlatformAY8910: public DivDispatch {
     unsigned short ayEnvPeriod;
     short ayEnvSlideLow;
     short ayEnvSlide;
-    short* ayBuf[3];
-    size_t ayBufLen;
 
     void checkWrites();
     void updateOutSel(bool immediate=false);

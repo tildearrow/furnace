@@ -1035,7 +1035,7 @@ void ay8910_device::ay8910_write_reg(int r, int v)
 //  sound_stream_update - handle a stream update
 //-------------------------------------------------
 
-void ay8910_device::sound_stream_update(short** outputs, int outLen)
+void ay8910_device::sound_stream_update(short* outputs, int outLen)
 {
 	tone_t *tone;
 	envelope_t *envelope;
@@ -1046,7 +1046,7 @@ void ay8910_device::sound_stream_update(short** outputs, int outLen)
 	if (!m_ready)
 	{
 		for (int chan = 0; chan < m_streams; chan++)
-			memset(outputs[chan],0,outLen*sizeof(short));
+			outputs[chan]=0;
 	}
 
 	/* The 8910 has three outputs, each output is the mix of one of the three */
@@ -1162,38 +1162,38 @@ void ay8910_device::sound_stream_update(short** outputs, int outLen)
 						{
 							env_volume >>= 1;
 							if (m_feature & PSG_EXTENDED_ENVELOPE) // AY8914 Has a two bit tone_envelope field
-								outputs[chan][sampindex]=m_vol_table[chan][m_vol_enabled[chan] ? env_volume >> (3-tone_envelope(tone)) : 0];
+								outputs[chan]=m_vol_table[chan][m_vol_enabled[chan] ? env_volume >> (3-tone_envelope(tone)) : 0];
 							else
-								outputs[chan][sampindex]=m_vol_table[chan][m_vol_enabled[chan] ? env_volume : 0];
+								outputs[chan]=m_vol_table[chan][m_vol_enabled[chan] ? env_volume : 0];
 						}
 						else
 						{
 							if (m_feature & PSG_EXTENDED_ENVELOPE) // AY8914 Has a two bit tone_envelope field
-								outputs[chan][sampindex]=m_env_table[chan][m_vol_enabled[chan] ? env_volume >> (3-tone_envelope(tone)) : 0];
+								outputs[chan]=m_env_table[chan][m_vol_enabled[chan] ? env_volume >> (3-tone_envelope(tone)) : 0];
 							else
-								outputs[chan][sampindex]=m_env_table[chan][m_vol_enabled[chan] ? env_volume : 0];
+								outputs[chan]=m_env_table[chan][m_vol_enabled[chan] ? env_volume : 0];
 						}
 					}
 					else
 					{
 						if (m_feature & PSG_EXTENDED_ENVELOPE) // AY8914 Has a two bit tone_envelope field
-							outputs[chan][sampindex]=m_env_table[chan][m_vol_enabled[chan] ? env_volume >> (3-tone_envelope(tone)) : 0];
+							outputs[chan]=m_env_table[chan][m_vol_enabled[chan] ? env_volume >> (3-tone_envelope(tone)) : 0];
 						else
-							outputs[chan][sampindex]=m_env_table[chan][m_vol_enabled[chan] ? env_volume : 0];
+							outputs[chan]=m_env_table[chan][m_vol_enabled[chan] ? env_volume : 0];
 					}
 				}
 				else
 				{
 					if (is_expanded_mode())
-						outputs[chan][sampindex]=m_env_table[chan][m_vol_enabled[chan] ? tone_volume(tone) : 0];
+						outputs[chan]=m_env_table[chan][m_vol_enabled[chan] ? tone_volume(tone) : 0];
 					else
-						outputs[chan][sampindex]=m_vol_table[chan][m_vol_enabled[chan] ? tone_volume(tone) : 0];
+						outputs[chan]=m_vol_table[chan][m_vol_enabled[chan] ? tone_volume(tone) : 0];
 				}
 			}
 		}
 		else
 		{
-			outputs[0][sampindex]=mix_3D();
+			outputs[0]=mix_3D();
 		}
 	}
 }

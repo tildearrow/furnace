@@ -121,8 +121,6 @@ class DivPlatformAY8930: public DivDispatch {
   
     short oldWrites[32];
     short pendingWrites[32];
-    short* ayBuf[3];
-    size_t ayBufLen;
 
     void runDAC();
     void checkWrites();

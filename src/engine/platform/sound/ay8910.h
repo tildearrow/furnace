@@ -158,7 +158,7 @@ public:
 	void device_reset();
 
 	// sound stream update overrides
-	void sound_stream_update(short** outputs, int outLen);
+	void sound_stream_update(short* outputs, int outLen);
 
 	void ay8910_write_ym(int addr, unsigned char data);
 	unsigned char ay8910_read_ym();
