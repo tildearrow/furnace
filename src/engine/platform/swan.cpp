@@ -107,8 +107,12 @@ void DivPlatformSwan::acquire(short** buf, size_t len) {
       }
     }
 
-    buf[0][h] = ws.output_left;
-    buf[1][h] = ws.output_right;
+    if (stereo) {
+      buf[0][h] = ws.output_left;
+      buf[1][h] = ws.output_right;  
+    } else {
+      buf[0][h] = ((int)ws.output_speaker - 0x80) << 8;  
+    }
   }
 
   for (int i=0; i<4; i++) {
@@ -597,7 +601,7 @@ void DivPlatformSwan::reset() {
 }
 
 int DivPlatformSwan::getOutputCount() {
-  return 2;
+  return stereo?2:1;
 }
 
 void DivPlatformSwan::notifyWaveChange(int wave) {
@@ -627,6 +631,7 @@ void DivPlatformSwan::setFlags(const DivConfig& flags) {
   chipClock=3072000;
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/128;
+  stereo=flags.getBool("stereo",false);
   for (int i=0; i<4; i++) {
     oscBuf[i]->setRate(rate);
   }

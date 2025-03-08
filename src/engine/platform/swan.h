@@ -38,6 +38,7 @@ class DivPlatformSwan: public DivDispatch {
   Channel chan[4];
   DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
+  bool stereo=true;
   bool pcm, sweep, furnaceDac, setPos;
   unsigned char sampleBank, noise;
   int dacPeriod, dacRate;

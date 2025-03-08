@@ -127,12 +127,15 @@ void swan_sound_out(swan_sound_t *snd, uint16_t port, uint8_t value) {
 }
 
 static void swan_sound_subtick(swan_sound_t *snd, uint32_t cycles) {
+    // TODO: Do period counters update when a channel is inactive?
     for (int ch = 0; ch < 4; ch++) {
-        snd->period_counter[ch] += cycles;
-        uint32_t step = 2048 - snd->frequency[ch];
-        while (snd->period_counter[ch] >= step) {
-            snd->sample_index[ch] = (snd->sample_index[ch] + 1) & 0x1F;
-            snd->period_counter[ch] -= step;
+        if (snd->ch_ctrl & (1 << ch)) {
+            snd->period_counter[ch] += cycles;
+            uint32_t step = 2048 - snd->frequency[ch];
+            while (snd->period_counter[ch] >= step) {
+                snd->sample_index[ch] = (snd->sample_index[ch] + 1) & 0x1F;
+                snd->period_counter[ch] -= step;
+            }
         }
     }
 
