@@ -77,33 +77,16 @@ void DivPlatformNDS::acquireDirect(blip_buffer_t** bb, size_t len) {
   nds.set_oscbuf(oscBuf);
   nds.resetTS(0);
   nds.tick(len);
-  /*
-  for (size_t h=0; h<len; h++) {
-    int advance=len;//nds.predict();
-    //if (advance<1) advance=1;
-    //if (advance>(int)(len-h)) advance=len-h;
-
-    h+=advance-1;
-
-    int lout=((nds.loutput()-0x200)<<5); // scale to 16 bit
-    int rout=((nds.routput()-0x200)<<5); // scale to 16 bit
-
-    if (lastOut[0]!=lout) {
-      blip_add_delta(bb[0],h,lout-lastOut[0]);
-      lastOut[0]=lout;
-    }
-    if (lastOut[1]!=rout) {
-      blip_add_delta(bb[1],h,rout-lastOut[1]);
-      lastOut[1]=rout;
-    }
-
-    for (int i=0; i<16; i++) {
-      oscBuf[i]->putSample(h,(nds.chan_lout(i)+nds.chan_rout(i))>>1);
-    }
-  }*/
 
   for (int i=0; i<16; i++) {
     oscBuf[i]->end(len);
+  }
+}
+
+void DivPlatformNDS::postProcess(short* buf, int outIndex, size_t len, int sampleRate) {
+  // this is where we handle global volume. it is faster than doing it on each blip...
+  for (size_t i=0; i<len; i++) {
+    buf[i]=((buf[i]*globalVolume)>>7);
   }
 }
 

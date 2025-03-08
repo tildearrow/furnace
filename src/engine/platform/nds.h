@@ -67,6 +67,7 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
     virtual void write_byte(u32 addr, u8 data) override;
 
     virtual void acquireDirect(blip_buffer_t** bb, size_t len) override;
+    virtual void postProcess(short* buf, int outIndex, size_t len, int sampleRate) override;
     virtual int dispatch(DivCommand c) override;
     virtual void* getChanState(int chan) override;
     virtual DivMacroInt* getChanMacroInt(int ch) override;
