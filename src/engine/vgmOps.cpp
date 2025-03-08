@@ -24,691 +24,340 @@
 
 constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
 
-// this function is so long
-// may as well make it something else
-void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, int* setPos, unsigned int* sampleOff8, unsigned int* sampleLen8, size_t bankOffset, bool directStream, bool* sampleStoppable) {
+static void writeCmd(SafeWriter* w, DivSystem sys, bool isSecond, unsigned int addr, unsigned int val) {
   unsigned char baseAddr1=isSecond?0xa0:0x50;
   unsigned char baseAddr2=isSecond?0x80:0;
   unsigned short baseAddr2S=isSecond?0x8000:0;
-  unsigned char smsAddr=isSecond?0x30:0x50;
-  unsigned char ggAddr=isSecond?0x3f:0x4f;
-  unsigned char rf5c68Addr=isSecond?0xb1:0xb0;
-  if (write.addr==0xffffffff) { // Furnace fake reset
-    switch (sys) {
-      case DIV_SYSTEM_YM2612:
-      case DIV_SYSTEM_YM2612_EXT:
-      case DIV_SYSTEM_YM2612_DUALPCM:
-      case DIV_SYSTEM_YM2612_DUALPCM_EXT:
-      case DIV_SYSTEM_YM2612_CSM:
-        for (int i=0; i<3; i++) { // set SL and RR to highest
+  switch (sys) {
+    case DIV_SYSTEM_YM2612:
+    case DIV_SYSTEM_YM2612_EXT:
+    case DIV_SYSTEM_YM2612_DUALPCM:
+    case DIV_SYSTEM_YM2612_DUALPCM_EXT:
+    case DIV_SYSTEM_YM2612_CSM:
+      switch (addr>>8) {
+        case 0: // port 0
           w->writeC(2|baseAddr1);
-          w->writeC(0x80+i);
-          w->writeC(0xff);
-          w->writeC(2|baseAddr1);
-          w->writeC(0x84+i);
-          w->writeC(0xff);
-          w->writeC(2|baseAddr1);
-          w->writeC(0x88+i);
-          w->writeC(0xff);
-          w->writeC(2|baseAddr1);
-          w->writeC(0x8c+i);
-          w->writeC(0xff);
-
+          w->writeC(addr&0xff);
+          w->writeC(val);
+          break;
+        case 1: // port 1
           w->writeC(3|baseAddr1);
-          w->writeC(0x80+i);
-          w->writeC(0xff);
-          w->writeC(3|baseAddr1);
-          w->writeC(0x84+i);
-          w->writeC(0xff);
-          w->writeC(3|baseAddr1);
-          w->writeC(0x88+i);
-          w->writeC(0xff);
-          w->writeC(3|baseAddr1);
-          w->writeC(0x8c+i);
-          w->writeC(0xff);
-        }
-        for (int i=0; i<3; i++) { // note off
-          w->writeC(2|baseAddr1);
-          w->writeC(0x28);
-          w->writeC(i);
-          w->writeC(2|baseAddr1);
-          w->writeC(0x28);
-          w->writeC(4+i);
-        }
-        w->writeC(2|baseAddr1); // disable DAC
-        w->writeC(0x2b);
-        w->writeC(0);
-        break;
-      case DIV_SYSTEM_SMS:
-        for (int i=0; i<4; i++) {
-          w->writeC(smsAddr);
-          w->writeC(0x90|(i<<5)|15);
-        }
-        break;
-      case DIV_SYSTEM_T6W28:
-        for (int i=0; i<4; i++) {
-          w->writeC(0x30);
-          w->writeC(0x90|(i<<5)|15);
-          w->writeC(0x50);
-          w->writeC(0x90|(i<<5)|15);
-        }
-        break;
-      case DIV_SYSTEM_GB:
-        // square 1
-        w->writeC(0xb3);
-        w->writeC(2|baseAddr2);
-        w->writeC(0);
-        w->writeC(0xb3);
-        w->writeC(4|baseAddr2);
-        w->writeC(0x80);
-
-        // square 2
-        w->writeC(0xb3);
-        w->writeC(7|baseAddr2);
-        w->writeC(0);
-        w->writeC(0xb3);
-        w->writeC(9|baseAddr2);
-        w->writeC(0x80);
-
-        // wave
-        w->writeC(0xb3);
-        w->writeC(0x0c|baseAddr2);
-        w->writeC(0);
-        w->writeC(0xb3);
-        w->writeC(0x0e|baseAddr2);
-        w->writeC(0x80);
-
-        // noise
-        w->writeC(0xb3);
-        w->writeC(0x11|baseAddr2);
-        w->writeC(0);
-        w->writeC(0xb3);
-        w->writeC(0x13|baseAddr2);
-        w->writeC(0x80);
-        break;
-      case DIV_SYSTEM_PCE:
-        for (int i=0; i<6; i++) {
-          w->writeC(0xb9);
-          w->writeC(0|baseAddr2);
-          w->writeC(i);
-          w->writeC(0xb9);
-          w->writeC(4|baseAddr2);
-          w->writeC(0x5f);
-          w->writeC(0xb9);
-          w->writeC(4|baseAddr2);
-          w->writeC(0x1f);
-          for (int j=0; j<32; j++) {
-            w->writeC(0xb9);
-            w->writeC(6|baseAddr2);
-            w->writeC(0);
-          }
-        }
-        break;
-      case DIV_SYSTEM_NES:
-        w->writeC(0xb4);
-        w->writeC(0x15|baseAddr2);
-        w->writeC(0);
-        break;
-      case DIV_SYSTEM_YM2151:
-        for (int i=0; i<8; i++) {
-          w->writeC(4|baseAddr1);
-          w->writeC(0xe0+i);
-          w->writeC(0xff);
-          w->writeC(4|baseAddr1);
-          w->writeC(0xe8+i);
-          w->writeC(0xff);
-          w->writeC(4|baseAddr1);
-          w->writeC(0xf0+i);
-          w->writeC(0xff);
-          w->writeC(4|baseAddr1);
-          w->writeC(0xf8+i);
-          w->writeC(0xff);
-
-          w->writeC(4|baseAddr1);
-          w->writeC(0x08);
-          w->writeC(i);
-        }
-        break;
-      case DIV_SYSTEM_SEGAPCM:
-      case DIV_SYSTEM_SEGAPCM_COMPAT:
-        for (int i=0; i<16; i++) {
-          w->writeC(0xc0);
-          w->writeS((0x86|baseAddr2S)+(i<<3));
-          w->writeC(3);
-        }
-        break;
-      case DIV_SYSTEM_X1_010:
-        for (int i=0; i<16; i++) {
-          w->writeC(0xc8);
-          w->writeS_BE(baseAddr2S+(i<<3));
-          w->writeC(0);
-        }
-        break;
-      case DIV_SYSTEM_YM2610:
-      case DIV_SYSTEM_YM2610_FULL:
-      case DIV_SYSTEM_YM2610B:
-      case DIV_SYSTEM_YM2610_EXT:
-      case DIV_SYSTEM_YM2610_FULL_EXT:
-      case DIV_SYSTEM_YM2610B_EXT:
-        // TODO: YM2610B channels 1 and 4 and ADPCM-B
-        for (int i=0; i<2; i++) { // set SL and RR to highest
-          w->writeC(8|baseAddr1);
-          w->writeC(0x81+i);
-          w->writeC(0xff);
-          w->writeC(8|baseAddr1);
-          w->writeC(0x85+i);
-          w->writeC(0xff);
-          w->writeC(8|baseAddr1);
-          w->writeC(0x89+i);
-          w->writeC(0xff);
-          w->writeC(8|baseAddr1);
-          w->writeC(0x8d+i);
-          w->writeC(0xff);
-
-          w->writeC(9|baseAddr1);
-          w->writeC(0x81+i);
-          w->writeC(0xff);
-          w->writeC(9|baseAddr1);
-          w->writeC(0x85+i);
-          w->writeC(0xff);
-          w->writeC(9|baseAddr1);
-          w->writeC(0x89+i);
-          w->writeC(0xff);
-          w->writeC(9|baseAddr1);
-          w->writeC(0x8d+i);
-          w->writeC(0xff);
-        }
-        for (int i=0; i<2; i++) { // note off
-          w->writeC(8|baseAddr1);
-          w->writeC(0x28);
-          w->writeC(1+i);
-          w->writeC(8|baseAddr1);
-          w->writeC(0x28);
-          w->writeC(5+i);
-        }
-        
-        // reset AY
-        w->writeC(8|baseAddr1);
-        w->writeC(7);
-        w->writeC(0x3f);
-
-        w->writeC(8|baseAddr1);
-        w->writeC(8);
-        w->writeC(0);
-
-        w->writeC(8|baseAddr1);
-        w->writeC(9);
-        w->writeC(0);
-
-        w->writeC(8|baseAddr1);
-        w->writeC(10);
-        w->writeC(0);
-
-        // reset sample
-        w->writeC(9|baseAddr1);
-        w->writeC(0);
-        w->writeC(0xbf);
-        break;
-      case DIV_SYSTEM_OPLL:
-      case DIV_SYSTEM_OPLL_DRUMS:
-      case DIV_SYSTEM_VRC7:
-        for (int i=0; i<9; i++) {
-          w->writeC(1|baseAddr1);
-          w->writeC(0x20+i);
-          w->writeC(0);
-          w->writeC(1|baseAddr1);
-          w->writeC(0x30+i);
-          w->writeC(0);
-          w->writeC(1|baseAddr1);
-          w->writeC(0x10+i);
-          w->writeC(0);
-        }
-        break;
-      case DIV_SYSTEM_YM2203:
-      case DIV_SYSTEM_YM2203_EXT:
-        for (int i=0; i<3; i++) { // set SL and RR to highest
-          w->writeC(5|baseAddr1);
-          w->writeC(0x80+i);
-          w->writeC(0xff);
-          w->writeC(5|baseAddr1);
-          w->writeC(0x84+i);
-          w->writeC(0xff);
-          w->writeC(5|baseAddr1);
-          w->writeC(0x88+i);
-          w->writeC(0xff);
-          w->writeC(5|baseAddr1);
-          w->writeC(0x8c+i);
-          w->writeC(0xff);
-        }
-        for (int i=0; i<3; i++) { // note off
-          w->writeC(5|baseAddr1);
-          w->writeC(0x28);
-          w->writeC(i);
-        }
-
-        // SSG
-        w->writeC(5|baseAddr1);
-        w->writeC(7);
-        w->writeC(0x3f);
-
-        w->writeC(5|baseAddr1);
-        w->writeC(8);
-        w->writeC(0);
-
-        w->writeC(5|baseAddr1);
-        w->writeC(9);
-        w->writeC(0);
-
-        w->writeC(5|baseAddr1);
-        w->writeC(10);
-        w->writeC(0);
-        break;
-      case DIV_SYSTEM_AY8910:
-        w->writeC(0xa0);
-        w->writeC(7|baseAddr2);
-        w->writeC(0x3f);
-
-        w->writeC(0xa0);
-        w->writeC(8|baseAddr2);
-        w->writeC(0);
-
-        w->writeC(0xa0);
-        w->writeC(9|baseAddr2);
-        w->writeC(0);
-
-        w->writeC(0xa0);
-        w->writeC(10|baseAddr2);
-        w->writeC(0);
-        break;
-      case DIV_SYSTEM_AY8930:
-        w->writeC(0xa0);
-        w->writeC(0x0d|baseAddr2);
-        w->writeC(0);
-        w->writeC(0xa0);
-        w->writeC(0x0d|baseAddr2);
-        w->writeC(0xa0);
-        break;
-      case DIV_SYSTEM_SAA1099:
-        w->writeC(0xbd);
-        w->writeC(0x1c|baseAddr2);
-        w->writeC(0x02);
-        w->writeC(0xbd);
-        w->writeC(0x14|baseAddr2);
-        w->writeC(0);
-        w->writeC(0xbd);
-        w->writeC(0x15|baseAddr2);
-        w->writeC(0);
-
-        for (int i=0; i<6; i++) {
-          w->writeC(0xbd);
-          w->writeC((0|baseAddr2)+i);
-          w->writeC(0);
-        }
-        break;
-      case DIV_SYSTEM_POKEY:
-        for (int i=0; i<9; i++) {
-          w->writeC(0xbb);
-          w->writeC(i|baseAddr2);
-          w->writeC(0);
-        }
-        break;
-      case DIV_SYSTEM_LYNX:
-        w->writeC(0x40);
-        w->writeC(0x44);
-        w->writeC(0xff); //stereo attenuation select
-        w->writeC(0x40);
+          w->writeC(addr&0xff);
+          w->writeC(val);
+          break;
+        case 2: // PSG
+          w->writeC(isSecond?0x30:0x50);
+          w->writeC(val);
+          break;
+      }
+      break;
+    case DIV_SYSTEM_SMS:
+      if (addr==1) {
+        w->writeC(isSecond?0x3f:0x4f);
+      } else {
+        w->writeC(isSecond?0x30:0x50);
+      }
+      w->writeC(val);
+      break;
+    case DIV_SYSTEM_T6W28:
+      if (addr) {
+        w->writeC(0x30);
+      } else {
         w->writeC(0x50);
-        w->writeC(0x00); //stereo channel disable
-        for (int i=0; i<4; i++) { //stereo attenuation value
-          w->writeC(0x40);
-          w->writeC(0x40+i);
-          w->writeC(0xff);
-        }
-        break;
-      case DIV_SYSTEM_QSOUND:
-        for (int i=0; i<16; i++) {
-          w->writeC(0xc4);
-          w->writeC(0);
-          w->writeC(0);
-          w->writeC(2+(i*8));
-          w->writeC(0xc4);
-          w->writeC(0);
-          w->writeC(0);
-          w->writeC(6+(i*8));
-        }
-        for (int i=0; i<3; i++) {
-          w->writeC(0xc4);
-          w->writeC(0);
-          w->writeC(0);
-          w->writeC(0xcd+(i*4));
-          w->writeC(0xc4);
-          w->writeC(0x00);
-          w->writeC(0x01);
-          w->writeC(0xd6+i);
-        }
-        break;
-      case DIV_SYSTEM_ES5506:
-        for (int i=0; i<32; i++) {
-          for (int b=0; b<4; b++) {
-            w->writeC(0xbe);
-            w->writeC((0xf<<2)+b);
-            w->writeC(i);
-          }
-          unsigned int init_cr=0x0303;
-          for (int b=0; b<4; b++) {
-            w->writeC(0xbe);
-            w->writeC(b);
-            w->writeC(init_cr>>(24-(b<<3)));
-          }
-          for (int r=1; r<11; r++) {
-            for (int b=0; b<4; b++) {
-              w->writeC(0xbe);
-              w->writeC((r<<2)+b);
-              w->writeC(((r==7 || r==9) && b&2)?0xff:0);
-            }
-          }
-          for (int b=0; b<4; b++) {
-            w->writeC(0xbe);
-            w->writeC((0xf<<2)+b);
-            w->writeC(0x20|i);
-          }
-          for (int r=1; r<10; r++) {
-            for (int b=0; b<4; b++) {
-              w->writeC(0xbe);
-              w->writeC((r<<2)+b);
-              w->writeC(0);
-            }
-          }
-        }
-        break;
-      case DIV_SYSTEM_OPL:
-      case DIV_SYSTEM_OPL_DRUMS:
-        // disable envelope
-        for (int i=0; i<6; i++) {
-          w->writeC(0x0b|baseAddr1);
-          w->writeC(0x80+i);
-          w->writeC(0x0f);
-          w->writeC(0x0b|baseAddr1);
-          w->writeC(0x88+i);
-          w->writeC(0x0f);
-          w->writeC(0x0b|baseAddr1);
-          w->writeC(0x90+i);
-          w->writeC(0x0f);
-        }
-        // key off + freq reset
-        for (int i=0; i<9; i++) {
-          w->writeC(0x0b|baseAddr1);
-          w->writeC(0xa0+i);
-          w->writeC(0);
-          w->writeC(0x0b|baseAddr1);
-          w->writeC(0xb0+i);
-          w->writeC(0);
-        }
-        break;
-      case DIV_SYSTEM_Y8950:
-      case DIV_SYSTEM_Y8950_DRUMS:
-        // disable envelope
-        for (int i=0; i<6; i++) {
-          w->writeC(0x0c|baseAddr1);
-          w->writeC(0x80+i);
-          w->writeC(0x0f);
-          w->writeC(0x0c|baseAddr1);
-          w->writeC(0x88+i);
-          w->writeC(0x0f);
-          w->writeC(0x0c|baseAddr1);
-          w->writeC(0x90+i);
-          w->writeC(0x0f);
-        }
-        // key off + freq reset
-        for (int i=0; i<9; i++) {
-          w->writeC(0x0c|baseAddr1);
-          w->writeC(0xa0+i);
-          w->writeC(0);
-          w->writeC(0x0c|baseAddr1);
-          w->writeC(0xb0+i);
-          w->writeC(0);
-        }
-        // TODO: ADPCM
-        break;
-      case DIV_SYSTEM_OPL2:
-      case DIV_SYSTEM_OPL2_DRUMS:
-        // disable envelope
-        for (int i=0; i<6; i++) {
-          w->writeC(0x0a|baseAddr1);
-          w->writeC(0x80+i);
-          w->writeC(0x0f);
-          w->writeC(0x0a|baseAddr1);
-          w->writeC(0x88+i);
-          w->writeC(0x0f);
-          w->writeC(0x0a|baseAddr1);
-          w->writeC(0x90+i);
-          w->writeC(0x0f);
-        }
-        // key off + freq reset
-        for (int i=0; i<9; i++) {
-          w->writeC(0x0a|baseAddr1);
-          w->writeC(0xa0+i);
-          w->writeC(0);
-          w->writeC(0x0a|baseAddr1);
-          w->writeC(0xb0+i);
-          w->writeC(0);
-        }
-        break;
-      case DIV_SYSTEM_OPL3:
-      case DIV_SYSTEM_OPL3_DRUMS:
-        // disable envelope
-        for (int i=0; i<6; i++) {
+      }
+      w->writeC(val);
+      break;
+    case DIV_SYSTEM_GB:
+      w->writeC(0xb3);
+      w->writeC(baseAddr2|((addr-16)&0xff));
+      w->writeC(val);
+      break;
+    case DIV_SYSTEM_PCE:
+      w->writeC(0xb9);
+      w->writeC(baseAddr2|(addr&0xff));
+      w->writeC(val);
+      break;
+    case DIV_SYSTEM_NES:
+      w->writeC(0xb4);
+      w->writeC(baseAddr2|(addr&0xff));
+      w->writeC(val);
+      break;
+    case DIV_SYSTEM_FDS: // yeah
+      w->writeC(0xb4);
+      if ((addr&0xff)==0x23) {
+        w->writeC(baseAddr2|0x3f);
+      } else if ((addr&0xff)>=0x80) {
+        w->writeC(baseAddr2|(0x20+(addr&0x7f)));
+      } else {
+        w->writeC(baseAddr2|(addr&0xff));
+      }
+      
+      w->writeC(val);
+      break;
+    case DIV_SYSTEM_YM2151:
+      w->writeC(4|baseAddr1);
+      w->writeC(addr&0xff);
+      w->writeC(val);
+      break;
+    case DIV_SYSTEM_SEGAPCM:
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
+      w->writeC(0xc0);
+      w->writeS(baseAddr2S|(addr&0xffff));
+      w->writeC(val);
+      break;
+    case DIV_SYSTEM_X1_010:
+      w->writeC(0xc8);
+      w->writeS_BE(baseAddr2S|(addr&0x1fff));
+      w->writeC(val);
+      break;
+    case DIV_SYSTEM_YM2610:
+    case DIV_SYSTEM_YM2610_FULL:
+    case DIV_SYSTEM_YM2610B:
+    case DIV_SYSTEM_YM2610_EXT:
+    case DIV_SYSTEM_YM2610_FULL_EXT:
+    case DIV_SYSTEM_YM2610B_EXT:
+      switch (addr>>8) {
+        case 0: // port 0
+          w->writeC(8|baseAddr1);
+          w->writeC(addr&0xff);
+          w->writeC(val);
+          break;
+        case 1: // port 1
+          w->writeC(9|baseAddr1);
+          w->writeC(addr&0xff);
+          w->writeC(val);
+          break;
+      }
+      break;
+    case DIV_SYSTEM_YM2203:
+    case DIV_SYSTEM_YM2203_EXT:
+      w->writeC(5|baseAddr1);
+      w->writeC(addr&0xff);
+      w->writeC(val);
+      break;
+    case DIV_SYSTEM_YM2608:
+    case DIV_SYSTEM_YM2608_EXT:
+      switch (addr>>8) {
+        case 0: // port 0
+          w->writeC(6|baseAddr1);
+          w->writeC(addr&0xff);
+          w->writeC(val);
+          break;
+        case 1: // port 1
+          w->writeC(7|baseAddr1);
+          w->writeC(addr&0xff);
+          w->writeC(val);
+          break;
+      }
+      break;
+    case DIV_SYSTEM_OPLL:
+    case DIV_SYSTEM_OPLL_DRUMS:
+    case DIV_SYSTEM_VRC7:
+      w->writeC(1|baseAddr1);
+      w->writeC(addr&0xff);
+      w->writeC(val);
+      break;
+    case DIV_SYSTEM_AY8910:
+    case DIV_SYSTEM_AY8930:
+      w->writeC(0xa0);
+      w->writeC(baseAddr2|(addr&0xff));
+      w->writeC(val);
+      break;
+    case DIV_SYSTEM_SAA1099:
+      w->writeC(0xbd);
+      w->writeC(baseAddr2|(addr&0xff));
+      w->writeC(val);
+      break;
+    case DIV_SYSTEM_POKEY:
+      w->writeC(0xbb);
+      w->writeC(baseAddr2|(addr&0x0f));
+      w->writeC(val&0xff);
+      break;
+    case DIV_SYSTEM_LYNX:
+      w->writeC(0x40);
+      w->writeC(addr&0xff);
+      w->writeC(val&0xff);
+      break;
+    case DIV_SYSTEM_QSOUND:
+      w->writeC(0xc4);
+      w->writeC((val>>8)&0xff);
+      w->writeC(val&0xff);
+      w->writeC(addr&0xff);
+      break;
+    case DIV_SYSTEM_SWAN:
+      if ((addr&0x7f)<0x40) {
+        w->writeC(0xbc);
+        w->writeC(baseAddr2|(addr&0x3f));
+        w->writeC(val&0xff);
+      } else {
+        // (Wave) RAM write
+        w->writeC(0xc6);
+        w->writeS_BE(baseAddr2S|(addr&0x3f));
+        w->writeC(val&0xff);
+      }
+      break;
+    case DIV_SYSTEM_ES5506:
+      w->writeC(0xbe);
+      w->writeC(addr&0xff);
+      w->writeC(val&0xff);
+      break;
+    case DIV_SYSTEM_VBOY:
+      w->writeC(0xc7);
+      w->writeS_BE(baseAddr2S|(addr>>2));
+      w->writeC(val&0xff);
+      break;
+    case DIV_SYSTEM_OPL:
+    case DIV_SYSTEM_OPL_DRUMS:
+      w->writeC(0x0b|baseAddr1);
+      w->writeC(addr&0xff);
+      w->writeC(val);
+      break;
+    case DIV_SYSTEM_Y8950:
+    case DIV_SYSTEM_Y8950_DRUMS:
+      w->writeC(0x0c|baseAddr1);
+      w->writeC(addr&0xff);
+      w->writeC(val);
+      break;
+    case DIV_SYSTEM_OPL2:
+    case DIV_SYSTEM_OPL2_DRUMS:
+      w->writeC(0x0a|baseAddr1);
+      w->writeC(addr&0xff);
+      w->writeC(val);
+      break;
+    case DIV_SYSTEM_OPL3:
+    case DIV_SYSTEM_OPL3_DRUMS:
+      switch (addr>>8) {
+        case 0: // port 0
           w->writeC(0x0e|baseAddr1);
-          w->writeC(0x80+i);
-          w->writeC(0x0f);
-          w->writeC(0x0e|baseAddr1);
-          w->writeC(0x88+i);
-          w->writeC(0x0f);
-          w->writeC(0x0e|baseAddr1);
-          w->writeC(0x90+i);
-          w->writeC(0x0f);
+          w->writeC(addr&0xff);
+          w->writeC(val);
+          break;
+        case 1: // port 1
           w->writeC(0x0f|baseAddr1);
-          w->writeC(0x80+i);
-          w->writeC(0x0f);
-          w->writeC(0x0f|baseAddr1);
-          w->writeC(0x88+i);
-          w->writeC(0x0f);
-          w->writeC(0x0f|baseAddr1);
-          w->writeC(0x90+i);
-          w->writeC(0x0f);
-        }
-        // key off + freq reset
-        for (int i=0; i<9; i++) {
-          w->writeC(0x0e|baseAddr1);
-          w->writeC(0xa0+i);
-          w->writeC(0);
-          w->writeC(0x0e|baseAddr1);
-          w->writeC(0xb0+i);
-          w->writeC(0);
-          w->writeC(0x0f|baseAddr1);
-          w->writeC(0xa0+i);
-          w->writeC(0);
-          w->writeC(0x0f|baseAddr1);
-          w->writeC(0xb0+i);
-          w->writeC(0);
-        }
-        // reset 4-op
-        w->writeC(0x0f|baseAddr1);
-        w->writeC(0x04);
-        w->writeC(0x00);
-        break;
-      case DIV_SYSTEM_SCC:
-      case DIV_SYSTEM_SCC_PLUS:
+          w->writeC(addr&0xff);
+          w->writeC(val);
+          break;
+      }
+      break;
+    case DIV_SYSTEM_SCC:
+      if (addr<0x80) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|0);
+        w->writeC(addr&0x7f);
+        w->writeC(val&0xff);
+      } else if (addr<0x8a) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|1);
+        w->writeC((addr-0x80)&0x7f);
+        w->writeC(val&0xff);
+      } else if (addr<0x8f) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|2);
+        w->writeC((addr-0x8a)&0x7f);
+        w->writeC(val&0xff);
+      } else if (addr<0x90) {
         w->writeC(0xd2);
         w->writeC(baseAddr2|3);
-        w->writeC(0);
-        w->writeC(0);
-        break;
-      case DIV_SYSTEM_RF5C68:
-        w->writeC(rf5c68Addr);
-        w->writeC(7);
-        w->writeC(0);
-        w->writeC(rf5c68Addr);
-        w->writeC(8);
-        w->writeC(0xff);
-        break;
-      case DIV_SYSTEM_MSM6258:
-        w->writeC(0xb7); // stop
+        w->writeC((addr-0x8f)&0x7f);
+        w->writeC(val&0xff);
+      } else if (addr>=0xe0) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|5);
+        w->writeC((addr-0xe0)&0x7f);
+        w->writeC(val&0xff);
+      } else {
+        logW("SCC: writing to unmapped address %.2x!",addr);
+      }
+      break;
+    case DIV_SYSTEM_SCC_PLUS:
+      if (addr<0x80) {
+        w->writeC(0xd2);
         w->writeC(baseAddr2|0);
-        w->writeC(1);
-        break;
-      case DIV_SYSTEM_MSM6295:
-        w->writeC(0xb8); // disable all channels
-        w->writeC(baseAddr2|0);
-        w->writeC(0x78);
-        w->writeC(0xb8); // select rate
-        w->writeC(baseAddr2|12);
-        w->writeC(1);
-        break;
-      case DIV_SYSTEM_VBOY:
-        // isn't it amazing when a chip has a built-in reset command?
-        w->writeC(0xc7);
-        w->writeS_BE(baseAddr2S|(0x580>>2));
-        w->writeC(0xff);
-        break;
-      case DIV_SYSTEM_GA20:
-        for (int i=0; i<4; i++) {
-          w->writeC(0xbf); // mute
-          w->writeC((baseAddr2|5)+(i*8));
-          w->writeC(0);
-          w->writeC(0xbf); // keyoff
-          w->writeC((baseAddr2|6)+(i*8));
-          w->writeC(0);
-        }
-        break;
-      case DIV_SYSTEM_K053260:
-        for (int i=0; i<4; i++) {
-          w->writeC(0xba); // mute
-          w->writeC(baseAddr2|0x2f);
-          w->writeC(0);
-          w->writeC(0xba); // keyoff
-          w->writeC(baseAddr2|0x28);
-          w->writeC(0);
-        }
-        break;
-      case DIV_SYSTEM_C140:
-        for (int i=0; i<24; i++) {
-          w->writeC(0xd4); // mute
-          w->writeS_BE(baseAddr2S|(i<<4)|0);
-          w->writeC(0);
-          w->writeC(0xd4);
-          w->writeS_BE(baseAddr2S|(i<<4)|1);
-          w->writeC(0);
-          w->writeC(0xd4); // keyoff
-          w->writeS_BE(baseAddr2S|(i<<4)|5);
-          w->writeC(0);
-        }
-        break;
-      case DIV_SYSTEM_C219:
-        for (int i=0; i<16; i++) {
-          w->writeC(0xd4); // mute
-          w->writeS_BE(baseAddr2S|(i<<4)|0);
-          w->writeC(0);
-          w->writeC(0xd4);
-          w->writeS_BE(baseAddr2S|(i<<4)|1);
-          w->writeC(0);
-          w->writeC(0xd4); // keyoff
-          w->writeS_BE(baseAddr2S|(i<<4)|5);
-          w->writeC(0);
-        }
-        break;
-      case DIV_SYSTEM_OPL4:
-      case DIV_SYSTEM_OPL4_DRUMS:
-        // disable envelope
-        for (int i=0; i<6; i++) {
-          w->writeC(0xd0);
-          w->writeC(0x00|baseAddr2);
-          w->writeC(0x80+i);
-          w->writeC(0x0f);
-          w->writeC(0xd0);
-          w->writeC(0x00|baseAddr2);
-          w->writeC(0x88+i);
-          w->writeC(0x0f);
-          w->writeC(0xd0);
-          w->writeC(0x00|baseAddr2);
-          w->writeC(0x90+i);
-          w->writeC(0x0f);
-          w->writeC(0xd0);
-          w->writeC(0x01|baseAddr2);
-          w->writeC(0x80+i);
-          w->writeC(0x0f);
-          w->writeC(0xd0);
-          w->writeC(0x01|baseAddr2);
-          w->writeC(0x88+i);
-          w->writeC(0x0f);
-          w->writeC(0xd0);
-          w->writeC(0x01|baseAddr2);
-          w->writeC(0x90+i);
-          w->writeC(0x0f);
-        }
-        for (int i=0; i<24; i++) {
-          w->writeC(0xd0);
-          w->writeC(0x02|baseAddr2);
-          w->writeC(0x80+i);
-          w->writeC(0x00);
-          w->writeC(0xd0);
-          w->writeC(0x02|baseAddr2);
-          w->writeC(0x98+i);
-          w->writeC(0x00);
-          w->writeC(0xd0);
-          w->writeC(0x02|baseAddr2);
-          w->writeC(0xb0+i);
-          w->writeC(0x00);
-          w->writeC(0xd0);
-          w->writeC(0x02|baseAddr2);
-          w->writeC(0xc8+i);
-          w->writeC(0x00);
-          w->writeC(0xd0);
-          w->writeC(0x02|baseAddr2);
-          w->writeC(0xe0+i);
-          w->writeC(0x00);
-        }
-        // key off + freq reset
-        for (int i=0; i<9; i++) {
-          w->writeC(0xd0);
-          w->writeC(0x00|baseAddr2);
-          w->writeC(0xa0+i);
-          w->writeC(0);
-          w->writeC(0xd0);
-          w->writeC(0x00|baseAddr2);
-          w->writeC(0xb0+i);
-          w->writeC(0);
-          w->writeC(0xd0);
-          w->writeC(0x01|baseAddr2);
-          w->writeC(0xa0+i);
-          w->writeC(0);
-          w->writeC(0xd0);
-          w->writeC(0x01|baseAddr2);
-          w->writeC(0xb0+i);
-          w->writeC(0);
-        }
-        for (int i=0; i<24; i++) {
-          w->writeC(0xd0);
-          w->writeC(0x02|baseAddr2);
-          w->writeC(0x20+i);
-          w->writeC(0);
-          w->writeC(0xd0);
-          w->writeC(0x02|baseAddr2);
-          w->writeC(0x38+i);
-          w->writeC(0);
-          w->writeC(0xd0);
-          w->writeC(0x02|baseAddr2);
-          w->writeC(0x68+i);
-          w->writeC(8);
-        }
-        // reset 4-op
-        w->writeC(0xd0);
-        w->writeC(0x01|baseAddr2);
-        w->writeC(0x04);
-        w->writeC(0x00);
-        break;
-      default:
-        break;
+        w->writeC(addr&0x7f);
+        w->writeC(val&0xff);
+      } else if (addr<0xa0) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|4);
+        w->writeC(addr);
+        w->writeC(val&0xff);
+      } else if (addr<0xaa) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|1);
+        w->writeC((addr-0xa0)&0x7f);
+        w->writeC(val&0xff);
+      } else if (addr<0xaf) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|2);
+        w->writeC((addr-0xaa)&0x7f);
+        w->writeC(val&0xff);
+      } else if (addr<0xb0) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|3);
+        w->writeC((addr-0xaf)&0x7f);
+        w->writeC(val&0xff);
+      } else if (addr>=0xe0) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|5);
+        w->writeC((addr-0xe0)&0x7f);
+        w->writeC(val&0xff);
+      } else {
+        logW("SCC+: writing to unmapped address %.2x!",addr);
+      }
+      break;
+    case DIV_SYSTEM_YMZ280B:
+      w->writeC(0x0d|baseAddr1);
+      w->writeC(addr&0xff);
+      w->writeC(val&0xff);
+      break;
+    case DIV_SYSTEM_RF5C68:
+      w->writeC(isSecond?0xb1:0xb0);
+      w->writeC(addr&0xff);
+      w->writeC(val);
+      break;
+    case DIV_SYSTEM_MSM6258:
+      w->writeC(0xb7);
+      w->writeC(baseAddr2|(addr&0x7f));
+      w->writeC(val);
+      logV("MSM write to %.2x %.2x",addr,val);
+      break;
+    case DIV_SYSTEM_MSM6295:
+      w->writeC(0xb8);
+      w->writeC(baseAddr2|(addr&0x7f));
+      w->writeC(val);
+      break;
+    case DIV_SYSTEM_GA20:
+      w->writeC(0xbf);
+      w->writeC(baseAddr2|(addr&0x7f));
+      w->writeC(val);
+      break;
+    case DIV_SYSTEM_K053260:
+      w->writeC(0xba);
+      w->writeC(baseAddr2|(addr&0x3f));
+      w->writeC(val&0xff);
+      break;
+    case DIV_SYSTEM_C140:
+    case DIV_SYSTEM_C219:
+      w->writeC(0xd4);
+      w->writeS_BE(baseAddr2S|(addr&0x1ff));
+      w->writeC(val&0xff);
+      break;
+    case DIV_SYSTEM_OPL4:
+    case DIV_SYSTEM_OPL4_DRUMS:
+      w->writeC(0xd0);
+      w->writeC(((addr>>8)&0x7f)|baseAddr2);
+      w->writeC(addr&0xff);
+      w->writeC(val);
+      break;
+    default:
+      logW("write not handled!");
+      break;
+  }
+}
+
+void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, int* setPos, unsigned int* sampleOff8, unsigned int* sampleLen8, size_t bankOffset, bool directStream, bool* sampleStoppable) {
+  if (write.addr==0xffffffff) { // Furnace fake reset
+    for (auto& i: generateResetWrites(sys)) {
+      writeCmd(w,sys,isSecond,i.addr,i.val);
     }
   }
   if (write.addr==0xffff0004) { // switch sample bank
@@ -873,330 +522,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
     }
     return;
   }
-  switch (sys) {
-    case DIV_SYSTEM_YM2612:
-    case DIV_SYSTEM_YM2612_EXT:
-    case DIV_SYSTEM_YM2612_DUALPCM:
-    case DIV_SYSTEM_YM2612_DUALPCM_EXT:
-    case DIV_SYSTEM_YM2612_CSM:
-      switch (write.addr>>8) {
-        case 0: // port 0
-          w->writeC(2|baseAddr1);
-          w->writeC(write.addr&0xff);
-          w->writeC(write.val);
-          break;
-        case 1: // port 1
-          w->writeC(3|baseAddr1);
-          w->writeC(write.addr&0xff);
-          w->writeC(write.val);
-          break;
-        case 2: // PSG
-          w->writeC(smsAddr);
-          w->writeC(write.val);
-          break;
-      }
-      break;
-    case DIV_SYSTEM_SMS:
-      if (write.addr==1) {
-        w->writeC(ggAddr);
-      } else {
-        w->writeC(smsAddr);
-      }
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_T6W28:
-      if (write.addr) {
-        w->writeC(0x30);
-      } else {
-        w->writeC(0x50);
-      }
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_GB:
-      w->writeC(0xb3);
-      w->writeC(baseAddr2|((write.addr-16)&0xff));
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_PCE:
-      w->writeC(0xb9);
-      w->writeC(baseAddr2|(write.addr&0xff));
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_NES:
-      w->writeC(0xb4);
-      w->writeC(baseAddr2|(write.addr&0xff));
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_FDS: // yeah
-      w->writeC(0xb4);
-      if ((write.addr&0xff)==0x23) {
-        w->writeC(baseAddr2|0x3f);
-      } else if ((write.addr&0xff)>=0x80) {
-        w->writeC(baseAddr2|(0x20+(write.addr&0x7f)));
-      } else {
-        w->writeC(baseAddr2|(write.addr&0xff));
-      }
-      
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_YM2151:
-      w->writeC(4|baseAddr1);
-      w->writeC(write.addr&0xff);
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_SEGAPCM:
-    case DIV_SYSTEM_SEGAPCM_COMPAT:
-      w->writeC(0xc0);
-      w->writeS(baseAddr2S|(write.addr&0xffff));
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_X1_010:
-      w->writeC(0xc8);
-      w->writeS_BE(baseAddr2S|(write.addr&0x1fff));
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_YM2610:
-    case DIV_SYSTEM_YM2610_FULL:
-    case DIV_SYSTEM_YM2610B:
-    case DIV_SYSTEM_YM2610_EXT:
-    case DIV_SYSTEM_YM2610_FULL_EXT:
-    case DIV_SYSTEM_YM2610B_EXT:
-      switch (write.addr>>8) {
-        case 0: // port 0
-          w->writeC(8|baseAddr1);
-          w->writeC(write.addr&0xff);
-          w->writeC(write.val);
-          break;
-        case 1: // port 1
-          w->writeC(9|baseAddr1);
-          w->writeC(write.addr&0xff);
-          w->writeC(write.val);
-          break;
-      }
-      break;
-    case DIV_SYSTEM_YM2203:
-    case DIV_SYSTEM_YM2203_EXT:
-      w->writeC(5|baseAddr1);
-      w->writeC(write.addr&0xff);
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_YM2608:
-    case DIV_SYSTEM_YM2608_EXT:
-      switch (write.addr>>8) {
-        case 0: // port 0
-          w->writeC(6|baseAddr1);
-          w->writeC(write.addr&0xff);
-          w->writeC(write.val);
-          break;
-        case 1: // port 1
-          w->writeC(7|baseAddr1);
-          w->writeC(write.addr&0xff);
-          w->writeC(write.val);
-          break;
-      }
-      break;
-    case DIV_SYSTEM_OPLL:
-    case DIV_SYSTEM_OPLL_DRUMS:
-    case DIV_SYSTEM_VRC7:
-      w->writeC(1|baseAddr1);
-      w->writeC(write.addr&0xff);
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_AY8910:
-    case DIV_SYSTEM_AY8930:
-      w->writeC(0xa0);
-      w->writeC(baseAddr2|(write.addr&0xff));
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_SAA1099:
-      w->writeC(0xbd);
-      w->writeC(baseAddr2|(write.addr&0xff));
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_POKEY:
-      w->writeC(0xbb);
-      w->writeC(baseAddr2|(write.addr&0x0f));
-      w->writeC(write.val&0xff);
-      break;
-    case DIV_SYSTEM_LYNX:
-      w->writeC(0x40);
-      w->writeC(write.addr&0xff);
-      w->writeC(write.val&0xff);
-      break;
-    case DIV_SYSTEM_QSOUND:
-      w->writeC(0xc4);
-      w->writeC((write.val>>8)&0xff);
-      w->writeC(write.val&0xff);
-      w->writeC(write.addr&0xff);
-      break;
-    case DIV_SYSTEM_SWAN:
-      if ((write.addr&0x7f)<0x40) {
-        w->writeC(0xbc);
-        w->writeC(baseAddr2|(write.addr&0x3f));
-        w->writeC(write.val&0xff);
-      } else {
-        // (Wave) RAM write
-        w->writeC(0xc6);
-        w->writeS_BE(baseAddr2S|(write.addr&0x3f));
-        w->writeC(write.val&0xff);
-      }
-      break;
-    case DIV_SYSTEM_ES5506:
-      w->writeC(0xbe);
-      w->writeC(write.addr&0xff);
-      w->writeC(write.val&0xff);
-      break;
-    case DIV_SYSTEM_VBOY:
-      w->writeC(0xc7);
-      w->writeS_BE(baseAddr2S|(write.addr>>2));
-      w->writeC(write.val&0xff);
-      break;
-    case DIV_SYSTEM_OPL:
-    case DIV_SYSTEM_OPL_DRUMS:
-      w->writeC(0x0b|baseAddr1);
-      w->writeC(write.addr&0xff);
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_Y8950:
-    case DIV_SYSTEM_Y8950_DRUMS:
-      w->writeC(0x0c|baseAddr1);
-      w->writeC(write.addr&0xff);
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_OPL2:
-    case DIV_SYSTEM_OPL2_DRUMS:
-      w->writeC(0x0a|baseAddr1);
-      w->writeC(write.addr&0xff);
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_OPL3:
-    case DIV_SYSTEM_OPL3_DRUMS:
-      switch (write.addr>>8) {
-        case 0: // port 0
-          w->writeC(0x0e|baseAddr1);
-          w->writeC(write.addr&0xff);
-          w->writeC(write.val);
-          break;
-        case 1: // port 1
-          w->writeC(0x0f|baseAddr1);
-          w->writeC(write.addr&0xff);
-          w->writeC(write.val);
-          break;
-      }
-      break;
-    case DIV_SYSTEM_SCC:
-      if (write.addr<0x80) {
-        w->writeC(0xd2);
-        w->writeC(baseAddr2|0);
-        w->writeC(write.addr&0x7f);
-        w->writeC(write.val&0xff);
-      } else if (write.addr<0x8a) {
-        w->writeC(0xd2);
-        w->writeC(baseAddr2|1);
-        w->writeC((write.addr-0x80)&0x7f);
-        w->writeC(write.val&0xff);
-      } else if (write.addr<0x8f) {
-        w->writeC(0xd2);
-        w->writeC(baseAddr2|2);
-        w->writeC((write.addr-0x8a)&0x7f);
-        w->writeC(write.val&0xff);
-      } else if (write.addr<0x90) {
-        w->writeC(0xd2);
-        w->writeC(baseAddr2|3);
-        w->writeC((write.addr-0x8f)&0x7f);
-        w->writeC(write.val&0xff);
-      } else if (write.addr>=0xe0) {
-        w->writeC(0xd2);
-        w->writeC(baseAddr2|5);
-        w->writeC((write.addr-0xe0)&0x7f);
-        w->writeC(write.val&0xff);
-      } else {
-        logW("SCC: writing to unmapped address %.2x!",write.addr);
-      }
-      break;
-    case DIV_SYSTEM_SCC_PLUS:
-      if (write.addr<0x80) {
-        w->writeC(0xd2);
-        w->writeC(baseAddr2|0);
-        w->writeC(write.addr&0x7f);
-        w->writeC(write.val&0xff);
-      } else if (write.addr<0xa0) {
-        w->writeC(0xd2);
-        w->writeC(baseAddr2|4);
-        w->writeC(write.addr);
-        w->writeC(write.val&0xff);
-      } else if (write.addr<0xaa) {
-        w->writeC(0xd2);
-        w->writeC(baseAddr2|1);
-        w->writeC((write.addr-0xa0)&0x7f);
-        w->writeC(write.val&0xff);
-      } else if (write.addr<0xaf) {
-        w->writeC(0xd2);
-        w->writeC(baseAddr2|2);
-        w->writeC((write.addr-0xaa)&0x7f);
-        w->writeC(write.val&0xff);
-      } else if (write.addr<0xb0) {
-        w->writeC(0xd2);
-        w->writeC(baseAddr2|3);
-        w->writeC((write.addr-0xaf)&0x7f);
-        w->writeC(write.val&0xff);
-      } else if (write.addr>=0xe0) {
-        w->writeC(0xd2);
-        w->writeC(baseAddr2|5);
-        w->writeC((write.addr-0xe0)&0x7f);
-        w->writeC(write.val&0xff);
-      } else {
-        logW("SCC+: writing to unmapped address %.2x!",write.addr);
-      }
-      break;
-    case DIV_SYSTEM_YMZ280B:
-      w->writeC(0x0d|baseAddr1);
-      w->writeC(write.addr&0xff);
-      w->writeC(write.val&0xff);
-      break;
-    case DIV_SYSTEM_RF5C68:
-      w->writeC(rf5c68Addr);
-      w->writeC(write.addr&0xff);
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_MSM6258:
-      w->writeC(0xb7);
-      w->writeC(baseAddr2|(write.addr&0x7f));
-      w->writeC(write.val);
-      logV("MSM write to %.2x %.2x",write.addr,write.val);
-      break;
-    case DIV_SYSTEM_MSM6295:
-      w->writeC(0xb8);
-      w->writeC(baseAddr2|(write.addr&0x7f));
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_GA20:
-      w->writeC(0xbf);
-      w->writeC(baseAddr2|(write.addr&0x7f));
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_K053260:
-      w->writeC(0xba);
-      w->writeC(baseAddr2|(write.addr&0x3f));
-      w->writeC(write.val&0xff);
-      break;
-    case DIV_SYSTEM_C140:
-    case DIV_SYSTEM_C219:
-      w->writeC(0xd4);
-      w->writeS_BE(baseAddr2S|(write.addr&0x1ff));
-      w->writeC(write.val&0xff);
-      break;
-    case DIV_SYSTEM_OPL4:
-    case DIV_SYSTEM_OPL4_DRUMS:
-      w->writeC(0xd0);
-      w->writeC(((write.addr>>8)&0x7f)|baseAddr2);
-      w->writeC(write.addr&0xff);
-      w->writeC(write.val);
-      break;
-    default:
-      logW("write not handled!");
-      break;
-  }
+  writeCmd(w,sys,isSecond,write.addr,write.val);
 }
 
 #define CHIP_VOL(_id,_mult) { \

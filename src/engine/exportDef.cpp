@@ -119,4 +119,37 @@ void DivEngine::registerROMExports() {
     },
     false, DIV_REQPOL_EXACT
   );
+
+  romExportDefs[DIV_ROM_S98]=new DivROMExportDef(
+    "S98", "Natt Akuma",
+    "register dump format for sound chips used in Japanese computers.\n"
+    "tick rate must be output sample rate when samples or timer fx are used.\n"
+    "for playback, see http://www.vesta.dti.ne.jp/~tsato/soft_s98v3.html",
+    "S98 files", ".s98",
+    {
+      DIV_SYSTEM_AY8910,
+      DIV_SYSTEM_YM2203,
+      DIV_SYSTEM_YM2203_CSM,
+      DIV_SYSTEM_YM2203_EXT,
+      DIV_SYSTEM_YM2608,
+      DIV_SYSTEM_YM2608_CSM,
+      DIV_SYSTEM_YM2608_EXT,
+      DIV_SYSTEM_YM2612,
+      DIV_SYSTEM_YM2612_CSM,
+      DIV_SYSTEM_YM2612_EXT,
+      DIV_SYSTEM_YM2612_DUALPCM,
+      DIV_SYSTEM_YM2612_DUALPCM_EXT,
+      DIV_SYSTEM_YM2151,
+      DIV_SYSTEM_OPLL,
+      DIV_SYSTEM_OPLL_DRUMS,
+      DIV_SYSTEM_OPL,
+      DIV_SYSTEM_OPL_DRUMS,
+      DIV_SYSTEM_OPL2,
+      DIV_SYSTEM_OPL2_DRUMS,
+      DIV_SYSTEM_OPL3,
+      DIV_SYSTEM_OPL3_DRUMS,
+      DIV_SYSTEM_SMS
+    },
+    false, DIV_REQPOL_LAX
+  );
 }
