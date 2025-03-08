@@ -14,7 +14,7 @@ msgstr ""
 #: src/engine/fileOps/ppc.cpp:139 src/engine/fileOps/pvi.cpp:155
 #: src/engine/fileOps/p.cpp:121 src/engine/fileOps/pps.cpp:122
 #: src/engine/fileOps/pzi.cpp:151 src/engine/fileOps/p86.cpp:139
-#: src/engine/fileOps/pdx.cpp:98 src/engine/engine.cpp:2870
+#: src/engine/fileOps/pdx.cpp:98 src/engine/engine.cpp:2868
 msgid "premature end of file"
 msgstr "przedwczesny koniec pliku"
 
@@ -1322,7 +1322,7 @@ msgstr "Kanał 16"
 #: src/engine/sysDef.cpp:1897 src/engine/sysDef.cpp:2018
 #: src/engine/sysDef.cpp:2050 src/engine/sysDef.cpp:2112
 #: src/engine/sysDef.cpp:2113 src/engine/sysDef.cpp:2330
-#: src/gui/settings.cpp:4210
+#: src/gui/settings.cpp:4206
 msgid "PCM"
 msgstr "PCM"
 
@@ -1373,8 +1373,8 @@ msgstr "Kwadrat 3"
 #: src/engine/sysDef.cpp:1433 src/engine/sysDef.cpp:2004
 #: src/engine/sysDef.cpp:2050 src/engine/sysDef.cpp:2077
 #: src/engine/sysDef.cpp:2088 src/engine/sysDef.cpp:2205
-#: src/engine/sysDef.cpp:2268 src/gui/settings.cpp:4126
-#: src/gui/settings.cpp:4209 src/gui/guiConst.cpp:244 src/gui/insEdit.cpp:8018
+#: src/engine/sysDef.cpp:2268 src/gui/settings.cpp:4122
+#: src/gui/settings.cpp:4205 src/gui/guiConst.cpp:244 src/gui/insEdit.cpp:8018
 #: src/gui/insEdit.cpp:8185 src/gui/insEdit.cpp:8294 src/gui/insEdit.cpp:8386
 msgid "Noise"
 msgstr "Szum"
@@ -1390,7 +1390,7 @@ msgid "Sega Master System + FM Expansion"
 msgstr "Sega Master System z rozszerzeniem FM"
 
 #: src/engine/sysDef.cpp:847 src/gui/presets.cpp:139 src/gui/presets.cpp:3580
-#: src/gui/presets.cpp:3705 src/gui/settings.cpp:4138
+#: src/gui/presets.cpp:3705 src/gui/settings.cpp:4134
 msgid "Game Boy"
 msgstr "Game Boy"
 
@@ -1410,7 +1410,7 @@ msgstr "Prostokąt 1"
 msgid "Pulse 2"
 msgstr "Prostokąt 2"
 
-#: src/engine/sysDef.cpp:849 src/gui/presets.cpp:3480 src/gui/settings.cpp:4038
+#: src/engine/sysDef.cpp:849 src/gui/presets.cpp:3480 src/gui/settings.cpp:4034
 #: src/gui/guiConst.cpp:245 src/gui/guiConst.cpp:1475 src/gui/insEdit.cpp:3027
 msgid "Wavetable"
 msgstr "Synteza tablicowa"
@@ -1948,7 +1948,7 @@ msgstr ""
 "prostokątne..."
 
 #: src/engine/sysDef.cpp:1071 src/gui/settings.cpp:139 src/gui/settings.cpp:214
-#: src/gui/settings.cpp:4078
+#: src/gui/settings.cpp:4074
 msgid "Low"
 msgstr "Niskie"
 
@@ -1957,7 +1957,7 @@ msgid "Mid"
 msgstr "Srednie"
 
 #: src/engine/sysDef.cpp:1071 src/gui/settings.cpp:138 src/gui/settings.cpp:216
-#: src/gui/settings.cpp:4079
+#: src/gui/settings.cpp:4075
 msgid "High"
 msgstr "Wysokie"
 
@@ -1975,13 +1975,13 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1082 src/engine/sysDef.cpp:1381
 #: src/engine/sysDef.cpp:2268 src/engine/sysDef.cpp:2318
-#: src/gui/editControls.cpp:433 src/gui/settings.cpp:4125
-#: src/gui/settings.cpp:4211 src/gui/guiConst.cpp:254
+#: src/gui/editControls.cpp:433 src/gui/settings.cpp:4121
+#: src/gui/settings.cpp:4207 src/gui/guiConst.cpp:254
 msgid "Wave"
 msgstr "Fala"
 
 #: src/engine/sysDef.cpp:1091 src/gui/presets.cpp:218 src/gui/presets.cpp:3424
-#: src/gui/settings.cpp:4165
+#: src/gui/settings.cpp:4161
 msgid "SNES"
 msgstr "SNES"
 
@@ -2147,7 +2147,7 @@ msgstr ""
 "stacja dyskietek dla Famicoma, która przy okazji dostarcza jeden kanał "
 "syntezy tablicowej"
 
-#: src/engine/sysDef.cpp:1160 src/gui/settings.cpp:4152
+#: src/engine/sysDef.cpp:1160 src/gui/settings.cpp:4148
 msgid "FDS"
 msgstr ""
 
@@ -2185,7 +2185,7 @@ msgid ""
 msgstr "rozszerzenie dla Famicoma, posiadający mało znany kanał PCM"
 
 #: src/engine/sysDef.cpp:1190 src/gui/presets.cpp:3517
-#: src/gui/settings.cpp:4154
+#: src/gui/settings.cpp:4150
 msgid "Namco 163"
 msgstr "Namco 163"
 
@@ -2512,7 +2512,7 @@ msgstr "FM 17"
 msgid "FM 18"
 msgstr "FM 18"
 
-#: src/engine/sysDef.cpp:1327 src/gui/settings.cpp:4164
+#: src/engine/sysDef.cpp:1327 src/gui/settings.cpp:4160
 msgid "MultiPCM"
 msgstr "MultiPCM"
 
@@ -2605,7 +2605,7 @@ msgid "please don't use this chip. it was added as a joke."
 msgstr "nie używaj tego układu. został dodany jako żart."
 
 #: src/engine/sysDef.cpp:1354 src/gui/presets.cpp:3590
-#: src/gui/settings.cpp:4157
+#: src/gui/settings.cpp:4153
 msgid "POKEY"
 msgstr ""
 
@@ -2642,7 +2642,7 @@ msgstr ""
 "ficzerów"
 
 #: src/engine/sysDef.cpp:1379 src/gui/presets.cpp:288 src/gui/presets.cpp:3527
-#: src/gui/settings.cpp:4159
+#: src/gui/settings.cpp:4155
 msgid "WonderSwan"
 msgstr ""
 
@@ -2693,7 +2693,7 @@ msgid "2Fxx: Toggle hard envelope reset on new notes"
 msgstr "2Fxx: Włącz twardy reset obwiedni przy nowych nutach"
 
 #: src/engine/sysDef.cpp:1410 src/gui/presets.cpp:309 src/gui/presets.cpp:3355
-#: src/gui/settings.cpp:4182
+#: src/gui/settings.cpp:4178
 msgid "Pokémon Mini"
 msgstr ""
 
@@ -2703,7 +2703,7 @@ msgstr ""
 "ten układ jest podobny do PC Speakera, ale ma zmienną szerokość fali "
 "prostokątnej"
 
-#: src/engine/sysDef.cpp:1412 src/gui/settings.cpp:4208
+#: src/engine/sysDef.cpp:1412 src/gui/settings.cpp:4204
 #: src/gui/guiConst.cpp:243 src/gui/waveEdit.cpp:34
 msgid "Pulse"
 msgstr "Fala kwadratowa"
@@ -2721,7 +2721,7 @@ msgstr ""
 "używany w połączeniu z YM2151."
 
 #: src/engine/sysDef.cpp:1431 src/gui/presets.cpp:294 src/gui/presets.cpp:3533
-#: src/gui/settings.cpp:4153
+#: src/gui/settings.cpp:4149
 msgid "Virtual Boy"
 msgstr ""
 
@@ -2789,7 +2789,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1463 src/engine/sysDef.cpp:1562
 #: src/engine/sysDef.cpp:1574 src/engine/sysDef.cpp:1587
 #: src/engine/sysDef.cpp:1665 src/engine/sysDef.cpp:1679
-#: src/gui/settings.cpp:4174
+#: src/gui/settings.cpp:4170
 msgid "ADPCM-B"
 msgstr "ADPCM-B"
 
@@ -2847,7 +2847,7 @@ msgstr ""
 "kanale."
 
 #: src/engine/sysDef.cpp:1513 src/gui/presets.cpp:3492
-#: src/gui/settings.cpp:4155
+#: src/gui/settings.cpp:4151
 msgid "Konami SCC"
 msgstr ""
 
@@ -3089,7 +3089,7 @@ msgstr "ADPCM 2"
 msgid "ADPCM 3"
 msgstr "ADPCM 3"
 
-#: src/engine/sysDef.cpp:1649 src/gui/settings.cpp:4161
+#: src/engine/sysDef.cpp:1649 src/gui/settings.cpp:4157
 msgid "VERA"
 msgstr ""
 
@@ -3526,7 +3526,7 @@ msgstr "układ dźwiękowy ADPCM firmy OKI, używany w Sharpie X68000."
 
 #: src/engine/sysDef.cpp:1896 src/engine/sysDef.cpp:2017
 #: src/gui/presets.cpp:3381 src/gui/editControls.cpp:437
-#: src/gui/settings.cpp:4339 src/gui/guiConst.cpp:246 src/gui/guiConst.cpp:1477
+#: src/gui/settings.cpp:4335 src/gui/guiConst.cpp:246 src/gui/guiConst.cpp:1477
 #: src/gui/insEdit.cpp:3293 src/gui/insEdit.cpp:3333
 msgid "Sample"
 msgstr "Samplery"
@@ -3552,7 +3552,7 @@ msgstr ""
 "ADPCM, a także 8-bitowe i 16-bitowe sample PCM"
 
 #: src/engine/sysDef.cpp:1927 src/gui/presets.cpp:3502
-#: src/gui/settings.cpp:4167
+#: src/gui/settings.cpp:4163
 msgid "Namco WSG"
 msgstr ""
 
@@ -3650,7 +3650,7 @@ msgstr ""
 "ta wersja posiada kontrolę trybu CSM dla efektów specjalnych na trzecim "
 "kanale"
 
-#: src/engine/sysDef.cpp:2002 src/gui/settings.cpp:4137
+#: src/engine/sysDef.cpp:2002 src/gui/settings.cpp:4133
 msgid "T6W28"
 msgstr ""
 
@@ -3889,7 +3889,7 @@ msgid "23xx: Write to I/O port B"
 msgstr "23xx: Zapisz do portu I/O B"
 
 #: src/engine/sysDef.cpp:2203 src/gui/presets.cpp:3648
-#: src/gui/settings.cpp:4192
+#: src/gui/settings.cpp:4188
 msgid "Dave"
 msgstr ""
 
@@ -3972,7 +3972,7 @@ msgid "12xy: Toggle invert (x: left; y: right)"
 msgstr "12xy: Włącz odwrócenie sygnału (x: lewo; y: prawo)"
 
 #: src/engine/sysDef.cpp:2252 src/gui/presets.cpp:324 src/gui/presets.cpp:3464
-#: src/gui/presets.cpp:3654 src/gui/settings.cpp:4193
+#: src/gui/presets.cpp:3654 src/gui/settings.cpp:4189
 msgid "Nintendo DS"
 msgstr ""
 
@@ -4006,7 +4006,7 @@ msgstr ""
 "(wypełnienie/fala: 0 to 3; szum: 0 or 1)"
 
 #: src/engine/sysDef.cpp:2288 src/gui/presets.cpp:3659
-#: src/gui/settings.cpp:4196
+#: src/gui/settings.cpp:4192
 msgid "Bifurcator"
 msgstr ""
 
@@ -4033,7 +4033,7 @@ msgid "13xx: Set high byte of channel parameter"
 msgstr "13xx: Ustaw wysoki bajt parametru kanału"
 
 #: src/engine/sysDef.cpp:2304 src/gui/presets.cpp:3664
-#: src/gui/settings.cpp:4197
+#: src/gui/settings.cpp:4193
 msgid "SID2"
 msgstr ""
 
@@ -4046,7 +4046,7 @@ msgstr ""
 "znaczna część problemów trapiących pierwowzór została wyeliminowana."
 
 #: src/engine/sysDef.cpp:2316 src/gui/presets.cpp:3669
-#: src/gui/settings.cpp:4200
+#: src/gui/settings.cpp:4196
 msgid "SID3"
 msgstr ""
 
@@ -4321,26 +4321,26 @@ msgstr "Ustaw przesunięcie sampla (drugi bajt x 256)"
 msgid "92xx: Set sample offset (third byte, ×65536)"
 msgstr "Ustaw przesunięcie sampla (trzeci bajt x 65536"
 
-#: src/engine/engine.cpp:198 src/gui/settings.cpp:4243
+#: src/engine/engine.cpp:198 src/gui/settings.cpp:4239
 msgid "Invalid effect"
 msgstr "nieprawidłowy efekt"
 
-#: src/engine/engine.cpp:300 src/gui/gui.cpp:2353 src/gui/gui.cpp:2531
+#: src/engine/engine.cpp:300 src/gui/gui.cpp:2359 src/gui/gui.cpp:2537
 #, c-format
 msgid "on seek: %s"
 msgstr "podczas przejścia po pliku: %s"
 
-#: src/engine/engine.cpp:307 src/gui/gui.cpp:2360 src/gui/gui.cpp:2538
+#: src/engine/engine.cpp:307 src/gui/gui.cpp:2366 src/gui/gui.cpp:2544
 #, c-format
 msgid "on pre tell: %s"
 msgstr "przed zażądaniem pozycji w pliku: %s"
 
-#: src/engine/engine.cpp:314 src/engine/engine.cpp:2761
-#: src/gui/settings.cpp:6013 src/gui/gui.cpp:2367 src/gui/gui.cpp:2545
+#: src/engine/engine.cpp:314 src/engine/engine.cpp:2759
+#: src/gui/settings.cpp:5981 src/gui/gui.cpp:2373 src/gui/gui.cpp:2551
 msgid "file is empty"
 msgstr "pusty plik"
 
-#: src/engine/engine.cpp:317 src/gui/gui.cpp:2370 src/gui/gui.cpp:2548
+#: src/engine/engine.cpp:317 src/gui/gui.cpp:2376 src/gui/gui.cpp:2554
 #, c-format
 msgid "on tell: %s"
 msgstr "podczas żądania pozycji w pliku: %s"
@@ -4350,14 +4350,14 @@ msgstr "podczas żądania pozycji w pliku: %s"
 msgid "ROM size mismatch, expected: %d bytes, was: %d"
 msgstr "niezgodność rozmiaru pliku ROM, oczekiwano: %d bajtów, faktycznie: %d"
 
-#: src/engine/engine.cpp:329 src/gui/settings.cpp:6022 src/gui/gui.cpp:2377
-#: src/gui/gui.cpp:2555
+#: src/engine/engine.cpp:329 src/gui/settings.cpp:5990 src/gui/gui.cpp:2383
+#: src/gui/gui.cpp:2561
 #, c-format
 msgid "on get size: %s"
 msgstr "przy pobraniu rozmiaru: %s"
 
-#: src/engine/engine.cpp:336 src/gui/settings.cpp:6029 src/gui/gui.cpp:2384
-#: src/gui/gui.cpp:2562
+#: src/engine/engine.cpp:336 src/gui/settings.cpp:5997 src/gui/gui.cpp:2390
+#: src/gui/gui.cpp:2568
 #, c-format
 msgid "on read: %s"
 msgstr "przy odczycie: %s"
@@ -4394,102 +4394,102 @@ msgstr "nieprawidłowy indeks oryginalnego systemu"
 msgid "invalid destination index"
 msgstr "nieprawidłowy indeks systemu docelowego"
 
-#: src/engine/engine.cpp:2629
+#: src/engine/engine.cpp:2627
 #, c-format
 msgid "Instrument %d"
 msgstr "Instrument %d"
 
-#: src/engine/engine.cpp:2703 src/engine/engine.cpp:2720
+#: src/engine/engine.cpp:2701 src/engine/engine.cpp:2718
 #: src/gui/doAction.cpp:844 src/gui/doAction.cpp:862 src/gui/doAction.cpp:1700
-#: src/gui/gui.cpp:6577 src/gui/insEdit.cpp:3239
+#: src/gui/gui.cpp:6590 src/gui/insEdit.cpp:3239
 msgid "too many wavetables!"
 msgstr "zbyt wiele tablic fal!"
 
-#: src/engine/engine.cpp:2745
+#: src/engine/engine.cpp:2743
 #, c-format
 msgid "could not seek to end: %s"
 msgstr "nie udało się przejść do końca pliku: %s"
 
-#: src/engine/engine.cpp:2751
+#: src/engine/engine.cpp:2749
 #, c-format
 msgid "could not determine file size: %s"
 msgstr "nie udało się określić rozmiaru pliku: %s"
 
-#: src/engine/engine.cpp:2756
+#: src/engine/engine.cpp:2754
 msgid "file size is invalid!"
 msgstr "rozmiar pliku jest nieprawidłowy!"
 
-#: src/engine/engine.cpp:2766
+#: src/engine/engine.cpp:2764
 #, c-format
 msgid "could not seek to beginning: %s"
 msgstr "nie udało się przejść do początku pliku: %s"
 
-#: src/engine/engine.cpp:2773
+#: src/engine/engine.cpp:2771
 #, c-format
 msgid "could not read entire file: %s"
 msgstr "nie udało się wczytać całego pliku: %s"
 
-#: src/engine/engine.cpp:2799
+#: src/engine/engine.cpp:2797
 msgid "invalid wavetable header/data!"
 msgstr "nieprawidłowy nagłówek/dane tablicy fal!"
 
-#: src/engine/engine.cpp:2897 src/engine/engine.cpp:2920
+#: src/engine/engine.cpp:2895 src/engine/engine.cpp:2918
 #: src/gui/doAction.cpp:890 src/gui/doAction.cpp:967 src/gui/doAction.cpp:979
 msgid "too many samples!"
 msgstr "zbyt wiele sampli!"
 
-#: src/engine/engine.cpp:2904
+#: src/engine/engine.cpp:2902
 #, c-format
 msgid "Sample %d"
 msgstr "Sampel %d"
 
-#: src/engine/engine.cpp:3050
+#: src/engine/engine.cpp:3048
 #, c-format
 msgid "no free patterns in channel %d!"
 msgstr "brak wolnych wzorców na kanale %d!"
 
-#: src/engine/platform/c64.cpp:767 src/engine/platform/c64.cpp:769
-#: src/engine/platform/sid2.cpp:604 src/engine/platform/sid2.cpp:606
-#: src/engine/platform/dave.cpp:532 src/engine/platform/sid3.cpp:1368
-#: src/engine/platform/sid3.cpp:1372 src/gui/insEdit.cpp:244
+#: src/engine/platform/c64.cpp:773 src/engine/platform/c64.cpp:775
+#: src/engine/platform/sid2.cpp:611 src/engine/platform/sid2.cpp:613
+#: src/engine/platform/dave.cpp:540 src/engine/platform/sid3.cpp:1376
+#: src/engine/platform/sid3.cpp:1380 src/gui/insEdit.cpp:244
 #: src/gui/insEdit.cpp:251 src/gui/insEdit.cpp:506
 msgid "ring"
 msgstr "kołowa"
 
-#: src/engine/platform/c64.cpp:774 src/engine/platform/c64.cpp:776
-#: src/engine/platform/sid2.cpp:611 src/engine/platform/sid2.cpp:613
-#: src/engine/platform/sid3.cpp:1377 src/gui/insEdit.cpp:243
+#: src/engine/platform/c64.cpp:780 src/engine/platform/c64.cpp:782
+#: src/engine/platform/sid2.cpp:618 src/engine/platform/sid2.cpp:620
+#: src/engine/platform/sid3.cpp:1385 src/gui/insEdit.cpp:243
 #: src/gui/insEdit.cpp:250 src/gui/insEdit.cpp:505
 msgid "sync"
 msgstr "synchro"
 
-#: src/engine/platform/dave.cpp:529 src/gui/insEdit.cpp:498
+#: src/engine/platform/dave.cpp:537 src/gui/insEdit.cpp:498
 #: src/gui/insEdit.cpp:7196
 msgid "high"
 msgstr "górno"
 
-#: src/engine/platform/dave.cpp:535 src/gui/insEdit.cpp:496
+#: src/engine/platform/dave.cpp:543 src/gui/insEdit.cpp:496
 #: src/gui/insEdit.cpp:7184
 msgid "low"
 msgstr "dolno"
 
-#: src/engine/platform/sid3.cpp:1362 src/gui/insEdit.cpp:249
+#: src/engine/platform/sid3.cpp:1370 src/gui/insEdit.cpp:249
 msgid "phase"
 msgstr ""
 
-#: src/engine/platform/snes.cpp:733 src/engine/platform/pce.cpp:548
+#: src/engine/platform/snes.cpp:739 src/engine/platform/pce.cpp:571
 msgid "mod"
 msgstr ""
 
-#: src/engine/platform/opl.cpp:2664
+#: src/engine/platform/opl.cpp:2728
 msgid "4OP"
 msgstr ""
 
-#: src/engine/platform/pokey.cpp:413 src/engine/platform/pokey.cpp:422
+#: src/engine/platform/pokey.cpp:435 src/engine/platform/pokey.cpp:444
 msgid "filter"
 msgstr ""
 
-#: src/engine/platform/pokey.cpp:416 src/engine/platform/pokey.cpp:419
+#: src/engine/platform/pokey.cpp:438 src/engine/platform/pokey.cpp:441
 msgid "16-bit"
 msgstr ""
 
@@ -4497,97 +4497,97 @@ msgstr ""
 msgid "did not read entire sample bank file!"
 msgstr ""
 
-#: src/main.cpp:702
+#: src/main.cpp:701
 #, c-format
 msgid "incomplete param %s."
 msgstr ""
 
-#: src/main.cpp:794
+#: src/main.cpp:793
 #, c-format
 msgid "couldn't open file! (%s)"
 msgstr ""
 
-#: src/main.cpp:800
+#: src/main.cpp:799
 #, c-format
 msgid "couldn't open file! (couldn't get file size: %s)"
 msgstr ""
 
-#: src/main.cpp:808
+#: src/main.cpp:807
 #, c-format
 msgid "couldn't open file! (couldn't get file length: %s)"
 msgstr ""
 
-#: src/main.cpp:816
+#: src/main.cpp:815
 msgid "that file is empty!"
 msgstr "ten plik jest pusty!"
 
-#: src/main.cpp:818
+#: src/main.cpp:817
 #, c-format
 msgid "couldn't open file! (tell error: %s)"
 msgstr ""
 
-#: src/main.cpp:827
+#: src/main.cpp:826
 #, c-format
 msgid "couldn't open file! (size error: %s)"
 msgstr ""
 
-#: src/main.cpp:835
+#: src/main.cpp:834
 #, c-format
 msgid "couldn't open file! (read error: %s)"
 msgstr ""
 
-#: src/main.cpp:844 src/main.cpp:891 src/main.cpp:907 src/main.cpp:963
-#: src/main.cpp:986
+#: src/main.cpp:843 src/main.cpp:890 src/main.cpp:906 src/main.cpp:962
+#: src/main.cpp:985
 #, c-format
 msgid "could not open file! (%s)"
 msgstr "nie udało się otworzyć pliku! (%s)"
 
-#: src/main.cpp:858
+#: src/main.cpp:857
 msgid "could not initialize engine!"
 msgstr "nie udało się uruchomić silnika!"
 
-#: src/main.cpp:896
+#: src/main.cpp:895
 msgid "could not write command stream!"
 msgstr "nie udało się zapisać strumienia komend!"
 
-#: src/main.cpp:912
+#: src/main.cpp:911
 msgid "could not write VGM!"
 msgstr "nie udało zapisać się pliku VGM!"
 
-#: src/main.cpp:946
+#: src/main.cpp:945
 msgid "could not create exporter! you may want to report this issue..."
 msgstr ""
 
-#: src/main.cpp:967
+#: src/main.cpp:966
 #, c-format
 msgid "ROM export failed! (%s)"
 msgstr ""
 
-#: src/main.cpp:970
+#: src/main.cpp:969
 msgid "could not begin exporting process! TODO: elaborate"
 msgstr ""
 
-#: src/main.cpp:974
+#: src/main.cpp:973
 msgid "no matching ROM export target is available."
 msgstr ""
 
-#: src/main.cpp:991
+#: src/main.cpp:990
 msgid "could not write text!"
 msgstr ""
 
-#: src/main.cpp:1008
+#: src/main.cpp:1007
 msgid "error while starting CLI!"
 msgstr "błąd podczas uruchamiania wiersza poleceń!"
 
-#: src/main.cpp:1012
+#: src/main.cpp:1011
 msgid "playing..."
 msgstr "odtwarzanie..."
 
-#: src/main.cpp:1053
+#: src/main.cpp:1052
 msgid "displaying engine fail error."
 msgstr "błąd sterownika wyświetlania."
 
-#: src/main.cpp:1054
+#: src/main.cpp:1053
 msgid "error while initializing audio!"
 msgstr "błąd podczas uruchamiania audio!"
 
@@ -4626,9 +4626,9 @@ msgstr "Odwr."
 
 #: src/gui/mixer.cpp:268 src/gui/chanOsc.cpp:37 src/gui/userPresets.cpp:428
 #: src/gui/settings.cpp:271 src/gui/settings.cpp:1113 src/gui/settings.cpp:1503
-#: src/gui/settings.cpp:1515 src/gui/settings.cpp:3437
-#: src/gui/settings.cpp:4123 src/gui/findReplace.cpp:718
-#: src/gui/findReplace.cpp:991 src/gui/guiConst.cpp:231
+#: src/gui/settings.cpp:1515 src/gui/settings.cpp:3433
+#: src/gui/settings.cpp:4119 src/gui/findReplace.cpp:723
+#: src/gui/findReplace.cpp:998 src/gui/guiConst.cpp:231
 #: src/gui/sampleEdit.cpp:1046 src/gui/insEdit.cpp:6849
 #: src/gui/insEdit.cpp:6934 src/gui/insEdit.cpp:7959 src/gui/insEdit.cpp:7967
 #: src/gui/insEdit.cpp:7975 src/gui/insEdit.cpp:7985 src/gui/insEdit.cpp:8001
@@ -4670,7 +4670,7 @@ msgstr "Panning"
 msgid "Front/Rear"
 msgstr "Przód/tył"
 
-#: src/gui/mixer.cpp:299 src/gui/settings.cpp:4324
+#: src/gui/mixer.cpp:299 src/gui/settings.cpp:4320
 msgid "Patchbay"
 msgstr "Połączenie kanałów"
 
@@ -4729,7 +4729,7 @@ msgstr "nie da się rozszerzyć jeszcze bardziej!"
 msgid "copy: %s"
 msgstr "kopiuj: %s"
 
-#: src/gui/memory.cpp:35 src/gui/settings.cpp:3796 src/gui/settings.cpp:4333
+#: src/gui/memory.cpp:35 src/gui/settings.cpp:3792 src/gui/settings.cpp:4329
 #: src/gui/guiConst.cpp:654
 msgid "Memory Composition"
 msgstr "Zawartość pamięci"
@@ -4819,7 +4819,7 @@ msgstr ""
 msgid "NEC PC Engine/TurboGrafx-16"
 msgstr ""
 
-#: src/gui/presets.cpp:177 src/gui/presets.cpp:3715 src/gui/settings.cpp:4170
+#: src/gui/presets.cpp:177 src/gui/presets.cpp:3715 src/gui/settings.cpp:4166
 msgid "NES"
 msgstr ""
 
@@ -6300,8 +6300,8 @@ msgid "Seibu Kaihatsu Raiden (drums mode)"
 msgstr "Seibu Kaihatsu Raiden (tryb perkusji)"
 
 #: src/gui/presets.cpp:2788 src/gui/editControls.cpp:458
-#: src/gui/settings.cpp:2139 src/gui/settings.cpp:4042
-#: src/gui/settings.cpp:4130 src/gui/compatFlags.cpp:319
+#: src/gui/settings.cpp:2135 src/gui/settings.cpp:4038
+#: src/gui/settings.cpp:4126 src/gui/compatFlags.cpp:319
 msgid "Other"
 msgstr "Inne"
 
@@ -6413,7 +6413,7 @@ msgstr "Użytkownika"
 msgid "system presets that you have saved."
 msgstr "uprzednio zapisane presety systemów."
 
-#: src/gui/presets.cpp:3042 src/gui/settings.cpp:4207 src/gui/guiConst.cpp:242
+#: src/gui/presets.cpp:3042 src/gui/settings.cpp:4203 src/gui/guiConst.cpp:242
 #: src/gui/guiConst.cpp:1473 src/gui/waveEdit.cpp:571
 msgid "FM"
 msgstr ""
@@ -6605,7 +6605,7 @@ msgid "chips which use user-specified waveforms to generate sound."
 msgstr ""
 "chipy wykorzystujące fale zdefiniowane przez użytkownika do syntezy dźwięku."
 
-#: src/gui/presets.cpp:3482 src/gui/settings.cpp:4141
+#: src/gui/presets.cpp:3482 src/gui/settings.cpp:4137
 msgid "PC Engine"
 msgstr ""
 
@@ -6669,9 +6669,9 @@ msgstr "Arcade (YM2151 i SegaPCM)"
 msgid "Neo Geo CD (extended channel 2)"
 msgstr "Neo Geo CD  z rozszerzonym kanałem 2"
 
-#: src/gui/intro.cpp:89 src/gui/gui.cpp:2454 src/gui/gui.cpp:3914
-#: src/gui/gui.cpp:5177 src/gui/gui.cpp:5199 src/gui/gui.cpp:5733
-#: src/gui/gui.cpp:6178 src/gui/gui.cpp:6188
+#: src/gui/intro.cpp:89 src/gui/gui.cpp:2460 src/gui/gui.cpp:3926
+#: src/gui/gui.cpp:5190 src/gui/gui.cpp:5212 src/gui/gui.cpp:5746
+#: src/gui/gui.cpp:6191 src/gui/gui.cpp:6201
 #, c-format
 msgid "Error while loading file! (%s)"
 msgstr "Błąd podczas wczytywania pliku! (%s)"
@@ -6701,7 +6701,7 @@ msgid "Bug!"
 msgstr "Błąd!"
 
 #: src/gui/dataList.cpp:128 src/gui/util.cpp:107 src/gui/util.cpp:109
-#: src/gui/settings.cpp:4336 src/gui/insEdit.cpp:6586
+#: src/gui/settings.cpp:4332 src/gui/insEdit.cpp:6586
 msgid "Unknown"
 msgstr "Nieznany typ instrumentu"
 
@@ -6714,7 +6714,7 @@ msgstr "duplikuj"
 msgid "replace..."
 msgstr "zamień..."
 
-#: src/gui/dataList.cpp:194 src/gui/dataList.cpp:326 src/gui/gui.cpp:4408
+#: src/gui/dataList.cpp:194 src/gui/dataList.cpp:326 src/gui/gui.cpp:4421
 msgid "save"
 msgstr "zapisz"
 
@@ -6724,7 +6724,7 @@ msgstr "zapisz (.dmp)"
 
 #: src/gui/dataList.cpp:200 src/gui/dataList.cpp:329 src/gui/dataList.cpp:693
 #: src/gui/dataList.cpp:1107 src/gui/dataList.cpp:1169
-#: src/gui/editControls.cpp:50 src/gui/gui.cpp:2891 src/gui/gui.cpp:2900
+#: src/gui/editControls.cpp:50 src/gui/gui.cpp:2897 src/gui/gui.cpp:2906
 msgid "delete"
 msgstr "usuń"
 
@@ -6740,7 +6740,7 @@ msgstr "stwórz instrument"
 msgid "make me a drum kit"
 msgstr "stwórz zestaw perkusji"
 
-#: src/gui/dataList.cpp:350 src/gui/dataList.cpp:669 src/gui/gui.cpp:6311
+#: src/gui/dataList.cpp:350 src/gui/dataList.cpp:669 src/gui/gui.cpp:6324
 msgid "Instruments"
 msgstr "Instrumenty"
 
@@ -6874,12 +6874,12 @@ msgstr "<bez kategorii>"
 msgid "rename..."
 msgstr "zmień nazwę..."
 
-#: src/gui/dataList.cpp:739 src/gui/dataList.cpp:783 src/gui/gui.cpp:6320
+#: src/gui/dataList.cpp:739 src/gui/dataList.cpp:783 src/gui/gui.cpp:6333
 msgid "Wavetables"
 msgstr "Tablice fal"
 
 #: src/gui/dataList.cpp:750 src/gui/dataList.cpp:918 src/gui/xyOsc.cpp:68
-#: src/gui/sampleEdit.cpp:941 src/gui/sampleEdit.cpp:1115 src/gui/gui.cpp:6329
+#: src/gui/sampleEdit.cpp:941 src/gui/sampleEdit.cpp:1115 src/gui/gui.cpp:6342
 msgid "Samples"
 msgstr "Sample"
 
@@ -6928,7 +6928,7 @@ msgstr "16-bitowa liczba całkowita"
 msgid "32-bit float"
 msgstr "32-bitowa liczba zmiennoprzecinkowa"
 
-#: src/gui/exportOptions.cpp:55 src/gui/settings.cpp:1365 src/gui/gui.cpp:6873
+#: src/gui/exportOptions.cpp:55 src/gui/settings.cpp:1365 src/gui/gui.cpp:6886
 msgid "Sample rate"
 msgstr "Częstotliwość samplowania"
 
@@ -6948,14 +6948,14 @@ msgstr "Zanikanie (w sekundach)"
 msgid "Channels to export:"
 msgstr "Kanały do eksportu:"
 
-#: src/gui/exportOptions.cpp:78 src/gui/effectList.cpp:32 src/gui/gui.cpp:6604
-#: src/gui/gui.cpp:6682
+#: src/gui/exportOptions.cpp:78 src/gui/effectList.cpp:32 src/gui/gui.cpp:6617
+#: src/gui/gui.cpp:6695
 msgid "All"
 msgstr "Wszystkie"
 
 #: src/gui/exportOptions.cpp:84 src/gui/sysConf.cpp:1939
 #: src/gui/effectList.cpp:34 src/gui/compatFlags.cpp:219
-#: src/gui/waveEdit.cpp:38 src/gui/gui.cpp:6610 src/gui/gui.cpp:6688
+#: src/gui/waveEdit.cpp:38 src/gui/gui.cpp:6623 src/gui/gui.cpp:6701
 #: src/gui/insEdit.cpp:632
 msgid "None"
 msgstr "Brak (bezpośrednia)"
@@ -6972,10 +6972,10 @@ msgstr "Te na oscyloskopie"
 #: src/gui/exportOptions.cpp:237 src/gui/exportOptions.cpp:357
 #: src/gui/exportOptions.cpp:374 src/gui/exportOptions.cpp:395
 #: src/gui/exportOptions.cpp:418 src/gui/commandPalette.cpp:351
-#: src/gui/settings.cpp:7135 src/gui/newSong.cpp:277 src/gui/gui.cpp:6066
-#: src/gui/gui.cpp:6090 src/gui/gui.cpp:6114 src/gui/gui.cpp:6138
-#: src/gui/gui.cpp:6162 src/gui/gui.cpp:6193 src/gui/gui.cpp:6252
-#: src/gui/gui.cpp:6647 src/gui/gui.cpp:6821 src/gui/gui.cpp:6956
+#: src/gui/settings.cpp:7103 src/gui/newSong.cpp:277 src/gui/gui.cpp:6079
+#: src/gui/gui.cpp:6103 src/gui/gui.cpp:6127 src/gui/gui.cpp:6151
+#: src/gui/gui.cpp:6175 src/gui/gui.cpp:6206 src/gui/gui.cpp:6265
+#: src/gui/gui.cpp:6660 src/gui/gui.cpp:6834 src/gui/gui.cpp:6969
 msgid "Cancel"
 msgstr "Anuluj"
 
@@ -6983,9 +6983,9 @@ msgstr "Anuluj"
 #: src/gui/exportOptions.cpp:360 src/gui/exportOptions.cpp:377
 #: src/gui/exportOptions.cpp:398 src/gui/exportOptions.cpp:421
 #: src/gui/editControls.cpp:512 src/gui/userPresets.cpp:535
-#: src/gui/settings.cpp:1237 src/gui/settings.cpp:2187
-#: src/gui/settings.cpp:2586 src/gui/settings.cpp:3908 src/gui/guiConst.cpp:577
-#: src/gui/gui.cpp:5843 src/gui/gui.cpp:6027
+#: src/gui/settings.cpp:1237 src/gui/settings.cpp:2183
+#: src/gui/settings.cpp:2582 src/gui/settings.cpp:3904 src/gui/guiConst.cpp:577
+#: src/gui/gui.cpp:5856 src/gui/gui.cpp:6040
 msgid "Export"
 msgstr "Eksportuj"
 
@@ -7164,11 +7164,11 @@ msgid "1.0/legacy (0.12)"
 msgstr "1.0/0.12"
 
 #: src/gui/exportOptions.cpp:434 src/gui/settings.cpp:1266
-#: src/gui/settings.cpp:4037
+#: src/gui/settings.cpp:4033
 msgid "Audio"
 msgstr "Audio"
 
-#: src/gui/exportOptions.cpp:438 src/gui/settings.cpp:4039
+#: src/gui/exportOptions.cpp:438 src/gui/settings.cpp:4035
 msgid "VGM"
 msgstr ""
 
@@ -7176,8 +7176,8 @@ msgstr ""
 msgid "ROM"
 msgstr ""
 
-#: src/gui/exportOptions.cpp:448 src/gui/settings.cpp:3027
-#: src/gui/settings.cpp:3999
+#: src/gui/exportOptions.cpp:448 src/gui/settings.cpp:3023
+#: src/gui/settings.cpp:3995
 msgid "Text"
 msgstr "Tekst"
 
@@ -7295,7 +7295,7 @@ msgid "Song Length"
 msgstr "Długość utworu"
 
 #: src/gui/channels.cpp:40 src/gui/editControls.cpp:446
-#: src/gui/guiConst.cpp:258 src/gui/guiConst.cpp:642 src/gui/gui.cpp:6883
+#: src/gui/guiConst.cpp:258 src/gui/guiConst.cpp:642 src/gui/gui.cpp:6896
 msgid "Channels"
 msgstr "Ilość kanałów"
 
@@ -7313,7 +7313,7 @@ msgstr "Zamień"
 
 #: src/gui/channels.cpp:55 src/gui/userPresets.cpp:379
 #: src/gui/effectList.cpp:46 src/gui/subSongs.cpp:128 src/gui/settings.cpp:1060
-#: src/gui/settings.cpp:4499 src/gui/sampleEdit.cpp:195 src/gui/songInfo.cpp:40
+#: src/gui/settings.cpp:4495 src/gui/sampleEdit.cpp:195 src/gui/songInfo.cpp:40
 #: src/gui/sysManager.cpp:54 src/gui/insEdit.cpp:6540
 msgid "Name"
 msgstr "Nazwa"
@@ -7389,7 +7389,7 @@ msgstr "ostrzeżenie"
 msgid "info"
 msgstr "info"
 
-#: src/gui/log.cpp:28 src/gui/gui.cpp:4664
+#: src/gui/log.cpp:28 src/gui/gui.cpp:4677
 msgid "debug"
 msgstr "debugowanie"
 
@@ -7397,7 +7397,7 @@ msgstr "debugowanie"
 msgid "trace"
 msgstr "szczegóły"
 
-#: src/gui/log.cpp:47 src/gui/settings.cpp:4359 src/gui/guiConst.cpp:646
+#: src/gui/log.cpp:47 src/gui/settings.cpp:4355 src/gui/guiConst.cpp:646
 msgid "Log Viewer"
 msgstr "Podgląd logów"
 
@@ -7422,73 +7422,73 @@ msgstr "poziom"
 msgid "message"
 msgstr "wiadomość"
 
-#: src/gui/pattern.cpp:437 src/gui/editControls.cpp:421
+#: src/gui/pattern.cpp:445 src/gui/editControls.cpp:421
 #: src/gui/editControls.cpp:727 src/gui/editControls.cpp:860
-#: src/gui/editControls.cpp:988 src/gui/settings.cpp:2368
-#: src/gui/settings.cpp:3365 src/gui/settings.cpp:4216
-#: src/gui/findReplace.cpp:825 src/gui/guiConst.cpp:623 src/gui/gui.cpp:6296
+#: src/gui/editControls.cpp:988 src/gui/settings.cpp:2364
+#: src/gui/settings.cpp:3361 src/gui/settings.cpp:4212
+#: src/gui/findReplace.cpp:830 src/gui/guiConst.cpp:623 src/gui/gui.cpp:6309
 msgid "Pattern"
 msgstr "Wzorzec"
 
-#: src/gui/pattern.cpp:472
+#: src/gui/pattern.cpp:481
 msgid "there aren't any channels to show."
 msgstr "brak kanałów do wyświetlenia."
 
-#: src/gui/pattern.cpp:496
+#: src/gui/pattern.cpp:540
 msgid "click for pattern options (effect columns/pattern names/visualizer)"
 msgstr ""
 "naciśnij, aby otworzyć menu ustawień (kolumny efektów/nazwy wzorców/"
 "wizualizator efektów)"
 
-#: src/gui/pattern.cpp:508
+#: src/gui/pattern.cpp:552
 msgid "Options:"
 msgstr "Opcje:"
 
-#: src/gui/pattern.cpp:510
+#: src/gui/pattern.cpp:554
 msgid "Effect columns/collapse"
 msgstr "Poszerzanie kolumn efektów"
 
-#: src/gui/pattern.cpp:511
+#: src/gui/pattern.cpp:555
 msgid "Pattern names"
 msgstr "Nazwy wzorców"
 
-#: src/gui/pattern.cpp:512
+#: src/gui/pattern.cpp:556
 msgid "Channel group hints"
 msgstr "Wskazówki dotyczące grupowania kanałów"
 
-#: src/gui/pattern.cpp:513
+#: src/gui/pattern.cpp:557
 msgid "Visualizer"
 msgstr "Wizualizator"
 
-#: src/gui/pattern.cpp:521
+#: src/gui/pattern.cpp:565
 msgid "Channel status:"
 msgstr "Status kanału:"
 
-#: src/gui/pattern.cpp:523
-msgid "No##_PCS0"
-msgstr "Nie"
+#: src/gui/pattern.cpp:567
+msgid "No###_PCS0"
+msgstr ""
 
-#: src/gui/pattern.cpp:526
-msgid "Yes##_PCS1"
-msgstr "Tak"
+#: src/gui/pattern.cpp:570
+msgid "Yes###_PCS1"
+msgstr ""
 
-#: src/gui/pattern.cpp:1431 src/gui/pattern.cpp:1463
+#: src/gui/pattern.cpp:1459 src/gui/pattern.cpp:1491
 msgid "WARNING!!"
 msgstr "UWAGA!!!"
 
-#: src/gui/pattern.cpp:1433 src/gui/pattern.cpp:1470
+#: src/gui/pattern.cpp:1461 src/gui/pattern.cpp:1498
 msgid "this instrument cannot be previewed because"
 msgstr "ten instrument ne może zostać użyty z powodu:"
 
-#: src/gui/pattern.cpp:1434 src/gui/pattern.cpp:1477
+#: src/gui/pattern.cpp:1462 src/gui/pattern.cpp:1505
 msgid "none of the chips can play it"
 msgstr "żaden układ nie jest w stanie tego zagrać"
 
-#: src/gui/pattern.cpp:1435 src/gui/pattern.cpp:1484
+#: src/gui/pattern.cpp:1463 src/gui/pattern.cpp:1512
 msgid "your instrument is in peril!! be careful..."
 msgstr "twój instrument jest w niebezpieczeństwie!!! bądź ostrożny!..."
 
-#: src/gui/osc.cpp:169 src/gui/settings.cpp:3810 src/gui/settings.cpp:4045
+#: src/gui/osc.cpp:169 src/gui/settings.cpp:3806 src/gui/settings.cpp:4041
 msgid "Oscilloscope"
 msgstr "Oscyloskop"
 
@@ -7510,15 +7510,15 @@ msgstr "(-nieskończoność) dB"
 msgid "Debug"
 msgstr "Menu debugowania"
 
-#: src/gui/debugWindow.cpp:675
+#: src/gui/debugWindow.cpp:674
 msgid "This is a language test."
 msgstr "To jest test systemu tłumaczeń."
 
-#: src/gui/debugWindow.cpp:676
+#: src/gui/debugWindow.cpp:675
 msgid "This is another language test."
 msgstr "To jest kolejny test systemu tłumaczeń."
 
-#: src/gui/debugWindow.cpp:732
+#: src/gui/debugWindow.cpp:731
 #, c-format
 msgid "%d apple"
 msgid_plural "%d apples"
@@ -7538,12 +7538,12 @@ msgstr "Brak (50%)"
 msgid "None (100%)"
 msgstr "Brak (100%)"
 
-#: src/gui/chanOsc.cpp:36
+#: src/gui/chanOsc.cpp:36 src/gui/sampleEdit.cpp:1210
 msgid "Frequency"
 msgstr "Częstotliwość"
 
-#: src/gui/chanOsc.cpp:38 src/gui/settings.cpp:1678 src/gui/settings.cpp:3474
-#: src/gui/settings.cpp:4204 src/gui/guiConst.cpp:257
+#: src/gui/chanOsc.cpp:38 src/gui/settings.cpp:1678 src/gui/settings.cpp:3470
+#: src/gui/settings.cpp:4200 src/gui/guiConst.cpp:257
 msgid "Channel"
 msgstr "Kanał"
 
@@ -7599,7 +7599,7 @@ msgstr "Losowa faza przy nowej nucie"
 msgid "Amplitude"
 msgstr "Amplituda"
 
-#: src/gui/chanOsc.cpp:199 src/gui/settings.cpp:3847
+#: src/gui/chanOsc.cpp:199 src/gui/settings.cpp:3843
 msgid "Line size"
 msgstr "Grubość linii"
 
@@ -7615,7 +7615,7 @@ msgstr "błąd podczas tworzenia tekstury gradientu!"
 msgid "error while updating gradient texture!"
 msgstr "błąd podczas odświeżania tekstury gradientu!"
 
-#: src/gui/chanOsc.cpp:292 src/gui/chanOsc.cpp:348 src/gui/settings.cpp:3901
+#: src/gui/chanOsc.cpp:292 src/gui/chanOsc.cpp:348 src/gui/settings.cpp:3897
 msgid "Color"
 msgstr "Kolor"
 
@@ -7628,12 +7628,12 @@ msgid "Spread"
 msgstr "Rozmycie"
 
 #: src/gui/chanOsc.cpp:314 src/gui/userPresets.cpp:381 src/gui/subSongs.cpp:124
-#: src/gui/settings.cpp:2293 src/gui/sysManager.cpp:150
+#: src/gui/settings.cpp:2289 src/gui/sysManager.cpp:150
 msgid "Remove"
 msgstr "Usuń"
 
-#: src/gui/chanOsc.cpp:338 src/gui/settings.cpp:3993 src/gui/settings.cpp:4281
-#: src/gui/settings.cpp:4308 src/gui/settings.cpp:4334
+#: src/gui/chanOsc.cpp:338 src/gui/settings.cpp:3989 src/gui/settings.cpp:4277
+#: src/gui/settings.cpp:4304 src/gui/settings.cpp:4330
 msgid "Background"
 msgstr "Kolor tła"
 
@@ -7691,10 +7691,10 @@ msgstr ""
 msgid "Text color"
 msgstr "Kolor tekstu"
 
-#: src/gui/chanOsc.cpp:382 src/gui/xyOsc.cpp:80 src/gui/settings.cpp:7134
-#: src/gui/tutorial.cpp:725 src/gui/gui.cpp:5995 src/gui/gui.cpp:6036
-#: src/gui/gui.cpp:6473 src/gui/gui.cpp:6641 src/gui/gui.cpp:6815
-#: src/gui/gui.cpp:6925 src/gui/gui.cpp:6974
+#: src/gui/chanOsc.cpp:382 src/gui/xyOsc.cpp:80 src/gui/settings.cpp:7102
+#: src/gui/tutorial.cpp:725 src/gui/gui.cpp:6008 src/gui/gui.cpp:6049
+#: src/gui/gui.cpp:6486 src/gui/gui.cpp:6654 src/gui/gui.cpp:6828
+#: src/gui/gui.cpp:6938 src/gui/gui.cpp:6987
 msgid "OK"
 msgstr "OK"
 
@@ -7719,22 +7719,22 @@ msgstr ""
 msgid "failed to create FFT buffers"
 msgstr "nie udało się stworzyć buforów FFT!"
 
-#: src/gui/chanOsc.cpp:585 src/gui/gui.cpp:5990
+#: src/gui/chanOsc.cpp:608 src/gui/gui.cpp:6003
 msgid "Error!"
 msgstr "Błąd!"
 
-#: src/gui/editControls.cpp:47 src/gui/sampleEdit.cpp:1786 src/gui/gui.cpp:2857
+#: src/gui/editControls.cpp:47 src/gui/sampleEdit.cpp:1808 src/gui/gui.cpp:2863
 #: src/gui/insEdit.cpp:477
 msgid "cut"
 msgstr "wytnij"
 
-#: src/gui/editControls.cpp:48 src/gui/sampleEdit.cpp:1790 src/gui/gui.cpp:2858
+#: src/gui/editControls.cpp:48 src/gui/sampleEdit.cpp:1812 src/gui/gui.cpp:2864
 #: src/gui/insEdit.cpp:8701
 msgid "copy"
 msgstr "kopiuj"
 
-#: src/gui/editControls.cpp:49 src/gui/sampleEdit.cpp:1794 src/gui/gui.cpp:2859
-#: src/gui/gui.cpp:2912 src/gui/insEdit.cpp:8706
+#: src/gui/editControls.cpp:49 src/gui/sampleEdit.cpp:1816 src/gui/gui.cpp:2865
+#: src/gui/gui.cpp:2918 src/gui/insEdit.cpp:8706
 msgid "paste"
 msgstr "wklej"
 
@@ -7750,11 +7750,11 @@ msgstr ""
 msgid "piano"
 msgstr "pianino"
 
-#: src/gui/editControls.cpp:53 src/gui/gui.cpp:4580
+#: src/gui/editControls.cpp:53 src/gui/gui.cpp:4593
 msgid "undo"
 msgstr "cofnij"
 
-#: src/gui/editControls.cpp:54 src/gui/gui.cpp:4581
+#: src/gui/editControls.cpp:54 src/gui/gui.cpp:4594
 msgid "redo"
 msgstr "ponów"
 
@@ -7826,15 +7826,15 @@ msgstr ""
 "znajdź\n"
 " zamień"
 
-#: src/gui/editControls.cpp:69 src/gui/gui.cpp:3195
+#: src/gui/editControls.cpp:69 src/gui/gui.cpp:3201
 msgid "collapse"
 msgstr "skróć"
 
-#: src/gui/editControls.cpp:70 src/gui/gui.cpp:3196
+#: src/gui/editControls.cpp:70 src/gui/gui.cpp:3202
 msgid "expand"
 msgstr "rozszerz"
 
-#: src/gui/editControls.cpp:71 src/gui/gui.cpp:2944
+#: src/gui/editControls.cpp:71 src/gui/gui.cpp:2950
 msgid "flip"
 msgstr "odwróć"
 
@@ -7842,19 +7842,19 @@ msgstr "odwróć"
 msgid "invert"
 msgstr "zmień kolejność"
 
-#: src/gui/editControls.cpp:73 src/gui/gui.cpp:2924 src/gui/gui.cpp:3084
+#: src/gui/editControls.cpp:73 src/gui/gui.cpp:2930 src/gui/gui.cpp:3090
 msgid "interpolate"
 msgstr "interpoluj"
 
-#: src/gui/editControls.cpp:74 src/gui/gui.cpp:2936 src/gui/insEdit.cpp:8773
+#: src/gui/editControls.cpp:74 src/gui/gui.cpp:2942 src/gui/insEdit.cpp:8773
 msgid "scale"
 msgstr "skaluj"
 
-#: src/gui/editControls.cpp:77 src/gui/gui.cpp:2928
+#: src/gui/editControls.cpp:77 src/gui/gui.cpp:2934
 msgid "fade"
 msgstr "zanikaj"
 
-#: src/gui/editControls.cpp:78 src/gui/gui.cpp:2940 src/gui/insEdit.cpp:8802
+#: src/gui/editControls.cpp:78 src/gui/gui.cpp:2946 src/gui/insEdit.cpp:8802
 msgid "randomize"
 msgstr "wypełnij losowymi wartościami"
 
@@ -7903,18 +7903,18 @@ msgstr "Menu mobilne"
 
 #: src/gui/editControls.cpp:425 src/gui/editControls.cpp:725
 #: src/gui/editControls.cpp:858 src/gui/editControls.cpp:980
-#: src/gui/settings.cpp:2512 src/gui/settings.cpp:3339
-#: src/gui/settings.cpp:4083 src/gui/orders.cpp:267 src/gui/guiConst.cpp:618
-#: src/gui/gui.cpp:6285
+#: src/gui/settings.cpp:2508 src/gui/settings.cpp:3335
+#: src/gui/settings.cpp:4079 src/gui/orders.cpp:267 src/gui/guiConst.cpp:618
+#: src/gui/gui.cpp:6298
 msgid "Orders"
 msgstr "Matryca wzorców"
 
-#: src/gui/editControls.cpp:429 src/gui/findReplace.cpp:700
-#: src/gui/findReplace.cpp:962
+#: src/gui/editControls.cpp:429 src/gui/findReplace.cpp:705
+#: src/gui/findReplace.cpp:969
 msgid "Ins"
 msgstr "Instr."
 
-#: src/gui/editControls.cpp:442 src/gui/findReplace.cpp:819
+#: src/gui/editControls.cpp:442 src/gui/findReplace.cpp:824
 #: src/gui/guiConst.cpp:233
 msgid "Song"
 msgstr "Utwór"
@@ -7927,7 +7927,7 @@ msgstr "Układy"
 msgid "New"
 msgstr "Nowy"
 
-#: src/gui/editControls.cpp:491 src/gui/doAction.cpp:38 src/gui/gui.cpp:4370
+#: src/gui/editControls.cpp:491 src/gui/doAction.cpp:38 src/gui/gui.cpp:4383
 msgid "Unsaved changes! Save changes before creating a new song?"
 msgstr "Niezapisane zmiany! Zapisać zmiany przed stworzeniem nowego utworu?"
 
@@ -7935,7 +7935,7 @@ msgstr "Niezapisane zmiany! Zapisać zmiany przed stworzeniem nowego utworu?"
 msgid "Save as..."
 msgstr "Zapisz jako..."
 
-#: src/gui/editControls.cpp:516 src/gui/gui.cpp:1746
+#: src/gui/editControls.cpp:516 src/gui/gui.cpp:1752
 msgid "Restore Backup"
 msgstr "Wczytaj kopię zapasową"
 
@@ -8013,7 +8013,7 @@ msgid "Panic"
 msgstr "Panika"
 
 #: src/gui/editControls.cpp:605 src/gui/settings.cpp:553
-#: src/gui/guiConst.cpp:630 src/gui/guiConst.cpp:632 src/gui/gui.cpp:4590
+#: src/gui/guiConst.cpp:630 src/gui/guiConst.cpp:632 src/gui/gui.cpp:4603
 msgid "Settings"
 msgstr "Ustawienia"
 
@@ -8066,7 +8066,7 @@ msgstr "Stop"
 
 #: src/gui/editControls.cpp:715 src/gui/editControls.cpp:799
 #: src/gui/editControls.cpp:916 src/gui/editControls.cpp:1055
-#: src/gui/gui.cpp:4577
+#: src/gui/gui.cpp:4590
 msgid "Edit"
 msgstr "Edytuj"
 
@@ -8143,7 +8143,7 @@ msgstr "Podążaj za matrycą wzorców"
 msgid "Follow pattern"
 msgstr "Podążaj za wzorcem"
 
-#: src/gui/songNotes.cpp:32 src/gui/settings.cpp:3854 src/gui/guiConst.cpp:641
+#: src/gui/songNotes.cpp:32 src/gui/settings.cpp:3850 src/gui/guiConst.cpp:641
 msgid "Song Comments"
 msgstr "Komentarze do utworu"
 
@@ -8167,7 +8167,7 @@ msgstr ""
 msgid "Statistics"
 msgstr "Statystyki"
 
-#: src/gui/stats.cpp:36
+#: src/gui/stats.cpp:35
 msgid "Audio load"
 msgstr "Obciążenie audio"
 
@@ -8191,7 +8191,7 @@ msgstr "Kanał osi Y"
 msgid "Invert##Y"
 msgstr "Odwróć"
 
-#: src/gui/xyOsc.cpp:59 src/gui/sampleEdit.cpp:1403
+#: src/gui/xyOsc.cpp:59 src/gui/sampleEdit.cpp:1425
 msgid "Zoom"
 msgstr "Powiększ"
 
@@ -8423,7 +8423,7 @@ msgstr "Game Boy Color (wersja E)"
 msgid "Wave channel orientation:"
 msgstr "Orientacja kanału syntezy tablicowej"
 
-#: src/gui/sysConf.cpp:376 src/gui/compatFlags.cpp:298 src/gui/gui.cpp:6485
+#: src/gui/sysConf.cpp:376 src/gui/compatFlags.cpp:298 src/gui/gui.cpp:6498
 #: src/gui/insEdit.cpp:220
 msgid "Normal"
 msgstr "Normalne"
@@ -8585,7 +8585,7 @@ msgstr "Opadanie"
 msgid "Sustain"
 msgstr "Podtrzymanie"
 
-#: src/gui/sysConf.cpp:743 src/gui/settings.cpp:4095 src/gui/insEdit.cpp:53
+#: src/gui/sysConf.cpp:743 src/gui/settings.cpp:4091 src/gui/insEdit.cpp:53
 #: src/gui/insEdit.cpp:722 src/gui/insEdit.cpp:2322 src/gui/insEdit.cpp:7998
 #: src/gui/insEdit.cpp:8562 src/gui/insEdit.cpp:8622
 msgid "Release"
@@ -8790,7 +8790,7 @@ msgstr "Uszkodzone efekty portamento i makra (kompatybilność)"
 msgid "Mixing mode:"
 msgstr "Tryb miksowania:"
 
-#: src/gui/sysConf.cpp:1101 src/gui/settings.cpp:3824
+#: src/gui/sysConf.cpp:1101 src/gui/settings.cpp:3820
 msgid "Mono"
 msgstr "Mono"
 
@@ -9340,7 +9340,7 @@ msgstr ""
 msgid "Custom clock rate"
 msgstr "Niestandardowe taktowanie zegara"
 
-#: src/gui/volMeter.cpp:36 src/gui/settings.cpp:4077 src/gui/guiConst.cpp:637
+#: src/gui/volMeter.cpp:36 src/gui/settings.cpp:4073 src/gui/guiConst.cpp:637
 msgid "Volume Meter"
 msgstr "Miernik poziomu głośności"
 
@@ -9389,8 +9389,8 @@ msgid "Save and Close"
 msgstr "Zapisz i zamknij"
 
 #: src/gui/userPresets.cpp:527 src/gui/settings.cpp:1233
-#: src/gui/settings.cpp:1247 src/gui/settings.cpp:2183
-#: src/gui/settings.cpp:2582 src/gui/settings.cpp:3904
+#: src/gui/settings.cpp:1247 src/gui/settings.cpp:2179
+#: src/gui/settings.cpp:2578 src/gui/settings.cpp:3900
 msgid "Import"
 msgstr "Importuj"
 
@@ -9407,7 +9407,7 @@ msgstr "Lista efektów"
 msgid "Chip at cursor: %s"
 msgstr "Zaznaczony układ: %s"
 
-#: src/gui/effectList.cpp:21 src/gui/settings.cpp:7136
+#: src/gui/effectList.cpp:21 src/gui/settings.cpp:7104
 msgid "Search"
 msgstr "Szukaj"
 
@@ -9554,7 +9554,7 @@ msgstr "Aftertouch"
 msgid "Control"
 msgstr "Wartość CC"
 
-#: src/gui/settings.cpp:259 src/gui/settings.cpp:566 src/gui/settings.cpp:3245
+#: src/gui/settings.cpp:259 src/gui/settings.cpp:566 src/gui/settings.cpp:3241
 msgid "Program"
 msgstr "Program"
 
@@ -9576,8 +9576,8 @@ msgstr "SysEx"
 msgid "Any"
 msgstr "Każdy"
 
-#: src/gui/settings.cpp:270 src/gui/settings.cpp:3431 src/gui/settings.cpp:4036
-#: src/gui/settings.cpp:4237
+#: src/gui/settings.cpp:270 src/gui/settings.cpp:3427 src/gui/settings.cpp:4032
+#: src/gui/settings.cpp:4233
 msgid "Instrument"
 msgstr "Instrument"
 
@@ -9888,7 +9888,7 @@ msgstr "Siła wibracji"
 msgid "Length"
 msgstr "Długość wibracji"
 
-#: src/gui/settings.cpp:855 src/gui/gui.cpp:4367
+#: src/gui/settings.cpp:855 src/gui/gui.cpp:4380
 msgid "File"
 msgstr "Plik"
 
@@ -10001,7 +10001,7 @@ msgid ""
 msgstr ""
 "uzupełnia pole nazwy pliku z odpowiednią nazwą podczas zapisu lub eksportu."
 
-#: src/gui/settings.cpp:972 src/gui/gui.cpp:5828 src/gui/gui.cpp:6010
+#: src/gui/settings.cpp:972 src/gui/gui.cpp:5841 src/gui/gui.cpp:6023
 msgid "New Song"
 msgstr "Nowa piosenka"
 
@@ -10013,7 +10013,7 @@ msgstr "System domyślny:"
 msgid "Current system"
 msgstr "Bieżący"
 
-#: src/gui/settings.cpp:989 src/gui/waveEdit.cpp:1064 src/gui/gui.cpp:3178
+#: src/gui/settings.cpp:989 src/gui/waveEdit.cpp:1064 src/gui/gui.cpp:3184
 msgid "Randomize"
 msgstr "Losuj"
 
@@ -10073,7 +10073,7 @@ msgstr "Zachowanie programu"
 msgid "New instruments are blank"
 msgstr "Nowe instrumenty są wyzerowane"
 
-#: src/gui/settings.cpp:1232 src/gui/settings.cpp:4371
+#: src/gui/settings.cpp:1232 src/gui/settings.cpp:4367
 msgid "Configuration"
 msgstr "Konfiguracja programu"
 
@@ -10265,7 +10265,7 @@ msgstr "<wył.>"
 msgid "Re-scan MIDI devices"
 msgstr "Skanuj urządzenia MIDI ponownie"
 
-#: src/gui/settings.cpp:1562 src/gui/settings.cpp:2281
+#: src/gui/settings.cpp:1562 src/gui/settings.cpp:2277
 msgid "Note input"
 msgstr "Wprowadzanie nut"
 
@@ -10330,8 +10330,8 @@ msgid ""
 "(learning! press a button or move a slider/knob/something on your device.)"
 msgstr "(nasłuchiwanie! naciśnij przycisk lub przesuń coś na urządzeniu.)"
 
-#: src/gui/settings.cpp:1676 src/gui/settings.cpp:2289
-#: src/gui/settings.cpp:7149 src/gui/sampleEdit.cpp:531
+#: src/gui/settings.cpp:1676 src/gui/settings.cpp:2285
+#: src/gui/settings.cpp:7117 src/gui/sampleEdit.cpp:531
 #: src/gui/insEdit.cpp:6573
 msgid "Type"
 msgstr "Typ"
@@ -10444,577 +10444,577 @@ msgstr "Odtwarzanie"
 msgid "Render"
 msgstr "Renderowanie"
 
-#: src/gui/settings.cpp:2142
+#: src/gui/settings.cpp:2138
 msgid "PC Speaker strategy"
 msgstr "Działanie PC Speaker'a"
 
-#: src/gui/settings.cpp:2147
+#: src/gui/settings.cpp:2143
 msgid "Sample ROMs:"
 msgstr "Obrazy ROM sampli:"
 
-#: src/gui/settings.cpp:2150
+#: src/gui/settings.cpp:2146
 msgid "OPL4 YRW801 path"
 msgstr "Sćieżka do OPL4 YRW801"
 
-#: src/gui/settings.cpp:2180 src/gui/settings.cpp:2182
+#: src/gui/settings.cpp:2176 src/gui/settings.cpp:2178
 msgid "Keyboard"
 msgstr "Klawiatura"
 
-#: src/gui/settings.cpp:2191 src/gui/settings.cpp:3912
+#: src/gui/settings.cpp:2187 src/gui/settings.cpp:3908
 msgid "Reset defaults"
 msgstr "Resetuj do wart. domyślnych"
 
-#: src/gui/settings.cpp:2192
+#: src/gui/settings.cpp:2188
 msgid "Are you sure you want to reset the keyboard settings?"
 msgstr "Czy jesteś pewien że chcesz zresetować ustawienia klawiszy?"
 
-#: src/gui/settings.cpp:2195
+#: src/gui/settings.cpp:2191
 msgid "Global hotkeys"
 msgstr "Globalne skróty klawiszowe"
 
-#: src/gui/settings.cpp:2232
+#: src/gui/settings.cpp:2228
 msgid "Window activation"
 msgstr "Aktywacja okien"
 
-#: src/gui/settings.cpp:2287
+#: src/gui/settings.cpp:2283
 msgid "Key"
 msgstr "Klawisz"
 
-#: src/gui/settings.cpp:2291 src/gui/findReplace.cpp:756
-#: src/gui/findReplace.cpp:1051
+#: src/gui/settings.cpp:2287 src/gui/findReplace.cpp:761
+#: src/gui/findReplace.cpp:1058
 msgid "Value"
 msgstr "Parametr"
 
-#: src/gui/settings.cpp:2302
+#: src/gui/settings.cpp:2298
 #, c-format
 msgid "Macro release##SNType_%d"
 msgstr "Puszczenie klawisza (tylko makra)##SNType_%d"
 
-#: src/gui/settings.cpp:2307
+#: src/gui/settings.cpp:2303
 #, c-format
 msgid "Note release##SNType_%d"
 msgstr "Puszczenie klawisza z zanikaniem obwiedni##SNType_%d"
 
-#: src/gui/settings.cpp:2312
+#: src/gui/settings.cpp:2308
 #, c-format
 msgid "Note off##SNType_%d"
 msgstr "Puszczenie klawisza##SNType_%d"
 
-#: src/gui/settings.cpp:2317
+#: src/gui/settings.cpp:2313
 #, c-format
 msgid "Note##SNType_%d"
 msgstr "Nuta##SNType_%d"
 
-#: src/gui/settings.cpp:2341
+#: src/gui/settings.cpp:2337
 msgid "Add..."
 msgstr "Dodaj..."
 
-#: src/gui/settings.cpp:2356
+#: src/gui/settings.cpp:2352
 msgid "that key is bound already!"
 msgstr ""
 
-#: src/gui/settings.cpp:2445
+#: src/gui/settings.cpp:2441
 msgid "Instrument list"
 msgstr "Lista instrumentów"
 
-#: src/gui/settings.cpp:2465
+#: src/gui/settings.cpp:2461
 msgid "Wavetable list"
 msgstr "Lista tablic fal"
 
-#: src/gui/settings.cpp:2486
+#: src/gui/settings.cpp:2482
 msgid "Sample list"
 msgstr "Lista sampli"
 
-#: src/gui/settings.cpp:2536
+#: src/gui/settings.cpp:2532
 msgid "Sample editor"
 msgstr "Edytor sampli"
 
-#: src/gui/settings.cpp:2576 src/gui/settings.cpp:3922
-#: src/gui/settings.cpp:3952
+#: src/gui/settings.cpp:2572 src/gui/settings.cpp:3918
+#: src/gui/settings.cpp:3948
 msgid "Interface"
 msgstr "Interfejs"
 
-#: src/gui/settings.cpp:2578
+#: src/gui/settings.cpp:2574
 msgid "Layout"
 msgstr "Rozmieszczenie"
 
-#: src/gui/settings.cpp:2580
+#: src/gui/settings.cpp:2576
 msgid "Workspace layout:"
 msgstr "Układ okien interfejsu:"
 
-#: src/gui/settings.cpp:2590 src/gui/gui.cpp:3044
+#: src/gui/settings.cpp:2586 src/gui/gui.cpp:3050
 msgid "Reset"
 msgstr "Resetuj"
 
-#: src/gui/settings.cpp:2591 src/gui/gui.cpp:4606
+#: src/gui/settings.cpp:2587 src/gui/gui.cpp:4619
 msgid "Are you sure you want to reset the workspace layout?"
 msgstr "Czy jesteś pewien że chcesz zresetować układ okna?"
 
-#: src/gui/settings.cpp:2595
+#: src/gui/settings.cpp:2591
 msgid "Allow docking editors"
 msgstr "Pozwalaj na dokowanie edytorów"
 
-#: src/gui/settings.cpp:2602
+#: src/gui/settings.cpp:2598
 msgid "Remember window position"
 msgstr "Pamiętaj położenie okien"
 
-#: src/gui/settings.cpp:2607
+#: src/gui/settings.cpp:2603
 msgid "remembers the window's last position on start-up."
 msgstr "przywraca ostatnią pozycję każdego okna po uruchomieniu programu."
 
-#: src/gui/settings.cpp:2612
+#: src/gui/settings.cpp:2608
 msgid "Only allow window movement when clicking on title bar"
 msgstr "Zezwalaj na przesuwanie okien tylko po kliknięciu ich paska tytułu."
 
-#: src/gui/settings.cpp:2619
+#: src/gui/settings.cpp:2615
 msgid "Center pop-up windows"
 msgstr "Centruj wyskakujące okna"
 
-#: src/gui/settings.cpp:2624
+#: src/gui/settings.cpp:2620
 msgid "Play/edit controls layout:"
 msgstr "Układ kontrolek odtwarzania/edycji:"
 
-#: src/gui/settings.cpp:2626
+#: src/gui/settings.cpp:2622
 msgid "Classic##ecl0"
 msgstr "Klasyczny"
 
-#: src/gui/settings.cpp:2630
+#: src/gui/settings.cpp:2626
 msgid "Compact##ecl1"
 msgstr "Kompaktowy"
 
-#: src/gui/settings.cpp:2634
+#: src/gui/settings.cpp:2630
 msgid "Compact (vertical)##ecl2"
 msgstr "Kompaktowy(pionowy)"
 
-#: src/gui/settings.cpp:2638
+#: src/gui/settings.cpp:2634
 msgid "Split##ecl3"
 msgstr "Podzielony"
 
-#: src/gui/settings.cpp:2644
+#: src/gui/settings.cpp:2640
 msgid "Position of buttons in Orders:"
 msgstr "Pozycja przycisków w matrycy wzorców:"
 
-#: src/gui/settings.cpp:2646
+#: src/gui/settings.cpp:2642
 msgid "Top##obp0"
 msgstr "Na górze"
 
-#: src/gui/settings.cpp:2650
+#: src/gui/settings.cpp:2646
 msgid "Left##obp1"
 msgstr "Po lewej"
 
-#: src/gui/settings.cpp:2654
+#: src/gui/settings.cpp:2650
 msgid "Right##obp2"
 msgstr "Po prawej"
 
-#: src/gui/settings.cpp:2661
+#: src/gui/settings.cpp:2657
 msgid "Mouse"
 msgstr "Mysz"
 
-#: src/gui/settings.cpp:2663
+#: src/gui/settings.cpp:2659
 msgid "Double-click time (seconds)"
 msgstr "Czas dwukrotnego kliknięcia myszą (w sekundach)"
 
-#: src/gui/settings.cpp:2672
+#: src/gui/settings.cpp:2668
 msgid "Don't raise pattern editor on click"
 msgstr "Nie wywołuj edytora wzorców po naciśnięciu przycisku"
 
-#: src/gui/settings.cpp:2678
+#: src/gui/settings.cpp:2674
 msgid "Focus pattern editor when selecting instrument"
 msgstr "Ustaw skupienie na edytorze wzorców podczas wyboru instrumentu"
 
-#: src/gui/settings.cpp:2684
+#: src/gui/settings.cpp:2680
 msgid "Draggable instruments/samples/waves"
 msgstr ""
 
-#: src/gui/settings.cpp:2689
+#: src/gui/settings.cpp:2685
 msgid "Note preview behavior:"
 msgstr "Ustawienia podglądu nut:"
 
-#: src/gui/settings.cpp:2691
+#: src/gui/settings.cpp:2687
 msgid "Never##npb0"
 msgstr "Nigdy"
 
-#: src/gui/settings.cpp:2695
+#: src/gui/settings.cpp:2691
 msgid "When cursor is in Note column##npb1"
 msgstr "Kiedy kursor jest na kolumnie nut"
 
-#: src/gui/settings.cpp:2699
+#: src/gui/settings.cpp:2695
 msgid "When cursor is in Note column or not in edit mode##npb2"
 msgstr "Kiedy kursor jest na kolumnie nut albo nie w trybie edycji"
 
-#: src/gui/settings.cpp:2703
+#: src/gui/settings.cpp:2699
 msgid "Always##npb3"
 msgstr "Zawsze"
 
-#: src/gui/settings.cpp:2709
+#: src/gui/settings.cpp:2705
 msgid "Allow dragging selection:"
 msgstr "Zezwól na przeniesienie zaznaczenia:"
 
-#: src/gui/settings.cpp:2711
+#: src/gui/settings.cpp:2707
 msgid "No##dms0"
 msgstr "Nie"
 
-#: src/gui/settings.cpp:2715
+#: src/gui/settings.cpp:2711
 msgid "Yes##dms1"
 msgstr "Tak"
 
-#: src/gui/settings.cpp:2719
+#: src/gui/settings.cpp:2715
 msgid "Yes (while holding Ctrl only)##dms2"
 msgstr "Tak (tylko przy wciśniętym klawiszu Ctrl)"
 
-#: src/gui/settings.cpp:2723
+#: src/gui/settings.cpp:2719
 msgid "Yes (copy)##dms3"
 msgstr ""
 
-#: src/gui/settings.cpp:2727
+#: src/gui/settings.cpp:2723
 msgid "Yes (while holding Ctrl only and copy)##dms4"
 msgstr ""
 
-#: src/gui/settings.cpp:2731
+#: src/gui/settings.cpp:2727
 msgid "Yes (holding Ctrl copies)##dms5"
 msgstr ""
 
-#: src/gui/settings.cpp:2737
+#: src/gui/settings.cpp:2733
 msgid "Toggle channel solo on:"
 msgstr "Włącz tryb solo dla kanału:"
 
-#: src/gui/settings.cpp:2739
+#: src/gui/settings.cpp:2735
 msgid "Right-click or double-click##soloA"
 msgstr "PPM alko podwójne kliknięcie"
 
-#: src/gui/settings.cpp:2743
+#: src/gui/settings.cpp:2739
 msgid "Right-click##soloR"
 msgstr "PPM"
 
-#: src/gui/settings.cpp:2747
+#: src/gui/settings.cpp:2743
 msgid "Double-click##soloD"
 msgstr "Podwójne kliknięcie"
 
-#: src/gui/settings.cpp:2753
+#: src/gui/settings.cpp:2749
 msgid "Modifier for alternate wheel-scrolling (vertical/zoom/slider-input):"
 msgstr ""
 
-#: src/gui/settings.cpp:2755
+#: src/gui/settings.cpp:2751
 msgid "Ctrl or Meta/Cmd##cwm1"
 msgstr ""
 
-#: src/gui/settings.cpp:2759
+#: src/gui/settings.cpp:2755
 msgid "Ctrl##cwm2"
 msgstr ""
 
-#: src/gui/settings.cpp:2763
+#: src/gui/settings.cpp:2759
 msgid "Meta/Cmd##cwm3"
 msgstr ""
 
-#: src/gui/settings.cpp:2768
+#: src/gui/settings.cpp:2764
 msgid "Alt##cwm4"
 msgstr ""
 
-#: src/gui/settings.cpp:2775
+#: src/gui/settings.cpp:2771
 msgid "Double click selects entire column"
 msgstr "Podwójne kliknięcie wybiera całą kolumnę"
 
-#: src/gui/settings.cpp:2781
+#: src/gui/settings.cpp:2777
 msgid "Cursor behavior"
 msgstr "Zachowanie kursora"
 
-#: src/gui/settings.cpp:2783
+#: src/gui/settings.cpp:2779
 msgid "Insert pushes entire channel row"
 msgstr "Klawisz Insert przesuwa wiersz całego kanału"
 
-#: src/gui/settings.cpp:2789
+#: src/gui/settings.cpp:2785
 msgid "Pull delete affects entire channel row"
 msgstr ""
 "Usunięcie z podciąganiem następujących linii wpływa na cały wiersz kanału"
 
-#: src/gui/settings.cpp:2795
+#: src/gui/settings.cpp:2791
 msgid "Push value when overwriting instead of clearing it"
 msgstr ""
 "Przenieś wartość komórki do sąsiedniej komórki zamiast ją usuwać podczas "
 "nadpisywania"
 
-#: src/gui/settings.cpp:2801
+#: src/gui/settings.cpp:2797
 msgid "Keyboard note/value input repeat (hold key to input continuously)"
 msgstr ""
 "Powtarzanie wprowadzania nut/wartości z klawiatury (przytrzymaj klawisz dla "
 "ciągłego wpisywania)"
 
-#: src/gui/settings.cpp:2806
+#: src/gui/settings.cpp:2802
 msgid "Effect input behavior:"
 msgstr "Wprowadzanie efektów:"
 
-#: src/gui/settings.cpp:2808
+#: src/gui/settings.cpp:2804
 msgid "Move down##eicb0"
 msgstr "Przesuń w dół"
 
-#: src/gui/settings.cpp:2812
+#: src/gui/settings.cpp:2808
 msgid "Move to effect value (otherwise move down)##eicb1"
 msgstr "Przejdź do parametru efektu (w przeciwnym razie przejdź w dół)"
 
-#: src/gui/settings.cpp:2816
+#: src/gui/settings.cpp:2812
 msgid "Move to effect value/next effect and wrap around##eicb2"
 msgstr ""
 "Przeskocz do parametru efektu/następnego efektu i przeskocz do początku linii"
 
-#: src/gui/settings.cpp:2823
+#: src/gui/settings.cpp:2819
 msgid "Delete effect value when deleting effect"
 msgstr "Usuń parametr efektu podczas usuwania efektu"
 
-#: src/gui/settings.cpp:2829
+#: src/gui/settings.cpp:2825
 msgid "Change current instrument when changing instrument column (absorb)"
 msgstr "Zmień wybranego instrumentu podczas edycji kolumny instrumentu"
 
-#: src/gui/settings.cpp:2835
+#: src/gui/settings.cpp:2831
 msgid "Remove instrument value when inserting note off/release"
 msgstr "Usuń wartość instrumentu podczas wstawiania nut OFF/==="
 
-#: src/gui/settings.cpp:2841
+#: src/gui/settings.cpp:2837
 msgid "Remove volume value when inserting note off/release"
 msgstr "Usuń wartość głośności podczas wstawiania nut OFF/==="
 
-#: src/gui/settings.cpp:2847
+#: src/gui/settings.cpp:2843
 msgid "Cursor movement"
 msgstr "Przemieszczanie kursora"
 
-#: src/gui/settings.cpp:2849
+#: src/gui/settings.cpp:2845
 msgid "Wrap horizontally:"
 msgstr "Przenoszenie w poziomie:"
 
-#: src/gui/settings.cpp:2851
+#: src/gui/settings.cpp:2847
 msgid "No##wrapH0"
 msgstr "Nie"
 
-#: src/gui/settings.cpp:2855
+#: src/gui/settings.cpp:2851
 msgid "Yes##wrapH1"
 msgstr "Tak"
 
-#: src/gui/settings.cpp:2859
+#: src/gui/settings.cpp:2855
 msgid "Yes, and move to next/prev row##wrapH2"
 msgstr "Tak, i przejdź do następnego wiersza"
 
-#: src/gui/settings.cpp:2865
+#: src/gui/settings.cpp:2861
 msgid "Wrap vertically:"
 msgstr "Przenoszenie w pionie:"
 
-#: src/gui/settings.cpp:2867
+#: src/gui/settings.cpp:2863
 msgid "No##wrapV0"
 msgstr "Nie"
 
-#: src/gui/settings.cpp:2871
+#: src/gui/settings.cpp:2867
 msgid "Yes##wrapV1"
 msgstr "Tak"
 
-#: src/gui/settings.cpp:2875
+#: src/gui/settings.cpp:2871
 msgid "Yes, and move to next/prev pattern##wrapV2"
 msgstr "Tak, i przejdź do następnego/poprzedniego wzorca"
 
-#: src/gui/settings.cpp:2879
+#: src/gui/settings.cpp:2875
 msgid "Yes, and move to next/prev pattern (wrap around)##wrapV2"
 msgstr ""
 "Tak, i przejdź do następnego/poprzedniego wzorca (z przeniesieniem na "
 "początek/koniec)"
 
-#: src/gui/settings.cpp:2885
+#: src/gui/settings.cpp:2881
 msgid "Cursor movement keys behavior:"
 msgstr "Zachowanie przesuwanie kursora:"
 
-#: src/gui/settings.cpp:2887
+#: src/gui/settings.cpp:2883
 msgid "Move by one##cmk0"
 msgstr "Przesuwaj o jeden"
 
-#: src/gui/settings.cpp:2891
+#: src/gui/settings.cpp:2887
 msgid "Move by Edit Step##cmk1"
 msgstr "Przesuwaj o krok edycji"
 
-#: src/gui/settings.cpp:2898
+#: src/gui/settings.cpp:2894
 msgid "Move cursor by edit step on delete"
 msgstr "Przesuń kursor o krok edycji podczas usuwania"
 
-#: src/gui/settings.cpp:2904
+#: src/gui/settings.cpp:2900
 msgid "Move cursor by edit step on insert (push)"
 msgstr "Przesuń kursor o krok edycji podczas wklejania"
 
-#: src/gui/settings.cpp:2910
+#: src/gui/settings.cpp:2906
 msgid "Move cursor up on backspace-delete"
 msgstr "Przesuń kursor do góry po naciśnięciu Backspace"
 
-#: src/gui/settings.cpp:2916
+#: src/gui/settings.cpp:2912
 msgid "Move cursor to end of clipboard content when pasting"
 msgstr "Przesuń kursor do końca wklejanej zawartości"
 
-#: src/gui/settings.cpp:2922
+#: src/gui/settings.cpp:2918
 msgid "Scrolling"
 msgstr "Przewijanie"
 
-#: src/gui/settings.cpp:2924
+#: src/gui/settings.cpp:2920
 msgid "Change order when scrolling outside of pattern bounds:"
 msgstr "Zmień pozycję w matrycy wzorców podczas przewijania poza wzorcami:"
 
-#: src/gui/settings.cpp:2926
+#: src/gui/settings.cpp:2922
 msgid "No##pscroll0"
 msgstr "Nie"
 
-#: src/gui/settings.cpp:2930
+#: src/gui/settings.cpp:2926
 msgid "Yes##pscroll1"
 msgstr "Tak"
 
-#: src/gui/settings.cpp:2934
+#: src/gui/settings.cpp:2930
 msgid "Yes, and wrap around song##pscroll2"
 msgstr "Tak, i przenieś go na początek/koniec utworu."
 
-#: src/gui/settings.cpp:2941
+#: src/gui/settings.cpp:2937
 msgid "Cursor follows current order when moving it"
 msgstr "Kursor podąża za wierszem matrycy wzorca, gdy ten jest przesuwany"
 
-#: src/gui/settings.cpp:2946
+#: src/gui/settings.cpp:2942
 msgid "applies when playback is stopped."
 msgstr "jest ważne tylko wtedy, gdy odtwarzanie jest zatrzymane."
 
-#: src/gui/settings.cpp:2950
+#: src/gui/settings.cpp:2946
 msgid "Don't scroll when moving cursor"
 msgstr "Nie przewijaj podczas przesuwania kursora"
 
-#: src/gui/settings.cpp:2955
+#: src/gui/settings.cpp:2951
 msgid "Move cursor with scroll wheel:"
 msgstr "Przesuwaj kursor za pomocą kółka myszy:"
 
-#: src/gui/settings.cpp:2957
+#: src/gui/settings.cpp:2953
 msgid "No##csw0"
 msgstr "Nie##csw0"
 
-#: src/gui/settings.cpp:2961
+#: src/gui/settings.cpp:2957
 msgid "Yes##csw1"
 msgstr "Tak##csw1"
 
-#: src/gui/settings.cpp:2965
+#: src/gui/settings.cpp:2961
 msgid "Inverted##csw2"
 msgstr "W odwrotną stronę"
 
-#: src/gui/settings.cpp:2972
+#: src/gui/settings.cpp:2968
 msgid "How many steps to move with each scroll wheel step?"
 msgstr "O ile kroków ma się przesuwać przy każdym ruchu kółkiem myszy?"
 
-#: src/gui/settings.cpp:2973
+#: src/gui/settings.cpp:2969
 msgid "One##cws0"
 msgstr "O jeden"
 
-#: src/gui/settings.cpp:2977
+#: src/gui/settings.cpp:2973
 msgid "Edit Step##cws1"
 msgstr "O krok edycji"
 
-#: src/gui/settings.cpp:2984 src/gui/settings.cpp:3599
+#: src/gui/settings.cpp:2980 src/gui/settings.cpp:3595
 msgid "Assets"
 msgstr "Zasoby"
 
-#: src/gui/settings.cpp:2987
+#: src/gui/settings.cpp:2983
 msgid "Display instrument type menu when adding instrument"
 msgstr "Wyświetlaj menu wyboru typu instrumentu podczas dodawania instrumentu"
 
-#: src/gui/settings.cpp:2993
+#: src/gui/settings.cpp:2989
 msgid "Select asset after opening one"
 msgstr "Wybierz obiekt po jego otwarciu"
 
-#: src/gui/settings.cpp:3000
+#: src/gui/settings.cpp:2996
 msgid "Appearance"
 msgstr "Wygląd"
 
-#: src/gui/settings.cpp:3002
+#: src/gui/settings.cpp:2998
 msgid "Scaling"
 msgstr "Skalowanie"
 
-#: src/gui/settings.cpp:3004
+#: src/gui/settings.cpp:3000
 msgid "Automatic UI scaling factor"
 msgstr "Automatyczny współczynnik skalowania UI"
 
-#: src/gui/settings.cpp:3013
+#: src/gui/settings.cpp:3009
 msgid "UI scaling factor"
 msgstr "Współczynnik skalowania UI"
 
-#: src/gui/settings.cpp:3020
+#: src/gui/settings.cpp:3016
 msgid "Icon size"
 msgstr "Rozmiar ikon"
 
-#: src/gui/settings.cpp:3035
+#: src/gui/settings.cpp:3031
 msgid "Font renderer"
 msgstr "Renderer czcionki"
 
-#: src/gui/settings.cpp:3045
+#: src/gui/settings.cpp:3041
 msgid "Main font"
 msgstr "Główna czcionka"
 
-#: src/gui/settings.cpp:3056
+#: src/gui/settings.cpp:3052
 msgid "Size##MainFontSize"
 msgstr "Rozmiar##MainFontSize"
 
-#: src/gui/settings.cpp:3064
+#: src/gui/settings.cpp:3060
 msgid "Header font"
 msgstr "Czcionka nagłówków"
 
-#: src/gui/settings.cpp:3075
+#: src/gui/settings.cpp:3071
 msgid "Size##HeadFontSize"
 msgstr "Rozmiar##HeadFontSize"
 
-#: src/gui/settings.cpp:3083
+#: src/gui/settings.cpp:3079
 msgid "Pattern font"
 msgstr "Czcionka wzorców"
 
-#: src/gui/settings.cpp:3094
+#: src/gui/settings.cpp:3090
 msgid "Size##PatFontSize"
 msgstr "Rozmiar##PatFontSize"
 
-#: src/gui/settings.cpp:3104
+#: src/gui/settings.cpp:3100
 msgid "Anti-aliased fonts"
 msgstr "Wygladzanie czcionek"
 
-#: src/gui/settings.cpp:3110
+#: src/gui/settings.cpp:3106
 msgid "Support bitmap fonts"
 msgstr "Wspieraj bitmapowe czcionki"
 
-#: src/gui/settings.cpp:3115
+#: src/gui/settings.cpp:3111
 msgid "Hinting:"
 msgstr "Hintowanie:"
 
-#: src/gui/settings.cpp:3117
+#: src/gui/settings.cpp:3113
 msgid "Off (soft)##fh0"
 msgstr "Wył. (miękkie)"
 
-#: src/gui/settings.cpp:3121
+#: src/gui/settings.cpp:3117
 msgid "Slight##fh1"
 msgstr "Lekkie"
 
-#: src/gui/settings.cpp:3125
+#: src/gui/settings.cpp:3121
 msgid "Normal##fh2"
 msgstr "Normalne"
 
-#: src/gui/settings.cpp:3129
+#: src/gui/settings.cpp:3125
 msgid "Full (hard)##fh3"
 msgstr "Pełne (twarde)"
 
-#: src/gui/settings.cpp:3135
+#: src/gui/settings.cpp:3131
 msgid "Auto-hinter:"
 msgstr "Autohintowanie"
 
-#: src/gui/settings.cpp:3137
+#: src/gui/settings.cpp:3133
 msgid "Disable##fah0"
 msgstr "Wyłącz"
 
-#: src/gui/settings.cpp:3141
+#: src/gui/settings.cpp:3137
 msgid "Enable##fah1"
 msgstr "Włącz"
 
-#: src/gui/settings.cpp:3145
+#: src/gui/settings.cpp:3141
 msgid "Force##fah2"
 msgstr "Wymuś"
 
-#: src/gui/settings.cpp:3152
+#: src/gui/settings.cpp:3148
 msgid "Oversample"
 msgstr "Supersampling"
 
-#: src/gui/settings.cpp:3155
+#: src/gui/settings.cpp:3151
 msgid "1×##fos1"
 msgstr ""
 
-#: src/gui/settings.cpp:3160
+#: src/gui/settings.cpp:3156
 msgid ""
 "saves video memory. reduces font rendering quality.\n"
 "use for pixel/bitmap fonts."
@@ -11022,19 +11022,19 @@ msgstr ""
 "oszczędza pamięć VRAM, obniża jakość renderowania czcionek\n"
 "używaj przy czcionkach bitmapowych."
 
-#: src/gui/settings.cpp:3163
+#: src/gui/settings.cpp:3159
 msgid "2×##fos2"
 msgstr "2x"
 
-#: src/gui/settings.cpp:3168
+#: src/gui/settings.cpp:3164
 msgid "default."
 msgstr "domyślny."
 
-#: src/gui/settings.cpp:3171
+#: src/gui/settings.cpp:3167
 msgid "3×##fos3"
 msgstr "3x"
 
-#: src/gui/settings.cpp:3176
+#: src/gui/settings.cpp:3172
 msgid ""
 "slightly better font rendering quality.\n"
 "uses more video memory."
@@ -11042,19 +11042,19 @@ msgstr ""
 "nieco lepsza jakość renderowania\n"
 "użuwa więcej pamięci VRAM."
 
-#: src/gui/settings.cpp:3180
+#: src/gui/settings.cpp:3176
 msgid "Load fallback font"
 msgstr "Wczytaj zapasową czcionkę"
 
-#: src/gui/settings.cpp:3185
+#: src/gui/settings.cpp:3181
 msgid "disable to save video memory."
 msgstr "wyłącz by oszczędzić pamięć VRAM."
 
-#: src/gui/settings.cpp:3189
+#: src/gui/settings.cpp:3185
 msgid "Display Japanese characters"
 msgstr "Wyświetlaj japońskie znaki"
 
-#: src/gui/settings.cpp:3195
+#: src/gui/settings.cpp:3191
 msgid ""
 "Only toggle this option if you have enough graphics memory.\n"
 "This is a temporary solution until dynamic font atlas is implemented in Dear "
@@ -11074,11 +11074,11 @@ msgstr ""
 "これは、Dear ImGuiにダイナミックフォントアトラスが実装されるまでの一時的な解"
 "決策です。"
 
-#: src/gui/settings.cpp:3203
+#: src/gui/settings.cpp:3199
 msgid "Display Chinese (Simplified) characters"
 msgstr "Wyświetlaj chińskie znaki (uproszczone)"
 
-#: src/gui/settings.cpp:3209
+#: src/gui/settings.cpp:3205
 msgid ""
 "Only toggle this option if you have enough graphics memory.\n"
 "This is a temporary solution until dynamic font atlas is implemented in Dear "
@@ -11094,11 +11094,11 @@ msgstr ""
 "请在确保你有足够的显存后再启动此设定\n"
 "这是一个在ImGui实现动态字体加载之前的临时解决方案"
 
-#: src/gui/settings.cpp:3217
+#: src/gui/settings.cpp:3213
 msgid "Display Chinese (Traditional) characters"
 msgstr "Wyświetlaj chińskie znaki (tradycyjne)"
 
-#: src/gui/settings.cpp:3223
+#: src/gui/settings.cpp:3219
 msgid ""
 "Only toggle this option if you have enough graphics memory.\n"
 "This is a temporary solution until dynamic font atlas is implemented in Dear "
@@ -11114,11 +11114,11 @@ msgstr ""
 "請在確保你有足夠的顯存后再啟動此設定\n"
 "這是一個在ImGui實現動態字體加載之前的臨時解決方案"
 
-#: src/gui/settings.cpp:3231
+#: src/gui/settings.cpp:3227
 msgid "Display Korean characters"
 msgstr "Wyświetlaj koreańskie znaki"
 
-#: src/gui/settings.cpp:3237
+#: src/gui/settings.cpp:3233
 msgid ""
 "Only toggle this option if you have enough graphics memory.\n"
 "This is a temporary solution until dynamic font atlas is implemented in Dear "
@@ -11134,854 +11134,854 @@ msgstr ""
 "그래픽 메모리가 충분한 경우에만 이 옵션을 선택하십시오.\n"
 "이 옵션은 Dear ImGui에 동적 글꼴 아틀라스가 구현될 때까지 임시 솔루션입니다."
 
-#: src/gui/settings.cpp:3246
+#: src/gui/settings.cpp:3242
 msgid "Title bar:"
 msgstr "Pasek tytułu okna"
 
-#: src/gui/settings.cpp:3248
+#: src/gui/settings.cpp:3244
 msgid "Furnace##tbar0"
 msgstr "Furnace##tbar0"
 
-#: src/gui/settings.cpp:3253
+#: src/gui/settings.cpp:3249
 msgid "Song Name - Furnace##tbar1"
 msgstr "Nazwa utworu - Furnace##tbar1"
 
-#: src/gui/settings.cpp:3258
+#: src/gui/settings.cpp:3254
 msgid "file_name.fur - Furnace##tbar2"
 msgstr "nazwa_pliku.fur - Furnace##tbar2"
 
-#: src/gui/settings.cpp:3263
+#: src/gui/settings.cpp:3259
 msgid "/path/to/file.fur - Furnace##tbar3"
 msgstr "/ścieżka/do/pliku.fur - Furnace##tbar3"
 
-#: src/gui/settings.cpp:3271
+#: src/gui/settings.cpp:3267
 msgid "Display system name on title bar"
 msgstr "Wyświetlaj nazwę układu/systemu na pasku tytułu okna"
 
-#: src/gui/settings.cpp:3278
+#: src/gui/settings.cpp:3274
 msgid "Display chip names instead of \"multi-system\" in title bar"
 msgstr ""
 "Wyświetlaj nazwy układów/systemów zamiast \"multi-system\" na pasku tytułu "
 "okna"
 
-#: src/gui/settings.cpp:3284
+#: src/gui/settings.cpp:3280
 msgid "Status bar:"
 msgstr "Pasek stanu:"
 
-#: src/gui/settings.cpp:3286
+#: src/gui/settings.cpp:3282
 msgid "Cursor details##sbar0"
 msgstr "Szczegóły zaznaczenia"
 
-#: src/gui/settings.cpp:3290
+#: src/gui/settings.cpp:3286
 msgid "File path##sbar1"
 msgstr "Ścieżka do pliku"
 
-#: src/gui/settings.cpp:3294
+#: src/gui/settings.cpp:3290
 msgid "Cursor details or file path##sbar2"
 msgstr "Szczegóły zazanczenia lub ścieżka do pliku"
 
-#: src/gui/settings.cpp:3298
+#: src/gui/settings.cpp:3294
 msgid "Nothing##sbar3"
 msgstr "Nic"
 
-#: src/gui/settings.cpp:3305
+#: src/gui/settings.cpp:3301
 msgid "Display playback status when playing"
 msgstr "Wyświetlanie stanu odtwarzania podczas odtwarzania"
 
-#: src/gui/settings.cpp:3310
+#: src/gui/settings.cpp:3306
 msgid "Export options layout:"
 msgstr "Układ opcji eksportu:"
 
-#: src/gui/settings.cpp:3312
+#: src/gui/settings.cpp:3308
 msgid "Sub-menus in File menu##eol0"
 msgstr "Menu poboczne w menu pliku"
 
-#: src/gui/settings.cpp:3316
+#: src/gui/settings.cpp:3312
 msgid "Modal window with tabs##eol1"
 msgstr "Modalne okno z zakładkami"
 
-#: src/gui/settings.cpp:3320
+#: src/gui/settings.cpp:3316
 msgid "Modal windows with options in File menu##eol2"
 msgstr "Modalne okna z opcjami w menu pliku"
 
-#: src/gui/settings.cpp:3327
+#: src/gui/settings.cpp:3323
 msgid "Capitalize menu bar"
 msgstr "Pozycje paska menu zaczynają się od wielkiej litery"
 
-#: src/gui/settings.cpp:3333
+#: src/gui/settings.cpp:3329
 msgid "Display add/configure/change/remove chip menus in File menu"
 msgstr "Wyświetlanie pozycji: Dodaj/Zmień/Usuń Chip w menu \"Plik\"."
 
-#: src/gui/settings.cpp:3347
+#: src/gui/settings.cpp:3343
 msgid "Highlight channel at cursor in Orders"
 msgstr "Podświetl kanał, na którym znajduje się kursor w matrycy wzorców."
 
-#: src/gui/settings.cpp:3352
+#: src/gui/settings.cpp:3348
 msgid "Orders row number format:"
 msgstr "Format wyświetlania numeru wiersza matrycy wzorców:"
 
-#: src/gui/settings.cpp:3354
+#: src/gui/settings.cpp:3350
 msgid "Decimal##orbD"
 msgstr "Dziesiętny##orbD"
 
-#: src/gui/settings.cpp:3358
+#: src/gui/settings.cpp:3354
 msgid "Hexadecimal##orbH"
 msgstr "Szesnastkowy##orbH"
 
-#: src/gui/settings.cpp:3367
+#: src/gui/settings.cpp:3363
 msgid "Center pattern view"
 msgstr "Wyśrodkuj wyświetlane wzorce w oknie"
 
-#: src/gui/settings.cpp:3373
+#: src/gui/settings.cpp:3369
 msgid "Overflow pattern highlights"
 msgstr "Kontynuuj podświetlenie pasków wzorca poza samymi wzorcami"
 
-#: src/gui/settings.cpp:3379
+#: src/gui/settings.cpp:3375
 msgid "Display previous/next pattern"
 msgstr "Wyświetlaj poprzedni/następny wzorzec"
 
-#: src/gui/settings.cpp:3384
+#: src/gui/settings.cpp:3380
 msgid "Pattern row number format:"
 msgstr "Format wyświetlania numeru wiersza wzorca:"
 
-#: src/gui/settings.cpp:3386
+#: src/gui/settings.cpp:3382
 msgid "Decimal##prbD"
 msgstr "Dziesiętny##prbD"
 
-#: src/gui/settings.cpp:3390
+#: src/gui/settings.cpp:3386
 msgid "Hexadecimal##prbH"
 msgstr "Szesnastkowy##prbH"
 
-#: src/gui/settings.cpp:3396
+#: src/gui/settings.cpp:3392
 msgid "Pattern view labels:"
 msgstr "Etykiety komórek wzorca:"
 
-#: src/gui/settings.cpp:3401
+#: src/gui/settings.cpp:3397
 msgid "Note off (3-char)"
 msgstr "Puszczenie klawisza (3 znaki)"
 
-#: src/gui/settings.cpp:3406
+#: src/gui/settings.cpp:3402
 msgid "Note release (3-char)"
 msgstr "Zwolnienie nuty (3 znaki)"
 
-#: src/gui/settings.cpp:3411
+#: src/gui/settings.cpp:3407
 msgid "Macro release (3-char)"
 msgstr "Zwolnienie makra (3 znaki)"
 
-#: src/gui/settings.cpp:3416
+#: src/gui/settings.cpp:3412
 msgid "Empty field (3-char)"
 msgstr "Pusta komórka (3 znaki)"
 
-#: src/gui/settings.cpp:3421
+#: src/gui/settings.cpp:3417
 msgid "Empty field (2-char)"
 msgstr "Pusta komórka (2 znaki)"
 
-#: src/gui/settings.cpp:3423
+#: src/gui/settings.cpp:3419
 msgid "Pattern view spacing after:"
 msgstr "Podział na widoku wzorca po:"
 
-#: src/gui/settings.cpp:3425 src/gui/settings.cpp:4231
-#: src/gui/findReplace.cpp:602 src/gui/findReplace.cpp:895
+#: src/gui/settings.cpp:3421 src/gui/settings.cpp:4227
+#: src/gui/findReplace.cpp:607 src/gui/findReplace.cpp:902
 #: src/gui/sampleEdit.cpp:633
 msgid "Note"
 msgstr "Nuta"
 
-#: src/gui/settings.cpp:3443 src/gui/findReplace.cpp:738
-#: src/gui/findReplace.cpp:1022 src/gui/gui.cpp:3172
+#: src/gui/settings.cpp:3439 src/gui/findReplace.cpp:743
+#: src/gui/findReplace.cpp:1029 src/gui/gui.cpp:3178
 msgid "Effect"
 msgstr "Efekt"
 
-#: src/gui/settings.cpp:3449
+#: src/gui/settings.cpp:3445
 msgid "Effect value"
 msgstr "Parametr efektu"
 
-#: src/gui/settings.cpp:3456
+#: src/gui/settings.cpp:3452
 msgid "Single-digit effects for 00-0F"
 msgstr "Jednocyfrowe parametry efektów 00-0F"
 
-#: src/gui/settings.cpp:3462
+#: src/gui/settings.cpp:3458
 msgid "Use flats instead of sharps"
 msgstr "Używaj bemoli zamiast krzyżyków"
 
-#: src/gui/settings.cpp:3468
+#: src/gui/settings.cpp:3464
 msgid "Use German notation"
 msgstr "Używaj niemieckich nazw nut"
 
-#: src/gui/settings.cpp:3476
+#: src/gui/settings.cpp:3472
 msgid "Channel style:"
 msgstr "Styl nagłówka kanału:"
 
-#: src/gui/settings.cpp:3478
+#: src/gui/settings.cpp:3474
 msgid "Classic##CHS0"
 msgstr "Klasyczny"
 
-#: src/gui/settings.cpp:3482
+#: src/gui/settings.cpp:3478
 msgid "Line##CHS1"
 msgstr "Liniowy"
 
-#: src/gui/settings.cpp:3486
+#: src/gui/settings.cpp:3482
 msgid "Round##CHS2"
 msgstr "Zaokrąglony"
 
-#: src/gui/settings.cpp:3490
+#: src/gui/settings.cpp:3486
 msgid "Split button##CHS3"
 msgstr "Podzielony przycisk"
 
-#: src/gui/settings.cpp:3494
+#: src/gui/settings.cpp:3490
 msgid "Square border##CH42"
 msgstr "Kwadratowe obramowanie"
 
-#: src/gui/settings.cpp:3498
+#: src/gui/settings.cpp:3494
 msgid "Round border##CHS5"
 msgstr "Zaokrąglone obramowanie"
 
-#: src/gui/settings.cpp:3504
+#: src/gui/settings.cpp:3500
 msgid "Channel volume bar:"
 msgstr "Pasek głośności kanału:"
 
-#: src/gui/settings.cpp:3506
+#: src/gui/settings.cpp:3502
 msgid "None##CHV0"
 msgstr "Żaden"
 
-#: src/gui/settings.cpp:3510
+#: src/gui/settings.cpp:3506
 msgid "Simple##CHV1"
 msgstr "Prosty"
 
-#: src/gui/settings.cpp:3514
+#: src/gui/settings.cpp:3510
 msgid "Stereo##CHV2"
 msgstr "Stereo"
 
-#: src/gui/settings.cpp:3518
+#: src/gui/settings.cpp:3514
 msgid "Real##CHV3"
 msgstr "Prawdziwy"
 
-#: src/gui/settings.cpp:3522
+#: src/gui/settings.cpp:3518
 msgid "Real (stereo)##CHV4"
 msgstr "Prawdziwy (stereo)"
 
-#: src/gui/settings.cpp:3528
+#: src/gui/settings.cpp:3524
 msgid "Channel feedback style:"
 msgstr "Tryb podświetlenia nagłówka kanału"
 
-#: src/gui/settings.cpp:3530
+#: src/gui/settings.cpp:3526
 msgid "Off##CHF0"
 msgstr "Wył."
 
-#: src/gui/settings.cpp:3534
+#: src/gui/settings.cpp:3530
 msgid "Note##CHF1"
 msgstr "Nuta"
 
-#: src/gui/settings.cpp:3538
+#: src/gui/settings.cpp:3534
 msgid "Volume##CHF2"
 msgstr "Głośność"
 
-#: src/gui/settings.cpp:3542
+#: src/gui/settings.cpp:3538
 msgid "Active##CHF3"
 msgstr "Aktywność"
 
-#: src/gui/settings.cpp:3548
+#: src/gui/settings.cpp:3544
 msgid "Channel font:"
 msgstr "Czcionka nagłówka kanału:"
 
-#: src/gui/settings.cpp:3550
+#: src/gui/settings.cpp:3546
 msgid "Regular##CHFont0"
 msgstr "Zwykła"
 
-#: src/gui/settings.cpp:3554
+#: src/gui/settings.cpp:3550
 msgid "Monospace##CHFont1"
 msgstr "O stałej szerokości"
 
-#: src/gui/settings.cpp:3561
+#: src/gui/settings.cpp:3557
 msgid "Center channel name"
 msgstr "Wyśrodkuj nazwę kanału"
 
-#: src/gui/settings.cpp:3566
+#: src/gui/settings.cpp:3562
 msgid "Channel colors:"
 msgstr "Kolory nagłówków kanałów"
 
-#: src/gui/settings.cpp:3568
+#: src/gui/settings.cpp:3564
 msgid "Single##CHC0"
 msgstr "Proste"
 
-#: src/gui/settings.cpp:3572
+#: src/gui/settings.cpp:3568
 msgid "Channel type##CHC1"
 msgstr "Według typu kanału"
 
-#: src/gui/settings.cpp:3576
+#: src/gui/settings.cpp:3572
 msgid "Instrument type##CHC2"
 msgstr "Według typu instrumentu"
 
-#: src/gui/settings.cpp:3582
+#: src/gui/settings.cpp:3578
 msgid "Channel name colors:"
 msgstr "Kolory nazwy kanału:"
 
-#: src/gui/settings.cpp:3584
+#: src/gui/settings.cpp:3580
 msgid "Single##CTC0"
 msgstr "Proste"
 
-#: src/gui/settings.cpp:3588
+#: src/gui/settings.cpp:3584
 msgid "Channel type##CTC1"
 msgstr "Według typu kanału"
 
-#: src/gui/settings.cpp:3592
+#: src/gui/settings.cpp:3588
 msgid "Instrument type##CTC2"
 msgstr "Według typu instrumentu"
 
-#: src/gui/settings.cpp:3601
+#: src/gui/settings.cpp:3597
 msgid "Unified instrument/wavetable/sample list"
 msgstr "Połączona lista instrumentów, tablic fal i sampli"
 
-#: src/gui/settings.cpp:3611
+#: src/gui/settings.cpp:3607
 msgid "Horizontal instrument/wavetable list"
 msgstr ""
 
-#: src/gui/settings.cpp:3617
+#: src/gui/settings.cpp:3613
 msgid "Instrument list icon style:"
 msgstr "Styl ikon listy instrumentów:"
 
-#: src/gui/settings.cpp:3619
+#: src/gui/settings.cpp:3615
 msgid "None##iis0"
 msgstr "Żaden"
 
-#: src/gui/settings.cpp:3623
+#: src/gui/settings.cpp:3619
 msgid "Graphical icons##iis1"
 msgstr "Ikonki graficzne##iis1"
 
-#: src/gui/settings.cpp:3627
+#: src/gui/settings.cpp:3623
 msgid "Letter icons##iis2"
 msgstr ""
 
-#: src/gui/settings.cpp:3634
+#: src/gui/settings.cpp:3630
 msgid "Colorize instrument editor using instrument type"
 msgstr "Zmień kolory edytora instrumentów zgodnie z typem instrumentu"
 
-#: src/gui/settings.cpp:3640 src/gui/settings.cpp:4122
+#: src/gui/settings.cpp:3636 src/gui/settings.cpp:4118
 msgid "Macro Editor"
 msgstr "Edytor makr"
 
-#: src/gui/settings.cpp:3641
+#: src/gui/settings.cpp:3637
 msgid "Macro editor layout:"
 msgstr "Układ edytora makr:"
 
-#: src/gui/settings.cpp:3643
+#: src/gui/settings.cpp:3639
 msgid "Unified##mel0"
 msgstr "Połączony"
 
-#: src/gui/settings.cpp:3653
+#: src/gui/settings.cpp:3649
 msgid "Grid##mel2"
 msgstr "Siatka"
 
-#: src/gui/settings.cpp:3657
+#: src/gui/settings.cpp:3653
 msgid "Single (with list)##mel3"
 msgstr "Pojedynczy (z listą)##mel3"
 
-#: src/gui/settings.cpp:3670
+#: src/gui/settings.cpp:3666
 msgid "Use classic macro editor vertical slider"
 msgstr "Użyj klasycznego pionowego paska przewijania"
 
-#: src/gui/settings.cpp:3676
+#: src/gui/settings.cpp:3672
 msgid "Macro step size/horizontal zoom:"
 msgstr ""
 
-#: src/gui/settings.cpp:3678
+#: src/gui/settings.cpp:3674
 msgid "Manual"
 msgstr ""
 
-#: src/gui/settings.cpp:3682
+#: src/gui/settings.cpp:3678
 msgid "Automatic per macro"
 msgstr ""
 
-#: src/gui/settings.cpp:3686
+#: src/gui/settings.cpp:3682
 msgid "Automatic (use longest macro)"
 msgstr ""
 
-#: src/gui/settings.cpp:3694
+#: src/gui/settings.cpp:3690
 msgid "Wave Editor"
 msgstr "Edytor fal"
 
-#: src/gui/settings.cpp:3696
+#: src/gui/settings.cpp:3692
 msgid "Use compact wave editor"
 msgstr "Używaj zwartego edyora fal"
 
-#: src/gui/settings.cpp:3702 src/gui/settings.cpp:4099
+#: src/gui/settings.cpp:3698 src/gui/settings.cpp:4095
 msgid "FM Editor"
 msgstr "Edytor instrumentów FM"
 
-#: src/gui/settings.cpp:3703
+#: src/gui/settings.cpp:3699
 msgid "FM parameter names:"
 msgstr "Nazwy parametrów FM:"
 
-#: src/gui/settings.cpp:3705
+#: src/gui/settings.cpp:3701
 msgid "Friendly##fmn0"
 msgstr "Przyjazne"
 
-#: src/gui/settings.cpp:3709
+#: src/gui/settings.cpp:3705
 msgid "Technical##fmn1"
 msgstr "Techniczne"
 
-#: src/gui/settings.cpp:3713
+#: src/gui/settings.cpp:3709
 msgid "Technical (alternate)##fmn2"
 msgstr "Techniczne (alternatywne)"
 
-#: src/gui/settings.cpp:3720
+#: src/gui/settings.cpp:3716
 msgid "Use standard OPL waveform names"
 msgstr "Używaj standardowych nazw kształtów fal OPL"
 
-#: src/gui/settings.cpp:3725
+#: src/gui/settings.cpp:3721
 msgid "FM parameter editor layout:"
 msgstr "Układ edytora parametrów FM"
 
-#: src/gui/settings.cpp:3727
+#: src/gui/settings.cpp:3723
 msgid "Modern##fml0"
 msgstr "Nowoczesny##fml0"
 
-#: src/gui/settings.cpp:3731
+#: src/gui/settings.cpp:3727
 msgid "Modern with more labels##fml7"
 msgstr "Nowoczesny z większą ilością podpisów"
 
-#: src/gui/settings.cpp:3735
+#: src/gui/settings.cpp:3731
 msgid "Compact (2x2, classic)##fml1"
 msgstr "Kompaktowy (2x2, klasyczny)##fml1"
 
-#: src/gui/settings.cpp:3739
+#: src/gui/settings.cpp:3735
 msgid "Compact (1x4)##fml2"
 msgstr "Kompaktowy (1x4)##fml2"
 
-#: src/gui/settings.cpp:3743
+#: src/gui/settings.cpp:3739
 msgid "Compact (4x1)##fml3"
 msgstr "Kompaktowy (4x1)##fml3"
 
-#: src/gui/settings.cpp:3747
+#: src/gui/settings.cpp:3743
 msgid "Alternate (2x2)##fml4"
 msgstr "Alternatywny (2x2)##fml4"
 
-#: src/gui/settings.cpp:3751
+#: src/gui/settings.cpp:3747
 msgid "Alternate (1x4)##fml5"
 msgstr "Alternatywny (1x4)##fml5"
 
-#: src/gui/settings.cpp:3755
+#: src/gui/settings.cpp:3751
 msgid "Alternate (4x1)##fml5"
 msgstr "Alternatyuwny (4x1)##fml5"
 
-#: src/gui/settings.cpp:3761
+#: src/gui/settings.cpp:3757
 msgid "Position of Sustain in FM editor:"
 msgstr "Pozycja parametru \"Podtrzymanie\" w edytorze:"
 
-#: src/gui/settings.cpp:3763
+#: src/gui/settings.cpp:3759
 msgid "Between Decay and Sustain Rate##susp0"
 msgstr "Pomiędzy parametrami opadania a podtrzymania"
 
-#: src/gui/settings.cpp:3767
+#: src/gui/settings.cpp:3763
 msgid "After Release Rate##susp1"
 msgstr "Po parametrze zwolnienia"
 
-#: src/gui/settings.cpp:3772
+#: src/gui/settings.cpp:3768
 msgid "After Release Rate, after spacing##susp2"
 msgstr ""
 
-#: src/gui/settings.cpp:3776
+#: src/gui/settings.cpp:3772
 msgid "After TL##susp3"
 msgstr ""
 
-#: src/gui/settings.cpp:3784
+#: src/gui/settings.cpp:3780
 msgid "Use separate colors for carriers/modulators in FM editor"
 msgstr "Używaj odmiennych kolorów dla fali nośnych/modulatorów w edytorze FM"
 
-#: src/gui/settings.cpp:3790
+#: src/gui/settings.cpp:3786
 msgid "Unsigned FM detune values"
 msgstr "Bezznakowe wartości rozstrojenia FM"
 
-#: src/gui/settings.cpp:3797
+#: src/gui/settings.cpp:3793
 msgid "Chip memory usage unit:"
 msgstr "Jednostki wyświatlania obciążenia pamięci układu:"
 
-#: src/gui/settings.cpp:3799
+#: src/gui/settings.cpp:3795
 msgid "Bytes##MUU0"
 msgstr "Bajty"
 
-#: src/gui/settings.cpp:3803
+#: src/gui/settings.cpp:3799
 msgid "Kilobytes##MUU1"
 msgstr "Kilobajty"
 
-#: src/gui/settings.cpp:3812
+#: src/gui/settings.cpp:3808
 msgid "Rounded corners"
 msgstr "Zaokrąglone rogi"
 
-#: src/gui/settings.cpp:3818 src/gui/settings.cpp:4004
-#: src/gui/settings.cpp:4046
+#: src/gui/settings.cpp:3814 src/gui/settings.cpp:4000
+#: src/gui/settings.cpp:4042
 msgid "Border"
 msgstr "Krawędź"
 
-#: src/gui/settings.cpp:3830
+#: src/gui/settings.cpp:3826
 msgid "Anti-aliased"
 msgstr "Z wygładzaniem"
 
-#: src/gui/settings.cpp:3836
+#: src/gui/settings.cpp:3832
 msgid "Fill entire window"
 msgstr "Wypełń całe okno"
 
-#: src/gui/settings.cpp:3842
+#: src/gui/settings.cpp:3838
 msgid "Waveform goes out of bounds"
 msgstr "Fala wychodzi poza okno"
 
-#: src/gui/settings.cpp:3856
+#: src/gui/settings.cpp:3852
 msgid "Wrap text"
 msgstr "Zawijaj wiersze"
 
-#: src/gui/settings.cpp:3862
+#: src/gui/settings.cpp:3858
 msgid "Windows"
 msgstr "Okna"
 
-#: src/gui/settings.cpp:3864
+#: src/gui/settings.cpp:3860
 msgid "Rounded window corners"
 msgstr "Zaokrąglone krawędzie okien"
 
-#: src/gui/settings.cpp:3870
+#: src/gui/settings.cpp:3866
 msgid "Rounded buttons"
 msgstr "Zaokrąglone przyciski"
 
-#: src/gui/settings.cpp:3876
+#: src/gui/settings.cpp:3872
 msgid "Rounded menu corners"
 msgstr "Zaokrąglone krawędzie menu"
 
-#: src/gui/settings.cpp:3882
+#: src/gui/settings.cpp:3878
 msgid "Rounded tabs"
 msgstr "Zaokrąglone krawędzie zakładek"
 
-#: src/gui/settings.cpp:3888
+#: src/gui/settings.cpp:3884
 msgid "Rounded scrollbars"
 msgstr "Zaokrąglone paski przewijania"
 
-#: src/gui/settings.cpp:3894
+#: src/gui/settings.cpp:3890
 msgid "Borders around widgets"
 msgstr "Obrawowania wokół widżetów"
 
-#: src/gui/settings.cpp:3903
+#: src/gui/settings.cpp:3899
 msgid "Color scheme"
 msgstr "Schemat kolorów"
 
-#: src/gui/settings.cpp:3913
+#: src/gui/settings.cpp:3909
 msgid "Are you sure you want to reset the color scheme?"
 msgstr "Czy jesteś pewien że chcesz zresetować schemat kolorów?"
 
-#: src/gui/settings.cpp:3916
+#: src/gui/settings.cpp:3912
 msgid "Guru mode"
 msgstr ""
 
-#: src/gui/settings.cpp:3923 src/gui/settings.cpp:3953
+#: src/gui/settings.cpp:3919 src/gui/settings.cpp:3949
 msgid "Frame shading"
 msgstr "Cieniowanie ramki"
 
-#: src/gui/settings.cpp:3929
+#: src/gui/settings.cpp:3925
 msgid "Color scheme type:"
 msgstr ""
 
-#: src/gui/settings.cpp:3931
+#: src/gui/settings.cpp:3927
 msgid "Dark##gcb0"
 msgstr ""
 
-#: src/gui/settings.cpp:3936
+#: src/gui/settings.cpp:3932
 msgid "Light##gcb1"
 msgstr ""
 
-#: src/gui/settings.cpp:3943
+#: src/gui/settings.cpp:3939
 msgid "Accent colors:"
 msgstr ""
 
-#: src/gui/settings.cpp:3945
+#: src/gui/settings.cpp:3941
 msgid "Primary"
 msgstr ""
 
-#: src/gui/settings.cpp:3946
+#: src/gui/settings.cpp:3942
 msgid "Secondary"
 msgstr ""
 
-#: src/gui/settings.cpp:3960
+#: src/gui/settings.cpp:3956
 msgid "Button"
 msgstr "Przycisk"
 
-#: src/gui/settings.cpp:3961
+#: src/gui/settings.cpp:3957
 msgid "Button (hovered)"
 msgstr ""
 
-#: src/gui/settings.cpp:3962
+#: src/gui/settings.cpp:3958
 msgid "Button (active)"
 msgstr ""
 
-#: src/gui/settings.cpp:3963
+#: src/gui/settings.cpp:3959
 msgid "Tab"
 msgstr "Zakładka"
 
-#: src/gui/settings.cpp:3964
+#: src/gui/settings.cpp:3960
 msgid "Tab (hovered)"
 msgstr ""
 
-#: src/gui/settings.cpp:3965
+#: src/gui/settings.cpp:3961
 msgid "Tab (active)"
 msgstr ""
 
-#: src/gui/settings.cpp:3966
+#: src/gui/settings.cpp:3962
 msgid "Tab (unfocused)"
 msgstr ""
 
-#: src/gui/settings.cpp:3967
+#: src/gui/settings.cpp:3963
 msgid "Tab (unfocused and active)"
 msgstr ""
 
-#: src/gui/settings.cpp:3968
+#: src/gui/settings.cpp:3964
 msgid "ImGui header"
 msgstr ""
 
-#: src/gui/settings.cpp:3969
+#: src/gui/settings.cpp:3965
 msgid "ImGui header (hovered)"
 msgstr ""
 
-#: src/gui/settings.cpp:3970
+#: src/gui/settings.cpp:3966
 msgid "ImGui header (active)"
 msgstr ""
 
-#: src/gui/settings.cpp:3971
+#: src/gui/settings.cpp:3967
 msgid "Resize grip"
 msgstr ""
 
-#: src/gui/settings.cpp:3972
+#: src/gui/settings.cpp:3968
 msgid "Resize grip (hovered)"
 msgstr ""
 
-#: src/gui/settings.cpp:3973
+#: src/gui/settings.cpp:3969
 msgid "Resize grip (active)"
 msgstr ""
 
-#: src/gui/settings.cpp:3974
+#: src/gui/settings.cpp:3970
 msgid "Widget background"
 msgstr ""
 
-#: src/gui/settings.cpp:3975
+#: src/gui/settings.cpp:3971
 msgid "Widget background (hovered)"
 msgstr ""
 
-#: src/gui/settings.cpp:3976
+#: src/gui/settings.cpp:3972
 msgid "Widget background (active)"
 msgstr ""
 
-#: src/gui/settings.cpp:3977
+#: src/gui/settings.cpp:3973
 msgid "Slider grab"
 msgstr ""
 
-#: src/gui/settings.cpp:3978
+#: src/gui/settings.cpp:3974
 msgid "Slider grab (active)"
 msgstr ""
 
-#: src/gui/settings.cpp:3979
+#: src/gui/settings.cpp:3975
 msgid "Title background (active)"
 msgstr ""
 
-#: src/gui/settings.cpp:3980
+#: src/gui/settings.cpp:3976
 msgid "Checkbox/radio button mark"
 msgstr ""
 
-#: src/gui/settings.cpp:3981
+#: src/gui/settings.cpp:3977
 msgid "Text selection"
 msgstr ""
 
-#: src/gui/settings.cpp:3982
+#: src/gui/settings.cpp:3978
 msgid "Line plot"
 msgstr ""
 
-#: src/gui/settings.cpp:3983
+#: src/gui/settings.cpp:3979
 msgid "Line plot (hovered)"
 msgstr ""
 
-#: src/gui/settings.cpp:3984
+#: src/gui/settings.cpp:3980
 msgid "Histogram plot"
 msgstr ""
 
-#: src/gui/settings.cpp:3985
+#: src/gui/settings.cpp:3981
 msgid "Histogram plot (hovered)"
 msgstr ""
 
-#: src/gui/settings.cpp:3986
+#: src/gui/settings.cpp:3982
 msgid "Table row (even)"
 msgstr ""
 
-#: src/gui/settings.cpp:3987
+#: src/gui/settings.cpp:3983
 msgid "Table row (odd)"
 msgstr ""
 
-#: src/gui/settings.cpp:3992
+#: src/gui/settings.cpp:3988
 msgid "Interface (other)"
 msgstr "Interfejs (inne)"
 
-#: src/gui/settings.cpp:3994
+#: src/gui/settings.cpp:3990
 msgid "Window background"
 msgstr ""
 
-#: src/gui/settings.cpp:3995
+#: src/gui/settings.cpp:3991
 msgid "Sub-window background"
 msgstr ""
 
-#: src/gui/settings.cpp:3996
+#: src/gui/settings.cpp:3992
 msgid "Pop-up background"
 msgstr ""
 
-#: src/gui/settings.cpp:3997
+#: src/gui/settings.cpp:3993
 msgid "Modal backdrop"
 msgstr ""
 
-#: src/gui/settings.cpp:3998
+#: src/gui/settings.cpp:3994
 msgid "Header"
 msgstr ""
 
-#: src/gui/settings.cpp:4000
+#: src/gui/settings.cpp:3996
 msgid "Text (disabled)"
 msgstr ""
 
-#: src/gui/settings.cpp:4001
+#: src/gui/settings.cpp:3997
 msgid "Title bar (inactive)"
 msgstr ""
 
-#: src/gui/settings.cpp:4002
+#: src/gui/settings.cpp:3998
 msgid "Title bar (collapsed)"
 msgstr ""
 
-#: src/gui/settings.cpp:4003
+#: src/gui/settings.cpp:3999
 msgid "Menu bar"
 msgstr ""
 
-#: src/gui/settings.cpp:4005
+#: src/gui/settings.cpp:4001
 msgid "Border shadow"
 msgstr ""
 
-#: src/gui/settings.cpp:4006
+#: src/gui/settings.cpp:4002
 msgid "Scroll bar"
 msgstr ""
 
-#: src/gui/settings.cpp:4007
+#: src/gui/settings.cpp:4003
 msgid "Scroll bar (hovered)"
 msgstr ""
 
-#: src/gui/settings.cpp:4008
+#: src/gui/settings.cpp:4004
 msgid "Scroll bar (clicked)"
 msgstr ""
 
-#: src/gui/settings.cpp:4009
+#: src/gui/settings.cpp:4005
 msgid "Scroll bar background"
 msgstr ""
 
-#: src/gui/settings.cpp:4010
+#: src/gui/settings.cpp:4006
 msgid "Separator"
 msgstr ""
 
-#: src/gui/settings.cpp:4011
+#: src/gui/settings.cpp:4007
 msgid "Separator (hover)"
 msgstr ""
 
-#: src/gui/settings.cpp:4012
+#: src/gui/settings.cpp:4008
 msgid "Separator (active)"
 msgstr ""
 
-#: src/gui/settings.cpp:4013
+#: src/gui/settings.cpp:4009
 msgid "Docking preview"
 msgstr ""
 
-#: src/gui/settings.cpp:4014
+#: src/gui/settings.cpp:4010
 msgid "Docking empty"
 msgstr ""
 
-#: src/gui/settings.cpp:4015
+#: src/gui/settings.cpp:4011
 msgid "Table header"
 msgstr ""
 
-#: src/gui/settings.cpp:4016
+#: src/gui/settings.cpp:4012
 msgid "Table border (hard)"
 msgstr ""
 
-#: src/gui/settings.cpp:4017
+#: src/gui/settings.cpp:4013
 msgid "Table border (soft)"
 msgstr ""
 
-#: src/gui/settings.cpp:4018
+#: src/gui/settings.cpp:4014
 msgid "Drag and drop target"
 msgstr ""
 
-#: src/gui/settings.cpp:4019
+#: src/gui/settings.cpp:4015
 msgid "Window switcher (highlight)"
 msgstr ""
 
-#: src/gui/settings.cpp:4020
+#: src/gui/settings.cpp:4016
 msgid "Window switcher backdrop"
 msgstr ""
 
-#: src/gui/settings.cpp:4023 src/gui/settings.cpp:4252 src/gui/guiConst.cpp:238
+#: src/gui/settings.cpp:4019 src/gui/settings.cpp:4248 src/gui/guiConst.cpp:238
 msgid "Miscellaneous"
 msgstr "Inne"
 
-#: src/gui/settings.cpp:4024
+#: src/gui/settings.cpp:4020
 msgid "Toggle on"
 msgstr ""
 
-#: src/gui/settings.cpp:4025
+#: src/gui/settings.cpp:4021
 msgid "Toggle off"
 msgstr ""
 
-#: src/gui/settings.cpp:4026
+#: src/gui/settings.cpp:4022
 msgid "Playback status"
 msgstr ""
 
-#: src/gui/settings.cpp:4027
+#: src/gui/settings.cpp:4023
 msgid "Destructive hint"
 msgstr ""
 
-#: src/gui/settings.cpp:4028
+#: src/gui/settings.cpp:4024
 msgid "Warning hint"
 msgstr ""
 
-#: src/gui/settings.cpp:4029
+#: src/gui/settings.cpp:4025
 msgid "Error hint"
 msgstr ""
 
-#: src/gui/settings.cpp:4032
+#: src/gui/settings.cpp:4028
 msgid "File Picker (built-in)"
 msgstr "Wbudowany wybierak plików"
 
-#: src/gui/settings.cpp:4033
+#: src/gui/settings.cpp:4029
 msgid "Directory"
 msgstr "Folder"
 
-#: src/gui/settings.cpp:4034
+#: src/gui/settings.cpp:4030
 msgid "Song (native)"
 msgstr ""
 
-#: src/gui/settings.cpp:4035
+#: src/gui/settings.cpp:4031
 msgid "Song (import)"
 msgstr ""
 
-#: src/gui/settings.cpp:4040
+#: src/gui/settings.cpp:4036
 msgid "ZSM"
 msgstr ""
 
-#: src/gui/settings.cpp:4041
+#: src/gui/settings.cpp:4037
 msgid "Font"
 msgstr "Czcionka"
 
-#: src/gui/settings.cpp:4047
+#: src/gui/settings.cpp:4043
 msgid "Background (top-left)"
 msgstr ""
 
-#: src/gui/settings.cpp:4048
+#: src/gui/settings.cpp:4044
 msgid "Background (top-right)"
 msgstr ""
 
-#: src/gui/settings.cpp:4049
+#: src/gui/settings.cpp:4045
 msgid "Background (bottom-left)"
 msgstr ""
 
-#: src/gui/settings.cpp:4050
+#: src/gui/settings.cpp:4046
 msgid "Background (bottom-right)"
 msgstr ""
 
-#: src/gui/settings.cpp:4051 src/gui/settings.cpp:4106
-#: src/gui/settings.cpp:4282 src/gui/waveEdit.cpp:633 src/gui/insEdit.cpp:53
+#: src/gui/settings.cpp:4047 src/gui/settings.cpp:4102
+#: src/gui/settings.cpp:4278 src/gui/waveEdit.cpp:633 src/gui/insEdit.cpp:53
 #: src/gui/insEdit.cpp:4893 src/gui/insEdit.cpp:5999 src/gui/insEdit.cpp:7086
 #: src/gui/insEdit.cpp:7979 src/gui/insEdit.cpp:7988 src/gui/insEdit.cpp:8003
 #: src/gui/insEdit.cpp:8020 src/gui/insEdit.cpp:8031 src/gui/insEdit.cpp:8046
@@ -11996,119 +11996,119 @@ msgstr ""
 msgid "Waveform"
 msgstr "Kształt fali"
 
-#: src/gui/settings.cpp:4052
+#: src/gui/settings.cpp:4048
 msgid "Waveform (clip)"
 msgstr ""
 
-#: src/gui/settings.cpp:4053
+#: src/gui/settings.cpp:4049
 msgid "Reference"
 msgstr ""
 
-#: src/gui/settings.cpp:4054
+#: src/gui/settings.cpp:4050
 msgid "Guide"
 msgstr ""
 
-#: src/gui/settings.cpp:4056
+#: src/gui/settings.cpp:4052
 msgid "Wave (non-mono)"
 msgstr "Fala (nie mono)"
 
-#: src/gui/settings.cpp:4057
+#: src/gui/settings.cpp:4053
 msgid "Waveform (1)"
 msgstr ""
 
-#: src/gui/settings.cpp:4058
+#: src/gui/settings.cpp:4054
 msgid "Waveform (2)"
 msgstr ""
 
-#: src/gui/settings.cpp:4059
+#: src/gui/settings.cpp:4055
 msgid "Waveform (3)"
 msgstr ""
 
-#: src/gui/settings.cpp:4060
+#: src/gui/settings.cpp:4056
 msgid "Waveform (4)"
 msgstr ""
 
-#: src/gui/settings.cpp:4061
+#: src/gui/settings.cpp:4057
 msgid "Waveform (5)"
 msgstr ""
 
-#: src/gui/settings.cpp:4062
+#: src/gui/settings.cpp:4058
 msgid "Waveform (6)"
 msgstr ""
 
-#: src/gui/settings.cpp:4063
+#: src/gui/settings.cpp:4059
 msgid "Waveform (7)"
 msgstr ""
 
-#: src/gui/settings.cpp:4064
+#: src/gui/settings.cpp:4060
 msgid "Waveform (8)"
 msgstr ""
 
-#: src/gui/settings.cpp:4065
+#: src/gui/settings.cpp:4061
 msgid "Waveform (9)"
 msgstr ""
 
-#: src/gui/settings.cpp:4066
+#: src/gui/settings.cpp:4062
 msgid "Waveform (10)"
 msgstr ""
 
-#: src/gui/settings.cpp:4067
+#: src/gui/settings.cpp:4063
 msgid "Waveform (11)"
 msgstr ""
 
-#: src/gui/settings.cpp:4068
+#: src/gui/settings.cpp:4064
 msgid "Waveform (12)"
 msgstr ""
 
-#: src/gui/settings.cpp:4069
+#: src/gui/settings.cpp:4065
 msgid "Waveform (13)"
 msgstr ""
 
-#: src/gui/settings.cpp:4070
+#: src/gui/settings.cpp:4066
 msgid "Waveform (14)"
 msgstr ""
 
-#: src/gui/settings.cpp:4071
+#: src/gui/settings.cpp:4067
 msgid "Waveform (15)"
 msgstr ""
 
-#: src/gui/settings.cpp:4072
+#: src/gui/settings.cpp:4068
 msgid "Waveform (16)"
 msgstr ""
 
-#: src/gui/settings.cpp:4080
+#: src/gui/settings.cpp:4076
 msgid "Clip"
 msgstr ""
 
-#: src/gui/settings.cpp:4084
+#: src/gui/settings.cpp:4080
 msgid "Order number"
 msgstr "Numer wzorca"
 
-#: src/gui/settings.cpp:4085
+#: src/gui/settings.cpp:4081
 msgid "Playing order background"
 msgstr ""
 
-#: src/gui/settings.cpp:4086
+#: src/gui/settings.cpp:4082
 msgid "Song loop"
 msgstr "Zapętlenie utworu"
 
-#: src/gui/settings.cpp:4087
+#: src/gui/settings.cpp:4083
 msgid "Selected order"
 msgstr ""
 
-#: src/gui/settings.cpp:4088
+#: src/gui/settings.cpp:4084
 msgid "Similar patterns"
 msgstr ""
 
-#: src/gui/settings.cpp:4089
+#: src/gui/settings.cpp:4085
 msgid "Inactive patterns"
 msgstr "Nieaktywne wzorce"
 
-#: src/gui/settings.cpp:4092
+#: src/gui/settings.cpp:4088
 msgid "Envelope View"
 msgstr "Podgląd obwiedni"
 
-#: src/gui/settings.cpp:4093 src/gui/settings.cpp:4128 src/gui/insEdit.cpp:654
+#: src/gui/settings.cpp:4089 src/gui/settings.cpp:4124 src/gui/insEdit.cpp:654
 #: src/gui/insEdit.cpp:3875 src/gui/insEdit.cpp:3876 src/gui/insEdit.cpp:4826
 #: src/gui/insEdit.cpp:4896 src/gui/insEdit.cpp:5559 src/gui/insEdit.cpp:6105
 #: src/gui/insEdit.cpp:6106 src/gui/insEdit.cpp:7135 src/gui/insEdit.cpp:7136
@@ -12119,69 +12119,69 @@ msgstr "Podgląd obwiedni"
 msgid "Envelope"
 msgstr "Obwiednia"
 
-#: src/gui/settings.cpp:4094
+#: src/gui/settings.cpp:4090
 msgid "Sustain guide"
 msgstr ""
 
-#: src/gui/settings.cpp:4100
+#: src/gui/settings.cpp:4096
 msgid "Algorithm background"
 msgstr ""
 
-#: src/gui/settings.cpp:4101
+#: src/gui/settings.cpp:4097
 msgid "Algorithm lines"
 msgstr ""
 
-#: src/gui/settings.cpp:4102
+#: src/gui/settings.cpp:4098
 msgid "Modulator"
 msgstr ""
 
-#: src/gui/settings.cpp:4103
+#: src/gui/settings.cpp:4099
 msgid "Carrier"
 msgstr "Fala nośna"
 
-#: src/gui/settings.cpp:4105 src/gui/insEdit.cpp:53 src/gui/insEdit.cpp:4891
+#: src/gui/settings.cpp:4101 src/gui/insEdit.cpp:53 src/gui/insEdit.cpp:4891
 msgid "SSG-EG"
 msgstr "SSG-EG"
 
-#: src/gui/settings.cpp:4108
+#: src/gui/settings.cpp:4104
 msgid ""
 "(the following colors only apply when \"Use separate colors for carriers/"
 "modulators in FM editor\" is on!)"
 msgstr ""
 
-#: src/gui/settings.cpp:4110
+#: src/gui/settings.cpp:4106
 msgid "Mod. accent (primary)"
 msgstr ""
 
-#: src/gui/settings.cpp:4111
+#: src/gui/settings.cpp:4107
 msgid "Mod. accent (secondary)"
 msgstr ""
 
-#: src/gui/settings.cpp:4112
+#: src/gui/settings.cpp:4108
 msgid "Mod. border"
 msgstr ""
 
-#: src/gui/settings.cpp:4113
+#: src/gui/settings.cpp:4109
 msgid "Mod. border shadow"
 msgstr ""
 
-#: src/gui/settings.cpp:4115
+#: src/gui/settings.cpp:4111
 msgid "Car. accent (primary)"
 msgstr ""
 
-#: src/gui/settings.cpp:4116
+#: src/gui/settings.cpp:4112
 msgid "Car. accent (secondary)"
 msgstr ""
 
-#: src/gui/settings.cpp:4117
+#: src/gui/settings.cpp:4113
 msgid "Car. border"
 msgstr ""
 
-#: src/gui/settings.cpp:4118
+#: src/gui/settings.cpp:4114
 msgid "Car. border shadow"
 msgstr ""
 
-#: src/gui/settings.cpp:4124 src/gui/guiConst.cpp:230 src/gui/insEdit.cpp:7963
+#: src/gui/settings.cpp:4120 src/gui/guiConst.cpp:230 src/gui/insEdit.cpp:7963
 #: src/gui/insEdit.cpp:7970 src/gui/insEdit.cpp:7981 src/gui/insEdit.cpp:7989
 #: src/gui/insEdit.cpp:8011 src/gui/insEdit.cpp:8023 src/gui/insEdit.cpp:8033
 #: src/gui/insEdit.cpp:8048 src/gui/insEdit.cpp:8063 src/gui/insEdit.cpp:8072
@@ -12206,890 +12206,890 @@ msgstr ""
 msgid "Pitch"
 msgstr "Wysokość"
 
-#: src/gui/settings.cpp:4127 src/gui/sampleEdit.cpp:999
+#: src/gui/settings.cpp:4123 src/gui/sampleEdit.cpp:999
 msgid "Filter"
 msgstr "Filtr"
 
-#: src/gui/settings.cpp:4129
+#: src/gui/settings.cpp:4125
 msgid "Global Parameter"
 msgstr "Globalny parametr"
 
-#: src/gui/settings.cpp:4131
+#: src/gui/settings.cpp:4127
 msgid "Step Highlight"
 msgstr "Podkreślenie wiersza"
 
-#: src/gui/settings.cpp:4134
+#: src/gui/settings.cpp:4130
 msgid "Instrument Types"
 msgstr "Typy instrumentów"
 
-#: src/gui/settings.cpp:4135
+#: src/gui/settings.cpp:4131
 msgid "FM (OPN)"
 msgstr ""
 
-#: src/gui/settings.cpp:4136
+#: src/gui/settings.cpp:4132
 msgid "SN76489/Sega PSG"
 msgstr ""
 
-#: src/gui/settings.cpp:4139
+#: src/gui/settings.cpp:4135
 msgid "C64"
 msgstr ""
 
-#: src/gui/settings.cpp:4140
+#: src/gui/settings.cpp:4136
 msgid "Amiga/Generic Sample"
 msgstr "Amiga/Zwykły sampel"
 
-#: src/gui/settings.cpp:4142
+#: src/gui/settings.cpp:4138
 msgid "AY-3-8910/SSG"
 msgstr ""
 
-#: src/gui/settings.cpp:4143
+#: src/gui/settings.cpp:4139
 msgid "AY8930"
 msgstr ""
 
-#: src/gui/settings.cpp:4144
+#: src/gui/settings.cpp:4140
 msgid "TIA"
 msgstr ""
 
-#: src/gui/settings.cpp:4145
+#: src/gui/settings.cpp:4141
 msgid "SAA1099"
 msgstr ""
 
-#: src/gui/settings.cpp:4146
+#: src/gui/settings.cpp:4142
 msgid "VIC"
 msgstr ""
 
-#: src/gui/settings.cpp:4147
+#: src/gui/settings.cpp:4143
 msgid "PET"
 msgstr ""
 
-#: src/gui/settings.cpp:4148
+#: src/gui/settings.cpp:4144
 msgid "VRC6"
 msgstr ""
 
-#: src/gui/settings.cpp:4149 src/gui/guiConst.cpp:149
+#: src/gui/settings.cpp:4145 src/gui/guiConst.cpp:149
 msgid "VRC6 (saw)"
 msgstr "VRC6 (fala piłokształtna)"
 
-#: src/gui/settings.cpp:4150
+#: src/gui/settings.cpp:4146
 msgid "FM (OPLL)"
 msgstr ""
 
-#: src/gui/settings.cpp:4151
+#: src/gui/settings.cpp:4147
 msgid "FM (OPL)"
 msgstr ""
 
-#: src/gui/settings.cpp:4156
+#: src/gui/settings.cpp:4152
 msgid "FM (OPZ)"
 msgstr ""
 
-#: src/gui/settings.cpp:4158
+#: src/gui/settings.cpp:4154
 msgid "PC Beeper"
 msgstr "Brzęczyk"
 
-#: src/gui/settings.cpp:4160
+#: src/gui/settings.cpp:4156
 msgid "Lynx"
 msgstr ""
 
-#: src/gui/settings.cpp:4162
+#: src/gui/settings.cpp:4158
 msgid "X1-010"
 msgstr ""
 
-#: src/gui/settings.cpp:4163
+#: src/gui/settings.cpp:4159
 msgid "ES5506"
 msgstr ""
 
-#: src/gui/settings.cpp:4166
+#: src/gui/settings.cpp:4162
 msgid "Sound Unit"
 msgstr "Sound Unit"
 
-#: src/gui/settings.cpp:4168
+#: src/gui/settings.cpp:4164
 msgid "FM (OPL Drums)"
 msgstr ""
 
-#: src/gui/settings.cpp:4169
+#: src/gui/settings.cpp:4165
 msgid "FM (OPM)"
 msgstr ""
 
-#: src/gui/settings.cpp:4171
+#: src/gui/settings.cpp:4167
 msgid "MSM6258"
 msgstr ""
 
-#: src/gui/settings.cpp:4172
+#: src/gui/settings.cpp:4168
 msgid "MSM6295"
 msgstr ""
 
-#: src/gui/settings.cpp:4173
+#: src/gui/settings.cpp:4169
 msgid "ADPCM-A"
 msgstr ""
 
-#: src/gui/settings.cpp:4175
+#: src/gui/settings.cpp:4171
 msgid "Sega PCM"
 msgstr ""
 
-#: src/gui/settings.cpp:4176
+#: src/gui/settings.cpp:4172
 msgid "QSound"
 msgstr "QSound"
 
-#: src/gui/settings.cpp:4177
+#: src/gui/settings.cpp:4173
 msgid "YMZ280B"
 msgstr ""
 
-#: src/gui/settings.cpp:4178
+#: src/gui/settings.cpp:4174
 msgid "RF5C68"
 msgstr ""
 
-#: src/gui/settings.cpp:4179
+#: src/gui/settings.cpp:4175
 msgid "MSM5232"
 msgstr ""
 
-#: src/gui/settings.cpp:4180
+#: src/gui/settings.cpp:4176
 msgid "K007232"
 msgstr ""
 
-#: src/gui/settings.cpp:4181
+#: src/gui/settings.cpp:4177
 msgid "GA20"
 msgstr ""
 
-#: src/gui/settings.cpp:4183
+#: src/gui/settings.cpp:4179
 msgid "SM8521"
 msgstr ""
 
-#: src/gui/settings.cpp:4184
+#: src/gui/settings.cpp:4180
 msgid "PV-1000"
 msgstr ""
 
-#: src/gui/settings.cpp:4185
+#: src/gui/settings.cpp:4181
 msgid "K053260"
 msgstr ""
 
-#: src/gui/settings.cpp:4186
+#: src/gui/settings.cpp:4182
 msgid "TED"
 msgstr ""
 
-#: src/gui/settings.cpp:4187
+#: src/gui/settings.cpp:4183
 msgid "C140"
 msgstr ""
 
-#: src/gui/settings.cpp:4188
+#: src/gui/settings.cpp:4184
 msgid "C219"
 msgstr ""
 
-#: src/gui/settings.cpp:4189
+#: src/gui/settings.cpp:4185
 msgid "ESFM"
 msgstr ""
 
-#: src/gui/settings.cpp:4190 src/gui/guiConst.cpp:179
+#: src/gui/settings.cpp:4186 src/gui/guiConst.cpp:179
 msgid "PowerNoise (noise)"
 msgstr "PowerNoise (szum)"
 
-#: src/gui/settings.cpp:4191 src/gui/guiConst.cpp:180
+#: src/gui/settings.cpp:4187 src/gui/guiConst.cpp:180
 msgid "PowerNoise (slope)"
 msgstr "PowerNoise (spadek)"
 
-#: src/gui/settings.cpp:4194
+#: src/gui/settings.cpp:4190
 msgid "GBA DMA"
 msgstr ""
 
-#: src/gui/settings.cpp:4195
+#: src/gui/settings.cpp:4191
 msgid "GBA MinMod"
 msgstr ""
 
-#: src/gui/settings.cpp:4198
+#: src/gui/settings.cpp:4194
 msgid "Supervision"
 msgstr ""
 
-#: src/gui/settings.cpp:4199
+#: src/gui/settings.cpp:4195
 msgid "μPD1771C"
 msgstr ""
 
-#: src/gui/settings.cpp:4201
+#: src/gui/settings.cpp:4197
 msgid "Other/Unknown"
 msgstr "Inny/Nieznany"
 
-#: src/gui/settings.cpp:4205
+#: src/gui/settings.cpp:4201
 msgid "Single color (background)"
 msgstr "Jednolity kolor tła"
 
-#: src/gui/settings.cpp:4206
+#: src/gui/settings.cpp:4202
 msgid "Single color (text)"
 msgstr "Jednolity kolor (tekst)"
 
-#: src/gui/settings.cpp:4212
+#: src/gui/settings.cpp:4208
 msgid "FM operator"
 msgstr "Operator FM"
 
-#: src/gui/settings.cpp:4213
+#: src/gui/settings.cpp:4209
 msgid "Muted"
 msgstr "Wyciszony"
 
-#: src/gui/settings.cpp:4217
+#: src/gui/settings.cpp:4213
 msgid "Playhead"
 msgstr "what the shit is that even supposed to mean"
 
-#: src/gui/settings.cpp:4218
+#: src/gui/settings.cpp:4214
 msgid "Editing"
 msgstr "Edytowanie"
 
-#: src/gui/settings.cpp:4219
+#: src/gui/settings.cpp:4215
 msgid "Editing (will clone)"
 msgstr ""
 
-#: src/gui/settings.cpp:4220
+#: src/gui/settings.cpp:4216
 msgid "Cursor"
 msgstr "Kursor"
 
-#: src/gui/settings.cpp:4221
+#: src/gui/settings.cpp:4217
 msgid "Cursor (hovered)"
 msgstr "Kursor (po najechaniu)"
 
-#: src/gui/settings.cpp:4222
+#: src/gui/settings.cpp:4218
 msgid "Cursor (clicked)"
 msgstr "Kursor (po kliknięciu)"
 
-#: src/gui/settings.cpp:4223 src/gui/settings.cpp:4288
-#: src/gui/findReplace.cpp:822
+#: src/gui/settings.cpp:4219 src/gui/settings.cpp:4284
+#: src/gui/findReplace.cpp:827
 msgid "Selection"
 msgstr "Zaznaczenie"
 
-#: src/gui/settings.cpp:4224
+#: src/gui/settings.cpp:4220
 msgid "Selection (hovered)"
 msgstr "Zaznaczenie (po najechaniu)"
 
-#: src/gui/settings.cpp:4225
+#: src/gui/settings.cpp:4221
 msgid "Selection (clicked)"
 msgstr "Zaznaczenie (po kliknięciu)"
 
-#: src/gui/settings.cpp:4226
+#: src/gui/settings.cpp:4222
 msgid "Highlight 1"
 msgstr "Podkreślenie 1"
 
-#: src/gui/settings.cpp:4227
+#: src/gui/settings.cpp:4223
 msgid "Highlight 2"
 msgstr "Podkreślenie 2"
 
-#: src/gui/settings.cpp:4228
+#: src/gui/settings.cpp:4224
 msgid "Row number"
 msgstr "Numer wiersza"
 
-#: src/gui/settings.cpp:4229
+#: src/gui/settings.cpp:4225
 msgid "Row number (highlight 1)"
 msgstr "Numer wiersza (podkreślenie 1)"
 
-#: src/gui/settings.cpp:4230
+#: src/gui/settings.cpp:4226
 msgid "Row number (highlight 2)"
 msgstr "Numer wiersza (podkreślenie 2)"
 
-#: src/gui/settings.cpp:4232
+#: src/gui/settings.cpp:4228
 msgid "Note (highlight 1)"
 msgstr "Nuta (podkreślenie 1)"
 
-#: src/gui/settings.cpp:4233
+#: src/gui/settings.cpp:4229
 msgid "Note (highlight 2)"
 msgstr "Nuta (podkreślenie 2)"
 
-#: src/gui/settings.cpp:4234
+#: src/gui/settings.cpp:4230
 msgid "Blank"
 msgstr "Pusty"
 
-#: src/gui/settings.cpp:4235
+#: src/gui/settings.cpp:4231
 msgid "Blank (highlight 1)"
 msgstr "Pusty (podkreślenie 1)"
 
-#: src/gui/settings.cpp:4236
+#: src/gui/settings.cpp:4232
 msgid "Blank (highlight 2)"
 msgstr "Pusty (podkreślenie 2)"
 
-#: src/gui/settings.cpp:4238
+#: src/gui/settings.cpp:4234
 msgid "Instrument (invalid type)"
 msgstr "Instrument nieprawidłowego typu"
 
-#: src/gui/settings.cpp:4239
+#: src/gui/settings.cpp:4235
 msgid "Instrument (out of range)"
 msgstr "Instrument (poza zakresem)"
 
-#: src/gui/settings.cpp:4240
+#: src/gui/settings.cpp:4236
 msgid "Volume (0%)"
 msgstr "Głośność (0%)"
 
-#: src/gui/settings.cpp:4241
+#: src/gui/settings.cpp:4237
 msgid "Volume (50%)"
 msgstr "Głośność (50%)"
 
-#: src/gui/settings.cpp:4242
+#: src/gui/settings.cpp:4238
 msgid "Volume (100%)"
 msgstr "Głośność (100%)"
 
-#: src/gui/settings.cpp:4244
+#: src/gui/settings.cpp:4240
 msgid "Pitch effect"
 msgstr "Efekt wysokości dźwięku"
 
-#: src/gui/settings.cpp:4245
+#: src/gui/settings.cpp:4241
 msgid "Volume effect"
 msgstr "Efekt głośności"
 
-#: src/gui/settings.cpp:4246
+#: src/gui/settings.cpp:4242
 msgid "Panning effect"
 msgstr "Efekt stereo"
 
-#: src/gui/settings.cpp:4247
+#: src/gui/settings.cpp:4243
 msgid "Song effect"
 msgstr "Efekt piosenki"
 
-#: src/gui/settings.cpp:4248
+#: src/gui/settings.cpp:4244
 msgid "Time effect"
 msgstr "Efekt zegara"
 
-#: src/gui/settings.cpp:4249
+#: src/gui/settings.cpp:4245
 msgid "Speed effect"
 msgstr "Efekt prędkości"
 
-#: src/gui/settings.cpp:4250
+#: src/gui/settings.cpp:4246
 msgid "Primary specific effect"
 msgstr ""
 
-#: src/gui/settings.cpp:4251
+#: src/gui/settings.cpp:4247
 msgid "Secondary specific effect"
 msgstr ""
 
-#: src/gui/settings.cpp:4253
+#: src/gui/settings.cpp:4249
 msgid "External command output"
 msgstr ""
 
-#: src/gui/settings.cpp:4254
+#: src/gui/settings.cpp:4250
 msgid "Status: off/disabled"
 msgstr ""
 
-#: src/gui/settings.cpp:4255
+#: src/gui/settings.cpp:4251
 msgid "Status: off + macro rel"
 msgstr ""
 
-#: src/gui/settings.cpp:4256
+#: src/gui/settings.cpp:4252
 msgid "Status: on + macro rel"
 msgstr ""
 
-#: src/gui/settings.cpp:4257
+#: src/gui/settings.cpp:4253
 msgid "Status: on"
 msgstr ""
 
-#: src/gui/settings.cpp:4258
+#: src/gui/settings.cpp:4254
 msgid "Status: volume"
 msgstr ""
 
-#: src/gui/settings.cpp:4259
+#: src/gui/settings.cpp:4255
 msgid "Status: pitch"
 msgstr ""
 
-#: src/gui/settings.cpp:4260
+#: src/gui/settings.cpp:4256
 msgid "Status: panning"
 msgstr ""
 
-#: src/gui/settings.cpp:4261
+#: src/gui/settings.cpp:4257
 msgid "Status: chip (primary)"
 msgstr ""
 
-#: src/gui/settings.cpp:4262
+#: src/gui/settings.cpp:4258
 msgid "Status: chip (secondary)"
 msgstr ""
 
-#: src/gui/settings.cpp:4263
+#: src/gui/settings.cpp:4259
 msgid "Status: mixing"
 msgstr ""
 
-#: src/gui/settings.cpp:4264
+#: src/gui/settings.cpp:4260
 msgid "Status: DSP effect"
 msgstr ""
 
-#: src/gui/settings.cpp:4265
+#: src/gui/settings.cpp:4261
 msgid "Status: note altering"
 msgstr ""
 
-#: src/gui/settings.cpp:4266
+#: src/gui/settings.cpp:4262
 msgid "Status: misc color 1"
 msgstr ""
 
-#: src/gui/settings.cpp:4267
+#: src/gui/settings.cpp:4263
 msgid "Status: misc color 2"
 msgstr ""
 
-#: src/gui/settings.cpp:4268
+#: src/gui/settings.cpp:4264
 msgid "Status: misc color 3"
 msgstr ""
 
-#: src/gui/settings.cpp:4269
+#: src/gui/settings.cpp:4265
 msgid "Status: attack"
 msgstr ""
 
-#: src/gui/settings.cpp:4270
+#: src/gui/settings.cpp:4266
 msgid "Status: decay"
 msgstr ""
 
-#: src/gui/settings.cpp:4271
+#: src/gui/settings.cpp:4267
 msgid "Status: sustain"
 msgstr ""
 
-#: src/gui/settings.cpp:4272
+#: src/gui/settings.cpp:4268
 msgid "Status: release"
 msgstr ""
 
-#: src/gui/settings.cpp:4273
+#: src/gui/settings.cpp:4269
 msgid "Status: decrease linear"
 msgstr ""
 
-#: src/gui/settings.cpp:4274
+#: src/gui/settings.cpp:4270
 msgid "Status: decrease exp"
 msgstr ""
 
-#: src/gui/settings.cpp:4275
+#: src/gui/settings.cpp:4271
 msgid "Status: increase"
 msgstr ""
 
-#: src/gui/settings.cpp:4276
+#: src/gui/settings.cpp:4272
 msgid "Status: bent"
 msgstr ""
 
-#: src/gui/settings.cpp:4277
+#: src/gui/settings.cpp:4273
 msgid "Status: direct"
 msgstr ""
 
-#: src/gui/settings.cpp:4280 src/gui/guiConst.cpp:627 src/gui/sampleEdit.cpp:96
+#: src/gui/settings.cpp:4276 src/gui/guiConst.cpp:627 src/gui/sampleEdit.cpp:96
 msgid "Sample Editor"
 msgstr "Edytor sampli"
 
-#: src/gui/settings.cpp:4283
+#: src/gui/settings.cpp:4279
 msgid "Time background"
 msgstr ""
 
-#: src/gui/settings.cpp:4284
+#: src/gui/settings.cpp:4280
 msgid "Time text"
 msgstr "Tekst zegara"
 
-#: src/gui/settings.cpp:4285
+#: src/gui/settings.cpp:4281
 msgid "Loop region"
 msgstr "Zakres zapętlenia"
 
-#: src/gui/settings.cpp:4286
+#: src/gui/settings.cpp:4282
 msgid "Center guide"
 msgstr ""
 
-#: src/gui/settings.cpp:4287
+#: src/gui/settings.cpp:4283
 msgid "Grid"
 msgstr ""
 
-#: src/gui/settings.cpp:4289
+#: src/gui/settings.cpp:4285
 msgid "Selection points"
 msgstr ""
 
-#: src/gui/settings.cpp:4290
+#: src/gui/settings.cpp:4286
 msgid "Preview needle"
 msgstr ""
 
-#: src/gui/settings.cpp:4291
+#: src/gui/settings.cpp:4287
 msgid "Playing needles"
 msgstr ""
 
-#: src/gui/settings.cpp:4292
+#: src/gui/settings.cpp:4288
 msgid "Loop markers"
 msgstr ""
 
-#: src/gui/settings.cpp:4293
+#: src/gui/settings.cpp:4289
 msgid "Chip select: disabled"
 msgstr ""
 
-#: src/gui/settings.cpp:4294
+#: src/gui/settings.cpp:4290
 msgid "Chip select: enabled"
 msgstr ""
 
-#: src/gui/settings.cpp:4295
+#: src/gui/settings.cpp:4291
 msgid "Chip select: enabled (failure)"
 msgstr ""
 
-#: src/gui/settings.cpp:4298 src/gui/guiConst.cpp:643 src/gui/patManager.cpp:35
+#: src/gui/settings.cpp:4294 src/gui/guiConst.cpp:643 src/gui/patManager.cpp:35
 msgid "Pattern Manager"
 msgstr "Menedżer wzorców"
 
-#: src/gui/settings.cpp:4299
+#: src/gui/settings.cpp:4295
 msgid "Unallocated"
 msgstr "Nieprzypisany"
 
-#: src/gui/settings.cpp:4300
+#: src/gui/settings.cpp:4296
 msgid "Unused"
 msgstr "Nieużywany"
 
-#: src/gui/settings.cpp:4301
+#: src/gui/settings.cpp:4297
 msgid "Used"
 msgstr "Używany"
 
-#: src/gui/settings.cpp:4302
+#: src/gui/settings.cpp:4298
 msgid "Overused"
 msgstr "Nadużywany"
 
-#: src/gui/settings.cpp:4303
+#: src/gui/settings.cpp:4299
 msgid "Really overused"
 msgstr "Bardzo nadużywany"
 
-#: src/gui/settings.cpp:4304
+#: src/gui/settings.cpp:4300
 msgid "Combo Breaker"
 msgstr "Combo Breaker"
 
-#: src/gui/settings.cpp:4307 src/gui/guiConst.cpp:640 src/gui/piano.cpp:63
+#: src/gui/settings.cpp:4303 src/gui/guiConst.cpp:640 src/gui/piano.cpp:63
 msgid "Piano"
 msgstr "Klawiatura fortepianu"
 
-#: src/gui/settings.cpp:4309
+#: src/gui/settings.cpp:4305
 msgid "Upper key"
 msgstr "Górny klawisz"
 
-#: src/gui/settings.cpp:4310
+#: src/gui/settings.cpp:4306
 msgid "Upper key (feedback)"
 msgstr ""
 
-#: src/gui/settings.cpp:4311
+#: src/gui/settings.cpp:4307
 msgid "Upper key (pressed)"
 msgstr ""
 
-#: src/gui/settings.cpp:4312
+#: src/gui/settings.cpp:4308
 msgid "Lower key"
 msgstr "Dolny klawisz"
 
-#: src/gui/settings.cpp:4313
+#: src/gui/settings.cpp:4309
 msgid "Lower key (feedback)"
 msgstr ""
 
-#: src/gui/settings.cpp:4314
+#: src/gui/settings.cpp:4310
 msgid "Lower key (pressed)"
 msgstr "Dolny klawisz (naciśnięty)"
 
-#: src/gui/settings.cpp:4317 src/gui/clock.cpp:31 src/gui/guiConst.cpp:651
+#: src/gui/settings.cpp:4313 src/gui/clock.cpp:31 src/gui/guiConst.cpp:651
 msgid "Clock"
 msgstr "Zegar"
 
-#: src/gui/settings.cpp:4318
+#: src/gui/settings.cpp:4314
 msgid "Clock text"
 msgstr "Napisy na zegarze"
 
-#: src/gui/settings.cpp:4319
+#: src/gui/settings.cpp:4315
 msgid "Beat (off)"
 msgstr ""
 
-#: src/gui/settings.cpp:4320
+#: src/gui/settings.cpp:4316
 msgid "Beat (on)"
 msgstr ""
 
-#: src/gui/settings.cpp:4325
+#: src/gui/settings.cpp:4321
 msgid "PortSet"
 msgstr ""
 
-#: src/gui/settings.cpp:4326
+#: src/gui/settings.cpp:4322
 msgid "Port"
 msgstr "Port"
 
-#: src/gui/settings.cpp:4327
+#: src/gui/settings.cpp:4323
 msgid "Port (hidden/unavailable)"
 msgstr "Port (ukryty/niedostępny)"
 
-#: src/gui/settings.cpp:4328
+#: src/gui/settings.cpp:4324
 msgid "Connection (selected)"
 msgstr "Połączenie (wybrane)"
 
-#: src/gui/settings.cpp:4329
+#: src/gui/settings.cpp:4325
 msgid "Connection (other)"
 msgstr "Połączenie (inne)"
 
-#: src/gui/settings.cpp:4335
+#: src/gui/settings.cpp:4331
 msgid "Waveform data"
 msgstr "Dane fali"
 
-#: src/gui/settings.cpp:4338
+#: src/gui/settings.cpp:4334
 msgid "Reserved"
 msgstr "Zarezerwowane"
 
-#: src/gui/settings.cpp:4340
+#: src/gui/settings.cpp:4336
 msgid "Sample (alternate 1)"
 msgstr ""
 
-#: src/gui/settings.cpp:4341
+#: src/gui/settings.cpp:4337
 msgid "Sample (alternate 2)"
 msgstr ""
 
-#: src/gui/settings.cpp:4342
+#: src/gui/settings.cpp:4338
 msgid "Sample (alternate 3)"
 msgstr ""
 
-#: src/gui/settings.cpp:4343
+#: src/gui/settings.cpp:4339
 msgid "Wave RAM"
 msgstr "RAM na fale"
 
-#: src/gui/settings.cpp:4344
+#: src/gui/settings.cpp:4340
 msgid "Wavetable (static)"
 msgstr "Tablica fal (statyczna)"
 
-#: src/gui/settings.cpp:4345
+#: src/gui/settings.cpp:4341
 msgid "Echo buffer"
 msgstr "Bufor echo"
 
-#: src/gui/settings.cpp:4346
+#: src/gui/settings.cpp:4342
 msgid "Namco 163 load pos"
 msgstr "Pozycja wczytywania Namco 163"
 
-#: src/gui/settings.cpp:4347
+#: src/gui/settings.cpp:4343
 msgid "Namco 163 play pos"
 msgstr "Pozycja odtwarzania Namco 163"
 
-#: src/gui/settings.cpp:4348
+#: src/gui/settings.cpp:4344
 msgid "Sample (bank 0)"
 msgstr "Sampel (bank 0)"
 
-#: src/gui/settings.cpp:4349
+#: src/gui/settings.cpp:4345
 msgid "Sample (bank 1)"
 msgstr "Sampel (bank 1)"
 
-#: src/gui/settings.cpp:4350
+#: src/gui/settings.cpp:4346
 msgid "Sample (bank 2)"
 msgstr "Sampel (bank 2)"
 
-#: src/gui/settings.cpp:4351
+#: src/gui/settings.cpp:4347
 msgid "Sample (bank 3)"
 msgstr "Sampel (bank 3)"
 
-#: src/gui/settings.cpp:4352
+#: src/gui/settings.cpp:4348
 msgid "Sample (bank 4)"
 msgstr "Sampel (bank 4)"
 
-#: src/gui/settings.cpp:4353
+#: src/gui/settings.cpp:4349
 msgid "Sample (bank 5)"
 msgstr "Sampel (bank 5)"
 
-#: src/gui/settings.cpp:4354
+#: src/gui/settings.cpp:4350
 msgid "Sample (bank 6)"
 msgstr "Sampel (bank 6)"
 
-#: src/gui/settings.cpp:4355
+#: src/gui/settings.cpp:4351
 msgid "Sample (bank 7)"
 msgstr "Sampel (bank 7)"
 
-#: src/gui/settings.cpp:4360
+#: src/gui/settings.cpp:4356
 msgid "Log level: Error"
 msgstr "Poziom wpisu w logu: Błąd"
 
-#: src/gui/settings.cpp:4361
+#: src/gui/settings.cpp:4357
 msgid "Log level: Warning"
 msgstr "Poziom wpisu w logu: Ostrzeżenie"
 
-#: src/gui/settings.cpp:4362
+#: src/gui/settings.cpp:4358
 msgid "Log level: Info"
 msgstr "Poziom wpisu w logu: Informacja"
 
-#: src/gui/settings.cpp:4363
+#: src/gui/settings.cpp:4359
 msgid "Log level: Debug"
 msgstr "Poziom wpisu w logu: Debug"
 
-#: src/gui/settings.cpp:4364
+#: src/gui/settings.cpp:4360
 msgid "Log level: Trace/Verbose"
 msgstr "Poziom wpisu w logu: Diagnostyka/Szczegóły"
 
-#: src/gui/settings.cpp:4369
+#: src/gui/settings.cpp:4365
 msgid "Backup"
 msgstr "Kopia zapasowa"
 
-#: src/gui/settings.cpp:4374
+#: src/gui/settings.cpp:4370
 msgid "Enable backup system"
 msgstr "Włącz tworzenie kopii zapasowych"
 
-#: src/gui/settings.cpp:4379
+#: src/gui/settings.cpp:4375
 msgid "Interval (in seconds)"
 msgstr "Przerwa (w sekundach)"
 
-#: src/gui/settings.cpp:4384
+#: src/gui/settings.cpp:4380
 msgid "Backups per file"
 msgstr "Ilość kopii zapasowych na plik"
 
-#: src/gui/settings.cpp:4390
+#: src/gui/settings.cpp:4386
 msgid "Backup Management"
 msgstr "Zarządzanie kopiami zapasowymi"
 
-#: src/gui/settings.cpp:4394
+#: src/gui/settings.cpp:4390
 msgid "Purge before:"
 msgstr "Usuń wszystkie przed:"
 
-#: src/gui/settings.cpp:4468
+#: src/gui/settings.cpp:4464
 msgid "Go##PDate"
 msgstr "Start##PDate"
 
-#: src/gui/settings.cpp:4475
+#: src/gui/settings.cpp:4471
 #, c-format
 msgid "%<PRIu64>PB used"
 msgstr "%<PRIu64>PB użytych"
 
-#: src/gui/settings.cpp:4477
+#: src/gui/settings.cpp:4473
 #, c-format
 msgid "%<PRIu64>TB used"
 msgstr "%<PRIu64>TB użytych"
 
-#: src/gui/settings.cpp:4479
+#: src/gui/settings.cpp:4475
 #, c-format
 msgid "%<PRIu64>GB used"
 msgstr "%<PRIu64>GB użytych"
 
-#: src/gui/settings.cpp:4481
+#: src/gui/settings.cpp:4477
 #, c-format
 msgid "%<PRIu64>MB used"
 msgstr "%<PRIu64>MB użytych"
 
-#: src/gui/settings.cpp:4483
+#: src/gui/settings.cpp:4479
 #, c-format
 msgid "%<PRIu64>KB used"
 msgstr "%<PRIu64>KB użytych"
 
-#: src/gui/settings.cpp:4485
+#: src/gui/settings.cpp:4481
 #, c-format
 msgid "%<PRIu64> bytes used"
 msgstr "%<PRIu64>bajtów użytych"
 
-#: src/gui/settings.cpp:4490
+#: src/gui/settings.cpp:4486
 msgid "Refresh"
 msgstr "Odśwież"
 
-#: src/gui/settings.cpp:4494
+#: src/gui/settings.cpp:4490
 msgid "Delete all"
 msgstr "Usuń wszystkie"
 
-#: src/gui/settings.cpp:4500 src/gui/settings.cpp:7150
+#: src/gui/settings.cpp:4496 src/gui/settings.cpp:7118
 msgid "Size"
 msgstr "Rozmiar"
 
-#: src/gui/settings.cpp:4501
+#: src/gui/settings.cpp:4497
 msgid "Latest"
 msgstr "Ostatnie"
 
-#: src/gui/settings.cpp:4511
+#: src/gui/settings.cpp:4507
 #, c-format
 msgid "%<PRIu64>P"
 msgstr "%<PRIu64>P"
 
-#: src/gui/settings.cpp:4513
+#: src/gui/settings.cpp:4509
 #, c-format
 msgid "%<PRIu64>T"
 msgstr "%<PRIu64>T"
 
-#: src/gui/settings.cpp:4515
+#: src/gui/settings.cpp:4511
 #, c-format
 msgid "%<PRIu64>G"
 msgstr "%<PRIu64>G"
 
-#: src/gui/settings.cpp:4517
+#: src/gui/settings.cpp:4513
 #, c-format
 msgid "%<PRIu64>M"
 msgstr "%<PRIu64>M"
 
-#: src/gui/settings.cpp:4519
+#: src/gui/settings.cpp:4515
 #, c-format
 msgid "%<PRIu64>K"
 msgstr "%<PRIu64>K"
 
-#: src/gui/settings.cpp:4521
+#: src/gui/settings.cpp:4517
 #, c-format
 msgid "%<PRIu64>"
 msgstr "%<PRIu64>"
 
-#: src/gui/settings.cpp:4645
+#: src/gui/settings.cpp:4641
 msgid "Cheat Codes"
 msgstr "Kody"
 
-#: src/gui/settings.cpp:4647
+#: src/gui/settings.cpp:4643
 msgid "Enter code:"
 msgstr "Wpisz kod"
 
-#: src/gui/settings.cpp:4649
+#: src/gui/settings.cpp:4645
 msgid "Submit"
 msgstr "Zatwierdź"
 
-#: src/gui/settings.cpp:4653
+#: src/gui/settings.cpp:4649
 msgid "invalid code"
 msgstr "kod niepoprawny"
 
-#: src/gui/settings.cpp:4663
+#: src/gui/settings.cpp:4659
 msgid "toggled alternate UI"
 msgstr "włączono alternatywne GUI"
 
-#: src/gui/settings.cpp:4667
+#: src/gui/settings.cpp:4663
 msgid ":smile: :star_struck: :sunglasses: :ok_hand:"
 msgstr ":smile: :star_struck: :sunglasses: :ok_hand:"
 
-#: src/gui/settings.cpp:4671
+#: src/gui/settings.cpp:4667
 msgid "enabled all instrument types"
 msgstr "włączono wszystkie typy instrumentów"
 
-#: src/gui/settings.cpp:4675
+#: src/gui/settings.cpp:4671
 msgid "OK, if I bring your Partial pitch linearity will you stop bothering me?"
 msgstr ""
 
-#: src/gui/settings.cpp:4679
+#: src/gui/settings.cpp:4675
 msgid "enabled \"comfortable\" mode"
 msgstr "włączono tryb \"komfortowy\""
 
-#: src/gui/settings.cpp:4697
+#: src/gui/settings.cpp:4693
 msgid "OK##SettingsOK"
 msgstr "OK##SettingsOK"
 
-#: src/gui/settings.cpp:4703
+#: src/gui/settings.cpp:4699
 msgid "Cancel##SettingsCancel"
 msgstr "Anuluj##SettingsCancel"
 
-#: src/gui/settings.cpp:4711
+#: src/gui/settings.cpp:4707
 msgid "Apply##SettingsApply"
 msgstr "Zastosuj##SettingsApply"
 
-#: src/gui/settings.cpp:4734 src/gui/settings.cpp:4751
+#: src/gui/settings.cpp:4730 src/gui/settings.cpp:4747
 msgid "Press key..."
 msgstr "Naciśnij klawisz..."
 
-#: src/gui/settings.cpp:5863
+#: src/gui/settings.cpp:5831
 msgid "could not initialize audio!"
 msgstr "nie udało się zainicjować dźwięku!"
 
-#: src/gui/settings.cpp:5878 src/gui/gui.cpp:4238 src/gui/gui.cpp:7277
-#: src/gui/gui.cpp:7731
+#: src/gui/settings.cpp:5846 src/gui/gui.cpp:4251 src/gui/gui.cpp:7290
+#: src/gui/gui.cpp:7744
 msgid "error while loading fonts! please check your settings."
 msgstr "błąd podczas ładowania czcionek! sprawdź swoje ustawienia."
 
-#: src/gui/settings.cpp:6064
+#: src/gui/settings.cpp:6032
 #, c-format
 msgid "error while loading config! (%s)"
 msgstr "błąd podczas wczytywania ustawień (%s)"
 
-#: src/gui/settings.cpp:7137
+#: src/gui/settings.cpp:7105
 msgid "[Dir]"
 msgstr ""
 
-#: src/gui/settings.cpp:7138
+#: src/gui/settings.cpp:7106
 msgid "[Link]"
 msgstr ""
 
-#: src/gui/settings.cpp:7139
+#: src/gui/settings.cpp:7107
 #, fuzzy
 msgid "[File]"
 msgstr "Plik"
 
-#: src/gui/settings.cpp:7140
+#: src/gui/settings.cpp:7108
 #, fuzzy
 msgid "Name:"
 msgstr "Nazwa"
 
-#: src/gui/settings.cpp:7141
+#: src/gui/settings.cpp:7109
 msgid "Path:"
 msgstr "Ścieżka:"
 
-#: src/gui/settings.cpp:7142
+#: src/gui/settings.cpp:7110
 #, fuzzy
 msgid "Reset search"
 msgstr "Resetuj do wart. domyślnych"
 
-#: src/gui/settings.cpp:7143
+#: src/gui/settings.cpp:7111
 #, fuzzy
 msgid "Drives"
 msgstr "Sterownik"
 
-#: src/gui/settings.cpp:7144
+#: src/gui/settings.cpp:7112
 msgid ""
 "Edit path\n"
 "You can also right click on path buttons"
@@ -13097,58 +13097,58 @@ msgstr ""
 "Edytuj ścieżkę do pliku\n"
 " Możesz także kliknąć PPM na przycisku od ścieżek"
 
-#: src/gui/settings.cpp:7145
+#: src/gui/settings.cpp:7113
 #, fuzzy
 msgid "Go to home directory"
 msgstr "Sekcja sampli"
 
-#: src/gui/settings.cpp:7146
+#: src/gui/settings.cpp:7114
 #, fuzzy
 msgid "Go to parent directory"
 msgstr "otwórz wbudowany folder z zasobami"
 
-#: src/gui/settings.cpp:7147
+#: src/gui/settings.cpp:7115
 #, fuzzy
 msgid "Create Directory"
 msgstr "Sekcja sampli"
 
-#: src/gui/settings.cpp:7148
+#: src/gui/settings.cpp:7116
 #, fuzzy
 msgid "File name"
 msgstr "nazwa sampla"
 
-#: src/gui/settings.cpp:7151
+#: src/gui/settings.cpp:7119
 #, fuzzy
 msgid "Date"
 msgstr "Start##PDate"
 
-#: src/gui/settings.cpp:7152 src/gui/gui.cpp:5764 src/gui/gui.cpp:6042
-#: src/gui/gui.cpp:6043
+#: src/gui/settings.cpp:7120 src/gui/gui.cpp:5777 src/gui/gui.cpp:6055
+#: src/gui/gui.cpp:6056
 msgid "Warning"
 msgstr "Ostrzeżenie"
 
-#: src/gui/settings.cpp:7153
+#: src/gui/settings.cpp:7121
 msgid "The file you selected already exists! Would you like to overwrite it?"
 msgstr "Wybrany plik już istnieje! Czy chcesz go nadpisać?"
 
-#: src/gui/settings.cpp:7154 src/gui/gui.cpp:6047 src/gui/gui.cpp:6071
-#: src/gui/gui.cpp:6095 src/gui/gui.cpp:6119 src/gui/gui.cpp:6143
-#: src/gui/gui.cpp:6167 src/gui/gui.cpp:6199 src/gui/gui.cpp:6215
-#: src/gui/gui.cpp:6226 src/gui/gui.cpp:6238 src/gui/gui.cpp:6392
-#: src/gui/gui.cpp:6414 src/gui/gui.cpp:6430 src/gui/gui.cpp:6441
+#: src/gui/settings.cpp:7122 src/gui/gui.cpp:6060 src/gui/gui.cpp:6084
+#: src/gui/gui.cpp:6108 src/gui/gui.cpp:6132 src/gui/gui.cpp:6156
+#: src/gui/gui.cpp:6180 src/gui/gui.cpp:6212 src/gui/gui.cpp:6228
+#: src/gui/gui.cpp:6239 src/gui/gui.cpp:6251 src/gui/gui.cpp:6405
+#: src/gui/gui.cpp:6427 src/gui/gui.cpp:6443 src/gui/gui.cpp:6454
 msgid "Yes"
 msgstr "Tak"
 
-#: src/gui/settings.cpp:7155 src/gui/findReplace.cpp:859 src/gui/gui.cpp:6061
-#: src/gui/gui.cpp:6085 src/gui/gui.cpp:6109 src/gui/gui.cpp:6133
-#: src/gui/gui.cpp:6157 src/gui/gui.cpp:6185 src/gui/gui.cpp:6210
-#: src/gui/gui.cpp:6221 src/gui/gui.cpp:6233 src/gui/gui.cpp:6245
-#: src/gui/gui.cpp:6409 src/gui/gui.cpp:6425 src/gui/gui.cpp:6435
-#: src/gui/gui.cpp:6448
+#: src/gui/settings.cpp:7123 src/gui/findReplace.cpp:866 src/gui/gui.cpp:6074
+#: src/gui/gui.cpp:6098 src/gui/gui.cpp:6122 src/gui/gui.cpp:6146
+#: src/gui/gui.cpp:6170 src/gui/gui.cpp:6198 src/gui/gui.cpp:6223
+#: src/gui/gui.cpp:6234 src/gui/gui.cpp:6246 src/gui/gui.cpp:6258
+#: src/gui/gui.cpp:6422 src/gui/gui.cpp:6438 src/gui/gui.cpp:6448
+#: src/gui/gui.cpp:6461
 msgid "No"
 msgstr "Nie"
 
-#: src/gui/settings.cpp:7156
+#: src/gui/settings.cpp:7124
 msgid "%Y/%m/%d %H:%M"
 msgstr ""
 
@@ -13244,119 +13244,119 @@ msgstr "dodaj z przepełnieniem)"
 msgid "scale %"
 msgstr "skaluj (w %)"
 
-#: src/gui/findReplace.cpp:512 src/gui/guiConst.cpp:650
+#: src/gui/findReplace.cpp:517 src/gui/guiConst.cpp:650
 msgid "Find/Replace"
 msgstr "Znajdź/zamień"
 
-#: src/gui/findReplace.cpp:520 src/gui/findReplace.cpp:881
+#: src/gui/findReplace.cpp:525 src/gui/findReplace.cpp:888
 msgid "Find"
 msgstr "znajdź"
 
-#: src/gui/findReplace.cpp:526 src/gui/findReplace.cpp:535
+#: src/gui/findReplace.cpp:531 src/gui/findReplace.cpp:540
 msgid "order"
 msgstr "wiersz matrycy wzorców"
 
-#: src/gui/findReplace.cpp:527 src/gui/findReplace.cpp:537
+#: src/gui/findReplace.cpp:532 src/gui/findReplace.cpp:542
 msgid "row"
 msgstr "wiersz"
 
-#: src/gui/findReplace.cpp:539 src/gui/csPlayer.cpp:159
+#: src/gui/findReplace.cpp:544 src/gui/csPlayer.cpp:159
 msgid "channel"
 msgstr "kanał"
 
-#: src/gui/findReplace.cpp:541
+#: src/gui/findReplace.cpp:546
 msgid "go"
 msgstr "start"
 
-#: src/gui/findReplace.cpp:586
+#: src/gui/findReplace.cpp:591
 msgid "no matches found!"
 msgstr "nie znaleziono żadnych dopasowań!"
 
-#: src/gui/findReplace.cpp:588
+#: src/gui/findReplace.cpp:593
 msgid "Back"
 msgstr "Wstecz"
 
-#: src/gui/findReplace.cpp:781
+#: src/gui/findReplace.cpp:786
 msgid "Delete query"
 msgstr "Usuń zapytanie"
 
-#: src/gui/findReplace.cpp:785 src/gui/findReplace.cpp:1085
+#: src/gui/findReplace.cpp:790 src/gui/findReplace.cpp:1092
 msgid "Add effect"
 msgstr "Dodaj efekt"
 
-#: src/gui/findReplace.cpp:792 src/gui/findReplace.cpp:1092
+#: src/gui/findReplace.cpp:797 src/gui/findReplace.cpp:1099
 msgid "Remove effect"
 msgstr "Usuń efekt"
 
-#: src/gui/findReplace.cpp:817
+#: src/gui/findReplace.cpp:822
 msgid "Search range:"
 msgstr "Zakres wyszukiwania:"
 
-#: src/gui/findReplace.cpp:830
+#: src/gui/findReplace.cpp:836
 msgid "Confine to channels"
 msgstr "Tylko na wybranych kanałach"
 
-#: src/gui/findReplace.cpp:834 src/gui/sampleEdit.cpp:1195
+#: src/gui/findReplace.cpp:840 src/gui/sampleEdit.cpp:1201
 msgid "From"
 msgstr "Od"
 
-#: src/gui/findReplace.cpp:845 src/gui/sampleEdit.cpp:1199
+#: src/gui/findReplace.cpp:851 src/gui/sampleEdit.cpp:1205
 msgid "To"
 msgstr "Do"
 
-#: src/gui/findReplace.cpp:857
+#: src/gui/findReplace.cpp:864
 msgid "Match effect position:"
 msgstr "Dopasuj położenie efektu:"
 
-#: src/gui/findReplace.cpp:863
+#: src/gui/findReplace.cpp:870
 msgid "match effects regardless of position."
 msgstr "dopasuj efekty niezależnie od położenia."
 
-#: src/gui/findReplace.cpp:865 src/gui/compatFlags.cpp:288
+#: src/gui/findReplace.cpp:872 src/gui/compatFlags.cpp:288
 msgid "Lax"
 msgstr "Luźne"
 
-#: src/gui/findReplace.cpp:869
+#: src/gui/findReplace.cpp:876
 msgid "match effects only if they appear in-order."
 msgstr "efekty są wykrywane, jeśli są we właściwej kolejności"
 
-#: src/gui/findReplace.cpp:871 src/gui/compatFlags.cpp:276
+#: src/gui/findReplace.cpp:878 src/gui/compatFlags.cpp:276
 msgid "Strict"
 msgstr "Ścisłe"
 
-#: src/gui/findReplace.cpp:875
+#: src/gui/findReplace.cpp:882
 msgid "match effects only if they appear exactly as specified."
 msgstr "efekty są wykrywane, jeśli są w pełni zgodne z żądaniem."
 
-#: src/gui/findReplace.cpp:887
+#: src/gui/findReplace.cpp:894
 msgid "Replace"
 msgstr "Zamień"
 
-#: src/gui/findReplace.cpp:956
+#: src/gui/findReplace.cpp:963
 msgid "INVALID"
 msgstr "NIEPOPRAWNY."
 
-#: src/gui/findReplace.cpp:1100
+#: src/gui/findReplace.cpp:1107
 msgid "Effect replace mode:"
 msgstr "Tryb zastępowania efektów:"
 
-#: src/gui/findReplace.cpp:1101
+#: src/gui/findReplace.cpp:1108
 msgid "Replace matches only"
 msgstr "Zastąp tylko dopasowania"
 
-#: src/gui/findReplace.cpp:1104
+#: src/gui/findReplace.cpp:1111
 msgid "Replace matches, then free spaces"
 msgstr "Zastąp dopasowania i wypełń wolne komórki"
 
-#: src/gui/findReplace.cpp:1107
+#: src/gui/findReplace.cpp:1114
 msgid "Clear effects"
 msgstr "Wyczyść efekty"
 
-#: src/gui/findReplace.cpp:1110
+#: src/gui/findReplace.cpp:1117
 msgid "Insert in free spaces"
 msgstr "Wstaw w wolne miejsca"
 
-#: src/gui/findReplace.cpp:1113
+#: src/gui/findReplace.cpp:1120
 msgid "Replace##QueryReplace"
 msgstr "Zamień##QueryReplace"
 
@@ -13521,8 +13521,9 @@ msgid "MAME YMZ280B core by Aaron Giles"
 msgstr "rdzeń MAME YMZ280B autorstwa Aarona Gilesa"
 
 #: src/gui/about.cpp:140
-msgid "MAME GA20 core by Acho A. Tang and R. Belmont"
-msgstr "rdzeń MAME GA20 autorstwa Acho A. Tanga i R. Belmonta"
+msgid ""
+"MAME GA20 core by Acho A. Tang, R. Belmont and Valley Bell (modified version)"
+msgstr ""
 
 #: src/gui/about.cpp:141
 msgid "MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert"
@@ -13549,8 +13550,8 @@ msgid "SNES DSP core by Blargg"
 msgstr "rdzeń SNES DSP autorstwa Blargga"
 
 #: src/gui/about.cpp:147
-msgid "puNES (NES, MMC5 and FDS) by FHorse"
-msgstr "puNES (NES, MMC5 i FDS) autorstwa FHorse"
+msgid "puNES (NES, MMC5 and FDS) by FHorse (modified version)"
+msgstr ""
 
 #: src/gui/about.cpp:148
 msgid "NSFPlay (NES and FDS) by Brad Smith and Brezza"
@@ -14539,7 +14540,7 @@ msgstr "Poproś o kanał od TX81Z"
 msgid "Clear song data"
 msgstr "Wyczyść dane utworu"
 
-#: src/gui/guiConst.cpp:608 src/gui/gui.cpp:5838 src/gui/gui.cpp:6022
+#: src/gui/guiConst.cpp:608 src/gui/gui.cpp:5851 src/gui/gui.cpp:6035
 msgid "Command Palette"
 msgstr "Paleta komend"
 
@@ -15087,7 +15088,7 @@ msgstr "Kursor w górę"
 msgid "Sample cursor down"
 msgstr "Kursor w dół"
 
-#: src/gui/guiConst.cpp:788 src/gui/sampleEdit.cpp:1389
+#: src/gui/guiConst.cpp:788 src/gui/sampleEdit.cpp:1411
 msgid "Stop sample preview"
 msgstr "Zatrzymaj podgląd sampla"
 
@@ -15900,11 +15901,11 @@ msgstr ""
 "dithering sampla, gdy jest on używany na układzie obsługującym tylko 8-"
 "bitowe sample."
 
-#: src/gui/sampleEdit.cpp:738 src/gui/gui.cpp:3099
+#: src/gui/sampleEdit.cpp:738 src/gui/gui.cpp:3105
 msgid "Start"
 msgstr "Początek"
 
-#: src/gui/sampleEdit.cpp:774 src/gui/gui.cpp:3107
+#: src/gui/sampleEdit.cpp:774 src/gui/gui.cpp:3113
 msgid "End"
 msgstr "Koniec"
 
@@ -15967,8 +15968,8 @@ msgstr ""
 "nie udało się zmienić częstotliwości samplowania! upewnij się, że sampel "
 "jest 8- lub 16-bitowy."
 
-#: src/gui/sampleEdit.cpp:1053 src/gui/sampleEdit.cpp:1240
-#: src/gui/sampleEdit.cpp:1324
+#: src/gui/sampleEdit.cpp:1053 src/gui/sampleEdit.cpp:1253
+#: src/gui/sampleEdit.cpp:1346
 msgid "Apply"
 msgstr "Zastosuj"
 
@@ -16008,105 +16009,109 @@ msgstr "Ze znakiem <-> Bez znaku"
 msgid "Apply filter"
 msgstr "Zastosuj filtr"
 
-#: src/gui/sampleEdit.cpp:1194
+#: src/gui/sampleEdit.cpp:1197
 msgid "Cutoff:"
 msgstr "Punkt odcięcia:"
 
-#: src/gui/sampleEdit.cpp:1204 src/gui/insEdit.cpp:6422
+#: src/gui/sampleEdit.cpp:1199
+msgid "Sweep (2 frequencies)"
+msgstr ""
+
+#: src/gui/sampleEdit.cpp:1217 src/gui/insEdit.cpp:6422
 #: src/gui/insEdit.cpp:7174 src/gui/insEdit.cpp:7177 src/gui/insEdit.cpp:7991
 #: src/gui/insEdit.cpp:8287 src/gui/insEdit.cpp:8555
 msgid "Resonance"
 msgstr "Rezonans"
 
-#: src/gui/sampleEdit.cpp:1210 src/gui/insEdit.cpp:3276
+#: src/gui/sampleEdit.cpp:1223 src/gui/insEdit.cpp:3276
 msgid "Power"
 msgstr "Moc filtra"
 
-#: src/gui/sampleEdit.cpp:1224
+#: src/gui/sampleEdit.cpp:1237
 msgid "Low-pass"
 msgstr "dolno-przepustowy"
 
-#: src/gui/sampleEdit.cpp:1229
+#: src/gui/sampleEdit.cpp:1242
 msgid "Band-pass"
 msgstr "środkowo-przepustowy"
 
-#: src/gui/sampleEdit.cpp:1234
+#: src/gui/sampleEdit.cpp:1247
 msgid "High-pass"
 msgstr "górno-przepustowy"
 
-#: src/gui/sampleEdit.cpp:1305
+#: src/gui/sampleEdit.cpp:1327
 msgid "Crossfade loop points"
 msgstr "Punkty zapętlenia crossfade-u"
 
-#: src/gui/sampleEdit.cpp:1314
+#: src/gui/sampleEdit.cpp:1336
 msgid "Number of samples"
 msgstr "Ilość sampli"
 
-#: src/gui/sampleEdit.cpp:1320
+#: src/gui/sampleEdit.cpp:1342
 msgid "Linear <-> Equal power"
 msgstr "Liniowy <-> Ten sam stopień"
 
-#: src/gui/sampleEdit.cpp:1326
+#: src/gui/sampleEdit.cpp:1348
 msgid "Crossfade: length would go out of bounds. Aborted..."
 msgstr "Crossfade: długość wyjdzie poza granice. Akcja anulowana."
 
-#: src/gui/sampleEdit.cpp:1329
+#: src/gui/sampleEdit.cpp:1351
 msgid "Crossfade: length would overflow loopStart. Try a smaller random value."
 msgstr ""
 "Crossfade: długość wykracza poza początek cyklu. Spróbuj użyć mniejszej "
 "wartości losowej."
 
-#: src/gui/sampleEdit.cpp:1375
+#: src/gui/sampleEdit.cpp:1397
 msgid "Preview sample"
 msgstr "Podgląd sampla"
 
-#: src/gui/sampleEdit.cpp:1382
+#: src/gui/sampleEdit.cpp:1404
 msgid "Preview sample from cursor or selection only"
 msgstr ""
 
-#: src/gui/sampleEdit.cpp:1396
+#: src/gui/sampleEdit.cpp:1418
 msgid "Create instrument from sample"
 msgstr "Stwórz instrument z sampla"
 
-#: src/gui/sampleEdit.cpp:1797
+#: src/gui/sampleEdit.cpp:1819
 msgid "paste (replace)"
 msgstr "wklej i zamień"
 
-#: src/gui/sampleEdit.cpp:1800
+#: src/gui/sampleEdit.cpp:1822
 msgid "paste (mix)"
 msgstr "wstaw ze zmieszaniem"
 
-#: src/gui/sampleEdit.cpp:1804 src/gui/gui.cpp:2893
+#: src/gui/sampleEdit.cpp:1826 src/gui/gui.cpp:2899
 msgid "select all"
 msgstr "wybierz wszystko"
 
-#: src/gui/sampleEdit.cpp:1808
+#: src/gui/sampleEdit.cpp:1830
 msgid "set loop to selection"
 msgstr "ustaw pętlę na zaznaczeniu"
 
-#: src/gui/sampleEdit.cpp:1811
+#: src/gui/sampleEdit.cpp:1833
 msgid "create wavetable from selection"
 msgstr "stwórz tablicę fal z zaznaczenia"
 
-#: src/gui/sampleEdit.cpp:1817
+#: src/gui/sampleEdit.cpp:1839
 msgid "Draw"
 msgstr "Rysuj"
 
-#: src/gui/sampleEdit.cpp:1817
+#: src/gui/sampleEdit.cpp:1839
 msgid "Select"
 msgstr "Wybierz"
 
-#: src/gui/sampleEdit.cpp:1819
+#: src/gui/sampleEdit.cpp:1841
 #, c-format
 msgid "%d samples, %d bytes"
 msgstr "%d sampli, %d bajtów"
 
-#: src/gui/sampleEdit.cpp:1834
+#: src/gui/sampleEdit.cpp:1856
 #, c-format
 msgid " (%d-%d: %d samples)"
 msgstr " (%d-%d: %d sampel)"
 
-#: src/gui/sampleEdit.cpp:2026
+#: src/gui/sampleEdit.cpp:2048
 msgid "Non-8/16-bit samples cannot be edited without prior conversion."
 msgstr ""
 "Sample w formacie innym niż 8-bitowy lub 16-bitowy PCM nie mogą być "
@@ -16140,7 +16145,7 @@ msgstr "żadna z kategorii nie jest dostępna! co do kurwy"
 msgid "it appears you're extremely lucky today!"
 msgstr "wygląda na to że masz dziś olbrzymie szczęście!"
 
-#: src/gui/cursor.cpp:220
+#: src/gui/cursor.cpp:221
 #, c-format
 msgid "finish selection: %d.%d,%d - %d.%d,%d"
 msgstr "zakończ zaznaczanie: %d.%d,%d - %d.%d,%d"
@@ -16241,7 +16246,7 @@ msgstr "Tuning (A-4)"
 msgid "use effect 09xx to select a groove pattern."
 msgstr "użyj efektu 09xx, aby wybrać wzór rytmu."
 
-#: src/gui/grooves.cpp:48 src/gui/gui.cpp:4631
+#: src/gui/grooves.cpp:48 src/gui/gui.cpp:4644
 msgid "pattern"
 msgstr "wzorzec"
 
@@ -16249,7 +16254,7 @@ msgstr "wzorzec"
 msgid "remove"
 msgstr "usuń"
 
-#: src/gui/doAction.cpp:45 src/gui/gui.cpp:4377
+#: src/gui/doAction.cpp:45 src/gui/gui.cpp:4390
 msgid "Unsaved changes! Save changes before opening another file?"
 msgstr "Niezapisane zmiany! Zapisać zmiany przed otwarciem innego pliku?"
 
@@ -16257,10 +16262,10 @@ msgstr "Niezapisane zmiany! Zapisać zmiany przed otwarciem innego pliku?"
 msgid "Unsaved changes! Save changes before opening backup?"
 msgstr "Niezapisane zmiany! Zapisać je przed otwarciem kopii zapasowej?"
 
-#: src/gui/doAction.cpp:62 src/gui/gui.cpp:4413 src/gui/gui.cpp:5183
-#: src/gui/gui.cpp:5221 src/gui/gui.cpp:5227 src/gui/gui.cpp:6054
-#: src/gui/gui.cpp:6078 src/gui/gui.cpp:6102 src/gui/gui.cpp:6126
-#: src/gui/gui.cpp:6150 src/gui/gui.cpp:6174
+#: src/gui/doAction.cpp:62 src/gui/gui.cpp:4426 src/gui/gui.cpp:5196
+#: src/gui/gui.cpp:5234 src/gui/gui.cpp:5240 src/gui/gui.cpp:6067
+#: src/gui/gui.cpp:6091 src/gui/gui.cpp:6115 src/gui/gui.cpp:6139
+#: src/gui/gui.cpp:6163 src/gui/gui.cpp:6187
 #, c-format
 msgid "Error while saving file! (%s)"
 msgstr "Błąd podczas zapisu pliku! (%s)"
@@ -16274,7 +16279,7 @@ msgid "Select an option: (cannot be undone!)"
 msgstr "Wybierz opcję: (akcji nie można cofnąć!)"
 
 #: src/gui/doAction.cpp:704 src/gui/doAction.cpp:733 src/gui/doAction.cpp:1659
-#: src/gui/gui.cpp:6509
+#: src/gui/gui.cpp:6522
 msgid "too many instruments!"
 msgstr "zbyt wiele instrumentów!"
 
@@ -16378,307 +16383,307 @@ msgstr "Prześledź"
 msgid "Disassemble"
 msgstr "Dezasembluj"
 
-#: src/gui/gui.cpp:1187 src/gui/gui.cpp:1191
+#: src/gui/gui.cpp:1193 src/gui/gui.cpp:1197
 msgid "the song is over!"
 msgstr "koniec utworu!"
 
-#: src/gui/gui.cpp:1733
+#: src/gui/gui.cpp:1739
 msgid "Open File"
 msgstr "Otwórz plik"
 
-#: src/gui/gui.cpp:1734 src/gui/gui.cpp:1872 src/gui/gui.cpp:2047
-#: src/gui/gui.cpp:2056 src/gui/gui.cpp:2065 src/gui/gui.cpp:2167
-#: src/gui/gui.cpp:2187 src/gui/gui.cpp:2205 src/gui/gui.cpp:7850
+#: src/gui/gui.cpp:1740 src/gui/gui.cpp:1878 src/gui/gui.cpp:2053
+#: src/gui/gui.cpp:2062 src/gui/gui.cpp:2071 src/gui/gui.cpp:2173
+#: src/gui/gui.cpp:2193 src/gui/gui.cpp:2211 src/gui/gui.cpp:7863
 msgid "compatible files"
 msgstr "kompatybilne pliki"
 
-#: src/gui/gui.cpp:1735 src/gui/gui.cpp:1809 src/gui/gui.cpp:1873
-#: src/gui/gui.cpp:1932 src/gui/gui.cpp:1951 src/gui/gui.cpp:2168
-#: src/gui/gui.cpp:2178 src/gui/gui.cpp:2189 src/gui/gui.cpp:2207
-#: src/gui/gui.cpp:7914
+#: src/gui/gui.cpp:1741 src/gui/gui.cpp:1815 src/gui/gui.cpp:1879
+#: src/gui/gui.cpp:1938 src/gui/gui.cpp:1957 src/gui/gui.cpp:2174
+#: src/gui/gui.cpp:2184 src/gui/gui.cpp:2195 src/gui/gui.cpp:2213
+#: src/gui/gui.cpp:7927
 msgid "all files"
 msgstr "wszystkie pliki"
 
-#: src/gui/gui.cpp:1742
+#: src/gui/gui.cpp:1748
 msgid "no backups made yet!"
 msgstr "nie utworzono jeszcze żadnych kopii zapasowych"
 
-#: src/gui/gui.cpp:1747 src/gui/gui.cpp:1756 src/gui/gui.cpp:2224
+#: src/gui/gui.cpp:1753 src/gui/gui.cpp:1762 src/gui/gui.cpp:2230
 msgid "Furnace song"
 msgstr "Utwór Furnace"
 
-#: src/gui/gui.cpp:1755
+#: src/gui/gui.cpp:1761
 msgid "Save File"
 msgstr "Zapisz plik"
 
-#: src/gui/gui.cpp:1764 src/gui/gui.cpp:1774
+#: src/gui/gui.cpp:1770 src/gui/gui.cpp:1780
 msgid "Export DMF"
 msgstr "Eksportuj plik DMF"
 
-#: src/gui/gui.cpp:1765
+#: src/gui/gui.cpp:1771
 msgid "DefleMask 1.1.3 module"
 msgstr "moduł DefleMaska 1.1.3"
 
-#: src/gui/gui.cpp:1775
+#: src/gui/gui.cpp:1781
 msgid "DefleMask 1.0/legacy module"
 msgstr "moduł DefleMaska 1.0/wcześniejszy"
 
-#: src/gui/gui.cpp:1792
+#: src/gui/gui.cpp:1798
 msgid "Load Instrument"
 msgstr "Wczytaj instrument"
 
-#: src/gui/gui.cpp:1793
+#: src/gui/gui.cpp:1799
 msgid "all compatible files"
 msgstr "wszystkie kompatybilne pliki"
 
-#: src/gui/gui.cpp:1794 src/gui/gui.cpp:1843
+#: src/gui/gui.cpp:1800 src/gui/gui.cpp:1849
 msgid "Furnace instrument"
 msgstr "instrument Furnace"
 
-#: src/gui/gui.cpp:1795 src/gui/gui.cpp:1853
+#: src/gui/gui.cpp:1801 src/gui/gui.cpp:1859
 msgid "DefleMask preset"
 msgstr "preset DefleMaska"
 
-#: src/gui/gui.cpp:1796
+#: src/gui/gui.cpp:1802
 msgid "TFM Music Maker instrument"
 msgstr "instrument programu TFM Music Maker"
 
-#: src/gui/gui.cpp:1797
+#: src/gui/gui.cpp:1803
 msgid "VGM Music Maker instrument"
 msgstr "instrument programu VGM Music Maker"
 
-#: src/gui/gui.cpp:1798
+#: src/gui/gui.cpp:1804
 msgid "Scream Tracker 3 instrument"
 msgstr "instrument programu Scream Tracker 3"
 
-#: src/gui/gui.cpp:1799
+#: src/gui/gui.cpp:1805
 msgid "SoundBlaster instrument"
 msgstr "instrument SoundBlaster"
 
-#: src/gui/gui.cpp:1800
+#: src/gui/gui.cpp:1806
 msgid "Wohlstand OPL instrument"
 msgstr "instrument typu Wohlstand OPL"
 
-#: src/gui/gui.cpp:1801
+#: src/gui/gui.cpp:1807
 msgid "Wohlstand OPN instrument"
 msgstr "instrument typu Wohlstand OPN"
 
-#: src/gui/gui.cpp:1802
+#: src/gui/gui.cpp:1808
 msgid "Gens KMod patch dump"
 msgstr "zrzut z Gens KMod"
 
-#: src/gui/gui.cpp:1803
+#: src/gui/gui.cpp:1809
 msgid "BNK file (AdLib)"
 msgstr "bank brzmień BNK (AdLib)"
 
-#: src/gui/gui.cpp:1804
+#: src/gui/gui.cpp:1810
 msgid "FF preset bank"
 msgstr "bank presetów FF"
 
-#: src/gui/gui.cpp:1805
+#: src/gui/gui.cpp:1811
 msgid "2612edit GYB preset bank"
 msgstr "bank presetów 2612edit GYB"
 
-#: src/gui/gui.cpp:1806
+#: src/gui/gui.cpp:1812
 msgid "VOPM preset bank"
 msgstr "bank presetów VOPM"
 
-#: src/gui/gui.cpp:1807
+#: src/gui/gui.cpp:1813
 msgid "Wohlstand WOPL bank"
 msgstr "bank brzmień Wohlstand WOPL"
 
-#: src/gui/gui.cpp:1808
+#: src/gui/gui.cpp:1814
 msgid "Wohlstand WOPN bank"
 msgstr "bank brzmień Wohlstand WOPN"
 
-#: src/gui/gui.cpp:1842 src/gui/gui.cpp:1852
+#: src/gui/gui.cpp:1848 src/gui/gui.cpp:1858
 msgid "Save Instrument"
 msgstr "Zapisz instrument"
 
-#: src/gui/gui.cpp:1862
+#: src/gui/gui.cpp:1868
 msgid "Save All Instruments"
 msgstr "Zapisz wszystkie instrumenty"
 
-#: src/gui/gui.cpp:1871
+#: src/gui/gui.cpp:1877
 msgid "Load Wavetable"
 msgstr "Wczytaj tablicę fal"
 
-#: src/gui/gui.cpp:1883 src/gui/gui.cpp:1892 src/gui/gui.cpp:1901
+#: src/gui/gui.cpp:1889 src/gui/gui.cpp:1898 src/gui/gui.cpp:1907
 msgid "Save Wavetable"
 msgstr "Zapisz tablicę fal"
 
-#: src/gui/gui.cpp:1884
+#: src/gui/gui.cpp:1890
 msgid "Furnace wavetable"
 msgstr "Tablica fal Furnace"
 
-#: src/gui/gui.cpp:1893
+#: src/gui/gui.cpp:1899
 msgid "DefleMask wavetable"
 msgstr "Tablica fal DefleMaska"
 
-#: src/gui/gui.cpp:1902
+#: src/gui/gui.cpp:1908
 msgid "raw data"
 msgstr "surowe dane"
 
-#: src/gui/gui.cpp:1910
+#: src/gui/gui.cpp:1916
 msgid "Save All Wavetables"
 msgstr "Zapisz wszystkie tablice fal"
 
-#: src/gui/gui.cpp:1919
+#: src/gui/gui.cpp:1925
 msgid "Load Sample"
 msgstr "Wczytaj sampel"
 
-#: src/gui/gui.cpp:1931
+#: src/gui/gui.cpp:1937
 msgid "Load Raw Sample"
 msgstr "Wczytaj surowy sampel"
 
-#: src/gui/gui.cpp:1940
+#: src/gui/gui.cpp:1946
 msgid "Save Sample"
 msgstr "Zapisz sampel"
 
-#: src/gui/gui.cpp:1941 src/gui/gui.cpp:1969 src/gui/gui.cpp:1979
-#: src/gui/gui.cpp:1989
+#: src/gui/gui.cpp:1947 src/gui/gui.cpp:1975 src/gui/gui.cpp:1985
+#: src/gui/gui.cpp:1995
 msgid "Wave file"
 msgstr "plik WAV"
 
-#: src/gui/gui.cpp:1950
+#: src/gui/gui.cpp:1956
 msgid "Save Raw Sample"
 msgstr "Zapisz surowy sampel"
 
-#: src/gui/gui.cpp:1960
+#: src/gui/gui.cpp:1966
 msgid "Save All Samples"
 msgstr "Zapisz wszystkie sample"
 
-#: src/gui/gui.cpp:1968 src/gui/gui.cpp:1978 src/gui/gui.cpp:1988
+#: src/gui/gui.cpp:1974 src/gui/gui.cpp:1984 src/gui/gui.cpp:1994
 msgid "Export Audio"
 msgstr "Eksportuj audio"
 
-#: src/gui/gui.cpp:1998
+#: src/gui/gui.cpp:2004
 msgid "Export VGM"
 msgstr "Eksportuj VGM"
 
-#: src/gui/gui.cpp:1999
+#: src/gui/gui.cpp:2005
 msgid "VGM file"
 msgstr "plik VGM"
 
-#: src/gui/gui.cpp:2008 src/gui/gui.cpp:2018
+#: src/gui/gui.cpp:2014 src/gui/gui.cpp:2024
 msgid "Export Command Stream"
 msgstr "Eksportuj strumień komend"
 
-#: src/gui/gui.cpp:2009
+#: src/gui/gui.cpp:2015
 msgid "text file"
 msgstr "plik tekstowy"
 
-#: src/gui/gui.cpp:2019
+#: src/gui/gui.cpp:2025
 msgid "binary file"
 msgstr "plik binarny"
 
-#: src/gui/gui.cpp:2029 src/gui/gui.cpp:2035
+#: src/gui/gui.cpp:2035 src/gui/gui.cpp:2041
 msgid "Export ROM"
 msgstr "Eksportuj ROM"
 
-#: src/gui/gui.cpp:2046 src/gui/gui.cpp:2055 src/gui/gui.cpp:2064
+#: src/gui/gui.cpp:2052 src/gui/gui.cpp:2061 src/gui/gui.cpp:2070
 msgid "Select Font"
 msgstr "Wybierz czcionkę"
 
-#: src/gui/gui.cpp:2073
+#: src/gui/gui.cpp:2079
 msgid "Select Color File"
 msgstr "Wybierz plik z ustawieniami kolorów"
 
-#: src/gui/gui.cpp:2074 src/gui/gui.cpp:2083 src/gui/gui.cpp:2102
-#: src/gui/gui.cpp:2111 src/gui/gui.cpp:2120 src/gui/gui.cpp:2129
-#: src/gui/gui.cpp:2147 src/gui/gui.cpp:2156
+#: src/gui/gui.cpp:2080 src/gui/gui.cpp:2089 src/gui/gui.cpp:2108
+#: src/gui/gui.cpp:2117 src/gui/gui.cpp:2126 src/gui/gui.cpp:2135
+#: src/gui/gui.cpp:2153 src/gui/gui.cpp:2162
 msgid "configuration files"
 msgstr "pliki konfiguracji"
 
-#: src/gui/gui.cpp:2082
+#: src/gui/gui.cpp:2088
 msgid "Select Keybind File"
 msgstr "Wybierz plik z przypisaniami klawiszy"
 
-#: src/gui/gui.cpp:2091
+#: src/gui/gui.cpp:2097
 msgid "Select Layout File"
 msgstr "Wybierz plik z ustawieniami układu okna"
 
-#: src/gui/gui.cpp:2092 src/gui/gui.cpp:2138
+#: src/gui/gui.cpp:2098 src/gui/gui.cpp:2144
 msgid ".ini files"
 msgstr "pliki .ini"
 
-#: src/gui/gui.cpp:2101
+#: src/gui/gui.cpp:2107
 msgid "Select User Presets File"
 msgstr "Wybierz plik z presetami użytkownika"
 
-#: src/gui/gui.cpp:2110
+#: src/gui/gui.cpp:2116
 msgid "Select Settings File"
 msgstr "Wybierz plik ustawień"
 
-#: src/gui/gui.cpp:2119
+#: src/gui/gui.cpp:2125
 msgid "Export Colors"
 msgstr "eksportuj ustawienia kolorów"
 
-#: src/gui/gui.cpp:2128
+#: src/gui/gui.cpp:2134
 msgid "Export Keybinds"
 msgstr "Eksportuj przypisania klawiszy"
 
-#: src/gui/gui.cpp:2137
+#: src/gui/gui.cpp:2143
 msgid "Export Layout"
 msgstr "Eksportuj układ okna"
 
-#: src/gui/gui.cpp:2146
+#: src/gui/gui.cpp:2152
 msgid "Export User Presets"
 msgstr "Eksportuj presety użytkownika"
 
-#: src/gui/gui.cpp:2155
+#: src/gui/gui.cpp:2161
 msgid "Export Settings"
 msgstr "Eksportuj ustawienia"
 
-#: src/gui/gui.cpp:2166
+#: src/gui/gui.cpp:2172
 msgid "Load ROM"
 msgstr "Wczytaj ROM"
 
-#: src/gui/gui.cpp:2176
+#: src/gui/gui.cpp:2182
 msgid "Play Command Stream"
 msgstr "Odtwarzaj strumień komend"
 
-#: src/gui/gui.cpp:2177
+#: src/gui/gui.cpp:2183
 msgid "command stream"
 msgstr "strumień komend"
 
-#: src/gui/gui.cpp:2186
+#: src/gui/gui.cpp:2192
 msgid "Open Test"
 msgstr "Otwórz test"
 
-#: src/gui/gui.cpp:2188 src/gui/gui.cpp:2206
+#: src/gui/gui.cpp:2194 src/gui/gui.cpp:2212
 msgid "another option"
 msgstr "inna opcja"
 
-#: src/gui/gui.cpp:2204
+#: src/gui/gui.cpp:2210
 msgid "Open Test (Multi)"
 msgstr "Otwórz test (wiele plików)"
 
-#: src/gui/gui.cpp:2223
+#: src/gui/gui.cpp:2229
 msgid "Save Test"
 msgstr "Zapisz test"
 
-#: src/gui/gui.cpp:2225
+#: src/gui/gui.cpp:2231
 msgid "DefleMask module"
 msgstr "modul DefleMask"
 
-#: src/gui/gui.cpp:2265
+#: src/gui/gui.cpp:2271
 msgid "compression error"
 msgstr "błąd kompresji"
 
-#: src/gui/gui.cpp:2277
+#: src/gui/gui.cpp:2283
 msgid "zlib stream error"
 msgstr "błąd strumienia zlib"
 
-#: src/gui/gui.cpp:2299
+#: src/gui/gui.cpp:2305
 msgid "zlib finish stream error"
 msgstr "błąd końca strumienia zlib"
 
-#: src/gui/gui.cpp:2410
+#: src/gui/gui.cpp:2416
 msgid "everything OK"
 msgstr "wszystko OK"
 
-#: src/gui/gui.cpp:2429
+#: src/gui/gui.cpp:2435
 msgid ""
 "you have loaded a backup!\n"
 "if you need to, please save it somewhere.\n"
@@ -16692,7 +16697,7 @@ msgstr ""
 "SYSTEM KOPII ZAPASOWYCH NIE JEST SYSTEMEM ZAPISU AUTOMATYCZNEGO!\n"
 "Furnace nie zapisuje kopii zapasowych kopii zapasowych."
 
-#: src/gui/gui.cpp:2434
+#: src/gui/gui.cpp:2440
 msgid ""
 "you have imported a ProTracker/SoundTracker/PC module!\n"
 "keep the following in mind:\n"
@@ -16704,7 +16709,7 @@ msgid ""
 "have fun!"
 msgstr ""
 
-#: src/gui/gui.cpp:2437
+#: src/gui/gui.cpp:2443
 msgid ""
 "you have imported a Scream Tracker 3 module!\n"
 "keep the following in mind:\n"
@@ -16716,7 +16721,7 @@ msgid ""
 "have fun!"
 msgstr ""
 
-#: src/gui/gui.cpp:2440
+#: src/gui/gui.cpp:2446
 msgid ""
 "you have imported a FastTracker II module!\n"
 "keep the following in mind:\n"
@@ -16729,7 +16734,7 @@ msgid ""
 "have fun!"
 msgstr ""
 
-#: src/gui/gui.cpp:2443
+#: src/gui/gui.cpp:2449
 msgid ""
 "you have imported an Impulse Tracker module!\n"
 "keep the following in mind:\n"
@@ -16744,75 +16749,75 @@ msgid ""
 "have fun!"
 msgstr ""
 
-#: src/gui/gui.cpp:2451 src/gui/gui.cpp:3911 src/gui/gui.cpp:4389
+#: src/gui/gui.cpp:2457 src/gui/gui.cpp:3923 src/gui/gui.cpp:4402
 msgid "Unsaved changes! Save changes before opening file?"
 msgstr "Niezapisano zmiany! Zapisać je przed wczytaniem pliku?"
 
-#: src/gui/gui.cpp:2860
+#: src/gui/gui.cpp:2866
 msgid "paste special..."
 msgstr "wklej specjalne..."
 
-#: src/gui/gui.cpp:2861
+#: src/gui/gui.cpp:2867
 msgid "paste mix"
 msgstr "wstaw i nałóż"
 
-#: src/gui/gui.cpp:2862
+#: src/gui/gui.cpp:2868
 msgid "paste mix (background)"
 msgstr "wklej (zastąp istniejący)"
 
-#: src/gui/gui.cpp:2863
+#: src/gui/gui.cpp:2869
 msgid "paste with ins (foreground)"
 msgstr "wklej na wierzch instrument (bez zastępowania istniejącego)"
 
-#: src/gui/gui.cpp:2865 src/gui/gui.cpp:2877 src/gui/gui.cpp:3087
+#: src/gui/gui.cpp:2871 src/gui/gui.cpp:2883 src/gui/gui.cpp:3093
 msgid "no instruments available"
 msgstr "brak dostępnych instrumentów"
 
-#: src/gui/gui.cpp:2875
+#: src/gui/gui.cpp:2881
 msgid "paste with ins (background)"
 msgstr "wklej instrumet na wierzch (zastępując istniejący)"
 
-#: src/gui/gui.cpp:2887
+#: src/gui/gui.cpp:2893
 msgid "paste flood"
 msgstr "wstaw z buforem, powtarzając cykl (do końca wzorca)"
 
-#: src/gui/gui.cpp:2888
+#: src/gui/gui.cpp:2894
 msgid "paste overflow"
 msgstr "wstaw (z możliwym przejściem do następnego wzorca)"
 
-#: src/gui/gui.cpp:2897
+#: src/gui/gui.cpp:2903
 msgid "operation mask..."
 msgstr "maska operacji..."
 
-#: src/gui/gui.cpp:2904
+#: src/gui/gui.cpp:2910
 msgid "pull delete"
 msgstr "usuń z zaciągnięciem następujących wierszy"
 
-#: src/gui/gui.cpp:2908
+#: src/gui/gui.cpp:2914
 msgid "insert"
 msgstr "wstaw pusty wiersz"
 
-#: src/gui/gui.cpp:2916
+#: src/gui/gui.cpp:2922
 msgid "transpose (note)"
 msgstr "transponuj nutę"
 
-#: src/gui/gui.cpp:2920
+#: src/gui/gui.cpp:2926
 msgid "transpose (value)"
 msgstr "transponuj (parametry)"
 
-#: src/gui/gui.cpp:2932 src/gui/gui.cpp:3184
+#: src/gui/gui.cpp:2938 src/gui/gui.cpp:3190
 msgid "invert values"
 msgstr "odwróć parametry"
 
-#: src/gui/gui.cpp:2948
+#: src/gui/gui.cpp:2954
 msgid "collapse/expand"
 msgstr "skróć/rozszerz"
 
-#: src/gui/gui.cpp:2953
+#: src/gui/gui.cpp:2959
 msgid "input latch"
 msgstr "bufor wejścia"
 
-#: src/gui/gui.cpp:2980
+#: src/gui/gui.cpp:2986
 msgid ""
 "&&: selected instrument\n"
 "..: no instrument"
@@ -16820,133 +16825,133 @@ msgstr ""
 "&&: wybrany instrument\n"
 "..: brak instrumentu"
 
-#: src/gui/gui.cpp:3034
+#: src/gui/gui.cpp:3040
 msgid "Set"
 msgstr "Ustaw"
 
-#: src/gui/gui.cpp:3054
+#: src/gui/gui.cpp:3060
 msgid "note up"
 msgstr "półton wyżej"
 
-#: src/gui/gui.cpp:3055
+#: src/gui/gui.cpp:3061
 msgid "note down"
 msgstr "półton niżej"
 
-#: src/gui/gui.cpp:3056
+#: src/gui/gui.cpp:3062
 msgid "octave up"
 msgstr "oktawa wyżej"
 
-#: src/gui/gui.cpp:3057
+#: src/gui/gui.cpp:3063
 msgid "octave down"
 msgstr "oktawa niżej"
 
-#: src/gui/gui.cpp:3059
+#: src/gui/gui.cpp:3065
 msgid "values up"
 msgstr "parametr wyżej"
 
-#: src/gui/gui.cpp:3060
+#: src/gui/gui.cpp:3066
 msgid "values down"
 msgstr "parametr niżej"
 
-#: src/gui/gui.cpp:3061
+#: src/gui/gui.cpp:3067
 msgid "values up (+16)"
 msgstr "parametr wyżej (+16)"
 
-#: src/gui/gui.cpp:3062
+#: src/gui/gui.cpp:3068
 msgid "values down (-16)"
 msgstr "parametr niżej (-16)"
 
-#: src/gui/gui.cpp:3065
+#: src/gui/gui.cpp:3071
 msgid "transpose"
 msgstr "transponuj"
 
-#: src/gui/gui.cpp:3073
+#: src/gui/gui.cpp:3079
 msgid "Notes"
 msgstr "Nuty"
 
-#: src/gui/gui.cpp:3078
+#: src/gui/gui.cpp:3084
 msgid "Values"
 msgstr "Parametry"
 
-#: src/gui/gui.cpp:3085
+#: src/gui/gui.cpp:3091
 msgid "change instrument..."
 msgstr "zmień instrument..."
 
-#: src/gui/gui.cpp:3098
+#: src/gui/gui.cpp:3104
 msgid "gradient/fade..."
 msgstr "gradient/zanikanie..."
 
-#: src/gui/gui.cpp:3115 src/gui/gui.cpp:3160
+#: src/gui/gui.cpp:3121 src/gui/gui.cpp:3166
 msgid "Nibble mode"
 msgstr "Tryb półbajtów"
 
-#: src/gui/gui.cpp:3124
+#: src/gui/gui.cpp:3130
 msgid "Go ahead"
 msgstr "Zastosuj"
 
-#: src/gui/gui.cpp:3130 src/gui/insEdit.cpp:8767
+#: src/gui/gui.cpp:3136 src/gui/insEdit.cpp:8767
 msgid "scale..."
 msgstr "skaluj..."
 
-#: src/gui/gui.cpp:3135
+#: src/gui/gui.cpp:3141
 msgid "Scale"
 msgstr "Skaluj"
 
-#: src/gui/gui.cpp:3141 src/gui/insEdit.cpp:8795
+#: src/gui/gui.cpp:3147 src/gui/insEdit.cpp:8795
 msgid "randomize..."
 msgstr "wypełnij losowymi wartościami..."
 
-#: src/gui/gui.cpp:3142
+#: src/gui/gui.cpp:3148
 msgid "Minimum"
 msgstr "Dolna granica"
 
-#: src/gui/gui.cpp:3151
+#: src/gui/gui.cpp:3157
 msgid "Maximum"
 msgstr "Górna granica"
 
-#: src/gui/gui.cpp:3170
+#: src/gui/gui.cpp:3176
 msgid "Set effect"
 msgstr ""
 
-#: src/gui/gui.cpp:3188
+#: src/gui/gui.cpp:3194
 msgid "flip selection"
 msgstr "odwróć wybrany obszar"
 
-#: src/gui/gui.cpp:3191
+#: src/gui/gui.cpp:3197
 msgid "collapse/expand amount##CollapseAmount"
 msgstr "współczynnik skracania/rozszerzania##CollapseAmount"
 
-#: src/gui/gui.cpp:3200
+#: src/gui/gui.cpp:3206
 msgid "collapse pattern"
 msgstr "skróć wzorzec"
 
-#: src/gui/gui.cpp:3201
+#: src/gui/gui.cpp:3207
 msgid "expand pattern"
 msgstr "rozszerz wzorzec"
 
-#: src/gui/gui.cpp:3206
+#: src/gui/gui.cpp:3212
 msgid "collapse song"
 msgstr "skróć utwór"
 
-#: src/gui/gui.cpp:3207
+#: src/gui/gui.cpp:3213
 msgid "expand song"
 msgstr "rozszerz utwór"
 
-#: src/gui/gui.cpp:3212
+#: src/gui/gui.cpp:3218
 msgid "find/replace"
 msgstr "znajdź/zamień"
 
-#: src/gui/gui.cpp:3226 src/gui/gui.cpp:6204 src/gui/gui.cpp:8075
+#: src/gui/gui.cpp:3232 src/gui/gui.cpp:6217 src/gui/gui.cpp:8088
 #, c-format
 msgid "could NOT save layout! %s"
 msgstr "nie udało się zapisać układu okna! %s"
 
-#: src/gui/gui.cpp:3239
+#: src/gui/gui.cpp:3245
 #, c-format
 msgid "could NOT load layout! %s"
 msgstr "nie udało się wczytać układu okna! %s"
 
-#: src/gui/gui.cpp:3706
+#: src/gui/gui.cpp:3718
 msgid ""
 "Furnace has been started in Safe Mode.\n"
 "this means that:\n"
@@ -16969,381 +16974,381 @@ msgstr ""
 "trybie.\n"
 "czytanie czcionki mogło być jednym z nich."
 
-#: src/gui/gui.cpp:4221
+#: src/gui/gui.cpp:4234
 msgid "can't keep going without graphics! Furnace will quit now."
 msgstr "nie da się działać bez grafiki! Furnace się teraz wyłączy."
 
-#: src/gui/gui.cpp:4367
+#: src/gui/gui.cpp:4380
 msgid "file"
 msgstr "plik"
 
-#: src/gui/gui.cpp:4368
+#: src/gui/gui.cpp:4381
 msgid "new..."
 msgstr "nowy..."
 
-#: src/gui/gui.cpp:4375
+#: src/gui/gui.cpp:4388
 msgid "open..."
 msgstr "otwórz..."
 
-#: src/gui/gui.cpp:4382
+#: src/gui/gui.cpp:4395
 msgid "open recent"
 msgstr "otwórz ostatnie"
 
-#: src/gui/gui.cpp:4398
+#: src/gui/gui.cpp:4411
 msgid "nothing here yet"
 msgstr "na razie nic tu nie ma"
 
-#: src/gui/gui.cpp:4401
+#: src/gui/gui.cpp:4414
 msgid "clear history"
 msgstr "wyczyść historię"
 
-#: src/gui/gui.cpp:4402
+#: src/gui/gui.cpp:4415
 msgid "Are you sure you want to clear the recent file list?"
 msgstr "Czy jesteś pewien ze chcesz usunąć listę ostatnio wczytanych plików?"
 
-#: src/gui/gui.cpp:4417
+#: src/gui/gui.cpp:4430
 msgid "save as..."
 msgstr "zapisz jako..."
 
-#: src/gui/gui.cpp:4422 src/gui/gui.cpp:4449
+#: src/gui/gui.cpp:4435 src/gui/gui.cpp:4462
 msgid "export audio..."
 msgstr "eksportuj audio..."
 
-#: src/gui/gui.cpp:4426 src/gui/gui.cpp:4453
+#: src/gui/gui.cpp:4439 src/gui/gui.cpp:4466
 msgid "export VGM..."
 msgstr "eksportuj VGM..."
 
-#: src/gui/gui.cpp:4431 src/gui/gui.cpp:4458
+#: src/gui/gui.cpp:4444 src/gui/gui.cpp:4471
 msgid "export ROM..."
 msgstr ""
 
-#: src/gui/gui.cpp:4436 src/gui/gui.cpp:4463
+#: src/gui/gui.cpp:4449 src/gui/gui.cpp:4476
 msgid "export text..."
 msgstr "eksportuj tekst..."
 
-#: src/gui/gui.cpp:4440 src/gui/gui.cpp:4467
+#: src/gui/gui.cpp:4453 src/gui/gui.cpp:4480
 msgid "export command stream..."
 msgstr "eksportuj strumień komend..."
 
-#: src/gui/gui.cpp:4444 src/gui/gui.cpp:4471
+#: src/gui/gui.cpp:4457 src/gui/gui.cpp:4484
 msgid "export .dmf..."
 msgstr "eksportuj plik .dmf..."
 
-#: src/gui/gui.cpp:4476
+#: src/gui/gui.cpp:4489
 msgid "export..."
 msgstr "eksportuj..."
 
-#: src/gui/gui.cpp:4482
+#: src/gui/gui.cpp:4495
 msgid "manage chips"
 msgstr "menedżer układów"
 
-#: src/gui/gui.cpp:4486
+#: src/gui/gui.cpp:4499
 msgid "add chip..."
 msgstr "dodaj układ..."
 
-#: src/gui/gui.cpp:4491 src/gui/sysManager.cpp:164
+#: src/gui/gui.cpp:4504 src/gui/sysManager.cpp:164
 #, c-format
 msgid "cannot add chip! (%s)"
 msgstr "nie można dodać układu! (%s)"
 
-#: src/gui/gui.cpp:4504
+#: src/gui/gui.cpp:4517
 msgid "configure chip..."
 msgstr "konfiguruj układ..."
 
-#: src/gui/gui.cpp:4514
+#: src/gui/gui.cpp:4527
 msgid "change chip..."
 msgstr "zmień układ..."
 
-#: src/gui/gui.cpp:4516 src/gui/gui.cpp:4540
+#: src/gui/gui.cpp:4529 src/gui/gui.cpp:4553
 msgid "Preserve channel positions"
 msgstr "Zachowaj pozycję kanałów"
 
-#: src/gui/gui.cpp:4529 src/gui/sysManager.cpp:132
+#: src/gui/gui.cpp:4542 src/gui/sysManager.cpp:132
 #, c-format
 msgid "cannot change chip! (%s)"
 msgstr "nie można zmienić układu (%s)"
 
-#: src/gui/gui.cpp:4538
+#: src/gui/gui.cpp:4551
 msgid "remove chip..."
 msgstr "usuń układ..."
 
-#: src/gui/gui.cpp:4544
+#: src/gui/gui.cpp:4557
 #, c-format
 msgid "cannot remove chip! (%s)"
 msgstr "nie można usunąć układu (%s)"
 
-#: src/gui/gui.cpp:4559
+#: src/gui/gui.cpp:4572
 msgid "open built-in assets directory"
 msgstr "otwórz wbudowany folder z zasobami"
 
-#: src/gui/gui.cpp:4565
+#: src/gui/gui.cpp:4578
 msgid "restore backup"
 msgstr "przywróć kopię zapasową"
 
-#: src/gui/gui.cpp:4569
+#: src/gui/gui.cpp:4582
 msgid "exit..."
 msgstr "wyjdź..."
 
-#: src/gui/gui.cpp:4577
+#: src/gui/gui.cpp:4590
 msgid "edit"
 msgstr "edytuj"
 
-#: src/gui/gui.cpp:4585
+#: src/gui/gui.cpp:4598
 msgid "clear..."
 msgstr "wyczyść..."
 
-#: src/gui/gui.cpp:4590
+#: src/gui/gui.cpp:4603
 msgid "settings"
 msgstr "ustawienia"
 
-#: src/gui/gui.cpp:4592
+#: src/gui/gui.cpp:4605
 msgid "full screen"
 msgstr "tryb pełnoekranowy"
 
-#: src/gui/gui.cpp:4596
+#: src/gui/gui.cpp:4609
 msgid "lock layout"
 msgstr "zablokuj układ okna"
 
-#: src/gui/gui.cpp:4599
+#: src/gui/gui.cpp:4612
 msgid "pattern visualizer"
 msgstr "wizualizator wzorca"
 
-#: src/gui/gui.cpp:4605
+#: src/gui/gui.cpp:4618
 msgid "reset layout"
 msgstr "resetuj układ okna"
 
-#: src/gui/gui.cpp:4609
+#: src/gui/gui.cpp:4622
 msgid "switch to mobile view"
 msgstr "przełącz na tryb mobilny"
 
-#: src/gui/gui.cpp:4613
+#: src/gui/gui.cpp:4626
 msgid "user systems..."
 msgstr "systemy użytkownika..."
 
-#: src/gui/gui.cpp:4616
+#: src/gui/gui.cpp:4629
 msgid "settings..."
 msgstr "ustawienia..."
 
-#: src/gui/gui.cpp:4622
+#: src/gui/gui.cpp:4635
 msgid "Window"
 msgstr "Okno"
 
-#: src/gui/gui.cpp:4622
+#: src/gui/gui.cpp:4635
 msgid "window"
 msgstr "okno"
 
-#: src/gui/gui.cpp:4623
+#: src/gui/gui.cpp:4636
 msgid "song"
 msgstr "utwór"
 
-#: src/gui/gui.cpp:4624
+#: src/gui/gui.cpp:4637
 msgid "song comments"
 msgstr "komentarze do utworu"
 
-#: src/gui/gui.cpp:4625
+#: src/gui/gui.cpp:4638
 msgid "song information"
 msgstr "o utworze"
 
-#: src/gui/gui.cpp:4626
+#: src/gui/gui.cpp:4639
 msgid "subsongs"
 msgstr "podutwory"
 
-#: src/gui/gui.cpp:4628
+#: src/gui/gui.cpp:4641
 msgid "channels"
 msgstr "kanały"
 
-#: src/gui/gui.cpp:4629
+#: src/gui/gui.cpp:4642
 msgid "chip manager"
 msgstr "menedżer ukladów"
 
-#: src/gui/gui.cpp:4630
+#: src/gui/gui.cpp:4643
 msgid "orders"
 msgstr "matryca wzorców"
 
-#: src/gui/gui.cpp:4632
+#: src/gui/gui.cpp:4645
 msgid "pattern manager"
 msgstr "menedżer wzorców"
 
-#: src/gui/gui.cpp:4633
+#: src/gui/gui.cpp:4646
 msgid "mixer"
 msgstr "mikser"
 
-#: src/gui/gui.cpp:4634
+#: src/gui/gui.cpp:4647
 msgid "compatibility flags"
 msgstr "flagi kompatybilności"
 
-#: src/gui/gui.cpp:4637 src/gui/gui.cpp:4639
+#: src/gui/gui.cpp:4650 src/gui/gui.cpp:4652
 msgid "assets"
 msgstr "zasoby"
 
-#: src/gui/gui.cpp:4641
+#: src/gui/gui.cpp:4654
 msgid "instruments"
 msgstr "instrumenty"
 
-#: src/gui/gui.cpp:4642
+#: src/gui/gui.cpp:4655
 msgid "samples"
 msgstr "sample"
 
-#: src/gui/gui.cpp:4643
+#: src/gui/gui.cpp:4656
 msgid "wavetables"
 msgstr "fale tablic"
 
-#: src/gui/gui.cpp:4646
+#: src/gui/gui.cpp:4659
 msgid "instrument editor"
 msgstr "edytor instrumentów"
 
-#: src/gui/gui.cpp:4647
+#: src/gui/gui.cpp:4660
 msgid "sample editor"
 msgstr "edytor sampli"
 
-#: src/gui/gui.cpp:4648
+#: src/gui/gui.cpp:4661
 msgid "wavetable editor"
 msgstr "edytor tablic fal"
 
-#: src/gui/gui.cpp:4651
+#: src/gui/gui.cpp:4664
 msgid "visualizers"
 msgstr "wizualizator"
 
-#: src/gui/gui.cpp:4652
+#: src/gui/gui.cpp:4665
 msgid "oscilloscope (master)"
 msgstr "oscyloskop"
 
-#: src/gui/gui.cpp:4653
+#: src/gui/gui.cpp:4666
 msgid "oscilloscope (per-channel)"
 msgstr "oscyloskop (dla poszczególnych kanałów)"
 
-#: src/gui/gui.cpp:4654
+#: src/gui/gui.cpp:4667
 msgid "oscilloscope (X-Y)"
 msgstr "oscyloskop (X-Y)"
 
-#: src/gui/gui.cpp:4655
+#: src/gui/gui.cpp:4668
 msgid "volume meter"
 msgstr "poziom głośności"
 
-#: src/gui/gui.cpp:4658
+#: src/gui/gui.cpp:4671
 msgid "tempo"
 msgstr "tempo"
 
-#: src/gui/gui.cpp:4659
+#: src/gui/gui.cpp:4672
 msgid "clock"
 msgstr "zegar"
 
-#: src/gui/gui.cpp:4660
+#: src/gui/gui.cpp:4673
 msgid "grooves"
 msgstr "wzór rytmu"
 
-#: src/gui/gui.cpp:4661
+#: src/gui/gui.cpp:4674
 msgid "speed"
 msgstr "prędkość"
 
-#: src/gui/gui.cpp:4665
+#: src/gui/gui.cpp:4678
 msgid "log viewer"
 msgstr "podgląd logów"
 
-#: src/gui/gui.cpp:4666
+#: src/gui/gui.cpp:4679
 msgid "register view"
 msgstr "podgląd rejestrów"
 
-#: src/gui/gui.cpp:4667
+#: src/gui/gui.cpp:4680
 msgid "statistics"
 msgstr "statystyki"
 
-#: src/gui/gui.cpp:4668
+#: src/gui/gui.cpp:4681
 msgid "memory composition"
 msgstr "zawartość pamięci"
 
-#: src/gui/gui.cpp:4672 src/gui/gui.cpp:4680
+#: src/gui/gui.cpp:4685 src/gui/gui.cpp:4693
 msgid "effect list"
 msgstr "lista efektów"
 
-#: src/gui/gui.cpp:4673
+#: src/gui/gui.cpp:4686
 msgid "play/edit controls"
 msgstr "kontrola edycji/odtwarzania"
 
-#: src/gui/gui.cpp:4674
+#: src/gui/gui.cpp:4687
 msgid "piano/input pad"
 msgstr "klawiatura pianina/panel wejściowy"
 
-#: src/gui/gui.cpp:4675
+#: src/gui/gui.cpp:4688
 msgid "spoiler"
 msgstr "spoiler"
 
-#: src/gui/gui.cpp:4679
+#: src/gui/gui.cpp:4692
 msgid "Help"
 msgstr "Pomoc"
 
-#: src/gui/gui.cpp:4679
+#: src/gui/gui.cpp:4692
 msgid "help"
 msgstr "pomoc"
 
-#: src/gui/gui.cpp:4681
+#: src/gui/gui.cpp:4694
 msgid "debug menu"
 msgstr "menu debugowania"
 
-#: src/gui/gui.cpp:4682
+#: src/gui/gui.cpp:4695
 msgid "inspector"
 msgstr "menu debugowania ImGUI"
 
-#: src/gui/gui.cpp:4683
+#: src/gui/gui.cpp:4696
 msgid "panic"
 msgstr "panika"
 
-#: src/gui/gui.cpp:4684
+#: src/gui/gui.cpp:4697
 msgid "welcome screen"
 msgstr ""
 
-#: src/gui/gui.cpp:4685
+#: src/gui/gui.cpp:4698
 msgid "about..."
 msgstr "o programie..."
 
-#: src/gui/gui.cpp:4700
+#: src/gui/gui.cpp:4713
 #, c-format
 msgid "| Speed %d:%d"
 msgstr "| Prędkość %d:%d"
 
-#: src/gui/gui.cpp:4702
+#: src/gui/gui.cpp:4715
 #, c-format
 msgid "| Speed %d"
 msgstr "| Prędkość %d"
 
-#: src/gui/gui.cpp:4704
+#: src/gui/gui.cpp:4717
 msgid "| Groove"
 msgstr "| Wzór rytmu"
 
-#: src/gui/gui.cpp:4707
+#: src/gui/gui.cpp:4720
 #, c-format
 msgid " @ %gHz (%g BPM) "
 msgstr " @ %gHz (%g BPM) "
 
-#: src/gui/gui.cpp:4710
+#: src/gui/gui.cpp:4723
 #, c-format
 msgid "| Order %.2X/%.2X "
 msgstr "| Wiersz matrycy wzorców %.2X/%.2X "
 
-#: src/gui/gui.cpp:4712
+#: src/gui/gui.cpp:4725
 #, c-format
 msgid "| Order %d/%d "
 msgstr "| Wiersz matrycy wzorców. %d/%d "
 
-#: src/gui/gui.cpp:4716
+#: src/gui/gui.cpp:4729
 #, c-format
 msgid "| Row %.2X/%.2X "
 msgstr "| Wiersz %.2X/%.2X "
 
-#: src/gui/gui.cpp:4718
+#: src/gui/gui.cpp:4731
 #, c-format
 msgid "| Row %d/%d "
 msgstr "| Wiersz %d/%d "
 
-#: src/gui/gui.cpp:4721
+#: src/gui/gui.cpp:4734
 msgid "| "
 msgstr "| "
 
-#: src/gui/gui.cpp:4724
+#: src/gui/gui.cpp:4737
 msgid "Don't you have anything better to do?"
 msgstr "Serio nie masz nic lepszego do roboty?"
 
-#: src/gui/gui.cpp:4734
+#: src/gui/gui.cpp:4747
 #, c-format
 msgid "%d year "
 msgid_plural "%d years "
@@ -17351,7 +17356,7 @@ msgstr[0] "%d rok "
 msgstr[1] "%d roku "
 msgstr[2] "%d lat "
 
-#: src/gui/gui.cpp:4735
+#: src/gui/gui.cpp:4748
 #, c-format
 msgid "%d month "
 msgid_plural "%d months "
@@ -17359,7 +17364,7 @@ msgstr[0] "%d miesiąc "
 msgstr[1] "%d miesiąca "
 msgstr[2] "%d miesięcy "
 
-#: src/gui/gui.cpp:4736
+#: src/gui/gui.cpp:4749
 #, c-format
 msgid "%d day "
 msgid_plural "%d days "
@@ -17367,52 +17372,52 @@ msgstr[0] "%d dzień "
 msgstr[1] "%d dnia "
 msgstr[2] "%d dni "
 
-#: src/gui/gui.cpp:4761
+#: src/gui/gui.cpp:4774
 msgid "Note off (cut)"
 msgstr "Odcięcie nuty (nagłe)"
 
-#: src/gui/gui.cpp:4763
+#: src/gui/gui.cpp:4776
 msgid "Note off (release)"
 msgstr "Odcięcie nuty (z włączoną fazą zanikania obwiedni)"
 
-#: src/gui/gui.cpp:4765
+#: src/gui/gui.cpp:4778
 msgid "Macro release only"
 msgstr "Odcięcie nuty (tylko dla makr)"
 
-#: src/gui/gui.cpp:4767
+#: src/gui/gui.cpp:4780
 #, c-format
 msgid "Note on: %s"
 msgstr "Nuta: %s"
 
-#: src/gui/gui.cpp:4775
+#: src/gui/gui.cpp:4788
 #, c-format
 msgid "Ins %d: <invalid>"
 msgstr "Instrument %d: <niepoprawny.>"
 
-#: src/gui/gui.cpp:4778
+#: src/gui/gui.cpp:4791
 #, c-format
 msgid "Ins %d: %s"
 msgstr "Instrument %d: %s"
 
-#: src/gui/gui.cpp:4787
+#: src/gui/gui.cpp:4800
 #, c-format
 msgid "Set volume: %d (%.2X, INVALID!)"
 msgstr "Głośność: %d (%.2X, NIEPOPRAWNA!)"
 
-#: src/gui/gui.cpp:4790
+#: src/gui/gui.cpp:4803
 #, c-format
 msgid "Set volume: %d (%.2X, %d%%)"
 msgstr "Głośność: %d (%.2X, %d%%)"
 
-#: src/gui/gui.cpp:4812
+#: src/gui/gui.cpp:4825
 msgid "| modified"
 msgstr "| zmodyfikowany"
 
-#: src/gui/gui.cpp:4977 src/gui/gui.cpp:4980
+#: src/gui/gui.cpp:4990 src/gui/gui.cpp:4993
 msgid "System File Dialog Pending"
 msgstr ""
 
-#: src/gui/gui.cpp:5093
+#: src/gui/gui.cpp:5106
 msgid ""
 "there was an error in the file dialog! you may want to report this issue "
 "to:\n"
@@ -17429,11 +17434,11 @@ msgstr ""
 "na razie można wyłączyć systemowe okno dialogowe plików w ustawieniach > "
 "podstawowe."
 
-#: src/gui/gui.cpp:5096
+#: src/gui/gui.cpp:5109
 msgid "can't do anything without Storage permissions!"
 msgstr "nie da się zrobić niczego bez pozwolenia na zapis"
 
-#: src/gui/gui.cpp:5098
+#: src/gui/gui.cpp:5111
 msgid ""
 "Zenity/KDialog not available!\n"
 "please install one of these, or disable the system file picker in Settings > "
@@ -17443,7 +17448,7 @@ msgstr ""
 "zainstaluj jedno z nich lub wyłącz systemowe okno dialogowe w ustawieniach > "
 "podstawowe."
 
-#: src/gui/gui.cpp:5240
+#: src/gui/gui.cpp:5253
 msgid ""
 "error while saving instrument! only the following instrument types are "
 "supported:\n"
@@ -17466,36 +17471,36 @@ msgstr ""
 "- FM (OPLL)\n"
 "- FDS"
 
-#: src/gui/gui.cpp:5343
+#: src/gui/gui.cpp:5356
 msgid "there were some errors while loading samples:\n"
 msgstr "podczas ładowania sampli wystąpiły następujące błędy:\n"
 
-#: src/gui/gui.cpp:5409 src/gui/gui.cpp:6942
+#: src/gui/gui.cpp:5422 src/gui/gui.cpp:6955
 msgid "...but you haven't selected a sample!"
 msgstr "...ale nie wybrano sampla!"
 
-#: src/gui/gui.cpp:5431 src/gui/gui.cpp:5440
+#: src/gui/gui.cpp:5444 src/gui/gui.cpp:5453
 msgid "could not save sample! open Log Viewer for more information."
 msgstr ""
 "nie udało się zapisać sampla! otwórz podgląd logów aby uzyskać więcej "
 "informacji."
 
-#: src/gui/gui.cpp:5459
+#: src/gui/gui.cpp:5472
 msgid "there were some warnings/errors while loading instruments:\n"
 msgstr ""
 "podczas wczytywania instrumentów wystąpiły następujące błędy i ostrzeżenia:\n"
 
-#: src/gui/gui.cpp:5465
+#: src/gui/gui.cpp:5478
 #, c-format
 msgid "> %s: cannot load instrument! (%s)\n"
 msgstr "> %s: nie można wczytać instrumentu! (%s)\n"
 
-#: src/gui/gui.cpp:5483 src/gui/gui.cpp:5539
+#: src/gui/gui.cpp:5496 src/gui/gui.cpp:5552
 #, c-format
 msgid "cannot load instrument! (%s)"
 msgstr "nie można wczytać instrumentu! (%s)"
 
-#: src/gui/gui.cpp:5489
+#: src/gui/gui.cpp:5502
 msgid ""
 "congratulations! you managed to load nothing.\n"
 "you are entitled to a bug report."
@@ -17503,228 +17508,228 @@ msgstr ""
 "Gratulacje! Nie udało ci się nic wczytać.\n"
 "możesz spokojnie zgłosić błąd w programie."
 
-#: src/gui/gui.cpp:5532 src/gui/gui.cpp:6661
+#: src/gui/gui.cpp:5545 src/gui/gui.cpp:6674
 msgid "...but you haven't selected an instrument!"
 msgstr "...ale nie wybrano instrumentu!"
 
-#: src/gui/gui.cpp:5544
+#: src/gui/gui.cpp:5557
 msgid "there were some errors while loading wavetables:\n"
 msgstr "wystapily problemy podczas wczytywania tablic fal:\n"
 
-#: src/gui/gui.cpp:5553 src/gui/gui.cpp:5563 src/gui/gui.cpp:5582
+#: src/gui/gui.cpp:5566 src/gui/gui.cpp:5576 src/gui/gui.cpp:5595
 #, c-format
 msgid "cannot load wavetable! (%s)"
 msgstr "nie udało się wczytać tablicy fal! (%s)"
 
-#: src/gui/gui.cpp:5590
+#: src/gui/gui.cpp:5603
 msgid "...but you haven't selected a wavetable!"
 msgstr "...ale nie wybrano tablicy!"
 
-#: src/gui/gui.cpp:5605 src/gui/gui.cpp:5641 src/gui/gui.cpp:5662
+#: src/gui/gui.cpp:5618 src/gui/gui.cpp:5654 src/gui/gui.cpp:5675
 msgid "could not open file!"
 msgstr "nie udało się otworzyć pliku!"
 
-#: src/gui/gui.cpp:5613
+#: src/gui/gui.cpp:5626
 #, c-format
 msgid "could not write VGM! (%s)"
 msgstr "Nie udało się zapisać pliku VGM! (%s)"
 
-#: src/gui/gui.cpp:5649
+#: src/gui/gui.cpp:5662
 #, c-format
 msgid "could not write text! (%s)"
 msgstr "nie udało się zapisać pliku tekstowego! (%s)"
 
-#: src/gui/gui.cpp:5670
+#: src/gui/gui.cpp:5683
 #, c-format
 msgid "could not write command stream! (%s)"
 msgstr "nie udało się zapisać strumienia komend! (%s)"
 
-#: src/gui/gui.cpp:5694
+#: src/gui/gui.cpp:5707
 msgid "could not import user presets!"
 msgstr "nie udało się importować presetów użytkownika!"
 
-#: src/gui/gui.cpp:5699 src/gui/gui.cpp:5716
+#: src/gui/gui.cpp:5712 src/gui/gui.cpp:5729
 #, c-format
 msgid "could not import user presets! (%s)"
 msgstr "nie udało się importować presetów użytkownika! (%s)"
 
-#: src/gui/gui.cpp:5737
+#: src/gui/gui.cpp:5750
 #, c-format
 msgid "You opened: %s"
 msgstr "Otwarto: %s"
 
-#: src/gui/gui.cpp:5740
+#: src/gui/gui.cpp:5753
 msgid "You opened:"
 msgstr "Otwarto:"
 
-#: src/gui/gui.cpp:5748
+#: src/gui/gui.cpp:5761
 #, c-format
 msgid "You saved: %s"
 msgstr "Zapisano: %s"
 
-#: src/gui/gui.cpp:5769 src/gui/gui.cpp:6033 src/gui/gui.cpp:6034
+#: src/gui/gui.cpp:5782 src/gui/gui.cpp:6046 src/gui/gui.cpp:6047
 #: src/gui/insEdit.cpp:8683
 msgid "Error"
 msgstr "Błąd"
 
-#: src/gui/gui.cpp:5774 src/gui/gui.cpp:6595 src/gui/gui.cpp:6596
+#: src/gui/gui.cpp:5787 src/gui/gui.cpp:6608 src/gui/gui.cpp:6609
 msgid "Select Instrument"
 msgstr "Wybierz instrument"
 
-#: src/gui/gui.cpp:5779 src/gui/gui.cpp:6675 src/gui/gui.cpp:6676
+#: src/gui/gui.cpp:5792 src/gui/gui.cpp:6688 src/gui/gui.cpp:6689
 msgid "Select Sample"
 msgstr "Wybierz sampel"
 
-#: src/gui/gui.cpp:5784 src/gui/gui.cpp:6859 src/gui/gui.cpp:6860
+#: src/gui/gui.cpp:5797 src/gui/gui.cpp:6872 src/gui/gui.cpp:6873
 msgid "Import Raw Sample"
 msgstr "Importuj Surowe Dane"
 
-#: src/gui/gui.cpp:5799 src/gui/gui.cpp:5858 src/gui/gui.cpp:5860
+#: src/gui/gui.cpp:5812 src/gui/gui.cpp:5871 src/gui/gui.cpp:5873
 msgid "Rendering..."
 msgstr "Renderowanie..."
 
-#: src/gui/gui.cpp:5804 src/gui/gui.cpp:5920 src/gui/gui.cpp:5922
+#: src/gui/gui.cpp:5817 src/gui/gui.cpp:5933 src/gui/gui.cpp:5935
 msgid "ROM Export Progress"
 msgstr "Eksportowanie pliku ROM..."
 
-#: src/gui/gui.cpp:5864
+#: src/gui/gui.cpp:5877
 msgid "Please wait..."
 msgstr "Proszę czekać..."
 
-#: src/gui/gui.cpp:5900
+#: src/gui/gui.cpp:5913
 #, c-format
 msgid "Row %d of %d"
 msgstr "Wiersz %d z %d"
 
-#: src/gui/gui.cpp:5901
+#: src/gui/gui.cpp:5914
 #, c-format
 msgid "Channel %d of %d"
 msgstr "Kanał %d z %d "
 
-#: src/gui/gui.cpp:5905 src/gui/gui.cpp:5956
+#: src/gui/gui.cpp:5918 src/gui/gui.cpp:5969
 msgid "Abort"
 msgstr "Przerwij"
 
-#: src/gui/gui.cpp:5924
+#: src/gui/gui.cpp:5937
 msgid "...ooooor you could try asking me a new ROM export?"
 msgstr ""
 
-#: src/gui/gui.cpp:5926
+#: src/gui/gui.cpp:5939
 msgid "Erm what the sigma???"
 msgstr ""
 
-#: src/gui/gui.cpp:6035 src/gui/insEdit.cpp:6277 src/gui/insEdit.cpp:6310
+#: src/gui/gui.cpp:6048 src/gui/insEdit.cpp:6277 src/gui/insEdit.cpp:6310
 #, c-format
 msgid "%s"
 msgstr "%s"
 
-#: src/gui/gui.cpp:6265
+#: src/gui/gui.cpp:6278
 msgid "Erasing"
 msgstr "Usuwanie:"
 
-#: src/gui/gui.cpp:6268
+#: src/gui/gui.cpp:6281
 msgid "All subsongs"
 msgstr "Wszystkie podutwory"
 
-#: src/gui/gui.cpp:6275
+#: src/gui/gui.cpp:6288
 msgid "Current subsong"
 msgstr "Obecny podutwór"
 
-#: src/gui/gui.cpp:6342
+#: src/gui/gui.cpp:6355
 msgid "Optimization"
 msgstr "Optymalizuj:"
 
-#: src/gui/gui.cpp:6345 src/gui/patManager.cpp:36
+#: src/gui/gui.cpp:6358 src/gui/patManager.cpp:36
 msgid "De-duplicate patterns"
 msgstr "Usuń powtarzające się wzorce"
 
-#: src/gui/gui.cpp:6354
+#: src/gui/gui.cpp:6367
 msgid "Remove unused instruments"
 msgstr "Usuń nieużywane instrumenty"
 
-#: src/gui/gui.cpp:6367
+#: src/gui/gui.cpp:6380
 msgid "Remove unused samples"
 msgstr "Usuń nieużywane sample"
 
-#: src/gui/gui.cpp:6384
+#: src/gui/gui.cpp:6397
 msgid "Never mind! Cancel"
 msgstr "Nie ważne! Anuluj"
 
-#: src/gui/gui.cpp:6453
+#: src/gui/gui.cpp:6466
 msgid "Got it"
 msgstr ""
 
-#: src/gui/gui.cpp:6484
+#: src/gui/gui.cpp:6497
 msgid "Drum kit mode:"
 msgstr "Tryb zestawu perkusji:"
 
-#: src/gui/gui.cpp:6488
+#: src/gui/gui.cpp:6501
 msgid "12 samples per octave"
 msgstr "12 sampli na oktawę"
 
-#: src/gui/gui.cpp:6493
+#: src/gui/gui.cpp:6506
 msgid "Starting octave"
 msgstr "Oktawa początkowa"
 
-#: src/gui/gui.cpp:6513
+#: src/gui/gui.cpp:6526
 msgid "Drum Kit"
 msgstr "Mapa perkusji"
 
-#: src/gui/gui.cpp:6599
+#: src/gui/gui.cpp:6612
 msgid "this is an instrument bank! select which one to use:"
 msgstr "to jest bank brzmień! wybierz instrument który chcesz użyć:"
 
-#: src/gui/gui.cpp:6602
+#: src/gui/gui.cpp:6615
 msgid "this is an instrument bank! select which ones to load:"
 msgstr "to jest bank brzmień! wybierz instrument który chcesz wczytać"
 
-#: src/gui/gui.cpp:6680
+#: src/gui/gui.cpp:6693
 msgid "this is a sample bank! select which ones to load:"
 msgstr "to jest bank sampli! wybierz które sample chcesz wczytać"
 
-#: src/gui/gui.cpp:6861
+#: src/gui/gui.cpp:6874
 msgid "Data type:"
 msgstr "Typ danych:"
 
-#: src/gui/gui.cpp:6888
+#: src/gui/gui.cpp:6901
 msgid "(will be mixed down to mono)"
 msgstr "(zostanie zmiksowany do mono)"
 
-#: src/gui/gui.cpp:6889
+#: src/gui/gui.cpp:6902
 msgid "Unsigned"
 msgstr "Bez znaku"
 
-#: src/gui/gui.cpp:6893
+#: src/gui/gui.cpp:6906
 msgid "Big endian"
 msgstr "Big endian"
 
-#: src/gui/gui.cpp:6901
+#: src/gui/gui.cpp:6914
 msgid "Swap nibbles"
 msgstr "Zamień miejscami półbajty"
 
-#: src/gui/gui.cpp:6905
+#: src/gui/gui.cpp:6918
 msgid "Swap words"
 msgstr "Zamień miejscami słowa maszynowe"
 
-#: src/gui/gui.cpp:6909
+#: src/gui/gui.cpp:6922
 msgid "Encoding:"
 msgstr "Kodowanie:"
 
-#: src/gui/gui.cpp:6922
+#: src/gui/gui.cpp:6935
 msgid "Reverse bit order"
 msgstr "Odwrotna kolejność bitów"
 
-#: src/gui/gui.cpp:6964
+#: src/gui/gui.cpp:6977
 msgid "Error! No string provided!"
 msgstr "Błąd! Nie podano ciągu znaków!"
 
-#: src/gui/gui.cpp:7303
+#: src/gui/gui.cpp:7316
 msgid "it appears I couldn't load these fonts. any setting you can check?"
 msgstr ""
 "wygląda na to że nie mogę wczytać tych czcionek. czy możesz sprawdzić "
 "ustawienia?"
 
-#: src/gui/gui.cpp:7491 src/gui/gui.cpp:7599
+#: src/gui/gui.cpp:7504 src/gui/gui.cpp:7612
 msgid ""
 "could not init renderer!\n"
 "falling back to software renderer. please restart Furnace."
@@ -17732,7 +17737,7 @@ msgstr ""
 "nie udało się uruchomić silnika renderowania!\n"
 "przechodzę na renderowanie programowe. proszę uruchomić Furnace ponownie."
 
-#: src/gui/gui.cpp:7493 src/gui/gui.cpp:7601
+#: src/gui/gui.cpp:7506 src/gui/gui.cpp:7614
 #, c-format
 msgid ""
 "could not init renderer! %s\n"
@@ -17741,16 +17746,16 @@ msgstr ""
 "nie udało się uruchomić silnika renderowania! %s\n"
 "przechodzę na renderowanie programowe. proszę uruchomić Furnace ponownie."
 
-#: src/gui/gui.cpp:7498 src/gui/gui.cpp:7606
+#: src/gui/gui.cpp:7511 src/gui/gui.cpp:7619
 msgid "could not init renderer!"
 msgstr "nie udało się uruchomić silnika renderowania!"
 
-#: src/gui/gui.cpp:7509
+#: src/gui/gui.cpp:7522
 #, c-format
 msgid "could not open window! %s"
 msgstr "nie udało się otworzyć okna! %s"
 
-#: src/gui/gui.cpp:7514
+#: src/gui/gui.cpp:7527
 msgid ""
 "\n"
 "falling back to software renderer. please restart Furnace."
@@ -17758,79 +17763,79 @@ msgstr ""
 "\n"
 "przechodzę na renderowanie programowe. proszę uruchomić Furnace ponownie."
 
-#: src/gui/gui.cpp:7665
+#: src/gui/gui.cpp:7678
 msgid "Size column to fit###SizeOne"
 msgstr "Skaluj kolumnę według rozmiaru###SizeOne"
 
-#: src/gui/gui.cpp:7667
+#: src/gui/gui.cpp:7680
 msgid "Size all columns to fit###SizeAll"
 msgstr "Skaluj wszystkie kolumny według rozmiaru###SizeAll"
 
-#: src/gui/gui.cpp:7669
+#: src/gui/gui.cpp:7682
 msgid "Size all columns to default###SizeAll"
 msgstr "Domyślnie skaluj wszystkie kolumny###SizeAll"
 
-#: src/gui/gui.cpp:7671
+#: src/gui/gui.cpp:7684
 msgid "Reset order###ResetOrder"
 msgstr "Resetuj kolejność###ResetOrder"
 
-#: src/gui/gui.cpp:7673
+#: src/gui/gui.cpp:7686
 msgid "(Main menu bar)"
 msgstr "(Pasek głównego menu)"
 
-#: src/gui/gui.cpp:7675
+#: src/gui/gui.cpp:7688
 msgid "(Popup)"
 msgstr "(Wyskakujące okno)"
 
-#: src/gui/gui.cpp:7677
+#: src/gui/gui.cpp:7690
 msgid "(Untitled)"
 msgstr "(Bez tytułu)"
 
-#: src/gui/gui.cpp:7679
+#: src/gui/gui.cpp:7692
 msgid "Hide tab bar###HideTabBar"
 msgstr "Ukryj pasek zakładek###HideTabBar"
 
-#: src/gui/gui.cpp:7683
+#: src/gui/gui.cpp:7696
 msgid "LocaleSettings: ccjk"
 msgstr "LocaleSettings: ccjk 0100-01FF"
 
-#: src/gui/gui.cpp:7887
+#: src/gui/gui.cpp:7900
 msgid "NES DPCM data"
 msgstr "Dane DPCM NESa"
 
-#: src/gui/gui.cpp:7890
+#: src/gui/gui.cpp:7903
 msgid "SNES Bit Rate Reduction"
 msgstr "Dane Bit Rate Reduction SNESa"
 
-#: src/gui/gui.cpp:7893
+#: src/gui/gui.cpp:7906
 msgid "PMD YM2608 ADPCM-B sample bank"
 msgstr "Bank sampli ADPCM formatu PMD dla YM2608"
 
-#: src/gui/gui.cpp:7896
+#: src/gui/gui.cpp:7909
 msgid "PDR 4-bit AY-3-8910 sample bank"
 msgstr "Bank 4-bitowych sampli formatu PMD dla AY-3-8910"
 
-#: src/gui/gui.cpp:7899
+#: src/gui/gui.cpp:7912
 msgid "FMP YM2608 ADPCM-B sample bank"
 msgstr "Bank sampli ADPCM formatu FMP dla YM2608"
 
-#: src/gui/gui.cpp:7902
+#: src/gui/gui.cpp:7915
 msgid "MDX OKI ADPCM sample bank"
 msgstr "Bank sampli formatu MDX OKI ADPCM"
 
-#: src/gui/gui.cpp:7905
+#: src/gui/gui.cpp:7918
 msgid "FMP 8-bit PCM sample bank"
 msgstr "Bank 8-bitowych sampli formatu FMP PPZ"
 
-#: src/gui/gui.cpp:7908
+#: src/gui/gui.cpp:7921
 msgid "PMD 8-bit PCM sample bank"
 msgstr "Bank 8-bitowych sampli formatu PMDPPZ"
 
-#: src/gui/gui.cpp:7911
+#: src/gui/gui.cpp:7924
 msgid "PMD OKI ADPCM sample bank"
 msgstr "Bank sampli formatu PMD OKI ADPCM"
 
-#: src/gui/gui.cpp:8276
+#: src/gui/gui.cpp:8289
 msgid "Unsaved changes! Save changes before quitting?"
 msgstr "Niezapisane zmiany! Czy chcesz je zapisać przed wyjściem?"
 
@@ -20414,6 +20419,18 @@ msgstr "minimum"
 #: src/gui/insEdit.cpp:8801
 msgid "Max"
 msgstr "maksimum"
+
+#~ msgid "No##_PCS0"
+#~ msgstr "Nie"
+
+#~ msgid "Yes##_PCS1"
+#~ msgstr "Tak"
+
+#~ msgid "MAME GA20 core by Acho A. Tang and R. Belmont"
+#~ msgstr "rdzeń MAME GA20 autorstwa Acho A. Tanga i R. Belmonta"
+
+#~ msgid "puNES (NES, MMC5 and FDS) by FHorse"
+#~ msgstr "puNES (NES, MMC5 i FDS) autorstwa FHorse"
 
 #~ msgid ""
 #~ "cost-reduced version of the OPM with a different register layout and no "

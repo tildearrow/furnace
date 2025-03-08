@@ -13,7 +13,7 @@ msgstr ""
 #: src/engine/fileOps/ppc.cpp:139 src/engine/fileOps/pvi.cpp:155
 #: src/engine/fileOps/p.cpp:121 src/engine/fileOps/pps.cpp:122
 #: src/engine/fileOps/pzi.cpp:151 src/engine/fileOps/p86.cpp:139
-#: src/engine/fileOps/pdx.cpp:98 src/engine/engine.cpp:2870
+#: src/engine/fileOps/pdx.cpp:98 src/engine/engine.cpp:2868
 msgid "premature end of file"
 msgstr "파일의 조기 종료"
 
@@ -1312,7 +1312,7 @@ msgstr "채널 16"
 #: src/engine/sysDef.cpp:1897 src/engine/sysDef.cpp:2018
 #: src/engine/sysDef.cpp:2050 src/engine/sysDef.cpp:2112
 #: src/engine/sysDef.cpp:2113 src/engine/sysDef.cpp:2330
-#: src/gui/settings.cpp:4210
+#: src/gui/settings.cpp:4206
 msgid "PCM"
 msgstr "PCM"
 
@@ -1362,8 +1362,8 @@ msgstr "사각파 3"
 #: src/engine/sysDef.cpp:1433 src/engine/sysDef.cpp:2004
 #: src/engine/sysDef.cpp:2050 src/engine/sysDef.cpp:2077
 #: src/engine/sysDef.cpp:2088 src/engine/sysDef.cpp:2205
-#: src/engine/sysDef.cpp:2268 src/gui/settings.cpp:4126
-#: src/gui/settings.cpp:4209 src/gui/guiConst.cpp:244 src/gui/insEdit.cpp:8018
+#: src/engine/sysDef.cpp:2268 src/gui/settings.cpp:4122
+#: src/gui/settings.cpp:4205 src/gui/guiConst.cpp:244 src/gui/insEdit.cpp:8018
 #: src/gui/insEdit.cpp:8185 src/gui/insEdit.cpp:8294 src/gui/insEdit.cpp:8386
 msgid "Noise"
 msgstr "노이즈"
@@ -1377,7 +1377,7 @@ msgid "Sega Master System + FM Expansion"
 msgstr "세가 마스터 시스템 + FM 확장"
 
 #: src/engine/sysDef.cpp:847 src/gui/presets.cpp:139 src/gui/presets.cpp:3580
-#: src/gui/presets.cpp:3705 src/gui/settings.cpp:4138
+#: src/gui/presets.cpp:3705 src/gui/settings.cpp:4134
 msgid "Game Boy"
 msgstr "게임보이"
 
@@ -1398,7 +1398,7 @@ msgstr "펄스 1"
 msgid "Pulse 2"
 msgstr "펄스 2"
 
-#: src/engine/sysDef.cpp:849 src/gui/presets.cpp:3480 src/gui/settings.cpp:4038
+#: src/engine/sysDef.cpp:849 src/gui/presets.cpp:3480 src/gui/settings.cpp:4034
 #: src/gui/guiConst.cpp:245 src/gui/guiConst.cpp:1475 src/gui/insEdit.cpp:3027
 msgid "Wavetable"
 msgstr "웨이브테이블"
@@ -1920,7 +1920,7 @@ msgstr ""
 "이 칩의 사각파 채널들은 그저 평범한 사각파 채널들이 아닐 겁니다..."
 
 #: src/engine/sysDef.cpp:1071 src/gui/settings.cpp:139 src/gui/settings.cpp:214
-#: src/gui/settings.cpp:4078
+#: src/gui/settings.cpp:4074
 msgid "Low"
 msgstr "낮음"
 
@@ -1929,7 +1929,7 @@ msgid "Mid"
 msgstr "중간"
 
 #: src/engine/sysDef.cpp:1071 src/gui/settings.cpp:138 src/gui/settings.cpp:216
-#: src/gui/settings.cpp:4079
+#: src/gui/settings.cpp:4075
 msgid "High"
 msgstr "높음"
 
@@ -1945,13 +1945,13 @@ msgstr "PC 비퍼보다 나은 (그러면서 나쁘기도 한) 1비트 웨이브
 
 #: src/engine/sysDef.cpp:1082 src/engine/sysDef.cpp:1381
 #: src/engine/sysDef.cpp:2268 src/engine/sysDef.cpp:2318
-#: src/gui/editControls.cpp:433 src/gui/settings.cpp:4125
-#: src/gui/settings.cpp:4211 src/gui/guiConst.cpp:254
+#: src/gui/editControls.cpp:433 src/gui/settings.cpp:4121
+#: src/gui/settings.cpp:4207 src/gui/guiConst.cpp:254
 msgid "Wave"
 msgstr "웨이브"
 
 #: src/engine/sysDef.cpp:1091 src/gui/presets.cpp:218 src/gui/presets.cpp:3424
-#: src/gui/settings.cpp:4165
+#: src/gui/settings.cpp:4161
 msgid "SNES"
 msgstr "SNES"
 
@@ -2114,7 +2114,7 @@ msgid "a disk drive for the Famicom which also contains one wavetable channel."
 msgstr ""
 "패미컴용 디스크 드라이브입니다. 웨이브테이블 채널 1개를 지니고 있습니다."
 
-#: src/engine/sysDef.cpp:1160 src/gui/settings.cpp:4152
+#: src/engine/sysDef.cpp:1160 src/gui/settings.cpp:4148
 msgid "FDS"
 msgstr "FDS"
 
@@ -2152,7 +2152,7 @@ msgid ""
 msgstr "패미컴용 확장 칩으로 잘 알려지지 않은 PCM 채널이 있습니다."
 
 #: src/engine/sysDef.cpp:1190 src/gui/presets.cpp:3517
-#: src/gui/settings.cpp:4154
+#: src/gui/settings.cpp:4150
 msgid "Namco 163"
 msgstr "남코 163"
 
@@ -2465,7 +2465,7 @@ msgstr "FM 17"
 msgid "FM 18"
 msgstr "FM 18"
 
-#: src/engine/sysDef.cpp:1327 src/gui/settings.cpp:4164
+#: src/engine/sysDef.cpp:1327 src/gui/settings.cpp:4160
 msgid "MultiPCM"
 msgstr "멀티PCM"
 
@@ -2557,7 +2557,7 @@ msgid "please don't use this chip. it was added as a joke."
 msgstr "이거 장난으로 넣었습니다. 그냥 쓰지 마세요."
 
 #: src/engine/sysDef.cpp:1354 src/gui/presets.cpp:3590
-#: src/gui/settings.cpp:4157
+#: src/gui/settings.cpp:4153
 msgid "POKEY"
 msgstr "포키"
 
@@ -2593,7 +2593,7 @@ msgstr ""
 "이것은 SNES의 사운드 칩과 같지만 보간이 없고 나머지는 괜찮은 비트입니다."
 
 #: src/engine/sysDef.cpp:1379 src/gui/presets.cpp:288 src/gui/presets.cpp:3527
-#: src/gui/settings.cpp:4159
+#: src/gui/settings.cpp:4155
 msgid "WonderSwan"
 msgstr "원더스완"
 
@@ -2644,7 +2644,7 @@ msgid "2Fxx: Toggle hard envelope reset on new notes"
 msgstr "2Fxx: 새 노트에 하드 엔벨로프 재설정 토글"
 
 #: src/engine/sysDef.cpp:1410 src/gui/presets.cpp:309 src/gui/presets.cpp:3355
-#: src/gui/settings.cpp:4182
+#: src/gui/settings.cpp:4178
 msgid "Pokémon Mini"
 msgstr "포켓몬 미니"
 
@@ -2652,7 +2652,7 @@ msgstr "포켓몬 미니"
 msgid "this one is like PC Speaker but has duty cycles."
 msgstr "PC 비퍼와 비슷하지만 duty cycle 설정이 가능합니다."
 
-#: src/engine/sysDef.cpp:1412 src/gui/settings.cpp:4208
+#: src/engine/sysDef.cpp:1412 src/gui/settings.cpp:4204
 #: src/gui/guiConst.cpp:243 src/gui/waveEdit.cpp:34
 msgid "Pulse"
 msgstr "펄스"
@@ -2670,7 +2670,7 @@ msgstr ""
 "쓰입니다."
 
 #: src/engine/sysDef.cpp:1431 src/gui/presets.cpp:294 src/gui/presets.cpp:3533
-#: src/gui/settings.cpp:4153
+#: src/gui/settings.cpp:4149
 msgid "Virtual Boy"
 msgstr "버추얼 보이"
 
@@ -2732,7 +2732,7 @@ msgstr "타이토의 요청에 따라 OPNB에서 FM 채널 수를 다시 2개 �
 #: src/engine/sysDef.cpp:1463 src/engine/sysDef.cpp:1562
 #: src/engine/sysDef.cpp:1574 src/engine/sysDef.cpp:1587
 #: src/engine/sysDef.cpp:1665 src/engine/sysDef.cpp:1679
-#: src/gui/settings.cpp:4174
+#: src/gui/settings.cpp:4170
 msgid "ADPCM-B"
 msgstr "ADPCM-B"
 
@@ -2789,7 +2789,7 @@ msgstr ""
 "이것은 채널 3의 특별한 이펙트를 컨트롤하기 위한 CSM 모드를 포함합니다."
 
 #: src/engine/sysDef.cpp:1513 src/gui/presets.cpp:3492
-#: src/gui/settings.cpp:4155
+#: src/gui/settings.cpp:4151
 msgid "Konami SCC"
 msgstr "코나미 SCC"
 
@@ -3028,7 +3028,7 @@ msgstr "ADPCM 2"
 msgid "ADPCM 3"
 msgstr "ADPCM 3"
 
-#: src/engine/sysDef.cpp:1649 src/gui/settings.cpp:4161
+#: src/engine/sysDef.cpp:1649 src/gui/settings.cpp:4157
 msgid "VERA"
 msgstr "VERA"
 
@@ -3439,7 +3439,7 @@ msgstr "오키(OKI)가 제조한 ADPCM 사운드 칩으로 샤프 X68000에 사�
 
 #: src/engine/sysDef.cpp:1896 src/engine/sysDef.cpp:2017
 #: src/gui/presets.cpp:3381 src/gui/editControls.cpp:437
-#: src/gui/settings.cpp:4339 src/gui/guiConst.cpp:246 src/gui/guiConst.cpp:1477
+#: src/gui/settings.cpp:4335 src/gui/guiConst.cpp:246 src/gui/guiConst.cpp:1477
 #: src/gui/insEdit.cpp:3293 src/gui/insEdit.cpp:3333
 msgid "Sample"
 msgstr "샘플"
@@ -3465,7 +3465,7 @@ msgstr ""
 "중 하나를 재생할 수 있습니다."
 
 #: src/engine/sysDef.cpp:1927 src/gui/presets.cpp:3502
-#: src/gui/settings.cpp:4167
+#: src/gui/settings.cpp:4163
 msgid "Namco WSG"
 msgstr "남코 WSG"
 
@@ -3552,7 +3552,7 @@ msgid ""
 "this one includes CSM mode control for special effects on Channel 3."
 msgstr ""
 
-#: src/engine/sysDef.cpp:2002 src/gui/settings.cpp:4137
+#: src/engine/sysDef.cpp:2002 src/gui/settings.cpp:4133
 msgid "T6W28"
 msgstr "T6W28"
 
@@ -3784,7 +3784,7 @@ msgid "23xx: Write to I/O port B"
 msgstr "23xx: I/O포트 B에 기록"
 
 #: src/engine/sysDef.cpp:2203 src/gui/presets.cpp:3648
-#: src/gui/settings.cpp:4192
+#: src/gui/settings.cpp:4188
 msgid "Dave"
 msgstr "Dave"
 
@@ -3865,7 +3865,7 @@ msgid "12xy: Toggle invert (x: left; y: right)"
 msgstr "12xy: 반전 토글 (x: 좌; y: 우)"
 
 #: src/engine/sysDef.cpp:2252 src/gui/presets.cpp:324 src/gui/presets.cpp:3464
-#: src/gui/presets.cpp:3654 src/gui/settings.cpp:4193
+#: src/gui/presets.cpp:3654 src/gui/settings.cpp:4189
 msgid "Nintendo DS"
 msgstr "닌텐도 DS"
 
@@ -3898,7 +3898,7 @@ msgstr ""
 "12xx: 듀티비/노이즈 모드/파형 설정 (펄스/웨이브: 0 에서 3; 노이즈: 0 또는 1)"
 
 #: src/engine/sysDef.cpp:2288 src/gui/presets.cpp:3659
-#: src/gui/settings.cpp:4196
+#: src/gui/settings.cpp:4192
 msgid "Bifurcator"
 msgstr "Bifurcator"
 
@@ -3923,7 +3923,7 @@ msgid "13xx: Set high byte of channel parameter"
 msgstr "13xx: 채널 매개 변수의 상위 바이트 설정"
 
 #: src/engine/sysDef.cpp:2304 src/gui/presets.cpp:3664
-#: src/gui/settings.cpp:4197
+#: src/gui/settings.cpp:4193
 msgid "SID2"
 msgstr "SID2"
 
@@ -3936,7 +3936,7 @@ msgstr ""
 "다수 개선되었습니다."
 
 #: src/engine/sysDef.cpp:2316 src/gui/presets.cpp:3669
-#: src/gui/settings.cpp:4200
+#: src/gui/settings.cpp:4196
 msgid "SID3"
 msgstr ""
 
@@ -4208,26 +4208,26 @@ msgstr "91xx: 샘플 오프셋 설정 (두번째 바이트, ×256)"
 msgid "92xx: Set sample offset (third byte, ×65536)"
 msgstr "92xx: 샘플 오프셋 설정 (세번째 바이트 ×65536)"
 
-#: src/engine/engine.cpp:198 src/gui/settings.cpp:4243
+#: src/engine/engine.cpp:198 src/gui/settings.cpp:4239
 msgid "Invalid effect"
 msgstr "유효하지 않은 이펙트입니다"
 
-#: src/engine/engine.cpp:300 src/gui/gui.cpp:2353 src/gui/gui.cpp:2531
+#: src/engine/engine.cpp:300 src/gui/gui.cpp:2359 src/gui/gui.cpp:2537
 #, c-format
 msgid "on seek: %s"
 msgstr "파일의 위치로 이동: %s"
 
-#: src/engine/engine.cpp:307 src/gui/gui.cpp:2360 src/gui/gui.cpp:2538
+#: src/engine/engine.cpp:307 src/gui/gui.cpp:2366 src/gui/gui.cpp:2544
 #, c-format
 msgid "on pre tell: %s"
 msgstr "on pre tell: %s"
 
-#: src/engine/engine.cpp:314 src/engine/engine.cpp:2761
-#: src/gui/settings.cpp:6013 src/gui/gui.cpp:2367 src/gui/gui.cpp:2545
+#: src/engine/engine.cpp:314 src/engine/engine.cpp:2759
+#: src/gui/settings.cpp:5981 src/gui/gui.cpp:2373 src/gui/gui.cpp:2551
 msgid "file is empty"
 msgstr "파일이 비어있습니다"
 
-#: src/engine/engine.cpp:317 src/gui/gui.cpp:2370 src/gui/gui.cpp:2548
+#: src/engine/engine.cpp:317 src/gui/gui.cpp:2376 src/gui/gui.cpp:2554
 #, c-format
 msgid "on tell: %s"
 msgstr "현재 위치 파악: %s"
@@ -4237,14 +4237,14 @@ msgstr "현재 위치 파악: %s"
 msgid "ROM size mismatch, expected: %d bytes, was: %d"
 msgstr "ROM 크기가 불일치합니다, 예상됨: %d 바이트, 값: %d"
 
-#: src/engine/engine.cpp:329 src/gui/settings.cpp:6022 src/gui/gui.cpp:2377
-#: src/gui/gui.cpp:2555
+#: src/engine/engine.cpp:329 src/gui/settings.cpp:5990 src/gui/gui.cpp:2383
+#: src/gui/gui.cpp:2561
 #, c-format
 msgid "on get size: %s"
 msgstr "on get size: %s"
 
-#: src/engine/engine.cpp:336 src/gui/settings.cpp:6029 src/gui/gui.cpp:2384
-#: src/gui/gui.cpp:2562
+#: src/engine/engine.cpp:336 src/gui/settings.cpp:5997 src/gui/gui.cpp:2390
+#: src/gui/gui.cpp:2568
 #, c-format
 msgid "on read: %s"
 msgstr "on read: %s"
@@ -4281,102 +4281,102 @@ msgstr "유효하지 않은 소스 인덱스입니다"
 msgid "invalid destination index"
 msgstr "유효하지 않은 대상 인덱스입니다"
 
-#: src/engine/engine.cpp:2629
+#: src/engine/engine.cpp:2627
 #, c-format
 msgid "Instrument %d"
 msgstr "악기 %d"
 
-#: src/engine/engine.cpp:2703 src/engine/engine.cpp:2720
+#: src/engine/engine.cpp:2701 src/engine/engine.cpp:2718
 #: src/gui/doAction.cpp:844 src/gui/doAction.cpp:862 src/gui/doAction.cpp:1700
-#: src/gui/gui.cpp:6577 src/gui/insEdit.cpp:3239
+#: src/gui/gui.cpp:6590 src/gui/insEdit.cpp:3239
 msgid "too many wavetables!"
 msgstr "웨이브테이블의 수가 너무 많습니다!"
 
-#: src/engine/engine.cpp:2745
+#: src/engine/engine.cpp:2743
 #, c-format
 msgid "could not seek to end: %s"
 msgstr "끝까지 찾지 못했습니다: %s"
 
-#: src/engine/engine.cpp:2751
+#: src/engine/engine.cpp:2749
 #, c-format
 msgid "could not determine file size: %s"
 msgstr "파일 크기를 확인하지 못했습니다: %s"
 
-#: src/engine/engine.cpp:2756
+#: src/engine/engine.cpp:2754
 msgid "file size is invalid!"
 msgstr "파일 크기가 유효하지 않습니다!"
 
-#: src/engine/engine.cpp:2766
+#: src/engine/engine.cpp:2764
 #, c-format
 msgid "could not seek to beginning: %s"
 msgstr "시작까지 찾지 못했습니다: %s"
 
-#: src/engine/engine.cpp:2773
+#: src/engine/engine.cpp:2771
 #, c-format
 msgid "could not read entire file: %s"
 msgstr "전체 파일을 읽어들이지 못했습니다: %s"
 
-#: src/engine/engine.cpp:2799
+#: src/engine/engine.cpp:2797
 msgid "invalid wavetable header/data!"
 msgstr "유효하지 않은 웨이브테이블 헤더/데이터입니다!"
 
-#: src/engine/engine.cpp:2897 src/engine/engine.cpp:2920
+#: src/engine/engine.cpp:2895 src/engine/engine.cpp:2918
 #: src/gui/doAction.cpp:890 src/gui/doAction.cpp:967 src/gui/doAction.cpp:979
 msgid "too many samples!"
 msgstr "샘플의 수가 너무 많습니다!"
 
-#: src/engine/engine.cpp:2904
+#: src/engine/engine.cpp:2902
 #, c-format
 msgid "Sample %d"
 msgstr "Sample %d"
 
-#: src/engine/engine.cpp:3050
+#: src/engine/engine.cpp:3048
 #, c-format
 msgid "no free patterns in channel %d!"
 msgstr "채널 %d에 빈 패턴이 없습니다!"
 
-#: src/engine/platform/c64.cpp:767 src/engine/platform/c64.cpp:769
-#: src/engine/platform/sid2.cpp:604 src/engine/platform/sid2.cpp:606
-#: src/engine/platform/dave.cpp:532 src/engine/platform/sid3.cpp:1368
-#: src/engine/platform/sid3.cpp:1372 src/gui/insEdit.cpp:244
+#: src/engine/platform/c64.cpp:773 src/engine/platform/c64.cpp:775
+#: src/engine/platform/sid2.cpp:611 src/engine/platform/sid2.cpp:613
+#: src/engine/platform/dave.cpp:540 src/engine/platform/sid3.cpp:1376
+#: src/engine/platform/sid3.cpp:1380 src/gui/insEdit.cpp:244
 #: src/gui/insEdit.cpp:251 src/gui/insEdit.cpp:506
 msgid "ring"
 msgstr ""
 
-#: src/engine/platform/c64.cpp:774 src/engine/platform/c64.cpp:776
-#: src/engine/platform/sid2.cpp:611 src/engine/platform/sid2.cpp:613
-#: src/engine/platform/sid3.cpp:1377 src/gui/insEdit.cpp:243
+#: src/engine/platform/c64.cpp:780 src/engine/platform/c64.cpp:782
+#: src/engine/platform/sid2.cpp:618 src/engine/platform/sid2.cpp:620
+#: src/engine/platform/sid3.cpp:1385 src/gui/insEdit.cpp:243
 #: src/gui/insEdit.cpp:250 src/gui/insEdit.cpp:505
 msgid "sync"
 msgstr ""
 
-#: src/engine/platform/dave.cpp:529 src/gui/insEdit.cpp:498
+#: src/engine/platform/dave.cpp:537 src/gui/insEdit.cpp:498
 #: src/gui/insEdit.cpp:7196
 msgid "high"
 msgstr ""
 
-#: src/engine/platform/dave.cpp:535 src/gui/insEdit.cpp:496
+#: src/engine/platform/dave.cpp:543 src/gui/insEdit.cpp:496
 #: src/gui/insEdit.cpp:7184
 msgid "low"
 msgstr ""
 
-#: src/engine/platform/sid3.cpp:1362 src/gui/insEdit.cpp:249
+#: src/engine/platform/sid3.cpp:1370 src/gui/insEdit.cpp:249
 msgid "phase"
 msgstr ""
 
-#: src/engine/platform/snes.cpp:733 src/engine/platform/pce.cpp:548
+#: src/engine/platform/snes.cpp:739 src/engine/platform/pce.cpp:571
 msgid "mod"
 msgstr ""
 
-#: src/engine/platform/opl.cpp:2664
+#: src/engine/platform/opl.cpp:2728
 msgid "4OP"
 msgstr ""
 
-#: src/engine/platform/pokey.cpp:413 src/engine/platform/pokey.cpp:422
+#: src/engine/platform/pokey.cpp:435 src/engine/platform/pokey.cpp:444
 msgid "filter"
 msgstr ""
 
-#: src/engine/platform/pokey.cpp:416 src/engine/platform/pokey.cpp:419
+#: src/engine/platform/pokey.cpp:438 src/engine/platform/pokey.cpp:441
 msgid "16-bit"
 msgstr ""
 
@@ -4384,97 +4384,97 @@ msgstr ""
 msgid "did not read entire sample bank file!"
 msgstr "샘플 뱅크 파일 전체를 읽지 않았습니다!"
 
-#: src/main.cpp:702
+#: src/main.cpp:701
 #, c-format
 msgid "incomplete param %s."
 msgstr "불완전한 %s 매개 변수입니다."
 
-#: src/main.cpp:794
+#: src/main.cpp:793
 #, c-format
 msgid "couldn't open file! (%s)"
 msgstr "파일을 열지 못했습니다! (%s)"
 
-#: src/main.cpp:800
+#: src/main.cpp:799
 #, c-format
 msgid "couldn't open file! (couldn't get file size: %s)"
 msgstr "파일을 열지 못했습니다! (파일의 크기를 얻지 못했습니다: %s)"
 
-#: src/main.cpp:808
+#: src/main.cpp:807
 #, c-format
 msgid "couldn't open file! (couldn't get file length: %s)"
 msgstr "파일을 열지 못했습니다! (파일의 길이를 얻지 못했습니다: %s)"
 
-#: src/main.cpp:816
+#: src/main.cpp:815
 msgid "that file is empty!"
 msgstr "파일이 비어있습니다!"
 
-#: src/main.cpp:818
+#: src/main.cpp:817
 #, c-format
 msgid "couldn't open file! (tell error: %s)"
 msgstr "파일을 열지 못했습니다! (tell error: %s)"
 
-#: src/main.cpp:827
+#: src/main.cpp:826
 #, c-format
 msgid "couldn't open file! (size error: %s)"
 msgstr "파일을 열지 못했습니다! (size error: %s)"
 
-#: src/main.cpp:835
+#: src/main.cpp:834
 #, c-format
 msgid "couldn't open file! (read error: %s)"
 msgstr "파일을 열지 못했습니다! (read error: %s)"
 
-#: src/main.cpp:844 src/main.cpp:891 src/main.cpp:907 src/main.cpp:963
-#: src/main.cpp:986
+#: src/main.cpp:843 src/main.cpp:890 src/main.cpp:906 src/main.cpp:962
+#: src/main.cpp:985
 #, c-format
 msgid "could not open file! (%s)"
 msgstr "파일을 열지 못했습니다! (%s)"
 
-#: src/main.cpp:858
+#: src/main.cpp:857
 msgid "could not initialize engine!"
 msgstr "엔진을 초기화하지 못했습니다!"
 
-#: src/main.cpp:896
+#: src/main.cpp:895
 msgid "could not write command stream!"
 msgstr "커맨드 스트림을 기록하지 못했습니다!"
 
-#: src/main.cpp:912
+#: src/main.cpp:911
 msgid "could not write VGM!"
 msgstr "VGM을 기록하지 못했습니다!"
 
-#: src/main.cpp:946
+#: src/main.cpp:945
 msgid "could not create exporter! you may want to report this issue..."
 msgstr ""
 
-#: src/main.cpp:967
+#: src/main.cpp:966
 #, c-format
 msgid "ROM export failed! (%s)"
 msgstr ""
 
-#: src/main.cpp:970
+#: src/main.cpp:969
 msgid "could not begin exporting process! TODO: elaborate"
 msgstr ""
 
-#: src/main.cpp:974
+#: src/main.cpp:973
 msgid "no matching ROM export target is available."
 msgstr ""
 
-#: src/main.cpp:991
+#: src/main.cpp:990
 msgid "could not write text!"
 msgstr ""
 
-#: src/main.cpp:1008
+#: src/main.cpp:1007
 msgid "error while starting CLI!"
 msgstr "CLI 시작 도중 문제가 발생했습니다!"
 
-#: src/main.cpp:1012
+#: src/main.cpp:1011
 msgid "playing..."
 msgstr "재생 중..."
 
-#: src/main.cpp:1053
+#: src/main.cpp:1052
 msgid "displaying engine fail error."
 msgstr "엔진 실패 오류를 표시합니다."
 
-#: src/main.cpp:1054
+#: src/main.cpp:1053
 msgid "error while initializing audio!"
 msgstr "오디오 초기화 도중 문제가 발생했습니다!"
 
@@ -4513,9 +4513,9 @@ msgstr "반전"
 
 #: src/gui/mixer.cpp:268 src/gui/chanOsc.cpp:37 src/gui/userPresets.cpp:428
 #: src/gui/settings.cpp:271 src/gui/settings.cpp:1113 src/gui/settings.cpp:1503
-#: src/gui/settings.cpp:1515 src/gui/settings.cpp:3437
-#: src/gui/settings.cpp:4123 src/gui/findReplace.cpp:718
-#: src/gui/findReplace.cpp:991 src/gui/guiConst.cpp:231
+#: src/gui/settings.cpp:1515 src/gui/settings.cpp:3433
+#: src/gui/settings.cpp:4119 src/gui/findReplace.cpp:723
+#: src/gui/findReplace.cpp:998 src/gui/guiConst.cpp:231
 #: src/gui/sampleEdit.cpp:1046 src/gui/insEdit.cpp:6849
 #: src/gui/insEdit.cpp:6934 src/gui/insEdit.cpp:7959 src/gui/insEdit.cpp:7967
 #: src/gui/insEdit.cpp:7975 src/gui/insEdit.cpp:7985 src/gui/insEdit.cpp:8001
@@ -4557,7 +4557,7 @@ msgstr "패닝"
 msgid "Front/Rear"
 msgstr "전/후"
 
-#: src/gui/mixer.cpp:299 src/gui/settings.cpp:4324
+#: src/gui/mixer.cpp:299 src/gui/settings.cpp:4320
 msgid "Patchbay"
 msgstr "Patchbay"
 
@@ -4616,7 +4616,7 @@ msgstr "더 이상 확대할 수 없습니다!"
 msgid "copy: %s"
 msgstr "복사: %s"
 
-#: src/gui/memory.cpp:35 src/gui/settings.cpp:3796 src/gui/settings.cpp:4333
+#: src/gui/memory.cpp:35 src/gui/settings.cpp:3792 src/gui/settings.cpp:4329
 #: src/gui/guiConst.cpp:654
 msgid "Memory Composition"
 msgstr "메모리 컴포지션"
@@ -4706,7 +4706,7 @@ msgstr ""
 msgid "NEC PC Engine/TurboGrafx-16"
 msgstr ""
 
-#: src/gui/presets.cpp:177 src/gui/presets.cpp:3715 src/gui/settings.cpp:4170
+#: src/gui/presets.cpp:177 src/gui/presets.cpp:3715 src/gui/settings.cpp:4166
 msgid "NES"
 msgstr ""
 
@@ -6161,8 +6161,8 @@ msgid "Seibu Kaihatsu Raiden (drums mode)"
 msgstr ""
 
 #: src/gui/presets.cpp:2788 src/gui/editControls.cpp:458
-#: src/gui/settings.cpp:2139 src/gui/settings.cpp:4042
-#: src/gui/settings.cpp:4130 src/gui/compatFlags.cpp:319
+#: src/gui/settings.cpp:2135 src/gui/settings.cpp:4038
+#: src/gui/settings.cpp:4126 src/gui/compatFlags.cpp:319
 msgid "Other"
 msgstr "기타"
 
@@ -6273,7 +6273,7 @@ msgstr "커스텀"
 msgid "system presets that you have saved."
 msgstr ""
 
-#: src/gui/presets.cpp:3042 src/gui/settings.cpp:4207 src/gui/guiConst.cpp:242
+#: src/gui/presets.cpp:3042 src/gui/settings.cpp:4203 src/gui/guiConst.cpp:242
 #: src/gui/guiConst.cpp:1473 src/gui/waveEdit.cpp:571
 msgid "FM"
 msgstr ""
@@ -6460,7 +6460,7 @@ msgstr ""
 msgid "chips which use user-specified waveforms to generate sound."
 msgstr ""
 
-#: src/gui/presets.cpp:3482 src/gui/settings.cpp:4141
+#: src/gui/presets.cpp:3482 src/gui/settings.cpp:4137
 msgid "PC Engine"
 msgstr ""
 
@@ -6522,9 +6522,9 @@ msgstr ""
 msgid "Neo Geo CD (extended channel 2)"
 msgstr ""
 
-#: src/gui/intro.cpp:89 src/gui/gui.cpp:2454 src/gui/gui.cpp:3914
-#: src/gui/gui.cpp:5177 src/gui/gui.cpp:5199 src/gui/gui.cpp:5733
-#: src/gui/gui.cpp:6178 src/gui/gui.cpp:6188
+#: src/gui/intro.cpp:89 src/gui/gui.cpp:2460 src/gui/gui.cpp:3926
+#: src/gui/gui.cpp:5190 src/gui/gui.cpp:5212 src/gui/gui.cpp:5746
+#: src/gui/gui.cpp:6191 src/gui/gui.cpp:6201
 #, c-format
 msgid "Error while loading file! (%s)"
 msgstr "파일을 불러오는 도중에 문제가 발생하였습니다! (%s)"
@@ -6554,7 +6554,7 @@ msgid "Bug!"
 msgstr "버그!"
 
 #: src/gui/dataList.cpp:128 src/gui/util.cpp:107 src/gui/util.cpp:109
-#: src/gui/settings.cpp:4336 src/gui/insEdit.cpp:6586
+#: src/gui/settings.cpp:4332 src/gui/insEdit.cpp:6586
 msgid "Unknown"
 msgstr "알 수 없음"
 
@@ -6567,7 +6567,7 @@ msgstr "복제"
 msgid "replace..."
 msgstr "대체하기..."
 
-#: src/gui/dataList.cpp:194 src/gui/dataList.cpp:326 src/gui/gui.cpp:4408
+#: src/gui/dataList.cpp:194 src/gui/dataList.cpp:326 src/gui/gui.cpp:4421
 msgid "save"
 msgstr "저장"
 
@@ -6577,7 +6577,7 @@ msgstr "저장 (.dmp)"
 
 #: src/gui/dataList.cpp:200 src/gui/dataList.cpp:329 src/gui/dataList.cpp:693
 #: src/gui/dataList.cpp:1107 src/gui/dataList.cpp:1169
-#: src/gui/editControls.cpp:50 src/gui/gui.cpp:2891 src/gui/gui.cpp:2900
+#: src/gui/editControls.cpp:50 src/gui/gui.cpp:2897 src/gui/gui.cpp:2906
 msgid "delete"
 msgstr "삭제"
 
@@ -6593,7 +6593,7 @@ msgstr "악기 생성"
 msgid "make me a drum kit"
 msgstr "드럼 키트로 만들기"
 
-#: src/gui/dataList.cpp:350 src/gui/dataList.cpp:669 src/gui/gui.cpp:6311
+#: src/gui/dataList.cpp:350 src/gui/dataList.cpp:669 src/gui/gui.cpp:6324
 msgid "Instruments"
 msgstr "악기"
 
@@ -6727,12 +6727,12 @@ msgstr "<분류되지 않음>"
 msgid "rename..."
 msgstr "이름 변경..."
 
-#: src/gui/dataList.cpp:739 src/gui/dataList.cpp:783 src/gui/gui.cpp:6320
+#: src/gui/dataList.cpp:739 src/gui/dataList.cpp:783 src/gui/gui.cpp:6333
 msgid "Wavetables"
 msgstr "웨이브테이블"
 
 #: src/gui/dataList.cpp:750 src/gui/dataList.cpp:918 src/gui/xyOsc.cpp:68
-#: src/gui/sampleEdit.cpp:941 src/gui/sampleEdit.cpp:1115 src/gui/gui.cpp:6329
+#: src/gui/sampleEdit.cpp:941 src/gui/sampleEdit.cpp:1115 src/gui/gui.cpp:6342
 msgid "Samples"
 msgstr "샘플"
 
@@ -6781,7 +6781,7 @@ msgstr "16-bit 정수"
 msgid "32-bit float"
 msgstr "32-bit 부동소수"
 
-#: src/gui/exportOptions.cpp:55 src/gui/settings.cpp:1365 src/gui/gui.cpp:6873
+#: src/gui/exportOptions.cpp:55 src/gui/settings.cpp:1365 src/gui/gui.cpp:6886
 msgid "Sample rate"
 msgstr "샘플 레이트"
 
@@ -6801,14 +6801,14 @@ msgstr "페이드 아웃 (초)"
 msgid "Channels to export:"
 msgstr "추출할 채널:"
 
-#: src/gui/exportOptions.cpp:78 src/gui/effectList.cpp:32 src/gui/gui.cpp:6604
-#: src/gui/gui.cpp:6682
+#: src/gui/exportOptions.cpp:78 src/gui/effectList.cpp:32 src/gui/gui.cpp:6617
+#: src/gui/gui.cpp:6695
 msgid "All"
 msgstr "전체"
 
 #: src/gui/exportOptions.cpp:84 src/gui/sysConf.cpp:1939
 #: src/gui/effectList.cpp:34 src/gui/compatFlags.cpp:219
-#: src/gui/waveEdit.cpp:38 src/gui/gui.cpp:6610 src/gui/gui.cpp:6688
+#: src/gui/waveEdit.cpp:38 src/gui/gui.cpp:6623 src/gui/gui.cpp:6701
 #: src/gui/insEdit.cpp:632
 msgid "None"
 msgstr "없음"
@@ -6825,10 +6825,10 @@ msgstr "오실로스코프에 보이는 채널"
 #: src/gui/exportOptions.cpp:237 src/gui/exportOptions.cpp:357
 #: src/gui/exportOptions.cpp:374 src/gui/exportOptions.cpp:395
 #: src/gui/exportOptions.cpp:418 src/gui/commandPalette.cpp:351
-#: src/gui/settings.cpp:7135 src/gui/newSong.cpp:277 src/gui/gui.cpp:6066
-#: src/gui/gui.cpp:6090 src/gui/gui.cpp:6114 src/gui/gui.cpp:6138
-#: src/gui/gui.cpp:6162 src/gui/gui.cpp:6193 src/gui/gui.cpp:6252
-#: src/gui/gui.cpp:6647 src/gui/gui.cpp:6821 src/gui/gui.cpp:6956
+#: src/gui/settings.cpp:7103 src/gui/newSong.cpp:277 src/gui/gui.cpp:6079
+#: src/gui/gui.cpp:6103 src/gui/gui.cpp:6127 src/gui/gui.cpp:6151
+#: src/gui/gui.cpp:6175 src/gui/gui.cpp:6206 src/gui/gui.cpp:6265
+#: src/gui/gui.cpp:6660 src/gui/gui.cpp:6834 src/gui/gui.cpp:6969
 msgid "Cancel"
 msgstr "취소"
 
@@ -6836,9 +6836,9 @@ msgstr "취소"
 #: src/gui/exportOptions.cpp:360 src/gui/exportOptions.cpp:377
 #: src/gui/exportOptions.cpp:398 src/gui/exportOptions.cpp:421
 #: src/gui/editControls.cpp:512 src/gui/userPresets.cpp:535
-#: src/gui/settings.cpp:1237 src/gui/settings.cpp:2187
-#: src/gui/settings.cpp:2586 src/gui/settings.cpp:3908 src/gui/guiConst.cpp:577
-#: src/gui/gui.cpp:5843 src/gui/gui.cpp:6027
+#: src/gui/settings.cpp:1237 src/gui/settings.cpp:2183
+#: src/gui/settings.cpp:2582 src/gui/settings.cpp:3904 src/gui/guiConst.cpp:577
+#: src/gui/gui.cpp:5856 src/gui/gui.cpp:6040
 msgid "Export"
 msgstr "내보내기"
 
@@ -7014,11 +7014,11 @@ msgid "1.0/legacy (0.12)"
 msgstr "1.0/레거시 (0.12)"
 
 #: src/gui/exportOptions.cpp:434 src/gui/settings.cpp:1266
-#: src/gui/settings.cpp:4037
+#: src/gui/settings.cpp:4033
 msgid "Audio"
 msgstr "오디오"
 
-#: src/gui/exportOptions.cpp:438 src/gui/settings.cpp:4039
+#: src/gui/exportOptions.cpp:438 src/gui/settings.cpp:4035
 msgid "VGM"
 msgstr "VGM"
 
@@ -7026,8 +7026,8 @@ msgstr "VGM"
 msgid "ROM"
 msgstr "ROM"
 
-#: src/gui/exportOptions.cpp:448 src/gui/settings.cpp:3027
-#: src/gui/settings.cpp:3999
+#: src/gui/exportOptions.cpp:448 src/gui/settings.cpp:3023
+#: src/gui/settings.cpp:3995
 msgid "Text"
 msgstr "텍스트"
 
@@ -7146,7 +7146,7 @@ msgid "Song Length"
 msgstr "곡 길이"
 
 #: src/gui/channels.cpp:40 src/gui/editControls.cpp:446
-#: src/gui/guiConst.cpp:258 src/gui/guiConst.cpp:642 src/gui/gui.cpp:6883
+#: src/gui/guiConst.cpp:258 src/gui/guiConst.cpp:642 src/gui/gui.cpp:6896
 msgid "Channels"
 msgstr "채널"
 
@@ -7164,7 +7164,7 @@ msgstr "바꾸기"
 
 #: src/gui/channels.cpp:55 src/gui/userPresets.cpp:379
 #: src/gui/effectList.cpp:46 src/gui/subSongs.cpp:128 src/gui/settings.cpp:1060
-#: src/gui/settings.cpp:4499 src/gui/sampleEdit.cpp:195 src/gui/songInfo.cpp:40
+#: src/gui/settings.cpp:4495 src/gui/sampleEdit.cpp:195 src/gui/songInfo.cpp:40
 #: src/gui/sysManager.cpp:54 src/gui/insEdit.cpp:6540
 msgid "Name"
 msgstr "이름"
@@ -7240,7 +7240,7 @@ msgstr "경고"
 msgid "info"
 msgstr "정보"
 
-#: src/gui/log.cpp:28 src/gui/gui.cpp:4664
+#: src/gui/log.cpp:28 src/gui/gui.cpp:4677
 msgid "debug"
 msgstr "디버그"
 
@@ -7248,7 +7248,7 @@ msgstr "디버그"
 msgid "trace"
 msgstr "trace"
 
-#: src/gui/log.cpp:47 src/gui/settings.cpp:4359 src/gui/guiConst.cpp:646
+#: src/gui/log.cpp:47 src/gui/settings.cpp:4355 src/gui/guiConst.cpp:646
 msgid "Log Viewer"
 msgstr "로그 보기"
 
@@ -7273,71 +7273,71 @@ msgstr "레벨"
 msgid "message"
 msgstr "메시지"
 
-#: src/gui/pattern.cpp:437 src/gui/editControls.cpp:421
+#: src/gui/pattern.cpp:445 src/gui/editControls.cpp:421
 #: src/gui/editControls.cpp:727 src/gui/editControls.cpp:860
-#: src/gui/editControls.cpp:988 src/gui/settings.cpp:2368
-#: src/gui/settings.cpp:3365 src/gui/settings.cpp:4216
-#: src/gui/findReplace.cpp:825 src/gui/guiConst.cpp:623 src/gui/gui.cpp:6296
+#: src/gui/editControls.cpp:988 src/gui/settings.cpp:2364
+#: src/gui/settings.cpp:3361 src/gui/settings.cpp:4212
+#: src/gui/findReplace.cpp:830 src/gui/guiConst.cpp:623 src/gui/gui.cpp:6309
 msgid "Pattern"
 msgstr "패턴"
 
-#: src/gui/pattern.cpp:472
+#: src/gui/pattern.cpp:481
 msgid "there aren't any channels to show."
 msgstr "표시할 채널이 없습니다."
 
-#: src/gui/pattern.cpp:496
+#: src/gui/pattern.cpp:540
 msgid "click for pattern options (effect columns/pattern names/visualizer)"
 msgstr "클릭하여 패턴 옵션 변경 (이펙트 열/패턴 이름/비주얼라이저)"
 
-#: src/gui/pattern.cpp:508
+#: src/gui/pattern.cpp:552
 msgid "Options:"
 msgstr "옵션:"
 
-#: src/gui/pattern.cpp:510
+#: src/gui/pattern.cpp:554
 msgid "Effect columns/collapse"
 msgstr "이펙트 확장/축소"
 
-#: src/gui/pattern.cpp:511
+#: src/gui/pattern.cpp:555
 msgid "Pattern names"
 msgstr "패턴 이름"
 
-#: src/gui/pattern.cpp:512
+#: src/gui/pattern.cpp:556
 msgid "Channel group hints"
 msgstr "채널 그룹 힌트"
 
-#: src/gui/pattern.cpp:513
+#: src/gui/pattern.cpp:557
 msgid "Visualizer"
 msgstr "비주얼라이저"
 
-#: src/gui/pattern.cpp:521
+#: src/gui/pattern.cpp:565
 msgid "Channel status:"
 msgstr "채널 상태:"
 
-#: src/gui/pattern.cpp:523
-msgid "No##_PCS0"
-msgstr "No##_PCS0"
+#: src/gui/pattern.cpp:567
+msgid "No###_PCS0"
+msgstr ""
 
-#: src/gui/pattern.cpp:526
-msgid "Yes##_PCS1"
-msgstr "Yes##_PCS1"
+#: src/gui/pattern.cpp:570
+msgid "Yes###_PCS1"
+msgstr ""
 
-#: src/gui/pattern.cpp:1431 src/gui/pattern.cpp:1463
+#: src/gui/pattern.cpp:1459 src/gui/pattern.cpp:1491
 msgid "WARNING!!"
 msgstr "경고!!"
 
-#: src/gui/pattern.cpp:1433 src/gui/pattern.cpp:1470
+#: src/gui/pattern.cpp:1461 src/gui/pattern.cpp:1498
 msgid "this instrument cannot be previewed because"
 msgstr "이 악기를 재생할 수 있는 칩이 없기 때문에"
 
-#: src/gui/pattern.cpp:1434 src/gui/pattern.cpp:1477
+#: src/gui/pattern.cpp:1462 src/gui/pattern.cpp:1505
 msgid "none of the chips can play it"
 msgstr "해당 악기를 미리듣기할 수 없습니다"
 
-#: src/gui/pattern.cpp:1435 src/gui/pattern.cpp:1484
+#: src/gui/pattern.cpp:1463 src/gui/pattern.cpp:1512
 msgid "your instrument is in peril!! be careful..."
 msgstr "당신의 악기가 위험합니다!! 조심해요..."
 
-#: src/gui/osc.cpp:169 src/gui/settings.cpp:3810 src/gui/settings.cpp:4045
+#: src/gui/osc.cpp:169 src/gui/settings.cpp:3806 src/gui/settings.cpp:4041
 msgid "Oscilloscope"
 msgstr "오실로스코프"
 
@@ -7359,15 +7359,15 @@ msgstr "(-무한)dB"
 msgid "Debug"
 msgstr "디버그"
 
-#: src/gui/debugWindow.cpp:675
+#: src/gui/debugWindow.cpp:674
 msgid "This is a language test."
 msgstr "이것은 언어 테스트입니다."
 
-#: src/gui/debugWindow.cpp:676
+#: src/gui/debugWindow.cpp:675
 msgid "This is another language test."
 msgstr "이것은 또다른 언어 테스트입니다."
 
-#: src/gui/debugWindow.cpp:732
+#: src/gui/debugWindow.cpp:731
 #, c-format
 msgid "%d apple"
 msgid_plural "%d apples"
@@ -7385,12 +7385,12 @@ msgstr "None (50%)"
 msgid "None (100%)"
 msgstr "None (100%)"
 
-#: src/gui/chanOsc.cpp:36
+#: src/gui/chanOsc.cpp:36 src/gui/sampleEdit.cpp:1210
 msgid "Frequency"
 msgstr "주파수"
 
-#: src/gui/chanOsc.cpp:38 src/gui/settings.cpp:1678 src/gui/settings.cpp:3474
-#: src/gui/settings.cpp:4204 src/gui/guiConst.cpp:257
+#: src/gui/chanOsc.cpp:38 src/gui/settings.cpp:1678 src/gui/settings.cpp:3470
+#: src/gui/settings.cpp:4200 src/gui/guiConst.cpp:257
 msgid "Channel"
 msgstr "채널"
 
@@ -7446,7 +7446,7 @@ msgstr "노트마다 위상 무작위화"
 msgid "Amplitude"
 msgstr "진폭"
 
-#: src/gui/chanOsc.cpp:199 src/gui/settings.cpp:3847
+#: src/gui/chanOsc.cpp:199 src/gui/settings.cpp:3843
 msgid "Line size"
 msgstr "선 두께"
 
@@ -7462,7 +7462,7 @@ msgstr "그라데이션 텍스처 생성 중 에러가 발생했습니다!"
 msgid "error while updating gradient texture!"
 msgstr "그라데이션 텍스처 업데이트 중 에러가 발생했습니다!"
 
-#: src/gui/chanOsc.cpp:292 src/gui/chanOsc.cpp:348 src/gui/settings.cpp:3901
+#: src/gui/chanOsc.cpp:292 src/gui/chanOsc.cpp:348 src/gui/settings.cpp:3897
 msgid "Color"
 msgstr "색"
 
@@ -7475,12 +7475,12 @@ msgid "Spread"
 msgstr "퍼짐"
 
 #: src/gui/chanOsc.cpp:314 src/gui/userPresets.cpp:381 src/gui/subSongs.cpp:124
-#: src/gui/settings.cpp:2293 src/gui/sysManager.cpp:150
+#: src/gui/settings.cpp:2289 src/gui/sysManager.cpp:150
 msgid "Remove"
 msgstr "제거"
 
-#: src/gui/chanOsc.cpp:338 src/gui/settings.cpp:3993 src/gui/settings.cpp:4281
-#: src/gui/settings.cpp:4308 src/gui/settings.cpp:4334
+#: src/gui/chanOsc.cpp:338 src/gui/settings.cpp:3989 src/gui/settings.cpp:4277
+#: src/gui/settings.cpp:4304 src/gui/settings.cpp:4330
 msgid "Background"
 msgstr "배경"
 
@@ -7538,10 +7538,10 @@ msgstr ""
 msgid "Text color"
 msgstr "텍스트 색"
 
-#: src/gui/chanOsc.cpp:382 src/gui/xyOsc.cpp:80 src/gui/settings.cpp:7134
-#: src/gui/tutorial.cpp:725 src/gui/gui.cpp:5995 src/gui/gui.cpp:6036
-#: src/gui/gui.cpp:6473 src/gui/gui.cpp:6641 src/gui/gui.cpp:6815
-#: src/gui/gui.cpp:6925 src/gui/gui.cpp:6974
+#: src/gui/chanOsc.cpp:382 src/gui/xyOsc.cpp:80 src/gui/settings.cpp:7102
+#: src/gui/tutorial.cpp:725 src/gui/gui.cpp:6008 src/gui/gui.cpp:6049
+#: src/gui/gui.cpp:6486 src/gui/gui.cpp:6654 src/gui/gui.cpp:6828
+#: src/gui/gui.cpp:6938 src/gui/gui.cpp:6987
 msgid "OK"
 msgstr "OK"
 
@@ -7566,22 +7566,22 @@ msgstr "역플랜 생성을 실패했습니다!"
 msgid "failed to create FFT buffers"
 msgstr "FFT 버퍼 생성을 실패했습니다"
 
-#: src/gui/chanOsc.cpp:585 src/gui/gui.cpp:5990
+#: src/gui/chanOsc.cpp:608 src/gui/gui.cpp:6003
 msgid "Error!"
 msgstr "에러!"
 
-#: src/gui/editControls.cpp:47 src/gui/sampleEdit.cpp:1786 src/gui/gui.cpp:2857
+#: src/gui/editControls.cpp:47 src/gui/sampleEdit.cpp:1808 src/gui/gui.cpp:2863
 #: src/gui/insEdit.cpp:477
 msgid "cut"
 msgstr "잘라내기"
 
-#: src/gui/editControls.cpp:48 src/gui/sampleEdit.cpp:1790 src/gui/gui.cpp:2858
+#: src/gui/editControls.cpp:48 src/gui/sampleEdit.cpp:1812 src/gui/gui.cpp:2864
 #: src/gui/insEdit.cpp:8701
 msgid "copy"
 msgstr "복사"
 
-#: src/gui/editControls.cpp:49 src/gui/sampleEdit.cpp:1794 src/gui/gui.cpp:2859
-#: src/gui/gui.cpp:2912 src/gui/insEdit.cpp:8706
+#: src/gui/editControls.cpp:49 src/gui/sampleEdit.cpp:1816 src/gui/gui.cpp:2865
+#: src/gui/gui.cpp:2918 src/gui/insEdit.cpp:8706
 msgid "paste"
 msgstr "붙여넣기"
 
@@ -7597,11 +7597,11 @@ msgstr ""
 msgid "piano"
 msgstr "피아노"
 
-#: src/gui/editControls.cpp:53 src/gui/gui.cpp:4580
+#: src/gui/editControls.cpp:53 src/gui/gui.cpp:4593
 msgid "undo"
 msgstr "실행 취소"
 
-#: src/gui/editControls.cpp:54 src/gui/gui.cpp:4581
+#: src/gui/editControls.cpp:54 src/gui/gui.cpp:4594
 msgid "redo"
 msgstr "다시 실행"
 
@@ -7685,15 +7685,15 @@ msgstr ""
 "찾기/\n"
 "바꾸기"
 
-#: src/gui/editControls.cpp:69 src/gui/gui.cpp:3195
+#: src/gui/editControls.cpp:69 src/gui/gui.cpp:3201
 msgid "collapse"
 msgstr "축소"
 
-#: src/gui/editControls.cpp:70 src/gui/gui.cpp:3196
+#: src/gui/editControls.cpp:70 src/gui/gui.cpp:3202
 msgid "expand"
 msgstr "확장"
 
-#: src/gui/editControls.cpp:71 src/gui/gui.cpp:2944
+#: src/gui/editControls.cpp:71 src/gui/gui.cpp:2950
 msgid "flip"
 msgstr "뒤집기"
 
@@ -7701,19 +7701,19 @@ msgstr "뒤집기"
 msgid "invert"
 msgstr "반전"
 
-#: src/gui/editControls.cpp:73 src/gui/gui.cpp:2924 src/gui/gui.cpp:3084
+#: src/gui/editControls.cpp:73 src/gui/gui.cpp:2930 src/gui/gui.cpp:3090
 msgid "interpolate"
 msgstr "내삽"
 
-#: src/gui/editControls.cpp:74 src/gui/gui.cpp:2936 src/gui/insEdit.cpp:8773
+#: src/gui/editControls.cpp:74 src/gui/gui.cpp:2942 src/gui/insEdit.cpp:8773
 msgid "scale"
 msgstr "스케일"
 
-#: src/gui/editControls.cpp:77 src/gui/gui.cpp:2928
+#: src/gui/editControls.cpp:77 src/gui/gui.cpp:2934
 msgid "fade"
 msgstr "페이드"
 
-#: src/gui/editControls.cpp:78 src/gui/gui.cpp:2940 src/gui/insEdit.cpp:8802
+#: src/gui/editControls.cpp:78 src/gui/gui.cpp:2946 src/gui/insEdit.cpp:8802
 msgid "randomize"
 msgstr "무작위화"
 
@@ -7768,18 +7768,18 @@ msgstr "모바일 메뉴"
 
 #: src/gui/editControls.cpp:425 src/gui/editControls.cpp:725
 #: src/gui/editControls.cpp:858 src/gui/editControls.cpp:980
-#: src/gui/settings.cpp:2512 src/gui/settings.cpp:3339
-#: src/gui/settings.cpp:4083 src/gui/orders.cpp:267 src/gui/guiConst.cpp:618
-#: src/gui/gui.cpp:6285
+#: src/gui/settings.cpp:2508 src/gui/settings.cpp:3335
+#: src/gui/settings.cpp:4079 src/gui/orders.cpp:267 src/gui/guiConst.cpp:618
+#: src/gui/gui.cpp:6298
 msgid "Orders"
 msgstr "순서"
 
-#: src/gui/editControls.cpp:429 src/gui/findReplace.cpp:700
-#: src/gui/findReplace.cpp:962
+#: src/gui/editControls.cpp:429 src/gui/findReplace.cpp:705
+#: src/gui/findReplace.cpp:969
 msgid "Ins"
 msgstr "악기"
 
-#: src/gui/editControls.cpp:442 src/gui/findReplace.cpp:819
+#: src/gui/editControls.cpp:442 src/gui/findReplace.cpp:824
 #: src/gui/guiConst.cpp:233
 msgid "Song"
 msgstr "곡"
@@ -7792,7 +7792,7 @@ msgstr "칩"
 msgid "New"
 msgstr "새 파일"
 
-#: src/gui/editControls.cpp:491 src/gui/doAction.cpp:38 src/gui/gui.cpp:4370
+#: src/gui/editControls.cpp:491 src/gui/doAction.cpp:38 src/gui/gui.cpp:4383
 msgid "Unsaved changes! Save changes before creating a new song?"
 msgstr ""
 "변경 사항을 저장하지 않으셨습니다! 새 곡을 만들기 전에 변경 사항을 저장하시겠"
@@ -7802,7 +7802,7 @@ msgstr ""
 msgid "Save as..."
 msgstr "다른 이름으로 저장..."
 
-#: src/gui/editControls.cpp:516 src/gui/gui.cpp:1746
+#: src/gui/editControls.cpp:516 src/gui/gui.cpp:1752
 msgid "Restore Backup"
 msgstr "백업 복원"
 
@@ -7880,7 +7880,7 @@ msgid "Panic"
 msgstr "패닉"
 
 #: src/gui/editControls.cpp:605 src/gui/settings.cpp:553
-#: src/gui/guiConst.cpp:630 src/gui/guiConst.cpp:632 src/gui/gui.cpp:4590
+#: src/gui/guiConst.cpp:630 src/gui/guiConst.cpp:632 src/gui/gui.cpp:4603
 msgid "Settings"
 msgstr "설정"
 
@@ -7933,7 +7933,7 @@ msgstr "정지"
 
 #: src/gui/editControls.cpp:715 src/gui/editControls.cpp:799
 #: src/gui/editControls.cpp:916 src/gui/editControls.cpp:1055
-#: src/gui/gui.cpp:4577
+#: src/gui/gui.cpp:4590
 msgid "Edit"
 msgstr "편집"
 
@@ -8010,7 +8010,7 @@ msgstr "순서를 따라 스크롤"
 msgid "Follow pattern"
 msgstr "패턴을 따라 스크롤"
 
-#: src/gui/songNotes.cpp:32 src/gui/settings.cpp:3854 src/gui/guiConst.cpp:641
+#: src/gui/songNotes.cpp:32 src/gui/settings.cpp:3850 src/gui/guiConst.cpp:641
 msgid "Song Comments"
 msgstr "곡 코멘트"
 
@@ -8034,7 +8034,7 @@ msgstr "Shift-"
 msgid "Statistics"
 msgstr "통계"
 
-#: src/gui/stats.cpp:36
+#: src/gui/stats.cpp:35
 msgid "Audio load"
 msgstr "오디오 로드"
 
@@ -8058,7 +8058,7 @@ msgstr "Y 채널"
 msgid "Invert##Y"
 msgstr "상하 반전##Y"
 
-#: src/gui/xyOsc.cpp:59 src/gui/sampleEdit.cpp:1403
+#: src/gui/xyOsc.cpp:59 src/gui/sampleEdit.cpp:1425
 msgid "Zoom"
 msgstr "줌"
 
@@ -8288,7 +8288,7 @@ msgstr "게임보이 컬러 (rev E)"
 msgid "Wave channel orientation:"
 msgstr "웨이브 채널 방향:"
 
-#: src/gui/sysConf.cpp:376 src/gui/compatFlags.cpp:298 src/gui/gui.cpp:6485
+#: src/gui/sysConf.cpp:376 src/gui/compatFlags.cpp:298 src/gui/gui.cpp:6498
 #: src/gui/insEdit.cpp:220
 msgid "Normal"
 msgstr "일반"
@@ -8449,7 +8449,7 @@ msgstr "Decay"
 msgid "Sustain"
 msgstr "Sustain"
 
-#: src/gui/sysConf.cpp:743 src/gui/settings.cpp:4095 src/gui/insEdit.cpp:53
+#: src/gui/sysConf.cpp:743 src/gui/settings.cpp:4091 src/gui/insEdit.cpp:53
 #: src/gui/insEdit.cpp:722 src/gui/insEdit.cpp:2322 src/gui/insEdit.cpp:7998
 #: src/gui/insEdit.cpp:8562 src/gui/insEdit.cpp:8622
 msgid "Release"
@@ -8650,7 +8650,7 @@ msgstr "오래된 피치 테이블 (호환성)"
 msgid "Mixing mode:"
 msgstr "믹싱 모드:"
 
-#: src/gui/sysConf.cpp:1101 src/gui/settings.cpp:3824
+#: src/gui/sysConf.cpp:1101 src/gui/settings.cpp:3820
 msgid "Mono"
 msgstr "모노"
 
@@ -9195,7 +9195,7 @@ msgstr ""
 msgid "Custom clock rate"
 msgstr "사용자 지정 클럭 레이트"
 
-#: src/gui/volMeter.cpp:36 src/gui/settings.cpp:4077 src/gui/guiConst.cpp:637
+#: src/gui/volMeter.cpp:36 src/gui/settings.cpp:4073 src/gui/guiConst.cpp:637
 msgid "Volume Meter"
 msgstr "볼륨 미터"
 
@@ -9244,8 +9244,8 @@ msgid "Save and Close"
 msgstr "저장하고 닫기"
 
 #: src/gui/userPresets.cpp:527 src/gui/settings.cpp:1233
-#: src/gui/settings.cpp:1247 src/gui/settings.cpp:2183
-#: src/gui/settings.cpp:2582 src/gui/settings.cpp:3904
+#: src/gui/settings.cpp:1247 src/gui/settings.cpp:2179
+#: src/gui/settings.cpp:2578 src/gui/settings.cpp:3900
 msgid "Import"
 msgstr "가져오기"
 
@@ -9262,7 +9262,7 @@ msgstr "이펙트 목록"
 msgid "Chip at cursor: %s"
 msgstr "커서가 위치해있는 칩: %s"
 
-#: src/gui/effectList.cpp:21 src/gui/settings.cpp:7136
+#: src/gui/effectList.cpp:21 src/gui/settings.cpp:7104
 msgid "Search"
 msgstr "검색"
 
@@ -9407,7 +9407,7 @@ msgstr "후처리"
 msgid "Control"
 msgstr "컨트롤"
 
-#: src/gui/settings.cpp:259 src/gui/settings.cpp:566 src/gui/settings.cpp:3245
+#: src/gui/settings.cpp:259 src/gui/settings.cpp:566 src/gui/settings.cpp:3241
 msgid "Program"
 msgstr "프로그램"
 
@@ -9429,8 +9429,8 @@ msgstr "SysEx"
 msgid "Any"
 msgstr "모두"
 
-#: src/gui/settings.cpp:270 src/gui/settings.cpp:3431 src/gui/settings.cpp:4036
-#: src/gui/settings.cpp:4237
+#: src/gui/settings.cpp:270 src/gui/settings.cpp:3427 src/gui/settings.cpp:4032
+#: src/gui/settings.cpp:4233
 msgid "Instrument"
 msgstr "악기"
 
@@ -9732,7 +9732,7 @@ msgstr "세기"
 msgid "Length"
 msgstr "길이"
 
-#: src/gui/settings.cpp:855 src/gui/gui.cpp:4367
+#: src/gui/settings.cpp:855 src/gui/gui.cpp:4380
 msgid "File"
 msgstr "파일"
 
@@ -9840,7 +9840,7 @@ msgid ""
 "exporting."
 msgstr "저장 또는 내보내기 시 파일명 필드에 적절한 파일명을 입력합니다."
 
-#: src/gui/settings.cpp:972 src/gui/gui.cpp:5828 src/gui/gui.cpp:6010
+#: src/gui/settings.cpp:972 src/gui/gui.cpp:5841 src/gui/gui.cpp:6023
 msgid "New Song"
 msgstr "새 곡"
 
@@ -9852,7 +9852,7 @@ msgstr "초기 시스템:"
 msgid "Current system"
 msgstr "현재 시스템으로"
 
-#: src/gui/settings.cpp:989 src/gui/waveEdit.cpp:1064 src/gui/gui.cpp:3178
+#: src/gui/settings.cpp:989 src/gui/waveEdit.cpp:1064 src/gui/gui.cpp:3184
 msgid "Randomize"
 msgstr "랜덤"
 
@@ -9912,7 +9912,7 @@ msgstr "동작"
 msgid "New instruments are blank"
 msgstr "새 악기를 빈 악기로"
 
-#: src/gui/settings.cpp:1232 src/gui/settings.cpp:4371
+#: src/gui/settings.cpp:1232 src/gui/settings.cpp:4367
 msgid "Configuration"
 msgstr "구성"
 
@@ -10096,7 +10096,7 @@ msgstr "<비활성화됨>"
 msgid "Re-scan MIDI devices"
 msgstr "MIDI 기기 재검색"
 
-#: src/gui/settings.cpp:1562 src/gui/settings.cpp:2281
+#: src/gui/settings.cpp:1562 src/gui/settings.cpp:2277
 msgid "Note input"
 msgstr "노트 입력"
 
@@ -10163,8 +10163,8 @@ msgstr ""
 "(학습 중입니다! 기기의 버튼을 누르거나 기기의 슬라이더/노브/무언가를 이동시키"
 "세요.)"
 
-#: src/gui/settings.cpp:1676 src/gui/settings.cpp:2289
-#: src/gui/settings.cpp:7149 src/gui/sampleEdit.cpp:531
+#: src/gui/settings.cpp:1676 src/gui/settings.cpp:2285
+#: src/gui/settings.cpp:7117 src/gui/sampleEdit.cpp:531
 #: src/gui/insEdit.cpp:6573
 msgid "Type"
 msgstr "유형"
@@ -10277,569 +10277,569 @@ msgstr "재생"
 msgid "Render"
 msgstr "렌더링"
 
-#: src/gui/settings.cpp:2142
+#: src/gui/settings.cpp:2138
 msgid "PC Speaker strategy"
 msgstr "PC 스피커 방법"
 
-#: src/gui/settings.cpp:2147
+#: src/gui/settings.cpp:2143
 msgid "Sample ROMs:"
 msgstr ""
 
-#: src/gui/settings.cpp:2150
+#: src/gui/settings.cpp:2146
 msgid "OPL4 YRW801 path"
 msgstr ""
 
-#: src/gui/settings.cpp:2180 src/gui/settings.cpp:2182
+#: src/gui/settings.cpp:2176 src/gui/settings.cpp:2178
 msgid "Keyboard"
 msgstr "키보드"
 
-#: src/gui/settings.cpp:2191 src/gui/settings.cpp:3912
+#: src/gui/settings.cpp:2187 src/gui/settings.cpp:3908
 msgid "Reset defaults"
 msgstr "기본값으로 재설정"
 
-#: src/gui/settings.cpp:2192
+#: src/gui/settings.cpp:2188
 msgid "Are you sure you want to reset the keyboard settings?"
 msgstr "정말로 키보드 설정을 재설정 하시겠습니까?"
 
-#: src/gui/settings.cpp:2195
+#: src/gui/settings.cpp:2191
 msgid "Global hotkeys"
 msgstr "전역 단축키"
 
-#: src/gui/settings.cpp:2232
+#: src/gui/settings.cpp:2228
 msgid "Window activation"
 msgstr "창 열기"
 
-#: src/gui/settings.cpp:2287
+#: src/gui/settings.cpp:2283
 msgid "Key"
 msgstr "키"
 
-#: src/gui/settings.cpp:2291 src/gui/findReplace.cpp:756
-#: src/gui/findReplace.cpp:1051
+#: src/gui/settings.cpp:2287 src/gui/findReplace.cpp:761
+#: src/gui/findReplace.cpp:1058
 msgid "Value"
 msgstr "값"
 
-#: src/gui/settings.cpp:2302
+#: src/gui/settings.cpp:2298
 #, c-format
 msgid "Macro release##SNType_%d"
 msgstr "매크로 release##SNType_%d"
 
-#: src/gui/settings.cpp:2307
+#: src/gui/settings.cpp:2303
 #, c-format
 msgid "Note release##SNType_%d"
 msgstr "노트 release##SNType_%d"
 
-#: src/gui/settings.cpp:2312
+#: src/gui/settings.cpp:2308
 #, c-format
 msgid "Note off##SNType_%d"
 msgstr "노트 off##SNType_%d"
 
-#: src/gui/settings.cpp:2317
+#: src/gui/settings.cpp:2313
 #, c-format
 msgid "Note##SNType_%d"
 msgstr "노트##SNType_%d"
 
-#: src/gui/settings.cpp:2341
+#: src/gui/settings.cpp:2337
 msgid "Add..."
 msgstr "추가..."
 
-#: src/gui/settings.cpp:2356
+#: src/gui/settings.cpp:2352
 msgid "that key is bound already!"
 msgstr ""
 
-#: src/gui/settings.cpp:2445
+#: src/gui/settings.cpp:2441
 msgid "Instrument list"
 msgstr "악기 목록"
 
-#: src/gui/settings.cpp:2465
+#: src/gui/settings.cpp:2461
 msgid "Wavetable list"
 msgstr "웨이브테이블 목록"
 
-#: src/gui/settings.cpp:2486
+#: src/gui/settings.cpp:2482
 msgid "Sample list"
 msgstr "샘플 목록"
 
-#: src/gui/settings.cpp:2536
+#: src/gui/settings.cpp:2532
 msgid "Sample editor"
 msgstr "샘플 편집기"
 
-#: src/gui/settings.cpp:2576 src/gui/settings.cpp:3922
-#: src/gui/settings.cpp:3952
+#: src/gui/settings.cpp:2572 src/gui/settings.cpp:3918
+#: src/gui/settings.cpp:3948
 msgid "Interface"
 msgstr "인터페이스"
 
-#: src/gui/settings.cpp:2578
+#: src/gui/settings.cpp:2574
 msgid "Layout"
 msgstr "레이아웃"
 
-#: src/gui/settings.cpp:2580
+#: src/gui/settings.cpp:2576
 msgid "Workspace layout:"
 msgstr "워크스페이스 레이아웃:"
 
-#: src/gui/settings.cpp:2590 src/gui/gui.cpp:3044
+#: src/gui/settings.cpp:2586 src/gui/gui.cpp:3050
 msgid "Reset"
 msgstr "초기화"
 
-#: src/gui/settings.cpp:2591 src/gui/gui.cpp:4606
+#: src/gui/settings.cpp:2587 src/gui/gui.cpp:4619
 msgid "Are you sure you want to reset the workspace layout?"
 msgstr "정말로 워크스페이스 레이아웃을 재설정 하시겠습니까?"
 
-#: src/gui/settings.cpp:2595
+#: src/gui/settings.cpp:2591
 msgid "Allow docking editors"
 msgstr "편집기 결합 허용"
 
-#: src/gui/settings.cpp:2602
+#: src/gui/settings.cpp:2598
 msgid "Remember window position"
 msgstr "창 위치 기억"
 
-#: src/gui/settings.cpp:2607
+#: src/gui/settings.cpp:2603
 msgid "remembers the window's last position on start-up."
 msgstr "시작 시에 창의 마지막 위치를 기억합니다."
 
-#: src/gui/settings.cpp:2612
+#: src/gui/settings.cpp:2608
 msgid "Only allow window movement when clicking on title bar"
 msgstr "타이틀 바를 클릭하고 있을 때에만 창 이동 허용"
 
-#: src/gui/settings.cpp:2619
+#: src/gui/settings.cpp:2615
 msgid "Center pop-up windows"
 msgstr "창을 가운데에서 팝업"
 
-#: src/gui/settings.cpp:2624
+#: src/gui/settings.cpp:2620
 msgid "Play/edit controls layout:"
 msgstr "재생/편집 컨트롤 레이아웃:"
 
-#: src/gui/settings.cpp:2626
+#: src/gui/settings.cpp:2622
 msgid "Classic##ecl0"
 msgstr "클래식##ec10"
 
-#: src/gui/settings.cpp:2630
+#: src/gui/settings.cpp:2626
 msgid "Compact##ecl1"
 msgstr "컴팩트##ecl1"
 
-#: src/gui/settings.cpp:2634
+#: src/gui/settings.cpp:2630
 msgid "Compact (vertical)##ecl2"
 msgstr "컴팩트 (수직)##ecl2"
 
-#: src/gui/settings.cpp:2638
+#: src/gui/settings.cpp:2634
 msgid "Split##ecl3"
 msgstr "분할##ecl3"
 
-#: src/gui/settings.cpp:2644
+#: src/gui/settings.cpp:2640
 msgid "Position of buttons in Orders:"
 msgstr "순서 창에서의 버튼 위치:"
 
-#: src/gui/settings.cpp:2646
+#: src/gui/settings.cpp:2642
 msgid "Top##obp0"
 msgstr "맨 위##obp0"
 
-#: src/gui/settings.cpp:2650
+#: src/gui/settings.cpp:2646
 msgid "Left##obp1"
 msgstr "좌측##obp1"
 
-#: src/gui/settings.cpp:2654
+#: src/gui/settings.cpp:2650
 msgid "Right##obp2"
 msgstr "우측##obp2"
 
-#: src/gui/settings.cpp:2661
+#: src/gui/settings.cpp:2657
 msgid "Mouse"
 msgstr "마우스"
 
-#: src/gui/settings.cpp:2663
+#: src/gui/settings.cpp:2659
 msgid "Double-click time (seconds)"
 msgstr "더블 클릭 시간 (초)"
 
-#: src/gui/settings.cpp:2672
+#: src/gui/settings.cpp:2668
 msgid "Don't raise pattern editor on click"
 msgstr "클릭 시 패턴 편집기를 올리지 않음"
 
-#: src/gui/settings.cpp:2678
+#: src/gui/settings.cpp:2674
 msgid "Focus pattern editor when selecting instrument"
 msgstr "악기 선택 시 패턴 편집기 집중"
 
-#: src/gui/settings.cpp:2684
+#: src/gui/settings.cpp:2680
 msgid "Draggable instruments/samples/waves"
 msgstr ""
 
-#: src/gui/settings.cpp:2689
+#: src/gui/settings.cpp:2685
 msgid "Note preview behavior:"
 msgstr "노트 미리보기 동작:"
 
-#: src/gui/settings.cpp:2691
+#: src/gui/settings.cpp:2687
 msgid "Never##npb0"
 msgstr "사용 안함##npb0"
 
-#: src/gui/settings.cpp:2695
+#: src/gui/settings.cpp:2691
 msgid "When cursor is in Note column##npb1"
 msgstr "커서가 노트 열에 있을 시##npb1"
 
-#: src/gui/settings.cpp:2699
+#: src/gui/settings.cpp:2695
 msgid "When cursor is in Note column or not in edit mode##npb2"
 msgstr "커서가 노트 열에 있거나 편집 모드가 아닐 시##npb2"
 
-#: src/gui/settings.cpp:2703
+#: src/gui/settings.cpp:2699
 msgid "Always##npb3"
 msgstr "항상##npb3"
 
-#: src/gui/settings.cpp:2709
+#: src/gui/settings.cpp:2705
 msgid "Allow dragging selection:"
 msgstr "드래그 선택:"
 
-#: src/gui/settings.cpp:2711
+#: src/gui/settings.cpp:2707
 msgid "No##dms0"
 msgstr "사용 안함##dms0"
 
-#: src/gui/settings.cpp:2715
+#: src/gui/settings.cpp:2711
 msgid "Yes##dms1"
 msgstr "사용##dms1"
 
-#: src/gui/settings.cpp:2719
+#: src/gui/settings.cpp:2715
 msgid "Yes (while holding Ctrl only)##dms2"
 msgstr "사용 (Ctrl을 누르고 있을 시에만)##dms2"
 
-#: src/gui/settings.cpp:2723
+#: src/gui/settings.cpp:2719
 msgid "Yes (copy)##dms3"
 msgstr ""
 
-#: src/gui/settings.cpp:2727
+#: src/gui/settings.cpp:2723
 msgid "Yes (while holding Ctrl only and copy)##dms4"
 msgstr ""
 
-#: src/gui/settings.cpp:2731
+#: src/gui/settings.cpp:2727
 msgid "Yes (holding Ctrl copies)##dms5"
 msgstr ""
 
-#: src/gui/settings.cpp:2737
+#: src/gui/settings.cpp:2733
 msgid "Toggle channel solo on:"
 msgstr "채널 솔로 켜기 토글:"
 
-#: src/gui/settings.cpp:2739
+#: src/gui/settings.cpp:2735
 msgid "Right-click or double-click##soloA"
 msgstr "우클릭 또는 더블 클릭##soloA"
 
-#: src/gui/settings.cpp:2743
+#: src/gui/settings.cpp:2739
 msgid "Right-click##soloR"
 msgstr "우클릭##soloR"
 
-#: src/gui/settings.cpp:2747
+#: src/gui/settings.cpp:2743
 msgid "Double-click##soloD"
 msgstr "더블 클릭##soloD"
 
-#: src/gui/settings.cpp:2753
+#: src/gui/settings.cpp:2749
 msgid "Modifier for alternate wheel-scrolling (vertical/zoom/slider-input):"
 msgstr ""
 
-#: src/gui/settings.cpp:2755
+#: src/gui/settings.cpp:2751
 msgid "Ctrl or Meta/Cmd##cwm1"
 msgstr ""
 
-#: src/gui/settings.cpp:2759
+#: src/gui/settings.cpp:2755
 msgid "Ctrl##cwm2"
 msgstr ""
 
-#: src/gui/settings.cpp:2763
+#: src/gui/settings.cpp:2759
 msgid "Meta/Cmd##cwm3"
 msgstr ""
 
-#: src/gui/settings.cpp:2768
+#: src/gui/settings.cpp:2764
 msgid "Alt##cwm4"
 msgstr ""
 
-#: src/gui/settings.cpp:2775
+#: src/gui/settings.cpp:2771
 msgid "Double click selects entire column"
 msgstr "더블 클릭으로 전체 열 선택"
 
-#: src/gui/settings.cpp:2781
+#: src/gui/settings.cpp:2777
 msgid "Cursor behavior"
 msgstr "커서 동작"
 
-#: src/gui/settings.cpp:2783
+#: src/gui/settings.cpp:2779
 msgid "Insert pushes entire channel row"
 msgstr "삽입 시 전체 채널 행 푸시"
 
-#: src/gui/settings.cpp:2789
+#: src/gui/settings.cpp:2785
 msgid "Pull delete affects entire channel row"
 msgstr "Pull delete affects entire channel row"
 
-#: src/gui/settings.cpp:2795
+#: src/gui/settings.cpp:2791
 msgid "Push value when overwriting instead of clearing it"
 msgstr "값을 지우지 않고 덮어쓸 때 누름"
 
-#: src/gui/settings.cpp:2801
+#: src/gui/settings.cpp:2797
 msgid "Keyboard note/value input repeat (hold key to input continuously)"
 msgstr "키보드 노트/값 입력 반복(키를 눌러 계속 입력)"
 
-#: src/gui/settings.cpp:2806
+#: src/gui/settings.cpp:2802
 msgid "Effect input behavior:"
 msgstr "이펙트 입력 동작:"
 
-#: src/gui/settings.cpp:2808
+#: src/gui/settings.cpp:2804
 msgid "Move down##eicb0"
 msgstr "아래로 이동##eicb0"
 
-#: src/gui/settings.cpp:2812
+#: src/gui/settings.cpp:2808
 msgid "Move to effect value (otherwise move down)##eicb1"
 msgstr "이펙트 값으로 이동 (그렇지 않으면 아래로 이동)##eicb1"
 
-#: src/gui/settings.cpp:2816
+#: src/gui/settings.cpp:2812
 msgid "Move to effect value/next effect and wrap around##eicb2"
 msgstr "이펙트 값으로 이동/다음 이펙트로 이동하고 감싸기##eicb2"
 
-#: src/gui/settings.cpp:2823
+#: src/gui/settings.cpp:2819
 msgid "Delete effect value when deleting effect"
 msgstr "이펙트 삭제 시 이펙트 값 삭제"
 
-#: src/gui/settings.cpp:2829
+#: src/gui/settings.cpp:2825
 msgid "Change current instrument when changing instrument column (absorb)"
 msgstr "악기 열 변경 시 현재 악기 변경 (absorb)"
 
-#: src/gui/settings.cpp:2835
+#: src/gui/settings.cpp:2831
 msgid "Remove instrument value when inserting note off/release"
 msgstr "노트 off/release 삽입 시 악기 값 제거"
 
-#: src/gui/settings.cpp:2841
+#: src/gui/settings.cpp:2837
 msgid "Remove volume value when inserting note off/release"
 msgstr "노트 off/release 삽입 시 볼륨 값 제거"
 
-#: src/gui/settings.cpp:2847
+#: src/gui/settings.cpp:2843
 msgid "Cursor movement"
 msgstr "커서 이동"
 
-#: src/gui/settings.cpp:2849
+#: src/gui/settings.cpp:2845
 msgid "Wrap horizontally:"
 msgstr "가로로 감싸기:"
 
-#: src/gui/settings.cpp:2851
+#: src/gui/settings.cpp:2847
 msgid "No##wrapH0"
 msgstr "사용 안함##wrapH0"
 
-#: src/gui/settings.cpp:2855
+#: src/gui/settings.cpp:2851
 msgid "Yes##wrapH1"
 msgstr "사용##wrapH1"
 
-#: src/gui/settings.cpp:2859
+#: src/gui/settings.cpp:2855
 msgid "Yes, and move to next/prev row##wrapH2"
 msgstr "사용, 그리고 다음/이전 행으로 이동##wrapH2"
 
-#: src/gui/settings.cpp:2865
+#: src/gui/settings.cpp:2861
 msgid "Wrap vertically:"
 msgstr "세로로 감싸기:"
 
-#: src/gui/settings.cpp:2867
+#: src/gui/settings.cpp:2863
 msgid "No##wrapV0"
 msgstr "사용 안함##wrapV0"
 
-#: src/gui/settings.cpp:2871
+#: src/gui/settings.cpp:2867
 msgid "Yes##wrapV1"
 msgstr "사용##wrapV1"
 
-#: src/gui/settings.cpp:2875
+#: src/gui/settings.cpp:2871
 msgid "Yes, and move to next/prev pattern##wrapV2"
 msgstr "사용, 그리고 다음/이전 패턴으로 이동##wrapV2"
 
-#: src/gui/settings.cpp:2879
+#: src/gui/settings.cpp:2875
 msgid "Yes, and move to next/prev pattern (wrap around)##wrapV2"
 msgstr "사용, 그리고 다음/이전 패턴으로 이동 (감싸기)##wrapV2"
 
-#: src/gui/settings.cpp:2885
+#: src/gui/settings.cpp:2881
 msgid "Cursor movement keys behavior:"
 msgstr "커서 이동 키 동작:"
 
-#: src/gui/settings.cpp:2887
+#: src/gui/settings.cpp:2883
 msgid "Move by one##cmk0"
 msgstr "한 칸씩 이동##cmk0"
 
-#: src/gui/settings.cpp:2891
+#: src/gui/settings.cpp:2887
 msgid "Move by Edit Step##cmk1"
 msgstr "편집 스텝씩 이동##cmk1"
 
-#: src/gui/settings.cpp:2898
+#: src/gui/settings.cpp:2894
 msgid "Move cursor by edit step on delete"
 msgstr "삭제 시 편집 스텝씩 커서 이동"
 
-#: src/gui/settings.cpp:2904
+#: src/gui/settings.cpp:2900
 msgid "Move cursor by edit step on insert (push)"
 msgstr "삽입 시 편집 스텝씩 커서 이동 (밀기)"
 
-#: src/gui/settings.cpp:2910
+#: src/gui/settings.cpp:2906
 msgid "Move cursor up on backspace-delete"
 msgstr "백스페이스 삭제로 커서 위로 이동"
 
-#: src/gui/settings.cpp:2916
+#: src/gui/settings.cpp:2912
 msgid "Move cursor to end of clipboard content when pasting"
 msgstr "붙여넣기 시 커서를 클립보드 내용의 끝으로 이동"
 
-#: src/gui/settings.cpp:2922
+#: src/gui/settings.cpp:2918
 msgid "Scrolling"
 msgstr "스크롤"
 
-#: src/gui/settings.cpp:2924
+#: src/gui/settings.cpp:2920
 msgid "Change order when scrolling outside of pattern bounds:"
 msgstr "패턴 범위를 벗어나 스크롤할 때 순서 변경:"
 
-#: src/gui/settings.cpp:2926
+#: src/gui/settings.cpp:2922
 msgid "No##pscroll0"
 msgstr "사용 안함#pscroll0"
 
-#: src/gui/settings.cpp:2930
+#: src/gui/settings.cpp:2926
 msgid "Yes##pscroll1"
 msgstr "사용##pscroll1"
 
-#: src/gui/settings.cpp:2934
+#: src/gui/settings.cpp:2930
 msgid "Yes, and wrap around song##pscroll2"
 msgstr "사용, 그리고 곡 감싸기##pscroll2"
 
-#: src/gui/settings.cpp:2941
+#: src/gui/settings.cpp:2937
 msgid "Cursor follows current order when moving it"
 msgstr "커서를 이동할 때 현재 순서를 따름"
 
-#: src/gui/settings.cpp:2946
+#: src/gui/settings.cpp:2942
 msgid "applies when playback is stopped."
 msgstr "재생이 중지될 때 적용됩니다."
 
-#: src/gui/settings.cpp:2950
+#: src/gui/settings.cpp:2946
 msgid "Don't scroll when moving cursor"
 msgstr "커서 이동 시 스크롤 안 함"
 
-#: src/gui/settings.cpp:2955
+#: src/gui/settings.cpp:2951
 msgid "Move cursor with scroll wheel:"
 msgstr "스크롤 휠로 커서 이동:"
 
-#: src/gui/settings.cpp:2957
+#: src/gui/settings.cpp:2953
 msgid "No##csw0"
 msgstr "사용 안함##csw0"
 
-#: src/gui/settings.cpp:2961
+#: src/gui/settings.cpp:2957
 msgid "Yes##csw1"
 msgstr "사용##csw1"
 
-#: src/gui/settings.cpp:2965
+#: src/gui/settings.cpp:2961
 msgid "Inverted##csw2"
 msgstr "반점됨##csw2"
 
-#: src/gui/settings.cpp:2972
+#: src/gui/settings.cpp:2968
 msgid "How many steps to move with each scroll wheel step?"
 msgstr "각 스크롤 휠 스텝과 함께 이동할 스텝 수?"
 
-#: src/gui/settings.cpp:2973
+#: src/gui/settings.cpp:2969
 msgid "One##cws0"
 msgstr "한 스텝##cws0"
 
-#: src/gui/settings.cpp:2977
+#: src/gui/settings.cpp:2973
 msgid "Edit Step##cws1"
 msgstr "편집 스텝##cws1"
 
-#: src/gui/settings.cpp:2984 src/gui/settings.cpp:3599
+#: src/gui/settings.cpp:2980 src/gui/settings.cpp:3595
 msgid "Assets"
 msgstr "에셋"
 
-#: src/gui/settings.cpp:2987
+#: src/gui/settings.cpp:2983
 msgid "Display instrument type menu when adding instrument"
 msgstr "악기 추가 시 악기 유형 메뉴 표시"
 
-#: src/gui/settings.cpp:2993
+#: src/gui/settings.cpp:2989
 msgid "Select asset after opening one"
 msgstr "에셋 추가 후 에셋 선택"
 
-#: src/gui/settings.cpp:3000
+#: src/gui/settings.cpp:2996
 msgid "Appearance"
 msgstr "UI"
 
-#: src/gui/settings.cpp:3002
+#: src/gui/settings.cpp:2998
 msgid "Scaling"
 msgstr "스케일링"
 
-#: src/gui/settings.cpp:3004
+#: src/gui/settings.cpp:3000
 msgid "Automatic UI scaling factor"
 msgstr "자동 UI 스케일링 요소"
 
-#: src/gui/settings.cpp:3013
+#: src/gui/settings.cpp:3009
 msgid "UI scaling factor"
 msgstr "UI 스케일링 요소"
 
-#: src/gui/settings.cpp:3020
+#: src/gui/settings.cpp:3016
 msgid "Icon size"
 msgstr "아이콘 크기"
 
-#: src/gui/settings.cpp:3035
+#: src/gui/settings.cpp:3031
 msgid "Font renderer"
 msgstr "폰트 렌더링"
 
-#: src/gui/settings.cpp:3045
+#: src/gui/settings.cpp:3041
 msgid "Main font"
 msgstr "메인 폰트"
 
-#: src/gui/settings.cpp:3056
+#: src/gui/settings.cpp:3052
 msgid "Size##MainFontSize"
 msgstr "크기##MainFontSize"
 
-#: src/gui/settings.cpp:3064
+#: src/gui/settings.cpp:3060
 msgid "Header font"
 msgstr "상단 폰트"
 
-#: src/gui/settings.cpp:3075
+#: src/gui/settings.cpp:3071
 msgid "Size##HeadFontSize"
 msgstr "크기##HeadFontSize"
 
-#: src/gui/settings.cpp:3083
+#: src/gui/settings.cpp:3079
 msgid "Pattern font"
 msgstr "패턴 폰트"
 
-#: src/gui/settings.cpp:3094
+#: src/gui/settings.cpp:3090
 msgid "Size##PatFontSize"
 msgstr "크기##PatFontSize"
 
-#: src/gui/settings.cpp:3104
+#: src/gui/settings.cpp:3100
 msgid "Anti-aliased fonts"
 msgstr "폰트 안티에일리어싱"
 
-#: src/gui/settings.cpp:3110
+#: src/gui/settings.cpp:3106
 msgid "Support bitmap fonts"
 msgstr "비트맵 폰트 지원"
 
-#: src/gui/settings.cpp:3115
+#: src/gui/settings.cpp:3111
 msgid "Hinting:"
 msgstr "힌트:"
 
-#: src/gui/settings.cpp:3117
+#: src/gui/settings.cpp:3113
 msgid "Off (soft)##fh0"
 msgstr "사용 안함 (부드러움)##fh0"
 
-#: src/gui/settings.cpp:3121
+#: src/gui/settings.cpp:3117
 msgid "Slight##fh1"
 msgstr "일부 사용##fh1"
 
-#: src/gui/settings.cpp:3125
+#: src/gui/settings.cpp:3121
 msgid "Normal##fh2"
 msgstr "일반 사용##fh2"
 
-#: src/gui/settings.cpp:3129
+#: src/gui/settings.cpp:3125
 msgid "Full (hard)##fh3"
 msgstr "전체 사용 (딱딱함)##fh3"
 
-#: src/gui/settings.cpp:3135
+#: src/gui/settings.cpp:3131
 msgid "Auto-hinter:"
 msgstr "자동 힌트:"
 
-#: src/gui/settings.cpp:3137
+#: src/gui/settings.cpp:3133
 msgid "Disable##fah0"
 msgstr "비활성화##fah0"
 
-#: src/gui/settings.cpp:3141
+#: src/gui/settings.cpp:3137
 msgid "Enable##fah1"
 msgstr "활성화##fah1"
 
-#: src/gui/settings.cpp:3145
+#: src/gui/settings.cpp:3141
 msgid "Force##fah2"
 msgstr "강제##fah2"
 
-#: src/gui/settings.cpp:3152
+#: src/gui/settings.cpp:3148
 msgid "Oversample"
 msgstr "오버샘플링"
 
-#: src/gui/settings.cpp:3155
+#: src/gui/settings.cpp:3151
 msgid "1×##fos1"
 msgstr "1×##fos"
 
-#: src/gui/settings.cpp:3160
+#: src/gui/settings.cpp:3156
 msgid ""
 "saves video memory. reduces font rendering quality.\n"
 "use for pixel/bitmap fonts."
@@ -10847,19 +10847,19 @@ msgstr ""
 "비디오 메모리를 절약합니다. 폰트 렌더링 품질을 감소시킵니다.\n"
 "픽셀/비트맵 폰트에 유용합니다."
 
-#: src/gui/settings.cpp:3163
+#: src/gui/settings.cpp:3159
 msgid "2×##fos2"
 msgstr "2×##fos2"
 
-#: src/gui/settings.cpp:3168
+#: src/gui/settings.cpp:3164
 msgid "default."
 msgstr "기본."
 
-#: src/gui/settings.cpp:3171
+#: src/gui/settings.cpp:3167
 msgid "3×##fos3"
 msgstr "3×##fos3"
 
-#: src/gui/settings.cpp:3176
+#: src/gui/settings.cpp:3172
 msgid ""
 "slightly better font rendering quality.\n"
 "uses more video memory."
@@ -10867,19 +10867,19 @@ msgstr ""
 "약간 더 나은 글꼴 렌더링 품질\n"
 "더 많은 비디오 메모리를 사용합니다."
 
-#: src/gui/settings.cpp:3180
+#: src/gui/settings.cpp:3176
 msgid "Load fallback font"
 msgstr "폴백 폰트 불러오기"
 
-#: src/gui/settings.cpp:3185
+#: src/gui/settings.cpp:3181
 msgid "disable to save video memory."
 msgstr "비디오 메모리를 절약하려면 비활성화하십시오."
 
-#: src/gui/settings.cpp:3189
+#: src/gui/settings.cpp:3185
 msgid "Display Japanese characters"
 msgstr "일본어 글자 표시"
 
-#: src/gui/settings.cpp:3195
+#: src/gui/settings.cpp:3191
 msgid ""
 "Only toggle this option if you have enough graphics memory.\n"
 "This is a temporary solution until dynamic font atlas is implemented in Dear "
@@ -10898,11 +10898,11 @@ msgstr ""
 "これは、Dear ImGuiにダイナミックフォントアトラスが実装されるまでの一時的な解"
 "決策です。"
 
-#: src/gui/settings.cpp:3203
+#: src/gui/settings.cpp:3199
 msgid "Display Chinese (Simplified) characters"
 msgstr "중국어 (간체자) 표시"
 
-#: src/gui/settings.cpp:3209
+#: src/gui/settings.cpp:3205
 msgid ""
 "Only toggle this option if you have enough graphics memory.\n"
 "This is a temporary solution until dynamic font atlas is implemented in Dear "
@@ -10917,11 +10917,11 @@ msgstr ""
 "只有在视频内存充足时，才能切换此选项。\n"
 "这是直到Dear ImGui实现动态字体图谱为止的暂时性解决方案。"
 
-#: src/gui/settings.cpp:3217
+#: src/gui/settings.cpp:3213
 msgid "Display Chinese (Traditional) characters"
 msgstr "중국어 (번체자) 표시"
 
-#: src/gui/settings.cpp:3223
+#: src/gui/settings.cpp:3219
 msgid ""
 "Only toggle this option if you have enough graphics memory.\n"
 "This is a temporary solution until dynamic font atlas is implemented in Dear "
@@ -10936,11 +10936,11 @@ msgstr ""
 "只有在視頻內存充足時，才能切換此選項。\n"
 "這是直到Dear ImGui實現動態字體圖譜爲止的暫時性解決方案。"
 
-#: src/gui/settings.cpp:3231
+#: src/gui/settings.cpp:3227
 msgid "Display Korean characters"
 msgstr "한글 표시"
 
-#: src/gui/settings.cpp:3237
+#: src/gui/settings.cpp:3233
 msgid ""
 "Only toggle this option if you have enough graphics memory.\n"
 "This is a temporary solution until dynamic font atlas is implemented in Dear "
@@ -10956,852 +10956,852 @@ msgstr ""
 "이것은 Dear ImGui에 다이나믹 폰트 아틀라스가 구현될 때까지의 일시적인 해결책"
 "입니다."
 
-#: src/gui/settings.cpp:3246
+#: src/gui/settings.cpp:3242
 msgid "Title bar:"
 msgstr "타이틀 바:"
 
-#: src/gui/settings.cpp:3248
+#: src/gui/settings.cpp:3244
 msgid "Furnace##tbar0"
 msgstr "Furnace##tbar0"
 
-#: src/gui/settings.cpp:3253
+#: src/gui/settings.cpp:3249
 msgid "Song Name - Furnace##tbar1"
 msgstr "곡 이름 - Furnace##tbar1"
 
-#: src/gui/settings.cpp:3258
+#: src/gui/settings.cpp:3254
 msgid "file_name.fur - Furnace##tbar2"
 msgstr "파일이름.fur - Furnace##tbar2"
 
-#: src/gui/settings.cpp:3263
+#: src/gui/settings.cpp:3259
 msgid "/path/to/file.fur - Furnace##tbar3"
 msgstr "/파일의/위치.fur - Furnace##tbar3"
 
-#: src/gui/settings.cpp:3271
+#: src/gui/settings.cpp:3267
 msgid "Display system name on title bar"
 msgstr "타이틀 바에 시스템 이름 표시"
 
-#: src/gui/settings.cpp:3278
+#: src/gui/settings.cpp:3274
 msgid "Display chip names instead of \"multi-system\" in title bar"
 msgstr "타이틀 바에 \"multi-system\" 대신 칩 이름 표시"
 
-#: src/gui/settings.cpp:3284
+#: src/gui/settings.cpp:3280
 msgid "Status bar:"
 msgstr "상태 바:"
 
-#: src/gui/settings.cpp:3286
+#: src/gui/settings.cpp:3282
 msgid "Cursor details##sbar0"
 msgstr "커서 상세 정보##sbar0"
 
-#: src/gui/settings.cpp:3290
+#: src/gui/settings.cpp:3286
 msgid "File path##sbar1"
 msgstr "파일 경로##sbar1"
 
-#: src/gui/settings.cpp:3294
+#: src/gui/settings.cpp:3290
 msgid "Cursor details or file path##sbar2"
 msgstr "커서 상세 정보 또는 파일 경로##sbar2"
 
-#: src/gui/settings.cpp:3298
+#: src/gui/settings.cpp:3294
 msgid "Nothing##sbar3"
 msgstr "없음##sbar3"
 
-#: src/gui/settings.cpp:3305
+#: src/gui/settings.cpp:3301
 msgid "Display playback status when playing"
 msgstr "재생 시 재생 상태 표시"
 
-#: src/gui/settings.cpp:3310
+#: src/gui/settings.cpp:3306
 msgid "Export options layout:"
 msgstr "내보내기 옵션 레이아웃:"
 
-#: src/gui/settings.cpp:3312
+#: src/gui/settings.cpp:3308
 msgid "Sub-menus in File menu##eol0"
 msgstr "파일 메뉴에 서브 메뉴##eol0"
 
-#: src/gui/settings.cpp:3316
+#: src/gui/settings.cpp:3312
 msgid "Modal window with tabs##eol1"
 msgstr "탭이 있는 모달 창##eol1"
 
-#: src/gui/settings.cpp:3320
+#: src/gui/settings.cpp:3316
 msgid "Modal windows with options in File menu##eol2"
 msgstr "파일 메뉴에 옵션이 있는 모달 창##eol2"
 
-#: src/gui/settings.cpp:3327
+#: src/gui/settings.cpp:3323
 msgid "Capitalize menu bar"
 msgstr "메뉴 바 대문자화"
 
-#: src/gui/settings.cpp:3333
+#: src/gui/settings.cpp:3329
 msgid "Display add/configure/change/remove chip menus in File menu"
 msgstr "파일 메뉴에 칩 추가/구성/변경/제거 메뉴 표시"
 
-#: src/gui/settings.cpp:3347
+#: src/gui/settings.cpp:3343
 msgid "Highlight channel at cursor in Orders"
 msgstr "커서가 있는 순서의 채널 강조 표시"
 
-#: src/gui/settings.cpp:3352
+#: src/gui/settings.cpp:3348
 msgid "Orders row number format:"
 msgstr "순서 행 숫자 포멧:"
 
-#: src/gui/settings.cpp:3354
+#: src/gui/settings.cpp:3350
 msgid "Decimal##orbD"
 msgstr "10진수##orbD"
 
-#: src/gui/settings.cpp:3358
+#: src/gui/settings.cpp:3354
 msgid "Hexadecimal##orbH"
 msgstr "16진수##orbH"
 
-#: src/gui/settings.cpp:3367
+#: src/gui/settings.cpp:3363
 msgid "Center pattern view"
 msgstr "중심 패턴 뷰"
 
-#: src/gui/settings.cpp:3373
+#: src/gui/settings.cpp:3369
 msgid "Overflow pattern highlights"
 msgstr "오버플로 패턴 강조 표시"
 
-#: src/gui/settings.cpp:3379
+#: src/gui/settings.cpp:3375
 msgid "Display previous/next pattern"
 msgstr "이전/다음 패턴 표시"
 
-#: src/gui/settings.cpp:3384
+#: src/gui/settings.cpp:3380
 msgid "Pattern row number format:"
 msgstr "패턴 행 숫자 포멧:"
 
-#: src/gui/settings.cpp:3386
+#: src/gui/settings.cpp:3382
 msgid "Decimal##prbD"
 msgstr "10진수##prbD"
 
-#: src/gui/settings.cpp:3390
+#: src/gui/settings.cpp:3386
 msgid "Hexadecimal##prbH"
 msgstr "16진수##prbH"
 
-#: src/gui/settings.cpp:3396
+#: src/gui/settings.cpp:3392
 msgid "Pattern view labels:"
 msgstr "패턴 뷰 라벨:"
 
-#: src/gui/settings.cpp:3401
+#: src/gui/settings.cpp:3397
 msgid "Note off (3-char)"
 msgstr "노트 off (세글자)"
 
-#: src/gui/settings.cpp:3406
+#: src/gui/settings.cpp:3402
 msgid "Note release (3-char)"
 msgstr "노트 release (세글자)"
 
-#: src/gui/settings.cpp:3411
+#: src/gui/settings.cpp:3407
 msgid "Macro release (3-char)"
 msgstr "매크로 release (세글자)"
 
-#: src/gui/settings.cpp:3416
+#: src/gui/settings.cpp:3412
 msgid "Empty field (3-char)"
 msgstr "빈 필드 (세글자)"
 
-#: src/gui/settings.cpp:3421
+#: src/gui/settings.cpp:3417
 msgid "Empty field (2-char)"
 msgstr "빈 필드 (두글자)"
 
-#: src/gui/settings.cpp:3423
+#: src/gui/settings.cpp:3419
 msgid "Pattern view spacing after:"
 msgstr "다음 이후 패턴 보기 간격:"
 
-#: src/gui/settings.cpp:3425 src/gui/settings.cpp:4231
-#: src/gui/findReplace.cpp:602 src/gui/findReplace.cpp:895
+#: src/gui/settings.cpp:3421 src/gui/settings.cpp:4227
+#: src/gui/findReplace.cpp:607 src/gui/findReplace.cpp:902
 #: src/gui/sampleEdit.cpp:633
 msgid "Note"
 msgstr "노트"
 
-#: src/gui/settings.cpp:3443 src/gui/findReplace.cpp:738
-#: src/gui/findReplace.cpp:1022 src/gui/gui.cpp:3172
+#: src/gui/settings.cpp:3439 src/gui/findReplace.cpp:743
+#: src/gui/findReplace.cpp:1029 src/gui/gui.cpp:3178
 msgid "Effect"
 msgstr "이펙트"
 
-#: src/gui/settings.cpp:3449
+#: src/gui/settings.cpp:3445
 msgid "Effect value"
 msgstr "이펙트 값"
 
-#: src/gui/settings.cpp:3456
+#: src/gui/settings.cpp:3452
 msgid "Single-digit effects for 00-0F"
 msgstr "00-0F에서 한 자리 수 이펙트"
 
-#: src/gui/settings.cpp:3462
+#: src/gui/settings.cpp:3458
 msgid "Use flats instead of sharps"
 msgstr "샤프 대신 플랫 사용"
 
-#: src/gui/settings.cpp:3468
+#: src/gui/settings.cpp:3464
 msgid "Use German notation"
 msgstr "독일어 표기법 사용"
 
-#: src/gui/settings.cpp:3476
+#: src/gui/settings.cpp:3472
 msgid "Channel style:"
 msgstr "채널 스타일:"
 
-#: src/gui/settings.cpp:3478
+#: src/gui/settings.cpp:3474
 msgid "Classic##CHS0"
 msgstr "클래식##CHS0"
 
-#: src/gui/settings.cpp:3482
+#: src/gui/settings.cpp:3478
 msgid "Line##CHS1"
 msgstr "선##CHS1"
 
-#: src/gui/settings.cpp:3486
+#: src/gui/settings.cpp:3482
 msgid "Round##CHS2"
 msgstr "원##CHS2"
 
-#: src/gui/settings.cpp:3490
+#: src/gui/settings.cpp:3486
 msgid "Split button##CHS3"
 msgstr "버튼 분할##CHS3"
 
-#: src/gui/settings.cpp:3494
+#: src/gui/settings.cpp:3490
 msgid "Square border##CH42"
 msgstr "사각 경계선##CH42"
 
-#: src/gui/settings.cpp:3498
+#: src/gui/settings.cpp:3494
 msgid "Round border##CHS5"
 msgstr "둥근 경계선##CHS5"
 
-#: src/gui/settings.cpp:3504
+#: src/gui/settings.cpp:3500
 msgid "Channel volume bar:"
 msgstr "채널 볼륨 바:"
 
-#: src/gui/settings.cpp:3506
+#: src/gui/settings.cpp:3502
 msgid "None##CHV0"
 msgstr "없음##CHV0"
 
-#: src/gui/settings.cpp:3510
+#: src/gui/settings.cpp:3506
 msgid "Simple##CHV1"
 msgstr "간단함##CHV1"
 
-#: src/gui/settings.cpp:3514
+#: src/gui/settings.cpp:3510
 msgid "Stereo##CHV2"
 msgstr "스테레오##CHV2"
 
-#: src/gui/settings.cpp:3518
+#: src/gui/settings.cpp:3514
 msgid "Real##CHV3"
 msgstr "실제##CHV3"
 
-#: src/gui/settings.cpp:3522
+#: src/gui/settings.cpp:3518
 msgid "Real (stereo)##CHV4"
 msgstr "실제 (스테레오)##CHV4"
 
-#: src/gui/settings.cpp:3528
+#: src/gui/settings.cpp:3524
 msgid "Channel feedback style:"
 msgstr "채널 피드백 스타일:"
 
-#: src/gui/settings.cpp:3530
+#: src/gui/settings.cpp:3526
 msgid "Off##CHF0"
 msgstr "사용 안함##CHF0"
 
-#: src/gui/settings.cpp:3534
+#: src/gui/settings.cpp:3530
 msgid "Note##CHF1"
 msgstr "노트##CHF1"
 
-#: src/gui/settings.cpp:3538
+#: src/gui/settings.cpp:3534
 msgid "Volume##CHF2"
 msgstr "볼륨##CHF2"
 
-#: src/gui/settings.cpp:3542
+#: src/gui/settings.cpp:3538
 msgid "Active##CHF3"
 msgstr "액티브##CHF3"
 
-#: src/gui/settings.cpp:3548
+#: src/gui/settings.cpp:3544
 msgid "Channel font:"
 msgstr "채널 폰트:"
 
-#: src/gui/settings.cpp:3550
+#: src/gui/settings.cpp:3546
 msgid "Regular##CHFont0"
 msgstr "레귤러##CHFont0"
 
-#: src/gui/settings.cpp:3554
+#: src/gui/settings.cpp:3550
 msgid "Monospace##CHFont1"
 msgstr "Monospace##CHFont1"
 
-#: src/gui/settings.cpp:3561
+#: src/gui/settings.cpp:3557
 msgid "Center channel name"
 msgstr "채널 이름을 중앙에 정렬"
 
-#: src/gui/settings.cpp:3566
+#: src/gui/settings.cpp:3562
 msgid "Channel colors:"
 msgstr "채널 색:"
 
-#: src/gui/settings.cpp:3568
+#: src/gui/settings.cpp:3564
 msgid "Single##CHC0"
 msgstr "단일##CHC0"
 
-#: src/gui/settings.cpp:3572
+#: src/gui/settings.cpp:3568
 msgid "Channel type##CHC1"
 msgstr "채널 유형##CHC1"
 
-#: src/gui/settings.cpp:3576
+#: src/gui/settings.cpp:3572
 msgid "Instrument type##CHC2"
 msgstr "악기 유형##CHC2"
 
-#: src/gui/settings.cpp:3582
+#: src/gui/settings.cpp:3578
 msgid "Channel name colors:"
 msgstr "채널 이름 색"
 
-#: src/gui/settings.cpp:3584
+#: src/gui/settings.cpp:3580
 msgid "Single##CTC0"
 msgstr "단일##CTC0"
 
-#: src/gui/settings.cpp:3588
+#: src/gui/settings.cpp:3584
 msgid "Channel type##CTC1"
 msgstr "채널 유형##CTC1"
 
-#: src/gui/settings.cpp:3592
+#: src/gui/settings.cpp:3588
 msgid "Instrument type##CTC2"
 msgstr "악기 유형##CTC2"
 
-#: src/gui/settings.cpp:3601
+#: src/gui/settings.cpp:3597
 msgid "Unified instrument/wavetable/sample list"
 msgstr "통합 악기/웨이브테이블/샘플 목록"
 
-#: src/gui/settings.cpp:3611
+#: src/gui/settings.cpp:3607
 msgid "Horizontal instrument/wavetable list"
 msgstr ""
 
-#: src/gui/settings.cpp:3617
+#: src/gui/settings.cpp:3613
 msgid "Instrument list icon style:"
 msgstr "악기 목록 아이콘 스타일:"
 
-#: src/gui/settings.cpp:3619
+#: src/gui/settings.cpp:3615
 msgid "None##iis0"
 msgstr "없음##iis0"
 
-#: src/gui/settings.cpp:3623
+#: src/gui/settings.cpp:3619
 msgid "Graphical icons##iis1"
 msgstr "그래픽 아이콘##iis1"
 
-#: src/gui/settings.cpp:3627
+#: src/gui/settings.cpp:3623
 msgid "Letter icons##iis2"
 msgstr "문자 아이콘##iis2"
 
-#: src/gui/settings.cpp:3634
+#: src/gui/settings.cpp:3630
 msgid "Colorize instrument editor using instrument type"
 msgstr "악기 유형을 사용하여 악기 편집기 색 맞추기"
 
-#: src/gui/settings.cpp:3640 src/gui/settings.cpp:4122
+#: src/gui/settings.cpp:3636 src/gui/settings.cpp:4118
 msgid "Macro Editor"
 msgstr "매크로 편집기"
 
-#: src/gui/settings.cpp:3641
+#: src/gui/settings.cpp:3637
 msgid "Macro editor layout:"
 msgstr "매크로 편집기 레이아웃:"
 
-#: src/gui/settings.cpp:3643
+#: src/gui/settings.cpp:3639
 msgid "Unified##mel0"
 msgstr "통일됨##mel0"
 
-#: src/gui/settings.cpp:3653
+#: src/gui/settings.cpp:3649
 msgid "Grid##mel2"
 msgstr "그리드##mel2"
 
-#: src/gui/settings.cpp:3657
+#: src/gui/settings.cpp:3653
 msgid "Single (with list)##mel3"
 msgstr "단일 (목록 포함)##mel3"
 
-#: src/gui/settings.cpp:3670
+#: src/gui/settings.cpp:3666
 msgid "Use classic macro editor vertical slider"
 msgstr "클래식 매크로 편집기의 수직 슬라이더 사용"
 
-#: src/gui/settings.cpp:3676
+#: src/gui/settings.cpp:3672
 msgid "Macro step size/horizontal zoom:"
 msgstr ""
 
-#: src/gui/settings.cpp:3678
+#: src/gui/settings.cpp:3674
 msgid "Manual"
 msgstr ""
 
-#: src/gui/settings.cpp:3682
+#: src/gui/settings.cpp:3678
 msgid "Automatic per macro"
 msgstr ""
 
-#: src/gui/settings.cpp:3686
+#: src/gui/settings.cpp:3682
 msgid "Automatic (use longest macro)"
 msgstr ""
 
-#: src/gui/settings.cpp:3694
+#: src/gui/settings.cpp:3690
 msgid "Wave Editor"
 msgstr "웨이브 편집기"
 
-#: src/gui/settings.cpp:3696
+#: src/gui/settings.cpp:3692
 msgid "Use compact wave editor"
 msgstr "콤팩트 웨이브 편집기 사용"
 
-#: src/gui/settings.cpp:3702 src/gui/settings.cpp:4099
+#: src/gui/settings.cpp:3698 src/gui/settings.cpp:4095
 msgid "FM Editor"
 msgstr "FM 편집기"
 
-#: src/gui/settings.cpp:3703
+#: src/gui/settings.cpp:3699
 msgid "FM parameter names:"
 msgstr "FM 매개 변수 이름:"
 
-#: src/gui/settings.cpp:3705
+#: src/gui/settings.cpp:3701
 msgid "Friendly##fmn0"
 msgstr "사용자 친화적##fmn0"
 
-#: src/gui/settings.cpp:3709
+#: src/gui/settings.cpp:3705
 msgid "Technical##fmn1"
 msgstr "기술적##fmn1"
 
-#: src/gui/settings.cpp:3713
+#: src/gui/settings.cpp:3709
 msgid "Technical (alternate)##fmn2"
 msgstr "기술적 (대체)##fmn2"
 
-#: src/gui/settings.cpp:3720
+#: src/gui/settings.cpp:3716
 msgid "Use standard OPL waveform names"
 msgstr "기본 OPL 파형 이름 사용"
 
-#: src/gui/settings.cpp:3725
+#: src/gui/settings.cpp:3721
 msgid "FM parameter editor layout:"
 msgstr "FM 매개 변수 편집기 레이아웃:"
 
-#: src/gui/settings.cpp:3727
+#: src/gui/settings.cpp:3723
 msgid "Modern##fml0"
 msgstr "현대적##fml0"
 
-#: src/gui/settings.cpp:3731
+#: src/gui/settings.cpp:3727
 msgid "Modern with more labels##fml7"
 msgstr "현대적 (더 많은 라벨 표시)##fml7"
 
-#: src/gui/settings.cpp:3735
+#: src/gui/settings.cpp:3731
 msgid "Compact (2x2, classic)##fml1"
 msgstr "콤팩트 (2x2, 클래식)##fml1"
 
-#: src/gui/settings.cpp:3739
+#: src/gui/settings.cpp:3735
 msgid "Compact (1x4)##fml2"
 msgstr "콤팩트 (1x4)##fml2"
 
-#: src/gui/settings.cpp:3743
+#: src/gui/settings.cpp:3739
 msgid "Compact (4x1)##fml3"
 msgstr "콤팩트 (4x1)##fml3"
 
-#: src/gui/settings.cpp:3747
+#: src/gui/settings.cpp:3743
 msgid "Alternate (2x2)##fml4"
 msgstr "대체 (2x2)##fml4"
 
-#: src/gui/settings.cpp:3751
+#: src/gui/settings.cpp:3747
 msgid "Alternate (1x4)##fml5"
 msgstr "대체 (1x4)##fml5"
 
-#: src/gui/settings.cpp:3755
+#: src/gui/settings.cpp:3751
 msgid "Alternate (4x1)##fml5"
 msgstr "대체 (4x1)##fml5"
 
-#: src/gui/settings.cpp:3761
+#: src/gui/settings.cpp:3757
 msgid "Position of Sustain in FM editor:"
 msgstr "FM 편집기의 Sustain의 위치:"
 
-#: src/gui/settings.cpp:3763
+#: src/gui/settings.cpp:3759
 msgid "Between Decay and Sustain Rate##susp0"
 msgstr "Decay와 Sustain Rate 사이##susp0"
 
-#: src/gui/settings.cpp:3767
+#: src/gui/settings.cpp:3763
 msgid "After Release Rate##susp1"
 msgstr "Release Rate 이후##susp1"
 
-#: src/gui/settings.cpp:3772
+#: src/gui/settings.cpp:3768
 msgid "After Release Rate, after spacing##susp2"
 msgstr "Release Rate 이후, 간격을 두고##susp2"
 
-#: src/gui/settings.cpp:3776
+#: src/gui/settings.cpp:3772
 msgid "After TL##susp3"
 msgstr "TL 이후##susp3"
 
-#: src/gui/settings.cpp:3784
+#: src/gui/settings.cpp:3780
 msgid "Use separate colors for carriers/modulators in FM editor"
 msgstr "FM 편집기의 캐리어/모듈레이터의 색상을 서로 다르게"
 
-#: src/gui/settings.cpp:3790
+#: src/gui/settings.cpp:3786
 msgid "Unsigned FM detune values"
 msgstr "부호가 없는 FM 디튠 값"
 
-#: src/gui/settings.cpp:3797
+#: src/gui/settings.cpp:3793
 msgid "Chip memory usage unit:"
 msgstr "칩 메모리 사용 단위:"
 
-#: src/gui/settings.cpp:3799
+#: src/gui/settings.cpp:3795
 msgid "Bytes##MUU0"
 msgstr "바이트##MUU0"
 
-#: src/gui/settings.cpp:3803
+#: src/gui/settings.cpp:3799
 msgid "Kilobytes##MUU1"
 msgstr "킬로바이트##MUU1"
 
-#: src/gui/settings.cpp:3812
+#: src/gui/settings.cpp:3808
 msgid "Rounded corners"
 msgstr "둥근 모서리"
 
-#: src/gui/settings.cpp:3818 src/gui/settings.cpp:4004
-#: src/gui/settings.cpp:4046
+#: src/gui/settings.cpp:3814 src/gui/settings.cpp:4000
+#: src/gui/settings.cpp:4042
 msgid "Border"
 msgstr "경계선"
 
-#: src/gui/settings.cpp:3830
+#: src/gui/settings.cpp:3826
 msgid "Anti-aliased"
 msgstr "안티에일리어싱"
 
-#: src/gui/settings.cpp:3836
+#: src/gui/settings.cpp:3832
 msgid "Fill entire window"
 msgstr "전체 창 채우기"
 
-#: src/gui/settings.cpp:3842
+#: src/gui/settings.cpp:3838
 msgid "Waveform goes out of bounds"
 msgstr "파형이 창을 뚫더라도 표시하기"
 
-#: src/gui/settings.cpp:3856
+#: src/gui/settings.cpp:3852
 msgid "Wrap text"
 msgstr ""
 
-#: src/gui/settings.cpp:3862
+#: src/gui/settings.cpp:3858
 msgid "Windows"
 msgstr "창"
 
-#: src/gui/settings.cpp:3864
+#: src/gui/settings.cpp:3860
 msgid "Rounded window corners"
 msgstr "창 모서리를 둥글게"
 
-#: src/gui/settings.cpp:3870
+#: src/gui/settings.cpp:3866
 msgid "Rounded buttons"
 msgstr "버튼을 둥글게"
 
-#: src/gui/settings.cpp:3876
+#: src/gui/settings.cpp:3872
 msgid "Rounded menu corners"
 msgstr "메뉴 모서리를 둥글게"
 
-#: src/gui/settings.cpp:3882
+#: src/gui/settings.cpp:3878
 msgid "Rounded tabs"
 msgstr "탭을 둥글게"
 
-#: src/gui/settings.cpp:3888
+#: src/gui/settings.cpp:3884
 msgid "Rounded scrollbars"
 msgstr "스크롤 바를 둥글게"
 
-#: src/gui/settings.cpp:3894
+#: src/gui/settings.cpp:3890
 msgid "Borders around widgets"
 msgstr "위젯 주위에 테두리 보이기"
 
-#: src/gui/settings.cpp:3903
+#: src/gui/settings.cpp:3899
 msgid "Color scheme"
 msgstr "색 구성표"
 
-#: src/gui/settings.cpp:3913
+#: src/gui/settings.cpp:3909
 msgid "Are you sure you want to reset the color scheme?"
 msgstr "정말로 색 구성표를 재설정하시겠습까?"
 
-#: src/gui/settings.cpp:3916
+#: src/gui/settings.cpp:3912
 msgid "Guru mode"
 msgstr "전문가 모드"
 
-#: src/gui/settings.cpp:3923 src/gui/settings.cpp:3953
+#: src/gui/settings.cpp:3919 src/gui/settings.cpp:3949
 msgid "Frame shading"
 msgstr "프레임 셰이딩"
 
-#: src/gui/settings.cpp:3929
+#: src/gui/settings.cpp:3925
 msgid "Color scheme type:"
 msgstr "색 구성표 종류:"
 
-#: src/gui/settings.cpp:3931
+#: src/gui/settings.cpp:3927
 msgid "Dark##gcb0"
 msgstr "다크##gcb0"
 
-#: src/gui/settings.cpp:3936
+#: src/gui/settings.cpp:3932
 msgid "Light##gcb1"
 msgstr "라이트##gcb1"
 
-#: src/gui/settings.cpp:3943
+#: src/gui/settings.cpp:3939
 msgid "Accent colors:"
 msgstr "악센트 색:"
 
-#: src/gui/settings.cpp:3945
+#: src/gui/settings.cpp:3941
 msgid "Primary"
 msgstr "1차"
 
-#: src/gui/settings.cpp:3946
+#: src/gui/settings.cpp:3942
 msgid "Secondary"
 msgstr "2차"
 
-#: src/gui/settings.cpp:3960
+#: src/gui/settings.cpp:3956
 msgid "Button"
 msgstr "버튼"
 
-#: src/gui/settings.cpp:3961
+#: src/gui/settings.cpp:3957
 msgid "Button (hovered)"
 msgstr "버튼 (마우스를 올렸을 시)"
 
-#: src/gui/settings.cpp:3962
+#: src/gui/settings.cpp:3958
 msgid "Button (active)"
 msgstr "버튼 (활성화 시)"
 
-#: src/gui/settings.cpp:3963
+#: src/gui/settings.cpp:3959
 msgid "Tab"
 msgstr "탭"
 
-#: src/gui/settings.cpp:3964
+#: src/gui/settings.cpp:3960
 msgid "Tab (hovered)"
 msgstr "탭 (마우스를 올렸을 시)"
 
-#: src/gui/settings.cpp:3965
+#: src/gui/settings.cpp:3961
 msgid "Tab (active)"
 msgstr "탭 (활성화 시)"
 
-#: src/gui/settings.cpp:3966
+#: src/gui/settings.cpp:3962
 msgid "Tab (unfocused)"
 msgstr "Tab (포커스에서 벗어났을 시)"
 
-#: src/gui/settings.cpp:3967
+#: src/gui/settings.cpp:3963
 msgid "Tab (unfocused and active)"
 msgstr "Tab (포커스에서 벗어났을 시) (활성화 시)"
 
-#: src/gui/settings.cpp:3968
+#: src/gui/settings.cpp:3964
 msgid "ImGui header"
 msgstr "ImGui 헤더"
 
-#: src/gui/settings.cpp:3969
+#: src/gui/settings.cpp:3965
 msgid "ImGui header (hovered)"
 msgstr "ImGui 헤더 (마우스를 올렸을 시)"
 
-#: src/gui/settings.cpp:3970
+#: src/gui/settings.cpp:3966
 msgid "ImGui header (active)"
 msgstr "ImGui 헤더 (활성화 시)"
 
-#: src/gui/settings.cpp:3971
+#: src/gui/settings.cpp:3967
 msgid "Resize grip"
 msgstr "창 크기 조절 손잡이"
 
-#: src/gui/settings.cpp:3972
+#: src/gui/settings.cpp:3968
 msgid "Resize grip (hovered)"
 msgstr "창 크기 조절 손잡이 (마우스를 올렸을 시)"
 
-#: src/gui/settings.cpp:3973
+#: src/gui/settings.cpp:3969
 msgid "Resize grip (active)"
 msgstr "창 크기 조절 손잡이 (활성화 시)"
 
-#: src/gui/settings.cpp:3974
+#: src/gui/settings.cpp:3970
 msgid "Widget background"
 msgstr "위젯 배경"
 
-#: src/gui/settings.cpp:3975
+#: src/gui/settings.cpp:3971
 msgid "Widget background (hovered)"
 msgstr "위젯 배경 (마우스를 올렸을 시)"
 
-#: src/gui/settings.cpp:3976
+#: src/gui/settings.cpp:3972
 msgid "Widget background (active)"
 msgstr "위젯 배경 (활성화 시)"
 
-#: src/gui/settings.cpp:3977
+#: src/gui/settings.cpp:3973
 msgid "Slider grab"
 msgstr "슬라이더 그랩"
 
-#: src/gui/settings.cpp:3978
+#: src/gui/settings.cpp:3974
 msgid "Slider grab (active)"
 msgstr "슬라이더 그랩 (활성화 시)"
 
-#: src/gui/settings.cpp:3979
+#: src/gui/settings.cpp:3975
 msgid "Title background (active)"
 msgstr "타이틀 배경 (활성화 시)"
 
-#: src/gui/settings.cpp:3980
+#: src/gui/settings.cpp:3976
 msgid "Checkbox/radio button mark"
 msgstr "체크박스 라디오 버튼 마크"
 
-#: src/gui/settings.cpp:3981
+#: src/gui/settings.cpp:3977
 msgid "Text selection"
 msgstr "텍스트 선택"
 
-#: src/gui/settings.cpp:3982
+#: src/gui/settings.cpp:3978
 msgid "Line plot"
 msgstr "라인 도표"
 
-#: src/gui/settings.cpp:3983
+#: src/gui/settings.cpp:3979
 msgid "Line plot (hovered)"
 msgstr "라인 도표 (마우스를 올렸을 시)"
 
-#: src/gui/settings.cpp:3984
+#: src/gui/settings.cpp:3980
 msgid "Histogram plot"
 msgstr "히스토그램 도표"
 
-#: src/gui/settings.cpp:3985
+#: src/gui/settings.cpp:3981
 msgid "Histogram plot (hovered)"
 msgstr "히스토그램 도표 (마우스를 올렸을 시)"
 
-#: src/gui/settings.cpp:3986
+#: src/gui/settings.cpp:3982
 msgid "Table row (even)"
 msgstr "테이블 행 (짝수)"
 
-#: src/gui/settings.cpp:3987
+#: src/gui/settings.cpp:3983
 msgid "Table row (odd)"
 msgstr "테이블 행 (홀수)"
 
-#: src/gui/settings.cpp:3992
+#: src/gui/settings.cpp:3988
 msgid "Interface (other)"
 msgstr "인터페이스 (다른)"
 
-#: src/gui/settings.cpp:3994
+#: src/gui/settings.cpp:3990
 msgid "Window background"
 msgstr "창 배경"
 
-#: src/gui/settings.cpp:3995
+#: src/gui/settings.cpp:3991
 msgid "Sub-window background"
 msgstr "하위 창 배경"
 
-#: src/gui/settings.cpp:3996
+#: src/gui/settings.cpp:3992
 msgid "Pop-up background"
 msgstr "팝업 배경"
 
-#: src/gui/settings.cpp:3997
+#: src/gui/settings.cpp:3993
 msgid "Modal backdrop"
 msgstr "모달 배경"
 
-#: src/gui/settings.cpp:3998
+#: src/gui/settings.cpp:3994
 msgid "Header"
 msgstr "헤더"
 
-#: src/gui/settings.cpp:4000
+#: src/gui/settings.cpp:3996
 msgid "Text (disabled)"
 msgstr ""
 
-#: src/gui/settings.cpp:4001
+#: src/gui/settings.cpp:3997
 msgid "Title bar (inactive)"
 msgstr "타이틀 바 (비활성화 시)"
 
-#: src/gui/settings.cpp:4002
+#: src/gui/settings.cpp:3998
 msgid "Title bar (collapsed)"
 msgstr "타이틀 바 (닫혔을 시)"
 
-#: src/gui/settings.cpp:4003
+#: src/gui/settings.cpp:3999
 msgid "Menu bar"
 msgstr "메뉴 바"
 
-#: src/gui/settings.cpp:4005
+#: src/gui/settings.cpp:4001
 msgid "Border shadow"
 msgstr ""
 
-#: src/gui/settings.cpp:4006
+#: src/gui/settings.cpp:4002
 msgid "Scroll bar"
 msgstr "스크롤 바"
 
-#: src/gui/settings.cpp:4007
+#: src/gui/settings.cpp:4003
 msgid "Scroll bar (hovered)"
 msgstr "스크롤 바 (마우스를 올렸을 시)"
 
-#: src/gui/settings.cpp:4008
+#: src/gui/settings.cpp:4004
 msgid "Scroll bar (clicked)"
 msgstr "스크롤 바 (클릭 시)"
 
-#: src/gui/settings.cpp:4009
+#: src/gui/settings.cpp:4005
 msgid "Scroll bar background"
 msgstr ""
 
-#: src/gui/settings.cpp:4010
+#: src/gui/settings.cpp:4006
 msgid "Separator"
 msgstr ""
 
-#: src/gui/settings.cpp:4011
+#: src/gui/settings.cpp:4007
 msgid "Separator (hover)"
 msgstr ""
 
-#: src/gui/settings.cpp:4012
+#: src/gui/settings.cpp:4008
 msgid "Separator (active)"
 msgstr ""
 
-#: src/gui/settings.cpp:4013
+#: src/gui/settings.cpp:4009
 msgid "Docking preview"
 msgstr ""
 
-#: src/gui/settings.cpp:4014
+#: src/gui/settings.cpp:4010
 msgid "Docking empty"
 msgstr ""
 
-#: src/gui/settings.cpp:4015
+#: src/gui/settings.cpp:4011
 msgid "Table header"
 msgstr ""
 
-#: src/gui/settings.cpp:4016
+#: src/gui/settings.cpp:4012
 msgid "Table border (hard)"
 msgstr ""
 
-#: src/gui/settings.cpp:4017
+#: src/gui/settings.cpp:4013
 msgid "Table border (soft)"
 msgstr ""
 
-#: src/gui/settings.cpp:4018
+#: src/gui/settings.cpp:4014
 msgid "Drag and drop target"
 msgstr ""
 
-#: src/gui/settings.cpp:4019
+#: src/gui/settings.cpp:4015
 msgid "Window switcher (highlight)"
 msgstr ""
 
-#: src/gui/settings.cpp:4020
+#: src/gui/settings.cpp:4016
 msgid "Window switcher backdrop"
 msgstr ""
 
-#: src/gui/settings.cpp:4023 src/gui/settings.cpp:4252 src/gui/guiConst.cpp:238
+#: src/gui/settings.cpp:4019 src/gui/settings.cpp:4248 src/gui/guiConst.cpp:238
 msgid "Miscellaneous"
 msgstr ""
 
-#: src/gui/settings.cpp:4024
+#: src/gui/settings.cpp:4020
 msgid "Toggle on"
 msgstr ""
 
-#: src/gui/settings.cpp:4025
+#: src/gui/settings.cpp:4021
 msgid "Toggle off"
 msgstr ""
 
-#: src/gui/settings.cpp:4026
+#: src/gui/settings.cpp:4022
 msgid "Playback status"
 msgstr ""
 
-#: src/gui/settings.cpp:4027
+#: src/gui/settings.cpp:4023
 msgid "Destructive hint"
 msgstr ""
 
-#: src/gui/settings.cpp:4028
+#: src/gui/settings.cpp:4024
 msgid "Warning hint"
 msgstr ""
 
-#: src/gui/settings.cpp:4029
+#: src/gui/settings.cpp:4025
 msgid "Error hint"
 msgstr ""
 
-#: src/gui/settings.cpp:4032
+#: src/gui/settings.cpp:4028
 msgid "File Picker (built-in)"
 msgstr ""
 
-#: src/gui/settings.cpp:4033
+#: src/gui/settings.cpp:4029
 msgid "Directory"
 msgstr "디렉토리"
 
-#: src/gui/settings.cpp:4034
+#: src/gui/settings.cpp:4030
 msgid "Song (native)"
 msgstr ""
 
-#: src/gui/settings.cpp:4035
+#: src/gui/settings.cpp:4031
 msgid "Song (import)"
 msgstr ""
 
-#: src/gui/settings.cpp:4040
+#: src/gui/settings.cpp:4036
 msgid "ZSM"
 msgstr "ZSM"
 
-#: src/gui/settings.cpp:4041
+#: src/gui/settings.cpp:4037
 msgid "Font"
 msgstr ""
 
-#: src/gui/settings.cpp:4047
+#: src/gui/settings.cpp:4043
 msgid "Background (top-left)"
 msgstr ""
 
-#: src/gui/settings.cpp:4048
+#: src/gui/settings.cpp:4044
 msgid "Background (top-right)"
 msgstr ""
 
-#: src/gui/settings.cpp:4049
+#: src/gui/settings.cpp:4045
 msgid "Background (bottom-left)"
 msgstr ""
 
-#: src/gui/settings.cpp:4050
+#: src/gui/settings.cpp:4046
 msgid "Background (bottom-right)"
 msgstr ""
 
-#: src/gui/settings.cpp:4051 src/gui/settings.cpp:4106
-#: src/gui/settings.cpp:4282 src/gui/waveEdit.cpp:633 src/gui/insEdit.cpp:53
+#: src/gui/settings.cpp:4047 src/gui/settings.cpp:4102
+#: src/gui/settings.cpp:4278 src/gui/waveEdit.cpp:633 src/gui/insEdit.cpp:53
 #: src/gui/insEdit.cpp:4893 src/gui/insEdit.cpp:5999 src/gui/insEdit.cpp:7086
 #: src/gui/insEdit.cpp:7979 src/gui/insEdit.cpp:7988 src/gui/insEdit.cpp:8003
 #: src/gui/insEdit.cpp:8020 src/gui/insEdit.cpp:8031 src/gui/insEdit.cpp:8046
@@ -11816,119 +11816,119 @@ msgstr ""
 msgid "Waveform"
 msgstr "파형"
 
-#: src/gui/settings.cpp:4052
+#: src/gui/settings.cpp:4048
 msgid "Waveform (clip)"
 msgstr ""
 
-#: src/gui/settings.cpp:4053
+#: src/gui/settings.cpp:4049
 msgid "Reference"
 msgstr ""
 
-#: src/gui/settings.cpp:4054
+#: src/gui/settings.cpp:4050
 msgid "Guide"
 msgstr ""
 
-#: src/gui/settings.cpp:4056
+#: src/gui/settings.cpp:4052
 msgid "Wave (non-mono)"
 msgstr ""
 
-#: src/gui/settings.cpp:4057
+#: src/gui/settings.cpp:4053
 msgid "Waveform (1)"
 msgstr ""
 
-#: src/gui/settings.cpp:4058
+#: src/gui/settings.cpp:4054
 msgid "Waveform (2)"
 msgstr ""
 
-#: src/gui/settings.cpp:4059
+#: src/gui/settings.cpp:4055
 msgid "Waveform (3)"
 msgstr ""
 
-#: src/gui/settings.cpp:4060
+#: src/gui/settings.cpp:4056
 msgid "Waveform (4)"
 msgstr ""
 
-#: src/gui/settings.cpp:4061
+#: src/gui/settings.cpp:4057
 msgid "Waveform (5)"
 msgstr ""
 
-#: src/gui/settings.cpp:4062
+#: src/gui/settings.cpp:4058
 msgid "Waveform (6)"
 msgstr ""
 
-#: src/gui/settings.cpp:4063
+#: src/gui/settings.cpp:4059
 msgid "Waveform (7)"
 msgstr ""
 
-#: src/gui/settings.cpp:4064
+#: src/gui/settings.cpp:4060
 msgid "Waveform (8)"
 msgstr ""
 
-#: src/gui/settings.cpp:4065
+#: src/gui/settings.cpp:4061
 msgid "Waveform (9)"
 msgstr ""
 
-#: src/gui/settings.cpp:4066
+#: src/gui/settings.cpp:4062
 msgid "Waveform (10)"
 msgstr ""
 
-#: src/gui/settings.cpp:4067
+#: src/gui/settings.cpp:4063
 msgid "Waveform (11)"
 msgstr ""
 
-#: src/gui/settings.cpp:4068
+#: src/gui/settings.cpp:4064
 msgid "Waveform (12)"
 msgstr ""
 
-#: src/gui/settings.cpp:4069
+#: src/gui/settings.cpp:4065
 msgid "Waveform (13)"
 msgstr ""
 
-#: src/gui/settings.cpp:4070
+#: src/gui/settings.cpp:4066
 msgid "Waveform (14)"
 msgstr ""
 
-#: src/gui/settings.cpp:4071
+#: src/gui/settings.cpp:4067
 msgid "Waveform (15)"
 msgstr ""
 
-#: src/gui/settings.cpp:4072
+#: src/gui/settings.cpp:4068
 msgid "Waveform (16)"
 msgstr ""
 
-#: src/gui/settings.cpp:4080
+#: src/gui/settings.cpp:4076
 msgid "Clip"
 msgstr ""
 
-#: src/gui/settings.cpp:4084
+#: src/gui/settings.cpp:4080
 msgid "Order number"
 msgstr ""
 
-#: src/gui/settings.cpp:4085
+#: src/gui/settings.cpp:4081
 msgid "Playing order background"
 msgstr ""
 
-#: src/gui/settings.cpp:4086
+#: src/gui/settings.cpp:4082
 msgid "Song loop"
 msgstr ""
 
-#: src/gui/settings.cpp:4087
+#: src/gui/settings.cpp:4083
 msgid "Selected order"
 msgstr ""
 
-#: src/gui/settings.cpp:4088
+#: src/gui/settings.cpp:4084
 msgid "Similar patterns"
 msgstr ""
 
-#: src/gui/settings.cpp:4089
+#: src/gui/settings.cpp:4085
 msgid "Inactive patterns"
 msgstr ""
 
-#: src/gui/settings.cpp:4092
+#: src/gui/settings.cpp:4088
 msgid "Envelope View"
 msgstr ""
 
-#: src/gui/settings.cpp:4093 src/gui/settings.cpp:4128 src/gui/insEdit.cpp:654
+#: src/gui/settings.cpp:4089 src/gui/settings.cpp:4124 src/gui/insEdit.cpp:654
 #: src/gui/insEdit.cpp:3875 src/gui/insEdit.cpp:3876 src/gui/insEdit.cpp:4826
 #: src/gui/insEdit.cpp:4896 src/gui/insEdit.cpp:5559 src/gui/insEdit.cpp:6105
 #: src/gui/insEdit.cpp:6106 src/gui/insEdit.cpp:7135 src/gui/insEdit.cpp:7136
@@ -11939,69 +11939,69 @@ msgstr ""
 msgid "Envelope"
 msgstr ""
 
-#: src/gui/settings.cpp:4094
+#: src/gui/settings.cpp:4090
 msgid "Sustain guide"
 msgstr ""
 
-#: src/gui/settings.cpp:4100
+#: src/gui/settings.cpp:4096
 msgid "Algorithm background"
 msgstr ""
 
-#: src/gui/settings.cpp:4101
+#: src/gui/settings.cpp:4097
 msgid "Algorithm lines"
 msgstr ""
 
-#: src/gui/settings.cpp:4102
+#: src/gui/settings.cpp:4098
 msgid "Modulator"
 msgstr ""
 
-#: src/gui/settings.cpp:4103
+#: src/gui/settings.cpp:4099
 msgid "Carrier"
 msgstr ""
 
-#: src/gui/settings.cpp:4105 src/gui/insEdit.cpp:53 src/gui/insEdit.cpp:4891
+#: src/gui/settings.cpp:4101 src/gui/insEdit.cpp:53 src/gui/insEdit.cpp:4891
 msgid "SSG-EG"
 msgstr ""
 
-#: src/gui/settings.cpp:4108
+#: src/gui/settings.cpp:4104
 msgid ""
 "(the following colors only apply when \"Use separate colors for carriers/"
 "modulators in FM editor\" is on!)"
 msgstr ""
 
-#: src/gui/settings.cpp:4110
+#: src/gui/settings.cpp:4106
 msgid "Mod. accent (primary)"
 msgstr ""
 
-#: src/gui/settings.cpp:4111
+#: src/gui/settings.cpp:4107
 msgid "Mod. accent (secondary)"
 msgstr ""
 
-#: src/gui/settings.cpp:4112
+#: src/gui/settings.cpp:4108
 msgid "Mod. border"
 msgstr ""
 
-#: src/gui/settings.cpp:4113
+#: src/gui/settings.cpp:4109
 msgid "Mod. border shadow"
 msgstr ""
 
-#: src/gui/settings.cpp:4115
+#: src/gui/settings.cpp:4111
 msgid "Car. accent (primary)"
 msgstr ""
 
-#: src/gui/settings.cpp:4116
+#: src/gui/settings.cpp:4112
 msgid "Car. accent (secondary)"
 msgstr ""
 
-#: src/gui/settings.cpp:4117
+#: src/gui/settings.cpp:4113
 msgid "Car. border"
 msgstr ""
 
-#: src/gui/settings.cpp:4118
+#: src/gui/settings.cpp:4114
 msgid "Car. border shadow"
 msgstr ""
 
-#: src/gui/settings.cpp:4124 src/gui/guiConst.cpp:230 src/gui/insEdit.cpp:7963
+#: src/gui/settings.cpp:4120 src/gui/guiConst.cpp:230 src/gui/insEdit.cpp:7963
 #: src/gui/insEdit.cpp:7970 src/gui/insEdit.cpp:7981 src/gui/insEdit.cpp:7989
 #: src/gui/insEdit.cpp:8011 src/gui/insEdit.cpp:8023 src/gui/insEdit.cpp:8033
 #: src/gui/insEdit.cpp:8048 src/gui/insEdit.cpp:8063 src/gui/insEdit.cpp:8072
@@ -12026,938 +12026,938 @@ msgstr ""
 msgid "Pitch"
 msgstr "피치"
 
-#: src/gui/settings.cpp:4127 src/gui/sampleEdit.cpp:999
+#: src/gui/settings.cpp:4123 src/gui/sampleEdit.cpp:999
 msgid "Filter"
 msgstr "필터"
 
-#: src/gui/settings.cpp:4129
+#: src/gui/settings.cpp:4125
 msgid "Global Parameter"
 msgstr "전역 매개 변수"
 
-#: src/gui/settings.cpp:4131
+#: src/gui/settings.cpp:4127
 msgid "Step Highlight"
 msgstr "스텝 강조 표시"
 
-#: src/gui/settings.cpp:4134
+#: src/gui/settings.cpp:4130
 msgid "Instrument Types"
 msgstr "악기 종류"
 
-#: src/gui/settings.cpp:4135
+#: src/gui/settings.cpp:4131
 msgid "FM (OPN)"
 msgstr ""
 
-#: src/gui/settings.cpp:4136
+#: src/gui/settings.cpp:4132
 msgid "SN76489/Sega PSG"
 msgstr ""
 
-#: src/gui/settings.cpp:4139
+#: src/gui/settings.cpp:4135
 msgid "C64"
 msgstr ""
 
-#: src/gui/settings.cpp:4140
+#: src/gui/settings.cpp:4136
 msgid "Amiga/Generic Sample"
 msgstr ""
 
-#: src/gui/settings.cpp:4142
+#: src/gui/settings.cpp:4138
 msgid "AY-3-8910/SSG"
 msgstr ""
 
-#: src/gui/settings.cpp:4143
+#: src/gui/settings.cpp:4139
 msgid "AY8930"
 msgstr ""
 
-#: src/gui/settings.cpp:4144
+#: src/gui/settings.cpp:4140
 msgid "TIA"
 msgstr ""
 
-#: src/gui/settings.cpp:4145
+#: src/gui/settings.cpp:4141
 msgid "SAA1099"
 msgstr ""
 
-#: src/gui/settings.cpp:4146
+#: src/gui/settings.cpp:4142
 msgid "VIC"
 msgstr ""
 
-#: src/gui/settings.cpp:4147
+#: src/gui/settings.cpp:4143
 msgid "PET"
 msgstr ""
 
-#: src/gui/settings.cpp:4148
+#: src/gui/settings.cpp:4144
 msgid "VRC6"
 msgstr ""
 
-#: src/gui/settings.cpp:4149 src/gui/guiConst.cpp:149
+#: src/gui/settings.cpp:4145 src/gui/guiConst.cpp:149
 msgid "VRC6 (saw)"
 msgstr ""
 
-#: src/gui/settings.cpp:4150
+#: src/gui/settings.cpp:4146
 msgid "FM (OPLL)"
 msgstr ""
 
-#: src/gui/settings.cpp:4151
+#: src/gui/settings.cpp:4147
 msgid "FM (OPL)"
 msgstr ""
 
-#: src/gui/settings.cpp:4156
+#: src/gui/settings.cpp:4152
 msgid "FM (OPZ)"
 msgstr ""
 
-#: src/gui/settings.cpp:4158
+#: src/gui/settings.cpp:4154
 msgid "PC Beeper"
 msgstr ""
 
-#: src/gui/settings.cpp:4160
+#: src/gui/settings.cpp:4156
 msgid "Lynx"
 msgstr ""
 
-#: src/gui/settings.cpp:4162
+#: src/gui/settings.cpp:4158
 msgid "X1-010"
 msgstr ""
 
-#: src/gui/settings.cpp:4163
+#: src/gui/settings.cpp:4159
 msgid "ES5506"
 msgstr ""
 
-#: src/gui/settings.cpp:4166
+#: src/gui/settings.cpp:4162
 msgid "Sound Unit"
 msgstr ""
 
-#: src/gui/settings.cpp:4168
+#: src/gui/settings.cpp:4164
 msgid "FM (OPL Drums)"
 msgstr ""
 
-#: src/gui/settings.cpp:4169
+#: src/gui/settings.cpp:4165
 msgid "FM (OPM)"
 msgstr ""
 
-#: src/gui/settings.cpp:4171
+#: src/gui/settings.cpp:4167
 msgid "MSM6258"
 msgstr ""
 
-#: src/gui/settings.cpp:4172
+#: src/gui/settings.cpp:4168
 msgid "MSM6295"
 msgstr ""
 
-#: src/gui/settings.cpp:4173
+#: src/gui/settings.cpp:4169
 msgid "ADPCM-A"
 msgstr ""
 
-#: src/gui/settings.cpp:4175
+#: src/gui/settings.cpp:4171
 msgid "Sega PCM"
 msgstr ""
 
-#: src/gui/settings.cpp:4176
+#: src/gui/settings.cpp:4172
 msgid "QSound"
 msgstr ""
 
-#: src/gui/settings.cpp:4177
+#: src/gui/settings.cpp:4173
 msgid "YMZ280B"
 msgstr ""
 
-#: src/gui/settings.cpp:4178
+#: src/gui/settings.cpp:4174
 msgid "RF5C68"
 msgstr ""
 
-#: src/gui/settings.cpp:4179
+#: src/gui/settings.cpp:4175
 msgid "MSM5232"
 msgstr ""
 
-#: src/gui/settings.cpp:4180
+#: src/gui/settings.cpp:4176
 msgid "K007232"
 msgstr ""
 
-#: src/gui/settings.cpp:4181
+#: src/gui/settings.cpp:4177
 msgid "GA20"
 msgstr ""
 
-#: src/gui/settings.cpp:4183
+#: src/gui/settings.cpp:4179
 msgid "SM8521"
 msgstr ""
 
-#: src/gui/settings.cpp:4184
+#: src/gui/settings.cpp:4180
 msgid "PV-1000"
 msgstr ""
 
-#: src/gui/settings.cpp:4185
+#: src/gui/settings.cpp:4181
 msgid "K053260"
 msgstr ""
 
-#: src/gui/settings.cpp:4186
+#: src/gui/settings.cpp:4182
 msgid "TED"
 msgstr ""
 
-#: src/gui/settings.cpp:4187
+#: src/gui/settings.cpp:4183
 msgid "C140"
 msgstr ""
 
-#: src/gui/settings.cpp:4188
+#: src/gui/settings.cpp:4184
 msgid "C219"
 msgstr ""
 
-#: src/gui/settings.cpp:4189
+#: src/gui/settings.cpp:4185
 msgid "ESFM"
 msgstr ""
 
-#: src/gui/settings.cpp:4190 src/gui/guiConst.cpp:179
+#: src/gui/settings.cpp:4186 src/gui/guiConst.cpp:179
 msgid "PowerNoise (noise)"
 msgstr ""
 
-#: src/gui/settings.cpp:4191 src/gui/guiConst.cpp:180
+#: src/gui/settings.cpp:4187 src/gui/guiConst.cpp:180
 msgid "PowerNoise (slope)"
 msgstr ""
 
-#: src/gui/settings.cpp:4194
+#: src/gui/settings.cpp:4190
 msgid "GBA DMA"
 msgstr ""
 
-#: src/gui/settings.cpp:4195
+#: src/gui/settings.cpp:4191
 msgid "GBA MinMod"
 msgstr ""
 
-#: src/gui/settings.cpp:4198
+#: src/gui/settings.cpp:4194
 msgid "Supervision"
 msgstr ""
 
-#: src/gui/settings.cpp:4199
+#: src/gui/settings.cpp:4195
 msgid "μPD1771C"
 msgstr ""
 
-#: src/gui/settings.cpp:4201
+#: src/gui/settings.cpp:4197
 msgid "Other/Unknown"
 msgstr ""
 
-#: src/gui/settings.cpp:4205
+#: src/gui/settings.cpp:4201
 msgid "Single color (background)"
 msgstr ""
 
-#: src/gui/settings.cpp:4206
+#: src/gui/settings.cpp:4202
 msgid "Single color (text)"
 msgstr ""
 
-#: src/gui/settings.cpp:4212
+#: src/gui/settings.cpp:4208
 msgid "FM operator"
 msgstr ""
 
-#: src/gui/settings.cpp:4213
+#: src/gui/settings.cpp:4209
 msgid "Muted"
 msgstr ""
 
-#: src/gui/settings.cpp:4217
+#: src/gui/settings.cpp:4213
 msgid "Playhead"
 msgstr ""
 
-#: src/gui/settings.cpp:4218
+#: src/gui/settings.cpp:4214
 msgid "Editing"
 msgstr ""
 
-#: src/gui/settings.cpp:4219
+#: src/gui/settings.cpp:4215
 msgid "Editing (will clone)"
 msgstr ""
 
-#: src/gui/settings.cpp:4220
+#: src/gui/settings.cpp:4216
 msgid "Cursor"
 msgstr ""
 
-#: src/gui/settings.cpp:4221
+#: src/gui/settings.cpp:4217
 msgid "Cursor (hovered)"
 msgstr ""
 
-#: src/gui/settings.cpp:4222
+#: src/gui/settings.cpp:4218
 msgid "Cursor (clicked)"
 msgstr ""
 
-#: src/gui/settings.cpp:4223 src/gui/settings.cpp:4288
-#: src/gui/findReplace.cpp:822
+#: src/gui/settings.cpp:4219 src/gui/settings.cpp:4284
+#: src/gui/findReplace.cpp:827
 msgid "Selection"
 msgstr ""
 
-#: src/gui/settings.cpp:4224
+#: src/gui/settings.cpp:4220
 msgid "Selection (hovered)"
 msgstr ""
 
-#: src/gui/settings.cpp:4225
+#: src/gui/settings.cpp:4221
 msgid "Selection (clicked)"
 msgstr ""
 
-#: src/gui/settings.cpp:4226
+#: src/gui/settings.cpp:4222
 msgid "Highlight 1"
 msgstr ""
 
-#: src/gui/settings.cpp:4227
+#: src/gui/settings.cpp:4223
 msgid "Highlight 2"
 msgstr ""
 
-#: src/gui/settings.cpp:4228
+#: src/gui/settings.cpp:4224
 msgid "Row number"
 msgstr ""
 
-#: src/gui/settings.cpp:4229
+#: src/gui/settings.cpp:4225
 msgid "Row number (highlight 1)"
 msgstr ""
 
-#: src/gui/settings.cpp:4230
+#: src/gui/settings.cpp:4226
 msgid "Row number (highlight 2)"
 msgstr ""
 
-#: src/gui/settings.cpp:4232
+#: src/gui/settings.cpp:4228
 msgid "Note (highlight 1)"
 msgstr ""
 
-#: src/gui/settings.cpp:4233
+#: src/gui/settings.cpp:4229
 msgid "Note (highlight 2)"
 msgstr ""
 
-#: src/gui/settings.cpp:4234
+#: src/gui/settings.cpp:4230
 msgid "Blank"
 msgstr ""
 
-#: src/gui/settings.cpp:4235
+#: src/gui/settings.cpp:4231
 msgid "Blank (highlight 1)"
 msgstr ""
 
-#: src/gui/settings.cpp:4236
+#: src/gui/settings.cpp:4232
 msgid "Blank (highlight 2)"
 msgstr ""
 
-#: src/gui/settings.cpp:4238
+#: src/gui/settings.cpp:4234
 msgid "Instrument (invalid type)"
 msgstr ""
 
-#: src/gui/settings.cpp:4239
+#: src/gui/settings.cpp:4235
 msgid "Instrument (out of range)"
 msgstr ""
 
-#: src/gui/settings.cpp:4240
+#: src/gui/settings.cpp:4236
 msgid "Volume (0%)"
 msgstr ""
 
-#: src/gui/settings.cpp:4241
+#: src/gui/settings.cpp:4237
 msgid "Volume (50%)"
 msgstr ""
 
-#: src/gui/settings.cpp:4242
+#: src/gui/settings.cpp:4238
 msgid "Volume (100%)"
 msgstr ""
 
-#: src/gui/settings.cpp:4244
+#: src/gui/settings.cpp:4240
 msgid "Pitch effect"
 msgstr ""
 
-#: src/gui/settings.cpp:4245
+#: src/gui/settings.cpp:4241
 msgid "Volume effect"
 msgstr ""
 
-#: src/gui/settings.cpp:4246
+#: src/gui/settings.cpp:4242
 msgid "Panning effect"
 msgstr ""
 
-#: src/gui/settings.cpp:4247
+#: src/gui/settings.cpp:4243
 msgid "Song effect"
 msgstr ""
 
-#: src/gui/settings.cpp:4248
+#: src/gui/settings.cpp:4244
 msgid "Time effect"
 msgstr ""
 
-#: src/gui/settings.cpp:4249
+#: src/gui/settings.cpp:4245
 msgid "Speed effect"
 msgstr ""
 
-#: src/gui/settings.cpp:4250
+#: src/gui/settings.cpp:4246
 msgid "Primary specific effect"
 msgstr ""
 
-#: src/gui/settings.cpp:4251
+#: src/gui/settings.cpp:4247
 msgid "Secondary specific effect"
 msgstr ""
 
-#: src/gui/settings.cpp:4253
+#: src/gui/settings.cpp:4249
 msgid "External command output"
 msgstr ""
 
-#: src/gui/settings.cpp:4254
+#: src/gui/settings.cpp:4250
 msgid "Status: off/disabled"
 msgstr ""
 
-#: src/gui/settings.cpp:4255
+#: src/gui/settings.cpp:4251
 msgid "Status: off + macro rel"
 msgstr ""
 
-#: src/gui/settings.cpp:4256
+#: src/gui/settings.cpp:4252
 msgid "Status: on + macro rel"
 msgstr ""
 
-#: src/gui/settings.cpp:4257
+#: src/gui/settings.cpp:4253
 msgid "Status: on"
 msgstr ""
 
-#: src/gui/settings.cpp:4258
+#: src/gui/settings.cpp:4254
 msgid "Status: volume"
 msgstr ""
 
-#: src/gui/settings.cpp:4259
+#: src/gui/settings.cpp:4255
 msgid "Status: pitch"
 msgstr ""
 
-#: src/gui/settings.cpp:4260
+#: src/gui/settings.cpp:4256
 msgid "Status: panning"
 msgstr ""
 
-#: src/gui/settings.cpp:4261
+#: src/gui/settings.cpp:4257
 msgid "Status: chip (primary)"
 msgstr ""
 
-#: src/gui/settings.cpp:4262
+#: src/gui/settings.cpp:4258
 msgid "Status: chip (secondary)"
 msgstr ""
 
-#: src/gui/settings.cpp:4263
+#: src/gui/settings.cpp:4259
 msgid "Status: mixing"
 msgstr ""
 
-#: src/gui/settings.cpp:4264
+#: src/gui/settings.cpp:4260
 msgid "Status: DSP effect"
 msgstr ""
 
-#: src/gui/settings.cpp:4265
+#: src/gui/settings.cpp:4261
 msgid "Status: note altering"
 msgstr ""
 
-#: src/gui/settings.cpp:4266
+#: src/gui/settings.cpp:4262
 msgid "Status: misc color 1"
 msgstr ""
 
-#: src/gui/settings.cpp:4267
+#: src/gui/settings.cpp:4263
 msgid "Status: misc color 2"
 msgstr ""
 
-#: src/gui/settings.cpp:4268
+#: src/gui/settings.cpp:4264
 msgid "Status: misc color 3"
 msgstr ""
 
-#: src/gui/settings.cpp:4269
+#: src/gui/settings.cpp:4265
 msgid "Status: attack"
 msgstr ""
 
-#: src/gui/settings.cpp:4270
+#: src/gui/settings.cpp:4266
 msgid "Status: decay"
 msgstr ""
 
-#: src/gui/settings.cpp:4271
+#: src/gui/settings.cpp:4267
 msgid "Status: sustain"
 msgstr ""
 
-#: src/gui/settings.cpp:4272
+#: src/gui/settings.cpp:4268
 msgid "Status: release"
 msgstr ""
 
-#: src/gui/settings.cpp:4273
+#: src/gui/settings.cpp:4269
 msgid "Status: decrease linear"
 msgstr ""
 
-#: src/gui/settings.cpp:4274
+#: src/gui/settings.cpp:4270
 msgid "Status: decrease exp"
 msgstr ""
 
-#: src/gui/settings.cpp:4275
+#: src/gui/settings.cpp:4271
 msgid "Status: increase"
 msgstr ""
 
-#: src/gui/settings.cpp:4276
+#: src/gui/settings.cpp:4272
 msgid "Status: bent"
 msgstr ""
 
-#: src/gui/settings.cpp:4277
+#: src/gui/settings.cpp:4273
 msgid "Status: direct"
 msgstr ""
 
-#: src/gui/settings.cpp:4280 src/gui/guiConst.cpp:627 src/gui/sampleEdit.cpp:96
+#: src/gui/settings.cpp:4276 src/gui/guiConst.cpp:627 src/gui/sampleEdit.cpp:96
 msgid "Sample Editor"
 msgstr ""
 
-#: src/gui/settings.cpp:4283
+#: src/gui/settings.cpp:4279
 msgid "Time background"
 msgstr ""
 
-#: src/gui/settings.cpp:4284
+#: src/gui/settings.cpp:4280
 msgid "Time text"
 msgstr ""
 
-#: src/gui/settings.cpp:4285
+#: src/gui/settings.cpp:4281
 msgid "Loop region"
 msgstr ""
 
-#: src/gui/settings.cpp:4286
+#: src/gui/settings.cpp:4282
 msgid "Center guide"
 msgstr ""
 
-#: src/gui/settings.cpp:4287
+#: src/gui/settings.cpp:4283
 msgid "Grid"
 msgstr ""
 
-#: src/gui/settings.cpp:4289
+#: src/gui/settings.cpp:4285
 msgid "Selection points"
 msgstr ""
 
-#: src/gui/settings.cpp:4290
+#: src/gui/settings.cpp:4286
 msgid "Preview needle"
 msgstr ""
 
-#: src/gui/settings.cpp:4291
+#: src/gui/settings.cpp:4287
 msgid "Playing needles"
 msgstr ""
 
-#: src/gui/settings.cpp:4292
+#: src/gui/settings.cpp:4288
 msgid "Loop markers"
 msgstr ""
 
-#: src/gui/settings.cpp:4293
+#: src/gui/settings.cpp:4289
 msgid "Chip select: disabled"
 msgstr ""
 
-#: src/gui/settings.cpp:4294
+#: src/gui/settings.cpp:4290
 msgid "Chip select: enabled"
 msgstr ""
 
-#: src/gui/settings.cpp:4295
+#: src/gui/settings.cpp:4291
 msgid "Chip select: enabled (failure)"
 msgstr ""
 
-#: src/gui/settings.cpp:4298 src/gui/guiConst.cpp:643 src/gui/patManager.cpp:35
+#: src/gui/settings.cpp:4294 src/gui/guiConst.cpp:643 src/gui/patManager.cpp:35
 msgid "Pattern Manager"
 msgstr ""
 
-#: src/gui/settings.cpp:4299
+#: src/gui/settings.cpp:4295
 msgid "Unallocated"
 msgstr ""
 
-#: src/gui/settings.cpp:4300
+#: src/gui/settings.cpp:4296
 msgid "Unused"
 msgstr ""
 
-#: src/gui/settings.cpp:4301
+#: src/gui/settings.cpp:4297
 msgid "Used"
 msgstr ""
 
-#: src/gui/settings.cpp:4302
+#: src/gui/settings.cpp:4298
 msgid "Overused"
 msgstr ""
 
-#: src/gui/settings.cpp:4303
+#: src/gui/settings.cpp:4299
 msgid "Really overused"
 msgstr ""
 
-#: src/gui/settings.cpp:4304
+#: src/gui/settings.cpp:4300
 msgid "Combo Breaker"
 msgstr ""
 
-#: src/gui/settings.cpp:4307 src/gui/guiConst.cpp:640 src/gui/piano.cpp:63
+#: src/gui/settings.cpp:4303 src/gui/guiConst.cpp:640 src/gui/piano.cpp:63
 msgid "Piano"
 msgstr ""
 
-#: src/gui/settings.cpp:4309
+#: src/gui/settings.cpp:4305
 msgid "Upper key"
 msgstr ""
 
-#: src/gui/settings.cpp:4310
+#: src/gui/settings.cpp:4306
 msgid "Upper key (feedback)"
 msgstr ""
 
-#: src/gui/settings.cpp:4311
+#: src/gui/settings.cpp:4307
 msgid "Upper key (pressed)"
 msgstr ""
 
-#: src/gui/settings.cpp:4312
+#: src/gui/settings.cpp:4308
 msgid "Lower key"
 msgstr ""
 
-#: src/gui/settings.cpp:4313
+#: src/gui/settings.cpp:4309
 msgid "Lower key (feedback)"
 msgstr ""
 
-#: src/gui/settings.cpp:4314
+#: src/gui/settings.cpp:4310
 msgid "Lower key (pressed)"
 msgstr ""
 
-#: src/gui/settings.cpp:4317 src/gui/clock.cpp:31 src/gui/guiConst.cpp:651
+#: src/gui/settings.cpp:4313 src/gui/clock.cpp:31 src/gui/guiConst.cpp:651
 msgid "Clock"
 msgstr "클럭"
 
-#: src/gui/settings.cpp:4318
+#: src/gui/settings.cpp:4314
 msgid "Clock text"
 msgstr ""
 
-#: src/gui/settings.cpp:4319
+#: src/gui/settings.cpp:4315
 msgid "Beat (off)"
 msgstr ""
 
-#: src/gui/settings.cpp:4320
+#: src/gui/settings.cpp:4316
 msgid "Beat (on)"
 msgstr ""
 
-#: src/gui/settings.cpp:4325
+#: src/gui/settings.cpp:4321
 msgid "PortSet"
 msgstr ""
 
-#: src/gui/settings.cpp:4326
+#: src/gui/settings.cpp:4322
 msgid "Port"
 msgstr ""
 
-#: src/gui/settings.cpp:4327
+#: src/gui/settings.cpp:4323
 msgid "Port (hidden/unavailable)"
 msgstr ""
 
-#: src/gui/settings.cpp:4328
+#: src/gui/settings.cpp:4324
 msgid "Connection (selected)"
 msgstr ""
 
-#: src/gui/settings.cpp:4329
+#: src/gui/settings.cpp:4325
 msgid "Connection (other)"
 msgstr ""
 
-#: src/gui/settings.cpp:4335
+#: src/gui/settings.cpp:4331
 msgid "Waveform data"
 msgstr ""
 
-#: src/gui/settings.cpp:4338
+#: src/gui/settings.cpp:4334
 msgid "Reserved"
 msgstr ""
 
-#: src/gui/settings.cpp:4340
+#: src/gui/settings.cpp:4336
 msgid "Sample (alternate 1)"
 msgstr ""
 
-#: src/gui/settings.cpp:4341
+#: src/gui/settings.cpp:4337
 msgid "Sample (alternate 2)"
 msgstr ""
 
-#: src/gui/settings.cpp:4342
+#: src/gui/settings.cpp:4338
 msgid "Sample (alternate 3)"
 msgstr ""
 
-#: src/gui/settings.cpp:4343
+#: src/gui/settings.cpp:4339
 msgid "Wave RAM"
 msgstr ""
 
-#: src/gui/settings.cpp:4344
+#: src/gui/settings.cpp:4340
 msgid "Wavetable (static)"
 msgstr ""
 
-#: src/gui/settings.cpp:4345
+#: src/gui/settings.cpp:4341
 msgid "Echo buffer"
 msgstr ""
 
-#: src/gui/settings.cpp:4346
+#: src/gui/settings.cpp:4342
 msgid "Namco 163 load pos"
 msgstr ""
 
-#: src/gui/settings.cpp:4347
+#: src/gui/settings.cpp:4343
 msgid "Namco 163 play pos"
 msgstr ""
 
-#: src/gui/settings.cpp:4348
+#: src/gui/settings.cpp:4344
 msgid "Sample (bank 0)"
 msgstr ""
 
-#: src/gui/settings.cpp:4349
+#: src/gui/settings.cpp:4345
 msgid "Sample (bank 1)"
 msgstr ""
 
-#: src/gui/settings.cpp:4350
+#: src/gui/settings.cpp:4346
 msgid "Sample (bank 2)"
 msgstr ""
 
-#: src/gui/settings.cpp:4351
+#: src/gui/settings.cpp:4347
 msgid "Sample (bank 3)"
 msgstr ""
 
-#: src/gui/settings.cpp:4352
+#: src/gui/settings.cpp:4348
 msgid "Sample (bank 4)"
 msgstr ""
 
-#: src/gui/settings.cpp:4353
+#: src/gui/settings.cpp:4349
 msgid "Sample (bank 5)"
 msgstr ""
 
-#: src/gui/settings.cpp:4354
+#: src/gui/settings.cpp:4350
 msgid "Sample (bank 6)"
 msgstr ""
 
-#: src/gui/settings.cpp:4355
+#: src/gui/settings.cpp:4351
 msgid "Sample (bank 7)"
 msgstr ""
 
-#: src/gui/settings.cpp:4360
+#: src/gui/settings.cpp:4356
 msgid "Log level: Error"
 msgstr ""
 
-#: src/gui/settings.cpp:4361
+#: src/gui/settings.cpp:4357
 msgid "Log level: Warning"
 msgstr ""
 
-#: src/gui/settings.cpp:4362
+#: src/gui/settings.cpp:4358
 msgid "Log level: Info"
 msgstr ""
 
-#: src/gui/settings.cpp:4363
+#: src/gui/settings.cpp:4359
 msgid "Log level: Debug"
 msgstr ""
 
-#: src/gui/settings.cpp:4364
+#: src/gui/settings.cpp:4360
 msgid "Log level: Trace/Verbose"
 msgstr ""
 
-#: src/gui/settings.cpp:4369
+#: src/gui/settings.cpp:4365
 msgid "Backup"
 msgstr ""
 
-#: src/gui/settings.cpp:4374
+#: src/gui/settings.cpp:4370
 msgid "Enable backup system"
 msgstr ""
 
-#: src/gui/settings.cpp:4379
+#: src/gui/settings.cpp:4375
 msgid "Interval (in seconds)"
 msgstr ""
 
-#: src/gui/settings.cpp:4384
+#: src/gui/settings.cpp:4380
 msgid "Backups per file"
 msgstr ""
 
-#: src/gui/settings.cpp:4390
+#: src/gui/settings.cpp:4386
 msgid "Backup Management"
 msgstr ""
 
-#: src/gui/settings.cpp:4394
+#: src/gui/settings.cpp:4390
 msgid "Purge before:"
 msgstr ""
 
-#: src/gui/settings.cpp:4468
+#: src/gui/settings.cpp:4464
 msgid "Go##PDate"
 msgstr ""
 
-#: src/gui/settings.cpp:4475
+#: src/gui/settings.cpp:4471
 #, c-format
 msgid "%<PRIu64>PB used"
 msgstr ""
 
-#: src/gui/settings.cpp:4477
+#: src/gui/settings.cpp:4473
 #, c-format
 msgid "%<PRIu64>TB used"
 msgstr ""
 
-#: src/gui/settings.cpp:4479
+#: src/gui/settings.cpp:4475
 #, c-format
 msgid "%<PRIu64>GB used"
 msgstr ""
 
-#: src/gui/settings.cpp:4481
+#: src/gui/settings.cpp:4477
 #, c-format
 msgid "%<PRIu64>MB used"
 msgstr ""
 
-#: src/gui/settings.cpp:4483
+#: src/gui/settings.cpp:4479
 #, c-format
 msgid "%<PRIu64>KB used"
 msgstr ""
 
-#: src/gui/settings.cpp:4485
+#: src/gui/settings.cpp:4481
 #, c-format
 msgid "%<PRIu64> bytes used"
 msgstr ""
 
-#: src/gui/settings.cpp:4490
+#: src/gui/settings.cpp:4486
 msgid "Refresh"
 msgstr ""
 
-#: src/gui/settings.cpp:4494
+#: src/gui/settings.cpp:4490
 msgid "Delete all"
 msgstr ""
 
-#: src/gui/settings.cpp:4500 src/gui/settings.cpp:7150
+#: src/gui/settings.cpp:4496 src/gui/settings.cpp:7118
 msgid "Size"
 msgstr ""
 
-#: src/gui/settings.cpp:4501
+#: src/gui/settings.cpp:4497
 msgid "Latest"
 msgstr ""
 
-#: src/gui/settings.cpp:4511
+#: src/gui/settings.cpp:4507
 #, c-format
 msgid "%<PRIu64>P"
 msgstr ""
 
-#: src/gui/settings.cpp:4513
+#: src/gui/settings.cpp:4509
 #, c-format
 msgid "%<PRIu64>T"
 msgstr ""
 
-#: src/gui/settings.cpp:4515
+#: src/gui/settings.cpp:4511
 #, c-format
 msgid "%<PRIu64>G"
 msgstr ""
 
-#: src/gui/settings.cpp:4517
+#: src/gui/settings.cpp:4513
 #, c-format
 msgid "%<PRIu64>M"
 msgstr ""
 
-#: src/gui/settings.cpp:4519
+#: src/gui/settings.cpp:4515
 #, c-format
 msgid "%<PRIu64>K"
 msgstr ""
 
-#: src/gui/settings.cpp:4521
+#: src/gui/settings.cpp:4517
 #, c-format
 msgid "%<PRIu64>"
 msgstr ""
 
-#: src/gui/settings.cpp:4645
+#: src/gui/settings.cpp:4641
 msgid "Cheat Codes"
 msgstr ""
 
-#: src/gui/settings.cpp:4647
+#: src/gui/settings.cpp:4643
 msgid "Enter code:"
 msgstr ""
 
-#: src/gui/settings.cpp:4649
+#: src/gui/settings.cpp:4645
 msgid "Submit"
 msgstr ""
 
-#: src/gui/settings.cpp:4653
+#: src/gui/settings.cpp:4649
 msgid "invalid code"
 msgstr ""
 
-#: src/gui/settings.cpp:4663
+#: src/gui/settings.cpp:4659
 msgid "toggled alternate UI"
 msgstr ""
 
-#: src/gui/settings.cpp:4667
+#: src/gui/settings.cpp:4663
 msgid ":smile: :star_struck: :sunglasses: :ok_hand:"
 msgstr ""
 
-#: src/gui/settings.cpp:4671
+#: src/gui/settings.cpp:4667
 msgid "enabled all instrument types"
 msgstr ""
 
-#: src/gui/settings.cpp:4675
+#: src/gui/settings.cpp:4671
 msgid "OK, if I bring your Partial pitch linearity will you stop bothering me?"
 msgstr ""
 
-#: src/gui/settings.cpp:4679
+#: src/gui/settings.cpp:4675
 msgid "enabled \"comfortable\" mode"
 msgstr ""
 
-#: src/gui/settings.cpp:4697
+#: src/gui/settings.cpp:4693
 msgid "OK##SettingsOK"
 msgstr ""
 
-#: src/gui/settings.cpp:4703
+#: src/gui/settings.cpp:4699
 msgid "Cancel##SettingsCancel"
 msgstr ""
 
-#: src/gui/settings.cpp:4711
+#: src/gui/settings.cpp:4707
 msgid "Apply##SettingsApply"
 msgstr ""
 
-#: src/gui/settings.cpp:4734 src/gui/settings.cpp:4751
+#: src/gui/settings.cpp:4730 src/gui/settings.cpp:4747
 msgid "Press key..."
 msgstr "키를 누르십시오..."
 
-#: src/gui/settings.cpp:5863
+#: src/gui/settings.cpp:5831
 msgid "could not initialize audio!"
 msgstr ""
 
-#: src/gui/settings.cpp:5878 src/gui/gui.cpp:4238 src/gui/gui.cpp:7277
-#: src/gui/gui.cpp:7731
+#: src/gui/settings.cpp:5846 src/gui/gui.cpp:4251 src/gui/gui.cpp:7290
+#: src/gui/gui.cpp:7744
 msgid "error while loading fonts! please check your settings."
 msgstr ""
 
-#: src/gui/settings.cpp:6064
+#: src/gui/settings.cpp:6032
 #, c-format
 msgid "error while loading config! (%s)"
 msgstr ""
 
-#: src/gui/settings.cpp:7137
+#: src/gui/settings.cpp:7105
 msgid "[Dir]"
 msgstr ""
 
-#: src/gui/settings.cpp:7138
+#: src/gui/settings.cpp:7106
 msgid "[Link]"
 msgstr ""
 
-#: src/gui/settings.cpp:7139
+#: src/gui/settings.cpp:7107
 msgid "[File]"
 msgstr ""
 
-#: src/gui/settings.cpp:7140
+#: src/gui/settings.cpp:7108
 msgid "Name:"
 msgstr ""
 
-#: src/gui/settings.cpp:7141
+#: src/gui/settings.cpp:7109
 msgid "Path:"
 msgstr ""
 
-#: src/gui/settings.cpp:7142
+#: src/gui/settings.cpp:7110
 msgid "Reset search"
 msgstr ""
 
-#: src/gui/settings.cpp:7143
+#: src/gui/settings.cpp:7111
 msgid "Drives"
 msgstr ""
 
-#: src/gui/settings.cpp:7144
+#: src/gui/settings.cpp:7112
 msgid ""
 "Edit path\n"
 "You can also right click on path buttons"
 msgstr ""
 
-#: src/gui/settings.cpp:7145
+#: src/gui/settings.cpp:7113
 msgid "Go to home directory"
 msgstr ""
 
-#: src/gui/settings.cpp:7146
+#: src/gui/settings.cpp:7114
 msgid "Go to parent directory"
 msgstr ""
 
-#: src/gui/settings.cpp:7147
+#: src/gui/settings.cpp:7115
 msgid "Create Directory"
 msgstr ""
 
-#: src/gui/settings.cpp:7148
+#: src/gui/settings.cpp:7116
 msgid "File name"
 msgstr ""
 
-#: src/gui/settings.cpp:7151
+#: src/gui/settings.cpp:7119
 msgid "Date"
 msgstr ""
 
-#: src/gui/settings.cpp:7152 src/gui/gui.cpp:5764 src/gui/gui.cpp:6042
-#: src/gui/gui.cpp:6043
+#: src/gui/settings.cpp:7120 src/gui/gui.cpp:5777 src/gui/gui.cpp:6055
+#: src/gui/gui.cpp:6056
 msgid "Warning"
 msgstr ""
 
-#: src/gui/settings.cpp:7153
+#: src/gui/settings.cpp:7121
 msgid "The file you selected already exists! Would you like to overwrite it?"
 msgstr "선택한 파일이 이미 존재합니다! 덮어쓰시겠습니까?"
 
-#: src/gui/settings.cpp:7154 src/gui/gui.cpp:6047 src/gui/gui.cpp:6071
-#: src/gui/gui.cpp:6095 src/gui/gui.cpp:6119 src/gui/gui.cpp:6143
-#: src/gui/gui.cpp:6167 src/gui/gui.cpp:6199 src/gui/gui.cpp:6215
-#: src/gui/gui.cpp:6226 src/gui/gui.cpp:6238 src/gui/gui.cpp:6392
-#: src/gui/gui.cpp:6414 src/gui/gui.cpp:6430 src/gui/gui.cpp:6441
+#: src/gui/settings.cpp:7122 src/gui/gui.cpp:6060 src/gui/gui.cpp:6084
+#: src/gui/gui.cpp:6108 src/gui/gui.cpp:6132 src/gui/gui.cpp:6156
+#: src/gui/gui.cpp:6180 src/gui/gui.cpp:6212 src/gui/gui.cpp:6228
+#: src/gui/gui.cpp:6239 src/gui/gui.cpp:6251 src/gui/gui.cpp:6405
+#: src/gui/gui.cpp:6427 src/gui/gui.cpp:6443 src/gui/gui.cpp:6454
 msgid "Yes"
 msgstr "예"
 
-#: src/gui/settings.cpp:7155 src/gui/findReplace.cpp:859 src/gui/gui.cpp:6061
-#: src/gui/gui.cpp:6085 src/gui/gui.cpp:6109 src/gui/gui.cpp:6133
-#: src/gui/gui.cpp:6157 src/gui/gui.cpp:6185 src/gui/gui.cpp:6210
-#: src/gui/gui.cpp:6221 src/gui/gui.cpp:6233 src/gui/gui.cpp:6245
-#: src/gui/gui.cpp:6409 src/gui/gui.cpp:6425 src/gui/gui.cpp:6435
-#: src/gui/gui.cpp:6448
+#: src/gui/settings.cpp:7123 src/gui/findReplace.cpp:866 src/gui/gui.cpp:6074
+#: src/gui/gui.cpp:6098 src/gui/gui.cpp:6122 src/gui/gui.cpp:6146
+#: src/gui/gui.cpp:6170 src/gui/gui.cpp:6198 src/gui/gui.cpp:6223
+#: src/gui/gui.cpp:6234 src/gui/gui.cpp:6246 src/gui/gui.cpp:6258
+#: src/gui/gui.cpp:6422 src/gui/gui.cpp:6438 src/gui/gui.cpp:6448
+#: src/gui/gui.cpp:6461
 msgid "No"
 msgstr "아니요"
 
-#: src/gui/settings.cpp:7156
+#: src/gui/settings.cpp:7124
 msgid "%Y/%m/%d %H:%M"
 msgstr "%Y/%m/%d %H:%M"
 
@@ -13053,119 +13053,119 @@ msgstr "다음으로 추가하기 (오버플로)"
 msgid "scale %"
 msgstr ""
 
-#: src/gui/findReplace.cpp:512 src/gui/guiConst.cpp:650
+#: src/gui/findReplace.cpp:517 src/gui/guiConst.cpp:650
 msgid "Find/Replace"
 msgstr ""
 
-#: src/gui/findReplace.cpp:520 src/gui/findReplace.cpp:881
+#: src/gui/findReplace.cpp:525 src/gui/findReplace.cpp:888
 msgid "Find"
 msgstr ""
 
-#: src/gui/findReplace.cpp:526 src/gui/findReplace.cpp:535
+#: src/gui/findReplace.cpp:531 src/gui/findReplace.cpp:540
 msgid "order"
 msgstr ""
 
-#: src/gui/findReplace.cpp:527 src/gui/findReplace.cpp:537
+#: src/gui/findReplace.cpp:532 src/gui/findReplace.cpp:542
 msgid "row"
 msgstr ""
 
-#: src/gui/findReplace.cpp:539 src/gui/csPlayer.cpp:159
+#: src/gui/findReplace.cpp:544 src/gui/csPlayer.cpp:159
 msgid "channel"
 msgstr ""
 
-#: src/gui/findReplace.cpp:541
+#: src/gui/findReplace.cpp:546
 msgid "go"
 msgstr ""
 
-#: src/gui/findReplace.cpp:586
+#: src/gui/findReplace.cpp:591
 msgid "no matches found!"
 msgstr ""
 
-#: src/gui/findReplace.cpp:588
+#: src/gui/findReplace.cpp:593
 msgid "Back"
 msgstr ""
 
-#: src/gui/findReplace.cpp:781
+#: src/gui/findReplace.cpp:786
 msgid "Delete query"
 msgstr ""
 
-#: src/gui/findReplace.cpp:785 src/gui/findReplace.cpp:1085
+#: src/gui/findReplace.cpp:790 src/gui/findReplace.cpp:1092
 msgid "Add effect"
 msgstr ""
 
-#: src/gui/findReplace.cpp:792 src/gui/findReplace.cpp:1092
+#: src/gui/findReplace.cpp:797 src/gui/findReplace.cpp:1099
 msgid "Remove effect"
 msgstr ""
 
-#: src/gui/findReplace.cpp:817
+#: src/gui/findReplace.cpp:822
 msgid "Search range:"
 msgstr ""
 
-#: src/gui/findReplace.cpp:830
+#: src/gui/findReplace.cpp:836
 msgid "Confine to channels"
 msgstr ""
 
-#: src/gui/findReplace.cpp:834 src/gui/sampleEdit.cpp:1195
+#: src/gui/findReplace.cpp:840 src/gui/sampleEdit.cpp:1201
 msgid "From"
 msgstr ""
 
-#: src/gui/findReplace.cpp:845 src/gui/sampleEdit.cpp:1199
+#: src/gui/findReplace.cpp:851 src/gui/sampleEdit.cpp:1205
 msgid "To"
 msgstr ""
 
-#: src/gui/findReplace.cpp:857
+#: src/gui/findReplace.cpp:864
 msgid "Match effect position:"
 msgstr ""
 
-#: src/gui/findReplace.cpp:863
+#: src/gui/findReplace.cpp:870
 msgid "match effects regardless of position."
 msgstr ""
 
-#: src/gui/findReplace.cpp:865 src/gui/compatFlags.cpp:288
+#: src/gui/findReplace.cpp:872 src/gui/compatFlags.cpp:288
 msgid "Lax"
 msgstr ""
 
-#: src/gui/findReplace.cpp:869
+#: src/gui/findReplace.cpp:876
 msgid "match effects only if they appear in-order."
 msgstr ""
 
-#: src/gui/findReplace.cpp:871 src/gui/compatFlags.cpp:276
+#: src/gui/findReplace.cpp:878 src/gui/compatFlags.cpp:276
 msgid "Strict"
 msgstr ""
 
-#: src/gui/findReplace.cpp:875
+#: src/gui/findReplace.cpp:882
 msgid "match effects only if they appear exactly as specified."
 msgstr ""
 
-#: src/gui/findReplace.cpp:887
+#: src/gui/findReplace.cpp:894
 msgid "Replace"
 msgstr ""
 
-#: src/gui/findReplace.cpp:956
+#: src/gui/findReplace.cpp:963
 msgid "INVALID"
 msgstr ""
 
-#: src/gui/findReplace.cpp:1100
+#: src/gui/findReplace.cpp:1107
 msgid "Effect replace mode:"
 msgstr ""
 
-#: src/gui/findReplace.cpp:1101
+#: src/gui/findReplace.cpp:1108
 msgid "Replace matches only"
 msgstr ""
 
-#: src/gui/findReplace.cpp:1104
+#: src/gui/findReplace.cpp:1111
 msgid "Replace matches, then free spaces"
 msgstr ""
 
-#: src/gui/findReplace.cpp:1107
+#: src/gui/findReplace.cpp:1114
 msgid "Clear effects"
 msgstr ""
 
-#: src/gui/findReplace.cpp:1110
+#: src/gui/findReplace.cpp:1117
 msgid "Insert in free spaces"
 msgstr ""
 
-#: src/gui/findReplace.cpp:1113
+#: src/gui/findReplace.cpp:1120
 msgid "Replace##QueryReplace"
 msgstr ""
 
@@ -13330,8 +13330,9 @@ msgid "MAME YMZ280B core by Aaron Giles"
 msgstr "MAME YMZ280B core by Aaron Giles"
 
 #: src/gui/about.cpp:140
-msgid "MAME GA20 core by Acho A. Tang and R. Belmont"
-msgstr "MAME GA20 core by Acho A. Tang and R. Belmont"
+msgid ""
+"MAME GA20 core by Acho A. Tang, R. Belmont and Valley Bell (modified version)"
+msgstr ""
 
 #: src/gui/about.cpp:141
 msgid "MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert"
@@ -13358,7 +13359,7 @@ msgid "SNES DSP core by Blargg"
 msgstr ""
 
 #: src/gui/about.cpp:147
-msgid "puNES (NES, MMC5 and FDS) by FHorse"
+msgid "puNES (NES, MMC5 and FDS) by FHorse (modified version)"
 msgstr ""
 
 #: src/gui/about.cpp:148
@@ -14300,7 +14301,7 @@ msgstr ""
 msgid "Clear song data"
 msgstr ""
 
-#: src/gui/guiConst.cpp:608 src/gui/gui.cpp:5838 src/gui/gui.cpp:6022
+#: src/gui/guiConst.cpp:608 src/gui/gui.cpp:5851 src/gui/gui.cpp:6035
 msgid "Command Palette"
 msgstr ""
 
@@ -14848,7 +14849,7 @@ msgstr ""
 msgid "Sample cursor down"
 msgstr ""
 
-#: src/gui/guiConst.cpp:788 src/gui/sampleEdit.cpp:1389
+#: src/gui/guiConst.cpp:788 src/gui/sampleEdit.cpp:1411
 msgid "Stop sample preview"
 msgstr "샘플 미리듣기 중지"
 
@@ -15641,11 +15642,11 @@ msgstr ""
 msgid "dither the sample when used on a chip that only supports 8-bit samples."
 msgstr ""
 
-#: src/gui/sampleEdit.cpp:738 src/gui/gui.cpp:3099
+#: src/gui/sampleEdit.cpp:738 src/gui/gui.cpp:3105
 msgid "Start"
 msgstr ""
 
-#: src/gui/sampleEdit.cpp:774 src/gui/gui.cpp:3107
+#: src/gui/sampleEdit.cpp:774 src/gui/gui.cpp:3113
 msgid "End"
 msgstr ""
 
@@ -15698,8 +15699,8 @@ msgstr ""
 msgid "couldn't resample! make sure your sample is 8 or 16-bit."
 msgstr "리샘플이 불가합니다! 샘플이 8 또는 16비트인지 확인하십시오."
 
-#: src/gui/sampleEdit.cpp:1053 src/gui/sampleEdit.cpp:1240
-#: src/gui/sampleEdit.cpp:1324
+#: src/gui/sampleEdit.cpp:1053 src/gui/sampleEdit.cpp:1253
+#: src/gui/sampleEdit.cpp:1346
 msgid "Apply"
 msgstr "적용"
 
@@ -15739,103 +15740,107 @@ msgstr ""
 msgid "Apply filter"
 msgstr "필터 적용"
 
-#: src/gui/sampleEdit.cpp:1194
+#: src/gui/sampleEdit.cpp:1197
 msgid "Cutoff:"
 msgstr "컷오프:"
 
-#: src/gui/sampleEdit.cpp:1204 src/gui/insEdit.cpp:6422
+#: src/gui/sampleEdit.cpp:1199
+msgid "Sweep (2 frequencies)"
+msgstr ""
+
+#: src/gui/sampleEdit.cpp:1217 src/gui/insEdit.cpp:6422
 #: src/gui/insEdit.cpp:7174 src/gui/insEdit.cpp:7177 src/gui/insEdit.cpp:7991
 #: src/gui/insEdit.cpp:8287 src/gui/insEdit.cpp:8555
 msgid "Resonance"
 msgstr "리조넌스"
 
-#: src/gui/sampleEdit.cpp:1210 src/gui/insEdit.cpp:3276
+#: src/gui/sampleEdit.cpp:1223 src/gui/insEdit.cpp:3276
 msgid "Power"
 msgstr ""
 
-#: src/gui/sampleEdit.cpp:1224
+#: src/gui/sampleEdit.cpp:1237
 msgid "Low-pass"
 msgstr "로우 패스"
 
-#: src/gui/sampleEdit.cpp:1229
+#: src/gui/sampleEdit.cpp:1242
 msgid "Band-pass"
 msgstr "밴드 패스"
 
-#: src/gui/sampleEdit.cpp:1234
+#: src/gui/sampleEdit.cpp:1247
 msgid "High-pass"
 msgstr "하이 패스"
 
-#: src/gui/sampleEdit.cpp:1305
+#: src/gui/sampleEdit.cpp:1327
 msgid "Crossfade loop points"
 msgstr ""
 
-#: src/gui/sampleEdit.cpp:1314
+#: src/gui/sampleEdit.cpp:1336
 msgid "Number of samples"
 msgstr ""
 
-#: src/gui/sampleEdit.cpp:1320
+#: src/gui/sampleEdit.cpp:1342
 msgid "Linear <-> Equal power"
 msgstr ""
 
-#: src/gui/sampleEdit.cpp:1326
+#: src/gui/sampleEdit.cpp:1348
 msgid "Crossfade: length would go out of bounds. Aborted..."
 msgstr ""
 
-#: src/gui/sampleEdit.cpp:1329
+#: src/gui/sampleEdit.cpp:1351
 msgid "Crossfade: length would overflow loopStart. Try a smaller random value."
 msgstr ""
 
-#: src/gui/sampleEdit.cpp:1375
+#: src/gui/sampleEdit.cpp:1397
 msgid "Preview sample"
 msgstr "샘플 미리듣기"
 
-#: src/gui/sampleEdit.cpp:1382
+#: src/gui/sampleEdit.cpp:1404
 msgid "Preview sample from cursor or selection only"
 msgstr ""
 
-#: src/gui/sampleEdit.cpp:1396
+#: src/gui/sampleEdit.cpp:1418
 msgid "Create instrument from sample"
 msgstr ""
 
-#: src/gui/sampleEdit.cpp:1797
+#: src/gui/sampleEdit.cpp:1819
 msgid "paste (replace)"
 msgstr ""
 
-#: src/gui/sampleEdit.cpp:1800
+#: src/gui/sampleEdit.cpp:1822
 msgid "paste (mix)"
 msgstr ""
 
-#: src/gui/sampleEdit.cpp:1804 src/gui/gui.cpp:2893
+#: src/gui/sampleEdit.cpp:1826 src/gui/gui.cpp:2899
 msgid "select all"
 msgstr "모두 선택"
 
-#: src/gui/sampleEdit.cpp:1808
+#: src/gui/sampleEdit.cpp:1830
 msgid "set loop to selection"
 msgstr ""
 
-#: src/gui/sampleEdit.cpp:1811
+#: src/gui/sampleEdit.cpp:1833
 msgid "create wavetable from selection"
 msgstr ""
 
-#: src/gui/sampleEdit.cpp:1817
+#: src/gui/sampleEdit.cpp:1839
 msgid "Draw"
 msgstr "그리기"
 
-#: src/gui/sampleEdit.cpp:1817
+#: src/gui/sampleEdit.cpp:1839
 msgid "Select"
 msgstr "선택하기"
 
-#: src/gui/sampleEdit.cpp:1819
+#: src/gui/sampleEdit.cpp:1841
 #, c-format
 msgid "%d samples, %d bytes"
 msgstr ""
 
-#: src/gui/sampleEdit.cpp:1834
+#: src/gui/sampleEdit.cpp:1856
 #, c-format
 msgid " (%d-%d: %d samples)"
 msgstr ""
 
-#: src/gui/sampleEdit.cpp:2026
+#: src/gui/sampleEdit.cpp:2048
 msgid "Non-8/16-bit samples cannot be edited without prior conversion."
 msgstr ""
 
@@ -15867,7 +15872,7 @@ msgstr ""
 msgid "it appears you're extremely lucky today!"
 msgstr "이걸 보셨다면 굉장히 운이 좋으신 것입니다."
 
-#: src/gui/cursor.cpp:220
+#: src/gui/cursor.cpp:221
 #, c-format
 msgid "finish selection: %d.%d,%d - %d.%d,%d"
 msgstr ""
@@ -15979,7 +15984,7 @@ msgstr "튜닝 (A-4)"
 msgid "use effect 09xx to select a groove pattern."
 msgstr "09xx 이펙트를 통해 그루브 패턴을 선택할 수 있습니다."
 
-#: src/gui/grooves.cpp:48 src/gui/gui.cpp:4631
+#: src/gui/grooves.cpp:48 src/gui/gui.cpp:4644
 msgid "pattern"
 msgstr "패턴"
 
@@ -15987,7 +15992,7 @@ msgstr "패턴"
 msgid "remove"
 msgstr ""
 
-#: src/gui/doAction.cpp:45 src/gui/gui.cpp:4377
+#: src/gui/doAction.cpp:45 src/gui/gui.cpp:4390
 msgid "Unsaved changes! Save changes before opening another file?"
 msgstr ""
 "변경 사항을 저장하지 않으셨습니다! 다른 파일을 열기 전에 저장하시겠습니까?"
@@ -15997,10 +16002,10 @@ msgid "Unsaved changes! Save changes before opening backup?"
 msgstr ""
 "변경 사항을 저장하지 않으셨습니다! 백업 파일을 열기 전에 저장하시겠습니까?"
 
-#: src/gui/doAction.cpp:62 src/gui/gui.cpp:4413 src/gui/gui.cpp:5183
-#: src/gui/gui.cpp:5221 src/gui/gui.cpp:5227 src/gui/gui.cpp:6054
-#: src/gui/gui.cpp:6078 src/gui/gui.cpp:6102 src/gui/gui.cpp:6126
-#: src/gui/gui.cpp:6150 src/gui/gui.cpp:6174
+#: src/gui/doAction.cpp:62 src/gui/gui.cpp:4426 src/gui/gui.cpp:5196
+#: src/gui/gui.cpp:5234 src/gui/gui.cpp:5240 src/gui/gui.cpp:6067
+#: src/gui/gui.cpp:6091 src/gui/gui.cpp:6115 src/gui/gui.cpp:6139
+#: src/gui/gui.cpp:6163 src/gui/gui.cpp:6187
 #, c-format
 msgid "Error while saving file! (%s)"
 msgstr "파일 저장 도중 에러가 발생하였습니다!"
@@ -16014,7 +16019,7 @@ msgid "Select an option: (cannot be undone!)"
 msgstr "작업을 선택하십시오. (되돌릴 수 없습니다!)"
 
 #: src/gui/doAction.cpp:704 src/gui/doAction.cpp:733 src/gui/doAction.cpp:1659
-#: src/gui/gui.cpp:6509
+#: src/gui/gui.cpp:6522
 msgid "too many instruments!"
 msgstr "악기의 수가 너무 많습니다!"
 
@@ -16118,307 +16123,307 @@ msgstr ""
 msgid "Disassemble"
 msgstr ""
 
-#: src/gui/gui.cpp:1187 src/gui/gui.cpp:1191
+#: src/gui/gui.cpp:1193 src/gui/gui.cpp:1197
 msgid "the song is over!"
 msgstr ""
 
-#: src/gui/gui.cpp:1733
+#: src/gui/gui.cpp:1739
 msgid "Open File"
 msgstr ""
 
-#: src/gui/gui.cpp:1734 src/gui/gui.cpp:1872 src/gui/gui.cpp:2047
-#: src/gui/gui.cpp:2056 src/gui/gui.cpp:2065 src/gui/gui.cpp:2167
-#: src/gui/gui.cpp:2187 src/gui/gui.cpp:2205 src/gui/gui.cpp:7850
+#: src/gui/gui.cpp:1740 src/gui/gui.cpp:1878 src/gui/gui.cpp:2053
+#: src/gui/gui.cpp:2062 src/gui/gui.cpp:2071 src/gui/gui.cpp:2173
+#: src/gui/gui.cpp:2193 src/gui/gui.cpp:2211 src/gui/gui.cpp:7863
 msgid "compatible files"
 msgstr "호환되는 파일"
 
-#: src/gui/gui.cpp:1735 src/gui/gui.cpp:1809 src/gui/gui.cpp:1873
-#: src/gui/gui.cpp:1932 src/gui/gui.cpp:1951 src/gui/gui.cpp:2168
-#: src/gui/gui.cpp:2178 src/gui/gui.cpp:2189 src/gui/gui.cpp:2207
-#: src/gui/gui.cpp:7914
+#: src/gui/gui.cpp:1741 src/gui/gui.cpp:1815 src/gui/gui.cpp:1879
+#: src/gui/gui.cpp:1938 src/gui/gui.cpp:1957 src/gui/gui.cpp:2174
+#: src/gui/gui.cpp:2184 src/gui/gui.cpp:2195 src/gui/gui.cpp:2213
+#: src/gui/gui.cpp:7927
 msgid "all files"
 msgstr "모든 파일"
 
-#: src/gui/gui.cpp:1742
+#: src/gui/gui.cpp:1748
 msgid "no backups made yet!"
 msgstr "아직 백업이 없습니다!"
 
-#: src/gui/gui.cpp:1747 src/gui/gui.cpp:1756 src/gui/gui.cpp:2224
+#: src/gui/gui.cpp:1753 src/gui/gui.cpp:1762 src/gui/gui.cpp:2230
 msgid "Furnace song"
 msgstr ""
 
-#: src/gui/gui.cpp:1755
+#: src/gui/gui.cpp:1761
 msgid "Save File"
 msgstr "파일 저장"
 
-#: src/gui/gui.cpp:1764 src/gui/gui.cpp:1774
+#: src/gui/gui.cpp:1770 src/gui/gui.cpp:1780
 msgid "Export DMF"
 msgstr "DMF로 내보내기"
 
-#: src/gui/gui.cpp:1765
+#: src/gui/gui.cpp:1771
 msgid "DefleMask 1.1.3 module"
 msgstr "DefleMask 1.1.3 모듈"
 
-#: src/gui/gui.cpp:1775
+#: src/gui/gui.cpp:1781
 msgid "DefleMask 1.0/legacy module"
 msgstr "DefleMask 1.0/legacy 모듈"
 
-#: src/gui/gui.cpp:1792
+#: src/gui/gui.cpp:1798
 msgid "Load Instrument"
 msgstr "악기 불러오기"
 
-#: src/gui/gui.cpp:1793
+#: src/gui/gui.cpp:1799
 msgid "all compatible files"
 msgstr ""
 
-#: src/gui/gui.cpp:1794 src/gui/gui.cpp:1843
+#: src/gui/gui.cpp:1800 src/gui/gui.cpp:1849
 msgid "Furnace instrument"
 msgstr "Furnace 악기"
 
-#: src/gui/gui.cpp:1795 src/gui/gui.cpp:1853
+#: src/gui/gui.cpp:1801 src/gui/gui.cpp:1859
 msgid "DefleMask preset"
 msgstr "DefleMask 프리셋"
 
-#: src/gui/gui.cpp:1796
+#: src/gui/gui.cpp:1802
 msgid "TFM Music Maker instrument"
 msgstr "TFM Music Maker 악기"
 
-#: src/gui/gui.cpp:1797
+#: src/gui/gui.cpp:1803
 msgid "VGM Music Maker instrument"
 msgstr "VGM Music Maker 악기"
 
-#: src/gui/gui.cpp:1798
+#: src/gui/gui.cpp:1804
 msgid "Scream Tracker 3 instrument"
 msgstr "Scream Tracker 3 악기"
 
-#: src/gui/gui.cpp:1799
+#: src/gui/gui.cpp:1805
 msgid "SoundBlaster instrument"
 msgstr "SoundBlaster 악기"
 
-#: src/gui/gui.cpp:1800
+#: src/gui/gui.cpp:1806
 msgid "Wohlstand OPL instrument"
 msgstr ""
 
-#: src/gui/gui.cpp:1801
+#: src/gui/gui.cpp:1807
 msgid "Wohlstand OPN instrument"
 msgstr ""
 
-#: src/gui/gui.cpp:1802
+#: src/gui/gui.cpp:1808
 msgid "Gens KMod patch dump"
 msgstr ""
 
-#: src/gui/gui.cpp:1803
+#: src/gui/gui.cpp:1809
 msgid "BNK file (AdLib)"
 msgstr ""
 
-#: src/gui/gui.cpp:1804
+#: src/gui/gui.cpp:1810
 msgid "FF preset bank"
 msgstr ""
 
-#: src/gui/gui.cpp:1805
+#: src/gui/gui.cpp:1811
 msgid "2612edit GYB preset bank"
 msgstr ""
 
-#: src/gui/gui.cpp:1806
+#: src/gui/gui.cpp:1812
 msgid "VOPM preset bank"
 msgstr ""
 
-#: src/gui/gui.cpp:1807
+#: src/gui/gui.cpp:1813
 msgid "Wohlstand WOPL bank"
 msgstr ""
 
-#: src/gui/gui.cpp:1808
+#: src/gui/gui.cpp:1814
 msgid "Wohlstand WOPN bank"
 msgstr ""
 
-#: src/gui/gui.cpp:1842 src/gui/gui.cpp:1852
+#: src/gui/gui.cpp:1848 src/gui/gui.cpp:1858
 msgid "Save Instrument"
 msgstr "악기 저장"
 
-#: src/gui/gui.cpp:1862
+#: src/gui/gui.cpp:1868
 msgid "Save All Instruments"
 msgstr "모든 악기 저장"
 
-#: src/gui/gui.cpp:1871
+#: src/gui/gui.cpp:1877
 msgid "Load Wavetable"
 msgstr "웨이브테이블 불러오기"
 
-#: src/gui/gui.cpp:1883 src/gui/gui.cpp:1892 src/gui/gui.cpp:1901
+#: src/gui/gui.cpp:1889 src/gui/gui.cpp:1898 src/gui/gui.cpp:1907
 msgid "Save Wavetable"
 msgstr "웨이브테이블 저장"
 
-#: src/gui/gui.cpp:1884
+#: src/gui/gui.cpp:1890
 msgid "Furnace wavetable"
 msgstr "Furnace 웨이브테이블"
 
-#: src/gui/gui.cpp:1893
+#: src/gui/gui.cpp:1899
 msgid "DefleMask wavetable"
 msgstr "DefleMask 웨이브테이블"
 
-#: src/gui/gui.cpp:1902
+#: src/gui/gui.cpp:1908
 msgid "raw data"
 msgstr "원시 데이터"
 
-#: src/gui/gui.cpp:1910
+#: src/gui/gui.cpp:1916
 msgid "Save All Wavetables"
 msgstr "모든 웨이브테이블 저장"
 
-#: src/gui/gui.cpp:1919
+#: src/gui/gui.cpp:1925
 msgid "Load Sample"
 msgstr "샘플 불러오기"
 
-#: src/gui/gui.cpp:1931
+#: src/gui/gui.cpp:1937
 msgid "Load Raw Sample"
 msgstr "원시 샘플 불러오기"
 
-#: src/gui/gui.cpp:1940
+#: src/gui/gui.cpp:1946
 msgid "Save Sample"
 msgstr "샘플 저장"
 
-#: src/gui/gui.cpp:1941 src/gui/gui.cpp:1969 src/gui/gui.cpp:1979
-#: src/gui/gui.cpp:1989
+#: src/gui/gui.cpp:1947 src/gui/gui.cpp:1975 src/gui/gui.cpp:1985
+#: src/gui/gui.cpp:1995
 msgid "Wave file"
 msgstr ""
 
-#: src/gui/gui.cpp:1950
+#: src/gui/gui.cpp:1956
 msgid "Save Raw Sample"
 msgstr "원시 샘플 저장"
 
-#: src/gui/gui.cpp:1960
+#: src/gui/gui.cpp:1966
 msgid "Save All Samples"
 msgstr "모든 샘플 저장"
 
-#: src/gui/gui.cpp:1968 src/gui/gui.cpp:1978 src/gui/gui.cpp:1988
+#: src/gui/gui.cpp:1974 src/gui/gui.cpp:1984 src/gui/gui.cpp:1994
 msgid "Export Audio"
 msgstr ""
 
-#: src/gui/gui.cpp:1998
+#: src/gui/gui.cpp:2004
 msgid "Export VGM"
 msgstr "VGM으로 내보내기"
 
-#: src/gui/gui.cpp:1999
+#: src/gui/gui.cpp:2005
 msgid "VGM file"
 msgstr "VGM 파일"
 
-#: src/gui/gui.cpp:2008 src/gui/gui.cpp:2018
+#: src/gui/gui.cpp:2014 src/gui/gui.cpp:2024
 msgid "Export Command Stream"
 msgstr ""
 
-#: src/gui/gui.cpp:2009
+#: src/gui/gui.cpp:2015
 msgid "text file"
 msgstr ""
 
-#: src/gui/gui.cpp:2019
+#: src/gui/gui.cpp:2025
 msgid "binary file"
 msgstr ""
 
-#: src/gui/gui.cpp:2029 src/gui/gui.cpp:2035
+#: src/gui/gui.cpp:2035 src/gui/gui.cpp:2041
 msgid "Export ROM"
 msgstr ""
 
-#: src/gui/gui.cpp:2046 src/gui/gui.cpp:2055 src/gui/gui.cpp:2064
+#: src/gui/gui.cpp:2052 src/gui/gui.cpp:2061 src/gui/gui.cpp:2070
 msgid "Select Font"
 msgstr "글꼴을 선택하십시오."
 
-#: src/gui/gui.cpp:2073
+#: src/gui/gui.cpp:2079
 msgid "Select Color File"
 msgstr "색상 파일을 선택하십시오."
 
-#: src/gui/gui.cpp:2074 src/gui/gui.cpp:2083 src/gui/gui.cpp:2102
-#: src/gui/gui.cpp:2111 src/gui/gui.cpp:2120 src/gui/gui.cpp:2129
-#: src/gui/gui.cpp:2147 src/gui/gui.cpp:2156
+#: src/gui/gui.cpp:2080 src/gui/gui.cpp:2089 src/gui/gui.cpp:2108
+#: src/gui/gui.cpp:2117 src/gui/gui.cpp:2126 src/gui/gui.cpp:2135
+#: src/gui/gui.cpp:2153 src/gui/gui.cpp:2162
 msgid "configuration files"
 msgstr "설정 파일"
 
-#: src/gui/gui.cpp:2082
+#: src/gui/gui.cpp:2088
 msgid "Select Keybind File"
 msgstr "키바인드 파일을 선택하십시오."
 
-#: src/gui/gui.cpp:2091
+#: src/gui/gui.cpp:2097
 msgid "Select Layout File"
 msgstr "레이아웃 파일을 선택하십시오."
 
-#: src/gui/gui.cpp:2092 src/gui/gui.cpp:2138
+#: src/gui/gui.cpp:2098 src/gui/gui.cpp:2144
 msgid ".ini files"
 msgstr ".ini 파일"
 
-#: src/gui/gui.cpp:2101
+#: src/gui/gui.cpp:2107
 msgid "Select User Presets File"
 msgstr "유저 프리셋 파일을 선택하십시오."
 
-#: src/gui/gui.cpp:2110
+#: src/gui/gui.cpp:2116
 msgid "Select Settings File"
 msgstr "설정 파일을 선택하십시오."
 
-#: src/gui/gui.cpp:2119
+#: src/gui/gui.cpp:2125
 msgid "Export Colors"
 msgstr "색상 내보내기"
 
-#: src/gui/gui.cpp:2128
+#: src/gui/gui.cpp:2134
 msgid "Export Keybinds"
 msgstr "키바인트 내보내기"
 
-#: src/gui/gui.cpp:2137
+#: src/gui/gui.cpp:2143
 msgid "Export Layout"
 msgstr "레이아웃 내보내기"
 
-#: src/gui/gui.cpp:2146
+#: src/gui/gui.cpp:2152
 msgid "Export User Presets"
 msgstr "유저 프리셋 내보내기"
 
-#: src/gui/gui.cpp:2155
+#: src/gui/gui.cpp:2161
 msgid "Export Settings"
 msgstr "설정 내보내기"
 
-#: src/gui/gui.cpp:2166
+#: src/gui/gui.cpp:2172
 msgid "Load ROM"
 msgstr ""
 
-#: src/gui/gui.cpp:2176
+#: src/gui/gui.cpp:2182
 msgid "Play Command Stream"
 msgstr ""
 
-#: src/gui/gui.cpp:2177
+#: src/gui/gui.cpp:2183
 msgid "command stream"
 msgstr ""
 
-#: src/gui/gui.cpp:2186
+#: src/gui/gui.cpp:2192
 msgid "Open Test"
 msgstr ""
 
-#: src/gui/gui.cpp:2188 src/gui/gui.cpp:2206
+#: src/gui/gui.cpp:2194 src/gui/gui.cpp:2212
 msgid "another option"
 msgstr ""
 
-#: src/gui/gui.cpp:2204
+#: src/gui/gui.cpp:2210
 msgid "Open Test (Multi)"
 msgstr ""
 
-#: src/gui/gui.cpp:2223
+#: src/gui/gui.cpp:2229
 msgid "Save Test"
 msgstr ""
 
-#: src/gui/gui.cpp:2225
+#: src/gui/gui.cpp:2231
 msgid "DefleMask module"
 msgstr "DefleMask 모듈"
 
-#: src/gui/gui.cpp:2265
+#: src/gui/gui.cpp:2271
 msgid "compression error"
 msgstr ""
 
-#: src/gui/gui.cpp:2277
+#: src/gui/gui.cpp:2283
 msgid "zlib stream error"
 msgstr ""
 
-#: src/gui/gui.cpp:2299
+#: src/gui/gui.cpp:2305
 msgid "zlib finish stream error"
 msgstr ""
 
-#: src/gui/gui.cpp:2410
+#: src/gui/gui.cpp:2416
 msgid "everything OK"
 msgstr ""
 
-#: src/gui/gui.cpp:2429
+#: src/gui/gui.cpp:2435
 msgid ""
 "you have loaded a backup!\n"
 "if you need to, please save it somewhere.\n"
@@ -16432,7 +16437,7 @@ msgstr ""
 "자동 저장 기능에 의존하시면 안 됩니다!\n"
 "백업 파일의 백업 파일은 저장되지 않습니다."
 
-#: src/gui/gui.cpp:2434
+#: src/gui/gui.cpp:2440
 msgid ""
 "you have imported a ProTracker/SoundTracker/PC module!\n"
 "keep the following in mind:\n"
@@ -16444,7 +16449,7 @@ msgid ""
 "have fun!"
 msgstr ""
 
-#: src/gui/gui.cpp:2437
+#: src/gui/gui.cpp:2443
 msgid ""
 "you have imported a Scream Tracker 3 module!\n"
 "keep the following in mind:\n"
@@ -16456,7 +16461,7 @@ msgid ""
 "have fun!"
 msgstr ""
 
-#: src/gui/gui.cpp:2440
+#: src/gui/gui.cpp:2446
 msgid ""
 "you have imported a FastTracker II module!\n"
 "keep the following in mind:\n"
@@ -16469,7 +16474,7 @@ msgid ""
 "have fun!"
 msgstr ""
 
-#: src/gui/gui.cpp:2443
+#: src/gui/gui.cpp:2449
 msgid ""
 "you have imported an Impulse Tracker module!\n"
 "keep the following in mind:\n"
@@ -16484,207 +16489,207 @@ msgid ""
 "have fun!"
 msgstr ""
 
-#: src/gui/gui.cpp:2451 src/gui/gui.cpp:3911 src/gui/gui.cpp:4389
+#: src/gui/gui.cpp:2457 src/gui/gui.cpp:3923 src/gui/gui.cpp:4402
 msgid "Unsaved changes! Save changes before opening file?"
 msgstr "변경 사항을 저장하지 않으셨습니다! 파일을 열기 전에 저장하시겠습니까?"
 
-#: src/gui/gui.cpp:2860
+#: src/gui/gui.cpp:2866
 msgid "paste special..."
 msgstr ""
 
-#: src/gui/gui.cpp:2861
+#: src/gui/gui.cpp:2867
 msgid "paste mix"
 msgstr ""
 
-#: src/gui/gui.cpp:2862
+#: src/gui/gui.cpp:2868
 msgid "paste mix (background)"
 msgstr ""
 
-#: src/gui/gui.cpp:2863
+#: src/gui/gui.cpp:2869
 msgid "paste with ins (foreground)"
 msgstr ""
 
-#: src/gui/gui.cpp:2865 src/gui/gui.cpp:2877 src/gui/gui.cpp:3087
+#: src/gui/gui.cpp:2871 src/gui/gui.cpp:2883 src/gui/gui.cpp:3093
 msgid "no instruments available"
 msgstr ""
 
-#: src/gui/gui.cpp:2875
+#: src/gui/gui.cpp:2881
 msgid "paste with ins (background)"
 msgstr ""
 
-#: src/gui/gui.cpp:2887
+#: src/gui/gui.cpp:2893
 msgid "paste flood"
 msgstr ""
 
-#: src/gui/gui.cpp:2888
+#: src/gui/gui.cpp:2894
 msgid "paste overflow"
 msgstr ""
 
-#: src/gui/gui.cpp:2897
+#: src/gui/gui.cpp:2903
 msgid "operation mask..."
 msgstr ""
 
-#: src/gui/gui.cpp:2904
+#: src/gui/gui.cpp:2910
 msgid "pull delete"
 msgstr ""
 
-#: src/gui/gui.cpp:2908
+#: src/gui/gui.cpp:2914
 msgid "insert"
 msgstr ""
 
-#: src/gui/gui.cpp:2916
+#: src/gui/gui.cpp:2922
 msgid "transpose (note)"
 msgstr ""
 
-#: src/gui/gui.cpp:2920
+#: src/gui/gui.cpp:2926
 msgid "transpose (value)"
 msgstr ""
 
-#: src/gui/gui.cpp:2932 src/gui/gui.cpp:3184
+#: src/gui/gui.cpp:2938 src/gui/gui.cpp:3190
 msgid "invert values"
 msgstr ""
 
-#: src/gui/gui.cpp:2948
+#: src/gui/gui.cpp:2954
 msgid "collapse/expand"
 msgstr ""
 
-#: src/gui/gui.cpp:2953
+#: src/gui/gui.cpp:2959
 msgid "input latch"
 msgstr ""
 
-#: src/gui/gui.cpp:2980
+#: src/gui/gui.cpp:2986
 msgid ""
 "&&: selected instrument\n"
 "..: no instrument"
 msgstr ""
 
-#: src/gui/gui.cpp:3034
+#: src/gui/gui.cpp:3040
 msgid "Set"
 msgstr ""
 
-#: src/gui/gui.cpp:3054
+#: src/gui/gui.cpp:3060
 msgid "note up"
 msgstr "반음 올리기"
 
-#: src/gui/gui.cpp:3055
+#: src/gui/gui.cpp:3061
 msgid "note down"
 msgstr "반음 내리기"
 
-#: src/gui/gui.cpp:3056
+#: src/gui/gui.cpp:3062
 msgid "octave up"
 msgstr "옥타브 올리기"
 
-#: src/gui/gui.cpp:3057
+#: src/gui/gui.cpp:3063
 msgid "octave down"
 msgstr "옥타브 내리기"
 
-#: src/gui/gui.cpp:3059
+#: src/gui/gui.cpp:3065
 msgid "values up"
 msgstr "값 올리기"
 
-#: src/gui/gui.cpp:3060
+#: src/gui/gui.cpp:3066
 msgid "values down"
 msgstr "값 내리기"
 
-#: src/gui/gui.cpp:3061
+#: src/gui/gui.cpp:3067
 msgid "values up (+16)"
 msgstr "값 올리기 (+16)"
 
-#: src/gui/gui.cpp:3062
+#: src/gui/gui.cpp:3068
 msgid "values down (-16)"
 msgstr "값 내리기 (-16)"
 
-#: src/gui/gui.cpp:3065
+#: src/gui/gui.cpp:3071
 msgid "transpose"
 msgstr "이조"
 
-#: src/gui/gui.cpp:3073
+#: src/gui/gui.cpp:3079
 msgid "Notes"
 msgstr "반음"
 
-#: src/gui/gui.cpp:3078
+#: src/gui/gui.cpp:3084
 msgid "Values"
 msgstr "값"
 
-#: src/gui/gui.cpp:3085
+#: src/gui/gui.cpp:3091
 msgid "change instrument..."
 msgstr "악기 바꾸기..."
 
-#: src/gui/gui.cpp:3098
+#: src/gui/gui.cpp:3104
 msgid "gradient/fade..."
 msgstr ""
 
-#: src/gui/gui.cpp:3115 src/gui/gui.cpp:3160
+#: src/gui/gui.cpp:3121 src/gui/gui.cpp:3166
 msgid "Nibble mode"
 msgstr ""
 
-#: src/gui/gui.cpp:3124
+#: src/gui/gui.cpp:3130
 msgid "Go ahead"
 msgstr ""
 
-#: src/gui/gui.cpp:3130 src/gui/insEdit.cpp:8767
+#: src/gui/gui.cpp:3136 src/gui/insEdit.cpp:8767
 msgid "scale..."
 msgstr ""
 
-#: src/gui/gui.cpp:3135
+#: src/gui/gui.cpp:3141
 msgid "Scale"
 msgstr ""
 
-#: src/gui/gui.cpp:3141 src/gui/insEdit.cpp:8795
+#: src/gui/gui.cpp:3147 src/gui/insEdit.cpp:8795
 msgid "randomize..."
 msgstr "랜덤화..."
 
-#: src/gui/gui.cpp:3142
+#: src/gui/gui.cpp:3148
 msgid "Minimum"
 msgstr "최소"
 
-#: src/gui/gui.cpp:3151
+#: src/gui/gui.cpp:3157
 msgid "Maximum"
 msgstr "최대"
 
-#: src/gui/gui.cpp:3170
+#: src/gui/gui.cpp:3176
 msgid "Set effect"
 msgstr ""
 
-#: src/gui/gui.cpp:3188
+#: src/gui/gui.cpp:3194
 msgid "flip selection"
 msgstr ""
 
-#: src/gui/gui.cpp:3191
+#: src/gui/gui.cpp:3197
 msgid "collapse/expand amount##CollapseAmount"
 msgstr ""
 
-#: src/gui/gui.cpp:3200
+#: src/gui/gui.cpp:3206
 msgid "collapse pattern"
 msgstr ""
 
-#: src/gui/gui.cpp:3201
+#: src/gui/gui.cpp:3207
 msgid "expand pattern"
 msgstr ""
 
-#: src/gui/gui.cpp:3206
+#: src/gui/gui.cpp:3212
 msgid "collapse song"
 msgstr ""
 
-#: src/gui/gui.cpp:3207
+#: src/gui/gui.cpp:3213
 msgid "expand song"
 msgstr ""
 
-#: src/gui/gui.cpp:3212
+#: src/gui/gui.cpp:3218
 msgid "find/replace"
 msgstr ""
 
-#: src/gui/gui.cpp:3226 src/gui/gui.cpp:6204 src/gui/gui.cpp:8075
+#: src/gui/gui.cpp:3232 src/gui/gui.cpp:6217 src/gui/gui.cpp:8088
 #, c-format
 msgid "could NOT save layout! %s"
 msgstr ""
 
-#: src/gui/gui.cpp:3239
+#: src/gui/gui.cpp:3245
 #, c-format
 msgid "could NOT load layout! %s"
 msgstr ""
 
-#: src/gui/gui.cpp:3706
+#: src/gui/gui.cpp:3718
 msgid ""
 "Furnace has been started in Safe Mode.\n"
 "this means that:\n"
@@ -16697,444 +16702,444 @@ msgid ""
 "font loading is one of these."
 msgstr ""
 
-#: src/gui/gui.cpp:4221
+#: src/gui/gui.cpp:4234
 msgid "can't keep going without graphics! Furnace will quit now."
 msgstr ""
 
-#: src/gui/gui.cpp:4367
+#: src/gui/gui.cpp:4380
 msgid "file"
 msgstr "파일"
 
-#: src/gui/gui.cpp:4368
+#: src/gui/gui.cpp:4381
 msgid "new..."
 msgstr "새 곡..."
 
-#: src/gui/gui.cpp:4375
+#: src/gui/gui.cpp:4388
 msgid "open..."
 msgstr "열기..."
 
-#: src/gui/gui.cpp:4382
+#: src/gui/gui.cpp:4395
 msgid "open recent"
 msgstr "최근 파일 열기"
 
-#: src/gui/gui.cpp:4398
+#: src/gui/gui.cpp:4411
 msgid "nothing here yet"
 msgstr "최근에 열었던 파일이 없습니다."
 
-#: src/gui/gui.cpp:4401
+#: src/gui/gui.cpp:4414
 msgid "clear history"
 msgstr "목록 비우기"
 
-#: src/gui/gui.cpp:4402
+#: src/gui/gui.cpp:4415
 msgid "Are you sure you want to clear the recent file list?"
 msgstr "최근에 열었던 파일의 목록을 비우시겠습니까?"
 
-#: src/gui/gui.cpp:4417
+#: src/gui/gui.cpp:4430
 msgid "save as..."
 msgstr "다른 이름으로 저장..."
 
-#: src/gui/gui.cpp:4422 src/gui/gui.cpp:4449
+#: src/gui/gui.cpp:4435 src/gui/gui.cpp:4462
 msgid "export audio..."
 msgstr "오디오 파일로 내보내기..."
 
-#: src/gui/gui.cpp:4426 src/gui/gui.cpp:4453
+#: src/gui/gui.cpp:4439 src/gui/gui.cpp:4466
 msgid "export VGM..."
 msgstr "VGM으로 내보내기..."
 
-#: src/gui/gui.cpp:4431 src/gui/gui.cpp:4458
+#: src/gui/gui.cpp:4444 src/gui/gui.cpp:4471
 msgid "export ROM..."
 msgstr "ROM으로 내보내기..."
 
-#: src/gui/gui.cpp:4436 src/gui/gui.cpp:4463
+#: src/gui/gui.cpp:4449 src/gui/gui.cpp:4476
 msgid "export text..."
 msgstr "텍스트로 내보내기..."
 
-#: src/gui/gui.cpp:4440 src/gui/gui.cpp:4467
+#: src/gui/gui.cpp:4453 src/gui/gui.cpp:4480
 msgid "export command stream..."
 msgstr "커맨드 스트림으로 내보내기..."
 
-#: src/gui/gui.cpp:4444 src/gui/gui.cpp:4471
+#: src/gui/gui.cpp:4457 src/gui/gui.cpp:4484
 msgid "export .dmf..."
 msgstr ".dmf로 내보내기..."
 
-#: src/gui/gui.cpp:4476
+#: src/gui/gui.cpp:4489
 msgid "export..."
 msgstr "내보내기..."
 
-#: src/gui/gui.cpp:4482
+#: src/gui/gui.cpp:4495
 msgid "manage chips"
 msgstr "칩 관리"
 
-#: src/gui/gui.cpp:4486
+#: src/gui/gui.cpp:4499
 msgid "add chip..."
 msgstr "칩 추가..."
 
-#: src/gui/gui.cpp:4491 src/gui/sysManager.cpp:164
+#: src/gui/gui.cpp:4504 src/gui/sysManager.cpp:164
 #, c-format
 msgid "cannot add chip! (%s)"
 msgstr "칩을 추가할 수 없습니다! (%s)"
 
-#: src/gui/gui.cpp:4504
+#: src/gui/gui.cpp:4517
 msgid "configure chip..."
 msgstr "칩 설정..."
 
-#: src/gui/gui.cpp:4514
+#: src/gui/gui.cpp:4527
 msgid "change chip..."
 msgstr "칩 교체..."
 
-#: src/gui/gui.cpp:4516 src/gui/gui.cpp:4540
+#: src/gui/gui.cpp:4529 src/gui/gui.cpp:4553
 msgid "Preserve channel positions"
 msgstr ""
 
-#: src/gui/gui.cpp:4529 src/gui/sysManager.cpp:132
+#: src/gui/gui.cpp:4542 src/gui/sysManager.cpp:132
 #, c-format
 msgid "cannot change chip! (%s)"
 msgstr "칩을 교체할 수 없습니다! (%s)"
 
-#: src/gui/gui.cpp:4538
+#: src/gui/gui.cpp:4551
 msgid "remove chip..."
 msgstr "칩 제거..."
 
-#: src/gui/gui.cpp:4544
+#: src/gui/gui.cpp:4557
 #, c-format
 msgid "cannot remove chip! (%s)"
 msgstr "칩을 제거할 수 없습니다! (%s)"
 
-#: src/gui/gui.cpp:4559
+#: src/gui/gui.cpp:4572
 msgid "open built-in assets directory"
 msgstr ""
 
-#: src/gui/gui.cpp:4565
+#: src/gui/gui.cpp:4578
 msgid "restore backup"
 msgstr "백업 파일 열기"
 
-#: src/gui/gui.cpp:4569
+#: src/gui/gui.cpp:4582
 msgid "exit..."
 msgstr "종료하기..."
 
-#: src/gui/gui.cpp:4577
+#: src/gui/gui.cpp:4590
 msgid "edit"
 msgstr "편집"
 
-#: src/gui/gui.cpp:4585
+#: src/gui/gui.cpp:4598
 msgid "clear..."
 msgstr "정리하기..."
 
-#: src/gui/gui.cpp:4590
+#: src/gui/gui.cpp:4603
 msgid "settings"
 msgstr "설정"
 
-#: src/gui/gui.cpp:4592
+#: src/gui/gui.cpp:4605
 msgid "full screen"
 msgstr "전체 화면"
 
-#: src/gui/gui.cpp:4596
+#: src/gui/gui.cpp:4609
 msgid "lock layout"
 msgstr "레이아웃 고정"
 
-#: src/gui/gui.cpp:4599
+#: src/gui/gui.cpp:4612
 msgid "pattern visualizer"
 msgstr "패턴 시각화"
 
-#: src/gui/gui.cpp:4605
+#: src/gui/gui.cpp:4618
 msgid "reset layout"
 msgstr "레이아웃 초기화"
 
-#: src/gui/gui.cpp:4609
+#: src/gui/gui.cpp:4622
 msgid "switch to mobile view"
 msgstr "모바일 인터페이스로 보기"
 
-#: src/gui/gui.cpp:4613
+#: src/gui/gui.cpp:4626
 msgid "user systems..."
 msgstr "유저 시스템..."
 
-#: src/gui/gui.cpp:4616
+#: src/gui/gui.cpp:4629
 msgid "settings..."
 msgstr "설정..."
 
-#: src/gui/gui.cpp:4622
+#: src/gui/gui.cpp:4635
 msgid "Window"
 msgstr "창"
 
-#: src/gui/gui.cpp:4622
+#: src/gui/gui.cpp:4635
 msgid "window"
 msgstr "창"
 
-#: src/gui/gui.cpp:4623
+#: src/gui/gui.cpp:4636
 msgid "song"
 msgstr "곡"
 
-#: src/gui/gui.cpp:4624
+#: src/gui/gui.cpp:4637
 msgid "song comments"
 msgstr "곡 코멘트"
 
-#: src/gui/gui.cpp:4625
+#: src/gui/gui.cpp:4638
 msgid "song information"
 msgstr "곡 정보"
 
-#: src/gui/gui.cpp:4626
+#: src/gui/gui.cpp:4639
 msgid "subsongs"
 msgstr "하위곡"
 
-#: src/gui/gui.cpp:4628
+#: src/gui/gui.cpp:4641
 msgid "channels"
 msgstr "채널 관리"
 
-#: src/gui/gui.cpp:4629
+#: src/gui/gui.cpp:4642
 msgid "chip manager"
 msgstr "칩 관리"
 
-#: src/gui/gui.cpp:4630
+#: src/gui/gui.cpp:4643
 msgid "orders"
 msgstr "순서"
 
-#: src/gui/gui.cpp:4632
+#: src/gui/gui.cpp:4645
 msgid "pattern manager"
 msgstr "패턴 관리"
 
-#: src/gui/gui.cpp:4633
+#: src/gui/gui.cpp:4646
 msgid "mixer"
 msgstr "믹서"
 
-#: src/gui/gui.cpp:4634
+#: src/gui/gui.cpp:4647
 msgid "compatibility flags"
 msgstr "호환 플래그"
 
-#: src/gui/gui.cpp:4637 src/gui/gui.cpp:4639
+#: src/gui/gui.cpp:4650 src/gui/gui.cpp:4652
 msgid "assets"
 msgstr "애셋"
 
-#: src/gui/gui.cpp:4641
+#: src/gui/gui.cpp:4654
 msgid "instruments"
 msgstr "악기"
 
-#: src/gui/gui.cpp:4642
+#: src/gui/gui.cpp:4655
 msgid "samples"
 msgstr "샘플"
 
-#: src/gui/gui.cpp:4643
+#: src/gui/gui.cpp:4656
 msgid "wavetables"
 msgstr "웨이브테이블"
 
-#: src/gui/gui.cpp:4646
+#: src/gui/gui.cpp:4659
 msgid "instrument editor"
 msgstr "악기 편집기"
 
-#: src/gui/gui.cpp:4647
+#: src/gui/gui.cpp:4660
 msgid "sample editor"
 msgstr "샘플 편집기"
 
-#: src/gui/gui.cpp:4648
+#: src/gui/gui.cpp:4661
 msgid "wavetable editor"
 msgstr "웨이브테이블 편집기"
 
-#: src/gui/gui.cpp:4651
+#: src/gui/gui.cpp:4664
 msgid "visualizers"
 msgstr "시각화"
 
-#: src/gui/gui.cpp:4652
+#: src/gui/gui.cpp:4665
 msgid "oscilloscope (master)"
 msgstr "오실로스코프 (마스터)"
 
-#: src/gui/gui.cpp:4653
+#: src/gui/gui.cpp:4666
 msgid "oscilloscope (per-channel)"
 msgstr "오실로스코프 (채널별로)"
 
-#: src/gui/gui.cpp:4654
+#: src/gui/gui.cpp:4667
 msgid "oscilloscope (X-Y)"
 msgstr "오실로스코프 (X-Y)"
 
-#: src/gui/gui.cpp:4655
+#: src/gui/gui.cpp:4668
 msgid "volume meter"
 msgstr "볼륨 미터"
 
-#: src/gui/gui.cpp:4658
+#: src/gui/gui.cpp:4671
 msgid "tempo"
 msgstr "템포"
 
-#: src/gui/gui.cpp:4659
+#: src/gui/gui.cpp:4672
 msgid "clock"
 msgstr ""
 
-#: src/gui/gui.cpp:4660
+#: src/gui/gui.cpp:4673
 msgid "grooves"
 msgstr "그루브"
 
-#: src/gui/gui.cpp:4661
+#: src/gui/gui.cpp:4674
 msgid "speed"
 msgstr "속도"
 
-#: src/gui/gui.cpp:4665
+#: src/gui/gui.cpp:4678
 msgid "log viewer"
 msgstr "로그 보기"
 
-#: src/gui/gui.cpp:4666
+#: src/gui/gui.cpp:4679
 msgid "register view"
 msgstr "레지스터 보기"
 
-#: src/gui/gui.cpp:4667
+#: src/gui/gui.cpp:4680
 msgid "statistics"
 msgstr "통계"
 
-#: src/gui/gui.cpp:4668
+#: src/gui/gui.cpp:4681
 msgid "memory composition"
 msgstr "메모리 컴포지션"
 
-#: src/gui/gui.cpp:4672 src/gui/gui.cpp:4680
+#: src/gui/gui.cpp:4685 src/gui/gui.cpp:4693
 msgid "effect list"
 msgstr "이펙트 목록"
 
-#: src/gui/gui.cpp:4673
+#: src/gui/gui.cpp:4686
 msgid "play/edit controls"
 msgstr "재생/편집 컨트롤"
 
-#: src/gui/gui.cpp:4674
+#: src/gui/gui.cpp:4687
 msgid "piano/input pad"
 msgstr "피아노/입력 패드"
 
-#: src/gui/gui.cpp:4675
+#: src/gui/gui.cpp:4688
 msgid "spoiler"
 msgstr "스포일러"
 
-#: src/gui/gui.cpp:4679
+#: src/gui/gui.cpp:4692
 msgid "Help"
 msgstr "도움말"
 
-#: src/gui/gui.cpp:4679
+#: src/gui/gui.cpp:4692
 msgid "help"
 msgstr "도움말"
 
-#: src/gui/gui.cpp:4681
+#: src/gui/gui.cpp:4694
 msgid "debug menu"
 msgstr "디버그"
 
-#: src/gui/gui.cpp:4682
+#: src/gui/gui.cpp:4695
 msgid "inspector"
 msgstr ""
 
-#: src/gui/gui.cpp:4683
+#: src/gui/gui.cpp:4696
 msgid "panic"
 msgstr "패닉"
 
-#: src/gui/gui.cpp:4684
+#: src/gui/gui.cpp:4697
 msgid "welcome screen"
 msgstr ""
 
-#: src/gui/gui.cpp:4685
+#: src/gui/gui.cpp:4698
 msgid "about..."
 msgstr "Furnace에 대하여..."
 
-#: src/gui/gui.cpp:4700
+#: src/gui/gui.cpp:4713
 #, c-format
 msgid "| Speed %d:%d"
 msgstr ""
 
-#: src/gui/gui.cpp:4702
+#: src/gui/gui.cpp:4715
 #, c-format
 msgid "| Speed %d"
 msgstr ""
 
-#: src/gui/gui.cpp:4704
+#: src/gui/gui.cpp:4717
 msgid "| Groove"
 msgstr ""
 
-#: src/gui/gui.cpp:4707
+#: src/gui/gui.cpp:4720
 #, c-format
 msgid " @ %gHz (%g BPM) "
 msgstr ""
 
-#: src/gui/gui.cpp:4710
+#: src/gui/gui.cpp:4723
 #, c-format
 msgid "| Order %.2X/%.2X "
 msgstr ""
 
-#: src/gui/gui.cpp:4712
+#: src/gui/gui.cpp:4725
 #, c-format
 msgid "| Order %d/%d "
 msgstr ""
 
-#: src/gui/gui.cpp:4716
+#: src/gui/gui.cpp:4729
 #, c-format
 msgid "| Row %.2X/%.2X "
 msgstr ""
 
-#: src/gui/gui.cpp:4718
+#: src/gui/gui.cpp:4731
 #, c-format
 msgid "| Row %d/%d "
 msgstr ""
 
-#: src/gui/gui.cpp:4721
+#: src/gui/gui.cpp:4734
 msgid "| "
 msgstr ""
 
-#: src/gui/gui.cpp:4724
+#: src/gui/gui.cpp:4737
 msgid "Don't you have anything better to do?"
 msgstr ""
 
-#: src/gui/gui.cpp:4734
+#: src/gui/gui.cpp:4747
 #, c-format
 msgid "%d year "
 msgid_plural "%d years "
 msgstr[0] ""
 
-#: src/gui/gui.cpp:4735
+#: src/gui/gui.cpp:4748
 #, c-format
 msgid "%d month "
 msgid_plural "%d months "
 msgstr[0] ""
 
-#: src/gui/gui.cpp:4736
+#: src/gui/gui.cpp:4749
 #, c-format
 msgid "%d day "
 msgid_plural "%d days "
 msgstr[0] ""
 
-#: src/gui/gui.cpp:4761
+#: src/gui/gui.cpp:4774
 msgid "Note off (cut)"
 msgstr ""
 
-#: src/gui/gui.cpp:4763
+#: src/gui/gui.cpp:4776
 msgid "Note off (release)"
 msgstr ""
 
-#: src/gui/gui.cpp:4765
+#: src/gui/gui.cpp:4778
 msgid "Macro release only"
 msgstr ""
 
-#: src/gui/gui.cpp:4767
+#: src/gui/gui.cpp:4780
 #, c-format
 msgid "Note on: %s"
 msgstr ""
 
-#: src/gui/gui.cpp:4775
+#: src/gui/gui.cpp:4788
 #, c-format
 msgid "Ins %d: <invalid>"
 msgstr ""
 
-#: src/gui/gui.cpp:4778
+#: src/gui/gui.cpp:4791
 #, c-format
 msgid "Ins %d: %s"
 msgstr ""
 
-#: src/gui/gui.cpp:4787
+#: src/gui/gui.cpp:4800
 #, c-format
 msgid "Set volume: %d (%.2X, INVALID!)"
 msgstr ""
 
-#: src/gui/gui.cpp:4790
+#: src/gui/gui.cpp:4803
 #, c-format
 msgid "Set volume: %d (%.2X, %d%%)"
 msgstr ""
 
-#: src/gui/gui.cpp:4812
+#: src/gui/gui.cpp:4825
 msgid "| modified"
 msgstr ""
 
-#: src/gui/gui.cpp:4977 src/gui/gui.cpp:4980
+#: src/gui/gui.cpp:4990 src/gui/gui.cpp:4993
 msgid "System File Dialog Pending"
 msgstr ""
 
-#: src/gui/gui.cpp:5093
+#: src/gui/gui.cpp:5106
 msgid ""
 "there was an error in the file dialog! you may want to report this issue "
 "to:\n"
@@ -17144,18 +17149,18 @@ msgid ""
 "for now please disable the system file picker in Settings > General."
 msgstr ""
 
-#: src/gui/gui.cpp:5096
+#: src/gui/gui.cpp:5109
 msgid "can't do anything without Storage permissions!"
 msgstr ""
 
-#: src/gui/gui.cpp:5098
+#: src/gui/gui.cpp:5111
 msgid ""
 "Zenity/KDialog not available!\n"
 "please install one of these, or disable the system file picker in Settings > "
 "General."
 msgstr ""
 
-#: src/gui/gui.cpp:5240
+#: src/gui/gui.cpp:5253
 msgid ""
 "error while saving instrument! only the following instrument types are "
 "supported:\n"
@@ -17179,360 +17184,360 @@ msgstr ""
 "- FM (OPLL)\n"
 "- FDS"
 
-#: src/gui/gui.cpp:5343
+#: src/gui/gui.cpp:5356
 msgid "there were some errors while loading samples:\n"
 msgstr ""
 
-#: src/gui/gui.cpp:5409 src/gui/gui.cpp:6942
+#: src/gui/gui.cpp:5422 src/gui/gui.cpp:6955
 msgid "...but you haven't selected a sample!"
 msgstr ""
 
-#: src/gui/gui.cpp:5431 src/gui/gui.cpp:5440
+#: src/gui/gui.cpp:5444 src/gui/gui.cpp:5453
 msgid "could not save sample! open Log Viewer for more information."
 msgstr ""
 "샘플을 저장하지 못했습니다! 로그 보기에서 관련 추가적인 정보를 확인하실 수 있"
 "습니다."
 
-#: src/gui/gui.cpp:5459
+#: src/gui/gui.cpp:5472
 msgid "there were some warnings/errors while loading instruments:\n"
 msgstr ""
 
-#: src/gui/gui.cpp:5465
+#: src/gui/gui.cpp:5478
 #, c-format
 msgid "> %s: cannot load instrument! (%s)\n"
 msgstr "> %s: 악기를 불러오지 못했습니다! (%s)\n"
 
-#: src/gui/gui.cpp:5483 src/gui/gui.cpp:5539
+#: src/gui/gui.cpp:5496 src/gui/gui.cpp:5552
 #, c-format
 msgid "cannot load instrument! (%s)"
 msgstr "악기를 불러오지 못했습니다! (%s)"
 
-#: src/gui/gui.cpp:5489
+#: src/gui/gui.cpp:5502
 msgid ""
 "congratulations! you managed to load nothing.\n"
 "you are entitled to a bug report."
 msgstr ""
 
-#: src/gui/gui.cpp:5532 src/gui/gui.cpp:6661
+#: src/gui/gui.cpp:5545 src/gui/gui.cpp:6674
 msgid "...but you haven't selected an instrument!"
 msgstr ""
 
-#: src/gui/gui.cpp:5544
+#: src/gui/gui.cpp:5557
 msgid "there were some errors while loading wavetables:\n"
 msgstr "웨이브테이블을 불러오는 도중 에러가 발생하였습니다:\n"
 
-#: src/gui/gui.cpp:5553 src/gui/gui.cpp:5563 src/gui/gui.cpp:5582
+#: src/gui/gui.cpp:5566 src/gui/gui.cpp:5576 src/gui/gui.cpp:5595
 #, c-format
 msgid "cannot load wavetable! (%s)"
 msgstr "웨이브테이블을 불러오지 못했습니다! (%s)"
 
-#: src/gui/gui.cpp:5590
+#: src/gui/gui.cpp:5603
 msgid "...but you haven't selected a wavetable!"
 msgstr ""
 
-#: src/gui/gui.cpp:5605 src/gui/gui.cpp:5641 src/gui/gui.cpp:5662
+#: src/gui/gui.cpp:5618 src/gui/gui.cpp:5654 src/gui/gui.cpp:5675
 msgid "could not open file!"
 msgstr "파일을 열지 못했습니다!"
 
-#: src/gui/gui.cpp:5613
+#: src/gui/gui.cpp:5626
 #, c-format
 msgid "could not write VGM! (%s)"
 msgstr ""
 
-#: src/gui/gui.cpp:5649
+#: src/gui/gui.cpp:5662
 #, c-format
 msgid "could not write text! (%s)"
 msgstr ""
 
-#: src/gui/gui.cpp:5670
+#: src/gui/gui.cpp:5683
 #, c-format
 msgid "could not write command stream! (%s)"
 msgstr ""
 
-#: src/gui/gui.cpp:5694
+#: src/gui/gui.cpp:5707
 msgid "could not import user presets!"
 msgstr ""
 
-#: src/gui/gui.cpp:5699 src/gui/gui.cpp:5716
+#: src/gui/gui.cpp:5712 src/gui/gui.cpp:5729
 #, c-format
 msgid "could not import user presets! (%s)"
 msgstr ""
 
-#: src/gui/gui.cpp:5737
+#: src/gui/gui.cpp:5750
 #, c-format
 msgid "You opened: %s"
 msgstr ""
 
-#: src/gui/gui.cpp:5740
+#: src/gui/gui.cpp:5753
 msgid "You opened:"
 msgstr ""
 
-#: src/gui/gui.cpp:5748
+#: src/gui/gui.cpp:5761
 #, c-format
 msgid "You saved: %s"
 msgstr ""
 
-#: src/gui/gui.cpp:5769 src/gui/gui.cpp:6033 src/gui/gui.cpp:6034
+#: src/gui/gui.cpp:5782 src/gui/gui.cpp:6046 src/gui/gui.cpp:6047
 #: src/gui/insEdit.cpp:8683
 msgid "Error"
 msgstr ""
 
-#: src/gui/gui.cpp:5774 src/gui/gui.cpp:6595 src/gui/gui.cpp:6596
+#: src/gui/gui.cpp:5787 src/gui/gui.cpp:6608 src/gui/gui.cpp:6609
 msgid "Select Instrument"
 msgstr ""
 
-#: src/gui/gui.cpp:5779 src/gui/gui.cpp:6675 src/gui/gui.cpp:6676
+#: src/gui/gui.cpp:5792 src/gui/gui.cpp:6688 src/gui/gui.cpp:6689
 msgid "Select Sample"
 msgstr ""
 
-#: src/gui/gui.cpp:5784 src/gui/gui.cpp:6859 src/gui/gui.cpp:6860
+#: src/gui/gui.cpp:5797 src/gui/gui.cpp:6872 src/gui/gui.cpp:6873
 msgid "Import Raw Sample"
 msgstr ""
 
-#: src/gui/gui.cpp:5799 src/gui/gui.cpp:5858 src/gui/gui.cpp:5860
+#: src/gui/gui.cpp:5812 src/gui/gui.cpp:5871 src/gui/gui.cpp:5873
 msgid "Rendering..."
 msgstr ""
 
-#: src/gui/gui.cpp:5804 src/gui/gui.cpp:5920 src/gui/gui.cpp:5922
+#: src/gui/gui.cpp:5817 src/gui/gui.cpp:5933 src/gui/gui.cpp:5935
 msgid "ROM Export Progress"
 msgstr ""
 
-#: src/gui/gui.cpp:5864
+#: src/gui/gui.cpp:5877
 msgid "Please wait..."
 msgstr ""
 
-#: src/gui/gui.cpp:5900
+#: src/gui/gui.cpp:5913
 #, c-format
 msgid "Row %d of %d"
 msgstr ""
 
-#: src/gui/gui.cpp:5901
+#: src/gui/gui.cpp:5914
 #, c-format
 msgid "Channel %d of %d"
 msgstr ""
 
-#: src/gui/gui.cpp:5905 src/gui/gui.cpp:5956
+#: src/gui/gui.cpp:5918 src/gui/gui.cpp:5969
 msgid "Abort"
 msgstr ""
 
-#: src/gui/gui.cpp:5924
+#: src/gui/gui.cpp:5937
 msgid "...ooooor you could try asking me a new ROM export?"
 msgstr ""
 
-#: src/gui/gui.cpp:5926
+#: src/gui/gui.cpp:5939
 msgid "Erm what the sigma???"
 msgstr ""
 
-#: src/gui/gui.cpp:6035 src/gui/insEdit.cpp:6277 src/gui/insEdit.cpp:6310
+#: src/gui/gui.cpp:6048 src/gui/insEdit.cpp:6277 src/gui/insEdit.cpp:6310
 #, c-format
 msgid "%s"
 msgstr ""
 
-#: src/gui/gui.cpp:6265
+#: src/gui/gui.cpp:6278
 msgid "Erasing"
 msgstr "삭제하기"
 
-#: src/gui/gui.cpp:6268
+#: src/gui/gui.cpp:6281
 msgid "All subsongs"
 msgstr "모든 하위곡"
 
-#: src/gui/gui.cpp:6275
+#: src/gui/gui.cpp:6288
 msgid "Current subsong"
 msgstr "이 하위곡"
 
-#: src/gui/gui.cpp:6342
+#: src/gui/gui.cpp:6355
 msgid "Optimization"
 msgstr "최적화"
 
-#: src/gui/gui.cpp:6345 src/gui/patManager.cpp:36
+#: src/gui/gui.cpp:6358 src/gui/patManager.cpp:36
 msgid "De-duplicate patterns"
 msgstr ""
 
-#: src/gui/gui.cpp:6354
+#: src/gui/gui.cpp:6367
 msgid "Remove unused instruments"
 msgstr "사용하지 않은 악기 삭제"
 
-#: src/gui/gui.cpp:6367
+#: src/gui/gui.cpp:6380
 msgid "Remove unused samples"
 msgstr "사용하지 않은 샘플 삭제"
 
-#: src/gui/gui.cpp:6384
+#: src/gui/gui.cpp:6397
 msgid "Never mind! Cancel"
 msgstr "취소"
 
-#: src/gui/gui.cpp:6453
+#: src/gui/gui.cpp:6466
 msgid "Got it"
 msgstr ""
 
-#: src/gui/gui.cpp:6484
+#: src/gui/gui.cpp:6497
 msgid "Drum kit mode:"
 msgstr "드럼 키트 모드:"
 
-#: src/gui/gui.cpp:6488
+#: src/gui/gui.cpp:6501
 msgid "12 samples per octave"
 msgstr "옥타브당 12 샘플"
 
-#: src/gui/gui.cpp:6493
+#: src/gui/gui.cpp:6506
 msgid "Starting octave"
 msgstr "시작하는 옥타브"
 
-#: src/gui/gui.cpp:6513
+#: src/gui/gui.cpp:6526
 msgid "Drum Kit"
 msgstr "드럼 키트"
 
-#: src/gui/gui.cpp:6599
+#: src/gui/gui.cpp:6612
 msgid "this is an instrument bank! select which one to use:"
 msgstr ""
 
-#: src/gui/gui.cpp:6602
+#: src/gui/gui.cpp:6615
 msgid "this is an instrument bank! select which ones to load:"
 msgstr ""
 
-#: src/gui/gui.cpp:6680
+#: src/gui/gui.cpp:6693
 msgid "this is a sample bank! select which ones to load:"
 msgstr ""
 
-#: src/gui/gui.cpp:6861
+#: src/gui/gui.cpp:6874
 msgid "Data type:"
 msgstr ""
 
-#: src/gui/gui.cpp:6888
+#: src/gui/gui.cpp:6901
 msgid "(will be mixed down to mono)"
 msgstr ""
 
-#: src/gui/gui.cpp:6889
+#: src/gui/gui.cpp:6902
 msgid "Unsigned"
 msgstr ""
 
-#: src/gui/gui.cpp:6893
+#: src/gui/gui.cpp:6906
 msgid "Big endian"
 msgstr ""
 
-#: src/gui/gui.cpp:6901
+#: src/gui/gui.cpp:6914
 msgid "Swap nibbles"
 msgstr ""
 
-#: src/gui/gui.cpp:6905
+#: src/gui/gui.cpp:6918
 msgid "Swap words"
 msgstr ""
 
-#: src/gui/gui.cpp:6909
+#: src/gui/gui.cpp:6922
 msgid "Encoding:"
 msgstr ""
 
-#: src/gui/gui.cpp:6922
+#: src/gui/gui.cpp:6935
 msgid "Reverse bit order"
 msgstr ""
 
-#: src/gui/gui.cpp:6964
+#: src/gui/gui.cpp:6977
 msgid "Error! No string provided!"
 msgstr ""
 
-#: src/gui/gui.cpp:7303
+#: src/gui/gui.cpp:7316
 msgid "it appears I couldn't load these fonts. any setting you can check?"
 msgstr ""
 
-#: src/gui/gui.cpp:7491 src/gui/gui.cpp:7599
+#: src/gui/gui.cpp:7504 src/gui/gui.cpp:7612
 msgid ""
 "could not init renderer!\n"
 "falling back to software renderer. please restart Furnace."
 msgstr ""
 
-#: src/gui/gui.cpp:7493 src/gui/gui.cpp:7601
+#: src/gui/gui.cpp:7506 src/gui/gui.cpp:7614
 #, c-format
 msgid ""
 "could not init renderer! %s\n"
 "falling back to software renderer. please restart Furnace."
 msgstr ""
 
-#: src/gui/gui.cpp:7498 src/gui/gui.cpp:7606
+#: src/gui/gui.cpp:7511 src/gui/gui.cpp:7619
 msgid "could not init renderer!"
 msgstr ""
 
-#: src/gui/gui.cpp:7509
+#: src/gui/gui.cpp:7522
 #, c-format
 msgid "could not open window! %s"
 msgstr ""
 
-#: src/gui/gui.cpp:7514
+#: src/gui/gui.cpp:7527
 msgid ""
 "\n"
 "falling back to software renderer. please restart Furnace."
 msgstr ""
 
-#: src/gui/gui.cpp:7665
+#: src/gui/gui.cpp:7678
 msgid "Size column to fit###SizeOne"
 msgstr ""
 
-#: src/gui/gui.cpp:7667
+#: src/gui/gui.cpp:7680
 msgid "Size all columns to fit###SizeAll"
 msgstr ""
 
-#: src/gui/gui.cpp:7669
+#: src/gui/gui.cpp:7682
 msgid "Size all columns to default###SizeAll"
 msgstr ""
 
-#: src/gui/gui.cpp:7671
+#: src/gui/gui.cpp:7684
 msgid "Reset order###ResetOrder"
 msgstr ""
 
-#: src/gui/gui.cpp:7673
+#: src/gui/gui.cpp:7686
 msgid "(Main menu bar)"
 msgstr ""
 
-#: src/gui/gui.cpp:7675
+#: src/gui/gui.cpp:7688
 msgid "(Popup)"
 msgstr ""
 
-#: src/gui/gui.cpp:7677
+#: src/gui/gui.cpp:7690
 msgid "(Untitled)"
 msgstr ""
 
-#: src/gui/gui.cpp:7679
+#: src/gui/gui.cpp:7692
 msgid "Hide tab bar###HideTabBar"
 msgstr ""
 
-#: src/gui/gui.cpp:7683
+#: src/gui/gui.cpp:7696
 msgid "LocaleSettings: ccjk"
 msgstr "LocaleSettings: ccjK"
 
-#: src/gui/gui.cpp:7887
+#: src/gui/gui.cpp:7900
 msgid "NES DPCM data"
 msgstr ""
 
-#: src/gui/gui.cpp:7890
+#: src/gui/gui.cpp:7903
 msgid "SNES Bit Rate Reduction"
 msgstr ""
 
-#: src/gui/gui.cpp:7893
+#: src/gui/gui.cpp:7906
 msgid "PMD YM2608 ADPCM-B sample bank"
 msgstr ""
 
-#: src/gui/gui.cpp:7896
+#: src/gui/gui.cpp:7909
 msgid "PDR 4-bit AY-3-8910 sample bank"
 msgstr ""
 
-#: src/gui/gui.cpp:7899
+#: src/gui/gui.cpp:7912
 msgid "FMP YM2608 ADPCM-B sample bank"
 msgstr ""
 
-#: src/gui/gui.cpp:7902
+#: src/gui/gui.cpp:7915
 msgid "MDX OKI ADPCM sample bank"
 msgstr ""
 
-#: src/gui/gui.cpp:7905
+#: src/gui/gui.cpp:7918
 msgid "FMP 8-bit PCM sample bank"
 msgstr ""
 
-#: src/gui/gui.cpp:7908
+#: src/gui/gui.cpp:7921
 msgid "PMD 8-bit PCM sample bank"
 msgstr ""
 
-#: src/gui/gui.cpp:7911
+#: src/gui/gui.cpp:7924
 msgid "PMD OKI ADPCM sample bank"
 msgstr ""
 
-#: src/gui/gui.cpp:8276
+#: src/gui/gui.cpp:8289
 msgid "Unsaved changes! Save changes before quitting?"
 msgstr "변경 사항을 저장하지 않으셨습니다! 종료하기 전에 저장하시겠습니까?"
 
@@ -20085,6 +20090,15 @@ msgstr ""
 #: src/gui/insEdit.cpp:8801
 msgid "Max"
 msgstr ""
+
+#~ msgid "No##_PCS0"
+#~ msgstr "No##_PCS0"
+
+#~ msgid "Yes##_PCS1"
+#~ msgstr "Yes##_PCS1"
+
+#~ msgid "MAME GA20 core by Acho A. Tang and R. Belmont"
+#~ msgstr "MAME GA20 core by Acho A. Tang and R. Belmont"
 
 #~ msgid ""
 #~ "cost-reduced version of the OPM with a different register layout and no "
