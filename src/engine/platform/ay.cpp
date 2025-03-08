@@ -255,33 +255,59 @@ void DivPlatformAY8910::acquire_mame(blip_buffer_t** bb, size_t len) {
     oscBuf[i]->begin(len);
   }
 
+  //logV("%d, %d, %d",ay->noise_enable(0),ay->noise_enable(1),ay->noise_enable(2));
+
   for (size_t i=0; i<len; i++) {
     int advance=len-i;
+    bool careAboutEnv=false;
+    bool careAboutNoise=false;
     // heuristic
     for (int j=0; j<3; j++) {
       // tone counter
-      const int period=MAX(1,ay->m_tone[j].period)*(ay->m_step_mul<<1);
-      const int remain=period-ay->m_tone[j].count;
-      if (remain<advance) advance=remain;
+      if (!ay->tone_enable(j) && ay->m_tone[j].volume!=0) {
+        const int period=MAX(1,ay->m_tone[j].period)*(ay->m_step_mul<<1);
+        const int remain=(period-ay->m_tone[j].count)>>1;
+        if (remain<advance) {
+          advance=remain;
+        }
+      }
 
-      // envelope
-      if (j<1) {
-        if (ay->m_envelope[j].holding==0) {
-          const int periodEnv=MAX(1,ay->m_envelope[j].period)*ay->m_env_step_mul;
-          const int remainEnv=periodEnv-ay->m_envelope[j].count;
-          if (remainEnv<advance) advance=remainEnv;
+      // count me in if I have noise enabled
+      if (!ay->noise_enable(j) && ay->m_tone[j].volume!=0) {
+        careAboutNoise=true;
+      }
+
+      // envelope check
+      if (ay->m_tone[j].volume&16) {
+        careAboutEnv=true;
+      }
+    }
+    // envelope
+    if (careAboutEnv) {
+      if (ay->m_envelope[0].holding==0) {
+        const int periodEnv=MAX(1,ay->m_envelope[0].period)*ay->m_env_step_mul;
+        const int remainEnv=periodEnv-ay->m_envelope[0].count;
+        if (remainEnv<advance) {
+          advance=remainEnv;
         }
       }
     }
     // noise
-    const int noisePeriod=((int)ay->noise_period())*ay->m_step_mul;
-    const int noiseRemain=noisePeriod-ay->m_count_noise;
-    if (noiseRemain<advance) advance=noiseRemain;
+    if (careAboutNoise) {
+      const int noisePeriod=((int)ay->noise_period())*ay->m_step_mul;
+      const int noiseRemain=noisePeriod-ay->m_count_noise;
+      if (noiseRemain<advance) {
+        advance=noiseRemain;
+      }
+    }
 
     //runDAC();
     //runTFX();
 
-    if (!writes.empty() || advance<1) advance=1;
+    if (!writes.empty() || advance<1) {
+      //logV("must write, advance is 1");
+      advance=1;
+    }
     checkWrites();
 
     ay->sound_stream_update(ayBuf,advance);

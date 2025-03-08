@@ -1060,21 +1060,21 @@ void ay8910_device::sound_stream_update(short* outputs, int advance)
     tone = &m_tone[chan];
     const int period = std::max<int>(1, tone->period) * (m_step_mul << 1);
     tone->count += advance << (is_expanded_mode() ? 5 : ((m_feature & PSG_HAS_EXPANDED_MODE) ? 0 : 1));
-                      if (tone->count>=period) {
-                        tone->duty_cycle = (tone->duty_cycle - (tone->count/period)) & 0x1f;
-                        tone->output = is_expanded_mode() ? BIT(duty_cycle[tone_duty(tone)], tone->duty_cycle) : BIT(tone->duty_cycle, 0);
-                        tone->count = tone->count % period;
-                      }
+    if (tone->count>=period) {
+      tone->duty_cycle = (tone->duty_cycle - (tone->count/period)) & 0x1f;
+      tone->output = is_expanded_mode() ? BIT(duty_cycle[tone_duty(tone)], tone->duty_cycle) : BIT(tone->duty_cycle, 0);
+      tone->count = tone->count % period;
+    }
   }
 
   const int period_noise = (int)(noise_period()) * m_step_mul;
   m_count_noise+=advance;
-  while (m_count_noise >= period_noise)
+  if (m_count_noise >= period_noise)
   {
     /* toggle the prescaler output. Noise is no different to
      * channels.
      */
-    m_count_noise -= period_noise;
+    m_count_noise = 0;
     m_prescale_noise = (m_prescale_noise + 1) & ((m_feature & PSG_HAS_EXPANDED_MODE) ? 3 : 1);
 
     if (is_expanded_mode()) // AY8930 noise generator rate is twice? compares as compatibility mode
