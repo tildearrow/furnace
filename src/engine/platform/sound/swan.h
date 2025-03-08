@@ -23,32 +23,29 @@
 #define __WSWAN_SOUND_H
 
 #include <stdint.h>
+#include "blip_buf.h"
+#include "../../dispatch.h"
 
 class WSwan
 {
 public:
  int32_t SoundFlush(int16_t *SoundBuf, const int32_t MaxSoundFrames);
 
- // void SoundInit(void);
- // void SoundKill(void);
- // void SetSoundMultiplier(double multiplier);
- // bool SetSoundRate(uint32_t rate);
-
  void SoundWrite(uint32_t, uint8_t);
  uint8_t SoundRead(uint32_t);
  void SoundReset(void);
- // void SoundCheckRAMWrite(uint32_t A);
+ void SoundCheckRAMWrite(uint32_t A);
 
- void SoundUpdate(uint32_t);
+ void SoundUpdate();
  void RAMWrite(uint32_t, uint8_t);
  
  int32_t sample_cache[4][2];
 
-private:
  // Blip_Synth<blip_good_quality, 4096> WaveSynth;
 
  // Blip_Buffer *sbuf[2] = { NULL };
- int32_t sbuf[2];
+ blip_buffer_t* sbuf[2];
+ DivDispatchOscBuffer* oscBuf[4];
 
  uint16_t period[4];
  uint8_t volume[4]; // left volume in upper 4 bits, right in lower 4 bits
@@ -70,10 +67,11 @@ private:
  uint8_t HVoiceCtrl, HVoiceChanCtrl;
 
  int32_t period_counter[4];
- // int32_t last_val[4][2]; // Last outputted value, l&r
+ int32_t last_val[4][2]; // Last outputted value, l&r
  uint8_t sample_pos[4];
  uint16_t nreg;
  uint32_t last_ts;
+ uint32_t v30mz_timestamp;
 
  uint8_t wsRAM[64];
 };

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -207,11 +207,7 @@ void DivEngine::runExportThread() {
         sf[i]=NULL;
         si[i].samplerate=got.rate;
         si[i].channels=disCont[i].dispatch->getOutputCount();
-        if (exportFormat==DIV_EXPORT_FORMAT_S16) {
-          si[i].format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
-        } else {
-          si[i].format=SF_FORMAT_WAV|SF_FORMAT_FLOAT;
-        }
+        si[i].format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
       }
 
       for (int i=0; i<song.systemLen; i++) {

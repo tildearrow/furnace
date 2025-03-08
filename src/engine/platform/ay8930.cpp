@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -173,6 +173,10 @@ void DivPlatformAY8930::acquire(short** buf, size_t len) {
     }
   }
 
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t i=0; i<len; i++) {
     runDAC();
     checkWrites();
@@ -186,9 +190,13 @@ void DivPlatformAY8930::acquire(short** buf, size_t len) {
       buf[1][i]=buf[0][i];
     }
 
-    oscBuf[0]->data[oscBuf[0]->needle++]=ayBuf[0][0]<<2;
-    oscBuf[1]->data[oscBuf[1]->needle++]=ayBuf[1][0]<<2;
-    oscBuf[2]->data[oscBuf[2]->needle++]=ayBuf[2][0]<<2;
+    oscBuf[0]->putSample(i,ayBuf[0][0]<<2);
+    oscBuf[1]->putSample(i,ayBuf[1][0]<<2);
+    oscBuf[2]->putSample(i,ayBuf[2][0]<<2);
+  }
+
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -341,7 +349,7 @@ void DivPlatformAY8930::tick(bool sysTick) {
           if (s->centerRate<1) {
             off=1.0;
           } else {
-            off=8363.0/(double)s->centerRate;
+            off=parent->getCenterRate()/(double)s->centerRate;
           }
         }
         chan[i].dac.rate=((double)chipClock*4.0)/(double)(MAX(1,off*chan[i].freq));
@@ -923,7 +931,7 @@ void DivPlatformAY8930::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/4;
   for (int i=0; i<3; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 
   stereo=flags.getBool("stereo",false);

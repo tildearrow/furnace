@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,6 +63,11 @@ void DivPlatformSMS::poolWrite(unsigned short a, unsigned char v) {
 void DivPlatformSMS::acquire_nuked(short** buf, size_t len) {
   int oL=0;
   int oR=0;
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     if (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -101,11 +106,15 @@ void DivPlatformSMS::acquire_nuked(short** buf, size_t len) {
     if (stereo) buf[1][h]=oR;
     for (int i=0; i<4; i++) {
       if (isMuted[i]) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=0;
+        oscBuf[i]->putSample(h,0);
       } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=sn_nuked.vol_table[sn_nuked.volume_out[i]]*3;
+        oscBuf[i]->putSample(h,sn_nuked.vol_table[sn_nuked.volume_out[i]]*3);
       }
     }
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -122,6 +131,11 @@ void DivPlatformSMS::acquire_mame(short** buf, size_t len) {
 
     writes.pop();
   }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     short* outs[2]={
       &buf[0][h],
@@ -130,11 +144,15 @@ void DivPlatformSMS::acquire_mame(short** buf, size_t len) {
     sn->sound_stream_update(outs,1);
     for (int i=0; i<4; i++) {
       if (isMuted[i]) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=0;
+        oscBuf[i]->putSample(h,0);
       } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=sn->get_channel_output(i)*3;
+        oscBuf[i]->putSample(h,sn->get_channel_output(i)*3);
       }
     }
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -638,7 +656,7 @@ void DivPlatformSMS::setFlags(const DivConfig& flags) {
 
   rate=chipClock/divider;
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

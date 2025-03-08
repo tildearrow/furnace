@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,6 +41,9 @@ const char** DivPlatformBubSysWSG::getRegisterSheet() {
 
 void DivPlatformBubSysWSG::acquire(short** buf, size_t len) {
   int chanOut=0;
+  for (int i=0; i<2; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t h=0; h<len; h++) {
     signed int out=0;
     // K005289 part
@@ -49,13 +52,13 @@ void DivPlatformBubSysWSG::acquire(short** buf, size_t len) {
     // Wavetable part
     for (int i=0; i<2; i++) {
       if (isMuted[i]) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=0;
+        oscBuf[i]->putSample(h,0);
         continue;
       } else {
         chanOut=chan[i].waveROM[k005289.addr(i)]*(regPool[2+i]&0xf);
         out+=chanOut;
         if (writeOscBuf==0) {
-          oscBuf[i]->data[oscBuf[i]->needle++]=chanOut<<7;
+          oscBuf[i]->putSample(h,chanOut<<7);
         }
       }
     }
@@ -69,6 +72,9 @@ void DivPlatformBubSysWSG::acquire(short** buf, size_t len) {
 
     //printf("out: %d\n",out);
     buf[0][h]=out;
+  }
+  for (int i=0; i<2; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -334,7 +340,7 @@ void DivPlatformBubSysWSG::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/coreQuality;
   for (int i=0; i<2; i++) {
-    oscBuf[i]->rate=rate/8;
+    oscBuf[i]->setRate(rate);
   }
 }
 

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -94,7 +94,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
 
     inline void processDAC(int iRate);
     inline void commitState(int ch, DivInstrument* ins);
-    void acquire276OscSub();
+    inline void acquire276OscSub(int h);
     void acquire_nuked(short** buf, size_t len);
     void acquire_nuked276(short** buf, size_t len);
     void acquire_ymfm(short** buf, size_t len);

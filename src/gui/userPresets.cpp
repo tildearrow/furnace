@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -130,7 +130,7 @@ bool FurnaceGUI::loadUserPresets(bool redundancy, String path, bool append) {
   FurnaceGUISysCategory* userCategory=NULL;
 
   for (FurnaceGUISysCategory& i: sysCategories) {
-    if (strcmp(i.name,"User")==0) {
+    if (strcmp(i.name,_("User"))==0) {
       userCategory=&i;
       break;
     }
@@ -226,7 +226,7 @@ bool FurnaceGUI::saveUserPresets(bool redundancy, String path) {
   FurnaceGUISysCategory* userCategory=NULL;
 
   for (FurnaceGUISysCategory& i: sysCategories) {
-    if (strcmp(i.name,"User")==0) {
+    if (strcmp(i.name,_("User"))==0) {
       userCategory=&i;
       break;
     }
@@ -336,7 +336,7 @@ void FurnaceGUI::drawUserPresets() {
   if (ImGui::Begin("User Systems",&userPresetsOpen,globalWinFlags,_("User Systems"))) {
     FurnaceGUISysCategory* userCategory=NULL;
     for (FurnaceGUISysCategory& i: sysCategories) {
-      if (strcmp(i.name,"User")==0) {
+      if (strcmp(i.name,_("User"))==0) {
         userCategory=&i;
         break;
       }

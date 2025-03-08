@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 
 void DivPlatformPong::acquire(short** buf, size_t len) {
   int out=0;
+  oscBuf->begin(len);
   for (size_t i=0; i<len; i++) {
     if (on) {
       if (--pos<=0) {
@@ -33,13 +34,14 @@ void DivPlatformPong::acquire(short** buf, size_t len) {
       }
       out=(flip && !isMuted[0])?32767:0;
       buf[0][i]=out;
-      oscBuf->data[oscBuf->needle++]=out;
+      oscBuf->putSample(i,out);
     } else {
       buf[0][i]=0;
-      oscBuf->data[oscBuf->needle++]=0;
+      oscBuf->putSample(i,0);
       flip=false;
     }
   }
+  oscBuf->end(len);
 }
 
 void DivPlatformPong::tick(bool sysTick) {
@@ -237,7 +239,7 @@ void DivPlatformPong::setFlags(const DivConfig& flags) {
   chipClock=1000000;
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/64;
-  oscBuf->rate=rate;
+  oscBuf->setRate(rate);
 }
 
 void DivPlatformPong::notifyInsDeletion(void* ins) {

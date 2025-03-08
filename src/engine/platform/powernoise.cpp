@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,16 +82,24 @@ const char** DivPlatformPowerNoise::getRegisterSheet() {
 void DivPlatformPowerNoise::acquire(short** buf, size_t len) {
   short left, right;
 
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     pwrnoise_step(&pn,coreQuality,&left,&right);
 
-    oscBuf[0]->data[oscBuf[0]->needle++]=mapAmp((pn.n1.out_latch&0xf)+(pn.n1.out_latch>>4));
-    oscBuf[1]->data[oscBuf[1]->needle++]=mapAmp((pn.n2.out_latch&0xf)+(pn.n2.out_latch>>4));
-    oscBuf[2]->data[oscBuf[2]->needle++]=mapAmp((pn.n3.out_latch&0xf)+(pn.n3.out_latch>>4));
-    oscBuf[3]->data[oscBuf[3]->needle++]=mapAmp((pn.s.out_latch&0xf)+(pn.s.out_latch>>4));
+    oscBuf[0]->putSample(h,mapAmp((pn.n1.out_latch&0xf)+(pn.n1.out_latch>>4)));
+    oscBuf[1]->putSample(h,mapAmp((pn.n2.out_latch&0xf)+(pn.n2.out_latch>>4)));
+    oscBuf[2]->putSample(h,mapAmp((pn.n3.out_latch&0xf)+(pn.n3.out_latch>>4)));
+    oscBuf[3]->putSample(h,mapAmp((pn.s.out_latch&0xf)+(pn.s.out_latch>>4)));
 
     buf[0][h]=left;
     buf[1][h]=right;
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -506,7 +514,7 @@ void DivPlatformPowerNoise::setFlags(const DivConfig& flags) {
   rate=chipClock/coreQuality;
 
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

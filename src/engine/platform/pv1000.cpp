@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,12 +38,20 @@ const char** DivPlatformPV1000::getRegisterSheet() {
 }
 
 void DivPlatformPV1000::acquire(short** buf, size_t len) {
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->begin(len);
+  }
+  
   for (size_t h=0; h<len; h++) {
     short samp=d65010g031_sound_tick(&d65010g031,1);
     buf[0][h]=samp;
     for (int i=0; i<3; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=MAX(d65010g031.out[i]<<2,0);
+      oscBuf[i]->putSample(h,MAX(d65010g031.out[i]<<2,0));
     }
+  }
+
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -263,7 +271,7 @@ void DivPlatformPV1000::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/1024;
   for (int i=0; i<3; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

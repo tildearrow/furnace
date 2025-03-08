@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -469,6 +469,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
     for (int i = 0; i < 256; i++) {
       for (int j = 0; j < 8; j++) {
         macros[i].push_back(DivInstrumentMacro(DIV_MACRO_VOL));
+        macros[i][j].open|=9;
       }
     }
 
@@ -2744,7 +2745,8 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
       }
     }
 
-    ds.delayBehavior=0;
+    // why? I thought FamiTracker was lax
+    //ds.delayBehavior=0;
 
     ds.version=DIV_VERSION_FTM;
     ds.insLen = ds.ins.size();

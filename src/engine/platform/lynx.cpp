@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -154,6 +154,12 @@ void DivPlatformLynx::processDAC(int sRate) {
 }
 
 void DivPlatformLynx::acquire(short** buf, size_t len) {
+  thread_local int chanBuf[4];
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     processDAC(rate);
 
@@ -163,7 +169,15 @@ void DivPlatformLynx::acquire(short** buf, size_t len) {
       writes.pop_front();
     }
 
-    mikey->sampleAudio(buf[0]+h,buf[1]+h,1,oscBuf);
+    mikey->sampleAudio(buf[0]+h,buf[1]+h,1,chanBuf);
+
+    for (int i=0; i<4; i++) {
+      oscBuf[i]->putSample(h,chanBuf[i]);
+    }
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -257,7 +271,7 @@ void DivPlatformLynx::tick(bool sysTick) {
           if (s->centerRate<1) {
             off=1.0;
           } else {
-            off=(double)s->centerRate/8363.0;
+            off=(double)s->centerRate/parent->getCenterRate();
           }
         }
         chan[i].sampleFreq=off*parent->calcFreq(chan[i].sampleBaseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
@@ -555,7 +569,7 @@ void DivPlatformLynx::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/128;
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

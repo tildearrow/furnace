@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,6 +46,10 @@ const char** DivPlatformMSM5232::getRegisterSheet() {
 }
 
 void DivPlatformMSM5232::acquire(short** buf, size_t len) {
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -56,7 +60,7 @@ void DivPlatformMSM5232::acquire(short** buf, size_t len) {
 
     for (int i=0; i<8; i++) {
       if (isMuted[i]) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=0;
+        oscBuf[i]->putSample(h,0);
       } else {
         int o=(
           ((regPool[12+(i>>2)]&1)?((msm->vo16[i]*partVolume[3+(i&4)])>>8):0)+
@@ -64,7 +68,7 @@ void DivPlatformMSM5232::acquire(short** buf, size_t len) {
           ((regPool[12+(i>>2)]&4)?((msm->vo4[i]*partVolume[1+(i&4)])>>8):0)+
           ((regPool[12+(i>>2)]&8)?((msm->vo2[i]*partVolume[i&4])>>8):0)
         )<<2;
-        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(o,-32768,32767);
+        oscBuf[i]->putSample(h,CLAMP(o,-32768,32767));
       }
     }
 
@@ -83,6 +87,10 @@ void DivPlatformMSM5232::acquire(short** buf, size_t len) {
     for (int i=0; i<8; i++) {
       buf[0][h]+=(temp[i]*partVolume[i])>>8;
     }
+  }
+
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -400,7 +408,7 @@ void DivPlatformMSM5232::setFlags(const DivConfig& flags) {
   msm->set_clock(chipClock+detune*1024);
   rate=msm->get_rate();
   for (int i=0; i<8; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
   initPartVolume[0]=flags.getInt("partVolume0",255);
   initPartVolume[1]=flags.getInt("partVolume1",255);

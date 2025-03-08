@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 #include <math.h>
 
 #define PITCH_OFFSET ((double)(16*2048*(chanMax+1)))
-#define NOTE_ES5506(c,note) ((amigaPitch && parent->song.linearPitch!=2)?parent->calcBaseFreq(COLOR_NTSC,chan[c].pcm.freqOffs,note,true):parent->calcBaseFreq(chipClock,chan[c].pcm.freqOffs,note,false))
+#define NOTE_ES5506(c,note) ((amigaPitch && parent->song.linearPitch!=2)?parent->calcBaseFreq(COLOR_NTSC*16,chan[c].pcm.freqOffs,note,true):parent->calcBaseFreq(chipClock,chan[c].pcm.freqOffs,note,false))
 
 #define rWrite(a,...) {if(!skipRegisterWrites) {hostIntf32.push_back(QueuedHostIntf(4,(a),__VA_ARGS__)); }}
 #define immWrite(a,...) {hostIntf32.push_back(QueuedHostIntf(4,(a),__VA_ARGS__));}
@@ -111,6 +111,9 @@ const char** DivPlatformES5506::getRegisterSheet() {
 }
 
 void DivPlatformES5506::acquire(short** buf, size_t len) {
+  for (int i=0; i<chanMax; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t h=0; h<len; h++) {
     // convert 32 bit access to 8 bit host interface
     while (!hostIntf32.empty()) {
@@ -166,8 +169,11 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
       buf[(o<<1)|1][h]=es5506.rout(o);
     }
     for (int i=chanMax; i>=0; i--) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(es5506.voice_lout(i)+es5506.voice_rout(i))>>5;
+      oscBuf[i]->putSample(h,(es5506.voice_lout(i)+es5506.voice_rout(i))>>5);
     }
+  }
+  for (int i=0; i<chanMax; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -393,14 +399,14 @@ void DivPlatformES5506::tick(bool sysTick) {
     }
     // filter slide
     if (!chan[i].keyOn) {
-      if (chan[i].k1Slide!=0 && chan[i].filter.k1>0 && chan[i].filter.k1<65535) {
+      if (chan[i].k1Slide!=0) {
         signed int next=CLAMP(chan[i].filter.k1+chan[i].k1Slide,0,65535);
         if (chan[i].filter.k1!=next) {
           chan[i].filter.k1=next;
           chan[i].filterChanged.k1=1;
         }
       }
-      if (chan[i].k2Slide!=0 && chan[i].filter.k2>0 && chan[i].filter.k2<65535) {
+      if (chan[i].k2Slide!=0) {
         signed int next=CLAMP(chan[i].filter.k2+chan[i].k2Slide,0,65535);
         if (chan[i].filter.k2!=next) {
           chan[i].filter.k2=next;
@@ -490,7 +496,7 @@ void DivPlatformES5506::tick(bool sysTick) {
             if (center<1) {
               off=1.0;
             } else {
-              off=(double)center/8363.0;
+              off=(double)center/parent->getCenterRate();
             }
             if (ins->amiga.useNoteMap) {
               //chan[i].pcm.note=next;
@@ -639,8 +645,9 @@ void DivPlatformES5506::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (amigaPitch && parent->song.linearPitch!=2) {
-        chan[i].freq=CLAMP(parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,2,chan[i].pitch2,COLOR_NTSC,chan[i].pcm.freqOffs),1,0xffff);
-        chan[i].freq=32768*(COLOR_NTSC/chan[i].freq)/(chipClock/32.0);
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch*16,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,2,chan[i].pitch2*16,16*COLOR_NTSC,chan[i].pcm.freqOffs);
+        chan[i].freq=524288*(COLOR_NTSC/chan[i].freq)/(chipClock/32.0);
+        chan[i].freq=CLAMP(chan[i].freq,0,0x1ffff);
       } else {
         chan[i].freq=CLAMP(parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,chan[i].pcm.freqOffs),0,0x1ffff);
       }
@@ -654,7 +661,7 @@ void DivPlatformES5506::tick(bool sysTick) {
           if (center<1) {
             off=1.0;
           } else {
-            off=(double)center/8363.0;
+            off=(double)center/parent->getCenterRate();
           }
           chan[i].pcm.loopStart=(chan[i].pcm.start+(s->loopStart<<11))&0xfffff800;
           chan[i].pcm.loopEnd=(chan[i].pcm.start+((s->loopEnd)<<11))&0xffffff80;
@@ -1086,6 +1093,9 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       int nextFreq=chan[c.chan].baseFreq;
       int destFreq=NOTE_ES5506(c.chan,c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
+      if (amigaPitch && parent->song.linearPitch!=2) {
+        c.value*=16;
+      }
       if (destFreq>nextFreq) {
         nextFreq+=c.value;
         if (nextFreq>=destFreq) {
@@ -1255,7 +1265,7 @@ void DivPlatformES5506::setFlags(const DivConfig& flags) {
 
   rate=chipClock/(16*(initChanMax+1)); // 2 E clock tick (16 CLKIN tick) per voice / 4
   for (int i=0; i<32; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

@@ -51,5 +51,7 @@ this chip uses the [Virtual Boy](../4-instrument/virtual-boy.md) instrument edit
 the following options are available in the Chip Manager window:
 
 - **Waveform storage mode**: selects how will waveforms be loaded.
-  - Dynamic: allows switching between many waves, but it is not confirmed whether this really works on hardware.
   - Static: loads the first 5 waves only.
+  - Dynamic: allows switching between more than 5 waves, but loading a new wave forces all channels off and back on again, usually with an audible click.
+    - **Disable anti-phase-reset**: disables the workaround to a phase reset that occurs on all channels when the waveform of any channel is changed.
+    - **I don't care about hardware**: ignores the 5-wave limitation and allows dynamic waveforms without channel resets or clicking. _note:_ this is not hardware accurate!

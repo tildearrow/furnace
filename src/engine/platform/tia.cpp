@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,11 +38,32 @@ const char** DivPlatformTIA::getRegisterSheet() {
   return regCheatSheetTIA;
 }
 
-void DivPlatformTIA::acquire(short** buf, size_t len) {
+void DivPlatformTIA::acquireDirect(blip_buffer_t** bb, size_t len) {
+  thread_local int out[2];
+  for (int i=0; i<2; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
+    int advance=len-h;
+
+    if (tia.myCounter<advance) advance=tia.myCounter;
+    if (softwarePitch) {
+      if (tuneCounter>=228) {
+        if (456-tuneCounter<advance) {
+          advance=456-tuneCounter;
+        }
+      } else {
+        if (228-tuneCounter<advance) {
+          advance=228-tuneCounter;
+        }
+      }
+    }
+    if (advance<1) advance=1;
+
     if (softwarePitch) {
       int i=-1;
-      tuneCounter++;
+      tuneCounter+=advance;
       if (tuneCounter==228) {
         i=0;
       }
@@ -64,20 +85,36 @@ void DivPlatformTIA::acquire(short** buf, size_t len) {
         }
       }
     }
-    tia.tick();
+    tia.tick(advance);
+
+    h+=advance-1;
+
     if (mixingType==2) {
-      buf[0][h]=tia.myCurrentSample[0];
-      buf[1][h]=tia.myCurrentSample[1];
+      out[0]=tia.myCurrentSample[0];
+      out[1]=tia.myCurrentSample[1];
     } else if (mixingType==1) {
-      buf[0][h]=(tia.myCurrentSample[0]+tia.myCurrentSample[1])>>1;
+      out[0]=(tia.myCurrentSample[0]+tia.myCurrentSample[1])>>1;
     } else {
-      buf[0][h]=tia.myCurrentSample[0];
+      out[0]=tia.myCurrentSample[0];
+    }
+
+    if (out[0]!=prevSample[0]) {
+      blip_add_delta(bb[0],h,out[0]-prevSample[0]);
+      prevSample[0]=out[0];
+    }
+    if (mixingType==2) {
+      blip_add_delta(bb[1],h,out[1]-prevSample[1]);
+      prevSample[1]=out[1];
     }
     if (++chanOscCounter>=114) {
       chanOscCounter=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=tia.myChannelOut[0];
-      oscBuf[1]->data[oscBuf[1]->needle++]=tia.myChannelOut[1];
+      oscBuf[0]->putSample(h,tia.myChannelOut[0]);
+      oscBuf[1]->putSample(h,tia.myChannelOut[1]);
     }
+  }
+  
+  for (int i=0; i<2; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -420,6 +457,8 @@ int DivPlatformTIA::getRegisterPoolSize() {
 
 void DivPlatformTIA::reset() {
   tuneCounter=0;
+  prevSample[0]=0;
+  prevSample[1]=0;
   tia.reset(mixingType);
   memset(regPool,0,16);
   for (int i=0; i<2; i++) {
@@ -438,6 +477,10 @@ int DivPlatformTIA::getOutputCount() {
 }
 
 bool DivPlatformTIA::keyOffAffectsArp(int ch) {
+  return true;
+}
+
+bool DivPlatformTIA::hasAcquireDirect() {
   return true;
 }
 
@@ -471,7 +514,7 @@ void DivPlatformTIA::setFlags(const DivConfig& flags) {
   softwarePitch=flags.getBool("softwarePitch",false);
   oldPitch=flags.getBool("oldPitch",false);
   for (int i=0; i<2; i++) {
-    oscBuf[i]->rate=rate/114;
+    oscBuf[i]->setRate(rate);
   }
   tia.reset(mixingType);
 }

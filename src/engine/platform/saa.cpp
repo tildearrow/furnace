@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 
 #include "saa.h"
 #include "../engine.h"
+#include "../bsr.h"
 #include "sound/saa1099.h"
 #include <string.h>
 #include <math.h>
@@ -70,7 +71,13 @@ void DivPlatformSAA1099::acquire_saaSound(short** buf, size_t len) {
     regPool[w.addr&0x1f]=w.val;
     writes.pop();
   }
+  for (int i=0; i<6; i++) {
+    oscBuf[i]->begin(len);
+  }
   saa_saaSound->GenerateMany((unsigned char*)saaBuf[0],len,oscBuf);
+  for (int i=0; i<6; i++) {
+    oscBuf[i]->end(len);
+  }
 #ifdef TA_BIG_ENDIAN
   for (size_t i=0; i<len; i++) {
     buf[0][i]=(short)((((unsigned short)saaBuf[0][i<<1])<<8)|(((unsigned short)saaBuf[0][i<<1])>>8));
@@ -155,22 +162,9 @@ void DivPlatformSAA1099::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       if (chan[i].freq>65535) chan[i].freq=65535;
-      if (chan[i].freq>=32768) {
-        chan[i].freqH=7;
-      } else if (chan[i].freq>=16384) {
-        chan[i].freqH=6;
-      } else if (chan[i].freq>=8192) {
-        chan[i].freqH=5;
-      } else if (chan[i].freq>=4096) {
-        chan[i].freqH=4;
-      } else if (chan[i].freq>=2048) {
-        chan[i].freqH=3;
-      } else if (chan[i].freq>=1024) {
-        chan[i].freqH=2;
-      } else if (chan[i].freq>=512) {
-        chan[i].freqH=1;
-      } else {
-        chan[i].freqH=0;
+      chan[i].freqH=0;
+      if (chan[i].freq>511) {
+        chan[i].freqH=bsr((unsigned short)chan[i].freq)-9;
       }
       chan[i].freqL=0xff-(chan[i].freq>>chan[i].freqH);
       chan[i].freqH=7-chan[i].freqH;

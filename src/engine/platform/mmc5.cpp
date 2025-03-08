@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 
 #define CHIP_DIVIDER 16
 
-#define rWrite(a,v) if (!skipRegisterWrites) {extcl_cpu_wr_mem_MMC5(mmc5,a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite((a),v)); if (dumpWrites) {addWrite(a,v);} }
 
 const char* regCheatSheetMMC5[]={
   "S0Volume", "5000",
@@ -43,15 +43,48 @@ const char** DivPlatformMMC5::getRegisterSheet() {
   return regCheatSheetMMC5;
 }
 
-void DivPlatformMMC5::acquire(short** buf, size_t len) {
+void DivPlatformMMC5::acquireDirect(blip_buffer_t** bb, size_t len) {
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->begin(len);
+    mmc5->oscBuf[i]=oscBuf[i];
+  }
+
+  mmc5->bb=bb[0];
+  mmc5->timestamp=0;
+
+  while (!writes.empty()) {
+    QueuedWrite w=writes.front();
+    regPool[(w.addr)&0x7f]=w.val;
+    extcl_cpu_wr_mem_MMC5(mmc5,0,w.addr,w.val);
+    writes.pop();
+  }
+
+  // TODO: does this matter?
+  extcl_envelope_clock_MMC5(mmc5);
+  extcl_length_clock_MMC5(mmc5);
   for (size_t i=0; i<len; i++) {
+    // heuristic
+    int pcmAdvance=1;
+    if (dacSample==-1) {
+      break;
+    } else {
+      pcmAdvance=len-i;
+      if (dacRate>0) {
+        int remainTime=(rate-dacPeriod+dacRate-1)/dacRate;
+        if (remainTime<pcmAdvance) pcmAdvance=remainTime;
+        if (remainTime<1) pcmAdvance=1;
+      }
+    }
+
+    i+=pcmAdvance-1;
+
     if (dacSample!=-1) {
-      dacPeriod+=dacRate;
+      dacPeriod+=dacRate*pcmAdvance;
       if (dacPeriod>=rate) {
         DivSample* s=parent->getSample(dacSample);
         if (s->samples>0 && dacPos<s->samples) {
           if (!isMuted[2]) {
-            rWrite(0x5011,((unsigned char)s->data8[dacPos]+0x80));
+            extcl_cpu_wr_mem_MMC5(mmc5,i,0x5011,((unsigned char)s->data8[dacPos]+0x80));
           }
           dacPos++;
           if (s->isLoopable() && dacPos>=(unsigned int)s->loopEnd) {
@@ -65,30 +98,11 @@ void DivPlatformMMC5::acquire(short** buf, size_t len) {
         }
       }
     }
-  
-    extcl_envelope_clock_MMC5(mmc5);
-    extcl_length_clock_MMC5(mmc5);
-    extcl_apu_tick_MMC5(mmc5);
-    if (mmc5->clocked) {
-      mmc5->clocked=false;
-    }
-    int sample=isMuted[0]?0:(mmc5->S3.output*10);
-    if (!isMuted[1]) {
-      sample+=mmc5->S4.output*10;
-    }
-    if (!isMuted[2]) {
-      sample+=mmc5->pcm.output*2;
-    }
-    if (sample>32767) sample=32767;
-    if (sample<-32768) sample=-32768;
-    buf[0][i]=sample;
+  }
+  extcl_apu_tick_MMC5(mmc5,len);
 
-    if (++writeOscBuf>=32) {
-      writeOscBuf=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=isMuted[0]?0:((mmc5->S3.output)<<11);
-      oscBuf[1]->data[oscBuf[1]->needle++]=isMuted[1]?0:((mmc5->S4.output)<<11);
-      oscBuf[2]->data[oscBuf[2]->needle++]=isMuted[2]?0:((mmc5->pcm.output)<<7);
-    }
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -161,7 +175,7 @@ void DivPlatformMMC5::tick(bool sysTick) {
       double off=1.0;
       if (dacSample>=0 && dacSample<parent->song.sampleLen) {
         DivSample* s=parent->getSample(dacSample);
-        off=(double)s->centerRate/8363.0;
+        off=(double)s->centerRate/parent->getCenterRate();
       }
       dacRate=MIN(chan[2].freq*off,32000);
       if (dumpWrites) addWrite(0xffff0001,dacRate);
@@ -356,6 +370,7 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
 
 void DivPlatformMMC5::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
+  mmc5->muted[ch]=mute;
 }
 
 void DivPlatformMMC5::forceIns() {
@@ -390,6 +405,7 @@ float DivPlatformMMC5::getPostAmp() {
 }
 
 void DivPlatformMMC5::reset() {
+  while (!writes.empty()) writes.pop();
   for (int i=0; i<3; i++) {
     chan[i]=DivPlatformMMC5::Channel();
     chan[i].std.setEngine(parent);
@@ -407,11 +423,19 @@ void DivPlatformMMC5::reset() {
   map_init_MMC5(mmc5);
   memset(regPool,0,128);
 
+  mmc5->muted[0]=isMuted[0];
+  mmc5->muted[1]=isMuted[1];
+  mmc5->muted[2]=isMuted[2];
+
   rWrite(0x5015,0x03);
   rWrite(0x5010,0x00);
 }
 
 bool DivPlatformMMC5::keyOffAffectsArp(int ch) {
+  return true;
+}
+
+bool DivPlatformMMC5::hasAcquireDirect() {
   return true;
 }
 
@@ -427,7 +451,7 @@ void DivPlatformMMC5::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock;
   for (int i=0; i<3; i++) {
-    oscBuf[i]->rate=rate/32;
+    oscBuf[i]->setRate(rate);
   }
 }
 

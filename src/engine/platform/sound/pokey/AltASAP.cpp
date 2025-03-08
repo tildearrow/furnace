@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  * 
  * Original author: Piotr Fusik (http://asap.sourceforge.net)
  * Rewritten based on Mikey emulation by Waldemar Pawlaszek
@@ -490,7 +490,7 @@ public:
     }
   }
 
-  int16_t sampleAudio( DivDispatchOscBuffer** oscb )
+  int16_t sampleAudio( short* oscb )
   {
     for ( ;; )
     {
@@ -504,10 +504,10 @@ public:
 
         if ( oscb != nullptr )
         {
-          oscb[0]->data[oscb[0]->needle++]=ch0 * MAGICK_OSC_VOLUME_BOOSTER;
-          oscb[1]->data[oscb[1]->needle++]=ch1 * MAGICK_OSC_VOLUME_BOOSTER;
-          oscb[2]->data[oscb[2]->needle++]=ch2 * MAGICK_OSC_VOLUME_BOOSTER;
-          oscb[3]->data[oscb[3]->needle++]=ch3 * MAGICK_OSC_VOLUME_BOOSTER;
+          oscb[0]=ch0 * MAGICK_OSC_VOLUME_BOOSTER;
+          oscb[1]=ch1 * MAGICK_OSC_VOLUME_BOOSTER;
+          oscb[2]=ch2 * MAGICK_OSC_VOLUME_BOOSTER;
+          oscb[3]=ch3 * MAGICK_OSC_VOLUME_BOOSTER;
         }
 
         enqueueSampling();
@@ -612,7 +612,7 @@ private:
 };
 
 //Initializing periods with safe defaults
-Pokey::Pokey() : mPokeyClock{ (uint32_t)COLOR_NTSC / 2 }, mSampleRate{ mPokeyClock / 7 }, mPokey{}
+Pokey::Pokey() : mPokeyClock{ (uint32_t)3579545.4545454545454545454545454545454644484879993035705375307 / 2 }, mSampleRate{ mPokeyClock / 7 }, mPokey{}
 {
 }
 
@@ -638,7 +638,7 @@ void Pokey::write( uint8_t address, uint8_t value )
   mPokey->write( address, value );
 }
 
-int16_t Pokey::sampleAudio( DivDispatchOscBuffer** oscb )
+int16_t Pokey::sampleAudio( short* oscb )
 {
   assert( mPokey );
   return mPokey->sampleAudio( oscb );

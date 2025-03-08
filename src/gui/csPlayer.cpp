@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
 #include "imgui.h"
 #include "guiConst.h"
 
-// TODO: memory safety
 String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr) {
   if (addr>=bufLen) return "???";
 
@@ -42,39 +41,51 @@ String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr) {
       return "mrel";
       break;
     case 0xb8:
+      if (addr+1>=bufLen) return "???";
       return fmt::sprintf("ins $%.2x",(int)buf[addr+1]);
       break;
     case 0xbe:
+      if (addr+2>=bufLen) return "???";
       return fmt::sprintf("pan $%x, $%x",(int)buf[addr+1],(int)buf[addr+2]);
       break;
     case 0xc0:
+      if (addr+1>=bufLen) return "???";
       return fmt::sprintf("preporta $%.2x",(int)buf[addr+1]);
       break;
     case 0xc2:
+      if (addr+2>=bufLen) return "???";
       return fmt::sprintf("vib %d, %d",(int)buf[addr+1],(int)buf[addr+2]);
       break;
     case 0xc3:
+      if (addr+1>=bufLen) return "???";
       return fmt::sprintf("vibrange %d",(int)buf[addr+1]);
       break;
     case 0xc4:
+      if (addr+1>=bufLen) return "???";
       return fmt::sprintf("vibshape %d",(int)buf[addr+1]);
       break;
     case 0xc5:
+      if (addr+1>=bufLen) return "???";
       return fmt::sprintf("pitch $%.2x",(int)buf[addr+1]);
       break;
     case 0xc6:
+      if (addr+2>=bufLen) return "???";
       return fmt::sprintf("arp %d, %d",(int)buf[addr+1],(int)buf[addr+2]);
       break;
     case 0xc7:
+      if (addr+1>=bufLen) return "???";
       return fmt::sprintf("vol $%.2x",(int)buf[addr+1]);
       break;
     case 0xc8:
+      if (addr+2>=bufLen) return "???";
       return fmt::sprintf("volslide %d",(int)((short)(buf[addr+1]|(buf[addr+2]<<8))));
       break;
     case 0xc9:
+      if (addr+2>=bufLen) return "???";
       return fmt::sprintf("porta %d, %d",(int)buf[addr+1],(int)buf[addr+2]);
       break;
     case 0xca:
+      if (addr+1>=bufLen) return "???";
       return fmt::sprintf("legato %d",(int)buf[addr+1]);
       break;
     case 0xe0: case 0xe1: case 0xe2: case 0xe3:
@@ -84,9 +95,11 @@ String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr) {
       return fmt::sprintf("qwait (%d)",(int)(buf[addr]-0xe0));
       break;
     case 0xfc:
+      if (addr+2>=bufLen) return "???";
       return fmt::sprintf("waits %d",(int)(buf[addr+1]|(buf[addr+2]<<8)));
       break;
     case 0xfd:
+      if (addr+1>=bufLen) return "???";
       return fmt::sprintf("waitc %d",(int)buf[addr+1]);
       break;
     case 0xfe:
@@ -139,7 +152,7 @@ void FurnaceGUI::drawCSPlayer() {
       if (ImGui::BeginTabBar("CSOptions")) {
         int chans=e->getTotalChannelCount();
         if (ImGui::BeginTabItem(_("Status"))) {
-          if (ImGui::BeginTable("CSStat",12,ImGuiTableFlags_SizingFixedSame|ImGuiTableFlags_ScrollX|ImGuiTableFlags_Borders)) {
+          if (ImGui::BeginTable("CSStat",13,ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_ScrollX|ImGuiTableFlags_Borders)) {
             ImGui::TableSetupScrollFreeze(1,1);
             ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
             ImGui::TableNextColumn();

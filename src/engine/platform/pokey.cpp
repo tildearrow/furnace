@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,6 +74,10 @@ void DivPlatformPOKEY::acquire(short** buf, size_t len) {
 }
 
 void DivPlatformPOKEY::acquireMZ(short* buf, size_t len) {
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -86,28 +90,46 @@ void DivPlatformPOKEY::acquireMZ(short* buf, size_t len) {
 
     if (++oscBufDelay>=14) {
       oscBufDelay=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=pokey.outvol_0<<10;
-      oscBuf[1]->data[oscBuf[1]->needle++]=pokey.outvol_1<<10;
-      oscBuf[2]->data[oscBuf[2]->needle++]=pokey.outvol_2<<10;
-      oscBuf[3]->data[oscBuf[3]->needle++]=pokey.outvol_3<<10;
+      oscBuf[0]->putSample(h,pokey.outvol_0<<10);
+      oscBuf[1]->putSample(h,pokey.outvol_1<<10);
+      oscBuf[2]->putSample(h,pokey.outvol_2<<10);
+      oscBuf[3]->putSample(h,pokey.outvol_3<<10);
     }
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
 void DivPlatformPOKEY::acquireASAP(short* buf, size_t len) {
+  thread_local short oscB[4];
+
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
     altASAP.write(w.addr, w.val);
     writes.pop();
   }
 
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     if (++oscBufDelay>=2) {
       oscBufDelay=0;
-      buf[h]=altASAP.sampleAudio(oscBuf);
+      buf[h]=altASAP.sampleAudio(oscB);
+      
+      for (int i=0; i<4; i++) {
+        oscBuf[i]->putSample(h,oscB[i]);
+      }
     } else {
       buf[h]=altASAP.sampleAudio();
     }
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -488,14 +510,14 @@ void DivPlatformPOKEY::setFlags(const DivConfig& flags) {
   if (useAltASAP) {
     rate=chipClock/7;
     for (int i=0; i<4; i++) {
-      oscBuf[i]->rate=rate/2;
+      oscBuf[i]->setRate(rate);
     }
     altASAP.init(chipClock,rate);
     altASAP.reset();
   } else {
     rate=chipClock;
     for (int i=0; i<4; i++) {
-      oscBuf[i]->rate=rate/14;
+      oscBuf[i]->setRate(rate);
     }
   }
 }
