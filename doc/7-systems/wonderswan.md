@@ -20,6 +20,11 @@ it has 4 wavetable channels. some of them have additional capabilities:
 - `13xx`: **setup sweep amount.** channel 3 only.
   - `00` to `7F` for 0 to 127.
   - `80` to `FF` for -128 to -1.
+- `20xx`: **set internal speaker loudness.**
+  - 0-1: 100% (default).
+  - 2-3: 200%.
+  - 4-7: 400%.
+  - 8: 800%.
 
 ## info
 

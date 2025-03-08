@@ -170,6 +170,7 @@ const char* cmdName[]={
 
   "WS_SWEEP_TIME",
   "WS_SWEEP_AMOUNT",
+  "WS_GLOBAL_SPEAKER_VOLUME",
 
   "N163_WAVE_POSITION",
   "N163_WAVE_LENGTH",
