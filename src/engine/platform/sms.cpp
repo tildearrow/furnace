@@ -118,7 +118,9 @@ void DivPlatformSMS::acquire_nuked(short** buf, size_t len) {
   }
 }
 
-void DivPlatformSMS::acquire_mame(short** buf, size_t len) {
+void DivPlatformSMS::acquire_mame(blip_buffer_t** bb, size_t len) {
+  thread_local short outs[2];
+
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
     if (stereo && (w.addr==1))
@@ -137,11 +139,28 @@ void DivPlatformSMS::acquire_mame(short** buf, size_t len) {
   }
 
   for (size_t h=0; h<len; h++) {
-    short* outs[2]={
-      &buf[0][h],
-      stereo?(&buf[1][h]):NULL
-    };
-    sn->sound_stream_update(outs,1);
+    // wahahaha heuristic...
+    int advance=len-h;
+    for (int i=0; i<4; i++) {
+      if (sn->m_count[i]<advance) advance=sn->m_count[i];
+    }
+    if (advance<1) advance=1;
+
+    sn->sound_stream_update(outs,advance);
+
+    h+=advance-1;
+
+    if (outs[0]!=lastOut[0]) {
+      blip_add_delta(bb[0],h,outs[0]-lastOut[0]);
+      lastOut[0]=outs[0];
+    }
+    if (stereo) {
+      if (outs[1]!=lastOut[1]) {
+        blip_add_delta(bb[1],h,outs[1]-lastOut[1]);
+        lastOut[1]=outs[1];
+      }
+    }
+    
     for (int i=0; i<4; i++) {
       if (isMuted[i]) {
         oscBuf[i]->putSample(h,0);
@@ -159,9 +178,12 @@ void DivPlatformSMS::acquire_mame(short** buf, size_t len) {
 void DivPlatformSMS::acquire(short** buf, size_t len) {
   if (nuked) {
     acquire_nuked(buf,len);
-  } else {
-    acquire_mame(buf,len);
   }
+}
+
+void DivPlatformSMS::acquireDirect(blip_buffer_t** bb, size_t len) {
+  if (nuked) return;
+  acquire_mame(bb,len);
 }
 
 double DivPlatformSMS::NOTE_SN(int ch, int note) {
@@ -522,6 +544,8 @@ void DivPlatformSMS::reset() {
   if (stereo) {
     rWrite(1,0xff);
   }
+  lastOut[0]=0;
+  lastOut[1]=0;
 }
 
 int DivPlatformSMS::getOutputCount() {
@@ -534,6 +558,10 @@ bool DivPlatformSMS::keyOffAffectsArp(int ch) {
 
 bool DivPlatformSMS::keyOffAffectsPorta(int ch) {
   return true;
+}
+
+bool DivPlatformSMS::hasAcquireDirect() {
+  return !nuked;
 }
 
 bool DivPlatformSMS::getLegacyAlwaysSetVolume() {
@@ -597,7 +625,7 @@ void DivPlatformSMS::setFlags(const DivConfig& flags) {
       noiseDivider=60.0; // 64 for match to tone frequency on non-Sega PSG but compatibility
       break;
     case 2: // TI+Atari
-      sn=new sn76496_base_device(0x4000, 0x0f35, 0x01, 0x02, true, false, 1/*8*/, false, true);
+      sn=new sn76496_base_device(0x4000, 0x0f35, 0x01, 0x02, true, false, false, true);
       isRealSN=true;
       stereo=false;
       noiseDivider=60.0;
