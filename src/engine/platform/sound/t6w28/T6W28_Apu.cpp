@@ -49,6 +49,7 @@ void T6W28_Square::reset()
 	T6W28_Osc::reset();
 }
 
+// <<7 shift needed
 void T6W28_Square::run( sms_time_t time, sms_time_t end_time )
 {
 	if ((!volume_left && !volume_right) || period <= 128 )
@@ -290,9 +291,9 @@ bool T6W28_Apu::end_frame( sms_time_t end_time )
 	return(1);
 }
 
-static const unsigned char volumes [16] = {
+static const int volumes [16] = {
 	// volumes [i] = 64 * pow( 1.26, 15 - i ) / pow( 1.26, 15 )
-	64, 50, 39, 31, 24, 19, 15, 12, 9, 7, 5, 4, 3, 2, 1, 0
+	64<<7, 50<<7, 39<<7, 31<<7, 24<<7, 19<<7, 15<<7, 12<<7, 9<<7, 7<<7, 5<<7, 4<<7, 3<<7, 2<<7, 1<<7, 0
 };
 
 void T6W28_Apu::write_data_left( sms_time_t time, int data )
