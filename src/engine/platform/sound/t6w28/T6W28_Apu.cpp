@@ -104,8 +104,8 @@ void T6W28_Square::run( sms_time_t time, sms_time_t end_time )
 		time += delay;
 		if ( time < end_time )
 		{
-			blip_buffer_t* const output_left = this->outputs[1];
-			blip_buffer_t* const output_right = this->outputs[2];
+			blip_buffer_t* const output_left = this->outputs[0];
+			blip_buffer_t* const output_right = this->outputs[1];
 
 			int delta_left = amp_left * 2;
 			int delta_right = amp_right * 2;
