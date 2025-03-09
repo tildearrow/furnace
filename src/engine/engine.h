@@ -725,6 +725,8 @@ class DivEngine {
     int tickMult;
     int lastNBIns, lastNBOuts, lastNBSize;
     std::atomic<size_t> processTime;
+    String exportFfmpegPath;
+    bool exportFfmpegSearched;
 
     void runExportThread();
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
@@ -1548,6 +1550,8 @@ class DivEngine {
       lastNBOuts(0),
       lastNBSize(0),
       processTime(0),
+      exportFfmpegPath(""),
+      exportFfmpegSearched(false),
       yrw801ROM(NULL),
       tg100ROM(NULL),
       mu5ROM(NULL) {

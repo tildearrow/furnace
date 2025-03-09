@@ -356,7 +356,7 @@ void DivEngine::runExportThread() {
         String inputFormatArg=(exportFormat==DIV_EXPORT_FORMAT_S16)?"s16le":"f32le";
 
         std::map<String, String> defMap;
-        defMap["ffmpeg"]="ffmpeg";
+        defMap["ffmpeg"]=exportFfmpegPath;
         defMap["input_format"]=inputFormatArg;
         defMap["sample_rate"]=fmt::sprintf("%ld",(long int)got.rate);
         defMap["channel_count"]=fmt::sprintf("%d",exportOutputs);

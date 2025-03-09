@@ -28,6 +28,31 @@
   if (_size==0||_val<0) _val=0; \
   else if (_val>=(int)_size) _val=(int)_size-1;
 
+String pathSearch(const char *program) {
+#ifdef _WIN32
+  const char* fsDelim="\\";
+  const char* envDelim=";";
+#else
+  const char* fsDelim="/";
+  const char* envDelim=":";
+#endif
+
+  String path=getenv("PATH"); // TODO: MSVC way to get an env var
+
+  size_t start=0, end=0;
+  while (true) {
+      end=path.find(envDelim,start);
+      if (end==String::npos) break;
+
+      String curr=path.substr(start,end-start)+fsDelim+program;
+      if (fileExists(curr.c_str())) return curr;
+
+      start=end+1;
+  }
+
+  return "";
+}
+
 void FurnaceGUI::drawExportAudio(bool onWindow) {
   exitDisabledTimer=1;
   CLAMP_TO_SIZE(audioExportOptions.curCommandWriterIndex,audioExportOptions.commandExportWriterDefs.size());
@@ -51,6 +76,15 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
       return "???";
     }
   };
+
+  if (!e->exportFfmpegSearched) {
+    e->exportFfmpegPath=pathSearch("ffmpeg");
+    e->exportFfmpegSearched=true;
+  }
+
+  if (e->exportFfmpegPath.empty()) {
+    ImGui::Text("NOTE: ffmpeg not found. Only WAV is supported.");
+  }
 
   if (ImGui::BeginCombo(_("file format"),getCurrentFormatDesc().c_str())) {
     if (ImGui::Selectable(sndfileDesc)) {
