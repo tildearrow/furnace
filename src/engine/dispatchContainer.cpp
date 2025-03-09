@@ -632,11 +632,6 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_BUBSYS_WSG:
       dispatch=new DivPlatformBubSysWSG;
-      if (isRender) {
-        ((DivPlatformBubSysWSG*)dispatch)->setCoreQuality(eng->getConfInt("bubsysQualityRender",3));
-      } else {
-        ((DivPlatformBubSysWSG*)dispatch)->setCoreQuality(eng->getConfInt("bubsysQuality",3));
-      }
       break;
     case DIV_SYSTEM_N163:
       dispatch=new DivPlatformN163;
