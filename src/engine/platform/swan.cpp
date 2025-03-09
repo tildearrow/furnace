@@ -584,7 +584,7 @@ int DivPlatformSwan::getRegisterPoolSize() {
 void DivPlatformSwan::reset() {
   while (!writes.empty()) writes.pop();
   while (!postDACWrites.empty()) postDACWrites.pop();
-  memset(regPool,0,64);
+  memset(regPool,0,sizeof(regPool));
   for (int i=0; i<4; i++) {
     chan[i]=Channel();
     chan[i].vol=15;
@@ -608,6 +608,7 @@ void DivPlatformSwan::reset() {
   dacPos=0;
   dacSample=-1;
   sampleBank=0;
+  rWrite(0x0f,0x00); // wave table at 0x0000
   rWrite(0x11,0x0f); // enable speakers, minimum headphone volume 
 }
 
@@ -652,11 +653,12 @@ int DivPlatformSwan::init(DivEngine* p, int channels, int sugRate, const DivConf
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  swan_sound_init(&ws, true);
+
   setFlags(flags);
   reset();
   return 4;
