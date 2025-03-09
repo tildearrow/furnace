@@ -118,13 +118,16 @@ void T6W28_Square::run( sms_time_t time, sms_time_t end_time )
 			{
 				delta_left = -delta_left;
 				delta_right = -delta_right;
+        phase ^= 1;
+        amp_left = phase ? volume_left : -volume_left;
+		    amp_right = phase ? volume_right : -volume_right;
 
 				blip_add_delta( output_left, time, delta_left );
 				blip_add_delta( output_right, time, delta_right );
 
         oscBuf->putSample(time,(amp_left+amp_right)>>2);
 				time += period;
-				phase ^= 1;
+
 			}
 			while ( time < end_time );
 
@@ -207,6 +210,9 @@ void T6W28_Noise::run( sms_time_t time, sms_time_t end_time )
 
 				delta_right = -delta_right;
 				blip_add_delta( output_right, time, delta_right );
+
+        amp_left=-amp_left;
+        amp_right=-amp_right;
 
         oscBuf->putSample(time,(amp_left+amp_right)>>2);
 			}
