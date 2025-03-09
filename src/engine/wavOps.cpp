@@ -130,7 +130,8 @@ class SndfileWavWriter {
       }
     }
 
-    bool write(float* samples, sf_count_t count) {
+    bool write(float* samples, sf_count_t count, size_t exportOutputs) {
+      // FIXME: we're ignoring exportOutputs here. this is hacky!
       return sf_writef_float(sf,samples,count)==count;
     }
 };
@@ -169,14 +170,17 @@ class ProcWriter {
       ::close(writeFd);
     }
 
-    bool write(float* samples, size_t count) {
+    bool write(float* samples, size_t count_, size_t exportOutputs) {
+      size_t count=count_*exportOutputs;
+
       const auto doWrite=[this](void* buf, size_t size) {
         while (true) {
           if (::write(writeFd,buf,size)==(ssize_t)size) return true;
-
-          logD("buffer got full; waiting...");
+          // buffer got full! wait for it to unblock
           if (!proc->waitStdinOrExit()) {
-            logE("subprocess died before reading all the audio data");
+            int exitCode=-1;
+            proc->getExitCode(&exitCode, false);
+            logE("subprocess exited before finishing export (exit code %d)", exitCode);
             return false;
           }
         }
@@ -187,8 +191,9 @@ class ProcWriter {
         size_t sampleSize=sizeof(int16_t);
         size_t size=sampleSize*count;
         uint8_t buf[size];
+
         for (size_t i=0; i<count; i++) {
-          int16_t sample=32767.0*samples[i];
+          int16_t sample=32767.0f*samples[i];
           uint16_t sampleU=*(uint16_t*)&sample; // converting to uint so we can get raw bytes without worrying
           size_t target=i*sampleSize;
           buf[target]=(uint8_t)sampleU;
@@ -279,7 +284,7 @@ void DivEngine::runExportThread() {
         deinitAudioBackend();
         playSub(false);
 
-        logI("rendering to file...");
+        logI("exporting song to file...");
 
         while (playing) {
           size_t total=0;
@@ -312,7 +317,7 @@ void DivEngine::runExportThread() {
             }
           }
 
-          if (!wr->write(outBufFinal,total)) {
+          if (!wr->write(outBufFinal,total,exportOutputs)) {
             logE("error: failed to write entire buffer!");
             break;
           }
