@@ -29,7 +29,7 @@ namespace TIA {
 
       void reset(bool stereo);
 
-      void tick();
+      void tick(int len);
 
       void write(unsigned char addr, unsigned char val);
 
@@ -44,9 +44,11 @@ namespace TIA {
       void phase1();
       void addSample(unsigned char sample0, unsigned char sample1);
 
-    private:
-      unsigned char myCounter{0};
+    public:
+      int myCounter;
+      unsigned char myPhase;
 
+    private:
       AudioChannel myChannel0;
       AudioChannel myChannel1;
 

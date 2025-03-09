@@ -44,6 +44,7 @@ class DivPlatformSMS: public DivDispatch {
   unsigned char snNoiseMode;
   unsigned char regPool[16];
   unsigned char chanLatch;
+  int lastOut[2];
   int divider=16;
   double toneDivider=64.0;
   double noiseDivider=64.0;
@@ -71,9 +72,10 @@ class DivPlatformSMS: public DivDispatch {
   void poolWrite(unsigned short a, unsigned char v);
 
   void acquire_nuked(short** buf, size_t len);
-  void acquire_mame(short** buf, size_t len);
+  void acquire_mame(blip_buffer_t** bb, size_t len);
   public:
     void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -90,6 +92,7 @@ class DivPlatformSMS: public DivDispatch {
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
+    bool hasAcquireDirect();
     bool getLegacyAlwaysSetVolume();
     float getPostAmp();
     int getPortaFloor(int ch);

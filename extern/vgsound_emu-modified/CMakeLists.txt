@@ -6,7 +6,7 @@
 # CMake for vgsound_emu
 #
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.0...3.20)
 project(vgsound_emu
 	VERSION 2.1.1
 	LANGUAGES CXX)

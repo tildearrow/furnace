@@ -152,64 +152,70 @@ void DivDispatchContainer::grow(size_t size) {
   } \
   if (mustClear) clear(); \
 
-void DivDispatchContainer::acquire(size_t offset, size_t count) {
+void DivDispatchContainer::acquire(size_t count) {
   CHECK_MISSING_BUFS;
 
-  for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
-    if (i>=outs) {
-      bbInMapped[i]=NULL;
-    } else {
-      if (bbIn[i]==NULL) {
+  if (dispatch->hasAcquireDirect()) {
+    dispatch->acquireDirect(bb,count);
+  } else {
+    for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+      if (i>=outs) {
         bbInMapped[i]=NULL;
       } else {
-        bbInMapped[i]=&bbIn[i][offset];
+        if (bbIn[i]==NULL) {
+          bbInMapped[i]=NULL;
+        } else {
+          bbInMapped[i]=bbIn[i];
+        }
       }
     }
+    dispatch->acquire(bbInMapped,count);
   }
-  dispatch->acquire(bbInMapped,count);
 }
 
-void DivDispatchContainer::flush(size_t count) {
+void DivDispatchContainer::flush(size_t offset, size_t count) {
   int outs=dispatch->getOutputCount();
 
   for (int i=0; i<outs; i++) {
     if (bb[i]==NULL) continue;
-    blip_read_samples(bb[i],bbOut[i],count,0);
+    blip_read_samples(bb[i],bbOut[i]+offset,count,0);
   }
 }
 
 void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) {
   CHECK_MISSING_BUFS;
 
-  if (dcOffCompensation && runtotal>0) {
-    dcOffCompensation=false;
-    if (hiPass) {
+  if (!dispatch->hasAcquireDirect()) {
+    if (dcOffCompensation && runtotal>0) {
+      dcOffCompensation=false;
+      if (hiPass) {
+        for (int i=0; i<outs; i++) {
+          if (bbIn[i]==NULL) continue;
+          prevSample[i]=bbIn[i][0];
+        }
+      }
+    }
+    if (lowQuality) {
       for (int i=0; i<outs; i++) {
         if (bbIn[i]==NULL) continue;
-        prevSample[i]=bbIn[i][0];
+        if (bb[i]==NULL) continue;
+        for (size_t j=0; j<runtotal; j++) {
+          if (bbIn[i][j]==temp[i]) continue;
+          temp[i]=bbIn[i][j];
+          blip_add_delta_fast(bb[i],j,temp[i]-prevSample[i]);
+          prevSample[i]=temp[i];
+        }
       }
-    }
-  }
-  if (lowQuality) {
-    for (int i=0; i<outs; i++) {
-      if (bbIn[i]==NULL) continue;
-      if (bb[i]==NULL) continue;
-      for (size_t j=0; j<runtotal; j++) {
-        if (bbIn[i][j]==temp[i]) continue;
-        temp[i]=bbIn[i][j];
-        blip_add_delta_fast(bb[i],j,temp[i]-prevSample[i]);
-        prevSample[i]=temp[i];
-      }
-    }
-  } else {
-    for (int i=0; i<outs; i++) {
-      if (bbIn[i]==NULL) continue;
-      if (bb[i]==NULL) continue;
-      for (size_t j=0; j<runtotal; j++) {
-        if (bbIn[i][j]==temp[i]) continue;
-        temp[i]=bbIn[i][j];
-        blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
-        prevSample[i]=temp[i];
+    } else {
+      for (int i=0; i<outs; i++) {
+        if (bbIn[i]==NULL) continue;
+        if (bb[i]==NULL) continue;
+        for (size_t j=0; j<runtotal; j++) {
+          if (bbIn[i][j]==temp[i]) continue;
+          temp[i]=bbIn[i][j];
+          blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
+          prevSample[i]=temp[i];
+        }
       }
     }
   }
@@ -219,12 +225,8 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) 
     if (bb[i]==NULL) continue;
     blip_end_frame(bb[i],runtotal);
     blip_read_samples(bb[i],bbOut[i]+offset,size,0);
+    dispatch->postProcess(bbOut[i]+offset,i,size,rateMemory);
   }
-  /*if (totalRead<(int)size && totalRead>0) {
-    for (size_t i=totalRead; i<size; i++) {
-      bbOut[0][i]=bbOut[0][totalRead-1];//bbOut[0][totalRead];
-    }
-  }*/
 }
 
 void DivDispatchContainer::clear() {
@@ -313,11 +315,6 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_PCE:
       dispatch=new DivPlatformPCE;
-      if (isRender) {
-        ((DivPlatformPCE*)dispatch)->setCoreQuality(eng->getConfInt("pceQualityRender",3));
-      } else {
-        ((DivPlatformPCE*)dispatch)->setCoreQuality(eng->getConfInt("pceQuality",3));
-      }
       break;
     case DIV_SYSTEM_NES:
       dispatch=new DivPlatformNES;
@@ -623,22 +620,12 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_SWAN:
       dispatch=new DivPlatformSwan;
-      if (isRender) {
-        ((DivPlatformSwan*)dispatch)->setCoreQuality(eng->getConfInt("swanQualityRender",3));
-      } else {
-        ((DivPlatformSwan*)dispatch)->setCoreQuality(eng->getConfInt("swanQuality",3));
-      }
       break;
     case DIV_SYSTEM_T6W28:
       dispatch=new DivPlatformT6W28;
       break;
     case DIV_SYSTEM_VBOY:
       dispatch=new DivPlatformVB;
-      if (isRender) {
-        ((DivPlatformVB*)dispatch)->setCoreQuality(eng->getConfInt("vbQualityRender",3));
-      } else {
-        ((DivPlatformVB*)dispatch)->setCoreQuality(eng->getConfInt("vbQuality",3));
-      }
       break;
     case DIV_SYSTEM_VERA:
       dispatch=new DivPlatformVERA;
@@ -675,20 +662,10 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_SCC:
       dispatch=new DivPlatformSCC;
       ((DivPlatformSCC*)dispatch)->setChipModel(false);
-      if (isRender) {
-        ((DivPlatformSCC*)dispatch)->setCoreQuality(eng->getConfInt("sccQualityRender",3));
-      } else {
-        ((DivPlatformSCC*)dispatch)->setCoreQuality(eng->getConfInt("sccQuality",3));
-      }
       break;
     case DIV_SYSTEM_SCC_PLUS:
       dispatch=new DivPlatformSCC;
       ((DivPlatformSCC*)dispatch)->setChipModel(true);
-      if (isRender) {
-        ((DivPlatformSCC*)dispatch)->setCoreQuality(eng->getConfInt("sccQualityRender",3));
-      } else {
-        ((DivPlatformSCC*)dispatch)->setCoreQuality(eng->getConfInt("sccQuality",3));
-      }
       break;
     case DIV_SYSTEM_YMZ280B:
       dispatch=new DivPlatformYMZ280B;

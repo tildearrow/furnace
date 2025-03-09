@@ -71,6 +71,9 @@ const char** DivPlatformSNES::getRegisterSheet() {
 void DivPlatformSNES::acquire(short** buf, size_t len) {
   short out[2];
   short chOut[16];
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t h=0; h<len; h++) {
     if (--delay<=0) {
       delay=0;
@@ -94,8 +97,11 @@ void DivPlatformSNES::acquire(short** buf, size_t len) {
       next=(next*254)/MAX(1,globalVolL+globalVolR);
       if (next<-32768) next=-32768;
       if (next>32767) next=32767;
-      oscBuf[i]->data[oscBuf[i]->needle++]=next>>1;
+      oscBuf[i]->putSample(h,next>>1);
     }
+  }
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -383,6 +389,11 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       }
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
+      // this is the fix. it needs testing.
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+        if (chan[c.chan].outVol!=chan[c.chan].vol) chan[c.chan].shallWriteVol=true;
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       chan[c.chan].insChanged=false;
       break;
     }
@@ -1053,7 +1064,7 @@ int DivPlatformSNES::init(DivEngine* p, int channels, int sugRate, const DivConf
   rate=chipClock/32;
   for (int i=0; i<8; i++) {
     oscBuf[i]=new DivDispatchOscBuffer;
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
     isMuted[i]=false;
   }
   setFlags(flags);

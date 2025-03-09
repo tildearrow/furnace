@@ -206,6 +206,10 @@ const char** DivPlatformX1_010::getRegisterSheet() {
 }
 
 void DivPlatformX1_010::acquire(short** buf, size_t len) {
+  for (int i=0; i<16; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     x1_010.tick();
 
@@ -223,8 +227,12 @@ void DivPlatformX1_010::acquire(short** buf, size_t len) {
 
     for (int i=0; i<16; i++) {
       int vo=(x1_010.voice_out(i,0)+x1_010.voice_out(i,1))<<2;
-      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(vo,-32768,32767);
+      oscBuf[i]->putSample(h,CLAMP(vo,-32768,32767));
     }
+  }
+
+  for (int i=0; i<16; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -965,7 +973,7 @@ void DivPlatformX1_010::setFlags(const DivConfig& flags) {
   stereo=flags.getBool("stereo",false);
   isBanked=flags.getBool("isBanked",false);
   for (int i=0; i<16; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

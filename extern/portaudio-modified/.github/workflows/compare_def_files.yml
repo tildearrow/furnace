@@ -1,0 +1,17 @@
+name: Check that PortAudio .def files are in sync
+
+on: [push, pull_request]
+
+jobs:
+  run-pa-compare-def-files-py:
+
+    runs-on: ubuntu-latest
+    name: Ubuntu
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    - name: Run the pa_compare_def_files.py script
+      run: python ./pa_compare_def_files.py

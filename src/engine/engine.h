@@ -291,8 +291,8 @@ struct DivDispatchContainer {
   void setRates(double gotRate);
   void setQuality(bool lowQual, bool dcHiPass);
   void grow(size_t size);
-  void acquire(size_t offset, size_t count);
-  void flush(size_t count);
+  void acquire(size_t count);
+  void flush(size_t offset, size_t count);
   void fillBuf(size_t runtotal, size_t offset, size_t size);
   void clear();
   void init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, const DivConfig& flags, bool isRender=false);

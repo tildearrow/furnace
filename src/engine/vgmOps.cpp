@@ -1432,7 +1432,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         break;
       case DIV_SYSTEM_PCE:
         if (!hasPCE) {
-          hasPCE=disCont[i].dispatch->chipClock;
+          // the clock is halved in VGM...
+          hasPCE=disCont[i].dispatch->chipClock/2;
           CHIP_VOL(27,0.98);
           willExport[i]=true;
           writePCESamples=true;

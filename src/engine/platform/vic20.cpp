@@ -46,6 +46,11 @@ void DivPlatformVIC20::acquire(short** buf, size_t len) {
     0b0,     0b10,    0b100,   0b110,   0b1000,  0b1010,   0b1011,   0b1110,
     0b10010, 0b10100, 0b10110, 0b11000, 0b11010, 0b100100, 0b101010, 0b101100
   };
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     if (hasWaveWrite) {
       hasWaveWrite=false;
@@ -69,8 +74,12 @@ void DivPlatformVIC20::acquire(short** buf, size_t len) {
     vic_sound_machine_calculate_samples(vic,&samp,1,1,0,SAMP_DIVIDER);
     buf[0][h]=samp;
     for (int i=0; i<4; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=vic->ch[i].out?(vic->volume<<11):0;
+      oscBuf[i]->putSample(h,vic->ch[i].out?(vic->volume<<11):0);
     }
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -345,7 +354,7 @@ void DivPlatformVIC20::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/4;
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

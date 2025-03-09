@@ -54,13 +54,22 @@ void DivPlatformSM8521::acquire(short** buf, size_t len) {
     regPool[w.addr&0xff]=w.val;
     writes.pop();
   }
+
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     sm8521_sound_tick(&sm8521,coreQuality);
     buf[0][h]=sm8521.out<<6;
     for (int i=0; i<2; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=sm8521.sg[i].base.out<<7;
+      oscBuf[i]->putSample(h,sm8521.sg[i].base.out<<7);
     }
-    oscBuf[2]->data[oscBuf[2]->needle++]=sm8521.noise.base.out<<7;
+    oscBuf[2]->putSample(h,sm8521.noise.base.out<<7);
+  }
+
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -369,7 +378,7 @@ void DivPlatformSM8521::setFlags(const DivConfig& flags) {
   antiClickEnabled=!flags.getBool("noAntiClick",false);
   rate=chipClock/4/coreQuality; // CKIN -> fCLK(/2) -> Function blocks (/2)
   for (int i=0; i<3; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

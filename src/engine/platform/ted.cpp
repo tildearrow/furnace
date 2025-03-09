@@ -40,6 +40,10 @@ const char** DivPlatformTED::getRegisterSheet() {
 }
 
 void DivPlatformTED::acquire(short** buf, size_t len) {
+  for (int i=0; i<2; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -49,8 +53,12 @@ void DivPlatformTED::acquire(short** buf, size_t len) {
     }
 
     ted_sound_machine_calculate_samples(&ted,&buf[0][h],1,1);
-    oscBuf[0]->data[oscBuf[0]->needle++]=(ted.voice0_output_enabled && ted.voice0_sign)?(ted.volume<<1):0;
-    oscBuf[1]->data[oscBuf[1]->needle++]=(ted.voice1_output_enabled && ((ted.noise && (!(ted.noise_shift_register&1))) || (!ted.noise && ted.voice1_sign)))?(ted.volume<<1):0;
+    oscBuf[0]->putSample(h,(ted.voice0_output_enabled && ted.voice0_sign)?(ted.volume<<1):0);
+    oscBuf[1]->putSample(h,(ted.voice1_output_enabled && ((ted.noise && (!(ted.noise_shift_register&1))) || (!ted.noise && ted.voice1_sign)))?(ted.volume<<1):0);
+  }
+
+  for (int i=0; i<2; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -322,7 +330,7 @@ void DivPlatformTED::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/8;
   for (int i=0; i<2; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
   keyPriority=flags.getBool("keyPriority",true);
 }

@@ -23,16 +23,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA */
 namespace MDFN_IEN_NGP
 {
 
-void fakeBufOffset(int time, int delta, Fake_Buffer* buf) {
-  buf->curValue+=delta;
-}
-
 T6W28_Osc::T6W28_Osc()
 {
 	outputs [0] = NULL; // always stays NULL
 	outputs [1] = NULL;
-	outputs [2] = NULL;
-	outputs [3] = NULL;
+        oscBuf=NULL;
 }
 
 void T6W28_Osc::reset()
@@ -61,13 +56,13 @@ void T6W28_Square::run( sms_time_t time, sms_time_t end_time )
 		// ignore 16kHz and higher
 		if ( last_amp_left )
 		{
-			fakeBufOffset( time, -last_amp_left, outputs[2] );
+			blip_add_delta( outputs[0], time, -last_amp_left );
 			last_amp_left = 0;
 		}
 
                 if ( last_amp_right )
                 {
-                        fakeBufOffset( time, -last_amp_right, outputs[1] );
+                        blip_add_delta( outputs[1], time, -last_amp_right );
                         last_amp_right = 0;
                 }
 
@@ -96,21 +91,21 @@ void T6W28_Square::run( sms_time_t time, sms_time_t end_time )
 		 if ( delta_left )
 		 {
 			last_amp_left = amp_left;
-			fakeBufOffset( time, delta_left, outputs[2] );
+			blip_add_delta( outputs[1], time, delta_left );
 		 }
 		
                  if ( delta_right )
                  {
                         last_amp_right = amp_right;
-                        fakeBufOffset( time, delta_right, outputs[1] );
+                        blip_add_delta( outputs[0], time, delta_right );
                  }
 		}
 
 		time += delay;
 		if ( time < end_time )
 		{
-			Fake_Buffer* const output_left = this->outputs[2];
-			Fake_Buffer* const output_right = this->outputs[1];
+			blip_buffer_t* const output_left = this->outputs[1];
+			blip_buffer_t* const output_right = this->outputs[2];
 
 			int delta_left = amp_left * 2;
 			int delta_right = amp_right * 2;
@@ -119,8 +114,8 @@ void T6W28_Square::run( sms_time_t time, sms_time_t end_time )
 				delta_left = -delta_left;
 				delta_right = -delta_right;
 
-				fakeBufOffset( time, delta_left, output_left );
-				fakeBufOffset( time, delta_right, output_right );
+				blip_add_delta( output_left, time, delta_left );
+				blip_add_delta( output_right, time, delta_right );
 				time += period;
 				phase ^= 1;
 			}
@@ -164,13 +159,13 @@ void T6W28_Noise::run( sms_time_t time, sms_time_t end_time )
 	 if ( delta_left )
 	 {
 		last_amp_left = amp_left;
-		fakeBufOffset( time, delta_left, outputs[2] );
+		blip_add_delta( outputs[0], time, delta_left );
 	 }
 	
          if ( delta_right )
          {
                 last_amp_right = amp_right;
-                fakeBufOffset( time, delta_right, outputs[1] );
+                blip_add_delta( outputs[1], time, delta_right );
          }
 	}
 
@@ -181,8 +176,8 @@ void T6W28_Noise::run( sms_time_t time, sms_time_t end_time )
 	
 	if ( time < end_time )
 	{
-		Fake_Buffer* const output_left = this->outputs[2];
-		Fake_Buffer* const output_right = this->outputs[1];
+		blip_buffer_t* const output_left = this->outputs[0];
+		blip_buffer_t* const output_right = this->outputs[1];
 
 		unsigned l_shifter = this->shifter;
 		int delta_left = amp_left * 2;
@@ -199,10 +194,10 @@ void T6W28_Noise::run( sms_time_t time, sms_time_t end_time )
 			if ( changed )
 			{
 				delta_left = -delta_left;
-				fakeBufOffset( time, delta_left, output_left );
+				blip_add_delta( output_left, time, delta_left );
 
 				delta_right = -delta_right;
-				fakeBufOffset( time, delta_right, output_right );
+				blip_add_delta( output_right, time, delta_right );
 			}
 			time += l_period;
 		}
@@ -233,20 +228,20 @@ T6W28_Apu::~T6W28_Apu()
 }
 
 
-void T6W28_Apu::osc_output( int index, Fake_Buffer* center, Fake_Buffer* left, Fake_Buffer* right )
+void T6W28_Apu::osc_output( int index, DivDispatchOscBuffer* oscBuf )
 {
 	require( (unsigned int) index < osc_count );
-	require( (center && left && right) || (!center && !left && !right) );
 	T6W28_Osc& osc = *oscs [index];
-	osc.outputs [1] = right;
-	osc.outputs [2] = left;
-	osc.outputs [3] = center;
+	osc.oscBuf = oscBuf;
 }
 
-void T6W28_Apu::output( Fake_Buffer* center, Fake_Buffer* left, Fake_Buffer* right )
+void T6W28_Apu::output( blip_buffer_t* left, blip_buffer_t* right )
 {
-	for ( int i = 0; i < osc_count; i++ )
-		osc_output( i, center, left, right );
+	for ( int i = 0; i < osc_count; i++ ) {
+	        T6W28_Osc& osc = *oscs [i];
+	        osc.outputs[0]=left;
+	        osc.outputs[1]=right;
+        }
 }
 
 void T6W28_Apu::reset()

@@ -58,7 +58,7 @@ class DivPlatformGA20: public DivDispatch, public iremga20_intf {
   unsigned int sampleOffGA20[256];
   bool sampleLoaded[256];
 
-  int delay;
+  int oldOut;
 
   short* ga20Buf[4];
   size_t ga20BufLen;
@@ -74,6 +74,7 @@ class DivPlatformGA20: public DivDispatch, public iremga20_intf {
   void chWrite(unsigned char ch, unsigned int addr, unsigned char val);
   public:
     virtual u8 read_byte(u32 address) override;
+    virtual void acquireDirect(blip_buffer_t** bb, size_t len) override;
     virtual void acquire(short** buf, size_t len) override;
     virtual int dispatch(DivCommand c) override;
     virtual void* getChanState(int chan) override;
@@ -86,6 +87,7 @@ class DivPlatformGA20: public DivDispatch, public iremga20_intf {
     virtual void forceIns() override;
     virtual void tick(bool sysTick=true) override;
     virtual void muteChannel(int ch, bool mute) override;
+    virtual bool hasAcquireDirect() override;
     virtual int getOutputCount() override;
     virtual void notifyInsChange(int ins) override;
     virtual void notifyWaveChange(int wave) override;

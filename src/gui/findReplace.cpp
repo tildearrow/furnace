@@ -117,6 +117,11 @@ void FurnaceGUI::doFind() {
     lastChan=curQueryRangeXMax;
   }
 
+  if (curQueryRangeY==1) {
+    firstChan=selStart.xCoarse;
+    lastChan=selEnd.xCoarse;
+  }
+
   curQueryResults.clear();
 
   signed char effectPos[8];
@@ -827,6 +832,7 @@ void FurnaceGUI::drawFindReplace() {
             }
 
             ImGui::TableNextColumn();
+            ImGui::BeginDisabled(curQueryRangeY==1);
             ImGui::Checkbox(_("Confine to channels"),&curQueryRangeX);
 
             ImGui::BeginDisabled(!curQueryRangeX);
@@ -851,6 +857,7 @@ void FurnaceGUI::drawFindReplace() {
               }
               ImGui::EndCombo();
             }
+            ImGui::EndDisabled();
             ImGui::EndDisabled();
 
             ImGui::TableNextColumn();

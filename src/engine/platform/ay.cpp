@@ -113,15 +113,15 @@ const unsigned char dacLogTableAY[256]={
   15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15
 };
 
-void DivPlatformAY8910::runDAC(int runRate) {
+void DivPlatformAY8910::runDAC(int runRate, int advance) {
   if (runRate==0) runRate=dacRate;
   for (int i=0; i<3; i++) {
     if (chan[i].active && (chan[i].curPSGMode.val&8) && chan[i].dac.sample!=-1) {
-      chan[i].dac.period+=chan[i].dac.rate;
+      chan[i].dac.period+=chan[i].dac.rate*advance;
       bool end=false;
       bool changed=false;
       int prevOut=chan[i].dac.out;
-      while (chan[i].dac.period>runRate && !end) {
+      while (chan[i].dac.period>=runRate && !end) {
         DivSample* s=parent->getSample(chan[i].dac.sample);
         if (s->samples<=0 || chan[i].dac.pos<0 || chan[i].dac.pos>=(int)s->samples) {
           chan[i].dac.sample=-1;
@@ -155,14 +155,14 @@ void DivPlatformAY8910::runDAC(int runRate) {
   }
 }
 
-void DivPlatformAY8910::runTFX(int runRate) {
+void DivPlatformAY8910::runTFX(int runRate, int advance) {
   /*
   developer's note: if you are checking for intellivision
   make sure to add "&& selCore"
   because for some reason, the register remap doesn't work
   when the user uses AtomicSSG core
   */
-  float counterRatio=1.0;
+  float counterRatio=advance;
   if (runRate!=0) counterRatio=(double)rate/(double)runRate;
   int timerPeriod, output;
   for (int i=0; i<3; i++) {
@@ -248,55 +248,134 @@ void DivPlatformAY8910::checkWrites() {
   }
 }
 
-void DivPlatformAY8910::acquire_mame(short** buf, size_t len) {
-  if (ayBufLen<len) {
-    ayBufLen=len;
-    for (int i=0; i<3; i++) {
-      delete[] ayBuf[i];
-      ayBuf[i]=new short[ayBufLen];
+void DivPlatformAY8910::acquire_mame(blip_buffer_t** bb, size_t len) {
+  thread_local short ayBuf[3];
+
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->begin(len);
+  }
+
+  for (size_t i=0; i<len; i++) {
+    int advance=len-i;
+    bool careAboutEnv=false;
+    bool careAboutNoise=false;
+    // heuristic
+    if (!writes.empty()) {
+      advance=1;
+    } else {
+      for (int j=0; j<3; j++) {
+        // tone counter
+        if (!ay->tone_enable(j) && ay->m_tone[j].volume!=0) {
+          const int period=MAX(1,ay->m_tone[j].period)*(ay->m_step_mul<<1);
+          const int remain=(period-ay->m_tone[j].count)>>1;
+          if (remain<advance) {
+            advance=remain;
+          }
+        }
+
+        // count me in if I have noise enabled
+        if (!ay->noise_enable(j) && ay->m_tone[j].volume!=0) {
+          careAboutNoise=true;
+        }
+
+        // envelope check
+        if (ay->m_tone[j].volume&16) {
+          careAboutEnv=true;
+        }
+
+        // DAC
+        if (chan[j].active && (chan[j].curPSGMode.val&8) && chan[j].dac.sample!=-1) {
+          if (chan[j].dac.rate<=0) continue;
+          const int remainTime=(rate-chan[j].dac.period+chan[j].dac.rate-1)/chan[j].dac.rate;
+          if (remainTime<advance) advance=remainTime;
+        }
+
+        // TFX
+        if (chan[j].active && (chan[j].curPSGMode.val&16) && !(chan[j].curPSGMode.val&8) && chan[j].tfx.mode!=-1) {
+          const int remainTime=chan[j].tfx.period-chan[j].tfx.counter;
+          if (remainTime<advance) advance=remainTime;
+        }
+
+        if (advance<=1) break;
+      }
+      // envelope
+      if (careAboutEnv) {
+        if (ay->m_envelope[0].holding==0) {
+          const int periodEnv=MAX(1,ay->m_envelope[0].period)*ay->m_env_step_mul;
+          const int remainEnv=periodEnv-ay->m_envelope[0].count;
+          if (remainEnv<advance) {
+            advance=remainEnv;
+          }
+        }
+      }
+      // noise
+      if (careAboutNoise) {
+        const int noisePeriod=((int)ay->noise_period())*ay->m_step_mul;
+        const int noiseRemain=noisePeriod-ay->m_count_noise;
+        if (noiseRemain<advance) {
+          advance=noiseRemain;
+        }
+      }
+    }
+
+    if (advance<1) advance=1;
+
+    runDAC(0,advance);
+    runTFX(0,advance);
+    checkWrites();
+
+    ay->sound_stream_update(ayBuf,advance);
+    i+=advance-1;
+
+    if (sunsoft) {
+      if (lastOut[0]!=ayBuf[0]) {
+        blip_add_delta(bb[0],i,ayBuf[0]-lastOut[0]);
+        blip_add_delta(bb[1],i,ayBuf[0]-lastOut[0]);
+        lastOut[0]=ayBuf[0];
+      }
+
+      oscBuf[0]->putSample(i,CLAMP(sunsoftVolTable[31-(ay->lastIndx&31)]<<3,-32768,32767));
+      oscBuf[1]->putSample(i,CLAMP(sunsoftVolTable[31-((ay->lastIndx>>5)&31)]<<3,-32768,32767));
+      oscBuf[2]->putSample(i,CLAMP(sunsoftVolTable[31-((ay->lastIndx>>10)&31)]<<3,-32768,32767));
+    } else {
+      if (stereo) {
+        int out0=ayBuf[0]+ayBuf[1]+((ayBuf[2]*stereoSep)>>8);
+        int out1=((ayBuf[0]*stereoSep)>>8)+ayBuf[1]+ayBuf[2];
+        if (lastOut[0]!=out0) {
+          blip_add_delta(bb[0],i,out0-lastOut[0]);
+          lastOut[0]=out0;
+        }
+        if (lastOut[1]!=out1) {
+          blip_add_delta(bb[1],i,out1-lastOut[1]);
+          lastOut[1]=out1;
+        }
+      } else {
+        int out=ayBuf[0]+ayBuf[1]+ayBuf[2];
+        if (lastOut[0]!=out) {
+          blip_add_delta(bb[0],i,out-lastOut[0]);
+          blip_add_delta(bb[1],i,out-lastOut[0]);
+          lastOut[0]=out;
+        }
+      }
+
+      oscBuf[0]->putSample(i,ayBuf[0]<<2);
+      oscBuf[1]->putSample(i,ayBuf[1]<<2);
+      oscBuf[2]->putSample(i,ayBuf[2]<<2);
     }
   }
 
-  if (sunsoft) {
-    for (size_t i=0; i<len; i++) {
-      runDAC();
-      runTFX();
-      checkWrites();
-
-      ay->sound_stream_update(ayBuf,1);
-      buf[0][i]=ayBuf[0][0];
-      buf[1][i]=buf[0][i];
-
-      oscBuf[0]->data[oscBuf[0]->needle++]=CLAMP(sunsoftVolTable[31-(ay->lastIndx&31)]<<3,-32768,32767);
-      oscBuf[1]->data[oscBuf[1]->needle++]=CLAMP(sunsoftVolTable[31-((ay->lastIndx>>5)&31)]<<3,-32768,32767);
-      oscBuf[2]->data[oscBuf[2]->needle++]=CLAMP(sunsoftVolTable[31-((ay->lastIndx>>10)&31)]<<3,-32768,32767);
-    }
-  } else {
-    for (size_t i=0; i<len; i++) {
-      runDAC();
-      runTFX();
-      checkWrites();
-
-      ay->sound_stream_update(ayBuf,1);
-      if (stereo) {
-        buf[0][i]=ayBuf[0][0]+ayBuf[1][0]+((ayBuf[2][0]*stereoSep)>>8);
-        buf[1][i]=((ayBuf[0][0]*stereoSep)>>8)+ayBuf[1][0]+ayBuf[2][0];
-      } else {
-        buf[0][i]=ayBuf[0][0]+ayBuf[1][0]+ayBuf[2][0];
-        buf[1][i]=buf[0][i];
-      }
-
-      oscBuf[0]->data[oscBuf[0]->needle++]=ayBuf[0][0]<<2;
-      oscBuf[1]->data[oscBuf[1]->needle++]=ayBuf[1][0]<<2;
-      oscBuf[2]->data[oscBuf[2]->needle++]=ayBuf[2][0]<<2;
-    }
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
 void DivPlatformAY8910::acquire_atomic(short** buf, size_t len) {
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t i=0; i<len; i++) {
-    runDAC();
-    runTFX();
+    runDAC(0,1);
+    runTFX(0,1);
 
     if (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -316,25 +395,31 @@ void DivPlatformAY8910::acquire_atomic(short** buf, size_t len) {
       buf[1][i]=buf[0][i];
     }
 
-    oscBuf[0]->data[oscBuf[0]->needle++]=ay_atomic.o_analog[0];
-    oscBuf[1]->data[oscBuf[1]->needle++]=ay_atomic.o_analog[1];
-    oscBuf[2]->data[oscBuf[2]->needle++]=ay_atomic.o_analog[2];
+    oscBuf[0]->putSample(i,ay_atomic.o_analog[0]);
+    oscBuf[1]->putSample(i,ay_atomic.o_analog[1]);
+    oscBuf[2]->putSample(i,ay_atomic.o_analog[2]);
   }
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->end(len);
+  }
+}
+
+void DivPlatformAY8910::acquireDirect(blip_buffer_t** bb, size_t len) {
+  if (selCore && !intellivision) return;
+  acquire_mame(bb,len);
 }
 
 void DivPlatformAY8910::acquire(short** buf, size_t len) {
   if (selCore && !intellivision) {
     acquire_atomic(buf,len);
-  } else {
-    acquire_mame(buf,len);
   }
 }
 
 void DivPlatformAY8910::fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len) {
   writes.clear();
   for (size_t i=0; i<len; i++) {
-    runDAC(sRate);
-    runTFX(sRate);
+    runDAC(sRate,1);
+    runTFX(sRate,1);
     while (!writes.empty()) {
       QueuedWrite& w=writes.front();
       stream.push_back(DivDelayedWrite(i,w.addr,w.val));
@@ -1003,6 +1088,8 @@ void DivPlatformAY8910::reset() {
   ayEnvSlideLow=0;
 
   delay=0;
+  lastOut[0]=0;
+  lastOut[1]=0;
 
   ioPortA=false;
   ioPortB=false;
@@ -1016,6 +1103,10 @@ int DivPlatformAY8910::getOutputCount() {
 
 bool DivPlatformAY8910::keyOffAffectsArp(int ch) {
   return true;
+}
+
+bool DivPlatformAY8910::hasAcquireDirect() {
+  return (!selCore || intellivision);
 }
 
 bool DivPlatformAY8910::getLegacyAlwaysSetVolume() {
@@ -1154,7 +1245,7 @@ void DivPlatformAY8910::setFlags(const DivConfig& flags) {
   }
 
   for (int i=0; i<3; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 
   stereo=flags.getBool("stereo",false);
@@ -1171,8 +1262,6 @@ int DivPlatformAY8910::init(DivEngine* p, int channels, int sugRate, const DivCo
   }
   ay=NULL;
   setFlags(flags);
-  ayBufLen=65536;
-  for (int i=0; i<3; i++) ayBuf[i]=new short[ayBufLen];
   reset();
   return 3;
 }
@@ -1180,7 +1269,6 @@ int DivPlatformAY8910::init(DivEngine* p, int channels, int sugRate, const DivCo
 void DivPlatformAY8910::quit() {
   for (int i=0; i<3; i++) {
     delete oscBuf[i];
-    delete[] ayBuf[i];
   }
   if (ay!=NULL) delete ay;
 }
