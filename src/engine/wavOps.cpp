@@ -187,6 +187,7 @@ class ProcWriter {
       };
 
       if (format==DIV_EXPORT_FORMAT_S16) {
+#ifdef TA_BIG_ENDIAN
         // convert the float samples to signed 16-bit ints, then write raw LE bytes into the stream.
         size_t sampleSize=sizeof(int16_t);
         size_t size=sampleSize*count;
@@ -200,6 +201,13 @@ class ProcWriter {
           buf[target+1]=(uint8_t)(sampleU>>8);
         }
         return doWrite(buf,size);
+#else
+        int16_t buf[count];
+        for (size_t i=0; i<count; i++) {
+          buf[i]=32767.0f*samples[i];
+        }
+        return doWrite(buf,count*sizeof(int16_t));
+#endif
       } else if (format==DIV_EXPORT_FORMAT_F32) {
         return doWrite(samples,count*sizeof(float));
       } else {
