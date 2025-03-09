@@ -38,7 +38,7 @@ class DivPlatformBubSysWSG: public DivDispatch {
   bool isMuted[2];
   unsigned char writeOscBuf;
 
-  int coreQuality, lastOut;
+  int lastOut;
   k005289_core k005289;
   unsigned short regPool[4];
   void updateWave(int ch);  
@@ -66,7 +66,6 @@ class DivPlatformBubSysWSG: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    void setCoreQuality(unsigned char q);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformBubSysWSG();

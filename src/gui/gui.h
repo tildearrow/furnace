@@ -1795,12 +1795,10 @@ class FurnaceGUI {
     int esfmCore;
     int opllCore;
     int ayCore;
-    int bubsysQuality;
     int dsidQuality;
     int gbQuality;
     int pnQuality;
     int saaQuality;
-    int smQuality;
     int arcadeCoreRender;
     int ym2612CoreRender;
     int snCoreRender;
@@ -1817,12 +1815,10 @@ class FurnaceGUI {
     int esfmCoreRender;
     int opllCoreRender;
     int ayCoreRender;
-    int bubsysQualityRender;
     int dsidQualityRender;
     int gbQualityRender;
     int pnQualityRender;
     int saaQualityRender;
-    int smQualityRender;
     int pcSpeakerOutMethod;
     String yrw801Path;
     String tg100Path;
@@ -2050,12 +2046,10 @@ class FurnaceGUI {
       esfmCore(0),
       opllCore(0),
       ayCore(0),
-      bubsysQuality(3),
       dsidQuality(3),
       gbQuality(3),
       pnQuality(3),
       saaQuality(3),
-      smQuality(3),
       arcadeCoreRender(1),
       ym2612CoreRender(0),
       snCoreRender(0),
@@ -2072,12 +2066,10 @@ class FurnaceGUI {
       esfmCoreRender(0),
       opllCoreRender(0),
       ayCoreRender(0),
-      bubsysQualityRender(3),
       dsidQualityRender(3),
       gbQualityRender(3),
       pnQualityRender(3),
       saaQualityRender(3),
-      smQualityRender(3),
       pcSpeakerOutMethod(0),
       yrw801Path(""),
       tg100Path(""),

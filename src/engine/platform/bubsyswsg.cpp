@@ -362,32 +362,6 @@ void DivPlatformBubSysWSG::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-void DivPlatformBubSysWSG::setCoreQuality(unsigned char q) {
-  switch (q) {
-    case 0:
-      coreQuality=64;
-      break;
-    case 1:
-      coreQuality=32;
-      break;
-    case 2:
-      coreQuality=16;
-      break;
-    case 3:
-      coreQuality=8;
-      break;
-    case 4:
-      coreQuality=4;
-      break;
-    case 5:
-      coreQuality=1;
-      break;
-    default:
-      coreQuality=8;
-      break;
-  }
-}
-
 int DivPlatformBubSysWSG::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
