@@ -62,7 +62,7 @@ void T6W28_Square::run( sms_time_t time, sms_time_t end_time )
 
                 if ( last_amp_right )
                 {
-                        blip_add_delta( outputs[1], time, -last_amp_right, );
+                        blip_add_delta( outputs[1], time, -last_amp_right );
                         last_amp_right = 0;
                 }
 
@@ -239,8 +239,8 @@ void T6W28_Apu::output( blip_buffer_t* left, blip_buffer_t* right )
 {
 	for ( int i = 0; i < osc_count; i++ ) {
 	        T6W28_Osc& osc = *oscs [i];
-	        osc.output[0]=left;
-	        osc.output[1]=right;
+	        osc.outputs[0]=left;
+	        osc.outputs[1]=right;
         }
 }
 

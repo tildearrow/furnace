@@ -39,7 +39,7 @@ void DivPlatformT6W28::acquireDirect(blip_buffer_t** bb, size_t len) {
   for (int i=0; i<4; i++) {
     oscBuf[i]->begin(len);
   }
-  t6w->output(i,bb[0],bb[1]);
+  t6w->output(bb[0],bb[1]);
 
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
@@ -334,10 +334,6 @@ void DivPlatformT6W28::reset() {
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformT6W28::Channel();
     chan[i].std.setEngine(parent);
-
-    out[i][0].curValue=0;
-    out[i][1].curValue=0;
-    out[i][2].curValue=0;
   }
   if (dumpWrites) {
     addWrite(0xffffffff,0);
@@ -357,6 +353,10 @@ int DivPlatformT6W28::getOutputCount() {
 }
 
 bool DivPlatformT6W28::keyOffAffectsArp(int ch) {
+  return true;
+}
+
+bool DivPlatformT6W28::hasAcquireDirect() {
   return true;
 }
 
