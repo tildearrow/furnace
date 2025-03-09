@@ -24,7 +24,7 @@
 //#define rWrite(a,v) pendingWrites[a]=v;
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_DIVIDER 64
+#define CHIP_DIVIDER 32
 
 const char* regCheatSheetSM8521[]={
   "SGC", "40",
@@ -402,7 +402,7 @@ void DivPlatformSM8521::setFlags(const DivConfig& flags) {
   chipClock=11059200;
   CHECK_CUSTOM_CLOCK;
   antiClickEnabled=!flags.getBool("noAntiClick",false);
-  rate=chipClock/4; // CKIN -> fCLK(/2) -> Function blocks (/2)
+  rate=chipClock/2; // CKIN -> fCLK(/2) -> Function blocks (/2)
   for (int i=0; i<3; i++) {
     oscBuf[i]->setRate(rate);
   }
