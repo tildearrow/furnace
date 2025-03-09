@@ -367,7 +367,9 @@ int DivEngine::dispatchCmd(DivCommand c) {
               if (chan[c.chan].curMidiNote<0) chan[c.chan].curMidiNote=0;
               if (chan[c.chan].curMidiNote>127) chan[c.chan].curMidiNote=127;
             }
-            output->midiOut->send(TAMidiMessage(0x90|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
+            if (chan[c.chan].curMidiNote>=0) {
+              output->midiOut->send(TAMidiMessage(0x90|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
+            }
             break;
           case DIV_CMD_NOTE_OFF:
           case DIV_CMD_NOTE_OFF_ENV:
@@ -378,7 +380,7 @@ int DivEngine::dispatchCmd(DivCommand c) {
             break;
           case DIV_CMD_INSTRUMENT:
             if (chan[c.chan].lastIns!=c.value && midiOutProgramChange) {
-              output->midiOut->send(TAMidiMessage(0xc0|(c.chan&15),c.value,0));
+              output->midiOut->send(TAMidiMessage(0xc0|(c.chan&15),c.value&0x7f,0));
             }
             break;
           case DIV_CMD_VOLUME:
@@ -399,6 +401,8 @@ int DivEngine::dispatchCmd(DivCommand c) {
           }
           case DIV_CMD_PANNING: {
             int pan=convertPanSplitToLinearLR(c.value,c.value2,127);
+            if (pan<0) pan=0;
+            if (pan>127) pan=127;
             output->midiOut->send(TAMidiMessage(0xb0|(c.chan&15),0x0a,pan));
             break;
           }
