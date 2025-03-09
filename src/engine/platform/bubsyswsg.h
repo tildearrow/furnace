@@ -38,14 +38,14 @@ class DivPlatformBubSysWSG: public DivDispatch {
   bool isMuted[2];
   unsigned char writeOscBuf;
 
-  int coreQuality;
+  int coreQuality, lastOut;
   k005289_core k005289;
   unsigned short regPool[4];
   void updateWave(int ch);  
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
-    void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -58,6 +58,7 @@ class DivPlatformBubSysWSG: public DivDispatch {
     void muteChannel(int ch, bool mute);
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
+    bool hasAcquireDirect();
     DivMacroInt* getChanMacroInt(int ch);
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
