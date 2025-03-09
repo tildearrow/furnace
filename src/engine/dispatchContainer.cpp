@@ -719,11 +719,6 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_SM8521:
       dispatch=new DivPlatformSM8521;
-      if (isRender) {
-        ((DivPlatformSM8521*)dispatch)->setCoreQuality(eng->getConfInt("smQualityRender",3));
-      } else {
-        ((DivPlatformSM8521*)dispatch)->setCoreQuality(eng->getConfInt("smQuality",3));
-      }
       break;
     case DIV_SYSTEM_PV1000:
       dispatch=new DivPlatformPV1000;
