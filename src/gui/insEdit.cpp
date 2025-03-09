@@ -8724,6 +8724,7 @@ void FurnaceGUI::drawInsEdit() {
               }
               ImGui::TableNextColumn();
               if (ImGui::Button(ICON_FA_TIMES "##AttrRemove")) {
+                ins->std.xattrs.erase(ins->std.xattrs.begin() + i);
               }
               ImGui::PopID();
             }
