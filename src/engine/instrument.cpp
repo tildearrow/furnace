@@ -1137,7 +1137,7 @@ void DivInstrument::writeFeatureXA(SafeWriter* w) {
     w->writeString(i.name, false);
     if ((i.type & ~1) == DIV_XATTR_BOOLEAN) {
       // handle boolean data type here
-      w->writeC(i.type | i.bool_val);
+      w->writeC((unsigned char)i.type | i.bool_val);
       continue;
     }
     w->writeC(i.type);
@@ -1159,7 +1159,7 @@ void DivInstrument::writeFeatureXA(SafeWriter* w) {
         break;
       }
       case DIV_XATTR_INT: {
-        unsigned int value = i.uint_val;
+        int value = i.int_val;
         unsigned char vlq_byte = 0;
 
         // write initial VLQ byte (which contains sign bit)
