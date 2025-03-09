@@ -579,32 +579,6 @@ void DivPlatformNDS::setFlags(const DivConfig& flags) {
   memCompo.capacity=(isDSi?16777216:4194304);
 }
 
-void DivPlatformNDS::setCoreQuality(unsigned char q) {
-  switch (q) {
-    case 0:
-      coreQuality=1024;
-      break;
-    case 1:
-      coreQuality=512;
-      break;
-    case 2:
-      coreQuality=256;
-      break;
-    case 3:
-      coreQuality=128;
-      break;
-    case 4:
-      coreQuality=32;
-      break;
-    case 5:
-      coreQuality=8;
-      break;
-    default:
-      coreQuality=128;
-      break;
-  }
-}
-
 int DivPlatformNDS::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;

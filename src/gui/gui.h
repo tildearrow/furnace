@@ -1798,7 +1798,6 @@ class FurnaceGUI {
     int bubsysQuality;
     int dsidQuality;
     int gbQuality;
-    int ndsQuality;
     int pnQuality;
     int saaQuality;
     int smQuality;
@@ -1821,7 +1820,6 @@ class FurnaceGUI {
     int bubsysQualityRender;
     int dsidQualityRender;
     int gbQualityRender;
-    int ndsQualityRender;
     int pnQualityRender;
     int saaQualityRender;
     int smQualityRender;
@@ -2055,7 +2053,6 @@ class FurnaceGUI {
       bubsysQuality(3),
       dsidQuality(3),
       gbQuality(3),
-      ndsQuality(3),
       pnQuality(3),
       saaQuality(3),
       smQuality(3),
@@ -2078,7 +2075,6 @@ class FurnaceGUI {
       bubsysQualityRender(3),
       dsidQualityRender(3),
       gbQualityRender(3),
-      ndsQualityRender(3),
       pnQualityRender(3),
       saaQualityRender(3),
       smQualityRender(3),

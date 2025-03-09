@@ -775,11 +775,6 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_NDS:
       dispatch=new DivPlatformNDS;
-      if (isRender) {
-        ((DivPlatformNDS*)dispatch)->setCoreQuality(eng->getConfInt("ndsQualityRender",3));
-      } else {
-        ((DivPlatformNDS*)dispatch)->setCoreQuality(eng->getConfInt("ndsQuality",3));
-      }
       break;
     case DIV_SYSTEM_5E01:
       dispatch=new DivPlatformNES;
