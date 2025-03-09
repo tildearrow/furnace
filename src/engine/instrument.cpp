@@ -1137,7 +1137,8 @@ void DivInstrument::writeFeatureXA(SafeWriter* w) {
     w->writeString(i.name, false);
     if ((i.type & ~1) == DIV_XATTR_BOOLEAN) {
       // handle boolean data type here
-      w->writeC((unsigned char)i.type | i.bool_val);
+      // the unnecessary casting here is because of MSVC
+      w->writeC(i.type | (unsigned char)i.bool_val);
       continue;
     }
     w->writeC(i.type);
