@@ -127,7 +127,6 @@ void swan_sound_out(swan_sound_t *snd, uint16_t port, uint8_t value) {
 }
 
 static void swan_sound_subtick(swan_sound_t *snd, uint32_t cycles) {
-    // TODO: Do period counters update when a channel is inactive?
     for (int ch = 0; ch < 4; ch++) {
         if (snd->ch_ctrl & (1 << ch)) {
             snd->period_counter[ch] += cycles;
@@ -135,6 +134,12 @@ static void swan_sound_subtick(swan_sound_t *snd, uint32_t cycles) {
             while (snd->period_counter[ch] >= step) {
                 snd->sample_index[ch] = (snd->sample_index[ch] + 1) & 0x1F;
                 snd->period_counter[ch] -= step;
+
+                // Update noise counter
+                if (ch == 3 && (snd->ch_ctrl & SND_CH4_NOISE) && (snd->noise_ctrl & SND_NOISE_ENABLE)) {
+                    uint8_t lfsr_new = (1 ^ (snd->noise_lfsr >> 7) ^ (snd->noise_lfsr >> lfsr_tap_bits[snd->noise_ctrl & 7])) & 0x1;
+                    snd->noise_lfsr = (snd->noise_lfsr << 1) | lfsr_new;
+                }
             }
         }
     }
@@ -177,12 +182,6 @@ static void voice_render_channel2(swan_sound_t *snd) {
 void swan_sound_tick(swan_sound_t *snd) {
     // Update counters
     swan_sound_subtick(snd, 128);
-
-    // Update noise counter
-    if (snd->noise_ctrl & SND_NOISE_ENABLE) {
-        uint8_t lfsr_new = (1 ^ (snd->noise_lfsr >> 7) ^ (snd->noise_lfsr >> lfsr_tap_bits[snd->noise_ctrl & 7])) & 0x1;
-        snd->noise_lfsr = (snd->noise_lfsr << 1) | lfsr_new;
-    }
 
     // Calculate synthesizer channels
     if (!(snd->test_flags & SND_TEST_HOLD_CH)) {
