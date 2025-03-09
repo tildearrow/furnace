@@ -67,6 +67,8 @@ void T6W28_Square::run( sms_time_t time, sms_time_t end_time )
                         last_amp_right = 0;
                 }
 
+    oscBuf->putSample(time,0);
+
 		time += delay;
 		if ( !period )
 		{
@@ -100,6 +102,8 @@ void T6W28_Square::run( sms_time_t time, sms_time_t end_time )
                         last_amp_right = amp_right;
                         blip_add_delta( outputs[0], time, delta_right );
                  }
+
+      oscBuf->putSample(time,(amp_left+amp_right)>>2);
 		}
 
 		time += delay;
@@ -117,6 +121,8 @@ void T6W28_Square::run( sms_time_t time, sms_time_t end_time )
 
 				blip_add_delta( output_left, time, delta_left );
 				blip_add_delta( output_right, time, delta_right );
+
+        oscBuf->putSample(time,(amp_left+amp_right)>>2);
 				time += period;
 				phase ^= 1;
 			}
@@ -168,6 +174,8 @@ void T6W28_Noise::run( sms_time_t time, sms_time_t end_time )
                 last_amp_right = amp_right;
                 blip_add_delta( outputs[1], time, delta_right );
          }
+
+    oscBuf->putSample(time,(amp_left+amp_right)>>2);
 	}
 
 	time += delay;
@@ -199,6 +207,8 @@ void T6W28_Noise::run( sms_time_t time, sms_time_t end_time )
 
 				delta_right = -delta_right;
 				blip_add_delta( output_right, time, delta_right );
+
+        oscBuf->putSample(time,(amp_left+amp_right)>>2);
 			}
 			time += l_period;
 		}
@@ -287,6 +297,7 @@ bool T6W28_Apu::end_frame( sms_time_t end_time )
 	
 	assert( last_time >= end_time );
 	last_time -= end_time;
+  assert(last_time == 0);
 	
 	return(1);
 }
