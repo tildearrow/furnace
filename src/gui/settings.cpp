@@ -2120,13 +2120,10 @@ void FurnaceGUI::drawSettings() {
             ImGui::SetTooltip(_("used in audio export"));
           }
 
-          CORE_QUALITY("Bubble System WSG",bubsysQuality,bubsysQualityRender);
           CORE_QUALITY("Game Boy",gbQuality,gbQualityRender);
-          CORE_QUALITY("Nintendo DS",ndsQuality,ndsQualityRender);
           CORE_QUALITY("PowerNoise",pnQuality,pnQualityRender);
           CORE_QUALITY("SAA1099",saaQuality,saaQualityRender);
           CORE_QUALITY("SID (dSID)",dsidQuality,dsidQualityRender);
-          CORE_QUALITY("SM8521",smQuality,smQualityRender);
 
           ImGui::EndTable();
         }
@@ -5127,13 +5124,10 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.opllCore=conf.getInt("opllCore",0);
     settings.ayCore=conf.getInt("ayCore",0);
 
-    settings.bubsysQuality=conf.getInt("bubsysQuality",3);
     settings.dsidQuality=conf.getInt("dsidQuality",3);
     settings.gbQuality=conf.getInt("gbQuality",3);
-    settings.ndsQuality=conf.getInt("ndsQuality",3);
     settings.pnQuality=conf.getInt("pnQuality",3);
     settings.saaQuality=conf.getInt("saaQuality",3);
-    settings.smQuality=conf.getInt("smQuality",3);
 
     settings.arcadeCoreRender=conf.getInt("arcadeCoreRender",1);
     settings.ym2612CoreRender=conf.getInt("ym2612CoreRender",0);
@@ -5152,13 +5146,10 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.opllCoreRender=conf.getInt("opllCoreRender",0);
     settings.ayCoreRender=conf.getInt("ayCoreRender",0);
 
-    settings.bubsysQualityRender=conf.getInt("bubsysQualityRender",3);
     settings.dsidQualityRender=conf.getInt("dsidQualityRender",3);
     settings.gbQualityRender=conf.getInt("gbQualityRender",3);
-    settings.ndsQualityRender=conf.getInt("ndsQualityRender",3);
     settings.pnQualityRender=conf.getInt("pnQualityRender",3);
     settings.saaQualityRender=conf.getInt("saaQualityRender",3);
-    settings.smQualityRender=conf.getInt("smQualityRender",3);
 
     settings.pcSpeakerOutMethod=conf.getInt("pcSpeakerOutMethod",0);
 
@@ -5193,13 +5184,10 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.esfmCore,0,1);
   clampSetting(settings.opllCore,0,1);
   clampSetting(settings.ayCore,0,1);
-  clampSetting(settings.bubsysQuality,0,5);
   clampSetting(settings.dsidQuality,0,5);
   clampSetting(settings.gbQuality,0,5);
-  clampSetting(settings.ndsQuality,0,5);
   clampSetting(settings.pnQuality,0,5);
   clampSetting(settings.saaQuality,0,5);
-  clampSetting(settings.smQuality,0,5);
   clampSetting(settings.arcadeCoreRender,0,1);
   clampSetting(settings.ym2612CoreRender,0,2);
   clampSetting(settings.snCoreRender,0,1);
@@ -5216,13 +5204,10 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.esfmCoreRender,0,1);
   clampSetting(settings.opllCoreRender,0,1);
   clampSetting(settings.ayCoreRender,0,1);
-  clampSetting(settings.bubsysQualityRender,0,5);
   clampSetting(settings.dsidQualityRender,0,5);
   clampSetting(settings.gbQualityRender,0,5);
-  clampSetting(settings.ndsQualityRender,0,5);
   clampSetting(settings.pnQualityRender,0,5);
   clampSetting(settings.saaQualityRender,0,5);
-  clampSetting(settings.smQualityRender,0,5);
   clampSetting(settings.pcSpeakerOutMethod,0,4);
   clampSetting(settings.mainFont,0,6);
   clampSetting(settings.patFont,0,6);
@@ -5716,13 +5701,10 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("opllCore",settings.opllCore);
     conf.set("ayCore",settings.ayCore);
 
-    conf.set("bubsysQuality",settings.bubsysQuality);
     conf.set("dsidQuality",settings.dsidQuality);
     conf.set("gbQuality",settings.gbQuality);
-    conf.set("ndsQuality",settings.ndsQuality);
     conf.set("pnQuality",settings.pnQuality);
     conf.set("saaQuality",settings.saaQuality);
-    conf.set("smQuality",settings.smQuality);
 
     conf.set("arcadeCoreRender",settings.arcadeCoreRender);
     conf.set("ym2612CoreRender",settings.ym2612CoreRender);
@@ -5741,13 +5723,10 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("opllCoreRender",settings.opllCoreRender);
     conf.set("ayCoreRender",settings.ayCoreRender);
 
-    conf.set("bubsysQualityRender",settings.bubsysQualityRender);
     conf.set("dsidQualityRender",settings.dsidQualityRender);
     conf.set("gbQualityRender",settings.gbQualityRender);
-    conf.set("ndsQualityRender",settings.ndsQualityRender);
     conf.set("pnQualityRender",settings.pnQualityRender);
     conf.set("saaQualityRender",settings.saaQualityRender);
-    conf.set("smQualityRender",settings.smQualityRender);
 
     conf.set("pcSpeakerOutMethod",settings.pcSpeakerOutMethod);
 
@@ -5800,13 +5779,10 @@ void FurnaceGUI::commitSettings() {
     settings.esfmCore!=e->getConfInt("esfmCore",0) ||
     settings.opllCore!=e->getConfInt("opllCore",0) ||
     settings.ayCore!=e->getConfInt("ayCore",0) ||
-    settings.bubsysQuality!=e->getConfInt("bubsysQuality",3) ||
     settings.dsidQuality!=e->getConfInt("dsidQuality",3) ||
     settings.gbQuality!=e->getConfInt("gbQuality",3) ||
-    settings.ndsQuality!=e->getConfInt("ndsQuality",3) ||
     settings.pnQuality!=e->getConfInt("pnQuality",3) ||
     settings.saaQuality!=e->getConfInt("saaQuality",3) ||
-    settings.smQuality!=e->getConfInt("smQuality",3) ||
     settings.audioQuality!=e->getConfInt("audioQuality",0) ||
     settings.audioHiPass!=e->getConfInt("audioHiPass",1)
   );

@@ -40,6 +40,9 @@ void DivPlatformT6W28::acquireDirect(blip_buffer_t** bb, size_t len) {
     oscBuf[i]->begin(len);
   }
   t6w->output(bb[0],bb[1]);
+  for (int i=0; i<4; i++) {
+    t6w->osc_output(i,oscBuf[i]);
+  }
 
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
@@ -369,7 +372,7 @@ void DivPlatformT6W28::notifyInsDeletion(void* ins) {
 void DivPlatformT6W28::setFlags(const DivConfig& flags) {
   chipClock=3072000.0;
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/16;
+  rate=chipClock;
   for (int i=0; i<4; i++) {
     oscBuf[i]->setRate(rate);
   }
