@@ -400,6 +400,9 @@ namespace nds_sound_emu
 
         i+=cycle-1;
 
+        if (m_loutput!=loutput || m_routput!=routput) {
+          m_oscBuf->putSample(i,(loutput+routput)>>1);
+        }
         if (m_loutput!=loutput) {
           blip_add_delta(m_bb[0],i,m_loutput-loutput);
           m_loutput=loutput;
@@ -407,9 +410,6 @@ namespace nds_sound_emu
         if (m_routput!=routput) {
           blip_add_delta(m_bb[1],i,m_routput-routput);
           m_routput=routput;
-        }
-        if (m_loutput!=loutput || m_routput!=routput) {
-          m_oscBuf->putSample(i,(loutput+routput)>>1);
         }
       }
     }
