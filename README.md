@@ -195,10 +195,10 @@ I recommend you to use this because the compiler produces faster builds and it d
 there's some command line-fu in here, so I hope you're prepared.
 
 install it through [MSYS2](https://www.msys2.org/), a Linux-like environment for Windows.
-follow the guide **up to step 4**. do NOT start MSYS2 from the installer as this will start the wrong environment and prevent you from going further.
+follow the guide **up to step 4**. **do NOT start MSYS2 from the installer** as this will start the wrong environment and prevent you from going further.
 
 MSYS2 provides a variety of environments, but we'll work with the MINGW64 one. don't "run MSYS2 now". go to the Start menu and launch MSYS2 with the MINGW64 environment (blue icon).
-it is extremely important that you use this environment. the one that MSYS2 starts with by default (UCRT64) is NOT suitable for this task and will NOT work.
+**it is extremely important that you use this environment**. the one that MSYS2 starts with by default (UCRT64) is NOT suitable for this task and will NOT work.
 
 we'll install a couple packages, including GCC, CMake, Git and Ninja.
 type the following in the MSYS2 console, and then press Enter.
@@ -210,6 +210,8 @@ pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja mingw-w64-x86_64-gcc git
 when prompted to, type Y and press Enter again.
 
 proceed to the "getting the source" section.
+
+if it says UCRT64 anywhere in the console, YOU ARE IN THE WRONG ENVIRONMENT! if so quit MSYS2 NOW and start the MINGW64 environment.
 
 ### Visual Studio (the real one)
 
