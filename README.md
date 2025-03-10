@@ -195,9 +195,10 @@ I recommend you to use this because the compiler produces faster builds and it d
 there's some command line-fu in here, so I hope you're prepared.
 
 install it through [MSYS2](https://www.msys2.org/), a Linux-like environment for Windows.
-follow the guide up to step 4.
+follow the guide **up to step 4**. do NOT start MSYS2 from the installer as this will start the wrong environment and prevent you from going further.
 
 MSYS2 provides a variety of environments, but we'll work with the MINGW64 one. don't "run MSYS2 now". go to the Start menu and launch MSYS2 with the MINGW64 environment (blue icon).
+it is extremely important that you use this environment. the one that MSYS2 starts with by default (UCRT64) is NOT suitable for this task and will NOT work.
 
 we'll install a couple packages, including GCC, CMake, Git and Ninja.
 type the following in the MSYS2 console, and then press Enter.
@@ -366,14 +367,12 @@ this guide may help you in that case.
 
 either you forgot to install something, it's not in your PATH or **you are using the wrong environment**.
 
-remember that on MSYS2 you should use the MINGW64 environment (not the UCRT64 one!).
-
 #### compiler
 
 if building with the Visual Studio command line tools, make sure you have started the native tools command prompt. [Microsoft has a guide here](https://learn.microsoft.com/en-us/cpp/build/how-to-enable-a-64-bit-visual-cpp-toolset-on-the-command-line?view=msvc-170).
 
 
-if building with MinGW, make sure you have started the MSYS2 MINGW64 environment.
+if building with MinGW, make sure you have started the MSYS2 MINGW64 environment (not the UCRT64 one!).
 
 #### CMake or Git
 
