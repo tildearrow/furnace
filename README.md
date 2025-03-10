@@ -157,33 +157,25 @@ some people have provided packages for Unix/Unix-like distributions. here's a li
 - **Void Linux**: [furnace](https://github.com/void-linux/void-packages/tree/master/srcpkgs/furnace) is available in the official repository.
 
 ---
-# developer info
+# unstable builds
 
 [![Build furnace](https://github.com/tildearrow/furnace/actions/workflows/build.yml/badge.svg)](https://github.com/tildearrow/furnace/actions/workflows/build.yml)
 
 if you can't download these artifacts (because GitHub requires you to be logged in), [go here](https://nightly.link/tildearrow/furnace/workflows/build/master) instead.
 
-**NOTE: do not download the project's source as a .zip or .tar.gz as these do not include the project's submodules which are necessary to proceed with building. please instead use Git as shown below.**
+# developer info
+
+the following section will teach you how to build Furnace from its source code.
 
 ## dependencies
+
+these are the things you'll need to build Furnace:
 
 - CMake
 - Git (for cloning the repository)
 - a C/C++ compiler (e.g. Visual Studio or MinGW on Windows, Xcode (the command-line tools are enough) on macOS or GCC on Linux)
 
-if building under Windows or macOS, no additional dependencies are required.
-otherwise, you may also need the following:
-
-- libpulse
-- libx11
-- libasound
-- libGL
-- JACK (optional, macOS/Linux only)
-- any other libraries which may be used by SDL
-
-some Linux distributions (e.g. Ubuntu or openSUSE) will require you to install the `-dev`/`-devel` versions of these.
-
-on Linux, having libintl is recommended for locale support, but if it isn't present, Furnace will use its own implementation.
+read the sections below for information on how to set these up.
 
 ## development environment setup (Windows)
 
@@ -236,6 +228,19 @@ if you would like to, and are able to use the App Store, feel free to get Xcode 
 
 get GCC, Git and CMake through your package manager.
 
+you may also need the following dependencies:
+
+- libpulse
+- libx11
+- libasound
+- libGL
+- JACK (optional)
+- any other libraries which may be used by SDL
+
+some Linux distributions (e.g. Ubuntu or openSUSE) will require you to install the `-dev`/`-devel` versions of these.
+
+having libintl is recommended for locale support, but if it isn't present, Furnace will use its own implementation.
+
 ## getting the source
 
 type the following on a terminal/console: (make sure Git is installed)
@@ -246,6 +251,8 @@ cd furnace
 ```
 
 (the `--recursive` parameter ensures submodules are fetched as well)
+
+**NOTE: do not download the project's source as a .zip or .tar.gz as these do not include the project's submodules which are necessary to proceed with building. please use Git instead as shown in this section.**
 
 ## compilation
 
