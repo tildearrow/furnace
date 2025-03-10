@@ -1568,11 +1568,6 @@ void FurnaceGUI::initSystemPresets() {
       )
     }
   );
-  ENTRY(
-    "Epoch Super Cassette Vision", {
-      CH(DIV_SYSTEM_UPD1771C, 1.0f, 0, "")
-    }
-  );
   CATEGORY_END;
 
   CATEGORY_BEGIN(_("Arcade systems"),_("INSERT COIN"));
