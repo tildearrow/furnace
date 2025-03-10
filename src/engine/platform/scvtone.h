@@ -27,12 +27,13 @@
 class DivPlatformSCV: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
     unsigned int wave;
-    int pos, duty;
+    int pos, duty, baseFreqNoise;
     Channel():
       SharedChannel<signed char>(15),
       wave(0),
       pos(0),
-      duty(0) {}
+      duty(0),
+      baseFreqNoise(0) {}
   };
   Channel chan[4];
   DivDispatchOscBuffer* oscBuf[4];

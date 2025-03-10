@@ -71,18 +71,14 @@ void DivPlatformSCV::tick(bool sysTick) {
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         int f=parent->calcArp(chan[i].note,chan[i].std.arp.val);
-        if (i==3 && !waveMode) {
-          chan[i].baseFreq=f;
-        } else {
-          chan[i].baseFreq=NOTE_PERIODIC(f);
-        }
+        chan[i].baseFreq=NOTE_PERIODIC(f);
       }
       chan[i].freqChanged=true;
     }
     if (chan[i].std.wave.had) {
       chan[i].wave=chan[i].std.wave.val&7;
     }
-    if (chan[i].std.duty.had) {
+    if (chan[i].std.duty.had && i==3) {
       waveMode=chan[i].std.duty.val&1;
     }
     if (chan[i].std.ex1.had) {
@@ -98,38 +94,35 @@ void DivPlatformSCV::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      if (waveMode) {
-        if (i==3) {
+      if (i==3) {
+        if (waveMode) {
           chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
-        }
-        if (chan[i].keyOn) kon[i]=1;
-        if (chan[i].keyOff) kon[i]=0;
-        if (chan[i].keyOn) chan[i].keyOn=false;
-        if (chan[i].keyOff) chan[i].keyOff=false;
-        chan[i].freqChanged=false;
-      } else {
-        if (i==3) {
+        } else {
           chan[i].freq=(chan[i].baseFreq+chan[i].pitch+chan[i].pitch2+143);
-          if (!parent->song.oldArpStrategy) {
-            if (chan[i].fixedArp) {
-              chan[i].freq=(chan[i].baseNoteOverride)+chan[i].pitch+chan[i].pitch2;
-            } else {
-              chan[i].freq+=chan[i].arpOff;
-            }
+        }
+        if (!parent->song.oldArpStrategy) {
+          if (chan[i].fixedArp) {
+            chan[i].freq=(chan[i].baseNoteOverride)+chan[i].pitch+chan[i].pitch2;
+          } else {
+            chan[i].freq+=chan[i].arpOff;
           }
-        } else {
-          chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
         }
-        if (i==3) {
-          if (chan[i].freq<0) chan[i].freq=0;
-        } else {
-          if (chan[i].freq<1) chan[i].freq=1;
-        }
-        if (chan[i].freq>255) chan[i].freq=255;
-        if (chan[i].keyOn) chan[i].keyOn=false;
-        if (chan[i].keyOff) chan[i].keyOff=false;
-        chan[i].freqChanged=false;
+      } else {
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       }
+      if (i==3) {
+        if (waveMode) {
+          if (chan[i].keyOn) kon[i]=1;
+          if (chan[i].keyOff) kon[i]=0;
+        }
+        if (chan[i].freq<0) chan[i].freq=0;
+      } else {
+        if (chan[i].freq<1) chan[i].freq=1;
+      }
+      if (chan[i].freq>255) chan[i].freq=255;
+      if (chan[i].keyOn) chan[i].keyOn=false;
+      if (chan[i].keyOff) chan[i].keyOff=false;
+      chan[i].freqChanged=false;
     }
 
     if (waveMode) {
@@ -185,7 +178,7 @@ int DivPlatformSCV::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_UPD1771C);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=(c.chan==3 && !waveMode)?(c.value):NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -236,7 +229,7 @@ int DivPlatformSCV::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=(c.chan==3 && !waveMode)?c.value2:(NOTE_PERIODIC(c.value2));
+      int destFreq=NOTE_PERIODIC(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -267,7 +260,7 @@ int DivPlatformSCV::dispatch(DivCommand c) {
       break;
     case DIV_CMD_LEGATO: {
       int newNote=c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0));
-      chan[c.chan].baseFreq=(c.chan==3 && !waveMode)?newNote:(NOTE_PERIODIC(newNote));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(newNote);
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -277,11 +270,7 @@ int DivPlatformSCV::dispatch(DivCommand c) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_UPD1771C));
       }
       if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
-        if (c.chan==3 && !waveMode) {
-          chan[c.chan].baseFreq=chan[c.chan].note;
-        } else {
-          chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
-        }
+        chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       }
       chan[c.chan].inPorta=c.value;
       break;
