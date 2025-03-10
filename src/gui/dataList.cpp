@@ -152,7 +152,7 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
   }
   bool insReleased=ImGui::Selectable(name.c_str(),(i==-1)?(curIns<0 || curIns>=e->song.insLen):(curIns==i));
   bool insPressed=ImGui::IsItemActivated();
-  if (insReleased || (!insListDir && insPressed)) {
+  if (insReleased || (!insListDir && insPressed && !settings.draggableDataView)) {
     curIns=i;
     if (!insReleased || insListDir) {
       wavePreviewInit=true;
