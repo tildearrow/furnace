@@ -1389,6 +1389,9 @@ void DivEngine::registerSystems() {
       {0x12, {DIV_CMD_WS_SWEEP_TIME, _("12xx: Setup sweep period (0: disabled; 1-20: enabled/period)")}},
       {0x13, {DIV_CMD_WS_SWEEP_AMOUNT, _("13xx: Set sweep amount")}},
       {0x17, {DIV_CMD_SAMPLE_MODE, _("17xx: Toggle PCM mode (LEGACY)")}},
+    },
+    {
+      {0x20, {DIV_CMD_WS_GLOBAL_SPEAKER_VOLUME, _("20xx: Set internal speaker loudness (0-1: 100%, 2-3: 200%, 4-7: 400%, 8: 800%)")}},
     }
   );
 
