@@ -151,6 +151,8 @@ in there, you can modify certain data pertaining to your sample, such as the:
 - **Signed/unsigned exchange**: reinterprets selection data as being of the opposite sign.
   - if a sample sounds fine elsewhere but is distorted on import, it may have been interpreted as signed when it should be unsigned, or vice versa; this will correct that.
 - **Apply filter**: filters the selection. pops up a dialog box:
+  - **Frequency**: filter cutoff frequency.
+  - **Sweep (2 frequencies)**: changes "Frequency" to separate "From" and "To" sliders.
   - **From**: filter cutoff frequency at start of selection.
   - **To**: filter cutoff frequency at end of selection.
   - **Resonance**: emphasizes frequencies around filter cutoff.

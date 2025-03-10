@@ -1196,7 +1196,6 @@ void FurnaceGUI::drawSampleEdit() {
         float resP=sampleFilterRes*100.0f;
         ImGui::Text(_("Cutoff:"));
 
-        ImGui::Checkbox(_("Sweep (2 frequencies)"),&sampleFilterSweep);
         if (sampleFilterSweep) {
           if (ImGui::SliderFloat(_("From"),&sampleFilterCutStart,minCutoff,maxCutoff,"%.0f Hz")) {
             if (sampleFilterCutStart<minCutoff) sampleFilterCutStart=minCutoff;
@@ -1212,6 +1211,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (sampleFilterCutStart>maxCutoff) sampleFilterCutStart=maxCutoff;
           }
         }
+        ImGui::Checkbox(_("Sweep (2 frequencies)"),&sampleFilterSweep);
 
         ImGui::Separator();
         if (ImGui::SliderFloat(_("Resonance"),&resP,0.0f,99.0f,"%.1f%%")) {
