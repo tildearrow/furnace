@@ -114,8 +114,8 @@ const char* sampleNote[12]={
           MARK_MODIFIED; \
         } \
         _toMoveVar=-1; \
-        ImGui::EndDragDropTarget(); \
       } \
+      ImGui::EndDragDropTarget(); \
     } \
   }
 
