@@ -364,7 +364,9 @@ this guide may help you in that case.
 
 ### "command not found", "not a valid command", and similar
 
-either you forgot to install something, it's not in your PATH or you are using the wrong environment.
+either you forgot to install something, it's not in your PATH or **you are using the wrong environment**.
+
+remember that on MSYS2 you should use the MINGW64 environment (not the UCRT64 one!).
 
 #### compiler
 
