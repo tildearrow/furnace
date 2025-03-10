@@ -1569,13 +1569,8 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
-    "Epoch Super Cassette Vision (wave mode)", {
+    "Epoch Super Cassette Vision", {
       CH(DIV_SYSTEM_UPD1771C, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Epoch Super Cassette Vision (tone mode)", {
-      CH(DIV_SYSTEM_UPD1771C_TONE, 1.0f, 0, "")
     }
   );
   CATEGORY_END;

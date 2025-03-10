@@ -24,7 +24,7 @@
 #include "../../fixedQueue.h"
 #include "sound/upd1771.h"
 
-class DivPlatformSCVTone: public DivDispatch {
+class DivPlatformSCV: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
     unsigned int wave;
     int pos, duty;
@@ -50,11 +50,13 @@ class DivPlatformSCVTone: public DivDispatch {
   int tempR[32];
   int coreQuality;
   unsigned char regPool[16];
+  unsigned char kon[4];
+  unsigned char initWrite[4];
   upd1771c_device scv;
 
   unsigned char packet[16];
 
-  bool writePacket;
+  bool writePacket, waveMode;
 
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
@@ -79,7 +81,7 @@ class DivPlatformSCVTone: public DivDispatch {
     const char** getRegisterSheet();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
-    ~DivPlatformSCVTone();
+    ~DivPlatformSCV();
 };
 
 #endif

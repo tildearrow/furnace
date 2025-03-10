@@ -77,7 +77,6 @@
 #include "platform/k007232.h"
 #include "platform/ga20.h"
 #include "platform/supervision.h"
-#include "platform/scvwave.h"
 #include "platform/scvtone.h"
 #include "platform/sm8521.h"
 #include "platform/pv1000.h"
@@ -707,10 +706,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       dispatch=new DivPlatformSupervision;
       break;
     case DIV_SYSTEM_UPD1771C:
-      dispatch=new DivPlatformSCVWave;
-      break;
-    case DIV_SYSTEM_UPD1771C_TONE:
-      dispatch=new DivPlatformSCVTone;
+      dispatch=new DivPlatformSCV;
       break;
     case DIV_SYSTEM_SM8521:
       dispatch=new DivPlatformSM8521;

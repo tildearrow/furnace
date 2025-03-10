@@ -282,11 +282,11 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       break;
     case DIV_SYSTEM_ESFM:
       return "ES1xxx";
+      break;
     case DIV_SYSTEM_SUPERVISION:
       return "Watara Supervision";
       break;
     case DIV_SYSTEM_UPD1771C:
-    case DIV_SYSTEM_UPD1771C_TONE:
       return "μPD1771C-017";
       break;
     default:

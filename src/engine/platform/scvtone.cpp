@@ -26,17 +26,15 @@
 //#define rWrite(a,v) pendingWrites[a]=v;
 #define rWrite(a,v) if (!skipRegisterWrites) {packet[a]=v; writePacket=true; if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_DIVIDER 512
-
 const char* regCheatSheetUPD1771cTone[]={
   NULL
 };
 
-const char** DivPlatformSCVTone::getRegisterSheet() {
+const char** DivPlatformSCV::getRegisterSheet() {
   return regCheatSheetUPD1771cTone;
 }
 
-void DivPlatformSCVTone::acquire(short** buf, size_t len) {
+void DivPlatformSCV::acquire(short** buf, size_t len) {
   for (int i=0; i<4; i++) {
     oscBuf[i]->begin(len);
   }
@@ -61,8 +59,9 @@ void DivPlatformSCVTone::acquire(short** buf, size_t len) {
   }
 }
 
-void DivPlatformSCVTone::tick(bool sysTick) {
+void DivPlatformSCV::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
+    int CHIP_DIVIDER=(i<3)?512:64;
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&31,MIN(31,chan[i].std.vol.val),31);
@@ -72,7 +71,7 @@ void DivPlatformSCVTone::tick(bool sysTick) {
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         int f=parent->calcArp(chan[i].note,chan[i].std.arp.val);
-        if (i==3) {
+        if (i==3 && !waveMode) {
           chan[i].baseFreq=f;
         } else {
           chan[i].baseFreq=NOTE_PERIODIC(f);
@@ -84,7 +83,7 @@ void DivPlatformSCVTone::tick(bool sysTick) {
       chan[i].wave=chan[i].std.wave.val&7;
     }
     if (chan[i].std.duty.had) {
-      chan[i].duty=chan[i].std.duty.val&1;
+      waveMode=chan[i].std.duty.val&1;
     }
     if (chan[i].std.ex1.had) {
       chan[i].pos=chan[i].std.ex1.val&31;
@@ -99,40 +98,70 @@ void DivPlatformSCVTone::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      if (i==3) {
-        chan[i].freq=(chan[i].baseFreq+chan[i].pitch+chan[i].pitch2+143);
-        if (!parent->song.oldArpStrategy) {
-          if (chan[i].fixedArp) {
-            chan[i].freq=(chan[i].baseNoteOverride)+chan[i].pitch+chan[i].pitch2;
-          } else {
-            chan[i].freq+=chan[i].arpOff;
+      if (waveMode) {
+        if (i==3) {
+          chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+        }
+        if (chan[i].keyOn) kon[i]=1;
+        if (chan[i].keyOff) kon[i]=0;
+        if (chan[i].keyOn) chan[i].keyOn=false;
+        if (chan[i].keyOff) chan[i].keyOff=false;
+        chan[i].freqChanged=false;
+      } else {
+        if (i==3) {
+          chan[i].freq=(chan[i].baseFreq+chan[i].pitch+chan[i].pitch2+143);
+          if (!parent->song.oldArpStrategy) {
+            if (chan[i].fixedArp) {
+              chan[i].freq=(chan[i].baseNoteOverride)+chan[i].pitch+chan[i].pitch2;
+            } else {
+              chan[i].freq+=chan[i].arpOff;
+            }
           }
+        } else {
+          chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+        }
+        if (i==3) {
+          if (chan[i].freq<0) chan[i].freq=0;
+        } else {
+          if (chan[i].freq<1) chan[i].freq=1;
+        }
+        if (chan[i].freq>255) chan[i].freq=255;
+        if (chan[i].keyOn) chan[i].keyOn=false;
+        if (chan[i].keyOff) chan[i].keyOff=false;
+        chan[i].freqChanged=false;
+      }
+    }
+
+    if (waveMode) {
+      if (kon[i]) {
+        if (i==3) {
+          rWrite(0,2);
+          rWrite(1,(chan[i].wave<<5)|chan[i].pos);
+          // TODO: improve
+          float p = ((float)chan[i].freq)/((float)(31-chan[i].pos))*31.0;
+          rWrite(2,MIN(MAX((int)p,0),255));
+          rWrite(3,chan[i].outVol);
         }
       } else {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+        if (i == 0) {
+          rWrite(0,0);
+        }
       }
-      if (i==3) {
-        if (chan[i].freq<0) chan[i].freq=0;
-      } else {
-        if (chan[i].freq<1) chan[i].freq=1;
-      }
-      if (chan[i].freq>255) chan[i].freq=255;
-      if (chan[i].keyOn) chan[i].keyOn=false;
-      if (chan[i].keyOff) chan[i].keyOff=false;
-      chan[i].freqChanged=false;
     }
   }
 
-  rWrite(0,1);
-  rWrite(1,chan[3].wave<<5);
-  rWrite(2,(0xff-chan[3].freq));
-  rWrite(3,(chan[3].active && !isMuted[3])?(chan[3].outVol&0x1f):0);
-  rWrite(4,chan[0].freq-1);
-  rWrite(5,chan[1].freq-1);
-  rWrite(6,chan[2].freq-1);
-  rWrite(7,(chan[0].active && !isMuted[0])?chan[0].outVol:0);
-  rWrite(8,(chan[1].active && !isMuted[1])?chan[1].outVol:0);
-  rWrite(9,(chan[2].active && !isMuted[2])?chan[2].outVol:0);
+  if (!waveMode) {
+    rWrite(0,1);
+    rWrite(1,chan[3].wave<<5);
+    rWrite(2,(0xff-chan[3].freq));
+    rWrite(3,(chan[3].active && !isMuted[3])?(chan[3].outVol&0x1f):0);
+    rWrite(4,chan[0].freq-1);
+    rWrite(5,chan[1].freq-1);
+    rWrite(6,chan[2].freq-1);
+    rWrite(7,(chan[0].active && !isMuted[0])?chan[0].outVol:0);
+    rWrite(8,(chan[1].active && !isMuted[1])?chan[1].outVol:0);
+    rWrite(9,(chan[2].active && !isMuted[2])?chan[2].outVol:0);
+  }
 
   // if need be, write packet
   if (writePacket) {
@@ -150,12 +179,13 @@ void DivPlatformSCVTone::tick(bool sysTick) {
   }
 }
 
-int DivPlatformSCVTone::dispatch(DivCommand c) {
+int DivPlatformSCV::dispatch(DivCommand c) {
+  int CHIP_DIVIDER=(c.chan<3)?512:64;
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_UPD1771C);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=c.chan==3?(c.value):NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=(c.chan==3 && !waveMode)?(c.value):NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -170,7 +200,6 @@ int DivPlatformSCVTone::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_OFF:
-      if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].macroInit(NULL);
@@ -207,7 +236,7 @@ int DivPlatformSCVTone::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=(c.chan==3)?c.value2:(NOTE_PERIODIC(c.value2));
+      int destFreq=(c.chan==3 && !waveMode)?c.value2:(NOTE_PERIODIC(c.value2));
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -238,7 +267,7 @@ int DivPlatformSCVTone::dispatch(DivCommand c) {
       break;
     case DIV_CMD_LEGATO: {
       int newNote=c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0));
-      chan[c.chan].baseFreq=(c.chan==3)?newNote:(NOTE_PERIODIC(newNote));
+      chan[c.chan].baseFreq=(c.chan==3 && !waveMode)?newNote:(NOTE_PERIODIC(newNote));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -248,7 +277,7 @@ int DivPlatformSCVTone::dispatch(DivCommand c) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_UPD1771C));
       }
       if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
-        if (c.chan==3) {
+        if (c.chan==3 && !waveMode) {
           chan[c.chan].baseFreq=chan[c.chan].note;
         } else {
           chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
@@ -274,43 +303,42 @@ int DivPlatformSCVTone::dispatch(DivCommand c) {
   return 1;
 }
 
-void DivPlatformSCVTone::muteChannel(int ch, bool mute) {
+void DivPlatformSCV::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
 }
 
-void DivPlatformSCVTone::forceIns() {
+void DivPlatformSCV::forceIns() {
   for (int i=0; i<4; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
-    //chwrite(i,0x05,isMuted[i]?0:chan[i].pan);
   }
 }
 
-void* DivPlatformSCVTone::getChanState(int ch) {
+void* DivPlatformSCV::getChanState(int ch) {
   return &chan[ch];
 }
 
-DivMacroInt* DivPlatformSCVTone::getChanMacroInt(int ch) {
+DivMacroInt* DivPlatformSCV::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
-DivDispatchOscBuffer* DivPlatformSCVTone::getOscBuffer(int ch) {
+DivDispatchOscBuffer* DivPlatformSCV::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
-unsigned char* DivPlatformSCVTone::getRegisterPool() {
+unsigned char* DivPlatformSCV::getRegisterPool() {
   return regPool;
 }
 
-int DivPlatformSCVTone::getRegisterPoolSize() {
+int DivPlatformSCV::getRegisterPoolSize() {
   return 16;
 }
 
-void DivPlatformSCVTone::reset() {
+void DivPlatformSCV::reset() {
   writes.clear();
   memset(regPool,0,16);
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformSCVTone::Channel();
+    chan[i]=DivPlatformSCV::Channel();
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
@@ -319,25 +347,28 @@ void DivPlatformSCVTone::reset() {
   scv.device_reset();
   memset(tempL,0,32*sizeof(int));
   memset(tempR,0,32*sizeof(int));
+  memset(kon,0,4);
+  memset(initWrite,1,4);
   memset(packet,0,16);
   writePacket=false;
+  waveMode=false;
 }
 
-int DivPlatformSCVTone::getOutputCount() {
+int DivPlatformSCV::getOutputCount() {
   return 1;
 }
 
-bool DivPlatformSCVTone::keyOffAffectsArp(int ch) {
+bool DivPlatformSCV::keyOffAffectsArp(int ch) {
   return true;
 }
 
-void DivPlatformSCVTone::notifyInsDeletion(void* ins) {
+void DivPlatformSCV::notifyInsDeletion(void* ins) {
   for (int i=0; i<4; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }
 
-void DivPlatformSCVTone::setFlags(const DivConfig& flags) {
+void DivPlatformSCV::setFlags(const DivConfig& flags) {
   chipClock=6000000;
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/4;
@@ -347,15 +378,15 @@ void DivPlatformSCVTone::setFlags(const DivConfig& flags) {
   //upd1771c_sound_set_clock(&scv,(unsigned int)chipClock,8);
 }
 
-void DivPlatformSCVTone::poke(unsigned int addr, unsigned short val) {
+void DivPlatformSCV::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }
 
-void DivPlatformSCVTone::poke(std::vector<DivRegWrite>& wlist) {
+void DivPlatformSCV::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-int DivPlatformSCVTone::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
+int DivPlatformSCV::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
@@ -368,11 +399,11 @@ int DivPlatformSCVTone::init(DivEngine* p, int channels, int sugRate, const DivC
   return 1;
 }
 
-void DivPlatformSCVTone::quit() {
+void DivPlatformSCV::quit() {
   for (int i=0; i<4; i++) {
     delete oscBuf[i];
   }
 }
 
-DivPlatformSCVTone::~DivPlatformSCVTone() {
+DivPlatformSCV::~DivPlatformSCV() {
 }
