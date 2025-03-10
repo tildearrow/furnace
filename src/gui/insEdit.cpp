@@ -2488,12 +2488,13 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
   } \
   popToggleColors(); \
 
-void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state) {
+void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state, DivInstrument* ins) {
   int index=0;
   int maxMacroLen=0;
   float reservedSpace=(settings.oldMacroVSlider)?(20.0f*dpiScale+ImGui::GetStyle().ItemSpacing.x):ImGui::GetStyle().ScrollbarSize;
 
   for (FurnaceGUIMacroDesc& m: macros) {
+    m.ins=ins;
     if (m.macro->len>maxMacroLen) maxMacroLen=m.macro->len;
   }
 
@@ -6431,7 +6432,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins) {
       macroList.push_back(FurnaceGUIMacroDesc(_("Channel Output Connection"),&ins->std.opMacros[i].egtMacro,0,1,32,uiColors[GUI_COLOR_MACRO_FILTER],false,NULL,NULL,true));
       macroList.push_back(FurnaceGUIMacroDesc(_("Connection Matrix Row"),&ins->std.opMacros[i].kslMacro,0,SID3_NUM_FILTERS,16*SID3_NUM_FILTERS,uiColors[GUI_COLOR_MACRO_FILTER],false,NULL,NULL,true,sid3FilterMatrixBits));
 
-      drawMacros(macroList,macroEditStateOP[i]);
+      drawMacros(macroList,macroEditStateOP[i],ins);
 
       ImGui::EndTabItem();
     }
@@ -6665,7 +6666,7 @@ void FurnaceGUI::drawInsEdit() {
                 macroList.push_back(FurnaceGUIMacroDesc(_("LFO2 Speed"),&ins->std.ex7Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
                 macroList.push_back(FurnaceGUIMacroDesc(_("LFO2 Shape"),&ins->std.ex8Macro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroLFOWaves));
               }
-              drawMacros(macroList,macroEditStateFM);
+              drawMacros(macroList,macroEditStateFM,ins);
               ImGui::EndTabItem();
             }
           }
@@ -6786,7 +6787,7 @@ void FurnaceGUI::drawInsEdit() {
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DT2),&ins->std.opMacros[ordi].dt2Macro,0,3,32,uiColors[GUI_COLOR_MACRO_PITCH]));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AM),&ins->std.opMacros[ordi].amMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               }
-              drawMacros(macroList,macroEditStateOP[ordi]);
+              drawMacros(macroList,macroEditStateOP[ordi],ins);
               ImGui::PopID();
               ImGui::EndTabItem();
             }
@@ -8598,7 +8599,7 @@ void FurnaceGUI::drawInsEdit() {
               break;
           }
 
-          drawMacros(macroList,macroEditStateMacros);
+          drawMacros(macroList,macroEditStateMacros,ins);
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_AY) {
@@ -8616,7 +8617,7 @@ void FurnaceGUI::drawInsEdit() {
               // zoom or scroll if we're not in macros tab
               ins->temp.vZoom[DIV_MACRO_EX7]=128;
               ins->temp.vScroll[DIV_MACRO_EX7]=2048-64;
-              drawMacros(macroList,macroEditStateMacros);
+              drawMacros(macroList,macroEditStateMacros,ins);
               ImGui::EndTabItem();
             }
           }
