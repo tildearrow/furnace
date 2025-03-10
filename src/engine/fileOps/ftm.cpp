@@ -358,7 +358,6 @@ void copyMacro(DivInstrument* ins, DivInstrumentMacro* from, int macro_type, int
 
   to->len = from->len;
   to->delay = from->delay;
-  to->lenMemory = from->lenMemory;
   to->mode = from->mode;
   to->rel = from->rel;
   to->speed = from->speed;
@@ -390,7 +389,6 @@ void copyMacro(DivInstrument* ins, DivInstrumentMacro* from, int macro_type, int
 
     wave->len = to->len;
     wave->delay = to->delay;
-    wave->lenMemory = to->lenMemory;
     wave->mode = to->mode;
     wave->rel = to->rel;
     wave->speed = to->speed;

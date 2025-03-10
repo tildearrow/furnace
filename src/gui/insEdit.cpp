@@ -2015,6 +2015,9 @@ void FurnaceGUI::drawFMPreview(const ImVec2& size) {
   ImGui::PlotLines("##DebugFMPreview",asFloat,FM_PREVIEW_SIZE,0,NULL,-1.0,1.0,size);
 }
 
+#define MACRO_VZOOM i.ins->temp.vZoom[i.macro->macroType]
+#define MACRO_VSCROLL i.ins->temp.vScroll[i.macro->macroType]
+
 void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float availableWidth, int index) {
   static float asFloat[256];
   static int asInt[256];
@@ -2041,20 +2044,20 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
     }
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
 
-    if (i.macro->vZoom<1) {
+    if (MACRO_VZOOM<1) {
       if (i.macro->macroType==DIV_MACRO_ARP || i.isArp) {
-        i.macro->vZoom=24;
-        i.macro->vScroll=120-12;
+        MACRO_VZOOM=24;
+        MACRO_VSCROLL=120-12;
       } else if (i.macro->macroType==DIV_MACRO_PITCH || i.isPitch) {
-        i.macro->vZoom=128;
-        i.macro->vScroll=2048-64;
+        MACRO_VZOOM=128;
+        MACRO_VSCROLL=2048-64;
       } else {
-        i.macro->vZoom=i.max-i.min;
-        i.macro->vScroll=0;
+        MACRO_VZOOM=i.max-i.min;
+        MACRO_VSCROLL=0;
       }
     }
-    if (i.macro->vZoom>(i.max-i.min)) {
-      i.macro->vZoom=i.max-i.min;
+    if (MACRO_VZOOM>(i.max-i.min)) {
+      MACRO_VZOOM=i.max-i.min;
     }
 
     memset(doHighlight,0,256*sizeof(bool));
@@ -2082,7 +2085,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
     if (i.isBitfield) {
       PlotBitfield("##IMacro",asInt,totalFit,0,i.bitfieldBits,i.max,ImVec2(availableWidth,(i.macro->open&1)?(i.height*dpiScale):(32.0f*dpiScale)),sizeof(float),doHighlight,uiColors[GUI_COLOR_MACRO_HIGHLIGHT],i.color,i.hoverFunc,i.hoverFuncUser);
     } else {
-      PlotCustom("##IMacro",asFloat,totalFit,macroDragScroll,NULL,i.min+i.macro->vScroll,i.min+i.macro->vScroll+i.macro->vZoom,ImVec2(availableWidth,(i.macro->open&1)?(i.height*dpiScale):(32.0f*dpiScale)),sizeof(float),i.color,i.macro->len-macroDragScroll,i.hoverFunc,i.hoverFuncUser,i.blockMode,(i.macro->open&1)?genericGuide:NULL,doHighlight,uiColors[GUI_COLOR_MACRO_HIGHLIGHT]);
+      PlotCustom("##IMacro",asFloat,totalFit,macroDragScroll,NULL,i.min+MACRO_VSCROLL,i.min+MACRO_VSCROLL+MACRO_VZOOM,ImVec2(availableWidth,(i.macro->open&1)?(i.height*dpiScale):(32.0f*dpiScale)),sizeof(float),i.color,i.macro->len-macroDragScroll,i.hoverFunc,i.hoverFuncUser,i.blockMode,(i.macro->open&1)?genericGuide:NULL,doHighlight,uiColors[GUI_COLOR_MACRO_HIGHLIGHT]);
     }
     if ((i.macro->open&1) && (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))) {
       ImGui::InhibitInertialScroll();
@@ -2092,8 +2095,8 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         macroDragMin=i.min;
         macroDragMax=i.max;
       } else {
-        macroDragMin=i.min+i.macro->vScroll;
-        macroDragMax=i.min+i.macro->vScroll+i.macro->vZoom;
+        macroDragMin=i.min+MACRO_VSCROLL;
+        macroDragMax=i.min+MACRO_VSCROLL+MACRO_VZOOM;
       }
       macroDragBitMode=i.isBitfield;
       macroDragInitialValueSet=false;
@@ -2113,11 +2116,11 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
       if (ImGui::IsItemHovered()) {
         if (ctrlWheeling) {
           if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) {
-            i.macro->vZoom+=wheelY*(1+(i.macro->vZoom>>4));
-            if (i.macro->vZoom<1) i.macro->vZoom=1;
-            if (i.macro->vZoom>(i.max-i.min)) i.macro->vZoom=i.max-i.min;
-            if ((i.macro->vScroll+i.macro->vZoom)>(i.max-i.min)) {
-              i.macro->vScroll=(i.max-i.min)-i.macro->vZoom;
+            MACRO_VZOOM+=wheelY*(1+(MACRO_VZOOM>>4));
+            if (MACRO_VZOOM<1) MACRO_VZOOM=1;
+            if (MACRO_VZOOM>(i.max-i.min)) MACRO_VZOOM=i.max-i.min;
+            if ((MACRO_VSCROLL+MACRO_VZOOM)>(i.max-i.min)) {
+              MACRO_VSCROLL=(i.max-i.min)-MACRO_VZOOM;
             }
           } else if (settings.autoMacroStepSize==0) {
             macroPointSize+=wheelY;
@@ -2125,9 +2128,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
             if (macroPointSize>256) macroPointSize=256;
           }
         } else if ((ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) && wheelY!=0) {
-          i.macro->vScroll+=wheelY*(1+(i.macro->vZoom>>4));
-          if (i.macro->vScroll<0) i.macro->vScroll=0;
-          if (i.macro->vScroll>((i.max-i.min)-i.macro->vZoom)) i.macro->vScroll=(i.max-i.min)-i.macro->vZoom;
+          MACRO_VSCROLL+=wheelY*(1+(MACRO_VZOOM>>4));
+          if (MACRO_VSCROLL<0) MACRO_VSCROLL=0;
+          if (MACRO_VSCROLL>((i.max-i.min)-MACRO_VZOOM)) MACRO_VSCROLL=(i.max-i.min)-MACRO_VZOOM;
         }
       }
 
@@ -2135,18 +2138,18 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
       if (!i.isBitfield) {
         if (settings.oldMacroVSlider) {
           ImGui::SameLine(0.0f);
-          if (ImGui::VSliderInt("##IMacroVScroll",ImVec2(20.0f*dpiScale,i.height*dpiScale),&i.macro->vScroll,0,(i.max-i.min)-i.macro->vZoom,"",ImGuiSliderFlags_NoInput)) {
-            if (i.macro->vScroll<0) i.macro->vScroll=0;
-            if (i.macro->vScroll>((i.max-i.min)-i.macro->vZoom)) i.macro->vScroll=(i.max-i.min)-i.macro->vZoom;
+          if (ImGui::VSliderInt("##IMacroVScroll",ImVec2(20.0f*dpiScale,i.height*dpiScale),&MACRO_VSCROLL,0,(i.max-i.min)-MACRO_VZOOM,"",ImGuiSliderFlags_NoInput)) {
+            if (MACRO_VSCROLL<0) MACRO_VSCROLL=0;
+            if (MACRO_VSCROLL>((i.max-i.min)-MACRO_VZOOM)) MACRO_VSCROLL=(i.max-i.min)-MACRO_VZOOM;
           }
           if (ImGui::IsItemHovered() && ctrlWheeling) {
-            i.macro->vScroll+=wheelY*(1+(i.macro->vZoom>>4));
-            if (i.macro->vScroll<0) i.macro->vScroll=0;
-            if (i.macro->vScroll>((i.max-i.min)-i.macro->vZoom)) i.macro->vScroll=(i.max-i.min)-i.macro->vZoom;
+            MACRO_VSCROLL+=wheelY*(1+(MACRO_VZOOM>>4));
+            if (MACRO_VSCROLL<0) MACRO_VSCROLL=0;
+            if (MACRO_VSCROLL>((i.max-i.min)-MACRO_VZOOM)) MACRO_VSCROLL=(i.max-i.min)-MACRO_VZOOM;
           }
         } else {
-          ImS64 scrollV=(i.max-i.min-i.macro->vZoom)-i.macro->vScroll;
-          ImS64 availV=i.macro->vZoom;
+          ImS64 scrollV=(i.max-i.min-MACRO_VZOOM)-MACRO_VSCROLL;
+          ImS64 availV=MACRO_VZOOM;
           ImS64 contentsV=(i.max-i.min);
 
           ImGui::SameLine(0.0f);
@@ -2156,15 +2159,15 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           scrollbarPos.Max.y+=i.height*dpiScale;
           ImGui::Dummy(ImVec2(ImGui::GetStyle().ScrollbarSize,i.height*dpiScale));
           if (ImGui::IsItemHovered() && ctrlWheeling) {
-            i.macro->vScroll+=wheelY*(1+(i.macro->vZoom>>4));
-            if (i.macro->vScroll<0) i.macro->vScroll=0;
-            if (i.macro->vScroll>((i.max-i.min)-i.macro->vZoom)) i.macro->vScroll=(i.max-i.min)-i.macro->vZoom;
+            MACRO_VSCROLL+=wheelY*(1+(MACRO_VZOOM>>4));
+            if (MACRO_VSCROLL<0) MACRO_VSCROLL=0;
+            if (MACRO_VSCROLL>((i.max-i.min)-MACRO_VZOOM)) MACRO_VSCROLL=(i.max-i.min)-MACRO_VZOOM;
           }
 
           ImGuiID scrollbarID=ImGui::GetID("##IMacroVScroll");
           ImGui::KeepAliveID(scrollbarID);
           if (ImGui::ScrollbarEx(scrollbarPos,scrollbarID,ImGuiAxis_Y,&scrollV,availV,contentsV,0)) {
-            i.macro->vScroll=(i.max-i.min-i.macro->vZoom)-scrollV;
+            MACRO_VSCROLL=(i.max-i.min-MACRO_VZOOM)-scrollV;
           }
         }
       }
@@ -2411,14 +2414,14 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
       /* swap memory */ \
       /* this way the macro isn't corrupted if the user decides to go */ \
       /* back to sequence mode */ \
-      i.macro->len^=i.macro->lenMemory; \
-      i.macro->lenMemory^=i.macro->len; \
-      i.macro->len^=i.macro->lenMemory; \
+      i.macro->len^=i.ins->temp.lenMemory[i.macro->macroType]; \
+      i.ins->temp.lenMemory[i.macro->macroType]^=i.macro->len; \
+      i.macro->len^=i.ins->temp.lenMemory[i.macro->macroType]; \
 \
       for (int j=0; j<16; j++) { \
-        i.macro->val[j]^=i.macro->typeMemory[j]; \
-        i.macro->typeMemory[j]^=i.macro->val[j]; \
-        i.macro->val[j]^=i.macro->typeMemory[j]; \
+        i.macro->val[j]^=i.ins->temp.typeMemory[i.macro->macroType][j]; \
+        i.ins->temp.typeMemory[i.macro->macroType][j]^=i.macro->val[j]; \
+        i.macro->val[j]^=i.ins->temp.typeMemory[i.macro->macroType][j]; \
       } \
 \
       /* if ADSR/LFO, populate min/max */ \
@@ -4525,8 +4528,8 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 if (ImGui::Checkbox(_("Pitch control"),&susOn)) { PARAMETER
                   op.sus=susOn;
                   // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
-                  ins->std.opMacros[i].ssgMacro.vZoom=-1;
-                  ins->std.opMacros[i].susMacro.vZoom=-1;
+                  ins->temp.vZoom[DIV_MACRO_OP_SSG+(i<<5)]=-1;
+                  ins->temp.vZoom[DIV_MACRO_OP_SUS+(i<<5)]=-1;
                 }
                 popWarningColor();
                 if (ImGui::IsItemHovered()) {
@@ -4639,8 +4642,8 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             if (ImGui::Checkbox(ESFM_NAME(ESFM_FIXED),&fixedOn)) { PARAMETER
               opE.fixed=fixedOn;
               // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
-              ins->std.opMacros[i].ssgMacro.vZoom=-1;
-              ins->std.opMacros[i].dtMacro.vZoom=-1;
+              ins->temp.vZoom[DIV_MACRO_OP_SSG+(i<<5)]=-1;
+              ins->temp.vZoom[DIV_MACRO_OP_DT+(i<<5)]=-1;
             }
             if (ins->type==DIV_INS_ESFM) {
               if (fixedOn) {
@@ -5301,8 +5304,8 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                   if (ImGui::Checkbox(_("Pitch control"),&susOn)) { PARAMETER
                     op.sus=susOn;
                     // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
-                    ins->std.opMacros[i].ssgMacro.vZoom=-1;
-                    ins->std.opMacros[i].susMacro.vZoom=-1;
+                    ins->temp.vZoom[DIV_MACRO_OP_SSG+(i<<5)]=-1;
+                    ins->temp.vZoom[DIV_MACRO_OP_SUS+(i<<5)]=-1;
                   }
                   popWarningColor();
                   if (ImGui::IsItemHovered()) {
@@ -5403,8 +5406,8 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 if (ImGui::Checkbox(ESFM_NAME(ESFM_FIXED),&fixedOn)) { PARAMETER
                   opE.fixed=fixedOn;
                   // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
-                  ins->std.opMacros[i].ssgMacro.vZoom=-1;
-                  ins->std.opMacros[i].dtMacro.vZoom=-1;
+                  ins->temp.vZoom[DIV_MACRO_OP_SSG+(i<<5)]=-1;
+                  ins->temp.vZoom[DIV_MACRO_OP_DT+(i<<5)]=-1;
                 }
 
                 ImGui::EndTable();
@@ -5624,8 +5627,8 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               if (ImGui::Checkbox(_("Pitch control"),&susOn)) { PARAMETER
                 op.sus=susOn;
                 // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
-                ins->std.opMacros[i].ssgMacro.vZoom=-1;
-                ins->std.opMacros[i].susMacro.vZoom=-1;
+                ins->temp.vZoom[DIV_MACRO_OP_SSG+(i<<5)]=-1;
+                ins->temp.vZoom[DIV_MACRO_OP_SUS+(i<<5)]=-1;
               }
               popWarningColor();
               if (ImGui::IsItemHovered()) {
@@ -5964,8 +5967,8 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             if (ImGui::Checkbox(ESFM_NAME(ESFM_FIXED),&fixedOn)) { PARAMETER
               opE.fixed=fixedOn;
               // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
-              ins->std.opMacros[i].ssgMacro.vZoom=-1;
-              ins->std.opMacros[i].dtMacro.vZoom=-1;
+              ins->temp.vZoom[DIV_MACRO_OP_SSG+(i<<5)]=-1;
+              ins->temp.vZoom[DIV_MACRO_OP_DT+(i<<5)]=-1;
             }
           }
 
@@ -6041,7 +6044,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins) {
 
       if (ImGui::Checkbox(_("Wavetable channel"),&ins->sid3.doWavetable)) {
         PARAMETER;
-        ins->std.waveMacro.vZoom=-1;
+        ins->temp.vZoom[DIV_MACRO_WAVE]=-1;
         for (int i=0; i<256; i++) {
           ins->std.waveMacro.val[i]=0;
         }
@@ -6133,7 +6136,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins) {
         ins->sid3.resetDuty=resetDuty;
       }
       if (ImGui::Checkbox(_("Absolute Duty Macro"),&ins->sid3.dutyIsAbs)) {
-        ins->std.dutyMacro.vZoom=-1;
+        ins->temp.vZoom[DIV_MACRO_DUTY]=-1;
         PARAMETER;
       }
     }
@@ -6257,7 +6260,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins) {
         bool absCutoff=filt->absoluteCutoff;
         if (ImGui::Checkbox(buffer,&absCutoff)) { PARAMETER
           filt->absoluteCutoff=!filt->absoluteCutoff;
-          ins->std.opMacros[i].d2rMacro.vZoom=-1;
+          ins->temp.vZoom[DIV_MACRO_OP_D2R+(i<<5)]=-1;
         }
 
         snprintf(buffer,100,_("Change cutoff with pitch##bindcutoff%d"),i+1);
@@ -6597,46 +6600,7 @@ void FurnaceGUI::drawInsEdit() {
               ins->type=i;
 
               // reset macro zoom
-              ins->std.volMacro.vZoom=-1;
-              ins->std.dutyMacro.vZoom=-1;
-              ins->std.waveMacro.vZoom=-1;
-              ins->std.ex1Macro.vZoom=-1;
-              ins->std.ex2Macro.vZoom=-1;
-              ins->std.ex3Macro.vZoom=-1;
-              ins->std.ex4Macro.vZoom=-1;
-              ins->std.ex5Macro.vZoom=-1;
-              ins->std.ex6Macro.vZoom=-1;
-              ins->std.ex7Macro.vZoom=-1;
-              ins->std.ex8Macro.vZoom=-1;
-              ins->std.panLMacro.vZoom=-1;
-              ins->std.panRMacro.vZoom=-1;
-              ins->std.phaseResetMacro.vZoom=-1;
-              ins->std.algMacro.vZoom=-1;
-              ins->std.fbMacro.vZoom=-1;
-              ins->std.fmsMacro.vZoom=-1;
-              ins->std.amsMacro.vZoom=-1;
-              for (int j=0; j<4; j++) {
-                ins->std.opMacros[j].amMacro.vZoom=-1;
-                ins->std.opMacros[j].arMacro.vZoom=-1;
-                ins->std.opMacros[j].drMacro.vZoom=-1;
-                ins->std.opMacros[j].multMacro.vZoom=-1;
-                ins->std.opMacros[j].rrMacro.vZoom=-1;
-                ins->std.opMacros[j].slMacro.vZoom=-1;
-                ins->std.opMacros[j].tlMacro.vZoom=-1;
-                ins->std.opMacros[j].dt2Macro.vZoom=-1;
-                ins->std.opMacros[j].rsMacro.vZoom=-1;
-                ins->std.opMacros[j].dtMacro.vZoom=-1;
-                ins->std.opMacros[j].d2rMacro.vZoom=-1;
-                ins->std.opMacros[j].ssgMacro.vZoom=-1;
-                ins->std.opMacros[j].damMacro.vZoom=-1;
-                ins->std.opMacros[j].dvbMacro.vZoom=-1;
-                ins->std.opMacros[j].egtMacro.vZoom=-1;
-                ins->std.opMacros[j].kslMacro.vZoom=-1;
-                ins->std.opMacros[j].susMacro.vZoom=-1;
-                ins->std.opMacros[j].vibMacro.vZoom=-1;
-                ins->std.opMacros[j].wsMacro.vZoom=-1;
-                ins->std.opMacros[j].ksrMacro.vZoom=-1;
-              }
+              memset(ins->temp.vZoom,-1,sizeof(ins->temp.vZoom));
             }
           }
           ImGui::EndCombo();
@@ -7212,11 +7176,11 @@ void FurnaceGUI::drawInsEdit() {
           }
 
           if (ImGui::Checkbox(_("Absolute Cutoff Macro"),&ins->c64.filterIsAbs)) {
-            ins->std.algMacro.vZoom=-1;
+            ins->temp.vZoom[DIV_MACRO_ALG]=-1;
             PARAMETER;
           }
           if (ImGui::Checkbox(_("Absolute Duty Macro"),&ins->c64.dutyIsAbs)) {
-            ins->std.dutyMacro.vZoom=-1;
+            ins->temp.vZoom[DIV_MACRO_DUTY]=-1;
             PARAMETER;
           }
 
@@ -8650,8 +8614,8 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc(_("PWM Boundary"),&ins->std.amsMacro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
               // workaround, because the gui will not set
               // zoom or scroll if we're not in macros tab
-              ins->std.ex7Macro.vZoom=128;
-              ins->std.ex7Macro.vScroll=2048-64;
+              ins->temp.vZoom[DIV_MACRO_EX7]=128;
+              ins->temp.vScroll[DIV_MACRO_EX7]=2048-64;
               drawMacros(macroList,macroEditStateMacros);
               ImGui::EndTabItem();
             }
