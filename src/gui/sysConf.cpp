@@ -2656,7 +2656,19 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
-    case DIV_SYSTEM_SWAN:
+    case DIV_SYSTEM_SWAN: {
+      bool stereo=flags.getBool("stereo",true);
+      if (ImGui::Checkbox(_("Headphone output##_SWAN_STEREO"),&stereo)) {
+        altered=true;
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("stereo",stereo);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_PET:
     case DIV_SYSTEM_GA20:
