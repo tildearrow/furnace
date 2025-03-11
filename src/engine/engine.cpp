@@ -1740,6 +1740,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
     subticks=1;
     prevOrder=curOrder;
     prevRow=curRow;
+    prevSpeed=nextSpeed;
     tempoAccum=0;
   }
   skipping=false;
@@ -2398,7 +2399,7 @@ void DivEngine::getPlayPosTick(int& order, int& row, int& tick, int& speed) {
   order=prevOrder;
   row=prevRow;
   tick=ticks;
-  speed=nextSpeed;
+  speed=prevSpeed;
   playPosLock.unlock();
 }
 

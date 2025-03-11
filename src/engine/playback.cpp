@@ -1438,6 +1438,7 @@ void DivEngine::nextRow() {
     memset(walked,0,8192);
   }
 
+  prevSpeed=nextSpeed;
   if (song.brokenSpeedSel) {
     unsigned char speed2=(speeds.len>=2)?speeds.val[1]:speeds.val[0];
     unsigned char speed1=speeds.val[0];

@@ -475,7 +475,7 @@ class DivEngine {
   int midiOutTimeRate;
   float midiVolExp;
   int softLockCount;
-  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, curExportChan, nextSpeed, elapsedBars, elapsedBeats, curSpeed;
+  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, curExportChan, nextSpeed, prevSpeed, elapsedBars, elapsedBeats, curSpeed;
   size_t curSubSongIndex;
   size_t bufferPos;
   double divider;
@@ -1439,6 +1439,7 @@ class DivEngine {
       exportLoopCount(0),
       curExportChan(0),
       nextSpeed(3),
+      prevSpeed(6),
       elapsedBars(0),
       elapsedBeats(0),
       curSpeed(0),
