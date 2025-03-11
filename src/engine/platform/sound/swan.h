@@ -83,7 +83,15 @@ extern "C" {
 void swan_sound_init(swan_sound_t *snd, bool headphones);
 uint8_t swan_sound_in(swan_sound_t *snd, uint16_t port);
 void swan_sound_out(swan_sound_t *snd, uint16_t port, uint8_t value);
-void swan_sound_tick(swan_sound_t *snd);
+
+// The audio chip is typically clocked at 3072000 Hz, with a sample
+// generated once every 128 cycles, for an audio frequency of 24000 Hz.
+// To emit a sample in such a configuration, one should run:
+//
+// swan_sound_tick(&snd, 128);
+// swan_sound_sample(&snd);
+void swan_sound_tick(swan_sound_t *snd, uint32_t cycles);
+void swan_sound_sample(swan_sound_t *snd);
 
 #ifdef __cplusplus
 }

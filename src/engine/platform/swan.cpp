@@ -96,7 +96,8 @@ void DivPlatformSwan::acquire(short** buf, size_t len) {
       writes.pop();
     }
 
-    swan_sound_tick(&ws);
+    swan_sound_tick(&ws, chipClock / rate);
+    swan_sound_sample(&ws);
 
     // Update individual channel buffers
     for (int i = 0; i < 4; i++) {
