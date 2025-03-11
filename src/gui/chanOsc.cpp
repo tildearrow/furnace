@@ -717,7 +717,11 @@ void FurnaceGUI::drawChanOsc() {
                       }
                       if (j<0) continue;
                       float yOut=y-fft->dcOff;
-                      fft->dcOff+=(y-fft->dcOff)*0.001;
+                      if (!settings.audioHiPass) {
+                        fft->dcOff=0;
+                      } else {
+                        fft->dcOff+=(y-fft->dcOff)*0.001;
+                      }
                       if (yOut<-0.5f) yOut=-0.5f;
                       if (yOut>0.5f) yOut=0.5f;
                       yOut*=chanOscAmplify*2.0f;
@@ -738,7 +742,11 @@ void FurnaceGUI::drawChanOsc() {
                       }
                       if (kTex<0) continue;
                       float yOut=y-fft->dcOff;
-                      fft->dcOff+=(y-fft->dcOff)*0.001;
+                      if (!settings.audioHiPass) {
+                        fft->dcOff=0;
+                      } else {
+                        fft->dcOff+=(y-fft->dcOff)*0.001;
+                      }
                       if (yOut<-0.5f) yOut=-0.5f;
                       if (yOut>0.5f) yOut=0.5f;
                       yOut*=chanOscAmplify*2.0f;

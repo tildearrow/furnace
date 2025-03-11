@@ -157,33 +157,25 @@ some people have provided packages for Unix/Unix-like distributions. here's a li
 - **Void Linux**: [furnace](https://github.com/void-linux/void-packages/tree/master/srcpkgs/furnace) is available in the official repository.
 
 ---
-# developer info
+# unstable builds
 
 [![Build furnace](https://github.com/tildearrow/furnace/actions/workflows/build.yml/badge.svg)](https://github.com/tildearrow/furnace/actions/workflows/build.yml)
 
 if you can't download these artifacts (because GitHub requires you to be logged in), [go here](https://nightly.link/tildearrow/furnace/workflows/build/master) instead.
 
-**NOTE: do not download the project's source as a .zip or .tar.gz as these do not include the project's submodules which are necessary to proceed with building. please instead use Git as shown below.**
+# developer info
+
+the following section will teach you how to build Furnace from its source code.
 
 ## dependencies
+
+these are the things you'll need to build Furnace:
 
 - CMake
 - Git (for cloning the repository)
 - a C/C++ compiler (e.g. Visual Studio or MinGW on Windows, Xcode (the command-line tools are enough) on macOS or GCC on Linux)
 
-if building under Windows or macOS, no additional dependencies are required.
-otherwise, you may also need the following:
-
-- libpulse
-- libx11
-- libasound
-- libGL
-- JACK (optional, macOS/Linux only)
-- any other libraries which may be used by SDL
-
-some Linux distributions (e.g. Ubuntu or openSUSE) will require you to install the `-dev`/`-devel` versions of these.
-
-on Linux, having libintl is recommended for locale support, but if it isn't present, Furnace will use its own implementation.
+read the sections below for information on how to set these up.
 
 ## development environment setup (Windows)
 
@@ -195,9 +187,12 @@ I recommend you to use this because the compiler produces faster builds and it d
 there's some command line-fu in here, so I hope you're prepared.
 
 install it through [MSYS2](https://www.msys2.org/), a Linux-like environment for Windows.
-follow the guide up to step 4.
+follow the guide **up to step 4**. **do NOT start MSYS2 from the installer** as this will start the wrong environment and prevent you from going further.
 
-MSYS2 provides a variety of environments, but we'll work with the MINGW64 one. don't "run MSYS2 now". go to the Start menu and launch MSYS2 with the MINGW64 environment (blue icon).
+MSYS2 provides a variety of environments, but we'll work with the MINGW64 one.<br/>
+these environments can be found in the Start menu, in a folder MSYS2 has created for you.<br/>
+don't "run MSYS2 now". go to the Start menu and launch MSYS2 with the MINGW64 environment (blue icon).<br/>
+**it is extremely important that you use this environment**. the one that MSYS2 starts with by default (UCRT64) is NOT suitable for this task and will NOT work.
 
 we'll install a couple packages, including GCC, CMake, Git and Ninja.
 type the following in the MSYS2 console, and then press Enter.
@@ -209,6 +204,8 @@ pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja mingw-w64-x86_64-gcc git
 when prompted to, type Y and press Enter again.
 
 proceed to the "getting the source" section.
+
+if it says UCRT64 anywhere in the console, YOU ARE IN THE WRONG ENVIRONMENT! if so quit MSYS2 NOW and start the MINGW64 environment.
 
 ### Visual Studio (the real one)
 
@@ -231,6 +228,19 @@ if you would like to, and are able to use the App Store, feel free to get Xcode 
 
 get GCC, Git and CMake through your package manager.
 
+you may also need the following dependencies:
+
+- libpulse
+- libx11
+- libasound
+- libGL
+- JACK (optional)
+- any other libraries which may be used by SDL
+
+some Linux distributions (e.g. Ubuntu or openSUSE) will require you to install the `-dev`/`-devel` versions of these.
+
+having libintl is recommended for locale support, but if it isn't present, Furnace will use its own implementation.
+
 ## getting the source
 
 type the following on a terminal/console: (make sure Git is installed)
@@ -241,6 +251,8 @@ cd furnace
 ```
 
 (the `--recursive` parameter ensures submodules are fetched as well)
+
+**NOTE: do not download the project's source as a .zip or .tar.gz as these do not include the project's submodules which are necessary to proceed with building. please use Git instead as shown in this section.**
 
 ## compilation
 
@@ -364,14 +376,14 @@ this guide may help you in that case.
 
 ### "command not found", "not a valid command", and similar
 
-either you forgot to install something, it's not in your PATH or you are using the wrong environment.
+either you forgot to install something, it's not in your PATH or **you are using the wrong environment**.
 
 #### compiler
 
 if building with the Visual Studio command line tools, make sure you have started the native tools command prompt. [Microsoft has a guide here](https://learn.microsoft.com/en-us/cpp/build/how-to-enable-a-64-bit-visual-cpp-toolset-on-the-command-line?view=msvc-170).
 
 
-if building with MinGW, make sure you have started the MSYS2 MINGW64 environment.
+if building with MinGW, make sure you have started the MSYS2 MINGW64 environment (not the UCRT64 one!).
 
 #### CMake or Git
 

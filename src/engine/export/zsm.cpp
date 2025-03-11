@@ -518,9 +518,6 @@ void DivZSM::flushTicks() {
 
 /// ZSM export
 
-constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
-constexpr int MASTER_CLOCK_MASK=(sizeof(void*)==8)?0xff:0;
-
 void DivExportZSM::run() {
   // settings
   unsigned int zsmrate=conf.getInt("zsmrate",60);
@@ -598,7 +595,6 @@ void DivExportZSM::run() {
     bool done=false;
     bool loopNow=false;
     int loopPos=-1;
-    int fracWait=0; // accumulates fractional ticks
     if (VERA>=0) e->disCont[VERA].dispatch->toggleRegisterDump(true);
     if (YM>=0) {
       e->disCont[YM].dispatch->toggleRegisterDump(true);
@@ -687,10 +683,7 @@ void DivExportZSM::run() {
       }
 
       // write wait
-      int totalWait=e->cycles>>MASTER_CLOCK_PREC;
-      fracWait+=e->cycles&MASTER_CLOCK_MASK;
-      totalWait+=fracWait>>MASTER_CLOCK_PREC;
-      fracWait&=MASTER_CLOCK_MASK;
+      int totalWait=e->cycles;
       if (totalWait>0 && !done) {
         zsm.tick(totalWait);
         //tickCount+=totalWait;

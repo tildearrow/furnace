@@ -936,7 +936,7 @@ void DivPlatformC64::setFlags(const DivConfig& flags) {
 
   // init fake filter table
   // taken from dSID
-  double oscBufRate=(double)rate/16.0;
+  double oscBufRate=(double)rate/((sidCore==0)?16.0:4.0);
   double cutRatio=-2.0*3.14*(sidIs6581?((oscBufRate/44100.0)*(20000.0/256.0)):(12500.0/256.0))/oscBufRate;
 
   for (int i=0; i<2048; i++) {

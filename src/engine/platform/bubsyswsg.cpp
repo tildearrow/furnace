@@ -39,15 +39,25 @@ const char** DivPlatformBubSysWSG::getRegisterSheet() {
   return regCheatSheetBubSysWSG;
 }
 
-void DivPlatformBubSysWSG::acquire(short** buf, size_t len) {
+void DivPlatformBubSysWSG::acquireDirect(blip_buffer_t** bb, size_t len) {
   int chanOut=0;
   for (int i=0; i<2; i++) {
     oscBuf[i]->begin(len);
   }
   for (size_t h=0; h<len; h++) {
+    int advance=len-h;
+    // heuristic
+    for (int i=0; i<2; i++) {
+      const int remain=k005289.m_timer[i].m_counter;
+      if (remain<advance) advance=remain;
+    }
+    if (advance<1) advance=1;
+
     signed int out=0;
     // K005289 part
-    k005289.tick(coreQuality);
+    k005289.tick(advance);
+
+    h+=advance-1;
 
     // Wavetable part
     for (int i=0; i<2; i++) {
@@ -57,21 +67,16 @@ void DivPlatformBubSysWSG::acquire(short** buf, size_t len) {
       } else {
         chanOut=chan[i].waveROM[k005289.addr(i)]*(regPool[2+i]&0xf);
         out+=chanOut;
-        if (writeOscBuf==0) {
-          oscBuf[i]->putSample(h,chanOut<<7);
-        }
+        oscBuf[i]->putSample(h,chanOut<<7);
       }
     }
 
-    if (++writeOscBuf>=8) writeOscBuf=0;
-
     out<<=6; // scale output to 16 bit
 
-    if (out<-32768) out=-32768;
-    if (out>32767) out=32767;
-
-    //printf("out: %d\n",out);
-    buf[0][h]=out;
+    if (out!=lastOut) {
+      blip_add_delta(bb[0],h,out-lastOut);
+      lastOut=out;
+    }
   }
   for (int i=0; i<2; i++) {
     oscBuf[i]->end(len);
@@ -310,6 +315,7 @@ void DivPlatformBubSysWSG::reset() {
     addWrite(0xffffffff,0);
   }
   k005289.reset();
+  lastOut=0;
 }
 
 int DivPlatformBubSysWSG::getOutputCount() {
@@ -317,6 +323,10 @@ int DivPlatformBubSysWSG::getOutputCount() {
 }
 
 bool DivPlatformBubSysWSG::keyOffAffectsArp(int ch) {
+  return true;
+}
+
+bool DivPlatformBubSysWSG::hasAcquireDirect() {
   return true;
 }
 
@@ -338,7 +348,7 @@ void DivPlatformBubSysWSG::notifyInsDeletion(void* ins) {
 void DivPlatformBubSysWSG::setFlags(const DivConfig& flags) {
   chipClock=COLOR_NTSC;
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/coreQuality;
+  rate=chipClock;
   for (int i=0; i<2; i++) {
     oscBuf[i]->setRate(rate);
   }
@@ -350,32 +360,6 @@ void DivPlatformBubSysWSG::poke(unsigned int addr, unsigned short val) {
 
 void DivPlatformBubSysWSG::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
-}
-
-void DivPlatformBubSysWSG::setCoreQuality(unsigned char q) {
-  switch (q) {
-    case 0:
-      coreQuality=64;
-      break;
-    case 1:
-      coreQuality=32;
-      break;
-    case 2:
-      coreQuality=16;
-      break;
-    case 3:
-      coreQuality=8;
-      break;
-    case 4:
-      coreQuality=4;
-      break;
-    case 5:
-      coreQuality=1;
-      break;
-    default:
-      coreQuality=8;
-      break;
-  }
 }
 
 int DivPlatformBubSysWSG::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
