@@ -106,11 +106,8 @@ void DivPlatformTIA::acquireDirect(blip_buffer_t** bb, size_t len) {
       blip_add_delta(bb[1],h,out[1]-prevSample[1]);
       prevSample[1]=out[1];
     }
-    if (++chanOscCounter>=114) {
-      chanOscCounter=0;
-      oscBuf[0]->putSample(h,tia.myChannelOut[0]);
-      oscBuf[1]->putSample(h,tia.myChannelOut[1]);
-    }
+    oscBuf[0]->putSample(h,tia.myChannelOut[0]); 
+    oscBuf[1]->putSample(h,tia.myChannelOut[1]);
   }
   
   for (int i=0; i<2; i++) {
@@ -524,7 +521,6 @@ int DivPlatformTIA::init(DivEngine* p, int channels, int sugRate, const DivConfi
   dumpWrites=false;
   skipRegisterWrites=false;
   mixingType=0;
-  chanOscCounter=0;
   for (int i=0; i<2; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
