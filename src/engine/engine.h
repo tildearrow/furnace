@@ -965,6 +965,7 @@ class DivEngine {
 
     // synchronous get order/row
     void getPlayPos(int& order, int& row);
+    void getPlayPosTick(int& order, int& row, int& tick, int& speed);
 
     // get beat/bar
     int getElapsedBars();

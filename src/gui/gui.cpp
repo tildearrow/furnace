@@ -1257,10 +1257,23 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
   int ch=cursor.xCoarse;
   int ord=curOrder;
   int y=cursor.y;
+  int tick=0;
+  int speed=0;
 
   if (e->isPlaying()) {
-    e->getPlayPos(ord,y);
+    e->getPlayPosTick(ord,y,tick,speed);
+    if (tick<=(speed/2)) { // round
+      // TODO: detect 0Dxx/0Bxx?
+      if (++y>=e->curSubSong->patLen) {
+        y=0;
+        if (++ord>=e->curSubSong->ordersLen) {
+          ord=0;
+        }
+      }
+    }
   }
+
+  logV("chan %d, %d:%d %d/%d",ch,ord,y,tick,speed);
 
   DivPattern* pat=e->curPat[ch].getPattern(e->curOrders->ord[ch][ord],true);
   bool removeIns=false;

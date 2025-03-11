@@ -2393,6 +2393,15 @@ void DivEngine::getPlayPos(int& order, int& row) {
   playPosLock.unlock();
 }
 
+void DivEngine::getPlayPosTick(int& order, int& row, int& tick, int& speed) {
+  playPosLock.lock();
+  order=prevOrder;
+  row=prevRow;
+  tick=ticks;
+  speed=nextSpeed;
+  playPosLock.unlock();
+}
+
 int DivEngine::getElapsedBars() {
   return elapsedBars;
 }
