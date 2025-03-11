@@ -733,7 +733,7 @@ void FurnaceGUI::drawChanOsc() {
                       fft->oscTex[j]=yOut;
                     }
                   } else {
-                    int k=-2048;
+                    int k=0;
                     for (unsigned short j=fft->needle; j!=fft->needle+displaySize; j++, k++) {
                       const short y_s=buf->data[j];
                       const int kTex=(k*precision)/displaySize;
