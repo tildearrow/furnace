@@ -126,7 +126,7 @@ void swan_sound_out(swan_sound_t *snd, uint16_t port, uint8_t value) {
     }
 }
 
-static void swan_sound_subtick(swan_sound_t *snd, uint32_t cycles) {
+void swan_sound_tick(swan_sound_t *snd, uint32_t cycles) {
     for (int ch = 0; ch < 4; ch++) {
         if (snd->ch_ctrl & (1 << ch)) {
             snd->period_counter[ch] += cycles;
@@ -179,10 +179,7 @@ static void voice_render_channel2(swan_sound_t *snd) {
 }
 
 // See https://ws.nesdev.org/wiki/Sound
-void swan_sound_tick(swan_sound_t *snd) {
-    // Update counters
-    swan_sound_subtick(snd, 128);
-
+void swan_sound_sample(swan_sound_t *snd) {
     // Calculate synthesizer channels
     if (!(snd->test_flags & SND_TEST_HOLD_CH)) {
         for (int i = 0; i < 4; i++) {
