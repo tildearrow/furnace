@@ -24,23 +24,36 @@
 #include "../fileutils.h"
 #include "misc/freetype/imgui_freetype.h"
 
-void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat) {
+bool FurnaceGUI::settingsCategoryAnyFound(SettingsCategory* cat) {
+  bool found=settings.filter.PassFilter(_(cat->name));
+  if (found) return true;
+  for (SettingsCategory i:cat->children) {
+    found|=settingsCategoryAnyFound(&i);
+    if (found) return true;
+  }
+  return false;
+}
+
+void FurnaceGUI::drawSettingsCategory(SettingsCategory* cat, bool found) {
   bool filterActive=settings.filter.IsActive();
   if (cat->children.size()>0) {
+    // dropdown thing
     ImGuiTreeNodeFlags f=ImGuiTreeNodeFlags_SpanFullWidth|ImGuiTreeNodeFlags_OpenOnArrow|ImGuiTreeNodeFlags_OpenOnDoubleClick;
     if (settings.activeCategory.id==cat->id) f|=ImGuiTreeNodeFlags_Selected;
+    if (filterActive && found) f|=ImGuiTreeNodeFlags_DefaultOpen;
+
     ImGui::BeginDisabled(filterActive && !settings.filter.PassFilter(_(cat->name)));
-    if (filterActive) f|=ImGuiTreeNodeFlags_DefaultOpen;
     cat->expandChild=ImGui::TreeNodeEx(_(cat->name),f);
-    ImGui::EndDisabled();
     if (ImGui::IsItemClicked()) {
       settings.activeCategory=*cat;
     }
+    ImGui::EndDisabled();
+    // the children
     float indentWidth=ImGui::GetStyle().IndentSpacing;
     if (!cat->expandChild) indentWidth*=2.0f;
-    if (cat->expandChild || filterActive) {
+    if (cat->expandChild || (filterActive && found)) {
       ImGui::Indent(indentWidth);
-      for (SettingsCategory child:cat->children) drawSettingsCategory(&child);
+      for (SettingsCategory child:cat->children) drawSettingsCategory(&child, found);
       ImGui::Unindent(indentWidth);
       if (cat->expandChild) ImGui::TreePop();
     }
@@ -82,6 +95,10 @@ void FurnaceGUI::drawSettingsItems() {
     for (SettingsCategory cat:settings.categories) searchDrawSettingItems(&cat);
   } else {
     if (settings.activeCategory.id==0) return;
+    if (settings.activeCategory.settings.size()==0) {
+      ImGui::Text(_("no settings here..."));
+      return;
+    }
     for (Setting s:settings.activeCategory.settings) s.drawSetting();
   }
 }
@@ -300,22 +317,33 @@ void FurnaceGUI::drawSettings() {
     }
 
     bool vertical=ImGui::GetWindowSize().y>ImGui::GetWindowSize().x;
+    const float windowPaddingY=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y;
     ImVec2 settingsViewSize=ImGui::GetContentRegionAvail();
-    settingsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y;
+    settingsViewSize.y-=windowPaddingY;
     if (ImGui::BeginTable("set3", vertical?1:2,ImGuiTableFlags_Resizable|ImGuiTableFlags_BordersOuterH,settingsViewSize)) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
+      // search bar
       if (settings.filter.Draw(_("Search"))) settings.activeCategory=SettingsCategory();
+      // categories list
       ImVec2 settingsCatViewSize=ImGui::GetContentRegionAvail();
-      settingsCatViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y;
+      settingsCatViewSize.y-=windowPaddingY;
       if (ImGui::BeginChild("SettingCategories",vertical?settingsCatViewSize/ImVec2(1.0f,3.0f):settingsCatViewSize,false)) {
-        for (SettingsCategory cat:settings.categories) drawSettingsCategory(&cat);
+        for (SettingsCategory cat:settings.categories) {
+          bool found=true;
+          if (settings.filter.IsActive()) {
+            found=settingsCategoryAnyFound(&cat);
+          }
+          drawSettingsCategory(&cat,found);
+        }
       }
       ImGui::EndChild();
+
       if (vertical) ImGui::TableNextRow();
       ImGui::TableNextColumn();
+      // settings items
       ImVec2 settingsItemsViewSize=ImGui::GetContentRegionAvail();
-      settingsItemsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y;
+      settingsItemsViewSize.y-=windowPaddingY;
       if (vertical) ImGui::Separator();
       if (ImGui::BeginChild("SettingsItems",settingsItemsViewSize)) {
         drawSettingsItems();
@@ -324,6 +352,7 @@ void FurnaceGUI::drawSettings() {
         }
       }
       ImGui::EndChild();
+
       ImGui::EndTable();
     }
     if (ImGui::Button(_("OK##SettingsOK"))) {

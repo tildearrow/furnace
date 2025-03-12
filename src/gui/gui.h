@@ -2986,7 +2986,8 @@ class FurnaceGUI {
   void writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups=GUI_SETTINGS_ALL);
 
   void setupSettingsCategories();
-  void drawSettingsCategory(SettingsCategory* cat);
+  bool settingsCategoryAnyFound(SettingsCategory* cat);
+  void drawSettingsCategory(SettingsCategory* cat, bool found);
   void searchDrawSettingItems(SettingsCategory* cat);
   void drawSettingsItems();
   // settings helper functions (made part of FurnaceGUI to be able to pass to lambdas)

@@ -19,7 +19,6 @@
 
 #include "gui.h"
 #include "settings.h"
-#include <imgui.h>
 
 // name, locale, restart message
 const char* locales[][3]={
