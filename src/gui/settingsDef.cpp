@@ -1546,17 +1546,10 @@ void FurnaceGUI::setupSettingsCategories() {
         EMU_CORES("AY-3-8910/SSG", settings.ayCore, settings.ayCoreRender, ayCores),
       }),
       SettingsCategory(_N("Quality"),{},{
-        CORE_QUALITY("Bubble System WSG",bubsysQuality,bubsysQualityRender),
         CORE_QUALITY("Game Boy",gbQuality,gbQualityRender),
-        CORE_QUALITY("Nintendo DS",ndsQuality,ndsQualityRender),
-        CORE_QUALITY("PC Engine",pceQuality,pceQualityRender),
         CORE_QUALITY("PowerNoise",pnQuality,pnQualityRender),
         CORE_QUALITY("SAA1099",saaQuality,saaQualityRender),
-        CORE_QUALITY("SCC",sccQuality,sccQualityRender),
         CORE_QUALITY("SID (dSID)",dsidQuality,dsidQualityRender),
-        CORE_QUALITY("SM8521",smQuality,smQualityRender),
-        CORE_QUALITY("Virtual Boy",vbQuality,vbQualityRender),
-        CORE_QUALITY("WonderSwan",swanQuality,swanQualityRender),
       }),
       SettingsCategory(_N("Other"),{},{
         SETTING(_N("PC Speaker strategy"),{
