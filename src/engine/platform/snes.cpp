@@ -71,6 +71,9 @@ const char** DivPlatformSNES::getRegisterSheet() {
 void DivPlatformSNES::acquire(short** buf, size_t len) {
   short out[2];
   short chOut[16];
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t h=0; h<len; h++) {
     if (--delay<=0) {
       delay=0;
@@ -94,8 +97,11 @@ void DivPlatformSNES::acquire(short** buf, size_t len) {
       next=(next*254)/MAX(1,globalVolL+globalVolR);
       if (next<-32768) next=-32768;
       if (next>32767) next=32767;
-      oscBuf[i]->data[oscBuf[i]->needle++]=next>>1;
+      oscBuf[i]->putSample(h,next>>1);
     }
+  }
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -208,7 +214,7 @@ void DivPlatformSNES::tick(bool sysTick) {
     // TODO: if wavetable length is higher than 32, we lose precision!
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivSample* s=parent->getSample(chan[i].sample);
-      double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
+      double off=(s->centerRate>=1)?((double)s->centerRate/parent->getCenterRate()):1.0;
       if (chan[i].useWave) off=(double)chan[i].wtLen/32.0;
       chan[i].freq=(unsigned int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE));
       if (chan[i].freq>16383) chan[i].freq=16383;
@@ -383,6 +389,11 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       }
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
+      // this is the fix. it needs testing.
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+        if (chan[c.chan].outVol!=chan[c.chan].vol) chan[c.chan].shallWriteVol=true;
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       chan[c.chan].insChanged=false;
       break;
     }
@@ -1053,7 +1064,7 @@ int DivPlatformSNES::init(DivEngine* p, int channels, int sugRate, const DivConf
   rate=chipClock/32;
   for (int i=0; i<8; i++) {
     oscBuf[i]=new DivDispatchOscBuffer;
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
     isMuted[i]=false;
   }
   setFlags(flags);

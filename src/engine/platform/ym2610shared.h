@@ -101,7 +101,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     }
     double NOTE_ADPCMB(int note) {
       if (chan[adpcmBChanOffs].sample>=0 && chan[adpcmBChanOffs].sample<parent->song.sampleLen) {
-        double off=65535.0*(double)(parent->getSample(chan[adpcmBChanOffs].sample)->centerRate)/8363.0;
+        double off=65535.0*(double)(parent->getSample(chan[adpcmBChanOffs].sample)->centerRate)/parent->getCenterRate();
         return parent->calcBaseFreq((double)chipClock/144,off,note,false);
       }
       return 0;
@@ -323,7 +323,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
         rate=fm->sample_rate(chipClock);
       }
       for (int i=0; i<17; i++) {
-        oscBuf[i]->rate=rate;
+        oscBuf[i]->setRate(rate);
       }
     }
 

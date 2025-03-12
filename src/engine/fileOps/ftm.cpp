@@ -358,7 +358,6 @@ void copyMacro(DivInstrument* ins, DivInstrumentMacro* from, int macro_type, int
 
   to->len = from->len;
   to->delay = from->delay;
-  to->lenMemory = from->lenMemory;
   to->mode = from->mode;
   to->rel = from->rel;
   to->speed = from->speed;
@@ -390,7 +389,6 @@ void copyMacro(DivInstrument* ins, DivInstrumentMacro* from, int macro_type, int
 
     wave->len = to->len;
     wave->delay = to->delay;
-    wave->lenMemory = to->lenMemory;
     wave->mode = to->mode;
     wave->rel = to->rel;
     wave->speed = to->speed;
@@ -469,6 +467,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
     for (int i = 0; i < 256; i++) {
       for (int j = 0; j < 8; j++) {
         macros[i].push_back(DivInstrumentMacro(DIV_MACRO_VOL));
+        macros[i][j].open|=9;
       }
     }
 
@@ -2744,7 +2743,8 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
       }
     }
 
-    ds.delayBehavior=0;
+    // why? I thought FamiTracker was lax
+    //ds.delayBehavior=0;
 
     ds.version=DIV_VERSION_FTM;
     ds.insLen = ds.ins.size();

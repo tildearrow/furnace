@@ -68,21 +68,25 @@ const char** DivPlatformNDS::getRegisterSheet() {
   return regCheatSheetNDS;
 }
 
-void DivPlatformNDS::acquire(short** buf, size_t len) {
-  for (size_t i=0; i<len; i++) {
-    nds.tick(coreQuality);
-    int lout=((nds.loutput()-0x200)<<5); // scale to 16 bit
-    int rout=((nds.routput()-0x200)<<5); // scale to 16 bit
-    if (lout>32767) lout=32767;
-    if (lout<-32768) lout=-32768;
-    if (rout>32767) rout=32767;
-    if (rout<-32768) rout=-32768;
-    buf[0][i]=lout;
-    buf[1][i]=rout;
+void DivPlatformNDS::acquireDirect(blip_buffer_t** bb, size_t len) {
+  for (int i=0; i<16; i++) {
+    oscBuf[i]->begin(len);
+  }
 
-    for (int i=0; i<16; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(nds.chan_lout(i)+nds.chan_rout(i))>>1;
-    }
+  nds.set_bb(bb[0],bb[1]);
+  nds.set_oscbuf(oscBuf);
+  nds.resetTS(0);
+  nds.tick(len);
+
+  for (int i=0; i<16; i++) {
+    oscBuf[i]->end(len);
+  }
+}
+
+void DivPlatformNDS::postProcess(short* buf, int outIndex, size_t len, int sampleRate) {
+  // this is where we handle global volume. it is faster than doing it on each blip...
+  for (size_t i=0; i<len; i++) {
+    buf[i]=((buf[i]*globalVolume)>>7);
   }
 }
 
@@ -160,7 +164,7 @@ void DivPlatformNDS::tick(bool sysTick) {
           case DIV_SAMPLE_DEPTH_16BIT: ctrl=0x20; break;
           default: break;
         }
-        double off=(s->centerRate>=1)?(8363.0/(double)s->centerRate):1.0;
+        double off=(s->centerRate>=1)?(parent->getCenterRate()/(double)s->centerRate):1.0;
         chan[i].freq=0x10000-(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER));
         if (chan[i].freq<0) chan[i].freq=0;
         if (chan[i].freq>65535) chan[i].freq=65535;
@@ -445,6 +449,8 @@ void DivPlatformNDS::reset() {
   memset(regPool,0,288);
   nds.reset();
   globalVolume=0x7f;
+  lastOut[0]=0;
+  lastOut[1]=0;
   rWrite32(0x100,0x8000|globalVolume); // enable keyon
   rWrite32(0x104,0x200); // initialize bias
   for (int i=0; i<16; i++) {
@@ -456,6 +462,10 @@ void DivPlatformNDS::reset() {
 
 int DivPlatformNDS::getOutputCount() {
   return 2;
+}
+
+bool DivPlatformNDS::hasAcquireDirect() {
+  return true;
 }
 
 void DivPlatformNDS::notifyInsChange(int ins) {
@@ -562,37 +572,11 @@ void DivPlatformNDS::renderSamples(int sysID) {
 void DivPlatformNDS::setFlags(const DivConfig& flags) {
   isDSi=flags.getBool("chipType",0);
   chipClock=33513982;
-  rate=chipClock/2/coreQuality;
+  rate=chipClock/2;
   for (int i=0; i<16; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
   memCompo.capacity=(isDSi?16777216:4194304);
-}
-
-void DivPlatformNDS::setCoreQuality(unsigned char q) {
-  switch (q) {
-    case 0:
-      coreQuality=1024;
-      break;
-    case 1:
-      coreQuality=512;
-      break;
-    case 2:
-      coreQuality=256;
-      break;
-    case 3:
-      coreQuality=128;
-      break;
-    case 4:
-      coreQuality=32;
-      break;
-    case 5:
-      coreQuality=8;
-      break;
-    default:
-      coreQuality=128;
-      break;
-  }
 }
 
 int DivPlatformNDS::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

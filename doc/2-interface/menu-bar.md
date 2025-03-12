@@ -64,6 +64,7 @@ the menu bar allows you to select from five menus: file, edit, settings, window 
 - **randomize**: replaces the selection with random values.
   - does not affect the note column.
   - **Nibble mode**: when enabled, the randomization will be per-nibble (0 to F) rather than per-value (00 to FF).
+  - **Set effect:**: only appears when the selection includes an effect column. if enabled, an input box will appear. instead of being randomized, all effect types in the selection will be changed to the value entered.
 - **invert values**: `00` becomes `FF`, `01` becomes `FE`, `02` becomes `FD` and so on.
 - **flip selection**: flips the selection so it is backwards.
 - **collapse/expand amount**: allows you to specify how much to collapse/expand in the next two menu items.

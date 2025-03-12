@@ -109,6 +109,10 @@ const char** DivPlatformN163::getRegisterSheet() {
 }
 
 void DivPlatformN163::acquire(short** buf, size_t len) {
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->begin(len);
+  }
+  
   for (size_t i=0; i<len; i++) {
     n163.tick();
     int out=(n163.out()<<6)*2; // scale to 16 bit
@@ -116,8 +120,8 @@ void DivPlatformN163::acquire(short** buf, size_t len) {
     if (out<-32768) out=-32768;
     buf[0][i]=out;
 
-    if (n163.voice_cycle()==0x78) for (int i=0; i<8; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=n163.voice_out(i)<<7;
+    if (n163.voice_cycle()==0x78) for (int j=0; j<8; j++) {
+      oscBuf[j]->putSample(i,n163.voice_out(j)<<7);
     }
 
     // command queue
@@ -127,6 +131,10 @@ void DivPlatformN163::acquire(short** buf, size_t len) {
       n163.data_w((n163.data_r()&~w.mask)|(w.val&w.mask));
       writes.pop();
     }
+  }
+
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -595,7 +603,7 @@ void DivPlatformN163::setFlags(const DivConfig& flags) {
   n163.set_multiplex(multiplex);
   rWrite(0x7f,initChanMax<<4);
   for (int i=0; i<8; i++) {
-    oscBuf[i]->rate=rate/(initChanMax+1);
+    oscBuf[i]->setRate(rate);//=rate/(initChanMax+1);
   }
 
   lenCompensate=flags.getBool("lenCompensate",false);

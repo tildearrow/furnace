@@ -94,6 +94,10 @@ const char** DivPlatformSID3::getRegisterSheet() {
 
 void DivPlatformSID3::acquire(short** buf, size_t len) 
 {
+  for (int i=0; i<SID3_NUM_CHANNELS; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t i=0; i<len; i++) 
   {
     if (chan[SID3_NUM_CHANNELS - 1].pcm && chan[SID3_NUM_CHANNELS - 1].dacSample!=-1)
@@ -200,11 +204,15 @@ void DivPlatformSID3::acquire(short** buf, size_t len)
 
       for(int j = 0; j < SID3_NUM_CHANNELS - 1; j++)
       {
-        oscBuf[j]->data[oscBuf[j]->needle++] = sid3->muted[j] ? 0 : (sid3->channel_output[j] / 4);
+        oscBuf[j]->putSample(i,sid3->muted[j] ? 0 : (sid3->channel_output[j] / 4));
       }
 
-      oscBuf[SID3_NUM_CHANNELS - 1]->data[oscBuf[SID3_NUM_CHANNELS - 1]->needle++] = sid3->muted[SID3_NUM_CHANNELS - 1] ? 0 : (sid3->wave_channel_output / 4);
+      oscBuf[SID3_NUM_CHANNELS - 1]->putSample(i,sid3->muted[SID3_NUM_CHANNELS - 1] ? 0 : (sid3->wave_channel_output / 4));
     }
+  }
+
+  for (int i=0; i<SID3_NUM_CHANNELS; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -716,7 +724,7 @@ void DivPlatformSID3::tick(bool sysTick)
           if (s->centerRate<1) {
             off=1.0;
           } else {
-            off=(double)s->centerRate/8363.0;
+            off=(double)s->centerRate/parent->getCenterRate();
           }
         }
         chan[i].dacRate=chan[i].freq*(off / 32.0)*(double)chipClock/1000000.0;
@@ -1351,7 +1359,7 @@ void DivPlatformSID3::setFlags(const DivConfig& flags) {
   rate=chipClock;
   sid3_set_clock_rate(sid3, chipClock);
   for (int i=0; i<SID3_NUM_CHANNELS; i++) {
-    oscBuf[i]->rate=rate/8;
+    oscBuf[i]->setRate(rate);
   }
 }
 

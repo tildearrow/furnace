@@ -34,7 +34,7 @@
     rWrite(a,v); \
   }
 
-#define CHIP_DIVIDER 32
+#define CHIP_DIVIDER 64
 
 const char* regCheatSheetPCE[]={
   "Select", "0",
@@ -55,12 +55,45 @@ const char** DivPlatformPCE::getRegisterSheet() {
 }
 
 void DivPlatformPCE::acquire(short** buf, size_t len) {
-  for (size_t h=0; h<len; h++) {
+}
+
+void DivPlatformPCE::acquireDirect(blip_buffer_t** bb, size_t len) {
+  for (int i=0; i<6; i++) {
+    oscBuf[i]->begin(len);
+    pce->channel[i].oscBuf=oscBuf[i];
+  }
+
+  pce->bb[0]=bb[0];
+  pce->bb[1]=bb[1];
+
+  size_t pos=0;
+  pce->ResetTS(pos);
+
+  while (!writes.empty()) {
+    QueuedWrite w=writes.front();
+    pce->Write(pos,w.addr,w.val);
+    regPool[w.addr&0x0f]=w.val;
+    writes.pop();
+  }
+
+  for (size_t h=0; h<len;) {
+    int advance=len-h;
+    // heuristic
+    int remainTime=0;
+    for (int i=0; i<6; i++) {
+      if (chan[i].pcm && chan[i].dacSample!=-1) {
+        if (chan[i].dacRate<=0) continue;
+        remainTime=(rate-chan[i].dacPeriod+chan[i].dacRate-1)/chan[i].dacRate;
+        if (remainTime<advance) advance=remainTime;
+        if (remainTime<1) advance=1;
+      }
+    }
+
     // PCM part
     for (int i=0; i<6; i++) {
       if (chan[i].pcm && chan[i].dacSample!=-1) {
-        chan[i].dacPeriod+=chan[i].dacRate;
-        if (chan[i].dacPeriod>rate) {
+        chan[i].dacPeriod+=chan[i].dacRate*advance;
+        if (chan[i].dacPeriod>=rate) {
           DivSample* s=parent->getSample(chan[i].dacSample);
           if (s->samples<=0 || chan[i].dacPos>=s->samples) {
             chan[i].dacSample=-1;
@@ -88,32 +121,22 @@ void DivPlatformPCE::acquire(short** buf, size_t len) {
     }
   
     // PCE part
+    // WHAT?????????
+    pos+=advance;
+
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
-      pce->Write(0,w.addr,w.val);
+      pce->Write(pos,w.addr,w.val);
       regPool[w.addr&0x0f]=w.val;
       writes.pop();
     }
-    tempL[0]=0;
-    tempR[0]=0;
-    pce->Update(coreQuality);
-    pce->ResetTS(0);
 
-    for (int i=0; i<6; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(pce->channel[i].blip_prev_samp[0]+pce->channel[i].blip_prev_samp[1],-32768,32767);
-    }
+    h+=advance;
+  }
+  pce->Update(pos);
 
-    tempL[0]=(tempL[0]>>1)+(tempL[0]>>2);
-    tempR[0]=(tempR[0]>>1)+(tempR[0]>>2);
-
-    if (tempL[0]<-32768) tempL[0]=-32768;
-    if (tempL[0]>32767) tempL[0]=32767;
-    if (tempR[0]<-32768) tempR[0]=-32768;
-    if (tempR[0]>32767) tempR[0]=32767;
-    
-    //printf("tempL: %d tempR: %d\n",tempL,tempR);
-    buf[0][h]=tempL[0];
-    buf[1][h]=tempR[0];
+  for (int i=0; i<6; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -145,7 +168,7 @@ void DivPlatformPCE::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
     // anti-click
     if (antiClickEnabled && sysTick && chan[i].freq>0) {
-      chan[i].antiClickPeriodCount+=(chipClock/MAX(parent->getCurHz(),1.0f));
+      chan[i].antiClickPeriodCount+=((chipClock>>1)/MAX(parent->getCurHz(),1.0f));
       chan[i].antiClickWavePos+=chan[i].antiClickPeriodCount/chan[i].freq;
       chan[i].antiClickPeriodCount%=chan[i].freq;
     }
@@ -153,8 +176,8 @@ void DivPlatformPCE::tick(bool sysTick) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].vol&31,MIN(31,chan[i].std.vol.val),31);
-      if (chan[i].furnaceDac && chan[i].pcm) {
-        // ignore for now
+      if (chan[i].pcm) {
+        chWrite(i,0x04,0xc0|chan[i].outVol);
       } else {
         chWrite(i,0x04,0x80|chan[i].outVol);
       }
@@ -233,10 +256,10 @@ void DivPlatformPCE::tick(bool sysTick) {
           if (s->centerRate<1) {
             off=1.0;
           } else {
-            off=8363.0/(double)s->centerRate;
+            off=parent->getCenterRate()/(double)s->centerRate;
           }
         }
-        chan[i].dacRate=((double)chipClock/2)/MAX(1,off*chan[i].freq);
+        chan[i].dacRate=(double)chipClock/(4*MAX(1,off*chan[i].freq));
         if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dacRate);
       }
       if (chan[i].freq<1) chan[i].freq=1;
@@ -282,6 +305,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         chan[c.chan].pcm=false;
         chan[c.chan].sampleNote=DIV_NOTE_NULL;
         chan[c.chan].sampleNoteDelta=0;
+        if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
       }
       if (chan[c.chan].pcm) {
         if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
@@ -400,8 +424,12 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
-          if (chan[c.chan].active && !chan[c.chan].pcm) {
-            chWrite(c.chan,0x04,0x80|chan[c.chan].outVol);
+          if (chan[c.chan].active) {
+            if (chan[c.chan].pcm) {
+              chWrite(c.chan,0x04,0xc0|chan[c.chan].outVol);
+            } else {
+              chWrite(c.chan,0x04,0x80|chan[c.chan].outVol);
+            }
           }
         }
       }
@@ -601,8 +629,6 @@ void DivPlatformPCE::reset() {
   }
   pce->Power(0);
   lastPan=0xff;
-  memset(tempL,0,32*sizeof(int));
-  memset(tempR,0,32*sizeof(int));
   curChan=-1;
   sampleBank=0;
   lfoMode=0;
@@ -626,6 +652,10 @@ bool DivPlatformPCE::keyOffAffectsArp(int ch) {
   return true;
 }
 
+bool DivPlatformPCE::hasAcquireDirect() {
+  return true;
+}
+
 void DivPlatformPCE::notifyWaveChange(int wave) {
   for (int i=0; i<6; i++) {
     if (chan[i].wave==wave) {
@@ -643,22 +673,22 @@ void DivPlatformPCE::notifyInsDeletion(void* ins) {
 
 void DivPlatformPCE::setFlags(const DivConfig& flags) {
   if (flags.getInt("clockSel",0)) { // technically there is no PAL PC Engine but oh well...
-    chipClock=COLOR_PAL*4.0/5.0;
+    chipClock=COLOR_PAL*8.0/5.0;
   } else {
-    chipClock=COLOR_NTSC;
+    chipClock=COLOR_NTSC*2.0;
   }
   CHECK_CUSTOM_CLOCK;
   antiClickEnabled=!flags.getBool("noAntiClick",false);
-  rate=chipClock/(coreQuality>>1);
+  rate=chipClock;
   for (int i=0; i<6; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 
   if (pce!=NULL) {
     delete pce;
     pce=NULL;
   }
-  pce=new PCE_PSG(tempL,tempR,flags.getInt("chipType",0)?PCE_PSG::REVISION_HUC6280A:PCE_PSG::REVISION_HUC6280);
+  pce=new PCE_PSG(flags.getInt("chipType",0)?PCE_PSG::REVISION_HUC6280A:PCE_PSG::REVISION_HUC6280);
 }
 
 void DivPlatformPCE::poke(unsigned int addr, unsigned short val) {
@@ -667,32 +697,6 @@ void DivPlatformPCE::poke(unsigned int addr, unsigned short val) {
 
 void DivPlatformPCE::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
-}
-
-void DivPlatformPCE::setCoreQuality(unsigned char q) {
-  switch (q) {
-    case 0:
-      coreQuality=192;
-      break;
-    case 1:
-      coreQuality=96;
-      break;
-    case 2:
-      coreQuality=48;
-      break;
-    case 3:
-      coreQuality=24;
-      break;
-    case 4:
-      coreQuality=6;
-      break;
-    case 5:
-      coreQuality=2;
-      break;
-    default:
-      coreQuality=24;
-      break;
-  }
 }
 
 int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

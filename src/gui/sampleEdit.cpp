@@ -598,7 +598,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
           }
 
-          int sampleNote=round(64.0+(128.0*12.0*log((double)targetRate/8363.0)/log(2.0)));
+          int sampleNote=round(64.0+(128.0*12.0*log((double)targetRate/e->getCenterRate())/log(2.0)));
           int sampleNoteCoarse=60+(sampleNote>>7);
           int sampleNoteFine=(sampleNote&127)-64;
 
@@ -662,7 +662,7 @@ void FurnaceGUI::drawSampleEdit() {
           if (coarseChanged) { MARK_MODIFIED
             sampleNote=((sampleNoteCoarse-60)<<7)+sampleNoteFine;
 
-            targetRate=8363.0*pow(2.0,(double)sampleNote/(128.0*12.0));
+            targetRate=e->getCenterRate()*pow(2.0,(double)sampleNote/(128.0*12.0));
             if (targetRate<100) targetRate=100;
             if (targetRate>384000) targetRate=384000;
 
@@ -685,7 +685,7 @@ void FurnaceGUI::drawSampleEdit() {
 
             sampleNote=((sampleNoteCoarse-60)<<7)+sampleNoteFine;
 
-            targetRate=round(8363.0*pow(2.0,(double)sampleNote/(128.0*12.0)));
+            targetRate=round(e->getCenterRate()*pow(2.0,(double)sampleNote/(128.0*12.0)));
 
             if (targetRate==prevSampleRate) {
               if (prevFine==sampleNoteFine) {
@@ -1182,8 +1182,11 @@ void FurnaceGUI::drawSampleEdit() {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(_("Apply filter"));
       }
+      float minCutoff=10.0f;
+      float maxCutoff=sample->centerRate*0.5f;
       if (openSampleFilterOpt) {
         openSampleFilterOpt=false;
+        sampleFilterFirstFrame=true;
         ImGui::OpenPopup("SFilterOpt");
       }
       if (ImGui::BeginPopupContextItem("SFilterOpt",ImGuiPopupFlags_MouseButtonLeft)) {
@@ -1192,14 +1195,24 @@ void FurnaceGUI::drawSampleEdit() {
         float highP=sampleFilterH*100.0f;
         float resP=sampleFilterRes*100.0f;
         ImGui::Text(_("Cutoff:"));
-        if (ImGui::InputFloat(_("From"),&sampleFilterCutStart,10.0f,1000.0f,"%.0f")) {
-          if (sampleFilterCutStart<0.0) sampleFilterCutStart=0.0;
-          if (sampleFilterCutStart>sample->centerRate*0.5) sampleFilterCutStart=sample->centerRate*0.5;
+
+        ImGui::Checkbox(_("Sweep (2 frequencies)"),&sampleFilterSweep);
+        if (sampleFilterSweep) {
+          if (ImGui::SliderFloat(_("From"),&sampleFilterCutStart,minCutoff,maxCutoff,"%.0f Hz")) {
+            if (sampleFilterCutStart<minCutoff) sampleFilterCutStart=minCutoff;
+            if (sampleFilterCutStart>maxCutoff) sampleFilterCutStart=maxCutoff;
+          }
+          if (ImGui::SliderFloat(_("To"),&sampleFilterCutEnd,minCutoff,maxCutoff,"%.0f Hz")) {
+            if (sampleFilterCutEnd<minCutoff) sampleFilterCutEnd=minCutoff;
+            if (sampleFilterCutEnd>maxCutoff) sampleFilterCutEnd=maxCutoff;
+          }
+        } else {
+          if (ImGui::SliderFloat(_("Frequency"),&sampleFilterCutStart,minCutoff,maxCutoff,"%.0f Hz")) {
+            if (sampleFilterCutStart<minCutoff) sampleFilterCutStart=minCutoff;
+            if (sampleFilterCutStart>maxCutoff) sampleFilterCutStart=maxCutoff;
+          }
         }
-        if (ImGui::InputFloat(_("To"),&sampleFilterCutEnd,10.0f,1000.0f,"%.0f")) {
-          if (sampleFilterCutEnd<0.0) sampleFilterCutEnd=0.0;
-          if (sampleFilterCutEnd>sample->centerRate*0.5) sampleFilterCutEnd=sample->centerRate*0.5;
-        }
+
         ImGui::Separator();
         if (ImGui::SliderFloat(_("Resonance"),&resP,0.0f,99.0f,"%.1f%%")) {
           sampleFilterRes=resP/100.0f;
@@ -1255,7 +1268,7 @@ void FurnaceGUI::drawSampleEdit() {
 
             if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
               for (unsigned int i=start; i<end; i++) {
-                double freq=sampleFilterCutStart+(sampleFilterCutEnd-sampleFilterCutStart)*pow(double(i-start)/double(end-start),power);
+                double freq=sampleFilterCutStart+(sampleFilterSweep?((sampleFilterCutEnd-sampleFilterCutStart)*pow(double(i-start)/double(end-start),power)):0);
                 double cut=sin((freq/double(sample->centerRate))*M_PI);
 
                 for (int j=0; j<sampleFilterPower; j++) {
@@ -1271,7 +1284,7 @@ void FurnaceGUI::drawSampleEdit() {
               }
             } else if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
               for (unsigned int i=start; i<end; i++) {
-                double freq=sampleFilterCutStart+(sampleFilterCutEnd-sampleFilterCutStart)*pow(double(i-start)/double(end-start),power);
+                double freq=sampleFilterCutStart+(sampleFilterSweep?((sampleFilterCutEnd-sampleFilterCutStart)*pow(double(i-start)/double(end-start),power)):0);
                 double cut=sin((freq/double(sample->centerRate))*M_PI);
 
                 for (int j=0; j<sampleFilterPower; j++) {
@@ -1294,6 +1307,15 @@ void FurnaceGUI::drawSampleEdit() {
           MARK_MODIFIED;
           ImGui::CloseCurrentPopup();
         }
+
+        if (sampleFilterFirstFrame) {
+          if (sampleFilterCutStart<minCutoff) sampleFilterCutStart=minCutoff;
+          if (sampleFilterCutStart>maxCutoff) sampleFilterCutStart=maxCutoff;
+          if (sampleFilterCutEnd<minCutoff) sampleFilterCutEnd=minCutoff;
+          if (sampleFilterCutEnd>maxCutoff) sampleFilterCutEnd=maxCutoff;
+          sampleFilterFirstFrame=false;
+        }
+
         ImGui::EndPopup();
       }
       ImGui::EndDisabled();
@@ -1373,6 +1395,13 @@ void FurnaceGUI::drawSampleEdit() {
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(_("Preview sample"));
+      }
+      sameLineMaybe();
+      if (ImGui::Button(ICON_FA_PLAY_CIRCLE "##PreviewSampleFromCursor")) {
+        e->previewSample(curSample, -1, sampleSelStart, sampleSelEnd == sampleSelStart ? -1 : sampleSelEnd);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Preview sample from cursor or selection only"));
       }
       sameLineMaybe();
       if (ImGui::Button(ICON_FA_STOP "##StopSample")) {

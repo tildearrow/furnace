@@ -2475,22 +2475,38 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     }
     case DIV_SYSTEM_VBOY: {
       bool romMode=flags.getBool("romMode",false);
+      bool noAntiClick=flags.getBool("noAntiClick",false);
+      bool screwThis=flags.getBool("screwThis",false);
 
       ImGui::Text(_("Waveform storage mode:"));
       ImGui::Indent();
-      if (ImGui::RadioButton(_("Dynamic (unconfirmed)"),!romMode)) {
-        romMode=false;
-        altered=true;
-      }
       if (ImGui::RadioButton(_("Static (up to 5 waves)"),romMode)) {
         romMode=true;
         altered=true;
       }
+      if (ImGui::RadioButton(_("Dynamic (phase reset on wave change!)"),!romMode)) {
+        romMode=false;
+        altered=true;
+      }
       ImGui::Unindent();
+
+      if (!romMode) {
+        if (ImGui::Checkbox(_("Disable anti-phase-reset"),&noAntiClick)) {
+          altered=true;
+        }
+        if (ImGui::Checkbox(_("I don't care about hardware"),&screwThis)) {
+          altered=true;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Virtual Boy hardware requires all channels to be disabled before writing to wave memory.\nif the clicks that arise from this annoy you, use this option.\nnote that your song won't play on hardware if you do so!"));
+        }
+      }
 
       if (altered) {
         e->lockSave([&]() {
           flags.set("romMode",romMode);
+          flags.set("noAntiClick",noAntiClick);
+          flags.set("screwThis",screwThis);
         });
       }
       break;
@@ -2649,7 +2665,6 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_BIFURCATOR:
     case DIV_SYSTEM_POWERNOISE:
     case DIV_SYSTEM_UPD1771C:
-    case DIV_SYSTEM_UPD1771C_TONE:
       break;
     case DIV_SYSTEM_YMU759:
     case DIV_SYSTEM_ESFM:

@@ -597,8 +597,8 @@ void upd1771c_device::sound_stream_update(short* output, int len)
       // TODO: improve this
 			for (int sampindex = 0; sampindex < len; sampindex++)
 			{
-				//"wavetable-LFSR" component
-				int wlfsr_val = ((int)noise_tbl[m_nw_timbre][m_nw_tpos]) - 127;//data too wide
+				// "wavetable-LFSR" component
+				int wlfsr_val = ((int)noise_tbl[m_nw_timbre][m_nw_tpos]) - 127; // data too wide
 
 				m_nw_ppos++;
 				if (m_nw_ppos >= m_nw_period)
@@ -609,7 +609,7 @@ void upd1771c_device::sound_stream_update(short* output, int len)
 					m_nw_ppos = 0;
 				}
 
-				//mix in each of the noise's 3 pulse components
+				// mix in each of the noise's 3 pulse components
 				signed char res[3];
 				for (int i = 0; i < 3; ++i)
 				{
@@ -621,16 +621,16 @@ void upd1771c_device::sound_stream_update(short* output, int len)
 						m_n_value[i] = !m_n_value[i];
 					}
 				}
-				//not quite, but close.
+				// not quite!
         chout[0]=res[0] * m_n_volume[0] * 4;
         chout[1]=res[1] * m_n_volume[1] * 4;
         chout[2]=res[2] * m_n_volume[2] * 4;
-        chout[3]=wlfsr_val * m_nw_volume;
+        chout[3]=wlfsr_val * m_nw_volume * 2;
 				output[sampindex]=
-							((chout[3]) + // TODO: this is mixed with "mix" instruction rather than add
-							(chout[0]) +
-							(chout[1]) +
-							(chout[2])) * 32 * 2;
+							(
+                ((chout[0] + chout[1] + chout[2]) * 32) +
+                chout[3]
+              ) * 2;
 
         
 			}

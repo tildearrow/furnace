@@ -146,7 +146,7 @@ static void matchFuzzyTest() {
 void FurnaceGUI::drawPalette() {
   bool accepted=false;
 
-  if (paletteFirstFrame)
+  if (paletteFirstFrame && !mobileUI)
     ImGui::SetKeyboardFocusHere();
 
   int width=ImGui::GetContentRegionAvail().x;

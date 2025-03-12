@@ -1546,17 +1546,10 @@ void FurnaceGUI::setupSettingsCategories() {
         EMU_CORES("AY-3-8910/SSG", settings.ayCore, settings.ayCoreRender, ayCores),
       }),
       SettingsCategory(_N("Quality"),{},{
-        CORE_QUALITY("Bubble System WSG",bubsysQuality,bubsysQualityRender),
         CORE_QUALITY("Game Boy",gbQuality,gbQualityRender),
-        CORE_QUALITY("Nintendo DS",ndsQuality,ndsQualityRender),
-        CORE_QUALITY("PC Engine",pceQuality,pceQualityRender),
         CORE_QUALITY("PowerNoise",pnQuality,pnQualityRender),
         CORE_QUALITY("SAA1099",saaQuality,saaQualityRender),
-        CORE_QUALITY("SCC",sccQuality,sccQualityRender),
         CORE_QUALITY("SID (dSID)",dsidQuality,dsidQualityRender),
-        CORE_QUALITY("SM8521",smQuality,smQualityRender),
-        CORE_QUALITY("Virtual Boy",vbQuality,vbQualityRender),
-        CORE_QUALITY("WonderSwan",swanQuality,swanQualityRender),
       }),
       SettingsCategory(_N("Other"),{},{
         SETTING(_N("PC Speaker strategy"),{
@@ -1676,18 +1669,7 @@ void FurnaceGUI::setupSettingsCategories() {
       }),
       SettingsCategory(_N("Note input"),{},{
         SETTING(_N("Note input"),{
-          std::vector<MappedInput> sorted; /* not a fan of the sorting. modifying the note value will make it jump. edit: yup (#2345) */
           if (ImGui::BeginTable("keysNoteInput",4)) {
-            for (std::map<int,int>::value_type& i: noteKeys) {
-              std::vector<MappedInput>::iterator j;
-              for (j=sorted.begin(); j!=sorted.end(); j++) {
-                if (j->val>i.second) {
-                  break;
-                }
-              }
-              sorted.insert(j,MappedInput(i.first,i.second));
-            }
-  
             static char id[4096];
   
             ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
@@ -1700,7 +1682,8 @@ void FurnaceGUI::setupSettingsCategories() {
             ImGui::TableNextColumn();
             ImGui::Text(_("Remove"));
   
-            for (MappedInput& i: sorted) {
+            for (size_t _i=0; _i<noteKeysRaw.size(); _i++) {
+              MappedInput& i=noteKeysRaw[_i];
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
               ImGui::Text("%s",SDL_GetScancodeName((SDL_Scancode)i.scan));
@@ -1708,25 +1691,25 @@ void FurnaceGUI::setupSettingsCategories() {
               if (i.val==102) {
                 snprintf(id,4095,_("Macro release##SNType_%d"),i.scan);
                 if (ImGui::Button(id)) {
-                  noteKeys[i.scan]=0;
+                  i.val=0;
                   SETTINGS_CHANGED;
                 }
               } else if (i.val==101) {
                 snprintf(id,4095,_("Note release##SNType_%d"),i.scan);
                 if (ImGui::Button(id)) {
-                  noteKeys[i.scan]=102;
+                  i.val=102;
                   SETTINGS_CHANGED;
                 }
               } else if (i.val==100) {
                 snprintf(id,4095,_("Note off##SNType_%d"),i.scan);
                 if (ImGui::Button(id)) {
-                  noteKeys[i.scan]=101;
+                  i.val=101;
                   SETTINGS_CHANGED;
                 }
               } else {
                 snprintf(id,4095,_("Note##SNType_%d"),i.scan);
                 if (ImGui::Button(id)) {
-                  noteKeys[i.scan]=100;
+                  i.val=100;
                   SETTINGS_CHANGED;
                 }
               }
@@ -1736,14 +1719,14 @@ void FurnaceGUI::setupSettingsCategories() {
                 if (ImGui::InputInt(id,&i.val,1,12)) {
                   if (i.val<0) i.val=0;
                   if (i.val>96) i.val=96;
-                  noteKeys[i.scan]=i.val;
                   SETTINGS_CHANGED;
                 }
               }
               ImGui::TableNextColumn();
               snprintf(id,4095,ICON_FA_TIMES "##SNRemove_%d",i.scan);
               if (ImGui::Button(id)) {
-                noteKeys.erase(i.scan);
+                noteKeysRaw.erase(noteKeysRaw.begin()+_i);
+                _i--;
                 SETTINGS_CHANGED;
               }
             }
@@ -1756,8 +1739,19 @@ void FurnaceGUI::setupSettingsCategories() {
                 if (sName[0]==0) continue;
                 snprintf(id,4095,"%s##SNNewKey_%d",sName,i);
                 if (ImGui::Selectable(id)) {
-                  noteKeys[(SDL_Scancode)i]=0;
-                  SETTINGS_CHANGED;
+                    bool alreadyThere=false;
+                    for (MappedInput& j: noteKeysRaw) {
+                      if (j.scan==i) {
+                        alreadyThere=true;
+                        break;
+                      }
+                    }
+                    if (alreadyThere) {
+                      showError(_("that key is bound already!"));
+                    } else {
+                      noteKeysRaw.push_back(MappedInput(i,0));
+                      SETTINGS_CHANGED;
+                    }
                 }
               }
               ImGui::EndCombo();

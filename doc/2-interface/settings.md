@@ -291,6 +291,7 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 - **Double-click time (seconds)**: maximum time between mouse clicks to recognize them as a double-click.
 - **Don't raise pattern editor on click**
 - **Focus pattern editor when selecting instrument**
+- **Draggable instruments/samples/waves:** allow dragging and dropping assets within their lists to reorder them.
 - **Note preview behavior:** allows you to disable note preview when entering notes in the pattern.
   - **Never**: don't preview notes at all.
   - **When cursor is in Note column**: only when the cursor is in the Note column

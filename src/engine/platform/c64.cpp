@@ -69,7 +69,9 @@ short DivPlatformC64::runFakeFilter(unsigned char ch, int in) {
   if (!(regPool[0x17]&(1<<ch))) {
     if (regPool[0x18]&0x80 && ch==2) return 0;
     float fin=in;
-    fin*=(float)(regPool[0x18]&15)/20.0f;
+    if (noSoftPCM) {
+      fin*=(float)(regPool[0x18]&15)/20.0f;
+    }
     return CLAMP(fin,-32768,32767);
   }
 
@@ -96,7 +98,9 @@ short DivPlatformC64::runFakeFilter(unsigned char ch, int in) {
     fout+=tmp;
   }
 
-  fout*=(float)(regPool[0x18]&15)/20.0f;
+  if (noSoftPCM) {
+    fout*=(float)(regPool[0x18]&15)/20.0f;
+  }
   return CLAMP(fout,-32768,32767);
 }
 
@@ -135,6 +139,9 @@ void DivPlatformC64::processDAC(int sRate) {
 
 void DivPlatformC64::acquire(short** buf, size_t len) {
   int dcOff=(sidCore)?0:sid->get_dc(0);
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t i=0; i<len; i++) {
     // run PCM
     pcmCycle+=lineRate;
@@ -161,28 +168,34 @@ void DivPlatformC64::acquire(short** buf, size_t len) {
       buf[0][i]=32767*CLAMP(o,-1.0,1.0);
       if (++writeOscBuf>=4) {
         writeOscBuf=0;
-        oscBuf[0]->data[oscBuf[0]->needle++]=sid_d->lastOut[0];
-        oscBuf[1]->data[oscBuf[1]->needle++]=sid_d->lastOut[1];
-        oscBuf[2]->data[oscBuf[2]->needle++]=sid_d->lastOut[2];
+        oscBuf[0]->putSample(i,sid_d->lastOut[0]);
+        oscBuf[1]->putSample(i,sid_d->lastOut[1]);
+        oscBuf[2]->putSample(i,sid_d->lastOut[2]);
+        oscBuf[3]->putSample(i,chan[3].pcmOut<<11);
       }
     } else if (sidCore==1) {
       sid_fp->clock(4,&buf[0][i]);
       if (++writeOscBuf>=4) {
         writeOscBuf=0;
-        oscBuf[0]->data[oscBuf[0]->needle++]=runFakeFilter(0,(sid_fp->lastChanOut[0]-dcOff)>>5);
-        oscBuf[1]->data[oscBuf[1]->needle++]=runFakeFilter(1,(sid_fp->lastChanOut[1]-dcOff)>>5);
-        oscBuf[2]->data[oscBuf[2]->needle++]=runFakeFilter(2,(sid_fp->lastChanOut[2]-dcOff)>>5);
+        oscBuf[0]->putSample(i,runFakeFilter(0,(sid_fp->lastChanOut[0]-dcOff)>>5));
+        oscBuf[1]->putSample(i,runFakeFilter(1,(sid_fp->lastChanOut[1]-dcOff)>>5));
+        oscBuf[2]->putSample(i,runFakeFilter(2,(sid_fp->lastChanOut[2]-dcOff)>>5));
+        oscBuf[3]->putSample(i,chan[3].pcmOut<<11);
       }
     } else {
       sid->clock();
       buf[0][i]=sid->output();
       if (++writeOscBuf>=16) {
         writeOscBuf=0;
-        oscBuf[0]->data[oscBuf[0]->needle++]=runFakeFilter(0,(sid->last_chan_out[0]-dcOff)>>5);
-        oscBuf[1]->data[oscBuf[1]->needle++]=runFakeFilter(1,(sid->last_chan_out[1]-dcOff)>>5);
-        oscBuf[2]->data[oscBuf[2]->needle++]=runFakeFilter(2,(sid->last_chan_out[2]-dcOff)>>5);
+        oscBuf[0]->putSample(i,runFakeFilter(0,(sid->last_chan_out[0]-dcOff)>>5));
+        oscBuf[1]->putSample(i,runFakeFilter(1,(sid->last_chan_out[1]-dcOff)>>5));
+        oscBuf[2]->putSample(i,runFakeFilter(2,(sid->last_chan_out[2]-dcOff)>>5));
+        oscBuf[3]->putSample(i,chan[3].pcmOut<<11);
       }
     }
+  }
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -366,7 +379,7 @@ void DivPlatformC64::tick(bool sysTick) {
       if (s->centerRate<1) {
         off=1.0;
       } else {
-        off=(double)s->centerRate/8363.0;
+        off=(double)s->centerRate/parent->getCenterRate();
       }
     }
     chan[i].pcmRate=off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,2,1);
@@ -905,12 +918,12 @@ void DivPlatformC64::setFlags(const DivConfig& flags) {
   }
   CHECK_CUSTOM_CLOCK;
   rate=chipClock;
-  for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate/16;
-  }
   if (sidCore>0) {
     rate/=(sidCore==2)?coreQuality:4;
     if (sidCore==1) sid_fp->setSamplingParameters(chipClock,reSIDfp::DECIMATE,rate,0);
+  }
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->setRate(rate);
   }
   keyPriority=flags.getBool("keyPriority",true);
   no1EUpdate=flags.getBool("no1EUpdate",false);
@@ -923,15 +936,16 @@ void DivPlatformC64::setFlags(const DivConfig& flags) {
 
   // init fake filter table
   // taken from dSID
-  double cutRatio=-2.0*3.14*(sidIs6581?(((double)oscBuf[0]->rate/44100.0)*(20000.0/256.0)):(12500.0/256.0))/(double)oscBuf[0]->rate;
+  double oscBufRate=(double)rate/((sidCore==0)?16.0:4.0);
+  double cutRatio=-2.0*3.14*(sidIs6581?((oscBufRate/44100.0)*(20000.0/256.0)):(12500.0/256.0))/oscBufRate;
 
   for (int i=0; i<2048; i++) {
     double c=(double)i/8.0+0.2;
     if (sidIs6581) {
       if (c<24) {
-        c=2.0*sin(771.78/(double)oscBuf[0]->rate);
+        c=2.0*sin(771.78/oscBufRate);
       } else {
-        c=(44100.0/(double)oscBuf[0]->rate)-1.263*(44100.0/(double)oscBuf[0]->rate)*exp(c*cutRatio);
+        c=(44100.0/oscBufRate)-1.263*(44100.0/oscBufRate)*exp(c*cutRatio);
       }
     } else {
       c=1-exp(c*cutRatio);
@@ -964,6 +978,10 @@ void DivPlatformC64::setCoreQuality(unsigned char q) {
       coreQuality=4;
       break;
   }
+}
+
+void DivPlatformC64::setSoftPCM(bool isSoft) {
+  noSoftPCM=!isSoft;
 }
 
 int DivPlatformC64::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

@@ -207,11 +207,7 @@ void DivEngine::runExportThread() {
         sf[i]=NULL;
         si[i].samplerate=got.rate;
         si[i].channels=disCont[i].dispatch->getOutputCount();
-        if (exportFormat==DIV_EXPORT_FORMAT_S16) {
-          si[i].format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
-        } else {
-          si[i].format=SF_FORMAT_WAV|SF_FORMAT_FLOAT;
-        }
+        si[i].format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
       }
 
       for (int i=0; i<song.systemLen; i++) {

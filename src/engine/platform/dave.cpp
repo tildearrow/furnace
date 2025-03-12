@@ -64,6 +64,10 @@ const char** DivPlatformDave::getRegisterSheet() {
 }
 
 void DivPlatformDave::acquire(short** buf, size_t len) {
+  for (int i=0; i<6; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     for (int i=4; i<6; i++) {
       if (chan[i].dacSample!=-1) {
@@ -107,37 +111,41 @@ void DivPlatformDave::acquire(short** buf, size_t len) {
     unsigned short nextR=next>>16;
     
     if ((regPool[7]&0x18)==0x18) {
-      oscBuf[0]->data[oscBuf[0]->needle++]=0;
-      oscBuf[1]->data[oscBuf[1]->needle++]=0;
-      oscBuf[2]->data[oscBuf[2]->needle++]=0;
-      oscBuf[3]->data[oscBuf[3]->needle++]=0;
-      oscBuf[4]->data[oscBuf[4]->needle++]=dave->chn0_left<<9;
-      oscBuf[5]->data[oscBuf[5]->needle++]=dave->chn0_right<<9;
+      oscBuf[0]->putSample(h,0);
+      oscBuf[1]->putSample(h,0);
+      oscBuf[2]->putSample(h,0);
+      oscBuf[3]->putSample(h,0);
+      oscBuf[4]->putSample(h,dave->chn0_left<<9);
+      oscBuf[5]->putSample(h,dave->chn0_right<<9);
     } else if (regPool[7]&0x08) {
-      oscBuf[0]->data[oscBuf[0]->needle++]=dave->chn0_state?(dave->chn0_right<<8):0;
-      oscBuf[1]->data[oscBuf[1]->needle++]=dave->chn1_state?(dave->chn1_right<<8):0;
-      oscBuf[2]->data[oscBuf[2]->needle++]=dave->chn2_state?(dave->chn2_right<<8):0;
-      oscBuf[3]->data[oscBuf[3]->needle++]=dave->chn3_state?(dave->chn3_right<<8):0;
-      oscBuf[4]->data[oscBuf[4]->needle++]=dave->chn0_left<<9;
-      oscBuf[5]->data[oscBuf[5]->needle++]=0;
+      oscBuf[0]->putSample(h,dave->chn0_state?(dave->chn0_right<<8):0);
+      oscBuf[1]->putSample(h,dave->chn1_state?(dave->chn1_right<<8):0);
+      oscBuf[2]->putSample(h,dave->chn2_state?(dave->chn2_right<<8):0);
+      oscBuf[3]->putSample(h,dave->chn3_state?(dave->chn3_right<<8):0);
+      oscBuf[4]->putSample(h,dave->chn0_left<<9);
+      oscBuf[5]->putSample(h,0);
     } else if (regPool[7]&0x10) {
-      oscBuf[0]->data[oscBuf[0]->needle++]=dave->chn0_state?(dave->chn0_left<<8):0;
-      oscBuf[1]->data[oscBuf[1]->needle++]=dave->chn1_state?(dave->chn1_left<<8):0;
-      oscBuf[2]->data[oscBuf[2]->needle++]=dave->chn2_state?(dave->chn2_left<<8):0;
-      oscBuf[3]->data[oscBuf[3]->needle++]=dave->chn3_state?(dave->chn3_left<<8):0;
-      oscBuf[4]->data[oscBuf[4]->needle++]=0;
-      oscBuf[5]->data[oscBuf[5]->needle++]=dave->chn0_right<<9;
+      oscBuf[0]->putSample(h,dave->chn0_state?(dave->chn0_left<<8):0);
+      oscBuf[1]->putSample(h,dave->chn1_state?(dave->chn1_left<<8):0);
+      oscBuf[2]->putSample(h,dave->chn2_state?(dave->chn2_left<<8):0);
+      oscBuf[3]->putSample(h,dave->chn3_state?(dave->chn3_left<<8):0);
+      oscBuf[4]->putSample(h,0);
+      oscBuf[5]->putSample(h,dave->chn0_right<<9);
     } else {
-      oscBuf[0]->data[oscBuf[0]->needle++]=dave->chn0_state?((dave->chn0_left+dave->chn0_right)<<8):0;
-      oscBuf[1]->data[oscBuf[1]->needle++]=dave->chn1_state?((dave->chn1_left+dave->chn1_right)<<8):0;
-      oscBuf[2]->data[oscBuf[2]->needle++]=dave->chn2_state?((dave->chn2_left+dave->chn2_right)<<8):0;
-      oscBuf[3]->data[oscBuf[3]->needle++]=dave->chn3_state?((dave->chn3_left+dave->chn3_right)<<8):0;
-      oscBuf[4]->data[oscBuf[4]->needle++]=0;
-      oscBuf[5]->data[oscBuf[5]->needle++]=0;
+      oscBuf[0]->putSample(h,dave->chn0_state?((dave->chn0_left+dave->chn0_right)<<8):0);
+      oscBuf[1]->putSample(h,dave->chn1_state?((dave->chn1_left+dave->chn1_right)<<8):0);
+      oscBuf[2]->putSample(h,dave->chn2_state?((dave->chn2_left+dave->chn2_right)<<8):0);
+      oscBuf[3]->putSample(h,dave->chn3_state?((dave->chn3_left+dave->chn3_right)<<8):0);
+      oscBuf[4]->putSample(h,0);
+      oscBuf[5]->putSample(h,0);
     }
     
     buf[0][h]=(short)nextL;
     buf[1][h]=(short)nextR;
+  }
+
+  for (int i=0; i<6; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -239,7 +247,7 @@ void DivPlatformDave::tick(bool sysTick) {
         double off=1.0;
         if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
           DivSample* s=parent->getSample(chan[i].dacSample);
-          off=(double)s->centerRate/8363.0;
+          off=(double)s->centerRate/parent->getCenterRate();
         }
         chan[i].dacRate=chan[i].freq*off;
       } else {
@@ -596,7 +604,7 @@ void DivPlatformDave::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/16;
   for (int i=0; i<6; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

@@ -532,6 +532,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     }
 
     decodeKeyMap(noteKeys,conf.getString("noteKeys",DEFAULT_NOTE_KEYS));
+    decompileNoteKeys();
   }
 
   if (groups&GUI_SETTINGS_BEHAVIOR) {
@@ -723,17 +724,10 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.opllCore=conf.getInt("opllCore",0);
     settings.ayCore=conf.getInt("ayCore",0);
 
-    settings.bubsysQuality=conf.getInt("bubsysQuality",3);
     settings.dsidQuality=conf.getInt("dsidQuality",3);
     settings.gbQuality=conf.getInt("gbQuality",3);
-    settings.ndsQuality=conf.getInt("ndsQuality",3);
-    settings.pceQuality=conf.getInt("pceQuality",3);
     settings.pnQuality=conf.getInt("pnQuality",3);
     settings.saaQuality=conf.getInt("saaQuality",3);
-    settings.sccQuality=conf.getInt("sccQuality",3);
-    settings.smQuality=conf.getInt("smQuality",3);
-    settings.swanQuality=conf.getInt("swanQuality",3);
-    settings.vbQuality=conf.getInt("vbQuality",3);
 
     settings.arcadeCoreRender=conf.getInt("arcadeCoreRender",1);
     settings.ym2612CoreRender=conf.getInt("ym2612CoreRender",0);
@@ -752,17 +746,10 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.opllCoreRender=conf.getInt("opllCoreRender",0);
     settings.ayCoreRender=conf.getInt("ayCoreRender",0);
 
-    settings.bubsysQualityRender=conf.getInt("bubsysQualityRender",3);
     settings.dsidQualityRender=conf.getInt("dsidQualityRender",3);
     settings.gbQualityRender=conf.getInt("gbQualityRender",3);
-    settings.ndsQualityRender=conf.getInt("ndsQualityRender",3);
-    settings.pceQualityRender=conf.getInt("pceQualityRender",3);
     settings.pnQualityRender=conf.getInt("pnQualityRender",3);
     settings.saaQualityRender=conf.getInt("saaQualityRender",3);
-    settings.sccQualityRender=conf.getInt("sccQualityRender",3);
-    settings.smQualityRender=conf.getInt("smQualityRender",3);
-    settings.swanQualityRender=conf.getInt("swanQualityRender",3);
-    settings.vbQualityRender=conf.getInt("vbQualityRender",3);
 
     settings.pcSpeakerOutMethod=conf.getInt("pcSpeakerOutMethod",0);
 
@@ -797,17 +784,10 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.esfmCore,0,1);
   clampSetting(settings.opllCore,0,1);
   clampSetting(settings.ayCore,0,1);
-  clampSetting(settings.bubsysQuality,0,5);
   clampSetting(settings.dsidQuality,0,5);
   clampSetting(settings.gbQuality,0,5);
-  clampSetting(settings.ndsQuality,0,5);
-  clampSetting(settings.pceQuality,0,5);
   clampSetting(settings.pnQuality,0,5);
   clampSetting(settings.saaQuality,0,5);
-  clampSetting(settings.sccQuality,0,5);
-  clampSetting(settings.smQuality,0,5);
-  clampSetting(settings.swanQuality,0,5);
-  clampSetting(settings.vbQuality,0,5);
   clampSetting(settings.arcadeCoreRender,0,1);
   clampSetting(settings.ym2612CoreRender,0,2);
   clampSetting(settings.snCoreRender,0,1);
@@ -824,17 +804,10 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.esfmCoreRender,0,1);
   clampSetting(settings.opllCoreRender,0,1);
   clampSetting(settings.ayCoreRender,0,1);
-  clampSetting(settings.bubsysQualityRender,0,5);
   clampSetting(settings.dsidQualityRender,0,5);
   clampSetting(settings.gbQualityRender,0,5);
-  clampSetting(settings.ndsQualityRender,0,5);
-  clampSetting(settings.pceQualityRender,0,5);
   clampSetting(settings.pnQualityRender,0,5);
   clampSetting(settings.saaQualityRender,0,5);
-  clampSetting(settings.sccQualityRender,0,5);
-  clampSetting(settings.smQualityRender,0,5);
-  clampSetting(settings.swanQualityRender,0,5);
-  clampSetting(settings.vbQualityRender,0,5);
   clampSetting(settings.pcSpeakerOutMethod,0,4);
   clampSetting(settings.mainFont,0,6);
   clampSetting(settings.patFont,0,6);
@@ -1127,6 +1100,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
       conf.set(String("keybind_GUI_ACTION_")+String(guiActions[i].name),actionKeys[i]);
     }
 
+    compileNoteKeys();
     conf.set("noteKeys",encodeKeyMap(noteKeys));
   }
 
@@ -1324,17 +1298,10 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("opllCore",settings.opllCore);
     conf.set("ayCore",settings.ayCore);
 
-    conf.set("bubsysQuality",settings.bubsysQuality);
     conf.set("dsidQuality",settings.dsidQuality);
     conf.set("gbQuality",settings.gbQuality);
-    conf.set("ndsQuality",settings.ndsQuality);
-    conf.set("pceQuality",settings.pceQuality);
     conf.set("pnQuality",settings.pnQuality);
     conf.set("saaQuality",settings.saaQuality);
-    conf.set("sccQuality",settings.sccQuality);
-    conf.set("smQuality",settings.smQuality);
-    conf.set("swanQuality",settings.swanQuality);
-    conf.set("vbQuality",settings.vbQuality);
 
     conf.set("arcadeCoreRender",settings.arcadeCoreRender);
     conf.set("ym2612CoreRender",settings.ym2612CoreRender);
@@ -1353,17 +1320,10 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("opllCoreRender",settings.opllCoreRender);
     conf.set("ayCoreRender",settings.ayCoreRender);
 
-    conf.set("bubsysQualityRender",settings.bubsysQualityRender);
     conf.set("dsidQualityRender",settings.dsidQualityRender);
     conf.set("gbQualityRender",settings.gbQualityRender);
-    conf.set("ndsQualityRender",settings.ndsQualityRender);
-    conf.set("pceQualityRender",settings.pceQualityRender);
     conf.set("pnQualityRender",settings.pnQualityRender);
     conf.set("saaQualityRender",settings.saaQualityRender);
-    conf.set("sccQualityRender",settings.sccQualityRender);
-    conf.set("smQualityRender",settings.smQualityRender);
-    conf.set("swanQualityRender",settings.swanQualityRender);
-    conf.set("vbQualityRender",settings.vbQualityRender);
 
     conf.set("pcSpeakerOutMethod",settings.pcSpeakerOutMethod);
 
@@ -1416,17 +1376,10 @@ void FurnaceGUI::commitSettings() {
     settings.esfmCore!=e->getConfInt("esfmCore",0) ||
     settings.opllCore!=e->getConfInt("opllCore",0) ||
     settings.ayCore!=e->getConfInt("ayCore",0) ||
-    settings.bubsysQuality!=e->getConfInt("bubsysQuality",3) ||
     settings.dsidQuality!=e->getConfInt("dsidQuality",3) ||
     settings.gbQuality!=e->getConfInt("gbQuality",3) ||
-    settings.ndsQuality!=e->getConfInt("ndsQuality",3) ||
-    settings.pceQuality!=e->getConfInt("pceQuality",3) ||
     settings.pnQuality!=e->getConfInt("pnQuality",3) ||
     settings.saaQuality!=e->getConfInt("saaQuality",3) ||
-    settings.sccQuality!=e->getConfInt("sccQuality",3) ||
-    settings.smQuality!=e->getConfInt("smQuality",3) ||
-    settings.swanQuality!=e->getConfInt("swanQuality",3) ||
-    settings.vbQuality!=e->getConfInt("vbQuality",3) ||
     settings.audioQuality!=e->getConfInt("audioQuality",0) ||
     settings.audioHiPass!=e->getConfInt("audioHiPass",1)
   );
@@ -1703,6 +1656,7 @@ void FurnaceGUI::resetKeybinds() {
     actionKeys[i]=guiActions[i].defaultBind;
   }
   decodeKeyMap(noteKeys,DEFAULT_NOTE_KEYS);
+  decompileNoteKeys();
   parseKeybinds();
 }
 
@@ -1879,6 +1833,27 @@ void setupLabel(const char* lStr, char* label, int len) {
       p+=cl;
     }
   }
+}
+
+void FurnaceGUI::decompileNoteKeys() {
+  noteKeysRaw.clear();
+  for (std::map<int,int>::value_type& i: noteKeys) {
+    std::vector<MappedInput>::iterator j;
+    for (j=noteKeysRaw.begin(); j!=noteKeysRaw.end(); j++) {
+      if (j->val>i.second) {
+        break;
+      }
+    }
+    noteKeysRaw.insert(j,MappedInput(i.first,i.second));
+  }
+}
+
+void FurnaceGUI::compileNoteKeys() {
+  noteKeys.clear();
+  for (MappedInput& i: noteKeysRaw) {
+    noteKeys[i.scan]=i.val;
+  }
+  decompileNoteKeys();
 }
 
 void FurnaceGUI::applyUISettings(bool updateFonts) {
@@ -2592,6 +2567,22 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
           patFont=ImGui::GetIO().Fonts->AddFontDefault();
         }
       }
+    }
+
+    // four fallback fonts
+    if (settings.loadJapanese ||
+        settings.loadChinese ||
+        settings.loadChineseTraditional ||
+        settings.loadKorean ||
+        localeRequiresJapanese ||
+        localeRequiresChinese ||
+        localeRequiresChineseTrad ||
+        localeRequiresKorean ||
+        settings.loadFallback) {
+      patFont=addFontZlib(font_plexMono_compressed_data,font_plexMono_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1,fontRange);
+      patFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1,fontRange);
+      patFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1,fontRange);
+      patFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1,fontRange);
     }
 
     // 0x39B = Λ

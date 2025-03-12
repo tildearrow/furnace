@@ -96,7 +96,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       opChan[ch].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
-        opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[extChanOffs].state.alg);
+        opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[extChanOffs].state.block);
         opChan[ch].portaPause=false;
         opChan[ch].note=c.value;
         opChan[ch].freqChanged=true;

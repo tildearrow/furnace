@@ -16,7 +16,7 @@ see the Discussions section.
 
 ## Getting ready
 
-log into your Github account, and click the Fork button in the header of the project's page.
+log into your GitHub account, and click the Fork button in the header of the project's page.
 
 then open a terminal and clone your fork:
 

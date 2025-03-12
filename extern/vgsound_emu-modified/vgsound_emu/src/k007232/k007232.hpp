@@ -55,7 +55,7 @@ class k007232_core : public vgsound_emu_core
 
 				// internal state
 				void reset();
-				void tick(u8 ne);
+				void tick(u8 ne, int cycles);
 
 				// accessors
 				void write(u8 address, u8 data);
@@ -67,7 +67,7 @@ class k007232_core : public vgsound_emu_core
 				// getters
 				inline s8 out() { return m_out; }
 
-			private:
+	public:
 				// registers
 				k007232_core &m_host;
 				bool m_busy = false;  // busy status
@@ -98,7 +98,7 @@ class k007232_core : public vgsound_emu_core
 
 		// internal state
 		void reset();
-		void tick();
+		void tick(int cycles);
 
 		// output for each voices, ASD/BSD pin
 		inline s32 output(u8 voice) { return m_voice[voice & 1].out(); }
@@ -106,7 +106,7 @@ class k007232_core : public vgsound_emu_core
 		// getters for debug, trackers, etc
 		inline u8 reg_r(u8 address) { return m_reg[address & 0xf]; }
 
-	private:
+	public:
 		std::array<voice_t, 2> m_voice;
 
 		k007232_intf &m_intf;  // common memory interface

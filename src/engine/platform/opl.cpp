@@ -188,6 +188,10 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
   thread_local ymfm::ymfm_output<2> aOut;
   thread_local short pcmBuf[24];
 
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0; os[2]=0; os[3]=0; os[4]=0; os[5]=0;
     if (!writes.empty() && --delay<0) {
@@ -254,9 +258,9 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
       if (!isMuted[adpcmChan]) {
         os[0]-=aOut.data[0]>>3;
         os[1]-=aOut.data[0]>>3;
-        oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]=aOut.data[0]>>1;
+        oscBuf[adpcmChan]->putSample(h,aOut.data[0]>>1);
       } else {
-        oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]=0;
+        oscBuf[adpcmChan]->putSample(h,0);
       }
     }
 
@@ -277,13 +281,13 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
         if (fm.channel[i].out[3]!=NULL) {
           chOut+=*fm.channel[ch].out[3];
         }
-        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(chOut<<(i==melodicChans?1:2),-32768,32767);
+        oscBuf[i]->putSample(h,CLAMP(chOut<<(i==melodicChans?1:2),-32768,32767));
       }
       // special
-      oscBuf[melodicChans+1]->data[oscBuf[melodicChans+1]->needle++]=fm.slot[16].out*4;
-      oscBuf[melodicChans+2]->data[oscBuf[melodicChans+2]->needle++]=fm.slot[14].out*4;
-      oscBuf[melodicChans+3]->data[oscBuf[melodicChans+3]->needle++]=fm.slot[17].out*4;
-      oscBuf[melodicChans+4]->data[oscBuf[melodicChans+4]->needle++]=fm.slot[13].out*4;
+      oscBuf[melodicChans+1]->putSample(h,fm.slot[16].out*4);
+      oscBuf[melodicChans+2]->putSample(h,fm.slot[14].out*4);
+      oscBuf[melodicChans+3]->putSample(h,fm.slot[17].out*4);
+      oscBuf[melodicChans+4]->putSample(h,fm.slot[13].out*4);
     } else {
       for (int i=0; i<chans; i++) {
         unsigned char ch=outChanMap[i];
@@ -301,13 +305,13 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
         if (fm.channel[i].out[3]!=NULL) {
           chOut+=*fm.channel[ch].out[3];
         }
-        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(chOut<<2,-32768,32767);
+        oscBuf[i]->putSample(h,CLAMP(chOut<<2,-32768,32767));
       }
     }
 
     if (chipType==4) {
       for (int i=pcmChanOffs; i<pcmChanOffs+24; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(pcmBuf[i-pcmChanOffs],-32768,32767);
+        oscBuf[i]->putSample(h,CLAMP(pcmBuf[i-pcmChanOffs],-32768,32767));
       }
     }
     
@@ -344,6 +348,10 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
       buf[5][h]=os[5];
     }
   }
+
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->end(len);
+  }
 }
 
 void DivPlatformOPL::acquire_ymfm1(short** buf, size_t len) {
@@ -354,6 +362,10 @@ void DivPlatformOPL::acquire_ymfm1(short** buf, size_t len) {
 
   for (int i=0; i<9; i++) {
     fmChan[i]=fme->debug_channel(i);
+  }
+
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->begin(len);
   }
 
   for (size_t h=0; h<len; h++) {
@@ -377,17 +389,21 @@ void DivPlatformOPL::acquire_ymfm1(short** buf, size_t len) {
 
     if (properDrums) {
       for (int i=0; i<7; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fmChan[i]->debug_output(0)<<2,-32768,32767);
+        oscBuf[i]->putSample(h,CLAMP(fmChan[i]->debug_output(0)<<2,-32768,32767));
       }
-      oscBuf[7]->data[oscBuf[7]->needle++]=CLAMP(fmChan[7]->debug_special1()<<2,-32768,32767);
-      oscBuf[8]->data[oscBuf[8]->needle++]=CLAMP(fmChan[8]->debug_special1()<<2,-32768,32767);
-      oscBuf[9]->data[oscBuf[9]->needle++]=CLAMP(fmChan[8]->debug_special2()<<2,-32768,32767);
-      oscBuf[10]->data[oscBuf[10]->needle++]=CLAMP(fmChan[7]->debug_special2()<<2,-32768,32767);
+      oscBuf[7]->putSample(h,CLAMP(fmChan[7]->debug_special1()<<2,-32768,32767));
+      oscBuf[8]->putSample(h,CLAMP(fmChan[8]->debug_special1()<<2,-32768,32767));
+      oscBuf[9]->putSample(h,CLAMP(fmChan[8]->debug_special2()<<2,-32768,32767));
+      oscBuf[10]->putSample(h,CLAMP(fmChan[7]->debug_special2()<<2,-32768,32767));
     } else {
       for (int i=0; i<9; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fmChan[i]->debug_output(0)<<2,-32768,32767);
+        oscBuf[i]->putSample(h,CLAMP(fmChan[i]->debug_output(0)<<2,-32768,32767));
       }
     }
+  }
+
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -399,6 +415,10 @@ void DivPlatformOPL::acquire_ymfm2(short** buf, size_t len) {
 
   for (int i=0; i<9; i++) {
     fmChan[i]=fme->debug_channel(i);
+  }
+
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->begin(len);
   }
 
   for (size_t h=0; h<len; h++) {
@@ -422,17 +442,21 @@ void DivPlatformOPL::acquire_ymfm2(short** buf, size_t len) {
 
     if (properDrums) {
       for (int i=0; i<7; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fmChan[i]->debug_output(0)<<2,-32768,32767);
+        oscBuf[i]->putSample(h,CLAMP(fmChan[i]->debug_output(0)<<2,-32768,32767));
       }
-      oscBuf[7]->data[oscBuf[7]->needle++]=CLAMP(fmChan[7]->debug_special1()<<2,-32768,32767);
-      oscBuf[8]->data[oscBuf[8]->needle++]=CLAMP(fmChan[8]->debug_special1()<<2,-32768,32767);
-      oscBuf[9]->data[oscBuf[9]->needle++]=CLAMP(fmChan[8]->debug_special2()<<2,-32768,32767);
-      oscBuf[10]->data[oscBuf[10]->needle++]=CLAMP(fmChan[7]->debug_special2()<<2,-32768,32767);
+      oscBuf[7]->putSample(h,CLAMP(fmChan[7]->debug_special1()<<2,-32768,32767));
+      oscBuf[8]->putSample(h,CLAMP(fmChan[8]->debug_special1()<<2,-32768,32767));
+      oscBuf[9]->putSample(h,CLAMP(fmChan[8]->debug_special2()<<2,-32768,32767));
+      oscBuf[10]->putSample(h,CLAMP(fmChan[7]->debug_special2()<<2,-32768,32767));
     } else {
       for (int i=0; i<9; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fmChan[i]->debug_output(0)<<2,-32768,32767);
+        oscBuf[i]->putSample(h,CLAMP(fmChan[i]->debug_output(0)<<2,-32768,32767));
       }
     }
+  }
+
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -445,6 +469,10 @@ void DivPlatformOPL::acquire_ymfm8950(short** buf, size_t len) {
 
   for (int i=0; i<9; i++) {
     fmChan[i]=fme->debug_channel(i);
+  }
+
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->begin(len);
   }
 
   for (size_t h=0; h<len; h++) {
@@ -468,19 +496,23 @@ void DivPlatformOPL::acquire_ymfm8950(short** buf, size_t len) {
 
     if (properDrums) {
       for (int i=0; i<7; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fmChan[i]->debug_output(0)<<2,-32768,32767);
+        oscBuf[i]->putSample(h,CLAMP(fmChan[i]->debug_output(0)<<2,-32768,32767));
       }
-      oscBuf[7]->data[oscBuf[7]->needle++]=CLAMP(fmChan[7]->debug_special1()<<2,-32768,32767);
-      oscBuf[8]->data[oscBuf[8]->needle++]=CLAMP(fmChan[8]->debug_special1()<<2,-32768,32767);
-      oscBuf[9]->data[oscBuf[9]->needle++]=CLAMP(fmChan[8]->debug_special2()<<2,-32768,32767);
-      oscBuf[10]->data[oscBuf[10]->needle++]=CLAMP(fmChan[7]->debug_special2()<<2,-32768,32767);
-      oscBuf[11]->data[oscBuf[11]->needle++]=CLAMP(abe->get_last_out(0),-32768,32767);
+      oscBuf[7]->putSample(h,CLAMP(fmChan[7]->debug_special1()<<2,-32768,32767));
+      oscBuf[8]->putSample(h,CLAMP(fmChan[8]->debug_special1()<<2,-32768,32767));
+      oscBuf[9]->putSample(h,CLAMP(fmChan[8]->debug_special2()<<2,-32768,32767));
+      oscBuf[10]->putSample(h,CLAMP(fmChan[7]->debug_special2()<<2,-32768,32767));
+      oscBuf[11]->putSample(h,CLAMP(abe->get_last_out(0),-32768,32767));
     } else {
       for (int i=0; i<9; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fmChan[i]->debug_output(0)<<2,-32768,32767);
+        oscBuf[i]->putSample(h,CLAMP(fmChan[i]->debug_output(0)<<2,-32768,32767));
       }
-      oscBuf[9]->data[oscBuf[9]->needle++]=CLAMP(abe->get_last_out(0),-32768,32767);
+      oscBuf[9]->putSample(h,CLAMP(abe->get_last_out(0),-32768,32767));
     }
+  }
+
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -492,6 +524,10 @@ void DivPlatformOPL::acquire_ymfm3(short** buf, size_t len) {
 
   for (int i=0; i<18; i++) {
     fmChan[i]=fme->debug_channel(i);
+  }
+
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->begin(len);
   }
 
   for (size_t h=0; h<len; h++) {
@@ -552,15 +588,15 @@ void DivPlatformOPL::acquire_ymfm3(short** buf, size_t len) {
           chOut=fmChan[ch]->debug_output(3);
         }
         if (i==15) {
-          oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(chOut,-32768,32767);
+          oscBuf[i]->putSample(h,CLAMP(chOut,-32768,32767));
         } else {
-          oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(chOut<<1,-32768,32767);
+          oscBuf[i]->putSample(h,CLAMP(chOut<<1,-32768,32767));
         }
       }
-      oscBuf[16]->data[oscBuf[16]->needle++]=CLAMP(fmChan[7]->debug_special2()<<1,-32768,32767);
-      oscBuf[17]->data[oscBuf[17]->needle++]=CLAMP(fmChan[8]->debug_special1()<<1,-32768,32767);
-      oscBuf[18]->data[oscBuf[18]->needle++]=CLAMP(fmChan[8]->debug_special2()<<1,-32768,32767);
-      oscBuf[19]->data[oscBuf[19]->needle++]=CLAMP(fmChan[7]->debug_special1()<<1,-32768,32767);
+      oscBuf[16]->putSample(h,CLAMP(fmChan[7]->debug_special2()<<1,-32768,32767));
+      oscBuf[17]->putSample(h,CLAMP(fmChan[8]->debug_special1()<<1,-32768,32767));
+      oscBuf[18]->putSample(h,CLAMP(fmChan[8]->debug_special2()<<1,-32768,32767));
+      oscBuf[19]->putSample(h,CLAMP(fmChan[7]->debug_special1()<<1,-32768,32767));
     } else {
       for (int i=0; i<18; i++) {
         unsigned char ch=outChanMap[i];
@@ -575,9 +611,13 @@ void DivPlatformOPL::acquire_ymfm3(short** buf, size_t len) {
         if (chOut==0) {
           chOut=fmChan[ch]->debug_output(3);
         }
-        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(chOut<<1,-32768,32767);
+        oscBuf[i]->putSample(h,CLAMP(chOut<<1,-32768,32767));
       }
     }
+  }
+
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -595,6 +635,10 @@ void DivPlatformOPL::acquire_ymfm4(short** buf, size_t len) {
 
   for (int i=0; i<24; i++) {
     pcmChan[i]=pcme->debug_channel(i);
+  }
+
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->begin(len);
   }
 
   for (size_t h=0; h<len; h++) {
@@ -644,15 +688,15 @@ void DivPlatformOPL::acquire_ymfm4(short** buf, size_t len) {
           chOut=fmChan[ch]->debug_output(3);
         }
         if (i==15) {
-          oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(chOut,-32768,32767);
+          oscBuf[i]->putSample(h,CLAMP(chOut,-32768,32767));
         } else {
-          oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(chOut<<1,-32768,32767);
+          oscBuf[i]->putSample(h,CLAMP(chOut<<1,-32768,32767));
         }
       }
-      oscBuf[16]->data[oscBuf[16]->needle++]=CLAMP(fmChan[7]->debug_special2()<<1,-32768,32767);
-      oscBuf[17]->data[oscBuf[17]->needle++]=CLAMP(fmChan[8]->debug_special1()<<1,-32768,32767);
-      oscBuf[18]->data[oscBuf[18]->needle++]=CLAMP(fmChan[8]->debug_special2()<<1,-32768,32767);
-      oscBuf[19]->data[oscBuf[19]->needle++]=CLAMP(fmChan[7]->debug_special1()<<1,-32768,32767);
+      oscBuf[16]->putSample(h,CLAMP(fmChan[7]->debug_special2()<<1,-32768,32767));
+      oscBuf[17]->putSample(h,CLAMP(fmChan[8]->debug_special1()<<1,-32768,32767));
+      oscBuf[18]->putSample(h,CLAMP(fmChan[8]->debug_special2()<<1,-32768,32767));
+      oscBuf[19]->putSample(h,CLAMP(fmChan[7]->debug_special1()<<1,-32768,32767));
     } else {
       for (int i=0; i<18; i++) {
         unsigned char ch=outChanMap[i];
@@ -667,7 +711,7 @@ void DivPlatformOPL::acquire_ymfm4(short** buf, size_t len) {
         if (chOut==0) {
           chOut=fmChan[ch]->debug_output(3);
         }
-        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(chOut<<1,-32768,32767);
+        oscBuf[i]->putSample(h,CLAMP(chOut<<1,-32768,32767));
       }
     }
     for (int i=0; i<24; i++) {
@@ -676,8 +720,12 @@ void DivPlatformOPL::acquire_ymfm4(short** buf, size_t len) {
       chOut+=pcmChan[i]->debug_output(1);
       chOut+=pcmChan[i]->debug_output(2);
       chOut+=pcmChan[i]->debug_output(3);
-      oscBuf[oscOffs]->data[oscBuf[oscOffs]->needle++]=CLAMP(chOut<<1,-32768,32767);
+      oscBuf[oscOffs]->putSample(h,CLAMP(chOut<<1,-32768,32767));
     }
+  }
+
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -706,6 +754,10 @@ static const int cycleMap3Drums[36]={
 void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
   int chOut[11];
   thread_local ymfm::ymfm_output<2> aOut;
+
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->begin(len);
+  }
 
   for (size_t h=0; h<len; h++) {
     int curCycle=0;
@@ -825,7 +877,7 @@ void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
       }
       if (chOut[i]<-32768) chOut[i]=-32768;
       if (chOut[i]>32767) chOut[i]=32767;
-      oscBuf[i]->data[oscBuf[i]->needle++]=chOut[i];
+      oscBuf[i]->putSample(h,chOut[i]);
     }
 
     if (chipType==8950) {
@@ -835,9 +887,9 @@ void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
 
       if (!isMuted[adpcmChan]) {
         dacOut-=aOut.data[0]>>3;
-        oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]=aOut.data[0]>>1;
+        oscBuf[adpcmChan]->putSample(h,aOut.data[0]>>1);
       } else {
-        oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]=0;
+        oscBuf[adpcmChan]->putSample(h,0);
       }
     }
 
@@ -846,11 +898,19 @@ void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
 
     buf[0][h]=dacOut;
   }
+
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->end(len);
+  }
 }
 
 void DivPlatformOPL::acquire_nukedLLE3(short** buf, size_t len) {
   int chOut[20];
   int ch=0;
+
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->begin(len);
+  }
 
   for (size_t h=0; h<len; h++) {
     int curCycle=0;
@@ -956,7 +1016,7 @@ void DivPlatformOPL::acquire_nukedLLE3(short** buf, size_t len) {
       }*/
       if (chOut[i]<-32768) chOut[i]=-32768;
       if (chOut[i]>32767) chOut[i]=32767;
-      oscBuf[i]->data[oscBuf[i]->needle++]=chOut[i];
+      oscBuf[i]->putSample(h,chOut[i]);
     }
 
     for (int i=0; i<MIN(4,totalOutputs); i++) {
@@ -965,6 +1025,10 @@ void DivPlatformOPL::acquire_nukedLLE3(short** buf, size_t len) {
 
       buf[i][h]=dacOut3[i];
     }
+  }
+
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -1004,7 +1068,7 @@ void DivPlatformOPL::acquire(short** buf, size_t len) {
 double DivPlatformOPL::NOTE_ADPCMB(int note) {
   if (adpcmChan<0) return 0;
   if (chan[adpcmChan].sample>=0 && chan[adpcmChan].sample<parent->song.sampleLen) {
-    double off=65535.0*(double)(parent->getSample(chan[adpcmChan].sample)->centerRate)/8363.0;
+    double off=65535.0*(double)(parent->getSample(chan[adpcmChan].sample)->centerRate)/parent->getCenterRate();
     return parent->calcBaseFreq((double)chipClock/(compatYPitch?144:72),off,note,false);
   }
   return 0;
@@ -1334,7 +1398,7 @@ void DivPlatformOPL::tick(bool sysTick) {
     }
     if (chan[adpcmChan].freqChanged || chan[adpcmChan].keyOn || chan[adpcmChan].keyOff) {
       if (chan[adpcmChan].sample>=0 && chan[adpcmChan].sample<parent->song.sampleLen) {
-        double off=65535.0*(double)(parent->getSample(chan[adpcmChan].sample)->centerRate)/8363.0;
+        double off=65535.0*(double)(parent->getSample(chan[adpcmChan].sample)->centerRate)/parent->getCenterRate();
         chan[adpcmChan].freq=parent->calcFreq(chan[adpcmChan].baseFreq,chan[adpcmChan].pitch,chan[adpcmChan].fixedArp?chan[adpcmChan].baseNoteOverride:chan[adpcmChan].arpOff,chan[adpcmChan].fixedArp,false,4,chan[adpcmChan].pitch2,(double)chipClock/(compatYPitch?144:72),off);
       } else {
         chan[adpcmChan].freq=0;
@@ -1384,7 +1448,7 @@ void DivPlatformOPL::tick(bool sysTick) {
       if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
         DivSample* s=parent->getSample(chan[i].sample);
         unsigned char ctrl=0;
-        double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
+        double off=(s->centerRate>=1)?((double)s->centerRate/parent->getCenterRate()):1.0;
         chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,(524288*768)));
         if (chan[i].freq<0x400) chan[i].freq=0x400;
         chan[i].freqH=0;
@@ -1523,6 +1587,7 @@ int DivPlatformOPL::toFreq(int freq, int fixedBlock) {
     block=freq/OPLL_C_NUM;
     if (block>0) block=bsr(block);
   }
+  if (block>7) block=7;
   freq>>=block;
   if (freq>0x3ff) freq=0x3ff;
   return (block<<10)|freq;
@@ -1713,34 +1778,37 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           chan[c.chan].freqChanged=true;
           chan[c.chan].note=c.value;
         }
-        if (ins->type==DIV_INS_MULTIPCM) {
-          chan[c.chan].lfo=ins->multipcm.lfo;
-          chan[c.chan].vib=ins->multipcm.vib;
-          chan[c.chan].am=ins->multipcm.am;
-          chan[c.chan].ar=ins->multipcm.ar;
-          chan[c.chan].d1r=ins->multipcm.d1r;
-          chan[c.chan].dl=ins->multipcm.dl;
-          chan[c.chan].d2r=ins->multipcm.d2r;
-          chan[c.chan].rc=ins->multipcm.rc;
-          chan[c.chan].rr=ins->multipcm.rr;
-          chan[c.chan].damp=ins->multipcm.damp;
-          chan[c.chan].pseudoReverb=ins->multipcm.pseudoReverb;
-          chan[c.chan].levelDirect=ins->multipcm.levelDirect;
-          chan[c.chan].lfoReset=ins->multipcm.lfoReset;
-        } else {
-          chan[c.chan].lfo=0;
-          chan[c.chan].vib=0;
-          chan[c.chan].am=0;
-          chan[c.chan].ar=15;
-          chan[c.chan].d1r=15;
-          chan[c.chan].dl=0;
-          chan[c.chan].d2r=0;
-          chan[c.chan].rc=15;
-          chan[c.chan].rr=15;
-          chan[c.chan].damp=false;
-          chan[c.chan].pseudoReverb=false;
-          chan[c.chan].levelDirect=true;
-          chan[c.chan].lfoReset=false;
+        if (chan[c.chan].insChanged) {
+          if (ins->type==DIV_INS_MULTIPCM) {
+            chan[c.chan].lfo=ins->multipcm.lfo;
+            chan[c.chan].vib=ins->multipcm.vib;
+            chan[c.chan].am=ins->multipcm.am;
+            chan[c.chan].ar=ins->multipcm.ar;
+            chan[c.chan].d1r=ins->multipcm.d1r;
+            chan[c.chan].dl=ins->multipcm.dl;
+            chan[c.chan].d2r=ins->multipcm.d2r;
+            chan[c.chan].rc=ins->multipcm.rc;
+            chan[c.chan].rr=ins->multipcm.rr;
+            chan[c.chan].damp=ins->multipcm.damp;
+            chan[c.chan].pseudoReverb=ins->multipcm.pseudoReverb;
+            chan[c.chan].levelDirect=ins->multipcm.levelDirect;
+            chan[c.chan].lfoReset=ins->multipcm.lfoReset;
+          } else {
+            chan[c.chan].lfo=0;
+            chan[c.chan].vib=0;
+            chan[c.chan].am=0;
+            chan[c.chan].ar=15;
+            chan[c.chan].d1r=15;
+            chan[c.chan].dl=0;
+            chan[c.chan].d2r=0;
+            chan[c.chan].rc=15;
+            chan[c.chan].rr=15;
+            chan[c.chan].damp=false;
+            chan[c.chan].pseudoReverb=false;
+            chan[c.chan].levelDirect=true;
+            chan[c.chan].lfoReset=false;
+          }
+          chan[c.chan].insChanged=false;
         }
         chan[c.chan].active=true;
         chan[c.chan].keyOn=true;
@@ -3142,7 +3210,7 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
   compatYPitch=flags.getBool("compatYPitch",false);
 
   for (int i=0; i<44; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

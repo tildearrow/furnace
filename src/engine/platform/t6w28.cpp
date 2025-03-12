@@ -35,26 +35,33 @@ const char** DivPlatformT6W28::getRegisterSheet() {
   return regCheatSheetT6W28;
 }
 
-void DivPlatformT6W28::acquire(short** buf, size_t len) {
-  for (size_t h=0; h<len; h++) {
-    cycles=0;
-    while (!writes.empty() && cycles<16) {
-      QueuedWrite w=writes.front();
-      if (w.addr) {
-        t6w->write_data_right(cycles,w.val);
-      } else {
-        t6w->write_data_left(cycles,w.val);
-      }
-      regPool[w.addr&1]=w.val;
-      //cycles+=2;
-      writes.pop();
+void DivPlatformT6W28::acquireDirect(blip_buffer_t** bb, size_t len) {
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+  t6w->output(bb[0],bb[1]);
+  for (int i=0; i<4; i++) {
+    t6w->osc_output(i,oscBuf[i]);
+  }
+
+  while (!writes.empty()) {
+    QueuedWrite w=writes.front();
+    if (w.addr) {
+      t6w->write_data_right(0,w.val);
+    } else {
+      t6w->write_data_left(0,w.val);
     }
-    t6w->end_frame(16);
+    regPool[w.addr&1]=w.val;
+    writes.pop();
+  }
+  t6w->end_frame(len);
+  /*
+  for (size_t h=0; h<len; h++) {
 
     tempL=0;
     tempR=0;
     for (int i=0; i<4; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(out[i][1].curValue+out[i][2].curValue)<<7;
+      oscBuf[i]->putSample(h,(out[i][1].curValue+out[i][2].curValue)<<7);
       tempL+=out[i][1].curValue<<7;
       tempR+=out[i][2].curValue<<7;
     }
@@ -66,6 +73,10 @@ void DivPlatformT6W28::acquire(short** buf, size_t len) {
     
     buf[0][h]=tempL;
     buf[1][h]=tempR;
+  }*/
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -326,10 +337,6 @@ void DivPlatformT6W28::reset() {
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformT6W28::Channel();
     chan[i].std.setEngine(parent);
-
-    out[i][0].curValue=0;
-    out[i][1].curValue=0;
-    out[i][2].curValue=0;
   }
   if (dumpWrites) {
     addWrite(0xffffffff,0);
@@ -338,7 +345,6 @@ void DivPlatformT6W28::reset() {
   lastPan=0xff;
   tempL=0;
   tempR=0;
-  cycles=0;
   curChan=-1;
   delay=0;
   // default noise mode
@@ -353,6 +359,10 @@ bool DivPlatformT6W28::keyOffAffectsArp(int ch) {
   return true;
 }
 
+bool DivPlatformT6W28::hasAcquireDirect() {
+  return true;
+}
+
 void DivPlatformT6W28::notifyInsDeletion(void* ins) {
   for (int i=0; i<4; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
@@ -362,9 +372,9 @@ void DivPlatformT6W28::notifyInsDeletion(void* ins) {
 void DivPlatformT6W28::setFlags(const DivConfig& flags) {
   chipClock=3072000.0;
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/16;
+  rate=chipClock;
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
   easyNoise=!flags.getBool("noEasyNoise",false);
 
@@ -374,7 +384,7 @@ void DivPlatformT6W28::setFlags(const DivConfig& flags) {
   }
   t6w=new MDFN_IEN_NGP::T6W28_Apu;
   for (int i=0; i<4; i++) {
-    t6w->osc_output(i,&out[i][0],&out[i][1],&out[i][2]);
+    t6w->osc_output(i,oscBuf[i]);
   }
 }
 

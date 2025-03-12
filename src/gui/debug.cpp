@@ -521,7 +521,6 @@ void putDispatchChip(void* data, int type) {
       DivPlatformGA20* ch=(DivPlatformGA20*)data;
       ImGui::Text("> GA20");
       COMMON_CHIP_DEBUG;
-      ImGui::Text("- delay: %.2x",ch->delay);
       COMMON_CHIP_DEBUG_BOOL;
       break;
     }
@@ -554,9 +553,12 @@ void putDispatchChip(void* data, int type) {
       COMMON_CHIP_DEBUG_BOOL;
       break;
     }
-    default:
+    default: {
+      DivDispatch* ch=(DivDispatch*)data;
+      COMMON_CHIP_DEBUG;
       ImGui::Text("Unimplemented chip! Help!");
       break;
+    }
   }
 }
 void putDispatchChan(void* data, int chanNum, int type) {

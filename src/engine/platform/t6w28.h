@@ -49,7 +49,6 @@ class DivPlatformT6W28: public DivDispatch {
   int cycles, curChan, delay;
   int tempL, tempR;
   MDFN_IEN_NGP::T6W28_Apu* t6w;
-  MDFN_IEN_NGP::Fake_Buffer out[4][3];
   unsigned char regPool[128];
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
@@ -59,7 +58,7 @@ class DivPlatformT6W28: public DivDispatch {
   
   void writeOutVol(int ch);
   public:
-    void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -74,6 +73,7 @@ class DivPlatformT6W28: public DivDispatch {
     void muteChannel(int ch, bool mute);
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
+    bool hasAcquireDirect();
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);

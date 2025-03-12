@@ -29,6 +29,10 @@
 void DivPlatformSegaPCM::acquire(short** buf, size_t len) {
   thread_local int os[2];
 
+  for (int i=0; i<16; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -49,8 +53,12 @@ void DivPlatformSegaPCM::acquire(short** buf, size_t len) {
     buf[1][h]=os[1];
 
     for (int i=0; i<16; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(pcm.lastOut[i][0]+pcm.lastOut[i][1])>>1;
+      oscBuf[i]->putSample(h,(pcm.lastOut[i][0]+pcm.lastOut[i][1])>>1);
     }
+  }
+
+  for (int i=0; i<16; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -119,7 +127,7 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
         double off=1.0;
         if (chan[i].pcm.sample>=0 && chan[i].pcm.sample<parent->song.sampleLen) {
           DivSample* s=parent->getSample(chan[i].pcm.sample);
-          off=(double)s->centerRate/8363.0;
+          off=(double)s->centerRate/parent->getCenterRate();
         }
         chan[i].pcm.freq=MIN(255,((rate*0.5)+(off*parent->song.tuning*pow(2.0,double(chan[i].freq+512)/(128.0*12.0)))*255)/rate)+(oldSlides?chan[i].pitch2:0);
         rWrite(7+(i<<3),chan[i].pcm.freq);
@@ -551,7 +559,7 @@ void DivPlatformSegaPCM::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/256;
   for (int i=0; i<16; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 
   oldSlides=flags.getBool("oldSlides",false);

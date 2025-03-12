@@ -47,6 +47,9 @@ bool DivWaveSynth::activeChanged() {
   return false;
 }
 
+#define WS_BEGIN int _oldOut=output[pos];
+#define WS_END if (output[pos]!=_oldOut) updated=true;
+
 bool DivWaveSynth::tick(bool skipSubDiv) {
   bool updated=first;
   first=false;
@@ -63,84 +66,103 @@ bool DivWaveSynth::tick(bool skipSubDiv) {
     switch (state.effect) {
       case DIV_WS_INVERT:
         for (int i=0; i<=state.speed; i++) {
+          WS_BEGIN;
           output[pos]=height-output[pos];
+          WS_END;
+
           if (++pos>=width) pos=0;
         }
-        updated=true;
         break;
       case DIV_WS_ADD:
         for (int i=0; i<=state.speed; i++) {
+          WS_BEGIN;
           output[pos]+=MIN(height,state.param1);
           if (output[pos]>=height) output[pos]-=height;
+          WS_END;
+
           if (++pos>=width) pos=0;
         }
-        updated=true;
         break;
       case DIV_WS_SUBTRACT:
         for (int i=0; i<=state.speed; i++) {
+          WS_BEGIN;
           output[pos]-=MIN(height,state.param1);
           if (output[pos]<0) output[pos]+=height;
+          WS_END;
+
           if (++pos>=width) pos=0;
         }
-        updated=true;
         break;
       case DIV_WS_AVERAGE:
         for (int i=0; i<=state.speed; i++) {
           int pos1=(pos+1>=width)?0:(pos+1);
+          WS_BEGIN;
           output[pos]=(128+output[pos]*(256-state.param1)+output[pos1]*state.param1)>>8;
           if (output[pos]<0) output[pos]=0;
           if (output[pos]>height) output[pos]=height;
+          WS_END;
+
           if (++pos>=width) pos=0;
         }
-        updated=true;
         break;
       case DIV_WS_PHASE:
         for (int i=0; i<=state.speed; i++) {
+          WS_BEGIN;
           output[pos]=wave1[(pos+stage)%width];
+          WS_END;
+
           if (++pos>=width) {
             pos=0;
             if (++stage>=width) stage=0;
           }
         }
-        updated=true;
         break;
       case DIV_WS_CHORUS:
         for (int i=0; i<=state.speed; i++) {
+          WS_BEGIN;
           output[pos]=(wave1[pos]+wave1[(pos+stage)%width])>>1;
+          WS_END;
+
           if (++pos>=width) {
             pos=0;
             stage+=state.param1;
             while (stage>=width) stage-=width;
           }
         }
-        updated=true;
         break;
       case DIV_WS_WIPE:
         for (int i=0; i<=state.speed; i++) {
+          WS_BEGIN;
           output[pos]=(stage&1)?wave1[pos]:wave2[pos];
           if (output[pos]<0) output[pos]=0;
           if (output[pos]>height) output[pos]=height;
+          WS_END;
+
           if (++pos>=width) {
             pos=0;
             stage=!stage;
           }
         }
-        updated=true;
         break;
       case DIV_WS_FADE:
         for (int i=0; i<=state.speed; i++) {
+          WS_BEGIN;
           output[pos]=wave1[pos]+(((wave2[pos]-wave1[pos])*stage)>>9);
+          WS_END;
+
           if (++pos>=width) {
             pos=0;
             stage+=1+state.param1;
             if (stage>512) stage=512;
           }
         }
-        updated=true;
         break;
       case DIV_WS_PING_PONG:
         for (int i=0; i<=state.speed; i++) {
+          WS_BEGIN;
           output[pos]=wave1[pos]+(((wave2[pos]-wave1[pos])*stage)>>8);
+          WS_END;
+
           if (++pos>=width) {
             pos=0;
             if (stageDir) {
@@ -158,61 +180,70 @@ bool DivWaveSynth::tick(bool skipSubDiv) {
             }
           }
         }
-        updated=true;
         break;
       case DIV_WS_OVERLAY:
         for (int i=0; i<=state.speed; i++) {
+          WS_BEGIN;
           output[pos]+=wave2[pos];
           if (output[pos]>=height) output[pos]-=height;
+          WS_END;
+
           if (++pos>=width) pos=0;
         }
-        updated=true;
         break;
       case DIV_WS_NEGATIVE_OVERLAY:
         for (int i=0; i<=state.speed; i++) {
+          WS_BEGIN;
           output[pos]-=wave2[pos];
           if (output[pos]<0) output[pos]+=height;
+          WS_END;
+
           if (++pos>=width) pos=0;
         }
-        updated=true;
         break;
       case DIV_WS_SLIDE:
         for (int i=0; i<=state.speed; i++) {
           int newPos=(pos+stage)%(width*2);
+          WS_BEGIN;
           if (newPos>=width) {
             output[pos]=wave2[newPos-width];
           } else {
             output[pos]=wave1[newPos];
           }
+          WS_END;
+
           if (++pos>=width) {
             pos=0;
             if (++stage>=width*2) stage=0;
           }
         }
-        updated=true;
         break;
       case DIV_WS_MIX:
         for (int i=0; i<=state.speed; i++) {
+          WS_BEGIN;
           output[pos]=(wave1[pos]+wave2[(pos+stage)%width])>>1;
+          WS_END;
+
           if (++pos>=width) {
             pos=0;
             stage+=state.param1;
             while (stage>=width) stage-=width;
           }
         }
-        updated=true;
         break;
       case DIV_WS_PHASE_MOD:
         for (int i=0; i<=state.speed; i++) {
           int mod=(wave2[pos]*(state.param2-stage)*width)/(64*(height+1));
+          WS_BEGIN;
           output[pos]=wave1[(pos+mod)%width];
+          WS_END;
+
           if (++pos>=width) {
             pos=0;
             stage+=state.param1;
             if (stage>state.param2) stage=state.param2;
           }
         }
-        updated=true;
         break;
     }
     divCounter=state.rateDivider;
