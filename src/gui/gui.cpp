@@ -1260,7 +1260,7 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
   int tick=0;
   int speed=0;
 
-  if (e->isPlaying() && !e->isStepping()) {
+  if (e->isPlaying() && !e->isStepping() && followPattern) {
     e->getPlayPosTick(ord,y,tick,speed);
     if (tick<=(speed/2)) { // round
       // TODO: detect 0Dxx/0Bxx?
@@ -1335,7 +1335,7 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
   int ord=curOrder;
   int y=cursor.y;
 
-  if (e->isPlaying() && !e->isStepping()) {
+  if (e->isPlaying() && !e->isStepping() && followPattern) {
     e->getPlayPos(ord,y);
   }
 
