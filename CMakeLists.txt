@@ -480,6 +480,7 @@ src/log.cpp
 src/baseutils.cpp
 src/fileutils.cpp
 src/utfutils.cpp
+src/hashUtils.cpp
 
 extern/itcompress/compression.c
 
