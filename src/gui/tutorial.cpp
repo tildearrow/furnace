@@ -875,20 +875,28 @@ void FurnaceGUI::drawTutorial() {
             cv->loadInstruments();
           }
         }
-        cv->origSongRate=cv->e->getHz();
+        cv->origSongRate=e->getHz();
       }
 
       WAKE_UP;
 
       if (cv->inTransition && cv->transWait==1) {
         // load random demo song
-        if (cv->playSongs) {
+        int avgSpeed=0;
+        for (int i=0; i<e->curSubSong->speeds.len; i++) {
+          avgSpeed+=e->curSubSong->speeds.val[i];
+        }
+        int oneQuarter=(e->curSubSong->ordersLen*e->curSubSong->patLen*avgSpeed)/e->curSubSong->speeds.len;
+        oneQuarter=(oneQuarter*e->curSubSong->virtualTempoN)/e->curSubSong->virtualTempoD;
+        oneQuarter/=e->curSubSong->hz;
+        oneQuarter/=4;
+        if (cv->playSongs && e->getTotalSeconds()>=oneQuarter) {
           if (loadRandomDemoSong()) {
             cv->loadInstruments();
             e->changeSongP(0);
             e->setOrder(0);
             e->play();
-            cv->origSongRate=cv->e->getHz();
+            cv->origSongRate=e->getHz();
           }
         }
       }
