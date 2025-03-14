@@ -64,6 +64,7 @@ enum FurnaceCVObjectTypes {
   CV_MINE,
   CV_POWERUP_P,
   CV_POWERUP_S,
+  CV_MOD_I,
   CV_MOD_S,
   CV_EXTRA_LIFE
 };
@@ -115,7 +116,7 @@ struct FurnaceCVPlayer: FurnaceCVObject {
   short speedX, speedY;
   unsigned char shootDir;
   unsigned char animFrame;
-  unsigned char invincible;
+  short invincible;
   unsigned char shotTimer;
 
   void collision(FurnaceCVObject* other);
@@ -376,6 +377,17 @@ struct FurnaceCVPowerupS: FurnaceCVObject {
     }
 };
 
+struct FurnaceCVModI: FurnaceCVObject {
+  unsigned char life;
+  void collision(FurnaceCVObject* other);
+  void tick();
+  FurnaceCVModI(FurnaceCV* p):
+    FurnaceCVObject(p),
+    life(255) {
+      type=CV_MOD_I;
+    }
+};
+
 struct FurnaceCVModS: FurnaceCVObject {
   unsigned char life;
   void collision(FurnaceCVObject* other);
@@ -419,7 +431,7 @@ struct FurnaceCV {
   int textWait, curText, transWait;
   int ticksToInit;
 
-  bool inGame, inTransition, newHiScore, playSongs, pleaseInitSongs;
+  bool inGame, inTransition, newHiScore, playSongs, pleaseInitSongs, gameOver;
   unsigned char lives, respawnTime, stage, shotType;
   int score;
   int hiScore;
@@ -494,6 +506,7 @@ struct FurnaceCV {
     newHiScore(false),
     playSongs(true),
     pleaseInitSongs(false),
+    gameOver(false),
     lives(5),
     respawnTime(0),
     stage(0),
@@ -853,6 +866,15 @@ void FurnaceGUI::drawTutorial() {
             touchControls|=128;
           }
         }
+
+        if (cv!=NULL) {
+          if (touchControls && cv->gameOver) {
+            cv->unload();
+            delete cv;
+            cv=NULL;
+            cvOpen=false;
+          }
+        }
       }
 
       if (cv==NULL) {
@@ -922,8 +944,8 @@ void FurnaceGUI::drawTutorial() {
 
         if (((double)canvasH/(double)canvasW)>0.7) {
           if (mobileUI) {
-            p0=ImVec2(0.0,0.0);
-            p1=ImVec2(canvasW,canvasW*0.7);
+            p0=ImVec2(0.0,canvasH*0.05);
+            p1=ImVec2(canvasW,(canvasH*0.05)+(canvasW*0.7));
           } else {
             p0=ImVec2(0.0,(canvasH-(canvasW*0.7))*0.5);
             p1=ImVec2(canvasW,canvasW*0.7+(canvasH-(canvasW*0.7))*0.5);
@@ -1445,6 +1467,7 @@ void FurnaceCV::render(unsigned char joyIn) {
           } else {
             startTyping(_(cvText[2]),15,13);
           }
+          gameOver=true;
         }
       }
     }
@@ -2247,7 +2270,7 @@ void FurnaceCVEnemy1::collision(FurnaceCVObject* other) {
     if (--health<=0) {
       dead=true;
       if ((rand()%7)==0 || (enemyType>1 && (rand()%7)==3)) {
-        switch (rand()%13) {
+        switch (rand()%14) {
           case 0: // extra life
             cv->createObject<FurnaceCVExtraLife>(x+(enemyType>=2?8:0),y+(enemyType>=2?8:0));
             break;
@@ -2261,6 +2284,9 @@ void FurnaceCVEnemy1::collision(FurnaceCVObject* other) {
             break;
           case 12: // mod
             cv->createObject<FurnaceCVModS>(x+(enemyType>=2?8:0),y+(enemyType>=2?8:0));
+            break;
+          case 13: // mod
+            cv->createObject<FurnaceCVModI>(x+(enemyType>=2?8:0),y+(enemyType>=2?8:0));
             break;
         }
       }
@@ -3013,6 +3039,33 @@ void FurnaceCVExtraLife::tick() {
     spriteDef[1]=0x0d;
     spriteDef[2]=0x2c;
     spriteDef[3]=0x2d;
+  } else {
+    spriteDef[0]=0;
+    spriteDef[1]=0;
+    spriteDef[2]=0;
+    spriteDef[3]=0;
+  }
+}
+
+// FurnaceCVModI IMPLEMENTATION
+
+void FurnaceCVModI::collision(FurnaceCVObject* other) {
+  if (other->type==CV_PLAYER) {
+    dead=true;
+    cv->soundEffect(SE_PICKUP1);
+    cv->addScore(200);
+    ((FurnaceCVPlayer*)other)->invincible=600;
+  }
+}
+
+void FurnaceCVModI::tick() {
+  if (--life==0) dead=true;
+
+  if (life>64 || (life&1)) {
+    spriteDef[0]=0x41c;
+    spriteDef[1]=0x41d;
+    spriteDef[2]=0x43c;
+    spriteDef[3]=0x43d;
   } else {
     spriteDef[0]=0;
     spriteDef[1]=0;
