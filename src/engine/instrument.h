@@ -341,7 +341,6 @@ struct DivInstrumentSTD {
   DivInstrumentMacro ex6Macro;
   DivInstrumentMacro ex7Macro;
   DivInstrumentMacro ex8Macro;
-  std::vector<DivInstrumentXattr> xattrs;
 
   struct OpMacro {
     // ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
@@ -395,8 +394,7 @@ struct DivInstrumentSTD {
     ex5Macro(DIV_MACRO_EX5),
     ex6Macro(DIV_MACRO_EX6),
     ex7Macro(DIV_MACRO_EX7),
-    ex8Macro(DIV_MACRO_EX8),
-    xattrs() {
+    ex8Macro(DIV_MACRO_EX8) {
     for (int i=0; i<4; i++) {
       opMacros[i].amMacro.macroType=DIV_MACRO_OP_AM+(i<<5);
       opMacros[i].arMacro.macroType=DIV_MACRO_OP_AR+(i<<5);
@@ -1076,6 +1074,7 @@ struct DivInstrumentUndoStep {
 
 struct DivInstrument : DivInstrumentPOD {
   String name;
+  std::vector<DivInstrumentXattr> xattrs;
 
   DivInstrument() :
     name("") {

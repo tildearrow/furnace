@@ -1133,7 +1133,7 @@ void DivInstrument::writeFeatureS3(SafeWriter* w) {
 
 void DivInstrument::writeFeatureXA(SafeWriter* w) {
   FEATURE_BEGIN("XA");
-  for (auto const &i : this->std.xattrs) {
+  for (auto const &i : this->xattrs) {
     w->writeString(i.name, false);
     if ((i.type & ~1) == DIV_XATTR_BOOLEAN) {
       // handle boolean data type here
@@ -1639,7 +1639,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
   }
 
-  if (!std.xattrs.empty()) {
+  if (!xattrs.empty()) {
     featureXA = true;
   }
   // write features
@@ -2665,7 +2665,7 @@ void DivInstrument::readFeatureXA(SafeReader& reader, short version) {
     if ((xattr.type & ~1) == DIV_XATTR_BOOLEAN) {
       xattr.bool_val = xattr.type & 1;
       xattr.type = DIV_XATTR_BOOLEAN;
-      std.xattrs.push_back(xattr);
+      xattrs.push_back(xattr);
       xattr = DivInstrumentXattr();
       continue;
     }
@@ -2711,7 +2711,7 @@ void DivInstrument::readFeatureXA(SafeReader& reader, short version) {
       // this should be unreachable
       break;
     }
-    std.xattrs.push_back(xattr);
+    xattrs.push_back(xattr);
     xattr = DivInstrumentXattr();
   }
   READ_FEAT_END;
