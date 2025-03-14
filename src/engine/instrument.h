@@ -24,6 +24,7 @@
 #include "../ta-utils.h"
 #include "../pch.h"
 #include "../fixedQueue.h"
+#include "../hashUtils.h"
 #include <vector>
 
 struct DivSong;
@@ -318,6 +319,36 @@ struct DivInstrumentXattr {
     type(DIV_XATTR_STRING),
     str_val(),
     int_val(0) {};
+};
+
+// Hasher object for Xattr
+template<>
+struct std::hash<DivInstrumentXattr>
+{
+  size_t operator()(const DivInstrumentXattr& xattr) const noexcept {
+    size_t hash=0;
+    hash=combineHash(hash, xattr.name);
+    hash=combineHash(hash, xattr.type);
+
+    switch (xattr.type) {
+      case DIV_XATTR_STRING:
+      hash=combineHash(hash, xattr.str_val);
+      break;
+      case DIV_XATTR_UINT:
+      hash=combineHash(hash, xattr.uint_val);
+      break;
+      case DIV_XATTR_INT:
+      hash=combineHash(hash, xattr.int_val);
+      break;
+      case DIV_XATTR_FLOAT32:
+      hash=combineHash(hash, xattr.float_val);
+      break;
+      case DIV_XATTR_BOOLEAN:
+      hash=combineHash(hash, xattr.bool_val);
+      break;
+    }
+    return hash;
+  }
 };
 
 struct DivInstrumentSTD {
@@ -1060,12 +1091,16 @@ struct DivInstrumentUndoStep {
   DivInstrumentUndoStep() :
     name(""),
     nameValid(false),
+    xattrsValid(false),
     processTime(0) {
   }
 
   MemPatch podPatch;
   String name;
   bool nameValid;
+
+  std::vector<DivInstrumentXattr> xattrs;
+  bool xattrsValid;
   size_t processTime;
 
   void applyAndReverse(DivInstrument* target);

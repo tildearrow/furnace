@@ -22,6 +22,7 @@
 #include "instrument.h"
 #include "../ta-log.h"
 #include "../fileutils.h"
+#include "../hashUtils.h"
 
 const DivInstrument defaultIns;
 
@@ -480,9 +481,22 @@ void DivInstrumentUndoStep::applyAndReverse(DivInstrument* target) {
   if (nameValid) {
     name.swap(target->name);
   }
+
+  if (xattrsValid) {
+    target->xattrs=xattrs;
+  }
   podPatch.applyAndReverse((DivInstrumentPOD*)target, sizeof(DivInstrumentPOD));
 }
 
+static size_t computeXattrsHash(const std::vector<DivInstrumentXattr> *vec) {
+  size_t hash=0;
+  std::hash<DivInstrumentXattr> hasher;
+  for (const auto &i: *vec) {
+    hash=combineHash(hash, hasher(i));
+  }
+
+  return hash;
+}
 bool DivInstrumentUndoStep::makeUndoPatch(size_t processTime_, const DivInstrument* pre, const DivInstrument* post) {
   processTime=processTime_;
 
@@ -493,7 +507,22 @@ bool DivInstrumentUndoStep::makeUndoPatch(size_t processTime_, const DivInstrume
     name=pre->name;
   }
 
-  return nameValid || podPatch.isValid();
+  // check xattrs
+  size_t hash=0;
+  size_t post_hash=0;
+  if (!pre->xattrs.empty() || !post->xattrs.empty()) {
+    hash=computeXattrsHash(&pre->xattrs);
+    post_hash=computeXattrsHash(&post->xattrs);
+    logD("Xattrs pre hash: %lld", hash);
+    logD("Xattrs post hash: %lld", post_hash);
+
+    if (hash!=post_hash) {
+      xattrsValid=true;
+      xattrs=pre->xattrs;
+    }
+  }
+
+  return xattrsValid || nameValid || podPatch.isValid();
 }
 
 bool DivInstrument::recordUndoStepIfChanged(size_t processTime, const DivInstrument* old) {
@@ -3886,5 +3915,6 @@ DivInstrument& DivInstrument::operator=( const DivInstrument& ins ) {
   // undo/redo history is specifically not copied
   *(DivInstrumentPOD*)this=ins;
   name=ins.name;
+  xattrs=ins.xattrs;
   return *this;
 }
