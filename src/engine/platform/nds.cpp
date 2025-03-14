@@ -572,6 +572,7 @@ void DivPlatformNDS::renderSamples(int sysID) {
 void DivPlatformNDS::setFlags(const DivConfig& flags) {
   isDSi=flags.getBool("chipType",0);
   chipClock=33513982;
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/2;
   for (int i=0; i<16; i++) {
     oscBuf[i]->setRate(rate);
