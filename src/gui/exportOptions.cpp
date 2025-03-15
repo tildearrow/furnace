@@ -280,8 +280,8 @@ void FurnaceGUI::drawExportROM(bool onWindow) {
 
   switch (romTarget) {
     case DIV_ROM_TIUNA: {
-      String asmBaseLabel=romConfig.getString("baseLabel","song");
-      int firstBankSize=romConfig.getInt("firstBankSize",3072);
+      String asmBaseLabel=romConfig.getString("baseLabel","twin");
+      int firstBankSize=romConfig.getInt("firstBankSize",1024);
       int otherBankSize=romConfig.getInt("otherBankSize",4096-48);
       int sysToExport=romConfig.getInt("sysToExport",-1);
 

@@ -213,6 +213,7 @@ struct FurnaceCVEnemy1: FurnaceCVObject {
   unsigned char animFrame;
   short nextTime, shootTime;
   unsigned char shootCooldown;
+  short orientCount;
 
   void collision(FurnaceCVObject* other);
 
@@ -227,7 +228,8 @@ struct FurnaceCVEnemy1: FurnaceCVObject {
     animFrame(0),
     nextTime(64+(rand()%600)),
     shootTime(8),
-    shootCooldown(0) {
+    shootCooldown(0),
+    orientCount(0) {
     type=CV_ENEMY;
     spriteDef[0]=0x200;
     spriteDef[1]=0x201;
@@ -1553,7 +1555,7 @@ void FurnaceCV::render(unsigned char joyIn) {
     // S mod stat
     if (speedTicks>0) {
       speedTicks--;
-      if ((speedTicks<120 && speedTicks&2) || speedTicks&16) {
+      if ((speedTicks<120 && speedTicks&2) || (speedTicks>=120 && speedTicks&16)) {
         tile1[24][36]=0x41e;
         tile1[24][37]=0x41f;
         tile1[25][36]=0x43e;
@@ -2322,7 +2324,14 @@ void FurnaceCVEnemy1::collision(FurnaceCVObject* other) {
     }
   } else if (other->type==CV_ENEMY || other->type==CV_MINE) {
     // reorient
-    orient=(orient+2)&3;
+    orientCount+=2;
+    if (orientCount>6) {
+      // stuck...
+      stopped=true;
+      cv->stopSoundEffect(SE_TANKMOVE);
+    } else {
+      orient=(orient+2)&3;
+    }
   }
 }
 
@@ -2344,6 +2353,8 @@ void FurnaceCVEnemy1::tick() {
     }
     animFrame+=0x15;
   }
+
+  if (--orientCount<=0) orientCount=0;
 
   if (--nextTime==0) {
     nextTime=64+(rand()%600);
@@ -2402,11 +2413,8 @@ void FurnaceCVEnemy1::tick() {
   }
 
   if (HITS_BORDER) {
-    if (x<0) orient=0;
-    if (x>=cv->stageWidthPx-16) orient=2;
-    if (y<0) orient=3;
-    if (y>=cv->stageHeightPx-16) orient=1;
-    cv->soundEffect(SE_TANKMOVE);
+    orient=(orient+2)&3;
+
     CONFINE_TO_BORDER;
   }
 
