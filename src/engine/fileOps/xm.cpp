@@ -76,12 +76,16 @@ void readEnvelope(DivInstrument* ins, int env, unsigned char flags, unsigned cha
   if (flags&4) { // loop
     if (loopStart!=loopEnd && loopStart<numPoints) {
       target->loop=CLAMP(pointTime[loopStart],0,254);
+      target->len=MIN(pointTime[numPoints-1],255);
+    } else {
+      target->len=MIN(pointTime[numPoints-1]+1,255);
     }
+  } else {
+    target->len=MIN(pointTime[numPoints-1]+1,255);
   }
   if (flags&2 && susPoint<numPoints) { // sustain
     target->rel=CLAMP(pointTime[susPoint]-1,0,254);
   }
-  target->len=MIN(pointTime[numPoints-1]+1,255);
   if (((flags&4) && (!(flags&2))) || ((flags&6)==0)) {
     target->rel=target->len-1;
   }
@@ -565,6 +569,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
 
         if (volType&1) {
           // add fade-out
+          logV("volFade: %d",volFade);
           if (volFade!=0) {
             int cur=64;
             int macroLen=ins->std.volMacro.len;
