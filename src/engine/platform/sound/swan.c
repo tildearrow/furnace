@@ -136,7 +136,7 @@ void swan_sound_tick(swan_sound_t *snd, uint32_t cycles) {
                 snd->period_counter[ch] -= step;
 
                 // Update noise counter
-                if (ch == 3 && (snd->ch_ctrl & SND_CH4_NOISE) && (snd->noise_ctrl & SND_NOISE_ENABLE)) {
+                if (ch == 3 && (snd->noise_ctrl & SND_NOISE_ENABLE)) {
                     uint8_t lfsr_new = (1 ^ (snd->noise_lfsr >> 7) ^ (snd->noise_lfsr >> lfsr_tap_bits[snd->noise_ctrl & 7])) & 0x1;
                     snd->noise_lfsr = (snd->noise_lfsr << 1) | lfsr_new;
                 }
