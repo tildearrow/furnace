@@ -790,50 +790,6 @@ void FurnaceGUI::drawSettings() {
           ImGui::SetTooltip(_("may cause issues with high-polling-rate mice when previewing notes."));
         }
 
-        pushWarningColor(settings.chanOscThreads>cpuCores,settings.chanOscThreads>(cpuCores*2));
-        if (ImGui::InputInt(_("Per-channel oscilloscope threads"),&settings.chanOscThreads)) {
-          if (settings.chanOscThreads<0) settings.chanOscThreads=0;
-          if (settings.chanOscThreads>(cpuCores*3)) settings.chanOscThreads=cpuCores*3;
-          if (settings.chanOscThreads>256) settings.chanOscThreads=256;
-          settingsChanged=true;
-        }
-        if (settings.chanOscThreads>=(cpuCores*3)) {
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("you're being silly, aren't you? that's enough."));
-          }
-        } else if (settings.chanOscThreads>(cpuCores*2)) {
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("what are you doing? stop!"));
-          }
-        } else if (settings.chanOscThreads>cpuCores) {
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("it is a bad idea to set this number higher than your CPU core count (%d)!"),cpuCores);
-          }
-        }
-        popWarningColor();
-
-        ImGui::Text(_("Oscilloscope rendering engine:"));
-        ImGui::Indent();
-        if (ImGui::RadioButton(_("ImGui line plot"),settings.shaderOsc==0)) {
-          settings.shaderOsc=0;
-          settingsChanged=true;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("render using Dear ImGui's built-in line drawing functions."));
-        }
-        if (ImGui::RadioButton(_("GLSL (if available)"),settings.shaderOsc==1)) {
-          settings.shaderOsc=1;
-          settingsChanged=true;
-        }
-        if (ImGui::IsItemHovered()) {
-#ifdef USE_GLES
-          ImGui::SetTooltip(_("render using shaders that run on the graphics card.\nonly available in OpenGL ES 2.0 render backend."));
-#else
-          ImGui::SetTooltip(_("render using shaders that run on the graphics card.\nonly available in OpenGL 3.0 render backend."));
-#endif
-        }
-        ImGui::Unindent();
-
 #ifdef IS_MOBILE
         // SUBSECTION VIBRATION
         CONFIG_SUBSECTION(_("Vibration"));
@@ -3842,6 +3798,50 @@ void FurnaceGUI::drawSettings() {
           if (settings.oscLineSize>16.0f) settings.oscLineSize=16.0f;
           settingsChanged=true;
         } rightClickable
+
+        pushWarningColor(settings.chanOscThreads>cpuCores,settings.chanOscThreads>(cpuCores*2));
+        if (ImGui::InputInt(_("Per-channel oscilloscope threads"),&settings.chanOscThreads)) {
+          if (settings.chanOscThreads<0) settings.chanOscThreads=0;
+          if (settings.chanOscThreads>(cpuCores*3)) settings.chanOscThreads=cpuCores*3;
+          if (settings.chanOscThreads>256) settings.chanOscThreads=256;
+          settingsChanged=true;
+        }
+        if (settings.chanOscThreads>=(cpuCores*3)) {
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("you're being silly, aren't you? that's enough."));
+          }
+        } else if (settings.chanOscThreads>(cpuCores*2)) {
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("what are you doing? stop!"));
+          }
+        } else if (settings.chanOscThreads>cpuCores) {
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("it is a bad idea to set this number higher than your CPU core count (%d)!"),cpuCores);
+          }
+        }
+        popWarningColor();
+
+        ImGui::Text(_("Oscilloscope rendering engine:"));
+        ImGui::Indent();
+        if (ImGui::RadioButton(_("ImGui line plot"),settings.shaderOsc==0)) {
+          settings.shaderOsc=0;
+          settingsChanged=true;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("render using Dear ImGui's built-in line drawing functions."));
+        }
+        if (ImGui::RadioButton(_("GLSL (if available)"),settings.shaderOsc==1)) {
+          settings.shaderOsc=1;
+          settingsChanged=true;
+        }
+        if (ImGui::IsItemHovered()) {
+#ifdef USE_GLES
+          ImGui::SetTooltip(_("render using shaders that run on the graphics card.\nonly available in OpenGL ES 2.0 render backend."));
+#else
+          ImGui::SetTooltip(_("render using shaders that run on the graphics card.\nonly available in OpenGL 3.0 render backend."));
+#endif
+        }
+        ImGui::Unindent();
 
         // SUBSECTION SONG COMMENTS
         CONFIG_SUBSECTION(_("Song Comments"));

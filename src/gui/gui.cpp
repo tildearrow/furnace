@@ -8076,6 +8076,7 @@ void FurnaceGUI::syncState() {
   chanOscAutoColsType=e->getConfInt("chanOscAutoColsType",0);
   chanOscColorX=e->getConfInt("chanOscColorX",GUI_OSCREF_CENTER);
   chanOscColorY=e->getConfInt("chanOscColorY",GUI_OSCREF_CENTER);
+  chanOscCenterStrat=e->getConfInt("chanOscCenterStrat",1);
   chanOscTextX=e->getConfFloat("chanOscTextX",0.0f);
   chanOscTextY=e->getConfFloat("chanOscTextY",0.0f);
   chanOscAmplify=e->getConfFloat("chanOscAmplify",0.95f);
@@ -8227,6 +8228,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("chanOscAutoColsType",chanOscAutoColsType);
   conf.set("chanOscColorX",chanOscColorX);
   conf.set("chanOscColorY",chanOscColorY);
+  conf.set("chanOscCenterStrat",chanOscCenterStrat);
   conf.set("chanOscTextX",chanOscTextX);
   conf.set("chanOscTextY",chanOscTextY);
   conf.set("chanOscAmplify",chanOscAmplify);
@@ -8793,6 +8795,7 @@ FurnaceGUI::FurnaceGUI():
   chanOscAutoColsType(0),
   chanOscColorX(GUI_OSCREF_CENTER),
   chanOscColorY(GUI_OSCREF_CENTER),
+  chanOscCenterStrat(1),
   chanOscWindowSize(20.0f),
   chanOscTextX(0.0f),
   chanOscTextY(0.0f),
