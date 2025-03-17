@@ -12,7 +12,7 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612 or Y
 <!-- -->
 - **NES**: [2A03](nes.md)
 - **Famicom with Konami VRC6**: [2A03](nes.md), [VRC6](vrc6.md)
-- **Famicom with Konami VRC7**: [2A03](nes.md), [VRC7](opl.md)
+- **Famicom with Konami VRC7**: [2A03](nes.md), [VRC7](opll.md)
 - **Famicom with MMC5**: [2A03](nes.md), [MMC5](mmc5.md)
 - **Famicom with Sunsoft 5B**: [2A03](nes.md), [5B](ay8910.md)
 - **Famicom with Namco 163**: [2A03](nes.md), [N163](n163.md)
