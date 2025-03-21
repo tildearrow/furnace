@@ -3271,7 +3271,6 @@ void DivPlatformOPL::renderSamples(int sysID) {
 
       int length;
       switch (s->depth) {
-        default:
         case DIV_SAMPLE_DEPTH_8BIT:
           length=MIN(65535,s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT));
           break;
@@ -3280,6 +3279,9 @@ void DivPlatformOPL::renderSamples(int sysID) {
           break;
         case DIV_SAMPLE_DEPTH_16BIT:
           length=MIN(131070,s->getLoopEndPosition(DIV_SAMPLE_DEPTH_16BIT));
+          break;
+        default:
+          length=MIN(65535,s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT));
           break;
       }
       unsigned char* src=(unsigned char*)s->getCurBuf();
@@ -3313,10 +3315,9 @@ void DivPlatformOPL::renderSamples(int sysID) {
       DivSample* s=parent->song.sample[i];
       unsigned int insAddr=(i*12)+((ramSize<=0x200000)?0x200000:0);
       unsigned char bitDepth;
-      int endPos=CLAMP(s->loopEnd,1,0x10000);
-      int loop=s->isLoopable()?CLAMP(s->loopStart,0,endPos-1):(endPos-1);
+      int endPos=CLAMP(s->isLoopable()?s->loopEnd:s->samples,1,0x10000);
+      int loop=s->isLoopable()?CLAMP(s->loopStart,0,endPos-2):(endPos-2);
       switch (s->depth) {
-        default:
         case DIV_SAMPLE_DEPTH_8BIT:
           bitDepth=0;
           break;
@@ -3326,6 +3327,9 @@ void DivPlatformOPL::renderSamples(int sysID) {
         case DIV_SAMPLE_DEPTH_16BIT:
           bitDepth=2;
           break;
+        default:
+          bitDepth=0;
+          break;
       }
       pcmMem[insAddr]=(bitDepth<<6)|((sampleOffPCM[i]>>16)&0x3f);
       pcmMem[1+insAddr]=(sampleOffPCM[i]>>8)&0xff;
@@ -3334,7 +3338,7 @@ void DivPlatformOPL::renderSamples(int sysID) {
       pcmMem[4+insAddr]=(loop)&0xff;
       pcmMem[5+insAddr]=((~(endPos-1))>>8)&0xff;
       pcmMem[6+insAddr]=(~(endPos-1))&0xff;
-      // TODO: how to fill in rest of instrument table?
+      // on MultiPCM this consists of instrument params, but on OPL4 this is not used
       pcmMem[7+insAddr]=0; // LFO, VIB
       pcmMem[8+insAddr]=(0xf << 4) | (0xf << 0); // AR, D1R
       pcmMem[9+insAddr]=0; // DL, D2R
