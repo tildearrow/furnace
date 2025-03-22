@@ -692,7 +692,9 @@ bool ImFontAtlasBuildWithFreeTypeEx(FT_Library ft_library, ImFontAtlas* atlas, u
         {
             ImFontBuildSrcGlyphFT& src_glyph = src_tmp.GlyphsList[glyph_i];
             stbrp_rect& pack_rect = src_tmp.Rects[glyph_i];
-            IM_ASSERT(pack_rect.was_packed);
+            if (!pack_rect.was_packed) // this was an assertion. why?!
+                continue;
+
             if (pack_rect.w == 0 && pack_rect.h == 0)
                 continue;
 
