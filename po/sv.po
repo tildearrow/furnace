@@ -535,63 +535,63 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:604
 msgid "1Exy: FM global level (x: left, y: right; 0 to 7)"
-msgstr ""
+msgstr "1Exy: FM global nivå (x: vänster, y: höger; 0 till 7)"
 
 #: src/engine/sysDef.cpp:605
 msgid "1Fxy: PCM global level (x: left, y: right; 0 to 7)"
-msgstr ""
+msgstr "1Fxy: PCM global nivå (x: vänster, y: höger; 0 till 7)"
 
 #: src/engine/sysDef.cpp:606
 msgid "20xx: PCM LFO Rate (0 to 7)"
-msgstr ""
+msgstr "20xx: PCM LFO-hastighet (0 till 7)"
 
 #: src/engine/sysDef.cpp:607
 msgid "21xx: PCM LFO PM Depth (0 to 7)"
-msgstr ""
+msgstr "21xx: PCM LFO PM Djup (0 till 7)"
 
 #: src/engine/sysDef.cpp:608
 msgid "22xx: PCM LFO AM Depth (0 to 7)"
-msgstr ""
+msgstr "22xx: PCM LFO AM Djup (0 till 7)"
 
 #: src/engine/sysDef.cpp:609
 msgid "23xx: PCM Attack Rate (0 to 15)"
-msgstr ""
+msgstr "23xx: PCM attackfrekvens (0 till 15)"
 
 #: src/engine/sysDef.cpp:610
 msgid "24xx: PCM Decay 1 Rate (0 to 15)"
-msgstr ""
+msgstr "24xx: PCM decay 1 hastighet (0 till 15)"
 
 #: src/engine/sysDef.cpp:611
 msgid "25xx: PCM Decay Level (0 to 15)"
-msgstr ""
+msgstr "25xx: PCM decaynivå (0 till 15)"
 
 #: src/engine/sysDef.cpp:612
 msgid "26xx: PCM Decay 2 Rate (0 to 15)"
-msgstr ""
+msgstr "26xx: PCM decay 2 hastighet (0 till 15)"
 
 #: src/engine/sysDef.cpp:613
 msgid "27xx: PCM Release Rate (0 to 15)"
-msgstr ""
+msgstr "27xx: PCM release-hastighet (0 till 15)"
 
 #: src/engine/sysDef.cpp:614
 msgid "28xx: PCM Rate Correction (0 to 15)"
-msgstr ""
+msgstr "28xx: PCM-hastighetskorrigering (0 till 15)"
 
 #: src/engine/sysDef.cpp:615
 msgid "2Cxx: PCM Damp"
-msgstr ""
+msgstr "2Cxx: PCM Damp"
 
 #: src/engine/sysDef.cpp:616
 msgid "2Dxx: PCM Pseudo Reverb"
-msgstr ""
+msgstr "2Dxx: PCM Pseudoreverb"
 
 #: src/engine/sysDef.cpp:617
 msgid "2Exx: PCM LFO Reset"
-msgstr ""
+msgstr "2Exx: PCM LFO-återställning"
 
 #: src/engine/sysDef.cpp:618
 msgid "2Fxx: PCM Level Direct"
-msgstr ""
+msgstr "2Fxx: Direkt PCM-nivå"
 
 #: src/engine/sysDef.cpp:622 src/engine/sysDef.cpp:705
 msgid ""
@@ -653,19 +653,19 @@ msgstr "21xy: Ange sustain/release (x: sustain; y: release)"
 
 #: src/engine/sysDef.cpp:635
 msgid "22xx: Pulse width slide up"
-msgstr ""
+msgstr "22xx: Glida upp pulsbredd"
 
 #: src/engine/sysDef.cpp:636
 msgid "23xx: Pulse width slide down"
-msgstr ""
+msgstr "23xx: Glida ner pulsbredd"
 
 #: src/engine/sysDef.cpp:638
 msgid "24xx: Filter cutoff slide up"
-msgstr ""
+msgstr "24xx: Glida upp filtrets brytfrekvens"
 
 #: src/engine/sysDef.cpp:639
 msgid "25xx: Filter cutoff slide down"
-msgstr ""
+msgstr "25xx: Glida ner filtrets brytfrekvens"
 
 #: src/engine/sysDef.cpp:641 src/engine/sysDef.cpp:719
 msgid "3xxx: Set pulse width (0 to FFF)"
@@ -835,19 +835,19 @@ msgstr "16xy: Ändra andra parametrar"
 
 #: src/engine/sysDef.cpp:713
 msgid "17xx: Pulse width slide up"
-msgstr ""
+msgstr "17xx: Glida upp pulsbredd"
 
 #: src/engine/sysDef.cpp:714
 msgid "18xx: Pulse width slide down"
-msgstr ""
+msgstr "18xx: Glida ner pulsbredd"
 
 #: src/engine/sysDef.cpp:716
 msgid "19xx: Filter cutoff slide up"
-msgstr ""
+msgstr "19xx: Glida upp filtrets brytfrekvens"
 
 #: src/engine/sysDef.cpp:717
 msgid "1Axx: Filter cutoff slide down"
-msgstr ""
+msgstr "1Axx: Glida ner filtrets brytfrekvens"
 
 #: src/engine/sysDef.cpp:720 src/engine/sysDef.cpp:1863
 msgid "4xxx: Set cutoff (0 to FFF)"
@@ -858,20 +858,24 @@ msgid ""
 "60xx: Set waveform (bit 0: triangle; bit 1: saw; bit 2: pulse; bit 3: noise; "
 "bit 4: special wave)"
 msgstr ""
+"60xx: Ange vågform (bit 0: triangel; bit 1: såg; bit 2: puls; bit 3: brus; "
+"bit 4: specialväg)"
 
 #: src/engine/sysDef.cpp:726
 msgid "61xx: Set special wave (00-39)"
-msgstr ""
+msgstr "61xx: Ange specialvåg (00-39)"
 
 #: src/engine/sysDef.cpp:727
 msgid ""
 "62xx: Modulation control (bit 0: ring mod; bit 1: osc. sync; bit 2: phase "
 "mod)"
 msgstr ""
+"62xx: Moduleringskontroll (bit 0: ringmod; bit 1: osc. synk; bit 2: fas "
+"mod)"
 
 #: src/engine/sysDef.cpp:728
 msgid "63xy: Reset pulse width (x: on new note; y: now)"
-msgstr ""
+msgstr "63xy: Återställ pulsbredd (x: på ny ton; y: nu)"
 
 #: src/engine/sysDef.cpp:730
 msgid "64xx: Set ring modulation source channel (0-7)"
@@ -5427,91 +5431,91 @@ msgstr ""
 
 #: src/gui/presets.cpp:1485
 msgid "Sharp X1"
-msgstr ""
+msgstr "Sharp X1"
 
 #: src/gui/presets.cpp:1490
 msgid "Sharp X1 + FM add-on"
-msgstr ""
+msgstr "Sharp X1 + FM-tillägg"
 
 #: src/gui/presets.cpp:1496
 msgid "Sharp X68000"
-msgstr ""
+msgstr "Sharp X68000"
 
 #: src/gui/presets.cpp:1502
 msgid "FM-7"
-msgstr ""
+msgstr "FM-7"
 
 #: src/gui/presets.cpp:1508
 msgid "FM-7 (extended channel 3)"
-msgstr ""
+msgstr "FM-7 (utökad kanal 3)"
 
 #: src/gui/presets.cpp:1514
 msgid "FM-7 (CSM)"
-msgstr ""
+msgstr "FM-7 (CSM)"
 
 #: src/gui/presets.cpp:1520
 msgid "FM Towns"
-msgstr ""
+msgstr "FM Towns"
 
 #: src/gui/presets.cpp:1526
 msgid "FM Towns (extended channel 3)"
-msgstr ""
+msgstr "FM Towns (utökad kanal 3)"
 
 #: src/gui/presets.cpp:1532
 msgid "FM Towns (CSM)"
-msgstr ""
+msgstr "FM Towns (CSM)"
 
 #: src/gui/presets.cpp:1538
 msgid "Commander X16"
-msgstr ""
+msgstr "Commander X16"
 
 #: src/gui/presets.cpp:1544 src/gui/presets.cpp:3611
 msgid "Commander X16 (VERA only)"
-msgstr ""
+msgstr "Commander X16 (endast VERA)"
 
 #: src/gui/presets.cpp:1549
 msgid "Commander X16 (with Twin OPL3)"
-msgstr ""
+msgstr "Commander X16 (med dubbel OPL3)"
 
 #: src/gui/presets.cpp:1556
 msgid "TI-99/4A"
-msgstr ""
+msgstr "TI-99/4A"
 
 #: src/gui/presets.cpp:1564
 msgid "Sord M5"
-msgstr ""
+msgstr "Sord M5"
 
 #: src/gui/presets.cpp:1583
 msgid "Arcade systems"
-msgstr ""
+msgstr "Arkadsystem"
 
 #: src/gui/presets.cpp:1583
 msgid "INSERT COIN"
-msgstr ""
+msgstr "SÄTT I MYNT"
 
 #: src/gui/presets.cpp:1586
 msgid "Alpha Denshi"
-msgstr ""
+msgstr "Alpha Denshi"
 
 #: src/gui/presets.cpp:1589
 msgid "Alpha Denshi Alpha-68K"
-msgstr ""
+msgstr "Alpha Denshi Alpha-68K"
 
 #: src/gui/presets.cpp:1599
 msgid "Alpha Denshi Alpha-68K (extended channel 3)"
-msgstr ""
+msgstr "Alpha Denshi Alpha-68K (utökad kanal 3)"
 
 #: src/gui/presets.cpp:1609
 msgid "Alpha Denshi Alpha-68K (CSM)"
-msgstr ""
+msgstr "Alpha Denshi Alpha-68K (CSM)"
 
 #: src/gui/presets.cpp:1619
 msgid "Alpha Denshi Alpha-68K (drums mode)"
-msgstr ""
+msgstr "Alpha Denshi Alpha-68K (trumläge)"
 
 #: src/gui/presets.cpp:1629
 msgid "Alpha Denshi Alpha-68K (extended channel 3; drums mode)"
-msgstr ""
+msgstr "Alpha Denshi Alpha-68K (utökad kanal 3, trumläge)"
 
 #: src/gui/presets.cpp:1639
 msgid "Alpha Denshi Alpha-68K (CSM; drums mode)"
@@ -6312,7 +6316,7 @@ msgstr "Användare"
 
 #: src/gui/presets.cpp:3039
 msgid "system presets that you have saved."
-msgstr ""
+msgstr "systeminställningar som du har sparat."
 
 #: src/gui/presets.cpp:3042 src/gui/settings.cpp:4203 src/gui/guiConst.cpp:242
 #: src/gui/guiConst.cpp:1473 src/gui/waveEdit.cpp:571
@@ -6324,118 +6328,120 @@ msgid ""
 "chips which use frequency modulation (FM) to generate sound.\n"
 "some of these also pack more (like square and sample channels)."
 msgstr ""
+"chip som använder frekvensmodulering (FM) för att generera ljud.\n"
+"vissa av dessa packar också mer (som fyrkantiga och provkanaler)."
 
 #: src/gui/presets.cpp:3054
 msgid "Yamaha YM2203 (extended channel 3)"
-msgstr ""
+msgstr "Yamaha YM2203 (utökad kanal 3)"
 
 #: src/gui/presets.cpp:3059
 msgid "Yamaha YM2203 (CSM)"
-msgstr ""
+msgstr "Yamaha YM2203 (CSM)"
 
 #: src/gui/presets.cpp:3069
 msgid "Yamaha YM2608 (extended channel 3)"
-msgstr ""
+msgstr "Yamaha YM2608 (utökad kanal 3)"
 
 #: src/gui/presets.cpp:3074
 msgid "Yamaha YM2608 (CSM)"
-msgstr ""
+msgstr "Yamaha YM2608 (CSM)"
 
 #: src/gui/presets.cpp:3084
 msgid "Yamaha YM2610 (extended channel 2)"
-msgstr ""
+msgstr "Yamaha YM2610 (utökad kanal 2)"
 
 #: src/gui/presets.cpp:3089
 msgid "Yamaha YM2610 (CSM)"
-msgstr ""
+msgstr "Yamaha YM2610 (CSM)"
 
 #: src/gui/presets.cpp:3099
 msgid "Yamaha YM2610B (extended channel 3)"
-msgstr ""
+msgstr "Yamaha YM2610B (utökad kanal 3)"
 
 #: src/gui/presets.cpp:3104
 msgid "Yamaha YM2610B (CSM)"
-msgstr ""
+msgstr "Yamaha YM2610B (CSM)"
 
 #: src/gui/presets.cpp:3114
 msgid "Yamaha YM2612 (extended channel 3)"
-msgstr ""
+msgstr "Yamaha YM2612 (utökad kanal 3)"
 
 #: src/gui/presets.cpp:3129
 msgid "Yamaha YM2612 (extended channel 3) with DualPCM"
-msgstr ""
+msgstr "Yamaha YM2612 (utökad kanal 3) med DualPCM"
 
 #: src/gui/presets.cpp:3134
 msgid "Yamaha YMF276 (OPN2)"
-msgstr ""
+msgstr "Yamaha YMF276 (OPN2)"
 
 #: src/gui/presets.cpp:3139
 msgid "Yamaha YMF276 (extended channel 3)"
-msgstr ""
+msgstr "Yamaha YMF276 (utökad kanal 3)"
 
 #: src/gui/presets.cpp:3144
 msgid "Yamaha YMF276 (OPN2) CSM"
-msgstr ""
+msgstr "Yamaha YMF276 (OPN2) CSM"
 
 #: src/gui/presets.cpp:3149
 msgid "Yamaha YMF276 (OPN2) with DualPCM"
-msgstr ""
+msgstr "Yamaha YMF276 (OPN2) med DualPCM"
 
 #: src/gui/presets.cpp:3154
 msgid "Yamaha YMF276 (extended channel 3) with DualPCM"
-msgstr ""
+msgstr "Yamaha YMF276 (utökad kanal 3) med DualPCM"
 
 #: src/gui/presets.cpp:3164
 msgid "Yamaha YM2413 (drums mode)"
-msgstr ""
+msgstr "Yamaha YM2413 (trumläge)"
 
 #: src/gui/presets.cpp:3174
 msgid "Yamaha YM3438 (OPN2C)"
-msgstr ""
+msgstr "Yamaha YM3438 (OPN2C)"
 
 #: src/gui/presets.cpp:3179
 msgid "Yamaha YM3438 (extended channel 3)"
-msgstr ""
+msgstr "Yamaha YM3438 (utökad kanal 3)"
 
 #: src/gui/presets.cpp:3184
 msgid "Yamaha YM3438 (OPN2C) CSM"
-msgstr ""
+msgstr "Yamaha YM3438 (OPN2C) CSM"
 
 #: src/gui/presets.cpp:3189
 msgid "Yamaha YM3438 (OPN2C) with DualPCM"
-msgstr ""
+msgstr "Yamaha YM3438 (OPN2C) med DualPCM"
 
 #: src/gui/presets.cpp:3194
 msgid "Yamaha YM3438 (extended channel 3) with DualPCM"
-msgstr ""
+msgstr "Yamaha YM3438 (utökad kanal 3) med DualPCM"
 
 #: src/gui/presets.cpp:3204
 msgid "Yamaha YM3526 (drums mode)"
-msgstr ""
+msgstr "Yamaha YM3526 (trumläge)"
 
 #: src/gui/presets.cpp:3214
 msgid "Yamaha Y8950 (drums mode)"
-msgstr ""
+msgstr "Yamaha Y8950 (trumläge)"
 
 #: src/gui/presets.cpp:3224
 msgid "Yamaha YM3812 (drums mode)"
-msgstr ""
+msgstr "Yamaha YM3812 (trumläge)"
 
 #: src/gui/presets.cpp:3234
 msgid "Yamaha YMF262 (drums mode)"
-msgstr ""
+msgstr "Yamaha YMF262 (trumläge)"
 
 #: src/gui/presets.cpp:3239
 msgid "Yamaha YMF289B (OPL3-L)"
-msgstr ""
+msgstr "Yamaha YMF289B (OPL3-L)"
 
 #: src/gui/presets.cpp:3247
 msgid "Yamaha YMF289B (drums mode)"
-msgstr ""
+msgstr "Yamaha YMF289B (trumläge)"
 
 #: src/gui/presets.cpp:3271
 msgid "these chips generate square/pulse tones only (but may include noise)."
-msgstr ""
+msgstr "dessa chip genererar kvadrater/pulstoner endast (men kan inkludera brus)."
 
 #: src/gui/presets.cpp:3278 src/gui/sysConf.cpp:179
 msgid "TI SN76489A"
@@ -6455,11 +6461,11 @@ msgstr "Tandy PSSJ 3-kanalsljud"
 
 #: src/gui/presets.cpp:3299
 msgid "Sega PSG (SN76489-like)"
-msgstr ""
+msgstr "Sega PSG (SN76489-liknande)"
 
 #: src/gui/presets.cpp:3304
 msgid "Sega PSG (SN76489-like, Stereo)"
-msgstr ""
+msgstr "Sega PSG (SN76489-liknande, stereo)"
 
 #: src/gui/presets.cpp:3309 src/gui/sysConf.cpp:195
 msgid "TI SN94624"
@@ -6479,27 +6485,27 @@ msgstr "AY-3-8914"
 
 #: src/gui/presets.cpp:3340
 msgid "Yamaha YM2149(F)"
-msgstr ""
+msgstr "Yamaha YM2149(F)"
 
 #: src/gui/presets.cpp:3360
 msgid "Commodore VIC"
-msgstr ""
+msgstr "Commodore VIC"
 
 #: src/gui/presets.cpp:3370
 msgid "NEC D65010G031"
-msgstr ""
+msgstr "NEC D65010G031"
 
 #: src/gui/presets.cpp:3381
 msgid "chips/systems which use PCM or ADPCM samples for sound synthesis."
-msgstr ""
+msgstr "chip/system som använder PCM- eller ADPCM-samples för ljudsyntes."
 
 #: src/gui/presets.cpp:3444
 msgid "Ensoniq ES5506 (OTTO)"
-msgstr ""
+msgstr "Ensoniq ES5506 (OTTO)"
 
 #: src/gui/presets.cpp:3480
 msgid "chips which use user-specified waveforms to generate sound."
-msgstr ""
+msgstr "chip som använder användarespecificerade vågformer för att generera ljud."
 
 #: src/gui/presets.cpp:3482 src/gui/settings.cpp:4137
 msgid "PC Engine"
@@ -6507,61 +6513,63 @@ msgstr "PC Engine"
 
 #: src/gui/presets.cpp:3507
 msgid "Namco C15 (8-channel mono)"
-msgstr ""
+msgstr "Namco C15 (8-kanals mono)"
 
 #: src/gui/presets.cpp:3512
 msgid "Namco C30 (8-channel stereo)"
-msgstr ""
+msgstr "Namco C30 (8-kanals stereo)"
 
 #: src/gui/presets.cpp:3545
 msgid "Specialized"
-msgstr ""
+msgstr "Specialiserad"
 
 #: src/gui/presets.cpp:3545
 msgid "chips/systems with unique sound synthesis methods."
-msgstr ""
+msgstr "chip/system med unika ljudsyntesmetoder."
 
 #: src/gui/presets.cpp:3547
 msgid "MOS Technology SID (6581)"
-msgstr ""
+msgstr "MOS Technology SID (6581)"
 
 #: src/gui/presets.cpp:3553
 msgid "MOS Technology SID (8580)"
-msgstr ""
+msgstr "MOS Technology SID (8580)"
 
 #: src/gui/presets.cpp:3559
 msgid "Commodore PET (pseudo-wavetable)"
-msgstr ""
+msgstr "Commodore PET (pseudo-wavetable)"
 
 #: src/gui/presets.cpp:3601
 msgid "Atari TIA (with software pitch driver)"
-msgstr ""
+msgstr "Atari TIA (med drivrutin för mjukvarupitch)"
 
 #: src/gui/presets.cpp:3616
 msgid "ZX Spectrum (beeper only, SFX-like engine)"
-msgstr ""
+msgstr "ZX Spectrum (endast ljudsignal, SFX-liknande motor)"
 
 #: src/gui/presets.cpp:3621
 msgid "ZX Spectrum (beeper only, QuadTone engine)"
-msgstr ""
+msgstr "ZX Spectrum (endast ljudsignal, QuadTone-motor)"
 
 #: src/gui/presets.cpp:3680
 msgid "DefleMask-compatible"
-msgstr ""
+msgstr "Defemask-kompatibel"
 
 #: src/gui/presets.cpp:3680
 msgid ""
 "these configurations are compatible with DefleMask.\n"
 "select this if you need to save as .dmf or work with that program."
 msgstr ""
+"dessa konfigurationer är kompatibla med DefleMask.\n"
+"välj dessa om du behöver spara som .dmf eller arbeta med det programmet."
 
 #: src/gui/presets.cpp:3744
 msgid "Arcade (YM2151 and SegaPCM)"
-msgstr ""
+msgstr "Arkad (YM2151 och SegaPCM)"
 
 #: src/gui/presets.cpp:3755
 msgid "Neo Geo CD (extended channel 2)"
-msgstr ""
+msgstr "Neo Geo CD (utökad kanal 2)"
 
 #: src/gui/intro.cpp:89 src/gui/gui.cpp:2460 src/gui/gui.cpp:3926
 #: src/gui/gui.cpp:5190 src/gui/gui.cpp:5212 src/gui/gui.cpp:5746
@@ -13407,6 +13415,7 @@ msgstr "MAME YMZ280B-kärnan av Aaron Giles"
 msgid ""
 "MAME GA20 core by Acho A. Tang, R. Belmont and Valley Bell (modified version)"
 msgstr ""
+"MAME GA20-kärnan av Acho A. Tang, R. Belmont och Valley Bell (modifierad version)"
 
 #: src/gui/about.cpp:141
 msgid "MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert"
@@ -13414,7 +13423,7 @@ msgstr "MAME SegaPCM-kärnan av Hiromitsu Shioya och Olivier Galibert"
 
 #: src/gui/about.cpp:142
 msgid "MAME µPD1771C-017 HLE core by David Viens"
-msgstr ""
+msgstr "MAME µPD1771C-017 HLE-kärnan av David Viens"
 
 #: src/gui/about.cpp:143
 msgid "SAASound by Dave Hooper and Simon Owen"
@@ -13434,7 +13443,7 @@ msgstr "SNES DSP-kärnan av Blargg"
 
 #: src/gui/about.cpp:147
 msgid "puNES (NES, MMC5 and FDS) by FHorse (modified version)"
-msgstr ""
+msgstr "puNES (NES, MMC5 och FDS) av FHorse (modifierad version)"
 
 #: src/gui/about.cpp:148
 msgid "NSFPlay (NES and FDS) by Brad Smith and Brezza"
@@ -13530,15 +13539,15 @@ msgstr "NDS-ljudemulator av cam900"
 
 #: src/gui/about.cpp:171
 msgid "openMSX YMF278 emulator (modified version) by the openMSX developers"
-msgstr ""
+msgstr "openMSX YMF278 emulator (modifierad version) av openMSX-utvecklarna"
 
 #: src/gui/about.cpp:172
 msgid "SID2 emulator by LTVA (modification of reSID emulator)"
-msgstr ""
+msgstr "SID2 emulator av LTVA (modifiering av reSID emulator)"
 
 #: src/gui/about.cpp:173
 msgid "SID3 emulator by LTVA"
-msgstr ""
+msgstr "SID3 emulator av LTVA"
 
 #: src/gui/about.cpp:175
 msgid "greetings to:"
