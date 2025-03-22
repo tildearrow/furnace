@@ -32,6 +32,7 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 225: Furnace 0.6.8pre1
 - 219: Furnace 0.6.7
 - 218: Furnace 0.6.6
 - 214: Furnace 0.6.5

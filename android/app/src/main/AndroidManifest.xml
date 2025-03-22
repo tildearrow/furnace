@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.tildearrow.furnace"
-    android:versionCode="219"
-    android:versionName="0.6.7"
+    android:versionCode="225"
+    android:versionName="0.6.8pre1"
     android:installLocation="auto">
 
     <!-- OpenGL ES 2.0 -->
