@@ -1,4 +1,4 @@
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: furnace 0.6.8\n"
@@ -9,68 +9,6 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-
-#: src/engine/platform/c64.cpp:773 src/engine/platform/c64.cpp:775
-#: src/engine/platform/dave.cpp:540 src/engine/platform/sid2.cpp:611
-#: src/engine/platform/sid2.cpp:613 src/engine/platform/sid3.cpp:1376
-#: src/engine/platform/sid3.cpp:1380 src/gui/insEdit.cpp:244
-#: src/gui/insEdit.cpp:251 src/gui/insEdit.cpp:506
-msgid "ring"
-msgstr ""
-
-#: src/engine/platform/c64.cpp:780 src/engine/platform/c64.cpp:782
-#: src/engine/platform/sid2.cpp:618 src/engine/platform/sid2.cpp:620
-#: src/engine/platform/sid3.cpp:1385 src/gui/insEdit.cpp:243
-#: src/gui/insEdit.cpp:250 src/gui/insEdit.cpp:505
-msgid "sync"
-msgstr ""
-
-#: src/engine/platform/dave.cpp:537 src/gui/insEdit.cpp:498
-#: src/gui/insEdit.cpp:7172
-msgid "high"
-msgstr ""
-
-#: src/engine/platform/dave.cpp:543 src/gui/insEdit.cpp:496
-#: src/gui/insEdit.cpp:7160
-msgid "low"
-msgstr ""
-
-#: src/engine/platform/opl.cpp:2728
-msgid "4OP"
-msgstr ""
-
-#: src/engine/platform/pce.cpp:571 src/engine/platform/snes.cpp:739
-msgid "mod"
-msgstr ""
-
-#: src/engine/platform/pokey.cpp:435 src/engine/platform/pokey.cpp:444
-msgid "filter"
-msgstr ""
-
-#: src/engine/platform/pokey.cpp:438 src/engine/platform/pokey.cpp:441
-msgid "16-bit"
-msgstr ""
-
-#: src/engine/platform/sid3.cpp:1370 src/gui/insEdit.cpp:249
-msgid "phase"
-msgstr ""
-
-#: src/engine/fileOps/p.cpp:121 src/engine/fileOps/p86.cpp:139
-#: src/engine/fileOps/pdx.cpp:98 src/engine/fileOps/ppc.cpp:139
-#: src/engine/fileOps/pps.cpp:122 src/engine/fileOps/pvi.cpp:155
-#: src/engine/fileOps/pzi.cpp:151 src/engine/engine.cpp:2878
-msgid "premature end of file"
-msgstr ""
-
-#: src/engine/fileOps/s3m.cpp:320 src/gui/insEdit.cpp:799
-#, c-format
-msgid "Channel %d"
-msgstr ""
-
-#: src/engine/fileOps/s3m.cpp:336
-#, c-format
-msgid "FM %d"
-msgstr ""
 
 #: src/engine/engine.cpp:52
 msgid "00xy: Arpeggio"
@@ -428,6 +366,13 @@ msgstr ""
 msgid "invalid wavetable header/data!"
 msgstr ""
 
+#: src/engine/engine.cpp:2878 src/engine/fileOps/p.cpp:121
+#: src/engine/fileOps/p86.cpp:139 src/engine/fileOps/pdx.cpp:98
+#: src/engine/fileOps/ppc.cpp:139 src/engine/fileOps/pps.cpp:122
+#: src/engine/fileOps/pvi.cpp:155 src/engine/fileOps/pzi.cpp:151
+msgid "premature end of file"
+msgstr ""
+
 #: src/engine/engine.cpp:2905 src/engine/engine.cpp:2928
 #: src/gui/doAction.cpp:890 src/gui/doAction.cpp:967 src/gui/doAction.cpp:979
 msgid "too many samples!"
@@ -443,8 +388,63 @@ msgstr ""
 msgid "no free patterns in channel %d!"
 msgstr ""
 
+#: src/engine/fileOps/s3m.cpp:320 src/gui/insEdit.cpp:799
+#, c-format
+msgid "Channel %d"
+msgstr ""
+
+#: src/engine/fileOps/s3m.cpp:336
+#, c-format
+msgid "FM %d"
+msgstr ""
+
 #: src/engine/fileOpsSample.cpp:114
 msgid "did not read entire sample bank file!"
+msgstr ""
+
+#: src/engine/platform/c64.cpp:773 src/engine/platform/c64.cpp:775
+#: src/engine/platform/dave.cpp:540 src/engine/platform/sid2.cpp:611
+#: src/engine/platform/sid2.cpp:613 src/engine/platform/sid3.cpp:1376
+#: src/engine/platform/sid3.cpp:1380 src/gui/insEdit.cpp:244
+#: src/gui/insEdit.cpp:251 src/gui/insEdit.cpp:506
+msgid "ring"
+msgstr ""
+
+#: src/engine/platform/c64.cpp:780 src/engine/platform/c64.cpp:782
+#: src/engine/platform/sid2.cpp:618 src/engine/platform/sid2.cpp:620
+#: src/engine/platform/sid3.cpp:1385 src/gui/insEdit.cpp:243
+#: src/gui/insEdit.cpp:250 src/gui/insEdit.cpp:505
+msgid "sync"
+msgstr ""
+
+#: src/engine/platform/dave.cpp:537 src/gui/insEdit.cpp:498
+#: src/gui/insEdit.cpp:7172
+msgid "high"
+msgstr ""
+
+#: src/engine/platform/dave.cpp:543 src/gui/insEdit.cpp:496
+#: src/gui/insEdit.cpp:7160
+msgid "low"
+msgstr ""
+
+#: src/engine/platform/opl.cpp:2728
+msgid "4OP"
+msgstr ""
+
+#: src/engine/platform/pce.cpp:571 src/engine/platform/snes.cpp:739
+msgid "mod"
+msgstr ""
+
+#: src/engine/platform/pokey.cpp:435 src/engine/platform/pokey.cpp:444
+msgid "filter"
+msgstr ""
+
+#: src/engine/platform/pokey.cpp:438 src/engine/platform/pokey.cpp:441
+msgid "16-bit"
+msgstr ""
+
+#: src/engine/platform/sid3.cpp:1370 src/gui/insEdit.cpp:249
+msgid "phase"
 msgstr ""
 
 #: src/engine/sysDef.cpp:425 src/engine/sysDef.cpp:439
@@ -4162,96 +4162,6 @@ msgstr ""
 msgid "this is a system designed for testing purposes."
 msgstr ""
 
-#: src/gui/effectList.cpp:14 src/gui/guiConst.cpp:647
-msgid "Effect List"
-msgstr ""
-
-#: src/gui/effectList.cpp:18
-#, c-format
-msgid "Chip at cursor: %s"
-msgstr ""
-
-#: src/gui/effectList.cpp:21 src/gui/settings.cpp:7103
-msgid "Search"
-msgstr ""
-
-#: src/gui/effectList.cpp:25
-msgid "Effect types to show:"
-msgstr ""
-
-#: src/gui/effectList.cpp:32 src/gui/exportOptions.cpp:78 src/gui/gui.cpp:6646
-#: src/gui/gui.cpp:6724
-msgid "All"
-msgstr ""
-
-#: src/gui/effectList.cpp:34 src/gui/compatFlags.cpp:219
-#: src/gui/exportOptions.cpp:84 src/gui/gui.cpp:6652 src/gui/gui.cpp:6730
-#: src/gui/insEdit.cpp:632 src/gui/sysConf.cpp:1940 src/gui/waveEdit.cpp:38
-msgid "None"
-msgstr ""
-
-#: src/gui/effectList.cpp:46 src/gui/subSongs.cpp:128 src/gui/channels.cpp:55
-#: src/gui/insEdit.cpp:6555 src/gui/sampleEdit.cpp:195
-#: src/gui/settings.cpp:1021 src/gui/settings.cpp:4508 src/gui/songInfo.cpp:40
-#: src/gui/sysManager.cpp:54 src/gui/userPresets.cpp:379
-msgid "Name"
-msgstr ""
-
-#: src/gui/effectList.cpp:48
-msgid "Description"
-msgstr ""
-
-#: src/gui/effectList.cpp:85 src/gui/log.cpp:25
-msgid "ERROR"
-msgstr ""
-
-#: src/gui/subSongs.cpp:17 src/gui/editControls.cpp:528
-#: src/gui/guiConst.cpp:649
-msgid "Subsongs"
-msgstr ""
-
-#: src/gui/subSongs.cpp:22 src/gui/subSongs.cpp:32
-#, c-format
-msgid "%d. <no name>"
-msgstr ""
-
-#: src/gui/subSongs.cpp:56 src/gui/dataList.cpp:554 src/gui/dataList.cpp:848
-#: src/gui/dataList.cpp:993
-msgid "Move up"
-msgstr ""
-
-#: src/gui/subSongs.cpp:63 src/gui/dataList.cpp:575 src/gui/dataList.cpp:855
-#: src/gui/dataList.cpp:1000
-msgid "Move down"
-msgstr ""
-
-#: src/gui/subSongs.cpp:74 src/gui/subSongs.cpp:95
-msgid "too many subsongs!"
-msgstr ""
-
-#: src/gui/subSongs.cpp:90 src/gui/dataList.cpp:372 src/gui/dataList.cpp:790
-#: src/gui/dataList.cpp:925 src/gui/insEdit.cpp:634
-msgid "Add"
-msgstr ""
-
-#: src/gui/subSongs.cpp:111 src/gui/dataList.cpp:398 src/gui/dataList.cpp:797
-#: src/gui/dataList.cpp:932
-msgid "Duplicate"
-msgstr ""
-
-#: src/gui/subSongs.cpp:117
-msgid "this is the only subsong!"
-msgstr ""
-
-#: src/gui/subSongs.cpp:119
-msgid "are you sure you want to remove this subsong?"
-msgstr ""
-
-#: src/gui/subSongs.cpp:124 src/gui/chanOsc.cpp:329 src/gui/settings.cpp:2258
-#: src/gui/sysManager.cpp:150 src/gui/userPresets.cpp:381
-msgid "Remove"
-msgstr ""
-
 #: src/gui/about.cpp:26
 msgid "is proud to present"
 msgstr ""
@@ -4625,6 +4535,45 @@ msgstr ""
 msgid "Unsaved changes! Save changes before playing?"
 msgstr ""
 
+#: src/gui/channels.cpp:40 src/gui/editControls.cpp:446 src/gui/gui.cpp:6925
+#: src/gui/guiConst.cpp:258 src/gui/guiConst.cpp:642
+msgid "Channels"
+msgstr ""
+
+#: src/gui/channels.cpp:49
+msgid "Pat"
+msgstr ""
+
+#: src/gui/channels.cpp:51 src/gui/editControls.cpp:554
+msgid "Osc"
+msgstr ""
+
+#: src/gui/channels.cpp:53
+msgid "Swap"
+msgstr ""
+
+#: src/gui/channels.cpp:55 src/gui/effectList.cpp:46 src/gui/insEdit.cpp:6555
+#: src/gui/sampleEdit.cpp:195 src/gui/settings.cpp:1021
+#: src/gui/settings.cpp:4508 src/gui/songInfo.cpp:40 src/gui/subSongs.cpp:128
+#: src/gui/sysManager.cpp:54 src/gui/userPresets.cpp:379
+msgid "Name"
+msgstr ""
+
+#: src/gui/channels.cpp:64
+msgid "Show in pattern"
+msgstr ""
+
+#: src/gui/channels.cpp:71
+msgid "Show in per-channel oscilloscope"
+msgstr ""
+
+#: src/gui/channels.cpp:82
+#, c-format
+msgid ""
+"%s #%d\n"
+"(drag to swap channels)"
+msgstr ""
+
 #: src/gui/chanOsc.cpp:32
 msgid "None (0%)"
 msgstr ""
@@ -4757,6 +4706,11 @@ msgstr ""
 msgid "Spread"
 msgstr ""
 
+#: src/gui/chanOsc.cpp:329 src/gui/settings.cpp:2258 src/gui/subSongs.cpp:124
+#: src/gui/sysManager.cpp:150 src/gui/userPresets.cpp:381
+msgid "Remove"
+msgstr ""
+
 #: src/gui/chanOsc.cpp:353 src/gui/settings.cpp:4002 src/gui/settings.cpp:4290
 #: src/gui/settings.cpp:4317 src/gui/settings.cpp:4343
 msgid "Background"
@@ -4801,7 +4755,7 @@ msgstr ""
 
 #: src/gui/chanOsc.cpp:397 src/gui/gui.cpp:6037 src/gui/gui.cpp:6078
 #: src/gui/gui.cpp:6515 src/gui/gui.cpp:6683 src/gui/gui.cpp:6857
-#: src/gui/gui.cpp:6967 src/gui/gui.cpp:7016 src/gui/settings.cpp:7101
+#: src/gui/gui.cpp:6967 src/gui/gui.cpp:7016 src/gui/settings.cpp:7102
 #: src/gui/tutorial.cpp:761 src/gui/xyOsc.cpp:80
 msgid "OK"
 msgstr ""
@@ -4829,38 +4783,6 @@ msgstr ""
 
 #: src/gui/chanOsc.cpp:623 src/gui/gui.cpp:6032
 msgid "Error!"
-msgstr ""
-
-#: src/gui/channels.cpp:40 src/gui/editControls.cpp:446 src/gui/gui.cpp:6925
-#: src/gui/guiConst.cpp:258 src/gui/guiConst.cpp:642
-msgid "Channels"
-msgstr ""
-
-#: src/gui/channels.cpp:49
-msgid "Pat"
-msgstr ""
-
-#: src/gui/channels.cpp:51 src/gui/editControls.cpp:554
-msgid "Osc"
-msgstr ""
-
-#: src/gui/channels.cpp:53
-msgid "Swap"
-msgstr ""
-
-#: src/gui/channels.cpp:64
-msgid "Show in pattern"
-msgstr ""
-
-#: src/gui/channels.cpp:71
-msgid "Show in per-channel oscilloscope"
-msgstr ""
-
-#: src/gui/channels.cpp:82
-#, c-format
-msgid ""
-"%s #%d\n"
-"(drag to swap channels)"
 msgstr ""
 
 #: src/gui/clock.cpp:31 src/gui/guiConst.cpp:651 src/gui/settings.cpp:4326
@@ -4908,7 +4830,7 @@ msgstr ""
 #: src/gui/gui.cpp:6108 src/gui/gui.cpp:6132 src/gui/gui.cpp:6156
 #: src/gui/gui.cpp:6180 src/gui/gui.cpp:6204 src/gui/gui.cpp:6235
 #: src/gui/gui.cpp:6294 src/gui/gui.cpp:6689 src/gui/gui.cpp:6863
-#: src/gui/gui.cpp:6998 src/gui/newSong.cpp:277 src/gui/settings.cpp:7102
+#: src/gui/gui.cpp:6998 src/gui/newSong.cpp:277 src/gui/settings.cpp:7103
 msgid "Cancel"
 msgstr ""
 
@@ -5315,6 +5237,12 @@ msgstr ""
 msgid "Pitch linearity:"
 msgstr ""
 
+#: src/gui/compatFlags.cpp:219 src/gui/effectList.cpp:34
+#: src/gui/exportOptions.cpp:84 src/gui/gui.cpp:6652 src/gui/gui.cpp:6730
+#: src/gui/insEdit.cpp:632 src/gui/sysConf.cpp:1940 src/gui/waveEdit.cpp:38
+msgid "None"
+msgstr ""
+
 #: src/gui/compatFlags.cpp:223
 msgid "like ProTracker/FamiTracker"
 msgstr ""
@@ -5641,6 +5569,16 @@ msgstr ""
 msgid "Instruments"
 msgstr ""
 
+#: src/gui/dataList.cpp:372 src/gui/dataList.cpp:790 src/gui/dataList.cpp:925
+#: src/gui/insEdit.cpp:634 src/gui/subSongs.cpp:90
+msgid "Add"
+msgstr ""
+
+#: src/gui/dataList.cpp:398 src/gui/dataList.cpp:797 src/gui/dataList.cpp:932
+#: src/gui/subSongs.cpp:111
+msgid "Duplicate"
+msgstr ""
+
 #: src/gui/dataList.cpp:419 src/gui/dataList.cpp:804 src/gui/dataList.cpp:939
 #: src/gui/editControls.cpp:497 src/gui/insEdit.cpp:6506
 #: src/gui/insEdit.cpp:6571 src/gui/sampleEdit.cpp:122
@@ -5724,6 +5662,16 @@ msgstr ""
 
 #: src/gui/dataList.cpp:532 src/gui/dataList.cpp:840 src/gui/dataList.cpp:985
 msgid "Toggle folders/standard view"
+msgstr ""
+
+#: src/gui/dataList.cpp:554 src/gui/dataList.cpp:848 src/gui/dataList.cpp:993
+#: src/gui/subSongs.cpp:56
+msgid "Move up"
+msgstr ""
+
+#: src/gui/dataList.cpp:575 src/gui/dataList.cpp:855 src/gui/dataList.cpp:1000
+#: src/gui/subSongs.cpp:63
+msgid "Move down"
 msgstr ""
 
 #: src/gui/dataList.cpp:586 src/gui/dataList.cpp:866 src/gui/dataList.cpp:1011
@@ -6080,6 +6028,11 @@ msgstr ""
 msgid "Song Info"
 msgstr ""
 
+#: src/gui/editControls.cpp:528 src/gui/guiConst.cpp:649
+#: src/gui/subSongs.cpp:17
+msgid "Subsongs"
+msgstr ""
+
 #: src/gui/editControls.cpp:532 src/gui/guiConst.cpp:235
 #: src/gui/guiConst.cpp:622 src/gui/insEdit.cpp:2370 src/gui/insEdit.cpp:3268
 #: src/gui/insEdit.cpp:6943 src/gui/speed.cpp:32 src/gui/speed.cpp:102
@@ -6314,6 +6267,36 @@ msgstr ""
 #: src/gui/editing.cpp:1838 src/gui/editing.cpp:1920
 #, c-format
 msgid "copy: %s"
+msgstr ""
+
+#: src/gui/effectList.cpp:14 src/gui/guiConst.cpp:647
+msgid "Effect List"
+msgstr ""
+
+#: src/gui/effectList.cpp:18
+#, c-format
+msgid "Chip at cursor: %s"
+msgstr ""
+
+#: src/gui/effectList.cpp:21 src/gui/settings.cpp:7104
+msgid "Search"
+msgstr ""
+
+#: src/gui/effectList.cpp:25
+msgid "Effect types to show:"
+msgstr ""
+
+#: src/gui/effectList.cpp:32 src/gui/exportOptions.cpp:78 src/gui/gui.cpp:6646
+#: src/gui/gui.cpp:6724
+msgid "All"
+msgstr ""
+
+#: src/gui/effectList.cpp:48
+msgid "Description"
+msgstr ""
+
+#: src/gui/effectList.cpp:85 src/gui/log.cpp:25
+msgid "ERROR"
 msgstr ""
 
 #: src/gui/exportOptions.cpp:29
@@ -6719,7 +6702,7 @@ msgstr ""
 #: src/gui/gui.cpp:6227 src/gui/gui.cpp:6252 src/gui/gui.cpp:6263
 #: src/gui/gui.cpp:6275 src/gui/gui.cpp:6287 src/gui/gui.cpp:6451
 #: src/gui/gui.cpp:6467 src/gui/gui.cpp:6477 src/gui/gui.cpp:6490
-#: src/gui/settings.cpp:7122
+#: src/gui/settings.cpp:7123
 msgid "No"
 msgstr ""
 
@@ -7964,7 +7947,7 @@ msgid "You saved: %s"
 msgstr ""
 
 #: src/gui/gui.cpp:5806 src/gui/gui.cpp:6084 src/gui/gui.cpp:6085
-#: src/gui/settings.cpp:7119
+#: src/gui/settings.cpp:7120
 msgid "Warning"
 msgstr ""
 
@@ -8036,7 +8019,7 @@ msgstr ""
 #: src/gui/gui.cpp:6161 src/gui/gui.cpp:6185 src/gui/gui.cpp:6209
 #: src/gui/gui.cpp:6241 src/gui/gui.cpp:6257 src/gui/gui.cpp:6268
 #: src/gui/gui.cpp:6280 src/gui/gui.cpp:6434 src/gui/gui.cpp:6456
-#: src/gui/gui.cpp:6472 src/gui/gui.cpp:6483 src/gui/settings.cpp:7121
+#: src/gui/gui.cpp:6472 src/gui/gui.cpp:6483 src/gui/settings.cpp:7122
 msgid "Yes"
 msgstr ""
 
@@ -11297,7 +11280,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6588 src/gui/sampleEdit.cpp:531
 #: src/gui/settings.cpp:1637 src/gui/settings.cpp:2254
-#: src/gui/settings.cpp:7116
+#: src/gui/settings.cpp:7117
 msgid "Type"
 msgstr ""
 
@@ -17921,7 +17904,7 @@ msgstr ""
 msgid "Delete all"
 msgstr ""
 
-#: src/gui/settings.cpp:4509 src/gui/settings.cpp:7117
+#: src/gui/settings.cpp:4509 src/gui/settings.cpp:7118
 msgid "Size"
 msgstr ""
 
@@ -18020,65 +18003,65 @@ msgstr ""
 msgid "error while loading config! (%s)"
 msgstr ""
 
-#: src/gui/settings.cpp:7104
+#: src/gui/settings.cpp:7105
 msgid "[Dir]"
 msgstr ""
 
-#: src/gui/settings.cpp:7105
+#: src/gui/settings.cpp:7106
 msgid "[Link]"
 msgstr ""
 
-#: src/gui/settings.cpp:7106
+#: src/gui/settings.cpp:7107
 msgid "[File]"
 msgstr ""
 
-#: src/gui/settings.cpp:7107
+#: src/gui/settings.cpp:7108
 msgid "Name:"
 msgstr ""
 
-#: src/gui/settings.cpp:7108
+#: src/gui/settings.cpp:7109
 msgid "Path:"
 msgstr ""
 
-#: src/gui/settings.cpp:7109
+#: src/gui/settings.cpp:7110
 msgid "Reset search"
 msgstr ""
 
-#: src/gui/settings.cpp:7110
+#: src/gui/settings.cpp:7111
 msgid "Drives"
 msgstr ""
 
-#: src/gui/settings.cpp:7111
+#: src/gui/settings.cpp:7112
 msgid ""
 "Edit path\n"
 "You can also right click on path buttons"
 msgstr ""
 
-#: src/gui/settings.cpp:7112
+#: src/gui/settings.cpp:7113
 msgid "Go to home directory"
 msgstr ""
 
-#: src/gui/settings.cpp:7113
+#: src/gui/settings.cpp:7114
 msgid "Go to parent directory"
 msgstr ""
 
-#: src/gui/settings.cpp:7114
+#: src/gui/settings.cpp:7115
 msgid "Create Directory"
 msgstr ""
 
-#: src/gui/settings.cpp:7115
+#: src/gui/settings.cpp:7116
 msgid "File name"
 msgstr ""
 
-#: src/gui/settings.cpp:7118
+#: src/gui/settings.cpp:7119
 msgid "Date"
 msgstr ""
 
-#: src/gui/settings.cpp:7120
+#: src/gui/settings.cpp:7121
 msgid "The file you selected already exists! Would you like to overwrite it?"
 msgstr ""
 
-#: src/gui/settings.cpp:7123
+#: src/gui/settings.cpp:7124
 msgid "%Y/%m/%d %H:%M"
 msgstr ""
 
@@ -18176,6 +18159,23 @@ msgstr ""
 
 #: src/gui/stats.cpp:35
 msgid "Audio load"
+msgstr ""
+
+#: src/gui/subSongs.cpp:22 src/gui/subSongs.cpp:32
+#, c-format
+msgid "%d. <no name>"
+msgstr ""
+
+#: src/gui/subSongs.cpp:74 src/gui/subSongs.cpp:95
+msgid "too many subsongs!"
+msgstr ""
+
+#: src/gui/subSongs.cpp:117
+msgid "this is the only subsong!"
+msgstr ""
+
+#: src/gui/subSongs.cpp:119
+msgid "are you sure you want to remove this subsong?"
 msgstr ""
 
 #: src/gui/sysConf.cpp:50 src/gui/sysConf.cpp:130 src/gui/sysConf.cpp:497
