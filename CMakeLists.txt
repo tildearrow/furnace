@@ -630,6 +630,7 @@ src/engine/platform/sound/pokey/AltASAP.cpp
 src/engine/platform/sound/qsound.c
 
 src/engine/platform/sound/swan.c
+src/engine/platform/sound/swan_mdfn.cpp
 
 src/engine/platform/sound/su.cpp
 
