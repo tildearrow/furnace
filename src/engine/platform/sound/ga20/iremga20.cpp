@@ -89,35 +89,32 @@ void iremga20_device::device_reset()
 //  sound_stream_update - handle a stream update
 //-------------------------------------------------
 
-void iremga20_device::sound_stream_update(short** outputs, int len)
+void iremga20_device::sound_stream_update(short* outputs, int len)
 {
-	for (int i = 0; i < len; i++)
+	for (int j = 0; j < 4; j++)
 	{
-		for (int j = 0; j < 4; j++)
+		channel_def &ch = m_channel[j];
+		if (ch.play)
 		{
-			channel_def &ch = m_channel[j];
-			if (ch.play)
+			if (ch.sample == 0x00) // check for sample end marker
+				ch.play = false;
+			else
 			{
-				if (ch.sample == 0x00) // check for sample end marker
-					ch.play = false;
-				else
+  if (ch.hot) {
+    ch.hot=false;
+				  ch.output = ch.mute ? 0 : (ch.sample - 0x80) * (s32)ch.volume;
+  }
+				ch.counter-=len;
+				if (ch.counter <= ch.rate)
 				{
-          if (ch.hot) {
-            ch.hot=false;
-					  ch.output = ch.mute ? 0 : (ch.sample - 0x80) * (s32)ch.volume;
-          }
-					ch.counter--;
-					if (ch.counter <= ch.rate)
-					{
-						ch.pos++;
-						ch.counter = 0x100;
-				                ch.sample = m_intf.read_byte(ch.pos);
-                        ch.hot=true;
-					}
+					ch.pos++;
+					ch.counter = 0x100;
+			                ch.sample = m_intf.read_byte(ch.pos);
+                ch.hot=true;
 				}
 			}
-			outputs[j][i] = ch.output;
 		}
+		outputs[j] = ch.output;
 	}
 }
 

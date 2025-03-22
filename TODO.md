@@ -1,8 +1,4 @@
-# to-do for 0.6.8
-
-- OPL3 mute fix
-
-# to-do long term
+# to-do for 0.7?
 
 - CSM macros
 - finish auto-clone

@@ -120,6 +120,7 @@ class DivPlatformESFM: public DivDispatch {
     };
   FixedQueue<QueuedWrite,2048> writes;
   esfm_chip chip;
+  short oldOut[2];
   bool isFast;
 
   unsigned char regPool[ESFM_REG_POOL_SIZE];
@@ -180,6 +181,7 @@ class DivPlatformESFM: public DivDispatch {
 
   public:
     void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -194,6 +196,7 @@ class DivPlatformESFM: public DivDispatch {
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
+    bool hasAcquireDirect();
     bool getLegacyAlwaysSetVolume();
     void toggleRegisterDump(bool enable);
     void notifyInsChange(int ins);

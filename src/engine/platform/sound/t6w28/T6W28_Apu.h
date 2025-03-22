@@ -8,14 +8,10 @@ namespace MDFN_IEN_NGP
 
 typedef long sms_time_t; // clock cycle count
 
-struct Fake_Buffer {
-  int curValue;
-  Fake_Buffer():
-    curValue(0) {}
-};
-
-
 }
+
+#include "blip_buf.h"
+#include "../../../dispatch.h"
 
 #include "T6W28_Oscs.h"
 
@@ -45,15 +41,13 @@ public:
 	
 	// Assign all oscillator outputs to specified buffer(s). If buffer
 	// is NULL, silences all oscillators.
-	void output( Fake_Buffer* mono );
-	void output( Fake_Buffer* center, Fake_Buffer* left, Fake_Buffer* right );
+	void output( blip_buffer_t* left, blip_buffer_t* right );
 	
 	// Assign single oscillator output to buffer(s). Valid indicies are 0 to 3,
 	// which refer to Square 1, Square 2, Square 3, and Noise. If buffer is NULL,
 	// silences oscillator.
 	enum { osc_count = 4 };
-	void osc_output( int index, Fake_Buffer* mono );
-	void osc_output( int index, Fake_Buffer* center, Fake_Buffer* left, Fake_Buffer* right );
+	void osc_output( int index, DivDispatchOscBuffer* oscBuf );
 	
 	// Reset oscillators and internal state
 	void reset();
@@ -85,11 +79,6 @@ private:
 	
 	void run_until( sms_time_t );
 };
-
-inline void T6W28_Apu::output( Fake_Buffer* b ) { output( b, b, b ); }
-
-inline void T6W28_Apu::osc_output( int i, Fake_Buffer* b ) { osc_output( i, b, b, b ); }
-
 }
 
 #endif

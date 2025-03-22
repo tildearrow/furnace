@@ -49,12 +49,12 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
   bool isMuted[16];
   bool isDSi;
   int globalVolume;
+  int lastOut[2];
   unsigned int sampleOff[256];
   bool sampleLoaded[256];
 
   unsigned char* sampleMem;
   size_t sampleMemLen;
-  int coreQuality;
   nds_sound_t nds;
   DivMemoryComposition memCompo;
   unsigned char regPool[288];
@@ -65,7 +65,8 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
     virtual u8 read_byte(u32 addr) override;
     virtual void write_byte(u32 addr, u8 data) override;
 
-    virtual void acquire(short** buf, size_t len) override;
+    virtual void acquireDirect(blip_buffer_t** bb, size_t len) override;
+    virtual void postProcess(short* buf, int outIndex, size_t len, int sampleRate) override;
     virtual int dispatch(DivCommand c) override;
     virtual void* getChanState(int chan) override;
     virtual DivMacroInt* getChanMacroInt(int ch) override;
@@ -79,6 +80,7 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
     virtual void muteChannel(int ch, bool mute) override;
     virtual float getPostAmp() override;
     virtual int getOutputCount() override;
+    virtual bool hasAcquireDirect() override;
     virtual void notifyInsChange(int ins) override;
     virtual void notifyWaveChange(int wave) override;
     virtual void notifyInsDeletion(void* ins) override;
@@ -92,7 +94,6 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
     virtual const DivMemoryComposition* getMemCompo(int index) override;
     virtual void renderSamples(int chipID) override;
     virtual void setFlags(const DivConfig& flags) override;
-    void setCoreQuality(unsigned char q);
     virtual int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) override;
     virtual void quit() override;
     DivPlatformNDS():

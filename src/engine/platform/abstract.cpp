@@ -23,10 +23,13 @@
 void DivDispatch::acquire(short** buf, size_t len) {
 }
 
-void DivDispatch::acquireDirect(blip_buffer_t** bb, size_t off, size_t len) {
+void DivDispatch::acquireDirect(blip_buffer_t** bb, size_t len) {
 }
 
 void DivDispatch::fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len) {
+}
+
+void DivDispatch::postProcess(short* buf, int outIndex, size_t len, int sampleRate) {
 }
 
 void DivDispatch::tick(bool sysTick) {

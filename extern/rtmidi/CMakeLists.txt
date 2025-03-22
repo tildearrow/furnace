@@ -3,7 +3,7 @@
 # additional modifications for Furnace by tildearrow.
 
 # Set minimum CMake required version for this project.
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.5...3.20)
 
 # Define a C++ project.
 project(RtMidi LANGUAGES CXX C)

@@ -52,36 +52,73 @@ inline void DivPlatformGA20::chWrite(unsigned char ch, unsigned int addr, unsign
 }
 
 void DivPlatformGA20::acquire(short** buf, size_t len) {
-  if (ga20BufLen<len) {
-    ga20BufLen=len;
-    for (int i=0; i<4; i++) {
-      delete[] ga20Buf[i];
-      ga20Buf[i]=new short[ga20BufLen];
-    }
+  thread_local short ga20Buf[4];
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
   }
 
   for (size_t h=0; h<len; h++) {
-    if ((--delay)<=0) {
-      delay=MAX(0,delay);
-      if (!writes.empty()) {
-        QueuedWrite& w=writes.front();
-        ga20.write(w.addr,w.val);
-        regPool[w.addr]=w.val;
-        writes.pop();
-        delay=1;
+    if (!writes.empty()) {
+      QueuedWrite& w=writes.front();
+      ga20.write(w.addr,w.val);
+      regPool[w.addr]=w.val;
+      writes.pop();
+    }
+    ga20.sound_stream_update(ga20Buf,1);
+    buf[0][h]=(signed int)(ga20Buf[0]+ga20Buf[1]+ga20Buf[2]+ga20Buf[3])>>2;
+    for (int i=0; i<4; i++) {
+      oscBuf[i]->putSample(h,ga20Buf[i]>>1);
+    }
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
+  }
+}
+
+void DivPlatformGA20::acquireDirect(blip_buffer_t** bb, size_t len) {
+  thread_local short ga20Buf[4];
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+
+  for (size_t h=0; h<len; h++) {
+    size_t advance=0;
+    if (!writes.empty()) {
+      QueuedWrite& w=writes.front();
+      ga20.write(w.addr,w.val);
+      regPool[w.addr]=w.val;
+      writes.pop();
+    } else {
+      // heuristic
+      advance=len-h-1;
+
+      for (int i=0; i<4; i++) {
+        if (!ga20.m_channel[i].play) continue;
+        if (ga20.m_channel[i].hot) {
+          advance=0;
+          break;
+        }
+        const size_t newAdvance=ga20.m_channel[i].counter-ga20.m_channel[i].rate-1;
+        if (newAdvance<advance) advance=newAdvance;
       }
     }
-    short *buffer[4]={
-      &ga20Buf[0][h],
-      &ga20Buf[1][h],
-      &ga20Buf[2][h],
-      &ga20Buf[3][h]
-    };
-    ga20.sound_stream_update(buffer,1);
-    buf[0][h]=(signed int)(ga20Buf[0][h]+ga20Buf[1][h]+ga20Buf[2][h]+ga20Buf[3][h])>>2;
-    for (int i=0; i<4; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=ga20Buf[i][h]>>1;
+    ga20.sound_stream_update(ga20Buf,advance+1);
+    h+=advance;
+    const int out=(signed int)(ga20Buf[0]+ga20Buf[1]+ga20Buf[2]+ga20Buf[3])>>2;
+    if (out!=oldOut) {
+      blip_add_delta(bb[0],h,out-oldOut);
+      oldOut=out;
     }
+    for (int i=0; i<4; i++) {
+      oscBuf[i]->putSample(h,ga20Buf[i]>>1);
+    }
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -366,7 +403,7 @@ void DivPlatformGA20::reset() {
   writes.clear();
   memset(regPool,0,32);
   ga20.device_reset();
-  delay=0;
+  oldOut=0;
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformGA20::Channel();
     chan[i].std.setEngine(parent);
@@ -375,6 +412,10 @@ void DivPlatformGA20::reset() {
     chWrite(i,6,0);
     if (isMuted[i]) ga20.set_mute(i,true);
   }
+}
+
+bool DivPlatformGA20::hasAcquireDirect() {
+  return true;
 }
 
 int DivPlatformGA20::getOutputCount() {
@@ -403,7 +444,7 @@ void DivPlatformGA20::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/4;
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 
@@ -502,7 +543,6 @@ int DivPlatformGA20::init(DivEngine* p, int channels, int sugRate, const DivConf
   }
   sampleMem=new unsigned char[getSampleMemCapacity()];
   sampleMemLen=0;
-  delay=0;
   setFlags(flags);
   ga20BufLen=65536;
   for (int i=0; i<4; i++) ga20Buf[i]=new short[ga20BufLen];

@@ -169,6 +169,7 @@ void FurnaceGUI::finishSelection() {
   }
   selecting=false;
   selectingFull=false;
+  mobilePatSel=false;
 
   if (dragging) {
     if (dragSourceX==dragDestinationX && dragSourceY==dragDestinationY && dragSourceXFine==dragDestinationXFine) {

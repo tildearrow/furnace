@@ -313,7 +313,7 @@ TAParamResult pVersion(String) {
   printf("- MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya (GPLv2)\n");
   printf("- MAME MSM6258 core by Barry Rodewald (BSD 3-clause)\n");
   printf("- MAME YMZ280B core by Aaron Giles (BSD 3-clause)\n");
-  printf("- MAME GA20 core by Acho A. Tang and R. Belmont (BSD 3-clause)\n");
+  printf("- MAME GA20 core (modified version) by Acho A. Tang, R. Belmont and Valley Bell (BSD 3-clause)\n");
   printf("- MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert (BSD 3-clause)\n");
   printf("- MAME µPD1771C-017 HLE core by David Viens (BSD 3-clause)\n");
   printf("- QSound core by superctr (BSD 3-clause)\n");
@@ -324,8 +324,9 @@ TAParamResult pVersion(String) {
   printf("- SameBoy by Lior Halphon (MIT)\n");
   printf("- Mednafen PCE, WonderSwan and Virtual Boy by Mednafen Team (GPLv2)\n");
   printf("- Mednafen T6W28 by Blargg (GPLv2)\n");
+  printf("- WonderSwan new core by asiekierka (zlib license)\n");
   printf("- SNES DSP core by Blargg (LGPLv2.1)\n");
-  printf("- puNES by FHorse (GPLv2)\n");
+  printf("- puNES (modified version) by FHorse (GPLv2)\n");
   printf("- NSFPlay by Brad Smith and Brezza (unknown open-source license)\n");
   printf("- reSID by Dag Lem (GPLv2)\n");
   printf("- reSIDfp by Dag Lem, Antti Lankila and Leandro Nini (GPLv2)\n");
@@ -334,7 +335,6 @@ TAParamResult pVersion(String) {
   printf("- vgsound_emu (second version, modified version) by cam900 (zlib license)\n");
   printf("- Impulse Tracker GUS volume table by Jeffrey Lim (BSD 3-clause)\n");
   printf("- Schism Tracker IT sample decompression (GPLv2)\n");
-  printf("- MAME GA20 core by Acho A. Tang, R. Belmont, Valley Bell (BSD 3-clause)\n");
   printf("- Atari800 mzpokeysnd POKEY emulator by Michael Borisov (GPLv2)\n");
   printf("- ASAP POKEY emulator by Piotr Fusik ported to C++ by laoo (GPLv2)\n");
   printf("- SM8521 emulator (modified version) by cam900 (zlib license)\n");

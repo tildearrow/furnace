@@ -23,6 +23,7 @@
 #include "../dispatch.h"
 #include "../waveSynth.h"
 #include "sound/swan.h"
+#include "sound/swan_mdfn.h"
 #include "../../fixedQueue.h"
 
 class DivPlatformSwan: public DivDispatch {
@@ -38,6 +39,8 @@ class DivPlatformSwan: public DivDispatch {
   Channel chan[4];
   DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
+  bool stereo;
+  bool useMdfn;
   bool pcm, sweep, furnaceDac, setPos;
   unsigned char sampleBank, noise;
   int dacPeriod, dacRate;
@@ -53,12 +56,15 @@ class DivPlatformSwan: public DivDispatch {
   };
   FixedQueue<QueuedWrite,256> writes;
   FixedQueue<DivRegWrite,2048> postDACWrites;
-  int coreQuality;
-  WSwan* ws;
+
+  swan_sound_t ws;
+  WSwan* ws_mdfn;
+  
   void updateWave(int ch);
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
@@ -76,10 +82,11 @@ class DivPlatformSwan: public DivDispatch {
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
     int getOutputCount();
+    bool hasAcquireDirect();
+    void setUseMdfn(bool use);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    void setCoreQuality(unsigned char q);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformSwan();

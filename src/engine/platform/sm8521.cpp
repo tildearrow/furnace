@@ -24,7 +24,7 @@
 //#define rWrite(a,v) pendingWrites[a]=v;
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_DIVIDER 64
+#define CHIP_DIVIDER 32
 
 const char* regCheatSheetSM8521[]={
   "SGC", "40",
@@ -47,20 +47,50 @@ const char** DivPlatformSM8521::getRegisterSheet() {
   return regCheatSheetSM8521;
 }
 
-void DivPlatformSM8521::acquire(short** buf, size_t len) {
+void DivPlatformSM8521::acquireDirect(blip_buffer_t** bb, size_t len) {
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
     sm8521_write(&sm8521,w.addr,w.val);
     regPool[w.addr&0xff]=w.val;
     writes.pop();
   }
+
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
-    sm8521_sound_tick(&sm8521,coreQuality);
-    buf[0][h]=sm8521.out<<6;
-    for (int i=0; i<2; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=sm8521.sg[i].base.out<<7;
+    int advance=len-h;
+    if (sm8521.sgc&1) {
+      const int remain=(sm8521.sg[0].base.t+1)-sm8521.sg[0].base.counter;
+      if (remain<advance) advance=remain;
     }
-    oscBuf[2]->data[oscBuf[2]->needle++]=sm8521.noise.base.out<<7;
+    if (sm8521.sgc&2) {
+      const int remain=(sm8521.sg[1].base.t+1)-sm8521.sg[1].base.counter;
+      if (remain<advance) advance=remain;
+    }
+    if (sm8521.sgc&4) {
+      const int remain=(sm8521.noise.base.t+1)-sm8521.noise.base.counter;
+      if (remain<advance) advance=remain;
+    }
+    if (advance<1) advance=1;
+    sm8521_sound_tick(&sm8521,advance);
+
+    h+=advance-1;
+
+    int out=sm8521.out<<6;
+    if (out!=lastOut) {
+      blip_add_delta(bb[0],h,out-lastOut);
+      lastOut=out;
+    }
+    for (int i=0; i<2; i++) {
+      oscBuf[i]->putSample(h,sm8521.sg[i].base.out<<7);
+    }
+    oscBuf[2]->putSample(h,sm8521.noise.base.out<<7);
+  }
+
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -337,6 +367,7 @@ void DivPlatformSM8521::reset() {
     addWrite(0xffffffff,0);
   }
   sm8521_reset(&sm8521);
+  lastOut=0;
   rWrite(0x40,0x80); // initialize SGC
 }
 
@@ -345,6 +376,10 @@ int DivPlatformSM8521::getOutputCount() {
 }
 
 bool DivPlatformSM8521::keyOffAffectsArp(int ch) {
+  return true;
+}
+
+bool DivPlatformSM8521::hasAcquireDirect() {
   return true;
 }
 
@@ -367,9 +402,9 @@ void DivPlatformSM8521::setFlags(const DivConfig& flags) {
   chipClock=11059200;
   CHECK_CUSTOM_CLOCK;
   antiClickEnabled=!flags.getBool("noAntiClick",false);
-  rate=chipClock/4/coreQuality; // CKIN -> fCLK(/2) -> Function blocks (/2)
+  rate=chipClock/2; // CKIN -> fCLK(/2) -> Function blocks (/2)
   for (int i=0; i<3; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 
@@ -379,32 +414,6 @@ void DivPlatformSM8521::poke(unsigned int addr, unsigned short val) {
 
 void DivPlatformSM8521::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
-}
-
-void DivPlatformSM8521::setCoreQuality(unsigned char q) {
-  switch (q) {
-    case 0:
-      coreQuality=64;
-      break;
-    case 1:
-      coreQuality=32;
-      break;
-    case 2:
-      coreQuality=16;
-      break;
-    case 3:
-      coreQuality=8;
-      break;
-    case 4:
-      coreQuality=4;
-      break;
-    case 5:
-      coreQuality=1;
-      break;
-    default:
-      coreQuality=8;
-      break;
-  }
 }
 
 int DivPlatformSM8521::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

@@ -110,7 +110,7 @@
 
 # To minimize the number of cmake_policy() workarounds,
 # CMake >= 3 is requested.
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.0...3.20)
 
 if (NOT CMAKE_VERSION VERSION_LESS 3.3)
   # Allow symbol visibility settings also on static libraries. CMake < 3.3

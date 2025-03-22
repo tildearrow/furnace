@@ -93,32 +93,29 @@ const char** DivPlatformVB::getRegisterSheet() {
   return regCheatSheetVB;
 }
 
-void DivPlatformVB::acquire(short** buf, size_t len) {
+void DivPlatformVB::acquireDirect(blip_buffer_t** bb, size_t len) {
+  for (int i=0; i<6; i++) {
+    oscBuf[i]->begin(len);
+    vb->oscBuf[i]=oscBuf[i];
+  }
+
+  vb->bb[0]=bb[0];
+  vb->bb[1]=bb[1];
+
   for (size_t h=0; h<len; h++) {
-    cycles=0;
     if (!writes.empty()) {
       QueuedWrite w=writes.front();
-      vb->Write(cycles,w.addr,w.val);
+      vb->Write(h,w.addr,w.val);
       regPool[w.addr>>2]=w.val;
       writes.pop();
+    } else {
+      break;
     }
-    vb->EndFrame(coreQuality);
+  }
+  vb->EndFrame(len);
 
-    tempL=0;
-    tempR=0;
-    for (int i=0; i<6; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(vb->last_output[i][0]+vb->last_output[i][1])*8;
-      tempL+=vb->last_output[i][0];
-      tempR+=vb->last_output[i][1];
-    }
-
-    if (tempL<-32768) tempL=-32768;
-    if (tempL>32767) tempL=32767;
-    if (tempR<-32768) tempR=-32768;
-    if (tempR>32767) tempR=32767;
-    
-    buf[0][h]=tempL;
-    buf[1][h]=tempR;
+  for (int i=0; i<6; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -152,6 +149,14 @@ void DivPlatformVB::tick(bool sysTick) {
     }
 
     chan[i].std.next();
+    // this is handled first to work around an envelope problem
+    // once envelope is over, you cannot enable it again unless you retrigger the channel
+    if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
+      chWrite(i,0x00,0x80);
+      chan[i].intWritten=true;
+      chan[i].antiClickWavePos=0;
+      chan[i].antiClickPeriodCount=0;
+    }
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
       writeEnv(i);
@@ -200,12 +205,6 @@ void DivPlatformVB::tick(bool sysTick) {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
       chan[i].freqChanged=true;
-    }
-    if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
-      chWrite(i,0x00,0x80);
-      chan[i].intWritten=true;
-      chan[i].antiClickWavePos=0;
-      chan[i].antiClickPeriodCount=0;
     }
     if (chan[i].active) {
       if (chan[i].ws.tick() || (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1)) {
@@ -267,11 +266,13 @@ int DivPlatformVB::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
-      if (chan[c.chan].insChanged && ins->fds.initModTableWithFirstWave) {
+      if (c.chan==4 && chan[c.chan].insChanged && ins->fds.initModTableWithFirstWave) {
+        chWrite(4,0x00,0x00);
         for (int i=0; i<32; i++) {
           modTable[i]=ins->fds.modTable[i];
           rWrite(0x280+(i<<2),modTable[i]);
         }
+        chWrite(4,0x00,0x80);
       }
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
@@ -393,6 +394,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
     case DIV_CMD_FDS_MOD_WAVE: { // set modulation wave
       if (c.chan!=4) break;
       DivWavetable* wt=parent->getWave(c.value);
+      chWrite(4,0x00,0x00);
       for (int i=0; i<32; i++) {
         if (wt->max<1 || wt->len<1) {
           modTable[i]=0;
@@ -405,6 +407,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
           rWrite(0x280+(i<<2),modTable[i]);
         }
       }
+      chWrite(4,0x00,0x80);
       break;
     }
     case DIV_CMD_PANNING: {
@@ -505,7 +508,6 @@ void DivPlatformVB::reset() {
   vb->Power();
   tempL=0;
   tempR=0;
-  cycles=0;
   curChan=-1;
   modulation=0;
   modType=false;
@@ -531,6 +533,10 @@ int DivPlatformVB::getOutputCount() {
 }
 
 bool DivPlatformVB::keyOffAffectsArp(int ch) {
+  return true;
+}
+
+bool DivPlatformVB::hasAcquireDirect() {
   return true;
 }
 
@@ -578,9 +584,9 @@ void DivPlatformVB::notifyInsDeletion(void* ins) {
 void DivPlatformVB::setFlags(const DivConfig& flags) {
   chipClock=5000000.0;
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/coreQuality;
+  rate=chipClock;
   for (int i=0; i<6; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 
   romMode=flags.getBool("romMode",false);
@@ -600,32 +606,6 @@ void DivPlatformVB::poke(unsigned int addr, unsigned short val) {
 
 void DivPlatformVB::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
-}
-
-void DivPlatformVB::setCoreQuality(unsigned char q) {
-  switch (q) {
-    case 0:
-      coreQuality=128;
-      break;
-    case 1:
-      coreQuality=64;
-      break;
-    case 2:
-      coreQuality=32;
-      break;
-    case 3:
-      coreQuality=16;
-      break;
-    case 4:
-      coreQuality=4;
-      break;
-    case 5:
-      coreQuality=1;
-      break;
-    default:
-      coreQuality=16;
-      break;
-  }
 }
 
 int DivPlatformVB::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

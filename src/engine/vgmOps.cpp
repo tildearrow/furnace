@@ -22,8 +22,6 @@
 #include "../utfutils.h"
 #include "song.h"
 
-constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
-
 // this function is so long
 // may as well make it something else
 void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, int* setPos, unsigned int* sampleOff8, unsigned int* sampleLen8, size_t bankOffset, bool directStream, bool* sampleStoppable) {
@@ -1432,7 +1430,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         break;
       case DIV_SYSTEM_PCE:
         if (!hasPCE) {
-          hasPCE=disCont[i].dispatch->chipClock;
+          // the clock is halved in VGM...
+          hasPCE=disCont[i].dispatch->chipClock/2;
           CHIP_VOL(27,0.98);
           willExport[i]=true;
           writePCESamples=true;
@@ -2740,7 +2739,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     };
 
     // calculate number of samples in this tick
-    int totalWait=cycles>>MASTER_CLOCK_PREC;
+    int totalWait=cycles;
 
     // get register dumps and put them into delayed writes
     int writeNum=0;

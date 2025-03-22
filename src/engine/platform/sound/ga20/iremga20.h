@@ -6,7 +6,7 @@
 
 	DISCLAIMER
 	- This file is modified for suitable in furnace.
-	- modified by cam900
+	- modified by cam900 and tildearrow
 
 *********************************************************/
 #ifndef MAME_SOUND_IREMGA20_H
@@ -50,10 +50,9 @@ public:
 	void device_reset();
 
 	// sound stream update overrides
-	void sound_stream_update(short** outputs, int len);
+	void sound_stream_update(short* outputs, int len);
   
 
-private:
 	struct channel_def
 	{
 		channel_def() :

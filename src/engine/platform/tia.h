@@ -43,10 +43,10 @@ class DivPlatformTIA: public DivDispatch {
     bool softwarePitch;
     bool oldPitch;
     unsigned char mixingType;
-    unsigned char chanOscCounter;
     TIA::Audio tia;
     unsigned char regPool[16];
     int tuneCounter;
+    int prevSample[2];
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
@@ -54,7 +54,7 @@ class DivPlatformTIA: public DivDispatch {
     int dealWithFreqNew(int shape, int bp);
   
   public:
-    void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -69,6 +69,7 @@ class DivPlatformTIA: public DivDispatch {
     float getPostAmp();
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
+    bool hasAcquireDirect();
     bool getLegacyAlwaysSetVolume();
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
