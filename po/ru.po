@@ -7621,6 +7621,14 @@ msgid ""
 "\n"
 "have fun!"
 msgstr ""
+"вы импортировали модуль Scream Tracker 3!\n"
+"учтите следущее:\n"
+"\n"
+"- Furnace не является заменой проигрывателя S3M-файлов\n"
+"- импорт не идеален. трек может звучать по-другому:\n"
+"  - OPL-инструменты могут быть расстроены\n"
+"\n"
+"удачи!"
 
 #: src/gui/gui.cpp:2475
 msgid ""
@@ -7634,6 +7642,15 @@ msgid ""
 "\n"
 "have fun!"
 msgstr ""
+"вы импортировали модуль FastTracker II!\n"
+"учтите следущее:\n"
+"\n"
+"- Furnace не является заменой проигрывателя XM-файлов\n"
+"- импорт не идеален. трек может звучать по-другому:\n"
+"  - огибающие были сконвертированы в макросы\n"
+"  - глобальные изменения уровня громкости не поддерживаются\n"
+"\n"
+"удачи!"
 
 #: src/gui/gui.cpp:2478
 msgid ""
@@ -7649,6 +7666,17 @@ msgid ""
 "\n"
 "have fun!"
 msgstr ""
+"вы импортировали модуль Impulse Tracker!\n"
+"учтите следущее:\n"
+"\n"
+"- Furnace не является заменой проигрывателя IT-файлов\n"
+"- импорт не идеален. трек может звучать по-другому:\n"
+"  - огибающие были сконвертированы в макросы\n"
+"  - глобальные изменения уровня громкости не поддерживаются\n"
+"  - изменения уровня громкости отдельных каналов не поддерживаются\n"
+"  - New Note Actions (NNA) не поддерживаются\n"
+"\n"
+"удачи!"
 
 #: src/gui/gui.cpp:2486 src/gui/gui.cpp:3952 src/gui/gui.cpp:4431
 msgid "Unsaved changes! Save changes before opening file?"
@@ -7835,7 +7863,7 @@ msgstr "Верхняя граница"
 
 #: src/gui/gui.cpp:3205
 msgid "Set effect"
-msgstr ""
+msgstr "Установить эффект"
 
 #: src/gui/gui.cpp:3213 src/gui/settings.cpp:950 src/gui/waveEdit.cpp:1064
 msgid "Randomize"
@@ -8240,7 +8268,7 @@ msgstr "паника"
 
 #: src/gui/gui.cpp:4726
 msgid "welcome screen"
-msgstr ""
+msgstr "экран приветствия"
 
 #: src/gui/gui.cpp:4727
 msgid "about..."
@@ -8623,7 +8651,7 @@ msgstr "Не надо! Отмена"
 
 #: src/gui/gui.cpp:6495
 msgid "Got it"
-msgstr ""
+msgstr "Понятно"
 
 #: src/gui/gui.cpp:6526
 msgid "Drum kit mode:"
@@ -8924,7 +8952,7 @@ msgstr "Пила"
 
 #: src/gui/guiConst.cpp:251
 msgid "Ext. Operator"
-msgstr ""
+msgstr "Расш. Оператор"
 
 #: src/gui/guiConst.cpp:252 src/gui/insEdit.cpp:117 src/gui/insEdit.cpp:136
 #: src/gui/insEdit.cpp:155 src/gui/insEdit.cpp:175 src/gui/insEdit.cpp:4000
@@ -9419,11 +9447,11 @@ msgstr "Перенимать инструмент/октаву из текуще
 
 #: src/gui/guiConst.cpp:732
 msgid "Return cursor to previous jump point"
-msgstr ""
+msgstr "Вернуть курсор в предыдущую точку прыжка"
 
 #: src/gui/guiConst.cpp:733
 msgid "Reverse recent cursor undo"
-msgstr ""
+msgstr "Отменить последнюю отмену действий курсора"
 
 #: src/gui/guiConst.cpp:736
 msgid "---Instrument list"
@@ -9520,7 +9548,7 @@ msgstr "Сохранить волновую таблицу (сырые данн�
 
 #: src/gui/guiConst.cpp:761
 msgid "Create sample from wavetable"
-msgstr ""
+msgstr "Создать сэмпл из волновой таблицы"
 
 #: src/gui/guiConst.cpp:762
 msgid "Move wavetable up in list"
@@ -9950,7 +9978,7 @@ msgstr "SSG-EG"
 
 #: src/gui/insEdit.cpp:53
 msgid "AM"
-msgstr ""
+msgstr "АМ"
 
 #: src/gui/insEdit.cpp:53 src/gui/insEdit.cpp:6667 src/gui/insEdit.cpp:7775
 msgid "AM Depth"
@@ -11182,11 +11210,11 @@ msgstr "Длина вибрации"
 
 #: src/gui/insEdit.cpp:2779
 msgid "Len##macroEditLengthShortLabel"
-msgstr ""
+msgstr "Дл.##macroEditLengthShortLabel"
 
 #: src/gui/insEdit.cpp:2791
 msgid "SLen##macroEditStepLenShortLabel"
-msgstr ""
+msgstr "Дл. ш.##macroEditStepLenShortLabel"
 
 #: src/gui/insEdit.cpp:2791 src/gui/insEdit.cpp:2792
 msgid "StepLen"
@@ -11194,7 +11222,7 @@ msgstr "Дл. шага"
 
 #: src/gui/insEdit.cpp:2800
 msgid "Del##macroEditDelayShortLabel"
-msgstr ""
+msgstr "Удал.##macroEditDelayShortLabel"
 
 #: src/gui/insEdit.cpp:2800 src/gui/insEdit.cpp:2801
 msgid "Delay"
@@ -11434,27 +11462,29 @@ msgstr "Огиб."
 
 #: src/gui/insEdit.cpp:4486 src/gui/insEdit.cpp:5140 src/gui/insEdit.cpp:5823
 msgid "Snare's multiplier is determined by HiHat's."
-msgstr ""
+msgstr "Множитель частоты м. бараб. опред. хай-хэтом."
 
 #: src/gui/insEdit.cpp:4540 src/gui/insEdit.cpp:5316 src/gui/insEdit.cpp:5639
 msgid "Pitch control"
-msgstr ""
+msgstr "Упр. частотой"
 
 #: src/gui/insEdit.cpp:4549 src/gui/insEdit.cpp:5325 src/gui/insEdit.cpp:5648
 msgid ""
 "only works on linear pitch! go to Compatibility Flags > Pitch/Playback and "
 "set Pitch linearity to Full."
 msgstr ""
+"работает только с линейной частотой нот! Флаги совместимости > Частота/Воспроизведение, "
+"установить линейную частоту нот как Полную."
 
 #: src/gui/insEdit.cpp:4551 src/gui/insEdit.cpp:5327 src/gui/insEdit.cpp:5650
 msgid ""
 "use op's arpeggio and pitch macros control instead of block/f-num macros"
-msgstr ""
+msgstr "использовать макросы арпеджио и частоты оператора вместо макросов блока и частоты (f-num)"
 
 #: src/gui/insEdit.cpp:4740 src/gui/insEdit.cpp:5104 src/gui/insEdit.cpp:5161
 #: src/gui/insEdit.cpp:5917
 msgid "OPL2/3/4 only (last 4 waveforms are OPL3/4 only)"
-msgstr ""
+msgstr "Только для OPL2/3/4 (последние 4 волны только для OPL3/4)"
 
 #: src/gui/insEdit.cpp:4839 src/gui/insEdit.cpp:5572
 #, c-format
@@ -11472,7 +11502,7 @@ msgstr "Част."
 
 #: src/gui/insEdit.cpp:5210
 msgid "Only on YM2151 and YM2414 (OPM and OPZ)"
-msgstr ""
+msgstr "Только для YM2151 и YM2414 (OPM и OPZ)"
 
 #: src/gui/insEdit.cpp:5233
 msgid "Blk"
@@ -11502,6 +11532,11 @@ msgid ""
 "calculation is altered\n"
 "in a way that makes tonal noise stay in tune."
 msgstr ""
+"Как и в SID2,некоторые настройки битов-отводов РСЛОС могут давать тональный "
+"сигнал.\n"
+"См. инструкцию, чтобы увидеть список конфигураций макроса битов-отводов РСЛОС, для которых изменён "
+"расчёт частот так,\n"
+"что тональный шум попадает в ноты."
 
 #: src/gui/insEdit.cpp:6046
 msgid "1-bit noise"
@@ -11707,6 +11742,8 @@ msgid ""
 "If this is enabled,filter cutoff will decrease if you increase the pitch.\n"
 "If this is disabled,filter cutoff will increase if you increase the pitch."
 msgstr ""
+"При включении этой опции частота среза фильтра уменьшается с уменьшением частоты.\n"
+"При отключении этой опции частота среза фильтра увеличивается с уменьшением частоты."
 
 #: src/gui/insEdit.cpp:6293
 #, c-format
@@ -11718,6 +11755,8 @@ msgid ""
 "The center note for cutoff changes. At this note no cutoff change happens.\n"
 "As pitch goes lower or higher,cutoff changes apply."
 msgstr ""
+"Центральная нота изменения частоты среза. На этой ноте изменение частоты среза не происходит.\n"
+"При увеличении или уменьшении частоты относительно этой ноты начинает изменяться частота среза."
 
 #: src/gui/insEdit.cpp:6299
 #, c-format
@@ -11740,6 +11779,9 @@ msgid ""
 "If this option is disabled,cutoff scaling will be applied\n"
 "every time a pitch change happens."
 msgstr ""
+"Частота среза будет изменяться только один раз на каждой новой ноте.\n"
+"При отключении этой настройки изменение частоты среза будет применяться\n"
+"при каждом изменении частоты."
 
 #: src/gui/insEdit.cpp:6311
 #, c-format
@@ -11765,6 +11807,8 @@ msgid ""
 "pitch.\n"
 "If this is disabled,filter resonance will increase if you increase the pitch."
 msgstr ""
+"При включении этой опции резонанс фильтра уменьшается с уменьшением частоты.\n"
+"При отключении этой опции резонанс фильтра увеличивается с уменьшением частоты."
 
 #: src/gui/insEdit.cpp:6326
 #, c-format
@@ -11777,6 +11821,8 @@ msgid ""
 "happens.\n"
 "As pitch goes lower or higher,resonance changes apply."
 msgstr ""
+"Центральная нота изменения резонанса. На этой ноте изменение резонанса не происходит.\n"
+"При увеличении или уменьшении частоты относительно этой ноты начинает изменяться резонанс."
 
 #: src/gui/insEdit.cpp:6332
 #, c-format
@@ -11799,6 +11845,9 @@ msgid ""
 "If this option is disabled,resonance scaling will be applied\n"
 "every time a pitch change happens."
 msgstr ""
+"Резонанс будет изменяться только один раз на каждой новой ноте.\n"
+"При отключении этой настройки изменение резонанса будет применяться\n"
+"при каждом изменении частоты."
 
 #: src/gui/insEdit.cpp:6353 src/gui/insEdit.cpp:6354
 msgid "Filters connection matrix"
@@ -12179,23 +12228,23 @@ msgstr "Скорость ГНЧ"
 
 #: src/gui/insEdit.cpp:7778
 msgid "Damp"
-msgstr ""
+msgstr "Приглуш."
 
 #: src/gui/insEdit.cpp:7780 src/gui/insEdit.cpp:7784 src/gui/insEdit.cpp:7788
 msgid "Only for OPL4 PCM."
-msgstr ""
+msgstr "Только для ИКМ OPL4."
 
 #: src/gui/insEdit.cpp:7782
 msgid "Pseudo Reverb"
-msgstr ""
+msgstr "Псевдо-реверб"
 
 #: src/gui/insEdit.cpp:7786
 msgid "LFO Reset"
-msgstr ""
+msgstr "Сброс ГНЧ"
 
 #: src/gui/insEdit.cpp:7790
 msgid "Disable volume change ramp"
-msgstr ""
+msgstr "Отключить плавное изменение уровня громкости"
 
 #: src/gui/insEdit.cpp:7795
 msgid "Use envelope"
@@ -12409,11 +12458,11 @@ msgstr "Значение контроллера"
 
 #: src/gui/insEdit.cpp:8240
 msgid "LFO Vib Depth"
-msgstr ""
+msgstr "Глубина ГНЧ вибрато"
 
 #: src/gui/insEdit.cpp:8241
 msgid "LFO AM Depth"
-msgstr ""
+msgstr "Глубина ГНЧ АМ"
 
 #: src/gui/insEdit.cpp:8265
 msgid "Phase Reset Timer"
@@ -12461,7 +12510,7 @@ msgstr "Режим шума"
 
 #: src/gui/insEdit.cpp:8397
 msgid "Noise/PCM Pan"
-msgstr ""
+msgstr "Панорам. шума/ИКМ"
 
 #: src/gui/insEdit.cpp:8421
 msgid "Square/Noise"
@@ -12505,7 +12554,7 @@ msgstr "Режим смешения волн"
 
 #: src/gui/insEdit.cpp:8547
 msgid "Duty/Mode"
-msgstr ""
+msgstr "Скважность/Режим"
 
 #: src/gui/insEdit.cpp:8562
 msgid "Special Wave"
@@ -13219,7 +13268,7 @@ msgstr "MSX + Neotron (с YM2610B; расширенный 3-ий канал 3)"
 
 #: src/gui/presets.cpp:530
 msgid "MSX + Neotron (with YM2610B; CSM)"
-msgstr ""
+msgstr "MSX + Neotron (с YM2610B; CSM)"
 
 #: src/gui/presets.cpp:536
 msgid "MSX + SIMPL"
@@ -13247,7 +13296,7 @@ msgstr "NEC PC-88 (с PC-8801-11; расширенный 3-ий канал)"
 
 #: src/gui/presets.cpp:584
 msgid "NEC PC-88 (with PC-8801-11; CSM)"
-msgstr ""
+msgstr "NEC PC-88 (с PC-8801-11; CSM)"
 
 #: src/gui/presets.cpp:590
 msgid "NEC PC-88 (with PC-8801-23)"
@@ -13259,7 +13308,7 @@ msgstr "NEC PC-88 (с PC-8801-23; расширенный 3-ий канал)"
 
 #: src/gui/presets.cpp:602
 msgid "NEC PC-88 (with PC-8801-23; CSM)"
-msgstr ""
+msgstr "NEC PC-88 (с PC-8801-23; CSM)"
 
 #: src/gui/presets.cpp:608
 msgid "NEC PC-88 (with HMB-20 HIBIKI-8800)"
@@ -13275,7 +13324,7 @@ msgstr "NEC PC-8801mk2SR (с PC-8801-10; расширенный 3-ий кана�
 
 #: src/gui/presets.cpp:630
 msgid "NEC PC-8801mk2SR (with PC-8801-10; CSM)"
-msgstr ""
+msgstr "NEC PC-8801mk2SR (с PC-8801-10; CSM)"
 
 #: src/gui/presets.cpp:638
 msgid "NEC PC-8801mk2SR (with PC-8801-11)"
@@ -13299,15 +13348,15 @@ msgstr ""
 
 #: src/gui/presets.cpp:666
 msgid "NEC PC-8801mk2SR (with PC-8801-11; CSM on internal OPN)"
-msgstr ""
+msgstr "NEC PC-8801mk2SR (с PC-8801-11; CSM на внутреннем OPN)"
 
 #: src/gui/presets.cpp:673
 msgid "NEC PC-8801mk2SR (with PC-8801-11; CSM on external OPN)"
-msgstr ""
+msgstr "NEC PC-8801mk2SR (с PC-8801-11; CSM на внешнем OPN)"
 
 #: src/gui/presets.cpp:680
 msgid "NEC PC-8801mk2SR (with PC-8801-11; CSM on both OPNs)"
-msgstr ""
+msgstr "NEC PC-8801mk2SR (с PC-8801-11; CSM на обоих чипах OPN)"
 
 #: src/gui/presets.cpp:687
 msgid "NEC PC-8801mk2SR (with PC-8801-23)"
@@ -13330,15 +13379,15 @@ msgstr "NEC PC-8801mk2SR (с PC-8801-23; extended channel 3 on both OPNs)"
 
 #: src/gui/presets.cpp:715
 msgid "NEC PC-8801mk2SR (with PC-8801-23; CSM on internal OPN)"
-msgstr ""
+msgstr "NEC PC-8801mk2SR (с PC-8801-23; CSM на внутреннем OPN)"
 
 #: src/gui/presets.cpp:722
 msgid "NEC PC-8801mk2SR (with PC-8801-23; CSM on external OPN)"
-msgstr ""
+msgstr "NEC PC-8801mk2SR (с PC-8801-23; CSM на внешнем OPN)"
 
 #: src/gui/presets.cpp:729
 msgid "NEC PC-8801mk2SR (with PC-8801-23; CSM on both OPNs)"
-msgstr ""
+msgstr "NEC PC-8801mk2SR (с PC-8801-23; CSM на обоих чипах OPN)"
 
 #: src/gui/presets.cpp:736
 msgid "NEC PC-8801mk2SR (with HMB-20 HIBIKI-8800)"
@@ -13377,15 +13426,15 @@ msgstr ""
 
 #: src/gui/presets.cpp:794
 msgid "NEC PC-8801FA (with PC-8801-11; CSM on internal OPN)"
-msgstr ""
+msgstr "NEC PC-8801FA (с PC-8801-11; CSM на внутреннем OPN)"
 
 #: src/gui/presets.cpp:801
 msgid "NEC PC-8801FA (with PC-8801-11; CSM on external OPN)"
-msgstr ""
+msgstr "NEC PC-8801FA (с PC-8801-11; CSM на внешнем OPN)"
 
 #: src/gui/presets.cpp:808
 msgid "NEC PC-8801FA (with PC-8801-11; CSM on both OPNs)"
-msgstr ""
+msgstr "NEC PC-8801FA (с PC-8801-11; CSM на обоих чипах OPN)"
 
 #: src/gui/presets.cpp:815
 msgid "NEC PC-8801FA (with PC-8801-23)"
@@ -13393,27 +13442,27 @@ msgstr "NEC PC-8801FA (с PC-8801-23)"
 
 #: src/gui/presets.cpp:822
 msgid "NEC PC-8801FA (with PC-8801-23; extended channel 3 on internal OPNA)"
-msgstr ""
+msgstr "NEC PC-8801FA (с PC-8801-23; расширенный 3-ий канал на внутреннем OPNA)"
 
 #: src/gui/presets.cpp:829
 msgid "NEC PC-8801FA (with PC-8801-23; extended channel 3 on external OPNA)"
-msgstr ""
+msgstr "NEC PC-8801FA (с PC-8801-23; расширенный 3-ий канал на внешнем OPNA)"
 
 #: src/gui/presets.cpp:836
 msgid "NEC PC-8801FA (with PC-8801-23; extended channel 3 on both OPNAs)"
-msgstr ""
+msgstr "NEC PC-8801FA (с PC-8801-23; расширенный 3-ий канал на обоих чипах OPNA)"
 
 #: src/gui/presets.cpp:843
 msgid "NEC PC-8801FA (with PC-8801-23; CSM on internal OPNA)"
-msgstr ""
+msgstr "NEC PC-8801FA (с PC-8801-23; CSM на внутреннем OPNA)"
 
 #: src/gui/presets.cpp:850
 msgid "NEC PC-8801FA (with PC-8801-23; CSM on external OPNA)"
-msgstr ""
+msgstr "NEC PC-8801FA (с PC-8801-23; CSM на внешнем OPNA)"
 
 #: src/gui/presets.cpp:857
 msgid "NEC PC-8801FA (with PC-8801-23; CSM on both OPNAs)"
-msgstr ""
+msgstr "NEC PC-8801FA (с PC-8801-23; CSM на обоих чипах OPNA)"
 
 #: src/gui/presets.cpp:864
 msgid "NEC PC-8801FA (with HMB-20 HIBIKI-8800)"
@@ -13437,7 +13486,7 @@ msgstr "NEC PC-98 (с PC-9801-26/K; расширенный 3-ий канал)"
 
 #: src/gui/presets.cpp:893
 msgid "NEC PC-98 (with PC-9801-26/K; CSM)"
-msgstr ""
+msgstr "NEC PC-98 (с PC-9801-26/K; CSM)"
 
 #: src/gui/presets.cpp:899
 msgid "NEC PC-98 (with Sound Orchestra)"
@@ -13449,7 +13498,7 @@ msgstr "NEC PC-98 (с Sound Orchestra; расширенный 3-ий канал)
 
 #: src/gui/presets.cpp:913
 msgid "NEC PC-98 (with Sound Orchestra; CSM)"
-msgstr ""
+msgstr "NEC PC-98 (с Sound Orchestra; CSM)"
 
 #: src/gui/presets.cpp:920
 msgid "NEC PC-98 (with Sound Orchestra in drums mode)"
@@ -13461,7 +13510,7 @@ msgstr "NEC PC-98 (с Sound Orchestra в режиме ударных; расши
 
 #: src/gui/presets.cpp:934
 msgid "NEC PC-98 (with Sound Orchestra in drums mode; CSM)"
-msgstr ""
+msgstr "NEC PC-98 (с Sound Orchestra в режиме ударных; CSM)"
 
 #: src/gui/presets.cpp:941
 msgid "NEC PC-98 (with Sound Orchestra V)"
@@ -13473,7 +13522,7 @@ msgstr "NEC PC-98 (с Sound Orchestra V; расширенный 3-ий кана�
 
 #: src/gui/presets.cpp:955
 msgid "NEC PC-98 (with Sound Orchestra V; CSM)"
-msgstr ""
+msgstr "NEC PC-98 (с Sound Orchestra V; CSM)"
 
 #: src/gui/presets.cpp:962
 msgid "NEC PC-98 (with Sound Orchestra V in drums mode)"
@@ -13486,7 +13535,7 @@ msgstr ""
 
 #: src/gui/presets.cpp:976
 msgid "NEC PC-98 (with Sound Orchestra V in drums mode; CSM)"
-msgstr ""
+msgstr "NEC PC-98 (с Sound Orchestra V в режиме ударных; CSM)"
 
 #: src/gui/presets.cpp:983
 msgid "NEC PC-98 (with PC-9801-86)"
@@ -13498,7 +13547,7 @@ msgstr "NEC PC-98 (с PC-9801-86; расширенный 3-ий канал)"
 
 #: src/gui/presets.cpp:1011
 msgid "NEC PC-98 (with PC-9801-86; CSM)"
-msgstr ""
+msgstr "NEC PC-98 (с PC-9801-86; CSM)"
 
 #: src/gui/presets.cpp:1025
 msgid "NEC PC-98 (with PC-9801-86) stereo"
@@ -13510,7 +13559,7 @@ msgstr "NEC PC-98 (с PC-9801-86; расширенный 3-ий канал) ст
 
 #: src/gui/presets.cpp:1053
 msgid "NEC PC-98 (with PC-9801-86; CSM) stereo"
-msgstr ""
+msgstr "NEC PC-98 (с PC-9801-86; CSM) стерео"
 
 #: src/gui/presets.cpp:1067
 msgid "NEC PC-98 (with PC-9801-73)"
@@ -13522,7 +13571,7 @@ msgstr "NEC PC-98 (с PC-9801-73; расширенный 3-ий канал)"
 
 #: src/gui/presets.cpp:1079
 msgid "NEC PC-98 (with PC-9801-73; CSM)"
-msgstr ""
+msgstr "NEC PC-98 (с PC-9801-73; CSM)"
 
 #: src/gui/presets.cpp:1085
 msgid "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible)"
@@ -13539,7 +13588,7 @@ msgstr ""
 #: src/gui/presets.cpp:1109
 msgid ""
 "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible; CSM)"
-msgstr ""
+msgstr "NEC PC-98 (с Sound Blaster 16 для PC-9800, совместимый с PC-9801-26/K; CSM)"
 
 #: src/gui/presets.cpp:1121
 msgid ""
@@ -13562,10 +13611,12 @@ msgid ""
 "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in "
 "drums mode; CSM)"
 msgstr ""
+"NEC PC-98 (с Sound Blaster 16 для PC-9800, совместимый с PC-9801-26/K в "
+"режиме ударных; CSM)"
 
 #: src/gui/presets.cpp:1157
 msgid "ZX Spectrum (48K) beeper"
-msgstr ""
+msgstr "ZX Spectrum (48K) пищалка"
 
 #: src/gui/presets.cpp:1160
 msgid "ZX Spectrum (48K, SFX-like engine)"
@@ -13604,15 +13655,15 @@ msgstr ""
 
 #: src/gui/presets.cpp:1199
 msgid "ZX Spectrum (128K) with TurboSound FM (CSM on first OPN)"
-msgstr ""
+msgstr "ZX Spectrum (128K) с TurboSound FM (CSM на первом OPN)"
 
 #: src/gui/presets.cpp:1205
 msgid "ZX Spectrum (128K) with TurboSound FM (CSM on second OPN)"
-msgstr ""
+msgstr "ZX Spectrum (128K) с TurboSound FM (CSM на втором OPN)"
 
 #: src/gui/presets.cpp:1211
 msgid "ZX Spectrum (128K) with TurboSound FM (CSM on both OPNs)"
-msgstr ""
+msgstr "ZX Spectrum (128K) с TurboSound FM (CSM на обоих чипах OPN)"
 
 #: src/gui/presets.cpp:1217
 msgid "ZX Spectrum (128K) with TurboSound"
@@ -13816,11 +13867,11 @@ msgstr "Alpha Denshi Alpha-68K (режим ударных)"
 
 #: src/gui/presets.cpp:1619
 msgid "Alpha Denshi Alpha-68K (extended channel 3; drums mode)"
-msgstr "Alpha Denshi Alpha-68K (расширенный 3-ий канал; режим ударных)"
+msgstr "Alpha Denshi Alpha-68K (расширенный 3-ий канал; в режиме ударных)"
 
 #: src/gui/presets.cpp:1629
 msgid "Alpha Denshi Alpha-68K (CSM; drums mode)"
-msgstr ""
+msgstr "Alpha Denshi Alpha-68K (CSM; в режиме ударных)"
 
 #: src/gui/presets.cpp:1639
 msgid "Alpha Denshi Equites"
@@ -13888,15 +13939,15 @@ msgstr "Capcom Arcade (расширенный 3-ий канал на обоих 
 
 #: src/gui/presets.cpp:1749
 msgid "Capcom Arcade (CSM on first OPN)"
-msgstr ""
+msgstr "Capcom Arcade (CSM на первом OPN)"
 
 #: src/gui/presets.cpp:1755
 msgid "Capcom Arcade (CSM on second OPN)"
-msgstr ""
+msgstr "Capcom Arcade (CSM на втором OPN)"
 
 #: src/gui/presets.cpp:1761
 msgid "Capcom Arcade (CSM on both OPNs)"
-msgstr ""
+msgstr "Capcom Arcade (CSM на обоих чипах OPN)"
 
 #: src/gui/presets.cpp:1767
 msgid "Capcom CPS-1"
@@ -13932,7 +13983,7 @@ msgstr "Data East Karnov (расширенный 3-ий канал; в режи�
 
 #: src/gui/presets.cpp:1812
 msgid "Data East Karnov (CSM; drums mode)"
-msgstr ""
+msgstr "Data East Karnov (CSM; в режиме ударных)"
 
 #: src/gui/presets.cpp:1818
 msgid "Data East Arcade"
@@ -13956,7 +14007,7 @@ msgstr "Data East Arcade (расширенный 3-ий канал; в режи�
 
 #: src/gui/presets.cpp:1853
 msgid "Data East Arcade (CSM; drums mode)"
-msgstr ""
+msgstr "Data East Arcade (CSM; в режиме ударных)"
 
 #: src/gui/presets.cpp:1860
 msgid "Data East PCX"
@@ -14188,11 +14239,11 @@ msgstr ""
 
 #: src/gui/presets.cpp:2242
 msgid "Psikyo 68EC020 hardware with OPL4"
-msgstr ""
+msgstr "Платформа Psikyo 68EC020 с OPL4"
 
 #: src/gui/presets.cpp:2247
 msgid "Psikyo 68EC020 hardware with OPL4 (drums mode)"
-msgstr ""
+msgstr "Платформа Psikyo 68EC020 с OPL4 (в режиме ударных)"
 
 #: src/gui/presets.cpp:2252
 msgid "Psikyo SH-2 hardware"
@@ -14200,7 +14251,7 @@ msgstr ""
 
 #: src/gui/presets.cpp:2257
 msgid "Psikyo SH-2 hardware (drums mode)"
-msgstr ""
+msgstr "Платформа Psikyo SH-2 (в режиме ударных)"
 
 #: src/gui/presets.cpp:2263
 msgid "Sega"
@@ -14264,15 +14315,15 @@ msgstr "Sega System 18 (расширенный 3-ий канал на обоих
 
 #: src/gui/presets.cpp:2365
 msgid "Sega System 18 (CSM on first OPN2C)"
-msgstr ""
+msgstr "Sega System 18 (CSM на первом OPN2C)"
 
 #: src/gui/presets.cpp:2372
 msgid "Sega System 18 (CSM on second OPN2C)"
-msgstr ""
+msgstr "Sega System 18 (CSM на втором OPN2C)"
 
 #: src/gui/presets.cpp:2379
 msgid "Sega System 18 (CSM on both OPN2Cs)"
-msgstr ""
+msgstr "Sega System 18 (CSM на втором чипе OPN2C)"
 
 #: src/gui/presets.cpp:2386
 msgid "Sega System 32"
@@ -14292,15 +14343,15 @@ msgstr "Sega System 32 (расширенный 3-ий канал на обоих
 
 #: src/gui/presets.cpp:2426
 msgid "Sega System 32 (CSM on first OPN2C)"
-msgstr ""
+msgstr "Sega System 32 (CSM на первом OPN2C)"
 
 #: src/gui/presets.cpp:2436
 msgid "Sega System 32 (CSM on second OPN2C)"
-msgstr ""
+msgstr "Sega System 32 (CSM на втором OPN2C)"
 
 #: src/gui/presets.cpp:2446
 msgid "Sega System 32 (CSM on both OPN2Cs)"
-msgstr ""
+msgstr "Sega System 32 (CSM на обоих чипах OPN2C)"
 
 #: src/gui/presets.cpp:2457
 msgid "Seta"
@@ -14316,7 +14367,7 @@ msgstr ""
 
 #: src/gui/presets.cpp:2471
 msgid "Seta 1 + FM add-on (extended channel 3)"
-msgstr ""
+msgstr "Seta 1 + FM add-on (расширенный 3-ий канал)"
 
 #: src/gui/presets.cpp:2477
 msgid "Seta 1 + FM add-on (CSM)"
@@ -14480,15 +14531,15 @@ msgstr "Tecmo Ninja Gaiden (расширенный 3-ий канал на обо
 
 #: src/gui/presets.cpp:2730
 msgid "Tecmo Ninja Gaiden (CSM on first OPN)"
-msgstr ""
+msgstr "Tecmo Ninja Gaiden (CSM на первом OPN)"
 
 #: src/gui/presets.cpp:2737
 msgid "Tecmo Ninja Gaiden (CSM on second OPN)"
-msgstr ""
+msgstr "Tecmo Ninja Gaiden (CSM на втором OPN)"
 
 #: src/gui/presets.cpp:2744
 msgid "Tecmo Ninja Gaiden (CSM on both OPNs)"
-msgstr ""
+msgstr "Tecmo Ninja Gaiden (CSM на обоих чипах OPN)"
 
 #: src/gui/presets.cpp:2751
 msgid "Tecmo System"
@@ -14536,7 +14587,7 @@ msgstr "NMK 16-bit Arcade (со сменой банков NMK112, расшире
 
 #: src/gui/presets.cpp:2871
 msgid "NMK 16-bit Arcade (w/NMK112 bankswitching, CSM)"
-msgstr ""
+msgstr "NMK 16-bit Arcade (со сменой банков NMK112, CSM)"
 
 #: src/gui/presets.cpp:2886
 msgid "Atlus Power Instinct 2"
@@ -14911,7 +14962,7 @@ msgstr "NES: начало цикла должно быть кратно 512 (п�
 #: src/gui/sampleEdit.cpp:268
 #, c-format
 msgid "NES: loop end must be a multiple of 128 + 8 (try with %d)"
-msgstr ""
+msgstr "NES: положение точки зацикливания должно быть кратно 128 + 8 (попробуйте %d)"
 
 #: src/gui/sampleEdit.cpp:273
 msgid "NES: maximum DPCM sample length is 32648"
@@ -15031,19 +15082,19 @@ msgstr "GBA DMA: длина сэмпла будет скорректирован
 
 #: src/gui/sampleEdit.cpp:419
 msgid "OPL4: maximum sample length is 65535"
-msgstr ""
+msgstr "OPL4: максимальная длина сэмпла равна 65535"
 
 #: src/gui/sampleEdit.cpp:425
 msgid "Supervision: loop point ignored on sample channel"
-msgstr ""
+msgstr "Supervision: точка зацикливания игнорируется для канала сэмплов"
 
 #: src/gui/sampleEdit.cpp:429
 msgid "Supervision: sample length will be padded to multiple of 32"
-msgstr ""
+msgstr "Supervision: длина сэмпла будет изменена до кратности 32"
 
 #: src/gui/sampleEdit.cpp:432
 msgid "Supervision: maximum sample length is 8192"
-msgstr ""
+msgstr "Supervision: максимальная длина сэмпла равна 8192"
 
 #: src/gui/sampleEdit.cpp:441
 msgid "ES5506: backward loop mode isn't supported"
@@ -15254,7 +15305,7 @@ msgstr "Частота среза:"
 
 #: src/gui/sampleEdit.cpp:1199
 msgid "Sweep (2 frequencies)"
-msgstr ""
+msgstr "Изм. част. среза (2 частоты)"
 
 #: src/gui/sampleEdit.cpp:1237
 msgid "Low-pass"
@@ -15296,7 +15347,7 @@ msgstr "Превью сэмпла"
 
 #: src/gui/sampleEdit.cpp:1404
 msgid "Preview sample from cursor or selection only"
-msgstr ""
+msgstr "Превью сэмпла только с курсора или выделения"
 
 #: src/gui/sampleEdit.cpp:1418
 msgid "Create instrument from sample"
@@ -15934,7 +15985,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:1219
 msgid "Enable background playback (restart!)"
-msgstr ""
+msgstr "Включить фоновое проигрывание (требуется перезагрузка!)"
 
 #: src/gui/settings.cpp:1229
 msgid "Output"
@@ -15976,6 +16027,9 @@ msgid ""
 "- 1 for mono\n"
 "- 2 for stereo"
 msgstr ""
+"типичные значения:\n"
+"- 1 для моно\n"
+"- 2 для стерео"
 
 #: src/gui/settings.cpp:1361
 #, c-format
@@ -16330,7 +16384,7 @@ msgstr "Добавить..."
 
 #: src/gui/settings.cpp:2321
 msgid "that key is bound already!"
-msgstr ""
+msgstr "эта клавиша уже назначена!"
 
 #: src/gui/settings.cpp:2410
 msgid "Instrument list"
@@ -16436,7 +16490,7 @@ msgstr "Переместить фокус на редактор паттерно
 
 #: src/gui/settings.cpp:2649
 msgid "Draggable instruments/samples/waves"
-msgstr ""
+msgstr "Перетаскиваемые инструменты/сэмплы/волновые таблицы"
 
 #: src/gui/settings.cpp:2654
 msgid "Note preview behavior:"
@@ -16478,15 +16532,15 @@ msgstr "Да (только при нажатой клавише Ctrl)##dms2"
 
 #: src/gui/settings.cpp:2688
 msgid "Yes (copy)##dms3"
-msgstr ""
+msgstr "Да (скопировать)##dms3"
 
 #: src/gui/settings.cpp:2692
 msgid "Yes (while holding Ctrl only and copy)##dms4"
-msgstr ""
+msgstr "Да (только при зажатом Ctrl и скопировать)##dms4"
 
 #: src/gui/settings.cpp:2696
 msgid "Yes (holding Ctrl copies)##dms5"
-msgstr ""
+msgstr "Да (копирование при зажатом Ctrl)##dms5"
 
 #: src/gui/settings.cpp:2702
 msgid "Toggle channel solo on:"
@@ -16506,11 +16560,11 @@ msgstr "Двойное нажатие##soloD"
 
 #: src/gui/settings.cpp:2718
 msgid "Modifier for alternate wheel-scrolling (vertical/zoom/slider-input):"
-msgstr ""
+msgstr "Модификатор для альтернативной прокрутки колёсиком мыши (вертикальная/приближение/ввод значения ползунка):"
 
 #: src/gui/settings.cpp:2720
 msgid "Ctrl or Meta/Cmd##cwm1"
-msgstr ""
+msgstr "Ctrl или Meta/Cmd##cwm1"
 
 #: src/gui/settings.cpp:2724
 msgid "Ctrl##cwm2"
@@ -17244,7 +17298,7 @@ msgstr "Единый список инструментов, волновых т�
 
 #: src/gui/settings.cpp:3576
 msgid "Horizontal instrument/wavetable list"
-msgstr ""
+msgstr "Горизонтальный список инструментов/волновых таблиц"
 
 #: src/gui/settings.cpp:3582
 msgid "Instrument list icon style:"
@@ -17293,19 +17347,19 @@ msgstr "Использовать классическую вертикальну
 
 #: src/gui/settings.cpp:3641
 msgid "Macro step size/horizontal zoom:"
-msgstr ""
+msgstr "Размер шага макроса/горизонтальный зум:"
 
 #: src/gui/settings.cpp:3643
 msgid "Manual"
-msgstr ""
+msgstr "Вручную"
 
 #: src/gui/settings.cpp:3647
 msgid "Automatic per macro"
-msgstr ""
+msgstr "Автоматически для каждого макроса"
 
 #: src/gui/settings.cpp:3651
 msgid "Automatic (use longest macro)"
-msgstr ""
+msgstr "Автоматически (использовать самый длинный макрос)"
 
 #: src/gui/settings.cpp:3659
 msgid "Wave Editor"
@@ -19468,7 +19522,7 @@ msgstr "примечание: AY-3-8914 не поддерживается в ф�
 
 #: src/gui/sysConf.cpp:950
 msgid "AtomicSSG will not emulate AY-3-8914. falling back to MAME!"
-msgstr ""
+msgstr "AtomicSSG не будет эмулировать AY-3-8914. откат на MAME!"
 
 #: src/gui/sysConf.cpp:957
 msgid "Stereo##_AY_STEREO"
@@ -19761,7 +19815,7 @@ msgstr "3.5 МГц"
 
 #: src/gui/sysConf.cpp:1800
 msgid "ADPCM channel one octave up (compatibility)"
-msgstr ""
+msgstr "канал АДИКМ на октаву выше (совместимость)"
 
 #: src/gui/sysConf.cpp:1825
 msgid "14.19MHz (PAL)"
@@ -19871,7 +19925,7 @@ msgstr "Отключить гауссову интеполяцию"
 
 #: src/gui/sysConf.cpp:2112
 msgid "Anti-click"
-msgstr ""
+msgstr "Анти-щелчок"
 
 #: src/gui/sysConf.cpp:2176
 msgid "Capacitor values (nF):"
@@ -19939,11 +19993,11 @@ msgstr "Старые частоты и портаменто (совместим�
 
 #: src/gui/sysConf.cpp:2354
 msgid "Swap noise duty cycles"
-msgstr ""
+msgstr "Поменять местами скважности шума"
 
 #: src/gui/sysConf.cpp:2360
 msgid "Stereo pulse waves"
-msgstr ""
+msgstr "Стерео прямоугольные волны"
 
 #: src/gui/sysConf.cpp:2421
 msgid "PAL (1.77MHz)"
@@ -19971,15 +20025,15 @@ msgstr "Статический (до 5 волн)"
 
 #: src/gui/sysConf.cpp:2488
 msgid "Dynamic (phase reset on wave change!)"
-msgstr ""
+msgstr "Динамический (сброс фазы при смене волны!)"
 
 #: src/gui/sysConf.cpp:2495
 msgid "Disable anti-phase-reset"
-msgstr ""
+msgstr "Отключить обход сброса фазы"
 
 #: src/gui/sysConf.cpp:2498
 msgid "I don't care about hardware"
-msgstr ""
+msgstr "Мне не важна совместимость с реальным железом"
 
 #: src/gui/sysConf.cpp:2502
 msgid ""
@@ -19988,6 +20042,9 @@ msgid ""
 "if the clicks that arise from this annoy you, use this option.\n"
 "note that your song won't play on hardware if you do so!"
 msgstr ""
+"Платформе Virtual Boy необходимо отключение всех каналов перед записью в память волн.\n"
+"если щелчки, которые при этом происходят, вам надоели, используйте эту настройку.\n"
+"учтите, что ваш трек при этом нельзя будет воспроизвести на реальном железе!"
 
 #: src/gui/sysConf.cpp:2537
 msgid "DS (4MB RAM)"
@@ -20011,27 +20068,27 @@ msgstr "V 47.0.2 (XOR скважности для треуг./пилы)"
 
 #: src/gui/sysConf.cpp:2587
 msgid "33.8688MHz"
-msgstr ""
+msgstr "33.8688 МГц"
 
 #: src/gui/sysConf.cpp:2591
 msgid "28.64MHz (NTSC)"
-msgstr ""
+msgstr "28.64 МГц (NTSC)"
 
 #: src/gui/sysConf.cpp:2595
 msgid "28.38MHz (PAL)"
-msgstr ""
+msgstr "28.38 МГц (PAL)"
 
 #: src/gui/sysConf.cpp:2601
 msgid "RAM size:"
-msgstr ""
+msgstr "Размер ОЗУ:"
 
 #: src/gui/sysConf.cpp:2603
 msgid "4MB"
-msgstr ""
+msgstr "4 МиБ"
 
 #: src/gui/sysConf.cpp:2608
 msgid "2MB"
-msgstr ""
+msgstr "2 МиБ"
 
 #: src/gui/sysConf.cpp:2613
 msgid "1MB"
@@ -20039,11 +20096,11 @@ msgstr "1 МиБ"
 
 #: src/gui/sysConf.cpp:2618
 msgid "640KB"
-msgstr ""
+msgstr "640 КиБ"
 
 #: src/gui/sysConf.cpp:2623
 msgid "512KB"
-msgstr ""
+msgstr "512 КиБ"
 
 #: src/gui/sysConf.cpp:2628
 msgid "256KB"
@@ -20051,15 +20108,15 @@ msgstr "256 КиБ"
 
 #: src/gui/sysConf.cpp:2633
 msgid "128KB"
-msgstr ""
+msgstr "128 КиБ"
 
 #: src/gui/sysConf.cpp:2655
 msgid "Disable filtering"
-msgstr ""
+msgstr "Отключить фильтр"
 
 #: src/gui/sysConf.cpp:2669
 msgid "Headphone output##_SWAN_STEREO"
-msgstr ""
+msgstr "Выводить звук на наушники##_SWAN_STEREO"
 
 #: src/gui/sysConf.cpp:2696
 msgid "Quarter clock speed"
@@ -20232,6 +20289,10 @@ msgid ""
 "- tickRate \n"
 "- chanMask \n"
 msgstr ""
+"вставьте дополнительные настройки в виде `настройка=значение`.\n"
+"доступные настройки:\n"
+"- tickRate \n"
+"- chanMask \n"
 
 #: src/gui/userPresets.cpp:521
 msgid "Save and Close"
@@ -20271,7 +20332,7 @@ msgstr "не выбрано ни одной волновой таблицы"
 
 #: src/gui/waveEdit.cpp:386
 msgid "create sample from wavetable"
-msgstr ""
+msgstr "создать сэмпл из волновой таблицы"
 
 #: src/gui/waveEdit.cpp:390
 msgid "Steps"
@@ -20509,12 +20570,12 @@ msgstr "не смог записать VGM!"
 
 #: src/main.cpp:946
 msgid "could not create exporter! you may want to report this issue..."
-msgstr ""
+msgstr "не смог создать экспортёр! возможно, вам следует сообщить об этой проблеме..."
 
 #: src/main.cpp:967
 #, c-format
 msgid "ROM export failed! (%s)"
-msgstr ""
+msgstr "экспорт ROM не удался! (%s)"
 
 #: src/main.cpp:970
 msgid "could not begin exporting process! TODO: elaborate"
@@ -20522,11 +20583,11 @@ msgstr ""
 
 #: src/main.cpp:974
 msgid "no matching ROM export target is available."
-msgstr ""
+msgstr "не найдено подходящей цели экспорта ROM."
 
 #: src/main.cpp:991
 msgid "could not write text!"
-msgstr ""
+msgstr "не смог записать текст!"
 
 #: src/main.cpp:1008
 msgid "error while starting CLI!"
