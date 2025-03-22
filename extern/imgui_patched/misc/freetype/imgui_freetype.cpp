@@ -617,7 +617,7 @@ bool ImFontAtlasBuildWithFreeTypeEx(FT_Library ft_library, ImFontAtlas* atlas, u
 
     // 5. Start packing
     // Pack our extra data rectangles first, so it will be on the upper-left corner of our texture (UV will have small values).
-    const int TEX_HEIGHT_MAX = 1024 * 32;
+    const int TEX_HEIGHT_MAX = 1024 * 16;
     const int num_nodes_for_packing_algorithm = atlas->TexWidth - atlas->TexGlyphPadding;
     ImVector<stbrp_node> pack_nodes;
     pack_nodes.resize(num_nodes_for_packing_algorithm);
