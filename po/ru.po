@@ -1,4 +1,4 @@
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: furnace 0.6.8\n"
@@ -8,70 +8,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-
-#: src/engine/platform/c64.cpp:773 src/engine/platform/c64.cpp:775
-#: src/engine/platform/dave.cpp:540 src/engine/platform/sid2.cpp:611
-#: src/engine/platform/sid2.cpp:613 src/engine/platform/sid3.cpp:1376
-#: src/engine/platform/sid3.cpp:1380 src/gui/insEdit.cpp:244
-#: src/gui/insEdit.cpp:251 src/gui/insEdit.cpp:506
-msgid "ring"
-msgstr "кольц."
-
-#: src/engine/platform/c64.cpp:780 src/engine/platform/c64.cpp:782
-#: src/engine/platform/sid2.cpp:618 src/engine/platform/sid2.cpp:620
-#: src/engine/platform/sid3.cpp:1385 src/gui/insEdit.cpp:243
-#: src/gui/insEdit.cpp:250 src/gui/insEdit.cpp:505
-msgid "sync"
-msgstr "синхр."
-
-#: src/engine/platform/dave.cpp:537 src/gui/insEdit.cpp:498
-#: src/gui/insEdit.cpp:7172
-msgid "high"
-msgstr "ФВЧ"
-
-#: src/engine/platform/dave.cpp:543 src/gui/insEdit.cpp:496
-#: src/gui/insEdit.cpp:7160
-msgid "low"
-msgstr "ФНЧ"
-
-#: src/engine/platform/opl.cpp:2728
-msgid "4OP"
-msgstr "4ОП"
-
-#: src/engine/platform/pce.cpp:571 src/engine/platform/snes.cpp:739
-msgid "mod"
-msgstr "мод."
-
-#: src/engine/platform/pokey.cpp:435 src/engine/platform/pokey.cpp:444
-msgid "filter"
-msgstr "фильтр"
-
-#: src/engine/platform/pokey.cpp:438 src/engine/platform/pokey.cpp:441
-msgid "16-bit"
-msgstr "16-бит."
-
-#: src/engine/platform/sid3.cpp:1370 src/gui/insEdit.cpp:249
-msgid "phase"
-msgstr "фаз."
-
-#: src/engine/fileOps/p.cpp:121 src/engine/fileOps/p86.cpp:139
-#: src/engine/fileOps/pdx.cpp:98 src/engine/fileOps/ppc.cpp:139
-#: src/engine/fileOps/pps.cpp:122 src/engine/fileOps/pvi.cpp:155
-#: src/engine/fileOps/pzi.cpp:151 src/engine/engine.cpp:2878
-msgid "premature end of file"
-msgstr "преждевременный конец файла"
-
-#: src/engine/fileOps/s3m.cpp:320 src/gui/insEdit.cpp:799
-#, c-format
-msgid "Channel %d"
-msgstr "Канал %d"
-
-#: src/engine/fileOps/s3m.cpp:336
-#, c-format
-msgid "FM %d"
-msgstr ""
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #: src/engine/engine.cpp:52
 msgid "00xy: Arpeggio"
@@ -433,6 +371,13 @@ msgstr "не смог прочитать весь файл: %s"
 msgid "invalid wavetable header/data!"
 msgstr "неправильный заголовок/данные волновой таблицы!"
 
+#: src/engine/engine.cpp:2878 src/engine/fileOps/p.cpp:121
+#: src/engine/fileOps/p86.cpp:139 src/engine/fileOps/pdx.cpp:98
+#: src/engine/fileOps/ppc.cpp:139 src/engine/fileOps/pps.cpp:122
+#: src/engine/fileOps/pvi.cpp:155 src/engine/fileOps/pzi.cpp:151
+msgid "premature end of file"
+msgstr "преждевременный конец файла"
+
 #: src/engine/engine.cpp:2905 src/engine/engine.cpp:2928
 #: src/gui/doAction.cpp:890 src/gui/doAction.cpp:967 src/gui/doAction.cpp:979
 msgid "too many samples!"
@@ -448,9 +393,64 @@ msgstr "Сэмпл %d"
 msgid "no free patterns in channel %d!"
 msgstr "нет свободных паттернов для канала %d!"
 
+#: src/engine/fileOps/s3m.cpp:320 src/gui/insEdit.cpp:799
+#, c-format
+msgid "Channel %d"
+msgstr "Канал %d"
+
+#: src/engine/fileOps/s3m.cpp:336
+#, c-format
+msgid "FM %d"
+msgstr ""
+
 #: src/engine/fileOpsSample.cpp:114
 msgid "did not read entire sample bank file!"
 msgstr "не смог прочитать весь файл банка сэмплов!"
+
+#: src/engine/platform/c64.cpp:773 src/engine/platform/c64.cpp:775
+#: src/engine/platform/dave.cpp:540 src/engine/platform/sid2.cpp:611
+#: src/engine/platform/sid2.cpp:613 src/engine/platform/sid3.cpp:1376
+#: src/engine/platform/sid3.cpp:1380 src/gui/insEdit.cpp:244
+#: src/gui/insEdit.cpp:251 src/gui/insEdit.cpp:506
+msgid "ring"
+msgstr "кольц."
+
+#: src/engine/platform/c64.cpp:780 src/engine/platform/c64.cpp:782
+#: src/engine/platform/sid2.cpp:618 src/engine/platform/sid2.cpp:620
+#: src/engine/platform/sid3.cpp:1385 src/gui/insEdit.cpp:243
+#: src/gui/insEdit.cpp:250 src/gui/insEdit.cpp:505
+msgid "sync"
+msgstr "синхр."
+
+#: src/engine/platform/dave.cpp:537 src/gui/insEdit.cpp:498
+#: src/gui/insEdit.cpp:7172
+msgid "high"
+msgstr "ФВЧ"
+
+#: src/engine/platform/dave.cpp:543 src/gui/insEdit.cpp:496
+#: src/gui/insEdit.cpp:7160
+msgid "low"
+msgstr "ФНЧ"
+
+#: src/engine/platform/opl.cpp:2728
+msgid "4OP"
+msgstr "4ОП"
+
+#: src/engine/platform/pce.cpp:571 src/engine/platform/snes.cpp:739
+msgid "mod"
+msgstr "мод."
+
+#: src/engine/platform/pokey.cpp:435 src/engine/platform/pokey.cpp:444
+msgid "filter"
+msgstr "фильтр"
+
+#: src/engine/platform/pokey.cpp:438 src/engine/platform/pokey.cpp:441
+msgid "16-bit"
+msgstr "16-бит."
+
+#: src/engine/platform/sid3.cpp:1370 src/gui/insEdit.cpp:249
+msgid "phase"
+msgstr "фаз."
 
 #: src/engine/sysDef.cpp:425 src/engine/sysDef.cpp:439
 msgid "20xx: Set channel mode (bit 0: square; bit 1: noise; bit 2: envelope)"
@@ -801,7 +801,7 @@ msgstr "12xx: Уровень оператора 1 (0 макс., 3F мин.)"
 
 #: src/engine/sysDef.cpp:556
 msgid "13xx: Set level of operator 2 (0 highest, F lowest)"
-msgstr ""
+msgstr "13xx: Уровень оператора 2 (0 макс., F мин.)"
 
 #: src/engine/sysDef.cpp:557
 msgid "16xy: Set operator multiplier (x: operator from 1 to 2; y: multiplier)"
@@ -942,63 +942,63 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:604
 msgid "1Exy: FM global level (x: left, y: right; 0 to 7)"
-msgstr ""
+msgstr "1Exy: Глобальная громкость FM (x: лево, y: право; 0-7)"
 
 #: src/engine/sysDef.cpp:605
 msgid "1Fxy: PCM global level (x: left, y: right; 0 to 7)"
-msgstr ""
+msgstr "1Exy: Глобальная громкость ИКМ (x: лево, y: право; 0-7)"
 
 #: src/engine/sysDef.cpp:606
 msgid "20xx: PCM LFO Rate (0 to 7)"
-msgstr ""
+msgstr "20xx: Скорость ГНЧ ИКМ (0-7)"
 
 #: src/engine/sysDef.cpp:607
 msgid "21xx: PCM LFO PM Depth (0 to 7)"
-msgstr ""
+msgstr "21xx: Амплитуда ГНЧ ИКМ (0-7)"
 
 #: src/engine/sysDef.cpp:608
 msgid "22xx: PCM LFO AM Depth (0 to 7)"
-msgstr ""
+msgstr "22xx: Глубина АМ ГНЧ ИКМ (0-7)"
 
 #: src/engine/sysDef.cpp:609
 msgid "23xx: PCM Attack Rate (0 to 15)"
-msgstr ""
+msgstr "23xx: Скорость атаки ИКМ (0-15)"
 
 #: src/engine/sysDef.cpp:610
 msgid "24xx: PCM Decay 1 Rate (0 to 15)"
-msgstr ""
+msgstr "23xx: Скорость спада 1 ИКМ (0-15)"
 
 #: src/engine/sysDef.cpp:611
 msgid "25xx: PCM Decay Level (0 to 15)"
-msgstr ""
+msgstr "25xx: Граничный уровень спада ИКМ (0-15)"
 
 #: src/engine/sysDef.cpp:612
 msgid "26xx: PCM Decay 2 Rate (0 to 15)"
-msgstr ""
+msgstr "26xx: Скорость спада 2 ИКМ (0-15)"
 
 #: src/engine/sysDef.cpp:613
 msgid "27xx: PCM Release Rate (0 to 15)"
-msgstr ""
+msgstr "27xx: Скорость релиза ИКМ (0-15)"
 
 #: src/engine/sysDef.cpp:614
 msgid "28xx: PCM Rate Correction (0 to 15)"
-msgstr ""
+msgstr "28xx: Корректировка скорости ИКМ (0-15)"
 
 #: src/engine/sysDef.cpp:615
 msgid "2Cxx: PCM Damp"
-msgstr ""
+msgstr "2Cxx: Пригл. ИКМ"
 
 #: src/engine/sysDef.cpp:616
 msgid "2Dxx: PCM Pseudo Reverb"
-msgstr ""
+msgstr "2Dxx: Псевдо-реверб ИКМ"
 
 #: src/engine/sysDef.cpp:617
 msgid "2Exx: PCM LFO Reset"
-msgstr ""
+msgstr "2Exx: Сброс ГНЧ ИКМ"
 
 #: src/engine/sysDef.cpp:618
 msgid "2Fxx: PCM Level Direct"
-msgstr ""
+msgstr "2Fxx: Прямое задание громкости ИКМ"
 
 #: src/engine/sysDef.cpp:622 src/engine/sysDef.cpp:705
 msgid ""
@@ -2658,6 +2658,11 @@ msgid ""
 "this one is in Extended Channel mode, which turns the third FM channel into "
 "four operators with independent notes/frequencies."
 msgstr ""
+"удешевлённая версия OPM с другим расположением регистров и без"
+"стерео...\n"
+"...но у неё внутри AY-3-8910! (на самом деле YM2149)\n"
+"Это версия в режиме расширенного канала, который превращает третий FM-канал "
+"в четыре оператора с независимыми нотами/частотами."
 
 #: src/engine/sysDef.cpp:1226 src/engine/sysDef.cpp:1240
 #: src/engine/sysDef.cpp:1265 src/engine/sysDef.cpp:1279
@@ -2790,6 +2795,9 @@ msgid ""
 "this one is in Extended Channel mode, which turns the third FM channel into "
 "four operators with independent notes/frequencies."
 msgstr ""
+"OPN, но вдвое больше FM-каналов, возвращённое стерео, ритм- и АДИКМ каналы.\n"
+"Это версия в режиме расширенного канала, который превращает третий FM-канал "
+"в четыре оператора с независимыми нотами/частотами."
 
 #: src/engine/sysDef.cpp:1276
 msgid "Yamaha YM2608 (OPNA) CSM"
@@ -3082,6 +3090,8 @@ msgid ""
 "20xx: Set internal speaker loudness (0-1: 100%, 2-3: 200%, 4-7: 400%, 8: "
 "800%)"
 msgstr ""
+"20xx: Громкость внутреннего динамика (0-1: 100%, 2-3: 200%, 4-7: 400%, 8: "
+"800%)"
 
 #: src/engine/sysDef.cpp:1399 src/gui/presets.cpp:3159
 msgid "Yamaha YM2414 (OPZ)"
@@ -3347,6 +3357,12 @@ msgid ""
 "channels went missing.\n"
 "this one includes CSM mode control for special effects on Channel 2."
 msgstr ""
+"этот чип использовался в аркадном автомате и игровой консоли Neo Geo от "
+"SNK.\n"
+"похож на OPNA, но ритм-каналы теперь стали АДИКМ-каналами, и пропали два FM-"
+"канала.\n"
+"У этой версии есть контроль режима CSM для специальных эффектов на втором "
+"канале."
 
 #: src/engine/sysDef.cpp:1601
 msgid "Yamaha YM2413 (OPLL) with drums"
@@ -4105,6 +4121,8 @@ msgid ""
 "a handheld that was trying to compete with the Game Boy, but it never "
 "succeded."
 msgstr ""
+"портативная игровая консоль, пытавшаяся конкурировать с Game Boy, но "
+"проигравшая."
 
 #: src/engine/sysDef.cpp:2064
 msgid "NEC μPD1771C-017"
@@ -4115,14 +4133,16 @@ msgid ""
 "a microcontroller which has been used as a sound generator in the Super "
 "Cassette Vision."
 msgstr ""
+"микроконтроллер, использовавшийся в качестве звукогенетора в Super "
+"Cassette Vision."
 
 #: src/engine/sysDef.cpp:2072
 msgid "10xx: Set duty/waveform (bit 0-3: waveform; bit 4: mode)"
-msgstr ""
+msgstr "10xx: Скважность и форма волны (биты 0-3: форма волны; бит 4: режим)"
 
 #: src/engine/sysDef.cpp:2073
 msgid "12xx: Set waveform position (0-31)"
-msgstr ""
+msgstr "12xx: Положение волны (0-31)"
 
 #: src/engine/sysDef.cpp:2078 src/gui/presets.cpp:3616
 msgid "Sharp SM8521"
@@ -4441,16 +4461,20 @@ msgid ""
 "a fantasy sound chip created by LTVA. it is a big rework of SID chip with "
 "probably too many features added on top."
 msgstr ""
+"вымышленный звуковой чип за авторством LTVA. сильная переработка чипа SID "
+"с, наверное, слишком большим количеством новых функций."
 
 #: src/engine/sysDef.cpp:2320
 msgid "Commodore 64 (SID 6581) with software PCM"
-msgstr ""
+msgstr "Commodore 64 (SID 6581) с программным каналом ИКМ"
 
 #: src/engine/sysDef.cpp:2321
 msgid ""
 "the 6581 had a quirk which allowed playback of 4-bit samples by writing PCM "
 "data to the volume register."
 msgstr ""
+"чип 6581 имеет особенность, позволяющую играть 4-битные сэмплы путём записи ИКМ-данных "
+"в регистр глобальной громкости."
 
 #: src/engine/sysDef.cpp:2332 src/gui/presets.cpp:3622
 msgid "Dummy System"
@@ -4459,96 +4483,6 @@ msgstr "Система-болванка"
 #: src/engine/sysDef.cpp:2333
 msgid "this is a system designed for testing purposes."
 msgstr "это система, разработанная для тестирования."
-
-#: src/gui/effectList.cpp:14 src/gui/guiConst.cpp:647
-msgid "Effect List"
-msgstr "Список эффектов"
-
-#: src/gui/effectList.cpp:18
-#, c-format
-msgid "Chip at cursor: %s"
-msgstr "Курсор на канале чипа: %s"
-
-#: src/gui/effectList.cpp:21 src/gui/settings.cpp:7103
-msgid "Search"
-msgstr "Поиск"
-
-#: src/gui/effectList.cpp:25
-msgid "Effect types to show:"
-msgstr "Показывать типы эффектов:"
-
-#: src/gui/effectList.cpp:32 src/gui/exportOptions.cpp:78 src/gui/gui.cpp:6646
-#: src/gui/gui.cpp:6724
-msgid "All"
-msgstr "Все"
-
-#: src/gui/effectList.cpp:34 src/gui/compatFlags.cpp:219
-#: src/gui/exportOptions.cpp:84 src/gui/gui.cpp:6652 src/gui/gui.cpp:6730
-#: src/gui/insEdit.cpp:632 src/gui/sysConf.cpp:1940 src/gui/waveEdit.cpp:38
-msgid "None"
-msgstr "Нет"
-
-#: src/gui/effectList.cpp:46 src/gui/subSongs.cpp:128 src/gui/channels.cpp:55
-#: src/gui/insEdit.cpp:6555 src/gui/sampleEdit.cpp:195
-#: src/gui/settings.cpp:1021 src/gui/settings.cpp:4508 src/gui/songInfo.cpp:40
-#: src/gui/sysManager.cpp:54 src/gui/userPresets.cpp:379
-msgid "Name"
-msgstr "Имя"
-
-#: src/gui/effectList.cpp:48
-msgid "Description"
-msgstr "Описание"
-
-#: src/gui/effectList.cpp:85 src/gui/log.cpp:25
-msgid "ERROR"
-msgstr "ОШИБКА"
-
-#: src/gui/subSongs.cpp:17 src/gui/editControls.cpp:528
-#: src/gui/guiConst.cpp:649
-msgid "Subsongs"
-msgstr "Подпесни"
-
-#: src/gui/subSongs.cpp:22 src/gui/subSongs.cpp:32
-#, c-format
-msgid "%d. <no name>"
-msgstr "%d. <без названия>"
-
-#: src/gui/subSongs.cpp:56 src/gui/dataList.cpp:554 src/gui/dataList.cpp:848
-#: src/gui/dataList.cpp:993
-msgid "Move up"
-msgstr "Переместить на одну позицию вверх"
-
-#: src/gui/subSongs.cpp:63 src/gui/dataList.cpp:575 src/gui/dataList.cpp:855
-#: src/gui/dataList.cpp:1000
-msgid "Move down"
-msgstr "Переместить на одну позицию вниз"
-
-#: src/gui/subSongs.cpp:74 src/gui/subSongs.cpp:95
-msgid "too many subsongs!"
-msgstr "слишком много подпесен!"
-
-#: src/gui/subSongs.cpp:90 src/gui/dataList.cpp:372 src/gui/dataList.cpp:790
-#: src/gui/dataList.cpp:925 src/gui/insEdit.cpp:634
-msgid "Add"
-msgstr "Добавить"
-
-#: src/gui/subSongs.cpp:111 src/gui/dataList.cpp:398 src/gui/dataList.cpp:797
-#: src/gui/dataList.cpp:932
-msgid "Duplicate"
-msgstr "Клонировать"
-
-#: src/gui/subSongs.cpp:117
-msgid "this is the only subsong!"
-msgstr "это единственная подпесня!"
-
-#: src/gui/subSongs.cpp:119
-msgid "are you sure you want to remove this subsong?"
-msgstr "вы действительно хотите удалить эту подпесню?"
-
-#: src/gui/subSongs.cpp:124 src/gui/chanOsc.cpp:329 src/gui/settings.cpp:2258
-#: src/gui/sysManager.cpp:150 src/gui/userPresets.cpp:381
-msgid "Remove"
-msgstr "Удалить"
 
 #: src/gui/about.cpp:26
 msgid "is proud to present"
@@ -4713,7 +4647,7 @@ msgstr "MAME YMZ280B core за авторством Aaron Giles"
 #: src/gui/about.cpp:140
 msgid ""
 "MAME GA20 core by Acho A. Tang, R. Belmont and Valley Bell (modified version)"
-msgstr ""
+msgstr "ядро MAME GA20 за авторством Acho A. Tang, R. Belmont и Valley Bell (модифицированная версия)"
 
 #: src/gui/about.cpp:141
 msgid "MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert"
@@ -4721,7 +4655,7 @@ msgstr "MAME SegaPCM core за авторством Hiromitsu Shioya и Olivier 
 
 #: src/gui/about.cpp:142
 msgid "MAME µPD1771C-017 HLE core by David Viens"
-msgstr ""
+msgstr "ядро MAME µPD1771C-017 HLE за авторством David Viens"
 
 #: src/gui/about.cpp:143
 msgid "SAASound by Dave Hooper and Simon Owen"
@@ -4737,7 +4671,7 @@ msgstr "Ядра эмуляции Mednafen PCE, WonderSwan, T6W28 и Virtual Boy
 
 #: src/gui/about.cpp:146
 msgid "WonderSwan new core by asiekierka"
-msgstr ""
+msgstr "новое ядро WonderSwan за авторством asiekierka"
 
 #: src/gui/about.cpp:147
 msgid "SNES DSP core by Blargg"
@@ -4745,7 +4679,7 @@ msgstr "SNES DSP core за авторством Blargg"
 
 #: src/gui/about.cpp:148
 msgid "puNES (NES, MMC5 and FDS) by FHorse (modified version)"
-msgstr ""
+msgstr "puNES (NES, MMC5 and FDS) за авторством FHorse (модифицированная версия)"
 
 #: src/gui/about.cpp:149
 msgid "NSFPlay (NES and FDS) by Brad Smith and Brezza"
@@ -4841,7 +4775,7 @@ msgstr "NDS sound emulator за авторством cam900"
 
 #: src/gui/about.cpp:172
 msgid "openMSX YMF278 emulator (modified version) by the openMSX developers"
-msgstr ""
+msgstr "эмулятор openMSX YMF278 emulator (модифицированная версия) за авторством разработчиков openMSX"
 
 #: src/gui/about.cpp:173
 msgid "SID2 emulator by LTVA (modification of reSID emulator)"
@@ -4923,6 +4857,47 @@ msgstr "О Furnace"
 msgid "Unsaved changes! Save changes before playing?"
 msgstr ""
 "Остались несохранённые изменения! Сохранить изменения перед воспроизведением?"
+
+#: src/gui/channels.cpp:40 src/gui/editControls.cpp:446 src/gui/gui.cpp:6925
+#: src/gui/guiConst.cpp:258 src/gui/guiConst.cpp:642
+msgid "Channels"
+msgstr "Число каналов"
+
+#: src/gui/channels.cpp:49
+msgid "Pat"
+msgstr "Пат."
+
+#: src/gui/channels.cpp:51 src/gui/editControls.cpp:554
+msgid "Osc"
+msgstr "Осц."
+
+#: src/gui/channels.cpp:53
+msgid "Swap"
+msgstr "Смена"
+
+#: src/gui/channels.cpp:55 src/gui/effectList.cpp:46 src/gui/insEdit.cpp:6555
+#: src/gui/sampleEdit.cpp:195 src/gui/settings.cpp:1021
+#: src/gui/settings.cpp:4508 src/gui/songInfo.cpp:40 src/gui/subSongs.cpp:128
+#: src/gui/sysManager.cpp:54 src/gui/userPresets.cpp:379
+msgid "Name"
+msgstr "Имя"
+
+#: src/gui/channels.cpp:64
+msgid "Show in pattern"
+msgstr "Показывать в окне паттернов"
+
+#: src/gui/channels.cpp:71
+msgid "Show in per-channel oscilloscope"
+msgstr "Показывать в окне осциллографов (для отдельных каналов)"
+
+#: src/gui/channels.cpp:82
+#, c-format
+msgid ""
+"%s #%d\n"
+"(drag to swap channels)"
+msgstr ""
+"%s #%d\n"
+"(перетащите, чтобы поменять местами каналы)"
 
 #: src/gui/chanOsc.cpp:32
 msgid "None (0%)"
@@ -5056,6 +5031,11 @@ msgstr "Расстояние"
 msgid "Spread"
 msgstr "Размыть"
 
+#: src/gui/chanOsc.cpp:329 src/gui/settings.cpp:2258 src/gui/subSongs.cpp:124
+#: src/gui/sysManager.cpp:150 src/gui/userPresets.cpp:381
+msgid "Remove"
+msgstr "Удалить"
+
 #: src/gui/chanOsc.cpp:353 src/gui/settings.cpp:4002 src/gui/settings.cpp:4290
 #: src/gui/settings.cpp:4317 src/gui/settings.cpp:4343
 msgid "Background"
@@ -5117,7 +5097,7 @@ msgstr "Цвет текста"
 
 #: src/gui/chanOsc.cpp:397 src/gui/gui.cpp:6037 src/gui/gui.cpp:6078
 #: src/gui/gui.cpp:6515 src/gui/gui.cpp:6683 src/gui/gui.cpp:6857
-#: src/gui/gui.cpp:6967 src/gui/gui.cpp:7016 src/gui/settings.cpp:7101
+#: src/gui/gui.cpp:6967 src/gui/gui.cpp:7016 src/gui/settings.cpp:7102
 #: src/gui/tutorial.cpp:761 src/gui/xyOsc.cpp:80
 msgid "OK"
 msgstr "ОК"
@@ -5146,40 +5126,6 @@ msgstr ""
 #: src/gui/chanOsc.cpp:623 src/gui/gui.cpp:6032
 msgid "Error!"
 msgstr "Ошибка!"
-
-#: src/gui/channels.cpp:40 src/gui/editControls.cpp:446 src/gui/gui.cpp:6925
-#: src/gui/guiConst.cpp:258 src/gui/guiConst.cpp:642
-msgid "Channels"
-msgstr "Число каналов"
-
-#: src/gui/channels.cpp:49
-msgid "Pat"
-msgstr "Пат."
-
-#: src/gui/channels.cpp:51 src/gui/editControls.cpp:554
-msgid "Osc"
-msgstr "Осц."
-
-#: src/gui/channels.cpp:53
-msgid "Swap"
-msgstr "Смена"
-
-#: src/gui/channels.cpp:64
-msgid "Show in pattern"
-msgstr "Показывать в окне паттернов"
-
-#: src/gui/channels.cpp:71
-msgid "Show in per-channel oscilloscope"
-msgstr "Показывать в окне осциллографов (для отдельных каналов)"
-
-#: src/gui/channels.cpp:82
-#, c-format
-msgid ""
-"%s #%d\n"
-"(drag to swap channels)"
-msgstr ""
-"%s #%d\n"
-"(перетащите, чтобы поменять местами каналы)"
 
 #: src/gui/clock.cpp:31 src/gui/guiConst.cpp:651 src/gui/settings.cpp:4326
 msgid "Clock"
@@ -5226,7 +5172,7 @@ msgstr "неизвестный тип палитры команд"
 #: src/gui/gui.cpp:6108 src/gui/gui.cpp:6132 src/gui/gui.cpp:6156
 #: src/gui/gui.cpp:6180 src/gui/gui.cpp:6204 src/gui/gui.cpp:6235
 #: src/gui/gui.cpp:6294 src/gui/gui.cpp:6689 src/gui/gui.cpp:6863
-#: src/gui/gui.cpp:6998 src/gui/newSong.cpp:277 src/gui/settings.cpp:7102
+#: src/gui/gui.cpp:6998 src/gui/newSong.cpp:277 src/gui/settings.cpp:7103
 msgid "Cancel"
 msgstr "Отмена"
 
@@ -5706,6 +5652,12 @@ msgstr "Частота/Воспроизведение"
 msgid "Pitch linearity:"
 msgstr "Линейность частоты (в долях полутонов):"
 
+#: src/gui/compatFlags.cpp:219 src/gui/effectList.cpp:34
+#: src/gui/exportOptions.cpp:84 src/gui/gui.cpp:6652 src/gui/gui.cpp:6730
+#: src/gui/insEdit.cpp:632 src/gui/sysConf.cpp:1940 src/gui/waveEdit.cpp:38
+msgid "None"
+msgstr "Нет"
+
 #: src/gui/compatFlags.cpp:223
 msgid "like ProTracker/FamiTracker"
 msgstr "как ProTracker/FamiTracker"
@@ -6067,6 +6019,16 @@ msgstr "создать инструмент с набором ударных"
 msgid "Instruments"
 msgstr "Инструменты"
 
+#: src/gui/dataList.cpp:372 src/gui/dataList.cpp:790 src/gui/dataList.cpp:925
+#: src/gui/insEdit.cpp:634 src/gui/subSongs.cpp:90
+msgid "Add"
+msgstr "Добавить"
+
+#: src/gui/dataList.cpp:398 src/gui/dataList.cpp:797 src/gui/dataList.cpp:932
+#: src/gui/subSongs.cpp:111
+msgid "Duplicate"
+msgstr "Клонировать"
+
 #: src/gui/dataList.cpp:419 src/gui/dataList.cpp:804 src/gui/dataList.cpp:939
 #: src/gui/editControls.cpp:497 src/gui/insEdit.cpp:6506
 #: src/gui/insEdit.cpp:6571 src/gui/sampleEdit.cpp:122
@@ -6151,6 +6113,16 @@ msgstr "сохранить всё..."
 #: src/gui/dataList.cpp:532 src/gui/dataList.cpp:840 src/gui/dataList.cpp:985
 msgid "Toggle folders/standard view"
 msgstr "Переключиться между видом с разбиением по папкам и обычным видом"
+
+#: src/gui/dataList.cpp:554 src/gui/dataList.cpp:848 src/gui/dataList.cpp:993
+#: src/gui/subSongs.cpp:56
+msgid "Move up"
+msgstr "Переместить на одну позицию вверх"
+
+#: src/gui/dataList.cpp:575 src/gui/dataList.cpp:855 src/gui/dataList.cpp:1000
+#: src/gui/subSongs.cpp:63
+msgid "Move down"
+msgstr "Переместить на одну позицию вниз"
 
 #: src/gui/dataList.cpp:586 src/gui/dataList.cpp:866 src/gui/dataList.cpp:1011
 msgid "Create"
@@ -6542,6 +6514,11 @@ msgstr "Загрузить резервную копию"
 msgid "Song Info"
 msgstr "О треке"
 
+#: src/gui/editControls.cpp:528 src/gui/guiConst.cpp:649
+#: src/gui/subSongs.cpp:17
+msgid "Subsongs"
+msgstr "Подпесни"
+
 #: src/gui/editControls.cpp:532 src/gui/guiConst.cpp:235
 #: src/gui/guiConst.cpp:622 src/gui/insEdit.cpp:2370 src/gui/insEdit.cpp:3268
 #: src/gui/insEdit.cpp:6943 src/gui/speed.cpp:32 src/gui/speed.cpp:102
@@ -6551,7 +6528,7 @@ msgstr "Скорость"
 
 #: src/gui/editControls.cpp:536
 msgid "Comments"
-msgstr ""
+msgstr "Комментарии"
 
 #: src/gui/editControls.cpp:545
 msgid "Channels here..."
@@ -6777,6 +6754,36 @@ msgstr "дальнейшее расширение невозможно!"
 #, c-format
 msgid "copy: %s"
 msgstr "скопировано: %s"
+
+#: src/gui/effectList.cpp:14 src/gui/guiConst.cpp:647
+msgid "Effect List"
+msgstr "Список эффектов"
+
+#: src/gui/effectList.cpp:18
+#, c-format
+msgid "Chip at cursor: %s"
+msgstr "Курсор на канале чипа: %s"
+
+#: src/gui/effectList.cpp:21 src/gui/settings.cpp:7104
+msgid "Search"
+msgstr "Поиск"
+
+#: src/gui/effectList.cpp:25
+msgid "Effect types to show:"
+msgstr "Показывать типы эффектов:"
+
+#: src/gui/effectList.cpp:32 src/gui/exportOptions.cpp:78 src/gui/gui.cpp:6646
+#: src/gui/gui.cpp:6724
+msgid "All"
+msgstr "Все"
+
+#: src/gui/effectList.cpp:48
+msgid "Description"
+msgstr "Описание"
+
+#: src/gui/effectList.cpp:85 src/gui/log.cpp:25
+msgid "ERROR"
+msgstr "ОШИБКА"
 
 #: src/gui/exportOptions.cpp:29
 msgid "Export type:"
@@ -7209,7 +7216,7 @@ msgstr "Совпадение с положением эффекта:"
 #: src/gui/gui.cpp:6227 src/gui/gui.cpp:6252 src/gui/gui.cpp:6263
 #: src/gui/gui.cpp:6275 src/gui/gui.cpp:6287 src/gui/gui.cpp:6451
 #: src/gui/gui.cpp:6467 src/gui/gui.cpp:6477 src/gui/gui.cpp:6490
-#: src/gui/settings.cpp:7122
+#: src/gui/settings.cpp:7123
 msgid "No"
 msgstr "Нет"
 
@@ -7594,6 +7601,14 @@ msgid ""
 "\n"
 "have fun!"
 msgstr ""
+"вы импортировали модуль ProTracker/SoundTracker/PC!\n"
+"учтите следущее:\n"
+"\n"
+"- Furnace не является заменой проигрывателя MOD-файлов\n"
+"- импорт не идеален. трек может звучать по-другому:\n"
+"  - E6x, команда зацикливания паттерна не поддерживается\n"
+"\n"
+"удачи!"
 
 #: src/gui/gui.cpp:2472
 msgid ""
@@ -8498,7 +8513,7 @@ msgid "You saved: %s"
 msgstr "Вы сохранили: %s"
 
 #: src/gui/gui.cpp:5806 src/gui/gui.cpp:6084 src/gui/gui.cpp:6085
-#: src/gui/settings.cpp:7119
+#: src/gui/settings.cpp:7120
 msgid "Warning"
 msgstr "Предупреждение"
 
@@ -8570,7 +8585,7 @@ msgstr "%s"
 #: src/gui/gui.cpp:6161 src/gui/gui.cpp:6185 src/gui/gui.cpp:6209
 #: src/gui/gui.cpp:6241 src/gui/gui.cpp:6257 src/gui/gui.cpp:6268
 #: src/gui/gui.cpp:6280 src/gui/gui.cpp:6434 src/gui/gui.cpp:6456
-#: src/gui/gui.cpp:6472 src/gui/gui.cpp:6483 src/gui/settings.cpp:7121
+#: src/gui/gui.cpp:6472 src/gui/gui.cpp:6483 src/gui/settings.cpp:7122
 msgid "Yes"
 msgstr "Да"
 
@@ -11875,7 +11890,7 @@ msgstr "Создайте новый"
 
 #: src/gui/insEdit.cpp:6588 src/gui/sampleEdit.cpp:531
 #: src/gui/settings.cpp:1637 src/gui/settings.cpp:2254
-#: src/gui/settings.cpp:7116
+#: src/gui/settings.cpp:7117
 msgid "Type"
 msgstr "Тип"
 
@@ -12872,11 +12887,11 @@ msgstr "Статус канала:"
 
 #: src/gui/pattern.cpp:567
 msgid "No###_PCS0"
-msgstr ""
+msgstr "Скрыть###_PCS0"
 
 #: src/gui/pattern.cpp:570
 msgid "Yes###_PCS1"
-msgstr ""
+msgstr "Показать###_PCS1"
 
 #: src/gui/pattern.cpp:1459 src/gui/pattern.cpp:1491
 msgid "WARNING!!"
@@ -18711,7 +18726,7 @@ msgstr "Обновить список"
 msgid "Delete all"
 msgstr "Удалить все"
 
-#: src/gui/settings.cpp:4509 src/gui/settings.cpp:7117
+#: src/gui/settings.cpp:4509 src/gui/settings.cpp:7118
 msgid "Size"
 msgstr "Размер посл. рез. копии"
 
@@ -18812,38 +18827,38 @@ msgstr "не смог инициализировать аудио!"
 msgid "error while loading config! (%s)"
 msgstr "ошибка при загрузке файла настроек! (%s)"
 
-#: src/gui/settings.cpp:7104
+#: src/gui/settings.cpp:7105
 msgid "[Dir]"
 msgstr "[Папка]"
 
-#: src/gui/settings.cpp:7105
+#: src/gui/settings.cpp:7106
 msgid "[Link]"
 msgstr "[Ссылка]"
 
-#: src/gui/settings.cpp:7106
+#: src/gui/settings.cpp:7107
 #, fuzzy
 msgid "[File]"
 msgstr "[Файл]"
 
-#: src/gui/settings.cpp:7107
+#: src/gui/settings.cpp:7108
 msgid "Name:"
 msgstr "Имя:"
 
-#: src/gui/settings.cpp:7108
+#: src/gui/settings.cpp:7109
 msgid "Path:"
 msgstr "Путь:"
 
-#: src/gui/settings.cpp:7109
+#: src/gui/settings.cpp:7110
 #, fuzzy
 msgid "Reset search"
 msgstr "Сбросить до настроек по умолчанию"
 
-#: src/gui/settings.cpp:7110
+#: src/gui/settings.cpp:7111
 #, fuzzy
 msgid "Drives"
 msgstr "Драйвер"
 
-#: src/gui/settings.cpp:7111
+#: src/gui/settings.cpp:7112
 msgid ""
 "Edit path\n"
 "You can also right click on path buttons"
@@ -18851,31 +18866,31 @@ msgstr ""
 "Редактировать путь\n"
 "Вы также можете нажать на кнопки пути"
 
-#: src/gui/settings.cpp:7112
+#: src/gui/settings.cpp:7113
 msgid "Go to home directory"
 msgstr "Вернуться в домашнюю директорию"
 
-#: src/gui/settings.cpp:7113
+#: src/gui/settings.cpp:7114
 msgid "Go to parent directory"
 msgstr "На уровень выше"
 
-#: src/gui/settings.cpp:7114
+#: src/gui/settings.cpp:7115
 msgid "Create Directory"
 msgstr "Создать папку"
 
-#: src/gui/settings.cpp:7115
+#: src/gui/settings.cpp:7116
 msgid "File name"
 msgstr "Название файла"
 
-#: src/gui/settings.cpp:7118
+#: src/gui/settings.cpp:7119
 msgid "Date"
 msgstr "Дата"
 
-#: src/gui/settings.cpp:7120
+#: src/gui/settings.cpp:7121
 msgid "The file you selected already exists! Would you like to overwrite it?"
 msgstr "Выбранный файл уже существует! Вы хотите перезаписать его?"
 
-#: src/gui/settings.cpp:7123
+#: src/gui/settings.cpp:7124
 msgid "%Y/%m/%d %H:%M"
 msgstr ""
 
@@ -18974,6 +18989,23 @@ msgstr "СПОЙЛЕР"
 #: src/gui/stats.cpp:35
 msgid "Audio load"
 msgstr "Нагрузка от аудио"
+
+#: src/gui/subSongs.cpp:22 src/gui/subSongs.cpp:32
+#, c-format
+msgid "%d. <no name>"
+msgstr "%d. <без названия>"
+
+#: src/gui/subSongs.cpp:74 src/gui/subSongs.cpp:95
+msgid "too many subsongs!"
+msgstr "слишком много подпесен!"
+
+#: src/gui/subSongs.cpp:117
+msgid "this is the only subsong!"
+msgstr "это единственная подпесня!"
+
+#: src/gui/subSongs.cpp:119
+msgid "are you sure you want to remove this subsong?"
+msgstr "вы действительно хотите удалить эту подпесню?"
 
 #: src/gui/sysConf.cpp:50 src/gui/sysConf.cpp:130 src/gui/sysConf.cpp:497
 #: src/gui/sysConf.cpp:615 src/gui/sysConf.cpp:658 src/gui/sysConf.cpp:696
