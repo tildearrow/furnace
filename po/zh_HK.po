@@ -3,28 +3,28 @@
 # 繁體中文本地化文件 
 # Chinese (Traditional)
 # Revison 0.7.2024 Beta
-# 
+#
 # 如有問題, 敬請聯係.
 # contact if you have any questions.
 # Translator:GTR3QQ <https://github.com/gtr3qq>
 # Translator:DJRen_ 
-# 
+#
 # 鳴謝參加內測的各位! (排名不分先後)
 # Thanks to everyone who paticipated in Alpha. (ramdon order)
 # skaphantom,AudioEncrypt,snxsn,truecjfx,hizlsslz,wo_fish,3xFRC,xunsuanqiang,Heartuage,
-# 
-# 
+#
+#
 # 繙譯所基於的一些原則.
 # 1.無需繙譯一些簡單的,常見的
 # 2.FM 名詞均不繙譯, 以方便用户査詢使用英文名詞的'半中文'資料.
 # 3.Debug info, 用户看不見的, compatFlags.cpp,註明不繙譯的均不繙譯,以確保技術支持方便.
-# 
-# 
+#
+#
 # 簡中繁化説明
 # 由於簡中在完全優化后占用VRAM 較小,性能最佳,使用人數最多, 優先漢化為簡中.
 # 大部分異躰字已查 <説文解字>, 常用詞已按港澳網絡常用詞替換, 可能有所遺漏, 敬請回報.
 # 簡中繁化幫助: <https://sou-yun.cn/STConvert.aspx>
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: furnace 0.6.8\n"
@@ -34,6 +34,68 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: src/engine/platform/c64.cpp:773 src/engine/platform/c64.cpp:775
+#: src/engine/platform/dave.cpp:540 src/engine/platform/sid2.cpp:611
+#: src/engine/platform/sid2.cpp:613 src/engine/platform/sid3.cpp:1376
+#: src/engine/platform/sid3.cpp:1380 src/gui/insEdit.cpp:244
+#: src/gui/insEdit.cpp:251 src/gui/insEdit.cpp:506
+msgid "ring"
+msgstr ""
+
+#: src/engine/platform/c64.cpp:780 src/engine/platform/c64.cpp:782
+#: src/engine/platform/sid2.cpp:618 src/engine/platform/sid2.cpp:620
+#: src/engine/platform/sid3.cpp:1385 src/gui/insEdit.cpp:243
+#: src/gui/insEdit.cpp:250 src/gui/insEdit.cpp:505
+msgid "sync"
+msgstr ""
+
+#: src/engine/platform/dave.cpp:537 src/gui/insEdit.cpp:498
+#: src/gui/insEdit.cpp:7172
+msgid "high"
+msgstr ""
+
+#: src/engine/platform/dave.cpp:543 src/gui/insEdit.cpp:496
+#: src/gui/insEdit.cpp:7160
+msgid "low"
+msgstr ""
+
+#: src/engine/platform/opl.cpp:2728
+msgid "4OP"
+msgstr ""
+
+#: src/engine/platform/pce.cpp:571 src/engine/platform/snes.cpp:739
+msgid "mod"
+msgstr ""
+
+#: src/engine/platform/pokey.cpp:435 src/engine/platform/pokey.cpp:444
+msgid "filter"
+msgstr ""
+
+#: src/engine/platform/pokey.cpp:438 src/engine/platform/pokey.cpp:441
+msgid "16-bit"
+msgstr ""
+
+#: src/engine/platform/sid3.cpp:1370 src/gui/insEdit.cpp:249
+msgid "phase"
+msgstr ""
+
+#: src/engine/fileOps/p.cpp:121 src/engine/fileOps/p86.cpp:139
+#: src/engine/fileOps/pdx.cpp:98 src/engine/fileOps/ppc.cpp:139
+#: src/engine/fileOps/pps.cpp:122 src/engine/fileOps/pvi.cpp:155
+#: src/engine/fileOps/pzi.cpp:151 src/engine/engine.cpp:2878
+msgid "premature end of file"
+msgstr ""
+
+#: src/engine/fileOps/s3m.cpp:320 src/gui/insEdit.cpp:799
+#, c-format
+msgid "Channel %d"
+msgstr ""
+
+#: src/engine/fileOps/s3m.cpp:336
+#, c-format
+msgid "FM %d"
+msgstr ""
 
 #: src/engine/engine.cpp:52
 msgid "00xy: Arpeggio"
@@ -393,13 +455,6 @@ msgstr ""
 msgid "invalid wavetable header/data!"
 msgstr ""
 
-#: src/engine/engine.cpp:2878 src/engine/fileOps/p.cpp:121
-#: src/engine/fileOps/p86.cpp:139 src/engine/fileOps/pdx.cpp:98
-#: src/engine/fileOps/ppc.cpp:139 src/engine/fileOps/pps.cpp:122
-#: src/engine/fileOps/pvi.cpp:155 src/engine/fileOps/pzi.cpp:151
-msgid "premature end of file"
-msgstr ""
-
 #: src/engine/engine.cpp:2905 src/engine/engine.cpp:2928
 #: src/gui/doAction.cpp:890 src/gui/doAction.cpp:967 src/gui/doAction.cpp:979
 msgid "too many samples!"
@@ -415,63 +470,8 @@ msgstr ""
 msgid "no free patterns in channel %d!"
 msgstr ""
 
-#: src/engine/fileOps/s3m.cpp:320 src/gui/insEdit.cpp:799
-#, c-format
-msgid "Channel %d"
-msgstr ""
-
-#: src/engine/fileOps/s3m.cpp:336
-#, c-format
-msgid "FM %d"
-msgstr ""
-
 #: src/engine/fileOpsSample.cpp:114
 msgid "did not read entire sample bank file!"
-msgstr ""
-
-#: src/engine/platform/c64.cpp:773 src/engine/platform/c64.cpp:775
-#: src/engine/platform/dave.cpp:540 src/engine/platform/sid2.cpp:611
-#: src/engine/platform/sid2.cpp:613 src/engine/platform/sid3.cpp:1376
-#: src/engine/platform/sid3.cpp:1380 src/gui/insEdit.cpp:244
-#: src/gui/insEdit.cpp:251 src/gui/insEdit.cpp:506
-msgid "ring"
-msgstr ""
-
-#: src/engine/platform/c64.cpp:780 src/engine/platform/c64.cpp:782
-#: src/engine/platform/sid2.cpp:618 src/engine/platform/sid2.cpp:620
-#: src/engine/platform/sid3.cpp:1385 src/gui/insEdit.cpp:243
-#: src/gui/insEdit.cpp:250 src/gui/insEdit.cpp:505
-msgid "sync"
-msgstr ""
-
-#: src/engine/platform/dave.cpp:537 src/gui/insEdit.cpp:498
-#: src/gui/insEdit.cpp:7172
-msgid "high"
-msgstr ""
-
-#: src/engine/platform/dave.cpp:543 src/gui/insEdit.cpp:496
-#: src/gui/insEdit.cpp:7160
-msgid "low"
-msgstr ""
-
-#: src/engine/platform/opl.cpp:2728
-msgid "4OP"
-msgstr ""
-
-#: src/engine/platform/pce.cpp:571 src/engine/platform/snes.cpp:739
-msgid "mod"
-msgstr ""
-
-#: src/engine/platform/pokey.cpp:435 src/engine/platform/pokey.cpp:444
-msgid "filter"
-msgstr ""
-
-#: src/engine/platform/pokey.cpp:438 src/engine/platform/pokey.cpp:441
-msgid "16-bit"
-msgstr ""
-
-#: src/engine/platform/sid3.cpp:1370 src/gui/insEdit.cpp:249
-msgid "phase"
 msgstr ""
 
 # end of tecnical insturment things.
@@ -1701,7 +1701,7 @@ msgstr ""
 msgid "Sega Genesis Extended Channel 3"
 msgstr ""
 
-#: src/engine/sysDef.cpp:828 src/gui/presets.cpp:3263 src/gui/sysConf.cpp:167
+#: src/engine/sysDef.cpp:828 src/gui/sysConf.cpp:167 src/gui/presets.cpp:3269
 msgid "TI SN76489"
 msgstr ""
 
@@ -1751,8 +1751,8 @@ msgstr ""
 msgid "Sega Master System + FM Expansion"
 msgstr ""
 
-#: src/engine/sysDef.cpp:847 src/gui/presets.cpp:139 src/gui/presets.cpp:3570
-#: src/gui/presets.cpp:3695 src/gui/settings.cpp:4147
+#: src/engine/sysDef.cpp:847 src/gui/settings.cpp:4147 src/gui/presets.cpp:139
+#: src/gui/presets.cpp:3576 src/gui/presets.cpp:3701
 msgid "Game Boy"
 msgstr ""
 
@@ -1773,7 +1773,7 @@ msgid "Pulse 2"
 msgstr "脈波 2"
 
 #: src/engine/sysDef.cpp:849 src/gui/guiConst.cpp:245 src/gui/guiConst.cpp:1473
-#: src/gui/insEdit.cpp:3031 src/gui/presets.cpp:3470 src/gui/settings.cpp:4047
+#: src/gui/insEdit.cpp:3031 src/gui/settings.cpp:4047 src/gui/presets.cpp:3476
 msgid "Wavetable"
 msgstr "波表"
 
@@ -1814,7 +1814,7 @@ msgstr ""
 msgid "13xx: Set LFO speed"
 msgstr ""
 
-#: src/engine/sysDef.cpp:881 src/gui/presets.cpp:3596
+#: src/engine/sysDef.cpp:881 src/gui/presets.cpp:3602
 msgid "NES (Ricoh 2A03)"
 msgstr ""
 
@@ -1881,7 +1881,7 @@ msgstr ""
 msgid "NES + Konami VRC7"
 msgstr ""
 
-#: src/engine/sysDef.cpp:909 src/gui/presets.cpp:212 src/gui/presets.cpp:3716
+#: src/engine/sysDef.cpp:909 src/gui/presets.cpp:212 src/gui/presets.cpp:3722
 msgid "Famicom Disk System"
 msgstr ""
 
@@ -1910,7 +1910,7 @@ msgstr ""
 msgid "DefleCade"
 msgstr ""
 
-#: src/engine/sysDef.cpp:945 src/gui/presets.cpp:3740
+#: src/engine/sysDef.cpp:945 src/gui/presets.cpp:3746
 msgid "Neo Geo CD"
 msgstr ""
 
@@ -2095,11 +2095,11 @@ msgstr ""
 msgid "FM 2 OP4"
 msgstr ""
 
-#: src/engine/sysDef.cpp:970 src/gui/presets.cpp:488
+#: src/engine/sysDef.cpp:970 src/gui/presets.cpp:494 src/gui/presets.cpp:3756
 msgid "MSX + SCC"
 msgstr ""
 
-#: src/engine/sysDef.cpp:976 src/gui/presets.cpp:3320 src/gui/sysConf.cpp:927
+#: src/engine/sysDef.cpp:976 src/gui/sysConf.cpp:927 src/gui/presets.cpp:3326
 msgid "AY-3-8910"
 msgstr ""
 
@@ -2110,7 +2110,7 @@ msgid ""
 "the discovery of envelope bass helped it beat the SN76489 with ease."
 msgstr ""
 
-#: src/engine/sysDef.cpp:988 src/gui/presets.cpp:425 src/gui/presets.cpp:3373
+#: src/engine/sysDef.cpp:988 src/gui/presets.cpp:431 src/gui/presets.cpp:3379
 msgid "Amiga"
 msgstr ""
 
@@ -2136,7 +2136,7 @@ msgstr ""
 msgid "13xx: Set waveform"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1005 src/gui/presets.cpp:3034
+#: src/engine/sysDef.cpp:1005 src/gui/presets.cpp:3040
 msgid "Yamaha YM2151 (OPM)"
 msgstr ""
 
@@ -2193,7 +2193,7 @@ msgstr ""
 msgid "FM 8"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1017 src/gui/presets.cpp:3099
+#: src/engine/sysDef.cpp:1017 src/gui/presets.cpp:3105
 msgid "Yamaha YM2612 (OPN2)"
 msgstr ""
 
@@ -2203,7 +2203,7 @@ msgid ""
 "the FM Towns computer)."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1029 src/gui/presets.cpp:3586
+#: src/engine/sysDef.cpp:1029 src/gui/presets.cpp:3592
 msgid "Atari TIA"
 msgstr ""
 
@@ -2213,7 +2213,7 @@ msgid ""
 "capabilities..."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1041 src/gui/presets.cpp:3335
+#: src/engine/sysDef.cpp:1041 src/gui/presets.cpp:3341
 msgid "Philips SAA1099"
 msgstr ""
 
@@ -2247,7 +2247,7 @@ msgstr ""
 msgid "12xx: Setup envelope (refer to docs for more information)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1057 src/gui/presets.cpp:3565
+#: src/engine/sysDef.cpp:1057 src/gui/presets.cpp:3571
 msgid "Microchip AY8930"
 msgstr ""
 
@@ -2299,8 +2299,8 @@ msgstr ""
 msgid "Wave"
 msgstr "波形"
 
-#: src/engine/sysDef.cpp:1091 src/gui/presets.cpp:218 src/gui/presets.cpp:3414
-#: src/gui/settings.cpp:4174
+#: src/engine/sysDef.cpp:1091 src/gui/settings.cpp:4174 src/gui/presets.cpp:218
+#: src/gui/presets.cpp:3420
 msgid "SNES"
 msgstr ""
 
@@ -2410,7 +2410,7 @@ msgstr ""
 msgid "23xx: Set release (00 to 1F)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1132 src/gui/presets.cpp:3555
+#: src/engine/sysDef.cpp:1132 src/gui/presets.cpp:3561
 msgid "Konami VRC6"
 msgstr ""
 
@@ -2434,7 +2434,7 @@ msgstr ""
 msgid "12xx: Set duty cycle (pulse: 0 to 7)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1146 src/gui/presets.cpp:3149
+#: src/engine/sysDef.cpp:1146 src/gui/presets.cpp:3155
 msgid "Yamaha YM2413 (OPLL)"
 msgstr ""
 
@@ -2450,7 +2450,7 @@ msgstr ""
 msgid "FM 9"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1158 src/gui/presets.cpp:3512
+#: src/engine/sysDef.cpp:1158 src/gui/presets.cpp:3518
 msgid "Famicom Disk System (chip)"
 msgstr ""
 
@@ -2486,7 +2486,7 @@ msgstr ""
 msgid "16xy: Automatic modulation speed (x: numerator; y: denominator)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1177 src/gui/presets.cpp:3560
+#: src/engine/sysDef.cpp:1177 src/gui/presets.cpp:3566
 msgid "MMC5"
 msgstr ""
 
@@ -2495,8 +2495,8 @@ msgid ""
 "an expansion chip for the Famicom, featuring a little-known PCM channel."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1190 src/gui/presets.cpp:3507
-#: src/gui/settings.cpp:4163
+#: src/engine/sysDef.cpp:1190 src/gui/settings.cpp:4163
+#: src/gui/presets.cpp:3513
 msgid "Namco 163"
 msgstr ""
 
@@ -2536,7 +2536,7 @@ msgstr ""
 msgid "16xx: Set waveform load length (04 to FC in steps of 4)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1212 src/gui/presets.cpp:3039
+#: src/engine/sysDef.cpp:1212 src/gui/presets.cpp:3045
 msgid "Yamaha YM2203 (OPN)"
 msgstr ""
 
@@ -2612,7 +2612,7 @@ msgstr ""
 msgid "CSM Timer"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1251 src/gui/presets.cpp:3054
+#: src/engine/sysDef.cpp:1251 src/gui/presets.cpp:3060
 msgid "Yamaha YM2608 (OPNA)"
 msgstr ""
 
@@ -2697,7 +2697,7 @@ msgid ""
 "this one includes CSM mode control for special effects on Channel 3."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1290 src/gui/presets.cpp:3189
+#: src/engine/sysDef.cpp:1290 src/gui/presets.cpp:3195
 msgid "Yamaha YM3526 (OPL)"
 msgstr ""
 
@@ -2707,7 +2707,7 @@ msgid ""
 "lower ADSR parameter range?"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1302 src/gui/presets.cpp:3209
+#: src/engine/sysDef.cpp:1302 src/gui/presets.cpp:3215
 msgid "Yamaha YM3812 (OPL2)"
 msgstr ""
 
@@ -2715,7 +2715,7 @@ msgstr ""
 msgid "OPL, but what if you had more waveforms to choose than the normal sine?"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1314 src/gui/presets.cpp:3219
+#: src/engine/sysDef.cpp:1314 src/gui/presets.cpp:3225
 msgid "Yamaha YMF262 (OPL3)"
 msgstr ""
 
@@ -2866,7 +2866,7 @@ msgstr ""
 msgid "Channel 28"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1336 src/gui/presets.cpp:3340
+#: src/engine/sysDef.cpp:1336 src/gui/presets.cpp:3346
 msgid "PC Speaker"
 msgstr ""
 
@@ -2877,7 +2877,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1338 src/engine/sysDef.cpp:1347
 #: src/gui/guiConst.cpp:248 src/gui/guiConst.cpp:1472 src/gui/insEdit.cpp:186
 #: src/gui/insEdit.cpp:197 src/gui/insEdit.cpp:423 src/gui/insEdit.cpp:774
-#: src/gui/presets.cpp:3261 src/gui/waveEdit.cpp:95
+#: src/gui/waveEdit.cpp:95 src/gui/presets.cpp:3267
 msgid "Square"
 msgstr "方波"
 
@@ -2889,8 +2889,8 @@ msgstr ""
 msgid "please don't use this chip. it was added as a joke."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1354 src/gui/presets.cpp:3580
-#: src/gui/settings.cpp:4166
+#: src/engine/sysDef.cpp:1354 src/gui/settings.cpp:4166
+#: src/gui/presets.cpp:3586
 msgid "POKEY"
 msgstr ""
 
@@ -2912,7 +2912,7 @@ msgstr ""
 msgid "12xx: Toggle two-tone mode"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1369 src/gui/presets.cpp:3399
+#: src/engine/sysDef.cpp:1369 src/gui/presets.cpp:3405
 msgid "Ricoh RF5C68"
 msgstr ""
 
@@ -2922,8 +2922,8 @@ msgid ""
 "bits."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1379 src/gui/presets.cpp:288 src/gui/presets.cpp:3517
-#: src/gui/settings.cpp:4168
+#: src/engine/sysDef.cpp:1379 src/gui/settings.cpp:4168 src/gui/presets.cpp:288
+#: src/gui/presets.cpp:3523
 msgid "WonderSwan"
 msgstr ""
 
@@ -2961,7 +2961,7 @@ msgid ""
 "800%)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1399 src/gui/presets.cpp:3159
+#: src/engine/sysDef.cpp:1399 src/gui/presets.cpp:3165
 msgid "Yamaha YM2414 (OPZ)"
 msgstr ""
 
@@ -2976,8 +2976,8 @@ msgstr ""
 msgid "2Fxx: Toggle hard envelope reset on new notes"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1413 src/gui/presets.cpp:309 src/gui/presets.cpp:3345
-#: src/gui/settings.cpp:4191
+#: src/engine/sysDef.cpp:1413 src/gui/settings.cpp:4191 src/gui/presets.cpp:309
+#: src/gui/presets.cpp:3351
 msgid "Pokémon Mini"
 msgstr ""
 
@@ -2990,7 +2990,7 @@ msgstr ""
 msgid "Pulse"
 msgstr "脈波"
 
-#: src/engine/sysDef.cpp:1422 src/gui/presets.cpp:3379
+#: src/engine/sysDef.cpp:1422 src/gui/presets.cpp:3385
 msgid "SegaPCM"
 msgstr ""
 
@@ -3000,8 +3000,8 @@ msgid ""
 "YM2151."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1434 src/gui/presets.cpp:294 src/gui/presets.cpp:3523
-#: src/gui/settings.cpp:4162
+#: src/engine/sysDef.cpp:1434 src/gui/settings.cpp:4162 src/gui/presets.cpp:294
+#: src/gui/presets.cpp:3529
 msgid "Virtual Boy"
 msgstr ""
 
@@ -3044,7 +3044,7 @@ msgid ""
 "missing, and drums mode did as well..."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1464 src/gui/presets.cpp:3084
+#: src/engine/sysDef.cpp:1464 src/gui/presets.cpp:3090
 msgid "Yamaha YM2610B (OPNB2)"
 msgstr ""
 
@@ -3092,7 +3092,7 @@ msgid ""
 "four operators with independent notes/frequencies."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1503 src/gui/presets.cpp:3109
+#: src/engine/sysDef.cpp:1503 src/gui/presets.cpp:3115
 msgid "Yamaha YM2612 (OPN2) CSM"
 msgstr ""
 
@@ -3103,8 +3103,8 @@ msgid ""
 "this one includes CSM mode control for special effects on Channel 3."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1516 src/gui/presets.cpp:3482
-#: src/gui/settings.cpp:4164
+#: src/engine/sysDef.cpp:1516 src/gui/settings.cpp:4164
+#: src/gui/presets.cpp:3488
 msgid "Konami SCC"
 msgstr ""
 
@@ -3147,7 +3147,7 @@ msgstr ""
 msgid "Kick/FM 16"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1563 src/gui/presets.cpp:3069
+#: src/engine/sysDef.cpp:1563 src/gui/presets.cpp:3075
 msgid "Yamaha YM2610 (OPNB)"
 msgstr ""
 
@@ -3195,7 +3195,7 @@ msgstr ""
 msgid "3xxx: Load LFSR (0 to FFF)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1619 src/gui/presets.cpp:283 src/gui/presets.cpp:3575
+#: src/engine/sysDef.cpp:1619 src/gui/presets.cpp:283 src/gui/presets.cpp:3581
 msgid "Atari Lynx"
 msgstr ""
 
@@ -3220,7 +3220,7 @@ msgstr ""
 msgid "3xxx: Set echo delay buffer length (000 to AA5)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1641 src/gui/presets.cpp:3384
+#: src/engine/sysDef.cpp:1641 src/gui/presets.cpp:3390
 msgid "Capcom QSound"
 msgstr ""
 
@@ -3376,7 +3376,7 @@ msgid ""
 "compatibility with DefleMask."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1705 src/gui/presets.cpp:3389 src/gui/presets.cpp:3529
+#: src/engine/sysDef.cpp:1705 src/gui/presets.cpp:3395 src/gui/presets.cpp:3535
 msgid "Seta/Allumer X1-010"
 msgstr ""
 
@@ -3409,7 +3409,7 @@ msgstr ""
 msgid "23xx: Set envelope period"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1729 src/gui/presets.cpp:3477
+#: src/engine/sysDef.cpp:1729 src/gui/presets.cpp:3483
 msgid "Konami Bubble System WSG"
 msgstr ""
 
@@ -3571,7 +3571,7 @@ msgstr "通道 31"
 msgid "Channel 32"
 msgstr "通道 32"
 
-#: src/engine/sysDef.cpp:1806 src/gui/presets.cpp:3199
+#: src/engine/sysDef.cpp:1806 src/gui/presets.cpp:3205
 msgid "Yamaha Y8950"
 msgstr ""
 
@@ -3587,7 +3587,7 @@ msgstr ""
 msgid "the Y8950 chip, in drums mode."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1830 src/gui/presets.cpp:3487
+#: src/engine/sysDef.cpp:1830 src/gui/presets.cpp:3493
 msgid "Konami SCC+"
 msgstr ""
 
@@ -3685,7 +3685,7 @@ msgstr ""
 msgid "26xx: Filter cutoff slide down"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1872 src/gui/presets.cpp:3628
+#: src/engine/sysDef.cpp:1872 src/gui/presets.cpp:3634
 msgid "tildearrow Sound Unit"
 msgstr ""
 
@@ -3695,7 +3695,7 @@ msgid ""
 "get this!"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1884 src/gui/presets.cpp:3409
+#: src/engine/sysDef.cpp:1884 src/gui/presets.cpp:3415
 msgid "OKI MSM6295"
 msgstr ""
 
@@ -3707,7 +3707,7 @@ msgstr ""
 msgid "20xx: Set chip output rate (0: clock/132; 1: clock/165)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1897 src/gui/presets.cpp:3404
+#: src/engine/sysDef.cpp:1897 src/gui/presets.cpp:3410
 msgid "OKI MSM6258"
 msgstr ""
 
@@ -3718,7 +3718,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1899 src/engine/sysDef.cpp:2020
 #: src/gui/editControls.cpp:437 src/gui/guiConst.cpp:246
 #: src/gui/guiConst.cpp:1475 src/gui/insEdit.cpp:3297 src/gui/insEdit.cpp:3337
-#: src/gui/presets.cpp:3371 src/gui/settings.cpp:4348
+#: src/gui/settings.cpp:4348 src/gui/presets.cpp:3377
 msgid "Sample"
 msgstr "采樣"
 
@@ -3730,7 +3730,7 @@ msgstr ""
 msgid "21xx: Select clock rate (0: full; 1: half)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1911 src/gui/presets.cpp:3394
+#: src/engine/sysDef.cpp:1911 src/gui/presets.cpp:3400
 msgid "Yamaha YMZ280B (PCMD8)"
 msgstr ""
 
@@ -3740,8 +3740,8 @@ msgid ""
 "16-bit PCM."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1930 src/gui/presets.cpp:3492
-#: src/gui/settings.cpp:4176
+#: src/engine/sysDef.cpp:1930 src/gui/settings.cpp:4176
+#: src/gui/presets.cpp:3498
 msgid "Namco WSG"
 msgstr ""
 
@@ -3767,7 +3767,7 @@ msgstr ""
 msgid "like Namco C15 but with stereo sound."
 msgstr ""
 
-#: src/engine/sysDef.cpp:1963 src/gui/presets.cpp:3355
+#: src/engine/sysDef.cpp:1963 src/gui/presets.cpp:3361
 msgid "OKI MSM5232"
 msgstr ""
 
@@ -3793,7 +3793,7 @@ msgstr ""
 msgid "13xx: Set group decay (0 to 11)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:1980 src/gui/presets.cpp:3114
+#: src/engine/sysDef.cpp:1980 src/gui/presets.cpp:3120
 msgid "Yamaha YM2612 (OPN2) with DualPCM"
 msgstr ""
 
@@ -3836,7 +3836,7 @@ msgstr ""
 msgid "20xx: Set noise length (0: short, 1: long)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2018 src/gui/presets.cpp:3429
+#: src/engine/sysDef.cpp:2018 src/gui/presets.cpp:3435
 msgid "Generic PCM DAC"
 msgstr ""
 
@@ -3844,7 +3844,7 @@ msgstr ""
 msgid "as generic sample playback as it gets."
 msgstr "無 損 采 樣 播 放"
 
-#: src/engine/sysDef.cpp:2031 src/gui/presets.cpp:3419
+#: src/engine/sysDef.cpp:2031 src/gui/presets.cpp:3425
 msgid "Konami K007232"
 msgstr ""
 
@@ -3852,7 +3852,7 @@ msgstr ""
 msgid "this PCM chip was widely used at Konami arcade boards in 1986-1990."
 msgstr "在1986-1990年間,此PCM芯片在科樂美的街機基板中廣泛使用"
 
-#: src/engine/sysDef.cpp:2041 src/gui/presets.cpp:3424
+#: src/engine/sysDef.cpp:2041 src/gui/presets.cpp:3430
 msgid "Irem GA20"
 msgstr ""
 
@@ -3862,7 +3862,7 @@ msgid ""
 "sample loop."
 msgstr "又一个Irem的PCM芯片. 與Amiga一樣, 但是更低的音高解析度和沒有 采樣循環."
 
-#: src/engine/sysDef.cpp:2051 src/gui/presets.cpp:3664
+#: src/engine/sysDef.cpp:2051 src/gui/presets.cpp:3670
 msgid "Watara Supervision"
 msgstr ""
 
@@ -3890,7 +3890,7 @@ msgstr ""
 msgid "12xx: Set waveform position (0-31)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2078 src/gui/presets.cpp:3616
+#: src/engine/sysDef.cpp:2078 src/gui/presets.cpp:3622
 msgid "Sharp SM8521"
 msgstr ""
 
@@ -3922,7 +3922,7 @@ msgid ""
 "per channel. it also has a pitchable overlay sample channel."
 msgstr ""
 
-#: src/engine/sysDef.cpp:2115 src/gui/presets.cpp:3439
+#: src/engine/sysDef.cpp:2115 src/gui/presets.cpp:3445
 msgid "Konami K053260"
 msgstr ""
 
@@ -3930,7 +3930,7 @@ msgstr ""
 msgid "this PCM chip was widely used at Konami arcade boards in 1990-1992."
 msgstr "在1990-1992年間,此PCM芯片在科樂美的街機基板中廣泛使用"
 
-#: src/engine/sysDef.cpp:2128 src/gui/presets.cpp:3365
+#: src/engine/sysDef.cpp:2128 src/gui/presets.cpp:3371
 msgid "MOS Technology TED"
 msgstr ""
 
@@ -3940,7 +3940,7 @@ msgid ""
 "Plus/4, 16 and 116."
 msgstr "兩个方波 (一个可以轉為噪聲). 在Commodore中使用 Plus/4, 16 and 116."
 
-#: src/engine/sysDef.cpp:2138 src/gui/presets.cpp:3444
+#: src/engine/sysDef.cpp:2138 src/gui/presets.cpp:3450
 msgid "Namco C140"
 msgstr ""
 
@@ -3948,7 +3948,7 @@ msgstr ""
 msgid "Namco's first PCM chip from 1987. it's pretty good for being so."
 msgstr "南夢宮在1987年的第一个PCM芯片,作為初品也挺不錯的了"
 
-#: src/engine/sysDef.cpp:2149 src/gui/presets.cpp:3449
+#: src/engine/sysDef.cpp:2149 src/gui/presets.cpp:3455
 msgid "Namco C219"
 msgstr ""
 
@@ -3964,7 +3964,7 @@ msgstr ""
 msgid "12xy: Set invert mode (x: surround; y: invert)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2164 src/gui/presets.cpp:3245
+#: src/engine/sysDef.cpp:2164 src/gui/presets.cpp:3251
 msgid "ESS ES1xxx series (ESFM)"
 msgstr ""
 
@@ -3984,7 +3984,7 @@ msgstr ""
 msgid "2Exx: Toggle hard envelope reset on new notes"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2178 src/gui/presets.cpp:3633
+#: src/engine/sysDef.cpp:2178 src/gui/presets.cpp:3639
 msgid "PowerNoise"
 msgstr ""
 
@@ -4030,8 +4030,8 @@ msgstr ""
 msgid "23xx: Write to I/O port B"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2195 src/gui/presets.cpp:3638
-#: src/gui/settings.cpp:4201
+#: src/engine/sysDef.cpp:2195 src/gui/settings.cpp:4201
+#: src/gui/presets.cpp:3644
 msgid "Dave"
 msgstr ""
 
@@ -4105,8 +4105,8 @@ msgstr ""
 msgid "12xy: Toggle invert (x: left; y: right)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2244 src/gui/presets.cpp:324 src/gui/presets.cpp:3454
-#: src/gui/presets.cpp:3644 src/gui/settings.cpp:4202
+#: src/engine/sysDef.cpp:2244 src/gui/settings.cpp:4202 src/gui/presets.cpp:324
+#: src/gui/presets.cpp:3460 src/gui/presets.cpp:3650
 msgid "Nintendo DS"
 msgstr ""
 
@@ -4134,8 +4134,8 @@ msgid ""
 "12xx: Set duty cycle/noise mode/waveform (pulse/wave: 0 to 3; noise: 0 or 1)"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2280 src/gui/presets.cpp:3649
-#: src/gui/settings.cpp:4205
+#: src/engine/sysDef.cpp:2280 src/gui/settings.cpp:4205
+#: src/gui/presets.cpp:3655
 msgid "Bifurcator"
 msgstr ""
 
@@ -4159,8 +4159,8 @@ msgstr ""
 msgid "13xx: Set high byte of channel parameter"
 msgstr ""
 
-#: src/engine/sysDef.cpp:2296 src/gui/presets.cpp:3654
-#: src/gui/settings.cpp:4206
+#: src/engine/sysDef.cpp:2296 src/gui/settings.cpp:4206
+#: src/gui/presets.cpp:3660
 msgid "SID2"
 msgstr ""
 
@@ -4170,8 +4170,8 @@ msgid ""
 "with many of its problems fixed."
 msgstr "由LTVA幻想的芯片. 很像SID芯片,但其問題更少."
 
-#: src/engine/sysDef.cpp:2308 src/gui/presets.cpp:3659
-#: src/gui/settings.cpp:4209
+#: src/engine/sysDef.cpp:2308 src/gui/settings.cpp:4209
+#: src/gui/presets.cpp:3665
 msgid "SID3"
 msgstr ""
 
@@ -4191,13 +4191,105 @@ msgid ""
 "data to the volume register."
 msgstr ""
 
-#: src/engine/sysDef.cpp:2332 src/gui/presets.cpp:3622
+#: src/engine/sysDef.cpp:2332 src/gui/presets.cpp:3628
 msgid "Dummy System"
 msgstr ""
 
 #: src/engine/sysDef.cpp:2333
 msgid "this is a system designed for testing purposes."
 msgstr "此系統只是為了測試"
+
+#: src/gui/effectList.cpp:14 src/gui/guiConst.cpp:647
+msgid "Effect List"
+msgstr "效果列表"
+
+#: src/gui/effectList.cpp:18
+#, c-format
+msgid "Chip at cursor: %s"
+msgstr "光標所在芯片: %s"
+
+# this is for interanl file Xporler? skipping.
+#: src/gui/effectList.cpp:21 src/gui/settings.cpp:7104
+msgid "Search"
+msgstr "搜索"
+
+#: src/gui/effectList.cpp:25
+msgid "Effect types to show:"
+msgstr ""
+
+#: src/gui/effectList.cpp:32 src/gui/exportOptions.cpp:78 src/gui/gui.cpp:6646
+#: src/gui/gui.cpp:6724
+msgid "All"
+msgstr "所有"
+
+#: src/gui/effectList.cpp:34 src/gui/compatFlags.cpp:219
+#: src/gui/exportOptions.cpp:84 src/gui/gui.cpp:6652 src/gui/gui.cpp:6730
+#: src/gui/insEdit.cpp:632 src/gui/sysConf.cpp:1940 src/gui/waveEdit.cpp:38
+msgid "None"
+msgstr "無"
+
+#: src/gui/effectList.cpp:46 src/gui/subSongs.cpp:128 src/gui/channels.cpp:55
+#: src/gui/insEdit.cpp:6555 src/gui/sampleEdit.cpp:195
+#: src/gui/settings.cpp:1021 src/gui/settings.cpp:4508 src/gui/songInfo.cpp:40
+#: src/gui/sysManager.cpp:54 src/gui/userPresets.cpp:379
+msgid "Name"
+msgstr "名稱"
+
+#: src/gui/effectList.cpp:48
+msgid "Description"
+msgstr "描述"
+
+# begin no translate, 单词简单且使用人群大概率精通English，保持log的统一可读性.
+#: src/gui/effectList.cpp:85 src/gui/log.cpp:25
+msgid "ERROR"
+msgstr ""
+
+#: src/gui/subSongs.cpp:17 src/gui/editControls.cpp:528
+#: src/gui/guiConst.cpp:649
+msgid "Subsongs"
+msgstr "子曲目"
+
+#: src/gui/subSongs.cpp:22 src/gui/subSongs.cpp:32
+#, c-format
+msgid "%d. <no name>"
+msgstr "%d. <未命名>"
+
+#: src/gui/subSongs.cpp:56 src/gui/dataList.cpp:554 src/gui/dataList.cpp:848
+#: src/gui/dataList.cpp:993
+msgid "Move up"
+msgstr "上移"
+
+#: src/gui/subSongs.cpp:63 src/gui/dataList.cpp:575 src/gui/dataList.cpp:855
+#: src/gui/dataList.cpp:1000
+msgid "Move down"
+msgstr "下移"
+
+#: src/gui/subSongs.cpp:74 src/gui/subSongs.cpp:95
+msgid "too many subsongs!"
+msgstr "太多子曲!"
+
+#: src/gui/subSongs.cpp:90 src/gui/dataList.cpp:372 src/gui/dataList.cpp:790
+#: src/gui/dataList.cpp:925 src/gui/insEdit.cpp:634
+msgid "Add"
+msgstr "添加"
+
+#: src/gui/subSongs.cpp:111 src/gui/dataList.cpp:398 src/gui/dataList.cpp:797
+#: src/gui/dataList.cpp:932
+msgid "Duplicate"
+msgstr "復制"
+
+#: src/gui/subSongs.cpp:117
+msgid "this is the only subsong!"
+msgstr "只有這一个子曲!"
+
+#: src/gui/subSongs.cpp:119
+msgid "are you sure you want to remove this subsong?"
+msgstr "你确定要删除嗎？"
+
+#: src/gui/subSongs.cpp:124 src/gui/chanOsc.cpp:329 src/gui/settings.cpp:2258
+#: src/gui/sysManager.cpp:150 src/gui/userPresets.cpp:381
+msgid "Remove"
+msgstr "移除"
 
 #: src/gui/about.cpp:26
 msgid "is proud to present"
@@ -4577,48 +4669,6 @@ msgstr "關於 Furnace"
 msgid "Unsaved changes! Save changes before playing?"
 msgstr "未保存！保存進度再播放？"
 
-#: src/gui/channels.cpp:40 src/gui/editControls.cpp:446 src/gui/gui.cpp:6925
-#: src/gui/guiConst.cpp:258 src/gui/guiConst.cpp:642
-msgid "Channels"
-msgstr "通道"
-
-# 为'Pattern'简写,用户用一次即知. 不翻译,便于资料.
-#: src/gui/channels.cpp:49
-msgid "Pat"
-msgstr ""
-
-#: src/gui/channels.cpp:51 src/gui/editControls.cpp:554
-msgid "Osc"
-msgstr "示波器"
-
-#: src/gui/channels.cpp:53
-msgid "Swap"
-msgstr "交換"
-
-#: src/gui/channels.cpp:55 src/gui/effectList.cpp:46 src/gui/insEdit.cpp:6555
-#: src/gui/sampleEdit.cpp:195 src/gui/settings.cpp:1021
-#: src/gui/settings.cpp:4508 src/gui/songInfo.cpp:40 src/gui/subSongs.cpp:128
-#: src/gui/sysManager.cpp:54 src/gui/userPresets.cpp:379
-msgid "Name"
-msgstr "名稱"
-
-#: src/gui/channels.cpp:64
-msgid "Show in pattern"
-msgstr "在Pattern 中顯示"
-
-#: src/gui/channels.cpp:71
-msgid "Show in per-channel oscilloscope"
-msgstr "在全通道示波器中顯示"
-
-#: src/gui/channels.cpp:82
-#, c-format
-msgid ""
-"%s #%d\n"
-"(drag to swap channels)"
-msgstr ""
-"%s #%d \n"
-"(拖動以交換通道)"
-
 #: src/gui/chanOsc.cpp:32
 msgid "None (0%)"
 msgstr ""
@@ -4754,11 +4804,6 @@ msgstr "距離"
 msgid "Spread"
 msgstr "擴散 "
 
-#: src/gui/chanOsc.cpp:329 src/gui/settings.cpp:2258 src/gui/subSongs.cpp:124
-#: src/gui/sysManager.cpp:150 src/gui/userPresets.cpp:381
-msgid "Remove"
-msgstr "移除"
-
 #: src/gui/chanOsc.cpp:353 src/gui/settings.cpp:4002 src/gui/settings.cpp:4290
 #: src/gui/settings.cpp:4317 src/gui/settings.cpp:4343
 msgid "Background"
@@ -4852,6 +4897,41 @@ msgstr ""
 #: src/gui/chanOsc.cpp:623 src/gui/gui.cpp:6032
 msgid "Error!"
 msgstr "錯誤!"
+
+#: src/gui/channels.cpp:40 src/gui/editControls.cpp:446 src/gui/gui.cpp:6925
+#: src/gui/guiConst.cpp:258 src/gui/guiConst.cpp:642
+msgid "Channels"
+msgstr "通道"
+
+# 为'Pattern'简写,用户用一次即知. 不翻译,便于资料.
+#: src/gui/channels.cpp:49
+msgid "Pat"
+msgstr ""
+
+#: src/gui/channels.cpp:51 src/gui/editControls.cpp:554
+msgid "Osc"
+msgstr "示波器"
+
+#: src/gui/channels.cpp:53
+msgid "Swap"
+msgstr "交換"
+
+#: src/gui/channels.cpp:64
+msgid "Show in pattern"
+msgstr "在Pattern 中顯示"
+
+#: src/gui/channels.cpp:71
+msgid "Show in per-channel oscilloscope"
+msgstr "在全通道示波器中顯示"
+
+#: src/gui/channels.cpp:82
+#, c-format
+msgid ""
+"%s #%d\n"
+"(drag to swap channels)"
+msgstr ""
+"%s #%d \n"
+"(拖動以交換通道)"
 
 #: src/gui/clock.cpp:31 src/gui/guiConst.cpp:651 src/gui/settings.cpp:4326
 msgid "Clock"
@@ -5309,12 +5389,6 @@ msgstr ""
 msgid "Pitch linearity:"
 msgstr ""
 
-#: src/gui/compatFlags.cpp:219 src/gui/effectList.cpp:34
-#: src/gui/exportOptions.cpp:84 src/gui/gui.cpp:6652 src/gui/gui.cpp:6730
-#: src/gui/insEdit.cpp:632 src/gui/sysConf.cpp:1940 src/gui/waveEdit.cpp:38
-msgid "None"
-msgstr "無"
-
 #: src/gui/compatFlags.cpp:223
 msgid "like ProTracker/FamiTracker"
 msgstr ""
@@ -5426,8 +5500,8 @@ msgid "only accept 0Dxx"
 msgstr ""
 
 #: src/gui/compatFlags.cpp:319 src/gui/editControls.cpp:458
-#: src/gui/presets.cpp:2778 src/gui/settings.cpp:2104 src/gui/settings.cpp:4051
-#: src/gui/settings.cpp:4139
+#: src/gui/settings.cpp:2104 src/gui/settings.cpp:4051
+#: src/gui/settings.cpp:4139 src/gui/presets.cpp:2784
 msgid "Other"
 msgstr "其他"
 
@@ -5647,16 +5721,6 @@ msgstr "製作一套鼓組"
 msgid "Instruments"
 msgstr "樂器"
 
-#: src/gui/dataList.cpp:372 src/gui/dataList.cpp:790 src/gui/dataList.cpp:925
-#: src/gui/insEdit.cpp:634 src/gui/subSongs.cpp:90
-msgid "Add"
-msgstr "添加"
-
-#: src/gui/dataList.cpp:398 src/gui/dataList.cpp:797 src/gui/dataList.cpp:932
-#: src/gui/subSongs.cpp:111
-msgid "Duplicate"
-msgstr "復制"
-
 #: src/gui/dataList.cpp:419 src/gui/dataList.cpp:804 src/gui/dataList.cpp:939
 #: src/gui/editControls.cpp:497 src/gui/insEdit.cpp:6506
 #: src/gui/insEdit.cpp:6571 src/gui/sampleEdit.cpp:122
@@ -5741,16 +5805,6 @@ msgstr ""
 #: src/gui/dataList.cpp:532 src/gui/dataList.cpp:840 src/gui/dataList.cpp:985
 msgid "Toggle folders/standard view"
 msgstr "切換 文件夾/標準 列表方式"
-
-#: src/gui/dataList.cpp:554 src/gui/dataList.cpp:848 src/gui/dataList.cpp:993
-#: src/gui/subSongs.cpp:56
-msgid "Move up"
-msgstr "上移"
-
-#: src/gui/dataList.cpp:575 src/gui/dataList.cpp:855 src/gui/dataList.cpp:1000
-#: src/gui/subSongs.cpp:63
-msgid "Move down"
-msgstr "下移"
 
 #: src/gui/dataList.cpp:586 src/gui/dataList.cpp:866 src/gui/dataList.cpp:1011
 msgid "Create"
@@ -6148,11 +6202,6 @@ msgstr "恢復備份"
 msgid "Song Info"
 msgstr "曲目信息"
 
-#: src/gui/editControls.cpp:528 src/gui/guiConst.cpp:649
-#: src/gui/subSongs.cpp:17
-msgid "Subsongs"
-msgstr "子曲目"
-
 # end of no translate zone.
 #: src/gui/editControls.cpp:532 src/gui/guiConst.cpp:235
 #: src/gui/guiConst.cpp:622 src/gui/insEdit.cpp:2370 src/gui/insEdit.cpp:3268
@@ -6396,38 +6445,6 @@ msgstr "不能再擴張了!"
 #: src/gui/editing.cpp:1838 src/gui/editing.cpp:1920
 #, c-format
 msgid "copy: %s"
-msgstr ""
-
-#: src/gui/effectList.cpp:14 src/gui/guiConst.cpp:647
-msgid "Effect List"
-msgstr "效果列表"
-
-#: src/gui/effectList.cpp:18
-#, c-format
-msgid "Chip at cursor: %s"
-msgstr "光標所在芯片: %s"
-
-# this is for interanl file Xporler? skipping.
-#: src/gui/effectList.cpp:21 src/gui/settings.cpp:7104
-msgid "Search"
-msgstr "搜索"
-
-#: src/gui/effectList.cpp:25
-msgid "Effect types to show:"
-msgstr ""
-
-#: src/gui/effectList.cpp:32 src/gui/exportOptions.cpp:78 src/gui/gui.cpp:6646
-#: src/gui/gui.cpp:6724
-msgid "All"
-msgstr "所有"
-
-#: src/gui/effectList.cpp:48
-msgid "Description"
-msgstr "描述"
-
-# begin no translate, 单词简单且使用人群大概率精通English，保持log的统一可读性.
-#: src/gui/effectList.cpp:85 src/gui/log.cpp:25
-msgid "ERROR"
 msgstr ""
 
 #: src/gui/exportOptions.cpp:29
@@ -8530,8 +8547,8 @@ msgid "Miscellaneous"
 msgstr "雜項"
 
 # 顯然是'頻率調製',保畱不翻最佳. 以便搜索資料.
-#: src/gui/guiConst.cpp:242 src/gui/guiConst.cpp:1471 src/gui/presets.cpp:3032
-#: src/gui/settings.cpp:4216 src/gui/waveEdit.cpp:571
+#: src/gui/guiConst.cpp:242 src/gui/guiConst.cpp:1471 src/gui/settings.cpp:4216
+#: src/gui/waveEdit.cpp:571 src/gui/presets.cpp:3038
 msgid "FM"
 msgstr ""
 
@@ -9709,9 +9726,9 @@ msgid "Fixed"
 msgstr ""
 
 #: src/gui/insEdit.cpp:101 src/gui/insEdit.cpp:120 src/gui/insEdit.cpp:139
-#: src/gui/insEdit.cpp:159 src/gui/newSong.cpp:201 src/gui/presets.cpp:3029
-#: src/gui/userPresets.cpp:133 src/gui/userPresets.cpp:229
-#: src/gui/userPresets.cpp:339
+#: src/gui/insEdit.cpp:159 src/gui/newSong.cpp:201 src/gui/userPresets.cpp:133
+#: src/gui/userPresets.cpp:229 src/gui/userPresets.cpp:339
+#: src/gui/presets.cpp:3035
 msgid "User"
 msgstr ""
 
@@ -12547,1880 +12564,6 @@ msgstr "使用 play/edit的offset/range"
 #: src/gui/piano.cpp:134
 msgid "Read-only (can't input notes)"
 msgstr "秖讀(不能輸入)"
-
-#: src/gui/presets.cpp:55
-msgid "Game consoles"
-msgstr ""
-
-#: src/gui/presets.cpp:55
-msgid "let's play some chiptune making games!"
-msgstr ""
-
-#: src/gui/presets.cpp:57 src/gui/presets.cpp:3672
-msgid "Sega Genesis"
-msgstr ""
-
-#: src/gui/presets.cpp:63 src/gui/presets.cpp:3678
-msgid "Sega Genesis (extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:69
-msgid "Sega Genesis (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:75
-msgid "Sega Genesis (DualPCM)"
-msgstr ""
-
-#: src/gui/presets.cpp:81
-msgid "Sega Genesis (DualPCM, extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:87
-msgid "Sega Genesis (with Sega CD)"
-msgstr ""
-
-#: src/gui/presets.cpp:97
-msgid "Sega Genesis (extended channel 3 with Sega CD)"
-msgstr ""
-
-#: src/gui/presets.cpp:107
-msgid "Sega Genesis (CSM with Sega CD)"
-msgstr ""
-
-#: src/gui/presets.cpp:117 src/gui/presets.cpp:3684
-msgid "Sega Master System"
-msgstr ""
-
-#: src/gui/presets.cpp:122 src/gui/presets.cpp:3689
-msgid "Sega Master System (with FM expansion)"
-msgstr ""
-
-#: src/gui/presets.cpp:128
-msgid "Sega Master System (with FM expansion in drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:134
-msgid "Sega Game Gear"
-msgstr ""
-
-#: src/gui/presets.cpp:144 src/gui/sysConf.cpp:368
-msgid "Game Boy Advance"
-msgstr ""
-
-#: src/gui/presets.cpp:147
-msgid "Game Boy Advance (no software mixing)"
-msgstr ""
-
-#: src/gui/presets.cpp:153
-msgid "Game Boy Advance (with MinMod)"
-msgstr ""
-
-#: src/gui/presets.cpp:159
-msgid "Neo Geo Pocket"
-msgstr ""
-
-#: src/gui/presets.cpp:172 src/gui/presets.cpp:3700
-msgid "NEC PC Engine/TurboGrafx-16"
-msgstr ""
-
-#: src/gui/presets.cpp:177 src/gui/presets.cpp:3705 src/gui/settings.cpp:4179
-msgid "NES"
-msgstr ""
-
-#: src/gui/presets.cpp:182
-msgid "Famicom with Konami VRC6"
-msgstr ""
-
-#: src/gui/presets.cpp:188 src/gui/presets.cpp:3710
-msgid "Famicom with Konami VRC7"
-msgstr ""
-
-#: src/gui/presets.cpp:194
-msgid "Famicom with MMC5"
-msgstr ""
-
-#: src/gui/presets.cpp:200
-msgid "Famicom with Sunsoft 5B"
-msgstr ""
-
-#: src/gui/presets.cpp:206
-msgid "Famicom with Namco 163"
-msgstr ""
-
-#: src/gui/presets.cpp:223
-msgid "Super Game Boy"
-msgstr ""
-
-#: src/gui/presets.cpp:230
-msgid "Super Game Boy 2"
-msgstr ""
-
-#: src/gui/presets.cpp:236
-msgid "Mattel Intellivision"
-msgstr ""
-
-#: src/gui/presets.cpp:241
-msgid "Vectrex"
-msgstr ""
-
-#: src/gui/presets.cpp:246
-msgid "Neo Geo AES"
-msgstr ""
-
-#: src/gui/presets.cpp:251
-msgid "Neo Geo AES (extended channel 2)"
-msgstr ""
-
-#: src/gui/presets.cpp:256
-msgid "Neo Geo AES (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:261
-msgid "Atari 2600/7800"
-msgstr ""
-
-#: src/gui/presets.cpp:266
-msgid "Atari 2600/7800 (with software pitch driver)"
-msgstr ""
-
-#: src/gui/presets.cpp:271
-msgid "Atari 7800 + Ballblazer/Commando"
-msgstr ""
-
-#: src/gui/presets.cpp:277
-msgid "Atari 7800 (with software pitch driver) + Ballblazer/Commando"
-msgstr ""
-
-#: src/gui/presets.cpp:300
-msgid "Gamate"
-msgstr ""
-
-#: src/gui/presets.cpp:314
-msgid "Tiger Game.com"
-msgstr ""
-
-#: src/gui/presets.cpp:335
-msgid "Computers"
-msgstr ""
-
-#: src/gui/presets.cpp:335
-msgid "let's get to work on chiptune today."
-msgstr ""
-
-#: src/gui/presets.cpp:349
-msgid "Commodore Plus/4"
-msgstr ""
-
-#: src/gui/presets.cpp:354
-msgid "Commodore 64 (SID)"
-msgstr ""
-
-#: src/gui/presets.cpp:357 src/gui/presets.cpp:3722
-msgid "Commodore 64 (6581 SID)"
-msgstr ""
-
-#: src/gui/presets.cpp:363
-msgid "Commodore 64 (6581 SID + Sound Expander)"
-msgstr ""
-
-#: src/gui/presets.cpp:370
-msgid "Commodore 64 (6581 SID + Sound Expander in drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:377
-msgid "Commodore 64 (6581 SID + FM-YAM)"
-msgstr ""
-
-#: src/gui/presets.cpp:384
-msgid "Commodore 64 (6581 SID + FM-YAM in drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:391 src/gui/presets.cpp:3728
-msgid "Commodore 64 (8580 SID)"
-msgstr ""
-
-#: src/gui/presets.cpp:397
-msgid "Commodore 64 (8580 SID + Sound Expander)"
-msgstr ""
-
-#: src/gui/presets.cpp:404
-msgid "Commodore 64 (8580 SID + Sound Expander in drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:411
-msgid "Commodore 64 (8580 SID + FM-YAM)"
-msgstr ""
-
-#: src/gui/presets.cpp:418
-msgid "Commodore 64 (8580 SID + FM-YAM in drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:431
-msgid "MSX"
-msgstr ""
-
-#: src/gui/presets.cpp:436
-msgid "MSX + SFG-01"
-msgstr ""
-
-#: src/gui/presets.cpp:442
-msgid "MSX + MSX-AUDIO"
-msgstr ""
-
-#: src/gui/presets.cpp:448
-msgid "MSX + MSX-AUDIO (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:454
-msgid "MSX + MSX-MUSIC"
-msgstr ""
-
-#: src/gui/presets.cpp:460
-msgid "MSX + MSX-MUSIC (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:466
-msgid "MSX + Darky"
-msgstr ""
-
-#: src/gui/presets.cpp:480
-msgid "MSX + Playsoniq"
-msgstr ""
-
-#: src/gui/presets.cpp:494
-msgid "MSX + SCC+"
-msgstr ""
-
-#: src/gui/presets.cpp:500
-msgid "MSX + Neotron"
-msgstr ""
-
-#: src/gui/presets.cpp:506
-msgid "MSX + Neotron (extended channel 2)"
-msgstr ""
-
-#: src/gui/presets.cpp:512
-msgid "MSX + Neotron (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:518
-msgid "MSX + Neotron (with YM2610B)"
-msgstr ""
-
-#: src/gui/presets.cpp:524
-msgid "MSX + Neotron (with YM2610B; extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:530
-msgid "MSX + Neotron (with YM2610B; CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:536
-msgid "MSX + SIMPL"
-msgstr ""
-
-#: src/gui/presets.cpp:557
-msgid "NEC PC-6001"
-msgstr ""
-
-#: src/gui/presets.cpp:562
-msgid "NEC PC-88"
-msgstr ""
-
-#: src/gui/presets.cpp:565
-msgid "NEC PC-88 (with PC-8801-10)"
-msgstr ""
-
-#: src/gui/presets.cpp:572
-msgid "NEC PC-88 (with PC-8801-11)"
-msgstr ""
-
-#: src/gui/presets.cpp:578
-msgid "NEC PC-88 (with PC-8801-11; extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:584
-msgid "NEC PC-88 (with PC-8801-11; CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:590
-msgid "NEC PC-88 (with PC-8801-23)"
-msgstr ""
-
-#: src/gui/presets.cpp:596
-msgid "NEC PC-88 (with PC-8801-23; extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:602
-msgid "NEC PC-88 (with PC-8801-23; CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:608
-msgid "NEC PC-88 (with HMB-20 HIBIKI-8800)"
-msgstr ""
-
-#: src/gui/presets.cpp:614
-msgid "NEC PC-8801mk2SR (with PC-8801-10)"
-msgstr ""
-
-#: src/gui/presets.cpp:622
-msgid "NEC PC-8801mk2SR (with PC-8801-10; extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:630
-msgid "NEC PC-8801mk2SR (with PC-8801-10; CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:638
-msgid "NEC PC-8801mk2SR (with PC-8801-11)"
-msgstr ""
-
-#: src/gui/presets.cpp:645
-msgid "NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on internal OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:652
-msgid "NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on external OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:659
-msgid "NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on both OPNs)"
-msgstr ""
-
-#: src/gui/presets.cpp:666
-msgid "NEC PC-8801mk2SR (with PC-8801-11; CSM on internal OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:673
-msgid "NEC PC-8801mk2SR (with PC-8801-11; CSM on external OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:680
-msgid "NEC PC-8801mk2SR (with PC-8801-11; CSM on both OPNs)"
-msgstr ""
-
-#: src/gui/presets.cpp:687
-msgid "NEC PC-8801mk2SR (with PC-8801-23)"
-msgstr ""
-
-#: src/gui/presets.cpp:694
-msgid "NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on internal OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:701
-msgid "NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on external OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:708
-msgid "NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on both OPNs)"
-msgstr ""
-
-#: src/gui/presets.cpp:715
-msgid "NEC PC-8801mk2SR (with PC-8801-23; CSM on internal OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:722
-msgid "NEC PC-8801mk2SR (with PC-8801-23; CSM on external OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:729
-msgid "NEC PC-8801mk2SR (with PC-8801-23; CSM on both OPNs)"
-msgstr ""
-
-#: src/gui/presets.cpp:736
-msgid "NEC PC-8801mk2SR (with HMB-20 HIBIKI-8800)"
-msgstr ""
-
-#: src/gui/presets.cpp:743
-msgid "NEC PC-8801mk2SR (with HMB-20 HIBIKI-8800; extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:750
-msgid "NEC PC-8801FA (with PC-8801-10)"
-msgstr ""
-
-#: src/gui/presets.cpp:758
-msgid "NEC PC-8801FA (with PC-8801-10; extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:766
-msgid "NEC PC-8801FA (with PC-8801-11)"
-msgstr ""
-
-#: src/gui/presets.cpp:773
-msgid "NEC PC-8801FA (with PC-8801-11; extended channel 3 on internal OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:780
-msgid "NEC PC-8801FA (with PC-8801-11; extended channel 3 on external OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:787
-msgid "NEC PC-8801FA (with PC-8801-11; extended channel 3 on both OPNs)"
-msgstr ""
-
-#: src/gui/presets.cpp:794
-msgid "NEC PC-8801FA (with PC-8801-11; CSM on internal OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:801
-msgid "NEC PC-8801FA (with PC-8801-11; CSM on external OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:808
-msgid "NEC PC-8801FA (with PC-8801-11; CSM on both OPNs)"
-msgstr ""
-
-#: src/gui/presets.cpp:815
-msgid "NEC PC-8801FA (with PC-8801-23)"
-msgstr ""
-
-#: src/gui/presets.cpp:822
-msgid "NEC PC-8801FA (with PC-8801-23; extended channel 3 on internal OPNA)"
-msgstr ""
-
-#: src/gui/presets.cpp:829
-msgid "NEC PC-8801FA (with PC-8801-23; extended channel 3 on external OPNA)"
-msgstr ""
-
-#: src/gui/presets.cpp:836
-msgid "NEC PC-8801FA (with PC-8801-23; extended channel 3 on both OPNAs)"
-msgstr ""
-
-#: src/gui/presets.cpp:843
-msgid "NEC PC-8801FA (with PC-8801-23; CSM on internal OPNA)"
-msgstr ""
-
-#: src/gui/presets.cpp:850
-msgid "NEC PC-8801FA (with PC-8801-23; CSM on external OPNA)"
-msgstr ""
-
-#: src/gui/presets.cpp:857
-msgid "NEC PC-8801FA (with PC-8801-23; CSM on both OPNAs)"
-msgstr ""
-
-#: src/gui/presets.cpp:864
-msgid "NEC PC-8801FA (with HMB-20 HIBIKI-8800)"
-msgstr ""
-
-#: src/gui/presets.cpp:871
-msgid "NEC PC-8801FA (with HMB-20 HIBIKI-8800; extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:878
-msgid "NEC PC-98"
-msgstr ""
-
-#: src/gui/presets.cpp:881
-msgid "NEC PC-98 (with PC-9801-26/K)"
-msgstr ""
-
-#: src/gui/presets.cpp:887
-msgid "NEC PC-98 (with PC-9801-26/K; extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:893
-msgid "NEC PC-98 (with PC-9801-26/K; CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:899
-msgid "NEC PC-98 (with Sound Orchestra)"
-msgstr ""
-
-#: src/gui/presets.cpp:906
-msgid "NEC PC-98 (with Sound Orchestra; extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:913
-msgid "NEC PC-98 (with Sound Orchestra; CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:920
-msgid "NEC PC-98 (with Sound Orchestra in drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:927
-msgid "NEC PC-98 (with Sound Orchestra in drums mode; extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:934
-msgid "NEC PC-98 (with Sound Orchestra in drums mode; CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:941
-msgid "NEC PC-98 (with Sound Orchestra V)"
-msgstr ""
-
-#: src/gui/presets.cpp:948
-msgid "NEC PC-98 (with Sound Orchestra V; extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:955
-msgid "NEC PC-98 (with Sound Orchestra V; CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:962
-msgid "NEC PC-98 (with Sound Orchestra V in drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:969
-msgid "NEC PC-98 (with Sound Orchestra V in drums mode; extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:976
-msgid "NEC PC-98 (with Sound Orchestra V in drums mode; CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:983
-msgid "NEC PC-98 (with PC-9801-86)"
-msgstr ""
-
-#: src/gui/presets.cpp:997
-msgid "NEC PC-98 (with PC-9801-86; extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:1011
-msgid "NEC PC-98 (with PC-9801-86; CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:1025
-msgid "NEC PC-98 (with PC-9801-86) stereo"
-msgstr ""
-
-#: src/gui/presets.cpp:1039
-msgid "NEC PC-98 (with PC-9801-86; extended channel 3) stereo"
-msgstr ""
-
-#: src/gui/presets.cpp:1053
-msgid "NEC PC-98 (with PC-9801-86; CSM) stereo"
-msgstr ""
-
-#: src/gui/presets.cpp:1067
-msgid "NEC PC-98 (with PC-9801-73)"
-msgstr ""
-
-#: src/gui/presets.cpp:1073
-msgid "NEC PC-98 (with PC-9801-73; extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:1079
-msgid "NEC PC-98 (with PC-9801-73; CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:1085
-msgid "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible)"
-msgstr ""
-
-#: src/gui/presets.cpp:1097
-msgid ""
-"NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible; "
-"extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:1109
-msgid ""
-"NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible; CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:1121
-msgid ""
-"NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in "
-"drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:1133
-msgid ""
-"NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in "
-"drums mode; extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:1145
-msgid ""
-"NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in "
-"drums mode; CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:1157
-msgid "ZX Spectrum (48K) beeper"
-msgstr ""
-
-#: src/gui/presets.cpp:1160
-msgid "ZX Spectrum (48K, SFX-like engine)"
-msgstr ""
-
-#: src/gui/presets.cpp:1165
-msgid "ZX Spectrum (48K, QuadTone engine)"
-msgstr ""
-
-#: src/gui/presets.cpp:1170
-msgid "ZX Spectrum (128K)"
-msgstr ""
-
-#: src/gui/presets.cpp:1175
-msgid "ZX Spectrum (128K) with TurboSound FM"
-msgstr ""
-
-#: src/gui/presets.cpp:1181
-msgid "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on first OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:1187
-msgid ""
-"ZX Spectrum (128K) with TurboSound FM (extended channel 3 on second OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:1193
-msgid "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on both OPNs)"
-msgstr ""
-
-#: src/gui/presets.cpp:1199
-msgid "ZX Spectrum (128K) with TurboSound FM (CSM on first OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:1205
-msgid "ZX Spectrum (128K) with TurboSound FM (CSM on second OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:1211
-msgid "ZX Spectrum (128K) with TurboSound FM (CSM on both OPNs)"
-msgstr ""
-
-#: src/gui/presets.cpp:1217
-msgid "ZX Spectrum (128K) with TurboSound"
-msgstr ""
-
-#: src/gui/presets.cpp:1223
-msgid "Amstrad CPC"
-msgstr ""
-
-#: src/gui/presets.cpp:1228
-msgid "Atari 800"
-msgstr ""
-
-#: src/gui/presets.cpp:1234
-msgid "Atari 800 (stereo)"
-msgstr ""
-
-#: src/gui/presets.cpp:1241
-msgid "Atari ST"
-msgstr ""
-
-#: src/gui/presets.cpp:1249
-msgid "Atari STE"
-msgstr ""
-
-#: src/gui/presets.cpp:1265
-msgid "SAM Coupé"
-msgstr ""
-
-#: src/gui/presets.cpp:1270
-msgid "Enterprise 128"
-msgstr ""
-
-#: src/gui/presets.cpp:1276
-msgid "BBC Micro"
-msgstr ""
-
-#: src/gui/presets.cpp:1284
-msgid "IBM PC"
-msgstr ""
-
-#: src/gui/presets.cpp:1287
-msgid "PC (barebones)"
-msgstr ""
-
-#: src/gui/presets.cpp:1292
-msgid "IBM PCjr"
-msgstr ""
-
-#: src/gui/presets.cpp:1298
-msgid "Tandy 1000"
-msgstr ""
-
-#: src/gui/presets.cpp:1304
-msgid "PC + Covox Sound Master"
-msgstr ""
-
-#: src/gui/presets.cpp:1310
-msgid "PC + SSI 2001"
-msgstr ""
-
-#: src/gui/presets.cpp:1316
-msgid "PC + Game Blaster"
-msgstr ""
-
-#: src/gui/presets.cpp:1323
-msgid "PC + AdLib"
-msgstr ""
-
-#: src/gui/presets.cpp:1329
-msgid "PC + AdLib (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:1335
-msgid "PC + Sound Blaster"
-msgstr ""
-
-#: src/gui/presets.cpp:1345
-msgid "PC + Sound Blaster (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:1355
-msgid "PC + Sound Blaster w/Game Blaster Compatible"
-msgstr ""
-
-#: src/gui/presets.cpp:1367
-msgid "PC + Sound Blaster w/Game Blaster Compatible (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:1379
-msgid "PC + Sound Blaster Pro"
-msgstr ""
-
-#: src/gui/presets.cpp:1391
-msgid "PC + Sound Blaster Pro (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:1403
-msgid "PC + Sound Blaster Pro 2"
-msgstr ""
-
-#: src/gui/presets.cpp:1414
-msgid "PC + Sound Blaster Pro 2 (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:1425
-msgid "PC + ESS AudioDrive ES1488 (native ESFM mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:1436
-msgid "PC + PC-FXGA"
-msgstr ""
-
-#: src/gui/presets.cpp:1442
-msgid "PC + SAAYM"
-msgstr ""
-
-#: src/gui/presets.cpp:1485
-msgid "Sharp X1"
-msgstr ""
-
-#: src/gui/presets.cpp:1490
-msgid "Sharp X1 + FM add-on"
-msgstr ""
-
-#: src/gui/presets.cpp:1496
-msgid "Sharp X68000"
-msgstr ""
-
-#: src/gui/presets.cpp:1502
-msgid "FM-7"
-msgstr ""
-
-#: src/gui/presets.cpp:1508
-msgid "FM-7 (extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:1514
-msgid "FM-7 (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:1520
-msgid "FM Towns"
-msgstr ""
-
-#: src/gui/presets.cpp:1526
-msgid "FM Towns (extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:1532
-msgid "FM Towns (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:1538
-msgid "Commander X16"
-msgstr ""
-
-#: src/gui/presets.cpp:1544 src/gui/presets.cpp:3601
-msgid "Commander X16 (VERA only)"
-msgstr ""
-
-#: src/gui/presets.cpp:1549
-msgid "Commander X16 (with Twin OPL3)"
-msgstr ""
-
-#: src/gui/presets.cpp:1556
-msgid "TI-99/4A"
-msgstr ""
-
-#: src/gui/presets.cpp:1564
-msgid "Sord M5"
-msgstr ""
-
-#: src/gui/presets.cpp:1573
-msgid "Arcade systems"
-msgstr ""
-
-#: src/gui/presets.cpp:1573
-msgid "INSERT COIN"
-msgstr ""
-
-#: src/gui/presets.cpp:1576
-msgid "Alpha Denshi"
-msgstr ""
-
-#: src/gui/presets.cpp:1579
-msgid "Alpha Denshi Alpha-68K"
-msgstr ""
-
-#: src/gui/presets.cpp:1589
-msgid "Alpha Denshi Alpha-68K (extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:1599
-msgid "Alpha Denshi Alpha-68K (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:1609
-msgid "Alpha Denshi Alpha-68K (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:1619
-msgid "Alpha Denshi Alpha-68K (extended channel 3; drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:1629
-msgid "Alpha Denshi Alpha-68K (CSM; drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:1639
-msgid "Alpha Denshi Equites"
-msgstr ""
-
-#: src/gui/presets.cpp:1654
-msgid "Atari"
-msgstr ""
-
-#: src/gui/presets.cpp:1657
-msgid "Atari Klax"
-msgstr ""
-
-#: src/gui/presets.cpp:1662
-msgid "Atari Rampart"
-msgstr ""
-
-#: src/gui/presets.cpp:1668
-msgid "Atari Rampart (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:1674
-msgid "Atari JSA IIIs"
-msgstr ""
-
-#: src/gui/presets.cpp:1681
-msgid "Atari Marble Madness"
-msgstr ""
-
-#: src/gui/presets.cpp:1687
-msgid "Atari Championship Sprint"
-msgstr ""
-
-#: src/gui/presets.cpp:1694
-msgid "Atari Tetris"
-msgstr ""
-
-#: src/gui/presets.cpp:1700
-msgid "Atari I, Robot"
-msgstr ""
-
-#: src/gui/presets.cpp:1709
-msgid "Capcom"
-msgstr ""
-
-#: src/gui/presets.cpp:1712
-msgid "Capcom Exed Exes"
-msgstr ""
-
-#: src/gui/presets.cpp:1725
-msgid "Capcom Arcade"
-msgstr ""
-
-#: src/gui/presets.cpp:1731
-msgid "Capcom Arcade (extended channel 3 on first OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:1737
-msgid "Capcom Arcade (extended channel 3 on second OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:1743
-msgid "Capcom Arcade (extended channel 3 on both OPNs)"
-msgstr ""
-
-#: src/gui/presets.cpp:1749
-msgid "Capcom Arcade (CSM on first OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:1755
-msgid "Capcom Arcade (CSM on second OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:1761
-msgid "Capcom Arcade (CSM on both OPNs)"
-msgstr ""
-
-#: src/gui/presets.cpp:1767
-msgid "Capcom CPS-1"
-msgstr ""
-
-#: src/gui/presets.cpp:1773
-msgid "Capcom CPS-2 (QSound)"
-msgstr ""
-
-#: src/gui/presets.cpp:1779
-msgid "Data East"
-msgstr ""
-
-#: src/gui/presets.cpp:1782
-msgid "Data East Karnov"
-msgstr ""
-
-#: src/gui/presets.cpp:1788
-msgid "Data East Karnov (extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:1794
-msgid "Data East Karnov (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:1800
-msgid "Data East Karnov (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:1806
-msgid "Data East Karnov (extended channel 3; drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:1812
-msgid "Data East Karnov (CSM; drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:1818
-msgid "Data East Arcade"
-msgstr ""
-
-#: src/gui/presets.cpp:1825
-msgid "Data East Arcade (extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:1832
-msgid "Data East Arcade (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:1839
-msgid "Data East Arcade (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:1846
-msgid "Data East Arcade (extended channel 3; drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:1853
-msgid "Data East Arcade (CSM; drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:1860
-msgid "Data East PCX"
-msgstr ""
-
-#: src/gui/presets.cpp:1867
-msgid "Data East PCX (extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:1874
-msgid "Data East PCX (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:1881
-msgid "Data East Dark Seal"
-msgstr ""
-
-#: src/gui/presets.cpp:1890
-msgid "Data East Dark Seal (extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:1899
-msgid "Data East Dark Seal (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:1908
-msgid "Data East Deco 156"
-msgstr ""
-
-#: src/gui/presets.cpp:1914
-msgid "Data East MLC"
-msgstr ""
-
-#: src/gui/presets.cpp:1920
-msgid "Irem"
-msgstr ""
-
-#: src/gui/presets.cpp:1923
-msgid "Irem M72"
-msgstr ""
-
-#: src/gui/presets.cpp:1932
-msgid "Irem M92/M107"
-msgstr ""
-
-#: src/gui/presets.cpp:1939
-msgid "Jaleco"
-msgstr ""
-
-#: src/gui/presets.cpp:1942
-msgid "Jaleco Ginga NinkyouDen"
-msgstr ""
-
-#: src/gui/presets.cpp:1948
-msgid "Jaleco Ginga NinkyouDen (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:1954
-msgid "Jaleco Mega System 1"
-msgstr ""
-
-#: src/gui/presets.cpp:1962
-msgid "Kaneko"
-msgstr ""
-
-#: src/gui/presets.cpp:1965
-msgid "Kaneko DJ Boy"
-msgstr ""
-
-#: src/gui/presets.cpp:1972
-msgid "Kaneko DJ Boy (extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:1979
-msgid "Kaneko DJ Boy (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:1986
-msgid "Kaneko Air Buster"
-msgstr ""
-
-#: src/gui/presets.cpp:1995
-msgid "Kaneko Air Buster (extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:2004
-msgid "Kaneko Air Buster (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:2013
-msgid "Kaneko Toybox System"
-msgstr ""
-
-#: src/gui/presets.cpp:2026
-msgid "Kaneko Jackie Chan"
-msgstr ""
-
-#: src/gui/presets.cpp:2031
-msgid "Super Kaneko Nova System"
-msgstr ""
-
-#: src/gui/presets.cpp:2037
-msgid "Konami"
-msgstr ""
-
-#: src/gui/presets.cpp:2040
-msgid "Konami Gyruss"
-msgstr ""
-
-#: src/gui/presets.cpp:2050
-msgid "Konami Bubble System"
-msgstr ""
-
-#: src/gui/presets.cpp:2058
-msgid "Konami MX5000"
-msgstr ""
-
-#: src/gui/presets.cpp:2064
-msgid "Konami Battlantis"
-msgstr ""
-
-#: src/gui/presets.cpp:2070
-msgid "Konami Battlantis (drums mode on first OPL2)"
-msgstr ""
-
-#: src/gui/presets.cpp:2076
-msgid "Konami Battlantis (drums mode on second OPL2)"
-msgstr ""
-
-#: src/gui/presets.cpp:2082
-msgid "Konami Battlantis (drums mode on both OPL2s)"
-msgstr ""
-
-#: src/gui/presets.cpp:2088
-msgid "Konami Fast Lane"
-msgstr ""
-
-#: src/gui/presets.cpp:2094
-msgid "Konami Chequered Flag"
-msgstr ""
-
-#: src/gui/presets.cpp:2101
-msgid "Konami Haunted Castle"
-msgstr ""
-
-#: src/gui/presets.cpp:2108
-msgid "Konami Haunted Castle (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:2115
-msgid "Konami Hot Chase"
-msgstr ""
-
-#: src/gui/presets.cpp:2122
-msgid "Konami S.P.Y."
-msgstr ""
-
-#: src/gui/presets.cpp:2129
-msgid "Konami S.P.Y. (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:2136
-msgid "Konami Rollergames"
-msgstr ""
-
-#: src/gui/presets.cpp:2142
-msgid "Konami Rollergames (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:2148
-msgid "Konami Golfing Greats"
-msgstr ""
-
-#: src/gui/presets.cpp:2153
-msgid "Konami Lightning Fighters"
-msgstr ""
-
-#: src/gui/presets.cpp:2159
-msgid "Konami Over Drive"
-msgstr ""
-
-#: src/gui/presets.cpp:2166
-msgid "Konami Asterix"
-msgstr ""
-
-#: src/gui/presets.cpp:2172
-msgid "Konami Hexion"
-msgstr ""
-
-#: src/gui/presets.cpp:2179
-msgid "Namco"
-msgstr ""
-
-#: src/gui/presets.cpp:2182
-msgid "Namco (3-channel WSG)"
-msgstr ""
-
-#: src/gui/presets.cpp:2187
-msgid "Namco Mappy"
-msgstr ""
-
-#: src/gui/presets.cpp:2192
-msgid "Namco Pac-Land"
-msgstr ""
-
-#: src/gui/presets.cpp:2197
-msgid "Namco System 86"
-msgstr ""
-
-#: src/gui/presets.cpp:2203
-msgid "Namco Thunder Ceptor"
-msgstr ""
-
-#: src/gui/presets.cpp:2213
-msgid "Namco System 1"
-msgstr ""
-
-#: src/gui/presets.cpp:2227
-msgid "Namco System 2"
-msgstr ""
-
-#: src/gui/presets.cpp:2233
-msgid "Namco NA-1/2"
-msgstr ""
-
-#: src/gui/presets.cpp:2239
-msgid "Psikyo"
-msgstr ""
-
-#: src/gui/presets.cpp:2242
-msgid "Psikyo 68EC020 hardware with OPL4"
-msgstr ""
-
-#: src/gui/presets.cpp:2247
-msgid "Psikyo 68EC020 hardware with OPL4 (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:2252
-msgid "Psikyo SH-2 hardware"
-msgstr ""
-
-#: src/gui/presets.cpp:2257
-msgid "Psikyo SH-2 hardware (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:2263
-msgid "Sega"
-msgstr ""
-
-#: src/gui/presets.cpp:2266
-msgid "Sega Kyugo"
-msgstr ""
-
-#: src/gui/presets.cpp:2272
-msgid "Sega System 1"
-msgstr ""
-
-#: src/gui/presets.cpp:2284
-msgid "Sega System E"
-msgstr ""
-
-#: src/gui/presets.cpp:2290
-msgid "Sega System E (with FM expansion)"
-msgstr ""
-
-#: src/gui/presets.cpp:2297
-msgid "Sega System E (with FM expansion in drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:2304
-msgid "Sega Hang-On"
-msgstr ""
-
-#: src/gui/presets.cpp:2310
-msgid "Sega Hang-On (extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:2316
-msgid "Sega Hang-On (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:2322
-msgid "Sega OutRun/X Board"
-msgstr ""
-
-#: src/gui/presets.cpp:2328
-msgid "Sega System 24"
-msgstr ""
-
-#: src/gui/presets.cpp:2337
-msgid "Sega System 18"
-msgstr ""
-
-#: src/gui/presets.cpp:2344
-msgid "Sega System 18 (extended channel 3 on first OPN2C)"
-msgstr ""
-
-#: src/gui/presets.cpp:2351
-msgid "Sega System 18 (extended channel 3 on second OPN2C)"
-msgstr ""
-
-#: src/gui/presets.cpp:2358
-msgid "Sega System 18 (extended channel 3 on both OPN2Cs)"
-msgstr ""
-
-#: src/gui/presets.cpp:2365
-msgid "Sega System 18 (CSM on first OPN2C)"
-msgstr ""
-
-#: src/gui/presets.cpp:2372
-msgid "Sega System 18 (CSM on second OPN2C)"
-msgstr ""
-
-#: src/gui/presets.cpp:2379
-msgid "Sega System 18 (CSM on both OPN2Cs)"
-msgstr ""
-
-#: src/gui/presets.cpp:2386
-msgid "Sega System 32"
-msgstr ""
-
-#: src/gui/presets.cpp:2396
-msgid "Sega System 32 (extended channel 3 on first OPN2C)"
-msgstr ""
-
-#: src/gui/presets.cpp:2406
-msgid "Sega System 32 (extended channel 3 on second OPN2C)"
-msgstr ""
-
-#: src/gui/presets.cpp:2416
-msgid "Sega System 32 (extended channel 3 on both OPN2Cs)"
-msgstr ""
-
-#: src/gui/presets.cpp:2426
-msgid "Sega System 32 (CSM on first OPN2C)"
-msgstr ""
-
-#: src/gui/presets.cpp:2436
-msgid "Sega System 32 (CSM on second OPN2C)"
-msgstr ""
-
-#: src/gui/presets.cpp:2446
-msgid "Sega System 32 (CSM on both OPN2Cs)"
-msgstr ""
-
-#: src/gui/presets.cpp:2457
-msgid "Seta"
-msgstr ""
-
-#: src/gui/presets.cpp:2460
-msgid "Seta 1"
-msgstr ""
-
-#: src/gui/presets.cpp:2465
-msgid "Seta 1 + FM add-on"
-msgstr ""
-
-#: src/gui/presets.cpp:2471
-msgid "Seta 1 + FM add-on (extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:2477
-msgid "Seta 1 + FM add-on (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:2483
-msgid "Seta 2"
-msgstr ""
-
-#: src/gui/presets.cpp:2491
-msgid "Sammy/Seta/Visco SSV"
-msgstr ""
-
-#: src/gui/presets.cpp:2497
-msgid "SNK"
-msgstr ""
-
-#: src/gui/presets.cpp:2500
-msgid "Neo Geo MVS"
-msgstr ""
-
-#: src/gui/presets.cpp:2505
-msgid "Neo Geo MVS (extended channel 2)"
-msgstr ""
-
-#: src/gui/presets.cpp:2510
-msgid "Neo Geo MVS (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:2515
-msgid "SNK Ikari Warriors"
-msgstr ""
-
-#: src/gui/presets.cpp:2521
-msgid "SNK Ikari Warriors (drums mode on first OPL)"
-msgstr ""
-
-#: src/gui/presets.cpp:2527
-msgid "SNK Ikari Warriors (drums mode on second OPL)"
-msgstr ""
-
-#: src/gui/presets.cpp:2533
-msgid "SNK Ikari Warriors (drums mode on both OPLs)"
-msgstr ""
-
-#: src/gui/presets.cpp:2539
-msgid "SNK Triple Z80"
-msgstr ""
-
-#: src/gui/presets.cpp:2545
-msgid "SNK Triple Z80 (drums mode on Y8950)"
-msgstr ""
-
-#: src/gui/presets.cpp:2551
-msgid "SNK Triple Z80 (drums mode on OPL)"
-msgstr ""
-
-#: src/gui/presets.cpp:2557
-msgid "SNK Triple Z80 (drums mode on Y8950 and OPL)"
-msgstr ""
-
-#: src/gui/presets.cpp:2563
-msgid "SNK Chopper I"
-msgstr ""
-
-#: src/gui/presets.cpp:2569
-msgid "SNK Chopper I (drums mode on Y8950)"
-msgstr ""
-
-#: src/gui/presets.cpp:2575
-msgid "SNK Chopper I (drums mode on OPL2)"
-msgstr ""
-
-#: src/gui/presets.cpp:2581
-msgid "SNK Chopper I (drums mode on Y8950 and OPL2)"
-msgstr ""
-
-#: src/gui/presets.cpp:2587
-msgid "SNK Touchdown Fever"
-msgstr ""
-
-#: src/gui/presets.cpp:2593
-msgid "SNK Touchdown Fever (drums mode on OPL)"
-msgstr ""
-
-#: src/gui/presets.cpp:2599
-msgid "SNK Touchdown Fever (drums mode on Y8950)"
-msgstr ""
-
-#: src/gui/presets.cpp:2605
-msgid "SNK Touchdown Fever (drums mode on OPL and Y8950)"
-msgstr ""
-
-#: src/gui/presets.cpp:2612
-msgid "Sunsoft"
-msgstr ""
-
-#: src/gui/presets.cpp:2615
-msgid "Sunsoft Shanghai 3"
-msgstr ""
-
-#: src/gui/presets.cpp:2624
-msgid "Sunsoft Arcade"
-msgstr ""
-
-#: src/gui/presets.cpp:2630
-msgid "Sunsoft Arcade (extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:2636
-msgid "Sunsoft Arcade (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:2643
-msgid "Taito"
-msgstr ""
-
-#: src/gui/presets.cpp:2646
-msgid "Taito Arcade"
-msgstr ""
-
-#: src/gui/presets.cpp:2651
-msgid "Taito Arcade (extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:2656
-msgid "Taito Arcade (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:2661
-msgid "Taito Metal Soldier Isaac II"
-msgstr ""
-
-#: src/gui/presets.cpp:2668
-msgid "Taito The Fairyland Story"
-msgstr ""
-
-#: src/gui/presets.cpp:2681
-msgid "Taito Wyvern F-0"
-msgstr ""
-
-#: src/gui/presets.cpp:2699
-msgid "Tecmo"
-msgstr ""
-
-#: src/gui/presets.cpp:2702
-msgid "Tecmo Ninja Gaiden"
-msgstr ""
-
-#: src/gui/presets.cpp:2709
-msgid "Tecmo Ninja Gaiden (extended channel 3 on first OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:2716
-msgid "Tecmo Ninja Gaiden (extended channel 3 on second OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:2723
-msgid "Tecmo Ninja Gaiden (extended channel 3 on both OPNs)"
-msgstr ""
-
-#: src/gui/presets.cpp:2730
-msgid "Tecmo Ninja Gaiden (CSM on first OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:2737
-msgid "Tecmo Ninja Gaiden (CSM on second OPN)"
-msgstr ""
-
-#: src/gui/presets.cpp:2744
-msgid "Tecmo Ninja Gaiden (CSM on both OPNs)"
-msgstr ""
-
-#: src/gui/presets.cpp:2751
-msgid "Tecmo System"
-msgstr ""
-
-#: src/gui/presets.cpp:2758
-msgid "Tecmo System (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:2765
-msgid "Seibu Kaihatsu Raiden"
-msgstr ""
-
-#: src/gui/presets.cpp:2771
-msgid "Seibu Kaihatsu Raiden (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:2783
-msgid "Bally Midway MCR"
-msgstr ""
-
-#: src/gui/presets.cpp:2791
-msgid "Williams/Midway Y/T unit w/ADPCM sound board"
-msgstr ""
-
-#: src/gui/presets.cpp:2802
-msgid "NMK 16-bit Arcade"
-msgstr ""
-
-#: src/gui/presets.cpp:2815
-msgid "NMK 16-bit Arcade (extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:2828
-msgid "NMK 16-bit Arcade (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:2841
-msgid "NMK 16-bit Arcade (w/NMK112 bankswitching)"
-msgstr ""
-
-#: src/gui/presets.cpp:2856
-msgid "NMK 16-bit Arcade (w/NMK112 bankswitching, extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:2871
-msgid "NMK 16-bit Arcade (w/NMK112 bankswitching, CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:2886
-msgid "Atlus Power Instinct 2"
-msgstr ""
-
-#: src/gui/presets.cpp:2901
-msgid "Atlus Power Instinct 2 (extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:2916
-msgid "Atlus Power Instinct 2 (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:2931
-msgid "Raizing/Eighting Battle Garegga"
-msgstr ""
-
-#: src/gui/presets.cpp:2940
-msgid "Raizing/Eighting Batrider"
-msgstr ""
-
-#: src/gui/presets.cpp:2954
-msgid "Nichibutsu Mag Max"
-msgstr ""
-
-#: src/gui/presets.cpp:2961
-msgid "Cave 68000"
-msgstr ""
-
-#: src/gui/presets.cpp:2966
-msgid "Coreland Cyber Tank"
-msgstr ""
-
-#: src/gui/presets.cpp:2972
-msgid "Coreland Cyber Tank (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:2978
-msgid "ICE Skimaxx"
-msgstr ""
-
-#: src/gui/presets.cpp:2992
-msgid "Toaplan 1"
-msgstr ""
-
-#: src/gui/presets.cpp:2997
-msgid "Toaplan 1 (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:3002
-msgid "Dynax/Nakanihon 3rd generation hardware"
-msgstr ""
-
-#: src/gui/presets.cpp:3009
-msgid "Dynax/Nakanihon 3rd generation hardware (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:3016
-msgid "Dynax/Nakanihon Real Break"
-msgstr ""
-
-#: src/gui/presets.cpp:3022
-msgid "Dynax/Nakanihon Real Break (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:3029
-msgid "system presets that you have saved."
-msgstr ""
-
-#: src/gui/presets.cpp:3032
-msgid ""
-"chips which use frequency modulation (FM) to generate sound.\n"
-"some of these also pack more (like square and sample channels)."
-msgstr ""
-
-#: src/gui/presets.cpp:3044
-msgid "Yamaha YM2203 (extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:3049
-msgid "Yamaha YM2203 (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:3059
-msgid "Yamaha YM2608 (extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:3064
-msgid "Yamaha YM2608 (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:3074
-msgid "Yamaha YM2610 (extended channel 2)"
-msgstr ""
-
-#: src/gui/presets.cpp:3079
-msgid "Yamaha YM2610 (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:3089
-msgid "Yamaha YM2610B (extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:3094
-msgid "Yamaha YM2610B (CSM)"
-msgstr ""
-
-#: src/gui/presets.cpp:3104
-msgid "Yamaha YM2612 (extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:3119
-msgid "Yamaha YM2612 (extended channel 3) with DualPCM"
-msgstr ""
-
-#: src/gui/presets.cpp:3124
-msgid "Yamaha YMF276 (OPN2)"
-msgstr ""
-
-#: src/gui/presets.cpp:3129
-msgid "Yamaha YMF276 (extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:3134
-msgid "Yamaha YMF276 (OPN2) CSM"
-msgstr ""
-
-#: src/gui/presets.cpp:3139
-msgid "Yamaha YMF276 (OPN2) with DualPCM"
-msgstr ""
-
-#: src/gui/presets.cpp:3144
-msgid "Yamaha YMF276 (extended channel 3) with DualPCM"
-msgstr ""
-
-#: src/gui/presets.cpp:3154
-msgid "Yamaha YM2413 (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:3164
-msgid "Yamaha YM3438 (OPN2C)"
-msgstr ""
-
-#: src/gui/presets.cpp:3169
-msgid "Yamaha YM3438 (extended channel 3)"
-msgstr ""
-
-#: src/gui/presets.cpp:3174
-msgid "Yamaha YM3438 (OPN2C) CSM"
-msgstr ""
-
-#: src/gui/presets.cpp:3179
-msgid "Yamaha YM3438 (OPN2C) with DualPCM"
-msgstr ""
-
-#: src/gui/presets.cpp:3184
-msgid "Yamaha YM3438 (extended channel 3) with DualPCM"
-msgstr ""
-
-#: src/gui/presets.cpp:3194
-msgid "Yamaha YM3526 (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:3204
-msgid "Yamaha Y8950 (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:3214
-msgid "Yamaha YM3812 (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:3224
-msgid "Yamaha YMF262 (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:3229
-msgid "Yamaha YMF289B (OPL3-L)"
-msgstr ""
-
-#: src/gui/presets.cpp:3237
-msgid "Yamaha YMF289B (drums mode)"
-msgstr ""
-
-#: src/gui/presets.cpp:3261
-msgid "these chips generate square/pulse tones only (but may include noise)."
-msgstr ""
-
-#: src/gui/presets.cpp:3268 src/gui/sysConf.cpp:179
-msgid "TI SN76489A"
-msgstr ""
-
-#: src/gui/presets.cpp:3273 src/gui/sysConf.cpp:183
-msgid "TI SN76496"
-msgstr ""
-
-#: src/gui/presets.cpp:3278 src/gui/sysConf.cpp:187
-msgid "NCR 8496"
-msgstr ""
-
-#: src/gui/presets.cpp:3283 src/gui/sysConf.cpp:191
-msgid "Tandy PSSJ 3-voice sound"
-msgstr ""
-
-#: src/gui/presets.cpp:3289
-msgid "Sega PSG (SN76489-like)"
-msgstr ""
-
-#: src/gui/presets.cpp:3294
-msgid "Sega PSG (SN76489-like, Stereo)"
-msgstr ""
-
-#: src/gui/presets.cpp:3299 src/gui/sysConf.cpp:195
-msgid "TI SN94624"
-msgstr ""
-
-#: src/gui/presets.cpp:3307 src/gui/sysConf.cpp:199
-msgid "TI SN76494"
-msgstr ""
-
-#: src/gui/presets.cpp:3315
-msgid "Toshiba T6W28"
-msgstr ""
-
-#: src/gui/presets.cpp:3325 src/gui/sysConf.cpp:940
-msgid "AY-3-8914"
-msgstr ""
-
-#: src/gui/presets.cpp:3330
-msgid "Yamaha YM2149(F)"
-msgstr ""
-
-#: src/gui/presets.cpp:3350
-msgid "Commodore VIC"
-msgstr ""
-
-#: src/gui/presets.cpp:3360
-msgid "NEC D65010G031"
-msgstr ""
-
-#: src/gui/presets.cpp:3371
-msgid "chips/systems which use PCM or ADPCM samples for sound synthesis."
-msgstr ""
-
-#: src/gui/presets.cpp:3434
-msgid "Ensoniq ES5506 (OTTO)"
-msgstr ""
-
-#: src/gui/presets.cpp:3470
-msgid "chips which use user-specified waveforms to generate sound."
-msgstr ""
-
-#: src/gui/presets.cpp:3472 src/gui/settings.cpp:4150
-msgid "PC Engine"
-msgstr ""
-
-#: src/gui/presets.cpp:3497
-msgid "Namco C15 (8-channel mono)"
-msgstr ""
-
-#: src/gui/presets.cpp:3502
-msgid "Namco C30 (8-channel stereo)"
-msgstr ""
-
-#: src/gui/presets.cpp:3535
-msgid "Specialized"
-msgstr ""
-
-#: src/gui/presets.cpp:3535
-msgid "chips/systems with unique sound synthesis methods."
-msgstr ""
-
-#: src/gui/presets.cpp:3537
-msgid "MOS Technology SID (6581)"
-msgstr ""
-
-#: src/gui/presets.cpp:3543
-msgid "MOS Technology SID (8580)"
-msgstr ""
-
-#: src/gui/presets.cpp:3549
-msgid "Commodore PET (pseudo-wavetable)"
-msgstr ""
-
-#: src/gui/presets.cpp:3591
-msgid "Atari TIA (with software pitch driver)"
-msgstr ""
-
-#: src/gui/presets.cpp:3606
-msgid "ZX Spectrum (beeper only, SFX-like engine)"
-msgstr ""
-
-#: src/gui/presets.cpp:3611
-msgid "ZX Spectrum (beeper only, QuadTone engine)"
-msgstr ""
-
-#: src/gui/presets.cpp:3670
-msgid "DefleMask-compatible"
-msgstr ""
-
-#: src/gui/presets.cpp:3670
-msgid ""
-"these configurations are compatible with DefleMask.\n"
-"select this if you need to save as .dmf or work with that program."
-msgstr ""
-
-#: src/gui/presets.cpp:3734
-msgid "Arcade (YM2151 and SegaPCM)"
-msgstr ""
-
-#: src/gui/presets.cpp:3745
-msgid "Neo Geo CD (extended channel 2)"
-msgstr ""
 
 #: src/gui/regView.cpp:38
 msgid "- no register pool available"
@@ -17533,6 +15676,10 @@ msgstr ""
 msgid "Amiga/Generic Sample"
 msgstr ""
 
+#: src/gui/settings.cpp:4150 src/gui/presets.cpp:3478
+msgid "PC Engine"
+msgstr ""
+
 #: src/gui/settings.cpp:4151
 msgid "AY-3-8910/SSG"
 msgstr ""
@@ -17599,6 +15746,10 @@ msgstr ""
 
 #: src/gui/settings.cpp:4178
 msgid "FM (OPM)"
+msgstr ""
+
+#: src/gui/settings.cpp:4179 src/gui/presets.cpp:177 src/gui/presets.cpp:3711
+msgid "NES"
 msgstr ""
 
 #: src/gui/settings.cpp:4180
@@ -18482,23 +16633,6 @@ msgstr ""
 msgid "Audio load"
 msgstr "音頻負載"
 
-#: src/gui/subSongs.cpp:22 src/gui/subSongs.cpp:32
-#, c-format
-msgid "%d. <no name>"
-msgstr "%d. <未命名>"
-
-#: src/gui/subSongs.cpp:74 src/gui/subSongs.cpp:95
-msgid "too many subsongs!"
-msgstr "太多子曲!"
-
-#: src/gui/subSongs.cpp:117
-msgid "this is the only subsong!"
-msgstr "只有這一个子曲!"
-
-#: src/gui/subSongs.cpp:119
-msgid "are you sure you want to remove this subsong?"
-msgstr "你确定要删除嗎？"
-
 # no translate, for these are technical data. skipping.
 #: src/gui/sysConf.cpp:50 src/gui/sysConf.cpp:130 src/gui/sysConf.cpp:497
 #: src/gui/sysConf.cpp:615 src/gui/sysConf.cpp:658 src/gui/sysConf.cpp:696
@@ -18589,6 +16723,30 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:175
 msgid "Game Gear"
+msgstr ""
+
+#: src/gui/sysConf.cpp:179 src/gui/presets.cpp:3274
+msgid "TI SN76489A"
+msgstr ""
+
+#: src/gui/sysConf.cpp:183 src/gui/presets.cpp:3279
+msgid "TI SN76496"
+msgstr ""
+
+#: src/gui/sysConf.cpp:187 src/gui/presets.cpp:3284
+msgid "NCR 8496"
+msgstr ""
+
+#: src/gui/sysConf.cpp:191 src/gui/presets.cpp:3289
+msgid "Tandy PSSJ 3-voice sound"
+msgstr ""
+
+#: src/gui/sysConf.cpp:195 src/gui/presets.cpp:3305
+msgid "TI SN94624"
+msgstr ""
+
+#: src/gui/sysConf.cpp:199 src/gui/presets.cpp:3313
+msgid "TI SN76494"
 msgstr ""
 
 #: src/gui/sysConf.cpp:205
@@ -18689,6 +16847,10 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:364
 msgid "Game Boy Color (rev E)"
+msgstr ""
+
+#: src/gui/sysConf.cpp:368 src/gui/presets.cpp:144
+msgid "Game Boy Advance"
 msgstr ""
 
 #: src/gui/sysConf.cpp:373
@@ -18944,6 +17106,10 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:935
 msgid "Sunsoft 5B"
+msgstr ""
+
+#: src/gui/sysConf.cpp:940 src/gui/presets.cpp:3331
+msgid "AY-3-8914"
 msgstr ""
 
 #: src/gui/sysConf.cpp:948
@@ -19933,6 +18099,1844 @@ msgstr "%.1fdB,(-Inf)dB"
 #, c-format
 msgid "%.1fdB,%.1fdB"
 msgstr "%.1fdB,%.1fdB"
+
+#: src/gui/presets.cpp:55
+msgid "Game consoles"
+msgstr ""
+
+#: src/gui/presets.cpp:55
+msgid "let's play some chiptune making games!"
+msgstr ""
+
+#: src/gui/presets.cpp:57 src/gui/presets.cpp:3678
+msgid "Sega Genesis"
+msgstr ""
+
+#: src/gui/presets.cpp:63 src/gui/presets.cpp:3684
+msgid "Sega Genesis (extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:69
+msgid "Sega Genesis (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:75
+msgid "Sega Genesis (DualPCM)"
+msgstr ""
+
+#: src/gui/presets.cpp:81
+msgid "Sega Genesis (DualPCM, extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:87
+msgid "Sega Genesis (with Sega CD)"
+msgstr ""
+
+#: src/gui/presets.cpp:97
+msgid "Sega Genesis (extended channel 3 with Sega CD)"
+msgstr ""
+
+#: src/gui/presets.cpp:107
+msgid "Sega Genesis (CSM with Sega CD)"
+msgstr ""
+
+#: src/gui/presets.cpp:117 src/gui/presets.cpp:3690
+msgid "Sega Master System"
+msgstr ""
+
+#: src/gui/presets.cpp:122 src/gui/presets.cpp:3695
+msgid "Sega Master System (with FM expansion)"
+msgstr ""
+
+#: src/gui/presets.cpp:128
+msgid "Sega Master System (with FM expansion in drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:134
+msgid "Sega Game Gear"
+msgstr ""
+
+#: src/gui/presets.cpp:147
+msgid "Game Boy Advance (no software mixing)"
+msgstr ""
+
+#: src/gui/presets.cpp:153
+msgid "Game Boy Advance (with MinMod)"
+msgstr ""
+
+#: src/gui/presets.cpp:159
+msgid "Neo Geo Pocket"
+msgstr ""
+
+#: src/gui/presets.cpp:172 src/gui/presets.cpp:3706
+msgid "NEC PC Engine/TurboGrafx-16"
+msgstr ""
+
+#: src/gui/presets.cpp:182
+msgid "Famicom with Konami VRC6"
+msgstr ""
+
+#: src/gui/presets.cpp:188 src/gui/presets.cpp:3716
+msgid "Famicom with Konami VRC7"
+msgstr ""
+
+#: src/gui/presets.cpp:194
+msgid "Famicom with MMC5"
+msgstr ""
+
+#: src/gui/presets.cpp:200
+msgid "Famicom with Sunsoft 5B"
+msgstr ""
+
+#: src/gui/presets.cpp:206
+msgid "Famicom with Namco 163"
+msgstr ""
+
+#: src/gui/presets.cpp:223
+msgid "Super Game Boy"
+msgstr ""
+
+#: src/gui/presets.cpp:230
+msgid "Super Game Boy 2"
+msgstr ""
+
+#: src/gui/presets.cpp:236
+msgid "Mattel Intellivision"
+msgstr ""
+
+#: src/gui/presets.cpp:241
+msgid "Vectrex"
+msgstr ""
+
+#: src/gui/presets.cpp:246
+msgid "Neo Geo AES"
+msgstr ""
+
+#: src/gui/presets.cpp:251
+msgid "Neo Geo AES (extended channel 2)"
+msgstr ""
+
+#: src/gui/presets.cpp:256
+msgid "Neo Geo AES (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:261
+msgid "Atari 2600/7800"
+msgstr ""
+
+#: src/gui/presets.cpp:266
+msgid "Atari 2600/7800 (with software pitch driver)"
+msgstr ""
+
+#: src/gui/presets.cpp:271
+msgid "Atari 7800 + Ballblazer/Commando"
+msgstr ""
+
+#: src/gui/presets.cpp:277
+msgid "Atari 7800 (with software pitch driver) + Ballblazer/Commando"
+msgstr ""
+
+#: src/gui/presets.cpp:300
+msgid "Gamate"
+msgstr ""
+
+#: src/gui/presets.cpp:314
+msgid "Tiger Game.com"
+msgstr ""
+
+#: src/gui/presets.cpp:335
+msgid "Computers"
+msgstr ""
+
+#: src/gui/presets.cpp:335
+msgid "let's get to work on chiptune today."
+msgstr ""
+
+#: src/gui/presets.cpp:349
+msgid "Commodore Plus/4"
+msgstr ""
+
+#: src/gui/presets.cpp:354
+msgid "Commodore 64 (SID)"
+msgstr ""
+
+#: src/gui/presets.cpp:357 src/gui/presets.cpp:3728
+msgid "Commodore 64 (6581 SID)"
+msgstr ""
+
+#: src/gui/presets.cpp:363
+msgid "Commodore 64 (6581 SID + Sound Expander)"
+msgstr ""
+
+#: src/gui/presets.cpp:370
+msgid "Commodore 64 (6581 SID + Sound Expander in drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:377
+msgid "Commodore 64 (6581 SID + FM-YAM)"
+msgstr ""
+
+#: src/gui/presets.cpp:384
+msgid "Commodore 64 (6581 SID + FM-YAM in drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:391 src/gui/presets.cpp:3734
+msgid "Commodore 64 (8580 SID)"
+msgstr ""
+
+#: src/gui/presets.cpp:397
+msgid "Commodore 64 (8580 SID + Sound Expander)"
+msgstr ""
+
+#: src/gui/presets.cpp:404
+msgid "Commodore 64 (8580 SID + Sound Expander in drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:411
+msgid "Commodore 64 (8580 SID + FM-YAM)"
+msgstr ""
+
+#: src/gui/presets.cpp:418
+msgid "Commodore 64 (8580 SID + FM-YAM in drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:425
+msgid "Commodore 64 (6581 SID) with software PCM"
+msgstr ""
+
+#: src/gui/presets.cpp:437
+msgid "MSX"
+msgstr ""
+
+#: src/gui/presets.cpp:442
+msgid "MSX + SFG-01"
+msgstr ""
+
+#: src/gui/presets.cpp:448
+msgid "MSX + MSX-AUDIO"
+msgstr ""
+
+#: src/gui/presets.cpp:454
+msgid "MSX + MSX-AUDIO (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:460
+msgid "MSX + MSX-MUSIC"
+msgstr ""
+
+#: src/gui/presets.cpp:466
+msgid "MSX + MSX-MUSIC (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:472
+msgid "MSX + Darky"
+msgstr ""
+
+#: src/gui/presets.cpp:486
+msgid "MSX + Playsoniq"
+msgstr ""
+
+#: src/gui/presets.cpp:500
+msgid "MSX + SCC+"
+msgstr ""
+
+#: src/gui/presets.cpp:506
+msgid "MSX + Neotron"
+msgstr ""
+
+#: src/gui/presets.cpp:512
+msgid "MSX + Neotron (extended channel 2)"
+msgstr ""
+
+#: src/gui/presets.cpp:518
+msgid "MSX + Neotron (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:524
+msgid "MSX + Neotron (with YM2610B)"
+msgstr ""
+
+#: src/gui/presets.cpp:530
+msgid "MSX + Neotron (with YM2610B; extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:536
+msgid "MSX + Neotron (with YM2610B; CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:542
+msgid "MSX + SIMPL"
+msgstr ""
+
+#: src/gui/presets.cpp:563
+msgid "NEC PC-6001"
+msgstr ""
+
+#: src/gui/presets.cpp:568
+msgid "NEC PC-88"
+msgstr ""
+
+#: src/gui/presets.cpp:571
+msgid "NEC PC-88 (with PC-8801-10)"
+msgstr ""
+
+#: src/gui/presets.cpp:578
+msgid "NEC PC-88 (with PC-8801-11)"
+msgstr ""
+
+#: src/gui/presets.cpp:584
+msgid "NEC PC-88 (with PC-8801-11; extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:590
+msgid "NEC PC-88 (with PC-8801-11; CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:596
+msgid "NEC PC-88 (with PC-8801-23)"
+msgstr ""
+
+#: src/gui/presets.cpp:602
+msgid "NEC PC-88 (with PC-8801-23; extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:608
+msgid "NEC PC-88 (with PC-8801-23; CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:614
+msgid "NEC PC-88 (with HMB-20 HIBIKI-8800)"
+msgstr ""
+
+#: src/gui/presets.cpp:620
+msgid "NEC PC-8801mk2SR (with PC-8801-10)"
+msgstr ""
+
+#: src/gui/presets.cpp:628
+msgid "NEC PC-8801mk2SR (with PC-8801-10; extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:636
+msgid "NEC PC-8801mk2SR (with PC-8801-10; CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:644
+msgid "NEC PC-8801mk2SR (with PC-8801-11)"
+msgstr ""
+
+#: src/gui/presets.cpp:651
+msgid "NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on internal OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:658
+msgid "NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on external OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:665
+msgid "NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on both OPNs)"
+msgstr ""
+
+#: src/gui/presets.cpp:672
+msgid "NEC PC-8801mk2SR (with PC-8801-11; CSM on internal OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:679
+msgid "NEC PC-8801mk2SR (with PC-8801-11; CSM on external OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:686
+msgid "NEC PC-8801mk2SR (with PC-8801-11; CSM on both OPNs)"
+msgstr ""
+
+#: src/gui/presets.cpp:693
+msgid "NEC PC-8801mk2SR (with PC-8801-23)"
+msgstr ""
+
+#: src/gui/presets.cpp:700
+msgid "NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on internal OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:707
+msgid "NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on external OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:714
+msgid "NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on both OPNs)"
+msgstr ""
+
+#: src/gui/presets.cpp:721
+msgid "NEC PC-8801mk2SR (with PC-8801-23; CSM on internal OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:728
+msgid "NEC PC-8801mk2SR (with PC-8801-23; CSM on external OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:735
+msgid "NEC PC-8801mk2SR (with PC-8801-23; CSM on both OPNs)"
+msgstr ""
+
+#: src/gui/presets.cpp:742
+msgid "NEC PC-8801mk2SR (with HMB-20 HIBIKI-8800)"
+msgstr ""
+
+#: src/gui/presets.cpp:749
+msgid "NEC PC-8801mk2SR (with HMB-20 HIBIKI-8800; extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:756
+msgid "NEC PC-8801FA (with PC-8801-10)"
+msgstr ""
+
+#: src/gui/presets.cpp:764
+msgid "NEC PC-8801FA (with PC-8801-10; extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:772
+msgid "NEC PC-8801FA (with PC-8801-11)"
+msgstr ""
+
+#: src/gui/presets.cpp:779
+msgid "NEC PC-8801FA (with PC-8801-11; extended channel 3 on internal OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:786
+msgid "NEC PC-8801FA (with PC-8801-11; extended channel 3 on external OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:793
+msgid "NEC PC-8801FA (with PC-8801-11; extended channel 3 on both OPNs)"
+msgstr ""
+
+#: src/gui/presets.cpp:800
+msgid "NEC PC-8801FA (with PC-8801-11; CSM on internal OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:807
+msgid "NEC PC-8801FA (with PC-8801-11; CSM on external OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:814
+msgid "NEC PC-8801FA (with PC-8801-11; CSM on both OPNs)"
+msgstr ""
+
+#: src/gui/presets.cpp:821
+msgid "NEC PC-8801FA (with PC-8801-23)"
+msgstr ""
+
+#: src/gui/presets.cpp:828
+msgid "NEC PC-8801FA (with PC-8801-23; extended channel 3 on internal OPNA)"
+msgstr ""
+
+#: src/gui/presets.cpp:835
+msgid "NEC PC-8801FA (with PC-8801-23; extended channel 3 on external OPNA)"
+msgstr ""
+
+#: src/gui/presets.cpp:842
+msgid "NEC PC-8801FA (with PC-8801-23; extended channel 3 on both OPNAs)"
+msgstr ""
+
+#: src/gui/presets.cpp:849
+msgid "NEC PC-8801FA (with PC-8801-23; CSM on internal OPNA)"
+msgstr ""
+
+#: src/gui/presets.cpp:856
+msgid "NEC PC-8801FA (with PC-8801-23; CSM on external OPNA)"
+msgstr ""
+
+#: src/gui/presets.cpp:863
+msgid "NEC PC-8801FA (with PC-8801-23; CSM on both OPNAs)"
+msgstr ""
+
+#: src/gui/presets.cpp:870
+msgid "NEC PC-8801FA (with HMB-20 HIBIKI-8800)"
+msgstr ""
+
+#: src/gui/presets.cpp:877
+msgid "NEC PC-8801FA (with HMB-20 HIBIKI-8800; extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:884
+msgid "NEC PC-98"
+msgstr ""
+
+#: src/gui/presets.cpp:887
+msgid "NEC PC-98 (with PC-9801-26/K)"
+msgstr ""
+
+#: src/gui/presets.cpp:893
+msgid "NEC PC-98 (with PC-9801-26/K; extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:899
+msgid "NEC PC-98 (with PC-9801-26/K; CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:905
+msgid "NEC PC-98 (with Sound Orchestra)"
+msgstr ""
+
+#: src/gui/presets.cpp:912
+msgid "NEC PC-98 (with Sound Orchestra; extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:919
+msgid "NEC PC-98 (with Sound Orchestra; CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:926
+msgid "NEC PC-98 (with Sound Orchestra in drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:933
+msgid "NEC PC-98 (with Sound Orchestra in drums mode; extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:940
+msgid "NEC PC-98 (with Sound Orchestra in drums mode; CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:947
+msgid "NEC PC-98 (with Sound Orchestra V)"
+msgstr ""
+
+#: src/gui/presets.cpp:954
+msgid "NEC PC-98 (with Sound Orchestra V; extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:961
+msgid "NEC PC-98 (with Sound Orchestra V; CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:968
+msgid "NEC PC-98 (with Sound Orchestra V in drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:975
+msgid "NEC PC-98 (with Sound Orchestra V in drums mode; extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:982
+msgid "NEC PC-98 (with Sound Orchestra V in drums mode; CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:989
+msgid "NEC PC-98 (with PC-9801-86)"
+msgstr ""
+
+#: src/gui/presets.cpp:1003
+msgid "NEC PC-98 (with PC-9801-86; extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:1017
+msgid "NEC PC-98 (with PC-9801-86; CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:1031
+msgid "NEC PC-98 (with PC-9801-86) stereo"
+msgstr ""
+
+#: src/gui/presets.cpp:1045
+msgid "NEC PC-98 (with PC-9801-86; extended channel 3) stereo"
+msgstr ""
+
+#: src/gui/presets.cpp:1059
+msgid "NEC PC-98 (with PC-9801-86; CSM) stereo"
+msgstr ""
+
+#: src/gui/presets.cpp:1073
+msgid "NEC PC-98 (with PC-9801-73)"
+msgstr ""
+
+#: src/gui/presets.cpp:1079
+msgid "NEC PC-98 (with PC-9801-73; extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:1085
+msgid "NEC PC-98 (with PC-9801-73; CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:1091
+msgid "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible)"
+msgstr ""
+
+#: src/gui/presets.cpp:1103
+msgid ""
+"NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible; "
+"extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:1115
+msgid ""
+"NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible; CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:1127
+msgid ""
+"NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in "
+"drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:1139
+msgid ""
+"NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in "
+"drums mode; extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:1151
+msgid ""
+"NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in "
+"drums mode; CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:1163
+msgid "ZX Spectrum (48K) beeper"
+msgstr ""
+
+#: src/gui/presets.cpp:1166
+msgid "ZX Spectrum (48K, SFX-like engine)"
+msgstr ""
+
+#: src/gui/presets.cpp:1171
+msgid "ZX Spectrum (48K, QuadTone engine)"
+msgstr ""
+
+#: src/gui/presets.cpp:1176
+msgid "ZX Spectrum (128K)"
+msgstr ""
+
+#: src/gui/presets.cpp:1181
+msgid "ZX Spectrum (128K) with TurboSound FM"
+msgstr ""
+
+#: src/gui/presets.cpp:1187
+msgid "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on first OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:1193
+msgid ""
+"ZX Spectrum (128K) with TurboSound FM (extended channel 3 on second OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:1199
+msgid "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on both OPNs)"
+msgstr ""
+
+#: src/gui/presets.cpp:1205
+msgid "ZX Spectrum (128K) with TurboSound FM (CSM on first OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:1211
+msgid "ZX Spectrum (128K) with TurboSound FM (CSM on second OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:1217
+msgid "ZX Spectrum (128K) with TurboSound FM (CSM on both OPNs)"
+msgstr ""
+
+#: src/gui/presets.cpp:1223
+msgid "ZX Spectrum (128K) with TurboSound"
+msgstr ""
+
+#: src/gui/presets.cpp:1229
+msgid "Amstrad CPC"
+msgstr ""
+
+#: src/gui/presets.cpp:1234
+msgid "Atari 800"
+msgstr ""
+
+#: src/gui/presets.cpp:1240
+msgid "Atari 800 (stereo)"
+msgstr ""
+
+#: src/gui/presets.cpp:1247
+msgid "Atari ST"
+msgstr ""
+
+#: src/gui/presets.cpp:1255
+msgid "Atari STE"
+msgstr ""
+
+#: src/gui/presets.cpp:1271
+msgid "SAM Coupé"
+msgstr ""
+
+#: src/gui/presets.cpp:1276
+msgid "Enterprise 128"
+msgstr ""
+
+#: src/gui/presets.cpp:1282
+msgid "BBC Micro"
+msgstr ""
+
+#: src/gui/presets.cpp:1290
+msgid "IBM PC"
+msgstr ""
+
+#: src/gui/presets.cpp:1293
+msgid "PC (barebones)"
+msgstr ""
+
+#: src/gui/presets.cpp:1298
+msgid "IBM PCjr"
+msgstr ""
+
+#: src/gui/presets.cpp:1304
+msgid "Tandy 1000"
+msgstr ""
+
+#: src/gui/presets.cpp:1310
+msgid "PC + Covox Sound Master"
+msgstr ""
+
+#: src/gui/presets.cpp:1316
+msgid "PC + SSI 2001"
+msgstr ""
+
+#: src/gui/presets.cpp:1322
+msgid "PC + Game Blaster"
+msgstr ""
+
+#: src/gui/presets.cpp:1329
+msgid "PC + AdLib"
+msgstr ""
+
+#: src/gui/presets.cpp:1335
+msgid "PC + AdLib (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:1341
+msgid "PC + Sound Blaster"
+msgstr ""
+
+#: src/gui/presets.cpp:1351
+msgid "PC + Sound Blaster (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:1361
+msgid "PC + Sound Blaster w/Game Blaster Compatible"
+msgstr ""
+
+#: src/gui/presets.cpp:1373
+msgid "PC + Sound Blaster w/Game Blaster Compatible (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:1385
+msgid "PC + Sound Blaster Pro"
+msgstr ""
+
+#: src/gui/presets.cpp:1397
+msgid "PC + Sound Blaster Pro (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:1409
+msgid "PC + Sound Blaster Pro 2"
+msgstr ""
+
+#: src/gui/presets.cpp:1420
+msgid "PC + Sound Blaster Pro 2 (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:1431
+msgid "PC + ESS AudioDrive ES1488 (native ESFM mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:1442
+msgid "PC + PC-FXGA"
+msgstr ""
+
+#: src/gui/presets.cpp:1448
+msgid "PC + SAAYM"
+msgstr ""
+
+#: src/gui/presets.cpp:1491
+msgid "Sharp X1"
+msgstr ""
+
+#: src/gui/presets.cpp:1496
+msgid "Sharp X1 + FM add-on"
+msgstr ""
+
+#: src/gui/presets.cpp:1502
+msgid "Sharp X68000"
+msgstr ""
+
+#: src/gui/presets.cpp:1508
+msgid "FM-7"
+msgstr ""
+
+#: src/gui/presets.cpp:1514
+msgid "FM-7 (extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:1520
+msgid "FM-7 (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:1526
+msgid "FM Towns"
+msgstr ""
+
+#: src/gui/presets.cpp:1532
+msgid "FM Towns (extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:1538
+msgid "FM Towns (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:1544
+msgid "Commander X16"
+msgstr ""
+
+#: src/gui/presets.cpp:1550 src/gui/presets.cpp:3607
+msgid "Commander X16 (VERA only)"
+msgstr ""
+
+#: src/gui/presets.cpp:1555
+msgid "Commander X16 (with Twin OPL3)"
+msgstr ""
+
+#: src/gui/presets.cpp:1562
+msgid "TI-99/4A"
+msgstr ""
+
+#: src/gui/presets.cpp:1570
+msgid "Sord M5"
+msgstr ""
+
+#: src/gui/presets.cpp:1579
+msgid "Arcade systems"
+msgstr ""
+
+#: src/gui/presets.cpp:1579
+msgid "INSERT COIN"
+msgstr ""
+
+#: src/gui/presets.cpp:1582
+msgid "Alpha Denshi"
+msgstr ""
+
+#: src/gui/presets.cpp:1585
+msgid "Alpha Denshi Alpha-68K"
+msgstr ""
+
+#: src/gui/presets.cpp:1595
+msgid "Alpha Denshi Alpha-68K (extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:1605
+msgid "Alpha Denshi Alpha-68K (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:1615
+msgid "Alpha Denshi Alpha-68K (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:1625
+msgid "Alpha Denshi Alpha-68K (extended channel 3; drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:1635
+msgid "Alpha Denshi Alpha-68K (CSM; drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:1645
+msgid "Alpha Denshi Equites"
+msgstr ""
+
+#: src/gui/presets.cpp:1660
+msgid "Atari"
+msgstr ""
+
+#: src/gui/presets.cpp:1663
+msgid "Atari Klax"
+msgstr ""
+
+#: src/gui/presets.cpp:1668
+msgid "Atari Rampart"
+msgstr ""
+
+#: src/gui/presets.cpp:1674
+msgid "Atari Rampart (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:1680
+msgid "Atari JSA IIIs"
+msgstr ""
+
+#: src/gui/presets.cpp:1687
+msgid "Atari Marble Madness"
+msgstr ""
+
+#: src/gui/presets.cpp:1693
+msgid "Atari Championship Sprint"
+msgstr ""
+
+#: src/gui/presets.cpp:1700
+msgid "Atari Tetris"
+msgstr ""
+
+#: src/gui/presets.cpp:1706
+msgid "Atari I, Robot"
+msgstr ""
+
+#: src/gui/presets.cpp:1715
+msgid "Capcom"
+msgstr ""
+
+#: src/gui/presets.cpp:1718
+msgid "Capcom Exed Exes"
+msgstr ""
+
+#: src/gui/presets.cpp:1731
+msgid "Capcom Arcade"
+msgstr ""
+
+#: src/gui/presets.cpp:1737
+msgid "Capcom Arcade (extended channel 3 on first OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:1743
+msgid "Capcom Arcade (extended channel 3 on second OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:1749
+msgid "Capcom Arcade (extended channel 3 on both OPNs)"
+msgstr ""
+
+#: src/gui/presets.cpp:1755
+msgid "Capcom Arcade (CSM on first OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:1761
+msgid "Capcom Arcade (CSM on second OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:1767
+msgid "Capcom Arcade (CSM on both OPNs)"
+msgstr ""
+
+#: src/gui/presets.cpp:1773
+msgid "Capcom CPS-1"
+msgstr ""
+
+#: src/gui/presets.cpp:1779
+msgid "Capcom CPS-2 (QSound)"
+msgstr ""
+
+#: src/gui/presets.cpp:1785
+msgid "Data East"
+msgstr ""
+
+#: src/gui/presets.cpp:1788
+msgid "Data East Karnov"
+msgstr ""
+
+#: src/gui/presets.cpp:1794
+msgid "Data East Karnov (extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:1800
+msgid "Data East Karnov (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:1806
+msgid "Data East Karnov (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:1812
+msgid "Data East Karnov (extended channel 3; drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:1818
+msgid "Data East Karnov (CSM; drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:1824
+msgid "Data East Arcade"
+msgstr ""
+
+#: src/gui/presets.cpp:1831
+msgid "Data East Arcade (extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:1838
+msgid "Data East Arcade (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:1845
+msgid "Data East Arcade (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:1852
+msgid "Data East Arcade (extended channel 3; drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:1859
+msgid "Data East Arcade (CSM; drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:1866
+msgid "Data East PCX"
+msgstr ""
+
+#: src/gui/presets.cpp:1873
+msgid "Data East PCX (extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:1880
+msgid "Data East PCX (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:1887
+msgid "Data East Dark Seal"
+msgstr ""
+
+#: src/gui/presets.cpp:1896
+msgid "Data East Dark Seal (extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:1905
+msgid "Data East Dark Seal (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:1914
+msgid "Data East Deco 156"
+msgstr ""
+
+#: src/gui/presets.cpp:1920
+msgid "Data East MLC"
+msgstr ""
+
+#: src/gui/presets.cpp:1926
+msgid "Irem"
+msgstr ""
+
+#: src/gui/presets.cpp:1929
+msgid "Irem M72"
+msgstr ""
+
+#: src/gui/presets.cpp:1938
+msgid "Irem M92/M107"
+msgstr ""
+
+#: src/gui/presets.cpp:1945
+msgid "Jaleco"
+msgstr ""
+
+#: src/gui/presets.cpp:1948
+msgid "Jaleco Ginga NinkyouDen"
+msgstr ""
+
+#: src/gui/presets.cpp:1954
+msgid "Jaleco Ginga NinkyouDen (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:1960
+msgid "Jaleco Mega System 1"
+msgstr ""
+
+#: src/gui/presets.cpp:1968
+msgid "Kaneko"
+msgstr ""
+
+#: src/gui/presets.cpp:1971
+msgid "Kaneko DJ Boy"
+msgstr ""
+
+#: src/gui/presets.cpp:1978
+msgid "Kaneko DJ Boy (extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:1985
+msgid "Kaneko DJ Boy (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:1992
+msgid "Kaneko Air Buster"
+msgstr ""
+
+#: src/gui/presets.cpp:2001
+msgid "Kaneko Air Buster (extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:2010
+msgid "Kaneko Air Buster (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:2019
+msgid "Kaneko Toybox System"
+msgstr ""
+
+#: src/gui/presets.cpp:2032
+msgid "Kaneko Jackie Chan"
+msgstr ""
+
+#: src/gui/presets.cpp:2037
+msgid "Super Kaneko Nova System"
+msgstr ""
+
+#: src/gui/presets.cpp:2043
+msgid "Konami"
+msgstr ""
+
+#: src/gui/presets.cpp:2046
+msgid "Konami Gyruss"
+msgstr ""
+
+#: src/gui/presets.cpp:2056
+msgid "Konami Bubble System"
+msgstr ""
+
+#: src/gui/presets.cpp:2064
+msgid "Konami MX5000"
+msgstr ""
+
+#: src/gui/presets.cpp:2070
+msgid "Konami Battlantis"
+msgstr ""
+
+#: src/gui/presets.cpp:2076
+msgid "Konami Battlantis (drums mode on first OPL2)"
+msgstr ""
+
+#: src/gui/presets.cpp:2082
+msgid "Konami Battlantis (drums mode on second OPL2)"
+msgstr ""
+
+#: src/gui/presets.cpp:2088
+msgid "Konami Battlantis (drums mode on both OPL2s)"
+msgstr ""
+
+#: src/gui/presets.cpp:2094
+msgid "Konami Fast Lane"
+msgstr ""
+
+#: src/gui/presets.cpp:2100
+msgid "Konami Chequered Flag"
+msgstr ""
+
+#: src/gui/presets.cpp:2107
+msgid "Konami Haunted Castle"
+msgstr ""
+
+#: src/gui/presets.cpp:2114
+msgid "Konami Haunted Castle (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:2121
+msgid "Konami Hot Chase"
+msgstr ""
+
+#: src/gui/presets.cpp:2128
+msgid "Konami S.P.Y."
+msgstr ""
+
+#: src/gui/presets.cpp:2135
+msgid "Konami S.P.Y. (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:2142
+msgid "Konami Rollergames"
+msgstr ""
+
+#: src/gui/presets.cpp:2148
+msgid "Konami Rollergames (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:2154
+msgid "Konami Golfing Greats"
+msgstr ""
+
+#: src/gui/presets.cpp:2159
+msgid "Konami Lightning Fighters"
+msgstr ""
+
+#: src/gui/presets.cpp:2165
+msgid "Konami Over Drive"
+msgstr ""
+
+#: src/gui/presets.cpp:2172
+msgid "Konami Asterix"
+msgstr ""
+
+#: src/gui/presets.cpp:2178
+msgid "Konami Hexion"
+msgstr ""
+
+#: src/gui/presets.cpp:2185
+msgid "Namco"
+msgstr ""
+
+#: src/gui/presets.cpp:2188
+msgid "Namco (3-channel WSG)"
+msgstr ""
+
+#: src/gui/presets.cpp:2193
+msgid "Namco Mappy"
+msgstr ""
+
+#: src/gui/presets.cpp:2198
+msgid "Namco Pac-Land"
+msgstr ""
+
+#: src/gui/presets.cpp:2203
+msgid "Namco System 86"
+msgstr ""
+
+#: src/gui/presets.cpp:2209
+msgid "Namco Thunder Ceptor"
+msgstr ""
+
+#: src/gui/presets.cpp:2219
+msgid "Namco System 1"
+msgstr ""
+
+#: src/gui/presets.cpp:2233
+msgid "Namco System 2"
+msgstr ""
+
+#: src/gui/presets.cpp:2239
+msgid "Namco NA-1/2"
+msgstr ""
+
+#: src/gui/presets.cpp:2245
+msgid "Psikyo"
+msgstr ""
+
+#: src/gui/presets.cpp:2248
+msgid "Psikyo 68EC020 hardware with OPL4"
+msgstr ""
+
+#: src/gui/presets.cpp:2253
+msgid "Psikyo 68EC020 hardware with OPL4 (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:2258
+msgid "Psikyo SH-2 hardware"
+msgstr ""
+
+#: src/gui/presets.cpp:2263
+msgid "Psikyo SH-2 hardware (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:2269
+msgid "Sega"
+msgstr ""
+
+#: src/gui/presets.cpp:2272
+msgid "Sega Kyugo"
+msgstr ""
+
+#: src/gui/presets.cpp:2278
+msgid "Sega System 1"
+msgstr ""
+
+#: src/gui/presets.cpp:2290
+msgid "Sega System E"
+msgstr ""
+
+#: src/gui/presets.cpp:2296
+msgid "Sega System E (with FM expansion)"
+msgstr ""
+
+#: src/gui/presets.cpp:2303
+msgid "Sega System E (with FM expansion in drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:2310
+msgid "Sega Hang-On"
+msgstr ""
+
+#: src/gui/presets.cpp:2316
+msgid "Sega Hang-On (extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:2322
+msgid "Sega Hang-On (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:2328
+msgid "Sega OutRun/X Board"
+msgstr ""
+
+#: src/gui/presets.cpp:2334
+msgid "Sega System 24"
+msgstr ""
+
+#: src/gui/presets.cpp:2343
+msgid "Sega System 18"
+msgstr ""
+
+#: src/gui/presets.cpp:2350
+msgid "Sega System 18 (extended channel 3 on first OPN2C)"
+msgstr ""
+
+#: src/gui/presets.cpp:2357
+msgid "Sega System 18 (extended channel 3 on second OPN2C)"
+msgstr ""
+
+#: src/gui/presets.cpp:2364
+msgid "Sega System 18 (extended channel 3 on both OPN2Cs)"
+msgstr ""
+
+#: src/gui/presets.cpp:2371
+msgid "Sega System 18 (CSM on first OPN2C)"
+msgstr ""
+
+#: src/gui/presets.cpp:2378
+msgid "Sega System 18 (CSM on second OPN2C)"
+msgstr ""
+
+#: src/gui/presets.cpp:2385
+msgid "Sega System 18 (CSM on both OPN2Cs)"
+msgstr ""
+
+#: src/gui/presets.cpp:2392
+msgid "Sega System 32"
+msgstr ""
+
+#: src/gui/presets.cpp:2402
+msgid "Sega System 32 (extended channel 3 on first OPN2C)"
+msgstr ""
+
+#: src/gui/presets.cpp:2412
+msgid "Sega System 32 (extended channel 3 on second OPN2C)"
+msgstr ""
+
+#: src/gui/presets.cpp:2422
+msgid "Sega System 32 (extended channel 3 on both OPN2Cs)"
+msgstr ""
+
+#: src/gui/presets.cpp:2432
+msgid "Sega System 32 (CSM on first OPN2C)"
+msgstr ""
+
+#: src/gui/presets.cpp:2442
+msgid "Sega System 32 (CSM on second OPN2C)"
+msgstr ""
+
+#: src/gui/presets.cpp:2452
+msgid "Sega System 32 (CSM on both OPN2Cs)"
+msgstr ""
+
+#: src/gui/presets.cpp:2463
+msgid "Seta"
+msgstr ""
+
+#: src/gui/presets.cpp:2466
+msgid "Seta 1"
+msgstr ""
+
+#: src/gui/presets.cpp:2471
+msgid "Seta 1 + FM add-on"
+msgstr ""
+
+#: src/gui/presets.cpp:2477
+msgid "Seta 1 + FM add-on (extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:2483
+msgid "Seta 1 + FM add-on (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:2489
+msgid "Seta 2"
+msgstr ""
+
+#: src/gui/presets.cpp:2497
+msgid "Sammy/Seta/Visco SSV"
+msgstr ""
+
+#: src/gui/presets.cpp:2503
+msgid "SNK"
+msgstr ""
+
+#: src/gui/presets.cpp:2506
+msgid "Neo Geo MVS"
+msgstr ""
+
+#: src/gui/presets.cpp:2511
+msgid "Neo Geo MVS (extended channel 2)"
+msgstr ""
+
+#: src/gui/presets.cpp:2516
+msgid "Neo Geo MVS (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:2521
+msgid "SNK Ikari Warriors"
+msgstr ""
+
+#: src/gui/presets.cpp:2527
+msgid "SNK Ikari Warriors (drums mode on first OPL)"
+msgstr ""
+
+#: src/gui/presets.cpp:2533
+msgid "SNK Ikari Warriors (drums mode on second OPL)"
+msgstr ""
+
+#: src/gui/presets.cpp:2539
+msgid "SNK Ikari Warriors (drums mode on both OPLs)"
+msgstr ""
+
+#: src/gui/presets.cpp:2545
+msgid "SNK Triple Z80"
+msgstr ""
+
+#: src/gui/presets.cpp:2551
+msgid "SNK Triple Z80 (drums mode on Y8950)"
+msgstr ""
+
+#: src/gui/presets.cpp:2557
+msgid "SNK Triple Z80 (drums mode on OPL)"
+msgstr ""
+
+#: src/gui/presets.cpp:2563
+msgid "SNK Triple Z80 (drums mode on Y8950 and OPL)"
+msgstr ""
+
+#: src/gui/presets.cpp:2569
+msgid "SNK Chopper I"
+msgstr ""
+
+#: src/gui/presets.cpp:2575
+msgid "SNK Chopper I (drums mode on Y8950)"
+msgstr ""
+
+#: src/gui/presets.cpp:2581
+msgid "SNK Chopper I (drums mode on OPL2)"
+msgstr ""
+
+#: src/gui/presets.cpp:2587
+msgid "SNK Chopper I (drums mode on Y8950 and OPL2)"
+msgstr ""
+
+#: src/gui/presets.cpp:2593
+msgid "SNK Touchdown Fever"
+msgstr ""
+
+#: src/gui/presets.cpp:2599
+msgid "SNK Touchdown Fever (drums mode on OPL)"
+msgstr ""
+
+#: src/gui/presets.cpp:2605
+msgid "SNK Touchdown Fever (drums mode on Y8950)"
+msgstr ""
+
+#: src/gui/presets.cpp:2611
+msgid "SNK Touchdown Fever (drums mode on OPL and Y8950)"
+msgstr ""
+
+#: src/gui/presets.cpp:2618
+msgid "Sunsoft"
+msgstr ""
+
+#: src/gui/presets.cpp:2621
+msgid "Sunsoft Shanghai 3"
+msgstr ""
+
+#: src/gui/presets.cpp:2630
+msgid "Sunsoft Arcade"
+msgstr ""
+
+#: src/gui/presets.cpp:2636
+msgid "Sunsoft Arcade (extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:2642
+msgid "Sunsoft Arcade (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:2649
+msgid "Taito"
+msgstr ""
+
+#: src/gui/presets.cpp:2652
+msgid "Taito Arcade"
+msgstr ""
+
+#: src/gui/presets.cpp:2657
+msgid "Taito Arcade (extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:2662
+msgid "Taito Arcade (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:2667
+msgid "Taito Metal Soldier Isaac II"
+msgstr ""
+
+#: src/gui/presets.cpp:2674
+msgid "Taito The Fairyland Story"
+msgstr ""
+
+#: src/gui/presets.cpp:2687
+msgid "Taito Wyvern F-0"
+msgstr ""
+
+#: src/gui/presets.cpp:2705
+msgid "Tecmo"
+msgstr ""
+
+#: src/gui/presets.cpp:2708
+msgid "Tecmo Ninja Gaiden"
+msgstr ""
+
+#: src/gui/presets.cpp:2715
+msgid "Tecmo Ninja Gaiden (extended channel 3 on first OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:2722
+msgid "Tecmo Ninja Gaiden (extended channel 3 on second OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:2729
+msgid "Tecmo Ninja Gaiden (extended channel 3 on both OPNs)"
+msgstr ""
+
+#: src/gui/presets.cpp:2736
+msgid "Tecmo Ninja Gaiden (CSM on first OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:2743
+msgid "Tecmo Ninja Gaiden (CSM on second OPN)"
+msgstr ""
+
+#: src/gui/presets.cpp:2750
+msgid "Tecmo Ninja Gaiden (CSM on both OPNs)"
+msgstr ""
+
+#: src/gui/presets.cpp:2757
+msgid "Tecmo System"
+msgstr ""
+
+#: src/gui/presets.cpp:2764
+msgid "Tecmo System (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:2771
+msgid "Seibu Kaihatsu Raiden"
+msgstr ""
+
+#: src/gui/presets.cpp:2777
+msgid "Seibu Kaihatsu Raiden (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:2789
+msgid "Bally Midway MCR"
+msgstr ""
+
+#: src/gui/presets.cpp:2797
+msgid "Williams/Midway Y/T unit w/ADPCM sound board"
+msgstr ""
+
+#: src/gui/presets.cpp:2808
+msgid "NMK 16-bit Arcade"
+msgstr ""
+
+#: src/gui/presets.cpp:2821
+msgid "NMK 16-bit Arcade (extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:2834
+msgid "NMK 16-bit Arcade (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:2847
+msgid "NMK 16-bit Arcade (w/NMK112 bankswitching)"
+msgstr ""
+
+#: src/gui/presets.cpp:2862
+msgid "NMK 16-bit Arcade (w/NMK112 bankswitching, extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:2877
+msgid "NMK 16-bit Arcade (w/NMK112 bankswitching, CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:2892
+msgid "Atlus Power Instinct 2"
+msgstr ""
+
+#: src/gui/presets.cpp:2907
+msgid "Atlus Power Instinct 2 (extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:2922
+msgid "Atlus Power Instinct 2 (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:2937
+msgid "Raizing/Eighting Battle Garegga"
+msgstr ""
+
+#: src/gui/presets.cpp:2946
+msgid "Raizing/Eighting Batrider"
+msgstr ""
+
+#: src/gui/presets.cpp:2960
+msgid "Nichibutsu Mag Max"
+msgstr ""
+
+#: src/gui/presets.cpp:2967
+msgid "Cave 68000"
+msgstr ""
+
+#: src/gui/presets.cpp:2972
+msgid "Coreland Cyber Tank"
+msgstr ""
+
+#: src/gui/presets.cpp:2978
+msgid "Coreland Cyber Tank (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:2984
+msgid "ICE Skimaxx"
+msgstr ""
+
+#: src/gui/presets.cpp:2998
+msgid "Toaplan 1"
+msgstr ""
+
+#: src/gui/presets.cpp:3003
+msgid "Toaplan 1 (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:3008
+msgid "Dynax/Nakanihon 3rd generation hardware"
+msgstr ""
+
+#: src/gui/presets.cpp:3015
+msgid "Dynax/Nakanihon 3rd generation hardware (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:3022
+msgid "Dynax/Nakanihon Real Break"
+msgstr ""
+
+#: src/gui/presets.cpp:3028
+msgid "Dynax/Nakanihon Real Break (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:3035
+msgid "system presets that you have saved."
+msgstr ""
+
+#: src/gui/presets.cpp:3038
+msgid ""
+"chips which use frequency modulation (FM) to generate sound.\n"
+"some of these also pack more (like square and sample channels)."
+msgstr ""
+
+#: src/gui/presets.cpp:3050
+msgid "Yamaha YM2203 (extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:3055
+msgid "Yamaha YM2203 (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:3065
+msgid "Yamaha YM2608 (extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:3070
+msgid "Yamaha YM2608 (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:3080
+msgid "Yamaha YM2610 (extended channel 2)"
+msgstr ""
+
+#: src/gui/presets.cpp:3085
+msgid "Yamaha YM2610 (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:3095
+msgid "Yamaha YM2610B (extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:3100
+msgid "Yamaha YM2610B (CSM)"
+msgstr ""
+
+#: src/gui/presets.cpp:3110
+msgid "Yamaha YM2612 (extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:3125
+msgid "Yamaha YM2612 (extended channel 3) with DualPCM"
+msgstr ""
+
+#: src/gui/presets.cpp:3130
+msgid "Yamaha YMF276 (OPN2)"
+msgstr ""
+
+#: src/gui/presets.cpp:3135
+msgid "Yamaha YMF276 (extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:3140
+msgid "Yamaha YMF276 (OPN2) CSM"
+msgstr ""
+
+#: src/gui/presets.cpp:3145
+msgid "Yamaha YMF276 (OPN2) with DualPCM"
+msgstr ""
+
+#: src/gui/presets.cpp:3150
+msgid "Yamaha YMF276 (extended channel 3) with DualPCM"
+msgstr ""
+
+#: src/gui/presets.cpp:3160
+msgid "Yamaha YM2413 (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:3170
+msgid "Yamaha YM3438 (OPN2C)"
+msgstr ""
+
+#: src/gui/presets.cpp:3175
+msgid "Yamaha YM3438 (extended channel 3)"
+msgstr ""
+
+#: src/gui/presets.cpp:3180
+msgid "Yamaha YM3438 (OPN2C) CSM"
+msgstr ""
+
+#: src/gui/presets.cpp:3185
+msgid "Yamaha YM3438 (OPN2C) with DualPCM"
+msgstr ""
+
+#: src/gui/presets.cpp:3190
+msgid "Yamaha YM3438 (extended channel 3) with DualPCM"
+msgstr ""
+
+#: src/gui/presets.cpp:3200
+msgid "Yamaha YM3526 (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:3210
+msgid "Yamaha Y8950 (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:3220
+msgid "Yamaha YM3812 (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:3230
+msgid "Yamaha YMF262 (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:3235
+msgid "Yamaha YMF289B (OPL3-L)"
+msgstr ""
+
+#: src/gui/presets.cpp:3243
+msgid "Yamaha YMF289B (drums mode)"
+msgstr ""
+
+#: src/gui/presets.cpp:3267
+msgid "these chips generate square/pulse tones only (but may include noise)."
+msgstr ""
+
+#: src/gui/presets.cpp:3295
+msgid "Sega PSG (SN76489-like)"
+msgstr ""
+
+#: src/gui/presets.cpp:3300
+msgid "Sega PSG (SN76489-like, Stereo)"
+msgstr ""
+
+#: src/gui/presets.cpp:3321
+msgid "Toshiba T6W28"
+msgstr ""
+
+#: src/gui/presets.cpp:3336
+msgid "Yamaha YM2149(F)"
+msgstr ""
+
+#: src/gui/presets.cpp:3356
+msgid "Commodore VIC"
+msgstr ""
+
+#: src/gui/presets.cpp:3366
+msgid "NEC D65010G031"
+msgstr ""
+
+#: src/gui/presets.cpp:3377
+msgid "chips/systems which use PCM or ADPCM samples for sound synthesis."
+msgstr ""
+
+#: src/gui/presets.cpp:3440
+msgid "Ensoniq ES5506 (OTTO)"
+msgstr ""
+
+#: src/gui/presets.cpp:3476
+msgid "chips which use user-specified waveforms to generate sound."
+msgstr ""
+
+#: src/gui/presets.cpp:3503
+msgid "Namco C15 (8-channel mono)"
+msgstr ""
+
+#: src/gui/presets.cpp:3508
+msgid "Namco C30 (8-channel stereo)"
+msgstr ""
+
+#: src/gui/presets.cpp:3541
+msgid "Specialized"
+msgstr ""
+
+#: src/gui/presets.cpp:3541
+msgid "chips/systems with unique sound synthesis methods."
+msgstr ""
+
+#: src/gui/presets.cpp:3543
+msgid "MOS Technology SID (6581)"
+msgstr ""
+
+#: src/gui/presets.cpp:3549
+msgid "MOS Technology SID (8580)"
+msgstr ""
+
+#: src/gui/presets.cpp:3555
+msgid "Commodore PET (pseudo-wavetable)"
+msgstr ""
+
+#: src/gui/presets.cpp:3597
+msgid "Atari TIA (with software pitch driver)"
+msgstr ""
+
+#: src/gui/presets.cpp:3612
+msgid "ZX Spectrum (beeper only, SFX-like engine)"
+msgstr ""
+
+#: src/gui/presets.cpp:3617
+msgid "ZX Spectrum (beeper only, QuadTone engine)"
+msgstr ""
+
+#: src/gui/presets.cpp:3676
+msgid "DefleMask-compatible"
+msgstr ""
+
+#: src/gui/presets.cpp:3676
+msgid ""
+"these configurations are compatible with DefleMask.\n"
+"select this if you need to save as .dmf or work with that program."
+msgstr ""
+
+#: src/gui/presets.cpp:3740
+msgid "Arcade (YM2151 and SegaPCM)"
+msgstr ""
+
+#: src/gui/presets.cpp:3751
+msgid "Neo Geo CD (extended channel 2)"
+msgstr ""
 
 #: src/main.cpp:702
 #, c-format
