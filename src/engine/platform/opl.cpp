@@ -3271,6 +3271,7 @@ void DivPlatformOPL::renderSamples(int sysID) {
 
       int length;
       int sampleLength;
+      unsigned char* src=(unsigned char*)s->getCurBuf();
       switch (s->depth) {
         case DIV_SAMPLE_DEPTH_8BIT:
           sampleLength=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT);
@@ -3287,10 +3288,10 @@ void DivPlatformOPL::renderSamples(int sysID) {
         default:
           sampleLength=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT);
           length=MIN(65535,sampleLength+1);
+          src=(unsigned char*)s->data8;
           break;
       }
       if (sampleLength<1) length=0;
-      unsigned char* src=(unsigned char*)s->getCurBuf();
       int actualLength=MIN((int)(getSampleMemCapacity(0)-memPos),length);
       if (actualLength>0) {
   #ifdef TA_BIG_ENDIAN
