@@ -3270,20 +3270,26 @@ void DivPlatformOPL::renderSamples(int sysID) {
       }
 
       int length;
+      int sampleLength;
       switch (s->depth) {
         case DIV_SAMPLE_DEPTH_8BIT:
-          length=MIN(65535,s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT));
+          sampleLength=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT);
+          length=MIN(65535,sampleLength+1);
           break;
         case DIV_SAMPLE_DEPTH_12BIT:
-          length=MIN(98303,s->getLoopEndPosition(DIV_SAMPLE_DEPTH_12BIT));
+          sampleLength=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_12BIT);
+          length=MIN(98303,sampleLength+1);
           break;
         case DIV_SAMPLE_DEPTH_16BIT:
-          length=MIN(131070,s->getLoopEndPosition(DIV_SAMPLE_DEPTH_16BIT));
+          sampleLength=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_16BIT);
+          length=MIN(131070,sampleLength+2);
           break;
         default:
-          length=MIN(65535,s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT));
+          sampleLength=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT);
+          length=MIN(65535,sampleLength+1);
           break;
       }
+      if (sampleLength<1) length=0;
       unsigned char* src=(unsigned char*)s->getCurBuf();
       int actualLength=MIN((int)(getSampleMemCapacity(0)-memPos),length);
       if (actualLength>0) {
@@ -3291,11 +3297,15 @@ void DivPlatformOPL::renderSamples(int sysID) {
         memcpy(&pcmMem[memPos],src,actualLength);
   #else
         if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
-          for (int i=0; i<actualLength; i++) {
-            pcmMem[memPos+i]=src[i^1];
+          for (int i=0, j=0; i<actualLength; i++, j++) {
+            if (j>=sampleLength) j=sampleLength-2;
+            pcmMem[memPos+i]=src[j^1];
           }
         } else {
-          memcpy(&pcmMem[memPos],src,actualLength);
+          for (int i=0, j=0; i<actualLength; i++, j++) {
+            if (j>=sampleLength) j=sampleLength-1;
+            pcmMem[memPos+i]=src[j];
+          }
         }
   #endif
         sampleOffPCM[i]=memPos;
@@ -3315,7 +3325,7 @@ void DivPlatformOPL::renderSamples(int sysID) {
       DivSample* s=parent->song.sample[i];
       unsigned int insAddr=(i*12)+((ramSize<=0x200000)?0x200000:0);
       unsigned char bitDepth;
-      int endPos=CLAMP(s->isLoopable()?s->loopEnd:s->samples,1,0x10000);
+      int endPos=CLAMP(s->isLoopable()?s->loopEnd:(s->samples+1),1,0x10000);
       int loop=s->isLoopable()?CLAMP(s->loopStart,0,endPos-2):(endPos-2);
       switch (s->depth) {
         case DIV_SAMPLE_DEPTH_8BIT:
