@@ -103,7 +103,7 @@ for other operating systems, you may [build the source](#developer-info).
   - over 200 ready to use presets from computers, game consoles and arcade boards...
   - ...or create your own presets - up to 32 chips or a total of 128 channels!
 - DefleMask compatibility
-  - loads .dmf modules from all versions (beta 1 to 1.1.9)
+  - loads .dmf modules from all versions (beta 1 to 1.2.0)
   - saves .dmf modules - both modern and legacy
     - Furnace doubles as a module downgrader
   - loads/saves .dmp instruments and .dmw wavetables as well
