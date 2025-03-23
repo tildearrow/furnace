@@ -64,8 +64,18 @@ void DivEngine::getTotalAudioFiles(int &files) {
     }
     case DIV_EXPORT_MODE_MANY_CHAN: {
       for (int i=0; i<chans; i++) {
-        if (exportChannelMask[i]) {
-          files++;
+        if (!exportChannelMask[i]) continue;
+
+        files++;
+
+        if (getChannelType(i)==5) {
+          i++;
+          while (true) {
+            if (i>=chans) break;
+            if (getChannelType(i)!=5) break;
+            i++;
+          }
+          i--;
         }
       }
       break;
