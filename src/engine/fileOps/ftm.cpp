@@ -1949,6 +1949,18 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                         }
                       }
                     }
+
+                    for (int vrr = 0; vrr < 6; vrr++)
+                    {
+                      if (map_channels[ch] == vrc7_chans[vrr])
+                      {
+                        if (pat->data[row][4 + (j * 2)] == 0x12)
+                        {
+                          pat->data[row][4 + (j * 2)] = 0x10; // set VRC7 patch
+                        }
+                      }
+                    }
+
                     for (int v = 0; v < 3; v++) {
                       if (map_channels[ch] == s5b_chans[v] || map_channels[ch] == ay8930_chans[v]) {
                         if (pat->data[row][4 + (j * 2)] == 0x22 && (pat->data[row][5 + (j * 2)] & 0xf0) != 0) {
