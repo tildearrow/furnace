@@ -360,6 +360,8 @@ DivInstrumentMacro* DivInstrumentSTD::macroByType(DivMacroType type) {
     CONSIDER(ex6Macro,DIV_MACRO_EX6)
     CONSIDER(ex7Macro,DIV_MACRO_EX7)
     CONSIDER(ex8Macro,DIV_MACRO_EX8)
+    CONSIDER(ex9Macro,DIV_MACRO_EX9)
+    CONSIDER(ex10Macro,DIV_MACRO_EX10)
   }
 
   return NULL;
@@ -648,6 +650,8 @@ void DivInstrument::writeFeatureMA(SafeWriter* w) {
   writeMacro(w,std.ex6Macro);
   writeMacro(w,std.ex7Macro);
   writeMacro(w,std.ex8Macro);
+  writeMacro(w,std.ex9Macro);
+  writeMacro(w,std.ex10Macro);
 
   // "stop reading" code
   w->writeC(-1);
@@ -1520,7 +1524,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
       std.ex5Macro.len ||
       std.ex6Macro.len ||
       std.ex7Macro.len ||
-      std.ex8Macro.len) {
+      std.ex8Macro.len ||
+      std.ex9Macro.len ||
+      std.ex10Macro.len) {
     featureMA=true;
   }
 
@@ -1873,6 +1879,12 @@ void DivInstrument::readFeatureMA(SafeReader& reader, short version) {
         break;
       case 19:
         target=&std.ex8Macro;
+        break;
+      case 20:
+        target=&std.ex9Macro;
+        break;
+      case 21:
+        target=&std.ex10Macro;
         break;
       default:
         logW("invalid macro code %d!");

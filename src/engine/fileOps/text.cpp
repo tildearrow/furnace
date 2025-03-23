@@ -221,6 +221,8 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
     writeTextMacro(w,ins->std.ex6Macro,"ex6",header);
     writeTextMacro(w,ins->std.ex7Macro,"ex7",header);
     writeTextMacro(w,ins->std.ex8Macro,"ex8",header);
+    writeTextMacro(w,ins->std.ex9Macro,"ex9",header);
+    writeTextMacro(w,ins->std.ex10Macro,"ex10",header);
     writeTextMacro(w,ins->std.algMacro,"alg",header);
     writeTextMacro(w,ins->std.fbMacro,"fb",header);
     writeTextMacro(w,ins->std.fmsMacro,"fms",header);
