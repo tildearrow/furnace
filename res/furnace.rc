@@ -33,10 +33,10 @@
                 "Furnace"
 
             VALUE "ProductVersion",
-                "0.6.8pre1"
+                "0.6.8pre2"
 
             VALUE "FileVersion",
-                "0.6.8pre1"
+                "0.6.8pre2"
 
             VALUE "CompanyName",
                 "tildearrow"
