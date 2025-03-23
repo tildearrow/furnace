@@ -56,6 +56,10 @@ these macros allow you to control several parameters of FM per tick.
 
 ## FM Macros
 
+- **Algorithm**,
+  **Feedback**,
+  **LFO > Freq**,
+  **LFO > Amp**: as described above.
 - **LFO Speed**: LFO frequency.
 - **OpMask**: toggles each operator.
 

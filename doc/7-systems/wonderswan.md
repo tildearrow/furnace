@@ -30,6 +30,12 @@ it has 4 wavetable channels. some of them have additional capabilities:
 
 this chip uses the [WonderSwan](../4-instrument/wonderswan.md) instrument editor.
 
+## chip config
+
+the following option is available in the Chip Manager window:
+
+- **Headphone output**: enables stereo. default is on.
+
 ## channel status
 
 the following icons are displayed when channel status is enabled in the pattern view:

@@ -97,6 +97,8 @@ the following options are available in the Chip Manager window:
 - **Echo filter**: adjusts echo filter.
 - **Dec/Hex**: toggles decimal or hexadecimal mode for the filter settings text entry box to the right.
   - SnesLab provides [echo filter explanations and examples](https://sneslab.net/wiki/FIR_Filter#Uses). their example filter strings can be pasted directly into the filter settings text entry box if set to Hex mode.
+- **Disable Gaussian interpolation**: removes sample interpolation, resulting in crisper but aliased sound. not accurate to hardware.
+- **Anti-click**: reduces clicking by use of hardware volume envelopes.
 
 ## ADSR
 
