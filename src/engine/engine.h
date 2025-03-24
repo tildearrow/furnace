@@ -432,6 +432,7 @@ enum DivChanTypes {
 };
 
 extern const char* cmdName[];
+extern int JOKE_CUR_HOUR;
 
 class DivEngine {
   DivDispatchContainer disCont[DIV_MAX_CHIPS];

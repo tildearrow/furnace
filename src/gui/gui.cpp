@@ -1328,6 +1328,12 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
   makeUndo(GUI_UNDO_PATTERN_EDIT);
   editAdvance();
   curNibble=false;
+
+  if (JOKE_CUR_HOUR==19) {
+    if ((rand()%300)==0) {
+      displayRating=true;
+    }
+  }
 }
 
 void FurnaceGUI::valueInput(int num, bool direct, int target) {
@@ -2373,6 +2379,210 @@ int FurnaceGUI::save(String path, int dmfVersion) {
   return 0;
 }
 
+static const signed char kickPos[]={
+  0, 6, 10, -1
+};
+
+static const signed char snarePos[]={
+  4, 12, -1
+};
+
+static const signed char timpaniPos[]={
+  8, 14, -1
+};
+
+static const signed char clapPos[]={
+  2, -1
+};
+
+static const signed char chatPos[]={
+  0, 1, 3, 8, 9, 11, -1
+};
+
+static const signed char ohatPos[]={
+  2, 10, -1
+};
+
+static const signed char bongoPos[]={
+  4, 5, 6, 7, 12, 13, 14, 15, -1
+};
+
+static const signed char bongoNotes[4]={
+  4, 1, 5, 1
+};
+
+static const signed char bongoOctaves[4]={
+  4, 4, 3, 4
+};
+
+static const char* kickNames[]={
+  "kick", "bd", "bass d", "bassd", NULL
+};
+
+static const char* snareNames[]={
+  "snar", "snr", "sd", "sho", "gun", NULL
+};
+
+static const char* clapNames[]={
+  "clap", "clav", NULL
+};
+
+static const char* timpaniNames[]={
+  "timp", "tom", NULL
+};
+
+static const char* chatNames[]={
+  "close", "hat", "short", NULL
+};
+
+static const char* ohatNames[]={
+  "open", "hop", "long", "hat", NULL
+};
+
+static const char* bongoNames[]={
+  "bong", "rim", "tom", "pop", NULL
+};
+
+#define ASS_FIND_INS(names,id,ch,off) { \
+  bool nameFound=false; \
+  for (int _n=0; names[_n]; _n++) { \
+    const char* name=names[_n]; \
+    for (size_t _i=0; _i<e->song.ins.size(); _i++) { \
+      String insName=e->song.ins[_i]->name; \
+      for (char& i: insName) { \
+        if (i>='A' && i<='Z') i+='a'-'A'; \
+      } \
+      if (insName.find(name)!=String::npos) { \
+        id=_i; \
+        nameFound=true; \
+        break; \
+      } \
+    } \
+    if (nameFound) break; \
+  } \
+  if (!nameFound) { \
+    if (e->song.ins.size()>0) { \
+      id=rand()%e->song.ins.size(); \
+    } \
+  } \
+  if (id>=0) { \
+    bool skip=off; \
+    for (int _i=0; _i<e->getTotalChannelCount(); _i++) { \
+      DivInstrumentType pref1=e->getPreferInsType(_i); \
+      DivInstrumentType pref2=e->getPreferInsSecondType(_i); \
+      DivInstrumentType have=e->song.ins[id]->type; \
+      if (have==pref1 || have==pref2) { \
+        if (skip) { \
+          skip=false; \
+        } else { \
+          ch=_i; \
+          break; \
+        } \
+      } \
+    } \
+  } \
+}
+
+
+void FurnaceGUI::updateProperties() {
+  if (JOKE_CUR_HOUR==0 || JOKE_CUR_HOUR==5 || JOKE_CUR_HOUR==20) {
+    if (rand()%2) {
+      e->curSubSong->ordersLen=1;
+      e->curSubSong->patLen=16;
+      e->curSubSong->speeds.val[0]=6;
+      e->curSubSong->speeds.len=1;
+      e->curSubSong->virtualTempoD=150;
+      e->curSubSong->virtualTempoN=150;
+      int kickID=-1;
+      int clapID=-1;
+      int snareID=-1;
+      int timpaniID=-1;
+      int chatID=-1;
+      int ohatID=-1;
+      int bongoID=-1;
+      int kickCh=0;
+      int clapCh=0;
+      int snareCh=0;
+      int timpaniCh=0;
+      int chatCh=1;
+      int ohatCh=1;
+      int bongoCh=1;
+
+      // find instruments
+      ASS_FIND_INS(kickNames,kickID,kickCh,0);
+      ASS_FIND_INS(snareNames,snareID,snareCh,0);
+      ASS_FIND_INS(clapNames,clapID,clapCh,0);
+      ASS_FIND_INS(timpaniNames,timpaniID,timpaniCh,0);
+      ASS_FIND_INS(chatNames,chatID,chatCh,1);
+      ASS_FIND_INS(ohatNames,ohatID,ohatCh,1);
+      ASS_FIND_INS(bongoNames,bongoID,bongoCh,1);
+
+      // prepare song
+      for (int i=0; i<e->getTotalChannelCount(); i++) {
+        e->curSubSong->orders.ord[i][0]=0;
+        e->curSubSong->pat[i].getPattern(0,true)->clear();
+      }
+
+      // place kicks
+      for (int i=0; kickPos[i]>=0; i++) {
+        DivPattern* p=e->curSubSong->pat[kickCh].getPattern(0,true);
+        int kp=kickPos[i];
+        p->data[kp][0]=12;
+        p->data[kp][1]=3;
+        p->data[kp][2]=kickID;
+      }
+      // place claps
+      for (int i=0; clapPos[i]>=0; i++) {
+        DivPattern* p=e->curSubSong->pat[clapCh].getPattern(0,true);
+        int kp=clapPos[i];
+        p->data[kp][0]=12;
+        p->data[kp][1]=3;
+        p->data[kp][2]=clapID;
+      }
+      // place snares
+      for (int i=0; snarePos[i]>=0; i++) {
+        DivPattern* p=e->curSubSong->pat[snareCh].getPattern(0,true);
+        int kp=snarePos[i];
+        p->data[kp][0]=12;
+        p->data[kp][1]=3;
+        p->data[kp][2]=snareID;
+      }
+      // place timpani
+      for (int i=0; timpaniPos[i]>=0; i++) {
+        DivPattern* p=e->curSubSong->pat[timpaniCh].getPattern(0,true);
+        int kp=timpaniPos[i];
+        p->data[kp][0]=12;
+        p->data[kp][1]=3;
+        p->data[kp][2]=timpaniID;
+      }
+      // place chats
+      for (int i=0; chatPos[i]>=0; i++) {
+        DivPattern* p=e->curSubSong->pat[chatCh].getPattern(0,true);
+        int kp=chatPos[i];
+        p->data[kp][0]=12;
+        p->data[kp][1]=3;
+        p->data[kp][2]=chatID;
+      }
+      // place ohats
+      for (int i=0; ohatPos[i]>=0; i++) {
+        DivPattern* p=e->curSubSong->pat[ohatCh].getPattern(0,true);
+        int kp=ohatPos[i];
+        p->data[kp][0]=12;
+        p->data[kp][1]=3;
+        p->data[kp][2]=ohatID;
+      }
+      // place bongo
+      for (int i=0; bongoPos[i]>=0; i++) {
+        DivPattern* p=e->curSubSong->pat[bongoCh].getPattern(0,true);
+        int kp=bongoPos[i];
+        p->data[kp][0]=bongoNotes[kp&3];
+        p->data[kp][1]=bongoOctaves[kp&3];
+        p->data[kp][2]=bongoID;
+      }
+    }
+  }
+}
+
 int FurnaceGUI::load(String path) {
   bool wasPlaying=e->isPlaying();
   if (!path.empty()) {
@@ -2428,6 +2638,7 @@ int FurnaceGUI::load(String path) {
       return 1;
     }
   }
+  updateProperties();
   backupLock.lock();
   curFileName=path;
   backupLock.unlock();
@@ -5846,6 +6057,11 @@ bool FurnaceGUI::loop() {
       ImGui::OpenPopup(_("ROM Export Progress"));
     }
 
+    if (displayRating) {
+      displayRating=false;
+      ImGui::OpenPopup(_("Furnace###BeatRating"));
+    }
+
     if (displayNew) {
       newSongQuery="";
       newSongFirstFrame=true;
@@ -6069,6 +6285,16 @@ bool FurnaceGUI::loop() {
     if (ImGui::BeginPopupModal(_("Export"),NULL,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::SetWindowPos(ImVec2(((canvasW)-ImGui::GetWindowSize().x)*0.5,((canvasH)-ImGui::GetWindowSize().y)*0.5));
       drawExport();
+      ImGui::EndPopup();
+    }
+
+    centerNextWindow(_("Furnace###BeatRating"),canvasW,canvasH);
+    if (ImGui::BeginPopupModal("Furnace###BeatRating",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
+      ImGui::TextUnformatted(_("This beat is ass. Session terminated."));
+      if (ImGui::Button(_("OK"))) {
+        quit=true;
+        ImGui::CloseCurrentPopup();
+      }
       ImGui::EndPopup();
     }
 
@@ -8376,6 +8602,7 @@ FurnaceGUI::FurnaceGUI():
   displayPendingSamples(false),
   replacePendingSample(false),
   displayExportingROM(false),
+  displayRating(false),
   changeCoarse(false),
   mobileEdit(false),
   killGraphics(false),

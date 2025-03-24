@@ -1,0 +1,24 @@
+- 0: goofy ass
+- 1:
+- 2: notes screw up
+- 3:
+- 4:
+- 5: goofy ass
+- 6:
+- 7:
+- 8:
+- 9:
+- 10:
+- 11:
+- 12:
+- 13:
+- 14: notes screw up
+- 15:
+- 16:
+- 17:
+- 18: cursor screws up
+- 19: note input may terminate program
+- 20: goofy ass
+- 21:
+- 22: notes screw up
+- 23:

@@ -42,6 +42,8 @@
 #include <fmt/printf.h>
 #include <chrono>
 
+int JOKE_CUR_HOUR=0;
+
 void process(void* u, float** in, float** out, int inChans, int outChans, unsigned int size) {
   ((DivEngine*)u)->nextBuf(in,out,inChans,outChans,size);
 }

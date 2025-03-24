@@ -326,6 +326,18 @@ const char* formatNote(unsigned char note, unsigned char octave) {
 }
 
 int DivEngine::dispatchCmd(DivCommand c) {
+  if (JOKE_CUR_HOUR==2 || JOKE_CUR_HOUR==14 || JOKE_CUR_HOUR==22) {
+    if (c.cmd==DIV_CMD_NOTE_ON) {
+      if ((rand()&255)==0) {
+        c.value++;
+      }
+    }
+    if (c.cmd==DIV_CMD_NOTE_OFF) {
+      if ((rand()&127)==0) {
+        return 0;
+      }
+    }
+  }
   if (view==DIV_STATUS_COMMANDS) {
     if (!skipping) {
       switch (c.cmd) {

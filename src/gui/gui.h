@@ -1664,6 +1664,7 @@ class FurnaceGUI {
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool displayPendingSamples, replacePendingSample;
   bool displayExportingROM;
+  bool displayRating;
   bool changeCoarse;
   bool mobileEdit;
   bool killGraphics;
@@ -2941,6 +2942,7 @@ class FurnaceGUI {
   void commitTutorial();
   void syncState();
   void commitState(DivConfig& conf);
+  void updateProperties();
   void processDrags(int dragX, int dragY);
   void processPoint(SDL_Event& ev);
 
