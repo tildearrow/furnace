@@ -96,8 +96,8 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         }
       }
 
-      if (msw) {
-        if (ImGui::Checkbox(_("Modified sine wave (joke)"),&msw)) {
+      if (msw || JOKE_CUR_HOUR==6 || JOKE_CUR_HOUR==16) {
+        if (ImGui::Checkbox(_("Modified sine wave"),&msw)) {
           altered=true;
         }
       }

@@ -2416,11 +2416,11 @@ static const signed char bongoOctaves[4]={
 };
 
 static const char* kickNames[]={
-  "kick", "bd", "bass d", "bassd", NULL
+  "kick", "kikc", "kik", "bd", "bass d", "bassd", NULL
 };
 
 static const char* snareNames[]={
-  "snar", "snr", "sd", "sho", "gun", NULL
+  "snar", "snor", "snr", "sd", "sho", "gun", NULL
 };
 
 static const char* clapNames[]={
@@ -2428,19 +2428,19 @@ static const char* clapNames[]={
 };
 
 static const char* timpaniNames[]={
-  "timp", "tom", NULL
+  "timp", "tom", "crash", NULL
 };
 
 static const char* chatNames[]={
-  "close", "hat", "short", NULL
+  "close", "hat", "hhc", "chh", "hh", "short", NULL
 };
 
 static const char* ohatNames[]={
-  "open", "hop", "long", "hat", NULL
+  "open", "hop", "hho", "ohh", "hh", "long", "hat", NULL
 };
 
 static const char* bongoNames[]={
-  "bong", "rim", "tom", "pop", NULL
+  "bong", "rim", "cong", "tom", "pop", NULL
 };
 
 #define ASS_FIND_INS(names,id,ch,off) { \
@@ -4671,6 +4671,16 @@ bool FurnaceGUI::loop() {
           openFileDialog(GUI_FILE_SAVE);
         }
         ImGui::Separator();
+        if (JOKE_CUR_HOUR==15) {
+          if (ImGui::MenuItem(_("import MIDI..."))) {
+            if ((rand()%5)==0) {
+              showError("what makes you think there is MIDI import?");
+            } else {
+              abort();
+            }
+          }
+          ImGui::Separator();
+        }
         if (settings.exportOptionsLayout==0) {
           if (ImGui::BeginMenu(_("export audio..."))) {
             drawExportAudio();
@@ -6290,6 +6300,7 @@ bool FurnaceGUI::loop() {
 
     centerNextWindow(_("Furnace###BeatRating"),canvasW,canvasH);
     if (ImGui::BeginPopupModal("Furnace###BeatRating",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
+      stop();
       ImGui::TextUnformatted(_("This beat is ass. Session terminated."));
       if (ImGui::Button(_("OK"))) {
         quit=true;

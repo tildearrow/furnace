@@ -1,20 +1,20 @@
 - 0: goofy ass
-- 1:
+- 1: Furnace 0.6.9
 - 2: notes screw up
 - 3:
 - 4:
 - 5: goofy ass
-- 6:
+- 6: MSW setting is visible
 - 7:
 - 8:
 - 9:
 - 10:
 - 11:
-- 12:
-- 13:
+- 12: exam
+- 13: refuse to doAction
 - 14: notes screw up
-- 15:
-- 16:
+- 15: fake MIDI import
+- 16: MSW setting is visible
 - 17:
 - 18: cursor screws up
 - 19: note input may terminate program
