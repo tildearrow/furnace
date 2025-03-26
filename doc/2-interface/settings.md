@@ -558,6 +558,11 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - slight performance cost and slightly buggy.
 - **Fill entire window**: removes the gap between the waveform and the edge of the window.
 - **Waveform goes out of bounds**: allows the waveform to draw past the top and bottom of the oscilloscope.
+- **Line size**: line thickness.
+- **Per-channel oscilloscope threads**: number of CPU threads allocated to handle individual oscilloscopes. a reasonable setting is the total number of available cores minus two.
+- **Oscilloscope rendering engine**: chooses which line-drawing method to use.
+  - **ImGui line plot**: use the UI's native rendering method. default.
+  - **GLSL (if available)**: render using shaders that run on the graphics card. only available when using the OpenGL 3.0 render backend.
 
 ### Song Comments
 
