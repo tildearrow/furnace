@@ -60,6 +60,7 @@ enum FurnaceCVObjectTypes {
   CV_ENEMY_BOMB,
   CV_EXPLOSION,
   CV_ENEMY,
+  CV_PLANE,
   CV_FURBALL,
   CV_MINE,
   CV_POWERUP_P,
@@ -110,6 +111,135 @@ void FurnaceCVObject::collision(FurnaceCVObject* other) {
 
 void FurnaceCVObject::tick() {
 }
+
+struct FurnaceCV {
+  SDL_Surface* surface;
+  unsigned char* prioBuf;
+  DivEngine* e;
+  unsigned char* tileData;
+  unsigned int tick;
+  
+  // state
+  unsigned short* curStage;
+  int stageWidth, stageHeight;
+  int stageWidthPx, stageHeightPx;
+
+  const char* typeAddr;
+  unsigned char typeDelay;
+  int typeX, typeY;
+  int typeXStart, typeYStart;
+  int typeXEnd, typeYEnd;
+
+  int textWait, curText, transWait;
+  int ticksToInit;
+
+  bool inGame, inTransition, newHiScore, playSongs, pleaseInitSongs, gameOver;
+  unsigned char lives, respawnTime, stage, shotType;
+  int score;
+  int hiScore;
+  short lastPlayerX, lastPlayerY;
+  short fxChanBase, fxInsBase;
+  short speedTicks;
+  short planeTime;
+  float origSongRate;
+
+  FixedQueue<unsigned char,16> weaponStack;
+  
+  // graphics
+  unsigned short tile0[56][80];
+  unsigned short tile1[56][80];
+  unsigned short scrollX[2];
+  unsigned short scrollY[2];
+  unsigned char bgColor;
+  std::vector<FurnaceCVObject*> sprite;
+  // this offset is applied to sprites.
+  int viewX, viewY;
+
+  // input
+  unsigned char joyInputPrev;
+  unsigned char joyPressed;
+  unsigned char joyReleased;
+  unsigned char joyInput;
+
+  template<typename T> T* createObject(short x=0, short y=0);
+  template<typename T> T* createObjectNoPos();
+  void buildStage(int which);
+
+  void putText(int fontBase, bool fontHeight, String text, int x, int y);
+
+  void startTyping(const char* text, int x, int y);
+
+  void soundEffect(int ins, int chan, int note);
+  void stopSoundEffect(int ins, int chan, int note);
+
+  void addScore(int amount);
+
+  void typeTick();
+
+  void rasterH(int scanline);
+  void render(unsigned char joyIn);
+  void tileDataRead(struct GIF_WHDR* data);
+  void loadInstruments();
+  bool init(DivEngine* eng);
+  void unload();
+
+  FurnaceCV():
+    surface(NULL),
+    e(NULL),
+    tileData(NULL),
+    tick(0),
+    curStage(NULL),
+    stageWidth(40),
+    stageHeight(28),
+    stageWidthPx(320),
+    stageHeightPx(224),
+    typeAddr(NULL),
+    typeDelay(0),
+    typeX(0),
+    typeY(0),
+    typeXStart(0),
+    typeYStart(0),
+    typeXEnd(39),
+    typeYEnd(27),
+    textWait(60),
+    curText(0),
+    transWait(0),
+    ticksToInit(2),
+    inGame(false),
+    inTransition(false),
+    newHiScore(false),
+    playSongs(true),
+    pleaseInitSongs(false),
+    gameOver(false),
+    lives(5),
+    respawnTime(0),
+    stage(0),
+    shotType(0),
+    score(0),
+    hiScore(25000),
+    lastPlayerX(0),
+    lastPlayerY(0),
+    fxChanBase(-1),
+    fxInsBase(-1),
+    speedTicks(0),
+    planeTime(0),
+    origSongRate(60.0f),
+    bgColor(0),
+    viewX(0),
+    viewY(0),
+    joyInputPrev(0),
+    joyPressed(0),
+    joyReleased(0),
+    joyInput(0) {
+    memset(tile0,0,80*56*sizeof(short));
+    memset(tile1,0,80*56*sizeof(short));
+
+    scrollX[0]=0;
+    scrollX[1]=0;
+    scrollY[0]=0;
+    scrollY[1]=0;
+  }
+};
 
 struct FurnaceCVPlayer: FurnaceCVObject {
   short subX, subY;
@@ -255,10 +385,71 @@ struct FurnaceCVEnemyVortex: FurnaceCVObject {
     speedX((rand()%5)-2),
     speedY((rand()%5)-2) {
     type=CV_ENEMY;
+    prio=2;
     spriteDef[0]=0x480;
     spriteDef[1]=0x481;
     spriteDef[2]=0x4a0;
     spriteDef[3]=0x4a1;
+  }
+};
+
+struct FurnaceCVEnemyPlane: FurnaceCVObject {
+  unsigned char orient;
+  short shootTime, speed;
+
+  void collision(FurnaceCVObject* other);
+
+  void tick();
+  FurnaceCVEnemyPlane(FurnaceCV* p):
+    FurnaceCVObject(p),
+    orient(rand()&3),
+    shootTime(40),
+    speed(3) {
+    type=CV_PLANE;
+    speed=2+(p->stage>>2)+(rand()%3);
+    prio=3;
+    if (speed>8) speed=8;
+    switch (orient) {
+      case 0: case 2:
+        spriteWidth=8;
+        spriteHeight=5;
+        break;
+      case 1: case 3:
+        spriteWidth=5;
+        spriteHeight=8;
+        break;
+    }
+
+    switch (orient) {
+      case 0:
+        for (int i=0; i<40; i++) {
+          spriteDef[i]=0x4c0+(i&7)+((i>>3)<<5);
+        }
+        x=-80;
+        y=rand()%(p->stageHeightPx-80);
+        break;
+      case 1:
+        for (int i=0; i<40; i++) {
+          spriteDef[i]=0x4d7+(i%5)+((i/5)<<5);
+        }
+        x=rand()%(p->stageWidthPx-80);
+        y=p->stageHeightPx+16;
+        break;
+      case 2:
+        for (int i=0; i<40; i++) {
+          spriteDef[i]=0x4c9+(i&7)+((i>>3)<<5);
+        }
+        x=p->stageWidthPx+16;
+        y=rand()%(p->stageHeightPx-80);
+        break;
+      case 3:
+        for (int i=0; i<40; i++) {
+          spriteDef[i]=0x4d2+(i%5)+((i/5)<<5);
+        }
+        x=rand()%(p->stageWidthPx-80);
+        y=-80;
+        break;
+    }
   }
 };
 
@@ -410,132 +601,6 @@ struct FurnaceCVExtraLife: FurnaceCVObject {
     life(255) {
       type=CV_EXTRA_LIFE;
     }
-};
-
-struct FurnaceCV {
-  SDL_Surface* surface;
-  unsigned char* prioBuf;
-  DivEngine* e;
-  unsigned char* tileData;
-  unsigned int tick;
-  
-  // state
-  unsigned short* curStage;
-  int stageWidth, stageHeight;
-  int stageWidthPx, stageHeightPx;
-
-  const char* typeAddr;
-  unsigned char typeDelay;
-  int typeX, typeY;
-  int typeXStart, typeYStart;
-  int typeXEnd, typeYEnd;
-
-  int textWait, curText, transWait;
-  int ticksToInit;
-
-  bool inGame, inTransition, newHiScore, playSongs, pleaseInitSongs, gameOver;
-  unsigned char lives, respawnTime, stage, shotType;
-  int score;
-  int hiScore;
-  short lastPlayerX, lastPlayerY;
-  short fxChanBase, fxInsBase;
-  short speedTicks;
-  float origSongRate;
-
-  FixedQueue<unsigned char,16> weaponStack;
-  
-  // graphics
-  unsigned short tile0[56][80];
-  unsigned short tile1[56][80];
-  unsigned short scrollX[2];
-  unsigned short scrollY[2];
-  unsigned char bgColor;
-  std::vector<FurnaceCVObject*> sprite;
-  // this offset is applied to sprites.
-  int viewX, viewY;
-
-  // input
-  unsigned char joyInputPrev;
-  unsigned char joyPressed;
-  unsigned char joyReleased;
-  unsigned char joyInput;
-
-  template<typename T> T* createObject(short x=0, short y=0);
-  void buildStage(int which);
-
-  void putText(int fontBase, bool fontHeight, String text, int x, int y);
-
-  void startTyping(const char* text, int x, int y);
-
-  void soundEffect(int ins, int chan, int note);
-  void stopSoundEffect(int ins, int chan, int note);
-
-  void addScore(int amount);
-
-  void typeTick();
-
-  void rasterH(int scanline);
-  void render(unsigned char joyIn);
-  void tileDataRead(struct GIF_WHDR* data);
-  void loadInstruments();
-  bool init(DivEngine* eng);
-  void unload();
-
-  FurnaceCV():
-    surface(NULL),
-    e(NULL),
-    tileData(NULL),
-    tick(0),
-    curStage(NULL),
-    stageWidth(40),
-    stageHeight(28),
-    stageWidthPx(320),
-    stageHeightPx(224),
-    typeAddr(NULL),
-    typeDelay(0),
-    typeX(0),
-    typeY(0),
-    typeXStart(0),
-    typeYStart(0),
-    typeXEnd(39),
-    typeYEnd(27),
-    textWait(60),
-    curText(0),
-    transWait(0),
-    ticksToInit(2),
-    inGame(false),
-    inTransition(false),
-    newHiScore(false),
-    playSongs(true),
-    pleaseInitSongs(false),
-    gameOver(false),
-    lives(5),
-    respawnTime(0),
-    stage(0),
-    shotType(0),
-    score(0),
-    hiScore(25000),
-    lastPlayerX(0),
-    lastPlayerY(0),
-    fxChanBase(-1),
-    fxInsBase(-1),
-    speedTicks(0),
-    origSongRate(60.0f),
-    bgColor(0),
-    viewX(0),
-    viewY(0),
-    joyInputPrev(0),
-    joyPressed(0),
-    joyReleased(0),
-    joyInput(0) {
-    memset(tile0,0,80*56*sizeof(short));
-    memset(tile1,0,80*56*sizeof(short));
-
-    scrollX[0]=0;
-    scrollX[1]=0;
-    scrollY[0]=0;
-    scrollY[1]=0;
-  }
 };
 
 static const char* cvText[]={
@@ -787,33 +852,33 @@ void FurnaceGUI::drawTutorial() {
     ImGui::SetNextWindowPos(ImVec2(0,0));
     ImGui::SetNextWindowSize(ImVec2(canvasW,canvasH));
     if (ImGui::Begin("Combat Vehicle",&cvOpen,ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_Modal|ImGuiWindowFlags_NoTitleBar)) {
-      ImVec2 dpadLoc=ImVec2(canvasW*0.25,canvasH*0.85); 
-      ImVec2 buttonLoc=ImVec2(canvasW*0.75,canvasH*0.85);
-      float oneUnit=canvasW*0.15;
+      ImVec2 dpadLoc=ImVec2(canvasW*0.22,canvasH*0.85); 
+      ImVec2 buttonLoc=ImVec2(canvasW*0.78,canvasH*0.85);
+      float oneUnit=canvasW*0.12;
 
       ImVec2 dpadUpStart=ImVec2(
-        dpadLoc.x-oneUnit*1.5,
-        dpadLoc.y-oneUnit*1.5
+        dpadLoc.x-oneUnit*1.75,
+        dpadLoc.y-oneUnit*1.75
       );
       ImVec2 dpadUpEnd=ImVec2(
-        dpadLoc.x+oneUnit*1.5,
+        dpadLoc.x+oneUnit*1.75,
         dpadLoc.y-oneUnit*0.5
       );
       ImVec2 dpadLeftEnd=ImVec2(
         dpadLoc.x-oneUnit*0.5,
-        dpadLoc.y+oneUnit*1.5
+        dpadLoc.y+oneUnit*1.75
       );
       ImVec2 dpadDownStart=ImVec2(
-        dpadLoc.x-oneUnit*1.5,
+        dpadLoc.x-oneUnit*1.75,
         dpadLoc.y+oneUnit*0.5
       );
       ImVec2 dpadDownEnd=ImVec2(
-        dpadLoc.x+oneUnit*1.5,
-        dpadLoc.y+oneUnit*1.5
+        dpadLoc.x+oneUnit*1.75,
+        dpadLoc.y+oneUnit*1.75
       );
       ImVec2 dpadRightStart=ImVec2(
         dpadLoc.x+oneUnit*0.5,
-        dpadLoc.y-oneUnit*1.5
+        dpadLoc.y-oneUnit*1.75
       );
 
       ImVec2 buttonBStart=ImVec2(
@@ -875,6 +940,7 @@ void FurnaceGUI::drawTutorial() {
             delete cv;
             cv=NULL;
             cvOpen=false;
+            return;
           }
         }
       }
@@ -1110,6 +1176,12 @@ template<typename T> T* FurnaceCV::createObject(short x, short y) {
   return ret;
 }
 
+template<typename T> T* FurnaceCV::createObjectNoPos() {
+  T* ret=new T(this);
+  sprite.push_back(ret);
+  return ret;
+}
+
 void FurnaceCV::soundEffect(int ins, int chan, int note) {
   e->noteOn(chan+fxChanBase,ins+fxInsBase,note);
   /*
@@ -1293,6 +1365,9 @@ void FurnaceCV::buildStage(int which) {
       }
     }
   }
+
+  // setup stuff
+  planeTime=180+(rand()%400);
 }
 
 #define CV_FONTBASE_8x8 0x250
@@ -1411,6 +1486,15 @@ void FurnaceCV::render(unsigned char joyIn) {
   }
 
   if (inGame) {
+    // planes
+    if (--planeTime<=0) {
+      planeTime=MAX(10,60-(stage*2))+(rand()%MAX(50,320-stage*4));
+      if (stage>=5 && stage!=9 && (stage&1 || stage>=10)) {
+        createObjectNoPos<FurnaceCVEnemyPlane>();
+      }
+    }
+
+    // initialization
     if (ticksToInit>0) {
       if (--ticksToInit<1) {
         e->changeSongP(0);
@@ -3168,4 +3252,42 @@ void FurnaceCVEnemyVortex::tick() {
   spriteDef[1]=0x481+((animFrame>>5)<<1);
   spriteDef[2]=0x4a0+((animFrame>>5)<<1);
   spriteDef[3]=0x4a1+((animFrame>>5)<<1);
+}
+
+// FurnaceCVEnemyPlane IMPLEMENTATION
+
+void FurnaceCVEnemyPlane::collision(FurnaceCVObject* other) {
+  // ignore completely
+}
+
+void FurnaceCVEnemyPlane::tick() {
+  switch (orient) {
+    case 0:
+      x+=speed;
+      if (x>cv->stageWidthPx+32) dead=true;
+      break;
+    case 1:
+      y-=speed;
+      if (y<-160) dead=true;
+      break;
+    case 2:
+      x-=speed;
+      if (x<-160) dead=true;
+      break;
+    case 3:
+      y+=speed;
+      if (y>cv->stageHeightPx+32) dead=true;
+      break;
+    default:
+      dead=true;
+      logE("plane with invalid orientation %d",orient);
+      break;
+  }
+
+  if (dead) logE("plane dead");
+
+  if (--shootTime<=0) {
+    shootTime=40;
+    //cv->soundEffect(SE_VORTEXSHOOT);
+  }
 }
