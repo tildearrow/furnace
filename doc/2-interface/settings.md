@@ -399,6 +399,7 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - higher settings use more video memory.
   - for pixel or bitmap fonts, set this to **1x**.
 - **Load fallback font**: load an extra font that contains nearly all characters that can be used, in case the selected fonts lack them. uses much video memory
+- **Load fallback font (pattern)**: as "Load fallback font" above but for the pattern font.
 - **Display Japanese characters**, **Display Chinese (Simplified) characters**, **Display Chinese (Traditional) characters** and **Display Korean characters**: only toggle these options if you have enough graphics memory.
   - these are a temporary solution until dynamic font atlas is implemented in Dear ImGui.
 
@@ -558,6 +559,11 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - slight performance cost and slightly buggy.
 - **Fill entire window**: removes the gap between the waveform and the edge of the window.
 - **Waveform goes out of bounds**: allows the waveform to draw past the top and bottom of the oscilloscope.
+- **Line size**: line thickness.
+- **Per-channel oscilloscope threads**: number of CPU threads allocated to handle individual oscilloscopes. a reasonable setting is the total number of available cores minus two.
+- **Oscilloscope rendering engine**: chooses which line-drawing method to use.
+  - **ImGui line plot**: use the UI's native rendering method. default.
+  - **GLSL (if available)**: render using shaders that run on the graphics card. only available when using the OpenGL 3.0 render backend.
 
 ### Song Comments
 

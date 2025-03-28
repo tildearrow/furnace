@@ -7,12 +7,17 @@ the "Oscilloscope (per-channel)" window displays several oscilloscope views (one
 right-clicking the view will display the configuration view shown above:
 - **Columns**: sets the amount of columns for the oscilloscope views.
 - **Size (ms)**: sets how much of a channel's output is captured for the oscilloscope view.
-- **Center waveform**: when enabled, the displayed waveforms will be centered using an auto-correlation algorithm.
 - **Automatic columns**: sets the number of columns based on the number of channels.
   - **Off**: use the Columns setting.
   - **Mode 1**: always fewer columns than rows.
   - **Mode 2**: bias slightly toward more columns.
   - **Mode 3**: always more columns than rows.
+- **Center waveform**: when enabled, the displayed waveforms will be centered horizontally using an auto-correlation algorithm.
+- **Randomize phase on note**
+- **DC offset correction**: controls the algorithm that centers the waveform vertically.
+  - **Off**
+  - **Normal**
+  - **High**
 - **Amplitude**: scales amplitude for all oscilloscope views.
 - **Line size**: controls line thickness.
 - **Gradient**: this allows you to use a gradient for determining the waveforms' colors instead of a single color. see the gradient section for more information.
