@@ -1871,6 +1871,7 @@ class FurnaceGUI {
     int loadChineseTraditional;
     int loadKorean;
     int loadFallback;
+    int loadFallbackPat;
     int fmLayout;
     int sampleLayout;
     int waveLayout;
@@ -2123,6 +2124,7 @@ class FurnaceGUI {
       loadChineseTraditional(0),
       loadKorean(0),
       loadFallback(1),
+      loadFallbackPat(1),
       fmLayout(4),
       sampleLayout(0),
       waveLayout(0),
