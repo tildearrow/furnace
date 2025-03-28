@@ -3150,6 +3150,15 @@ void FurnaceGUI::drawSettings() {
           ImGui::SetTooltip(_("disable to save video memory."));
         }
 
+        bool loadFallbackPatB=settings.loadFallbackPat;
+        if (ImGui::Checkbox(_("Load fallback font (pattern)"),&loadFallbackPatB)) {
+          settings.loadFallbackPat=loadFallbackPatB;
+          settingsChanged=true;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("disable to save video memory."));
+        }
+
         bool loadJapaneseB=settings.loadJapanese;
         if (ImGui::Checkbox(_("Display Japanese characters"),&loadJapaneseB)) {
           settings.loadJapanese=loadJapaneseB;
@@ -5015,6 +5024,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.loadChineseTraditional=conf.getInt("loadChineseTraditional",0);
     settings.loadKorean=conf.getInt("loadKorean",0);
     settings.loadFallback=conf.getInt("loadFallback",1);
+    settings.loadFallbackPat=conf.getInt("loadFallbackPat",1);
 
     settings.fontBackend=conf.getInt("fontBackend",FONT_BACKEND_DEFAULT);
     settings.fontHinting=conf.getInt("fontHinting",GUI_FONT_HINTING_DEFAULT);
@@ -5269,6 +5279,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.loadChineseTraditional,0,1);
   clampSetting(settings.loadKorean,0,1);
   clampSetting(settings.loadFallback,0,1);
+  clampSetting(settings.loadFallbackPat,0,1);
   clampSetting(settings.fmLayout,0,6);
   clampSetting(settings.susPosition,0,3);
   clampSetting(settings.effectCursorDir,0,2);
@@ -5590,6 +5601,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("loadChineseTraditional",settings.loadChineseTraditional);
     conf.set("loadKorean",settings.loadKorean);
     conf.set("loadFallback",settings.loadFallback);
+    conf.set("loadFallbackPat",settings.loadFallbackPat);
 
     conf.set("fontBackend",settings.fontBackend);
     conf.set("fontHinting",settings.fontHinting);
@@ -6993,15 +7005,14 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     }
 
     // four fallback fonts
-    if (settings.loadJapanese ||
+    if (settings.loadFallbackPat && (settings.loadJapanese ||
         settings.loadChinese ||
         settings.loadChineseTraditional ||
         settings.loadKorean ||
         localeRequiresJapanese ||
         localeRequiresChinese ||
         localeRequiresChineseTrad ||
-        localeRequiresKorean ||
-        settings.loadFallback) {
+        localeRequiresKorean)) {
       patFont=addFontZlib(font_plexMono_compressed_data,font_plexMono_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1,fontRange);
       patFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1,fontRange);
       patFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1,fontRange);

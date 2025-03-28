@@ -160,9 +160,8 @@ void DivPlatformNDS::tick(bool sysTick) {
         DivSample* s=parent->getSample(chan[i].sample);
         switch (s->depth) {
           case DIV_SAMPLE_DEPTH_IMA_ADPCM: ctrl=0x40; break;
-          case DIV_SAMPLE_DEPTH_8BIT: ctrl=0x00; break;
           case DIV_SAMPLE_DEPTH_16BIT: ctrl=0x20; break;
-          default: break;
+          default: ctrl=0x00; break;
         }
         double off=(s->centerRate>=1)?(parent->getCenterRate()/(double)s->centerRate):1.0;
         chan[i].freq=0x10000-(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER));
@@ -183,9 +182,8 @@ void DivPlatformNDS::tick(bool sysTick) {
           if (chan[i].audPos>0) {
             switch (s->depth) {
               case DIV_SAMPLE_DEPTH_IMA_ADPCM: start+=chan[i].audPos/2; end-=(chan[i].audPos/8); break;
-              case DIV_SAMPLE_DEPTH_8BIT: start+=chan[i].audPos; end-=(chan[i].audPos/4); break;
               case DIV_SAMPLE_DEPTH_16BIT: start+=chan[i].audPos*2; end-=(chan[i].audPos/2); break;
-              default: break;
+              default: start+=chan[i].audPos; end-=(chan[i].audPos/4); break;
             }
           }
           if (s->isLoopable()) {
@@ -199,14 +197,6 @@ void DivPlatformNDS::tick(bool sysTick) {
                     loopEnd-=(chan[i].audPos-s->loopStart)/8;
                   }
                   break;
-                case DIV_SAMPLE_DEPTH_8BIT:
-                  loopStart=(s->loopStart-chan[i].audPos)/4;
-                  loopEnd=(s->loopEnd-s->loopStart)/4;
-                  if (chan[i].audPos>(unsigned int)s->loopStart) {
-                    loopStart=0;
-                    loopEnd-=(chan[i].audPos-s->loopStart)/4;
-                  }
-                  break;
                 case DIV_SAMPLE_DEPTH_16BIT:
                   loopStart=(s->loopStart-chan[i].audPos)/2;
                   loopEnd=(s->loopEnd-s->loopStart)/2;
@@ -215,14 +205,20 @@ void DivPlatformNDS::tick(bool sysTick) {
                     loopEnd-=(chan[i].audPos-s->loopStart)/2;
                   }
                   break;
-                default: break;
+                default:
+                  loopStart=(s->loopStart-chan[i].audPos)/4;
+                  loopEnd=(s->loopEnd-s->loopStart)/4;
+                  if (chan[i].audPos>(unsigned int)s->loopStart) {
+                    loopStart=0;
+                    loopEnd-=(chan[i].audPos-s->loopStart)/4;
+                  }
+                  break;
               }
             } else {
               switch (s->depth) {
                 case DIV_SAMPLE_DEPTH_IMA_ADPCM: loopStart=s->loopStart/8; loopEnd=(s->loopEnd-s->loopStart)/8; break;
-                case DIV_SAMPLE_DEPTH_8BIT: loopStart=s->loopStart/4; loopEnd=(s->loopEnd-s->loopStart)/4; break;
                 case DIV_SAMPLE_DEPTH_16BIT: loopStart=s->loopStart/2; loopEnd=(s->loopEnd-s->loopStart)/2; break;
-                default: break;
+                default: loopStart=s->loopStart/4; loopEnd=(s->loopEnd-s->loopStart)/4; break;
               }
             }
             loopEnd=CLAMP(loopEnd,0,0x3fffff);
@@ -546,8 +542,23 @@ void DivPlatformNDS::renderSamples(int sysID) {
       continue;
     }
 
-    int length=MIN(16777212,s->getCurBufLen());
-    unsigned char* src=(unsigned char*)s->getCurBuf();
+    int length=0;
+    unsigned char* src=NULL;
+    switch (s->depth) {
+      case DIV_SAMPLE_DEPTH_16BIT:
+        length=MIN(16777212,s->length16);
+        src=(unsigned char*)s->data16;
+        break;
+      case DIV_SAMPLE_DEPTH_IMA_ADPCM:
+        length=MIN(16777212,s->lengthIMA);
+        src=(unsigned char*)s->dataIMA;
+        break;
+      default:
+        length=MIN(16777212,s->length8);
+        src=(unsigned char*)s->data8;
+        break;
+    }
+
     int actualLength=MIN((int)(getSampleMemCapacity()-memPos),length);
     if (actualLength>0) {
       memcpy(&sampleMem[memPos],src,actualLength);
