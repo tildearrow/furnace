@@ -3470,12 +3470,12 @@ void FurnaceCVEnemyPlane::tick() {
     if (--shootTime<=0) {
       shootTime=28-(speed*2);
       cv->soundEffect(SE_EXPL2);
-      cv->createObject<FurnaceCVFurBallLarge>(x+(spriteWidth<<2),y+(spriteHeight<<2));
+      cv->createObject<FurnaceCVFurBallLarge>(x+(spriteWidth<<2)-16,y+(spriteHeight<<2)-16);
       for (int i=0; i<14; i++) {
         float fraction=(float)i/13.0f;
         float xs=cos(fraction*M_PI*2.0)*28;
         float ys=sin(fraction*M_PI*2.0)*28;
-        FurnaceCVEnemyBullet* b=cv->createObject<FurnaceCVEnemyBullet>(x+(spriteWidth<<2),y+(spriteHeight<<2));
+        FurnaceCVEnemyBullet* b=cv->createObject<FurnaceCVEnemyBullet>(x+(spriteWidth<<2)-4,y+(spriteHeight<<2)-4);
         b->speedX=xs;
         b->speedY=ys;
       }

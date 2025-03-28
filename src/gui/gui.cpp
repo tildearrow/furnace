@@ -2486,7 +2486,7 @@ static const char* bongoNames[]={
 
 void FurnaceGUI::updateProperties() {
   if (JOKE_CUR_HOUR==0 || JOKE_CUR_HOUR==5 || JOKE_CUR_HOUR==20) {
-    if ((rand()%69)==0) {
+    if ((rand()%30)==0) {
       e->curSubSong->ordersLen=1;
       e->curSubSong->patLen=16;
       e->curSubSong->speeds.val[0]=6;
