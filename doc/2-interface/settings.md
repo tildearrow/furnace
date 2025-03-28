@@ -399,6 +399,7 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - higher settings use more video memory.
   - for pixel or bitmap fonts, set this to **1x**.
 - **Load fallback font**: load an extra font that contains nearly all characters that can be used, in case the selected fonts lack them. uses much video memory
+- **Load fallback font (pattern)**: as "Load fallback font" above but for the pattern font.
 - **Display Japanese characters**, **Display Chinese (Simplified) characters**, **Display Chinese (Traditional) characters** and **Display Korean characters**: only toggle these options if you have enough graphics memory.
   - these are a temporary solution until dynamic font atlas is implemented in Dear ImGui.
 
