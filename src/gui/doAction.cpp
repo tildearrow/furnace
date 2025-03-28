@@ -32,7 +32,7 @@ const unsigned char avRequest[15]={
 
 
 void FurnaceGUI::doAction(int what) {
-  if (JOKE_CUR_HOUR==13) {
+  if (JOKE_CUR_HOUR==8 || JOKE_CUR_HOUR==13 || JOKE_CUR_HOUR==23) {
     if ((rand()%1000)==0) {
       showError("I don't wanna");
       return;

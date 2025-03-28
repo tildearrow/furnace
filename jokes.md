@@ -6,19 +6,19 @@
 - 5: goofy ass
 - 6: MSW setting is visible
 - 7:
-- 8:
+- 8: refuse to doAction
 - 9:
 - 10:
 - 11:
-- 12: exam
+- 12: exam (?)
 - 13: refuse to doAction
 - 14: notes screw up
 - 15: fake MIDI import
 - 16: MSW setting is visible
-- 17:
+- 17: pattern lag/repeat
 - 18: cursor screws up
 - 19: note input may terminate program
 - 20: goofy ass
 - 21:
 - 22: notes screw up
-- 23:
+- 23: refuse to doAction

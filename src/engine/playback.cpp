@@ -29,6 +29,11 @@
 void DivEngine::nextOrder() {
   curRow=0;
   if (repeatPattern) return;
+  if (JOKE_CUR_HOUR==17) {
+    if ((rand()%80)==0) {
+      return;
+    }
+  }
   if (++curOrder>=curSubSong->ordersLen) {
     logV("end of orders reached");
     endOfSong=true;
@@ -1469,6 +1474,17 @@ void DivEngine::nextRow() {
     curSpeed++;
     if (curSpeed>=speeds.len) curSpeed=0;
     nextSpeed=speeds.val[curSpeed];
+  }
+
+  if (JOKE_CUR_HOUR==17) {
+    if ((rand()%300)==0) {
+      ticks++;
+      nextSpeed++;
+    }
+    if ((rand()%15000)==0) {
+      ticks=128;
+      nextSpeed+=128;
+    }
   }
 
   /*

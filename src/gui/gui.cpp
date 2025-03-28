@@ -2424,11 +2424,11 @@ static const char* snareNames[]={
 };
 
 static const char* clapNames[]={
-  "clap", "clav", NULL
+  "clap", "clav", "hall", "click", "cow", NULL
 };
 
 static const char* timpaniNames[]={
-  "timp", "tom", "crash", NULL
+  "timp", "tom", "crash", "kettle", NULL
 };
 
 static const char* chatNames[]={
@@ -2436,7 +2436,7 @@ static const char* chatNames[]={
 };
 
 static const char* ohatNames[]={
-  "open", "hop", "hho", "ohh", "hh", "long", "hat", NULL
+  "open", "hop", "hho", "ohh", "hh", "ride", "long", "hat", NULL
 };
 
 static const char* bongoNames[]={
@@ -2486,7 +2486,7 @@ static const char* bongoNames[]={
 
 void FurnaceGUI::updateProperties() {
   if (JOKE_CUR_HOUR==0 || JOKE_CUR_HOUR==5 || JOKE_CUR_HOUR==20) {
-    if (rand()%2) {
+    if ((rand()%69)==0) {
       e->curSubSong->ordersLen=1;
       e->curSubSong->patLen=16;
       e->curSubSong->speeds.val[0]=6;
