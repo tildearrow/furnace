@@ -20,6 +20,7 @@
 #include "gui.h"
 #include "guiConst.h"
 #include "../fileutils.h"
+#include "../utfutils.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <imgui.h>
 
@@ -27,6 +28,17 @@
 #define CLAMP_TO_SIZE(_val,_size) \
   if (_size==0||_val<0) _val=0; \
   else if (_val>=(int)_size) _val=(int)_size-1;
+
+String getEnvVar(const char *name) {
+#ifdef _WIN32
+  WString wname=utf8To16(name);
+  wchar_t* val=_wgetenv(wname.c_str());
+  if (val==NULL) return "";
+  return utf16To8(val);
+#else
+  return getenv(name);
+#endif
+}
 
 String pathSearch(const char *program) {
 #ifdef _WIN32
@@ -37,17 +49,21 @@ String pathSearch(const char *program) {
   const char* envDelim=":";
 #endif
 
-  String path=getenv("PATH"); // TODO: MSVC way to get an env var
+  String path=getEnvVar("PATH");
+
+  logD("PATH=%s",path);
 
   size_t start=0, end=0;
   while (true) {
-      end=path.find(envDelim,start);
-      if (end==String::npos) break;
+    end=path.find(envDelim,start);
 
-      String curr=path.substr(start,end-start)+fsDelim+program;
-      if (fileExists(curr.c_str())) return curr;
+    String currDir=path.substr(start,end-start);
+    logD("*** %s",currDir);
+    String currFile=currDir+fsDelim+program;
+    if (fileExists(currFile.c_str())) return currFile;
 
-      start=end+1;
+    if (end==String::npos) break;
+    start=end+1;
   }
 
   return "";
@@ -78,6 +94,7 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
   };
 
   if (!e->exportFfmpegSearched) {
+    // FIXME: this isn't running on wine!!! why????
     e->exportFfmpegPath=pathSearch("ffmpeg");
     e->exportFfmpegSearched=true;
   }
