@@ -1226,7 +1226,7 @@ void FurnaceGUI::stop() {
     }
     updateScroll(cursor.y);
   }
-  if (JOKE_CUR_HOUR==9) {
+  if (curEngineState==9) {
     if ((rand()%40)==0) {
       fullView=true;
     } else {
@@ -1339,7 +1339,7 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
   editAdvance();
   curNibble=false;
 
-  if (JOKE_CUR_HOUR==19) {
+  if (curEngineState==19) {
     if ((rand()%300)==0) {
       displayRating=true;
     }
@@ -2495,7 +2495,7 @@ static const char* bongoNames[]={
 
 
 void FurnaceGUI::updateProperties() {
-  if (JOKE_CUR_HOUR==0 || JOKE_CUR_HOUR==5 || JOKE_CUR_HOUR==20) {
+  if (curEngineState==0 || curEngineState==5 || curEngineState==20) {
     if ((rand()%30)==0) {
       e->curSubSong->ordersLen=1;
       e->curSubSong->patLen=16;
@@ -4683,7 +4683,7 @@ bool FurnaceGUI::loop() {
           openFileDialog(GUI_FILE_SAVE);
         }
         ImGui::Separator();
-        if (JOKE_CUR_HOUR==15) {
+        if (curEngineState==15) {
           if (ImGui::MenuItem(_("import MIDI..."))) {
             if ((rand()%5)==0) {
               showError("what makes you think there is MIDI import?");

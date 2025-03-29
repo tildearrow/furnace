@@ -224,7 +224,7 @@ void FurnaceGUI::finishSelection() {
 }
 
 void FurnaceGUI::moveCursor(int x, int y, bool select) {
-  if (JOKE_CUR_HOUR==18) {
+  if (curEngineState==18) {
     if ((rand()%120)==0) {
       x=-x;
     }
@@ -458,7 +458,7 @@ void FurnaceGUI::moveCursorBottom(bool select) {
 void FurnaceGUI::editAdvance() {
   finishSelection();
   cursor.y+=editStep;
-  if (JOKE_CUR_HOUR==18) {
+  if (curEngineState==18) {
     if ((rand()%180)==0) cursor.y=rand()&0xff;
   }
   if (cursor.y>=e->curSubSong->patLen) cursor.y=e->curSubSong->patLen-1;

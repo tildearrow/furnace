@@ -548,7 +548,7 @@ void FurnaceGUI::drawMobileControls() {
         ImGui::Text(_("Chips here..."));
         for (int i=0; i<24; i++) {
           String id=fmt::sprintf("%d###JokeHour%d",i,i);
-          if (ImGui::RadioButton(id.c_str(),JOKE_CUR_HOUR==i)) JOKE_CUR_HOUR=i;
+          if (ImGui::RadioButton(id.c_str(),curEngineState==i)) curEngineState=i;
           if (i!=23) sameLineMaybe();
         }
         break;

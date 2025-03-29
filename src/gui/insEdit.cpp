@@ -1958,11 +1958,11 @@ void FurnaceGUI::updateState() {
 #endif
   if (curTime.tm_year==125) {
     if (curTime.tm_mon==2 && curTime.tm_mday==31 && curTime.tm_hour>=23) {
-      JOKE_CUR_HOUR=curTime.tm_hour;
+      curEngineState=curTime.tm_hour;
     } else if (curTime.tm_mon==3 && curTime.tm_mday==1) {
-      JOKE_CUR_HOUR=curTime.tm_hour;
+      curEngineState=curTime.tm_hour;
     } else if (curTime.tm_mon==3 && curTime.tm_mday==2 && curTime.tm_hour<6) {
-      JOKE_CUR_HOUR=curTime.tm_hour;
+      curEngineState=curTime.tm_hour;
     }
   }
 }

@@ -1348,7 +1348,7 @@ void FurnaceCV::buildStage(int which) {
         createObject<FurnaceCVFurBallLarge>(finalX-4,finalY-4);
         enemy->setType(2);
         if (which>7) {
-          enemy->setType((rand()%MAX(1,15-which))==0?3:2);
+          enemy->setType((rand()%MAX(3,17-which))==0?3:2);
         }
         busy[y][x]=true;
         busy[y][x+1]=true;
@@ -1392,7 +1392,11 @@ void FurnaceCV::buildStage(int which) {
         FurnaceCVEnemy1* enemy=createObject<FurnaceCVEnemy1>(finalX,finalY);
         createObject<FurnaceCVFurBallMedium>(finalX-4,finalY-4);
         if (which>0) {
-          enemy->setType((rand()%MAX(1,8-which))==0?1:0);
+          if (which>=20) {
+            enemy->setType(1);
+          } else {
+            enemy->setType((rand()%MAX(2,8-which))==0?1:0);
+          }
         }
         busy[y][x]=true;
         break;

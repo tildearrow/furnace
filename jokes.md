@@ -10,7 +10,7 @@
 - 9: oscilloscope broken
 - 10: broken colors
 - 11: "whoopsied"
-- 12: exam (?)
+- 12: everything is black (except text)
 - 13: refuse to doAction
 - 14: notes screw up
 - 15: fake MIDI import

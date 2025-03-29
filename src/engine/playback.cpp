@@ -29,7 +29,7 @@
 void DivEngine::nextOrder() {
   curRow=0;
   if (repeatPattern) return;
-  if (JOKE_CUR_HOUR==3 || JOKE_CUR_HOUR==17) {
+  if (curEngineState==3 || curEngineState==17) {
     if ((rand()%80)==0) {
       return;
     }
@@ -331,7 +331,7 @@ const char* formatNote(unsigned char note, unsigned char octave) {
 }
 
 int DivEngine::dispatchCmd(DivCommand c) {
-  if (JOKE_CUR_HOUR==2 || JOKE_CUR_HOUR==14 || JOKE_CUR_HOUR==22) {
+  if (curEngineState==2 || curEngineState==14 || curEngineState==22) {
     if (c.cmd==DIV_CMD_NOTE_ON) {
       if ((rand()&255)==0) {
         c.value++;
@@ -1456,7 +1456,7 @@ void DivEngine::nextRow() {
       if (haltOn==DIV_HALT_PATTERN) halted=true;
     }
 
-    if ((JOKE_CUR_HOUR==4 || JOKE_CUR_HOUR==21) && (curRow&3)==0 && !skipping) {
+    if ((curEngineState==4 || curEngineState==21) && (curRow&3)==0 && !skipping) {
       if ((rand()%600)==0) {
         reverse=true;
       }
@@ -1489,7 +1489,7 @@ void DivEngine::nextRow() {
     nextSpeed=speeds.val[curSpeed];
   }
 
-  if (JOKE_CUR_HOUR==3 || JOKE_CUR_HOUR==17) {
+  if (curEngineState==3 || curEngineState==17) {
     if ((rand()%300)==0) {
       ticks++;
       nextSpeed++;
