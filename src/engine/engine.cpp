@@ -4020,6 +4020,7 @@ bool DivEngine::prePreInit() {
   logD("config path: %s",configPath.c_str());
 
   configLoaded=true;
+  JOKE_CUR_HOUR=time(NULL)-1743483600;
   return loadConf();
 }
 
