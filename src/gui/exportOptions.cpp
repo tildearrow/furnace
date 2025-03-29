@@ -23,8 +23,92 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include <imgui.h>
 
+// Enforces `_val` being an index on a container of size `_size`.
+#define CLAMP_TO_SIZE(_val,_size) \
+  if (_size==0||_val<0) _val=0; \
+  else if (_val>=(int)_size) _val=(int)_size-1;
+
+String pathSearch(const char *program) {
+#ifdef _WIN32
+  const char* fsDelim="\\";
+  const char* envDelim=";";
+#else
+  const char* fsDelim="/";
+  const char* envDelim=":";
+#endif
+
+  String path=getenv("PATH"); // TODO: MSVC way to get an env var
+
+  size_t start=0, end=0;
+  while (true) {
+      end=path.find(envDelim,start);
+      if (end==String::npos) break;
+
+      String curr=path.substr(start,end-start)+fsDelim+program;
+      if (fileExists(curr.c_str())) return curr;
+
+      start=end+1;
+  }
+
+  return "";
+}
+
 void FurnaceGUI::drawExportAudio(bool onWindow) {
   exitDisabledTimer=1;
+  CLAMP_TO_SIZE(audioExportOptions.curCommandWriterIndex,audioExportOptions.commandExportWriterDefs.size());
+
+#ifdef _WIN32
+  const bool isWin32=true;
+#else
+  const bool isWin32=false;
+#endif
+
+  const bool allowCommandWriter=!isWin32;
+  const char* sndfileDesc="Wave file (.wav) (libsndfile)";
+
+  const auto getCurrentFormatDesc=[this,sndfileDesc]() -> String {
+    switch (audioExportOptions.curWriter) {
+    case DIV_EXPORT_WRITER_SNDFILE:
+      return sndfileDesc;
+    case DIV_EXPORT_WRITER_COMMAND:
+      return audioExportOptions.commandExportWriterDefs[audioExportOptions.curCommandWriterIndex].name.c_str();
+    default:
+      return "???";
+    }
+  };
+
+  if (!e->exportFfmpegSearched) {
+    e->exportFfmpegPath=pathSearch("ffmpeg");
+    e->exportFfmpegSearched=true;
+  }
+
+  if (e->exportFfmpegPath.empty()) {
+    ImGui::Text("NOTE: ffmpeg not found. Only WAV is supported.");
+  }
+
+  if (ImGui::BeginCombo(_("file format"),getCurrentFormatDesc().c_str())) {
+    if (ImGui::Selectable(sndfileDesc)) {
+      audioExportOptions.curWriter=DIV_EXPORT_WRITER_SNDFILE;
+      audioExportOptions.curCommandWriterIndex=0;
+    }
+    for (size_t i=0; i<audioExportOptions.commandExportWriterDefs.size(); i++) {
+      if (!allowCommandWriter) ImGui::BeginDisabled();
+      if (ImGui::Selectable(audioExportOptions.commandExportWriterDefs[i].name.c_str())) {
+        audioExportOptions.curWriter=DIV_EXPORT_WRITER_COMMAND;
+        audioExportOptions.curCommandWriterIndex=i;
+      }
+      if (!allowCommandWriter) ImGui::EndDisabled();
+    }
+    ImGui::EndCombo();
+  }
+
+#ifdef _WIN32
+  ImGui::Text("Note: custom-command exports (including via ffmpeg) are not yet supported on Windows. Sorry!");
+#else
+  if (audioExportOptions.curWriter==DIV_EXPORT_WRITER_COMMAND) {
+    ImGui::InputText(_("extra flags"),&audioExportOptions.extraFlags,ImGuiInputTextFlags_UndoRedo);
+  }
+#endif
 
   ImGui::Text(_("Export type:"));
 
@@ -34,7 +118,7 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
   }
   if (ImGui::RadioButton(_("multiple files (one per chip)"),audioExportOptions.mode==DIV_EXPORT_MODE_MANY_SYS)) {
     audioExportOptions.mode=DIV_EXPORT_MODE_MANY_SYS;
-        }
+  }
   if (ImGui::RadioButton(_("multiple files (one per channel)"),audioExportOptions.mode==DIV_EXPORT_MODE_MANY_CHAN)) {
     audioExportOptions.mode=DIV_EXPORT_MODE_MANY_CHAN;
   }
@@ -146,7 +230,6 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
 void FurnaceGUI::drawExportVGM(bool onWindow) {
   exitDisabledTimer=1;
 
-  ImGui::Text(_("settings:"));
   if (ImGui::BeginCombo(_("format version"),fmt::sprintf("%d.%.2x",vgmExportVersion>>8,vgmExportVersion&0xff).c_str())) {
     for (int i=0; i<7; i++) {
       if (ImGui::Selectable(fmt::sprintf("%d.%.2x",vgmVersions[i]>>8,vgmVersions[i]&0xff).c_str(),vgmExportVersion==vgmVersions[i])) {
@@ -299,7 +382,7 @@ void FurnaceGUI::drawExportROM(bool onWindow) {
         if (otherBankSize>4096) otherBankSize=4096;
         altered=true;
       }
-      
+
       ImGui::Text(_("chip to export:"));
       for (int i=0; i<e->song.systemLen; i++) {
         DivSystem sys=e->song.system[i];
@@ -382,7 +465,7 @@ void FurnaceGUI::drawExportText(bool onWindow) {
 
 void FurnaceGUI::drawExportCommand(bool onWindow) {
   exitDisabledTimer=1;
-  
+
   ImGui::Text(_(
     "this option exports a text or binary file which\n"
     "contains a dump of the internal command stream\n"

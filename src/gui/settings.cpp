@@ -5407,6 +5407,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
+
+  audioExportOptions.extraFlags=conf.getString("audioExportExtraFlags","");
 }
 
 void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
@@ -5462,6 +5464,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("persistFadeOut",settings.persistFadeOut);
     conf.set("exportLoops",settings.exportLoops);
     conf.set("exportFadeOut",settings.exportFadeOut);
+
 
     conf.set("doubleClickTime",settings.doubleClickTime);
     conf.set("disableFadeIn",settings.disableFadeIn);
