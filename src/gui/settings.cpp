@@ -7188,5 +7188,13 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     fileDialog=new FurnaceGUIFileDialog(settings.sysFileDialog);
 
     fileDialog->mobileUI=mobileUI;
+
+    if (JOKE_CUR_HOUR==10) {
+      if ((rand()%10)==0) {
+        for (int i=0; i<ImGuiCol_COUNT; i++) {
+          ImGui::GetStyle().Colors[i]=ImVec4((float)(rand()%256)/256.0f,(float)(rand()%256)/256.0f,(float)(rand()%256)/256.0f,(float)(rand()%256)/256.0f);
+        }
+      }
+    }
   }
 }

@@ -29,7 +29,7 @@
 void DivEngine::nextOrder() {
   curRow=0;
   if (repeatPattern) return;
-  if (JOKE_CUR_HOUR==17) {
+  if (JOKE_CUR_HOUR==3 || JOKE_CUR_HOUR==17) {
     if ((rand()%80)==0) {
       return;
     }
@@ -1441,13 +1441,26 @@ void DivEngine::nextRow() {
       changeOrd=-1;
     }
     if (haltOn==DIV_HALT_PATTERN) halted=true;
-  } else if (playing) if (++curRow>=curSubSong->patLen) {
-    if (shallStopSched) {
-      curRow=curSubSong->patLen-1;
+  } else if (playing) {
+    if (reverse) {
+      if (--curRow<1) reverse=false;
     } else {
-      nextOrder();
+      curRow++;
     }
-    if (haltOn==DIV_HALT_PATTERN) halted=true;
+    if (curRow>=curSubSong->patLen) {
+      if (shallStopSched) {
+        curRow=curSubSong->patLen-1;
+      } else {
+        nextOrder();
+      }
+      if (haltOn==DIV_HALT_PATTERN) halted=true;
+    }
+
+    if ((JOKE_CUR_HOUR==4 || JOKE_CUR_HOUR==21) && (curRow&3)==0 && !skipping) {
+      if ((rand()%600)==0) {
+        reverse=true;
+      }
+    }
   }
 
   // new loop detection routine
@@ -1476,7 +1489,7 @@ void DivEngine::nextRow() {
     nextSpeed=speeds.val[curSpeed];
   }
 
-  if (JOKE_CUR_HOUR==17) {
+  if (JOKE_CUR_HOUR==3 || JOKE_CUR_HOUR==17) {
     if ((rand()%300)==0) {
       ticks++;
       nextSpeed++;

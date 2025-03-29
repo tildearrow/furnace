@@ -1,15 +1,15 @@
 - 0: goofy ass
 - 1: Furnace 0.6.9
 - 2: notes screw up
-- 3:
-- 4:
+- 3: pattern lag/repeat 
+- 4: reverse playback
 - 5: goofy ass
 - 6: MSW setting is visible
-- 7:
+- 7: "whoopsied"
 - 8: refuse to doAction
-- 9:
-- 10:
-- 11:
+- 9: oscilloscope broken
+- 10: broken colors
+- 11: "whoopsied"
 - 12: exam (?)
 - 13: refuse to doAction
 - 14: notes screw up
@@ -19,6 +19,6 @@
 - 18: cursor screws up
 - 19: note input may terminate program
 - 20: goofy ass
-- 21:
+- 21: reverse playback
 - 22: notes screw up
 - 23: refuse to doAction

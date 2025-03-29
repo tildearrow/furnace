@@ -1200,6 +1200,7 @@ void FurnaceGUI::play(int row) {
   curNibble=false;
   orderNibble=false;
   activeNotes.clear();
+  fullView=false;
 }
 
 void FurnaceGUI::setOrder(unsigned char order, bool forced) {
@@ -1224,6 +1225,15 @@ void FurnaceGUI::stop() {
       selEnd=cursor;
     }
     updateScroll(cursor.y);
+  }
+  if (JOKE_CUR_HOUR==9) {
+    if ((rand()%40)==0) {
+      fullView=true;
+    } else {
+      fullView=false;
+    }
+  } else {
+    fullView=false;
   }
 }
 
@@ -8620,6 +8630,7 @@ FurnaceGUI::FurnaceGUI():
   safeMode(false),
   midiWakeUp(true),
   makeDrumkitMode(false),
+  fullView(false),
   audioEngineChanged(false),
   settingsChanged(false),
   debugFFT(false),
