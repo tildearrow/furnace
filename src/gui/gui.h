@@ -2945,6 +2945,7 @@ class FurnaceGUI {
   void commitTutorial();
   void syncState();
   void commitState(DivConfig& conf);
+  void updateState();
   void updateProperties();
   void processDrags(int dragX, int dragY);
   void processPoint(SDL_Event& ev);

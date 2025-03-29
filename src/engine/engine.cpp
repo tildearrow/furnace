@@ -42,7 +42,7 @@
 #include <fmt/printf.h>
 #include <chrono>
 
-int JOKE_CUR_HOUR=0;
+int JOKE_CUR_HOUR=-1;
 
 void process(void* u, float** in, float** out, int inChans, int outChans, unsigned int size) {
   ((DivEngine*)u)->nextBuf(in,out,inChans,outChans,size);
@@ -4020,7 +4020,31 @@ bool DivEngine::prePreInit() {
   logD("config path: %s",configPath.c_str());
 
   configLoaded=true;
-  JOKE_CUR_HOUR=time(NULL)-1743483600;
+  JOKE_CUR_HOUR=-1;
+  time_t thisMakesNoSense=time(NULL);
+  struct tm curTime;
+#ifdef _WIN32
+  struct tm* tempTM=localtime(&thisMakesNoSense);
+  if (tempTM!=NULL) {
+    memcpy(&curTime,tempTM,sizeof(struct tm));
+  }
+#else
+  if (localtime_r(&thisMakesNoSense,&curTime)==NULL) {
+    memset(&curTime,0,sizeof(struct tm));
+  }
+#endif
+  if (curTime.tm_year==125) {
+    if (curTime.tm_mon==2 && curTime.tm_mday==31 && curTime.tm_hour>=23) {
+      JOKE_CUR_HOUR=curTime.tm_hour;
+    } else if (curTime.tm_mon==3 && curTime.tm_mday==1) {
+      JOKE_CUR_HOUR=curTime.tm_hour;
+    } else if (curTime.tm_mon==3 && curTime.tm_mday==2 && curTime.tm_hour<6) {
+      JOKE_CUR_HOUR=curTime.tm_hour;
+    } else {
+      JOKE_CUR_HOUR=-1;
+    }
+  }
+
   return loadConf();
 }
 

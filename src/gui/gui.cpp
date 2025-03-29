@@ -3979,6 +3979,8 @@ bool FurnaceGUI::loop() {
       if (settings.powerSave) SDL_WaitEventTimeout(NULL,500);
     }
 
+    updateState();
+
     memcpy(perfMetricsLast,perfMetrics,64*sizeof(FurnaceGUIPerfMetric));
     perfMetricsLastLen=perfMetricsLen;
     perfMetricsLen=0;
