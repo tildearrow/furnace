@@ -2417,13 +2417,14 @@ void FurnaceCVPlayer::tick() {
           }
           break;
         case 3: { // X
-          for (int i=0; i<16; i++) {
-            FurnaceCVBullet* b=cv->createObject<FurnaceCVBullet>(x,y);
-            b->orient=i>>1;
+          for (int i=0; i<64; i++) {
+            FurnaceCVBullet* b=cv->createObject<FurnaceCVBullet>(x+4,y+4);
+            b->orient=(-i>>3)&7;
             b->setType(1);
-            b->speedX=120*cos(M_PI*((float)i/8.0));
-            b->speedY=120*sin(M_PI*((float)i/8.0));
+            b->speedX=120*cos(M_PI*((float)i/32.0));
+            b->speedY=120*sin(M_PI*((float)i/32.0));
           }
+          cv->soundEffect(SE_SHOT2);
           break;
         }
         case 4: // W
