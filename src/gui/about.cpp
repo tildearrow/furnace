@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,7 +72,7 @@ const char* aboutLine[]={
   "Bahasa Indonesia: ZoomTen (Zumi)",
   "Español: CrimsonZN, ThaCuber, tildearrow",
   "Հայերեն: Eknous",
-  "한국어: Heemin, leejh20",
+  "한국어: Heemin, leejh20, Nicknamé",
   "Nederlands: Lunathir",
   "Polski: freq-mod, PoznańskiSzybkowiec",
   "Português (Brasil): Kagamiin~",
@@ -137,13 +137,15 @@ const char* aboutLine[]={
   _N("MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya"),
   _N("MAME MSM6258 core by Barry Rodewald"),
   _N("MAME YMZ280B core by Aaron Giles"),
-  _N("MAME GA20 core by Acho A. Tang and R. Belmont"),
+  _N("MAME GA20 core by Acho A. Tang, R. Belmont and Valley Bell (modified version)"),
   _N("MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert"),
+  _N("MAME µPD1771C-017 HLE core by David Viens"),
   _N("SAASound by Dave Hooper and Simon Owen"),
   _N("SameBoy by Lior Halphon"),
   _N("Mednafen PCE, WonderSwan, T6W28 and Virtual Boy audio cores"),
+  _N("WonderSwan new core by asiekierka"),
   _N("SNES DSP core by Blargg"),
-  _N("puNES (NES, MMC5 and FDS) by FHorse"),
+  _N("puNES (NES, MMC5 and FDS) by FHorse (modified version)"),
   _N("NSFPlay (NES and FDS) by Brad Smith and Brezza"),
   _N("reSID by Dag Lem"),
   _N("reSIDfp by Dag Lem, Antti Lankila"),
@@ -178,7 +180,7 @@ const char* aboutLine[]={
   "@party",
   _N("all members of Deflers of Noice!"),
   "",
-  _N("copyright © 2021-2024 tildearrow"),
+  _N("copyright © 2021-2025 tildearrow"),
   _N("(and contributors)."),
   _N("licensed under GPLv2+! see"),
   _N("LICENSE for more information."),

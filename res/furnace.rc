@@ -1,6 +1,6 @@
 1 VERSIONINFO
-    FILEVERSION 0,6,7,0
-    PRODUCTVERSION 0,6,7,0
+    FILEVERSION 0,6,8,0
+    PRODUCTVERSION 0,6,8,0
 {
     BLOCK "VarFileInfo"
     {
@@ -33,16 +33,16 @@
                 "Furnace"
 
             VALUE "ProductVersion",
-                "0.6.7"
+                "0.6.8pre2"
 
             VALUE "FileVersion",
-                "0.6.7"
+                "0.6.8pre2"
 
             VALUE "CompanyName",
                 "tildearrow"
 
             VALUE "LegalCopyright",
-                "2021-2024 tildearrow and contributors"
+                "2021-2025 tildearrow and contributors"
         }
     }
 }

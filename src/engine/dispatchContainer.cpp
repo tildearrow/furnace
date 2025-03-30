@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,7 +77,7 @@
 #include "platform/k007232.h"
 #include "platform/ga20.h"
 #include "platform/supervision.h"
-#include "platform/upd1771c.h"
+#include "platform/scvtone.h"
 #include "platform/sm8521.h"
 #include "platform/pv1000.h"
 #include "platform/k053260.h"
@@ -151,64 +151,70 @@ void DivDispatchContainer::grow(size_t size) {
   } \
   if (mustClear) clear(); \
 
-void DivDispatchContainer::acquire(size_t offset, size_t count) {
+void DivDispatchContainer::acquire(size_t count) {
   CHECK_MISSING_BUFS;
 
-  for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
-    if (i>=outs) {
-      bbInMapped[i]=NULL;
-    } else {
-      if (bbIn[i]==NULL) {
+  if (dispatch->hasAcquireDirect()) {
+    dispatch->acquireDirect(bb,count);
+  } else {
+    for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+      if (i>=outs) {
         bbInMapped[i]=NULL;
       } else {
-        bbInMapped[i]=&bbIn[i][offset];
+        if (bbIn[i]==NULL) {
+          bbInMapped[i]=NULL;
+        } else {
+          bbInMapped[i]=bbIn[i];
+        }
       }
     }
+    dispatch->acquire(bbInMapped,count);
   }
-  dispatch->acquire(bbInMapped,count);
 }
 
-void DivDispatchContainer::flush(size_t count) {
+void DivDispatchContainer::flush(size_t offset, size_t count) {
   int outs=dispatch->getOutputCount();
 
   for (int i=0; i<outs; i++) {
     if (bb[i]==NULL) continue;
-    blip_read_samples(bb[i],bbOut[i],count,0);
+    blip_read_samples(bb[i],bbOut[i]+offset,count,0);
   }
 }
 
 void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) {
   CHECK_MISSING_BUFS;
 
-  if (dcOffCompensation && runtotal>0) {
-    dcOffCompensation=false;
-    if (hiPass) {
+  if (!dispatch->hasAcquireDirect()) {
+    if (dcOffCompensation && runtotal>0) {
+      dcOffCompensation=false;
+      if (hiPass) {
+        for (int i=0; i<outs; i++) {
+          if (bbIn[i]==NULL) continue;
+          prevSample[i]=bbIn[i][0];
+        }
+      }
+    }
+    if (lowQuality) {
       for (int i=0; i<outs; i++) {
         if (bbIn[i]==NULL) continue;
-        prevSample[i]=bbIn[i][0];
+        if (bb[i]==NULL) continue;
+        for (size_t j=0; j<runtotal; j++) {
+          if (bbIn[i][j]==temp[i]) continue;
+          temp[i]=bbIn[i][j];
+          blip_add_delta_fast(bb[i],j,temp[i]-prevSample[i]);
+          prevSample[i]=temp[i];
+        }
       }
-    }
-  }
-  if (lowQuality) {
-    for (int i=0; i<outs; i++) {
-      if (bbIn[i]==NULL) continue;
-      if (bb[i]==NULL) continue;
-      for (size_t j=0; j<runtotal; j++) {
-        if (bbIn[i][j]==temp[i]) continue;
-        temp[i]=bbIn[i][j];
-        blip_add_delta_fast(bb[i],j,temp[i]-prevSample[i]);
-        prevSample[i]=temp[i];
-      }
-    }
-  } else {
-    for (int i=0; i<outs; i++) {
-      if (bbIn[i]==NULL) continue;
-      if (bb[i]==NULL) continue;
-      for (size_t j=0; j<runtotal; j++) {
-        if (bbIn[i][j]==temp[i]) continue;
-        temp[i]=bbIn[i][j];
-        blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
-        prevSample[i]=temp[i];
+    } else {
+      for (int i=0; i<outs; i++) {
+        if (bbIn[i]==NULL) continue;
+        if (bb[i]==NULL) continue;
+        for (size_t j=0; j<runtotal; j++) {
+          if (bbIn[i][j]==temp[i]) continue;
+          temp[i]=bbIn[i][j];
+          blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
+          prevSample[i]=temp[i];
+        }
       }
     }
   }
@@ -218,12 +224,8 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) 
     if (bb[i]==NULL) continue;
     blip_end_frame(bb[i],runtotal);
     blip_read_samples(bb[i],bbOut[i]+offset,size,0);
+    dispatch->postProcess(bbOut[i]+offset,i,size,rateMemory);
   }
-  /*if (totalRead<(int)size && totalRead>0) {
-    for (size_t i=totalRead; i<size; i++) {
-      bbOut[0][i]=bbOut[0][totalRead-1];//bbOut[0][totalRead];
-    }
-  }*/
 }
 
 void DivDispatchContainer::clear() {
@@ -312,11 +314,6 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_PCE:
       dispatch=new DivPlatformPCE;
-      if (isRender) {
-        ((DivPlatformPCE*)dispatch)->setCoreQuality(eng->getConfInt("pceQualityRender",3));
-      } else {
-        ((DivPlatformPCE*)dispatch)->setCoreQuality(eng->getConfInt("pceQuality",3));
-      }
       break;
     case DIV_SYSTEM_NES:
       dispatch=new DivPlatformNES;
@@ -328,6 +325,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       ((DivPlatformNES*)dispatch)->set5E01(false);
       break;
     case DIV_SYSTEM_C64_6581:
+    case DIV_SYSTEM_C64_PCM:
       dispatch=new DivPlatformC64;
       if (isRender) {
         ((DivPlatformC64*)dispatch)->setCore(eng->getConfInt("c64CoreRender",1));
@@ -337,6 +335,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
         ((DivPlatformC64*)dispatch)->setCoreQuality(eng->getConfInt("dsidQuality",3));
       }
       ((DivPlatformC64*)dispatch)->setChipModel(true);
+      ((DivPlatformC64*)dispatch)->setSoftPCM(sys==DIV_SYSTEM_C64_PCM);
       break;
     case DIV_SYSTEM_C64_8580:
       dispatch=new DivPlatformC64;
@@ -348,6 +347,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
         ((DivPlatformC64*)dispatch)->setCoreQuality(eng->getConfInt("dsidQuality",3));
       }
       ((DivPlatformC64*)dispatch)->setChipModel(false);
+      ((DivPlatformC64*)dispatch)->setSoftPCM(false);
       break;
     case DIV_SYSTEM_YM2151:
       dispatch=new DivPlatformArcade;
@@ -620,9 +620,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_SWAN:
       dispatch=new DivPlatformSwan;
       if (isRender) {
-        ((DivPlatformSwan*)dispatch)->setCoreQuality(eng->getConfInt("swanQualityRender",3));
+        ((DivPlatformSwan*)dispatch)->setUseMdfn(eng->getConfInt("swanCoreRender",0));
       } else {
-        ((DivPlatformSwan*)dispatch)->setCoreQuality(eng->getConfInt("swanQuality",3));
+        ((DivPlatformSwan*)dispatch)->setUseMdfn(eng->getConfInt("swanCore",0));
       }
       break;
     case DIV_SYSTEM_T6W28:
@@ -630,22 +630,12 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_VBOY:
       dispatch=new DivPlatformVB;
-      if (isRender) {
-        ((DivPlatformVB*)dispatch)->setCoreQuality(eng->getConfInt("vbQualityRender",3));
-      } else {
-        ((DivPlatformVB*)dispatch)->setCoreQuality(eng->getConfInt("vbQuality",3));
-      }
       break;
     case DIV_SYSTEM_VERA:
       dispatch=new DivPlatformVERA;
       break;
     case DIV_SYSTEM_BUBSYS_WSG:
       dispatch=new DivPlatformBubSysWSG;
-      if (isRender) {
-        ((DivPlatformBubSysWSG*)dispatch)->setCoreQuality(eng->getConfInt("bubsysQualityRender",3));
-      } else {
-        ((DivPlatformBubSysWSG*)dispatch)->setCoreQuality(eng->getConfInt("bubsysQuality",3));
-      }
       break;
     case DIV_SYSTEM_N163:
       dispatch=new DivPlatformN163;
@@ -671,20 +661,10 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_SCC:
       dispatch=new DivPlatformSCC;
       ((DivPlatformSCC*)dispatch)->setChipModel(false);
-      if (isRender) {
-        ((DivPlatformSCC*)dispatch)->setCoreQuality(eng->getConfInt("sccQualityRender",3));
-      } else {
-        ((DivPlatformSCC*)dispatch)->setCoreQuality(eng->getConfInt("sccQuality",3));
-      }
       break;
     case DIV_SYSTEM_SCC_PLUS:
       dispatch=new DivPlatformSCC;
       ((DivPlatformSCC*)dispatch)->setChipModel(true);
-      if (isRender) {
-        ((DivPlatformSCC*)dispatch)->setCoreQuality(eng->getConfInt("sccQualityRender",3));
-      } else {
-        ((DivPlatformSCC*)dispatch)->setCoreQuality(eng->getConfInt("sccQuality",3));
-      }
       break;
     case DIV_SYSTEM_YMZ280B:
       dispatch=new DivPlatformYMZ280B;
@@ -731,15 +711,10 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       dispatch=new DivPlatformSupervision;
       break;
     case DIV_SYSTEM_UPD1771C:
-      dispatch=new DivPlatformUPD1771c;
+      dispatch=new DivPlatformSCV;
       break;
     case DIV_SYSTEM_SM8521:
       dispatch=new DivPlatformSM8521;
-      if (isRender) {
-        ((DivPlatformSM8521*)dispatch)->setCoreQuality(eng->getConfInt("smQualityRender",3));
-      } else {
-        ((DivPlatformSM8521*)dispatch)->setCoreQuality(eng->getConfInt("smQuality",3));
-      }
       break;
     case DIV_SYSTEM_PV1000:
       dispatch=new DivPlatformPV1000;
@@ -791,11 +766,6 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_NDS:
       dispatch=new DivPlatformNDS;
-      if (isRender) {
-        ((DivPlatformNDS*)dispatch)->setCoreQuality(eng->getConfInt("ndsQualityRender",3));
-      } else {
-        ((DivPlatformNDS*)dispatch)->setCoreQuality(eng->getConfInt("ndsQuality",3));
-      }
       break;
     case DIV_SYSTEM_5E01:
       dispatch=new DivPlatformNES;

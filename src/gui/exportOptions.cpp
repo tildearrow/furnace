@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -280,8 +280,8 @@ void FurnaceGUI::drawExportROM(bool onWindow) {
 
   switch (romTarget) {
     case DIV_ROM_TIUNA: {
-      String asmBaseLabel=romConfig.getString("baseLabel","song");
-      int firstBankSize=romConfig.getInt("firstBankSize",3072);
+      String asmBaseLabel=romConfig.getString("baseLabel","twin");
+      int firstBankSize=romConfig.getInt("firstBankSize",1024);
       int otherBankSize=romConfig.getInt("otherBankSize",4096-48);
       int sysToExport=romConfig.getInt("sysToExport",-1);
 

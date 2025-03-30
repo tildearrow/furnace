@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,6 +61,7 @@ class DivPlatformAmiga: public DivDispatch {
   bool filterOn;
   bool updateADKCon;
   short delay;
+  short oldOut[2];
 
   struct Amiga {
     // register state
@@ -138,6 +139,8 @@ class DivPlatformAmiga: public DivDispatch {
 
   public:
     void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
+    void postProcess(short* buf, int outIndex, size_t len, int sampleRate);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -150,6 +153,7 @@ class DivPlatformAmiga: public DivDispatch {
     void muteChannel(int ch, bool mute);
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
+    bool hasAcquireDirect();
     DivMacroInt* getChanMacroInt(int ch);
     DivSamplePos getSamplePos(int ch);
     void setFlags(const DivConfig& flags);

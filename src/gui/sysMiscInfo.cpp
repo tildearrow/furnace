@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -282,11 +282,12 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       break;
     case DIV_SYSTEM_ESFM:
       return "ES1xxx";
+      break;
     case DIV_SYSTEM_SUPERVISION:
       return "Watara Supervision";
       break;
     case DIV_SYSTEM_UPD1771C:
-      return "μPD1771C";
+      return "μPD1771C-017";
       break;
     default:
       return FurnaceGUI::getSystemName(sys);

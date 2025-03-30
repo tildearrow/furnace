@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -680,7 +680,8 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       break;
     }
     case DIV_SYSTEM_C64_8580:
-    case DIV_SYSTEM_C64_6581: {
+    case DIV_SYSTEM_C64_6581:
+    case DIV_SYSTEM_C64_PCM: {
       int clockSel=flags.getInt("clockSel",0);
       bool keyPriority=flags.getBool("keyPriority",true);
       bool no1EUpdate=flags.getBool("no1EUpdate",false);
@@ -1904,6 +1905,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       break;
     }
     case DIV_SYSTEM_PCM_DAC: {
+      supportsCustomRate=false;
       // default to 44100Hz 16-bit stereo
       int sampRate=flags.getInt("rate",44100);
       int bitDepth=flags.getInt("outDepth",15)+1;
@@ -2474,22 +2476,38 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     }
     case DIV_SYSTEM_VBOY: {
       bool romMode=flags.getBool("romMode",false);
+      bool noAntiClick=flags.getBool("noAntiClick",false);
+      bool screwThis=flags.getBool("screwThis",false);
 
       ImGui::Text(_("Waveform storage mode:"));
       ImGui::Indent();
-      if (ImGui::RadioButton(_("Dynamic (unconfirmed)"),!romMode)) {
-        romMode=false;
-        altered=true;
-      }
       if (ImGui::RadioButton(_("Static (up to 5 waves)"),romMode)) {
         romMode=true;
         altered=true;
       }
+      if (ImGui::RadioButton(_("Dynamic (phase reset on wave change!)"),!romMode)) {
+        romMode=false;
+        altered=true;
+      }
       ImGui::Unindent();
+
+      if (!romMode) {
+        if (ImGui::Checkbox(_("Disable anti-phase-reset"),&noAntiClick)) {
+          altered=true;
+        }
+        if (ImGui::Checkbox(_("I don't care about hardware"),&screwThis)) {
+          altered=true;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Virtual Boy hardware requires all channels to be disabled before writing to wave memory.\nif the clicks that arise from this annoy you, use this option.\nnote that your song won't play on hardware if you do so!"));
+        }
+      }
 
       if (altered) {
         e->lockSave([&]() {
           flags.set("romMode",romMode);
+          flags.set("noAntiClick",noAntiClick);
+          flags.set("screwThis",screwThis);
         });
       }
       break;
@@ -2585,30 +2603,37 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       if (ImGui::RadioButton(_("4MB"),ramSize==0)) {
         ramSize=0;
         altered=true;
+        mustRender=true;
       }
       if (ImGui::RadioButton(_("2MB"),ramSize==1)) {
         ramSize=1;
         altered=true;
+        mustRender=true;
       }
       if (ImGui::RadioButton(_("1MB"),ramSize==2)) {
         ramSize=2;
         altered=true;
+        mustRender=true;
       }
       if (ImGui::RadioButton(_("640KB"),ramSize==3)) {
         ramSize=3;
         altered=true;
+        mustRender=true;
       }
       if (ImGui::RadioButton(_("512KB"),ramSize==4)) {
         ramSize=4;
         altered=true;
+        mustRender=true;
       }
       if (ImGui::RadioButton(_("256KB"),ramSize==5)) {
         ramSize=5;
         altered=true;
+        mustRender=true;
       }
       if (ImGui::RadioButton(_("128KB"),ramSize==6)) {
         ramSize=6;
         altered=true;
+        mustRender=true;
       }
       ImGui::Unindent();
 
@@ -2639,7 +2664,19 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
-    case DIV_SYSTEM_SWAN:
+    case DIV_SYSTEM_SWAN: {
+      bool stereo=flags.getBool("stereo",true);
+      if (ImGui::Checkbox(_("Headphone output##_SWAN_STEREO"),&stereo)) {
+        altered=true;
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("stereo",stereo);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_PET:
     case DIV_SYSTEM_GA20:

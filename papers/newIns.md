@@ -130,6 +130,9 @@ the following instrument types are available:
 - 61: GBA MinMod
 - 62: Bifurcator
 - 63: SID2
+- 64: Supervision
+- 65: µPD1771C
+- 66: SID3
 
 the following feature codes are recognized:
 
@@ -192,6 +195,7 @@ size | description
   1  | |x| ALG |x| FB  |
   1  | |FMS2 |AMS| FMS |
   1  | |AM2|4| LLPatch |
+  1  | |xxxxxxx| Block | (>=224)
 -----|------------------------------------
      | **operator data × opCount**
      | /7 6 5 4 3 2 1 0|
@@ -254,6 +258,8 @@ size | description
      | - 17: ex6
      | - 18: ex7
      | - 19: ex8
+     | - 20: ex9
+     | - 21: ex10
      | - 255: stop reading and move on
   1  | macro length
   1  | macro loop

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -310,6 +310,9 @@ void FurnaceGUI::drawOrders() {
       ImVec2 clipBegin=ImGui::GetCursorScreenPos();
       ImVec2 clipEnd=clipBegin+ImGui::GetContentRegionAvail();
       if (ImGui::BeginTable("OrdersTable",1+displayChans,(tooSmall?ImGuiTableFlags_SizingFixedFit:ImGuiTableFlags_SizingStretchSame)|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY)) {
+        if (tooSmall) {
+          // set up cell sizes? I don't know
+        }
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,prevSpacing);
         ImGui::TableSetupScrollFreeze(1,1);
         ImGui::TableNextRow(0,lineHeight);
@@ -360,7 +363,7 @@ void FurnaceGUI::drawOrders() {
           ImGui::PopStyleColor();
           for (int j=0; j<e->getTotalChannelCount(); j++) {
             if (!e->curSubSong->chanShow[j]) continue;
-            ImGui::TableNextColumn();
+            if (!ImGui::TableNextColumn()) continue;
             DivPattern* pat=e->curPat[j].getPattern(e->curOrders->ord[j][i],false);
             /*if (!pat->name.empty()) {
               snprintf(selID,4096,"%s##O_%.2x_%.2x",pat->name.c_str(),j,i);

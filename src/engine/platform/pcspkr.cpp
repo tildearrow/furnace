@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -192,30 +192,65 @@ const char** DivPlatformPCSpeaker::getRegisterSheet() {
   return regCheatSheetPCSpeaker;
 }
 
-void DivPlatformPCSpeaker::acquire_unfilt(short** buf, size_t len) {
+void DivPlatformPCSpeaker::acquire_unfilt(blip_buffer_t** bb, size_t len) {
   int out=0;
-  for (size_t i=0; i<len; i++) {
-    if (on) {
-      pos-=PCSPKR_DIVIDER;
-      if (pos>freq) pos=freq;
-      while (pos<0) {
-        if (freq<1) {
-          pos=1;
-        } else {
-          pos+=freq;
-        }
-      }
-      out=(pos>(freq>>1) && !isMuted[0])?32767:0;
-      buf[0][i]=out;
-      oscBuf->data[oscBuf->needle++]=out;
-    } else {
-      buf[0][i]=0;
-      oscBuf->data[oscBuf->needle++]=0;
+  int freq1=freq+1;
+  int timeToNextToggle=0;
+  oscBuf->begin(len);
+  if (on) {
+    // just in case
+    if (pos>freq1) {
+      pos=freq1;
     }
+    if (pos>(freq>>1)) {
+      posToggle=true;
+      timeToNextToggle=pos-(freq>>1);
+    } else {
+      posToggle=false;
+      timeToNextToggle=pos;
+    }
+    out=(posToggle && !isMuted[0])?32767:0;
+    blip_add_delta(bb[0],0,out-oldOut);
+    oscBuf->putSample(0,out);
+    oldOut=out;
+    if (freq>=1) {
+      size_t boff=0;
+      size_t i=len;
+      while (true) {
+        if ((int)i<timeToNextToggle) {
+          pos-=i;
+          break;
+        }
+        i-=timeToNextToggle;
+        boff+=timeToNextToggle;
+        pos-=timeToNextToggle;
+        if (pos<=0) {
+          pos=freq1;
+        }
+        if (pos>(freq>>1)) {
+          posToggle=true;
+          timeToNextToggle=pos-(freq>>1);
+        } else {
+          posToggle=false;
+          timeToNextToggle=pos;
+        }
+        out=(posToggle && !isMuted[0])?32767:0;
+        blip_add_delta(bb[0],boff,out-oldOut);
+        oscBuf->putSample(boff,out);
+        oldOut=out;
+      }
+    }
+  } else {
+    out=0;
+    blip_add_delta(bb[0],0,out-oldOut);
+    oscBuf->putSample(0,out);
+    oldOut=out;
   }
+  oscBuf->end(len);
 }
 
 void DivPlatformPCSpeaker::acquire_cone(short** buf, size_t len) {
+  oscBuf->begin(len);
   for (size_t i=0; i<len; i++) {
     if (on) {
       pos-=PCSPKR_DIVIDER;
@@ -234,15 +269,17 @@ void DivPlatformPCSpeaker::acquire_cone(short** buf, size_t len) {
       if (out>1.0) out=1.0;
       if (out<-1.0) out=-1.0;
       buf[0][i]=out*32767;
-      oscBuf->data[oscBuf->needle++]=out*32767;
+      oscBuf->putSample(i,out*32767);
     } else {
       buf[0][i]=0;
-      oscBuf->data[oscBuf->needle++]=0;
+      oscBuf->putSample(i,0);
     }
   }
+  oscBuf->end(len);
 }
 
 void DivPlatformPCSpeaker::acquire_piezo(short** buf, size_t len) {
+  oscBuf->begin(len);
   for (size_t i=0; i<len; i++) {
     if (on) {
       pos-=PCSPKR_DIVIDER;
@@ -261,12 +298,13 @@ void DivPlatformPCSpeaker::acquire_piezo(short** buf, size_t len) {
       if (out>1.0) out=1.0;
       if (out<-1.0) out=-1.0;
       buf[0][i]=out*32767;
-      oscBuf->data[oscBuf->needle++]=out*32767;
+      oscBuf->putSample(i,out*32767);
     } else {
       buf[0][i]=0;
-      oscBuf->data[oscBuf->needle++]=0;
+      oscBuf->putSample(i,0);
     }
   }
+  oscBuf->end(len);
 }
 
 void DivPlatformPCSpeaker::beepFreq(int freq, int delay) {
@@ -293,46 +331,83 @@ void DivPlatformPCSpeaker::beepFreq(int freq, int delay) {
   realOutCond.notify_one();
 }
 
-void DivPlatformPCSpeaker::acquire_real(short** buf, size_t len) {
-  int out=0;
+void DivPlatformPCSpeaker::acquire_real(blip_buffer_t** bb, size_t len) {
   if (lastOn!=on || lastFreq!=freq) {
     lastOn=on;
     lastFreq=freq;
     beepFreq((on && !isMuted[0])?freq:0,parent->getBufferPos());
   }
-  for (size_t i=0; i<len; i++) {
-    if (on) {
-      pos-=PCSPKR_DIVIDER;
-      if (pos>freq) pos=freq;
-      while (pos<0) {
-        if (freq<1) {
-          pos=1;
-        } else {
-          pos+=freq;
-        }
-      }
-      out=(pos>(freq>>1) && !isMuted[0])?32767:0;
-      oscBuf->data[oscBuf->needle++]=out;
-    } else {
-      oscBuf->data[oscBuf->needle++]=0;
+  int out=0;
+  int freq1=freq+1;
+  int timeToNextToggle=0;
+  oscBuf->begin(len);
+  if (on) {
+    // just in case
+    if (pos>freq1) {
+      pos=freq1;
     }
-    buf[0][i]=0;
+    if (pos>(freq>>1)) {
+      posToggle=true;
+      timeToNextToggle=pos-(freq>>1);
+    } else {
+      posToggle=false;
+      timeToNextToggle=pos;
+    }
+    out=(posToggle && !isMuted[0])?32767:0;
+    oscBuf->putSample(0,out);
+    oldOut=out;
+    if (freq>=1) {
+      size_t boff=0;
+      size_t i=len;
+      while (true) {
+        if ((int)i<timeToNextToggle) {
+          pos-=i;
+          break;
+        }
+        i-=timeToNextToggle;
+        boff+=timeToNextToggle;
+        pos-=timeToNextToggle;
+        if (pos<=0) {
+          pos=freq1;
+        }
+        if (pos>(freq>>1)) {
+          posToggle=true;
+          timeToNextToggle=pos-(freq>>1);
+        } else {
+          posToggle=false;
+          timeToNextToggle=pos;
+        }
+        out=(posToggle && !isMuted[0])?32767:0;
+        oscBuf->putSample(boff,out);
+        oldOut=out;
+      }
+    }
+  } else {
+    out=0;
+    oscBuf->putSample(0,out);
+    oldOut=out;
   }
+  oscBuf->end(len);
 }
 
 void DivPlatformPCSpeaker::acquire(short** buf, size_t len) {
   switch (speakerType) {
-    case 0:
-      acquire_unfilt(buf,len);
-      break;
     case 1:
       acquire_cone(buf,len);
       break;
     case 2:
       acquire_piezo(buf,len);
       break;
+  }
+}
+
+void DivPlatformPCSpeaker::acquireDirect(blip_buffer_t** bb, size_t len) {
+  switch (speakerType) {
+    case 0:
+      acquire_unfilt(bb,len);
+      break;
     case 3:
-      acquire_real(buf,len);
+      acquire_real(bb,len);
       break;
   }
 }
@@ -536,9 +611,11 @@ void DivPlatformPCSpeaker::reset() {
   freq=0;
   lastFreq=0;
   pos=0;
+  posToggle=true;
   flip=false;
   low=0;
   band=0;
+  oldOut=0;
 
   //if (speakerType==3) {
 #ifdef __linux__
@@ -598,6 +675,10 @@ bool DivPlatformPCSpeaker::keyOffAffectsArp(int ch) {
   return true;
 }
 
+bool DivPlatformPCSpeaker::hasAcquireDirect() {
+  return (speakerType==0 || speakerType==3);
+}
+
 void DivPlatformPCSpeaker::setFlags(const DivConfig& flags) {
   switch (flags.getInt("clockSel",0)) {
     case 1: // PC-98
@@ -611,10 +692,14 @@ void DivPlatformPCSpeaker::setFlags(const DivConfig& flags) {
       break;
   }
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/PCSPKR_DIVIDER;
   speakerType=flags.getInt("speakerType",0)&3;
   resetPhase=flags.getBool("resetPhase",false);
-  oscBuf->rate=rate;
+  if (speakerType==0 || speakerType==3) {
+    rate=chipClock;
+  } else {
+    rate=chipClock/PCSPKR_DIVIDER;
+  }
+  oscBuf->setRate(rate);
 
   switch (speakerType) {
     case 1:

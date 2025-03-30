@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -115,6 +115,11 @@ void FurnaceGUI::doFind() {
   if (curQueryRangeX) {
     firstChan=curQueryRangeXMin;
     lastChan=curQueryRangeXMax;
+  }
+
+  if (curQueryRangeY==1) {
+    firstChan=selStart.xCoarse;
+    lastChan=selEnd.xCoarse;
   }
 
   curQueryResults.clear();
@@ -371,7 +376,7 @@ void FurnaceGUI::doReplace() {
 
     switch (queryReplaceEffectPos) {
       case 0: // clear
-        for (int j=0; j<e->song.subsong[i.subsong]->pat[i.x].effectCols; j++) {
+        for (int j=0; j<e->song.subsong[i.subsong]->pat[i.x].effectCols && j<8; j++) {
           effectOrder[j]=j;
         }
         break;
@@ -380,7 +385,7 @@ void FurnaceGUI::doReplace() {
         for (int j=0; j<8 && placementIndex<8 && i.effectPos[j]>=0; j++) {
           effectOrder[placementIndex++]=i.effectPos[j];
         }
-        for (int j=0; j<e->song.subsong[i.subsong]->pat[i.x].effectCols; j++) {
+        for (int j=0; j<e->song.subsong[i.subsong]->pat[i.x].effectCols && placementIndex<8 && j<8; j++) {
           if (p->data[i.y][4+j*2]!=-1 || p->data[i.y][5+j*2]!=-1) {
             effectOrder[placementIndex++]=j;
           }
@@ -392,7 +397,7 @@ void FurnaceGUI::doReplace() {
         for (int j=0; j<8 && placementIndex<8 && i.effectPos[j]>=0; j++) {
           effectOrder[placementIndex++]=i.effectPos[j];
         }
-        for (int j=0; j<e->song.subsong[i.subsong]->pat[i.x].effectCols; j++) {
+        for (int j=0; j<e->song.subsong[i.subsong]->pat[i.x].effectCols && placementIndex<8 && j<8; j++) {
           if (p->data[i.y][4+j*2]!=-1 || p->data[i.y][5+j*2]!=-1) {
             effectOrder[placementIndex++]=j;
           }
@@ -406,7 +411,7 @@ void FurnaceGUI::doReplace() {
       }
       case 3: { // insert in free spaces
         int placementIndex=0;
-        for (int j=0; j<e->song.subsong[i.subsong]->pat[i.x].effectCols; j++) {
+        for (int j=0; j<e->song.subsong[i.subsong]->pat[i.x].effectCols && j<8; j++) {
           if (p->data[i.y][4+j*2]==-1 && p->data[i.y][5+j*2]==-1) {
             effectOrder[placementIndex++]=j;
           }
@@ -415,7 +420,7 @@ void FurnaceGUI::doReplace() {
       }
     }
 
-    for (int j=0; j<queryReplaceEffectCount; j++) {
+    for (int j=0; j<queryReplaceEffectCount && j<8; j++) {
       signed char pos=effectOrder[j];
       if (pos==-1) continue;
       if (queryReplaceEffectDo[j]) {
@@ -827,6 +832,7 @@ void FurnaceGUI::drawFindReplace() {
             }
 
             ImGui::TableNextColumn();
+            ImGui::BeginDisabled(curQueryRangeY==1);
             ImGui::Checkbox(_("Confine to channels"),&curQueryRangeX);
 
             ImGui::BeginDisabled(!curQueryRangeX);
@@ -851,6 +857,7 @@ void FurnaceGUI::drawFindReplace() {
               }
               ImGui::EndCombo();
             }
+            ImGui::EndDisabled();
             ImGui::EndDisabled();
 
             ImGui::TableNextColumn();

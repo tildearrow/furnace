@@ -12,6 +12,3 @@
 [submodule "extern/adpcm"]
 	path = extern/adpcm
 	url = https://github.com/superctr/adpcm
-[submodule "extern/portaudio"]
-	path = extern/portaudio
-	url = https://github.com/PortAudio/portaudio.git

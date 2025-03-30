@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -169,6 +169,10 @@ void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
   thread_local int os;
   thread_local short ignored[2];
 
+  for (int i=0; i<7; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
     ay->runDAC();
@@ -236,12 +240,16 @@ void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
     buf[0][h]=os;
     
     for (int i=0; i<3; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fm_nuked.ch_out[i]<<1,-32768,32767);
+      oscBuf[i]->putSample(h,CLAMP(fm_nuked.ch_out[i]<<1,-32768,32767));
     }
 
     for (int i=(3+isCSM); i<(6+isCSM); i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=fmout.data[i-(2+isCSM)]<<1;
+      oscBuf[i]->putSample(h,fmout.data[i-(2+isCSM)]<<1);
     }
+  }
+
+  for (int i=0; i<7; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -253,6 +261,10 @@ void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
   ymfm::fm_channel<ymfm::opn_registers_base<false>>* fmChan[3];
   for (int i=0; i<3; i++) {
     fmChan[i]=fme->debug_channel(i);
+  }
+
+  for (int i=0; i<7; i++) {
+    oscBuf[i]->begin(len);
   }
 
   for (size_t h=0; h<len; h++) {
@@ -294,12 +306,16 @@ void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
     
     for (int i=0; i<3; i++) {
       int out=(fmChan[i]->debug_output(0)+fmChan[i]->debug_output(1))<<1;
-      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(out,-32768,32767);
+      oscBuf[i]->putSample(h,CLAMP(out,-32768,32767));
     }
 
     for (int i=(3+isCSM); i<(6+isCSM); i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=fmout.data[i-(2+isCSM)]<<1;
+      oscBuf[i]->putSample(h,fmout.data[i-(2+isCSM)]<<1);
     }
+  }
+
+  for (int i=0; i<7; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -309,6 +325,10 @@ static const unsigned char subCycleMap[6]={
 
 void DivPlatformYM2203::acquire_lle(short** buf, size_t len) {
   thread_local int fmOut[6];
+
+  for (int i=0; i<7; i++) {
+    oscBuf[i]->begin(len);
+  }
 
   for (size_t h=0; h<len; h++) {
     bool have0=false;
@@ -444,11 +464,11 @@ void DivPlatformYM2203::acquire_lle(short** buf, size_t len) {
     for (int i=0; i<3; i++) {
       if (fmOut[i]<-32768) fmOut[i]=-32768;
       if (fmOut[i]>32767) fmOut[i]=32767;
-      oscBuf[i]->data[oscBuf[i]->needle++]=fmOut[i];
+      oscBuf[i]->putSample(h,fmOut[i]);
     }
     // SSG
     for (int i=0; i<3; i++) {
-      oscBuf[i+3]->data[oscBuf[i+3]->needle++]=fm_lle.o_analog_ch[i]*32767;
+      oscBuf[i+3]->putSample(h,fm_lle.o_analog_ch[i]*32767);
     }
 
     // DAC
@@ -460,6 +480,10 @@ void DivPlatformYM2203::acquire_lle(short** buf, size_t len) {
     if (outL>32767) outL=32767;
 
     buf[0][h]=outL;
+  }
+
+  for (int i=0; i<7; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -503,7 +527,7 @@ void DivPlatformYM2203::tick(bool sysTick) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.arp.val),11);
+        chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.arp.val),11,chan[i].state.block);
       }
       chan[i].freqChanged=true;
     }
@@ -638,7 +662,7 @@ void DivPlatformYM2203::tick(bool sysTick) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
       if (parent->song.linearPitch==2) {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[i].state.block);
       } else {
         int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2);
         int block=(chan[i].baseFreq&0xf800)>>11;
@@ -760,7 +784,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
       chan[c.chan].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
+        chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[c.chan].state.block);
         chan[c.chan].portaPause=false;
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
@@ -844,7 +868,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
         break;
       }
       if (c.chan>(psgChanOffs-1) || parent->song.linearPitch==2) { // PSG
-        int destFreq=NOTE_FNUM_BLOCK(c.value2,11);
+        int destFreq=NOTE_FNUM_BLOCK(c.value2,11,chan[c.chan].state.block);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
           chan[c.chan].baseFreq+=c.value;
@@ -866,7 +890,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
         }
         break;
       }
-      PLEASE_HELP_ME(chan[c.chan]);
+      PLEASE_HELP_ME(chan[c.chan],chan[c.chan].state.block);
       break;
     }
     case DIV_CMD_LEGATO: {
@@ -878,7 +902,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
         commitState(c.chan,ins);
         chan[c.chan].insChanged=false;
       }
-      chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
+      chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[c.chan].state.block);
       chan[c.chan].freqChanged=true;
       break;
     }
@@ -1386,7 +1410,7 @@ void DivPlatformYM2203::setFlags(const DivConfig& flags) {
     rate=fm->sample_rate(chipClock);
   }
   for (int i=0; i<7; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
   immWrite(0x2d,0xff);
   immWrite(prescale,0xff);

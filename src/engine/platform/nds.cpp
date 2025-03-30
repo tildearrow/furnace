@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,21 +68,25 @@ const char** DivPlatformNDS::getRegisterSheet() {
   return regCheatSheetNDS;
 }
 
-void DivPlatformNDS::acquire(short** buf, size_t len) {
-  for (size_t i=0; i<len; i++) {
-    nds.tick(coreQuality);
-    int lout=((nds.loutput()-0x200)<<5); // scale to 16 bit
-    int rout=((nds.routput()-0x200)<<5); // scale to 16 bit
-    if (lout>32767) lout=32767;
-    if (lout<-32768) lout=-32768;
-    if (rout>32767) rout=32767;
-    if (rout<-32768) rout=-32768;
-    buf[0][i]=lout;
-    buf[1][i]=rout;
+void DivPlatformNDS::acquireDirect(blip_buffer_t** bb, size_t len) {
+  for (int i=0; i<16; i++) {
+    oscBuf[i]->begin(len);
+  }
 
-    for (int i=0; i<16; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(nds.chan_lout(i)+nds.chan_rout(i))>>1;
-    }
+  nds.set_bb(bb[0],bb[1]);
+  nds.set_oscbuf(oscBuf);
+  nds.resetTS(0);
+  nds.tick(len);
+
+  for (int i=0; i<16; i++) {
+    oscBuf[i]->end(len);
+  }
+}
+
+void DivPlatformNDS::postProcess(short* buf, int outIndex, size_t len, int sampleRate) {
+  // this is where we handle global volume. it is faster than doing it on each blip...
+  for (size_t i=0; i<len; i++) {
+    buf[i]=((buf[i]*globalVolume)>>7);
   }
 }
 
@@ -156,11 +160,10 @@ void DivPlatformNDS::tick(bool sysTick) {
         DivSample* s=parent->getSample(chan[i].sample);
         switch (s->depth) {
           case DIV_SAMPLE_DEPTH_IMA_ADPCM: ctrl=0x40; break;
-          case DIV_SAMPLE_DEPTH_8BIT: ctrl=0x00; break;
           case DIV_SAMPLE_DEPTH_16BIT: ctrl=0x20; break;
-          default: break;
+          default: ctrl=0x00; break;
         }
-        double off=(s->centerRate>=1)?(8363.0/(double)s->centerRate):1.0;
+        double off=(s->centerRate>=1)?(parent->getCenterRate()/(double)s->centerRate):1.0;
         chan[i].freq=0x10000-(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER));
         if (chan[i].freq<0) chan[i].freq=0;
         if (chan[i].freq>65535) chan[i].freq=65535;
@@ -179,9 +182,8 @@ void DivPlatformNDS::tick(bool sysTick) {
           if (chan[i].audPos>0) {
             switch (s->depth) {
               case DIV_SAMPLE_DEPTH_IMA_ADPCM: start+=chan[i].audPos/2; end-=(chan[i].audPos/8); break;
-              case DIV_SAMPLE_DEPTH_8BIT: start+=chan[i].audPos; end-=(chan[i].audPos/4); break;
               case DIV_SAMPLE_DEPTH_16BIT: start+=chan[i].audPos*2; end-=(chan[i].audPos/2); break;
-              default: break;
+              default: start+=chan[i].audPos; end-=(chan[i].audPos/4); break;
             }
           }
           if (s->isLoopable()) {
@@ -195,14 +197,6 @@ void DivPlatformNDS::tick(bool sysTick) {
                     loopEnd-=(chan[i].audPos-s->loopStart)/8;
                   }
                   break;
-                case DIV_SAMPLE_DEPTH_8BIT:
-                  loopStart=(s->loopStart-chan[i].audPos)/4;
-                  loopEnd=(s->loopEnd-s->loopStart)/4;
-                  if (chan[i].audPos>(unsigned int)s->loopStart) {
-                    loopStart=0;
-                    loopEnd-=(chan[i].audPos-s->loopStart)/4;
-                  }
-                  break;
                 case DIV_SAMPLE_DEPTH_16BIT:
                   loopStart=(s->loopStart-chan[i].audPos)/2;
                   loopEnd=(s->loopEnd-s->loopStart)/2;
@@ -211,14 +205,20 @@ void DivPlatformNDS::tick(bool sysTick) {
                     loopEnd-=(chan[i].audPos-s->loopStart)/2;
                   }
                   break;
-                default: break;
+                default:
+                  loopStart=(s->loopStart-chan[i].audPos)/4;
+                  loopEnd=(s->loopEnd-s->loopStart)/4;
+                  if (chan[i].audPos>(unsigned int)s->loopStart) {
+                    loopStart=0;
+                    loopEnd-=(chan[i].audPos-s->loopStart)/4;
+                  }
+                  break;
               }
             } else {
               switch (s->depth) {
                 case DIV_SAMPLE_DEPTH_IMA_ADPCM: loopStart=s->loopStart/8; loopEnd=(s->loopEnd-s->loopStart)/8; break;
-                case DIV_SAMPLE_DEPTH_8BIT: loopStart=s->loopStart/4; loopEnd=(s->loopEnd-s->loopStart)/4; break;
                 case DIV_SAMPLE_DEPTH_16BIT: loopStart=s->loopStart/2; loopEnd=(s->loopEnd-s->loopStart)/2; break;
-                default: break;
+                default: loopStart=s->loopStart/4; loopEnd=(s->loopEnd-s->loopStart)/4; break;
               }
             }
             loopEnd=CLAMP(loopEnd,0,0x3fffff);
@@ -445,6 +445,8 @@ void DivPlatformNDS::reset() {
   memset(regPool,0,288);
   nds.reset();
   globalVolume=0x7f;
+  lastOut[0]=0;
+  lastOut[1]=0;
   rWrite32(0x100,0x8000|globalVolume); // enable keyon
   rWrite32(0x104,0x200); // initialize bias
   for (int i=0; i<16; i++) {
@@ -456,6 +458,10 @@ void DivPlatformNDS::reset() {
 
 int DivPlatformNDS::getOutputCount() {
   return 2;
+}
+
+bool DivPlatformNDS::hasAcquireDirect() {
+  return true;
 }
 
 void DivPlatformNDS::notifyInsChange(int ins) {
@@ -536,8 +542,23 @@ void DivPlatformNDS::renderSamples(int sysID) {
       continue;
     }
 
-    int length=MIN(16777212,s->getCurBufLen());
-    unsigned char* src=(unsigned char*)s->getCurBuf();
+    int length=0;
+    unsigned char* src=NULL;
+    switch (s->depth) {
+      case DIV_SAMPLE_DEPTH_16BIT:
+        length=MIN(16777212,s->length16);
+        src=(unsigned char*)s->data16;
+        break;
+      case DIV_SAMPLE_DEPTH_IMA_ADPCM:
+        length=MIN(16777212,s->lengthIMA);
+        src=(unsigned char*)s->dataIMA;
+        break;
+      default:
+        length=MIN(16777212,s->length8);
+        src=(unsigned char*)s->data8;
+        break;
+    }
+
     int actualLength=MIN((int)(getSampleMemCapacity()-memPos),length);
     if (actualLength>0) {
       memcpy(&sampleMem[memPos],src,actualLength);
@@ -562,37 +583,12 @@ void DivPlatformNDS::renderSamples(int sysID) {
 void DivPlatformNDS::setFlags(const DivConfig& flags) {
   isDSi=flags.getBool("chipType",0);
   chipClock=33513982;
-  rate=chipClock/2/coreQuality;
+  CHECK_CUSTOM_CLOCK;
+  rate=chipClock/2;
   for (int i=0; i<16; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
   memCompo.capacity=(isDSi?16777216:4194304);
-}
-
-void DivPlatformNDS::setCoreQuality(unsigned char q) {
-  switch (q) {
-    case 0:
-      coreQuality=1024;
-      break;
-    case 1:
-      coreQuality=512;
-      break;
-    case 2:
-      coreQuality=256;
-      break;
-    case 3:
-      coreQuality=128;
-      break;
-    case 4:
-      coreQuality=32;
-      break;
-    case 5:
-      coreQuality=8;
-      break;
-    default:
-      coreQuality=128;
-      break;
-  }
 }
 
 int DivPlatformNDS::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,6 +60,9 @@ void DivPlatformGBAMinMod::acquire(short** buf, size_t len) {
     chState[i].loopStart=chReg[12]|((unsigned int)chReg[13]<<16);
     chState[i].volL=(short)chReg[14];
     chState[i].volR=(short)chReg[15];
+  }
+  for (int i=0; i<chanMax; i++) {
+    oscBuf[i]->begin(len);
   }
   for (size_t h=0; h<len; h++) {
     while (sampTimer>=sampCycles) {
@@ -133,10 +136,10 @@ void DivPlatformGBAMinMod::acquire(short** buf, size_t len) {
     buf[0][h]=sampL;
     buf[1][h]=sampR;
     for (int i=0; i<chanMax; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=oscOut[i][sampPos];
+      oscBuf[i]->putSample(h,oscOut[i][sampPos]);
     }
     for (int i=chanMax; i<16; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=0;
+      oscBuf[i]->putSample(h,0);
     }
     while (updTimer>=updCycles) {
       // flip buffer
@@ -196,6 +199,9 @@ void DivPlatformGBAMinMod::acquire(short** buf, size_t len) {
     }
     updTimer+=1<<dacDepth;
     sampTimer+=1<<dacDepth;
+  }
+  for (int i=0; i<chanMax; i++) {
+    oscBuf[i]->end(len);
   }
   // write back changed cached channel registers
   for (int i=0; i<chanMax; i++) {
@@ -295,7 +301,7 @@ void DivPlatformGBAMinMod::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivSample* s=parent->getSample(chan[i].sample);
-      double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
+      double off=(s->centerRate>=1)?((double)s->centerRate/parent->getCenterRate()):1.0;
       chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE));
       if (chan[i].keyOn) {
         unsigned int start, end, loop;
@@ -728,7 +734,7 @@ void DivPlatformGBAMinMod::setFlags(const DivConfig& flags) {
   chanMax=flags.getInt("channels",16);
   rate=16777216>>dacDepth;
   for (int i=0; i<16; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
   sampCycles=16777216/flags.getInt("sampRate",21845);
   chipClock=16777216/sampCycles;

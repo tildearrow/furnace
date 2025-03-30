@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,10 +60,13 @@ enum FurnaceCVObjectTypes {
   CV_ENEMY_BOMB,
   CV_EXPLOSION,
   CV_ENEMY,
+  CV_PLANE,
   CV_FURBALL,
   CV_MINE,
   CV_POWERUP_P,
   CV_POWERUP_S,
+  CV_MOD_I,
+  CV_MOD_S,
   CV_EXTRA_LIFE
 };
 
@@ -109,12 +112,142 @@ void FurnaceCVObject::collision(FurnaceCVObject* other) {
 void FurnaceCVObject::tick() {
 }
 
+struct FurnaceCV {
+  SDL_Surface* surface;
+  unsigned char* prioBuf;
+  DivEngine* e;
+  unsigned char* tileData;
+  unsigned int tick;
+  
+  // state
+  unsigned short* curStage;
+  int stageWidth, stageHeight;
+  int stageWidthPx, stageHeightPx;
+
+  const char* typeAddr;
+  unsigned char typeDelay;
+  int typeX, typeY;
+  int typeXStart, typeYStart;
+  int typeXEnd, typeYEnd;
+
+  int textWait, curText, transWait;
+  int ticksToInit;
+
+  bool inGame, inTransition, newHiScore, playSongs, pleaseInitSongs, gameOver;
+  unsigned char lives, respawnTime, stage, shotType, lifeBank;
+  int score;
+  int hiScore;
+  short lastPlayerX, lastPlayerY;
+  short fxChanBase, fxInsBase;
+  short speedTicks;
+  short planeTime;
+  float origSongRate;
+
+  FixedQueue<unsigned char,16> weaponStack;
+  
+  // graphics
+  unsigned short tile0[56][80];
+  unsigned short tile1[56][80];
+  unsigned short scrollX[2];
+  unsigned short scrollY[2];
+  unsigned char bgColor;
+  std::vector<FurnaceCVObject*> sprite;
+  // this offset is applied to sprites.
+  int viewX, viewY;
+
+  // input
+  unsigned char joyInputPrev;
+  unsigned char joyPressed;
+  unsigned char joyReleased;
+  unsigned char joyInput;
+
+  template<typename T> T* createObject(short x=0, short y=0);
+  template<typename T> T* createObjectNoPos();
+  void buildStage(int which);
+
+  void putText(int fontBase, bool fontHeight, String text, int x, int y);
+
+  void startTyping(const char* text, int x, int y);
+
+  void soundEffect(int ins, int chan, int note);
+  void stopSoundEffect(int ins, int chan, int note);
+
+  void addScore(int amount);
+
+  void typeTick();
+
+  void rasterH(int scanline);
+  void render(unsigned char joyIn);
+  void tileDataRead(struct GIF_WHDR* data);
+  void loadInstruments();
+  bool init(DivEngine* eng);
+  void unload();
+
+  FurnaceCV():
+    surface(NULL),
+    e(NULL),
+    tileData(NULL),
+    tick(0),
+    curStage(NULL),
+    stageWidth(40),
+    stageHeight(28),
+    stageWidthPx(320),
+    stageHeightPx(224),
+    typeAddr(NULL),
+    typeDelay(0),
+    typeX(0),
+    typeY(0),
+    typeXStart(0),
+    typeYStart(0),
+    typeXEnd(39),
+    typeYEnd(27),
+    textWait(60),
+    curText(0),
+    transWait(0),
+    ticksToInit(2),
+    inGame(false),
+    inTransition(false),
+    newHiScore(false),
+    playSongs(true),
+    pleaseInitSongs(false),
+    gameOver(false),
+    lives(5),
+    respawnTime(0),
+    stage(0),
+    shotType(0),
+    lifeBank(0),
+    score(0),
+    hiScore(25000),
+    lastPlayerX(0),
+    lastPlayerY(0),
+    fxChanBase(-1),
+    fxInsBase(-1),
+    speedTicks(0),
+    planeTime(0),
+    origSongRate(60.0f),
+    bgColor(0),
+    viewX(0),
+    viewY(0),
+    joyInputPrev(0),
+    joyPressed(0),
+    joyReleased(0),
+    joyInput(0) {
+    memset(tile0,0,80*56*sizeof(short));
+    memset(tile1,0,80*56*sizeof(short));
+
+    scrollX[0]=0;
+    scrollX[1]=0;
+    scrollY[0]=0;
+    scrollY[1]=0;
+  }
+};
+
 struct FurnaceCVPlayer: FurnaceCVObject {
   short subX, subY;
   short speedX, speedY;
   unsigned char shootDir;
   unsigned char animFrame;
-  unsigned char invincible;
+  short invincible;
   unsigned char shotTimer;
 
   void collision(FurnaceCVObject* other);
@@ -211,6 +344,7 @@ struct FurnaceCVEnemy1: FurnaceCVObject {
   unsigned char animFrame;
   short nextTime, shootTime;
   unsigned char shootCooldown;
+  short orientCount;
 
   void collision(FurnaceCVObject* other);
 
@@ -225,7 +359,8 @@ struct FurnaceCVEnemy1: FurnaceCVObject {
     animFrame(0),
     nextTime(64+(rand()%600)),
     shootTime(8),
-    shootCooldown(0) {
+    shootCooldown(0),
+    orientCount(0) {
     type=CV_ENEMY;
     spriteDef[0]=0x200;
     spriteDef[1]=0x201;
@@ -251,10 +386,73 @@ struct FurnaceCVEnemyVortex: FurnaceCVObject {
     speedX((rand()%5)-2),
     speedY((rand()%5)-2) {
     type=CV_ENEMY;
+    prio=2;
     spriteDef[0]=0x480;
     spriteDef[1]=0x481;
     spriteDef[2]=0x4a0;
     spriteDef[3]=0x4a1;
+  }
+};
+
+struct FurnaceCVEnemyPlane: FurnaceCVObject {
+  unsigned char orient;
+  short shootTime, speed;
+  bool notifyPlayer;
+
+  void collision(FurnaceCVObject* other);
+
+  void tick();
+  FurnaceCVEnemyPlane(FurnaceCV* p):
+    FurnaceCVObject(p),
+    orient(rand()&3),
+    shootTime(40),
+    speed(3),
+    notifyPlayer(true) {
+    type=CV_PLANE;
+    speed=2+(p->stage>>2)+(rand()%3);
+    prio=3;
+    if (speed>8) speed=8;
+    switch (orient) {
+      case 0: case 2:
+        spriteWidth=8;
+        spriteHeight=5;
+        break;
+      case 1: case 3:
+        spriteWidth=5;
+        spriteHeight=8;
+        break;
+    }
+
+    switch (orient) {
+      case 0:
+        for (int i=0; i<40; i++) {
+          spriteDef[i]=0x4c0+(i&7)+((i>>3)<<5);
+        }
+        x=-80;
+        y=rand()%(p->stageHeightPx-80);
+        break;
+      case 1:
+        for (int i=0; i<40; i++) {
+          spriteDef[i]=0x4d7+(i%5)+((i/5)<<5);
+        }
+        x=rand()%(p->stageWidthPx-80);
+        y=p->stageHeightPx+16;
+        break;
+      case 2:
+        for (int i=0; i<40; i++) {
+          spriteDef[i]=0x4c9+(i&7)+((i>>3)<<5);
+        }
+        x=p->stageWidthPx+16;
+        y=rand()%(p->stageHeightPx-80);
+        break;
+      case 3:
+        for (int i=0; i<40; i++) {
+          spriteDef[i]=0x4d2+(i%5)+((i/5)<<5);
+        }
+        x=rand()%(p->stageWidthPx-80);
+        y=-80;
+        break;
+    }
   }
 };
 
@@ -375,6 +573,28 @@ struct FurnaceCVPowerupS: FurnaceCVObject {
     }
 };
 
+struct FurnaceCVModI: FurnaceCVObject {
+  unsigned char life;
+  void collision(FurnaceCVObject* other);
+  void tick();
+  FurnaceCVModI(FurnaceCV* p):
+    FurnaceCVObject(p),
+    life(255) {
+      type=CV_MOD_I;
+    }
+};
+
+struct FurnaceCVModS: FurnaceCVObject {
+  unsigned char life;
+  void collision(FurnaceCVObject* other);
+  void tick();
+  FurnaceCVModS(FurnaceCV* p):
+    FurnaceCVObject(p),
+    life(255) {
+      type=CV_MOD_S;
+    }
+};
+
 struct FurnaceCVExtraLife: FurnaceCVObject {
   unsigned char life;
   void collision(FurnaceCVObject* other);
@@ -384,122 +604,6 @@ struct FurnaceCVExtraLife: FurnaceCVObject {
     life(255) {
       type=CV_EXTRA_LIFE;
     }
-};
-
-struct FurnaceCV {
-  SDL_Surface* surface;
-  unsigned char* prioBuf;
-  DivEngine* e;
-  unsigned char* tileData;
-  
-  // state
-  unsigned short* curStage;
-  int stageWidth, stageHeight;
-
-  const char* typeAddr;
-  unsigned char typeDelay;
-  int typeX, typeY;
-  int typeXStart, typeYStart;
-  int typeXEnd, typeYEnd;
-
-  int textWait, curText, transWait;
-  int ticksToInit;
-
-  bool inGame, inTransition, newHiScore, playSongs, pleaseInitSongs;
-  unsigned char lives, respawnTime, stage, shotType;
-  int score;
-  int hiScore;
-  short lastPlayerX, lastPlayerY;
-  short fxChanBase, fxInsBase;
-
-  FixedQueue<unsigned char,16> weaponStack;
-  
-  // graphics
-  unsigned short tile0[56][80];
-  unsigned short tile1[56][80];
-  unsigned short scrollX[2];
-  unsigned short scrollY[2];
-  unsigned char bgColor;
-  std::vector<FurnaceCVObject*> sprite;
-  // this offset is applied to sprites.
-  int viewX, viewY;
-
-  // input
-  unsigned char joyInputPrev;
-  unsigned char joyPressed;
-  unsigned char joyReleased;
-  unsigned char joyInput;
-
-  template<typename T> T* createObject(short x=0, short y=0);
-  void buildStage(int which);
-
-  void putText(int fontBase, bool fontHeight, String text, int x, int y);
-
-  void startTyping(const char* text, int x, int y);
-
-  void soundEffect(int ins, int chan, int note);
-  void stopSoundEffect(int ins, int chan, int note);
-
-  void addScore(int amount);
-
-  void typeTick();
-
-  void rasterH(int scanline);
-  void render(unsigned char joyIn);
-  void tileDataRead(struct GIF_WHDR* data);
-  void loadInstruments();
-  bool init(DivEngine* eng);
-  void unload();
-
-  FurnaceCV():
-    surface(NULL),
-    e(NULL),
-    tileData(NULL),
-    curStage(NULL),
-    stageWidth(0),
-    stageHeight(0),
-    typeAddr(NULL),
-    typeDelay(0),
-    typeX(0),
-    typeY(0),
-    typeXStart(0),
-    typeYStart(0),
-    typeXEnd(39),
-    typeYEnd(27),
-    textWait(60),
-    curText(0),
-    transWait(0),
-    ticksToInit(2),
-    inGame(false),
-    inTransition(false),
-    newHiScore(false),
-    playSongs(true),
-    pleaseInitSongs(false),
-    lives(5),
-    respawnTime(0),
-    stage(0),
-    shotType(0),
-    score(0),
-    hiScore(25000),
-    lastPlayerX(0),
-    lastPlayerY(0),
-    fxChanBase(-1),
-    fxInsBase(-1),
-    bgColor(0),
-    viewX(0),
-    viewY(0),
-    joyInputPrev(0),
-    joyPressed(0),
-    joyReleased(0),
-    joyInput(0) {
-    memset(tile0,0,80*56*sizeof(short));
-    memset(tile1,0,80*56*sizeof(short));
-
-    scrollX[0]=0;
-    scrollX[1]=0;
-    scrollY[0]=0;
-    scrollY[1]=0;
-  }
 };
 
 static const char* cvText[]={
@@ -515,7 +619,12 @@ static const char* cvText[]={
 
   _N("GAME OVER"),
 
-  _N("High Score!")
+  _N("High Score!"),
+
+  _N("Welcome to Combat Vehicle!\n\n"
+  "Controls:\n"
+  "B - Shoot      D-Pad - Move\n"
+  "A - Special"),
 };
 
 void FurnaceGUI::syncTutorial() {
@@ -751,33 +860,34 @@ void FurnaceGUI::drawTutorial() {
     ImGui::SetNextWindowPos(ImVec2(0,0));
     ImGui::SetNextWindowSize(ImVec2(canvasW,canvasH));
     if (ImGui::Begin("Combat Vehicle",&cvOpen,ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_Modal|ImGuiWindowFlags_NoTitleBar)) {
-      ImVec2 dpadLoc=ImVec2(canvasW*0.25,canvasH*0.85); 
-      ImVec2 buttonLoc=ImVec2(canvasW*0.75,canvasH*0.85);
-      float oneUnit=canvasW*0.15;
+      ImVec2 dpadLoc=ImVec2(canvasW*0.22,canvasH*0.85); 
+      ImVec2 buttonLoc=ImVec2(canvasW*0.78,canvasH*0.85);
+      ImVec2 quitLoc=ImVec2(canvasW*0.5,canvasH*0.6);
+      float oneUnit=MIN(canvasW,canvasH)*0.12;
 
       ImVec2 dpadUpStart=ImVec2(
-        dpadLoc.x-oneUnit*1.5,
-        dpadLoc.y-oneUnit*1.5
+        dpadLoc.x-oneUnit*1.75,
+        dpadLoc.y-oneUnit*1.75
       );
       ImVec2 dpadUpEnd=ImVec2(
-        dpadLoc.x+oneUnit*1.5,
+        dpadLoc.x+oneUnit*1.75,
         dpadLoc.y-oneUnit*0.5
       );
       ImVec2 dpadLeftEnd=ImVec2(
         dpadLoc.x-oneUnit*0.5,
-        dpadLoc.y+oneUnit*1.5
+        dpadLoc.y+oneUnit*1.75
       );
       ImVec2 dpadDownStart=ImVec2(
-        dpadLoc.x-oneUnit*1.5,
+        dpadLoc.x-oneUnit*1.75,
         dpadLoc.y+oneUnit*0.5
       );
       ImVec2 dpadDownEnd=ImVec2(
-        dpadLoc.x+oneUnit*1.5,
-        dpadLoc.y+oneUnit*1.5
+        dpadLoc.x+oneUnit*1.75,
+        dpadLoc.y+oneUnit*1.75
       );
       ImVec2 dpadRightStart=ImVec2(
         dpadLoc.x+oneUnit*0.5,
-        dpadLoc.y-oneUnit*1.5
+        dpadLoc.y-oneUnit*1.75
       );
 
       ImVec2 buttonBStart=ImVec2(
@@ -795,6 +905,14 @@ void FurnaceGUI::drawTutorial() {
       ImVec2 buttonAEnd=ImVec2(
         buttonLoc.x+oneUnit*1.25,
         buttonLoc.y+oneUnit*0.5
+      );
+      ImVec2 buttonQuitStart=ImVec2(
+        quitLoc.x-oneUnit*0.5,
+        quitLoc.y-oneUnit*0.25
+      );
+      ImVec2 buttonQuitEnd=ImVec2(
+        quitLoc.x+oneUnit*0.5,
+        quitLoc.y+oneUnit*0.25
       );
 
       unsigned char touchControls=0;
@@ -831,6 +949,17 @@ void FurnaceGUI::drawTutorial() {
               i.x<=dpadDownEnd.x && i.y<=dpadDownEnd.y) {
             touchControls|=128;
           }
+          // quit
+          if (cv!=NULL) {
+            if (i.x>=buttonQuitStart.x && i.y>=buttonQuitStart.y &&
+                i.x<=buttonQuitEnd.x && i.y<=buttonQuitEnd.y) {
+              cv->unload();
+              delete cv;
+              cv=NULL;
+              cvOpen=false;
+              return;
+            }
+          }
         }
       }
 
@@ -854,20 +983,34 @@ void FurnaceGUI::drawTutorial() {
             cv->loadInstruments();
           }
         }
+        cv->origSongRate=e->getHz();
       }
 
       WAKE_UP;
 
       if (cv->inTransition && cv->transWait==1) {
         // load random demo song
-        if (cv->playSongs) {
+        int avgSpeed=0;
+        for (int i=0; i<e->curSubSong->speeds.len; i++) {
+          avgSpeed+=e->curSubSong->speeds.val[i];
+        }
+        int oneQuarter=(e->curSubSong->ordersLen*e->curSubSong->patLen*avgSpeed)/e->curSubSong->speeds.len;
+        oneQuarter=(oneQuarter*e->curSubSong->virtualTempoN)/e->curSubSong->virtualTempoD;
+        oneQuarter/=e->curSubSong->hz;
+        oneQuarter/=4;
+        if (cv->playSongs && e->getTotalSeconds()>=oneQuarter) {
           if (loadRandomDemoSong()) {
             cv->loadInstruments();
             e->changeSongP(0);
             e->setOrder(0);
             e->play();
+            cv->origSongRate=e->getHz();
           }
         }
+      }
+
+      if (cv->speedTicks>0) {
+        cv->e->setSongRate(cv->origSongRate*1.5);
       }
 
       cv->render(touchControls);
@@ -887,8 +1030,8 @@ void FurnaceGUI::drawTutorial() {
 
         if (((double)canvasH/(double)canvasW)>0.7) {
           if (mobileUI) {
-            p0=ImVec2(0.0,0.0);
-            p1=ImVec2(canvasW,canvasW*0.7);
+            p0=ImVec2(0.0,canvasH*0.05);
+            p1=ImVec2(canvasW,(canvasH*0.05)+(canvasW*0.7));
           } else {
             p0=ImVec2(0.0,(canvasH-(canvasW*0.7))*0.5);
             p1=ImVec2(canvasW,canvasW*0.7+(canvasH-(canvasW*0.7))*0.5);
@@ -903,13 +1046,42 @@ void FurnaceGUI::drawTutorial() {
         dl->AddImage(rend->getTextureID(cvTex),p0,p1,ImVec2(0,0),ImVec2(rend->getTextureU(cvTex),rend->getTextureV(cvTex)));
 
         if (mobileUI) {
-          dl->AddRect(dpadUpStart,dpadUpEnd,0xff0000ff,0,0,dpiScale);
-          dl->AddRect(dpadUpStart,dpadLeftEnd,0xff00ffff,0,0,dpiScale);
-          dl->AddRect(dpadDownStart,dpadDownEnd,0xff00ff00,0,0,dpiScale);
-          dl->AddRect(dpadRightStart,dpadDownEnd,0xffff0000,0,0,dpiScale);
+          ImVec2 chevron[3];
 
-          dl->AddRect(buttonBStart,buttonBEnd,0xffffff00,0,0,dpiScale);
-          dl->AddRect(buttonAStart,buttonAEnd,0xffff00ff,0,0,dpiScale);
+          // up
+          chevron[0]=ImLerp(dpadUpStart,dpadUpEnd,ImVec2(0.4,0.65));
+          chevron[1]=ImLerp(dpadUpStart,dpadUpEnd,ImVec2(0.5,0.35));
+          chevron[2]=ImLerp(dpadUpStart,dpadUpEnd,ImVec2(0.6,0.65));
+          dl->AddPolyline(chevron,3,0xffffffff,0,4.0f*dpiScale);
+
+          // left
+          chevron[0]=ImLerp(dpadUpStart,dpadLeftEnd,ImVec2(0.65,0.4));
+          chevron[1]=ImLerp(dpadUpStart,dpadLeftEnd,ImVec2(0.35,0.5));
+          chevron[2]=ImLerp(dpadUpStart,dpadLeftEnd,ImVec2(0.65,0.6));
+          dl->AddPolyline(chevron,3,0xffffffff,0,4.0f*dpiScale);
+
+          // down
+          chevron[0]=ImLerp(dpadDownStart,dpadDownEnd,ImVec2(0.4,0.35));
+          chevron[1]=ImLerp(dpadDownStart,dpadDownEnd,ImVec2(0.5,0.65));
+          chevron[2]=ImLerp(dpadDownStart,dpadDownEnd,ImVec2(0.6,0.35));
+          dl->AddPolyline(chevron,3,0xffffffff,0,4.0f*dpiScale);
+
+          // right
+          chevron[0]=ImLerp(dpadRightStart,dpadDownEnd,ImVec2(0.35,0.4));
+          chevron[1]=ImLerp(dpadRightStart,dpadDownEnd,ImVec2(0.65,0.5));
+          chevron[2]=ImLerp(dpadRightStart,dpadDownEnd,ImVec2(0.35,0.6));
+          dl->AddPolyline(chevron,3,0xffffffff,0,4.0f*dpiScale);
+
+          // A/B
+          dl->AddRectFilled(buttonBStart,buttonBEnd,(touchControls&1)?0x4040ffff:0x2040ffff,0,0);
+          dl->AddRectFilled(buttonAStart,buttonAEnd,(touchControls&2)?0x4040ffff:0x2040ffff,0,0);
+          dl->AddRect(buttonBStart,buttonBEnd,0xff00ffff,0,0,dpiScale);
+          dl->AddRect(buttonAStart,buttonAEnd,0xff00ffff,0,0,dpiScale);
+          dl->AddText(headFont,settings.headFontSize*dpiScale,ImLerp(buttonBStart,buttonBEnd,ImVec2(0.5,0.5))-(headFont->CalcTextSizeA(settings.headFontSize*dpiScale,FLT_MAX,0,"B")*0.5f),0xff00ffff,"B");
+          dl->AddText(headFont,settings.headFontSize*dpiScale,ImLerp(buttonAStart,buttonAEnd,ImVec2(0.5,0.5))-(headFont->CalcTextSizeA(settings.headFontSize*dpiScale,FLT_MAX,0,"A")*0.5f),0xff00ffff,"A");
+
+          // quit
+          dl->AddRect(buttonQuitStart,buttonQuitEnd,0xffffffff,0,0,dpiScale);
         }
       }
     }
@@ -1042,11 +1214,22 @@ static const unsigned char cvPalette[1024]={
 #define SE_VORTEXMOVE 13, 3, 55
 #define SE_VORTEXSHOOT 14, 3, 48
 #define SE_RESIST 15, 1, 48
+#define SE_PLANE1 16, 1, 47
+#define SE_PLANE2 17, 2, 47
+#define SE_EXPL2 18, 1, 60
+#define SE_PICKUP3 19, 3, 67
+#define SE_TIMEUP 20, 2, 81
 
 template<typename T> T* FurnaceCV::createObject(short x, short y) {
   T* ret=new T(this);
   ret->x=x;
   ret->y=y;
+  sprite.push_back(ret);
+  return ret;
+}
+
+template<typename T> T* FurnaceCV::createObjectNoPos() {
+  T* ret=new T(this);
   sprite.push_back(ret);
   return ret;
 }
@@ -1074,9 +1257,18 @@ void FurnaceCV::buildStage(int which) {
     curStage=NULL;
   }
 
-  curStage=new unsigned short[80*56];
-  stageWidth=80;
-  stageHeight=56;
+  if (which>19 || which==4 || which==7 || which==9 || which==11 || which==13 || which==16 || which==17) {
+    stageWidth=80;
+    stageHeight=56;
+  } else {
+    stageWidth=40;
+    stageHeight=28;    
+  }
+
+  stageWidthPx=stageWidth<<3;
+  stageHeightPx=stageHeight<<3;
+
+  curStage=new unsigned short[stageWidth*stageHeight];
   
   int floorBase=floorBases[rand()&3];
 
@@ -1103,8 +1295,8 @@ void FurnaceCV::buildStage(int which) {
     for (int i=0; i<20+(which>>2); i++) {
       int tries=0;
       while (tries<20) {
-        int x=rand()%40;
-        int y=rand()%28;
+        int x=rand()%(stageWidth>>1);
+        int y=rand()%(stageHeight>>1);
         int finalX=x<<4;
         int finalY=y<<4;
         if (busy[y][x]) {
@@ -1121,8 +1313,8 @@ void FurnaceCV::buildStage(int which) {
     for (int i=0; i<20+(which>>2); i++) {
       int tries=0;
       while (tries<20) {
-        int x=(rand()%40)&(~1);
-        int y=(rand()%28)&(~1);
+        int x=(rand()%(stageWidth>>1))&(~1);
+        int y=(rand()%(stageHeight>>1))&(~1);
         int finalX=x<<4;
         int finalY=y<<4;
         if (busy[y][x]) {
@@ -1144,8 +1336,8 @@ void FurnaceCV::buildStage(int which) {
     if (which>=2) for (int i=0; i<(rand()%3)+which-2; i++) {
       int tries=0;
       while (tries<20) {
-        int x=(rand()%40)&(~1);
-        int y=(rand()%28)&(~1);
+        int x=(rand()%(stageWidth>>1))&(~1);
+        int y=(rand()%(stageHeight>>1))&(~1);
         int finalX=x<<4;
         int finalY=y<<4;
         if (busy[y][x]) {
@@ -1170,8 +1362,8 @@ void FurnaceCV::buildStage(int which) {
     if (which>=4) for (int i=0; i<(rand()%(1+which))+(which>>1); i++) {
       int tries=0;
       while (tries<20) {
-        int x=rand()%40;
-        int y=rand()%28;
+        int x=rand()%(stageWidth>>1);
+        int y=rand()%(stageHeight>>1);
         int finalX=x<<4;
         int finalY=y<<4;
         if (busy[y][x]) {
@@ -1189,8 +1381,8 @@ void FurnaceCV::buildStage(int which) {
     for (int i=0; i<7+(rand()%4)+((which&3)<<2)+(which>>1); i++) {
       int tries=0;
       while (tries<20) {
-        int x=rand()%40;
-        int y=rand()%28;
+        int x=rand()%(stageWidth>>1);
+        int y=rand()%(stageHeight>>1);
         int finalX=x<<4;
         int finalY=y<<4;
         if (busy[y][x]) {
@@ -1211,8 +1403,8 @@ void FurnaceCV::buildStage(int which) {
     for (int i=0; i<7+(rand()%18); i++) {
       int tries=0;
       while (tries<20) {
-        int x=rand()%40;
-        int y=rand()%28;
+        int x=rand()%(stageWidth>>1);
+        int y=rand()%(stageHeight>>1);
         int finalX=x<<4;
         int finalY=y<<4;
         if (busy[y][x]) {
@@ -1225,6 +1417,9 @@ void FurnaceCV::buildStage(int which) {
       }
     }
   }
+
+  // setup stuff
+  planeTime=180+(rand()%400);
 }
 
 #define CV_FONTBASE_8x8 0x250
@@ -1343,6 +1538,15 @@ void FurnaceCV::render(unsigned char joyIn) {
   }
 
   if (inGame) {
+    // planes
+    if (--planeTime<=0) {
+      planeTime=MAX(10,60-(stage*2))+(rand()%MAX(50,320-stage*4));
+      if (stage>=5 && stage!=9 && (stage&1 || stage>=10)) {
+        createObjectNoPos<FurnaceCVEnemyPlane>();
+      }
+    }
+
+    // initialization
     if (ticksToInit>0) {
       if (--ticksToInit<1) {
         e->changeSongP(0);
@@ -1370,6 +1574,7 @@ void FurnaceCV::render(unsigned char joyIn) {
         stopSoundEffect(0,3,0);
         respawnTime=0;
         for (FurnaceCVObject* i: sprite) {
+          if (i->type==CV_EXTRA_LIFE) lifeBank++;
           i->dead=true;
         }
         memset(tile0,0,80*56*sizeof(short));
@@ -1401,8 +1606,16 @@ void FurnaceCV::render(unsigned char joyIn) {
           } else {
             startTyping(_(cvText[2]),15,13);
           }
+          gameOver=true;
         }
       }
+    }
+
+    if (gameOver && lifeBank>0 && joyInput==3) {
+      lives+=lifeBank;
+      respawnTime=1;
+      lifeBank=0;
+      gameOver=false;
     }
 
     // draw score
@@ -1416,6 +1629,97 @@ void FurnaceCV::render(unsigned char joyIn) {
     tile1[0][36]=0x27f;
     putText(CV_FONTBASE_8x8,false,fmt::sprintf("*%2d",lives),37,0);
 
+    // arrow overlay
+    bool arrowLeft=false;
+    bool arrowRight=false;
+    bool arrowUp=false;
+    bool arrowDown=false;
+    if (stageWidthPx>320 || stageHeightPx>224) {
+      for (FurnaceCVObject* i: sprite) {
+        if (i->type!=CV_ENEMY) continue;
+        if ((i->x-viewX+(i->spriteWidth<<3))<0) {
+          arrowLeft=true;
+        }
+        if ((i->x-viewX)>=320) {
+          arrowRight=true;
+        }
+        if ((i->y-viewY+(i->spriteHeight<<3))<0) {
+          arrowUp=true;
+        }
+        if ((i->y-viewY)>=224) {
+          arrowDown=true;
+        }
+      }
+    }
+    if (arrowLeft && !(tick&8)) {
+      tile1[13][1]=0x580;
+      tile1[13][2]=0x581;
+      tile1[14][1]=0x5a0;
+      tile1[14][2]=0x5a1;
+    } else {
+      tile1[13][1]=0;
+      tile1[13][2]=0;
+      tile1[14][1]=0;
+      tile1[14][2]=0;
+    }
+    if (arrowRight && !(tick&8)) {
+      tile1[13][37]=0x584;
+      tile1[13][38]=0x585;
+      tile1[14][37]=0x5a4;
+      tile1[14][38]=0x5a5;
+    } else {
+      tile1[13][37]=0;
+      tile1[13][38]=0;
+      tile1[14][37]=0;
+      tile1[14][38]=0;
+    }
+    if (arrowUp && !(tick&8)) {
+      tile1[1][19]=0x582;
+      tile1[1][20]=0x583;
+      tile1[2][19]=0x5a2;
+      tile1[2][20]=0x5a3;
+    } else {
+      tile1[1][19]=0;
+      tile1[1][20]=0;
+      tile1[2][19]=0;
+      tile1[2][20]=0;
+    }
+    if (arrowDown && !(tick&8)) {
+      tile1[25][19]=0x586;
+      tile1[25][20]=0x587;
+      tile1[26][19]=0x5a6;
+      tile1[26][20]=0x5a7;
+    } else {
+      tile1[25][19]=0;
+      tile1[25][20]=0;
+      tile1[26][19]=0;
+      tile1[26][20]=0;
+    }
+
+    // S mod stat
+    if (speedTicks>0) {
+      speedTicks--;
+      if (speedTicks==120) soundEffect(SE_TIMEUP);
+      if ((speedTicks<120 && speedTicks&2) || (speedTicks>=120 && speedTicks&16)) {
+        tile1[24][36]=0x41e;
+        tile1[24][37]=0x41f;
+        tile1[25][36]=0x43e;
+        tile1[25][37]=0x43f;
+      } else {
+        tile1[24][36]=0;
+        tile1[24][37]=0;
+        tile1[25][36]=0;
+        tile1[25][37]=0;
+      }
+      if (speedTicks==0) {
+        e->setSongRate(origSongRate);
+      }
+    } else {
+      tile1[24][36]=0;
+      tile1[24][37]=0;
+      tile1[25][36]=0;
+      tile1[25][37]=0;
+    }
   } else {
     if (inTransition) {
       if (--transWait<0) {
@@ -1464,13 +1768,16 @@ void FurnaceCV::render(unsigned char joyIn) {
             inGame=true;
           } else {
             memset(tile1,0,80*56*sizeof(short));
-            startTyping(_(cvText[curText++]),2,3);
+            startTyping(_(cvText[curText]),2,3);
+            curText++;
             textWait=90;
           }
         }
       }
     }
   }
+
+  tick++;
 
   // render
   if (surface==NULL) return;
@@ -1487,11 +1794,11 @@ void FurnaceCV::render(unsigned char joyIn) {
   for (int i=0; i<224; i++) {
     rasterH(i);
 
-    unsigned short x0=scrollX[0]%448;
-    unsigned short x1=scrollX[1]%448;
+    unsigned short x0=scrollX[0]%stageWidthPx;
+    unsigned short x1=scrollX[1]%stageWidthPx;
 
-    y0%=448;
-    y1%=448;
+    y0%=stageHeightPx;
+    y1%=stageHeightPx;
 
     for (int j=0; j<320; j++) {
       unsigned short t0=tile0[y0>>3][x0>>3]&0xfff;
@@ -1511,8 +1818,8 @@ void FurnaceCV::render(unsigned char joyIn) {
         *pb++=0;
       }
 
-      if (++x0>=640) x0=0;
-      if (++x1>=640) x1=0;
+      if (++x0>=stageWidthPx) x0=0;
+      if (++x1>=stageWidthPx) x1=0;
     }
 
     y0++;
@@ -1610,6 +1917,7 @@ void FurnaceCV::unload() {
   if (fxChanBase>=0) {
     e->removeSystem(e->song.systemLen-1);
   }
+  e->setSongRate(origSongRate);
 
   if (curStage!=NULL) {
     delete[] curStage;
@@ -1618,13 +1926,13 @@ void FurnaceCV::unload() {
 }
 
 #define IS_VISIBLE ((x-cv->viewX+(spriteWidth<<3))>=0 && (x-cv->viewX)<320 && (y-cv->viewY+(spriteHeight<<3))>=0 && (y-cv->viewY)<224)
-#define IS_IN_AREA ((x+(spriteWidth<<3))>=0 && (x)<640 && (y+(spriteHeight<<3))>=0 && (y)<448)
-#define HITS_BORDER (x<0 || y<0 || (x+(spriteWidth<<3))>=640 || (y+(spriteHeight<<3))>=448)
+#define IS_IN_AREA ((x+(spriteWidth<<3))>=0 && (x)<cv->stageWidthPx && (y+(spriteHeight<<3))>=0 && (y)<cv->stageHeightPx)
+#define HITS_BORDER (x<0 || y<0 || (x+(spriteWidth<<3))>=cv->stageWidthPx || (y+(spriteHeight<<3))>=cv->stageHeightPx)
 #define CONFINE_TO_BORDER \
   if (x<0) x=0; \
   if (y<0) y=0; \
-  if ((x+(spriteWidth<<3))>=640) x=639-(spriteWidth<<3); \
-  if ((y+(spriteHeight<<3))>=448) y=447-(spriteHeight<<3);
+  if ((x+(spriteWidth<<3))>=cv->stageWidthPx) x=(cv->stageWidthPx-1)-(spriteWidth<<3); \
+  if ((y+(spriteHeight<<3))>=cv->stageHeightPx) y=(cv->stageHeightPx-1)-(spriteHeight<<3);
 
 // FurnaceCVPlayer IMPLEMENTATION
 
@@ -1632,8 +1940,18 @@ void FurnaceCVPlayer::collision(FurnaceCVObject* other) {
   if (other->type==CV_ENEMY_BULLET ||
       other->type==CV_MINE ||
       other->type==CV_ENEMY) {
-    if (!invincible) {
+    bool mustDie=!invincible;
+
+    if (other->type==CV_ENEMY_BULLET) {
+      const int diffX=abs((other->x+4)-(x+12));
+      const int diffY=abs((other->y+4)-(y+12));
+      if (diffX>4 || diffY>4) mustDie=false;
+    }
+
+    if (mustDie) {
       dead=true;
+      cv->speedTicks=0;
+      cv->e->setSongRate(cv->origSongRate);
       cv->respawnTime=48;
       if (cv->weaponStack.empty()) {
         cv->shotType=0;
@@ -1669,14 +1987,18 @@ static const int shootDirOrient[8]={
 void FurnaceCVPlayer::tick() {
   signed char sdX=0;
   signed char sdY=0;
+
+  int maxSpeed=(cv->speedTicks>0)?128:64;
+  int maxSpeedDiagonal=(cv->speedTicks>0)?90:45;
+
   if (cv->joyInput&16) {
     speedY-=12;
     sdY=-1;
-    if (speedY<-64) speedY=-64;
+    if (speedY<-maxSpeed) speedY=-maxSpeed;
   } else if (cv->joyInput&32) {
     speedY+=12;
     sdY=1;
-    if (speedY>64) speedY=64;
+    if (speedY>maxSpeed) speedY=maxSpeed;
   } else {
     if (speedY>0) {
       speedY-=12;
@@ -1689,11 +2011,11 @@ void FurnaceCVPlayer::tick() {
   if (cv->joyInput&64) {
     speedX-=12;
     sdX=-1;
-    if (speedX<-64) speedX=-64;
+    if (speedX<-maxSpeed) speedX=-maxSpeed;
   } else if (cv->joyInput&128) {
     speedX+=12;
     sdX=1;
-    if (speedX>64) speedX=64;
+    if (speedX>maxSpeed) speedX=maxSpeed;
   } else {
     if (speedX>0) {
       speedX-=12;
@@ -1706,10 +2028,10 @@ void FurnaceCVPlayer::tick() {
 
   // sqrt(2)
   if (speedX && speedY) {
-    if (speedX>45) speedX=45;
-    if (speedX<-45) speedX=-45;
-    if (speedY>45) speedY=45;
-    if (speedY<-45) speedY=-45;
+    if (speedX>maxSpeedDiagonal) speedX=maxSpeedDiagonal;
+    if (speedX<-maxSpeedDiagonal) speedX=-maxSpeedDiagonal;
+    if (speedY>maxSpeedDiagonal) speedY=maxSpeedDiagonal;
+    if (speedY<-maxSpeedDiagonal) speedY=-maxSpeedDiagonal;
   }
 
   subX+=speedX;
@@ -1750,6 +2072,9 @@ void FurnaceCVPlayer::tick() {
 
   if (cv->joyPressed&1) {
     shotTimer=(cv->shotType==2)?5:9;
+    if (cv->speedTicks>0) {
+      shotTimer=(cv->shotType==2)?2:4;
+    }
     if (cv->shotType==1) {
       cv->soundEffect(SE_SHOT2);
     } else {
@@ -1793,6 +2118,9 @@ void FurnaceCVPlayer::tick() {
   if (cv->joyInput&1) {
     if (--shotTimer<1) {
       shotTimer=(cv->shotType==2)?4:8;
+      if (cv->speedTicks>0) {
+        shotTimer=(cv->shotType==2)?1:3;
+      }
       if (cv->shotType==1) {
         cv->soundEffect(SE_SHOT2);
       } else {
@@ -1863,9 +2191,9 @@ void FurnaceCVPlayer::tick() {
   cv->viewX=x-160+12;
   cv->viewY=y-112+12;
   if (cv->viewX<0) cv->viewX=0;
-  if (cv->viewX>320) cv->viewX=320;
+  if (cv->viewX>cv->stageWidthPx-320) cv->viewX=cv->stageWidthPx-320;
   if (cv->viewY<0) cv->viewY=0;
-  if (cv->viewY>224) cv->viewY=224;
+  if (cv->viewY>cv->stageHeightPx-224) cv->viewY=cv->stageHeightPx-224;
   cv->scrollX[0]=cv->viewX;
   cv->scrollY[0]=cv->viewY;
 }
@@ -2103,16 +2431,24 @@ void FurnaceCVEnemy1::collision(FurnaceCVObject* other) {
   if (other->type==CV_BULLET || other->type==CV_PLAYER) {
     if (--health<=0) {
       dead=true;
-      if ((rand()%7)==0 || (enemyType>1 && (rand()%7)==3)) {
-        switch (rand()%10) {
-          case 0:
+      if ((rand()%7)==0 || (enemyType>1 && (rand()%3)==2)) {
+        switch (rand()%14) {
+          case 0: // extra life
             cv->createObject<FurnaceCVExtraLife>(x+(enemyType>=2?8:0),y+(enemyType>=2?8:0));
             break;
-          case 1: case 2: case 3: case 4:
+          case 1: case 2: case 3: case 4: // powerup
             cv->createObject<FurnaceCVPowerupP>(x+(enemyType>=2?8:0),y+(enemyType>=2?8:0));
             break;
-          case 5: case 6: case 7: case 8: case 9:
+          case 5: case 6: case 7: case 8: case 9: // powerup
             cv->createObject<FurnaceCVPowerupS>(x+(enemyType>=2?8:0),y+(enemyType>=2?8:0));
+            break;
+          case 10: case 11: // special
+            break;
+          case 12: // mod
+            cv->createObject<FurnaceCVModS>(x+(enemyType>=2?8:0),y+(enemyType>=2?8:0));
+            break;
+          case 13: // mod
+            cv->createObject<FurnaceCVModI>(x+(enemyType>=2?8:0),y+(enemyType>=2?8:0));
             break;
         }
       }
@@ -2148,7 +2484,14 @@ void FurnaceCVEnemy1::collision(FurnaceCVObject* other) {
     }
   } else if (other->type==CV_ENEMY || other->type==CV_MINE) {
     // reorient
-    orient=(orient+2)&3;
+    orientCount+=2;
+    if (orientCount>6) {
+      // stuck...
+      stopped=true;
+      cv->stopSoundEffect(SE_TANKMOVE);
+    } else {
+      orient=(orient+2)&3;
+    }
   }
 }
 
@@ -2170,6 +2513,8 @@ void FurnaceCVEnemy1::tick() {
     }
     animFrame+=0x15;
   }
+
+  if (--orientCount<=0) orientCount=0;
 
   if (--nextTime==0) {
     nextTime=64+(rand()%600);
@@ -2228,11 +2573,8 @@ void FurnaceCVEnemy1::tick() {
   }
 
   if (HITS_BORDER) {
-    if (x<0) orient=0;
-    if (x>=640-16) orient=2;
-    if (y<0) orient=3;
-    if (y>=224-16) orient=1;
-    cv->soundEffect(SE_TANKMOVE);
+    orient=(orient+2)&3;
+
     CONFINE_TO_BORDER;
   }
 
@@ -2719,6 +3061,90 @@ static const unsigned char __0f_fui[] = {
   0x50, 0x4e, 0x01, 0x00, 0x03
 };
 static const unsigned int __0f_fui_len = 101;
+static const unsigned char __10_fui[] = {
+  0x46, 0x49, 0x4e, 0x53, 0xe2, 0x00, 0x38, 0x00, 0x4d, 0x41, 0x94, 0x00,
+  0x08, 0x00, 0x00, 0x10, 0xff, 0xff, 0x00, 0x03, 0x00, 0x01, 0x00, 0x0f,
+  0x06, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x04, 0x4c, 0x48, 0xff, 0x01, 0x41, 0x00, 0x01, 0xfd, 0xfc,
+  0xfb, 0xfb, 0xfb, 0xfa, 0xfa, 0xfa, 0xfa, 0xf8, 0xf7, 0xf6, 0xf6, 0xf5,
+  0xf5, 0xf4, 0xf3, 0xf3, 0xf2, 0xf2, 0xf3, 0xf2, 0xf1, 0xf1, 0xf0, 0xf0,
+  0xef, 0xef, 0xee, 0xee, 0xee, 0xed, 0xed, 0xed, 0xec, 0xec, 0xec, 0xeb,
+  0xeb, 0xeb, 0xeb, 0xeb, 0xeb, 0xea, 0xea, 0xea, 0xea, 0xea, 0xea, 0xea,
+  0xeb, 0xeb, 0xeb, 0xeb, 0xeb, 0xec, 0xec, 0xec, 0xed, 0xed, 0xed, 0xed,
+  0xee, 0xee, 0xef, 0xef, 0xf0, 0xf0, 0xf1, 0xf1, 0xf2, 0xf2, 0xf2, 0xf3,
+  0xf3, 0xf3, 0x05, 0x01, 0xff, 0xff, 0x00, 0x01, 0x00, 0x01, 0x00, 0x0e,
+  0x01, 0xff, 0xff, 0x00, 0x01, 0x00, 0x01, 0x01, 0x0f, 0x01, 0xff, 0xff,
+  0x00, 0x01, 0x00, 0x01, 0x01, 0x13, 0x01, 0xff, 0xff, 0x00, 0x81, 0x00,
+  0x01, 0x55, 0x55, 0xff, 0x50, 0x4e, 0x01, 0x00, 0x00
+};
+static const unsigned int __10_fui_len = 165;
+static const unsigned char __11_fui[] = {
+  0x46, 0x49, 0x4e, 0x53, 0xe2, 0x00, 0x38, 0x00, 0x4d, 0x41, 0x94, 0x00,
+  0x08, 0x00, 0x00, 0x10, 0xff, 0xff, 0x00, 0x03, 0x00, 0x01, 0x00, 0x0f,
+  0x06, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x04, 0x4c, 0x48, 0xff, 0x01, 0x41, 0x00, 0x01, 0xd7, 0xfd,
+  0xfb, 0xfb, 0xfb, 0xfa, 0xfa, 0xfa, 0xfa, 0xf8, 0xf7, 0xf6, 0xf6, 0xf5,
+  0xf5, 0xf4, 0xf3, 0xf3, 0xf2, 0xf2, 0xf3, 0xf2, 0xf1, 0xf1, 0xf0, 0xf0,
+  0xef, 0xef, 0xee, 0xee, 0xee, 0xed, 0xed, 0xed, 0xec, 0xec, 0xec, 0xeb,
+  0xeb, 0xeb, 0xeb, 0xeb, 0xeb, 0xea, 0xea, 0xea, 0xea, 0xea, 0xea, 0xea,
+  0xeb, 0xeb, 0xeb, 0xeb, 0xeb, 0xec, 0xec, 0xec, 0xed, 0xed, 0xed, 0xed,
+  0xee, 0xee, 0xef, 0xef, 0xf0, 0xf0, 0xf1, 0xf1, 0xf2, 0xf2, 0xf2, 0xf3,
+  0xf3, 0xf3, 0x05, 0x01, 0xff, 0xff, 0x00, 0x01, 0x00, 0x01, 0x00, 0x0e,
+  0x01, 0xff, 0xff, 0x00, 0x01, 0x00, 0x01, 0x01, 0x0f, 0x01, 0xff, 0xff,
+  0x00, 0x01, 0x00, 0x01, 0x01, 0x13, 0x01, 0xff, 0xff, 0x00, 0x81, 0x00,
+  0x01, 0x55, 0x55, 0xff, 0x50, 0x4e, 0x01, 0x00, 0x00
+};
+static const unsigned int __11_fui_len = 165;
+static const unsigned char __12_fui[] = {
+  0x46, 0x49, 0x4e, 0x53, 0xe2, 0x00, 0x38, 0x00, 0x4d, 0x41, 0xd0, 0x00,
+  0x08, 0x00, 0x00, 0x40, 0xff, 0xff, 0x00, 0x01, 0x00, 0x01, 0x0f, 0x0f,
+  0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x0d, 0x0d, 0x0e, 0x0d, 0x0d,
+  0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0b, 0x0b, 0x0b, 0x0b, 0x09, 0x09, 0x07,
+  0x07, 0x07, 0x06, 0x06, 0x05, 0x05, 0x05, 0x04, 0x04, 0x04, 0x04, 0x04,
+  0x04, 0x04, 0x04, 0x04, 0x03, 0x03, 0x03, 0x03, 0x03, 0x02, 0x02, 0x02,
+  0x02, 0x02, 0x02, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x00,
+  0x00, 0x00, 0x01, 0x3c, 0x06, 0xff, 0x00, 0x41, 0x00, 0x01, 0x28, 0xfe,
+  0xe8, 0xf6, 0x2c, 0x21, 0x1d, 0x05, 0x27, 0x04, 0x0b, 0x0b, 0x27, 0x28,
+  0x02, 0x0d, 0x0a, 0x04, 0x03, 0x2c, 0x2c, 0x0c, 0xfc, 0x06, 0x1e, 0x2c,
+  0xfe, 0xfe, 0x2c, 0x23, 0x2c, 0x24, 0x08, 0x0b, 0x2b, 0x1e, 0x2b, 0xfe,
+  0x01, 0x07, 0x07, 0x0a, 0x2b, 0xff, 0x1c, 0x2a, 0x21, 0x16, 0x20, 0x16,
+  0x16, 0x1d, 0x1d, 0x1c, 0x09, 0x02, 0x05, 0xfd, 0x09, 0x29, 0x05, 0x06,
+  0xff, 0xff, 0x00, 0x01, 0x00, 0x01, 0x01, 0x00, 0x00, 0x01, 0x01, 0x01,
+  0x0e, 0x01, 0xff, 0xff, 0x00, 0x01, 0x00, 0x01, 0x01, 0x0f, 0x03, 0xff,
+  0xff, 0x00, 0x01, 0x00, 0x01, 0x0a, 0x01, 0x06, 0x10, 0x03, 0xff, 0xff,
+  0x00, 0x01, 0x00, 0x01, 0x05, 0x04, 0x0c, 0x13, 0x03, 0xff, 0xff, 0x00,
+  0xc1, 0x00, 0x01, 0xad, 0x3a, 0x00, 0x00, 0xaa, 0xaa, 0x00, 0x00, 0x20,
+  0x21, 0x00, 0x00, 0xff, 0x50, 0x4e, 0x01, 0x00, 0x00
+};
+static const unsigned int __12_fui_len = 225;
+static const unsigned char __13_fui[] = {
+  0x46, 0x49, 0x4e, 0x53, 0xe2, 0x00, 0x39, 0x00, 0x4d, 0x41, 0x95, 0x00,
+  0x08, 0x00, 0x00, 0x52, 0xff, 0xff, 0x00, 0x01, 0x00, 0x01, 0x0f, 0x0e,
+  0x0d, 0x0c, 0x0b, 0x0a, 0x09, 0x08, 0x00, 0x0f, 0x0e, 0x0d, 0x0c, 0x0b,
+  0x0a, 0x09, 0x08, 0x00, 0x0f, 0x0e, 0x0d, 0x0d, 0x0d, 0x0d, 0x0d, 0x0d,
+  0x0d, 0x0d, 0x0c, 0x0c, 0x0c, 0x0c, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0a,
+  0x0a, 0x0a, 0x0a, 0x0a, 0x09, 0x09, 0x09, 0x09, 0x08, 0x08, 0x08, 0x08,
+  0x07, 0x07, 0x07, 0x07, 0x07, 0x06, 0x06, 0x06, 0x06, 0x06, 0x05, 0x05,
+  0x05, 0x05, 0x05, 0x04, 0x04, 0x04, 0x04, 0x04, 0x03, 0x03, 0x02, 0x02,
+  0x02, 0x01, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x01, 0x0b, 0x06, 0xff,
+  0x00, 0x01, 0x00, 0x03, 0x00, 0x04, 0x07, 0x02, 0x06, 0x09, 0x04, 0x08,
+  0x0b, 0x10, 0x0b, 0x05, 0x01, 0xff, 0xff, 0x00, 0x01, 0x00, 0x01, 0x00,
+  0x0e, 0x01, 0xff, 0xff, 0x00, 0x01, 0x00, 0x01, 0x01, 0x0f, 0x01, 0xff,
+  0xff, 0x00, 0x01, 0x00, 0x01, 0x01, 0x13, 0x01, 0xff, 0xff, 0x00, 0x81,
+  0x00, 0x01, 0x55, 0x55, 0xff, 0x50, 0x4e, 0x01, 0x00, 0x00
+};
+static const unsigned int __13_fui_len = 166;
+static const unsigned char __14_fui[] = {
+  0x46, 0x49, 0x4e, 0x53, 0xe2, 0x00, 0x38, 0x00, 0x4d, 0x41, 0x4f, 0x00,
+  0x08, 0x00, 0x00, 0x1f, 0xff, 0xff, 0x00, 0x01, 0x00, 0x02, 0x0f, 0x0f,
+  0x00, 0x00, 0x0f, 0x0f, 0x00, 0x00, 0x0f, 0x0f, 0x00, 0x00, 0x0f, 0x0f,
+  0x00, 0x00, 0x0f, 0x0f, 0x00, 0x00, 0x0f, 0x0f, 0x00, 0x00, 0x0f, 0x0f,
+  0x00, 0x00, 0x0f, 0x0f, 0x00, 0x05, 0x01, 0xff, 0xff, 0x00, 0x01, 0x00,
+  0x01, 0x00, 0x0e, 0x01, 0xff, 0xff, 0x00, 0x01, 0x00, 0x01, 0x01, 0x0f,
+  0x01, 0xff, 0xff, 0x00, 0x01, 0x00, 0x01, 0x01, 0x13, 0x01, 0xff, 0xff,
+  0x00, 0x81, 0x00, 0x01, 0x55, 0x55, 0xff, 0x50, 0x4e, 0x01, 0x00, 0x00
+};
+static const unsigned int __14_fui_len = 96;
 
 #define LOAD_INS(x,y) { \
   DivInstrument* newIns=new DivInstrument; \
@@ -2774,6 +3200,11 @@ void FurnaceCV::loadInstruments() {
   LOAD_INS(__0d_fui,__0d_fui_len);
   LOAD_INS(__0e_fui,__0e_fui_len);
   LOAD_INS(__0f_fui,__0f_fui_len);
+  LOAD_INS(__10_fui,__10_fui_len);
+  LOAD_INS(__11_fui,__11_fui_len);
+  LOAD_INS(__12_fui,__12_fui_len);
+  LOAD_INS(__13_fui,__13_fui_len);
+  LOAD_INS(__14_fui,__14_fui_len);
 }
 
 // FurnaceCVMine IMPLEMENTATION
@@ -2858,13 +3289,71 @@ void FurnaceCVExtraLife::collision(FurnaceCVObject* other) {
 }
 
 void FurnaceCVExtraLife::tick() {
-  if (--life==0) dead=true;
+  if (--life==0) {
+    dead=true;
+    cv->lifeBank++;
+  }
 
   if (life>64 || (life&1)) {
     spriteDef[0]=0x0c;
     spriteDef[1]=0x0d;
     spriteDef[2]=0x2c;
     spriteDef[3]=0x2d;
+  } else {
+    spriteDef[0]=0;
+    spriteDef[1]=0;
+    spriteDef[2]=0;
+    spriteDef[3]=0;
+  }
+}
+
+// FurnaceCVModI IMPLEMENTATION
+
+void FurnaceCVModI::collision(FurnaceCVObject* other) {
+  if (other->type==CV_PLAYER) {
+    dead=true;
+    cv->soundEffect(SE_PICKUP1);
+    cv->addScore(200);
+    ((FurnaceCVPlayer*)other)->invincible=600;
+  }
+}
+
+void FurnaceCVModI::tick() {
+  if (--life==0) dead=true;
+
+  if (life>64 || (life&1)) {
+    spriteDef[0]=0x41c;
+    spriteDef[1]=0x41d;
+    spriteDef[2]=0x43c;
+    spriteDef[3]=0x43d;
+  } else {
+    spriteDef[0]=0;
+    spriteDef[1]=0;
+    spriteDef[2]=0;
+    spriteDef[3]=0;
+  }
+}
+
+// FurnaceCVModS IMPLEMENTATION
+
+void FurnaceCVModS::collision(FurnaceCVObject* other) {
+  if (other->type==CV_PLAYER) {
+    dead=true;
+    cv->soundEffect(SE_PICKUP3);
+    cv->addScore(200);
+    cv->speedTicks=900;
+    cv->e->setSongRate(cv->origSongRate*1.5);
+  }
+}
+
+void FurnaceCVModS::tick() {
+  if (--life==0) dead=true;
+
+  if (life>64 || (life&1)) {
+    spriteDef[0]=0x41e;
+    spriteDef[1]=0x41f;
+    spriteDef[2]=0x43e;
+    spriteDef[3]=0x43f;
   } else {
     spriteDef[0]=0;
     spriteDef[1]=0;
@@ -2931,4 +3420,65 @@ void FurnaceCVEnemyVortex::tick() {
   spriteDef[1]=0x481+((animFrame>>5)<<1);
   spriteDef[2]=0x4a0+((animFrame>>5)<<1);
   spriteDef[3]=0x4a1+((animFrame>>5)<<1);
+}
+
+// FurnaceCVEnemyPlane IMPLEMENTATION
+
+void FurnaceCVEnemyPlane::collision(FurnaceCVObject* other) {
+  // ignore completely
+}
+
+void FurnaceCVEnemyPlane::tick() {
+  switch (orient) {
+    case 0:
+      x+=speed;
+      if (x>cv->stageWidthPx+32) dead=true;
+      break;
+    case 1:
+      y-=speed;
+      if (y<-160) dead=true;
+      break;
+    case 2:
+      x-=speed;
+      if (x<-160) dead=true;
+      break;
+    case 3:
+      y+=speed;
+      if (y>cv->stageHeightPx+32) dead=true;
+      break;
+    default:
+      dead=true;
+      logE("plane with invalid orientation %d",orient);
+      break;
+  }
+
+  if (notifyPlayer) {
+    for (FurnaceCVObject* i: cv->sprite) {
+      if (i->type==CV_PLAYER) {
+        if (abs((x+(spriteWidth<<2))-(i->x+(i->spriteWidth<<2)))<((orient&1)?80:180)) {
+          if (abs((y+(spriteHeight<<2))-(i->y+(i->spriteHeight<<2)))<((orient&1)?180:80)) {
+            cv->soundEffect(SE_PLANE1);
+            cv->soundEffect(SE_PLANE2);
+            shootTime=(50-speed*4)+(rand()%20);
+            notifyPlayer=false;
+          }
+        }
+        break;
+      }
+    }
+  } else {
+    if (--shootTime<=0) {
+      shootTime=28-(speed*2);
+      cv->soundEffect(SE_EXPL2);
+      cv->createObject<FurnaceCVFurBallLarge>(x+(spriteWidth<<2),y+(spriteHeight<<2));
+      for (int i=0; i<14; i++) {
+        float fraction=(float)i/13.0f;
+        float xs=cos(fraction*M_PI*2.0)*28;
+        float ys=sin(fraction*M_PI*2.0)*28;
+        FurnaceCVEnemyBullet* b=cv->createObject<FurnaceCVEnemyBullet>(x+(spriteWidth<<2),y+(spriteHeight<<2));
+        b->speedX=xs;
+        b->speedY=ys;
+      }
+    }
+  }
 }

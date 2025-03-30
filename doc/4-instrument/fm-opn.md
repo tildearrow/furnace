@@ -28,6 +28,8 @@ these apply to the instrument as a whole:
   - only applies to operators which have AM turned on.
   - does not apply to YM2203.
 
+- **Octave**: sets the "block" of the frequency register, which affects note range and precision.
+
 these apply to each operator:
 - the crossed-arrows button can be dragged to rearrange operators.
 - the **OP1**, **OP2**, **OP3**, and **OP4** buttons enable or disable those operators.
@@ -54,6 +56,10 @@ these macros allow you to control several parameters of FM per tick.
 
 ## FM Macros
 
+- **Algorithm**,
+  **Feedback**,
+  **LFO > Freq**,
+  **LFO > Amp**: as described above.
 - **LFO Speed**: LFO frequency.
 - **OpMask**: toggles each operator.
 

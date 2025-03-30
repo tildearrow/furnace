@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev223"
-#define DIV_ENGINE_VERSION 223
+#define DIV_VERSION "0.6.8pre2"
+#define DIV_ENGINE_VERSION 226
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -261,8 +261,8 @@ struct DivDispatchContainer {
   void setRates(double gotRate);
   void setQuality(bool lowQual, bool dcHiPass);
   void grow(size_t size);
-  void acquire(size_t offset, size_t count);
-  void flush(size_t count);
+  void acquire(size_t count);
+  void flush(size_t offset, size_t count);
   void fillBuf(size_t runtotal, size_t offset, size_t size);
   void clear();
   void init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, const DivConfig& flags, bool isRender=false);
@@ -475,7 +475,7 @@ class DivEngine {
   int midiOutTimeRate;
   float midiVolExp;
   int softLockCount;
-  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, curExportChan, nextSpeed, elapsedBars, elapsedBeats, curSpeed;
+  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, curExportChan, nextSpeed, prevSpeed, elapsedBars, elapsedBeats, curSpeed;
   size_t curSubSongIndex;
   size_t bufferPos;
   double divider;
@@ -806,10 +806,10 @@ class DivEngine {
     double calcBaseFreq(double clock, double divider, int note, bool period);
 
     // calculate base frequency in f-num/block format
-    int calcBaseFreqFNumBlock(double clock, double divider, int note, int bits);
+    int calcBaseFreqFNumBlock(double clock, double divider, int note, int bits, int fixedBlock);
 
     // calculate frequency/period
-    int calcFreq(int base, int pitch, int arp, bool arpFixed, bool period=false, int octave=0, int pitch2=0, double clock=1.0, double divider=1.0, int blockBits=0);
+    int calcFreq(int base, int pitch, int arp, bool arpFixed, bool period=false, int octave=0, int pitch2=0, double clock=1.0, double divider=1.0, int blockBits=0, int fixedBlock=0);
 
     // calculate arpeggio
     int calcArp(int note, int arp, int offset=0);
@@ -839,6 +839,9 @@ class DivEngine {
 
     // reset playback state
     void syncReset();
+
+    // get C-4 rate for samples
+    double getCenterRate();
 
     // sample preview query
     bool isPreviewingSample();
@@ -963,6 +966,7 @@ class DivEngine {
 
     // synchronous get order/row
     void getPlayPos(int& order, int& row);
+    void getPlayPosTick(int& order, int& row, int& tick, int& speed);
 
     // get beat/bar
     int getElapsedBars();
@@ -1436,6 +1440,7 @@ class DivEngine {
       exportLoopCount(0),
       curExportChan(0),
       nextSpeed(3),
+      prevSpeed(6),
       elapsedBars(0),
       elapsedBeats(0),
       curSpeed(0),
