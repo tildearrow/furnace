@@ -28,6 +28,8 @@ constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
 constexpr int MASTER_CLOCK_MASK=(sizeof(void*)==8)?0xff:0;
 
 void DivExportGRUB::run() {
+  bool grubExportBin=conf.getBool("exportBin",false);
+
   int BEEPER=-1;
   int IGNORED=0;
 
@@ -71,7 +73,7 @@ void DivExportGRUB::run() {
 
   e->synchronizedSoft([&]() {
     double origRate = e->got.rate;
-    double rate = MIN(e->got.rate,1000.0);
+    double rate = MIN(e->curSubSong->hz,1000.0);
     logAppendf("export rate is %d hz",(int)rate);
     int tempo = (int)(60000.0/(1000.0/rate));
     e->got.rate=rate;
@@ -104,7 +106,10 @@ void DivExportGRUB::run() {
     progress[0].amount=0.15f;
 
     int wait_tempo = 0;
-    w->writeText(fmt::sprintf("%d",tempo)); // write tempo
+    if (grubExportBin)  
+      w->writeI(tempo); // write tempo  
+    else
+      w->writeText(fmt::sprintf("%d",tempo)); // write tempo
 
     while (!done) {
       if (e->nextTick(false,true) || !e->playing) {
@@ -123,8 +128,13 @@ void DivExportGRUB::run() {
       if (totalWait>0 && !done) {
         while (totalWait) {
           wait_tempo++;
-          if (freq != oldFreq) {
-            w->writeText(fmt::sprintf(" %d %d", oldFreq, wait_tempo));
+          if (freq != oldFreq || wait_tempo == 65535) {
+            if (grubExportBin) {
+              w->writeS(oldFreq); // pitch
+              w->writeS(wait_tempo); // duration
+            } else {
+              w->writeText(fmt::sprintf(" %d %d", oldFreq, wait_tempo));
+            }
             oldFreq = freq;
             wait_tempo = 0;
           }
@@ -134,7 +144,7 @@ void DivExportGRUB::run() {
       }
     }
 
-    w->writeText(fmt::sprintf("\n")); // end song
+    if (!grubExportBin) w->writeText(fmt::sprintf("\n")); // end song
     // end of song
 
     // done - close out.
@@ -147,7 +157,7 @@ void DivExportGRUB::run() {
     e->freelance=false;
     e->extValuePresent=false;
 
-    output.push_back(DivROMExportOutput("export.txt",w));
+    output.push_back(DivROMExportOutput(grubExportBin?"export.bin":"export.txt",w));
   });
 
 
