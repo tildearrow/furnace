@@ -74,8 +74,10 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
 
 #ifdef _WIN32
   const bool isWin32=true;
+  const char *ffmpegExecName="ffmpeg.exe";
 #else
   const bool isWin32=false;
+  const char *ffmpegExecName="ffmpeg";
 #endif
 
   const bool allowCommandWriter=!isWin32;
@@ -92,14 +94,22 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
     }
   };
 
+  // search for ffmpeg in the PATH but only if it hasn't been specified in a setting
   if (!e->exportFfmpegSearched) {
-    e->exportFfmpegPath=pathSearch("ffmpeg");
+    if (settings.exportFfmpegPath.empty() || !fileExists(settings.exportFfmpegPath.c_str())) {
+      e->exportFfmpegPath=pathSearch(ffmpegExecName);
+    } else {
+      e->exportFfmpegPath=settings.exportFfmpegPath;
+    }
     e->exportFfmpegSearched=true;
   }
 
   if (e->exportFfmpegPath.empty()) {
-    ImGui::Text("NOTE: ffmpeg not found. Only WAV is supported.");
+    ImGui::Text("NOTE: ffmpeg executable not found - only WAV export is available.");
   }
+
+  ImGui::Text("settings.exportFfmpegPath=%s",settings.exportFfmpegPath.c_str());
+  ImGui::Text("exportFfmpegPath=%s",e->exportFfmpegPath.c_str());
 
   if (ImGui::BeginCombo(_("file format"),getCurrentFormatDesc().c_str())) {
     if (ImGui::Selectable(sndfileDesc)) {
