@@ -815,6 +815,7 @@ src/engine/export/sapr.cpp
 src/engine/export/tiuna.cpp
 src/engine/export/zsm.cpp
 src/engine/export/ipod.cpp
+src/engine/export/grub.cpp
 
 src/engine/effect/abstract.cpp
 src/engine/effect/dummy.cpp

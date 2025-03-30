@@ -17,10 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-// thanks asiekierka!
-// I have ported your code to this ROM export framework.
-
-#include "ipod.h"
+#include "grub.h"
 #include "../engine.h"
 #include "../ta-log.h"
 #include <fmt/printf.h>
@@ -30,7 +27,7 @@
 constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
 constexpr int MASTER_CLOCK_MASK=(sizeof(void*)==8)?0xff:0;
 
-void DivExportiPod::run() {
+void DivExportGRUB::run() {
   int BEEPER=-1;
   int IGNORED=0;
 
@@ -63,8 +60,6 @@ void DivExportiPod::run() {
 
   size_t tickCount=0;
 
-  double rate = 1000.0;
-
   e->stop();
   e->repeatPattern=false;
   e->setOrder(0);
@@ -76,6 +71,9 @@ void DivExportiPod::run() {
 
   e->synchronizedSoft([&]() {
     double origRate = e->got.rate;
+    double rate = MIN(e->got.rate,1000.0);
+    logAppendf("export rate is %d hz",(int)rate);
+    int tempo = (int)(60000.0/(1000.0/rate));
     e->got.rate=rate;
 
     // Determine loop point.
@@ -88,8 +86,6 @@ void DivExportiPod::run() {
 
     auto w = new SafeWriter;
     w->init(); 
-
-    w->writeText(fmt::sprintf("%s\n", e->song.name));
 
     // Reset the playback state.
     e->curOrder=0;
@@ -107,7 +103,8 @@ void DivExportiPod::run() {
     logAppend("writing data...");
     progress[0].amount=0.15f;
 
-    int wait_ms = 0;
+    int wait_tempo = 0;
+    w->writeText(fmt::sprintf("%d",tempo)); // write tempo
 
     while (!done) {
       if (e->nextTick(false,true) || !e->playing) {
@@ -125,17 +122,19 @@ void DivExportiPod::run() {
       int totalWait=e->cycles;
       if (totalWait>0 && !done) {
         while (totalWait) {
-          wait_ms++;
+          wait_tempo++;
           if (freq != oldFreq) {
-            w->writeText(fmt::sprintf("%d %d\n", oldFreq, wait_ms));
+            w->writeText(fmt::sprintf(" %d %d", oldFreq, wait_tempo));
             oldFreq = freq;
-            wait_ms = 0;
+            wait_tempo = 0;
           }
           totalWait--;
           tickCount++;
         }
       }
     }
+
+    w->writeText(fmt::sprintf("\n")); // end song
     // end of song
 
     // done - close out.
@@ -148,7 +147,7 @@ void DivExportiPod::run() {
     e->freelance=false;
     e->extValuePresent=false;
 
-      output.push_back(DivROMExportOutput("export.tone",w));
+    output.push_back(DivROMExportOutput("export.txt",w));
   });
 
 
@@ -159,7 +158,7 @@ void DivExportiPod::run() {
   running=false;
 }
 
-bool DivExportiPod::go(DivEngine* eng) {
+bool DivExportGRUB::go(DivEngine* eng) {
   progress[0].name="Progress";
   progress[0].amount=0.0f;
 
@@ -167,11 +166,11 @@ bool DivExportiPod::go(DivEngine* eng) {
   running=true;
   failed=false;
   mustAbort=false;
-  exportThread=new std::thread(&DivExportiPod::run,this);
+  exportThread=new std::thread(&DivExportGRUB::run,this);
   return true;
 }
 
-void DivExportiPod::wait() {
+void DivExportGRUB::wait() {
   if (exportThread!=NULL) {
     logV("waiting for export thread...");
     exportThread->join();
@@ -179,20 +178,20 @@ void DivExportiPod::wait() {
   }
 }
 
-void DivExportiPod::abort() {
+void DivExportGRUB::abort() {
   mustAbort=true;
   wait();
 }
 
-bool DivExportiPod::isRunning() {
+bool DivExportGRUB::isRunning() {
   return running;
 }
 
-bool DivExportiPod::hasFailed() {
+bool DivExportGRUB::hasFailed() {
   return failed;
 }
 
-DivROMExportProgress DivExportiPod::getProgress(int index) {
+DivROMExportProgress DivExportGRUB::getProgress(int index) {
   if (index<0 || index>1) return progress[1];
   return progress[index];
 }

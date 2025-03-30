@@ -24,6 +24,7 @@
 #include "export/tiuna.h"
 #include "export/zsm.h"
 #include "export/ipod.h"
+#include "export/grub.h"
 
 DivROMExport* DivEngine::buildROM(DivROMExportOptions sys) {
   DivROMExport* exporter=NULL;
@@ -42,6 +43,9 @@ DivROMExport* DivEngine::buildROM(DivROMExportOptions sys) {
       break;
     case DIV_ROM_IPOD:
       exporter=new DivExportiPod;
+      break;
+    case DIV_ROM_GRUB:
+      exporter=new DivExportGRUB;
       break;
     default:
       exporter=new DivROMExport;
