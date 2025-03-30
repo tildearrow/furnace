@@ -62,7 +62,9 @@ void VSU::Power(void)
   RAMAddress[ch] = 0;
 
   EffFreq[ch] = 0;
-  Envelope[ch] = 0;
+  EnvelopeReload[ch] = 0;
+  EnvelopeValue[ch] = 0;
+  EnvelopeModMask[ch] = 0;
   WavePos[ch] = 0;
   FreqCounter[ch] = 1;
   IntervalCounter[ch] = 0;
@@ -153,8 +155,11 @@ void VSU::Write(int timestamp, unsigned int A, unsigned char V)
 	      if(ch == 5)	// Not sure if this is correct.
 	       lfsr = 1;
 
-	      //if(!(IntlControl[ch] & 0x80))
-	      // Envelope[ch] = (EnvControl[ch] >> 4) & 0xF;
+        EnvelopeModMask[ch] = 0;
+        if(!(EnvControl[ch] & 0x200) && (
+           (EnvelopeValue[ch] == 0 && !(EnvControl[ch] & 0x0008)) ||
+           (EnvelopeValue[ch] == 0xF && (EnvControl[ch] & 0x0008))))
+         EnvelopeModMask[ch] = 1;
 
 	      EffectsClockDivider[ch] = 4800;
 	      IntervalClockDivider[ch] = 4;
@@ -181,7 +186,11 @@ void VSU::Write(int timestamp, unsigned int A, unsigned char V)
    case 0x4: EnvControl[ch] &= 0xFF00;
 	     EnvControl[ch] |= V << 0;
 
-	     Envelope[ch] = (V >> 4) & 0xF;
+	     EnvelopeReload[ch] = (V >> 4) & 0xF;
+	     EnvelopeValue[ch] = (V >> 4) & 0xF;
+
+       if(EnvelopeModMask[ch] == 1)
+        EnvelopeModMask[ch] = 2;
 	     break;
 
    case 0x5: EnvControl[ch] &= 0x00FF;
@@ -194,6 +203,12 @@ void VSU::Write(int timestamp, unsigned int A, unsigned char V)
 	     }
 	     else
 	      EnvControl[ch] |= (V & 0x03) << 8;
+
+       if(EnvelopeModMask[ch] == 0 && !(EnvControl[ch] & 0x200) && (
+          (EnvelopeValue[ch] == 0 && !(EnvControl[ch] & 0x0008)) ||
+          (EnvelopeValue[ch] == 0xF && (EnvControl[ch] & 0x0008))))
+        EnvelopeModMask[ch] = 1;
+       
 	     break;
 
    case 0x6: RAMAddress[ch] = V & 0xF;
@@ -228,14 +243,14 @@ inline void VSU::CalcCurrentOutput(int ch, int &left, int &right)
   else
    WD = WaveData[RAMAddress[ch]][WavePos[ch]];	// - 0x20;
  }
- l_ol = Envelope[ch] * LeftLevel[ch];
+ l_ol = EnvelopeValue[ch] * LeftLevel[ch];
  if(l_ol)
  {
   l_ol >>= 3;
   l_ol += 1;
  }
 
- r_ol = Envelope[ch] * RightLevel[ch];
+ r_ol = EnvelopeValue[ch] * RightLevel[ch];
  if(r_ol)
  {
   r_ol >>= 3;
@@ -260,11 +275,11 @@ void VSU::Update(int timestamp)
   CalcCurrentOutput(ch, left, right);
   if (left!=last_output[ch][0]) {
     blip_add_delta(bb[0],running_timestamp,left - last_output[ch][0]);
-    last_output[ch][0] = left;
+  last_output[ch][0] = left;
   }
   if (right!=last_output[ch][1]) {
     blip_add_delta(bb[1],running_timestamp,right - last_output[ch][1]);
-    last_output[ch][1] = right;
+  last_output[ch][1] = right;
   }
   oscBuf[ch]->putSample(running_timestamp,(left+right)*8);
 
@@ -355,23 +370,27 @@ void VSU::Update(int timestamp)
      {
       EnvelopeClockDivider[ch] += 4;
 
+      int new_envelope = EnvelopeValue[ch];
+      if(EnvelopeValue[ch] < 0xF && (EnvControl[ch] & 0x0008))
+       new_envelope++;
+      else if(EnvelopeValue[ch] > 0 && !(EnvControl[ch] & 0x0008))
+       new_envelope--;
+      else if((EnvControl[ch] & 0x200) && EnvelopeModMask[ch] != 2)
+       {
+        new_envelope = EnvelopeReload[ch];
+        EnvelopeModMask[ch] = 0;
+       }
+      else if(EnvelopeModMask[ch] == 0)
+       EnvelopeModMask[ch] = 1;
+
       if(EnvControl[ch] & 0x0100)	// Enveloping enabled?
       {
        EnvelopeCounter[ch]--;
        if(!EnvelopeCounter[ch])
        {
-	EnvelopeCounter[ch] = (EnvControl[ch] & 0x7) + 1;
-
-        if(EnvControl[ch] & 0x0008)	// Grow
-        {
-         if(Envelope[ch] < 0xF || (EnvControl[ch] & 0x200))
-	  Envelope[ch] = (Envelope[ch] + 1) & 0xF;
-        }
-        else				// Decay
-        {
-         if(Envelope[ch] > 0 || (EnvControl[ch] & 0x200))
-          Envelope[ch] = (Envelope[ch] - 1) & 0xF;
-        }
+        EnvelopeCounter[ch] = (EnvControl[ch] & 0x7) + 1;
+        if(EnvelopeModMask[ch] == 0)
+         EnvelopeValue[ch] = new_envelope;
        }
       }
 
@@ -433,11 +452,11 @@ void VSU::Update(int timestamp)
    CalcCurrentOutput(ch, left, right);
    if (left!=last_output[ch][0]) {
      blip_add_delta(bb[0],running_timestamp,left - last_output[ch][0]);
-     last_output[ch][0] = left;
+   last_output[ch][0] = left;
    }
    if (right!=last_output[ch][1]) {
      blip_add_delta(bb[1],running_timestamp,right - last_output[ch][1]);
-     last_output[ch][1] = right;
+   last_output[ch][1] = right;
    }
    oscBuf[ch]->putSample(running_timestamp,(left+right)*8);
   }
