@@ -5380,69 +5380,72 @@ bool FurnaceGUI::loop() {
         } else {
           fileName=fileDialog->getFileName()[0];
         }
-#ifdef FLATPAK_WORKAROUNDS
-        // https://github.com/tildearrow/furnace/issues/2096
-        // Flatpak Portals mangling our path hinders us from adding extension
-        if (fileName!="" && !settings.sysFileDialog) {
-#else
         if (fileName!="") {
+#ifdef FLATPAK_WORKAROUNDS
+          // https://github.com/tildearrow/furnace/issues/2096
+          // The Flatpak File Chooser Portal gives access to only the chosen file
+          //  which hinders us from adding extension
+          if (!settings.sysFileDialog) {
+#else
+          {
 #endif
-          if (curFileDialog==GUI_FILE_SAVE) {
-            checkExtension(".fur");
-          }
-          if (curFileDialog==GUI_FILE_SAVE_DMF) {
-            checkExtension(".dmf");
-          }
-          if (curFileDialog==GUI_FILE_SAVE_DMF_LEGACY) {
-            checkExtension(".dmf");
-          }
-          if (curFileDialog==GUI_FILE_SAMPLE_SAVE ||
-              curFileDialog==GUI_FILE_EXPORT_AUDIO_ONE ||
-              curFileDialog==GUI_FILE_EXPORT_AUDIO_PER_SYS ||
-              curFileDialog==GUI_FILE_EXPORT_AUDIO_PER_CHANNEL) {
-            checkExtension(".wav");
-          }
-          if (curFileDialog==GUI_FILE_INS_SAVE) {
-            checkExtension(".fui");
-          }
-          if (curFileDialog==GUI_FILE_INS_SAVE_DMP) {
-            checkExtension(".dmp");
-          }
-          if (curFileDialog==GUI_FILE_WAVE_SAVE) {
-            checkExtension(".fuw");
-          }
-          if (curFileDialog==GUI_FILE_WAVE_SAVE_DMW) {
-            checkExtension(".dmw");
-          }
-          if (curFileDialog==GUI_FILE_WAVE_SAVE_RAW) {
-            checkExtension(".raw");
-          }
-          if (curFileDialog==GUI_FILE_EXPORT_VGM) {
-            checkExtension(".vgm");
-          }
-          if (curFileDialog==GUI_FILE_EXPORT_ROM) {
-            checkExtension(romFilterExt.c_str());
-          }
-          if (curFileDialog==GUI_FILE_EXPORT_TEXT) {
-            checkExtension(".txt");
-          }
-          if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM) {
-            checkExtension(".bin");
-          }
-          if (curFileDialog==GUI_FILE_EXPORT_COLORS) {
-            checkExtension(".cfgc");
-          }
-          if (curFileDialog==GUI_FILE_EXPORT_KEYBINDS) {
-            checkExtension(".cfgk");
-          }
-          if (curFileDialog==GUI_FILE_EXPORT_LAYOUT) {
-            checkExtension(".ini");
-          }
-          if (curFileDialog==GUI_FILE_EXPORT_USER_PRESETS) {
-            checkExtension(".cfgu");
-          }
-          if (curFileDialog==GUI_FILE_EXPORT_CONFIG) {
-            checkExtension(".cfg");
+            if (curFileDialog==GUI_FILE_SAVE) {
+              checkExtension(".fur");
+            }
+            if (curFileDialog==GUI_FILE_SAVE_DMF) {
+              checkExtension(".dmf");
+            }
+            if (curFileDialog==GUI_FILE_SAVE_DMF_LEGACY) {
+              checkExtension(".dmf");
+            }
+            if (curFileDialog==GUI_FILE_SAMPLE_SAVE ||
+                curFileDialog==GUI_FILE_EXPORT_AUDIO_ONE ||
+                curFileDialog==GUI_FILE_EXPORT_AUDIO_PER_SYS ||
+                curFileDialog==GUI_FILE_EXPORT_AUDIO_PER_CHANNEL) {
+              checkExtension(".wav");
+            }
+            if (curFileDialog==GUI_FILE_INS_SAVE) {
+              checkExtension(".fui");
+            }
+            if (curFileDialog==GUI_FILE_INS_SAVE_DMP) {
+              checkExtension(".dmp");
+            }
+            if (curFileDialog==GUI_FILE_WAVE_SAVE) {
+              checkExtension(".fuw");
+            }
+            if (curFileDialog==GUI_FILE_WAVE_SAVE_DMW) {
+              checkExtension(".dmw");
+            }
+            if (curFileDialog==GUI_FILE_WAVE_SAVE_RAW) {
+              checkExtension(".raw");
+            }
+            if (curFileDialog==GUI_FILE_EXPORT_VGM) {
+              checkExtension(".vgm");
+            }
+            if (curFileDialog==GUI_FILE_EXPORT_ROM) {
+              checkExtension(romFilterExt.c_str());
+            }
+            if (curFileDialog==GUI_FILE_EXPORT_TEXT) {
+              checkExtension(".txt");
+            }
+            if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM) {
+              checkExtension(".bin");
+            }
+            if (curFileDialog==GUI_FILE_EXPORT_COLORS) {
+              checkExtension(".cfgc");
+            }
+            if (curFileDialog==GUI_FILE_EXPORT_KEYBINDS) {
+              checkExtension(".cfgk");
+            }
+            if (curFileDialog==GUI_FILE_EXPORT_LAYOUT) {
+              checkExtension(".ini");
+            }
+            if (curFileDialog==GUI_FILE_EXPORT_USER_PRESETS) {
+              checkExtension(".cfgu");
+            }
+            if (curFileDialog==GUI_FILE_EXPORT_CONFIG) {
+              checkExtension(".cfg");
+            }
           }
           String copyOfName=fileName;
           switch (curFileDialog) {
