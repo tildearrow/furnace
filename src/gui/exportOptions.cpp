@@ -51,16 +51,15 @@ String pathSearch(const char *program) {
 
   String path=getEnvVar("PATH");
 
-  logD("PATH=%s",path);
-
   size_t start=0, end=0;
   while (true) {
     end=path.find(envDelim,start);
 
     String currDir=path.substr(start,end-start);
-    logD("*** %s",currDir);
-    String currFile=currDir+fsDelim+program;
-    if (fileExists(currFile.c_str())) return currFile;
+    if (!currDir.empty()) {
+      String currFile=currDir+fsDelim+program;
+      if (fileExists(currFile.c_str())) return currFile;
+    }
 
     if (end==String::npos) break;
     start=end+1;
@@ -94,7 +93,6 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
   };
 
   if (!e->exportFfmpegSearched) {
-    // FIXME: this isn't running on wine!!! why????
     e->exportFfmpegPath=pathSearch("ffmpeg");
     e->exportFfmpegSearched=true;
   }
