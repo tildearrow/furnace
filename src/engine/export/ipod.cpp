@@ -27,9 +27,6 @@
 #include <array>
 #include <vector>
 
-constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
-constexpr int MASTER_CLOCK_MASK=(sizeof(void*)==8)?0xff:0;
-
 void DivExportiPod::run() {
   int BEEPER=-1;
   int IGNORED=0;

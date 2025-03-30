@@ -24,9 +24,6 @@
 #include <array>
 #include <vector>
 
-constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
-constexpr int MASTER_CLOCK_MASK=(sizeof(void*)==8)?0xff:0;
-
 void DivExportGRUB::run() {
   bool grubExportBin=conf.getBool("exportBin",false);
 
