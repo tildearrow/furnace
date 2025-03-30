@@ -705,16 +705,26 @@ void FurnaceGUI::drawSettings() {
               if (settings.glDepthSize>128) settings.glDepthSize=128;
               settingsChanged=true;
             }
-            if (ImGui::InputInt(_("Stencil buffer size"),&settings.glStencilSize)) {
-              if (settings.glStencilSize<0) settings.glStencilSize=0;
-              if (settings.glStencilSize>32) settings.glStencilSize=32;
+            
+            bool glSetBSB=settings.glSetBS;
+            if (ImGui::Checkbox(_("Set stencil and buffer sizes"),&glSetBSB)) {
+              settings.glSetBS=glSetBSB;
               settingsChanged=true;
             }
-            if (ImGui::InputInt(_("Buffer size"),&settings.glBufferSize)) {
-              if (settings.glBufferSize<0) settings.glBufferSize=0;
-              if (settings.glBufferSize>128) settings.glBufferSize=128;
-              settingsChanged=true;
+
+            if (settings.glSetBS) {
+              if (ImGui::InputInt(_("Stencil buffer size"),&settings.glStencilSize)) {
+                if (settings.glStencilSize<0) settings.glStencilSize=0;
+                if (settings.glStencilSize>32) settings.glStencilSize=32;
+                settingsChanged=true;
+              }
+              if (ImGui::InputInt(_("Buffer size"),&settings.glBufferSize)) {
+                if (settings.glBufferSize<0) settings.glBufferSize=0;
+                if (settings.glBufferSize>128) settings.glBufferSize=128;
+                settingsChanged=true;
+              }
             }
+
             bool glDoubleBufferB=settings.glDoubleBuffer;
             if (ImGui::Checkbox(_("Double buffer"),&glDoubleBufferB)) {
               settings.glDoubleBuffer=glDoubleBufferB;
@@ -4841,6 +4851,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.glBlueSize=conf.getInt("glBlueSize",8);
     settings.glAlphaSize=conf.getInt("glAlphaSize",0);
     settings.glDepthSize=conf.getInt("glDepthSize",24);
+    settings.glSetBS=conf.getInt("glSetBS",0);
     settings.glStencilSize=conf.getInt("glStencilSize",0);
     settings.glBufferSize=conf.getInt("glBufferSize",32);
     settings.glDoubleBuffer=conf.getInt("glDoubleBuffer",1);
@@ -5395,7 +5406,9 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.glBlueSize,0,32);
   clampSetting(settings.glAlphaSize,0,32);
   clampSetting(settings.glDepthSize,0,128);
+  clampSetting(settings.glSetBS,0,1);
   clampSetting(settings.glStencilSize,0,32);
+  clampSetting(settings.glBufferSize,0,128);
   clampSetting(settings.glDoubleBuffer,0,1);
   clampSetting(settings.backupEnable,0,1);
   clampSetting(settings.backupInterval,10,86400);
@@ -5432,7 +5445,9 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("glBlueSize",settings.glBlueSize);
     conf.set("glAlphaSize",settings.glAlphaSize);
     conf.set("glDepthSize",settings.glDepthSize);
+    conf.set("glSetBS",settings.glSetBS);
     conf.set("glStencilSize",settings.glStencilSize);
+    conf.set("glBufferSize",settings.glBufferSize);
     conf.set("glDoubleBuffer",settings.glDoubleBuffer);
 
     conf.set("vsync",settings.vsync);

@@ -1996,6 +1996,7 @@ class FurnaceGUI {
     int glBlueSize;
     int glAlphaSize;
     int glDepthSize;
+    int glSetBS;
     int glStencilSize;
     int glBufferSize;
     int glDoubleBuffer;
@@ -2248,6 +2249,7 @@ class FurnaceGUI {
       glBlueSize(8),
       glAlphaSize(0),
       glDepthSize(24),
+      glSetBS(0),
       glStencilSize(0),
       glBufferSize(32),
       glDoubleBuffer(1),
