@@ -1011,6 +1011,9 @@ void FurnaceGUI::drawTutorial() {
         cv=new FurnaceCV;
         cv->init(e);
         cv->hiScore=cvHiScore;
+        lastCVFrame=SDL_GetPerformanceCounter();
+        cvFrameTime=100000;
+        cvFrameHold=0;
       }
       if (cvTex==NULL) {
         cvTex=rend->createTexture(true,320,224,false,bestTexFormat);
@@ -1056,7 +1059,16 @@ void FurnaceGUI::drawTutorial() {
         cv->e->setSongRate(cv->origSongRate*1.5);
       }
 
-      cv->render(touchControls);
+      uint64_t nextFrame=SDL_GetPerformanceCounter();
+      unsigned int mDivider=SDL_GetPerformanceFrequency()/1000000;
+      int delta=(nextFrame-lastCVFrame)/mDivider;
+      cvFrameTime=(cvFrameTime*15+delta)/16;
+      cvFrameHold+=delta;
+      if (cvFrameHold>=16667 || cvFrameTime>15000) {
+        cv->render(touchControls);
+        cvFrameHold%=16667;
+      }
+      lastCVFrame=nextFrame;
       
       if (cv->hiScore>cvHiScore) {
         cvHiScore=cv->hiScore;

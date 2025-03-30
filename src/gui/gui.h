@@ -1628,6 +1628,8 @@ class FurnaceGUI {
 
   FurnaceCV* cv;
   FurnaceGUITexture* cvTex;
+  uint64_t lastCVFrame;
+  int cvFrameTime, cvFrameHold;
 
   FurnaceGUITexture* sampleTex;
   int sampleTexW, sampleTexH;
