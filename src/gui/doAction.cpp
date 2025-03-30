@@ -32,6 +32,12 @@ const unsigned char avRequest[15]={
 
 
 void FurnaceGUI::doAction(int what) {
+  if (curEngineState==8 || curEngineState==13 || curEngineState==23) {
+    if ((rand()%1000)==0) {
+      showError("I don't wanna");
+      return;
+    }
+  }
   switch (what) {
     case GUI_ACTION_NEW:
       if (modified) {

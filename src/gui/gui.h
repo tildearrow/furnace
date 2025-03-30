@@ -1664,12 +1664,14 @@ class FurnaceGUI {
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool displayPendingSamples, replacePendingSample;
   bool displayExportingROM;
+  bool displayRating;
   bool changeCoarse;
   bool mobileEdit;
   bool killGraphics;
   bool safeMode;
   bool midiWakeUp;
   bool makeDrumkitMode;
+  bool fullView;
   bool audioEngineChanged, settingsChanged, debugFFT;
   bool willExport[DIV_MAX_CHIPS];
   int vgmExportVersion;
@@ -2943,6 +2945,8 @@ class FurnaceGUI {
   void commitTutorial();
   void syncState();
   void commitState(DivConfig& conf);
+  void updateState();
+  void updateProperties();
   void processDrags(int dragX, int dragY);
   void processPoint(SDL_Event& ev);
 

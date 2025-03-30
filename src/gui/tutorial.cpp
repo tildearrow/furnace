@@ -65,6 +65,7 @@ enum FurnaceCVObjectTypes {
   CV_MINE,
   CV_POWERUP_P,
   CV_POWERUP_S,
+  CV_SPECIAL,
   CV_MOD_I,
   CV_MOD_S,
   CV_EXTRA_LIFE
@@ -79,6 +80,7 @@ struct FurnaceCVObject {
   short x, y;
   unsigned char z, prio;
   short collX0, collX1, collY0, collY1;
+  short frozen;
   
   virtual void collision(FurnaceCVObject* other);
   virtual void tick();
@@ -95,7 +97,8 @@ struct FurnaceCVObject {
     collX0(0),
     collX1(15),
     collY0(0),
-    collY1(15) {
+    collY1(15),
+    frozen(0) {
     memset(spriteDef,0,512*sizeof(unsigned short));
     spriteDef[0]=4;
     spriteDef[1]=5;
@@ -111,6 +114,24 @@ void FurnaceCVObject::collision(FurnaceCVObject* other) {
 
 void FurnaceCVObject::tick() {
 }
+
+// special types:
+// - 0: nothing
+// - 1: "?" one of the following:
+//   - 10/30: spawn more enemies
+//   - 4/30: downgrades enemies
+//   - 3/30: teleports you
+//   - 3/30: stops all enemies (momentarily)
+//   - 3/30: grants speed and invincible status
+//   - 2/30: spawn purple tanks
+//   - 2/30: spawn vortices
+//   - 1/30: skip to next level
+//   - 1/30: 5-up
+//   - 1/30: call planes
+// - 2: "T" teleports you
+// - 3: "X" ripple shot
+// - 4: "W" bidirectional shots (until next round)
+// - 5: "S" stops all enemies for 10 seconds
 
 struct FurnaceCV {
   SDL_Surface* surface;
@@ -134,7 +155,7 @@ struct FurnaceCV {
   int ticksToInit;
 
   bool inGame, inTransition, newHiScore, playSongs, pleaseInitSongs, gameOver;
-  unsigned char lives, respawnTime, stage, shotType, lifeBank;
+  unsigned char lives, respawnTime, stage, shotType, lifeBank, specialType;
   int score;
   int hiScore;
   short lastPlayerX, lastPlayerY;
@@ -216,6 +237,7 @@ struct FurnaceCV {
     stage(0),
     shotType(0),
     lifeBank(0),
+    specialType(0),
     score(0),
     hiScore(25000),
     lastPlayerX(0),
@@ -249,6 +271,7 @@ struct FurnaceCVPlayer: FurnaceCVObject {
   unsigned char animFrame;
   short invincible;
   unsigned char shotTimer;
+  bool doubleShot;
 
   void collision(FurnaceCVObject* other);
   void tick();
@@ -261,7 +284,8 @@ struct FurnaceCVPlayer: FurnaceCVObject {
     shootDir(2),
     animFrame(0),
     invincible(120),
-    shotTimer(4) {
+    shotTimer(4),
+    doubleShot(false) {
       type=CV_PLAYER;
       spriteWidth=3;
       spriteHeight=3;
@@ -336,11 +360,23 @@ struct FurnaceCVEnemyBullet: FurnaceCVObject {
   }
 };
 
-struct FurnaceCVEnemy1: FurnaceCVObject {
+struct FurnaceCVEnemy: FurnaceCVObject {
   unsigned char enemyType;
   unsigned char health;
-  unsigned char orient;
   unsigned char stopped;
+
+  void setType(unsigned char type);
+  FurnaceCVEnemy(FurnaceCV* p):
+    FurnaceCVObject(p),
+    enemyType(0),
+    health(1),
+    stopped(0) {
+    type=CV_ENEMY;
+  }
+};
+
+struct FurnaceCVEnemy1: FurnaceCVEnemy {
+  unsigned char orient;
   unsigned char animFrame;
   short nextTime, shootTime;
   unsigned char shootCooldown;
@@ -349,13 +385,9 @@ struct FurnaceCVEnemy1: FurnaceCVObject {
   void collision(FurnaceCVObject* other);
 
   void tick();
-  void setType(unsigned char type);
   FurnaceCVEnemy1(FurnaceCV* p):
-    FurnaceCVObject(p),
-    enemyType(0),
-    health(1),
+    FurnaceCVEnemy(p),
     orient(rand()&3),
-    stopped(0),
     animFrame(0),
     nextTime(64+(rand()%600)),
     shootTime(8),
@@ -369,8 +401,7 @@ struct FurnaceCVEnemy1: FurnaceCVObject {
   }
 };
 
-struct FurnaceCVEnemyVortex: FurnaceCVObject {
-  unsigned char stopped;
+struct FurnaceCVEnemyVortex: FurnaceCVEnemy {
   unsigned char animFrame;
   short nextTime, shootTime, speedX, speedY;
 
@@ -378,8 +409,7 @@ struct FurnaceCVEnemyVortex: FurnaceCVObject {
 
   void tick();
   FurnaceCVEnemyVortex(FurnaceCV* p):
-    FurnaceCVObject(p),
-    stopped(0),
+    FurnaceCVEnemy(p),
     animFrame(0),
     nextTime(4+(rand()%140)),
     shootTime(360),
@@ -570,6 +600,19 @@ struct FurnaceCVPowerupS: FurnaceCVObject {
     FurnaceCVObject(p),
     life(255) {
       type=CV_POWERUP_S;
+    }
+};
+
+struct FurnaceCVSpecial: FurnaceCVObject {
+  unsigned char life;
+  unsigned char specialType;
+  void collision(FurnaceCVObject* other);
+  void tick();
+  FurnaceCVSpecial(FurnaceCV* p):
+    FurnaceCVObject(p),
+    life(255) {
+      type=CV_SPECIAL;
+      specialType=1+(rand()%5);
     }
 };
 
@@ -1348,7 +1391,7 @@ void FurnaceCV::buildStage(int which) {
         createObject<FurnaceCVFurBallLarge>(finalX-4,finalY-4);
         enemy->setType(2);
         if (which>7) {
-          enemy->setType((rand()%MAX(1,15-which))==0?3:2);
+          enemy->setType((rand()%MAX(3,17-which))==0?3:2);
         }
         busy[y][x]=true;
         busy[y][x+1]=true;
@@ -1392,7 +1435,11 @@ void FurnaceCV::buildStage(int which) {
         FurnaceCVEnemy1* enemy=createObject<FurnaceCVEnemy1>(finalX,finalY);
         createObject<FurnaceCVFurBallMedium>(finalX-4,finalY-4);
         if (which>0) {
-          enemy->setType((rand()%MAX(1,8-which))==0?1:0);
+          if (which>=20) {
+            enemy->setType(1);
+          } else {
+            enemy->setType((rand()%MAX(2,8-which))==0?1:0);
+          }
         }
         busy[y][x]=true;
         break;
@@ -1696,6 +1743,19 @@ void FurnaceCV::render(unsigned char joyIn) {
       tile1[26][20]=0;
     }
 
+    // special stat
+    if (specialType>0 && (tick&16)) {
+      tile1[24][2]=0x4dc+(((specialType-1)&1)<<1)+(((specialType-1)>>1)<<6);
+      tile1[24][3]=0x4dd+(((specialType-1)&1)<<1)+(((specialType-1)>>1)<<6);
+      tile1[25][2]=0x4fc+(((specialType-1)&1)<<1)+(((specialType-1)>>1)<<6);
+      tile1[25][3]=0x4fd+(((specialType-1)&1)<<1)+(((specialType-1)>>1)<<6);
+    } else {
+      tile1[24][2]=0;
+      tile1[24][3]=0;
+      tile1[25][2]=0;
+      tile1[25][3]=0;
+    }
+
     // S mod stat
     if (speedTicks>0) {
       speedTicks--;
@@ -1953,6 +2013,7 @@ void FurnaceCVPlayer::collision(FurnaceCVObject* other) {
       cv->speedTicks=0;
       cv->e->setSongRate(cv->origSongRate);
       cv->respawnTime=48;
+      cv->specialType=0;
       if (cv->weaponStack.empty()) {
         cv->shotType=0;
       } else {
@@ -2080,7 +2141,9 @@ void FurnaceCVPlayer::tick() {
     } else {
       cv->soundEffect(SE_SHOT1);
     }
-    FurnaceCVBullet* b=cv->createObject<FurnaceCVBullet>(x+shootDirOffsX[shootDir],y+shootDirOffsY[shootDir]);
+    FurnaceCVBullet* b;
+
+    b=cv->createObject<FurnaceCVBullet>(x+shootDirOffsX[shootDir],y+shootDirOffsY[shootDir]);
     b->orient=shootDir;
     b->setType((cv->shotType==1)?1:0);
     switch (shootDir) {
@@ -2113,6 +2176,42 @@ void FurnaceCVPlayer::tick() {
         b->speedY=0;
         break;
     }
+
+    if (doubleShot) {
+      b=cv->createObject<FurnaceCVBullet>(x+shootDirOffsX[((shootDir+4)&7)],y+shootDirOffsY[((shootDir+4)&7)]);
+      b->orient=((shootDir+4)&7);
+      b->setType((cv->shotType==1)?1:0);
+      switch (((shootDir+4)&7)) {
+        case 0:
+        case 1:
+        case 7:
+          b->speedX=160;
+          break;
+        case 3:
+        case 4:
+        case 5:
+          b->speedX=-160;
+          break;
+        default:
+          b->speedX=0;
+          break;
+      }
+      switch (((shootDir+4)&7)) {
+        case 1:
+        case 2:
+        case 3:
+          b->speedY=-160;
+          break;
+        case 5:
+        case 6:
+        case 7:
+          b->speedY=160;
+          break;
+        default:
+          b->speedY=0;
+          break;
+      }
+    }
   }
 
   if (cv->joyInput&1) {
@@ -2126,7 +2225,10 @@ void FurnaceCVPlayer::tick() {
       } else {
         cv->soundEffect(SE_SHOT1);
       }
-      FurnaceCVBullet* b=cv->createObject<FurnaceCVBullet>(x+shootDirOffsX[shootDir],y+shootDirOffsY[shootDir]);
+
+      FurnaceCVBullet* b;
+      
+      b=cv->createObject<FurnaceCVBullet>(x+shootDirOffsX[shootDir],y+shootDirOffsY[shootDir]);
       b->orient=shootDir;
       b->setType((cv->shotType==1)?1:0);
       switch (shootDir) {
@@ -2164,6 +2266,181 @@ void FurnaceCVPlayer::tick() {
         b->speedX+=(rand()%64)-32;
         b->speedY+=(rand()%64)-32;
       }
+
+      if (doubleShot) {
+        b=cv->createObject<FurnaceCVBullet>(x+shootDirOffsX[((shootDir+4)&7)],y+shootDirOffsY[((shootDir+4)&7)]);
+        b->orient=((shootDir+4)&7);
+        b->setType((cv->shotType==1)?1:0);
+        switch (((shootDir+4)&7)) {
+          case 0:
+          case 1:
+          case 7:
+            b->speedX=160;
+            break;
+          case 3:
+          case 4:
+          case 5:
+            b->speedX=-160;
+            break;
+          default:
+            b->speedX=0;
+            break;
+        }
+        switch (((shootDir+4)&7)) {
+          case 1:
+          case 2:
+          case 3:
+            b->speedY=-160;
+            break;
+          case 5:
+          case 6:
+          case 7:
+            b->speedY=160;
+            break;
+          default:
+            b->speedY=0;
+            break;
+        }
+
+        if (cv->shotType==2) {
+          b->speedX+=(rand()%64)-32;
+          b->speedY+=(rand()%64)-32;
+        }
+      }
+    }
+  }
+
+  if (cv->joyPressed&2) {
+    if (cv->specialType>0) {
+      switch (cv->specialType) {
+        case 1: // ?
+          switch (rand()%30) {
+            case 0: case 1: case 2: case 3: case 4:
+            case 5: case 6: case 7: case 8: case 9: // spawn enemies
+              for (int i=0; i<10; i++) {
+                FurnaceCVEnemy1* obj=cv->createObject<FurnaceCVEnemy1>((rand()%(cv->stageWidth-4))<<3,(rand()%(cv->stageHeight-4))<<3);
+                obj->setType(rand()%2);
+              }
+              invincible+=60;
+              cv->soundEffect(SE_DEATH_C1);
+              break;
+            case 10: case 11: case 12: case 13: // downgrade enemies
+              for (FurnaceCVObject* i: cv->sprite) {
+                if (i->type==CV_ENEMY) {
+                  if (((FurnaceCVEnemy*)i)->enemyType>0) {
+                    if (((FurnaceCVEnemy*)i)->enemyType>1) {
+                      cv->createObject<FurnaceCVFurBallLarge>(i->x-4,i->y-4);
+                    } else {
+                      cv->createObject<FurnaceCVFurBallMedium>(i->x-4,i->y-4);
+                    }
+                    if (((FurnaceCVEnemy*)i)->enemyType==2) {
+                      i->x+=8;
+                      i->y+=8;
+                    }
+                    ((FurnaceCVEnemy*)i)->setType(((FurnaceCVEnemy*)i)->enemyType-1);
+                  }
+                }
+              }
+              cv->soundEffect(SE_EXPL2);
+              break;
+            case 14: case 15: case 16: // teleport
+              cv->createObject<FurnaceCVFurBallLarge>(x-4,y-4);
+              invincible=120;
+              x=(rand()%(cv->stageWidth-2))<<3;
+              y=(rand()%(cv->stageHeight-2))<<3;
+              cv->createObject<FurnaceCVFurBallLarge>(x-4,y-4);
+              cv->soundEffect(SE_INIT);
+              for (FurnaceCVObject* i: cv->sprite) {
+                if (i->type==CV_ENEMY_BULLET) {
+                  i->dead=true;
+                }
+              }
+              break;
+            case 17: case 18: case 19: // stop enemies
+              for (FurnaceCVObject* i: cv->sprite) {
+                if (i->type==CV_ENEMY) {
+                  ((FurnaceCVEnemy*)i)->stopped=true;
+                }
+              }
+              cv->soundEffect(SE_TIMEUP);
+              break;
+            case 20: case 21: case 22: // speed + invincible
+              invincible=600;
+              cv->speedTicks=900;
+              cv->soundEffect(SE_PICKUP3);
+              break;
+            case 23: case 24: // purple tank
+              for (int i=0; i<6; i++) {
+                FurnaceCVEnemy1* obj=cv->createObject<FurnaceCVEnemy1>((rand()%(cv->stageWidth-3))<<3,(rand()%(cv->stageHeight-3))<<3);
+                obj->setType(3);
+              }
+              invincible+=60;
+              cv->soundEffect(SE_DEATH_C1);
+              break;
+            case 25: case 26: // vortex
+              for (int i=0; i<12; i++) {
+                cv->createObject<FurnaceCVEnemyVortex>((rand()%(cv->stageWidth-2))<<3,(rand()%(cv->stageHeight-2))<<3);
+              }
+              invincible+=60;
+              cv->soundEffect(SE_DEATH_C1);
+              break;
+            case 27: // next level
+              for (FurnaceCVObject* i: cv->sprite) {
+                if (i->type==CV_ENEMY) {
+                  i->dead=true;
+                }
+              }
+              break;
+            case 28: // 5-up
+              cv->soundEffect(SE_PICKUP1);
+              cv->lives+=5;
+              break;
+            case 29: // plane
+              for (int i=0; i<6; i++) {
+                cv->createObjectNoPos<FurnaceCVEnemyPlane>();
+              }
+              cv->soundEffect(SE_TIMEUP);
+              break;
+          }
+          break;
+        case 2: // T
+          cv->createObject<FurnaceCVFurBallLarge>(x-4,y-4);
+          invincible=120;
+          x=(rand()%(cv->stageWidth-2))<<3;
+          y=(rand()%(cv->stageHeight-2))<<3;
+          cv->createObject<FurnaceCVFurBallLarge>(x-4,y-4);
+          cv->soundEffect(SE_INIT);
+          for (FurnaceCVObject* i: cv->sprite) {
+            if (i->type==CV_ENEMY_BULLET) {
+              i->dead=true;
+            }
+          }
+          break;
+        case 3: { // X
+          for (int i=0; i<64; i++) {
+            FurnaceCVBullet* b=cv->createObject<FurnaceCVBullet>(x+4,y+4);
+            b->orient=(-i>>3)&7;
+            b->setType(1);
+            b->speedX=120*cos(M_PI*((float)i/32.0));
+            b->speedY=120*sin(M_PI*((float)i/32.0));
+          }
+          cv->soundEffect(SE_SHOT2);
+          break;
+        }
+        case 4: // W
+          doubleShot=true;
+          cv->soundEffect(SE_PICKUP3);
+          break;
+        case 5: // S
+          for (FurnaceCVObject* i: cv->sprite) {
+            if (i->type==CV_ENEMY) {
+              i->frozen=600;
+            }
+          }
+          cv->soundEffect(SE_TIMEUP);
+          break;
+      }
+      cv->specialType=0;
     }
   }
 
@@ -2443,6 +2720,7 @@ void FurnaceCVEnemy1::collision(FurnaceCVObject* other) {
             cv->createObject<FurnaceCVPowerupS>(x+(enemyType>=2?8:0),y+(enemyType>=2?8:0));
             break;
           case 10: case 11: // special
+            cv->createObject<FurnaceCVSpecial>(x+(enemyType>=2?8:0),y+(enemyType>=2?8:0));
             break;
           case 12: // mod
             cv->createObject<FurnaceCVModS>(x+(enemyType>=2?8:0),y+(enemyType>=2?8:0));
@@ -2496,6 +2774,10 @@ void FurnaceCVEnemy1::collision(FurnaceCVObject* other) {
 }
 
 void FurnaceCVEnemy1::tick() {
+  if (frozen>0) {
+    if (--frozen>0) return;
+  }
+
   if (!stopped) {
     switch (orient) {
       case 0:
@@ -2663,7 +2945,7 @@ void FurnaceCVEnemy1::tick() {
   }
 }
 
-void FurnaceCVEnemy1::setType(unsigned char t) {
+void FurnaceCVEnemy::setType(unsigned char t) {
   enemyType=t;
   switch (enemyType) {
     case 0:
@@ -3307,6 +3589,33 @@ void FurnaceCVExtraLife::tick() {
   }
 }
 
+// FurnaceCVSpecial IMPLEMENTATION
+
+void FurnaceCVSpecial::collision(FurnaceCVObject* other) {
+  if (other->type==CV_PLAYER) {
+    dead=true;
+    cv->soundEffect(SE_PICKUP2);
+    cv->specialType=specialType;
+  }
+}
+
+void FurnaceCVSpecial::tick() {
+  if (--life==0) dead=true;
+
+  if (life>64 || (life&1)) {
+    spriteDef[0]=0x4dc+(((specialType-1)&1)<<1)+(((specialType-1)>>1)<<6);
+    spriteDef[1]=0x4dd+(((specialType-1)&1)<<1)+(((specialType-1)>>1)<<6);
+    spriteDef[2]=0x4fc+(((specialType-1)&1)<<1)+(((specialType-1)>>1)<<6);
+    spriteDef[3]=0x4fd+(((specialType-1)&1)<<1)+(((specialType-1)>>1)<<6);
+  } else {
+    spriteDef[0]=0;
+    spriteDef[1]=0;
+    spriteDef[2]=0;
+    spriteDef[3]=0;
+  }
+}
+
+
 // FurnaceCVModI IMPLEMENTATION
 
 void FurnaceCVModI::collision(FurnaceCVObject* other) {
@@ -3368,15 +3677,24 @@ void FurnaceCVEnemyVortex::collision(FurnaceCVObject* other) {
   if (other->type==CV_BULLET || other->type==CV_PLAYER) {
     dead=true;
     if ((rand()%2)==0) {
-      switch (rand()%10) {
-        case 0:
+      switch (rand()%14) {
+        case 0: // extra life
           cv->createObject<FurnaceCVExtraLife>(x,y);
           break;
-        case 1: case 2: case 3: case 4:
+        case 1: case 2: case 3: case 4: // powerup
           cv->createObject<FurnaceCVPowerupP>(x,y);
           break;
-        case 5: case 6: case 7: case 8: case 9:
+        case 5: case 6: case 7: case 8: case 9: // powerup
           cv->createObject<FurnaceCVPowerupS>(x,y);
+          break;
+        case 10: case 11: // special
+          cv->createObject<FurnaceCVSpecial>(x,y);
+          break;
+        case 12: // mod
+          cv->createObject<FurnaceCVModS>(x,y);
+          break;
+        case 13: // mod
+          cv->createObject<FurnaceCVModI>(x,y);
           break;
       }
     }
@@ -3387,6 +3705,10 @@ void FurnaceCVEnemyVortex::collision(FurnaceCVObject* other) {
 }
 
 void FurnaceCVEnemyVortex::tick() {
+  if (frozen>0) {
+    if (--frozen>0) return;
+  }
+
   x+=speedX;
   y+=speedY;
   animFrame+=0x08;
@@ -3470,12 +3792,12 @@ void FurnaceCVEnemyPlane::tick() {
     if (--shootTime<=0) {
       shootTime=28-(speed*2);
       cv->soundEffect(SE_EXPL2);
-      cv->createObject<FurnaceCVFurBallLarge>(x+(spriteWidth<<2),y+(spriteHeight<<2));
+      cv->createObject<FurnaceCVFurBallLarge>(x+(spriteWidth<<2)-16,y+(spriteHeight<<2)-16);
       for (int i=0; i<14; i++) {
         float fraction=(float)i/13.0f;
         float xs=cos(fraction*M_PI*2.0)*28;
         float ys=sin(fraction*M_PI*2.0)*28;
-        FurnaceCVEnemyBullet* b=cv->createObject<FurnaceCVEnemyBullet>(x+(spriteWidth<<2),y+(spriteHeight<<2));
+        FurnaceCVEnemyBullet* b=cv->createObject<FurnaceCVEnemyBullet>(x+(spriteWidth<<2)-4,y+(spriteHeight<<2)-4);
         b->speedX=xs;
         b->speedY=ys;
       }

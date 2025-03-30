@@ -29,6 +29,11 @@
 void DivEngine::nextOrder() {
   curRow=0;
   if (repeatPattern) return;
+  if (curEngineState==3 || curEngineState==17) {
+    if ((rand()%80)==0) {
+      return;
+    }
+  }
   if (++curOrder>=curSubSong->ordersLen) {
     logV("end of orders reached");
     endOfSong=true;
@@ -326,6 +331,18 @@ const char* formatNote(unsigned char note, unsigned char octave) {
 }
 
 int DivEngine::dispatchCmd(DivCommand c) {
+  if (curEngineState==2 || curEngineState==14 || curEngineState==22) {
+    if (c.cmd==DIV_CMD_NOTE_ON) {
+      if ((rand()&255)==0) {
+        c.value++;
+      }
+    }
+    if (c.cmd==DIV_CMD_NOTE_OFF) {
+      if ((rand()&127)==0) {
+        return 0;
+      }
+    }
+  }
   if (view==DIV_STATUS_COMMANDS) {
     if (!skipping) {
       switch (c.cmd) {
@@ -1424,13 +1441,26 @@ void DivEngine::nextRow() {
       changeOrd=-1;
     }
     if (haltOn==DIV_HALT_PATTERN) halted=true;
-  } else if (playing) if (++curRow>=curSubSong->patLen) {
-    if (shallStopSched) {
-      curRow=curSubSong->patLen-1;
+  } else if (playing) {
+    if (reverse) {
+      if (--curRow<1) reverse=false;
     } else {
-      nextOrder();
+      curRow++;
     }
-    if (haltOn==DIV_HALT_PATTERN) halted=true;
+    if (curRow>=curSubSong->patLen) {
+      if (shallStopSched) {
+        curRow=curSubSong->patLen-1;
+      } else {
+        nextOrder();
+      }
+      if (haltOn==DIV_HALT_PATTERN) halted=true;
+    }
+
+    if ((curEngineState==4 || curEngineState==21) && (curRow&3)==0 && !skipping) {
+      if ((rand()%600)==0) {
+        reverse=true;
+      }
+    }
   }
 
   // new loop detection routine
@@ -1457,6 +1487,17 @@ void DivEngine::nextRow() {
     curSpeed++;
     if (curSpeed>=speeds.len) curSpeed=0;
     nextSpeed=speeds.val[curSpeed];
+  }
+
+  if (curEngineState==3 || curEngineState==17) {
+    if ((rand()%300)==0) {
+      ticks++;
+      nextSpeed++;
+    }
+    if ((rand()%15000)==0) {
+      ticks=128;
+      nextSpeed+=128;
+    }
   }
 
   /*

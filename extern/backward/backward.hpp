@@ -24,6 +24,8 @@
 #ifndef H_6B9572DA_A64B_49E6_B234_051480991C89
 #define H_6B9572DA_A64B_49E6_B234_051480991C89
 
+extern int curEngineState;
+
 #ifndef __cplusplus
 #error "It's not going to compile without a C++ compiler..."
 #endif
@@ -4253,7 +4255,11 @@ public:
     }
 
 #ifdef _WIN32
-    MessageBox(NULL,"Error","Furnace has crashed! please report this to the issue tracker immediately:\r\nhttps://github.com/tildearrow/furnace/issues/new\r\n\r\na file called furnace_crash.txt will be created in your user directory.\r\nthis will be important for locating the origin of the crash.\r\n\r\nif Furnace keeps crashing and you believe it is caused by a configuration problem, you may start Furnace with the -safemode parameter.",MB_OK|MB_ICONERROR);
+    if (curEngineState==7 || curEngineState==11) {
+      MessageBox(NULL,"Furnace whoopsied and obliterated itself to pieces!\r\n\r\nreport the issue to tildearrow with the provided \"furnace_crash.txt\" in your home folder, or whatever that happened to you is inevitable sorry : < < < <\r\n\r\nor do -safemode in terminal if you got the bravery to do so\r\n\r\nif it also still crashes i'm afraid to tell you this is an other undercooked Furnace update","CRASHED IMMENSELY",MB_OK|MB_ICONERROR);
+    } else {
+      MessageBox(NULL,"Furnace has crashed! please report this to the issue tracker immediately:\r\nhttps://github.com/tildearrow/furnace/issues/new\r\n\r\na file called furnace_crash.txt will be created in your user directory.\r\nthis will be important for locating the origin of the crash.\r\n\r\nif Furnace keeps crashing and you believe it is caused by a configuration problem, you may start Furnace with the -safemode parameter.","Error",MB_OK|MB_ICONERROR);
+    }
     std::string crashLocation;
     char* userProfile=getenv("USERPROFILE");
     if (userProfile==NULL) {
@@ -4492,7 +4498,11 @@ private:
     printer.print(st, std::cerr);
 
 #ifdef _WIN32
-    MessageBox(NULL,"Furnace has crashed! please report this to the issue tracker immediately:\r\nhttps://github.com/tildearrow/furnace/issues/new\r\n\r\na file called furnace_crash.txt will be created in your user directory.\r\nthis will be important for locating the origin of the crash.\r\n\r\nif Furnace keeps crashing and you believe it is caused by a configuration problem, you may start Furnace with the -safemode parameter.","Error",MB_OK|MB_ICONERROR);
+    if (curEngineState==7 || curEngineState==11) {
+      MessageBox(NULL,"Furnace whoopsied and obliterated itself to pieces!\r\n\r\nreport the issue to tildearrow with the provided \"furnace_crash.txt\" in your home folder, or whatever that happened to you is inevitable sorry : < < < <\r\n\r\nor do -safemode in terminal if you got the bravery to do so\r\n\r\nif it also still crashes i'm afraid to tell you this is an other undercooked Furnace update","CRASHED IMMENSELY",MB_OK|MB_ICONERROR);
+    } else {
+      MessageBox(NULL,"Furnace has crashed! please report this to the issue tracker immediately:\r\nhttps://github.com/tildearrow/furnace/issues/new\r\n\r\na file called furnace_crash.txt will be created in your user directory.\r\nthis will be important for locating the origin of the crash.\r\n\r\nif Furnace keeps crashing and you believe it is caused by a configuration problem, you may start Furnace with the -safemode parameter.","Error",MB_OK|MB_ICONERROR);
+    }
     std::string crashLocation;
     char* userProfile=getenv("USERPROFILE");
     if (userProfile==NULL) {

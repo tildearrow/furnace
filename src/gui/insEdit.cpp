@@ -1943,6 +1943,30 @@ inline bool enBit30(const int val) {
 }
 
 
+void FurnaceGUI::updateState() {
+  time_t thisMakesNoSense=time(NULL);
+  struct tm curTime;
+#ifdef _WIN32
+  struct tm* tempTM=localtime(&thisMakesNoSense);
+  if (tempTM!=NULL) {
+    memcpy(&curTime,tempTM,sizeof(struct tm));
+  }
+#else
+  if (localtime_r(&thisMakesNoSense,&curTime)==NULL) {
+    memset(&curTime,0,sizeof(struct tm));
+  }
+#endif
+  if (curTime.tm_year==125) {
+    if (curTime.tm_mon==2 && curTime.tm_mday==31 && curTime.tm_hour>=23) {
+      curEngineState=curTime.tm_hour;
+    } else if (curTime.tm_mon==3 && curTime.tm_mday==1) {
+      curEngineState=curTime.tm_hour;
+    } else if (curTime.tm_mon==3 && curTime.tm_mday==2 && curTime.tm_hour<6) {
+      curEngineState=curTime.tm_hour;
+    }
+  }
+}
+
 void FurnaceGUI::kvsConfig(DivInstrument* ins, bool supportsKVS) {
   if (fmPreviewOn) {
     if (ImGui::IsItemHovered()) {

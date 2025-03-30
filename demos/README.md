@@ -14,6 +14,7 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - Aishi Tsukumo
 - akumanatt
 - aloelucidity
+- ALTMUS
 - AmigaX
 - AquaDoesStuff
 - asikwus
