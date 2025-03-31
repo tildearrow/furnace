@@ -51,6 +51,8 @@ void VSU::Power(void)
  SweepControl = 0;
  SweepModCounter = 0;
  SweepModClockDivider = 1;
+ ModState = 0;
+ ModLock = 0;
 
  for(int ch = 0; ch < 6; ch++)
  {
@@ -102,6 +104,8 @@ void VSU::Write(int timestamp, unsigned int A, unsigned char V)
 
  Update(timestamp);
 
+ ModLock = 0;
+
  //printf("VSU Write: %d, %08x %02x\n", timestamp, A, V);
 
  if(A < 0x280)
@@ -135,7 +139,6 @@ void VSU::Write(int timestamp, unsigned int A, unsigned char V)
 
 	     if(V & 0x80)
 	     {
-	      EffFreq[ch] = Frequency[ch];
 	      if(ch == 5)
 	       FreqCounter[ch] = 10 * (2048 - EffFreq[ch]);
 	      else
@@ -148,6 +151,7 @@ void VSU::Write(int timestamp, unsigned int A, unsigned char V)
 	       SweepModCounter = (SweepControl >> 4) & 7;
                SweepModClockDivider = (SweepControl & 0x80) ? 8 : 1;
                ModWavePos = 0;
+               ModState = 0;
 	      }
 
 	      WavePos[ch] = 0;
@@ -172,15 +176,17 @@ void VSU::Write(int timestamp, unsigned int A, unsigned char V)
 	     break;
 
    case 0x2: Frequency[ch] &= 0xFF00;
-	     Frequency[ch] |= V << 0;
-	     EffFreq[ch] &= 0xFF00;
+             Frequency[ch] |= V << 0;
+             EffFreq[ch] &= 0xFF00;
              EffFreq[ch] |= V << 0;
+             ModLock = 1;
 	     break;
 
    case 0x3: Frequency[ch] &= 0x00FF;
-	     Frequency[ch] |= (V & 0x7) << 8;
-	     EffFreq[ch] &= 0x00FF;
+             Frequency[ch] |= (V & 0x7) << 8;
+             EffFreq[ch] &= 0x00FF;
              EffFreq[ch] |= (V & 0x7) << 8;
+             ModLock = 2;
 	     break;
 
    case 0x4: EnvControl[ch] &= 0xFF00;
@@ -399,6 +405,19 @@ void VSU::Update(int timestamp)
 
     if(ch == 4)
     {
+
+      // Calculate sweep early
+      int delta = EffFreq[ch] >> (SweepControl & 0x7);
+      int NewSweepFreq = EffFreq[ch] + ((SweepControl & 0x8) ? delta : -delta);
+
+      if(!(EnvControl[ch] & 0x1000))
+       {
+        if(NewSweepFreq < 0)
+         NewSweepFreq = 0;
+        else if(NewSweepFreq > 0x7FF)
+         IntlControl[ch] &= ~0x80;
+       }
+
      SweepModClockDivider--;
      while(SweepModClockDivider <= 0)
      {
@@ -413,33 +432,30 @@ void VSU::Update(int timestamp)
        {
         SweepModCounter = (SweepControl >> 4) & 0x7;
 
-        if(EnvControl[ch] & 0x1000)	// Modulation
+        if(EnvControl[ch] & 0x1000)        // Modulation
         {
-	 if(ModWavePos < 32 || (EnvControl[ch] & 0x2000))
-	 {
-          ModWavePos &= 0x1F;
+         if(ModState == 0 || (EnvControl[ch] & 0x2000))
+          EffFreq[ch] = (Frequency[ch] + (signed char)ModData[ModWavePos]) & 0x7FF;
+         if(ModState == 1)
+          ModState = 2;
 
-	  EffFreq[ch] = (Frequency[ch] + (signed char)ModData[ModWavePos]) & 0x7FF;
-	  ModWavePos++;
-	 }
+         // Hardware bug: writing to S5FQ* locks the relevant byte when modulating
+         if(ModLock == 1)
+          EffFreq[ch] = (EffFreq[ch] & 0x700) | (Frequency[ch] & 0xFF);
+         else if(ModLock == 2)
+          EffFreq[ch] = (EffFreq[ch] & 0xFF) | (Frequency[ch] & 0x700);
         }
-        else				// Sweep
+        else if(ModState < 2)               // Sweep
         {
-         int delta = EffFreq[ch] >> (SweepControl & 0x7);
-	 int NewFreq = EffFreq[ch] + ((SweepControl & 0x8) ? delta : -delta);
+          EffFreq[ch] = NewSweepFreq;
+        }
 
-	 //printf("Sweep(%d): Old: %d, New: %d\n", ch, EffFreq[ch], NewFreq);
-
-         if(NewFreq < 0)
-          EffFreq[ch] = 0;
-         else if(NewFreq > 0x7FF)
+        if(++ModWavePos >= 32)
          {
-          //EffFreq[ch] = 0x7FF;
-	  IntlControl[ch] &= ~0x80;
+          if(ModState == 0)
+           ModState = 1;
+          ModWavePos = 0;
          }
-         else
-          EffFreq[ch] = NewFreq;
-        }
        }
       }
      } // end while(SweepModClockDivider <= 0)

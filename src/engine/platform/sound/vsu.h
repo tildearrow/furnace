@@ -93,6 +93,8 @@ class VSU
  int SweepModClockDivider;
 
  int EnvelopeModMask[6];
+ int ModState;
+ int ModLock;
 
  int NoiseLatcherClockDivider;
  unsigned int NoiseLatcher;
