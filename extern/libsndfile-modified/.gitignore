@@ -62,7 +62,6 @@ examples/sfprocess
 examples/sndfile-loopify
 examples/sndfile-to-text
 examples/sndfilehandle
-include/sndfile.h
 libsndfile-*.tar.xz
 libsndfile-testsuite-*
 libsndfile.spec
