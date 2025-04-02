@@ -25,10 +25,10 @@
 #define CHIP_DIVIDER 32
 
 #define rRead8(a) (nds.read8(a))
-#define rWrite8(a,v) {if(!skipRegisterWrites) {nds.write8((a),(v)); regPool[(a)]=(v); if(dumpWrites) addWrite((a),(v)); }}
+#define rWrite8(a,v) {if(!skipRegisterWrites){writes.push_back(QueuedWrite((a),1,(v)));regPool[(a)]=(v);if(dumpWrites)addWrite((a),(v));}}
 #define rWrite16(a,v) { \
   if(!skipRegisterWrites) { \
-    nds.write16((a)>>1,(v)); \
+    writes.push_back(QueuedWrite((a),2,(v)));\
     regPool[(a)+0]=(v)&0xff; \
     regPool[(a)+1]=((v)>>8)&0xff; \
     if(dumpWrites) addWrite((a)+0,(v)&0xff); \
@@ -38,7 +38,7 @@
 
 #define rWrite32(a,v) { \
   if(!skipRegisterWrites) { \
-    nds.write32((a)>>2,(v)); \
+    writes.push_back(QueuedWrite((a),4,(v)));\
     regPool[(a)+0]=(v)&0xff; \
     regPool[(a)+1]=((v)>>8)&0xff; \
     regPool[(a)+2]=((v)>>16)&0xff; \
@@ -76,6 +76,19 @@ void DivPlatformNDS::acquireDirect(blip_buffer_t** bb, size_t len) {
   nds.set_bb(bb[0],bb[1]);
   nds.set_oscbuf(oscBuf);
   nds.resetTS(0);
+
+  while (!writes.empty()) {
+    QueuedWrite w=writes.front();
+    if (w.size==4) {
+      nds.write32(w.addr>>2,w.val);
+    } else if (w.size==2) {
+      nds.write16(w.addr>>1,w.val);
+    } else {
+      nds.write8(w.addr,w.val);
+    }
+    writes.pop();
+  }
+
   nds.tick(len);
 
   for (int i=0; i<16; i++) {
@@ -444,6 +457,7 @@ DivDispatchOscBuffer* DivPlatformNDS::getOscBuffer(int ch) {
 void DivPlatformNDS::reset() {
   memset(regPool,0,288);
   nds.reset();
+  writes.clear();
   globalVolume=0x7f;
   lastOut[0]=0;
   lastOut[1]=0;

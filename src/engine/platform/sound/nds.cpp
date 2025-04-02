@@ -62,8 +62,6 @@ namespace nds_sound_emu
 
 		m_control = 0;
 		m_bias = 0;
-		m_loutput = 0;
-		m_routput = 0;
 	}
 
   s32 nds_sound_t::predict() {
@@ -96,7 +94,6 @@ namespace nds_sound_emu
 
 	void nds_sound_t::tick(s32 cycle)
 	{
-		m_loutput = m_routput = (m_bias & 0x3ff);
 		if (!enable())
 			return;
 
@@ -156,10 +153,6 @@ namespace nds_sound_emu
 		// adjust master volume
 		lmix = (lmix * mvol()) >> 13;
 		rmix = (rmix * mvol()) >> 13;
-
-		// add bias and clip output
-		m_loutput = clamp<s32>((lmix + (m_bias & 0x3ff)), 0, 0x3ff);
-		m_routput = clamp<s32>((rmix + (m_bias & 0x3ff)), 0, 0x3ff);
 	}
 
 	u8 nds_sound_t::read8(u32 addr)
@@ -321,6 +314,9 @@ namespace nds_sound_emu
 				if (!m_playing && !m_ctl_hold)
 				{
 					m_sample = m_lfsr_out = 0;
+                                        m_oscBuf->putSample(m_lastts,0);
+                                        blip_add_delta(m_bb[0],m_lastts,-m_loutput);
+                                        blip_add_delta(m_bb[1],m_lastts,-m_routput);
 					m_output = m_loutput = m_routput = 0;
 				}
 				break;
@@ -368,6 +364,9 @@ namespace nds_sound_emu
 			if (!m_ctl_hold)
 			{
 				m_sample = m_lfsr_out = 0;
+                                m_oscBuf->putSample(m_lastts,0);
+                                blip_add_delta(m_bb[0],m_lastts,-m_loutput);
+                                blip_add_delta(m_bb[1],m_lastts,-m_routput);
 				m_output = m_loutput = m_routput = 0;
 			}
 
@@ -404,11 +403,11 @@ namespace nds_sound_emu
           m_oscBuf->putSample(i,(loutput+routput)>>1);
         }
         if (m_loutput!=loutput) {
-          blip_add_delta(m_bb[0],i,m_loutput-loutput);
+          blip_add_delta(m_bb[0],i,loutput-m_loutput);
           m_loutput=loutput;
         }
         if (m_routput!=routput) {
-          blip_add_delta(m_bb[1],i,m_routput-routput);
+          blip_add_delta(m_bb[1],i,routput-m_routput);
           m_routput=routput;
         }
       }
