@@ -190,6 +190,7 @@ jobs:
 
         cmake \
           -B ${PWD}/build \
+          -DCMAKE_DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
           -DCMAKE_INSTALL_PREFIX=/usr \
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
           -DWARNINGS_ARE_ERRORS=${USE_WAE} \
