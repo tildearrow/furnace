@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FUR_VERSION="0.6.8"
+FUR_VERSION="0.6.8.1"
 
 EXPORT_LANGS=("de" "es" "fr" "fi" "hy" "id" "ja" "ko" "nl" "pl" "pt_BR" "ru" "sk" "sv" "th" "tr" "uk" "zh" "zh_HK")
 
