@@ -432,7 +432,6 @@ enum DivChanTypes {
 };
 
 extern const char* cmdName[];
-extern int curEngineState;
 
 class DivEngine {
   DivDispatchContainer disCont[DIV_MAX_CHIPS];
@@ -448,7 +447,6 @@ class DivEngine {
   bool playing;
   bool freelance;
   bool shallStop, shallStopSched;
-  bool reverse;
   bool endOfSong;
   bool consoleMode;
   bool disableStatusOut;
@@ -1402,7 +1400,6 @@ class DivEngine {
       freelance(false),
       shallStop(false),
       shallStopSched(false),
-      reverse(false),
       endOfSong(false),
       consoleMode(false),
       disableStatusOut(false),

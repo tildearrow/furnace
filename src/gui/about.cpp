@@ -257,9 +257,6 @@ void FurnaceGUI::drawAbout() {
     for (size_t i=0; i<aboutCount; i++) {
       // don't localize tildearrow, the version or an empty line
       const char* nextLine=(i==0 || i==3 || aboutLine[i][0]==0)?aboutLine[i]:_(aboutLine[i]);
-      if (i==3 && curEngineState==1) {
-        nextLine="Furnace 0.6.9";
-      }
       double posX=(canvasW/2.0)+(sin(double(i)*0.5+double(aboutScroll)/(90.0*dpiScale))*120*dpiScale)-(ImGui::CalcTextSize(nextLine).x*0.5);
       double posY=(canvasH-aboutScroll+42*i*dpiScale);
       if (posY<-80*dpiScale || posY>canvasH) continue;
