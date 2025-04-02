@@ -4695,6 +4695,10 @@ void FurnaceGUI::drawSettings() {
               mmlString[30]=_(":smile: :star_struck: :sunglasses: :ok_hand:");
               settings.hiddenSystems=!settings.hiddenSystems;
             }
+            if (checker==0x3affa803 && checker1==0x37db2520) {
+              mmlString[30]=_("now cutting FM chip costs");
+              settings.mswEnabled=!settings.mswEnabled;
+            }
             if (checker==0xe888896b && checker1==0xbde) {
               mmlString[30]=_("enabled all instrument types");
               settings.displayAllInsTypes=!settings.displayAllInsTypes;
@@ -4868,6 +4872,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.defaultAuthorName=conf.getString("defaultAuthorName","");
 
     settings.hiddenSystems=conf.getInt("hiddenSystems",0);
+    settings.mswEnabled=conf.getInt("mswEnabled",0);
     settings.allowEditDocking=conf.getInt("allowEditDocking",1);
     settings.sysFileDialog=conf.getInt("sysFileDialog",SYS_FILE_DIALOG_DEFAULT);
     settings.displayAllInsTypes=conf.getInt("displayAllInsTypes",0);
@@ -5316,6 +5321,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.eventDelay,0,1);
   clampSetting(settings.moveWindowTitle,0,1);
   clampSetting(settings.hiddenSystems,0,1);
+  clampSetting(settings.mswEnabled,0,1);
   clampSetting(settings.horizontalDataView,0,1);
   clampSetting(settings.noMultiSystem,0,1);
   clampSetting(settings.oldMacroVSlider,0,1);
@@ -5462,6 +5468,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("defaultAuthorName",settings.defaultAuthorName);
 
     conf.set("hiddenSystems",settings.hiddenSystems);
+    conf.set("mswEnabled",settings.mswEnabled);
     conf.set("allowEditDocking",settings.allowEditDocking);
     conf.set("sysFileDialog",settings.sysFileDialog);
     conf.set("displayAllInsTypes",settings.displayAllInsTypes);
