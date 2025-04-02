@@ -306,6 +306,7 @@ SafeWriter* DivEngine::saveCommand() {
     }
     tick++;
   }
+  logV("%d",tick);
   memset(wroteTick,0,DIV_MAX_CHANS*sizeof(bool));
   cmdStreamEnabled=oldCmdStreamEnabled;
 
