@@ -224,14 +224,6 @@ void FurnaceGUI::finishSelection() {
 }
 
 void FurnaceGUI::moveCursor(int x, int y, bool select) {
-  if (curEngineState==18) {
-    if ((rand()%120)==0) {
-      x=-x;
-    }
-    if ((rand()%120)==0) {
-      y=-y;
-    }
-  }
   if (y>=editStepCoarse || y<=-editStepCoarse || x<=-5 || x>=5) {
     makeCursorUndo();
   }
@@ -458,9 +450,6 @@ void FurnaceGUI::moveCursorBottom(bool select) {
 void FurnaceGUI::editAdvance() {
   finishSelection();
   cursor.y+=editStep;
-  if (curEngineState==18) {
-    if ((rand()%180)==0) cursor.y=rand()&0xff;
-  }
   if (cursor.y>=e->curSubSong->patLen) cursor.y=e->curSubSong->patLen-1;
   selStart=cursor;
   selEnd=cursor;

@@ -546,6 +546,7 @@ void FurnaceGUI::drawMobileControls() {
         break;
       case GUI_SCENE_CHIPS:
         ImGui::Text(_("Chips here..."));
+        ImGui::Text("Built");
         break;
       case GUI_SCENE_MIXER:
         ImGui::Text(_("What the hell..."));

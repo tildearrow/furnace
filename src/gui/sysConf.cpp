@@ -96,8 +96,8 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         }
       }
 
-      if (msw || curEngineState==6 || curEngineState==16) {
-        if (ImGui::Checkbox(_("Modified sine wave"),&msw)) {
+      if (msw || settings.mswEnabled) {
+        if (ImGui::Checkbox(_("Modified sine wave (joke)"),&msw)) {
           altered=true;
         }
       }

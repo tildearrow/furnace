@@ -446,7 +446,8 @@ also make sure you've installed the rest of dependencies so you don't hit one of
 
 #### Compatibility with CMake < 3.5 has been removed from CMake
 
-CMake 4.0 has removed support for cmake\_minimum\_required earlier than 3.5. Furnace 0.6.8 has been updated for this, but if you are building an older version, pass `-DCMAKE_POLICY_VERSION_MINIMUM=3.5` to CMake so you can force it to succeed.
+immediately report this issue.
+patch out every CMakeLists.txt and change the cmake\_minimum\_required() to comply for now.
 
 ### Furnace errors
 

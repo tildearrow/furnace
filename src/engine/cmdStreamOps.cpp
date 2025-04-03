@@ -20,6 +20,7 @@
 #include "engine.h"
 #include "../ta-log.h"
 
+/*
 #define WRITE_TICK(x) \
   if (!wroteTick[x]) { \
     wroteTick[x]=true; \
@@ -35,6 +36,7 @@
     } \
     lastTick[x]=tick; \
   }
+*/
 
 void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
   switch (c.cmd) {
@@ -274,7 +276,6 @@ SafeWriter* DivEngine::saveCommand() {
     memset(wroteTick,0,DIV_MAX_CHANS*sizeof(bool));
     if (curDivider!=divider) {
       curDivider=divider;
-      WRITE_TICK(0);
       chanStream[0]->writeC(0xfb);
       chanStream[0]->writeI((int)(curDivider*65536));
     }
@@ -294,19 +295,19 @@ SafeWriter* DivEngine::saveCommand() {
         case DIV_CMD_PRE_NOTE:
           break;
         default:
-          WRITE_TICK(i.chan);
           cmdPopularity[i.cmd]++;
           writePackedCommandValues(chanStream[i.chan],i);
           break;
       }
     }
     cmdStream.clear();
+    for (int i=0; i<chans; i++) {
+      chanStream[i]->writeC(0xfe);
+    }
     tick++;
   }
+  logV("%d",tick);
   memset(wroteTick,0,DIV_MAX_CHANS*sizeof(bool));
-  for (int i=0; i<chans; i++) {
-    WRITE_TICK(i);
-  }
   cmdStreamEnabled=oldCmdStreamEnabled;
 
   int sortCand=-1;

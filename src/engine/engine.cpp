@@ -42,8 +42,6 @@
 #include <fmt/printf.h>
 #include <chrono>
 
-int curEngineState=-1;
-
 void process(void* u, float** in, float** out, int inChans, int outChans, unsigned int size) {
   ((DivEngine*)u)->nextBuf(in,out,inChans,outChans,size);
 }
@@ -4020,31 +4018,6 @@ bool DivEngine::prePreInit() {
   logD("config path: %s",configPath.c_str());
 
   configLoaded=true;
-  curEngineState=-1;
-  time_t thisMakesNoSense=time(NULL);
-  struct tm curTime;
-#ifdef _WIN32
-  struct tm* tempTM=localtime(&thisMakesNoSense);
-  if (tempTM!=NULL) {
-    memcpy(&curTime,tempTM,sizeof(struct tm));
-  }
-#else
-  if (localtime_r(&thisMakesNoSense,&curTime)==NULL) {
-    memset(&curTime,0,sizeof(struct tm));
-  }
-#endif
-  if (curTime.tm_year==125) {
-    if (curTime.tm_mon==2 && curTime.tm_mday==31 && curTime.tm_hour>=23) {
-      curEngineState=curTime.tm_hour;
-    } else if (curTime.tm_mon==3 && curTime.tm_mday==1) {
-      curEngineState=curTime.tm_hour;
-    } else if (curTime.tm_mon==3 && curTime.tm_mday==2 && curTime.tm_hour<6) {
-      curEngineState=curTime.tm_hour;
-    } else {
-      curEngineState=-1;
-    }
-  }
-
   return loadConf();
 }
 

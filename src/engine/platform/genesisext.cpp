@@ -216,7 +216,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
         commitStateExt(ch,ins);
         opChan[ch].insChanged=false;
       }
-      opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[extChanOffs].state.alg);
+      opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[extChanOffs].state.block);
       opChan[ch].freqChanged=true;
       break;
     }
@@ -517,7 +517,7 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
 
     if (opChan[i].std.arp.had) {
       if (!opChan[i].inPorta) {
-        opChan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(opChan[i].note,opChan[i].std.arp.val),11,chan[extChanOffs].state.alg);
+        opChan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(opChan[i].note,opChan[i].std.arp.val),11,chan[extChanOffs].state.block);
       }
       opChan[i].freqChanged=true;
     }
