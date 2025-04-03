@@ -42,7 +42,7 @@ i686-w64-mingw32-strip -s furnace.exe || exit 1
 gcc -o patch_xp ../../scripts/patch_xp.c || exit 1
 ./patch_xp furnace.exe || exit 1
 
-zip -r furnace.zip LICENSE.txt furnace.exe README.txt manual.pdf papers demos instruments locale wavetables
+zip -r furnace.zip LICENSE.txt furnace.exe furnace.pdb README.txt manual.pdf papers demos instruments locale wavetables
 
 furName=$(git describe --tags | sed "s/v0/0/")
 
