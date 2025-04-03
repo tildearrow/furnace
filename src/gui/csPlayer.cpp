@@ -94,6 +94,41 @@ String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr) {
     case 0xec: case 0xed: case 0xee: case 0xef:
       return fmt::sprintf("qwait (%d)",(int)(buf[addr]-0xe0));
       break;
+    case 0xf0:
+      if (addr+3>=bufLen) return "???";
+      return fmt::sprintf("opt %.2x%.2x%.2x",(int)buf[addr+1],(int)buf[addr+2],(int)buf[addr+3]);
+      break;
+    case 0xf1:
+      return "nop";
+      break;
+    case 0xf4:
+      if (addr+2>=bufLen) return "???";
+      return fmt::sprintf("callsym %.4x",(int)(buf[addr+1]|(buf[addr+2]<<8)));
+      break;
+    case 0xf5:
+      if (addr+4>=bufLen) return "???";
+      return fmt::sprintf("call %.8x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)|(buf[addr+3]<<16)|(buf[addr+4]<<24)));
+      break;
+    case 0xf6:
+      if (addr+4>=bufLen) return "???";
+      return fmt::sprintf("callb32 %.8x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)|(buf[addr+3]<<16)|(buf[addr+4]<<24)));
+      break;
+    case 0xf7:
+      return "CMD";
+      break;
+    case 0xf8:
+      if (addr+2>=bufLen) return "???";
+      return fmt::sprintf("callb16 %.4x",(int)(buf[addr+1]|(buf[addr+2]<<8)));
+      break;
+    case 0xf9:
+      return "ret";
+      break;
+    case 0xfa:
+      return fmt::sprintf("jmp %.8x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)|(buf[addr+3]<<16)|(buf[addr+4]<<24)));
+      break;
+    case 0xfb:
+      return fmt::sprintf("rate %.8x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)|(buf[addr+3]<<16)|(buf[addr+4]<<24)));
+      break;
     case 0xfc:
       if (addr+2>=bufLen) return "???";
       return fmt::sprintf("waits %d",(int)(buf[addr+1]|(buf[addr+2]<<8)));

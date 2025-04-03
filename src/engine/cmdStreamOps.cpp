@@ -22,20 +22,17 @@
 
 /*
 #define WRITE_TICK(x) \
-  if (!wroteTick[x]) { \
-    wroteTick[x]=true; \
-    if (tick-lastTick[x]>255) { \
-      chanStream[x]->writeC(0xfc); \
-      chanStream[x]->writeS(tick-lastTick[x]); \
-    } else if (tick-lastTick[x]>1) { \
-      delayPopularity[tick-lastTick[x]]++; \
-      chanStream[x]->writeC(0xfd); \
-      chanStream[x]->writeC(tick-lastTick[x]); \
-    } else if (tick-lastTick[x]>0) { \
-      chanStream[x]->writeC(0xfe); \
-    } \
-    lastTick[x]=tick; \
-  }
+  if (tick-lastTick[x]>255) { \
+    chanStream[x]->writeC(0xfc); \
+    chanStream[x]->writeS(tick-lastTick[x]); \
+  } else if (tick-lastTick[x]>1) { \
+    delayPopularity[tick-lastTick[x]]++; \
+    chanStream[x]->writeC(0xfd); \
+    chanStream[x]->writeC(tick-lastTick[x]); \
+  } else if (tick-lastTick[x]>0) { \
+    chanStream[x]->writeC(0xfe); \
+  } \
+  lastTick[x]=tick; \
 */
 
 void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
@@ -205,6 +202,10 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
   }
 }
 
+void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int destAddr) {
+  // TODO... this is important!
+}
+
 SafeWriter* DivEngine::saveCommand() {
   stop();
   repeatPattern=false;
@@ -228,7 +229,8 @@ SafeWriter* DivEngine::saveCommand() {
   
   SafeWriter* chanStream[DIV_MAX_CHANS];
   unsigned int chanStreamOff[DIV_MAX_CHANS];
-  bool wroteTick[DIV_MAX_CHANS];
+  std::vector<size_t> tickPos[DIV_MAX_CHANS];
+  int loopTick=-1;
 
   memset(cmdPopularity,0,256*sizeof(int));
   memset(delayPopularity,0,256*sizeof(int));
@@ -268,12 +270,22 @@ SafeWriter* DivEngine::saveCommand() {
 
   memset(lastTick,0,DIV_MAX_CHANS*sizeof(int));
   while (!done) {
+    for (int i=0; i<chans; i++) {
+      tickPos[i].push_back(chanStream[i]->tell());
+    }
+    if (loopTick==-1) {
+      if (loopOrder==curOrder && loopRow==curRow) {
+        if ((ticks-((tempoAccum+virtualTempoN)/virtualTempoD))<=0) {
+          logI("loop is on tick %d",tick);
+          loopTick=tick;
+        }
+      }
+    }
     if (nextTick(false,true) || !playing) {
       done=true;
       break;
     }
     // get command stream
-    memset(wroteTick,0,DIV_MAX_CHANS*sizeof(bool));
     if (curDivider!=divider) {
       curDivider=divider;
       chanStream[0]->writeC(0xfb);
@@ -306,8 +318,23 @@ SafeWriter* DivEngine::saveCommand() {
     }
     tick++;
   }
+  if (!playing || loopTick<0) {
+    for (int i=0; i<chans; i++) {
+      chanStream[i]->writeC(0xff);
+    }
+  } else {
+    for (int i=0; i<chans; i++) {
+      if ((int)tickPos[i].size()>loopTick) {
+        chanStream[i]->writeC(0xfa);
+        chanStream[i]->writeI(tickPos[i][loopTick]);
+        logD("chan %d loop addr: %x",i,tickPos[i][loopTick]);
+      } else {
+        logW("chan %d unable to find loop addr!",i);
+        chanStream[i]->writeC(0xff);
+      }
+    }
+  }
   logV("%d",tick);
-  memset(wroteTick,0,DIV_MAX_CHANS*sizeof(bool));
   cmdStreamEnabled=oldCmdStreamEnabled;
 
   int sortCand=-1;
@@ -353,7 +380,6 @@ SafeWriter* DivEngine::saveCommand() {
   }
 
   for (int i=0; i<chans; i++) {
-    chanStream[i]->writeC(0xff);
     // optimize stream
     SafeWriter* oldStream=chanStream[i];
     SafeReader* reader=oldStream->toReader();

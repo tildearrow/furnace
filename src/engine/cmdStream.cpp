@@ -115,6 +115,12 @@ bool DivCSPlayer::tick() {
         case 0xc7: case 0xc8: case 0xc9: case 0xca:
           command=next-0xb4;
           break;
+        case 0xf0: // placeholder
+          stream.readC();
+          stream.readC();
+          stream.readC();
+          break;
+        case 0xf1: // nop
         case 0xf7:
           command=stream.readC();
           break;

@@ -69,6 +69,8 @@ hex | description
  .. | ...
  ef | preset delay 15
 ----|------------------------------------
+ f0 | UNUSED - placeholder used during optimization passes (3-byte nonce follows)
+ f1 | no operation
  f4 | call symbol (16-bit index follows; only used internally)
  f5 | jump to sub-block (address follows)
  f6 | go to sub-block (32-bit offset follows)
