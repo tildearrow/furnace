@@ -35,6 +35,47 @@
   lastTick[x]=tick; \
 */
 
+int getInsLength(unsigned char ins) {
+  switch (ins) {
+    case 0xb8: // ins
+    case 0xc0: // pre porta
+    case 0xc3: // vib range
+    case 0xc4: // vib shape
+    case 0xc5: // pitch
+    case 0xc7: // volume
+    case 0xca: // legato
+    case 0xfd: // waitc
+      return 2;
+    case 0xbe: // pan
+    case 0xc2: // vibrato
+    case 0xc6: // arpeggio
+    case 0xc8: // vol slide
+    case 0xc9: // porta
+      return 3;
+    // speed dial commands
+    case 0xd0: case 0xd1: case 0xd2: case 0xd3:
+    case 0xd4: case 0xd5: case 0xd6: case 0xd7:
+    case 0xd8: case 0xd9: case 0xda: case 0xdb:
+    case 0xdc: case 0xdd: case 0xde: case 0xdf:
+      return 0;
+    case 0xf0: // opt
+      return 4;
+    case 0xf2: // opt command
+    case 0xf7: // cmd
+      return 0;
+    case 0xf4: // callsym
+    case 0xf8: // callb16
+    case 0xfc: // waits
+      return 3;
+    case 0xf5: // call
+    case 0xf6: // callb32
+    case 0xfa: // jmp
+    case 0xfb: // rate
+      return 5;
+  }
+  return 1;
+}
+
 void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
@@ -63,7 +104,8 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
       w->writeC((unsigned char)c.cmd+0xb4);
       break;
     default:
-      w->writeC(0xf0); // unoptimized extended command
+      return; // quit for now... we'll implement this later
+      w->writeC(0xf2); // unoptimized extended command
       w->writeC(c.cmd);
       break;
   }
@@ -204,6 +246,27 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
 
 void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int destAddr) {
   // TODO... this is important!
+  unsigned int delta=destAddr-sourceAddr;
+  for (size_t i=0; i<len;) {
+    int insLen=getInsLength(buf[i]);
+    if (insLen<1) {
+      logE("INS %x NOT IMPLEMENTED...",buf[i]);
+      break;
+    }
+    switch (buf[i]) {
+      case 0xf5: // call
+      case 0xfa: { // jmp
+        unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<8)|(buf[i+4]<<24);
+        addr+=delta;
+        buf[i+1]=addr&0xff;
+        buf[i+2]=(addr>>8)&0xff;
+        buf[i+3]=(addr>>16)&0xff;
+        buf[i+4]=(addr>>24)&0xff;
+        break;
+      }
+    }
+    i+=insLen;
+  }
 }
 
 SafeWriter* DivEngine::saveCommand() {
@@ -412,7 +475,7 @@ SafeWriter* DivEngine::saveCommand() {
             next=reader->readC();
             chanStream[i]->writeC(next);
             break;
-          case 0xf0: { // full command (pre)
+          case 0xf2: { // full command (pre)
             unsigned char cmd=reader->readC();
             bool foundShort=false;
             for (int j=0; j<16; j++) {
@@ -494,6 +557,7 @@ SafeWriter* DivEngine::saveCommand() {
   for (int i=0; i<chans; i++) {
     chanStreamOff[i]=w->tell();
     logI("- %d: off %x size %ld",i,chanStreamOff[i],chanStream[i]->size());
+    reloc(chanStream[i]->getFinalBuf(),chanStream[i]->size(),0,w->tell());
     w->write(chanStream[i]->getFinalBuf(),chanStream[i]->size());
     chanStream[i]->finish();
     delete chanStream[i];
