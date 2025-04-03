@@ -11,20 +11,20 @@ defaults:
     shell: bash
 
 env:
-  BUILD_TYPE: Release
+  BUILD_TYPE: Debug
 
 jobs:
   build:
     strategy:
       matrix:
         config:
-          #- { name: 'Windows MSVC x86', os: windows-latest, compiler: msvc, arch: x86 }
-          #- { name: 'Windows MSVC x86_64', os: windows-latest, compiler: msvc, arch: x86_64 }
+          - { name: 'Windows MSVC x86', os: windows-latest, compiler: msvc, arch: x86 }
+          - { name: 'Windows MSVC x86_64', os: windows-latest, compiler: msvc, arch: x86_64 }
           #- { name: 'Windows MinGW x86', os: ubuntu-20.04, compiler: mingw, arch: x86 }
           #- { name: 'Windows MinGW x86_64', os: ubuntu-20.04, compiler: mingw, arch: x86_64 }
           - { name: 'macOS x86_64', os: macos-13, arch: x86_64 }
           - { name: 'macOS ARM', os: macos-latest, arch: arm64 }
-          #- { name: 'Linux x86_64', os: ubuntu-20.04, arch: x86_64 }
+          - { name: 'Linux x86_64', os: ubuntu-20.04, arch: x86_64 }
           #- { name: 'Linux ARM', os: ubuntu-18.04, arch: armhf }
       fail-fast: true
 
