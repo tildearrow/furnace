@@ -109,7 +109,7 @@ ImFont* FurnaceGUI::addFontZlib(const void* data, size_t len, float size_pixels,
     blocks.clear();
     return NULL;
   }
-  unsigned char* finalData=new unsigned char[finalSize];
+  unsigned char* finalData=(unsigned char*)malloc(finalSize);
   for (InflateBlock* i: blocks) {
     memcpy(&finalData[curSeek],i->buf,i->blockSize);
     curSeek+=i->blockSize;
