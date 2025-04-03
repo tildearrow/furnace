@@ -3279,7 +3279,7 @@ void DivPlatformOPL::renderSamples(int sysID) {
           break;
         case DIV_SAMPLE_DEPTH_12BIT:
           sampleLength=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_12BIT);
-          length=MIN(98303,sampleLength+1);
+          length=MIN(98303,sampleLength+3);
           break;
         case DIV_SAMPLE_DEPTH_16BIT:
           sampleLength=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_16BIT);
@@ -3294,21 +3294,21 @@ void DivPlatformOPL::renderSamples(int sysID) {
       if (sampleLength<1) length=0;
       int actualLength=MIN((int)(getSampleMemCapacity(0)-memPos),length);
       if (actualLength>0) {
-  #ifdef TA_BIG_ENDIAN
-        memcpy(&pcmMem[memPos],src,actualLength);
-  #else
         if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
           for (int i=0, j=0; i<actualLength; i++, j++) {
             if (j>=sampleLength) j=sampleLength-2;
+#ifdef TA_BIG_ENDIAN
+            pcmMem[memPos+i]=src[j];
+#else
             pcmMem[memPos+i]=src[j^1];
+#endif
           }
         } else {
           for (int i=0, j=0; i<actualLength; i++, j++) {
-            if (j>=sampleLength) j=sampleLength-1;
+            if (j>=sampleLength && s->depth!=DIV_SAMPLE_DEPTH_12BIT) j=sampleLength-1;
             pcmMem[memPos+i]=src[j];
           }
         }
-  #endif
         sampleOffPCM[i]=memPos;
         memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+length));
         memPos+=length;
@@ -3334,6 +3334,10 @@ void DivPlatformOPL::renderSamples(int sysID) {
           break;
         case DIV_SAMPLE_DEPTH_12BIT:
           bitDepth=1;
+          if (!s->isLoopable()) {
+            endPos++;
+            loop++;
+          }
           break;
         case DIV_SAMPLE_DEPTH_16BIT:
           bitDepth=2;
