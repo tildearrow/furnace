@@ -121,6 +121,7 @@ bool DivCSPlayer::tick() {
           stream.readC();
           break;
         case 0xf1: // nop
+          break;
         case 0xf7:
           command=stream.readC();
           break;

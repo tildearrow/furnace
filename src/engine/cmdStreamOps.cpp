@@ -19,6 +19,7 @@
 
 #include "engine.h"
 #include "../ta-log.h"
+#include <unordered_map>
 
 /*
 #define WRITE_TICK(x) \
@@ -245,7 +246,6 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
 }
 
 void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int destAddr) {
-  // TODO... this is important!
   unsigned int delta=destAddr-sourceAddr;
   for (size_t i=0; i<len;) {
     int insLen=getInsLength(buf[i]);
@@ -329,9 +329,8 @@ SafeWriter* DivEngine::saveCommand() {
   bool oldCmdStreamEnabled=cmdStreamEnabled;
   cmdStreamEnabled=true;
   double curDivider=divider;
-  int lastTick[DIV_MAX_CHANS];
 
-  memset(lastTick,0,DIV_MAX_CHANS*sizeof(int));
+  // PASS 0: play the song and log channel command streams
   while (!done) {
     for (int i=0; i<chans; i++) {
       tickPos[i].push_back(chanStream[i]->tell());
@@ -341,6 +340,13 @@ SafeWriter* DivEngine::saveCommand() {
         if ((ticks-((tempoAccum+virtualTempoN)/virtualTempoD))<=0) {
           logI("loop is on tick %d",tick);
           loopTick=tick;
+          // marker
+          for (int i=0; i<chans; i++) {
+            chanStream[i]->writeC(0xf0);
+            chanStream[i]->writeC(0x00);
+            chanStream[i]->writeC(0x00);
+            chanStream[i]->writeC(0x00);
+          }
         }
       }
     }
@@ -400,6 +406,12 @@ SafeWriter* DivEngine::saveCommand() {
   logV("%d",tick);
   cmdStreamEnabled=oldCmdStreamEnabled;
 
+  // PASS 1: find sub-blocks and isolate them
+
+  // PASS 2: find loops
+
+  // PASS 3: optimize command calls
+  /*
   int sortCand=-1;
   int sortPos=0;
   while (sortPos<16) {
@@ -419,10 +431,34 @@ SafeWriter* DivEngine::saveCommand() {
     sortedCmd[sortPos]=sortCand;
     cmdPopularity[sortCand]=0;
     sortPos++;
+  }*/
+
+  // PASS 4: condense delays
+  // calculate delay usage
+  for (int h=0; h<chans; h++) {
+    unsigned char* buf=chanStream[h]->getFinalBuf();
+    int delayCount=0;
+    for (size_t i=0; i<chanStream[h]->size();) {
+      int insLen=getInsLength(buf[i]);
+      if (insLen<1) {
+        logE("INS %x NOT IMPLEMENTED...",buf[i]);
+        break;
+      }
+      if (buf[i]==0xfe) {
+        delayCount++;
+      } else {
+        if (delayCount>1 && delayCount<=255) {
+          delayPopularity[delayCount]++;
+        }
+        delayCount=0;
+      }
+      i+=insLen;
+    }
   }
 
-  sortCand=-1;
-  sortPos=0;
+  // preset delays
+  int sortCand=-1;
+  int sortPos=0;
   while (sortPos<16) {
     sortCand=-1;
     for (int i=0; i<256; i++) {
@@ -442,6 +478,120 @@ SafeWriter* DivEngine::saveCommand() {
     sortPos++;
   }
 
+
+  // condense delays
+  for (int h=0; h<chans; h++) {
+    unsigned char* buf=chanStream[h]->getFinalBuf();
+    int delayPos=-1;
+    int delayCount=0;
+    int delayLast=0;
+    for (size_t i=0; i<chanStream[h]->size();) {
+      int insLen=getInsLength(buf[i]);
+      if (insLen<1) {
+        logE("INS %x NOT IMPLEMENTED...",buf[i]);
+        break;
+      }
+      if (buf[i]==0xfe) {
+        if (delayPos==-1) delayPos=i;
+        delayCount++;
+        delayLast=i;
+      } else {
+        // finish the last delay if any
+        if (delayPos!=-1) {
+          if (delayCount>1) {
+            if (delayLast<delayPos) {
+              logE("delayLast<delayPos! %d<%d",delayLast,delayPos);
+            } else {
+              // write condensed delay and fill the rest with nop
+              if (delayCount>255) {
+                buf[delayPos++]=0xfc;
+                buf[delayPos++]=delayCount&0xff;
+                buf[delayPos++]=(delayCount>>8)&0xff;
+              } else {
+                bool foundShort=false;
+                for (int j=0; j<16; j++) {
+                  if (sortedDelay[j]==delayCount) {
+                    buf[delayPos++]=0xe0+j;
+                    foundShort=true;
+                    break;
+                  }
+                }
+                if (!foundShort) {
+                  buf[delayPos++]=0xfd;
+                  buf[delayPos++]=delayCount;
+                }
+              }
+              // fill with nop
+              for (int j=delayPos; j<=delayLast; j++) {
+                buf[j]=0xf1;
+              }
+            }
+          }
+          delayPos=-1;
+          delayCount=0;
+        }
+      }
+      i+=insLen;
+    }
+  }
+
+  // PASS 5: remove all remaining nop's
+  // this includes modifying call addresses to compensate
+  for (int h=0; h<chans; h++) {
+    std::unordered_map<unsigned int,unsigned int> addrTable;
+    SafeWriter* oldStream=chanStream[h];
+    unsigned char* buf=oldStream->getFinalBuf();
+    chanStream[h]=new SafeWriter;
+    chanStream[h]->init();
+
+    // prepare address map
+    size_t addr=0;
+    for (size_t i=0; i<oldStream->size();) {
+      int insLen=getInsLength(buf[i]);
+      if (insLen<1) {
+        logE("INS %x NOT IMPLEMENTED...",buf[i]);
+        break;
+      }
+      addrTable[i]=addr;
+      if (buf[i]!=0xf1) addr+=insLen;
+      i+=insLen;
+    }
+
+    // translate addresses
+    for (size_t i=0; i<oldStream->size();) {
+      int insLen=getInsLength(buf[i]);
+      if (insLen<1) {
+        logE("INS %x NOT IMPLEMENTED...",buf[i]);
+        break;
+      }
+      switch (buf[i]) {
+        case 0xf5: // call
+        case 0xfa: { // jmp
+          unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<8)|(buf[i+4]<<24);
+          try {
+            addr=addrTable[addr];
+            buf[i+1]=addr&0xff;
+            buf[i+2]=(addr>>8)&0xff;
+            buf[i+3]=(addr>>16)&0xff;
+            buf[i+4]=(addr>>24)&0xff;
+          } catch (std::out_of_range& e) {
+            logW("address %x is not mappable!",addr);
+          }
+          break;
+        }
+      }
+      if (buf[i]!=0xf1) {
+        chanStream[h]->write(&buf[i],insLen);
+      }
+      i+=insLen;
+    }
+    
+
+    oldStream->finish();
+    delete oldStream;
+  }
+
+  /*
   for (int i=0; i<chans; i++) {
     // optimize stream
     SafeWriter* oldStream=chanStream[i];
@@ -552,8 +702,9 @@ SafeWriter* DivEngine::saveCommand() {
 
     oldStream->finish();
     delete oldStream;
-  }
+  }*/
 
+  // write results
   for (int i=0; i<chans; i++) {
     chanStreamOff[i]=w->tell();
     logI("- %d: off %x size %ld",i,chanStreamOff[i],chanStream[i]->size());
