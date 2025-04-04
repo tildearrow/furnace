@@ -122,6 +122,23 @@ bool DivCSPlayer::tick() {
           break;
         case 0xf1: // nop
           break;
+        case 0xf3: { // loop
+          unsigned char loopOff=stream.readC();
+          if (chan[i].loopCount>0) {
+            stream.readC();
+            if (--chan[i].loopCount) {
+              // jump
+              chan[i].readPos-=loopOff;
+              mustTell=false;
+            }
+          } else {
+            chan[i].loopCount=stream.readC();
+            // jump
+            chan[i].readPos-=loopOff;
+            mustTell=false;
+          }
+          break;
+        }
         case 0xf7:
           command=stream.readC();
           break;
@@ -130,6 +147,7 @@ bool DivCSPlayer::tick() {
           if (!chan[i].doCall(callAddr)) {
             logE("%d: (callb16) stack error!",i);
           }
+          mustTell=false;
           break;
         }
         case 0xf6: {
@@ -137,6 +155,7 @@ bool DivCSPlayer::tick() {
           if (!chan[i].doCall(callAddr)) {
             logE("%d: (callb32) stack error!",i);
           }
+          mustTell=false;
           break;
         }
         case 0xf5: {
@@ -144,6 +163,7 @@ bool DivCSPlayer::tick() {
           if (!chan[i].doCall(callAddr)) {
             logE("%d: (call) stack error!",i);
           }
+          mustTell=false;
           break;
         }
         case 0xf4: {

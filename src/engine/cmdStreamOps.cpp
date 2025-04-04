@@ -269,6 +269,61 @@ void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int
   }
 }
 
+SafeWriter* stripNops(SafeWriter* s) {
+  std::unordered_map<unsigned int,unsigned int> addrTable;
+  SafeWriter* oldStream=s;
+  unsigned char* buf=oldStream->getFinalBuf();
+  s=new SafeWriter;
+  s->init();
+
+  // prepare address map
+  size_t addr=0;
+  for (size_t i=0; i<oldStream->size();) {
+    int insLen=getInsLength(buf[i]);
+    if (insLen<1) {
+      logE("INS %x NOT IMPLEMENTED...",buf[i]);
+      break;
+    }
+    addrTable[i]=addr;
+    if (buf[i]!=0xf1) addr+=insLen;
+    i+=insLen;
+  }
+
+  // translate addresses
+  for (size_t i=0; i<oldStream->size();) {
+    int insLen=getInsLength(buf[i]);
+    if (insLen<1) {
+      logE("INS %x NOT IMPLEMENTED...",buf[i]);
+      break;
+    }
+    switch (buf[i]) {
+      case 0xf5: // call
+      case 0xfa: { // jmp
+        unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<8)|(buf[i+4]<<24);
+        try {
+          addr=addrTable[addr];
+          buf[i+1]=addr&0xff;
+          buf[i+2]=(addr>>8)&0xff;
+          buf[i+3]=(addr>>16)&0xff;
+          buf[i+4]=(addr>>24)&0xff;
+        } catch (std::out_of_range& e) {
+          logW("address %x is not mappable!",addr);
+        }
+        break;
+      }
+    }
+    if (buf[i]!=0xf1) {
+      s->write(&buf[i],insLen);
+    }
+    i+=insLen;
+  }
+  
+
+  oldStream->finish();
+  delete oldStream;
+  return s;
+}
+
 SafeWriter* DivEngine::saveCommand() {
   stop();
   repeatPattern=false;
@@ -406,34 +461,7 @@ SafeWriter* DivEngine::saveCommand() {
   logV("%d",tick);
   cmdStreamEnabled=oldCmdStreamEnabled;
 
-  // PASS 1: find sub-blocks and isolate them
-
-  // PASS 2: find loops
-
-  // PASS 3: optimize command calls
-  /*
-  int sortCand=-1;
-  int sortPos=0;
-  while (sortPos<16) {
-    sortCand=-1;
-    for (int i=DIV_CMD_SAMPLE_MODE; i<256; i++) {
-      if (cmdPopularity[i]) {
-        if (sortCand==-1) {
-          sortCand=i;
-        } else if (cmdPopularity[sortCand]<cmdPopularity[i]) {
-          sortCand=i;
-        }
-      }
-    }
-    if (sortCand==-1) break;
-
-    sortedCmdPopularity[sortPos]=cmdPopularity[sortCand];
-    sortedCmd[sortPos]=sortCand;
-    cmdPopularity[sortCand]=0;
-    sortPos++;
-  }*/
-
-  // PASS 4: condense delays
+  // PASS 1: condense delays
   // calculate delay usage
   for (int h=0; h<chans; h++) {
     unsigned char* buf=chanStream[h]->getFinalBuf();
@@ -535,61 +563,118 @@ SafeWriter* DivEngine::saveCommand() {
     }
   }
 
-  // PASS 5: remove all remaining nop's
+  // PASS 2: remove nop's
   // this includes modifying call addresses to compensate
   for (int h=0; h<chans; h++) {
-    std::unordered_map<unsigned int,unsigned int> addrTable;
-    SafeWriter* oldStream=chanStream[h];
-    unsigned char* buf=oldStream->getFinalBuf();
-    chanStream[h]=new SafeWriter;
-    chanStream[h]->init();
+    chanStream[h]=stripNops(chanStream[h]);
+  }
 
-    // prepare address map
-    size_t addr=0;
-    for (size_t i=0; i<oldStream->size();) {
-      int insLen=getInsLength(buf[i]);
-      if (insLen<1) {
-        logE("INS %x NOT IMPLEMENTED...",buf[i]);
-        break;
-      }
-      addrTable[i]=addr;
-      if (buf[i]!=0xf1) addr+=insLen;
-      i+=insLen;
-    }
+  // PASS 2: find sub-blocks and isolate them (TODO: THIS!)
+  for (int h=0; h<chans; h++) {
+    unsigned char* buf=chanStream[h]->getFinalBuf();
+    unsigned char group[256]; // max offset is -255
+    size_t groupLen=0;
 
-    // translate addresses
-    for (size_t i=0; i<oldStream->size();) {
-      int insLen=getInsLength(buf[i]);
-      if (insLen<1) {
-        logE("INS %x NOT IMPLEMENTED...",buf[i]);
-        break;
-      }
-      switch (buf[i]) {
-        case 0xf5: // call
-        case 0xfa: { // jmp
-          unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<8)|(buf[i+4]<<24);
-          try {
-            addr=addrTable[addr];
-            buf[i+1]=addr&0xff;
-            buf[i+2]=(addr>>8)&0xff;
-            buf[i+3]=(addr>>16)&0xff;
-            buf[i+4]=(addr>>24)&0xff;
-          } catch (std::out_of_range& e) {
-            logW("address %x is not mappable!",addr);
-          }
+    memset(group,0,256);
+    
+    // 3 is the minimum loop size that can be reliably optimized
+    logI("finding loop in chan %d",h);
+    for (int groupSize=3; groupSize<256; groupSize++) {
+      bool foundSomething=false;
+      //logD("...try size %d",groupSize);
+      for (size_t searchPos=0; searchPos<chanStream[h]->size();) {
+        int insLen=getInsLength(buf[searchPos]);
+        groupLen=0;
+
+        if (insLen<1) {
+          logE("INS %x NOT IMPLEMENTED...",buf[searchPos]);
           break;
         }
-      }
-      if (buf[i]!=0xf1) {
-        chanStream[h]->write(&buf[i],insLen);
-      }
-      i+=insLen;
-    }
-    
 
-    oldStream->finish();
-    delete oldStream;
+        // copy a block
+        for (int i=0; i<groupSize && searchPos+i<chanStream[h]->size();) {
+          int insLenI=getInsLength(buf[searchPos+i]);
+          if (insLenI<1) {
+            logE("INS %x NOT IMPLEMENTED...",buf[searchPos+i]);
+            break;
+          }
+          i+=insLenI;
+          if ((int)groupLen+insLenI>groupSize) break;
+          groupLen+=insLenI;
+        }
+
+        // don't do anything if we don't have a block
+        if (!groupLen) {
+          searchPos+=insLen;
+          continue;
+        }
+
+        memcpy(group,&buf[searchPos],groupLen);
+
+        // find contiguous blocks
+        size_t searchPos1=searchPos+groupLen;
+        size_t posOfFirstBlock=searchPos1;
+        int loopCount=0;
+        while (true) {
+          // stop if we're near the end
+          if (searchPos1>=chanStream[h]->size()) break;
+          // compare next block to group
+          if (memcmp(&buf[searchPos1],group,groupLen)!=0) break;
+
+          // if we're here, we found a contiguous block
+          searchPos1+=groupLen;
+          loopCount++;
+          // don't loop more than 255 times
+          if (loopCount>=255) break;
+        }
+
+        if (loopCount>0) {
+          // write loop command
+          logD("- LOOP: %x (size %d, %d times)",searchPos,groupLen,loopCount);
+          buf[posOfFirstBlock++]=0xf3;
+          buf[posOfFirstBlock++]=groupLen;
+          buf[posOfFirstBlock++]=loopCount;
+          // set the rest to nop
+          while (posOfFirstBlock<searchPos1) {
+            buf[posOfFirstBlock++]=0xf1;
+          }
+          // skip contiguous blocks
+          searchPos=searchPos1;
+          foundSomething=true;
+        } else {
+          // try again somewhere else
+          searchPos+=insLen;
+        }
+      }
+      if (foundSomething) {
+        chanStream[h]=stripNops(chanStream[h]);
+        buf=chanStream[h]->getFinalBuf();
+      }
+    }
   }
+
+  // PASS 3: optimize command calls
+  /*
+  int sortCand=-1;
+  int sortPos=0;
+  while (sortPos<16) {
+    sortCand=-1;
+    for (int i=DIV_CMD_SAMPLE_MODE; i<256; i++) {
+      if (cmdPopularity[i]) {
+        if (sortCand==-1) {
+          sortCand=i;
+        } else if (cmdPopularity[sortCand]<cmdPopularity[i]) {
+          sortCand=i;
+        }
+      }
+    }
+    if (sortCand==-1) break;
+
+    sortedCmdPopularity[sortPos]=cmdPopularity[sortCand];
+    sortedCmd[sortPos]=sortCand;
+    cmdPopularity[sortCand]=0;
+    sortPos++;
+  }*/
 
   /*
   for (int i=0; i<chans; i++) {

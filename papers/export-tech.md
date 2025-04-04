@@ -72,6 +72,7 @@ hex | description
  f0 | UNUSED - placeholder used during optimization passes (3-byte nonce follows)
  f1 | no operation
  f2 | UNUSED - unoptimized extended command
+ f3 | loop (negative offset and count follow... both are 8-bit)
  f4 | call symbol (16-bit index follows; only used internally)
  f5 | jump to sub-block (address follows)
  f6 | go to sub-block (32-bit offset follows)
