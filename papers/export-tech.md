@@ -95,5 +95,119 @@ hex | description
 ## full commands
 
 ```
-
+hex | description
+----|------------------------------------
+ 1c | sample mode
+ 1d | sample freq
+ 1e | legacy sample bank
+ 1f | sample position
+ 20 | sample direction
+----|------------------------------------
+    | **FM commands**
+ 21 | hard reset
+ 22 | LFO speed
+ 23 | LFO waveform
+ 24 | TL
+ 25 | AM
+ 26 | AR
+ 27 | DR
+ 28 | SL
+ 29 | D2R
+ 2a | RR
+ 2b | DT
+ 2c | DT2
+ 2d | RS
+ 2e | KSR
+ 2f | VIB
+ 30 | SUS
+ 31 | WS
+ 32 | SSG-EG
+ 33 | REV
+ 34 | EG-Shift
+ 35 | FB
+ 36 | MULT
+ 37 | FINE
+ 38 | fixed frequency
+ 39 | ExtCh
+ 3a | AM depth
+ 3b | PM depth
+ 3c | LFO2 speed
+ 3d | LFO2 wave
+----|------------------------------------
+    | **PSG commands**
+ 3e | noise freq
+ 3f | noise mode/duty/whatever
+ 40 | waveform
+----|------------------------------------
+    | **Game Boy commands**
+ 41 | sweep time
+ 42 | sweep direction
+----|------------------------------------
+    | **PC Engine commands**
+ 43 | LFO mode
+ 44 | LFO speed
+----|------------------------------------
+    | **NES commands**
+ 45 | sweep
+ 46 | set DMC
+----|------------------------------------
+    | **C64 commands**
+ 47 | coarse cutoff
+ 48 | resonance
+ 49 | filter mode
+ 4a | reset time
+ 4b | reset mask
+ 4c | filter reset
+ 4d | duty reset
+ 4e | extended
+ 4f | duty
+ 50 | cutoff
+----|------------------------------------
+    | **AY commands**
+ 51 | set envelope
+ 52 | envelope freq low
+ 53 | envelope freq high
+ 54 | envelope slide
+ 55 | noise AND mask
+ 56 | noise OR mask
+ 57 | auto envelope
+ 58 | I/O port write
+ 59 | AutoPWM
+----|------------------------------------
+    | **FDS commands**
+ 5a | mod depth
+ 5b | mod speed high
+ 5c | mod speed low
+ 5d | mod position
+ 5e | mod waveform
+----|------------------------------------
+    | **SAA1099 commands**
+ 5f | envelope
+----|------------------------------------
+    | **Amiga commands**
+ 60 | toggle filter
+ 61 | AM
+ 62 | period modulation
+----|------------------------------------
+    | **Lynx commands**
+ 63 | load LFSR
+----|------------------------------------
+    | **QSound commands**
+ 64 | echo feedback
+ 65 | echo delay
+ 66 | echo level
+ 67 | surround
+----|------------------------------------
+    | **X1-010 commands**
+ 68 | envelope shape
+ 69 | envelope enable
+ 6a | envelope mode
+ 6b | envelope period
+ 6c | envelope slide
+ 6d | auto envelope
+ 6e | sample bank slot
+----|------------------------------------
+    | **WonderSwan commands**
+ 6f | sweep time
+ 70 | sweep amount
 ```
