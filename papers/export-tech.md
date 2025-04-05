@@ -73,7 +73,7 @@ hex | description
  f1 | no operation
  f2 | UNUSED - unoptimized extended command
  f3 | loop (negative offset and count follow... both are 8-bit)
- f4 | call symbol (16-bit index follows; only used internally)
+ f4 | call symbol (32-bit index follows; only used internally)
  f5 | jump to sub-block (address follows)
  f6 | go to sub-block (32-bit offset follows)
  f7 | full command (command and data follows)

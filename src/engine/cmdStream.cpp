@@ -144,6 +144,7 @@ bool DivCSPlayer::tick() {
           break;
         case 0xf8: {
           unsigned int callAddr=chan[i].readPos+2+stream.readS();
+          chan[i].readPos=stream.tell();
           if (!chan[i].doCall(callAddr)) {
             logE("%d: (callb16) stack error!",i);
           }
@@ -152,6 +153,7 @@ bool DivCSPlayer::tick() {
         }
         case 0xf6: {
           unsigned int callAddr=chan[i].readPos+4+stream.readI();
+          chan[i].readPos=stream.tell();
           if (!chan[i].doCall(callAddr)) {
             logE("%d: (callb32) stack error!",i);
           }
@@ -160,6 +162,7 @@ bool DivCSPlayer::tick() {
         }
         case 0xf5: {
           unsigned int callAddr=stream.readI();
+          chan[i].readPos=stream.tell();
           if (!chan[i].doCall(callAddr)) {
             logE("%d: (call) stack error!",i);
           }

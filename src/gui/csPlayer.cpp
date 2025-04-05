@@ -184,6 +184,12 @@ void FurnaceGUI::drawCSPlayer() {
         }
       }
     }
+    ImGui::SameLine();
+    if (e->isHalted()) {
+      if (ImGui::Button("Resume")) e->resume();
+    } else {
+      if (ImGui::Button("Pause")) e->halt();
+    }
 
     DivCSPlayer* cs=e->getStreamPlayer();
     if (cs) {

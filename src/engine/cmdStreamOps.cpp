@@ -21,20 +21,7 @@
 #include "../ta-log.h"
 #include <unordered_map>
 
-/*
-#define WRITE_TICK(x) \
-  if (tick-lastTick[x]>255) { \
-    chanStream[x]->writeC(0xfc); \
-    chanStream[x]->writeS(tick-lastTick[x]); \
-  } else if (tick-lastTick[x]>1) { \
-    delayPopularity[tick-lastTick[x]]++; \
-    chanStream[x]->writeC(0xfd); \
-    chanStream[x]->writeC(tick-lastTick[x]); \
-  } else if (tick-lastTick[x]>0) { \
-    chanStream[x]->writeC(0xfe); \
-  } \
-  lastTick[x]=tick; \
-*/
+//#define DISABLE_BLOCK_SEARCH
 
 int getInsLength(unsigned char ins) {
   switch (ins) {
@@ -64,10 +51,10 @@ int getInsLength(unsigned char ins) {
     case 0xf2: // opt command
     case 0xf7: // cmd
       return 0;
-    case 0xf4: // callsym
     case 0xf8: // callb16
     case 0xfc: // waits
       return 3;
+    case 0xf4: // callsym
     case 0xf5: // call
     case 0xf6: // callb32
     case 0xfa: // jmp
@@ -324,6 +311,122 @@ SafeWriter* stripNops(SafeWriter* s) {
   return s;
 }
 
+SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlocks) {
+  unsigned char* buf=stream->getFinalBuf();
+
+  for (size_t groupSize=stream->size()>>1; groupSize>=8; groupSize--) {
+  //for (size_t groupSize=7; groupSize<=stream->size()>>1; groupSize++) {
+    bool foundSomething=false;
+    //logD("...try size %d",groupSize);
+    for (size_t searchPos=0; (searchPos+groupSize)<stream->size();) {
+      const unsigned char* group=&buf[searchPos];
+      size_t groupLen=0;
+      size_t groupInsCount=0;
+      size_t subBlockID=subBlocks.size();
+      int insLen=getInsLength(buf[searchPos]);
+      bool haveSub=false;
+
+      if (insLen<1) {
+        logE("INS %x NOT IMPLEMENTED...",buf[searchPos]);
+        break;
+      }
+
+      // register this block
+      for (size_t i=0; i<groupSize && i<stream->size();) {
+        int insLenI=getInsLength(buf[searchPos+i]);
+        if (insLenI<1) {
+          logE("INS %x NOT IMPLEMENTED...",buf[searchPos+i]);
+          break;
+        }
+        i+=insLenI;
+        if (groupLen+insLenI>groupSize) break;
+        groupLen+=insLenI;
+        groupInsCount++;
+      }
+
+      // don't do anything if we don't have a block large enough
+      if (groupLen<5) {
+        searchPos+=insLen;
+        continue;
+      }
+
+      // don't do anything if this is just one or two commands
+      if (groupInsCount<3) {
+        searchPos+=insLen;
+        continue;
+      }
+
+      // find identical blocks
+      for (size_t i=searchPos+groupLen; i+groupLen<stream->size();) {
+        int insLenI=getInsLength(buf[i]);
+        if (insLenI<1) {
+          logE("INS %x NOT IMPLEMENTED...",buf[i]);
+          break;
+        }
+
+        // compare next block to group
+        if (memcmp(&buf[i],group,groupLen)==0) {
+          // we have a sub-block
+          if (!haveSub) {
+            // isolate this sub-block
+            SafeWriter* newBlock=new SafeWriter;
+            newBlock->init();
+            newBlock->write(group,groupLen);
+            newBlock->writeC(0xf9); // ret
+            subBlocks.push_back(newBlock);
+            haveSub=true;
+          logD("- SUB %x (size %d):",searchPos,groupLen);
+          }
+          logD("  - %x",i);
+          // insert call
+          buf[i]=0xf4;
+          buf[i+1]=subBlockID&0xff;
+          buf[i+2]=(subBlockID>>8)&0xff;
+          buf[i+3]=(subBlockID>>16)&0xff;
+          buf[i+4]=(subBlockID>>24)&0xff;
+
+          // replace the rest with nop
+          for (size_t j=i+5; j<i+groupLen; j++) {
+            buf[j]=0xf1;
+          }
+
+          // continue search from end of block
+          i+=groupLen;
+        } else {
+          // next
+          i+=insLenI;
+        }
+      }
+
+      if (haveSub) {
+        // insert call on the original block
+        buf[searchPos]=0xf4;
+        buf[searchPos+1]=subBlockID&0xff;
+        buf[searchPos+2]=(subBlockID>>8)&0xff;
+        buf[searchPos+3]=(subBlockID>>16)&0xff;
+        buf[searchPos+4]=(subBlockID>>24)&0xff;
+
+        // replace the rest with nop
+        for (size_t j=searchPos+5; j<searchPos+groupLen; j++) {
+          buf[j]=0xf1;
+        }
+
+        // skip this block (it's isolated now)
+        searchPos+=groupLen;
+        foundSomething=true;
+      } else {
+        // try again somewhere else
+        searchPos+=insLen;
+      }
+    }
+    if (foundSomething) {
+      stream=stripNops(stream);
+      buf=stream->getFinalBuf();
+    }
+  }
+  return stream;
+}
+
 SafeWriter* DivEngine::saveCommand() {
   stop();
   repeatPattern=false;
@@ -569,91 +672,100 @@ SafeWriter* DivEngine::saveCommand() {
     chanStream[h]=stripNops(chanStream[h]);
   }
 
-  // PASS 2: find sub-blocks and isolate them (TODO: THIS!)
+#ifndef DISABLE_BLOCK_SEARCH
+  // PASS 3: find sub-blocks and isolate them
   for (int h=0; h<chans; h++) {
-    unsigned char* buf=chanStream[h]->getFinalBuf();
-    unsigned char group[256]; // max offset is -255
-    size_t groupLen=0;
-
-    memset(group,0,256);
+    std::vector<SafeWriter*> subBlocks;
+    size_t beforeSize=chanStream[h]->size();
     
-    // 3 is the minimum loop size that can be reliably optimized
-    logI("finding loop in chan %d",h);
-    for (int groupSize=3; groupSize<256; groupSize++) {
-      bool foundSomething=false;
-      //logD("...try size %d",groupSize);
-      for (size_t searchPos=0; searchPos<chanStream[h]->size();) {
-        int insLen=getInsLength(buf[searchPos]);
-        groupLen=0;
+    // 6 is the minimum size that can be reliably optimized
+    logI("finding sub-blocks in chan %d",h);
+    chanStream[h]=findSubBlocks(chanStream[h],subBlocks);
+    // find sub-blocks within sub-blocks
+    size_t subBlocksLast=0;
+    size_t subBlocksLen=subBlocks.size();
+    logI("finding sub-blocks within sub-blocks",h);
+    while (subBlocksLast!=subBlocksLen) {
+      logI("got %d blocks... starting from %d",(int)subBlocksLen,(int)subBlocksLast);
+      for (size_t i=subBlocksLast; i<subBlocksLen; i++) {
+        SafeWriter* newBlock=findSubBlocks(subBlocks[i],subBlocks);
+        subBlocks[i]=newBlock;
+      }
+      subBlocksLast=subBlocksLen;
+      subBlocksLen=subBlocks.size();
+    }
 
-        if (insLen<1) {
-          logE("INS %x NOT IMPLEMENTED...",buf[searchPos]);
-          break;
-        }
+    // insert sub-blocks and resolve symbols
+    logI("%d sub-blocks total",(int)subBlocks.size());
+    std::vector<size_t> blockOff;
+    chanStream[h]->seek(0,SEEK_END);
+    for (size_t i=0; i<subBlocks.size(); i++) {
+      SafeWriter* block=subBlocks[i];
 
-        // copy a block
-        for (int i=0; i<groupSize && searchPos+i<chanStream[h]->size();) {
-          int insLenI=getInsLength(buf[searchPos+i]);
-          if (insLenI<1) {
-            logE("INS %x NOT IMPLEMENTED...",buf[searchPos+i]);
+      // check whether this block is duplicate
+      int dupOf=-1;
+      for (size_t j=0; j<i; j++) {
+        if (subBlocks[j]->size()==subBlocks[i]->size()) {
+          if (memcmp(subBlocks[j]->getFinalBuf(),subBlocks[i]->getFinalBuf(),subBlocks[j]->size())==0) {
+            logW("we have one");
+            dupOf=j;
             break;
           }
-          i+=insLenI;
-          if ((int)groupLen+insLenI>groupSize) break;
-          groupLen+=insLenI;
-        }
-
-        // don't do anything if we don't have a block
-        if (!groupLen) {
-          searchPos+=insLen;
-          continue;
-        }
-
-        memcpy(group,&buf[searchPos],groupLen);
-
-        // find contiguous blocks
-        size_t searchPos1=searchPos+groupLen;
-        size_t posOfFirstBlock=searchPos1;
-        int loopCount=0;
-        while (true) {
-          // stop if we're near the end
-          if (searchPos1>=chanStream[h]->size()) break;
-          // compare next block to group
-          if (memcmp(&buf[searchPos1],group,groupLen)!=0) break;
-
-          // if we're here, we found a contiguous block
-          searchPos1+=groupLen;
-          loopCount++;
-          // don't loop more than 255 times
-          if (loopCount>=255) break;
-        }
-
-        if (loopCount>0) {
-          // write loop command
-          logD("- LOOP: %x (size %d, %d times)",searchPos,groupLen,loopCount);
-          buf[posOfFirstBlock++]=0xf3;
-          buf[posOfFirstBlock++]=groupLen;
-          buf[posOfFirstBlock++]=loopCount;
-          // set the rest to nop
-          while (posOfFirstBlock<searchPos1) {
-            buf[posOfFirstBlock++]=0xf1;
-          }
-          // skip contiguous blocks
-          searchPos=searchPos1;
-          foundSomething=true;
-        } else {
-          // try again somewhere else
-          searchPos+=insLen;
         }
       }
-      if (foundSomething) {
-        chanStream[h]=stripNops(chanStream[h]);
-        buf=chanStream[h]->getFinalBuf();
+
+      if (dupOf>=0) {
+        // push address of original block (discard duplicate)
+        blockOff.push_back(blockOff[dupOf]);
+      } else {
+        // write sub-block
+        blockOff.push_back(chanStream[h]->tell());
+        chanStream[h]->write(block->getFinalBuf(),block->size());
       }
     }
+
+    for (SafeWriter* block: subBlocks) {
+      block->finish();
+      delete block;
+    }
+    subBlocks.clear();
+
+    // resolve symbols
+    unsigned char* buf=chanStream[h]->getFinalBuf();
+    for (size_t j=0; j<chanStream[h]->size();) {
+      int insLen=getInsLength(buf[j]);
+      if (insLen<1) {
+        logE("INS %x NOT IMPLEMENTED...",buf[j]);
+        break;
+      }
+      if (buf[j]==0xf4) { // callsym
+        unsigned int addr=buf[j+1]|(buf[j+2]<<8)|(buf[j+3]<<8)|(buf[j+4]<<24);
+        if (addr<blockOff.size()) {
+          // turn it into call
+          addr=blockOff[addr];
+          buf[j]=0xf5;
+          buf[j+1]=addr&0xff;
+          buf[j+2]=(addr>>8)&0xff;
+          buf[j+3]=(addr>>16)&0xff;
+          buf[j+4]=(addr>>24)&0xff;
+        } else {
+          logE("requested symbol %d is out of bounds!",addr);
+        }
+      }
+      j+=insLen;
+    }
+
+    size_t afterSize=chanStream[h]->size();
+    logI("(before: %d - after: %d)",(int)beforeSize,(int)afterSize);
+  }
+#endif
+
+  // PASS 4: remove nop's (again)
+  for (int h=0; h<chans; h++) {
+    chanStream[h]=stripNops(chanStream[h]);
   }
 
-  // PASS 3: optimize command calls
+  // PASS 5: optimize command calls
   /*
   int sortCand=-1;
   int sortPos=0;
