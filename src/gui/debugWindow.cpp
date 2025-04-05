@@ -80,8 +80,6 @@ void FurnaceGUI::drawDebug() {
       ImGui::SameLine();
       if (ImGui::Button("Pattern Advance")) e->haltWhen(DIV_HALT_PATTERN);
 
-      if (ImGui::Button("Play Command Stream")) nextWindow=GUI_WINDOW_CS_PLAYER;
-
       if (ImGui::Button("Panic")) e->syncReset();
       ImGui::SameLine();
       if (ImGui::Button("Abort")) {
