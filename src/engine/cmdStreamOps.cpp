@@ -23,7 +23,216 @@
 
 //#define DISABLE_BLOCK_SEARCH
 
-int DivCS::getInsLength(unsigned char ins, unsigned char ext) {
+int DivCS::getCmdLength(unsigned char ext) {
+  switch (ext) {
+    case DIV_CMD_SAMPLE_MODE:
+    case DIV_CMD_SAMPLE_FREQ:
+    case DIV_CMD_SAMPLE_BANK:
+    case DIV_CMD_SAMPLE_DIR:
+    case DIV_CMD_FM_HARD_RESET:
+    case DIV_CMD_FM_LFO:
+    case DIV_CMD_FM_LFO_WAVE:
+    case DIV_CMD_FM_LFO2:
+    case DIV_CMD_FM_LFO2_WAVE:
+    case DIV_CMD_FM_FB:
+    case DIV_CMD_FM_EXTCH:
+    case DIV_CMD_FM_AM_DEPTH:
+    case DIV_CMD_FM_PM_DEPTH:
+    case DIV_CMD_STD_NOISE_FREQ:
+    case DIV_CMD_STD_NOISE_MODE:
+    case DIV_CMD_WAVE:
+    case DIV_CMD_GB_SWEEP_TIME:
+    case DIV_CMD_GB_SWEEP_DIR:
+    case DIV_CMD_PCE_LFO_MODE:
+    case DIV_CMD_PCE_LFO_SPEED:
+    case DIV_CMD_NES_DMC:
+    case DIV_CMD_C64_CUTOFF:
+    case DIV_CMD_C64_RESONANCE:
+    case DIV_CMD_C64_FILTER_MODE:
+    case DIV_CMD_C64_RESET_TIME:
+    case DIV_CMD_C64_RESET_MASK:
+    case DIV_CMD_C64_FILTER_RESET:
+    case DIV_CMD_C64_DUTY_RESET:
+    case DIV_CMD_C64_EXTENDED:
+    case DIV_CMD_AY_ENVELOPE_SET:
+    case DIV_CMD_AY_ENVELOPE_LOW:
+    case DIV_CMD_AY_ENVELOPE_HIGH:
+    case DIV_CMD_AY_ENVELOPE_SLIDE:
+    case DIV_CMD_AY_NOISE_MASK_AND:
+    case DIV_CMD_AY_NOISE_MASK_OR:
+    case DIV_CMD_AY_AUTO_ENVELOPE:
+    case DIV_CMD_FDS_MOD_DEPTH:
+    case DIV_CMD_FDS_MOD_HIGH:
+    case DIV_CMD_FDS_MOD_LOW:
+    case DIV_CMD_FDS_MOD_POS:
+    case DIV_CMD_FDS_MOD_WAVE:
+    case DIV_CMD_SAA_ENVELOPE:
+    case DIV_CMD_AMIGA_FILTER:
+    case DIV_CMD_AMIGA_AM:
+    case DIV_CMD_AMIGA_PM:
+    case DIV_CMD_MACRO_OFF:
+    case DIV_CMD_MACRO_ON:
+    case DIV_CMD_MACRO_RESTART:
+    case DIV_CMD_HINT_ARP_TIME:
+    case DIV_CMD_QSOUND_ECHO_FEEDBACK:
+    case DIV_CMD_QSOUND_ECHO_LEVEL:
+    case DIV_CMD_QSOUND_SURROUND:
+    case DIV_CMD_X1_010_ENVELOPE_SHAPE:
+    case DIV_CMD_X1_010_ENVELOPE_ENABLE:
+    case DIV_CMD_X1_010_ENVELOPE_MODE:
+    case DIV_CMD_X1_010_ENVELOPE_PERIOD:
+    case DIV_CMD_X1_010_ENVELOPE_SLIDE:
+    case DIV_CMD_X1_010_AUTO_ENVELOPE:
+    case DIV_CMD_X1_010_SAMPLE_BANK_SLOT:
+    case DIV_CMD_WS_SWEEP_TIME:
+    case DIV_CMD_WS_SWEEP_AMOUNT:
+    case DIV_CMD_N163_WAVE_POSITION:
+    case DIV_CMD_N163_WAVE_LENGTH:
+    case DIV_CMD_N163_WAVE_UNUSED1:
+    case DIV_CMD_N163_WAVE_UNUSED2:
+    case DIV_CMD_N163_WAVE_LOADPOS:
+    case DIV_CMD_N163_WAVE_LOADLEN:
+    case DIV_CMD_N163_WAVE_UNUSED3:
+    case DIV_CMD_N163_CHANNEL_LIMIT:
+    case DIV_CMD_N163_GLOBAL_WAVE_LOAD:
+    case DIV_CMD_N163_GLOBAL_WAVE_LOADPOS:
+    case DIV_CMD_N163_UNUSED4:
+    case DIV_CMD_N163_UNUSED5:
+    case DIV_CMD_SU_SYNC_PERIOD_LOW:
+    case DIV_CMD_SU_SYNC_PERIOD_HIGH:
+    case DIV_CMD_ADPCMA_GLOBAL_VOLUME:
+    case DIV_CMD_SNES_ECHO:
+    case DIV_CMD_SNES_PITCH_MOD:
+    case DIV_CMD_SNES_INVERT:
+    case DIV_CMD_SNES_GAIN_MODE:
+    case DIV_CMD_SNES_GAIN:
+    case DIV_CMD_SNES_ECHO_ENABLE:
+    case DIV_CMD_SNES_ECHO_DELAY:
+    case DIV_CMD_SNES_ECHO_VOL_LEFT:
+    case DIV_CMD_SNES_ECHO_VOL_RIGHT:
+    case DIV_CMD_SNES_ECHO_FEEDBACK:
+    case DIV_CMD_NES_ENV_MODE:
+    case DIV_CMD_NES_LENGTH:
+    case DIV_CMD_NES_COUNT_MODE:
+    case DIV_CMD_FM_AM2_DEPTH:
+    case DIV_CMD_FM_PM2_DEPTH:
+    case DIV_CMD_ES5506_ENVELOPE_LVRAMP:
+    case DIV_CMD_ES5506_ENVELOPE_RVRAMP:
+    case DIV_CMD_ES5506_PAUSE:
+    case DIV_CMD_ES5506_FILTER_MODE:
+    case DIV_CMD_SNES_GLOBAL_VOL_LEFT:
+    case DIV_CMD_SNES_GLOBAL_VOL_RIGHT:
+    case DIV_CMD_NES_LINEAR_LENGTH:
+    case DIV_CMD_EXTERNAL:
+    case DIV_CMD_C64_AD:
+    case DIV_CMD_C64_SR:
+    case DIV_CMD_DAVE_HIGH_PASS:
+    case DIV_CMD_DAVE_RING_MOD:
+    case DIV_CMD_DAVE_SWAP_COUNTERS:
+    case DIV_CMD_DAVE_LOW_PASS:
+    case DIV_CMD_DAVE_CLOCK_DIV:
+    case DIV_CMD_MINMOD_ECHO:
+    case DIV_CMD_FDS_MOD_AUTO:
+    case DIV_CMD_FM_OPMASK:
+    case DIV_CMD_MULTIPCM_MIX_FM:
+    case DIV_CMD_MULTIPCM_MIX_PCM:
+    case DIV_CMD_MULTIPCM_LFO:
+    case DIV_CMD_MULTIPCM_VIB:
+    case DIV_CMD_MULTIPCM_AM:
+    case DIV_CMD_MULTIPCM_AR:
+    case DIV_CMD_MULTIPCM_D1R:
+    case DIV_CMD_MULTIPCM_DL:
+    case DIV_CMD_MULTIPCM_D2R:
+    case DIV_CMD_MULTIPCM_RC:
+    case DIV_CMD_MULTIPCM_RR:
+    case DIV_CMD_MULTIPCM_DAMP:
+    case DIV_CMD_MULTIPCM_PSEUDO_REVERB:
+    case DIV_CMD_MULTIPCM_LFO_RESET:
+    case DIV_CMD_MULTIPCM_LEVEL_DIRECT:
+    case DIV_CMD_SID3_SPECIAL_WAVE:
+    case DIV_CMD_SID3_RING_MOD_SRC:
+    case DIV_CMD_SID3_HARD_SYNC_SRC:
+    case DIV_CMD_SID3_PHASE_MOD_SRC:
+    case DIV_CMD_SID3_WAVE_MIX:
+    case DIV_CMD_SID3_1_BIT_NOISE:
+    case DIV_CMD_SID3_CHANNEL_INVERSION:
+    case DIV_CMD_SID3_FILTER_CONNECTION:
+    case DIV_CMD_SID3_FILTER_MATRIX:
+    case DIV_CMD_SID3_FILTER_ENABLE:
+    case DIV_CMD_SID3_PHASE_RESET:
+    case DIV_CMD_SID3_NOISE_PHASE_RESET:
+    case DIV_CMD_SID3_ENVELOPE_RESET:
+    case DIV_CMD_SID3_CUTOFF_SCALING:
+    case DIV_CMD_SID3_RESONANCE_SCALING:
+    case DIV_CMD_WS_GLOBAL_SPEAKER_VOLUME:
+      return 1;
+    case DIV_CMD_FM_TL:
+    case DIV_CMD_FM_AM:
+    case DIV_CMD_FM_AR:
+    case DIV_CMD_FM_DR:
+    case DIV_CMD_FM_SL:
+    case DIV_CMD_FM_D2R:
+    case DIV_CMD_FM_RR:
+    case DIV_CMD_FM_DT:
+    case DIV_CMD_FM_DT2:
+    case DIV_CMD_FM_RS:
+    case DIV_CMD_FM_KSR:
+    case DIV_CMD_FM_VIB:
+    case DIV_CMD_FM_SUS:
+    case DIV_CMD_FM_WS:
+    case DIV_CMD_FM_SSG:
+    case DIV_CMD_FM_REV:
+    case DIV_CMD_FM_EG_SHIFT:
+    case DIV_CMD_FM_MULT:
+    case DIV_CMD_FM_FINE:
+    case DIV_CMD_AY_IO_WRITE:
+    case DIV_CMD_AY_AUTO_PWM:
+    case DIV_CMD_SURROUND_PANNING:
+    case DIV_CMD_SU_SWEEP_PERIOD_LOW:
+    case DIV_CMD_SU_SWEEP_PERIOD_HIGH:
+    case DIV_CMD_SU_SWEEP_BOUND:
+    case DIV_CMD_SU_SWEEP_ENABLE:
+    case DIV_CMD_SNES_ECHO_FIR:
+    case DIV_CMD_ES5506_FILTER_K1_SLIDE:
+    case DIV_CMD_ES5506_FILTER_K2_SLIDE:
+    case DIV_CMD_ES5506_ENVELOPE_K1RAMP:
+    case DIV_CMD_ES5506_ENVELOPE_K2RAMP:
+    case DIV_CMD_ESFM_OP_PANNING:
+    case DIV_CMD_ESFM_OUTLVL:
+    case DIV_CMD_ESFM_MODIN:
+    case DIV_CMD_ESFM_ENV_DELAY:
+    case DIV_CMD_POWERNOISE_COUNTER_LOAD:
+    case DIV_CMD_POWERNOISE_IO_WRITE:
+    case DIV_CMD_BIFURCATOR_STATE_LOAD:
+    case DIV_CMD_BIFURCATOR_PARAMETER:
+    case DIV_CMD_SID3_LFSR_FEEDBACK_BITS:
+    case DIV_CMD_SID3_FILTER_DISTORTION:
+    case DIV_CMD_SID3_FILTER_OUTPUT_VOLUME:
+    case DIV_CMD_C64_PW_SLIDE:
+    case DIV_CMD_C64_CUTOFF_SLIDE:
+      return 2;
+    case DIV_CMD_C64_FINE_DUTY:
+    case DIV_CMD_C64_FINE_CUTOFF:
+    case DIV_CMD_LYNX_LFSR_LOAD:
+    case DIV_CMD_QSOUND_ECHO_DELAY:
+    case DIV_CMD_ES5506_ENVELOPE_COUNT:
+      return 2;
+    case DIV_CMD_ES5506_FILTER_K1:
+    case DIV_CMD_ES5506_FILTER_K2:
+      return 4;
+    case DIV_CMD_FM_FIXFREQ:
+      return 2;
+    case DIV_CMD_NES_SWEEP:
+      return 2;
+    case DIV_CMD_SAMPLE_POS:
+      return 4;
+    default:
+      return 0;
+  }
+  return 0;
+}
+
+int DivCS::getInsLength(unsigned char ins, unsigned char ext, unsigned char* speedDial) {
   switch (ins) {
     case 0xb8: // ins
     case 0xc0: // pre porta
@@ -45,14 +254,14 @@ int DivCS::getInsLength(unsigned char ins, unsigned char ext) {
     case 0xd4: case 0xd5: case 0xd6: case 0xd7:
     case 0xd8: case 0xd9: case 0xda: case 0xdb:
     case 0xdc: case 0xdd: case 0xde: case 0xdf:
-      return 0;
+      if (speedDial==NULL) return 0;
+      return 1+getCmdLength(speedDial[ins&15]);
     case 0xf0: // opt
       return 4;
-    case 0xf7: { // cmd
+    case 0xf7: // cmd
       // determine length from secondary
       if (ext==0) return 0;
-      return 0;
-    }
+      return 2+getCmdLength(ext);
     case 0xf8: // call
     case 0xfc: // waits
       return 3;
@@ -97,7 +306,6 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
       w->writeC((unsigned char)c.cmd+0xb4);
       break;
     default:
-      return;
       w->writeC(0xf7);
       w->writeC(c.cmd);
       break;
@@ -145,11 +353,12 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
     case DIV_CMD_SAMPLE_MODE:
     case DIV_CMD_SAMPLE_FREQ:
     case DIV_CMD_SAMPLE_BANK:
-    case DIV_CMD_SAMPLE_POS:
     case DIV_CMD_SAMPLE_DIR:
     case DIV_CMD_FM_HARD_RESET:
     case DIV_CMD_FM_LFO:
     case DIV_CMD_FM_LFO_WAVE:
+    case DIV_CMD_FM_LFO2:
+    case DIV_CMD_FM_LFO2_WAVE:
     case DIV_CMD_FM_FB:
     case DIV_CMD_FM_EXTCH:
     case DIV_CMD_FM_AM_DEPTH:
@@ -190,7 +399,97 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
     case DIV_CMD_MACRO_ON:
     case DIV_CMD_MACRO_RESTART:
     case DIV_CMD_HINT_ARP_TIME:
-      w->writeC(1); // length
+    case DIV_CMD_QSOUND_ECHO_FEEDBACK:
+    case DIV_CMD_QSOUND_ECHO_LEVEL:
+    case DIV_CMD_QSOUND_SURROUND:
+    case DIV_CMD_X1_010_ENVELOPE_SHAPE:
+    case DIV_CMD_X1_010_ENVELOPE_ENABLE:
+    case DIV_CMD_X1_010_ENVELOPE_MODE:
+    case DIV_CMD_X1_010_ENVELOPE_PERIOD:
+    case DIV_CMD_X1_010_ENVELOPE_SLIDE:
+    case DIV_CMD_X1_010_AUTO_ENVELOPE:
+    case DIV_CMD_X1_010_SAMPLE_BANK_SLOT:
+    case DIV_CMD_WS_SWEEP_TIME:
+    case DIV_CMD_WS_SWEEP_AMOUNT:
+    case DIV_CMD_N163_WAVE_POSITION:
+    case DIV_CMD_N163_WAVE_LENGTH:
+    case DIV_CMD_N163_WAVE_UNUSED1:
+    case DIV_CMD_N163_WAVE_UNUSED2:
+    case DIV_CMD_N163_WAVE_LOADPOS:
+    case DIV_CMD_N163_WAVE_LOADLEN:
+    case DIV_CMD_N163_WAVE_UNUSED3:
+    case DIV_CMD_N163_CHANNEL_LIMIT:
+    case DIV_CMD_N163_GLOBAL_WAVE_LOAD:
+    case DIV_CMD_N163_GLOBAL_WAVE_LOADPOS:
+    case DIV_CMD_N163_UNUSED4:
+    case DIV_CMD_N163_UNUSED5:
+    case DIV_CMD_SU_SYNC_PERIOD_LOW:
+    case DIV_CMD_SU_SYNC_PERIOD_HIGH:
+    case DIV_CMD_ADPCMA_GLOBAL_VOLUME:
+    case DIV_CMD_SNES_ECHO:
+    case DIV_CMD_SNES_PITCH_MOD:
+    case DIV_CMD_SNES_INVERT:
+    case DIV_CMD_SNES_GAIN_MODE:
+    case DIV_CMD_SNES_GAIN:
+    case DIV_CMD_SNES_ECHO_ENABLE:
+    case DIV_CMD_SNES_ECHO_DELAY:
+    case DIV_CMD_SNES_ECHO_VOL_LEFT:
+    case DIV_CMD_SNES_ECHO_VOL_RIGHT:
+    case DIV_CMD_SNES_ECHO_FEEDBACK:
+    case DIV_CMD_NES_ENV_MODE:
+    case DIV_CMD_NES_LENGTH:
+    case DIV_CMD_NES_COUNT_MODE:
+    case DIV_CMD_FM_AM2_DEPTH:
+    case DIV_CMD_FM_PM2_DEPTH:
+    case DIV_CMD_ES5506_ENVELOPE_LVRAMP:
+    case DIV_CMD_ES5506_ENVELOPE_RVRAMP:
+    case DIV_CMD_ES5506_PAUSE:
+    case DIV_CMD_ES5506_FILTER_MODE:
+    case DIV_CMD_SNES_GLOBAL_VOL_LEFT:
+    case DIV_CMD_SNES_GLOBAL_VOL_RIGHT:
+    case DIV_CMD_NES_LINEAR_LENGTH:
+    case DIV_CMD_EXTERNAL:
+    case DIV_CMD_C64_AD:
+    case DIV_CMD_C64_SR:
+    case DIV_CMD_DAVE_HIGH_PASS:
+    case DIV_CMD_DAVE_RING_MOD:
+    case DIV_CMD_DAVE_SWAP_COUNTERS:
+    case DIV_CMD_DAVE_LOW_PASS:
+    case DIV_CMD_DAVE_CLOCK_DIV:
+    case DIV_CMD_MINMOD_ECHO:
+    case DIV_CMD_FDS_MOD_AUTO:
+    case DIV_CMD_FM_OPMASK:
+    case DIV_CMD_MULTIPCM_MIX_FM:
+    case DIV_CMD_MULTIPCM_MIX_PCM:
+    case DIV_CMD_MULTIPCM_LFO:
+    case DIV_CMD_MULTIPCM_VIB:
+    case DIV_CMD_MULTIPCM_AM:
+    case DIV_CMD_MULTIPCM_AR:
+    case DIV_CMD_MULTIPCM_D1R:
+    case DIV_CMD_MULTIPCM_DL:
+    case DIV_CMD_MULTIPCM_D2R:
+    case DIV_CMD_MULTIPCM_RC:
+    case DIV_CMD_MULTIPCM_RR:
+    case DIV_CMD_MULTIPCM_DAMP:
+    case DIV_CMD_MULTIPCM_PSEUDO_REVERB:
+    case DIV_CMD_MULTIPCM_LFO_RESET:
+    case DIV_CMD_MULTIPCM_LEVEL_DIRECT:
+    case DIV_CMD_SID3_SPECIAL_WAVE:
+    case DIV_CMD_SID3_RING_MOD_SRC:
+    case DIV_CMD_SID3_HARD_SYNC_SRC:
+    case DIV_CMD_SID3_PHASE_MOD_SRC:
+    case DIV_CMD_SID3_WAVE_MIX:
+    case DIV_CMD_SID3_1_BIT_NOISE:
+    case DIV_CMD_SID3_CHANNEL_INVERSION:
+    case DIV_CMD_SID3_FILTER_CONNECTION:
+    case DIV_CMD_SID3_FILTER_MATRIX:
+    case DIV_CMD_SID3_FILTER_ENABLE:
+    case DIV_CMD_SID3_PHASE_RESET:
+    case DIV_CMD_SID3_NOISE_PHASE_RESET:
+    case DIV_CMD_SID3_ENVELOPE_RESET:
+    case DIV_CMD_SID3_CUTOFF_SCALING:
+    case DIV_CMD_SID3_RESONANCE_SCALING:
+    case DIV_CMD_WS_GLOBAL_SPEAKER_VOLUME:
       w->writeC(c.value);
       break;
     case DIV_CMD_FM_TL:
@@ -215,37 +514,66 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
     case DIV_CMD_AY_IO_WRITE:
     case DIV_CMD_AY_AUTO_PWM:
     case DIV_CMD_SURROUND_PANNING:
-      w->writeC(2); // length
+    case DIV_CMD_SU_SWEEP_PERIOD_LOW:
+    case DIV_CMD_SU_SWEEP_PERIOD_HIGH:
+    case DIV_CMD_SU_SWEEP_BOUND:
+    case DIV_CMD_SU_SWEEP_ENABLE:
+    case DIV_CMD_SNES_ECHO_FIR:
+    case DIV_CMD_ES5506_FILTER_K1_SLIDE:
+    case DIV_CMD_ES5506_FILTER_K2_SLIDE:
+    case DIV_CMD_ES5506_ENVELOPE_K1RAMP:
+    case DIV_CMD_ES5506_ENVELOPE_K2RAMP:
+    case DIV_CMD_ESFM_OP_PANNING:
+    case DIV_CMD_ESFM_OUTLVL:
+    case DIV_CMD_ESFM_MODIN:
+    case DIV_CMD_ESFM_ENV_DELAY:
+    case DIV_CMD_POWERNOISE_COUNTER_LOAD:
+    case DIV_CMD_POWERNOISE_IO_WRITE:
+    case DIV_CMD_BIFURCATOR_STATE_LOAD:
+    case DIV_CMD_BIFURCATOR_PARAMETER:
+    case DIV_CMD_SID3_LFSR_FEEDBACK_BITS:
+    case DIV_CMD_SID3_FILTER_DISTORTION:
+    case DIV_CMD_SID3_FILTER_OUTPUT_VOLUME:
+    case DIV_CMD_C64_PW_SLIDE:
+    case DIV_CMD_C64_CUTOFF_SLIDE:
       w->writeC(c.value);
       w->writeC(c.value2);
       break;
     case DIV_CMD_C64_FINE_DUTY:
     case DIV_CMD_C64_FINE_CUTOFF:
     case DIV_CMD_LYNX_LFSR_LOAD:
-      w->writeC(2); // length
+    case DIV_CMD_QSOUND_ECHO_DELAY:
+    case DIV_CMD_ES5506_ENVELOPE_COUNT:
       w->writeS(c.value);
       break;
+    case DIV_CMD_ES5506_FILTER_K1:
+    case DIV_CMD_ES5506_FILTER_K2:
+      w->writeS(c.value);
+      w->writeS(c.value2);
+      break;
     case DIV_CMD_FM_FIXFREQ:
-      w->writeC(2); // length
       w->writeS((c.value<<12)|(c.value2&0x7ff));
       break;
     case DIV_CMD_NES_SWEEP:
-      w->writeC(1); // length
       w->writeC((c.value?8:0)|(c.value2&0x77));
+      break;
+    case DIV_CMD_SAMPLE_POS:
+      w->writeI(c.value);
       break;
     default:
       logW("unimplemented command %s!",cmdName[c.cmd]);
-      w->writeC(0); // length
       break;
   }
 }
 
+#define _EXT(b,x,l) (((size_t)((x)+1)<(size_t)(l))?(b[(x)+1]):0)
+
 using namespace DivCS;
 
-void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int destAddr) {
+void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int destAddr, unsigned char* speedDial) {
   unsigned int delta=destAddr-sourceAddr;
   for (size_t i=0; i<len;) {
-    int insLen=getInsLength(buf[i]);
+    int insLen=getInsLength(buf[i],_EXT(buf,i,len),speedDial);
     if (insLen<1) {
       logE("INS %x NOT IMPLEMENTED...",buf[i]);
       break;
@@ -266,7 +594,7 @@ void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int
   }
 }
 
-SafeWriter* stripNops(SafeWriter* s) {
+SafeWriter* stripNops(SafeWriter* s, unsigned char* speedDial) {
   std::unordered_map<unsigned int,unsigned int> addrTable;
   SafeWriter* oldStream=s;
   unsigned char* buf=oldStream->getFinalBuf();
@@ -276,7 +604,7 @@ SafeWriter* stripNops(SafeWriter* s) {
   // prepare address map
   size_t addr=0;
   for (size_t i=0; i<oldStream->size();) {
-    int insLen=getInsLength(buf[i]);
+    int insLen=getInsLength(buf[i],_EXT(buf,i,oldStream->size()),speedDial);
     if (insLen<1) {
       logE("INS %x NOT IMPLEMENTED...",buf[i]);
       break;
@@ -288,7 +616,7 @@ SafeWriter* stripNops(SafeWriter* s) {
 
   // translate addresses
   for (size_t i=0; i<oldStream->size();) {
-    int insLen=getInsLength(buf[i]);
+    int insLen=getInsLength(buf[i],_EXT(buf,i,oldStream->size()),speedDial);
     if (insLen<1) {
       logE("INS %x NOT IMPLEMENTED...",buf[i]);
       break;
@@ -321,7 +649,7 @@ SafeWriter* stripNops(SafeWriter* s) {
   return s;
 }
 
-SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlocks) {
+SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlocks, unsigned char* speedDial) {
   unsigned char* buf=stream->getFinalBuf();
 
   for (size_t groupSize=stream->size()>>1; groupSize>=8; groupSize--) {
@@ -333,7 +661,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
       size_t groupLen=0;
       size_t groupInsCount=0;
       size_t subBlockID=subBlocks.size();
-      int insLen=getInsLength(buf[searchPos]);
+      int insLen=getInsLength(buf[searchPos],_EXT(buf,searchPos,stream->size()),speedDial);
       bool haveSub=false;
       bool onlyCalls=true;
 
@@ -345,7 +673,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
       // register this block
       for (size_t i=0; i<groupSize && i<stream->size();) {
         if (buf[searchPos+i]!=0xf4) onlyCalls=false;
-        int insLenI=getInsLength(buf[searchPos+i]);
+        int insLenI=getInsLength(buf[searchPos+i],_EXT(buf,searchPos+i,stream->size()),speedDial);
         if (insLenI<1) {
           logE("INS %x NOT IMPLEMENTED...",buf[searchPos+i]);
           break;
@@ -377,7 +705,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
 
       // find identical blocks
       for (size_t i=searchPos+groupLen; i+groupLen<stream->size();) {
-        int insLenI=getInsLength(buf[i]);
+        int insLenI=getInsLength(buf[i],_EXT(buf,i,stream->size()),speedDial);
         if (insLenI<1) {
           logE("INS %x NOT IMPLEMENTED...",buf[i]);
           break;
@@ -439,7 +767,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
       }
     }
     if (foundSomething) {
-      stream=stripNops(stream);
+      stream=stripNops(stream,speedDial);
       buf=stream->getFinalBuf();
     }
   }
@@ -591,7 +919,7 @@ SafeWriter* DivEngine::saveCommand() {
     unsigned char* buf=chanStream[h]->getFinalBuf();
     int delayCount=0;
     for (size_t i=0; i<chanStream[h]->size();) {
-      int insLen=getInsLength(buf[i]);
+      int insLen=getInsLength(buf[i],_EXT(buf,i,chanStream[h]->size()),sortedCmd);
       if (insLen<1) {
         logE("INS %x NOT IMPLEMENTED...",buf[i]);
         break;
@@ -638,7 +966,7 @@ SafeWriter* DivEngine::saveCommand() {
     int delayCount=0;
     int delayLast=0;
     for (size_t i=0; i<chanStream[h]->size();) {
-      int insLen=getInsLength(buf[i]);
+      int insLen=getInsLength(buf[i],_EXT(buf,i,chanStream[h]->size()),sortedCmd);
       if (insLen<1) {
         logE("INS %x NOT IMPLEMENTED...",buf[i]);
         break;
@@ -690,7 +1018,7 @@ SafeWriter* DivEngine::saveCommand() {
   // PASS 2: remove nop's
   // this includes modifying call addresses to compensate
   for (int h=0; h<chans; h++) {
-    chanStream[h]=stripNops(chanStream[h]);
+    chanStream[h]=stripNops(chanStream[h],sortedCmd);
   }
 
 #ifndef DISABLE_BLOCK_SEARCH
@@ -701,7 +1029,7 @@ SafeWriter* DivEngine::saveCommand() {
     
     // 6 is the minimum size that can be reliably optimized
     logI("finding sub-blocks in chan %d",h);
-    chanStream[h]=findSubBlocks(chanStream[h],subBlocks);
+    chanStream[h]=findSubBlocks(chanStream[h],subBlocks,sortedCmd);
     // find sub-blocks within sub-blocks
     size_t subBlocksLast=0;
     size_t subBlocksLen=subBlocks.size();
@@ -709,7 +1037,7 @@ SafeWriter* DivEngine::saveCommand() {
     while (subBlocksLast!=subBlocksLen) {
       logI("got %d blocks... starting from %d",(int)subBlocksLen,(int)subBlocksLast);
       for (size_t i=subBlocksLast; i<subBlocksLen; i++) {
-        SafeWriter* newBlock=findSubBlocks(subBlocks[i],subBlocks);
+        SafeWriter* newBlock=findSubBlocks(subBlocks[i],subBlocks,sortedCmd);
         subBlocks[i]=newBlock;
       }
       subBlocksLast=subBlocksLen;
@@ -754,7 +1082,7 @@ SafeWriter* DivEngine::saveCommand() {
     // resolve symbols
     unsigned char* buf=chanStream[h]->getFinalBuf();
     for (size_t j=0; j<chanStream[h]->size();) {
-      int insLen=getInsLength(buf[j]);
+      int insLen=getInsLength(buf[j],_EXT(buf,j,chanStream[h]->size()),sortedCmd);
       if (insLen<1) {
         logE("INS %x NOT IMPLEMENTED...",buf[j]);
         break;
@@ -783,7 +1111,7 @@ SafeWriter* DivEngine::saveCommand() {
 
   // PASS 4: remove nop's (again)
   for (int h=0; h<chans; h++) {
-    chanStream[h]=stripNops(chanStream[h]);
+    chanStream[h]=stripNops(chanStream[h],sortedCmd);
   }
 
   // PASS 5: optimize command calls
@@ -813,7 +1141,7 @@ SafeWriter* DivEngine::saveCommand() {
   for (int i=0; i<chans; i++) {
     chanStreamOff[i]=w->tell();
     logI("- %d: off %x size %ld",i,chanStreamOff[i],chanStream[i]->size());
-    reloc(chanStream[i]->getFinalBuf(),chanStream[i]->size(),0,w->tell());
+    reloc(chanStream[i]->getFinalBuf(),chanStream[i]->size(),0,w->tell(),sortedCmd);
     w->write(chanStream[i]->getFinalBuf(),chanStream[i]->size());
     chanStream[i]->finish();
     delete chanStream[i];

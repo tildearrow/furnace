@@ -105,7 +105,8 @@ class DivCSPlayer {
 
 // command stream utilities
 namespace DivCS {
-  int getInsLength(unsigned char ins, unsigned char ext=0);
+  int getCmdLength(unsigned char ext);
+  int getInsLength(unsigned char ins, unsigned char ext=0, unsigned char* speedDial=NULL);
 };
 
 #endif

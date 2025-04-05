@@ -598,6 +598,10 @@ void FurnaceGUI::drawMobileControls() {
         if (ImGui::Button(_("PatManager"))) {
           patManagerOpen=!patManagerOpen;
         }
+        ImGui::SameLine();
+        if (ImGui::Button(_("CSPlayer"))) {
+          csPlayerOpen=!csPlayerOpen;
+        }
 
         ImGui::Separator();
 
