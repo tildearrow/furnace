@@ -250,6 +250,20 @@ std::vector<String> substituteArgs(const std::vector<String>& args, const std::m
   return result;
 }
 
+String vec2str(const std::vector<String>& vec) {
+  String output;
+  output+="[";
+  for (size_t i=0; i<vec.size(); i++) {
+    output+='"';
+    output+=vec[i];
+    output+='"';
+    if (i<vec.size()-1)
+      output+=", ";
+  }
+  output+="]";
+  return output;
+}
+
 #ifdef HAVE_SNDFILE
 void DivEngine::runExportThread() {
   size_t fadeOutSamples=got.rate*exportFadeOut;
@@ -364,20 +378,6 @@ void DivEngine::runExportThread() {
         defMap["channel_count"]=fmt::sprintf("%d",exportOutputs);
         defMap["extra_flags"]=exportExtraFlags; // FIXME: the flags won't be split!!! whoops
         defMap["output_file"]=exportPath;
-
-        const auto vec2str=[](const std::vector<String>& vec) {
-          String output;
-          output+="[";
-          for (size_t i=0; i<vec.size(); i++) {
-            output+='"';
-            output+=vec[i];
-            output+='"';
-            if (i<vec.size()-1)
-              output+=", ";
-          }
-          output+="]";
-          return output;
-        };
 
         std::vector<String> args;
         splitString(exportCommand,' ',args);
