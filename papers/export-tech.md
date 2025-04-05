@@ -210,4 +210,157 @@ hex | description
     | **WonderSwan commands**
  6f | sweep time
  70 | sweep amount
+----|------------------------------------
+    | **Namco 163 commands**
+ 71 | wave position
+ 72 | wave length
+ 73 | UNUSED
+ 74 | UNUSED
+ 75 | wave load position
+ 76 | wave load length
+ 77 | UNUSED
+ 78 | channel limit
+ 79 | global wave load
+ 7a | global wave load position
+ 7b | UNUSED
+ 7c | UNUSED
+----|------------------------------------
+    | **Sound Unit commands**
+ 7d | sweep period low
+ 7e | sweep period high
+ 7f | sweep bound
+ 80 | sweep enable
+ 81 | sync period low
+ 82 | sync period high
+----|------------------------------------
+ 83 | ADPCM-A volume
+----|------------------------------------
+    | **SNES commands**
+ 84 | echo
+ 85 | pitch mod
+ 86 | invert
+ 87 | gain mode
+ 88 | gain
+ 89 | echo enable
+ 8a | echo delay
+ 8b | echo vol left
+ 8c | echo vol right
+ 8d | echo feedback
+ 8e | echo filter
+----|------------------------------------
+    | **NES commands (continued)**
+ 8f | envelope mode
+ 90 | length counter
+ 91 | count mode (?)
+----|------------------------------------
+    | **macro control**
+ 92 | macro off
+ 93 | macro on
+----|------------------------------------
+ 94 | surround panning
+----|------------------------------------
+    | **FM commands (continued)**
+ 95 | AM depth 2
+ 96 | PM depth 2
+----|------------------------------------
+    | **ES5506 commands**
+ 97 | filter mode
+ 98 | filter K1
+ 99 | filter K2
+ 9a | filter K1 slide
+ 9b | filter K2 slide
+ 9c | envelope count
+ 9d | envelope left vol ramp
+ 9e | envelope right vol ramp
+ 9f | envelope K1 ramp
+ a0 | envelope K2 ramp
+ a1 | pause
+----|------------------------------------
+ a2 | arpeggio speed
+----|------------------------------------
+    | **SNES commands (continued)**
+ a3 | global vol left
+ a4 | global vol right
+----|------------------------------------
+ a5 | NES linear counter length
+----|------------------------------------
+ a6 | external command
+----|------------------------------------
+    | **C64 commands (continued)**
+ a7 | attack/decay
+ a8 | sustain/release
+----|------------------------------------
+    | **ESFM commands**
+ a9 | operator panning
+ aa | output level
+ ab | modulation input
+ ac | envelope delay
+----|------------------------------------
+ ad | restart macro
+----|------------------------------------
+    | **PowerNoise commands**
+ ae | load counter
+ af | I/O write
+----|------------------------------------
+    | **Dave commands**
+ b0 | high pass
+ b1 | ring mod
+ b2 | swap counters
+ b3 | low pass
+ b4 | clock divider
+----|------------------------------------
+ b5 | MinMod echo setup
+----|------------------------------------
+    | **Bifurcator commands**
+ b6 | state load
+ b7 | set parameter
+----|------------------------------------
+ b8 | FDS auto mod
+----|------------------------------------
+ b9 | FM operator mask
+----|------------------------------------
+    | **MultiPCM commands**
+ ba | mix FM
+ bb | mix PCM
+ bc | LFO
+ bd | VIB
+ be | AM
+ bf | AR
+ c0 | D1R
+ c1 | DL
+ c2 | D2R
+ c3 | RC
+ c4 | RR
+ c5 | damp
+ c6 | pseudo-reverb
+ c7 | LFO reset
+ c8 | level direct
+----|------------------------------------
+    | **SID3 commands**
+ c9 | special wave
+ ca | ring mod source
+ cb | hard sync source
+ cc | phase mod source
+ cd | wave mix
+ ce | LFSR feedback bits
+ cf | 1-bit noise
+ d0 | filter distortion
+ d1 | filter output volume
+ d2 | channel invert
+ d3 | filter connection
+ d4 | filter matrix
+ d5 | filter enable
+----|------------------------------------
+    | **slide commands**
+ d6 | pulse width slide
+ d7 | cutoff slide
+----|------------------------------------
+    | **SID3 commands (continued)**
+ d8 | phase reset
+ d9 | noise phase reset
+ da | envelope reset
+ db | cutoff scaling
+ dc | resonance scaling
+----|------------------------------------
+ dd | WonderSwan speaker volume
 ```
