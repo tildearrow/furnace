@@ -1669,6 +1669,7 @@ class FurnaceGUI {
   std::vector<String> availAudioDrivers;
 
   bool quit, warnQuit, willCommit, edit, editClone, isPatUnique, modified, displayError, displayExporting, vgmExportLoop, vgmExportPatternHints;
+
   bool vgmExportDirectStream, displayInsTypeList, displayWaveSizeList;
   bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
@@ -1906,6 +1907,7 @@ class FurnaceGUI {
     int insEditColorize;
     int metroVol;
     int sampleVol;
+    String exportFfmpegPath;
     int pushNibble;
     int scrollChangesOrder;
     int oplStandardWaveNames;
@@ -2161,6 +2163,7 @@ class FurnaceGUI {
       insEditColorize(0),
       metroVol(100),
       sampleVol(50),
+      exportFfmpegPath(""),
       pushNibble(0),
       scrollChangesOrder(0),
       oplStandardWaveNames(0),
