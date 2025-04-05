@@ -28,8 +28,9 @@ size | description
  ??? | channel data
 ```
 
-read command and values (if any).
-the list of commands follows.
+program follows.
+
+### commands/instructions
 
 ```
 hex | description
@@ -47,7 +48,6 @@ hex | description
  b6 | note off env
  b7 | env release
  b8 | instrument // (ins, force)
- be | panning // (left, right)
  c0 | pre porta // (inporta, isportaorslide)
  c2 | vibrato // (speed, depth)
  c3 | vibrato range // (range)
@@ -55,9 +55,14 @@ hex | description
  c5 | pitch // (pitch)
  c6 | arpeggio // (note1, note2)
  c7 | volume // (vol)
- c8 | vol slide // (amount, onetick)
+ c8 | vol slide // (amount)
  c9 | porta // (target, speed)
  ca | legato // (note)
+ cb | volume slide with target // (amount, target)
+ cc | tremolo // (speed/depth)
+ cd | panbrello // (speed/depth)
+ ce | pan slide // (speed)
+ cf | panning // (left, right)
 ----|------------------------------------
  d0 | speed dial command 0
  d1 | speed dial command 1
@@ -71,13 +76,13 @@ hex | description
 ----|------------------------------------
  f0 | UNUSED - placeholder used during optimization passes (3-byte nonce follows)
  f1 | no operation
- f2 | UNUSED - unoptimized extended command
+ f2 | UNUSED
  f3 | loop (negative offset and count follow... both are 8-bit)
- f4 | call symbol (32-bit index follows; only used internally)
- f5 | jump to sub-block (address follows)
- f6 | go to sub-block (32-bit offset follows)
+ f4 | UNUSED - call symbol (32-bit index follows; only used internally)
+ f5 | call sub-block (32-bit address follows)
+ f6 | UNUSED
  f7 | full command (command and data follows)
- f8 | go to sub-block (16-bit offset follows)
+ f8 | call sub-block (16-bit address follows)
  f9 | return from sub-block
  fa | jump (address follows)
  fb | set tick rate (4 bytes)
@@ -87,3 +92,8 @@ hex | description
  ff | stop
 ```
 
+## full commands
+
+```
+
+```

@@ -44,10 +44,6 @@ String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr) {
       if (addr+1>=bufLen) return "???";
       return fmt::sprintf("ins $%.2x",(int)buf[addr+1]);
       break;
-    case 0xbe:
-      if (addr+2>=bufLen) return "???";
-      return fmt::sprintf("pan $%x, $%x",(int)buf[addr+1],(int)buf[addr+2]);
-      break;
     case 0xc0:
       if (addr+1>=bufLen) return "???";
       return fmt::sprintf("preporta $%.2x",(int)buf[addr+1]);
@@ -88,6 +84,26 @@ String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr) {
       if (addr+1>=bufLen) return "???";
       return fmt::sprintf("legato %d",(int)buf[addr+1]);
       break;
+    case 0xcb:
+      if (addr+4>=bufLen) return "???";
+      return fmt::sprintf("volporta %d, %d",(int)((short)(buf[addr+1]|(buf[addr+2]<<8))),(int)((short)(buf[addr+3]|(buf[addr+4]<<8))));
+      break;
+    case 0xcc:
+      if (addr+1>=bufLen) return "???";
+      return fmt::sprintf("tremolo $%.2x",(int)buf[addr+1]);
+      break;
+    case 0xcd:
+      if (addr+1>=bufLen) return "???";
+      return fmt::sprintf("panbrello $%.2x",(int)buf[addr+1]);
+      break;
+    case 0xce:
+      if (addr+1>=bufLen) return "???";
+      return fmt::sprintf("panslide %d",(signed char)buf[addr+1]);
+      break;
+    case 0xcf:
+      if (addr+2>=bufLen) return "???";
+      return fmt::sprintf("pan $%x, $%x",(int)buf[addr+1],(int)buf[addr+2]);
+      break;
     case 0xe0: case 0xe1: case 0xe2: case 0xe3:
     case 0xe4: case 0xe5: case 0xe6: case 0xe7:
     case 0xe8: case 0xe9: case 0xea: case 0xeb:
@@ -112,16 +128,12 @@ String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr) {
       if (addr+4>=bufLen) return "???";
       return fmt::sprintf("call %.8x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)|(buf[addr+3]<<16)|(buf[addr+4]<<24)));
       break;
-    case 0xf6:
-      if (addr+4>=bufLen) return "???";
-      return fmt::sprintf("callb32 %.8x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)|(buf[addr+3]<<16)|(buf[addr+4]<<24)));
-      break;
     case 0xf7:
       return "CMD";
       break;
     case 0xf8:
       if (addr+2>=bufLen) return "???";
-      return fmt::sprintf("callb16 %.4x",(int)(buf[addr+1]|(buf[addr+2]<<8)));
+      return fmt::sprintf("call %.4x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)));
       break;
     case 0xf9:
       return "ret";

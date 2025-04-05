@@ -117,6 +117,8 @@ bool DivCSPlayer::tick() {
         case 0xb8: case 0xbe: case 0xc0: case 0xc2:
         case 0xc3: case 0xc4: case 0xc5: case 0xc6:
         case 0xc7: case 0xc8: case 0xc9: case 0xca:
+        case 0xcb: case 0xcc: case 0xcd: case 0xce:
+        case 0xcf:
           command=next-0xb4;
           break;
         case 0xf0: // placeholder
@@ -147,19 +149,11 @@ bool DivCSPlayer::tick() {
           command=stream.readC();
           break;
         case 0xf8: {
-          unsigned int callAddr=chan[i].readPos+2+stream.readS();
+          unsigned int callAddr=(unsigned short)stream.readS();
           chan[i].readPos=stream.tell();
           if (!chan[i].doCall(callAddr)) {
-            logE("%d: (callb16) stack error!",i);
-          }
-          mustTell=false;
-          break;
-        }
-        case 0xf6: {
-          unsigned int callAddr=chan[i].readPos+4+stream.readI();
-          chan[i].readPos=stream.tell();
-          if (!chan[i].doCall(callAddr)) {
-            logE("%d: (callb32) stack error!",i);
+            logE("%d: (call) stack error!",i);
+            chan[i].readPos=0;
           }
           mustTell=false;
           break;
@@ -168,7 +162,8 @@ bool DivCSPlayer::tick() {
           unsigned int callAddr=stream.readI();
           chan[i].readPos=stream.tell();
           if (!chan[i].doCall(callAddr)) {
-            logE("%d: (call) stack error!",i);
+            logE("%d: (calli) stack error!",i);
+            chan[i].readPos=0;
           }
           mustTell=false;
           break;
@@ -208,9 +203,9 @@ bool DivCSPlayer::tick() {
           chan[i].lastWaitLen=chan[i].waitTicks;
           break;
         case 0xff:
-          chan[i].readPos=chan[i].startPos;
+          chan[i].readPos=0;
           mustTell=false;
-          logI("%d: stop go back to %x",i,chan[i].readPos);
+          logI("%d: stop",i,chan[i].readPos);
           break;
         default:
           logE("%d: illegal instruction $%.2x! $%.x",i,next,chan[i].readPos);
@@ -240,7 +235,7 @@ bool DivCSPlayer::tick() {
             arg0=(signed char)stream.readC();
             arg1=(unsigned char)stream.readC();
             break;
-          case DIV_CMD_PANNING:
+          case DIV_CMD_HINT_PANNING: // TODO: panbrello
             arg0=(unsigned char)stream.readC();
             arg1=(unsigned char)stream.readC();
             break;
@@ -390,6 +385,9 @@ bool DivCSPlayer::tick() {
             break;
           case DIV_CMD_HINT_ARP_TIME:
             arpSpeed=arg0;
+            break;
+          case DIV_CMD_HINT_PANNING:
+            e->dispatchCmd(DivCommand(DIV_CMD_PANNING,i,arg0,arg1));
             break;
           default: // dispatch it
             e->dispatchCmd(DivCommand((DivDispatchCmds)command,i,arg0,arg1));

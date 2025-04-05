@@ -34,7 +34,7 @@ int DivCS::getInsLength(unsigned char ins, unsigned char ext) {
     case 0xca: // legato
     case 0xfd: // waitc
       return 2;
-    case 0xbe: // pan
+    case 0xcf: // pan
     case 0xc2: // vibrato
     case 0xc6: // arpeggio
     case 0xc8: // vol slide
@@ -48,20 +48,19 @@ int DivCS::getInsLength(unsigned char ins, unsigned char ext) {
       return 0;
     case 0xf0: // opt
       return 4;
-    case 0xf2: // opt command
     case 0xf7: { // cmd
       // determine length from secondary
       if (ext==0) return 0;
       return 0;
     }
-    case 0xf8: // callb16
+    case 0xf8: // call
     case 0xfc: // waits
       return 3;
     case 0xf4: // callsym
-    case 0xf5: // call
-    case 0xf6: // callb32
+    case 0xf5: // calli
     case 0xfa: // jmp
     case 0xfb: // rate
+    case 0xcb: // volporta
       return 5;
   }
   return 1;
@@ -80,7 +79,6 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
     case DIV_CMD_INSTRUMENT:
-    case DIV_CMD_PANNING:
     case DIV_CMD_PRE_PORTA:
     case DIV_CMD_HINT_VIBRATO:
     case DIV_CMD_HINT_VIBRATO_RANGE:
@@ -92,11 +90,15 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
     case DIV_CMD_HINT_VOL_SLIDE:
     case DIV_CMD_HINT_VOL_SLIDE_TARGET:
     case DIV_CMD_HINT_LEGATO:
+    case DIV_CMD_HINT_TREMOLO:
+    case DIV_CMD_HINT_PANBRELLO:
+    case DIV_CMD_HINT_PAN_SLIDE:
+    case DIV_CMD_HINT_PANNING:
       w->writeC((unsigned char)c.cmd+0xb4);
       break;
     default:
-      return; // quit for now... we'll implement this later
-      w->writeC(0xf2); // unoptimized extended command
+      return;
+      w->writeC(0xf7);
       w->writeC(c.cmd);
       break;
   }
@@ -118,9 +120,12 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
     case DIV_CMD_HINT_VIBRATO_SHAPE:
     case DIV_CMD_HINT_PITCH:
     case DIV_CMD_HINT_VOLUME:
+    case DIV_CMD_HINT_TREMOLO:
+    case DIV_CMD_HINT_PANBRELLO:
+    case DIV_CMD_HINT_PAN_SLIDE:
       w->writeC(c.value);
       break;
-    case DIV_CMD_PANNING:
+    case DIV_CMD_HINT_PANNING:
     case DIV_CMD_HINT_VIBRATO:
     case DIV_CMD_HINT_ARPEGGIO:
     case DIV_CMD_HINT_PORTA:
@@ -536,15 +541,11 @@ SafeWriter* DivEngine::saveCommand() {
       switch (i.cmd) {
         // strip away hinted/useless commands
         case DIV_CMD_GET_VOLUME:
-          break;
         case DIV_CMD_VOLUME:
-          break;
+        case DIV_CMD_PANNING:
         case DIV_CMD_NOTE_PORTA:
-          break;
         case DIV_CMD_LEGATO:
-          break;
         case DIV_CMD_PITCH:
-          break;
         case DIV_CMD_PRE_NOTE:
           break;
         default:
@@ -806,119 +807,6 @@ SafeWriter* DivEngine::saveCommand() {
     sortedCmd[sortPos]=sortCand;
     cmdPopularity[sortCand]=0;
     sortPos++;
-  }*/
-
-  /*
-  for (int i=0; i<chans; i++) {
-    // optimize stream
-    SafeWriter* oldStream=chanStream[i];
-    SafeReader* reader=oldStream->toReader();
-    chanStream[i]=new SafeWriter;
-    chanStream[i]->init();
-
-    while (1) {
-      try {
-        unsigned char next=reader->readC();
-        switch (next) {
-          case 0xb8: // instrument
-          case 0xc0: // pre porta
-          case 0xc3: // vibrato range
-          case 0xc4: // vibrato shape
-          case 0xc5: // pitch
-          case 0xc7: // volume
-          case 0xca: // legato
-            chanStream[i]->writeC(next);
-            next=reader->readC();
-            chanStream[i]->writeC(next);
-            break;
-          case 0xbe: // panning
-          case 0xc2: // vibrato
-          case 0xc6: // arpeggio
-          case 0xc8: // vol slide
-          case 0xc9: // porta
-            chanStream[i]->writeC(next);
-            next=reader->readC();
-            chanStream[i]->writeC(next);
-            next=reader->readC();
-            chanStream[i]->writeC(next);
-            break;
-          case 0xf2: { // full command (pre)
-            unsigned char cmd=reader->readC();
-            bool foundShort=false;
-            for (int j=0; j<16; j++) {
-              if (sortedCmd[j]==cmd) {
-                chanStream[i]->writeC(0xd0+j);
-                foundShort=true;
-                break;
-              }
-            }
-            if (!foundShort) {
-              chanStream[i]->writeC(0xf7); // full command
-              chanStream[i]->writeC(cmd);
-            }
-
-            unsigned char cmdLen=reader->readC();
-            logD("cmdLen: %d",cmdLen);
-            for (unsigned char j=0; j<cmdLen; j++) {
-              next=reader->readC();
-              chanStream[i]->writeC(next);
-            }
-            break;
-          }
-          case 0xfb: // tick rate
-            chanStream[i]->writeC(next);
-            next=reader->readC();
-            chanStream[i]->writeC(next);
-            next=reader->readC();
-            chanStream[i]->writeC(next);
-            next=reader->readC();
-            chanStream[i]->writeC(next);
-            next=reader->readC();
-            chanStream[i]->writeC(next);
-            break;
-          case 0xfc: { // 16-bit wait
-            unsigned short delay=reader->readS();
-            bool foundShort=false;
-            for (int j=0; j<16; j++) {
-              if (sortedDelay[j]==delay) {
-                chanStream[i]->writeC(0xe0+j);
-                foundShort=true;
-                break;
-              }
-            }
-            if (!foundShort) {
-              chanStream[i]->writeC(next);
-              chanStream[i]->writeS(delay);
-            }
-            break;
-          }
-          case 0xfd: { // 8-bit wait
-            unsigned char delay=reader->readC();
-            bool foundShort=false;
-            for (int j=0; j<16; j++) {
-              if (sortedDelay[j]==delay) {
-                chanStream[i]->writeC(0xe0+j);
-                foundShort=true;
-                break;
-              }
-            }
-            if (!foundShort) {
-              chanStream[i]->writeC(next);
-              chanStream[i]->writeC(delay);
-            }
-            break;
-          }
-          default:
-            chanStream[i]->writeC(next);
-            break;
-        }
-      } catch (EndOfFileException& e) {
-        break;
-      }
-    }
-
-    oldStream->finish();
-    delete oldStream;
   }*/
 
   // write results
