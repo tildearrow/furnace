@@ -1613,6 +1613,17 @@ struct MappedInput {
     scan(s), val(v) {}
 };
 
+struct CSDisAsmIns {
+  unsigned int addr;
+  unsigned char data[8];
+  unsigned char len;
+  CSDisAsmIns():
+    addr(0),
+    len(0) {
+    memset(data,0,8);
+  }
+};
+
 struct FurnaceCV;
 
 class FurnaceGUI {
@@ -2743,6 +2754,8 @@ class FurnaceGUI {
 
   // command stream player
   ImGuiListClipper csClipper;
+  unsigned int csDisAsmAddr;
+  std::vector<CSDisAsmIns> csDisAsm;
 
   // export options
   DivAudioExportOptions audioExportOptions;

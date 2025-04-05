@@ -24,7 +24,7 @@
 #include "../ta-log.h"
 
 bool DivCSChannelState::doCall(unsigned int addr) {
-  if (callStackPos>=8) {
+  if (callStackPos>=16) {
     readPos=0;
     return false;
   }
@@ -45,6 +45,10 @@ size_t DivCSPlayer::getDataLen() {
 
 DivCSChannelState* DivCSPlayer::getChanState(int ch) {
   return &chan[ch];
+}
+
+unsigned int DivCSPlayer::getFileChans() {
+  return fileChans;
 }
 
 unsigned char* DivCSPlayer::getFastDelays() {
@@ -471,9 +475,9 @@ bool DivCSPlayer::init() {
 
   if (memcmp(magic,"FCS",4)!=0) return false;
 
-  unsigned int chans=stream.readI();
+  fileChans=stream.readI();
 
-  for (unsigned int i=0; i<chans; i++) {
+  for (unsigned int i=0; i<fileChans; i++) {
     if (i>=DIV_MAX_CHANS) {
       stream.readI();
       continue;

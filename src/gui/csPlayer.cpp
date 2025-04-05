@@ -273,7 +273,7 @@ void FurnaceGUI::drawCSPlayer() {
             for (int i=0; i<chans; i++) {
               DivCSChannelState* state=cs->getChanState(i);
               ImGui::TableNextColumn();
-              ImGui::Text("%d: $%.4x",i,state->readPos);
+              ImGui::Text("%d: $%.4x (>>%d)",i,state->readPos,state->callStackPos);
             }
 
             ImGui::TableNextRow();
@@ -303,6 +303,90 @@ void FurnaceGUI::drawCSPlayer() {
           ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem(_("Disassemble"))) {
+          bool mustProceed=false;
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Address");
+          ImGui::SameLine();
+          ImGui::InputScalar("##DisAsmAddr",ImGuiDataType_U32,&csDisAsmAddr,0,0,"%.8X",ImGuiInputTextFlags_CharsHexadecimal);
+          ImGui::SameLine();
+          if (ImGui::Button("Go")) {
+            mustProceed=true;
+          }
+
+          if (mustProceed) {
+            csDisAsm.clear();
+            unsigned char* buf=cs->getData();
+            for (size_t i=csDisAsmAddr; i<cs->getDataLen();) {
+              int insLen=DivCS::getInsLength(buf[i]);
+              if (insLen<1) {
+                logE("INS %x NOT IMPLEMENTED...",buf[i]);
+                break;
+              }
+
+              CSDisAsmIns ins;
+              ins.addr=i;
+              memcpy(ins.data,&buf[i],insLen);
+              ins.len=insLen;
+              csDisAsm.push_back(ins);
+
+              i+=insLen;
+            }
+          }
+          
+          if (!csDisAsm.empty()) {
+            ImGui::PushFont(patFont);
+            if (ImGui::BeginTable("CSDisAsm",chans,ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_ScrollY)) {
+              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,oneChar.x*2.0f);
+              ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,oneChar.x*9.0f);
+              ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,oneChar.x*3.0f*6.0f);
+              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
+              ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+              ImGui::TableNextColumn();
+              ImGui::Text("pc");
+              ImGui::TableNextColumn();
+              ImGui::Text("addr");
+              ImGui::TableNextColumn();
+              ImGui::Text("hex");
+              ImGui::TableNextColumn();
+              ImGui::Text("ins");
+
+              for (CSDisAsmIns& i: csDisAsm) {
+                ImGui::TableNextRow(0,oneChar.y);
+                ImGui::TableNextColumn();
+                // this is the "PC is here row"...
+
+
+                ImGui::TableNextColumn();
+                ImGui::Text("%.8x",i.addr);
+
+                ImGui::TableNextColumn();
+                for (int j=0; j<i.len; j++) {
+                  ImGui::Text("%.2x",i.data[j]);
+                  ImGui::SameLine();
+                }
+
+                ImGui::TableNextColumn();
+                String dis=disasmCmd(i.data,8,0);
+                ImGui::Text("%s",dis.c_str());
+
+                // jmp/ret separator
+                if (i.data[0]==0xf9 || i.data[0]==0xfa) {
+                  ImGui::TableNextRow(0,oneChar.y);
+                  ImGui::TableNextColumn();
+                  ImGui::Separator();
+                  ImGui::TableNextColumn();
+                  ImGui::Separator();
+                  ImGui::TableNextColumn();
+                  ImGui::Separator();
+                  ImGui::TableNextColumn();
+                  ImGui::Separator();
+                }
+              }
+
+              ImGui::EndTable();
+            }
+            ImGui::PopFont();
+          }
           ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem(_("Hex"))) {
@@ -420,6 +504,21 @@ void FurnaceGUI::drawCSPlayer() {
             ImGui::EndTable();
           }
           ImGui::PopFont();
+          ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem(_("Stream Info"))) {
+          ImGui::Text("%d bytes",(int)cs->getDataLen());
+          ImGui::Text("%u channels",cs->getFileChans());
+          ImGui::Text("preset delays:");
+          for (int i=0; i<16; i++) {
+            ImGui::SameLine();
+            ImGui::Text("%d",cs->getFastDelays()[i]);
+          }
+          ImGui::Text("speed dial commands:");
+          for (int i=0; i<16; i++) {
+            ImGui::SameLine();
+            ImGui::Text("%d",cs->getFastCmds()[i]);
+          }
           ImGui::EndTabItem();
         }
         ImGui::EndTabBar();

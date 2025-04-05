@@ -39,7 +39,7 @@ struct DivCSChannelState {
   int portaTarget, portaSpeed;
   unsigned char arp, arpStage, arpTicks, loopCount;
 
-  unsigned int callStack[8];
+  unsigned int callStack[16];
   unsigned char callStackPos;
 
   unsigned int trace[DIV_MAX_CSTRACE];
@@ -83,12 +83,14 @@ class DivCSPlayer {
   unsigned char fastDelays[16];
   unsigned char fastCmds[16];
   unsigned char arpSpeed;
+  unsigned int fileChans;
 
   short vibTable[64];
   public:
     unsigned char* getData();
     size_t getDataLen();
     DivCSChannelState* getChanState(int ch);
+    unsigned int getFileChans();
     unsigned char* getFastDelays();
     unsigned char* getFastCmds();
     void cleanup();
@@ -99,6 +101,11 @@ class DivCSPlayer {
       b(buf),
       bLen(len),
       stream(buf,len) {}
+};
+
+// command stream utilities
+namespace DivCS {
+  int getInsLength(unsigned char ins, unsigned char ext=0);
 };
 
 #endif

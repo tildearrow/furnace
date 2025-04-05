@@ -23,7 +23,7 @@
 
 //#define DISABLE_BLOCK_SEARCH
 
-int getInsLength(unsigned char ins) {
+int DivCS::getInsLength(unsigned char ins, unsigned char ext) {
   switch (ins) {
     case 0xb8: // ins
     case 0xc0: // pre porta
@@ -49,8 +49,11 @@ int getInsLength(unsigned char ins) {
     case 0xf0: // opt
       return 4;
     case 0xf2: // opt command
-    case 0xf7: // cmd
+    case 0xf7: { // cmd
+      // determine length from secondary
+      if (ext==0) return 0;
       return 0;
+    }
     case 0xf8: // callb16
     case 0xfc: // waits
       return 3;
@@ -232,6 +235,8 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
   }
 }
 
+using namespace DivCS;
+
 void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int destAddr) {
   unsigned int delta=destAddr-sourceAddr;
   for (size_t i=0; i<len;) {
@@ -325,6 +330,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
       size_t subBlockID=subBlocks.size();
       int insLen=getInsLength(buf[searchPos]);
       bool haveSub=false;
+      bool onlyCalls=true;
 
       if (insLen<1) {
         logE("INS %x NOT IMPLEMENTED...",buf[searchPos]);
@@ -333,6 +339,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
 
       // register this block
       for (size_t i=0; i<groupSize && i<stream->size();) {
+        if (buf[searchPos+i]!=0xf4) onlyCalls=false;
         int insLenI=getInsLength(buf[searchPos+i]);
         if (insLenI<1) {
           logE("INS %x NOT IMPLEMENTED...",buf[searchPos+i]);
@@ -352,6 +359,13 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
 
       // don't do anything if this is just one or two commands
       if (groupInsCount<3) {
+        searchPos+=insLen;
+        continue;
+      }
+
+      // don't do anything if this block only consists of calls
+      if (onlyCalls) {
+        logW("nothing but calls.");
         searchPos+=insLen;
         continue;
       }
@@ -563,6 +577,12 @@ SafeWriter* DivEngine::saveCommand() {
   }
   logV("%d",tick);
   cmdStreamEnabled=oldCmdStreamEnabled;
+
+  remainingLoops=-1;
+  playing=false;
+  freelance=false;
+  extValuePresent=false;
+  BUSY_END;
 
   // PASS 1: condense delays
   // calculate delay usage
@@ -927,12 +947,6 @@ SafeWriter* DivEngine::saveCommand() {
     w->writeC(sortedCmd[i]);
     if (sortedCmdPopularity[i]) logD("- %s: %d",cmdName[sortedCmd[i]],sortedCmdPopularity[i]);
   }
-
-  remainingLoops=-1;
-  playing=false;
-  freelance=false;
-  extValuePresent=false;
-  BUSY_END;
 
   return w;
 }
