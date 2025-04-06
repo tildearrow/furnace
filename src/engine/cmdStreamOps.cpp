@@ -951,7 +951,7 @@ SafeWriter* DivEngine::saveCommand() {
           if (buf[i+1]==sortedCmd[j]) {
             buf[i]=0xd0+j;
             // move everything to the left
-            for (int k=i+2; k<insLen; k++) {
+            for (int k=i+2; k<(int)i+insLen; k++) {
               buf[k-1]=buf[k];
             }
             // put a nop
