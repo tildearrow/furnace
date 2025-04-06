@@ -104,6 +104,12 @@ String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr) {
       if (addr+2>=bufLen) return "???";
       return fmt::sprintf("pan $%x, $%x",(int)buf[addr+1],(int)buf[addr+2]);
       break;
+    case 0xd0: case 0xd1: case 0xd2: case 0xd3:
+    case 0xd4: case 0xd5: case 0xd6: case 0xd7:
+    case 0xd8: case 0xd9: case 0xda: case 0xdb:
+    case 0xdc: case 0xdd: case 0xde: case 0xdf:
+      return "qcmd";
+      break;
     case 0xe0: case 0xe1: case 0xe2: case 0xe3:
     case 0xe4: case 0xe5: case 0xe6: case 0xe7:
     case 0xe8: case 0xe9: case 0xea: case 0xeb:
@@ -129,7 +135,7 @@ String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr) {
       return fmt::sprintf("call %.8x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)|(buf[addr+3]<<16)|(buf[addr+4]<<24)));
       break;
     case 0xf7:
-      return "CMD";
+      return "cmd";
       break;
     case 0xf8:
       if (addr+2>=bufLen) return "???";
@@ -329,7 +335,7 @@ void FurnaceGUI::drawCSPlayer() {
             csDisAsm.clear();
             unsigned char* buf=cs->getData();
             for (size_t i=csDisAsmAddr; i<cs->getDataLen();) {
-              int insLen=DivCS::getInsLength(buf[i]);
+              int insLen=DivCS::getInsLength(buf[i],(((i+1)<cs->getDataLen())?buf[i+1]:0),cs->getFastCmds());
               if (insLen<1) {
                 logE("INS %x NOT IMPLEMENTED...",buf[i]);
                 break;

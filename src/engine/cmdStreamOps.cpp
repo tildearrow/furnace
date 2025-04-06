@@ -913,7 +913,32 @@ SafeWriter* DivEngine::saveCommand() {
   extValuePresent=false;
   BUSY_END;
 
-  // PASS 1: condense delays
+  // PASS 1: optimize command calls
+  // calculate command usage
+  int sortCand=-1;
+  int sortPos=0;
+  while (sortPos<16) {
+    sortCand=-1;
+    for (int i=DIV_CMD_SAMPLE_MODE; i<256; i++) {
+      if (cmdPopularity[i]) {
+        if (sortCand==-1) {
+          sortCand=i;
+        } else if (cmdPopularity[sortCand]<cmdPopularity[i]) {
+          sortCand=i;
+        }
+      }
+    }
+    if (sortCand==-1) break;
+
+    sortedCmdPopularity[sortPos]=cmdPopularity[sortCand];
+    sortedCmd[sortPos]=sortCand;
+    cmdPopularity[sortCand]=0;
+    sortPos++;
+  }
+
+  // set speed dial commands (TODO)
+
+  // PASS 2: condense delays
   // calculate delay usage
   for (int h=0; h<chans; h++) {
     unsigned char* buf=chanStream[h]->getFinalBuf();
@@ -937,8 +962,8 @@ SafeWriter* DivEngine::saveCommand() {
   }
 
   // preset delays
-  int sortCand=-1;
-  int sortPos=0;
+  sortCand=-1;
+  sortPos=0;
   while (sortPos<16) {
     sortCand=-1;
     for (int i=0; i<256; i++) {
@@ -1015,14 +1040,14 @@ SafeWriter* DivEngine::saveCommand() {
     }
   }
 
-  // PASS 2: remove nop's
+  // PASS 3: remove nop's
   // this includes modifying call addresses to compensate
   for (int h=0; h<chans; h++) {
     chanStream[h]=stripNops(chanStream[h],sortedCmd);
   }
 
 #ifndef DISABLE_BLOCK_SEARCH
-  // PASS 3: find sub-blocks and isolate them
+  // PASS 4: find sub-blocks and isolate them
   for (int h=0; h<chans; h++) {
     std::vector<SafeWriter*> subBlocks;
     size_t beforeSize=chanStream[h]->size();
@@ -1109,33 +1134,10 @@ SafeWriter* DivEngine::saveCommand() {
   }
 #endif
 
-  // PASS 4: remove nop's (again)
+  // PASS 5: remove nop's (again)
   for (int h=0; h<chans; h++) {
     chanStream[h]=stripNops(chanStream[h],sortedCmd);
   }
-
-  // PASS 5: optimize command calls
-  /*
-  int sortCand=-1;
-  int sortPos=0;
-  while (sortPos<16) {
-    sortCand=-1;
-    for (int i=DIV_CMD_SAMPLE_MODE; i<256; i++) {
-      if (cmdPopularity[i]) {
-        if (sortCand==-1) {
-          sortCand=i;
-        } else if (cmdPopularity[sortCand]<cmdPopularity[i]) {
-          sortCand=i;
-        }
-      }
-    }
-    if (sortCand==-1) break;
-
-    sortedCmdPopularity[sortPos]=cmdPopularity[sortCand];
-    sortedCmd[sortPos]=sortCand;
-    cmdPopularity[sortCand]=0;
-    sortPos++;
-  }*/
 
   // write results
   for (int i=0; i<chans; i++) {
