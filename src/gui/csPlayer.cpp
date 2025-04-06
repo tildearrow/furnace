@@ -126,7 +126,7 @@ String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr, unsigned 
       break;
     case 0xf0:
       if (addr+3>=bufLen) return "???";
-      return fmt::sprintf("opt %.2x%.2x%.2x",(int)buf[addr+1],(int)buf[addr+2],(int)buf[addr+3]);
+      return fmt::sprintf("opt $%.2x%.2x%.2x",(int)buf[addr+1],(int)buf[addr+2],(int)buf[addr+3]);
       break;
     case 0xf1:
       return "nop";
@@ -136,11 +136,11 @@ String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr, unsigned 
       break;
     case 0xf4:
       if (addr+2>=bufLen) return "???";
-      return fmt::sprintf("callsym %.4x",(int)(buf[addr+1]|(buf[addr+2]<<8)));
+      return fmt::sprintf("callsym $%.4x",(int)(buf[addr+1]|(buf[addr+2]<<8)));
       break;
     case 0xf5:
       if (addr+4>=bufLen) return "???";
-      return fmt::sprintf("call %.8x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)|(buf[addr+3]<<16)|(buf[addr+4]<<24)));
+      return fmt::sprintf("call $%.8x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)|(buf[addr+3]<<16)|(buf[addr+4]<<24)));
       break;
     case 0xf7: {
       if (addr+1>=bufLen) return "???";
@@ -155,16 +155,16 @@ String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr, unsigned 
     }
     case 0xf8:
       if (addr+2>=bufLen) return "???";
-      return fmt::sprintf("call %.4x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)));
+      return fmt::sprintf("call $%.4x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)));
       break;
     case 0xf9:
       return "ret";
       break;
     case 0xfa:
-      return fmt::sprintf("jmp %.8x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)|(buf[addr+3]<<16)|(buf[addr+4]<<24)));
+      return fmt::sprintf("jmp $%.8x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)|(buf[addr+3]<<16)|(buf[addr+4]<<24)));
       break;
     case 0xfb:
-      return fmt::sprintf("rate %.8x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)|(buf[addr+3]<<16)|(buf[addr+4]<<24)));
+      return fmt::sprintf("rate $%.8x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)|(buf[addr+3]<<16)|(buf[addr+4]<<24)));
       break;
     case 0xfc:
       if (addr+2>=bufLen) return "???";

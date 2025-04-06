@@ -579,14 +579,21 @@ void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int
       break;
     }
     switch (buf[i]) {
-      case 0xf5: // call
+      case 0xf5: // calli
       case 0xfa: { // jmp
-        unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<8)|(buf[i+4]<<24);
+        unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<16)|(buf[i+4]<<24);
         addr+=delta;
         buf[i+1]=addr&0xff;
         buf[i+2]=(addr>>8)&0xff;
         buf[i+3]=(addr>>16)&0xff;
         buf[i+4]=(addr>>24)&0xff;
+        break;
+      }
+      case 0xf8: { // call
+        unsigned short addr=buf[i+1]|(buf[i+2]<<8);
+        addr+=delta;
+        buf[i+1]=addr&0xff;
+        buf[i+2]=(addr>>8)&0xff;
         break;
       }
     }
@@ -622,15 +629,26 @@ SafeWriter* stripNops(SafeWriter* s, unsigned char* speedDial) {
       break;
     }
     switch (buf[i]) {
-      case 0xf5: // call
+      case 0xf5: // calli
       case 0xfa: { // jmp
-        unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<8)|(buf[i+4]<<24);
+        unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<16)|(buf[i+4]<<24);
         try {
           addr=addrTable[addr];
           buf[i+1]=addr&0xff;
           buf[i+2]=(addr>>8)&0xff;
           buf[i+3]=(addr>>16)&0xff;
           buf[i+4]=(addr>>24)&0xff;
+        } catch (std::out_of_range& e) {
+          logW("address %x is not mappable!",addr);
+        }
+        break;
+      }
+      case 0xf8: { // call
+        unsigned int addr=buf[i+1]|(buf[i+2]<<8);
+        try {
+          addr=addrTable[addr];
+          buf[i+1]=addr&0xff;
+          buf[i+2]=(addr>>8)&0xff;
         } catch (std::out_of_range& e) {
           logW("address %x is not mappable!",addr);
         }
@@ -1139,15 +1157,23 @@ SafeWriter* DivEngine::saveCommand() {
         break;
       }
       if (buf[j]==0xf4) { // callsym
-        unsigned int addr=buf[j+1]|(buf[j+2]<<8)|(buf[j+3]<<8)|(buf[j+4]<<24);
+        unsigned int addr=buf[j+1]|(buf[j+2]<<8)|(buf[j+3]<<16)|(buf[j+4]<<24);
         if (addr<blockOff.size()) {
           // turn it into call
           addr=blockOff[addr];
-          buf[j]=0xf5;
-          buf[j+1]=addr&0xff;
-          buf[j+2]=(addr>>8)&0xff;
-          buf[j+3]=(addr>>16)&0xff;
-          buf[j+4]=(addr>>24)&0xff;
+          if (addr<=0xffff) {
+            buf[j]=0xf8;
+            buf[j+1]=addr&0xff;
+            buf[j+2]=(addr>>8)&0xff;
+            buf[j+3]=0xf1;
+            buf[j+4]=0xf1;
+          } else {
+            buf[j]=0xf5;
+            buf[j+1]=addr&0xff;
+            buf[j+2]=(addr>>8)&0xff;
+            buf[j+3]=(addr>>16)&0xff;
+            buf[j+4]=(addr>>24)&0xff;
+          }
         } else {
           logE("requested symbol %d is out of bounds!",addr);
         }
