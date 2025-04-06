@@ -22,7 +22,7 @@
 #include "imgui.h"
 #include "guiConst.h"
 
-String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr) {
+String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr, unsigned char* speedDial) {
   if (addr>=bufLen) return "???";
 
   if (buf[addr]<0xb4) {
@@ -107,9 +107,17 @@ String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr) {
     case 0xd0: case 0xd1: case 0xd2: case 0xd3:
     case 0xd4: case 0xd5: case 0xd6: case 0xd7:
     case 0xd8: case 0xd9: case 0xda: case 0xdb:
-    case 0xdc: case 0xdd: case 0xde: case 0xdf:
-      return "qcmd";
+    case 0xdc: case 0xdd: case 0xde: case 0xdf: {
+      unsigned char cmd=speedDial[buf[addr]&15];
+      int cmdLen=DivCS::getCmdLength(cmd);
+      if ((addr+cmdLen)>=bufLen) return "???";
+      String ret=fmt::sprintf("qcmd%d %s",buf[addr]-0xd0,(cmd<DIV_CMD_MAX)?cmdName[cmd]:"INVALID");
+      for (int i=0; i<cmdLen; i++) {
+        ret+=fmt::sprintf(", %.2x",buf[addr+1+i]);
+      }
+      return ret;
       break;
+    }
     case 0xe0: case 0xe1: case 0xe2: case 0xe3:
     case 0xe4: case 0xe5: case 0xe6: case 0xe7:
     case 0xe8: case 0xe9: case 0xea: case 0xeb:
@@ -134,9 +142,17 @@ String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr) {
       if (addr+4>=bufLen) return "???";
       return fmt::sprintf("call %.8x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)|(buf[addr+3]<<16)|(buf[addr+4]<<24)));
       break;
-    case 0xf7:
-      return "cmd";
+    case 0xf7: {
+      if (addr+1>=bufLen) return "???";
+      int cmdLen=DivCS::getCmdLength(buf[addr+1]);
+      if ((addr+1+cmdLen)>=bufLen) return "???";
+      String ret=fmt::sprintf("cmd %s",(buf[addr+1]<DIV_CMD_MAX)?cmdName[buf[addr+1]]:"INVALID");
+      for (int i=0; i<cmdLen; i++) {
+        ret+=fmt::sprintf(", %.2x",buf[addr+2+i]);
+      }
+      return ret;
       break;
+    }
     case 0xf8:
       if (addr+2>=bufLen) return "???";
       return fmt::sprintf("call %.4x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)));
@@ -309,7 +325,7 @@ void FurnaceGUI::drawCSPlayer() {
                 if (state->trace[j]==0) {
                   ImGui::TextUnformatted("...");
                 } else {
-                  String dis=disasmCmd(buf,bufSize,state->trace[j]);
+                  String dis=disasmCmd(buf,bufSize,state->trace[j],cs->getFastCmds());
                   ImGui::Text("%.4x: %s",state->trace[j],dis.c_str());
                 }
               }
@@ -384,7 +400,7 @@ void FurnaceGUI::drawCSPlayer() {
                 }
 
                 ImGui::TableNextColumn();
-                String dis=disasmCmd(i.data,8,0);
+                String dis=disasmCmd(i.data,8,0,cs->getFastCmds());
                 ImGui::Text("%s",dis.c_str());
 
                 // jmp/ret separator

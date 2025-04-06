@@ -937,6 +937,32 @@ SafeWriter* DivEngine::saveCommand() {
   }
 
   // set speed dial commands (TODO)
+  for (int h=0; h<chans; h++) {
+    unsigned char* buf=chanStream[h]->getFinalBuf();
+    for (size_t i=0; i<chanStream[h]->size();) {
+      int insLen=getInsLength(buf[i],_EXT(buf,i,chanStream[h]->size()),sortedCmd);
+      if (insLen<1) {
+        logE("INS %x NOT IMPLEMENTED...",buf[i]);
+        break;
+      }
+      if (buf[i]==0xf7) {
+        // find whether this command is in speed dial
+        for (int j=0; j<16; j++) {
+          if (buf[i+1]==sortedCmd[j]) {
+            buf[i]=0xd0+j;
+            // move everything to the left
+            for (int k=i+2; k<insLen; k++) {
+              buf[k-1]=buf[k];
+            }
+            // put a nop
+            buf[i+insLen-1]=0xf1;
+            break;
+          }
+        }
+      }
+      i+=insLen;
+    }
+  }
 
   // PASS 2: condense delays
   // calculate delay usage
@@ -1163,7 +1189,7 @@ SafeWriter* DivEngine::saveCommand() {
   logD("command popularity:");
   for (int i=0; i<16; i++) {
     w->writeC(sortedCmd[i]);
-    if (sortedCmdPopularity[i]) logD("- %s: %d",cmdName[sortedCmd[i]],sortedCmdPopularity[i]);
+    if (sortedCmdPopularity[i]) logD("- %s ($%.2x): %d",cmdName[sortedCmd[i]],sortedCmd[i],sortedCmdPopularity[i]);
   }
 
   return w;

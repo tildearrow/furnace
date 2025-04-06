@@ -121,6 +121,12 @@ bool DivCSPlayer::tick() {
         case 0xcf:
           command=next-0xb4;
           break;
+        case 0xd0: case 0xd1: case 0xd2: case 0xd3:
+        case 0xd4: case 0xd5: case 0xd6: case 0xd7:
+        case 0xd8: case 0xd9: case 0xda: case 0xdb:
+        case 0xdc: case 0xdd: case 0xde: case 0xdf:
+          command=fastCmds[next-0xd0];
+          break;
         case 0xf0: // placeholder
           stream.readC();
           stream.readC();
