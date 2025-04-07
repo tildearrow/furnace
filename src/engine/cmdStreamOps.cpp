@@ -685,6 +685,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
 
   // repeat until we run out of matches
   while (true) {
+    matchSize=48;
     matches.clear();
 
     // fast match algorithm
@@ -776,7 +777,14 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
     std::vector<BlockMatch> workMatches;
     bool newBlocks=false;
 
-    while (matchSize>=48) {
+      // try with a smaller size
+      matchSize=0;
+      for (BlockMatch& i: matches) {
+        if (i.done) continue;
+        if (i.len>matchSize) matchSize=i.len;
+      }
+
+    //while (matchSize>=48) {
       workMatches.clear();
       // find matches with matching size
       for (BlockMatch& i: matches) {
@@ -817,9 +825,9 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
           } else {
             blockSize=0;
           }
-          gains=-6;
+          gains=-4;
         }
-        gains+=(blockSize-5);
+        gains+=(blockSize-3);
       }
 
       // make sub-blocks
@@ -903,16 +911,10 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
         }
       }
 
-      // try with a smaller size
-      matchSize=0;
-      for (BlockMatch& i: matches) {
-        if (i.done) continue;
-        if (i.len>matchSize) matchSize=i.len;
-      }
-      if (matchSize>=48) {
-        logV("trying next size %d",matchSize);
-      }
-    }
+      //if (matchSize>=48) {
+        //logV("trying next size %d",matchSize);
+      //}
+    //}
 
     logV("done!");
 
@@ -1374,11 +1376,11 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
           if (addr<blockOff.size()) {
             // turn it into call
             addr=blockOff[addr];
-            buf[j]=0xf5;
+            buf[j]=0xf8;
             buf[j+1]=addr&0xff;
             buf[j+2]=(addr>>8)&0xff;
-            buf[j+3]=(addr>>16)&0xff;
-            buf[j+4]=(addr>>24)&0xff;
+            //buf[j+3]=(addr>>16)&0xff;
+            //buf[j+4]=(addr>>24)&0xff;
           } else {
             logE("requested symbol %d is out of bounds!",addr);
           }
