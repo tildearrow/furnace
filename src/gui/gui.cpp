@@ -8877,6 +8877,7 @@ FurnaceGUI::FurnaceGUI():
   curTutorialStep(0),
   dmfExportVersion(0),
   curExportType(GUI_EXPORT_NONE),
+  csExportDisablePass(0),
   romTarget(DIV_ROM_ABSTRACT),
   romMultiFile(false),
   romExportSave(false),

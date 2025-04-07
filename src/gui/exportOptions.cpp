@@ -380,16 +380,38 @@ void FurnaceGUI::drawExportText(bool onWindow) {
   }
 }
 
+void FurnaceGUI::commandExportOptions() {
+  bool noCmdCallOpt=(csExportDisablePass&1);
+  bool noDelayCondense=(csExportDisablePass&2);
+  bool noSubBlock=(csExportDisablePass&4);
+
+  if (ImGui::Checkbox(_("Don't optimize command calls"),&noCmdCallOpt)) {
+    csExportDisablePass&=~1;
+    csExportDisablePass|=noCmdCallOpt?1:0;
+  }
+  if (ImGui::Checkbox(_("Don't condense delays"),&noDelayCondense)) {
+    csExportDisablePass&=~2;
+    csExportDisablePass|=noDelayCondense?2:0;
+  }
+  if (ImGui::Checkbox(_("Don't perform sub-block search"),&noSubBlock)) {
+    csExportDisablePass&=~4;
+    csExportDisablePass|=noSubBlock?4:0;
+  }
+}
+
 void FurnaceGUI::drawExportCommand(bool onWindow) {
   exitDisabledTimer=1;
   
   ImGui::Text(_(
-    "this option exports a text or binary file which\n"
+    "this option exports a binary file which\n"
     "contains a dump of the internal command stream\n"
     "produced when playing the song.\n\n"
 
     "technical/development use only!"
   ));
+
+  commandExportOptions();
+
   if (onWindow) {
     ImGui::Separator();
     if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();

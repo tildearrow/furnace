@@ -273,7 +273,7 @@ int DivCS::getInsLength(unsigned char ins, unsigned char ext, unsigned char* spe
   return 1;
 }
 
-void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
+void writeCommandValues(SafeWriter* w, const DivCommand& c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
       if (c.value==DIV_NOTE_NULL) {
@@ -562,6 +562,8 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
       logW("unimplemented command %s!",cmdName[c.cmd]);
       break;
   }
+  // padding (TODO: optimize)
+  while (w->tell()&7) w->writeC(0);
 }
 
 #define _EXT(b,x,l) (((size_t)((x)+1)<(size_t)(l))?(b[(x)+1]):0)
@@ -608,19 +610,181 @@ SafeWriter* stripNops(SafeWriter* s, unsigned char* speedDial) {
 
   // prepare address map
   size_t addr=0;
-  for (size_t i=0; i<oldStream->size();) {
-    int insLen=getInsLength(buf[i],_EXT(buf,i,oldStream->size()),speedDial);
-    if (insLen<1) {
-      logE("INS %x NOT IMPLEMENTED...",buf[i]);
-      break;
-    }
+  for (size_t i=0; i<oldStream->size(); i+=8) {
     addrTable[i]=addr;
-    if (buf[i]!=0xf1) addr+=insLen;
-    i+=insLen;
+    if (buf[i]!=0xf1) addr+=8;
   }
 
   // translate addresses
-  for (size_t i=0; i<oldStream->size();) {
+  for (size_t i=0; i<oldStream->size(); i+=8) {
+    switch (buf[i]) {
+      case 0xf5: // calli
+      case 0xfa: { // jmp
+        unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<16)|(buf[i+4]<<24);
+        try {
+          addr=addrTable[addr];
+          buf[i+1]=addr&0xff;
+          buf[i+2]=(addr>>8)&0xff;
+          buf[i+3]=(addr>>16)&0xff;
+          buf[i+4]=(addr>>24)&0xff;
+        } catch (std::out_of_range& e) {
+          logW("address %x is not mappable!",addr);
+        }
+        break;
+      }
+      case 0xf8: { // call
+        unsigned int addr=buf[i+1]|(buf[i+2]<<8);
+        try {
+          addr=addrTable[addr];
+          buf[i+1]=addr&0xff;
+          buf[i+2]=(addr>>8)&0xff;
+        } catch (std::out_of_range& e) {
+          logW("address %x is not mappable!",addr);
+        }
+        break;
+      }
+    }
+    if (buf[i]!=0xf1) {
+      s->write(&buf[i],8);
+    }
+  }
+  
+  oldStream->finish();
+  delete oldStream;
+  return s;
+}
+
+SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlocks, unsigned char* speedDial) {
+  unsigned char* buf=stream->getFinalBuf();
+
+  for (size_t groupSize=stream->size()>>1; groupSize>=32; groupSize-=8) {
+    bool foundSomething=false;
+    logV("...try size %d",groupSize);
+    for (size_t searchPos=0; (searchPos+groupSize)<stream->size();) {
+      const unsigned char* group=&buf[searchPos];
+      size_t groupLen=0;
+      size_t groupInsCount=0;
+      size_t subBlockID=subBlocks.size();
+      bool haveSub=false;
+      bool onlyCalls=true;
+
+      // register this block
+      for (size_t i=0; i<groupSize && i<stream->size(); i+=8) {
+        if (buf[searchPos+i]!=0xf4) onlyCalls=false;
+        if (groupLen+8>groupSize) break;
+        groupLen+=8;
+        groupInsCount++;
+      }
+
+      // don't do anything if we don't have a block large enough
+      if (groupLen<24) {
+        searchPos+=8;
+        continue;
+      }
+
+      // don't do anything if this is just one or two commands
+      // TODO: this is a duplicate of the previous statement now that all commands are 8 bytes long
+      if (groupInsCount<3) {
+        searchPos+=8;
+        continue;
+      }
+
+      // don't do anything if this block only consists of calls
+      if (onlyCalls) {
+        logW("nothing but calls.");
+        searchPos+=8;
+        continue;
+      }
+
+      // find identical blocks
+      for (size_t i=searchPos+groupLen; i+groupLen<stream->size();) {
+        // compare next block to group
+        if (memcmp(&buf[i],group,groupLen)==0) {
+          // we have a sub-block
+          if (!haveSub) {
+            // isolate this sub-block
+            SafeWriter* newBlock=new SafeWriter;
+            newBlock->init();
+            newBlock->write(group,groupLen);
+            newBlock->writeC(0xf9); // ret
+            // padding
+            newBlock->writeC(0);
+            newBlock->writeC(0);
+            newBlock->writeC(0);
+            newBlock->writeC(0);
+            newBlock->writeC(0);
+            newBlock->writeC(0);
+            newBlock->writeC(0);
+            subBlocks.push_back(newBlock);
+            haveSub=true;
+          logD("- SUB %x (size %d):",searchPos,groupLen);
+          }
+          logD("  - %x",i);
+          // insert call
+          buf[i]=0xf4;
+          buf[i+1]=subBlockID&0xff;
+          buf[i+2]=(subBlockID>>8)&0xff;
+          buf[i+3]=(subBlockID>>16)&0xff;
+          buf[i+4]=(subBlockID>>24)&0xff;
+
+          // replace the rest with nop
+          for (size_t j=i+8; j<i+groupLen; j++) {
+            buf[j]=0xf1;
+          }
+
+          // continue search from end of block
+          i+=groupLen;
+        } else {
+          // next
+          i+=8;
+        }
+      }
+
+      if (haveSub) {
+        // insert call on the original block
+        buf[searchPos]=0xf4;
+        buf[searchPos+1]=subBlockID&0xff;
+        buf[searchPos+2]=(subBlockID>>8)&0xff;
+        buf[searchPos+3]=(subBlockID>>16)&0xff;
+        buf[searchPos+4]=(subBlockID>>24)&0xff;
+
+        // replace the rest with nop
+        for (size_t j=searchPos+8; j<searchPos+groupLen; j++) {
+          buf[j]=0xf1;
+        }
+
+        // skip this block (it's isolated now)
+        searchPos+=groupLen;
+        foundSomething=true;
+      } else {
+        // try again somewhere else
+        searchPos+=8;
+      }
+    }
+    if (foundSomething) {
+      stream=stripNops(stream,speedDial);
+      buf=stream->getFinalBuf();
+    }
+  }
+  return stream;
+}
+
+SafeWriter* packStream(SafeWriter* s, unsigned char* speedDial) {
+  std::unordered_map<unsigned int,unsigned int> addrTable;
+  SafeWriter* oldStream=s;
+  unsigned char* buf=oldStream->getFinalBuf();
+  s=new SafeWriter;
+  s->init();
+
+  // prepare address map
+  size_t addr=0;
+  for (size_t i=0; i<oldStream->size(); i+=8) {
+    addrTable[i]=addr;
+    addr+=getInsLength(buf[i],_EXT(buf,i,oldStream->size()),speedDial);
+  }
+
+  // translate addresses and write stream
+  for (size_t i=0; i<oldStream->size(); i+=8) {
     int insLen=getInsLength(buf[i],_EXT(buf,i,oldStream->size()),speedDial);
     if (insLen<1) {
       logE("INS %x NOT IMPLEMENTED...",buf[i]);
@@ -653,141 +817,12 @@ SafeWriter* stripNops(SafeWriter* s, unsigned char* speedDial) {
         break;
       }
     }
-    if (buf[i]!=0xf1) {
-      s->write(&buf[i],insLen);
-    }
-    i+=insLen;
+    s->write(&buf[i],insLen);
   }
   
-
   oldStream->finish();
   delete oldStream;
   return s;
-}
-
-SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlocks, unsigned char* speedDial) {
-  unsigned char* buf=stream->getFinalBuf();
-
-  for (size_t groupSize=stream->size()>>1; groupSize>=8; groupSize--) {
-  //for (size_t groupSize=7; groupSize<=stream->size()>>1; groupSize++) {
-    bool foundSomething=false;
-    logV("...try size %d",groupSize);
-    for (size_t searchPos=0; (searchPos+groupSize)<stream->size();) {
-      const unsigned char* group=&buf[searchPos];
-      size_t groupLen=0;
-      size_t groupInsCount=0;
-      size_t subBlockID=subBlocks.size();
-      int insLen=getInsLength(buf[searchPos],_EXT(buf,searchPos,stream->size()),speedDial);
-      bool haveSub=false;
-      bool onlyCalls=true;
-
-      if (insLen<1) {
-        logE("INS %x NOT IMPLEMENTED...",buf[searchPos]);
-        break;
-      }
-
-      // register this block
-      for (size_t i=0; i<groupSize && i<stream->size();) {
-        if (buf[searchPos+i]!=0xf4) onlyCalls=false;
-        int insLenI=getInsLength(buf[searchPos+i],_EXT(buf,searchPos+i,stream->size()),speedDial);
-        if (insLenI<1) {
-          logE("INS %x NOT IMPLEMENTED...",buf[searchPos+i]);
-          break;
-        }
-        i+=insLenI;
-        if (groupLen+insLenI>groupSize) break;
-        groupLen+=insLenI;
-        groupInsCount++;
-      }
-
-      // don't do anything if we don't have a block large enough
-      if (groupLen<5) {
-        searchPos+=insLen;
-        continue;
-      }
-
-      // don't do anything if this is just one or two commands
-      if (groupInsCount<3) {
-        searchPos+=insLen;
-        continue;
-      }
-
-      // don't do anything if this block only consists of calls
-      if (onlyCalls) {
-        logW("nothing but calls.");
-        searchPos+=insLen;
-        continue;
-      }
-
-      // find identical blocks
-      for (size_t i=searchPos+groupLen; i+groupLen<stream->size();) {
-        int insLenI=getInsLength(buf[i],_EXT(buf,i,stream->size()),speedDial);
-        if (insLenI<1) {
-          logE("INS %x NOT IMPLEMENTED...",buf[i]);
-          break;
-        }
-
-        // compare next block to group
-        if (memcmp(&buf[i],group,groupLen)==0) {
-          // we have a sub-block
-          if (!haveSub) {
-            // isolate this sub-block
-            SafeWriter* newBlock=new SafeWriter;
-            newBlock->init();
-            newBlock->write(group,groupLen);
-            newBlock->writeC(0xf9); // ret
-            subBlocks.push_back(newBlock);
-            haveSub=true;
-          logD("- SUB %x (size %d):",searchPos,groupLen);
-          }
-          logD("  - %x",i);
-          // insert call
-          buf[i]=0xf4;
-          buf[i+1]=subBlockID&0xff;
-          buf[i+2]=(subBlockID>>8)&0xff;
-          buf[i+3]=(subBlockID>>16)&0xff;
-          buf[i+4]=(subBlockID>>24)&0xff;
-
-          // replace the rest with nop
-          for (size_t j=i+5; j<i+groupLen; j++) {
-            buf[j]=0xf1;
-          }
-
-          // continue search from end of block
-          i+=groupLen;
-        } else {
-          // next
-          i+=insLenI;
-        }
-      }
-
-      if (haveSub) {
-        // insert call on the original block
-        buf[searchPos]=0xf4;
-        buf[searchPos+1]=subBlockID&0xff;
-        buf[searchPos+2]=(subBlockID>>8)&0xff;
-        buf[searchPos+3]=(subBlockID>>16)&0xff;
-        buf[searchPos+4]=(subBlockID>>24)&0xff;
-
-        // replace the rest with nop
-        for (size_t j=searchPos+5; j<searchPos+groupLen; j++) {
-          buf[j]=0xf1;
-        }
-
-        // skip this block (it's isolated now)
-        searchPos+=groupLen;
-        foundSomething=true;
-      } else {
-        // try again somewhere else
-        searchPos+=insLen;
-      }
-    }
-    if (foundSomething) {
-      stream=stripNops(stream,speedDial);
-      buf=stream->getFinalBuf();
-    }
-  }
-  return stream;
 }
 
 SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disablePasses) {
@@ -867,6 +902,11 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
             chanStream[i]->writeC(0x00);
             chanStream[i]->writeC(0x00);
             chanStream[i]->writeC(0x00);
+            // padding
+            chanStream[i]->writeC(0x00);
+            chanStream[i]->writeC(0x00);
+            chanStream[i]->writeC(0x00);
+            chanStream[i]->writeC(0x00);
           }
         }
       }
@@ -880,6 +920,10 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
       curDivider=divider;
       chanStream[0]->writeC(0xfb);
       chanStream[0]->writeI((int)(curDivider*65536));
+      // padding
+      chanStream[0]->writeC(0x00);
+      chanStream[0]->writeC(0x00);
+      chanStream[0]->writeC(0x00);
     }
     for (DivCommand& i: cmdStream) {
       switch (i.cmd) {
@@ -894,19 +938,35 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
           break;
         default:
           cmdPopularity[i.cmd]++;
-          writePackedCommandValues(chanStream[i.chan],i);
+          writeCommandValues(chanStream[i.chan],i);
           break;
       }
     }
     cmdStream.clear();
     for (int i=0; i<chans; i++) {
       chanStream[i]->writeC(0xfe);
+      // padding
+      chanStream[i]->writeC(0x00);
+      chanStream[i]->writeC(0x00);
+      chanStream[i]->writeC(0x00);
+      chanStream[i]->writeC(0x00);
+      chanStream[i]->writeC(0x00);
+      chanStream[i]->writeC(0x00);
+      chanStream[i]->writeC(0x00);
     }
     tick++;
   }
   if (!playing || loopTick<0) {
     for (int i=0; i<chans; i++) {
       chanStream[i]->writeC(0xff);
+      // padding
+      chanStream[i]->writeC(0x00);
+      chanStream[i]->writeC(0x00);
+      chanStream[i]->writeC(0x00);
+      chanStream[i]->writeC(0x00);
+      chanStream[i]->writeC(0x00);
+      chanStream[i]->writeC(0x00);
+      chanStream[i]->writeC(0x00);
     }
   } else {
     for (int i=0; i<chans; i++) {
@@ -914,9 +974,21 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
         chanStream[i]->writeC(0xfa);
         chanStream[i]->writeI(tickPos[i][loopTick]);
         logD("chan %d loop addr: %x",i,tickPos[i][loopTick]);
+        // padding
+        chanStream[i]->writeC(0x00);
+        chanStream[i]->writeC(0x00);
+        chanStream[i]->writeC(0x00);
       } else {
         logW("chan %d unable to find loop addr!",i);
         chanStream[i]->writeC(0xff);
+        // padding
+        chanStream[i]->writeC(0x00);
+        chanStream[i]->writeC(0x00);
+        chanStream[i]->writeC(0x00);
+        chanStream[i]->writeC(0x00);
+        chanStream[i]->writeC(0x00);
+        chanStream[i]->writeC(0x00);
+        chanStream[i]->writeC(0x00);
       }
     }
   }
@@ -956,28 +1028,20 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
     // set speed dial commands
     for (int h=0; h<chans; h++) {
       unsigned char* buf=chanStream[h]->getFinalBuf();
-      for (size_t i=0; i<chanStream[h]->size();) {
-        int insLen=getInsLength(buf[i],_EXT(buf,i,chanStream[h]->size()),sortedCmd);
-        if (insLen<1) {
-          logE("INS %x NOT IMPLEMENTED...",buf[i]);
-          break;
-        }
+      for (size_t i=0; i<chanStream[h]->size(); i+=8) {
         if (buf[i]==0xf7) {
           // find whether this command is in speed dial
           for (int j=0; j<16; j++) {
             if (buf[i+1]==sortedCmd[j]) {
               buf[i]=0xd0+j;
               // move everything to the left
-              for (int k=i+2; k<(int)i+insLen; k++) {
+              for (int k=i+2; k<(int)i+8; k++) {
                 buf[k-1]=buf[k];
               }
-              // put a nop
-              buf[i+insLen-1]=0xf1;
               break;
             }
           }
         }
-        i+=insLen;
       }
     }
   }
@@ -988,12 +1052,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
     for (int h=0; h<chans; h++) {
       unsigned char* buf=chanStream[h]->getFinalBuf();
       int delayCount=0;
-      for (size_t i=0; i<chanStream[h]->size();) {
-        int insLen=getInsLength(buf[i],_EXT(buf,i,chanStream[h]->size()),sortedCmd);
-        if (insLen<1) {
-          logE("INS %x NOT IMPLEMENTED...",buf[i]);
-          break;
-        }
+      for (size_t i=0; i<chanStream[h]->size(); i+=8) {
         if (buf[i]==0xfe) {
           delayCount++;
         } else {
@@ -1002,7 +1061,6 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
           }
           delayCount=0;
         }
-        i+=insLen;
       }
     }
 
@@ -1035,12 +1093,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
       int delayPos=-1;
       int delayCount=0;
       int delayLast=0;
-      for (size_t i=0; i<chanStream[h]->size();) {
-        int insLen=getInsLength(buf[i],_EXT(buf,i,chanStream[h]->size()),sortedCmd);
-        if (insLen<1) {
-          logE("INS %x NOT IMPLEMENTED...",buf[i]);
-          break;
-        }
+      for (size_t i=0; i<chanStream[h]->size(); i+=8) {
         if (buf[i]==0xfe) {
           if (delayPos==-1) delayPos=i;
           delayCount++;
@@ -1081,7 +1134,6 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
             delayCount=0;
           }
         }
-        i+=insLen;
       }
     }
   }
@@ -1140,6 +1192,8 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
         } else {
           // write sub-block
           blockOff.push_back(chanStream[h]->tell());
+          logV("block size: %d",(int)block->size());
+          assert(!(block->size()&7));
           chanStream[h]->write(block->getFinalBuf(),block->size());
         }
       }
@@ -1152,45 +1206,37 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
 
       // resolve symbols
       unsigned char* buf=chanStream[h]->getFinalBuf();
-      for (size_t j=0; j<chanStream[h]->size();) {
-        int insLen=getInsLength(buf[j],_EXT(buf,j,chanStream[h]->size()),sortedCmd);
-        if (insLen<1) {
-          logE("INS %x NOT IMPLEMENTED...",buf[j]);
-          break;
-        }
+      for (size_t j=0; j<chanStream[h]->size(); j+=8) {
         if (buf[j]==0xf4) { // callsym
           unsigned int addr=buf[j+1]|(buf[j+2]<<8)|(buf[j+3]<<16)|(buf[j+4]<<24);
           if (addr<blockOff.size()) {
             // turn it into call
             addr=blockOff[addr];
-            if (addr<=0xffff) {
-              buf[j]=0xf8;
-              buf[j+1]=addr&0xff;
-              buf[j+2]=(addr>>8)&0xff;
-              buf[j+3]=0xf1;
-              buf[j+4]=0xf1;
-            } else {
-              buf[j]=0xf5;
-              buf[j+1]=addr&0xff;
-              buf[j+2]=(addr>>8)&0xff;
-              buf[j+3]=(addr>>16)&0xff;
-              buf[j+4]=(addr>>24)&0xff;
-            }
+            buf[j]=0xf5;
+            buf[j+1]=addr&0xff;
+            buf[j+2]=(addr>>8)&0xff;
+            buf[j+3]=(addr>>16)&0xff;
+            buf[j+4]=(addr>>24)&0xff;
           } else {
             logE("requested symbol %d is out of bounds!",addr);
           }
         }
-        j+=insLen;
       }
 
       size_t afterSize=chanStream[h]->size();
       logI("(before: %d - after: %d)",(int)beforeSize,(int)afterSize);
+      assert(!(chanStream[h]->size()&7));
     }
   }
 
   // PASS 5: remove nop's (again)
   for (int h=0; h<chans; h++) {
     chanStream[h]=stripNops(chanStream[h],sortedCmd);
+  }
+
+  // PASS 6: pack streams
+  for (int h=0; h<chans; h++) {
+    chanStream[h]=packStream(chanStream[h],sortedCmd);
   }
 
   // write results

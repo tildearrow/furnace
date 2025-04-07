@@ -206,7 +206,7 @@ void FurnaceGUI::drawCSPlayer() {
     }
     ImGui::SameLine();
     if (ImGui::Button(_("Burn Current Song"))) {
-      SafeWriter* w=e->saveCommand();
+      SafeWriter* w=e->saveCommand(NULL,csExportDisablePass);
       if (w!=NULL) {
         if (!e->playStream(w->getFinalBuf(),w->size())) {
           showError(e->getLastError());
@@ -218,11 +218,20 @@ void FurnaceGUI::drawCSPlayer() {
         }
       }
     }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      ImGui::OpenPopup("CSOptions");
+    }
     ImGui::SameLine();
     if (e->isHalted()) {
       if (ImGui::Button("Resume")) e->resume();
     } else {
       if (ImGui::Button("Pause")) e->halt();
+    }
+    ImGui::SameLine();
+    ImGui::Button(_("Burn Options"));
+    if (ImGui::BeginPopupContextItem("CSOptions",ImGuiPopupFlags_MouseButtonLeft)) {
+      commandExportOptions();
+      ImGui::EndPopup();
     }
 
     DivCSPlayer* cs=e->getStreamPlayer();

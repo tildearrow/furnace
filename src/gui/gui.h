@@ -2761,6 +2761,8 @@ class FurnaceGUI {
   DivAudioExportOptions audioExportOptions;
   int dmfExportVersion;
   FurnaceGUIExportTypes curExportType;
+  unsigned int csExportDisablePass;
+  DivCSProgress csProgress;
 
   // ROM export specific
   DivROMExportOptions romTarget;
@@ -2778,6 +2780,8 @@ class FurnaceGUI {
 
   std::vector<String> randomDemoSong;
 
+  void commandExportOptions();
+  
   void drawExportAudio(bool onWindow=false);
   void drawExportVGM(bool onWindow=false);
   void drawExportROM(bool onWindow=false);
