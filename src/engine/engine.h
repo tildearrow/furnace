@@ -730,7 +730,7 @@ class DivEngine {
     // dump to TIunA.
     SafeWriter* saveTiuna(const bool* sysToExport, const char* baseLabel, int firstBankSize, int otherBankSize);
     // dump command stream.
-    SafeWriter* saveCommand();
+    SafeWriter* saveCommand(DivCSProgress* progress=NULL, unsigned int disablePasses=0);
     // export to text
     SafeWriter* saveText(bool separatePatterns=true);
     // export to an audio file

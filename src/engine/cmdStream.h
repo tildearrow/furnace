@@ -103,6 +103,14 @@ class DivCSPlayer {
       stream(buf,len) {}
 };
 
+struct DivCSProgress {
+  int stage, count, total;
+  DivCSProgress():
+    stage(0),
+    count(0),
+    total(0) {}
+};
+
 // command stream utilities
 namespace DivCS {
   int getCmdLength(unsigned char ext);

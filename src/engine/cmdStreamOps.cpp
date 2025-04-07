@@ -21,8 +21,6 @@
 #include "../ta-log.h"
 #include <unordered_map>
 
-//#define DISABLE_BLOCK_SEARCH
-
 int DivCS::getCmdLength(unsigned char ext) {
   switch (ext) {
     case DIV_CMD_SAMPLE_MODE:
@@ -673,7 +671,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
   for (size_t groupSize=stream->size()>>1; groupSize>=8; groupSize--) {
   //for (size_t groupSize=7; groupSize<=stream->size()>>1; groupSize++) {
     bool foundSomething=false;
-    //logD("...try size %d",groupSize);
+    logV("...try size %d",groupSize);
     for (size_t searchPos=0; (searchPos+groupSize)<stream->size();) {
       const unsigned char* group=&buf[searchPos];
       size_t groupLen=0;
@@ -792,7 +790,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
   return stream;
 }
 
-SafeWriter* DivEngine::saveCommand() {
+SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disablePasses) {
   stop();
   repeatPattern=false;
   shallStop=false;
@@ -932,155 +930,159 @@ SafeWriter* DivEngine::saveCommand() {
   BUSY_END;
 
   // PASS 1: optimize command calls
-  // calculate command usage
-  int sortCand=-1;
-  int sortPos=0;
-  while (sortPos<16) {
-    sortCand=-1;
-    for (int i=DIV_CMD_SAMPLE_MODE; i<256; i++) {
-      if (cmdPopularity[i]) {
-        if (sortCand==-1) {
-          sortCand=i;
-        } else if (cmdPopularity[sortCand]<cmdPopularity[i]) {
-          sortCand=i;
-        }
-      }
-    }
-    if (sortCand==-1) break;
-
-    sortedCmdPopularity[sortPos]=cmdPopularity[sortCand];
-    sortedCmd[sortPos]=sortCand;
-    cmdPopularity[sortCand]=0;
-    sortPos++;
-  }
-
-  // set speed dial commands (TODO)
-  for (int h=0; h<chans; h++) {
-    unsigned char* buf=chanStream[h]->getFinalBuf();
-    for (size_t i=0; i<chanStream[h]->size();) {
-      int insLen=getInsLength(buf[i],_EXT(buf,i,chanStream[h]->size()),sortedCmd);
-      if (insLen<1) {
-        logE("INS %x NOT IMPLEMENTED...",buf[i]);
-        break;
-      }
-      if (buf[i]==0xf7) {
-        // find whether this command is in speed dial
-        for (int j=0; j<16; j++) {
-          if (buf[i+1]==sortedCmd[j]) {
-            buf[i]=0xd0+j;
-            // move everything to the left
-            for (int k=i+2; k<(int)i+insLen; k++) {
-              buf[k-1]=buf[k];
-            }
-            // put a nop
-            buf[i+insLen-1]=0xf1;
-            break;
+  if (!(disablePasses&1)) {
+    // calculate command usage
+    int sortCand=-1;
+    int sortPos=0;
+    while (sortPos<16) {
+      sortCand=-1;
+      for (int i=DIV_CMD_SAMPLE_MODE; i<256; i++) {
+        if (cmdPopularity[i]) {
+          if (sortCand==-1) {
+            sortCand=i;
+          } else if (cmdPopularity[sortCand]<cmdPopularity[i]) {
+            sortCand=i;
           }
         }
       }
-      i+=insLen;
+      if (sortCand==-1) break;
+
+      sortedCmdPopularity[sortPos]=cmdPopularity[sortCand];
+      sortedCmd[sortPos]=sortCand;
+      cmdPopularity[sortCand]=0;
+      sortPos++;
+    }
+
+    // set speed dial commands
+    for (int h=0; h<chans; h++) {
+      unsigned char* buf=chanStream[h]->getFinalBuf();
+      for (size_t i=0; i<chanStream[h]->size();) {
+        int insLen=getInsLength(buf[i],_EXT(buf,i,chanStream[h]->size()),sortedCmd);
+        if (insLen<1) {
+          logE("INS %x NOT IMPLEMENTED...",buf[i]);
+          break;
+        }
+        if (buf[i]==0xf7) {
+          // find whether this command is in speed dial
+          for (int j=0; j<16; j++) {
+            if (buf[i+1]==sortedCmd[j]) {
+              buf[i]=0xd0+j;
+              // move everything to the left
+              for (int k=i+2; k<(int)i+insLen; k++) {
+                buf[k-1]=buf[k];
+              }
+              // put a nop
+              buf[i+insLen-1]=0xf1;
+              break;
+            }
+          }
+        }
+        i+=insLen;
+      }
     }
   }
 
   // PASS 2: condense delays
-  // calculate delay usage
-  for (int h=0; h<chans; h++) {
-    unsigned char* buf=chanStream[h]->getFinalBuf();
-    int delayCount=0;
-    for (size_t i=0; i<chanStream[h]->size();) {
-      int insLen=getInsLength(buf[i],_EXT(buf,i,chanStream[h]->size()),sortedCmd);
-      if (insLen<1) {
-        logE("INS %x NOT IMPLEMENTED...",buf[i]);
-        break;
-      }
-      if (buf[i]==0xfe) {
-        delayCount++;
-      } else {
-        if (delayCount>1 && delayCount<=255) {
-          delayPopularity[delayCount]++;
+  if (!(disablePasses&2)) {
+    // calculate delay usage
+    for (int h=0; h<chans; h++) {
+      unsigned char* buf=chanStream[h]->getFinalBuf();
+      int delayCount=0;
+      for (size_t i=0; i<chanStream[h]->size();) {
+        int insLen=getInsLength(buf[i],_EXT(buf,i,chanStream[h]->size()),sortedCmd);
+        if (insLen<1) {
+          logE("INS %x NOT IMPLEMENTED...",buf[i]);
+          break;
         }
-        delayCount=0;
-      }
-      i+=insLen;
-    }
-  }
-
-  // preset delays
-  sortCand=-1;
-  sortPos=0;
-  while (sortPos<16) {
-    sortCand=-1;
-    for (int i=0; i<256; i++) {
-      if (delayPopularity[i]) {
-        if (sortCand==-1) {
-          sortCand=i;
-        } else if (delayPopularity[sortCand]<delayPopularity[i]) {
-          sortCand=i;
-        }
-      }
-    }
-    if (sortCand==-1) break;
-
-    sortedDelayPopularity[sortPos]=delayPopularity[sortCand];
-    sortedDelay[sortPos]=sortCand;
-    delayPopularity[sortCand]=0;
-    sortPos++;
-  }
-
-
-  // condense delays
-  for (int h=0; h<chans; h++) {
-    unsigned char* buf=chanStream[h]->getFinalBuf();
-    int delayPos=-1;
-    int delayCount=0;
-    int delayLast=0;
-    for (size_t i=0; i<chanStream[h]->size();) {
-      int insLen=getInsLength(buf[i],_EXT(buf,i,chanStream[h]->size()),sortedCmd);
-      if (insLen<1) {
-        logE("INS %x NOT IMPLEMENTED...",buf[i]);
-        break;
-      }
-      if (buf[i]==0xfe) {
-        if (delayPos==-1) delayPos=i;
-        delayCount++;
-        delayLast=i;
-      } else {
-        // finish the last delay if any
-        if (delayPos!=-1) {
-          if (delayCount>1) {
-            if (delayLast<delayPos) {
-              logE("delayLast<delayPos! %d<%d",delayLast,delayPos);
-            } else {
-              // write condensed delay and fill the rest with nop
-              if (delayCount>255) {
-                buf[delayPos++]=0xfc;
-                buf[delayPos++]=delayCount&0xff;
-                buf[delayPos++]=(delayCount>>8)&0xff;
-              } else {
-                bool foundShort=false;
-                for (int j=0; j<16; j++) {
-                  if (sortedDelay[j]==delayCount) {
-                    buf[delayPos++]=0xe0+j;
-                    foundShort=true;
-                    break;
-                  }
-                }
-                if (!foundShort) {
-                  buf[delayPos++]=0xfd;
-                  buf[delayPos++]=delayCount;
-                }
-              }
-              // fill with nop
-              for (int j=delayPos; j<=delayLast; j++) {
-                buf[j]=0xf1;
-              }
-            }
+        if (buf[i]==0xfe) {
+          delayCount++;
+        } else {
+          if (delayCount>1 && delayCount<=255) {
+            delayPopularity[delayCount]++;
           }
-          delayPos=-1;
           delayCount=0;
         }
+        i+=insLen;
       }
-      i+=insLen;
+    }
+
+    // preset delays
+    int sortCand=-1;
+    int sortPos=0;
+    while (sortPos<16) {
+      sortCand=-1;
+      for (int i=0; i<256; i++) {
+        if (delayPopularity[i]) {
+          if (sortCand==-1) {
+            sortCand=i;
+          } else if (delayPopularity[sortCand]<delayPopularity[i]) {
+            sortCand=i;
+          }
+        }
+      }
+      if (sortCand==-1) break;
+
+      sortedDelayPopularity[sortPos]=delayPopularity[sortCand];
+      sortedDelay[sortPos]=sortCand;
+      delayPopularity[sortCand]=0;
+      sortPos++;
+    }
+
+
+    // condense delays
+    for (int h=0; h<chans; h++) {
+      unsigned char* buf=chanStream[h]->getFinalBuf();
+      int delayPos=-1;
+      int delayCount=0;
+      int delayLast=0;
+      for (size_t i=0; i<chanStream[h]->size();) {
+        int insLen=getInsLength(buf[i],_EXT(buf,i,chanStream[h]->size()),sortedCmd);
+        if (insLen<1) {
+          logE("INS %x NOT IMPLEMENTED...",buf[i]);
+          break;
+        }
+        if (buf[i]==0xfe) {
+          if (delayPos==-1) delayPos=i;
+          delayCount++;
+          delayLast=i;
+        } else {
+          // finish the last delay if any
+          if (delayPos!=-1) {
+            if (delayCount>1) {
+              if (delayLast<delayPos) {
+                logE("delayLast<delayPos! %d<%d",delayLast,delayPos);
+              } else {
+                // write condensed delay and fill the rest with nop
+                if (delayCount>255) {
+                  buf[delayPos++]=0xfc;
+                  buf[delayPos++]=delayCount&0xff;
+                  buf[delayPos++]=(delayCount>>8)&0xff;
+                } else {
+                  bool foundShort=false;
+                  for (int j=0; j<16; j++) {
+                    if (sortedDelay[j]==delayCount) {
+                      buf[delayPos++]=0xe0+j;
+                      foundShort=true;
+                      break;
+                    }
+                  }
+                  if (!foundShort) {
+                    buf[delayPos++]=0xfd;
+                    buf[delayPos++]=delayCount;
+                  }
+                }
+                // fill with nop
+                for (int j=delayPos; j<=delayLast; j++) {
+                  buf[j]=0xf1;
+                }
+              }
+            }
+            delayPos=-1;
+            delayCount=0;
+          }
+        }
+        i+=insLen;
+      }
     }
   }
 
@@ -1090,101 +1092,101 @@ SafeWriter* DivEngine::saveCommand() {
     chanStream[h]=stripNops(chanStream[h],sortedCmd);
   }
 
-#ifndef DISABLE_BLOCK_SEARCH
   // PASS 4: find sub-blocks and isolate them
-  for (int h=0; h<chans; h++) {
-    std::vector<SafeWriter*> subBlocks;
-    size_t beforeSize=chanStream[h]->size();
-    
-    // 6 is the minimum size that can be reliably optimized
-    logI("finding sub-blocks in chan %d",h);
-    chanStream[h]=findSubBlocks(chanStream[h],subBlocks,sortedCmd);
-    // find sub-blocks within sub-blocks
-    size_t subBlocksLast=0;
-    size_t subBlocksLen=subBlocks.size();
-    logI("finding sub-blocks within sub-blocks",h);
-    while (subBlocksLast!=subBlocksLen) {
-      logI("got %d blocks... starting from %d",(int)subBlocksLen,(int)subBlocksLast);
-      for (size_t i=subBlocksLast; i<subBlocksLen; i++) {
-        SafeWriter* newBlock=findSubBlocks(subBlocks[i],subBlocks,sortedCmd);
-        subBlocks[i]=newBlock;
+  if (!(disablePasses&4)) {
+    for (int h=0; h<chans; h++) {
+      std::vector<SafeWriter*> subBlocks;
+      size_t beforeSize=chanStream[h]->size();
+      
+      // 6 is the minimum size that can be reliably optimized
+      logI("finding sub-blocks in chan %d",h);
+      chanStream[h]=findSubBlocks(chanStream[h],subBlocks,sortedCmd);
+      // find sub-blocks within sub-blocks
+      size_t subBlocksLast=0;
+      size_t subBlocksLen=subBlocks.size();
+      logI("finding sub-blocks within sub-blocks",h);
+      while (subBlocksLast!=subBlocksLen) {
+        logI("got %d blocks... starting from %d",(int)subBlocksLen,(int)subBlocksLast);
+        for (size_t i=subBlocksLast; i<subBlocksLen; i++) {
+          SafeWriter* newBlock=findSubBlocks(subBlocks[i],subBlocks,sortedCmd);
+          subBlocks[i]=newBlock;
+        }
+        subBlocksLast=subBlocksLen;
+        subBlocksLen=subBlocks.size();
       }
-      subBlocksLast=subBlocksLen;
-      subBlocksLen=subBlocks.size();
-    }
 
-    // insert sub-blocks and resolve symbols
-    logI("%d sub-blocks total",(int)subBlocks.size());
-    std::vector<size_t> blockOff;
-    chanStream[h]->seek(0,SEEK_END);
-    for (size_t i=0; i<subBlocks.size(); i++) {
-      SafeWriter* block=subBlocks[i];
+      // insert sub-blocks and resolve symbols
+      logI("%d sub-blocks total",(int)subBlocks.size());
+      std::vector<size_t> blockOff;
+      chanStream[h]->seek(0,SEEK_END);
+      for (size_t i=0; i<subBlocks.size(); i++) {
+        SafeWriter* block=subBlocks[i];
 
-      // check whether this block is duplicate
-      int dupOf=-1;
-      for (size_t j=0; j<i; j++) {
-        if (subBlocks[j]->size()==subBlocks[i]->size()) {
-          if (memcmp(subBlocks[j]->getFinalBuf(),subBlocks[i]->getFinalBuf(),subBlocks[j]->size())==0) {
-            logW("we have one");
-            dupOf=j;
-            break;
+        // check whether this block is duplicate
+        int dupOf=-1;
+        for (size_t j=0; j<i; j++) {
+          if (subBlocks[j]->size()==subBlocks[i]->size()) {
+            if (memcmp(subBlocks[j]->getFinalBuf(),subBlocks[i]->getFinalBuf(),subBlocks[j]->size())==0) {
+              logW("we have one");
+              dupOf=j;
+              break;
+            }
           }
         }
-      }
 
-      if (dupOf>=0) {
-        // push address of original block (discard duplicate)
-        blockOff.push_back(blockOff[dupOf]);
-      } else {
-        // write sub-block
-        blockOff.push_back(chanStream[h]->tell());
-        chanStream[h]->write(block->getFinalBuf(),block->size());
-      }
-    }
-
-    for (SafeWriter* block: subBlocks) {
-      block->finish();
-      delete block;
-    }
-    subBlocks.clear();
-
-    // resolve symbols
-    unsigned char* buf=chanStream[h]->getFinalBuf();
-    for (size_t j=0; j<chanStream[h]->size();) {
-      int insLen=getInsLength(buf[j],_EXT(buf,j,chanStream[h]->size()),sortedCmd);
-      if (insLen<1) {
-        logE("INS %x NOT IMPLEMENTED...",buf[j]);
-        break;
-      }
-      if (buf[j]==0xf4) { // callsym
-        unsigned int addr=buf[j+1]|(buf[j+2]<<8)|(buf[j+3]<<16)|(buf[j+4]<<24);
-        if (addr<blockOff.size()) {
-          // turn it into call
-          addr=blockOff[addr];
-          if (addr<=0xffff) {
-            buf[j]=0xf8;
-            buf[j+1]=addr&0xff;
-            buf[j+2]=(addr>>8)&0xff;
-            buf[j+3]=0xf1;
-            buf[j+4]=0xf1;
-          } else {
-            buf[j]=0xf5;
-            buf[j+1]=addr&0xff;
-            buf[j+2]=(addr>>8)&0xff;
-            buf[j+3]=(addr>>16)&0xff;
-            buf[j+4]=(addr>>24)&0xff;
-          }
+        if (dupOf>=0) {
+          // push address of original block (discard duplicate)
+          blockOff.push_back(blockOff[dupOf]);
         } else {
-          logE("requested symbol %d is out of bounds!",addr);
+          // write sub-block
+          blockOff.push_back(chanStream[h]->tell());
+          chanStream[h]->write(block->getFinalBuf(),block->size());
         }
       }
-      j+=insLen;
-    }
 
-    size_t afterSize=chanStream[h]->size();
-    logI("(before: %d - after: %d)",(int)beforeSize,(int)afterSize);
+      for (SafeWriter* block: subBlocks) {
+        block->finish();
+        delete block;
+      }
+      subBlocks.clear();
+
+      // resolve symbols
+      unsigned char* buf=chanStream[h]->getFinalBuf();
+      for (size_t j=0; j<chanStream[h]->size();) {
+        int insLen=getInsLength(buf[j],_EXT(buf,j,chanStream[h]->size()),sortedCmd);
+        if (insLen<1) {
+          logE("INS %x NOT IMPLEMENTED...",buf[j]);
+          break;
+        }
+        if (buf[j]==0xf4) { // callsym
+          unsigned int addr=buf[j+1]|(buf[j+2]<<8)|(buf[j+3]<<16)|(buf[j+4]<<24);
+          if (addr<blockOff.size()) {
+            // turn it into call
+            addr=blockOff[addr];
+            if (addr<=0xffff) {
+              buf[j]=0xf8;
+              buf[j+1]=addr&0xff;
+              buf[j+2]=(addr>>8)&0xff;
+              buf[j+3]=0xf1;
+              buf[j+4]=0xf1;
+            } else {
+              buf[j]=0xf5;
+              buf[j+1]=addr&0xff;
+              buf[j+2]=(addr>>8)&0xff;
+              buf[j+3]=(addr>>16)&0xff;
+              buf[j+4]=(addr>>24)&0xff;
+            }
+          } else {
+            logE("requested symbol %d is out of bounds!",addr);
+          }
+        }
+        j+=insLen;
+      }
+
+      size_t afterSize=chanStream[h]->size();
+      logI("(before: %d - after: %d)",(int)beforeSize,(int)afterSize);
+    }
   }
-#endif
 
   // PASS 5: remove nop's (again)
   for (int h=0; h<chans; h++) {
