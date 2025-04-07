@@ -654,9 +654,202 @@ SafeWriter* stripNops(SafeWriter* s, unsigned char* speedDial) {
   return s;
 }
 
+struct BlockMatch {
+  size_t orig, block;
+  unsigned int len;
+  bool done;
+  BlockMatch(size_t o, size_t b, unsigned int l):
+    orig(o), block(b), len(l), done(false) {}
+  BlockMatch():
+    orig(0), block(0), len(0), done(false) {}
+};
+
+#define OVERLAPS(a1,a2,b1,b2) ((b1)<(a2) && (b2)>(a1))
+
 SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlocks, unsigned char* speedDial) {
   unsigned char* buf=stream->getFinalBuf();
+  size_t matchSize=48;
+  std::vector<BlockMatch> matches;
 
+  // fast match algorithm
+  // search for small matches, and then find bigger ones
+  for (size_t i=0; i<stream->size(); i+=8) {
+    for (size_t j=i+matchSize; j<stream->size(); j+=8) {
+      if (memcmp(&buf[i],&buf[j],matchSize)==0) {
+        // store this match for later
+        matches.push_back(BlockMatch(i,j,matchSize));
+      }
+    }
+  }
+
+  logD("%d candidates",(int)matches.size());
+
+  // quit if there isn't anything
+  if (matches.empty()) return stream;
+
+  // search for bigger matches
+  bool wantMore=true;
+  do {
+    size_t matchCount=0;
+    wantMore=false;
+    matchSize+=8;
+    for (size_t i=0; i<matches.size(); i++) {
+      BlockMatch& b=matches[i];
+
+      // don't do anything if this match is done
+      if (b.done) continue;
+
+      // stop if this match is near the edge
+      if ((b.orig+matchSize)>stream->size() || (b.block+matchSize)>stream->size()) {
+        b.done=true;
+        continue;
+      }
+
+      // check
+      if (memcmp(&buf[b.orig],&buf[b.block],matchSize)==0) {
+        // this match may be bigger
+        b.len=matchSize;
+        wantMore=true;
+        matchCount++;
+      } else {
+        // this is the max size
+        b.done=true;
+      }
+    }
+    //logV("size %d: %d matches",(int)matchSize,(int)matchCount);
+  } while (wantMore);
+
+  // first stage done
+  // set done to false unless this match overlaps with itself
+  size_t nonOverlapCount=0;
+  for (BlockMatch& i: matches) {
+    i.done=false;
+    if (OVERLAPS(i.orig,i.orig+i.len,i.block,i.block+i.len)) {
+      // self-overlapping
+      i.done=true;
+    } else {
+      nonOverlapCount++;
+    }
+  }
+
+  logD("%d non-overlapping candidates",(int)nonOverlapCount);
+
+  // quit if there isn't anything
+  if (!nonOverlapCount) return stream;
+
+  // work on largest matches
+  // progress to smaller ones until we run out of them
+  logD("largest match: %d",(int)matchSize);
+
+  std::vector<BlockMatch> workMatches;
+
+  while (matchSize>=48) {
+    workMatches.clear();
+    // find matches with matching size
+    for (BlockMatch& i: matches) {
+      if (i.len==matchSize) {
+        // mark it as done and push it
+        workMatches.push_back(i);
+        i.done=true;
+      }
+    }
+
+    // make sub-blocks
+    size_t lastOrig=SIZE_MAX;
+    size_t subBlockID=subBlocks.size();
+    for (BlockMatch& i: workMatches) {
+      // skip invalid matches (yes, this can happen)
+      if (i.done) continue;
+
+      // create new sub-block if necessary
+      if (i.orig!=lastOrig) {
+        subBlockID=subBlocks.size();
+
+        // isolate this sub-block
+        SafeWriter* newBlock=new SafeWriter;
+        newBlock->init();
+        newBlock->write(&buf[i.orig],i.len);
+        newBlock->writeC(0xf9); // ret
+        // padding
+        newBlock->writeC(0);
+        newBlock->writeC(0);
+        newBlock->writeC(0);
+        newBlock->writeC(0);
+        newBlock->writeC(0);
+        newBlock->writeC(0);
+        newBlock->writeC(0);
+        subBlocks.push_back(newBlock);
+        lastOrig=i.orig;
+
+        // insert call on the original block
+        buf[i.orig]=0xf4;
+        buf[i.orig+1]=subBlockID&0xff;
+        buf[i.orig+2]=(subBlockID>>8)&0xff;
+        buf[i.orig+3]=(subBlockID>>16)&0xff;
+        buf[i.orig+4]=(subBlockID>>24)&0xff;
+        buf[i.orig+5]=0;
+        buf[i.orig+6]=0;
+        buf[i.orig+7]=0;
+
+        // replace the rest with nop
+        for (size_t j=i.orig+8; j<i.orig+i.len; j++) {
+          buf[j]=0xf1;
+        }
+      }
+
+      // set match to the last sub-block
+      buf[i.block]=0xf4;
+      buf[i.block+1]=subBlockID&0xff;
+      buf[i.block+2]=(subBlockID>>8)&0xff;
+      buf[i.block+3]=(subBlockID>>16)&0xff;
+      buf[i.block+4]=(subBlockID>>24)&0xff;
+      buf[i.block+5]=0;
+      buf[i.block+6]=0;
+      buf[i.block+7]=0;
+
+      // replace the rest with nop
+      for (size_t j=i.block+8; j<i.block+i.len; j++) {
+        buf[j]=0xf1;
+      }
+
+      // invalidate overlapping work matches
+      for (BlockMatch& j: workMatches) {
+        if (j.orig!=i.orig) {
+          j.done=true;
+        }
+        if (OVERLAPS(i.block,i.block+i.len,j.block,j.block+j.len)) {
+          j.done=true;
+        }
+      }
+
+      // invalidate overlapping matches
+      for (BlockMatch& j: matches) {
+        if (OVERLAPS(i.orig,i.orig+i.len,j.orig,j.orig+j.len) ||
+            OVERLAPS(i.orig,i.orig+i.len,j.block,j.block+j.len) ||
+            OVERLAPS(i.block,i.block+i.len,j.orig,j.orig+j.len) ||
+            OVERLAPS(i.block,i.block+i.len,j.block,j.block+j.len)) {
+          j.done=true;
+        }
+      }
+    }
+
+    // try with a smaller size
+    matchSize=0;
+    for (BlockMatch& i: matches) {
+      if (i.done) continue;
+      if (i.len>matchSize) matchSize=i.len;
+    }
+    if (matchSize>=48) {
+      logV("trying next size %d",matchSize);
+    }
+  }
+
+  logV("done!");
+
+  // remove nop's
+  stream=stripNops(stream,speedDial);
+
+  /*
   for (size_t groupSize=stream->size()>>1; groupSize>=48; groupSize-=8) {
     bool foundSomething=false;
     logV("...try size %d",groupSize);
@@ -772,6 +965,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
       buf=stream->getFinalBuf();
     }
   }
+  */
   return stream;
 }
 
