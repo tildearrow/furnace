@@ -570,6 +570,15 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c) {
 
 using namespace DivCS;
 
+int estimateBlockSize(unsigned char* buf, size_t len, unsigned char* speedDial) {
+  int ret=0;
+  for (size_t i=0; i<len; i+=8) {
+    ret+=getInsLength(buf[i],buf[i+1],speedDial);
+  }
+  return ret;
+}
+
+
 void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int destAddr, unsigned char* speedDial) {
   unsigned int delta=destAddr-sourceAddr;
   for (size_t i=0; i<len;) {
@@ -669,7 +678,7 @@ struct BlockMatch {
 // TODO:
 // - check whether a block consists only of calls
 // - see if we can optimize better
-SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlocks) {
+SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlocks, unsigned char* speedDial) {
   unsigned char* buf=stream->getFinalBuf();
   size_t matchSize=48;
   std::vector<BlockMatch> matches;
@@ -778,8 +787,43 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
         }
       }
 
-      // make sub-blocks
+      // check which sub-blocks are viable to make
       size_t lastOrig=SIZE_MAX;
+      size_t lastOrigOff=0;
+      int gains=0;
+      int blockSize=0;
+      for (size_t i=0; i<=workMatches.size(); i++) {
+        BlockMatch b(SIZE_MAX,SIZE_MAX,0);
+        if (i<workMatches.size()) b=workMatches[i];
+        // unlikely
+        if (b.done) continue;
+
+        if (b.orig!=lastOrig) {
+          if (lastOrig!=SIZE_MAX) {
+            // commit previous block and start new one
+            logV("%x gains: %d",(int)lastOrig,gains);
+            if (gains<=0) {
+              // don't make a sub-block for these matches since we only have loss
+              logV("(LOSSES!)");
+              for (size_t j=lastOrigOff; j<i; j++) {
+                workMatches[j].done=true;
+              }
+            }
+          }
+          lastOrig=b.orig;
+          lastOrigOff=i;
+          if (lastOrig!=SIZE_MAX) {
+            blockSize=estimateBlockSize(&buf[b.orig],b.len,speedDial);
+          } else {
+            blockSize=0;
+          }
+          gains=-6;
+        }
+        gains+=(blockSize-5);
+      }
+
+      // make sub-blocks
+      lastOrig=SIZE_MAX;
       size_t subBlockID=subBlocks.size();
       for (BlockMatch& i: workMatches) {
         // skip invalid matches (yes, this can happen)
@@ -1270,7 +1314,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
       
       // 6 is the minimum size that can be reliably optimized
       logI("finding sub-blocks in chan %d",h);
-      chanStream[h]=findSubBlocks(chanStream[h],subBlocks);
+      chanStream[h]=findSubBlocks(chanStream[h],subBlocks,sortedCmd);
       // find sub-blocks within sub-blocks
       size_t subBlocksLast=0;
       size_t subBlocksLen=subBlocks.size();
@@ -1278,7 +1322,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
       while (subBlocksLast!=subBlocksLen) {
         logI("got %d blocks... starting from %d",(int)subBlocksLen,(int)subBlocksLast);
         for (size_t i=subBlocksLast; i<subBlocksLen; i++) {
-          SafeWriter* newBlock=findSubBlocks(subBlocks[i],subBlocks);
+          SafeWriter* newBlock=findSubBlocks(subBlocks[i],subBlocks,sortedCmd);
           subBlocks[i]=newBlock;
         }
         subBlocksLast=subBlocksLen;
