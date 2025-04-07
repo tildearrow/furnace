@@ -657,7 +657,7 @@ SafeWriter* stripNops(SafeWriter* s, unsigned char* speedDial) {
 SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlocks, unsigned char* speedDial) {
   unsigned char* buf=stream->getFinalBuf();
 
-  for (size_t groupSize=stream->size()>>1; groupSize>=32; groupSize-=8) {
+  for (size_t groupSize=stream->size()>>1; groupSize>=48; groupSize-=8) {
     bool foundSomething=false;
     logV("...try size %d",groupSize);
     for (size_t searchPos=0; (searchPos+groupSize)<stream->size();) {
@@ -726,6 +726,9 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
           buf[i+2]=(subBlockID>>8)&0xff;
           buf[i+3]=(subBlockID>>16)&0xff;
           buf[i+4]=(subBlockID>>24)&0xff;
+          buf[i+5]=0;
+          buf[i+6]=0;
+          buf[i+7]=0;
 
           // replace the rest with nop
           for (size_t j=i+8; j<i+groupLen; j++) {
@@ -747,6 +750,9 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
         buf[searchPos+2]=(subBlockID>>8)&0xff;
         buf[searchPos+3]=(subBlockID>>16)&0xff;
         buf[searchPos+4]=(subBlockID>>24)&0xff;
+        buf[searchPos+5]=0;
+        buf[searchPos+6]=0;
+        buf[searchPos+7]=0;
 
         // replace the rest with nop
         for (size_t j=searchPos+8; j<searchPos+groupLen; j++) {
@@ -1124,6 +1130,8 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
                     buf[delayPos++]=delayCount;
                   }
                 }
+                // padding
+                while (delayPos&7) buf[delayPos++]=0;
                 // fill with nop
                 for (int j=delayPos; j<=delayLast; j++) {
                   buf[j]=0xf1;
