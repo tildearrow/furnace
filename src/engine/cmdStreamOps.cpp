@@ -237,13 +237,13 @@ int DivCS::getInsLength(unsigned char ins, unsigned char ext, unsigned char* spe
     case 0xc3: // vib range
     case 0xc4: // vib shape
     case 0xc5: // pitch
+    case 0xc6: // arpeggio
     case 0xc7: // volume
     case 0xca: // legato
     case 0xfd: // waitc
       return 2;
     case 0xcf: // pan
     case 0xc2: // vibrato
-    case 0xc6: // arpeggio
     case 0xc8: // vol slide
     case 0xc9: // porta
       return 3;
@@ -329,11 +329,11 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c) {
     case DIV_CMD_HINT_TREMOLO:
     case DIV_CMD_HINT_PANBRELLO:
     case DIV_CMD_HINT_PAN_SLIDE:
+    case DIV_CMD_HINT_ARPEGGIO:
       w->writeC(c.value);
       break;
     case DIV_CMD_HINT_PANNING:
     case DIV_CMD_HINT_VIBRATO:
-    case DIV_CMD_HINT_ARPEGGIO:
     case DIV_CMD_HINT_PORTA:
       w->writeC(c.value);
       w->writeC(c.value2);

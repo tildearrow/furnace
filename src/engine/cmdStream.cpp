@@ -229,13 +229,13 @@ bool DivCSPlayer::tick() {
           case DIV_CMD_HINT_VIBRATO_RANGE:
           case DIV_CMD_HINT_VIBRATO_SHAPE:
           case DIV_CMD_HINT_VOLUME:
+          case DIV_CMD_HINT_ARPEGGIO:
             arg0=(unsigned char)stream.readC();
             break;
           case DIV_CMD_HINT_PITCH:
             arg0=(signed char)stream.readC();
             break;
           case DIV_CMD_HINT_VIBRATO:
-          case DIV_CMD_HINT_ARPEGGIO:
           case DIV_CMD_HINT_PORTA:
             arg0=(signed char)stream.readC();
             arg1=(unsigned char)stream.readC();
@@ -515,7 +515,7 @@ bool DivCSPlayer::tick() {
             e->dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
             break;
           case DIV_CMD_HINT_ARPEGGIO:
-            chan[i].arp=(((unsigned char)arg0)<<4)|(arg1&15);
+            chan[i].arp=(unsigned char)arg0;
             break;
           case DIV_CMD_HINT_ARP_TIME:
             arpSpeed=arg0;

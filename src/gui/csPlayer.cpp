@@ -65,8 +65,8 @@ String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr, unsigned 
       return fmt::sprintf("pitch $%.2x",(int)buf[addr+1]);
       break;
     case 0xc6:
-      if (addr+2>=bufLen) return "???";
-      return fmt::sprintf("arp %d, %d",(int)buf[addr+1],(int)buf[addr+2]);
+      if (addr+1>=bufLen) return "???";
+      return fmt::sprintf("arp $%.2x",(int)buf[addr+1]);
       break;
     case 0xc7:
       if (addr+1>=bufLen) return "???";

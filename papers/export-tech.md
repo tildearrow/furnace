@@ -70,7 +70,9 @@ hex | description
  c3 | vibrato range (b)
  c4 | vibrato shape (b)
  c5 | pitch (c)
- c6 | arpeggio (bb) // note1, note2
+ c6 | arpeggio (X)
+    | - bit 4-7: note 1
+    | - bit 0-3: note 2
  c7 | volume (b)
  c8 | vol slide (s)
  c9 | porta (bb) // target, speed
