@@ -678,8 +678,7 @@ struct BlockMatch {
 #define MIN_MATCH_SIZE 16
 
 // TODO:
-// - check whether a block consists only of calls
-// - see if we can optimize better
+// - see if we can optimize even more
 SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlocks, unsigned char* speedDial) {
   unsigned char* buf=stream->getFinalBuf();
   size_t matchSize=MIN_MATCH_SIZE;
@@ -709,7 +708,6 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
     // search for bigger matches
     bool wantMore=true;
     do {
-      size_t matchCount=0;
       wantMore=false;
       matchSize+=8;
       for (size_t i=0; i<matches.size(); i++) {
@@ -729,13 +727,11 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
           // this match may be bigger
           b.len=matchSize;
           wantMore=true;
-          matchCount++;
         } else {
           // this is the max size
           b.done=true;
         }
       }
-      //logV("size %d: %d matches",(int)matchSize,(int)matchCount);
     } while (wantMore);
 
     // first stage done
@@ -776,144 +772,138 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
     std::vector<BlockMatch> workMatches;
     bool newBlocks=false;
 
-      // try with a smaller size
-      matchSize=0;
-      for (BlockMatch& i: matches) {
-        if (i.done) continue;
-        if (i.len>matchSize) matchSize=i.len;
+    // try with a smaller size
+    matchSize=0;
+    for (BlockMatch& i: matches) {
+      if (i.done) continue;
+      if (i.len>matchSize) matchSize=i.len;
+    }
+
+    workMatches.clear();
+    // find matches with matching size
+    for (BlockMatch& i: matches) {
+      if (i.len==matchSize) {
+        // mark it as done and push it
+        workMatches.push_back(i);
+        i.done=true;
       }
+    }
 
-    //while (matchSize>=MIN_MATCH_SIZE) {
-      workMatches.clear();
-      // find matches with matching size
-      for (BlockMatch& i: matches) {
-        if (i.len==matchSize) {
-          // mark it as done and push it
-          workMatches.push_back(i);
-          i.done=true;
-        }
-      }
+    // check which sub-blocks are viable to make
+    size_t lastOrig=SIZE_MAX;
+    size_t lastOrigOff=0;
+    int gains=0;
+    int blockSize=0;
+    for (size_t i=0; i<=workMatches.size(); i++) {
+      BlockMatch b(SIZE_MAX,SIZE_MAX,0);
+      if (i<workMatches.size()) b=workMatches[i];
+      // unlikely
+      if (b.done) continue;
 
-      // check which sub-blocks are viable to make
-      size_t lastOrig=SIZE_MAX;
-      size_t lastOrigOff=0;
-      int gains=0;
-      int blockSize=0;
-      for (size_t i=0; i<=workMatches.size(); i++) {
-        BlockMatch b(SIZE_MAX,SIZE_MAX,0);
-        if (i<workMatches.size()) b=workMatches[i];
-        // unlikely
-        if (b.done) continue;
-
-        if (b.orig!=lastOrig) {
-          if (lastOrig!=SIZE_MAX) {
-            // commit previous block and start new one
-            logV("%x gains: %d",(int)lastOrig,gains);
-            if (gains<=0) {
-              // don't make a sub-block for these matches since we only have loss
-              logV("(LOSSES!)");
-              for (size_t j=lastOrigOff; j<i; j++) {
-                workMatches[j].done=true;
-              }
+      if (b.orig!=lastOrig) {
+        if (lastOrig!=SIZE_MAX) {
+          // commit previous block and start new one
+          logV("%x gains: %d",(int)lastOrig,gains);
+          if (gains<=0) {
+            // don't make a sub-block for these matches since we only have loss
+            logV("(LOSSES!)");
+            for (size_t j=lastOrigOff; j<i; j++) {
+              workMatches[j].done=true;
             }
           }
-          lastOrig=b.orig;
-          lastOrigOff=i;
-          if (lastOrig!=SIZE_MAX) {
-            blockSize=estimateBlockSize(&buf[b.orig],b.len,speedDial);
-          } else {
-            blockSize=0;
-          }
-          gains=-4;
         }
-        gains+=(blockSize-3);
+        lastOrig=b.orig;
+        lastOrigOff=i;
+        if (lastOrig!=SIZE_MAX) {
+          blockSize=estimateBlockSize(&buf[b.orig],b.len,speedDial);
+        } else {
+          blockSize=0;
+        }
+        gains=-4;
       }
+      gains+=(blockSize-3);
+    }
 
-      // make sub-blocks
-      lastOrig=SIZE_MAX;
-      size_t subBlockID=subBlocks.size();
-      for (BlockMatch& i: workMatches) {
-        // skip invalid matches (yes, this can happen)
-        if (i.done) continue;
+    // make sub-blocks
+    lastOrig=SIZE_MAX;
+    size_t subBlockID=subBlocks.size();
+    for (BlockMatch& i: workMatches) {
+      // skip invalid matches (yes, this can happen)
+      if (i.done) continue;
 
-        // create new sub-block if necessary
-        if (i.orig!=lastOrig) {
-          subBlockID=subBlocks.size();
-          newBlocks=true;
-          logV("new sub-block %d",(int)subBlockID);
+      // create new sub-block if necessary
+      if (i.orig!=lastOrig) {
+        subBlockID=subBlocks.size();
+        newBlocks=true;
+        logV("new sub-block %d",(int)subBlockID);
 
-          // isolate this sub-block
-          SafeWriter* newBlock=new SafeWriter;
-          newBlock->init();
-          newBlock->write(&buf[i.orig],i.len);
-          newBlock->writeC(0xf9); // ret
-          // padding
-          newBlock->writeC(0);
-          newBlock->writeC(0);
-          newBlock->writeC(0);
-          newBlock->writeC(0);
-          newBlock->writeC(0);
-          newBlock->writeC(0);
-          newBlock->writeC(0);
-          subBlocks.push_back(newBlock);
-          lastOrig=i.orig;
+        // isolate this sub-block
+        SafeWriter* newBlock=new SafeWriter;
+        newBlock->init();
+        newBlock->write(&buf[i.orig],i.len);
+        newBlock->writeC(0xf9); // ret
+        // padding
+        newBlock->writeC(0);
+        newBlock->writeC(0);
+        newBlock->writeC(0);
+        newBlock->writeC(0);
+        newBlock->writeC(0);
+        newBlock->writeC(0);
+        newBlock->writeC(0);
+        subBlocks.push_back(newBlock);
+        lastOrig=i.orig;
 
-          // insert call on the original block
-          buf[i.orig]=0xf4;
-          buf[i.orig+1]=subBlockID&0xff;
-          buf[i.orig+2]=(subBlockID>>8)&0xff;
-          buf[i.orig+3]=(subBlockID>>16)&0xff;
-          buf[i.orig+4]=(subBlockID>>24)&0xff;
-          buf[i.orig+5]=0;
-          buf[i.orig+6]=0;
-          buf[i.orig+7]=0;
-
-          // replace the rest with nop
-          for (size_t j=i.orig+8; j<i.orig+i.len; j++) {
-            buf[j]=0xf1;
-          }
-        }
-
-        // set match to the last sub-block
-        buf[i.block]=0xf4;
-        buf[i.block+1]=subBlockID&0xff;
-        buf[i.block+2]=(subBlockID>>8)&0xff;
-        buf[i.block+3]=(subBlockID>>16)&0xff;
-        buf[i.block+4]=(subBlockID>>24)&0xff;
-        buf[i.block+5]=0;
-        buf[i.block+6]=0;
-        buf[i.block+7]=0;
+        // insert call on the original block
+        buf[i.orig]=0xf4;
+        buf[i.orig+1]=subBlockID&0xff;
+        buf[i.orig+2]=(subBlockID>>8)&0xff;
+        buf[i.orig+3]=(subBlockID>>16)&0xff;
+        buf[i.orig+4]=(subBlockID>>24)&0xff;
+        buf[i.orig+5]=0;
+        buf[i.orig+6]=0;
+        buf[i.orig+7]=0;
 
         // replace the rest with nop
-        for (size_t j=i.block+8; j<i.block+i.len; j++) {
+        for (size_t j=i.orig+8; j<i.orig+i.len; j++) {
           buf[j]=0xf1;
-        }
-
-        // invalidate overlapping work matches
-        for (BlockMatch& j: workMatches) {
-          if (j.orig!=i.orig) {
-            j.done=true;
-          }
-          if (OVERLAPS(i.block,i.block+i.len,j.block,j.block+j.len)) {
-            j.done=true;
-          }
-        }
-
-        // invalidate overlapping matches
-        for (BlockMatch& j: matches) {
-          if (OVERLAPS(i.orig,i.orig+i.len,j.orig,j.orig+j.len) ||
-              OVERLAPS(i.orig,i.orig+i.len,j.block,j.block+j.len) ||
-              OVERLAPS(i.block,i.block+i.len,j.orig,j.orig+j.len) ||
-              OVERLAPS(i.block,i.block+i.len,j.block,j.block+j.len)) {
-            j.done=true;
-          }
         }
       }
 
-      //if (matchSize>=MIN_MATCH_SIZE) {
-        //logV("trying next size %d",matchSize);
-      //}
-    //}
+      // set match to the last sub-block
+      buf[i.block]=0xf4;
+      buf[i.block+1]=subBlockID&0xff;
+      buf[i.block+2]=(subBlockID>>8)&0xff;
+      buf[i.block+3]=(subBlockID>>16)&0xff;
+      buf[i.block+4]=(subBlockID>>24)&0xff;
+      buf[i.block+5]=0;
+      buf[i.block+6]=0;
+      buf[i.block+7]=0;
+
+      // replace the rest with nop
+      for (size_t j=i.block+8; j<i.block+i.len; j++) {
+        buf[j]=0xf1;
+      }
+
+      // invalidate overlapping work matches
+      for (BlockMatch& j: workMatches) {
+        if (j.orig!=i.orig) {
+          j.done=true;
+        }
+        if (OVERLAPS(i.block,i.block+i.len,j.block,j.block+j.len)) {
+          j.done=true;
+        }
+      }
+
+      // invalidate overlapping matches
+      for (BlockMatch& j: matches) {
+        if (OVERLAPS(i.orig,i.orig+i.len,j.orig,j.orig+j.len) ||
+            OVERLAPS(i.orig,i.orig+i.len,j.block,j.block+j.len) ||
+            OVERLAPS(i.block,i.block+i.len,j.orig,j.orig+j.len) ||
+            OVERLAPS(i.block,i.block+i.len,j.block,j.block+j.len)) {
+          j.done=true;
+        }
+      }
+    }
 
     logV("done!");
 
