@@ -8717,12 +8717,14 @@ void FurnaceGUI::drawInsEdit() {
 
           for (int i=0; i<lastMacroDesc.macro->len; i++) {
             int val=0;
+            bool bit30=false;
             if ((i-macroOffX)>=0 && (i-macroOffX)<lastMacroDesc.macro->len) {
-              val=oldData[i-macroOffX]+macroOffY;
+              bit30=enBit30(oldData[i-macroOffX]);
+              val=deBit30(oldData[i-macroOffX])+macroOffY;
               if (val<lastMacroDesc.min) val=lastMacroDesc.min;
               if (val>lastMacroDesc.max) val=lastMacroDesc.max;
             }
-            lastMacroDesc.macro->val[i]=val;
+            lastMacroDesc.macro->val[i]=val^(bit30?0x40000000:0);
           }
 
           if (lastMacroDesc.macro->loop<lastMacroDesc.macro->len) {
@@ -8755,13 +8757,15 @@ void FurnaceGUI::drawInsEdit() {
 
           for (int i=0; i<lastMacroDesc.macro->len; i++) {
             int val=0;
+            bool bit30=false;
             double posX=round((double)i*(100.0/macroScaleX)-0.01);
             if (posX>=0 && posX<lastMacroDesc.macro->len) {
-              val=round((double)oldData[(int)posX]*(macroScaleY/100.0));
+              val=round((double)deBit30(oldData[(int)posX])*(macroScaleY/100.0));
+              bit30=enBit30(oldData[(int)posX]);
               if (val<lastMacroDesc.min) val=lastMacroDesc.min;
               if (val>lastMacroDesc.max) val=lastMacroDesc.max;
             }
-            lastMacroDesc.macro->val[i]=val;
+            lastMacroDesc.macro->val[i]=val^(bit30?0x40000000:0);
           }
 
           ImGui::CloseCurrentPopup();
