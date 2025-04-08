@@ -188,7 +188,7 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
   thread_local ymfm::ymfm_output<2> aOut;
   thread_local short pcmBuf[24];
 
-  for (int i=0; i<totalChans; i++) {
+  for (int i=0; i<MAX(adpcmChan+1,totalChans); i++) {
     oscBuf[i]->begin(len);
   }
 
@@ -349,7 +349,7 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
     }
   }
 
-  for (int i=0; i<totalChans; i++) {
+  for (int i=0; i<MAX(adpcmChan+1,totalChans); i++) {
     oscBuf[i]->end(len);
   }
 }
@@ -471,7 +471,7 @@ void DivPlatformOPL::acquire_ymfm8950(short** buf, size_t len) {
     fmChan[i]=fme->debug_channel(i);
   }
 
-  for (int i=0; i<totalChans; i++) {
+  for (int i=0; i<totalChans+1; i++) {
     oscBuf[i]->begin(len);
   }
 
@@ -502,16 +502,16 @@ void DivPlatformOPL::acquire_ymfm8950(short** buf, size_t len) {
       oscBuf[8]->putSample(h,CLAMP(fmChan[8]->debug_special1()<<2,-32768,32767));
       oscBuf[9]->putSample(h,CLAMP(fmChan[8]->debug_special2()<<2,-32768,32767));
       oscBuf[10]->putSample(h,CLAMP(fmChan[7]->debug_special2()<<2,-32768,32767));
-      oscBuf[11]->putSample(h,CLAMP(abe->get_last_out(0),-32768,32767));
+      oscBuf[11]->putSample(h,CLAMP(abe->get_last_out(0)<<2,-32768,32767));
     } else {
       for (int i=0; i<9; i++) {
         oscBuf[i]->putSample(h,CLAMP(fmChan[i]->debug_output(0)<<2,-32768,32767));
       }
-      oscBuf[9]->putSample(h,CLAMP(abe->get_last_out(0),-32768,32767));
+      oscBuf[9]->putSample(h,CLAMP(abe->get_last_out(0)<<2,-32768,32767));
     }
   }
 
-  for (int i=0; i<totalChans; i++) {
+  for (int i=0; i<totalChans+1; i++) {
     oscBuf[i]->end(len);
   }
 }
@@ -755,7 +755,7 @@ void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
   int chOut[11];
   thread_local ymfm::ymfm_output<2> aOut;
 
-  for (int i=0; i<totalChans; i++) {
+  for (int i=0; i<MAX(adpcmChan+1,totalChans); i++) {
     oscBuf[i]->begin(len);
   }
 
@@ -899,7 +899,7 @@ void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
     buf[0][h]=dacOut;
   }
 
-  for (int i=0; i<totalChans; i++) {
+  for (int i=0; i<MAX(adpcmChan+1,totalChans); i++) {
     oscBuf[i]->end(len);
   }
 }
