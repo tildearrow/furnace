@@ -194,27 +194,14 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) 
         }
       }
     }
-    if (lowQuality) {
-      for (int i=0; i<outs; i++) {
-        if (bbIn[i]==NULL) continue;
-        if (bb[i]==NULL) continue;
-        for (size_t j=0; j<runtotal; j++) {
-          if (bbIn[i][j]==temp[i]) continue;
-          temp[i]=bbIn[i][j];
-          blip_add_delta_fast(bb[i],j,temp[i]-prevSample[i]);
-          prevSample[i]=temp[i];
-        }
-      }
-    } else {
-      for (int i=0; i<outs; i++) {
-        if (bbIn[i]==NULL) continue;
-        if (bb[i]==NULL) continue;
-        for (size_t j=0; j<runtotal; j++) {
-          if (bbIn[i][j]==temp[i]) continue;
-          temp[i]=bbIn[i][j];
-          blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
-          prevSample[i]=temp[i];
-        }
+    for (int i=0; i<outs; i++) {
+      if (bbIn[i]==NULL) continue;
+      if (bb[i]==NULL) continue;
+      for (size_t j=0; j<runtotal; j++) {
+        if (bbIn[i][j]==temp[i]) continue;
+        temp[i]=bbIn[i][j];
+        blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
+        prevSample[i]=temp[i];
       }
     }
   }
