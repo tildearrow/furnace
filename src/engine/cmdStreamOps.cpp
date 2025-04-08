@@ -675,17 +675,19 @@ struct BlockMatch {
 
 #define OVERLAPS(a1,a2,b1,b2) ((b1)<(a2) && (b2)>(a1))
 
+#define MIN_MATCH_SIZE 16
+
 // TODO:
 // - check whether a block consists only of calls
 // - see if we can optimize better
 SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlocks, unsigned char* speedDial) {
   unsigned char* buf=stream->getFinalBuf();
-  size_t matchSize=48;
+  size_t matchSize=MIN_MATCH_SIZE;
   std::vector<BlockMatch> matches;
 
   // repeat until we run out of matches
   while (true) {
-    matchSize=48;
+    matchSize=MIN_MATCH_SIZE;
     matches.clear();
 
     // fast match algorithm
@@ -747,8 +749,6 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
         // self-overlapping
         i.done=true;
       } else {
-        nonOverlapCount++;
-        /*
         bool onlyCalls=true;
         for (size_t j=i.orig; j<i.orig+i.len; j+=8) {
           if (buf[j]!=0xf4) {
@@ -761,7 +761,6 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
         } else {
           nonOverlapCount++;
         }
-        */
       }
     }
 
@@ -784,7 +783,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
         if (i.len>matchSize) matchSize=i.len;
       }
 
-    //while (matchSize>=48) {
+    //while (matchSize>=MIN_MATCH_SIZE) {
       workMatches.clear();
       // find matches with matching size
       for (BlockMatch& i: matches) {
@@ -911,7 +910,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
         }
       }
 
-      //if (matchSize>=48) {
+      //if (matchSize>=MIN_MATCH_SIZE) {
         //logV("trying next size %d",matchSize);
       //}
     //}
