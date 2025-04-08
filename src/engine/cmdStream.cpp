@@ -644,6 +644,12 @@ bool DivCSPlayer::init() {
 
 bool DivEngine::playStream(unsigned char* f, size_t length) {
   BUSY_BEGIN;
+  // kill the previous player
+  if (cmdStreamInt) {
+    cmdStreamInt->cleanup();
+    delete cmdStreamInt;
+    cmdStreamInt=NULL;
+  }
   cmdStreamInt=new DivCSPlayer(this,f,length);
   if (!cmdStreamInt->init()) {
     logE("not a command stream!");
