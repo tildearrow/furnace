@@ -299,7 +299,7 @@ possibly-wider fixed_t. On 32-bit platforms, this is likely more efficient.
 And by having pre_shift 32, a 32-bit platform can easily do the shift by
 simply ignoring the low half. */
 
-void blip_add_delta( blip_t* m, unsigned time, int delta )
+void blip_add_delta_slow( blip_t* m, unsigned time, int delta )
 {
 	unsigned fixed = (unsigned) ((time * m->factor + m->offset) >> pre_shift);
 	buf_t* out = SAMPLES( m ) + m->avail + (fixed >> frac_bits);
@@ -350,3 +350,6 @@ void blip_add_delta_fast( blip_t* m, unsigned time, int delta )
 	out [7] += delta * delta_unit - delta2;
 	out [8] += delta2;
 }
+
+/* (tildearrow) ability to change blip_add_delta at runtime */
+void (*blip_add_delta)( blip_t*, unsigned int, int )=blip_add_delta_slow;
