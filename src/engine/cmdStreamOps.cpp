@@ -794,41 +794,10 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
     // search for small matches, and then find bigger ones
     logD("finding possible matches");
     for (size_t i=0; i<stream->size(); i+=8) {
-      if ((i&8191)==0) logV("%d of %d",i,(int)stream->size());
       for (size_t j=i+matchSize; j<stream->size(); j+=8) {
         if (memcmp(&buf[i],&buf[j],matchSize)==0) {
-          BlockMatch b=BlockMatch(i,j,matchSize);
-
-          // determine match size
-          size_t finalLen=b.len;
-          size_t origPos=b.orig+b.len;
-          size_t blockPos=b.block+b.len;
-          while (true) {
-            if (origPos>=stream->size() || blockPos>=stream->size()) {
-              break;
-            }
-
-            if (buf[origPos]!=buf[blockPos]) {
-              break;
-            }
-            origPos++;
-            blockPos++;
-            finalLen++;
-          }
-
-          finalLen&=~7;
-          b.len=finalLen;
-          b.done=true;
-          
-          // if this match is bigger than the match size, change the match size
-          // we're only going to work on the largest matches anyway
-          if (finalLen>matchSize) {
-            logW("expand dong");
-            matchSize=finalLen;
-          }
-
-          // store this match
-          matches.push_back(b);
+          // store this match for later
+          matches.push_back(BlockMatch(i,j,matchSize));
         }
       }
     }
@@ -837,6 +806,35 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
 
     // quit if there isn't anything
     if (matches.empty()) return stream;
+
+    // search for bigger matches
+    for (size_t i=0; i<matches.size(); i++) {
+      if ((i&8191)==0) logV("match %d of %d",i,(int)matches.size());
+      BlockMatch& b=matches[i];
+
+      // don't do anything if this match is done
+      if (b.done) continue;
+
+      size_t finalLen=b.len;
+      size_t origPos=b.orig+b.len;
+      size_t blockPos=b.block+b.len;
+      while (true) {
+        if (origPos>=stream->size() || blockPos>=stream->size()) {
+          break;
+        }
+
+        if (buf[origPos]!=buf[blockPos]) {
+          break;
+        }
+        origPos++;
+        blockPos++;
+        finalLen++;
+      }
+
+      finalLen&=~7;
+      b.len=finalLen;
+      b.done=true;
+    }
 
     logD("checking overlapping/bad matches");
 
