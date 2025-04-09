@@ -2959,7 +2959,6 @@ void FurnaceGUI::drawSettings() {
           }
         }
 
-
         // SUBSECTION ASSETS
         CONFIG_SUBSECTION(_("Assets"));
 
