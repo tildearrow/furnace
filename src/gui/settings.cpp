@@ -2953,7 +2953,12 @@ void FurnaceGUI::drawSettings() {
             settings.cursorWheelStep=1;
             settingsChanged=true;
           }
+          if (ImGui::RadioButton(_("Coarse Step##cws1"), settings.cursorWheelStep == 2)) {
+            settings.cursorWheelStep = 2;
+            settingsChanged = true;
+          }
         }
+
 
         // SUBSECTION ASSETS
         CONFIG_SUBSECTION(_("Assets"));
@@ -5400,7 +5405,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.shaderOsc,0,1);
   clampSetting(settings.oscLineSize,0.25f,16.0f);
   clampSetting(settings.songNotesWrap, 0, 1);
-  clampSetting(settings.cursorWheelStep,0,1);
+  clampSetting(settings.cursorWheelStep,0,2);
   clampSetting(settings.vsync,0,4);
   clampSetting(settings.frameRateLimit,0,1000);
   clampSetting(settings.displayRenderTime,0,1);
