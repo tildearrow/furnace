@@ -355,6 +355,92 @@ void DivEngine::runExportThread() {
     }
   };
 
+  const auto doExportManySys=[&fadeOutSamples,&curFadeOutSample,this](auto sf, auto si, auto fname, auto sfWrap) {
+    float* outBuf[DIV_MAX_OUTPUTS];
+    memset(outBuf,0,sizeof(void*)*DIV_MAX_OUTPUTS);
+    outBuf[0]=new float[EXPORT_BUFSIZE];
+    outBuf[1]=new float[EXPORT_BUFSIZE];
+    short* sysBuf[DIV_MAX_CHIPS];
+    for (int i=0; i<song.systemLen; i++) {
+      sysBuf[i]=new short[EXPORT_BUFSIZE*disCont[i].dispatch->getOutputCount()];
+    }
+
+    // take control of audio output
+    deinitAudioBackend();
+    playSub(false);
+
+    logI("rendering to files...");
+
+    while (playing) {
+      size_t total=0;
+      nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
+      if (totalProcessed>EXPORT_BUFSIZE) {
+        logE("error: total processed is bigger than export bufsize! %d>%d",totalProcessed,EXPORT_BUFSIZE);
+        totalProcessed=EXPORT_BUFSIZE;
+      }
+      for (int j=0; j<(int)totalProcessed; j++) {
+        total++;
+        if (isFadingOut) {
+          double mul=(1.0-((double)curFadeOutSample/(double)fadeOutSamples));
+          for (int i=0; i<song.systemLen; i++) {
+            for (int k=0; k<si[i].channels; k++) {
+              if (disCont[i].bbOut[k]==NULL) {
+                sysBuf[i][k+(j*si[i].channels)]=0;
+              } else {
+                sysBuf[i][k+(j*si[i].channels)]=(double)disCont[i].bbOut[k][j]*mul;
+              }
+            }
+          }
+          if (++curFadeOutSample>=fadeOutSamples) {
+            playing=false;
+            break;
+          }
+        } else {
+          for (int i=0; i<song.systemLen; i++) {
+            for (int k=0; k<si[i].channels; k++) {
+              if (disCont[i].bbOut[k]==NULL) {
+                sysBuf[i][k+(j*si[i].channels)]=0;
+              } else {
+                sysBuf[i][k+(j*si[i].channels)]=disCont[i].bbOut[k][j];
+              }
+            }
+          }
+          if (lastLoopPos>-1 && j>=lastLoopPos && totalLoops>=exportLoopCount) {
+            logD("start fading out...");
+            isFadingOut=true;
+            if (fadeOutSamples==0) break;
+          }
+        }
+      }
+      for (int i=0; i<song.systemLen; i++) {
+        if (sf_writef_short(sf[i],sysBuf[i],total)!=(int)total) {
+          logE("error: failed to write entire buffer! (%d)",i);
+          break;
+        }
+      }
+    }
+
+    delete[] outBuf[0];
+    delete[] outBuf[1];
+
+    for (int i=0; i<song.systemLen; i++) {
+      delete[] sysBuf[i];
+      if (sfWrap[i].doClose()!=0) {
+        logE("could not close audio file!");
+      }
+    }
+
+    if (initAudioBackend()) {
+      for (int i=0; i<song.systemLen; i++) {
+        disCont[i].setRates(got.rate);
+        disCont[i].setQuality(lowQuality,dcHiPass);
+      }
+      if (!output->setRun(true)) {
+        logE("error while activating audio!");
+      }
+    }
+  };
+
   switch (exportMode) {
     case DIV_EXPORT_MODE_ONE: {
 
@@ -431,7 +517,7 @@ void DivEngine::runExportThread() {
       }
 
       for (int i=0; i<song.systemLen; i++) {
-        fname[i]=fmt::sprintf("%s_s%02d.wav",exportPath,i+1);
+        fname[i]=fmt::sprintf("%s_s%02d.%s",exportPath,i+1,exportFileExtNoDot);
         logI("- %s",fname[i].c_str());
         sf[i]=sfWrap[i].doOpen(fname[i].c_str(),SFM_WRITE,&si[i]);
         if (sf[i]==NULL) {
@@ -443,89 +529,9 @@ void DivEngine::runExportThread() {
         }
       }
 
-      float* outBuf[DIV_MAX_OUTPUTS];
-      memset(outBuf,0,sizeof(void*)*DIV_MAX_OUTPUTS);
-      outBuf[0]=new float[EXPORT_BUFSIZE];
-      outBuf[1]=new float[EXPORT_BUFSIZE];
-      short* sysBuf[DIV_MAX_CHIPS];
-      for (int i=0; i<song.systemLen; i++) {
-        sysBuf[i]=new short[EXPORT_BUFSIZE*disCont[i].dispatch->getOutputCount()];
-      }
 
-      // take control of audio output
-      deinitAudioBackend();
-      playSub(false);
+      doExportManySys(sf,si,fname,sfWrap);
 
-      logI("rendering to files...");
-
-      while (playing) {
-        size_t total=0;
-        nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
-        if (totalProcessed>EXPORT_BUFSIZE) {
-          logE("error: total processed is bigger than export bufsize! %d>%d",totalProcessed,EXPORT_BUFSIZE);
-          totalProcessed=EXPORT_BUFSIZE;
-        }
-        for (int j=0; j<(int)totalProcessed; j++) {
-          total++;
-          if (isFadingOut) {
-            double mul=(1.0-((double)curFadeOutSample/(double)fadeOutSamples));
-            for (int i=0; i<song.systemLen; i++) {
-              for (int k=0; k<si[i].channels; k++) {
-                if (disCont[i].bbOut[k]==NULL) {
-                  sysBuf[i][k+(j*si[i].channels)]=0;
-                } else {
-                  sysBuf[i][k+(j*si[i].channels)]=(double)disCont[i].bbOut[k][j]*mul;
-                }
-              }
-            }
-            if (++curFadeOutSample>=fadeOutSamples) {
-              playing=false;
-              break;
-            }
-          } else {
-            for (int i=0; i<song.systemLen; i++) {
-              for (int k=0; k<si[i].channels; k++) {
-                if (disCont[i].bbOut[k]==NULL) {
-                  sysBuf[i][k+(j*si[i].channels)]=0;
-                } else {
-                  sysBuf[i][k+(j*si[i].channels)]=disCont[i].bbOut[k][j];
-                }
-              }
-            }
-            if (lastLoopPos>-1 && j>=lastLoopPos && totalLoops>=exportLoopCount) {
-              logD("start fading out...");
-              isFadingOut=true;
-              if (fadeOutSamples==0) break;
-            }
-          }
-        }
-        for (int i=0; i<song.systemLen; i++) {
-          if (sf_writef_short(sf[i],sysBuf[i],total)!=(int)total) {
-            logE("error: failed to write entire buffer! (%d)",i);
-            break;
-          }
-        }
-      }
-
-      delete[] outBuf[0];
-      delete[] outBuf[1];
-
-      for (int i=0; i<song.systemLen; i++) {
-        delete[] sysBuf[i];
-        if (sfWrap[i].doClose()!=0) {
-          logE("could not close audio file!");
-        }
-      }
-
-      if (initAudioBackend()) {
-        for (int i=0; i<song.systemLen; i++) {
-          disCont[i].setRates(got.rate);
-          disCont[i].setQuality(lowQuality,dcHiPass);
-        }
-        if (!output->setRun(true)) {
-          logE("error while activating audio!");
-        }
-      }
       logI("done!");
       exporting=false;
       break;
