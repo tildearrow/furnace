@@ -1077,9 +1077,9 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
   // song beginning marker
   for (int i=0; i<chans; i++) {
     chanStream[i]->writeC(0xf0);
-    chanStream[i]->writeC(0x00);
-    chanStream[i]->writeC(0x00);
     chanStream[i]->writeC(i);
+    chanStream[i]->writeC(0x00);
+    chanStream[i]->writeC(0x00);
     // padding
     chanStream[i]->writeC(0x00);
     chanStream[i]->writeC(0x00);
@@ -1098,9 +1098,9 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
           // loop marker
           for (int i=0; i<chans; i++) {
             chanStream[i]->writeC(0xf0);
-            chanStream[i]->writeC(0x01);
-            chanStream[i]->writeC(0x00);
             chanStream[i]->writeC(i);
+            chanStream[i]->writeC(0x00);
+            chanStream[i]->writeC(0x01);
             // padding
             chanStream[i]->writeC(0x00);
             chanStream[i]->writeC(0x00);
@@ -1347,9 +1347,9 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
 
   // PASS 4: put all channels together
   for (int i=0; i<chans; i++) {
-    chanStreamOff[i]=w->tell();
+    chanStreamOff[i]=globalStream->tell();
     logI("- %d: off %x size %ld",i,chanStreamOff[i],chanStream[i]->size());
-    reloc8(chanStream[i]->getFinalBuf(),chanStream[i]->size(),0,w->tell());
+    reloc8(chanStream[i]->getFinalBuf(),chanStream[i]->size(),0,globalStream->tell());
     globalStream->write(chanStream[i]->getFinalBuf(),chanStream[i]->size());
     chanStream[i]->finish();
     delete chanStream[i];
@@ -1422,11 +1422,11 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
         if (addr<blockOff.size()) {
           // turn it into call
           addr=blockOff[addr];
-          buf[j]=0xf8;
+          buf[j]=0xf5;
           buf[j+1]=addr&0xff;
           buf[j+2]=(addr>>8)&0xff;
-          //buf[j+3]=(addr>>16)&0xff;
-          //buf[j+4]=(addr>>24)&0xff;
+          buf[j+3]=(addr>>16)&0xff;
+          buf[j+4]=(addr>>24)&0xff;
         } else {
           logE("requested symbol %d is out of bounds!",addr);
         }
@@ -1444,8 +1444,31 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
   // PASS 7: pack stream
   globalStream=packStream(globalStream,sortedCmd);
 
+  // PASS 8: find new offsets
+  {
+    unsigned char* buf=globalStream->getFinalBuf();
+    for (size_t i=0; i<globalStream->size();) {
+      int insLen=getInsLength(buf[i],_EXT(buf,i,globalStream->size()),sortedCmd);
+      if (insLen<1) {
+        logE("INS %x NOT IMPLEMENTED...",buf[i]);
+        break;
+      }
+
+      if (buf[i]==0xf0) {
+        if (buf[i+3]==0) {
+          int ch=buf[i+1];
+          if (ch>=0 && ch<chans) {
+            chanStreamOff[ch]=i+w->tell();
+          }
+        }
+      }
+
+      i+=insLen;
+    }
+  }
+
   // write results
-  // TODO: FUCK THIS
+  reloc(globalStream->getFinalBuf(),globalStream->size(),0,w->tell(),sortedCmd);
   w->write(globalStream->getFinalBuf(),globalStream->size());
 
   w->seek(8,SEEK_SET);
