@@ -695,6 +695,75 @@ SafeWriter* stripNops(SafeWriter* s) {
   return s;
 }
 
+SafeWriter* stripNopsPacked(SafeWriter* s, unsigned char* speedDial) {
+  std::unordered_map<unsigned int,unsigned int> addrTable;
+  SafeWriter* oldStream=s;
+  unsigned char* buf=oldStream->getFinalBuf();
+  s=new SafeWriter;
+  s->init();
+
+  // prepare address map
+  size_t addr=0;
+  for (size_t i=0; i<oldStream->size();) {
+    int insLen=getInsLength(buf[i],_EXT(buf,i,oldStream->size()),speedDial);
+    if (insLen<1) {
+      logE("INS %x NOT IMPLEMENTED...",buf[i]);
+      break;
+    }
+    addrTable[i]=addr;
+    if (buf[i]!=0xf1) addr+=insLen;
+    i+=insLen;
+  }
+
+  // translate addresses
+  for (size_t i=0; i<oldStream->size();) {
+    int insLen=getInsLength(buf[i],_EXT(buf,i,oldStream->size()),speedDial);
+    if (insLen<1) {
+      logE("INS %x NOT IMPLEMENTED...",buf[i]);
+      break;
+    }
+    switch (buf[i]) {
+      case 0xf5: // calli
+      case 0xfa: { // jmp
+        unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<8)|(buf[i+4]<<24);
+        try {
+          addr=addrTable[addr];
+          buf[i+1]=addr&0xff;
+          buf[i+2]=(addr>>8)&0xff;
+          buf[i+3]=(addr>>16)&0xff;
+          buf[i+4]=(addr>>24)&0xff;
+        } catch (std::out_of_range& e) {
+          logW("address %x is not mappable!",addr);
+        }
+        break;
+      }
+      case 0xf8: { // call
+        unsigned int addr=buf[i+1]|(buf[i+2]<<8);
+        try {
+          addr=addrTable[addr];
+          buf[i+1]=addr&0xff;
+          buf[i+2]=(addr>>8)&0xff;
+          if (addr>0xffff) { // this may never happen but it's here just in case
+            logW("address %x is out of range for 16-bit call!",addr);
+          }
+        } catch (std::out_of_range& e) {
+          logW("address %x is not mappable!",addr);
+        }
+        break;
+      }
+    }
+    if (buf[i]!=0xf1) {
+      s->write(&buf[i],insLen);
+    }
+    i+=insLen;
+  }
+  
+
+  oldStream->finish();
+  delete oldStream;
+  return s;
+}
+
 struct BlockMatch {
   size_t orig, block;
   unsigned int len;
@@ -723,6 +792,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
 
     // fast match algorithm
     // search for small matches, and then find bigger ones
+    logD("finding possible matches");
     for (size_t i=0; i<stream->size(); i+=8) {
       for (size_t j=i+matchSize; j<stream->size(); j+=8) {
         if (memcmp(&buf[i],&buf[j],matchSize)==0) {
@@ -738,33 +808,35 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
     if (matches.empty()) return stream;
 
     // search for bigger matches
-    bool wantMore=true;
-    do {
-      wantMore=false;
-      matchSize+=8;
-      for (size_t i=0; i<matches.size(); i++) {
-        BlockMatch& b=matches[i];
+    for (size_t i=0; i<matches.size(); i++) {
+      if ((i&8191)==0) logV("match %d of %d",i,(int)matches.size());
+      BlockMatch& b=matches[i];
 
-        // don't do anything if this match is done
-        if (b.done) continue;
+      // don't do anything if this match is done
+      if (b.done) continue;
 
-        // stop if this match is near the edge
-        if ((b.orig+matchSize)>stream->size() || (b.block+matchSize)>stream->size()) {
-          b.done=true;
-          continue;
+      size_t finalLen=b.len;
+      size_t origPos=b.orig+b.len;
+      size_t blockPos=b.block+b.len;
+      while (true) {
+        if (origPos>=stream->size() || blockPos>=stream->size()) {
+          break;
         }
 
-        // check
-        if (memcmp(&buf[b.orig],&buf[b.block],matchSize)==0) {
-          // this match may be bigger
-          b.len=matchSize;
-          wantMore=true;
-        } else {
-          // this is the max size
-          b.done=true;
+        if (buf[origPos]!=buf[blockPos]) {
+          break;
         }
+        origPos++;
+        blockPos++;
+        finalLen++;
       }
-    } while (wantMore);
+
+      finalLen&=~7;
+      b.len=finalLen;
+      b.done=true;
+    }
+
+    logD("checking overlapping/bad matches");
 
     // first stage done
     // set done to false unless:
@@ -974,7 +1046,29 @@ SafeWriter* packStream(SafeWriter* s, unsigned char* speedDial) {
       break;
     }
     switch (buf[i]) {
-      case 0xf5: // calli
+      case 0xf5: { // calli
+        unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<16)|(buf[i+4]<<24);
+        try {
+          addr=addrTable[addr];
+          // check whether we have sufficient room to turn this into a 16-bit call
+          if (addr<0xff00) {
+            buf[i]=0xf8;
+            buf[i+1]=addr&0xff;
+            buf[i+2]=(addr>>8)&0xff;
+            buf[i+3]=0xf1;
+            buf[i+4]=0xf1;
+          } else {
+            buf[i]=0xf5;
+            buf[i+1]=addr&0xff;
+            buf[i+2]=(addr>>8)&0xff;
+            buf[i+3]=(addr>>16)&0xff;
+            buf[i+4]=(addr>>24)&0xff;
+          }
+        } catch (std::out_of_range& e) {
+          logW("address %x is not mappable!",addr);
+        }
+        break;
+      }
       case 0xfa: { // jmp
         unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<16)|(buf[i+4]<<24);
         try {
@@ -989,14 +1083,8 @@ SafeWriter* packStream(SafeWriter* s, unsigned char* speedDial) {
         break;
       }
       case 0xf8: { // call
-        unsigned int addr=buf[i+1]|(buf[i+2]<<8);
-        try {
-          addr=addrTable[addr];
-          buf[i+1]=addr&0xff;
-          buf[i+2]=(addr>>8)&0xff;
-        } catch (std::out_of_range& e) {
-          logW("address %x is not mappable!",addr);
-        }
+        logW("16-bit call should NEVER be generated. aborting!");
+        abort();
         break;
       }
     }
@@ -1438,11 +1526,11 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
     assert(!(globalStream->size()&7));
   }
 
-  // PASS 6: remove nop's (again)
-  globalStream=stripNops(globalStream);
-
-  // PASS 7: pack stream
+  // PASS 6: pack stream
   globalStream=packStream(globalStream,sortedCmd);
+
+  // PASS 7: remove nop's which may be produced by 32-bit call conversion
+  globalStream=stripNopsPacked(globalStream,sortedCmd);
 
   // PASS 8: find new offsets
   {
