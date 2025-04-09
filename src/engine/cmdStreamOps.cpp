@@ -578,6 +578,38 @@ int estimateBlockSize(unsigned char* buf, size_t len, unsigned char* speedDial) 
   return ret;
 }
 
+void reloc8(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int destAddr) {
+  unsigned int delta=destAddr-sourceAddr;
+  for (size_t i=0; i<len; i+=8) {
+    switch (buf[i]) {
+      case 0xf5: // calli
+      case 0xfa: { // jmp
+        unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<16)|(buf[i+4]<<24);
+        addr+=delta;
+        buf[i+1]=addr&0xff;
+        buf[i+2]=(addr>>8)&0xff;
+        buf[i+3]=(addr>>16)&0xff;
+        buf[i+4]=(addr>>24)&0xff;
+        break;
+      }
+      case 0xf8: { // call
+        unsigned int addr=buf[i+1]|(buf[i+2]<<8);
+        addr+=delta;
+        if (addr>0xffff) {
+          buf[i]=0xf5;
+          buf[i+1]=addr&0xff;
+          buf[i+2]=(addr>>8)&0xff;
+          buf[i+3]=(addr>>16)&0xff;
+          buf[i+4]=(addr>>24)&0xff;
+        } else {
+          buf[i+1]=addr&0xff;
+          buf[i+2]=(addr>>8)&0xff;
+        }
+        break;
+      }
+    }
+  }
+}
 
 void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int destAddr, unsigned char* speedDial) {
   unsigned int delta=destAddr-sourceAddr;
@@ -997,6 +1029,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
   unsigned char sortedCmd[16];
   unsigned char sortedDelay[16];
   
+  SafeWriter* globalStream;
   SafeWriter* chanStream[DIV_MAX_CHANS];
   unsigned int chanStreamOff[DIV_MAX_CHANS];
   std::vector<size_t> tickPos[DIV_MAX_CHANS];
@@ -1013,6 +1046,9 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
 
   SafeWriter* w=new SafeWriter;
   w->init();
+
+  globalStream=new SafeWriter;
+  globalStream->init();
 
   // write header
   w->write("FCS",4);
@@ -1038,6 +1074,18 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
   double curDivider=divider;
 
   // PASS 0: play the song and log channel command streams
+  // song beginning marker
+  for (int i=0; i<chans; i++) {
+    chanStream[i]->writeC(0xf0);
+    chanStream[i]->writeC(0x00);
+    chanStream[i]->writeC(0x00);
+    chanStream[i]->writeC(i);
+    // padding
+    chanStream[i]->writeC(0x00);
+    chanStream[i]->writeC(0x00);
+    chanStream[i]->writeC(0x00);
+    chanStream[i]->writeC(0x00);
+  }
   while (!done) {
     for (int i=0; i<chans; i++) {
       tickPos[i].push_back(chanStream[i]->tell());
@@ -1047,12 +1095,12 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
         if ((ticks-((tempoAccum+virtualTempoN)/virtualTempoD))<=0) {
           logI("loop is on tick %d",tick);
           loopTick=tick;
-          // marker
+          // loop marker
           for (int i=0; i<chans; i++) {
             chanStream[i]->writeC(0xf0);
+            chanStream[i]->writeC(0x01);
             chanStream[i]->writeC(0x00);
-            chanStream[i]->writeC(0x00);
-            chanStream[i]->writeC(0x00);
+            chanStream[i]->writeC(i);
             // padding
             chanStream[i]->writeC(0x00);
             chanStream[i]->writeC(0x00);
@@ -1297,110 +1345,108 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
     chanStream[h]=stripNops(chanStream[h]);
   }
 
-  // PASS 4: find sub-blocks and isolate them
-  if (!(disablePasses&4)) {
-    for (int h=0; h<chans; h++) {
-      std::vector<SafeWriter*> subBlocks;
-      size_t beforeSize=chanStream[h]->size();
-      
-      // 6 is the minimum size that can be reliably optimized
-      logI("finding sub-blocks in chan %d",h);
-      chanStream[h]=findSubBlocks(chanStream[h],subBlocks,sortedCmd);
-      // find sub-blocks within sub-blocks
-      size_t subBlocksLast=0;
-      size_t subBlocksLen=subBlocks.size();
-      logI("finding sub-blocks within sub-blocks",h);
-      while (subBlocksLast!=subBlocksLen) {
-        logI("got %d blocks... starting from %d",(int)subBlocksLen,(int)subBlocksLast);
-        for (size_t i=subBlocksLast; i<subBlocksLen; i++) {
-          SafeWriter* newBlock=findSubBlocks(subBlocks[i],subBlocks,sortedCmd);
-          subBlocks[i]=newBlock;
-        }
-        subBlocksLast=subBlocksLen;
-        subBlocksLen=subBlocks.size();
-      }
-
-      // insert sub-blocks and resolve symbols
-      logI("%d sub-blocks total",(int)subBlocks.size());
-      std::vector<size_t> blockOff;
-      chanStream[h]->seek(0,SEEK_END);
-      for (size_t i=0; i<subBlocks.size(); i++) {
-        SafeWriter* block=subBlocks[i];
-
-        // check whether this block is duplicate
-        int dupOf=-1;
-        for (size_t j=0; j<i; j++) {
-          if (subBlocks[j]->size()==subBlocks[i]->size()) {
-            if (memcmp(subBlocks[j]->getFinalBuf(),subBlocks[i]->getFinalBuf(),subBlocks[j]->size())==0) {
-              logW("we have one");
-              dupOf=j;
-              break;
-            }
-          }
-        }
-
-        if (dupOf>=0) {
-          // push address of original block (discard duplicate)
-          blockOff.push_back(blockOff[dupOf]);
-        } else {
-          // write sub-block
-          blockOff.push_back(chanStream[h]->tell());
-          logV("block size: %d",(int)block->size());
-          assert(!(block->size()&7));
-          chanStream[h]->write(block->getFinalBuf(),block->size());
-        }
-      }
-
-      for (SafeWriter* block: subBlocks) {
-        block->finish();
-        delete block;
-      }
-      subBlocks.clear();
-
-      // resolve symbols
-      unsigned char* buf=chanStream[h]->getFinalBuf();
-      for (size_t j=0; j<chanStream[h]->size(); j+=8) {
-        if (buf[j]==0xf4) { // callsym
-          unsigned int addr=buf[j+1]|(buf[j+2]<<8)|(buf[j+3]<<16)|(buf[j+4]<<24);
-          if (addr<blockOff.size()) {
-            // turn it into call
-            addr=blockOff[addr];
-            buf[j]=0xf8;
-            buf[j+1]=addr&0xff;
-            buf[j+2]=(addr>>8)&0xff;
-            //buf[j+3]=(addr>>16)&0xff;
-            //buf[j+4]=(addr>>24)&0xff;
-          } else {
-            logE("requested symbol %d is out of bounds!",addr);
-          }
-        }
-      }
-
-      size_t afterSize=chanStream[h]->size();
-      logI("(before: %d - after: %d)",(int)beforeSize,(int)afterSize);
-      assert(!(chanStream[h]->size()&7));
-    }
-  }
-
-  // PASS 5: remove nop's (again)
-  for (int h=0; h<chans; h++) {
-    chanStream[h]=stripNops(chanStream[h]);
-  }
-
-  // PASS 6: pack streams
-  for (int h=0; h<chans; h++) {
-    chanStream[h]=packStream(chanStream[h],sortedCmd);
-  }
-
-  // write results
+  // PASS 4: put all channels together
   for (int i=0; i<chans; i++) {
     chanStreamOff[i]=w->tell();
     logI("- %d: off %x size %ld",i,chanStreamOff[i],chanStream[i]->size());
-    reloc(chanStream[i]->getFinalBuf(),chanStream[i]->size(),0,w->tell(),sortedCmd);
-    w->write(chanStream[i]->getFinalBuf(),chanStream[i]->size());
+    reloc8(chanStream[i]->getFinalBuf(),chanStream[i]->size(),0,w->tell());
+    globalStream->write(chanStream[i]->getFinalBuf(),chanStream[i]->size());
     chanStream[i]->finish();
     delete chanStream[i];
   }
+
+  // PASS 5: find sub-blocks and isolate them
+  if (!(disablePasses&4)) {
+    std::vector<SafeWriter*> subBlocks;
+    size_t beforeSize=globalStream->size();
+    
+    // 6 is the minimum size that can be reliably optimized
+    logI("finding sub-blocks");
+    globalStream=findSubBlocks(globalStream,subBlocks,sortedCmd);
+    // find sub-blocks within sub-blocks
+    size_t subBlocksLast=0;
+    size_t subBlocksLen=subBlocks.size();
+    logI("finding sub-blocks within sub-blocks");
+    while (subBlocksLast!=subBlocksLen) {
+      logI("got %d blocks... starting from %d",(int)subBlocksLen,(int)subBlocksLast);
+      for (size_t i=subBlocksLast; i<subBlocksLen; i++) {
+        SafeWriter* newBlock=findSubBlocks(subBlocks[i],subBlocks,sortedCmd);
+        subBlocks[i]=newBlock;
+      }
+      subBlocksLast=subBlocksLen;
+      subBlocksLen=subBlocks.size();
+    }
+
+    // insert sub-blocks and resolve symbols
+    logI("%d sub-blocks total",(int)subBlocks.size());
+    std::vector<size_t> blockOff;
+    globalStream->seek(0,SEEK_END);
+    for (size_t i=0; i<subBlocks.size(); i++) {
+      SafeWriter* block=subBlocks[i];
+
+      // check whether this block is duplicate
+      int dupOf=-1;
+      for (size_t j=0; j<i; j++) {
+        if (subBlocks[j]->size()==subBlocks[i]->size()) {
+          if (memcmp(subBlocks[j]->getFinalBuf(),subBlocks[i]->getFinalBuf(),subBlocks[j]->size())==0) {
+            logW("we have one");
+            dupOf=j;
+            break;
+          }
+        }
+      }
+
+      if (dupOf>=0) {
+        // push address of original block (discard duplicate)
+        blockOff.push_back(blockOff[dupOf]);
+      } else {
+        // write sub-block
+        blockOff.push_back(globalStream->tell());
+        logV("block size: %d",(int)block->size());
+        assert(!(block->size()&7));
+        globalStream->write(block->getFinalBuf(),block->size());
+      }
+    }
+
+    for (SafeWriter* block: subBlocks) {
+      block->finish();
+      delete block;
+    }
+    subBlocks.clear();
+
+    // resolve symbols
+    unsigned char* buf=globalStream->getFinalBuf();
+    for (size_t j=0; j<globalStream->size(); j+=8) {
+      if (buf[j]==0xf4) { // callsym
+        unsigned int addr=buf[j+1]|(buf[j+2]<<8)|(buf[j+3]<<16)|(buf[j+4]<<24);
+        if (addr<blockOff.size()) {
+          // turn it into call
+          addr=blockOff[addr];
+          buf[j]=0xf8;
+          buf[j+1]=addr&0xff;
+          buf[j+2]=(addr>>8)&0xff;
+          //buf[j+3]=(addr>>16)&0xff;
+          //buf[j+4]=(addr>>24)&0xff;
+        } else {
+          logE("requested symbol %d is out of bounds!",addr);
+        }
+      }
+    }
+
+    size_t afterSize=globalStream->size();
+    logI("(before: %d - after: %d)",(int)beforeSize,(int)afterSize);
+    assert(!(globalStream->size()&7));
+  }
+
+  // PASS 6: remove nop's (again)
+  globalStream=stripNops(globalStream);
+
+  // PASS 7: pack stream
+  globalStream=packStream(globalStream,sortedCmd);
+
+  // write results
+  // TODO: FUCK THIS
+  w->write(globalStream->getFinalBuf(),globalStream->size());
 
   w->seek(8,SEEK_SET);
   for (int i=0; i<chans; i++) {
