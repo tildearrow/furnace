@@ -110,10 +110,13 @@ bool DivEngine::getIsFadingOut() {
 
 class SndfileWavWriter {
   private:
+  public: // TODO: make private again (it's not cuz debugging)
     SNDFILE* sf;
     SF_INFO si;
     SFWrapper sfWrap;
   public:
+    SndfileWavWriter(): sf(NULL) {}
+
     bool open(SF_INFO info, const char* exportPath) {
       si=info;
       sf=sfWrap.doOpen(exportPath,SFM_WRITE,&si);
@@ -355,7 +358,7 @@ void DivEngine::runExportThread() {
     }
   };
 
-  const auto doExportManySys=[&fadeOutSamples,&curFadeOutSample,this](auto sf, auto si, auto fname, auto sfWrap) {
+  const auto doExportManySys=[&fadeOutSamples,&curFadeOutSample,this](auto writers) {
     float* outBuf[DIV_MAX_OUTPUTS];
     memset(outBuf,0,sizeof(void*)*DIV_MAX_OUTPUTS);
     outBuf[0]=new float[EXPORT_BUFSIZE];
@@ -383,11 +386,12 @@ void DivEngine::runExportThread() {
         if (isFadingOut) {
           double mul=(1.0-((double)curFadeOutSample/(double)fadeOutSamples));
           for (int i=0; i<song.systemLen; i++) {
-            for (int k=0; k<si[i].channels; k++) {
+            int channelCount=writers[i].si.channels;
+            for (int k=0; k<channelCount; k++) {
               if (disCont[i].bbOut[k]==NULL) {
-                sysBuf[i][k+(j*si[i].channels)]=0;
+                sysBuf[i][k+(j*channelCount)]=0;
               } else {
-                sysBuf[i][k+(j*si[i].channels)]=(double)disCont[i].bbOut[k][j]*mul;
+                sysBuf[i][k+(j*channelCount)]=(double)disCont[i].bbOut[k][j]*mul;
               }
             }
           }
@@ -397,11 +401,12 @@ void DivEngine::runExportThread() {
           }
         } else {
           for (int i=0; i<song.systemLen; i++) {
-            for (int k=0; k<si[i].channels; k++) {
+            int channelCount=writers[i].si.channels;
+            for (int k=0; k<channelCount; k++) {
               if (disCont[i].bbOut[k]==NULL) {
-                sysBuf[i][k+(j*si[i].channels)]=0;
+                sysBuf[i][k+(j*channelCount)]=0;
               } else {
-                sysBuf[i][k+(j*si[i].channels)]=disCont[i].bbOut[k][j];
+                sysBuf[i][k+(j*channelCount)]=disCont[i].bbOut[k][j];
               }
             }
           }
@@ -413,7 +418,7 @@ void DivEngine::runExportThread() {
         }
       }
       for (int i=0; i<song.systemLen; i++) {
-        if (sf_writef_short(sf[i],sysBuf[i],total)!=(int)total) {
+        if (sf_writef_short(writers[i].sf,sysBuf[i],total)!=(int)total) {
           logE("error: failed to write entire buffer! (%d)",i);
           break;
         }
@@ -425,9 +430,7 @@ void DivEngine::runExportThread() {
 
     for (int i=0; i<song.systemLen; i++) {
       delete[] sysBuf[i];
-      if (sfWrap[i].doClose()!=0) {
-        logE("could not close audio file!");
-      }
+      writers[i].close();
     }
 
     if (initAudioBackend()) {
@@ -443,7 +446,6 @@ void DivEngine::runExportThread() {
 
   switch (exportMode) {
     case DIV_EXPORT_MODE_ONE: {
-
       if (exportWriter==DIV_EXPORT_WRITER_SNDFILE) {
         SndfileWavWriter wr;
         if (!wr.open(makeSfInfo(),exportPath.c_str())) {
@@ -505,32 +507,29 @@ void DivEngine::runExportThread() {
       break;
     }
     case DIV_EXPORT_MODE_MANY_SYS: {
-      SNDFILE* sf[DIV_MAX_CHIPS];
-      SF_INFO si[DIV_MAX_CHIPS];
-      String fname[DIV_MAX_CHIPS];
-      SFWrapper sfWrap[DIV_MAX_CHIPS];
-      for (int i=0; i<song.systemLen; i++) {
-        sf[i]=NULL;
-        si[i].samplerate=got.rate;
-        si[i].channels=disCont[i].dispatch->getOutputCount();
-        si[i].format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
-      }
+      SndfileWavWriter writers[DIV_MAX_CHIPS];
 
       for (int i=0; i<song.systemLen; i++) {
-        fname[i]=fmt::sprintf("%s_s%02d.%s",exportPath,i+1,exportFileExtNoDot);
-        logI("- %s",fname[i].c_str());
-        sf[i]=sfWrap[i].doOpen(fname[i].c_str(),SFM_WRITE,&si[i]);
-        if (sf[i]==NULL) {
-          logE("could not open file for writing! (%s)",sf_strerror(NULL));
+        SndfileWavWriter* writer = &writers[i];
+
+        SF_INFO si;
+        si.samplerate=got.rate;
+        si.channels=disCont[i].dispatch->getOutputCount();
+        si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
+
+        String fname=fmt::sprintf("%s_s%02d.%s",exportPath,i+1,exportFileExtNoDot);
+        logD("will open %s",fname.c_str());
+        if (!writer->open(si,fname.c_str())) {
+          logE("could not initialize export writer #%02d",i);
           for (int j=0; j<i; j++) {
-            sfWrap[i].doClose();
+            writers[i].close();
           }
+          exporting=false;
           return;
         }
       }
 
-
-      doExportManySys(sf,si,fname,sfWrap);
+      doExportManySys(writers);
 
       logI("done!");
       exporting=false;
