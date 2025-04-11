@@ -538,6 +538,35 @@ void FurnaceGUI::drawCSPlayer() {
             ImGui::SameLine();
             ImGui::Text("%d",cs->getFastCmds()[i]);
           }
+          ImGui::Text("ticks: %u",cs->getCurTick());
+          ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem(_("Call Stack"))) {
+          ImGui::PushFont(patFont);
+          if (ImGui::BeginTable("CSCallStack",chans,ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_ScrollX)) {
+            char tempID[32];
+            for (int i=0; i<chans; i++) {
+              snprintf(tempID,31,"c%d",i);
+              ImGui::TableSetupColumn(tempID,ImGuiTableColumnFlags_WidthFixed,oneChar.x*10.0f);
+            }
+            ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+            for (int i=0; i<chans; i++) {
+              DivCSChannelState* state=cs->getChanState(i);
+              ImGui::TableNextColumn();
+              ImGui::Text("%d (>>%d)",i,state->callStackPos);
+            }
+            ImGui::TableNextRow();
+            for (int i=0; i<chans; i++) {
+              DivCSChannelState* state=cs->getChanState(i);
+              ImGui::TableNextColumn();
+              for (int j=0; j<state->callStackPos; j++) {
+                ImGui::Text("$%.4x",state->callStack[j]);
+              }
+              ImGui::Text("$%.4x",state->readPos);
+            }
+            ImGui::EndTable();
+          }
+          ImGui::PopFont();
           ImGui::EndTabItem();
         }
         ImGui::EndTabBar();
