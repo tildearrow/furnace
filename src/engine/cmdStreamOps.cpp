@@ -776,7 +776,7 @@ struct BlockMatch {
 
 #define OVERLAPS(a1,a2,b1,b2) ((b1)<(a2) && (b2)>(a1))
 
-#define MIN_MATCH_SIZE 16
+#define MIN_MATCH_SIZE 32
 
 // TODO:
 // - see if we can optimize even more
@@ -866,53 +866,33 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
 
     logD("%d good candidates",(int)nonOverlapCount);
 
-    // quit if there isn't anything
-    if (!nonOverlapCount) return stream;
-
-    // work on largest matches
-    // progress to smaller ones until we run out of them
-    logD("largest match: %d",(int)matchSize);
-
-    std::vector<BlockMatch> workMatches;
-    bool newBlocks=false;
-
-    // try with a smaller size
-    matchSize=0;
-    for (BlockMatch& i: matches) {
-      if (i.done) continue;
-      if (i.len>matchSize) matchSize=i.len;
-    }
-
-    workMatches.clear();
-    // find matches with matching size
-    for (BlockMatch& i: matches) {
-      if (i.len==matchSize) {
-        // mark it as done and push it
-        workMatches.push_back(i);
-        i.done=true;
-      }
-    }
-
-    // check which sub-blocks are viable to make
+    // NEW STUFF
+    // find and sort matches by benefit
+    size_t bestBenefitIndex=0;
+    int bestBenefit=-1000000;
     size_t lastOrig=SIZE_MAX;
     size_t lastOrigOff=0;
     int gains=0;
     int blockSize=0;
-    for (size_t i=0; i<=workMatches.size(); i++) {
-      BlockMatch b(SIZE_MAX,SIZE_MAX,0);
-      if (i<workMatches.size()) b=workMatches[i];
-      // unlikely
+    BlockMatch emptyMatch(SIZE_MAX,SIZE_MAX,0);
+    for (size_t i=0; i<=matches.size(); i++) {
+      BlockMatch& b=emptyMatch;
+      if (i<matches.size()) b=matches[i];
       if (b.done) continue;
 
       if (b.orig!=lastOrig) {
         if (lastOrig!=SIZE_MAX) {
           // commit previous block and start new one
-          logV("%x gains: %d",(int)lastOrig,gains);
+          //logV("%x gains: %d",(int)lastOrig,gains);
+          if (gains>bestBenefit) {
+            bestBenefitIndex=lastOrigOff;
+            bestBenefit=gains;
+          }
           if (gains<=0) {
             // don't make a sub-block for these matches since we only have loss
-            logV("(LOSSES!)");
+            //logV("(LOSSES!)");
             for (size_t j=lastOrigOff; j<i; j++) {
-              workMatches[j].done=true;
+              matches[j].done=true;
             }
           }
         }
@@ -927,9 +907,36 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
       }
       gains+=(blockSize-3);
     }
+   logI("BEST BENEFIT: %d in %x",bestBenefit,(int)bestBenefitIndex);
+   logI("match size %d",matches[bestBenefitIndex].len);
+
+    // quit if there isn't anything
+    if (!nonOverlapCount) return stream;
+
+    // quit if it's all losses
+    if (bestBenefit<1) return stream;
+
+    // work on most beneficial matches
+    std::vector<BlockMatch> workMatches;
+    bool newBlocks=false;
+
+    workMatches.clear();
+
+    size_t bestBenefitOrig=matches[bestBenefitIndex].orig;
+    for (size_t i=bestBenefitIndex; i<matches.size(); i++) {
+      BlockMatch& b=matches[i];
+      if (bestBenefitOrig!=b.orig) break;
+
+      b.done=false;
+      workMatches.push_back(b);
+      b.done=true;
+    }
+
+    logI("match count %d",(int)workMatches.size());
 
     // make sub-blocks
     lastOrig=SIZE_MAX;
+    lastOrigOff=0;
     size_t subBlockID=subBlocks.size();
     for (BlockMatch& i: workMatches) {
       // skip invalid matches (yes, this can happen)
@@ -997,22 +1004,12 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
           j.done=true;
         }
       }
-
-      // invalidate overlapping matches
-      for (BlockMatch& j: matches) {
-        if (OVERLAPS(i.orig,i.orig+i.len,j.orig,j.orig+j.len) ||
-            OVERLAPS(i.orig,i.orig+i.len,j.block,j.block+j.len) ||
-            OVERLAPS(i.block,i.block+i.len,j.orig,j.orig+j.len) ||
-            OVERLAPS(i.block,i.block+i.len,j.block,j.block+j.len)) {
-          j.done=true;
-        }
-      }
     }
 
     logV("done!");
 
     // get out if we haven't made any blocks
-    if (!newBlocks) break;
+   if (!newBlocks) break;
 
     // remove nop's
     stream=stripNops(stream);
