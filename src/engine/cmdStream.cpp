@@ -39,6 +39,10 @@ unsigned char* DivCSPlayer::getData() {
   return b;
 }
 
+unsigned short* DivCSPlayer::getDataAccess() {
+  return bAccessTS;
+}
+
 size_t DivCSPlayer::getDataLen() {
   return bLen;
 }
@@ -59,10 +63,19 @@ unsigned char* DivCSPlayer::getFastCmds() {
   return fastCmds;
 }
 
+unsigned int DivCSPlayer::getCurTick() {
+  return curTick;
+}
+
 void DivCSPlayer::cleanup() {
-  delete b;
+  delete[] b;
   b=NULL;
   bLen=0;
+
+  if (bAccessTS) {
+    delete[] bAccessTS;
+    bAccessTS=NULL;
+  }
 }
 
 bool DivCSPlayer::tick() {
@@ -82,6 +95,8 @@ bool DivCSPlayer::tick() {
         break;
       }
 
+      unsigned int accessTSBegin=stream.tell();
+
       chan[i].trace[chan[i].tracePos++]=chan[i].readPos;
       if (chan[i].tracePos>=DIV_MAX_CSTRACE) {
         chan[i].tracePos=0;
@@ -97,9 +112,11 @@ bool DivCSPlayer::tick() {
         chan[i].vibratoPos=0;
       } else if (next>=0xd0 && next<=0xdf) {
         command=fastCmds[next&15];
+        bAccessTS[fastCmdsOff+(next&15)]=curTick;
       } else if (next>=0xe0 && next<=0xef) { // preset delay
         chan[i].waitTicks=fastDelays[next&15];
         chan[i].lastWaitLen=chan[i].waitTicks;
+        bAccessTS[fastDelaysOff+(next&15)]=curTick;
       } else switch (next) {
         case 0xb4: // note on null
           e->dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
@@ -126,6 +143,7 @@ bool DivCSPlayer::tick() {
         case 0xd8: case 0xd9: case 0xda: case 0xdb:
         case 0xdc: case 0xdd: case 0xde: case 0xdf:
           command=fastCmds[next-0xd0];
+          
           break;
         case 0xf0: // placeholder
           stream.readC();
@@ -529,6 +547,12 @@ bool DivCSPlayer::tick() {
         }
       }
 
+      for (unsigned int j=accessTSBegin; j<stream.tell(); j++) {
+        if (j<bLen) {
+          bAccessTS[j]=curTick;
+        }
+      }
+
       if (mustTell) chan[i].readPos=stream.tell();
     }
 
@@ -597,6 +621,20 @@ bool DivCSPlayer::tick() {
     }
   }
 
+  // cycle over access times in order to ensure deltas are always higher than 256
+  // (and prevent spurious highlights)
+  for (int i=0; i<16; i++) {
+    short delta=(((short)(curTick&0xffff))-(short)bAccessTS[deltaCyclePos]);
+    if (delta>256) {
+      bAccessTS[deltaCyclePos]=curTick-512;
+    }
+    if (++deltaCyclePos>=bLen) {
+      deltaCyclePos=0;
+    }
+  }
+
+  curTick++;
+
   return ticked;
 }
 
@@ -622,7 +660,9 @@ bool DivCSPlayer::init() {
     chan[i].readPos=chan[i].startPos;
   }
 
+  fastDelaysOff=stream.tell();
   stream.read(fastDelays,16);
+  fastCmdsOff=stream.tell();
   stream.read(fastCmds,16);
 
   // initialize state
@@ -636,6 +676,11 @@ bool DivCSPlayer::init() {
   }
 
   arpSpeed=1;
+  bAccessTS=new unsigned short[bLen];
+  // this value ensures all deltas are higher than 256
+  memset(bAccessTS,0xc0,bLen*sizeof(unsigned short));
+  curTick=0;
+  deltaCyclePos=0;
 
   return true;
 }

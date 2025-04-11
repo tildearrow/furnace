@@ -478,22 +478,12 @@ void FurnaceGUI::drawCSPlayer() {
 
             // content
             unsigned char* buf=cs->getData();
+            unsigned short* accessTS=cs->getDataAccess();
+            unsigned int csTick=cs->getCurTick();
+            const float fadeTime=64.0f;
             size_t bufSize=cs->getDataLen();
             csClipper.Begin((bufSize+15)>>4,ImGui::GetTextLineHeightWithSpacing());
             while (csClipper.Step()) {
-              //std::vector<int> highlightsUnsorted;
-              std::vector<int> highlights;
-              int nextHighlight=-1;
-              int highlightPos=0;
-
-              for (int i=0; i<chans; i++) {
-                DivCSChannelState* state=cs->getChanState(i);
-                if ((int)state->readPos>=(csClipper.DisplayStart<<4) && (int)state->readPos<=(csClipper.DisplayEnd<<4)) {
-                  highlights.push_back(state->readPos);
-                }
-              }
-              if (!highlights.empty()) nextHighlight=highlights[0];
-
               for (int i=csClipper.DisplayStart; i<csClipper.DisplayEnd; i++) {
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
@@ -504,14 +494,9 @@ void FurnaceGUI::drawCSPlayer() {
                   int pos=(i<<4)|j;
                   ImGui::TableNextColumn();
                   if (pos>=(int)bufSize) continue;
-                  if (pos==nextHighlight) {
-                    ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(ImGuiCol_HeaderActive));
-                    highlightPos++;
-                    if (highlightPos>=(int)highlights.size()) {
-                      nextHighlight=-1;
-                    } else {
-                      nextHighlight=highlights[highlightPos];
-                    }
+                  float cellAlpha=(float)(fadeTime-(((short)(csTick&0xffff))-(short)accessTS[pos]))/fadeTime;
+                  if (cellAlpha>0.0f) {
+                    ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(ImGuiCol_HeaderActive,cellAlpha));
                   }
                   ImGui::Text("%.2X",buf[pos]);
                 }

@@ -77,6 +77,7 @@ struct DivCSChannelState {
 class DivCSPlayer {
   DivEngine* e;
   unsigned char* b;
+  unsigned short* bAccessTS;
   size_t bLen;
   SafeReader stream;
   DivCSChannelState chan[DIV_MAX_CHANS];
@@ -84,21 +85,25 @@ class DivCSPlayer {
   unsigned char fastCmds[16];
   unsigned char arpSpeed;
   unsigned int fileChans;
+  unsigned int curTick, fastDelaysOff, fastCmdsOff, deltaCyclePos;
 
   short vibTable[64];
   public:
     unsigned char* getData();
+    unsigned short* getDataAccess();
     size_t getDataLen();
     DivCSChannelState* getChanState(int ch);
     unsigned int getFileChans();
     unsigned char* getFastDelays();
     unsigned char* getFastCmds();
+    unsigned int getCurTick();
     void cleanup();
     bool tick();
     bool init();
     DivCSPlayer(DivEngine* en, unsigned char* buf, size_t len):
       e(en),
       b(buf),
+      bAccessTS(NULL),
       bLen(len),
       stream(buf,len) {}
 };
