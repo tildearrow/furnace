@@ -887,9 +887,9 @@ void FurnaceGUI::drawChanOsc() {
                       case 'V': {
                         DivChannelState* chanState=e->getChanState(ch);
                         if (chanState==NULL) break;
-                        int volMax=chanState->volMax>>8;
+                        double volMax=chanState->volMax>>8;
                         if (volMax<1) volMax=1;
-                        text+=fmt::sprintf("%d%%",(chanState->volume>>8)/volMax);
+                        text+=fmt::sprintf("%.1f%%",((double)(chanState->volume>>8)/volMax)*100);
                         break;
                       }
                       case 'b': {
