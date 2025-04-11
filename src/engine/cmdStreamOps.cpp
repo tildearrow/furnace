@@ -871,6 +871,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
     size_t bestBenefitIndex=0;
     int bestBenefit=-1000000;
     size_t lastOrig=SIZE_MAX;
+    size_t lastLen=SIZE_MAX;
     size_t lastOrigOff=0;
     int gains=0;
     int blockSize=0;
@@ -880,7 +881,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
       if (i<matches.size()) b=matches[i];
       if (b.done) continue;
 
-      if (b.orig!=lastOrig) {
+      if (b.orig!=lastOrig || b.len!=lastLen) {
         if (lastOrig!=SIZE_MAX) {
           // commit previous block and start new one
           //logV("%x gains: %d",(int)lastOrig,gains);
@@ -898,6 +899,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
         }
         lastOrig=b.orig;
         lastOrigOff=i;
+        lastLen=b.len;
         if (lastOrig!=SIZE_MAX) {
           blockSize=estimateBlockSize(&buf[b.orig],b.len,speedDial);
         } else {
@@ -923,9 +925,12 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
     workMatches.clear();
 
     size_t bestBenefitOrig=matches[bestBenefitIndex].orig;
+    size_t bestBenefitLen=matches[bestBenefitIndex].len;
     for (size_t i=bestBenefitIndex; i<matches.size(); i++) {
       BlockMatch& b=matches[i];
       if (bestBenefitOrig!=b.orig) break;
+      if (bestBenefitLen!=b.len) break;
+      if (b.done) continue;
 
       b.done=false;
       workMatches.push_back(b);
@@ -997,8 +1002,14 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
 
       // invalidate overlapping work matches
       for (BlockMatch& j: workMatches) {
-        if (j.orig!=i.orig) {
+        if (j.orig!=i.orig || j.len!=i.len) {
           j.done=true;
+          logE("NO (orig %d %d) (%d!=%d)",j.orig,i.orig,j.len,i.len);
+          abort();
+        }
+        if (OVERLAPS(i.orig,i.orig+i.len,j.block,j.block+j.len)) {
+          logE("ERROR: SELF-OVERLAP");
+          abort();
         }
         if (OVERLAPS(i.block,i.block+i.len,j.block,j.block+j.len)) {
           j.done=true;
