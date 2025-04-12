@@ -24,6 +24,7 @@
 #include "safeReader.h"
 
 #define DIV_MAX_CSTRACE 64
+#define DIV_MAX_CSSTACK 128
 
 class DivEngine;
 
@@ -39,7 +40,7 @@ struct DivCSChannelState {
   int portaTarget, portaSpeed;
   unsigned char arp, arpStage, arpTicks, loopCount;
 
-  unsigned int callStack[16];
+  unsigned int callStack[DIV_MAX_CSSTACK];
   unsigned char callStackPos;
 
   unsigned int trace[DIV_MAX_CSTRACE];

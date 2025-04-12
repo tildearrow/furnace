@@ -662,6 +662,7 @@ SafeWriter* stripNops(SafeWriter* s) {
       case 0xf5: // calli
       case 0xfa: { // jmp
         unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<16)|(buf[i+4]<<24);
+        assert(!(addr&7));
         try {
           addr=addrTable[addr];
           buf[i+1]=addr&0xff;
@@ -780,254 +781,264 @@ struct BlockMatch {
 
 // TODO:
 // - see if we can optimize even more
-SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlocks, unsigned char* speedDial) {
+SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlocks, unsigned char* speedDial, DivCSProgress* progress) {
   unsigned char* buf=stream->getFinalBuf();
   size_t matchSize=MIN_MATCH_SIZE;
   std::vector<BlockMatch> matches;
 
-  // repeat until we run out of matches
-  while (true) {
-    matchSize=MIN_MATCH_SIZE;
-    matches.clear();
+  matches.clear();
 
-    // fast match algorithm
-    // search for small matches, and then find bigger ones
-    logD("finding possible matches");
-    for (size_t i=0; i<stream->size(); i+=8) {
-      for (size_t j=i+matchSize; j<stream->size(); j+=8) {
-        if (memcmp(&buf[i],&buf[j],matchSize)==0) {
-          // store this match for later
-          matches.push_back(BlockMatch(i,j,matchSize));
-        }
+  // fast match algorithm
+  // search for small matches, and then find bigger ones
+  logD("finding possible matches");
+  for (size_t i=0; i<stream->size(); i+=8) {
+    for (size_t j=i+matchSize; j<stream->size(); j+=8) {
+      if (memcmp(&buf[i],&buf[j],matchSize)==0) {
+        // store this match for later
+        matches.push_back(BlockMatch(i,j,matchSize));
       }
     }
+  }
 
-    logD("%d candidates",(int)matches.size());
+  logD("%d candidates",(int)matches.size());
 
-    // quit if there isn't anything
-    if (matches.empty()) return stream;
+  // quit if there isn't anything
+  if (matches.empty()) return stream;
 
-    // search for bigger matches
-    for (size_t i=0; i<matches.size(); i++) {
-      if ((i&8191)==0) logV("match %d of %d",i,(int)matches.size());
-      BlockMatch& b=matches[i];
+  // search for bigger matches
+  for (size_t i=0; i<matches.size(); i++) {
+    if ((i&8191)==0) logV("match %d of %d",i,(int)matches.size());
+    BlockMatch& b=matches[i];
 
-      // don't do anything if this match is done
-      if (b.done) continue;
+    // don't do anything if this match is done
+    if (b.done) continue;
 
-      size_t finalLen=b.len;
-      size_t origPos=b.orig+b.len;
-      size_t blockPos=b.block+b.len;
-      while (true) {
-        if (origPos>=stream->size() || blockPos>=stream->size()) {
-          break;
-        }
-
-        if (buf[origPos]!=buf[blockPos]) {
-          break;
-        }
-        origPos++;
-        blockPos++;
-        finalLen++;
+    size_t finalLen=b.len;
+    size_t origPos=b.orig+b.len;
+    size_t blockPos=b.block+b.len;
+    while (true) {
+      if (origPos>=stream->size() || blockPos>=stream->size()) {
+        break;
       }
 
-      finalLen&=~7;
-      b.len=finalLen;
-      b.done=true;
+      if (buf[origPos]!=buf[blockPos]) {
+        break;
+      }
+      origPos++;
+      blockPos++;
+      finalLen++;
     }
 
-    logD("checking overlapping/bad matches");
+    finalLen&=~7;
+    b.len=finalLen;
+    b.done=true;
+  }
 
-    // first stage done
-    // set done to false unless:
-    // - this match overlaps with itself
-    // - this block only consists of calls
-    size_t nonOverlapCount=0;
-    for (BlockMatch& i: matches) {
-      i.done=false;
-      if (OVERLAPS(i.orig,i.orig+i.len,i.block,i.block+i.len)) {
-        // self-overlapping
-        i.done=true;
-      } else {
-        bool onlyCalls=true;
+  logD("checking overlapping/bad matches");
+
+  // first stage done
+  // set done to false unless:
+  // - this match overlaps with itself
+  // - this block only consists of calls
+  // - this block contains a ret or jmp
+  size_t nonOverlapCount=0;
+  for (BlockMatch& i: matches) {
+    i.done=false;
+    if (OVERLAPS(i.orig,i.orig+i.len,i.block,i.block+i.len)) {
+      // self-overlapping
+      i.done=true;
+    } else {
+      bool onlyCalls=true;
+      for (size_t j=i.orig; j<i.orig+i.len; j+=8) {
+        if (buf[j]!=0xf4 && buf[j]!=0xf5) {
+          onlyCalls=false;
+          break;
+        }
+      }
+      if (!onlyCalls) {
+        // check whether there's call or ret
         for (size_t j=i.orig; j<i.orig+i.len; j+=8) {
-          if (buf[j]!=0xf4) {
-            onlyCalls=false;
+          if (buf[j]==0xf9 || buf[j]==0xfa) {
+            onlyCalls=true;
             break;
           }
         }
-        if (onlyCalls) {
-          i.done=true;
-        } else {
-          nonOverlapCount++;
-        }
+      }
+      if (onlyCalls) {
+        i.done=true;
+      } else {
+        nonOverlapCount++;
       }
     }
+  }
 
-    logD("%d good candidates",(int)nonOverlapCount);
+  logD("%d good candidates",(int)nonOverlapCount);
 
-    // NEW STUFF
-    // find and sort matches by benefit
-    size_t bestBenefitIndex=0;
-    int bestBenefit=-1000000;
-    size_t lastOrig=SIZE_MAX;
-    size_t lastLen=SIZE_MAX;
-    size_t lastOrigOff=0;
-    int gains=0;
-    int blockSize=0;
-    BlockMatch emptyMatch(SIZE_MAX,SIZE_MAX,0);
-    for (size_t i=0; i<=matches.size(); i++) {
-      BlockMatch& b=emptyMatch;
-      if (i<matches.size()) b=matches[i];
-      if (b.done) continue;
+  if (progress!=NULL) {
+    progress->count=nonOverlapCount;
+  }
 
-      if (b.orig!=lastOrig || b.len!=lastLen) {
-        if (lastOrig!=SIZE_MAX) {
-          // commit previous block and start new one
-          //logV("%x gains: %d",(int)lastOrig,gains);
-          if (gains>bestBenefit) {
-            bestBenefitIndex=lastOrigOff;
-            bestBenefit=gains;
+  // NEW STUFF
+  // find and sort matches by benefit
+  size_t bestBenefitIndex=0;
+  int bestBenefit=-1;
+  size_t lastOrig=SIZE_MAX;
+  size_t lastLen=SIZE_MAX;
+  size_t lastOrigOff=0;
+  int gains=0;
+  int blockSize=0;
+  BlockMatch emptyMatch(SIZE_MAX,SIZE_MAX,0);
+  for (size_t i=0; i<=matches.size(); i++) {
+    BlockMatch& b=emptyMatch;
+    if (i<matches.size()) b=matches[i];
+    if (b.done) continue;
+
+    if (b.orig!=lastOrig || b.len!=lastLen) {
+      if (lastOrig!=SIZE_MAX) {
+        // commit previous block and start new one
+        //logV("%x gains: %d",(int)lastOrig,gains);
+        int finalBenefit=gains*2+lastLen*3;
+        if (gains<1) finalBenefit=-1;
+        if (finalBenefit>bestBenefit) {
+          bestBenefitIndex=lastOrigOff;
+          bestBenefit=finalBenefit;
+        }
+        if (gains<=0) {
+          // don't make a sub-block for these matches since we only have loss
+          //logV("(LOSSES!)");
+          for (size_t j=lastOrigOff; j<i; j++) {
+            matches[j].done=true;
           }
-          if (gains<=0) {
-            // don't make a sub-block for these matches since we only have loss
-            //logV("(LOSSES!)");
-            for (size_t j=lastOrigOff; j<i; j++) {
-              matches[j].done=true;
-            }
-          }
-        }
-        lastOrig=b.orig;
-        lastOrigOff=i;
-        lastLen=b.len;
-        if (lastOrig!=SIZE_MAX) {
-          blockSize=estimateBlockSize(&buf[b.orig],b.len,speedDial);
-        } else {
-          blockSize=0;
-        }
-        gains=-4;
-      }
-      gains+=(blockSize-3);
-    }
-   logI("BEST BENEFIT: %d in %x",bestBenefit,(int)bestBenefitIndex);
-   logI("match size %d",matches[bestBenefitIndex].len);
-
-    // quit if there isn't anything
-    if (!nonOverlapCount) return stream;
-
-    // quit if it's all losses
-    if (bestBenefit<1) return stream;
-
-    // work on most beneficial matches
-    std::vector<BlockMatch> workMatches;
-    bool newBlocks=false;
-
-    workMatches.clear();
-
-    size_t bestBenefitOrig=matches[bestBenefitIndex].orig;
-    size_t bestBenefitLen=matches[bestBenefitIndex].len;
-    for (size_t i=bestBenefitIndex; i<matches.size(); i++) {
-      BlockMatch& b=matches[i];
-      if (bestBenefitOrig!=b.orig) break;
-      if (bestBenefitLen!=b.len) break;
-      if (b.done) continue;
-
-      b.done=false;
-      workMatches.push_back(b);
-      b.done=true;
-    }
-
-    logI("match count %d",(int)workMatches.size());
-
-    // make sub-blocks
-    lastOrig=SIZE_MAX;
-    lastOrigOff=0;
-    size_t subBlockID=subBlocks.size();
-    for (BlockMatch& i: workMatches) {
-      // skip invalid matches (yes, this can happen)
-      if (i.done) continue;
-
-      // create new sub-block if necessary
-      if (i.orig!=lastOrig) {
-        subBlockID=subBlocks.size();
-        newBlocks=true;
-        logV("new sub-block %d",(int)subBlockID);
-
-        // isolate this sub-block
-        SafeWriter* newBlock=new SafeWriter;
-        newBlock->init();
-        newBlock->write(&buf[i.orig],i.len);
-        newBlock->writeC(0xf9); // ret
-        // padding
-        newBlock->writeC(0);
-        newBlock->writeC(0);
-        newBlock->writeC(0);
-        newBlock->writeC(0);
-        newBlock->writeC(0);
-        newBlock->writeC(0);
-        newBlock->writeC(0);
-        subBlocks.push_back(newBlock);
-        lastOrig=i.orig;
-
-        // insert call on the original block
-        buf[i.orig]=0xf4;
-        buf[i.orig+1]=subBlockID&0xff;
-        buf[i.orig+2]=(subBlockID>>8)&0xff;
-        buf[i.orig+3]=(subBlockID>>16)&0xff;
-        buf[i.orig+4]=(subBlockID>>24)&0xff;
-        buf[i.orig+5]=0;
-        buf[i.orig+6]=0;
-        buf[i.orig+7]=0;
-
-        // replace the rest with nop
-        for (size_t j=i.orig+8; j<i.orig+i.len; j++) {
-          buf[j]=0xf1;
         }
       }
+      lastOrig=b.orig;
+      lastOrigOff=i;
+      lastLen=b.len;
+      if (lastOrig!=SIZE_MAX) {
+        blockSize=estimateBlockSize(&buf[b.orig],b.len,speedDial);
+      } else {
+        blockSize=0;
+      }
+      gains=-4;
+    }
+    gains+=(blockSize-3);
+  }
+ logI("BEST BENEFIT: %d in %x",bestBenefit,(int)bestBenefitIndex);
+ logI("match size %d",matches[bestBenefitIndex].len);
 
-      // set match to the last sub-block
-      buf[i.block]=0xf4;
-      buf[i.block+1]=subBlockID&0xff;
-      buf[i.block+2]=(subBlockID>>8)&0xff;
-      buf[i.block+3]=(subBlockID>>16)&0xff;
-      buf[i.block+4]=(subBlockID>>24)&0xff;
-      buf[i.block+5]=0;
-      buf[i.block+6]=0;
-      buf[i.block+7]=0;
+  // quit if there isn't anything
+  if (!nonOverlapCount) return stream;
+
+  // quit if it's all losses
+  if (bestBenefit<1) return stream;
+
+  // work on most beneficial matches
+  std::vector<BlockMatch> workMatches;
+  bool newBlocks=false;
+
+  workMatches.clear();
+
+  size_t bestBenefitOrig=matches[bestBenefitIndex].orig;
+  size_t bestBenefitLen=matches[bestBenefitIndex].len;
+  for (size_t i=bestBenefitIndex; i<matches.size(); i++) {
+    BlockMatch& b=matches[i];
+    if (bestBenefitOrig!=b.orig) break;
+    if (bestBenefitLen!=b.len) break;
+    if (b.done) continue;
+
+    b.done=false;
+    workMatches.push_back(b);
+    b.done=true;
+  }
+
+  logI("match count %d",(int)workMatches.size());
+
+  // make sub-blocks
+  lastOrig=SIZE_MAX;
+  lastOrigOff=0;
+  size_t subBlockID=subBlocks.size();
+  for (BlockMatch& i: workMatches) {
+    // skip invalid matches (yes, this can happen)
+    if (i.done) continue;
+
+    // create new sub-block if necessary
+    if (i.orig!=lastOrig) {
+      subBlockID=subBlocks.size();
+      newBlocks=true;
+      logV("new sub-block %d",(int)subBlockID);
+
+      // isolate this sub-block
+      SafeWriter* newBlock=new SafeWriter;
+      newBlock->init();
+      newBlock->write(&buf[i.orig],i.len);
+      newBlock->writeC(0xf9); // ret
+      // padding
+      newBlock->writeC(0);
+      newBlock->writeC(0);
+      newBlock->writeC(0);
+      newBlock->writeC(0);
+      newBlock->writeC(0);
+      newBlock->writeC(0);
+      newBlock->writeC(0);
+      subBlocks.push_back(newBlock);
+      lastOrig=i.orig;
+
+      // insert call on the original block
+      buf[i.orig]=0xf4;
+      buf[i.orig+1]=subBlockID&0xff;
+      buf[i.orig+2]=(subBlockID>>8)&0xff;
+      buf[i.orig+3]=(subBlockID>>16)&0xff;
+      buf[i.orig+4]=(subBlockID>>24)&0xff;
+      buf[i.orig+5]=0;
+      buf[i.orig+6]=0;
+      buf[i.orig+7]=0;
 
       // replace the rest with nop
-      for (size_t j=i.block+8; j<i.block+i.len; j++) {
+      for (size_t j=i.orig+8; j<i.orig+i.len; j++) {
         buf[j]=0xf1;
-      }
-
-      // invalidate overlapping work matches
-      for (BlockMatch& j: workMatches) {
-        if (j.orig!=i.orig || j.len!=i.len) {
-          j.done=true;
-          logE("NO (orig %d %d) (%d!=%d)",j.orig,i.orig,j.len,i.len);
-          abort();
-        }
-        if (OVERLAPS(i.orig,i.orig+i.len,j.block,j.block+j.len)) {
-          logE("ERROR: SELF-OVERLAP");
-          abort();
-        }
-        if (OVERLAPS(i.block,i.block+i.len,j.block,j.block+j.len)) {
-          j.done=true;
-        }
       }
     }
 
-    logV("done!");
+    // set match to the last sub-block
+    buf[i.block]=0xf4;
+    buf[i.block+1]=subBlockID&0xff;
+    buf[i.block+2]=(subBlockID>>8)&0xff;
+    buf[i.block+3]=(subBlockID>>16)&0xff;
+    buf[i.block+4]=(subBlockID>>24)&0xff;
+    buf[i.block+5]=0;
+    buf[i.block+6]=0;
+    buf[i.block+7]=0;
 
-    // get out if we haven't made any blocks
-   if (!newBlocks) break;
+    // replace the rest with nop
+    for (size_t j=i.block+8; j<i.block+i.len; j++) {
+      buf[j]=0xf1;
+    }
 
-    // remove nop's
-    stream=stripNops(stream);
-    buf=stream->getFinalBuf();
-
-    logV("doing it again...");
+    // invalidate overlapping work matches
+    for (BlockMatch& j: workMatches) {
+      if (j.orig!=i.orig || j.len!=i.len) {
+        j.done=true;
+        logE("NO (orig %d %d) (%d!=%d)",j.orig,i.orig,j.len,i.len);
+        abort();
+      }
+      if (OVERLAPS(i.orig,i.orig+i.len,j.block,j.block+j.len)) {
+        logE("ERROR: SELF-OVERLAP");
+        abort();
+      }
+      if (OVERLAPS(i.block,i.block+i.len,j.block,j.block+j.len)) {
+        j.done=true;
+      }
+    }
   }
+
+  logV("done!");
+
+  // get out if we haven't made any blocks
+  if (!newBlocks) return stream;
+
+  // remove nop's
+  stream=stripNops(stream);
+  buf=stream->getFinalBuf();
 
   return stream;
 }
@@ -1059,19 +1070,20 @@ SafeWriter* packStream(SafeWriter* s, unsigned char* speedDial) {
         try {
           addr=addrTable[addr];
           // check whether we have sufficient room to turn this into a 16-bit call
+          /*
           if (addr<0xff00) {
             buf[i]=0xf8;
             buf[i+1]=addr&0xff;
             buf[i+2]=(addr>>8)&0xff;
             buf[i+3]=0xf1;
             buf[i+4]=0xf1;
-          } else {
+          } else {*/
             buf[i]=0xf5;
             buf[i+1]=addr&0xff;
             buf[i+2]=(addr>>8)&0xff;
             buf[i+3]=(addr>>16)&0xff;
             buf[i+4]=(addr>>24)&0xff;
-          }
+          //}
         } catch (std::out_of_range& e) {
           logW("address %x is not mappable!",addr);
         }
@@ -1458,76 +1470,71 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
     
     // 6 is the minimum size that can be reliably optimized
     logI("finding sub-blocks");
-    globalStream=findSubBlocks(globalStream,subBlocks,sortedCmd);
-    // find sub-blocks within sub-blocks
-    size_t subBlocksLast=0;
-    size_t subBlocksLen=subBlocks.size();
-    logI("finding sub-blocks within sub-blocks");
-    while (subBlocksLast!=subBlocksLen) {
-      logI("got %d blocks... starting from %d",(int)subBlocksLen,(int)subBlocksLast);
-      for (size_t i=subBlocksLast; i<subBlocksLen; i++) {
-        SafeWriter* newBlock=findSubBlocks(subBlocks[i],subBlocks,sortedCmd);
-        subBlocks[i]=newBlock;
+
+    bool haveBlocks=false;
+    subBlocks.clear();
+    // repeat until no more sub-blocks are produced
+    do {
+      logD("iteration...");
+      globalStream=findSubBlocks(globalStream,subBlocks,sortedCmd,progress);
+
+      haveBlocks=!subBlocks.empty();
+      // insert sub-blocks and resolve symbols
+      logI("%d sub-blocks total",(int)subBlocks.size());
+      std::vector<size_t> blockOff;
+      globalStream->seek(0,SEEK_END);
+      for (size_t i=0; i<subBlocks.size(); i++) {
+        SafeWriter* block=subBlocks[i];
+
+        // check whether this block is duplicate
+        int dupOf=-1;
+        for (size_t j=0; j<i; j++) {
+          if (subBlocks[j]->size()==subBlocks[i]->size()) {
+            if (memcmp(subBlocks[j]->getFinalBuf(),subBlocks[i]->getFinalBuf(),subBlocks[j]->size())==0) {
+              logW("we have one");
+              dupOf=j;
+              break;
+            }
+          }
+        }
+
+        if (dupOf>=0) {
+          // push address of original block (discard duplicate)
+          blockOff.push_back(blockOff[dupOf]);
+        } else {
+          // write sub-block
+          blockOff.push_back(globalStream->tell());
+          logV("block size: %d",(int)block->size());
+          assert(!(block->size()&7));
+          globalStream->write(block->getFinalBuf(),block->size());
+        }
       }
-      subBlocksLast=subBlocksLen;
-      subBlocksLen=subBlocks.size();
-    }
 
-    // insert sub-blocks and resolve symbols
-    logI("%d sub-blocks total",(int)subBlocks.size());
-    std::vector<size_t> blockOff;
-    globalStream->seek(0,SEEK_END);
-    for (size_t i=0; i<subBlocks.size(); i++) {
-      SafeWriter* block=subBlocks[i];
+      for (SafeWriter* block: subBlocks) {
+        block->finish();
+        delete block;
+      }
+      subBlocks.clear();
 
-      // check whether this block is duplicate
-      int dupOf=-1;
-      for (size_t j=0; j<i; j++) {
-        if (subBlocks[j]->size()==subBlocks[i]->size()) {
-          if (memcmp(subBlocks[j]->getFinalBuf(),subBlocks[i]->getFinalBuf(),subBlocks[j]->size())==0) {
-            logW("we have one");
-            dupOf=j;
-            break;
+      // resolve symbols
+      unsigned char* buf=globalStream->getFinalBuf();
+      for (size_t j=0; j<globalStream->size(); j+=8) {
+        if (buf[j]==0xf4) { // callsym
+          unsigned int addr=buf[j+1]|(buf[j+2]<<8)|(buf[j+3]<<16)|(buf[j+4]<<24);
+          if (addr<blockOff.size()) {
+            // turn it into call
+            addr=blockOff[addr];
+            buf[j]=0xf5;
+            buf[j+1]=addr&0xff;
+            buf[j+2]=(addr>>8)&0xff;
+            buf[j+3]=(addr>>16)&0xff;
+            buf[j+4]=(addr>>24)&0xff;
+          } else {
+            logE("requested symbol %d is out of bounds!",addr);
           }
         }
       }
-
-      if (dupOf>=0) {
-        // push address of original block (discard duplicate)
-        blockOff.push_back(blockOff[dupOf]);
-      } else {
-        // write sub-block
-        blockOff.push_back(globalStream->tell());
-        logV("block size: %d",(int)block->size());
-        assert(!(block->size()&7));
-        globalStream->write(block->getFinalBuf(),block->size());
-      }
-    }
-
-    for (SafeWriter* block: subBlocks) {
-      block->finish();
-      delete block;
-    }
-    subBlocks.clear();
-
-    // resolve symbols
-    unsigned char* buf=globalStream->getFinalBuf();
-    for (size_t j=0; j<globalStream->size(); j+=8) {
-      if (buf[j]==0xf4) { // callsym
-        unsigned int addr=buf[j+1]|(buf[j+2]<<8)|(buf[j+3]<<16)|(buf[j+4]<<24);
-        if (addr<blockOff.size()) {
-          // turn it into call
-          addr=blockOff[addr];
-          buf[j]=0xf5;
-          buf[j+1]=addr&0xff;
-          buf[j+2]=(addr>>8)&0xff;
-          buf[j+3]=(addr>>16)&0xff;
-          buf[j+4]=(addr>>24)&0xff;
-        } else {
-          logE("requested symbol %d is out of bounds!",addr);
-        }
-      }
-    }
+    } while (haveBlocks);
 
     size_t afterSize=globalStream->size();
     logI("(before: %d - after: %d)",(int)beforeSize,(int)afterSize);

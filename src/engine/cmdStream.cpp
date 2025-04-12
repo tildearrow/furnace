@@ -24,7 +24,7 @@
 #include "../ta-log.h"
 
 bool DivCSChannelState::doCall(unsigned int addr) {
-  if (callStackPos>=16) {
+  if (callStackPos>=DIV_MAX_CSSTACK) {
     readPos=0;
     return false;
   }
