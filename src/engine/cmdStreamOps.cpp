@@ -804,8 +804,9 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
   unsigned char* buf=stream->getFinalBuf();
   size_t matchSize=MIN_MATCH_SIZE;
   std::vector<BlockMatch> matches;
+  std::vector<BlockMatch> workMatches;
   std::vector<size_t> origs;
-  std::vector<MatchBenefit> benefits;
+  MatchBenefit bestBenefit;
 
   matches.clear();
 
@@ -879,15 +880,15 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
 
     // collect matches with this orig value
     for (size_t j=i; j<matches.size(); j++) {
-      if (matches[i].orig!=orig) break;
-      if (matches[i].len>maxSize) maxSize=matches[i].len;
-      testMatches.push_back(matches[i]);
+      if (matches[j].orig!=orig) break;
+      if (matches[j].len>maxSize) maxSize=matches[j].len;
+      testMatches.push_back(matches[j]);
     }
 
     //logD("%d: testing %d matches... (lengths %d-%d)",(int)orig,(int)testMatches.size(),minSize,maxSize);
 
     // test all lengths
-    for (size_t len=maxSize; len<=maxSize; len+=8) {
+    for (size_t len=minSize; len<=maxSize; len+=8) {
       testLenMatches.clear();
       // filter matches
       for (BlockMatch& k: testMatches) {
@@ -925,132 +926,93 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
         testLenMatches.push_back(k);
       }
 
-      // check for bad matches (TODO!!!)
-
       // try with next size if no further matches
       if (testLenMatches.empty()) continue;
 
+      // check for overlapping matches
+      size_t overlapPos=testLenMatches[0].orig;
+      size_t validCount=0;
+      for (BlockMatch& k: testLenMatches) {
+        //logV("test %d with %d",(int)overlapPos,(int)k.block);
+        if (OVERLAPS(overlapPos,overlapPos+len,k.block,k.block+len)) {
+          k.done=true;
+          //logW("overlap");
+        } else {
+          validCount++;
+        }
+        overlapPos=k.block;
+      }
+
+
       // calculate (weighted) benefit
       const int blockSize=estimateBlockSize(&buf[testLenMatches[0].orig],len,speedDial);
-      const int gains=((blockSize-3)*testLenMatches.size())-4;
+      const int gains=((blockSize-3)*validCount)-4;
       int finalBenefit=gains*2+len*3;
       if (gains<1) finalBenefit=-1;
 
-      // push this benefit to list
-      if (finalBenefit>0) {
-        logD("- %x (%d): %d = %d",(int)i,(int)len,(int)testLenMatches.size(),finalBenefit);
-        benefits.push_back(MatchBenefit(i,finalBenefit,len));
+      // check whether this set of matches has greater benefit
+      if (finalBenefit>bestBenefit.benefit) {
+        //logD("- %x (%d): %d = %d",(int)i,(int)len,(int)testLenMatches.size(),finalBenefit);
+        bestBenefit=MatchBenefit(i,finalBenefit,len);
+        // copy matches so we don't have to select them later
+        workMatches=testLenMatches;
       }
     }
   }
 
-  // quit if we can't go any further
-  if (benefits.empty()) return stream;
+  // quit if there isn't benefit
+  if (bestBenefit.benefit<1) return stream;
+
+  // quit if there's nothing to work on
+  if (workMatches.empty()) return stream;
 
   // pick best benefit
-  MatchBenefit& bestBenefit=benefits[0];
-  for (MatchBenefit& i: benefits) {
-    if (i.benefit>bestBenefit.benefit) bestBenefit=i;
-  }
-
   logI("BEST BENEFIT: %d in %x with size %u",bestBenefit.benefit,(int)bestBenefit.index,bestBenefit.len);
 
-  /*
   // work on matches with this benefit
-  std::vector<BlockMatch> workMatches;
-  bool newBlocks=false;
-
-  workMatches.clear();
-
-  size_t bestBenefitOrig=matches[bestBenefit.index].orig;
-  size_t bestBenefitLen=matches[bestBenefit.index].len;
-  for (size_t i=0; i<matches.size(); i++) {
-    BlockMatch& b=matches[i];
-    if (b.done) continue;
-    if (bestBenefitOrig!=b.orig) continue;
-    if (bestBenefitLen!=b.len) continue;
-
-    workMatches.push_back(b);
-  }
-
+  size_t bestOrig=matches[bestBenefit.index].orig;
   logI("match count %d",(int)workMatches.size());
 
-  // invalidate overlapping work matches
-  for (size_t i=0; i<workMatches.size(); i++) {
-    BlockMatch& b_i=workMatches[i];
-    if (b_i.done) continue;
-    for (size_t j=i+1; j<workMatches.size(); j++) {
-      BlockMatch& b_j=workMatches[j];
-      if (b_j.done) continue;
-      
-      if (b_j.orig!=b_i.orig || b_j.len!=b_i.len) {
-        //b_j.done=true;
-        logE("NO (orig %d %d) (%d!=%d)",b_j.orig,b_i.orig,b_j.len,b_i.len);
-        abort();
-      }
-      if (OVERLAPS(b_i.orig,b_i.orig+b_i.len,b_j.block,b_j.block+b_j.len)) {
-        logE("ERROR: SELF-OVERLAP");
-        abort();
-      }
-      if (OVERLAPS(b_i.block,b_i.block+b_i.len,b_j.block,b_j.block+b_j.len)) {
-        b_j.done=true;
-        //b_i.done=true;
-        //logW("A DONE IS YOU: %x %x %d",b_i.block,b_j.block,b_j.len);
-        //abort();
-      }
-    }
+  // make sub-block
+  size_t subBlockID=subBlocks.size();
+  logV("new sub-block %d",(int)subBlockID);
+
+  // isolate this sub-block
+  SafeWriter* newBlock=new SafeWriter;
+  newBlock->init();
+  newBlock->write(&buf[bestOrig],bestBenefit.len);
+  newBlock->writeC(0xf9); // ret
+  // padding
+  newBlock->writeC(0);
+  newBlock->writeC(0);
+  newBlock->writeC(0);
+  newBlock->writeC(0);
+  newBlock->writeC(0);
+  newBlock->writeC(0);
+  newBlock->writeC(0);
+  subBlocks.push_back(newBlock);
+
+  // insert call on the original block
+  buf[bestOrig]=0xf4;
+  buf[bestOrig+1]=subBlockID&0xff;
+  buf[bestOrig+2]=(subBlockID>>8)&0xff;
+  buf[bestOrig+3]=(subBlockID>>16)&0xff;
+  buf[bestOrig+4]=(subBlockID>>24)&0xff;
+  buf[bestOrig+5]=0;
+  buf[bestOrig+6]=0;
+  buf[bestOrig+7]=0;
+
+  // replace the rest with nop
+  for (size_t j=bestOrig+8; j<bestOrig+bestBenefit.len; j++) {
+    buf[j]=0xf1;
   }
 
-  // make sub-blocks
-  size_t lastOrig=SIZE_MAX;
-  size_t subBlockID=subBlocks.size();
+  // set matches to this sub-block
   for (BlockMatch& i: workMatches) {
-    // skip invalid matches (yes, this can happen)
+    // skip invalid matches
     if (i.done) continue;
 
-    // create new sub-block if necessary
-    if (i.orig!=lastOrig) {
-      if (newBlocks) {
-        logE("WHAT?!!?!");
-        abort();
-      }
-      subBlockID=subBlocks.size();
-      newBlocks=true;
-      logV("new sub-block %d",(int)subBlockID);
-
-      // isolate this sub-block
-      SafeWriter* newBlock=new SafeWriter;
-      newBlock->init();
-      newBlock->write(&buf[i.orig],i.len);
-      newBlock->writeC(0xf9); // ret
-      // padding
-      newBlock->writeC(0);
-      newBlock->writeC(0);
-      newBlock->writeC(0);
-      newBlock->writeC(0);
-      newBlock->writeC(0);
-      newBlock->writeC(0);
-      newBlock->writeC(0);
-      subBlocks.push_back(newBlock);
-      lastOrig=i.orig;
-
-      // insert call on the original block
-      buf[i.orig]=0xf4;
-      buf[i.orig+1]=subBlockID&0xff;
-      buf[i.orig+2]=(subBlockID>>8)&0xff;
-      buf[i.orig+3]=(subBlockID>>16)&0xff;
-      buf[i.orig+4]=(subBlockID>>24)&0xff;
-      buf[i.orig+5]=0;
-      buf[i.orig+6]=0;
-      buf[i.orig+7]=0;
-
-      // replace the rest with nop
-      for (size_t j=i.orig+8; j<i.orig+i.len; j++) {
-        buf[j]=0xf1;
-      }
-    }
-
-    // set match to the last sub-block
+    // set match to this sub-block
     buf[i.block]=0xf4;
     buf[i.block+1]=subBlockID&0xff;
     buf[i.block+2]=(subBlockID>>8)&0xff;
@@ -1071,7 +1033,6 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
   // remove nop's
   stream=stripNops(stream);
   buf=stream->getFinalBuf();
-  */
 
   return stream;
 }
