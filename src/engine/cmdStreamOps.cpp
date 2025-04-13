@@ -910,7 +910,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
         // 2. only calls and jmp/ret/stop
         bool metCriteria=true;
         for (size_t l=k.orig; l<k.orig+len; l+=8) {
-          if (buf[l]==0xf4 && buf[l]==0xf5) {
+          if (buf[l]==0xf4 || buf[l]==0xf5) {
             metCriteria=false;
             break;
           }
