@@ -130,11 +130,13 @@ class SndfileWavWriter {
       }
     }
 
-    bool writeFloat(float* samples, sf_count_t count) {
+    bool write_float(float* samples, sf_count_t count, size_t exportOutputs) {
+      // FIXME: we're ignoring exportOutputs here. this is hacky!
       return sf_writef_float(sf,samples,count)==count;
     }
 
-    bool writeShort(short* samples, sf_count_t count) {
+    bool write_short(short* samples, sf_count_t count, size_t exportOutputs) {
+      // FIXME: we're ignoring exportOutputs here. this is hacky!
       return sf_writef_short(sf,samples,count)==count;
     }
 };
@@ -145,14 +147,12 @@ class ProcWriter {
     Subprocess* proc;
     int writeFd;
     int format;
-    size_t exportOutputs;
   public:
     ProcWriter():
       proc(NULL),
       writeFd(-1) {}
 
-    bool open(Subprocess* proc_, int writeFd_, int format_, size_t exportOutputs_) {
-      exportOutputs=exportOutputs_;
+    bool open(Subprocess* proc_, int writeFd_, int format_) {
       proc=proc_;
       writeFd=writeFd_;
       format=format_;
@@ -175,7 +175,9 @@ class ProcWriter {
       ::close(writeFd);
     }
 
-    bool writeFloat(float* samples, size_t count_) {
+    bool write_float(float* samples, size_t count_, size_t exportOutputs) {
+      size_t count=count_*exportOutputs;
+
       const auto doWrite=[this](void* buf, size_t size) {
         while (true) {
           if (::write(writeFd,buf,size)==(ssize_t)size) return true;
@@ -188,8 +190,6 @@ class ProcWriter {
           }
         }
       };
-
-      size_t count=count_*exportOutputs;
 
       if (format==DIV_EXPORT_FORMAT_S16) {
 #ifdef TA_BIG_ENDIAN
@@ -336,7 +336,7 @@ void DivEngine::runExportThread() {
         }
       }
 
-      if (!writer->writeFloat(outBufFinal,total)) {
+      if (!writer->write_float(outBufFinal,total,exportOutputs)) {
         logE("error: failed to write entire buffer!");
         break;
       }
@@ -367,7 +367,6 @@ void DivEngine::runExportThread() {
     outBuf[1]=new float[EXPORT_BUFSIZE];
     short* sysBuf[DIV_MAX_CHIPS];
     for (int i=0; i<song.systemLen; i++) {
-      logD("sysBuf %d: length %d",i,EXPORT_BUFSIZE*disCont[i].dispatch->getOutputCount());
       sysBuf[i]=new short[EXPORT_BUFSIZE*disCont[i].dispatch->getOutputCount()];
     }
 
@@ -419,7 +418,8 @@ void DivEngine::runExportThread() {
         }
       }
       for (int i=0; i<song.systemLen; i++) {
-        if (!writers[i]->writeShort(sysBuf[i],total)) {
+        logD("sysBuf #%d of len %d",i,total);
+        if (!writers[i]->write_short(sysBuf[i],total,channelCounts[i])) {
           logE("error: failed to write entire buffer!");
           break;
         }
@@ -491,7 +491,7 @@ void DivEngine::runExportThread() {
         }
 
         ProcWriter writer;
-        if (!writer.open(&proc,writeFd,exportFormat,exportOutputs)) {
+        if (!writer.open(&proc,writeFd,exportFormat)) {
           logE("could not initialize export writer");
           exporting=false;
           return;
