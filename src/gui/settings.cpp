@@ -209,6 +209,11 @@ const char* ayCores[]={
   "AtomicSSG"
 };
 
+const char* swanCores[]={
+  "asiekierka new core",
+  "Mednafen"
+};
+
 const char* coreQualities[]={
   _N("Lower"),
   _N("Low"),
@@ -700,16 +705,26 @@ void FurnaceGUI::drawSettings() {
               if (settings.glDepthSize>128) settings.glDepthSize=128;
               settingsChanged=true;
             }
-            if (ImGui::InputInt(_("Stencil buffer size"),&settings.glStencilSize)) {
-              if (settings.glStencilSize<0) settings.glStencilSize=0;
-              if (settings.glStencilSize>32) settings.glStencilSize=32;
+            
+            bool glSetBSB=settings.glSetBS;
+            if (ImGui::Checkbox(_("Set stencil and buffer sizes"),&glSetBSB)) {
+              settings.glSetBS=glSetBSB;
               settingsChanged=true;
             }
-            if (ImGui::InputInt(_("Buffer size"),&settings.glBufferSize)) {
-              if (settings.glBufferSize<0) settings.glBufferSize=0;
-              if (settings.glBufferSize>128) settings.glBufferSize=128;
-              settingsChanged=true;
+
+            if (settings.glSetBS) {
+              if (ImGui::InputInt(_("Stencil buffer size"),&settings.glStencilSize)) {
+                if (settings.glStencilSize<0) settings.glStencilSize=0;
+                if (settings.glStencilSize>32) settings.glStencilSize=32;
+                settingsChanged=true;
+              }
+              if (ImGui::InputInt(_("Buffer size"),&settings.glBufferSize)) {
+                if (settings.glBufferSize<0) settings.glBufferSize=0;
+                if (settings.glBufferSize>128) settings.glBufferSize=128;
+                settingsChanged=true;
+              }
             }
+
             bool glDoubleBufferB=settings.glDoubleBuffer;
             if (ImGui::Checkbox(_("Double buffer"),&glDoubleBufferB)) {
               settings.glDoubleBuffer=glDoubleBufferB;
@@ -789,50 +804,6 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("may cause issues with high-polling-rate mice when previewing notes."));
         }
-
-        pushWarningColor(settings.chanOscThreads>cpuCores,settings.chanOscThreads>(cpuCores*2));
-        if (ImGui::InputInt(_("Per-channel oscilloscope threads"),&settings.chanOscThreads)) {
-          if (settings.chanOscThreads<0) settings.chanOscThreads=0;
-          if (settings.chanOscThreads>(cpuCores*3)) settings.chanOscThreads=cpuCores*3;
-          if (settings.chanOscThreads>256) settings.chanOscThreads=256;
-          settingsChanged=true;
-        }
-        if (settings.chanOscThreads>=(cpuCores*3)) {
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("you're being silly, aren't you? that's enough."));
-          }
-        } else if (settings.chanOscThreads>(cpuCores*2)) {
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("what are you doing? stop!"));
-          }
-        } else if (settings.chanOscThreads>cpuCores) {
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("it is a bad idea to set this number higher than your CPU core count (%d)!"),cpuCores);
-          }
-        }
-        popWarningColor();
-
-        ImGui::Text(_("Oscilloscope rendering engine:"));
-        ImGui::Indent();
-        if (ImGui::RadioButton(_("ImGui line plot"),settings.shaderOsc==0)) {
-          settings.shaderOsc=0;
-          settingsChanged=true;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("render using Dear ImGui's built-in line drawing functions."));
-        }
-        if (ImGui::RadioButton(_("GLSL (if available)"),settings.shaderOsc==1)) {
-          settings.shaderOsc=1;
-          settingsChanged=true;
-        }
-        if (ImGui::IsItemHovered()) {
-#ifdef USE_GLES
-          ImGui::SetTooltip(_("render using shaders that run on the graphics card.\nonly available in OpenGL ES 2.0 render backend."));
-#else
-          ImGui::SetTooltip(_("render using shaders that run on the graphics card.\nonly available in OpenGL 3.0 render backend."));
-#endif
-        }
-        ImGui::Unindent();
 
 #ifdef IS_MOBILE
         // SUBSECTION VIBRATION
@@ -2107,6 +2078,17 @@ void FurnaceGUI::drawSettings() {
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::Combo("##AYCoreRender",&settings.ayCoreRender,ayCores,2)) settingsChanged=true;
 
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("WonderSwan");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##SwanCore",&settings.swanCore,swanCores,2)) settingsChanged=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##SwanCoreRender",&settings.swanCoreRender,swanCores,2)) settingsChanged=true;
+
           ImGui::EndTable();
         }
 
@@ -3188,6 +3170,15 @@ void FurnaceGUI::drawSettings() {
           ImGui::SetTooltip(_("disable to save video memory."));
         }
 
+        bool loadFallbackPatB=settings.loadFallbackPat;
+        if (ImGui::Checkbox(_("Load fallback font (pattern)"),&loadFallbackPatB)) {
+          settings.loadFallbackPat=loadFallbackPatB;
+          settingsChanged=true;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("disable to save video memory."));
+        }
+
         bool loadJapaneseB=settings.loadJapanese;
         if (ImGui::Checkbox(_("Display Japanese characters"),&loadJapaneseB)) {
           settings.loadJapanese=loadJapaneseB;
@@ -3852,6 +3843,50 @@ void FurnaceGUI::drawSettings() {
           if (settings.oscLineSize>16.0f) settings.oscLineSize=16.0f;
           settingsChanged=true;
         } rightClickable
+
+        pushWarningColor(settings.chanOscThreads>cpuCores,settings.chanOscThreads>(cpuCores*2));
+        if (ImGui::InputInt(_("Per-channel oscilloscope threads"),&settings.chanOscThreads)) {
+          if (settings.chanOscThreads<0) settings.chanOscThreads=0;
+          if (settings.chanOscThreads>(cpuCores*3)) settings.chanOscThreads=cpuCores*3;
+          if (settings.chanOscThreads>256) settings.chanOscThreads=256;
+          settingsChanged=true;
+        }
+        if (settings.chanOscThreads>=(cpuCores*3)) {
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("you're being silly, aren't you? that's enough."));
+          }
+        } else if (settings.chanOscThreads>(cpuCores*2)) {
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("what are you doing? stop!"));
+          }
+        } else if (settings.chanOscThreads>cpuCores) {
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("it is a bad idea to set this number higher than your CPU core count (%d)!"),cpuCores);
+          }
+        }
+        popWarningColor();
+
+        ImGui::Text(_("Oscilloscope rendering engine:"));
+        ImGui::Indent();
+        if (ImGui::RadioButton(_("ImGui line plot"),settings.shaderOsc==0)) {
+          settings.shaderOsc=0;
+          settingsChanged=true;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("render using Dear ImGui's built-in line drawing functions."));
+        }
+        if (ImGui::RadioButton(_("GLSL (if available)"),settings.shaderOsc==1)) {
+          settings.shaderOsc=1;
+          settingsChanged=true;
+        }
+        if (ImGui::IsItemHovered()) {
+#ifdef USE_GLES
+          ImGui::SetTooltip(_("render using shaders that run on the graphics card.\nonly available in OpenGL ES 2.0 render backend."));
+#else
+          ImGui::SetTooltip(_("render using shaders that run on the graphics card.\nonly available in OpenGL 3.0 render backend."));
+#endif
+        }
+        ImGui::Unindent();
 
         // SUBSECTION SONG COMMENTS
         CONFIG_SUBSECTION(_("Song Comments"));
@@ -4670,6 +4705,10 @@ void FurnaceGUI::drawSettings() {
               mmlString[30]=_(":smile: :star_struck: :sunglasses: :ok_hand:");
               settings.hiddenSystems=!settings.hiddenSystems;
             }
+            if (checker==0x3affa803 && checker1==0x37db2520) {
+              mmlString[30]=_("now cutting FM chip costs");
+              settings.mswEnabled=!settings.mswEnabled;
+            }
             if (checker==0xe888896b && checker1==0xbde) {
               mmlString[30]=_("enabled all instrument types");
               settings.displayAllInsTypes=!settings.displayAllInsTypes;
@@ -4826,6 +4865,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.glBlueSize=conf.getInt("glBlueSize",8);
     settings.glAlphaSize=conf.getInt("glAlphaSize",0);
     settings.glDepthSize=conf.getInt("glDepthSize",24);
+    settings.glSetBS=conf.getInt("glSetBS",0);
     settings.glStencilSize=conf.getInt("glStencilSize",0);
     settings.glBufferSize=conf.getInt("glBufferSize",32);
     settings.glDoubleBuffer=conf.getInt("glDoubleBuffer",1);
@@ -4842,6 +4882,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.defaultAuthorName=conf.getString("defaultAuthorName","");
 
     settings.hiddenSystems=conf.getInt("hiddenSystems",0);
+    settings.mswEnabled=conf.getInt("mswEnabled",0);
     settings.allowEditDocking=conf.getInt("allowEditDocking",1);
     settings.sysFileDialog=conf.getInt("sysFileDialog",SYS_FILE_DIALOG_DEFAULT);
     settings.displayAllInsTypes=conf.getInt("displayAllInsTypes",0);
@@ -5010,6 +5051,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.loadChineseTraditional=conf.getInt("loadChineseTraditional",0);
     settings.loadKorean=conf.getInt("loadKorean",0);
     settings.loadFallback=conf.getInt("loadFallback",1);
+    settings.loadFallbackPat=conf.getInt("loadFallbackPat",1);
 
     settings.fontBackend=conf.getInt("fontBackend",FONT_BACKEND_DEFAULT);
     settings.fontHinting=conf.getInt("fontHinting",GUI_FONT_HINTING_DEFAULT);
@@ -5134,6 +5176,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.esfmCore=conf.getInt("esfmCore",0);
     settings.opllCore=conf.getInt("opllCore",0);
     settings.ayCore=conf.getInt("ayCore",0);
+    settings.swanCore=conf.getInt("swanCore",0);
 
     settings.dsidQuality=conf.getInt("dsidQuality",3);
     settings.gbQuality=conf.getInt("gbQuality",3);
@@ -5156,6 +5199,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.esfmCoreRender=conf.getInt("esfmCoreRender",0);
     settings.opllCoreRender=conf.getInt("opllCoreRender",0);
     settings.ayCoreRender=conf.getInt("ayCoreRender",0);
+    settings.swanCoreRender=conf.getInt("swanCoreRender",0);
 
     settings.dsidQualityRender=conf.getInt("dsidQualityRender",3);
     settings.gbQualityRender=conf.getInt("gbQualityRender",3);
@@ -5195,6 +5239,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.esfmCore,0,1);
   clampSetting(settings.opllCore,0,1);
   clampSetting(settings.ayCore,0,1);
+  clampSetting(settings.swanCore,0,1);
   clampSetting(settings.dsidQuality,0,5);
   clampSetting(settings.gbQuality,0,5);
   clampSetting(settings.pnQuality,0,5);
@@ -5215,6 +5260,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.esfmCoreRender,0,1);
   clampSetting(settings.opllCoreRender,0,1);
   clampSetting(settings.ayCoreRender,0,1);
+  clampSetting(settings.swanCoreRender,0,1);
   clampSetting(settings.dsidQualityRender,0,5);
   clampSetting(settings.gbQualityRender,0,5);
   clampSetting(settings.pnQualityRender,0,5);
@@ -5260,6 +5306,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.loadChineseTraditional,0,1);
   clampSetting(settings.loadKorean,0,1);
   clampSetting(settings.loadFallback,0,1);
+  clampSetting(settings.loadFallbackPat,0,1);
   clampSetting(settings.fmLayout,0,6);
   clampSetting(settings.susPosition,0,3);
   clampSetting(settings.effectCursorDir,0,2);
@@ -5285,6 +5332,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.eventDelay,0,1);
   clampSetting(settings.moveWindowTitle,0,1);
   clampSetting(settings.hiddenSystems,0,1);
+  clampSetting(settings.mswEnabled,0,1);
   clampSetting(settings.horizontalDataView,0,1);
   clampSetting(settings.noMultiSystem,0,1);
   clampSetting(settings.oldMacroVSlider,0,1);
@@ -5375,7 +5423,9 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.glBlueSize,0,32);
   clampSetting(settings.glAlphaSize,0,32);
   clampSetting(settings.glDepthSize,0,128);
+  clampSetting(settings.glSetBS,0,1);
   clampSetting(settings.glStencilSize,0,32);
+  clampSetting(settings.glBufferSize,0,128);
   clampSetting(settings.glDoubleBuffer,0,1);
   clampSetting(settings.backupEnable,0,1);
   clampSetting(settings.backupInterval,10,86400);
@@ -5414,7 +5464,9 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("glBlueSize",settings.glBlueSize);
     conf.set("glAlphaSize",settings.glAlphaSize);
     conf.set("glDepthSize",settings.glDepthSize);
+    conf.set("glSetBS",settings.glSetBS);
     conf.set("glStencilSize",settings.glStencilSize);
+    conf.set("glBufferSize",settings.glBufferSize);
     conf.set("glDoubleBuffer",settings.glDoubleBuffer);
 
     conf.set("vsync",settings.vsync);
@@ -5429,6 +5481,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("defaultAuthorName",settings.defaultAuthorName);
 
     conf.set("hiddenSystems",settings.hiddenSystems);
+    conf.set("mswEnabled",settings.mswEnabled);
     conf.set("allowEditDocking",settings.allowEditDocking);
     conf.set("sysFileDialog",settings.sysFileDialog);
     conf.set("displayAllInsTypes",settings.displayAllInsTypes);
@@ -5585,6 +5638,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("loadChineseTraditional",settings.loadChineseTraditional);
     conf.set("loadKorean",settings.loadKorean);
     conf.set("loadFallback",settings.loadFallback);
+    conf.set("loadFallbackPat",settings.loadFallbackPat);
 
     conf.set("fontBackend",settings.fontBackend);
     conf.set("fontHinting",settings.fontHinting);
@@ -5712,6 +5766,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("esfmCore",settings.esfmCore);
     conf.set("opllCore",settings.opllCore);
     conf.set("ayCore",settings.ayCore);
+    conf.set("swanCore",settings.swanCore);
 
     conf.set("dsidQuality",settings.dsidQuality);
     conf.set("gbQuality",settings.gbQuality);
@@ -5734,6 +5789,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("esfmCoreRender",settings.esfmCoreRender);
     conf.set("opllCoreRender",settings.opllCoreRender);
     conf.set("ayCoreRender",settings.ayCoreRender);
+    conf.set("swanCoreRender",settings.swanCoreRender);
 
     conf.set("dsidQualityRender",settings.dsidQualityRender);
     conf.set("gbQualityRender",settings.gbQualityRender);
@@ -5791,6 +5847,7 @@ void FurnaceGUI::commitSettings() {
     settings.esfmCore!=e->getConfInt("esfmCore",0) ||
     settings.opllCore!=e->getConfInt("opllCore",0) ||
     settings.ayCore!=e->getConfInt("ayCore",0) ||
+    settings.swanCore!=e->getConfInt("swanCore",0) ||
     settings.dsidQuality!=e->getConfInt("dsidQuality",3) ||
     settings.gbQuality!=e->getConfInt("gbQuality",3) ||
     settings.pnQuality!=e->getConfInt("pnQuality",3) ||
@@ -6985,15 +7042,14 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     }
 
     // four fallback fonts
-    if (settings.loadJapanese ||
+    if (settings.loadFallbackPat && (settings.loadJapanese ||
         settings.loadChinese ||
         settings.loadChineseTraditional ||
         settings.loadKorean ||
         localeRequiresJapanese ||
         localeRequiresChinese ||
         localeRequiresChineseTrad ||
-        localeRequiresKorean ||
-        settings.loadFallback) {
+        localeRequiresKorean)) {
       patFont=addFontZlib(font_plexMono_compressed_data,font_plexMono_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1,fontRange);
       patFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1,fontRange);
       patFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1,fontRange);
@@ -7005,8 +7061,9 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     // 한국어
     // Русский
     // č
+    // ń
     // ไทย
-    static const ImWchar bigFontRange[]={0x20,0xFF,0x39b,0x39b,0x10d,0x10d,0x420,0x420,0x423,0x423,0x430,0x430,0x438,0x438,0x439,0x439,0x43a,0x43a,0x43d,0x43d,0x440,0x440,0x441,0x441,0x443,0x443,0x44c,0x44c,0x457,0x457,0x540,0x540,0x561,0x561,0x565,0x565,0x575,0x575,0x576,0x576,0x580,0x580,0xe17,0xe17,0xe22,0xe22,0xe44,0xe44,0x65e5,0x65e5,0x672c,0x672c,0x8a9e,0x8a9e,0xad6d,0xad6d,0xc5b4,0xc5b4,0xd55c,0xd55c,0};
+    static const ImWchar bigFontRange[]={0x20,0xFF,0x39b,0x39b,0x10d,0x10d,0x144,0x144,0x420,0x420,0x423,0x423,0x430,0x430,0x438,0x438,0x439,0x439,0x43a,0x43a,0x43d,0x43d,0x440,0x440,0x441,0x441,0x443,0x443,0x44c,0x44c,0x457,0x457,0x540,0x540,0x561,0x561,0x565,0x565,0x575,0x575,0x576,0x576,0x580,0x580,0xe17,0xe17,0xe22,0xe22,0xe44,0xe44,0x65e5,0x65e5,0x672c,0x672c,0x8a9e,0x8a9e,0xad6d,0xad6d,0xc5b4,0xc5b4,0xd55c,0xd55c,0};
 
     ImFontGlyphRangesBuilder bigFontRangeB;
     ImVector<ImWchar> outRangeB;

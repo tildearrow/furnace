@@ -228,7 +228,7 @@ void DivPlatformAY8910::runTFX(int runRate, int advance) {
     // stupid pitch correction because:
     // YM2149 half-clock and Sunsoft 5B: timers run an octave too high
     // on AtomicSSG core timers run 2 octaves too high
-    if (clockSel || sunsoft) chan[i].tfx.period	= chan[i].tfx.period * 2;
+    if (clockSel || sunsoft) chan[i].tfx.period = chan[i].tfx.period * 2;
     if (selCore && !intellivision) chan[i].tfx.period = chan[i].tfx.period * 4;
   }
 }

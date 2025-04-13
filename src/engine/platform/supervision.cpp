@@ -81,7 +81,7 @@ void DivPlatformSupervision::acquire(short** buf, size_t len) {
     tempR[0]=(((int)s[1])-128)*256;
 
     for (int i=0; i<4; i++) {
-      oscBuf[i]->putSample(h,CLAMP((((int)s[2+i])-128)*256,-32768,32767));
+      oscBuf[i]->putSample(h,CLAMP(((int)s[2+i])<<8,-32768,32767));
     }
 
     tempL[0]=(tempL[0]>>1)+(tempL[0]>>2);

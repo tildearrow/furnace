@@ -1342,7 +1342,7 @@ void DivPlatformES5506::renderSamples(int sysID) {
       length=4194304-128;
     }
     if ((memPos&0xc00000)!=((memPos+length+128)&0xc00000)) {
-      memPos=((memPos+0x3fffff)&0xc00000)+128;
+      memPos=((memPos+0x3fffff)&0xffc00000)+128;
     }
     if (memPos>=(getSampleMemCapacity()-128)) {
       logW("out of ES5506 memory for sample %d!",i);

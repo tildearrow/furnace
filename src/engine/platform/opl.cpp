@@ -188,7 +188,7 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
   thread_local ymfm::ymfm_output<2> aOut;
   thread_local short pcmBuf[24];
 
-  for (int i=0; i<totalChans; i++) {
+  for (int i=0; i<MAX(adpcmChan+1,totalChans); i++) {
     oscBuf[i]->begin(len);
   }
 
@@ -349,7 +349,7 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
     }
   }
 
-  for (int i=0; i<totalChans; i++) {
+  for (int i=0; i<MAX(adpcmChan+1,totalChans); i++) {
     oscBuf[i]->end(len);
   }
 }
@@ -471,7 +471,7 @@ void DivPlatformOPL::acquire_ymfm8950(short** buf, size_t len) {
     fmChan[i]=fme->debug_channel(i);
   }
 
-  for (int i=0; i<totalChans; i++) {
+  for (int i=0; i<totalChans+1; i++) {
     oscBuf[i]->begin(len);
   }
 
@@ -502,16 +502,16 @@ void DivPlatformOPL::acquire_ymfm8950(short** buf, size_t len) {
       oscBuf[8]->putSample(h,CLAMP(fmChan[8]->debug_special1()<<2,-32768,32767));
       oscBuf[9]->putSample(h,CLAMP(fmChan[8]->debug_special2()<<2,-32768,32767));
       oscBuf[10]->putSample(h,CLAMP(fmChan[7]->debug_special2()<<2,-32768,32767));
-      oscBuf[11]->putSample(h,CLAMP(abe->get_last_out(0),-32768,32767));
+      oscBuf[11]->putSample(h,CLAMP(abe->get_last_out(0)<<2,-32768,32767));
     } else {
       for (int i=0; i<9; i++) {
         oscBuf[i]->putSample(h,CLAMP(fmChan[i]->debug_output(0)<<2,-32768,32767));
       }
-      oscBuf[9]->putSample(h,CLAMP(abe->get_last_out(0),-32768,32767));
+      oscBuf[9]->putSample(h,CLAMP(abe->get_last_out(0)<<2,-32768,32767));
     }
   }
 
-  for (int i=0; i<totalChans; i++) {
+  for (int i=0; i<totalChans+1; i++) {
     oscBuf[i]->end(len);
   }
 }
@@ -755,7 +755,7 @@ void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
   int chOut[11];
   thread_local ymfm::ymfm_output<2> aOut;
 
-  for (int i=0; i<totalChans; i++) {
+  for (int i=0; i<MAX(adpcmChan+1,totalChans); i++) {
     oscBuf[i]->begin(len);
   }
 
@@ -899,7 +899,7 @@ void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
     buf[0][h]=dacOut;
   }
 
-  for (int i=0; i<totalChans; i++) {
+  for (int i=0; i<MAX(adpcmChan+1,totalChans); i++) {
     oscBuf[i]->end(len);
   }
 }
@@ -3270,32 +3270,45 @@ void DivPlatformOPL::renderSamples(int sysID) {
       }
 
       int length;
+      int sampleLength;
+      unsigned char* src=(unsigned char*)s->getCurBuf();
       switch (s->depth) {
-        default:
         case DIV_SAMPLE_DEPTH_8BIT:
-          length=MIN(65535,s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT));
+          sampleLength=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT);
+          length=MIN(65535,sampleLength+1);
           break;
         case DIV_SAMPLE_DEPTH_12BIT:
-          length=MIN(98303,s->getLoopEndPosition(DIV_SAMPLE_DEPTH_12BIT));
+          sampleLength=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_12BIT);
+          length=MIN(98303,sampleLength+3);
           break;
         case DIV_SAMPLE_DEPTH_16BIT:
-          length=MIN(131070,s->getLoopEndPosition(DIV_SAMPLE_DEPTH_16BIT));
+          sampleLength=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_16BIT);
+          length=MIN(131070,sampleLength+2);
+          break;
+        default:
+          sampleLength=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT);
+          length=MIN(65535,sampleLength+1);
+          src=(unsigned char*)s->data8;
           break;
       }
-      unsigned char* src=(unsigned char*)s->getCurBuf();
+      if (sampleLength<1) length=0;
       int actualLength=MIN((int)(getSampleMemCapacity(0)-memPos),length);
       if (actualLength>0) {
-  #ifdef TA_BIG_ENDIAN
-        memcpy(&pcmMem[memPos],src,actualLength);
-  #else
         if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
-          for (int i=0; i<actualLength; i++) {
-            pcmMem[memPos+i]=src[i^1];
+          for (int i=0, j=0; i<actualLength; i++, j++) {
+            if (j>=sampleLength) j=sampleLength-2;
+#ifdef TA_BIG_ENDIAN
+            pcmMem[memPos+i]=src[j];
+#else
+            pcmMem[memPos+i]=src[j^1];
+#endif
           }
         } else {
-          memcpy(&pcmMem[memPos],src,actualLength);
+          for (int i=0, j=0; i<actualLength; i++, j++) {
+            if (j>=sampleLength && s->depth!=DIV_SAMPLE_DEPTH_12BIT) j=sampleLength-1;
+            pcmMem[memPos+i]=src[j];
+          }
         }
-  #endif
         sampleOffPCM[i]=memPos;
         memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+length));
         memPos+=length;
@@ -3313,18 +3326,24 @@ void DivPlatformOPL::renderSamples(int sysID) {
       DivSample* s=parent->song.sample[i];
       unsigned int insAddr=(i*12)+((ramSize<=0x200000)?0x200000:0);
       unsigned char bitDepth;
-      int endPos=CLAMP(s->loopEnd,1,0x10000);
-      int loop=s->isLoopable()?CLAMP(s->loopStart,0,endPos-1):(endPos-1);
+      int endPos=CLAMP(s->isLoopable()?s->loopEnd:(s->samples+1),1,0x10000);
+      int loop=s->isLoopable()?CLAMP(s->loopStart,0,endPos-2):(endPos-2);
       switch (s->depth) {
-        default:
         case DIV_SAMPLE_DEPTH_8BIT:
           bitDepth=0;
           break;
         case DIV_SAMPLE_DEPTH_12BIT:
           bitDepth=1;
+          if (!s->isLoopable()) {
+            endPos++;
+            loop++;
+          }
           break;
         case DIV_SAMPLE_DEPTH_16BIT:
           bitDepth=2;
+          break;
+        default:
+          bitDepth=0;
           break;
       }
       pcmMem[insAddr]=(bitDepth<<6)|((sampleOffPCM[i]>>16)&0x3f);
@@ -3334,7 +3353,7 @@ void DivPlatformOPL::renderSamples(int sysID) {
       pcmMem[4+insAddr]=(loop)&0xff;
       pcmMem[5+insAddr]=((~(endPos-1))>>8)&0xff;
       pcmMem[6+insAddr]=(~(endPos-1))&0xff;
-      // TODO: how to fill in rest of instrument table?
+      // on MultiPCM this consists of instrument params, but on OPL4 this is not used
       pcmMem[7+insAddr]=0; // LFO, VIB
       pcmMem[8+insAddr]=(0xf << 4) | (0xf << 0); // AR, D1R
       pcmMem[9+insAddr]=0; // DL, D2R

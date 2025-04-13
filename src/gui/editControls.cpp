@@ -546,6 +546,7 @@ void FurnaceGUI::drawMobileControls() {
         break;
       case GUI_SCENE_CHIPS:
         ImGui::Text(_("Chips here..."));
+        ImGui::Text("Built");
         break;
       case GUI_SCENE_MIXER:
         ImGui::Text(_("What the hell..."));
@@ -596,6 +597,10 @@ void FurnaceGUI::drawMobileControls() {
         ImGui::SameLine();
         if (ImGui::Button(_("PatManager"))) {
           patManagerOpen=!patManagerOpen;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("CSPlayer"))) {
+          csPlayerOpen=!csPlayerOpen;
         }
 
         ImGui::Separator();

@@ -265,7 +265,7 @@ void FurnaceGUI::drawSampleEdit() {
                 int tryWith=(sample->loopEnd-8)&(~127);
                 if (tryWith>(int)sample->samples) tryWith-=128;
                 tryWith+=8; // +1 bc of how sample length is treated: https://www.nesdev.org/wiki/APU_DMC
-                String alignHint=fmt::sprintf(_("NES: loop end must be a multiple of 128 (try with %d)"),tryWith);
+                String alignHint=fmt::sprintf(_("NES: loop end must be a multiple of 128 + 8 (try with %d)"),tryWith);
                 SAMPLE_WARN(warnLoopEnd,alignHint);
               }
             }
@@ -1268,7 +1268,7 @@ void FurnaceGUI::drawSampleEdit() {
 
             if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
               for (unsigned int i=start; i<end; i++) {
-                double freq=sampleFilterCutStart+(sampleFilterCutEnd-sampleFilterCutStart)*pow(double(i-start)/double(end-start),power);
+                double freq=sampleFilterCutStart+(sampleFilterSweep?((sampleFilterCutEnd-sampleFilterCutStart)*pow(double(i-start)/double(end-start),power)):0);
                 double cut=sin((freq/double(sample->centerRate))*M_PI);
 
                 for (int j=0; j<sampleFilterPower; j++) {
@@ -1284,7 +1284,7 @@ void FurnaceGUI::drawSampleEdit() {
               }
             } else if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
               for (unsigned int i=start; i<end; i++) {
-                double freq=sampleFilterCutStart+(sampleFilterCutEnd-sampleFilterCutStart)*pow(double(i-start)/double(end-start),power);
+                double freq=sampleFilterCutStart+(sampleFilterSweep?((sampleFilterCutEnd-sampleFilterCutStart)*pow(double(i-start)/double(end-start),power)):0);
                 double cut=sin((freq/double(sample->centerRate))*M_PI);
 
                 for (int j=0; j<sampleFilterPower; j++) {

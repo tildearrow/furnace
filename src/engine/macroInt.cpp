@@ -242,6 +242,8 @@ void DivMacroInt::mask(unsigned char id, bool enabled) {
     CONSIDER(ex6,17)
     CONSIDER(ex7,18)
     CONSIDER(ex8,19)
+    CONSIDER(ex9,20)
+    CONSIDER(ex10,21)
 
     CONSIDER_OP(0,0x20)
     CONSIDER_OP(2,0x40)
@@ -309,6 +311,8 @@ void DivMacroInt::restart(unsigned char id) {
     CONSIDER(ex6,ex6Macro,17)
     CONSIDER(ex7,ex7Macro,18)
     CONSIDER(ex8,ex8Macro,19)
+    CONSIDER(ex9,ex9Macro,20)
+    CONSIDER(ex10,ex10Macro,21)
 
     CONSIDER_OP(0,0x20)
     CONSIDER_OP(2,0x40)
@@ -417,6 +421,12 @@ void DivMacroInt::init(DivInstrument* which) {
   }
   if (ins->std.ex8Macro.len>0) {
     ADD_MACRO(ex8,ins->std.ex8Macro);
+  }
+  if (ins->std.ex9Macro.len>0) {
+    ADD_MACRO(ex9,ins->std.ex9Macro);
+  }
+  if (ins->std.ex10Macro.len>0) {
+    ADD_MACRO(ex10,ins->std.ex10Macro);
   }
 
   // prepare FM operator macros
@@ -559,6 +569,8 @@ DivMacroStruct* DivMacroInt::structByType(unsigned char type) {
     CONSIDER(ex6,DIV_MACRO_EX6)
     CONSIDER(ex7,DIV_MACRO_EX7)
     CONSIDER(ex8,DIV_MACRO_EX8)
+    CONSIDER(ex9,DIV_MACRO_EX9)
+    CONSIDER(ex10,DIV_MACRO_EX10)
   }
 
   return NULL;

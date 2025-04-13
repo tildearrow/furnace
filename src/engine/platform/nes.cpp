@@ -843,6 +843,13 @@ void DivPlatformNES::forceIns() {
   for (int i=0; i<5; i++) {
     chan[i].insChanged=true;
     chan[i].prevFreq=65535;
+    if (i<4) {
+      if (i==2) { // triangle
+        rWrite(0x4000+i*4,(chan[i].outVol==0 || !chan[i].active)?0:linearCount);
+      } else {
+        rWrite(0x4000+i*4,(chan[i].envMode<<4)|(chan[i].active?chan[i].outVol:0)|((chan[i].duty&3)<<6));
+      }
+    }
   }
   rWrite(0x4001,chan[0].sweep);
   rWrite(0x4005,chan[1].sweep);
@@ -920,6 +927,16 @@ void DivPlatformNES::reset() {
   rWrite(0x4015,0x1f);
   rWrite(0x4001,chan[0].sweep);
   rWrite(0x4005,chan[1].sweep);
+
+  for (int i=0; i<4; i++) {
+    if (i<4) {
+      if (i==2) { // triangle
+        rWrite(0x4000+i*4,0);
+      } else {
+        rWrite(0x4000+i*4,(chan[i].envMode<<4)|0|((chan[i].duty&3)<<6));
+      }
+    }
+  }
 
   dacAntiClickOn=true;
   dacAntiClick=0;

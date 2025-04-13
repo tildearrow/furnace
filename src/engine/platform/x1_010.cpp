@@ -509,23 +509,25 @@ void DivPlatformX1_010::tick(bool sysTick) {
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
     }
-    if (chan[i].env.slide!=0) {
-      chan[i].env.slidefrac+=chan[i].env.slide;
-      while (chan[i].env.slidefrac>0xf) {
-        chan[i].env.slidefrac-=0x10;
-        if (chan[i].env.period<0xff) {
-          chan[i].env.period++;
-          if (!chan[i].pcm) {
-            chWrite(i,4,chan[i].env.period);
+    if (sysTick) {
+      if (chan[i].env.slide!=0) {
+        chan[i].env.slidefrac+=chan[i].env.slide;
+        while (chan[i].env.slidefrac>0xf) {
+          chan[i].env.slidefrac-=0x10;
+          if (chan[i].env.period<0xff) {
+            chan[i].env.period++;
+            if (!chan[i].pcm) {
+              chWrite(i,4,chan[i].env.period);
+            }
           }
         }
-      }
-      while (chan[i].env.slidefrac<-0xf) {
-        chan[i].env.slidefrac+=0x10;
-        if (chan[i].env.period>0) {
-          chan[i].env.period--;
-          if (!chan[i].pcm) {
-            chWrite(i,4,chan[i].env.period);
+        while (chan[i].env.slidefrac<-0xf) {
+          chan[i].env.slidefrac+=0x10;
+          if (chan[i].env.period>0) {
+            chan[i].env.period--;
+            if (!chan[i].pcm) {
+              chWrite(i,4,chan[i].env.period);
+            }
           }
         }
       }

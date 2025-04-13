@@ -187,8 +187,8 @@ void DivExportTiuna::run() {
   std::map<int,TiunaCmd> allCmds[2];
 
   // config
-  String baseLabel=conf.getString("baseLabel","song");
-  int firstBankSize=conf.getInt("firstBankSize",3072);
+  String baseLabel=conf.getString("baseLabel","twin");
+  int firstBankSize=conf.getInt("firstBankSize",1024);
   int otherBankSize=conf.getInt("otherBankSize",4096-48);
   int tiaIdx=conf.getInt("sysToExport",-1);
 

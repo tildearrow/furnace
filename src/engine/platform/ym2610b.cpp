@@ -686,6 +686,11 @@ void DivPlatformYM2610B::acquire_lle(short** buf, size_t len) {
     for (int i=0; i<6; i++) {
       if (rssOut[i]<-32768) rssOut[i]=-32768;
       if (rssOut[i]>32767) rssOut[i]=32767;
+      if (isMuted[adpcmAChanOffs+i]) {
+        oscBuf[9+i]->putSample(h,0);
+      } else {
+        oscBuf[9+i]->putSample(h,rssOut[i]);
+      }
       oscBuf[9+i]->putSample(h,rssOut[i]);
     }
     // ADPCM

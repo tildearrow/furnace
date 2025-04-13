@@ -47,7 +47,7 @@ class TFMRLEReader {
       rleTag=readCNoRLE();
       tagLenLeft|=(rleTag&0x7F)<<lenShift;
       lenShift+=7;
-      logD("offset: %x, RLE tag: %X, len shift: %d, len left: %d",curSeek,rleTag,lenShift,tagLenLeft);
+      //logD("offset: %x, RLE tag: %X, len shift: %d, len left: %d",curSeek,rleTag,lenShift,tagLenLeft);
     } while (!(rleTag&0x80));
 
     if (tagLenLeft) {
@@ -58,7 +58,7 @@ class TFMRLEReader {
     } else {
       tagChar=0x80;
     }
-    logD("tag finished: len left: %d, char: %X",tagLenLeft,tagChar);
+    //logD("tag finished: len left: %d, char: %X",tagLenLeft,tagChar);
   }
 
 public:
@@ -78,7 +78,7 @@ public:
         return readC();
       }
       tagLenLeft--;
-      logD("one char RLE decompressed, tag left: %d, char: %d",tagLenLeft,tagChar);
+      //logD("one char RLE decompressed, tag left: %d, char: %d",tagLenLeft,tagChar);
       return tagChar;
     }
     if (curSeek>len) throw TFMEndOfFileException(this,len);
@@ -111,7 +111,7 @@ public:
     while(l--) {
       unsigned char nextChar=readC();
       b[i++]=nextChar;
-      logD("read next char: %x, index: %d",nextChar,i);
+      //logD("read next char: %x, index: %d",nextChar,i);
     }
   }
 
@@ -150,7 +150,7 @@ public:
   void skip(size_t l) {
     // quick and dirty
     while (l--) {
-      logD("skipping l %d",l);
+      //logD("skipping l %d",l);
       readC();
     }
   }
