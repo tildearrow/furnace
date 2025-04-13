@@ -1004,7 +1004,7 @@ void FMOPL3_Clock(fmopl3_t *chip)
 
         if (!chip->am[1])
             tremolo = 0;
-        else if (chip->reg_dv)
+        else if (chip->reg_da)
             tremolo = chip->trem_out >> 2;
         else
             tremolo = chip->trem_out >> 4;
