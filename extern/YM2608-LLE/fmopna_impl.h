@@ -52,7 +52,6 @@ typedef struct {
 #ifdef FMOPNA_YM2610
     int rad;
     int pad;
-    int ym2610b;
 #endif
 }
 #ifdef FMOPNA_YM2608
