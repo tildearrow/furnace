@@ -1866,11 +1866,11 @@ void FMOPN2_Operator1(fmopn2_t *chip)
     }
     if (chip->alg_mod_prev_0)
     {
-        mod2 |= chip->op_output[1] & 0x3fff;
+        mod2 |= chip->op_output[1];
     }
     if (chip->alg_mod_prev_1)
     {
-        mod1 |= chip->op_output[1] & 0x3fff;
+        mod1 |= chip->op_output[1];
     }
     if (mod1 & (1 << 13))
         mod1 |= 1 << 14;
