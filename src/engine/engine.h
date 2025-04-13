@@ -52,10 +52,10 @@ class DivWorkPool;
 #define EXTERN_BUSY_BEGIN_SOFT e->softLocked=true; e->isBusy.lock();
 #define EXTERN_BUSY_END e->isBusy.unlock(); e->softLocked=false;
 
-#define DIV_UNSTABLE
+//#define DIV_UNSTABLE
 
-#define DIV_VERSION "dev224"
-#define DIV_ENGINE_VERSION 224
+#define DIV_VERSION "0.6.8.1"
+#define DIV_ENGINE_VERSION 228
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -505,7 +505,7 @@ class DivEngine {
   int midiOutTimeRate;
   float midiVolExp;
   int softLockCount;
-  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, curExportChan, nextSpeed, elapsedBars, elapsedBeats, curSpeed;
+  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, curExportChan, nextSpeed, prevSpeed, elapsedBars, elapsedBeats, curSpeed;
   size_t curSubSongIndex;
   size_t bufferPos;
   double divider;
@@ -764,7 +764,7 @@ class DivEngine {
     // dump to TIunA.
     SafeWriter* saveTiuna(const bool* sysToExport, const char* baseLabel, int firstBankSize, int otherBankSize);
     // dump command stream.
-    SafeWriter* saveCommand();
+    SafeWriter* saveCommand(DivCSProgress* progress=NULL, unsigned int disablePasses=0);
     // export to text
     SafeWriter* saveText(bool separatePatterns=true);
     // export to an audio file
@@ -999,6 +999,7 @@ class DivEngine {
 
     // synchronous get order/row
     void getPlayPos(int& order, int& row);
+    void getPlayPosTick(int& order, int& row, int& tick, int& speed);
 
     // get beat/bar
     int getElapsedBars();
@@ -1472,6 +1473,7 @@ class DivEngine {
       exportLoopCount(0),
       curExportChan(0),
       nextSpeed(3),
+      prevSpeed(6),
       elapsedBars(0),
       elapsedBeats(0),
       curSpeed(0),

@@ -52,6 +52,14 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
   int lastOut[2];
   unsigned int sampleOff[256];
   bool sampleLoaded[256];
+  struct QueuedWrite {
+    unsigned short addr;
+    unsigned char size;
+    unsigned int val;
+    QueuedWrite(): addr(0), size(0), val(0) {}
+    QueuedWrite(unsigned short a, unsigned char s, unsigned int v): addr(a), size(s), val(v) {}
+  };
+  FixedQueue<QueuedWrite,2048> writes;
 
   unsigned char* sampleMem;
   size_t sampleMemLen;

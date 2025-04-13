@@ -71,6 +71,10 @@ enum DivDispatchCmds {
   DIV_CMD_HINT_PORTA, // (target, speed)
   DIV_CMD_HINT_LEGATO, // (note)
   DIV_CMD_HINT_VOL_SLIDE_TARGET, // (amount, target)
+  DIV_CMD_HINT_TREMOLO, // (speed/depth as a byte)
+  DIV_CMD_HINT_PANBRELLO, // (speed/depth as a byte)
+  DIV_CMD_HINT_PAN_SLIDE, // (speed)
+  DIV_CMD_HINT_PANNING, // (left, right)
 
   DIV_CMD_SAMPLE_MODE, // (enabled)
   DIV_CMD_SAMPLE_FREQ, // (frequency)
@@ -171,8 +175,8 @@ enum DivDispatchCmds {
   DIV_CMD_X1_010_AUTO_ENVELOPE,
   DIV_CMD_X1_010_SAMPLE_BANK_SLOT,
 
-  DIV_CMD_WS_SWEEP_TIME,
-  DIV_CMD_WS_SWEEP_AMOUNT,
+  DIV_CMD_WS_SWEEP_TIME, // (time)
+  DIV_CMD_WS_SWEEP_AMOUNT, // (value)
 
   DIV_CMD_N163_WAVE_POSITION,
   DIV_CMD_N163_WAVE_LENGTH,
@@ -308,6 +312,8 @@ enum DivDispatchCmds {
 
   DIV_CMD_SID3_CUTOFF_SCALING,
   DIV_CMD_SID3_RESONANCE_SCALING,
+
+  DIV_CMD_WS_GLOBAL_SPEAKER_VOLUME, // (multiplier)
 
   DIV_CMD_MAX
 };

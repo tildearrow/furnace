@@ -619,8 +619,8 @@ bool DivSample::initInternal(DivSampleDepth d, int count) {
     case DIV_SAMPLE_DEPTH_12BIT: // 12-bit PCM (MultiPCM)
       if (data12!=NULL) delete[] data12;
       length12=((count*3)+1)/2;
-      data12=new unsigned char[length12];
-      memset(data12,0,length12);
+      data12=new unsigned char[length12+8];
+      memset(data12,0,length12+8);
       break;
     case DIV_SAMPLE_DEPTH_16BIT: // 16-bit
       if (data16!=NULL) delete[] data16;
@@ -1513,6 +1513,8 @@ void DivSample::render(unsigned int formatMask) {
       data12[j+1]=((data16[i+0]>>4)&0xf)|(i+1<samples?(data16[i+1]>>4)&0xf:0);
       if (i+1<samples) {
         data12[j+2]=data16[i+1]>>8;
+      } else {
+        data12[j+2]=0;
       }
     }
   }

@@ -332,31 +332,62 @@ void DivPlatformPCSpeaker::beepFreq(int freq, int delay) {
 }
 
 void DivPlatformPCSpeaker::acquire_real(blip_buffer_t** bb, size_t len) {
-  //int out=0;
   if (lastOn!=on || lastFreq!=freq) {
     lastOn=on;
     lastFreq=freq;
     beepFreq((on && !isMuted[0])?freq:0,parent->getBufferPos());
   }
-  // TODO: direct chanOsc API!
-  /*
-  for (size_t i=0; i<len; i++) {
-    if (on) {
-      pos-=PCSPKR_DIVIDER;
-      if (pos>freq) pos=freq;
-      while (pos<0) {
-        if (freq<1) {
-          pos=1;
-        } else {
-          pos+=freq;
-        }
-      }
-      out=(pos>(freq>>1) && !isMuted[0])?32767:0;
-    } else {
+  int out=0;
+  int freq1=freq+1;
+  int timeToNextToggle=0;
+  oscBuf->begin(len);
+  if (on) {
+    // just in case
+    if (pos>freq1) {
+      pos=freq1;
     }
-    //buf[0][i]=0;
+    if (pos>(freq>>1)) {
+      posToggle=true;
+      timeToNextToggle=pos-(freq>>1);
+    } else {
+      posToggle=false;
+      timeToNextToggle=pos;
+    }
+    out=(posToggle && !isMuted[0])?32767:0;
+    oscBuf->putSample(0,out);
+    oldOut=out;
+    if (freq>=1) {
+      size_t boff=0;
+      size_t i=len;
+      while (true) {
+        if ((int)i<timeToNextToggle) {
+          pos-=i;
+          break;
+        }
+        i-=timeToNextToggle;
+        boff+=timeToNextToggle;
+        pos-=timeToNextToggle;
+        if (pos<=0) {
+          pos=freq1;
+        }
+        if (pos>(freq>>1)) {
+          posToggle=true;
+          timeToNextToggle=pos-(freq>>1);
+        } else {
+          posToggle=false;
+          timeToNextToggle=pos;
+        }
+        out=(posToggle && !isMuted[0])?32767:0;
+        oscBuf->putSample(boff,out);
+        oldOut=out;
+      }
+    }
+  } else {
+    out=0;
+    oscBuf->putSample(0,out);
+    oldOut=out;
   }
-  */
+  oscBuf->end(len);
 }
 
 void DivPlatformPCSpeaker::acquire(short** buf, size_t len) {

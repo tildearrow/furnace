@@ -171,7 +171,7 @@ void DivPlatformC64::acquire(short** buf, size_t len) {
         oscBuf[0]->putSample(i,sid_d->lastOut[0]);
         oscBuf[1]->putSample(i,sid_d->lastOut[1]);
         oscBuf[2]->putSample(i,sid_d->lastOut[2]);
-        oscBuf[3]->putSample(i,chan[3].pcmOut<<11);
+        oscBuf[3]->putSample(i,isMuted[3]?0:(chan[3].pcmOut<<11));
       }
     } else if (sidCore==1) {
       sid_fp->clock(4,&buf[0][i]);
@@ -180,7 +180,7 @@ void DivPlatformC64::acquire(short** buf, size_t len) {
         oscBuf[0]->putSample(i,runFakeFilter(0,(sid_fp->lastChanOut[0]-dcOff)>>5));
         oscBuf[1]->putSample(i,runFakeFilter(1,(sid_fp->lastChanOut[1]-dcOff)>>5));
         oscBuf[2]->putSample(i,runFakeFilter(2,(sid_fp->lastChanOut[2]-dcOff)>>5));
-        oscBuf[3]->putSample(i,chan[3].pcmOut<<11);
+        oscBuf[3]->putSample(i,isMuted[3]?0:(chan[3].pcmOut<<11));
       }
     } else {
       sid->clock();
@@ -190,7 +190,7 @@ void DivPlatformC64::acquire(short** buf, size_t len) {
         oscBuf[0]->putSample(i,runFakeFilter(0,(sid->last_chan_out[0]-dcOff)>>5));
         oscBuf[1]->putSample(i,runFakeFilter(1,(sid->last_chan_out[1]-dcOff)>>5));
         oscBuf[2]->putSample(i,runFakeFilter(2,(sid->last_chan_out[2]-dcOff)>>5));
-        oscBuf[3]->putSample(i,chan[3].pcmOut<<11);
+        oscBuf[3]->putSample(i,isMuted[3]?0:(chan[3].pcmOut<<11));
       }
     }
   }
@@ -936,7 +936,7 @@ void DivPlatformC64::setFlags(const DivConfig& flags) {
 
   // init fake filter table
   // taken from dSID
-  double oscBufRate=(double)rate/16.0;
+  double oscBufRate=(double)rate/((sidCore==0)?16.0:4.0);
   double cutRatio=-2.0*3.14*(sidIs6581?((oscBufRate/44100.0)*(20000.0/256.0)):(12500.0/256.0))/oscBufRate;
 
   for (int i=0; i<2048; i++) {

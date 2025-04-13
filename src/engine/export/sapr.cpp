@@ -27,9 +27,6 @@
 #include <array>
 #include <vector>
 
-constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
-constexpr int MASTER_CLOCK_MASK=(sizeof(void*)==8)?0xff:0;
-
 static String ticksToTime(double rate, int ticks) {
   double timing = ticks / rate;
 
@@ -112,7 +109,6 @@ void DivExportSAPR::run() {
     // Prepare to write song data.
     e->playSub(false);
     bool done=false;
-    int fracWait=0; // accumulates fractional ticks
     e->disCont[POKEY].dispatch->toggleRegisterDump(true);
     std::array<uint8_t, 9> currRegs;
 
@@ -136,10 +132,7 @@ void DivExportSAPR::run() {
 
       // write wait
       tickCount++;
-      int totalWait=e->cycles>>MASTER_CLOCK_PREC;
-      fracWait+=e->cycles&MASTER_CLOCK_MASK;
-      totalWait+=fracWait>>MASTER_CLOCK_PREC;
-      fracWait&=MASTER_CLOCK_MASK;
+      int totalWait=e->cycles;
       if (totalWait>0 && !done) {
         while (totalWait) {
           regs.push_back(currRegs);

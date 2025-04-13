@@ -16,7 +16,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_PROJECT_VERSION_MAJOR 0)
 set(CMAKE_PROJECT_VERSION_MINOR 6)
-set(CMAKE_PROJECT_VERSION_PATCH 6)
+set(CMAKE_PROJECT_VERSION_PATCH 8)
 
 set(BUILD_GUI_DEFAULT ON)
 set(USE_SDL2_DEFAULT ON)
@@ -136,6 +136,7 @@ option(WITH_INSTRUMENTS "Install instruments" ON)
 option(WITH_WAVETABLES "Install wavetables" ON)
 option(SHOW_OPEN_ASSETS_MENU_ENTRY "Show option to open built-in assets directory (on supported platforms)" OFF)
 option(CONSOLE_SUBSYSTEM "Build Furnace with Console subsystem on Windows" OFF)
+option(FORCE_CODEVIEW "Force -gcodeview on MinGW GCC" OFF)
 option(FLATPAK_WORKAROUNDS "Enable Flatpak-specific workaround for system file picker" OFF)
 if (APPLE)
   option(FORCE_APPLE_BIN "Force enable binary installation to /bin" OFF)
@@ -287,7 +288,7 @@ if (USE_SNDFILE)
     set(BUILD_EXAMPLES OFF CACHE BOOL "a" FORCE)
     set(ENABLE_EXTERNAL_LIBS OFF CACHE BOOL "come on" FORCE)
     set(ENABLE_MPEG OFF CACHE BOOL "come on" FORCE)
-    add_subdirectory(extern/libsndfile EXCLUDE_FROM_ALL)
+    add_subdirectory(extern/libsndfile-modified EXCLUDE_FROM_ALL)
     list(APPEND DEPENDENCIES_LIBRARIES sndfile)
     message(STATUS "Using vendored libsndfile")
   endif()
@@ -631,7 +632,8 @@ src/engine/platform/sound/pokey/AltASAP.cpp
 
 src/engine/platform/sound/qsound.c
 
-src/engine/platform/sound/swan.cpp
+src/engine/platform/sound/swan.c
+src/engine/platform/sound/swan_mdfn.cpp
 
 src/engine/platform/sound/su.cpp
 
@@ -793,7 +795,6 @@ src/engine/platform/k007232.cpp
 src/engine/platform/ga20.cpp
 src/engine/platform/sm8521.cpp
 src/engine/platform/supervision.cpp
-src/engine/platform/scvwave.cpp
 src/engine/platform/scvtone.cpp
 src/engine/platform/pv1000.cpp
 src/engine/platform/k053260.cpp
@@ -1118,7 +1119,7 @@ if (USE_BACKWARD)
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
       include(CheckCXXCompilerFlag)
       check_cxx_compiler_flag(-gcodeview GCC_CODEVIEW)
-      if (GCC_CODEVIEW)
+      if (GCC_CODEVIEW OR FORCE_CODEVIEW)
         set(CMAKE_EXE_LINKER_FLAGS "-Wl,--pdb= ")
         add_compile_options(-gcodeview)
         message(STATUS "Enabling -gcodeview flag for backward-cpp.")

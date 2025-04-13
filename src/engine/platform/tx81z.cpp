@@ -255,6 +255,14 @@ void DivPlatformTX81Z::tick(bool sysTick) {
       chan[i].state.ams=chan[i].std.ams.val;
       rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3));
     }
+    if (chan[i].std.ex9.had) {
+      chan[i].state.fms2=chan[i].std.ex9.val;
+      rWrite(chanOffs[i]+ADDR_FMS2_AMS2,((chan[i].state.fms2&7)<<4)|(chan[i].state.ams2&3));
+    }
+    if (chan[i].std.ex10.had) {
+      chan[i].state.ams2=chan[i].std.ex10.val;
+      rWrite(chanOffs[i]+ADDR_FMS2_AMS2,((chan[i].state.fms2&7)<<4)|(chan[i].state.ams2&3));
+    }
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];

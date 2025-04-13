@@ -72,8 +72,18 @@ void DivEngine::getTotalAudioFiles(int &files) {
     }
     case DIV_EXPORT_MODE_MANY_CHAN: {
       for (int i=0; i<chans; i++) {
-        if (exportChannelMask[i]) {
-          files++;
+        if (!exportChannelMask[i]) continue;
+
+        files++;
+
+        if (getChannelType(i)==5) {
+          i++;
+          while (true) {
+            if (i>=chans) break;
+            if (getChannelType(i)!=5) break;
+            i++;
+          }
+          i--;
         }
       }
       break;
@@ -114,6 +124,8 @@ class SndfileWavWriter {
     SF_INFO si;
     SFWrapper sfWrap;
   public:
+    SndfileWavWriter(): sf(NULL) {}
+
     bool open(SF_INFO info, const char* exportPath) {
       si=info;
       sf=sfWrap.doOpen(exportPath,SFM_WRITE,&si);
@@ -130,9 +142,17 @@ class SndfileWavWriter {
       }
     }
 
+    inline int getChannelCount() {
+      return si.channels;
+    }
+
     bool write(float* samples, sf_count_t count, size_t exportOutputs) {
       // FIXME: we're ignoring exportOutputs here. this is hacky!
       return sf_writef_float(sf,samples,count)==count;
+    }
+
+    bool writeShort(short* samples, sf_count_t count) {
+      return sf_writef_short(sf,samples,count)==count;
     }
 };
 
@@ -142,10 +162,12 @@ class ProcWriter {
     Subprocess* proc;
     int writeFd;
     int format;
+    int channelCount;
   public:
-    ProcWriter():
+    ProcWriter(int channelCount):
       proc(NULL),
-      writeFd(-1) {}
+      writeFd(-1),
+      channelCount(channelCount) {}
 
     bool open(Subprocess* proc_, int writeFd_, int format_) {
       proc=proc_;
@@ -168,6 +190,10 @@ class ProcWriter {
 
     void close() {
       ::close(writeFd);
+    }
+
+    inline int getChannelCount() {
+      return channelCount;
     }
 
     bool write(float* samples, size_t count_, size_t exportOutputs) {
@@ -204,6 +230,45 @@ class ProcWriter {
 #endif
       } else if (format==DIV_EXPORT_FORMAT_F32) {
         return doWrite(samples,count*sizeof(float));
+      } else {
+        logE("invalid export format: %d",format);
+        return false;
+      }
+    }
+
+    bool writeShort(short* samples, size_t count_) {
+      size_t count=count_*channelCount;
+
+      const auto doWrite=[this](void* buf, size_t size) {
+        while (true) {
+          if (::write(writeFd,buf,size)==(ssize_t)size) return true;
+          // buffer got full! wait for it to unblock
+          if (!proc->waitStdinOrExit()) {
+            int exitCode=-1;
+            proc->getExitCode(&exitCode, false);
+            logE("subprocess exited before finishing export (exit code %d)", exitCode);
+            return false;
+          }
+        }
+      };
+
+      if (format==DIV_EXPORT_FORMAT_S16) {
+#ifdef TA_BIG_ENDIAN
+        uint16_t buf[count];
+        for (size_t i=0; i<count; i++) {
+          uint16_t sampleU=*(uint16_t*)&samples[i];
+          buf[i]=(sampleU>>8)|(sampleU<<8); // byte swap from BE to LE
+        }
+        return doWrite(buf,count*sizeof(uint16_t));
+#else
+        return doWrite(samples,count*sizeof(int16_t));
+#endif
+      } else if (format==DIV_EXPORT_FORMAT_F32) {
+        float buf[count];
+        for (size_t i=0; i<count; i++) {
+          buf[i]=(float)samples[i]/32767.0f;
+        }
+        return doWrite(buf,count*sizeof(float));
       } else {
         logE("invalid export format: %d",format);
         return false;
@@ -286,77 +351,174 @@ void DivEngine::runExportThread() {
     return si;
   };
 
-  switch (exportMode) {
-    case DIV_EXPORT_MODE_ONE: {
-      const auto doExport=[&fadeOutSamples,&curFadeOutSample,this](auto wr) {
-        float* outBuf[DIV_MAX_OUTPUTS];
-        float* outBufFinal;
-        for (int i=0; i<exportOutputs; i++) {
-          outBuf[i]=new float[EXPORT_BUFSIZE];
-        }
-        outBufFinal=new float[EXPORT_BUFSIZE*exportOutputs];
+  const auto doExport=[&fadeOutSamples,&curFadeOutSample,this](auto wr) {
+    float* outBuf[DIV_MAX_OUTPUTS];
+    float* outBufFinal;
+    for (int i=0; i<exportOutputs; i++) {
+      outBuf[i]=new float[EXPORT_BUFSIZE];
+    }
+    outBufFinal=new float[EXPORT_BUFSIZE*exportOutputs];
 
-        // take control of audio output
-        deinitAudioBackend();
-        playSub(false);
+    // take control of audio output
+    deinitAudioBackend();
+    playSub(false);
 
-        logI("exporting song to file...");
+    logI("exporting song to file...");
 
-        while (playing) {
-          size_t total=0;
-          nextBuf(NULL,outBuf,0,exportOutputs,EXPORT_BUFSIZE);
-          if (totalProcessed>EXPORT_BUFSIZE) {
-            logE("error: total processed is bigger than export bufsize! %d>%d",totalProcessed,EXPORT_BUFSIZE);
-            totalProcessed=EXPORT_BUFSIZE;
+    while (playing) {
+      size_t total=0;
+      nextBuf(NULL,outBuf,0,exportOutputs,EXPORT_BUFSIZE);
+      if (totalProcessed>EXPORT_BUFSIZE) {
+        logE("error: total processed is bigger than export bufsize! %d>%d",totalProcessed,EXPORT_BUFSIZE);
+        totalProcessed=EXPORT_BUFSIZE;
+      }
+      int fi=0;
+      for (int i=0; i<(int)totalProcessed; i++) {
+        total++;
+        if (isFadingOut) {
+          double mul=(1.0-((double)curFadeOutSample/(double)fadeOutSamples));
+          for (int j=0; j<exportOutputs; j++) {
+            outBufFinal[fi++]=MAX(-1.0f,MIN(1.0f,outBuf[j][i]))*mul;
           }
-          int fi=0;
-          for (int i=0; i<(int)totalProcessed; i++) {
-            total++;
-            if (isFadingOut) {
-              double mul=(1.0-((double)curFadeOutSample/(double)fadeOutSamples));
-              for (int j=0; j<exportOutputs; j++) {
-                outBufFinal[fi++]=MAX(-1.0f,MIN(1.0f,outBuf[j][i]))*mul;
-              }
-              if (++curFadeOutSample>=fadeOutSamples) {
-                playing=false;
-                break;
-              }
-            } else {
-              for (int j=0; j<exportOutputs; j++) {
-                outBufFinal[fi++]=MAX(-1.0f,MIN(1.0f,outBuf[j][i]));
-              }
-              if (lastLoopPos>-1 && i>=lastLoopPos && totalLoops>=exportLoopCount) {
-                logD("start fading out...");
-                isFadingOut=true;
-                if (fadeOutSamples==0) break;
+          if (++curFadeOutSample>=fadeOutSamples) {
+            playing=false;
+            break;
+          }
+        } else {
+          for (int j=0; j<exportOutputs; j++) {
+            outBufFinal[fi++]=MAX(-1.0f,MIN(1.0f,outBuf[j][i]));
+          }
+          if (lastLoopPos>-1 && i>=lastLoopPos && totalLoops>=exportLoopCount) {
+            logD("start fading out...");
+            isFadingOut=true;
+            if (fadeOutSamples==0) break;
+          }
+        }
+      }
+
+      if (!wr->write(outBufFinal,total,exportOutputs)) {
+        logE("error: failed to write entire buffer!");
+        break;
+      }
+    }
+
+    wr->close();
+
+    delete[] outBufFinal;
+    for (int i=0; i<exportOutputs; i++) {
+      delete[] outBuf[i];
+    }
+
+    if (initAudioBackend()) {
+      for (int i=0; i<song.systemLen; i++) {
+        disCont[i].setRates(got.rate);
+        disCont[i].setQuality(lowQuality,dcHiPass);
+      }
+      if (!output->setRun(true)) {
+        logE("error while activating audio!");
+      }
+    }
+  };
+
+  const auto doExportManySys=[&fadeOutSamples,&curFadeOutSample,this](auto writers) {
+    float* outBuf[DIV_MAX_OUTPUTS];
+    memset(outBuf,0,sizeof(void*)*DIV_MAX_OUTPUTS);
+    outBuf[0]=new float[EXPORT_BUFSIZE];
+    outBuf[1]=new float[EXPORT_BUFSIZE];
+    short* sysBuf[DIV_MAX_CHIPS];
+    for (int i=0; i<song.systemLen; i++) {
+      sysBuf[i]=new short[EXPORT_BUFSIZE*writers[i].getChannelCount()];
+    }
+
+    // take control of audio output
+    deinitAudioBackend();
+    playSub(false);
+
+    logI("rendering to files...");
+
+    while (playing) {
+      size_t total=0;
+      nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
+      if (totalProcessed>EXPORT_BUFSIZE) {
+        logE("error: total processed is bigger than export bufsize! %d>%d",totalProcessed,EXPORT_BUFSIZE);
+        totalProcessed=EXPORT_BUFSIZE;
+      }
+      for (int j=0; j<(int)totalProcessed; j++) {
+        total++;
+        if (isFadingOut) {
+          double mul=(1.0-((double)curFadeOutSample/(double)fadeOutSamples));
+          for (int i=0; i<song.systemLen; i++) {
+            int channelCount=writers[i].getChannelCount();
+            for (int k=0; k<channelCount; k++) {
+              if (disCont[i].bbOut[k]==NULL) {
+                sysBuf[i][k+(j*channelCount)]=0;
+              } else {
+                sysBuf[i][k+(j*channelCount)]=(double)disCont[i].bbOut[k][j]*mul;
               }
             }
           }
-
-          if (!wr->write(outBufFinal,total,exportOutputs)) {
-            logE("error: failed to write entire buffer!");
+          if (++curFadeOutSample>=fadeOutSamples) {
+            playing=false;
             break;
           }
-        }
-
-        wr->close();
-
-        delete[] outBufFinal;
-        for (int i=0; i<exportOutputs; i++) {
-          delete[] outBuf[i];
-        }
-
-        if (initAudioBackend()) {
+        } else {
           for (int i=0; i<song.systemLen; i++) {
-            disCont[i].setRates(got.rate);
-            disCont[i].setQuality(lowQuality,dcHiPass);
+            int channelCount=writers[i].getChannelCount();
+            for (int k=0; k<channelCount; k++) {
+              if (disCont[i].bbOut[k]==NULL) {
+                sysBuf[i][k+(j*channelCount)]=0;
+              } else {
+                sysBuf[i][k+(j*channelCount)]=disCont[i].bbOut[k][j];
+              }
+            }
           }
-          if (!output->setRun(true)) {
-            logE("error while activating audio!");
+          if (lastLoopPos>-1 && j>=lastLoopPos && totalLoops>=exportLoopCount) {
+            logD("start fading out...");
+            isFadingOut=true;
+            if (fadeOutSamples==0) break;
           }
         }
-      };
+      }
+      for (int i=0; i<song.systemLen; i++) {
+        if (!writers[i].writeShort(sysBuf[i],total)) {
+          logE("error: failed to write entire buffer! (%d)",i);
+          break;
+        }
+      }
+    }
 
+    delete[] outBuf[0];
+    delete[] outBuf[1];
+
+    for (int i=0; i<song.systemLen; i++) {
+      delete[] sysBuf[i];
+      writers[i].close();
+    }
+
+    if (initAudioBackend()) {
+      for (int i=0; i<song.systemLen; i++) {
+        disCont[i].setRates(got.rate);
+        disCont[i].setQuality(lowQuality,dcHiPass);
+      }
+      if (!output->setRun(true)) {
+        logE("error while activating audio!");
+      }
+    }
+  };
+
+  const auto buildFinalArgs=[this](std::vector<String> args, String inputFormat, long int sampleRate, int channelCount, String path) {
+    std::map<String, String> defMap;
+    defMap["ffmpeg"]=exportFfmpegPath;
+    defMap["input_format"]=inputFormat;
+    defMap["sample_rate"]=fmt::sprintf("%ld",sampleRate);
+    defMap["channel_count"]=fmt::sprintf("%d",channelCount);
+    defMap["extra_flags"]=exportExtraFlags; // FIXME: the flags won't be split!!! whoops
+    defMap["output_file"]=path;
+    return substituteArgs(args,defMap);
+  };
+
+  switch (exportMode) {
+    case DIV_EXPORT_MODE_ONE: {
       if (exportWriter==DIV_EXPORT_WRITER_SNDFILE) {
         SndfileWavWriter wr;
         if (!wr.open(makeSfInfo(),exportPath.c_str())) {
@@ -369,22 +531,10 @@ void DivEngine::runExportThread() {
 #ifdef _WIN32
         logE("ffmpeg export is not yet supported");
 #else
-        String inputFormatArg=(exportFormat==DIV_EXPORT_FORMAT_S16)?"s16le":"f32le";
-
-        std::map<String, String> defMap;
-        defMap["ffmpeg"]=exportFfmpegPath;
-        defMap["input_format"]=inputFormatArg;
-        defMap["sample_rate"]=fmt::sprintf("%ld",(long int)got.rate);
-        defMap["channel_count"]=fmt::sprintf("%d",exportOutputs);
-        defMap["extra_flags"]=exportExtraFlags; // FIXME: the flags won't be split!!! whoops
-        defMap["output_file"]=exportPath;
-
         std::vector<String> args;
         splitString(exportCommand,' ',args);
-
-        logD("Before replacing: %s",vec2str(args));
-        args=substituteArgs(args,defMap);
-        logD("After replacing: %s",vec2str(args));
+        String inputFormatArg=(exportFormat==DIV_EXPORT_FORMAT_S16)?"s16le":"f32le";
+        args=buildFinalArgs(args,inputFormatArg,got.rate,exportOutputs,exportPath);
 
         Subprocess proc(args);
         int writeFd=proc.pipeStdin();
@@ -400,7 +550,7 @@ void DivEngine::runExportThread() {
           return;
         }
 
-        ProcWriter wr;
+        ProcWriter wr(exportOutputs);
         if (!wr.open(&proc,writeFd,exportFormat)) {
           logE("could not initialize export writer");
           exporting=false;
@@ -418,112 +568,82 @@ void DivEngine::runExportThread() {
       break;
     }
     case DIV_EXPORT_MODE_MANY_SYS: {
-      SNDFILE* sf[DIV_MAX_CHIPS];
-      SF_INFO si[DIV_MAX_CHIPS];
-      String fname[DIV_MAX_CHIPS];
-      SFWrapper sfWrap[DIV_MAX_CHIPS];
-      for (int i=0; i<song.systemLen; i++) {
-        sf[i]=NULL;
-        si[i].samplerate=got.rate;
-        si[i].channels=disCont[i].dispatch->getOutputCount();
-        si[i].format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
-      }
-
-      for (int i=0; i<song.systemLen; i++) {
-        fname[i]=fmt::sprintf("%s_s%02d.wav",exportPath,i+1);
-        logI("- %s",fname[i].c_str());
-        sf[i]=sfWrap[i].doOpen(fname[i].c_str(),SFM_WRITE,&si[i]);
-        if (sf[i]==NULL) {
-          logE("could not open file for writing! (%s)",sf_strerror(NULL));
-          for (int j=0; j<i; j++) {
-            sfWrap[i].doClose();
-          }
-          return;
-        }
-      }
-
-      float* outBuf[DIV_MAX_OUTPUTS];
-      memset(outBuf,0,sizeof(void*)*DIV_MAX_OUTPUTS);
-      outBuf[0]=new float[EXPORT_BUFSIZE];
-      outBuf[1]=new float[EXPORT_BUFSIZE];
-      short* sysBuf[DIV_MAX_CHIPS];
-      for (int i=0; i<song.systemLen; i++) {
-        sysBuf[i]=new short[EXPORT_BUFSIZE*disCont[i].dispatch->getOutputCount()];
-      }
-
-      // take control of audio output
-      deinitAudioBackend();
-      playSub(false);
-
-      logI("rendering to files...");
-
-      while (playing) {
-        size_t total=0;
-        nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
-        if (totalProcessed>EXPORT_BUFSIZE) {
-          logE("error: total processed is bigger than export bufsize! %d>%d",totalProcessed,EXPORT_BUFSIZE);
-          totalProcessed=EXPORT_BUFSIZE;
-        }
-        for (int j=0; j<(int)totalProcessed; j++) {
-          total++;
-          if (isFadingOut) {
-            double mul=(1.0-((double)curFadeOutSample/(double)fadeOutSamples));
-            for (int i=0; i<song.systemLen; i++) {
-              for (int k=0; k<si[i].channels; k++) {
-                if (disCont[i].bbOut[k]==NULL) {
-                  sysBuf[i][k+(j*si[i].channels)]=0;
-                } else {
-                  sysBuf[i][k+(j*si[i].channels)]=(double)disCont[i].bbOut[k][j]*mul;
-                }
-              }
-            }
-            if (++curFadeOutSample>=fadeOutSamples) {
-              playing=false;
-              break;
-            }
-          } else {
-            for (int i=0; i<song.systemLen; i++) {
-              for (int k=0; k<si[i].channels; k++) {
-                if (disCont[i].bbOut[k]==NULL) {
-                  sysBuf[i][k+(j*si[i].channels)]=0;
-                } else {
-                  sysBuf[i][k+(j*si[i].channels)]=disCont[i].bbOut[k][j];
-                }
-              }
-            }
-            if (lastLoopPos>-1 && j>=lastLoopPos && totalLoops>=exportLoopCount) {
-              logD("start fading out...");
-              isFadingOut=true;
-              if (fadeOutSamples==0) break;
-            }
-          }
-        }
+      if (exportWriter==DIV_EXPORT_WRITER_SNDFILE) {
+        SndfileWavWriter writers[DIV_MAX_CHIPS];
         for (int i=0; i<song.systemLen; i++) {
-          if (sf_writef_short(sf[i],sysBuf[i],total)!=(int)total) {
-            logE("error: failed to write entire buffer! (%d)",i);
-            break;
+          SndfileWavWriter* writer = &writers[i];
+
+          SF_INFO si;
+          si.samplerate=got.rate;
+          si.channels=disCont[i].dispatch->getOutputCount();
+          si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
+
+          String fname=fmt::sprintf("%s_s%02d.%s",exportPath,i+1,exportFileExtNoDot);
+          logD("will open %s",fname.c_str());
+
+          if (!writer->open(si,fname.c_str())) {
+            logE("could not initialize export writer #%02d",i);
+            for (int j=0; j<i; j++) {
+              writers[i].close();
+            }
+            exporting=false;
+            return;
           }
         }
-      }
+        doExportManySys(writers);
+      } else if (exportWriter==DIV_EXPORT_WRITER_COMMAND) {
+#ifdef _WIN32
+        logE("ffmpeg export is not yet supported");
+#else
+        std::vector<Subprocess> subprocesses;
+        std::vector<ProcWriter> writers;
 
-      delete[] outBuf[0];
-      delete[] outBuf[1];
+        std::vector<String> args;
+        splitString(exportCommand,' ',args);
 
-      for (int i=0; i<song.systemLen; i++) {
-        delete[] sysBuf[i];
-        if (sfWrap[i].doClose()!=0) {
-          logE("could not close audio file!");
-        }
-      }
-
-      if (initAudioBackend()) {
         for (int i=0; i<song.systemLen; i++) {
-          disCont[i].setRates(got.rate);
-          disCont[i].setQuality(lowQuality,dcHiPass);
+          String fname=fmt::sprintf("%s_s%02d.%s",exportPath,i+1,exportFileExtNoDot);
+          int channelCount=disCont[i].dispatch->getOutputCount();
+          std::vector<String> finalArgs=buildFinalArgs(args,"s16le",got.rate,channelCount,fname);
+
+          // create subprocess
+          subprocesses.emplace_back(finalArgs);
+          Subprocess* proc=&subprocesses[i];
+
+          int writeFd=proc->pipeStdin();
+          if (writeFd==-1) {
+            logE("failed to create stdin pipe for subprocess");
+            // TODO: deinit all so far
+            exporting=false;
+            return;
+          }
+
+          if (!proc->start()) {
+            logE("failed to start ffmpeg subprocess");
+            // TODO: deinit all so far
+            exporting=false;
+            return;
+          }
+
+          // create writer
+          writers.emplace_back(channelCount);
+          ProcWriter* writer=&writers[i];
+
+          if (!writer->open(proc,writeFd,DIV_EXPORT_FORMAT_S16)) {
+            logE("could not initialize export writer");
+            // TODO: deinit all so far
+            exporting=false;
+            return;
+          }
         }
-        if (!output->setRun(true)) {
-          logE("error while activating audio!");
+
+        doExportManySys((std::vector<ProcWriter>&)writers);
+
+        for (int i=0; i<song.systemLen; i++) {
+          // be sure we closed the write pipe to avoid stalling the child process
+          subprocesses[i].closeStdinPipe(false);
         }
+#endif
       }
       logI("done!");
       exporting=false;

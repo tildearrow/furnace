@@ -77,7 +77,6 @@
 #include "platform/k007232.h"
 #include "platform/ga20.h"
 #include "platform/supervision.h"
-#include "platform/scvwave.h"
 #include "platform/scvtone.h"
 #include "platform/sm8521.h"
 #include "platform/pv1000.h"
@@ -195,27 +194,14 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) 
         }
       }
     }
-    if (lowQuality) {
-      for (int i=0; i<outs; i++) {
-        if (bbIn[i]==NULL) continue;
-        if (bb[i]==NULL) continue;
-        for (size_t j=0; j<runtotal; j++) {
-          if (bbIn[i][j]==temp[i]) continue;
-          temp[i]=bbIn[i][j];
-          blip_add_delta_fast(bb[i],j,temp[i]-prevSample[i]);
-          prevSample[i]=temp[i];
-        }
-      }
-    } else {
-      for (int i=0; i<outs; i++) {
-        if (bbIn[i]==NULL) continue;
-        if (bb[i]==NULL) continue;
-        for (size_t j=0; j<runtotal; j++) {
-          if (bbIn[i][j]==temp[i]) continue;
-          temp[i]=bbIn[i][j];
-          blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
-          prevSample[i]=temp[i];
-        }
+    for (int i=0; i<outs; i++) {
+      if (bbIn[i]==NULL) continue;
+      if (bb[i]==NULL) continue;
+      for (size_t j=0; j<runtotal; j++) {
+        if (bbIn[i][j]==temp[i]) continue;
+        temp[i]=bbIn[i][j];
+        blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
+        prevSample[i]=temp[i];
       }
     }
   }
@@ -620,6 +606,11 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_SWAN:
       dispatch=new DivPlatformSwan;
+      if (isRender) {
+        ((DivPlatformSwan*)dispatch)->setUseMdfn(eng->getConfInt("swanCoreRender",0));
+      } else {
+        ((DivPlatformSwan*)dispatch)->setUseMdfn(eng->getConfInt("swanCore",0));
+      }
       break;
     case DIV_SYSTEM_T6W28:
       dispatch=new DivPlatformT6W28;
@@ -707,10 +698,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       dispatch=new DivPlatformSupervision;
       break;
     case DIV_SYSTEM_UPD1771C:
-      dispatch=new DivPlatformSCVWave;
-      break;
-    case DIV_SYSTEM_UPD1771C_TONE:
-      dispatch=new DivPlatformSCVTone;
+      dispatch=new DivPlatformSCV;
       break;
     case DIV_SYSTEM_SM8521:
       dispatch=new DivPlatformSM8521;

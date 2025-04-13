@@ -129,8 +129,6 @@ namespace nds_sound_emu
 				}
 				, m_control(0)
 				, m_bias(0)
-				, m_loutput(0)
-				, m_routput(0)
 				, m_lastts(0)
 			{
 			}
@@ -151,9 +149,6 @@ namespace nds_sound_emu
 
 			u8 read8(u32 addr);
 			void write8(u32 addr, u8 data);
-
-			s32 loutput() { return m_loutput; }
-			s32 routput() { return m_routput; }
 
 			// for debug
 			s32 chan_lout(u8 ch) { return m_channel[ch].loutput(); }
@@ -458,8 +453,6 @@ namespace nds_sound_emu
 
 			u32 m_control = 0; // global control
 			u32 m_bias = 0; // output bias
-			s32 m_loutput = 0; // left output
-			s32 m_routput = 0; // right output
 			u32 m_lastts = 0; // running timestamp
 	};
 }; // namespace nds_sound_emu

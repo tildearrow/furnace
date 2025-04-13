@@ -52,8 +52,8 @@
 
 #define RESET_WAVE_MACRO_ZOOM \
   for (DivInstrument* _wi: e->song.ins) { \
-    _wi->std.waveMacro.vZoom=-1; \
-    _wi->std.waveMacro.vScroll=-1; \
+    _wi->temp.vZoom[DIV_MACRO_WAVE]=-1; \
+    _wi->temp.vScroll[DIV_MACRO_WAVE]=-1; \
   }
 
 #define CHECK_LONG_HOLD (mobileUI && ImGui::GetIO().MouseDown[ImGuiMouseButton_Left] && ImGui::GetIO().MouseDownDuration[ImGuiMouseButton_Left]>=longThreshold && ImGui::GetIO().MouseDownDurationPrev[ImGuiMouseButton_Left]<longThreshold && ImGui::GetIO().MouseDragMaxDistanceSqr[ImGuiMouseButton_Left]<=ImGui::GetIO().ConfigInertialScrollToleranceSqr)
@@ -74,7 +74,7 @@
 #define FM_PREVIEW_SIZE 512
 
 #define CHECK_HIDDEN_SYSTEM(x) \
-  (x==DIV_SYSTEM_YMU759 || x==DIV_SYSTEM_DUMMY || x==DIV_SYSTEM_SEGAPCM_COMPAT || x==DIV_SYSTEM_PONG)
+  (x==DIV_SYSTEM_YMU759 || x==DIV_SYSTEM_DUMMY || x==DIV_SYSTEM_SEGAPCM_COMPAT || x==DIV_SYSTEM_PONG || x==DIV_SYSTEM_UPD1771C)
 
 enum FurnaceGUIRenderBackend {
   GUI_BACKEND_SDL=0,
@@ -1362,6 +1362,7 @@ struct FurnaceGUISysCategory {
 };
 
 struct FurnaceGUIMacroDesc {
+  DivInstrument* ins;
   DivInstrumentMacro* macro;
   int min, max;
   float height;
@@ -1376,6 +1377,7 @@ struct FurnaceGUIMacroDesc {
   bool isPitch;
 
   FurnaceGUIMacroDesc(const char* name, DivInstrumentMacro* m, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, const char* mName=NULL, String (*hf)(int,float,void*)=NULL, bool bitfield=false, const char** bfVal=NULL, bool bit30Special=false, void* hfu=NULL, bool isArp=false, bool isPitch=false):
+    ins(NULL),
     macro(m),
     height(macroHeight),
     displayName(name),
@@ -1611,6 +1613,17 @@ struct MappedInput {
     scan(s), val(v) {}
 };
 
+struct CSDisAsmIns {
+  unsigned int addr;
+  unsigned char data[8];
+  unsigned char len;
+  CSDisAsmIns():
+    addr(0),
+    len(0) {
+    memset(data,0,8);
+  }
+};
+
 struct FurnaceCV;
 
 class FurnaceGUI {
@@ -1626,6 +1639,8 @@ class FurnaceGUI {
 
   FurnaceCV* cv;
   FurnaceGUITexture* cvTex;
+  uint64_t lastCVFrame;
+  int cvFrameTime, cvFrameHold;
 
   FurnaceGUITexture* sampleTex;
   int sampleTexW, sampleTexH;
@@ -1662,7 +1677,7 @@ class FurnaceGUI {
   bool wantScrollListIns, wantScrollListWave, wantScrollListSample;
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool displayPendingSamples, replacePendingSample;
-  bool displayExportingROM;
+  bool displayExportingROM, displayExportingCS;
   bool changeCoarse;
   bool mobileEdit;
   bool killGraphics;
@@ -1796,6 +1811,7 @@ class FurnaceGUI {
     int esfmCore;
     int opllCore;
     int ayCore;
+    int swanCore;
     int dsidQuality;
     int gbQuality;
     int pnQuality;
@@ -1816,6 +1832,7 @@ class FurnaceGUI {
     int esfmCoreRender;
     int opllCoreRender;
     int ayCoreRender;
+    int swanCoreRender;
     int dsidQualityRender;
     int gbQualityRender;
     int pnQualityRender;
@@ -1868,6 +1885,7 @@ class FurnaceGUI {
     int loadChineseTraditional;
     int loadKorean;
     int loadFallback;
+    int loadFallbackPat;
     int fmLayout;
     int sampleLayout;
     int waveLayout;
@@ -1901,6 +1919,7 @@ class FurnaceGUI {
     int eventDelay;
     int moveWindowTitle;
     int hiddenSystems;
+    int mswEnabled;
     int horizontalDataView;
     int noMultiSystem;
     int oldMacroVSlider;
@@ -1989,6 +2008,7 @@ class FurnaceGUI {
     int glBlueSize;
     int glAlphaSize;
     int glDepthSize;
+    int glSetBS;
     int glStencilSize;
     int glBufferSize;
     int glDoubleBuffer;
@@ -1998,6 +2018,7 @@ class FurnaceGUI {
     int autoFillSave;
     int autoMacroStepSize;
     int backgroundPlay;
+    int chanOscDCOffStrat;
     unsigned int maxUndoSteps;
     float vibrationStrength;
     int vibrationLength;
@@ -2048,6 +2069,7 @@ class FurnaceGUI {
       esfmCore(0),
       opllCore(0),
       ayCore(0),
+      swanCore(0),
       dsidQuality(3),
       gbQuality(3),
       pnQuality(3),
@@ -2068,6 +2090,7 @@ class FurnaceGUI {
       esfmCoreRender(0),
       opllCoreRender(0),
       ayCoreRender(0),
+      swanCoreRender(0),
       dsidQualityRender(3),
       gbQualityRender(3),
       pnQualityRender(3),
@@ -2118,6 +2141,7 @@ class FurnaceGUI {
       loadChineseTraditional(0),
       loadKorean(0),
       loadFallback(1),
+      loadFallbackPat(1),
       fmLayout(4),
       sampleLayout(0),
       waveLayout(0),
@@ -2151,6 +2175,7 @@ class FurnaceGUI {
       eventDelay(0),
       moveWindowTitle(1),
       hiddenSystems(0),
+      mswEnabled(0),
       horizontalDataView(0),
       noMultiSystem(0),
       oldMacroVSlider(0),
@@ -2238,6 +2263,7 @@ class FurnaceGUI {
       glBlueSize(8),
       glAlphaSize(0),
       glDepthSize(24),
+      glSetBS(0),
       glStencilSize(0),
       glBufferSize(32),
       glDoubleBuffer(1),
@@ -2589,7 +2615,7 @@ class FurnaceGUI {
   bool oscZoomSlider;
 
   // per-channel oscilloscope
-  int chanOscCols, chanOscAutoColsType, chanOscColorX, chanOscColorY;
+  int chanOscCols, chanOscAutoColsType, chanOscColorX, chanOscColorY, chanOscCenterStrat;
   float chanOscWindowSize, chanOscTextX, chanOscTextY, chanOscAmplify, chanOscLineSize;
   bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad, chanOscNormalize, chanOscRandomPhase;
   String chanOscTextFormat;
@@ -2731,11 +2757,19 @@ class FurnaceGUI {
 
   // command stream player
   ImGuiListClipper csClipper;
+  unsigned int csDisAsmAddr;
+  std::vector<CSDisAsmIns> csDisAsm;
+  std::thread* csExportThread;
+  SafeWriter* csExportResult;
+  bool csExportTarget, csExportDone;
+  String csExportPath;
 
   // export options
   DivAudioExportOptions audioExportOptions;
   int dmfExportVersion;
   FurnaceGUIExportTypes curExportType;
+  unsigned int csExportDisablePass;
+  DivCSProgress csProgress;
 
   // ROM export specific
   DivROMExportOptions romTarget;
@@ -2753,6 +2787,8 @@ class FurnaceGUI {
 
   std::vector<String> randomDemoSong;
 
+  void commandExportOptions();
+  
   void drawExportAudio(bool onWindow=false);
   void drawExportVGM(bool onWindow=false);
   void drawExportROM(bool onWindow=false);
@@ -2825,7 +2861,7 @@ class FurnaceGUI {
   void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache, bool inhibitSel);
 
   void drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float availableWidth, int index);
-  void drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state);
+  void drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state, DivInstrument* ins);
   void alterSampleMap(int column, int val);
 
   void insTabFMModernHeader(DivInstrument* ins);
@@ -3024,6 +3060,7 @@ class FurnaceGUI {
   void pushRecentFile(String path);
   void pushRecentSys(const char* path);
   void exportAudio(String path, DivAudioExportModes mode);
+  void exportCmdStream(bool target, String path);
   void delFirstBackup(String name);
 
   bool parseSysEx(unsigned char* data, size_t len);

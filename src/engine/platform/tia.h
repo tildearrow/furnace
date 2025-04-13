@@ -43,7 +43,6 @@ class DivPlatformTIA: public DivDispatch {
     bool softwarePitch;
     bool oldPitch;
     unsigned char mixingType;
-    unsigned char chanOscCounter;
     TIA::Audio tia;
     unsigned char regPool[16];
     int tuneCounter;

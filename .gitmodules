@@ -2,10 +2,6 @@
 	path = extern/SDL
 	url = https://github.com/libsdl-org/SDL.git
 	branch = release-2.28.x
-[submodule "extern/libsndfile"]
-	path = extern/libsndfile
-	url = https://github.com/libsndfile/libsndfile.git
-	branch = master
 [submodule "extern/fmt"]
 	path = extern/fmt
 	url = https://github.com/fmtlib/fmt.git

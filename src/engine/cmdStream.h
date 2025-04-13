@@ -24,6 +24,7 @@
 #include "safeReader.h"
 
 #define DIV_MAX_CSTRACE 64
+#define DIV_MAX_CSSTACK 128
 
 class DivEngine;
 
@@ -37,9 +38,9 @@ struct DivCSChannelState {
   int volume, volMax, volSpeed, volSpeedTarget;
   int vibratoDepth, vibratoRate, vibratoPos;
   int portaTarget, portaSpeed;
-  unsigned char arp, arpStage, arpTicks;
+  unsigned char arp, arpStage, arpTicks, loopCount;
 
-  unsigned int callStack[8];
+  unsigned int callStack[DIV_MAX_CSSTACK];
   unsigned char callStackPos;
 
   unsigned int trace[DIV_MAX_CSTRACE];
@@ -65,6 +66,7 @@ struct DivCSChannelState {
     arp(0),
     arpStage(0),
     arpTicks(0),
+    loopCount(0),
     callStackPos(0),
     tracePos(0) {
     for (int i=0; i<DIV_MAX_CSTRACE; i++) {
@@ -76,28 +78,49 @@ struct DivCSChannelState {
 class DivCSPlayer {
   DivEngine* e;
   unsigned char* b;
+  unsigned short* bAccessTS;
   size_t bLen;
   SafeReader stream;
   DivCSChannelState chan[DIV_MAX_CHANS];
   unsigned char fastDelays[16];
   unsigned char fastCmds[16];
   unsigned char arpSpeed;
+  unsigned int fileChans;
+  unsigned int curTick, fastDelaysOff, fastCmdsOff, deltaCyclePos;
 
   short vibTable[64];
   public:
     unsigned char* getData();
+    unsigned short* getDataAccess();
     size_t getDataLen();
     DivCSChannelState* getChanState(int ch);
+    unsigned int getFileChans();
     unsigned char* getFastDelays();
     unsigned char* getFastCmds();
+    unsigned int getCurTick();
     void cleanup();
     bool tick();
     bool init();
     DivCSPlayer(DivEngine* en, unsigned char* buf, size_t len):
       e(en),
       b(buf),
+      bAccessTS(NULL),
       bLen(len),
       stream(buf,len) {}
+};
+
+struct DivCSProgress {
+  int stage, count, total;
+  DivCSProgress():
+    stage(0),
+    count(0),
+    total(0) {}
+};
+
+// command stream utilities
+namespace DivCS {
+  int getCmdLength(unsigned char ext);
+  int getInsLength(unsigned char ins, unsigned char ext=0, unsigned char* speedDial=NULL);
 };
 
 #endif

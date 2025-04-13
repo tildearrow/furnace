@@ -1331,7 +1331,6 @@ const int availableSystems[]={
   DIV_SYSTEM_OPL4_DRUMS,
   DIV_SYSTEM_SUPERVISION,
   DIV_SYSTEM_UPD1771C,
-  DIV_SYSTEM_UPD1771C_TONE,
   DIV_SYSTEM_SID3,
   0 // don't remove this last one!
 };
@@ -1437,7 +1436,6 @@ const int chipsSpecial[]={
   DIV_SYSTEM_SID2,
   DIV_SYSTEM_SUPERVISION,
   DIV_SYSTEM_UPD1771C,
-  DIV_SYSTEM_UPD1771C_TONE,
   DIV_SYSTEM_SID3,
   0 // don't remove this last one!
 };

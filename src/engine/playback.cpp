@@ -68,6 +68,10 @@ const char* cmdName[]={
   "HINT_PORTA",
   "HINT_LEGATO",
   "HINT_VOL_SLIDE_TARGET",
+  "HINT_TREMOLO",
+  "HINT_PANBRELLO",
+  "HINT_PAN_SLIDE",
+  "HINT_PANNING",
 
   "SAMPLE_MODE",
   "SAMPLE_FREQ",
@@ -303,7 +307,9 @@ const char* cmdName[]={
   "SID3_NOISE_PHASE_RESET",
   "SID3_ENVELOPE_RESET",
   "SID3_CUTOFF_SCALING",
-  "SID3_RESONANCE_SCALING"
+  "SID3_RESONANCE_SCALING",
+
+  "WS_GLOBAL_SPEAKER_VOLUME"
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");
@@ -762,6 +768,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         } else {
           chan[i].panSpeed=0;
         }
+        dispatchCmd(DivCommand(DIV_CMD_HINT_PAN_SLIDE,i,chan[i].panSpeed&0xff));
         break;
       case 0x84: // panbrello
         if (chan[i].panDepth==0) {
@@ -772,6 +779,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if (chan[i].panDepth!=0) {
           chan[i].panSpeed=0;
         }
+        dispatchCmd(DivCommand(DIV_CMD_HINT_PANBRELLO,i,effectVal));
         break;
       case 0x88: // panning rear (split 4-bit)
         chan[i].panRL=(effectVal>>4)|(effectVal&0xf0);
@@ -939,6 +947,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         }
         chan[i].tremoloDepth=effectVal&15;
         chan[i].tremoloRate=effectVal>>4;
+        dispatchCmd(DivCommand(DIV_CMD_HINT_TREMOLO,i,effectVal));
         if (chan[i].tremoloDepth!=0) {
           chan[i].volSpeed=0;
           chan[i].volSpeedTarget=-1;
@@ -1227,6 +1236,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
   if (panChanged) {
     dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
+    dispatchCmd(DivCommand(DIV_CMD_HINT_PANNING,i,chan[i].panL,chan[i].panR));
   }
   if (surroundPanChanged) {
     dispatchCmd(DivCommand(DIV_CMD_SURROUND_PANNING,i,2,chan[i].panRL));
@@ -1438,6 +1448,7 @@ void DivEngine::nextRow() {
     memset(walked,0,8192);
   }
 
+  prevSpeed=nextSpeed;
   if (song.brokenSpeedSel) {
     unsigned char speed2=(speeds.len>=2)?speeds.val[1]:speeds.val[0];
     unsigned char speed1=speeds.val[0];
@@ -2056,6 +2067,7 @@ void DivEngine::runMidiClock(int totalCycles) {
     double bpm=((24.0*divider)/(timeBase*hl*speedSum))*(double)virtualTempoN/vD;
     if (bpm<1.0) bpm=1.0;
     int increment=got.rate/(bpm);
+    if (increment<1) increment=1;
 
     midiClockCycles+=increment;
     midiClockDrift+=fmod(got.rate,(double)(bpm));
@@ -2068,6 +2080,7 @@ void DivEngine::runMidiClock(int totalCycles) {
 
 void DivEngine::runMidiTime(int totalCycles) {
   if (freelance) return;
+  if (got.rate<1) return;
   midiTimeCycles-=totalCycles;
   while (midiTimeCycles<=0) {
     if (curMidiTimePiece==0) {
