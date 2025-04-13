@@ -663,12 +663,12 @@ SafeWriter* stripNops(SafeWriter* s) {
       case 0xfa: { // jmp
         unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<16)|(buf[i+4]<<24);
         assert(!(addr&7));
-        if (buf[addr]==0xf1) {
-          logE("POINTS TO NOP");
+        if (addr>=oldStream->size()) {
+          logE("OUT OF BOUNDS!");
           abort();
         }
-        if (buf[addr]>=oldStream->size()) {
-          logE("OUT OF BOUNDS!");
+        if (buf[addr]==0xf1) {
+          logE("POINTS TO NOP");
           abort();
         }
         try {
@@ -890,10 +890,14 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
     // test all lengths
     for (size_t len=minSize; len<=maxSize; len+=8) {
       testLenMatches.clear();
+      assert(!(len&7));
       // filter matches
       for (BlockMatch& k: testMatches) {
         // match length shall be greater than or equal to current length
         if (len>k.len) continue;
+
+        assert(!(k.orig&7));
+        assert(memcmp(&buf[k.orig],&buf[k.block],len)==0);
 
         // check for bad matches, which include:
         // - match overlapping with itself
@@ -904,10 +908,10 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
         if (OVERLAPS(k.orig,k.orig+len,k.block,k.block+len)) continue;
 
         // 2. only calls and jmp/ret/stop
-        bool metCriteria=false;
+        bool metCriteria=true;
         for (size_t l=k.orig; l<k.orig+len; l+=8) {
-          if (buf[l]!=0xf4 && buf[l]!=0xf5) {
-            metCriteria=true;
+          if (buf[l]==0xf4 && buf[l]==0xf5) {
+            metCriteria=false;
             break;
           }
         }
@@ -977,6 +981,11 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
   size_t subBlockID=subBlocks.size();
   logV("new sub-block %d",(int)subBlockID);
 
+  assert(!(bestOrig&7));
+  for (size_t i=bestOrig; i<bestOrig+bestBenefit.len; i+=8) {
+    assert(buf[i]!=0xf9);
+  }
+
   // isolate this sub-block
   SafeWriter* newBlock=new SafeWriter;
   newBlock->init();
@@ -1012,6 +1021,11 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
     // skip invalid matches
     if (i.done) continue;
 
+    assert(!(i.block&7));
+    for (size_t j=i.block; j<i.block+bestBenefit.len; j+=8) {
+      assert(buf[j]!=0xf9);
+    }
+
     // set match to this sub-block
     buf[i.block]=0xf4;
     buf[i.block+1]=subBlockID&0xff;
@@ -1023,7 +1037,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
     buf[i.block+7]=0;
 
     // replace the rest with nop
-    for (size_t j=i.block+8; j<i.block+i.len; j++) {
+    for (size_t j=i.block+8; j<i.block+bestBenefit.len; j++) {
       buf[j]=0xf1;
     }
   }
@@ -1480,30 +1494,11 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
       for (size_t i=0; i<subBlocks.size(); i++) {
         SafeWriter* block=subBlocks[i];
 
-        // check whether this block is duplicate
-        int dupOf=-1;
-        for (size_t j=0; j<i; j++) {
-          if (subBlocks[j]->size()==subBlocks[i]->size()) {
-            if (memcmp(subBlocks[j]->getFinalBuf(),subBlocks[i]->getFinalBuf(),subBlocks[j]->size())==0) {
-              logW("we have one");
-              dupOf=j;
-              break;
-            }
-          }
-        }
-
-        if (dupOf>=0) {
-          // push address of original block (discard duplicate)
-          blockOff.push_back(blockOff[dupOf]);
-          logW("did you say DUPLICATE?!");
-          abort();
-        } else {
-          // write sub-block
-          blockOff.push_back(globalStream->tell());
-          logV("block size: %d",(int)block->size());
-          assert(!(block->size()&7));
-          globalStream->write(block->getFinalBuf(),block->size());
-        }
+        // write sub-block
+        blockOff.push_back(globalStream->tell());
+        logV("block size: %d",(int)block->size());
+        assert(!(block->size()&7));
+        globalStream->write(block->getFinalBuf(),block->size());
       }
 
       for (SafeWriter* block: subBlocks) {
@@ -1527,6 +1522,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
             buf[j+4]=(addr>>24)&0xff;
           } else {
             logE("requested symbol %d is out of bounds!",addr);
+            abort();
           }
         }
       }
