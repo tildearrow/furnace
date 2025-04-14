@@ -906,7 +906,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
   //   - add weighted benefit to a list (DEBUG..... remove once it's stable)
   // - pick largest benefit from list
   // - make sub-blocks!!!
-  logD("testing matches for benefit");
+  logD("testing %d match groups for benefit",(int)origs.size());
   for (size_t i: origs) {
     size_t orig=matches[i].orig;
     size_t minSize=MIN_MATCH_SIZE;
