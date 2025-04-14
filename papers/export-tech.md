@@ -19,12 +19,17 @@ Furnace Command Stream, split version.
 size | description
 -----|------------------------------------
   4  | "FCS\0" format magic
-  4  | channel count
- 4?? | pointers to channel data
+  2  | channel count
+  1  | flags
+     | - bit 1: big-endian addresses
+     | - bit 0: pointer size (off: short; on: long)
+  1  | reserved
  1?? | preset delays
      | - 16 values
  1?? | speed dial commands
      | - 16 values
+ ??? | pointers to channel data
+     | - pointers are short (2-byte) or long (4-byte), set in flags
  ??? | channel data
 ```
 

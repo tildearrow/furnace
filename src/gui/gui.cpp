@@ -2653,7 +2653,7 @@ void FurnaceGUI::exportCmdStream(bool target, String path) {
   csExportTarget=target;
   csExportDone=false;
   csExportThread=new std::thread([this]() {
-    SafeWriter* w=e->saveCommand(&csProgress,csExportDisablePass);
+    SafeWriter* w=e->saveCommand(&csProgress,csExportOptions);
     csExportResult=w;
     csExportDone=true;
   });
@@ -8951,7 +8951,6 @@ FurnaceGUI::FurnaceGUI():
   csExportDone(false),
   dmfExportVersion(0),
   curExportType(GUI_EXPORT_NONE),
-  csExportDisablePass(0),
   romTarget(DIV_ROM_ABSTRACT),
   romMultiFile(false),
   romExportSave(false),

@@ -2765,7 +2765,7 @@ class FurnaceGUI {
   DivAudioExportOptions audioExportOptions;
   int dmfExportVersion;
   FurnaceGUIExportTypes curExportType;
-  unsigned int csExportDisablePass;
+  DivCSOptions csExportOptions;
   DivCSProgress csProgress;
 
   // ROM export specific

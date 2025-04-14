@@ -173,7 +173,7 @@ bool DivCSPlayer::tick() {
           command=stream.readC();
           break;
         case 0xf8: {
-          unsigned int callAddr=(unsigned short)stream.readS();
+          unsigned int callAddr=bigEndian?((unsigned short)stream.readS_BE()):((unsigned short)stream.readS());
           chan[i].readPos=stream.tell();
           if (!chan[i].doCall(callAddr)) {
             logE("%d: (call) stack error!",i);
@@ -183,7 +183,7 @@ bool DivCSPlayer::tick() {
           break;
         }
         case 0xf5: {
-          unsigned int callAddr=stream.readI();
+          unsigned int callAddr=bigEndian?stream.readI_BE():stream.readI();
           chan[i].readPos=stream.tell();
           if (!chan[i].doCall(callAddr)) {
             logE("%d: (calli) stack error!",i);
@@ -207,7 +207,7 @@ bool DivCSPlayer::tick() {
           mustTell=false;
           break;
         case 0xfa:
-          chan[i].readPos=stream.readI();
+          chan[i].readPos=bigEndian?stream.readI_BE():stream.readI();
           mustTell=false;
           break;
         case 0xfb:
@@ -215,7 +215,7 @@ bool DivCSPlayer::tick() {
           stream.readI();
           break;
         case 0xfc:
-          chan[i].waitTicks=(unsigned short)stream.readS();
+          chan[i].waitTicks=(unsigned short)(bigEndian?stream.readS_BE():stream.readS());
           chan[i].lastWaitLen=chan[i].waitTicks;
           break;
         case 0xfd:
@@ -268,11 +268,11 @@ bool DivCSPlayer::tick() {
             arg0=(arg0&0x80)?1:0;
             break;
           case DIV_CMD_HINT_VOL_SLIDE:
-            arg0=(short)stream.readS();
+            arg0=(short)(bigEndian?stream.readS_BE():stream.readS());
             break;
           case DIV_CMD_HINT_VOL_SLIDE_TARGET:
-            arg0=(short)stream.readS();
-            arg1=(short)stream.readS();
+            arg0=(short)(bigEndian?stream.readS_BE():stream.readS());
+            arg1=(short)(bigEndian?stream.readS_BE():stream.readS());
             break;
           case DIV_CMD_HINT_LEGATO:
             arg0=(unsigned char)stream.readC();
@@ -479,16 +479,16 @@ bool DivCSPlayer::tick() {
           case DIV_CMD_LYNX_LFSR_LOAD:
           case DIV_CMD_QSOUND_ECHO_DELAY:
           case DIV_CMD_ES5506_ENVELOPE_COUNT:
-            arg0=(unsigned short)stream.readS();
+            arg0=(unsigned short)(bigEndian?stream.readS_BE():stream.readS());
             break;
           // TWO SHORT COMMANDS
           case DIV_CMD_ES5506_FILTER_K1:
           case DIV_CMD_ES5506_FILTER_K2:
-            arg0=(unsigned short)stream.readS();
-            arg1=(unsigned short)stream.readS();
+            arg0=(unsigned short)(bigEndian?stream.readS_BE():stream.readS());
+            arg1=(unsigned short)(bigEndian?stream.readS_BE():stream.readS());
             break;
           case DIV_CMD_FM_FIXFREQ:
-            arg0=(unsigned short)stream.readS();
+            arg0=(unsigned short)(bigEndian?stream.readS_BE():stream.readS());
             arg1=arg0&0x7ff;
             arg0>>=12;
             break;
@@ -498,7 +498,7 @@ bool DivCSPlayer::tick() {
             arg0=(arg0&8)?1:0;
             break;
           case DIV_CMD_SAMPLE_POS:
-            arg0=(unsigned int)stream.readI();
+            arg0=(unsigned int)(bigEndian?stream.readI_BE():stream.readI());
             break;
         }
 
@@ -645,25 +645,55 @@ bool DivCSPlayer::init() {
 
   if (memcmp(magic,"FCS",4)!=0) return false;
 
-  fileChans=stream.readI();
+  fileChans=(unsigned short)stream.readS();
+  unsigned char flags=stream.readC();
+  stream.readC(); // reserved
 
-  for (unsigned int i=0; i<fileChans; i++) {
-    if (i>=DIV_MAX_CHANS) {
-      stream.readI();
-      continue;
-    }
-    if ((int)i>=e->getTotalChannelCount()) {
-      stream.readI();
-      continue;
-    }
-    chan[i].startPos=stream.readI();
-    chan[i].readPos=chan[i].startPos;
-  }
+  longPointers=flags&1;
+  bigEndian=flags&2;
+
+  if (bigEndian) fileChans=(((fileChans&0xff00)>>8)|((fileChans&0xff)<<8));
 
   fastDelaysOff=stream.tell();
   stream.read(fastDelays,16);
   fastCmdsOff=stream.tell();
   stream.read(fastCmds,16);
+
+  if (longPointers) {
+    for (unsigned int i=0; i<fileChans; i++) {
+      if (i>=DIV_MAX_CHANS) {
+        stream.readI();
+        continue;
+      }
+      if ((int)i>=e->getTotalChannelCount()) {
+        stream.readI();
+        continue;
+      }
+      if (bigEndian) {
+        chan[i].startPos=stream.readI_BE();
+      } else {
+        chan[i].startPos=stream.readI();
+      }
+      chan[i].readPos=chan[i].startPos;
+    }
+  } else {
+    for (unsigned int i=0; i<fileChans; i++) {
+      if (i>=DIV_MAX_CHANS) {
+        stream.readS();
+        continue;
+      }
+      if ((int)i>=e->getTotalChannelCount()) {
+        stream.readS();
+        continue;
+      }
+      if (bigEndian) {
+        chan[i].startPos=stream.readS_BE();
+      } else {
+        chan[i].startPos=stream.readS();
+      }
+      chan[i].readPos=chan[i].startPos;
+    }
+  }
 
   // initialize state
   for (int i=0; i<e->getTotalChannelCount(); i++) {

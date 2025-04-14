@@ -273,7 +273,7 @@ int DivCS::getInsLength(unsigned char ins, unsigned char ext, unsigned char* spe
   return 1;
 }
 
-void writeCommandValues(SafeWriter* w, const DivCommand& c) {
+void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
       if (c.value==DIV_NOTE_NULL) {
@@ -342,11 +342,20 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c) {
       w->writeC((c.value?0x80:0)|(c.value2?0x40:0));
       break;
     case DIV_CMD_HINT_VOL_SLIDE:
-      w->writeS(c.value);
+      if (bigEndian) {
+        w->writeS_BE(c.value);
+      } else {
+        w->writeS(c.value);
+      }
       break;
     case DIV_CMD_HINT_VOL_SLIDE_TARGET:
-      w->writeS(c.value);
-      w->writeS(c.value2);
+      if (bigEndian) {
+        w->writeS_BE(c.value);
+        w->writeS_BE(c.value2);
+      } else {
+        w->writeS(c.value);
+        w->writeS(c.value2);
+      }
       break;
     case DIV_CMD_SAMPLE_MODE:
     case DIV_CMD_SAMPLE_FREQ:
@@ -542,21 +551,38 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c) {
     case DIV_CMD_LYNX_LFSR_LOAD:
     case DIV_CMD_QSOUND_ECHO_DELAY:
     case DIV_CMD_ES5506_ENVELOPE_COUNT:
-      w->writeS(c.value);
+      if (bigEndian) {
+        w->writeS_BE(c.value);
+      } else {
+        w->writeS(c.value);
+      }
       break;
     case DIV_CMD_ES5506_FILTER_K1:
     case DIV_CMD_ES5506_FILTER_K2:
-      w->writeS(c.value);
-      w->writeS(c.value2);
+      if (bigEndian) {
+        w->writeS_BE(c.value);
+        w->writeS_BE(c.value2);
+      } else {
+        w->writeS(c.value);
+        w->writeS(c.value2);
+      }
       break;
     case DIV_CMD_FM_FIXFREQ:
-      w->writeS((c.value<<12)|(c.value2&0x7ff));
+      if (bigEndian) {
+        w->writeS_BE((c.value<<12)|(c.value2&0x7ff));
+      } else {
+        w->writeS((c.value<<12)|(c.value2&0x7ff));
+      }
       break;
     case DIV_CMD_NES_SWEEP:
       w->writeC((c.value?8:0)|(c.value2&0x77));
       break;
     case DIV_CMD_SAMPLE_POS:
-      w->writeI(c.value);
+      if (bigEndian) {
+        w->writeI_BE(c.value);
+      } else {
+        w->writeI(c.value);
+      }
       break;
     default:
       logW("unimplemented command %s!",cmdName[c.cmd]);
@@ -611,7 +637,7 @@ void reloc8(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned in
   }
 }
 
-void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int destAddr, unsigned char* speedDial) {
+void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int destAddr, unsigned char* speedDial, bool bigEndian) {
   unsigned int delta=destAddr-sourceAddr;
   for (size_t i=0; i<len;) {
     int insLen=getInsLength(buf[i],_EXT(buf,i,len),speedDial);
@@ -624,17 +650,29 @@ void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int
       case 0xfa: { // jmp
         unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<16)|(buf[i+4]<<24);
         addr+=delta;
-        buf[i+1]=addr&0xff;
-        buf[i+2]=(addr>>8)&0xff;
-        buf[i+3]=(addr>>16)&0xff;
-        buf[i+4]=(addr>>24)&0xff;
+        if (bigEndian) {
+          buf[i+1]=(addr>>24)&0xff;
+          buf[i+2]=(addr>>16)&0xff;
+          buf[i+3]=(addr>>8)&0xff;
+          buf[i+4]=addr&0xff;
+        } else {
+          buf[i+1]=addr&0xff;
+          buf[i+2]=(addr>>8)&0xff;
+          buf[i+3]=(addr>>16)&0xff;
+          buf[i+4]=(addr>>24)&0xff;
+        }
         break;
       }
       case 0xf8: { // call
         unsigned short addr=buf[i+1]|(buf[i+2]<<8);
         addr+=delta;
-        buf[i+1]=addr&0xff;
-        buf[i+2]=(addr>>8)&0xff;
+        if (bigEndian) {
+          buf[i+1]=(addr>>8)&0xff;
+          buf[i+2]=addr&0xff;
+        } else {
+          buf[i+1]=addr&0xff;
+          buf[i+2]=(addr>>8)&0xff;
+        }
         break;
       }
     }
@@ -1123,7 +1161,7 @@ SafeWriter* packStream(SafeWriter* s, unsigned char* speedDial) {
   return s;
 }
 
-SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disablePasses) {
+SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options) {
   stop();
   repeatPattern=false;
   shallStop=false;
@@ -1167,16 +1205,24 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
 
   // write header
   w->write("FCS",4);
-  w->writeI(chans);
+  w->writeS(chans);
+  // flags
+  w->writeC((options.longPointers?1:0)|(options.bigEndian?2:0));
+  // reserved
+  w->writeC(0);
+  // preset delays and speed dial
+  for (int i=0; i<32; i++) {
+    w->writeC(0);
+  }
   // offsets
   for (int i=0; i<chans; i++) {
     chanStream[i]=new SafeWriter;
     chanStream[i]->init();
-    w->writeI(0);
-  }
-  // preset delays and speed dial
-  for (int i=0; i<32; i++) {
-    w->writeC(0);
+    if (options.longPointers) {
+      w->writeI(0);
+    } else {
+      w->writeS(0);
+    }
   }
 
   // play the song ourselves
@@ -1252,7 +1298,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
           break;
         default:
           cmdPopularity[i.cmd]++;
-          writeCommandValues(chanStream[i.chan],i);
+          writeCommandValues(chanStream[i.chan],i,options.bigEndian);
           break;
       }
     }
@@ -1316,7 +1362,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
   BUSY_END;
 
   // PASS 1: optimize command calls
-  if (!(disablePasses&1)) {
+  if (!options.noCmdCallOpt) {
     // calculate command usage
     int sortCand=-1;
     int sortPos=0;
@@ -1361,7 +1407,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
   }
 
   // PASS 2: condense delays
-  if (!(disablePasses&2)) {
+  if (!options.noDelayCondense) {
     // calculate delay usage
     for (int h=0; h<chans; h++) {
       unsigned char* buf=chanStream[h]->getFinalBuf();
@@ -1471,7 +1517,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
   }
 
   // PASS 5: find sub-blocks and isolate them
-  if (!(disablePasses&4)) {
+  if (!options.noSubBlock) {
     std::vector<SafeWriter*> subBlocks;
     size_t beforeSize=globalStream->size();
     
@@ -1562,16 +1608,29 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
     }
   }
 
-  // write results
-  reloc(globalStream->getFinalBuf(),globalStream->size(),0,w->tell(),sortedCmd);
+  // write results (convert addresses to big-endian if necessary)
+  reloc(globalStream->getFinalBuf(),globalStream->size(),0,w->tell(),sortedCmd,options.bigEndian);
   w->write(globalStream->getFinalBuf(),globalStream->size());
 
-  w->seek(8,SEEK_SET);
+  w->seek(40,SEEK_SET);
   for (int i=0; i<chans; i++) {
-    w->writeI(chanStreamOff[i]);
+    if (options.longPointers) {
+      if (options.bigEndian) {
+        w->writeI_BE(chanStreamOff[i]);
+      } else {
+        w->writeI(chanStreamOff[i]);
+      }
+    } else {
+      if (options.bigEndian) {
+        w->writeS_BE(chanStreamOff[i]);
+      } else {
+        w->writeS(chanStreamOff[i]);
+      }
+    }
   }
 
   logD("delay popularity:");
+  w->seek(8,SEEK_SET);
   for (int i=0; i<16; i++) {
     w->writeC(sortedDelay[i]);
     if (sortedDelayPopularity[i]) logD("- %d: %d",sortedDelay[i],sortedDelayPopularity[i]);

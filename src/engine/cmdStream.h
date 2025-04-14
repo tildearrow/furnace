@@ -87,6 +87,8 @@ class DivCSPlayer {
   unsigned char arpSpeed;
   unsigned int fileChans;
   unsigned int curTick, fastDelaysOff, fastCmdsOff, deltaCyclePos;
+  bool longPointers;
+  bool bigEndian;
 
   short vibTable[64];
   public:
@@ -115,6 +117,21 @@ struct DivCSProgress {
     stage(0),
     count(0),
     total(0) {}
+};
+
+struct DivCSOptions {
+  bool longPointers;
+  bool bigEndian;
+  bool noCmdCallOpt;
+  bool noDelayCondense;
+  bool noSubBlock;
+
+  DivCSOptions():
+    longPointers(false),
+    bigEndian(false),
+    noCmdCallOpt(false),
+    noDelayCondense(false),
+    noSubBlock(false) {}
 };
 
 // command stream utilities
