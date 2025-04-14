@@ -1186,6 +1186,7 @@ void FurnaceGUI::play(int row) {
   memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
   e->walkSong(loopOrder,loopRow,loopEnd);
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
+  if (wasFollowing=true) followPattern = true;
   if (followPattern) makeCursorUndo();
   if (!followPattern) e->setOrder(curOrder);
   if (row>=0) {
