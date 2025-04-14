@@ -568,6 +568,7 @@ void FurnaceGUI::drawFindReplace() {
                     makeCursorUndo();
                     e->changeSongP(i.subsong);
                     if (e->isPlaying()) {
+                      wasFollowing=followPattern;
                       followPattern=false;
                     } else {
                       e->setOrder(i.order);
