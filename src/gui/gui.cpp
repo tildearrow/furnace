@@ -6065,7 +6065,11 @@ bool FurnaceGUI::loop() {
       } else {
         WAKE_UP;
         ImGui::Text("Exporting...");
-        ImGui::Text("%d/%d",csProgress.optCurrent,csProgress.optTotal);
+        ImGui::Text("opt stage: %d",csProgress.optStage);
+        ImGui::Text("pass: %d/%d",csProgress.optCurrent,csProgress.optTotal);
+        ImGui::Text("find: %d/%d",csProgress.findCurrent,csProgress.findTotal);
+        ImGui::Text("expand: %d/%d",csProgress.expandCurrent,csProgress.optCurrent);
+        ImGui::Text("benefit: %d/%d",csProgress.origCurrent,csProgress.origCount);
 
         // check whether we're done
         if (csExportDone) {

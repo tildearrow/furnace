@@ -846,10 +846,18 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
 
   matches.clear();
 
+  if (progress!=NULL) {
+    progress->findTotal=stream->size();
+    progress->optStage=0;
+  }
+
   // fast match algorithm
   // search for small matches, and then find bigger ones
   logD("finding possible matches");
   for (size_t i=0; i<stream->size(); i+=8) {
+    if (!(i&2047)) {
+      if (progress!=NULL) progress->findCurrent=i;
+    }
     bool storedOrig=false;
     for (size_t j=i+matchSize; j<stream->size(); j+=8) {
       if (memcmp(&buf[i],&buf[j],matchSize)==0) {
@@ -870,6 +878,9 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
   if (progress!=NULL) {
     if ((int)matches.size()>progress->optTotal) progress->optTotal=matches.size();
     progress->optCurrent=matches.size();
+    progress->origCount=origs.size();
+    progress->findCurrent=stream->size();
+    progress->optStage=1;
   }
 
   // quit if there isn't anything
@@ -877,7 +888,12 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
 
   // search for bigger matches
   for (size_t i=0; i<matches.size(); i++) {
-    if ((i&8191)==0) logV("match %d of %d",i,(int)matches.size());
+    if ((i&8191)==0) {
+      logV("match %d of %d",i,(int)matches.size());
+    }
+    if ((i&1023)==0) {
+      if (progress!=NULL) progress->expandCurrent=i;
+    }
     BlockMatch& b=matches[i];
 
     size_t finalLen=b.len;
@@ -900,6 +916,11 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
     b.len=finalLen;
   }
 
+  if (progress!=NULL) {
+    progress->expandCurrent=matches.size();
+    progress->optStage=2;
+  }
+
   // new code MAN... WHY...
   // basically the workflow should be:
   // - test every block position
@@ -910,6 +931,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
   // - pick largest benefit from list
   // - make sub-blocks!!!
   logD("testing %d match groups for benefit",(int)origs.size());
+  size_t origIndex=0;
   for (size_t i: origs) {
     size_t orig=matches[i].orig;
     size_t minSize=MIN_MATCH_SIZE;
@@ -918,6 +940,10 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
     std::vector<BlockMatch> testLenMatches;
 
     testMatches.clear();
+
+    if (progress!=NULL) progress->origCurrent=origIndex;
+
+    origIndex++;
 
     // collect matches with this orig value
     for (size_t j=i; j<matches.size(); j++) {
@@ -1017,6 +1043,11 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
   // work on matches with this benefit
   size_t bestOrig=matches[bestBenefit.index].orig;
   logI("match count %d",(int)workMatches.size());
+
+  if (progress!=NULL) {
+    progress->optStage=3;
+    progress->origCurrent=origs.size();
+  }
 
   // make sub-block
   size_t subBlockID=subBlocks.size();
