@@ -13,7 +13,8 @@ then read data.
 
 ## binary command stream
 
-Furnace Command Stream, split version.
+this is the Furnace Command Stream specification.
+all numbers are little-endian unless the "big-endian mode" flag is set.
 
 ```
 size | description
@@ -21,7 +22,7 @@ size | description
   4  | "FCS\0" format magic
   2  | channel count
   1  | flags
-     | - bit 1: big-endian addresses
+     | - bit 1: big-endian mode
      | - bit 0: pointer size (off: short; on: long)
   1  | reserved
  1?? | preset delays
