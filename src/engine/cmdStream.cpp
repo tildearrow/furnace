@@ -131,12 +131,53 @@ bool DivCSPlayer::tick() {
         case 0xb7: // env release
           e->dispatchCmd(DivCommand(DIV_CMD_ENV_RELEASE,i));
           break;
-        case 0xb8: case 0xbe: case 0xc0: case 0xc2:
-        case 0xc3: case 0xc4: case 0xc5: case 0xc6:
-        case 0xc7: case 0xc8: case 0xc9: case 0xca:
-        case 0xcb: case 0xcc: case 0xcd: case 0xce:
+        case 0xb8:
+          command=DIV_CMD_INSTRUMENT;
+          break;
+        case 0xc0:
+          command=DIV_CMD_PRE_PORTA;
+          break;
+        case 0xc2:
+          command=DIV_CMD_HINT_VIBRATO;
+          break;
+        case 0xc3:
+          command=DIV_CMD_HINT_VIBRATO_RANGE;
+          break;
+        case 0xc4:
+          command=DIV_CMD_HINT_VIBRATO_SHAPE;
+          break;
+        case 0xc5:
+          command=DIV_CMD_HINT_PITCH;
+          break;
+        case 0xc6:
+          command=DIV_CMD_HINT_ARPEGGIO;
+          break;
+        case 0xc7:
+          command=DIV_CMD_HINT_VOLUME;
+          break;
+        case 0xc8:
+          command=DIV_CMD_HINT_VOL_SLIDE;
+          break;
+        case 0xc9:
+          command=DIV_CMD_HINT_PORTA;
+          break;
+        case 0xca:
+          command=DIV_CMD_HINT_LEGATO;
+          break;
+        case 0xcb:
+          command=DIV_CMD_HINT_VOL_SLIDE_TARGET;
+          break;
+        case 0xcc:
+          command=DIV_CMD_HINT_TREMOLO;
+          break;
+        case 0xcd:
+          command=DIV_CMD_HINT_PANBRELLO;
+          break;
+        case 0xce:
+          command=DIV_CMD_HINT_PAN_SLIDE;
+          break;
         case 0xcf:
-          command=next-0xb4;
+          command=DIV_CMD_HINT_PANNING;
           break;
         case 0xd0: case 0xd1: case 0xd2: case 0xd3:
         case 0xd4: case 0xd5: case 0xd6: case 0xd7:
