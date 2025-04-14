@@ -932,34 +932,24 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
   // - make sub-blocks!!!
   logD("testing %d match groups for benefit",(int)origs.size());
   size_t origIndex=0;
-  for (size_t i: origs) {
-    size_t orig=matches[i].orig;
+  for (size_t i=0; i<origs.size(); i++) {
+    size_t begin=origs[i];
+    size_t end=(i+1<origs.size())?origs[i+1]:matches.size();
     size_t minSize=MIN_MATCH_SIZE;
-    size_t maxSize=minSize;
-    std::vector<BlockMatch> testMatches;
     std::vector<BlockMatch> testLenMatches;
-
-    testMatches.clear();
 
     if (progress!=NULL) progress->origCurrent=origIndex;
 
     origIndex++;
 
-    // collect matches with this orig value
-    for (size_t j=i; j<matches.size(); j++) {
-      if (matches[j].orig!=orig) break;
-      if (matches[j].len>maxSize) maxSize=matches[j].len;
-      testMatches.push_back(matches[j]);
-    }
-
-    //logD("%d: testing %d matches... (lengths %d-%d)",(int)orig,(int)testMatches.size(),minSize,maxSize);
+    if (!(i&255)) logV("orig %d of %d",(int)i,(int)origs.size());
 
     // test all lengths
-    for (size_t len=minSize; len<=maxSize; len+=8) {
+    for (size_t len=minSize; true; len+=8) {
       testLenMatches.clear();
-      assert(!(len&7));
       // filter matches
-      for (BlockMatch& k: testMatches) {
+      for (size_t _k=begin; _k<end; _k++) {
+        BlockMatch& k=matches[_k];
         // match length shall be greater than or equal to current length
         if (len>k.len) continue;
 
@@ -1023,7 +1013,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
       // check whether this set of matches has greater benefit
       if (finalBenefit>bestBenefit.benefit) {
         //logD("- %x (%d): %d = %d",(int)i,(int)len,(int)testLenMatches.size(),finalBenefit);
-        bestBenefit=MatchBenefit(i,finalBenefit,len);
+        bestBenefit=MatchBenefit(begin,finalBenefit,len);
         // copy matches so we don't have to select them later
         workMatches=testLenMatches;
       }
