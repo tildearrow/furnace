@@ -210,6 +210,11 @@ bool DivCSPlayer::tick() {
           }
           break;
         }
+        case 0xf6: // note off + wait 1
+          e->dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
+          chan[i].waitTicks=1;
+          chan[i].lastWaitLen=chan[i].waitTicks;
+          break;
         case 0xf7:
           command=stream.readC();
           break;

@@ -142,6 +142,9 @@ String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr, unsigned 
       if (addr+4>=bufLen) return "???";
       return fmt::sprintf("call $%.8x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)|(buf[addr+3]<<16)|(buf[addr+4]<<24)));
       break;
+    case 0xf6:
+      return "offwait";
+      break;
     case 0xf7: {
       if (addr+1>=bufLen) return "???";
       int cmdLen=DivCS::getCmdLength(buf[addr+1]);

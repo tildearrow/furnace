@@ -113,10 +113,13 @@ class DivCSPlayer {
 
 struct DivCSProgress {
   int stage, count, total;
+  int optCurrent, optTotal;
   DivCSProgress():
     stage(0),
     count(0),
-    total(0) {}
+    total(0),
+    optCurrent(0),
+    optTotal(0) {}
 };
 
 struct DivCSOptions {

@@ -836,8 +836,6 @@ struct MatchBenefit {
 
 #define MIN_MATCH_SIZE 32
 
-// TODO:
-// - see if we can optimize even more
 SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlocks, unsigned char* speedDial, DivCSProgress* progress) {
   unsigned char* buf=stream->getFinalBuf();
   size_t matchSize=MIN_MATCH_SIZE;
@@ -868,6 +866,11 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
 
   logD("%d candidates",(int)matches.size());
   logD("%d origs",(int)origs.size());
+
+  if (progress!=NULL) {
+    if ((int)matches.size()>progress->optTotal) progress->optTotal=matches.size();
+    progress->optCurrent=matches.size();
+  }
 
   // quit if there isn't anything
   if (matches.empty()) return stream;
@@ -1446,7 +1449,6 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
       sortPos++;
     }
 
-
     // condense delays
     for (int h=0; h<chans; h++) {
       unsigned char* buf=chanStream[h]->getFinalBuf();
@@ -1500,13 +1502,34 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     }
   }
 
-  // PASS 3: remove nop's
+  // PASS 3: note off + one-tick wait
+  // optimize one-tick gaps sometimes used in songs
+  for (int h=0; h<chans; h++) {
+    unsigned char* buf=chanStream[h]->getFinalBuf();
+    if (chanStream[h]->size()<8) continue;
+    for (size_t i=0; i<chanStream[h]->size()-8; i+=8) {
+      // find note off
+      if (buf[i]==0xb5) {
+        // check for contiguous wait 1
+        if (buf[i+8]==0xfe) {
+          // turn it into 0xf6 (note off + wait 1) and change the next one to nop
+          buf[i]=0xf6;
+          buf[i+8]=0xf1;
+
+          // skip the next instruction
+          i+=8;
+        }
+      }
+    }
+  }
+
+  // PASS 4: remove nop's
   // this includes modifying call addresses to compensate
   for (int h=0; h<chans; h++) {
     chanStream[h]=stripNops(chanStream[h]);
   }
 
-  // PASS 4: put all channels together
+  // PASS 5: put all channels together
   for (int i=0; i<chans; i++) {
     chanStreamOff[i]=globalStream->tell();
     logI("- %d: off %x size %ld",i,chanStreamOff[i],chanStream[i]->size());
@@ -1516,7 +1539,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     delete chanStream[i];
   }
 
-  // PASS 5: find sub-blocks and isolate them
+  // PASS 6: find sub-blocks and isolate them
   if (!options.noSubBlock) {
     std::vector<SafeWriter*> subBlocks;
     size_t beforeSize=globalStream->size();
@@ -1579,13 +1602,13 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     assert(!(globalStream->size()&7));
   }
 
-  // PASS 6: pack stream
+  // PASS 7: pack stream
   globalStream=packStream(globalStream,sortedCmd);
 
-  // PASS 7: remove nop's which may be produced by 32-bit call conversion
+  // PASS 8: remove nop's which may be produced by 32-bit call conversion
   globalStream=stripNopsPacked(globalStream,sortedCmd);
 
-  // PASS 8: find new offsets
+  // PASS 9: find new offsets
   {
     unsigned char* buf=globalStream->getFinalBuf();
     for (size_t i=0; i<globalStream->size();) {

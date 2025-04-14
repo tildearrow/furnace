@@ -6064,7 +6064,8 @@ bool FurnaceGUI::loop() {
         }
       } else {
         WAKE_UP;
-        ImGui::Text("Exporting... %d",csProgress.count);
+        ImGui::Text("Exporting...");
+        ImGui::Text("%d/%d",csProgress.optCurrent,csProgress.optTotal);
 
         // check whether we're done
         if (csExportDone) {

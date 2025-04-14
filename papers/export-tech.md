@@ -109,7 +109,7 @@ hex | description
  f3 | loop (negative offset and count follow... both are 8-bit)
  f4 | UNUSED - call symbol (32-bit index follows; only used internally)
  f5 | call sub-block (32-bit address follows)
- f6 | UNUSED
+ f6 | note off + wait one tick
  f7 | full command (command and data follows)
  f8 | call sub-block (16-bit address follows)
  f9 | return from sub-block
