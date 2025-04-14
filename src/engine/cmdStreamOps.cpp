@@ -963,9 +963,6 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
         // match length shall be greater than or equal to current length
         if (len>k.len) continue;
 
-        assert(!(k.orig&7));
-        assert(memcmp(&buf[k.orig],&buf[k.block],len)==0);
-
         // check for bad matches, which include:
         // - match overlapping with itself
         // - block only consisting of calls
@@ -997,8 +994,10 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
         testLenMatches.push_back(k);
       }
 
-      // try with next size if no further matches
-      if (testLenMatches.empty()) continue;
+      // get out if no further matches (trying with bigger sizes is guaranteed to fail)
+      if (testLenMatches.empty()) {
+        break;
+      }
 
       // check for overlapping matches
       size_t overlapPos=testLenMatches[0].orig;
@@ -1054,9 +1053,6 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
   logV("new sub-block %d",(int)subBlockID);
 
   assert(!(bestOrig&7));
-  for (size_t i=bestOrig; i<bestOrig+bestBenefit.len; i+=8) {
-    assert(buf[i]!=0xf9);
-  }
 
   // isolate this sub-block
   SafeWriter* newBlock=new SafeWriter;
@@ -1094,9 +1090,6 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
     if (i.done) continue;
 
     assert(!(i.block&7));
-    for (size_t j=i.block; j<i.block+bestBenefit.len; j+=8) {
-      assert(buf[j]!=0xf9);
-    }
 
     // set match to this sub-block
     buf[i.block]=0xf4;
