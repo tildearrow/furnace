@@ -1219,6 +1219,10 @@ void FurnaceGUI::stop() {
   e->stop();
   curNibble=false;
   orderNibble=false;
+  if (wasFollowing) {
+    followPattern = true;
+    wasFollowing = false;
+  }
   if (followPattern && wasPlaying) {
     nextScroll=-1.0f;
     nextAddScroll=0.0f;
@@ -1228,10 +1232,6 @@ void FurnaceGUI::stop() {
       selEnd=cursor;
     }
     updateScroll(cursor.y);
-  }
-  if (wasFollowing) {
-    followPattern=true;
-    wasFollowing=false;
   }
 }
 
