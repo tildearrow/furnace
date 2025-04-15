@@ -36,7 +36,7 @@ struct DivCSChannelState {
 
   int note, pitch;
   int volume, volMax, volSpeed, volSpeedTarget;
-  int vibratoDepth, vibratoRate, vibratoPos;
+  int vibratoDepth, vibratoRate, vibratoPos, vibratoRange, vibratoShape;
   int portaTarget, portaSpeed;
   unsigned char arp, arpStage, arpTicks, loopCount;
 

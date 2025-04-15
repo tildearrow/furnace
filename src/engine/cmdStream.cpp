@@ -137,48 +137,72 @@ bool DivCSPlayer::tick() {
         case 0xc0:
           command=DIV_CMD_PRE_PORTA;
           break;
-        case 0xc2:
-          command=DIV_CMD_HINT_VIBRATO;
+        case 0xc1: // arp time
+          arpSpeed=(unsigned char)stream.readC();
           break;
-        case 0xc3:
-          command=DIV_CMD_HINT_VIBRATO_RANGE;
+        case 0xc2: // vibrato
+          chan[i].vibratoDepth=(signed char)stream.readC();
+          chan[i].vibratoRate=(unsigned char)stream.readC();
+          sendPitch=true;
           break;
-        case 0xc4:
-          command=DIV_CMD_HINT_VIBRATO_SHAPE;
+        case 0xc3: // vibrato range
+          chan[i].vibratoRange=(unsigned char)stream.readC();
           break;
-        case 0xc5:
-          command=DIV_CMD_HINT_PITCH;
+        case 0xc4: // vibrato shape
+          chan[i].vibratoShape=(unsigned char)stream.readC();
           break;
-        case 0xc6:
-          command=DIV_CMD_HINT_ARPEGGIO;
+        case 0xc5: // pitch
+          chan[i].pitch=(signed char)stream.readC();
+          sendPitch=true;
           break;
-        case 0xc7:
-          command=DIV_CMD_HINT_VOLUME;
+        case 0xc6: // arpeggio
+          chan[i].arp=(unsigned char)stream.readC();
           break;
-        case 0xc8:
-          command=DIV_CMD_HINT_VOL_SLIDE;
+        case 0xc7: // volume
+          chan[i].volume=((unsigned char)stream.readC())<<8;
+          sendVolume=true;
           break;
-        case 0xc9:
-          command=DIV_CMD_HINT_PORTA;
+        case 0xc8: // vol slide
+          chan[i].volSpeed=(short)(bigEndian?stream.readS_BE():stream.readS());
+          chan[i].volSpeedTarget=-1;
           break;
-        case 0xca:
-          command=DIV_CMD_HINT_LEGATO;
+        case 0xc9: // porta
+          chan[i].portaTarget=(signed char)stream.readC();
+          chan[i].portaSpeed=(unsigned char)stream.readC();
           break;
-        case 0xcb:
-          command=DIV_CMD_HINT_VOL_SLIDE_TARGET;
+        case 0xca: { // legato
+          int arg0=(unsigned char)stream.readC();
+          if (arg0==0xff) {
+            arg0=DIV_NOTE_NULL;
+          } else {
+            arg0-=60;
+          }
+          chan[i].note=arg0;
+          e->dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
           break;
-        case 0xcc:
-          command=DIV_CMD_HINT_TREMOLO;
+        }
+        case 0xcb: { // vol slide target
+          int arg0=(short)(bigEndian?stream.readS_BE():stream.readS());
+          int arg1=(short)(bigEndian?stream.readS_BE():stream.readS());
+          chan[i].volSpeed=arg0;
+          chan[i].volSpeedTarget=arg0==0 ? -1 : arg1;
           break;
-        case 0xcd:
-          command=DIV_CMD_HINT_PANBRELLO;
+        }
+        case 0xcc: // tremolo (TODO)
+          stream.readC();
           break;
-        case 0xce:
-          command=DIV_CMD_HINT_PAN_SLIDE;
+        case 0xcd: // panbrello (TODO)
+          stream.readC();
           break;
-        case 0xcf:
-          command=DIV_CMD_HINT_PANNING;
+        case 0xce: // pan slide (TODO)
+          stream.readC();
           break;
+        case 0xcf: { // panning
+          int panL=(unsigned char)stream.readC();
+          int panR=(unsigned char)stream.readC();
+          e->dispatchCmd(DivCommand(DIV_CMD_PANNING,i,panL,panR));
+          break;
+        }
         case 0xd0: case 0xd1: case 0xd2: case 0xd3:
         case 0xd4: case 0xd5: case 0xd6: case 0xd7:
         case 0xd8: case 0xd9: case 0xda: case 0xdb:
@@ -290,43 +314,12 @@ bool DivCSPlayer::tick() {
         int arg1=0;
         switch (command) {
           case DIV_CMD_INSTRUMENT:
-          case DIV_CMD_HINT_VIBRATO_RANGE:
-          case DIV_CMD_HINT_VIBRATO_SHAPE:
-          case DIV_CMD_HINT_VOLUME:
-          case DIV_CMD_HINT_ARPEGGIO:
             arg0=(unsigned char)stream.readC();
-            break;
-          case DIV_CMD_HINT_PITCH:
-            arg0=(signed char)stream.readC();
-            break;
-          case DIV_CMD_HINT_VIBRATO:
-          case DIV_CMD_HINT_PORTA:
-            arg0=(signed char)stream.readC();
-            arg1=(unsigned char)stream.readC();
-            break;
-          case DIV_CMD_HINT_PANNING: // TODO: panbrello
-            arg0=(unsigned char)stream.readC();
-            arg1=(unsigned char)stream.readC();
             break;
           case DIV_CMD_PRE_PORTA:
             arg0=(unsigned char)stream.readC();
             arg1=(arg0&0x40)?1:0;
             arg0=(arg0&0x80)?1:0;
-            break;
-          case DIV_CMD_HINT_VOL_SLIDE:
-            arg0=(short)(bigEndian?stream.readS_BE():stream.readS());
-            break;
-          case DIV_CMD_HINT_VOL_SLIDE_TARGET:
-            arg0=(short)(bigEndian?stream.readS_BE():stream.readS());
-            arg1=(short)(bigEndian?stream.readS_BE():stream.readS());
-            break;
-          case DIV_CMD_HINT_LEGATO:
-            arg0=(unsigned char)stream.readC();
-            if (arg0==0xff) {
-              arg0=DIV_NOTE_NULL;
-            } else {
-              arg0-=60;
-            }
             break;
           // ONE BYTE COMMANDS
           case DIV_CMD_SAMPLE_MODE:
@@ -377,7 +370,6 @@ bool DivCSPlayer::tick() {
           case DIV_CMD_MACRO_OFF:
           case DIV_CMD_MACRO_ON:
           case DIV_CMD_MACRO_RESTART:
-          case DIV_CMD_HINT_ARP_TIME:
           case DIV_CMD_QSOUND_ECHO_FEEDBACK:
           case DIV_CMD_QSOUND_ECHO_LEVEL:
           case DIV_CMD_QSOUND_SURROUND:
@@ -548,49 +540,8 @@ bool DivCSPlayer::tick() {
             break;
         }
 
-        switch (command) {
-          case DIV_CMD_HINT_VOLUME:
-            chan[i].volume=arg0<<8;
-            sendVolume=true;
-            break;
-          case DIV_CMD_HINT_VOL_SLIDE:
-            chan[i].volSpeed=arg0;
-            chan[i].volSpeedTarget=-1;
-            break;
-          case DIV_CMD_HINT_VOL_SLIDE_TARGET:
-            chan[i].volSpeed=arg0;
-            chan[i].volSpeedTarget=arg0==0 ? -1 : arg1;
-            break;
-          case DIV_CMD_HINT_PITCH:
-            chan[i].pitch=arg0;
-            sendPitch=true;
-            break;
-          case DIV_CMD_HINT_VIBRATO:
-            chan[i].vibratoDepth=arg0;
-            chan[i].vibratoRate=arg1;
-            sendPitch=true;
-            break;
-          case DIV_CMD_HINT_PORTA:
-            chan[i].portaTarget=arg0;
-            chan[i].portaSpeed=arg1;
-            break;
-          case DIV_CMD_HINT_LEGATO:
-            chan[i].note=arg0;
-            e->dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
-            break;
-          case DIV_CMD_HINT_ARPEGGIO:
-            chan[i].arp=(unsigned char)arg0;
-            break;
-          case DIV_CMD_HINT_ARP_TIME:
-            arpSpeed=arg0;
-            break;
-          case DIV_CMD_HINT_PANNING:
-            e->dispatchCmd(DivCommand(DIV_CMD_PANNING,i,arg0,arg1));
-            break;
-          default: // dispatch it
-            e->dispatchCmd(DivCommand((DivDispatchCmds)command,i,arg0,arg1));
-            break;
-        }
+        // dispatch it
+        e->dispatchCmd(DivCommand((DivDispatchCmds)command,i,arg0,arg1));
       }
 
       for (unsigned int j=accessTSBegin; j<stream.tell(); j++) {

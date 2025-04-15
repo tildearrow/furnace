@@ -72,6 +72,7 @@ hex | description
  c0 | pre porta (X)
     | - bit 7: inPorta
     | - bit 6: isPortaOrSlide
+ c1 | arpeggio speed (b)
  c2 | vibrato (bb) // speed, depth
  c3 | vibrato range (b)
  c4 | vibrato shape (b)
@@ -310,8 +311,6 @@ hex | description
  9f | envelope K1 ramp (bb)
  a0 | envelope K2 ramp (bb)
  a1 | pause (b)
-----|------------------------------------
- a2 | arpeggio speed (b)
 ----|------------------------------------
     | **SNES commands (continued)**
  a3 | global vol left (c)

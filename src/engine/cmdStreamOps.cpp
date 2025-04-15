@@ -71,7 +71,6 @@ int DivCS::getCmdLength(unsigned char ext) {
     case DIV_CMD_MACRO_OFF:
     case DIV_CMD_MACRO_ON:
     case DIV_CMD_MACRO_RESTART:
-    case DIV_CMD_HINT_ARP_TIME:
     case DIV_CMD_QSOUND_ECHO_FEEDBACK:
     case DIV_CMD_QSOUND_ECHO_LEVEL:
     case DIV_CMD_QSOUND_SURROUND:
@@ -234,6 +233,7 @@ int DivCS::getInsLength(unsigned char ins, unsigned char ext, unsigned char* spe
   switch (ins) {
     case 0xb8: // ins
     case 0xc0: // pre porta
+    case 0xc1: // arp time
     case 0xc3: // vib range
     case 0xc4: // vib shape
     case 0xc5: // pitch
@@ -283,25 +283,64 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
       }
       break;
     case DIV_CMD_NOTE_OFF:
+      w->writeC(0xb5);
+      break;
     case DIV_CMD_NOTE_OFF_ENV:
+      w->writeC(0xb6);
+      break;
     case DIV_CMD_ENV_RELEASE:
+      w->writeC(0xb7);
+      break;
     case DIV_CMD_INSTRUMENT:
+      w->writeC(0xb8);
+      break;
     case DIV_CMD_PRE_PORTA:
+      w->writeC(0xc0);
+      break;
+    case DIV_CMD_HINT_ARP_TIME:
+      w->writeC(0xc1);
+      break;
     case DIV_CMD_HINT_VIBRATO:
+      w->writeC(0xc2);
+      break;
     case DIV_CMD_HINT_VIBRATO_RANGE:
+      w->writeC(0xc3);
+      break;
     case DIV_CMD_HINT_VIBRATO_SHAPE:
+      w->writeC(0xc4);
+      break;
     case DIV_CMD_HINT_PITCH:
+      w->writeC(0xc5);
+      break;
     case DIV_CMD_HINT_ARPEGGIO:
+      w->writeC(0xc6);
+      break;
     case DIV_CMD_HINT_VOLUME:
-    case DIV_CMD_HINT_PORTA:
+      w->writeC(0xc7);
+      break;
     case DIV_CMD_HINT_VOL_SLIDE:
-    case DIV_CMD_HINT_VOL_SLIDE_TARGET:
+      w->writeC(0xc8);
+      break;
+    case DIV_CMD_HINT_PORTA:
+      w->writeC(0xc9);
+      break;
     case DIV_CMD_HINT_LEGATO:
+      w->writeC(0xca);
+      break;
+    case DIV_CMD_HINT_VOL_SLIDE_TARGET:
+      w->writeC(0xcb);
+      break;
     case DIV_CMD_HINT_TREMOLO:
+      w->writeC(0xcc);
+      break;
     case DIV_CMD_HINT_PANBRELLO:
+      w->writeC(0xcd);
+      break;
     case DIV_CMD_HINT_PAN_SLIDE:
+      w->writeC(0xce);
+      break;
     case DIV_CMD_HINT_PANNING:
-      w->writeC((unsigned char)c.cmd+0xb4);
+      w->writeC(0xcf);
       break;
     default:
       w->writeC(0xf7);
@@ -330,6 +369,7 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
     case DIV_CMD_HINT_PANBRELLO:
     case DIV_CMD_HINT_PAN_SLIDE:
     case DIV_CMD_HINT_ARPEGGIO:
+    case DIV_CMD_HINT_ARP_TIME:
       w->writeC(c.value);
       break;
     case DIV_CMD_HINT_PANNING:
@@ -405,7 +445,6 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
     case DIV_CMD_MACRO_OFF:
     case DIV_CMD_MACRO_ON:
     case DIV_CMD_MACRO_RESTART:
-    case DIV_CMD_HINT_ARP_TIME:
     case DIV_CMD_QSOUND_ECHO_FEEDBACK:
     case DIV_CMD_QSOUND_ECHO_LEVEL:
     case DIV_CMD_QSOUND_SURROUND:
