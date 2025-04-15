@@ -1650,6 +1650,9 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
   reloc(globalStream->getFinalBuf(),globalStream->size(),0,w->tell(),sortedCmd,options.bigEndian);
   w->write(globalStream->getFinalBuf(),globalStream->size());
 
+  globalStream->finish();
+  delete globalStream;
+
   w->seek(40,SEEK_SET);
   for (int i=0; i<chans; i++) {
     if (options.longPointers) {
