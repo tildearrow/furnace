@@ -900,7 +900,8 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
     size_t origPos=b.orig+b.len;
     size_t blockPos=b.block+b.len;
     while (true) {
-      if (origPos>=stream->size() || blockPos>=stream->size()) {
+      // origPos is guaranteed to be before blockPos
+      if (blockPos>=stream->size()) {
         break;
       }
 
