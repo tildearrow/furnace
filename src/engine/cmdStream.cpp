@@ -110,10 +110,10 @@ bool DivCSPlayer::tick() {
         e->dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,(int)next-60));
         chan[i].note=(int)next-60;
         chan[i].vibratoPos=0;
-      } else if (next>=0xd0 && next<=0xdf) {
+      } else if (next>=0xe0 && next<=0xef) {
         command=fastCmds[next&15];
         bAccessTS[fastCmdsOff+(next&15)]=curTick;
-      } else if (next>=0xe0 && next<=0xef) { // preset delay
+      } else if (next>=0xf0) { // preset delay
         chan[i].waitTicks=fastDelays[next&15];
         chan[i].lastWaitLen=chan[i].waitTicks;
         bAccessTS[fastDelaysOff+(next&15)]=curTick;
@@ -203,21 +203,22 @@ bool DivCSPlayer::tick() {
           e->dispatchCmd(DivCommand(DIV_CMD_PANNING,i,panL,panR));
           break;
         }
-        case 0xd0: case 0xd1: case 0xd2: case 0xd3:
-        case 0xd4: case 0xd5: case 0xd6: case 0xd7:
-        case 0xd8: case 0xd9: case 0xda: case 0xdb:
-        case 0xdc: case 0xdd: case 0xde: case 0xdf:
-          command=fastCmds[next-0xd0];
+        case 0xe0: case 0xe1: case 0xe2: case 0xe3:
+        case 0xe4: case 0xe5: case 0xe6: case 0xe7:
+        case 0xe8: case 0xe9: case 0xea: case 0xeb:
+        case 0xec: case 0xed: case 0xee: case 0xef:
+          // TODO: remove as it has no effect
+          command=fastCmds[next&15];
           
           break;
-        case 0xf0: // placeholder
+        case 0xd0: // placeholder
           stream.readC();
           stream.readC();
           stream.readC();
           break;
-        case 0xf1: // nop
+        case 0xd1: // nop
           break;
-        case 0xf3: { // loop
+        case 0xd3: { // loop
           unsigned char loopOff=stream.readC();
           if (chan[i].loopCount>0) {
             stream.readC();
@@ -234,15 +235,15 @@ bool DivCSPlayer::tick() {
           }
           break;
         }
-        case 0xf6: // note off + wait 1
+        case 0xd6: // note off + wait 1
           e->dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
           chan[i].waitTicks=1;
           chan[i].lastWaitLen=chan[i].waitTicks;
           break;
-        case 0xf7:
+        case 0xd7:
           command=stream.readC();
           break;
-        case 0xf8: {
+        case 0xd8: {
           unsigned int callAddr=bigEndian?((unsigned short)stream.readS_BE()):((unsigned short)stream.readS());
           chan[i].readPos=stream.tell();
           if (!chan[i].doCall(callAddr)) {
@@ -252,7 +253,7 @@ bool DivCSPlayer::tick() {
           mustTell=false;
           break;
         }
-        case 0xf5: {
+        case 0xd5: {
           unsigned int callAddr=bigEndian?stream.readI_BE():stream.readI();
           chan[i].readPos=stream.tell();
           if (!chan[i].doCall(callAddr)) {
@@ -262,12 +263,12 @@ bool DivCSPlayer::tick() {
           mustTell=false;
           break;
         }
-        case 0xf4: {
+        case 0xd4: {
           logE("%d: (callsym) not supported here!",i);
           chan[i].readPos=0;
           break;
         }
-        case 0xf9:
+        case 0xd9:
           if (!chan[i].callStackPos) {
             logE("%d: (ret) stack error!",i);
             chan[i].readPos=0;
@@ -276,27 +277,27 @@ bool DivCSPlayer::tick() {
           chan[i].readPos=chan[i].callStack[--chan[i].callStackPos];
           mustTell=false;
           break;
-        case 0xfa:
+        case 0xda:
           chan[i].readPos=bigEndian?stream.readI_BE():stream.readI();
           mustTell=false;
           break;
-        case 0xfb:
+        case 0xdb:
           logE("TODO: RATE");
           stream.readI();
           break;
-        case 0xfc:
+        case 0xdc:
           chan[i].waitTicks=(unsigned short)(bigEndian?stream.readS_BE():stream.readS());
           chan[i].lastWaitLen=chan[i].waitTicks;
           break;
-        case 0xfd:
+        case 0xdd:
           chan[i].waitTicks=(unsigned char)stream.readC();
           chan[i].lastWaitLen=chan[i].waitTicks;
           break;
-        case 0xfe:
+        case 0xde:
           chan[i].waitTicks=1;
           chan[i].lastWaitLen=chan[i].waitTicks;
           break;
-        case 0xff:
+        case 0xdf:
           chan[i].readPos=0;
           mustTell=false;
           logI("%d: stop",i,chan[i].readPos);

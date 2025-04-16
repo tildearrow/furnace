@@ -94,32 +94,32 @@ hex | description
  ce | pan slide (c)
  cf | panning (bb) // left, right
 ----|------------------------------------
- d0 | speed dial command 0
- d1 | speed dial command 1
- .. | ...
- df | speed dial command 15
+ d0 | UNUSED - placeholder used during optimization passes (3-byte nonce follows)
+ d1 | no operation
+ d2 | UNUSED
+ d3 | loop (negative offset and count follow... both are 8-bit)
+ d4 | UNUSED - call symbol (32-bit index follows; only used internally)
+ d5 | call sub-block (32-bit address follows)
+ d6 | note off + wait one tick
+ d7 | full command (command and data follows)
+ d8 | call sub-block (16-bit address follows)
+ d9 | return from sub-block
+ da | jump (address follows)
+ db | set tick rate (4 bytes)
+ dc | wait (16-bit)
+ dd | wait (8-bit)
+ de | wait one tick
+ df | stop
 ----|------------------------------------
- e0 | preset delay 0
- e1 | preset delay 1
+ e0 | speed dial command 0
+ e1 | speed dial command 1
  .. | ...
- ef | preset delay 15
+ ef | speed dial command 15
 ----|------------------------------------
- f0 | UNUSED - placeholder used during optimization passes (3-byte nonce follows)
- f1 | no operation
- f2 | UNUSED
- f3 | loop (negative offset and count follow... both are 8-bit)
- f4 | UNUSED - call symbol (32-bit index follows; only used internally)
- f5 | call sub-block (32-bit address follows)
- f6 | note off + wait one tick
- f7 | full command (command and data follows)
- f8 | call sub-block (16-bit address follows)
- f9 | return from sub-block
- fa | jump (address follows)
- fb | set tick rate (4 bytes)
- fc | wait (16-bit)
- fd | wait (8-bit)
- fe | wait one tick
- ff | stop
+ f0 | preset delay 0
+ f1 | preset delay 1
+ .. | ...
+ ff | preset delay 15
 ```
 
 ## full commands

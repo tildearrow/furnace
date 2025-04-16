@@ -104,10 +104,10 @@ String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr, unsigned 
       if (addr+2>=bufLen) return "???";
       return fmt::sprintf("pan $%x, $%x",(int)buf[addr+1],(int)buf[addr+2]);
       break;
-    case 0xd0: case 0xd1: case 0xd2: case 0xd3:
-    case 0xd4: case 0xd5: case 0xd6: case 0xd7:
-    case 0xd8: case 0xd9: case 0xda: case 0xdb:
-    case 0xdc: case 0xdd: case 0xde: case 0xdf: {
+    case 0xe0: case 0xe1: case 0xe2: case 0xe3:
+    case 0xe4: case 0xe5: case 0xe6: case 0xe7:
+    case 0xe8: case 0xe9: case 0xea: case 0xeb:
+    case 0xec: case 0xed: case 0xee: case 0xef: {
       unsigned char cmd=speedDial[buf[addr]&15];
       int cmdLen=DivCS::getCmdLength(cmd);
       if ((addr+cmdLen)>=bufLen) return "???";
@@ -118,34 +118,34 @@ String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr, unsigned 
       return ret;
       break;
     }
-    case 0xe0: case 0xe1: case 0xe2: case 0xe3:
-    case 0xe4: case 0xe5: case 0xe6: case 0xe7:
-    case 0xe8: case 0xe9: case 0xea: case 0xeb:
-    case 0xec: case 0xed: case 0xee: case 0xef:
+    case 0xf0: case 0xf1: case 0xf2: case 0xf3:
+    case 0xf4: case 0xf5: case 0xf6: case 0xf7:
+    case 0xf8: case 0xf9: case 0xfa: case 0xfb:
+    case 0xfc: case 0xfd: case 0xfe: case 0xff:
       return fmt::sprintf("qwait (%d)",(int)(buf[addr]-0xe0));
       break;
-    case 0xf0:
+    case 0xd0:
       if (addr+3>=bufLen) return "???";
       return fmt::sprintf("opt $%.2x%.2x%.2x",(int)buf[addr+1],(int)buf[addr+2],(int)buf[addr+3]);
       break;
-    case 0xf1:
+    case 0xd1:
       return "nop";
       break;
-    case 0xf3:
+    case 0xd3:
       return fmt::sprintf("loop (-%d), %d",(int)buf[addr+1],(int)buf[addr+2]);
       break;
-    case 0xf4:
+    case 0xd4:
       if (addr+2>=bufLen) return "???";
       return fmt::sprintf("callsym $%.4x",(int)(buf[addr+1]|(buf[addr+2]<<8)));
       break;
-    case 0xf5:
+    case 0xd5:
       if (addr+4>=bufLen) return "???";
       return fmt::sprintf("call $%.8x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)|(buf[addr+3]<<16)|(buf[addr+4]<<24)));
       break;
-    case 0xf6:
+    case 0xd6:
       return "offwait";
       break;
-    case 0xf7: {
+    case 0xd7: {
       if (addr+1>=bufLen) return "???";
       int cmdLen=DivCS::getCmdLength(buf[addr+1]);
       if ((addr+1+cmdLen)>=bufLen) return "???";
@@ -156,31 +156,31 @@ String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr, unsigned 
       return ret;
       break;
     }
-    case 0xf8:
+    case 0xd8:
       if (addr+2>=bufLen) return "???";
       return fmt::sprintf("call $%.4x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)));
       break;
-    case 0xf9:
+    case 0xd9:
       return "ret";
       break;
-    case 0xfa:
+    case 0xda:
       return fmt::sprintf("jmp $%.8x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)|(buf[addr+3]<<16)|(buf[addr+4]<<24)));
       break;
-    case 0xfb:
+    case 0xdb:
       return fmt::sprintf("rate $%.8x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)|(buf[addr+3]<<16)|(buf[addr+4]<<24)));
       break;
-    case 0xfc:
+    case 0xdc:
       if (addr+2>=bufLen) return "???";
       return fmt::sprintf("waits %d",(int)(buf[addr+1]|(buf[addr+2]<<8)));
       break;
-    case 0xfd:
+    case 0xdd:
       if (addr+1>=bufLen) return "???";
       return fmt::sprintf("waitc %d",(int)buf[addr+1]);
       break;
-    case 0xfe:
+    case 0xde:
       return "wait 1";
       break;
-    case 0xff:
+    case 0xdf:
       return "stop";
       break;
     default:
@@ -407,7 +407,7 @@ void FurnaceGUI::drawCSPlayer() {
                 ImGui::Text("%s",dis.c_str());
 
                 // jmp/ret separator
-                if (i.data[0]==0xf9 || i.data[0]==0xfa) {
+                if (i.data[0]==0xd9 || i.data[0]==0xda) {
                   ImGui::TableNextRow(0,oneChar.y);
                   ImGui::TableNextColumn();
                   ImGui::Separator();

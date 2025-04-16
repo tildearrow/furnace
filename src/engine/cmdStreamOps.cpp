@@ -243,7 +243,7 @@ int DivCS::getInsLength(unsigned char ins, unsigned char ext, unsigned char* spe
     case 0xcc: // tremolo
     case 0xcd: // panbrello
     case 0xce: // pan slide
-    case 0xfd: // waitc
+    case 0xdd: // waitc
       return 2;
     case 0xcf: // pan
     case 0xc2: // vibrato
@@ -251,25 +251,25 @@ int DivCS::getInsLength(unsigned char ins, unsigned char ext, unsigned char* spe
     case 0xc9: // porta
       return 3;
     // speed dial commands
-    case 0xd0: case 0xd1: case 0xd2: case 0xd3:
-    case 0xd4: case 0xd5: case 0xd6: case 0xd7:
-    case 0xd8: case 0xd9: case 0xda: case 0xdb:
-    case 0xdc: case 0xdd: case 0xde: case 0xdf:
+    case 0xe0: case 0xe1: case 0xe2: case 0xe3:
+    case 0xe4: case 0xe5: case 0xe6: case 0xe7:
+    case 0xe8: case 0xe9: case 0xea: case 0xeb:
+    case 0xec: case 0xed: case 0xee: case 0xef:
       if (speedDial==NULL) return 0;
       return 1+getCmdLength(speedDial[ins&15]);
-    case 0xf0: // opt
+    case 0xd0: // opt
       return 4;
-    case 0xf7: // cmd
+    case 0xd7: // cmd
       // determine length from secondary
       if (ext==0) return 0;
       return 2+getCmdLength(ext);
-    case 0xf8: // call
-    case 0xfc: // waits
+    case 0xd8: // call
+    case 0xdc: // waits
       return 3;
-    case 0xf4: // callsym
-    case 0xf5: // calli
-    case 0xfa: // jmp
-    case 0xfb: // rate
+    case 0xd4: // callsym
+    case 0xd5: // calli
+    case 0xda: // jmp
+    case 0xdb: // rate
     case 0xcb: // volporta
       return 5;
   }
@@ -346,7 +346,7 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
       w->writeC(0xcf);
       break;
     default:
-      w->writeC(0xf7);
+      w->writeC(0xd7);
       w->writeC(c.cmd);
       break;
   }
@@ -650,8 +650,8 @@ void reloc8(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned in
   unsigned int delta=destAddr-sourceAddr;
   for (size_t i=0; i<len; i+=8) {
     switch (buf[i]) {
-      case 0xf5: // calli
-      case 0xfa: { // jmp
+      case 0xd5: // calli
+      case 0xda: { // jmp
         unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<16)|(buf[i+4]<<24);
         addr+=delta;
         buf[i+1]=addr&0xff;
@@ -660,11 +660,11 @@ void reloc8(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned in
         buf[i+4]=(addr>>24)&0xff;
         break;
       }
-      case 0xf8: { // call
+      case 0xd8: { // call
         unsigned int addr=buf[i+1]|(buf[i+2]<<8);
         addr+=delta;
         if (addr>0xffff) {
-          buf[i]=0xf5;
+          buf[i]=0xd5;
           buf[i+1]=addr&0xff;
           buf[i+2]=(addr>>8)&0xff;
           buf[i+3]=(addr>>16)&0xff;
@@ -688,8 +688,8 @@ void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int
       break;
     }
     switch (buf[i]) {
-      case 0xf5: // calli
-      case 0xfa: { // jmp
+      case 0xd5: // calli
+      case 0xda: { // jmp
         unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<16)|(buf[i+4]<<24);
         addr+=delta;
         if (bigEndian) {
@@ -705,7 +705,7 @@ void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int
         }
         break;
       }
-      case 0xf8: { // call
+      case 0xd8: { // call
         unsigned short addr=buf[i+1]|(buf[i+2]<<8);
         addr+=delta;
         if (bigEndian) {
@@ -733,21 +733,21 @@ SafeWriter* stripNops(SafeWriter* s) {
   size_t addr=0;
   for (size_t i=0; i<oldStream->size(); i+=8) {
     addrTable[i]=addr;
-    if (buf[i]!=0xf1) addr+=8;
+    if (buf[i]!=0xd1) addr+=8;
   }
 
   // translate addresses
   for (size_t i=0; i<oldStream->size(); i+=8) {
     switch (buf[i]) {
-      case 0xf5: // calli
-      case 0xfa: { // jmp
+      case 0xd5: // calli
+      case 0xda: { // jmp
         unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<16)|(buf[i+4]<<24);
         assert(!(addr&7));
         if (addr>=oldStream->size()) {
           logE("OUT OF BOUNDS!");
           abort();
         }
-        if (buf[addr]==0xf1) {
+        if (buf[addr]==0xd1) {
           logE("POINTS TO NOP");
           abort();
         }
@@ -763,7 +763,7 @@ SafeWriter* stripNops(SafeWriter* s) {
         }
         break;
       }
-      case 0xf8: { // call
+      case 0xd8: { // call
         unsigned int addr=buf[i+1]|(buf[i+2]<<8);
         try {
           addr=addrTable[addr];
@@ -775,7 +775,7 @@ SafeWriter* stripNops(SafeWriter* s) {
         break;
       }
     }
-    if (buf[i]!=0xf1) {
+    if (buf[i]!=0xd1) {
       s->write(&buf[i],8);
     }
   }
@@ -801,7 +801,7 @@ SafeWriter* stripNopsPacked(SafeWriter* s, unsigned char* speedDial) {
       break;
     }
     addrTable[i]=addr;
-    if (buf[i]!=0xf1) addr+=insLen;
+    if (buf[i]!=0xd1) addr+=insLen;
     i+=insLen;
   }
 
@@ -813,8 +813,8 @@ SafeWriter* stripNopsPacked(SafeWriter* s, unsigned char* speedDial) {
       break;
     }
     switch (buf[i]) {
-      case 0xf5: // calli
-      case 0xfa: { // jmp
+      case 0xd5: // calli
+      case 0xda: { // jmp
         unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<8)|(buf[i+4]<<24);
         try {
           addr=addrTable[addr];
@@ -827,7 +827,7 @@ SafeWriter* stripNopsPacked(SafeWriter* s, unsigned char* speedDial) {
         }
         break;
       }
-      case 0xf8: { // call
+      case 0xd8: { // call
         unsigned int addr=buf[i+1]|(buf[i+2]<<8);
         try {
           addr=addrTable[addr];
@@ -842,7 +842,7 @@ SafeWriter* stripNopsPacked(SafeWriter* s, unsigned char* speedDial) {
         break;
       }
     }
-    if (buf[i]!=0xf1) {
+    if (buf[i]!=0xd1) {
       s->write(&buf[i],insLen);
     }
     i+=insLen;
@@ -1007,7 +1007,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
         // 2. only calls and jmp/ret/stop
         bool metCriteria=true;
         for (size_t l=k.orig; l<k.orig+len; l+=8) {
-          if (buf[l]==0xf4 || buf[l]==0xf5) {
+          if (buf[l]==0xd4 || buf[l]==0xd5) {
             metCriteria=false;
             break;
           }
@@ -1016,7 +1016,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
 
         // 3. jmp/ret/stop
         for (size_t l=k.orig; l<k.orig+len; l+=8) {
-          if (buf[l]==0xf9 || buf[l]==0xfa || buf[l]==0xff) {
+          if (buf[l]==0xd9 || buf[l]==0xda || buf[l]==0xdf) {
             metCriteria=false;
             break;
           }
@@ -1091,7 +1091,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
   SafeWriter* newBlock=new SafeWriter;
   newBlock->init();
   newBlock->write(&buf[bestOrig],bestBenefit.len);
-  newBlock->writeC(0xf9); // ret
+  newBlock->writeC(0xd9); // ret
   // padding
   newBlock->writeC(0);
   newBlock->writeC(0);
@@ -1103,7 +1103,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
   subBlocks.push_back(newBlock);
 
   // insert call on the original block
-  buf[bestOrig]=0xf4;
+  buf[bestOrig]=0xd4;
   buf[bestOrig+1]=subBlockID&0xff;
   buf[bestOrig+2]=(subBlockID>>8)&0xff;
   buf[bestOrig+3]=(subBlockID>>16)&0xff;
@@ -1114,7 +1114,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
 
   // replace the rest with nop
   for (size_t j=bestOrig+8; j<bestOrig+bestBenefit.len; j++) {
-    buf[j]=0xf1;
+    buf[j]=0xd1;
   }
 
   // set matches to this sub-block
@@ -1125,7 +1125,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
     assert(!(i.block&7));
 
     // set match to this sub-block
-    buf[i.block]=0xf4;
+    buf[i.block]=0xd4;
     buf[i.block+1]=subBlockID&0xff;
     buf[i.block+2]=(subBlockID>>8)&0xff;
     buf[i.block+3]=(subBlockID>>16)&0xff;
@@ -1136,7 +1136,7 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
 
     // replace the rest with nop
     for (size_t j=i.block+8; j<i.block+bestBenefit.len; j++) {
-      buf[j]=0xf1;
+      buf[j]=0xd1;
     }
   }
 
@@ -1171,19 +1171,19 @@ SafeWriter* packStream(SafeWriter* s, unsigned char* speedDial) {
       break;
     }
     switch (buf[i]) {
-      case 0xf5: { // calli
+      case 0xd5: { // calli
         unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<16)|(buf[i+4]<<24);
         try {
           addr=addrTable[addr];
           // check whether we have sufficient room to turn this into a 16-bit call
           if (addr<0xff00) {
-            buf[i]=0xf8;
+            buf[i]=0xd8;
             buf[i+1]=addr&0xff;
             buf[i+2]=(addr>>8)&0xff;
-            buf[i+3]=0xf1;
-            buf[i+4]=0xf1;
+            buf[i+3]=0xd1;
+            buf[i+4]=0xd1;
           } else {
-            buf[i]=0xf5;
+            buf[i]=0xd5;
             buf[i+1]=addr&0xff;
             buf[i+2]=(addr>>8)&0xff;
             buf[i+3]=(addr>>16)&0xff;
@@ -1194,7 +1194,7 @@ SafeWriter* packStream(SafeWriter* s, unsigned char* speedDial) {
         }
         break;
       }
-      case 0xfa: { // jmp
+      case 0xda: { // jmp
         unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<16)|(buf[i+4]<<24);
         try {
           addr=addrTable[addr];
@@ -1207,7 +1207,7 @@ SafeWriter* packStream(SafeWriter* s, unsigned char* speedDial) {
         }
         break;
       }
-      case 0xf8: { // call
+      case 0xd8: { // call
         logW("16-bit call should NEVER be generated. aborting!");
         abort();
         break;
@@ -1297,7 +1297,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
   // PASS 0: play the song and log channel command streams
   // song beginning marker
   for (int i=0; i<chans; i++) {
-    chanStream[i]->writeC(0xf0);
+    chanStream[i]->writeC(0xd0);
     chanStream[i]->writeC(i);
     chanStream[i]->writeC(0x00);
     chanStream[i]->writeC(0x00);
@@ -1318,7 +1318,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
           loopTick=tick;
           // loop marker
           for (int i=0; i<chans; i++) {
-            chanStream[i]->writeC(0xf0);
+            chanStream[i]->writeC(0xd0);
             chanStream[i]->writeC(i);
             chanStream[i]->writeC(0x00);
             chanStream[i]->writeC(0x01);
@@ -1338,7 +1338,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     // get command stream
     if (curDivider!=divider) {
       curDivider=divider;
-      chanStream[0]->writeC(0xfb);
+      chanStream[0]->writeC(0xdb);
       chanStream[0]->writeI((int)(curDivider*65536));
       // padding
       chanStream[0]->writeC(0x00);
@@ -1364,7 +1364,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     }
     cmdStream.clear();
     for (int i=0; i<chans; i++) {
-      chanStream[i]->writeC(0xfe);
+      chanStream[i]->writeC(0xde);
       // padding
       chanStream[i]->writeC(0x00);
       chanStream[i]->writeC(0x00);
@@ -1378,7 +1378,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
   }
   if (!playing || loopTick<0) {
     for (int i=0; i<chans; i++) {
-      chanStream[i]->writeC(0xff);
+      chanStream[i]->writeC(0xdf);
       // padding
       chanStream[i]->writeC(0x00);
       chanStream[i]->writeC(0x00);
@@ -1391,7 +1391,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
   } else {
     for (int i=0; i<chans; i++) {
       if ((int)tickPos[i].size()>loopTick) {
-        chanStream[i]->writeC(0xfa);
+        chanStream[i]->writeC(0xda);
         chanStream[i]->writeI(tickPos[i][loopTick]);
         logD("chan %d loop addr: %x",i,tickPos[i][loopTick]);
         // padding
@@ -1400,7 +1400,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
         chanStream[i]->writeC(0x00);
       } else {
         logW("chan %d unable to find loop addr!",i);
-        chanStream[i]->writeC(0xff);
+        chanStream[i]->writeC(0xdf);
         // padding
         chanStream[i]->writeC(0x00);
         chanStream[i]->writeC(0x00);
@@ -1449,11 +1449,11 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     for (int h=0; h<chans; h++) {
       unsigned char* buf=chanStream[h]->getFinalBuf();
       for (size_t i=0; i<chanStream[h]->size(); i+=8) {
-        if (buf[i]==0xf7) {
+        if (buf[i]==0xd7) {
           // find whether this command is in speed dial
           for (int j=0; j<16; j++) {
             if (buf[i+1]==sortedCmd[j]) {
-              buf[i]=0xd0+j;
+              buf[i]=0xe0+j;
               // move everything to the left
               for (int k=i+2; k<(int)i+8; k++) {
                 buf[k-1]=buf[k];
@@ -1473,7 +1473,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
       unsigned char* buf=chanStream[h]->getFinalBuf();
       int delayCount=0;
       for (size_t i=0; i<chanStream[h]->size(); i+=8) {
-        if (buf[i]==0xfe) {
+        if (buf[i]==0xde) {
           delayCount++;
         } else {
           if (delayCount>1 && delayCount<=255) {
@@ -1513,7 +1513,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
       int delayCount=0;
       int delayLast=0;
       for (size_t i=0; i<chanStream[h]->size(); i+=8) {
-        if (buf[i]==0xfe) {
+        if (buf[i]==0xde) {
           if (delayPos==-1) delayPos=i;
           delayCount++;
           delayLast=i;
@@ -1526,20 +1526,20 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
               } else {
                 // write condensed delay and fill the rest with nop
                 if (delayCount>255) {
-                  buf[delayPos++]=0xfc;
+                  buf[delayPos++]=0xdc;
                   buf[delayPos++]=delayCount&0xff;
                   buf[delayPos++]=(delayCount>>8)&0xff;
                 } else {
                   bool foundShort=false;
                   for (int j=0; j<16; j++) {
                     if (sortedDelay[j]==delayCount) {
-                      buf[delayPos++]=0xe0+j;
+                      buf[delayPos++]=0xf0+j;
                       foundShort=true;
                       break;
                     }
                   }
                   if (!foundShort) {
-                    buf[delayPos++]=0xfd;
+                    buf[delayPos++]=0xdd;
                     buf[delayPos++]=delayCount;
                   }
                 }
@@ -1547,7 +1547,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
                 while (delayPos&7) buf[delayPos++]=0;
                 // fill with nop
                 for (int j=delayPos; j<=delayLast; j++) {
-                  buf[j]=0xf1;
+                  buf[j]=0xd1;
                 }
               }
             }
@@ -1568,10 +1568,10 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
       // find note off
       if (buf[i]==0xb5) {
         // check for contiguous wait 1
-        if (buf[i+8]==0xfe) {
+        if (buf[i+8]==0xde) {
           // turn it into 0xf6 (note off + wait 1) and change the next one to nop
-          buf[i]=0xf6;
-          buf[i+8]=0xf1;
+          buf[i]=0xd6;
+          buf[i+8]=0xd1;
 
           // skip the next instruction
           i+=8;
@@ -1636,12 +1636,12 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
       // resolve symbols
       unsigned char* buf=globalStream->getFinalBuf();
       for (size_t j=0; j<globalStream->size(); j+=8) {
-        if (buf[j]==0xf4) { // callsym
+        if (buf[j]==0xd4) { // callsym
           unsigned int addr=buf[j+1]|(buf[j+2]<<8)|(buf[j+3]<<16)|(buf[j+4]<<24);
           if (addr<blockOff.size()) {
             // turn it into call
             addr=blockOff[addr];
-            buf[j]=0xf5;
+            buf[j]=0xd5;
             buf[j+1]=addr&0xff;
             buf[j+2]=(addr>>8)&0xff;
             buf[j+3]=(addr>>16)&0xff;
@@ -1675,7 +1675,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
         break;
       }
 
-      if (buf[i]==0xf0) {
+      if (buf[i]==0xd0) {
         if (buf[i+3]==0) {
           int ch=buf[i+1];
           if (ch>=0 && ch<chans) {
