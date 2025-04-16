@@ -240,6 +240,9 @@ int DivCS::getInsLength(unsigned char ins, unsigned char ext, unsigned char* spe
     case 0xc6: // arpeggio
     case 0xc7: // volume
     case 0xca: // legato
+    case 0xcc: // tremolo
+    case 0xcd: // panbrello
+    case 0xce: // pan slide
     case 0xfd: // waitc
       return 2;
     case 0xcf: // pan
