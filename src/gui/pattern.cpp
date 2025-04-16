@@ -1244,6 +1244,10 @@ void FurnaceGUI::drawPattern() {
             xAmount*=MAX(1,editStep);
             yAmount*=MAX(1,editStep);
           }
+          if (settings.cursorWheelStep == 2) {
+            xAmount *= MAX(1, editStepCoarse);
+            yAmount *= MAX(1, editStepCoarse);
+          }
           moveCursor(xAmount,yAmount,false);
         }
       }
