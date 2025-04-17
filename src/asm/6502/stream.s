@@ -10,10 +10,12 @@
 ; - short pointers only
 ; - little-endian only!
 
+.include "6502base.i"
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; constants
-FCS_MAX_CHANS=8 ; maximum number of channels (up to 127, but see below!)
+FCS_MAX_CHAN=8 ; maximum number of channels (up to 127, but see below!)
 FCS_MAX_STACK=16 ; stack depth per channel (FCS_MAX_STACK*FCS_MAX_CHAN<256)
 
 ; player constants - change if necessary
@@ -55,8 +57,8 @@ chanVibratoPos=fcsAddrBase+24+(FCS_MAX_CHAN*4) ; char
 
 ; may be used for driver detection
 fcsDriverInfo:
-  .byte "Furnace"
-  .byte 0
+  .db "Furnace"
+  .db 0
 
 ; note on null
 fcsNoteOnNull:
@@ -80,6 +82,9 @@ fcsOneByteDispatch:
   jsr fcsDispatchCmd
   rts
 
+fcsNoOp:
+  rts
+
 ; x: channel*2
 ; y: command
 fcsDispatchCmd:
@@ -91,24 +96,33 @@ fcsDispatchCmd:
   ; check for zero
   lda fcsTempPtr
   ora fcsTempPtr
-  beq :+ ; get out
+  beq + ; get out
   ; handle command in dispatch code
   jmp (fcsTempPtr)
   ; only if pointer is zero
-: rts
++ rts
 
 ; x: channel*2
 ; a is set to next byte
 fcsReadNext:
+  ; a=chanPC[x]+fcsPtr
+  clc
+  lda chanPC,x
+  adc #>fcsPtr
+  sta fcsTempPtr
   lda chanPC+1,x
+  adc #<fcsPtr
   sta fcsTempPtr+1
 
-  ldy chanPC,x
-  lda (fcsTempPtr),y
-  iny
-  bne :+
+  ; increase PC
+  inc chanPC,x
+  bne +
   inc chanPC+1,x
-: sty chanPC,x
+
+  ; read byte and put it into a
+  ; this is at the end to ensure flags are set properly
++ ldy #0
+  lda (fcsTempPtr),y
   rts
 
 ; x: channel*2 (for speed... char variables are interleaved)
@@ -120,8 +134,8 @@ fcsChannelCmd:
   ; process and read arguments
   ; if (a<0xb3)
   bmi fcsNote ; handle $00-$7f
-  cmp #$b3
-  bpl fcsOther
+  cmp #$b4
+  bpl fcsCheckOther
 
   ; this is a note
   fcsNote:
@@ -134,15 +148,29 @@ fcsChannelCmd:
     jsr fcsDispatchCmd
     rts
 
+  ; check other instructions
+  fcsCheckOther:
+    ; check for preset delays
+    cmp #$f0
+    bmi fcsOther
+
+  ; handler for preset delays
+  fcsPresetDelay:
+    ; load preset delay and store it
+    tay
+    lda fcsPtr+8-240,y
+    sta chanTicks,x
+    lda #0
+    sta chanTicks+1,x
+    rts
+
   ; other instructions
   fcsOther:
     ; call respective handler
-    sec
-    sbc #$b4
     tay
-    lda fcsInsTableLow,y
+    lda fcsInsTableLow-180,y
     sta fcsTempPtr
-    lda fcsInsTableHigh,y
+    lda fcsInsTableHigh-180,y
     sta fcsTempPtr+1
     jmp (fcsTempPtr)
 
@@ -170,15 +198,15 @@ fcsDoChannel:
   ; check whether this channel is halted (PC = 0)
   lda chanPC,x
   ora chanPC+1,x
-  beq :+
+  beq +
   rts
   ; channel not halted... begin processing
   ; chanTicks--
-: lda chanTicks,x
++ lda chanTicks,x
   sec
   sbc #1
   sta chanTicks,x
-  bne :+ ; skip if our counter isn't zero
+  bne + ; skip if our counter isn't zero
 
   ; ticks lower is zero; check upper byte
   ldy chanTicks+1,x
@@ -194,51 +222,49 @@ fcsDoChannel:
   fcsDoChannelLoop:
     lda chanTicks,x
     ora chanTicks+1,x
-    bne :+ ; get out if chanTicks is no longer zero
+    bne + ; get out if chanTicks is no longer zero
     jsr fcsChannelCmd ; read next command
     jmp fcsDoChannelLoop
 
-: jsr fcsChannelPost
++ jsr fcsChannelPost
   ; end
   rts
 
 fcsTick:
   ; update channel state
-  ; for (x=0; x<FCS_MAX_CHANS; x++)
+  ; for (x=0; x<FCS_MAX_CHAN; x++)
   ldx #0
-: jsr fcsDoChannel
+- jsr fcsDoChannel
   inx
   inx
-  cpx #FCS_MAX_CHANS*2
-  bne :-
+  cpx #FCS_MAX_CHAN*2
+  bne -
 
   ; increase tick counter
   inc fcsTicks
-  bne :+
+  bne +
   inc fcsTicks+1
 
   ; end
-: rts
++ rts
 
 fcsInit:
   ; set all tick counters to 1
   lda #1
   ldy #0
-  ldx #(FCS_MAX_CHANS*2)
-: dex
+  ldx #(FCS_MAX_CHAN*2)
+- dex
   sty chanTicks,x
   dex
   sta chanTicks,x
-  bne :-
+  bne -
 
   ; set channel program counters
-  ldx #(FCS_MAX_CHANS*2)
-: dex
+  ldx #(FCS_MAX_CHAN*2)
+- dex
   lda fcsPtr+40,x
   sta chanPC,x
-  bne :-
-
-  ; TODO: relocate and more...
+  bne -
 
   ; success
   lda #0
@@ -246,10 +272,10 @@ fcsInit:
 
 ; floor(127*sin((x/64)*(2*pi)))
 fcsVibTable:
-  .byte 0, 12, 24, 36, 48, 59, 70, 80, 89, 98, 105, 112, 117, 121, 124, 126
-  .byte 127, 126, 124, 121, 117, 112, 105, 98, 89, 80, 70, 59, 48, 36, 24, 12
-  .byte 0, -12, -24, -36, -48, -59, -70, -80, -89, -98, -105, -112, -117, -121, -124, -126
-  .byte -126, -126, -124, -121, -117, -112, -105, -98, -89, -80, -70, -59, -48, -36, -24, -12
+  .db 0, 12, 24, 36, 48, 59, 70, 80, 89, 98, 105, 112, 117, 121, 124, 126
+  .db 127, 126, 124, 121, 117, 112, 105, 98, 89, 80, 70, 59, 48, 36, 24, 12
+  .db 0, -12, -24, -36, -48, -59, -70, -80, -89, -98, -105, -112, -117, -121, -124, -126
+  .db -126, -126, -124, -121, -117, -112, -105, -98, -89, -80, -70, -59, -48, -36, -24, -12
 
 ; "dummy" implementation - example only!
 
@@ -257,15 +283,15 @@ fcsDummyFunc:
   rts
 
 fcsVolMaxExample:
-  .byte 127, 127, 127, 127, 127, 127, 127, 127
+  .db 127, 127, 127, 127, 127, 127, 127, 127
 
 ; first 64 commands
 fcsCmdTableExample:
-  .word 0, 0, 0, 0, 0, 0, 0, 0
-  .word 0, 0, 0, 0, 0, 0, 0, 0
-  .word 0, 0, 0, 0, 0, 0, 0, 0
-  .word 0, 0, 0, 0, 0, 0, 0, 0
-  .word 0, 0, 0, 0, 0, 0, 0, 0
-  .word 0, 0, 0, 0, 0, 0, 0, 0
-  .word 0, 0, 0, 0, 0, 0, 0, 0
-  .word 0, 0, 0, 0, 0, 0, 0, 0
+  .db 0, 0, 0, 0, 0, 0, 0, 0
+  .db 0, 0, 0, 0, 0, 0, 0, 0
+  .db 0, 0, 0, 0, 0, 0, 0, 0
+  .db 0, 0, 0, 0, 0, 0, 0, 0
+  .db 0, 0, 0, 0, 0, 0, 0, 0
+  .db 0, 0, 0, 0, 0, 0, 0, 0
+  .db 0, 0, 0, 0, 0, 0, 0, 0
+  .db 0, 0, 0, 0, 0, 0, 0, 0

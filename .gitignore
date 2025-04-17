@@ -37,3 +37,5 @@ res/docpdf/.venv
 res/docpdf/htmldoc/
 res/fonts/compressed/
 res/furnace.appdata.xml
+src/asm/6502/*.o
+src/asm/6502/*.bin
