@@ -82,8 +82,66 @@ fcsOneByteDispatch:
   jsr fcsDispatchCmd
   rts
 
+fcsPrePorta:
+  jsr fcsReadNext
+  pha
+  and #$80
+  sta fcsArg0
+  pla
+  and #$40
+  sta fcsArg1
+  ldy #$0c
+  jsr fcsDispatchCmd
+  rts
+
 fcsNoOp:
   rts
+
+; COMMAND TABLE
+; $b4 fcsNoArgDispatch,
+; $b5 fcsNoArgDispatch,
+; $b6 fcsNoArgDispatch,
+; $b7 fcsNoArgDispatch,
+; $b8 fcsOneByteDispatch,
+; $b9 fcsNoOp,
+; $ba fcsNoOp,
+; $bb fcsNoOp,
+; $bc fcsNoOp,
+; $bd fcsNoOp,
+; $be fcsNoOp,
+; $bf fcsNoOp,
+; $c0 fcsPrePorta,
+; $c1 fcsArpTime,
+; $c2 fcsVibrato,
+; $c3 fcsVibRange,
+; $c4 fcsVibShape,
+; $c5 fcsPitch,
+; $c6 fcsArpeggio,
+; $c7 fcsVolume,
+; $c8 fcsVolSlide,
+; $c9 fcsPorta,
+; $ca fcsLegato,
+; $cb fcsVolSlideTarget,
+; $cc fcsNoOpOneByte,
+; $cd fcsNoOpOneByte,
+; $ce fcsNoOpOneByte,
+; $cf fcsPan,
+; $d0 fcsOptPlaceholder,
+; $d1 fcsNoOp,
+; $d2 fcsNoOp,
+; $d3 fcsLoop,
+; $d4 fcsNoOp,
+; $d5 fcsCallI,
+; $d6 fcsOffWait,
+; $d7 fcsFullCmd,
+; $d8 fcsCall,
+; $d9 fcsRet,
+; $da fcsJump,
+; $db fcsTickRate,
+; $dc fcsWaitS,
+; $dd fcsWaitC,
+; $de fcsWait1,
+; $df fcsStop,
 
 ; x: channel*2
 ; y: command
