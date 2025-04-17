@@ -244,9 +244,9 @@ int DivCS::getInsLength(unsigned char ins, unsigned char ext, unsigned char* spe
     case 0xcd: // panbrello
     case 0xce: // pan slide
     case 0xdd: // waitc
+    case 0xc2: // vibrato
       return 2;
     case 0xcf: // pan
-    case 0xc2: // vibrato
     case 0xc8: // vol slide
     case 0xc9: // porta
       return 3;
@@ -373,10 +373,10 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
     case DIV_CMD_HINT_PAN_SLIDE:
     case DIV_CMD_HINT_ARPEGGIO:
     case DIV_CMD_HINT_ARP_TIME:
+    case DIV_CMD_HINT_VIBRATO:
       w->writeC(c.value);
       break;
     case DIV_CMD_HINT_PANNING:
-    case DIV_CMD_HINT_VIBRATO:
     case DIV_CMD_HINT_PORTA:
       w->writeC(c.value);
       w->writeC(c.value2);

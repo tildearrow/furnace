@@ -140,11 +140,13 @@ bool DivCSPlayer::tick() {
         case 0xc1: // arp time
           arpSpeed=(unsigned char)stream.readC();
           break;
-        case 0xc2: // vibrato
-          chan[i].vibratoDepth=(signed char)stream.readC();
-          chan[i].vibratoRate=(unsigned char)stream.readC();
+        case 0xc2: { // vibrato
+          unsigned char param=stream.readC();
+          chan[i].vibratoDepth=param&15;
+          chan[i].vibratoRate=param>>4;
           sendPitch=true;
           break;
+        }
         case 0xc3: // vibrato range
           chan[i].vibratoRange=(unsigned char)stream.readC();
           break;

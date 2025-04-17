@@ -73,7 +73,9 @@ hex | description
     | - bit 7: inPorta
     | - bit 6: isPortaOrSlide
  c1 | arpeggio speed (b)
- c2 | vibrato (bb) // speed, depth
+ c2 | vibrato (X)
+    | - bit 4-7: speed
+    | - bit 0-3: depth
  c3 | vibrato range (b)
  c4 | vibrato shape (b)
  c5 | pitch (c)

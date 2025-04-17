@@ -46,6 +46,7 @@ fcsTicks=fcsAddrBase+8 ; short
 ; temporary variables
 fcsSendVolume=fcsAddrBase+10 ; char
 fcsSendPitch=fcsAddrBase+11 ; char
+fcsArpSpeed=fcsAddrBase+12 ; char
 fcsCmd=fcsAddrBase+16 ; char[8]
 fcsTempPtr=fcsZeroPage ; short
 ; channel state
@@ -54,6 +55,14 @@ chanTicks=fcsAddrBase+24 ; short
 chanStackPtr=fcsAddrBase+24+(FCS_MAX_CHAN*2) ; char
 chanNote=fcsAddrBase+24+(FCS_MAX_CHAN*2)+1 ; char
 chanVibratoPos=fcsAddrBase+24+(FCS_MAX_CHAN*4) ; char
+chanVibrato=fcsAddrBase+24+(FCS_MAX_CHAN*4)+1 ; char
+chanPitch=fcsAddrBase+24+(FCS_MAX_CHAN*6) ; char
+chanArp=fcsAddrBase+24+(FCS_MAX_CHAN*6)+1 ; char
+chanPortaSpeed=fcsAddrBase+24+(FCS_MAX_CHAN*8) ; char
+chanPortaTarget=fcsAddrBase+24+(FCS_MAX_CHAN*8)+1 ; char
+chanVol=fcsAddrBase+24+(FCS_MAX_CHAN*10) ; short
+chanVolSpeed=fcsAddrBase+24+(FCS_MAX_CHAN*12) ; short
+chanPan=fcsAddrBase+24+(FCS_MAX_CHAN*14) ; short
 
 ; may be used for driver detection
 fcsDriverInfo:
@@ -92,6 +101,79 @@ fcsPrePorta:
   sta fcsArg1
   ldy #$0c
   jsr fcsDispatchCmd
+  rts
+
+fcsArpTime:
+  jsr fcsReadNext
+  sta fcsArpSpeed
+  rts
+
+fcsVibrato:
+  jsr fcsReadNext
+  sta chanVibrato,x
+  rts
+
+; TODO
+fcsVibRange:
+fcsVibShape:
+  jsr fcsReadNext
+  rts
+
+fcsPitch:
+  jsr fcsReadNext
+  sta chanPitch,x
+  lda #1
+  sta fcsSendPitch
+  rts
+
+fcsArpeggio:
+  jsr fcsReadNext
+  sta chanArp,x
+  rts
+
+fcsVolume:
+  jsr fcsReadNext
+  sta chanVol+1,x
+  lda #0
+  sta chanVol,x
+  lda #1
+  sta fcsSendVolume
+  rts
+
+fcsVolSlide:
+  jsr fcsReadNext
+  sta chanVolSpeed,x
+  jsr fcsReadNext
+  sta chanVolSpeed+1,x
+  rts
+
+fcsPorta:
+  jsr fcsReadNext
+  sta chanPortaTarget,x
+  jsr fcsReadNext
+  sta chanPortaSpeed,x
+  rts
+
+fcsLegato:
+  jsr fcsReadNext
+  sta chanNote,x
+  sta fcsArg0
+  ldy #11
+  jsr fcsDispatchCmd
+  rts
+
+fcsVolSlideTarget:
+  jsr fcsReadNext
+  sta chanVolSpeed,x
+  jsr fcsReadNext
+  sta chanVolSpeed+1,x
+  ; TODO: we don't support this yet...
+  jsr fcsReadNext
+  jsr fcsReadNext
+  rts
+
+fcsNoOpOneByte:
+  jsr fcsReadNext
   rts
 
 fcsNoOp:
