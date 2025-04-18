@@ -63,11 +63,16 @@ fcsDriverInfo:
 fcsNoteOnNull:
   lda #0
   sta chanVibratoPos,x
+  ldy #$00
   jsr fcsDispatchCmd
   rts
 
 ; note off, note off env, env release
 fcsNoArgDispatch:
+  tya
+  sec
+  sbc #$b4
+  tay
   jsr fcsDispatchCmd
   rts
 
@@ -77,6 +82,8 @@ fcsOneByteDispatch:
   jsr fcsReadNext
   sta fcsArg0
   pla
+  sec
+  sbc #$b4
   tay
   jsr fcsDispatchCmd
   rts
@@ -323,10 +330,10 @@ fcsReadNext:
   ; a=chanPC[x]+fcsPtr
   clc
   lda chanPC,x
-  adc #>fcsPtr
+  adc #<fcsPtr
   sta fcsTempPtr
   lda chanPC+1,x
-  adc #<fcsPtr
+  adc #>fcsPtr
   sta fcsTempPtr+1
 
   ; increase PC
@@ -356,7 +363,7 @@ fcsChannelCmd:
 
   ; process and read arguments
   ; if (a<0xb3)
-  bmi fcsNote ; handle $00-$7f
+  bpl fcsNote ; handle $00-$7f
   cmp #$b4
   bpl fcsCheckOther
 
@@ -421,7 +428,7 @@ fcsDoChannel:
   ; check whether this channel is halted (PC = 0)
   lda chanPC,x
   ora chanPC+1,x
-  beq +
+  bne +
   rts
   ; channel not halted... begin processing
   ; chanTicks--
@@ -490,6 +497,18 @@ fcsInit:
   cpx #0
   bne -
 
+  ; initialize channel stacks
+  lda #0
+  ldx #0
+- sta chanStackPtr,x
+  clc
+  adc #FCS_MAX_STACK
+  inx
+  inx
+  cpx #(FCS_MAX_CHAN*2)
+  bne -
+  
+
   ; set volumes
   ; TODO
 
@@ -549,12 +568,12 @@ fcsVibTable:
 ; $dd fcsWaitC,
 ; $de fcsWait1,
 ; $df fcsStop,
-fcsInsTableLow:
+fcsInsTableHigh:
   .db >fcsNoArgDispatch, >fcsNoArgDispatch, >fcsNoArgDispatch, >fcsNoArgDispatch, >fcsOneByteDispatch, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp
   .db >fcsPrePorta, >fcsArpTime, >fcsVibrato, >fcsVibRange, >fcsVibShape, >fcsPitch, >fcsArpeggio, >fcsVolume, >fcsVolSlide, >fcsPorta, >fcsLegato, >fcsVolSlideTarget, >fcsNoOpOneByte, >fcsNoOpOneByte, >fcsNoOpOneByte, >fcsPan
   .db >fcsOptPlaceholder, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsCallI, >fcsOffWait, >fcsFullCmd, >fcsCall, >fcsRet, >fcsJump, >fcsTickRate, >fcsWaitS, >fcsWaitC, >fcsWait1, >fcsStop
 
-fcsInsTableHigh:
+fcsInsTableLow:
   .db <fcsNoArgDispatch, <fcsNoArgDispatch, <fcsNoArgDispatch, <fcsNoArgDispatch, <fcsOneByteDispatch, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp
   .db <fcsPrePorta, <fcsArpTime, <fcsVibrato, <fcsVibRange, <fcsVibShape, <fcsPitch, <fcsArpeggio, <fcsVolume, <fcsVolSlide, <fcsPorta, <fcsLegato, <fcsVolSlideTarget, <fcsNoOpOneByte, <fcsNoOpOneByte, <fcsNoOpOneByte, <fcsPan
   .db <fcsOptPlaceholder, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsCallI, <fcsOffWait, <fcsFullCmd, <fcsCall, <fcsRet, <fcsJump, <fcsTickRate, <fcsWaitS, <fcsWaitC, <fcsWait1, <fcsStop
