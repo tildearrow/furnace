@@ -58,7 +58,7 @@ startPlayer:
   bne -
 
   ; set palette
-  bit PPUSTATUS
++ bit PPUSTATUS
   lda #$3f
   sta PPUADDR
   lda #$00
@@ -72,7 +72,7 @@ startPlayer:
   bne -
 
   ; set up PPU
-+ lda #$07
+  lda #$0e
   sta PPUMASK
   ; reset scroll position
   bit PPUSTATUS

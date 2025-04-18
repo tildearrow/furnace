@@ -487,6 +487,7 @@ fcsInit:
 - dex
   lda fcsPtr+40.w,x
   sta chanPC,x
+  cpx #0
   bne -
 
   ; set volumes
