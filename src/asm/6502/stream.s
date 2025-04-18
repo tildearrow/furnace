@@ -193,54 +193,98 @@ fcsOptPlaceholder:
   jsr fcsReadNext
   rts
 
-fcsNoOp:
+fcsCallI:
+  jsr fcsPushCall
+  ; get address
+  jsr fcsReadNext
+  tay
+  jsr fcsReadNext
+  ; ignore next two bytes
+  jsr fcsIgnoreNext
+  jsr fcsIgnoreNext
+  ; a has high byte
+  ; y has low byte
+  sty chanPC,x
+  sta chanPC+1,x
   rts
 
-; COMMAND TABLE
-; $b4 fcsNoArgDispatch,
-; $b5 fcsNoArgDispatch,
-; $b6 fcsNoArgDispatch,
-; $b7 fcsNoArgDispatch,
-; $b8 fcsOneByteDispatch,
-; $b9 fcsNoOp,
-; $ba fcsNoOp,
-; $bb fcsNoOp,
-; $bc fcsNoOp,
-; $bd fcsNoOp,
-; $be fcsNoOp,
-; $bf fcsNoOp,
-; $c0 fcsPrePorta,
-; $c1 fcsArpTime,
-; $c2 fcsVibrato,
-; $c3 fcsVibRange,
-; $c4 fcsVibShape,
-; $c5 fcsPitch,
-; $c6 fcsArpeggio,
-; $c7 fcsVolume,
-; $c8 fcsVolSlide,
-; $c9 fcsPorta,
-; $ca fcsLegato,
-; $cb fcsVolSlideTarget,
-; $cc fcsNoOpOneByte,
-; $cd fcsNoOpOneByte,
-; $ce fcsNoOpOneByte,
-; $cf fcsPan,
-; $d0 fcsOptPlaceholder,
-; $d1 fcsNoOp,
-; $d2 fcsNoOp,
-; $d3 fcsNoOp,
-; $d4 fcsNoOp,
-; $d5 fcsCallI,
-; $d6 fcsOffWait,
-; $d7 fcsFullCmd,
-; $d8 fcsCall,
-; $d9 fcsRet,
-; $da fcsJump,
-; $db fcsTickRate,
-; $dc fcsWaitS,
-; $dd fcsWaitC,
-; $de fcsWait1,
-; $df fcsStop,
+fcsOffWait:
+  ldy #0
+  sty chanTicks+1,x
+  iny
+  sty chanTicks,x
+  jsr fcsDispatchCmd
+  rts
+
+; TODO
+fcsFullCmd:
+  rts
+
+fcsCall:
+  jsr fcsPushCall
+  ; get address
+  jsr fcsReadNext
+  tay
+  jsr fcsReadNext
+  ; a has high byte
+  ; y has low byte
+  sty chanPC,x
+  sta chanPC+1,x
+  rts
+
+fcsPushCall:
+  rts
+
+fcsRet:
+  rts
+
+fcsJump:
+  ; get address
+  jsr fcsReadNext
+  tay
+  jsr fcsReadNext
+  ; ignore next two bytes
+  jsr fcsIgnoreNext
+  jsr fcsIgnoreNext
+  ; a has high byte
+  ; y has low byte
+  sty chanPC,x
+  sta chanPC+1,x
+  rts
+
+; TODO
+fcsTickRate:
+  rts
+
+fcsWaitS:
+  jsr fcsReadNext
+  sta chanTicks,x
+  jsr fcsReadNext
+  sta chanTicks+1,x
+  rts
+
+fcsWaitC:
+  jsr fcsReadNext
+  sta chanTicks,x
+  lda #0
+  sta chanTicks+1,x
+  rts
+
+fcsWait1:
+  ldy #1
+  sty chanTicks,x
+  dey
+  sty chanTicks+1,x
+  rts
+
+fcsStop:
+  lda #0
+  sta chanPC,x
+  sta chanPC+1,x
+  rts
+
+fcsNoOp:
+  rts
 
 ; x: channel*2
 ; y: command
@@ -281,6 +325,14 @@ fcsReadNext:
 + ldy #0
   lda (fcsTempPtr),y
   rts
+
+; x: channel*2
+fcsIgnoreNext:
+  ; increase PC
+  inc chanPC,x
+  bne +
+  inc chanPC+1,x
++ rts
 
 ; x: channel*2 (for speed... char variables are interleaved)
 ; read commands
@@ -433,6 +485,62 @@ fcsVibTable:
   .db 127, 126, 124, 121, 117, 112, 105, 98, 89, 80, 70, 59, 48, 36, 24, 12
   .db 0, -12, -24, -36, -48, -59, -70, -80, -89, -98, -105, -112, -117, -121, -124, -126
   .db -126, -126, -124, -121, -117, -112, -105, -98, -89, -80, -70, -59, -48, -36, -24, -12
+
+; COMMAND TABLE
+; $b4 fcsNoArgDispatch,
+; $b5 fcsNoArgDispatch,
+; $b6 fcsNoArgDispatch,
+; $b7 fcsNoArgDispatch,
+; $b8 fcsOneByteDispatch,
+; $b9 fcsNoOp,
+; $ba fcsNoOp,
+; $bb fcsNoOp,
+; $bc fcsNoOp,
+; $bd fcsNoOp,
+; $be fcsNoOp,
+; $bf fcsNoOp,
+; $c0 fcsPrePorta,
+; $c1 fcsArpTime,
+; $c2 fcsVibrato,
+; $c3 fcsVibRange,
+; $c4 fcsVibShape,
+; $c5 fcsPitch,
+; $c6 fcsArpeggio,
+; $c7 fcsVolume,
+; $c8 fcsVolSlide,
+; $c9 fcsPorta,
+; $ca fcsLegato,
+; $cb fcsVolSlideTarget,
+; $cc fcsNoOpOneByte,
+; $cd fcsNoOpOneByte,
+; $ce fcsNoOpOneByte,
+; $cf fcsPan,
+; $d0 fcsOptPlaceholder,
+; $d1 fcsNoOp,
+; $d2 fcsNoOp,
+; $d3 fcsNoOp,
+; $d4 fcsNoOp,
+; $d5 fcsCallI,
+; $d6 fcsOffWait,
+; $d7 fcsFullCmd,
+; $d8 fcsCall,
+; $d9 fcsRet,
+; $da fcsJump,
+; $db fcsTickRate,
+; $dc fcsWaitS,
+; $dd fcsWaitC,
+; $de fcsWait1,
+; $df fcsStop,
+fcsInsTableLow:
+  .db >fcsNoArgDispatch, >fcsNoArgDispatch, >fcsNoArgDispatch, >fcsNoArgDispatch, >fcsOneByteDispatch, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp
+  .db >fcsPrePorta, >fcsArpTime, >fcsVibrato, >fcsVibRange, >fcsVibShape, >fcsPitch, >fcsArpeggio, >fcsVolume, >fcsVolSlide, >fcsPorta, >fcsLegato, >fcsVolSlideTarget, >fcsNoOpOneByte, >fcsNoOpOneByte, >fcsNoOpOneByte, >fcsPan
+  .db >fcsOptPlaceholder, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsCallI, >fcsOffWait, >fcsFullCmd, >fcsCall, >fcsRet, >fcsJump, >fcsTickRate, >fcsWaitS, >fcsWaitC, >fcsWait1, >fcsStop
+
+fcsInsTableHigh:
+  .db <fcsNoArgDispatch, <fcsNoArgDispatch, <fcsNoArgDispatch, <fcsNoArgDispatch, <fcsOneByteDispatch, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp
+  .db <fcsPrePorta, <fcsArpTime, <fcsVibrato, <fcsVibRange, <fcsVibShape, <fcsPitch, <fcsArpeggio, <fcsVolume, <fcsVolSlide, <fcsPorta, <fcsLegato, <fcsVolSlideTarget, <fcsNoOpOneByte, <fcsNoOpOneByte, <fcsNoOpOneByte, <fcsPan
+  .db <fcsOptPlaceholder, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsCallI, <fcsOffWait, <fcsFullCmd, <fcsCall, <fcsRet, <fcsJump, <fcsTickRate, <fcsWaitS, <fcsWaitC, <fcsWait1, <fcsStop
+
 
 ; "dummy" implementation - example only!
 
