@@ -262,15 +262,16 @@ fcsRet:
 fcsJump:
   ; get address
   jsr fcsReadNext
-  tay
+  pha
   jsr fcsReadNext
+  pha
   ; ignore next two bytes
   jsr fcsIgnoreNext
   jsr fcsIgnoreNext
-  ; a has high byte
-  ; y has low byte
-  sty chanPC,x
+  pla
   sta chanPC+1,x
+  pla
+  sta chanPC,x
   rts
 
 ; TODO
