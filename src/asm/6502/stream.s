@@ -176,6 +176,23 @@ fcsNoOpOneByte:
   jsr fcsReadNext
   rts
 
+fcsPan:
+  jsr fcsReadNext
+  sta chanPan,x
+  sta fcsArg0
+  jsr fcsReadNext
+  sta chanPan+1,x
+  sta fcsArg1
+  ldy #10
+  jsr fcsDispatchCmd
+  rts
+
+fcsOptPlaceholder:
+  jsr fcsReadNext
+  jsr fcsReadNext
+  jsr fcsReadNext
+  rts
+
 fcsNoOp:
   rts
 
@@ -211,7 +228,7 @@ fcsNoOp:
 ; $d0 fcsOptPlaceholder,
 ; $d1 fcsNoOp,
 ; $d2 fcsNoOp,
-; $d3 fcsLoop,
+; $d3 fcsNoOp,
 ; $d4 fcsNoOp,
 ; $d5 fcsCallI,
 ; $d6 fcsOffWait,

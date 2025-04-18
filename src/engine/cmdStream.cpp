@@ -220,23 +220,6 @@ bool DivCSPlayer::tick() {
           break;
         case 0xd1: // nop
           break;
-        case 0xd3: { // loop
-          unsigned char loopOff=stream.readC();
-          if (chan[i].loopCount>0) {
-            stream.readC();
-            if (--chan[i].loopCount) {
-              // jump
-              chan[i].readPos-=loopOff;
-              mustTell=false;
-            }
-          } else {
-            chan[i].loopCount=stream.readC();
-            // jump
-            chan[i].readPos-=loopOff;
-            mustTell=false;
-          }
-          break;
-        }
         case 0xd6: // note off + wait 1
           e->dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
           chan[i].waitTicks=1;

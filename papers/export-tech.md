@@ -99,7 +99,7 @@ hex | description
  d0 | UNUSED - placeholder used during optimization passes (3-byte nonce follows)
  d1 | no operation
  d2 | UNUSED
- d3 | loop (negative offset and count follow... both are 8-bit)
+ d3 | UNUSED
  d4 | UNUSED - call symbol (32-bit index follows; only used internally)
  d5 | call sub-block (32-bit address follows)
  d6 | note off + wait one tick

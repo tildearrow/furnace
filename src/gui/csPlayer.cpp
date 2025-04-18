@@ -131,9 +131,6 @@ String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr, unsigned 
     case 0xd1:
       return "nop";
       break;
-    case 0xd3:
-      return fmt::sprintf("loop (-%d), %d",(int)buf[addr+1],(int)buf[addr+2]);
-      break;
     case 0xd4:
       if (addr+2>=bufLen) return "???";
       return fmt::sprintf("callsym $%.4x",(int)(buf[addr+1]|(buf[addr+2]<<8)));
