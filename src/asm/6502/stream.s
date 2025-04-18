@@ -194,18 +194,19 @@ fcsOptPlaceholder:
   rts
 
 fcsCallI:
-  jsr fcsPushCall
   ; get address
   jsr fcsReadNext
-  tay
+  pha
   jsr fcsReadNext
+  pha
   ; ignore next two bytes
   jsr fcsIgnoreNext
   jsr fcsIgnoreNext
-  ; a has high byte
-  ; y has low byte
-  sty chanPC,x
+  jsr fcsPushCall
+  pla
   sta chanPC+1,x
+  pla
+  sta chanPC,x
   rts
 
 fcsOffWait:
@@ -221,21 +222,44 @@ fcsFullCmd:
   rts
 
 fcsCall:
-  jsr fcsPushCall
   ; get address
   jsr fcsReadNext
-  tay
+  pha
   jsr fcsReadNext
-  ; a has high byte
-  ; y has low byte
-  sty chanPC,x
+  pha
+  jsr fcsPushCall
+  pla
   sta chanPC+1,x
+  pla
+  sta chanPC,x
   rts
 
+; push channel PC to stack
 fcsPushCall:
+  lda chanStackPtr,x
+  tay
+  lda chanPC,x
+  sta fcsGlobalStack,y
+  iny
+  lda chanPC+1,x
+  sta fcsGlobalStack,y
+  iny
+  tya
+  sta chanStackPtr,x
   rts
 
+; retrieve channel PC from stack
 fcsRet:
+  lda chanStackPtr,x
+  tay
+  dey
+  lda fcsGlobalStack,y
+  sta chanPC+1,x
+  dey
+  lda fcsGlobalStack,y
+  sta chanPC,x
+  tya
+  sta chanStackPtr,x
   rts
 
 fcsJump:

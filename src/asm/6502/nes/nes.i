@@ -1,0 +1,23 @@
+; this is a definition file for a NES ROM.
+
+.MEMORYMAP
+DEFAULTSLOT 1
+; 2KB RAM
+SLOT 0 START $0000 SIZE $800
+; 32KB ROM
+SLOT 1 START $8000 SIZE $8000
+.ENDME
+
+.ROMBANKMAP
+BANKSTOTAL 2
+; iNES header
+BANKSIZE $10
+; program ROM data
+BANKSIZE $8000
+BANKS 1
+; character ROM data
+
+.ENDRO
+
+.BANK 1 SLOT 1
+.ORGA $8000
