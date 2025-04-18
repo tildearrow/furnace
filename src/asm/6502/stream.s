@@ -2,6 +2,17 @@
 ; written by tildearrow
 
 ; usage:
+; define the following constants:
+; - FCS_MAX_CHAN: the number of channels in your stream
+; - FCS_MAX_STACK: the maximum stack size
+; - fcsAddrBase: player state address base
+; - fcsZeroPage: player state address base for zero-page-mandatory variables
+; - fcsGlobalStack: player stack (best placed in a page)
+; - fcsPtr: pointer to command stream
+; - fcsVolMax: pointer to max channel volume array
+; - fcsCmdTableLow: low address of command table
+; - fcsCmdTableHigh: high address of command table
+; - see stream_example.i for an example
 ; call fcsInit - this sets A to 0 on success or 1 on failure
 ; call fcsTick on every frame/tick/whatever
 ; - call your dispatch implementation's tick function afterwards
@@ -10,32 +21,11 @@
 ; - short pointers only
 ; - little-endian only!
 
-.include "6502base.i"
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-; constants
-FCS_MAX_CHAN=8 ; maximum number of channels (up to 127, but see below!)
-FCS_MAX_STACK=16 ; stack depth per channel (FCS_MAX_STACK*FCS_MAX_CHAN<256)
-
-; player constants - change if necessary
-fcsAddrBase=$20 ; player state address base
-fcsZeroPage=$10 ; player state address base for zero-page-mandatory variables
-fcsGlobalStack=$200 ; player stack (best placed in a page)
-fcsPtr=$8000 ; pointer to command stream
-fcsVolMax=fcsVolMaxExample ; pointer to max channel volume array
 
 ; calculated from player constants
 fcsDelays=fcsPtr+8
 fcsSpeedDial=fcsPtr+24
-
-; command call table
-; - see src/engine/dispatch.h for a list of commands to be potentially handled
-;   - do not implement HINT commands - the player will never send these
-;   - no need to implement commands not pertaining to the target system
-; - a zero pointer means "don't handle"
-fcsCmdTableLow=fcsCmdTableExample
-fcsCmdTableHigh=fcsCmdTableExample
 
 ; variables
 ; these may be read by your command handling routines
@@ -495,9 +485,12 @@ fcsInit:
   ; set channel program counters
   ldx #(FCS_MAX_CHAN*2)
 - dex
-  lda fcsPtr+40,x
+  lda fcsPtr+40.w,x
   sta chanPC,x
   bne -
+
+  ; set volumes
+  ; TODO
 
   ; success
   lda #0
@@ -572,7 +565,14 @@ fcsDummyFunc:
   rts
 
 fcsVolMaxExample:
-  .db 127, 127, 127, 127, 127, 127, 127, 127
+  .dw $7f00
+  .dw $7f00
+  .dw $7f00
+  .dw $7f00
+  .dw $7f00
+  .dw $7f00
+  .dw $7f00
+  .dw $7f00
 
 ; first 64 commands
 fcsCmdTableExample:
