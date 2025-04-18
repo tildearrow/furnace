@@ -25,6 +25,7 @@ main:
   dey
   bne -
   dex
+  stx $01
   bne -
   ; clear zero page
   ldx #$00
@@ -54,6 +55,20 @@ startPlayer:
   beq +
   sta PPUDATA
   inx
+  bne -
+
+  ; set palette
+  bit PPUSTATUS
+  lda #$3f
+  sta PPUADDR
+  lda #$00
+  sta PPUADDR
+
+  ldx #$00
+- lda ppuPalette.w,x
+  sta PPUDATA
+  inx
+  cpx #$10
   bne -
 
   ; set up PPU
@@ -104,6 +119,12 @@ fcsCmdTableHigh=fcsCmdTableExample
 helloWorld:
   .db "Hello, World!"
   .db 0
+
+ppuPalette:
+  .db $0e, $00, $10, $30
+  .db $0e, $00, $10, $30
+  .db $0e, $00, $10, $30
+  .db $0e, $00, $10, $30
 
 volMaxArray:
   .dw $40, $40, $40, $40
