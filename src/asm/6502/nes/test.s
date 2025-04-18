@@ -85,9 +85,27 @@ startPlayer:
 loop:
   lda pendingTick
   beq loop
+  ; wait a bit so we can see the raster
+  ldy #$ff
+  ldx #$03
+
+- dey
+  bne -
+  dex
+  bne -
+
+  ; raster time display
+  lda #$0f
+  sta PPUMASK
+
   jsr fcsTick
   lda #0
   sta pendingTick
+
+  ; raster time display end
+  lda #$0e
+  sta PPUMASK
+
   jmp loop
 
 ; interrupt handlers
