@@ -119,4 +119,27 @@ void DivEngine::registerROMExports() {
     },
     false, DIV_REQPOL_EXACT
   );
+
+  romExportDefs[DIV_ROM_IPOD]=new DivROMExportDef(
+    "iPod .tone alarm", "AArt1256",
+    "iPod Beeper (.tone) Alarm export\n"
+    "for playback, you can drag the resulting file\n"
+    "into iPod_Control/Tones to your iPod IN DISK MODE",
+    "alarm tone files", ".tone",
+    {
+      DIV_SYSTEM_PCSPKR
+    },
+    false, DIV_REQPOL_ANY
+  );
+
+  romExportDefs[DIV_ROM_GRUB]=new DivROMExportDef(
+    "GRUB_INIT_TUNE", "AArt1256",
+    "GRUB_INIT_TUNE export\n"
+    "for use with the GRUB bootloader using the \"play\" command",
+    "Text/Binary files", NULL,
+    {
+      DIV_SYSTEM_PCSPKR
+    },
+    false, DIV_REQPOL_ANY
+  );
 }
