@@ -785,7 +785,7 @@ SafeWriter* stripNops(SafeWriter* s) {
   return s;
 }
 
-SafeWriter* stripNopsPacked(SafeWriter* s, unsigned char* speedDial) {
+SafeWriter* stripNopsPacked(SafeWriter* s, unsigned char* speedDial, unsigned int* chanStreamOff) {
   std::unordered_map<unsigned int,unsigned int> addrTable;
   SafeWriter* oldStream=s;
   unsigned char* buf=oldStream->getFinalBuf();
@@ -801,7 +801,7 @@ SafeWriter* stripNopsPacked(SafeWriter* s, unsigned char* speedDial) {
       break;
     }
     addrTable[i]=addr;
-    if (buf[i]!=0xd1) addr+=insLen;
+    if (buf[i]!=0xd1 && buf[i]!=0xd0) addr+=insLen;
     i+=insLen;
   }
 
@@ -813,6 +813,14 @@ SafeWriter* stripNopsPacked(SafeWriter* s, unsigned char* speedDial) {
       break;
     }
     switch (buf[i]) {
+      case 0xd0: // ext (for channel offsets)
+        if (buf[i+3]==0) {
+          int ch=buf[i+1];
+          if (ch>=0 && ch<DIV_MAX_CHANS) {
+            chanStreamOff[ch]=addrTable[i];
+          }
+        }
+        break;
       case 0xd5: // calli
       case 0xda: { // jmp
         unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<8)|(buf[i+4]<<24);
@@ -842,7 +850,7 @@ SafeWriter* stripNopsPacked(SafeWriter* s, unsigned char* speedDial) {
         break;
       }
     }
-    if (buf[i]!=0xd1) {
+    if (buf[i]!=0xd1 && buf[i]!=0xd0) {
       s->write(&buf[i],insLen);
     }
     i+=insLen;
@@ -1663,29 +1671,11 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
   globalStream=packStream(globalStream,sortedCmd);
 
   // PASS 8: remove nop's which may be produced by 32-bit call conversion
-  globalStream=stripNopsPacked(globalStream,sortedCmd);
+  // also find new offsets
+  globalStream=stripNopsPacked(globalStream,sortedCmd,chanStreamOff);
 
-  // PASS 9: find new offsets
-  {
-    unsigned char* buf=globalStream->getFinalBuf();
-    for (size_t i=0; i<globalStream->size();) {
-      int insLen=getInsLength(buf[i],_EXT(buf,i,globalStream->size()),sortedCmd);
-      if (insLen<1) {
-        logE("INS %x NOT IMPLEMENTED...",buf[i]);
-        break;
-      }
-
-      if (buf[i]==0xd0) {
-        if (buf[i+3]==0) {
-          int ch=buf[i+1];
-          if (ch>=0 && ch<chans) {
-            chanStreamOff[ch]=i+w->tell();
-          }
-        }
-      }
-
-      i+=insLen;
-    }
+  for (int h=0; h<chans; h++) {
+    chanStreamOff[h]+=w->tell();
   }
 
   // write results (convert addresses to big-endian if necessary)
