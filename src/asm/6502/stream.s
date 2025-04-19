@@ -59,6 +59,18 @@ fcsDriverInfo:
   .db "Furnace"
   .db 0
 
+; x: channel*2
+; a is set to next byte
+.MACRO fcsReadNext
+  ; a=chanPC[x]
+  lda (chanPC,x)
+  ; increase PC
+  inc chanPC,x
+  bne +
+  inc chanPC+1,x
++
+.ENDM
+
 ; note on null
 fcsNoteOnNull:
   lda #0
@@ -79,7 +91,7 @@ fcsNoArgDispatch:
 fcsOneByteDispatch:
   tya
   pha
-  jsr fcsReadNext
+  fcsReadNext
   sta fcsArg0
   pla
   sec
@@ -89,7 +101,7 @@ fcsOneByteDispatch:
   rts
 
 fcsPrePorta:
-  jsr fcsReadNext
+  fcsReadNext
   pha
   and #$80
   sta fcsArg0
@@ -101,35 +113,35 @@ fcsPrePorta:
   rts
 
 fcsArpTime:
-  jsr fcsReadNext
+  fcsReadNext
   sta fcsArpSpeed
   rts
 
 fcsVibrato:
-  jsr fcsReadNext
+  fcsReadNext
   sta chanVibrato,x
   rts
 
 ; TODO
 fcsVibRange:
 fcsVibShape:
-  jsr fcsReadNext
+  fcsReadNext
   rts
 
 fcsPitch:
-  jsr fcsReadNext
+  fcsReadNext
   sta chanPitch,x
   lda #1
   sta fcsSendPitch
   rts
 
 fcsArpeggio:
-  jsr fcsReadNext
+  fcsReadNext
   sta chanArp,x
   rts
 
 fcsVolume:
-  jsr fcsReadNext
+  fcsReadNext
   sta chanVol+1,x
   lda #0
   sta chanVol,x
@@ -138,21 +150,21 @@ fcsVolume:
   rts
 
 fcsVolSlide:
-  jsr fcsReadNext
+  fcsReadNext
   sta chanVolSpeed,x
-  jsr fcsReadNext
+  fcsReadNext
   sta chanVolSpeed+1,x
   rts
 
 fcsPorta:
-  jsr fcsReadNext
+  fcsReadNext
   sta chanPortaTarget,x
-  jsr fcsReadNext
+  fcsReadNext
   sta chanPortaSpeed,x
   rts
 
 fcsLegato:
-  jsr fcsReadNext
+  fcsReadNext
   sta chanNote,x
   sta fcsArg0
   ldy #11
@@ -160,24 +172,24 @@ fcsLegato:
   rts
 
 fcsVolSlideTarget:
-  jsr fcsReadNext
+  fcsReadNext
   sta chanVolSpeed,x
-  jsr fcsReadNext
+  fcsReadNext
   sta chanVolSpeed+1,x
   ; TODO: we don't support this yet...
-  jsr fcsReadNext
-  jsr fcsReadNext
+  fcsReadNext
+  fcsReadNext
   rts
 
 fcsNoOpOneByte:
-  jsr fcsReadNext
+  fcsReadNext
   rts
 
 fcsPan:
-  jsr fcsReadNext
+  fcsReadNext
   sta chanPan,x
   sta fcsArg0
-  jsr fcsReadNext
+  fcsReadNext
   sta chanPan+1,x
   sta fcsArg1
   ldy #10
@@ -185,18 +197,18 @@ fcsPan:
   rts
 
 fcsOptPlaceholder:
-  jsr fcsReadNext
-  jsr fcsReadNext
-  jsr fcsReadNext
+  fcsReadNext
+  fcsReadNext
+  fcsReadNext
   rts
 
 fcsCallI:
   ; get address and relocate it
-  jsr fcsReadNext
+  fcsReadNext
   clc
   adc #<fcsPtr
   pha
-  jsr fcsReadNext
+  fcsReadNext
   adc #>fcsPtr
   pha
   ; ignore next two bytes
@@ -223,11 +235,11 @@ fcsFullCmd:
 
 fcsCall:
   ; get address and relocate it
-  jsr fcsReadNext
+  fcsReadNext
   clc
   adc #<fcsPtr
   pha
-  jsr fcsReadNext
+  fcsReadNext
   adc #>fcsPtr
   pha
   jsr fcsPushCall
@@ -267,11 +279,11 @@ fcsRet:
 
 fcsJump:
   ; get address and relocate it
-  jsr fcsReadNext
+  fcsReadNext
   clc
   adc #<fcsPtr
   pha
-  jsr fcsReadNext
+  fcsReadNext
   adc #>fcsPtr
   pha
   ; ignore next two bytes
@@ -288,14 +300,14 @@ fcsTickRate:
   rts
 
 fcsWaitS:
-  jsr fcsReadNext
+  fcsReadNext
   sta chanTicks,x
-  jsr fcsReadNext
+  fcsReadNext
   sta chanTicks+1,x
   rts
 
 fcsWaitC:
-  jsr fcsReadNext
+  fcsReadNext
   sta chanTicks,x
   lda #0
   sta chanTicks+1,x
@@ -335,19 +347,6 @@ fcsDispatchCmd:
 + rts
 
 ; x: channel*2
-; a is set to next byte
-fcsReadNext:
-  ; a=chanPC[x]
-  lda (chanPC,x)
-  php
-  ; increase PC
-  inc chanPC,x
-  bne +
-  inc chanPC+1,x
-+ plp
-  rts
-
-; x: channel*2
 fcsIgnoreNext:
   ; increase PC
   inc chanPC,x
@@ -359,7 +358,8 @@ fcsIgnoreNext:
 ; read commands
 fcsChannelCmd:
   ; read next byte
-  jsr fcsReadNext
+  fcsReadNext
+  and #$ff ; touch flags
 
   ; process and read arguments
   ; if (a<0xb3)
