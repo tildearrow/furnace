@@ -191,10 +191,13 @@ fcsOptPlaceholder:
   rts
 
 fcsCallI:
-  ; get address
+  ; get address and relocate it
   jsr fcsReadNext
+  clc
+  adc #<fcsPtr
   pha
   jsr fcsReadNext
+  adc #>fcsPtr
   pha
   ; ignore next two bytes
   jsr fcsIgnoreNext
@@ -219,10 +222,13 @@ fcsFullCmd:
   rts
 
 fcsCall:
-  ; get address
+  ; get address and relocate it
   jsr fcsReadNext
+  clc
+  adc #<fcsPtr
   pha
   jsr fcsReadNext
+  adc #>fcsPtr
   pha
   jsr fcsPushCall
   pla
@@ -260,10 +266,13 @@ fcsRet:
   rts
 
 fcsJump:
-  ; get address
+  ; get address and relocate it
   jsr fcsReadNext
+  clc
+  adc #<fcsPtr
   pha
   jsr fcsReadNext
+  adc #>fcsPtr
   pha
   ; ignore next two bytes
   jsr fcsIgnoreNext
@@ -328,24 +337,14 @@ fcsDispatchCmd:
 ; x: channel*2
 ; a is set to next byte
 fcsReadNext:
-  ; a=chanPC[x]+fcsPtr
-  clc
-  lda chanPC,x
-  adc #<fcsPtr
-  sta fcsTempPtr
-  lda chanPC+1,x
-  adc #>fcsPtr
-  sta fcsTempPtr+1
-
+  ; a=chanPC[x]
+  lda (chanPC,x)
+  php
   ; increase PC
   inc chanPC,x
   bne +
   inc chanPC+1,x
-
-  ; read byte and put it into a
-  ; this is at the end to ensure flags are set properly
-+ ldy #0
-  lda (fcsTempPtr),y
++ plp
   rts
 
 ; x: channel*2
@@ -496,6 +495,20 @@ fcsInit:
   lda fcsPtr+40.w,x
   sta chanPC,x
   cpx #0
+  bne -
+
+  ; relocate program counters
+  ldx #0
+- clc
+  lda chanPC,x
+  adc #<fcsPtr
+  sta chanPC,x
+  inx
+  lda chanPC,x
+  adc #>fcsPtr
+  sta chanPC,x
+  inx
+  cpx #(FCS_MAX_CHAN*2)
   bne -
 
   ; initialize channel stacks
