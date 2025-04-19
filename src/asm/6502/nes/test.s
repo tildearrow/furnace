@@ -118,8 +118,8 @@ irq:
   rti
 
 ; command stream player definition
-FCS_MAX_CHAN=4
-FCS_MAX_STACK=16
+FCS_MAX_CHAN=8
+FCS_MAX_STACK=10
 
 fcsAddrBase=$20
 fcsZeroPage=$10

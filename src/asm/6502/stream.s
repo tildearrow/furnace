@@ -80,11 +80,28 @@ fcsNoteOnNull:
   rts
 
 ; note off, note off env, env release
-fcsNoArgDispatch:
+fcsNoArgDispatchB4:
   tya
   sec
   sbc #$b4
   tay
+  jsr fcsDispatchCmd
+  rts
+
+fcsOneByteDispatchB4:
+  tya
+  pha
+  fcsReadNext
+  sta fcsArg0
+  pla
+  sec
+  sbc #$b4
+  tay
+  jsr fcsDispatchCmd
+  rts
+
+; dispatch subroutines for full commands
+fcsNoArgDispatch:
   jsr fcsDispatchCmd
   rts
 
@@ -94,8 +111,46 @@ fcsOneByteDispatch:
   fcsReadNext
   sta fcsArg0
   pla
-  sec
-  sbc #$b4
+  tay
+  jsr fcsDispatchCmd
+  rts
+
+fcsTwoByteDispatch:
+  tya
+  pha
+  fcsReadNext
+  sta fcsArg0
+  fcsReadNext
+  sta fcsArg1
+  pla
+  tay
+  jsr fcsDispatchCmd
+  rts
+
+fcsOneShortDispatch:
+  tya
+  pha
+  fcsReadNext
+  sta fcsArg0
+  fcsReadNext
+  sta fcsArg0+1
+  pla
+  tay
+  jsr fcsDispatchCmd
+  rts
+
+fcsTwoShortDispatch:
+  tya
+  pha
+  fcsReadNext
+  sta fcsArg0
+  fcsReadNext
+  sta fcsArg0+1
+  fcsReadNext
+  sta fcsArg1
+  fcsReadNext
+  sta fcsArg1+1
+  pla
   tay
   jsr fcsDispatchCmd
   rts
@@ -229,9 +284,28 @@ fcsOffWait:
   jsr fcsDispatchCmd
   rts
 
-; TODO
 fcsFullCmd:
-  rts
+  ; read command
+  fcsReadNext
+  tay
+  lda fcsFullCmdTable-28,y
+  tay
+  lda fcsCmdReadTableLow,y
+  sta fcsTempPtr
+  lda fcsCmdReadTableHigh,y
+  sta fcsTempPtr+1
+  jmp (fcsTempPtr)
+
+fcsSpeedDialCmd:
+  lda fcsSpeedDial-224,y
+  tay
+  lda fcsFullCmdTable-28,y
+  tay
+  lda fcsCmdReadTableLow,y
+  sta fcsTempPtr
+  lda fcsCmdReadTableHigh,y
+  sta fcsTempPtr+1
+  jmp (fcsTempPtr)
 
 fcsCall:
   ; get address and relocate it
@@ -583,15 +657,268 @@ fcsVibTable:
 ; $de fcsWait1,
 ; $df fcsStop,
 fcsInsTableHigh:
-  .db >fcsNoArgDispatch, >fcsNoArgDispatch, >fcsNoArgDispatch, >fcsNoArgDispatch, >fcsOneByteDispatch, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp
+  .db >fcsNoArgDispatchB4, >fcsNoArgDispatchB4, >fcsNoArgDispatchB4, >fcsNoArgDispatchB4, >fcsOneByteDispatchB4, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp
   .db >fcsPrePorta, >fcsArpTime, >fcsVibrato, >fcsVibRange, >fcsVibShape, >fcsPitch, >fcsArpeggio, >fcsVolume, >fcsVolSlide, >fcsPorta, >fcsLegato, >fcsVolSlideTarget, >fcsNoOpOneByte, >fcsNoOpOneByte, >fcsNoOpOneByte, >fcsPan
   .db >fcsOptPlaceholder, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsCallI, >fcsOffWait, >fcsFullCmd, >fcsCall, >fcsRet, >fcsJump, >fcsTickRate, >fcsWaitS, >fcsWaitC, >fcsWait1, >fcsStop
+  .db >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd
 
 fcsInsTableLow:
-  .db <fcsNoArgDispatch, <fcsNoArgDispatch, <fcsNoArgDispatch, <fcsNoArgDispatch, <fcsOneByteDispatch, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp
+  .db <fcsNoArgDispatchB4, <fcsNoArgDispatchB4, <fcsNoArgDispatchB4, <fcsNoArgDispatchB4, <fcsOneByteDispatchB4, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp
   .db <fcsPrePorta, <fcsArpTime, <fcsVibrato, <fcsVibRange, <fcsVibShape, <fcsPitch, <fcsArpeggio, <fcsVolume, <fcsVolSlide, <fcsPorta, <fcsLegato, <fcsVolSlideTarget, <fcsNoOpOneByte, <fcsNoOpOneByte, <fcsNoOpOneByte, <fcsPan
   .db <fcsOptPlaceholder, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsCallI, <fcsOffWait, <fcsFullCmd, <fcsCall, <fcsRet, <fcsJump, <fcsTickRate, <fcsWaitS, <fcsWaitC, <fcsWait1, <fcsStop
+  .db <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd
 
+fcsCmdReadTableHigh:
+  .db >fcsNoArgDispatch
+  .db >fcsOneByteDispatch
+  .db >fcsTwoByteDispatch
+  .db >fcsOneShortDispatch
+  .db >fcsTwoShortDispatch
+
+fcsCmdReadTableLow:
+  .db <fcsNoArgDispatch
+  .db <fcsOneByteDispatch
+  .db <fcsTwoByteDispatch
+  .db <fcsOneShortDispatch
+  .db <fcsTwoShortDispatch
+
+fcsFullCmdTable:
+  ; starting from $1c
+  .db 1
+  .db 1
+  .db 1
+  .db 4
+  .db 1
+  ; FM commands
+  .db 1
+  .db 1
+  .db 1
+  .db 2
+  .db 2
+  .db 2
+  .db 2
+  .db 2
+  .db 2
+  .db 2
+  .db 2
+  .db 2
+  .db 2
+  .db 2
+  .db 2
+  .db 2
+  .db 2
+  .db 2
+  .db 2
+  .db 2
+  .db 1
+  .db 2
+  .db 2
+  .db 3
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  ; PSG commands
+  .db 1
+  .db 1
+  .db 1
+  ; Game Boy commands
+  .db 1
+  .db 1
+  ; PC Engine commands
+  .db 1
+  .db 1
+  ; NES
+  .db 1
+  .db 1
+  ; C64
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 3
+  .db 3
+  ; AY commands
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 2
+  .db 2
+  ; FDS
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  ; SAA1099
+  .db 1
+  ; Amiga
+  .db 1
+  .db 1
+  .db 1
+  ; Lynx
+  .db 3
+  ; QSound
+  .db 1
+  .db 3
+  .db 1
+  .db 1
+  ; X1-010
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  ; WonderSwan
+  .db 1
+  .db 1
+  ; Namco 163
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  ; Sound Unit
+  .db 2
+  .db 2
+  .db 2
+  .db 2
+  .db 1
+  .db 1
+  ; ADPCM-A
+  .db 1
+  ; SNES
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 2
+  ; NES
+  .db 1
+  .db 1
+  .db 1
+  ; macro control
+  .db 1
+  .db 1
+  ; surround
+  .db 2
+  ; FM
+  .db 1
+  .db 1
+  ; ES5506
+  .db 1
+  .db 4
+  .db 4
+  .db 2
+  .db 2
+  .db 3
+  .db 1
+  .db 1
+  .db 2
+  .db 2
+  .db 1
+  ; unused gap
+  .db 1
+  ; SNES
+  .db 1
+  .db 1
+  ; NES linear counter
+  .db 1
+  ; ext cmd
+  .db 1
+  ; C64
+  .db 1
+  .db 1
+  ; ESFM
+  .db 2
+  .db 2
+  .db 2
+  .db 2
+  ; restart macro
+  .db 1
+  ; PowerNoise
+  .db 2
+  .db 2
+  ; Dave
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  ; MinMod
+  .db 1
+  ; Bifurcator
+  .db 2
+  .db 2
+  ; FDS AutoMod
+  .db 1
+  ; OpMask
+  .db 1
+  ; MultiPCM
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  ; SID3
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 2
+  .db 1
+  .db 2
+  .db 2
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  ; slide
+  .db 2
+  .db 2
+  ; SID3 continued
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  .db 1
+  ; WonderSwan speaker vol
+  .db 1
 
 ; "dummy" implementation - example only!
 
