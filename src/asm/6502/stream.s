@@ -484,15 +484,42 @@ fcsChannelCmd:
 ; x: channel*2
 ; stuff that goes after command reading
 fcsChannelPost:
-  ; do volume
+  ;;; DO VOLUME
+  fcsChanDoVolume:
+    ; if (sendVolume || chanVolSpeed[x]!=0)
+    lda fcsSendVolume
+    bne fcsChanDoPitch
+    lda chanVolSpeed,x
+    ora chanVolSpeed+1,x
+    beq fcsChanDoPitch
+    ; increase volume
+    lda chanVol,x
+    clc
+    adc chanVolSpeed,x
+    sta chanVol,x
+    lda chanVol+1,x
+    adc chanVolSpeed+1,x
+    sta chanVol+1,x
+    ; TODO: handle vol slide with target
+    ; get sign of volume speed
+    lda chanVolSpeed+1,x
+    bpl fcsChanPlus
+    fcsChanMinus:
+      ; if (chanVol[x]<0)
+      jmp fcsChanDoPitch
+    fcsChanPlus:
+      ; if (chanVol[x]>=fcsVolMax[x] || CARRY)
 
-  ; do pitch
+  ;;; DO PITCH
+  fcsChanDoPitch:
 
-  ; do portamento
+  ;;; DO PORTAMENTO
+  fcsChanDoPorta:
 
-  ; do arpeggio
+  ;;; DO ARPEGGIO
+  fcsChanDoArp:
 
-  ; end
+  ;;; END
   rts
 
 ; x: channel*2
