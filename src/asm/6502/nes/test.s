@@ -110,8 +110,12 @@ loop:
 
 ; interrupt handlers
 nmi:
+  php
+  pha
   lda #1
   sta pendingTick
+  pla
+  plp
   rti
 
 irq:
@@ -121,8 +125,8 @@ irq:
 FCS_MAX_CHAN=8
 FCS_MAX_STACK=10
 
-fcsAddrBase=$20
-fcsZeroPage=$10
+fcsAddrBase=$30
+fcsZeroPage=$0e
 fcsGlobalStack=$200
 fcsPtr=cmdStream
 fcsVolMax=volMaxArray

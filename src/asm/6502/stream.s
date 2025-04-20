@@ -298,6 +298,7 @@ fcsFullCmd:
 
 fcsSpeedDialCmd:
   lda fcsSpeedDial-224,y
+  pha
   tay
   lda fcsFullCmdTable-28,y
   tay
@@ -305,6 +306,8 @@ fcsSpeedDialCmd:
   sta fcsTempPtr
   lda fcsCmdReadTableHigh,y
   sta fcsTempPtr+1
+  pla
+  tay
   jmp (fcsTempPtr)
 
 fcsCall:
