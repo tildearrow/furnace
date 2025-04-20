@@ -36,9 +36,9 @@ struct DivCSChannelState {
 
   int note, pitch;
   int volume, volMax, volSpeed, volSpeedTarget;
-  int vibratoDepth, vibratoRate, vibratoPos;
+  int vibratoDepth, vibratoRate, vibratoPos, vibratoRange, vibratoShape;
   int portaTarget, portaSpeed;
-  unsigned char arp, arpStage, arpTicks, loopCount;
+  unsigned char arp, arpStage, arpTicks;
 
   unsigned int callStack[DIV_MAX_CSSTACK];
   unsigned char callStackPos;
@@ -66,7 +66,6 @@ struct DivCSChannelState {
     arp(0),
     arpStage(0),
     arpTicks(0),
-    loopCount(0),
     callStackPos(0),
     tracePos(0) {
     for (int i=0; i<DIV_MAX_CSTRACE; i++) {
@@ -87,6 +86,8 @@ class DivCSPlayer {
   unsigned char arpSpeed;
   unsigned int fileChans;
   unsigned int curTick, fastDelaysOff, fastCmdsOff, deltaCyclePos;
+  bool longPointers;
+  bool bigEndian;
 
   short vibTable[64];
   public:
@@ -111,10 +112,37 @@ class DivCSPlayer {
 
 struct DivCSProgress {
   int stage, count, total;
+  int optStage, findTotal;
+  int optCurrent, optTotal;
+  int findCurrent, expandCurrent;
+  int origCurrent, origCount;
   DivCSProgress():
     stage(0),
     count(0),
-    total(0) {}
+    total(0),
+    optStage(0),
+    findTotal(0),
+    optCurrent(0),
+    optTotal(0),
+    findCurrent(0),
+    expandCurrent(0),
+    origCurrent(0),
+    origCount(0) {}
+};
+
+struct DivCSOptions {
+  bool longPointers;
+  bool bigEndian;
+  bool noCmdCallOpt;
+  bool noDelayCondense;
+  bool noSubBlock;
+
+  DivCSOptions():
+    longPointers(false),
+    bigEndian(false),
+    noCmdCallOpt(false),
+    noDelayCondense(false),
+    noSubBlock(false) {}
 };
 
 // command stream utilities

@@ -21,6 +21,7 @@
 #include "gui.h"
 #include "../fileutils.h"
 #include "IconsFontAwesome4.h"
+#include "furIcons.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <fmt/printf.h>
 
@@ -395,7 +396,7 @@ void FurnaceGUI::drawMobileControls() {
     bool metro=e->getMetronome();
     pushToggleColors(metro);
     if (portrait) ImGui::SameLine();
-    if (ImGui::Button(ICON_FA_BELL_O "##Metronome",buttonSize)) {
+    if (ImGui::Button(ICON_FUR_METRONOME "##Metronome",buttonSize)) {
       e->setMetronome(!metro);
     }
     popToggleColors();
@@ -808,7 +809,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         bool metro=e->getMetronome();
         pushToggleColors(metro);
-        if (ImGui::Button(ICON_FA_BELL_O "##Metronome")) {
+        if (ImGui::Button(ICON_FUR_METRONOME "##Metronome")) {
           e->setMetronome(!metro);
         }
         if (ImGui::IsItemHovered()) {
@@ -924,7 +925,7 @@ void FurnaceGUI::drawEditControls() {
 
         bool metro=e->getMetronome();
         pushToggleColors(metro);
-        if (ImGui::Button(ICON_FA_BELL_O "##Metronome",buttonSize)) {
+        if (ImGui::Button(ICON_FUR_METRONOME "##Metronome",buttonSize)) {
           e->setMetronome(!metro);
         }
         if (ImGui::IsItemHovered()) {
@@ -1064,7 +1065,7 @@ void FurnaceGUI::drawEditControls() {
         bool metro=e->getMetronome();
         ImGui::SameLine();
         pushToggleColors(metro);
-        if (ImGui::Button(ICON_FA_BELL_O "##Metronome")) {
+        if (ImGui::Button(ICON_FUR_METRONOME "##Metronome")) {
           e->setMetronome(!metro);
         }
         if (ImGui::IsItemHovered()) {

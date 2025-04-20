@@ -13,18 +13,24 @@ then read data.
 
 ## binary command stream
 
-Furnace Command Stream, split version.
+this is the Furnace Command Stream specification.
+all numbers are little-endian unless the "big-endian mode" flag is set.
 
 ```
 size | description
 -----|------------------------------------
   4  | "FCS\0" format magic
-  4  | channel count
- 4?? | pointers to channel data
+  2  | channel count
+  1  | flags
+     | - bit 1: big-endian mode
+     | - bit 0: pointer size (off: short; on: long)
+  1  | reserved
  1?? | preset delays
      | - 16 values
  1?? | speed dial commands
      | - 16 values
+ ??? | pointers to channel data
+     | - pointers are short (2-byte) or long (4-byte), set in flags
  ??? | channel data
 ```
 
@@ -66,7 +72,10 @@ hex | description
  c0 | pre porta (X)
     | - bit 7: inPorta
     | - bit 6: isPortaOrSlide
- c2 | vibrato (bb) // speed, depth
+ c1 | arpeggio speed (b)
+ c2 | vibrato (X)
+    | - bit 4-7: speed
+    | - bit 0-3: depth
  c3 | vibrato range (b)
  c4 | vibrato shape (b)
  c5 | pitch (c)
@@ -87,32 +96,32 @@ hex | description
  ce | pan slide (c)
  cf | panning (bb) // left, right
 ----|------------------------------------
- d0 | speed dial command 0
- d1 | speed dial command 1
- .. | ...
- df | speed dial command 15
+ d0 | UNUSED - placeholder used during optimization passes (3-byte nonce follows)
+ d1 | no operation
+ d2 | UNUSED
+ d3 | UNUSED
+ d4 | UNUSED - call symbol (32-bit index follows; only used internally)
+ d5 | call sub-block (32-bit address follows)
+ d6 | note off + wait one tick
+ d7 | full command (command and data follows)
+ d8 | call sub-block (16-bit address follows)
+ d9 | return from sub-block
+ da | jump (address follows)
+ db | set tick rate (4 bytes)
+ dc | wait (16-bit)
+ dd | wait (8-bit)
+ de | wait one tick
+ df | stop
 ----|------------------------------------
- e0 | preset delay 0
- e1 | preset delay 1
+ e0 | speed dial command 0
+ e1 | speed dial command 1
  .. | ...
- ef | preset delay 15
+ ef | speed dial command 15
 ----|------------------------------------
- f0 | UNUSED - placeholder used during optimization passes (3-byte nonce follows)
- f1 | no operation
- f2 | UNUSED
- f3 | loop (negative offset and count follow... both are 8-bit)
- f4 | UNUSED - call symbol (32-bit index follows; only used internally)
- f5 | call sub-block (32-bit address follows)
- f6 | UNUSED
- f7 | full command (command and data follows)
- f8 | call sub-block (16-bit address follows)
- f9 | return from sub-block
- fa | jump (address follows)
- fb | set tick rate (4 bytes)
- fc | wait (16-bit)
- fd | wait (8-bit)
- fe | wait one tick
- ff | stop
+ f0 | preset delay 0
+ f1 | preset delay 1
+ .. | ...
+ ff | preset delay 15
 ```
 
 ## full commands
@@ -304,8 +313,6 @@ hex | description
  9f | envelope K1 ramp (bb)
  a0 | envelope K2 ramp (bb)
  a1 | pause (b)
-----|------------------------------------
- a2 | arpeggio speed (b)
 ----|------------------------------------
     | **SNES commands (continued)**
  a3 | global vol left (c)

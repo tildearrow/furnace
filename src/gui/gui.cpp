@@ -2665,7 +2665,7 @@ void FurnaceGUI::exportCmdStream(bool target, String path) {
   csExportTarget=target;
   csExportDone=false;
   csExportThread=new std::thread([this]() {
-    SafeWriter* w=e->saveCommand(&csProgress,csExportDisablePass);
+    SafeWriter* w=e->saveCommand(&csProgress,csExportOptions);
     csExportResult=w;
     csExportDone=true;
   });
@@ -6080,7 +6080,12 @@ bool FurnaceGUI::loop() {
         }
       } else {
         WAKE_UP;
-        ImGui::Text("Exporting... %d",csProgress.count);
+        ImGui::Text("Exporting...");
+        ImGui::Text("opt stage: %d",csProgress.optStage);
+        ImGui::Text("pass: %d/%d",csProgress.optCurrent,csProgress.optTotal);
+        ImGui::Text("find: %d/%d",csProgress.findCurrent,csProgress.findTotal);
+        ImGui::Text("expand: %d/%d",csProgress.expandCurrent,csProgress.optCurrent);
+        ImGui::Text("benefit: %d/%d",csProgress.origCurrent,csProgress.origCount);
 
         // check whether we're done
         if (csExportDone) {
@@ -8969,7 +8974,6 @@ FurnaceGUI::FurnaceGUI():
   csExportDone(false),
   dmfExportVersion(0),
   curExportType(GUI_EXPORT_NONE),
-  csExportDisablePass(0),
   romTarget(DIV_ROM_ABSTRACT),
   romMultiFile(false),
   romExportSave(false),

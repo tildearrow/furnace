@@ -870,7 +870,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if (effectVal) chan[i].lastVibrato=effectVal;
         chan[i].vibratoDepth=effectVal&15;
         chan[i].vibratoRate=effectVal>>4;
-        dispatchCmd(DivCommand(DIV_CMD_HINT_VIBRATO,i,chan[i].vibratoDepth,chan[i].vibratoRate));
+        dispatchCmd(DivCommand(DIV_CMD_HINT_VIBRATO,i,(chan[i].vibratoDepth&15)|(chan[i].vibratoRate<<4)));
         dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
         break;
       case 0x05: // vol slide + vibrato
@@ -881,7 +881,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].vibratoDepth=chan[i].lastVibrato&15;
           chan[i].vibratoRate=chan[i].lastVibrato>>4;
         }
-        dispatchCmd(DivCommand(DIV_CMD_HINT_VIBRATO,i,chan[i].vibratoDepth,chan[i].vibratoRate));
+        dispatchCmd(DivCommand(DIV_CMD_HINT_VIBRATO,i,(chan[i].vibratoDepth&15)|(chan[i].vibratoRate<<4)));
         dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
         // TODO: non-0x-or-x0 value should be treated as 00
         if (effectVal!=0) {

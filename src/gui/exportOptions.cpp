@@ -489,22 +489,12 @@ void FurnaceGUI::drawExportText(bool onWindow) {
 }
 
 void FurnaceGUI::commandExportOptions() {
-  bool noCmdCallOpt=(csExportDisablePass&1);
-  bool noDelayCondense=(csExportDisablePass&2);
-  bool noSubBlock=(csExportDisablePass&4);
-
-  if (ImGui::Checkbox(_("Don't optimize command calls"),&noCmdCallOpt)) {
-    csExportDisablePass&=~1;
-    csExportDisablePass|=noCmdCallOpt?1:0;
-  }
-  if (ImGui::Checkbox(_("Don't condense delays"),&noDelayCondense)) {
-    csExportDisablePass&=~2;
-    csExportDisablePass|=noDelayCondense?2:0;
-  }
-  if (ImGui::Checkbox(_("Don't perform sub-block search"),&noSubBlock)) {
-    csExportDisablePass&=~4;
-    csExportDisablePass|=noSubBlock?4:0;
-  }
+  ImGui::Checkbox(_("Long pointers (use for 64K+ size streams)"),&csExportOptions.longPointers);
+  ImGui::Checkbox(_("Big endian mode"),&csExportOptions.bigEndian);
+  ImGui::Separator();
+  ImGui::Checkbox(_("Don't optimize command calls"),&csExportOptions.noCmdCallOpt);
+  ImGui::Checkbox(_("Don't condense delays"),&csExportOptions.noDelayCondense);
+  ImGui::Checkbox(_("Don't perform sub-block search"),&csExportOptions.noSubBlock);
 }
 
 void FurnaceGUI::drawExportCommand(bool onWindow) {
