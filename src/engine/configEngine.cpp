@@ -47,7 +47,11 @@
 #endif
 #endif
 
-void DivEngine::initConfDir() {
+void DivEngine::initConfDir(String path="") {
+  if (path!="") {
+    configPath=path;
+    return;
+  }
 #ifdef _WIN32
   // maybe move this function in here instead?
   configPath=getWinConfigPath();

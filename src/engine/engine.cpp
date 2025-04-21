@@ -4018,9 +4018,9 @@ bool DivEngine::deinitAudioBackend(bool dueToSwitchMaster) {
   return true;
 }
 
-bool DivEngine::prePreInit() {
+bool DivEngine::prePreInit(String configPath="") {
   // init config
-  initConfDir();
+  initConfDir(configPath);
   logD("config path: %s",configPath.c_str());
 
   configLoaded=true;

@@ -88,6 +88,7 @@ String vgmOutName;
 String cmdOutName;
 String romOutName;
 String txtOutName;
+String configPath;
 int benchMode=0;
 int subsong=-1;
 int cmdDisableOpt=0;
@@ -477,6 +478,11 @@ TAParamResult pTxtOut(String val) {
   return TA_PARAM_SUCCESS;
 }
 
+TAParamResult pConfigPath(String val) {
+  configPath=val;
+  return TA_PARAM_SUCCESS;
+}
+
 bool needsValue(String param) {
   for (size_t i=0; i<params.size(); i++) {
     if (params[i].name==param) {
@@ -488,6 +494,8 @@ bool needsValue(String param) {
 
 void initParams() {
   params.push_back(TAParam("h","help",false,pHelp,"","display this help"));
+
+  params.push_back(TAParam("","configpath",false,pConfigPath,"<path>","set Furnace config path"));
 
   params.push_back(TAParam("a","audio",true,pAudio,"jack|sdl|portaudio|pipe","set audio engine (SDL by default)"));
   params.push_back(TAParam("o","output",true,pOutput,"<filename>","output audio to file"));
@@ -595,9 +603,61 @@ int main(int argc, char** argv) {
   cmdOutName="";
   romOutName="";
   txtOutName="";
+  configPath="";
+
+  initParams();
+
+  // parse arguments
+  String arg, val, fileName;
+  size_t eqSplit, argStart;
+  for (int i=1; i<argc; i++) {
+    arg=""; val="";
+    if (argv[i][0]=='-') {
+      if (argv[i][1]=='-') {
+        argStart=2;
+      } else {
+        argStart=1;
+      }
+      arg=&argv[i][argStart];
+      eqSplit=arg.find_first_of('=');
+      if (eqSplit==String::npos) {
+        if (needsValue(arg)) {
+          if ((i+1)<argc) {
+            val=argv[i+1];
+            i++;
+          } else {
+            reportError(fmt::sprintf(_("incomplete param %s."),arg.c_str()));
+            return 1;
+          }
+        }
+      } else {
+        val=arg.substr(eqSplit+1);
+        arg=arg.substr(0,eqSplit);
+      }
+      for (size_t j=0; j<params.size(); j++) {
+        if (params[j].name==arg || (params[j].shortName!="" && params[j].shortName==arg)) {
+          switch (params[j].func(val)) {
+            case TA_PARAM_ERROR:
+              return 1;
+              break;
+            case TA_PARAM_SUCCESS:
+              break;
+            case TA_PARAM_QUIT:
+              return 0;
+              break;
+          }
+          break;
+        }
+      }
+    } else {
+      fileName=argv[i];
+    }
+  }
+
+  e.setConsoleMode(consoleMode,!consoleNoStatus);
 
   // load config for locale
-  e.prePreInit();
+  e.prePreInit(configPath);
 
 #ifdef HAVE_LOCALE
   String reqLocale=e.getConfString("locale","");
@@ -690,57 +750,6 @@ int main(int argc, char** argv) {
     }
 #endif
   }
-
-  initParams();
-
-  // parse arguments
-  String arg, val, fileName;
-  size_t eqSplit, argStart;
-  for (int i=1; i<argc; i++) {
-    arg=""; val="";
-    if (argv[i][0]=='-') {
-      if (argv[i][1]=='-') {
-        argStart=2;
-      } else {
-        argStart=1;
-      }
-      arg=&argv[i][argStart];
-      eqSplit=arg.find_first_of('=');
-      if (eqSplit==String::npos) {
-        if (needsValue(arg)) {
-          if ((i+1)<argc) {
-            val=argv[i+1];
-            i++;
-          } else {
-            reportError(fmt::sprintf(_("incomplete param %s."),arg.c_str()));
-            return 1;
-          }
-        }
-      } else {
-        val=arg.substr(eqSplit+1);
-        arg=arg.substr(0,eqSplit);
-      }
-      for (size_t j=0; j<params.size(); j++) {
-        if (params[j].name==arg || (params[j].shortName!="" && params[j].shortName==arg)) {
-          switch (params[j].func(val)) {
-            case TA_PARAM_ERROR:
-              return 1;
-              break;
-            case TA_PARAM_SUCCESS:
-              break;
-            case TA_PARAM_QUIT:
-              return 0;
-              break;
-          }
-          break;
-        }
-      }
-    } else {
-      fileName=argv[i];
-    }
-  }
-
-  e.setConsoleMode(consoleMode,!consoleNoStatus);
 
 #ifdef _WIN32
   if (consoleMode) {

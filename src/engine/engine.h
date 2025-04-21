@@ -769,7 +769,7 @@ class DivEngine {
     int minVGMVersion(DivSystem which);
 
     // determine and setup config dir
-    void initConfDir();
+    void initConfDir(String path);
 
     // save config
     bool saveConf();
@@ -1370,7 +1370,7 @@ class DivEngine {
     void quitDispatch();
 
     // pre-pre-initialize the engine.
-    bool prePreInit();
+    bool prePreInit(String configPath);
 
     // pre-initialize the engine. returns whether Furnace should run in safe mode.
     bool preInit(bool noSafeMode=true);
