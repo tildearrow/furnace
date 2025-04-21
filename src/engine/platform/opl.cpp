@@ -2862,10 +2862,6 @@ void DivPlatformOPL::reset() {
   }
   pcm.reset();
 
-  if (dumpWrites) {
-    addWrite(0xffffffff,0);
-  }
-
   properDrums=properDrumsSys;
   if (oplType==3) {
     chanMap=properDrums?chanMapOPL3Drums:chanMapOPL3;
@@ -2945,6 +2941,10 @@ void DivPlatformOPL::reset() {
     } else {
       immWrite(0x105,1);
     }
+  }
+
+  if (dumpWrites) {
+    addWrite(0xffffffff,0);
   }
 
   update4OpMask=true;
