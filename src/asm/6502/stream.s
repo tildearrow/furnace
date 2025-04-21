@@ -506,6 +506,7 @@ fcsChannelPost:
     bpl fcsChanPlus
     fcsChanMinus:
       ; if (chanVol[x]<0)
+      bcc fcs
       jmp fcsChanDoPitch
     fcsChanPlus:
       ; if (chanVol[x]>=fcsVolMax[x] || CARRY)
