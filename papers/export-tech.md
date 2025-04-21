@@ -31,6 +31,8 @@ size | description
      | - 16 values
  ??? | pointers to channel data
      | - pointers are short (2-byte) or long (4-byte), set in flags
+ 1?? | maximum stack size per channel
+     | - length: channel count
  ??? | channel data
 ```
 

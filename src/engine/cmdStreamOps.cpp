@@ -19,6 +19,7 @@
 
 #include "engine.h"
 #include "../ta-log.h"
+#include <stack>
 #include <unordered_map>
 
 int DivCS::getCmdLength(unsigned char ext) {
@@ -1253,6 +1254,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
   SafeWriter* globalStream;
   SafeWriter* chanStream[DIV_MAX_CHANS];
   unsigned int chanStreamOff[DIV_MAX_CHANS];
+  unsigned int chanStackSize[DIV_MAX_CHANS];
   std::vector<size_t> tickPos[DIV_MAX_CHANS];
   int loopTick=-1;
 
@@ -1260,6 +1262,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
   memset(delayPopularity,0,256*sizeof(int));
   memset(chanStream,0,DIV_MAX_CHANS*sizeof(void*));
   memset(chanStreamOff,0,DIV_MAX_CHANS*sizeof(unsigned int));
+  memset(chanStackSize,0,DIV_MAX_CHANS*sizeof(unsigned int));
   memset(sortedCmdPopularity,0,16*sizeof(int));
   memset(sortedDelayPopularity,0,16*sizeof(int));
   memset(sortedCmd,0,16);
@@ -1291,6 +1294,10 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     } else {
       w->writeS(0);
     }
+  }
+  // max stack sizes
+  for (int i=0; i<chans; i++) {
+    w->writeC(0);
   }
 
   // play the song ourselves
@@ -1682,6 +1689,62 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
   reloc(globalStream->getFinalBuf(),globalStream->size(),0,w->tell(),sortedCmd,options.bigEndian);
   w->write(globalStream->getFinalBuf(),globalStream->size());
 
+  // calculate max stack sizes
+  for (int h=0; h<chans; h++) {
+    std::stack<unsigned int> callStack;
+    unsigned int maxStackSize=0;
+    unsigned char* buf=w->getFinalBuf();
+    bool done=false;
+    for (size_t i=chanStreamOff[h]; i<w->size();) {
+      int insLen=getInsLength(buf[i],_EXT(buf,i,w->size()),sortedCmd);
+      if (insLen<1) {
+        logE("%d: INS %x NOT IMPLEMENTED...",h,buf[i]);
+        break;
+      }
+      switch (buf[i]) {
+        case 0xd5: { // calli
+          unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<16)|(buf[i+4]<<24);
+          callStack.push(i+insLen);
+          if (callStack.size()>maxStackSize) maxStackSize=callStack.size();
+          i=addr;
+          insLen=0;
+          break;
+        }
+        case 0xd8: { // call
+          unsigned short addr=buf[i+1]|(buf[i+2]<<8);
+          callStack.push(i+insLen);
+          if (callStack.size()>maxStackSize) maxStackSize=callStack.size();
+          i=addr;
+          insLen=0;
+          break;
+        }
+        case 0xd9: { // ret
+          if (callStack.empty()) {
+            logE("%d: trying to ret with empty stack!",h);
+            done=true;
+            break;
+          }
+          i=callStack.top();
+          insLen=0;
+          callStack.pop();
+          break;
+        }
+        case 0xda: // jmp
+        case 0xdf: // stop
+          done=true;
+          break;
+      }
+      if (maxStackSize>255) {
+        logE("%d: stack overflow!",h);
+        break;
+      }
+      if (done) break;
+      i+=insLen;
+    }
+
+    chanStackSize[h]=maxStackSize;
+  }
+
   globalStream->finish();
   delete globalStream;
 
@@ -1701,6 +1764,15 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
       }
     }
   }
+
+  logD("maximum stack sizes:");
+  unsigned int cumulativeStackSize=0;
+  for (int i=0; i<chans; i++) {
+    w->writeC(chanStackSize[i]);
+    logD("- %d: %d",i,chanStackSize[i]);
+    cumulativeStackSize+=chanStackSize[i];
+  }
+  logD("(total stack size: %d)",cumulativeStackSize);
 
   logD("delay popularity:");
   w->seek(8,SEEK_SET);
