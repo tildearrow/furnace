@@ -24,6 +24,7 @@
 #include "safeReader.h"
 
 #define DIV_MAX_CSTRACE 64
+#define DIV_MAX_CSSTACK 128
 
 class DivEngine;
 
@@ -35,11 +36,11 @@ struct DivCSChannelState {
 
   int note, pitch;
   int volume, volMax, volSpeed, volSpeedTarget;
-  int vibratoDepth, vibratoRate, vibratoPos;
+  int vibratoDepth, vibratoRate, vibratoPos, vibratoRange, vibratoShape;
   int portaTarget, portaSpeed;
-  unsigned char arp, arpStage, arpTicks, loopCount;
+  unsigned char arp, arpStage, arpTicks;
 
-  unsigned int callStack[16];
+  unsigned int callStack[DIV_MAX_CSSTACK];
   unsigned char callStackPos;
 
   unsigned int trace[DIV_MAX_CSTRACE];
@@ -65,7 +66,6 @@ struct DivCSChannelState {
     arp(0),
     arpStage(0),
     arpTicks(0),
-    loopCount(0),
     callStackPos(0),
     tracePos(0) {
     for (int i=0; i<DIV_MAX_CSTRACE; i++) {
@@ -77,6 +77,7 @@ struct DivCSChannelState {
 class DivCSPlayer {
   DivEngine* e;
   unsigned char* b;
+  unsigned short* bAccessTS;
   size_t bLen;
   SafeReader stream;
   DivCSChannelState chan[DIV_MAX_CHANS];
@@ -84,31 +85,64 @@ class DivCSPlayer {
   unsigned char fastCmds[16];
   unsigned char arpSpeed;
   unsigned int fileChans;
+  unsigned int curTick, fastDelaysOff, fastCmdsOff, deltaCyclePos;
+  bool longPointers;
+  bool bigEndian;
 
   short vibTable[64];
   public:
     unsigned char* getData();
+    unsigned short* getDataAccess();
     size_t getDataLen();
     DivCSChannelState* getChanState(int ch);
     unsigned int getFileChans();
     unsigned char* getFastDelays();
     unsigned char* getFastCmds();
+    unsigned int getCurTick();
     void cleanup();
     bool tick();
     bool init();
     DivCSPlayer(DivEngine* en, unsigned char* buf, size_t len):
       e(en),
       b(buf),
+      bAccessTS(NULL),
       bLen(len),
       stream(buf,len) {}
 };
 
 struct DivCSProgress {
   int stage, count, total;
+  int optStage, findTotal;
+  int optCurrent, optTotal;
+  int findCurrent, expandCurrent;
+  int origCurrent, origCount;
   DivCSProgress():
     stage(0),
     count(0),
-    total(0) {}
+    total(0),
+    optStage(0),
+    findTotal(0),
+    optCurrent(0),
+    optTotal(0),
+    findCurrent(0),
+    expandCurrent(0),
+    origCurrent(0),
+    origCount(0) {}
+};
+
+struct DivCSOptions {
+  bool longPointers;
+  bool bigEndian;
+  bool noCmdCallOpt;
+  bool noDelayCondense;
+  bool noSubBlock;
+
+  DivCSOptions():
+    longPointers(false),
+    bigEndian(false),
+    noCmdCallOpt(false),
+    noDelayCondense(false),
+    noSubBlock(false) {}
 };
 
 // command stream utilities

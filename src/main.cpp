@@ -91,7 +91,7 @@ String txtOutName;
 String configPath;
 int benchMode=0;
 int subsong=-1;
-int cmdDisableOpt=0;
+DivCSOptions csExportOptions;
 DivAudioExportOptions exportOptions;
 DivConfig romExportConfig;
 
@@ -443,17 +443,6 @@ TAParamResult pCmdOut(String val) {
   return TA_PARAM_SUCCESS;
 }
 
-TAParamResult pCmdOpt(String val) {
-  try {
-    int v=std::stoi(val);
-    cmdDisableOpt=v;
-  } catch (std::exception& e) {
-    logE("command stream export optimization disable bitmask shall be a number.");
-    return TA_PARAM_ERROR;
-  }
-  return TA_PARAM_SUCCESS;
-}
-
 TAParamResult pROMOut(String val) {
   romOutName=val;
   e.setAudio(DIV_AUDIO_DUMMY);
@@ -502,7 +491,6 @@ void initParams() {
   params.push_back(TAParam("O","vgmout",true,pVGMOut,"<filename>","output .vgm data"));
   params.push_back(TAParam("D","direct",false,pDirect,"","set VGM export direct stream mode"));
   params.push_back(TAParam("C","cmdout",true,pCmdOut,"<filename>","output command stream"));
-  params.push_back(TAParam("","cmdopt",true,pCmdOpt,"<bitmask>","disable command stream optimization passes (+1 command, +2 delay, +4 sub-block)"));
   params.push_back(TAParam("r","romout",true,pROMOut,"<filename|path>","export ROM file, or path for multi-file export"));
   params.push_back(TAParam("R","romconf",true,pROMConf,"<key>=<value>","set configuration parameter for ROM export"));
   params.push_back(TAParam("t","txtout",true,pTxtOut,"<filename>","export as text file"));
@@ -903,7 +891,7 @@ int main(int argc, char** argv) {
 
   if (outputMode) {
     if (cmdOutName!="") {
-      SafeWriter* w=e.saveCommand(NULL,cmdDisableOpt);
+      SafeWriter* w=e.saveCommand(NULL);
       if (w!=NULL) {
         FILE* f=ps_fopen(cmdOutName.c_str(),"wb");
         if (f!=NULL) {

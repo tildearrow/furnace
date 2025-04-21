@@ -19,6 +19,7 @@
 
 #include "engine.h"
 #include "../ta-log.h"
+#include <stack>
 #include <unordered_map>
 
 int DivCS::getCmdLength(unsigned char ext) {
@@ -71,7 +72,6 @@ int DivCS::getCmdLength(unsigned char ext) {
     case DIV_CMD_MACRO_OFF:
     case DIV_CMD_MACRO_ON:
     case DIV_CMD_MACRO_RESTART:
-    case DIV_CMD_HINT_ARP_TIME:
     case DIV_CMD_QSOUND_ECHO_FEEDBACK:
     case DIV_CMD_QSOUND_ECHO_LEVEL:
     case DIV_CMD_QSOUND_SURROUND:
@@ -234,46 +234,50 @@ int DivCS::getInsLength(unsigned char ins, unsigned char ext, unsigned char* spe
   switch (ins) {
     case 0xb8: // ins
     case 0xc0: // pre porta
+    case 0xc1: // arp time
     case 0xc3: // vib range
     case 0xc4: // vib shape
     case 0xc5: // pitch
     case 0xc6: // arpeggio
     case 0xc7: // volume
     case 0xca: // legato
-    case 0xfd: // waitc
+    case 0xcc: // tremolo
+    case 0xcd: // panbrello
+    case 0xce: // pan slide
+    case 0xdd: // waitc
+    case 0xc2: // vibrato
       return 2;
     case 0xcf: // pan
-    case 0xc2: // vibrato
     case 0xc8: // vol slide
     case 0xc9: // porta
       return 3;
     // speed dial commands
-    case 0xd0: case 0xd1: case 0xd2: case 0xd3:
-    case 0xd4: case 0xd5: case 0xd6: case 0xd7:
-    case 0xd8: case 0xd9: case 0xda: case 0xdb:
-    case 0xdc: case 0xdd: case 0xde: case 0xdf:
+    case 0xe0: case 0xe1: case 0xe2: case 0xe3:
+    case 0xe4: case 0xe5: case 0xe6: case 0xe7:
+    case 0xe8: case 0xe9: case 0xea: case 0xeb:
+    case 0xec: case 0xed: case 0xee: case 0xef:
       if (speedDial==NULL) return 0;
       return 1+getCmdLength(speedDial[ins&15]);
-    case 0xf0: // opt
+    case 0xd0: // opt
       return 4;
-    case 0xf7: // cmd
+    case 0xd7: // cmd
       // determine length from secondary
       if (ext==0) return 0;
       return 2+getCmdLength(ext);
-    case 0xf8: // call
-    case 0xfc: // waits
+    case 0xd8: // call
+    case 0xdc: // waits
       return 3;
-    case 0xf4: // callsym
-    case 0xf5: // calli
-    case 0xfa: // jmp
-    case 0xfb: // rate
+    case 0xd4: // callsym
+    case 0xd5: // calli
+    case 0xda: // jmp
+    case 0xdb: // rate
     case 0xcb: // volporta
       return 5;
   }
   return 1;
 }
 
-void writeCommandValues(SafeWriter* w, const DivCommand& c) {
+void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
       if (c.value==DIV_NOTE_NULL) {
@@ -283,28 +287,67 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c) {
       }
       break;
     case DIV_CMD_NOTE_OFF:
+      w->writeC(0xb5);
+      break;
     case DIV_CMD_NOTE_OFF_ENV:
+      w->writeC(0xb6);
+      break;
     case DIV_CMD_ENV_RELEASE:
+      w->writeC(0xb7);
+      break;
     case DIV_CMD_INSTRUMENT:
+      w->writeC(0xb8);
+      break;
     case DIV_CMD_PRE_PORTA:
+      w->writeC(0xc0);
+      break;
+    case DIV_CMD_HINT_ARP_TIME:
+      w->writeC(0xc1);
+      break;
     case DIV_CMD_HINT_VIBRATO:
+      w->writeC(0xc2);
+      break;
     case DIV_CMD_HINT_VIBRATO_RANGE:
+      w->writeC(0xc3);
+      break;
     case DIV_CMD_HINT_VIBRATO_SHAPE:
+      w->writeC(0xc4);
+      break;
     case DIV_CMD_HINT_PITCH:
+      w->writeC(0xc5);
+      break;
     case DIV_CMD_HINT_ARPEGGIO:
+      w->writeC(0xc6);
+      break;
     case DIV_CMD_HINT_VOLUME:
-    case DIV_CMD_HINT_PORTA:
+      w->writeC(0xc7);
+      break;
     case DIV_CMD_HINT_VOL_SLIDE:
-    case DIV_CMD_HINT_VOL_SLIDE_TARGET:
+      w->writeC(0xc8);
+      break;
+    case DIV_CMD_HINT_PORTA:
+      w->writeC(0xc9);
+      break;
     case DIV_CMD_HINT_LEGATO:
+      w->writeC(0xca);
+      break;
+    case DIV_CMD_HINT_VOL_SLIDE_TARGET:
+      w->writeC(0xcb);
+      break;
     case DIV_CMD_HINT_TREMOLO:
+      w->writeC(0xcc);
+      break;
     case DIV_CMD_HINT_PANBRELLO:
+      w->writeC(0xcd);
+      break;
     case DIV_CMD_HINT_PAN_SLIDE:
+      w->writeC(0xce);
+      break;
     case DIV_CMD_HINT_PANNING:
-      w->writeC((unsigned char)c.cmd+0xb4);
+      w->writeC(0xcf);
       break;
     default:
-      w->writeC(0xf7);
+      w->writeC(0xd7);
       w->writeC(c.cmd);
       break;
   }
@@ -330,10 +373,11 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c) {
     case DIV_CMD_HINT_PANBRELLO:
     case DIV_CMD_HINT_PAN_SLIDE:
     case DIV_CMD_HINT_ARPEGGIO:
+    case DIV_CMD_HINT_ARP_TIME:
+    case DIV_CMD_HINT_VIBRATO:
       w->writeC(c.value);
       break;
     case DIV_CMD_HINT_PANNING:
-    case DIV_CMD_HINT_VIBRATO:
     case DIV_CMD_HINT_PORTA:
       w->writeC(c.value);
       w->writeC(c.value2);
@@ -342,11 +386,20 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c) {
       w->writeC((c.value?0x80:0)|(c.value2?0x40:0));
       break;
     case DIV_CMD_HINT_VOL_SLIDE:
-      w->writeS(c.value);
+      if (bigEndian) {
+        w->writeS_BE(c.value);
+      } else {
+        w->writeS(c.value);
+      }
       break;
     case DIV_CMD_HINT_VOL_SLIDE_TARGET:
-      w->writeS(c.value);
-      w->writeS(c.value2);
+      if (bigEndian) {
+        w->writeS_BE(c.value);
+        w->writeS_BE(c.value2);
+      } else {
+        w->writeS(c.value);
+        w->writeS(c.value2);
+      }
       break;
     case DIV_CMD_SAMPLE_MODE:
     case DIV_CMD_SAMPLE_FREQ:
@@ -396,7 +449,6 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c) {
     case DIV_CMD_MACRO_OFF:
     case DIV_CMD_MACRO_ON:
     case DIV_CMD_MACRO_RESTART:
-    case DIV_CMD_HINT_ARP_TIME:
     case DIV_CMD_QSOUND_ECHO_FEEDBACK:
     case DIV_CMD_QSOUND_ECHO_LEVEL:
     case DIV_CMD_QSOUND_SURROUND:
@@ -542,21 +594,38 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c) {
     case DIV_CMD_LYNX_LFSR_LOAD:
     case DIV_CMD_QSOUND_ECHO_DELAY:
     case DIV_CMD_ES5506_ENVELOPE_COUNT:
-      w->writeS(c.value);
+      if (bigEndian) {
+        w->writeS_BE(c.value);
+      } else {
+        w->writeS(c.value);
+      }
       break;
     case DIV_CMD_ES5506_FILTER_K1:
     case DIV_CMD_ES5506_FILTER_K2:
-      w->writeS(c.value);
-      w->writeS(c.value2);
+      if (bigEndian) {
+        w->writeS_BE(c.value);
+        w->writeS_BE(c.value2);
+      } else {
+        w->writeS(c.value);
+        w->writeS(c.value2);
+      }
       break;
     case DIV_CMD_FM_FIXFREQ:
-      w->writeS((c.value<<12)|(c.value2&0x7ff));
+      if (bigEndian) {
+        w->writeS_BE((c.value<<12)|(c.value2&0x7ff));
+      } else {
+        w->writeS((c.value<<12)|(c.value2&0x7ff));
+      }
       break;
     case DIV_CMD_NES_SWEEP:
       w->writeC((c.value?8:0)|(c.value2&0x77));
       break;
     case DIV_CMD_SAMPLE_POS:
-      w->writeI(c.value);
+      if (bigEndian) {
+        w->writeI_BE(c.value);
+      } else {
+        w->writeI(c.value);
+      }
       break;
     default:
       logW("unimplemented command %s!",cmdName[c.cmd]);
@@ -582,8 +651,8 @@ void reloc8(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned in
   unsigned int delta=destAddr-sourceAddr;
   for (size_t i=0; i<len; i+=8) {
     switch (buf[i]) {
-      case 0xf5: // calli
-      case 0xfa: { // jmp
+      case 0xd5: // calli
+      case 0xda: { // jmp
         unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<16)|(buf[i+4]<<24);
         addr+=delta;
         buf[i+1]=addr&0xff;
@@ -592,11 +661,11 @@ void reloc8(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned in
         buf[i+4]=(addr>>24)&0xff;
         break;
       }
-      case 0xf8: { // call
+      case 0xd8: { // call
         unsigned int addr=buf[i+1]|(buf[i+2]<<8);
         addr+=delta;
         if (addr>0xffff) {
-          buf[i]=0xf5;
+          buf[i]=0xd5;
           buf[i+1]=addr&0xff;
           buf[i+2]=(addr>>8)&0xff;
           buf[i+3]=(addr>>16)&0xff;
@@ -611,7 +680,7 @@ void reloc8(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned in
   }
 }
 
-void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int destAddr, unsigned char* speedDial) {
+void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int destAddr, unsigned char* speedDial, bool bigEndian) {
   unsigned int delta=destAddr-sourceAddr;
   for (size_t i=0; i<len;) {
     int insLen=getInsLength(buf[i],_EXT(buf,i,len),speedDial);
@@ -620,21 +689,33 @@ void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int
       break;
     }
     switch (buf[i]) {
-      case 0xf5: // calli
-      case 0xfa: { // jmp
+      case 0xd5: // calli
+      case 0xda: { // jmp
         unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<16)|(buf[i+4]<<24);
         addr+=delta;
-        buf[i+1]=addr&0xff;
-        buf[i+2]=(addr>>8)&0xff;
-        buf[i+3]=(addr>>16)&0xff;
-        buf[i+4]=(addr>>24)&0xff;
+        if (bigEndian) {
+          buf[i+1]=(addr>>24)&0xff;
+          buf[i+2]=(addr>>16)&0xff;
+          buf[i+3]=(addr>>8)&0xff;
+          buf[i+4]=addr&0xff;
+        } else {
+          buf[i+1]=addr&0xff;
+          buf[i+2]=(addr>>8)&0xff;
+          buf[i+3]=(addr>>16)&0xff;
+          buf[i+4]=(addr>>24)&0xff;
+        }
         break;
       }
-      case 0xf8: { // call
+      case 0xd8: { // call
         unsigned short addr=buf[i+1]|(buf[i+2]<<8);
         addr+=delta;
-        buf[i+1]=addr&0xff;
-        buf[i+2]=(addr>>8)&0xff;
+        if (bigEndian) {
+          buf[i+1]=(addr>>8)&0xff;
+          buf[i+2]=addr&0xff;
+        } else {
+          buf[i+1]=addr&0xff;
+          buf[i+2]=(addr>>8)&0xff;
+        }
         break;
       }
     }
@@ -653,15 +734,24 @@ SafeWriter* stripNops(SafeWriter* s) {
   size_t addr=0;
   for (size_t i=0; i<oldStream->size(); i+=8) {
     addrTable[i]=addr;
-    if (buf[i]!=0xf1) addr+=8;
+    if (buf[i]!=0xd1) addr+=8;
   }
 
   // translate addresses
   for (size_t i=0; i<oldStream->size(); i+=8) {
     switch (buf[i]) {
-      case 0xf5: // calli
-      case 0xfa: { // jmp
+      case 0xd5: // calli
+      case 0xda: { // jmp
         unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<16)|(buf[i+4]<<24);
+        assert(!(addr&7));
+        if (addr>=oldStream->size()) {
+          logE("OUT OF BOUNDS!");
+          abort();
+        }
+        if (buf[addr]==0xd1) {
+          logE("POINTS TO NOP");
+          abort();
+        }
         try {
           addr=addrTable[addr];
           buf[i+1]=addr&0xff;
@@ -670,10 +760,11 @@ SafeWriter* stripNops(SafeWriter* s) {
           buf[i+4]=(addr>>24)&0xff;
         } catch (std::out_of_range& e) {
           logW("address %x is not mappable!",addr);
+          abort();
         }
         break;
       }
-      case 0xf8: { // call
+      case 0xd8: { // call
         unsigned int addr=buf[i+1]|(buf[i+2]<<8);
         try {
           addr=addrTable[addr];
@@ -685,7 +776,7 @@ SafeWriter* stripNops(SafeWriter* s) {
         break;
       }
     }
-    if (buf[i]!=0xf1) {
+    if (buf[i]!=0xd1) {
       s->write(&buf[i],8);
     }
   }
@@ -695,7 +786,7 @@ SafeWriter* stripNops(SafeWriter* s) {
   return s;
 }
 
-SafeWriter* stripNopsPacked(SafeWriter* s, unsigned char* speedDial) {
+SafeWriter* stripNopsPacked(SafeWriter* s, unsigned char* speedDial, unsigned int* chanStreamOff) {
   std::unordered_map<unsigned int,unsigned int> addrTable;
   SafeWriter* oldStream=s;
   unsigned char* buf=oldStream->getFinalBuf();
@@ -711,7 +802,7 @@ SafeWriter* stripNopsPacked(SafeWriter* s, unsigned char* speedDial) {
       break;
     }
     addrTable[i]=addr;
-    if (buf[i]!=0xf1) addr+=insLen;
+    if (buf[i]!=0xd1 && buf[i]!=0xd0) addr+=insLen;
     i+=insLen;
   }
 
@@ -723,8 +814,16 @@ SafeWriter* stripNopsPacked(SafeWriter* s, unsigned char* speedDial) {
       break;
     }
     switch (buf[i]) {
-      case 0xf5: // calli
-      case 0xfa: { // jmp
+      case 0xd0: // ext (for channel offsets)
+        if (buf[i+3]==0) {
+          int ch=buf[i+1];
+          if (ch>=0 && ch<DIV_MAX_CHANS) {
+            chanStreamOff[ch]=addrTable[i];
+          }
+        }
+        break;
+      case 0xd5: // calli
+      case 0xda: { // jmp
         unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<8)|(buf[i+4]<<24);
         try {
           addr=addrTable[addr];
@@ -737,7 +836,7 @@ SafeWriter* stripNopsPacked(SafeWriter* s, unsigned char* speedDial) {
         }
         break;
       }
-      case 0xf8: { // call
+      case 0xd8: { // call
         unsigned int addr=buf[i+1]|(buf[i+2]<<8);
         try {
           addr=addrTable[addr];
@@ -752,7 +851,7 @@ SafeWriter* stripNopsPacked(SafeWriter* s, unsigned char* speedDial) {
         break;
       }
     }
-    if (buf[i]!=0xf1) {
+    if (buf[i]!=0xd1 && buf[i]!=0xd0) {
       s->write(&buf[i],insLen);
     }
     i+=insLen;
@@ -774,254 +873,287 @@ struct BlockMatch {
     orig(0), block(0), len(0), done(false) {}
 };
 
+struct MatchBenefit {
+  size_t index;
+  int benefit;
+  unsigned int len;
+  MatchBenefit(size_t i, int b, unsigned int l):
+    index(i), benefit(b), len(l) {}
+  MatchBenefit():
+    index(0), benefit(0), len(0) {}
+};
+
 #define OVERLAPS(a1,a2,b1,b2) ((b1)<(a2) && (b2)>(a1))
 
-#define MIN_MATCH_SIZE 16
+#define MIN_MATCH_SIZE 32
 
-// TODO:
-// - see if we can optimize even more
-SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlocks, unsigned char* speedDial) {
+SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlocks, unsigned char* speedDial, DivCSProgress* progress) {
   unsigned char* buf=stream->getFinalBuf();
   size_t matchSize=MIN_MATCH_SIZE;
   std::vector<BlockMatch> matches;
+  std::vector<BlockMatch> workMatches;
+  std::vector<size_t> origs;
+  MatchBenefit bestBenefit;
 
-  // repeat until we run out of matches
-  while (true) {
-    matchSize=MIN_MATCH_SIZE;
-    matches.clear();
+  matches.clear();
 
-    // fast match algorithm
-    // search for small matches, and then find bigger ones
-    logD("finding possible matches");
-    for (size_t i=0; i<stream->size(); i+=8) {
-      if ((i&8191)==0) logV("%d of %d",i,(int)stream->size());
-      for (size_t j=i+matchSize; j<stream->size(); j+=8) {
-        if (memcmp(&buf[i],&buf[j],matchSize)==0) {
-          BlockMatch b=BlockMatch(i,j,matchSize);
+  if (progress!=NULL) {
+    progress->findTotal=stream->size();
+    progress->optStage=0;
+  }
 
-          // determine match size
-          size_t finalLen=b.len;
-          size_t origPos=b.orig+b.len;
-          size_t blockPos=b.block+b.len;
-          while (true) {
-            if (origPos>=stream->size() || blockPos>=stream->size()) {
-              break;
-            }
-
-            if (buf[origPos]!=buf[blockPos]) {
-              break;
-            }
-            origPos++;
-            blockPos++;
-            finalLen++;
-          }
-
-          finalLen&=~7;
-          b.len=finalLen;
-          b.done=true;
-          
-          // if this match is bigger than the match size, change the match size
-          // we're only going to work on the largest matches anyway
-          if (finalLen>matchSize) {
-            logW("expand dong");
-            matchSize=finalLen;
-          }
-
-          // store this match
-          matches.push_back(b);
+  // fast match algorithm
+  // search for small matches, and then find bigger ones
+  logD("finding possible matches");
+  for (size_t i=0; i<stream->size(); i+=8) {
+    if (!(i&2047)) {
+      if (progress!=NULL) progress->findCurrent=i;
+    }
+    bool storedOrig=false;
+    for (size_t j=i+matchSize; j<stream->size(); j+=8) {
+      if (memcmp(&buf[i],&buf[j],matchSize)==0) {
+        if (!storedOrig) {
+          // store index to the first match somewhere else for the sake of speed
+          origs.push_back(matches.size());
+          storedOrig=true;
         }
+        // store this match for later
+        matches.push_back(BlockMatch(i,j,matchSize));
       }
     }
+  }
 
-    logD("%d candidates",(int)matches.size());
+  logD("%d candidates",(int)matches.size());
+  logD("%d origs",(int)origs.size());
 
-    // quit if there isn't anything
-    if (matches.empty()) return stream;
+  if (progress!=NULL) {
+    if ((int)matches.size()>progress->optTotal) progress->optTotal=matches.size();
+    progress->optCurrent=matches.size();
+    progress->origCount=origs.size();
+    progress->findCurrent=stream->size();
+    progress->optStage=1;
+  }
 
-    logD("checking overlapping/bad matches");
+  // quit if there isn't anything
+  if (matches.empty()) return stream;
 
-    // first stage done
-    // set done to false unless:
-    // - this match overlaps with itself
-    // - this block only consists of calls
-    size_t nonOverlapCount=0;
-    for (BlockMatch& i: matches) {
-      i.done=false;
-      if (OVERLAPS(i.orig,i.orig+i.len,i.block,i.block+i.len)) {
-        // self-overlapping
-        i.done=true;
-      } else {
-        bool onlyCalls=true;
-        for (size_t j=i.orig; j<i.orig+i.len; j+=8) {
-          if (buf[j]!=0xf4) {
-            onlyCalls=false;
+  // search for bigger matches
+  for (size_t i=0; i<matches.size(); i++) {
+    if ((i&8191)==0) {
+      logV("match %d of %d",i,(int)matches.size());
+    }
+    if ((i&1023)==0) {
+      if (progress!=NULL) progress->expandCurrent=i;
+    }
+    BlockMatch& b=matches[i];
+
+    size_t finalLen=b.len;
+    size_t origPos=b.orig+b.len;
+    size_t blockPos=b.block+b.len;
+    while (true) {
+      // origPos is guaranteed to be before blockPos
+      if (blockPos>=stream->size()) {
+        break;
+      }
+
+      if (buf[origPos]!=buf[blockPos]) {
+        break;
+      }
+      origPos++;
+      blockPos++;
+      finalLen++;
+    }
+
+    finalLen&=~7;
+    b.len=finalLen;
+  }
+
+  if (progress!=NULL) {
+    progress->expandCurrent=matches.size();
+    progress->optStage=2;
+  }
+
+  // new code MAN... WHY...
+  // basically the workflow should be:
+  // - test every block position
+  //   - test every length from MIN_MATCH_SIZE to largest length
+  //   - check for overlap, bad matches and all of that
+  //     - for bad matches, fortunately we can use length for a speed-up... but first make it right
+  //   - add weighted benefit to a list (DEBUG..... remove once it's stable)
+  // - pick largest benefit from list
+  // - make sub-blocks!!!
+  logD("testing %d match groups for benefit",(int)origs.size());
+  size_t origIndex=0;
+  for (size_t i=0; i<origs.size(); i++) {
+    size_t begin=origs[i];
+    size_t end=(i+1<origs.size())?origs[i+1]:matches.size();
+    size_t minSize=MIN_MATCH_SIZE;
+    std::vector<BlockMatch> testLenMatches;
+
+    if (progress!=NULL) progress->origCurrent=origIndex;
+
+    origIndex++;
+
+    if (!(i&255)) logV("orig %d of %d",(int)i,(int)origs.size());
+
+    // test all lengths
+    for (size_t len=minSize; true; len+=8) {
+      testLenMatches.clear();
+      // filter matches
+      for (size_t _k=begin; _k<end; _k++) {
+        BlockMatch& k=matches[_k];
+        // match length shall be greater than or equal to current length
+        if (len>k.len) continue;
+
+        // check for bad matches, which include:
+        // - match overlapping with itself
+        // - block only consisting of calls
+        // - block containing a ret, jmp or stop
+
+        // 1. self-overlapping
+        if (OVERLAPS(k.orig,k.orig+len,k.block,k.block+len)) continue;
+
+        // 2. only calls and jmp/ret/stop
+        bool metCriteria=true;
+        for (size_t l=k.orig; l<k.orig+len; l+=8) {
+          if (buf[l]==0xd4 || buf[l]==0xd5) {
+            metCriteria=false;
             break;
           }
         }
-        if (onlyCalls) {
-          i.done=true;
-        } else {
-          nonOverlapCount++;
-        }
-      }
-    }
+        if (!metCriteria) continue;
 
-    logD("%d good candidates",(int)nonOverlapCount);
-
-    // quit if there isn't anything
-    if (!nonOverlapCount) return stream;
-
-    // work on largest matches
-    // progress to smaller ones until we run out of them
-    logD("largest match: %d",(int)matchSize);
-
-    std::vector<BlockMatch> workMatches;
-    bool newBlocks=false;
-
-    // try with a smaller size
-    matchSize=0;
-    for (BlockMatch& i: matches) {
-      if (i.done) continue;
-      if (i.len>matchSize) matchSize=i.len;
-    }
-
-    workMatches.clear();
-    // find matches with matching size
-    for (BlockMatch& i: matches) {
-      if (i.len==matchSize) {
-        // mark it as done and push it
-        workMatches.push_back(i);
-        i.done=true;
-      }
-    }
-
-    // check which sub-blocks are viable to make
-    size_t lastOrig=SIZE_MAX;
-    size_t lastOrigOff=0;
-    int gains=0;
-    int blockSize=0;
-    for (size_t i=0; i<=workMatches.size(); i++) {
-      BlockMatch b(SIZE_MAX,SIZE_MAX,0);
-      if (i<workMatches.size()) b=workMatches[i];
-      // unlikely
-      if (b.done) continue;
-
-      if (b.orig!=lastOrig) {
-        if (lastOrig!=SIZE_MAX) {
-          // commit previous block and start new one
-          logV("%x gains: %d",(int)lastOrig,gains);
-          if (gains<=0) {
-            // don't make a sub-block for these matches since we only have loss
-            logV("(LOSSES!)");
-            for (size_t j=lastOrigOff; j<i; j++) {
-              workMatches[j].done=true;
-            }
+        // 3. jmp/ret/stop
+        for (size_t l=k.orig; l<k.orig+len; l+=8) {
+          if (buf[l]==0xd9 || buf[l]==0xda || buf[l]==0xdf) {
+            metCriteria=false;
+            break;
           }
         }
-        lastOrig=b.orig;
-        lastOrigOff=i;
-        if (lastOrig!=SIZE_MAX) {
-          blockSize=estimateBlockSize(&buf[b.orig],b.len,speedDial);
+        if (!metCriteria) continue;
+
+        // all criteria met
+        testLenMatches.push_back(k);
+      }
+
+      // get out if no further matches (trying with bigger sizes is guaranteed to fail)
+      if (testLenMatches.empty()) {
+        break;
+      }
+
+      // check for overlapping matches
+      size_t overlapPos=testLenMatches[0].orig;
+      size_t validCount=0;
+      for (BlockMatch& k: testLenMatches) {
+        //logV("test %d with %d",(int)overlapPos,(int)k.block);
+        if (OVERLAPS(overlapPos,overlapPos+len,k.block,k.block+len)) {
+          k.done=true;
+          //logW("overlap");
         } else {
-          blockSize=0;
+          validCount++;
         }
-        gains=-4;
-      }
-      gains+=(blockSize-3);
-    }
-
-    // make sub-blocks
-    lastOrig=SIZE_MAX;
-    size_t subBlockID=subBlocks.size();
-    for (BlockMatch& i: workMatches) {
-      // skip invalid matches (yes, this can happen)
-      if (i.done) continue;
-
-      // create new sub-block if necessary
-      if (i.orig!=lastOrig) {
-        subBlockID=subBlocks.size();
-        newBlocks=true;
-        logV("new sub-block %d",(int)subBlockID);
-
-        // isolate this sub-block
-        SafeWriter* newBlock=new SafeWriter;
-        newBlock->init();
-        newBlock->write(&buf[i.orig],i.len);
-        newBlock->writeC(0xf9); // ret
-        // padding
-        newBlock->writeC(0);
-        newBlock->writeC(0);
-        newBlock->writeC(0);
-        newBlock->writeC(0);
-        newBlock->writeC(0);
-        newBlock->writeC(0);
-        newBlock->writeC(0);
-        subBlocks.push_back(newBlock);
-        lastOrig=i.orig;
-
-        // insert call on the original block
-        buf[i.orig]=0xf4;
-        buf[i.orig+1]=subBlockID&0xff;
-        buf[i.orig+2]=(subBlockID>>8)&0xff;
-        buf[i.orig+3]=(subBlockID>>16)&0xff;
-        buf[i.orig+4]=(subBlockID>>24)&0xff;
-        buf[i.orig+5]=0;
-        buf[i.orig+6]=0;
-        buf[i.orig+7]=0;
-
-        // replace the rest with nop
-        for (size_t j=i.orig+8; j<i.orig+i.len; j++) {
-          buf[j]=0xf1;
-        }
+        overlapPos=k.block;
       }
 
-      // set match to the last sub-block
-      buf[i.block]=0xf4;
-      buf[i.block+1]=subBlockID&0xff;
-      buf[i.block+2]=(subBlockID>>8)&0xff;
-      buf[i.block+3]=(subBlockID>>16)&0xff;
-      buf[i.block+4]=(subBlockID>>24)&0xff;
-      buf[i.block+5]=0;
-      buf[i.block+6]=0;
-      buf[i.block+7]=0;
 
-      // replace the rest with nop
-      for (size_t j=i.block+8; j<i.block+i.len; j++) {
-        buf[j]=0xf1;
-      }
+      // calculate (weighted) benefit
+      const int blockSize=estimateBlockSize(&buf[testLenMatches[0].orig],len,speedDial);
+      const int gains=((blockSize-3)*validCount)-4;
+      int finalBenefit=gains*2+len*3;
+      if (gains<1) finalBenefit=-1;
 
-      // invalidate overlapping work matches
-      for (BlockMatch& j: workMatches) {
-        if (j.orig!=i.orig) {
-          j.done=true;
-        }
-        if (OVERLAPS(i.block,i.block+i.len,j.block,j.block+j.len)) {
-          j.done=true;
-        }
-      }
-
-      // invalidate overlapping matches
-      for (BlockMatch& j: matches) {
-        if (OVERLAPS(i.orig,i.orig+i.len,j.orig,j.orig+j.len) ||
-            OVERLAPS(i.orig,i.orig+i.len,j.block,j.block+j.len) ||
-            OVERLAPS(i.block,i.block+i.len,j.orig,j.orig+j.len) ||
-            OVERLAPS(i.block,i.block+i.len,j.block,j.block+j.len)) {
-          j.done=true;
-        }
+      // check whether this set of matches has greater benefit
+      if (finalBenefit>bestBenefit.benefit) {
+        //logD("- %x (%d): %d = %d",(int)i,(int)len,(int)testLenMatches.size(),finalBenefit);
+        bestBenefit=MatchBenefit(begin,finalBenefit,len);
+        // copy matches so we don't have to select them later
+        workMatches=testLenMatches;
       }
     }
-
-    logV("done!");
-
-    // get out if we haven't made any blocks
-    if (!newBlocks) break;
-
-    // remove nop's
-    stream=stripNops(stream);
-    buf=stream->getFinalBuf();
-
-    logV("doing it again...");
   }
+
+  // quit if there isn't benefit
+  if (bestBenefit.benefit<1) return stream;
+
+  // quit if there's nothing to work on
+  if (workMatches.empty()) return stream;
+
+  // pick best benefit
+  logI("BEST BENEFIT: %d in %x with size %u",bestBenefit.benefit,(int)bestBenefit.index,bestBenefit.len);
+
+  // work on matches with this benefit
+  size_t bestOrig=matches[bestBenefit.index].orig;
+  logI("match count %d",(int)workMatches.size());
+
+  if (progress!=NULL) {
+    progress->optStage=3;
+    progress->origCurrent=origs.size();
+  }
+
+  // make sub-block
+  size_t subBlockID=subBlocks.size();
+  logV("new sub-block %d",(int)subBlockID);
+
+  assert(!(bestOrig&7));
+
+  // isolate this sub-block
+  SafeWriter* newBlock=new SafeWriter;
+  newBlock->init();
+  newBlock->write(&buf[bestOrig],bestBenefit.len);
+  newBlock->writeC(0xd9); // ret
+  // padding
+  newBlock->writeC(0);
+  newBlock->writeC(0);
+  newBlock->writeC(0);
+  newBlock->writeC(0);
+  newBlock->writeC(0);
+  newBlock->writeC(0);
+  newBlock->writeC(0);
+  subBlocks.push_back(newBlock);
+
+  // insert call on the original block
+  buf[bestOrig]=0xd4;
+  buf[bestOrig+1]=subBlockID&0xff;
+  buf[bestOrig+2]=(subBlockID>>8)&0xff;
+  buf[bestOrig+3]=(subBlockID>>16)&0xff;
+  buf[bestOrig+4]=(subBlockID>>24)&0xff;
+  buf[bestOrig+5]=0;
+  buf[bestOrig+6]=0;
+  buf[bestOrig+7]=0;
+
+  // replace the rest with nop
+  for (size_t j=bestOrig+8; j<bestOrig+bestBenefit.len; j++) {
+    buf[j]=0xd1;
+  }
+
+  // set matches to this sub-block
+  for (BlockMatch& i: workMatches) {
+    // skip invalid matches
+    if (i.done) continue;
+
+    assert(!(i.block&7));
+
+    // set match to this sub-block
+    buf[i.block]=0xd4;
+    buf[i.block+1]=subBlockID&0xff;
+    buf[i.block+2]=(subBlockID>>8)&0xff;
+    buf[i.block+3]=(subBlockID>>16)&0xff;
+    buf[i.block+4]=(subBlockID>>24)&0xff;
+    buf[i.block+5]=0;
+    buf[i.block+6]=0;
+    buf[i.block+7]=0;
+
+    // replace the rest with nop
+    for (size_t j=i.block+8; j<i.block+bestBenefit.len; j++) {
+      buf[j]=0xd1;
+    }
+  }
+
+  logV("done!");
+
+  // remove nop's
+  stream=stripNops(stream);
+  buf=stream->getFinalBuf();
 
   return stream;
 }
@@ -1048,19 +1180,19 @@ SafeWriter* packStream(SafeWriter* s, unsigned char* speedDial) {
       break;
     }
     switch (buf[i]) {
-      case 0xf5: { // calli
+      case 0xd5: { // calli
         unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<16)|(buf[i+4]<<24);
         try {
           addr=addrTable[addr];
           // check whether we have sufficient room to turn this into a 16-bit call
           if (addr<0xff00) {
-            buf[i]=0xf8;
+            buf[i]=0xd8;
             buf[i+1]=addr&0xff;
             buf[i+2]=(addr>>8)&0xff;
-            buf[i+3]=0xf1;
-            buf[i+4]=0xf1;
+            buf[i+3]=0xd1;
+            buf[i+4]=0xd1;
           } else {
-            buf[i]=0xf5;
+            buf[i]=0xd5;
             buf[i+1]=addr&0xff;
             buf[i+2]=(addr>>8)&0xff;
             buf[i+3]=(addr>>16)&0xff;
@@ -1071,7 +1203,7 @@ SafeWriter* packStream(SafeWriter* s, unsigned char* speedDial) {
         }
         break;
       }
-      case 0xfa: { // jmp
+      case 0xda: { // jmp
         unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<16)|(buf[i+4]<<24);
         try {
           addr=addrTable[addr];
@@ -1084,7 +1216,7 @@ SafeWriter* packStream(SafeWriter* s, unsigned char* speedDial) {
         }
         break;
       }
-      case 0xf8: { // call
+      case 0xd8: { // call
         logW("16-bit call should NEVER be generated. aborting!");
         abort();
         break;
@@ -1098,7 +1230,7 @@ SafeWriter* packStream(SafeWriter* s, unsigned char* speedDial) {
   return s;
 }
 
-SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disablePasses) {
+SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options) {
   stop();
   repeatPattern=false;
   shallStop=false;
@@ -1122,6 +1254,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
   SafeWriter* globalStream;
   SafeWriter* chanStream[DIV_MAX_CHANS];
   unsigned int chanStreamOff[DIV_MAX_CHANS];
+  unsigned int chanStackSize[DIV_MAX_CHANS];
   std::vector<size_t> tickPos[DIV_MAX_CHANS];
   int loopTick=-1;
 
@@ -1129,6 +1262,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
   memset(delayPopularity,0,256*sizeof(int));
   memset(chanStream,0,DIV_MAX_CHANS*sizeof(void*));
   memset(chanStreamOff,0,DIV_MAX_CHANS*sizeof(unsigned int));
+  memset(chanStackSize,0,DIV_MAX_CHANS*sizeof(unsigned int));
   memset(sortedCmdPopularity,0,16*sizeof(int));
   memset(sortedDelayPopularity,0,16*sizeof(int));
   memset(sortedCmd,0,16);
@@ -1142,15 +1276,27 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
 
   // write header
   w->write("FCS",4);
-  w->writeI(chans);
+  w->writeS(chans);
+  // flags
+  w->writeC((options.longPointers?1:0)|(options.bigEndian?2:0));
+  // reserved
+  w->writeC(0);
+  // preset delays and speed dial
+  for (int i=0; i<32; i++) {
+    w->writeC(0);
+  }
   // offsets
   for (int i=0; i<chans; i++) {
     chanStream[i]=new SafeWriter;
     chanStream[i]->init();
-    w->writeI(0);
+    if (options.longPointers) {
+      w->writeI(0);
+    } else {
+      w->writeS(0);
+    }
   }
-  // preset delays and speed dial
-  for (int i=0; i<32; i++) {
+  // max stack sizes
+  for (int i=0; i<chans; i++) {
     w->writeC(0);
   }
 
@@ -1166,7 +1312,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
   // PASS 0: play the song and log channel command streams
   // song beginning marker
   for (int i=0; i<chans; i++) {
-    chanStream[i]->writeC(0xf0);
+    chanStream[i]->writeC(0xd0);
     chanStream[i]->writeC(i);
     chanStream[i]->writeC(0x00);
     chanStream[i]->writeC(0x00);
@@ -1187,7 +1333,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
           loopTick=tick;
           // loop marker
           for (int i=0; i<chans; i++) {
-            chanStream[i]->writeC(0xf0);
+            chanStream[i]->writeC(0xd0);
             chanStream[i]->writeC(i);
             chanStream[i]->writeC(0x00);
             chanStream[i]->writeC(0x01);
@@ -1207,7 +1353,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
     // get command stream
     if (curDivider!=divider) {
       curDivider=divider;
-      chanStream[0]->writeC(0xfb);
+      chanStream[0]->writeC(0xdb);
       chanStream[0]->writeI((int)(curDivider*65536));
       // padding
       chanStream[0]->writeC(0x00);
@@ -1227,13 +1373,13 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
           break;
         default:
           cmdPopularity[i.cmd]++;
-          writeCommandValues(chanStream[i.chan],i);
+          writeCommandValues(chanStream[i.chan],i,options.bigEndian);
           break;
       }
     }
     cmdStream.clear();
     for (int i=0; i<chans; i++) {
-      chanStream[i]->writeC(0xfe);
+      chanStream[i]->writeC(0xde);
       // padding
       chanStream[i]->writeC(0x00);
       chanStream[i]->writeC(0x00);
@@ -1247,7 +1393,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
   }
   if (!playing || loopTick<0) {
     for (int i=0; i<chans; i++) {
-      chanStream[i]->writeC(0xff);
+      chanStream[i]->writeC(0xdf);
       // padding
       chanStream[i]->writeC(0x00);
       chanStream[i]->writeC(0x00);
@@ -1260,7 +1406,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
   } else {
     for (int i=0; i<chans; i++) {
       if ((int)tickPos[i].size()>loopTick) {
-        chanStream[i]->writeC(0xfa);
+        chanStream[i]->writeC(0xda);
         chanStream[i]->writeI(tickPos[i][loopTick]);
         logD("chan %d loop addr: %x",i,tickPos[i][loopTick]);
         // padding
@@ -1269,7 +1415,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
         chanStream[i]->writeC(0x00);
       } else {
         logW("chan %d unable to find loop addr!",i);
-        chanStream[i]->writeC(0xff);
+        chanStream[i]->writeC(0xdf);
         // padding
         chanStream[i]->writeC(0x00);
         chanStream[i]->writeC(0x00);
@@ -1291,7 +1437,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
   BUSY_END;
 
   // PASS 1: optimize command calls
-  if (!(disablePasses&1)) {
+  if (!options.noCmdCallOpt) {
     // calculate command usage
     int sortCand=-1;
     int sortPos=0;
@@ -1318,11 +1464,11 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
     for (int h=0; h<chans; h++) {
       unsigned char* buf=chanStream[h]->getFinalBuf();
       for (size_t i=0; i<chanStream[h]->size(); i+=8) {
-        if (buf[i]==0xf7) {
+        if (buf[i]==0xd7) {
           // find whether this command is in speed dial
           for (int j=0; j<16; j++) {
             if (buf[i+1]==sortedCmd[j]) {
-              buf[i]=0xd0+j;
+              buf[i]=0xe0+j;
               // move everything to the left
               for (int k=i+2; k<(int)i+8; k++) {
                 buf[k-1]=buf[k];
@@ -1336,13 +1482,13 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
   }
 
   // PASS 2: condense delays
-  if (!(disablePasses&2)) {
+  if (!options.noDelayCondense) {
     // calculate delay usage
     for (int h=0; h<chans; h++) {
       unsigned char* buf=chanStream[h]->getFinalBuf();
       int delayCount=0;
       for (size_t i=0; i<chanStream[h]->size(); i+=8) {
-        if (buf[i]==0xfe) {
+        if (buf[i]==0xde) {
           delayCount++;
         } else {
           if (delayCount>1 && delayCount<=255) {
@@ -1375,7 +1521,6 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
       sortPos++;
     }
 
-
     // condense delays
     for (int h=0; h<chans; h++) {
       unsigned char* buf=chanStream[h]->getFinalBuf();
@@ -1383,7 +1528,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
       int delayCount=0;
       int delayLast=0;
       for (size_t i=0; i<chanStream[h]->size(); i+=8) {
-        if (buf[i]==0xfe) {
+        if (buf[i]==0xde) {
           if (delayPos==-1) delayPos=i;
           delayCount++;
           delayLast=i;
@@ -1396,20 +1541,20 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
               } else {
                 // write condensed delay and fill the rest with nop
                 if (delayCount>255) {
-                  buf[delayPos++]=0xfc;
+                  buf[delayPos++]=0xdc;
                   buf[delayPos++]=delayCount&0xff;
                   buf[delayPos++]=(delayCount>>8)&0xff;
                 } else {
                   bool foundShort=false;
                   for (int j=0; j<16; j++) {
                     if (sortedDelay[j]==delayCount) {
-                      buf[delayPos++]=0xe0+j;
+                      buf[delayPos++]=0xf0+j;
                       foundShort=true;
                       break;
                     }
                   }
                   if (!foundShort) {
-                    buf[delayPos++]=0xfd;
+                    buf[delayPos++]=0xdd;
                     buf[delayPos++]=delayCount;
                   }
                 }
@@ -1417,7 +1562,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
                 while (delayPos&7) buf[delayPos++]=0;
                 // fill with nop
                 for (int j=delayPos; j<=delayLast; j++) {
-                  buf[j]=0xf1;
+                  buf[j]=0xd1;
                 }
               }
             }
@@ -1429,13 +1574,34 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
     }
   }
 
-  // PASS 3: remove nop's
+  // PASS 3: note off + one-tick wait
+  // optimize one-tick gaps sometimes used in songs
+  for (int h=0; h<chans; h++) {
+    unsigned char* buf=chanStream[h]->getFinalBuf();
+    if (chanStream[h]->size()<8) continue;
+    for (size_t i=0; i<chanStream[h]->size()-8; i+=8) {
+      // find note off
+      if (buf[i]==0xb5) {
+        // check for contiguous wait 1
+        if (buf[i+8]==0xde) {
+          // turn it into 0xf6 (note off + wait 1) and change the next one to nop
+          buf[i]=0xd6;
+          buf[i+8]=0xd1;
+
+          // skip the next instruction
+          i+=8;
+        }
+      }
+    }
+  }
+
+  // PASS 4: remove nop's
   // this includes modifying call addresses to compensate
   for (int h=0; h<chans; h++) {
     chanStream[h]=stripNops(chanStream[h]);
   }
 
-  // PASS 4: put all channels together
+  // PASS 5: put all channels together
   for (int i=0; i<chans; i++) {
     chanStreamOff[i]=globalStream->tell();
     logI("- %d: off %x size %ld",i,chanStreamOff[i],chanStream[i]->size());
@@ -1445,128 +1611,171 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, unsigned int disable
     delete chanStream[i];
   }
 
-  // PASS 5: find sub-blocks and isolate them
-  if (!(disablePasses&4)) {
+  // PASS 6: find sub-blocks and isolate them
+  if (!options.noSubBlock) {
     std::vector<SafeWriter*> subBlocks;
     size_t beforeSize=globalStream->size();
     
     // 6 is the minimum size that can be reliably optimized
     logI("finding sub-blocks");
-    globalStream=findSubBlocks(globalStream,subBlocks,sortedCmd);
-    // find sub-blocks within sub-blocks
-    size_t subBlocksLast=0;
-    size_t subBlocksLen=subBlocks.size();
-    logI("finding sub-blocks within sub-blocks");
-    while (subBlocksLast!=subBlocksLen) {
-      logI("got %d blocks... starting from %d",(int)subBlocksLen,(int)subBlocksLast);
-      for (size_t i=subBlocksLast; i<subBlocksLen; i++) {
-        SafeWriter* newBlock=findSubBlocks(subBlocks[i],subBlocks,sortedCmd);
-        subBlocks[i]=newBlock;
-      }
-      subBlocksLast=subBlocksLen;
-      subBlocksLen=subBlocks.size();
-    }
 
-    // insert sub-blocks and resolve symbols
-    logI("%d sub-blocks total",(int)subBlocks.size());
-    std::vector<size_t> blockOff;
-    globalStream->seek(0,SEEK_END);
-    for (size_t i=0; i<subBlocks.size(); i++) {
-      SafeWriter* block=subBlocks[i];
+    bool haveBlocks=false;
+    subBlocks.clear();
+    // repeat until no more sub-blocks are produced
+    do {
+      logD("iteration...");
+      globalStream=findSubBlocks(globalStream,subBlocks,sortedCmd,progress);
 
-      // check whether this block is duplicate
-      int dupOf=-1;
-      for (size_t j=0; j<i; j++) {
-        if (subBlocks[j]->size()==subBlocks[i]->size()) {
-          if (memcmp(subBlocks[j]->getFinalBuf(),subBlocks[i]->getFinalBuf(),subBlocks[j]->size())==0) {
-            logW("we have one");
-            dupOf=j;
-            break;
-          }
-        }
-      }
+      haveBlocks=!subBlocks.empty();
+      // insert sub-blocks and resolve symbols
+      logI("%d sub-blocks total",(int)subBlocks.size());
+      std::vector<size_t> blockOff;
+      blockOff.clear();
+      globalStream->seek(0,SEEK_END);
+      for (size_t i=0; i<subBlocks.size(); i++) {
+        SafeWriter* block=subBlocks[i];
 
-      if (dupOf>=0) {
-        // push address of original block (discard duplicate)
-        blockOff.push_back(blockOff[dupOf]);
-      } else {
         // write sub-block
         blockOff.push_back(globalStream->tell());
         logV("block size: %d",(int)block->size());
         assert(!(block->size()&7));
         globalStream->write(block->getFinalBuf(),block->size());
       }
-    }
 
-    for (SafeWriter* block: subBlocks) {
-      block->finish();
-      delete block;
-    }
-    subBlocks.clear();
+      for (SafeWriter* block: subBlocks) {
+        block->finish();
+        delete block;
+      }
+      subBlocks.clear();
 
-    // resolve symbols
-    unsigned char* buf=globalStream->getFinalBuf();
-    for (size_t j=0; j<globalStream->size(); j+=8) {
-      if (buf[j]==0xf4) { // callsym
-        unsigned int addr=buf[j+1]|(buf[j+2]<<8)|(buf[j+3]<<16)|(buf[j+4]<<24);
-        if (addr<blockOff.size()) {
-          // turn it into call
-          addr=blockOff[addr];
-          buf[j]=0xf5;
-          buf[j+1]=addr&0xff;
-          buf[j+2]=(addr>>8)&0xff;
-          buf[j+3]=(addr>>16)&0xff;
-          buf[j+4]=(addr>>24)&0xff;
-        } else {
-          logE("requested symbol %d is out of bounds!",addr);
+      // resolve symbols
+      unsigned char* buf=globalStream->getFinalBuf();
+      for (size_t j=0; j<globalStream->size(); j+=8) {
+        if (buf[j]==0xd4) { // callsym
+          unsigned int addr=buf[j+1]|(buf[j+2]<<8)|(buf[j+3]<<16)|(buf[j+4]<<24);
+          if (addr<blockOff.size()) {
+            // turn it into call
+            addr=blockOff[addr];
+            buf[j]=0xd5;
+            buf[j+1]=addr&0xff;
+            buf[j+2]=(addr>>8)&0xff;
+            buf[j+3]=(addr>>16)&0xff;
+            buf[j+4]=(addr>>24)&0xff;
+          } else {
+            logE("requested symbol %d is out of bounds!",addr);
+            abort();
+          }
         }
       }
-    }
+    } while (haveBlocks);
 
     size_t afterSize=globalStream->size();
     logI("(before: %d - after: %d)",(int)beforeSize,(int)afterSize);
     assert(!(globalStream->size()&7));
   }
 
-  // PASS 6: pack stream
+  // PASS 7: pack stream
   globalStream=packStream(globalStream,sortedCmd);
 
-  // PASS 7: remove nop's which may be produced by 32-bit call conversion
-  globalStream=stripNopsPacked(globalStream,sortedCmd);
+  // PASS 8: remove nop's which may be produced by 32-bit call conversion
+  // also find new offsets
+  globalStream=stripNopsPacked(globalStream,sortedCmd,chanStreamOff);
 
-  // PASS 8: find new offsets
-  {
-    unsigned char* buf=globalStream->getFinalBuf();
-    for (size_t i=0; i<globalStream->size();) {
-      int insLen=getInsLength(buf[i],_EXT(buf,i,globalStream->size()),sortedCmd);
+  for (int h=0; h<chans; h++) {
+    chanStreamOff[h]+=w->tell();
+  }
+
+  // write results (convert addresses to big-endian if necessary)
+  reloc(globalStream->getFinalBuf(),globalStream->size(),0,w->tell(),sortedCmd,options.bigEndian);
+  w->write(globalStream->getFinalBuf(),globalStream->size());
+
+  // calculate max stack sizes
+  for (int h=0; h<chans; h++) {
+    std::stack<unsigned int> callStack;
+    unsigned int maxStackSize=0;
+    unsigned char* buf=w->getFinalBuf();
+    bool done=false;
+    for (size_t i=chanStreamOff[h]; i<w->size();) {
+      int insLen=getInsLength(buf[i],_EXT(buf,i,w->size()),sortedCmd);
       if (insLen<1) {
-        logE("INS %x NOT IMPLEMENTED...",buf[i]);
+        logE("%d: INS %x NOT IMPLEMENTED...",h,buf[i]);
         break;
       }
-
-      if (buf[i]==0xf0) {
-        if (buf[i+3]==0) {
-          int ch=buf[i+1];
-          if (ch>=0 && ch<chans) {
-            chanStreamOff[ch]=i+w->tell();
-          }
+      switch (buf[i]) {
+        case 0xd5: { // calli
+          unsigned int addr=buf[i+1]|(buf[i+2]<<8)|(buf[i+3]<<16)|(buf[i+4]<<24);
+          callStack.push(i+insLen);
+          if (callStack.size()>maxStackSize) maxStackSize=callStack.size();
+          i=addr;
+          insLen=0;
+          break;
         }
+        case 0xd8: { // call
+          unsigned short addr=buf[i+1]|(buf[i+2]<<8);
+          callStack.push(i+insLen);
+          if (callStack.size()>maxStackSize) maxStackSize=callStack.size();
+          i=addr;
+          insLen=0;
+          break;
+        }
+        case 0xd9: { // ret
+          if (callStack.empty()) {
+            logE("%d: trying to ret with empty stack!",h);
+            done=true;
+            break;
+          }
+          i=callStack.top();
+          insLen=0;
+          callStack.pop();
+          break;
+        }
+        case 0xda: // jmp
+        case 0xdf: // stop
+          done=true;
+          break;
       }
-
+      if (maxStackSize>255) {
+        logE("%d: stack overflow!",h);
+        break;
+      }
+      if (done) break;
       i+=insLen;
+    }
+
+    chanStackSize[h]=maxStackSize;
+  }
+
+  globalStream->finish();
+  delete globalStream;
+
+  w->seek(40,SEEK_SET);
+  for (int i=0; i<chans; i++) {
+    if (options.longPointers) {
+      if (options.bigEndian) {
+        w->writeI_BE(chanStreamOff[i]);
+      } else {
+        w->writeI(chanStreamOff[i]);
+      }
+    } else {
+      if (options.bigEndian) {
+        w->writeS_BE(chanStreamOff[i]);
+      } else {
+        w->writeS(chanStreamOff[i]);
+      }
     }
   }
 
-  // write results
-  reloc(globalStream->getFinalBuf(),globalStream->size(),0,w->tell(),sortedCmd);
-  w->write(globalStream->getFinalBuf(),globalStream->size());
-
-  w->seek(8,SEEK_SET);
+  logD("maximum stack sizes:");
+  unsigned int cumulativeStackSize=0;
   for (int i=0; i<chans; i++) {
-    w->writeI(chanStreamOff[i]);
+    w->writeC(chanStackSize[i]);
+    logD("- %d: %d",i,chanStackSize[i]);
+    cumulativeStackSize+=chanStackSize[i];
   }
+  logD("(total stack size: %d)",cumulativeStackSize);
 
   logD("delay popularity:");
+  w->seek(8,SEEK_SET);
   for (int i=0; i<16; i++) {
     w->writeC(sortedDelay[i]);
     if (sortedDelayPopularity[i]) logD("- %d: %d",sortedDelay[i],sortedDelayPopularity[i]);
