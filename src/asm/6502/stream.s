@@ -4,7 +4,6 @@
 ; usage:
 ; define the following constants:
 ; - FCS_MAX_CHAN: the number of channels in your stream
-; - FCS_MAX_STACK: the maximum stack size
 ; - fcsAddrBase: player state address base
 ; - fcsZeroPage: player state address base for zero-page-mandatory variables
 ; - fcsGlobalStack: player stack (best placed in a page)
@@ -26,6 +25,7 @@
 ; calculated from player constants
 fcsDelays=fcsPtr+8
 fcsSpeedDial=fcsPtr+24
+fcsStackSize=fcsPtr+40+(FCS_MAX_CHAN*2)
 
 ; variables
 ; these may be read by your command handling routines
@@ -53,6 +53,8 @@ chanPortaTarget=fcsAddrBase+24+(FCS_MAX_CHAN*8)+1 ; char
 chanVol=fcsAddrBase+24+(FCS_MAX_CHAN*10) ; short
 chanVolSpeed=fcsAddrBase+24+(FCS_MAX_CHAN*12) ; short
 chanPan=fcsAddrBase+24+(FCS_MAX_CHAN*14) ; short
+chanArpStage=fcsAddrBase+24+(FCS_MAX_CHAN*16) ; char
+chanArpTicks=fcsAddrBase+24+(FCS_MAX_CHAN*16)+1 ; char
 
 ; may be used for driver detection
 fcsDriverInfo:
@@ -481,19 +483,38 @@ fcsChannelCmd:
     sta fcsTempPtr+1
     jmp (fcsTempPtr)
 
+; this is called when vibrato depth is zero
+fcsChanPitchShortcut:
+  ; extend pitch sign
+  lda chanPitch,x
+  sta fcsArg0
+  bmi +
+  lda #0
+  sta fcsArg0+1
+  beq ++
++ lda #$ff
+  sta fcsArg0+1
+++
+  ; dispatch command
+  ldy #9
+  jsr fcsDispatchCmd
+  ; end
+  jmp fcsChanDoPorta
+
 ; x: channel*2
 ; stuff that goes after command reading
 fcsChannelPost:
+  rts
   ;;; DO VOLUME
   fcsChanDoVolume:
     ; if (sendVolume || chanVolSpeed[x]!=0)
     lda fcsSendVolume
-    bne fcsChanDoPitch
+    bne +
     lda chanVolSpeed,x
     ora chanVolSpeed+1,x
     beq fcsChanDoPitch
     ; increase volume
-    lda chanVol,x
++   lda chanVol,x
     clc
     adc chanVolSpeed,x
     sta chanVol,x
@@ -506,22 +527,150 @@ fcsChannelPost:
     bpl fcsChanPlus
     fcsChanMinus:
       ; if (chanVol[x]<0)
-      bcc fcs
-      jmp fcsChanDoPitch
+      bcs fcsChanSubmitVol
+      ; chanVol[x]=0
+      lda #0
+      sta chanVol,x
+      sta chanVol+1,x
+      beq fcsChanSubmitVol ; shortcut
     fcsChanPlus:
       ; if (chanVol[x]>=fcsVolMax[x] || CARRY)
+      bcs + ; overflow check
+      lda chanVol+1,x ; comparison check
+      cmp fcsVolMax.w,x
+      bmi fcsChanSubmitVol
+      ; chanVol[x]=fcsVolMax[x]
++     lda fcsVolMax.w,x
+      sta chanVol+1,x
+      lda #0
+      sta chanVol,x
+    fcsChanSubmitVol:
+      lda chanVol+1,x
+      sta fcsArg0
+      ldy #$05 ; volume
+      jsr fcsDispatchCmd
 
   ;;; DO PITCH
   fcsChanDoPitch:
+    ; if (sendPitch || chanVibrato[x]!=0)
+    lda fcsSendPitch
+    bne +
+    lda chanVibrato,x
+    and #$0f ; depth only
+    beq fcsChanDoPorta
+    ; update vibrato
+    ; get vibrato
++   lda chanVibrato,x
+    lsr
+    lsr
+    lsr
+    lsr
+    clc
+    adc chanVibratoPos,x
+    and #$3f
+    sta chanVibratoPos,x 
+    ; calculate vibrato pitch (TODO)
+    ; 1. calculate vibrato position
+    ;   - we use 15 quarter sine tables, one for each vibrato depth
+    ;   - 32-63 are negatives of 0-31
+    ;   - a&31: zero is zero. otherwise a-1 in the table unless a&16
+    ;   - if a&16 then invert a
+    tay
+    ; check for zero in a&31
+    and #$1f
+    bne +
+    ; it is. load zero
+    lda #0
+    jmp fcsPostVibratoCalc1
+    ; it is not. check a&16
++   and #$10
+    bne +
+    ; 0-15
+    dey
+    tya
+    and #$0f
+    jmp fcsPostVibratoCalc
+    ; 16-31
++   tya
+    and #$0f
+    eor #$0f ; 0-15 -> 15-0
+
+    fcsPostVibratoCalc:
+      ; check for 32-63
+      pha
+      tya
+      and #$20
+      bne +
+      ; 0-31
+      pla
+      tay
+      lda (fcsTempPtr),y
+      jmp fcsPostVibratoCalc1
+      ; 32-63 (negate)
++     pla
+      tay
+      lda (fcsTempPtr),y
+      eor #$ff
+      clc
+      adc #1
+
+    ; at this point, a contains the vibrato pitch
+    fcsPostVibratoCalc1:
+      sta fcsArg0
+      ; extend sign
+      bmi +
+      lda #0
+      sta fcsArg0+1
+      beq ++
++     lda #$ff
+      sta fcsArg0+1
+      ; extend pitch sign
+++    lda chanPitch,x
+      sta fcsTempPtr
+      bmi +
+      lda #0
+      sta fcsTempPtr+1
+      beq ++
++     lda #$ff
+      sta fcsTempPtr+1
+      ; add pitch
+++    lda fcsArg0
+      clc
+      adc fcsTempPtr
+      sta fcsArg0
+      lda fcsArg0+1
+      adc fcsTempPtr+1
+      sta fcsArg0+1
+      ; dispatch command
+      ldy #9
+      jsr fcsDispatchCmd
 
   ;;; DO PORTAMENTO
   fcsChanDoPorta:
+    ; if (chanPortaSpeed[x])
+    lda chanPortaSpeed,x
+    beq fcsChanDoArp
+    ; do portamento
+    sta fcsArg0
+    lda #0
+    sta fcsArg0+1
+    lda chanPortaTarget,x
+    sta fcsArg1
+    ldy #8 ; NOTE_PORTA
+    jsr fcsDispatchCmd
+    ; get out (we can't do porta and arp simultaneously)
+    rts
 
   ;;; DO ARPEGGIO
   fcsChanDoArp:
+    ; if (chanArp[x] && !chanPortaSpeed[x])
+    lda chanArp,x
+    beq +
+    ; do arpeggio (TODO)
+    nop
 
   ;;; END
-  rts
++ rts
 
 ; x: channel*2
 fcsDoChannel:
@@ -530,12 +679,7 @@ fcsDoChannel:
   sta fcsSendVolume
   sta fcsSendPitch
 
-  ; check whether this channel is halted (PC = 0)
-  lda chanPC,x
-  ora chanPC+1,x
-  bne +
-  rts
-  ; channel not halted... begin processing
+  ; begin processing
   ; chanTicks--
 + lda chanTicks,x
   sec
@@ -619,14 +763,17 @@ fcsInit:
   ; initialize channel stacks
   lda #0
   ldx #0
+  ldy #0
 - sta chanStackPtr,x
   clc
-  adc #FCS_MAX_STACK
+  adc fcsStackSize.w,y
+  clc
+  adc fcsStackSize.w,y
   inx
   inx
+  iny
   cpx #(FCS_MAX_CHAN*2)
   bne -
-  
 
   ; set volumes
   ; TODO
@@ -637,10 +784,7 @@ fcsInit:
 
 ; floor(127*sin((x/64)*(2*pi)))
 fcsVibTable:
-  .db 0, 12, 24, 36, 48, 59, 70, 80, 89, 98, 105, 112, 117, 121, 124, 126
-  .db 127, 126, 124, 121, 117, 112, 105, 98, 89, 80, 70, 59, 48, 36, 24, 12
-  .db 0, -12, -24, -36, -48, -59, -70, -80, -89, -98, -105, -112, -117, -121, -124, -126
-  .db -126, -126, -124, -121, -117, -112, -105, -98, -89, -80, -70, -59, -48, -36, -24, -12
+  .db 12, 24, 36, 48, 59, 70, 80, 89, 98, 105, 112, 117, 121, 124, 126, 127
 
 ; COMMAND TABLE
 ; $b4 fcsNoArgDispatch,
@@ -957,14 +1101,14 @@ fcsDummyFunc:
   rts
 
 fcsVolMaxExample:
-  .dw $7f00
-  .dw $7f00
-  .dw $7f00
-  .dw $7f00
-  .dw $7f00
-  .dw $7f00
-  .dw $7f00
-  .dw $7f00
+  .db $7f, $00
+  .db $7f, $00
+  .db $7f, $00
+  .db $7f, $00
+  .db $7f, $00
+  .db $7f, $00
+  .db $7f, $00
+  .db $7f, $00
 
 ; first 64 commands
 fcsCmdTableExample:

@@ -45,9 +45,9 @@ initPPU:
   bpl -
 startPlayer:
   ; draw some text
-  lda #$21
+  lda #$20
   sta PPUADDR
-  lda #$02
+  lda #$42
   sta PPUADDR
 
   ldx #$00
@@ -123,7 +123,6 @@ irq:
 
 ; command stream player definition
 FCS_MAX_CHAN=8
-FCS_MAX_STACK=10
 
 fcsAddrBase=$30
 fcsZeroPage=$0e
@@ -139,7 +138,7 @@ fcsCmdTableHigh=fcsCmdTableExample
 
 ; data
 helloWorld:
-  .db "Hello, World!"
+  .db "Furnace Test Player"
   .db 0
 
 ppuPalette:
