@@ -489,12 +489,19 @@ fcsChanPitchShortcut:
   lda chanPitch,x
   sta fcsArg0
   bmi +
+
+  ; positive
   lda #0
   sta fcsArg0+1
-  beq ++
+  ; dispatch command
+  ldy #9
+  jsr fcsDispatchCmd
+  ; end
+  jmp fcsChanDoPorta
+
+  ; negative
 + lda #$ff
   sta fcsArg0+1
-++
   ; dispatch command
   ldy #9
   jsr fcsDispatchCmd
@@ -504,7 +511,6 @@ fcsChanPitchShortcut:
 ; x: channel*2
 ; stuff that goes after command reading
 fcsChannelPost:
-  rts
   ;;; DO VOLUME
   fcsChanDoVolume:
     ; if (sendVolume || chanVolSpeed[x]!=0)
@@ -552,12 +558,12 @@ fcsChannelPost:
 
   ;;; DO PITCH
   fcsChanDoPitch:
-    ; if (sendPitch || chanVibrato[x]!=0)
-    lda fcsSendPitch
-    bne +
+    ; check for vibrato depth
     lda chanVibrato,x
     and #$0f ; depth only
-    beq fcsChanDoPorta
+    bne +
+    jmp fcsChanDoPitch1
+
     ; update vibrato
     ; get vibrato
 +   lda chanVibrato,x
@@ -570,7 +576,15 @@ fcsChannelPost:
     and #$3f
     sta chanVibratoPos,x 
     ; calculate vibrato pitch (TODO)
-    ; 1. calculate vibrato position
+    ; 1. store table offset
+    lda chanVibrato,x
+    rol
+    rol
+    rol
+    rol
+    and #$f0
+    sta fcsTempPtr
+    ; 2. calculate vibrato position
     ;   - we use 15 quarter sine tables, one for each vibrato depth
     ;   - 32-63 are negatives of 0-31
     ;   - a&31: zero is zero. otherwise a-1 in the table unless a&16
@@ -603,13 +617,17 @@ fcsChannelPost:
       bne +
       ; 0-31
       pla
+      clc
+      adc fcsTempPtr
       tay
-      lda (fcsTempPtr),y
+      lda fcsVibTable-16,y
       jmp fcsPostVibratoCalc1
       ; 32-63 (negate)
 +     pla
+      clc
+      adc fcsTempPtr
       tay
-      lda (fcsTempPtr),y
+      lda fcsVibTable-16,y
       eor #$ff
       clc
       adc #1
@@ -644,6 +662,14 @@ fcsChannelPost:
       ; dispatch command
       ldy #9
       jsr fcsDispatchCmd
+      jmp fcsChanDoPorta
+
+  ; check whether we should send pitch
+  ; (vibrato depth is zero)
+  fcsChanDoPitch1:
+    lda fcsSendPitch
+    beq fcsChanDoPorta
+    jmp fcsChanPitchShortcut
 
   ;;; DO PORTAMENTO
   fcsChanDoPorta:
@@ -665,12 +691,60 @@ fcsChannelPost:
   fcsChanDoArp:
     ; if (chanArp[x] && !chanPortaSpeed[x])
     lda chanArp,x
-    beq +
-    ; do arpeggio (TODO)
-    nop
+    beq fcsChanEnd
+    ; if (chanArpTicks[x]==0)
+    lda chanArpTicks,x
+    bne ++
+    ; switch (chanArpStage[x])
+    lda chanArpStage,x
+    cmp #1 ; mi is 0, eq is 1 and pl is 2
+    beq fcsChanArp1
+    bpl fcsChanArp2
+    ; bmi fcsChanArp0
+    fcsChanArp0:
+      lda chanNote,x 
+      jmp fcsChanArpPost
+    fcsChanArp1:
+      lda chanArp,x
+      lsr
+      lsr
+      lsr
+      lsr
+      clc
+      adc chanNote,x
+      jmp fcsChanArpPost
+    fcsChanArp2:
+      lda chanArp,x
+      and #$0f
+      clc
+      adc chanNote,x
+      jmp fcsChanArpPost
+
+    fcsChanArpPost:
+      sta fcsArg0
+      ldy #11 ; legato
+      jsr fcsDispatchCmd
+
+    ; post-operations
+    lda chanArpStage,x
+    clc
+    adc #1
+    cmp #3
+    ; if (chanArpStage[x]>=3) chanArpStage[x]=0
+    bmi +
+    lda #0
++   sta chanArpStage,x
+
+    ; chanArpTicks[x]=fcsArpSpeed
+    lda fcsArpSpeed
+    sta chanArpTicks,x
+
+    ; chanArpTicks[x]--
+++  dec chanArpTicks,x
 
   ;;; END
-+ rts
+  fcsChanEnd:
+    rts
 
 ; x: channel*2
 fcsDoChannel:
@@ -782,7 +856,7 @@ fcsInit:
   lda #0
   rts
 
-; floor(127*sin((x/64)*(2*pi)))
+; floor(127*sin((x/64)*(2*pi))*depth/15)
 fcsVibTable:
   .db 0, 1, 2, 3, 3, 4, 5, 5, 6, 7, 7, 7, 8, 8, 8, 8
   .db 1, 3, 4, 6, 7, 9, 10, 11, 13, 14, 14, 15, 16, 16, 16, 16
