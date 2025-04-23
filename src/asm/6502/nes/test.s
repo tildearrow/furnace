@@ -47,18 +47,25 @@ startPlayer:
   ; draw some text
   lda #$20
   sta PPUADDR
-  lda #$42
+  lda #$40
   sta PPUADDR
 
-  ldx #$00
-- lda helloWorld.w,x
-  beq +
+  lda #<screenText
+  sta $00
+  lda #>screenText
+  sta $01
+  ldy #0
+  clc
+- lda ($00),y
+  beq ++
   sta PPUDATA
-  inx
+  inc $00
   bne -
+  inc $01
+  bcc -
 
   ; set palette
-+ bit PPUSTATUS
+++ bit PPUSTATUS
   lda #$3f
   sta PPUADDR
   lda #$00
@@ -137,8 +144,18 @@ fcsCmdTableHigh=fcsCmdTableExample
 .include "../stream.s"
 
 ; data
-helloWorld:
-  .db "Furnace Test Player"
+screenText:
+  .db "  Furnace Test Player           "
+  .db "                                "
+  .db "  channel                       "
+  .db "                                "
+  .db "  PC            tick            "
+  .db "  note          pitch           "
+  .db "  vib           vibPos          "
+  .db "  arp           porta           "
+  .db "  vol           volS            "
+  .db "  pan                           "
+  .db "                                "
   .db 0
 
 ppuPalette:
