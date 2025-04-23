@@ -55,6 +55,7 @@ chanVolSpeed=fcsAddrBase+24+(FCS_MAX_CHAN*12) ; short
 chanPan=fcsAddrBase+24+(FCS_MAX_CHAN*14) ; short
 chanArpStage=fcsAddrBase+24+(FCS_MAX_CHAN*16) ; char
 chanArpTicks=fcsAddrBase+24+(FCS_MAX_CHAN*16)+1 ; char
+chanVibratoDebug=fcsAddrBase+24+(FCS_MAX_CHAN*18) ; char
 
 ; may be used for driver detection
 fcsDriverInfo:
@@ -244,10 +245,10 @@ fcsNoOpOneByte:
 
 fcsPan:
   fcsReadNext
-  sta chanPan,x
+  sta chanPan.w,x
   sta fcsArg0
   fcsReadNext
-  sta chanPan+1,x
+  sta chanPan.w+1,x
   sta fcsArg1
   ldy #10
   jsr fcsDispatchCmd
@@ -379,9 +380,14 @@ fcsTickRate:
   rts
 
 fcsWaitS:
+  sec
   fcsReadNext
+  and #$ff
   sta chanTicks,x
-  fcsReadNext
+  bne +
+  clc
++ fcsReadNext
+  adc #$ff
   sta chanTicks+1,x
   rts
 
@@ -565,8 +571,16 @@ fcsChannelPost:
     jmp fcsChanDoPitch1
 
     ; update vibrato
-    ; get vibrato
+    ; 1. store vibrato pitch table offset
 +   lda chanVibrato,x
+    rol
+    rol
+    rol
+    rol
+    and #$f0
+    sta fcsTempPtr
+    ; 2. update vibrato position
+    lda chanVibrato,x
     lsr
     lsr
     lsr
@@ -575,16 +589,7 @@ fcsChannelPost:
     adc chanVibratoPos,x
     and #$3f
     sta chanVibratoPos,x 
-    ; calculate vibrato pitch (TODO)
-    ; 1. store table offset
-    lda chanVibrato,x
-    rol
-    rol
-    rol
-    rol
-    and #$f0
-    sta fcsTempPtr
-    ; 2. calculate vibrato position
+    ; 3. calculate vibrato pitch
     ;   - we use 15 quarter sine tables, one for each vibrato depth
     ;   - 32-63 are negatives of 0-31
     ;   - a&31: zero is zero. otherwise a-1 in the table unless a&16
@@ -635,6 +640,7 @@ fcsChannelPost:
     ; at this point, a contains the vibrato pitch
     fcsPostVibratoCalc1:
       sta fcsArg0
+      sta chanVibratoDebug,x
       ; extend sign
       bmi +
       lda #0
@@ -850,7 +856,17 @@ fcsInit:
   bne -
 
   ; set volumes
-  ; TODO
+  ldx #0
+- lda fcsVolMax.w,x
+  sta chanVol+1,x
+  inx
+  inx
+  cpx #(FCS_MAX_CHAN*2)
+  bne -
+
+  ; set arp speed
+  lda #1
+  sta fcsArpSpeed
 
   ; success
   lda #0
@@ -1198,13 +1214,5 @@ fcsVolMaxExample:
   .db $7f, $00
   .db $7f, $00
 
-; first 64 commands
 fcsCmdTableExample:
-  .db 0, 0, 0, 0, 0, 0, 0, 0
-  .db 0, 0, 0, 0, 0, 0, 0, 0
-  .db 0, 0, 0, 0, 0, 0, 0, 0
-  .db 0, 0, 0, 0, 0, 0, 0, 0
-  .db 0, 0, 0, 0, 0, 0, 0, 0
-  .db 0, 0, 0, 0, 0, 0, 0, 0
-  .db 0, 0, 0, 0, 0, 0, 0, 0
-  .db 0, 0, 0, 0, 0, 0, 0, 0
+  .dsb 256, 0

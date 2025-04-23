@@ -4,6 +4,9 @@
 .include "nes.i"
 
 pendingTick=$400
+curChan=$401
+joyInput=$402
+joyPrev=$403
 
 ; program ROM
 .BANK 1 SLOT 1
@@ -94,7 +97,7 @@ loop:
   beq loop
   ; wait a bit so we can see the raster
   ldy #$ff
-  ldx #$03
+  ldx #$02
 
 - dey
   bne -
@@ -115,18 +118,156 @@ loop:
 
   jmp loop
 
+.MACRO ppuPos
+  bit PPUSTATUS
+  lda #>($2000+((\1))+((\2)<<5))
+  sta PPUADDR
+  lda #<($2000+((\1))+((\2)<<5))
+  sta PPUADDR
+.ENDM
+
 ; interrupt handlers
 nmi:
   php
   pha
-  lda #1
+
+  ; read controller
+  lda joyInput
+  sta joyPrev
+  lda #$01
+  sta JOY1
+  sta joyInput
+  lsr
+  sta JOY1
+
+- lda JOY1
+  lsr
+  rol joyInput
+  bcc -
+
+  ; PPU update
+  ppuPos 10, 4
+
+  lda curChan
+  jsr printNum
+
+  lda curChan
+  rol
+  tax
+
+  ppuPos 12, 6
+
+  lda chanPC.w+1,x
+  jsr printNum
+  lda chanPC.w,x
+  jsr printNum
+
+  ppuPos 12, 7
+
+  lda chanTicks.w+1,x
+  jsr printNum
+  lda chanTicks.w,x
+  jsr printNum
+
+  ppuPos 14, 8
+  lda chanNote.w,x
+  jsr printNum
+
+  ppuPos 14, 9
+  lda chanPitch.w,x
+  jsr printNum
+
+  ppuPos 20, 9
+  lda chanVibratoDebug.w,x
+  jsr printNum
+
+  ppuPos 14, 10
+  lda chanVibrato.w,x
+  jsr printNum
+
+  ppuPos 14, 11
+  lda chanVibratoPos.w,x
+  jsr printNum
+
+  ppuPos 14, 12
+  lda chanArp.w,x
+  jsr printNum
+
+  ppuPos 20, 12
+  lda chanArpTicks.w,x
+  jsr printNum
+
+  ppuPos 23, 12
+  lda chanArpStage.w,x
+  jsr printNum
+
+  ppuPos 14, 13
+  lda chanPortaSpeed.w,x
+  jsr printNum
+
+  ppuPos 20, 13
+  lda chanPortaTarget.w,x
+  jsr printNum
+
+  ppuPos 12, 14
+  lda chanVol.w+1,x
+  jsr printNum
+  lda chanVol.w,x
+  jsr printNum
+
+  ; end of PPU update
+  bit PPUSTATUS
+  lda #0
+  sta PPUSCROLL
+  sta PPUSCROLL
+
+  ; process joy input
+  lda joyInput
+  eor joyPrev
+  and joyInput
+
+  ; left
+  pha
+  and #$02
+  beq +
+  dec curChan
+  bpl +
+  lda #0
+  sta curChan
+
+  ; right
++ pla
+  and #$01
+  beq +
+  inc curChan
+
+  ; set pendingTick
++ lda #1
   sta pendingTick
+  
+  ; end
   pla
   plp
   rti
 
 irq:
   rti
+
+printNum:
+  pha
+  lsr
+  lsr
+  lsr
+  lsr
+  tay
+  lda hexChar.w,y
+  sta PPUDATA
+  pla
+  and #$0f
+  tay
+  lda hexChar.w,y
+  sta PPUDATA
+  rts
 
 ; command stream player definition
 FCS_MAX_CHAN=8
@@ -147,16 +288,22 @@ fcsCmdTableHigh=fcsCmdTableExample
 screenText:
   .db "  Furnace Test Player           "
   .db "                                "
-  .db "  channel                       "
+  .db "  channel 00                    "
   .db "                                "
-  .db "  PC            tick            "
-  .db "  note          pitch           "
-  .db "  vib           vibPos          "
-  .db "  arp           porta           "
-  .db "  vol           volS            "
-  .db "  pan                           "
-  .db "                                "
+  .db "  PC       $0000   (00)         "
+  .db "  tick      0000                "
+  .db "  note        00                "
+  .db "  pitch       00   ~00          "
+  .db "  vib         00                "
+  .db "  vibPos      00                "
+  .db "  arp         00   (00/00)      "
+  .db "  porta       00 -> 00          "
+  .db "  vol       0000                "
+  .db "  pan       0000                "
   .db 0
+
+hexChar:
+  .db "0123456789ABCDEF"
 
 ppuPalette:
   .db $0e, $00, $10, $30
@@ -165,7 +312,16 @@ ppuPalette:
   .db $0e, $00, $10, $30
 
 volMaxArray:
-  .dw $40, $40, $40, $40
+  .db $7f, 00
+  .db $7f, 00
+  .db $7f, 00
+  .db $7f, 00
+  .db $7f, 00
+  .db $7f, 00
+  .db $7f, 00
+  .db $7f, 00
+
+.ORGA $9000
 
 cmdStream:
   .incbin "../seq.bin"
