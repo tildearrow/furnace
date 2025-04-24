@@ -8,6 +8,8 @@ curChan=$401
 joyInput=$402
 joyPrev=$403
 
+mulTemp0=$08
+mulTemp1=$09
 tempNote=$0a
 tempOctave=$0b
 temp16=$0c
@@ -42,6 +44,9 @@ main:
 initPlayer:
   ; initialize command stream player
   jsr fcsInit
+  ; enable audio (not DPCM though)
++ lda #$0f
+  sta $4015
 initPPU:
   ; wait for PPU to be ready
   bit PPUSTATUS
@@ -273,6 +278,39 @@ printNum:
   sta PPUDATA
   rts
 
+; a: factor 1
+; y: factor 2
+; ya: product
+mul8:
+  lsr
+  sta mulTemp0
+  tya
+  beq mul8Zero
+
+  dey
+  sty mulTemp1
+  lda #0
+
+  ; iteration 0
+  bcc +
+  adc mulTemp1
++ ror
+
+  ; iterations 1-7
+.REPEAT 7
+  ror mulTemp0
+  bcc +
+  adc mulTemp1
++ ror
+.ENDR
+
+  ; end
+  tay
+  lda mulTemp0
+  ror
+mul8Zero:
+  rts
+
 ; command stream player definition
 FCS_MAX_CHAN=8
 
@@ -282,8 +320,22 @@ fcsGlobalStack=$200
 fcsPtr=cmdStream
 fcsVolMax=volMaxArray
 
-exampleNoteTable:
-  .dw $06ad*2, $064d*2, $05f3*2, $059d*2, $054c*2, $0500*2, $04b8*2, $0474*2, $0434*2, $03f8*2, $03bf*2, $0389*2
+; dispatch state definition
+dcStateBase=$410
+
+dcBaseFreq=dcStateBase ; short
+dcPitch=dcStateBase+(2*FCS_MAX_CHAN) ; short
+dcFreq=dcStateBase+(4*FCS_MAX_CHAN) ; short
+dcFreqChanged=dcStateBase+(6*FCS_MAX_CHAN) ; char
+
+exampleNoteTableLow:
+  .db <$d5c, <$c9c, <$be8, <$b3c, <$a9a, <$a02, <$972, <$8ea, <$86a, <$7f2, <$780, <$714, <$6ae
+
+exampleNoteTableHigh:
+  .db >$d5c, >$c9c, >$be8, >$b3c, >$a9a, >$a02, >$972, >$8ea, >$86a, >$7f2, >$780, >$714, >$6ae
+
+exampleNoteDelta:
+  .db 192, 180, 172, 162, 152, 144, 136, 128, 120, 114, 108, 102
 
 ; >>2
 noteSubTable:
@@ -333,7 +385,7 @@ calcNoteOctave:
   ; end
   rts
 
-noteOnHandler:
+dispatchNoteOn:
   txa
   lsr
   cmp curChan
@@ -342,37 +394,83 @@ noteOnHandler:
   ; note_on handler
 + lda fcsArg0
   sec
-  sbc #72
+  sbc #60
+  bmi bottomPitch
   jsr calcNoteOctave
+  sta tempNote
+  sty tempOctave
   
-  clc
-  rol
   tay
-  lda exampleNoteTable+1,y
-  pha
-  lda exampleNoteTable,y
-  pha
+  lda exampleNoteTableLow,y
+  sta temp16
+  lda exampleNoteTableHigh,y
+  sta temp16+1
+
+  ldy tempOctave
+  beq +
+- lsr temp16+1
+  ror temp16
+  dey
+  bne -
+
++ lda temp16+1
+  and #$f8
+  beq +
+
+  bottomPitch:
+    lda #$ff
+    sta temp16
+    lda #$07
+    sta temp16+1
+
   ; make a sound
-  lda #$01
-  sta $4015
-  lda #$04
++ lda #$04
   sta $4000
   lda #$08
   sta $4001
-  pla
+  lda temp16
   sta $4002
-  pla
+  lda temp16+1
   ora #$08
   sta $4003
   rts
 
+dispatchNoteOff:
+dispatchPorta:
+dispatchPitch:
+dispatchLegato:
+dispatchPrePorta:
+  rts
+
 cmdTableLow:
-  .db <noteOnHandler
-  .dsb 255, 0
+  .db <dispatchNoteOn
+  .db <dispatchNoteOff
+  .db 0 ; note_release
+  .db 0 ; env release
+  .db 0 ; instrument
+  .db 0 ; volume
+  .db 0, 0 ; unused
+  .db <dispatchPorta
+  .db <dispatchPitch
+  .db 0 ; panning
+  .db <dispatchLegato
+  .db <dispatchPrePorta
+  .dsb 243, 0
 
 cmdTableHigh:
-  .db >noteOnHandler
-  .dsb 255, 0
+  .db >dispatchNoteOn
+  .db >dispatchNoteOff
+  .db 0 ; note_release
+  .db 0 ; env release
+  .db 0 ; instrument
+  .db 0 ; volume
+  .db 0, 0 ; unused
+  .db >dispatchPorta
+  .db >dispatchPitch
+  .db 0 ; panning
+  .db >dispatchLegato
+  .db >dispatchPrePorta
+  .dsb 243, 0
 
 .include "../stream.s"
 
