@@ -184,6 +184,8 @@ fcsArpTime:
 fcsVibrato:
   fcsReadNext
   sta chanVibrato,x
+  lda #1
+  sta fcsSendPitch
   rts
 
 ; TODO

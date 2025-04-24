@@ -8,6 +8,7 @@ curChan=$401
 joyInput=$402
 joyPrev=$403
 
+tempFreq=$06
 mulTemp0=$08
 mulTemp1=$09
 tempNote=$0a
@@ -118,6 +119,7 @@ loop:
   sta PPUMASK
 
   jsr fcsTick
+  jsr dispatchTick
   lda #0
   sta pendingTick
 
@@ -325,8 +327,7 @@ dcStateBase=$410
 
 dcBaseFreq=dcStateBase ; short
 dcPitch=dcStateBase+(2*FCS_MAX_CHAN) ; short
-dcFreq=dcStateBase+(4*FCS_MAX_CHAN) ; short
-dcFreqChanged=dcStateBase+(6*FCS_MAX_CHAN) ; char
+dcFreqChanged=dcStateBase+(4*FCS_MAX_CHAN) ; char
 
 exampleNoteTableLow:
   .db <$d5c, <$c9c, <$be8, <$b3c, <$a9a, <$a02, <$972, <$8ea, <$86a, <$7f2, <$780, <$714, <$6ae
@@ -386,60 +387,38 @@ calcNoteOctave:
   rts
 
 dispatchNoteOn:
-  txa
-  lsr
-  cmp curChan
-  beq +
-  rts
-  ; note_on handler
-+ lda fcsArg0
-  sec
-  sbc #60
-  bmi bottomPitch
-  jsr calcNoteOctave
-  sta tempNote
-  sty tempOctave
-  
-  tay
-  lda exampleNoteTableLow,y
-  sta temp16
-  lda exampleNoteTableHigh,y
-  sta temp16+1
-
-  ldy tempOctave
-  beq +
-- lsr temp16+1
-  ror temp16
-  dey
-  bne -
-
-+ lda temp16+1
-  and #$f8
-  beq +
-
-  bottomPitch:
-    lda #$ff
-    sta temp16
-    lda #$07
-    sta temp16+1
-
-  ; make a sound
-+ lda #$04
-  sta $4000
-  lda #$08
-  sta $4001
-  lda temp16
-  sta $4002
-  lda temp16+1
-  ora #$08
-  sta $4003
+  lda fcsArg0
+  sta dcBaseFreq+1,x
+  lda #0
+  sta dcBaseFreq,x
+  lda #1
+  sta dcFreqChanged,x
   rts
 
 dispatchNoteOff:
-dispatchPorta:
-dispatchPitch:
-dispatchLegato:
 dispatchPrePorta:
+dispatchPorta:
+  rts
+
+dispatchLegato:
+  lda fcsArg0
+  sta dcBaseFreq+1,x
+  lda #0
+  sta dcBaseFreq,x
+  lda #1
+  sta dcFreqChanged,x
+  rts
+
+dispatchPitch:
+  lda fcsArg0
+  clc
+  rol
+  sta dcPitch,x
+  lda fcsArg0+1
+  rol
+  sta dcPitch+1,x
+  lda #1
+  sta dcFreqChanged,x
   rts
 
 cmdTableLow:
@@ -471,6 +450,94 @@ cmdTableHigh:
   .db >dispatchLegato
   .db >dispatchPrePorta
   .dsb 243, 0
+
+handleFreq:
+  lda #0
+  sta dcFreqChanged,x
+
+  ; frequency handler - LINEAR
+  ; calculate effective pitch
+  lda dcBaseFreq,x
+  clc
+  adc dcPitch,x
+  sta tempFreq
+  lda dcBaseFreq+1,x
+  adc dcPitch+1,x
+  sta tempFreq+1
+
+  ; a contains note_
+  ; check for out of range
+  sec
+  sbc #60
+  bmi bottomPitch
+  jsr calcNoteOctave
+  sta tempNote
+  sty tempOctave
+  
+  ; load note_from note_table
+  tay
+  lda exampleNoteTableLow,y
+  sta temp16
+  lda exampleNoteTableHigh,y
+  sta temp16+1
+
+  ; calculate pitch offset
+  lda exampleNoteDelta,y
+  ldy tempFreq
+  jsr mul8
+  lda temp16
+  sty temp16
+  sec
+  sbc temp16
+  sta temp16
+  bcs +
+  dec temp16+1
+
+  ; shift by octave
++ ldy tempOctave
+  beq +
+- lsr temp16+1
+  ror temp16
+  dey
+  bne -
+
++ lda temp16+1
+  and #$f8
+  beq +
+
+  bottomPitch:
+    lda #$ff
+    sta temp16
+    lda #$07
+    sta temp16+1
+
+  ; make a sound
++ txa
+  clc
+  ror
+  cmp curChan
+  bne +
+  lda #$3f
+  sta $4000
+  lda #$08
+  sta $4001
+  lda temp16
+  sta $4002
+  lda temp16+1
+  ora #$08
+  sta $4003
++ rts
+
+dispatchTick:
+  ldx #0
+- lda dcFreqChanged,x
+  beq +
+  jsr handleFreq
++ inx
+  inx
+  cpx #(FCS_MAX_CHAN*2)
+  bne -
+  rts
 
 .include "../stream.s"
 
