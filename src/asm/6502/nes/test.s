@@ -8,6 +8,10 @@ curChan=$401
 joyInput=$402
 joyPrev=$403
 
+tempNote=$0a
+tempOctave=$0b
+temp16=$0c
+
 ; program ROM
 .BANK 1 SLOT 1
 .ORGA $8000
@@ -278,9 +282,97 @@ fcsGlobalStack=$200
 fcsPtr=cmdStream
 fcsVolMax=volMaxArray
 
+exampleNoteTable:
+  .dw $06ad*2, $064d*2, $05f3*2, $059d*2, $054c*2, $0500*2, $04b8*2, $0474*2, $0434*2, $03f8*2, $03bf*2, $0389*2
+
+; >>2
+noteSubTable:
+  .db 0, 12, 24, 36, 48, 60, 72, 84, 96, 108, 120, 132, 144, 156, 168, 180
+
+; >>2
+octaveTable:
+  .db 0, 0, 0
+  .db 1, 1, 1
+  .db 2, 2, 2
+  .db 3, 3, 3
+  .db 4, 4, 4
+  .db 5, 5, 5
+  .db 6, 6, 6
+  .db 7, 7, 7
+  .db 8, 8, 8
+  .db 9, 9, 9
+  .db 10, 10, 10
+  .db 11, 11, 11
+  .db 12, 12, 12
+  .db 13, 13, 13
+  .db 14, 14, 14
+  .db 15, 15, 15
+
 ; command call table
-fcsCmdTableLow=fcsCmdTableExample
-fcsCmdTableHigh=fcsCmdTableExample
+fcsCmdTableLow=cmdTableLow
+fcsCmdTableHigh=cmdTableHigh
+
+; calculate note_and octave from single-byte note_
+; a: note_from 0-180
+; set a to note_, and y to octave
+calcNoteOctave:
+  ; push a for later use
+  pha
+  ; divide by 4 for indexing in the octave table
+  lsr
+  lsr
+  tay
+  ; get the octave and put it into y
+  lda octaveTable,y
+  tay
+  ; pull a (contains note_from 0-180)
+  pla
+  ; subtract it with the note_sub table to clamp note_to 0-12
+  sec
+  sbc noteSubTable,y
+  ; end
+  rts
+
+noteOnHandler:
+  txa
+  lsr
+  cmp curChan
+  beq +
+  rts
+  ; note_on handler
++ lda fcsArg0
+  sec
+  sbc #72
+  jsr calcNoteOctave
+  
+  clc
+  rol
+  tay
+  lda exampleNoteTable+1,y
+  pha
+  lda exampleNoteTable,y
+  pha
+  ; make a sound
+  lda #$01
+  sta $4015
+  lda #$04
+  sta $4000
+  lda #$08
+  sta $4001
+  pla
+  sta $4002
+  pla
+  ora #$08
+  sta $4003
+  rts
+
+cmdTableLow:
+  .db <noteOnHandler
+  .dsb 255, 0
+
+cmdTableHigh:
+  .db >noteOnHandler
+  .dsb 255, 0
 
 .include "../stream.s"
 

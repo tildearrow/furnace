@@ -18,3 +18,21 @@ fcsVolMax=fcsVolMaxExample ; pointer to max channel volume array
 ; - a zero pointer means "don't handle"
 fcsCmdTableLow=fcsCmdTableExample
 fcsCmdTableHigh=fcsCmdTableExample
+
+; "dummy" implementation - example only!
+
+fcsDummyFunc:
+  rts
+
+fcsVolMaxExample:
+  .db $7f, $00
+  .db $7f, $00
+  .db $7f, $00
+  .db $7f, $00
+  .db $7f, $00
+  .db $7f, $00
+  .db $7f, $00
+  .db $7f, $00
+
+fcsCmdTableExample:
+  .dsb 256, 0

@@ -74,6 +74,12 @@ fcsDriverInfo:
 +
 .ENDM
 
+; same as fcsReadNext, but don't change PC
+.MACRO fcsPeekNext
+  ; a=chanPC[x]
+  lda (chanPC,x)
+.ENDM
+
 ; note on null
 fcsNoteOnNull:
   lda #0
@@ -272,7 +278,16 @@ fcsCallI:
   ; ignore next two bytes
   jsr fcsIgnoreNext
   jsr fcsIgnoreNext
-  jsr fcsPushCall
+  ; fcsPushCall BEGIN
+  ldy chanStackPtr,x
+  lda chanPC,x
+  sta fcsGlobalStack,y
+  iny
+  lda chanPC+1,x
+  sta fcsGlobalStack,y
+  iny
+  sty chanStackPtr,x
+  ; fcsPushCall END
   pla
   sta chanPC+1,x
   pla
@@ -322,39 +337,33 @@ fcsCall:
   fcsReadNext
   adc #>fcsPtr
   pha
-  jsr fcsPushCall
-  pla
-  sta chanPC+1,x
-  pla
-  sta chanPC,x
-  rts
-
-; push channel PC to stack
-fcsPushCall:
-  lda chanStackPtr,x
-  tay
+  ; fcsPushCall BEGIN
+  ; push channel PC to stack
+  ldy chanStackPtr,x
   lda chanPC,x
   sta fcsGlobalStack,y
   iny
   lda chanPC+1,x
   sta fcsGlobalStack,y
   iny
-  tya
-  sta chanStackPtr,x
+  sty chanStackPtr,x
+  ; fcsPushCall END
+  pla
+  sta chanPC+1,x
+  pla
+  sta chanPC,x
   rts
 
 ; retrieve channel PC from stack
 fcsRet:
-  lda chanStackPtr,x
-  tay
+  ldy chanStackPtr,x
   dey
   lda fcsGlobalStack,y
   sta chanPC+1,x
   dey
   lda fcsGlobalStack,y
   sta chanPC,x
-  tya
-  sta chanStackPtr,x
+  sty chanStackPtr,x
   rts
 
 fcsJump:
@@ -363,13 +372,8 @@ fcsJump:
   clc
   adc #<fcsPtr
   pha
-  fcsReadNext
+  fcsPeekNext
   adc #>fcsPtr
-  pha
-  ; ignore next two bytes
-  jsr fcsIgnoreNext
-  jsr fcsIgnoreNext
-  pla
   sta chanPC+1,x
   pla
   sta chanPC,x
@@ -1198,21 +1202,3 @@ fcsFullCmdTable:
   .db 1
   ; WonderSwan speaker vol
   .db 1
-
-; "dummy" implementation - example only!
-
-fcsDummyFunc:
-  rts
-
-fcsVolMaxExample:
-  .db $7f, $00
-  .db $7f, $00
-  .db $7f, $00
-  .db $7f, $00
-  .db $7f, $00
-  .db $7f, $00
-  .db $7f, $00
-  .db $7f, $00
-
-fcsCmdTableExample:
-  .dsb 256, 0
