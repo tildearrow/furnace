@@ -397,7 +397,10 @@ dispatchNoteOn:
 
 dispatchNoteOff:
 dispatchPrePorta:
+  rts
+
 dispatchPorta:
+  
   rts
 
 dispatchLegato:
