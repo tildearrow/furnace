@@ -400,8 +400,77 @@ dispatchPrePorta:
   rts
 
 dispatchPorta:
-  
+  ; check whether we already hit target
+  lda dcBaseFreq+1,x
+  cmp fcsArg1
+  bne +
+  lda dcBaseFreq,x
+  bne +
   rts
+  ; we didn't - perform porta
+  ; 1. calculate porta speed
++ lda fcsArg0
+  sta temp16
+  lda #0
+  sta temp16+1
+
+  ; <<2 to get 4 (default in Furnace)
+  clc
+  rol temp16
+  rol temp16+1
+  clc
+  rol temp16
+  rol temp16+1
+
+  ; 2. get direction of porta (cs = down, cc = up)
+  lda dcBaseFreq+1,x
+  cmp fcsArg1
+  bcc portaUp
+  ; 3. perform porta depending on direction
+  portaDown:
+    lda dcBaseFreq,x
+    sec
+    sbc temp16
+    sta dcBaseFreq,x
+    lda dcBaseFreq+1,x
+    sbc temp16+1
+    sta dcBaseFreq+1,x
+
+    ; check whether we hit target
+    bcs + ; carry set - no underflow
+    cmp fcsArg1
+    bcs + ; greater or equal to target
+    ; we did - let's clamp
+    lda #0
+    sta dcBaseFreq,x
+    lda fcsArg1
+    sta dcBaseFreq+1,x
+    ; end
++   lda #1
+    sta dcFreqChanged,x
+    rts
+  portaUp:
+    lda dcBaseFreq,x
+    clc
+    adc temp16
+    sta dcBaseFreq,x
+    lda dcBaseFreq+1,x
+    adc temp16+1
+    sta dcBaseFreq+1,x
+
+    ; check whether we hit target
+    bcc + ; carry clear - no overflow
+    cmp fcsArg1
+    bcc + ; less than target
+    ; we did - let's clamp
+    lda #0
+    sta dcBaseFreq,x
+    lda fcsArg1
+    sta dcBaseFreq+1,x
+    ; end
++   lda #1
+    sta dcFreqChanged,x
+    rts
 
 dispatchLegato:
   lda fcsArg0
