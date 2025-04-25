@@ -378,10 +378,15 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
       w->writeC(c.value);
       break;
     case DIV_CMD_HINT_PANNING:
-    case DIV_CMD_HINT_PORTA:
       w->writeC(c.value);
       w->writeC(c.value2);
       break;
+    case DIV_CMD_HINT_PORTA: {
+      unsigned char val=CLAMP(c.value+60,0,255);
+      w->writeC(val);
+      w->writeC(c.value2);
+      break;
+    }
     case DIV_CMD_PRE_PORTA:
       w->writeC((c.value?0x80:0)|(c.value2?0x40:0));
       break;

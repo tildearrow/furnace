@@ -169,7 +169,7 @@ bool DivCSPlayer::tick() {
           chan[i].volSpeedTarget=-1;
           break;
         case 0xc9: // porta
-          chan[i].portaTarget=(signed char)stream.readC();
+          chan[i].portaTarget=(int)((unsigned char)stream.readC())-60;
           chan[i].portaSpeed=(unsigned char)stream.readC();
           break;
         case 0xca: { // legato
