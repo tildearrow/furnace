@@ -81,7 +81,7 @@ render(struct VERA_PSG* psg, int16_t *left, int16_t *right)
 		if ((psg->chipType >= 1) && (!ch->left && !ch->right)) {
 			new_phase = 0;
 		}
-		if ((ch->phase & 0x10000) != (new_phase & 0x10000)) {
+		if ((psg->chipType < 3) ? (ch->phase & 0x10000) != (new_phase & 0x10000) : (ch->phase & 0x10000) && !(new_phase & 0x10000)) {
 			ch->noiseval = (psg->chipType < 1) ? psg->noiseOut : (psg->noiseState >> 1) & 0x3f;
 		}
 		ch->phase = new_phase;
