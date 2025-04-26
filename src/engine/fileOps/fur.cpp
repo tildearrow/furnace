@@ -2100,6 +2100,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
           ds.systemFlags[i].set("chipType",1);
         }
       }
+    } else if (ds.version<229) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_VERA) {
+          ds.systemFlags[i].set("chipType",2);
+        }
+      }
     }
 
     // SNES no anti-click
