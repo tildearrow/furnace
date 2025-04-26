@@ -468,7 +468,6 @@ void putDispatchChip(void* data, int type) {
       ImGui::Text("> VRC6");
       COMMON_CHIP_DEBUG;
       ImGui::Text("- sampleBank: %.2x",ch->sampleBank);
-      ImGui::Text("- writeOscBuf: %.2x",ch->writeOscBuf);
       COMMON_CHIP_DEBUG_BOOL;
       break;
     }

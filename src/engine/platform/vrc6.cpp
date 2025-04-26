@@ -101,14 +101,10 @@ void DivPlatformVRC6::acquireDirect(blip_buffer_t** bb, size_t len) {
       prevSample=sample;
     }
 
-    // Oscilloscope buffer part
-    if (++writeOscBuf>=32) {
-      writeOscBuf=0;
-      for (int i=0; i<2; i++) {
-        oscBuf[i]->putSample(h,vrc6.pulse_out(i)<<11);
-      }
-      oscBuf[2]->putSample(h,vrc6.sawtooth_out()<<10);
+    for (int i=0; i<2; i++) {
+      oscBuf[i]->putSample(h,vrc6.pulse_out(i)<<11);
     }
+    oscBuf[2]->putSample(h,vrc6.sawtooth_out()<<10);
 
     // Command part (what the heck why at the END?!)
     while (!writes.empty()) {
@@ -590,7 +586,6 @@ int DivPlatformVRC6::init(DivEngine* p, int channels, int sugRate, const DivConf
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
-  writeOscBuf=0;
   for (int i=0; i<3; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
