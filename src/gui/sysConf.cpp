@@ -2535,7 +2535,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       break;
     }
     case DIV_SYSTEM_VERA: {
-      int chipType=flags.getInt("chipType",2);
+      int chipType=flags.getInt("chipType",3);
 
       ImGui::Text(_("Chip revision:"));
       ImGui::Indent();
@@ -2549,6 +2549,10 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       if (ImGui::RadioButton(_("V 47.0.2 (Tri/Saw PW XOR)"),chipType==2)) {
         chipType=2;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("X16 Emu R49 (Noise freq fix)"),chipType==3)) {
+        chipType=3;
         altered=true;
       }
       ImGui::Unindent();
