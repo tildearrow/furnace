@@ -62,6 +62,10 @@ void DivPlatformTX81Z::acquire(short** buf, size_t len) {
 
   ymfm::ym2414::fm_engine* fme=fm_ymfm->debug_engine();
 
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
     if (!writes.empty()) {
@@ -82,7 +86,7 @@ void DivPlatformTX81Z::acquire(short** buf, size_t len) {
     fm_ymfm->generate(&out_ymfm);
 
     for (int i=0; i<8; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1),-32768,32767);
+      oscBuf[i]->putSample(h,CLAMP(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1),-32768,32767));
     }
 
     os[0]=out_ymfm.data[0];
@@ -95,6 +99,10 @@ void DivPlatformTX81Z::acquire(short** buf, size_t len) {
   
     buf[0][h]=os[0];
     buf[1][h]=os[1];
+  }
+
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -246,6 +254,14 @@ void DivPlatformTX81Z::tick(bool sysTick) {
     if (chan[i].std.ams.had) {
       chan[i].state.ams=chan[i].std.ams.val;
       rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3));
+    }
+    if (chan[i].std.ex9.had) {
+      chan[i].state.fms2=chan[i].std.ex9.val;
+      rWrite(chanOffs[i]+ADDR_FMS2_AMS2,((chan[i].state.fms2&7)<<4)|(chan[i].state.ams2&3));
+    }
+    if (chan[i].std.ex10.had) {
+      chan[i].state.ams2=chan[i].std.ex10.val;
+      rWrite(chanOffs[i]+ADDR_FMS2_AMS2,((chan[i].state.fms2&7)<<4)|(chan[i].state.ams2&3));
     }
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
@@ -1114,7 +1130,7 @@ void DivPlatformTX81Z::setFlags(const DivConfig& flags) {
 
   rate=chipClock/64;
   for (int i=0; i<8; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

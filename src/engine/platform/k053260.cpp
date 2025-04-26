@@ -69,7 +69,11 @@ u8 DivPlatformK053260::read_sample(u32 address) {
 }
 
 void DivPlatformK053260::acquire(short** buf, size_t len) {
-  for (size_t i=0; i<len; i++) {
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+
+  for (size_t h=0; h<len; h++) {
     k053260.tick(TICK_DIVIDER);
     int lout=(k053260.output(0)); // scale to 16 bit
     int rout=(k053260.output(1)); // scale to 16 bit
@@ -77,12 +81,16 @@ void DivPlatformK053260::acquire(short** buf, size_t len) {
     if (lout<-32768) lout=-32768;
     if (rout>32767) rout=32767;
     if (rout<-32768) rout=-32768;
-    buf[0][i]=lout;
-    buf[1][i]=rout;
+    buf[0][h]=lout;
+    buf[1][h]=rout;
 
     for (int i=0; i<4; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(k053260.voice_out(i,0)+k053260.voice_out(i,1))>>1;
+      oscBuf[i]->putSample(h,(k053260.voice_out(i,0)+k053260.voice_out(i,1))>>1);
     }
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -427,7 +435,7 @@ void DivPlatformK053260::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/TICK_DIVIDER;
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

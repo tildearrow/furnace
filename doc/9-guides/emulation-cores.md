@@ -64,3 +64,7 @@ Furnace achieves the authentic sound of videogame hardware by emulating sound ch
 - **AY-3-8910/SSG core**:
   - **MAME**: default core.
   - **AtomicSSG**: SSG core extracted from YM2608-LLE.
+
+- **WonderSwan core**:
+  - **asiekierka new core**: default core. highest accuracy and efficiency.
+  - **Mednafen**: slower and less accurate. included for compatibility with older modules.

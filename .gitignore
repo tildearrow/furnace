@@ -37,3 +37,8 @@ res/docpdf/.venv
 res/docpdf/htmldoc/
 res/fonts/compressed/
 res/furnace.appdata.xml
+src/asm/6502/*.o
+src/asm/6502/*.bin
+src/asm/6502/nes/test.nes
+src/asm/6502/nes/test.o
+src/asm/6502/nes/test.sym

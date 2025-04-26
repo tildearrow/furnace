@@ -40,6 +40,7 @@
 #include <math.h>
 #include <float.h>
 #include <fmt/printf.h>
+#include <chrono>
 
 void process(void* u, float** in, float** out, int inChans, int outChans, unsigned int size) {
   ((DivEngine*)u)->nextBuf(in,out,inChans,outChans,size);
@@ -1739,6 +1740,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
     subticks=1;
     prevOrder=curOrder;
     prevRow=curRow;
+    prevSpeed=nextSpeed;
     tempoAccum=0;
   }
   skipping=false;
@@ -2063,9 +2065,7 @@ void DivEngine::stop() {
   for (int i=0; i<chans; i++) {
     DivDispatchOscBuffer* buf=disCont[dispatchOfChan[i]].dispatch->getOscBuffer(dispatchChanOfChan[i]);
     if (buf!=NULL) {
-      memset(buf->data,0,65536*sizeof(short));
-      buf->needle=0;
-      buf->readNeedle=0;
+      buf->reset();
     }
   }
   BUSY_END;
@@ -2391,6 +2391,15 @@ void DivEngine::getPlayPos(int& order, int& row) {
   playPosLock.lock();
   order=prevOrder;
   row=prevRow;
+  playPosLock.unlock();
+}
+
+void DivEngine::getPlayPosTick(int& order, int& row, int& tick, int& speed) {
+  playPosLock.lock();
+  order=prevOrder;
+  row=prevRow;
+  tick=ticks;
+  speed=prevSpeed;
   playPosLock.unlock();
 }
 
@@ -3753,6 +3762,12 @@ void DivEngine::initDispatch(bool isRender) {
 
   lowQuality=getConfInt("audioQuality",0);
   dcHiPass=getConfInt("audioHiPass",1);
+
+  if (lowQuality) {
+    blip_add_delta=blip_add_delta_fast;
+  } else {
+    blip_add_delta=blip_add_delta_slow;
+  }
 
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].init(song.system[i],this,getChannelCount(song.system[i]),got.rate,song.systemFlags[i],isRender);

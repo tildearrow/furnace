@@ -32,6 +32,10 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 228: Furnace 0.6.8.1
+- 227: Furnace 0.6.8
+- 226: Furnace 0.6.8pre2
+- 225: Furnace 0.6.8pre1
 - 219: Furnace 0.6.7
 - 218: Furnace 0.6.6
 - 214: Furnace 0.6.5
@@ -259,8 +263,7 @@ size | description
      |   - 0xe1: PS1 - 24 channels (UNAVAILABLE)
      |   - 0xe2: C64 (6581) with PCM - 4 channels
      |   - 0xe3: Watara Supervision - 4 channels
-     |   - 0xe4: µPD1771C-017 (wave mode) - 1 channel
-     |   - 0xe5: µPD1771C-017 (tone mode) - 4 channels
+     |   - 0xe5: µPD1771C-017 - 4 channels
      |   - 0xf0: SID2 - 3 channels
      |   - 0xf1: 5E01 - 5 channels
      |   - 0xf5: SID3 - 7 channels

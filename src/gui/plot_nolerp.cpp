@@ -439,15 +439,17 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
                 if (blockMode) {
                   if ((int)v0>=(int)(scale_max+0.5)) {
                     float chScale=(pos1.x-pos0.x)*0.125;
-                    chevron[0]=ImVec2(pos0.x+(pos1.x-pos0.x)*0.25,pos1.y+4.0f*chScale);
-                    chevron[1]=ImVec2(pos0.x+(pos1.x-pos0.x)*0.5,pos1.y+2.0f*chScale);
-                    chevron[2]=ImVec2(pos0.x+(pos1.x-pos0.x)*0.75,pos1.y+4.0f*chScale);
+                    if (chScale>frame_size.y*0.05) chScale=frame_size.y*0.05;
+                    chevron[0]=ImVec2((pos1.x+pos0.x)*0.5-(2.0f*chScale),pos1.y+4.0f*chScale);
+                    chevron[1]=ImVec2((pos1.x+pos0.x)*0.5,pos1.y+2.0f*chScale);
+                    chevron[2]=ImVec2((pos1.x+pos0.x)*0.5+(2.0f*chScale),pos1.y+4.0f*chScale);
                     window->DrawList->AddPolyline(chevron, 3, rCol, 0, chScale);
                   } else if ((int)v0<(int)(scale_min)) {
                     float chScale=(pos1.x-pos0.x)*0.125;
-                    chevron[0]=ImVec2(pos0.x+(pos1.x-pos0.x)*0.25,pos1.y-4.0f*chScale);
-                    chevron[1]=ImVec2(pos0.x+(pos1.x-pos0.x)*0.5,pos1.y-2.0f*chScale);
-                    chevron[2]=ImVec2(pos0.x+(pos1.x-pos0.x)*0.75,pos1.y-4.0f*chScale);
+                    if (chScale>frame_size.y*0.05) chScale=frame_size.y*0.05;
+                    chevron[0]=ImVec2((pos1.x+pos0.x)*0.5-(2.0f*chScale),pos1.y-4.0f*chScale);
+                    chevron[1]=ImVec2((pos1.x+pos0.x)*0.5,pos1.y-2.0f*chScale);
+                    chevron[2]=ImVec2((pos1.x+pos0.x)*0.5+(2.0f*chScale),pos1.y-4.0f*chScale);
                     window->DrawList->AddPolyline(chevron, 3, rCol, 0, chScale);
                   } else {
                     window->DrawList->AddRectFilled(pos0, pos1, rCol);

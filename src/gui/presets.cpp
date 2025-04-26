@@ -421,6 +421,12 @@ void FurnaceGUI::initSystemPresets() {
         },
         "tickRate=50.1245421"
       );
+    SUB_ENTRY(
+      _("Commodore 64 (6581 SID) with software PCM"), {
+        CH(DIV_SYSTEM_C64_PCM, 1.0f, 0, "clockSel=1")
+      },
+      "tickRate=50.1245421"
+    );
   ENTRY(
     _("Amiga"), {
       CH(DIV_SYSTEM_AMIGA, 1.0f, 0, "clockSel=1")
@@ -1566,16 +1572,6 @@ void FurnaceGUI::initSystemPresets() {
         "customClock=1773447\n"
         "chipType=1\n"
       )
-    }
-  );
-  ENTRY(
-    "Epoch Super Cassette Vision (wave mode)", {
-      CH(DIV_SYSTEM_UPD1771C, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Epoch Super Cassette Vision (tone mode)", {
-      CH(DIV_SYSTEM_UPD1771C_TONE, 1.0f, 0, "")
     }
   );
   CATEGORY_END;
@@ -3754,6 +3750,12 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     _("Neo Geo CD (extended channel 2)"), {
       CH(DIV_SYSTEM_YM2610_EXT, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    _("MSX + SCC"), {
+      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
+      CH(DIV_SYSTEM_SCC, 1.0f, 0, "")
     }
   );
   CATEGORY_END;

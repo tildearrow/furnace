@@ -15,7 +15,8 @@ fi
 cd linuxbuild
 
 # -DWITH_PORTAUDIO=OFF: Ubuntu 16.04 doesn't like it
-cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O3" -DCMAKE_CXX_FLAGS="-O3 -Wall -Wextra -Wno-unused-parameter -Werror" -DWITH_PORTAUDIO=OFF -DWITH_DEMOS=ON -DWITH_INSTRUMENTS=ON -DWITH_WAVETABLES=ON -DWITH_LOCALE=ON -DUSE_MOMO=ON .. || exit 1
+# strict-overflow and array-bounds are weird
+cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O3" -DCMAKE_CXX_FLAGS="-O3 -Wall -Wextra -Wno-unused-parameter -Wno-strict-overflow -Wno-array-bounds" -DWITH_PORTAUDIO=OFF -DWITH_DEMOS=ON -DWITH_INSTRUMENTS=ON -DWITH_WAVETABLES=ON -DWITH_LOCALE=ON -DUSE_MOMO=ON .. || exit 1
 make -j4 || exit 1
 
 cd ..

@@ -31,11 +31,21 @@ void FurnaceGUI::drawStats() {
   if (ImGui::Begin("Statistics",&statsOpen,globalWinFlags,_("Statistics"))) {
     size_t lastProcTime=e->processTime;
     double maxGot=1000000000.0*(double)e->getAudioDescGot().bufsize/(double)e->getAudioDescGot().rate;
-    String procStr=fmt::sprintf("%.1f%%",100.0*((double)lastProcTime/(double)maxGot));
     ImGui::AlignTextToFramePadding();
     ImGui::Text(_("Audio load"));
     ImGui::SameLine();
-    ImGui::ProgressBar((double)lastProcTime/maxGot,ImVec2(-FLT_MIN,0),procStr.c_str());
+    ImGui::ProgressBar((double)lastProcTime/maxGot,ImVec2(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize("100.0%").x,0),"");
+    ImGui::SameLine();
+    ImGui::Text("%.1f%%",100.0*((double)lastProcTime/(double)maxGot));
+    if (ImGui::GetContentRegionAvail().y>8.0f*dpiScale) {
+      // draw a chart
+      lastAudioLoads[lastAudioLoadsPos]=(double)lastProcTime/maxGot;
+      if (++lastAudioLoadsPos>=120) lastAudioLoadsPos=0;
+
+      ImGui::PushStyleColor(ImGuiCol_FrameBg,ImVec4(0,0,0,0));
+      ImGui::PlotLines("##ALChart",lastAudioLoads,120,lastAudioLoadsPos,NULL,0.0f,1.0f,ImGui::GetContentRegionAvail());
+      ImGui::PopStyleColor();
+    }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_STATS;
   ImGui::End();

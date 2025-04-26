@@ -58,12 +58,17 @@ const char** DivPlatformVERA::getRegisterSheet() {
 
 // TODO: possible sample offset latency...
 void DivPlatformVERA::acquire(short** buf, size_t len) {
+  for (int i=0; i<17; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   // both PSG part and PCM part output a full 16-bit range, putting bufL/R
   // argument right into both could cause an overflow
   short whyCallItBuf[4][128];
   size_t pos=0;
+  size_t lenCopy=len;
   DivSample* s=parent->getSample(chan[16].pcm.sample);
-  while (len>0) {
+  while (lenCopy>0) {
     if (s->samples>0 && chan[16].pcm.pos<s->samples) {
       while (pcm_is_fifo_almost_empty(pcm)) {
         short tmp_l=0;
@@ -109,24 +114,30 @@ void DivPlatformVERA::acquire(short** buf, size_t len) {
       // just let the buffer run out
       chan[16].pcm.sample=-1;
     }
-    int curLen=MIN(len,128);
+    int curLen=MIN(lenCopy,128);
     memset(whyCallItBuf,0,sizeof(whyCallItBuf));
     pcm_render(pcm,whyCallItBuf[2],whyCallItBuf[3],curLen);
     for (int i=0; i<curLen; i++) {
       psg_render(psg,&whyCallItBuf[0][i],&whyCallItBuf[1][i],1);
       buf[0][pos]=(short)(((int)whyCallItBuf[0][i]+whyCallItBuf[2][i])/2);
       buf[1][pos]=(short)(((int)whyCallItBuf[1][i]+whyCallItBuf[3][i])/2);
-      pos++;
 
-      for (int i=0; i<16; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=psg->channels[i].lastOut;
+      for (int j=0; j<16; j++) {
+        oscBuf[j]->putSample(pos,psg->channels[j].lastOut);
       }
+
       int pcmOut=(whyCallItBuf[2][i]+whyCallItBuf[3][i])>>1;
       if (pcmOut<-32768) pcmOut=-32768;
       if (pcmOut>32767) pcmOut=32767;
-      oscBuf[16]->data[oscBuf[16]->needle++]=pcmOut;
+      oscBuf[16]->putSample(pos,pcmOut);
+
+      pos++;
     }
-    len-=curLen;
+    lenCopy-=curLen;
+  }
+
+  for (int i=0; i<17; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -537,7 +548,7 @@ void DivPlatformVERA::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/512;
   for (int i=0; i<17; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

@@ -73,8 +73,11 @@ const char** DivPlatformSID2::getRegisterSheet() {
   return regCheatSheetSID2;
 }
 
-void DivPlatformSID2::acquire(short** buf, size_t len) 
-{
+void DivPlatformSID2::acquire(short** buf, size_t len) {
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t i=0; i<len; i++) 
   {
     if (!writes.empty()) 
@@ -96,9 +99,13 @@ void DivPlatformSID2::acquire(short** buf, size_t len)
         int co=sid2->chan_out[j]>>2;
         if (co<-32768) co=-32768;
         if (co>32767) co=32767;
-        oscBuf[j]->data[oscBuf[j]->needle++]=co;
+        oscBuf[j]->putSample(i,co);
       }
     }
+  }
+
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -710,7 +717,7 @@ void DivPlatformSID2::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock;
   for (int i=0; i<3; i++) {
-    oscBuf[i]->rate=rate/16;
+    oscBuf[i]->setRate(rate);
   }
   keyPriority=flags.getBool("keyPriority",true);
 

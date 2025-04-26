@@ -47,6 +47,10 @@ void DivPlatformOPLL::acquire_nuked(short** buf, size_t len) {
   thread_local int o[2];
   thread_local int os;
 
+  for (int i=0; i<11; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     os=0;
     for (int i=0; i<9; i++) {
@@ -71,23 +75,27 @@ void DivPlatformOPLL::acquire_nuked(short** buf, size_t len) {
       unsigned char nextOut=cycleMapOPLL[fm.cycles];
       if ((nextOut>=6 && properDrums) || !isMuted[nextOut]) {
         os+=(o[0]+o[1]);
-        if (vrc7 || (fm.rm_enable&0x20)) oscBuf[nextOut]->data[oscBuf[nextOut]->needle++]=(o[0]+o[1])<<6;
+        if (vrc7 || (fm.rm_enable&0x20)) oscBuf[nextOut]->putSample(h,(o[0]+o[1])<<6);
       } else {
-        if (vrc7 || (fm.rm_enable&0x20)) oscBuf[nextOut]->data[oscBuf[nextOut]->needle++]=0;
+        if (vrc7 || (fm.rm_enable&0x20)) oscBuf[nextOut]->putSample(h,0);
       }
     }
     if (!(vrc7 || (fm.rm_enable&0x20))) for (int i=0; i<9; i++) {
       unsigned char ch=visMapOPLL[i];
       if ((i>=6 && properDrums) || !isMuted[ch]) {
-        oscBuf[ch]->data[oscBuf[ch]->needle++]=(fm.output_ch[i])<<6;
+        oscBuf[ch]->putSample(h,(fm.output_ch[i])<<6);
       } else {
-        oscBuf[ch]->data[oscBuf[ch]->needle++]=0;
+        oscBuf[ch]->putSample(h,0);
       }
     }
     os*=50;
     if (os<-32768) os=-32768;
     if (os>32767) os=32767;
     buf[0][h]=os;
+  }
+
+  for (int i=0; i<11; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -100,6 +108,10 @@ static const unsigned char freakingDrumMap[5]={
 
 void DivPlatformOPLL::acquire_emu(short** buf, size_t len) {
   thread_local int os;
+
+  for (int i=0; i<11; i++) {
+    oscBuf[i]->begin(len);
+  }
 
   for (size_t h=0; h<len; h++) {
     if (!writes.empty()) {
@@ -116,11 +128,15 @@ void DivPlatformOPLL::acquire_emu(short** buf, size_t len) {
 
     for (int i=0; i<11; i++) {
       if (i>=6 && properDrums) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=(-fm_emu->ch_out[freakingDrumMap[i-6]])<<3;
+        oscBuf[i]->putSample(h,(-fm_emu->ch_out[freakingDrumMap[i-6]])<<3);
       } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=(-fm_emu->ch_out[i])<<3;
+        oscBuf[i]->putSample(h,(-fm_emu->ch_out[i])<<3);
       }
     }
+  }
+
+  for (int i=0; i<11; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -1175,15 +1191,7 @@ void DivPlatformOPLL::setFlags(const DivConfig& flags) {
     rate=chipClock/36;
   }
   for (int i=0; i<11; i++) {
-    if (selCore==1) {
-      oscBuf[i]->rate=rate;
-    } else {
-      if (i>=6 && properDrumsSys) {
-        oscBuf[i]->rate=rate;
-      } else {
-        oscBuf[i]->rate=rate/2;
-      }
-    }
+    oscBuf[i]->setRate(rate);
   }
   noTopHatFreq=flags.getBool("noTopHatFreq",false);
   fixedAll=flags.getBool("fixedAll",true);

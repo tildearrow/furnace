@@ -5,61 +5,88 @@
 	Copyright holder(s): cam900
 	Contributor(s): Natt Akuma, James Alan Nguyen, Laurens Holst
 	Konami SCC emulation core
+
+        modified by tildearrow...
 */
 
 #include "scc.hpp"
+#include "../../../../../src/engine/dispatch.h"
 
 // shared SCC features
-void scc_core::tick(const int cycles)
+void scc_core::tick(const int cycles, blip_buffer_t* bb, DivDispatchOscBuffer** oscBuf)
 {
-	m_out = 0;
 	for (int elem=0; elem<5; elem++)
 	{
-		m_voice[elem].tick(cycles);
-		m_out += m_voice[elem].out();
+		m_voice[elem].tick(cycles,bb,oscBuf[elem]);
 	}
 }
 
-void scc_core::voice_t::tick(const int cycles)
-{
-	if (m_pitch >= 9)  // or voice is halted
-	{
-		// update counter - Post decrement
-		const u16 temp = m_counter;
-		if (m_host.m_test.freq_4bit())	// 4 bit frequency mode
-		{
-			m_counter = (m_counter & ~0x0ff) | (bitfield(bitfield(m_counter, 0, 8) - cycles, 0, 8) << 0);
-			m_counter = (m_counter & ~0xf00) | (bitfield(bitfield(m_counter, 8, 4) - cycles, 0, 4) << 8);
-		}
-		else
-		{
-			m_counter = bitfield(m_counter - cycles, 0, 12);
-		}
+void scc_core::voice_t::updateOut(const int pos) {
+  int out=0;
+  // get output
+  if (m_enable)
+  {
+    out = (m_wave[m_addr] * m_volume) >> 4;  // scale to 11 bit digital output
+  }
+  else
+  {
+    out = 0;
+  }
 
-		// handle counter carry
-		const bool carry = (temp<cycles) || (m_host.m_test.freq_8bit()
-						   ? (bitfield(temp, 0, 8) == 0)
-						   : (m_host.m_test.freq_4bit() ? (bitfield(temp, 8, 4) == 0)
-														: (bitfield(temp, 0, 12) == 0)));
-		if (carry)
-		{
-			m_addr	  = bitfield(m_addr + 1, 0, 5);
-			m_counter = m_pitch - ((temp<cycles)?(cycles-temp-1):0);
-                        while (m_counter>m_pitch) {
-			  m_addr	  = bitfield(m_addr + 1, 0, 5);
-                          m_counter+=m_pitch-1;
-                        }
-		}
-	}
-	// get output
-	if (m_enable)
-	{
-		m_out = (m_wave[m_addr] * m_volume) >> 4;  // scale to 11 bit digital output
-	}
-	else
-	{
-		m_out = 0;
-	}
+  m_oscBuf->putSample(pos,out<<7);
+
+  if (out!=m_out) {
+    blip_add_delta(m_bb,pos,(out-m_out)<<5);
+    m_out=out;
+  }
+}
+
+void scc_core::voice_t::tick(const int amt, blip_buffer_t* bb, DivDispatchOscBuffer* oscBuf)
+{
+  m_bb=bb;
+  m_oscBuf=oscBuf;
+
+  if (m_pitch >= 9)  // or voice is halted
+  {
+    int rem=amt;
+    for (int pos=0; pos<amt; pos++) {
+      int cycles=m_host.m_test.freq_4bit()?(m_counter&15):(m_host.m_test.freq_8bit()?(m_counter&0xff):(m_counter&0xfff));
+      if (cycles>rem) cycles=rem;
+      if (cycles<1) cycles=1;
+
+      // update counter - Post decrement
+      const u16 temp = m_counter;
+      if (m_host.m_test.freq_4bit())  // 4 bit frequency mode
+      {
+        m_counter = (m_counter & ~0x0ff) | (bitfield(bitfield(m_counter, 0, 8) - cycles, 0, 8) << 0);
+        m_counter = (m_counter & ~0xf00) | (bitfield(bitfield(m_counter, 8, 4) - cycles, 0, 4) << 8);
+      }
+      else
+      {
+        m_counter = bitfield(m_counter - cycles, 0, 12);
+      }
+
+      // handle counter carry
+      const bool carry = (temp<cycles) || (m_host.m_test.freq_8bit()
+                         ? (bitfield(temp, 0, 8) == 0)
+                         : (m_host.m_test.freq_4bit() ? (bitfield(temp, 8, 4) == 0)
+                         : (bitfield(temp, 0, 12) == 0)));
+      if (carry)
+      {
+        m_addr    = bitfield(m_addr + 1, 0, 5);
+        m_counter = m_pitch - ((temp<cycles)?(cycles-temp-1):0);
+        while (m_counter>m_pitch) {
+          m_addr    = bitfield(m_addr + 1, 0, 5);
+          m_counter+=m_pitch-1;
+        }
+      }
+      pos+=cycles-1;
+      rem-=cycles;
+      updateOut(pos);
+    }
+  } else {
+    updateOut(0);
+  }
 }
 
 void scc_core::reset()

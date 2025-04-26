@@ -320,6 +320,10 @@ void DivPlatformYM2608::acquire_combo(short** buf, size_t len) {
     adpcmAChan[i]=aae->debug_channel(i);
   }
 
+  for (int i=0; i<17; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
     ay->runDAC();
@@ -406,19 +410,23 @@ void DivPlatformYM2608::acquire_combo(short** buf, size_t len) {
 
     
     for (int i=0; i<(psgChanOffs-isCSM); i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fm_nuked.ch_out[i]<<1,-32768,32767);
+      oscBuf[i]->putSample(h,CLAMP(fm_nuked.ch_out[i]<<1,-32768,32767));
     }
 
     ssge->get_last_out(ssgOut);
     for (int i=psgChanOffs; i<adpcmAChanOffs; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=ssgOut.data[i-psgChanOffs]<<1;
+      oscBuf[i]->putSample(h,ssgOut.data[i-psgChanOffs]<<1);
     }
 
     for (int i=adpcmAChanOffs; i<adpcmBChanOffs; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(adpcmAChan[i-adpcmAChanOffs]->get_last_out(0)+adpcmAChan[i-adpcmAChanOffs]->get_last_out(1))>>1;
+      oscBuf[i]->putSample(h,(adpcmAChan[i-adpcmAChanOffs]->get_last_out(0)+adpcmAChan[i-adpcmAChanOffs]->get_last_out(1))>>1);
     }
 
-    oscBuf[adpcmBChanOffs]->data[oscBuf[adpcmBChanOffs]->needle++]=(abe->get_last_out(0)+abe->get_last_out(1))>>1;
+    oscBuf[adpcmBChanOffs]->putSample(h,(abe->get_last_out(0)+abe->get_last_out(1))>>1);
+  }
+
+  for (int i=0; i<17; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -437,6 +445,10 @@ void DivPlatformYM2608::acquire_ymfm(short** buf, size_t len) {
   for (int i=0; i<6; i++) {
     fmChan[i]=fme->debug_channel(i);
     adpcmAChan[i]=aae->debug_channel(i);
+  }
+
+  for (int i=0; i<17; i++) {
+    oscBuf[i]->begin(len);
   }
 
   for (size_t h=0; h<len; h++) {
@@ -482,19 +494,23 @@ void DivPlatformYM2608::acquire_ymfm(short** buf, size_t len) {
 
     for (int i=0; i<6; i++) {
       int out=(fmChan[i]->debug_output(0)+fmChan[i]->debug_output(1))<<1;
-      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(out,-32768,32767);
+      oscBuf[i]->putSample(h,CLAMP(out,-32768,32767));
     }
 
     ssge->get_last_out(ssgOut);
     for (int i=(6+isCSM); i<(9+isCSM); i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=ssgOut.data[i-6-isCSM]<<1;
+      oscBuf[i]->putSample(h,ssgOut.data[i-6-isCSM]<<1);
     }
 
     for (int i=(9+isCSM); i<(15+isCSM); i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(adpcmAChan[i-9-isCSM]->get_last_out(0)+adpcmAChan[i-9]->get_last_out(1))>>1;
+      oscBuf[i]->putSample(h,(adpcmAChan[i-9-isCSM]->get_last_out(0)+adpcmAChan[i-9]->get_last_out(1))>>1);
     }
 
-    oscBuf[15+isCSM]->data[oscBuf[15+isCSM]->needle++]=(abe->get_last_out(0)+abe->get_last_out(1))>>1;
+    oscBuf[15+isCSM]->putSample(h,(abe->get_last_out(0)+abe->get_last_out(1))>>1);
+  }
+
+  for (int i=0; i<17; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -504,6 +520,10 @@ static const unsigned char subCycleMap[6]={
 
 void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
   thread_local int fmOut[6];
+
+  for (int i=0; i<17; i++) {
+    oscBuf[i]->begin(len);
+  }
 
   for (size_t h=0; h<len; h++) {
     bool have0=false;
@@ -656,20 +676,25 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
     for (int i=0; i<6; i++) {
       if (fmOut[i]<-32768) fmOut[i]=-32768;
       if (fmOut[i]>32767) fmOut[i]=32767;
-      oscBuf[i]->data[oscBuf[i]->needle++]=fmOut[i];
+      oscBuf[i]->putSample(h,fmOut[i]);
     }
     // SSG
     for (int i=0; i<3; i++) {
-      oscBuf[i+6]->data[oscBuf[i+6]->needle++]=fm_lle.o_analog_ch[i]*32767;
+      oscBuf[i+6]->putSample(h,fm_lle.o_analog_ch[i]*32767);
     }
     // RSS
     for (int i=0; i<6; i++) {
       if (rssOut[i]<-32768) rssOut[i]=-32768;
       if (rssOut[i]>32767) rssOut[i]=32767;
-      oscBuf[9+i]->data[oscBuf[9+i]->needle++]=rssOut[i];
+      if (isMuted[adpcmAChanOffs+i]) {
+        oscBuf[9+i]->putSample(h,0);
+      } else {
+        oscBuf[9+i]->putSample(h,rssOut[i]);
+      }
+      oscBuf[9+i]->putSample(h,rssOut[i]);
     }
     // ADPCM
-    oscBuf[15]->data[oscBuf[15]->needle++]=fm_lle.ac_ad_output;
+    oscBuf[15]->putSample(h,fm_lle.ac_ad_output);
 
     // DAC
     int accm1=(short)dacOut[1];
@@ -685,6 +710,10 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
 
     buf[0][h]=outL;
     buf[1][h]=outR;
+  }
+
+  for (int i=0; i<17; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -2018,7 +2047,7 @@ void DivPlatformYM2608::setFlags(const DivConfig& flags) {
     rate=fm->sample_rate(chipClock);
   }
   for (int i=0; i<17; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
   immWrite(0x2d,0xff);
   immWrite(prescale,0xff);

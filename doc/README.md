@@ -36,4 +36,4 @@ you may reproduce, modify and/or distribute this documentation provided this cop
 
 this documentation is provided as-is and without warranty of any kind. 
 
-
+**note:** online documentation may include new features in development or other information that doesn't apply to the most current release. the PDF included with Furnace will be most accurate to that release.

@@ -64,8 +64,18 @@ void DivEngine::getTotalAudioFiles(int &files) {
     }
     case DIV_EXPORT_MODE_MANY_CHAN: {
       for (int i=0; i<chans; i++) {
-        if (exportChannelMask[i]) {
-          files++;
+        if (!exportChannelMask[i]) continue;
+
+        files++;
+
+        if (getChannelType(i)==5) {
+          i++;
+          while (true) {
+            if (i>=chans) break;
+            if (getChannelType(i)!=5) break;
+            i++;
+          }
+          i--;
         }
       }
       break;
@@ -207,11 +217,7 @@ void DivEngine::runExportThread() {
         sf[i]=NULL;
         si[i].samplerate=got.rate;
         si[i].channels=disCont[i].dispatch->getOutputCount();
-        if (exportFormat==DIV_EXPORT_FORMAT_S16) {
-          si[i].format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
-        } else {
-          si[i].format=SF_FORMAT_WAV|SF_FORMAT_FLOAT;
-        }
+        si[i].format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
       }
 
       for (int i=0; i<song.systemLen; i++) {

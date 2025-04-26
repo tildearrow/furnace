@@ -20,7 +20,7 @@
 #include "fileOpsCommon.h"
 
 void readEnvelope(DivInstrument* ins, int env, unsigned char flags, unsigned char numPoints, unsigned char loopStart, unsigned char loopEnd, unsigned char susPoint, short* points) {
-  if (numPoints>24) numPoints=24;
+  if (numPoints>12) numPoints=12;
 
   if (loopStart>=numPoints) loopStart=numPoints-1;
   if (loopEnd>=numPoints) loopEnd=numPoints-1;
@@ -49,12 +49,49 @@ void readEnvelope(DivInstrument* ins, int env, unsigned char flags, unsigned cha
       break;
   }
   target->len=0;
-  int point=0;
-  bool pointJustBegan=true;
   // mark loop end as end of envelope
   if (flags&4) {
     if (loopEnd<numPoints) numPoints=loopEnd+1;
   }
+
+  // new freaking algorithm
+  for (int i=0; i<numPoints; i++) {
+    int curPoint=MIN(i,numPoints-1);
+    int nextPoint=MIN(i+1,numPoints-1);
+    int p0=pointVal[curPoint];
+    int p1=pointVal[nextPoint];
+    int t0=pointTime[curPoint];
+    int t1=pointTime[nextPoint];
+
+    if (t0==t1) {
+      if (t0<255) {
+        target->val[t0]=p0;
+      }
+    } else {
+      for (int j=t0; j<t1 && j<255; j++) {
+        target->val[j]=p0+(((p1-p0)*(j-t0))/(t1-t0));
+      }
+    }
+  }
+  if (flags&4) { // loop
+    if (loopStart!=loopEnd && loopStart<numPoints) {
+      target->loop=CLAMP(pointTime[loopStart],0,254);
+      target->len=MIN(pointTime[numPoints-1],255);
+    } else {
+      target->len=MIN(pointTime[numPoints-1]+1,255);
+    }
+  } else {
+    target->len=MIN(pointTime[numPoints-1]+1,255);
+  }
+  if (flags&2 && susPoint<numPoints) { // sustain
+    target->rel=CLAMP(pointTime[susPoint]-1,0,254);
+  }
+  if (((flags&4) && (!(flags&2))) || ((flags&6)==0)) {
+    target->rel=target->len-1;
+  }
+  
+  // old crap
+  /*
   for (int i=0; i<255; i++) {
     int curPoint=MIN(point,numPoints-1);
     int nextPoint=MIN(point+1,numPoints-1);
@@ -102,6 +139,7 @@ void readEnvelope(DivInstrument* ins, int env, unsigned char flags, unsigned cha
     target->len=i+1;
     target->val[i]=p0+(((p1-p0)*curTime)/timeDiff);
   }
+  */
 
   // split L/R
   if (env==1) {
@@ -531,6 +569,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
 
         if (volType&1) {
           // add fade-out
+          logV("volFade: %d",volFade);
           if (volFade!=0) {
             int cur=64;
             int macroLen=ins->std.volMacro.len;

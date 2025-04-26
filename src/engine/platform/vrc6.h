@@ -57,13 +57,14 @@ class DivPlatformVRC6: public DivDispatch, public vrcvi_intf {
   unsigned char sampleBank;
   unsigned char writeOscBuf;
   vrcvi_core vrc6;
+  int prevSample;
   unsigned char regPool[13];
 
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
   public:
-    void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -76,6 +77,7 @@ class DivPlatformVRC6: public DivDispatch, public vrcvi_intf {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
+    bool hasAcquireDirect();
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);

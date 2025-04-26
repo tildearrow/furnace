@@ -1,0 +1,13 @@
+# EditorConfig info: https://editorconfig.org/
+root = true
+
+[Makefile*]
+indent_style = tab
+
+[*.{c,cpp,h,cxx,hxx}]
+indent_style = space
+indent_size = 4
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+max_line_length = 120

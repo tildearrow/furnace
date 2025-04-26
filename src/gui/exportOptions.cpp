@@ -280,8 +280,8 @@ void FurnaceGUI::drawExportROM(bool onWindow) {
 
   switch (romTarget) {
     case DIV_ROM_TIUNA: {
-      String asmBaseLabel=romConfig.getString("baseLabel","song");
-      int firstBankSize=romConfig.getInt("firstBankSize",3072);
+      String asmBaseLabel=romConfig.getString("baseLabel","twin");
+      int firstBankSize=romConfig.getInt("firstBankSize",1024);
       int otherBankSize=romConfig.getInt("otherBankSize",4096-48);
       int sysToExport=romConfig.getInt("sysToExport",-1);
 
@@ -380,16 +380,28 @@ void FurnaceGUI::drawExportText(bool onWindow) {
   }
 }
 
+void FurnaceGUI::commandExportOptions() {
+  ImGui::Checkbox(_("Long pointers (use for 64K+ size streams)"),&csExportOptions.longPointers);
+  ImGui::Checkbox(_("Big endian mode"),&csExportOptions.bigEndian);
+  ImGui::Separator();
+  ImGui::Checkbox(_("Don't optimize command calls"),&csExportOptions.noCmdCallOpt);
+  ImGui::Checkbox(_("Don't condense delays"),&csExportOptions.noDelayCondense);
+  ImGui::Checkbox(_("Don't perform sub-block search"),&csExportOptions.noSubBlock);
+}
+
 void FurnaceGUI::drawExportCommand(bool onWindow) {
   exitDisabledTimer=1;
   
   ImGui::Text(_(
-    "this option exports a text or binary file which\n"
+    "this option exports a binary file which\n"
     "contains a dump of the internal command stream\n"
     "produced when playing the song.\n\n"
 
     "technical/development use only!"
   ));
+
+  commandExportOptions();
+
   if (onWindow) {
     ImGui::Separator();
     if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();

@@ -54,14 +54,14 @@ class DivPlatformSM8521: public DivDispatch {
   FixedQueue<QueuedWrite,128> writes;
 
   bool antiClickEnabled;
-  int coreQuality;
+  int coreQuality, lastOut;
   struct sm8521_t sm8521;
   unsigned char regPool[256];
   void updateWave(int ch);
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
-    void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -74,13 +74,13 @@ class DivPlatformSM8521: public DivDispatch {
     void muteChannel(int ch, bool mute);
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
+    bool hasAcquireDirect();
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    void setCoreQuality(unsigned char q);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformSM8521();

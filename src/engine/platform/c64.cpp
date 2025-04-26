@@ -139,6 +139,9 @@ void DivPlatformC64::processDAC(int sRate) {
 
 void DivPlatformC64::acquire(short** buf, size_t len) {
   int dcOff=(sidCore)?0:sid->get_dc(0);
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t i=0; i<len; i++) {
     // run PCM
     pcmCycle+=lineRate;
@@ -165,31 +168,34 @@ void DivPlatformC64::acquire(short** buf, size_t len) {
       buf[0][i]=32767*CLAMP(o,-1.0,1.0);
       if (++writeOscBuf>=4) {
         writeOscBuf=0;
-        oscBuf[0]->data[oscBuf[0]->needle++]=sid_d->lastOut[0];
-        oscBuf[1]->data[oscBuf[1]->needle++]=sid_d->lastOut[1];
-        oscBuf[2]->data[oscBuf[2]->needle++]=sid_d->lastOut[2];
-        oscBuf[3]->data[oscBuf[3]->needle++]=chan[3].pcmOut<<11;
+        oscBuf[0]->putSample(i,sid_d->lastOut[0]);
+        oscBuf[1]->putSample(i,sid_d->lastOut[1]);
+        oscBuf[2]->putSample(i,sid_d->lastOut[2]);
+        oscBuf[3]->putSample(i,isMuted[3]?0:(chan[3].pcmOut<<11));
       }
     } else if (sidCore==1) {
       sid_fp->clock(4,&buf[0][i]);
       if (++writeOscBuf>=4) {
         writeOscBuf=0;
-        oscBuf[0]->data[oscBuf[0]->needle++]=runFakeFilter(0,(sid_fp->lastChanOut[0]-dcOff)>>5);
-        oscBuf[1]->data[oscBuf[1]->needle++]=runFakeFilter(1,(sid_fp->lastChanOut[1]-dcOff)>>5);
-        oscBuf[2]->data[oscBuf[2]->needle++]=runFakeFilter(2,(sid_fp->lastChanOut[2]-dcOff)>>5);
-        oscBuf[3]->data[oscBuf[3]->needle++]=chan[3].pcmOut<<11;
+        oscBuf[0]->putSample(i,runFakeFilter(0,(sid_fp->lastChanOut[0]-dcOff)>>5));
+        oscBuf[1]->putSample(i,runFakeFilter(1,(sid_fp->lastChanOut[1]-dcOff)>>5));
+        oscBuf[2]->putSample(i,runFakeFilter(2,(sid_fp->lastChanOut[2]-dcOff)>>5));
+        oscBuf[3]->putSample(i,isMuted[3]?0:(chan[3].pcmOut<<11));
       }
     } else {
       sid->clock();
       buf[0][i]=sid->output();
       if (++writeOscBuf>=16) {
         writeOscBuf=0;
-        oscBuf[0]->data[oscBuf[0]->needle++]=runFakeFilter(0,(sid->last_chan_out[0]-dcOff)>>5);
-        oscBuf[1]->data[oscBuf[1]->needle++]=runFakeFilter(1,(sid->last_chan_out[1]-dcOff)>>5);
-        oscBuf[2]->data[oscBuf[2]->needle++]=runFakeFilter(2,(sid->last_chan_out[2]-dcOff)>>5);
-        oscBuf[3]->data[oscBuf[3]->needle++]=chan[3].pcmOut<<11;
+        oscBuf[0]->putSample(i,runFakeFilter(0,(sid->last_chan_out[0]-dcOff)>>5));
+        oscBuf[1]->putSample(i,runFakeFilter(1,(sid->last_chan_out[1]-dcOff)>>5));
+        oscBuf[2]->putSample(i,runFakeFilter(2,(sid->last_chan_out[2]-dcOff)>>5));
+        oscBuf[3]->putSample(i,isMuted[3]?0:(chan[3].pcmOut<<11));
       }
     }
+  }
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -912,12 +918,12 @@ void DivPlatformC64::setFlags(const DivConfig& flags) {
   }
   CHECK_CUSTOM_CLOCK;
   rate=chipClock;
-  for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate/16;
-  }
   if (sidCore>0) {
     rate/=(sidCore==2)?coreQuality:4;
     if (sidCore==1) sid_fp->setSamplingParameters(chipClock,reSIDfp::DECIMATE,rate,0);
+  }
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->setRate(rate);
   }
   keyPriority=flags.getBool("keyPriority",true);
   no1EUpdate=flags.getBool("no1EUpdate",false);
@@ -930,15 +936,16 @@ void DivPlatformC64::setFlags(const DivConfig& flags) {
 
   // init fake filter table
   // taken from dSID
-  double cutRatio=-2.0*3.14*(sidIs6581?(((double)oscBuf[0]->rate/44100.0)*(20000.0/256.0)):(12500.0/256.0))/(double)oscBuf[0]->rate;
+  double oscBufRate=(double)rate/((sidCore==0)?16.0:4.0);
+  double cutRatio=-2.0*3.14*(sidIs6581?((oscBufRate/44100.0)*(20000.0/256.0)):(12500.0/256.0))/oscBufRate;
 
   for (int i=0; i<2048; i++) {
     double c=(double)i/8.0+0.2;
     if (sidIs6581) {
       if (c<24) {
-        c=2.0*sin(771.78/(double)oscBuf[0]->rate);
+        c=2.0*sin(771.78/oscBufRate);
       } else {
-        c=(44100.0/(double)oscBuf[0]->rate)-1.263*(44100.0/(double)oscBuf[0]->rate)*exp(c*cutRatio);
+        c=(44100.0/oscBufRate)-1.263*(44100.0/oscBufRate)*exp(c*cutRatio);
       }
     } else {
       c=1-exp(c*cutRatio);

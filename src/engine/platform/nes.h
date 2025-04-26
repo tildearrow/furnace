@@ -85,14 +85,15 @@ class DivPlatformNES: public DivDispatch {
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
-  void doWrite(unsigned short addr, unsigned char data);
+  void doWrite(int ts, unsigned short addr, unsigned char data);
   unsigned char calcDPCMRate(int inRate);
-  void acquire_puNES(short** buf, size_t len);
+  void acquire_puNES(blip_buffer_t** bb, size_t len);
   void acquire_NSFPlay(short** buf, size_t len);
   void acquire_NSFPlayE(short** buf, size_t len);
 
   public:
     void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -104,6 +105,7 @@ class DivPlatformNES: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
+    bool hasAcquireDirect();
     float getPostAmp();
     unsigned char readDMC(unsigned short addr);
     void setNSFPlay(bool use);

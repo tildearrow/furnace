@@ -22,12 +22,6 @@ struct ImGui_ImplSW_Data
     ImGui_ImplSW_Data() { memset((void*)this, 0, sizeof(*this)); }
 };
 
-struct SwOptions
-{
-  bool optimize_text = true;// No reason to turn this off.
-  bool optimize_rectangles = true;// No reason to turn this off.
-};
-
 static ImGui_ImplSW_Data* ImGui_ImplSW_GetBackendData()
 {
     return ImGui::GetCurrentContext() ? (ImGui_ImplSW_Data*)ImGui::GetIO().BackendRendererUserData : nullptr;
@@ -543,7 +537,6 @@ static void paint_draw_cmd(const PaintTarget &target,
   const ImDrawVert *vertices,
   const ImDrawIdx *idx_buffer,
   const ImDrawCmd &pcmd,
-  const SwOptions &options,
   const ImVec2& white_uv)
 {
   const SWTexture* texture = (const SWTexture*)(pcmd.TextureId);
@@ -556,7 +549,7 @@ static void paint_draw_cmd(const PaintTarget &target,
 
     // Text is common, and is made of textured rectangles. So let's optimize for it.
     // This assumes the ImGui way to layout text does not change.
-    if (options.optimize_text && i + 6 <= pcmd.ElemCount && idx_buffer[i + 3] == idx_buffer[i + 0]
+    if (i + 6 <= pcmd.ElemCount && idx_buffer[i + 3] == idx_buffer[i + 0]
         && idx_buffer[i + 4] == idx_buffer[i + 2]) {
       ImDrawVert v3 = vertices[idx_buffer[i + 5]];
 
@@ -576,7 +569,7 @@ static void paint_draw_cmd(const PaintTarget &target,
 
     // A lot of the big stuff are uniformly colored rectangles,
     // so we can save a lot of CPU by detecting them:
-    if (options.optimize_rectangles && i + 6 <= pcmd.ElemCount) {
+    if (i + 6 <= pcmd.ElemCount) {
       ImDrawVert v3 = vertices[idx_buffer[i + 3]];
       ImDrawVert v4 = vertices[idx_buffer[i + 4]];
       ImDrawVert v5 = vertices[idx_buffer[i + 5]];
@@ -624,7 +617,7 @@ static void paint_draw_cmd(const PaintTarget &target,
   }
 }
 
-static void paint_draw_list(const PaintTarget &target, const ImDrawList *cmd_list, const SwOptions &options)
+static void paint_draw_list(const PaintTarget &target, const ImDrawList *cmd_list)
 {
   const ImDrawIdx *idx_buffer = &cmd_list->IdxBuffer[0];
   const ImDrawVert *vertices = cmd_list->VtxBuffer.Data;
@@ -635,20 +628,20 @@ static void paint_draw_list(const PaintTarget &target, const ImDrawList *cmd_lis
     if (pcmd.UserCallback) {
       pcmd.UserCallback(cmd_list, &pcmd);
     } else {
-      paint_draw_cmd(target, vertices, idx_buffer, pcmd, options, white_uv);
+      paint_draw_cmd(target, vertices, idx_buffer, pcmd, white_uv);
     }
     idx_buffer += pcmd.ElemCount;
   }
   }
 
-static void paint_imgui(uint32_t *pixels, ImDrawData *drawData, int fb_width, int fb_height, const SwOptions &options = {})
+static void paint_imgui(uint32_t *pixels, ImDrawData *drawData, int fb_width, int fb_height)
 {
   if (fb_width <= 0 || fb_height <= 0) return;
 
   PaintTarget target{ pixels, fb_width, fb_height };
 
   for (int i = 0; i < drawData->CmdListsCount; ++i) {
-    paint_draw_list(target, drawData->CmdLists[i], options);
+    paint_draw_list(target, drawData->CmdLists[i]);
   }
 }
 

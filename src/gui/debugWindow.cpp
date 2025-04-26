@@ -252,7 +252,7 @@ void FurnaceGUI::drawDebug() {
               ImGui::TableNextColumn();
               ImGui::Text("Follow");
               ImGui::TableNextColumn();
-              ImGui::Text("Address");
+              ImGui::Text("Needle");
               ImGui::TableNextColumn();
               ImGui::Text("Data");
 
@@ -276,15 +276,14 @@ void FurnaceGUI::drawDebug() {
                 ImGui::Checkbox(fmt::sprintf("##%d_OSCFollow_%d",i,c).c_str(),&oscBuf->follow);
                 // address
                 ImGui::TableNextColumn();
-                int needle=oscBuf->follow?oscBuf->needle:oscBuf->followNeedle;
+                unsigned int needle=oscBuf->needle;
                 ImGui::BeginDisabled(oscBuf->follow);
-                if (ImGui::InputInt(fmt::sprintf("##%d_OSCFollowNeedle_%d",i,c).c_str(),&needle,1,100)) {
-                  oscBuf->followNeedle=MIN(MAX(needle,0),65535);
-                }
+                /*if (ImGui::InputInt(fmt::sprintf("##%d_OSCFollowNeedle_%d",i,c).c_str(),&needle,1,100)) {
+                }*/
                 ImGui::EndDisabled();
                 // data
                 ImGui::TableNextColumn();
-                ImGui::Text("%d",oscBuf->data[needle]);
+                ImGui::Text("%d",oscBuf->data[needle>>16]);
               }
               ImGui::EndTable();
             }

@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../pch.h"
+#include "blip_buf.h"
 #include "config.h"
 #include "chipUtils.h"
 #include "defines.h"
@@ -70,6 +71,10 @@ enum DivDispatchCmds {
   DIV_CMD_HINT_PORTA, // (target, speed)
   DIV_CMD_HINT_LEGATO, // (note)
   DIV_CMD_HINT_VOL_SLIDE_TARGET, // (amount, target)
+  DIV_CMD_HINT_TREMOLO, // (speed/depth as a byte)
+  DIV_CMD_HINT_PANBRELLO, // (speed/depth as a byte)
+  DIV_CMD_HINT_PAN_SLIDE, // (speed)
+  DIV_CMD_HINT_PANNING, // (left, right)
 
   DIV_CMD_SAMPLE_MODE, // (enabled)
   DIV_CMD_SAMPLE_FREQ, // (frequency)
@@ -170,8 +175,8 @@ enum DivDispatchCmds {
   DIV_CMD_X1_010_AUTO_ENVELOPE,
   DIV_CMD_X1_010_SAMPLE_BANK_SLOT,
 
-  DIV_CMD_WS_SWEEP_TIME,
-  DIV_CMD_WS_SWEEP_AMOUNT,
+  DIV_CMD_WS_SWEEP_TIME, // (time)
+  DIV_CMD_WS_SWEEP_AMOUNT, // (value)
 
   DIV_CMD_N163_WAVE_POSITION,
   DIV_CMD_N163_WAVE_LENGTH,
@@ -308,6 +313,8 @@ enum DivDispatchCmds {
   DIV_CMD_SID3_CUTOFF_SCALING,
   DIV_CMD_SID3_RESONANCE_SCALING,
 
+  DIV_CMD_WS_GLOBAL_SPEAKER_VOLUME, // (multiplier)
+
   DIV_CMD_MAX
 };
 
@@ -423,21 +430,83 @@ struct DivSamplePos {
     freq(0) {}
 };
 
+constexpr size_t OSCBUF_PREC=(sizeof(size_t)>=8)?16:16;
+constexpr size_t OSCBUF_MASK=(UINTMAX_C(1)<<OSCBUF_PREC)-1;
+
+#define putSampleIKnowWhatIAmDoing(_ob,_pos,_val) \
+  _ob->data[_pos]=_val;
+
+// the actual output of all DivDispatchOscBuffer instanced runs at 65536Hz.
 struct DivDispatchOscBuffer {
-  bool follow;
-  unsigned int rate;
-  unsigned short needle;
+  size_t rate;
+  size_t rateMul;
+  unsigned int needle;
   unsigned short readNeedle;
-  unsigned short followNeedle;
+  //unsigned short lastSample;
+  bool follow;
   short data[65536];
 
+  inline void putSample(const size_t pos, const short val) {
+    unsigned short realPos=((needle+pos*rateMul)>>OSCBUF_PREC);
+    if (val==-1) {
+      data[realPos]=0xfffe;
+      return;
+    }
+    //lastSample=val;
+    data[realPos]=val;
+  }
+  /*
+  inline void putSampleIKnowWhatIAmDoing(const unsigned short pos, const short val) {
+    //unsigned short realPos=((needle+pos*rateMul)>>OSCBUF_PREC);
+    if (val==-1) {
+      data[pos]=0xfffe;
+      return;
+    }
+    //lastSample=val;
+    data[pos]=val;
+  }*/
+  inline void begin(size_t len) {
+    size_t calc=(len*rateMul);
+    unsigned short start=needle>>16;
+    unsigned short end=(needle+calc)>>16;
+
+    //logD("C %d %d %d",len,calc,rate);
+
+    if (end<start) {
+      //logE("ELS %d %d %d",end,start,calc);
+      memset(&data[start],-1,(0x10000-start)*sizeof(short));
+      memset(data,-1,end*sizeof(short));
+      //data[needle>>16]=lastSample;
+      return;
+    }
+    memset(&data[start],-1,(end-start)*sizeof(short));
+    //data[needle>>16]=lastSample;
+  }
+  inline void end(size_t len) {
+    size_t calc=len*rateMul;
+    needle+=calc;
+    //data[needle>>16]=lastSample;
+  }
+  void reset() {
+    memset(data,-1,65536*sizeof(short));
+    needle=0;
+    readNeedle=0;
+    //lastSample=0;
+  }
+  void setRate(unsigned int r) {
+    double rateMulD=65536.0/(double)r;
+    rateMulD*=(double)(UINTMAX_C(1)<<OSCBUF_PREC);
+    rate=r;
+    rateMul=(size_t)rateMulD;
+  }
   DivDispatchOscBuffer():
-    follow(true),
     rate(65536),
+    rateMul(UINTMAX_C(1)<<OSCBUF_PREC),
     needle(0),
     readNeedle(0),
-    followNeedle(0) {
-    memset(data,0,65536*sizeof(short));
+    //lastSample(0),
+    follow(true) {
+    memset(data,-1,65536*sizeof(short));
   }
 };
 
@@ -586,6 +655,22 @@ class DivDispatch {
      * @param len the amount of samples to fill.
      */
     virtual void acquire(short** buf, size_t len);
+
+    /**
+     * fill a buffer with sound data (direct access to blip_buf).
+     * @param bb pointers to blip_buf instances.
+     * @param len the amount of samples to fill.
+     */
+    virtual void acquireDirect(blip_buffer_t** bb, size_t len);
+
+    /**
+     * post-process a rendered sound buffer.
+     * @param buf pointers to output buffers.
+     * @param outIndex the output index.
+     * @param len the number of samples in the buffer.
+     * @param sampleRate the current audio output rate (usually 44100 or 48000).
+     */
+    virtual void postProcess(short* buf, int outIndex, size_t len, int sampleRate);
 
     /**
      * fill a write stream with data (e.g. for software-mixed PCM).
@@ -776,6 +861,12 @@ class DivDispatch {
      * @return truth.
      */
     virtual bool getWantPreNote();
+
+    /**
+     * check whether acquireDirect is available.
+     * @return whether it is.
+     */
+    virtual bool hasAcquireDirect();
 
     /**
      * get minimum chip clock.
