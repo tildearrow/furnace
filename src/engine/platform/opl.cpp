@@ -2646,11 +2646,11 @@ void DivPlatformOPL::forceIns() {
     totalChans=properDrums?11:9;
   }
   for (int i=0; i<totalChans; i++) {
-    //int ops=(slots[3][i]!=255 && chan[i].state.ops==4 && oplType==3)?4:2;
+    int ops=(slots[3][i]!=255 && chan[i].state.ops==4 && oplType==3)?4:2;
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
-    /*
     chan[i].fourOp=(ops==4);
+    /*
     for (int j=0; j<ops; j++) {
       unsigned char slot=slots[j][i];
       if (slot==255) continue;
@@ -2674,8 +2674,9 @@ void DivPlatformOPL::forceIns() {
         rWrite(baseAddr+ADDR_WS,op.ws&((oplType==3)?7:3));
       }
     }
+    */
 
-    if (isMuted[i] && c.chan<=melodicChans) {
+    if (isMuted[i] && i<=melodicChans) {
       rWrite(chanMap[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&1)|(chan[i].state.fb<<1));
       if (ops==4) {
         rWrite(chanMap[i+1]+ADDR_LR_FB_ALG,((chan[i].state.alg>>1)&1)|(chan[i].state.fb<<1));
@@ -2686,7 +2687,6 @@ void DivPlatformOPL::forceIns() {
         rWrite(chanMap[i+1]+ADDR_LR_FB_ALG,((chan[i].state.alg>>1)&1)|(chan[i].state.fb<<1)|((chan[i].pan&15)<<4));
       }
     }
-    */
   }
   for (int i=0; i<768; i++) {
     oldWrites[i]=-1;
