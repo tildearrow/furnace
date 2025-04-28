@@ -443,7 +443,7 @@ struct DivDispatchOscBuffer {
   unsigned int needle;
   unsigned short readNeedle;
   //unsigned short lastSample;
-  bool follow;
+  bool follow, mustNotKillNeedle;
   short data[65536];
 
   inline void putSample(const size_t pos, const short val) {
@@ -470,6 +470,11 @@ struct DivDispatchOscBuffer {
     unsigned short start=needle>>16;
     unsigned short end=(needle+calc)>>16;
 
+    if (mustNotKillNeedle && start!=end) {
+      start++;
+      end++;
+    }
+
     //logD("C %d %d %d",len,calc,rate);
 
     if (end<start) {
@@ -485,12 +490,14 @@ struct DivDispatchOscBuffer {
   inline void end(size_t len) {
     size_t calc=len*rateMul;
     needle+=calc;
+    mustNotKillNeedle=needle&0xffff;//(data[needle>>16]!=-1);
     //data[needle>>16]=lastSample;
   }
   void reset() {
     memset(data,-1,65536*sizeof(short));
     needle=0;
     readNeedle=0;
+    mustNotKillNeedle=false;
     //lastSample=0;
   }
   void setRate(unsigned int r) {
@@ -505,7 +512,8 @@ struct DivDispatchOscBuffer {
     needle(0),
     readNeedle(0),
     //lastSample(0),
-    follow(true) {
+    follow(true),
+    mustNotKillNeedle(false) {
     memset(data,-1,65536*sizeof(short));
   }
 };
