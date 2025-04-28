@@ -728,14 +728,15 @@ void FurnaceGUI::drawChanOsc() {
                   if (chanOscCenterStrat==0) { // DC correction off
                     fft->dcOff=0;
                   } else if (chanOscCenterStrat==1) { // normal DC correction
-                    if (minLevel>y) minLevel=y;
-                    if (maxLevel<y) maxLevel=y;
+                    float y1=y;
+                    if (minLevel>y1) minLevel=y1;
+                    if (maxLevel<y1) maxLevel=y1;
                     for (unsigned short j=fft->needle; j!=((fft->needle+displaySize)&0xffff); j++) {
                       const short y_s=buf->data[j];
                       if (y_s!=-1) {
-                        y=(float)y_s/32768.0f;
-                        if (minLevel>y) minLevel=y;
-                        if (maxLevel<y) maxLevel=y;
+                        y1=(float)y_s/32768.0f;
+                        if (minLevel>y1) minLevel=y1;
+                        if (maxLevel<y1) maxLevel=y1;
                       }
                     }
                     fft->dcOff=(minLevel+maxLevel)*0.5f;
