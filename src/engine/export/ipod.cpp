@@ -17,8 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-// thanks asiekierka!
-// I have ported your code to this ROM export framework.
+// thanks asiekierka! (I used your SAP-R export code as a base for this)
 
 #include "ipod.h"
 #include "../engine.h"
@@ -145,7 +144,7 @@ void DivExportiPod::run() {
     e->freelance=false;
     e->extValuePresent=false;
 
-      output.push_back(DivROMExportOutput("export.tone",w));
+    output.push_back(DivROMExportOutput("export.tone",w));
   });
 
 
