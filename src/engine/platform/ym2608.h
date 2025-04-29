@@ -76,7 +76,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     int globalRSSVolume;
 
     bool extMode, noExtMacros;
-    unsigned char prescale, nukedMult;
+    unsigned char prescale, nukedMult, memConfig;
 
     DivMemoryComposition memCompo;
   
