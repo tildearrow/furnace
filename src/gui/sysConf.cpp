@@ -1428,6 +1428,8 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       int prescale=flags.getInt("prescale",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
       bool fbAllOps=flags.getBool("fbAllOps",false);
+      bool memROM=flags.getBool("memROM",false);
+      bool memParallel=flags.getBool("memParallel",true);
       int ssgVol=flags.getInt("ssgVol",128);
       int fmVol=flags.getInt("fmVol",256);
 
@@ -1470,6 +1472,35 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         altered=true;
       } rightClickable
 
+      ImGui::TextUnformatted(_("Memory type:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("Parallel RAM (8-bit)"),(!memROM && memParallel))) {
+        memROM=false;
+        memParallel=true;
+        altered=true;
+        mustRender=true;
+      }
+      /*
+      if (ImGui::RadioButton(_("Serial RAM (1-bit)"),(!memROM && !memParallel))) {
+        memROM=false;
+        memParallel=false;
+        altered=true;
+        mustRender=true;
+      }*/
+      if (ImGui::RadioButton(_("ROM"),(memROM && !memParallel))) {
+        memROM=true;
+        memParallel=false;
+        altered=true;
+        mustRender=true;
+      }
+      if (!memROM && !memParallel) {
+        ImGui::Text(_("I have not implemented serial memory yet!"));
+      }
+      if (memROM && memParallel) {
+        ImGui::Text(_("Congratulations! You found the invalid option!"));
+      }
+      ImGui::Unindent();
+
       if (type==DIV_SYSTEM_YM2608_EXT || type==DIV_SYSTEM_YM2608_CSM) {
         if (ImGui::Checkbox(_("Disable ExtCh FM macros (compatibility)"),&noExtMacros)) {
           altered=true;
@@ -1485,6 +1516,8 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           flags.set("prescale",prescale);
           flags.set("noExtMacros",noExtMacros);
           flags.set("fbAllOps",fbAllOps);
+          flags.set("memROM",memROM);
+          flags.set("memParallel",memParallel);
           flags.set("ssgVol",ssgVol);
           flags.set("fmVol",fmVol);
         });

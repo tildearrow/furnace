@@ -997,7 +997,7 @@ void DivPlatformYM2608::tick(bool sysTick) {
       if (chan[(15+isCSM)].pan!=(chan[(15+isCSM)].std.panL.val&3)) {
         chan[(15+isCSM)].pan=chan[(15+isCSM)].std.panL.val&3;
         if (!isMuted[(15 + isCSM)]) {
-          immWrite(0x101,(isMuted[(15 + isCSM)]?0:(chan[(15+isCSM)].pan<<6))|1);
+          immWrite(0x101,(isMuted[(15 + isCSM)]?0:(chan[(15+isCSM)].pan<<6))|memConfig);
           hardResetElapsed++;
         }
       }
@@ -1162,7 +1162,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
             int end=sampleOffB[chan[c.chan].sample]+s->lengthB-1;
             immWrite(0x104,(end>>5)&0xff);
             immWrite(0x105,(end>>13)&0xff);
-            immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|1);
+            immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|memConfig);
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].note=c.value;
               chan[c.chan].baseFreq=NOTE_ADPCMB(chan[c.chan].note);
@@ -1194,7 +1194,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
             int end=sampleOffB[chan[c.chan].sample]+s->lengthB-1;
             immWrite(0x104,(end>>5)&0xff);
             immWrite(0x105,(end>>13)&0xff);
-            immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|1);
+            immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|memConfig);
             int freq=(65536.0*(double)s->rate)/((double)chipClock/144.0);
             immWrite(0x109,freq&0xff);
             immWrite(0x10a,(freq>>8)&0xff);
@@ -1338,7 +1338,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
         chan[c.chan].pan=(c.value2>0)|((c.value>0)<<1);
       }
       if (c.chan>(14+isCSM)) {
-        immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|1);
+        immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|memConfig);
         break;
       }
       if (c.chan>(8 + isCSM)) {
@@ -1683,7 +1683,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
 void DivPlatformYM2608::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   if (ch>(14+isCSM)) { // ADPCM-B
-    immWrite(0x101,(isMuted[ch]?0:(chan[ch].pan<<6))|1);
+    immWrite(0x101,(isMuted[ch]?0:(chan[ch].pan<<6))|memConfig);
   }
   if (ch>(8+isCSM)) { // ADPCM-A
     immWrite(0x18+(ch-9),isMuted[ch]?0:((chan[ch].pan<<6)|chan[ch].outVol));
@@ -2042,6 +2042,10 @@ void DivPlatformYM2608::setFlags(const DivConfig& flags) {
   fbAllOps=flags.getBool("fbAllOps",false);
   ssgVol=flags.getInt("ssgVol",128);
   fmVol=flags.getInt("fmVol",256);
+
+  memConfig=flags.getBool("memROM",false)?1:0;
+  memConfig|=flags.getBool("memParallel",true)?2:0;
+
   if (useCombo==2) {
     rate=chipClock/(fmDivBase*2);
   } else {
