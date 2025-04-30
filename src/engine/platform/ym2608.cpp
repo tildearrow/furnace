@@ -661,9 +661,16 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
         adMemAddr|=newAddr;
       }
 
-      if (fm_lle.o_romcs==0) {
-        fm_lle.input.dm=adpcmBMem[adMemAddr&0x3ffff];
-        fm_lle.input.dt0=fm_lle.input.dm&1;
+      if (memConfig&1) {
+        if (fm_lle.o_romcs==0) {
+          fm_lle.input.dm=adpcmBMem[adMemAddr&0x3ffff];
+          fm_lle.input.dt0=fm_lle.input.dm&1;
+        }
+      } else {
+        if (fm_lle.o_mden==1) {
+          fm_lle.input.dm=adpcmBMem[adMemAddr&0x3ffff];
+          fm_lle.input.dt0=fm_lle.input.dm&1;
+        }
       }
       cas=fm_lle.o_cas;
       ras=fm_lle.o_ras;
