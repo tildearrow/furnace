@@ -1862,7 +1862,9 @@ class FurnaceGUI {
     int insFocusesPattern;
     int stepOnInsert;
     int unifiedDataView;
+#ifndef FLATPAK_WORKAROUNDS
     int sysFileDialog;
+#endif
     int roundedWindows;
     int roundedButtons;
     int roundedMenus;
@@ -2117,7 +2119,9 @@ class FurnaceGUI {
       insFocusesPattern(1),
       stepOnInsert(0),
       unifiedDataView(0),
+#ifndef FLATPAK_WORKAROUNDS
       sysFileDialog(1),
+#endif
       roundedWindows(1),
       roundedButtons(1),
       roundedMenus(0),
