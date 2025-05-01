@@ -293,6 +293,7 @@ int DivPlatformT6W28::dispatch(DivCommand c) {
 
 void DivPlatformT6W28::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
+  writeOutVol(ch);
 }
 
 void DivPlatformT6W28::forceIns() {
