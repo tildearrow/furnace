@@ -3,8 +3,10 @@
 #include <functional>
 #include "../pch.h"
 
-#if defined(_WIN64) || defined(__APPLE__)
+#if defined(_WIN32) || defined(_WIN64) || defined(__APPLE__)
+#ifndef SUPPORT_XP
 #define USE_NFD
+#endif
 #endif
 
 #ifdef USE_NFD
