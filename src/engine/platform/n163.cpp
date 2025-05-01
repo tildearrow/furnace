@@ -348,9 +348,6 @@ int DivPlatformN163::dispatch(DivCommand c) {
       chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
-      chan[c.chan].active=false;
-      chan[c.chan].keyOff=true;
-      chan[c.chan].keyOn=false;
       chan[c.chan].std.release();
       break;
     case DIV_CMD_ENV_RELEASE:
