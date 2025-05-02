@@ -1763,7 +1763,7 @@ void DivPlatformOPL::commitState(int ch, DivInstrument* ins) {
 int DivPlatformOPL::dispatch(DivCommand c) {
   if (c.chan>=totalChans && c.chan!=adpcmChan) return 0;
   // ineffective in 4-op mode
-  if (oplType==3 && c.chan!=adpcmChan && c.chan<14 && (c.chan&1) && c.cmd!=DIV_CMD_GET_VOLMAX) {
+  if (oplType==3 && c.chan!=adpcmChan && c.chan<14 && (c.chan&1) && c.cmd!=DIV_CMD_GET_VOLMAX && c.cmd!=DIV_CMD_INSTRUMENT) {
     if (chan[c.chan-1].fourOp) return 0;
   }
   switch (c.cmd) {
