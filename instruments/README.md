@@ -21,6 +21,7 @@ these are organized in the respective chip folders.
 - PacorexTheTrex
 - paynspch
 - pedipanol
+- Ranedom
 - Sik
 - Sonic 🦔
 - System64
