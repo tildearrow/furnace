@@ -202,8 +202,10 @@ void FurnaceGUI::drawExportVGM(bool onWindow) {
   }
   ImGui::Text(_("chips to export:"));
   bool hasOneAtLeast=false;
+  bool hasNES=false;
   for (int i=0; i<e->song.systemLen; i++) {
     int minVersion=e->minVGMVersion(e->song.system[i]);
+    if (e->song.system[i]==DIV_SYSTEM_NES) hasNES=true;
     ImGui::BeginDisabled(minVersion>vgmExportVersion || minVersion==0);
     ImGui::Checkbox(fmt::sprintf("%d. %s##_SYSV%d",i+1,getSystemName(e->song.system[i]),i).c_str(),&willExport[i]);
     ImGui::EndDisabled();
@@ -220,6 +222,17 @@ void FurnaceGUI::drawExportVGM(bool onWindow) {
     }
   }
   ImGui::Text(_("select the chip you wish to export, but only up to %d of each type."),(vgmExportVersion>=0x151)?2:1);
+
+  if (hasNES) {
+    ImGui::Text(_("NES DPCM bank switch method:"));
+    if (ImGui::RadioButton(_("data blocks"),!vgmExportDPCM07)) {
+      vgmExportDPCM07=false;
+    }
+    if (ImGui::RadioButton(_("RAM write commands"),vgmExportDPCM07)) {
+      vgmExportDPCM07=true;
+    }
+  }
+
   if (hasOneAtLeast) {
     if (onWindow) {
       ImGui::Separator();
