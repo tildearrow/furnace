@@ -1215,7 +1215,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
   chipVol.push_back((_id)|(0x80000100)|(((unsigned int)_vol)<<16)); \
 }
 
-SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool patternHints, bool directStream, int trailingTicks) {
+SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool patternHints, bool directStream, int trailingTicks, bool dpcm07) {
   if (version<0x150) {
     lastError="VGM version is too low";
     return NULL;

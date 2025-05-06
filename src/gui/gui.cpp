@@ -5632,7 +5632,7 @@ bool FurnaceGUI::loop() {
               break;
             }
             case GUI_FILE_EXPORT_VGM: {
-              SafeWriter* w=e->saveVGM(willExport,vgmExportLoop,vgmExportVersion,vgmExportPatternHints,vgmExportDirectStream,vgmExportTrailingTicks);
+              SafeWriter* w=e->saveVGM(willExport,vgmExportLoop,vgmExportVersion,vgmExportPatternHints,vgmExportDirectStream,vgmExportTrailingTicks,vgmExportDPCM07);
               if (w!=NULL) {
                 FILE* f=ps_fopen(copyOfName.c_str(),"wb");
                 if (f!=NULL) {
@@ -8351,6 +8351,7 @@ FurnaceGUI::FurnaceGUI():
   displayExporting(false),
   vgmExportLoop(true),
   vgmExportPatternHints(false),
+  vgmExportDPCM07(false),
   vgmExportDirectStream(false),
   displayInsTypeList(false),
   portrait(false),
