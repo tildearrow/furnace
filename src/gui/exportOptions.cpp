@@ -228,8 +228,14 @@ void FurnaceGUI::drawExportVGM(bool onWindow) {
     if (ImGui::RadioButton(_("data blocks"),!vgmExportDPCM07)) {
       vgmExportDPCM07=false;
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(_("67 66 C2 - writes a new data block on each bank switch.\nmay result in bigger files but is compatible with all players."));
+    }
     if (ImGui::RadioButton(_("RAM write commands"),vgmExportDPCM07)) {
       vgmExportDPCM07=true;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(_("67 66 07 - uses RAM write commands (68) to switch banks.\nnot all VGM players support this!"));
     }
   }
 
