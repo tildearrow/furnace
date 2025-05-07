@@ -738,7 +738,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0x67);
           w->writeC(0x66);
           w->writeC(0xc2);
-          w->writeI(howMuchWillBeWritten+2);
+          w->writeI((isSecond?0x80000000:0)|(howMuchWillBeWritten+2));
           // data
           w->writeS(0xc000);
           w->write(&(((unsigned char*)writeNES[isSecond?1:0]->getSampleMem())[write.val<<14]),howMuchWillBeWritten);
@@ -2435,7 +2435,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         w->writeC(0x67);
         w->writeC(0x66);
         w->writeC(0xc2);
-        w->writeI(howMuchWillBeWritten+2);
+        w->writeI((i?0x80000000:0)|(howMuchWillBeWritten+2));
         // data
         w->writeS(0xc000);
         w->write(writeNES[i]->getSampleMem(),howMuchWillBeWritten);
