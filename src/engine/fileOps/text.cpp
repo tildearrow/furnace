@@ -237,7 +237,7 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
   for (int i=0; i<song.waveLen; i++) {
     DivWavetable* wave=song.wave[i];
 
-    w->writeText(fmt::sprintf("- %d (%dx%d):",i,wave->len+1,wave->max+1));
+    w->writeText(fmt::sprintf("- %d (%dx%d):",i,wave->len,wave->max+1));
     for (int j=0; j<=wave->len; j++) {
       w->writeText(fmt::sprintf(" %d",wave->data[j]));
     }
