@@ -503,7 +503,7 @@ void DivPlatformYM2608::acquire_ymfm(short** buf, size_t len) {
     }
 
     for (int i=(9+isCSM); i<(15+isCSM); i++) {
-      oscBuf[i]->putSample(h,(adpcmAChan[i-9-isCSM]->get_last_out(0)+adpcmAChan[i-9]->get_last_out(1))>>1);
+      oscBuf[i]->putSample(h,(adpcmAChan[i-9-isCSM]->get_last_out(0)+adpcmAChan[i-9-isCSM]->get_last_out(1))>>1);
     }
 
     oscBuf[15+isCSM]->putSample(h,(abe->get_last_out(0)+abe->get_last_out(1))>>1);
