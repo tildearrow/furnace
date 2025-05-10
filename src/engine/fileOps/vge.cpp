@@ -539,8 +539,8 @@ bool DivEngine::loadVGE(unsigned char* file, size_t len) {
 
     // sample instrument data
     // TODO: actually implement this.
-    reader.skip(254 * 16);
-    reader.skip(254 * 4);
+    reader.skip(255 * 16);
+    reader.skip(255 * 4);
 
     ds.notes=notes;
 
