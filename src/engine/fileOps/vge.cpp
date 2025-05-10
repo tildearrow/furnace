@@ -19,7 +19,7 @@
 
 #include "tfmCommon.h"
 
-struct TFMParsePatternInfo {
+struct VGEParsePatternInfo {
   TFMRLEReader* reader;
   unsigned char maxPat;
   unsigned char* patLens;
@@ -30,11 +30,10 @@ struct TFMParsePatternInfo {
   bool* patExists;
   DivSong* ds;
   int* insNumMaps;
-  bool v2;
   unsigned char loopPos;
 };
 
-void TFMParsePattern(struct TFMParsePatternInfo info) {
+void VGEParsePattern(struct VGEParsePatternInfo info) {
   // PATTERN DATA FORMAT (not described properly in the documentation)
   // for each channel in a pattern:
   //  - note data (256 bytes)
@@ -42,7 +41,7 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
   //  - instrument number data (256 bytes)
   //  - effect number (256 bytes, values 0x0-0x23 (to represent 0-F and G-Z))
   //  - effect value (256 bytes)
-  //  - extra 3 effects (1536 bytes 256x3x2) (ONLY ON V2)
+  //  - extra 3 effects (1536 bytes 256x3x2)
   // notes are stored as an inverted value of note+octave*12
   // key-offs are stored in the note data as 0x01
   unsigned char patDataBuf[256];
@@ -76,12 +75,12 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
     if (i>info.maxPat) break;
     else if (!info.patExists[i]) {
       logD("skipping pattern %d",i);
-      info.reader->skip((info.v2) ? 16896 : 7680);
+      info.reader->skip((256 * 11) * 10);
       continue;
     }
 
     logD("parsing pattern %d",i);
-    for (int j=0; j<6; j++) {
+    for (int j=0; j<10; j++) {
       DivPattern* pat = info.ds->subsong[0]->pat[j].data[i];
 
       // notes
@@ -125,7 +124,7 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
 
       // effects
 
-      int numEffectsCol=(info.v2) ? 4 : 1;
+      int numEffectsCol=4;
       for (int l=0; l<numEffectsCol; l++) {
         unsigned char effectNum[256];
         unsigned char effectVal[256];
@@ -294,10 +293,10 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
 
   // 2nd pass: fixing pitch slides, arpeggios, etc. so the result doesn't sound weird.
 
-  bool chArpeggio[6]={false};
-  bool chVibrato[6]={false};
-  bool chPorta[6]={false};
-  bool chVolumeSlide[6]={false};
+  bool chArpeggio[10]={false};
+  bool chVibrato[10]={false};
+  bool chPorta[10]={false};
+  bool chVolumeSlide[10]={false};
   int lastPatSeen=0;
 
   for (int i=0; i<info.ds->subsong[0]->ordersLen; i++) {
@@ -305,7 +304,7 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
     if (info.orderList[i] == info.orderList[info.ds->subsong[0]->ordersLen - 1]) {
       lastPatSeen++;
     }
-    for (int j=0; j<6; j++) {
+    for (int j=0; j<10; j++) {
       for (int l=0; l<usedEffectsCol; l++) {
         DivPattern* pat = info.ds->subsong[0]->pat[j].data[info.orderList[i]];
         unsigned char truePatLen=(info.patLens[info.orderList[i]]<info.ds->subsong[0]->patLen) ? info.patLens[info.orderList[i]] : info.ds->subsong[0]->patLen;
@@ -358,7 +357,7 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
   if (lastPatSeen>1) {
     // clone the last pattern
     info.maxPat++;
-    for (int i=0;i<6;i++) {
+    for (int i=0;i<10;i++) {
       int lastPatNum=info.ds->subsong[0]->orders.ord[i][info.ds->subsong[0]->ordersLen - 1];
       DivPattern* newPat=info.ds->subsong[0]->pat[i].getPattern(info.maxPat,true);
       DivPattern* lastPat=info.ds->subsong[0]->pat[i].getPattern(lastPatNum, false);
@@ -370,7 +369,7 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
       info.ds->subsong[0]->pat[i].data[info.maxPat] = newPat;
     }
   } else {
-    for (int i=0;i<6;i++) {
+    for (int i=0;i<10;i++) {
       int lastPatNum=info.ds->subsong[0]->orders.ord[i][info.ds->subsong[0]->ordersLen - 1];
       DivPattern* lastPat=info.ds->subsong[0]->pat[i].getPattern(lastPatNum, false);
       lastPat->data[info.patLens[lastPatNum]-1][4+(usedEffectsCol*4)] = 0x0B;
@@ -379,8 +378,7 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
   }
 }
 
-bool DivEngine::loadTFMv1(unsigned char* file, size_t len) {
-  // the documentation for this version is in russian only
+bool DivEngine::loadVGE(unsigned char* file, size_t len) {
   struct InvalidHeaderException {};
   bool success=false;
   TFMRLEReader reader=TFMRLEReader(file,len);
@@ -389,209 +387,25 @@ bool DivEngine::loadTFMv1(unsigned char* file, size_t len) {
     DivSong ds;
     ds.version=DIV_VERSION_TFE;
     ds.systemName="Sega Genesis/Mega Drive or TurboSound FM";
-    ds.subsong[0]->hz=50;
-    ds.systemLen=1;
+    ds.systemLen=2;
 
     ds.system[0]=DIV_SYSTEM_YM2612;
-    ds.loopModality=1;
-
-    unsigned char speed=reader.readCNoRLE();
-    unsigned char interleaveFactor=reader.readCNoRLE();
-
-    // TODO: due to limitations with the groove pattern, only interleave factors up to 8
-    // are allowed in furnace
-    if (interleaveFactor>8) {
-      logW("interleave factor is bigger than 8, speed information may be inaccurate");
-      interleaveFactor=8;
-    }
-    if ((speed>>4)==(speed&0xF)) {
-      ds.subsong[0]->speeds.val[0]=speed&0xF;
-      ds.subsong[0]->speeds.len=1;
-    } else {
-      for (int i=0; i<interleaveFactor; i++) {
-        ds.subsong[0]->speeds.val[i]=speed>>4;
-        ds.subsong[0]->speeds.val[i+interleaveFactor]=speed&0xF;
-      }
-      ds.subsong[0]->speeds.len=interleaveFactor*2;
-    }
-    ds.subsong[0]->ordersLen=reader.readCNoRLE();
-
-    // order loop position
-    unsigned char loopPos = reader.readCNoRLE();
-
-    ds.createdDate=TFMparseDate(reader.readSNoRLE());
-    ds.revisionDate=TFMparseDate(reader.readSNoRLE());
-
-    // TODO: use this for something, number of saves
-    (void)reader.readSNoRLE();
-
-    // author
-    logD("parsing author");
-    ds.author=reader.readString(64);
-
-    // name
-    logD("parsing name");
-    ds.name=reader.readString(64);
-
-    // notes
-    logD("parsing notes");
-    String notes=reader.readString(384);
-
-    // fix \r\n to \n
-    for (auto& c : notes) {
-      if (c=='\r') {
-        notes.erase(c,1);
-      }
-    }
-
-    // order list
-    logD("parsing order list");
-    unsigned char orderList[256];
-    reader.read(orderList,256);
-
-    bool patExists[256];
-    unsigned char maxPat=0;
-    for (int i=0; i<ds.subsong[0]->ordersLen; i++) {
-      patExists[orderList[i]]=true;
-      if (maxPat<orderList[i]) maxPat=orderList[i];
-
-      for (int j=0; j<6; j++) {
-        ds.subsong[0]->orders.ord[j][i]=orderList[i];
-        ds.subsong[0]->pat[j].data[orderList[i]]=new DivPattern;
-      }
-    }
-
-    DivInstrument* insMaps[256];
-    int insNumMaps[256];
-
-    // instrument names
-    logD("parsing instruments");
-    unsigned char insName[16];
-    int insCount=0;
-    for (int i=0; i<255; i++) {
-      reader.read(insName,16);
-
-      if (memcmp(insName,"\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF",16)==0) {
-        logD("instrument unused");
-        insNumMaps[i]=i;
-        insMaps[i]=NULL;
-        continue;
-      }
-
-      DivInstrument* ins=new DivInstrument;
-      ins->type=DIV_INS_FM;
-      ins->name=String((const char*)insName,strnlen((const char*)insName,16));
-      ds.ins.push_back(ins);
-
-      insNumMaps[i]=insCount;
-      insCount++;
-
-      insMaps[i]=ins;
-    }
-
-    ds.insLen=insCount;
-
-    // instrument data
-    for (int i=0; i<255; i++) {
-      if (!insMaps[i]) {
-        reader.skip(42);
-        continue;
-      }
-
-      insMaps[i]->fm.alg=reader.readC();
-      insMaps[i]->fm.fb=reader.readC();
-
-      for (int j=0; j<4; j++) {
-        insMaps[i]->fm.op[j].mult=reader.readC();
-        insMaps[i]->fm.op[j].dt=reader.readC();
-        insMaps[i]->fm.op[j].tl=reader.readC()^0x7F;
-        insMaps[i]->fm.op[j].rs=reader.readC();
-        insMaps[i]->fm.op[j].ar=reader.readC();
-        insMaps[i]->fm.op[j].dr=reader.readC();
-        insMaps[i]->fm.op[j].d2r=reader.readC();
-        insMaps[i]->fm.op[j].rr=reader.readC();
-        insMaps[i]->fm.op[j].sl=reader.readC();
-        insMaps[i]->fm.op[j].ssgEnv=reader.readC();
-      }
-    }
-
-    ds.notes=notes;
-
-    unsigned char patLens[256];
-    int maxPatLen=0;
-    reader.read(patLens, 256);
-    for (int i=0; i<256; i++) {
-      if (patLens[i]==0) {
-        maxPatLen=256;
-        break;
-      } else if (patLens[i]>maxPatLen) {
-        maxPatLen=patLens[i];
-      }
-    }
-
-    ds.subsong[0]->patLen=maxPatLen;
-
-    struct TFMParsePatternInfo info;
-    info.ds=&ds;
-    info.insNumMaps=insNumMaps;
-    info.maxPat=maxPat;
-    info.patExists=patExists;
-    info.orderList=orderList;
-    info.speedEven=speed>>4;
-    info.speedOdd=speed&0xF;
-    info.interleaveFactor=interleaveFactor;
-    info.patLens=patLens;
-    info.reader=&reader;
-    info.v2=false;
-    info.loopPos=loopPos;
-    TFMParsePattern(info);
-
-    if (active) quitDispatch();
-    BUSY_BEGIN_SOFT;
-    saveLock.lock();
-    song.unload();
-    song=ds;
-    changeSong(0);
-    recalcChans();
-    saveLock.unlock();
-    BUSY_END;
-    if (active) {
-      initDispatch();
-      BUSY_BEGIN;
-      renderSamples();
-      reset();
-      BUSY_END;
-    }
-    success=true;
-  } catch(TFMEndOfFileException& e) {
-    lastError="incomplete file!";
-  } catch(InvalidHeaderException& e) {
-    lastError="invalid info header!";
-  }
-
-  delete[] file;
-  return success;
-}
-
-bool DivEngine::loadTFMv2(unsigned char* file, size_t len) {
-  struct InvalidHeaderException {};
-  bool success=false;
-  TFMRLEReader reader=TFMRLEReader(file,len);
-
-  try {
-    DivSong ds;
-    ds.version=DIV_VERSION_TFE;
-    ds.systemName="Sega Genesis/Mega Drive or TurboSound FM";
-    ds.subsong[0]->hz=50;
-    ds.systemLen=1;
-
-    ds.system[0]=DIV_SYSTEM_YM2612;
+    ds.system[1]=DIV_SYSTEM_SMS;
     ds.loopModality=1;
 
     unsigned char magic[8]={0};
 
     reader.readNoRLE(magic,8);
-    if (memcmp(magic,DIV_TFM_MAGIC,8)!=0) throw InvalidHeaderException();
+    if (memcmp(magic,DIV_VGE_MAGIC,8)!=0) throw InvalidHeaderException();
+
+    // Read the size of the header
+    unsigned int headerSize=reader.readINoRLE();
+    unsigned int sampleDescSize=reader.readINoRLE();
+
+    // Read the clock rates
+    ds.systemFlags[0].set("customClock", reader.readINoRLE());
+    ds.systemFlags[1].set("customClock", reader.readINoRLE());
+    ds.subsong[0]->hz = reader.readSNoRLE();
 
     unsigned char speedEven=reader.readCNoRLE();
     unsigned char speedOdd=reader.readCNoRLE();
@@ -614,16 +428,19 @@ bool DivEngine::loadTFMv2(unsigned char* file, size_t len) {
       }
       ds.subsong[0]->speeds.len=interleaveFactor*2;
     }
-    ds.subsong[0]->ordersLen=reader.readCNoRLE();
 
-    // order loop position
-    unsigned char loopPos = reader.readCNoRLE();
+    unsigned short globalPCMQuality=reader.readSNoRLE();
 
     ds.createdDate=TFMparseDate(reader.readSNoRLE());
     ds.revisionDate=TFMparseDate(reader.readSNoRLE());
 
     // TODO: use this for something, number of saves
     (void)reader.readSNoRLE();
+
+    ds.subsong[0]->ordersLen=reader.readCNoRLE();
+
+    // order loop position
+    unsigned char loopPos = reader.readCNoRLE();
 
     // author
     logD("parsing author");
@@ -655,7 +472,7 @@ bool DivEngine::loadTFMv2(unsigned char* file, size_t len) {
       patExists[orderList[i]]=true;
       if (maxPat<orderList[i]) maxPat=orderList[i];
 
-      for (int j=0; j<6; j++) {
+      for (int j=0; j<10; j++) {
         ds.subsong[0]->orders.ord[j][i]=orderList[i];
         ds.subsong[0]->pat[j].data[orderList[i]]=new DivPattern;
       }
@@ -694,12 +511,15 @@ bool DivEngine::loadTFMv2(unsigned char* file, size_t len) {
     // instrument data
     for (int i=0; i<255; i++) {
       if (!insMaps[i]) {
-        reader.skip(42);
+        reader.skip(43);
         continue;
       }
 
       insMaps[i]->fm.alg=reader.readC();
       insMaps[i]->fm.fb=reader.readC();
+      unsigned char ams_fms=reader.readC();
+      insMaps[i]->fm.fms = ams_fms&0xF;
+      insMaps[i]->fm.ams = ams_fms>>4;
 
       for (int j=0; j<4; j++) {
         insMaps[i]->fm.op[j].mult=reader.readC();
@@ -707,13 +527,20 @@ bool DivEngine::loadTFMv2(unsigned char* file, size_t len) {
         insMaps[i]->fm.op[j].tl=reader.readC()^0x7F;
         insMaps[i]->fm.op[j].rs=reader.readC();
         insMaps[i]->fm.op[j].ar=reader.readC()^0x1F;
-        insMaps[i]->fm.op[j].dr=reader.readC()^0x1F;
+        unsigned char dr=reader.readC()^0x1F;
+        insMaps[i]->fm.op[j].dr=dr&0x7F;
+        insMaps[i]->fm.op[j].am=dr>>7;
         insMaps[i]->fm.op[j].d2r=reader.readC()^0x1F;
         insMaps[i]->fm.op[j].rr=reader.readC()^0xF;
         insMaps[i]->fm.op[j].sl=reader.readC();
         insMaps[i]->fm.op[j].ssgEnv=reader.readC();
       }
     }
+
+    // sample instrument data
+    // TODO: actually implement this.
+    reader.skip(255 * 16);
+    reader.skip(255 * 4);
 
     ds.notes=notes;
 
@@ -731,7 +558,7 @@ bool DivEngine::loadTFMv2(unsigned char* file, size_t len) {
 
     ds.subsong[0]->patLen=maxPatLen;
 
-    struct TFMParsePatternInfo info;
+    struct VGEParsePatternInfo info;
     info.ds=&ds;
     info.insNumMaps=insNumMaps;
     info.maxPat=maxPat;
@@ -742,9 +569,8 @@ bool DivEngine::loadTFMv2(unsigned char* file, size_t len) {
     info.interleaveFactor=interleaveFactor;
     info.patLens=patLens;
     info.reader=&reader;
-    info.v2=true;
     info.loopPos=loopPos;
-    TFMParsePattern(info);
+    VGEParsePattern(info);
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
