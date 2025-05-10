@@ -694,7 +694,9 @@ src/engine/fileOps/it.cpp
 src/engine/fileOps/mod.cpp
 src/engine/fileOps/s3m.cpp
 src/engine/fileOps/text.cpp
+src/engine/fileOps/tfmCommon.cpp
 src/engine/fileOps/tfm.cpp
+src/engine/fileOps/vge.cpp
 src/engine/fileOps/xm.cpp
 
 src/engine/fileOps/p.cpp
