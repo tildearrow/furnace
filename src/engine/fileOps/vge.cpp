@@ -30,7 +30,6 @@ struct VGEParsePatternInfo {
   bool* patExists;
   DivSong* ds;
   int* insNumMaps;
-  bool v2;
   unsigned char loopPos;
 };
 
@@ -42,7 +41,7 @@ void VGEParsePattern(struct VGEParsePatternInfo info) {
   //  - instrument number data (256 bytes)
   //  - effect number (256 bytes, values 0x0-0x23 (to represent 0-F and G-Z))
   //  - effect value (256 bytes)
-  //  - extra 3 effects (1536 bytes 256x3x2) (ONLY ON V2)
+  //  - extra 3 effects (1536 bytes 256x3x2)
   // notes are stored as an inverted value of note+octave*12
   // key-offs are stored in the note data as 0x01
   unsigned char patDataBuf[256];
@@ -76,12 +75,12 @@ void VGEParsePattern(struct VGEParsePatternInfo info) {
     if (i>info.maxPat) break;
     else if (!info.patExists[i]) {
       logD("skipping pattern %d",i);
-      info.reader->skip((info.v2) ? 16896 : 7680);
+      info.reader->skip((256 * 11) * 10);
       continue;
     }
 
     logD("parsing pattern %d",i);
-    for (int j=0; j<6; j++) {
+    for (int j=0; j<10; j++) {
       DivPattern* pat = info.ds->subsong[0]->pat[j].data[i];
 
       // notes
@@ -125,7 +124,7 @@ void VGEParsePattern(struct VGEParsePatternInfo info) {
 
       // effects
 
-      int numEffectsCol=(info.v2) ? 4 : 1;
+      int numEffectsCol=4;
       for (int l=0; l<numEffectsCol; l++) {
         unsigned char effectNum[256];
         unsigned char effectVal[256];
@@ -294,10 +293,10 @@ void VGEParsePattern(struct VGEParsePatternInfo info) {
 
   // 2nd pass: fixing pitch slides, arpeggios, etc. so the result doesn't sound weird.
 
-  bool chArpeggio[6]={false};
-  bool chVibrato[6]={false};
-  bool chPorta[6]={false};
-  bool chVolumeSlide[6]={false};
+  bool chArpeggio[10]={false};
+  bool chVibrato[10]={false};
+  bool chPorta[10]={false};
+  bool chVolumeSlide[10]={false};
   int lastPatSeen=0;
 
   for (int i=0; i<info.ds->subsong[0]->ordersLen; i++) {
@@ -305,7 +304,7 @@ void VGEParsePattern(struct VGEParsePatternInfo info) {
     if (info.orderList[i] == info.orderList[info.ds->subsong[0]->ordersLen - 1]) {
       lastPatSeen++;
     }
-    for (int j=0; j<6; j++) {
+    for (int j=0; j<10; j++) {
       for (int l=0; l<usedEffectsCol; l++) {
         DivPattern* pat = info.ds->subsong[0]->pat[j].data[info.orderList[i]];
         unsigned char truePatLen=(info.patLens[info.orderList[i]]<info.ds->subsong[0]->patLen) ? info.patLens[info.orderList[i]] : info.ds->subsong[0]->patLen;
@@ -358,7 +357,7 @@ void VGEParsePattern(struct VGEParsePatternInfo info) {
   if (lastPatSeen>1) {
     // clone the last pattern
     info.maxPat++;
-    for (int i=0;i<6;i++) {
+    for (int i=0;i<10;i++) {
       int lastPatNum=info.ds->subsong[0]->orders.ord[i][info.ds->subsong[0]->ordersLen - 1];
       DivPattern* newPat=info.ds->subsong[0]->pat[i].getPattern(info.maxPat,true);
       DivPattern* lastPat=info.ds->subsong[0]->pat[i].getPattern(lastPatNum, false);
@@ -370,7 +369,7 @@ void VGEParsePattern(struct VGEParsePatternInfo info) {
       info.ds->subsong[0]->pat[i].data[info.maxPat] = newPat;
     }
   } else {
-    for (int i=0;i<6;i++) {
+    for (int i=0;i<10;i++) {
       int lastPatNum=info.ds->subsong[0]->orders.ord[i][info.ds->subsong[0]->ordersLen - 1];
       DivPattern* lastPat=info.ds->subsong[0]->pat[i].getPattern(lastPatNum, false);
       lastPat->data[info.patLens[lastPatNum]-1][4+(usedEffectsCol*4)] = 0x0B;
@@ -473,7 +472,7 @@ bool DivEngine::loadVGE(unsigned char* file, size_t len) {
       patExists[orderList[i]]=true;
       if (maxPat<orderList[i]) maxPat=orderList[i];
 
-      for (int j=0; j<6; j++) {
+      for (int j=0; j<10; j++) {
         ds.subsong[0]->orders.ord[j][i]=orderList[i];
         ds.subsong[0]->pat[j].data[orderList[i]]=new DivPattern;
       }
@@ -512,12 +511,15 @@ bool DivEngine::loadVGE(unsigned char* file, size_t len) {
     // instrument data
     for (int i=0; i<255; i++) {
       if (!insMaps[i]) {
-        reader.skip(42);
+        reader.skip(43);
         continue;
       }
 
       insMaps[i]->fm.alg=reader.readC();
       insMaps[i]->fm.fb=reader.readC();
+      unsigned char ams_fms=reader.readC();
+      insMaps[i]->fm.fms = ams_fms&0xF;
+      insMaps[i]->fm.ams = ams_fms>>4;
 
       for (int j=0; j<4; j++) {
         insMaps[i]->fm.op[j].mult=reader.readC();
@@ -537,7 +539,8 @@ bool DivEngine::loadVGE(unsigned char* file, size_t len) {
 
     // sample instrument data
     // TODO: actually implement this.
-    reader.skip((255 * 16) + (255 * 4));
+    reader.skip(254 * 16);
+    reader.skip(254 * 4);
 
     ds.notes=notes;
 
@@ -566,7 +569,6 @@ bool DivEngine::loadVGE(unsigned char* file, size_t len) {
     info.interleaveFactor=interleaveFactor;
     info.patLens=patLens;
     info.reader=&reader;
-    info.v2=true;
     info.loopPos=loopPos;
     VGEParsePattern(info);
 

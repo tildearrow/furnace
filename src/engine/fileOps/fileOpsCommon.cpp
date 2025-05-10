@@ -141,7 +141,7 @@ bool DivEngine::load(unsigned char* f, size_t slen, const char* nameHint) {
 
   // step 2: try loading as .fur, .dmf, or another magic-ful format
   if (memcmp(file,DIV_DMF_MAGIC,16)==0) {
-    return loadDMF(file,len); 
+    return loadDMF(file,len);
   } else if (memcmp(file,DIV_FTM_MAGIC,18)==0) {
     return loadFTM(file,len,(extS==".dnm"),false,(extS==".eft"));
   } else if (memcmp(file,DIV_DNM_MAGIC,21)==0) {
@@ -156,6 +156,8 @@ bool DivEngine::load(unsigned char* f, size_t slen, const char* nameHint) {
     return loadTFMv2(file,len);
   } else if (memcmp(file,DIV_IT_MAGIC,4)==0) {
     return loadIT(file,len);
+  } else if (memcmp(file,DIV_VGE_MAGIC,4)==0) {
+    return loadVGE(file,len);
   } else if (len>=48) {
     if (memcmp(&file[0x2c],DIV_S3M_MAGIC,4)==0) {
       return loadS3M(file,len);
@@ -171,7 +173,7 @@ bool DivEngine::load(unsigned char* f, size_t slen, const char* nameHint) {
     delete[] f;
     return true;
   }
-  
+
   // step 4: not a valid file
   logE("not a valid module!");
   lastError="not a compatible song";

@@ -151,13 +151,13 @@ public:
     return ret;
   }
 
-  unsigned int readI() {
+  int readI() {
     return readC()|readC()<<8|readC()<<16|readC()<<24;
   }
 
-  short readINoRLE() {
+  int readINoRLE() {
     if (curSeek+4>len) throw TFMEndOfFileException(this,len);
-    short ret=buf[curSeek]|buf[curSeek+1]<<8|buf[curSeek+2]<<16|buf[curSeek+3]<<24;
+    int ret=buf[curSeek]|buf[curSeek+1]<<8|buf[curSeek+2]<<16|buf[curSeek+3]<<24;
     curSeek+=4;
     return ret;
   }
@@ -172,9 +172,7 @@ public:
 
 };
 
-String TFMparseDate(short date) {
-  return fmt::sprintf("%02d.%02d.%02d",date>>11,(date>>7)&0xF,date&0x7F);
-}
+String TFMparseDate(short date);
 
 struct TFMSpeed {
   unsigned char speedEven;
