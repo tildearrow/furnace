@@ -156,7 +156,7 @@ bool DivEngine::load(unsigned char* f, size_t slen, const char* nameHint) {
     return loadTFMv2(file,len);
   } else if (memcmp(file,DIV_IT_MAGIC,4)==0) {
     return loadIT(file,len);
-  } else if (memcmp(file,DIV_VGE_MAGIC,4)==0) {
+  } else if (memcmp(file,DIV_VGEV3_MAGIC,7)==0) {
     return loadVGE(file,len);
   } else if (len>=48) {
     if (memcmp(&file[0x2c],DIV_S3M_MAGIC,4)==0) {

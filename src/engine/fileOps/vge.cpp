@@ -393,19 +393,35 @@ bool DivEngine::loadVGE(unsigned char* file, size_t len) {
     ds.system[1]=DIV_SYSTEM_SMS;
     ds.loopModality=1;
 
+    bool preVGEV3;
+    bool preVGEV2;
+
     unsigned char magic[8]={0};
 
     reader.readNoRLE(magic,8);
-    if (memcmp(magic,DIV_VGE_MAGIC,8)!=0) throw InvalidHeaderException();
+    if (memcmp(magic,DIV_VGEV3_MAGIC,8)==0) {
+      preVGEV3=false;
+      preVGEV2=false;
+    } else if (memcmp(magic,DIV_VGEV2_MAGIC,8)==0) {
+      preVGEV3=true;
+      preVGEV2=false;
+    } else if (memcmp(magic,DIV_VGEV1_MAGIC,8)==0) {
+      preVGEV3=true;
+      preVGEV2=true;
+    } else {
+      throw InvalidHeaderException();
+    }
 
     // Read the size of the header
     unsigned int headerSize=reader.readINoRLE();
     unsigned int sampleDescSize=reader.readINoRLE();
 
     // Read the clock rates
-    ds.systemFlags[0].set("customClock", reader.readINoRLE());
-    ds.systemFlags[1].set("customClock", reader.readINoRLE());
-    ds.subsong[0]->hz = reader.readSNoRLE();
+    if (!preVGEV3) {
+      ds.systemFlags[0].set("customClock", reader.readINoRLE());
+      ds.systemFlags[1].set("customClock", reader.readINoRLE());
+      ds.subsong[0]->hz = reader.readSNoRLE();
+    }
 
     unsigned char speedEven=reader.readCNoRLE();
     unsigned char speedOdd=reader.readCNoRLE();
@@ -539,8 +555,13 @@ bool DivEngine::loadVGE(unsigned char* file, size_t len) {
 
     // sample instrument data
     // TODO: actually implement this.
-    reader.skip(255 * 16);
-    reader.skip(255 * 4);
+    if (preVGEV2) {
+      reader.skip(255 * 16);
+      reader.skip(255 * 2);
+    } else {
+      reader.skip(255 * 16);
+      reader.skip(255 * 4);
+    }
 
     ds.notes=notes;
 
