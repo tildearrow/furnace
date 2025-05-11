@@ -388,6 +388,8 @@ bool DivEngine::loadVGE(unsigned char* file, size_t len) {
     ds.version=DIV_VERSION_TFE;
     ds.systemName="Sega Genesis/Mega Drive or TurboSound FM";
     ds.systemLen=2;
+    // Set it to 50Hz by default.
+    ds.subsong[0]->hz=50;
 
     ds.system[0]=DIV_SYSTEM_YM2612;
     ds.system[1]=DIV_SYSTEM_SMS;
