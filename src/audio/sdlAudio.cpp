@@ -20,6 +20,9 @@
 #include <string.h>
 #include "../ta-log.h"
 #include "sdlAudio.h"
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 void taSDLProcess(void* inst, unsigned char* buf, int nframes) {
   TAAudioSDL* in=(TAAudioSDL*)inst;
