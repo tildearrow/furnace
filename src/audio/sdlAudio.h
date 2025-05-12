@@ -22,6 +22,7 @@
 
 class TAAudioSDL: public TAAudio {
   SDL_AudioSpec ac, ar;
+  SDL_AudioSpec arCopy;
   SDL_AudioDeviceID ai;
   bool audioSysStarted;
 
