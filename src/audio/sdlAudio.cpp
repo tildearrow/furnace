@@ -27,12 +27,6 @@ void taSDLProcess(void* inst, unsigned char* buf, int nframes) {
 }
 
 void TAAudioSDL::onProcess(unsigned char* buf, int nframes) {
-  if (memcmp(&arCopy,&ar,sizeof(SDL_AudioSpec))!=0) {
-    logE("AUDIO SPEC HAS CHANGED!!!");
-#ifdef _WIN32
-    MessageBox(NULL,"AUDIO SPEC HAS CHANGED!!!","Furnace",MB_OK|MB_ICONERROR);
-#endif
-  }
   if (audioProcCallback!=NULL) {
     if (midiIn!=NULL) midiIn->gather();
     audioProcCallback(audioProcCallbackUser,inBufs,outBufs,desc.inChans,desc.outChans,desc.bufsize);
@@ -140,8 +134,6 @@ bool TAAudioSDL::init(TAAudioDesc& request, TAAudioDesc& response) {
     logE("could not open audio device: %s",SDL_GetError());
     return false;
   }
-
-  memcpy(&arCopy,&ar,sizeof(SDL_AudioSpec));
 
   const char* backendName=SDL_GetCurrentAudioDriver();
 
