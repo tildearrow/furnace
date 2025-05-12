@@ -27,9 +27,13 @@ void taSDLProcess(void* inst, unsigned char* buf, int nframes) {
 }
 
 void TAAudioSDL::onProcess(unsigned char* buf, int nframes) {
-  unsigned int unframes=nframes/(sizeof(float)*desc.outChans);
+  unsigned int unframes=nframes/(sizeof(float)*MAX(1,desc.outChans));
   if (nframes<0) {
     logE("nframes is negative! (%d)",nframes);
+    return;
+  }
+  if (desc.outChans<1) {
+    logE("outChans is less than 1!");
     return;
   }
   for (int i=0; i<desc.inChans; i++) {
