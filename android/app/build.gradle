@@ -11,10 +11,10 @@ android {
     if (buildAsApplication) {
         namespace "org.tildearrow.furnace"
     }
-    compileSdkVersion 34
+    compileSdkVersion 26
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 34
+        targetSdkVersion 26
         versionCode 228
         versionName "0.6.8.1"
         externalNativeBuild {
