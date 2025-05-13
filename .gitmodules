@@ -8,3 +8,6 @@
 [submodule "extern/adpcm"]
 	path = extern/adpcm
 	url = https://github.com/superctr/adpcm
+[submodule "extern/sdl2-compat"]
+	path = extern/sdl2-compat
+	url = https://github.com/libsdl-org/sdl2-compat.git
