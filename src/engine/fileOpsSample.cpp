@@ -518,6 +518,9 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
     case DIV_SAMPLE_DEPTH_BRR:
       samples=16*((lenDivided+8)/9);
       break;
+    case DIV_SAMPLE_DEPTH_12BIT:
+      samples=(2+(lenDivided*2))/3;
+      break;
     case DIV_SAMPLE_DEPTH_16BIT:
       samples=(lenDivided+1)/2;
       break;
