@@ -79,6 +79,10 @@ void VGEParsePattern(struct VGEParsePatternInfo info) {
       continue;
     }
 
+    // For fixing noise notes
+    unsigned char noiseNotes[256];
+    unsigned char noiseNotesType[256];
+    unsigned int noiseNotesVal=0;
     logD("parsing pattern %d",i);
     for (int j=0; j<10; j++) {
       DivPattern* pat = info.ds->subsong[0]->pat[j].data[i];
@@ -94,12 +98,44 @@ void VGEParsePattern(struct VGEParsePatternInfo info) {
           pat->data[k][0]=100;
         } else {
           unsigned char invertedNote=~patDataBuf[k];
-          pat->data[k][0]=invertedNote%12;
-          pat->data[k][1]=(invertedNote/12)-1;
+          if (j==9) {
+            // noise channel.
+            switch (invertedNote & 0b11) {
+              case 0b00:
+              // high noise
+              pat->data[k][0]=2;
+              pat->data[k][1]=0;
+              noiseNotes[noiseNotesVal]=k;
+              noiseNotesType[noiseNotesVal++]=invertedNote&0b11;
+              break;
+              case 0b01:
+              // mid noise
+              pat->data[k][0]=1;
+              pat->data[k][1]=0;
+              noiseNotes[noiseNotesVal]=k;
+              noiseNotesType[noiseNotesVal++]=invertedNote&0b11;
+              break;
+              case 0b10:
+              // low noise
+              pat->data[k][0]=0;
+              pat->data[k][1]=0;
+              noiseNotes[noiseNotesVal]=k;
+              noiseNotesType[noiseNotesVal++]=invertedNote&0b11;
+              break;
+              case 0b11:
+              // ch3 noise
+              noiseNotes[noiseNotesVal]=k;
+              noiseNotesType[noiseNotesVal++]=invertedNote&0b11;
+              break;
+            }
+          } else {
+            pat->data[k][0]=invertedNote%12;
+            pat->data[k][1]=(invertedNote/12)-1;
 
-          if (pat->data[k][0]==0) {
-            pat->data[k][0]=12;
-            pat->data[k][1]--;
+            if (pat->data[k][0]==0) {
+              pat->data[k][0]=12;
+              pat->data[k][1]--;
+            }
           }
         }
       }
@@ -280,12 +316,34 @@ void VGEParsePattern(struct VGEParsePatternInfo info) {
             break;
           }
         }
-        info.ds->subsong[0]->pat[j].effectCols=(usedEffectsCol*2)+1;
+
+        if (j==9) {
+          // add an extra col for the noise channel
+          info.ds->subsong[0]->pat[j].effectCols=(usedEffectsCol*2)+2;
+        } else {
+          info.ds->subsong[0]->pat[j].effectCols=(usedEffectsCol*2)+1;
+        }
 
         // put a "jump to next pattern" effect if the pattern is smaller than the maximum pattern length
         if (info.patLens[i]!=0 && info.patLens[i]<info.ds->subsong[0]->patLen) {
           pat->data[info.patLens[i]-1][4+(usedEffectsCol*4)]=0x0D;
           pat->data[info.patLens[i]-1][5+(usedEffectsCol*4)]=0x00;
+        }
+
+        // fix the notes in the noise channel
+        for (int i=0; i<noiseNotesVal; i++) {
+          switch (noiseNotesType[i]) {
+            case 0b00:
+            case 0b01:
+            case 0b10:
+            pat->data[noiseNotes[i]][4+(usedEffectsCol*4)+2]=0x20;
+            pat->data[noiseNotes[i]][5+(usedEffectsCol*4)+2]=0x01;
+            break;
+            case 0b11:
+            pat->data[noiseNotes[i]][4+(usedEffectsCol*4)+2]=0x20;
+            pat->data[noiseNotes[i]][5+(usedEffectsCol*4)+2]=0x11;
+            break;
+          }
         }
       }
     }
