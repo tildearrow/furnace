@@ -127,7 +127,7 @@ use [split700](https://github.com/gocha/split700) to extract the BRR samples fro
 
 ### how do I import instruments from this Sega Genesis game?
 
-extract FM patches from a VGM file using [vgm2pre](https://github.com/vgmtool/vgm2pre) or similar tool like [OPN2 Bank Editor](https://github.com/Wohlstand/OPN2BankEditor) or [YM2608 Tone Editor](https://github.com/rerrahkr/YM2608-Tone-Editor). bear in mind that these are only the parameters for the FM synth, and the way the instrument is heard in-game may include pitch bends or other effects that can't be extracted.
+extract FM patches from a VGM file using [vgm2pre](https://github.com/vgmtool/vgm2pre) or similar tools like [OPN2 Bank Editor](https://github.com/Wohlstand/OPN2BankEditor) or [YM2608 Tone Editor](https://github.com/rerrahkr/YM2608-Tone-Editor). bear in mind that these are only the parameters for the FM synth, and the way the instrument is heard in-game may include pitch bends or other effects that can't be extracted.
 
 for PSG instruments, see the next question.
 
