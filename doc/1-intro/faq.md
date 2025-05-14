@@ -27,10 +27,17 @@ Furnace is developed to be able to run on operating systems as old as Windows XP
 
 |     | **Minimum** | **Recommended** |
 |:---:|:------------:|:--------------:|
-| OS  | Windows XP SP3 32-bit, Ubuntu 16.04, Android 6.0, or MacOS 10.10 | Windows 10/11 64-bit, Ubuntu 20.04, Android 11, or MacOS 12 |
-| CPU | Intel Pentium 4, AMD Athlon 64, or ARM Cortex A7-based mobile CPU @ ~1GHz | fourth-generation Intel Core i5 CPU, AMD Ryzen 1xxx, or any mid-range modern mobile ARM CPU |
-| GPU | any (software rendering) | any GPU supporting OpenGL 3.0 or DirectX 11 |
-| RAM | 512 MB | 2 GB |
+| OS  | Windows XP SP3 32-bit, Ubuntu 16.04, Android 6.0, or MacOS 10.9 | Windows Vista SP2 64-bit, Ubuntu 20.04, Android 11, or MacOS 10.15 |
+| CPU | Intel Pentium 3, AMD Athlon 64, or 32-bit ARMv7 | fourth-generation Intel Ivy Bridge, AMD Zen, or AArch64 ARM CPU* |
+| GPU | any (software rendering) | any GPU supporting OpenGL 3.0, OpenGL ES 2.0 or DirectX 11 |
+| storage | 25MB (program) + 200MB (config and backups) |60MB (program and included assets) + 1GB (config and backups) |
+| RAM | 768 MB | 2 GB |
+| display | 800x600 | 1280x720 |
+
+some emulation cores may have higher processor requirements:
+- ESFMu: 2.0GHz Skylake/Zen, or 2.9GHz Cortex-A76/Snapdragon 845/Apple M1
+- Nuked-OPM and reSID: 3.0GHz Skylake/Zen, or 2.9GHz Cortex-A76/Snapdragon 845/Apple M1
+- reSIDfp: 4.0GHz Skylake/Zen 2, or Cortex-A710/Snapdragon 870/Apple M1 
 
 ### will Furnace ever have a piano roll or DAW interface?
 
@@ -96,7 +103,7 @@ also, Furnace is not a MIDI tracker....
 
 nope.
 
-despite common belief, not even OpenMPT is a true MIDI tracker, despite supporting rudimentary MIDI import and SoundFont loading. trackers aren't exactly optimal for MIDI, compared to dedicated MIDI editors. for example, trackers are designed to only have a single note on/off, not an array of 128 different notes to turn on/off in the same tick and channel. even if one were to make a new 16-channel system which maps to each MIDI channel, true polyphony in the same channel would still be impossible. replicating OpenMPT's ability to assign MIDI channels to instruments would require dynamic channel allocation, and handling effect states between channel would get messy very fast.
+despite common belief, not even OpenMPT is a true MIDI tracker, despite supporting rudimentary MIDI import and SoundFont loading. trackers aren't exactly optimal for MIDI, compared to dedicated MIDI editors. for example, trackers are designed to only have a single note on/off, not an array of 128 different notes to turn on/off in the same tick and channel. even if one were to make a new 16-channel system which maps to each MIDI channel, true polyphony in the same channel would still be impossible. replicating OpenMPT's ability to assign MIDI channels to instruments isn't desirable, meanwhile dynamic channel allocation and handling effect states between channel would get messy very fast.
 
 Furnace is not a MIDI tracker.
 
@@ -120,7 +127,7 @@ use [split700](https://github.com/gocha/split700) to extract the BRR samples fro
 
 ### how do I import instruments from this Sega Genesis game?
 
-extract FM patches from a VGM file using [vgm2pre](https://github.com/vgmtool/vgm2pre) or similar tool like [OPN2 Bank Editor](https://github.com/Wohlstand/OPN2BankEditor), [MDPlayer](https://github.com/kuma4649/MDPlayer), or [YM2608 Tone Editor](https://github.com/rerrahkr/YM2608-Tone-Editor). bear in mind that these are only the parameters for the FM synth, and the way the instrument is heard in-game may include pitch bends or other effects that can't be extracted.
+extract FM patches from a VGM file using [vgm2pre](https://github.com/vgmtool/vgm2pre) or similar tool like [OPN2 Bank Editor](https://github.com/Wohlstand/OPN2BankEditor) or [YM2608 Tone Editor](https://github.com/rerrahkr/YM2608-Tone-Editor). bear in mind that these are only the parameters for the FM synth, and the way the instrument is heard in-game may include pitch bends or other effects that can't be extracted.
 
 for PSG instruments, see the next question.
 
