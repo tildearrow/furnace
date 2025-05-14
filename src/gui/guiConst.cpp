@@ -713,6 +713,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("PAT_NEXT_ORDER", _N("Go to next order"), 0),
   D("PAT_PREV_ORDER", _N("Go to previous order"), 0),
   D("PAT_COLLAPSE", _N("Collapse channel at cursor"), 0),
+  D("PAT_COLLAPSE_SELECTED", _N("Collapse channel in selection"), 0),
   D("PAT_INCREASE_COLUMNS", _N("Increase effect columns"), 0),
   D("PAT_DECREASE_COLUMNS", _N("Decrease effect columns"), 0),
   D("PAT_INTERPOLATE", _N("Interpolate"), 0),
