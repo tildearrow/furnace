@@ -26,7 +26,7 @@ for these reasons, an iOS build will never happen until a major shift occurs in 
 Furnace is developed to be able to run on operating systems as old as Windows XP, on downright ancient (Pentium III) 32-bit CPUs, with Linux ABIs dating as old as 2015. safe to assume any computer made past 2010, no matter how underpowered at time of release, will be able to run Furnace perfectly.
 
 **Minimum:**
-- _OS:_ Windows XP SP3 32-bit, Ubuntu 16.04, Android 6.0, or MacOS 10
+- _OS:_ Windows XP SP3 32-bit, Ubuntu 16.04, Android 6.0, or MacOS 10.10
 - _CPU:_ Intel Pentium 4, AMD Athlon 64, or ARM Cortex A7-based mobile CPU @ ~1GHz
 - _GPU:_ any (software rendering)
 - _RAM:_ 512 MB
