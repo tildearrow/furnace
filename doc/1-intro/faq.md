@@ -12,11 +12,22 @@ yes and no. Furnace can be successfully built for Android and it even has some r
 
 ### is there an iOS build?
 
-nope.
+nope. in order to write any iOS app, the developer must pay a hefty 99 USD per year to just enroll for Apple Developer Program, and it requires an Apple computer for developemnt process. moreover, Furnace's licence (GPL) is incompatible with Apple's App Store. since Furnace is free, and non-profil, it can be ruled out. 
+
+even if to develop an iOS build on a partisan way, you still need a method to sideload an app to your device. jailbreaking an iOS device isn't an easy task. for that reason, iOS build will most definetely never happen unless a major shift in Apple department occurs. we recommend using Android devices, or, ideally, a computer.
+
+### what are the system requirements for Furnace to run?
+
+Furnace is developed to be able to run on operating systems as old as Windows XP, on downright ancient (Pentium III) 32-bit CPUs, with Linux ABIs dating as old as 2015. safe to assume any computer made past 2010, no matter how underpowered at time of release, will be able to run Furnace perfectly.
+
+OS: Windows XP SP3 32-bit/ WIndows 7 32-bit/Ubuntu 16.04/Android 6.0 (minimum), Windows 10/11 64-bit/Ubuntu 20.04/Android 11/Mac OS 12 (recommended)
+CPU: Intel Pentium 4/ AMD Athlon 64/ARM Cortex A7-based mobile CPU @ ~1GHz (minimum), fourth generation Intel Core i5 CPU/AMD Ryzen 1xxx/any mid-range modern mobile ARM CPU (recommended) 
+GPU: Intel GMA or whatever your OS runs on when using software rendering (minimum), any GPU supporting Open GL 3.0 or DirectX 11 (recommended)
+RAM: 512 MB (minimum), 2GB (recommended) 
 
 ### will Furnace ever have a piano roll or DAW interface?
 
-there are no plans for this.
+there are no plans for this. Furnace is a tracker, and changing the interface equals a long and painful rewrite.
 
 ### I've lost my song – what do I do?
 
@@ -50,9 +61,13 @@ not yet, but it's in the early development stage.
 
 it's in the plans, with no target date.
 
+Sony Playstation uses a stereo 24 channel sample-based synthesizer using a custom ADPCM-like format for samples and providing a 512 kilobytes of RAM for these. 
+
 ### will Furnace support the Sega Saturn?
 
 it also is in the plans, with no target date.
+
+Sega Saturn uses an extremely complicated Yamaha YMF292 sound chip, employing both FM and sample based-synthesis with 32 channels (or rather, FM operators). Each channel can frequency modulate another channel (this lowers the polyphony count according to operators per voice used), with no clear concept of operator routing. max amount of operators per voice or minimum/maximum amount of channels spent for FM.
 
 ### will Furnace support the Nintendo 64?
 
@@ -74,13 +89,18 @@ also, Furnace is not a MIDI tracker....
 
 nope. Furnace is not a MIDI tracker.
 
+as opposed to the common belief, not even OpenMPT is a true MIDI tracker, despite supporting rudimentary MIDI import and SoundFont loading. trackers aren't exactly optimal for MIDI, compared to dedicated MIDI editors. for example, trackers are designed to only have a single note on/off, not an array of 128 different notes to turn on/off in the same tick and channel. even if can make a new 16-channel system which maps to each MIDI channel then still true polyphony in the same channel is impossible (and MIDIs often employ a single channel polyphony)
+
+### but you can just make MIDI channel assignment in an instrument just like OpenMPT! 
+no, you're asking Furnace to implement dynamic channel allocation and handling effect states between channel will get messy very fast.
+
 ### why does this imported file sound wrong?
 
 There are fundamental differences between formats that cannot be directly translated. an import should always be considered the starting point of a conversion, not a final product.
 
 ### can I import VGM or NSF?
 
-nope. it's a feature that's been requested many times, but there are no plans to implement it.
+nope. it's a feature that's been requested many times, but there are no plans to implement it. VGM files are raw register dumps, and NSF/KSS/SID files are RAM programs with driver code and song data optimized for said driver. neither of them translate nicely into a pattern view.
 
 for NSF import, you can use [a modified version of FamiTracker called NSFImport](http://rainwarrior.ca/projects/nes/nsfimport.html) and then import the resulting .ftm into Furnace.
 it's all speed 1 though, so don't expect any songs to be nicely laid out with instruments and all.
@@ -95,7 +115,7 @@ use [split700](https://github.com/gocha/split700) to extract the BRR samples fro
 
 ### how do I import instruments from this Sega Genesis game?
 
-extract FM patches from a VGM file using [vgm2pre](https://github.com/vgmtool/vgm2pre) or similar tool. bear in mind that these are only the parameters for the FM synth, and the way the instrument is heard in-game may include pitch bends or other effects that can't be extracted.
+extract FM patches from a VGM file using [vgm2pre](https://github.com/vgmtool/vgm2pre) or similar tool like [OPN2 Bank Editor](https://github.com/Wohlstand/OPN2BankEditor), [MDPlayer](https://github.com/kuma4649/MDPlayer), [YM2608 Tone Editor](https://github.com/rerrahkr/YM2608-Tone-Editor). bear in mind that these are only the parameters for the FM synth, and the way the instrument is heard in-game may include pitch bends or other effects that can't be extracted.
 
 for PSG instruments, see the next question.
 
@@ -107,7 +127,7 @@ PSG chips (such as those in the systems mentioned) don't have any inherent conce
 
 ### will Furnace export MIDI files?
 
-nope. Furnace is not a MIDI tracker.
+nope. Furnace is not a MIDI tracker. read above.
 
 ### why does this exported VGM sound weird when I play it in other software?
 
@@ -120,6 +140,8 @@ while Furnace did start life as a DMF player, it's grown in functionality quite 
 ### when will Furnace be able to export to a ROM for a particular system or an emulated music format?
 
 each system will need its own method of converting Furnace songs into code that can be played back on hardware. this requires writing a driver for the hardware in question, which is no small task. that having been said, there are several efforts in progress, both for direct export from Furnace itself and external converters such as [furSPC](https://github.com/AnnoyedArt1256/furSPC), [furNES](https://github.com/AnnoyedArt1256/furNES), and [furC64](https://github.com/AnnoyedArt1256/furC64).
+
+Fornace 0.7 is expected to support exporting ROM for SNES, C64 and Game Boy. no ETA yet, though.
 
 ### can Furnace export MP3/OGG/FLAC files?
 
