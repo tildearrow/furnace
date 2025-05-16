@@ -14,7 +14,7 @@ yes and no. Furnace can be successfully built for Android and it even has some r
 
 nope:
 
-- in order to test any iOS app on an actual device, the developer must pay a hefty 99 USD per year to just enroll for Apple Developer Program. Furnace is free and non-profit,
+- in order to test any iOS app on an actual device, the developer must pay a hefty 99 USD per year to just enroll for Apple Developer Program. Furnace is free and non-profit.
 - developing for iOS requires an Apple computer and an Apple device for testing.
 - even if an alternate store were used, you would still need a method to sideload an app to your device. jailbreaking an iOS device isn't an easy task.
 
@@ -104,11 +104,11 @@ nope.
 
 trackers aren't exactly optimal for MIDI, compared to dedicated MIDI editors. for example, trackers are designed to only have a single note on/off, not an array of 128 different notes to turn on/off in the same tick and channel. even if one were to make a new 16-channel system which maps to each MIDI channel, true polyphony in the same channel would still be impossible. moreover, dynamic channel allocation and handling effect states between channel would get messy very fast.
 
-for these reason, Furnace is not a MIDI tracker.
+for these reasons, Furnace is not a MIDI tracker.
 
 ### why does this imported file sound wrong?
 
-There are fundamental differences between formats that cannot be directly translated. an import should always be considered the starting point of a conversion, not a final product.
+there are fundamental differences between formats that cannot be directly translated. an import should always be considered the starting point of a conversion, not a final product.
 
 ### can I import VGM or NSF?
 
