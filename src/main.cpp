@@ -675,8 +675,8 @@ int main(int argc, char** argv) {
         logV("text domain 2: %s",localeRet);
       }
     }
-#endif
   }
+#endif
 
   initParams();
 
