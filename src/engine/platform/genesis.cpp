@@ -1541,7 +1541,8 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     case DIV_CMD_FM_ALG:
       if (c.value>7) break;
-      rWrite(ADDR_FB_ALG+chanOffs[c.chan], c.value&7);
+      chan[c.chan].state.alg=c.value&7;
+      rWrite(ADDR_FB_ALG+chanOffs[c.chan], (chan[c.chan].state.fb&7<<3)|(chan[c.chan].state.alg&7));
     default:
       //printf("WARNING: unimplemented command %d\n",c.cmd);
       break;
