@@ -29,7 +29,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, PSTR args, int state) {
   for (int i=0; i<argc; i++) {
     std::string str=utf16To8(argw[i]);
     argv[i]=new char[str.size()+1];
-    strcpy(argv[i],str.c_str());
+    strncpy(argv[i],str.c_str(),str.size()+1);
   }
 
   // set DPI awareness
