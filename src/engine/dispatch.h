@@ -315,6 +315,8 @@ enum DivDispatchCmds {
 
   DIV_CMD_WS_GLOBAL_SPEAKER_VOLUME, // (multiplier)
 
+  DIV_CMD_FM_ALG,
+
   DIV_CMD_MAX
 };
 
