@@ -4,7 +4,9 @@
 
 the biggest multi-system chiptune tracker ever made!
 
-[downloads](#downloads) | [discussion/help](#quick-references) | [developer info](#developer-info) | [Unix/Linux packages](#packages)
+[official site](https://tildearrow.org/furnace/) | [downloads](#downloads) | [installation](#installation) | [Unix/Linux packages](#packages)
+
+[documentation/help](#quick-references) | [developer info](#developer-info)
 
 ---
 ## downloads
@@ -17,7 +19,8 @@ for other operating systems, you may [build the source](#developer-info).
 
 ## features
 
-- a large selection of sound chips:
+- <details><summary>a large selection of over 60 sound chips:</summary>
+
   - Yamaha FM chips:
     - YM2151 (OPM)
     - YM2203 (OPN)
@@ -99,9 +102,12 @@ for other operating systems, you may [build the source](#developer-info).
     - SID2
     - SID3
     - Generic PCM DAC
+</details>
+
 - mix and match sound chips!
   - over 200 ready to use presets from computers, game consoles and arcade boards...
   - ...or create your own presets - up to 32 chips or a total of 128 channels!
+- modular layout that you may adapt to your needs
 - DefleMask compatibility
   - loads .dmf modules from all versions (beta 1 to 1.2.0)
   - saves .dmf modules - both modern and legacy
@@ -109,12 +115,12 @@ for other operating systems, you may [build the source](#developer-info).
   - loads/saves .dmp instruments and .dmw wavetables as well
   - clean-room design (guesswork and ABX tests only, no decompilation involved)
   - some bug/quirk implementation for increased playback accuracy through compatibility flags
-- VGM export
-- ZSM export for Commander X16
-- TIunA export for Atari 2600
-- SAP type R export for POKEY (playable by Altirra and [lzss-sap](https://github.com/dmsc/lzss-sap))
-- modular layout that you may adapt to your needs
-- audio file export - entire song, per chip or per channel
+- many export types:
+  - VGM export
+  - ZSM export for Commander X16
+  - TIunA export for Atari 2600
+  - SAP type R export for POKEY (playable by Altirra and [lzss-sap](https://github.com/dmsc/  lzss-sap))
+  - audio file export - entire song, per chip or per channel
 - quality emulation cores (Nuked, MAME, SameBoy, Mednafen PCE, NSFplay, puNES, reSID, Stella, SAASound, vgsound_emu and ymfm)
 - wavetable synthesizer
   - available on wavetable chips
@@ -141,10 +147,21 @@ for other operating systems, you may [build the source](#developer-info).
 - open-source under GPLv2 or later.
 
 ---
+
 # quick references
 
-- **help**: check out the [documentation](doc/README.md), [quick start guide](doc/1-intro/quickstart.md), and [frequently asked questions (FAQ)](doc/1-intro/faq.md).
+- **help**:
+  - new to Furnace? check out the [quick start guide](doc/1-intro/quickstart.md)!
+  - explore the thorough [documentation](doc/README.md).
+  - find answers to [frequently asked questions (FAQ)](doc/1-intro/faq.md).
+  - there's more at the Furnace [wiki](https://github.com/tildearrow/furnace/wiki).
 - **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, or the [Discord](https://discord.gg/QhA26dXD23).
+
+## installation
+
+- **Windows:** make a new folder for Furnace, unpack the .zip into it, and make a shortcut for `furnace.exe` to place wherever you like.
+- **MacOS:**  drag `furnace.app` into the Applications folder (or the folder of your choice). drag everything else into a separate folder or the folder of the .app depending on previous step.
+- **Linux:** either install via package manager or get from releases page. instructions should be similar to Windows, except for shortcuts, which may be either .desktop files or links.
 
 ## packages
 
@@ -153,7 +170,6 @@ for other operating systems, you may [build the source](#developer-info).
 some people have provided packages for Unix/Unix-like distributions. here's a list.
 
 - **Flatpak**: yes! Furnace is now available on [Flathub](https://flathub.org/apps/org.tildearrow.furnace) thanks to ColinKinloch.
-
 - **Arch Linux**: [furnace](https://archlinux.org/packages/extra/x86_64/furnace/) is in the official repositories.
 - **Chimera Linux**: [furnace](https://pkgs.chimera-linux.org/package/current/contrib/x86_64/furnace) is in the contrib repository.
 - **FreeBSD**: [a package in ports](https://www.freshports.org/audio/furnace/) is available courtesy of ehaupt.
