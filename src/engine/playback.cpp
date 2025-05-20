@@ -305,7 +305,9 @@ const char* cmdName[]={
   "SID3_CUTOFF_SCALING",
   "SID3_RESONANCE_SCALING",
 
-  "WS_GLOBAL_SPEAKER_VOLUME"
+  "WS_GLOBAL_SPEAKER_VOLUME",
+
+  "FM_ALGORITHM"
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");
