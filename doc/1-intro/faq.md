@@ -100,11 +100,11 @@ also, Furnace is not a MIDI tracker....
 
 ### will Furnace import MIDI files?
 
-nope.
+nope. Furnace is not a MIDI tracker.
+
+### but why?
 
 trackers aren't exactly optimal for MIDI, compared to dedicated MIDI editors. for example, trackers are designed to only have a single note on/off, not an array of 128 different notes to turn on/off in the same tick and channel. even if one were to make a new 16-channel system which maps to each MIDI channel, true polyphony in the same channel would still be impossible. moreover, dynamic channel allocation and handling effect states between channel would get messy very fast.
-
-for these reasons, Furnace is not a MIDI tracker.
 
 ### why does this imported file sound wrong?
 
