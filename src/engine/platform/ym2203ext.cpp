@@ -31,6 +31,7 @@ void DivPlatformYM2203Ext::commitStateExt(int ch, DivInstrument* ins) {
     if (ch==0 || fbAllOps) {
       chan[2].state.fb=ins->fm.fb;
     }
+    chan[extChanOffs].state.block=ins->fm.block;
     chan[2].state.op[ordch]=ins->fm.op[ordch];
   }
   
