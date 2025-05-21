@@ -5302,7 +5302,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.loadKorean,0,1);
   clampSetting(settings.loadFallback,0,1);
   clampSetting(settings.loadFallbackPat,0,1);
-  clampSetting(settings.fmLayout,0,6);
+  clampSetting(settings.fmLayout,0,7);
   clampSetting(settings.susPosition,0,3);
   clampSetting(settings.effectCursorDir,0,2);
   clampSetting(settings.cursorPastePos,0,1);
