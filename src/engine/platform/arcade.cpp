@@ -630,6 +630,16 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       }
       break;
     }
+    case DIV_CMD_FM_FMS: {
+      chan[c.chan].state.fms=c.value&7;
+      rWrite(chanOffs[c.chan]+ADDR_FMS_AMS,((chan[c.chan].state.fms&7)<<4)|(chan[c.chan].state.ams&3));
+      break;
+    }
+    case DIV_CMD_FM_AMS: {
+      chan[c.chan].state.ams=c.value&3;
+      rWrite(chanOffs[c.chan]+ADDR_FMS_AMS,((chan[c.chan].state.fms&7)<<4)|(chan[c.chan].state.ams&3));
+      break;
+    }
     case DIV_CMD_FM_MULT: {
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
