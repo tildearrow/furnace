@@ -1315,6 +1315,25 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       rWrite(0x22,lfoValue);
       break;
     }
+    case DIV_CMD_FM_ALG: {
+      if (c.chan>=6) break;
+      chan[c.chan].state.alg=c.value&7;
+      rWrite(ADDR_FB_ALG+chanOffs[c.chan],(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
+      for (int i=0; i<4; i++) {
+        unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
+        DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
+        if (isMuted[c.chan] || !op.enable) {
+          rWrite(baseAddr+ADDR_TL,127);
+        } else {
+          if (KVS(c.chan,i)) {
+            rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[c.chan].outVol&0x7f,127));
+          } else {
+            rWrite(baseAddr+ADDR_TL,op.tl);
+          }
+        }
+      }
+      break;
+    }
     case DIV_CMD_FM_FB: {
       if (c.chan>=6) break;
       chan[c.chan].state.fb=c.value&7;
@@ -1539,10 +1558,6 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_NOTE:
       break;
-    case DIV_CMD_FM_ALG:
-      if (c.value>7) break;
-      chan[c.chan].state.alg=c.value&7;
-      rWrite(ADDR_FB_ALG+chanOffs[c.chan],(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
     default:
       //printf("WARNING: unimplemented command %d\n",c.cmd);
       break;
