@@ -4943,6 +4943,7 @@ bool FurnaceGUI::loop() {
       MEASURE(grooves,drawGrooves());
       MEASURE(regView,drawRegView());
       MEASURE(memory,drawMemory());
+      MEASURE(effectList,drawEffectList());
       MEASURE(userPresets,drawUserPresets());
       MEASURE(patManager,drawPatManager());
     } else {
