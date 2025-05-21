@@ -405,4 +405,11 @@ hex | description
  dc | resonance scaling (b)
 ----|------------------------------------
  dd | WonderSwan speaker volume (b)
+----|------------------------------------
+    | **FM commands (continued)**
+ de | ALG (b)
+ df | FMS (b)
+ e0 | AMS (b)
+ e1 | FMS2 (b)
+ e2 | AMS2 (b)
 ```
