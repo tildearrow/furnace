@@ -223,6 +223,16 @@ int DivPlatformYM2608Ext::dispatch(DivCommand c) {
       rWrite(chanOffs[2]+ADDR_FB_ALG,(chan[2].state.alg&7)|(chan[2].state.fb<<3));
       break;
     }
+    case DIV_CMD_FM_FMS: {
+      chan[extChanOffs].state.fms=c.value&7;
+      rWrite(chanOffs[extChanOffs]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch].pan<<6))|(chan[extChanOffs].state.fms&7)|((chan[extChanOffs].state.ams&3)<<4));
+      break;
+    }
+    case DIV_CMD_FM_AMS: {
+      chan[extChanOffs].state.ams=c.value&3;
+      rWrite(chanOffs[extChanOffs]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch].pan<<6))|(chan[extChanOffs].state.fms&7)|((chan[extChanOffs].state.ams&3)<<4));
+      break;
+    }
     case DIV_CMD_FM_MULT: {
       unsigned short baseAddr=chanOffs[2]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[2].state.op[orderedOps[c.value]];
