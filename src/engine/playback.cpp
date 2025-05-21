@@ -307,7 +307,11 @@ const char* cmdName[]={
 
   "WS_GLOBAL_SPEAKER_VOLUME",
 
-  "FM_ALG"
+  "FM_ALG",
+  "FM_FMS",
+  "FM_AMS",
+  "FM_FMS2",
+  "FM_AMS2"
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");
