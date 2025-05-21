@@ -30,6 +30,7 @@ void DivPlatformYM2610Ext::commitStateExt(int ch, DivInstrument* ins) {
     }
     chan[extChanOffs].state.fms=ins->fm.fms;
     chan[extChanOffs].state.ams=ins->fm.ams;
+    chan[extChanOffs].state.block=ins->fm.block;
     chan[extChanOffs].state.op[ordch]=ins->fm.op[ordch];
   }
   
