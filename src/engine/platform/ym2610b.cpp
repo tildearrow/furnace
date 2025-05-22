@@ -343,7 +343,7 @@ void DivPlatformYM2610B::acquire_combo(short** buf, size_t len) {
           QueuedWrite& w=writes.front();
 
           if (w.addr==0xfffffffe) {
-            delay=w.val;
+            delay=w.val*24*2;
             writes.pop_front();
           } else if (w.addr<=0x1c || (w.addr>=0x100 && w.addr<=0x12d)) {
             // ymfm write
@@ -467,7 +467,7 @@ void DivPlatformYM2610B::acquire_ymfm(short** buf, size_t len) {
       if (--delay<1 && !(fm->read(0)&0x80)) {
         QueuedWrite& w=writes.front();
         if (w.addr==0xfffffffe) {
-          delay=w.val;
+          delay=w.val*2;
         } else {
           fm->write(0x0+((w.addr>>8)<<1),w.addr);
           fm->write(0x1+((w.addr>>8)<<1),w.val);
