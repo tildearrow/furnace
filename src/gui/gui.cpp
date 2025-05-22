@@ -8660,6 +8660,7 @@ FurnaceGUI::FurnaceGUI():
   orderNibble(false),
   followOrders(true),
   followPattern(true),
+  wasFollowing(false),
   changeAllOrders(false),
   mobileUI(MOBILE_UI_DEFAULT),
   collapseWindow(false),
