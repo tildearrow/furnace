@@ -586,10 +586,7 @@ void DivPlatformOPL::acquire_ymfm3(short** buf, size_t len) {
         unsigned char ch=(i<12 && chan[i&(~1)].fourOp)?outChanMap[i^1]:outChanMap[i];
         if (ch==255) continue;
         if (isMuted[i]) continue;
-        int chOut=fmChan[ch]->debug_output(0);
-        if (chOut==0) {
-          chOut=fmChan[ch]->debug_output(1);
-        }
+        int chOut=fmChan[ch]->debug_output(0)+fmChan[ch]->debug_output(1);
         if (chOut==0) {
           chOut=fmChan[ch]->debug_output(2);
         }
@@ -597,9 +594,9 @@ void DivPlatformOPL::acquire_ymfm3(short** buf, size_t len) {
           chOut=fmChan[ch]->debug_output(3);
         }
         if (i==15) {
-          oscBuf[i]->putSample(h,CLAMP(chOut,-32768,32767));
+          oscBuf[i]->putSample(h,CLAMP(chOut>>1,-32768,32767));
         } else {
-          oscBuf[i]->putSample(h,CLAMP(chOut<<1,-32768,32767));
+          oscBuf[i]->putSample(h,CLAMP(chOut,-32768,32767));
         }
       }
       oscBuf[16]->putSample(h,CLAMP(fmChan[7]->debug_special2()<<1,-32768,32767));
@@ -611,17 +608,14 @@ void DivPlatformOPL::acquire_ymfm3(short** buf, size_t len) {
         unsigned char ch=outChanMap[i];
         if (ch==255) continue;
         if (isMuted[i]) continue;
-        int chOut=fmChan[ch]->debug_output(0);
-        if (chOut==0) {
-          chOut=fmChan[ch]->debug_output(1);
-        }
+        int chOut=fmChan[ch]->debug_output(0)+fmChan[ch]->debug_output(1);
         if (chOut==0) {
           chOut=fmChan[ch]->debug_output(2);
         }
         if (chOut==0) {
           chOut=fmChan[ch]->debug_output(3);
         }
-        oscBuf[i]->putSample(h,CLAMP(chOut<<1,-32768,32767));
+        oscBuf[i]->putSample(h,CLAMP(chOut,-32768,32767));
       }
     }
   }
