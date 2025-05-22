@@ -72,7 +72,7 @@ void DivPlatformTX81Z::acquire(short** buf, size_t len) {
       if (--delay<1) {
         QueuedWrite& w=writes.front();
         if (w.addr==0xfffffffe) {
-          delay=w.val;
+          delay=w.val*2;
         } else {
           fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
           fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
