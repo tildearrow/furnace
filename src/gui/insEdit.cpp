@@ -2229,11 +2229,14 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
     ImGui::PopStyleVar();
   } else {
     if (i.macro->open&2) {
-      if (ImGui::BeginTable("MacroADSR",4)) {
+      const bool compact=(availableWidth<300.0f*dpiScale);
+      if (ImGui::BeginTable("MacroADSR",compact?2:4)) {
         ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.3);
-        ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed);
-        ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,0.3);
+        if (!compact) {
+          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed);
+          ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,0.3);
+        }
         //ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch,0.4);
 
         ImGui::TableNextRow();
@@ -2247,7 +2250,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           if (i.macro->val[0]>i.max) i.macro->val[0]=i.max;
         }
 
+        if (compact) ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text(_("Top"));
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -2267,79 +2272,152 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           if (i.macro->val[2]>255) i.macro->val[2]=255;
         } rightClickable
 
-        ImGui::TableNextColumn();
-        ImGui::Text(_("Sustain"));
-        ImGui::TableNextColumn();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (CWSliderInt("##MASL",&i.macro->val[5],0,255)) { PARAMETER
-          if (i.macro->val[5]<0) i.macro->val[5]=0;
-          if (i.macro->val[5]>255) i.macro->val[5]=255;
-        } rightClickable
+        if (compact) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text(_("Hold"));
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (CWSliderInt("##MAHT",&i.macro->val[3],0,255)) { PARAMETER
+            if (i.macro->val[3]<0) i.macro->val[3]=0;
+            if (i.macro->val[3]>255) i.macro->val[3]=255;
+          } rightClickable
 
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Hold"));
-        ImGui::TableNextColumn();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (CWSliderInt("##MAHT",&i.macro->val[3],0,255)) { PARAMETER
-          if (i.macro->val[3]<0) i.macro->val[3]=0;
-          if (i.macro->val[3]>255) i.macro->val[3]=255;
-        } rightClickable
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text(_("Decay"));
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (CWSliderInt("##MADR",&i.macro->val[4],0,255)) { PARAMETER
+            if (i.macro->val[4]<0) i.macro->val[4]=0;
+            if (i.macro->val[4]>255) i.macro->val[4]=255;
+          } rightClickable
 
-        ImGui::TableNextColumn();
-        ImGui::Text(_("SusTime"));
-        ImGui::TableNextColumn();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (CWSliderInt("##MAST",&i.macro->val[6],0,255)) { PARAMETER
-          if (i.macro->val[6]<0) i.macro->val[6]=0;
-          if (i.macro->val[6]>255) i.macro->val[6]=255;
-        } rightClickable
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text(_("Sustain"));
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (CWSliderInt("##MASL",&i.macro->val[5],0,255)) { PARAMETER
+            if (i.macro->val[5]<0) i.macro->val[5]=0;
+            if (i.macro->val[5]>255) i.macro->val[5]=255;
+          } rightClickable
 
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Decay"));
-        ImGui::TableNextColumn();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (CWSliderInt("##MADR",&i.macro->val[4],0,255)) { PARAMETER
-          if (i.macro->val[4]<0) i.macro->val[4]=0;
-          if (i.macro->val[4]>255) i.macro->val[4]=255;
-        } rightClickable
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text(_("SusTime"));
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (CWSliderInt("##MAST",&i.macro->val[6],0,255)) { PARAMETER
+            if (i.macro->val[6]<0) i.macro->val[6]=0;
+            if (i.macro->val[6]>255) i.macro->val[6]=255;
+          } rightClickable
 
-        ImGui::TableNextColumn();
-        ImGui::Text(_("SusDecay"));
-        ImGui::TableNextColumn();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (CWSliderInt("##MASR",&i.macro->val[7],0,255)) { PARAMETER
-          if (i.macro->val[7]<0) i.macro->val[7]=0;
-          if (i.macro->val[7]>255) i.macro->val[7]=255;
-        } rightClickable
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text(_("SusDecay"));
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (CWSliderInt("##MASR",&i.macro->val[7],0,255)) { PARAMETER
+            if (i.macro->val[7]<0) i.macro->val[7]=0;
+            if (i.macro->val[7]>255) i.macro->val[7]=255;
+          } rightClickable
 
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::TableNextColumn();
-        
-        ImGui::TableNextColumn();
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Release"));
-        ImGui::TableNextColumn();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (CWSliderInt("##MARR",&i.macro->val[8],0,255)) { PARAMETER
-          if (i.macro->val[8]<0) i.macro->val[8]=0;
-          if (i.macro->val[8]>255) i.macro->val[8]=255;
-        } rightClickable
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text(_("Release"));
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (CWSliderInt("##MARR",&i.macro->val[8],0,255)) { PARAMETER
+            if (i.macro->val[8]<0) i.macro->val[8]=0;
+            if (i.macro->val[8]>255) i.macro->val[8]=255;
+          } rightClickable
+        } else {
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text(_("Sustain"));
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (CWSliderInt("##MASL",&i.macro->val[5],0,255)) { PARAMETER
+            if (i.macro->val[5]<0) i.macro->val[5]=0;
+            if (i.macro->val[5]>255) i.macro->val[5]=255;
+          } rightClickable
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text(_("Hold"));
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (CWSliderInt("##MAHT",&i.macro->val[3],0,255)) { PARAMETER
+            if (i.macro->val[3]<0) i.macro->val[3]=0;
+            if (i.macro->val[3]>255) i.macro->val[3]=255;
+          } rightClickable
+
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text(_("SusTime"));
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (CWSliderInt("##MAST",&i.macro->val[6],0,255)) { PARAMETER
+            if (i.macro->val[6]<0) i.macro->val[6]=0;
+            if (i.macro->val[6]>255) i.macro->val[6]=255;
+          } rightClickable
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text(_("Decay"));
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (CWSliderInt("##MADR",&i.macro->val[4],0,255)) { PARAMETER
+            if (i.macro->val[4]<0) i.macro->val[4]=0;
+            if (i.macro->val[4]>255) i.macro->val[4]=255;
+          } rightClickable
+
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text(_("SusDecay"));
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (CWSliderInt("##MASR",&i.macro->val[7],0,255)) { PARAMETER
+            if (i.macro->val[7]<0) i.macro->val[7]=0;
+            if (i.macro->val[7]>255) i.macro->val[7]=255;
+          } rightClickable
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::TableNextColumn();
+          
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text(_("Release"));
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (CWSliderInt("##MARR",&i.macro->val[8],0,255)) { PARAMETER
+            if (i.macro->val[8]<0) i.macro->val[8]=0;
+            if (i.macro->val[8]>255) i.macro->val[8]=255;
+          } rightClickable
+        }
 
         ImGui::EndTable();
       }
     }
     if (i.macro->open&4) {
-      if (ImGui::BeginTable("MacroLFO",4)) {
+      const bool compact=(availableWidth<300.0f*dpiScale);
+      if (ImGui::BeginTable("MacroLFO",compact?2:4)) {
         ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.3);
-        ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed);
-        ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,0.3);
-        //ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch,0.4);
+        if (!compact) {
+          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed);
+          ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,0.3);
+        }
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -2352,7 +2430,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           if (i.macro->val[0]>i.max) i.macro->val[0]=i.max;
         }
 
+        if (compact) ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text(_("Top"));
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -2360,9 +2440,6 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           if (i.macro->val[1]<i.min) i.macro->val[1]=i.min;
           if (i.macro->val[1]>i.max) i.macro->val[1]=i.max;
         }
-
-        /*ImGui::TableNextColumn();
-        ImGui::Text("the envelope goes here");*/
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -2375,7 +2452,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           if (i.macro->val[11]>255) i.macro->val[11]=255;
         } rightClickable
 
+        if (compact) ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text(_("Phase"));
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -2384,6 +2463,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           if (i.macro->val[13]>1023) i.macro->val[13]=1023;
         } rightClickable
 
+        ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::AlignTextToFramePadding();
         ImGui::Text(_("Shape"));
