@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 // - 27: v1.1.7
 //   - current format version
 //   - adds sample start/end points
+//   - 1.2 introduces MSX2 (AY+SCC)
 // - 26: v1.1.3
 //   - changes height of FDS wave to 6-bit (it was 4-bit before)
 // - 25: v1.1
@@ -413,6 +414,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       if (ds.system[0]==DIV_SYSTEM_ARCADE) {
         ins->type=DIV_INS_OPM;
       }
+      if (ds.system[0]==DIV_SYSTEM_MSX2) {
+        ins->type=DIV_INS_AY;
+      }
       if ((ds.system[0]==DIV_SYSTEM_NES || ds.system[0]==DIV_SYSTEM_NES_VRC7 || ds.system[0]==DIV_SYSTEM_NES_FDS) && ins->type==DIV_INS_STD) {
         ins->type=DIV_INS_NES;
       }
@@ -723,6 +727,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         if (ds.system[0]==DIV_SYSTEM_NES_FDS) {
           wave->max=63;
         }
+        if (ds.system[0]==DIV_SYSTEM_MSX2) {
+          wave->max=255;
+        }
         if (wave->len>65) {
           logE("invalid wave length %d. are we doing something wrong?",wave->len);
           lastError="file is corrupt or unreadable at wavetables";
@@ -786,6 +793,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             } else if (ds.system[0]==DIV_SYSTEM_GENESIS && ds.version<0x0e && pat->data[k][1]>0 && i>5) {
               // ditto
               pat->data[k][1]--;
+            } else if (ds.system[0]==DIV_SYSTEM_MSX2 && pat->data[k][1]>0 && i<3) {
+              // why the hell?
+              pat->data[k][1]++;
             }
             if (ds.version<0x12) {
               if (ds.system[0]==DIV_SYSTEM_GB && i==3 && pat->data[k][1]>0) {
@@ -837,6 +847,13 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
               if (i==5 && pat->data[k][2]!=-1) {
                 if (pat->data[k][2]>=0 && pat->data[k][2]<ds.insLen) {
                   ds.ins[pat->data[k][2]]->type=DIV_INS_FDS;
+                }
+              }
+            }
+            if (ds.system[0]==DIV_SYSTEM_MSX2) {
+              if (i>=3 && pat->data[k][2]!=-1) {
+                if (pat->data[k][2]>=0 && pat->data[k][2]<ds.insLen) {
+                  ds.ins[pat->data[k][2]]->type=DIV_INS_SCC;
                 }
               }
             }
@@ -893,7 +910,8 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       int vol=50;
       short* data;
       unsigned char* adpcmData;
-      if (length<0) {
+      // I don't think a sample can be that big
+      if (length<0 || length>(1<<29L)) {
         logE("invalid sample length %d. are we doing something wrong?",length);
         lastError="file is corrupt or unreadable at samples";
         delete[] file;
@@ -911,6 +929,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         sample->centerRate=sample->rate;
         pitch=reader.readC();
         vol=reader.readC();
+
+        if (pitch<0 || pitch>10) {
+          logW("%d: sample pitch is wrong! (%d)",i,pitch);
+          pitch=5;
+        }
       }
       if (ds.version<=0x08) {
         sample->rate=ymuSampleRate*400;
@@ -1052,6 +1075,24 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       }
     }
 
+    // AY+SCC stuff
+    if (ds.system[0]==DIV_SYSTEM_MSX2) {
+      for (DivInstrument* i: ds.ins) {
+        if (i->type==DIV_INS_AY) {
+          // move wave macro
+          i->std.waveMacro.len=i->std.dutyMacro.len;
+          i->std.waveMacro.loop=i->std.dutyMacro.loop;
+          i->std.waveMacro.mode=i->std.dutyMacro.mode;
+          i->std.waveMacro.open=i->std.dutyMacro.open;
+          memcpy(i->std.waveMacro.val,i->std.dutyMacro.val,sizeof(i->std.waveMacro.val));
+          for (int j=0; j<i->std.waveMacro.len; j++) {
+            i->std.waveMacro.val[j]++;
+          }
+          i->std.dutyMacro.len=0;
+        }
+      }
+    }
+
     // handle compound systems
     if (ds.system[0]==DIV_SYSTEM_GENESIS) {
       ds.systemLen=2;
@@ -1069,6 +1110,12 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.systemLen=2;
       ds.system[0]=DIV_SYSTEM_YM2151;
       ds.system[1]=DIV_SYSTEM_SEGAPCM_COMPAT;
+    }
+    if (ds.system[0]==DIV_SYSTEM_MSX2) {
+      ds.systemLen=2;
+      ds.system[0]=DIV_SYSTEM_AY8910;
+      ds.system[1]=DIV_SYSTEM_SCC;
+      ds.systemFlags[0].set("chipType",1);
     }
     if (ds.system[0]==DIV_SYSTEM_SMS_OPLL) {
       ds.systemLen=2;
@@ -1166,6 +1213,10 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_FDS) {
       isFlat=true;
     }
+    if (song.system[0]==DIV_SYSTEM_AY8910 && song.system[1]==DIV_SYSTEM_SCC) {
+      isFlat=true;
+      addWarning("your song will sound different. I am not going to bother adding further compatibility.");
+    }
   }
   // fail if more than one system
   if (!isFlat && song.systemLen!=1) {
@@ -1195,6 +1246,12 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   if (version<25 && song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_FDS) {
     logE("FDS not supported in 1.0/legacy .dmf!");
     lastError="FDS not supported in 1.0/legacy .dmf!";
+    return NULL;
+  }
+  // fail if the system is SCC and version<25
+  if (version<25 && song.system[0]==DIV_SYSTEM_AY8910 && song.system[1]==DIV_SYSTEM_SCC) {
+    logE("AY + SCC not supported in 1.0/legacy .dmf!");
+    lastError="AY + SCC not supported in 1.0/legacy .dmf!";
     return NULL;
   }
   // fail if the system is Furnace-exclusive
@@ -1258,6 +1315,9 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   } else if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_FDS) {
     w->writeC(systemToFileDMF(DIV_SYSTEM_NES_FDS));
     sys=DIV_SYSTEM_NES_FDS;
+  } else if (song.system[0]==DIV_SYSTEM_AY8910 && song.system[1]==DIV_SYSTEM_SCC) {
+    w->writeC(systemToFileDMF(DIV_SYSTEM_MSX2));
+    sys=DIV_SYSTEM_MSX2;
   } else {
     w->writeC(systemToFileDMF(song.system[0]));
     sys=song.system[0];

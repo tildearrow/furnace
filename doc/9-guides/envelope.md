@@ -14,7 +14,7 @@ If you play a note now, you will hear a very high-pitched squeak. This is becaus
 
 Auto-envelope works via numerator and denominator. In general, the higher the numerator, the higher the envelope pitch. The higher the denominator, the lower the envelope pitch. Why are there both of these? Because the envelope generator might be used to mask the tone output (i.e. affect the square wave as well). To do it, set the "Waveform" macro values to both `tone` and `envelope`. The higher the denominator value, then the lower the envelope pitch relative to the square wave output, and similarly with the numerator. With the square-and-envelope setting, a lot of wild, detuned synth instruments can be made.
 
-Back to the hardware envelope itself. Depending on the "Envelope" macro value, different envelope shapes can be obtained. The most basic one, 8, is a sawtooth wave. The `direction` value will invert the envelope, producing the reverse sawtooth. The `alternate` value produces an interesting pseudo-triangular wave, similiar to halved sine. That one can also be reversed. `Hold` option disables the envelope.
+Back to the hardware envelope itself. Depending on the "Envelope" macro value, different envelope shapes can be obtained. The most basic one, 8, is a sawtooth wave. The `direction` value will invert the envelope, producing the reverse sawtooth. The `alternate` value produces an interesting pseudo-triangular wave, similar to halved sine. That one can also be reversed. `Hold` option disables the envelope.
 
 _Warning:_ The envelope pitch resolution is fairly low; at high pitches it will be detuned. Because of this, it's used mostly for bass.
 

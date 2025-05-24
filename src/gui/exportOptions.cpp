@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -202,8 +202,10 @@ void FurnaceGUI::drawExportVGM(bool onWindow) {
   }
   ImGui::Text(_("chips to export:"));
   bool hasOneAtLeast=false;
+  bool hasNES=false;
   for (int i=0; i<e->song.systemLen; i++) {
     int minVersion=e->minVGMVersion(e->song.system[i]);
+    if (e->song.system[i]==DIV_SYSTEM_NES) hasNES=true;
     ImGui::BeginDisabled(minVersion>vgmExportVersion || minVersion==0);
     ImGui::Checkbox(fmt::sprintf("%d. %s##_SYSV%d",i+1,getSystemName(e->song.system[i]),i).c_str(),&willExport[i]);
     ImGui::EndDisabled();
@@ -220,6 +222,23 @@ void FurnaceGUI::drawExportVGM(bool onWindow) {
     }
   }
   ImGui::Text(_("select the chip you wish to export, but only up to %d of each type."),(vgmExportVersion>=0x151)?2:1);
+
+  if (hasNES) {
+    ImGui::Text(_("NES DPCM bank switch method:"));
+    if (ImGui::RadioButton(_("data blocks"),!vgmExportDPCM07)) {
+      vgmExportDPCM07=false;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(_("67 66 C2 - writes a new data block on each bank switch.\nmay result in bigger files but is compatible with all players."));
+    }
+    if (ImGui::RadioButton(_("RAM write commands"),vgmExportDPCM07)) {
+      vgmExportDPCM07=true;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(_("67 66 07 - uses RAM write commands (68) to switch banks.\nnot all VGM players support this!"));
+    }
+  }
+
   if (hasOneAtLeast) {
     if (onWindow) {
       ImGui::Separator();
@@ -280,8 +299,8 @@ void FurnaceGUI::drawExportROM(bool onWindow) {
 
   switch (romTarget) {
     case DIV_ROM_TIUNA: {
-      String asmBaseLabel=romConfig.getString("baseLabel","song");
-      int firstBankSize=romConfig.getInt("firstBankSize",3072);
+      String asmBaseLabel=romConfig.getString("baseLabel","twin");
+      int firstBankSize=romConfig.getInt("firstBankSize",1024);
       int otherBankSize=romConfig.getInt("otherBankSize",4096-48);
       int sysToExport=romConfig.getInt("sysToExport",-1);
 
@@ -380,16 +399,28 @@ void FurnaceGUI::drawExportText(bool onWindow) {
   }
 }
 
+void FurnaceGUI::commandExportOptions() {
+  ImGui::Checkbox(_("Long pointers (use for 64K+ size streams)"),&csExportOptions.longPointers);
+  ImGui::Checkbox(_("Big endian mode"),&csExportOptions.bigEndian);
+  ImGui::Separator();
+  ImGui::Checkbox(_("Don't optimize command calls"),&csExportOptions.noCmdCallOpt);
+  ImGui::Checkbox(_("Don't condense delays"),&csExportOptions.noDelayCondense);
+  ImGui::Checkbox(_("Don't perform sub-block search"),&csExportOptions.noSubBlock);
+}
+
 void FurnaceGUI::drawExportCommand(bool onWindow) {
   exitDisabledTimer=1;
   
   ImGui::Text(_(
-    "this option exports a text or binary file which\n"
+    "this option exports a binary file which\n"
     "contains a dump of the internal command stream\n"
     "produced when playing the song.\n\n"
 
     "technical/development use only!"
   ));
+
+  commandExportOptions();
+
   if (onWindow) {
     ImGui::Separator();
     if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
@@ -511,5 +542,8 @@ void FurnaceGUI::drawExport() {
         ImGui::CloseCurrentPopup();
       }
       break;
+  }
+  if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+    ImGui::CloseCurrentPopup();
   }
 }

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -377,6 +377,13 @@ void FurnaceGUI::drawWaveEdit() {
             doAction(GUI_ACTION_WAVE_LIST_SAVE_RAW);
           }
           ImGui::EndPopup();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_UPLOAD)) {
+          doAction(GUI_ACTION_WAVE_LIST_CREATE_SAMPLE);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("create sample from wavetable"));
         }
         ImGui::SameLine();
 

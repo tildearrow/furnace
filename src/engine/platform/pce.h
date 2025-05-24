@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,10 +70,7 @@ class DivPlatformPCE: public DivDispatch {
   unsigned char lastPan;
 
   int curChan;
-  int tempL[32];
-  int tempR[32];
   unsigned char sampleBank, lfoMode, lfoSpeed;
-  int coreQuality;
   PCE_PSG* pce;
   unsigned char regPool[128];
   void updateWave(int ch);
@@ -81,6 +78,7 @@ class DivPlatformPCE: public DivDispatch {
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -99,7 +97,7 @@ class DivPlatformPCE: public DivDispatch {
     void muteChannel(int ch, bool mute);
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
-    void setCoreQuality(unsigned char q);
+    bool hasAcquireDirect();
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);

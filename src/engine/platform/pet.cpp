@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -57,6 +57,7 @@ void DivPlatformPET::rWrite(unsigned int addr, unsigned char val) {
 
 void DivPlatformPET::acquire(short** buf, size_t len) {
   bool hwSROutput=((regPool[11]>>2)&7)==4;
+  oscBuf->begin(len);
   if (chan[0].enable) {
     int reload=regPool[8]*2+4;
     if (!hwSROutput) {
@@ -71,7 +72,7 @@ void DivPlatformPET::acquire(short** buf, size_t len) {
         chan[0].cnt-=SAMP_DIVIDER;
       }
       buf[0][h]=chan[0].out;
-      oscBuf->data[oscBuf->needle++]=chan[0].out;
+      oscBuf->putSample(h,chan[0].out);
     }
     // emulate driver writes to PCR
     if (!hwSROutput) regPool[12]=chan[0].out?0xe0:0xc0;
@@ -79,9 +80,10 @@ void DivPlatformPET::acquire(short** buf, size_t len) {
     chan[0].out=0;
     for (size_t h=0; h<len; h++) {
       buf[0][h]=0;
-      oscBuf->data[oscBuf->needle++]=0;
+      oscBuf->putSample(h,0);
     }
   }
+  oscBuf->end(len);
 }
 
 void DivPlatformPET::writeOutVol() {
@@ -311,7 +313,7 @@ int DivPlatformPET::init(DivEngine* p, int channels, int sugRate, const DivConfi
   rate=chipClock/SAMP_DIVIDER; // = 250000kHz
   isMuted=false;
   oscBuf=new DivDispatchOscBuffer;
-  oscBuf->rate=rate;
+  oscBuf->setRate(rate);
   reset();
   return 1;
 }

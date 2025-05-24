@@ -2,44 +2,40 @@
 
 the hexadecimal numeral system differs from the decimal system by having 16 digits rather than 10:
 
-```
-hex| decimal
----|---------
- 0 | 0
- 1 | 1
- 2 | 2
- 3 | 3
- 4 | 4
- 5 | 5
- 6 | 6
- 7 | 7
- 8 | 8
- 9 | 9
- A | 10
- B | 11
- C | 12
- D | 13
- E | 14
- F | 15
-```
+hex | dec
+:--:|---:
+`0` | 0
+`1` | 1
+`2` | 2
+`3` | 3
+`4` | 4
+`5` | 5
+`6` | 6
+`7` | 7
+`8` | 8
+`9` | 9
+`A` | 10
+`B` | 11
+`C` | 12
+`D` | 13
+`E` | 14
+`F` | 15
 
 when there is more than one digit, these are multiplied by 16, 256, 4096 and so on rather than 10, 100, 1000:
 
-```
-hex | decimal
-----|---------
- 00 | 0
- 04 | 4
- 08 | 8
- 0F | 15
- 10 | 16
- 11 | 17
- 12 | 18
- 13 | 19
- 20 | 32
- 30 | 48
- 40 | 64
-```
+ hex | dec
+:---:|---:
+`00` | 0
+`04` | 4
+`08` | 8
+`0F` | 15
+`10` | 16
+`11` | 17
+`12` | 18
+`13` | 19
+`20` | 32
+`30` | 48
+`40` | 64
 
 ## hex to decimal
 
@@ -101,7 +97,7 @@ now for decimal number `69420`:
 a bitmask is a value that actually represents a set of individual binary bits to be toggled, some of which may be grouped to form small binary numbers. these are used by adding up the value of each bit and converting the result to hex. in macros, these are shown in decimal.
 
 bit   |   binary    | decimal
-:-----|:-----------:|--------:
+:----:|:-----------:|--------:
 bit 7 | `1000 0000` | 128
 bit 6 | `0100 0000` |  64
 bit 5 | `0010 0000` |  32
@@ -113,16 +109,16 @@ bit 0 | `0000 0001` |   1
 
 for example, to turn bits 7 and 5 on, and put `110` (decimal 6) in bits 1 to 3:
 
-```
-bit 7 = `1... ....` = 128
-bit 6 = `.0.. ....` =   0
-bit 5 = `..1. ....` =  32
-bit 4 = `...0 ....` =   0
-bit 3 = `.... 1...` =   8
-bit 2 = `.... .1..` =   4
-bit 1 = `.... ..0.` =   0
-bit 0 = `.... ...0` =   0
-``````
+bit   |   binary    | decimal
+:----:|:-----------:|--------:
+bit 7 | `1... ....` | 128
+bit 6 | `.0.. ....` |   0
+bit 5 | `..1. ....` |  32
+bit 4 | `...0 ....` |   0
+bit 3 | `.... 1...` |   8
+bit 2 | `.... .1..` |   4
+bit 1 | `.... ..0.` |   0
+bit 0 | `.... ...0` |   0
 
 added together, the resulting binary is `1010 1100`, which converts to hex as `AC` and to decimal as 172.
 

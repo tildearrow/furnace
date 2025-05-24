@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -353,9 +353,6 @@ int DivEngine::minVGMVersion(DivSystem which) {
   return sysDefs[which]->vgmVersion;
 }
 
-#define IS_YM2610 (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT || sysOfChan[ch]==DIV_SYSTEM_YM2610_FULL || sysOfChan[ch]==DIV_SYSTEM_YM2610_FULL_EXT || sysOfChan[ch]==DIV_SYSTEM_YM2610B || sysOfChan[ch]==DIV_SYSTEM_YM2610B_EXT)
-#define IS_OPM_LIKE (sysOfChan[ch]==DIV_SYSTEM_YM2151 || sysOfChan[ch]==DIV_SYSTEM_OPZ)
-
 #define OP_EFFECT_MULTI(x,c,op,mask) \
   case x: \
     dispatchCmd(DivCommand(c,ch,op,effectVal&mask)); \
@@ -505,7 +502,9 @@ void DivEngine::registerSystems() {
     {0x5e, {DIV_CMD_FM_D2R, _("5Exx: Set decay 2 of operator 3 (0 to 1F)"), constVal<2>, effectValAnd<31>}},
     {0x5f, {DIV_CMD_FM_D2R, _("5Fxx: Set decay 2 of operator 4 (0 to 1F)"), constVal<3>, effectValAnd<31>}},
     {0x60, {DIV_CMD_FM_OPMASK, _("60xx: Set operator mask (bits 0-3)")}},
-    {0x61, {DIV_CMD_FM_ALGORITHM, _("61xx: Set FM algortihm (0 to 7)")}},
+    {0x61, {DIV_CMD_FM_ALG, _("61xx: Set algorithm (0 to 7)")}},
+    {0x62, {DIV_CMD_FM_FMS, _("62xx: Set LFO FM depth (0 to 7)")}},
+    {0x63, {DIV_CMD_FM_AMS, _("63xx: Set LFO AM depth (0 to 3)")}},
   };
 
   EffectHandlerMap fmOPMPostEffectHandlerMap(fmOPNPostEffectHandlerMap);
@@ -529,7 +528,8 @@ void DivEngine::registerSystems() {
     {0x2a, {DIV_CMD_FM_WS, _("2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 7)"), effectOpVal<4>, effectValAnd<7>}},
     {0x2b, {DIV_CMD_FM_EG_SHIFT, _("2Bxy: Set envelope generator shift (x: operator from 1 to 4 (0 for all ops); y: shift from 0 to 3)"), effectOpVal<4>, effectValAnd<3>}},
     {0x2c, {DIV_CMD_FM_FINE, _("2Cxy: Set fine multiplier (x: operator from 1 to 4 (0 for all ops); y: fine)"), effectOpVal<4>, effectValAnd<15>}},
-    {0x2d, {DIV_CMD_FM_ALGORITHM, _("2Dxx: Set FM algortihm (0 to 7)")}},
+    {0x64, {DIV_CMD_FM_FMS2, _("64xx: Set LFO2 FM depth (0 to 7)")}},
+    {0x65, {DIV_CMD_FM_AMS2, _("65xx: Set LFO2 AM depth (0 to 3)")}},
   });
   const EffectHandler fmOPZFixFreqHandler[4]={
     {DIV_CMD_FM_FIXFREQ, _("3xyy: Set fixed frequency of operator 1 (x: octave from 0 to 7; y: frequency)"), constVal<0>, effectValLong<11>},
@@ -558,7 +558,7 @@ void DivEngine::registerSystems() {
     {0x10, {DIV_CMD_WAVE, _("10xx: Set patch (0 to F)")}},
     {0x11, {DIV_CMD_FM_FB, _("11xx: Set feedback (0 to 7)")}},
     {0x12, {DIV_CMD_FM_TL, _("12xx: Set level of operator 1 (0 highest, 3F lowest)"), constVal<0>, effectVal}},
-    {0x13, {DIV_CMD_FM_TL, _("13xx: Set level of operator 2 (0 highest, 3F lowest)"), constVal<1>, effectVal}},
+    {0x13, {DIV_CMD_FM_TL, _("13xx: Set level of operator 2 (0 highest, F lowest)"), constVal<1>, effectVal}},
     {0x16, {DIV_CMD_FM_MULT, _("16xy: Set operator multiplier (x: operator from 1 to 2; y: multiplier)"), effectOpValNoZero<2>, effectValAnd<15>}},
     {0x19, {DIV_CMD_FM_AR, _("19xx: Set attack of all operators (0 to F)"), constVal<-1>, effectValAnd<15>}},
     {0x1a, {DIV_CMD_FM_AR, _("1Axx: Set attack of operator 1 (0 to F)"), constVal<0>, effectValAnd<15>}},
@@ -972,6 +972,12 @@ void DivEngine::registerSystems() {
     fmExtChEffectHandlerMap
   );
 
+  sysDefs[DIV_SYSTEM_MSX2]=new DivSysDef(
+    _("MSX + SCC"), NULL, 0, 0x0a, 8, false, true, 0, true, 0, 0, 0,
+    "<COMPOUND SYSTEM!>",
+    {}, {}, {}, {}
+  );
+
   sysDefs[DIV_SYSTEM_AY8910]=new DivSysDef(
     _("AY-3-8910"), NULL, 0x80, 0, 3, false, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     _("this chip is everywhere! ZX Spectrum, MSX, Amstrad CPC, Intellivision, Vectrex...\nthe discovery of envelope bass helped it beat the SN76489 with ease."),
@@ -1222,7 +1228,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_YM2203_EXT]=new DivSysDef(
     _("Yamaha YM2203 (OPN) Extended Channel 3"), NULL, 0xb6, 0, 9, true, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
-    _("cost-reduced version of the OPM with a different register layout and no stereo...\n...but it has a built-in AY-3-8910! (actually an YM2149)\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies"),
+    _("cost-reduced version of the OPM with a different register layout and no stereo...\n...but it has a built-in AY-3-8910! (actually an YM2149)\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies."),
     {_("FM 1"), _("FM 2"), _("FM 3 OP1"), _("FM 3 OP2"), _("FM 3 OP3"), _("FM 3 OP4"), _("PSG 1"), _("PSG 2"), _("PSG 3")},
     {"F1", "F2", "O1", "O2", "O3", "O4", "S1", "S2", "S3"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
@@ -1235,7 +1241,8 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_YM2203_CSM]=new DivSysDef(
     _("Yamaha YM2203 (OPN) CSM"), NULL, 0xc3, 0, 10, true, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
-    _("cost-reduced version of the OPM with a different register layout and no stereo...\n...but it has a built-in AY-3-8910! (actually an YM2149)\nCSM blah blah"),
+    _("cost-reduced version of the OPM with a different register layout and no stereo...\n...but it has a built-in AY-3-8910! (actually an YM2149)\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies."
+    "\nthis one includes CSM mode control for special effects on Channel 3."),
     {_("FM 1"), _("FM 2"), _("FM 3 OP1"), _("FM 3 OP2"), _("FM 3 OP3"), _("FM 3 OP4"), _("CSM Timer"), _("PSG 1"), _("PSG 2"), _("PSG 3")},
     {"F1", "F2", "O1", "O2", "O3", "O4", "CSM", "S1", "S2", "S3"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_NOISE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
@@ -1260,7 +1267,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_YM2608_EXT]=new DivSysDef(
     _("Yamaha YM2608 (OPNA) Extended Channel 3"), NULL, 0xb7, 0, 19, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
-    _("OPN but twice the FM channels, stereo makes a come-back and has rhythm and ADPCM channels.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies"),
+    _("OPN but twice the FM channels, stereo makes a come-back and has rhythm and ADPCM channels.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies."),
     {_("FM 1"), _("FM 2"), _("FM 3 OP1"), _("FM 3 OP2"), _("FM 3 OP3"), _("FM 3 OP4"), _("FM 4"), _("FM 5"), _("FM 6"), _("Square 1"), _("Square 2"), _("Square 3"), _("Kick"), _("Snare"), _("Top"), _("HiHat"), _("Tom"), _("Rim"), _("ADPCM")},
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "S1", "S2", "S3", "BD", "SD", "TP", "HH", "TM", "RM", "P"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_PCM},
@@ -1273,7 +1280,8 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_YM2608_CSM]=new DivSysDef(
     _("Yamaha YM2608 (OPNA) CSM"), NULL, 0xc4, 0, 20, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
-    _("OPN but twice the FM channels, stereo makes a come-back and has rhythm and ADPCM channels.\nCSM blah blah"),
+    _("OPN but twice the FM channels, stereo makes a come-back and has rhythm and ADPCM channels.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies.\n"
+    "this one includes CSM mode control for special effects on Channel 3."),
     {_("FM 1"), _("FM 2"), _("FM 3 OP1"), _("FM 3 OP2"), _("FM 3 OP3"), _("FM 3 OP4"), _("FM 4"), _("FM 5"), _("FM 6"), _("CSM Timer"), _("Square 1"), _("Square 2"), _("Square 3"), _("Kick"), _("Snare"), _("Top"), _("HiHat"), _("Tom"), _("Rim"), _("ADPCM")},
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "CSM", "S1", "S2", "S3", "BD", "SD", "TP", "HH", "TM", "RM", "P"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_PCM},
@@ -1387,6 +1395,9 @@ void DivEngine::registerSystems() {
       {0x12, {DIV_CMD_WS_SWEEP_TIME, _("12xx: Setup sweep period (0: disabled; 1-20: enabled/period)")}},
       {0x13, {DIV_CMD_WS_SWEEP_AMOUNT, _("13xx: Set sweep amount")}},
       {0x17, {DIV_CMD_SAMPLE_MODE, _("17xx: Toggle PCM mode (LEGACY)")}},
+    },
+    {
+      {0x20, {DIV_CMD_WS_GLOBAL_SPEAKER_VOLUME, _("20xx: Set internal speaker loudness (0-1: 100%, 2-3: 200%, 4-7: 400%, 8: 800%)")}},
     }
   );
 
@@ -1672,7 +1683,8 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_YM2610B_CSM]=new DivSysDef(
     _("Yamaha YM2610B (OPNB2) CSM"), NULL, 0xc5, 0, 20, true, false, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
-    _("so Taito asked Yamaha if they could get the two missing FM channels back, and Yamaha gladly provided them with this chip.\nCSM blah blah"),
+    _("so Taito asked Yamaha if they could get the two missing FM channels back, and Yamaha gladly provided them with this chip.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies."
+    "\nthis one includes CSM mode control for special effects on Channel 3."),
     {_("FM 1"), _("FM 2"), _("FM 3 OP1"), _("FM 3 OP2"), _("FM 3 OP3"), _("FM 3 OP4"), _("FM 4"), _("FM 5"), _("FM 6"), _("CSM Timer"), _("PSG 1"), _("PSG 2"), _("PSG 3"), _("ADPCM-A 1"), _("ADPCM-A 2"), _("ADPCM-A 3"), _("ADPCM-A 4"), _("ADPCM-A 5"), _("ADPCM-A 6"), _("ADPCM-B")},
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "CSM", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
@@ -1749,7 +1761,7 @@ void DivEngine::registerSystems() {
     {_("4OP 1"), _("FM 2"), _("4OP 3"), _("FM 4"), _("4OP 5"), _("FM 6"), _("4OP 7"), _("FM 8"), _("4OP 9"), _("FM 10"), _("4OP 11"), _("FM 12"), _("FM 13"), _("FM 14"), _("FM 15"), _("Kick/FM 16"), _("Snare"), _("Tom"), _("Top"), _("HiHat"), _("PCM 1"), _("PCM 2"), _("PCM 3"), _("PCM 4"), _("PCM 5"), _("PCM 6"), _("PCM 7"), _("PCM 8"), _("PCM 9"), _("PCM 10"), _("PCM 11"), _("PCM 12"), _("PCM 13"), _("PCM 14"), _("PCM 15"), _("PCM 16"), _("PCM 17"), _("PCM 18"), _("PCM 19"), _("PCM 20"), _("PCM 21"), _("PCM 22"), _("PCM 23"), _("PCM 24")},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13", "F14", "F15", "BD", "SD", "TM", "TP", "HH", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17", "P18", "P19", "P20", "P21", "P22", "P23", "P24"},
     {DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
-    {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM},
+    {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM},
     {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
     fmOPLDrumsEffectHandlerMap,
     fmOPL4PostEffectHandlerMap
@@ -1984,7 +1996,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_YM2612_DUALPCM_EXT]=new DivSysDef(
     _("Yamaha YM2612 (OPN2) Extended Channel 3 with DualPCM and CSM"), NULL, 0xbd, 0, 11, true, false, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
-    _("this chip is mostly known for being in the Sega Genesis (but it also was on the FM Towns computer).\nthis system uses software mixing to provide two sample channels.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies."),
+    _("this chip is mostly known for being in the Sega Genesis (but it also was on the FM Towns computer).\nthis system uses software mixing to provide two sample channels.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies.\nthis one includes CSM mode control for special effects on Channel 3."),
     {_("FM 1"), _("FM 2"), _("FM 3 OP1"), _("FM 3 OP2"), _("FM 3 OP3"), _("FM 3 OP4"), _("FM 4"), _("FM 5"), _("FM 6/PCM 1"), _("PCM 2"), _("CSM Timer")},
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "P1", "P2", "CSM"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_NOISE},
@@ -2055,12 +2067,12 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_UPD1771C]=new DivSysDef(
-    _("NEC μPD1771C"), NULL, 0xe4, 0, 1, false, true, 0, false, 0, 0, 0,
-    _("this was an SoC with some funky wavetable/noise hardware"),
-    {_("Wave/Noise")},
-    {"W"},
-    {DIV_CH_NOISE},
-    {DIV_INS_UPD1771C},
+    _("NEC μPD1771C-017"), NULL, 0xe5, 0, 4, false, true, 0, false, 0, 0, 0,
+    _("a microcontroller which has been used as a sound generator in the Super Cassette Vision."),
+    {_("Square 1"), _("Square 2"), _("Square 3"), _("Wave/Noise")},
+    {"S1", "S2", "S3", "NO"},
+    {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE},
+    {DIV_INS_UPD1771C, DIV_INS_UPD1771C, DIV_INS_UPD1771C, DIV_INS_UPD1771C},
     {},
     {
       {0x10, {DIV_CMD_STD_NOISE_MODE, _("10xx: Set duty/waveform (bit 0-3: waveform; bit 4: mode)")}},
@@ -2308,6 +2320,18 @@ void DivEngine::registerSystems() {
     {},
     {}, 
     SID3PostEffectHandlerMap
+  );
+
+  sysDefs[DIV_SYSTEM_C64_PCM]=new DivSysDef(
+    _("Commodore 64 (SID 6581) with software PCM"), NULL, 0xe2, 0, 4, false, true, 0, false, (1U<<DIV_SAMPLE_DEPTH_8BIT)|(1U<<DIV_SAMPLE_DEPTH_16BIT), 0, 0,
+    _("the 6581 had a quirk which allowed playback of 4-bit samples by writing PCM data to the volume register."),
+    {_("Channel 1"), _("Channel 2"), _("Channel 3"), _("PCM")},
+    {"CH1", "CH2", "CH3", "P"},
+    {DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_PCM},
+    {DIV_INS_C64, DIV_INS_C64, DIV_INS_C64, DIV_INS_AMIGA},
+    {},
+    {},
+    c64PostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(

@@ -32,6 +32,10 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 228: Furnace 0.6.8.1
+- 227: Furnace 0.6.8
+- 226: Furnace 0.6.8pre2
+- 225: Furnace 0.6.8pre1
 - 219: Furnace 0.6.7
 - 218: Furnace 0.6.6
 - 214: Furnace 0.6.5
@@ -226,10 +230,10 @@ size | description
      |   - 0xbf: T6W28 - 4 channels
      |   - 0xc0: PCM DAC - 1 channel
      |   - 0xc1: YM2612 CSM - 10 channels
-     |   - 0xc2: Neo Geo CSM (YM2610) - 18 channels (UNAVAILABLE)
-     |   - 0xc3: YM2203 CSM - 10 channels (UNAVAILABLE)
-     |   - 0xc4: YM2608 CSM - 20 channels (UNAVAILABLE)
-     |   - 0xc5: YM2610B CSM - 20 channels (UNAVAILABLE)
+     |   - 0xc2: Neo Geo CSM (YM2610) - 18 channels
+     |   - 0xc3: YM2203 CSM - 10 channels
+     |   - 0xc4: YM2608 CSM - 20 channels
+     |   - 0xc5: YM2610B CSM - 20 channels
      |   - 0xc6: K007232 - 2 channels
      |   - 0xc7: GA20 - 4 channels
      |   - 0xc8: SM8521 - 3 channels
@@ -257,9 +261,9 @@ size | description
      |   - 0xdf: YM2612 XGM extended - 13 channels (UNAVAILABLE)
      |   - 0xe0: QSound - 19 channels
      |   - 0xe1: PS1 - 24 channels (UNAVAILABLE)
-     |   - 0xe2: C64 (6581) with PCM - 4 channels (UNAVAILABLE)
+     |   - 0xe2: C64 (6581) with PCM - 4 channels
      |   - 0xe3: Watara Supervision - 4 channels
-     |   - 0xe4: µPD1771C - 1 channel
+     |   - 0xe5: µPD1771C-017 - 4 channels
      |   - 0xf0: SID2 - 3 channels
      |   - 0xf1: 5E01 - 5 channels
      |   - 0xf5: SID3 - 7 channels

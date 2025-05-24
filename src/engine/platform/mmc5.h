@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +39,13 @@ class DivPlatformMMC5: public DivDispatch {
   Channel chan[5];
   DivDispatchOscBuffer* oscBuf[3];
   bool isMuted[5];
+  struct QueuedWrite {
+      unsigned short addr;
+      unsigned char val;
+      QueuedWrite(): addr(0), val(0) {}
+      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
+  };
+  FixedQueue<QueuedWrite,128> writes;
   int dacPeriod, dacRate;
   unsigned int dacPos;
   int dacSample;
@@ -51,7 +58,7 @@ class DivPlatformMMC5: public DivDispatch {
   friend void putDispatchChan(void*,int,int);
 
   public:
-    void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -63,6 +70,7 @@ class DivPlatformMMC5: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
+    bool hasAcquireDirect();
     float getPostAmp();
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);

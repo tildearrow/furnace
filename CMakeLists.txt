@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.0...3.16)
 
 if (APPLE)
   set(MACOSX_DEPLOYMENT_TARGET 10.9)
@@ -16,7 +16,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_PROJECT_VERSION_MAJOR 0)
 set(CMAKE_PROJECT_VERSION_MINOR 6)
-set(CMAKE_PROJECT_VERSION_PATCH 6)
+set(CMAKE_PROJECT_VERSION_PATCH 8)
 
 set(BUILD_GUI_DEFAULT ON)
 set(USE_SDL2_DEFAULT ON)
@@ -98,7 +98,7 @@ set(WITH_LOCALE_DEFAULT ON)
 try_compile(HAVE_SETLOCALE ${CMAKE_BINARY_DIR}/check SOURCES ${CMAKE_SOURCE_DIR}/src/check/check_setlocale.c)
 include(FindIntl)
 
-if (HAVE_SETLOCALE AND Intl_FOUND AND NOT APPLE)
+if (HAVE_SETLOCALE AND Intl_FOUND AND NOT APPLE AND NOT WIN32)
   set(USE_MOMO_DEFAULT OFF)
 else()
   set(USE_MOMO_DEFAULT ON)
@@ -131,11 +131,12 @@ option(SYSTEM_ZLIB "Use a system-installed version of zlib instead of the vendor
 option(SYSTEM_SDL2 "Use a system-installed version of SDL2 instead of the vendored one" ${SYSTEM_SDL2_DEFAULT})
 option(SUPPORT_XP "Build a Windows XP-compatible binary" OFF)
 option(WARNINGS_ARE_ERRORS "Whether warnings in furnace's C++ code should be treated as errors" OFF)
-option(WITH_DEMOS "Install demo songs" ON)
+option(WITH_DEMOS "Install demo songs (NOTE: demo songs are NOT under GPL!)" OFF)
 option(WITH_INSTRUMENTS "Install instruments" ON)
 option(WITH_WAVETABLES "Install wavetables" ON)
 option(SHOW_OPEN_ASSETS_MENU_ENTRY "Show option to open built-in assets directory (on supported platforms)" OFF)
 option(CONSOLE_SUBSYSTEM "Build Furnace with Console subsystem on Windows" OFF)
+option(FORCE_CODEVIEW "Force -gcodeview on MinGW GCC" OFF)
 option(FLATPAK_WORKAROUNDS "Enable Flatpak-specific workaround for system file picker" OFF)
 if (APPLE)
   option(FORCE_APPLE_BIN "Force enable binary installation to /bin" OFF)
@@ -146,7 +147,7 @@ else()
   set(MAKE_BUNDLE OFF)
 endif()
 
-set(DEPENDENCIES_INCLUDE_DIRS extern/IconFontCppHeaders src/icon)
+set(DEPENDENCIES_INCLUDE_DIRS extern/IconFontCppHeaders extern/blip_buf src/icon)
 
 if (ANDROID AND NOT TERMUX)
   set(DEPENDENCIES_DEFINES "IS_MOBILE")
@@ -287,7 +288,7 @@ if (USE_SNDFILE)
     set(BUILD_EXAMPLES OFF CACHE BOOL "a" FORCE)
     set(ENABLE_EXTERNAL_LIBS OFF CACHE BOOL "come on" FORCE)
     set(ENABLE_MPEG OFF CACHE BOOL "come on" FORCE)
-    add_subdirectory(extern/libsndfile EXCLUDE_FROM_ALL)
+    add_subdirectory(extern/libsndfile-modified EXCLUDE_FROM_ALL)
     list(APPEND DEPENDENCIES_LIBRARIES sndfile)
     message(STATUS "Using vendored libsndfile")
   endif()
@@ -310,7 +311,7 @@ if (WITH_PORTAUDIO)
     set(PA_BUILD_SHARED_LIBS OFF CACHE BOOL "Build dynamic library" FORCE)
     # don't - Furnace has its own implementation
     set(PA_USE_JACK OFF CACHE BOOL "Enable support for JACK Audio Connection Kit" FORCE)
-    add_subdirectory(extern/portaudio EXCLUDE_FROM_ALL)
+    add_subdirectory(extern/portaudio-modified EXCLUDE_FROM_ALL)
     list(APPEND DEPENDENCIES_LIBRARIES PortAudio)
     message(STATUS "Using vendored PortAudio")
   endif()
@@ -542,6 +543,8 @@ extern/YM2608-LLE/fmopna_2612.c
 
 extern/pwrnoise/pwrnoise.c
 
+extern/blip_buf/blip_buf.c
+
 src/pch.cpp
 
 src/engine/platform/sound/sn76496.cpp
@@ -552,9 +555,9 @@ src/engine/platform/sound/segapcm.cpp
 src/engine/platform/sound/gb/apu.c
 src/engine/platform/sound/gb/timing.c
 src/engine/platform/sound/pce_psg.cpp
-src/engine/platform/sound/nes/apu.c
-src/engine/platform/sound/nes/fds.c
-src/engine/platform/sound/nes/mmc5.c
+src/engine/platform/sound/nes/apu.cpp
+src/engine/platform/sound/nes/fds.cpp
+src/engine/platform/sound/nes/mmc5.cpp
 src/engine/platform/sound/vera_psg.c
 src/engine/platform/sound/vera_pcm.c
 src/engine/platform/sound/ymf278b/ymf278.cpp
@@ -627,7 +630,8 @@ src/engine/platform/sound/pokey/AltASAP.cpp
 
 src/engine/platform/sound/qsound.c
 
-src/engine/platform/sound/swan.cpp
+src/engine/platform/sound/swan.c
+src/engine/platform/sound/swan_mdfn.cpp
 
 src/engine/platform/sound/su.cpp
 
@@ -652,7 +656,7 @@ src/engine/platform/sound/sm8521.c
 
 src/engine/platform/sound/supervision.c
 
-src/engine/platform/sound/upd1771c.c
+src/engine/platform/sound/upd1771.cpp
 
 src/engine/platform/sound/d65modified.c
 
@@ -709,7 +713,12 @@ src/engine/fileOps/adlib/deps/unlzw.c
 
 src/engine/fileOps/adlib/at2.cpp
 
-src/engine/blip_buf.c
+src/engine/fileOps/adlib/deps/depack.c
+src/engine/fileOps/adlib/deps/sixpack.c
+src/engine/fileOps/adlib/deps/unlzh.c
+src/engine/fileOps/adlib/deps/unlzss.c
+src/engine/fileOps/adlib/deps/unlzw.c
+
 src/engine/brrUtils.c
 src/engine/safeReader.cpp
 src/engine/safeWriter.cpp
@@ -798,7 +807,7 @@ src/engine/platform/k007232.cpp
 src/engine/platform/ga20.cpp
 src/engine/platform/sm8521.cpp
 src/engine/platform/supervision.cpp
-src/engine/platform/upd1771c.cpp
+src/engine/platform/scvtone.cpp
 src/engine/platform/pv1000.cpp
 src/engine/platform/k053260.cpp
 src/engine/platform/ted.cpp
@@ -939,7 +948,7 @@ src/gui/subSongs.cpp
 src/gui/sysConf.cpp
 src/gui/sysEx.cpp
 src/gui/sysManager.cpp
-src/gui/sysPartNumber.cpp
+src/gui/sysMiscInfo.cpp
 src/gui/sysPicker.cpp
 src/gui/tutorial.cpp
 src/gui/userPresets.cpp
@@ -1122,7 +1131,7 @@ if (USE_BACKWARD)
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
       include(CheckCXXCompilerFlag)
       check_cxx_compiler_flag(-gcodeview GCC_CODEVIEW)
-      if (GCC_CODEVIEW)
+      if (GCC_CODEVIEW OR FORCE_CODEVIEW)
         set(CMAKE_EXE_LINKER_FLAGS "-Wl,--pdb= ")
         add_compile_options(-gcodeview)
         message(STATUS "Enabling -gcodeview flag for backward-cpp.")

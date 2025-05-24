@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ void FurnaceGUI::drawNotes(bool asChild) {
   if (!notesOpen && !asChild) return;
   bool began=asChild?ImGui::BeginChild("Song Info##Song Information"):ImGui::Begin("Song Comments",&notesOpen,globalWinFlags,_("Song Comments"));
   if (began) {
-    if (ImGui::InputTextMultiline("##SongNotes",&e->song.notes,ImGui::GetContentRegionAvail(),ImGuiInputTextFlags_UndoRedo)) {
+    if (ImGui::InputTextMultiline("##SongNotes",&e->song.notes,ImGui::GetContentRegionAvail(),ImGuiInputTextFlags_UndoRedo|(settings.songNotesWrap?ImGuiInputTextFlags_WordWrapping:0))) {
       MARK_MODIFIED;
     }
   }

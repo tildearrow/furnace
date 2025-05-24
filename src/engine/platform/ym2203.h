@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,10 +28,6 @@ extern "C" {
 
 #include "ay.h"
 
-class DivYM2203Interface: public ymfm::ymfm_interface {
-
-};
-
 class DivPlatformYM2203: public DivPlatformOPN {
   protected:
     const unsigned short chanOffs[3]={
@@ -42,13 +38,13 @@ class DivPlatformYM2203: public DivPlatformOPN {
       0, 1, 2
     };
 
-    OPNChannel chan[6];
-    DivDispatchOscBuffer* oscBuf[6];
-    bool isMuted[6];
+    OPNChannel chan[7];
+    DivDispatchOscBuffer* oscBuf[7];
+    bool isMuted[7];
     ym3438_t fm_nuked;
     ymfm::ym2203* fm;
     ymfm::ym2203::output_data fmout;
-    DivYM2203Interface iface;
+    DivOPNInterface iface;
     fmopna_t fm_lle;
     unsigned int dacVal;
     unsigned int dacVal2;
@@ -73,6 +69,7 @@ class DivPlatformYM2203: public DivPlatformOPN {
     void acquire_lle(short** buf, size_t len);
 
   public:
+    unsigned char isCSM;
     void acquire(short** buf, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
@@ -97,8 +94,9 @@ class DivPlatformYM2203: public DivPlatformOPN {
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     DivPlatformYM2203():
-      DivPlatformOPN(2, 3, 6, 6, 6, 4720270.0, 36, 16),
-      prescale(0x2d) {}
+      DivPlatformOPN(2, 3, 6, 6, 6, 4720270.0, 36, 16, false, 6),
+      prescale(0x2d),
+      isCSM(0) {}
     ~DivPlatformYM2203();
 };
 #endif

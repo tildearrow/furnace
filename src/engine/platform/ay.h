@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -128,6 +128,7 @@ class DivPlatformAY8910: public DivDispatch {
     ssg_t ay_atomic;
 
     int delay;
+    int lastOut[2];
 
     bool extMode;
     unsigned int extClock;
@@ -145,23 +146,22 @@ class DivPlatformAY8910: public DivDispatch {
     unsigned short ayEnvPeriod;
     short ayEnvSlideLow;
     short ayEnvSlide;
-    short* ayBuf[3];
-    size_t ayBufLen;
 
     void checkWrites();
     void updateOutSel(bool immediate=false);
 
-    void acquire_mame(short** buf, size_t len);
+    void acquire_mame(blip_buffer_t** bb, size_t len);
     void acquire_atomic(short** buf, size_t len);
   
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
   
   public:
-    void runDAC(int runRate=0);
-    void runTFX(int runRate=0);
+    void runDAC(int runRate=0, int advance=1);
+    void runTFX(int runRate=0, int advance=1);
     void setExtClockDiv(unsigned int eclk=COLOR_NTSC, unsigned char ediv=8);
     void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
@@ -179,6 +179,7 @@ class DivPlatformAY8910: public DivDispatch {
     void setFlags(const DivConfig& flags);
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
+    bool hasAcquireDirect();
     DivMacroInt* getChanMacroInt(int ch);
     DivSamplePos getSamplePos(int ch);
     bool getLegacyAlwaysSetVolume();

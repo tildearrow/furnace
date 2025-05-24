@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -206,6 +206,10 @@ const char** DivPlatformX1_010::getRegisterSheet() {
 }
 
 void DivPlatformX1_010::acquire(short** buf, size_t len) {
+  for (int i=0; i<16; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     x1_010.tick();
 
@@ -223,8 +227,12 @@ void DivPlatformX1_010::acquire(short** buf, size_t len) {
 
     for (int i=0; i<16; i++) {
       int vo=(x1_010.voice_out(i,0)+x1_010.voice_out(i,1))<<2;
-      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(vo,-32768,32767);
+      oscBuf[i]->putSample(h,CLAMP(vo,-32768,32767));
     }
+  }
+
+  for (int i=0; i<16; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -249,7 +257,7 @@ double DivPlatformX1_010::NoteX1_010(int ch, int note) {
       if (s->centerRate<1) {
         off=8192.0;
       } else {
-        off=8192.0*(s->centerRate/8363.0);
+        off=8192.0*(s->centerRate/parent->getCenterRate());
       }
     }
     return parent->calcBaseFreq(chipClock,off,note,false);
@@ -474,7 +482,7 @@ void DivPlatformX1_010::tick(bool sysTick) {
           if (s->centerRate<1) {
             off=8192.0;
           } else {
-            off=8192.0*(s->centerRate/8363.0);
+            off=8192.0*(s->centerRate/parent->getCenterRate());
           }
         }
       }
@@ -501,23 +509,25 @@ void DivPlatformX1_010::tick(bool sysTick) {
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
     }
-    if (chan[i].env.slide!=0) {
-      chan[i].env.slidefrac+=chan[i].env.slide;
-      while (chan[i].env.slidefrac>0xf) {
-        chan[i].env.slidefrac-=0x10;
-        if (chan[i].env.period<0xff) {
-          chan[i].env.period++;
-          if (!chan[i].pcm) {
-            chWrite(i,4,chan[i].env.period);
+    if (sysTick) {
+      if (chan[i].env.slide!=0) {
+        chan[i].env.slidefrac+=chan[i].env.slide;
+        while (chan[i].env.slidefrac>0xf) {
+          chan[i].env.slidefrac-=0x10;
+          if (chan[i].env.period<0xff) {
+            chan[i].env.period++;
+            if (!chan[i].pcm) {
+              chWrite(i,4,chan[i].env.period);
+            }
           }
         }
-      }
-      while (chan[i].env.slidefrac<-0xf) {
-        chan[i].env.slidefrac+=0x10;
-        if (chan[i].env.period>0) {
-          chan[i].env.period--;
-          if (!chan[i].pcm) {
-            chWrite(i,4,chan[i].env.period);
+        while (chan[i].env.slidefrac<-0xf) {
+          chan[i].env.slidefrac+=0x10;
+          if (chan[i].env.period>0) {
+            chan[i].env.period--;
+            if (!chan[i].pcm) {
+              chWrite(i,4,chan[i].env.period);
+            }
           }
         }
       }
@@ -965,7 +975,7 @@ void DivPlatformX1_010::setFlags(const DivConfig& flags) {
   stereo=flags.getBool("stereo",false);
   isBanked=flags.getBool("isBanked",false);
   for (int i=0; i<16; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

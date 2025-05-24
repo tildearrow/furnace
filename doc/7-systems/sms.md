@@ -4,7 +4,7 @@ a relatively simple sound chip made by Texas Instruments. a derivative of it is 
 
 nominal mode of SN76489 has 3 square wave channels, with noise channel having only 3 preset frequencies to use (absurdly low, very low, low). to use more pitches, one can enable a mode which "steals" the frequency from square wave channel 3. by doing that, SN76489 becomes effectively a 3 channel sound chip. in addition, periodic noise mode can be enabled, with same caveats.
 
-the original iteration of the SN76489 used in the TI-99/4A computer, the SN94624, could only produce tones as low as 100Hz, and was clocked at 447 KHz. all later versions (such as the one in the Master System and Genesis) had a clock divider but ran on a faster clock... except for the SN76494, which can play notes as low as 13670 Hz (A -1). as a result, its pitch accuracy for higher notes is compromised.
+the original iteration of the SN76489 used in the TI-99/4A computer, the SN94624, could only produce tones as low as 100Hz, and was clocked at 447 KHz. all later versions (such as the one in the Master System and Genesis) had a clock divider but ran on a faster clock, making a chip **very** high pitched... except for the SN76494, which can play notes as low as 13.670 Hz (A -1). as a result, its pitch accuracy for higher notes is compromised.
 
 ## SN7 versions
 
