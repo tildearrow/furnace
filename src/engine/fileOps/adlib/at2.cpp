@@ -38,20 +38,6 @@
 #define INT32LE(A) (int32_t)((A[0]) | (A[1] << 8) | (A[2] << 16) | (A[3] << 24))
 #define UINT32LE(A) (uint32_t)((A[0]) | (A[1] << 8) | (A[2] << 16) | (A[3] << 24))
 
-#define keyoff_flag         0x80
-#define fixed_note_flag     0x90
-#define pattern_loop_flag   0xe0
-#define pattern_break_flag  0xf0
-
-typedef enum {
-    isPlaying = 0, isPaused, isStopped
-} tPLAY_STATUS;
-
-#define BYTE_NULL (uint8_t)(0xFFFFFFFF)
-
-#define MIN_IRQ_FREQ        50
-#define MAX_IRQ_FREQ        1000
-
 /*
     When loading A2T/A2M, FreePascal structures (no padding and little-endian) should be emulated,
     because AdlibTracker 2 was saving structures directly from memory into the file.
@@ -1955,6 +1941,7 @@ bool DivEngine::loadAT2M(unsigned char* file, size_t len)
         }
 
         DivSong ds;
+        ds.version = DIV_VERSION_A2M;
         ds.subsong.push_back(new DivSubSong);
         DivSubSong* s = ds.subsong[0];
         ds.systemLen = 1;

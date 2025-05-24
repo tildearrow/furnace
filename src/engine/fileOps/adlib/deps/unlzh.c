@@ -15,12 +15,9 @@
 
 #include "unlzh.h"
 
-typedef unsigned short ush;
-typedef unsigned char uch;
-
 /* decode.c */
 
-static unsigned int	decode	(unsigned int count, uch buffer[]);
+static unsigned int	decode	(unsigned int count, unsigned char* buffer);
 static void decode_start (void);
 
 /* huf.c */
@@ -37,8 +34,8 @@ static void init_getbits (void);
 
 /* maketbl.c */
 
-static void make_table (int nchar, uch bitlen[],
-					   int tablebits, ush table[]);
+static void make_table (int nchar, unsigned char bitlen[],
+					   int tablebits, unsigned short table[]);
 
 
 #define DICBIT		14 /* 13 */
@@ -75,26 +72,26 @@ static void make_table (int nchar, uch bitlen[],
 #define TBIT		15 /* 5 */ /* smallest integer such that (1U << TBIT) > NT */
 #define NPT			(1 << TBIT)
 
-static ush left[2 * NC - 1];
-static ush right[2 * NC - 1];
-static uch c_len[NC];
-static uch pt_len[NPT];
+static unsigned short left[2 * NC - 1];
+static unsigned short right[2 * NC - 1];
+static unsigned char c_len[NC];
+static unsigned char pt_len[NPT];
 static unsigned int blocksize;
-static ush pt_table[256];
-static ush c_table[4096];
+static unsigned short pt_table[256];
+static unsigned short c_table[4096];
 
 /***********************************************************
 		io.c -- input/output
 ***********************************************************/
 
-static ush			bitbuf;
+static unsigned short bitbuf;
 static unsigned int	subbitbuf;
 static int			bitcount;
 
-uch *input_buffer, *output_buffer;
+unsigned short *input_buffer, *output_buffer;
 unsigned int input_buffer_idx, output_buffer_idx, input_buffer_size;
 
-static uch try_byte()
+static unsigned char try_byte()
 {
 	if (input_buffer_idx < input_buffer_size)
 		return input_buffer[input_buffer_idx++];
@@ -102,7 +99,7 @@ static uch try_byte()
 		return 0;
 }
 
-void write_buf(uch *ptr, ush size)
+void write_buf(unsigned char *ptr, unsigned short size)
 {
 	memcpy(output_buffer + output_buffer_idx, ptr, size);
 	output_buffer_idx += size;
@@ -138,9 +135,9 @@ static void init_getbits()
 		maketbl.c -- make table for decoding
 ***********************************************************/
 
-static void make_table(int nchar, uch bitlen[], int tablebits, ush table[])
+static void make_table(int nchar, unsigned char* bitlen, int tablebits, unsigned short* table)
 {
-	ush count[17], weight[17], start[18], *p;
+	unsigned short count[17], weight[17], start[18], *p;
 	unsigned int i, k, len, ch, jutbits, avail, nextcode, mask;
 
 	for (i = 1; i <= 16; i++) count[i] = 0;
@@ -333,7 +330,7 @@ static void decode_start()
 
 /* Decode the input and return the number of decoded bytes put in buffer
  */
-static unsigned int decode(unsigned count, uch buffer[])
+static unsigned int decode(unsigned count, unsigned char* buffer)
 	/* The calling function must keep the number of
 	   bytes to be processed.  This function decodes
 	   either 'count' bytes or 'DIC_SIZE' bytes, whichever

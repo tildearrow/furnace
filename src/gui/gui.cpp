@@ -2489,6 +2489,9 @@ int FurnaceGUI::load(String path) {
   if (!tutorial.importedIT && e->song.version==DIV_VERSION_IT) {
     showWarning(_("you have imported an Impulse Tracker module!\nkeep the following in mind:\n\n- Furnace is not a replacement for your IT player\n- import is not perfect. your song may sound different:\n  - envelopes have been converted to macros\n  - global volume changes are not supported\n  - channel volume changes are not supported\n  - New Note Actions (NNA) are not supported\n\nhave fun!"),GUI_WARN_IMPORT);
   }
+  if (e->song.version==DIV_VERSION_A2M) {
+    showWarning(_("you have imported an Adlib Tracker ][ module!\nkeep the following in mind:\n\n- Furnace is not a replacement for your Adlib Tracker modules player\n- import is not perfect. your song may sound different:\n  - global volume changes are not supported\n\nhave fun!"),GUI_WARN_IMPORT);
+  }
   return 0;
 }
 
