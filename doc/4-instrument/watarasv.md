@@ -1,12 +1,12 @@
 # Watara Supervision instrument editor
 
-the atara Supervision instrument editor consists of two tabs: one controlling sample channel assignments and macro tab containing several macros.
+the Watara Supervision instrument editor consists of two tabs: one controlling sample channel assignments and macro tab containing several macros.
 
 ## Sample
 
-for sample settings, see the the Sample instrument editor](sample.md).
+for sample settings, see the the [Sample instrument editor](sample.md).
 
-the only differences are the lack of an "Use wavetable" option, and the presence of a "Use sample" one.
+the only differences are the lack of a "Use wavetable" option, and the presence of a "Use sample" one.
 
 ## Macros
 

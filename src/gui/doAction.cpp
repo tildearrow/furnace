@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -882,6 +882,38 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_WAVE_LIST_SAVE_RAW:
       if (curWave>=0 && curWave<(int)e->song.wave.size()) openFileDialog(GUI_FILE_WAVE_SAVE_RAW);
+      break;
+    case GUI_ACTION_WAVE_LIST_CREATE_SAMPLE:
+      if (curWave>=0 && curWave<(int)e->song.wave.size()) {
+        curSample=e->addSample();
+        if (curSample==-1) {
+          showError(_("too many samples!"));
+        } else {
+          e->lockEngine([this]() {
+            DivSample* sample=e->getSample(curSample);
+            if (sample!=NULL) {
+              DivWavetable* wave=e->song.wave[curWave];
+              unsigned int waveLen=wave->len;
+              sample->rate=(int)round(261.625565301*waveLen); // c3
+              sample->centerRate=(int)round(261.625565301*waveLen); // c3
+              sample->loopStart=0;
+              sample->loopEnd=waveLen;
+              sample->loop=true;
+              sample->loopMode=DIV_SAMPLE_LOOP_FORWARD;
+              sample->depth=DIV_SAMPLE_DEPTH_8BIT;
+              if (sample->init(waveLen)) {
+                for (unsigned short i=0; i<waveLen; i++) {
+                  sample->data8[i]=((wave->data[i]*256)/(wave->max+1))-128;
+                }
+              }
+            }
+            e->renderSamples();
+          });
+          wantScrollListSample=true;
+          MARK_MODIFIED;
+        }
+        updateSampleTex=true;
+      }
       break;
     case GUI_ACTION_WAVE_LIST_MOVE_UP:
       if (e->moveWaveUp(curWave)) {

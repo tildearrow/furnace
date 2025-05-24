@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,8 +25,6 @@
 #include "workPool.h"
 #include "../ta-log.h"
 #include <math.h>
-
-constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
 
 void DivEngine::nextOrder() {
   curRow=0;
@@ -67,9 +65,13 @@ const char* cmdName[]={
   "HINT_ARPEGGIO",
   "HINT_VOLUME",
   "HINT_VOL_SLIDE",
-  "HINT_VOL_SLIDE_TARGET",
   "HINT_PORTA",
   "HINT_LEGATO",
+  "HINT_VOL_SLIDE_TARGET",
+  "HINT_TREMOLO",
+  "HINT_PANBRELLO",
+  "HINT_PAN_SLIDE",
+  "HINT_PANNING",
 
   "SAMPLE_MODE",
   "SAMPLE_FREQ",
@@ -307,7 +309,13 @@ const char* cmdName[]={
   "SID3_CUTOFF_SCALING",
   "SID3_RESONANCE_SCALING",
 
-  "FM_ALGORITHM",
+  "WS_GLOBAL_SPEAKER_VOLUME",
+
+  "FM_ALG",
+  "FM_FMS",
+  "FM_AMS",
+  "FM_FMS2",
+  "FM_AMS2"
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");
@@ -371,7 +379,9 @@ int DivEngine::dispatchCmd(DivCommand c) {
               if (chan[c.chan].curMidiNote<0) chan[c.chan].curMidiNote=0;
               if (chan[c.chan].curMidiNote>127) chan[c.chan].curMidiNote=127;
             }
-            output->midiOut->send(TAMidiMessage(0x90|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
+            if (chan[c.chan].curMidiNote>=0) {
+              output->midiOut->send(TAMidiMessage(0x90|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
+            }
             break;
           case DIV_CMD_NOTE_OFF:
           case DIV_CMD_NOTE_OFF_ENV:
@@ -382,7 +392,7 @@ int DivEngine::dispatchCmd(DivCommand c) {
             break;
           case DIV_CMD_INSTRUMENT:
             if (chan[c.chan].lastIns!=c.value && midiOutProgramChange) {
-              output->midiOut->send(TAMidiMessage(0xc0|(c.chan&15),c.value,0));
+              output->midiOut->send(TAMidiMessage(0xc0|(c.chan&15),c.value&0x7f,0));
             }
             break;
           case DIV_CMD_VOLUME:
@@ -403,6 +413,8 @@ int DivEngine::dispatchCmd(DivCommand c) {
           }
           case DIV_CMD_PANNING: {
             int pan=convertPanSplitToLinearLR(c.value,c.value2,127);
+            if (pan<0) pan=0;
+            if (pan>127) pan=127;
             output->midiOut->send(TAMidiMessage(0xb0|(c.chan&15),0x0a,pan));
             break;
           }
@@ -762,6 +774,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         } else {
           chan[i].panSpeed=0;
         }
+        dispatchCmd(DivCommand(DIV_CMD_HINT_PAN_SLIDE,i,chan[i].panSpeed&0xff));
         break;
       case 0x84: // panbrello
         if (chan[i].panDepth==0) {
@@ -772,6 +785,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if (chan[i].panDepth!=0) {
           chan[i].panSpeed=0;
         }
+        dispatchCmd(DivCommand(DIV_CMD_HINT_PANBRELLO,i,effectVal));
         break;
       case 0x88: // panning rear (split 4-bit)
         chan[i].panRL=(effectVal>>4)|(effectVal&0xf0);
@@ -862,7 +876,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if (effectVal) chan[i].lastVibrato=effectVal;
         chan[i].vibratoDepth=effectVal&15;
         chan[i].vibratoRate=effectVal>>4;
-        dispatchCmd(DivCommand(DIV_CMD_HINT_VIBRATO,i,chan[i].vibratoDepth,chan[i].vibratoRate));
+        dispatchCmd(DivCommand(DIV_CMD_HINT_VIBRATO,i,(chan[i].vibratoDepth&15)|(chan[i].vibratoRate<<4)));
         dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
         break;
       case 0x05: // vol slide + vibrato
@@ -873,7 +887,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].vibratoDepth=chan[i].lastVibrato&15;
           chan[i].vibratoRate=chan[i].lastVibrato>>4;
         }
-        dispatchCmd(DivCommand(DIV_CMD_HINT_VIBRATO,i,chan[i].vibratoDepth,chan[i].vibratoRate));
+        dispatchCmd(DivCommand(DIV_CMD_HINT_VIBRATO,i,(chan[i].vibratoDepth&15)|(chan[i].vibratoRate<<4)));
         dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
         // TODO: non-0x-or-x0 value should be treated as 00
         if (effectVal!=0) {
@@ -939,6 +953,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         }
         chan[i].tremoloDepth=effectVal&15;
         chan[i].tremoloRate=effectVal>>4;
+        dispatchCmd(DivCommand(DIV_CMD_HINT_TREMOLO,i,effectVal));
         if (chan[i].tremoloDepth!=0) {
           chan[i].volSpeed=0;
           chan[i].volSpeedTarget=-1;
@@ -995,7 +1010,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if((double)(((effect&0x3)<<8)|effectVal) * (double)curSubSong->macroSpeedMult > 1025.0) break; //macro rate can't exceed 1025 Hz
         divider=(double)(((effect&0x3)<<8)|effectVal) * (double)curSubSong->macroSpeedMult;
         if (divider<1) divider=1;
-        cycles=got.rate*pow(2,MASTER_CLOCK_PREC)/divider;
+        cycles=got.rate/divider;
         clockDrift=0;
         subticks=0;
         break;
@@ -1149,7 +1164,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0xf0: // set Hz by tempo
         divider=(double)effectVal*2.0/5.0;
         if (divider<1) divider=1;
-        cycles=got.rate*pow(2,MASTER_CLOCK_PREC)/divider;
+        cycles=got.rate/divider;
         clockDrift=0;
         subticks=0;
         break;
@@ -1228,6 +1243,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
   if (panChanged) {
     dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
+    dispatchCmd(DivCommand(DIV_CMD_HINT_PANNING,i,chan[i].panL,chan[i].panR));
   }
   if (surroundPanChanged) {
     dispatchCmd(DivCommand(DIV_CMD_SURROUND_PANNING,i,2,chan[i].panRL));
@@ -1439,6 +1455,7 @@ void DivEngine::nextRow() {
     memset(walked,0,8192);
   }
 
+  prevSpeed=nextSpeed;
   if (song.brokenSpeedSel) {
     unsigned char speed2=(speeds.len>=2)?speeds.val[1]:speeds.val[0];
     unsigned char speed1=speeds.val[0];
@@ -1562,8 +1579,8 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     tickMult=1;
   }
   
-  cycles=got.rate*pow(2,MASTER_CLOCK_PREC)/(divider*tickMult);
-  clockDrift+=fmod(got.rate*pow(2,MASTER_CLOCK_PREC),(double)(divider*tickMult));
+  cycles=got.rate/(divider*tickMult);
+  clockDrift+=fmod(got.rate,(double)(divider*tickMult));
   if (clockDrift>=(divider*tickMult)) {
     clockDrift-=(divider*tickMult);
     cycles++;
@@ -2002,9 +2019,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     for (int i=0; i<chans; i++) {
       DivDispatchOscBuffer* buf=disCont[dispatchOfChan[i]].dispatch->getOscBuffer(dispatchChanOfChan[i]);
       if (buf!=NULL) {
-        memset(buf->data,0,65536*sizeof(short));
-        buf->needle=0;
-        buf->readNeedle=0;
+        buf->reset();
       }
     }
     return ret;
@@ -2018,15 +2033,17 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     if (!freelance) {
       if (stepPlay!=1) {
         if (!noAccum) {
+          double dt=divider*tickMult;
+          if (skipping) {
+            dt*=(double)virtualTempoN/(double)MAX(1,virtualTempoD);
+          }
           totalTicksR++;
-          totalTicks+=1000000/(divider*tickMult);
-        }
-        if (totalTicks>=1000000) {
-          totalTicks-=1000000;
-          if (totalSeconds<0x7fffffff) totalSeconds++;
-          cmdsPerSecond=totalCmds-lastCmds;
-          lastCmds=totalCmds;
-        }
+          totalTicks+=1000000/dt;
+          totalTicksOff+=fmod(1000000.0,dt);
+          while (totalTicksOff>=dt) {
+            totalTicksOff-=dt;
+            totalTicks++;
+          }
       }
 
       if (consoleMode && !disableStatusOut && subticks<=1 && !skipping) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000,curOrder,curSubSong->ordersLen,curRow,curSubSong->patLen,cmdsPerSecond);
@@ -2039,7 +2056,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
 }
 
 int DivEngine::getBufferPos() {
-  return bufferPos>>MASTER_CLOCK_PREC;
+  return bufferPos;
 }
 
 void DivEngine::runMidiClock(int totalCycles) {
@@ -2065,10 +2082,11 @@ void DivEngine::runMidiClock(int totalCycles) {
     if (vD<1) vD=1;
     double bpm=((24.0*divider)/(timeBase*hl*speedSum))*(double)virtualTempoN/vD;
     if (bpm<1.0) bpm=1.0;
-    int increment=got.rate*pow(2,MASTER_CLOCK_PREC)/(bpm);
+    int increment=got.rate/(bpm);
+    if (increment<1) increment=1;
 
     midiClockCycles+=increment;
-    midiClockDrift+=fmod(got.rate*pow(2,MASTER_CLOCK_PREC),(double)(bpm));
+    midiClockDrift+=fmod(got.rate,(double)(bpm));
     if (midiClockDrift>=(bpm)) {
       midiClockDrift-=(bpm);
       midiClockCycles++;
@@ -2078,6 +2096,7 @@ void DivEngine::runMidiClock(int totalCycles) {
 
 void DivEngine::runMidiTime(int totalCycles) {
   if (freelance) return;
+  if (got.rate<1) return;
   midiTimeCycles-=totalCycles;
   while (midiTimeCycles<=0) {
     if (curMidiTimePiece==0) {
@@ -2176,8 +2195,8 @@ void DivEngine::runMidiTime(int totalCycles) {
     }
     curMidiTimePiece=(curMidiTimePiece+1)&7;
 
-    midiTimeCycles+=got.rate*pow(2,MASTER_CLOCK_PREC)/(frameRate);
-    midiTimeDrift+=fmod(got.rate*pow(2,MASTER_CLOCK_PREC),(double)(frameRate));
+    midiTimeCycles+=got.rate/(frameRate);
+    midiTimeDrift+=fmod(got.rate,(double)(frameRate));
     if (midiTimeDrift>=(frameRate)) {
       midiTimeDrift-=(frameRate);
       midiTimeCycles++;
@@ -2440,21 +2459,6 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   if (mustPlay) {
     // logic starts here
     for (int i=0; i<song.systemLen; i++) {
-      // TODO: we may have a problem here
-      disCont[i].lastAvail=blip_samples_avail(disCont[i].bb[0]);
-      if (disCont[i].lastAvail>0) {
-        disCont[i].flush(disCont[i].lastAvail);
-      }
-      if (size<disCont[i].lastAvail) {
-        disCont[i].runtotal=0;
-      } else {
-        disCont[i].runtotal=blip_clocks_needed(disCont[i].bb[0],size-disCont[i].lastAvail);
-      }
-      if (disCont[i].runtotal>disCont[i].bbInLen) {
-        logD("growing dispatch %d bbIn to %d",i,disCont[i].runtotal+256);
-        disCont[i].grow(disCont[i].runtotal+256);
-      }
-      disCont[i].runLeft=disCont[i].runtotal;
       disCont[i].runPos=0;
     }
 
@@ -2467,10 +2471,10 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     memset(metroTick,0,size);
 
     int attempts=0;
-    int runLeftG=size<<MASTER_CLOCK_PREC;
+    int runLeftG=size;
     while (++attempts<(int)size) {
       // -1. set bufferPos
-      bufferPos=(size<<MASTER_CLOCK_PREC)-runLeftG;
+      bufferPos=size-runLeftG;
 
       // 0. check if we've halted
       if (halted) break;
@@ -2483,7 +2487,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         if (nextTick()) {
           /*totalTicks=0;
           totalSeconds=0;*/
-          lastLoopPos=size-(runLeftG>>MASTER_CLOCK_PREC);
+          lastLoopPos=size-runLeftG;
           logD("last loop pos: %d for a size of %d and runLeftG of %d",lastLoopPos,size,runLeftG);
           totalLoops++;
           if (remainingLoops>0) {
@@ -2499,7 +2503,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           }
         }
         if (pendingMetroTick) {
-          unsigned int realPos=size-(runLeftG>>MASTER_CLOCK_PREC);
+          unsigned int realPos=size-runLeftG;
           if (realPos>=size) realPos=size-1;
           metroTick[realPos]=pendingMetroTick;
           pendingMetroTick=0;
@@ -2514,30 +2518,70 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
         // 5. tick the clock and fill buffers as needed
         if (cycles<runLeftG) {
+          // run until the end of this tick
           for (int i=0; i<song.systemLen; i++) {
             disCont[i].cycles=cycles;
             disCont[i].size=size;
             renderPool->push([](void* d) {
               DivDispatchContainer* dc=(DivDispatchContainer*)d;
-              int total=(dc->cycles*dc->runtotal)/(dc->size<<MASTER_CLOCK_PREC);
-              dc->acquire(dc->runPos,total);
-              dc->runLeft-=total;
-              dc->runPos+=total;
+
+              int lastAvail=blip_samples_avail(dc->bb[0]);
+              if (lastAvail>0) {
+                if (lastAvail>=dc->cycles) {
+                  dc->flush(dc->runPos,dc->cycles);
+                  dc->runPos+=dc->cycles;
+                  return;
+                } else {
+                  dc->flush(dc->runPos,lastAvail);
+                  dc->runPos+=lastAvail;
+                  dc->cycles-=lastAvail;
+                }
+              }
+              
+              int total=blip_clocks_needed(dc->bb[0],dc->cycles);
+              if (total>(int)dc->bbInLen) {
+                logD("growing dispatch %p bbIn to %d",(void*)dc,total+256);
+                dc->grow(total+256);
+              }
+              dc->acquire(total);
+              dc->fillBuf(total,dc->runPos,dc->cycles);
+              dc->runPos+=dc->cycles;
             },&disCont[i]);
           }
           renderPool->wait();
           runLeftG-=cycles;
           cycles=0;
         } else {
+          // run until the end of this audio buffer
           cycles-=runLeftG;
-          runLeftG=0;
           for (int i=0; i<song.systemLen; i++) {
+            disCont[i].cycles=runLeftG;
             renderPool->push([](void* d) {
               DivDispatchContainer* dc=(DivDispatchContainer*)d;
-              dc->acquire(dc->runPos,dc->runLeft);
-              dc->runLeft=0;
+
+              int lastAvail=blip_samples_avail(dc->bb[0]);
+              if (lastAvail>0) {
+                if (lastAvail>=dc->cycles) {
+                  dc->flush(dc->runPos,dc->cycles);
+                  dc->runPos+=dc->cycles;
+                  return;
+                } else {
+                  dc->flush(dc->runPos,lastAvail);
+                  dc->runPos+=lastAvail;
+                  dc->cycles-=lastAvail;
+                }
+              }
+
+              int total=blip_clocks_needed(dc->bb[0],dc->cycles);
+              if (total>(int)dc->bbInLen) {
+                logD("growing dispatch %p bbIn to %d",(void*)dc,total+256);
+                dc->grow(total+256);
+              }
+              dc->acquire(total);
+              dc->fillBuf(total,dc->runPos,dc->cycles);
             },&disCont[i]);
           }
+          runLeftG=0;
           renderPool->wait();
         }
       }
@@ -2550,7 +2594,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       playing=false;
       extValuePresent=false;
     }
-    totalProcessed=size-(runLeftG>>MASTER_CLOCK_PREC);
+    totalProcessed=size-runLeftG;
 
     for (int i=0; i<song.systemLen; i++) {
       if (size<disCont[i].lastAvail) {
@@ -2558,10 +2602,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         continue;
       }
       disCont[i].size=size;
+      /*
       renderPool->push([](void* d) {
         DivDispatchContainer* dc=(DivDispatchContainer*)d;
         dc->fillBuf(dc->runtotal,dc->lastAvail,dc->size-dc->lastAvail);
-      },&disCont[i]);
+      },&disCont[i]);*/
     }
     renderPool->wait();
   }
@@ -2575,7 +2620,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   memset(metroBuf,0,metroBufLen*sizeof(float));
 
-  if (mustPlay && metronome) {
+  if (mustPlay && metronome && !freelance) {
     for (size_t i=0; i<size; i++) {
       if (metroTick[i]) {
         if (metroTick[i]==2) {

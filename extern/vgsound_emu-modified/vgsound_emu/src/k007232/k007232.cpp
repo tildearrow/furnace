@@ -8,15 +8,15 @@
 
 #include "k007232.hpp"
 
-void k007232_core::tick()
+void k007232_core::tick(int cycles)
 {
 	for (int i = 0; i < 2; i++)
 	{
-		m_voice[i].tick(i);
+		m_voice[i].tick(i,cycles);
 	}
 }
 
-void k007232_core::voice_t::tick(u8 ne)
+void k007232_core::voice_t::tick(u8 ne, int cycles)
 {
 	if (m_busy)
 	{
@@ -26,12 +26,12 @@ void k007232_core::voice_t::tick(u8 ne)
 		// update counter
 		if (is4bit)
 		{
-			m_counter = (m_counter & ~0x0ff) | (bitfield(bitfield(m_counter, 0, 8) + 1, 0, 8) << 0);
-			m_counter = (m_counter & ~0xf00) | (bitfield(bitfield(m_counter, 8, 4) + 1, 0, 4) << 8);
+			m_counter = (m_counter & ~0x0ff) | (bitfield(bitfield(m_counter, 0, 8) + cycles, 0, 8) << 0);
+			m_counter = (m_counter & ~0xf00) | (bitfield(bitfield(m_counter, 8, 4) + cycles, 0, 4) << 8);
 		}
 		else
 		{
-			m_counter++;
+			m_counter+=cycles;
 		}
 
 		// handle counter carry

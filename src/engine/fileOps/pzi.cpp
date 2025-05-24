@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -108,9 +108,8 @@ void DivEngine::loadPZI(SafeReader& reader, std::vector<DivSample*>& ret, String
 
     for(int i = 0; i < PZI_BANK_SIZE; i++)
     {
-        if (headers[i].start_pointer < MAX_SANITY_CAP && headers[i].sample_length < MAX_SANITY_CAP &&
-            headers[i].loop_start < MAX_SANITY_CAP && headers[i].loop_end < MAX_SANITY_CAP &&
-            headers[i].start_pointer > 0 && headers[i].sample_length > 0)
+      if (headers[i].start_pointer < MAX_SANITY_CAP && headers[i].sample_length < MAX_SANITY_CAP &&
+          headers[i].sample_length > 0)
         {
             DivSample* s = new DivSample;
 

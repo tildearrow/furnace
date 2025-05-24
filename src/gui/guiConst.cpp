@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -148,7 +148,7 @@ const char* insTypes[DIV_INS_MAX+1][3]={
   {"X1-010",ICON_FA_BAR_CHART,ICON_FUR_INS_X1_010},
   {_("VRC6 (saw)"),ICON_FA_BAR_CHART,ICON_FUR_INS_VRC6_SAW},
   {"ES5506",ICON_FA_VOLUME_UP,ICON_FUR_INS_ES5506},
-  {"MultiPCM",ICON_FA_VOLUME_UP,ICON_FUR_INS_MULTIPCM},
+  {"MultiPCM/OPL4 PCM",ICON_FA_VOLUME_UP,ICON_FUR_INS_MULTIPCM},
   {"SNES",ICON_FA_VOLUME_UP,ICON_FUR_INS_SNES},
   {"Sound Unit",ICON_FA_MICROCHIP,ICON_FUR_INS_SU},
   {"Namco WSG",ICON_FA_PIE_CHART,ICON_FUR_INS_NAMCO},
@@ -236,6 +236,44 @@ const char* fxColorsNames[]={
   _N("System (Primary)"),
   _N("System (Secondary)"),
   _N("Miscellaneous")
+};
+
+const char* chanNames[CHANNEL_TYPE_MAX+1]={
+  _N("FM"),
+  _N("Pulse"),
+  _N("Noise"),
+  _N("Wavetable"),
+  _N("Sample"),
+  // the "freaks":
+  _N("Square"),
+  _N("Triangle"), // NES
+  _N("Saw"), // VRC6
+  _N("Ext. Operator"), 
+  _N("Drums"),
+  _N("Slope"), // PowerNoise
+  _N("Wave"), // not wavetable (VERA, 5E01)
+  _N("PSG"),
+
+  _N("Channel"), // if neither
+  _N("Channels") // in case this makes l10n easier
+};
+
+unsigned char chanNamesHierarchy[CHANNEL_TYPE_MAX+1]={
+  CHANNEL_TYPE_FM,
+  CHANNEL_TYPE_OPERATOR,
+  CHANNEL_TYPE_SQUARE,
+  CHANNEL_TYPE_PULSE,
+  CHANNEL_TYPE_PSG,
+  CHANNEL_TYPE_WAVETABLE,
+  CHANNEL_TYPE_TRIANGLE,
+  CHANNEL_TYPE_SAW,
+  CHANNEL_TYPE_NOISE,
+  CHANNEL_TYPE_SLOPE,
+  CHANNEL_TYPE_WAVE,
+  CHANNEL_TYPE_DRUMS,
+  CHANNEL_TYPE_SAMPLE,
+  CHANNEL_TYPE_OTHER,
+  CHANNEL_TYPE_MAX
 };
 
 const FurnaceGUIColors fxColors[256]={
@@ -440,7 +478,7 @@ const FurnaceGUIColors fxColors[256]={
   GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,
   GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,
   GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,
-  GUI_COLOR_PATTERN_EFFECT_INVALID,
+  GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,
   GUI_COLOR_PATTERN_EFFECT_INVALID,
   GUI_COLOR_PATTERN_EFFECT_INVALID,
   GUI_COLOR_PATTERN_EFFECT_INVALID,
@@ -720,6 +758,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WAVE_LIST_SAVE", _N("Save wavetable"), 0),
   D("WAVE_LIST_SAVE_DMW", _N("Save wavetable (.dmw)"), 0),
   D("WAVE_LIST_SAVE_RAW", _N("Save wavetable (raw)"), 0),
+  D("WAVE_LIST_CREATE_SAMPLE", _N("Create sample from wavetable"),0),
   D("WAVE_LIST_MOVE_UP", _N("Move wavetable up in list"), FURKMOD_SHIFT|SDLK_UP),
   D("WAVE_LIST_MOVE_DOWN", _N("Move wavetable down in list"), FURKMOD_SHIFT|SDLK_DOWN),
   D("WAVE_LIST_DELETE", _N("Delete wavetable"), 0),
@@ -1189,6 +1228,7 @@ const int availableSystems[]={
   DIV_SYSTEM_NES,
   DIV_SYSTEM_C64_8580,
   DIV_SYSTEM_C64_6581,
+  DIV_SYSTEM_C64_PCM,
   DIV_SYSTEM_YM2151,
   DIV_SYSTEM_SEGAPCM,
   DIV_SYSTEM_SEGAPCM_COMPAT,
@@ -1196,8 +1236,10 @@ const int availableSystems[]={
   DIV_SYSTEM_YM2610_EXT,
   DIV_SYSTEM_YM2610_FULL,
   DIV_SYSTEM_YM2610_FULL_EXT,
+  DIV_SYSTEM_YM2610_CSM,
   DIV_SYSTEM_YM2610B,
   DIV_SYSTEM_YM2610B_EXT,
+  DIV_SYSTEM_YM2610B_CSM,
   DIV_SYSTEM_T6W28,
   DIV_SYSTEM_AY8910,
   DIV_SYSTEM_AMIGA,
@@ -1210,8 +1252,10 @@ const int availableSystems[]={
   DIV_SYSTEM_SOUND_UNIT,
   DIV_SYSTEM_YM2203,
   DIV_SYSTEM_YM2203_EXT,
+  DIV_SYSTEM_YM2203_CSM,
   DIV_SYSTEM_YM2608,
   DIV_SYSTEM_YM2608_EXT,
+  DIV_SYSTEM_YM2608_CSM,
   DIV_SYSTEM_OPLL,
   DIV_SYSTEM_OPLL_DRUMS,
   DIV_SYSTEM_VRC7,
@@ -1292,13 +1336,17 @@ const int chipsFM[]={
   DIV_SYSTEM_YM2610_EXT,
   DIV_SYSTEM_YM2610_FULL,
   DIV_SYSTEM_YM2610_FULL_EXT,
+  DIV_SYSTEM_YM2610_CSM,
   DIV_SYSTEM_YM2610B,
   DIV_SYSTEM_YM2610B_EXT,
+  DIV_SYSTEM_YM2610B_CSM,
   DIV_SYSTEM_YMU759,
   DIV_SYSTEM_YM2203,
   DIV_SYSTEM_YM2203_EXT,
+  DIV_SYSTEM_YM2203_CSM,
   DIV_SYSTEM_YM2608,
   DIV_SYSTEM_YM2608_EXT,
+  DIV_SYSTEM_YM2608_CSM,
   DIV_SYSTEM_OPLL,
   DIV_SYSTEM_OPLL_DRUMS,
   DIV_SYSTEM_VRC7,
@@ -1355,6 +1403,7 @@ const int chipsSpecial[]={
   DIV_SYSTEM_NES,
   DIV_SYSTEM_C64_8580,
   DIV_SYSTEM_C64_6581,
+  DIV_SYSTEM_C64_PCM,
   DIV_SYSTEM_SFX_BEEPER,
   DIV_SYSTEM_SFX_BEEPER_QUADTONE,
   DIV_SYSTEM_DUMMY,

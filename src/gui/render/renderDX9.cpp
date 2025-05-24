@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -276,10 +276,26 @@ void FurnaceGUIRenderDX9::present() {
     inScene=false;
   }
 
-  if (device->Present(NULL,NULL,NULL,NULL)==D3DERR_DEVICEREMOVED) {
+  HRESULT result=device->Present(NULL,NULL,NULL,NULL);
+
+  if (result==D3DERR_DEVICEREMOVED) {
     logI("device is gone");
     dead=true;
     return;
+  } else if (result==D3DERR_DEVICEHUNG) {
+    logI("device has been executed");
+    dead=true;
+    return;
+  } else if (result==D3DERR_DEVICELOST) {
+    logI("device lost");
+    dead=true;
+    return;
+  } else if (result==D3DERR_DEVICENOTRESET) {
+    logI("device not reset");
+    dead=true;
+    return;
+  } else if (result!=D3D_OK) {
+    logE("DX9: Present ERROR! %x",result);
   }
 
   if (mustResize) {

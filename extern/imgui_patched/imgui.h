@@ -510,6 +510,9 @@ namespace ImGui
     IMGUI_API void          BulletTextV(const char* fmt, va_list args)                      IM_FMTLIST(1);
     IMGUI_API void          SeparatorText(const char* label);                               // currently: formatted text with an horizontal line
 
+    // Widgets: ScrollText (tildearrow)
+    IMGUI_API void          ScrollText(ImGuiID id, const char* text, const ImVec2& pos, ImVec2 size=ImVec2(0,0), bool alwaysScroll=false);
+
     // Widgets: Main
     // - Most widgets return true when the value has been changed or when pressed/selected
     // - You may also use one of the many IsItemXXX functions (e.g. IsItemActive, IsItemHovered, etc.) to query widget state.
@@ -2092,6 +2095,11 @@ struct ImGuiIO
 
     // Inertial scrolling options (when ImGuiConfigFlags_InertialScrollEnable is set)
     float       ConfigInertialScrollToleranceSqr;// = 36.0f         // After a point moves past this distance, inertial scroll begins
+
+    // ScrollText options
+    float       ScrollTextSpeed;                // = 100.0f;
+    float       ScrollTextSpacing;              // = 8.0f;
+    bool        AlwaysScrollText;               // = false          // Always scroll scroll texts
 
     // Miscellaneous options
     bool        MouseDrawCursor;                // = false          // Request ImGui to draw a mouse cursor for you (if you are on a platform without a mouse cursor). Cannot be easily renamed to 'io.ConfigXXX' because this is frequently used by backend implementations.

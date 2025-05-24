@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -123,7 +123,9 @@ enum DivMacroType: unsigned char {
   DIV_MACRO_EX5,
   DIV_MACRO_EX6,
   DIV_MACRO_EX7,
-  DIV_MACRO_EX8
+  DIV_MACRO_EX8,
+  DIV_MACRO_EX9,
+  DIV_MACRO_EX10
 };
 
 enum DivMacroTypeOp: unsigned char {
@@ -165,7 +167,7 @@ enum DivMacroTypeOp: unsigned char {
 //   - WS, DVB = MULT (FINE), DAM = REV, KSL = EGShift, EGT = Fixed
 
 struct DivInstrumentFM {
-  unsigned char alg, fb, fms, ams, fms2, ams2, ops, opllPreset;
+  unsigned char alg, fb, fms, ams, fms2, ams2, ops, opllPreset, block;
   bool fixedDrums;
   unsigned short kickFreq, snareHatFreq, tomTopFreq;
 
@@ -216,6 +218,7 @@ struct DivInstrumentFM {
     ams2(0),
     ops(2),
     opllPreset(0),
+    block(0),
     fixedDrums(false),
     kickFreq(0x520),
     snareHatFreq(0x550),
@@ -265,11 +268,6 @@ struct DivInstrumentMacro {
   // 0-31: normal
   // 32+: operator (top 3 bits select operator, starting from 1)
   unsigned char macroType;
-  
-  // the following variables are used by the GUI and not saved in the file
-  int vScroll, vZoom;
-  int typeMemory[16];
-  unsigned char lenMemory;
 
   explicit DivInstrumentMacro(unsigned char initType, bool initOpen=false):
     mode(0),
@@ -279,12 +277,8 @@ struct DivInstrumentMacro {
     speed(1),
     loop(255),
     rel(255),
-    macroType(initType),
-    vScroll(0),
-    vZoom(-1),
-    lenMemory(0) {
+    macroType(initType) {
     memset(val,0,256*sizeof(int));
-    memset(typeMemory,0,16*sizeof(int));
   }
 };
 
@@ -309,6 +303,8 @@ struct DivInstrumentSTD {
   DivInstrumentMacro ex6Macro;
   DivInstrumentMacro ex7Macro;
   DivInstrumentMacro ex8Macro;
+  DivInstrumentMacro ex9Macro;
+  DivInstrumentMacro ex10Macro;
 
   struct OpMacro {
     // ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
@@ -362,7 +358,9 @@ struct DivInstrumentSTD {
     ex5Macro(DIV_MACRO_EX5),
     ex6Macro(DIV_MACRO_EX6),
     ex7Macro(DIV_MACRO_EX7),
-    ex8Macro(DIV_MACRO_EX8) {
+    ex8Macro(DIV_MACRO_EX8),
+    ex9Macro(DIV_MACRO_EX9),
+    ex10Macro(DIV_MACRO_EX10) {
     for (int i=0; i<4; i++) {
       opMacros[i].amMacro.macroType=DIV_MACRO_OP_AM+(i<<5);
       opMacros[i].arMacro.macroType=DIV_MACRO_OP_AR+(i<<5);
@@ -1001,6 +999,20 @@ struct DivInstrumentPOD {
   }
 };
 
+struct DivInstrumentTemp {
+  // the following variables are used by the GUI and not saved in the file
+  int vScroll[160];
+  int vZoom[160];
+  int typeMemory[160][16];
+  unsigned char lenMemory[160];
+  DivInstrumentTemp() {
+    memset(vScroll,0,160*sizeof(int));
+    memset(vZoom,-1,160*sizeof(int));
+    memset(typeMemory,0,160*16*sizeof(int));
+    memset(lenMemory,0,160*sizeof(int));
+  }
+};
+
 struct MemPatch {
   MemPatch() :
     data(NULL)
@@ -1042,6 +1054,8 @@ struct DivInstrumentUndoStep {
 
 struct DivInstrument : DivInstrumentPOD {
   String name;
+
+  DivInstrumentTemp temp;
 
   DivInstrument() :
     name("") {

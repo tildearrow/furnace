@@ -1,7 +1,7 @@
 // not auto-generated. update every time you change icons.ttf!
 
 #define ICON_MIN_FUR 0xe0f0
-#define ICON_MAX_FUR 0xe164
+#define ICON_MAX_FUR 0xe165
 
 // test
 #define ICON_FUR_TEST0 u8"\ue0f0"
@@ -118,3 +118,4 @@
 #define ICON_FUR_VOL_DIRECT u8"\ue14d"
 #define ICON_FUR_ADSR u8"\ue14e"
 #define ICON_FUR_CROSSFADE u8"\ue159"
+#define ICON_FUR_METRONOME u8"\ue165"

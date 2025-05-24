@@ -6,9 +6,9 @@ its design employs linear-feedback shift registers (LFSR) for sound generation. 
 
 it has three noise channels and one "slope" channel capable of generating a variety of saw waves.
 
-it outputs stereo sound with 4-bit volume control per channel and 3-bit master volume control.
+it outputs stereo sound with 4-bit volume control per channel and 2-bit master volume control.
 
-refer to its instrument type's documentation for details on sound synthesis.
+refer to [its instrument type's documentation](../4-instrument/powernoise.md) for details on sound synthesis.
 
 ## effect commands
 

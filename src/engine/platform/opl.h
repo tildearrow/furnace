@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -98,11 +98,11 @@ class DivPlatformOPL: public DivDispatch {
     DivDispatchOscBuffer* oscBuf[44];
     bool isMuted[44];
     struct QueuedWrite {
-      unsigned short addr;
+      unsigned int addr;
       unsigned char val;
       bool addrOrVal;
       QueuedWrite(): addr(0), val(0), addrOrVal(false) {}
-      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
+      QueuedWrite(unsigned int a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
     FixedQueue<QueuedWrite,4096> writes;
 
@@ -169,8 +169,8 @@ class DivPlatformOPL: public DivDispatch {
 
     DivMemoryComposition memCompo;
 
-    int octave(int freq);
-    int toFreq(int freq);
+    int octave(int freq, int fixedBlock);
+    int toFreq(int freq, int fixedBlock);
     double NOTE_ADPCMB(int note);
     void commitState(int ch, DivInstrument* ins);
 

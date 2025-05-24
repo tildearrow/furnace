@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2098,6 +2098,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       for (int i=0; i<ds.systemLen; i++) {
         if (ds.system[i]==DIV_SYSTEM_VERA) {
           ds.systemFlags[i].set("chipType",1);
+        }
+      }
+    } else if (ds.version<229) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_VERA) {
+          ds.systemFlags[i].set("chipType",2);
         }
       }
     }

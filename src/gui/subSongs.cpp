@@ -132,8 +132,8 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
       MARK_MODIFIED;
     }
 
-    if (!asChild && ImGui::GetContentRegionAvail().y>(10.0f*dpiScale)) {
-      if (ImGui::InputTextMultiline("##SubSongNotes",&e->curSubSong->notes,ImGui::GetContentRegionAvail(),ImGuiInputTextFlags_UndoRedo)) {
+    if (ImGui::GetContentRegionAvail().y>(10.0f*dpiScale)) {
+      if (ImGui::InputTextMultiline("##SubSongNotes",&e->curSubSong->notes,ImGui::GetContentRegionAvail(),ImGuiInputTextFlags_UndoRedo|(settings.songNotesWrap?ImGuiInputTextFlags_WordWrapping:0))) {
         MARK_MODIFIED;
       }
     }

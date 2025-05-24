@@ -1,0 +1,14 @@
+# The owners of this repository. In order of suggestions as reviewers.
+*                           @evpobr @SoapGentoo @arthurt @erikd
+
+# Autotools
+configure.ac Makefile.am    @SoapGentoo @erikd
+
+# CMake
+CMakeLists.txt /cmake/      @evpobr
+
+# Ogg Opus format
+/src/ogg_opus.c             @arthurt
+
+# Documentation
+/doc/ /man/                 @evpobr

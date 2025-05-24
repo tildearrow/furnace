@@ -457,7 +457,7 @@ bool FurnaceGUIFileDialog::render(const ImVec2& min, const ImVec2& max) {
     return false;
 #endif
   } else {
-    return ImGuiFileDialog::Instance()->Display("FileDialog",ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove,min,max);
+    return ImGuiFileDialog::Instance()->Display("FileDialog",ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoScrollWithMouse,min,max);
   }
 }
 
