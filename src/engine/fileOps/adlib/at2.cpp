@@ -2542,20 +2542,23 @@ bool DivEngine::loadAT2M(unsigned char* file, size_t len)
                 DivInstrument* ins1 = ds.ins[inst_1st];
                 DivInstrument* ins2 = ds.ins[inst_2nd];
 
-                DivInstrument temp1;
-                DivInstrument temp2;
+                DivInstrument* temp1 = new DivInstrument(); //allocating on stack leads to stack overflow?
+                DivInstrument* temp2 = new DivInstrument();
 
-                memcpy((void*)&temp1.fm, (void*)&ins1->fm, sizeof(DivInstrumentFM));
-                memcpy((void*)&temp2.fm, (void*)&ins2->fm, sizeof(DivInstrumentFM));
+                memcpy((void*)&temp1->fm, (void*)&ins1->fm, sizeof(DivInstrumentFM));
+                memcpy((void*)&temp2->fm, (void*)&ins2->fm, sizeof(DivInstrumentFM));
 
                 ins1->fm.alg = ins2->fm.alg | (ins1->fm.alg << 1);
 
-                memcpy((void*)&ins1->fm.op[0], (void*)&temp2.fm.op[0], sizeof(DivInstrumentFM::Operator)); //what the fuck is this ops order jesus
-                memcpy((void*)&ins1->fm.op[1], (void*)&temp1.fm.op[0], sizeof(DivInstrumentFM::Operator));
-                memcpy((void*)&ins1->fm.op[2], (void*)&temp2.fm.op[1], sizeof(DivInstrumentFM::Operator));
-                memcpy((void*)&ins1->fm.op[3], (void*)&temp1.fm.op[1], sizeof(DivInstrumentFM::Operator));
+                memcpy((void*)&ins1->fm.op[0], (void*)&temp2->fm.op[0], sizeof(DivInstrumentFM::Operator)); //what the fuck is this ops order jesus
+                memcpy((void*)&ins1->fm.op[1], (void*)&temp1->fm.op[0], sizeof(DivInstrumentFM::Operator));
+                memcpy((void*)&ins1->fm.op[2], (void*)&temp2->fm.op[1], sizeof(DivInstrumentFM::Operator));
+                memcpy((void*)&ins1->fm.op[3], (void*)&temp1->fm.op[1], sizeof(DivInstrumentFM::Operator));
 
                 ins1->fm.ops = 4;
+
+                delete temp1;
+                delete temp2;
             }
         }
 
@@ -3396,6 +3399,7 @@ bool DivEngine::loadAT2M(unsigned char* file, size_t len)
         free(songInfo);
         return false;
     }
+    
     delete[] file;
     free(songInfo);
     return true;
