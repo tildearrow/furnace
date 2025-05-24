@@ -1277,7 +1277,7 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version)
             {
                 case ef_ex3_SetConnection:
                 {
-                    data[4 + emptyEffSlot * 2] = 0x5C;
+                    data[4 + emptyEffSlot * 2] = 0x61; //fm algorithm
                     data[5 + emptyEffSlot * 2] = paramLowerNibble;
                     break;
                 }
