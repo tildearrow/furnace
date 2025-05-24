@@ -325,7 +325,7 @@ if __name__ == "__main__":
             <h1>Furnace<br/>User Manual</h1>
           </div>
           <div>
-            <i>for version 0.6.8.1</i>
+            <i>for version 0.6.8.2</i>
           </div>
         </section>
         <section id="authors">
@@ -348,7 +348,7 @@ if __name__ == "__main__":
             <p>this documentation is under the <a href="https://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported</a> license.</p>
             <p>you may reproduce, modify and/or distribute this documentation provided this copyright notice (including license and attribution) is present and any necessary disclaimers whether modifications have been made.</p>
             <p>this documentation is provided as-is and without warranty of any kind.</p>
-            <p>this manual is written for version 0.6.8.1 of Furnace.<br/>it may not necessarily apply to previous or future versions.</p>
+            <p>this manual is written for version 0.6.8.2 of Furnace.<br/>it may not necessarily apply to previous or future versions.</p>
         </section>
         <section id="index">
           %s

@@ -1,6 +1,6 @@
 1 VERSIONINFO
-    FILEVERSION 0,6,8,1
-    PRODUCTVERSION 0,6,8,1
+    FILEVERSION 0,6,8,2
+    PRODUCTVERSION 0,6,8,2
 {
     BLOCK "VarFileInfo"
     {
@@ -33,10 +33,10 @@
                 "Furnace"
 
             VALUE "ProductVersion",
-                "0.6.8.1"
+                "0.6.8.2"
 
             VALUE "FileVersion",
-                "0.6.8.1"
+                "0.6.8.2"
 
             VALUE "CompanyName",
                 "tildearrow"
