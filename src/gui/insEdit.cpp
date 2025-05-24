@@ -4073,7 +4073,8 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             ImGui::BeginDisabled(ins->fm.opllPreset==16);
             if (ImGui::Checkbox("4-op",&fourOp)) { PARAMETER
               ins->fm.ops=fourOp?4:2;
-              ins->std.algMacro.vZoom=-1; //reset macro zoom
+              //ins->std.algMacro.vZoom=-1; //reset macro zoom
+              ins->temp.vZoom[DIV_MACRO_ALG] = -1;
             }
             ImGui::EndDisabled();
             ImGui::SameLine();

@@ -2044,6 +2044,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
             totalTicksOff-=dt;
             totalTicks++;
           }
+        }
       }
 
       if (consoleMode && !disableStatusOut && subticks<=1 && !skipping) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000,curOrder,curSubSong->ordersLen,curRow,curSubSong->patLen,cmdsPerSecond);
