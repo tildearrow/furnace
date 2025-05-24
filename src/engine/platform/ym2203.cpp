@@ -980,15 +980,6 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
       }
       break;
     }
-    case DIV_CMD_FM_ALGORITHM: 
-    {
-      if (c.value<8)
-      {
-        chan[c.chan].state.alg = c.value & 7;
-        rWrite(chanOffs[c.chan]+ADDR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
-      }
-      break;
-    }
     case DIV_CMD_FM_RS: {
       if (c.chan>=psgChanOffs) break;
       if (c.value<0)  {

@@ -676,15 +676,6 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       }
       break;
     }
-    case DIV_CMD_FM_ALGORITHM: 
-    {
-      if (c.value<8)
-      {
-        chan[c.chan].state.alg = c.value & 7;
-        rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3)|((chan[c.chan].chVolL&1)<<6)|((chan[c.chan].chVolR&1)<<7));
-      }
-      break;
-    }
     case DIV_CMD_FM_RS: {
       if (c.value<0)  {
         for (int i=0; i<4; i++) {

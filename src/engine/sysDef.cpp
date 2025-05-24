@@ -602,7 +602,7 @@ void DivEngine::registerSystems() {
     {0x59, {DIV_CMD_FM_DR, _("59xx: Set decay of operator 3 (0 to F)"), constVal<2>, effectValAnd<15>}},
     {0x5a, {DIV_CMD_FM_DR, _("5Axx: Set decay of operator 4 (0 to F)"), constVal<3>, effectValAnd<15>}},
     {0x5b, {DIV_CMD_FM_KSR, _("5Bxy: Set whether key will scale envelope (x: operator from 1 to 4 (0 for all ops); y: enabled)"), effectOpVal<4>, effectValAnd<1>}},
-    {0x5c, {DIV_CMD_FM_ALGORITHM, _("5Cxx: Set FM algortihm (0 to 1 for 2-op channel, 0 to 3 for 4-op channel (OPL3 only))")}},
+    {0x5c, {DIV_CMD_FM_ALG, _("5Cxx: Set FM algortihm (0 to 1 for 2-op channel, 0 to 3 for 4-op channel (OPL3 only))")}},
   };
 
   EffectHandlerMap fmOPL4PostEffectHandlerMap(fmOPLPostEffectHandlerMap);
