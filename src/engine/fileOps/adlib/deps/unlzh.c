@@ -88,7 +88,7 @@ static unsigned short bitbuf;
 static unsigned int	subbitbuf;
 static int			bitcount;
 
-unsigned short *input_buffer, *output_buffer;
+unsigned char *input_buffer, *output_buffer;
 unsigned int input_buffer_idx, output_buffer_idx, input_buffer_size;
 
 static unsigned char try_byte()
