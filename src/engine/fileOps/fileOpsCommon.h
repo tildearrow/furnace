@@ -57,6 +57,9 @@ struct NotZlibException {
 #define DIV_IT_MAGIC "IMPM"
 #define DIV_TFM_MAGIC "TFMfmtV2"
 
+#define DIV_A2M_MAGIC "_A2module_"
+#define DIV_A2T_MAGIC "_A2tiny_module_"
+
 #define DIV_FUR_MAGIC_DS0 "Furnace-B module"
 
 enum DivFurVariants: int {

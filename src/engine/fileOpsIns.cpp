@@ -40,6 +40,10 @@ enum DivInsFormats {
   DIV_INSFORMAT_WOPL,
   DIV_INSFORMAT_WOPN,
   DIV_INSFORMAT_FF,
+  DIV_INSFORMAT_A2I,
+  DIV_INSFORMAT_A2B,
+  DIV_INSFORMAT_A2W,
+  DIV_INSFORMAT_A2F,
 };
 
 // Reused patch data structures
@@ -1997,6 +2001,14 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path, bool
         format=DIV_INSFORMAT_WOPL;
       } else if (extS==".wopn") {
         format=DIV_INSFORMAT_WOPN;
+      } else if (extS==".a2i") {
+        format=DIV_INSFORMAT_A2I; //adlib tracker 2 ins
+      } else if (extS==".a2b") {
+        format=DIV_INSFORMAT_A2B; //adlib tracker 2 ins bank
+      } else if (extS==".a2w") {
+        format=DIV_INSFORMAT_A2W; //adlib tracker 2 ins bank with arp/vib/fm macros
+      } else if (extS==".a2f") {
+        format=DIV_INSFORMAT_A2F; //adlib tracker 2 ins bank with fm macros only
       } else {
         // unknown format
         lastError="unknown instrument format";
@@ -2051,6 +2063,15 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path, bool
         break;
       case DIV_INSFORMAT_WOPN:
         loadWOPN(reader,ret,stripPath);
+        break;
+      case DIV_INSFORMAT_A2I:
+        loadA2I(reader,ret,stripPath);
+        break;
+      case DIV_INSFORMAT_A2B:
+        break;
+      case DIV_INSFORMAT_A2W:
+        break;
+      case DIV_INSFORMAT_A2F:
         break;
     }
 
