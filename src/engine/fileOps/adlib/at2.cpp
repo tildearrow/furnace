@@ -503,23 +503,28 @@ typedef struct {
     tARPVIB_TABLE arpvib_table[255]; //Furnace addition
 
     bool disabled_fmregs_table[255][28]; //Furnace addition
+
+    bool new_instrument[255]; //Furnace addition
+    tINSTR_DATA_V1_8 old_instr[255]; //Furnace addition
+    tINSTR_DATA new_instr[255]; //Furnace addition
+    int num_instruments;
 } tSONGINFO;
 
-typedef struct {
-    unsigned int count;
-    size_t size;
-    tINSTR_DATA_EXT *instruments;
-} tINSTR_INFO;
+// typedef struct {
+//     unsigned int count;
+//     size_t size;
+//     tINSTR_DATA_EXT *instruments;
+// } tINSTR_INFO;
 
-typedef struct {
-    int patterns, rows, channels;
-    size_t size;
-    tADTRACK2_EVENT *events;
-} tEVENTS_INFO;
+// typedef struct {
+//     int patterns, rows, channels;
+//     size_t size;
+//     tADTRACK2_EVENT *events;
+// } tEVENTS_INFO;
 
-typedef struct _4op_data {
-    uint32_t mode: 1, conn: 3, ch1: 4, ch2: 4, ins1: 8, ins2: 8;
-} t4OP_DATA;
+// typedef struct _4op_data {
+//     uint32_t mode: 1, conn: 3, ch1: 4, ch2: 4, ins1: 8, ins2: 8;
+// } t4OP_DATA;
 
 void a2t_depack(unsigned char *src, int srcsize, unsigned char *dst, int dstsize, int ffver)
 {
@@ -1703,7 +1708,6 @@ void AT2_inst_import_v18(DivInstrument* ins, tSONGINFO& songInfo, int i, tINSTR_
         ins->std.panLMacro.val[0] = 1;
         ins->std.panLMacro.len = 1;
     }
-    //todo: finetune
 }
 
 void AT2_inst_import(DivInstrument* ins, tSONGINFO& songInfo, int i, tINSTR_DATA* instr_s)
@@ -1742,7 +1746,6 @@ void AT2_inst_import(DivInstrument* ins, tSONGINFO& songInfo, int i, tINSTR_DATA
 
     ins->fm.fb = instr_s->fm.feedb;
     ins->fm.alg = instr_s->fm.connect;
-    //todo: finetune
 
     if(instr_s->perc_voice > 1) //not bass drum
     {
@@ -1772,8 +1775,42 @@ void AT2_inst_import(DivInstrument* ins, tSONGINFO& songInfo, int i, tINSTR_DATA
     }
 }
 
+void AT_apply_finetune(DivInstrument* ins, void* data, int version)
+{
+    int finetune = 0;
+
+    if(version < 9)
+    {
+        tINSTR_DATA_V1_8* old_ins = (tINSTR_DATA_V1_8*)data;
+        finetune = old_ins->fine_tune;
+    }
+    else
+    {
+        tINSTR_DATA* new_ins = (tINSTR_DATA*)data;
+        finetune = new_ins->fine_tune;
+    }
+
+    if(finetune != 0) //apply: 1-step pitch macro if macro is empty, otherwise add finetune to all steps
+    {
+        if(ins->std.pitchMacro.len != 0)
+        {
+            for(int i = 0; i < ins->std.pitchMacro.len; i++)
+            {
+                ins->std.pitchMacro.val[i] += finetune;
+            }
+        }
+        else
+        {
+            ins->std.pitchMacro.val[0] = finetune;
+            ins->std.pitchMacro.len = 1;
+        }
+    }
+}
+
 void a2t_instrument_import_v1_8(DivSong& ds, void* data, int count, bool a2t, tSONGINFO& songInfo)
 {
+    songInfo.num_instruments = count;
+
     for (int i = 0; i < count; i++) //instrument import
     {
         ds.ins.push_back(new DivInstrument());
@@ -1792,6 +1829,10 @@ void a2t_instrument_import_v1_8(DivSong& ds, void* data, int count, bool a2t, tS
             instr_s = &song_data->instr_data[i];
         }
 
+        songInfo.new_instrument[i] = false;
+
+        memcpy(&songInfo.new_instr[i], instr_s, sizeof(tINSTR_DATA_V1_8));
+
         DivInstrument* ins = ds.ins[i];
 
         AT2_inst_import_v18(ins, songInfo, i, instr_s);
@@ -1800,6 +1841,8 @@ void a2t_instrument_import_v1_8(DivSong& ds, void* data, int count, bool a2t, tS
 
 void a2t_instrument_import(DivSong& ds, void* data, int count, bool a2t, tSONGINFO& songInfo)
 {
+    songInfo.num_instruments = count;
+
     for (int i = 0; i < count; i++) //instrument import
     {
         //instrument_import(i + 1, &data->instr_data[i]);
@@ -1817,6 +1860,10 @@ void a2t_instrument_import(DivSong& ds, void* data, int count, bool a2t, tSONGIN
             A2M_SONGDATA_V9_14* song_data = (A2M_SONGDATA_V9_14*)data;
             instr_s = &song_data->instr_data[i];
         }
+
+        songInfo.new_instrument[i] = true;
+
+        memcpy(&songInfo.new_instr[i], instr_s, sizeof(tINSTR_DATA));
 
         DivInstrument* ins = ds.ins[i];
 
@@ -1903,6 +1950,8 @@ void DivEngine::loadA2I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         AT2_inst_import(ins, *songInfo, 0, insdata);
     }
 
+    //TODO: support version 10 4-op insturment!
+
     char insName[40] = { 0 };
 
     if(version < 9)
@@ -1927,6 +1976,8 @@ void DivEngine::loadA2I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     }
 
     ins->name = insName;
+
+    AT_apply_finetune(ins, (version > 8 ? (void*)&insdata : (void*)&insdata18), version);
 
     if(version < 5)
     {
@@ -2758,6 +2809,13 @@ bool DivEngine::loadAT2M(unsigned char* file, size_t len)
                     if(!songInfo->disabled_fmregs_table[i][12 + 15]) AT2_adapt_fmregs_macros_len(&ins->std.panLMacro, &songInfo->fmreg_table[i]);
                 }
             }
+        }
+
+        for(int i = 0; i < ds.insLen; i++) //apply finetune setting
+        {
+            DivInstrument* ins = ds.ins[i];
+
+            AT_apply_finetune(ins, (songInfo->new_instrument[i] ? (void*)&songInfo->new_instr[i] : (void*)&songInfo->old_instr[i]), version);
         }
 
         s->makePatUnique(); //needed for non-continuous to continuous effects conversion
