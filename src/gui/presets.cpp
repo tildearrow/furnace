@@ -493,13 +493,13 @@ void FurnaceGUI::initSystemPresets() {
     SUB_ENTRY(
       _("MSX + SCC"), {
         CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
-        CH(DIV_SYSTEM_SCC, 1.0f, 0, "")
+        CH(DIV_SYSTEM_SCC, 0.67f, 0, "")
       }
     );
     SUB_ENTRY(
       _("MSX + SCC+"), {
         CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
-        CH(DIV_SYSTEM_SCC_PLUS, 1.0f, 0, "")
+        CH(DIV_SYSTEM_SCC_PLUS, 0.67f, 0, "")
       }
     );
     SUB_ENTRY(
@@ -3755,7 +3755,7 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     _("MSX + SCC"), {
       CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
-      CH(DIV_SYSTEM_SCC, 1.0f, 0, "")
+      CH(DIV_SYSTEM_SCC, 0.67f, 0, "")
     }
   );
   CATEGORY_END;
