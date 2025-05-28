@@ -2635,10 +2635,12 @@ int DivPlatformOPL::dispatch(DivCommand c) {
 }
 
 void DivPlatformOPL::forceIns() {
+  int oplChans=0;
   if (oplType==3) {
     chanMap=properDrums?chanMapOPL3Drums:chanMapOPL3;
     melodicChans=properDrums?15:18;
     totalChans=properDrums?20:18;
+    oplChans=totalChans;
     if (chipType==4) {
       pcmChanOffs=totalChans;
       totalChans+=24;
@@ -2647,8 +2649,9 @@ void DivPlatformOPL::forceIns() {
     chanMap=properDrums?chanMapOPL2Drums:chanMapOPL2;
     melodicChans=properDrums?6:9;
     totalChans=properDrums?11:9;
+    oplChans=totalChans;
   }
-  for (int i=0; i<totalChans; i++) {
+  for (int i=0; i<oplChans; i++) {
     int ops=(slots[3][i]!=255 && chan[i].state.ops==4 && oplType==3)?4:2;
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
