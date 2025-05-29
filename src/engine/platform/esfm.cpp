@@ -90,11 +90,11 @@ void DivPlatformESFM::acquireDirect(blip_buffer_t** bb, size_t len) {
     sharedNeedlePos+=oscBuf[0]->rateMul;
 
     if (o[0]!=oldOut[0]) {
-      blip_add_delta(bb[0],h,oldOut[0]-o[0]);
+      blip_add_delta(bb[0],h,o[0]-oldOut[0]);
       oldOut[0]=o[0];
     }
     if (o[1]!=oldOut[1]) {
-      blip_add_delta(bb[1],h,oldOut[1]-o[1]);
+      blip_add_delta(bb[1],h,o[1]-oldOut[1]);
       oldOut[1]=o[1];
     }
   }
