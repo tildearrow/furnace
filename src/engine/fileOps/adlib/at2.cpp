@@ -1710,42 +1710,104 @@ void AT2_inst_import_v18(DivInstrument* ins, tSONGINFO& songInfo, int i, tINSTR_
     }
 }
 
-void AT2_inst_import(DivInstrument* ins, tSONGINFO& songInfo, int i, tINSTR_DATA* instr_s)
+void AT2_inst_import(DivInstrument* ins, tSONGINFO& songInfo, int i, tINSTR_DATA* instr_s, tINSTR_DATA* instr_s_2)
 {
-    char name[32];
-    memcpy(name, songInfo.instr_names[i], 31);
-    name[31] = '\0';
+    char name[33];
+    memcpy(name, songInfo.instr_names[i], 32);
+    name[32] = '\0';
     ins->name = name;
     ins->type = DIV_INS_OPL;
 
-    ins->fm.op[0].mult = instr_s->fm.multipM;
-    ins->fm.op[0].ksr = instr_s->fm.ksrM;
-    ins->fm.op[0].sus = instr_s->fm.sustM;
-    ins->fm.op[0].vib = instr_s->fm.vibrM;
-    ins->fm.op[0].am = instr_s->fm.tremM;
-    ins->fm.op[0].tl = instr_s->fm.volM;
-    ins->fm.op[0].ksl = instr_s->fm.kslM;
-    ins->fm.op[0].ar = instr_s->fm.attckM;
-    ins->fm.op[0].dr = instr_s->fm.decM;
-    ins->fm.op[0].sl = instr_s->fm.sustnM;
-    ins->fm.op[0].rr = instr_s->fm.relM;
-    ins->fm.op[0].ws = instr_s->fm.wformM;
+    DivInstrument* ins1 = new DivInstrument();
+    DivInstrument* ins2 = new DivInstrument();
 
-    ins->fm.op[1].mult = instr_s->fm.multipC;
-    ins->fm.op[1].ksr = instr_s->fm.ksrC;
-    ins->fm.op[1].sus = instr_s->fm.sustC;
-    ins->fm.op[1].vib = instr_s->fm.vibrC;
-    ins->fm.op[1].am = instr_s->fm.tremC;
-    ins->fm.op[1].tl = instr_s->fm.volC;
-    ins->fm.op[1].ksl = instr_s->fm.kslC;
-    ins->fm.op[1].ar = instr_s->fm.attckC;
-    ins->fm.op[1].dr = instr_s->fm.decC;
-    ins->fm.op[1].sl = instr_s->fm.sustnC;
-    ins->fm.op[1].rr = instr_s->fm.relC;
-    ins->fm.op[1].ws = instr_s->fm.wformC;
+    ins1->fm.op[0].mult = instr_s->fm.multipM;
+    ins1->fm.op[0].ksr = instr_s->fm.ksrM;
+    ins1->fm.op[0].sus = instr_s->fm.sustM;
+    ins1->fm.op[0].vib = instr_s->fm.vibrM;
+    ins1->fm.op[0].am = instr_s->fm.tremM;
+    ins1->fm.op[0].tl = instr_s->fm.volM;
+    ins1->fm.op[0].ksl = instr_s->fm.kslM;
+    ins1->fm.op[0].ar = instr_s->fm.attckM;
+    ins1->fm.op[0].dr = instr_s->fm.decM;
+    ins1->fm.op[0].sl = instr_s->fm.sustnM;
+    ins1->fm.op[0].rr = instr_s->fm.relM;
+    ins1->fm.op[0].ws = instr_s->fm.wformM;
+
+    ins1->fm.op[1].mult = instr_s->fm.multipC;
+    ins1->fm.op[1].ksr = instr_s->fm.ksrC;
+    ins1->fm.op[1].sus = instr_s->fm.sustC;
+    ins1->fm.op[1].vib = instr_s->fm.vibrC;
+    ins1->fm.op[1].am = instr_s->fm.tremC;
+    ins1->fm.op[1].tl = instr_s->fm.volC;
+    ins1->fm.op[1].ksl = instr_s->fm.kslC;
+    ins1->fm.op[1].ar = instr_s->fm.attckC;
+    ins1->fm.op[1].dr = instr_s->fm.decC;
+    ins1->fm.op[1].sl = instr_s->fm.sustnC;
+    ins1->fm.op[1].rr = instr_s->fm.relC;
+    ins1->fm.op[1].ws = instr_s->fm.wformC;
+
+    if(instr_s_2 != NULL)
+    {
+        ins2->fm.op[0].mult = instr_s_2->fm.multipM;
+        ins2->fm.op[0].ksr = instr_s_2->fm.ksrM;
+        ins2->fm.op[0].sus = instr_s_2->fm.sustM;
+        ins2->fm.op[0].vib = instr_s_2->fm.vibrM;
+        ins2->fm.op[0].am = instr_s_2->fm.tremM;
+        ins2->fm.op[0].tl = instr_s_2->fm.volM;
+        ins2->fm.op[0].ksl = instr_s_2->fm.kslM;
+        ins2->fm.op[0].ar = instr_s_2->fm.attckM;
+        ins2->fm.op[0].dr = instr_s_2->fm.decM;
+        ins2->fm.op[0].sl = instr_s_2->fm.sustnM;
+        ins2->fm.op[0].rr = instr_s_2->fm.relM;
+        ins2->fm.op[0].ws = instr_s_2->fm.wformM;
+
+        ins2->fm.op[1].mult = instr_s_2->fm.multipC;
+        ins2->fm.op[1].ksr = instr_s_2->fm.ksrC;
+        ins2->fm.op[1].sus = instr_s_2->fm.sustC;
+        ins2->fm.op[1].vib = instr_s_2->fm.vibrC;
+        ins2->fm.op[1].am = instr_s_2->fm.tremC;
+        ins2->fm.op[1].tl = instr_s_2->fm.volC;
+        ins2->fm.op[1].ksl = instr_s_2->fm.kslC;
+        ins2->fm.op[1].ar = instr_s_2->fm.attckC;
+        ins2->fm.op[1].dr = instr_s_2->fm.decC;
+        ins2->fm.op[1].sl = instr_s_2->fm.sustnC;
+        ins2->fm.op[1].rr = instr_s_2->fm.relC;
+        ins2->fm.op[1].ws = instr_s_2->fm.wformC;
+
+        memcpy((void*)&ins->fm.op[0], (void*)&ins2->fm.op[0], sizeof(DivInstrumentFM::Operator)); //what the fuck is this ops order jesus
+        memcpy((void*)&ins->fm.op[1], (void*)&ins1->fm.op[0], sizeof(DivInstrumentFM::Operator));
+        memcpy((void*)&ins->fm.op[2], (void*)&ins2->fm.op[1], sizeof(DivInstrumentFM::Operator));
+        memcpy((void*)&ins->fm.op[3], (void*)&ins1->fm.op[1], sizeof(DivInstrumentFM::Operator));
+
+        ins->fm.ops = 4;
+    }
+    else
+    {
+        //memcpy((void*)ins, (void*)ins1, sizeof(DivInstrument));
+
+        memcpy((void*)&ins->fm.op[0], (void*)&ins1->fm.op[0], sizeof(DivInstrumentFM::Operator));
+        memcpy((void*)&ins->fm.op[1], (void*)&ins1->fm.op[1], sizeof(DivInstrumentFM::Operator));
+    }
 
     ins->fm.fb = instr_s->fm.feedb;
-    ins->fm.alg = instr_s->fm.connect;
+
+    if (instr_s_2 != NULL)
+    {
+        ins->fm.fb = instr_s_2->fm.feedb;
+    }
+
+    if (instr_s_2 != NULL)
+    {
+        ins->fm.alg = instr_s_2->fm.connect | (instr_s->fm.connect << 1);
+    }
+    else
+    {
+        ins->fm.alg = instr_s->fm.connect;
+    }
+
+    delete ins1;
+    delete ins2;
 
     if(instr_s->perc_voice > 1) //not bass drum
     {
@@ -1873,7 +1935,7 @@ void a2t_instrument_import(DivSong& ds, void* data, int count, bool a2t, tSONGIN
         //dst->arpeggio = data->fmreg_table[i].arpeggio_table;
         //dst->vibrato = data->fmreg_table[i].vibrato_table;
 
-        AT2_inst_import(ins, songInfo, i, instr_s);
+        AT2_inst_import(ins, songInfo, i, instr_s, NULL);
     }
 }
 
@@ -1889,6 +1951,9 @@ void AT2_adapt_fmregs_macros_len(DivInstrumentMacro* macro, tFMREG_TABLE* fmtabl
     
     macro->speed = 1; //mostly to overwrite pitch macro...
 }
+
+#define TEMPSRC_SIZE 0xff
+#define TEMPDEST_SIZE 0xff
 
 void DivEngine::loadA2I(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath)
 {
@@ -1913,8 +1978,15 @@ void DivEngine::loadA2I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
     unsigned short len = reader.readS();
 
-    unsigned char tempSrc[257];
-    memset(tempSrc, 0, 257);
+    unsigned char tempSrc[TEMPSRC_SIZE];
+    memset(tempSrc, 0, TEMPSRC_SIZE);
+
+    if(len > TEMPSRC_SIZE)
+    {
+        lastError=_("Instrument file too big!");
+        return;
+    }
+
     reader.read((void*)tempSrc, len);
 
     // for(int i = 0; i < len; i++)
@@ -1922,9 +1994,9 @@ void DivEngine::loadA2I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     //     logI("%02X", tempSrc[i]);
     // }
 
-    unsigned char tempDest[2550];
-    memset(tempDest, 0, 2550);
-    a2i_depack(tempSrc, len, tempDest, 2550, version);
+    unsigned char tempDest[TEMPDEST_SIZE];
+    memset(tempDest, 0, TEMPDEST_SIZE);
+    a2i_depack(tempSrc, len, tempDest, TEMPDEST_SIZE, version);
 
     // logI("tempDest");
 
@@ -1933,10 +2005,24 @@ void DivEngine::loadA2I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     //     logI("%02X", tempDest[i]);
     // }
 
-    DivInstrument* ins=new DivInstrument;
+    DivInstrument* ins = new DivInstrument;
 
     tINSTR_DATA_V1_8* insdata18 = (tINSTR_DATA_V1_8*)tempDest;
     tINSTR_DATA* insdata = (tINSTR_DATA*)tempDest;
+
+    tINSTR_DATA* insdata_2 = NULL;
+
+    if(version == 10) //version 10 added 4-op instruments so we check for 2nd instrument in the decompressed block
+    {
+        for(int i = 0x2f; i < 0x3d + 32; i++)
+        {
+            if(tempDest[i] != 0)
+            {
+                insdata_2 = (tINSTR_DATA*)&tempDest[0x2f]; //0x2F is in docs but actually the data starts one byte later?
+                break;
+            }
+        }
+    }
 
     tSONGINFO* songInfo = (tSONGINFO*)calloc(1, sizeof(tSONGINFO));
     memset(songInfo, 0, sizeof(tSONGINFO));
@@ -1947,7 +2033,7 @@ void DivEngine::loadA2I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     }
     else
     {
-        AT2_inst_import(ins, *songInfo, 0, insdata);
+        AT2_inst_import(ins, *songInfo, 0, insdata, insdata_2);
     }
 
     //TODO: support version 10 4-op insturment!
@@ -1956,11 +2042,11 @@ void DivEngine::loadA2I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
     if(version < 9)
     {
-        memcpy(insName, &tempDest[0xD], 23);
+        memcpy(insName, &tempDest[0xD], 22);
     }
     else
     {
-        memcpy(insName, &tempDest[0xE], 33);
+        memcpy(insName, &tempDest[0xE + 1], 32); //0xE is in docs but actually the name starts one byte later?
 
         unsigned char insType = tempDest[0xD];
 
@@ -1977,7 +2063,15 @@ void DivEngine::loadA2I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
     ins->name = insName;
 
-    AT_apply_finetune(ins, (version > 8 ? (void*)&insdata : (void*)&insdata18), version);
+    if (version >= 10 && insdata_2 != NULL)
+    {
+        ins->name += " + ";
+        memcpy(insName, &tempDest[0x3E], 32);
+        ins->name += insName;
+        ins->name += " [4-op]";
+    }
+
+    AT_apply_finetune(ins, (version > 8 ? ((version >= 10 && insdata_2 != NULL) ? (void*)insdata_2 : (void*)insdata) : (void*)insdata18), version);
 
     if(version < 5)
     {
@@ -1987,6 +2081,9 @@ void DivEngine::loadA2I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     ret.push_back(ins);
     free(songInfo);
 }
+
+#undef TEMPDEST_SIZE
+#undef TEMPSRC_SIZE
 
 bool DivEngine::loadAT2M(unsigned char* file, size_t len) 
 {
@@ -2574,6 +2671,8 @@ bool DivEngine::loadAT2M(unsigned char* file, size_t len)
             }
         }
 
+        ds.insLen = ds.ins.size();
+
         if(version >= 12)
         {
             for(int i = 0; i < songInfo->ins_4op_flags.num_4op; i++) //adapt 4-op instruments
@@ -3107,7 +3206,7 @@ bool DivEngine::loadAT2M(unsigned char* file, size_t len)
             }
 
             bool ins4oped[256] = { 0 };
-            int ins4opedindex[256] = { 0 };
+            unsigned char ins4opedindex[256] = { 0 };
 
             for(int i = 0; i < 12; i += 2) //go through 4-op channels
             {
