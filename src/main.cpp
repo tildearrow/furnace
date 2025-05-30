@@ -1094,5 +1094,10 @@ int main(int argc, char** argv) {
   }
 #endif
   e.everythingOK();
+
+#ifdef HAVE_SDL2
+  SDL_Quit();
+#endif
+
   return 0;
 }
