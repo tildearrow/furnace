@@ -1019,7 +1019,7 @@ void FurnaceGUI::drawSettings() {
           settings.initialSys.set("vol0",1.0f);
           settings.initialSys.set("pan0",0.0f);
           settings.initialSys.set("fr0",0.0f);
-          settings.initialSys.set("flags0","");
+          settings.initialSys.set("flags0","chipType=1");
           settings.initialSys.set("id1",e->systemToFileFur(DIV_SYSTEM_SMS));
           settings.initialSys.set("vol1",0.5f);
           settings.initialSys.set("pan1",0.0f);
@@ -1149,7 +1149,7 @@ void FurnaceGUI::drawSettings() {
           settings.initialSys.set(fmt::sprintf("vol%d",sysCount),1.0f);
           settings.initialSys.set(fmt::sprintf("pan%d",sysCount),0.0f);
           settings.initialSys.set(fmt::sprintf("fr%d",sysCount),0.0f);
-          settings.initialSys.set(fmt::sprintf("flags%d",sysCount),"");
+          settings.initialSys.set(fmt::sprintf("flags%d",sysCount),"chipType=1");
         }
 
         ImGui::Text(_("When creating new song:"));

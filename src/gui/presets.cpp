@@ -55,37 +55,37 @@ void FurnaceGUI::initSystemPresets() {
   CATEGORY_BEGIN(_("Game consoles"),_("let's play some chiptune making games!"));
   ENTRY(
     _("Sega Genesis"), {
-      CH(DIV_SYSTEM_YM2612, 1.0f, 0, ""),
+      CH(DIV_SYSTEM_YM2612, 1.0f, 0, "chipType=1"),
       CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
     }
   );
     SUB_ENTRY(
       _("Sega Genesis (extended channel 3)"), {
-        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "chipType=1"),
         CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
       }
     );
     SUB_ENTRY(
       _("Sega Genesis (CSM)"), {
-        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, "chipType=1"),
         CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
       }
     );
     SUB_ENTRY(
       _("Sega Genesis (DualPCM)"), {
-        CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, "chipType=1"),
         CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
       }
     );
     SUB_ENTRY(
       _("Sega Genesis (DualPCM, extended channel 3)"), {
-        CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, "chipType=1"),
         CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
       }
     );
     SUB_ENTRY(
       _("Sega Genesis (with Sega CD)"), {
-        CH(DIV_SYSTEM_YM2612, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, "chipType=1"),
         CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
         CH(DIV_SYSTEM_RF5C68, 1.0f, 0,
           "clockSel=2\n"
@@ -95,7 +95,7 @@ void FurnaceGUI::initSystemPresets() {
     );
     SUB_ENTRY(
       _("Sega Genesis (extended channel 3 with Sega CD)"), {
-        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "chipType=1"),
         CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
         CH(DIV_SYSTEM_RF5C68, 1.0f, 0,
           "clockSel=2\n"
@@ -105,7 +105,7 @@ void FurnaceGUI::initSystemPresets() {
     );
     SUB_ENTRY(
       _("Sega Genesis (CSM with Sega CD)"), {
-        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, "chipType=1"),
         CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
         CH(DIV_SYSTEM_RF5C68, 1.0f, 0,
           "clockSel=2\n"
