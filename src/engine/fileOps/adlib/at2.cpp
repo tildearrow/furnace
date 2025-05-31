@@ -528,65 +528,82 @@ typedef struct {
 
 void a2t_depack(unsigned char *src, int srcsize, unsigned char *dst, int dstsize, int ffver)
 {
-    switch (ffver) {
-    case 1:
-    case 5: // sixpack
-        sixdepak((unsigned short *)src, (unsigned char *)dst, srcsize, dstsize);
-        break;
-    case 2:
-    case 6: // lzw
-        LZW_decompress(src, dst, srcsize, dstsize);
-        break;
-    case 3:
-    case 7: // lzss
-        LZSS_decompress(src, dst, srcsize, dstsize);
-        break;
-    case 4:
-    case 8: // unpacked
-        if (dstsize <= srcsize)
-            memcpy(dst, src, srcsize);
-        break;
-    case 9:
-    case 10:
-    case 11: // apack (aPlib)
-        aP_depack(src, dst, srcsize, dstsize);
-        break;
-    case 12:
-    case 13:
-    case 14: // lzh
-        LZH_decompress(src, dst, srcsize, dstsize);
-        break;
-    default: break;
+    switch (ffver)
+    {
+        case 1:
+        case 5: // sixpack
+            sixdepak((unsigned short *)src, (unsigned char *)dst, srcsize, dstsize);
+            break;
+        case 2:
+        case 6: // lzw
+            LZW_decompress(src, dst, srcsize, dstsize);
+            break;
+        case 3:
+        case 7: // lzss
+            LZSS_decompress(src, dst, srcsize, dstsize);
+            break;
+        case 4:
+        case 8: // unpacked
+            if (dstsize <= srcsize)
+                memcpy(dst, src, srcsize);
+            break;
+        case 9:
+        case 10:
+        case 11: // apack (aPlib)
+            aP_depack(src, dst, srcsize, dstsize);
+            break;
+        case 12:
+        case 13:
+        case 14: // lzh
+            LZH_decompress(src, dst, srcsize, dstsize);
+            break;
+        default: break;
     }
 }
 
 void a2i_depack(unsigned char *src, int srcsize, unsigned char *dst, int dstsize, int ffver)
 {
-    switch (ffver) {
-    case 1:
-    case 5: // sixpack
-        sixdepak((unsigned short *)src, (unsigned char *)dst, srcsize, dstsize);
-        break;
-    case 2:
-    case 6: // lzw
-        LZW_decompress(src, dst, srcsize, dstsize);
-        break;
-    case 3:
-    case 7: // lzss
-        LZSS_decompress(src, dst, srcsize, dstsize);
-        break;
-    case 4:
-    case 8: // unpacked
-        if (dstsize <= srcsize)
-            memcpy(dst, src, srcsize);
-        break;
-    case 9: // apack (aPlib)
-        aP_depack(src, dst, srcsize, dstsize);
-        break;
-    case 10: // lzh
-        LZH_decompress(src, dst, srcsize, dstsize);
-        break;
-    default: break;
+    switch (ffver) 
+    {
+        case 1:
+        case 5: // sixpack
+            sixdepak((unsigned short *)src, (unsigned char *)dst, srcsize, dstsize);
+            break;
+        case 2:
+        case 6: // lzw
+            LZW_decompress(src, dst, srcsize, dstsize);
+            break;
+        case 3:
+        case 7: // lzss
+            LZSS_decompress(src, dst, srcsize, dstsize);
+            break;
+        case 4:
+        case 8: // unpacked
+            if (dstsize <= srcsize)
+                memcpy(dst, src, srcsize);
+            break;
+        case 9: // apack (aPlib)
+            aP_depack(src, dst, srcsize, dstsize);
+            break;
+        case 10: // lzh
+            LZH_decompress(src, dst, srcsize, dstsize);
+            break;
+        default: break;
+    }
+}
+
+void a2w_depack(unsigned char *src, int srcsize, unsigned char *dst, int dstsize, int ffver)
+{
+    switch (ffver) 
+    {
+        case 1: // apack (aPlib)
+        case 2:
+            aP_depack(src, dst, srcsize, dstsize);
+            break;
+        case 3: // lzh
+            LZH_decompress(src, dst, srcsize, dstsize);
+            break;
+        default: break;
     }
 }
 
@@ -1952,6 +1969,132 @@ void AT2_adapt_fmregs_macros_len(DivInstrumentMacro* macro, tFMREG_TABLE* fmtabl
     macro->speed = 1; //mostly to overwrite pitch macro...
 }
 
+#define FINISH_A2W \
+delete[] block_0; \
+delete[] block_1; \
+delete[] block_2; \
+delete[] block_0_decompressed; \
+delete[] block_1_decompressed; \
+delete[] block_2_decompressed; \
+delete songInfo;
+
+#define BLOCK_0_MAX_LENGTH (255*44 + 255*14 + 255*3831 + 129)
+#define BLOCK_1_MAX_LENGTH (255*521)
+#define BLOCK_2_MAX_LENGTH (255*28)
+
+void DivEngine::loadA2W(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath)
+{
+    reader.seek(SEEK_SET, 0);
+
+    char header[21] = { 0 };
+    reader.read(header, 20);
+
+    if(strncmp(header, "_a2insbank_w/macros_", 20) != 0 && strncmp(header, "_A2insbank_w/macros_", 20) != 0) return;
+
+    reader.readI(); //CRC
+
+    unsigned char version = reader.readC();
+
+    if(version > 3)
+    {
+        lastError=_("Unknown instrument bank with macros version!");
+        return;
+    }
+
+    unsigned char* block_0 = new unsigned char[BLOCK_0_MAX_LENGTH * 2];
+    unsigned char* block_1 = new unsigned char[BLOCK_1_MAX_LENGTH * 2];
+    unsigned char* block_2 = new unsigned char[BLOCK_2_MAX_LENGTH];
+
+    unsigned char* block_0_decompressed = new unsigned char[BLOCK_0_MAX_LENGTH * 2];
+    unsigned char* block_1_decompressed = new unsigned char[BLOCK_1_MAX_LENGTH * 2];
+    unsigned char* block_2_decompressed = new unsigned char[BLOCK_2_MAX_LENGTH];
+
+    memset(block_0, 0, BLOCK_0_MAX_LENGTH * 2);
+    memset(block_1, 0, BLOCK_1_MAX_LENGTH * 2);
+    memset(block_2, 0, BLOCK_2_MAX_LENGTH);
+    memset(block_0_decompressed, 0, BLOCK_0_MAX_LENGTH * 2);
+    memset(block_1_decompressed, 0, BLOCK_1_MAX_LENGTH * 2);
+    memset(block_2_decompressed, 0, BLOCK_2_MAX_LENGTH);
+
+    tSONGINFO* songInfo = (tSONGINFO*)calloc(1, sizeof(tSONGINFO));
+    memset(songInfo, 0, sizeof(tSONGINFO));
+
+    unsigned int length[3];
+
+    length[0] = reader.readI();
+    length[1] = reader.readI();
+
+    if(version > 1)
+    {
+        length[2] = reader.readI();
+    }
+
+    reader.read(block_0, length[0]);
+    reader.read(block_1, length[1]);
+
+    if(version > 1)
+    {
+        reader.read(block_2, length[2]);
+    }
+
+    a2w_depack(block_0, length[0], block_0_decompressed, BLOCK_0_MAX_LENGTH, version);
+    a2w_depack(block_1, length[1], block_1_decompressed, BLOCK_1_MAX_LENGTH, version);
+
+    if(version > 1)
+    {
+        a2w_depack(block_2, length[2], block_2_decompressed, BLOCK_2_MAX_LENGTH, version);
+    }
+
+    char ins_name[40] = { 0 };
+
+    for(int i = 0; i < 255; i++)
+    {
+        bool four_op = false;
+
+        if(!(i & 1) && version == 3)
+        {
+            if(block_0_decompressed[255*43 + 14*255 + 255*3831 + (i / 2)])
+            {
+                four_op = true;
+            }
+        }
+
+        DivInstrument* ins = new DivInstrument;
+
+        if(version == 3)
+        {
+            AT2_inst_import(ins, *songInfo, 0, (tINSTR_DATA*)&block_0_decompressed[255*43 + 14 * i], four_op ? (tINSTR_DATA*)&block_0_decompressed[255*43 + 14 * i + 14] : NULL);
+        }
+        else
+        {
+            AT2_inst_import(ins, *songInfo, 0, (tINSTR_DATA*)&block_0_decompressed[255*43 + 14 * i], NULL);
+        }
+
+        memset(ins_name, 0, 40);
+        memcpy(ins_name, &block_0_decompressed[i * 0x2B + 1], 32); //43 bytes per name although docs say only 33!!
+        //maybe that's AT2 SDL version problem, though. But I don't know where the test file I am using to check the import routine is from.
+        ins->name = ins_name;
+
+        if(four_op)
+        {
+            ins->name += " + ";
+            memcpy(ins_name, &block_0_decompressed[i * 0x2B + 1 + 0x2B], 32);
+            ins->name += ins_name;
+            ins->name += " [4-op]";
+        }
+
+        AT_apply_finetune(ins, four_op ? (tINSTR_DATA*)&block_0_decompressed[255*43 + 14 * i + 14] : (tINSTR_DATA*)&block_0_decompressed[255*43 + 14 * i], version);
+
+        ret.push_back(ins);
+
+        if(four_op) i++;
+    }
+
+    FINISH_A2W
+}
+
+#undef FINISH_A2W
+
 #define TEMPSRC_SIZE 0xff
 #define TEMPDEST_SIZE 0xff
 
@@ -2035,8 +2178,6 @@ void DivEngine::loadA2I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     {
         AT2_inst_import(ins, *songInfo, 0, insdata, insdata_2);
     }
-
-    //TODO: support version 10 4-op insturment!
 
     char insName[40] = { 0 };
 
