@@ -1959,7 +1959,11 @@ void a2t_instrument_import(DivSong& ds, void* data, int count, bool a2t, tSONGIN
 void AT2_adapt_fmregs_macros_len(DivInstrumentMacro* macro, tFMREG_TABLE* fmtable)
 {
     macro->len = fmtable->length;
-    macro->loop = fmtable->loop_begin;
+
+    if (fmtable->loop_length > 0)
+    {
+      macro->loop = fmtable->loop_begin;
+    }
     
     if(fmtable->keyoff_pos > 0)
     {
@@ -1969,6 +1973,207 @@ void AT2_adapt_fmregs_macros_len(DivInstrumentMacro* macro, tFMREG_TABLE* fmtabl
     macro->speed = 1; //mostly to overwrite pitch macro...
 }
 
+void AT_import_macros(tSONGINFO* songInfo, DivInstrument* ins, int i)
+{
+  int arpTableNum = songInfo->fmreg_table[i].arpeggio_table - 1;
+  int vibTableNum = songInfo->fmreg_table[i].vibrato_table - 1;
+
+  if (arpTableNum >= 0)
+  {
+    if (songInfo->arpvib_table[arpTableNum].arpeggio.length > 0 && songInfo->arpvib_table[arpTableNum].arpeggio.speed > 0)
+    {
+      //DivInstrument* ins = ds.ins[i];
+
+      ins->std.arpMacro.len = songInfo->arpvib_table[arpTableNum].arpeggio.length;
+
+      for (int j = 0; j < ins->std.arpMacro.len; j++)
+      {
+        ins->std.arpMacro.val[j] = songInfo->arpvib_table[arpTableNum].arpeggio.data[j] & 127;
+
+        if ((songInfo->arpvib_table[arpTableNum].arpeggio.data[j] & 128) && (songInfo->arpvib_table[arpTableNum].arpeggio.data[j] & 127) != 0)
+        {
+          ins->std.arpMacro.val[j] |= 1 << 30;
+        }
+      }
+
+      ins->std.arpMacro.loop = songInfo->arpvib_table[arpTableNum].arpeggio.loop_begin - 1;
+
+      if (songInfo->arpvib_table[arpTableNum].arpeggio.keyoff_pos)
+      {
+        ins->std.arpMacro.rel = songInfo->arpvib_table[arpTableNum].arpeggio.keyoff_pos;
+      }
+
+      ins->std.arpMacro.speed = songInfo->arpvib_table[arpTableNum].arpeggio.speed;
+    }
+  }
+
+  if (vibTableNum >= 0)
+  {
+    if (songInfo->arpvib_table[vibTableNum].vibrato.length > 0 && songInfo->arpvib_table[vibTableNum].vibrato.speed > 0)
+    {
+      //DivInstrument* ins = ds.ins[i];
+
+      ins->std.pitchMacro.len = songInfo->arpvib_table[vibTableNum].vibrato.length;
+
+      for (int j = 0; j < ins->std.pitchMacro.len; j++)
+      {
+        ins->std.pitchMacro.val[j] = songInfo->arpvib_table[vibTableNum].vibrato.data[j];
+      }
+
+      ins->std.pitchMacro.loop = songInfo->arpvib_table[vibTableNum].vibrato.loop_begin - 1;
+
+      if (songInfo->arpvib_table[vibTableNum].vibrato.keyoff_pos)
+      {
+        ins->std.pitchMacro.rel = songInfo->arpvib_table[vibTableNum].vibrato.keyoff_pos;
+      }
+
+      ins->std.pitchMacro.speed = songInfo->arpvib_table[vibTableNum].vibrato.speed;
+    }
+  }
+
+  if (songInfo->fmreg_table[i].length > 0) //the big ass unified macro for all the macros...
+  {
+    //DivInstrument* ins = ds.ins[i];
+    int macroPos = 0;
+    bool hasFreqSlide = false;
+
+    for (int j = 0; j < songInfo->fmreg_table[i].length; j++)
+    {
+      tREGISTER_TABLE_DEF* macroStep = &songInfo->fmreg_table[i].data[j];
+
+      uint16_t temp = ((uint16_t)macroStep->freq_slide[1] << 8) | macroStep->freq_slide[0];
+      signed short freqSlide = *(signed short*)&temp; //pray it's the right way
+
+      if (freqSlide != 0 && macroStep->duration != 0)
+      {
+        hasFreqSlide = true;
+      }
+    }
+
+    if (songInfo->fmreg_table[i].loop_begin > 0)
+    {
+      songInfo->fmreg_table[i].loop_begin--;
+    }
+
+    if (songInfo->fmreg_table[i].keyoff_pos > 0)
+    {
+      songInfo->fmreg_table[i].keyoff_pos--;
+    }
+
+    int initialLoop = songInfo->fmreg_table[i].loop_begin;
+    int initialRel = songInfo->fmreg_table[i].keyoff_pos;
+
+    for (int j = 0; j < songInfo->fmreg_table[i].length; j++)
+    {
+      tREGISTER_TABLE_DEF* macroStep = &songInfo->fmreg_table[i].data[j];
+
+      if (macroStep->duration != 0) //0 means skip
+      {
+        for (int k = 0; k < macroStep->duration; k++)
+        {
+          if (macroPos > 255) break;
+
+          if (!songInfo->disabled_fmregs_table[i][0]) ins->std.opMacros[0].arMacro.val[macroPos] = macroStep->fm.attckM;
+          if (!songInfo->disabled_fmregs_table[i][1]) ins->std.opMacros[0].drMacro.val[macroPos] = macroStep->fm.decM;
+          if (!songInfo->disabled_fmregs_table[i][2]) ins->std.opMacros[0].slMacro.val[macroPos] = macroStep->fm.sustnM;
+          if (!songInfo->disabled_fmregs_table[i][3]) ins->std.opMacros[0].rrMacro.val[macroPos] = macroStep->fm.relM;
+          if (!songInfo->disabled_fmregs_table[i][4]) ins->std.opMacros[0].wsMacro.val[macroPos] = macroStep->fm.wformM;
+          if (!songInfo->disabled_fmregs_table[i][5]) ins->std.opMacros[0].tlMacro.val[macroPos] = 63 - macroStep->fm.volM;
+          if (!songInfo->disabled_fmregs_table[i][6]) ins->std.opMacros[0].kslMacro.val[macroPos] = macroStep->fm.kslM;
+          if (!songInfo->disabled_fmregs_table[i][7]) ins->std.opMacros[0].multMacro.val[macroPos] = macroStep->fm.multipM;
+          if (!songInfo->disabled_fmregs_table[i][8]) ins->std.opMacros[0].amMacro.val[macroPos] = macroStep->fm.tremM;
+          if (!songInfo->disabled_fmregs_table[i][9]) ins->std.opMacros[0].vibMacro.val[macroPos] = macroStep->fm.vibrM;
+          if (!songInfo->disabled_fmregs_table[i][10]) ins->std.opMacros[0].ksrMacro.val[macroPos] = macroStep->fm.ksrM;
+          if (!songInfo->disabled_fmregs_table[i][11]) ins->std.opMacros[0].susMacro.val[macroPos] = macroStep->fm.sustM;
+
+          if (!songInfo->disabled_fmregs_table[i][12 + 0]) ins->std.opMacros[1].arMacro.val[macroPos] = macroStep->fm.attckC;
+          if (!songInfo->disabled_fmregs_table[i][12 + 1]) ins->std.opMacros[1].drMacro.val[macroPos] = macroStep->fm.decC;
+          if (!songInfo->disabled_fmregs_table[i][12 + 2]) ins->std.opMacros[1].slMacro.val[macroPos] = macroStep->fm.sustnC;
+          if (!songInfo->disabled_fmregs_table[i][12 + 3]) ins->std.opMacros[1].rrMacro.val[macroPos] = macroStep->fm.relC;
+          if (!songInfo->disabled_fmregs_table[i][12 + 4]) ins->std.opMacros[1].wsMacro.val[macroPos] = macroStep->fm.wformC;
+          if (!songInfo->disabled_fmregs_table[i][12 + 5]) ins->std.opMacros[1].tlMacro.val[macroPos] = 63 - macroStep->fm.volC;
+          if (!songInfo->disabled_fmregs_table[i][12 + 6]) ins->std.opMacros[1].kslMacro.val[macroPos] = macroStep->fm.kslC;
+          if (!songInfo->disabled_fmregs_table[i][12 + 7]) ins->std.opMacros[1].multMacro.val[macroPos] = macroStep->fm.multipC;
+          if (!songInfo->disabled_fmregs_table[i][12 + 8]) ins->std.opMacros[1].amMacro.val[macroPos] = macroStep->fm.tremC;
+          if (!songInfo->disabled_fmregs_table[i][12 + 9]) ins->std.opMacros[1].vibMacro.val[macroPos] = macroStep->fm.vibrC;
+          if (!songInfo->disabled_fmregs_table[i][12 + 10]) ins->std.opMacros[1].ksrMacro.val[macroPos] = macroStep->fm.ksrC;
+          if (!songInfo->disabled_fmregs_table[i][12 + 11]) ins->std.opMacros[1].susMacro.val[macroPos] = macroStep->fm.sustC;
+
+          if (!songInfo->disabled_fmregs_table[i][12 + 12]) ins->std.algMacro.val[macroPos] = macroStep->fm.connect;
+          if (!songInfo->disabled_fmregs_table[i][12 + 13]) ins->std.fbMacro.val[macroPos] = macroStep->fm.feedb;
+
+          if (hasFreqSlide && !songInfo->disabled_fmregs_table[i][12 + 14])
+          {
+            uint16_t temp = ((uint16_t)macroStep->freq_slide[1] << 8) | macroStep->freq_slide[0];
+            signed short freqSlide = *(signed short*)&temp; //pray it's the right way
+            ins->std.pitchMacro.val[macroPos] = freqSlide * 4;
+          }
+
+          if (!songInfo->disabled_fmregs_table[i][12 + 15])
+          {
+            if (macroStep->panning == 0)
+            {
+              ins->std.panLMacro.val[macroPos] = 3;
+            }
+            if (macroStep->panning == 1)
+            {
+              ins->std.panLMacro.val[macroPos] = 2;
+            }
+            if (macroStep->panning == 2)
+            {
+              ins->std.panLMacro.val[macroPos] = 1;
+            }
+          }
+
+          macroPos++;
+        }
+        if (macroStep->duration > 1)
+        {
+          songInfo->fmreg_table[i].length += macroStep->duration - 1;
+
+          if (j < initialLoop)
+          {
+            songInfo->fmreg_table[i].loop_begin += macroStep->duration - 1;
+          }
+          if (j < initialRel)
+          {
+            songInfo->fmreg_table[i].keyoff_pos += macroStep->duration - 1;
+          }
+        }
+      }
+
+      if (macroPos > 255) break;
+    }
+
+    for (int j = 0; j < 2; j++)
+    {
+      if (!songInfo->disabled_fmregs_table[i][j * 12 + 0]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].arMacro, &songInfo->fmreg_table[i]);
+      if (!songInfo->disabled_fmregs_table[i][j * 12 + 1]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].drMacro, &songInfo->fmreg_table[i]);
+      if (!songInfo->disabled_fmregs_table[i][j * 12 + 2]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].slMacro, &songInfo->fmreg_table[i]);
+      if (!songInfo->disabled_fmregs_table[i][j * 12 + 3]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].rrMacro, &songInfo->fmreg_table[i]);
+      if (!songInfo->disabled_fmregs_table[i][j * 12 + 4]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].wsMacro, &songInfo->fmreg_table[i]);
+      if (!songInfo->disabled_fmregs_table[i][j * 12 + 5]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].tlMacro, &songInfo->fmreg_table[i]);
+      if (!songInfo->disabled_fmregs_table[i][j * 12 + 6]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].kslMacro, &songInfo->fmreg_table[i]);
+      if (!songInfo->disabled_fmregs_table[i][j * 12 + 7]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].multMacro, &songInfo->fmreg_table[i]);
+      if (!songInfo->disabled_fmregs_table[i][j * 12 + 8]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].amMacro, &songInfo->fmreg_table[i]);
+      if (!songInfo->disabled_fmregs_table[i][j * 12 + 9]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].vibMacro, &songInfo->fmreg_table[i]);
+      if (!songInfo->disabled_fmregs_table[i][j * 12 + 10]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].ksrMacro, &songInfo->fmreg_table[i]);
+      if (!songInfo->disabled_fmregs_table[i][j * 12 + 11]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].susMacro, &songInfo->fmreg_table[i]);
+    }
+
+    if (!songInfo->disabled_fmregs_table[i][12 + 12]) AT2_adapt_fmregs_macros_len(&ins->std.algMacro, &songInfo->fmreg_table[i]);
+    if (!songInfo->disabled_fmregs_table[i][12 + 13]) AT2_adapt_fmregs_macros_len(&ins->std.fbMacro, &songInfo->fmreg_table[i]);
+
+    if (hasFreqSlide && !songInfo->disabled_fmregs_table[i][12 + 14])
+    {
+      ins->std.pitchMacro.mode = 1; //relative mode
+      AT2_adapt_fmregs_macros_len(&ins->std.pitchMacro, &songInfo->fmreg_table[i]);
+    }
+
+    if (!songInfo->disabled_fmregs_table[i][12 + 15]) AT2_adapt_fmregs_macros_len(&ins->std.panLMacro, &songInfo->fmreg_table[i]);
+  }
+}
+
 #define FINISH_A2W \
 delete[] block_0; \
 delete[] block_1; \
@@ -1976,7 +2181,7 @@ delete[] block_2; \
 delete[] block_0_decompressed; \
 delete[] block_1_decompressed; \
 delete[] block_2_decompressed; \
-delete songInfo;
+free(songInfo);
 
 #define BLOCK_0_MAX_LENGTH (255*44 + 255*14 + 255*3831 + 129)
 #define BLOCK_1_MAX_LENGTH (255*521)
@@ -2049,13 +2254,43 @@ void DivEngine::loadA2W(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
     for(int i = 0; i < 255; i++)
     {
-        bool four_op = false;
+        memcpy(&songInfo->fmreg_table[i], &block_0_decompressed[255*43 + 14*255 + i*3831], 3831);
+        memcpy(&songInfo->arpvib_table[i], &block_1_decompressed[i*521], 521);
 
-        if(!(i & 1) && version == 3)
+        if(version == 3)
         {
-            if(block_0_decompressed[255*43 + 14*255 + 255*3831 + (i / 2)])
+            memcpy(&songInfo->disabled_fmregs_table[i], &block_2_decompressed[i*28], 28);
+        }
+    }
+
+    bool four_op_arr[128] = { false };
+    int inst2_4op[128] = { 0 };
+
+    if (version == 3)
+    {
+        for (int i = 0; i < 128; i++)
+        {
+            if (block_0_decompressed[255 * 43 + 14 * 255 + 255 * 3831 + 1 + i]) //1 byte is the 4-op pairs table length
+            {
+                four_op_arr[i] = true;
+                inst2_4op[i] = block_0_decompressed[255 * 43 + 14 * 255 + 255 * 3831 + (i / 2)];
+            }
+        }
+    }
+
+    bool four_op = false;
+    int inst2_4op_index = 0;
+
+    for(int i = 0; i < 255; i++)
+    {
+        four_op = false;
+
+        for (int j = 0; j < 128; j++)
+        {
+            if (four_op_arr[j] && inst2_4op[j] == i + 1)
             {
                 four_op = true;
+                inst2_4op_index = inst2_4op[j];
             }
         }
 
@@ -2063,7 +2298,7 @@ void DivEngine::loadA2W(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
         if(version == 3)
         {
-            AT2_inst_import(ins, *songInfo, 0, (tINSTR_DATA*)&block_0_decompressed[255*43 + 14 * i], four_op ? (tINSTR_DATA*)&block_0_decompressed[255*43 + 14 * i + 14] : NULL);
+            AT2_inst_import(ins, *songInfo, 0, (tINSTR_DATA*)&block_0_decompressed[255*43 + 14 * i], four_op ? (tINSTR_DATA*)&block_0_decompressed[255*43 + 14 * inst2_4op_index] : NULL);
         }
         else
         {
@@ -2075,19 +2310,55 @@ void DivEngine::loadA2W(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         //maybe that's AT2 SDL version problem, though. But I don't know where the test file I am using to check the import routine is from.
         ins->name = ins_name;
 
+        AT_import_macros(songInfo, ins, i);
+
+        if(four_op)
+        {
+            DivInstrument* ins_2 = new DivInstrument;
+
+            AT_import_macros(songInfo, ins_2, inst2_4op_index);
+
+            memcpy((void*)&ins->std.opMacros[2], (void*)&ins_2->std.opMacros[0], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+            memcpy((void*)&ins->std.opMacros[3], (void*)&ins_2->std.opMacros[1], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+
+            /*memcpy((void*)&ins4op->std.opMacros[0].amMacro, (void*)&ins2->std.opMacros[0].amMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+              memcpy((void*)&ins4op->std.opMacros[1].amMacro, (void*)&ins1->std.opMacros[0].amMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+              memcpy((void*)&ins4op->std.opMacros[2].amMacro, (void*)&ins2->std.opMacros[1].amMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+              memcpy((void*)&ins4op->std.opMacros[3].amMacro, (void*)&ins1->std.opMacros[1].amMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));*/
+
+            //swap 3 and 4 with 2 and 1
+
+            for (int j = 0; j < 4; j++)
+            {
+                memcpy((void*)&ins_2->std.opMacros[j], (void*)&ins->std.opMacros[j], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+            }
+
+            /*memcpy((void*)&ins->std.opMacros[0], (void*)&ins_2->std.opMacros[0], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+            memcpy((void*)&ins->std.opMacros[1], (void*)&ins_2->std.opMacros[2], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+            memcpy((void*)&ins->std.opMacros[2], (void*)&ins_2->std.opMacros[1], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+            memcpy((void*)&ins->std.opMacros[3], (void*)&ins_2->std.opMacros[3], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));*/
+
+            memcpy((void*)&ins->std.opMacros[0], (void*)&ins_2->std.opMacros[2], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+            memcpy((void*)&ins->std.opMacros[1], (void*)&ins_2->std.opMacros[0], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+            memcpy((void*)&ins->std.opMacros[2], (void*)&ins_2->std.opMacros[3], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+            memcpy((void*)&ins->std.opMacros[3], (void*)&ins_2->std.opMacros[1], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+
+            delete ins_2;
+        }
+
         if(four_op)
         {
             ins->name += " + ";
-            memcpy(ins_name, &block_0_decompressed[i * 0x2B + 1 + 0x2B], 32);
+            memcpy(ins_name, &block_0_decompressed[inst2_4op_index * 0x2B + 1], 32);
             ins->name += ins_name;
             ins->name += " [4-op]";
         }
 
-        AT_apply_finetune(ins, four_op ? (tINSTR_DATA*)&block_0_decompressed[255*43 + 14 * i + 14] : (tINSTR_DATA*)&block_0_decompressed[255*43 + 14 * i], version);
+        AT_apply_finetune(ins, four_op ? (tINSTR_DATA*)&block_0_decompressed[255*43 + 14 * inst2_4op_index] : (tINSTR_DATA*)&block_0_decompressed[255*43 + 14 * i], version);
 
         ret.push_back(ins);
 
-        if(four_op) i++;
+        if (four_op) i++;
     }
 
     FINISH_A2W
@@ -2814,6 +3085,14 @@ bool DivEngine::loadAT2M(unsigned char* file, size_t len)
 
         ds.insLen = ds.ins.size();
 
+        if (version >= 9) //adapt instrument macros
+        {
+            for (int i = 0; i < ds.insLen; i++)
+            {
+                AT_import_macros(songInfo, ds.ins[i], i);
+            }
+        }
+
         if(version >= 12)
         {
             for(int i = 0; i < songInfo->ins_4op_flags.num_4op; i++) //adapt 4-op instruments
@@ -2838,6 +3117,11 @@ bool DivEngine::loadAT2M(unsigned char* file, size_t len)
                 memcpy((void*)&temp1->fm, (void*)&ins1->fm, sizeof(DivInstrumentFM));
                 memcpy((void*)&temp2->fm, (void*)&ins2->fm, sizeof(DivInstrumentFM));
 
+                for (int j = 0; j < 4; j++)
+                {
+                    memcpy((void*)&temp1->std.opMacros[j].amMacro, (void*)&ins1->std.opMacros[j].amMacro, sizeof(DivInstrumentMacro)* ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+                }
+
                 ins1->fm.alg = ins2->fm.alg | (ins1->fm.alg << 1);
 
                 memcpy((void*)&ins1->fm.op[0], (void*)&temp2->fm.op[0], sizeof(DivInstrumentFM::Operator)); //what the fuck is this ops order jesus
@@ -2845,209 +3129,15 @@ bool DivEngine::loadAT2M(unsigned char* file, size_t len)
                 memcpy((void*)&ins1->fm.op[2], (void*)&temp2->fm.op[1], sizeof(DivInstrumentFM::Operator));
                 memcpy((void*)&ins1->fm.op[3], (void*)&temp1->fm.op[1], sizeof(DivInstrumentFM::Operator));
 
+                memcpy((void*)&ins1->std.opMacros[0].amMacro, (void*)&ins2->std.opMacros[0].amMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+                memcpy((void*)&ins1->std.opMacros[1].amMacro, (void*)&temp1->std.opMacros[0].amMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+                memcpy((void*)&ins1->std.opMacros[2].amMacro, (void*)&ins2->std.opMacros[1].amMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+                memcpy((void*)&ins1->std.opMacros[3].amMacro, (void*)&temp1->std.opMacros[1].amMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+
                 ins1->fm.ops = 4;
 
                 delete temp1;
                 delete temp2;
-            }
-        }
-
-        ds.insLen = ds.ins.size();
-
-        if(version >= 9) //adapt instrument macros
-        {
-            for(int i = 0; i < ds.insLen; i++)
-            {
-                int arpTableNum = songInfo->fmreg_table[i].arpeggio_table - 1;
-                int vibTableNum = songInfo->fmreg_table[i].vibrato_table - 1;
-
-                if(arpTableNum >= 0)
-                {
-                    if(songInfo->arpvib_table[arpTableNum].arpeggio.length > 0 && songInfo->arpvib_table[arpTableNum].arpeggio.speed > 0)
-                    {
-                        DivInstrument* ins = ds.ins[i];
-
-                        ins->std.arpMacro.len = songInfo->arpvib_table[arpTableNum].arpeggio.length;
-
-                        for(int j = 0; j < ins->std.arpMacro.len; j++)
-                        {
-                            ins->std.arpMacro.val[j] = songInfo->arpvib_table[arpTableNum].arpeggio.data[j] & 127;
-
-                            if((songInfo->arpvib_table[arpTableNum].arpeggio.data[j] & 128) && (songInfo->arpvib_table[arpTableNum].arpeggio.data[j] & 127) != 0)
-                            {
-                                ins->std.arpMacro.val[j] |= 1 << 30;
-                            }
-                        }
-
-                        ins->std.arpMacro.loop = songInfo->arpvib_table[arpTableNum].arpeggio.loop_begin - 1;
-                        
-                        if(songInfo->arpvib_table[arpTableNum].arpeggio.keyoff_pos)
-                        {
-                            ins->std.arpMacro.rel = songInfo->arpvib_table[arpTableNum].arpeggio.keyoff_pos;
-                        }
-
-                        ins->std.arpMacro.speed = songInfo->arpvib_table[arpTableNum].arpeggio.speed;
-                    }
-                }
-
-                if(vibTableNum >= 0)
-                {
-                    if(songInfo->arpvib_table[vibTableNum].vibrato.length > 0 && songInfo->arpvib_table[vibTableNum].vibrato.speed > 0)
-                    {
-                        DivInstrument* ins = ds.ins[i];
-
-                        ins->std.pitchMacro.len = songInfo->arpvib_table[vibTableNum].vibrato.length;
-
-                        for(int j = 0; j < ins->std.pitchMacro.len; j++)
-                        {
-                            ins->std.pitchMacro.val[j] = songInfo->arpvib_table[vibTableNum].vibrato.data[j];
-                        }
-
-                        ins->std.pitchMacro.loop = songInfo->arpvib_table[vibTableNum].vibrato.loop_begin - 1;
-                        
-                        if(songInfo->arpvib_table[vibTableNum].vibrato.keyoff_pos)
-                        {
-                            ins->std.pitchMacro.rel = songInfo->arpvib_table[vibTableNum].vibrato.keyoff_pos;
-                        }
-                        
-                        ins->std.pitchMacro.speed = songInfo->arpvib_table[vibTableNum].vibrato.speed;
-                    }
-                }
-
-                if(songInfo->fmreg_table[i].length > 0) //the big ass unified macro for all the macros...
-                {
-                    DivInstrument* ins = ds.ins[i];
-                    int macroPos = 0;
-                    bool hasFreqSlide = false;
-
-                    for(int j = 0; j < songInfo->fmreg_table[i].length; j++)
-                    {
-                        tREGISTER_TABLE_DEF* macroStep = &songInfo->fmreg_table[i].data[j];
-
-                        uint16_t temp = ((uint16_t)macroStep->freq_slide[1] << 8) | macroStep->freq_slide[0];
-                        signed short freqSlide = *(signed short*)&temp; //pray it's the right way
-
-                        if(freqSlide != 0 && macroStep->duration != 0)
-                        {
-                            hasFreqSlide = true;
-                        }
-                    }
-
-                    songInfo->fmreg_table[i].loop_begin--;
-                    songInfo->fmreg_table[i].keyoff_pos--;
-
-                    int initialLoop = songInfo->fmreg_table[i].loop_begin;
-                    int initialRel = songInfo->fmreg_table[i].keyoff_pos;
-
-                    for(int j = 0; j < songInfo->fmreg_table[i].length; j++)
-                    {
-                        tREGISTER_TABLE_DEF* macroStep = &songInfo->fmreg_table[i].data[j];
-
-                        if(macroStep->duration != 0) //0 means skip
-                        {
-                            for(int k = 0; k < macroStep->duration; k++)
-                            {
-                                if(macroPos > 255) break;
-
-                                if(!songInfo->disabled_fmregs_table[i][0]) ins->std.opMacros[0].arMacro.val[macroPos] = macroStep->fm.attckM;
-                                if(!songInfo->disabled_fmregs_table[i][1]) ins->std.opMacros[0].drMacro.val[macroPos] = macroStep->fm.decM;
-                                if(!songInfo->disabled_fmregs_table[i][2]) ins->std.opMacros[0].slMacro.val[macroPos] = macroStep->fm.sustnM;
-                                if(!songInfo->disabled_fmregs_table[i][3]) ins->std.opMacros[0].rrMacro.val[macroPos] = macroStep->fm.relM;
-                                if(!songInfo->disabled_fmregs_table[i][4]) ins->std.opMacros[0].wsMacro.val[macroPos] = macroStep->fm.wformM;
-                                if(!songInfo->disabled_fmregs_table[i][5]) ins->std.opMacros[0].tlMacro.val[macroPos] = 63 - macroStep->fm.volM;
-                                if(!songInfo->disabled_fmregs_table[i][6]) ins->std.opMacros[0].kslMacro.val[macroPos] = macroStep->fm.kslM;
-                                if(!songInfo->disabled_fmregs_table[i][7]) ins->std.opMacros[0].multMacro.val[macroPos] = macroStep->fm.multipM;
-                                if(!songInfo->disabled_fmregs_table[i][8]) ins->std.opMacros[0].amMacro.val[macroPos] = macroStep->fm.tremM;
-                                if(!songInfo->disabled_fmregs_table[i][9]) ins->std.opMacros[0].vibMacro.val[macroPos] = macroStep->fm.vibrM;
-                                if(!songInfo->disabled_fmregs_table[i][10]) ins->std.opMacros[0].ksrMacro.val[macroPos] = macroStep->fm.ksrM;
-                                if(!songInfo->disabled_fmregs_table[i][11]) ins->std.opMacros[0].susMacro.val[macroPos] = macroStep->fm.sustM;
-
-                                if(!songInfo->disabled_fmregs_table[i][12 + 0]) ins->std.opMacros[1].arMacro.val[macroPos] = macroStep->fm.attckC;
-                                if(!songInfo->disabled_fmregs_table[i][12 + 1]) ins->std.opMacros[1].drMacro.val[macroPos] = macroStep->fm.decC;
-                                if(!songInfo->disabled_fmregs_table[i][12 + 2]) ins->std.opMacros[1].slMacro.val[macroPos] = macroStep->fm.sustnC;
-                                if(!songInfo->disabled_fmregs_table[i][12 + 3]) ins->std.opMacros[1].rrMacro.val[macroPos] = macroStep->fm.relC;
-                                if(!songInfo->disabled_fmregs_table[i][12 + 4]) ins->std.opMacros[1].wsMacro.val[macroPos] = macroStep->fm.wformC;
-                                if(!songInfo->disabled_fmregs_table[i][12 + 5]) ins->std.opMacros[1].tlMacro.val[macroPos] = 63 - macroStep->fm.volC;
-                                if(!songInfo->disabled_fmregs_table[i][12 + 6]) ins->std.opMacros[1].kslMacro.val[macroPos] = macroStep->fm.kslC;
-                                if(!songInfo->disabled_fmregs_table[i][12 + 7]) ins->std.opMacros[1].multMacro.val[macroPos] = macroStep->fm.multipC;
-                                if(!songInfo->disabled_fmregs_table[i][12 + 8]) ins->std.opMacros[1].amMacro.val[macroPos] = macroStep->fm.tremC;
-                                if(!songInfo->disabled_fmregs_table[i][12 + 9]) ins->std.opMacros[1].vibMacro.val[macroPos] = macroStep->fm.vibrC;
-                                if(!songInfo->disabled_fmregs_table[i][12 + 10]) ins->std.opMacros[1].ksrMacro.val[macroPos] = macroStep->fm.ksrC;
-                                if(!songInfo->disabled_fmregs_table[i][12 + 11]) ins->std.opMacros[1].susMacro.val[macroPos] = macroStep->fm.sustC;
-
-                                if(!songInfo->disabled_fmregs_table[i][12 + 12]) ins->std.algMacro.val[macroPos] = macroStep->fm.connect;
-                                if(!songInfo->disabled_fmregs_table[i][12 + 13]) ins->std.fbMacro.val[macroPos] = macroStep->fm.feedb;
-
-                                if(hasFreqSlide && !songInfo->disabled_fmregs_table[i][12 + 14])
-                                {
-                                    uint16_t temp = ((uint16_t)macroStep->freq_slide[1] << 8) | macroStep->freq_slide[0];
-                                    signed short freqSlide = *(signed short*)&temp; //pray it's the right way
-                                    ins->std.pitchMacro.val[macroPos] = freqSlide * 4;
-                                }
-
-                                if(!songInfo->disabled_fmregs_table[i][12 + 15])
-                                {
-                                    if(macroStep->panning == 0)
-                                    {
-                                        ins->std.panLMacro.val[macroPos] = 3;
-                                    }
-                                    if(macroStep->panning == 1)
-                                    {
-                                        ins->std.panLMacro.val[macroPos] = 2;
-                                    }
-                                    if(macroStep->panning == 2)
-                                    {
-                                        ins->std.panLMacro.val[macroPos] = 1;
-                                    }
-                                }
-
-                                macroPos++;
-                            }
-                            if(macroStep->duration > 1)
-                            {
-                                songInfo->fmreg_table[i].length += macroStep->duration - 1;
-
-                                if(j < initialLoop)
-                                {
-                                    songInfo->fmreg_table[i].loop_begin += macroStep->duration - 1;
-                                }
-                                if(j < initialRel)
-                                {
-                                    songInfo->fmreg_table[i].keyoff_pos += macroStep->duration - 1;
-                                }
-                            }
-                        }
-
-                        if(macroPos > 255) break;
-                    }
-
-                    for(int j = 0; j < 2; j++)
-                    {
-                        if(!songInfo->disabled_fmregs_table[i][j*12 + 0]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].arMacro, &songInfo->fmreg_table[i]);
-                        if(!songInfo->disabled_fmregs_table[i][j*12 + 1]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].drMacro, &songInfo->fmreg_table[i]);
-                        if(!songInfo->disabled_fmregs_table[i][j*12 + 2]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].slMacro, &songInfo->fmreg_table[i]);
-                        if(!songInfo->disabled_fmregs_table[i][j*12 + 3]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].rrMacro, &songInfo->fmreg_table[i]);
-                        if(!songInfo->disabled_fmregs_table[i][j*12 + 4]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].wsMacro, &songInfo->fmreg_table[i]);
-                        if(!songInfo->disabled_fmregs_table[i][j*12 + 5]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].tlMacro, &songInfo->fmreg_table[i]);
-                        if(!songInfo->disabled_fmregs_table[i][j*12 + 6]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].kslMacro, &songInfo->fmreg_table[i]);
-                        if(!songInfo->disabled_fmregs_table[i][j*12 + 7]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].multMacro, &songInfo->fmreg_table[i]);
-                        if(!songInfo->disabled_fmregs_table[i][j*12 + 8]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].amMacro, &songInfo->fmreg_table[i]);
-                        if(!songInfo->disabled_fmregs_table[i][j*12 + 9]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].vibMacro, &songInfo->fmreg_table[i]);
-                        if(!songInfo->disabled_fmregs_table[i][j*12 + 10]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].ksrMacro, &songInfo->fmreg_table[i]);
-                        if(!songInfo->disabled_fmregs_table[i][j*12 + 11]) AT2_adapt_fmregs_macros_len(&ins->std.opMacros[j].susMacro, &songInfo->fmreg_table[i]);
-                    }
-
-                    if(!songInfo->disabled_fmregs_table[i][12 + 12]) AT2_adapt_fmregs_macros_len(&ins->std.algMacro, &songInfo->fmreg_table[i]);
-                    if(!songInfo->disabled_fmregs_table[i][12 + 13]) AT2_adapt_fmregs_macros_len(&ins->std.fbMacro, &songInfo->fmreg_table[i]);
-
-                    if(hasFreqSlide && !songInfo->disabled_fmregs_table[i][12 + 14])
-                    {
-                        ins->std.pitchMacro.mode = 1; //relative mode
-                        AT2_adapt_fmregs_macros_len(&ins->std.pitchMacro, &songInfo->fmreg_table[i]);
-                    }
-
-                    if(!songInfo->disabled_fmregs_table[i][12 + 15]) AT2_adapt_fmregs_macros_len(&ins->std.panLMacro, &songInfo->fmreg_table[i]);
-                }
             }
         }
 
