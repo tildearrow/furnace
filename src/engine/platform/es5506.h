@@ -234,7 +234,6 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       unsigned char step;
       unsigned char addr;
       unsigned int val;
-      unsigned int mask;
       unsigned int* read;
       unsigned short delay;
       bool isRead;
@@ -243,25 +242,22 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         step(0),
         addr(0),
         val(0),
-        mask(0),
         read(NULL),
         delay(0),
         isRead(false) {}
-      QueuedHostIntf(unsigned char s, unsigned char a, unsigned int v, unsigned int m=(unsigned int)(~0), unsigned short d=0):
+      QueuedHostIntf(unsigned char s, unsigned char a, unsigned int v, unsigned short d=0):
         state(0),
         step(s),
         addr(a),
         val(v),
-        mask(m),
         read(NULL),
         delay(0),
         isRead(false) {}
-      QueuedHostIntf(unsigned char st, unsigned char s, unsigned char a, unsigned int* r, unsigned int m=(unsigned int)(~0), unsigned short d=0):
+      QueuedHostIntf(unsigned char st, unsigned char s, unsigned char a, unsigned int* r, unsigned short d=0):
         state(st),
         step(s),
         addr(a),
         val(0),
-        mask(m),
         read(r),
         delay(d),
         isRead(true) {}
@@ -269,9 +265,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
   FixedQueue<QueuedHostIntf,2048> hostIntf32;
   FixedQueue<QueuedHostIntf,2048> hostIntf8;
   int cycle, curPage, volScale;
-  unsigned char maskedVal;
   unsigned int irqv;
-  bool isMasked, isReaded;
+  bool isReaded;
   bool irqTrigger, amigaVol, amigaPitch;
   unsigned int curCR;
 

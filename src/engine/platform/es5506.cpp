@@ -27,29 +27,124 @@
 
 #define rWrite(a,...) {if(!skipRegisterWrites) {hostIntf32.push_back(QueuedHostIntf(4,(a),__VA_ARGS__)); }}
 #define immWrite(a,...) {hostIntf32.push_back(QueuedHostIntf(4,(a),__VA_ARGS__));}
-#define pageWrite(p,a,...) \
+#define pageWrite(p,a,d) \
   if (!skipRegisterWrites) { \
     if (curPage!=(p)) { \
       curPage=(p); \
-      rWrite(0xf,curPage); \
+      rWrite(0xf,curPage) \
+      if (dumpWrites) { \
+        addWrite(0x3c,0) \
+        addWrite(0x3d,0) \
+        addWrite(0x3e,0) \
+        addWrite(0x3f,curPage) \
+      } \
     } \
-    rWrite((a),__VA_ARGS__); \
+    rWrite((a),(d)) \
+    if (dumpWrites) { \
+      addWrite(((a)<<2)|0,((d)>>24)&0xff) \
+      addWrite(((a)<<2)|1,((d)>>16)&0xff) \
+      addWrite(((a)<<2)|2,((d)>>8)&0xff) \
+      addWrite(((a)<<2)|3,((d)>>0)&0xff) \
+    } \
   }
 
-#define pageWriteMask(p,pm,a,...) \
+#define pageWriteDelayed(p,a,d,dl) \
+  if (!skipRegisterWrites) { \
+    if (curPage!=(p)) { \
+      curPage=(p); \
+      rWrite(0xf,curPage) \
+      if (dumpWrites) { \
+        addWrite(0x3c,0) \
+        addWrite(0x3d,0) \
+        addWrite(0x3e,0) \
+        addWrite(0x3f,curPage) \
+      } \
+    } \
+    rWrite((a),(d),(dl)) \
+    if (dumpWrites) { \
+      addWrite(((a)<<2)|0,((d)>>24)&0xff) \
+      addWrite(((a)<<2)|1,((d)>>16)&0xff) \
+      addWrite(((a)<<2)|2,((d)>>8)&0xff) \
+      addWrite(((a)<<2)|3,((d)>>0)&0xff) \
+    } \
+  }
+
+#define pageWriteMask(p,pm,a,d) \
   if (!skipRegisterWrites) { \
     if ((curPage&(pm))!=((p)&(pm))) { \
       curPage=(curPage&~(pm))|((p)&(pm)); \
-      rWrite(0xf,curPage,(pm)); \
+      rWrite(0xf,curPage,(pm)) \
+      if (dumpWrites) { \
+        addWrite(0x3c,0) \
+        addWrite(0x3d,0) \
+        addWrite(0x3e,0) \
+        addWrite(0x3f,curPage) \
+      } \
     } \
-    rWrite((a),__VA_ARGS__); \
+    rWrite((a),(d)) \
+    if (dumpWrites) { \
+      addWrite(((a)<<2)|0,((d)>>24)&0xff) \
+      addWrite(((a)<<2)|1,((d)>>16)&0xff) \
+      addWrite(((a)<<2)|2,((d)>>8)&0xff) \
+      addWrite(((a)<<2)|3,((d)>>0)&0xff) \
+    } \
+  }
+
+#define crWrite(c,d) \
+  if (!skipRegisterWrites) { \
+    if ((curPage&0x5f)!=((c)&0x5f)) { \
+      curPage=(curPage&~0x5f)|((c)&0x5f); \
+      rWrite(0xf,curPage,0x5f) \
+      if (dumpWrites) { \
+        addWrite(0x3c,0) \
+        addWrite(0x3d,0) \
+        addWrite(0x3e,0) \
+        addWrite(0x3f,curPage) \
+      } \
+    } \
+    chan[c].cr=(d); \
+    rWrite(0,chan[c].cr) \
+    if (dumpWrites) { \
+      addWrite(0x0,0) \
+      addWrite(0x1,0) \
+      addWrite(0x2,(chan[c].cr>>8)&0xff) \
+      addWrite(0x3,(chan[c].cr>>0)&0xff) \
+    } \
+  }
+
+#define crWriteMask(c,d,m) \
+  if (!skipRegisterWrites) { \
+    if ((curPage&0x5f)!=((c)&0x5f)) { \
+      curPage=(curPage&~0x5f)|((c)&0x5f); \
+      rWrite(0xf,curPage,0x5f) \
+      if (dumpWrites) { \
+        addWrite(0x3c,0) \
+        addWrite(0x3d,0) \
+        addWrite(0x3e,0) \
+        addWrite(0x3f,curPage); \
+      } \
+    } \
+    chan[c].cr=(chan[c].cr&~(m))|((d)&(m)); \
+    rWrite(0,chan[c].cr,(m)) \
+    if (dumpWrites) { \
+      addWrite(0x0,0) \
+      addWrite(0x1,0) \
+      addWrite(0x2,(chan[c].cr>>8)&0xff) \
+      addWrite(0x3,(chan[c].cr>>0)&0xff) \
+    } \
   }
 
 #define pageReadMask(p,pm,a,st,...) \
   if (!skipRegisterWrites) { \
     if ((curPage&(pm))!=((p)&(pm))) { \
       curPage=(curPage&~(pm))|((p)&(pm)); \
-      rWrite(0xf,curPage,(pm)); \
+      rWrite(0xf,curPage,(pm)) \
+      if (dumpWrites) { \
+        addWrite(0x3c,0) \
+        addWrite(0x3d,0) \
+        addWrite(0x3e,0) \
+        addWrite(0x3f,curPage) \
+      } \
     } \
     rRead(st,(a),__VA_ARGS__); \
   }
@@ -119,15 +214,15 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
     while (!hostIntf32.empty()) {
       QueuedHostIntf w=hostIntf32.front();
       if (w.isRead && (w.read!=NULL)) {
-        hostIntf8.push(QueuedHostIntf(w.state,0,w.addr,w.read,w.mask));
-        hostIntf8.push(QueuedHostIntf(w.state,1,w.addr,w.read,w.mask));
-        hostIntf8.push(QueuedHostIntf(w.state,2,w.addr,w.read,w.mask));
-        hostIntf8.push(QueuedHostIntf(w.state,3,w.addr,w.read,w.mask,w.delay));
+        hostIntf8.push(QueuedHostIntf(w.state,0,w.addr,w.read));
+        hostIntf8.push(QueuedHostIntf(w.state,1,w.addr,w.read));
+        hostIntf8.push(QueuedHostIntf(w.state,2,w.addr,w.read));
+        hostIntf8.push(QueuedHostIntf(w.state,3,w.addr,w.read,w.delay));
       } else {
-        hostIntf8.push(QueuedHostIntf(0,w.addr,w.val,w.mask));
-        hostIntf8.push(QueuedHostIntf(1,w.addr,w.val,w.mask));
-        hostIntf8.push(QueuedHostIntf(2,w.addr,w.val,w.mask));
-        hostIntf8.push(QueuedHostIntf(3,w.addr,w.val,w.mask,w.delay));
+        hostIntf8.push(QueuedHostIntf(0,w.addr,w.val));
+        hostIntf8.push(QueuedHostIntf(1,w.addr,w.val));
+        hostIntf8.push(QueuedHostIntf(2,w.addr,w.val));
+        hostIntf8.push(QueuedHostIntf(3,w.addr,w.val,w.delay));
       }
       hostIntf32.pop();
     }
@@ -142,24 +237,11 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
         logE("READING?!");
         hostIntf8.pop();
       } else {
-        unsigned int mask=(w.mask>>shift)&0xff;
-        if ((mask==0xff) || isMasked) {
-          if (mask==0xff) {
-            maskedVal=(w.val>>shift)&0xff;
-          }
-          es5506.host_w((w.addr<<2)+w.step,maskedVal);
-          if(dumpWrites) {
-            addWrite((w.addr<<2)+w.step,maskedVal);
-          }
-          isMasked=false;
-          if ((w.step==3) && (w.delay>0)) {
-            cycle+=w.delay;
-          }
-          hostIntf8.pop();
-        } else if (!isMasked) {
-          maskedVal=((w.val>>shift)&mask)|(es5506.host_r((w.addr<<2)+w.step)&~mask);
-          isMasked=true;
+        es5506.host_w((w.addr<<2)+w.step,(w.val>>shift)&0xff);
+        if ((w.step==3) && (w.delay>0)) {
+          cycle+=w.delay;
         }
+        hostIntf8.pop();
         if (cycle>0) break;
       }
     }
@@ -429,13 +511,13 @@ void DivPlatformES5506::tick(bool sysTick) {
       if (chan[i].pcm.pause!=(bool)(chan[i].std.alg.val&1)) {
         chan[i].pcm.pause=chan[i].std.alg.val&1;
         if (!chan[i].keyOn) {
-          pageWriteMask(0x00|i,0x5f,0x00,chan[i].pcm.pause?0x0002:0x0000,0x0002);
+          crWriteMask(0x00|i,chan[i].pcm.pause?0x0002:0x0000,0x0002);
         }
       }
       if (chan[i].pcm.direction!=(bool)(chan[i].std.alg.val&2)) {
         chan[i].pcm.direction=chan[i].std.alg.val&2;
         if (!chan[i].keyOn) {
-          pageWriteMask(0x00|i,0x5f,0x00,chan[i].pcm.direction?0x0040:0x0000,0x0040);
+          crWriteMask(0x00|i,chan[i].pcm.direction?0x0040:0x0000,0x0040);
         }
       }
     }
@@ -469,7 +551,7 @@ void DivPlatformES5506::tick(bool sysTick) {
         }
       }
       if (chan[i].volChanged.ca) {
-        pageWriteMask(0x00|i,0x5f,0x00,(chan[i].ca<<10),0x1c00);
+        crWriteMask(0x00|i,(chan[i].ca<<10),0x1c00);
       }
       chan[i].volChanged.changed=0;
     }
@@ -578,7 +660,7 @@ void DivPlatformES5506::tick(bool sysTick) {
               break;
           }
           // Set loop mode & Bank
-          pageWriteMask(0x00|i,0x5f,0x00,loopFlag,0xe0fd);
+          crWriteMask(0x00|i,loopFlag,0xe0fd);
         }
         chan[i].pcmChanged.loopBank=0;
       }
@@ -587,7 +669,7 @@ void DivPlatformES5506::tick(bool sysTick) {
     if (chan[i].filterChanged.changed) {
       if (!chan[i].keyOn) {
         if (chan[i].filterChanged.mode) {
-          pageWriteMask(0x00|i,0x5f,0x00,(chan[i].filter.mode<<8),0x0300);
+          crWriteMask(0x00|i,(chan[i].filter.mode<<8),0x0300);
         }
         if (chan[i].filterChanged.k2) {
           if (chan[i].std.ex2.mode!=0) { // Relative
@@ -675,11 +757,11 @@ void DivPlatformES5506::tick(bool sysTick) {
           }
           chan[i].k1Prev=0xffff;
           chan[i].k2Prev=0xffff;
-          pageWriteMask(0x00|i,0x5f,0x00,0x0303); // Wipeout CR
+          crWrite(0x00|i,0x0303); // Wipeout CR
           pageWrite(0x00|i,0x06,0); // Clear ECOUNT
           pageWrite(0x20|i,0x03,startPos); // Set ACCUM to start address
           pageWrite(0x00|i,0x07,0xffff); // Set K1 and K2 to 0xffff
-          pageWrite(0x00|i,0x09,0xffff,~0,(chanMax+1)*4*2); // needs to 4 sample period delay
+          pageWriteDelayed(0x00|i,0x09,0xffff,(chanMax+1)*4*2); // needs to 4 sample period delay
           pageWrite(0x00|i,0x01,chan[i].freq);
           pageWrite(0x20|i,0x01,(chan[i].pcm.loopMode==DIV_SAMPLE_LOOP_MAX)?chan[i].pcm.start:chan[i].pcm.loopStart);
           pageWrite(0x20|i,0x02,(chan[i].pcm.loopMode==DIV_SAMPLE_LOOP_MAX)?chan[i].pcm.end:chan[i].pcm.loopEnd);
@@ -721,7 +803,7 @@ void DivPlatformES5506::tick(bool sysTick) {
           pageWrite(0x00|i,0x0a,((unsigned char)(chan[i].envelope.k1Ramp)<<8)|(chan[i].envelope.k1Slow?1:0));
           pageWrite(0x00|i,0x08,((unsigned char)(chan[i].envelope.k2Ramp)<<8)|(chan[i].envelope.k2Slow?1:0));
           // initialize filter
-          pageWriteMask(0x00|i,0x5f,0x00,(chan[i].pcm.bank<<14)|(chan[i].filter.mode<<8),0xc300);
+          crWriteMask(0x00|i,(chan[i].pcm.bank<<14)|(chan[i].filter.mode<<8),0xc300);
           if ((chan[i].std.ex2.mode!=0) && (chan[i].std.ex2.had)) {
             k2=CLAMP(chan[i].filter.k2+chan[i].k2Offs,0,65535);
           } else {
@@ -762,11 +844,11 @@ void DivPlatformES5506::tick(bool sysTick) {
           }
           // Run sample
           pageWrite(0x00|i,0x06,chan[i].envelope.ecount); // Clear ECOUNT
-          pageWriteMask(0x00|i,0x5f,0x00,loopFlag,0x3cff);
+          crWriteMask(0x00|i,loopFlag,0x3cff);
         }
       }
       if (chan[i].keyOff) {
-        pageWriteMask(0x00|i,0x5f,0x00,0x0303); // Wipeout CR
+        crWrite(0x00|i,0x0303); // Wipeout CR
       } else if (!chan[i].keyOn && chan[i].active) {
         pageWrite(0x00|i,0x01,chan[i].freq);
       }
@@ -1085,7 +1167,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       if (chan[c.chan].active) {
         if (chan[c.chan].pcm.pause!=(bool)(c.value&1)) {
           chan[c.chan].pcm.pause=c.value&1;
-          pageWriteMask(0x00|c.chan,0x5f,0x00,chan[c.chan].pcm.pause?0x0002:0x0000,0x0002);
+          crWriteMask(0x00|c.chan,chan[c.chan].pcm.pause?0x0002:0x0000,0x0002);
         }
       }
       break;
@@ -1141,7 +1223,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     case DIV_CMD_SAMPLE_DIR: {
       if (chan[c.chan].pcm.direction!=(bool)(c.value&1)) {
         chan[c.chan].pcm.direction=c.value&1;
-        pageWriteMask(0x00|c.chan,0x5f,0x00,chan[c.chan].pcm.direction?0x0040:0x0000,0x0040);
+        crWriteMask(0x00|c.chan,chan[c.chan].pcm.direction?0x0040:0x0000,0x0040);
       }
       break;
     }
@@ -1212,11 +1294,13 @@ void DivPlatformES5506::reset() {
 
   cycle=0;
   curPage=0;
-  maskedVal=0;
   irqv=0x80;
-  isMasked=false;
   irqTrigger=false;
   chanMax=initChanMax;
+
+  if (dumpWrites) {
+    addWrite(0xffffffff,0);
+  }
 
   pageWriteMask(0x00,0x60,0x0b,chanMax);
   pageWriteMask(0x00,0x60,0x0b,0x1f);
@@ -1286,6 +1370,10 @@ unsigned char* DivPlatformES5506::getRegisterPool() {
   for (unsigned char p=0; p<128; p++) {
     for (unsigned char r=0; r<16; r++) {
       unsigned int reg=es5506.regs_r(p,r,false);
+      // Sync CR register with register pool
+      if (((p&0x40)==0) && (r==0)) {
+        chan[p&0x1f].cr=reg&0xffff;
+      }
       for (int b=0; b<4; b++) {
         *regPoolPtr++ = reg>>(24-(b<<3));
       }
