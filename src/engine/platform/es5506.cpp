@@ -697,7 +697,7 @@ void DivPlatformES5506::tick(bool sysTick) {
             pageWrite(0x00|i,0x05,((unsigned char)chan[i].envelope.rVRamp)<<8);
           }
           if (chan[i].envChanged.ecount) {
-            pageWrite(0x00|i,0x06,chan[i].envelope.ecount);
+            pageWrite(0x00|i,0x06,(unsigned int)chan[i].envelope.ecount);
           }
           if (chan[i].envChanged.k2Ramp) {
             pageWrite(0x00|i,0x08,(((unsigned char)chan[i].envelope.k2Ramp)<<8)|(chan[i].envelope.k2Slow?1:0));
@@ -843,7 +843,7 @@ void DivPlatformES5506::tick(bool sysTick) {
             loopFlag|=0x0002;
           }
           // Run sample
-          pageWrite(0x00|i,0x06,chan[i].envelope.ecount); // Clear ECOUNT
+          pageWrite(0x00|i,0x06,(unsigned int)chan[i].envelope.ecount); // Clear ECOUNT
           crWriteMask(0x00|i,loopFlag,0x3cff);
         }
       }
@@ -1302,7 +1302,7 @@ void DivPlatformES5506::reset() {
     addWrite(0xffffffff,0);
   }
 
-  pageWriteMask(0x00,0x60,0x0b,chanMax);
+  pageWriteMask(0x00,0x60,0x0b,(unsigned int)chanMax);
   pageWriteMask(0x00,0x60,0x0b,0x1f);
   // set serial output to I2S-ish, 16 bit
   pageWriteMask(0x20,0x60,0x0a,0x01);
@@ -1345,7 +1345,7 @@ void DivPlatformES5506::setFlags(const DivConfig& flags) {
   amigaVol=flags.getBool("amigaVol",false);
   amigaPitch=flags.getBool("amigaPitch",false);
   chanMax=initChanMax;
-  pageWriteMask(0x00,0x60,0x0b,chanMax);
+  pageWriteMask(0x00,0x60,0x0b,(unsigned int)chanMax);
 
   rate=chipClock/(16*(initChanMax+1)); // 2 E clock tick (16 CLKIN tick) per voice / 4
   for (int i=0; i<32; i++) {
