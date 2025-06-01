@@ -1873,7 +1873,7 @@ void AT_apply_finetune(DivInstrument* ins, void* data, int version)
     {
         if(ins->std.pitchMacro.len != 0)
         {
-            for(int i = 0; i < ins->std.pitchMacro.len; i++)
+            for(int i = 0; i < ((ins->std.pitchMacro.mode == 1) ? 1 : ins->std.pitchMacro.len); i++) //if freq slide from FM macro is there adjust only 1st step
             {
                 ins->std.pitchMacro.val[i] += finetune;
             }
@@ -2106,7 +2106,7 @@ void AT_import_macros(tSONGINFO* songInfo, DivInstrument* ins, int i)
           {
             uint16_t temp = ((uint16_t)macroStep->freq_slide[1] << 8) | macroStep->freq_slide[0];
             signed short freqSlide = *(signed short*)&temp; //pray it's the right way
-            ins->std.pitchMacro.val[macroPos] = freqSlide * 4;
+            ins->std.pitchMacro.val[macroPos] = freqSlide;
           }
 
           if (!songInfo->disabled_fmregs_table[i][12 + 15])
