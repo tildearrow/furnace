@@ -732,47 +732,56 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version)
                 {
                     case fx_ex_DefAMdepth:
                     {
-                        //todo
+                        data[4 + emptyEffSlot * 2] = 0x10; //global?
+                        data[5 + emptyEffSlot * 2] = paramLowerNibble;
                         break;
                     }
                     case fx_ex_DefVibDepth:
                     {
-                        //todo
+                        data[4 + emptyEffSlot * 2] = 0x17; //global?
+                        data[5 + emptyEffSlot * 2] = paramLowerNibble;
                         break;
                     }
                     case fx_ex_DefWaveform:
                     {
-                        //todo
+                        data[4 + emptyEffSlot * 2] = 0x2A; //for all ops?
+                        data[5 + emptyEffSlot * 2] = paramLowerNibble;
                         break;
                     }
                     case fx_ex_ManSlideUp:
                     {
-                        //todo
+                        data[4 + emptyEffSlot * 2] = 0xF1;
+                        data[5 + emptyEffSlot * 2] = paramLowerNibble;
                         break;
                     }
                     case fx_ex_ManSlideDown:
                     {
-                        //todo
+                        data[4 + emptyEffSlot * 2] = 0xF2;
+                        data[5 + emptyEffSlot * 2] = paramLowerNibble;
                         break;
                     }
                     case fx_ex_VSlideUp:
                     {
-                        //todo
+                        data[4 + emptyEffSlot * 2] = 0x0A;
+                        data[5 + emptyEffSlot * 2] = paramLowerNibble << 4;
                         break;
                     }
                     case fx_ex_VSlideDown:
                     {
-                        //todo
+                        data[4 + emptyEffSlot * 2] = 0x0A;
+                        data[5 + emptyEffSlot * 2] = paramLowerNibble;
                         break;
                     }
                     case fx_ex_VSlideUpFine:
                     {
-                        //todo
+                        data[4 + emptyEffSlot * 2] = 0xF3;
+                        data[5 + emptyEffSlot * 2] = paramLowerNibble;
                         break;
                     }
                     case fx_ex_VSlideDownFine:
                     {
-                        //todo
+                        data[4 + emptyEffSlot * 2] = 0xF4;
+                        data[5 + emptyEffSlot * 2] = paramLowerNibble;
                         break;
                     }
                     case fx_ex_RetrigNote:
@@ -783,22 +792,26 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version)
                     }
                     case fx_ex_SetAttckRate:
                     {
-                        //todo
+                        data[4 + emptyEffSlot * 2] = 0x19; //for all ops?
+                        data[5 + emptyEffSlot * 2] = paramLowerNibble;
                         break;
                     }
                     case fx_ex_SetDecayRate:
                     {
-                        //todo
+                        data[4 + emptyEffSlot * 2] = 0x56; //for all ops?
+                        data[5 + emptyEffSlot * 2] = paramLowerNibble;
                         break;
                     }
                     case fx_ex_SetSustnLevel:
                     {
-                        //todo
+                        data[4 + emptyEffSlot * 2] = 0x51; //for all ops?
+                        data[5 + emptyEffSlot * 2] = paramLowerNibble;
                         break;
                     }
                     case fx_ex_SetReleaseRate:
                     {
-                        //todo
+                        data[4 + emptyEffSlot * 2] = 0x52; //for all ops?
+                        data[5 + emptyEffSlot * 2] = paramLowerNibble;
                         break;
                     }
                     case fx_ex_SetFeedback:
