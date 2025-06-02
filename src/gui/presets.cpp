@@ -3168,27 +3168,27 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     _("Yamaha YM3438 (OPN2C)"), {
-      CH(DIV_SYSTEM_YM2612, 1.0f, 0, "")
+      CH(DIV_SYSTEM_YM2612, 1.0f, 0, "chipType=0")
     }
   );
     SUB_ENTRY(
       _("Yamaha YM3438 (extended channel 3)"), {
-        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "")
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "chipType=0")
       }
     );
     SUB_ENTRY(
       _("Yamaha YM3438 (OPN2C) CSM"), {
-        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, "")
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, "chipType=0")
       }
     );
     SUB_ENTRY(
       _("Yamaha YM3438 (OPN2C) with DualPCM"), {
-        CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, "")
+        CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, "chipType=0")
       }
     );
     SUB_ENTRY(
       _("Yamaha YM3438 (extended channel 3) with DualPCM"), {
-        CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, "")
+        CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, "chipType=0")
       }
     );
   ENTRY(

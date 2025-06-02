@@ -1857,9 +1857,11 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
       break;
   }
   if (flags.has("chipType")) {
-    chipType=flags.getInt("chipType",0);
-  } else {
+    chipType=flags.getInt("chipType",1);
+  } else if (flags.has("ladderEffect")) {
     chipType=flags.getBool("ladderEffect",false)?1:0;
+  } else {
+    chipType=1;
   }
   noExtMacros=flags.getBool("noExtMacros",false);
   fbAllOps=flags.getBool("fbAllOps",false);
