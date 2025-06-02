@@ -1384,10 +1384,6 @@ unsigned char* DivPlatformES5506::getRegisterPool() {
   for (unsigned char p=0; p<128; p++) {
     for (unsigned char r=0; r<16; r++) {
       unsigned int reg=es5506.regs_r(p,r,false);
-      // Sync CR register with register pool
-      if (((p&0x40)==0) && (r==0)) {
-        chan[p&0x1f].cr=reg&0xffff;
-      }
       for (int b=0; b<4; b++) {
         *regPoolPtr++ = reg>>(24-(b<<3));
       }
