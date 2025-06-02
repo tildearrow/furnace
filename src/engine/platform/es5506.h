@@ -67,7 +67,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     int nextFreq, nextNote, currNote, wave;
     int volMacroMax, panMacroMax;
     bool useWave, isReverseLoop;
-    unsigned int cr;
+    unsigned short cr;
 
     struct NoteChanged { // Note changed flags
       union { // pack flag bits in single byte

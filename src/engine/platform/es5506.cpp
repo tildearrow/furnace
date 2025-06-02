@@ -124,7 +124,7 @@
         addWrite(0x3f,curPage); \
       } \
     } \
-    chan[c].cr=((es5506.regs_r((curPage&0x20)|c,0,false)&~(m))|((d)&(m)))&0xffff; \
+    chan[c].cr=(chan[c].cr&~(m))|((d)&(m)); \
     rWrite(0,chan[c].cr) \
     if (dumpWrites) { \
       addWrite(0x0,0) \
