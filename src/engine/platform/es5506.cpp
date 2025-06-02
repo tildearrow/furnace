@@ -513,14 +513,14 @@ void DivPlatformES5506::tick(bool sysTick) {
       if (chan[i].pcm.pause!=(bool)(chan[i].std.alg.val&1)) {
         chan[i].pcm.pause=chan[i].std.alg.val&1;
         if (!chan[i].keyOn) {
-          crWriteVal|=(crWriteVal&~0x0002)|(chan[i].pcm.pause?0x0002:0x0000);
+          crWriteVal=(crWriteVal&~0x0002)|(chan[i].pcm.pause?0x0002:0x0000);
           crChanged=true;
         }
       }
       if (chan[i].pcm.direction!=(bool)(chan[i].std.alg.val&2)) {
         chan[i].pcm.direction=chan[i].std.alg.val&2;
         if (!chan[i].keyOn) {
-          crWriteVal|=(crWriteVal&~0x0040)|(chan[i].pcm.direction?0x0040:0x0000);
+          crWriteVal=(crWriteVal&~0x0040)|(chan[i].pcm.direction?0x0040:0x0000);
           crChanged=true;
         }
       }
