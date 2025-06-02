@@ -205,12 +205,10 @@ void DivPlatformAY8910::runTFX(int runRate) {
       }
       if (chan[i].tfx.counter >= chan[i].tfx.period && chan[i].tfx.mode == 1) {
         chan[i].tfx.counter -= chan[i].tfx.period;
-        if (!isMuted[i]) {
-          if (intellivision && selCore) {
-            immWrite(0xa, ayEnvMode);
-          } else {
-            immWrite(0xd, ayEnvMode);
-          }
+        if (intellivision && selCore) {
+          immWrite(0xa, ayEnvMode);
+        } else {
+          immWrite(0xd, ayEnvMode);
         }
       }
       if (chan[i].tfx.counter >= chan[i].tfx.period && chan[i].tfx.mode == 2) {
