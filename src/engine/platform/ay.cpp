@@ -168,6 +168,15 @@ void DivPlatformAY8910::runTFX(int runRate, int advance) {
   for (int i=0; i<3; i++) {
     if (chan[i].active && (chan[i].curPSGMode.val&16) && !(chan[i].curPSGMode.val&8) && chan[i].tfx.mode!=-1) {
       if (chan[i].tfx.mode == -1 && !isMuted[i]) {
+        /*
+        bug: if in the timer FX macro the user enables
+        and then disables PWM while there is no volume macro
+        there is now a random chance that the resulting output
+        is silent or has volume set incorrectly
+        i've tried to implement a fix, but it seems to be
+        ineffective, so...
+        TODO: actually implement a proper fix
+        */
         if (intellivision && chan[i].curPSGMode.getEnvelope()) {
           immWrite(0x08+i,(chan[i].outVol&0xc)<<2);
           continue;
@@ -197,7 +206,6 @@ void DivPlatformAY8910::runTFX(int runRate, int advance) {
       }
       if (chan[i].tfx.counter >= chan[i].tfx.period && chan[i].tfx.mode == 1) {
         chan[i].tfx.counter -= chan[i].tfx.period;
-        // syncbuzzer
         if (intellivision && selCore) {
           immWrite(0xa, ayEnvMode);
         } else {
