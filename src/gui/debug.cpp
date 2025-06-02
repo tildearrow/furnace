@@ -884,6 +884,8 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text("- VolMacroMax: %d",ch->volMacroMax);
       ImGui::Text("- PanMacroMax: %d",ch->panMacroMax);
       ImGui::Text("- CR: %.4x",ch->cr);
+      ImGui::Text("- CRWriteVal: %.4x",ch->crWriteVal);
+      ImGui::Text("- CRDirVal: %.4x",ch->crDirVal);
       ImGui::Text("* PCM:");
       ImGui::Text(" * index: %d",ch->pcm.index);
       ImGui::Text("  - next: %d",ch->pcm.next);
@@ -949,6 +951,8 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::TextColored(ch->pcmChanged.position?colorOn:colorOff,">> PCMPositionChanged");
       ImGui::TextColored(ch->pcmChanged.loopBank?colorOn:colorOff,">> PCMLoopBankChanged");
       ImGui::TextColored(ch->isReverseLoop?colorOn:colorOff,">> IsReverseLoop");
+      ImGui::TextColored(ch->crChanged?colorOn:colorOff,">> CRChanged");
+      ImGui::TextColored(ch->crDirValInit?colorOn:colorOff,">> CRDirValInit");
       ImGui::TextColored(ch->pcm.isNoteMap?colorOn:colorOff,">> PCMIsNoteMap");
       ImGui::TextColored(ch->pcm.pause?colorOn:colorOff,">> PCMPause");
       ImGui::TextColored(ch->pcm.direction?colorOn:colorOff,">> PCMDirection");
