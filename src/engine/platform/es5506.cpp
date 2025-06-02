@@ -73,7 +73,7 @@
   if (!skipRegisterWrites) { \
     if ((curPage&(pm))!=((p)&(pm))) { \
       curPage=(curPage&~(pm))|((p)&(pm)); \
-      rWrite(0xf,curPage,(pm)) \
+      rWrite(0xf,curPage) \
       if (dumpWrites) { \
         addWrite(0x3c,0) \
         addWrite(0x3d,0) \
@@ -94,7 +94,7 @@
   if (!skipRegisterWrites) { \
     if ((curPage&0x5f)!=((c)&0x5f)) { \
       curPage=(curPage&~0x5f)|((c)&0x5f); \
-      rWrite(0xf,curPage,0x5f) \
+      rWrite(0xf,curPage) \
       if (dumpWrites) { \
         addWrite(0x3c,0) \
         addWrite(0x3d,0) \
@@ -116,7 +116,7 @@
   if (!skipRegisterWrites) { \
     if ((curPage&0x5f)!=((c)&0x5f)) { \
       curPage=(curPage&~0x5f)|((c)&0x5f); \
-      rWrite(0xf,curPage,0x5f) \
+      rWrite(0xf,curPage) \
       if (dumpWrites) { \
         addWrite(0x3c,0) \
         addWrite(0x3d,0) \
@@ -124,8 +124,8 @@
         addWrite(0x3f,curPage); \
       } \
     } \
-    chan[c].cr=(chan[c].cr&~(m))|((d)&(m)); \
-    rWrite(0,chan[c].cr,(m)) \
+    chan[c].cr=((es5506.regs_r((curPage&0x20)|c,0,false)&~(m))|((d)&(m)))&0xffff; \
+    rWrite(0,chan[c].cr) \
     if (dumpWrites) { \
       addWrite(0x0,0) \
       addWrite(0x1,0) \
@@ -138,7 +138,7 @@
   if (!skipRegisterWrites) { \
     if ((curPage&(pm))!=((p)&(pm))) { \
       curPage=(curPage&~(pm))|((p)&(pm)); \
-      rWrite(0xf,curPage,(pm)) \
+      rWrite(0xf,curPage) \
       if (dumpWrites) { \
         addWrite(0x3c,0) \
         addWrite(0x3d,0) \
