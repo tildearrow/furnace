@@ -373,9 +373,10 @@ void CSAASoundInternal::GenerateMany(BYTE* pBuffer, unsigned int nSamples, DivDi
 	else
 	{
 #endif
+    unsigned int where=0;
 		while (nSamples--)
 		{
-			m_chip._TickAndOutputStereo(left_mixed, right_mixed, oscBuf);
+			m_chip._TickAndOutputStereo(left_mixed, right_mixed, oscBuf, where++);
 			scale_for_output(left_mixed, right_mixed, oversample, m_bHighpass, nBoost, filterout_z1_left_mixed, filterout_z1_right_mixed, pBuffer);
 		}
 

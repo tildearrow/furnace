@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ void DivPlatformYM2610BExt::commitStateExt(int ch, DivInstrument* ins) {
     }
     chan[extChanOffs].state.fms=ins->fm.fms;
     chan[extChanOffs].state.ams=ins->fm.ams;
+    chan[extChanOffs].state.block=ins->fm.block;
     chan[extChanOffs].state.op[ordch]=ins->fm.op[ordch];
   }
   
@@ -89,7 +90,7 @@ int DivPlatformYM2610BExt::dispatch(DivCommand c) {
       opChan[ch].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
-        opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
+        opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[extChanOffs].state.block);
         opChan[ch].portaPause=false;
         opChan[ch].note=c.value;
         opChan[ch].freqChanged=true;
@@ -184,7 +185,7 @@ int DivPlatformYM2610BExt::dispatch(DivCommand c) {
         }
         break;
       }
-      PLEASE_HELP_ME(opChan[ch]);
+      PLEASE_HELP_ME(opChan[ch],chan[extChanOffs].state.block);
       break;
     }
     case DIV_CMD_LEGATO: {
@@ -193,7 +194,7 @@ int DivPlatformYM2610BExt::dispatch(DivCommand c) {
         commitStateExt(ch,ins);
         opChan[ch].insChanged=false;
       }
-      opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
+      opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[extChanOffs].state.block);
       opChan[ch].freqChanged=true;
       break;
     }
@@ -214,9 +215,25 @@ int DivPlatformYM2610BExt::dispatch(DivCommand c) {
       rWrite(0x22,lfoValue);
       break;
     }
+    case DIV_CMD_FM_ALG: {
+      chan[extChanOffs].state.alg=c.value&7;
+      // TODO: TL compensation?
+      rWrite(ADDR_FB_ALG+chanOffs[extChanOffs],(chan[extChanOffs].state.alg&7)|(chan[extChanOffs].state.fb<<3));
+      break;
+    }
     case DIV_CMD_FM_FB: {
       chan[extChanOffs].state.fb=c.value&7;
       rWrite(chanOffs[extChanOffs]+ADDR_FB_ALG,(chan[extChanOffs].state.alg&7)|(chan[extChanOffs].state.fb<<3));
+      break;
+    }
+    case DIV_CMD_FM_FMS: {
+      chan[extChanOffs].state.fms=c.value&7;
+      rWrite(chanOffs[extChanOffs]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch].pan<<6))|(chan[extChanOffs].state.fms&7)|((chan[extChanOffs].state.ams&3)<<4));
+      break;
+    }
+    case DIV_CMD_FM_AMS: {
+      chan[extChanOffs].state.ams=c.value&3;
+      rWrite(chanOffs[extChanOffs]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch].pan<<6))|(chan[extChanOffs].state.fms&7)|((chan[extChanOffs].state.ams&3)<<4));
       break;
     }
     case DIV_CMD_FM_MULT: {
@@ -416,6 +433,16 @@ void DivPlatformYM2610BExt::tick(bool sysTick) {
   int hardResetElapsed=0;
   bool mustHardReset=false;
 
+  if (extMode && !noExtMacros) for (int i=0; i<4; i++) {
+    opChan[i].std.next();
+
+    if (opChan[i].std.phaseReset.had) {
+      if (opChan[i].std.phaseReset.val==1 && opChan[i].active) {
+        opChan[i].keyOn=true;
+      }
+    }
+  }
+
   if (extMode) {
     bool writeSomething=false;
     unsigned char writeMask=2;
@@ -434,13 +461,14 @@ void DivPlatformYM2610BExt::tick(bool sysTick) {
       }
     }
     if (writeSomething) {
+      if (chan[csmChan].active) { // CSM
+        writeMask^=0xf0;
+      }
       immWrite(0x28,writeMask);
     }
   }
 
   if (extMode && !noExtMacros) for (int i=0; i<4; i++) {
-    opChan[i].std.next();
-
     if (opChan[i].std.vol.had) {
       opChan[i].outVol=VOL_SCALE_LOG_BROKEN(opChan[i].vol,MIN(127,opChan[i].std.vol.val),127);
       unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[orderedOps[i]];
@@ -452,9 +480,11 @@ void DivPlatformYM2610BExt::tick(bool sysTick) {
       }
     }
 
-    if (opChan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      opChan[i].handleArp();
+    } else if (opChan[i].std.arp.had) {
       if (!opChan[i].inPorta) {
-        opChan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(opChan[i].note,opChan[i].std.arp.val),11);
+        opChan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(opChan[i].note,opChan[i].std.arp.val),11,chan[extChanOffs].state.block);
       }
       opChan[i].freqChanged=true;
     }
@@ -575,7 +605,7 @@ void DivPlatformYM2610BExt::tick(bool sysTick) {
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
       if (parent->song.linearPitch==2) {
-        opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,4,opChan[i].pitch2,chipClock,CHIP_FREQBASE,11);
+        opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,4,opChan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[extChanOffs].state.block);
       } else {
         int fNum=parent->calcFreq(opChan[i].baseFreq&0x7ff,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,4,opChan[i].pitch2);
         int block=(opChan[i].baseFreq&0xf800)>>11;
@@ -607,16 +637,35 @@ void DivPlatformYM2610BExt::tick(bool sysTick) {
       }
     }
   }
+  if (extMode) {
+    if (chan[csmChan].freqChanged) {
+      chan[csmChan].freq=parent->calcFreq(chan[csmChan].baseFreq,chan[csmChan].pitch,chan[csmChan].fixedArp?chan[csmChan].baseNoteOverride:chan[csmChan].arpOff,chan[csmChan].fixedArp,true,0,chan[csmChan].pitch2,chipClock,CHIP_DIVIDER);
+      if (chan[csmChan].freq<1) chan[csmChan].freq=1;
+      if (chan[csmChan].freq>1024) chan[csmChan].freq=1024;
+      int wf=0x400-chan[csmChan].freq;
+      immWrite(0x24,wf>>2);
+      immWrite(0x25,wf&3);
+      chan[csmChan].freqChanged=false;
+    }
+
+    if (chan[csmChan].keyOff || chan[csmChan].keyOn) {
+      writeNoteOn=true;
+      for (int i=0; i<4; i++) {
+        writeMask|=opChan[i].active<<(4+i);
+      }
+    }
+  }
   if (writeNoteOn) {
+    if (chan[csmChan].active) { // CSM
+      writeMask^=0xf0;
+    }
     writeMask^=hardResetMask;
     immWrite(0x28,writeMask);
     writeMask^=hardResetMask;
 
     // hard reset handling
     if (mustHardReset) {
-      for (unsigned int i=hardResetElapsed; i<hardResetCycles; i++) {
-        immWrite(0xf0,i&0xff);
-      }
+      immWrite(0xfffffffe,hardResetCycles-hardResetElapsed);
       for (int i=0; i<4; i++) {
         if (opChan[i].keyOn && opChan[i].hardReset) {
           // restore SL/RR
@@ -627,6 +676,17 @@ void DivPlatformYM2610BExt::tick(bool sysTick) {
         }
       }
       immWrite(0x28,writeMask);
+    }
+  }
+
+  if (extMode) {
+    if (chan[csmChan].keyOn) {
+      immWrite(0x27,0x81);
+      chan[csmChan].keyOn=false;
+    }
+    if (chan[csmChan].keyOff) {
+      immWrite(0x27,0x40);
+      chan[csmChan].keyOff=false;
     }
   }
 }
@@ -661,7 +721,7 @@ void DivPlatformYM2610BExt::muteChannel(int ch, bool mute) {
 }
 
 void DivPlatformYM2610BExt::forceIns() {
-  for (int i=0; i<psgChanOffs; i++) {
+  for (int i=0; i<(psgChanOffs-isCSM); i++) {
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
@@ -718,6 +778,11 @@ void DivPlatformYM2610BExt::forceIns() {
       opChan[i].freqChanged=true;
     }
   }
+  if (extMode && chan[csmChan].active) { // CSM
+    chan[csmChan].insChanged=true;
+    chan[csmChan].freqChanged=true;
+    chan[csmChan].keyOn=true;
+  }
   if (!extMode) {
     immWrite(0x27,0x00);
   }
@@ -737,6 +802,7 @@ DivMacroInt* DivPlatformYM2610BExt::getChanMacroInt(int ch) {
 }
 
 unsigned short DivPlatformYM2610BExt::getPan(int ch) {
+  if (ch==4+csmChan) return 0;
   if (ch>=4+extChanOffs) return DivPlatformYM2610B::getPan(ch-3);
   if (ch>=extChanOffs) {
     if (extMode) {
@@ -805,7 +871,7 @@ int DivPlatformYM2610BExt::init(DivEngine* parent, int channels, int sugRate, co
   extSys=true;
 
   reset();
-  return 19;
+  return 20;
 }
 
 void DivPlatformYM2610BExt::quit() {

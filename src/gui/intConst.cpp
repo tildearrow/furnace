@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@ const int _THIRTY_ONE=31;
 const int _SIXTY_FOUR=64;
 const int _ONE_HUNDRED=100;
 const int _ONE_HUNDRED_TWENTY_SEVEN=127;
+const int _ONE_HUNDRED_SEVENTY_NINE=179;
 const int _TWO_HUNDRED_FIFTY_FIVE=255;
 const int _FIVE_HUNDRED_ELEVEN=511;
 const int _TWO_THOUSAND_FORTY_SEVEN=2047;

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #include "../bsr.h"
 #include <math.h>
 
-#define rWrite(a,v) {if (!skipRegisterWrites) {mikey->write(a,v); if (dumpWrites) {addWrite(a,v);}}}
+#define rWrite(a,v) {if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);}}}
 
 #define WRITE_VOLUME(ch,v) rWrite(0x20+(ch<<3),(v))
 #define WRITE_FEEDBACK(ch,v) rWrite(0x21+(ch<<3),(v))
@@ -123,38 +123,76 @@ const char** DivPlatformLynx::getRegisterSheet() {
   return regCheatSheetLynx;
 }
 
-void DivPlatformLynx::acquire(short** buf, size_t len) {
-  for (size_t h=0; h<len; h++) {
-    for (int i=0; i<4; i++) {
-      if (chan[i].pcm && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
-        chan[i].sampleAccum-=chan[i].sampleFreq;
-        if (chan[i].sampleAccum<0) {
-          chan[i].sampleAccum+=rate;
-          DivSample* s=parent->getSample(chan[i].sample);
-          if (s!=NULL) {
-            if (isMuted[i]) {
+void DivPlatformLynx::processDAC(int sRate) {
+  for (int i=0; i<4; i++) {
+    if (chan[i].pcm && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
+      chan[i].sampleAccum-=chan[i].sampleFreq;
+      while (chan[i].sampleAccum<0) {
+        chan[i].sampleAccum+=sRate;
+        DivSample* s=parent->getSample(chan[i].sample);
+        if (s!=NULL) {
+          if (isMuted[i]) {
+            WRITE_OUTPUT(i,0);
+          } else {
+            if (chan[i].samplePos<0 || chan[i].samplePos>=(int)s->samples) {
               WRITE_OUTPUT(i,0);
             } else {
-              if (chan[i].samplePos<0 || chan[i].samplePos>=(int)s->samples) {
-                WRITE_OUTPUT(i,0);
-              } else {
-                WRITE_OUTPUT(i,CLAMP((s->data8[chan[i].samplePos]*chan[i].outVol)>>7,-128,127));
-              }
+              WRITE_OUTPUT(i,CLAMP((s->data8[chan[i].samplePos]*chan[i].outVol)>>7,-128,127));
             }
-            chan[i].samplePos++;
+          }
+          chan[i].samplePos++;
 
-            if (s->isLoopable() && chan[i].samplePos>=s->loopEnd) {
-              chan[i].samplePos=s->loopStart;
-            } else if (chan[i].samplePos>=(int)s->samples) {
-              chan[i].sample=-1;
-            }
+          if (s->isLoopable() && chan[i].samplePos>=s->loopEnd) {
+            chan[i].samplePos=s->loopStart;
+          } else if (chan[i].samplePos>=(int)s->samples) {
+            chan[i].sample=-1;
           }
         }
       }
     }
-
-    mikey->sampleAudio(buf[0]+h,buf[1]+h,1,oscBuf);
   }
+}
+
+void DivPlatformLynx::acquire(short** buf, size_t len) {
+  thread_local int chanBuf[4];
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+
+  for (size_t h=0; h<len; h++) {
+    processDAC(rate);
+
+    while (!writes.empty()) {
+      QueuedWrite& w=writes.front();
+      mikey->write(w.addr,w.val);
+      writes.pop_front();
+    }
+
+    mikey->sampleAudio(buf[0]+h,buf[1]+h,1,chanBuf);
+
+    for (int i=0; i<4; i++) {
+      oscBuf[i]->putSample(h,chanBuf[i]);
+    }
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
+  }
+}
+
+void DivPlatformLynx::fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len) {
+  writes.clear();
+  for (size_t i=0; i<len; i++) {
+    processDAC(sRate);
+
+    while (!writes.empty()) {
+      QueuedWrite& w=writes.front();
+      stream.push_back(DivDelayedWrite(i,w.addr,w.val));
+      writes.pop_front();
+    }
+  }
+  regWrites.clear();
 }
 
 void DivPlatformLynx::tick(bool sysTick) {
@@ -205,8 +243,9 @@ void DivPlatformLynx::tick(bool sysTick) {
     }
 
     if (chan[i].std.ex1.had) {
-      WRITE_LFSR(i, chan[i].std.ex1.val&0xff);
-      WRITE_OTHER(i, (chan[i].std.ex1.val&0xf00)>>4);
+      chan[i].lfsr=chan[i].std.ex1.val&0xfff;
+      chan[i].freqChanged=true;
+      chan[i].updateLFSR=true;
     }
 
     if (chan[i].std.phaseReset.had) {
@@ -219,8 +258,8 @@ void DivPlatformLynx::tick(bool sysTick) {
             chan[i].samplePos=0;
           }
         }
-        WRITE_LFSR(i, 0);
-        WRITE_OTHER(i, 0);
+        chan[i].freqChanged=true;
+        chan[i].updateLFSR=true;
       }
     }
 
@@ -232,15 +271,16 @@ void DivPlatformLynx::tick(bool sysTick) {
           if (s->centerRate<1) {
             off=1.0;
           } else {
-            off=(double)s->centerRate/8363.0;
+            off=(double)s->centerRate/parent->getCenterRate();
           }
         }
         chan[i].sampleFreq=off*parent->calcFreq(chan[i].sampleBaseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+        if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].sampleFreq);
       } else {
-        if (chan[i].lfsr >= 0) {
+        if (chan[i].updateLFSR) {
           WRITE_LFSR(i, (chan[i].lfsr&0xff));
           WRITE_OTHER(i, ((chan[i].lfsr&0xf00)>>4));
-          chan[i].lfsr=-1;
+          chan[i].updateLFSR=false;
         }
         if (chan[i].std.duty.had) {
           chan[i].duty=chan[i].std.duty.val;
@@ -307,14 +347,16 @@ int DivPlatformLynx::dispatch(DivCommand c) {
         } else {
           chan[c.chan].samplePos=0;
         }
+        if (dumpWrites) {
+          addWrite(0xffff0000+(c.chan<<8),chan[c.chan].sample);
+        }
       }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
         chan[c.chan].actualNote=c.value;
-        if (chan[c.chan].lfsr<0)
-          chan[c.chan].lfsr=0;
+        chan[c.chan].updateLFSR=true;
       }
       chan[c.chan].active=true;
       WRITE_VOLUME(c.chan,(isMuted[c.chan]?0:(chan[c.chan].vol&127)));
@@ -331,11 +373,13 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       chan[c.chan].macroInit(NULL);
       if (chan[c.chan].pcm) {
         chan[c.chan].pcm=false;
+        if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
       }
       break;
     case DIV_CMD_LYNX_LFSR_LOAD:
       chan[c.chan].freqChanged=true;
       chan[c.chan].lfsr=c.value;
+      chan[c.chan].updateLFSR=true;
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
@@ -496,6 +540,7 @@ void DivPlatformLynx::reset() {
     chan[i]=DivPlatformLynx::Channel();
     chan[i].std.setEngine(parent);
   }
+  writes.clear();
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
@@ -524,7 +569,7 @@ void DivPlatformLynx::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/128;
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

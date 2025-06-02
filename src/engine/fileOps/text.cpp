@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -221,6 +221,8 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
     writeTextMacro(w,ins->std.ex6Macro,"ex6",header);
     writeTextMacro(w,ins->std.ex7Macro,"ex7",header);
     writeTextMacro(w,ins->std.ex8Macro,"ex8",header);
+    writeTextMacro(w,ins->std.ex9Macro,"ex9",header);
+    writeTextMacro(w,ins->std.ex10Macro,"ex10",header);
     writeTextMacro(w,ins->std.algMacro,"alg",header);
     writeTextMacro(w,ins->std.fbMacro,"fb",header);
     writeTextMacro(w,ins->std.fmsMacro,"fms",header);
@@ -235,7 +237,7 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
   for (int i=0; i<song.waveLen; i++) {
     DivWavetable* wave=song.wave[i];
 
-    w->writeText(fmt::sprintf("- %d (%dx%d):",i,wave->len+1,wave->max+1));
+    w->writeText(fmt::sprintf("- %d (%dx%d):",i,wave->len,wave->max+1));
     for (int j=0; j<=wave->len; j++) {
       w->writeText(fmt::sprintf(" %d",wave->data[j]));
     }

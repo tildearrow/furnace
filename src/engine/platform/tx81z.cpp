@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,23 +62,31 @@ void DivPlatformTX81Z::acquire(short** buf, size_t len) {
 
   ymfm::ym2414::fm_engine* fme=fm_ymfm->debug_engine();
 
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
     if (!writes.empty()) {
       if (--delay<1) {
         QueuedWrite& w=writes.front();
-        fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
-        fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
-        regPool[w.addr&0xff]=w.val;
+        if (w.addr==0xfffffffe) {
+          delay=w.val*2;
+        } else {
+          fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
+          fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
+          regPool[w.addr&0xff]=w.val;
+          delay=1;
+        }
         writes.pop_front();
-        delay=1;
       }
     }
     
     fm_ymfm->generate(&out_ymfm);
 
     for (int i=0; i<8; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1),-32768,32767);
+      oscBuf[i]->putSample(h,CLAMP(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1),-32768,32767));
     }
 
     os[0]=out_ymfm.data[0];
@@ -92,6 +100,10 @@ void DivPlatformTX81Z::acquire(short** buf, size_t len) {
     buf[0][h]=os[0];
     buf[1][h]=os[1];
   }
+
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->end(len);
+  }
 }
 
 static unsigned char noteMap[12]={
@@ -100,6 +112,16 @@ static unsigned char noteMap[12]={
 
 inline int hScale(int note) {
   return ((note/12)<<4)+(noteMap[note%12]);
+}
+
+int DivPlatformTX81Z::toFreq(int freq) {
+  int block=0;
+  while (freq>0xff) {
+    freq>>=1;
+    block++;
+  }
+  if (block>7) return 0x7ff;
+  return ((block&7)<<8)|(freq&0xff);
 }
 
 void DivPlatformTX81Z::tick(bool sysTick) {
@@ -233,6 +255,14 @@ void DivPlatformTX81Z::tick(bool sysTick) {
       chan[i].state.ams=chan[i].std.ams.val;
       rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3));
     }
+    if (chan[i].std.ex9.had) {
+      chan[i].state.fms2=chan[i].std.ex9.val;
+      rWrite(chanOffs[i]+ADDR_FMS2_AMS2,((chan[i].state.fms2&7)<<4)|(chan[i].state.ams2&3));
+    }
+    if (chan[i].std.ex10.had) {
+      chan[i].state.ams2=chan[i].std.ex10.val;
+      rWrite(chanOffs[i]+ADDR_FMS2_AMS2,((chan[i].state.fms2&7)<<4)|(chan[i].state.ams2&3));
+    }
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
@@ -288,6 +318,54 @@ void DivPlatformTX81Z::tick(bool sysTick) {
       if (m.dt2.had) {
         op.dt2=m.dt2.val;
         rWrite(baseAddr+ADDR_DT2_D2R,(op.d2r&31)|(op.dt2<<6));
+      }
+
+      // fixed pitch
+      if (parent->song.linearPitch==2) {
+        bool freqChangeOp=false;
+
+        if (op.egt) {
+          if (op.sus) {
+            chan[i].handleArpFmOp(freqChangeOp,0,j); // arp and pitch macros
+            chan[i].handlePitchFmOp(freqChangeOp,j);
+          } else {
+            if (m.ssg.had) { // block and f-num macros
+              op.dt=m.ssg.val&7;
+              rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
+            }
+            if (m.sus.had) {
+              op.mult=(m.sus.val&0xff)>>4;
+              op.dvb=(m.sus.val&0xf);
+              rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
+              rWrite(baseAddr+ADDR_WS_FINE,(op.dvb&15)|(op.ws<<4));
+            }
+          }
+        }
+
+        if (freqChangeOp) {
+          int arp=chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff;
+          int pitch2=chan[i].pitch2;
+          int fixedArp=chan[i].fixedArp;
+          if (chan[i].opsState[j].hasOpArp) {
+            arp=chan[i].opsState[j].fixedArp?chan[i].opsState[j].baseNoteOverride:chan[i].opsState[j].arpOff;
+            fixedArp=chan[i].opsState[j].fixedArp;
+          }
+          if (chan[i].opsState[j].hasOpPitch) {
+            pitch2=chan[i].opsState[j].pitch2;
+          }
+          int opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,arp,fixedArp,false,2, pitch2,32.0,COLOR_NTSC/chipClock,0);
+          if (opFreq<0) opFreq=0;
+          if (opFreq>65280) opFreq=65280;
+          int freqt=toFreq(opFreq);
+
+          op.dt=(freqt>>8)&7;
+
+          op.mult=(freqt&0xff)>>4;
+          op.dvb=(freqt&0xf);
+
+          rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
+          rWrite(baseAddr+ADDR_WS_FINE,(op.dvb&15)|(op.ws<<4));
+        }
       }
     }
   }
@@ -345,6 +423,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
           chan[i].freq+=chan[i].arpOff<<7;
         }
       }
+      chan[i].freq+=OFFSET_LINEAR;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>=(95<<7)) chan[i].freq=(95<<7)-1;
       immWrite(i+0x28,hScale(chan[i].freq>>7));
@@ -360,9 +439,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
 
   // hard reset handling
   if (mustHardReset) {
-    for (unsigned int i=hardResetElapsed; i<hardResetCycles; i++) {
-      immWrite(0x1f,i&0xff);
-    }
+    immWrite(0xfffffffe,hardResetCycles-hardResetElapsed);
     for (int i=0; i<8; i++) {
       if (chan[i].keyOn && chan[i].hardReset) {
         // restore SL/RR
@@ -444,6 +521,7 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_OPZ);
 
+      memset(chan[c.chan].opsState,0,sizeof(chan[c.chan].opsState));
       chan[c.chan].macroInit(ins);
       if (!chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
@@ -573,6 +651,24 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       immWrite(0x1b,lfoShape|(lfoShape2<<2));
       break;
     }
+    case DIV_CMD_FM_ALG: {
+      chan[c.chan].state.alg=c.value&7;
+      if (isMuted[c.chan]) {
+        rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
+      } else {
+        rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3)|((chan[c.chan].chVolL&1)<<6)|((chan[c.chan].chVolR&1)<<7));
+      }
+      for (int i=0; i<4; i++) {
+        unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
+        DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
+        if (KVS(c.chan,c.value)) {
+          rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[c.chan].outVol&0x7f,127));
+        } else {
+          rWrite(baseAddr+ADDR_TL,op.tl);
+        }
+      }
+      break;
+    }
     case DIV_CMD_FM_FB: {
       chan[c.chan].state.fb=c.value&7;
       /*
@@ -581,6 +677,26 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       } else {
         rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3)|((chan[c.chan].chVolL&1)<<6)|((chan[c.chan].chVolR&1)<<7));
       }*/
+      break;
+    }
+    case DIV_CMD_FM_FMS: {
+      chan[c.chan].state.fms=c.value&7;
+      rWrite(chanOffs[c.chan]+ADDR_FMS_AMS,((chan[c.chan].state.fms&7)<<4)|(chan[c.chan].state.ams&3));
+      break;
+    }
+    case DIV_CMD_FM_AMS: {
+      chan[c.chan].state.ams=c.value&3;
+      rWrite(chanOffs[c.chan]+ADDR_FMS_AMS,((chan[c.chan].state.fms&7)<<4)|(chan[c.chan].state.ams&3));
+      break;
+    }
+    case DIV_CMD_FM_FMS2: {
+      chan[c.chan].state.fms2=c.value&7;
+      rWrite(chanOffs[c.chan]+ADDR_FMS2_AMS2,((chan[c.chan].state.fms2&7)<<4)|(chan[c.chan].state.ams2&3));
+      break;
+    }
+    case DIV_CMD_FM_AMS2: {
+      chan[c.chan].state.ams2=c.value&3;
+      rWrite(chanOffs[c.chan]+ADDR_FMS2_AMS2,((chan[c.chan].state.fms2&7)<<4)|(chan[c.chan].state.ams2&3));
       break;
     }
     case DIV_CMD_FM_MULT: {
@@ -1052,7 +1168,7 @@ void DivPlatformTX81Z::setFlags(const DivConfig& flags) {
 
   rate=chipClock/64;
   for (int i=0; i<8; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

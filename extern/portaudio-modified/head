@@ -1,0 +1,6 @@
+commit 6ee9836a08d201c118b4715d4d70242816584000
+Author: dmitrykos <dmitrykos@neutroncode.com>
+Date:   Sun Aug 6 00:10:09 2023 +0300
+
+    win: New PaWinUtil_GetOsVersion() function for getting Windows OS version. Refactored WASAPI, DS, MME and WDMKS host back-ends to use PaWinUtil_GetOsVersion() instead of direct OS API.
+

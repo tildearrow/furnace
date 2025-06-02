@@ -1,0 +1,20 @@
+name: autotools build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-autotools:
+
+    runs-on: ubuntu-latest
+    name: Ubuntu
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: configure
+      run: ./configure
+    - name: make
+      run: make

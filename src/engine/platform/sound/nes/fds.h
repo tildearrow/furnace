@@ -23,71 +23,65 @@
 
 enum fds_operations { FDS_OP_NONE, FDS_OP_READ, FDS_OP_WRITE };
 
-#if defined (__cplusplus)
-#define EXTERNC extern "C"
-#else
-#define EXTERNC
-#endif
-
-EXTERNC struct _fds {
-	// snd
+struct _fds {
+  // snd
   BYTE enabled_snd_reg;
-	struct _fds_snd {
-		struct _fds_snd_wave {
-			BYTE data[64];
-			BYTE writable;
-			BYTE volume;
+  struct _fds_snd {
+    struct _fds_snd_wave {
+      BYTE data[64];
+      BYTE writable;
+      BYTE volume;
 
-			BYTE index;
-			int32_t counter;
+      BYTE index;
+      int32_t counter;
 
-		/* ------------------------------------------------------- */
-		/* questi valori non e' necessario salvarli nei savestates */
-		/* ------------------------------------------------------- */
-		/* */ BYTE clocked;                                     /* */
-		/* ------------------------------------------------------- */
-		} wave;
-		struct _fds_snd_envelope {
-			BYTE speed;
-			BYTE disabled;
-		} envelope;
-		struct _fds_snd_main {
-			BYTE silence;
-			WORD frequency;
+    /* ------------------------------------------------------- */
+    /* questi valori non e' necessario salvarli nei savestates */
+    /* ------------------------------------------------------- */
+    /* */ BYTE clocked;                                     /* */
+    /* ------------------------------------------------------- */
+    } wave;
+    struct _fds_snd_envelope {
+      BYTE speed;
+      BYTE disabled;
+    } envelope;
+    struct _fds_snd_main {
+      BYTE silence;
+      WORD frequency;
 
-			SWORD output;
-		} main;
-		struct _fds_snd_volume {
-			BYTE speed;
-			BYTE mode;
-			BYTE increase;
+      SWORD output;
+    } main;
+    struct _fds_snd_volume {
+      BYTE speed;
+      BYTE mode;
+      BYTE increase;
 
-			BYTE gain;
-			uint32_t counter;
-		} volume;
-		struct _fds_snd_sweep {
-			SBYTE bias;
-			BYTE mode;
-			BYTE increase;
-			BYTE speed;
+      BYTE gain;
+      uint32_t counter;
+    } volume;
+    struct _fds_snd_sweep {
+      SBYTE bias;
+      BYTE mode;
+      BYTE increase;
+      BYTE speed;
 
-			BYTE gain;
-			uint32_t counter;
-		} sweep;
-		struct _fds_snd_modulation {
-			SBYTE data[64];
-			WORD frequency;
-			BYTE disabled;
+      BYTE gain;
+      uint32_t counter;
+    } sweep;
+    struct _fds_snd_modulation {
+      SBYTE data[64];
+      WORD frequency;
+      BYTE disabled;
 
-			BYTE index;
-			int32_t counter;
-			SWORD mod;
-		} modulation;
-	} snd;
+      BYTE index;
+      int32_t counter;
+      SWORD mod;
+    } modulation;
+  } snd;
 };
 
-EXTERNC void extcl_apu_tick_FDS(struct _fds* fds);
-EXTERNC void fds_reset(struct _fds* fds);
+void extcl_apu_tick_FDS(struct _fds* fds);
+void fds_reset(struct _fds* fds);
 
 #undef EXTERNC
 

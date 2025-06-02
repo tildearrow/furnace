@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,6 +63,9 @@ const char** DivPlatformGB::getRegisterSheet() {
 }
 
 void DivPlatformGB::acquire(short** buf, size_t len) {
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t i=0; i<len; i++) {
     if (!writes.empty()) {
       QueuedWrite& w=writes.front();
@@ -74,9 +77,12 @@ void DivPlatformGB::acquire(short** buf, size_t len) {
     buf[0][i]=gb->apu_output.final_sample.left;
     buf[1][i]=gb->apu_output.final_sample.right;
 
-    for (int i=0; i<4; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(gb->apu_output.current_sample[i].left+gb->apu_output.current_sample[i].right)<<6;
+    for (int j=0; j<4; j++) {
+      oscBuf[j]->putSample(i,(gb->apu_output.current_sample[j].left+gb->apu_output.current_sample[j].right)<<6);
     }
+  }
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -724,7 +730,7 @@ void DivPlatformGB::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/coreQuality;
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

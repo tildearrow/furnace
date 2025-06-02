@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 #include "fileOpsCommon.h"
 
 void readEnvelope(DivInstrument* ins, int env, unsigned char flags, unsigned char numPoints, unsigned char loopStart, unsigned char loopEnd, unsigned char susPoint, short* points) {
-  if (numPoints>24) numPoints=24;
+  if (numPoints>12) numPoints=12;
 
   if (loopStart>=numPoints) loopStart=numPoints-1;
   if (loopEnd>=numPoints) loopEnd=numPoints-1;
@@ -49,12 +49,49 @@ void readEnvelope(DivInstrument* ins, int env, unsigned char flags, unsigned cha
       break;
   }
   target->len=0;
-  int point=0;
-  bool pointJustBegan=true;
   // mark loop end as end of envelope
   if (flags&4) {
     if (loopEnd<numPoints) numPoints=loopEnd+1;
   }
+
+  // new freaking algorithm
+  for (int i=0; i<numPoints; i++) {
+    int curPoint=MIN(i,numPoints-1);
+    int nextPoint=MIN(i+1,numPoints-1);
+    int p0=pointVal[curPoint];
+    int p1=pointVal[nextPoint];
+    int t0=pointTime[curPoint];
+    int t1=pointTime[nextPoint];
+
+    if (t0==t1) {
+      if (t0<255) {
+        target->val[t0]=p0;
+      }
+    } else {
+      for (int j=t0; j<t1 && j<255; j++) {
+        target->val[j]=p0+(((p1-p0)*(j-t0))/(t1-t0));
+      }
+    }
+  }
+  if (flags&4) { // loop
+    if (loopStart!=loopEnd && loopStart<numPoints) {
+      target->loop=CLAMP(pointTime[loopStart],0,254);
+      target->len=MIN(pointTime[numPoints-1],255);
+    } else {
+      target->len=MIN(pointTime[numPoints-1]+1,255);
+    }
+  } else {
+    target->len=MIN(pointTime[numPoints-1]+1,255);
+  }
+  if (flags&2 && susPoint<numPoints) { // sustain
+    target->rel=CLAMP(pointTime[susPoint]-1,0,254);
+  }
+  if (((flags&4) && (!(flags&2))) || ((flags&6)==0)) {
+    target->rel=target->len-1;
+  }
+  
+  // old crap
+  /*
   for (int i=0; i<255; i++) {
     int curPoint=MIN(point,numPoints-1);
     int nextPoint=MIN(point+1,numPoints-1);
@@ -102,6 +139,7 @@ void readEnvelope(DivInstrument* ins, int env, unsigned char flags, unsigned cha
     target->len=i+1;
     target->val[i]=p0+(((p1-p0)*curTime)/timeDiff);
   }
+  */
 
   // split L/R
   if (env==1) {
@@ -124,13 +162,18 @@ void readEnvelope(DivInstrument* ins, int env, unsigned char flags, unsigned cha
   }
 }
 
+#define XM_FINISH \
+  delete[] sampleVol; \
+  delete[] samplePan; \
+  delete[] noteMap;
+
 bool DivEngine::loadXM(unsigned char* file, size_t len) {
   struct InvalidHeaderException {};
   bool success=false;
   char magic[32];
-  unsigned char sampleVol[256][256];
-  unsigned char samplePan[256][256];
-  unsigned char noteMap[256][128];
+  unsigned char* sampleVol=new unsigned char[256*256];
+  unsigned char* samplePan=new unsigned char[256*256];
+  unsigned char* noteMap=new unsigned char[256*128];
 
   unsigned short patLen[256];
 
@@ -178,6 +221,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       logE("premature end of file!");
       lastError="incomplete file";
       delete[] file;
+      XM_FINISH;
       return false;
     }
     reader.read(magic,17);
@@ -217,6 +261,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       logE("invalid order count!");
       lastError="invalid order count";
       delete[] file;
+      XM_FINISH;
       return false;
     }
 
@@ -224,6 +269,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       logE("too many patterns!");
       lastError="too many patterns";
       delete[] file;
+      XM_FINISH;
       return false;
     }
 
@@ -231,6 +277,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       logE("invalid instrument count!");
       lastError="invalid instrument count";
       delete[] file;
+      XM_FINISH;
       return false;
     }
 
@@ -240,6 +287,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       logE("invalid channel count!");
       lastError="invalid channel count";
       delete[] file;
+      XM_FINISH;
       return false;
     }
 
@@ -268,6 +316,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       logE("premature end of file!");
       lastError="incomplete file";
       delete[] file;
+      XM_FINISH;
       return false;
     }
 
@@ -284,6 +333,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
         lastError="unknown packing type";
         ds.unload();
         delete[] file;
+        XM_FINISH;
         return false;
       }
 
@@ -296,6 +346,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
         logE("too many rows! %d",totalRows);
         lastError="too many rows";
         delete[] file;
+        XM_FINISH;
         return false;
       }
 
@@ -306,6 +357,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
         logE("premature end of file!");
         lastError="incomplete file";
         delete[] file;
+        XM_FINISH;
         return false;
       }
 
@@ -453,6 +505,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
         logE("premature end of file!");
         lastError="incomplete file";
         delete[] file;
+        XM_FINISH;
         return false;
       }
     }
@@ -480,6 +533,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
         delete ins;
         song.unload();
         delete[] file;
+        XM_FINISH;
         return false;
       }*/
 
@@ -494,7 +548,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
         for (int j=0; j<96; j++) {
           unsigned char nextMap=reader.readC();
           ins->amiga.noteMap[j].map=ds.sample.size()+nextMap;
-          noteMap[i][j]=nextMap;
+          noteMap[(i<<7)|j]=nextMap;
         }
 
         for (int j=0; j<24; j++) {
@@ -531,6 +585,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
 
         if (volType&1) {
           // add fade-out
+          logV("volFade: %d",volFade);
           if (volFade!=0) {
             int cur=64;
             int macroLen=ins->std.volMacro.len;
@@ -572,6 +627,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
           logE("premature end of file!");
           lastError="incomplete file";
           delete[] file;
+          XM_FINISH;
           return false;
         }
 
@@ -586,17 +642,18 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
             lastError="bad sample size";
             delete s;
             delete[] file;
+            XM_FINISH;
             return false;
           }
 
           s->loopStart=reader.readI();
           s->loopEnd=reader.readI()+s->loopStart;
 
-          sampleVol[i][j]=reader.readC();
+          sampleVol[(i<<8)|j]=reader.readC();
 
           signed char fine=reader.readC();
           unsigned char flags=reader.readC();
-          samplePan[i][j]=reader.readC();
+          samplePan[(i<<8)|j]=reader.readC();
           signed char note=reader.readC();
 
           switch (flags&3) {
@@ -667,6 +724,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
           logE("premature end of file!");
           lastError="incomplete file";
           delete[] file;
+          XM_FINISH;
           return false;
         }
       }
@@ -678,6 +736,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       logE("premature end of file!");
       lastError="incomplete file";
       delete[] file;
+      XM_FINISH;
       return false;
     }
 
@@ -760,6 +819,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
         lastError="unknown packing type";
         ds.unload();
         delete[] file;
+        XM_FINISH;
         return false;
       }
 
@@ -772,6 +832,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
         logE("too many rows! %d",totalRows);
         lastError="too many rows";
         delete[] file;
+        XM_FINISH;
         return false;
       }
 
@@ -782,6 +843,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
         logE("premature end of file!");
         lastError="incomplete file";
         delete[] file;
+        XM_FINISH;
         return false;
       }
 
@@ -841,7 +903,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
             p->data[j][2]=((int)ins)-1;
             // default volume
             if (lastNote[k]<96 && ins>0) {
-              p->data[j][3]=sampleVol[(ins-1)&255][noteMap[(ins-1)&255][lastNote[k]&127]];
+              p->data[j][3]=sampleVol[(((ins-1)&255)<<8)|(noteMap[(((ins-1)&255)<<7)|(lastNote[k]&127)])];
             }
             writePanning=true;
           }
@@ -1150,7 +1212,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
 
           if (writePanning && hasNote && note<96 && ins>0) {
             p->data[j][effectCol[k]++]=0x80;
-            p->data[j][effectCol[k]++]=samplePan[(ins-1)&255][noteMap[(ins-1)&255][note&127]];
+            p->data[j][effectCol[k]++]=samplePan[(((ins-1)&255)<<8)|(noteMap[(((ins-1)&255)<<7)|(note&127)])];
           }
         }
 
@@ -1266,6 +1328,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
         logE("premature end of file!");
         lastError="incomplete file";
         delete[] file;
+        XM_FINISH;
         return false;
       }
     }
@@ -1276,6 +1339,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       lastError="too many samples";
       ds.unload();
       delete[] file;
+      XM_FINISH;
       return false;
     }
 
@@ -1312,6 +1376,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
     //logE("invalid header!");
     lastError="invalid header!";
   }
+  XM_FINISH;
   return success;
 }
 

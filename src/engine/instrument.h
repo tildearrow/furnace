@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -96,6 +96,9 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_GBA_MINMOD=61,
   DIV_INS_BIFURCATOR=62,
   DIV_INS_SID2=63, // coincidence!
+  DIV_INS_SUPERVISION=64,
+  DIV_INS_UPD1771C=65,
+  DIV_INS_SID3=66,
   DIV_INS_MAX,
   DIV_INS_NULL
 };
@@ -120,7 +123,9 @@ enum DivMacroType: unsigned char {
   DIV_MACRO_EX5,
   DIV_MACRO_EX6,
   DIV_MACRO_EX7,
-  DIV_MACRO_EX8
+  DIV_MACRO_EX8,
+  DIV_MACRO_EX9,
+  DIV_MACRO_EX10
 };
 
 enum DivMacroTypeOp: unsigned char {
@@ -162,7 +167,7 @@ enum DivMacroTypeOp: unsigned char {
 //   - WS, DVB = MULT (FINE), DAM = REV, KSL = EGShift, EGT = Fixed
 
 struct DivInstrumentFM {
-  unsigned char alg, fb, fms, ams, fms2, ams2, ops, opllPreset;
+  unsigned char alg, fb, fms, ams, fms2, ams2, ops, opllPreset, block;
   bool fixedDrums;
   unsigned short kickFreq, snareHatFreq, tomTopFreq;
 
@@ -213,6 +218,7 @@ struct DivInstrumentFM {
     ams2(0),
     ops(2),
     opllPreset(0),
+    block(0),
     fixedDrums(false),
     kickFreq(0x520),
     snareHatFreq(0x550),
@@ -262,11 +268,6 @@ struct DivInstrumentMacro {
   // 0-31: normal
   // 32+: operator (top 3 bits select operator, starting from 1)
   unsigned char macroType;
-  
-  // the following variables are used by the GUI and not saved in the file
-  int vScroll, vZoom;
-  int typeMemory[16];
-  unsigned char lenMemory;
 
   explicit DivInstrumentMacro(unsigned char initType, bool initOpen=false):
     mode(0),
@@ -276,12 +277,8 @@ struct DivInstrumentMacro {
     speed(1),
     loop(255),
     rel(255),
-    macroType(initType),
-    vScroll(0),
-    vZoom(-1),
-    lenMemory(0) {
+    macroType(initType) {
     memset(val,0,256*sizeof(int));
-    memset(typeMemory,0,16*sizeof(int));
   }
 };
 
@@ -306,6 +303,8 @@ struct DivInstrumentSTD {
   DivInstrumentMacro ex6Macro;
   DivInstrumentMacro ex7Macro;
   DivInstrumentMacro ex8Macro;
+  DivInstrumentMacro ex9Macro;
+  DivInstrumentMacro ex10Macro;
 
   struct OpMacro {
     // ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
@@ -359,7 +358,9 @@ struct DivInstrumentSTD {
     ex5Macro(DIV_MACRO_EX5),
     ex6Macro(DIV_MACRO_EX6),
     ex7Macro(DIV_MACRO_EX7),
-    ex8Macro(DIV_MACRO_EX8) {
+    ex8Macro(DIV_MACRO_EX8),
+    ex9Macro(DIV_MACRO_EX9),
+    ex10Macro(DIV_MACRO_EX10) {
     for (int i=0; i<4; i++) {
       opMacros[i].amMacro.macroType=DIV_MACRO_OP_AM+(i<<5);
       opMacros[i].arMacro.macroType=DIV_MACRO_OP_AR+(i<<5);
@@ -427,7 +428,7 @@ struct DivInstrumentC64 {
   unsigned char a, d, s, r;
   unsigned short duty;
   unsigned char ringMod, oscSync;
-  bool toFilter, initFilter, dutyIsAbs, filterIsAbs, noTest;
+  bool toFilter, initFilter, dutyIsAbs, filterIsAbs, noTest, resetDuty;
   unsigned char res;
   unsigned short cut;
   bool hp, lp, bp, ch3off;
@@ -454,6 +455,7 @@ struct DivInstrumentC64 {
     dutyIsAbs(false),
     filterIsAbs(false),
     noTest(false),
+    resetDuty(true),
     res(0),
     cut(0),
     hp(false),
@@ -610,6 +612,7 @@ struct DivInstrumentFDS {
 struct DivInstrumentMultiPCM {
   unsigned char ar, d1r, dl, d2r, rr, rc;
   unsigned char lfo, vib, am;
+  bool damp, pseudoReverb, lfoReset, levelDirect;
 
   bool operator==(const DivInstrumentMultiPCM& other);
   bool operator!=(const DivInstrumentMultiPCM& other) {
@@ -618,7 +621,11 @@ struct DivInstrumentMultiPCM {
 
   DivInstrumentMultiPCM():
     ar(15), d1r(15), dl(0), d2r(0), rr(15), rc(15),
-    lfo(0), vib(0), am(0) {
+    lfo(0), vib(0), am(0),
+    damp(false),
+    pseudoReverb(false),
+    lfoReset(false),
+    levelDirect(true) {
   }
 };
 
@@ -862,6 +869,111 @@ struct DivInstrumentSID2 {
     noiseMode(0) {}
 };
 
+struct DivInstrumentSID3 {
+  bool triOn, sawOn, pulseOn, noiseOn;
+  unsigned char a, d, s, r;
+  unsigned char sr;
+  unsigned short duty;
+  unsigned char ringMod, oscSync;
+  bool phase_mod;
+  unsigned char phase_mod_source, ring_mod_source, sync_source;
+  bool specialWaveOn;
+  bool oneBitNoise;
+  bool separateNoisePitch;
+  unsigned char special_wave;
+  bool doWavetable;
+  bool dutyIsAbs;
+  bool resetDuty;
+  unsigned char phaseInv;
+  unsigned char feedback;
+  unsigned char mixMode;
+
+  struct Filter {
+    unsigned short cutoff;
+    unsigned char resonance;
+    unsigned char output_volume;
+    unsigned char distortion_level;
+    unsigned char mode;
+    bool enabled;
+    bool init;
+    unsigned char filter_matrix;
+
+    // this is done purely in software
+    bool absoluteCutoff;
+    bool bindCutoffToNote;
+    unsigned char bindCutoffToNoteStrength; // how much cutoff changes over e.g. 1 semitone
+    unsigned char bindCutoffToNoteCenter; // central note of the cutoff change
+    bool bindCutoffToNoteDir; // if we decrease or increase cutoff if e.g. we go upper in note space
+    bool bindCutoffOnNote; // only do cutoff scaling once, on new note
+
+    bool bindResonanceToNote;
+    unsigned char bindResonanceToNoteStrength; // how much resonance changes over e.g. 1 semitone
+    unsigned char bindResonanceToNoteCenter; // central note of the resonance change
+    bool bindResonanceToNoteDir; // if we decrease or increase resonance if e.g. we go upper in note space
+    bool bindResonanceOnNote; // only do resonance scaling once, on new note
+
+    bool operator==(const Filter& other);
+    bool operator!=(const Filter& other) {
+      return !(*this==other);
+    }
+    Filter():
+      cutoff(0),
+      resonance(0),
+      output_volume(0),
+      distortion_level(0),
+      mode(0),
+      enabled(false),
+      init(false),
+      filter_matrix(0),
+      absoluteCutoff(false),
+      bindCutoffToNote(false),
+      bindCutoffToNoteStrength(0),
+      bindCutoffToNoteCenter(0),
+      bindCutoffToNoteDir(false),
+      bindCutoffOnNote(false),
+      bindResonanceToNote(false),
+      bindResonanceToNoteStrength(0),
+      bindResonanceToNoteCenter(0),
+      bindResonanceToNoteDir(false),
+      bindResonanceOnNote(false) {}
+  } filt[4];
+  
+  bool operator==(const DivInstrumentSID3& other);
+  bool operator!=(const DivInstrumentSID3& other) {
+    return !(*this==other);
+  }
+  DivInstrumentSID3():
+    triOn(false),
+    sawOn(true),
+    pulseOn(false),
+    noiseOn(false),
+    a(0),
+    d(64),
+    s(0),
+    r(0),
+    sr(0),
+    duty(32768),
+    ringMod(0),
+    oscSync(0),
+    phase_mod(false),
+    phase_mod_source(0),
+    ring_mod_source(0),
+    sync_source(0),
+    specialWaveOn(false),
+    oneBitNoise(false),
+    separateNoisePitch(false),
+    special_wave(0),
+    doWavetable(false),
+    dutyIsAbs(true),
+    resetDuty(false),
+    phaseInv(0),
+    feedback(0),
+    mixMode(0) {
+      filt[0].mode=16|32; // default settings so filter just works, connect to input and channel output
+      filt[0].output_volume=0xff;
+    }
+};
+
 struct DivInstrumentPOD {
   DivInstrumentType type;
   DivInstrumentFM fm;
@@ -880,9 +992,24 @@ struct DivInstrumentPOD {
   DivInstrumentESFM esfm;
   DivInstrumentPowerNoise powernoise;
   DivInstrumentSID2 sid2;
+  DivInstrumentSID3 sid3;
 
   DivInstrumentPOD() :
     type(DIV_INS_FM) {
+  }
+};
+
+struct DivInstrumentTemp {
+  // the following variables are used by the GUI and not saved in the file
+  int vScroll[160];
+  int vZoom[160];
+  int typeMemory[160][16];
+  unsigned char lenMemory[160];
+  DivInstrumentTemp() {
+    memset(vScroll,0,160*sizeof(int));
+    memset(vZoom,-1,160*sizeof(int));
+    memset(typeMemory,0,160*16*sizeof(int));
+    memset(lenMemory,0,160*sizeof(int));
   }
 };
 
@@ -927,6 +1054,8 @@ struct DivInstrumentUndoStep {
 
 struct DivInstrument : DivInstrumentPOD {
   String name;
+
+  DivInstrumentTemp temp;
 
   DivInstrument() :
     name("") {
@@ -978,6 +1107,7 @@ struct DivInstrument : DivInstrumentPOD {
   void writeFeatureEF(SafeWriter* w);
   void writeFeaturePN(SafeWriter* w);
   void writeFeatureS2(SafeWriter* w);
+  void writeFeatureS3(SafeWriter* w);
 
   void readFeatureNA(SafeReader& reader, short version);
   void readFeatureFM(SafeReader& reader, short version);
@@ -1001,6 +1131,7 @@ struct DivInstrument : DivInstrumentPOD {
   void readFeatureEF(SafeReader& reader, short version);
   void readFeaturePN(SafeReader& reader, short version);
   void readFeatureS2(SafeReader& reader, short version);
+  void readFeatureS3(SafeReader& reader, short version);
 
   DivDataErrors readInsDataOld(SafeReader& reader, short version);
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);

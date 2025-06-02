@@ -2,6 +2,8 @@
 
 everything on this list can be configured in the "Keyboard" tab of the Settings dialog.
 
+additionally, everything on this list can be accessed with the "command palette" using the default key combo of `Ctrl-P`.
+
 the keys in the "Global hotkeys" section can be used in any window, although not when a text field is activated.
 
 | action                                                 | default keybind  |
@@ -78,7 +80,7 @@ the keys in the "Global hotkeys" section can be used in any window, although not
 | Close current window                                   | `Shift-Escape`   |
 | Command Palette                                        | `Ctrl-P`         |
 | Recent files (Palette)                                 | —                |
-| Insstruments (Palette)                                 | —                |
+| Instruments (Palette)                                  | —                |
 | Samples (Palette)                                      | —                |
 |                                                        |                  |
 | **Note input**                                         |                  |
@@ -153,6 +155,8 @@ the keys in the "Global hotkeys" section can be used in any window, although not
 | Set note input latch                                   | —                |
 | Clear note input latch                                 | —                |
 | Absorb instrument/octave from status at cursor         | —                |
+| Return cursor to previous jump point                   | —                |
+| Reverse recent cursor undo                             | —                |
 |                                                        |                  |
 | **Instrument list**                                    |                  |
 | Add instrument                                         | `Insert`         |

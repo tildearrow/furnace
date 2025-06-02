@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,6 +68,9 @@ const char** DivPlatformC140::getRegisterSheet() {
 }
 
 void DivPlatformC140::acquire_219(short** buf, size_t len) {
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -92,15 +95,21 @@ void DivPlatformC140::acquire_219(short** buf, size_t len) {
 
     for (int i=0; i<totalChans; i++) {
       if (c219.voice[i].inv_lout) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=(c219.voice[i].lout-c219.voice[i].rout)>>10;
+        oscBuf[i]->putSample(h,(c219.voice[i].lout-c219.voice[i].rout)>>10);
       } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=(c219.voice[i].lout+c219.voice[i].rout)>>10;
+        oscBuf[i]->putSample(h,(c219.voice[i].lout+c219.voice[i].rout)>>10);
       }
     }
+  }
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
 void DivPlatformC140::acquire_140(short** buf, size_t len) {
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -124,8 +133,11 @@ void DivPlatformC140::acquire_140(short** buf, size_t len) {
     buf[1][h]=c140.rout;
 
     for (int i=0; i<totalChans; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(c140.voice[i].lout+c140.voice[i].rout)>>10;
+      oscBuf[i]->putSample(h,(c140.voice[i].lout+c140.voice[i].rout)>>10);
     }
+  }
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -214,7 +226,7 @@ void DivPlatformC140::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivSample* s=parent->getSample(chan[i].sample);
       unsigned char ctrl=0;
-      double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
+      double off=(s->centerRate>=1)?((double)s->centerRate/parent->getCenterRate()):1.0;
       chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE));
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>65535) chan[i].freq=65535;
@@ -561,12 +573,11 @@ float DivPlatformC140::getPostAmp() {
   return 3.0f;
 }
 
-DivChannelPair DivPlatformC140::getPaired(int ch) {
-  if (!is219) return DivChannelPair();
+void DivPlatformC140::getPaired(int ch, std::vector<DivChannelPair>& ret) {
+  if (!is219) return;
   if ((ch&3)==0) {
-    return DivChannelPair(bankLabel[ch>>2],ch+1,ch+2,ch+3,-1,-1,-1,-1,-1);
+    ret.push_back(DivChannelPair(bankLabel[ch>>2],ch+1,ch+2,ch+3,-1,-1,-1,-1,-1));
   }
-  return DivChannelPair();
 }
 
 const void* DivPlatformC140::getSampleMem(int index) {
@@ -753,7 +764,7 @@ void DivPlatformC140::setFlags(const DivConfig& flags) {
     c140_bank_type(&c140,bankType);
   }
   for (int i=0; i<totalChans; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

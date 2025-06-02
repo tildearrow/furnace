@@ -5,6 +5,8 @@
 	Copyright holder(s): cam900
 	Contributor(s): Natt Akuma, James Alan Nguyen, Laurens Holst
 	Konami SCC emulation core
+
+        modified by tildearrow...
 */
 
 #ifndef _VGSOUND_EMU_SRC_SCC_HPP
@@ -12,9 +14,12 @@
 
 #pragma once
 
+#include "blip_buf.h"
 #include "../core/core.hpp"
 #include "../core/util/mem_intf.hpp"
 #include <string.h>
+
+struct DivDispatchOscBuffer;
 
 using namespace vgsound_emu;
 
@@ -42,7 +47,8 @@ class scc_core : public vgsound_emu_core
 
 				// internal state
 				void reset();
-				void tick(const int cycles=1);
+				void tick(const int cycles, blip_buffer_t* bb, DivDispatchOscBuffer* oscBuf);
+                                void updateOut(const int pos);
 
 				// accessors
 				inline void reset_addr() { m_addr = 0; }
@@ -70,6 +76,8 @@ class scc_core : public vgsound_emu_core
 			private:
 				// registers
 				scc_core &m_host;
+                                blip_buffer_t* m_bb;
+                                DivDispatchOscBuffer* m_oscBuf;
 				s8 m_wave[32];	// internal waveform
 				bool m_enable			  = false;	// output enable flag
 				u16 m_pitch	 : 12;					// pitch
@@ -152,7 +160,7 @@ class scc_core : public vgsound_emu_core
 
 		// internal state
 		virtual void reset();
-		void tick(const int cycles=1);
+		void tick(const int cycles, blip_buffer_t* bb, DivDispatchOscBuffer** oscBuf);
 
 		// getters
 		inline s32 out() { return m_out; }	// output to DA0...DA10 pin

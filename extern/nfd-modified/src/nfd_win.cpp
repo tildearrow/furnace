@@ -427,7 +427,8 @@ static nfdresult_t SetDefaultPath( IFileDialog *dialog, const char *defaultPath 
 nfdresult_t NFD_OpenDialog( const std::vector<std::string>& filterList,
                             const nfdchar_t *defaultPath,
                             nfdchar_t **outPath,
-                            nfdselcallback_t selCallback )
+                            nfdselcallback_t selCallback,
+                            const nfdchar_t *defaultFileName )
 {
     nfdresult_t nfdResult = NFD_ERROR;
     NFDWinEvents* winEvents;
@@ -463,6 +464,15 @@ nfdresult_t NFD_OpenDialog( const std::vector<std::string>& filterList,
     if ( !SetDefaultPath( fileOpenDialog, defaultPath ) )
     {
         goto end;
+    }
+
+    // Set the file name
+    if (defaultFileName!=NULL) {
+      std::wstring defFileName=utf8To16(defaultFileName);
+      result = fileOpenDialog->SetFileName(defFileName.c_str());
+      if ( !SUCCEEDED(result) ) {
+        // ignore
+      }
     }
 
     // Pass the callback
@@ -535,7 +545,8 @@ end:
 nfdresult_t NFD_OpenDialogMultiple( const std::vector<std::string>& filterList,
                                     const nfdchar_t *defaultPath,
                                     nfdpathset_t *outPaths,
-                                    nfdselcallback_t selCallback )
+                                    nfdselcallback_t selCallback,
+                            const nfdchar_t *defaultFileName )
 {
     nfdresult_t nfdResult = NFD_ERROR;
     NFDWinEvents* winEvents;
@@ -573,6 +584,15 @@ nfdresult_t NFD_OpenDialogMultiple( const std::vector<std::string>& filterList,
     if ( !SetDefaultPath( fileOpenDialog, defaultPath ) )
     {
         goto end;
+    }
+
+    // Set the file name
+    if (defaultFileName!=NULL) {
+      std::wstring defFileName=utf8To16(defaultFileName);
+      result = fileOpenDialog->SetFileName(defFileName.c_str());
+      if ( !SUCCEEDED(result) ) {
+        // ignore
+      }
     }
 
     // Pass the callback
@@ -647,7 +667,8 @@ end:
 nfdresult_t NFD_SaveDialog( const std::vector<std::string>& filterList,
                             const nfdchar_t *defaultPath,
                             nfdchar_t **outPath,
-                            nfdselcallback_t selCallback )
+                            nfdselcallback_t selCallback,
+                            const nfdchar_t *defaultFileName )
 {
     nfdresult_t nfdResult = NFD_ERROR;
 
@@ -681,6 +702,15 @@ nfdresult_t NFD_SaveDialog( const std::vector<std::string>& filterList,
     if ( !SetDefaultPath( fileSaveDialog, defaultPath ) )
     {
         goto end;
+    }
+
+    // Set the file name
+    if (defaultFileName!=NULL) {
+      std::wstring defFileName=utf8To16(defaultFileName);
+      result = fileSaveDialog->SetFileName(defFileName.c_str());
+      if ( !SUCCEEDED(result) ) {
+        // ignore
+      }
     }
 
     // Set a flag for no history

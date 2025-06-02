@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& acce
     ImGui::TableNextColumn();
     if (!i.subDefs.empty()) {
       if (i.orig.empty()) {
-        sysDefID=fmt::sprintf("%s%s/%dS",i.name,sysDefIDLeader,index);
+        sysDefID=fmt::sprintf("%s%s/%dS",_(i.name.c_str()),sysDefIDLeader,index);
       } else {
         sysDefID=fmt::sprintf("%s/%dS",sysDefIDLeader,index);
       }
@@ -45,7 +45,7 @@ void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& acce
       ImGui::SameLine();
     }
     if (!i.orig.empty()) {
-      sysDefID=fmt::sprintf("%s%s/%d",i.name,sysDefIDLeader,index);
+      sysDefID=fmt::sprintf("%s%s/%d",_(i.name.c_str()),sysDefIDLeader,index);
       if (ImGui::Selectable(sysDefID.c_str(),false,ImGuiSelectableFlags_DontClosePopups)) {
         nextDesc=i.definition;
         nextDescName=i.name;
@@ -65,6 +65,7 @@ void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& acce
     if (isHovered && !alreadyHover) {
       alreadyHover=true;
       if (ImGui::BeginTooltip()) {
+        ImGui::Dummy(ImVec2(400.0f*dpiScale,0.0f));
         std::map<DivSystem,int> chipCounts;
         std::vector<DivSystem> chips;
         for (FurnaceGUISysDefChip chip: i.orig) {
@@ -81,6 +82,9 @@ void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& acce
           ImGui::PushTextWrapPos(MIN(scrW*dpiScale,400.0f*dpiScale));
           ImGui::Text("%s (x%d): ",sysDef->name,chipCounts[chip]);
           ImGui::Text("%s",sysDef->description);
+          ImGui::Separator();
+          drawSystemChannelInfoText(sysDef);
+          drawSystemChannelInfo(sysDef);
           ImGui::PopTextWrapPos();
           if (chipIndex+1<chips.size()) {
             ImGui::Separator();
@@ -194,7 +198,7 @@ void FurnaceGUI::drawNewSong() {
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("%s",i.description);
           }
-          if (strcmp(i.name,"User")==0) ImGui::Separator();
+          if (strcmp(i.name,_("User"))==0) ImGui::Separator();
           index++;
         }
       }

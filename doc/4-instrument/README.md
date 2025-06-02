@@ -52,6 +52,7 @@ the following instrument types are available:
 - [MSM5232](msm5232.md) - for use with MSM5232 PSG sound source.
 - [MSM6258](msm6258.md) - for use with MSM6258 sample chip.
 - [MSM6295](msm6295.md) - for use with MSM6295 sample chip.
+- [MultiPCM/OPL4 PCM](multipcm.md) - for use with OPL4's sample part.
 - [Namco 163](n163.md) - for use with Namco 163.
 - [Namco WSG](wsg.md) - for use with Namco WSG wavetable chips, including C15 and C30.
 - [NES](nes.md) - for use with NES.
@@ -67,6 +68,7 @@ the following instrument types are available:
 - [SegaPCM](segapcm.md) - for use with SegaPCM sample chip.
 - [Seta/Allumer X1-010](x1_010.md) - for use with Wavetable portion in Seta/Allumer X1-010.
 - [SID2](sid2.md) - for use with SID2 fantasy chip.
+- [SID3](sid3.md) - for use with SID3 fantasy chip.
 - [SM8521](sm8521.md) - for use with SM8521 chip, used in Tiger Game.com.
 - [SN76489/Sega PSG](psg.md) - for use with TI SN76489 and derivatives like Sega Master System's PSG.
 - [SNES](snes.md) - for use with SNES.
@@ -78,6 +80,7 @@ the following instrument types are available:
 - [VIC](vic.md) - for use with VIC-20 sound chip.
 - [Virtual Boy](virtual-boy.md) - for use with Virtual Boy.
 - [VRC6](vrc6.md) - for use with VRC6's PSG sound source.
+- [Watara Supervision](watarasv.md) - for use with Watara Supervision.
 - [WonderSwan](wonderswan.md) - for use with WonderSwan's wavetable synthesizer.
 - [YMZ280B](ymz280b.md) - for use with YMZ280B sample chip.
 

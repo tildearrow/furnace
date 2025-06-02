@@ -267,6 +267,8 @@ public:
 	// load a new wavetable entry
 	void load_wavetable();
 
+	int32_t debug_output(uint32_t index) const { return m_output[index]; }
+
 private:
 	// internal helpers
 	void start_attack();
@@ -291,6 +293,7 @@ private:
 	pcm_cache m_cache;                    // cached data
 	pcm_registers &m_regs;                // reference to registers
 	pcm_engine &m_owner;                  // reference to our owner
+	mutable int32_t m_output[4];
 };
 
 
@@ -331,6 +334,8 @@ public:
 	// return a reference to our registers
 	pcm_registers &regs() { return m_regs; }
 
+	// simple getters for debugging
+	pcm_channel *debug_channel(uint32_t index) const { return m_channel[index].get(); }
 private:
 	// internal state
 	ymfm_interface &m_intf;                           // reference to the interface

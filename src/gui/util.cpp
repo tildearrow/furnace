@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -111,4 +111,128 @@ String getKeyName(int key, bool emptyNone) {
     ret+=name;
   }
   return ret;
+}
+
+double sinus(double x) {
+  return sin(x);
+}
+double rectSin(double x) {
+  return sin(x) > 0 ? sin(x) : 0;
+}
+double absSin(double x) {
+  return fabs(sin(x));
+}
+
+double square(double x) {
+  return fmod(x, (2 * M_PI)) >= M_PI ? -1 : 1;
+}
+double rectSquare(double x) {
+  return square(x) > 0 ? square(x) : 0;
+}
+
+double quartSin(double x) {
+  return absSin(x) * rectSquare(2 * x);
+}
+double squiSin(double x) {
+  return sin(x) >= 0 ? sin(2 * x) : 0;
+}
+double squiAbsSin(double x) {
+  return fabs(squiSin(x));
+}
+
+double saw(double x) {
+  return atan(tan(x / 2)) / (M_PI / 2);
+}
+double rectSaw(double x) {
+  return saw(x) > 0 ? saw(x) : 0;
+}
+double absSaw(double x) {
+  return saw(x) < 0 ? saw(x) + 1 : saw(x);
+}
+
+
+double cubSaw(double x) {
+  return pow(saw(x), 3);
+}
+double rectCubSaw(double x) {
+  return pow(rectSaw(x), 3);
+}
+double absCubSaw(double x) {
+  return pow(absSaw(x), 3);
+}
+
+double cubSine(double x) {
+  return pow(sin(x), 3);
+}
+double rectCubSin(double x) {
+  return pow(rectSin(x), 3);
+}
+double absCubSin(double x) {
+  return pow(absSin(x), 3);
+}
+double quartCubSin(double x) {
+  return pow(quartSin(x), 3);
+}
+double squishCubSin(double x) {
+  return pow(squiSin(x), 3);
+}
+double squishAbsCubSin(double x) {
+  return pow(squiAbsSin(x), 3);
+}
+
+double triangle(double x) {
+  return asin(sin(x)) / (M_PI / 2);
+}
+double rectTri(double x) {
+  return triangle(x) > 0 ? triangle(x) : 0;
+}
+double absTri(double x) {
+  return fabs(triangle(x));
+}
+double quartTri(double x) {
+  return absTri(x) * rectSquare(2 * x);
+}
+double squiTri(double x) {
+  return sin(x) >= 0 ? triangle(2 * x) : 0;
+}
+double absSquiTri(double x) {
+  return fabs(squiTri(x));
+}
+
+double cubTriangle(double x) {
+  return pow(triangle(x), 3);
+}
+double cubRectTri(double x) {
+  return pow(rectTri(x), 3);
+}
+double cubAbsTri(double x) {
+  return pow(absTri(x), 3);
+}
+double cubQuartTri(double x) {
+  return pow(quartTri(x), 3);
+}
+double cubSquiTri(double x) {
+  return pow(squiTri(x), 3);
+}
+double absCubSquiTri(double x) {
+  return fabs(cubSquiTri(x));
+}
+
+String getMultiKeysName(const int* keys, int keyCount, bool emptyNone) {
+  String ret;
+  for (int i=0; i<keyCount; i++) {
+    if (keys[i]==0) continue;
+    if (!ret.empty()) ret+=", ";
+    ret+=getKeyName(keys[i]);
+  }
+
+  if (ret.empty()) {
+    if (emptyNone) {
+      return "";
+    } else {
+      return _("<nothing>");
+    }
+  } else {
+    return ret;
+  }
 }

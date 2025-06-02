@@ -1,4 +1,4 @@
-# to-do long term
+# to-do for 0.7?
 
 - CSM macros
 - finish auto-clone

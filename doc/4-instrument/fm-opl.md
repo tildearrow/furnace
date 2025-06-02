@@ -23,6 +23,7 @@ these apply to the instrument as a whole:
     - right-click returns to algorithm view.
 - **Feedback (FB)**: determines how many times operator 1 returns its output to itself (0 to 7).
 
+- **Octave**: sets the "block" of the frequency register, which affects note range and precision.
 - **4-op**: enables 4-operator FM instrument editor mode (only on OPL3).
 - **Drums**: enables OPL drum mode editor.
 

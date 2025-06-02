@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,16 +52,15 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
   };
   Channel chan[2];
   DivDispatchOscBuffer* oscBuf[2];
+  int lastOut[2];
   bool isMuted[2];
   struct QueuedWrite {
     unsigned short addr;
     unsigned char val;
-    unsigned short delay;
-    QueuedWrite(): addr(0), val(0), delay(1) {}
-    QueuedWrite(unsigned short a, unsigned char v, unsigned short d=1):
+    QueuedWrite(): addr(0), val(0) {}
+    QueuedWrite(unsigned short a, unsigned char v):
       addr(a),
-      val(v),
-      delay(d) {}
+      val(v) {}
   };
   FixedQueue<QueuedWrite,256> writes;
   unsigned int sampleOffK007232[256];
@@ -82,7 +81,7 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
   void chWrite(unsigned char ch, unsigned int addr, unsigned char val);
   public:
     u8 read_sample(u8 ne, u32 address);
-    void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -95,6 +94,7 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
+    bool hasAcquireDirect();
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
