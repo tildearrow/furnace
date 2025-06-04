@@ -1,7 +1,7 @@
 [submodule "extern/SDL"]
 	path = extern/SDL
-	url = https://github.com/libsdl-org/SDL.git
-	branch = release-2.28.x
+	url = https://github.com/tildearrow/SDL.git
+	branch = release-2.32.x
 [submodule "extern/fmt"]
 	path = extern/fmt
 	url = https://github.com/fmtlib/fmt.git
