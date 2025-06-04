@@ -36,10 +36,10 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_YM2612_DUALPCM_EXT:
     case DIV_SYSTEM_YM2612_CSM: {
       int clockSel=flags.getInt("clockSel",0);
-      int chipType=0;
+      int chipType=1;
       if (flags.has("chipType")) {
-        chipType=flags.getInt("chipType",0);
-      } else {
+        chipType=flags.getInt("chipType",1);
+      } else if (flags.has("ladderEffect")) {
         chipType=flags.getBool("ladderEffect",0)?1:0;
       }
       int interruptSimCycles=flags.getInt("interruptSimCycles",0);
@@ -73,12 +73,12 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
 
       ImGui::Text(_("Chip type:"));
       ImGui::Indent();
-      if (ImGui::RadioButton(_("YM3438 (9-bit DAC)"),chipType==0)) {
-        chipType=0;
-        altered=true;
-      }
       if (ImGui::RadioButton(_("YM2612 (9-bit DAC with distortion)"),chipType==1)) {
         chipType=1;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("YM3438 (9-bit DAC)"),chipType==0)) {
+        chipType=0;
         altered=true;
       }
       if (ImGui::RadioButton(_("YMF276 (external DAC)"),chipType==2)) {

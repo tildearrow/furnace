@@ -389,31 +389,31 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         for (int i=0; i<32; i++) {
           for (int b=0; b<4; b++) {
             w->writeC(0xbe);
-            w->writeC((0xf<<2)+b);
-            w->writeC(i);
+            w->writeC(baseAddr2|((0xf<<2)+b));
+            w->writeC((b==3)?i:0);
           }
           unsigned int init_cr=0x0303;
           for (int b=0; b<4; b++) {
             w->writeC(0xbe);
-            w->writeC(b);
+            w->writeC(baseAddr2|b);
             w->writeC(init_cr>>(24-(b<<3)));
           }
           for (int r=1; r<11; r++) {
             for (int b=0; b<4; b++) {
               w->writeC(0xbe);
-              w->writeC((r<<2)+b);
+              w->writeC(baseAddr2|((r<<2)+b));
               w->writeC(((r==7 || r==9) && b&2)?0xff:0);
             }
           }
           for (int b=0; b<4; b++) {
             w->writeC(0xbe);
-            w->writeC((0xf<<2)+b);
+            w->writeC(baseAddr2|((0xf<<2)+b));
             w->writeC(0x20|i);
           }
           for (int r=1; r<10; r++) {
             for (int b=0; b<4; b++) {
               w->writeC(0xbe);
-              w->writeC((r<<2)+b);
+              w->writeC(baseAddr2|((r<<2)+b));
               w->writeC(0);
             }
           }
@@ -1059,7 +1059,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       break;
     case DIV_SYSTEM_ES5506:
       w->writeC(0xbe);
-      w->writeC(write.addr&0xff);
+      w->writeC(baseAddr2|(write.addr&0x7f));
       w->writeC(write.val&0xff);
       break;
     case DIV_SYSTEM_VBOY:
@@ -2446,13 +2446,23 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   // TODO
   for (int i=0; i<2; i++) {
     if (writeES5506[i]!=NULL && writeES5506[i]->getSampleMemUsage()>0) {
-      w->writeC(0x67);
-      w->writeC(0x66);
-      w->writeC(0x8F);
-      w->writeI((writeES5506[i]->getSampleMemUsage()+8)|(i*0x80000000));
-      w->writeI(writeES5506[i]->getSampleMemCapacity());
-      w->writeI(0);
-      w->write(writeES5506[i]->getSampleMem(),writeES5506[i]->getSampleMemUsage());
+      // split sample data into 4 areas
+      unsigned short* mem=(unsigned short*)writeES5506[i]->getSampleMem();
+      for (int b=0; b<4; b++) {
+        int offs=b<<22;
+        int memLen=CLAMP((int)writeES5506[i]->getSampleMemUsage()-offs,0,0x400000);
+        if (memLen>0) {
+          w->writeC(0x67);
+          w->writeC(0x66);
+          w->writeC(0x90);
+          w->writeI((memLen+8)|(i*0x80000000));
+          w->writeI(MIN(writeES5506[i]->getSampleMemCapacity(),0x400000));
+          w->writeI(b<<28);
+          for (int i=0; i<(memLen>>1); i++) {
+            w->writeS(mem[(offs>>1)+i]);
+          }
+        }
+      }
     }
     if (writeC140[i]!=NULL && writeC140[i]->getSampleMemUsage()>0) {
       w->writeC(0x67);

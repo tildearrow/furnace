@@ -130,6 +130,7 @@ option(SYSTEM_RTMIDI "Use a system-installed version of RtMidi instead of the ve
 option(SYSTEM_ZLIB "Use a system-installed version of zlib instead of the vendored one" OFF)
 option(SYSTEM_SDL2 "Use a system-installed version of SDL2 instead of the vendored one" ${SYSTEM_SDL2_DEFAULT})
 option(SUPPORT_XP "Build a Windows XP-compatible binary" OFF)
+option(SUPPORT_VISTA "Build a Windows Vista-compatible binary" OFF)
 option(WARNINGS_ARE_ERRORS "Whether warnings in furnace's C++ code should be treated as errors" OFF)
 option(WITH_DEMOS "Install demo songs (NOTE: demo songs are NOT under GPL!)" OFF)
 option(WITH_INSTRUMENTS "Install instruments" ON)
@@ -187,8 +188,13 @@ list(APPEND DEPENDENCIES_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
 if (WIN32)
   # support Windows XP
   if (SUPPORT_XP)
-    list(APPEND DEPENDENCIES_DEFINES "_WIN32_WINNT=0x0501")
+    list(APPEND DEPENDENCIES_DEFINES "_WIN32_WINNT=0x0500")
     list(APPEND DEPENDENCIES_DEFINES "SUPPORT_XP")
+  else()
+    # support Windows Vista
+    if (SUPPORT_VISTA)
+      list(APPEND DEPENDENCIES_DEFINES "_WIN32_WINNT=0x0600")
+    endif()
   endif()
 endif()
 

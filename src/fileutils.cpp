@@ -96,7 +96,7 @@ bool dirExists(const char* what) {
 
 bool makeDir(const char* path) {
 #ifdef _WIN32
-  return (SHCreateDirectory(NULL,utf8To16(path).c_str())==ERROR_SUCCESS);
+  return (SHCreateDirectoryExW(NULL,utf8To16(path).c_str(),NULL)==ERROR_SUCCESS);
 #else
   return (mkdir(path,0755)==0);
 #endif
