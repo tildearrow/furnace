@@ -3236,6 +3236,10 @@ size_t DivPlatformOPL::getSampleMemUsage(int index) {
           (index==0 && adpcmChan>=0)?adpcmBMemLen:0;
 }
 
+size_t DivPlatformOPL::getSampleMemOffset(int index) {
+  return (index==0 && pcmChanOffs>=0 && ramSize<=0x200000)?0x200000:0;
+}
+
 bool DivPlatformOPL::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
   if (sample<0 || sample>255) return false;

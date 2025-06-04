@@ -1433,6 +1433,10 @@ size_t DivPlatformES5506::getSampleMemUsage(int index) {
   return index == 0 ? sampleMemLen : 0;
 }
 
+size_t DivPlatformES5506::getSampleMemOffset(int index) {
+  return index == 0 ? 128 : 0;
+}
+
 bool DivPlatformES5506::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
   if (sample<0 || sample>255) return false;
@@ -1452,7 +1456,7 @@ void DivPlatformES5506::renderSamples(int sysID) {
   memCompo=DivMemoryComposition();
   memCompo.name="Sample Memory";
 
-  size_t memPos=128; // add silent at begin and end of each bank for reverse playback and add 1 for loop
+  size_t memPos=getSampleMemOffset(); // add silent at begin and end of each bank for reverse playback and add 1 for loop
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
     if (!s->renderOn[0][sysID]) {
@@ -1462,18 +1466,18 @@ void DivPlatformES5506::renderSamples(int sysID) {
 
     unsigned int length=s->length16;
     // fit sample size to single bank size
-    if (length>(4194304-128)) {
-      length=4194304-128;
+    if (length>(4194304-getSampleMemOffset())) {
+      length=4194304-getSampleMemOffset();
     }
-    if ((memPos&0xc00000)!=((memPos+length+128)&0xc00000)) {
-      memPos=((memPos+0x3fffff)&0xffc00000)+128;
+    if ((memPos&0xc00000)!=((memPos+length+getSampleMemOffset())&0xc00000)) {
+      memPos=((memPos+0x3fffff)&0xffc00000)+getSampleMemOffset();
     }
-    if (memPos>=(getSampleMemCapacity()-128)) {
+    if (memPos>=(getSampleMemCapacity()-getSampleMemOffset())) {
       logW("out of ES5506 memory for sample %d!",i);
       break;
     }
-    if (memPos+length>=(getSampleMemCapacity()-128)) {
-      memcpy(sampleMem+(memPos/sizeof(short)),s->data16,(getSampleMemCapacity()-128)-memPos);
+    if (memPos+length>=(getSampleMemCapacity()-getSampleMemOffset())) {
+      memcpy(sampleMem+(memPos/sizeof(short)),s->data16,(getSampleMemCapacity()-getSampleMemOffset())-memPos);
       logW("out of ES5506 memory for sample %d!",i);
     } else {
       memcpy(sampleMem+(memPos/sizeof(short)),s->data16,length);
