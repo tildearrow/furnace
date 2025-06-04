@@ -35,7 +35,7 @@ String getWinConfigPath() {
     if (!PathIsDirectoryW(configPath.c_str())) {
       logI("creating config dir...");
       int mkdirRet;
-      if ((mkdirRet=SHCreateDirectory(NULL,configPath.c_str()))!=ERROR_SUCCESS) {
+      if ((mkdirRet=SHCreateDirectoryExW(NULL,configPath.c_str(),NULL))!=ERROR_SUCCESS) {
         logW("could not make config dir! (%.8x)",mkdirRet);
         configPath=L".";
       }
