@@ -631,7 +631,7 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
         for (unsigned int i=0; i<sample->getCurBufLen(); i++) {
           b[i]=(((b[i]&7)<<4)|(((b[i]>>3)&15)^((b[i]&0x80)?15:0))|(b[i]&0x80))^0xff;
         }
-        break;\
+        break;
       default:
         break;
     }
