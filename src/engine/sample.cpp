@@ -633,7 +633,7 @@ bool DivSample::initInternal(DivSampleDepth d, int count) {
       break;
     case DIV_SAMPLE_DEPTH_4BIT:
       if (data4!=NULL) delete[] data4;
-      length4=count;
+      length4=(count+1)/2;
       data4=new unsigned char[length4];
       memset(data4,0,length4);
       break;
@@ -1334,11 +1334,18 @@ void DivSample::render(unsigned int formatMask) {
           }
         }
         break;
-      case DIV_SAMPLE_DEPTH_4BIT:
+      case DIV_SAMPLE_DEPTH_4BIT: {
+        unsigned short nibble=0;
         for (unsigned int i=0; i<samples; i++) {
-          data16[i]=data4[i]<<12;
+          if (i&1) {
+            nibble=data4[i/2]&0xf;
+          } else {
+            nibble=data4[i/2]>>4;
+          }
+          data16[i]=(nibble<<12)^0x8000;
         }
         break;
+      }
       default:
         return;
     }
@@ -1542,11 +1549,16 @@ void DivSample::render(unsigned int formatMask) {
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_4BIT)) {
     if (!initInternal(DIV_SAMPLE_DEPTH_4BIT,samples)) return;
-    for (unsigned int i=0; i<samples; i++) {
-      data4[i]=(data16[i]>>12)&0xf;
-      // if (i+1<samples) {
-      //   data4[i/2]|=(data16[i+1]>>12);
-      // }
+    unsigned char _sample=0, sample4=0;
+    unsigned short* samplePtr = (unsigned short*)data16;
+    for (unsigned int i=0; i<samples; i+=2) {
+      _sample=(*samplePtr++^0x8000)>>12;
+      sample4=_sample<<4;
+      if (i+1<samples) {
+        _sample=(*samplePtr++^0x8000)>>12;
+        sample4|=_sample;
+      }
+      data4[i/2]=sample4;
     }
   }
 }

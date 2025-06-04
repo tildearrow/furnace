@@ -1917,7 +1917,18 @@ void FurnaceGUI::drawSampleEdit() {
             posX=samplePos+pos.x*sampleZoom;
             if (posX>(int)sample->samples) posX=-1;
           }
-          posY=(0.5-pos.y/rectSize.y)*((sample->depth==DIV_SAMPLE_DEPTH_8BIT)?255:65535);
+          switch (sample->depth) {
+            case DIV_SAMPLE_DEPTH_8BIT:
+              posY=(0.5-pos.y/rectSize.y)*255;
+              break;
+            case DIV_SAMPLE_DEPTH_4BIT:
+              posY=(1-pos.y/rectSize.y)*15;
+              break;
+            default:
+              posY=(0.5-pos.y/rectSize.y)*65535;
+              break;
+          }
+
           if (posX>=0) {
             statusBar2=fmt::sprintf("(%d, %d)",posX,posY);
           }
