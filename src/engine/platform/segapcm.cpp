@@ -563,7 +563,7 @@ void DivPlatformSegaPCM::renderSamples(int sysID) {
 void DivPlatformSegaPCM::setFlags(const DivConfig& flags) {
   if (segaPCMIsDiscrete) {
     chipClock=8000000.0; // twice higher sample rate compares to ASIC chip
-    sampleMemSize=0x80000;
+    sampleMemSize=0x10000; // No bankswitch support
     bankShift=4;
     pcm.set_bank(segapcm_device::BANK_512|segapcm_device::BANK_MASK7);
   } else {
