@@ -239,6 +239,16 @@ void FurnaceGUI::drawExportVGM(bool onWindow) {
     }
   }
 
+  ImGui::Text(_("speed drift compensation:"));
+  if (ImGui::RadioButton(_("none"),vgmExportCorrectedRate==44100)) {
+    vgmExportCorrectedRate=44100;
+  }
+  // as tested on a Model 1 Genesis (VA6, USA):
+  // 0.97841613336995507871 slower, 1.02206000687632131440 longer
+  if (ImGui::RadioButton(_("DeadFish VgmPlay (1.02×)"),vgmExportCorrectedRate==43148)) {
+    vgmExportCorrectedRate=43148;
+  }
+
   if (hasOneAtLeast) {
     if (onWindow) {
       ImGui::Separator();
