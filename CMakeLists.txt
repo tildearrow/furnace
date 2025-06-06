@@ -484,9 +484,11 @@ endif()
 
 set(ENGINE_SOURCES
 src/log.cpp
+src/subprocess.cpp
 src/baseutils.cpp
 src/fileutils.cpp
 src/utfutils.cpp
+src/stringutils.cpp
 
 extern/itcompress/compression.c
 
