@@ -607,6 +607,36 @@ void a2w_depack(unsigned char *src, int srcsize, unsigned char *dst, int dstsize
     }
 }
 
+void a2b_depack(unsigned char *src, int srcsize, unsigned char *dst, int dstsize, int ffver)
+{
+    switch (ffver) 
+    {
+        case 1: // sixpack
+        case 5:
+            sixdepak((unsigned short *)src, (unsigned char *)dst, srcsize, dstsize);
+            break;
+        case 2: // lzw
+        case 6:
+            LZW_decompress(src, dst, srcsize, dstsize);
+            break;
+        case 3: // lzss
+        case 7:
+            LZSS_decompress(src, dst, srcsize, dstsize);
+            break;
+        case 4: // no compression
+        case 8:
+            memcpy(dst, src, MIN(srcsize, dstsize));
+            break;
+        case 9: // apack (aPlib)
+            aP_depack(src, dst, srcsize, dstsize);
+            break;
+        case 10: // lzh
+            LZH_decompress(src, dst, srcsize, dstsize);
+            break;
+        default: break;
+    }
+}
+
 bool is_data_empty(unsigned char *data, unsigned int size)
 {
     while (size--) {
@@ -2286,7 +2316,7 @@ void DivEngine::loadA2W(SafeReader& reader, std::vector<DivInstrument*>& ret, St
             if (block_0_decompressed[255 * 43 + 14 * 255 + 255 * 3831 + 1 + i]) //1 byte is the 4-op pairs table length
             {
                 four_op_arr[i] = true;
-                inst2_4op[i] = block_0_decompressed[255 * 43 + 14 * 255 + 255 * 3831 + (i / 2)];
+                inst2_4op[i] = block_0_decompressed[255 * 43 + 14 * 255 + 255 * 3831 + 1 + i];
             }
         }
     }
@@ -2364,10 +2394,10 @@ void DivEngine::loadA2W(SafeReader& reader, std::vector<DivInstrument*>& ret, St
             ins->name += " + ";
             memcpy(ins_name, &block_0_decompressed[inst2_4op_index * 0x2B + 1], 32);
             ins->name += ins_name;
-            ins->name += " [4-op]";
+            ins->name += _(" [4-op]");
         }
 
-        AT_apply_finetune(ins, four_op ? (tINSTR_DATA*)&block_0_decompressed[255*43 + 14 * inst2_4op_index] : (tINSTR_DATA*)&block_0_decompressed[255*43 + 14 * i], version);
+        AT_apply_finetune(ins, four_op ? (void*)&block_0_decompressed[255*43 + 14 * inst2_4op_index] : (void*)&block_0_decompressed[255*43 + 14 * i], 10); //instrument always at 14 bytes there
 
         ret.push_back(ins);
 
@@ -2378,6 +2408,174 @@ void DivEngine::loadA2W(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 }
 
 #undef FINISH_A2W
+#undef BLOCK_0_MAX_LENGTH
+#undef BLOCK_1_MAX_LENGTH
+#undef BLOCK_2_MAX_LENGTH
+
+#define FINISH_A2B \
+delete[] block; \
+delete[] block_decompressed; \
+free(songInfo);
+
+#define BLOCK_MAX_LENGTH (255*44 + 255*14 + 255*3831 + 129)
+
+void DivEngine::loadA2B(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath)
+{
+    reader.seek(SEEK_SET, 0);
+
+    char header[21] = { 0 };
+    reader.read(header, 11);
+
+    if(strncmp(header, "_a2insbank_", 11) != 0 && strncmp(header, "_A2insbank_", 11) != 0) return;
+
+    reader.readI(); //CRC
+
+    unsigned char version = reader.readC();
+
+    if(version > 10)
+    {
+        lastError=_("Unknown instrument bank version!");
+        return;
+    }
+
+    unsigned char* block = new unsigned char[BLOCK_MAX_LENGTH * 2];
+
+    unsigned char* block_decompressed = new unsigned char[BLOCK_MAX_LENGTH * 2];
+
+    memset(block, 0, BLOCK_MAX_LENGTH * 2);
+    memset(block_decompressed, 0, BLOCK_MAX_LENGTH * 2);
+
+    tSONGINFO* songInfo = (tSONGINFO*)calloc(1, sizeof(tSONGINFO));
+    memset(songInfo, 0, sizeof(tSONGINFO));
+
+    unsigned int length;
+
+    if(version < 9)
+    {
+        length = reader.readS();
+    }
+    else
+    {
+        length = reader.readI();
+    }
+
+    reader.read(block, length);
+
+    a2b_depack(block, length, block_decompressed, BLOCK_MAX_LENGTH, version);
+
+    char ins_name[40] = { 0 };
+
+    bool four_op_arr[128] = { false };
+    int inst2_4op[128] = { 0 };
+
+    if (version == 10)
+    {
+        for (int i = 0; i < 128; i++)
+        {
+            if (block_decompressed[255 * 43 + 14 * 255 + 1 + i]) //1 byte is the 4-op pairs table length
+            {
+                four_op_arr[i] = true;
+                inst2_4op[i] = block_decompressed[255 * 43 + 14 * 255 + 1 + i];
+            }
+        }
+    }
+
+    bool four_op = false;
+    int inst2_4op_index = 0;
+
+    for(int i = 0; i < (version > 8 ? 255 : 250); i++)
+    {
+        four_op = false;
+
+        if(version == 10)
+        {
+            for (int j = 0; j < 128; j++)
+            {
+                if (four_op_arr[j] && inst2_4op[j] == i + 1)
+                {
+                    four_op = true;
+                    inst2_4op_index = inst2_4op[j];
+                }
+            }
+        }
+
+        DivInstrument* ins = new DivInstrument;
+
+        if(version > 8)
+        {
+            AT2_inst_import(ins, *songInfo, 0, (tINSTR_DATA*)&block_decompressed[255*43 + 14 * i], four_op ? (tINSTR_DATA*)&block_decompressed[255*43 + 14 * inst2_4op_index] : NULL);
+        }
+        else
+        {
+            AT2_inst_import_v18(ins, *songInfo, 0, (tINSTR_DATA_V1_8*)&block_decompressed[255*43 + 13 * i]);
+        }
+
+        memset(ins_name, 0, 40);
+        memcpy(ins_name, &block_decompressed[i * 0x2B + 1], 32); //43 bytes per name although docs say only 33!!
+        //maybe that's AT2 SDL version problem, though. But I don't know where the test file I am using to check the import routine is from.
+        ins->name = ins_name;
+
+        if(four_op)
+        {
+            DivInstrument* ins_2 = new DivInstrument;
+
+            AT_import_macros(songInfo, ins_2, inst2_4op_index);
+
+            memcpy((void*)&ins->std.opMacros[2], (void*)&ins_2->std.opMacros[0], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+            memcpy((void*)&ins->std.opMacros[3], (void*)&ins_2->std.opMacros[1], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+
+            /*memcpy((void*)&ins4op->std.opMacros[0].amMacro, (void*)&ins2->std.opMacros[0].amMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+              memcpy((void*)&ins4op->std.opMacros[1].amMacro, (void*)&ins1->std.opMacros[0].amMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+              memcpy((void*)&ins4op->std.opMacros[2].amMacro, (void*)&ins2->std.opMacros[1].amMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+              memcpy((void*)&ins4op->std.opMacros[3].amMacro, (void*)&ins1->std.opMacros[1].amMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));*/
+
+            //swap 3 and 4 with 2 and 1
+
+            for (int j = 0; j < 4; j++)
+            {
+                memcpy((void*)&ins_2->std.opMacros[j], (void*)&ins->std.opMacros[j], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+            }
+
+            /*memcpy((void*)&ins->std.opMacros[0], (void*)&ins_2->std.opMacros[0], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+            memcpy((void*)&ins->std.opMacros[1], (void*)&ins_2->std.opMacros[2], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+            memcpy((void*)&ins->std.opMacros[2], (void*)&ins_2->std.opMacros[1], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+            memcpy((void*)&ins->std.opMacros[3], (void*)&ins_2->std.opMacros[3], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));*/
+
+            memcpy((void*)&ins->std.opMacros[0], (void*)&ins_2->std.opMacros[2], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+            memcpy((void*)&ins->std.opMacros[1], (void*)&ins_2->std.opMacros[0], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+            memcpy((void*)&ins->std.opMacros[2], (void*)&ins_2->std.opMacros[3], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+            memcpy((void*)&ins->std.opMacros[3], (void*)&ins_2->std.opMacros[1], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+
+            delete ins_2;
+        }
+
+        if(four_op)
+        {
+            ins->name += " + ";
+            memcpy(ins_name, &block_decompressed[inst2_4op_index * 0x2B + 1], 32);
+            ins->name += ins_name;
+            ins->name += _(" [4-op]");
+        }
+        
+        if(version > 8)
+        {
+            AT_apply_finetune(ins, four_op ? (void*)&block_decompressed[255*43 + 14 * inst2_4op_index] : (void*)&block_decompressed[255*43 + 14 * i], version);
+        }
+        else
+        {
+            AT_apply_finetune(ins, four_op ? (void*)&block_decompressed[255*43 + 13 * inst2_4op_index] : (void*)&block_decompressed[255*43 + 13 * i], version);
+        }
+
+        ret.push_back(ins);
+
+        if (four_op) i++;
+    }
+
+    FINISH_A2B
+}
+
+#undef FINISH_A2B
+#undef BLOCK_LENGTH
 
 #define TEMPSRC_SIZE 0xff
 #define TEMPDEST_SIZE 0xff
@@ -3017,6 +3215,7 @@ bool DivEngine::loadAT2M(unsigned char* file, size_t len)
         s->patLen = songInfo->patt_len;
         
         logI("tempo %d", songInfo->tempo);
+        logI("tempo finetune %d", INT16LE(songInfo->bpm_data.tempo_finetune));
         logI("speed %d", songInfo->speed);
         logI("pat length %d", songInfo->patt_len);
         logI("nm tracks %d", songInfo->nm_tracks);
