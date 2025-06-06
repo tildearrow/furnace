@@ -2008,10 +2008,10 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path, bool
       } else if (extS==".a2w") {
         format=DIV_INSFORMAT_A2W; //adlib tracker 2 ins bank with arp/vib/fm macros
       } else if (extS==".a2f") {
-        format=DIV_INSFORMAT_A2F; //adlib tracker 2 ins bank with fm macros only
+        format=DIV_INSFORMAT_A2F; //adlib tracker 2 ins with fm macros
       } else {
         // unknown format
-        lastError="unknown instrument format";
+        lastError=_("unknown instrument format");
         delete[] buf;
         return ret;
       }
