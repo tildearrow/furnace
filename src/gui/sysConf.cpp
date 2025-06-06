@@ -2368,6 +2368,48 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     }
     case DIV_SYSTEM_SEGAPCM:
     case DIV_SYSTEM_SEGAPCM_COMPAT: {
+      int clockSel=flags.getInt("clockSel",0);
+      int memSize=flags.getInt("memSize",0);
+      bool oldSlides=flags.getBool("oldSlides",false);
+
+      ImGui::Text(_("Clock rate:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("4MHz"),clockSel==0)) {
+        clockSel=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("4.027MHz (Y Board)"),clockSel==1)) {
+        clockSel=1;
+        altered=true;
+      }
+      ImGui::Unindent();
+
+      ImGui::Text(_("Memory size:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("2MB (Y Board)"),memSize==0)) {
+        memSize=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("512KB (Super Hang On/Out Run/X Board)"),memSize==1)) {
+        memSize=1;
+        altered=true;
+      }
+      ImGui::Unindent();
+
+      if (ImGui::Checkbox(_("Legacy slides and pitch (compatibility)"),&oldSlides)) {
+        altered=true;
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("clockSel",clockSel);
+          flags.set("memSize",memSize);
+          flags.set("oldSlides",oldSlides);
+        });
+      }
+      break;
+    }
+    case DIV_SYSTEM_SEGAPCM_DISCRETE: {
       bool oldSlides=flags.getBool("oldSlides",false);
 
       if (ImGui::Checkbox(_("Legacy slides and pitch (compatibility)"),&oldSlides)) {
