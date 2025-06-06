@@ -189,6 +189,7 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       break;
     case DIV_SYSTEM_SEGAPCM:
     case DIV_SYSTEM_SEGAPCM_COMPAT:
+    case DIV_SYSTEM_SEGAPCM_DISCRETE:
       return "SegaPCM";
       break;
     case DIV_SYSTEM_VRC7:

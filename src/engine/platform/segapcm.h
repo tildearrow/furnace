@@ -67,7 +67,9 @@ class DivPlatformSegaPCM: public DivDispatch {
     segapcm_device pcm;
     int delay;
     int pcmL, pcmR, pcmCycles;
-    bool oldSlides;
+    bool oldSlides, segaPCMIsDiscrete;
+    unsigned int sampleMemSize;
+    unsigned char bankShift, chMax;
     unsigned char sampleBank;
     unsigned char lastBusy;
 
@@ -115,6 +117,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     bool isSampleLoaded(int index, int sample);
     const DivMemoryComposition* getMemCompo(int index);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
+    void setChipModel(bool isDiscrete);
     void quit();
     ~DivPlatformSegaPCM();
 };

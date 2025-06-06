@@ -178,6 +178,15 @@ String DivEngine::getSongSystemLegacyName(DivSong& ds, bool isMultiSystemAccepta
       if (ds.system[0]==DIV_SYSTEM_YM2151 && ds.system[1]==DIV_SYSTEM_SEGAPCM) {
         return "YM2151 + SegaPCM Arcade";
       }
+      if (ds.system[0]==DIV_SYSTEM_YM2203 && ds.system[1]==DIV_SYSTEM_SEGAPCM_DISCRETE) {
+        return "YM2203 + SegaPCM Arcade (Discrete)";
+      }
+      if (ds.system[0]==DIV_SYSTEM_YM2203_EXT && ds.system[1]==DIV_SYSTEM_SEGAPCM_DISCRETE) {
+        return "YM2203 Extended Channel 3 + SegaPCM Arcade (Discrete)";
+      }
+      if (ds.system[0]==DIV_SYSTEM_YM2203_CSM && ds.system[1]==DIV_SYSTEM_SEGAPCM_DISCRETE) {
+        return "YM2203 /w CSM + SegaPCM Arcade (Discrete)";
+      }
 
       if (ds.system[0]==DIV_SYSTEM_SAA1099 && ds.system[1]==DIV_SYSTEM_SAA1099) {
         return "Creative Music System";
@@ -1424,7 +1433,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SEGAPCM]=new DivSysDef(
-    _("SegaPCM"), NULL, 0x9b, 0, 16, false, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
+    _("SegaPCM (ASIC)"), NULL, 0x9b, 0, 16, false, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     _("used in some Sega arcade boards (like OutRun), and usually paired with a YM2151."),
     {_("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8"), _("Channel 9"), _("Channel 10"), _("Channel 11"), _("Channel 12"), _("Channel 13"), _("Channel 14"), _("Channel 15"), _("Channel 16")},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"},
@@ -2331,6 +2340,18 @@ void DivEngine::registerSystems() {
     {},
     {},
     c64PostEffectHandlerMap
+  );
+
+  sysDefs[DIV_SYSTEM_SEGAPCM_DISCRETE]=new DivSysDef(
+    _("SegaPCM (Discrete logic)"), NULL, 0xfe/*Temp*/, 0, 8, false, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
+    _("used in some Sega arcade boards (like Hang On), and usually paired with a YM2203."),
+    {_("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8")},
+    {"1", "2", "3", "4", "5", "6", "7", "8"},
+    {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
+    {DIV_INS_SEGAPCM, DIV_INS_SEGAPCM, DIV_INS_SEGAPCM, DIV_INS_SEGAPCM, DIV_INS_SEGAPCM, DIV_INS_SEGAPCM, DIV_INS_SEGAPCM, DIV_INS_SEGAPCM},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {},
+    segaPCMPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(
