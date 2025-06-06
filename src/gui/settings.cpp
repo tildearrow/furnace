@@ -825,11 +825,13 @@ void FurnaceGUI::drawSettings() {
         // SUBSECTION FILE
         CONFIG_SUBSECTION(_("File"));
 
+#ifndef FLATPAK_WORKAROUNDS
         bool sysFileDialogB=settings.sysFileDialog;
         if (ImGui::Checkbox(_("Use system file picker"),&sysFileDialogB)) {
           settings.sysFileDialog=sysFileDialogB;
           settingsChanged=true;
         }
+#endif
 
         if (ImGui::InputInt(_("Number of recent files"),&settings.maxRecentFile,1,5)) {
           if (settings.maxRecentFile<0) settings.maxRecentFile=0;
@@ -4884,7 +4886,9 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.hiddenSystems=conf.getInt("hiddenSystems",0);
     settings.mswEnabled=conf.getInt("mswEnabled",0);
     settings.allowEditDocking=conf.getInt("allowEditDocking",1);
+#ifndef FLATPAK_WORKAROUNDS
     settings.sysFileDialog=conf.getInt("sysFileDialog",SYS_FILE_DIALOG_DEFAULT);
+#endif
     settings.displayAllInsTypes=conf.getInt("displayAllInsTypes",0);
     settings.displayPartial=conf.getInt("displayPartial",0);
 
@@ -5295,7 +5299,9 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.insFocusesPattern,0,1);
   clampSetting(settings.stepOnInsert,0,1);
   clampSetting(settings.unifiedDataView,0,1);
+#ifndef FLATPAK_WORKAROUNDS
   clampSetting(settings.sysFileDialog,0,1);
+#endif
   clampSetting(settings.roundedWindows,0,1);
   clampSetting(settings.roundedButtons,0,1);
   clampSetting(settings.roundedMenus,0,1);
@@ -5307,7 +5313,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.loadKorean,0,1);
   clampSetting(settings.loadFallback,0,1);
   clampSetting(settings.loadFallbackPat,0,1);
-  clampSetting(settings.fmLayout,0,6);
+  clampSetting(settings.fmLayout,0,7);
   clampSetting(settings.susPosition,0,3);
   clampSetting(settings.effectCursorDir,0,2);
   clampSetting(settings.cursorPastePos,0,1);
@@ -5483,7 +5489,9 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("hiddenSystems",settings.hiddenSystems);
     conf.set("mswEnabled",settings.mswEnabled);
     conf.set("allowEditDocking",settings.allowEditDocking);
+#ifndef FLATPAK_WORKAROUNDS
     conf.set("sysFileDialog",settings.sysFileDialog);
+#endif
     conf.set("displayAllInsTypes",settings.displayAllInsTypes);
     conf.set("displayPartial",settings.displayPartial);
 
@@ -7222,7 +7230,11 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
 
   if (updateFonts) {
     if (fileDialog!=NULL) delete fileDialog;
+#ifdef FLATPAK_WORKAROUNDS
+    fileDialog=new FurnaceGUIFileDialog(false);
+#else
     fileDialog=new FurnaceGUIFileDialog(settings.sysFileDialog);
+#endif
 
     fileDialog->mobileUI=mobileUI;
   }

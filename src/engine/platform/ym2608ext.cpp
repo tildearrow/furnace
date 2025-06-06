@@ -34,6 +34,7 @@ void DivPlatformYM2608Ext::commitStateExt(int ch, DivInstrument* ins) {
     }
     chan[2].state.fms=ins->fm.fms;
     chan[2].state.ams=ins->fm.ams;
+    chan[extChanOffs].state.block=ins->fm.block;
     chan[2].state.op[ordch]=ins->fm.op[ordch];
   }
   
@@ -218,9 +219,25 @@ int DivPlatformYM2608Ext::dispatch(DivCommand c) {
       rWrite(0x22,lfoValue);
       break;
     }
+    case DIV_CMD_FM_ALG: {
+      chan[extChanOffs].state.alg=c.value&7;
+      // TODO: TL compensation?
+      rWrite(ADDR_FB_ALG+chanOffs[extChanOffs],(chan[extChanOffs].state.alg&7)|(chan[extChanOffs].state.fb<<3));
+      break;
+    }
     case DIV_CMD_FM_FB: {
       chan[2].state.fb=c.value&7;
       rWrite(chanOffs[2]+ADDR_FB_ALG,(chan[2].state.alg&7)|(chan[2].state.fb<<3));
+      break;
+    }
+    case DIV_CMD_FM_FMS: {
+      chan[extChanOffs].state.fms=c.value&7;
+      rWrite(chanOffs[extChanOffs]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch].pan<<6))|(chan[extChanOffs].state.fms&7)|((chan[extChanOffs].state.ams&3)<<4));
+      break;
+    }
+    case DIV_CMD_FM_AMS: {
+      chan[extChanOffs].state.ams=c.value&3;
+      rWrite(chanOffs[extChanOffs]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch].pan<<6))|(chan[extChanOffs].state.fms&7)|((chan[extChanOffs].state.ams&3)<<4));
       break;
     }
     case DIV_CMD_FM_MULT: {
@@ -470,7 +487,9 @@ void DivPlatformYM2608Ext::tick(bool sysTick) {
       }
     }
 
-    if (opChan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      opChan[i].handleArp();
+    } else if (opChan[i].std.arp.had) {
       if (!opChan[i].inPorta) {
         opChan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(opChan[i].note,opChan[i].std.arp.val),11,chan[extChanOffs].state.block);
       }

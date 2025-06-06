@@ -36,10 +36,10 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_YM2612_DUALPCM_EXT:
     case DIV_SYSTEM_YM2612_CSM: {
       int clockSel=flags.getInt("clockSel",0);
-      int chipType=0;
+      int chipType=1;
       if (flags.has("chipType")) {
-        chipType=flags.getInt("chipType",0);
-      } else {
+        chipType=flags.getInt("chipType",1);
+      } else if (flags.has("ladderEffect")) {
         chipType=flags.getBool("ladderEffect",0)?1:0;
       }
       int interruptSimCycles=flags.getInt("interruptSimCycles",0);
@@ -73,12 +73,12 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
 
       ImGui::Text(_("Chip type:"));
       ImGui::Indent();
-      if (ImGui::RadioButton(_("YM3438 (9-bit DAC)"),chipType==0)) {
-        chipType=0;
-        altered=true;
-      }
       if (ImGui::RadioButton(_("YM2612 (9-bit DAC with distortion)"),chipType==1)) {
         chipType=1;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("YM3438 (9-bit DAC)"),chipType==0)) {
+        chipType=0;
         altered=true;
       }
       if (ImGui::RadioButton(_("YMF276 (external DAC)"),chipType==2)) {
@@ -1428,6 +1428,8 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       int prescale=flags.getInt("prescale",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
       bool fbAllOps=flags.getBool("fbAllOps",false);
+      bool memROM=flags.getBool("memROM",false);
+      bool memParallel=flags.getBool("memParallel",true);
       int ssgVol=flags.getInt("ssgVol",128);
       int fmVol=flags.getInt("fmVol",256);
 
@@ -1470,6 +1472,35 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         altered=true;
       } rightClickable
 
+      ImGui::TextUnformatted(_("Memory type:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("Parallel RAM (8-bit)"),(!memROM && memParallel))) {
+        memROM=false;
+        memParallel=true;
+        altered=true;
+        mustRender=true;
+      }
+      /*
+      if (ImGui::RadioButton(_("Serial RAM (1-bit)"),(!memROM && !memParallel))) {
+        memROM=false;
+        memParallel=false;
+        altered=true;
+        mustRender=true;
+      }*/
+      if (ImGui::RadioButton(_("ROM"),(memROM && !memParallel))) {
+        memROM=true;
+        memParallel=false;
+        altered=true;
+        mustRender=true;
+      }
+      if (!memROM && !memParallel) {
+        ImGui::Text(_("I have not implemented serial memory yet!"));
+      }
+      if (memROM && memParallel) {
+        ImGui::Text(_("Congratulations! You found the invalid option!"));
+      }
+      ImGui::Unindent();
+
       if (type==DIV_SYSTEM_YM2608_EXT || type==DIV_SYSTEM_YM2608_CSM) {
         if (ImGui::Checkbox(_("Disable ExtCh FM macros (compatibility)"),&noExtMacros)) {
           altered=true;
@@ -1485,6 +1516,8 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           flags.set("prescale",prescale);
           flags.set("noExtMacros",noExtMacros);
           flags.set("fbAllOps",fbAllOps);
+          flags.set("memROM",memROM);
+          flags.set("memParallel",memParallel);
           flags.set("ssgVol",ssgVol);
           flags.set("fmVol",fmVol);
         });
@@ -2552,7 +2585,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       break;
     }
     case DIV_SYSTEM_VERA: {
-      int chipType=flags.getInt("chipType",2);
+      int chipType=flags.getInt("chipType",3);
 
       ImGui::Text(_("Chip revision:"));
       ImGui::Indent();
@@ -2566,6 +2599,10 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       if (ImGui::RadioButton(_("V 47.0.2 (Tri/Saw PW XOR)"),chipType==2)) {
         chipType=2;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("X16 Emu R49 (Noise freq fix)"),chipType==3)) {
+        chipType=3;
         altered=true;
       }
       ImGui::Unindent();

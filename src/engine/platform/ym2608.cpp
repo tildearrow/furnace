@@ -343,7 +343,7 @@ void DivPlatformYM2608::acquire_combo(short** buf, size_t len) {
           QueuedWrite& w=writes.front();
 
           if (w.addr==0xfffffffe) {
-            delay=w.val;
+            delay=w.val*nukedMult*4;
             writes.pop_front();
           } else if (w.addr<=0x1d || w.addr==0x2d || w.addr==0x2e || w.addr==0x2f || (w.addr>=0x100 && w.addr<=0x12d)) {
             // ymfm write
@@ -503,7 +503,7 @@ void DivPlatformYM2608::acquire_ymfm(short** buf, size_t len) {
     }
 
     for (int i=(9+isCSM); i<(15+isCSM); i++) {
-      oscBuf[i]->putSample(h,(adpcmAChan[i-9-isCSM]->get_last_out(0)+adpcmAChan[i-9]->get_last_out(1))>>1);
+      oscBuf[i]->putSample(h,(adpcmAChan[i-9-isCSM]->get_last_out(0)+adpcmAChan[i-9-isCSM]->get_last_out(1))>>1);
     }
 
     oscBuf[15+isCSM]->putSample(h,(abe->get_last_out(0)+abe->get_last_out(1))>>1);
@@ -661,9 +661,16 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
         adMemAddr|=newAddr;
       }
 
-      if (fm_lle.o_romcs==0) {
-        fm_lle.input.dm=adpcmBMem[adMemAddr&0x3ffff];
-        fm_lle.input.dt0=fm_lle.input.dm&1;
+      if (memConfig&1) {
+        if (fm_lle.o_romcs==0) {
+          fm_lle.input.dm=adpcmBMem[adMemAddr&0x3ffff];
+          fm_lle.input.dt0=fm_lle.input.dm&1;
+        }
+      } else {
+        if (fm_lle.o_mden==1) {
+          fm_lle.input.dm=adpcmBMem[adMemAddr&0x3ffff];
+          fm_lle.input.dt0=fm_lle.input.dm&1;
+        }
       }
       cas=fm_lle.o_cas;
       ras=fm_lle.o_ras;
@@ -997,7 +1004,7 @@ void DivPlatformYM2608::tick(bool sysTick) {
       if (chan[(15+isCSM)].pan!=(chan[(15+isCSM)].std.panL.val&3)) {
         chan[(15+isCSM)].pan=chan[(15+isCSM)].std.panL.val&3;
         if (!isMuted[(15 + isCSM)]) {
-          immWrite(0x101,(isMuted[(15 + isCSM)]?0:(chan[(15+isCSM)].pan<<6))|1);
+          immWrite(0x101,(isMuted[(15 + isCSM)]?0:(chan[(15+isCSM)].pan<<6))|memConfig);
           hardResetElapsed++;
         }
       }
@@ -1162,7 +1169,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
             int end=sampleOffB[chan[c.chan].sample]+s->lengthB-1;
             immWrite(0x104,(end>>5)&0xff);
             immWrite(0x105,(end>>13)&0xff);
-            immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|1);
+            immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|memConfig);
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].note=c.value;
               chan[c.chan].baseFreq=NOTE_ADPCMB(chan[c.chan].note);
@@ -1194,7 +1201,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
             int end=sampleOffB[chan[c.chan].sample]+s->lengthB-1;
             immWrite(0x104,(end>>5)&0xff);
             immWrite(0x105,(end>>13)&0xff);
-            immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|1);
+            immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|memConfig);
             int freq=(65536.0*(double)s->rate)/((double)chipClock/144.0);
             immWrite(0x109,freq&0xff);
             immWrite(0x10a,(freq>>8)&0xff);
@@ -1338,7 +1345,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
         chan[c.chan].pan=(c.value2>0)|((c.value>0)<<1);
       }
       if (c.chan>(14+isCSM)) {
-        immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|1);
+        immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|memConfig);
         break;
       }
       if (c.chan>(8 + isCSM)) {
@@ -1441,10 +1448,41 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
       rWrite(0x22,lfoValue);
       break;
     }
+    case DIV_CMD_FM_ALG: {
+      if (c.chan>5) break;
+      chan[c.chan].state.alg=c.value&7;
+      rWrite(ADDR_FB_ALG+chanOffs[c.chan],(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
+      for (int i=0; i<4; i++) {
+        unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
+        DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
+        if (isMuted[c.chan] || !op.enable) {
+          rWrite(baseAddr+ADDR_TL,127);
+        } else {
+          if (KVS(c.chan,i)) {
+            rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[c.chan].outVol&0x7f,127));
+          } else {
+            rWrite(baseAddr+ADDR_TL,op.tl);
+          }
+        }
+      }
+      break;
+    }
     case DIV_CMD_FM_FB: {
       if (c.chan>5) break;
       chan[c.chan].state.fb=c.value&7;
       rWrite(chanOffs[c.chan]+ADDR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
+      break;
+    }
+    case DIV_CMD_FM_FMS: {
+      if (c.chan>5) break;
+      chan[c.chan].state.fms=c.value&7;
+      rWrite(chanOffs[c.chan]+ADDR_LRAF,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|(chan[c.chan].state.fms&7)|((chan[c.chan].state.ams&3)<<4));
+      break;
+    }
+    case DIV_CMD_FM_AMS: {
+      if (c.chan>5) break;
+      chan[c.chan].state.ams=c.value&3;
+      rWrite(chanOffs[c.chan]+ADDR_LRAF,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|(chan[c.chan].state.fms&7)|((chan[c.chan].state.ams&3)<<4));
       break;
     }
     case DIV_CMD_FM_MULT: {
@@ -1683,7 +1721,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
 void DivPlatformYM2608::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   if (ch>(14+isCSM)) { // ADPCM-B
-    immWrite(0x101,(isMuted[ch]?0:(chan[ch].pan<<6))|1);
+    immWrite(0x101,(isMuted[ch]?0:(chan[ch].pan<<6))|memConfig);
   }
   if (ch>(8+isCSM)) { // ADPCM-A
     immWrite(0x18+(ch-9),isMuted[ch]?0:((chan[ch].pan<<6)|chan[ch].outVol));
@@ -1795,9 +1833,6 @@ void DivPlatformYM2608::poke(std::vector<DivRegWrite>& wlist) {
 void DivPlatformYM2608::reset() {
   writes.clear();
   memset(regPool,0,512);
-  if (dumpWrites) {
-    addWrite(0xffffffff,0);
-  }
   OPN2_Reset(&fm_nuked);
   OPN2_SetChipType(&fm_nuked,ym3438_mode_opn);
   fm->reset();
@@ -1883,6 +1918,13 @@ void DivPlatformYM2608::reset() {
 
   extMode=false;
 
+  // enable 6 channel mode
+  immWrite(0x29,0x80);
+
+  if (dumpWrites) {
+    addWrite(0xffffffff,0);
+  }
+
   // LFO
   immWrite(0x22,lfoValue);
 
@@ -1893,9 +1935,6 @@ void DivPlatformYM2608::reset() {
   // ADPCM limit
   immWrite(0x10d,0xff);
   immWrite(0x10c,0xff);
-
-  // enable 6 channel mode
-  immWrite(0x29,0x80);
 
   // set prescaler
   immWrite(0x2d,0xff);
@@ -2041,6 +2080,10 @@ void DivPlatformYM2608::setFlags(const DivConfig& flags) {
   fbAllOps=flags.getBool("fbAllOps",false);
   ssgVol=flags.getInt("ssgVol",128);
   fmVol=flags.getInt("fmVol",256);
+
+  memConfig=flags.getBool("memROM",false)?1:0;
+  memConfig|=flags.getBool("memParallel",true)?2:0;
+
   if (useCombo==2) {
     rate=chipClock/(fmDivBase*2);
   } else {

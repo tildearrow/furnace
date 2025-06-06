@@ -637,7 +637,9 @@ void PCE_PSG::RunChannel(int chc, int32_t timestamp, const bool LFO_On)
   ch->waveform_index = (ch->waveform_index + 1) & 0x1F;
   ch->dda = ch->waveform[ch->waveform_index];
 
-  (this->*ch->UpdateOutput)(timestamp + ch->counter, ch);
+  if(&PCE_PSG::UpdateOutput_Noise != ch->UpdateOutput) {
+    (this->*ch->UpdateOutput)(timestamp + ch->counter, ch);
+  }
 
   if(LFO_On)
   {

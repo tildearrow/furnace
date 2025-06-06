@@ -27,15 +27,39 @@ void taSDLProcess(void* inst, unsigned char* buf, int nframes) {
 }
 
 void TAAudioSDL::onProcess(unsigned char* buf, int nframes) {
+  unsigned int unframes=nframes/(sizeof(float)*MAX(1,desc.outChans));
+  if (nframes<0) {
+    logE("nframes is negative! (%d)",nframes);
+    return;
+  }
+  if (desc.outChans<1) {
+    logE("outChans is less than 1!");
+    return;
+  }
+  for (int i=0; i<desc.inChans; i++) {
+    if (unframes>desc.bufsize) {
+      delete[] inBufs[i];
+      inBufs[i]=new float[unframes];
+    }
+  }
+  for (int i=0; i<desc.outChans; i++) {
+    if (unframes>desc.bufsize) {
+      delete[] outBufs[i];
+      outBufs[i]=new float[unframes];
+    }
+  }
   if (audioProcCallback!=NULL) {
     if (midiIn!=NULL) midiIn->gather();
-    audioProcCallback(audioProcCallbackUser,inBufs,outBufs,desc.inChans,desc.outChans,desc.bufsize);
+    audioProcCallback(audioProcCallbackUser,inBufs,outBufs,desc.inChans,desc.outChans,unframes);
   }
   float* fbuf=(float*)buf;
-  for (size_t j=0; j<desc.bufsize; j++) {
+  for (size_t j=0; j<unframes; j++) {
     for (size_t i=0; i<desc.outChans; i++) {
       fbuf[j*desc.outChans+i]=outBufs[i][j];
     }
+  }
+  if (unframes!=desc.bufsize) {
+    desc.bufsize=unframes;
   }
 }
 

@@ -31,6 +31,8 @@ size | description
      | - 16 values
  ??? | pointers to channel data
      | - pointers are short (2-byte) or long (4-byte), set in flags
+ 1?? | maximum stack size per channel
+     | - length: channel count
  ??? | channel data
 ```
 
@@ -403,4 +405,11 @@ hex | description
  dc | resonance scaling (b)
 ----|------------------------------------
  dd | WonderSwan speaker volume (b)
+----|------------------------------------
+    | **FM commands (continued)**
+ de | ALG (b)
+ df | FMS (b)
+ e0 | AMS (b)
+ e1 | FMS2 (b)
+ e2 | AMS2 (b)
 ```

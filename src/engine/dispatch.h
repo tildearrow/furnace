@@ -315,6 +315,12 @@ enum DivDispatchCmds {
 
   DIV_CMD_WS_GLOBAL_SPEAKER_VOLUME, // (multiplier)
 
+  DIV_CMD_FM_ALG,
+  DIV_CMD_FM_FMS,
+  DIV_CMD_FM_AMS,
+  DIV_CMD_FM_FMS2,
+  DIV_CMD_FM_AMS2,
+
   DIV_CMD_MAX
 };
 
@@ -443,7 +449,7 @@ struct DivDispatchOscBuffer {
   unsigned int needle;
   unsigned short readNeedle;
   //unsigned short lastSample;
-  bool follow;
+  bool follow, mustNotKillNeedle;
   short data[65536];
 
   inline void putSample(const size_t pos, const short val) {
@@ -470,6 +476,11 @@ struct DivDispatchOscBuffer {
     unsigned short start=needle>>16;
     unsigned short end=(needle+calc)>>16;
 
+    if (mustNotKillNeedle && start!=end) {
+      start++;
+      end++;
+    }
+
     //logD("C %d %d %d",len,calc,rate);
 
     if (end<start) {
@@ -485,12 +496,14 @@ struct DivDispatchOscBuffer {
   inline void end(size_t len) {
     size_t calc=len*rateMul;
     needle+=calc;
+    mustNotKillNeedle=needle&0xffff;//(data[needle>>16]!=-1);
     //data[needle>>16]=lastSample;
   }
   void reset() {
     memset(data,-1,65536*sizeof(short));
     needle=0;
     readNeedle=0;
+    mustNotKillNeedle=false;
     //lastSample=0;
   }
   void setRate(unsigned int r) {
@@ -505,7 +518,8 @@ struct DivDispatchOscBuffer {
     needle(0),
     readNeedle(0),
     //lastSample(0),
-    follow(true) {
+    follow(true),
+    mustNotKillNeedle(false) {
     memset(data,-1,65536*sizeof(short));
   }
 };

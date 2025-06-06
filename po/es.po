@@ -2774,7 +2774,7 @@ msgstr "Patear"
 #: src/engine/sysDef.cpp:1603 src/engine/sysDef.cpp:1755
 #: src/engine/sysDef.cpp:1820 src/gui/insEdit.cpp:213 src/gui/insEdit.cpp:221
 msgid "Snare"
-msgstr "Lazo"
+msgstr "Tambor"
 
 #: src/engine/sysDef.cpp:1253 src/engine/sysDef.cpp:1265
 #: src/engine/sysDef.cpp:1279 src/engine/sysDef.cpp:1529
@@ -2791,7 +2791,7 @@ msgstr "Superior"
 #: src/engine/sysDef.cpp:1603 src/engine/sysDef.cpp:1755
 #: src/engine/sysDef.cpp:1820 src/gui/insEdit.cpp:216 src/gui/insEdit.cpp:222
 msgid "HiHat"
-msgstr "Sombrero"
+msgstr "Platillo"
 
 #: src/engine/sysDef.cpp:1253 src/engine/sysDef.cpp:1265
 #: src/engine/sysDef.cpp:1279 src/engine/sysDef.cpp:1529

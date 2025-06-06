@@ -545,11 +545,13 @@ int main(int argc, char** argv) {
   // Windows console thing - thanks dj.tuBIG/MaliceX
 #ifdef _WIN32
 #ifndef TA_SUBSYSTEM_CONSOLE
+#ifndef SUPPORT_XP
   if (AttachConsole(ATTACH_PARENT_PROCESS)) {
     freopen("CONOUT$", "w", stdout);
     freopen("CONOUT$", "w", stderr);
     freopen("CONIN$", "r", stdin);
   }
+#endif
 #endif
 #endif
 
@@ -676,8 +678,8 @@ int main(int argc, char** argv) {
         logV("text domain 2: %s",localeRet);
       }
     }
-#endif
   }
+#endif
 
   initParams();
 

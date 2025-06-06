@@ -94,13 +94,13 @@ void T6W28_Square::run( sms_time_t time, sms_time_t end_time )
 		 if ( delta_left )
 		 {
 			last_amp_left = amp_left;
-			blip_add_delta( outputs[1], time, delta_left );
+			blip_add_delta( outputs[0], time, delta_left );
 		 }
 		
                  if ( delta_right )
                  {
                         last_amp_right = amp_right;
-                        blip_add_delta( outputs[0], time, delta_right );
+                        blip_add_delta( outputs[1], time, delta_right );
                  }
 
       oscBuf->putSample(time,(amp_left+amp_right)>>2);

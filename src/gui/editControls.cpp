@@ -626,9 +626,12 @@ void FurnaceGUI::drawMobileControls() {
           mobileMenuPos=0.0f;
           aboutOpen=true;
         }
-        ImGui::SameLine();
         if (ImGui::Button(_("WelcPopup"))) {
           tutorial.protoWelcome=false;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("EffectList"))) {
+          effectListOpen=!effectListOpen;
         }
         if (ImGui::Button(_("Switch to Desktop Mode"))) {
           toggleMobileUI(!mobileUI);

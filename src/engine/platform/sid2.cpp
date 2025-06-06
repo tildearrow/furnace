@@ -261,7 +261,7 @@ void DivPlatformSID2::tick(bool sysTick) {
           rWrite(i*7+6,(chan[i].sustain<<4)|(chan[i].release));
         }
 
-        rWrite(i*7+3, (chan[i].duty>>8) | (isMuted[i] ? 0 : (chan[i].outVol << 4))); //set volume
+        rWrite(i*7+3, (chan[i].duty>>8) | (chan[i].outVol << 4)); //set volume
 
         rWrite(0x1e, (chan[0].noise_mode) | (chan[1].noise_mode << 2) | (chan[2].noise_mode << 4) | ((chan[0].freq >> 16) << 6) | ((chan[1].freq >> 16) << 7));
         rWrite(0x1f, (chan[0].mix_mode) | (chan[1].mix_mode << 2) | (chan[2].mix_mode << 4) | ((chan[2].freq >> 16) << 6));

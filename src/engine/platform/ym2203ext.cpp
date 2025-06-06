@@ -31,6 +31,7 @@ void DivPlatformYM2203Ext::commitStateExt(int ch, DivInstrument* ins) {
     if (ch==0 || fbAllOps) {
       chan[2].state.fb=ins->fm.fb;
     }
+    chan[extChanOffs].state.block=ins->fm.block;
     chan[2].state.op[ordch]=ins->fm.op[ordch];
   }
   
@@ -191,6 +192,12 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
         }
         chan[extChanOffs].insChanged=true;
       }
+      break;
+    }
+    case DIV_CMD_FM_ALG: {
+      chan[extChanOffs].state.alg=c.value&7;
+      // TODO: TL compensation?
+      rWrite(ADDR_FB_ALG+chanOffs[extChanOffs],(chan[extChanOffs].state.alg&7)|(chan[extChanOffs].state.fb<<3));
       break;
     }
     case DIV_CMD_FM_FB: {
@@ -442,7 +449,9 @@ void DivPlatformYM2203Ext::tick(bool sysTick) {
       }
     }
 
-    if (opChan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      opChan[i].handleArp();
+    } else if (opChan[i].std.arp.had) {
       if (!opChan[i].inPorta) {
         opChan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(opChan[i].note,opChan[i].std.arp.val),11,chan[extChanOffs].state.block);
       }
