@@ -637,6 +637,20 @@ void a2b_depack(unsigned char *src, int srcsize, unsigned char *dst, int dstsize
     }
 }
 
+void a2f_depack(unsigned char *src, int srcsize, unsigned char *dst, int dstsize, int ffver)
+{
+    switch (ffver) 
+    {
+        case 1: // apack (aPlib)
+            aP_depack(src, dst, srcsize, dstsize);
+            break;
+        case 2: // lzh
+            LZH_decompress(src, dst, srcsize, dstsize);
+            break;
+        default: break;
+    }
+}
+
 bool is_data_empty(unsigned char *data, unsigned int size)
 {
     while (size--) {
@@ -2575,6 +2589,161 @@ void DivEngine::loadA2B(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 }
 
 #undef FINISH_A2B
+#undef BLOCK_LENGTH
+
+#define FINISH_A2F \
+delete[] block; \
+delete[] block_decompressed; \
+free(songInfo);
+
+#define BLOCK_MAX_LENGTH ((14 + 43 + 3831 + 28) * 2)
+
+void DivEngine::loadA2F(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath)
+{
+    reader.seek(SEEK_SET, 0);
+
+    char header[21] = { 0 };
+    reader.read(header, 18);
+
+    if(strncmp(header, "_a2ins_w/fm-macro_", 18) != 0 && strncmp(header, "_A2ins_w/fm-macro_", 18) != 0) return;
+
+    reader.readI(); //CRC
+
+    unsigned char version = reader.readC();
+
+    if(version > 2)
+    {
+        lastError=_("Unknown instrument with FM macros version!");
+        return;
+    }
+
+    unsigned char* block = new unsigned char[BLOCK_MAX_LENGTH * 2];
+
+    unsigned char* block_decompressed = new unsigned char[BLOCK_MAX_LENGTH * 2];
+
+    memset(block, 0, BLOCK_MAX_LENGTH * 2);
+    memset(block_decompressed, 0, BLOCK_MAX_LENGTH * 2);
+
+    tSONGINFO* songInfo = (tSONGINFO*)calloc(1, sizeof(tSONGINFO));
+    memset(songInfo, 0, sizeof(tSONGINFO));
+
+    unsigned int length;
+
+    length = reader.readS();
+
+    reader.read(block, length);
+
+    a2f_depack(block, length, block_decompressed, BLOCK_MAX_LENGTH, version);
+
+    char ins_name[40] = { 0 };
+    char ins_name_2[40] = { 0 };
+
+    int ins_name_len[2] = { 0 };
+
+    bool four_op = false;
+
+    memset(ins_name, 0, 40);
+
+    memcpy(ins_name, &block_decompressed[0xE + 1], 32); //43 bytes per name although docs say only 33!!
+    //maybe that's AT2 SDL version problem, though. But I don't know where the test file I am using to check the import routine is from.
+
+    for(int i = 0; i < 32; i++)
+    {
+        if(ins_name[i] == 0x05) //TODO: name seems to be truncated with no terminator, how can I handle that???
+        {
+            ins_name[i] = '\0';
+            ins_name_len[0] = i + 1;
+        }
+    }
+
+    for(int i = 14 + ins_name_len[0] + 3831 + 28; i < (14 + 43 + 3831 + 28) * 2; i++)
+    {
+        if(block_decompressed[i] != 0)
+        {
+            four_op = true;
+            break;
+        }
+    }
+
+    if(four_op)
+    {
+        memcpy(ins_name_2, &block_decompressed[0xf50], 32);
+        for(int i = 0; i < 32; i++)
+        {
+            if(ins_name_2[i] == 0x05) //TODO: name seems to be truncated with no terminator, how can I handle that???
+            {
+                ins_name_2[i] = '\0';
+                ins_name_len[1] = i + 1;
+            }
+        }
+    }
+
+    memcpy(&songInfo->fmreg_table[0], &block_decompressed[0x2f], 3831);
+    memcpy(&songInfo->disabled_fmregs_table[0], &block_decompressed[0xf26], 28);
+
+    if(four_op)
+    {
+        memcpy(&songInfo->fmreg_table[1], &block_decompressed[0xf71], 3831);
+        memcpy(&songInfo->disabled_fmregs_table[1], &block_decompressed[0x1e68], 28);
+    }
+
+    DivInstrument* ins = new DivInstrument;
+
+    AT2_inst_import(ins, *songInfo, 0, (tINSTR_DATA*)&block_decompressed[0], four_op ? (tINSTR_DATA*)&block_decompressed[0xf42] : NULL);
+    
+    ins->name = ins_name;
+
+    AT_import_macros(songInfo, ins, 0);
+
+    if(four_op)
+    {
+        DivInstrument* ins_2 = new DivInstrument;
+
+        AT_import_macros(songInfo, ins_2, 1);
+
+        memcpy((void*)&ins->std.opMacros[2], (void*)&ins_2->std.opMacros[0], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+        memcpy((void*)&ins->std.opMacros[3], (void*)&ins_2->std.opMacros[1], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+
+        /*memcpy((void*)&ins4op->std.opMacros[0].amMacro, (void*)&ins2->std.opMacros[0].amMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+            memcpy((void*)&ins4op->std.opMacros[1].amMacro, (void*)&ins1->std.opMacros[0].amMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+            memcpy((void*)&ins4op->std.opMacros[2].amMacro, (void*)&ins2->std.opMacros[1].amMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+            memcpy((void*)&ins4op->std.opMacros[3].amMacro, (void*)&ins1->std.opMacros[1].amMacro, sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));*/
+
+        //swap 3 and 4 with 2 and 1
+
+        for (int j = 0; j < 4; j++)
+        {
+            memcpy((void*)&ins_2->std.opMacros[j], (void*)&ins->std.opMacros[j], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+        }
+
+        /*memcpy((void*)&ins->std.opMacros[0], (void*)&ins_2->std.opMacros[0], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+        memcpy((void*)&ins->std.opMacros[1], (void*)&ins_2->std.opMacros[2], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+        memcpy((void*)&ins->std.opMacros[2], (void*)&ins_2->std.opMacros[1], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+        memcpy((void*)&ins->std.opMacros[3], (void*)&ins_2->std.opMacros[3], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));*/
+
+        memcpy((void*)&ins->std.opMacros[0], (void*)&ins_2->std.opMacros[2], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+        memcpy((void*)&ins->std.opMacros[1], (void*)&ins_2->std.opMacros[0], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+        memcpy((void*)&ins->std.opMacros[2], (void*)&ins_2->std.opMacros[3], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+        memcpy((void*)&ins->std.opMacros[3], (void*)&ins_2->std.opMacros[1], sizeof(DivInstrumentMacro) * ((int)DIV_MACRO_OP_KSR - (int)DIV_MACRO_OP_AM));
+
+        delete ins_2;
+    }
+
+    if(four_op)
+    {
+        ins->name += " + ";
+        ins->name += ins_name_2;
+        ins->name += _(" [4-op]");
+    }
+    
+    AT_apply_finetune(ins, four_op ? (void*)&block_decompressed[0xf42] : (void*)&block_decompressed[0], 10); //all versions have new instrument format
+
+    ret.push_back(ins);
+
+    FINISH_A2F
+}
+
+#undef FINISH_A2F
 #undef BLOCK_LENGTH
 
 #define TEMPSRC_SIZE 0xff

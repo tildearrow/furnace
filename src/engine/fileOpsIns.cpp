@@ -2074,6 +2074,7 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path, bool
         loadA2W(reader,ret,stripPath);
         break;
       case DIV_INSFORMAT_A2F:
+        loadA2F(reader,ret,stripPath);
         break;
     }
 
