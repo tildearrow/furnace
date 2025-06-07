@@ -2431,7 +2431,7 @@ delete[] block; \
 delete[] block_decompressed; \
 free(songInfo);
 
-#define BLOCK_MAX_LENGTH (255*44 + 255*14 + 255*3831 + 129)
+#define BLOCK_MAX_LENGTH_A2B (255*44 + 255*14 + 255*3831 + 129)
 
 void DivEngine::loadA2B(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath)
 {
@@ -2452,12 +2452,12 @@ void DivEngine::loadA2B(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         return;
     }
 
-    unsigned char* block = new unsigned char[BLOCK_MAX_LENGTH * 2];
+    unsigned char* block = new unsigned char[BLOCK_MAX_LENGTH_A2B * 2];
 
-    unsigned char* block_decompressed = new unsigned char[BLOCK_MAX_LENGTH * 2];
+    unsigned char* block_decompressed = new unsigned char[BLOCK_MAX_LENGTH_A2B * 2];
 
-    memset(block, 0, BLOCK_MAX_LENGTH * 2);
-    memset(block_decompressed, 0, BLOCK_MAX_LENGTH * 2);
+    memset(block, 0, BLOCK_MAX_LENGTH_A2B * 2);
+    memset(block_decompressed, 0, BLOCK_MAX_LENGTH_A2B * 2);
 
     tSONGINFO* songInfo = (tSONGINFO*)calloc(1, sizeof(tSONGINFO));
     memset(songInfo, 0, sizeof(tSONGINFO));
@@ -2475,7 +2475,7 @@ void DivEngine::loadA2B(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
     reader.read(block, length);
 
-    a2b_depack(block, length, block_decompressed, BLOCK_MAX_LENGTH, version);
+    a2b_depack(block, length, block_decompressed, BLOCK_MAX_LENGTH_A2B, version);
 
     char ins_name[40] = { 0 };
 
@@ -2589,14 +2589,14 @@ void DivEngine::loadA2B(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 }
 
 #undef FINISH_A2B
-#undef BLOCK_LENGTH
+#undef BLOCK_MAX_LENGTH_A2B
 
 #define FINISH_A2F \
 delete[] block; \
 delete[] block_decompressed; \
 free(songInfo);
 
-#define BLOCK_MAX_LENGTH ((14 + 43 + 3831 + 28) * 2)
+#define BLOCK_MAX_LENGTH_A2F ((14 + 43 + 3831 + 28) * 2)
 
 void DivEngine::loadA2F(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath)
 {
@@ -2617,12 +2617,12 @@ void DivEngine::loadA2F(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         return;
     }
 
-    unsigned char* block = new unsigned char[BLOCK_MAX_LENGTH * 2];
+    unsigned char* block = new unsigned char[BLOCK_MAX_LENGTH_A2F * 2];
 
-    unsigned char* block_decompressed = new unsigned char[BLOCK_MAX_LENGTH * 2];
+    unsigned char* block_decompressed = new unsigned char[BLOCK_MAX_LENGTH_A2F * 2];
 
-    memset(block, 0, BLOCK_MAX_LENGTH * 2);
-    memset(block_decompressed, 0, BLOCK_MAX_LENGTH * 2);
+    memset(block, 0, BLOCK_MAX_LENGTH_A2F * 2);
+    memset(block_decompressed, 0, BLOCK_MAX_LENGTH_A2F * 2);
 
     tSONGINFO* songInfo = (tSONGINFO*)calloc(1, sizeof(tSONGINFO));
     memset(songInfo, 0, sizeof(tSONGINFO));
@@ -2633,7 +2633,7 @@ void DivEngine::loadA2F(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
     reader.read(block, length);
 
-    a2f_depack(block, length, block_decompressed, BLOCK_MAX_LENGTH, version);
+    a2f_depack(block, length, block_decompressed, BLOCK_MAX_LENGTH_A2F, version);
 
     char ins_name[40] = { 0 };
     char ins_name_2[40] = { 0 };
@@ -2729,7 +2729,7 @@ void DivEngine::loadA2F(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 }
 
 #undef FINISH_A2F
-#undef BLOCK_LENGTH
+#undef BLOCK_MAX_LENGTH_A2F
 
 #define TEMPSRC_SIZE 0xff
 #define TEMPDEST_SIZE 0xff

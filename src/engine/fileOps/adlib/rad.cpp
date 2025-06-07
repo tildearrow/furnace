@@ -89,7 +89,7 @@ void RAD_read_description(DivSong* ds, SafeReader* reader)
 
     ds->subsong[0]->notes = description;
 
-    delete description;
+    delete[] description;
 }
 
 bool DivEngine::loadRAD(unsigned char* file, size_t len) 
