@@ -65,6 +65,7 @@ class DivWorkPool;
 #define DIV_VERSION_XM 0xff06
 #define DIV_VERSION_IT 0xff07
 #define DIV_VERSION_A2M 0xff08
+#define DIV_VERSION_RAD 0xff09
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
@@ -613,6 +614,7 @@ class DivEngine {
 
   // a big pile of adlib formats, sigh
   bool loadAT2M(unsigned char* file, size_t len); // supports both a2m and a2t
+  bool loadRAD(unsigned char* file, size_t len);
 
   void loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadTFI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);

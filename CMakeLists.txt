@@ -711,13 +711,14 @@ src/engine/fileOps/pps.cpp
 src/engine/fileOps/pvi.cpp
 src/engine/fileOps/pzi.cpp
 
-src/engine/fileOps/adlib/at2.cpp
-
 src/engine/fileOps/adlib/deps/depack.c
 src/engine/fileOps/adlib/deps/sixpack.c
 src/engine/fileOps/adlib/deps/unlzh.c
 src/engine/fileOps/adlib/deps/unlzss.c
 src/engine/fileOps/adlib/deps/unlzw.c
+
+src/engine/fileOps/adlib/at2.cpp
+src/engine/fileOps/adlib/rad.cpp
 
 src/engine/brrUtils.c
 src/engine/safeReader.cpp

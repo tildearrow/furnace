@@ -59,6 +59,7 @@ struct NotZlibException {
 
 #define DIV_A2M_MAGIC "_A2module_"
 #define DIV_A2T_MAGIC "_A2tiny_module_"
+#define DIV_RAD_MAGIC "RAD by REALiTY!!"
 
 #define DIV_FUR_MAGIC_DS0 "Furnace-B module"
 
