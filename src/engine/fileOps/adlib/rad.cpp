@@ -42,12 +42,12 @@ void RAD_read_description(DivSong* ds, SafeReader* reader)
             end = true;
         }
 
-        if(next_char >= 0x02 && next_char <= 0x20)
+        if(next_char >= 0x02 && next_char <= 0x1F)
         {
             description_length += next_char;
         }
 
-        if(next_char > 0x20 || next_char == 0x01)
+        if(next_char >= 0x20 || next_char == 0x01)
         {
             description_length++;
         }
@@ -65,7 +65,7 @@ void RAD_read_description(DivSong* ds, SafeReader* reader)
     {
         unsigned char next_char = reader->readC();
         
-        if(next_char >= 0x02 && next_char <= 0x20)
+        if(next_char >= 0x02 && next_char <= 0x1F)
         {
             for(unsigned char j = 0; j < next_char; j++)
             {
@@ -74,7 +74,7 @@ void RAD_read_description(DivSong* ds, SafeReader* reader)
             }
         }
 
-        if(next_char > 0x20)
+        if(next_char >= 0x20)
         {
             description[curr_pos] = next_char;
             curr_pos++;
@@ -87,7 +87,7 @@ void RAD_read_description(DivSong* ds, SafeReader* reader)
         }
     }
 
-    ds->subsong[0]->notes = description;
+    ds->notes = description;
 
     delete[] description;
 }
