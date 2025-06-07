@@ -26,6 +26,27 @@
 #define ngettext momo_ngettext
 #endif
 
+typedef struct {
+    union {
+        struct {
+            uint8_t multipM: 4, ksrM: 1, sustM: 1, vibrM: 1, tremM : 1;
+            uint8_t multipC: 4, ksrC: 1, sustC: 1, vibrC: 1, tremC : 1;
+            uint8_t volM: 6, kslM: 2;
+            uint8_t volC: 6, kslC: 2;
+            uint8_t decM: 4, attckM: 4;
+            uint8_t decC: 4, attckC: 4;
+            uint8_t relM: 4, sustnM: 4;
+            uint8_t relC: 4, sustnC: 4;
+            uint8_t wformM: 2, : 6;
+            uint8_t wformC: 2, : 6;
+            uint8_t connect: 1, feedb: 3, : 4;
+        };
+        uint8_t data[11];
+    };
+} FM_INST_DATA;
+
+static_assert(sizeof(FM_INST_DATA) == 11, "sizeof(FM_INST_DATA) != 11");
+
 void RAD_read_description(DivSong* ds, SafeReader* reader)
 {
     size_t description_start_pos = reader->tell();
@@ -86,6 +107,8 @@ void RAD_read_description(DivSong* ds, SafeReader* reader)
             curr_pos++;
         }
     }
+
+    reader->readC(); //skip null terminator
 
     ds->notes = description;
 
@@ -168,6 +191,71 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
             RAD_read_description(&ds, &reader);
         }
+
+        if(shifted_version == 1) //old RAD
+        {
+            //32 instruments? will delete the excessive ones later
+            for(int i = 0; i < 32; i++)
+            {
+                ds.ins.push_back(new DivInstrument());
+            }
+            
+            bool list_end = false;
+
+            FM_INST_DATA instr_s;
+
+            while(!list_end)
+            {
+                int inst_num = reader.readC();
+
+                if(inst_num == 0) list_end = true; //end of list
+
+                if(inst_num > 31)
+                {
+                    logE("invalid instrument number!");
+                    lastError="invalid instrument number";
+                    delete[] file;
+                    return false;
+                }
+
+                reader.read((void*)&instr_s, 11);
+                
+                DivInstrument* ins = ds.ins[inst_num];
+
+                ins->type = DIV_INS_OPL;
+
+                ins->fm.op[0].mult = instr_s.multipM;
+                ins->fm.op[0].ksr = instr_s.ksrM;
+                ins->fm.op[0].sus = instr_s.sustM;
+                ins->fm.op[0].vib = instr_s.vibrM;
+                ins->fm.op[0].am = instr_s.tremM;
+                ins->fm.op[0].tl = instr_s.volM;
+                ins->fm.op[0].ksl = instr_s.kslM;
+                ins->fm.op[0].ar = instr_s.attckM;
+                ins->fm.op[0].dr = instr_s.decM;
+                ins->fm.op[0].sl = instr_s.sustnM;
+                ins->fm.op[0].rr = instr_s.relM;
+                ins->fm.op[0].ws = instr_s.wformM;
+
+                ins->fm.op[1].mult = instr_s.multipC;
+                ins->fm.op[1].ksr = instr_s.ksrC;
+                ins->fm.op[1].sus = instr_s.sustC;
+                ins->fm.op[1].vib = instr_s.vibrC;
+                ins->fm.op[1].am = instr_s.tremC;
+                ins->fm.op[1].tl = instr_s.volC;
+                ins->fm.op[1].ksl = instr_s.kslC;
+                ins->fm.op[1].ar = instr_s.attckC;
+                ins->fm.op[1].dr = instr_s.decC;
+                ins->fm.op[1].sl = instr_s.sustnC;
+                ins->fm.op[1].rr = instr_s.relC;
+                ins->fm.op[1].ws = instr_s.wformC;
+
+                ins->fm.fb = instr_s.feedb;
+                ins->fm.alg = instr_s.connect;
+            }
+        }
+
+        ds.insLen = ds.ins.size();
 
         ds.linearPitch = 0;
         ds.pitchMacroIsLinear = false;
