@@ -2644,19 +2644,11 @@ void DivEngine::loadA2F(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
     memset(ins_name, 0, 40);
 
-    memcpy(ins_name, &block_decompressed[0xE + 1], 32); //43 bytes per name although docs say only 33!!
+    ins_name_len[0] = block_decompressed[0xE];
+    memcpy(ins_name, &block_decompressed[0xE + 1], ins_name_len[0]); //43 bytes per name although docs say only 33!!
     //maybe that's AT2 SDL version problem, though. But I don't know where the test file I am using to check the import routine is from.
 
-    for(int i = 0; i < 32; i++)
-    {
-        if(ins_name[i] == 0x05) //TODO: name seems to be truncated with no terminator, how can I handle that???
-        {
-            ins_name[i] = '\0';
-            ins_name_len[0] = i + 1;
-        }
-    }
-
-    for(int i = 14 + ins_name_len[0] + 3831 + 28; i < (14 + 43 + 3831 + 28) * 2; i++)
+    for(int i = 14 + ins_name_len[0] + 1 + 3831 + 28; i < (14 + ins_name_len[0] + 1 + 3831 + 28) + 14 + 32 + 1 + 3831 + 28; i++)
     {
         if(block_decompressed[i] != 0)
         {
@@ -2667,29 +2659,22 @@ void DivEngine::loadA2F(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
     if(four_op)
     {
-        memcpy(ins_name_2, &block_decompressed[0xf50], 32);
-        for(int i = 0; i < 32; i++)
-        {
-            if(ins_name_2[i] == 0x05) //TODO: name seems to be truncated with no terminator, how can I handle that???
-            {
-                ins_name_2[i] = '\0';
-                ins_name_len[1] = i + 1;
-            }
-        }
+        ins_name_len[1] = block_decompressed[14 + ins_name_len[0] + 1 + 3831 + 28 + 14];
+        memcpy(ins_name_2, &block_decompressed[14 + ins_name_len[0] + 1 + 3831 + 28 + 14 + 1], ins_name_len[1]);
     }
 
-    memcpy(&songInfo->fmreg_table[0], &block_decompressed[0x2f], 3831);
-    memcpy(&songInfo->disabled_fmregs_table[0], &block_decompressed[0xf26], 28);
+    memcpy(&songInfo->fmreg_table[0], &block_decompressed[14 + ins_name_len[0] + 1], 3831);
+    memcpy(&songInfo->disabled_fmregs_table[0], &block_decompressed[14 + ins_name_len[0] + 1 + 3831], 28);
 
     if(four_op)
     {
-        memcpy(&songInfo->fmreg_table[1], &block_decompressed[0xf71], 3831);
-        memcpy(&songInfo->disabled_fmregs_table[1], &block_decompressed[0x1e68], 28);
+        memcpy(&songInfo->fmreg_table[1], &block_decompressed[14 + ins_name_len[0] + 1 + 3831 + 28 + 14 + ins_name_len[1] + 1], 3831);
+        memcpy(&songInfo->disabled_fmregs_table[1], &block_decompressed[14 + ins_name_len[0] + 1 + 3831 + 28 + 14 + ins_name_len[1] + 1 + 3831], 28);
     }
 
     DivInstrument* ins = new DivInstrument;
 
-    AT2_inst_import(ins, *songInfo, 0, (tINSTR_DATA*)&block_decompressed[0], four_op ? (tINSTR_DATA*)&block_decompressed[0xf42] : NULL);
+    AT2_inst_import(ins, *songInfo, 0, (tINSTR_DATA*)&block_decompressed[0], four_op ? (tINSTR_DATA*)&block_decompressed[14 + ins_name_len[0] + 1 + 3831 + 28] : NULL);
     
     ins->name = ins_name;
 
@@ -2736,7 +2721,7 @@ void DivEngine::loadA2F(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         ins->name += _(" [4-op]");
     }
     
-    AT_apply_finetune(ins, four_op ? (void*)&block_decompressed[0xf42] : (void*)&block_decompressed[0], 10); //all versions have new instrument format
+    AT_apply_finetune(ins, four_op ? (void*)&block_decompressed[14 + ins_name_len[0] + 1 + 3831 + 28] : (void*)&block_decompressed[0], 10); //all versions have new instrument format
 
     ret.push_back(ins);
 
