@@ -7,7 +7,7 @@
 #include <nfd.h>
 #elif defined(ANDROID)
 #include <SDL.h>
-#else
+#elif (!defined(SUPPORT_XP) || !defined(_WIN32))
 #include "../../extern/pfd-fixed/portable-file-dialogs.h"
 #endif
 
@@ -176,9 +176,12 @@ bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, S
     jniEnv->DeleteLocalRef(class_);
     jniEnv->DeleteLocalRef(activity);
     return true;
-#else
+#elif (!defined(SUPPORT_XP) || !defined(_WIN32))
     dialogO=new pfd::open_file(header,path,filter,allowMultiple?(pfd::opt::multiselect):(pfd::opt::none));
     hasError=!pfd::settings::available();
+#else
+    hasError=true;
+    return false;
 #endif
   } else {
     hasError=false;
@@ -268,9 +271,12 @@ bool FurnaceGUIFileDialog::openSave(String header, std::vector<String> filter, S
     jniEnv->DeleteLocalRef(class_);
     jniEnv->DeleteLocalRef(activity);
     return true;
-#else
+#elif (!defined(SUPPORT_XP) || !defined(_WIN32))
     dialogS=new pfd::save_file(header,path,filter);
     hasError=!pfd::settings::available();
+#else
+    hasError=true;
+    return false;
 #endif
   } else {
     hasError=false;
@@ -312,9 +318,12 @@ bool FurnaceGUIFileDialog::openSelectDir(String header, String path, double dpiS
 #elif defined(ANDROID)
     hasError=true;
     return false;
-#else
+#elif (!defined(SUPPORT_XP) || !defined(_WIN32))
     dialogF=new pfd::select_folder(header,path);
     hasError=!pfd::settings::available();
+#else
+    hasError=true;
+    return false;
 #endif
   } else {
     hasError=false;
@@ -407,7 +416,7 @@ bool FurnaceGUIFileDialog::render(const ImVec2& min, const ImVec2& max) {
 #elif defined(ANDROID)
     // TODO: detect when file picker is closed
     return false;
-#else
+#elif (!defined(SUPPORT_XP) || !defined(_WIN32))
     if (dialogType==2) {
       if (dialogF!=NULL) {
         if (dialogF->ready(0)) {
@@ -454,6 +463,8 @@ bool FurnaceGUIFileDialog::render(const ImVec2& min, const ImVec2& max) {
     } else {
       logE("what!");
     }
+    return false;
+#else
     return false;
 #endif
   } else {

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@ bool DivInstrumentFM::operator==(const DivInstrumentFM& other) {
     _C(ams2) &&
     _C(ops) &&
     _C(opllPreset) &&
+    _C(block) &&
     _C(fixedDrums) &&
     _C(kickFreq) &&
     _C(snareHatFreq) &&
@@ -359,6 +360,8 @@ DivInstrumentMacro* DivInstrumentSTD::macroByType(DivMacroType type) {
     CONSIDER(ex6Macro,DIV_MACRO_EX6)
     CONSIDER(ex7Macro,DIV_MACRO_EX7)
     CONSIDER(ex8Macro,DIV_MACRO_EX8)
+    CONSIDER(ex9Macro,DIV_MACRO_EX9)
+    CONSIDER(ex10Macro,DIV_MACRO_EX10)
   }
 
   return NULL;
@@ -409,6 +412,7 @@ void DivInstrument::writeFeatureFM(SafeWriter* w, bool fui) {
   w->writeC(((fm.alg&7)<<4)|(fm.fb&7));
   w->writeC(((fm.fms2&7)<<5)|((fm.ams&3)<<3)|(fm.fms&7));
   w->writeC(((fm.ams2&3)<<6)|((fm.ops==4)?32:0)|(fm.opllPreset&31));
+  w->writeC(fm.block&15);
 
   // operator data
   for (int i=0; i<opCount; i++) {
@@ -646,6 +650,8 @@ void DivInstrument::writeFeatureMA(SafeWriter* w) {
   writeMacro(w,std.ex6Macro);
   writeMacro(w,std.ex7Macro);
   writeMacro(w,std.ex8Macro);
+  writeMacro(w,std.ex9Macro);
+  writeMacro(w,std.ex10Macro);
 
   // "stop reading" code
   w->writeC(-1);
@@ -957,9 +963,9 @@ void DivInstrument::writeFeatureMP(SafeWriter* w) {
   w->writeC(multipcm.am);
 
   unsigned char next=(
-    (multipcm.damp?1:0)&
-    (multipcm.pseudoReverb?2:0)&
-    (multipcm.lfoReset?4:0)&
+    (multipcm.damp?1:0)|
+    (multipcm.pseudoReverb?2:0)|
+    (multipcm.lfoReset?4:0)|
     (multipcm.levelDirect?8:0)
   );
   w->writeC(next);
@@ -1518,7 +1524,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
       std.ex5Macro.len ||
       std.ex6Macro.len ||
       std.ex7Macro.len ||
-      std.ex8Macro.len) {
+      std.ex8Macro.len ||
+      std.ex9Macro.len ||
+      std.ex10Macro.len) {
     featureMA=true;
   }
 
@@ -1741,6 +1749,11 @@ void DivInstrument::readFeatureFM(SafeReader& reader, short version) {
   fm.ops=(next&32)?4:2;
   fm.opllPreset=next&31;
 
+  if (version>=224) {
+    next=reader.readC();
+    fm.block=next&15;
+  }
+
   // read operators
   for (int i=0; i<opCount; i++) {
     DivInstrumentFM::Operator& op=fm.op[i];
@@ -1866,6 +1879,12 @@ void DivInstrument::readFeatureMA(SafeReader& reader, short version) {
         break;
       case 19:
         target=&std.ex8Macro;
+        break;
+      case 20:
+        target=&std.ex9Macro;
+        break;
+      case 21:
+        target=&std.ex10Macro;
         break;
       default:
         logW("invalid macro code %d!");

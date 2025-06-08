@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -478,7 +478,7 @@ const FurnaceGUIColors fxColors[256]={
   GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,
   GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,
   GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,
-  GUI_COLOR_PATTERN_EFFECT_INVALID,
+  GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,
   GUI_COLOR_PATTERN_EFFECT_INVALID,
   GUI_COLOR_PATTERN_EFFECT_INVALID,
   GUI_COLOR_PATTERN_EFFECT_INVALID,
@@ -1228,6 +1228,7 @@ const int availableSystems[]={
   DIV_SYSTEM_NES,
   DIV_SYSTEM_C64_8580,
   DIV_SYSTEM_C64_6581,
+  DIV_SYSTEM_C64_PCM,
   DIV_SYSTEM_YM2151,
   DIV_SYSTEM_SEGAPCM,
   DIV_SYSTEM_SEGAPCM_COMPAT,
@@ -1402,6 +1403,7 @@ const int chipsSpecial[]={
   DIV_SYSTEM_NES,
   DIV_SYSTEM_C64_8580,
   DIV_SYSTEM_C64_6581,
+  DIV_SYSTEM_C64_PCM,
   DIV_SYSTEM_SFX_BEEPER,
   DIV_SYSTEM_SFX_BEEPER_QUADTONE,
   DIV_SYSTEM_DUMMY,

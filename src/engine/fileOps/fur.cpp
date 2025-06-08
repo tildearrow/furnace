@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2100,6 +2100,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
           ds.systemFlags[i].set("chipType",1);
         }
       }
+    } else if (ds.version<229) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_VERA) {
+          ds.systemFlags[i].set("chipType",2);
+        }
+      }
     }
 
     // SNES no anti-click
@@ -2120,6 +2126,21 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
     }
 
+    // YM2612 chip type
+    if (ds.version<231) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_YM2612 ||
+            ds.system[i]==DIV_SYSTEM_YM2612_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2612_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2612_DUALPCM ||
+            ds.system[i]==DIV_SYSTEM_YM2612_DUALPCM_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2612_CSM) {
+          if (!ds.systemFlags[i].has("chipType") && !ds.systemFlags[i].has("ladderEffect")) {
+            ds.systemFlags[i].set("chipType",0);
+          }
+        }
+      }
+    }
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;

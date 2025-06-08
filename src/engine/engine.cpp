@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,6 +40,7 @@
 #include <math.h>
 #include <float.h>
 #include <fmt/printf.h>
+#include <chrono>
 
 void process(void* u, float** in, float** out, int inChans, int outChans, unsigned int size) {
   ((DivEngine*)u)->nextBuf(in,out,inChans,outChans,size);
@@ -1739,6 +1740,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
     subticks=1;
     prevOrder=curOrder;
     prevRow=curRow;
+    prevSpeed=nextSpeed;
     tempoAccum=0;
   }
   skipping=false;
@@ -1797,15 +1799,27 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
   /* logV("f-num: %d block: %d",bf,block); */ \
   return bf|(block<<bits);
 
-int DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int bits) {
+#define CONVERT_FNUM_FIXEDBLOCK(bf,bits,block) \
+  bf>>=(block); \
+  if (bf<0) bf=0; \
+  if (bf>((1<<(bits))-1)) { \
+    bf=(1<<(bits))-1; \
+  } \
+  return bf|((block)<<(bits));
+
+int DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int bits, int fixedBlock) {
   if (song.linearPitch==2) { // full linear
     return (note<<7);
   }
   int bf=calcBaseFreq(clock,divider,note,false);
-  CONVERT_FNUM_BLOCK(bf,bits,note)
+  if (fixedBlock>0) {
+    CONVERT_FNUM_FIXEDBLOCK(bf,bits,fixedBlock-1);
+  } else {
+    CONVERT_FNUM_BLOCK(bf,bits,note);
+  }
 }
 
-int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period, int octave, int pitch2, double clock, double divider, int blockBits) {
+int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period, int octave, int pitch2, double clock, double divider, int blockBits, int fixedBlock) {
   if (song.linearPitch==2) {
     // do frequency calculation here
     int nbase=base+pitch+pitch2;
@@ -1821,7 +1835,11 @@ int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period
            round((clock/fbase)/divider):
            round(fbase*(divider/clock));
     if (blockBits>0) {
-      CONVERT_FNUM_BLOCK(bf,blockBits,nbase>>7)
+      if (fixedBlock>0) {
+        CONVERT_FNUM_FIXEDBLOCK(bf,blockBits,fixedBlock-1);
+      } else {
+        CONVERT_FNUM_BLOCK(bf,blockBits,nbase>>7);
+      }
     } else {
       return bf;
     }
@@ -2047,9 +2065,7 @@ void DivEngine::stop() {
   for (int i=0; i<chans; i++) {
     DivDispatchOscBuffer* buf=disCont[dispatchOfChan[i]].dispatch->getOscBuffer(dispatchChanOfChan[i]);
     if (buf!=NULL) {
-      memset(buf->data,0,65536*sizeof(short));
-      buf->needle=0;
-      buf->readNeedle=0;
+      buf->reset();
     }
   }
   BUSY_END;
@@ -2322,7 +2338,7 @@ void DivEngine::stopWavePreviewNoLock() {
 }
 
 bool DivEngine::isPreviewingSample() {
-  return (sPreview.sample>=0 && sPreview.sample<(int)song.sample.size());
+  return (sPreview.sample>=0 && sPreview.sample<(int)song.sample.size() && sPreview.pos!=sPreview.pEnd);
 }
 
 int DivEngine::getSamplePreviewSample() {
@@ -2335,6 +2351,10 @@ int DivEngine::getSamplePreviewPos() {
 
 double DivEngine::getSamplePreviewRate() {
   return sPreview.rate;
+}
+
+double DivEngine::getCenterRate() {
+  return song.oldCenterRate?8363.0:8372.0;
 }
 
 String DivEngine::getConfigPath() {
@@ -2371,6 +2391,15 @@ void DivEngine::getPlayPos(int& order, int& row) {
   playPosLock.lock();
   order=prevOrder;
   row=prevRow;
+  playPosLock.unlock();
+}
+
+void DivEngine::getPlayPosTick(int& order, int& row, int& tick, int& speed) {
+  playPosLock.lock();
+  order=prevOrder;
+  row=prevRow;
+  tick=ticks;
+  speed=prevSpeed;
   playPosLock.unlock();
 }
 
@@ -2881,6 +2910,7 @@ int DivEngine::addSample() {
   DivSample* sample=new DivSample;
   int sampleCount=(int)song.sample.size();
   sample->name=fmt::sprintf(_("Sample %d"),sampleCount);
+  sample->centerRate=getCenterRate();
   song.sample.push_back(sample);
   song.sampleLen=sampleCount+1;
   sPreview.sample=-1;
@@ -3732,6 +3762,12 @@ void DivEngine::initDispatch(bool isRender) {
 
   lowQuality=getConfInt("audioQuality",0);
   dcHiPass=getConfInt("audioHiPass",1);
+
+  if (lowQuality) {
+    blip_add_delta=blip_add_delta_fast;
+  } else {
+    blip_add_delta=blip_add_delta_slow;
+  }
 
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].init(song.system[i],this,getChannelCount(song.system[i]),got.rate,song.systemFlags[i],isRender);

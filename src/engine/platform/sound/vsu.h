@@ -22,11 +22,16 @@
 #ifndef __VB_VSU_H
 #define __VB_VSU_H
 
+#include "blip_buf.h"
+#include "../../dispatch.h"
+
 class VSU
 {
  public:
 
  int last_output[6][2];
+ blip_buffer_t* bb[2];
+ DivDispatchOscBuffer* oscBuf[6];
 
  VSU();
  ~VSU();

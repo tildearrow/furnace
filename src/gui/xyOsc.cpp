@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,10 +18,6 @@
  */
 
 #include "gui.h"
-#include "imgui_internal.h"
-#include <imgui.h>
-#include "../ta-log.h"
-#include "../engine/filter.h"
 
 void FurnaceGUI::drawXYOsc() {
   if (nextWindow==GUI_WINDOW_XY_OSC) {
@@ -39,8 +35,8 @@ void FurnaceGUI::drawXYOsc() {
   }
   if (ImGui::Begin("Oscilloscope (X-Y)",&xyOscOpen,globalWinFlags,_("Oscilloscope (X-Y)"))) {
     if (xyOscOptions) {
-      int xyOscXChannelP1 = xyOscXChannel+1;
-      int xyOscYChannelP1 = xyOscYChannel+1;
+      int xyOscXChannelP1=xyOscXChannel+1;
+      int xyOscYChannelP1=xyOscYChannel+1;
 
       ImGui::Text(_("X Channel"));
       ImGui::SameLine();
@@ -52,7 +48,7 @@ void FurnaceGUI::drawXYOsc() {
       ImGui::Text(_("Y Channel"));
       ImGui::SameLine();
       if (ImGui::DragInt("##YChannel",&xyOscYChannelP1,1.0f,1,DIV_MAX_OUTPUTS)) {
-        xyOscXChannel=MIN(MAX(xyOscYChannelP1,1),DIV_MAX_OUTPUTS)-1;
+        xyOscYChannel=MIN(MAX(xyOscYChannelP1,1),DIV_MAX_OUTPUTS)-1;
       } rightClickable
       ImGui::SameLine();
       ImGui::Checkbox(_("Invert##Y"),&xyOscYInvert);

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,46 +71,50 @@ const char* sampleNote[12]={
   }
 
 #define SIMPLE_DRAG_SOURCE(_c,_toMoveVar) \
-  if (settings.draggableDataView && ImGui::BeginDragDropSource()) { \
-    _toMoveVar=i; \
-    ImGui::SetDragDropPayload(_c,NULL,0,ImGuiCond_Once); \
-    ImGui::Button(ICON_FA_ARROWS "##AssetDrag"); \
-    ImGui::EndDragDropSource(); \
+  if (settings.draggableDataView) { \
+    if (ImGui::BeginDragDropSource()) { \
+      _toMoveVar=i; \
+      ImGui::SetDragDropPayload(_c,NULL,0,ImGuiCond_Once); \
+      ImGui::Button(ICON_FA_ARROWS "##AssetDrag"); \
+      ImGui::EndDragDropSource(); \
+    } \
   }
 
 #define SIMPLE_DRAG_TARGET(_c,_toMoveVar,_curVar,_swapFn,_moveUpFn,_moveDownFn) \
-  if (settings.draggableDataView && ImGui::BeginDragDropTarget()) { \
-    const ImGuiPayload* payload=ImGui::AcceptDragDropPayload(_c); \
-    if (payload!=NULL) { \
-      int target=i; \
-      bool markModified=false; \
-      if (_toMoveVar!=target) { \
-        if (ImGui::IsKeyDown(ImGuiKey_ModCtrl)) { \
-          markModified=_swapFn(_toMoveVar,target); \
-        } else { \
-          while (_toMoveVar>target) { \
-            if (_moveUpFn(_toMoveVar)) { \
-              _toMoveVar--; \
-              markModified=true; \
-            } else { \
-              break; \
+  if (settings.draggableDataView) { \
+    if (ImGui::BeginDragDropTarget()) { \
+      const ImGuiPayload* payload=ImGui::AcceptDragDropPayload(_c); \
+      if (payload!=NULL) { \
+        int target=i; \
+        bool markModified=false; \
+        if (_toMoveVar!=target) { \
+          if (ImGui::IsKeyDown(ImGuiKey_ModCtrl)) { \
+            markModified=_swapFn(_toMoveVar,target); \
+          } else { \
+            while (_toMoveVar>target) { \
+              if (_moveUpFn(_toMoveVar)) { \
+                _toMoveVar--; \
+                markModified=true; \
+              } else { \
+                break; \
+              } \
+            } \
+            while (_toMoveVar<target) { \
+              if (_moveDownFn(_toMoveVar)) { \
+                _toMoveVar++; \
+                markModified=true; \
+              } else { \
+                break; \
+              } \
             } \
           } \
-          while (_toMoveVar<target) { \
-            if (_moveDownFn(_toMoveVar)) { \
-              _toMoveVar++; \
-              markModified=true; \
-            } else { \
-              break; \
-            } \
-          } \
+          _curVar=target; \
         } \
-        _curVar=target; \
+        if (markModified) { \
+          MARK_MODIFIED; \
+        } \
+        _toMoveVar=-1; \
       } \
-      if (markModified) { \
-        MARK_MODIFIED; \
-      } \
-      _toMoveVar=-1; \
       ImGui::EndDragDropTarget(); \
     } \
   }
@@ -148,7 +152,7 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
   }
   bool insReleased=ImGui::Selectable(name.c_str(),(i==-1)?(curIns<0 || curIns>=e->song.insLen):(curIns==i));
   bool insPressed=ImGui::IsItemActivated();
-  if (insReleased || (!insListDir && insPressed)) {
+  if (insReleased || (!insListDir && insPressed && !settings.draggableDataView)) {
     curIns=i;
     if (!insReleased || insListDir) {
       wavePreviewInit=true;

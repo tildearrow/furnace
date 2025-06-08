@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,15 +59,22 @@ const char** DivPlatformYMZ280B::getRegisterSheet() {
   return regCheatSheetYMZ280B;
 }
 
+// not this crap again... I hate while loops!
 void DivPlatformYMZ280B::acquire(short** buf, size_t len) {
   short why[16][256];
   short *bufPtrs[16]={
     why[0],why[1],why[2],why[3],why[4],why[5],why[6],why[7],
     why[8],why[9],why[10],why[11],why[12],why[13],why[14],why[15]
   };
+
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->begin(len);
+  }
+
+  size_t lenCopy=len;
   size_t pos=0;
-  while (len > 0) {
-    size_t blockLen = MIN(len, 256);
+  while (lenCopy > 0) {
+    size_t blockLen = MIN(lenCopy, 256);
     ymz280b.sound_stream_update(bufPtrs, blockLen);
     for (size_t i=0; i<blockLen; i++) {
       int dataL=0;
@@ -75,13 +82,17 @@ void DivPlatformYMZ280B::acquire(short** buf, size_t len) {
       for (int j=0; j<8; j++) {
         dataL+=why[j*2][i];
         dataR+=why[j*2+1][i];
-        oscBuf[j]->data[oscBuf[j]->needle++]=(short)(((int)why[j*2][i]+why[j*2+1][i])/4);
+        oscBuf[j]->putSample(pos,(short)(((int)why[j*2][i]+why[j*2+1][i])/4));
       }
       buf[0][pos]=(short)(dataL/8);
       buf[1][pos]=(short)(dataR/8);
       pos++;
     }
-    len-=blockLen;
+    lenCopy-=blockLen;
+  }
+
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -139,7 +150,7 @@ void DivPlatformYMZ280B::tick(bool sysTick) {
         case DIV_SAMPLE_DEPTH_16BIT: ctrl=0x60; break;
         default: ctrl=0;
       }
-      double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
+      double off=(s->centerRate>=1)?((double)s->centerRate/parent->getCenterRate()):1.0;
       chan[i].freq=(int)round(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE)/256.0)-1;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>511) chan[i].freq=511;
@@ -531,7 +542,7 @@ void DivPlatformYMZ280B::setFlags(const DivConfig& flags) {
       break;
   }
   for (int i=0; i<8; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,17 +68,26 @@ void DivPlatformRF5C68::acquire(short** buf, size_t len) {
     memset(bufC[i],0,256*sizeof(short));
   }
 
-  while (len > 0) {
-    size_t blockLen=MIN(len,256);
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->begin(len);
+  }
+
+  size_t lenCopy=len;
+  while (lenCopy > 0) {
+    size_t blockLen=MIN(lenCopy,256);
     short* bufPtrs[2]={&buf[0][pos],&buf[1][pos]};
     rf5c68.sound_stream_update(bufPtrs,chBufPtrs,blockLen);
     for (int i=0; i<8; i++) {
       for (size_t j=0; j<blockLen; j++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=(bufC[i*2][j]+bufC[i*2+1][j])>>1;
+        oscBuf[i]->putSample(pos+j,(bufC[i*2][j]+bufC[i*2+1][j])>>1);
       }
     }
     pos+=blockLen;
-    len-=blockLen;
+    lenCopy-=blockLen;
+  }
+
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -135,7 +144,7 @@ void DivPlatformRF5C68::tick(bool sysTick) {
       unsigned char keyon=regPool[8]&~(1<<i);
       unsigned char keyoff=keyon|(1<<i);
       DivSample* s=parent->getSample(chan[i].sample);
-      double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
+      double off=(s->centerRate>=1)?((double)s->centerRate/parent->getCenterRate()):1.0;
       chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE));
       if (chan[i].freq>65535) chan[i].freq=65535;
       if (chan[i].keyOn) {
@@ -375,7 +384,7 @@ void DivPlatformRF5C68::setFlags(const DivConfig& flags) {
   chipType=flags.getInt("chipType",0);
   rate=chipClock/384;
   for (int i=0; i<8; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
   rf5c68=(chipType==1)?rf5c164_device():rf5c68_device();
   rf5c68.device_start(sampleMem);

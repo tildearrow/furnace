@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,33 +23,128 @@
 #include <math.h>
 
 #define PITCH_OFFSET ((double)(16*2048*(chanMax+1)))
-#define NOTE_ES5506(c,note) ((amigaPitch && parent->song.linearPitch!=2)?parent->calcBaseFreq(COLOR_NTSC,chan[c].pcm.freqOffs,note,true):parent->calcBaseFreq(chipClock,chan[c].pcm.freqOffs,note,false))
+#define NOTE_ES5506(c,note) ((amigaPitch && parent->song.linearPitch!=2)?parent->calcBaseFreq(COLOR_NTSC*16,chan[c].pcm.freqOffs,note,true):parent->calcBaseFreq(chipClock,chan[c].pcm.freqOffs,note,false))
 
 #define rWrite(a,...) {if(!skipRegisterWrites) {hostIntf32.push_back(QueuedHostIntf(4,(a),__VA_ARGS__)); }}
 #define immWrite(a,...) {hostIntf32.push_back(QueuedHostIntf(4,(a),__VA_ARGS__));}
-#define pageWrite(p,a,...) \
+#define pageWrite(p,a,d) \
   if (!skipRegisterWrites) { \
     if (curPage!=(p)) { \
       curPage=(p); \
-      rWrite(0xf,curPage); \
+      rWrite(0xf,curPage) \
+      if (dumpWrites) { \
+        addWrite(0x3c,0) \
+        addWrite(0x3d,0) \
+        addWrite(0x3e,0) \
+        addWrite(0x3f,curPage) \
+      } \
     } \
-    rWrite((a),__VA_ARGS__); \
+    rWrite((a),(d)) \
+    if (dumpWrites) { \
+      addWrite(((a)<<2)|0,((d)>>24)&0xff) \
+      addWrite(((a)<<2)|1,((d)>>16)&0xff) \
+      addWrite(((a)<<2)|2,((d)>>8)&0xff) \
+      addWrite(((a)<<2)|3,((d)>>0)&0xff) \
+    } \
   }
 
-#define pageWriteMask(p,pm,a,...) \
+#define pageWriteDelayed(p,a,d,dl) \
+  if (!skipRegisterWrites) { \
+    if (curPage!=(p)) { \
+      curPage=(p); \
+      rWrite(0xf,curPage) \
+      if (dumpWrites) { \
+        addWrite(0x3c,0) \
+        addWrite(0x3d,0) \
+        addWrite(0x3e,0) \
+        addWrite(0x3f,curPage) \
+      } \
+    } \
+    rWrite((a),(d),(dl)) \
+    if (dumpWrites) { \
+      addWrite(((a)<<2)|0,((d)>>24)&0xff) \
+      addWrite(((a)<<2)|1,((d)>>16)&0xff) \
+      addWrite(((a)<<2)|2,((d)>>8)&0xff) \
+      addWrite(((a)<<2)|3,((d)>>0)&0xff) \
+    } \
+  }
+
+#define pageWriteMask(p,pm,a,d) \
   if (!skipRegisterWrites) { \
     if ((curPage&(pm))!=((p)&(pm))) { \
       curPage=(curPage&~(pm))|((p)&(pm)); \
-      rWrite(0xf,curPage,(pm)); \
+      rWrite(0xf,curPage) \
+      if (dumpWrites) { \
+        addWrite(0x3c,0) \
+        addWrite(0x3d,0) \
+        addWrite(0x3e,0) \
+        addWrite(0x3f,curPage) \
+      } \
     } \
-    rWrite((a),__VA_ARGS__); \
+    rWrite((a),(d)) \
+    if (dumpWrites) { \
+      addWrite(((a)<<2)|0,((d)>>24)&0xff) \
+      addWrite(((a)<<2)|1,((d)>>16)&0xff) \
+      addWrite(((a)<<2)|2,((d)>>8)&0xff) \
+      addWrite(((a)<<2)|3,((d)>>0)&0xff) \
+    } \
+  }
+
+#define crWrite(c,d) \
+  if (!skipRegisterWrites) { \
+    if ((curPage&0x5f)!=((c)&0x5f)) { \
+      curPage=(curPage&~0x5f)|((c)&0x5f); \
+      rWrite(0xf,curPage) \
+      if (dumpWrites) { \
+        addWrite(0x3c,0) \
+        addWrite(0x3d,0) \
+        addWrite(0x3e,0) \
+        addWrite(0x3f,curPage) \
+      } \
+    } \
+    chan[c].cr=(d); \
+    rWrite(0,chan[c].cr) \
+    if (dumpWrites) { \
+      addWrite(0x0,0) \
+      addWrite(0x1,0) \
+      addWrite(0x2,(chan[c].cr>>8)&0xff) \
+      addWrite(0x3,(chan[c].cr>>0)&0xff) \
+    } \
+  }
+
+#define crWriteMask(c,d,m) \
+  if (!skipRegisterWrites) { \
+    if ((curPage&0x5f)!=((c)&0x5f)) { \
+      curPage=(curPage&~0x5f)|((c)&0x5f); \
+      rWrite(0xf,curPage) \
+      if (dumpWrites) { \
+        addWrite(0x3c,0) \
+        addWrite(0x3d,0) \
+        addWrite(0x3e,0) \
+        addWrite(0x3f,curPage); \
+      } \
+    } \
+    chan[c].cr=(chan[c].cr&~(m))|((d)&(m)); \
+    rWrite(0,chan[c].cr) \
+    if (dumpWrites) { \
+      addWrite(0x0,0) \
+      addWrite(0x1,0) \
+      addWrite(0x2,(chan[c].cr>>8)&0xff) \
+      addWrite(0x3,(chan[c].cr>>0)&0xff) \
+    } \
   }
 
 #define pageReadMask(p,pm,a,st,...) \
   if (!skipRegisterWrites) { \
     if ((curPage&(pm))!=((p)&(pm))) { \
       curPage=(curPage&~(pm))|((p)&(pm)); \
-      rWrite(0xf,curPage,(pm)); \
+      rWrite(0xf,curPage) \
+      if (dumpWrites) { \
+        addWrite(0x3c,0) \
+        addWrite(0x3d,0) \
+        addWrite(0x3e,0) \
+        addWrite(0x3f,curPage) \
+      } \
     } \
     rRead(st,(a),__VA_ARGS__); \
   }
@@ -111,20 +206,23 @@ const char** DivPlatformES5506::getRegisterSheet() {
 }
 
 void DivPlatformES5506::acquire(short** buf, size_t len) {
+  for (int i=0; i<chanMax; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t h=0; h<len; h++) {
     // convert 32 bit access to 8 bit host interface
     while (!hostIntf32.empty()) {
       QueuedHostIntf w=hostIntf32.front();
       if (w.isRead && (w.read!=NULL)) {
-        hostIntf8.push(QueuedHostIntf(w.state,0,w.addr,w.read,w.mask));
-        hostIntf8.push(QueuedHostIntf(w.state,1,w.addr,w.read,w.mask));
-        hostIntf8.push(QueuedHostIntf(w.state,2,w.addr,w.read,w.mask));
-        hostIntf8.push(QueuedHostIntf(w.state,3,w.addr,w.read,w.mask,w.delay));
+        hostIntf8.push(QueuedHostIntf(w.state,0,w.addr,w.read));
+        hostIntf8.push(QueuedHostIntf(w.state,1,w.addr,w.read));
+        hostIntf8.push(QueuedHostIntf(w.state,2,w.addr,w.read));
+        hostIntf8.push(QueuedHostIntf(w.state,3,w.addr,w.read,w.delay));
       } else {
-        hostIntf8.push(QueuedHostIntf(0,w.addr,w.val,w.mask));
-        hostIntf8.push(QueuedHostIntf(1,w.addr,w.val,w.mask));
-        hostIntf8.push(QueuedHostIntf(2,w.addr,w.val,w.mask));
-        hostIntf8.push(QueuedHostIntf(3,w.addr,w.val,w.mask,w.delay));
+        hostIntf8.push(QueuedHostIntf(0,w.addr,w.val));
+        hostIntf8.push(QueuedHostIntf(1,w.addr,w.val));
+        hostIntf8.push(QueuedHostIntf(2,w.addr,w.val));
+        hostIntf8.push(QueuedHostIntf(3,w.addr,w.val,w.delay));
       }
       hostIntf32.pop();
     }
@@ -139,24 +237,11 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
         logE("READING?!");
         hostIntf8.pop();
       } else {
-        unsigned int mask=(w.mask>>shift)&0xff;
-        if ((mask==0xff) || isMasked) {
-          if (mask==0xff) {
-            maskedVal=(w.val>>shift)&0xff;
-          }
-          es5506.host_w((w.addr<<2)+w.step,maskedVal);
-          if(dumpWrites) {
-            addWrite((w.addr<<2)+w.step,maskedVal);
-          }
-          isMasked=false;
-          if ((w.step==3) && (w.delay>0)) {
-            cycle+=w.delay;
-          }
-          hostIntf8.pop();
-        } else if (!isMasked) {
-          maskedVal=((w.val>>shift)&mask)|(es5506.host_r((w.addr<<2)+w.step)&~mask);
-          isMasked=true;
+        es5506.host_w((w.addr<<2)+w.step,(w.val>>shift)&0xff);
+        if ((w.step==3) && (w.delay>0)) {
+          cycle+=w.delay;
         }
+        hostIntf8.pop();
         if (cycle>0) break;
       }
     }
@@ -166,8 +251,11 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
       buf[(o<<1)|1][h]=es5506.rout(o);
     }
     for (int i=chanMax; i>=0; i--) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(es5506.voice_lout(i)+es5506.voice_rout(i))>>5;
+      oscBuf[i]->putSample(h,(es5506.voice_lout(i)+es5506.voice_rout(i))>>5);
     }
+  }
+  for (int i=0; i<chanMax; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -252,6 +340,13 @@ void DivPlatformES5506::updateNoteChangesAsNeeded(int ch) {
 
 void DivPlatformES5506::tick(bool sysTick) {
   for (int i=0; i<=chanMax; i++) {
+    if (chan[i].crDirValInit) {
+      chan[i].crDirVal=es5506.regs_r(i,0,false)&0x41;
+      chan[i].crDirValInit=false;
+    }
+    if (!chan[i].crDirValChanged) {
+      chan[i].crDirVal=es5506.regs_r(i,0,false)&0x41;
+    }
     chan[i].std.next();
     DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_ES5506);
     signed int k1=chan[i].k1Prev,k2=chan[i].k2Prev;
@@ -393,14 +488,14 @@ void DivPlatformES5506::tick(bool sysTick) {
     }
     // filter slide
     if (!chan[i].keyOn) {
-      if (chan[i].k1Slide!=0 && chan[i].filter.k1>0 && chan[i].filter.k1<65535) {
+      if (chan[i].k1Slide!=0) {
         signed int next=CLAMP(chan[i].filter.k1+chan[i].k1Slide,0,65535);
         if (chan[i].filter.k1!=next) {
           chan[i].filter.k1=next;
           chan[i].filterChanged.k1=1;
         }
       }
-      if (chan[i].k2Slide!=0 && chan[i].filter.k2>0 && chan[i].filter.k2<65535) {
+      if (chan[i].k2Slide!=0) {
         signed int next=CLAMP(chan[i].filter.k2+chan[i].k2Slide,0,65535);
         if (chan[i].filter.k2!=next) {
           chan[i].filter.k2=next;
@@ -423,13 +518,18 @@ void DivPlatformES5506::tick(bool sysTick) {
       if (chan[i].pcm.pause!=(bool)(chan[i].std.alg.val&1)) {
         chan[i].pcm.pause=chan[i].std.alg.val&1;
         if (!chan[i].keyOn) {
-          pageWriteMask(0x00|i,0x5f,0x00,chan[i].pcm.pause?0x0002:0x0000,0x0002);
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x41)|(chan[i].crDirVal);
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x0002)|(chan[i].pcm.pause?0x0002:0x0000);
+          chan[i].crChanged=true;
         }
       }
       if (chan[i].pcm.direction!=(bool)(chan[i].std.alg.val&2)) {
         chan[i].pcm.direction=chan[i].std.alg.val&2;
         if (!chan[i].keyOn) {
-          pageWriteMask(0x00|i,0x5f,0x00,chan[i].pcm.direction?0x0040:0x0000,0x0040);
+          chan[i].crDirVal=(chan[i].crDirVal&~0x0040)|(chan[i].pcm.direction?0x0040:0x0000);
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x41)|chan[i].crDirVal;
+          chan[i].crDirValChanged=true;
+          chan[i].crChanged=true;
         }
       }
     }
@@ -463,7 +563,9 @@ void DivPlatformES5506::tick(bool sysTick) {
         }
       }
       if (chan[i].volChanged.ca) {
-        pageWriteMask(0x00|i,0x5f,0x00,(chan[i].ca<<10),0x1c00);
+        chan[i].crWriteVal=(chan[i].crWriteVal&~0x41)|chan[i].crDirVal;
+        chan[i].crWriteVal=(chan[i].crWriteVal&~0x1c00)|(chan[i].ca<<10);
+        chan[i].crChanged=true;
       }
       chan[i].volChanged.changed=0;
     }
@@ -490,7 +592,7 @@ void DivPlatformES5506::tick(bool sysTick) {
             if (center<1) {
               off=1.0;
             } else {
-              off=(double)center/8363.0;
+              off=(double)center/parent->getCenterRate();
             }
             if (ins->amiga.useNoteMap) {
               //chan[i].pcm.note=next;
@@ -572,7 +674,11 @@ void DivPlatformES5506::tick(bool sysTick) {
               break;
           }
           // Set loop mode & Bank
-          pageWriteMask(0x00|i,0x5f,0x00,loopFlag,0xe0fd);
+          chan[i].crDirVal=(chan[i].crDirVal&~0x0040)|(chan[i].pcm.direction?0x0040:0x0000);
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x41)|chan[i].crDirVal;
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0xe0fd)|loopFlag;
+          chan[i].crDirValChanged=true;
+          chan[i].crChanged=true;
         }
         chan[i].pcmChanged.loopBank=0;
       }
@@ -581,7 +687,9 @@ void DivPlatformES5506::tick(bool sysTick) {
     if (chan[i].filterChanged.changed) {
       if (!chan[i].keyOn) {
         if (chan[i].filterChanged.mode) {
-          pageWriteMask(0x00|i,0x5f,0x00,(chan[i].filter.mode<<8),0x0300);
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x41)|chan[i].crDirVal;
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x0300)|(chan[i].filter.mode<<8);
+          chan[i].crChanged=true;
         }
         if (chan[i].filterChanged.k2) {
           if (chan[i].std.ex2.mode!=0) { // Relative
@@ -609,7 +717,7 @@ void DivPlatformES5506::tick(bool sysTick) {
             pageWrite(0x00|i,0x05,((unsigned char)chan[i].envelope.rVRamp)<<8);
           }
           if (chan[i].envChanged.ecount) {
-            pageWrite(0x00|i,0x06,chan[i].envelope.ecount);
+            pageWrite(0x00|i,0x06,(unsigned int)chan[i].envelope.ecount);
           }
           if (chan[i].envChanged.k2Ramp) {
             pageWrite(0x00|i,0x08,(((unsigned char)chan[i].envelope.k2Ramp)<<8)|(chan[i].envelope.k2Slow?1:0));
@@ -639,8 +747,9 @@ void DivPlatformES5506::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (amigaPitch && parent->song.linearPitch!=2) {
-        chan[i].freq=CLAMP(parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,2,chan[i].pitch2,COLOR_NTSC,chan[i].pcm.freqOffs),1,0xffff);
-        chan[i].freq=32768*(COLOR_NTSC/chan[i].freq)/(chipClock/32.0);
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch*16,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,2,chan[i].pitch2*16,16*COLOR_NTSC,chan[i].pcm.freqOffs);
+        chan[i].freq=524288*(COLOR_NTSC/chan[i].freq)/(chipClock/32.0);
+        chan[i].freq=CLAMP(chan[i].freq,0,0x1ffff);
       } else {
         chan[i].freq=CLAMP(parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,chan[i].pcm.freqOffs),0,0x1ffff);
       }
@@ -654,7 +763,7 @@ void DivPlatformES5506::tick(bool sysTick) {
           if (center<1) {
             off=1.0;
           } else {
-            off=(double)center/8363.0;
+            off=(double)center/parent->getCenterRate();
           }
           chan[i].pcm.loopStart=(chan[i].pcm.start+(s->loopStart<<11))&0xfffff800;
           chan[i].pcm.loopEnd=(chan[i].pcm.start+((s->loopEnd)<<11))&0xffffff80;
@@ -668,11 +777,11 @@ void DivPlatformES5506::tick(bool sysTick) {
           }
           chan[i].k1Prev=0xffff;
           chan[i].k2Prev=0xffff;
-          pageWriteMask(0x00|i,0x5f,0x00,0x0303); // Wipeout CR
+          crWrite(0x00|i,0x0303); // Wipeout CR
           pageWrite(0x00|i,0x06,0); // Clear ECOUNT
           pageWrite(0x20|i,0x03,startPos); // Set ACCUM to start address
           pageWrite(0x00|i,0x07,0xffff); // Set K1 and K2 to 0xffff
-          pageWrite(0x00|i,0x09,0xffff,~0,(chanMax+1)*4*2); // needs to 4 sample period delay
+          pageWriteDelayed(0x00|i,0x09,0xffff,(chanMax+1)*4*2); // needs to 4 sample period delay
           pageWrite(0x00|i,0x01,chan[i].freq);
           pageWrite(0x20|i,0x01,(chan[i].pcm.loopMode==DIV_SAMPLE_LOOP_MAX)?chan[i].pcm.start:chan[i].pcm.loopStart);
           pageWrite(0x20|i,0x02,(chan[i].pcm.loopMode==DIV_SAMPLE_LOOP_MAX)?chan[i].pcm.end:chan[i].pcm.loopEnd);
@@ -714,7 +823,8 @@ void DivPlatformES5506::tick(bool sysTick) {
           pageWrite(0x00|i,0x0a,((unsigned char)(chan[i].envelope.k1Ramp)<<8)|(chan[i].envelope.k1Slow?1:0));
           pageWrite(0x00|i,0x08,((unsigned char)(chan[i].envelope.k2Ramp)<<8)|(chan[i].envelope.k2Slow?1:0));
           // initialize filter
-          pageWriteMask(0x00|i,0x5f,0x00,(chan[i].pcm.bank<<14)|(chan[i].filter.mode<<8),0xc300);
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0xc300)|((chan[i].pcm.bank<<14)|(chan[i].filter.mode<<8));
+          chan[i].crChanged=true;
           if ((chan[i].std.ex2.mode!=0) && (chan[i].std.ex2.had)) {
             k2=CLAMP(chan[i].filter.k2+chan[i].k2Offs,0,65535);
           } else {
@@ -754,12 +864,18 @@ void DivPlatformES5506::tick(bool sysTick) {
             loopFlag|=0x0002;
           }
           // Run sample
-          pageWrite(0x00|i,0x06,chan[i].envelope.ecount); // Clear ECOUNT
-          pageWriteMask(0x00|i,0x5f,0x00,loopFlag,0x3cff);
+          chan[i].crDirVal=(chan[i].crDirVal&~0x0040)|(chan[i].pcm.direction?0x0040:0x0000);
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x41)|chan[i].crDirVal;
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x3cff)|loopFlag;
+          chan[i].crDirValChanged=true;
+          chan[i].crChanged=true;
+          pageWrite(0x00|i,0x06,(unsigned int)chan[i].envelope.ecount); // Clear ECOUNT
         }
       }
       if (chan[i].keyOff) {
-        pageWriteMask(0x00|i,0x5f,0x00,0x0303); // Wipeout CR
+        chan[i].crWriteVal=0x0303;
+        chan[i].crChanged=true;
+        crWrite(0x00|i,0x0303); // Wipeout CR
       } else if (!chan[i].keyOn && chan[i].active) {
         pageWrite(0x00|i,0x01,chan[i].freq);
       }
@@ -775,6 +891,14 @@ void DivPlatformES5506::tick(bool sysTick) {
       if (chan[i].k1Prev!=k1) {
         pageWrite(0x00|i,0x09,k1);
         chan[i].k1Prev=k1;
+      }
+    }
+    if (chan[i].crChanged) {
+      crWrite(0x00|i,chan[i].crWriteVal);
+      chan[i].crChanged=false;
+      if (chan[i].crDirValChanged) {
+        chan[i].crDirValInit=true;
+        chan[i].crDirValChanged=false;
       }
     }
   }
@@ -1078,7 +1202,9 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       if (chan[c.chan].active) {
         if (chan[c.chan].pcm.pause!=(bool)(c.value&1)) {
           chan[c.chan].pcm.pause=c.value&1;
-          pageWriteMask(0x00|c.chan,0x5f,0x00,chan[c.chan].pcm.pause?0x0002:0x0000,0x0002);
+          chan[c.chan].crWriteVal=(chan[c.chan].crWriteVal&~0x41)|chan[c.chan].crDirVal;
+          chan[c.chan].crWriteVal=(chan[c.chan].crWriteVal&~0x0002)|(chan[c.chan].pcm.pause?0x0002:0x0000);
+          chan[c.chan].crChanged=true;
         }
       }
       break;
@@ -1086,6 +1212,9 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       int nextFreq=chan[c.chan].baseFreq;
       int destFreq=NOTE_ES5506(c.chan,c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
+      if (amigaPitch && parent->song.linearPitch!=2) {
+        c.value*=16;
+      }
       if (destFreq>nextFreq) {
         nextFreq+=c.value;
         if (nextFreq>=destFreq) {
@@ -1131,7 +1260,10 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     case DIV_CMD_SAMPLE_DIR: {
       if (chan[c.chan].pcm.direction!=(bool)(c.value&1)) {
         chan[c.chan].pcm.direction=c.value&1;
-        pageWriteMask(0x00|c.chan,0x5f,0x00,chan[c.chan].pcm.direction?0x0040:0x0000,0x0040);
+        chan[c.chan].crDirVal=(chan[c.chan].crDirVal&~0x0040)|(chan[c.chan].pcm.direction?0x0040:0x0000);
+        chan[c.chan].crWriteVal=(chan[c.chan].crWriteVal&~0x41)|chan[c.chan].crDirVal;
+        chan[c.chan].crDirValChanged=true;
+        chan[c.chan].crChanged=true;
       }
       break;
     }
@@ -1202,13 +1334,15 @@ void DivPlatformES5506::reset() {
 
   cycle=0;
   curPage=0;
-  maskedVal=0;
   irqv=0x80;
-  isMasked=false;
   irqTrigger=false;
   chanMax=initChanMax;
 
-  pageWriteMask(0x00,0x60,0x0b,chanMax);
+  if (dumpWrites) {
+    addWrite(0xffffffff,0);
+  }
+
+  pageWriteMask(0x00,0x60,0x0b,(unsigned int)chanMax);
   pageWriteMask(0x00,0x60,0x0b,0x1f);
   // set serial output to I2S-ish, 16 bit
   pageWriteMask(0x20,0x60,0x0a,0x01);
@@ -1251,11 +1385,11 @@ void DivPlatformES5506::setFlags(const DivConfig& flags) {
   amigaVol=flags.getBool("amigaVol",false);
   amigaPitch=flags.getBool("amigaPitch",false);
   chanMax=initChanMax;
-  pageWriteMask(0x00,0x60,0x0b,chanMax);
+  pageWriteMask(0x00,0x60,0x0b,(unsigned int)chanMax);
 
   rate=chipClock/(16*(initChanMax+1)); // 2 E clock tick (16 CLKIN tick) per voice / 4
   for (int i=0; i<32; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 
@@ -1332,7 +1466,7 @@ void DivPlatformES5506::renderSamples(int sysID) {
       length=4194304-128;
     }
     if ((memPos&0xc00000)!=((memPos+length+128)&0xc00000)) {
-      memPos=((memPos+0x3fffff)&0xc00000)+128;
+      memPos=((memPos+0x3fffff)&0xffc00000)+128;
     }
     if (memPos>=(getSampleMemCapacity()-128)) {
       logW("out of ES5506 memory for sample %d!",i);

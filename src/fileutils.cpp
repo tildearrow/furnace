@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -96,7 +96,7 @@ bool dirExists(const char* what) {
 
 bool makeDir(const char* path) {
 #ifdef _WIN32
-  return (SHCreateDirectory(NULL,utf8To16(path).c_str())==ERROR_SUCCESS);
+  return (SHCreateDirectoryExW(NULL,utf8To16(path).c_str(),NULL)==ERROR_SUCCESS);
 #else
   return (mkdir(path,0755)==0);
 #endif

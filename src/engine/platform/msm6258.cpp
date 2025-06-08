@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,6 +41,8 @@ int DivPlatformMSM6258::calcVGMRate() {
 }
 
 void DivPlatformMSM6258::acquire(short** buf, size_t len) {
+  oscBuf[0]->begin(len);
+
   for (size_t h=0; h<len; h++) {
     if (--msmClockCount<0) {
       if (--msmDividerCount<=0) {
@@ -86,13 +88,15 @@ void DivPlatformMSM6258::acquire(short** buf, size_t len) {
     if (isMuted[0]) {
       buf[0][h]=0;
       buf[1][h]=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=0;
+      oscBuf[0]->putSample(h,0);
     } else {
       buf[0][h]=(msmPan&2)?0:msmOut;
       buf[1][h]=(msmPan&1)?0:msmOut;
-      oscBuf[0]->data[oscBuf[0]->needle++]=msmPan?(msmOut>>1):0;
+      oscBuf[0]->putSample(h,(msmPan!=3)?(msmOut>>1):0);
     }
   }
+
+  oscBuf[0]->end(len);
 }
 
 void DivPlatformMSM6258::tick(bool sysTick) {
@@ -407,8 +411,9 @@ void DivPlatformMSM6258::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/256;
   for (int i=0; i<1; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
+  variableRate=flags.getBool("variableRate",false);
 }
 
 int DivPlatformMSM6258::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

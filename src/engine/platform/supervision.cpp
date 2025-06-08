@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,9 +58,14 @@ const char** DivPlatformSupervision::getRegisterSheet() {
 
 void DivPlatformSupervision::acquire(short** buf, size_t len) {
   int mask_bits=0;
-  for (int i=0; i<4; i++)
+  for (int i=0; i<4; i++) {
     mask_bits |= isMuted[i]?0:8>>i;
+  }
   supervision_set_mute_mask(&svision,mask_bits);
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
 
   for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
@@ -76,7 +81,7 @@ void DivPlatformSupervision::acquire(short** buf, size_t len) {
     tempR[0]=(((int)s[1])-128)*256;
 
     for (int i=0; i<4; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP((((int)s[2+i])-128)*256,-32768,32767);
+      oscBuf[i]->putSample(h,CLAMP(((int)s[2+i])<<8,-32768,32767));
     }
 
     tempL[0]=(tempL[0]>>1)+(tempL[0]>>2);
@@ -91,11 +96,14 @@ void DivPlatformSupervision::acquire(short** buf, size_t len) {
     buf[0][h]=tempL[0];
     buf[1][h]=tempR[0];
   }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
+  }
 }
 
 void DivPlatformSupervision::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
-
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
@@ -477,7 +485,7 @@ void DivPlatformSupervision::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/64;
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
   supervision_sound_set_clock(&svision,(unsigned int)chipClock);
   supervision_sound_set_flags(&svision,(unsigned int)otherFlags);

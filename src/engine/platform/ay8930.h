@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -114,6 +114,7 @@ class DivPlatformAY8930: public DivDispatch {
     unsigned char sampleBank;
 
     int delay;
+    int lastOut[2];
 
     bool extMode, stereo, clockSel;
     bool ioPortA, ioPortB;
@@ -121,10 +122,8 @@ class DivPlatformAY8930: public DivDispatch {
   
     short oldWrites[32];
     short pendingWrites[32];
-    short* ayBuf[3];
-    size_t ayBufLen;
 
-    void runDAC();
+    void runDAC(int advance);
     void checkWrites();
     void updateOutSel(bool immediate=false);
     void immWrite(unsigned char a, unsigned char v);
@@ -133,7 +132,7 @@ class DivPlatformAY8930: public DivDispatch {
     friend void putDispatchChan(void*,int,int);
   
   public:
-    void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -148,6 +147,7 @@ class DivPlatformAY8930: public DivDispatch {
     void setFlags(const DivConfig& flags);
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
+    bool hasAcquireDirect();
     DivMacroInt* getChanMacroInt(int ch);
     DivSamplePos getSamplePos(int ch);
     bool getLegacyAlwaysSetVolume();

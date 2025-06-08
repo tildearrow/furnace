@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, PSTR args, int state) {
   for (int i=0; i<argc; i++) {
     std::string str=utf16To8(argw[i]);
     argv[i]=new char[str.size()+1];
-    strcpy(argv[i],str.c_str());
+    strncpy(argv[i],str.c_str(),str.size()+1);
   }
 
   // set DPI awareness

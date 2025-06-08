@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -564,6 +564,9 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
       break;
     case DIV_SAMPLE_DEPTH_BRR:
       samples=16*((lenDivided+8)/9);
+      break;
+    case DIV_SAMPLE_DEPTH_12BIT:
+      samples=(2+(lenDivided*2))/3;
       break;
     case DIV_SAMPLE_DEPTH_16BIT:
       samples=(lenDivided+1)/2;

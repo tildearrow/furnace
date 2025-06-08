@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #include "gui.h"
 #include "../fileutils.h"
 #include "IconsFontAwesome4.h"
+#include "furIcons.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <fmt/printf.h>
 
@@ -106,7 +107,7 @@ const int mobileButtonActions[32]={
   0,
 
   // page 3
-  0,
+  GUI_ACTION_CMDPAL_INSTRUMENT_CHANGE,
   GUI_ACTION_WINDOW_FIND,
   GUI_ACTION_PAT_COLLAPSE_ROWS,
   GUI_ACTION_PAT_EXPAND_ROWS,
@@ -395,7 +396,7 @@ void FurnaceGUI::drawMobileControls() {
     bool metro=e->getMetronome();
     pushToggleColors(metro);
     if (portrait) ImGui::SameLine();
-    if (ImGui::Button(ICON_FA_BELL_O "##Metronome",buttonSize)) {
+    if (ImGui::Button(ICON_FUR_METRONOME "##Metronome",buttonSize)) {
       e->setMetronome(!metro);
     }
     popToggleColors();
@@ -546,6 +547,7 @@ void FurnaceGUI::drawMobileControls() {
         break;
       case GUI_SCENE_CHIPS:
         ImGui::Text(_("Chips here..."));
+        ImGui::Text("Built");
         break;
       case GUI_SCENE_MIXER:
         ImGui::Text(_("What the hell..."));
@@ -597,6 +599,10 @@ void FurnaceGUI::drawMobileControls() {
         if (ImGui::Button(_("PatManager"))) {
           patManagerOpen=!patManagerOpen;
         }
+        ImGui::SameLine();
+        if (ImGui::Button(_("CSPlayer"))) {
+          csPlayerOpen=!csPlayerOpen;
+        }
 
         ImGui::Separator();
 
@@ -620,9 +626,12 @@ void FurnaceGUI::drawMobileControls() {
           mobileMenuPos=0.0f;
           aboutOpen=true;
         }
-        ImGui::SameLine();
         if (ImGui::Button(_("WelcPopup"))) {
           tutorial.protoWelcome=false;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("EffectList"))) {
+          effectListOpen=!effectListOpen;
         }
         if (ImGui::Button(_("Switch to Desktop Mode"))) {
           toggleMobileUI(!mobileUI);
@@ -803,7 +812,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         bool metro=e->getMetronome();
         pushToggleColors(metro);
-        if (ImGui::Button(ICON_FA_BELL_O "##Metronome")) {
+        if (ImGui::Button(ICON_FUR_METRONOME "##Metronome")) {
           e->setMetronome(!metro);
         }
         if (ImGui::IsItemHovered()) {
@@ -919,7 +928,7 @@ void FurnaceGUI::drawEditControls() {
 
         bool metro=e->getMetronome();
         pushToggleColors(metro);
-        if (ImGui::Button(ICON_FA_BELL_O "##Metronome",buttonSize)) {
+        if (ImGui::Button(ICON_FUR_METRONOME "##Metronome",buttonSize)) {
           e->setMetronome(!metro);
         }
         if (ImGui::IsItemHovered()) {
@@ -1059,7 +1068,7 @@ void FurnaceGUI::drawEditControls() {
         bool metro=e->getMetronome();
         ImGui::SameLine();
         pushToggleColors(metro);
-        if (ImGui::Button(ICON_FA_BELL_O "##Metronome")) {
+        if (ImGui::Button(ICON_FUR_METRONOME "##Metronome")) {
           e->setMetronome(!metro);
         }
         if (ImGui::IsItemHovered()) {

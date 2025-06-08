@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -109,7 +109,7 @@ ImFont* FurnaceGUI::addFontZlib(const void* data, size_t len, float size_pixels,
     blocks.clear();
     return NULL;
   }
-  unsigned char* finalData=new unsigned char[finalSize];
+  unsigned char* finalData=(unsigned char*)malloc(finalSize);
   for (InflateBlock* i: blocks) {
     memcpy(&finalData[curSeek],i->buf,i->blockSize);
     curSeek+=i->blockSize;

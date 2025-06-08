@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -421,6 +421,12 @@ void FurnaceGUI::initSystemPresets() {
         },
         "tickRate=50.1245421"
       );
+    SUB_ENTRY(
+      _("Commodore 64 (6581 SID) with software PCM"), {
+        CH(DIV_SYSTEM_C64_PCM, 1.0f, 0, "clockSel=1")
+      },
+      "tickRate=50.1245421"
+    );
   ENTRY(
     _("Amiga"), {
       CH(DIV_SYSTEM_AMIGA, 1.0f, 0, "clockSel=1")
@@ -487,13 +493,13 @@ void FurnaceGUI::initSystemPresets() {
     SUB_ENTRY(
       _("MSX + SCC"), {
         CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
-        CH(DIV_SYSTEM_SCC, 1.0f, 0, "")
+        CH(DIV_SYSTEM_SCC, 0.67f, 0, "")
       }
     );
     SUB_ENTRY(
       _("MSX + SCC+"), {
         CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
-        CH(DIV_SYSTEM_SCC_PLUS, 1.0f, 0, "")
+        CH(DIV_SYSTEM_SCC_PLUS, 0.67f, 0, "")
       }
     );
     SUB_ENTRY(
@@ -1561,13 +1567,13 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
-  _("Sord M5"), {
-    CH(DIV_SYSTEM_SMS, 1.0f, 0,
-      "customClock=1773447\n"
-      "chipType=1\n"
-     )
-   }
- );
+    _("Sord M5"), {
+      CH(DIV_SYSTEM_SMS, 1.0f, 0,
+        "customClock=1773447\n"
+        "chipType=1\n"
+      )
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN(_("Arcade systems"),_("INSERT COIN"));
@@ -3162,27 +3168,27 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     _("Yamaha YM3438 (OPN2C)"), {
-      CH(DIV_SYSTEM_YM2612, 1.0f, 0, "")
+      CH(DIV_SYSTEM_YM2612, 1.0f, 0, "chipType=0")
     }
   );
     SUB_ENTRY(
       _("Yamaha YM3438 (extended channel 3)"), {
-        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "")
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "chipType=0")
       }
     );
     SUB_ENTRY(
       _("Yamaha YM3438 (OPN2C) CSM"), {
-        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, "")
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, "chipType=0")
       }
     );
     SUB_ENTRY(
       _("Yamaha YM3438 (OPN2C) with DualPCM"), {
-        CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, "")
+        CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, "chipType=0")
       }
     );
     SUB_ENTRY(
       _("Yamaha YM3438 (extended channel 3) with DualPCM"), {
-        CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, "")
+        CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, "chipType=0")
       }
     );
   ENTRY(
@@ -3744,6 +3750,12 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     _("Neo Geo CD (extended channel 2)"), {
       CH(DIV_SYSTEM_YM2610_EXT, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    _("MSX + SCC"), {
+      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
+      CH(DIV_SYSTEM_SCC, 0.67f, 0, "")
     }
   );
   CATEGORY_END;
