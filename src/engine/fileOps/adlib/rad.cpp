@@ -346,7 +346,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                 if(instr_s.connect == 7) //MIDI instrument?
                 {
                     unsigned char dummy[3];
-                    reader.read((void*)&dummy, 3); //TODO: add riff handling. RN it's just skipping the info
+                    reader.read((void*)&dummy, 3); //TODO: add riff handling. RN it's just skipping the inst info and not handling the riff info
                 }
                 else
                 {
@@ -379,6 +379,8 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                     //panning...
                     ins->std.panLMacro.len = 1;
                     ins->std.panLMacro.val[0] = instr_s.pan12;
+
+                    //TODO: add riff handling. RN it's just skipping the riff info
                 }
             }
         }
