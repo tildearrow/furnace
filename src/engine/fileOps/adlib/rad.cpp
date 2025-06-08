@@ -47,6 +47,39 @@ typedef struct {
 
 static_assert(sizeof(FM_INST_DATA) == 11, "sizeof(FM_INST_DATA) != 11");
 
+typedef struct {
+    union {
+        struct {
+            uint8_t connect: 3, pan12: 2, pan34: 2, has_riff: 1;
+            uint8_t feedb12: 4, feedb34: 4;
+            uint8_t riff_def_speed: 4, detune: 4;
+            uint8_t volume: 6, : 2;
+        };
+        uint8_t data[4];
+    };
+} FM_INST_DATA_new;
+
+static_assert(sizeof(FM_INST_DATA_new) == 4, "sizeof(FM_INST_DATA) != 4");
+
+typedef struct {
+    union {
+        struct {
+            uint8_t multip: 4, ksr: 1, sust: 1, vibr: 1, trem: 1;
+            uint8_t tl: 6, ksl: 2;
+            uint8_t dec: 4, attck: 4;
+            uint8_t rel: 4, sustn: 4;
+            uint8_t wform: 3, : 5;
+        };
+        uint8_t data[5];
+    };
+} FM_OP_INST_DATA_new;
+
+static_assert(sizeof(FM_OP_INST_DATA_new) == 5, "sizeof(FM_OP_INST_DATA_new) != 5");
+
+const int opOrder[4]={
+  0, 2, 1, 3
+};
+
 void RAD_read_description(DivSong* ds, SafeReader* reader)
 {
     size_t description_start_pos = reader->tell();
@@ -113,6 +146,22 @@ void RAD_read_description(DivSong* ds, SafeReader* reader)
     ds->notes = description;
 
     delete[] description;
+}
+
+void RAD_import_FM_op(DivInstrument* ins, unsigned char furnace_op, FM_OP_INST_DATA_new* op_s)
+{
+    ins->fm.op[furnace_op].mult = op_s->multip;
+    ins->fm.op[furnace_op].ksr = op_s->ksr;
+    ins->fm.op[furnace_op].sus = op_s->sust;
+    ins->fm.op[furnace_op].vib = op_s->vibr;
+    ins->fm.op[furnace_op].am = op_s->trem;
+    ins->fm.op[furnace_op].tl = op_s->tl;
+    ins->fm.op[furnace_op].ksl = op_s->ksl;
+    ins->fm.op[furnace_op].ar = op_s->attck;
+    ins->fm.op[furnace_op].dr = op_s->dec;
+    ins->fm.op[furnace_op].sl = op_s->sustn;
+    ins->fm.op[furnace_op].rr = op_s->rel;
+    ins->fm.op[furnace_op].ws = op_s->wform;
 }
 
 bool DivEngine::loadRAD(unsigned char* file, size_t len) 
@@ -194,8 +243,8 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
         if(shifted_version == 1) //old RAD
         {
-            //32 instruments? will delete the excessive ones later
-            for(int i = 0; i < 32; i++)
+            //31 instruments? will delete the excessive ones later
+            for(int i = 0; i < 31; i++)
             {
                 ds.ins.push_back(new DivInstrument());
             }
@@ -218,7 +267,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                     return false;
                 }
 
-                reader.read((void*)&instr_s, 11);
+                reader.read((void*)&instr_s, sizeof(FM_INST_DATA));
                 
                 DivInstrument* ins = ds.ins[inst_num];
 
@@ -252,6 +301,85 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                 ins->fm.fb = instr_s.feedb;
                 ins->fm.alg = instr_s.connect;
+            }
+        }
+
+        if(shifted_version == 2) //new RAD
+        {
+            //127 instruments? will delete the excessive ones later
+            for(int i = 0; i < 127; i++)
+            {
+                ds.ins.push_back(new DivInstrument());
+            }
+            
+            bool list_end = false;
+
+            FM_INST_DATA_new instr_s;
+            FM_OP_INST_DATA_new op_s;
+
+            while(!list_end)
+            {
+                unsigned char inst_num = reader.readC();
+
+                if(inst_num == 0) list_end = true; //end of list
+
+                if(inst_num > 127)
+                {
+                    logE("invalid instrument number!");
+                    lastError="invalid instrument number";
+                    delete[] file;
+                    return false;
+                }
+
+                char name[257] = { 0 };
+
+                unsigned char name_len = reader.readC();
+                reader.read((void*)&name, name_len);
+                
+                DivInstrument* ins = ds.ins[inst_num];
+
+                ins->type = DIV_INS_OPL;
+                ins->name = name;
+
+                reader.read((void*)&instr_s, sizeof(FM_INST_DATA_new));
+
+                if(instr_s.connect == 7) //MIDI instrument?
+                {
+                    unsigned char dummy[3];
+                    reader.read((void*)&dummy, 3); //TODO: add riff handling. RN it's just skipping the info
+                }
+                else
+                {
+                    ins->fm.fb = instr_s.feedb12; //where do I put feedb34???
+                    ins->fm.alg = instr_s.connect;
+
+                    ins->fm.ops = ins->fm.alg > 1 ? 4 : 2;
+                    
+                    for(int i = 0; i < 4; i++) //four ops even for 2-op instruments?
+                    {
+                        reader.read((void*)&op_s, sizeof(FM_OP_INST_DATA_new));
+
+                        unsigned char furnace_op = 0;
+
+                        if(ins->fm.ops == 4)
+                        {
+                            furnace_op = opOrder[i];
+                            RAD_import_FM_op(ins, furnace_op, &op_s);
+                        }
+                        else
+                        {
+                            if(i < 2)
+                            {
+                                furnace_op = i;
+                                RAD_import_FM_op(ins, furnace_op, &op_s);
+                            }
+                        }
+                    }
+
+                    //panning...
+                    ins->std.panLMacro.len = 1;
+                    ins->std.panLMacro.val[0] = instr_s.pan12;
+                }
             }
         }
 
