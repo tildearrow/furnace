@@ -80,6 +80,79 @@ const int opOrder[4]={
   0, 2, 1, 3
 };
 
+typedef struct {
+    uint8_t note: 4, octave: 3, prev_inst: 1;
+    uint8_t instrument: 7, : 1;
+    uint8_t effect: 5, : 3;
+    uint8_t effect_param: 7, : 1;
+} RAD_pattern_step;
+
+typedef struct {
+    RAD_pattern_step step[9][128];
+} RAD_pattern;
+
+void RAD_read_pattern(SafeReader* reader, RAD_pattern* pat)
+{
+    unsigned short len = (unsigned char)reader->readC();
+    len |= ((unsigned char)reader->readC() << 8);
+    
+    unsigned short bytes_read = 0;
+
+    while(bytes_read < len && len != 0)
+    {
+        unsigned char line = reader->readC();
+        bytes_read++;
+
+        if(bytes_read >= len) break;
+
+        unsigned char line_number = line & 0x7F;
+
+        unsigned char line_info = reader->readC();
+        bytes_read++;
+
+        if(bytes_read >= len) break;
+
+        if(line_info & (1 << 6)) //note/octave byte
+        {
+            unsigned char byte = reader->readC();
+            bytes_read++;
+
+            pat->step[(line_info & 0xF) % 9][line_number].note = byte & 0xF;
+            pat->step[(line_info & 0xF) % 9][line_number].octave = (byte >> 4) & 0x7;
+            pat->step[(line_info & 0xF) % 9][line_number].prev_inst = (byte >> 7) & 0x1;
+
+            if(bytes_read >= len) break;
+        }
+
+        if(line_info & (1 << 5)) //instrument byte
+        {
+            unsigned char byte = reader->readC();
+            bytes_read++;
+
+            pat->step[(line_info & 0xF) % 9][line_number].instrument = byte & 0x7F;
+
+            if(bytes_read >= len) break;
+        }
+
+        if(line_info & (1 << 5)) //effect/param bytes
+        {
+            unsigned char byte = reader->readC();
+            bytes_read++;
+
+            pat->step[(line_info & 0xF) % 9][line_number].effect = byte & 0x1F;
+
+            if(bytes_read >= len) break;
+
+            byte = reader->readC();
+            bytes_read++;
+
+            pat->step[(line_info & 0xF) % 9][line_number].effect_param = byte & 0x7F;
+
+            if(bytes_read >= len) break;
+        }
+    }
+}
+
 void RAD_read_description(DivSong* ds, SafeReader* reader)
 {
     size_t description_start_pos = reader->tell();
@@ -169,6 +242,8 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
     SafeReader reader=SafeReader(file,len);
     warnings="";
 
+    int riff_subsong_index = 1;
+
     try 
     {
         DivSong ds;
@@ -222,9 +297,8 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
         {
             if(flags & (1 << 5)) //custom BPM
             {
-                uint16_t bpm = reader.readC();
-                bpm <<= 8;
-                bpm |= reader.readC();
+                unsigned short bpm = (unsigned char)reader.readC();
+                bpm |= ((unsigned char)reader.readC() << 8);
                 
                 logV("%d BPM", bpm);
 
@@ -257,7 +331,11 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
             {
                 int inst_num = reader.readC();
 
-                if(inst_num == 0) list_end = true; //end of list
+                if(inst_num == 0)
+                {
+                    list_end = true; //end of list
+                    break;
+                }
 
                 if(inst_num > 31)
                 {
@@ -321,7 +399,11 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
             {
                 unsigned char inst_num = reader.readC();
 
-                if(inst_num == 0) list_end = true; //end of list
+                if(inst_num == 0)
+                {
+                    list_end = true; //end of list
+                    break;
+                }
 
                 if(inst_num > 127)
                 {
@@ -346,7 +428,9 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                 if(instr_s.connect == 7) //MIDI instrument?
                 {
                     unsigned char dummy[3];
-                    reader.read((void*)&dummy, 3); //TODO: add riff handling. RN it's just skipping the inst info and not handling the riff info
+                    reader.read((void*)&dummy, 3);
+
+                    ins->name += " [MIDI]";
                 }
                 else
                 {
@@ -380,7 +464,24 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                     ins->std.panLMacro.len = 1;
                     ins->std.panLMacro.val[0] = instr_s.pan12;
 
-                    //TODO: add riff handling. RN it's just skipping the riff info
+                    if(ins->std.panLMacro.val[0] == 0) ins->std.panLMacro.val[0] = 3;
+                }
+
+                if(instr_s.has_riff)
+                {
+                    RAD_pattern* riff = new RAD_pattern;
+
+                    ds.subsong.push_back(new DivSubSong);
+
+                    DivSubSong* riff_subsong = ds.subsong[riff_subsong_index];
+
+                    riff_subsong->name = _("Instrument riff: ") + ins->name;
+
+                    RAD_read_pattern(&reader, riff);
+
+                    riff_subsong_index++;
+
+                    delete riff;
                 }
             }
         }
