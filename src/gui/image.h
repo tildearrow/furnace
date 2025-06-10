@@ -22,6 +22,7 @@
 extern const unsigned char image_icon_data[];
 extern const unsigned int image_icon_size;
 
+#ifndef NO_INTRO
 extern const unsigned char image_talogo_data[];
 extern const unsigned int image_talogo_size;
 
@@ -39,4 +40,5 @@ extern const unsigned int image_introbg_size;
 
 extern const unsigned char image_pat_data[];
 extern const unsigned int image_pat_size;
+#endif
 #endif
