@@ -1167,6 +1167,7 @@ void FurnaceGUI::drawSettings() {
 
         // SUBSECTION START-UP
         CONFIG_SUBSECTION(_("Start-up"));
+#ifndef NO_INTRO
         ImGui::Text(_("Play intro on start-up:"));
         ImGui::Indent();
         if (ImGui::RadioButton(_("No##pis0"),settings.alwaysPlayIntro==0)) {
@@ -1186,6 +1187,7 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
         ImGui::Unindent();
+#endif
 
         bool disableFadeInB=settings.disableFadeIn;
         if (ImGui::Checkbox(_("Disable fade-in during start-up"),&disableFadeInB)) {

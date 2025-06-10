@@ -3708,7 +3708,9 @@ bool FurnaceGUI::loop() {
   DECLARE_METRIC(grooves)
   DECLARE_METRIC(songInfo)
   DECLARE_METRIC(orders)
+#ifndef NO_INTRO
   DECLARE_METRIC(intro)
+#endif
   DECLARE_METRIC(sampleList)
   DECLARE_METRIC(sampleEdit)
   DECLARE_METRIC(waveList)
@@ -4198,6 +4200,7 @@ bool FurnaceGUI::loop() {
       continue;
     }
 
+#ifndef NO_INTRO
     if (firstFrame && !safeMode && renderBackend!=GUI_BACKEND_SOFTWARE) {
       if (!tutorial.introPlayed || settings.alwaysPlayIntro==3 || (settings.alwaysPlayIntro==2 && curFileName.empty())) {
         unsigned char* introTemp=new unsigned char[intro_fur_len];
@@ -4205,6 +4208,7 @@ bool FurnaceGUI::loop() {
         e->load(introTemp,intro_fur_len);
       }
     }
+#endif
 
     if (!e->isRunning()) {
       activeNotes.clear();
@@ -7034,6 +7038,9 @@ bool FurnaceGUI::loop() {
 
     MEASURE_END(popup);
 
+#ifdef NO_INTRO
+    introPos=12.0;
+#else
     if ((!tutorial.introPlayed || settings.alwaysPlayIntro!=0) && renderBackend!=GUI_BACKEND_SOFTWARE) {
       MEASURE_BEGIN(intro);
       initialScreenWipe=0;
@@ -7045,6 +7052,7 @@ bool FurnaceGUI::loop() {
     } else {
       introPos=12.0;
     }
+#endif
 
 #ifdef DIV_UNSTABLE
     {
