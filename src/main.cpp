@@ -31,6 +31,9 @@
 #include <windows.h>
 #include <combaseapi.h>
 #include <shellapi.h>
+#if defined(HAVE_SDL2) && !defined(SUPPORT_XP)
+#include <versionhelpers.h>
+#endif
 #include "utfutils.h"
 #include "gui/shellScalingStub.h"
 
