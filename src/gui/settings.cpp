@@ -6078,7 +6078,7 @@ bool FurnaceGUI::importConfig(String path) {
   }
   syncState();
   syncSettings();
-  commitSettings();
+  willCommit=true;
 
   recentFile.clear();
   for (int i=0; i<settings.maxRecentFile; i++) {
