@@ -328,7 +328,7 @@ jobs:
         tar -zcv -f ../${{ steps.package-identify.outputs.filename }} furnace
 
     - name: Upload artifact
-      if: ${{ github.repository == 'tildearrow/furnace' && github.ref_name == 'master' }}
+    #  if: ${{ github.repository == 'tildearrow/furnace' && github.ref_name == 'master' }}
       uses: actions/upload-artifact@v4.3.0
       with:
         name: ${{ steps.package-identify.outputs.id }}
