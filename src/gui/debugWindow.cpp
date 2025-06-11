@@ -796,7 +796,7 @@ void FurnaceGUI::drawDebug() {
     if (ImGui::TreeNode("Settings")) {
       if (ImGui::Button("Sync")) syncSettings();
       ImGui::SameLine();
-      if (ImGui::Button("Commit")) commitSettings();
+      if (ImGui::Button("Commit")) willCommit=true;
       ImGui::SameLine();
       if (ImGui::Button("Force Load")) e->loadConf();
       ImGui::SameLine();
