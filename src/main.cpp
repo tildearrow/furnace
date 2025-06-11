@@ -759,6 +759,12 @@ int main(int argc, char** argv) {
     return 1;
   }
 
+#if defined(HAVE_SDL2) && defined(_WIN32) && !defined(SUPPORT_XP)
+  if (!IsWindows7OrGreater()) {
+    SDL_SetHint("SDL_HINT_AUDIODRIVER","winmm");
+  }
+#endif
+
 #ifdef HAVE_GUI
   if (e.preInit(consoleMode || benchMode || infoMode || outputMode)) {
     if (consoleMode || benchMode || infoMode || outputMode) {
@@ -788,7 +794,6 @@ int main(int argc, char** argv) {
     SDL_SetHint(SDL_HINT_ANDROID_BLOCK_ON_PAUSE_PAUSEAUDIO,"0");
   }
 #endif
-
 
   if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",TUT_INTRO_PLAYED)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || infoMode || outputMode)) {
     logI("loading module...");
