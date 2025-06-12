@@ -15,8 +15,8 @@ android {
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 230
-        versionName "0.6.8.2"
+        versionCode 232
+        versionName "0.6.8.3"
         externalNativeBuild {
             cmake {
                 arguments "-DANDROID_APP_PLATFORM=android-21", "-DANDROID_STL=c++_static", "-DWARNINGS_ARE_ERRORS=ON", "-DWITH_LOCALE=ON", "-DUSE_MOMO=ON"
