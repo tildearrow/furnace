@@ -130,7 +130,7 @@ void RAD_convert_effect(DivPattern* furnace_pat, RAD_pattern* pat, int i, int j)
             }
             break;
         }
-        case 'A': //TODO: letters or 0xA
+        case ('A' - 'A' + 9): //TODO: letters or 0xA
         {
             furnace_pat->data[j][4] = 0x0A;
 
@@ -144,29 +144,29 @@ void RAD_convert_effect(DivPattern* furnace_pat, RAD_pattern* pat, int i, int j)
             }
             break;
         }
-        case 'C':
+        case ('C' - 'A' + 9):
         {
             furnace_pat->data[j][3] = ((pat->step[i][j].effect_param > 0x3F) ? 0x3F : pat->step[i][j].effect_param); //just instrument volume
             break;
         }
-        case 'D':
+        case ('D' - 'A' + 9):
         {
             furnace_pat->data[j][4] = 0x0d;
             furnace_pat->data[j][5] = pat->step[i][j].effect_param;
             break;
         }
-        case 'F':
+        case ('F' - 'A' + 9):
         {
             furnace_pat->data[j][4] = 0x0f;
             furnace_pat->data[j][5] = pat->step[i][j].effect_param;
             break;
         }
-        case 'I':
+        case ('I' - 'A' + 9):
         {
             //TODO?
             break;
         }
-        case 'M':
+        case ('M' - 'A' + 9):
         {
             if(i > 0)
             {
@@ -177,7 +177,7 @@ void RAD_convert_effect(DivPattern* furnace_pat, RAD_pattern* pat, int i, int j)
             }
             break;
         }
-        case 'R':
+        case ('R' - 'A' + 9):
         {
             //play global riff
             //convert to non-existent effect just so it hints what should happen there
@@ -185,7 +185,7 @@ void RAD_convert_effect(DivPattern* furnace_pat, RAD_pattern* pat, int i, int j)
             furnace_pat->data[j][5] = pat->step[i][j].effect_param;
             break;
         }
-        case 'T':
+        case ('T' - 'A' + 9):
         {
             //play global transposed riff
             //convert to non-existent effect just so it hints what should happen there
@@ -193,13 +193,13 @@ void RAD_convert_effect(DivPattern* furnace_pat, RAD_pattern* pat, int i, int j)
             furnace_pat->data[j][5] = pat->step[i][j].effect_param;
             break;
         }
-        case 'U':
+        case ('U' - 'A' + 9):
         {
             furnace_pat->data[j][4] = 0x11;
             furnace_pat->data[j][5] = pat->step[i][j].effect_param & 7;
             break;
         }
-        case 'V':
+        case ('V' - 'A' + 9):
         {
             if(i > 0)
             {
@@ -677,7 +677,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
             {
                 unsigned char order = reader.readC();
 
-                if(order >= 0 && order <= 0x1F)
+                if(order <= 0x1F)
                 {
                     for (int j = 0; j < 9; j++) 
                     {
