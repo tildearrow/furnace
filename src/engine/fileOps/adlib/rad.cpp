@@ -37,9 +37,9 @@ typedef struct {
             uint8_t decC: 4, attckC: 4;
             uint8_t relM: 4, sustnM: 4;
             uint8_t relC: 4, sustnC: 4;
+            uint8_t connect: 1, feedb: 3, : 4;
             uint8_t wformM: 2, : 6;
             uint8_t wformC: 2, : 6;
-            uint8_t connect: 1, feedb: 3, : 4;
         };
         uint8_t data[11];
     };
@@ -234,50 +234,58 @@ void RAD_read_pattern(SafeReader* reader, RAD_pattern* pat, DivPattern** furnace
 
         if(max_line_number < line_number) max_line_number = line_number;
 
-        unsigned char line_info = reader->readC();
-        bytes_read++;
-
-        if(bytes_read >= len) break;
-
-        if(line_info & (1 << 6)) //note/octave byte
+        while(1)
         {
-            unsigned char byte = reader->readC();
+            unsigned char line_info = reader->readC();
             bytes_read++;
-
-            pat->step[(line_info & 0xF) % 9][line_number].note = byte & 0xF;
-            pat->step[(line_info & 0xF) % 9][line_number].octave = (byte >> 4) & 0x7;
-            pat->step[(line_info & 0xF) % 9][line_number].prev_inst = (byte >> 7) & 0x1;
-
-            if(bytes_read >= len) break;
-        }
-
-        if(line_info & (1 << 5)) //instrument byte
-        {
-            unsigned char byte = reader->readC();
-            bytes_read++;
-
-            pat->step[(line_info & 0xF) % 9][line_number].instrument = byte & 0x7F;
-
-            if(bytes_read >= len) break;
-        }
-
-        if(line_info & (1 << 5)) //effect/param bytes
-        {
-            unsigned char byte = reader->readC();
-            bytes_read++;
-
-            pat->step[(line_info & 0xF) % 9][line_number].effect = byte & 0x1F;
-
-            pat->step[(line_info & 0xF) % 9][line_number].has_effect = true;
 
             if(bytes_read >= len) break;
 
-            byte = reader->readC();
-            bytes_read++;
+            if(line_info & (1 << 6)) //note/octave byte
+            {
+                unsigned char byte = reader->readC();
+                bytes_read++;
 
-            pat->step[(line_info & 0xF) % 9][line_number].effect_param = byte & 0x7F;
+                pat->step[(line_info & 0xF) % 9][line_number].note = byte & 0xF;
+                pat->step[(line_info & 0xF) % 9][line_number].octave = (byte >> 4) & 0x7;
+                pat->step[(line_info & 0xF) % 9][line_number].prev_inst = (byte >> 7) & 0x1;
 
-            if(bytes_read >= len) break;
+                if(bytes_read >= len) break;
+            }
+
+            if(line_info & (1 << 5)) //instrument byte
+            {
+                unsigned char byte = reader->readC();
+                bytes_read++;
+
+                if((byte & 0x7F) > 0)
+                {
+                    pat->step[(line_info & 0xF) % 9][line_number].instrument = (byte & 0x7F);
+                }
+
+                if(bytes_read >= len) break;
+            }
+
+            if(line_info & (1 << 5)) //effect/param bytes
+            {
+                unsigned char byte = reader->readC();
+                bytes_read++;
+
+                pat->step[(line_info & 0xF) % 9][line_number].effect = byte & 0x1F;
+
+                pat->step[(line_info & 0xF) % 9][line_number].has_effect = true;
+
+                if(bytes_read >= len) break;
+
+                byte = reader->readC();
+                bytes_read++;
+
+                pat->step[(line_info & 0xF) % 9][line_number].effect_param = byte & 0x7F;
+
+                if(bytes_read >= len) break;
+            }
+
+            if(line_info & (1 << 7)) break;
         }
     }
 
@@ -515,31 +523,31 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                 ins->type = DIV_INS_OPL;
 
-                ins->fm.op[0].mult = instr_s.multipM;
-                ins->fm.op[0].ksr = instr_s.ksrM;
-                ins->fm.op[0].sus = instr_s.sustM;
-                ins->fm.op[0].vib = instr_s.vibrM;
-                ins->fm.op[0].am = instr_s.tremM;
-                ins->fm.op[0].tl = instr_s.volM;
-                ins->fm.op[0].ksl = instr_s.kslM;
-                ins->fm.op[0].ar = instr_s.attckM;
-                ins->fm.op[0].dr = instr_s.decM;
-                ins->fm.op[0].sl = instr_s.sustnM;
-                ins->fm.op[0].rr = instr_s.relM;
-                ins->fm.op[0].ws = instr_s.wformM;
+                ins->fm.op[1].mult = instr_s.multipM;
+                ins->fm.op[1].ksr = instr_s.ksrM;
+                ins->fm.op[1].sus = instr_s.sustM;
+                ins->fm.op[1].vib = instr_s.vibrM;
+                ins->fm.op[1].am = instr_s.tremM;
+                ins->fm.op[1].tl = instr_s.volM;
+                ins->fm.op[1].ksl = instr_s.kslM;
+                ins->fm.op[1].ar = instr_s.attckM;
+                ins->fm.op[1].dr = instr_s.decM;
+                ins->fm.op[1].sl = instr_s.sustnM;
+                ins->fm.op[1].rr = instr_s.relM;
+                ins->fm.op[1].ws = instr_s.wformM;
 
-                ins->fm.op[1].mult = instr_s.multipC;
-                ins->fm.op[1].ksr = instr_s.ksrC;
-                ins->fm.op[1].sus = instr_s.sustC;
-                ins->fm.op[1].vib = instr_s.vibrC;
-                ins->fm.op[1].am = instr_s.tremC;
-                ins->fm.op[1].tl = instr_s.volC;
-                ins->fm.op[1].ksl = instr_s.kslC;
-                ins->fm.op[1].ar = instr_s.attckC;
-                ins->fm.op[1].dr = instr_s.decC;
-                ins->fm.op[1].sl = instr_s.sustnC;
-                ins->fm.op[1].rr = instr_s.relC;
-                ins->fm.op[1].ws = instr_s.wformC;
+                ins->fm.op[0].mult = instr_s.multipC;
+                ins->fm.op[0].ksr = instr_s.ksrC;
+                ins->fm.op[0].sus = instr_s.sustC;
+                ins->fm.op[0].vib = instr_s.vibrC;
+                ins->fm.op[0].am = instr_s.tremC;
+                ins->fm.op[0].tl = instr_s.volC;
+                ins->fm.op[0].ksl = instr_s.kslC;
+                ins->fm.op[0].ar = instr_s.attckC;
+                ins->fm.op[0].dr = instr_s.decC;
+                ins->fm.op[0].sl = instr_s.sustnC;
+                ins->fm.op[0].rr = instr_s.relC;
+                ins->fm.op[0].ws = instr_s.wformC;
 
                 ins->fm.fb = instr_s.feedb;
                 ins->fm.alg = instr_s.connect;
@@ -659,32 +667,112 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
             }
         }
 
+        //orders format is the same for old and new RAD
+        unsigned char order_len = reader.readC();
+
+        if(order_len == 0 || order_len > 128)
+        {
+            logE("invalid order length!");
+            lastError="invalid order length";
+            delete[] file;
+            return false;
+        }
+
+        ds.subsong[0]->ordersLen = order_len;
+
+        for(int i = 0; i < order_len; i++)
+        {
+            unsigned char order = reader.readC();
+
+            //TODO: decrease orders length on jump marker and place 0Bxx effect there
+
+            if(order <= ((shifted_version == 2) ? 0x7F : 0x1F))
+            {
+                for (int j = 0; j < 9; j++) 
+                {
+                    ds.subsong[0]->orders.ord[j][i] = order;
+                }
+            }
+        }
+
         if(shifted_version == 1) //old RAD
         {
-            unsigned char order_len = reader.readC();
+            unsigned short pat_offsets[32] = { 0 };
 
-            if(order_len == 0 || order_len > 128)
+            reader.read(pat_offsets, 32 * sizeof(pat_offsets[0]));
+
+            //size_t reader_pos = reader.tell();
+
+            RAD_pattern* pat = new RAD_pattern;
+            memset((void*)pat, 0, sizeof(RAD_pattern));
+
+            for(int i = 0; i < 32; i++)
             {
-                logE("invalid order length!");
-                lastError="invalid order length";
-                delete[] file;
-                return false;
-            }
-
-            ds.subsong[0]->ordersLen = order_len;
-
-            for(int i = 0; i < order_len; i++)
-            {
-                unsigned char order = reader.readC();
-
-                if(order <= 0x1F)
+                if(pat_offsets[i] != 0) //old pattern format, not separated into function because v1 RAD doesn't have riffs
                 {
-                    for (int j = 0; j < 9; j++) 
+                    reader.seek(pat_offsets[i], SEEK_SET);
+
+                    DivPattern* patterns[9];
+
+                    for (int j = 0; j < 9; j++)
                     {
-                        ds.subsong[0]->orders.ord[j][i] = order;
+                        patterns[j] = s->pat[j].getPattern(i, true);
+                    }
+
+                    while(1)
+                    {
+                        unsigned char buff = reader.readC();
+
+                        unsigned char line_number = buff & 0x7F;
+
+                        while(1)
+                        {
+                            unsigned char channel = reader.readC();
+
+                            unsigned char note = reader.readC();
+                            unsigned char effect = reader.readC();
+
+                            unsigned char effect_param = 0;
+
+                            if((effect & 0xF) != 0)
+                            {
+                                effect_param = reader.readC();
+                            }
+                            
+                            if((note & 0xF) > 0 && (note & 0xF) <= 12)
+                            {
+                                patterns[(channel & 0x7F) % 9]->data[line_number][0] = (note & 0xF);
+                                patterns[(channel & 0x7F) % 9]->data[line_number][1] = (note >> 4) & 7; //octave
+                            }
+                            if((note & 0xF) == 0xF)
+                            {
+                                patterns[(channel & 0x7F) % 9]->data[line_number][0] = 101; //key off
+                            }
+
+                            unsigned char instrument = ((note >> 7) << 4) | (effect >> 4);
+
+                            if(instrument != 0)
+                            {
+                                patterns[(channel & 0x7F) % 9]->data[line_number][2] = instrument;
+                            }
+
+                            if((effect & 0xF) != 0)
+                            {
+                                pat->step[(channel & 0x7F) % 9][line_number].effect = effect & 0xF;
+                                pat->step[(channel & 0x7F) % 9][line_number].effect_param = effect_param;
+
+                                RAD_convert_effect(patterns[(channel & 0x7F) % 9], pat, (channel & 0x7F) % 9, line_number);
+                            }
+
+                            if(channel & (1 << 7)) break;
+                        }
+
+                        if(buff & (1 << 7)) break;
                     }
                 }
             }
+
+            delete pat;
         }
 
         ds.insLen = ds.ins.size();
@@ -739,6 +827,11 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
         ds.linearPitch = 0;
         ds.pitchMacroIsLinear = false;
         ds.pitchSlideSpeed=8;
+
+        for(int i = 0; i < (int)ds.subsong.size(); i++)
+        {
+            ds.subsong[i]->hz = 50;
+        }
 
         if (active) quitDispatch();
         BUSY_BEGIN_SOFT;
