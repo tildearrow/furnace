@@ -85,18 +85,143 @@ typedef struct {
     uint8_t instrument: 7, : 1;
     uint8_t effect: 5, : 3;
     uint8_t effect_param: 7, : 1;
+    bool has_effect;
 } RAD_pattern_step;
 
 typedef struct {
     RAD_pattern_step step[9][128];
 } RAD_pattern;
 
-void RAD_read_pattern(SafeReader* reader, RAD_pattern* pat)
+void RAD_convert_effect(DivPattern* furnace_pat, RAD_pattern* pat, int i, int j)
+{
+    unsigned char chan_to_op_map[9] = { 0, 0, 1, 2, 3, 0, 1, 2, 3 };
+
+    switch(pat->step[i][j].effect)
+    {
+        case 1:
+        {
+            furnace_pat->data[j][4] = 0x02; //why the fuck portamento up is 02 and portamento down is 01????!!!?212112
+            furnace_pat->data[j][5] = pat->step[i][j].effect_param;
+            break;
+        }
+        case 2:
+        {
+            furnace_pat->data[j][4] = 0x01; //why the fuck portamento up is 02 and portamento down is 01????!!!?212112
+            furnace_pat->data[j][5] = pat->step[i][j].effect_param;
+            break;
+        }
+        case 3:
+        {
+            furnace_pat->data[j][4] = 0x03;
+            furnace_pat->data[j][5] = pat->step[i][j].effect_param;
+            break;
+        }
+        case 5:
+        {
+            furnace_pat->data[j][4] = 0x06;
+
+            if(pat->step[i][j].effect_param >= 1 && pat->step[i][j].effect_param <= 49)
+            {
+                furnace_pat->data[j][5] = (pat->step[i][j].effect_param * 0xF / 49) & 0xF;
+            }
+            if(pat->step[i][j].effect_param >= 51 && pat->step[i][j].effect_param <= 99)
+            {
+                furnace_pat->data[j][5] = (((pat->step[i][j].effect_param - 51) * 0xF / (99 - 51)) & 0xF) << 4;
+            }
+            break;
+        }
+        case 'A': //TODO: letters or 0xA
+        {
+            furnace_pat->data[j][4] = 0x0A;
+
+            if(pat->step[i][j].effect_param >= 1 && pat->step[i][j].effect_param <= 49)
+            {
+                furnace_pat->data[j][5] = (pat->step[i][j].effect_param * 0xF / 49) & 0xF;
+            }
+            if(pat->step[i][j].effect_param >= 51 && pat->step[i][j].effect_param <= 99)
+            {
+                furnace_pat->data[j][5] = (((pat->step[i][j].effect_param - 51) * 0xF / (99 - 51)) & 0xF) << 4;
+            }
+            break;
+        }
+        case 'C':
+        {
+            furnace_pat->data[j][3] = ((pat->step[i][j].effect_param > 0x3F) ? 0x3F : pat->step[i][j].effect_param); //just instrument volume
+            break;
+        }
+        case 'D':
+        {
+            furnace_pat->data[j][4] = 0x0d;
+            furnace_pat->data[j][5] = pat->step[i][j].effect_param;
+            break;
+        }
+        case 'F':
+        {
+            furnace_pat->data[j][4] = 0x0f;
+            furnace_pat->data[j][5] = pat->step[i][j].effect_param;
+            break;
+        }
+        case 'I':
+        {
+            //TODO?
+            break;
+        }
+        case 'M':
+        {
+            if(i > 0)
+            {
+                unsigned char op = chan_to_op_map[i];
+
+                furnace_pat->data[j][4] = 0x16;
+                furnace_pat->data[j][5] = (op << 4) | pat->step[i][j].effect_param;
+            }
+            break;
+        }
+        case 'R':
+        {
+            //play global riff
+            //convert to non-existent effect just so it hints what should happen there
+            furnace_pat->data[j][4] = 0xA0;
+            furnace_pat->data[j][5] = pat->step[i][j].effect_param;
+            break;
+        }
+        case 'T':
+        {
+            //play global transposed riff
+            //convert to non-existent effect just so it hints what should happen there
+            furnace_pat->data[j][4] = 0xA1;
+            furnace_pat->data[j][5] = pat->step[i][j].effect_param;
+            break;
+        }
+        case 'U':
+        {
+            furnace_pat->data[j][4] = 0x11;
+            furnace_pat->data[j][5] = pat->step[i][j].effect_param & 7;
+            break;
+        }
+        case 'V':
+        {
+            if(i > 0)
+            {
+                unsigned char op = chan_to_op_map[i]; //same thing as with multiplier but for op's TL
+
+                furnace_pat->data[j][4] = 0x12 + op;
+                furnace_pat->data[j][5] = (0x3F - ((pat->step[i][j].effect_param > 0x3F) ? 0x3F : pat->step[i][j].effect_param));
+            }
+            break;
+        }
+        default: break;
+    }
+}
+
+void RAD_read_pattern(SafeReader* reader, RAD_pattern* pat, DivPattern** furnace_patterns, DivSubSong* subsong)
 {
     unsigned short len = (unsigned char)reader->readC();
     len |= ((unsigned char)reader->readC() << 8);
     
     unsigned short bytes_read = 0;
+
+    unsigned char max_line_number = 0;
 
     while(bytes_read < len && len != 0)
     {
@@ -106,6 +231,8 @@ void RAD_read_pattern(SafeReader* reader, RAD_pattern* pat)
         if(bytes_read >= len) break;
 
         unsigned char line_number = line & 0x7F;
+
+        if(max_line_number < line_number) max_line_number = line_number;
 
         unsigned char line_info = reader->readC();
         bytes_read++;
@@ -141,6 +268,8 @@ void RAD_read_pattern(SafeReader* reader, RAD_pattern* pat)
 
             pat->step[(line_info & 0xF) % 9][line_number].effect = byte & 0x1F;
 
+            pat->step[(line_info & 0xF) % 9][line_number].has_effect = true;
+
             if(bytes_read >= len) break;
 
             byte = reader->readC();
@@ -149,6 +278,41 @@ void RAD_read_pattern(SafeReader* reader, RAD_pattern* pat)
             pat->step[(line_info & 0xF) % 9][line_number].effect_param = byte & 0x7F;
 
             if(bytes_read >= len) break;
+        }
+    }
+
+    subsong->patLen = max_line_number + 1;
+
+    for(int i = 9; i < 18; i++)
+    {
+        subsong->chanShow[i] = false; //hide unused OPL3 channels
+    }
+
+    for(int i = 0; i < 9; i++) //convert pattern data
+    {
+        DivPattern* furnace_pat = furnace_patterns[i];
+
+        for(int j = 0; j < max_line_number; j++)
+        {
+            if(pat->step[i][j].note == 0xF)
+            {
+                furnace_pat->data[j][0] = 101; //key off
+            }
+            else if(pat->step[i][j].note > 0)
+            {
+                furnace_pat->data[j][0] = pat->step[i][j].note - 1;
+                furnace_pat->data[j][1] = pat->step[i][j].octave;
+            }
+
+            if(pat->step[i][j].instrument > 0)
+            {
+                furnace_pat->data[j][2] = pat->step[i][j].instrument - 1;
+            }
+
+            if(pat->step[i][j].has_effect)
+            {
+                RAD_convert_effect(furnace_pat, pat, i, j);
+            }
         }
     }
 }
@@ -470,18 +634,102 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                 if(instr_s.has_riff)
                 {
                     RAD_pattern* riff = new RAD_pattern;
+                    memset((void*)riff, 0, sizeof(RAD_pattern));
 
                     ds.subsong.push_back(new DivSubSong);
 
                     DivSubSong* riff_subsong = ds.subsong[riff_subsong_index];
 
                     riff_subsong->name = _("Instrument riff: ") + ins->name;
+                    riff_subsong->speeds.val[0] = instr_s.riff_def_speed;
 
-                    RAD_read_pattern(&reader, riff);
+                    DivPattern* patterns[9];
+
+                    for(int i = 0; i < 9; i++)
+                    {
+                        patterns[i] = riff_subsong->pat[i].getPattern(0, true);
+                    }
+
+                    RAD_read_pattern(&reader, riff, patterns, riff_subsong);
 
                     riff_subsong_index++;
 
                     delete riff;
+                }
+            }
+        }
+
+        if(shifted_version == 1) //old RAD
+        {
+            unsigned char order_len = reader.readC();
+
+            if(order_len == 0 || order_len > 128)
+            {
+                logE("invalid order length!");
+                lastError="invalid order length";
+                delete[] file;
+                return false;
+            }
+
+            ds.subsong[0]->ordersLen = order_len;
+
+            for(int i = 0; i < order_len; i++)
+            {
+                unsigned char order = reader.readC();
+
+                if(order >= 0 && order <= 0x1F)
+                {
+                    for (int j = 0; j < 9; j++) 
+                    {
+                        ds.subsong[0]->orders.ord[j][i] = order;
+                    }
+                }
+            }
+        }
+
+        ds.insLen = ds.ins.size();
+
+        if (ds.insLen > 0) 
+        {
+            for (int tries = 0; tries < 5; tries++) // erase unused instruments
+            {
+                for (int i = 0; i < ((shifted_version == 1) ? 31 : 127); i++) 
+                {
+                    if (ds.ins.empty()) break;
+
+                    int index = i >= (int)ds.insLen ? ((int)ds.insLen - 1) : i;
+
+                    if (index < 0) index = 0;
+
+                    if (index >= (int)ds.ins.size()) continue;
+
+                    DivInstrument* ins = ds.ins[index];
+
+                    if (ins->type == DIV_INS_FM) 
+                    {
+                        delete ds.ins[index];
+                        ds.ins.erase(ds.ins.begin() + index);
+                        ds.insLen = ds.ins.size();
+
+                        for (int ii = 0; ii < 9; ii++) 
+                        {
+                            for (size_t j = 0; j < 1; j++) // next subsongs are instrument and global riffs. Correct only 1st subsong which is actual song
+                            {
+                                for (int k = 0; k < DIV_MAX_PATTERNS; k++) 
+                                {
+                                    if (ds.subsong[j]->pat[ii].data[k] == NULL) continue;
+                                    
+                                    for (int l = 0; l < ds.subsong[j]->patLen; l++) 
+                                    {
+                                        if (ds.subsong[j]->pat[ii].data[k]->data[l][2] > index) 
+                                        {
+                                            ds.subsong[j]->pat[ii].data[k]->data[l][2]--;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
