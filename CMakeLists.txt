@@ -139,6 +139,7 @@ option(SHOW_OPEN_ASSETS_MENU_ENTRY "Show option to open built-in assets director
 option(CONSOLE_SUBSYSTEM "Build Furnace with Console subsystem on Windows" OFF)
 option(FORCE_CODEVIEW "Force -gcodeview on MinGW GCC" OFF)
 option(FLATPAK_WORKAROUNDS "Enable Flatpak-specific workaround for system file picker" OFF)
+option(NO_INTRO "Disable intro animation entirely" OFF)
 if (APPLE)
   option(FORCE_APPLE_BIN "Force enable binary installation to /bin" OFF)
   option(MAKE_BUNDLE "Make a bundle" OFF)
@@ -888,12 +889,6 @@ src/gui/fonts.cpp
 src/gui/fontzlib.cpp
 
 src/gui/image_icon.cpp
-src/gui/image_talogo.cpp
-src/gui/image_tachip.cpp
-src/gui/image_logo.cpp
-src/gui/image_wordmark.cpp
-src/gui/image_introbg.cpp
-src/gui/image_pat.cpp
 src/gui/image.cpp
 
 src/gui/debug.cpp
@@ -901,8 +896,6 @@ src/gui/fileDialog.cpp
 
 src/gui/intConst.cpp
 src/gui/guiConst.cpp
-
-src/gui/introTune.cpp
 
 src/gui/about.cpp
 src/gui/channels.cpp
@@ -923,7 +916,6 @@ src/gui/fmPreview.cpp
 src/gui/gradient.cpp
 src/gui/grooves.cpp
 src/gui/insEdit.cpp
-src/gui/intro.cpp
 src/gui/log.cpp
 src/gui/memory.cpp
 src/gui/mixer.cpp
@@ -959,6 +951,21 @@ src/gui/volMeter.cpp
 src/gui/xyOsc.cpp
 src/gui/gui.cpp
 )
+
+if (NOT NO_INTRO)
+  list(APPEND GUI_SOURCES src/gui/introTune.cpp)
+  list(APPEND GUI_SOURCES src/gui/intro.cpp)
+  list(APPEND GUI_SOURCES
+  src/gui/image_talogo.cpp
+  src/gui/image_tachip.cpp
+  src/gui/image_logo.cpp
+  src/gui/image_wordmark.cpp
+  src/gui/image_introbg.cpp
+  src/gui/image_pat.cpp
+  )
+else()
+  list(APPEND DEPENDENCIES_DEFINES NO_INTRO)
+endif()
 
 if (WIN32 AND NOT SUPPORT_XP)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_common.cpp)
