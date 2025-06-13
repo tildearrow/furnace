@@ -26,7 +26,7 @@ enum FurnaceGUIChanTypes {
   CHANNEL_TYPE_PULSE,
   CHANNEL_TYPE_NOISE,
   CHANNEL_TYPE_WAVETABLE,
-  CHANNEL_TYPE_SAMPLE, 
+  CHANNEL_TYPE_SAMPLE,
 
   CHANNEL_TYPE_SQUARE,
   CHANNEL_TYPE_TRIANGLE,
@@ -65,6 +65,15 @@ struct FurnaceGUIColorDef {
     name(n), friendlyName(fn), defaultColor(dc) {}
 };
 
+struct FurnaceGUIExportFormat {
+  const char* name;
+  const char* fileExt;
+  const char* globPattern;
+  FurnaceGUIExportFormat(const char *n, const char *fe, const char *gp):
+    name(n), fileExt(fe), globPattern(gp) {}
+};
+#define EXPORT_FORMAT_COUNT 6
+
 extern const int opOrder[4];
 extern const char* noteNames[180];
 extern const char* noteNamesG[180];
@@ -85,6 +94,7 @@ extern const int chipsSample[];
 extern const int* chipCategories[];
 extern const FurnaceGUIActionDef guiActions[];
 extern const FurnaceGUIColorDef guiColors[];
+extern const FurnaceGUIExportFormat exportFormats[];
 extern const int altValues[24];
 extern const int vgmVersions[7];
 extern const FurnaceGUIColors fxColors[256];
