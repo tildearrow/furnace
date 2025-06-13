@@ -99,20 +99,10 @@ void RAD_convert_effect(DivPattern* furnace_pat, RAD_pattern* pat, int i, int j)
     switch(pat->step[i][j].effect)
     {
         case 1:
-        {
-            furnace_pat->data[j][4] = 0x02; //why the fuck portamento up is 02 and portamento down is 01????!!!?212112
-            furnace_pat->data[j][5] = pat->step[i][j].effect_param;
-            break;
-        }
         case 2:
-        {
-            furnace_pat->data[j][4] = 0x01; //why the fuck portamento up is 02 and portamento down is 01????!!!?212112
-            furnace_pat->data[j][5] = pat->step[i][j].effect_param;
-            break;
-        }
         case 3:
         {
-            furnace_pat->data[j][4] = 0x03;
+            furnace_pat->data[j][4] = pat->step[i][j].effect;
             furnace_pat->data[j][5] = pat->step[i][j].effect_param;
             break;
         }
@@ -130,7 +120,7 @@ void RAD_convert_effect(DivPattern* furnace_pat, RAD_pattern* pat, int i, int j)
             }
             break;
         }
-        case ('A' - 'A' + 9): //TODO: letters or 0xA
+        case ('A' - 'A' + 10): //TODO: letters or 0xA
         {
             furnace_pat->data[j][4] = 0x0A;
 
@@ -144,29 +134,29 @@ void RAD_convert_effect(DivPattern* furnace_pat, RAD_pattern* pat, int i, int j)
             }
             break;
         }
-        case ('C' - 'A' + 9):
+        case ('C' - 'A' + 10):
         {
             furnace_pat->data[j][3] = ((pat->step[i][j].effect_param > 0x3F) ? 0x3F : pat->step[i][j].effect_param); //just instrument volume
             break;
         }
-        case ('D' - 'A' + 9):
+        case ('D' - 'A' + 10):
         {
             furnace_pat->data[j][4] = 0x0d;
             furnace_pat->data[j][5] = pat->step[i][j].effect_param;
             break;
         }
-        case ('F' - 'A' + 9):
+        case ('F' - 'A' + 10):
         {
             furnace_pat->data[j][4] = 0x0f;
             furnace_pat->data[j][5] = pat->step[i][j].effect_param;
             break;
         }
-        case ('I' - 'A' + 9):
+        case ('I' - 'A' + 10):
         {
             //TODO?
             break;
         }
-        case ('M' - 'A' + 9):
+        case ('M' - 'A' + 10):
         {
             if(i > 0)
             {
@@ -177,7 +167,7 @@ void RAD_convert_effect(DivPattern* furnace_pat, RAD_pattern* pat, int i, int j)
             }
             break;
         }
-        case ('R' - 'A' + 9):
+        case ('R' - 'A' + 10):
         {
             //play global riff
             //convert to non-existent effect just so it hints what should happen there
@@ -185,7 +175,7 @@ void RAD_convert_effect(DivPattern* furnace_pat, RAD_pattern* pat, int i, int j)
             furnace_pat->data[j][5] = pat->step[i][j].effect_param;
             break;
         }
-        case ('T' - 'A' + 9):
+        case ('T' - 'A' + 10):
         {
             //play global transposed riff
             //convert to non-existent effect just so it hints what should happen there
@@ -193,13 +183,13 @@ void RAD_convert_effect(DivPattern* furnace_pat, RAD_pattern* pat, int i, int j)
             furnace_pat->data[j][5] = pat->step[i][j].effect_param;
             break;
         }
-        case ('U' - 'A' + 9):
+        case ('U' - 'A' + 10):
         {
             furnace_pat->data[j][4] = 0x11;
             furnace_pat->data[j][5] = pat->step[i][j].effect_param & 7;
             break;
         }
-        case ('V' - 'A' + 9):
+        case ('V' - 'A' + 10):
         {
             if(i > 0)
             {
@@ -214,7 +204,7 @@ void RAD_convert_effect(DivPattern* furnace_pat, RAD_pattern* pat, int i, int j)
     }
 }
 
-void RAD_read_pattern(SafeReader* reader, RAD_pattern* pat, DivPattern** furnace_patterns, DivSubSong* subsong)
+void RAD_read_pattern(SafeReader* reader, RAD_pattern* pat, DivPattern** furnace_patterns, DivSubSong* subsong, int version)
 {
     unsigned short len = (unsigned char)reader->readC();
     len |= ((unsigned char)reader->readC() << 8);
@@ -266,7 +256,7 @@ void RAD_read_pattern(SafeReader* reader, RAD_pattern* pat, DivPattern** furnace
                 if(bytes_read >= len) break;
             }
 
-            if(line_info & (1 << 5)) //effect/param bytes
+            if(line_info & (1 << 4)) //effect/param bytes
             {
                 unsigned char byte = reader->readC();
                 bytes_read++;
@@ -287,6 +277,8 @@ void RAD_read_pattern(SafeReader* reader, RAD_pattern* pat, DivPattern** furnace
 
             if(line_info & (1 << 7)) break;
         }
+
+        if(line & (1 << 7)) break;
     }
 
     subsong->patLen = max_line_number + 1;
@@ -308,13 +300,29 @@ void RAD_read_pattern(SafeReader* reader, RAD_pattern* pat, DivPattern** furnace
             }
             else if(pat->step[i][j].note > 0)
             {
-                furnace_pat->data[j][0] = pat->step[i][j].note - 1;
-                furnace_pat->data[j][1] = pat->step[i][j].octave;
+                if(version == 1)
+                {
+                    furnace_pat->data[j][0] = pat->step[i][j].note - 1;
+                    furnace_pat->data[j][1] = pat->step[i][j].octave;
+                }
+                if(version == 2)
+                {
+                    if(pat->step[i][j].note == 12)
+                    {
+                        furnace_pat->data[j][0] = 12;
+                        furnace_pat->data[j][1] = pat->step[i][j].octave;
+                    }
+                    else
+                    {
+                        furnace_pat->data[j][0] = pat->step[i][j].note;
+                        furnace_pat->data[j][1] = pat->step[i][j].octave;
+                    }
+                }
             }
 
             if(pat->step[i][j].instrument > 0)
             {
-                furnace_pat->data[j][2] = pat->step[i][j].instrument - 1;
+                furnace_pat->data[j][2] = pat->step[i][j].instrument;
             }
 
             if(pat->step[i][j].has_effect)
@@ -490,7 +498,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
         if(shifted_version == 1) //old RAD
         {
             //31 instruments? will delete the excessive ones later
-            for(int i = 0; i < 31; i++)
+            for(int i = 0; i < 31 + 1; i++)
             {
                 ds.ins.push_back(new DivInstrument());
             }
@@ -557,7 +565,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
         if(shifted_version == 2) //new RAD
         {
             //127 instruments? will delete the excessive ones later
-            for(int i = 0; i < 127; i++)
+            for(int i = 0; i < 127 + 1; i++)
             {
                 ds.ins.push_back(new DivInstrument());
             }
@@ -658,7 +666,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                         patterns[i] = riff_subsong->pat[i].getPattern(0, true);
                     }
 
-                    RAD_read_pattern(&reader, riff, patterns, riff_subsong);
+                    RAD_read_pattern(&reader, riff, patterns, riff_subsong, shifted_version);
 
                     riff_subsong_index++;
 
@@ -773,6 +781,30 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
             }
 
             delete pat;
+        }
+
+        if(shifted_version == 2) //new RAD
+        {
+            while(1)
+            {
+                unsigned char pat_number = reader.readC();
+                
+                if(pat_number == 0xFF) break;
+
+                RAD_pattern* pat = new RAD_pattern;
+                memset((void*)pat, 0, sizeof(RAD_pattern));
+
+                DivPattern* patterns[9];
+
+                for(int i = 0; i < 9; i++)
+                {
+                    patterns[i] = s->pat[i].getPattern(pat_number, true);
+                }
+
+                RAD_read_pattern(&reader, pat, patterns, s, shifted_version);
+
+                delete pat;
+            }
         }
 
         ds.insLen = ds.ins.size();
