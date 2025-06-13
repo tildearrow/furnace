@@ -41,6 +41,7 @@ const char* aboutLine[]={
   "cam900",
   "djtuBIG-MaliceX",
   "Eknous",
+  "host12prog",
   "Kagamiin~",
   "laoo",
   "LTVA",
