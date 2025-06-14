@@ -371,6 +371,16 @@ void FurnaceGUI::drawExportROM(bool onWindow) {
       }
       break;
     }
+    case DIV_ROM_GRUB: {
+      bool grubExportBin=romConfig.getBool("exportBin",false);
+      if (ImGui::Checkbox(_("export binary file"),&grubExportBin)) {
+        altered=true;
+      }
+      if (altered) {
+        romConfig.set("exportBin",grubExportBin);
+      }
+      break;
+    }
     case DIV_ROM_ABSTRACT:
       ImGui::TextWrapped("%s",_("select a target from the menu at the top of this dialog."));
       break;
