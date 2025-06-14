@@ -80,6 +80,10 @@ const int opOrder[4]={
   0, 2, 1, 3
 };
 
+const int rad_order[4]={
+  3, 2, 1, 0
+};
+
 typedef struct {
     uint8_t note: 4, octave: 3, prev_inst: 1;
     uint8_t instrument: 7, : 1;
@@ -627,7 +631,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                         if(ins->fm.ops == 4)
                         {
-                            furnace_op = opOrder[i];
+                            furnace_op = rad_order[opOrder[i]];
                             RAD_import_FM_op(ins, furnace_op, &op_s);
                         }
                         else
@@ -639,6 +643,13 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                             }
                         }
                     }
+
+                    if(ins->fm.ops == 4)
+                    {
+                        ins->fm.alg -= 2;
+                    }
+                    
+                    //TODO: how the hell RAD treats 4-op instruments? Looks like for some algorithms 4-op instrument is actually two channels in 2-op mode, that's why in some alg schemes there are two feedbacks?
 
                     //panning...
                     ins->std.panLMacro.len = 1;
