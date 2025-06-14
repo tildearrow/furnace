@@ -54,7 +54,7 @@ void DivExportGRUB::run() {
     return;
   }
   if (IGNORED>0) {
-    logAppendf("WARNING: iPod .tone export ignoring %d unsupported system%c",IGNORED,IGNORED>1?'s':' ');
+    logAppendf("WARNING: GRUB export ignoring unsup sys count: %d",IGNORED);
   }
 
   size_t tickCount=0;
