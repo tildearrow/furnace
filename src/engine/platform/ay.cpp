@@ -189,9 +189,10 @@ void DivPlatformAY8910::runTFX(int runRate, int advance) {
       if (chan[i].tfx.counter >= chan[i].tfx.period && chan[i].tfx.mode == 0) {
         chan[i].tfx.counter -= chan[i].tfx.period;
         chan[i].tfx.out ^= 1;
+      }
+      // yeah... we need this generator logic to be separate from the timer logic
+      if (chan[i].tfx.mode == 0) {
         output = ((chan[i].tfx.out) ? chan[i].outVol : (chan[i].tfx.lowBound-(15-chan[i].outVol)));
-        // TODO: fix this stupid crackling noise that happens
-        // everytime the volume changes
         output = (output <= 0) ? 0 : output; // underflow
         output = (output >= 15) ? 15 : output; // overflow
         output &= 15; // i don't know if i need this but i'm too scared to remove it
