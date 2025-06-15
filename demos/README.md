@@ -92,6 +92,7 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - Notakin
 - nwcr
 - NyaongI
+- OddPandemonium
 - PeyPey
 - PichuMario
 - pixelated
