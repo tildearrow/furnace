@@ -1616,6 +1616,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       }
       dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,note.channel,note.note));
       keyHit[note.channel]=true;
+      chan[note.channel].note = note.note;
       chan[note.channel].releasing=false;
       chan[note.channel].noteOnInhibit=true;
       chan[note.channel].lastIns=note.ins;
