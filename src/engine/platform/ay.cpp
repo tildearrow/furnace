@@ -168,15 +168,6 @@ void DivPlatformAY8910::runTFX(int runRate, int advance) {
   for (int i=0; i<3; i++) {
     if (chan[i].active && (chan[i].curPSGMode.val&16) && !(chan[i].curPSGMode.val&8)) {
       if (chan[i].tfx.mode == -1 && !isMuted[i]) {
-        /*
-        bug: if in the timer FX macro the user enables
-        and then disables PWM while there is no volume macro
-        there is now a random chance that the resulting output
-        is silent or has volume set incorrectly
-        i've tried to implement a fix, but it seems to be
-        ineffective, so...
-        TODO: actually implement a proper fix
-        */
         if (intellivision && chan[i].curPSGMode.getEnvelope()) {
           immWrite(0x08+i,(chan[i].outVol&0xc)<<2);
           continue;
@@ -186,12 +177,39 @@ void DivPlatformAY8910::runTFX(int runRate, int advance) {
         }
       }
       chan[i].tfx.counter += counterRatio;
-      if (chan[i].tfx.counter >= chan[i].tfx.period && chan[i].tfx.mode == 0) {
+      if (chan[i].tfx.counter >= chan[i].tfx.period) {
         chan[i].tfx.counter -= chan[i].tfx.period;
-        chan[i].tfx.out ^= 1;
+        switch (chan[i].tfx.mode) {
+          case 0:
+            // pwm
+            // we will handle the modulator gen after this switch... if we don't, crackling happens
+            chan[i].tfx.out ^= 1;
+            break;
+          case 1:
+            // syncbuzzer
+            if (!isMuted[i]) {
+              if (intellivision && chan[i].curPSGMode.getEnvelope()) {
+                immWrite(0x08 + i, (chan[i].outVol & 0xc) << 2);
+              }
+              else {
+                immWrite(0x08 + i, (chan[i].outVol & 15) | ((chan[i].curPSGMode.getEnvelope()) << 2));
+              }
+            }
+            if (intellivision && selCore) {
+              immWrite(0xa, ayEnvMode);
+            }
+            else {
+              immWrite(0xd, ayEnvMode);
+            }
+            break;
+          case 2:
+          default:
+            // unimplemented, or invalid effects here
+            break;
+        }
       }
-      // yeah... we need this generator logic to be separate from the timer logic
       if (chan[i].tfx.mode == 0) {
+        // pwm
         output = ((chan[i].tfx.out) ? chan[i].outVol : (chan[i].tfx.lowBound-(15-chan[i].outVol)));
         output = (output <= 0) ? 0 : output; // underflow
         output = (output >= 15) ? 15 : output; // overflow
@@ -204,25 +222,6 @@ void DivPlatformAY8910::runTFX(int runRate, int advance) {
             immWrite(0x08+i,output|(chan[i].curPSGMode.getEnvelope()<<2));
           }
         }
-      }
-      if (chan[i].tfx.counter >= chan[i].tfx.period && chan[i].tfx.mode == 1) {
-        chan[i].tfx.counter -= chan[i].tfx.period;
-        if (!isMuted[i]) {
-          if (intellivision && chan[i].curPSGMode.getEnvelope()) {
-            immWrite(0x08 + i, (chan[i].outVol & 0xc) << 2);
-          }
-          else {
-            immWrite(0x08 + i, (chan[i].outVol & 15) | ((chan[i].curPSGMode.getEnvelope()) << 2));
-          }
-        }
-        if (intellivision && selCore) {
-          immWrite(0xa, ayEnvMode);
-        } else {
-          immWrite(0xd, ayEnvMode);
-        }
-      }
-      if (chan[i].tfx.counter >= chan[i].tfx.period && chan[i].tfx.mode == 2) {
-        chan[i].tfx.counter -= chan[i].tfx.period;
       }
     }
     if (chan[i].tfx.num > 0) {
