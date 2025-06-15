@@ -2320,6 +2320,18 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       }
       break;
     }
+    case DIV_CMD_FM_ALG: 
+    {
+      if (c.value<((chan[c.chan].state.ops==4 && oplType==3)?4:2) && c.chan<=melodicChans)
+      {
+        chan[c.chan].state.alg = c.value & 7;
+        rWrite(chanMap[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&15)<<4));
+        if (chan[c.chan].state.ops==4) {
+          rWrite(chanMap[c.chan+1]+ADDR_LR_FB_ALG,((chan[c.chan].state.alg>>1)&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&15)<<4));
+        }
+      }
+      break;
+    }
     case DIV_CMD_FM_AM: {
       if (PCM_CHECK(c.chan)) break;
       if (c.chan==adpcmChan) break;
