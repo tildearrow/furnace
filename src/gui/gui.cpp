@@ -7018,6 +7018,7 @@ bool FurnaceGUI::loop() {
         ImGui::SameLine();
         ImGui::SetNextItemWidth(120.0f*dpiScale);
         if (ImGui::InputInt("##RSChans",&pendingRawSampleChannels,1,2)) {
+          CLAMP_VAR(pendingRawSampleChannels, 1, 16)
         }
         ImGui::Text(_("(will be mixed down to mono)"));
         ImGui::Checkbox(_("Unsigned"),&pendingRawSampleUnsigned);
@@ -7031,7 +7032,8 @@ bool FurnaceGUI::loop() {
           pendingRawSampleDepth==DIV_SAMPLE_DEPTH_QSOUND_ADPCM ||
           pendingRawSampleDepth==DIV_SAMPLE_DEPTH_ADPCM_A ||
           pendingRawSampleDepth==DIV_SAMPLE_DEPTH_ADPCM_B ||
-          pendingRawSampleDepth==DIV_SAMPLE_DEPTH_VOX) {
+          pendingRawSampleDepth==DIV_SAMPLE_DEPTH_VOX ||
+          pendingRawSampleDepth==DIV_SAMPLE_DEPTH_4BIT) {
         ImGui::Checkbox(_("Swap nibbles"),&pendingRawSampleSwapNibbles);
       }
 
