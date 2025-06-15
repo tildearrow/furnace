@@ -208,7 +208,7 @@ void RAD_convert_effect(DivPattern* furnace_pat, RAD_pattern* pat, int i, int j)
     }
 }
 
-void RAD_read_pattern(SafeReader* reader, RAD_pattern* pat, DivPattern** furnace_patterns, DivSubSong* subsong, int version)
+void RAD_read_pattern(SafeReader* reader, RAD_pattern* pat, DivPattern** furnace_patterns, DivSubSong* subsong, int version, bool hide_chans)
 {
     unsigned short len = (unsigned char)reader->readC();
     len |= ((unsigned char)reader->readC() << 8);
@@ -254,7 +254,7 @@ void RAD_read_pattern(SafeReader* reader, RAD_pattern* pat, DivPattern** furnace
 
                 if((byte & 0x7F) > 0)
                 {
-                    pat->step[(line_info & 0xF) % 9][line_number].instrument = (byte & 0x7F);
+                    pat->step[(line_info & 0xF) % 9][line_number].instrument = (byte & 0x7F) * 2;
                 }
 
                 if(bytes_read >= len) break;
@@ -287,9 +287,12 @@ void RAD_read_pattern(SafeReader* reader, RAD_pattern* pat, DivPattern** furnace
 
     subsong->patLen = max_line_number + 1;
 
-    for(int i = 9; i < 18; i++)
+    if(hide_chans)
     {
-        subsong->chanShow[i] = false; //hide unused OPL3 channels
+        for(int i = 9; i < 18; i++)
+        {
+            subsong->chanShow[i] = false; //hide unused OPL3 channels
+        }
     }
 
     for(int i = 0; i < 9; i++) //convert pattern data
@@ -440,6 +443,8 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
         int version = 0;
         int shifted_version = 0;
 
+        bool two_twoop_inst[257] = { false };
+
         reader.seek(16, SEEK_SET);
 
         version = reader.readC();
@@ -459,10 +464,10 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
         {
             ds.system[0] = DIV_SYSTEM_OPL3;
 
-            for(int i = 9; i < 18; i++)
+            /*for(int i = 9; i < 18; i++)
             {
                 ds.subsong[0]->chanShow[i] = false; //hide unused OPL3 channels
-            }
+            }*/
         }
 
         unsigned char flags = reader.readC();
@@ -569,7 +574,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
         if(shifted_version == 2) //new RAD
         {
             //127 instruments? will delete the excessive ones later
-            for(int i = 0; i < 127 + 1; i++)
+            for(int i = 0; i < (127 + 1) * 2 + 1; i++)
             {
                 ds.ins.push_back(new DivInstrument());
             }
@@ -602,7 +607,8 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                 unsigned char name_len = reader.readC();
                 reader.read((void*)&name, name_len);
                 
-                DivInstrument* ins = ds.ins[inst_num];
+                DivInstrument* ins = ds.ins[(int)inst_num * 2];
+                DivInstrument* ins2 = ds.ins[(int)inst_num * 2 + 1];
 
                 ins->type = DIV_INS_OPL;
                 ins->name = name;
@@ -623,39 +629,103 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                     ins->fm.ops = ins->fm.alg > 1 ? 4 : 2;
                     
-                    for(int i = 0; i < 4; i++) //four ops even for 2-op instruments?
+                    if(ins->fm.alg <= 3)
                     {
-                        reader.read((void*)&op_s, sizeof(FM_OP_INST_DATA_new));
+                        for(int i = 0; i < 4; i++) //four ops even for 2-op instruments?
+                        {
+                            reader.read((void*)&op_s, sizeof(FM_OP_INST_DATA_new));
 
-                        unsigned char furnace_op = 0;
+                            unsigned char furnace_op = 0;
+
+                            if(ins->fm.ops == 4)
+                            {
+                                furnace_op = rad_order[opOrder[i]];
+                                RAD_import_FM_op(ins, furnace_op, &op_s);
+                            }
+                            else
+                            {
+                                if(i < 2)
+                                {
+                                    furnace_op = 1 - i;
+                                    RAD_import_FM_op(ins, furnace_op, &op_s);
+                                }
+                            }
+                        }
 
                         if(ins->fm.ops == 4)
                         {
-                            furnace_op = rad_order[opOrder[i]];
+                            ins->fm.alg -= 2;
+                        }
+
+                        //panning...
+                        ins->std.panLMacro.len = 1;
+                        ins->std.panLMacro.val[0] = instr_s.pan12;
+
+                        if(ins->std.panLMacro.val[0] == 0) ins->std.panLMacro.val[0] = 3;
+                    }
+                    else //two instruments, 2-op each
+                    {
+                        two_twoop_inst[(int)inst_num * 2] = true;
+
+                        ins->type = DIV_INS_OPL;
+                        ins->name = name;
+                        ins->name += _(" [first two operators]");
+                        ins2->type = DIV_INS_OPL;
+                        ins2->name = name;
+                        ins2->name += _(" [second two operators]");
+
+                        ins->fm.fb = instr_s.feedb12;
+                        ins2->fm.fb = instr_s.feedb34;
+
+                        ins->fm.ops = 2;
+                        ins2->fm.ops = 2;
+                        
+                        if(ins->fm.alg == 4)
+                        {
+                            ins->fm.alg = 0;
+                            ins2->fm.alg = 0;
+                        }
+                        if(ins->fm.alg == 5)
+                        {
+                            ins->fm.alg = 0;
+                            ins2->fm.alg = 1;
+                        }
+                        if(ins->fm.alg == 6)
+                        {
+                            ins->fm.alg = 1;
+                            ins2->fm.alg = 1;
+                        }
+
+                        for(int i = 0; i < 2; i++)
+                        {
+                            reader.read((void*)&op_s, sizeof(FM_OP_INST_DATA_new));
+
+                            unsigned char furnace_op = 1 - i;
+
                             RAD_import_FM_op(ins, furnace_op, &op_s);
                         }
-                        else
+
+                        for(int i = 0; i < 2; i++)
                         {
-                            if(i < 2)
-                            {
-                                furnace_op = i;
-                                RAD_import_FM_op(ins, furnace_op, &op_s);
-                            }
+                            reader.read((void*)&op_s, sizeof(FM_OP_INST_DATA_new));
+
+                            unsigned char furnace_op = 1 - i;
+
+                            RAD_import_FM_op(ins2, furnace_op, &op_s);
                         }
-                    }
 
-                    if(ins->fm.ops == 4)
-                    {
-                        ins->fm.alg -= 2;
+                        //panning...
+                        ins->std.panLMacro.len = 1;
+                        ins->std.panLMacro.val[0] = instr_s.pan12;
+
+                        if(ins->std.panLMacro.val[0] == 0) ins->std.panLMacro.val[0] = 3;
+
+                        ins2->std.panLMacro.len = 1;
+                        ins2->std.panLMacro.val[0] = instr_s.pan34;
+
+                        if(ins2->std.panLMacro.val[0] == 0) ins2->std.panLMacro.val[0] = 3;
                     }
-                    
                     //TODO: how the hell RAD treats 4-op instruments? Looks like for some algorithms 4-op instrument is actually two channels in 2-op mode, that's why in some alg schemes there are two feedbacks?
-
-                    //panning...
-                    ins->std.panLMacro.len = 1;
-                    ins->std.panLMacro.val[0] = instr_s.pan12;
-
-                    if(ins->std.panLMacro.val[0] == 0) ins->std.panLMacro.val[0] = 3;
                 }
 
                 if(instr_s.has_riff)
@@ -677,7 +747,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                         patterns[i] = riff_subsong->pat[i].getPattern(0, true);
                     }
 
-                    RAD_read_pattern(&reader, riff, patterns, riff_subsong, shifted_version);
+                    RAD_read_pattern(&reader, riff, patterns, riff_subsong, shifted_version, true);
 
                     riff_subsong_index++;
 
@@ -709,7 +779,15 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
             {
                 for (int j = 0; j < 9; j++) 
                 {
-                    ds.subsong[0]->orders.ord[j][i] = order;
+                    if(shifted_version == 1)
+                    {
+                        ds.subsong[0]->orders.ord[j][i] = order;
+                    }
+                    if(shifted_version == 2)
+                    {
+                        ds.subsong[0]->orders.ord[j * 2][i] = order;
+                        ds.subsong[0]->orders.ord[j * 2 + 1][i] = order;
+                    }
                 }
             }
         }
@@ -809,10 +887,13 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                 for(int i = 0; i < 9; i++)
                 {
-                    patterns[i] = s->pat[i].getPattern(pat_number, true);
+                    patterns[i] = s->pat[i * 2].getPattern(pat_number, true);
+
+                    DivPattern* preallocate = s->pat[i * 2 + 1].getPattern(pat_number, true);
+                    (void)preallocate;
                 }
 
-                RAD_read_pattern(&reader, pat, patterns, s, shifted_version);
+                RAD_read_pattern(&reader, pat, patterns, s, shifted_version, false);
 
                 delete pat;
             }
@@ -820,11 +901,65 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
         ds.insLen = ds.ins.size();
 
+        s->makePatUnique(); //needed for non-continuous to continuous effects conversion
+        s->rearrangePatterns();
+
+        s->patLen = 64;
+
+        for (int ii = 0; ii < 18; ii += 2) //if we have 2+2-op instrument we copy pattern data to adjacent channel and put appropriate instrument there
+        {
+            bool currently_using_twotwoop_inst = false;
+
+            for (int k = 0; k < s->ordersLen; k++) 
+            {
+                DivPattern* pat1 = s->pat[ii].getPattern(s->orders.ord[ii][k], false);
+                DivPattern* pat2 = s->pat[ii + 1].getPattern(s->orders.ord[ii + 1][k], false);
+
+                if(pat1 == NULL || pat2 == NULL)
+                {
+                    logE("error getting pattern data!");
+                    lastError="error getting pattern data!";
+                    delete[] file;
+                    return false;
+                }
+
+                for (int l = 0; l < s->patLen; l++) 
+                {
+                    if (pat1->data[l][2] != -1 && pat1->data[l][2] > 0 && pat1->data[l][2] < 257) 
+                    {
+                        if(two_twoop_inst[pat1->data[l][2]])
+                        {
+                            currently_using_twotwoop_inst = true;
+                        }
+                        else
+                        {
+                            currently_using_twotwoop_inst = false;
+                        }
+                    }
+
+                    if(currently_using_twotwoop_inst)
+                    {
+                        memcpy((void*)pat2->data[l], (void*)pat1->data[l], sizeof(pat1->data[0]));
+
+                        if(pat1->data[l][2] != -1)
+                        {
+                            pat2->data[l][2]++; //increment inst number so we have second-pair-of-two-2op-instruments inst there
+                        }
+                    }
+                }
+            }
+        }
+
+        //todo: convert non-continuous to continuous effects
+
+        //s->optimizePatterns(); //if after converting effects we still have some duplicates
+        //s->rearrangePatterns();
+
         if (ds.insLen > 0) 
         {
             for (int tries = 0; tries < 5; tries++) // erase unused instruments
             {
-                for (int i = 0; i < ((shifted_version == 1) ? 31 : 127); i++) 
+                for (int i = 0; i < ((shifted_version == 1) ? 31 : 258); i++) 
                 {
                     if (ds.ins.empty()) break;
 
@@ -842,7 +977,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                         ds.ins.erase(ds.ins.begin() + index);
                         ds.insLen = ds.ins.size();
 
-                        for (int ii = 0; ii < 9; ii++) 
+                        for (int ii = 0; ii < 18; ii++) 
                         {
                             for (size_t j = 0; j < 1; j++) // next subsongs are instrument and global riffs. Correct only 1st subsong which is actual song
                             {
