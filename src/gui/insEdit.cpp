@@ -8715,7 +8715,7 @@ void FurnaceGUI::drawInsEdit() {
             if (ImGui::BeginTabItem(_("Timer Macros")))
             {
               ImGui::Text(_("warning: timer effects require direct stream mode to be enabled during VGM export!"));
-              macroList.push_back(FurnaceGUIMacroDesc(_("Timer FX"),&ins->std.ex6Macro,0,3,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroTFXModes));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Timer FX"),&ins->std.ex6Macro,0,2,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroTFXModes));
               macroList.push_back(FurnaceGUIMacroDesc(_("Timer Offset"),&ins->std.ex7Macro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode,NULL,false,NULL,false,NULL,false,true));
               macroList.push_back(FurnaceGUIMacroDesc(_("Timer Num"),&ins->std.ex8Macro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
               macroList.push_back(FurnaceGUIMacroDesc(_("Timer Den"),&ins->std.fmsMacro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
