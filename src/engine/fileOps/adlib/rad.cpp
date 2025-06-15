@@ -1157,8 +1157,9 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
         if(shifted_version == 2)
         {
             ds.category = _("Check subsongs list for instrument-specific and global riffs!");
-            ds.subsong.erase(ds.subsong.end() - 1);
         }
+
+        ds.subsong.erase(ds.subsong.end() - 1);
 
         if (active) quitDispatch();
         BUSY_BEGIN_SOFT;
