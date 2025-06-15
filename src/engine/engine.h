@@ -54,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev231"
-#define DIV_ENGINE_VERSION 231
+#define DIV_VERSION "dev232"
+#define DIV_ENGINE_VERSION 232
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -686,6 +686,8 @@ class DivEngine {
   friend class DivExportSAPR;
   friend class DivExportTiuna;
   friend class DivExportZSM;
+  friend class DivExportiPod;
+  friend class DivExportGRUB;
 
   public:
     DivSong song;

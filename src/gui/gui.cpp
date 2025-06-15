@@ -5610,6 +5610,8 @@ bool FurnaceGUI::loop() {
                 } else { // replace with the only instrument
                   if (curIns>=0 && curIns<(int)e->song.ins.size()) {
                     *e->song.ins[curIns]=*instruments[0];
+                    // reset macro zoom
+                    memset(e->song.ins[curIns]->temp.vZoom,-1,sizeof(e->song.ins[curIns]->temp.vZoom));
                     MARK_MODIFIED;
                   } else {
                     showError(_("...but you haven't selected an instrument!"));
@@ -6806,6 +6808,8 @@ bool FurnaceGUI::loop() {
             if (i.second) {
               if (curIns>=0 && curIns<(int)e->song.ins.size()) {
                 *e->song.ins[curIns]=*i.first;
+                // reset macro zoom
+                memset(e->song.ins[curIns]->temp.vZoom,-1,sizeof(e->song.ins[curIns]->temp.vZoom));
               } else {
                 showError(_("...but you haven't selected an instrument!"));
               }

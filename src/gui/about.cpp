@@ -35,6 +35,7 @@ const char* aboutLine[]={
   _N("-- program --"),
   "tildearrow",
   _N("A M 4 N (intro tune)"),
+  "AArt1256",
   "Adam Lederer",
   "akumanatt",
   "asiekierka",
