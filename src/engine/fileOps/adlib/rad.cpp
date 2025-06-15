@@ -1117,7 +1117,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                         for (int ii = 0; ii < 18; ii++) 
                         {
-                            for (size_t j = 0; j < (int)ds.subsong.size(); j++)
+                            for (int j = 0; j < (int)ds.subsong.size(); j++)
                             {
                                 for (int k = 0; k < DIV_MAX_PATTERNS; k++) 
                                 {
