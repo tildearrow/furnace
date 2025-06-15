@@ -889,11 +889,149 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                 {
                     patterns[i] = s->pat[i * 2].getPattern(pat_number, true);
 
-                    DivPattern* preallocate = s->pat[i * 2 + 1].getPattern(pat_number, true);
+                    DivPattern* preallocate = s->pat[i * 2 + 1].getPattern(pat_number, true); //if you remove this then the 2+2-op instruments import involving pattern data duplication will stop working
                     (void)preallocate;
                 }
 
                 RAD_read_pattern(&reader, pat, patterns, s, shifted_version, false);
+
+                delete pat;
+            }
+
+            //riffs
+            unsigned char riff_n = 0xFF;
+            DivSubSong* riff_subsong;
+
+            while(1)
+            {
+                int bytes_read = 0;
+
+                unsigned char riff_number = reader.readC();
+                
+                if(riff_number == 0xFF) break;
+
+                unsigned char channel = (riff_number & 0xF) - 1;
+
+                if(riff_n != (riff_number >> 4))
+                {
+                    ds.subsong.push_back(new DivSubSong);
+
+                    riff_subsong = ds.subsong[riff_subsong_index];
+
+                    riff_subsong->name = fmt::sprintf(_("Riff #%d"), (riff_number >> 4));
+
+                    riff_n = (riff_number >> 4);
+
+                    riff_subsong_index++;
+                }
+
+                unsigned short len = (unsigned char)reader.readC();
+                len |= ((unsigned char)reader.readC() << 8);
+
+                RAD_pattern* pat = new RAD_pattern;
+                memset((void*)pat, 0, sizeof(RAD_pattern));
+
+                while(1)
+                {
+                    unsigned char line = reader.readC();
+                    bytes_read++;
+
+                    if(bytes_read >= len) break;
+
+                    unsigned char line_number = line & 0x7F;
+                
+                    unsigned char line_info = reader.readC();
+                    bytes_read++;
+
+                    if(bytes_read >= len) break;
+
+                    if(line_info & (1 << 6)) //note/octave byte
+                    {
+                        unsigned char byte = reader.readC();
+                        bytes_read++;
+
+                        pat->step[channel % 9][line_number].note = byte & 0xF;
+                        pat->step[channel % 9][line_number].octave = (byte >> 4) & 0x7;
+                        pat->step[channel % 9][line_number].prev_inst = (byte >> 7) & 0x1;
+
+                        if(bytes_read >= len) break;
+                    }
+
+                    if(line_info & (1 << 5)) //instrument byte
+                    {
+                        unsigned char byte = reader.readC();
+                        bytes_read++;
+
+                        if((byte & 0x7F) > 0)
+                        {
+                            pat->step[channel % 9][line_number].instrument = (byte & 0x7F) * 2;
+                        }
+
+                        if(bytes_read >= len) break;
+                    }
+
+                    if(line_info & (1 << 4)) //effect/param bytes
+                    {
+                        unsigned char byte = reader.readC();
+                        bytes_read++;
+
+                        pat->step[channel % 9][line_number].effect = byte & 0x1F;
+
+                        pat->step[channel % 9][line_number].has_effect = true;
+
+                        if(bytes_read >= len) break;
+
+                        byte = reader.readC();
+                        bytes_read++;
+
+                        pat->step[channel % 9][line_number].effect_param = byte & 0x7F;
+
+                        if(bytes_read >= len) break;
+                    }
+
+                    if(line & (1 << 7)) break;
+                }
+
+                DivPattern* furnace_pat = riff_subsong->pat[channel].getPattern(0, true);
+
+                for(int j = 0; j < 64; j++)
+                {
+                    if(pat->step[channel][j].note == 0xF)
+                    {
+                        furnace_pat->data[j][0] = 101; //key off
+                    }
+                    else if(pat->step[channel][j].note > 0)
+                    {
+                        if((version >> 4) == 1)
+                        {
+                            furnace_pat->data[j][0] = pat->step[channel][j].note - 1;
+                            furnace_pat->data[j][1] = pat->step[channel][j].octave;
+                        }
+                        if((version >> 4) == 2)
+                        {
+                            if(pat->step[channel][j].note == 12)
+                            {
+                                furnace_pat->data[j][0] = 12;
+                                furnace_pat->data[j][1] = pat->step[channel][j].octave;
+                            }
+                            else
+                            {
+                                furnace_pat->data[j][0] = pat->step[channel][j].note;
+                                furnace_pat->data[j][1] = pat->step[channel][j].octave;
+                            }
+                        }
+                    }
+
+                    if(pat->step[channel][j].instrument > 0)
+                    {
+                        furnace_pat->data[j][2] = pat->step[channel][j].instrument;
+                    }
+
+                    if(pat->step[channel][j].has_effect)
+                    {
+                        RAD_convert_effect(furnace_pat, pat, channel, j);
+                    }
+                }
 
                 delete pat;
             }
@@ -979,7 +1117,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                         for (int ii = 0; ii < 18; ii++) 
                         {
-                            for (size_t j = 0; j < 1; j++) // next subsongs are instrument and global riffs. Correct only 1st subsong which is actual song
+                            for (size_t j = 0; j < (int)ds.subsong.size(); j++)
                             {
                                 for (int k = 0; k < DIV_MAX_PATTERNS; k++) 
                                 {
@@ -987,7 +1125,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                                     
                                     for (int l = 0; l < ds.subsong[j]->patLen; l++) 
                                     {
-                                        if (ds.subsong[j]->pat[ii].data[k]->data[l][2] > index) 
+                                        if (ds.subsong[j]->pat[ii].data[k]->data[l][2] > index)
                                         {
                                             ds.subsong[j]->pat[ii].data[k]->data[l][2]--;
                                         }
@@ -1010,6 +1148,18 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
         {
             ds.subsong[i]->hz = 50;
         }
+
+        s->name = _("Main song");
+
+        ds.name = _("Main song");
+        ds.author = _("Imported from Reality Adlib Tracker module");
+
+        if(shifted_version == 2)
+        {
+            ds.category = _("Check subsongs list for instrument-specific and global riffs!");
+        }
+
+        ds.subsong.erase(ds.subsong.end() - 1);
 
         if (active) quitDispatch();
         BUSY_BEGIN_SOFT;
