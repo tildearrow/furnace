@@ -25,7 +25,7 @@
 #include <math.h>
 
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
-#define immWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(regRemap(a),v)); if (dumpWrites) {addWrite(regRemap(a),v);} }
+#define immWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(regRemap(a),v)); logI("%02x: %02x", a, v); if (dumpWrites) {addWrite(regRemap(a),v);} } 
 
 #define CHIP_DIVIDER (extMode?extDiv:((sunsoft||clockSel)?16:8))
 
@@ -189,7 +189,7 @@ void DivPlatformAY8910::runTFX(int runRate, int advance) {
             // syncbuzzer
             if (!isMuted[i]) {
               if (intellivision && chan[i].curPSGMode.getEnvelope()) {
-                immWrite(0x08 + i, (chan[i].outVol & 0xc) << 2);
+                immWrite(0x0b + i, (chan[i].outVol & 0xc) << 2);
               }
               else {
                 immWrite(0x08 + i, (chan[i].outVol & 15) | ((chan[i].curPSGMode.getEnvelope()) << 2));
