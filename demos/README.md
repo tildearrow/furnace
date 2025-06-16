@@ -84,6 +84,7 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - Miker
 - Molkirill
 - MrCoolDude
+- Mr. Saturn
 - NeoWar
 - Nerreave
 - niffuM
@@ -146,7 +147,6 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - Wegfrei
 - Xan
 - Yuzugure!
-- z1cmr40
 - Zabir
 - Zaxinoth Digital
 - Zaxolotl
