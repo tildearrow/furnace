@@ -82,7 +82,7 @@ std::string _computeMmlNote(int noteValue);
 int _convertNoiseValue(int noteValue, bool useLegacyNoiseTable);
 
 // Waveform writing
-void _writeWaveData(SafeWriter* w, const std::function<int(int)>& valueFunc);
+void _writeWaveData(SafeWriter* w, const std::function<double(int)>& valueFunc);
 void _writeNormalizedGBWave(DivWavetable* wave, SafeWriter* w);
 void _writeDefaultWave(SafeWriter* w);
 
