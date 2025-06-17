@@ -26,6 +26,14 @@
 #include "../safeWriter.h"   // for SafeWriter
 #include "../wavetable.h"    // for DivWavetable
 
+enum MMLExportType {
+    MML_EXPORT_PPMCK = 0,
+    MML_EXPORT_FMP = 1,
+    MML_EXPORT_PMD = 2,
+    MML_EXPORT_AMK = 3,
+    MML_EXPORT_MMLGB = 4
+};
+
 int _computeMmlOctave(int noteValue, int delta);
 int _computeMmlTempo(DivSubSong* curSubSong, double divider);
 std::string _generateOctShift(int diff, bool reversedNotation);

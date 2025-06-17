@@ -25,22 +25,23 @@
 
 #include "gui.h"
 #include "util.h"
+#include "guiConst.h"
+#include "intConst.h"
+#include "scaling.h"
+#include "introTune.h"
 #include "../ta-log.h"
 #include "../fileutils.h"
+#include "../engine/export/mmlHelpers.h"
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "ImGuiFileDialog.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "plot_nolerp.h"
-#include "guiConst.h"
-#include "intConst.h"
-#include "scaling.h"
-#include "introTune.h"
 #include <stdint.h>
 #include <zlib.h>
-#include <fmt/printf.h>
 #include <stdexcept>
+#include <fmt/printf.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -5708,10 +5709,10 @@ bool FurnaceGUI::loop() {
               SafeWriter* w = nullptr;
 
               switch (mmlExportType) {
-                case 4: // mmlgb
+                case MML_EXPORT_MMLGB: // mmlgb
                   w = e->saveMMLGB(mmlExportUseLegacyNoise);
                   break;
-                case 3: // AddMusicK
+                case MML_EXPORT_AMK: // AddMusicK
                   w = e->saveMMLSNESAMK(mmlExportAMKVersion);
                   break;
                 default:
