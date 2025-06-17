@@ -1599,7 +1599,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     _("FM Towns"), {
-      CH(DIV_SYSTEM_YM2612, 1.0f, 0,
+      CH(DIV_SYSTEM_YM2612, 1.0f, 0, 
       	"clockSel=2\n"
       	"chipType=0\n"
       ), // YM3438
@@ -1608,7 +1608,7 @@ void FurnaceGUI::initSystemPresets() {
   );
     SUB_ENTRY(
       _("FM Towns (extended channel 3)"), {
-        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, 
           "clockSel=2\n"
           "chipType=0\n"
         ), // YM3438
@@ -1617,7 +1617,7 @@ void FurnaceGUI::initSystemPresets() {
     );
     SUB_ENTRY(
       _("FM Towns (CSM)"), {
-        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, 
           "clockSel=2\n"
           "chipType=0\n"
         ), // YM3438
@@ -2425,7 +2425,7 @@ void FurnaceGUI::initSystemPresets() {
     );
     SUB_ENTRY(
       _("Sega System 18"), {
-        CH(DIV_SYSTEM_YM2612, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, 
           "clockSel=2\n"
           "chipType=0\n"
         ), // discrete 8MHz YM3438
@@ -2439,7 +2439,7 @@ void FurnaceGUI::initSystemPresets() {
           "clockSel=2\n"
           "chipType=0\n"
         ), // discrete 8MHz YM3438
-        CH(DIV_SYSTEM_YM2612, 1.0f, 0
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, 
           "clockSel=2\n"
           "chipType=0\n"
         ), // ^^
@@ -2448,7 +2448,7 @@ void FurnaceGUI::initSystemPresets() {
     );
     SUB_ENTRY(
       _("Sega System 18 (extended channel 3 on second OPN2C)"), {
-        CH(DIV_SYSTEM_YM2612, 1.0f, 0
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, 
           "clockSel=2\n"
           "chipType=0\n"
         ), // discrete 8MHz YM3438
@@ -2461,11 +2461,11 @@ void FurnaceGUI::initSystemPresets() {
     );
     SUB_ENTRY(
       _("Sega System 18 (extended channel 3 on both OPN2Cs)"), {
-        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, 
           "clockSel=2\n"
           "chipType=0\n"
         ), // discrete 8MHz YM3438
-        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, 
           "clockSel=2\n"
           "chipType=0\n"
         ), // ^^
@@ -2474,11 +2474,11 @@ void FurnaceGUI::initSystemPresets() {
     );
     SUB_ENTRY(
       _("Sega System 18 (CSM on first OPN2C)"), {
-        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, 
           "clockSel=2\n"
           "chipType=0\n"
         ), // discrete 8MHz YM3438
-        CH(DIV_SYSTEM_YM2612, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, 
           "clockSel=2\n"
           "chipType=0\n"
         ), // ^^
@@ -2487,11 +2487,11 @@ void FurnaceGUI::initSystemPresets() {
     );
     SUB_ENTRY(
       _("Sega System 18 (CSM on second OPN2C)"), {
-        CH(DIV_SYSTEM_YM2612, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, 
           "clockSel=2\n"
           "chipType=0\n"
         ), // discrete 8MHz YM3438
-        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, 
           "clockSel=2\n"
           "chipType=0\n"
         ), // ^^
@@ -2500,11 +2500,11 @@ void FurnaceGUI::initSystemPresets() {
     );
     SUB_ENTRY(
       _("Sega System 18 (CSM on both OPN2Cs)"), {
-        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, 
           "clockSel=2\n"
           "chipType=0\n"
         ), // discrete 8MHz YM3438
-        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, 
           "clockSel=2\n"
           "chipType=0\n"
         ), // ^^
@@ -2513,11 +2513,11 @@ void FurnaceGUI::initSystemPresets() {
     );
     SUB_ENTRY(
       _("Sega System 32"), {
-        CH(DIV_SYSTEM_YM2612, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, 
           "clockSel=4\n"
           "chipType=0\n"
         ), // discrete 8.05MHz YM3438
-        CH(DIV_SYSTEM_YM2612, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, 
           "clockSel=4\n"
           "chipType=0\n"
         ), // ^^
@@ -2529,11 +2529,11 @@ void FurnaceGUI::initSystemPresets() {
     );
     SUB_ENTRY(
       _("Sega System 32 (extended channel 3 on first OPN2C)"), {
-        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, 
           "clockSel=4\n"
           "chipType=0\n"
         ), // discrete 8.05MHz YM3438
-        CH(DIV_SYSTEM_YM2612, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, 
           "clockSel=4\n"
           "chipType=0\n"
         ), // ^^
@@ -2545,11 +2545,11 @@ void FurnaceGUI::initSystemPresets() {
     );
     SUB_ENTRY(
       _("Sega System 32 (extended channel 3 on second OPN2C)"), {
-        CH(DIV_SYSTEM_YM2612, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, 
           "clockSel=4\n"
           "chipType=0\n"
         ), // discrete 8.05MHz YM3438
-        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, 
           "clockSel=4\n"
           "chipType=0\n"
         ), // ^^
@@ -2561,11 +2561,11 @@ void FurnaceGUI::initSystemPresets() {
     );
     SUB_ENTRY(
       _("Sega System 32 (extended channel 3 on both OPN2Cs)"), {
-        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, 
           "clockSel=4\n"
           "chipType=0\n"
         ), // discrete 8.05MHz YM3438
-        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, 
           "clockSel=4\n"
           "chipType=0\n"
         ), // ^^
@@ -2577,11 +2577,11 @@ void FurnaceGUI::initSystemPresets() {
     );
     SUB_ENTRY(
       _("Sega System 32 (CSM on first OPN2C)"), {
-        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, 
           "clockSel=4\n"
           "chipType=0\n"
         ), // discrete 8.05MHz YM3438
-        CH(DIV_SYSTEM_YM2612, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, 
           "clockSel=4\n"
           "chipType=0\n"
         ), // ^^
@@ -2593,11 +2593,11 @@ void FurnaceGUI::initSystemPresets() {
     );
     SUB_ENTRY(
       _("Sega System 32 (CSM on second OPN2C)"), {
-        CH(DIV_SYSTEM_YM2612, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, 
           "clockSel=4\n"
           "chipType=0\n"
         ), // discrete 8.05MHz YM3438
-        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, 
           "clockSel=4\n"
           "chipType=0\n"
         ), // ^^
@@ -2609,11 +2609,11 @@ void FurnaceGUI::initSystemPresets() {
     );
     SUB_ENTRY(
       _("Sega System 32 (CSM on both OPN2Cs)"), {
-        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, 
           "clockSel=4\n"
           "chipType=0\n"
         ), // discrete 8.05MHz YM3438
-        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, 
           "clockSel=4\n"
           "chipType=0\n"
         ), // ^^
@@ -2635,7 +2635,7 @@ void FurnaceGUI::initSystemPresets() {
     SUB_ENTRY(
       _("Seta 1 + FM add-on"), {
         CH(DIV_SYSTEM_X1_010, 1.0f, 0, ""),
-        CH(DIV_SYSTEM_YM2612, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, 
           "clockSel=2\n"
           "chipType=0\n"
         ) // Discrete YM3438
@@ -2644,7 +2644,7 @@ void FurnaceGUI::initSystemPresets() {
     SUB_ENTRY(
       _("Seta 1 + FM add-on (extended channel 3)"), {
         CH(DIV_SYSTEM_X1_010, 1.0f, 0, ""),
-        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, 
           "clockSel=2\n"
           "chipType=0\n"
         ) // Discrete YM3438
@@ -2653,7 +2653,7 @@ void FurnaceGUI::initSystemPresets() {
     SUB_ENTRY(
       _("Seta 1 + FM add-on (CSM)"), {
         CH(DIV_SYSTEM_X1_010, 1.0f, 0, ""),
-        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, 
           "clockSel=2\n"
           "chipType=0\n"
         ) // Discrete YM3438
@@ -2802,7 +2802,7 @@ void FurnaceGUI::initSystemPresets() {
     );
     SUB_ENTRY(
       _("Sunsoft Arcade"), {
-        CH(DIV_SYSTEM_YM2612, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, 
           "clockSel=2\n"
           "chipType=0\n"
         ), // discrete YM3438 8MHz
@@ -2811,7 +2811,7 @@ void FurnaceGUI::initSystemPresets() {
     );
     SUB_ENTRY(
       _("Sunsoft Arcade (extended channel 3)"), {
-        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, 
           "clockSel=2\n"
           "chipType=0\n"
         ), // discrete YM3438 8MHz
@@ -2820,7 +2820,7 @@ void FurnaceGUI::initSystemPresets() {
     );
     SUB_ENTRY(
       _("Sunsoft Arcade (CSM)"), {
-        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0,
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, 
           "clockSel=2\n"
           "chipType=0\n"
         ), // discrete YM3438 8MHz
