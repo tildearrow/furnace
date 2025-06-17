@@ -479,6 +479,60 @@ void FurnaceGUI::drawExportDMF(bool onWindow) {
   }
 }
 
+void FurnaceGUI::drawExportMML(bool onWindow) {
+  exitDisabledTimer = 1;
+
+  ImGui::Text(_("export in various Music Macro Language formats."));
+
+  // Dropdown for MML type
+  static int mmlType = 4; // default to mmlgb
+  const char* mmlTypeNames[] = {
+    "[NES] PPMCK (unimplemented)",
+    "[PC-98] FMP-compatible (unimplemented)",
+    "[PC-98] PMD-style (unimplemented)",
+    "[SNES] AddMusicK (unimplemented)",
+    "[Gameboy] mmlgb"
+  };
+
+  ImGui::Text(_("MML Type:"));
+  ImGui::Combo("##mmlType", &mmlType, mmlTypeNames, IM_ARRAYSIZE(mmlTypeNames));
+
+  // -------------------------
+  // Export options (per format)
+  // -------------------------
+  // [Gameboy] mmlgb
+  static bool mmlgbUseLegacyNoise = false;
+  if (mmlType == 4) {
+    ImGui::Separator();
+    ImGui::Checkbox(_("Use legacy noise table"), &mmlgbUseLegacyNoise);
+  }
+
+  // [SNES] AddMusicK
+  static int amkVersion = 0;
+  const char* amkVersions[] = { "v1.0", "v1.1", "v1.2+" };
+  if (mmlType == 3) {
+    ImGui::Separator();
+    ImGui::Text(_("AddMusicK Version:"));
+    ImGui::Combo("##amkVersion", &amkVersion, amkVersions, IM_ARRAYSIZE(amkVersions));
+  }
+
+  if (onWindow) {
+    ImGui::Separator();
+    if (ImGui::Button(_("Cancel"), ImVec2(200.0f * dpiScale, 0))) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+  }
+
+  if (ImGui::Button(_("Export"), ImVec2(200.0f * dpiScale, 0))) {
+    mmlExportType = mmlType;
+    mmlExportUseLegacyNoise = mmlgbUseLegacyNoise;
+    mmlExportAMKVersion = amkVersion;
+    openFileDialog(GUI_FILE_EXPORT_MML);
+    ImGui::CloseCurrentPopup();
+  }
+}
+
 void FurnaceGUI::drawExport() {
   if (settings.exportOptionsLayout==1 || curExportType==GUI_EXPORT_NONE) {
     if (ImGui::BeginTabBar("ExportTypes")) {
@@ -508,6 +562,10 @@ void FurnaceGUI::drawExport() {
         drawExportDMF(true);
         ImGui::EndTabItem();
       }
+      if (ImGui::BeginTabItem(_("MML"))) {
+        drawExportMML(true);
+        ImGui::EndTabItem();
+      }
       ImGui::EndTabBar();
     }
   } else switch (curExportType) {
@@ -528,6 +586,9 @@ void FurnaceGUI::drawExport() {
       break;
     case GUI_EXPORT_DMF:
       drawExportDMF(true);
+      break;
+    case GUI_EXPORT_MML:
+      drawExportMML(true);
       break;
     default:
       ImGui::Text(_("congratulations! you've unlocked a secret panel."));
