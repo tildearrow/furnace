@@ -661,7 +661,7 @@ bool is_data_empty(unsigned char *data, unsigned int size)
     return true;
 }
 
-int findEmptyEffectSlot(short* data)
+static int findEmptyEffectSlot(short* data)
 {
     for(int i = 0; i < DIV_MAX_EFFECTS; i++)
     {

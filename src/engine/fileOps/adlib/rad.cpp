@@ -96,6 +96,19 @@ typedef struct {
     RAD_pattern_step step[9][128];
 } RAD_pattern;
 
+static int findEmptyEffectSlot(short* data)
+{
+    for(int i = 0; i < DIV_MAX_EFFECTS; i++)
+    {
+        if(data[4 + i * 2] == -1)
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
 void RAD_convert_effect(DivPattern* furnace_pat, RAD_pattern* pat, int i, int j)
 {
     unsigned char chan_to_op_map[9] = { 0, 0, 1, 2, 3, 0, 1, 2, 3 };
@@ -124,17 +137,17 @@ void RAD_convert_effect(DivPattern* furnace_pat, RAD_pattern* pat, int i, int j)
             }
             break;
         }
-        case ('A' - 'A' + 10): //TODO: letters or 0xA
+        case ('A' - 'A' + 10):
         {
             furnace_pat->data[j][4] = 0x0A;
 
             if(pat->step[i][j].effect_param >= 1 && pat->step[i][j].effect_param <= 49)
             {
-                furnace_pat->data[j][5] = (pat->step[i][j].effect_param * 0xF / 49) & 0xF;
+                furnace_pat->data[j][5] = ((pat->step[i][j].effect_param > 0xF) ? 0xF : pat->step[i][j].effect_param) & 0xF;
             }
             if(pat->step[i][j].effect_param >= 51 && pat->step[i][j].effect_param <= 99)
             {
-                furnace_pat->data[j][5] = (((pat->step[i][j].effect_param - 51) * 0xF / (99 - 51)) & 0xF) << 4;
+                furnace_pat->data[j][5] = (((pat->step[i][j].effect_param - 51) > 0xF ? 0xF : (pat->step[i][j].effect_param - 51)) & 0xF) << 4;
             }
             break;
         }
@@ -1044,54 +1057,218 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
         s->patLen = 64;
 
-        for (int ii = 0; ii < 18; ii += 2) //if we have 2+2-op instrument we copy pattern data to adjacent channel and put appropriate instrument there
+        if(shifted_version == 2)
         {
-            bool currently_using_twotwoop_inst = false;
-
-            for (int k = 0; k < s->ordersLen; k++) 
+            for (int ii = 0; ii < 18; ii += 2) //if we have 2+2-op instrument we copy pattern data to adjacent channel and put appropriate instrument there
             {
-                DivPattern* pat1 = s->pat[ii].getPattern(s->orders.ord[ii][k], false);
-                DivPattern* pat2 = s->pat[ii + 1].getPattern(s->orders.ord[ii + 1][k], false);
+                bool currently_using_twotwoop_inst = false;
 
-                if(pat1 == NULL || pat2 == NULL)
+                for (int k = 0; k < s->ordersLen; k++) 
                 {
-                    logE("error getting pattern data!");
-                    lastError="error getting pattern data!";
-                    delete[] file;
-                    return false;
-                }
+                    DivPattern* pat1 = s->pat[ii].getPattern(s->orders.ord[ii][k], false);
+                    DivPattern* pat2 = s->pat[ii + 1].getPattern(s->orders.ord[ii + 1][k], false);
 
-                for (int l = 0; l < s->patLen; l++) 
-                {
-                    if (pat1->data[l][2] != -1 && pat1->data[l][2] > 0 && pat1->data[l][2] < 257) 
+                    if(pat1 == NULL || pat2 == NULL)
                     {
-                        if(two_twoop_inst[pat1->data[l][2]])
-                        {
-                            currently_using_twotwoop_inst = true;
-                        }
-                        else
-                        {
-                            currently_using_twotwoop_inst = false;
-                        }
+                        logE("error getting pattern data!");
+                        lastError="error getting pattern data!";
+                        delete[] file;
+                        return false;
                     }
 
-                    if(currently_using_twotwoop_inst)
+                    for (int l = 0; l < s->patLen; l++) 
                     {
-                        memcpy((void*)pat2->data[l], (void*)pat1->data[l], sizeof(pat1->data[0]));
-
-                        if(pat1->data[l][2] != -1)
+                        if (pat1->data[l][2] != -1 && pat1->data[l][2] > 0 && pat1->data[l][2] < 257) 
                         {
-                            pat2->data[l][2]++; //increment inst number so we have second-pair-of-two-2op-instruments inst there
+                            if(two_twoop_inst[pat1->data[l][2]])
+                            {
+                                currently_using_twotwoop_inst = true;
+                            }
+                            else
+                            {
+                                currently_using_twotwoop_inst = false;
+                            }
+                        }
+
+                        if(currently_using_twotwoop_inst)
+                        {
+                            memcpy((void*)pat2->data[l], (void*)pat1->data[l], sizeof(pat1->data[0]));
+
+                            if(pat1->data[l][2] != -1)
+                            {
+                                pat2->data[l][2]++; //increment inst number so we have second-pair-of-two-2op-instruments inst there
+                            }
                         }
                     }
                 }
             }
         }
+        
+        //convert non-continuous effects to continuous
+        for(int subs = 0; subs < (int)ds.subsong.size(); subs++)
+        {
+            DivSubSong* ss = ds.subsong[subs];
 
-        //todo: convert non-continuous to continuous effects
+            for(int c = 0; c < ((shifted_version == 2) ? 18 : 9); c++)
+            {
+                int porta_dir[2] = { 0 };
+                int vol_slide_dir[2] = { 0 };
 
-        //s->optimizePatterns(); //if after converting effects we still have some duplicates
-        //s->rearrangePatterns();
+                int porta_speed = -1;
+                int vol_slide_speed = -1;
+
+                bool porta[2] = { false };
+                bool vol_slide[2] = { false };
+
+                int curr_volume = 0;
+                
+                for(int p = 0; p < ss->ordersLen; p++)
+                {
+                    start_patt:;
+
+                    for(int r = 0; r < ss->patLen; r++)
+                    {
+                        start_row:;
+
+                        DivPattern* pat = ss->pat[c].getPattern(p, true);
+
+                        short* row_data = pat->data[r];
+
+                        porta[0] = false;
+                        vol_slide[0] = false;
+
+                        for(int eff = 0; eff < DIV_MAX_EFFECTS - 1; eff++)
+                        {
+                            short effect = row_data[4 + eff * 2];
+                            short param = row_data[5 + eff * 2];
+
+                            if(effect == 0x01 || effect == 0x02)
+                            {
+                                porta[0] = true;
+                                porta_dir[0] = effect == 0x01 ? 1 : -1;
+
+                                if(porta_speed == param && (porta_dir[0] == porta_dir[1]))
+                                {
+                                    row_data[4 + eff * 2] = -1;
+                                    row_data[5 + eff * 2] = -1; //delete effect
+                                }
+
+                                porta_speed = param;
+                            }
+                            if(effect == 0x03 && param == 0)
+                            {
+                                row_data[4 + eff * 2] = -1;
+                                row_data[5 + eff * 2] = -1; //delete effect
+                            }
+                            if(effect == 0x0A)
+                            {
+                                vol_slide[0] = true;
+
+                                if(vol_slide_speed == param)
+                                {
+                                    row_data[4 + eff * 2] = -1;
+                                    row_data[5 + eff * 2] = -1; //delete effect
+                                }
+
+                                vol_slide_speed = param;
+
+                                curr_volume = -1; //signal change in volume so on next note volume command is placed
+                            }
+                        }
+
+                        if(row_data[3] != -1)
+                        {
+                            curr_volume = row_data[3];
+                        }
+
+                        if(row_data[0] > 0 && row_data[0] < 100) //actual note
+                        {
+                            if(curr_volume != 0x3F && row_data[3] == -1)
+                            {
+                                row_data[3] = 0x3F;
+                                curr_volume = 0x3F;
+                            }
+                        }
+
+                        if(!porta[0] && porta[1]) //place 0200 style effect to end the effect
+                        {
+                            int emptyEffSlot = findEmptyEffectSlot(row_data);
+
+                            row_data[4 + emptyEffSlot * 2] = 0x01;
+                            row_data[5 + emptyEffSlot * 2] = 0;
+
+                            porta_speed = -1;
+                        }
+
+                        if(!vol_slide[0] && vol_slide[1])
+                        {
+                            int emptyEffSlot = findEmptyEffectSlot(row_data);
+
+                            row_data[4 + emptyEffSlot * 2] = 0x0A;
+                            row_data[5 + emptyEffSlot * 2] = 0;
+
+                            vol_slide_speed = -1;
+                        }
+
+                        porta_dir[1] = porta_dir[0];
+                        vol_slide_dir[1] = vol_slide_dir[0];
+
+                        porta[1] = porta[0];
+                        vol_slide[1] = vol_slide[0];
+
+                        for(int s_ch = 0; s_ch < ((shifted_version == 2) ? 18 : 9); s_ch++) //search for 0Dxx/0Bxx and jump accordingly
+                        {
+                            DivPattern* s_pat = s->pat[s_ch].getPattern(p, true);
+                            short* s_row_data = s_pat->data[r];
+
+                            for(int eff = 0; eff < DIV_MAX_EFFECTS - 1; eff++)
+                            {
+                                if(s_row_data[4 + 2 * eff] == 0x0B && s_row_data[5 + 2 * eff] > p) //so we aren't stuck in infinite loop
+                                {
+                                    p = s_row_data[5 + 2 * eff];
+                                    goto start_patt;
+                                }
+                                if(s_row_data[4 + 2 * eff] == 0x0D && p < s->ordersLen - 1)
+                                {
+                                    p++;
+                                    r = s_row_data[5 + 2 * eff];
+                                    goto start_row;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+
+        s->optimizePatterns(); //if after converting effects we still have some duplicates
+        s->rearrangePatterns();
+
+        // open hidden effect columns
+        for (int c = 0; c < ((shifted_version == 2) ? 18 : 9); c++) 
+        {
+            int num_fx = 1;
+
+            for (int p = 0; p < s->ordersLen; p++) 
+            {
+                for (int r = 0; r < s->patLen; r++) 
+                {
+                    DivPattern* pat = s->pat[c].getPattern(s->orders.ord[c][p], true);
+                    short* s_row_data = pat->data[r];
+
+                    for (int eff = 0; eff < DIV_MAX_EFFECTS - 1; eff++) 
+                    {
+                        if (s_row_data[4 + 2 * eff] != -1 && eff + 1 > num_fx) 
+                        {
+                            num_fx = eff + 1;
+                        }
+                    }
+                }
+            }
+
+            s->pat[c].effectCols = num_fx;
+        }
 
         if (ds.insLen > 0) 
         {
