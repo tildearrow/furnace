@@ -633,8 +633,6 @@ class DivEngine {
   void loadPZI(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
   void loadP86(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
 
-
-
   int loadSampleROM(String path, ssize_t expectedSize, unsigned char*& ret);
 
   bool initAudioBackend();
@@ -736,7 +734,7 @@ class DivEngine {
     // export to text
     SafeWriter* saveText(bool separatePatterns=true);
     // export to various mml formats
-    SafeWriter* saveMMLGB(bool legacyNoise, int mmlExportType);
+    SafeWriter* saveMMLGB(bool legacyNoise);
     SafeWriter* saveMMLSNESAMK(int version);
 
     // export to an audio file

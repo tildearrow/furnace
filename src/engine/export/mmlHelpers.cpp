@@ -1,3 +1,22 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2025 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "mmlHelpers.h"
 
 int _computeMmlOctave(int noteValue, int delta) {
@@ -122,7 +141,6 @@ std::string _computeMmlPureTick(int ticks, int maxTicks, bool tiePrefix, bool ti
   return result;
 }
 
-
 std::string _computeMmlTickLengthGB(_MMLGBState* state, int ticks, int maxTicks, int tick, int chan, bool tieNonFractionalTicks) {
   int oldTick = tick - ticks;
   bool needsTUpdate = chan == 0 && state->tempoTick > oldTick && state->tempoTick <= tick;
@@ -197,66 +215,36 @@ std::string _writeMMLGBCommands(_MMLGBState* state, int chan) {
   return result;
 }
 
-constexpr unsigned char _noiseNoteTableLegacy[256]={
-  107,
-  12, 24, 36, 48,
-  13, 25, 37, 49,
-  14, 26, 38, 50,
-  15, 27, 39, 51,
-  16, 28, 40, 52,
-  17, 29, 41, 53,
-  18, 30, 42, 54,
-  19, 31, 43, 55,
-  20, 32, 44, 56,
-  21, 33, 45, 57,
-  22, 34, 46, 58,
-  23, 35, 47, 59,
-  82, 94, 94, 105,
-  105, 105, 106, 106,
-  106, 106, 107, 107,
-  107, 107, 107, 107,
-  107, 107, 107, 107,
-  107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107,
-  107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107,
-  107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107,
-  107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107,
-  107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107,
-  107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107,
-  107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107,
-  107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107, 107
-};
-
-constexpr unsigned char _noiseNoteTable[256]={
-  107,
-  12, 24, 36, 48,
-  13, 25, 37, 49,
-  14, 26, 38, 50,
-  15, 27, 39, 51,
-  16, 28, 40, 52,
-  17, 29, 41, 53,
-  18, 30, 42, 54,
-  19, 31, 43, 55,
-  20, 32, 44, 56,
-  21, 33, 45, 57,
-  22, 34, 46, 58,
-  23, 35, 47, 59,
-  108, 109, 110, 111,
-  112, 113, 114, 115,
-  116, 117, 118, 119,
-  120, 121, 122, 123,
-  124, 125, 126, 127,
-  127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
-  127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
-  127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
-  127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
-  127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
-  127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
-  127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
-  127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127
-};
-
 int _convertNoiseValue(int noteValue, bool useLegacyNoiseTable) {
-  return useLegacyNoiseTable ? _noiseNoteTableLegacy[noteValue] : _noiseNoteTable[noteValue];
+    if (noteValue < 0) noteValue = 0;
+    if (noteValue > 255) noteValue = 255;
+
+    if (useLegacyNoiseTable) {
+        // Legacy noise table logic:
+        if (noteValue == 0) return 107;
+        if (noteValue >= 1 && noteValue <= 47) {
+            int r = (noteValue - 1) % 4 + 12;
+            return r;
+        }
+        if (noteValue >= 48 && noteValue <= 59) {
+            return noteValue + 34;
+        }
+        return 107; // fallback for values above 59
+    } else {
+        // Current noise table logic:
+        if (noteValue == 0) return 107;
+        if (noteValue >= 1 && noteValue <= 47) {
+            int r = (noteValue - 1) % 4 + 12;
+            return r;
+        }
+        if (noteValue >= 48 && noteValue <= 59) {
+            return noteValue + 60;
+        }
+        if (noteValue >= 60 && noteValue <= 71) {
+            return 108 + (noteValue - 60);
+        }
+        return 127; // fallback for values above 71
+    }
 }
 
 void _writeWaveData(SafeWriter* w, const std::function<int(int)>& valueFunc) {

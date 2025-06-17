@@ -5709,7 +5709,7 @@ bool FurnaceGUI::loop() {
 
               switch (mmlExportType) {
                 case 4: // mmlgb
-                  w = e->saveMMLGB(mmlExportUseLegacyNoise, mmlExportType);
+                  w = e->saveMMLGB(mmlExportUseLegacyNoise);
                   break;
                 case 3: // AddMusicK
                   w = e->saveMMLSNESAMK(mmlExportAMKVersion);
