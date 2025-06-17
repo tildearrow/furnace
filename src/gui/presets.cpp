@@ -1600,8 +1600,8 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     _("FM Towns"), {
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, 
-      	"clockSel=2\n"
-      	"chipType=0\n"
+              "clockSel=2\n"
+              "chipType=0\n"
       ), // YM3438
       CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "")
     }
@@ -2429,7 +2429,10 @@ void FurnaceGUI::initSystemPresets() {
           "clockSel=2\n"
           "chipType=0\n"
         ), // discrete 8MHz YM3438
-        CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=2", "chipType=0"), // ^^
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, 
+          "clockSel=2\n"
+          "chipType=0\n"
+        ), // ^^
         CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "clockSel=1") // 10MHz
       }
     );
