@@ -256,24 +256,36 @@ void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
     if (delay>0) delay--;
   
     os[0]=0; os[1]=0;
-    if (delay<=0 && !writes.empty()) {
+    if (!writes.empty()) {
       QueuedWrite& w=writes.front();
-      if (w.addr==0xfffffffe) {
-        delay=w.val;
-      } else {
-        fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
-        fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
-        regPool[w.addr&0x1ff]=w.val;
-      }
-      writes.pop_front();
-
-      if (dacWrite>=0) {
-        if (!canWriteDAC) {
-          canWriteDAC=true;
+      if (delay<=0 || w.urgent) {
+        if (w.addr==0xfffffffe) {
+          delay=w.val;
         } else {
-          urgentWrite(0x2a,dacWrite);
-          dacWrite=-1;
-          canWriteDAC=writes.empty();
+          fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
+          fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
+          regPool[w.addr&0x1ff]=w.val;
+        }
+        writes.pop_front();
+
+        if (dacWrite>=0) {
+          if (!canWriteDAC) {
+            canWriteDAC=true;
+          } else {
+            urgentWrite(0x2a,dacWrite);
+            dacWrite=-1;
+            canWriteDAC=writes.empty();
+          }
+        }
+      } else {
+        if (dacWrite>=0) {
+          if (!canWriteDAC) {
+            canWriteDAC=true;
+          } else {
+            urgentWrite(0x2a,dacWrite);
+            dacWrite=-1;
+            canWriteDAC=writes.empty();
+          }
         }
       }
     } else {
@@ -414,52 +426,86 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
 
     if (delay>0) delay--;
 
-    if (delay<=0 && !writes.empty()) {
+    if (!writes.empty()) {
       QueuedWrite& w=writes.front();
-      if (w.addr==0xfffffffe) {
-        delay=w.val;
-        writes.pop_front();
-      } else if (w.addrOrVal) {
-        //logV("%.3x=%.2x",w.addr,w.val);
-        //OPN2_Write(&fm,0x1+((w.addr>>8)<<1),w.val);
-        was_reg_write=true;
+      if (delay<=0 || w.urgent) {
+        if (w.addr==0xfffffffe) {
+          delay=w.val;
+          writes.pop_front();
+        } else if (w.addrOrVal) {
+          //logV("%.3x=%.2x",w.addr,w.val);
+          //OPN2_Write(&fm,0x1+((w.addr>>8)<<1),w.val);
+          was_reg_write=true;
 
-        fm_276.input.address=w.addr<0x100?0:2;
-        fm_276.input.data=w.addr&0xff;
-        fm_276.input.wr=1;
-        FMOPN2_Clock(&fm_276,0);
-        sum_l+=fm_276.out_l;
-        sum_r+=fm_276.out_r;
-
-        acquire276OscSub(h);
-
-        fm_276.input.wr=0;
-        FMOPN2_Clock(&fm_276,1);
-        sum_l+=fm_276.out_l;
-        sum_r+=fm_276.out_r;
-
-        acquire276OscSub(h);
-
-        if (chipType==2) {
-          if (!o_bco && fm_276.o_bco) {
-            dacShifter=(dacShifter<<1)|fm_276.o_so;
-
-            if (o_lro!=fm_276.o_lro) {
-              if (o_lro)
-                sample_l=dacShifter;
-              else
-                sample_r=dacShifter;
-            }
-
-            o_lro=fm_276.o_lro;
-          }
-          o_bco=fm_276.o_bco;
-        }
-
-        for (int c=0; c<17; c++) {
+          fm_276.input.address=w.addr<0x100?0:2;
+          fm_276.input.data=w.addr&0xff;
+          fm_276.input.wr=1;
           FMOPN2_Clock(&fm_276,0);
           sum_l+=fm_276.out_l;
           sum_r+=fm_276.out_r;
+
+          acquire276OscSub(h);
+
+          fm_276.input.wr=0;
+          FMOPN2_Clock(&fm_276,1);
+          sum_l+=fm_276.out_l;
+          sum_r+=fm_276.out_r;
+
+          acquire276OscSub(h);
+
+          if (chipType==2) {
+            if (!o_bco && fm_276.o_bco) {
+              dacShifter=(dacShifter<<1)|fm_276.o_so;
+
+              if (o_lro!=fm_276.o_lro) {
+                if (o_lro)
+                  sample_l=dacShifter;
+                else
+                  sample_r=dacShifter;
+              }
+
+              o_lro=fm_276.o_lro;
+            }
+            o_bco=fm_276.o_bco;
+          }
+
+          for (int c=0; c<17; c++) {
+            FMOPN2_Clock(&fm_276,0);
+            sum_l+=fm_276.out_l;
+            sum_r+=fm_276.out_r;
+
+            acquire276OscSub(h);
+
+            FMOPN2_Clock(&fm_276,1);
+            sum_l+=fm_276.out_l;
+            sum_r+=fm_276.out_r;
+
+            acquire276OscSub(h);
+
+            if (chipType==2) {
+              if (!o_bco && fm_276.o_bco) {
+                dacShifter=(dacShifter<<1)|fm_276.o_so;
+
+                if (o_lro!=fm_276.o_lro) {
+                  if (o_lro)
+                    sample_l=dacShifter;
+                  else
+                    sample_r=dacShifter;
+                }
+
+                o_lro=fm_276.o_lro;
+              }
+              o_bco=fm_276.o_bco;
+            }
+          }
+
+          fm_276.input.address=w.addr<0x100?1:3;
+          fm_276.input.data=w.val;
+          fm_276.input.wr=1;
+          FMOPN2_Clock(&fm_276,0);
+          sum_l+=fm_276.out_l;
+          sum_r+=fm_276.out_r;
+          fm_276.input.wr=0;
 
           acquire276OscSub(h);
 
@@ -484,74 +530,54 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
             }
             o_bco=fm_276.o_bco;
           }
-        }
 
-        fm_276.input.address=w.addr<0x100?1:3;
-        fm_276.input.data=w.val;
-        fm_276.input.wr=1;
-        FMOPN2_Clock(&fm_276,0);
-        sum_l+=fm_276.out_l;
-        sum_r+=fm_276.out_r;
-        fm_276.input.wr=0;
+          for (int c=0; c<83; c++) {
+            FMOPN2_Clock(&fm_276,0);
+            sum_l+=fm_276.out_l;
+            sum_r+=fm_276.out_r;
 
-        acquire276OscSub(h);
+            acquire276OscSub(h);
 
-        FMOPN2_Clock(&fm_276,1);
-        sum_l+=fm_276.out_l;
-        sum_r+=fm_276.out_r;
+            FMOPN2_Clock(&fm_276,1);
+            sum_l+=fm_276.out_l;
+            sum_r+=fm_276.out_r;
 
-        acquire276OscSub(h);
+            acquire276OscSub(h);
 
-        if (chipType==2) {
-          if (!o_bco && fm_276.o_bco) {
-            dacShifter=(dacShifter<<1)|fm_276.o_so;
+            if (chipType==2) {
+              if (!o_bco && fm_276.o_bco) {
+                dacShifter=(dacShifter<<1)|fm_276.o_so;
 
-            if (o_lro!=fm_276.o_lro) {
-              if (o_lro)
-                sample_l=dacShifter;
-              else
-                sample_r=dacShifter;
-            }
-
-            o_lro=fm_276.o_lro;
-          }
-          o_bco=fm_276.o_bco;
-        }
-
-        for (int c=0; c<83; c++) {
-          FMOPN2_Clock(&fm_276,0);
-          sum_l+=fm_276.out_l;
-          sum_r+=fm_276.out_r;
-
-          acquire276OscSub(h);
-
-          FMOPN2_Clock(&fm_276,1);
-          sum_l+=fm_276.out_l;
-          sum_r+=fm_276.out_r;
-
-          acquire276OscSub(h);
-
-          if (chipType==2) {
-            if (!o_bco && fm_276.o_bco) {
-              dacShifter=(dacShifter<<1)|fm_276.o_so;
-
-              if (o_lro!=fm_276.o_lro) {
-                if (o_lro) {
-                  sample_l=dacShifter;
-                } else {
-                  sample_r=dacShifter;
+                if (o_lro!=fm_276.o_lro) {
+                  if (o_lro) {
+                    sample_l=dacShifter;
+                  } else {
+                    sample_r=dacShifter;
+                  }
                 }
+
+                o_lro=fm_276.o_lro;
               }
-
-              o_lro=fm_276.o_lro;
+              o_bco=fm_276.o_bco;
             }
-            o_bco=fm_276.o_bco;
           }
+
+          regPool[w.addr&0x1ff]=w.val;
+          writes.pop_front();
+
+          if (dacWrite>=0) {
+            if (!canWriteDAC) {
+              canWriteDAC=true;
+            } else {
+              urgentWrite(0x2a,dacWrite);
+              dacWrite=-1;
+              canWriteDAC=writes.empty();
+            }
+          }
+        } else {
+          w.addrOrVal=true;
         }
-
-        regPool[w.addr&0x1ff]=w.val;
-        writes.pop_front();
-
+      } else {
         if (dacWrite>=0) {
           if (!canWriteDAC) {
             canWriteDAC=true;
@@ -561,8 +587,6 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
             canWriteDAC=writes.empty();
           }
         }
-      } else {
-        w.addrOrVal=true;
       }
     } else {
       canWriteDAC=true;
