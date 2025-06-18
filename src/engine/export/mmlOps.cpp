@@ -300,82 +300,100 @@ SafeWriter* DivEngine::saveMMLGB(bool useLegacyNoiseTable) {
 
   // Clean up each channel's MML stream
   for (int chan = 0; chan < 4; chan++) {
-      String& stream = mmlChanStream[chan];
+    String& stream = mmlChanStream[chan];
 
-      // 1. Remove trailing whitespace from each line
-      {
-          std::stringstream in(stream);
-          String line, cleaned;
-          while (std::getline(in, line)) {
-              size_t end = line.find_last_not_of(" \t");
-              if (end != std::string::npos)
-                  line = line.substr(0, end + 1);
-              cleaned += line + "\n";
-          }
-          stream = std::move(cleaned);
-      }
+    // 1. Remove trailing whitespace from each line
+    {
+        String cleaned;
+        size_t start = 0;
+        while (start < stream.size()) {
+            size_t end = stream.find('\n', start);
+            if (end == String::npos) end = stream.size();
 
-      // 2. Compress multiple spaces/tabs into a single space (excluding newlines)
-      {
-          String result;
-          bool inSpace = false;
-          for (char c : stream) {
-              if (c == ' ' || c == '\t') {
-                  if (!inSpace) {
-                      result += ' ';
-                      inSpace = true;
-                  }
-              } else {
-                  result += c;
-                  inSpace = false;
-              }
-          }
-          stream = std::move(result);
-      }
+            String line = stream.substr(start, end - start);
 
-      // 3. Ensure channel letters start new lines (except at start)
-      {
-          String result;
-          for (size_t i = 0; i < stream.size(); ++i) {
-              if (i > 0 && stream[i] >= 'A' && stream[i] <= 'D' && stream[i + 1] == ' ') {
-                  if (stream[i - 1] != '\n') result += '\n';
-              }
-              result += stream[i];
-          }
-          stream = std::move(result);
-      }
+            size_t lastNonWS = line.find_last_not_of(" \t");
+            if (lastNonWS != String::npos)
+                line = line.substr(0, lastNonWS + 1);
 
-      // 4. Remove lines that only contain a channel letter
-      {
-          std::stringstream in(stream);
-          String line, cleaned;
-          while (std::getline(in, line)) {
-              String trimmed = line;
-              size_t start = trimmed.find_first_not_of(" \t");
-              size_t end = trimmed.find_last_not_of(" \t");
-              if (start != std::string::npos)
-                  trimmed = trimmed.substr(start, end - start + 1);
-              if (!(trimmed.size() == 1 && trimmed[0] >= 'A' && trimmed[0] <= 'D'))
-                  cleaned += line + "\n";
-          }
-          stream = std::move(cleaned);
-      }
+            cleaned += line + '\n';
+            start = end + 1;
+        }
+        stream = std::move(cleaned);
+    }
 
-      // 5. Remove trailing newlines and spaces
-      {
-          size_t end = stream.find_last_not_of(" \t\n");
-          if (end != std::string::npos)
-              stream = stream.substr(0, end + 1);
-          else
-              stream.clear();
-      }
+    // 2. Compress multiple spaces/tabs into a single space (excluding newlines)
+    {
+        String result;
+        bool inSpace = false;
+        for (char c : stream) {
+            if (c == ' ' || c == '\t') {
+                if (!inSpace) {
+                    result += ' ';
+                    inSpace = true;
+                }
+            } else {
+                result += c;
+                inSpace = false;
+            }
+        }
+        stream = std::move(result);
+    }
 
-      // 6. Prepend channel letter if missing
-      if (!stream.empty() && !(stream[0] >= 'A' && stream[0] <= 'D' && stream[1] == ' ')) {
-          stream = chanNames[chan] + " " + stream;
-      }
+    // 3. Ensure channel letters start new lines (except at start)
+    {
+        String result;
+        for (size_t i = 0; i < stream.size(); ++i) {
+            if (i > 0 && stream[i] >= 'A' && stream[i] <= 'D' && stream[i + 1] == ' ') {
+                if (stream[i - 1] != '\n')
+                    result += '\n';
+            }
+            result += stream[i];
+        }
+        stream = std::move(result);
+    }
+
+    // 4. Remove lines that only contain a channel letter (with optional spaces/tabs)
+    {
+        String cleaned;
+        size_t start = 0;
+        while (start < stream.size()) {
+            size_t end = stream.find('\n', start);
+            if (end == String::npos) end = stream.size();
+
+            String line = stream.substr(start, end - start);
+
+            size_t first = line.find_first_not_of(" \t");
+            size_t last  = line.find_last_not_of(" \t");
+
+            if (first != String::npos)
+                line = line.substr(first, last - first + 1);
+            else
+                line.clear(); // all whitespace
+
+            if (!(line.size() == 1 && line[0] >= 'A' && line[0] <= 'D')) {
+                cleaned += stream.substr(start, end - start) + '\n';
+            }
+
+            start = end + 1;
+        }
+        stream = std::move(cleaned);
+    }
+
+    // 5. Remove trailing newlines and spaces
+    {
+        size_t end = stream.find_last_not_of(" \t\n");
+        if (end != String::npos)
+            stream = stream.substr(0, end + 1);
+        else
+            stream.clear();
+    }
+
+    // 6. Prepend channel letter if missing
+    if (!stream.empty() && !(stream[0] >= 'A' && stream[0] <= 'D' && stream[1] == ' ')) {
+        stream = chanNames[chan] + " " + stream;
+    }
   }
-
 
   // Combine all channels - only add newlines between non-empty channels
   String output = "";
