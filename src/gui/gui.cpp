@@ -2635,9 +2635,10 @@ void FurnaceGUI::exportAudio(String path, DivAudioExportModes mode) {
   int loopOrder=0;
   int loopRow=0;
   int loopEnd=0;
+  int loopTick=0;
   e->walkSong(loopOrder,loopRow,loopEnd);
 
-  e->findSongLength(loopOrder,loopRow,audioExportOptions.fadeOut,songFadeoutSectionLength,songHasSongEndCommand,songOrdersLengths,songLength); // for progress estimation
+  e->findSongLength(loopOrder,loopRow,audioExportOptions.fadeOut,songFadeoutSectionLength,songHasSongEndCommand,songOrdersLengths,songLength,loopTick); // for progress estimation
 
   songLoopedSectionLength=songLength;
   for (int i=0; i<loopOrder; i++) {

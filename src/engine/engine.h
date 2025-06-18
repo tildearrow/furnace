@@ -825,8 +825,8 @@ class DivEngine {
     // find song loop position
     void walkSong(int& loopOrder, int& loopRow, int& loopEnd);
 
-    // find song length in rows (up to specified loop point), and find length of every order
-    void findSongLength(int loopOrder, int loopRow, double fadeoutLen, int& rowsForFadeout, bool& hasFFxx, std::vector<int>& orders, int& length);
+    // find song length in rows (up to specified loop point, which is also returned in ticks), and find length of every order
+    void findSongLength(int loopOrder, int loopRow, double fadeoutLen, int& rowsForFadeout, bool& hasFFxx, std::vector<int>& orders, int& length, int& loopTick);
 
     // play (returns whether successful)
     bool play();
