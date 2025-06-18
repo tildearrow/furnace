@@ -1677,6 +1677,7 @@ class FurnaceGUI {
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool displayPendingSamples, replacePendingSample;
   bool displayExportingROM, displayExportingCS;
+  bool quitNoSave;
   bool changeCoarse;
   bool mobileEdit;
   bool killGraphics;
