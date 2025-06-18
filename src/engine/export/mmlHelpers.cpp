@@ -247,21 +247,21 @@ int _convertNoiseValue(int noteValue, bool useLegacyNoiseTable) {
     }
 }
 
-void _writeWaveData(SafeWriter* w, const std::function<double(int)>& valueFunc) {
+void _writeWaveData(SafeWriter* w, const std::function<int(int)>& valueFunc) {
   for (int x = 0; x < 32; x++) {
-    w->writeText(std::to_string(static_cast<int>(valueFunc(x))) + (x < 31 ? " " : ""));
+    w->writeText(std::to_string(valueFunc(x)) + (x < 31 ? " " : ""));
   }
 }
 
 void _writeNormalizedGBWave(DivWavetable* wave, SafeWriter* w) {
-  _writeWaveData(w, [=](int x) -> double {
+  _writeWaveData(w, [=](int x) -> int {
     int sx = static_cast<int>(x * wave->len / 32.0);
-    return static_cast<double>(wave->data[sx]) * 16.0 / (wave->max - wave->min + 1);
+    return static_cast<int>(static_cast<double>(wave->data[sx]) * 16.0 / (wave->max - wave->min + 1));
   });
 }
 
 void _writeDefaultWave(SafeWriter* w) {
-  _writeWaveData(w, [](int x) -> double {
-    return static_cast<double>(x) / 2;
+  _writeWaveData(w, [](int x) -> int {
+    return x / 2;
   });
 }
