@@ -9052,7 +9052,7 @@ FurnaceGUI::FurnaceGUI():
   csExportDone(false),
   dmfExportVersion(0),
   curExportType(GUI_EXPORT_NONE),
-  mmlExportType(0),
+  mmlExportType(MML_EXPORT_MMLGB),
   mmlExportUseLegacyNoise(false),
   mmlExportAMKVersion(0),
   romTarget(DIV_ROM_ABSTRACT),
