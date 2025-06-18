@@ -22,6 +22,8 @@
 #include <cmath>
 #include <algorithm>
 #include <regex>
+#include <functional>
+#include <string>
 #include "../song.h"
 #include "../safeWriter.h"   // for SafeWriter
 #include "../wavetable.h"    // for DivWavetable
