@@ -150,17 +150,34 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
 
     os[0]=0; os[1]=0;
     for (int i=0; i<6; i++) {
-      if (delay<=0 && !writes.empty()) {
+      if (!writes.empty()) {
         QueuedWrite& w=writes.front();
-        if (w.addr==0xfffffffe) {
-          delay=w.val*3;
-          writes.pop_front();
-        } else if (w.addrOrVal) {
-          //logV("%.3x=%.2x",w.addr,w.val);
-          OPN2_Write(&fm,0x1+((w.addr>>8)<<1),w.val);
-          regPool[w.addr&0x1ff]=w.val;
-          writes.pop_front();
+        if (delay<=0 || w.urgent) {
+          if (w.addr==0xfffffffe) {
+            delay=w.val*3;
+            writes.pop_front();
+          } else if (w.addrOrVal) {
+            //logV("%.3x=%.2x",w.addr,w.val);
+            OPN2_Write(&fm,0x1+((w.addr>>8)<<1),w.val);
+            regPool[w.addr&0x1ff]=w.val;
+            writes.pop_front();
 
+            if (dacWrite>=0) {
+              if (!canWriteDAC) {
+                canWriteDAC=true;
+              } else {
+                urgentWrite(0x2a,dacWrite);
+                dacWrite=-1;
+                canWriteDAC=writes.empty();
+              }
+            }
+          } else {
+            if (fm.write_busy==0) {
+              OPN2_Write(&fm,0x0+((w.addr>>8)<<1),w.addr);
+              w.addrOrVal=true;
+            }
+          }
+        } else {
           if (dacWrite>=0) {
             if (!canWriteDAC) {
               canWriteDAC=true;
@@ -169,11 +186,6 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
               dacWrite=-1;
               canWriteDAC=writes.empty();
             }
-          }
-        } else {
-          if (fm.write_busy==0) {
-            OPN2_Write(&fm,0x0+((w.addr>>8)<<1),w.addr);
-            w.addrOrVal=true;
           }
         }
       } else {
