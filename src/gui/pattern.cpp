@@ -929,6 +929,11 @@ void FurnaceGUI::drawPattern() {
                   break;
               }
 
+              if (xLeft<0.0f) xLeft=0.0f;
+              if (xLeft>1.0f) xLeft=1.0f;
+              if (xRight<0.0f) xRight=0.0f;
+              if (xRight>1.0f) xRight=1.0f;
+
               dl->AddRectFilled(
                 ImLerp(rectV.Min,rectV.Max,ImVec2(xLeft,0.0f)),
                 ImLerp(rectV.Min,rectV.Max,ImVec2(xRight,1.0f)),
