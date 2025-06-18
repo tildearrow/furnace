@@ -32,16 +32,7 @@ SafeWriter* DivEngine::saveMMLGB(bool useLegacyNoiseTable) {
   int loopOrder = 0, loopRow = 0, loopEnd = 0;
   walkSong(loopOrder, loopRow, loopEnd);
   logI("loop point: %d %d", loopOrder, loopRow);
-
-  // Unused but kept for potential future frequency analysis / statistics
-  // int cmdPopularity[256] = {};
-  // int delayPopularity[256] = {};
-  // int sortedCmdPopularity[16] = {};
-  // int sortedDelayPopularity[16] = {};
-  // unsigned char sortedCmd[16] = {};
-  // unsigned char sortedDelay[16] = {};
-  // SafeWriter* chanStream[DIV_MAX_CHANS] = {};
-  // unsigned int chanStreamOff[DIV_MAX_CHANS] = {};
+  bool loopMarkerWritten[4] = {false, false, false, false};
 
   SafeWriter* w = new SafeWriter;
   w->init();
@@ -83,13 +74,11 @@ SafeWriter* DivEngine::saveMMLGB(bool useLegacyNoiseTable) {
   double curDivider = divider;
 
   // Strings to accumulate MML output per channel
-  std::string mmlChanStream[4] = {"", "", "", ""};
-  std::string chanNames[4] = {"A", "B", "C", "D"};
+  String mmlChanStream[4] = {"", "", "", ""};
+  String chanNames[4] = {"A", "B", "C", "D"};
 
   // Rows per measure from current subsong highlighting
   int rowsPerMeasure = curSubSong->hilightB;
-  // Unused but kept if pattern length needed later
-  // int rowsPerPattern = curSubSong->patLen;
 
   // Calculate tempo for MML export based on current subsong and divider
   int tempo = _computeMmlTempo(curSubSong, curDivider);
@@ -113,29 +102,51 @@ SafeWriter* DivEngine::saveMMLGB(bool useLegacyNoiseTable) {
   // Helper to update the MML stream of a channel given elapsed ticks
   auto updateMmlStream = [&](int chan, int ticksElapsed) {
     auto& mmlStream = mmlChanStream[chan];
-    auto& cname = chanNames[chan];
+    const auto& cname = chanNames[chan]; // Use chanNames array instead of local variable
     if (ticksElapsed > 0) {
-      if (!st.chanNameUsed[chan]) {
-        mmlStream += cname + " ";
-      }
-      mmlStream += _writeMMLGBCommands(&st, chan)
-                 + (st.noteOn[chan] ? "" : _computeMmlOctString(st.currOct[chan], st.currNote[chan], 0, false))
-                 + (st.noteOn[chan] ? "^" : (st.currNote[chan] < 0 ? "r" : _computeMmlNote(st.currNote[chan])))
-                 + _computeMmlTickLengthGB(&st, ticksElapsed, 192, tick, chan);
+        // Always ensure we have a channel name at the start of a line
+        if (!st.chanNameUsed[chan]) {
+            mmlStream += cname + " ";
+            st.chanNameUsed[chan] = true;
+        }
+        
+        mmlStream += _writeMMLGBCommands(&st, chan)
+                   + (st.noteOn[chan] ? "" : _computeMmlOctString(st.currOct[chan], st.currNote[chan], 0, false))
+                   + (st.noteOn[chan] ? "^" : (st.currNote[chan] < 0 ? "r" : _computeMmlNote(st.currNote[chan])))
+                   + _computeMmlTickLengthGB(&st, ticksElapsed, 192, tick, chan);
 
-      st.cmdTick[chan] = tick;
+        st.cmdTick[chan] = tick;
 
-      if (st.currNote[chan] >= 0) {
-        st.currOct[chan] = _computeMmlOctave(st.currNote[chan], 0);
-      }
-      if (!st.noteOn[chan]) st.noteOn[chan] = true;
+        if (st.currNote[chan] >= 0) {
+            st.currOct[chan] = _computeMmlOctave(st.currNote[chan], 0);
+        }
+        if (!st.noteOn[chan]) st.noteOn[chan] = true;
     }
   };
 
   // Main playback and MML generation loop
   while (!done) {
+    // Check for loop point FIRST, before any command processing
+    for (int chan = 0; chan < 4; chan++) {
+        if (!loopMarkerWritten[chan] && curOrder == loopOrder && curRow == loopRow) {
+            String& mmlStream = mmlChanStream[chan];
+            const String& cname = chanNames[chan]; // Now this is properly accessible
+            
+            // Finish any pending note/rest before loop marker
+            int ticksElapsed = tick - st.cmdTick[chan];
+            if (ticksElapsed > 0) {
+                updateMmlStream(chan, ticksElapsed);
+            }
+            
+            // Add loop marker on its own line
+            mmlStream += "\n" + cname + " L\n";
+            st.chanNameUsed[chan] = false; // Reset so next content gets channel name
+            loopMarkerWritten[chan] = true;
+        }
+    }
+
     if (nextTick(false, true) || !playing) {
-      done = true;
+        done = true;
     }
 
     bool wroteTick[DIV_MAX_CHANS] = {};
@@ -167,8 +178,7 @@ SafeWriter* DivEngine::saveMMLGB(bool useLegacyNoiseTable) {
       }
 
       int chan = cmd.chan % 4;
-      std::string& mmlStream = mmlChanStream[chan];
-      const std::string& cname = chanNames[chan];
+      String& mmlStream = mmlChanStream[chan];
 
       int ticksElapsed = tick - st.cmdTick[chan];
       updateMmlStream(chan, ticksElapsed);
@@ -248,11 +258,12 @@ SafeWriter* DivEngine::saveMMLGB(bool useLegacyNoiseTable) {
       }
 
       // Handle pattern and measure boundaries for formatting new lines
-      if (rowsPerMeasure > 0) {
-        if ((curRow - 1) / rowsPerMeasure != (st.prevRow[chan] - 1) / rowsPerMeasure) {
-          mmlStream += "\n" + cname + " ";
-          st.chanNameUsed[chan] = true;
-        }
+      int safeRowsPerMeasure = rowsPerMeasure < 1 ? 1 : rowsPerMeasure;
+
+      if ((curRow - 1) / safeRowsPerMeasure != (st.prevRow[chan] - 1) / safeRowsPerMeasure) {
+        // Force a new line and reset channel name usage
+        mmlStream += "\n";
+        st.chanNameUsed[chan] = false; // This will force the channel name on the next content
       }
 
       st.prevRow[chan] = curRow;
@@ -278,18 +289,95 @@ SafeWriter* DivEngine::saveMMLGB(bool useLegacyNoiseTable) {
     }
   }
 
-  // Cleanup MML streams: compress multiple spaces into one
-  for (auto& stream : mmlChanStream) {
-    stream = std::regex_replace(stream, std::regex("[ ]{2,}"), " ");
+  // Clean up each channel's MML stream
+  for (int chan = 0; chan < 4; chan++) {
+      String& stream = mmlChanStream[chan];
+
+      // 1. Remove trailing whitespace from each line
+      {
+          std::stringstream in(stream);
+          String line, cleaned;
+          while (std::getline(in, line)) {
+              size_t end = line.find_last_not_of(" \t");
+              if (end != std::string::npos)
+                  line = line.substr(0, end + 1);
+              cleaned += line + "\n";
+          }
+          stream = std::move(cleaned);
+      }
+
+      // 2. Compress multiple spaces/tabs into a single space (excluding newlines)
+      {
+          String result;
+          bool inSpace = false;
+          for (char c : stream) {
+              if (c == ' ' || c == '\t') {
+                  if (!inSpace) {
+                      result += ' ';
+                      inSpace = true;
+                  }
+              } else {
+                  result += c;
+                  inSpace = false;
+              }
+          }
+          stream = std::move(result);
+      }
+
+      // 3. Ensure channel letters start new lines (except at start)
+      {
+          String result;
+          for (size_t i = 0; i < stream.size(); ++i) {
+              if (i > 0 && stream[i] >= 'A' && stream[i] <= 'D' && stream[i + 1] == ' ') {
+                  if (stream[i - 1] != '\n') result += '\n';
+              }
+              result += stream[i];
+          }
+          stream = std::move(result);
+      }
+
+      // 4. Remove lines that only contain a channel letter
+      {
+          std::stringstream in(stream);
+          String line, cleaned;
+          while (std::getline(in, line)) {
+              String trimmed = line;
+              size_t start = trimmed.find_first_not_of(" \t");
+              size_t end = trimmed.find_last_not_of(" \t");
+              if (start != std::string::npos)
+                  trimmed = trimmed.substr(start, end - start + 1);
+              if (!(trimmed.size() == 1 && trimmed[0] >= 'A' && trimmed[0] <= 'D'))
+                  cleaned += line + "\n";
+          }
+          stream = std::move(cleaned);
+      }
+
+      // 5. Remove trailing newlines and spaces
+      {
+          size_t end = stream.find_last_not_of(" \t\n");
+          if (end != std::string::npos)
+              stream = stream.substr(0, end + 1);
+          else
+              stream.clear();
+      }
+
+      // 6. Prepend channel letter if missing
+      if (!stream.empty() && !(stream[0] >= 'A' && stream[0] <= 'D' && stream[1] == ' ')) {
+          stream = chanNames[chan] + " " + stream;
+      }
   }
 
-  // Concatenate all channels with spacing and remove lines with only channel letters
-  std::string output = std::regex_replace(
-    mmlChanStream[0] + "\n\n\n" + mmlChanStream[1] + "\n\n\n" +
-    mmlChanStream[2] + "\n\n\n" + mmlChanStream[3] + "\n",
-    std::regex("[A-D][ ]*\\n"), ""
-  );
-  output = std::regex_replace(output, std::regex("[\\n]{4,}"), "\n\n\n");
+
+  // Combine all channels - only add newlines between non-empty channels
+  String output = "";
+  for (int chan = 0; chan < 4; chan++) {
+      if (!mmlChanStream[chan].empty()) {
+          if (!output.empty()) {
+              output += "\n\n";
+          }
+          output += mmlChanStream[chan];
+      }
+  }
 
   w->writeText(output);
 
