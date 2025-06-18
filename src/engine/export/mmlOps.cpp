@@ -140,6 +140,15 @@ SafeWriter* DivEngine::saveMMLGB(bool useLegacyNoiseTable) {
             
             // Add loop marker on its own line
             mmlStream += "\n" + cname + " L\n";
+            
+            // Reset octave for safety after loop marker
+            if (st.currNote[chan] >= 0) {
+                int octave = _computeMmlOctave(st.currNote[chan], 0);
+                mmlStream += chanNames[chan] + " o" + String(std::to_string(octave)) + " ";
+            } else {
+                mmlStream += chanNames[chan] + " ";
+            }
+
             st.chanNameUsed[chan] = false; // Reset so next content gets channel name
             loopMarkerWritten[chan] = true;
         }
