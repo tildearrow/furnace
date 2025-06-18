@@ -5934,7 +5934,7 @@ bool FurnaceGUI::loop() {
             *curFileLambda=0;
             e->getCurFileIndex(*curFileLambda);
             *curPosInRowsLambda=curRow;
-            for (int i=0; i<curOrder; i++) *curPosInRowsLambda+=songOrdersLengths[i];
+            for (int i=0; i<MIN(curOrder,(int)songOrdersLengths.size()); i++) *curPosInRowsLambda+=songOrdersLengths[i];
             if (!songHasSongEndCommand) {
               e->getLoopsLeft(*loopsLeftLambda);
               e->getTotalLoops(*totalLoopsLambda);
