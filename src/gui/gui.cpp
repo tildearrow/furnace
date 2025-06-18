@@ -5706,7 +5706,7 @@ bool FurnaceGUI::loop() {
               break;
             }
             case GUI_FILE_EXPORT_MML: {
-              SafeWriter* w = nullptr;
+              SafeWriter* w = NULL;
 
               switch (mmlExportType) {
                 case MML_EXPORT_MMLGB: // mmlgb
@@ -5719,15 +5719,21 @@ bool FurnaceGUI::loop() {
                   showError(_("This MML format is currently unimplemented."));
                   break;
               }
-
-              if (w != nullptr) {
+              
+              if (w != NULL) {
                 FILE* f = ps_fopen(copyOfName.c_str(), "wb");
-                if (f != nullptr) {
-                  fwrite(w->getFinalBuf(), 1, w->size(), f);
+                if (f != NULL) {
+                  size_t bytesWritten = fwrite(w->getFinalBuf(), 1, w->size(), f);
                   fclose(f);
-                  pushRecentSys(copyOfName.c_str());
+
+                  if (bytesWritten != w->size()) {
+                    showError(fmt::sprintf("Write error: failed to write entire file! %s", strerror(errno)));
+                    // Optionally handle cleanup here
+                  } else {
+                    pushRecentSys(copyOfName.c_str());
+                  }
                 } else {
-                  showError(_("could not open file!"));
+                  showError(fmt::sprintf("Could not open file! %s", strerror(errno)));
                 }
                 w->finish();
                 delete w;
@@ -5735,10 +5741,7 @@ bool FurnaceGUI::loop() {
                 if (!e->getWarnings().empty()) {
                   showWarning(e->getWarnings(), GUI_WARN_GENERIC);
                 }
-              } else if (mmlExportType == 3 || mmlExportType == 4) {
-                showError(fmt::sprintf(_("could not write MML! (%s)"), e->getLastError()));
               }
-
               break;
             }
             case GUI_FILE_EXPORT_ROM:

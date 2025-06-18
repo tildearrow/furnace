@@ -17,13 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <string>
 #include <map>
-#include <cmath>
+#include <math.h>
 #include <algorithm>
 #include <regex>
 #include <functional>
-#include <string>
 #include "../song.h"
 #include "../safeWriter.h"   // for SafeWriter
 #include "../wavetable.h"    // for DivWavetable
@@ -38,8 +36,8 @@ enum MMLExportType {
 
 int _computeMmlOctave(int noteValue, int delta);
 int _computeMmlTempo(DivSubSong* curSubSong, double divider);
-std::string _generateOctShift(int diff, bool reversedNotation);
-std::string _computeMmlOctString(int prevOctave, int noteValue, int delta, bool reversedNotation);
+String _generateOctShift(int diff, bool reversedNotation);
+String _computeMmlOctString(int prevOctave, int noteValue, int delta, bool reversedNotation);
 
 struct _MMLGBState {
   int prevVol[4];
@@ -73,12 +71,12 @@ struct _MMLGBState {
   _MMLGBState();
 };
 
-extern const std::map<int, std::string> _mmlTickMap;
+extern const std::map<int, String> _mmlTickMap;
 
 int _findLargestTick(int maxTick);
-std::string _computeMmlPureTick(int ticks, int maxTicks, bool tiePrefix, bool tieNonFractionalTicks);
-std::string _computeMmlTickLengthGB(_MMLGBState* state, int ticks, int maxTicks, int tick, int chan, bool tieNonFractionalTicks = true);
-std::string _computeMmlNote(int noteValue);
+String _computeMmlPureTick(int ticks, int maxTicks, bool tiePrefix, bool tieNonFractionalTicks);
+String _computeMmlTickLengthGB(_MMLGBState* state, int ticks, int maxTicks, int tick, int chan, bool tieNonFractionalTicks = true);
+String _computeMmlNote(int noteValue);
 
 // Noise table declarations
 int _convertNoiseValue(int noteValue, bool useLegacyNoiseTable);
@@ -89,5 +87,5 @@ void _writeNormalizedGBWave(DivWavetable* wave, SafeWriter* w);
 void _writeDefaultWave(SafeWriter* w);
 
 // Command writing
-void _writeCommonGBChannelState(_MMLGBState* state, int chan, std::string& result);
-std::string _writeMMLGBCommands(_MMLGBState* state, int chan);
+void _writeCommonGBChannelState(_MMLGBState* state, int chan, String& result);
+String _writeMMLGBCommands(_MMLGBState* state, int chan);

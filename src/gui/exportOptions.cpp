@@ -20,6 +20,7 @@
 #include "gui.h"
 #include "guiConst.h"
 #include "../fileutils.h"
+#include "../engine/export/mmlHelpers.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <imgui.h>
 
@@ -483,9 +484,9 @@ void FurnaceGUI::drawExportMML(bool onWindow) {
   exitDisabledTimer = 1;
 
   ImGui::Text(_("export in various Music Macro Language formats."));
-
-  // Dropdown for MML type
-  static int mmlType = 4; // default to mmlgb
+  
+  /// TODO: Enable MML Type selection UI when additional MML types are implemented
+  /* 
   const char* mmlTypeNames[] = {
     "[NES] PPMCK (unimplemented)",
     "[PC-98] FMP-compatible (unimplemented)",
@@ -494,26 +495,26 @@ void FurnaceGUI::drawExportMML(bool onWindow) {
     "[Gameboy] mmlgb"
   };
 
+  // Dropdown for MML type
   ImGui::Text(_("MML Type:"));
-  ImGui::Combo("##mmlType", &mmlType, mmlTypeNames, IM_ARRAYSIZE(mmlTypeNames));
+  ImGui::Combo("##mmlType", &mmlExportType, mmlTypeNames, IM_ARRAYSIZE(mmlTypeNames));
+  */
 
   // -------------------------
   // Export options (per format)
   // -------------------------
   // [Gameboy] mmlgb
-  static bool mmlgbUseLegacyNoise = false;
-  if (mmlType == 4) {
+  if (mmlExportType == MML_EXPORT_MMLGB) {
     ImGui::Separator();
-    ImGui::Checkbox(_("Use legacy noise table"), &mmlgbUseLegacyNoise);
+    ImGui::Checkbox(_("Use legacy noise table"), &mmlExportUseLegacyNoise);
   }
 
   // [SNES] AddMusicK
-  static int amkVersion = 0;
   const char* amkVersions[] = { "v1.0", "v1.1", "v1.2+" };
-  if (mmlType == 3) {
+  if (mmlExportType == MML_EXPORT_AMK) {
     ImGui::Separator();
     ImGui::Text(_("AddMusicK Version:"));
-    ImGui::Combo("##amkVersion", &amkVersion, amkVersions, IM_ARRAYSIZE(amkVersions));
+    ImGui::Combo("##amkVersion", &mmlExportAMKVersion, amkVersions, IM_ARRAYSIZE(amkVersions));
   }
 
   if (onWindow) {
@@ -525,9 +526,6 @@ void FurnaceGUI::drawExportMML(bool onWindow) {
   }
 
   if (ImGui::Button(_("Export"), ImVec2(200.0f * dpiScale, 0))) {
-    mmlExportType = mmlType;
-    mmlExportUseLegacyNoise = mmlgbUseLegacyNoise;
-    mmlExportAMKVersion = amkVersion;
     openFileDialog(GUI_FILE_EXPORT_MML);
     ImGui::CloseCurrentPopup();
   }

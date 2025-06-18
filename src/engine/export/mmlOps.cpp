@@ -47,38 +47,31 @@ SafeWriter* DivEngine::saveMMLGB(bool useLegacyNoiseTable) {
   w->init();
 
   // Write header info with song and subsong metadata
-  auto writeHeaderInfo = [&]() {
-    w->writeText("; Furnace MML-GB Output\n;\n");
-    w->writeText("; Information:\n");
-    w->writeText(fmt::sprintf("; \tname: %s\n", song.name));
-    w->writeText(fmt::sprintf("; \tauthor: %s\n", song.author));
-    w->writeText(fmt::sprintf("; \tcategory: %s\n", song.category));
-    w->writeText(";\n");
-    w->writeText("; SubSongInformation:\n");
-    w->writeText(fmt::sprintf("; \tname: %s\n", curSubSong->name));
-    w->writeText("\n");
-  };
-  writeHeaderInfo();
+  w->writeText("; Furnace MML-GB Output\n;\n");
+  w->writeText("; Information:\n");
+  w->writeText(fmt::sprintf("; \tname: %s\n", song.name));
+  w->writeText(fmt::sprintf("; \tauthor: %s\n", song.author));
+  w->writeText(fmt::sprintf("; \tcategory: %s\n", song.category));
+  w->writeText(";\n");
+  w->writeText("; SubSongInformation:\n");
+  w->writeText(fmt::sprintf("; \tname: %s\n", curSubSong->name));
+  w->writeText("\n");
 
   // Write WaveTable Macros, default or custom
-  auto writeWaveTables = [&]() {
-    w->writeText("; WaveTable Macros:\n");
-    if (song.waveLen == 0) {
-      w->writeText("@wave0 = {");
-      _writeDefaultWave(w);
+  w->writeText("; WaveTable Macros:\n");
+  if (song.waveLen == 0) {
+    w->writeText("@wave0 = {");
+    _writeDefaultWave(w);
+    w->writeText("}\n");
+  } else {
+    for (int i = 0; i < song.waveLen; i++) {
+      auto wave = getWave(i);
+      w->writeText(fmt::sprintf("@wave%d = {", i));
+      _writeNormalizedGBWave(wave, w);
       w->writeText("}\n");
-    } else {
-      for (int i = 0; i < song.waveLen; i++) {
-        auto wave = getWave(i);
-        w->writeText(fmt::sprintf("@wave%d = {", i));
-        _writeNormalizedGBWave(wave, w);
-        w->writeText("}\n");
-      }
     }
-    w->writeText("\n");
-  };
-  writeWaveTables();
-
+  }
+  w->writeText("\n");
   w->writeText("; Sequence data:\n");
 
   // Prepare for playback and MML generation
@@ -255,12 +248,11 @@ SafeWriter* DivEngine::saveMMLGB(bool useLegacyNoiseTable) {
       }
 
       // Handle pattern and measure boundaries for formatting new lines
-      if (curOrder != st.prevOrder[chan]) {
-        mmlStream += "\n\n" + cname + " ";
-        st.chanNameUsed[chan] = true;
-      } else if ((curRow - 1) / rowsPerMeasure != (st.prevRow[chan] - 1) / rowsPerMeasure) {
-        mmlStream += "\n" + cname + " ";
-        st.chanNameUsed[chan] = true;
+      if (rowsPerMeasure > 0) {
+        if ((curRow - 1) / rowsPerMeasure != (st.prevRow[chan] - 1) / rowsPerMeasure) {
+          mmlStream += "\n" + cname + " ";
+          st.chanNameUsed[chan] = true;
+        }
       }
 
       st.prevRow[chan] = curRow;

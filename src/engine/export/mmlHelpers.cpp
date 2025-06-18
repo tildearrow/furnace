@@ -18,7 +18,6 @@
  */
 
 #include <functional>
-#include <string>
 #include "mmlHelpers.h"
 
 int _computeMmlOctave(int noteValue, int delta) {
@@ -29,13 +28,13 @@ int _computeMmlTempo(DivSubSong* curSubSong, double divider) {
   return 150.0 / (curSubSong->timeBase + 1) * divider / 120.0;
 }
 
-std::string _generateOctShift(int diff, bool reversedNotation) {
+String _generateOctShift(int diff, bool reversedNotation) {
   char up = reversedNotation ? '<' : '>';
   char down = reversedNotation ? '>' : '<';
-  return std::string(std::abs(diff), diff < 0 ? down : up);
+  return String(std::abs(diff), diff < 0 ? down : up);
 }
 
-std::string _computeMmlOctString(int prevOctave, int noteValue, int delta, bool reversedNotation) {
+String _computeMmlOctString(int prevOctave, int noteValue, int delta, bool reversedNotation) {
   if (noteValue < 0) return "";
 
   int newOct = _computeMmlOctave(noteValue, delta);
@@ -81,7 +80,7 @@ _MMLGBState::_MMLGBState()
   // Constructor body empty
 }
 
-const std::map<int, std::string> _mmlTickMap = {
+const std::map<int, String> _mmlTickMap = {
   // Base notes:
   {3, "64"}, {6, "32"}, {12, "16"}, {24, "8"}, {48, "4"}, {96, "2"}, {192, "1"}, // 2-base
   {4, "48"}, {8, "24"}, {16, "12"}, {32, "6"}, {64, "3"}, // 3-base
@@ -110,10 +109,10 @@ int _findLargestTick(int maxTick) {
   return result;
 }
 
-std::string _computeMmlPureTick(int ticks, int maxTicks, bool tiePrefix, bool tieNonFractionalTicks) {
+String _computeMmlPureTick(int ticks, int maxTicks, bool tiePrefix, bool tieNonFractionalTicks) {
   if (ticks <= 0) return "";
 
-  std::string result = tiePrefix ? "^" : "";
+  String result = tiePrefix ? "^" : "";
   while (true) {
     int tickCount = std::min(maxTicks, ticks);
     if (_mmlTickMap.find(tickCount) == _mmlTickMap.end()) {
@@ -129,7 +128,7 @@ std::string _computeMmlPureTick(int ticks, int maxTicks, bool tiePrefix, bool ti
           leftovers -= diff;
         }
         if (leftovers > 0 && leftovers < 3) 
-          result += std::string(start ? "" : "^") + "=" + std::to_string(leftovers);
+          result += String(start ? "" : "^") + "=" + std::to_string(leftovers);
       } else {
         result += "=" + std::to_string(tickCount);
       }
@@ -143,7 +142,7 @@ std::string _computeMmlPureTick(int ticks, int maxTicks, bool tiePrefix, bool ti
   return result;
 }
 
-std::string _computeMmlTickLengthGB(_MMLGBState* state, int ticks, int maxTicks, int tick, int chan, bool tieNonFractionalTicks) {
+String _computeMmlTickLengthGB(_MMLGBState* state, int ticks, int maxTicks, int tick, int chan, bool tieNonFractionalTicks) {
   int oldTick = tick - ticks;
   bool needsTUpdate = chan == 0 && state->tempoTick > oldTick && state->tempoTick <= tick;
 
@@ -159,15 +158,15 @@ std::string _computeMmlTickLengthGB(_MMLGBState* state, int ticks, int maxTicks,
   }
 }
 
-std::string _computeMmlNote(int noteValue) {
-  static const std::string notes[12] = {
+String _computeMmlNote(int noteValue) {
+  static const String notes[12] = {
     "c", "c+", "d", "d+", "e", "f", "f+", "g", "g+", "a", "a+", "b"
   };
   int mod = noteValue % 12;
   return (mod >= 0 && mod < 12) ? notes[mod] : "r";
 }
 
-void _writeCommonGBChannelState(_MMLGBState* state, int chan, std::string& result) {
+void _writeCommonGBChannelState(_MMLGBState* state, int chan, String& result) {
   if (state->prevVol[chan] != state->currVol[chan]) {
     result += fmt::sprintf(" v%d ", state->currVol[chan]);
     state->prevVol[chan] = state->currVol[chan];
@@ -182,8 +181,8 @@ void _writeCommonGBChannelState(_MMLGBState* state, int chan, std::string& resul
   }
 }
 
-std::string _writeMMLGBCommands(_MMLGBState* state, int chan) {
-  std::string result;
+String _writeMMLGBCommands(_MMLGBState* state, int chan) {
+  String result;
 
   if (chan == 0 || chan == 1) {
     // --- GB Pulse channels ---
