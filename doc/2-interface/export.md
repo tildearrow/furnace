@@ -53,6 +53,9 @@ the following settings exist:
 - **chips to export**: select which chips are going to be exported.
   - due to VGM format limitations, you can only select up to two of each chip type.
   - some chips will not be available, either because VGM doesn't support these yet, or because you selected an old format version.
+- **speed drift compensation**:
+  - **none**: normal export.
+  - **DeadFish VgmPlay (1.02×)**: adjusts speed to account for inaccuracy in [VgmPlay](https://www.mjsstuf.x10host.com/pages/vgmPlay/vgmPlay.htm), the Sega Genesis VGM player by DeadFish.
 
 ## ZSM
 
@@ -72,8 +75,10 @@ the following settings are available:
 
 depending on the system, this option may appear to allow you to export your song to a working ROM image or code that can be built into one. export options are explained in the system's accompanying documentation.
 
-currently, only one system can be exported this way:
-- [Atari 2600 (TIunA)](../7-systems/tia.md)
+the following formats and systems are supported:
+- TIunA assembly, using [Atari 2600 (with software pitch driver)](../7-systems/tia.md).
+- iPod .tone alarm, using [PC Speaker](../7-systems/pcspkr.md).
+- GRUB_INIT_TUNE, using [PC Speaker](../7-systems/pcspkr.md).
 
 ## text
 
