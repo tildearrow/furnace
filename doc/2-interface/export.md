@@ -55,7 +55,7 @@ the following settings exist:
   - some chips will not be available, either because VGM doesn't support these yet, or because you selected an old format version.
 - **speed drift compensation**:
   - **none**: normal export.
-  - **DeadFish VgmPlay (1.02×)**: adjusts speed to account for inaccuracy in [VgmPlay](https://www.mjsstuf.x10host.com/pages/vgmPlay/vgmPlay.htm), the Sega Genesis VGM player by DeadFish.
+  - **DeadFish VgmPlay (1.02×)**: adjusts speed to account for inaccuracy in [VgmPlay](https://www.mjsstuf.x10host.com/pages/vgmPlay/vgmPlay.htm), a Sega Genesis VGM player by DeadFish.
 
 ## ZSM
 
