@@ -27,11 +27,8 @@
 #include "../wavetable.h"    // for DivWavetable
 
 enum MMLExportType {
-    MML_EXPORT_PPMCK = 0,
-    MML_EXPORT_FMP = 1,
-    MML_EXPORT_PMD = 2,
-    MML_EXPORT_AMK = 3,
-    MML_EXPORT_MMLGB = 4
+  MML_EXPORT_MMLGB,
+  MML_EXPORT_AMK
 };
 
 int _computeMmlOctave(int noteValue, int delta);
@@ -71,6 +68,22 @@ struct _MMLGBState {
   _MMLGBState();
 };
 
+struct AMKInstrument {
+    String name;        // sample name, no .brr
+    bool useADSR;       // true = ADSR, false = GAIN
+
+    // For ADSR
+    int attack = 0;
+    int decay = 0;
+    int sustain = 0;
+    int release = 0;
+
+    // For GAIN
+    int gain = 0;
+
+    int pitch = 0;      // placeholder for now
+};
+
 extern const std::map<int, String> _mmlTickMap;
 
 int _findLargestTick(int maxTick);
@@ -89,3 +102,6 @@ void _writeDefaultWave(SafeWriter* w);
 // Command writing
 void _writeCommonGBChannelState(_MMLGBState* state, int chan, String& result);
 String _writeMMLGBCommands(_MMLGBState* state, int chan);
+
+// Helper functions
+String sanitizeName(const String& name);

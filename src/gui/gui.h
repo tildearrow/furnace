@@ -2777,8 +2777,9 @@ class FurnaceGUI {
 
   // MML export specific
   int mmlExportType;
-  bool mmlExportUseLegacyNoise;
+  bool mmlExportMMLGBUseLegacyNoise;
   int mmlExportAMKVersion;
+  bool mmlExportAMKHasDefaultHeader;
 
   // ROM export specific
   DivROMExportOptions romTarget;

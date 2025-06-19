@@ -5708,13 +5708,14 @@ bool FurnaceGUI::loop() {
             }
             case GUI_FILE_EXPORT_MML: {
               SafeWriter* w = NULL;
+              String exportDir = copyOfName.substr(0, copyOfName.find_last_of(DIR_SEPARATOR));
 
               switch (mmlExportType) {
                 case MML_EXPORT_MMLGB: // mmlgb
-                  w = e->saveMMLGB(mmlExportUseLegacyNoise);
+                  w = e->saveMMLGB(mmlExportMMLGBUseLegacyNoise);
                   break;
                 case MML_EXPORT_AMK: // AddMusicK
-                  w = e->saveMMLSNESAMK(mmlExportAMKVersion);
+                  w = e->saveMMLSNESAMK(mmlExportAMKVersion, mmlExportAMKHasDefaultHeader, exportDir);
                   break;
                 default:
                   showError(_("This MML format is currently unimplemented."));
@@ -9053,9 +9054,10 @@ FurnaceGUI::FurnaceGUI():
   csExportDone(false),
   dmfExportVersion(0),
   curExportType(GUI_EXPORT_NONE),
-  mmlExportType(MML_EXPORT_MMLGB),
-  mmlExportUseLegacyNoise(false),
-  mmlExportAMKVersion(0),
+  mmlExportType(MML_EXPORT_AMK),
+  mmlExportMMLGBUseLegacyNoise(false),
+  mmlExportAMKVersion(2),
+  mmlExportAMKHasDefaultHeader(false),
   romTarget(DIV_ROM_ABSTRACT),
   romMultiFile(false),
   romExportSave(false),

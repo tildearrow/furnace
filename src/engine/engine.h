@@ -735,7 +735,7 @@ class DivEngine {
     SafeWriter* saveText(bool separatePatterns=true);
     // export to various mml formats
     SafeWriter* saveMMLGB(bool legacyNoise);
-    SafeWriter* saveMMLSNESAMK(int version);
+    SafeWriter* saveMMLSNESAMK(int version, bool hasDefaultHeader, const String& exportDir);
 
     // export to an audio file
     bool saveAudio(const char* path, DivAudioExportOptions options);

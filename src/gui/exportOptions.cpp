@@ -485,36 +485,32 @@ void FurnaceGUI::drawExportMML(bool onWindow) {
 
   ImGui::Text(_("export in various Music Macro Language formats."));
   
-  /// TODO: Enable MML Type selection UI when additional MML types are implemented
-  /* 
   const char* mmlTypeNames[] = {
-    "[NES] PPMCK (unimplemented)",
-    "[PC-98] FMP-compatible (unimplemented)",
-    "[PC-98] PMD-style (unimplemented)",
-    "[SNES] AddMusicK (unimplemented)",
-    "[Gameboy] mmlgb"
+    "[Gameboy] mmlgb",
+    "[SNES] AddMusicK"
   };
 
   // Dropdown for MML type
   ImGui::Text(_("MML Type:"));
   ImGui::Combo("##mmlType", &mmlExportType, mmlTypeNames, IM_ARRAYSIZE(mmlTypeNames));
-  */
-
+  
   // -------------------------
   // Export options (per format)
   // -------------------------
-  // [Gameboy] mmlgb
-  if (mmlExportType == MML_EXPORT_MMLGB) {
-    ImGui::Separator();
-    ImGui::Checkbox(_("Use legacy noise table"), &mmlExportUseLegacyNoise);
-  }
-
-  // [SNES] AddMusicK
-  const char* amkVersions[] = { "v1.0", "v1.1", "v1.2+" };
-  if (mmlExportType == MML_EXPORT_AMK) {
-    ImGui::Separator();
-    ImGui::Text(_("AddMusicK Version:"));
-    ImGui::Combo("##amkVersion", &mmlExportAMKVersion, amkVersions, IM_ARRAYSIZE(amkVersions));
+  
+  switch(mmlExportType) {
+    case MML_EXPORT_MMLGB: // [Gameboy] mmlgb
+      ImGui::Separator();
+      ImGui::Checkbox(_("Use legacy noise table"), &mmlExportMMLGBUseLegacyNoise);
+      break;
+    case MML_EXPORT_AMK: // [SNES] AddMusicK
+      const char* amkVersions[] = { "v1.0", "v1.1", "v1.2+" };
+      ImGui::Separator();
+      ImGui::Text(_("AddMusicK Version:"));
+      ImGui::Combo("##amkVersion", &mmlExportAMKVersion, amkVersions, IM_ARRAYSIZE(amkVersions));
+      ImGui::Separator();
+      ImGui::Checkbox(_("Include #default samples"), &mmlExportAMKHasDefaultHeader);
+      break;
   }
 
   if (onWindow) {
