@@ -544,7 +544,6 @@ SafeWriter* DivEngine::saveMMLGB(bool useLegacyNoiseTable) {
   return w;
 }
 
-
 // Helper function to sanitize folder-safe song name
 String sanitizeName(const String& name) {
     String sanitized;
@@ -587,7 +586,6 @@ SafeWriter* DivEngine::saveMMLSNESAMK(int amkVersion, bool hasDefaultHeader, con
       sampleList += "\t#default\n";
     }
     
-
     std::vector<String> sampleNames;
     for (int i = 0; i < song.sampleLen; i++) {
         DivSample* sample = getSample(i);
@@ -626,7 +624,6 @@ SafeWriter* DivEngine::saveMMLSNESAMK(int amkVersion, bool hasDefaultHeader, con
 
     sampleList += "}\n\n";
     w->writeText(sampleList);
-
 
     // --- #instruments block ---
     String instrumentBlock = "#instruments\n{\n";
