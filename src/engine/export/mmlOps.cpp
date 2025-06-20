@@ -645,27 +645,14 @@ SafeWriter* DivEngine::saveMMLSNESAMK(int amkVersion, bool hasDefaultHeader, con
         uint8_t adsr2 = snes.useEnv ? (((snes.s & 0x07) << 5) | (snes.r & 0x1F)) : 0x00;
         uint8_t gain  = snes.useEnv ? 0x00 : snes.gain;
 
-        // Log sample and envelope info
-        logW("Instrument %s [%s]:", instName.c_str(), name.c_str());
-        logW("  useEnv=%d | a=%X d=%X s=%X r=%X", snes.useEnv, snes.a, snes.d, snes.s, snes.r);
-        logW("  Computed ADSR1=$%02X ADSR2=$%02X | Gain=$%02X", adsr1, adsr2, gain);
-
-        // Log raw pitch input
-        logW("  Original centerRate (Hz): %f", inPitch);
-
         // SNES pitch calculation using the formula:
         const double BASE_FREQ = 32000.0;
-        double pitchRatio = BASE_FREQ / inPitch;
-        double rawPitchFloat = (BASE_FREQ / inPitch) * 4096.0;
+        double pitchRatio = inPitch / BASE_FREQ;
+        double rawPitchFloat = pitchRatio * 4096.0;
+        if (rawPitchFloat > 0x1FFF) rawPitchFloat = 0x1FFF;
         uint16_t rawPitch = static_cast<uint16_t>(rawPitchFloat);
-        if (rawPitch > 0x1FFF) rawPitch = 0x1FFF;
-
         uint8_t pitchHi = (rawPitch >> 8) & 0xFF;
         uint8_t pitchLo = rawPitch & 0xFF;
-
-        // Log pitch calculations
-        logW("  SNES Pitch: ratio=%.6f | rawPitch=%.1f ($%03X) | pitchHi=$%02X pitchLo=$%02X",
-            pitchRatio, rawPitchFloat, rawPitch, pitchHi, pitchLo);
 
         // Hex dump
         line += fmt::sprintf("$%02X $%02X $%02X $%02X $%02X", adsr1, adsr2, gain, pitchHi, pitchLo);
@@ -695,16 +682,14 @@ SafeWriter* DivEngine::saveMMLSNESAMK(int amkVersion, bool hasDefaultHeader, con
       if (!instSamp) continue;
 
       String sampleName = instSamp->name;
-    
-      const int furnaceC4Note = 60; // MIDI note number for C-4
-      double sampleMidiNote = furnaceC4Note - (log2(instSamp->centerRate / 8363.0) * 12.0);
-      double adjustedRate = instSamp->centerRate * pow(2.0, (furnaceC4Note - sampleMidiNote) / 12.0);
-      
-      instrumentBlock += formatInstAMKLine(sampleName, snes, adjustedRate, inst->name, baseInstrumentIndex + i);
+
+      instrumentBlock += formatInstAMKLine(sampleName, snes, instSamp->centerRate, inst->name, baseInstrumentIndex + i);
     }
 
     instrumentBlock += "}\n\n";
     w->writeText(instrumentBlock);
+
+    /// TODO: Write the channel data here
 
     logD("AddMusicK Export was successful!");
 
