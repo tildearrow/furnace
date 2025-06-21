@@ -738,7 +738,6 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                         if(ins2->std.panLMacro.val[0] == 0) ins2->std.panLMacro.val[0] = 3;
                     }
-                    //TODO: how the hell RAD treats 4-op instruments? Looks like for some algorithms 4-op instrument is actually two channels in 2-op mode, that's why in some alg schemes there are two feedbacks?
                 }
 
                 if(instr_s.has_riff)
@@ -765,6 +764,41 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                     riff_subsong_index++;
 
                     delete riff;
+
+                    for(int row = 0; row < riff_subsong->patLen; row++) //try to convert some data from instrument riff into macros
+                    {
+                        for(int ch = 0; ch < 9; ch++)
+                        {
+                            if(patterns[ch]->data[row][4] == 0x0d)
+                            {
+                                goto end;
+                            }
+
+                            if(patterns[ch]->data[row][4] == 0x01 || patterns[ch]->data[row][4] == 0x02)
+                            {
+                                ins->std.pitchMacro.mode = 1; //relative mode
+
+                                if(ins->std.pitchMacro.len + instr_s.riff_def_speed < 255)
+                                {
+                                    for(int sp = 0; sp < instr_s.riff_def_speed; sp++)
+                                    {
+                                        ins->std.pitchMacro.val[ins->std.pitchMacro.len] = patterns[ch]->data[row][5] * ((patterns[ch]->data[row][4]) == 0x02 ? -6 : 6);
+                                        ins->std.pitchMacro.len++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    end:;
+
+                    if(instr_s.connect > 3) //two 2-op instruments, copy macro(s) to second one
+                    {
+                        if(ins->std.pitchMacro.len > 0)
+                        {
+                            memcpy(&ins2->std.pitchMacro, &ins->std.pitchMacro, sizeof(DivInstrumentMacro));
+                        }
+                    }
                 }
             }
         }
