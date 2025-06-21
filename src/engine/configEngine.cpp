@@ -193,6 +193,4 @@ void DivEngine::factoryReset() {
     if (i>0) path+=fmt::sprintf(".%d",i);
     deleteFile(path.c_str());
   }
-
-  exit(0);
 }

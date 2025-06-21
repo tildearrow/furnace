@@ -724,8 +724,6 @@ void DivPlatformOPL::acquire_ymfm4(short** buf, size_t len) {
       unsigned char oscOffs=i+pcmChanOffs;
       int chOut=pcmChan[i]->debug_output(0);
       chOut+=pcmChan[i]->debug_output(1);
-      chOut+=pcmChan[i]->debug_output(2);
-      chOut+=pcmChan[i]->debug_output(3);
       oscBuf[oscOffs]->putSample(h,CLAMP(chOut<<1,-32768,32767));
     }
   }
@@ -1338,7 +1336,7 @@ void DivPlatformOPL::tick(bool sysTick) {
         unsigned char slot=slots[j][i];
         if (slot==255) continue;
         unsigned short baseAddr=slotMap[slot];
-        if (baseAddr>0x100) {
+        if (baseAddr>=0x100) {
           weWillWriteRRLater[(baseAddr&0xff)|32]=true;
         } else {
           weWillWriteRRLater[(baseAddr&0xff)]=true;

@@ -5591,6 +5591,8 @@ bool FurnaceGUI::loop() {
                 } else { // replace with the only instrument
                   if (curIns>=0 && curIns<(int)e->song.ins.size()) {
                     *e->song.ins[curIns]=*instruments[0];
+                    // reset macro zoom
+                    memset(e->song.ins[curIns]->temp.vZoom,-1,sizeof(e->song.ins[curIns]->temp.vZoom));
                     MARK_MODIFIED;
                   } else {
                     showError(_("...but you haven't selected an instrument!"));
@@ -5932,7 +5934,7 @@ bool FurnaceGUI::loop() {
             *curFileLambda=0;
             e->getCurFileIndex(*curFileLambda);
             *curPosInRowsLambda=curRow;
-            for (int i=0; i<curOrder; i++) *curPosInRowsLambda+=songOrdersLengths[i];
+            for (int i=0; i<MIN(curOrder,(int)songOrdersLengths.size()); i++) *curPosInRowsLambda+=songOrdersLengths[i];
             if (!songHasSongEndCommand) {
               e->getLoopsLeft(*loopsLeftLambda);
               e->getTotalLoops(*totalLoopsLambda);
@@ -5944,7 +5946,12 @@ bool FurnaceGUI::loop() {
                 *curPosInRowsLambda-=(songLength-songLoopedSectionLength); // a hack so progress bar does not jump?
               }
             }
-            *progressLambda=(float)((*curPosInRowsLambda)+((*totalLoopsLambda)-(*loopsLeftLambda))*songLength+lengthOfOneFile*(*curFileLambda))/(float)totalLength;
+            if (totalLength<0.1) {
+              // DON'T
+              *progressLambda=0;
+            } else {
+              *progressLambda=(float)((*curPosInRowsLambda)+((*totalLoopsLambda)-(*loopsLeftLambda))*songLength+lengthOfOneFile*(*curFileLambda))/(float)totalLength;
+            }
           }
         );
       }
@@ -6566,6 +6573,7 @@ bool FurnaceGUI::loop() {
           if (ImGui::Button(_("Yes"))) {
             e->factoryReset();
             quit=true;
+            quitNoSave=true;
             ImGui::CloseCurrentPopup();
           }
           popDestColor();
@@ -6787,6 +6795,8 @@ bool FurnaceGUI::loop() {
             if (i.second) {
               if (curIns>=0 && curIns<(int)e->song.ins.size()) {
                 *e->song.ins[curIns]=*i.first;
+                // reset macro zoom
+                memset(e->song.ins[curIns]->temp.vZoom,-1,sizeof(e->song.ins[curIns]->temp.vZoom));
               } else {
                 showError(_("...but you haven't selected an instrument!"));
               }
@@ -7655,8 +7665,10 @@ bool FurnaceGUI::init() {
     bool mustChange=false;
     if (scrW>((displaySize.w)-48) && scrH>((displaySize.h)-64)) {
       // maximize
-      SDL_MaximizeWindow(sdlWin);
-      logD("maximizing as it doesn't fit (%dx%d+%d+%d).",displaySize.w,displaySize.h,displaySize.x,displaySize.y);
+      if (!settings.noMaximizeWorkaround) {
+        SDL_MaximizeWindow(sdlWin);
+        logD("maximizing as it doesn't fit (%dx%d+%d+%d).",displaySize.w,displaySize.h,displaySize.x,displaySize.y);
+      }
     }
     if (scrW>displaySize.w) {
       scrW=(displaySize.w)-32;
@@ -8369,13 +8381,15 @@ void FurnaceGUI::commitState(DivConfig& conf) {
 }
 
 bool FurnaceGUI::finish(bool saveConfig) {
-  commitState(e->getConfObject());
-  if (userPresetsOpen) {
-    saveUserPresets(true);
-  }
-  if (saveConfig) {
-    logI("saving config.");
-    e->saveConf();
+  if (!quitNoSave) {
+    commitState(e->getConfObject());
+    if (userPresetsOpen) {
+      saveUserPresets(true);
+    }
+    if (saveConfig) {
+      logI("saving config.");
+      e->saveConf();
+    }
   }
   rend->quitGUI();
   ImGui_ImplSDL2_Shutdown();
@@ -8475,6 +8489,7 @@ FurnaceGUI::FurnaceGUI():
   replacePendingSample(false),
   displayExportingROM(false),
   displayExportingCS(false),
+  quitNoSave(false),
   changeCoarse(false),
   mobileEdit(false),
   killGraphics(false),
