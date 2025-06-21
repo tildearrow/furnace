@@ -1338,7 +1338,7 @@ void DivPlatformOPL::tick(bool sysTick) {
         unsigned char slot=slots[j][i];
         if (slot==255) continue;
         unsigned short baseAddr=slotMap[slot];
-        if (baseAddr>0x100) {
+        if (baseAddr>=0x100) {
           weWillWriteRRLater[(baseAddr&0xff)|32]=true;
         } else {
           weWillWriteRRLater[(baseAddr&0xff)]=true;
