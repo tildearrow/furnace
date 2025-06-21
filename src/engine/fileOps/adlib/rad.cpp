@@ -298,7 +298,7 @@ void RAD_read_pattern(SafeReader* reader, RAD_pattern* pat, DivPattern** furnace
         if(line & (1 << 7)) break;
     }
 
-    subsong->patLen = max_line_number + 1;
+    subsong->patLen = 64;
 
     if(hide_chans)
     {
@@ -765,6 +765,8 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                     delete riff;
 
+                    bool end_pitch_slide = true;
+
                     for(int row = 0; row < riff_subsong->patLen; row++) //try to convert some data from instrument riff into macros
                     {
                         for(int ch = 0; ch < 9; ch++)
@@ -786,8 +788,18 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                                         ins->std.pitchMacro.len++;
                                     }
                                 }
+
+                                if(patterns[ch]->data[row][5] == 0)
+                                {
+                                    end_pitch_slide = false;
+                                }
                             }
                         }
+                    }
+
+                    if(end_pitch_slide)
+                    {
+                        ins->std.pitchMacro.loop = ins->std.pitchMacro.len - 1;
                     }
 
                     end:;
