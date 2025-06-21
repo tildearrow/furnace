@@ -450,7 +450,37 @@ void FurnaceGUI::moveCursorBottom(bool select) {
 void FurnaceGUI::editAdvance() {
   finishSelection();
   cursor.y+=editStep;
-  if (cursor.y>=e->curSubSong->patLen) cursor.y=e->curSubSong->patLen-1;
+  int hangPrevention=0;
+  while (cursor.y>=e->curSubSong->patLen) {
+    if (++hangPrevention>500) {
+      showError("BUG: about to hang when advancing cursor.\nplease report this issue immediately!");
+      break;
+    }
+    switch (settings.wrapVertical) {
+      case 1: // wrap
+        cursor.y-=e->curSubSong->patLen;
+        break;
+      case 2: // wrap + next pattern
+        if (curOrder<(e->curSubSong->ordersLen-1)) {
+          cursor.y-=e->curSubSong->patLen;
+          setOrder(curOrder+1);
+        } else {
+          cursor.y=e->curSubSong->patLen-1;
+        }
+        break;
+      case 3: // wrap + next pattern (wrap around)
+        cursor.y-=e->curSubSong->patLen;
+        if (curOrder<(e->curSubSong->ordersLen-1)) {
+          setOrder(curOrder+1);
+        } else {
+          setOrder(0);
+        }
+        break;
+      default: // don't wrap
+        cursor.y=e->curSubSong->patLen-1;
+        break;
+    }
+  }
   selStart=cursor;
   selEnd=cursor;
   updateScroll(cursor.y);
