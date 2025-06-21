@@ -159,6 +159,8 @@ for other operating systems, you may [build the source](#developer-info).
   - [documentation](doc/README.md).
   - [frequently asked questions (FAQ)](doc/1-intro/faq.md).
 - **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, or the [Discord](https://discord.gg/QhA26dXD23).
+  - these are the only **official** discussion channels for Furnace. **any other places are not official and not managed by me (tildearrow).**
+  - no, there isn't an official Furnace Facebook group. the one that seemingly exists isn't mine.
 
 ## packages
 

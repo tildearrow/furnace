@@ -28,6 +28,7 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - BlastBrothers
 - Blaze Weednix
 - BlueElectric05
+- Boycraft18462
 - breakthetargets
 - brickblock369
 - Brightonic
@@ -54,7 +55,9 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - Forte
 - Fragmare
 - freq-mod
+- Fur
 - gtr3qq
+- halberd (lordlydumbass)
 - Heckett Heriot
 - Heemin
 - Hortus
@@ -67,6 +70,7 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - Kaoru
 - kleeder
 - Korbo
+- KungFuFurby
 - jaezu
 - Laggy
 - leejh20
@@ -80,6 +84,7 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - Miker
 - Molkirill
 - MrCoolDude
+- Mr. Saturn
 - NeoWar
 - Nerreave
 - niffuM
@@ -88,6 +93,7 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - Notakin
 - nwcr
 - NyaongI
+- OddPandemonium
 - PeyPey
 - PichuMario
 - pixelated
@@ -112,6 +118,8 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - Someone64
 - Spinning Square Waves
 - src3453
+- StarryPen / Pen64
+- stomatol
 - SuperJet Spade
 - Supper\_E1
 - SwapXFO
@@ -138,7 +146,7 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - Weeppiko
 - Wegfrei
 - Xan
-- Yuzu4K
+- Yuzugure!
 - Zabir
 - Zaxinoth Digital
 - Zaxolotl

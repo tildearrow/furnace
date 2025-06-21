@@ -20,7 +20,9 @@
 #ifndef _INTRO_TUNE_H
 #define _INTRO_TUNE_H
 
+#ifndef NO_INTRO
 extern const unsigned char intro_fur[];
 extern const unsigned int intro_fur_len;
+#endif
 
 #endif

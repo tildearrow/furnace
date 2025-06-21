@@ -19,12 +19,14 @@
 
 #elif defined(ANDROID)
 #include <jni.h>
-#else
+#elif (!defined(SUPPORT_XP) || !defined(_WIN32))
 namespace pfd {
   class open_file;
   class save_file;
   class select_folder;
 }
+#else
+// nothing
 #endif
 
 typedef std::function<void(const char*)> FileDialogSelectCallback;
@@ -48,10 +50,14 @@ class FurnaceGUIFileDialog {
   void* dialogO;
   void* dialogS;
   void* dialogF;
-#else
+#elif (!defined(SUPPORT_XP) || !defined(_WIN32))
   pfd::open_file* dialogO;
   pfd::save_file* dialogS;
   pfd::select_folder* dialogF;
+#else
+  unsigned char* dialogO;
+  unsigned char* dialogS;
+  unsigned char* dialogF;
 #endif
 
   void convertFilterList(std::vector<String>& filter);

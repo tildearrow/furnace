@@ -1167,6 +1167,7 @@ void FurnaceGUI::drawSettings() {
 
         // SUBSECTION START-UP
         CONFIG_SUBSECTION(_("Start-up"));
+#ifndef NO_INTRO
         ImGui::Text(_("Play intro on start-up:"));
         ImGui::Indent();
         if (ImGui::RadioButton(_("No##pis0"),settings.alwaysPlayIntro==0)) {
@@ -1186,10 +1187,17 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
         ImGui::Unindent();
+#endif
 
         bool disableFadeInB=settings.disableFadeIn;
         if (ImGui::Checkbox(_("Disable fade-in during start-up"),&disableFadeInB)) {
           settings.disableFadeIn=disableFadeInB;
+          settingsChanged=true;
+        }
+
+        bool noMaximizeWorkaroundB=settings.noMaximizeWorkaround;
+        if (ImGui::Checkbox(_("Do not maximize on start-up when the Furnace window is too big"),&noMaximizeWorkaroundB)) {
+          settings.noMaximizeWorkaround=noMaximizeWorkaroundB;
           settingsChanged=true;
         }
 
@@ -1200,7 +1208,6 @@ void FurnaceGUI::drawSettings() {
           settings.blankIns=blankInsB;
           settingsChanged=true;
         }
-
         // SUBSECTION CONFIGURATION
         CONFIG_SUBSECTION(_("Configuration"));
         if (ImGui::Button(_("Import"))) {
@@ -4897,6 +4904,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.disableFadeIn=conf.getInt("disableFadeIn",0);
     settings.alwaysPlayIntro=conf.getInt("alwaysPlayIntro",0);
     settings.iCannotWait=conf.getInt("iCannotWait",0);
+    settings.noMaximizeWorkaround=conf.getInt("noMaximizeWorkaround",0);
 
     settings.compress=conf.getInt("compress",1);
     settings.newPatternFormat=conf.getInt("newPatternFormat",1);
@@ -5429,6 +5437,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.autoMacroStepSize,0,2);
   clampSetting(settings.s3mOPL3,0,1);
   clampSetting(settings.backgroundPlay,0,1);
+  clampSetting(settings.noMaximizeWorkaround,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -5497,6 +5506,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("disableFadeIn",settings.disableFadeIn);
     conf.set("alwaysPlayIntro",settings.alwaysPlayIntro);
     conf.set("iCannotWait",settings.iCannotWait);
+    conf.set("noMaximizeWorkaround",settings.noMaximizeWorkaround);
 
     conf.set("compress",settings.compress);
     conf.set("newPatternFormat",settings.newPatternFormat);
@@ -6076,7 +6086,7 @@ bool FurnaceGUI::importConfig(String path) {
   }
   syncState();
   syncSettings();
-  commitSettings();
+  willCommit=true;
 
   recentFile.clear();
   for (int i=0; i<settings.maxRecentFile; i++) {

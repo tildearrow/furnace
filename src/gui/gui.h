@@ -1677,6 +1677,7 @@ class FurnaceGUI {
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool displayPendingSamples, replacePendingSample;
   bool displayExportingROM, displayExportingCS;
+  bool quitNoSave;
   bool changeCoarse;
   bool mobileEdit;
   bool killGraphics;
@@ -1687,6 +1688,7 @@ class FurnaceGUI {
   bool willExport[DIV_MAX_CHIPS];
   int vgmExportVersion;
   int vgmExportTrailingTicks;
+  int vgmExportCorrectedRate;
   int cvHiScore;
   int drawHalt;
   int macroPointSize;
@@ -2018,7 +2020,7 @@ class FurnaceGUI {
     int autoFillSave;
     int autoMacroStepSize;
     int backgroundPlay;
-    int chanOscDCOffStrat;
+    int noMaximizeWorkaround;
     unsigned int maxUndoSteps;
     float vibrationStrength;
     int vibrationLength;
@@ -2274,6 +2276,7 @@ class FurnaceGUI {
       autoFillSave(0),
       autoMacroStepSize(0),
       backgroundPlay(0),
+      noMaximizeWorkaround(0),
       maxUndoSteps(100),
       vibrationStrength(0.5f),
       vibrationLength(20),

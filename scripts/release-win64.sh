@@ -17,7 +17,7 @@ fi
 cd winbuild
 
 # TODO: potential Arch-ism?
-x86_64-w64-mingw32-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_FLAGS="-O2" -DCMAKE_CXX_FLAGS="-O2 -Wall -Wextra -Wno-unused-parameter -Wno-cast-function-type -Wno-deprecated-declarations -Werror" -DWITH_LOCALE=ON -DUSE_MOMO=ON -DUSE_BACKWARD=ON -DFORCE_CODEVIEW=ON .. || exit 1
+x86_64-w64-mingw32-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_FLAGS="-O2" -DCMAKE_CXX_FLAGS="-O2 -Wall -Wextra -Wno-unused-parameter -Wno-cast-function-type -Wno-deprecated-declarations -Werror" -DWITH_LOCALE=ON -DUSE_MOMO=ON -DUSE_BACKWARD=ON -DFORCE_CODEVIEW=OFF -DSUPPORT_VISTA=ON .. || exit 1
 make -j8 || exit 1
 
 cd ..

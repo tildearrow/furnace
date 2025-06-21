@@ -73,7 +73,7 @@
   if (!skipRegisterWrites) { \
     if ((curPage&(pm))!=((p)&(pm))) { \
       curPage=(curPage&~(pm))|((p)&(pm)); \
-      rWrite(0xf,curPage,(pm)) \
+      rWrite(0xf,curPage) \
       if (dumpWrites) { \
         addWrite(0x3c,0) \
         addWrite(0x3d,0) \
@@ -94,7 +94,7 @@
   if (!skipRegisterWrites) { \
     if ((curPage&0x5f)!=((c)&0x5f)) { \
       curPage=(curPage&~0x5f)|((c)&0x5f); \
-      rWrite(0xf,curPage,0x5f) \
+      rWrite(0xf,curPage) \
       if (dumpWrites) { \
         addWrite(0x3c,0) \
         addWrite(0x3d,0) \
@@ -116,7 +116,7 @@
   if (!skipRegisterWrites) { \
     if ((curPage&0x5f)!=((c)&0x5f)) { \
       curPage=(curPage&~0x5f)|((c)&0x5f); \
-      rWrite(0xf,curPage,0x5f) \
+      rWrite(0xf,curPage) \
       if (dumpWrites) { \
         addWrite(0x3c,0) \
         addWrite(0x3d,0) \
@@ -125,7 +125,7 @@
       } \
     } \
     chan[c].cr=(chan[c].cr&~(m))|((d)&(m)); \
-    rWrite(0,chan[c].cr,(m)) \
+    rWrite(0,chan[c].cr) \
     if (dumpWrites) { \
       addWrite(0x0,0) \
       addWrite(0x1,0) \
@@ -138,7 +138,7 @@
   if (!skipRegisterWrites) { \
     if ((curPage&(pm))!=((p)&(pm))) { \
       curPage=(curPage&~(pm))|((p)&(pm)); \
-      rWrite(0xf,curPage,(pm)) \
+      rWrite(0xf,curPage) \
       if (dumpWrites) { \
         addWrite(0x3c,0) \
         addWrite(0x3d,0) \
@@ -340,6 +340,13 @@ void DivPlatformES5506::updateNoteChangesAsNeeded(int ch) {
 
 void DivPlatformES5506::tick(bool sysTick) {
   for (int i=0; i<=chanMax; i++) {
+    if (chan[i].crDirValInit) {
+      chan[i].crDirVal=es5506.regs_r(i,0,false)&0x41;
+      chan[i].crDirValInit=false;
+    }
+    if (!chan[i].crDirValChanged) {
+      chan[i].crDirVal=es5506.regs_r(i,0,false)&0x41;
+    }
     chan[i].std.next();
     DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_ES5506);
     signed int k1=chan[i].k1Prev,k2=chan[i].k2Prev;
@@ -511,13 +518,18 @@ void DivPlatformES5506::tick(bool sysTick) {
       if (chan[i].pcm.pause!=(bool)(chan[i].std.alg.val&1)) {
         chan[i].pcm.pause=chan[i].std.alg.val&1;
         if (!chan[i].keyOn) {
-          crWriteMask(0x00|i,chan[i].pcm.pause?0x0002:0x0000,0x0002);
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x41)|(chan[i].crDirVal);
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x0002)|(chan[i].pcm.pause?0x0002:0x0000);
+          chan[i].crChanged=true;
         }
       }
       if (chan[i].pcm.direction!=(bool)(chan[i].std.alg.val&2)) {
         chan[i].pcm.direction=chan[i].std.alg.val&2;
         if (!chan[i].keyOn) {
-          crWriteMask(0x00|i,chan[i].pcm.direction?0x0040:0x0000,0x0040);
+          chan[i].crDirVal=(chan[i].crDirVal&~0x0040)|(chan[i].pcm.direction?0x0040:0x0000);
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x41)|chan[i].crDirVal;
+          chan[i].crDirValChanged=true;
+          chan[i].crChanged=true;
         }
       }
     }
@@ -551,7 +563,9 @@ void DivPlatformES5506::tick(bool sysTick) {
         }
       }
       if (chan[i].volChanged.ca) {
-        crWriteMask(0x00|i,(chan[i].ca<<10),0x1c00);
+        chan[i].crWriteVal=(chan[i].crWriteVal&~0x41)|chan[i].crDirVal;
+        chan[i].crWriteVal=(chan[i].crWriteVal&~0x1c00)|(chan[i].ca<<10);
+        chan[i].crChanged=true;
       }
       chan[i].volChanged.changed=0;
     }
@@ -660,7 +674,11 @@ void DivPlatformES5506::tick(bool sysTick) {
               break;
           }
           // Set loop mode & Bank
-          crWriteMask(0x00|i,loopFlag,0xe0fd);
+          chan[i].crDirVal=(chan[i].crDirVal&~0x0040)|(chan[i].pcm.direction?0x0040:0x0000);
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x41)|chan[i].crDirVal;
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0xe0fd)|loopFlag;
+          chan[i].crDirValChanged=true;
+          chan[i].crChanged=true;
         }
         chan[i].pcmChanged.loopBank=0;
       }
@@ -669,7 +687,9 @@ void DivPlatformES5506::tick(bool sysTick) {
     if (chan[i].filterChanged.changed) {
       if (!chan[i].keyOn) {
         if (chan[i].filterChanged.mode) {
-          crWriteMask(0x00|i,(chan[i].filter.mode<<8),0x0300);
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x41)|chan[i].crDirVal;
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x0300)|(chan[i].filter.mode<<8);
+          chan[i].crChanged=true;
         }
         if (chan[i].filterChanged.k2) {
           if (chan[i].std.ex2.mode!=0) { // Relative
@@ -803,7 +823,8 @@ void DivPlatformES5506::tick(bool sysTick) {
           pageWrite(0x00|i,0x0a,((unsigned char)(chan[i].envelope.k1Ramp)<<8)|(chan[i].envelope.k1Slow?1:0));
           pageWrite(0x00|i,0x08,((unsigned char)(chan[i].envelope.k2Ramp)<<8)|(chan[i].envelope.k2Slow?1:0));
           // initialize filter
-          crWriteMask(0x00|i,(chan[i].pcm.bank<<14)|(chan[i].filter.mode<<8),0xc300);
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0xc300)|((chan[i].pcm.bank<<14)|(chan[i].filter.mode<<8));
+          chan[i].crChanged=true;
           if ((chan[i].std.ex2.mode!=0) && (chan[i].std.ex2.had)) {
             k2=CLAMP(chan[i].filter.k2+chan[i].k2Offs,0,65535);
           } else {
@@ -843,11 +864,17 @@ void DivPlatformES5506::tick(bool sysTick) {
             loopFlag|=0x0002;
           }
           // Run sample
+          chan[i].crDirVal=(chan[i].crDirVal&~0x0040)|(chan[i].pcm.direction?0x0040:0x0000);
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x41)|chan[i].crDirVal;
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x3cff)|loopFlag;
+          chan[i].crDirValChanged=true;
+          chan[i].crChanged=true;
           pageWrite(0x00|i,0x06,(unsigned int)chan[i].envelope.ecount); // Clear ECOUNT
-          crWriteMask(0x00|i,loopFlag,0x3cff);
         }
       }
       if (chan[i].keyOff) {
+        chan[i].crWriteVal=0x0303;
+        chan[i].crChanged=true;
         crWrite(0x00|i,0x0303); // Wipeout CR
       } else if (!chan[i].keyOn && chan[i].active) {
         pageWrite(0x00|i,0x01,chan[i].freq);
@@ -864,6 +891,14 @@ void DivPlatformES5506::tick(bool sysTick) {
       if (chan[i].k1Prev!=k1) {
         pageWrite(0x00|i,0x09,k1);
         chan[i].k1Prev=k1;
+      }
+    }
+    if (chan[i].crChanged) {
+      crWrite(0x00|i,chan[i].crWriteVal);
+      chan[i].crChanged=false;
+      if (chan[i].crDirValChanged) {
+        chan[i].crDirValInit=true;
+        chan[i].crDirValChanged=false;
       }
     }
   }
@@ -1167,7 +1202,9 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       if (chan[c.chan].active) {
         if (chan[c.chan].pcm.pause!=(bool)(c.value&1)) {
           chan[c.chan].pcm.pause=c.value&1;
-          crWriteMask(0x00|c.chan,chan[c.chan].pcm.pause?0x0002:0x0000,0x0002);
+          chan[c.chan].crWriteVal=(chan[c.chan].crWriteVal&~0x41)|chan[c.chan].crDirVal;
+          chan[c.chan].crWriteVal=(chan[c.chan].crWriteVal&~0x0002)|(chan[c.chan].pcm.pause?0x0002:0x0000);
+          chan[c.chan].crChanged=true;
         }
       }
       break;
@@ -1223,7 +1260,10 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     case DIV_CMD_SAMPLE_DIR: {
       if (chan[c.chan].pcm.direction!=(bool)(c.value&1)) {
         chan[c.chan].pcm.direction=c.value&1;
-        crWriteMask(0x00|c.chan,chan[c.chan].pcm.direction?0x0040:0x0000,0x0040);
+        chan[c.chan].crDirVal=(chan[c.chan].crDirVal&~0x0040)|(chan[c.chan].pcm.direction?0x0040:0x0000);
+        chan[c.chan].crWriteVal=(chan[c.chan].crWriteVal&~0x41)|chan[c.chan].crDirVal;
+        chan[c.chan].crDirValChanged=true;
+        chan[c.chan].crChanged=true;
       }
       break;
     }
@@ -1370,10 +1410,6 @@ unsigned char* DivPlatformES5506::getRegisterPool() {
   for (unsigned char p=0; p<128; p++) {
     for (unsigned char r=0; r<16; r++) {
       unsigned int reg=es5506.regs_r(p,r,false);
-      // Sync CR register with register pool
-      if (((p&0x40)==0) && (r==0)) {
-        chan[p&0x1f].cr=reg&0xffff;
-      }
       for (int b=0; b<4; b++) {
         *regPoolPtr++ = reg>>(24-(b<<3));
       }

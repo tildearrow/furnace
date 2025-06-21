@@ -1450,6 +1450,13 @@ void FurnaceGUI::drawSampleEdit() {
         }
       }
 
+      if (mobileUI) {
+        sameLineMaybe();
+        if (ImGui::Button(ICON_FA_ELLIPSIS_H "##SMobMenu")) {
+          ImGui::OpenPopup("SRightClick");
+        }
+      }
+
       ImGui::Separator();
 
       // time
