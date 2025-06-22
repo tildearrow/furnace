@@ -655,6 +655,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         int map_ch = 0;
 
         ds.system[systemID++] = DIV_SYSTEM_NES;
+        ds.systemFlags[0].set("resetSweep",true); // FamiTracker behavior
 
         if (pal) {
           ds.systemFlags[0].set("clockSel", 1); // PAL clock
