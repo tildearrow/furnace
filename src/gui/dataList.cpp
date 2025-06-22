@@ -185,6 +185,10 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
       curIns=i;
       updateFMPreview=true;
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+      if (ImGui::MenuItem(_("edit"))) {
+        insEditOpen=true;
+        nextWindow=GUI_WINDOW_INS_EDIT;
+      }
       if (ImGui::MenuItem(_("duplicate"))) {
         doAction(GUI_ACTION_INS_LIST_DUPLICATE);
       }
@@ -311,6 +315,10 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
     updateSampleTex=true;
     lastAssetType=2;
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+    if (ImGui::MenuItem(_("edit"))) {
+      sampleEditOpen=true;
+      nextWindow=GUI_WINDOW_SAMPLE_EDIT;
+    }
     if (ImGui::MenuItem(_("make instrument"))) {
       doAction(GUI_ACTION_SAMPLE_MAKE_INS);
     }
@@ -351,6 +359,28 @@ void FurnaceGUI::drawInsList(bool asChild) {
   }
   if (began) {
     if (settings.unifiedDataView) settings.horizontalDataView=0;
+    ImGui::BeginDisabled(e->song.insLen==0 && e->song.waveLen==0 && e->song.sampleLen==0);
+    if (ImGui::Button(ICON_FA_PENCIL)) {
+      switch (lastAssetType) {
+        case 0:
+          insEditOpen=true;
+          nextWindow=GUI_WINDOW_INS_EDIT;
+          break;
+        case 1:
+          waveEditOpen=true;
+          nextWindow=GUI_WINDOW_WAVE_EDIT;
+          break;
+        case 2:
+          sampleEditOpen=true;
+          nextWindow=GUI_WINDOW_SAMPLE_EDIT;
+          break;
+      }
+    }
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      ImGui::SetTooltip(_("Edit"));
+    }
+    ImGui::EndDisabled();
+    ImGui::SameLine();
     if (ImGui::Button(ICON_FA_PLUS "##InsAdd")) {
       if (settings.unifiedDataView) {
         switch (lastAssetType) {
@@ -783,6 +813,16 @@ void FurnaceGUI::drawWaveList(bool asChild) {
     began=ImGui::Begin("Wavetables",&waveListOpen,globalWinFlags,_("Wavetables"));
   }
   if (began) {
+    ImGui::BeginDisabled(e->song.waveLen==0);
+    if (ImGui::Button(ICON_FA_PENCIL)) {
+      waveEditOpen=true;
+      nextWindow=GUI_WINDOW_WAVE_EDIT;
+    }
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      ImGui::SetTooltip(_("Edit"));
+    }
+    ImGui::EndDisabled();
+    ImGui::SameLine();
     if (ImGui::Button(ICON_FA_PLUS "##WaveAdd")) {
       doAction(GUI_ACTION_WAVE_LIST_ADD);
     }
@@ -918,6 +958,16 @@ void FurnaceGUI::drawSampleList(bool asChild) {
     began=ImGui::Begin("Samples",&sampleListOpen,globalWinFlags,_("Samples"));
   }
   if (began) {
+    ImGui::BeginDisabled(e->song.sampleLen==0);
+    if (ImGui::Button(ICON_FA_PENCIL)) {
+      sampleEditOpen=true;
+      nextWindow=GUI_WINDOW_SAMPLE_EDIT;
+    }
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      ImGui::SetTooltip(_("Edit"));
+    }
+    ImGui::EndDisabled();
+    ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FILE "##SampleAdd")) {
       doAction(GUI_ACTION_SAMPLE_LIST_ADD);
     }
