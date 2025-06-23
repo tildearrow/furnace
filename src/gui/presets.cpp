@@ -3313,7 +3313,7 @@ void FurnaceGUI::initSystemPresets() {
       }
     );
   ENTRY(
-    _("Yamaha YMF276 (OPN2)"), {
+    _("Yamaha YMF276 (OPN2L)"), {
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "chipType=2")
     }
   );
@@ -3323,12 +3323,12 @@ void FurnaceGUI::initSystemPresets() {
       }
     );
     SUB_ENTRY(
-      _("Yamaha YMF276 (OPN2) CSM"), {
+      _("Yamaha YMF276 (OPN2L) CSM"), {
         CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, "chipType=2")
       }
     );
     SUB_ENTRY(
-      _("Yamaha YMF276 (OPN2) with DualPCM"), {
+      _("Yamaha YMF276 (OPN2L) with DualPCM"), {
         CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, "chipType=2")
       }
     );
