@@ -92,6 +92,7 @@ const char* aboutLine[]={
   "Lumigado",
   "Lunathir",
   "plane",
+  "skyfloogle",
   "TheEssem",
   "",
   _N("-- Metal backend test team --"),
