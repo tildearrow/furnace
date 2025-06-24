@@ -22,12 +22,15 @@ additionally, channel 5 offers a modulation/sweep unit. the former is similar to
   - `y` sets the speed and direction.
     - `0-7`: down
     - `8-F`: up
+  - IMPORTANT: if the envelope ends, you will not be able to trigger another envelope until you reset the channel's phase! (this is a Virtual Boy hardware bug)
+    - setting a phase reset macro at the beginning will do.
 - `13xy`: **setup sweep.**
   - `x` sets the speed.
     - `0` and `8` are "speed 0" - sweep is ineffective.
   - `y` sets the shift (`0` to `7`).
     - `8` and higher will mute the channel.
   - only in channel 5.
+  - if modulation ends, you cannot sweep until the next phase reset.
 - `14xy`: **setup modulation.**
   - `x` determines whether it's enabled or not.
     - 0: disabled
@@ -38,6 +41,8 @@ additionally, channel 5 offers a modulation/sweep unit. the former is similar to
     - `0` and `8` are "speed 0" - modulation is ineffective.
     - no, you can't really do Yamaha FM using this.
   - only in channel 5.
+  - IMPORTANT: if the modulation ends, you will not be able to trigger another envelope until you reset the channel's phase! (this is a Virtual Boy hardware bug)
+    - setting a phase reset macro at the beginning will do.
 - `15xx`: **set modulation wave.**
   - `xx` points to a wavetable. range is `0` to `FF`.
   - this is an alternative to setting the modulation wave through the instrument.
