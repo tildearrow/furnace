@@ -567,8 +567,6 @@ src/engine/platform/sound/nes/fds.cpp
 src/engine/platform/sound/nes/mmc5.cpp
 src/engine/platform/sound/vera_psg.c
 src/engine/platform/sound/vera_pcm.c
-src/engine/platform/sound/nextsound.c
-
 src/engine/platform/sound/ymf278b/ymf278.cpp
 
 src/engine/platform/sound/atomicssg/ssg.c
@@ -816,7 +814,6 @@ src/engine/platform/nds.cpp
 src/engine/platform/bifurcator.cpp
 src/engine/platform/sid2.cpp
 src/engine/platform/sid3.cpp
-src/engine/platform/nextsound.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 

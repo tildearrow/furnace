@@ -3558,11 +3558,6 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_TED, 1.0f, 0, "clockSel=1")
     }
   );
-  ENTRY(
-    _("NextSound"), {
-      CH(DIV_SYSTEM_NEXTSOUND, 1.0f, 0, "")
-    }
-  );
   CATEGORY_END;
 
   CATEGORY_BEGIN(_("Sample"),_("chips/systems which use PCM or ADPCM samples for sound synthesis."));
