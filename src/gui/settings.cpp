@@ -2962,9 +2962,9 @@ void FurnaceGUI::drawSettings() {
             settings.cursorWheelStep=1;
             settingsChanged=true;
           }
-          if (ImGui::RadioButton(_("Coarse Step##cws1"), settings.cursorWheelStep == 2)) {
-            settings.cursorWheelStep = 2;
-            settingsChanged = true;
+          if (ImGui::RadioButton(_("Coarse Step##cws2"),settings.cursorWheelStep==2)) {
+            settings.cursorWheelStep=2;
+            settingsChanged=true;
           }
         }
 
