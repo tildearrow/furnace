@@ -4312,6 +4312,8 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_INC,_("Status: increase"));
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_BENT,_("Status: bent"));
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_DIRECT,_("Status: direct"));
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_WARNING,_("Status: warning"));
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_ERROR,_("Status: error"));
           ImGui::TreePop();
         }
         if (ImGui::TreeNode(_("Sample Editor"))) {

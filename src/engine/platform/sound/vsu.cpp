@@ -156,8 +156,9 @@ void VSU::Write(int timestamp, unsigned int A, unsigned char V)
 
 	      WavePos[ch] = 0;
 
-	      if(ch == 5)	// Not sure if this is correct.
+	      if(ch == 5)	{ // Not sure if this is correct.
 	       lfsr = 1;
+        }
 
         EnvelopeModMask[ch] = 0;
         if(!(EnvControl[ch] & 0x200) && (

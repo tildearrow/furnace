@@ -51,6 +51,14 @@ additionally, channel 5 offers a modulation/sweep unit. the former is similar to
 
 this chip uses the [Virtual Boy](../4-instrument/virtual-boy.md) instrument editor.
 
+## channel status
+
+the following icons are displayed when channel status is enabled in the pattern view:
+
+- ![envelope off](status-VBoy-env-none.png) hardware envelope is disabled or running OK
+- ![envelope warning](status-VBoy-env-warn.png) hardware envelope has finished - attempting to write a new envelope won't work without phase reset!
+- ![envelope error](status-VBoy-env-error.png) can't start hardware envelope - please reset phase
+
 ## chip config
 
 the following options are available in the Chip Manager window:
