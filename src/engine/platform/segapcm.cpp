@@ -192,7 +192,7 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
 
 void DivPlatformSegaPCM::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  pcm.mute(ch,mute);
+  pcm.mute(ch|(segaPCMIsDiscrete?8:0),mute);
 }
 
 int DivPlatformSegaPCM::dispatch(DivCommand c) {
