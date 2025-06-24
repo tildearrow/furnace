@@ -2341,6 +2341,15 @@ void DivEngine::registerSystems() {
     {DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
     {DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD}
   );
+  
+  sysDefs[DIV_SYSTEM_NEXTSOUND]=new DivSysDef(
+    _("NextSound"), NULL, 0xfe, 0, 4, false, true, 0, false, 0, 0, 0,
+    _("hehe"),
+    {_("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4")},
+    {"CH1", "CH2", "CH3", "CH4"},
+    {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
+    {DIV_INS_NEXTSOUND, DIV_INS_NEXTSOUND, DIV_INS_NEXTSOUND, DIV_INS_NEXTSOUND}
+  );
 
   for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {
     if (sysDefs[i]==NULL) continue;
