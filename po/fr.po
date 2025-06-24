@@ -23,186 +23,186 @@ msgstr ""
 #: src/engine/platform/sid3.cpp:1385 src/gui/insEdit.cpp:243
 #: src/gui/insEdit.cpp:250 src/gui/insEdit.cpp:505
 msgid "sync"
-msgstr ""
+msgstr "sync"
 
 #: src/engine/platform/dave.cpp:537 src/gui/insEdit.cpp:498
 #: src/gui/insEdit.cpp:7172
 msgid "high"
-msgstr ""
+msgstr "haut"
 
 #: src/engine/platform/dave.cpp:543 src/gui/insEdit.cpp:496
 #: src/gui/insEdit.cpp:7160
 msgid "low"
-msgstr ""
+msgstr "bas"
 
 #: src/engine/platform/opl.cpp:2728
 msgid "4OP"
-msgstr ""
+msgstr "4OP"
 
 #: src/engine/platform/pce.cpp:571 src/engine/platform/snes.cpp:739
 msgid "mod"
-msgstr ""
+msgstr "mod"
 
 #: src/engine/platform/pokey.cpp:435 src/engine/platform/pokey.cpp:444
 msgid "filter"
-msgstr ""
+msgstr "filtre"
 
 #: src/engine/platform/pokey.cpp:438 src/engine/platform/pokey.cpp:441
 msgid "16-bit"
-msgstr ""
+msgstr "16-bit"
 
 #: src/engine/platform/sid3.cpp:1370 src/gui/insEdit.cpp:249
 msgid "phase"
-msgstr ""
+msgstr "phase"
 
 #: src/engine/fileOps/p.cpp:121 src/engine/fileOps/p86.cpp:139
 #: src/engine/fileOps/pdx.cpp:98 src/engine/fileOps/ppc.cpp:139
 #: src/engine/fileOps/pps.cpp:122 src/engine/fileOps/pvi.cpp:155
 #: src/engine/fileOps/pzi.cpp:151 src/engine/engine.cpp:2878
 msgid "premature end of file"
-msgstr ""
+msgstr "fin de vie prématurée"
 
 #: src/engine/fileOps/s3m.cpp:320 src/gui/insEdit.cpp:799
 #, c-format
 msgid "Channel %d"
-msgstr ""
+msgstr "Piste %d"
 
 #: src/engine/fileOps/s3m.cpp:336
 #, c-format
 msgid "FM %d"
-msgstr ""
+msgstr "FM %d"
 
 #: src/engine/engine.cpp:52
 msgid "00xy: Arpeggio"
-msgstr ""
+msgstr "00xy: Arpège"
 
 #: src/engine/engine.cpp:54
 msgid "01xx: Pitch slide up"
-msgstr ""
+msgstr "01xx: Glissement d'hauteur vers le haut"
 
 #: src/engine/engine.cpp:56
 msgid "02xx: Pitch slide down"
-msgstr ""
+msgstr "02xx: Glissement d'hauteur vers le bas"
 
 #: src/engine/engine.cpp:58
 msgid "03xx: Portamento"
-msgstr ""
+msgstr "03xx: Palier"
 
 #: src/engine/engine.cpp:60
 msgid "04xy: Vibrato (x: speed; y: depth)"
-msgstr ""
+msgstr "04xy: Vibrato (x: vitesse; y: force)"
 
 #: src/engine/engine.cpp:62
 msgid "05xy: Volume slide + vibrato (compatibility only!)"
-msgstr ""
+msgstr "05xy: Glissement de volume + vibrato (compatibilité seulement!)"
 
 #: src/engine/engine.cpp:64
 msgid "06xy: Volume slide + portamento (compatibility only!)"
-msgstr ""
+msgstr "06xy: Glissement de volume + palier (compatibilité seulement!)"
 
 #: src/engine/engine.cpp:66
 msgid "07xy: Tremolo (x: speed; y: depth)"
-msgstr ""
+msgstr "07xy: Trémolo (x: vitesse; y: force)"
 
 #: src/engine/engine.cpp:68
 msgid "08xy: Set panning (x: left; y: right)"
-msgstr ""
+msgstr "08xy: Définir la panoramique (x: gauche; y: droite)"
 
 #: src/engine/engine.cpp:70
 msgid "09xx: Set groove pattern (speed 1 if no grooves exist)"
-msgstr ""
+msgstr "09xx: Définir le modèle de groove  (vitesse 1 si aucun groove existe)"
 
 #: src/engine/engine.cpp:72
 msgid "0Axy: Volume slide (0y: down; x0: up)"
-msgstr ""
+msgstr "0Axy: Glissement de volume (0y: bas; x0: haut)"
 
 #: src/engine/engine.cpp:74
 msgid "0Bxx: Jump to pattern"
-msgstr ""
+msgstr "0Bxx: Saut vers la séquence"
 
 #: src/engine/engine.cpp:76
 msgid "0Cxx: Retrigger"
-msgstr ""
+msgstr "0Cxx: Redéclencher"
 
 #: src/engine/engine.cpp:78
 msgid "0Dxx: Jump to next pattern"
-msgstr ""
+msgstr "0Dxx: Saut vers la prochaine séquence"
 
 #: src/engine/engine.cpp:80
 msgid "0Fxx: Set speed (speed 2 if no grooves exist)"
-msgstr ""
+msgstr "0Fxx: Définir la vitesse (vitesse 2 si aucun groove existe)"
 
 #: src/engine/engine.cpp:82
 msgid "80xx: Set panning (00: left; 80: center; FF: right)"
-msgstr ""
+msgstr "80xx: Définir la panoramique (00: gauche; 80: centre; FF: droite)"
 
 #: src/engine/engine.cpp:84
 msgid "81xx: Set panning (left channel)"
-msgstr ""
+msgstr "81xx: Définir la panoramique (chaine de gauche)"
 
 #: src/engine/engine.cpp:86
 msgid "82xx: Set panning (right channel)"
-msgstr ""
+msgstr "82xx: Définir la panoramique (chaine de droite)"
 
 #: src/engine/engine.cpp:88
 msgid "83xy: Panning slide (x0: left; 0y: right)"
-msgstr ""
+msgstr "83xy: Glissement de la panoramique (x0: gauche; 0y: droite)"
 
 #: src/engine/engine.cpp:90
 msgid "84xy: Panbrello (x: speed; y: depth)"
-msgstr ""
+msgstr "84xy: Panbrello (x: vitesse; y: depth)"
 
 #: src/engine/engine.cpp:92
 msgid "88xy: Set panning (rear channels; x: left; y: right)"
-msgstr ""
+msgstr "88xy: Définir panoramique (pistes arrières; x: gauche; y: droite)"
 
 #: src/engine/engine.cpp:95
 msgid "89xx: Set panning (rear left channel)"
-msgstr ""
+msgstr "89xx: Définir panoramique (piste arrière gauche)"
 
 #: src/engine/engine.cpp:98
 msgid "8Axx: Set panning (rear right channel)"
-msgstr ""
+msgstr "8Axx: Définir panoramique (piste arrière droite)"
 
 #: src/engine/engine.cpp:101
 msgid "Cxxx: Set tick rate (hz)"
-msgstr ""
+msgstr "Cxxx: Définir le taux de tick (hz)"
 
 #: src/engine/engine.cpp:103
 msgid "D3xx: Volume portamento"
-msgstr ""
+msgstr "D3xx: Portamento de volume"
 
 #: src/engine/engine.cpp:105
 msgid "D4xx: Volume portamento (fast)"
-msgstr ""
+msgstr "D4xx: Portamento de volume (rapide)"
 
 #: src/engine/engine.cpp:107
 msgid "DCxx: Delayed mute"
-msgstr ""
+msgstr "DCxx: Muet retardé"
 
 #: src/engine/engine.cpp:109
 msgid "E0xx: Set arp speed"
-msgstr ""
+msgstr "E0xx: Définir la vitesse d'arpège"
 
 #: src/engine/engine.cpp:111
 msgid "E1xy: Note slide up (x: speed; y: semitones)"
-msgstr ""
+msgstr "E1xy: Glissement de note vers le haut (x: vitesse; y: demi-tons)"
 
 #: src/engine/engine.cpp:113
 msgid "E2xy: Note slide down (x: speed; y: semitones)"
-msgstr ""
+msgstr "E2xy: Glissement de note vers le bas (x: vitesse; y: demi-tons)"
 
 #: src/engine/engine.cpp:115
 msgid "E3xx: Set vibrato shape"
-msgstr ""
+msgstr "E3xx: Définir la forme de vibrato"
 
 #: src/engine/engine.cpp:117
 msgid "E4xx: Set vibrato range"
-msgstr ""
+msgstr "E4xx: Définir la gamme de vibrato"
 
 #: src/engine/engine.cpp:119
 msgid "E5xx: Set pitch (80: center)"
-msgstr ""
+msgstr "E5xx: Définir la hauteur (80: centre)"
 
 #: src/engine/engine.cpp:121
 msgid "E6xy: Quick legato (x: time (0-7 up; 8-F down); y: semitones)"
@@ -19302,79 +19302,79 @@ msgstr ""
 
 #: src/gui/presets.cpp:2862
 msgid "NMK 16-bit Arcade (w/NMK112 bankswitching, extended channel 3)"
-msgstr ""
+msgstr "NMK 16-bit Arcade (ac/NMK112 changement de banque, piste 3 étendue)"
 
 #: src/gui/presets.cpp:2877
 msgid "NMK 16-bit Arcade (w/NMK112 bankswitching, CSM)"
-msgstr ""
+msgstr "NMK 16-bit Arcade (ac/NMK112 changement de banque, CSM)"
 
 #: src/gui/presets.cpp:2892
 msgid "Atlus Power Instinct 2"
-msgstr ""
+msgstr "Atlus Power Instinct 2"
 
 #: src/gui/presets.cpp:2907
 msgid "Atlus Power Instinct 2 (extended channel 3)"
-msgstr ""
+msgstr "Atlus Power Instinct 2 (piste 3 étendue)"
 
 #: src/gui/presets.cpp:2922
 msgid "Atlus Power Instinct 2 (CSM)"
-msgstr ""
+msgstr "Atlus Power Instinct 2 (CSM)"
 
 #: src/gui/presets.cpp:2937
 msgid "Raizing/Eighting Battle Garegga"
-msgstr ""
+msgstr "Raizing/Eighting Battle Garegga"
 
 #: src/gui/presets.cpp:2946
 msgid "Raizing/Eighting Batrider"
-msgstr ""
+msgstr "Raizing/Eighting Batrider"
 
 #: src/gui/presets.cpp:2960
 msgid "Nichibutsu Mag Max"
-msgstr ""
+msgstr "Nichibutsu Mag Max"
 
 #: src/gui/presets.cpp:2967
 msgid "Cave 68000"
-msgstr ""
+msgstr "Cave 68000"
 
 #: src/gui/presets.cpp:2972
 msgid "Coreland Cyber Tank"
-msgstr ""
+msgstr "Coreland Cyber Tank"
 
 #: src/gui/presets.cpp:2978
 msgid "Coreland Cyber Tank (drums mode)"
-msgstr ""
+msgstr "Coreland Cyber Tank (mode percussions)"
 
 #: src/gui/presets.cpp:2984
 msgid "ICE Skimaxx"
-msgstr ""
+msgstr "ICE Skimaxx"
 
 #: src/gui/presets.cpp:2998
 msgid "Toaplan 1"
-msgstr ""
+msgstr "Toaplan 1"
 
 #: src/gui/presets.cpp:3003
 msgid "Toaplan 1 (drums mode)"
-msgstr ""
+msgstr "Toaplan 1 (mode percussions)"
 
 #: src/gui/presets.cpp:3008
 msgid "Dynax/Nakanihon 3rd generation hardware"
-msgstr ""
+msgstr "Dynax/Nakanihon matériel de 3e génération"
 
 #: src/gui/presets.cpp:3015
 msgid "Dynax/Nakanihon 3rd generation hardware (drums mode)"
-msgstr ""
+msgstr "Dynax/Nakanihon matériel de 3e génération (mode percussions)"
 
 #: src/gui/presets.cpp:3022
 msgid "Dynax/Nakanihon Real Break"
-msgstr ""
+msgstr "Dynax/Nakanihon Real Break"
 
 #: src/gui/presets.cpp:3028
 msgid "Dynax/Nakanihon Real Break (drums mode)"
-msgstr ""
+msgstr "Dynax/Nakanihon Real Break (mode percussions)"
 
 #: src/gui/presets.cpp:3035
 msgid "system presets that you have saved."
-msgstr ""
+msgstr "préréglages système que vous avez enregistrés."
 
 #: src/gui/presets.cpp:3038
 msgid ""
@@ -19384,195 +19384,195 @@ msgstr ""
 
 #: src/gui/presets.cpp:3050
 msgid "Yamaha YM2203 (extended channel 3)"
-msgstr ""
+msgstr "Yamaha YM2203 (piste 3 étendue)"
 
 #: src/gui/presets.cpp:3055
 msgid "Yamaha YM2203 (CSM)"
-msgstr ""
+msgstr "Yamaha YM2203 (CSM)"
 
 #: src/gui/presets.cpp:3065
 msgid "Yamaha YM2608 (extended channel 3)"
-msgstr ""
+msgstr "Yamaha YM2608 (piste 3 étendue)"
 
 #: src/gui/presets.cpp:3070
 msgid "Yamaha YM2608 (CSM)"
-msgstr ""
+msgstr "Yamaha YM2608 (CSM)"
 
 #: src/gui/presets.cpp:3080
 msgid "Yamaha YM2610 (extended channel 2)"
-msgstr ""
+msgstr "amaha YM2610 (piste 2 étendue)"
 
 #: src/gui/presets.cpp:3085
 msgid "Yamaha YM2610 (CSM)"
-msgstr ""
+msgstr "Yamaha YM2610 (CSM)"
 
 #: src/gui/presets.cpp:3095
 msgid "Yamaha YM2610B (extended channel 3)"
-msgstr ""
+msgstr "Yamaha YM2610B (piste 3 étendue)"
 
 #: src/gui/presets.cpp:3100
 msgid "Yamaha YM2610B (CSM)"
-msgstr ""
+msgstr "Yamaha YM2610B (CSM)"
 
 #: src/gui/presets.cpp:3110
 msgid "Yamaha YM2612 (extended channel 3)"
-msgstr ""
+msgstr "Yamaha YM2612 (piste 3 étendue)"
 
 #: src/gui/presets.cpp:3125
 msgid "Yamaha YM2612 (extended channel 3) with DualPCM"
-msgstr ""
+msgstr "Yamaha YM2612 (piste 3 étendue) avec DoublePCM"
 
 #: src/gui/presets.cpp:3130
 msgid "Yamaha YMF276 (OPN2)"
-msgstr ""
+msgstr "Yamaha YMF276 (OPN2)"
 
 #: src/gui/presets.cpp:3135
 msgid "Yamaha YMF276 (extended channel 3)"
-msgstr ""
+msgstr "Yamaha YMF276 (piste 3 étendue)"
 
 #: src/gui/presets.cpp:3140
 msgid "Yamaha YMF276 (OPN2) CSM"
-msgstr ""
+msgstr "Yamaha YMF276 (OPN2) CSM"
 
 #: src/gui/presets.cpp:3145
 msgid "Yamaha YMF276 (OPN2) with DualPCM"
-msgstr ""
+msgstr "Yamaha YMF276 (OPN2) avec DoublePCM"
 
 #: src/gui/presets.cpp:3150
 msgid "Yamaha YMF276 (extended channel 3) with DualPCM"
-msgstr ""
+msgstr "Yamaha YMF276 (piste 3 étendue) avec DoublePCM"
 
 #: src/gui/presets.cpp:3160
 msgid "Yamaha YM2413 (drums mode)"
-msgstr ""
+msgstr "Yamaha YM2413 (mode percussions)"
 
 #: src/gui/presets.cpp:3170
 msgid "Yamaha YM3438 (OPN2C)"
-msgstr ""
+msgstr "Yamaha YM3438 (OPN2C)"
 
 #: src/gui/presets.cpp:3175
 msgid "Yamaha YM3438 (extended channel 3)"
-msgstr ""
+msgstr "Yamaha YM3438 (piste 3 étendue)"
 
 #: src/gui/presets.cpp:3180
 msgid "Yamaha YM3438 (OPN2C) CSM"
-msgstr ""
+msgstr "Yamaha YM3438 (OPN2C) CSM"
 
 #: src/gui/presets.cpp:3185
 msgid "Yamaha YM3438 (OPN2C) with DualPCM"
-msgstr ""
+msgstr "Yamaha YM3438 (OPN2C) avec DoublePCM"
 
 #: src/gui/presets.cpp:3190
 msgid "Yamaha YM3438 (extended channel 3) with DualPCM"
-msgstr ""
+msgstr "Yamaha YM3438 (piste 3 étendue) avec DoublePCM"
 
 #: src/gui/presets.cpp:3200
 msgid "Yamaha YM3526 (drums mode)"
-msgstr ""
+msgstr "Yamaha YM3526 (mode percussions)"
 
 #: src/gui/presets.cpp:3210
 msgid "Yamaha Y8950 (drums mode)"
-msgstr ""
+msgstr "Yamaha Y8950 (mode percussions)"
 
 #: src/gui/presets.cpp:3220
 msgid "Yamaha YM3812 (drums mode)"
-msgstr ""
+msgstr "Yamaha YM3812 (mode percussions)"
 
 #: src/gui/presets.cpp:3230
 msgid "Yamaha YMF262 (drums mode)"
-msgstr ""
+msgstr "Yamaha YMF262 (mode percussions)"
 
 #: src/gui/presets.cpp:3235
 msgid "Yamaha YMF289B (OPL3-L)"
-msgstr ""
+msgstr "Yamaha YMF289B (OPL3-L)"
 
 #: src/gui/presets.cpp:3243
 msgid "Yamaha YMF289B (drums mode)"
-msgstr ""
+msgstr "Yamaha YMF289B (mode percussions)"
 
 #: src/gui/presets.cpp:3267
 msgid "these chips generate square/pulse tones only (but may include noise)."
-msgstr ""
+msgstr "ces puces génèrent uniquement des tonalités carrées/pulsées (mais peuvent inclure du bruit)."
 
 #: src/gui/presets.cpp:3295
 msgid "Sega PSG (SN76489-like)"
-msgstr ""
+msgstr "Sega PSG (type SN76489, Stéréo)"
 
 #: src/gui/presets.cpp:3300
 msgid "Sega PSG (SN76489-like, Stereo)"
-msgstr ""
+msgstr "Sega PSG (type SN76489, Stéréo)"
 
 #: src/gui/presets.cpp:3321
 msgid "Toshiba T6W28"
-msgstr ""
+msgstr "Toshiba T6W28"
 
 #: src/gui/presets.cpp:3336
 msgid "Yamaha YM2149(F)"
-msgstr ""
+msgstr "Yamaha YM2149(F)"
 
 #: src/gui/presets.cpp:3356
 msgid "Commodore VIC"
-msgstr ""
+msgstr "Commodore VIC"
 
 #: src/gui/presets.cpp:3366
 msgid "NEC D65010G031"
-msgstr ""
+msgstr "NEC D65010G031"
 
 #: src/gui/presets.cpp:3377
 msgid "chips/systems which use PCM or ADPCM samples for sound synthesis."
-msgstr ""
+msgstr "puces/systèmes qui utilisent des échantillons PCM ou ADPCM pour la synthèse sonore."
 
 #: src/gui/presets.cpp:3440
 msgid "Ensoniq ES5506 (OTTO)"
-msgstr ""
+msgstr "Ensoniq ES5506 (OTTO)"
 
 #: src/gui/presets.cpp:3476
 msgid "chips which use user-specified waveforms to generate sound."
-msgstr ""
+msgstr "puces qui utilisent des formes d'onde spécifiées par l'utilisateur pour générer du son."
 
 #: src/gui/presets.cpp:3503
 msgid "Namco C15 (8-channel mono)"
-msgstr ""
+msgstr "Namco C15 (8-pistes mono)"
 
 #: src/gui/presets.cpp:3508
 msgid "Namco C30 (8-channel stereo)"
-msgstr ""
+msgstr "Namco C30 (8-pistes stéréo)"
 
 #: src/gui/presets.cpp:3541
 msgid "Specialized"
-msgstr ""
+msgstr "Spécialisé"
 
 #: src/gui/presets.cpp:3541
 msgid "chips/systems with unique sound synthesis methods."
-msgstr ""
+msgstr "puces/systèmes dotés de méthodes de synthèse sonore uniques."
 
 #: src/gui/presets.cpp:3543
 msgid "MOS Technology SID (6581)"
-msgstr ""
+msgstr "MOS Technology SID (6581)"
 
 #: src/gui/presets.cpp:3549
 msgid "MOS Technology SID (8580)"
-msgstr ""
+msgstr "MOS Technology SID (8580)"
 
 #: src/gui/presets.cpp:3555
 msgid "Commodore PET (pseudo-wavetable)"
-msgstr ""
+msgstr "pseudo-table d'ondes"
 
 #: src/gui/presets.cpp:3597
 msgid "Atari TIA (with software pitch driver)"
-msgstr ""
+msgstr "Atari TIA (avec pilote de pitch logiciel)"
 
 #: src/gui/presets.cpp:3612
 msgid "ZX Spectrum (beeper only, SFX-like engine)"
-msgstr ""
+msgstr "ZX Spectrum (beeper seulement, moteur de type effet sonores)"
 
 #: src/gui/presets.cpp:3617
 msgid "ZX Spectrum (beeper only, QuadTone engine)"
-msgstr ""
+msgstr "ZX Spectrum (beeper seulement, moteur QuadTone)"
 
 #: src/gui/presets.cpp:3676
 msgid "DefleMask-compatible"
-msgstr ""
+msgstr "Compatible avec DefleMask"
 
 #: src/gui/presets.cpp:3676
 msgid ""
@@ -19582,102 +19582,102 @@ msgstr ""
 
 #: src/gui/presets.cpp:3740
 msgid "Arcade (YM2151 and SegaPCM)"
-msgstr ""
+msgstr "Arcade (YM2151 et SegaPCM)"
 
 #: src/gui/presets.cpp:3751
 msgid "Neo Geo CD (extended channel 2)"
-msgstr ""
+msgstr "Neo Geo CD (piste 2 étendue)"
 
 #: src/main.cpp:702
 #, c-format
 msgid "incomplete param %s."
-msgstr ""
+msgstr "paramètre incomplet %s."
 
 #: src/main.cpp:794
 #, c-format
 msgid "couldn't open file! (%s)"
-msgstr ""
+msgstr "impossible d'ouvrir le fichier! (%s)"
 
 #: src/main.cpp:800
 #, c-format
 msgid "couldn't open file! (couldn't get file size: %s)"
-msgstr ""
+msgstr "Impossible d'ouvrir le fichier! (Impossible d'obtenir la taille du fichier: %s)"
 
 #: src/main.cpp:808
 #, c-format
 msgid "couldn't open file! (couldn't get file length: %s)"
-msgstr ""
+msgstr "impossible d'ouvrir le fichier! (impossible d'obtenir la longueur du fichier: %s)"
 
 #: src/main.cpp:816
 msgid "that file is empty!"
-msgstr ""
+msgstr "ce fichier est vide!"
 
 #: src/main.cpp:818
 #, c-format
 msgid "couldn't open file! (tell error: %s)"
-msgstr ""
+msgstr "impossible d'ouvrir le fichier! (erreur d'indication: %s)"
 
 #: src/main.cpp:827
 #, c-format
 msgid "couldn't open file! (size error: %s)"
-msgstr ""
+msgstr "impossible d'ouvrir le fichier! (erreur de taille: %s)"
 
 #: src/main.cpp:835
 #, c-format
 msgid "couldn't open file! (read error: %s)"
-msgstr ""
+msgstr "impossible d'ouvrir le fichier! (erreur de lecture: %s)"
 
 #: src/main.cpp:844 src/main.cpp:891 src/main.cpp:907 src/main.cpp:963
 #: src/main.cpp:986
 #, c-format
 msgid "could not open file! (%s)"
-msgstr ""
+msgstr "impossible d'ouvrir le fichier! (%s)"
 
 #: src/main.cpp:858
 msgid "could not initialize engine!"
-msgstr ""
+msgstr "impossible d'initialiser le moteur!"
 
 #: src/main.cpp:896
 msgid "could not write command stream!"
-msgstr ""
+msgstr "impossible d'écrire le flux de commandes!"
 
 #: src/main.cpp:912
 msgid "could not write VGM!"
-msgstr ""
+msgstr "impossible de créer le VGM"
 
 #: src/main.cpp:946
 msgid "could not create exporter! you may want to report this issue..."
-msgstr ""
+msgstr "Impossible de créer l'exportateur! Vous souhaiterez peut-être signaler ce problème…"
 
 #: src/main.cpp:967
 #, c-format
 msgid "ROM export failed! (%s)"
-msgstr ""
+msgstr "Échec d'exportation ROM! (%s)"
 
 #: src/main.cpp:970
 msgid "could not begin exporting process! TODO: elaborate"
-msgstr ""
+msgstr "impossible de commencer la procédure d'exportation!"
 
 #: src/main.cpp:974
 msgid "no matching ROM export target is available."
-msgstr ""
+msgstr "aucune cible d'exportation ROM correspondante n'est disponible."
 
 #: src/main.cpp:991
 msgid "could not write text!"
-msgstr ""
+msgstr "impossible d'écrire le texte"
 
 #: src/main.cpp:1008
 msgid "error while starting CLI!"
-msgstr ""
+msgstr "erreur lors du démarrage de CLI!"
 
 #: src/main.cpp:1012
 msgid "playing..."
-msgstr ""
+msgstr "lecture..."
 
 #: src/main.cpp:1053
 msgid "displaying engine fail error."
-msgstr ""
+msgstr "erreur de moteur d'affichage"
 
 #: src/main.cpp:1054
 msgid "error while initializing audio!"
-msgstr ""
+msgstr "erreur lors de l'initialisation de l'audio!"

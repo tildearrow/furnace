@@ -434,6 +434,8 @@ enum FurnaceGUIColors {
   GUI_COLOR_PATTERN_STATUS_INC,
   GUI_COLOR_PATTERN_STATUS_BENT,
   GUI_COLOR_PATTERN_STATUS_DIRECT,
+  GUI_COLOR_PATTERN_STATUS_WARNING,
+  GUI_COLOR_PATTERN_STATUS_ERROR,
   GUI_COLOR_PATTERN_PAIR,
 
   GUI_COLOR_SAMPLE_BG,
@@ -2583,6 +2585,7 @@ class FurnaceGUI {
   int sampleSelStart, sampleSelEnd;
   bool sampleInfo, sampleCompatRate;
   bool sampleDragActive, sampleDragMode, sampleDrag16, sampleZoomAuto;
+  bool sampleCheckLoopStart, sampleCheckLoopEnd;
   // 0: start
   // 1: end
   unsigned char sampleSelTarget;

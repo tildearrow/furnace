@@ -2252,7 +2252,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       }
     }
     int ins=-1;
-    if ((ins=midiCallback(msg))!=-2) {
+    if ((ins=midiCallback(msg))!=-3) {
       int chan=msg.type&15;
       switch (msg.type&0xf0) {
         case TA_MIDI_NOTE_OFF: {

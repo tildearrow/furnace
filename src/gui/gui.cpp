@@ -7905,7 +7905,7 @@ bool FurnaceGUI::init() {
   userEvents=SDL_RegisterEvents(1);
 
   e->setMidiCallback([this](const TAMidiMessage& msg) -> int {
-    if (introPos<11.0) return -2;
+    if (introPos<11.0) return -3;
     midiLock.lock();
     midiQueue.push(msg);
     if (userEvents!=0xffffffff && midiWakeUp) {
@@ -7918,11 +7918,11 @@ bool FurnaceGUI::init() {
     }
     midiLock.unlock();
     e->setMidiBaseChan(cursor.xCoarse);
-    if (msg.type==TA_MIDI_SYSEX) return -2;
-    if (midiMap.valueInputStyle!=0 && cursor.xFine!=0 && edit) return -2;
-    if (!midiMap.noteInput) return -2;
-    if (learning!=-1) return -2;
-    if (midiMap.at(msg)) return -2;
+    if (msg.type==TA_MIDI_SYSEX) return -3;
+    if (midiMap.valueInputStyle!=0 && cursor.xFine!=0 && edit) return -3;
+    if (!midiMap.noteInput) return -3;
+    if (learning!=-1) return -3;
+    if (midiMap.at(msg)) return -3;
 
     if (curWindowThreadSafe==GUI_WINDOW_WAVE_EDIT || curWindowThreadSafe==GUI_WINDOW_WAVE_LIST) {
       if ((msg.type&0xf0)==TA_MIDI_NOTE_ON) {
@@ -7933,7 +7933,7 @@ bool FurnaceGUI::init() {
           e->stopWavePreviewNoLock();
         }
       }
-      return -2;
+      return -3;
     }
 
     if (curWindowThreadSafe==GUI_WINDOW_SAMPLE_EDIT || curWindowThreadSafe==GUI_WINDOW_SAMPLE_LIST) {
@@ -7945,7 +7945,7 @@ bool FurnaceGUI::init() {
           e->stopSamplePreviewNoLock();
         }
       }
-      return -2;
+      return -3;
     }
 
     if (midiMap.directChannel && midiMap.directProgram) return -1;
@@ -8867,6 +8867,8 @@ FurnaceGUI::FurnaceGUI():
   sampleDragMode(false),
   sampleDrag16(false),
   sampleZoomAuto(true),
+  sampleCheckLoopStart(true),
+  sampleCheckLoopEnd(true),
   sampleSelTarget(0),
   sampleDragTarget(NULL),
   sampleDragStart(0,0),
