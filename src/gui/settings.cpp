@@ -76,7 +76,7 @@ const char* locales[][3]={
   //{"Deutsch (0%)", "de_DE", "Starten Sie Furnace neu, damit diese Einstellung wirksam wird."},
   {"Español", "es_ES", "reinicia Furnace para que esta opción tenga efecto."},
   //{"Suomi (0%)", "fi_FI", "käynnistä Furnace uudelleen, jotta tämä asetus tulee voimaan."},
-  //{"Français (0%)", "fr_FR", "redémarrer Furnace pour que ce réglage soit effectif."},
+  {"Français (10%)", "fr_FR", "redémarrer Furnace pour que ce réglage soit effectif."},
   //{"Հայերեն (1%)", "hy_AM", "???"},
   //{"日本語 (0%)", "ja_JP", "???"},
   {"한국어 (25%)", "ko_KR", "이 설정을 적용하려면 Furnace를 다시 시작해야 합니다."},

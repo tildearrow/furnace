@@ -73,6 +73,7 @@ const char* aboutLine[]={
   _N("-- localization/translation team --"),
   "Bahasa Indonesia: ZoomTen (Zumi)",
   "Español: CrimsonZN, ThaCuber, tildearrow",
+  "Français: fouinne44",
   "Հայերեն: Eknous",
   "한국어: Heemin, leejh20, Nicknamé",
   "Nederlands: Lunathir",
