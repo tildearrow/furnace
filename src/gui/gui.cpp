@@ -8867,6 +8867,8 @@ FurnaceGUI::FurnaceGUI():
   sampleDragMode(false),
   sampleDrag16(false),
   sampleZoomAuto(true),
+  sampleCheckLoopStart(true),
+  sampleCheckLoopEnd(true),
   sampleSelTarget(0),
   sampleDragTarget(NULL),
   sampleDragStart(0,0),

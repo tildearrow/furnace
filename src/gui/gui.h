@@ -2583,6 +2583,7 @@ class FurnaceGUI {
   int sampleSelStart, sampleSelEnd;
   bool sampleInfo, sampleCompatRate;
   bool sampleDragActive, sampleDragMode, sampleDrag16, sampleZoomAuto;
+  bool sampleCheckLoopStart, sampleCheckLoopEnd;
   // 0: start
   // 1: end
   unsigned char sampleSelTarget;
