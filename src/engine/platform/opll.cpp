@@ -202,81 +202,109 @@ void DivPlatformOPLL::tick(bool sysTick) {
       }
     }
 
-    if (chan[i].state.opllPreset==0) {
-      if (chan[i].std.alg.had) { // SUS
-        chan[i].state.alg=chan[i].std.alg.val;
+    if (chan[i].std.alg.had) { // SUS
+      chan[i].state.alg=chan[i].std.alg.val;
+      if (chan[i].state.opllPreset==0) {
         chan[i].freqChanged=true;
       }
-      if (chan[i].std.fb.had) {
-        chan[i].state.fb=chan[i].std.fb.val;
+    }
+    if (chan[i].std.fb.had) {
+      chan[i].state.fb=chan[i].std.fb.val;
+      if (chan[i].state.opllPreset==0) {
         rWrite(0x03,(chan[i].state.op[1].ksl<<6)|((chan[i].state.fms&1)<<4)|((chan[i].state.ams&1)<<3)|chan[i].state.fb);
       }
-      if (chan[i].std.fms.had) {
-        chan[i].state.fms=chan[i].std.fms.val;
+    }
+    if (chan[i].std.fms.had) {
+      chan[i].state.fms=chan[i].std.fms.val;
+      if (chan[i].state.opllPreset==0) {
         rWrite(0x03,(chan[i].state.op[1].ksl<<6)|((chan[i].state.fms&1)<<4)|((chan[i].state.ams&1)<<3)|chan[i].state.fb);
       }
-      if (chan[i].std.ams.had) {
-        chan[i].state.ams=chan[i].std.ams.val;
+    }
+    if (chan[i].std.ams.had) {
+      chan[i].state.ams=chan[i].std.ams.val;
+      if (chan[i].state.opllPreset==0) {
         rWrite(0x03,(chan[i].state.op[1].ksl<<6)|((chan[i].state.fms&1)<<4)|((chan[i].state.ams&1)<<3)|chan[i].state.fb);
       }
+    }
 
-      for (int j=0; j<2; j++) {
-        DivInstrumentFM::Operator& op=chan[i].state.op[j];
-        DivMacroInt::IntOp& m=chan[i].std.op[j];
+    for (int j=0; j<2; j++) {
+      DivInstrumentFM::Operator& op=chan[i].state.op[j];
+      DivMacroInt::IntOp& m=chan[i].std.op[j];
 
-        if (m.am.had) {
-          op.am=m.am.val;
+      if (m.am.had) {
+        op.am=m.am.val;
+        if (chan[i].state.opllPreset==0) {
           rWrite(0x00+j,(op.am<<7)|(op.vib<<6)|((op.ssgEnv&8)<<2)|(op.ksr<<4)|(op.mult));
         }
-        if (m.ar.had) {
-          op.ar=m.ar.val;
+      }
+      if (m.ar.had) {
+        op.ar=m.ar.val;
+        if (chan[i].state.opllPreset==0) {
           rWrite(0x04+j,(op.ar<<4)|(op.dr));
         }
-        if (m.dr.had) {
-          op.dr=m.dr.val;
+      }
+      if (m.dr.had) {
+        op.dr=m.dr.val;
+        if (chan[i].state.opllPreset==0) {
           rWrite(0x04+j,(op.ar<<4)|(op.dr));
         }
-        if (m.mult.had) {
-          op.mult=m.mult.val;
+      }
+      if (m.mult.had) {
+        op.mult=m.mult.val;
+        if (chan[i].state.opllPreset==0) {
           rWrite(0x00+j,(op.am<<7)|(op.vib<<6)|((op.ssgEnv&8)<<2)|(op.ksr<<4)|(op.mult));
         }
-        if (m.rr.had) {
-          op.rr=m.rr.val;
+      }
+      if (m.rr.had) {
+        op.rr=m.rr.val;
+        if (chan[i].state.opllPreset==0) {
           rWrite(0x06+j,(op.sl<<4)|(op.rr));
         }
-        if (m.sl.had) {
-          op.sl=m.sl.val;
+      }
+      if (m.sl.had) {
+        op.sl=m.sl.val;
+        if (chan[i].state.opllPreset==0) {
           rWrite(0x06+j,(op.sl<<4)|(op.rr));
         }
-        if (m.tl.had) {
-          op.tl=m.tl.val&((j==1)?15:63);
-          if (j==1) {
-            if (i<9) {
-              rWrite(0x30+i,((15-VOL_SCALE_LOG_BROKEN(chan[i].outVol,15-chan[i].state.op[1].tl,15))&15)|(chan[i].state.opllPreset<<4));
-            }
-          } else {
+      }
+      if (m.tl.had) {
+        op.tl=m.tl.val&((j==1)?15:63);
+        if (j==1) {
+          if (i<9) {
+            rWrite(0x30+i,((15-VOL_SCALE_LOG_BROKEN(chan[i].outVol,15-chan[i].state.op[1].tl,15))&15)|(chan[i].state.opllPreset<<4));
+          }
+        } else {
+          if (chan[i].state.opllPreset==0) {
             rWrite(0x02,(chan[i].state.op[0].ksl<<6)|(op.tl&63));
           }
         }
+      }
 
-        if (m.egt.had) {
-          op.ssgEnv=(m.egt.val&1)?8:0;
+      if (m.egt.had) {
+        op.ssgEnv=(m.egt.val&1)?8:0;
+        if (chan[i].state.opllPreset==0) {
           rWrite(0x00+j,(op.am<<7)|(op.vib<<6)|((op.ssgEnv&8)<<2)|(op.ksr<<4)|(op.mult));
         }
-        if (m.ksl.had) {
-          op.ksl=m.ksl.val;
+      }
+      if (m.ksl.had) {
+        op.ksl=m.ksl.val;
+        if (chan[i].state.opllPreset==0) {
           if (j==1) {
             rWrite(0x02,(chan[i].state.op[0].ksl<<6)|(chan[i].state.op[0].tl&63));
           } else {
             rWrite(0x03,(chan[i].state.op[1].ksl<<6)|((chan[i].state.fms&1)<<4)|((chan[i].state.ams&1)<<3)|chan[i].state.fb);
           }
         }
-        if (m.ksr.had) {
-          op.ksr=m.ksr.val;
+      }
+      if (m.ksr.had) {
+        op.ksr=m.ksr.val;
+        if (chan[i].state.opllPreset==0) {
           rWrite(0x00+j,(op.am<<7)|(op.vib<<6)|((op.ssgEnv&8)<<2)|(op.ksr<<4)|(op.mult));
         }
-        if (m.vib.had) {
-          op.vib=m.vib.val;
+      }
+      if (m.vib.had) {
+        op.vib=m.vib.val;
+        if (chan[i].state.opllPreset==0) {
           rWrite(0x00+j,(op.am<<7)|(op.vib<<6)|((op.ssgEnv&8)<<2)|(op.ksr<<4)|(op.mult));
         }
       }
@@ -390,6 +418,7 @@ int DivPlatformOPLL::toFreq(int freq, int fixedBlock) {
     block=freq/OPLL_C_NUM;
     if (block>0) block=bsr(block);
   }
+  if (block>7) block=7;
   freq>>=block;
   if (freq>0x1ff) freq=0x1ff;
   return (block<<9)|freq;

@@ -1588,6 +1588,9 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
 
   if(advanceSong)
   {
+    // don't let user play anything during export
+    if (exporting) pendingNotes.clear();
+
     if (!pendingNotes.empty()) {
       bool isOn[DIV_MAX_CHANS];
       memset(isOn,0,DIV_MAX_CHANS*sizeof(bool));
@@ -2260,7 +2263,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       }
     }
     int ins=-1;
-    if ((ins=midiCallback(msg))!=-2) {
+    if ((ins=midiCallback(msg))!=-3) {
       int chan=msg.type&15;
       switch (msg.type&0xf0) {
         case TA_MIDI_NOTE_OFF: {
@@ -2310,7 +2313,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
   
   // process sample/wave preview
-  if ((sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) || (sPreview.wave>=0 && sPreview.wave<(int)song.wave.size())) {
+  if (((sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) || (sPreview.wave>=0 && sPreview.wave<(int)song.wave.size())) && !exporting) {
     unsigned int samp_bbOff=0;
     unsigned int prevAvail=blip_samples_avail(samp_bb);
     if (prevAvail>size) prevAvail=size;

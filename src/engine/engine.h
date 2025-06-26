@@ -580,7 +580,7 @@ class DivEngine {
   DivWorkPool* renderPool;
 
   // MIDI stuff
-  std::function<int(const TAMidiMessage&)> midiCallback=[](const TAMidiMessage&) -> int {return -2;};
+  std::function<int(const TAMidiMessage&)> midiCallback=[](const TAMidiMessage&) -> int {return -3;};
 
   void processRowPre(int i);
   void processRow(int i, bool afterDelay);
@@ -1352,7 +1352,7 @@ class DivEngine {
     void setMidiVolExp(float value);
 
     // set MIDI input callback
-    // if the specified function returns -2, note feedback will be inhibited.
+    // if the specified function returns -3, note feedback will be inhibited.
     void setMidiCallback(std::function<int(const TAMidiMessage&)> what);
 
     // send MIDI message

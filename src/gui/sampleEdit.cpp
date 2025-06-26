@@ -733,7 +733,7 @@ void FurnaceGUI::drawSampleEdit() {
           }
           popWarningColor();
 
-          pushWarningColor(!warnLoopPos.empty() || !warnLoopStart.empty());
+          pushWarningColor(!warnLoopPos.empty() || (!warnLoopStart.empty() && sampleCheckLoopStart));
           ImGui::AlignTextToFramePadding();
           ImGui::Text(_("Start"));
           ImGui::SameLine();
@@ -752,8 +752,11 @@ void FurnaceGUI::drawSampleEdit() {
           }
           if (ImGui::IsItemActive()) {
             keepLoopAlive=true;
+            sampleCheckLoopStart=false;
+          } else {
+            sampleCheckLoopStart=true;
           }
-          if (ImGui::IsItemHovered() && (!warnLoopPos.empty() || !warnLoopStart.empty() || sample->depth==DIV_SAMPLE_DEPTH_BRR)) {
+          if (ImGui::IsItemHovered() && (!warnLoopPos.empty() || (!warnLoopStart.empty() && sampleCheckLoopStart) || sample->depth==DIV_SAMPLE_DEPTH_BRR)) {
             if (ImGui::BeginTooltip()) {
               if (sample->depth==DIV_SAMPLE_DEPTH_BRR) {
                 ImGui::Text(_("changing the loop in a BRR sample may result in glitches!"));
@@ -769,7 +772,7 @@ void FurnaceGUI::drawSampleEdit() {
           }
           popWarningColor();
 
-          pushWarningColor(!warnLoopPos.empty() || !warnLoopEnd.empty());
+          pushWarningColor(!warnLoopPos.empty() || (!warnLoopEnd.empty() && sampleCheckLoopEnd));
           ImGui::AlignTextToFramePadding();
           ImGui::Text(_("End"));
           ImGui::SameLine();
@@ -788,8 +791,11 @@ void FurnaceGUI::drawSampleEdit() {
           }
           if (ImGui::IsItemActive()) {
             keepLoopAlive=true;
+            sampleCheckLoopEnd=false;
+          } else {
+            sampleCheckLoopEnd=true;
           }
-          if (ImGui::IsItemHovered() && (!warnLoopPos.empty() || !warnLoopEnd.empty() || sample->depth==DIV_SAMPLE_DEPTH_BRR)) {
+          if (ImGui::IsItemHovered() && (!warnLoopPos.empty() || (!warnLoopEnd.empty() && sampleCheckLoopEnd) || sample->depth==DIV_SAMPLE_DEPTH_BRR)) {
             if (ImGui::BeginTooltip()) {
               if (sample->depth==DIV_SAMPLE_DEPTH_BRR) {
                 ImGui::Text(_("changing the loop in a BRR sample may result in glitches!"));

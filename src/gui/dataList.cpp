@@ -154,7 +154,7 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
   bool insPressed=ImGui::IsItemActivated();
   if (insReleased || (!insListDir && insPressed && !settings.draggableDataView)) {
     curIns=i;
-    if (!insReleased || insListDir) {
+    if (!insReleased || insListDir || settings.draggableDataView) {
       wavePreviewInit=true;
       updateFMPreview=true;
     }

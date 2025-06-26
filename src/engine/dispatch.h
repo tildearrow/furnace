@@ -564,6 +564,8 @@ struct DivChannelModeHints {
   // - 18: inc linear
   // - 19: inc bent
   // - 20: direct
+  // - 21: warning
+  // - 22: error
   unsigned char type[4];
   // up to 4
   unsigned char count;

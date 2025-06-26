@@ -929,6 +929,11 @@ void FurnaceGUI::drawPattern() {
                   break;
               }
 
+              if (xLeft<0.0f) xLeft=0.0f;
+              if (xLeft>1.0f) xLeft=1.0f;
+              if (xRight<0.0f) xRight=0.0f;
+              if (xRight>1.0f) xRight=1.0f;
+
               dl->AddRectFilled(
                 ImLerp(rectV.Min,rectV.Max,ImVec2(xLeft,0.0f)),
                 ImLerp(rectV.Min,rectV.Max,ImVec2(xRight,1.0f)),
@@ -1133,6 +1138,12 @@ void FurnaceGUI::drawPattern() {
                 case 20:
                   hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_DIRECT];
                   break;
+                case 21:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_WARNING];
+                  break;
+                case 22:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_ERROR];
+                  break;
                 default:
                   hintColor=uiColors[GUI_COLOR_TEXT];
                   break;
@@ -1243,6 +1254,10 @@ void FurnaceGUI::drawPattern() {
           if (settings.cursorWheelStep==1) {
             xAmount*=MAX(1,editStep);
             yAmount*=MAX(1,editStep);
+          }
+          if (settings.cursorWheelStep==2) {
+            xAmount*=MAX(1,editStepCoarse);
+            yAmount*=MAX(1,editStepCoarse);
           }
           moveCursor(xAmount,yAmount,false);
         }

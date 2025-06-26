@@ -5953,7 +5953,7 @@ bool FurnaceGUI::loop() {
             *curFileLambda=0;
             e->getCurFileIndex(*curFileLambda);
             *curPosInRowsLambda=curRow;
-            for (int i=0; i<curOrder; i++) *curPosInRowsLambda+=songOrdersLengths[i];
+            for (int i=0; i<MIN(curOrder,(int)songOrdersLengths.size()); i++) *curPosInRowsLambda+=songOrdersLengths[i];
             if (!songHasSongEndCommand) {
               e->getLoopsLeft(*loopsLeftLambda);
               e->getTotalLoops(*totalLoopsLambda);
@@ -5965,7 +5965,12 @@ bool FurnaceGUI::loop() {
                 *curPosInRowsLambda-=(songLength-songLoopedSectionLength); // a hack so progress bar does not jump?
               }
             }
-            *progressLambda=(float)((*curPosInRowsLambda)+((*totalLoopsLambda)-(*loopsLeftLambda))*songLength+lengthOfOneFile*(*curFileLambda))/(float)totalLength;
+            if (totalLength<0.1) {
+              // DON'T
+              *progressLambda=0;
+            } else {
+              *progressLambda=(float)((*curPosInRowsLambda)+((*totalLoopsLambda)-(*loopsLeftLambda))*songLength+lengthOfOneFile*(*curFileLambda))/(float)totalLength;
+            }
           }
         );
       }
@@ -6587,6 +6592,7 @@ bool FurnaceGUI::loop() {
           if (ImGui::Button(_("Yes"))) {
             e->factoryReset();
             quit=true;
+            quitNoSave=true;
             ImGui::CloseCurrentPopup();
           }
           popDestColor();
@@ -7678,8 +7684,10 @@ bool FurnaceGUI::init() {
     bool mustChange=false;
     if (scrW>((displaySize.w)-48) && scrH>((displaySize.h)-64)) {
       // maximize
-      SDL_MaximizeWindow(sdlWin);
-      logD("maximizing as it doesn't fit (%dx%d+%d+%d).",displaySize.w,displaySize.h,displaySize.x,displaySize.y);
+      if (!settings.noMaximizeWorkaround) {
+        SDL_MaximizeWindow(sdlWin);
+        logD("maximizing as it doesn't fit (%dx%d+%d+%d).",displaySize.w,displaySize.h,displaySize.x,displaySize.y);
+      }
     }
     if (scrW>displaySize.w) {
       scrW=(displaySize.w)-32;
@@ -7916,7 +7924,7 @@ bool FurnaceGUI::init() {
   userEvents=SDL_RegisterEvents(1);
 
   e->setMidiCallback([this](const TAMidiMessage& msg) -> int {
-    if (introPos<11.0) return -2;
+    if (introPos<11.0) return -3;
     midiLock.lock();
     midiQueue.push(msg);
     if (userEvents!=0xffffffff && midiWakeUp) {
@@ -7929,11 +7937,11 @@ bool FurnaceGUI::init() {
     }
     midiLock.unlock();
     e->setMidiBaseChan(cursor.xCoarse);
-    if (msg.type==TA_MIDI_SYSEX) return -2;
-    if (midiMap.valueInputStyle!=0 && cursor.xFine!=0 && edit) return -2;
-    if (!midiMap.noteInput) return -2;
-    if (learning!=-1) return -2;
-    if (midiMap.at(msg)) return -2;
+    if (msg.type==TA_MIDI_SYSEX) return -3;
+    if (midiMap.valueInputStyle!=0 && cursor.xFine!=0 && edit) return -3;
+    if (!midiMap.noteInput) return -3;
+    if (learning!=-1) return -3;
+    if (midiMap.at(msg)) return -3;
 
     if (curWindowThreadSafe==GUI_WINDOW_WAVE_EDIT || curWindowThreadSafe==GUI_WINDOW_WAVE_LIST) {
       if ((msg.type&0xf0)==TA_MIDI_NOTE_ON) {
@@ -7944,7 +7952,7 @@ bool FurnaceGUI::init() {
           e->stopWavePreviewNoLock();
         }
       }
-      return -2;
+      return -3;
     }
 
     if (curWindowThreadSafe==GUI_WINDOW_SAMPLE_EDIT || curWindowThreadSafe==GUI_WINDOW_SAMPLE_LIST) {
@@ -7956,7 +7964,7 @@ bool FurnaceGUI::init() {
           e->stopSamplePreviewNoLock();
         }
       }
-      return -2;
+      return -3;
     }
 
     if (midiMap.directChannel && midiMap.directProgram) return -1;
@@ -8392,13 +8400,15 @@ void FurnaceGUI::commitState(DivConfig& conf) {
 }
 
 bool FurnaceGUI::finish(bool saveConfig) {
-  commitState(e->getConfObject());
-  if (userPresetsOpen) {
-    saveUserPresets(true);
-  }
-  if (saveConfig) {
-    logI("saving config.");
-    e->saveConf();
+  if (!quitNoSave) {
+    commitState(e->getConfObject());
+    if (userPresetsOpen) {
+      saveUserPresets(true);
+    }
+    if (saveConfig) {
+      logI("saving config.");
+      e->saveConf();
+    }
   }
   rend->quitGUI();
   ImGui_ImplSDL2_Shutdown();
@@ -8498,6 +8508,7 @@ FurnaceGUI::FurnaceGUI():
   replacePendingSample(false),
   displayExportingROM(false),
   displayExportingCS(false),
+  quitNoSave(false),
   changeCoarse(false),
   mobileEdit(false),
   killGraphics(false),
@@ -8875,6 +8886,8 @@ FurnaceGUI::FurnaceGUI():
   sampleDragMode(false),
   sampleDrag16(false),
   sampleZoomAuto(true),
+  sampleCheckLoopStart(true),
+  sampleCheckLoopEnd(true),
   sampleSelTarget(0),
   sampleDragTarget(NULL),
   sampleDragStart(0,0),

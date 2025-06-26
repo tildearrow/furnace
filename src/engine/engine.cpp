@@ -3857,7 +3857,7 @@ bool DivEngine::initAudioBackend() {
   if (audioEngine==DIV_AUDIO_SDL) {
     String audioDriver=getConfString("sdlAudioDriver","");
     if (!audioDriver.empty()) {
-      SDL_SetHint("SDL_HINT_AUDIODRIVER",audioDriver.c_str());
+      SDL_SetHint(SDL_HINT_AUDIODRIVER,audioDriver.c_str());
     }
   }
 #endif
@@ -4082,7 +4082,7 @@ bool DivEngine::preInit(bool noSafeMode) {
 #ifdef HAVE_SDL2
   String audioDriver=getConfString("sdlAudioDriver","");
   if (!audioDriver.empty()) {
-    SDL_SetHint("SDL_HINT_AUDIODRIVER",audioDriver.c_str());
+    SDL_SetHint(SDL_HINT_AUDIODRIVER,audioDriver.c_str());
   }
 #endif
 

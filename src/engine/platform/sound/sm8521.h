@@ -65,7 +65,8 @@ struct sm8521_wave_t
 struct sm8521_noise_t
 {
 	struct sm8521_sg_t base;
-	unsigned int lfsr; // LFSR
+	unsigned int lfsr, oldLFSR; // LFSR
+        unsigned char out;
 };
 
 struct sm8521_t

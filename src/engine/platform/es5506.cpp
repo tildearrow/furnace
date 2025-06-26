@@ -748,7 +748,7 @@ void DivPlatformES5506::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (amigaPitch && parent->song.linearPitch!=2) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch*16,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,2,chan[i].pitch2*16,16*COLOR_NTSC,chan[i].pcm.freqOffs);
-        chan[i].freq=524288*(COLOR_NTSC/chan[i].freq)/(chipClock/32.0);
+        chan[i].freq=PITCH_OFFSET*(COLOR_NTSC/chan[i].freq)/(chipClock/16.0);
         chan[i].freq=CLAMP(chan[i].freq,0,0x1ffff);
       } else {
         chan[i].freq=CLAMP(parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,chan[i].pcm.freqOffs),0,0x1ffff);

@@ -765,7 +765,7 @@ int main(int argc, char** argv) {
 
 #if defined(HAVE_SDL2) && defined(_WIN32) && !defined(SUPPORT_XP)
   if (!IsWindows7OrGreater()) {
-    SDL_SetHint("SDL_HINT_AUDIODRIVER","winmm");
+    SDL_SetHint(SDL_HINT_AUDIODRIVER,"winmm");
   }
 #endif
 
