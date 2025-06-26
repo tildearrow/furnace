@@ -828,6 +828,10 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
         ds.subsong[0]->ordersLen = order_len;
 
+        bool has_jump_marker = false;
+        int jump_marker_order = -1;
+        int jump_dest = -1;
+
         for(int i = 0; i < order_len; i++)
         {
             unsigned char order = reader.readC();
@@ -848,6 +852,12 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                         ds.subsong[0]->orders.ord[j * 2 + 1][i] = order;
                     }
                 }
+            }
+            else
+            {
+                has_jump_marker = true;
+                jump_dest = order - 0x80;
+                jump_marker_order = i;
             }
         }
 
@@ -1099,6 +1109,37 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
         ds.insLen = ds.ins.size();
 
         s->makePatUnique(); //needed for non-continuous to continuous effects conversion
+
+        //adapt jump marker
+        if(has_jump_marker && jump_marker_order == s->ordersLen - 1 && jump_marker_order > 0)
+        {
+            DivPattern* pat = s->pat[0].getPattern(s->orders.ord[0][jump_marker_order - 1], false);
+
+            int line = s->patLen - 1;
+
+            for(int i = 0; i < ((shifted_version == 2) ? 18 : 9); i++)
+            {
+                DivPattern* search = s->pat[0].getPattern(s->orders.ord[i][jump_marker_order - 1], false);
+
+                for(int r = 0; r < s->patLen; r++)
+                {
+                    if(search->data[r][4] == 0x0D)
+                    {
+                        line = r;
+                        goto next;
+                    }
+                }
+            }
+
+            next:;
+
+            int fx = findEmptyEffectSlot(pat->data[line]);
+            pat->data[line][4 + fx*2] = 0x0B;
+            pat->data[line][5 + fx*2] = jump_dest;
+
+            s->ordersLen--;
+        }
+
         s->rearrangePatterns();
 
         s->patLen = 64;
@@ -1143,6 +1184,17 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                             if(pat1->data[l][2] != -1)
                             {
                                 pat2->data[l][2]++; //increment inst number so we have second-pair-of-two-2op-instruments inst there
+                            }
+
+                            if(pat1->data[l][4 + 0*2] == 0x0B) //erase jump effect from copy
+                            {
+                                pat2->data[l][4 + 0*2] = -1;
+                                pat2->data[l][5 + 0*2] = -1;
+                            }
+                            if(pat1->data[l][4 + 1*2] == 0x0B)
+                            {
+                                pat2->data[l][4 + 1*2] = -1;
+                                pat2->data[l][5 + 1*2] = -1;
                             }
                         }
                     }
