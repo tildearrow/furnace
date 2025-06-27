@@ -63,6 +63,7 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - Hortus
 - ifrit05
 - iyatemu
+- jaezu
 - JayBOB18
 - Jimmy-DS
 - jvsTSX
@@ -71,7 +72,6 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - kleeder
 - Korbo
 - KungFuFurby
-- jaezu
 - Laggy
 - leejh20
 - LovelyA72
@@ -131,11 +131,11 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - TCORPStudios
 - Teuthida
 - ThaCuber
+- The Beesh-Spweesh!
 - The Blender Fiddler
 - TheDuccinator
-- theloredev
-- The Beesh-Spweesh!
 - The Goofy-Mouse
+- theloredev
 - TheRealHedgehogSonic
 - tildearrow
 - tom\_atom
