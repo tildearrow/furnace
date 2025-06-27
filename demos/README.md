@@ -19,7 +19,6 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - AquaDoesStuff
 - asikwus
 - AstralBlue
-- Background2982
 - battybeats
 - bbqzzd
 - Bernie
@@ -55,7 +54,7 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - Forte
 - Fragmare
 - freq-mod
-- Fur
+- Furmilion
 - gtr3qq
 - halberd (lordlydumbass)
 - Heckett Heriot
