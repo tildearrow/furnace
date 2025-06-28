@@ -94,6 +94,16 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   if (i<0 || i>=e->curSubSong->patLen) {
     return;
   }
+  // set the top-most and bottom-most Y positions
+  if (topMostOrder==-1) {
+    topMostOrder=ord;
+  }
+  if (topMostRow==-1) {
+    topMostRow=i;
+  }
+  bottomMostOrder=ord;
+  bottomMostRow=i;
+  // stuff
   bool isPushing=false;
   ImVec4 activeColor=uiColors[GUI_COLOR_PATTERN_ACTIVE];
   ImVec4 inactiveColor=uiColors[GUI_COLOR_PATTERN_INACTIVE];
@@ -447,6 +457,13 @@ void FurnaceGUI::drawPattern() {
     sel2.xFine^=sel1.xFine;
   }
 
+  /*
+  topMostOrder=-1;
+  topMostRow=-1;
+  bottomMostOrder=-1;
+  bottomMostRow=-1;
+  */
+
   ImVec2 origWinPadding=ImGui::GetStyle().WindowPadding;
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0.0f,0.0f));
   if (mobileUI) {
@@ -519,7 +536,7 @@ void FurnaceGUI::drawPattern() {
 
       if (nextAddScroll!=0.0f) {
         float newScroll=ImGui::GetScrollY()+nextAddScroll;
-        // wrap around and go to previous/next pattern if we're about to overflow
+        // wrap around and go to previous/next pattern if we're about to go beyond the view
         if (newScroll<0.0f && curOrder>0) {
           ImGui::SetScrollY(ImGui::GetScrollMaxY()+newScroll);
           setOrder(curOrder-1);
@@ -529,6 +546,17 @@ void FurnaceGUI::drawPattern() {
         } else {
           ImGui::SetScrollY(newScroll);
         }
+
+        // select in empty space
+        logV("T: %d,%d  B: %d,%d",topMostOrder,topMostRow,bottomMostOrder,bottomMostRow);
+        if (nextAddScroll>0.0f) {
+          logW("DOWN");
+          updateSelection(selEnd.xCoarse,selEnd.xFine,bottomMostRow,bottomMostOrder);
+        } else {
+          logW("UP");
+          updateSelection(selEnd.xCoarse,selEnd.xFine,topMostRow,topMostOrder);
+        }
+
         nextScroll=-1.0f;
         nextAddScroll=0.0f;
       }
@@ -1185,6 +1213,9 @@ void FurnaceGUI::drawPattern() {
       }
 
       dummyRows=(ImGui::GetWindowSize().y/lineHeight)/2;
+
+      topMostOrder=-1;
+      topMostRow=-1;
 
       // オップナー2608 i owe you one more for this horrible code
       // previous pattern
