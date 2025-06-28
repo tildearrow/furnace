@@ -446,6 +446,7 @@ void FurnaceGUI::drawPattern() {
     sel1.xFine^=sel2.xFine;
     sel2.xFine^=sel1.xFine;
   }
+
   ImVec2 origWinPadding=ImGui::GetStyle().WindowPadding;
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0.0f,0.0f));
   if (mobileUI) {
@@ -517,7 +518,17 @@ void FurnaceGUI::drawPattern() {
       ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed,fourChars.x);
 
       if (nextAddScroll!=0.0f) {
-        ImGui::SetScrollY(ImGui::GetScrollY()+nextAddScroll);
+        float newScroll=ImGui::GetScrollY()+nextAddScroll;
+        // wrap around and go to previous/next pattern if we're about to overflow
+        if (newScroll<0.0f && curOrder>0) {
+          ImGui::SetScrollY(ImGui::GetScrollMaxY()+newScroll);
+          setOrder(curOrder-1);
+        } else if (newScroll>ImGui::GetScrollMaxY() && curOrder<(e->curSubSong->ordersLen-1)) {
+          ImGui::SetScrollY(newScroll-ImGui::GetScrollMaxY());
+          setOrder(curOrder+1);
+        } else {
+          ImGui::SetScrollY(newScroll);
+        }
         nextScroll=-1.0f;
         nextAddScroll=0.0f;
       }
@@ -1184,7 +1195,7 @@ void FurnaceGUI::drawPattern() {
         }
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha,ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha);
         for (int i=0; i<dummyRows-1; i++) {
-          patternRow(e->curSubSong->patLen+i-dummyRows+1,e->isPlaying(),lineHeight,chans,ord-1,patCache,true);
+          patternRow(e->curSubSong->patLen+i-dummyRows+1,e->isPlaying(),lineHeight,chans,ord-1,patCache,false);
         }
         ImGui::PopStyleVar();
       } else {
