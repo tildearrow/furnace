@@ -203,7 +203,7 @@ void RAD_convert_effect(DivPattern* furnace_pat, RAD_pattern* pat, int i, int j)
         case ('U' - 'A' + 10):
         {
             furnace_pat->data[j][4] = 0x11;
-            furnace_pat->data[j][5] = pat->step[i][j].effect_param & 7;
+            furnace_pat->data[j][5] = (pat->step[i][j].effect_param > 7) ? ((pat->step[i][j].effect_param - 10) | 0x10) : pat->step[i][j].effect_param;
             break;
         }
         case ('V' - 'A' + 10):
@@ -637,7 +637,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                 }
                 else
                 {
-                    ins->fm.fb = instr_s.feedb12; //where do I put feedb34???
+                    ins->fm.fb = instr_s.feedb12;
                     ins->fm.alg = instr_s.connect;
 
                     ins->fm.ops = ins->fm.alg > 1 ? 4 : 2;
@@ -792,6 +792,177 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                                 if(patterns[ch]->data[row][5] == 0)
                                 {
                                     end_pitch_slide = false;
+                                }
+                            }
+
+                            if(patterns[ch]->data[row][4] >= 0x12 && patterns[ch]->data[row][4] <= 0x15) //volume (TL)
+                            {
+                                DivInstrumentMacro* op_volume = NULL;
+
+                                if(instr_s.connect <= 1)
+                                {
+                                    if(patterns[ch]->data[row][4] <= 0x13)
+                                    {
+                                        op_volume = &ins->std.opMacros[rad_order[opOrder[0x13 - patterns[ch]->data[row][4]]]].tlMacro;
+                                    }
+                                }
+                                if(instr_s.connect > 1 && instr_s.connect <= 3) //one 4-op instrument
+                                {
+                                    op_volume = &ins->std.opMacros[rad_order[opOrder[0x15 - patterns[ch]->data[row][4]]]].tlMacro;
+                                }
+                                if(instr_s.connect > 3) //two 2-op instruments
+                                {
+                                    if(patterns[ch]->data[row][4] <= 0x13)
+                                    {
+                                        op_volume = &ins->std.opMacros[0x13 - patterns[ch]->data[row][4]].tlMacro;
+                                    }
+                                    if(patterns[ch]->data[row][4] >= 0x14)
+                                    {
+                                        op_volume = &ins2->std.opMacros[0x15 - patterns[ch]->data[row][4]].tlMacro;
+                                    }
+                                }
+
+                                if(op_volume != NULL)
+                                {
+                                    op_volume->speed = instr_s.riff_def_speed;
+
+                                    if(op_volume->len == 0)
+                                    {
+                                        for(int iii = 0; iii < 256; iii++)
+                                        {
+                                            op_volume->val[iii] = -1;
+                                        }
+                                    }
+
+                                    op_volume->len = row + 1;
+                                    op_volume->val[row] = patterns[ch]->data[row][5];
+
+                                    for(int iii = 1; iii < 256; iii++)
+                                    {
+                                        if(op_volume->val[iii] == -1 && op_volume->val[iii - 1] >= 0)
+                                        {
+                                            while(op_volume->val[iii] == -1 && iii < row)
+                                            {
+                                                op_volume->val[iii] = op_volume->val[iii - 1];
+                                                iii++;
+                                            }
+
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if(patterns[ch]->data[row][4] == 0x16) //multiplier
+                            {
+                                DivInstrumentMacro* op_mult = NULL;
+
+                                if(instr_s.connect <= 1)
+                                {
+                                    if((patterns[ch]->data[row][5] >> 4) < 2)
+                                    {
+                                        op_mult = &ins->std.opMacros[1 - (patterns[ch]->data[row][5] >> 4)].tlMacro;
+                                    }
+                                }
+                                if(instr_s.connect > 1 && instr_s.connect <= 3) //one 4-op instrument
+                                {
+                                    if((patterns[ch]->data[row][5] >> 4) < 4)
+                                    {
+                                        op_mult = &ins->std.opMacros[rad_order[opOrder[3 - (patterns[ch]->data[row][5] >> 4)]]].tlMacro;
+                                    }
+                                }
+                                if(instr_s.connect > 3) //two 2-op instruments
+                                {
+                                    if((patterns[ch]->data[row][5] >> 4) < 2)
+                                    {
+                                        op_mult = &ins->std.opMacros[1 - (patterns[ch]->data[row][5] >> 4)].tlMacro;
+                                    }
+                                    if((patterns[ch]->data[row][5] >> 4) >= 2 && (patterns[ch]->data[row][5] >> 4) < 4)
+                                    {
+                                        op_mult = &ins2->std.opMacros[1 - ((patterns[ch]->data[row][5] >> 4) - 2)].tlMacro;
+                                    }
+                                }
+
+                                if(op_mult != NULL)
+                                {
+                                    op_mult->speed = instr_s.riff_def_speed;
+
+                                    if(op_mult->len == 0)
+                                    {
+                                        for(int iii = 0; iii < 256; iii++)
+                                        {
+                                            op_mult->val[iii] = -1;
+                                        }
+                                    }
+
+                                    op_mult->len = row + 1;
+                                    op_mult->val[row] = patterns[ch]->data[row][5];
+
+                                    for(int iii = 1; iii < 256; iii++)
+                                    {
+                                        if(op_mult->val[iii] == -1 && op_mult->val[iii - 1] >= 0)
+                                        {
+                                            while(op_mult->val[iii] == -1 && iii < row)
+                                            {
+                                                op_mult->val[iii] = op_mult->val[iii - 1];
+                                                iii++;
+                                            }
+
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if(patterns[ch]->data[row][4] == 0x11) //feedback
+                            {
+                                DivInstrumentMacro* op_fb = NULL;
+
+                                if(instr_s.connect <= 3) //one 2-op or 4-op instrument
+                                {
+                                    op_fb = &ins->std.fbMacro;
+                                }
+                                if(instr_s.connect > 3) //two 2-op instruments
+                                {
+                                    if(patterns[ch]->data[row][5] & 0x10)
+                                    {
+                                        op_fb = &ins2->std.fbMacro;
+                                        patterns[ch]->data[row][5] &= ~0x10;
+                                    }
+                                    else
+                                    {
+                                        op_fb = &ins->std.fbMacro;
+                                    }
+                                }
+
+                                if(op_fb != NULL)
+                                {
+                                    op_fb->speed = instr_s.riff_def_speed;
+
+                                    if(op_fb->len == 0)
+                                    {
+                                        for(int iii = 0; iii < 256; iii++)
+                                        {
+                                            op_fb->val[iii] = -1;
+                                        }
+                                    }
+
+                                    op_fb->len = row + 1;
+                                    op_fb->val[row] = patterns[ch]->data[row][5];
+
+                                    for(int iii = 1; iii < 256; iii++)
+                                    {
+                                        if(op_fb->val[iii] == -1 && op_fb->val[iii - 1] >= 0)
+                                        {
+                                            while(op_fb->val[iii] == -1 && iii < row)
+                                            {
+                                                op_fb->val[iii] = op_fb->val[iii - 1];
+                                                iii++;
+                                            }
+
+                                            break;
+                                        }
+                                    }
                                 }
                             }
                         }
