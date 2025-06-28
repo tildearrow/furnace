@@ -1006,11 +1006,11 @@ enum NoteCtrl {
 
 struct SelectionPoint {
   int xCoarse, xFine;
-  int y;
-  SelectionPoint(int xc, int xf, int yp):
-    xCoarse(xc), xFine(xf), y(yp) {}
+  int y, order;
+  SelectionPoint(int xc, int xf, int yp, int o):
+    xCoarse(xc), xFine(xf), y(yp), order(o) {}
   SelectionPoint():
-    xCoarse(0), xFine(0), y(0) {}
+    xCoarse(0), xFine(0), y(0), order(0) {}
 };
 
 struct UndoRegion {
@@ -2343,7 +2343,7 @@ class FurnaceGUI {
 
   int curIns, curWave, curSample, curOctave, curOrder, playOrder, prevIns, oldRow, editStep, editStepCoarse, soloChan, orderEditMode, orderCursor;
   int loopOrder, loopRow, loopEnd, isClipping, newSongCategory, latchTarget;
-  int wheelX, wheelY, dragSourceX, dragSourceXFine, dragSourceY, dragDestinationX, dragDestinationXFine, dragDestinationY, oldBeat, oldBar;
+  int wheelX, wheelY, dragSourceX, dragSourceXFine, dragSourceY, dragSourceOrder, dragDestinationX, dragDestinationXFine, dragDestinationY, dragDestinationOrder, oldBeat, oldBar;
   int curGroove, exitDisabledTimer;
   int curPaletteChoice, curPaletteType;
   float soloTimeout;
@@ -2983,8 +2983,8 @@ class FurnaceGUI {
   void processDrags(int dragX, int dragY);
   void processPoint(SDL_Event& ev);
 
-  void startSelection(int xCoarse, int xFine, int y, bool fullRow=false);
-  void updateSelection(int xCoarse, int xFine, int y, bool fullRow=false);
+  void startSelection(int xCoarse, int xFine, int y, int ord, bool fullRow=false);
+  void updateSelection(int xCoarse, int xFine, int y, int ord, bool fullRow=false);
   void finishSelection();
   void finishDrag();
 

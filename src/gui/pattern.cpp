@@ -71,7 +71,11 @@ void FurnaceGUI::popPartBlend() {
 // draw a pattern row
 inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache, bool inhibitSel) {
   static char id[64];
-  bool selectedRow=(i>=sel1.y && i<=sel2.y && !inhibitSel);
+  bool selectedRow=(
+    !inhibitSel &&
+    (ord>sel1.order || (ord==sel1.order && i>=sel1.y)) &&
+    (ord<sel2.order || (ord==sel2.order && i<=sel2.y))
+  );
   ImGui::TableNextRow(0,lineHeight);
   ImGui::TableNextColumn();
   float cursorPosY=ImGui::GetCursorPos().y-ImGui::GetScrollY();
@@ -105,7 +109,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   }
   // check overflow highlight
   if (settings.overflowHighlight) {
-    if (edit && cursor.y==i && curWindowLast==GUI_WINDOW_PATTERN) {
+    if (edit && cursor.y==i && cursor.order==ord && curWindowLast==GUI_WINDOW_PATTERN) {
       if (editClone && !isPatUnique && secondTimer<0.5) {
         ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING_CLONE]));
       } else {
@@ -120,7 +124,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     }
   } else {
     isPushing=true;
-    if (edit && cursor.y==i && curWindowLast==GUI_WINDOW_PATTERN) {
+    if (edit && cursor.y==i && cursor.order==ord && curWindowLast==GUI_WINDOW_PATTERN) {
       if (editClone && !isPatUnique && secondTimer<0.5) {
         ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING_CLONE]));
       } else {
@@ -146,10 +150,10 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   }
   ImGui::Selectable(id,false,ImGuiSelectableFlags_NoPadWithHalfSpacing,fourChars);
   if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
-    updateSelection(0,0,i,true);
+    updateSelection(0,0,i,ord,true);
   }
   if (ImGui::IsItemClicked()) {
-    startSelection(0,0,i,true);
+    startSelection(0,0,i,ord,true);
   }
   if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
     ImGui::InhibitInertialScroll();
@@ -182,9 +186,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     bool selectedNote=selectedRow && (j32>=sel1XSum && j32<=sel2XSum);
     bool selectedIns=selectedRow && (j32+1>=sel1XSum && j32+1<=sel2XSum);
     bool selectedVol=selectedRow && (j32+2>=sel1XSum && j32+2<=sel2XSum);
-    bool cursorNote=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==0 && curWindowLast==GUI_WINDOW_PATTERN);
-    bool cursorIns=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==1 && curWindowLast==GUI_WINDOW_PATTERN);
-    bool cursorVol=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==2 && curWindowLast==GUI_WINDOW_PATTERN);
+    bool cursorNote=(cursor.order==ord && cursor.y==i && cursor.xCoarse==j && cursor.xFine==0 && curWindowLast==GUI_WINDOW_PATTERN);
+    bool cursorIns=(cursor.order==ord && cursor.y==i && cursor.xCoarse==j && cursor.xFine==1 && curWindowLast==GUI_WINDOW_PATTERN);
+    bool cursorVol=(cursor.order==ord && cursor.y==i && cursor.xCoarse==j && cursor.xFine==2 && curWindowLast==GUI_WINDOW_PATTERN);
 
     // note
     snprintf(id,63,"%.31s###PN_%d_%d",noteName(pat->data[i][0],pat->data[i][1]),i,j);
@@ -205,10 +209,10 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
       if (selectedNote) ImGui::PopStyleColor();
     }
     if (ImGui::IsItemClicked()) {
-      startSelection(j,0,i);
+      startSelection(j,0,i,ord);
     }
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
-      updateSelection(j,0,i);
+      updateSelection(j,0,i,ord);
     }
     if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
       ImGui::InhibitInertialScroll();
@@ -249,10 +253,10 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         if (selectedIns) ImGui::PopStyleColor();
       }
       if (ImGui::IsItemClicked()) {
-        startSelection(j,1,i);
+        startSelection(j,1,i,ord);
       }
       if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
-        updateSelection(j,1,i);
+        updateSelection(j,1,i,ord);
       }
       if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
         ImGui::InhibitInertialScroll();
@@ -287,10 +291,10 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         if (selectedVol) ImGui::PopStyleColor();
       }
       if (ImGui::IsItemClicked()) {
-        startSelection(j,2,i);
+        startSelection(j,2,i,ord);
       }
       if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
-        updateSelection(j,2,i);
+        updateSelection(j,2,i,ord);
       }
       if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
         ImGui::InhibitInertialScroll();
@@ -306,8 +310,8 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         int index=4+(k<<1);
         bool selectedEffect=selectedRow && (j32+index-1>=sel1XSum && j32+index-1<=sel2XSum);
         bool selectedEffectVal=selectedRow && (j32+index>=sel1XSum && j32+index<=sel2XSum);
-        bool cursorEffect=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==index-1 && curWindowLast==GUI_WINDOW_PATTERN);
-        bool cursorEffectVal=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==index && curWindowLast==GUI_WINDOW_PATTERN);
+        bool cursorEffect=(cursor.order==ord && cursor.y==i && cursor.xCoarse==j && cursor.xFine==index-1 && curWindowLast==GUI_WINDOW_PATTERN);
+        bool cursorEffectVal=(cursor.order==ord && cursor.y==i && cursor.xCoarse==j && cursor.xFine==index && curWindowLast==GUI_WINDOW_PATTERN);
         
         // effect
         if (pat->data[i][index]==-1) {
@@ -340,10 +344,10 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
           if (selectedEffect) ImGui::PopStyleColor();
         }
         if (ImGui::IsItemClicked()) {
-          startSelection(j,index-1,i);
+          startSelection(j,index-1,i,ord);
         }
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
-          updateSelection(j,index-1,i);
+          updateSelection(j,index-1,i,ord);
         }
         if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
           ImGui::InhibitInertialScroll();
@@ -370,10 +374,10 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
           if (selectedEffectVal) ImGui::PopStyleColor();
         }
         if (ImGui::IsItemClicked()) {
-          startSelection(j,index,i);
+          startSelection(j,index,i,ord);
         }
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
-          updateSelection(j,index,i);
+          updateSelection(j,index,i,ord);
         }
         if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
           ImGui::InhibitInertialScroll();
@@ -408,6 +412,7 @@ void FurnaceGUI::drawPattern() {
     if (oldRowChanged || !e->isStepping()) {
       if (e->isStepping()) pendingStepUpdate=1;
       cursor.y=oldRow;
+      cursor.order=curOrder;
       if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && !selecting) {
         selStart=cursor;
         selEnd=cursor;
@@ -416,7 +421,14 @@ void FurnaceGUI::drawPattern() {
   }
   sel1=selStart;
   sel2=selEnd;
-  if (sel2.y<sel1.y) {
+  if (sel2.order<sel1.order) {
+    sel2.order^=sel1.order;
+    sel1.order^=sel2.order;
+    sel2.order^=sel1.order;
+    sel2.y^=sel1.y;
+    sel1.y^=sel2.y;
+    sel2.y^=sel1.y;
+  } else if (sel2.order==sel1.order && sel2.y<sel1.y) {
     sel2.y^=sel1.y;
     sel1.y^=sel2.y;
     sel2.y^=sel1.y;
@@ -1165,22 +1177,22 @@ void FurnaceGUI::drawPattern() {
 
       // オップナー2608 i owe you one more for this horrible code
       // previous pattern
-      ImGui::BeginDisabled();
       ImGui::PushStyleVar(ImGuiStyleVar_FrameShading,0.0f);
       if (settings.viewPrevPattern) {
         if ((ord-1)>=0) for (int i=0; i<chans; i++) {
-          patCache[i]=e->curPat[i].getPattern(e->curOrders->ord[i][ord-1],true);
+          patCache[i]=e->curPat[i].getPattern(e->curOrders->ord[i][ord-1],false);
         }
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha,ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha);
         for (int i=0; i<dummyRows-1; i++) {
           patternRow(e->curSubSong->patLen+i-dummyRows+1,e->isPlaying(),lineHeight,chans,ord-1,patCache,true);
         }
+        ImGui::PopStyleVar();
       } else {
         for (int i=0; i<dummyRows-1; i++) {
           ImGui::TableNextRow(0,lineHeight);
           ImGui::TableNextColumn();
         }
       }
-      ImGui::EndDisabled();
       // active area
       for (int i=0; i<chans; i++) {
         patCache[i]=e->curPat[i].getPattern(e->curOrders->ord[i][ord],true);
@@ -1189,14 +1201,15 @@ void FurnaceGUI::drawPattern() {
         patternRow(i,e->isPlaying(),lineHeight,chans,ord,patCache,false);
       }
       // next pattern
-      ImGui::BeginDisabled();
       if (settings.viewPrevPattern) {
         if ((ord+1)<e->curSubSong->ordersLen) for (int i=0; i<chans; i++) {
           patCache[i]=e->curPat[i].getPattern(e->curOrders->ord[i][ord+1],true);
         }
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha,ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha);
         for (int i=0; i<=dummyRows; i++) {
-          patternRow(i,e->isPlaying(),lineHeight,chans,ord+1,patCache,true);
+          patternRow(i,e->isPlaying(),lineHeight,chans,ord+1,patCache,false);
         }
+        ImGui::PopStyleVar();
       } else {
         for (int i=0; i<=dummyRows; i++) {
           ImGui::TableNextRow(0,lineHeight);
@@ -1204,7 +1217,6 @@ void FurnaceGUI::drawPattern() {
         }
       }
 
-      ImGui::EndDisabled();
       ImGui::PopStyleVar();
       if (demandScrollX) {
         float finalX=-fourChars.x;
