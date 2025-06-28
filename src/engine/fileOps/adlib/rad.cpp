@@ -861,25 +861,25 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                                 {
                                     if((patterns[ch]->data[row][5] >> 4) < 2)
                                     {
-                                        op_mult = &ins->std.opMacros[1 - (patterns[ch]->data[row][5] >> 4)].tlMacro;
+                                        op_mult = &ins->std.opMacros[1 - (patterns[ch]->data[row][5] >> 4)].multMacro;
                                     }
                                 }
                                 if(instr_s.connect > 1 && instr_s.connect <= 3) //one 4-op instrument
                                 {
                                     if((patterns[ch]->data[row][5] >> 4) < 4)
                                     {
-                                        op_mult = &ins->std.opMacros[rad_order[opOrder[3 - (patterns[ch]->data[row][5] >> 4)]]].tlMacro;
+                                        op_mult = &ins->std.opMacros[rad_order[opOrder[3 - (patterns[ch]->data[row][5] >> 4)]]].multMacro;
                                     }
                                 }
                                 if(instr_s.connect > 3) //two 2-op instruments
                                 {
                                     if((patterns[ch]->data[row][5] >> 4) < 2)
                                     {
-                                        op_mult = &ins->std.opMacros[1 - (patterns[ch]->data[row][5] >> 4)].tlMacro;
+                                        op_mult = &ins->std.opMacros[1 - (patterns[ch]->data[row][5] >> 4)].multMacro;
                                     }
                                     if((patterns[ch]->data[row][5] >> 4) >= 2 && (patterns[ch]->data[row][5] >> 4) < 4)
                                     {
-                                        op_mult = &ins2->std.opMacros[1 - ((patterns[ch]->data[row][5] >> 4) - 2)].tlMacro;
+                                        op_mult = &ins2->std.opMacros[1 - ((patterns[ch]->data[row][5] >> 4) - 2)].multMacro;
                                     }
                                 }
 
@@ -896,7 +896,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                                     }
 
                                     op_mult->len = row + 1;
-                                    op_mult->val[row] = patterns[ch]->data[row][5];
+                                    op_mult->val[row] = patterns[ch]->data[row][5] & 0xF;
 
                                     for(int iii = 1; iii < 256; iii++)
                                     {
@@ -968,18 +968,90 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                         }
                     }
 
+                    end:;
+
                     if(end_pitch_slide)
                     {
                         ins->std.pitchMacro.loop = ins->std.pitchMacro.len - 1;
                     }
 
-                    end:;
+                    if(ins->std.fbMacro.len > 0)
+                    {
+                        for(int ii = 0; ii < ins->std.fbMacro.len; ii++)
+                        {
+                            if(ins->std.fbMacro.val[ii] == -1)
+                            {
+                                ins->std.fbMacro.val[ii] = ins->fm.fb;
+                            }
+                        }
+                    }
+
+                    for(int ii = 0; ii < ins->fm.ops; ii++)
+                    {
+                        if(ins->std.opMacros[ii].tlMacro.len > 0)
+                        {
+                            for(int j = 0; j < ins->std.opMacros[ii].tlMacro.len; j++)
+                            {
+                                if(ins->std.opMacros[ii].tlMacro.val[j] == -1)
+                                {
+                                    ins->std.opMacros[ii].tlMacro.val[j] = ins->fm.op[ii].tl;
+                                }
+                            }
+                        }
+
+                        if(ins->std.opMacros[ii].multMacro.len > 0)
+                        {
+                            for(int j = 0; j < ins->std.opMacros[ii].multMacro.len; j++)
+                            {
+                                if(ins->std.opMacros[ii].multMacro.val[j] == -1)
+                                {
+                                    ins->std.opMacros[ii].multMacro.val[j] = ins->fm.op[ii].mult;
+                                }
+                            }
+                        }
+                    }
 
                     if(instr_s.connect > 3) //two 2-op instruments, copy macro(s) to second one
                     {
                         if(ins->std.pitchMacro.len > 0)
                         {
                             memcpy(&ins2->std.pitchMacro, &ins->std.pitchMacro, sizeof(DivInstrumentMacro));
+                        }
+
+                        if(ins2->std.fbMacro.len > 0)
+                        {
+                            for(int ii = 0; ii < ins2->std.fbMacro.len; ii++)
+                            {
+                                if(ins2->std.fbMacro.val[ii] == -1)
+                                {
+                                    ins2->std.fbMacro.val[ii] = ins2->fm.fb;
+                                }
+                            }
+                        }
+
+                        for(int ii = 0; ii < ins2->fm.ops; ii++)
+                        {
+                            if(ins2->std.opMacros[ii].tlMacro.len > 0)
+                            {
+                                for(int j = 0; j < ins2->std.opMacros[ii].tlMacro.len; j++)
+                                {
+                                    if(ins2->std.opMacros[ii].tlMacro.val[j] == -1)
+                                    {
+                                        ins2->std.opMacros[ii].tlMacro.val[j] = ins2->fm.op[ii].tl;
+                                    }
+                                }
+                            }
+
+                            if(ins2->std.opMacros[ii].multMacro.len > 0)
+                            {
+                                for(int j = 0; j < ins2->std.opMacros[ii].multMacro.len; j++)
+                                {
+                                    if(ins2->std.opMacros[ii].multMacro.val[j] == -1)
+                                    {
+                                        ins2->std.opMacros[ii].multMacro.val[j] = ins2->fm.op[ii].mult;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
