@@ -539,21 +539,18 @@ void FurnaceGUI::drawPattern() {
         // wrap around and go to previous/next pattern if we're about to go beyond the view
         if (newScroll<0.0f && curOrder>0) {
           ImGui::SetScrollY(ImGui::GetScrollMaxY()+newScroll);
-          setOrder(curOrder-1);
+          curOrder--;
         } else if (newScroll>ImGui::GetScrollMaxY() && curOrder<(e->curSubSong->ordersLen-1)) {
           ImGui::SetScrollY(newScroll-ImGui::GetScrollMaxY());
-          setOrder(curOrder+1);
+          curOrder++;
         } else {
           ImGui::SetScrollY(newScroll);
         }
 
         // select in empty space
-        logV("T: %d,%d  B: %d,%d",topMostOrder,topMostRow,bottomMostOrder,bottomMostRow);
         if (nextAddScroll>0.0f) {
-          logW("DOWN");
           updateSelection(selEnd.xCoarse,selEnd.xFine,bottomMostRow,bottomMostOrder);
         } else {
-          logW("UP");
           updateSelection(selEnd.xCoarse,selEnd.xFine,topMostRow,topMostOrder);
         }
 

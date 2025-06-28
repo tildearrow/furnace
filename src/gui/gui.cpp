@@ -4407,7 +4407,7 @@ bool FurnaceGUI::loop() {
     e->getPlayPos(nextPlayOrder,nextOldRow);
     oldRowChanged=false;
     playOrder=nextPlayOrder;
-    if (followPattern) {
+    if (followPattern && !e->isStepping()) {
       curOrder=playOrder;
     }
     if (e->isPlaying()) {

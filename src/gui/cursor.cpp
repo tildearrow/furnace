@@ -247,7 +247,7 @@ void FurnaceGUI::finishSelection() {
 
   // change order if necessary
   if (curOrder!=cursor.order) {
-    setOrder(cursor.order);
+    curOrder=cursor.order;
     updateScroll(cursor.y);
   }
 
