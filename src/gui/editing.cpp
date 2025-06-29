@@ -303,6 +303,10 @@ void FurnaceGUI::doSelectAll() {
     }
 
     float aspect=float(selEndX-selStartX+1)/float(selEnd.y-selStart.y+1);
+    if (selStart.order!=selEnd.order) {
+      // guarantee vertical aspect ratio
+      aspect=0.0f;
+    }
     if (aspect<=1.0f && !(selStart.y==0 && selEnd.y==e->curSubSong->patLen-1)) { // up-down
       selStart.y=0;
       selEnd.y=e->curSubSong->patLen-1;
