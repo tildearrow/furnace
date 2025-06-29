@@ -539,10 +539,10 @@ void FurnaceGUI::drawPattern() {
         // wrap around and go to previous/next pattern if we're about to go beyond the view
         if (newScroll<0.0f && curOrder>0) {
           ImGui::SetScrollY(ImGui::GetScrollMaxY()+newScroll);
-          curOrder--;
+          if (!e->isPlaying() || !followPattern) setOrder(curOrder-1);
         } else if (newScroll>ImGui::GetScrollMaxY() && curOrder<(e->curSubSong->ordersLen-1)) {
           ImGui::SetScrollY(newScroll-ImGui::GetScrollMaxY());
-          curOrder++;
+          if (!e->isPlaying() || !followPattern) setOrder(curOrder+1);
         } else {
           ImGui::SetScrollY(newScroll);
         }
