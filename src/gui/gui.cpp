@@ -7479,6 +7479,8 @@ bool FurnaceGUI::loop() {
 bool FurnaceGUI::init() {
   logI("initializing GUI.");
 
+  opTouched=new bool[DIV_MAX_PATTERNS*DIV_MAX_ROWS];
+
   syncState();
   syncSettings();
   syncTutorial();
@@ -8420,6 +8422,9 @@ bool FurnaceGUI::finish(bool saveConfig) {
     delete chanOscWorkPool;
   }
 
+  delete[] opTouched;
+  opTouched=NULL;
+
   return true;
 }
 
@@ -8858,6 +8863,7 @@ FurnaceGUI::FurnaceGUI():
   randomizeEffect(false),
   pendingStepUpdate(0),
   oldOrdersLen(0),
+  opTouched(NULL),
   sampleZoom(1.0),
   prevSampleZoom(1.0),
   minSampleZoom(1.0),

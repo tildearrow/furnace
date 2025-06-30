@@ -2570,6 +2570,7 @@ class FurnaceGUI {
   int oldOrdersLen;
   DivOrders oldOrders;
   std::map<unsigned short,DivPattern*> oldPatMap;
+  bool* opTouched;
   FixedQueue<UndoStep,256> undoHist;
   FixedQueue<UndoStep,256> redoHist;
   FixedQueue<CursorJumpPoint,256> cursorUndoHist;
