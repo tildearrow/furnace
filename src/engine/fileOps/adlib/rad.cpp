@@ -319,7 +319,7 @@ bool RAD_read_pattern(SafeReader* reader, RAD_pattern* pat, DivPattern** furnace
     {
         DivPattern* furnace_pat = furnace_patterns[i];
 
-        for(int j = 0; j < max_line_number; j++)
+        for(int j = 0; j <= max_line_number; j++)
         {
             if(pat->step[i][j].note == 0xF)
             {
@@ -1547,7 +1547,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                             delete[] file;
                             return false;
                         }
-                        
+
                         byte = reader.readC();
                         bytes_read++;
 
@@ -1726,7 +1726,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                     {
                         start_row:;
 
-                        DivPattern* pat = ss->pat[c].getPattern(p, true);
+                        DivPattern* pat = ss->pat[c].getPattern(ss->orders.ord[c][p], true);
 
                         short* row_data = pat->data[r];
 
@@ -1828,6 +1828,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                                 {
                                     p++;
                                     r = s_row_data[5 + 2 * eff];
+
                                     goto start_row;
                                 }
                             }
