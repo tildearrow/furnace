@@ -2341,7 +2341,7 @@ void DivEngine::loadA2W(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         length[2] = reader.readI();
     }
 
-    if((int)reader.size() - (int)reader.tell() < length[0]) 
+    if((int)reader.size() - (int)reader.tell() < (int)length[0]) 
     {
         logE("invalid length of block 0!");
         lastError = _("invalid length of block 0!");
@@ -2351,7 +2351,7 @@ void DivEngine::loadA2W(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
     reader.read(block_0, length[0]);
 
-    if((int)reader.size() - (int)reader.tell() < length[1]) 
+    if((int)reader.size() - (int)reader.tell() < (int)length[1]) 
     {
         logE("invalid length of block 1!");
         lastError = _("invalid length of block 1!");
@@ -2363,7 +2363,7 @@ void DivEngine::loadA2W(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
     if(version > 1)
     {
-        if((int)reader.size() - (int)reader.tell() < length[2]) 
+        if((int)reader.size() - (int)reader.tell() < (int)length[2]) 
         {
             logE("invalid length of block 2!");
             lastError = _("invalid length of block 2!");
@@ -2554,7 +2554,7 @@ void DivEngine::loadA2B(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         length = reader.readI();
     }
 
-    if((int)reader.size() - (int)reader.tell() < length) 
+    if((int)reader.size() - (int)reader.tell() < (int)length) 
     {
         logE("invalid length of block!");
         lastError = _("invalid length of block!");
@@ -2727,7 +2727,7 @@ void DivEngine::loadA2F(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
     length = reader.readS();
 
-    if((int)reader.size() - (int)reader.tell() < length) 
+    if((int)reader.size() - (int)reader.tell() < (int)length) 
     {
         logE("invalid length of block!");
         lastError = _("invalid length of block!");

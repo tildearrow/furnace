@@ -221,10 +221,17 @@ void RAD_convert_effect(DivPattern* furnace_pat, RAD_pattern* pat, int i, int j)
     }
 }
 
-void RAD_read_pattern(SafeReader* reader, RAD_pattern* pat, DivPattern** furnace_patterns, DivSubSong* subsong, int version, bool hide_chans)
+bool RAD_read_pattern(SafeReader* reader, RAD_pattern* pat, DivPattern** furnace_patterns, DivSubSong* subsong, int version, bool hide_chans)
 {
     unsigned short len = (unsigned char)reader->readC();
     len |= ((unsigned char)reader->readC() << 8);
+
+    if((int)reader->size() - (int)reader->tell() < len) 
+    {
+        logE("pattern data too short!");
+        //lastError = _("file too short!");
+        return false;
+    }
     
     unsigned short bytes_read = 0;
 
@@ -351,9 +358,11 @@ void RAD_read_pattern(SafeReader* reader, RAD_pattern* pat, DivPattern** furnace
             }
         }
     }
+
+    return true;
 }
 
-void RAD_read_description(DivSong* ds, SafeReader* reader)
+bool RAD_read_description(DivSong* ds, SafeReader* reader)
 {
     size_t description_start_pos = reader->tell();
 
@@ -363,6 +372,13 @@ void RAD_read_description(DivSong* ds, SafeReader* reader)
 
     do
     {
+        if(reader->size() == reader->tell() + 1) 
+        {
+            logE("file too short!");
+            //lastError = _("file too short!");
+            return false;
+        }
+
         unsigned char next_char = reader->readC();
         if(next_char == '\0')
         {
@@ -419,6 +435,8 @@ void RAD_read_description(DivSong* ds, SafeReader* reader)
     ds->notes = description;
 
     delete[] description;
+
+    return true;
 }
 
 void RAD_import_FM_op(DivInstrument* ins, unsigned char furnace_op, FM_OP_INST_DATA_new* op_s)
@@ -460,6 +478,14 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
         reader.seek(16, SEEK_SET);
 
+        if(reader.size() == reader.tell() + 1) 
+        {
+            logE("file too short!");
+            lastError = _("file too short!");
+            delete[] file;
+            return false;
+        }
+
         version = reader.readC();
 
         if(version != 0x10 && version != 0x21)
@@ -483,6 +509,14 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
             }*/
         }
 
+        if(reader.size() == reader.tell() + 1) 
+        {
+            logE("file too short!");
+            lastError = _("file too short!");
+            delete[] file;
+            return false;
+        }
+
         unsigned char flags = reader.readC();
 
         s->speeds.val[0] = flags & 0x1F;
@@ -491,7 +525,14 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
         {
             if(flags & (1 << 7)) //read description
             {
-                RAD_read_description(&ds, &reader);
+                bool desc = RAD_read_description(&ds, &reader);
+
+                if(!desc)
+                {
+                    lastError = _("File too short!");
+                    delete[] file;
+                    return false;
+                }
             }
         }
 
@@ -514,7 +555,14 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                 }
             }
 
-            RAD_read_description(&ds, &reader);
+            bool desc = RAD_read_description(&ds, &reader);
+
+            if(!desc)
+            {
+                lastError = _("File too short!");
+                delete[] file;
+                return false;
+            }
         }
 
         if(shifted_version == 1) //old RAD
@@ -531,6 +579,14 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
             while(!list_end)
             {
+                if(reader.size() == reader.tell() + 1) 
+                {
+                    logE("file too short!");
+                    lastError = _("file too short!");
+                    delete[] file;
+                    return false;
+                }
+
                 int inst_num = reader.readC();
 
                 if(inst_num == 0)
@@ -543,6 +599,14 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                 {
                     logE("invalid instrument number!");
                     lastError="invalid instrument number";
+                    delete[] file;
+                    return false;
+                }
+
+                if(reader.size() - reader.tell() < sizeof(FM_INST_DATA)) 
+                {
+                    logE("file too short!");
+                    lastError = _("file too short!");
                     delete[] file;
                     return false;
                 }
@@ -599,6 +663,14 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
             while(!list_end)
             {
+                if(reader.size() == reader.tell() + 1) 
+                {
+                    logE("file too short!");
+                    lastError = _("file too short!");
+                    delete[] file;
+                    return false;
+                }
+
                 unsigned char inst_num = reader.readC();
 
                 if(inst_num == 0)
@@ -617,7 +689,24 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                 char name[257] = { 0 };
 
+                if(reader.size() == reader.tell() + 1) 
+                {
+                    logE("file too short!");
+                    lastError = _("file too short!");
+                    delete[] file;
+                    return false;
+                }
+
                 unsigned char name_len = reader.readC();
+
+                if(reader.size() - reader.tell() < (size_t)name_len) 
+                {
+                    logE("file too short!");
+                    lastError = _("file too short!");
+                    delete[] file;
+                    return false;
+                }
+
                 reader.read((void*)&name, name_len);
                 
                 DivInstrument* ins = ds.ins[(int)inst_num * 2];
@@ -626,11 +715,28 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                 ins->type = DIV_INS_OPL;
                 ins->name = name;
 
+                if(reader.size() - reader.tell() < sizeof(FM_INST_DATA_new)) 
+                {
+                    logE("file too short!");
+                    lastError = _("file too short!");
+                    delete[] file;
+                    return false;
+                }
+
                 reader.read((void*)&instr_s, sizeof(FM_INST_DATA_new));
 
                 if(instr_s.connect == 7) //MIDI instrument?
                 {
                     unsigned char dummy[3];
+
+                    if(reader.size() - reader.tell() < 3) 
+                    {
+                        logE("file too short!");
+                        lastError = _("file too short!");
+                        delete[] file;
+                        return false;
+                    }
+
                     reader.read((void*)&dummy, 3);
 
                     ins->name += " [MIDI]";
@@ -646,6 +752,13 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                     {
                         for(int i = 0; i < 4; i++) //four ops even for 2-op instruments?
                         {
+                            if(reader.size() - reader.tell() < sizeof(FM_OP_INST_DATA_new)) 
+                            {
+                                logE("file too short!");
+                                lastError = _("file too short!");
+                                delete[] file;
+                                return false;
+                            }
                             reader.read((void*)&op_s, sizeof(FM_OP_INST_DATA_new));
 
                             unsigned char furnace_op = 0;
@@ -711,6 +824,14 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                         for(int i = 0; i < 2; i++)
                         {
+                            if(reader.size() - reader.tell() < sizeof(FM_OP_INST_DATA_new)) 
+                            {
+                                logE("file too short!");
+                                lastError = _("file too short!");
+                                delete[] file;
+                                return false;
+                            }
+
                             reader.read((void*)&op_s, sizeof(FM_OP_INST_DATA_new));
 
                             unsigned char furnace_op = 1 - i;
@@ -720,6 +841,14 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                         for(int i = 0; i < 2; i++)
                         {
+                            if(reader.size() - reader.tell() < sizeof(FM_OP_INST_DATA_new)) 
+                            {
+                                logE("file too short!");
+                                lastError = _("file too short!");
+                                delete[] file;
+                                return false;
+                            }
+
                             reader.read((void*)&op_s, sizeof(FM_OP_INST_DATA_new));
 
                             unsigned char furnace_op = 1 - i;
@@ -759,7 +888,15 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                         patterns[i] = riff_subsong->pat[i].getPattern(0, true);
                     }
 
-                    RAD_read_pattern(&reader, riff, patterns, riff_subsong, shifted_version, true);
+                    bool pat_read = RAD_read_pattern(&reader, riff, patterns, riff_subsong, shifted_version, true);
+
+                    if(!pat_read)
+                    {
+                        lastError = _("Incomplete pattern data!");
+                        delete[] file;
+                        delete riff;
+                        return false;
+                    }
 
                     riff_subsong_index++;
 
@@ -1058,6 +1195,14 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
             }
         }
 
+        if(reader.size() == reader.tell() + 1) 
+        {
+            logE("file too short!");
+            lastError = _("file too short!");
+            delete[] file;
+            return false;
+        }
+
         //orders format is the same for old and new RAD
         unsigned char order_len = reader.readC();
 
@@ -1077,6 +1222,13 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
         for(int i = 0; i < order_len; i++)
         {
+            if(reader.size() == reader.tell() + 1) 
+            {
+                logE("file too short!");
+                lastError = _("file too short!");
+                delete[] file;
+                return false;
+            }
             unsigned char order = reader.readC();
 
             //TODO: decrease orders length on jump marker and place 0Bxx effect there
@@ -1108,6 +1260,14 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
         {
             unsigned short pat_offsets[32] = { 0 };
 
+            if(reader.size() - reader.tell() < 32 * sizeof(pat_offsets[0])) 
+            {
+                logE("file too short!");
+                lastError = _("file too short!");
+                delete[] file;
+                return false;
+            }
+
             reader.read(pat_offsets, 32 * sizeof(pat_offsets[0]));
 
             //size_t reader_pos = reader.tell();
@@ -1130,12 +1290,26 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                     while(1)
                     {
+                        if(reader.size() == reader.tell() + 1) 
+                        {
+                            logE("file too short!");
+                            lastError = _("file too short!");
+                            delete[] file;
+                            return false;
+                        }
                         unsigned char buff = reader.readC();
 
                         unsigned char line_number = buff & 0x7F;
 
                         while(1)
                         {
+                            if(reader.size() - reader.tell() < 3) 
+                            {
+                                logE("file too short!");
+                                lastError = _("file too short!");
+                                delete[] file;
+                                return false;
+                            }
                             unsigned char channel = reader.readC();
 
                             unsigned char note = reader.readC();
@@ -1205,7 +1379,15 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                     (void)preallocate;
                 }
 
-                RAD_read_pattern(&reader, pat, patterns, s, shifted_version, false);
+                bool pat_read = RAD_read_pattern(&reader, pat, patterns, s, shifted_version, false);
+
+                if(!pat_read)
+                {
+                    lastError = _("Incomplete pattern data!");
+                    delete[] file;
+                    delete pat;
+                    return false;
+                }
 
                 delete pat;
             }
@@ -1217,6 +1399,14 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
             while(1)
             {
                 int bytes_read = 0;
+
+                if(reader.size() == reader.tell()) 
+                {
+                    logE("file too short!");
+                    lastError = _("file too short!");
+                    delete[] file;
+                    return false;
+                }
 
                 unsigned char riff_number = reader.readC();
                 
@@ -1237,7 +1427,24 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                     riff_subsong_index++;
                 }
 
+                if(reader.size() == reader.tell() + 1) 
+                {
+                    logE("file too short!");
+                    lastError = _("file too short!");
+                    delete[] file;
+                    return false;
+                }
+
                 unsigned short len = (unsigned char)reader.readC();
+
+                if(reader.size() == reader.tell() + 1) 
+                {
+                    logE("file too short!");
+                    lastError = _("file too short!");
+                    delete[] file;
+                    return false;
+                }
+
                 len |= ((unsigned char)reader.readC() << 8);
 
                 RAD_pattern* pat = new RAD_pattern;
@@ -1245,12 +1452,28 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                 while(1)
                 {
+                    if(reader.size() == reader.tell() + 1) 
+                    {
+                        logE("file too short!");
+                        lastError = _("file too short!");
+                        delete[] file;
+                        return false;
+                    }
+
                     unsigned char line = reader.readC();
                     bytes_read++;
 
                     if(bytes_read >= len) break;
 
                     unsigned char line_number = line & 0x7F;
+
+                    if(reader.size() == reader.tell() + 1) 
+                    {
+                        logE("file too short!");
+                        lastError = _("file too short!");
+                        delete[] file;
+                        return false;
+                    }
                 
                     unsigned char line_info = reader.readC();
                     bytes_read++;
@@ -1259,6 +1482,14 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                     if(line_info & (1 << 6)) //note/octave byte
                     {
+                        if(reader.size() == reader.tell() + 1) 
+                        {
+                            logE("file too short!");
+                            lastError = _("file too short!");
+                            delete[] file;
+                            return false;
+                        }
+
                         unsigned char byte = reader.readC();
                         bytes_read++;
 
@@ -1271,6 +1502,14 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                     if(line_info & (1 << 5)) //instrument byte
                     {
+                        if(reader.size() == reader.tell() + 1) 
+                        {
+                            logE("file too short!");
+                            lastError = _("file too short!");
+                            delete[] file;
+                            return false;
+                        }
+
                         unsigned char byte = reader.readC();
                         bytes_read++;
 
@@ -1284,6 +1523,14 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                     if(line_info & (1 << 4)) //effect/param bytes
                     {
+                        if(reader.size() == reader.tell() + 1) 
+                        {
+                            logE("file too short!");
+                            lastError = _("file too short!");
+                            delete[] file;
+                            return false;
+                        }
+
                         unsigned char byte = reader.readC();
                         bytes_read++;
 
@@ -1293,6 +1540,14 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                         if(bytes_read >= len) break;
 
+                        if(reader.size() == reader.tell() + 1) 
+                        {
+                            logE("file too short!");
+                            lastError = _("file too short!");
+                            delete[] file;
+                            return false;
+                        }
+                        
                         byte = reader.readC();
                         bytes_read++;
 
