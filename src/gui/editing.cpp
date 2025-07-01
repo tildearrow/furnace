@@ -54,8 +54,8 @@ const char* FurnaceGUI::noteNameNormal(short note, short octave) {
 
 void FurnaceGUI::prepareUndo(ActionType action, UndoRegion region) {
   if (region.begin.ord==-1) {
-    region.begin.ord=curOrder;
-    region.end.ord=curOrder;
+    region.begin.ord=selStart.order;
+    region.end.ord=selEnd.order;
     region.begin.x=0;
     region.end.x=e->getTotalChannelCount()-1;
     region.begin.y=0;
@@ -136,8 +136,8 @@ void FurnaceGUI::makeUndo(ActionType action, UndoRegion region) {
   size_t subSong=e->getCurrentSubSong();
 
   if (region.begin.ord==-1) {
-    region.begin.ord=curOrder;
-    region.end.ord=curOrder;
+    region.begin.ord=selStart.order;
+    region.end.ord=selEnd.order;
     region.begin.x=0;
     region.end.x=e->getTotalChannelCount()-1;
     region.begin.y=0;
@@ -303,6 +303,10 @@ void FurnaceGUI::doSelectAll() {
     }
 
     float aspect=float(selEndX-selStartX+1)/float(selEnd.y-selStart.y+1);
+    if (selStart.order!=selEnd.order) {
+      // guarantee vertical aspect ratio
+      aspect=0.0f;
+    }
     if (aspect<=1.0f && !(selStart.y==0 && selEnd.y==e->curSubSong->patLen-1)) { // up-down
       selStart.y=0;
       selEnd.y=e->curSubSong->patLen-1;
@@ -333,20 +337,23 @@ void FurnaceGUI::doDelete() {
 
   int iCoarse=selStart.xCoarse;
   int iFine=selStart.xFine;
+  int jOrder=selStart.order;
   for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
     if (!e->curSubSong->chanShow[iCoarse]) continue;
-    DivPattern* pat=e->curPat[iCoarse].getPattern(e->curOrders->ord[iCoarse][curOrder],true);
     for (; iFine<3+e->curPat[iCoarse].effectCols*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
       maskOut(opMaskDelete,iFine);
-      for (int j=selStart.y; j<=selEnd.y; j++) {
-        if (iFine==0) {
-          pat->data[j][iFine]=0;
-          if (selStart.y==selEnd.y) pat->data[j][2]=-1;
-        }
-        pat->data[j][iFine+1]=(iFine<1)?0:-1;
+      for (; jOrder<=selEnd.order; jOrder++) {
+        DivPattern* pat=e->curPat[iCoarse].getPattern(e->curOrders->ord[iCoarse][jOrder],true);
+        for (int j=selStart.y; (j<=selEnd.y || jOrder<selEnd.order); j++) {
+          if (iFine==0) {
+            pat->data[j][iFine]=0;
+            if (selStart.y==selEnd.y) pat->data[j][2]=-1;
+          }
+          pat->data[j][iFine+1]=(iFine<1)?0:-1;
 
-        if (selStart.y==selEnd.y && iFine>2 && iFine&1 && settings.effectDeletionAltersValue) {
-          pat->data[j][iFine+2]=-1;
+          if (selStart.y==selEnd.y && iFine>2 && iFine&1 && settings.effectDeletionAltersValue) {
+            pat->data[j][iFine+2]=-1;
+          }
         }
       }
     }
@@ -358,20 +365,47 @@ void FurnaceGUI::doDelete() {
 
 void FurnaceGUI::doPullDelete() {
   finishSelection();
+
+  if (selStart.order!=selEnd.order) {
+    showError("You can only pull delete within the same order.");
+    return;
+  }
+
   prepareUndo(GUI_UNDO_PATTERN_PULL);
   curNibble=false;
 
   if (settings.pullDeleteBehavior) {
-    if (--selStart.y<0) selStart.y=0;
-    if (--selEnd.y<0) selEnd.y=0;
-    if (--cursor.y<0) cursor.y=0;
+    if (--selStart.y<0) {
+      if (--selStart.order<0) {
+        selStart.order=0;
+        selStart.y=0;
+      } else {
+        selStart.y+=e->curSubSong->patLen;
+      }
+    }
+    if (--selEnd.y<0) {
+      if (--selEnd.order<0) {
+        selEnd.order=0;
+        selEnd.y=0;
+      } else {
+        selEnd.y+=e->curSubSong->patLen;
+      }
+    }
+    if (--cursor.y<0) {
+      if (--cursor.order<0) {
+        cursor.order=0;
+        cursor.y=0;
+      } else {
+        cursor.y+=e->curSubSong->patLen;
+      }
+    }
     updateScroll(cursor.y);
   }
 
   SelectionPoint sStart=selStart;
   SelectionPoint sEnd=selEnd;
 
-  if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && settings.pullDeleteRow) {
+  if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && selStart.order==selEnd.order && settings.pullDeleteRow) {
     sStart.xFine=0;
     sEnd.xFine=2+e->curPat[sEnd.xCoarse].effectCols*2;
   }
@@ -405,13 +439,19 @@ void FurnaceGUI::doPullDelete() {
 
 void FurnaceGUI::doInsert() {
   finishSelection();
+
+  if (selStart.order!=selEnd.order) {
+    showError("You can only insert/push within the same order.");
+    return;
+  }
+
   prepareUndo(GUI_UNDO_PATTERN_PUSH);
   curNibble=false;
 
   SelectionPoint sStart=selStart;
   SelectionPoint sEnd=selEnd;
 
-  if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && settings.insertBehavior) {
+  if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && selStart.order==selEnd.order && settings.insertBehavior) {
     sStart.xFine=0;
     sEnd.xFine=2+e->curPat[sEnd.xCoarse].effectCols*2;
   }

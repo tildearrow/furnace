@@ -19,7 +19,6 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - AquaDoesStuff
 - asikwus
 - AstralBlue
-- Background2982
 - battybeats
 - bbqzzd
 - Bernie
@@ -55,7 +54,7 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - Forte
 - Fragmare
 - freq-mod
-- Fur
+- Furmilion
 - gtr3qq
 - halberd (lordlydumbass)
 - Heckett Heriot
@@ -63,6 +62,7 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - Hortus
 - ifrit05
 - iyatemu
+- jaezu
 - JayBOB18
 - Jimmy-DS
 - jvsTSX
@@ -71,7 +71,6 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - kleeder
 - Korbo
 - KungFuFurby
-- jaezu
 - Laggy
 - leejh20
 - LovelyA72
@@ -131,11 +130,11 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - TCORPStudios
 - Teuthida
 - ThaCuber
+- The Beesh-Spweesh!
 - The Blender Fiddler
 - TheDuccinator
-- theloredev
-- The Beesh-Spweesh!
 - The Goofy-Mouse
+- theloredev
 - TheRealHedgehogSonic
 - tildearrow
 - tom\_atom

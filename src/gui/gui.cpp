@@ -4417,7 +4417,7 @@ bool FurnaceGUI::loop() {
     e->getPlayPos(nextPlayOrder,nextOldRow);
     oldRowChanged=false;
     playOrder=nextPlayOrder;
-    if (followPattern) {
+    if (followPattern && !e->isStepping()) {
       curOrder=playOrder;
     }
     if (e->isPlaying()) {
@@ -7498,6 +7498,8 @@ bool FurnaceGUI::loop() {
 bool FurnaceGUI::init() {
   logI("initializing GUI.");
 
+  opTouched=new bool[DIV_MAX_PATTERNS*DIV_MAX_ROWS];
+
   syncState();
   syncSettings();
   syncTutorial();
@@ -8439,6 +8441,9 @@ bool FurnaceGUI::finish(bool saveConfig) {
     delete chanOscWorkPool;
   }
 
+  delete[] opTouched;
+  opTouched=NULL;
+
   return true;
 }
 
@@ -8628,9 +8633,13 @@ FurnaceGUI::FurnaceGUI():
   wheelX(0),
   wheelY(0),
   dragSourceX(0),
+  dragSourceXFine(0),
   dragSourceY(0),
+  dragSourceOrder(0),
   dragDestinationX(0),
+  dragDestinationXFine(0),
   dragDestinationY(0),
+  dragDestinationOrder(0),
   oldBeat(-1),
   oldBar(-1),
   curGroove(-1),
@@ -8861,6 +8870,10 @@ FurnaceGUI::FurnaceGUI():
   fadeMax(255),
   collapseAmount(2),
   randomizeEffectVal(0),
+  topMostOrder(-1),
+  topMostRow(-1),
+  bottomMostOrder(-1),
+  bottomMostRow(-1),
   playheadY(0.0f),
   scaleMax(100.0f),
   fadeMode(false),
@@ -8869,6 +8882,7 @@ FurnaceGUI::FurnaceGUI():
   randomizeEffect(false),
   pendingStepUpdate(0),
   oldOrdersLen(0),
+  opTouched(NULL),
   sampleZoom(1.0),
   prevSampleZoom(1.0),
   minSampleZoom(1.0),
