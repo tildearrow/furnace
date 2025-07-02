@@ -29,7 +29,7 @@ msgstr "FM %d"
 
 #: src/engine/sysDef.cpp:425 src/engine/sysDef.cpp:439
 msgid "20xx: Set channel mode (bit 0: square; bit 1: noise; bit 2: envelope)"
-msgstr "20xx: Ange kanalläge (bit 0: kvadrat; bit 1: brus, bit 2; ADSR)"
+msgstr "20xx: Ange kanalläge (bit 0: kvadrat; bit 1: brus, bit 2; envelope)"
 
 #: src/engine/sysDef.cpp:426
 msgid "21xx: Set noise frequency (0 to 1F)"
@@ -37,30 +37,30 @@ msgstr "21xx: Ange brusfrekvens (0 till 1F)"
 
 #: src/engine/sysDef.cpp:427 src/engine/sysDef.cpp:441
 msgid "22xy: Set envelope mode (x: shape, y: enable for this channel)"
-msgstr "22xy: Ange ADSR (x: form, y: sätt på för kanalen)"
+msgstr "22xy: Ange envelope (x: form, y: sätt på för kanalen)"
 
 #: src/engine/sysDef.cpp:428 src/engine/sysDef.cpp:442
 msgid "23xx: Set envelope period low byte"
-msgstr "23xx: Ange ADSR-period låg byte"
+msgstr "23xx: Ange envelope-period låg byte"
 
 #: src/engine/sysDef.cpp:429 src/engine/sysDef.cpp:443
 msgid "24xx: Set envelope period high byte"
-msgstr "24xx: Ange ADSR-period hög byte"
+msgstr "24xx: Ange envelope-period hög byte"
 
 #: src/engine/sysDef.cpp:430 src/engine/sysDef.cpp:444
 #: src/engine/sysDef.cpp:1727
 msgid "25xx: Envelope slide up"
-msgstr "25xx: ADSR-tonhöjdningen upp"
+msgstr "25xx: Envelope-tonhöjdning upp"
 
 #: src/engine/sysDef.cpp:431 src/engine/sysDef.cpp:445
 #: src/engine/sysDef.cpp:1728
 msgid "26xx: Envelope slide down"
-msgstr "26xx: ADSR-tonhöjdningen ner"
+msgstr "26xx: Envelope-tonhöjdning ner"
 
 #: src/engine/sysDef.cpp:432 src/engine/sysDef.cpp:446
 #: src/engine/sysDef.cpp:1729
 msgid "29xy: Set auto-envelope (x: numerator; y: denominator)"
-msgstr "29xy: Ange auto-ADSR (x: täljare; y: nämnare)"
+msgstr "29xy: Ange auto-envelope (x: täljare; y: nämnare)"
 
 #: src/engine/sysDef.cpp:433
 msgid "2Cxx: Set timer period offset (bit 7: sign)"
@@ -104,7 +104,7 @@ msgstr "2Dxx: FÅR EJ ANSTÄLLAS AV KOMPOSITÖREN"
 
 #: src/engine/sysDef.cpp:458
 msgid "30xx: Toggle hard envelope reset on new notes"
-msgstr "30xx: Växla hård ADSR-återställning på nya noter"
+msgstr "30xx: Växla hård envelope-återställning på nya noter"
 
 #: src/engine/sysDef.cpp:463
 msgid "18xx: Toggle extended channel 3 mode"
@@ -208,7 +208,7 @@ msgid ""
 "54xy: Set envelope scale (x: operator from 1 to 4 (0 for all ops); y: scale "
 "from 0 to 3)"
 msgstr ""
-"54xy: Ange ADSR-skalan (x: operator from 1 to 4 (0 for all operatorer); y: "
+"54xy: Ange envelope-skalan (x: operator from 1 to 4 (0 for all operatorer); y: "
 "skala från 0 till 3)"
 
 #: src/engine/sysDef.cpp:494
@@ -257,15 +257,15 @@ msgstr "60xx: Ställ in operatörsmask (bits 0-3)"
 
 #: src/engine/sysDef.cpp:505
 msgid "61xx: Set algorithm (0 to 7)"
-msgstr ""
+msgstr "61xx: Ange algoritm (0 till 7)"
 
 #: src/engine/sysDef.cpp:506
 msgid "62xx: Set LFO FM depth (0 to 7)"
-msgstr ""
+msgstr "62xx: Ange LFO FM-djup (0 till 7)"
 
 #: src/engine/sysDef.cpp:507
 msgid "63xx: Set LFO AM depth (0 to 3)"
-msgstr ""
+msgstr "63xx: Ange LFO AM-djup (0 till 3)"
 
 #: src/engine/sysDef.cpp:512
 msgid "10xx: Set noise frequency (xx: value; 0 disables noise)"
@@ -332,7 +332,7 @@ msgid ""
 "2Bxy: Set envelope generator shift (x: operator from 1 to 4 (0 for all ops); "
 "y: shift from 0 to 3)"
 msgstr ""
-"2Bxy: Ange ADSR-generatorskifte (x: operator från 1 till 4 (0 för alla "
+"2Bxy: Ange envelope-generatorskifte (x: operator från 1 till 4 (0 för alla "
 "operatorer); y: skift från 0 till 3)"
 
 #: src/engine/sysDef.cpp:530
@@ -344,11 +344,11 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:531
 msgid "64xx: Set LFO2 FM depth (0 to 7)"
-msgstr ""
+msgstr "64xx: Ange LFO 2 FM-djup (0 till 7)"
 
 #: src/engine/sysDef.cpp:532
 msgid "65xx: Set LFO2 AM depth (0 to 3)"
-msgstr ""
+msgstr "65xx: Ange LFO 2 AM-djup (0 till 3)"
 
 #: src/engine/sysDef.cpp:535
 msgid ""
@@ -383,7 +383,7 @@ msgid ""
 "55xy: Set SSG envelope (x: operator from 1 to 4 (0 for all ops); y: 0-7 on, "
 "8 off)"
 msgstr ""
-"55xy: Ange SSG-ADSR (x: operator från 1 till 4 (0 för alla operatorer); y: "
+"55xy: Ange SSG-envelope (x: operator från 1 till 4 (0 för alla operatorer); y: "
 "0-7 på, 8 av)"
 
 #: src/engine/sysDef.cpp:554
@@ -453,7 +453,7 @@ msgid ""
 "54xy: Set envelope scale (x: operator from 1 to 2 (0 for all ops); y: scale "
 "from 0 to 3)"
 msgstr ""
-"54xy: Ange ADSR-skalan (x: operator från 1 till 2 (0 för alla operatorer); "
+"54xy: Ange envelope-skalan (x: operator från 1 till 2 (0 för alla operatorer); "
 "y: skala från 0 till 3)"
 
 #: src/engine/sysDef.cpp:571
@@ -461,7 +461,7 @@ msgid ""
 "55xy: Set envelope sustain (x: operator from 1 to 2 (0 for all ops); y: "
 "enabled)"
 msgstr ""
-"55xy: Ange ADSR-sustain (x: operator från 1 till 2 (0 för alla operatorer); "
+"55xy: Ange envelope-sustain (x: operator från 1 till 2 (0 för alla operatorer); "
 "y: aktiverad)"
 
 #: src/engine/sysDef.cpp:572 src/engine/sysDef.cpp:599
@@ -484,7 +484,7 @@ msgid ""
 "5Bxy: Set whether key will scale envelope (x: operator from 1 to 2 (0 for "
 "all ops); y: enabled)"
 msgstr ""
-"5Bxy: Ange om värdet ska skala ADSR (x: operator från 1 till 2 (0 för alla "
+"5Bxy: Ange om värdet ska skala envelope (x: operator från 1 till 2 (0 för alla "
 "operatorer); y: aktiverad)"
 
 #: src/engine/sysDef.cpp:579
@@ -534,7 +534,7 @@ msgid ""
 "55xy: Set envelope sustain (x: operator from 1 to 4 (0 for all ops); y: "
 "enabled)"
 msgstr ""
-"55xy: Ange ADSR-sustain (x: operator från 1 till 4 (0 för alla operatorer); "
+"55xy: Ange envelope-sustain (x: operator från 1 till 4 (0 för alla operatorer); "
 "y: aktiverad)"
 
 #: src/engine/sysDef.cpp:602 src/engine/sysDef.cpp:695
@@ -550,7 +550,7 @@ msgid ""
 "5Bxy: Set whether key will scale envelope (x: operator from 1 to 4 (0 for "
 "all ops); y: enabled)"
 msgstr ""
-"5Bxy: Ange om värdet ska skala ADSR (x: operator från 1 till 4 (0 för alla "
+"5Bxy: Ange om värdet ska skala envelope (x: operator från 1 till 4 (0 för alla "
 "operatorer); y: aktiverad)"
 
 #: src/engine/sysDef.cpp:609
@@ -643,12 +643,12 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:632
 msgid "15xx: Set envelope reset time"
-msgstr "15xx: Ange ADSR-återställningstid"
+msgstr "15xx: Ange envelope-återställningstid"
 
 #: src/engine/sysDef.cpp:633
 msgid "1Axx: Disable envelope reset for this channel (1 disables; 0 enables)"
 msgstr ""
-"1Axx: Inaktivera ADSR-återställning för denna kanal (1 inaktiverar; 0 "
+"1Axx: Inaktivera envelope-återställning för denna kanal (1 inaktiverar; 0 "
 "aktiverar)"
 
 #: src/engine/sysDef.cpp:634
@@ -762,7 +762,7 @@ msgid ""
 "26xy: Set envelope delay (x: operator from 1 to 4 (0 for all ops); y: delay "
 "from 0 to 7)"
 msgstr ""
-"26xy: Ange ADSR-delay (x: operator från 1 till 4 (0 för alla operatorer); y: "
+"26xy: Ange envelope-delay (x: operator från 1 till 4 (0 för alla operatorer); y: "
 "delay från 0 till 7)"
 
 #: src/engine/sysDef.cpp:679
@@ -799,7 +799,7 @@ msgid ""
 "y: low 8 bits of F-num)"
 msgstr ""
 "3xyy: Ange fast frekvens F-nummer för operator 1 (x: hög 2 bit från 0 till "
-"3; y: låg 8 bit av F-nummer)"
+"3; y: låg 8-bit av F-nummer)"
 
 #: src/engine/sysDef.cpp:701
 msgid ""
@@ -807,7 +807,7 @@ msgid ""
 "y: low 8 bits of F-num)"
 msgstr ""
 "3xyy: Ange fast frekvens F-nummer för operator 2 (x: hög 2 bit från 4 till "
-"7; y: låg 8 bit av F-nummer)"
+"7; y: låg 8-bit av F-nummer)"
 
 #: src/engine/sysDef.cpp:702
 msgid ""
@@ -815,7 +815,7 @@ msgid ""
 "y: low 8 bits of F-num)"
 msgstr ""
 "3xyy: Ange fast frekvens F-nummer för operator 3 (x: hög 2 bit från 8 till "
-"8; y: låg 8 bit av F-nummer)"
+"8; y: låg 8-bit av F-nummer)"
 
 #: src/engine/sysDef.cpp:703
 msgid ""
@@ -823,7 +823,7 @@ msgid ""
 "y: low 8 bits of F-num)"
 msgstr ""
 "3xyy: Ange fast frekvens F-nummer för operator 4 (x: hög 2 bit från C till "
-"F; y: låg 8 bit av F-nummer)"
+"F; y: låg 8-bit av F-nummer)"
 
 #: src/engine/sysDef.cpp:711
 msgid "11xx: Set resonance (0 to FF)"
@@ -838,7 +838,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:713
 msgid "13xx: Disable envelope reset for this channel (1 disables; 0 enables)"
 msgstr ""
-"13xx: Inaktivera ADSR-återställning för denna kanal (1 inaktiverar; 0 "
+"13xx: Inaktivera envelope-återställning för denna kanal (1 inaktiverar; 0 "
 "aktiverar)"
 
 #: src/engine/sysDef.cpp:714
@@ -898,71 +898,71 @@ msgstr "63xy: Återställ pulsbredd (x: på ny ton; y: nu)"
 
 #: src/engine/sysDef.cpp:735
 msgid "64xx: Set ring modulation source channel (0-7)"
-msgstr ""
+msgstr "64xx: Ange källkanal för ringmodulering (0-7)"
 
 #: src/engine/sysDef.cpp:736
 msgid "65xx: Set hard sync source channel (0-6)"
-msgstr ""
+msgstr "65xx: Ange kanal för hård synkroniseringskälla (0-6)"
 
 #: src/engine/sysDef.cpp:737
 msgid "66xx: Set phase modulation source channel (0-6)"
-msgstr ""
+msgstr "66xx: Ange källkanal för fasmodulering (0-6)"
 
 #: src/engine/sysDef.cpp:739
 msgid "67xx: Set attack"
-msgstr ""
+msgstr "67xx: Ange attack"
 
 #: src/engine/sysDef.cpp:740
 msgid "68xx: Set decay"
-msgstr ""
+msgstr "68xx: Ange decay"
 
 #: src/engine/sysDef.cpp:741
 msgid "69xx: Set sustain level"
-msgstr ""
+msgstr "69xx: Ange sustainnivå"
 
 #: src/engine/sysDef.cpp:742
 msgid "6Axx: Set sustain rate"
-msgstr ""
+msgstr "6Axx: Ange sustain-frekvens"
 
 #: src/engine/sysDef.cpp:743
 msgid "6Bxx: Set release"
-msgstr ""
+msgstr "6Bxx: Ange release"
 
 #: src/engine/sysDef.cpp:745
 msgid "6Cxx: Set wave mix mode (0-4)"
-msgstr ""
+msgstr "6Cxx: Ange vågmixningsläge (0-4)"
 
 #: src/engine/sysDef.cpp:747
 msgid "6Dxx: Set noise LFSR feedback bits (low byte)"
-msgstr ""
+msgstr "6Dxx: Ange LFSR-återkopplingsbitar för brus (lägre byte)"
 
 #: src/engine/sysDef.cpp:748
 msgid "6Exx: Set noise LFSR feedback bits (medium byte)"
-msgstr ""
+msgstr "6Exx: Ange LFSR-återkopplingsbitar för brus (medium byte)"
 
 #: src/engine/sysDef.cpp:749
 msgid "6Fxx: Set noise LFSR feedback bits (higher byte)"
-msgstr ""
+msgstr "6Fxx: Ange LFSR-återkopplingsbitar för brus (högre byte)"
 
 #: src/engine/sysDef.cpp:750
 msgid "70xx: Set noise LFSR feedback bits (highest bits, 0-3F)"
-msgstr ""
+msgstr "70xx: Ange LFSR-feedbackbitar för brus (högsta bitarna, 0-3F)"
 
 #: src/engine/sysDef.cpp:752
 msgid "71xx: Set filter 1 resonance"
-msgstr ""
+msgstr "71xx: Ange resonans för filter 1"
 
 #: src/engine/sysDef.cpp:753
 msgid "72xx: Set filter 2 resonance"
-msgstr ""
+msgstr "72xx: Ange resonans för filter 2"
 
 #: src/engine/sysDef.cpp:754
 msgid "73xx: Set filter 3 resonance"
-msgstr ""
+msgstr "73xx: Ange resonans för filter 3"
 
 #: src/engine/sysDef.cpp:755
 msgid "74xx: Set filter 4 resonance"
-msgstr ""
+msgstr "74xx: Ange resonans för filter 4"
 
 #: src/engine/sysDef.cpp:757
 msgid ""
@@ -1004,7 +1004,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:769
 msgid "7Exx: Set feedback"
-msgstr ""
+msgstr "7Exx: Ställ in feedback"
 
 #: src/engine/sysDef.cpp:770
 msgid ""
@@ -1084,7 +1084,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:791
 msgid "B0xx: Envelope reset on tick xx"
-msgstr ""
+msgstr "B0xx: Återställning av envelope vid tick xx"
 
 #: src/engine/sysDef.cpp:793
 msgid ""
@@ -1520,7 +1520,7 @@ msgstr "14xy: Filtersvep ner (x: tid; y: skift)"
 #: src/engine/sysDef.cpp:898 src/engine/sysDef.cpp:2275
 msgid ""
 "15xx: Set envelope mode (0: envelope, 1: length, 2: looping, 3: constant)"
-msgstr "15xx: Ange ADSR-läge (0: kuvert, 1: längd, 2: looping, 3: konstant)"
+msgstr "15xx: Ange envelope-läge (0: envelope, 1: längd, 2: looping, 3: konstant)"
 
 #: src/engine/sysDef.cpp:899 src/engine/sysDef.cpp:2276
 msgid "16xx: Set length counter (refer to manual for a list of values)"
@@ -1787,7 +1787,7 @@ msgid ""
 msgstr ""
 "detta ljudchip finns överallt! ZX Spectrum, MSX, Amstrad CPC, Intellivision,"
 "Vectrex...\n"
-"upptäckten av ADSR-basen hjälpte ljudchippet att slå SN76489 med lätthet."
+"upptäckten av envelope-basen hjälpte ljudchippet att slå SN76489 med lätthet."
 
 #: src/engine/sysDef.cpp:993 src/gui/presets.cpp:431 src/gui/presets.cpp:3565
 msgid "Amiga"
@@ -1934,7 +1934,7 @@ msgstr "11xx: Ange brusfrekvens"
 
 #: src/engine/sysDef.cpp:1057
 msgid "12xx: Setup envelope (refer to docs for more information)"
-msgstr "12xx: Konfigurera ADSR (se dokument för mer information)"
+msgstr "12xx: Konfigurera envelope (se dokument för mer information)"
 
 #: src/engine/sysDef.cpp:1062 src/gui/presets.cpp:3757
 msgid "Microchip AY8930"
@@ -1946,7 +1946,7 @@ msgid ""
 "cycles, configurable noise and per-channel envelopes!"
 msgstr ""
 "en förbättrad version av AY-3-8910 med ett större frekvensområde, "
-"arbetscykler, konfigurerbart brus och ADSR per kanal!"
+"arbetscykler, konfigurerbart brus och envelope per kanal!"
 
 #: src/engine/sysDef.cpp:1074 src/gui/presets.cpp:343
 msgid "Commodore VIC-20"
@@ -2689,7 +2689,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1412
 msgid "2Fxx: Toggle hard envelope reset on new notes"
-msgstr "2Fxx: Växla till hård ADSR-återställning på nya noter"
+msgstr "2Fxx: Växla till hård envelope-återställning på nya noter"
 
 #: src/engine/sysDef.cpp:1418 src/gui/presets.cpp:309 src/gui/presets.cpp:3537
 #: src/gui/settings.cpp:4223
@@ -2738,7 +2738,7 @@ msgid ""
 "12xy: Setup envelope (x: enabled/loop (1: enable, 3: enable+loop); y: speed/"
 "direction (0-7: down, 8-F: up))"
 msgstr ""
-"12xy: Ställ in ADSR (x: akltiverad/loop (1: aktivera, 3: aktivera+loop); y: "
+"12xy: Ställ in envelope (x: akltiverad/loop (1: aktivera, 3: aktivera+loop); y: "
 "hastighet/ riktning (0-7: ner, 8-F: upp))"
 
 #: src/engine/sysDef.cpp:1450
@@ -3152,7 +3152,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1719
 msgid "11xx: Set envelope shape"
-msgstr "11xx: Ange ADSR-formen"
+msgstr "11xx: Ange envelope-form"
 
 #: src/engine/sysDef.cpp:1720
 msgid "12xx: Set sample bank slot (0 to 7)"
@@ -3167,13 +3167,13 @@ msgid ""
 "22xx: Set envelope mode (bit 0: enable; bit 1: one-shot; bit 2: split shape "
 "to L/R; bit 3/5: H.invert right/left; bit 4/6: V.invert right/left)"
 msgstr ""
-"22xx: Ställ in ADSR-läge (bit 0: aktivera; bit 1: one-shot; bit 2: delad "
+"22xx: Ställ in envelope-läge (bit 0: aktivera; bit 1: one-shot; bit 2: delad "
 "form till L/R; bit 3/5: H.invertera höger/vänster; bit 4/6: V.invertera "
 "höger/vänster)"
 
 #: src/engine/sysDef.cpp:1726
 msgid "23xx: Set envelope period"
-msgstr "23xx: Ange ADSR-period"
+msgstr "23xx: Ange envelope-period"
 
 #: src/engine/sysDef.cpp:1734 src/gui/presets.cpp:3669
 msgid "Konami Bubble System WSG"
@@ -3274,32 +3274,32 @@ msgstr "1Bxx: Ange filterkoefficient K2 skjut ner (00 till FF)"
 
 #: src/engine/sysDef.cpp:1779
 msgid "22xx: Set envelope left volume ramp (signed) (00 to FF)"
-msgstr "22xx: Ange vänster volymramp för ADSR (signerad) (00 till FF)"
+msgstr "22xx: Ange vänster volymramp för envelope (signerad) (00 till FF)"
 
 #: src/engine/sysDef.cpp:1780
 msgid "23xx: Set envelope right volume ramp (signed) (00 to FF)"
-msgstr "22xx: Ange höger volymramp för ADSR (signerad) (00 till FF)"
+msgstr "22xx: Ange höger volymramp för envelope (signerad) (00 till FF)"
 
 #: src/engine/sysDef.cpp:1781
 msgid "24xx: Set envelope filter coefficient k1 ramp (signed) (00 to FF)"
-msgstr "24xx: Ange ADSR-filterkoefficient k1 ramp (signerad) (00 till FF)"
+msgstr "24xx: Ange envelope-filterkoefficient k1 ramp (signerad) (00 till FF)"
 
 #: src/engine/sysDef.cpp:1782
 msgid ""
 "25xx: Set envelope filter coefficient k1 ramp (signed, slower) (00 to FF)"
 msgstr ""
-"25xx: Ange ADSR-filterkoefficient k1 ramp (signerad, långsammare) (00 till "
+"25xx: Ange envelope-filterkoefficient k1 ramp (signerad, långsammare) (00 till "
 "FF)"
 
 #: src/engine/sysDef.cpp:1783
 msgid "26xx: Set envelope filter coefficient k2 ramp (signed) (00 to FF)"
-msgstr "26xx: Ange ADSR-filterkoefficient k2 ramp (signerad) (00 till FF)"
+msgstr "26xx: Ange envelope-filterkoefficient k2 ramp (signerad) (00 till FF)"
 
 #: src/engine/sysDef.cpp:1784
 msgid ""
 "27xx: Set envelope filter coefficient k2 ramp (signed, slower) (00 to FF)"
 msgstr ""
-"27xx: Ange ADSR-filterkoefficient k2 ramp (signerad, långsammare) (00 till "
+"27xx: Ange envelope-filterkoefficient k2 ramp (signerad, långsammare) (00 till "
 "FF)"
 
 #: src/engine/sysDef.cpp:1788
@@ -3308,7 +3308,7 @@ msgstr "120x: Ange paus (bit 0)"
 
 #: src/engine/sysDef.cpp:1790
 msgid "2xxx: Set envelope count (000 to 1FF)"
-msgstr "2xxx: Ange ADSR-antal (000 till 1FF)"
+msgstr "2xxx: Ange envelope-antal (000 till 1FF)"
 
 #: src/engine/sysDef.cpp:1791
 msgid "3xxx: Set filter coefficient K1 (000 to FFF)"
@@ -3790,7 +3790,7 @@ msgstr "FM 11"
 
 #: src/engine/sysDef.cpp:2177
 msgid "2Exx: Toggle hard envelope reset on new notes"
-msgstr "2Exx: Växla till hård ADSR-återställning på nya noter"
+msgstr "2Exx: Växla till hård envelope-återställning på nya noter"
 
 #: src/engine/sysDef.cpp:2183 src/gui/presets.cpp:3825
 msgid "PowerNoise"
@@ -8575,7 +8575,7 @@ msgstr "Senast använd kanal"
 
 #: src/gui/sysConf.cpp:732
 msgid "Hard reset envelope:"
-msgstr "Hård återställa ADSR"
+msgstr "Hård återställa envelope:"
 
 #: src/gui/sysConf.cpp:734 src/gui/insEdit.cpp:53 src/gui/insEdit.cpp:2267
 #: src/gui/insEdit.cpp:8051 src/gui/insEdit.cpp:8615 src/gui/insEdit.cpp:8674
@@ -8602,7 +8602,7 @@ msgstr "Release"
 
 #: src/gui/sysConf.cpp:755
 msgid "Envelope reset time:"
-msgstr "ADSR-återställningstid:"
+msgstr "Envelope-återställningstid:"
 
 #: src/gui/sysConf.cpp:765
 msgid ""
@@ -8611,7 +8611,7 @@ msgid ""
 "- values that are too high may result in notes being skipped."
 msgstr ""
 "- 0 inaktiverar ADSR-återställning. rekommenderas ej!\n"
-"- 1 kan utlösa SID ADSR-buggar.\n"
+"- 1 kan utlösa SID envelope-buggar.\n"
 "- värden som är för höga kan leda till att noter hoppas över."
 
 #: src/gui/sysConf.cpp:767
@@ -9163,7 +9163,7 @@ msgstr "Initial delvolym (kanal 5-8):"
 
 #: src/gui/sysConf.cpp:2245
 msgid "Envelope mode (channel 1-4):"
-msgstr "ADSR-läge (kanal 1-4):"
+msgstr "Envelope-läge (kanal 1-4):"
 
 #: src/gui/sysConf.cpp:2247
 msgid "Capacitor (attack/decay)##EM00"
@@ -9175,15 +9175,15 @@ msgstr "Extern (volymmakro)"
 
 #: src/gui/sysConf.cpp:2257
 msgid "Envelope mode (channel 5-8):"
-msgstr "ADSR-läge (kanal 5-8):"
+msgstr "Envelope-läge (kanal 5-8):"
 
 #: src/gui/sysConf.cpp:2259
 msgid "Capacitor (attack/decay)##EM10"
-msgstr "Kondensator (attack/decay)"
+msgstr "Kondensator (attack/decay)##EM10"
 
 #: src/gui/sysConf.cpp:2263
 msgid "External (volume macro)##EM11"
-msgstr "Extern (volymmakro)"
+msgstr "Extern (volymmakro)##EM11"
 
 #: src/gui/sysConf.cpp:2269
 msgid "Global vibrato:"
@@ -9215,11 +9215,11 @@ msgstr "Äldre förskjutningar och tonhöjd (kompatibilitet)"
 
 #: src/gui/sysConf.cpp:2393
 msgid "Swap noise duty cycles"
-msgstr ""
+msgstr "Byt arbetscyklar för brus"
 
 #: src/gui/sysConf.cpp:2399
 msgid "Stereo pulse waves"
-msgstr ""
+msgstr "Stereopulsvågor"
 
 #: src/gui/sysConf.cpp:2460
 msgid "PAL (1.77MHz)"
@@ -9247,15 +9247,15 @@ msgstr "Statisk (upp till 5 vågor)"
 
 #: src/gui/sysConf.cpp:2527
 msgid "Dynamic (phase reset on wave change!)"
-msgstr ""
+msgstr "Dynamisk (fasåterställning vid vågbyte!)"
 
 #: src/gui/sysConf.cpp:2534
 msgid "Disable anti-phase-reset"
-msgstr ""
+msgstr "Inaktivera anti-fasåterställning"
 
 #: src/gui/sysConf.cpp:2537
 msgid "I don't care about hardware"
-msgstr ""
+msgstr "Jag bryr mig inte om hårdvara"
 
 #: src/gui/sysConf.cpp:2541
 msgid ""
@@ -9264,6 +9264,10 @@ msgid ""
 "if the clicks that arise from this annoy you, use this option.\n"
 "note that your song won't play on hardware if you do so!"
 msgstr ""
+"Virtual Boy-hårdvaran kräver att alla kanaler inaktiveras innan du skriver till "
+"vågminnet.\n"
+"om du stör dig på klick som uppstår på grund av detta, använd detta alternativ.\n"
+"observera att din låt inte kommer att spelas på hårdvaran om du gör det!"
 
 #: src/gui/sysConf.cpp:2576
 msgid "DS (4MB RAM)"
@@ -9283,63 +9287,63 @@ msgstr "V 47,0,0 (9-bit volym)"
 
 #: src/gui/sysConf.cpp:2606
 msgid "V 47.0.2 (Tri/Saw PW XOR)"
-msgstr ""
+msgstr "V 47.0.2 (Tri/Saw PW XOR)"
 
 #: src/gui/sysConf.cpp:2610
 msgid "X16 Emu R49 (Noise freq fix)"
-msgstr ""
+msgstr "X16 Emu R49 (brusfrekvensfix)"
 
 #: src/gui/sysConf.cpp:2630
 msgid "33.8688MHz"
-msgstr ""
+msgstr "33,8688MHz"
 
 #: src/gui/sysConf.cpp:2634
 msgid "28.64MHz (NTSC)"
-msgstr ""
+msgstr "28,64MHz (NTSC)"
 
 #: src/gui/sysConf.cpp:2638
 msgid "28.38MHz (PAL)"
-msgstr ""
+msgstr "28,38MHz (PAL)"
 
 #: src/gui/sysConf.cpp:2644
 msgid "RAM size:"
-msgstr ""
+msgstr "RAM-storlek:"
 
 #: src/gui/sysConf.cpp:2646
 msgid "4MB"
-msgstr ""
+msgstr "4MB"
 
 #: src/gui/sysConf.cpp:2651
 msgid "2MB"
-msgstr ""
+msgstr "2MB"
 
 #: src/gui/sysConf.cpp:2656
 msgid "1MB"
-msgstr ""
+msgstr "1MB"
 
 #: src/gui/sysConf.cpp:2661
 msgid "640KB"
-msgstr ""
+msgstr "640KB"
 
 #: src/gui/sysConf.cpp:2666
 msgid "512KB"
-msgstr ""
+msgstr "512KB"
 
 #: src/gui/sysConf.cpp:2671
 msgid "256KB"
-msgstr ""
+msgstr "256KB"
 
 #: src/gui/sysConf.cpp:2676
 msgid "128KB"
-msgstr ""
+msgstr "128KB"
 
 #: src/gui/sysConf.cpp:2698
 msgid "Disable filtering"
-msgstr ""
+msgstr "Inaktivera filtrering"
 
 #: src/gui/sysConf.cpp:2712
 msgid "Headphone output##_SWAN_STEREO"
-msgstr ""
+msgstr "Utgång för hörlurar##_SWAN_STEREO"
 
 #: src/gui/sysConf.cpp:2735 src/gui/settings.cpp:736
 msgid "nothing to configure"
@@ -9347,7 +9351,7 @@ msgstr "ingenting att konfigurera"
 
 #: src/gui/sysConf.cpp:2739
 msgid "Quarter clock speed"
-msgstr ""
+msgstr "Kvartals klockhastighet"
 
 #: src/gui/sysConf.cpp:2743
 msgid ""
@@ -9361,6 +9365,15 @@ msgid ""
 "\n"
 "Default clock speed is 1MHz (1000000Hz)."
 msgstr ""
+"Minskar klockhastigheten och CPU-ljudbelastningen med 4 gånger.\n"
+"Kan användas om din CPU är för långsam för chipet.\n"
+"Påverkar inte klockhastigheten under export!\n"
+"\n"
+"Varning! Filter kan bli instabila vid hög cutoff och resonans\n"
+"om detta alternativ eller lägre klockhastighet används!\n"
+"Även filters klang kan bli annorlunda nära dessa värden.\n"
+"\n"
+"Standard klockhastighet är 1MHz (1000000Hz)."
 
 #: src/gui/sysConf.cpp:2780
 msgid "Custom clock rate"
@@ -9736,7 +9749,7 @@ msgstr "Färgdjup"
 
 #: src/gui/settings.cpp:710
 msgid "Set stencil and buffer sizes"
-msgstr ""
+msgstr "Ställ in stencil- och buffertstorlekar"
 
 #: src/gui/settings.cpp:716
 msgid "Stencil buffer size"
@@ -10424,11 +10437,11 @@ msgstr "PC-pipare strategi"
 
 #: src/gui/settings.cpp:2131
 msgid "Sample ROMs:"
-msgstr ""
+msgstr "Sample-ROMs:"
 
 #: src/gui/settings.cpp:2134
 msgid "OPL4 YRW801 path"
-msgstr ""
+msgstr "OPL4 YRW801 sökväg"
 
 #: src/gui/settings.cpp:2164 src/gui/settings.cpp:2166
 msgid "Keyboard"
@@ -10485,7 +10498,7 @@ msgstr "Lägg till..."
 
 #: src/gui/settings.cpp:2340
 msgid "that key is bound already!"
-msgstr ""
+msgstr "den nyckeln är redan bunden!"
 
 #: src/gui/settings.cpp:2429
 msgid "Instrument list"
@@ -10598,7 +10611,7 @@ msgstr "Fokusera på mönsterredigeraren när du väljer instrument"
 
 #: src/gui/settings.cpp:2668
 msgid "Draggable instruments/samples/waves"
-msgstr ""
+msgstr "Dragbara instrument/samples/vågor"
 
 #: src/gui/settings.cpp:2673
 msgid "Note preview behavior:"
@@ -10638,15 +10651,15 @@ msgstr "Ja (medan du bara håller ned Ctrl)"
 
 #: src/gui/settings.cpp:2707
 msgid "Yes (copy)##dms3"
-msgstr ""
+msgstr "Ja (kopia)##dms3"
 
 #: src/gui/settings.cpp:2711
 msgid "Yes (while holding Ctrl only and copy)##dms4"
-msgstr ""
+msgstr "Ja (samtidigt som du bara håller Ctrl och kopierar)##dms4"
 
 #: src/gui/settings.cpp:2715
 msgid "Yes (holding Ctrl copies)##dms5"
-msgstr ""
+msgstr "Ja (håll in Ctrl-kopior)##dms5"
 
 #: src/gui/settings.cpp:2721
 msgid "Toggle channel solo on:"
@@ -10666,23 +10679,23 @@ msgstr "Dubbelklick"
 
 #: src/gui/settings.cpp:2737
 msgid "Modifier for alternate wheel-scrolling (vertical/zoom/slider-input):"
-msgstr ""
+msgstr "Modifierare för alternativ hjulrullning (vertikal/zoom/slider-input):"
 
 #: src/gui/settings.cpp:2739
 msgid "Ctrl or Meta/Cmd##cwm1"
-msgstr ""
+msgstr "Ctrl eller Meta/Cmd##cwm1"
 
 #: src/gui/settings.cpp:2743
 msgid "Ctrl##cwm2"
-msgstr ""
+msgstr "Ctrl##cwm2"
 
 #: src/gui/settings.cpp:2747
 msgid "Meta/Cmd##cwm3"
-msgstr ""
+msgstr "Meta/Cmd##cwm3"
 
 #: src/gui/settings.cpp:2752
 msgid "Alt##cwm4"
-msgstr ""
+msgstr "Alt##cwm4"
 
 #: src/gui/settings.cpp:2759
 msgid "Double click selects entire column"
@@ -11455,19 +11468,19 @@ msgstr "Använd det klassiska vertikala skjutreglaget för makroredigerare"
 
 #: src/gui/settings.cpp:3673
 msgid "Macro step size/horizontal zoom:"
-msgstr ""
+msgstr "Makrostegstorlek/horisontell zoom:"
 
 #: src/gui/settings.cpp:3675
 msgid "Manual"
-msgstr ""
+msgstr "Manuell"
 
 #: src/gui/settings.cpp:3679
 msgid "Automatic per macro"
-msgstr ""
+msgstr "Automatisk per makro"
 
 #: src/gui/settings.cpp:3683
 msgid "Automatic (use longest macro)"
-msgstr ""
+msgstr "Automatisk (använd längsta makro)"
 
 #: src/gui/settings.cpp:3691
 msgid "Wave Editor"
@@ -11511,7 +11524,7 @@ msgstr "Modern"
 
 #: src/gui/settings.cpp:3728
 msgid "Modern with more labels##fml7"
-msgstr ""
+msgstr "Modern med fler etiketter"
 
 #: src/gui/settings.cpp:3732
 msgid "Compact (2x2, classic)##fml1"
@@ -11551,11 +11564,11 @@ msgstr "Efter release-hastighet"
 
 #: src/gui/settings.cpp:3769
 msgid "After Release Rate, after spacing##susp2"
-msgstr ""
+msgstr "Efter releasehastighet, efter avstånd"
 
 #: src/gui/settings.cpp:3773
 msgid "After TL##susp3"
-msgstr ""
+msgstr "Efter TL"
 
 #: src/gui/settings.cpp:3781
 msgid "Use separate colors for carriers/modulators in FM editor"
@@ -11652,7 +11665,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:3897
 msgid "Wrap text"
-msgstr ""
+msgstr "Bryt text"
 
 #: src/gui/settings.cpp:3903
 msgid "Windows"
@@ -12132,7 +12145,7 @@ msgstr "Inaktiva mönster"
 
 #: src/gui/settings.cpp:4133
 msgid "Envelope View"
-msgstr "ADSR-vy"
+msgstr "Envelope-vy"
 
 #: src/gui/settings.cpp:4134 src/gui/settings.cpp:4169 src/gui/insEdit.cpp:654
 #: src/gui/insEdit.cpp:3958 src/gui/insEdit.cpp:3959 src/gui/insEdit.cpp:4920
@@ -12143,7 +12156,7 @@ msgstr "ADSR-vy"
 #: src/gui/insEdit.cpp:8129 src/gui/insEdit.cpp:8280
 #, c-format
 msgid "Envelope"
-msgstr "ADSR"
+msgstr "Envelope"
 
 #: src/gui/settings.cpp:4135
 msgid "Sustain guide"
@@ -13925,11 +13938,11 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:84
 msgid "Don't apply Game Boy envelope on note-less instrument change"
-msgstr "Använd ej Game Boy-ADSR vid byte av instrument utan noter"
+msgstr "Använd ej Game Boy-envelope vid byte av instrument utan noter"
 
 #: src/gui/compatFlags.cpp:86
 msgid "if this is on, an instrument change will not affect the envelope."
-msgstr "om detta är påslaget kommer ett instrumentbyte inte att påverka ADSR."
+msgstr "om detta är påslaget kommer ett instrumentbyte inte att påverka envelope."
 
 #: src/gui/compatFlags.cpp:88
 msgid "Ignore DAC mode change outside of intended channel in ExtCh mode"
@@ -15545,7 +15558,7 @@ msgstr "Skapa ny"
 
 #: src/gui/waveEdit.cpp:386
 msgid "create sample from wavetable"
-msgstr ""
+msgstr "skapa sample från wavetable"
 
 #: src/gui/waveEdit.cpp:390
 msgid "Steps"
@@ -15570,6 +15583,14 @@ msgid ""
 "- 256 on SID3\n"
 "any other widths will be scaled during playback."
 msgstr ""
+"använd en bredd på:\n"
+"- alla på Amiga/N163\n"
+"- 32 på Game Boy, PC Engine, SCC, Konami Bubble System, Namco WSG, Virtual "
+"Boy and WonderSwan\n"
+"- 64 på FDS\n"
+"- 128 på X1-010\n"
+"- 256 på SID3\n"
+"alla andra bredder kommer att skalas under uppspelningen."
 
 #: src/gui/waveEdit.cpp:413
 msgid "Height"
@@ -15585,6 +15606,13 @@ msgid ""
 "- 256 for X1-010, SCC and SID3\n"
 "any other heights will be scaled during playback."
 msgstr ""
+"använd en höjd på:\n"
+"- 16 för Game Boy, WonderSwan, Namco WSG, Konami Bubble System, X1-010 "
+"Envelope shape and N163\n"
+"- 32 för PC Engine\n"
+"- 64 för FDS och Virtual Boy\n"
+"- 256 för X1-010, SCC och SID3\n"
+"alla andra höjder kommer att skalas under uppspelningen."
 
 #: src/gui/waveEdit.cpp:481
 msgid "Shapes"
@@ -16781,7 +16809,7 @@ msgid ""
 "DO NOT RELY ON THE BACKUP SYSTEM FOR AUTO-SAVE!\n"
 "Furnace will not save backups of backups."
 msgstr ""
-"Du har laddat en säkerhetskopia!Om du behöver, spara den någonstans.\n"
+"Du har laddat en säkerhetskopia! Om du behöver, spara den någonstans.\n"
 "\n"
 "FÖRLITA DIG EJ PÅ BACKUP-SYSTEMET FÖR AUTO-SPARANDE!\n"
 "Furnace sparar inte säkerhetskopior av säkerhetskopior."
@@ -16797,6 +16825,14 @@ msgid ""
 "\n"
 "have fun!"
 msgstr ""
+"du har importerat en ProTracker/SoundTracker/PC-modul!\n"
+"tänk på följande:\n"
+"\n"
+"- Furnace är inte en ersättning för din MOD-spelare\n"
+"- importen är inte perfekt. din låt kan låta annorlunda:\n"
+" - E6x mönsterloop stöds inte\n"
+"\n"
+"ha så kul!"
 
 #: src/gui/gui.cpp:2480
 msgid ""
@@ -16809,6 +16845,14 @@ msgid ""
 "\n"
 "have fun!"
 msgstr ""
+"du har importerat en Scream Tracker 3-modul!\n"
+"tänk på följande:\n"
+"\n"
+"- Furnace ersätter inte din S3M-spelare\n"
+"- importen är inte perfekt. din låt kan låta annorlunda:\n"
+" - OPL-instrument kan vara avstämda\n"
+"\n"
+"ha så kul!"
 
 #: src/gui/gui.cpp:2483
 msgid ""
@@ -16822,6 +16866,15 @@ msgid ""
 "\n"
 "have fun!"
 msgstr ""
+"du har importerat en FastTracker II-modul!\n"
+"tänk på följande:\n"
+"\n"
+"- Furnace är inte en ersättning för din XM-spelare\n"
+"- importen är inte perfekt. din låt kan låta annorlunda:\n"
+" - envelopes har konverterats till makron\n"
+" - globala volymändringar stöds inte\n"
+"\n"
+"ha så kul!"
 
 #: src/gui/gui.cpp:2486
 msgid ""
@@ -16837,6 +16890,17 @@ msgid ""
 "\n"
 "have fun!"
 msgstr ""
+"du har importerat en Impulse Tracker-modul!\n"
+"tänk på följande:\n"
+"\n"
+"- Furnace ersätter inte din IT-spelare\n"
+"- importen är inte perfekt. din låt kan låta annorlunda:\n"
+" - envelopes har konverterats till makron\n"
+" - globala volymändringar stöds inte\n"
+" - kanalvolymändringar stöds inte\n"
+" - New Note Actions (NNA) stöds inte\n"
+"\n"
+"ha så kul!"
 
 #: src/gui/gui.cpp:2494 src/gui/gui.cpp:3974 src/gui/gui.cpp:4455
 msgid "Unsaved changes! Save changes before opening file?"
@@ -18147,7 +18211,7 @@ msgstr "OP4 brusläge"
 
 #: src/gui/insEdit.cpp:60
 msgid "Envelope Delay"
-msgstr "ADSR-delay"
+msgstr "Envelope-delay"
 
 #: src/gui/insEdit.cpp:61 src/gui/insEdit.cpp:73
 msgid "Output Level"
@@ -18637,27 +18701,27 @@ msgstr "ton"
 
 #: src/gui/insEdit.cpp:442
 msgid "envelope"
-msgstr "ADSR"
+msgstr "envelope"
 
 #: src/gui/insEdit.cpp:451
 msgid "special wave"
-msgstr ""
+msgstr "specialvåg"
 
 #: src/gui/insEdit.cpp:456
 msgid "From filter 1"
-msgstr ""
+msgstr "Från filter 1"
 
 #: src/gui/insEdit.cpp:457
 msgid "From filter 2"
-msgstr ""
+msgstr "Från filter 2"
 
 #: src/gui/insEdit.cpp:458
 msgid "From filter 3"
-msgstr ""
+msgstr "Från filter 3"
 
 #: src/gui/insEdit.cpp:459
 msgid "From filter 4"
-msgstr ""
+msgstr "Från filter 4"
 
 #: src/gui/insEdit.cpp:464
 msgid "hold"
@@ -19383,36 +19447,39 @@ msgstr "Tom/Rid"
 
 #: src/gui/insEdit.cpp:4423
 msgid "Env"
-msgstr "ADSR"
+msgstr "Env"
 
 #: src/gui/insEdit.cpp:4565 src/gui/insEdit.cpp:5219 src/gui/insEdit.cpp:5902
 msgid "Snare's multiplier is determined by HiHat's."
-msgstr ""
+msgstr "Snares multiplikator bestäms av Hi-hats."
 
 #: src/gui/insEdit.cpp:4619 src/gui/insEdit.cpp:5395 src/gui/insEdit.cpp:5718
 msgid "Pitch control"
-msgstr ""
+msgstr "Tonhöjdskontroll"
 
 #: src/gui/insEdit.cpp:4628 src/gui/insEdit.cpp:5404 src/gui/insEdit.cpp:5727
 msgid ""
 "only works on linear pitch! go to Compatibility Flags > Pitch/Playback and "
 "set Pitch linearity to Full."
 msgstr ""
+"fungerar bara på linjär tonhöjd! gå till Kompatibilitetsflaggor > Tonhöjd/Uppspelning och "
+"ställ in Tonhöjdslinjäritet till Full."
 
 #: src/gui/insEdit.cpp:4630 src/gui/insEdit.cpp:5406 src/gui/insEdit.cpp:5729
 msgid ""
 "use op's arpeggio and pitch macros control instead of block/f-num macros"
 msgstr ""
+”använd ops arpeggio- och tonhöjdsmakrokontroll i stället för block/f-num-makron”
 
 #: src/gui/insEdit.cpp:4819 src/gui/insEdit.cpp:5183 src/gui/insEdit.cpp:5240
 #: src/gui/insEdit.cpp:5996
 msgid "OPL2/3/4 only (last 4 waveforms are OPL3/4 only)"
-msgstr ""
+msgstr "Endast OPL2/3/4 (de sista 4 vågformerna är endast OPL3/4)"
 
 #: src/gui/insEdit.cpp:4918 src/gui/insEdit.cpp:5651
 #, c-format
 msgid "Envelope 2 (kick only)"
-msgstr "ADSR 2 (endast bastrumma)"
+msgstr "Envelope 2 (endast bastrumma)"
 
 #: src/gui/insEdit.cpp:4923
 #, c-format
@@ -19425,7 +19492,7 @@ msgstr "Frekv."
 
 #: src/gui/insEdit.cpp:5289
 msgid "Only on YM2151 and YM2414 (OPM and OPZ)"
-msgstr ""
+msgstr "Endast på YM2151 och YM2414 (OPM och OPZ)"
 
 #: src/gui/insEdit.cpp:5312
 msgid "Blk"
@@ -19455,22 +19522,27 @@ msgid ""
 "calculation is altered\n"
 "in a way that makes tonal noise stay in tune."
 msgstr ""
+"Precis som i SID2 kan specifika brus LFSR feedback-bits config producera tonala "
+"vågor.\n"
+"Se manualen för LFSR-bits makrokonfigurationer för vilka frekvenser "
+"beräkningen ändras\n"
+"på ett sätt som gör att tonalt brus håller sig stämt."
 
 #: src/gui/insEdit.cpp:6125
 msgid "1-bit noise"
-msgstr ""
+msgstr "1-bit brus"
 
 #: src/gui/insEdit.cpp:6129
 msgid "special"
-msgstr ""
+msgstr "special"
 
 #: src/gui/insEdit.cpp:6134
 msgid "Special wave"
-msgstr ""
+msgstr "Specialvåg"
 
 #: src/gui/insEdit.cpp:6136
 msgid "Wavetable channel"
-msgstr ""
+msgstr "Wavetable-kanal"
 
 #: src/gui/insEdit.cpp:6144
 msgid "Forces waveform macro to control wavetable index."
@@ -19494,27 +19566,27 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6165 src/gui/insEdit.cpp:6166
 msgid "Special wave preview"
-msgstr ""
+msgstr "Förhandsgranskning av specialvågen"
 
 #: src/gui/insEdit.cpp:6184 src/gui/insEdit.cpp:6185
 msgid "A"
-msgstr ""
+msgstr "A"
 
 #: src/gui/insEdit.cpp:6187 src/gui/insEdit.cpp:6188
 msgid "D"
-msgstr ""
+msgstr "D"
 
 #: src/gui/insEdit.cpp:6190 src/gui/insEdit.cpp:6191
 msgid "S"
-msgstr ""
+msgstr "S"
 
 #: src/gui/insEdit.cpp:6193 src/gui/insEdit.cpp:6194
 msgid "SR"
-msgstr ""
+msgstr "SR"
 
 #: src/gui/insEdit.cpp:6196 src/gui/insEdit.cpp:6197
 msgid "R"
-msgstr ""
+msgstr "R"
 
 #: src/gui/insEdit.cpp:6222 src/gui/insEdit.cpp:7267
 msgid "Wave Mix Mode"
@@ -19522,7 +19594,7 @@ msgstr "Vågmixläge"
 
 #: src/gui/insEdit.cpp:6226 src/gui/insEdit.cpp:7212
 msgid "Reset duty on new note"
-msgstr ""
+msgstr "Återställ arbetscykel på ny not"
 
 #: src/gui/insEdit.cpp:6229 src/gui/insEdit.cpp:7274
 msgid "Absolute Duty Macro"
@@ -19534,7 +19606,7 @@ msgstr "Ringmodulering"
 
 #: src/gui/insEdit.cpp:6243
 msgid "Source channel##rmsrc"
-msgstr ""
+msgstr "Källkanal"
 
 #: src/gui/insEdit.cpp:6246 src/gui/insEdit.cpp:7221
 msgid "Oscillator Sync"
@@ -19542,60 +19614,62 @@ msgstr "Oscillatorsynk"
 
 #: src/gui/insEdit.cpp:6253
 msgid "Source channel##hssrc"
-msgstr ""
+msgstr "Källkanal"
 
 #: src/gui/insEdit.cpp:6256
 msgid "Phase modulation"
-msgstr ""
+msgstr "Fasmodulering"
 
 #: src/gui/insEdit.cpp:6263
 msgid "Source channel##pmsrc"
-msgstr ""
+msgstr "Källkanal"
 
 #: src/gui/insEdit.cpp:6269
 msgid "Separate noise pitch"
-msgstr ""
+msgstr "Separat brustonhöjd"
 
 #: src/gui/insEdit.cpp:6273
 msgid ""
 "Make noise pitch independent from other waves' pitch.\n"
 "Noise pitch will be controllable via macros."
 msgstr ""
+"Gör brusets tonhöjd oberoende av andra vågors tonhöjder. \n"
+"Brusets tonhöjd kommer att kunna styras via makron."
 
 #: src/gui/insEdit.cpp:6285
 #, c-format
 msgid "Enable filter %d"
-msgstr ""
+msgstr "Aktivera filter %d"
 
 #: src/gui/insEdit.cpp:6292
 #, c-format
 msgid "Initialize filter %d"
-msgstr ""
+msgstr "Initialisera filter %d"
 
 #: src/gui/insEdit.cpp:6297
 #, c-format
 msgid "Connect to channel input##contoinput%d"
-msgstr ""
+msgstr "Anslut till kanalingång"
 
 #: src/gui/insEdit.cpp:6303
 #, c-format
 msgid "Cutoff##fcut%d"
-msgstr ""
+msgstr "Cutoff"
 
 #: src/gui/insEdit.cpp:6305
 #, c-format
 msgid "Resonance##fres%d"
-msgstr ""
+msgstr "Resonans"
 
 #: src/gui/insEdit.cpp:6307
 #, c-format
 msgid "Output volume##foutvol%d"
-msgstr ""
+msgstr "Utgångsvolym"
 
 #: src/gui/insEdit.cpp:6309
 #, c-format
 msgid "Distortion level##fdist%d"
-msgstr ""
+msgstr "Distorsionsnivå"
 
 #: src/gui/insEdit.cpp:6313 src/gui/insEdit.cpp:6518 src/gui/insEdit.cpp:7237
 #: src/gui/insEdit.cpp:7747 src/gui/insEdit.cpp:8048 src/gui/insEdit.cpp:8302
@@ -19606,17 +19680,17 @@ msgstr "Filterläge"
 #: src/gui/insEdit.cpp:6318
 #, c-format
 msgid "low##flow%d"
-msgstr ""
+msgstr "låg"
 
 #: src/gui/insEdit.cpp:6327
 #, c-format
 msgid "band##fband%d"
-msgstr ""
+msgstr "band"
 
 #: src/gui/insEdit.cpp:6336
 #, c-format
 msgid "high##fhigh%d"
-msgstr ""
+msgstr "hög"
 
 #: src/gui/insEdit.cpp:6344
 #, c-format
@@ -19737,34 +19811,37 @@ msgid ""
 "If this option is disabled,resonance scaling will be applied\n"
 "every time a pitch change happens."
 msgstr ""
+"Filterresonansen ändras bara en gång för en ny ton.\n"
+"Om deta alternativ är avaktiverat kommer resonansskalning att tillämpas\n"
+"varje gång en tonhöjdsändring sker."
 
 #: src/gui/insEdit.cpp:6432 src/gui/insEdit.cpp:6433
 msgid "Filters connection matrix"
-msgstr ""
+msgstr "Anslutningsmatris för filter"
 
 #: src/gui/insEdit.cpp:6440
 msgid "In"
-msgstr ""
+msgstr "In"
 
 #: src/gui/insEdit.cpp:6467
 #, c-format
 msgid "Feed signal from channel to filter %d input"
-msgstr ""
+msgstr "Matningssignal från kanal till filter %d ingång"
 
 #: src/gui/insEdit.cpp:6479
 #, c-format
 msgid "Feed signal from filter %d output to filter %d input"
-msgstr ""
+msgstr "Matningssignal från filter %d utgång till filter %d ingång"
 
 #: src/gui/insEdit.cpp:6491
 #, c-format
 msgid "Feed signal from filter %d output to channel output"
-msgstr ""
+msgstr "Matningssignal från filter %d ut till kanalutgång"
 
 #: src/gui/insEdit.cpp:6512
 #, c-format
 msgid "Filter %d macros"
-msgstr ""
+msgstr "Filtrera %d-makron"
 
 #: src/gui/insEdit.cpp:6515 src/gui/insEdit.cpp:7229 src/gui/insEdit.cpp:7232
 #: src/gui/insEdit.cpp:8046 src/gui/insEdit.cpp:8342 src/gui/insEdit.cpp:8610
@@ -19777,23 +19854,23 @@ msgstr "Växla filter"
 
 #: src/gui/insEdit.cpp:6519
 msgid "Distortion Level"
-msgstr ""
+msgstr "Distorsionsnivå"
 
 #: src/gui/insEdit.cpp:6520
 msgid "Output Volume"
-msgstr ""
+msgstr "Utgångsvolym"
 
 #: src/gui/insEdit.cpp:6521
 msgid "Channel Input Connection"
-msgstr ""
+msgstr "Anslutning för kanalingång"
 
 #: src/gui/insEdit.cpp:6522
 msgid "Channel Output Connection"
-msgstr ""
+msgstr "Anslutning för kanalutgång"
 
 #: src/gui/insEdit.cpp:6523
 msgid "Connection Matrix Row"
-msgstr ""
+msgstr "Anslutningsmatris rad"
 
 #: src/gui/insEdit.cpp:6551 src/gui/insEdit.cpp:6552
 msgid "waiting..."
@@ -20032,7 +20109,7 @@ msgstr "Filter K2"
 
 #: src/gui/insEdit.cpp:7756
 msgid "Envelope length"
-msgstr "ADSR-längd"
+msgstr "Envelope-längd"
 
 #: src/gui/insEdit.cpp:7759
 msgid "Left Volume Ramp"
@@ -20088,27 +20165,27 @@ msgstr "LFO-hastighet"
 
 #: src/gui/insEdit.cpp:7858
 msgid "Damp"
-msgstr ""
+msgstr "Dämpa"
 
 #: src/gui/insEdit.cpp:7860 src/gui/insEdit.cpp:7864 src/gui/insEdit.cpp:7868
 msgid "Only for OPL4 PCM."
-msgstr ""
+msgstr "Endast för OPL4 PCM."
 
 #: src/gui/insEdit.cpp:7862
 msgid "Pseudo Reverb"
-msgstr ""
+msgstr "Pseudo-reverb"
 
 #: src/gui/insEdit.cpp:7866
 msgid "LFO Reset"
-msgstr ""
+msgstr "LFO-återställning"
 
 #: src/gui/insEdit.cpp:7870
 msgid "Disable volume change ramp"
-msgstr ""
+msgstr "Inaktivera ramp för volymändring"
 
 #: src/gui/insEdit.cpp:7875
 msgid "Use envelope"
-msgstr "Använd ADSR"
+msgstr "Använd envelope"
 
 #: src/gui/insEdit.cpp:7928
 msgid "Sustain/release mode:"
@@ -20304,15 +20381,15 @@ msgstr "Ladda in LFSR"
 
 #: src/gui/insEdit.cpp:8279
 msgid "Envelope Mode"
-msgstr "ADSR-läge"
+msgstr "Envelope-läge"
 
 #: src/gui/insEdit.cpp:8320
 msgid "LFO Vib Depth"
-msgstr ""
+msgstr "LFO Vib-djup"
 
 #: src/gui/insEdit.cpp:8321
 msgid "LFO AM Depth"
-msgstr ""
+msgstr "LFO AM-djup"
 
 #: src/gui/insEdit.cpp:8345
 msgid "Phase Reset Timer"
@@ -20404,63 +20481,63 @@ msgstr "Vågmix"
 
 #: src/gui/insEdit.cpp:8627
 msgid "Duty/Mode"
-msgstr ""
+msgstr "Drift/Läge"
 
 #: src/gui/insEdit.cpp:8642
 msgid "Special Wave"
-msgstr ""
+msgstr "Specialvåg"
 
 #: src/gui/insEdit.cpp:8646
 msgid "Noise Arpeggio"
-msgstr ""
+msgstr "Brusarpeggio"
 
 #: src/gui/insEdit.cpp:8647
 msgid "Noise Pitch"
-msgstr ""
+msgstr "Brustonhöjd"
 
 #: src/gui/insEdit.cpp:8653
 msgid "Channel inversion"
-msgstr ""
+msgstr "Inversion av kanal"
 
 #: src/gui/insEdit.cpp:8655
 msgid "Key On/Off"
-msgstr ""
+msgstr "Tangent På/Av"
 
 #: src/gui/insEdit.cpp:8659
 msgid "Ring Mod Source"
-msgstr ""
+msgstr "Ring Mod Källa"
 
 #: src/gui/insEdit.cpp:8660
 msgid "Hard Sync Source"
-msgstr ""
+msgstr "Hård synkroniseringskälla"
 
 #: src/gui/insEdit.cpp:8661
 msgid "Phase Mod Source"
-msgstr ""
+msgstr "Fas Mod Källa"
 
 #: src/gui/insEdit.cpp:8670
 msgid "Noise Phase Reset"
-msgstr ""
+msgstr "Återställning av brusfas"
 
 #: src/gui/insEdit.cpp:8672
 msgid "Envelope Reset"
-msgstr ""
+msgstr "Envelope-återställning"
 
 #: src/gui/insEdit.cpp:8677
 msgid "Sustain Rate"
-msgstr ""
+msgstr "Sustainnivå"
 
 #: src/gui/insEdit.cpp:8681
 msgid "Noise LFSR bits"
-msgstr ""
+msgstr "Brus LFSR-bitar"
 
 #: src/gui/insEdit.cpp:8682
 msgid "1-Bit Noise"
-msgstr ""
+msgstr "1-bit brus"
 
 #: src/gui/insEdit.cpp:8685
 msgid "Sample Mode"
-msgstr ""
+msgstr "Sample-läge"
 
 #: src/gui/insEdit.cpp:8699
 msgid "Timer Macros"
@@ -20704,7 +20781,7 @@ msgstr "Max."
 #~ msgstr ""
 #~ "använd en höjd på:\n"
 #~ "- 16 för Game Boy, WonderSwan, Namco WSG, Konami Bubble System, X1-010 "
-#~ "kuvertform och N163\n"
+#~ "Envelope-form och N163\n"
 #~ "- 32 för PC Engine\n"
 #~ "- 64 för FDS och Virtual Boy\n"
 #~ "- 256 för X1-010 och SCC\n"
