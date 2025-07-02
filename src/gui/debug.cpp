@@ -371,7 +371,8 @@ void putDispatchChip(void* data, int type) {
       break;
     }
     case DIV_SYSTEM_SEGAPCM:
-    case DIV_SYSTEM_SEGAPCM_COMPAT: {
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
+    case DIV_SYSTEM_SEGAPCM_DISCRETE: {
       DivPlatformSegaPCM* ch=(DivPlatformSegaPCM*)data;
       ImGui::Text("> SegaPCM");
       COMMON_CHIP_DEBUG;
@@ -745,7 +746,8 @@ void putDispatchChan(void* data, int chanNum, int type) {
       break;
     }
     case DIV_SYSTEM_SEGAPCM:
-    case DIV_SYSTEM_SEGAPCM_COMPAT: {
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
+    case DIV_SYSTEM_SEGAPCM_DISCRETE: {
       DivPlatformSegaPCM::Channel* ch=(DivPlatformSegaPCM::Channel*)data;
       ImGui::Text("> SegaPCM");
       COMMON_CHAN_DEBUG;
