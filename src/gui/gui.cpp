@@ -2490,7 +2490,16 @@ int FurnaceGUI::load(String path) {
     showWarning(_("you have imported an Impulse Tracker module!\nkeep the following in mind:\n\n- Furnace is not a replacement for your IT player\n- import is not perfect. your song may sound different:\n  - envelopes have been converted to macros\n  - global volume changes are not supported\n  - channel volume changes are not supported\n  - New Note Actions (NNA) are not supported\n\nhave fun!"),GUI_WARN_IMPORT);
   }
   if (e->song.version==DIV_VERSION_A2M) {
-    showWarning(_("you have imported an Adlib Tracker ][ module!\nkeep the following in mind:\n\n- Furnace is not a replacement for your Adlib Tracker modules player\n- import is not perfect. your song may sound different:\n  - global volume changes are not supported\n\nhave fun!"),GUI_WARN_IMPORT);
+
+    String warn = _("you have imported an Adlib Tracker ][ module!\nkeep the following in mind:\n\n- Furnace is not a replacement for your Adlib Tracker modules player\n- import is not perfect. your song may sound different:\n  - global volume changes are not supported\n\nhave fun!");
+
+    if(e->song.subsong[0]->macroSpeedMult > 1)
+    {
+      warn += fmt::sprintf(_GN("\n\nin this module macros execution speed is %d time larger than song rate. Conversion may be inaccurate.", 
+        "\n\nin this module macros execution speed is %d times larger than song rate. Conversion may be inaccurate.", e->song.subsong[0]->macroSpeedMult), e->song.subsong[0]->macroSpeedMult);
+    }
+
+    showWarning(warn,GUI_WARN_IMPORT);
   }
   if (e->song.version==DIV_VERSION_RAD) {
     showWarning(_("you have imported a Reality Adlib Tracker module!\nkeep the following in mind:\n\n- Furnace is not a replacement for your RAD modules player\n- import is not perfect. your song may sound different:\n  - riffs (both global ones and instrument ones) are not supported and are instead imported as separate subsongs\n  - \"Play riff\" effects (Rxx) are replaced with dummy A0xx effects\n  - \"Play transposed riff\" effects (Txx) are replaced with dummy A1xx effects\n\nhave fun!"),GUI_WARN_IMPORT);

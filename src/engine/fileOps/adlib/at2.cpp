@@ -3843,7 +3843,7 @@ bool DivEngine::loadAT2M(unsigned char* file, size_t len)
                         row_data[5 + emptyEffSlot * 2] = fine_porta_speed;
                     }
 
-                    if(!porta[0] && porta[1]) //place 0200 style effect to end the effect
+                    if(!porta[0] && porta[1] && row_data[4 + 0 * 2] != 0x03 && row_data[4 + 1 * 2] != 0x03) //place 0200 style effect to end the effect
                     {
                         int emptyEffSlot = findEmptyEffectSlot(row_data);
 
@@ -4106,11 +4106,11 @@ bool DivEngine::loadAT2M(unsigned char* file, size_t len)
         if(songInfo->macro_speedup > 1)
         {
         #ifdef HAVE_LOCALE
-            warnings += fmt::sprintf(ngettext("In this module macros execution speed is %d time larger than engine rate. Conversion may be inaccurate.",
-                "In this module macros execution speed is %d times larger than engine rate. Conversion may be inaccurate.\n",songInfo->macro_speedup),songInfo->macro_speedup);
+            warnings += fmt::sprintf(ngettext("In this module macros execution speed is %d time larger than song rate. Conversion may be inaccurate.",
+                "In this module macros execution speed is %d times larger than song rate. Conversion may be inaccurate.\n",songInfo->macro_speedup),songInfo->macro_speedup);
         #else
-            warnings += fmt::sprintf(_GN("In this module macros execution speed is %d time larger than engine rate. Conversion may be inaccurate.",
-                "In this module macros execution speed is %d times larger than engine rate. Conversion may be inaccurate.\n",songInfo->macro_speedup),songInfo->macro_speedup);
+            warnings += fmt::sprintf(_GN("In this module macros execution speed is %d time larger than song rate. Conversion may be inaccurate.",
+                "In this module macros execution speed is %d times larger than song rate. Conversion may be inaccurate.\n",songInfo->macro_speedup),songInfo->macro_speedup);
         #endif
 
             s->macroSpeedMult = songInfo->macro_speedup; //most probably tildearrow won't accept this...
