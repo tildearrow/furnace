@@ -1786,7 +1786,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                             }
                         }
 
-                        if(!porta[0] && porta[1]) //place 0200 style effect to end the effect
+                        if(!porta[0] && porta[1] && row_data[4] != 0x03) //place 0200 style effect to end the effect
                         {
                             int emptyEffSlot = findEmptyEffectSlot(row_data);
 
