@@ -885,7 +885,6 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version)
         case ef_Arpeggio:
         case ef_FSlideUp:
         case ef_FSlideDown:
-        case ef_TonePortamento:
         case ef_Vibrato:
         case ef_VolSlide:
         case ef_PositionJump:
@@ -915,6 +914,15 @@ void convertAT2effect(unsigned short at2Eff, short* data, int version)
                 default: break;
             }
             
+            break;
+        }
+        case ef_TonePortamento:
+        {
+            if(param != 0)
+            {
+                data[4 + emptyEffSlot * 2] = eff;
+                data[5 + emptyEffSlot * 2] = param;
+            }
             break;
         }
         case ef_TPortamVolSlide:
@@ -3696,7 +3704,6 @@ bool DivEngine::loadAT2M(unsigned char* file, size_t len)
             int vib_speed = -1;
             int trem_speed = -1;
             int vol_slide_speed = -1;
-            int slide_speed = -1;
 
             bool porta[2] = { false };
             bool vib[2] = { false };
@@ -3704,7 +3711,6 @@ bool DivEngine::loadAT2M(unsigned char* file, size_t len)
             bool fine_porta[2] = { false };
             bool vol_slide[2] = { false };
             bool fine_vol_slide[2] = { false };
-            bool slide[2] = { false };
             
             for(int p = 0; p < s->ordersLen; p++)
             {
@@ -3723,7 +3729,6 @@ bool DivEngine::loadAT2M(unsigned char* file, size_t len)
                     fine_porta[0] = false;
                     vol_slide[0] = false;
                     fine_vol_slide[0] = false;
-                    slide[0] = false;
 
                     bool found_fine_porta = false;
                     bool has_fine_porta = false;
@@ -3764,18 +3769,6 @@ bool DivEngine::loadAT2M(unsigned char* file, size_t len)
                             }
 
                             vib_speed = param;
-                        }
-                        if(effect == 0x03)
-                        {
-                            slide[0] = true;
-
-                            if(slide_speed == param)
-                            {
-                                row_data[4 + eff * 2] = -1;
-                                row_data[5 + eff * 2] = -1; //delete effect
-                            }
-
-                            slide_speed = param;
                         }
                         if(effect == MARK_VOL_SLIDE || effect == 0x0A)
                         {
@@ -3893,16 +3886,6 @@ bool DivEngine::loadAT2M(unsigned char* file, size_t len)
                         trem_speed = -1;
                     }
 
-                    if(!slide[0] && slide[1])
-                    {
-                        int emptyEffSlot = findEmptyEffectSlot(row_data);
-
-                        row_data[4 + emptyEffSlot * 2] = 0x03;
-                        row_data[5 + emptyEffSlot * 2] = 0;
-
-                        slide_speed = -1;
-                    }
-
                     row_data[4 + (DIV_MAX_EFFECTS - 1) * 2] = -1; //erase continuous effects mark
 
                     porta_dir[1] = porta_dir[0];
@@ -3916,7 +3899,6 @@ bool DivEngine::loadAT2M(unsigned char* file, size_t len)
                     fine_porta[1] = fine_porta[0];
                     vol_slide[1] = vol_slide[0];
                     fine_vol_slide[1] = fine_vol_slide[0];
-                    slide[1] = slide[0];
 
                     for(int s_ch = 0; s_ch < songInfo->nm_tracks; s_ch++) //search for 0Dxx/0Bxx and jump accordingly
                     {
