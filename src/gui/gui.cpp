@@ -1223,7 +1223,7 @@ void FurnaceGUI::stop() {
     nextScroll=-1.0f;
     nextAddScroll=0.0f;
     e->getPlayPos(curOrder, cursor.y);
-    if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && !selecting) {
+    if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && selStart.order==selEnd.order && !selecting) {
       selStart=cursor;
       selEnd=cursor;
     }
