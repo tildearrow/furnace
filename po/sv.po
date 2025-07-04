@@ -18529,7 +18529,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:234 src/gui/insEdit.cpp:256
 msgid "8580 SID"
-msgstr ""
+msgstr "8580 SID"
 
 #: src/gui/insEdit.cpp:235 src/gui/insEdit.cpp:257
 msgid "Bitwise AND"
@@ -18549,39 +18549,39 @@ msgstr "gate"
 
 #: src/gui/insEdit.cpp:260
 msgid "Sum of the signals"
-msgstr ""
+msgstr "Summan av signalerna"
 
 #: src/gui/insEdit.cpp:301
 msgid "Clipped Sine"
-msgstr ""
+msgstr "Klippt sinus"
 
 #: src/gui/insEdit.cpp:302
 msgid "Clipped Rect. Sine"
-msgstr ""
+msgstr "Klippt rektangel sinus"
 
 #: src/gui/insEdit.cpp:303
 msgid "Clipped Abs. Sine"
-msgstr ""
+msgstr "Klippt absolut sinus"
 
 #: src/gui/insEdit.cpp:304
 msgid "Clipped Quart. Sine"
-msgstr ""
+msgstr "Klippt kvartal sinus"
 
 #: src/gui/insEdit.cpp:305
 msgid "Clipped Squish. Sine"
-msgstr ""
+msgstr "Klippt kvadrerad sinus"
 
 #: src/gui/insEdit.cpp:306
 msgid "Clipped Abs. Squish. Sine"
-msgstr ""
+msgstr "Klippt abs. kvad. sinus"
 
 #: src/gui/insEdit.cpp:308
 msgid "Clipped Rect. Saw"
-msgstr ""
+msgstr "Klippt rekt. såg"
 
 #: src/gui/insEdit.cpp:309
 msgid "Clipped Abs. Saw"
-msgstr ""
+msgstr "Klippt absolut såg"
 
 #: src/gui/insEdit.cpp:311
 msgid "Clipped Cubed Saw"
@@ -19082,19 +19082,19 @@ msgstr "%d: %d (direkt)"
 
 #: src/gui/insEdit.cpp:752
 msgid "HP/K2, HP/K2"
-msgstr ""
+msgstr "HP/K2, HP/K2"
 
 #: src/gui/insEdit.cpp:755
 msgid "HP/K2, LP/K1"
-msgstr ""
+msgstr "HP/K2, LP/K1"
 
 #: src/gui/insEdit.cpp:758
 msgid "LP/K2, LP/K2"
-msgstr ""
+msgstr "LP/K2, LP/K2"
 
 #: src/gui/insEdit.cpp:761
 msgid "LP/K2, LP/K1"
-msgstr ""
+msgstr "LP/K2, LP/K1"
 
 #: src/gui/insEdit.cpp:778
 msgid "Random"
@@ -19469,7 +19469,7 @@ msgstr ""
 msgid ""
 "use op's arpeggio and pitch macros control instead of block/f-num macros"
 msgstr ""
-”använd ops arpeggio- och tonhöjdsmakrokontroll i stället för block/f-num-makron”
+"använd ops arpeggio- och tonhöjdsmakrokontroll i stället för block/f-num-makron"
 
 #: src/gui/insEdit.cpp:4819 src/gui/insEdit.cpp:5183 src/gui/insEdit.cpp:5240
 #: src/gui/insEdit.cpp:5996
