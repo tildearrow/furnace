@@ -330,7 +330,7 @@ void FurnaceGUI::doSelectAll() {
     if (!m.effect) continue; \
   }
 
-#define touch(_y,_order) \
+#define touch(_order,_y) \
   if (opTouched[(e->curOrders->ord[iCoarse][_order]<<8)|(_y)]) continue; \
   opTouched[(e->curOrders->ord[iCoarse][_order]<<8)|(_y)]=true;
 
