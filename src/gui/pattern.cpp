@@ -1218,12 +1218,25 @@ void FurnaceGUI::drawPattern() {
       // previous pattern
       ImGui::PushStyleVar(ImGuiStyleVar_FrameShading,0.0f);
       if (settings.viewPrevPattern) {
-        if ((ord-1)>=0) for (int i=0; i<chans; i++) {
-          patCache[i]=e->curPat[i].getPattern(e->curOrders->ord[i][ord-1],false);
+        int viewOrder=ord;
+        int viewRow=-dummyRows+1;
+        while (viewRow<0) {
+          viewOrder--;
+          viewRow+=e->curSubSong->patLen;
+        }
+        if (viewOrder>=0 && viewOrder<e->curSubSong->ordersLen) for (int i=0; i<chans; i++) {
+          patCache[i]=e->curPat[i].getPattern(e->curOrders->ord[i][viewOrder],false);
         }
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha,ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha);
         for (int i=0; i<dummyRows-1; i++) {
-          patternRow(e->curSubSong->patLen+i-dummyRows+1,e->isPlaying(),lineHeight,chans,ord-1,patCache,false);
+          patternRow(viewRow,e->isPlaying(),lineHeight,chans,viewOrder,patCache,false);
+          if (++viewRow>=e->curSubSong->patLen) {
+            viewRow=0;
+            viewOrder++;
+            if (viewOrder>=0 && viewOrder<e->curSubSong->ordersLen) for (int j=0; j<chans; j++) {
+              patCache[j]=e->curPat[j].getPattern(e->curOrders->ord[j][viewOrder],false);
+            }
+          }
         }
         ImGui::PopStyleVar();
       } else {
@@ -1241,12 +1254,21 @@ void FurnaceGUI::drawPattern() {
       }
       // next pattern
       if (settings.viewPrevPattern) {
-        if ((ord+1)<e->curSubSong->ordersLen) for (int i=0; i<chans; i++) {
+        int viewOrder=ord+1;
+        int viewRow=0;
+        if (viewOrder<e->curSubSong->ordersLen) for (int i=0; i<chans; i++) {
           patCache[i]=e->curPat[i].getPattern(e->curOrders->ord[i][ord+1],true);
         }
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha,ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha);
         for (int i=0; i<=dummyRows; i++) {
-          patternRow(i,e->isPlaying(),lineHeight,chans,ord+1,patCache,false);
+          patternRow(viewRow,e->isPlaying(),lineHeight,chans,viewOrder,patCache,false);
+          if (++viewRow>=e->curSubSong->patLen) {
+            viewRow=0;
+            viewOrder++;
+            if (viewOrder>=0 && viewOrder<e->curSubSong->ordersLen) for (int j=0; j<chans; j++) {
+              patCache[j]=e->curPat[j].getPattern(e->curOrders->ord[j][viewOrder],false);
+            }
+          }
         }
         ImGui::PopStyleVar();
       } else {
