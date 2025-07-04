@@ -5009,8 +5009,8 @@ bool FurnaceGUI::loop() {
       finishSelection();
       if (!mobileUI) {
         demandScrollX=true;
-        if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y &&
-            cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y) {
+        if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y && cursor.order==selStart.order &&
+            cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y && cursor.order==selEnd.order) {
           if (!settings.cursorMoveNoScroll) {
             updateScroll(cursor.y);
           }

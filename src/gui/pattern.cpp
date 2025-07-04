@@ -423,7 +423,7 @@ void FurnaceGUI::drawPattern() {
       if (e->isStepping()) pendingStepUpdate=1;
       cursor.y=oldRow;
       cursor.order=curOrder;
-      if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && !selecting) {
+      if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && selStart.order==selEnd.order && !selecting) {
         selStart=cursor;
         selEnd=cursor;
       }
