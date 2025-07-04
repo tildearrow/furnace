@@ -665,7 +665,7 @@ void FurnaceGUI::doAction(int what) {
       doExpandSong(collapseAmount);
       break;
     case GUI_ACTION_PAT_LATCH: {
-      DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
+      DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][cursor.order],true);
       latchIns=pat->data[cursor.y][2];
       latchVol=pat->data[cursor.y][3];
       latchEffect=pat->data[cursor.y][4];
