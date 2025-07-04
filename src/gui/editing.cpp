@@ -2079,8 +2079,26 @@ void FurnaceGUI::moveSelected(int x, int y) {
   selStart.y+=y;
   selEnd.y+=y;
 
-  if (selStart.y<0 || selStart.y>=e->curSubSong->patLen) outOfBounds=true;
-  if (selEnd.y<0 || selEnd.y>=e->curSubSong->patLen) outOfBounds=true;
+  while (selStart.y<0) {
+    selStart.y+=e->curSubSong->patLen;
+    selStart.order--;
+  }
+  while (selEnd.y<0) {
+    selEnd.y+=e->curSubSong->patLen;
+    selEnd.order--;
+  }
+
+  while (selStart.y>=e->curSubSong->patLen) {
+    selStart.y-=e->curSubSong->patLen;
+    selStart.order++;
+  }
+  while (selEnd.y>=e->curSubSong->patLen) {
+    selEnd.y-=e->curSubSong->patLen;
+    selEnd.order++;
+  }
+
+  if (selStart.order<0 || selStart.order>=e->curSubSong->ordersLen) outOfBounds=true;
+  if (selEnd.order<0 || selEnd.order>=e->curSubSong->ordersLen) outOfBounds=true;
 
   selStartNew=selStart;
   selEndNew=selEnd;
@@ -2105,7 +2123,7 @@ void FurnaceGUI::moveSelected(int x, int y) {
 
   // replace
   cursor=selStart;
-  doPaste(GUI_PASTE_MODE_NORMAL,0,false,c);
+  doPaste(GUI_PASTE_MODE_OVERFLOW,0,false,c);
 
   makeUndo(GUI_UNDO_PATTERN_DRAG);
 }
