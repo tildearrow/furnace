@@ -626,6 +626,7 @@ void FurnaceGUI::doPasteFurnace(PasteMode mode, int arg, bool readClipboard, Str
   DETERMINE_LAST;
 
   int j=cursor.y;
+  int jOrder=cursor.order;
   char note[4];
   for (size_t i=2; i<data.size() && j<e->curSubSong->patLen; i++) {
     size_t charPos=0;
@@ -635,7 +636,7 @@ void FurnaceGUI::doPasteFurnace(PasteMode mode, int arg, bool readClipboard, Str
     String& line=data[i];
 
     while (charPos<line.size() && iCoarse<lastChannel) {
-      DivPattern* pat=e->curPat[iCoarse].getPattern(e->curOrders->ord[iCoarse][curOrder],true);
+      DivPattern* pat=e->curPat[iCoarse].getPattern(e->curOrders->ord[iCoarse][jOrder],true);
       if (line[charPos]=='|') {
         iCoarse++;
         if (iCoarse<lastChannel) while (!e->curSubSong->chanShow[iCoarse]) {
@@ -741,9 +742,9 @@ void FurnaceGUI::doPasteFurnace(PasteMode mode, int arg, bool readClipboard, Str
       break;
     }
     j++;
-    if (mode==GUI_PASTE_MODE_OVERFLOW && j>=e->curSubSong->patLen && curOrder<e->curSubSong->ordersLen-1) {
+    if (mode==GUI_PASTE_MODE_OVERFLOW && j>=e->curSubSong->patLen && jOrder<e->curSubSong->ordersLen-1) {
       j=0;
-      curOrder++;
+      jOrder++;
     }
 
     if (mode==GUI_PASTE_MODE_FLOOD && i==data.size()-1) {
@@ -751,8 +752,9 @@ void FurnaceGUI::doPasteFurnace(PasteMode mode, int arg, bool readClipboard, Str
     }
   }
 
+  curOrder=jOrder;
   if (mode==GUI_PASTE_MODE_OVERFLOW && !e->isPlaying()) {
-    setOrder(curOrder);
+    setOrder(jOrder);
   }
 
   if (readClipboard) {
@@ -986,6 +988,7 @@ void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String 
   DETERMINE_LAST;
 
   int j=cursor.y;
+  int jOrder=cursor.order;
   char note[4];
   bool invalidData=false;
 
@@ -997,7 +1000,7 @@ void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String 
     int iFine=0;
     String& line=data[i];
     while (charPos<line.size() && iCoarse<lastChannel) {
-      DivPattern* pat=e->curPat[iCoarse].getPattern(e->curOrders->ord[iCoarse][curOrder],true);
+      DivPattern* pat=e->curPat[iCoarse].getPattern(e->curOrders->ord[iCoarse][jOrder],true);
       if (line[charPos]=='|' && charPos!=0) { // MPT format starts every pattern line with '|'
         iCoarse++;
         if (iCoarse<lastChannel) {
@@ -1214,14 +1217,19 @@ void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String 
     }
 
     j++;
-    if (mode==GUI_PASTE_MODE_OVERFLOW && j>=e->curSubSong->patLen && curOrder<e->curSubSong->ordersLen-1) {
+    if (mode==GUI_PASTE_MODE_OVERFLOW && j>=e->curSubSong->patLen && jOrder<e->curSubSong->ordersLen-1) {
       j=0;
-      curOrder++;
+      jOrder++;
     }
 
     if (mode==GUI_PASTE_MODE_FLOOD && i==data.size()-1) {
       i=1;
     }
+  }
+
+  curOrder=jOrder;
+  if (mode==GUI_PASTE_MODE_OVERFLOW && !e->isPlaying()) {
+    setOrder(jOrder);
   }
 
   if (readClipboard) {
@@ -1291,8 +1299,8 @@ void FurnaceGUI::doPaste(PasteMode mode, int arg, bool readClipboard, String cli
   UndoRegion ur;
   if (mode==GUI_PASTE_MODE_OVERFLOW) {
     int rows=cursor.y;
-    int firstPattern=curOrder;
-    int lastPattern=curOrder;
+    int firstPattern=cursor.order;
+    int lastPattern=cursor.order;
     rows+=data.size();
     while (rows>=e->curSubSong->patLen) {
       lastPattern++;
@@ -2010,7 +2018,8 @@ void FurnaceGUI::doDrag(bool copy) {
 
   // replace
   cursor=selStart;
-  doPaste(GUI_PASTE_MODE_NORMAL,0,false,c);
+  doPaste(GUI_PASTE_MODE_OVERFLOW,0,false,c);
+  updateScroll(cursor.y);
 
   makeUndo(GUI_UNDO_PATTERN_DRAG);
 }
