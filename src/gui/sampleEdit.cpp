@@ -2082,8 +2082,8 @@ void FurnaceGUI::drawSampleEdit() {
             ImGui::SameLine();
             ImGui::SetNextItemWidth(140.0f*dpiScale);
             if (ImGui::InputInt("##SESelEnd",&sampleSelEnd)) {
-              if (sampleSelStart<0) sampleSelStart=0;
-              if (sampleSelStart>(int)sample->samples) sampleSelStart=sample->samples;
+              if (sampleSelEnd<0) sampleSelEnd=0;
+              if (sampleSelEnd>(int)sample->samples) sampleSelEnd=sample->samples;
               if (sampleSelEnd<sampleSelStart) sampleSelEnd=sampleSelStart;
             }
             if (!statusBar4.empty()) {
