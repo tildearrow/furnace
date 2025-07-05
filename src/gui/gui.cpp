@@ -3246,12 +3246,6 @@ void FurnaceGUI::editOptions(bool topMenu) {
 
   if (topMenu) {
     ImGui::Separator();
-    if (ImGui::MenuItem(_("collapse"),BIND_FOR(GUI_ACTION_PAT_COLLAPSE_SELECTED))) doAction(GUI_ACTION_PAT_COLLAPSE_SELECTED);
-    if (ImGui::MenuItem(_("expand"),BIND_FOR(GUI_ACTION_PAT_EXPAND_SELECTED))) doAction(GUI_ACTION_PAT_EXPAND_SELECTED);
-  }
-
-  if (topMenu) {
-    ImGui::Separator();
     if (ImGui::MenuItem(_("collapse pattern"),BIND_FOR(GUI_ACTION_PAT_COLLAPSE_PAT))) doAction(GUI_ACTION_PAT_COLLAPSE_PAT);
     if (ImGui::MenuItem(_("expand pattern"),BIND_FOR(GUI_ACTION_PAT_EXPAND_PAT))) doAction(GUI_ACTION_PAT_EXPAND_PAT);
   }
@@ -3260,6 +3254,12 @@ void FurnaceGUI::editOptions(bool topMenu) {
     ImGui::Separator();
     if (ImGui::MenuItem(_("collapse song"),BIND_FOR(GUI_ACTION_PAT_COLLAPSE_SONG))) doAction(GUI_ACTION_PAT_COLLAPSE_SONG);
     if (ImGui::MenuItem(_("expand song"),BIND_FOR(GUI_ACTION_PAT_EXPAND_SONG))) doAction(GUI_ACTION_PAT_EXPAND_SONG);
+  }
+
+  if (topMenu) {
+    ImGui::Separator();
+    if (ImGui::MenuItem(_("minimize selected channel"),BIND_FOR(GUI_ACTION_PAT_COLLAPSE_SELECTED))) doAction(GUI_ACTION_PAT_COLLAPSE_SELECTED);
+    if (ImGui::MenuItem(_("maximize selected channels"),BIND_FOR(GUI_ACTION_PAT_EXPAND_SELECTED))) doAction(GUI_ACTION_PAT_EXPAND_SELECTED);
   }
 
   if (topMenu) {
