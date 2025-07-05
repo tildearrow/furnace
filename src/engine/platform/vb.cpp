@@ -19,6 +19,8 @@
 
 #include "vb.h"
 #include "../engine.h"
+#include "IconsFontAwesome4.h"
+#include "furIcons.h"
 #include <math.h>
 
 //#define rWrite(a,v) pendingWrites[a]=v;
@@ -252,6 +254,27 @@ void DivPlatformVB::tick(bool sysTick) {
       }
     }
   }
+
+  for (int i=0; i<6; i++) {
+    if ((chan[i].envHigh&3)==0) {
+      chan[i].hasEnvWarning=0;
+    } else {
+      switch (vb->EnvelopeModMask[i]) {
+        case 0: // envelope OK
+          chan[i].hasEnvWarning=0;
+          break;
+        case 1: // envelope has finished
+          chan[i].hasEnvWarning=21;
+          break;
+        case 2: // can't envelope
+          chan[i].hasEnvWarning=22;
+          break;
+      }
+    }
+  }
+  /*if (vb->ModLock) {
+    chan[4].hasEnvWarning=4;
+  }*/
 }
 
 int DivPlatformVB::dispatch(DivCommand c) {
@@ -475,6 +498,16 @@ DivMacroInt* DivPlatformVB::getChanMacroInt(int ch) {
 
 unsigned short DivPlatformVB::getPan(int ch) {
   return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
+}
+
+DivChannelModeHints DivPlatformVB::getModeHints(int ch) {
+  DivChannelModeHints ret;
+  //if (ch>4) return ret;
+  ret.count=1;
+  ret.hint[0]=ICON_FA_EXCLAMATION_TRIANGLE;
+  ret.type[0]=chan[ch].hasEnvWarning;
+  
+  return ret;
 }
 
 DivDispatchOscBuffer* DivPlatformVB::getOscBuffer(int ch) {

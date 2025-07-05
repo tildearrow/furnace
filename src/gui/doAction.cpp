@@ -645,7 +645,8 @@ void FurnaceGUI::doAction(int what) {
       selEndPat.xCoarse=e->getTotalChannelCount()-1;
       selEndPat.xFine=2+e->curPat[selEndPat.xCoarse].effectCols*2;
       selEndPat.y=e->curSubSong->patLen-1;
-      doCollapse(collapseAmount,SelectionPoint(0,0,0),selEndPat);
+      selEndPat.order=curOrder;
+      doCollapse(collapseAmount,SelectionPoint(0,0,0,curOrder),selEndPat);
       break;
     }
     case GUI_ACTION_PAT_EXPAND_PAT: {
@@ -653,7 +654,8 @@ void FurnaceGUI::doAction(int what) {
       selEndPat.xCoarse=e->getTotalChannelCount()-1;
       selEndPat.xFine=2+e->curPat[selEndPat.xCoarse].effectCols*2;
       selEndPat.y=e->curSubSong->patLen-1;
-      doExpand(collapseAmount,SelectionPoint(0,0,0),selEndPat);
+      selEndPat.order=curOrder;
+      doExpand(collapseAmount,SelectionPoint(0,0,0,curOrder),selEndPat);
       break;
     }
     case GUI_ACTION_PAT_COLLAPSE_SONG:
@@ -663,7 +665,7 @@ void FurnaceGUI::doAction(int what) {
       doExpandSong(collapseAmount);
       break;
     case GUI_ACTION_PAT_LATCH: {
-      DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
+      DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][cursor.order],true);
       latchIns=pat->data[cursor.y][2];
       latchVol=pat->data[cursor.y][3];
       latchEffect=pat->data[cursor.y][4];
@@ -1791,6 +1793,13 @@ void FurnaceGUI::doAction(int what) {
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
       e->addOrder(curOrder,false,false);
       curOrder=e->getOrder();
+      if (selStart.order==cursor.order) {
+        selStart.order=curOrder;
+      }
+      if (selEnd.order==cursor.order) {
+        selEnd.order=curOrder;
+      }
+      cursor.order=curOrder;
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_DUPLICATE:
@@ -1825,6 +1834,13 @@ void FurnaceGUI::doAction(int what) {
       if (curOrder>=e->curSubSong->ordersLen) {
         curOrder=e->curSubSong->ordersLen-1;
         e->setOrder(curOrder);
+        if (selStart.order==cursor.order) {
+          selStart.order=curOrder;
+        }
+        if (selEnd.order==cursor.order) {
+          selEnd.order=curOrder;
+        }
+        cursor.order=curOrder;
       }
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
@@ -1833,6 +1849,13 @@ void FurnaceGUI::doAction(int what) {
       e->moveOrderUp(curOrder);
       if (settings.cursorFollowsOrder) {
         e->setOrder(curOrder);
+        if (selStart.order==cursor.order) {
+          selStart.order=curOrder;
+        }
+        if (selEnd.order==cursor.order) {
+          selEnd.order=curOrder;
+        }
+        cursor.order=curOrder;
       }
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
@@ -1841,6 +1864,13 @@ void FurnaceGUI::doAction(int what) {
       e->moveOrderDown(curOrder);
       if (settings.cursorFollowsOrder) {
         e->setOrder(curOrder);
+        if (selStart.order==cursor.order) {
+          selStart.order=curOrder;
+        }
+        if (selEnd.order==cursor.order) {
+          selEnd.order=curOrder;
+        }
+        cursor.order=curOrder;
       }
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;

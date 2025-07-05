@@ -733,7 +733,7 @@ void FurnaceGUI::drawSampleEdit() {
           }
           popWarningColor();
 
-          pushWarningColor(!warnLoopPos.empty() || !warnLoopStart.empty());
+          pushWarningColor(!warnLoopPos.empty() || (!warnLoopStart.empty() && sampleCheckLoopStart));
           ImGui::AlignTextToFramePadding();
           ImGui::Text(_("Start"));
           ImGui::SameLine();
@@ -752,8 +752,11 @@ void FurnaceGUI::drawSampleEdit() {
           }
           if (ImGui::IsItemActive()) {
             keepLoopAlive=true;
+            sampleCheckLoopStart=false;
+          } else {
+            sampleCheckLoopStart=true;
           }
-          if (ImGui::IsItemHovered() && (!warnLoopPos.empty() || !warnLoopStart.empty() || sample->depth==DIV_SAMPLE_DEPTH_BRR)) {
+          if (ImGui::IsItemHovered() && (!warnLoopPos.empty() || (!warnLoopStart.empty() && sampleCheckLoopStart) || sample->depth==DIV_SAMPLE_DEPTH_BRR)) {
             if (ImGui::BeginTooltip()) {
               if (sample->depth==DIV_SAMPLE_DEPTH_BRR) {
                 ImGui::Text(_("changing the loop in a BRR sample may result in glitches!"));
@@ -769,7 +772,7 @@ void FurnaceGUI::drawSampleEdit() {
           }
           popWarningColor();
 
-          pushWarningColor(!warnLoopPos.empty() || !warnLoopEnd.empty());
+          pushWarningColor(!warnLoopPos.empty() || (!warnLoopEnd.empty() && sampleCheckLoopEnd));
           ImGui::AlignTextToFramePadding();
           ImGui::Text(_("End"));
           ImGui::SameLine();
@@ -788,8 +791,11 @@ void FurnaceGUI::drawSampleEdit() {
           }
           if (ImGui::IsItemActive()) {
             keepLoopAlive=true;
+            sampleCheckLoopEnd=false;
+          } else {
+            sampleCheckLoopEnd=true;
           }
-          if (ImGui::IsItemHovered() && (!warnLoopPos.empty() || !warnLoopEnd.empty() || sample->depth==DIV_SAMPLE_DEPTH_BRR)) {
+          if (ImGui::IsItemHovered() && (!warnLoopPos.empty() || (!warnLoopEnd.empty() && sampleCheckLoopEnd) || sample->depth==DIV_SAMPLE_DEPTH_BRR)) {
             if (ImGui::BeginTooltip()) {
               if (sample->depth==DIV_SAMPLE_DEPTH_BRR) {
                 ImGui::Text(_("changing the loop in a BRR sample may result in glitches!"));
@@ -1524,7 +1530,7 @@ void FurnaceGUI::drawSampleEdit() {
       /*if (ImGui::GetContentRegionAvail().y>(ImGui::GetContentRegionAvail().x*0.5f)) {
         avail=ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetContentRegionAvail().x*0.5f);
       }*/
-      avail.y-=ImGui::GetFontSize()+ImGui::GetStyle().ItemSpacing.y+ImGui::GetStyle().ScrollbarSize;
+      avail.y-=ImGui::GetFrameHeightWithSpacing()+ImGui::GetStyle().ScrollbarSize;
       if (avail.y<1.0) { // Prevents crash
         avail.y=1.0;
       }
@@ -1843,9 +1849,10 @@ void FurnaceGUI::drawSampleEdit() {
           ImGui::EndPopup();
         }
 
-        String statusBar=sampleDragMode?_("Draw"):_("Select");
+        String statusBar=sampleDragMode?_("Draw"):_("Select:");
         String statusBar2="";
         String statusBar3=fmt::sprintf(_("%d samples, %d bytes"),sample->samples,sample->getCurBufLen());
+        String statusBar4="";
         bool drawSelection=false;
 
         if (!sampleDragMode) {
@@ -1857,10 +1864,8 @@ void FurnaceGUI::drawSampleEdit() {
               end^=start;
               start^=end;
             }
-            if (start==end) {
-              statusBar+=fmt::sprintf(" (%d)",start);
-            } else {
-              statusBar+=fmt::sprintf(_(" (%d-%d: %d samples)"),start,end,end-start);
+            if (start!=end) {
+              statusBar4=fmt::sprintf(_("(%d samples)"),end-start);
             }
             drawSelection=true;
           }
@@ -2064,27 +2069,55 @@ void FurnaceGUI::drawSampleEdit() {
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
           ImGui::TextUnformatted(statusBar.c_str());
+          if (!sampleDragMode) {
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(140.0f*dpiScale);
+            if (ImGui::InputInt("##SESelStart",&sampleSelStart)) {
+              if (sampleSelStart<0) sampleSelStart=0;
+              if (sampleSelStart>(int)sample->samples) sampleSelStart=sample->samples;
+              if (sampleSelEnd<sampleSelStart) sampleSelEnd=sampleSelStart;
+            }
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(140.0f*dpiScale);
+            if (ImGui::InputInt("##SESelEnd",&sampleSelEnd)) {
+              if (sampleSelStart<0) sampleSelStart=0;
+              if (sampleSelStart>(int)sample->samples) sampleSelStart=sample->samples;
+              if (sampleSelEnd<sampleSelStart) sampleSelEnd=sampleSelStart;
+            }
+            if (!statusBar4.empty()) {
+              ImGui::SameLine();
+              ImGui::AlignTextToFramePadding();
+              ImGui::TextUnformatted(statusBar4.c_str());
+            }
+          }
+
           ImGui::TableNextColumn();
           if (!warnRate.empty()) {
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_WARNING]);
+            ImGui::AlignTextToFramePadding();
             ImGui::TextUnformatted(statusBar2.c_str());
             ImGui::PopStyleColor();
             if (ImGui::IsItemHovered()) {
               ImGui::SetTooltip("%s",warnRate.c_str());
             }
           } else {
+            ImGui::AlignTextToFramePadding();
             ImGui::TextUnformatted(statusBar2.c_str());
           }
+
           ImGui::TableNextColumn();
           if (!warnLength.empty()) {
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_WARNING]);
+            ImGui::AlignTextToFramePadding();
             ImGui::TextUnformatted(statusBar3.c_str());
             ImGui::PopStyleColor();
             if (ImGui::IsItemHovered()) {
               ImGui::SetTooltip("%s",warnLength.c_str());
             }
           } else {
+            ImGui::AlignTextToFramePadding();
             ImGui::TextUnformatted(statusBar3.c_str());
           }
 

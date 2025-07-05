@@ -436,6 +436,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
     unsigned int expansions = 0;
     unsigned int tchans = 0;
     unsigned int n163Chans = 0;
+    int n163WaveOff[128];
     bool hasSequence[256][8];
     unsigned char sequenceIndex[256][8];
     unsigned char macro_types[256][8];
@@ -459,6 +460,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
     int total_chans = 0;
 
+    memset(n163WaveOff,0,128*sizeof(int));
     memset(hasSequence, 0, 256 * 8 * sizeof(bool));
     memset(sequenceIndex, 0, 256 * 8);
     memset(macro_types, 0, 256 * 8);
@@ -653,6 +655,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         int map_ch = 0;
 
         ds.system[systemID++] = DIV_SYSTEM_NES;
+        ds.systemFlags[0].set("resetSweep",true); // FamiTracker behavior
 
         if (pal) {
           ds.systemFlags[0].set("clockSel", 1); // PAL clock
@@ -1187,7 +1190,8 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
               }
 
               unsigned int wave_count = reader.readI();
-              size_t waveOff = ds.wave.size();
+              n163WaveOff[insIndex] = ds.wave.size();
+              ins->n163.wave = n163WaveOff[insIndex];
 
               if (wave_size>256) {
                 logE("wave size %d out of range",wave_size);
@@ -1211,17 +1215,6 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                 } else {
                   logW("too many waves...");
                   delete wave;
-                }
-              }
-
-              // offset wave macro
-              if (ins->std.waveMacro.len == 0) // empty wave macro
-              {
-                ins->std.waveMacro.len = 1;
-                ins->std.waveMacro.val[0] = waveOff;
-              } else {
-                for (int p=0; p<ins->std.waveMacro.len; p++) {
-                  ins->std.waveMacro.val[p] += waveOff;
                 }
               }
 
@@ -1945,7 +1938,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                     for (int v = 0; v < 8; v++) {
                       if (map_channels[ch] == n163_chans[v]) {
                         if (pat->data[row][4 + (j * 2)] == 0x12) {
-                          pat->data[row][4 + (j * 2)] = 0x10; // TODO: map wave
+                          pat->data[row][4 + (j * 2)] = 0x110; // N163 wave change (we'll map this later)
                         }
                       }
                     }
@@ -2771,6 +2764,46 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
       }
       if (i->virtualTempoN<1) i->virtualTempoN=1;
       if (i->virtualTempoD<1) i->virtualTempoD=1;
+    }
+
+    // offset N163 wave macros (local -> global wave conversion)
+    for (size_t i=0; i<ds.ins.size(); i++) {
+      DivInstrument* ins=ds.ins[i];
+      int waveOff=n163WaveOff[i];
+      if (ins->type==DIV_INS_N163) {
+        for (int j=0; j<ins->std.waveMacro.len; j++) {
+          ins->std.waveMacro.val[j]+=waveOff;
+        }
+      }
+    }
+
+    // offset N163 wave change effects whether possible
+    for (DivSubSong* i: ds.subsong) {
+      for (int j=0; j<total_chans; j++) {
+        int curWaveOff=0;
+        for (int k=0; k<i->ordersLen; k++) {
+          DivPattern* p=i->pat[j].getPattern(i->orders.ord[j][k],true);
+          for (int l=0; l<i->patLen; l++) {
+            // check for instrument change
+            if (p->data[l][2]!=-1) {
+              curWaveOff=n163WaveOff[p->data[l][2]&127];
+            }
+
+            // check effect columns for 0x110 (dummy wave change)
+            for (int m=0; m<i->pat[j].effectCols; m++) {
+              if (p->data[l][4+(m<<1)]==0x110) {
+                // map wave
+                p->data[l][4+(m<<1)]=0x10;
+                if (p->data[l][5+(m<<1)]==-1) {
+                  p->data[l][5+(m<<1)]=curWaveOff&0xff;
+                } else {
+                  p->data[l][5+(m<<1)]=(p->data[l][5+(m<<1)]+curWaveOff)&0xff;
+                }
+              }
+            }
+          }
+        }
+      }
     }
 
     if (active) quitDispatch();

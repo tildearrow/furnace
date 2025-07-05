@@ -71,25 +71,25 @@
 // name, locale, restart message
 const char* locales[][3]={
   {"<System>", "", ""},
-  {"English", "en_US", "restart Furnace for this setting to take effect."},
-  {"Bahasa Indonesia (50%?)", "id_ID", "???"},
-  //{"Deutsch (0%)", "de_DE", "Starten Sie Furnace neu, damit diese Einstellung wirksam wird."},
-  {"Español", "es_ES", "reinicia Furnace para que esta opción tenga efecto."},
-  //{"Suomi (0%)", "fi_FI", "käynnistä Furnace uudelleen, jotta tämä asetus tulee voimaan."},
-  //{"Français (0%)", "fr_FR", "redémarrer Furnace pour que ce réglage soit effectif."},
-  //{"Հայերեն (1%)", "hy_AM", "???"},
-  //{"日本語 (0%)", "ja_JP", "???"},
-  {"한국어 (25%)", "ko_KR", "이 설정을 적용하려면 Furnace를 다시 시작해야 합니다."},
-  //{"Nederlands (4%)", "nl_NL", "start Furnace opnieuw op om deze instelling effectief te maken."},
-  {"Polski (95%)", "pl_PL", "aby to ustawienie było skuteczne, należy ponownie uruchomić program."},
+  {"English", "en", "restart Furnace for this setting to take effect."},
+  {"Bahasa Indonesia (50%?)", "id", "???"},
+  //{"Deutsch (0%)", "de", "Starten Sie Furnace neu, damit diese Einstellung wirksam wird."},
+  {"Español", "es", "reinicia Furnace para que esta opción tenga efecto."},
+  //{"Suomi (0%)", "fi", "käynnistä Furnace uudelleen, jotta tämä asetus tulee voimaan."},
+  {"Français (10%)", "fr", "redémarrer Furnace pour que ce réglage soit effectif."},
+  //{"Հայերեն (1%)", "hy", "???"},
+  //{"日本語 (0%)", "ja", "???"},
+  {"한국어 (25%)", "ko", "이 설정을 적용하려면 Furnace를 다시 시작해야 합니다."},
+  //{"Nederlands (4%)", "nl", "start Furnace opnieuw op om deze instelling effectief te maken."},
+  {"Polski (95%)", "pl", "aby to ustawienie było skuteczne, należy ponownie uruchomić program."},
   {"Português (Brasil) (90%)", "pt_BR", "reinicie o Furnace para que essa configuração entre em vigor."},
-  {"Русский", "ru_RU", "перезапустите программу, чтобы эта настройка вступила в силу."},
-  {"Slovenčina (15%)", "sk_SK", "???"},
-  {"Svenska", "sv_SE", "starta om programmet för att denna inställning ska träda i kraft."},
-  //{"ไทย (0%)", "th_TH", "???"},
-  //{"Türkçe (0%)", "tr_TR", "bu ayarı etkin hale getirmek için programı yeniden başlatın."},
-  //{"Українська (0%)", "uk_UA", "перезапустіть програму, щоб це налаштування набуло чинності."},
-  {"中文 (15%)", "zh_CN", "???"},
+  {"Русский", "ru", "перезапустите программу, чтобы эта настройка вступила в силу."},
+  {"Slovenčina (15%)", "sk", "???"},
+  {"Svenska", "sv", "starta om programmet för att denna inställning ska träda i kraft."},
+  //{"ไทย (0%)", "th", "???"},
+  //{"Türkçe (0%)", "tr", "bu ayarı etkin hale getirmek için programı yeniden başlatın."},
+  //{"Українська (0%)", "uk", "перезапустіть програму, щоб це налаштування набуло чинності."},
+  {"中文 (15%)", "zh", "???"},
   {NULL, NULL, NULL}
 };
 
@@ -1167,6 +1167,7 @@ void FurnaceGUI::drawSettings() {
 
         // SUBSECTION START-UP
         CONFIG_SUBSECTION(_("Start-up"));
+#ifndef NO_INTRO
         ImGui::Text(_("Play intro on start-up:"));
         ImGui::Indent();
         if (ImGui::RadioButton(_("No##pis0"),settings.alwaysPlayIntro==0)) {
@@ -1186,10 +1187,17 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
         ImGui::Unindent();
+#endif
 
         bool disableFadeInB=settings.disableFadeIn;
         if (ImGui::Checkbox(_("Disable fade-in during start-up"),&disableFadeInB)) {
           settings.disableFadeIn=disableFadeInB;
+          settingsChanged=true;
+        }
+
+        bool noMaximizeWorkaroundB=settings.noMaximizeWorkaround;
+        if (ImGui::Checkbox(_("Do not maximize on start-up when the Furnace window is too big"),&noMaximizeWorkaroundB)) {
+          settings.noMaximizeWorkaround=noMaximizeWorkaroundB;
           settingsChanged=true;
         }
 
@@ -1200,7 +1208,6 @@ void FurnaceGUI::drawSettings() {
           settings.blankIns=blankInsB;
           settingsChanged=true;
         }
-
         // SUBSECTION CONFIGURATION
         CONFIG_SUBSECTION(_("Configuration"));
         if (ImGui::Button(_("Import"))) {
@@ -2965,6 +2972,10 @@ void FurnaceGUI::drawSettings() {
             settings.cursorWheelStep=1;
             settingsChanged=true;
           }
+          if (ImGui::RadioButton(_("Coarse Step##cws2"),settings.cursorWheelStep==2)) {
+            settings.cursorWheelStep=2;
+            settingsChanged=true;
+          }
         }
 
         // SUBSECTION ASSETS
@@ -4315,6 +4326,8 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_INC,_("Status: increase"));
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_BENT,_("Status: bent"));
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_DIRECT,_("Status: direct"));
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_WARNING,_("Status: warning"));
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_ERROR,_("Status: error"));
           ImGui::TreePop();
         }
         if (ImGui::TreeNode(_("Sample Editor"))) {
@@ -4907,6 +4920,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.disableFadeIn=conf.getInt("disableFadeIn",0);
     settings.alwaysPlayIntro=conf.getInt("alwaysPlayIntro",0);
     settings.iCannotWait=conf.getInt("iCannotWait",0);
+    settings.noMaximizeWorkaround=conf.getInt("noMaximizeWorkaround",0);
 
     settings.compress=conf.getInt("compress",1);
     settings.newPatternFormat=conf.getInt("newPatternFormat",1);
@@ -5417,7 +5431,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.shaderOsc,0,1);
   clampSetting(settings.oscLineSize,0.25f,16.0f);
   clampSetting(settings.songNotesWrap, 0, 1);
-  clampSetting(settings.cursorWheelStep,0,1);
+  clampSetting(settings.cursorWheelStep,0,2);
   clampSetting(settings.vsync,0,4);
   clampSetting(settings.frameRateLimit,0,1000);
   clampSetting(settings.displayRenderTime,0,1);
@@ -5440,6 +5454,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.autoMacroStepSize,0,2);
   clampSetting(settings.s3mOPL3,0,1);
   clampSetting(settings.backgroundPlay,0,1);
+  clampSetting(settings.noMaximizeWorkaround,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -5511,6 +5526,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("disableFadeIn",settings.disableFadeIn);
     conf.set("alwaysPlayIntro",settings.alwaysPlayIntro);
     conf.set("iCannotWait",settings.iCannotWait);
+    conf.set("noMaximizeWorkaround",settings.noMaximizeWorkaround);
 
     conf.set("compress",settings.compress);
     conf.set("newPatternFormat",settings.newPatternFormat);
@@ -6091,7 +6107,7 @@ bool FurnaceGUI::importConfig(String path) {
   }
   syncState();
   syncSettings();
-  commitSettings();
+  willCommit=true;
 
   recentFile.clear();
   for (int i=0; i<settings.maxRecentFile; i++) {

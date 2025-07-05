@@ -79,8 +79,10 @@ class DivPlatformFMBase: public DivDispatch {
       unsigned int addr;
       unsigned short val;
       bool addrOrVal;
-      QueuedWrite(): addr(0), val(0), addrOrVal(false) {}
-      QueuedWrite(unsigned int a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
+      bool urgent;
+      QueuedWrite(): addr(0), val(0), addrOrVal(false), urgent(false) {}
+      QueuedWrite(unsigned int a, unsigned char v): addr(a), val(v), addrOrVal(false), urgent(false) {}
+      QueuedWrite(unsigned int a, unsigned char v, bool u): addr(a), val(v), addrOrVal(false), urgent(u) {}
     };
     FixedQueue<QueuedWrite,2048> writes;
 
@@ -108,14 +110,7 @@ class DivPlatformFMBase: public DivDispatch {
     // only used by OPN2 for DAC writes
     inline void urgentWrite(unsigned short a, unsigned char v) {
       if (!skipRegisterWrites && !flushFirst) {
-        if (!writes.empty()) {
-          // check for hard reset
-          if (writes.front().addr==0xf0) {
-            // replace hard reset with DAC write
-            writes.pop_front();
-          }
-        }
-        writes.push_front(QueuedWrite(a,v));
+        writes.push_front(QueuedWrite(a,v,true));
         if (dumpWrites) {
           addWrite(a,v);
         }

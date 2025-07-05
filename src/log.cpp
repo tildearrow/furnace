@@ -43,6 +43,7 @@ std::mutex logFileLock;
 std::mutex logFileLockI;
 std::condition_variable logFileNotify;
 std::atomic<bool> logFileAvail(false);
+std::atomic<bool> iAmReallyDead(false);
 
 std::atomic<unsigned short> logPosition;
 
@@ -200,6 +201,7 @@ void _logFileThread() {
       logFileNotify.wait(lock);
     }
   }
+  iAmReallyDead=true;
 }
 
 bool startLogFile(const char* path) {
@@ -247,10 +249,16 @@ bool finishLogFile() {
   if (!logFileAvail) return false;
 
   logFileAvail=false;
+  iAmReallyDead=false;
 
   // flush
   logFileLockI.lock();
   logFileNotify.notify_one();
+  while (!iAmReallyDead) {
+    std::this_thread::yield();
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  // this join is guaranteed to work
   logFileThread->join();
   logFileLockI.unlock();
 

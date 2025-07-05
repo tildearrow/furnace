@@ -17,12 +17,22 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _INTRO_TUNE_H
-#define _INTRO_TUNE_H
+#include "../export.h"
 
-#ifndef NO_INTRO
-extern const unsigned char intro_fur[];
-extern const unsigned int intro_fur_len;
-#endif
+#include <thread>
 
-#endif
+class DivExportiPod: public DivROMExport {
+  DivEngine* e;
+  std::thread* exportThread;
+  DivROMExportProgress progress[2];
+  bool running, failed, mustAbort;
+  void run();
+  public:
+    bool go(DivEngine* e);
+    bool isRunning();
+    bool hasFailed();
+    void abort();
+    void wait();
+    DivROMExportProgress getProgress(int index=0);
+    ~DivExportiPod() {}
+};
