@@ -2195,6 +2195,10 @@ void FurnaceGUI::doUndo() {
     }
   }
   if (shallReplay && e->isPlaying()) play();
+  
+  if (cursor.order!=curOrder) {
+    e->setOrder(cursor.order);
+  }
 
   if (curOrder>=e->curSubSong->ordersLen) {
     curOrder=e->curSubSong->ordersLen-1;
@@ -2271,6 +2275,10 @@ void FurnaceGUI::doRedo() {
     }
   }
   if (shallReplay && e->isPlaying()) play();
+
+  if (cursor.order!=curOrder) {
+    e->setOrder(cursor.order);
+  }
 
   if (curOrder>=e->curSubSong->ordersLen) {
     curOrder=e->curSubSong->ordersLen-1;
