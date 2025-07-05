@@ -1681,6 +1681,7 @@ class FurnaceGUI {
   bool displayExportingROM, displayExportingCS;
   bool quitNoSave;
   bool changeCoarse;
+  bool orderLock;
   bool mobileEdit;
   bool killGraphics;
   bool safeMode;

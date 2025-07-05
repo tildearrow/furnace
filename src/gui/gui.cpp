@@ -8153,6 +8153,7 @@ void FurnaceGUI::syncState() {
 #endif
   mobileUI=e->getConfBool("mobileUI",MOBILE_UI_DEFAULT);
   edit=e->getConfBool("edit",false);
+  orderLock=e->getConfBool("orderLock",false);
   followOrders=e->getConfBool("followOrders",true);
   followPattern=e->getConfBool("followPattern",true);
   noteInputPoly=e->getConfBool("noteInputPoly",true);
@@ -8305,6 +8306,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("fullScreen",fullScreen);
   conf.set("mobileUI",mobileUI);
   conf.set("edit",edit);
+  conf.set("orderLock",orderLock);
   conf.set("followOrders",followOrders);
   conf.set("followPattern",followPattern);
   conf.set("orderEditMode",orderEditMode);
@@ -8496,6 +8498,7 @@ FurnaceGUI::FurnaceGUI():
   displayExportingCS(false),
   quitNoSave(false),
   changeCoarse(false),
+  orderLock(false),
   mobileEdit(false),
   killGraphics(false),
   safeMode(false),
