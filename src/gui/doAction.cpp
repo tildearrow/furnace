@@ -1793,6 +1793,13 @@ void FurnaceGUI::doAction(int what) {
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
       e->addOrder(curOrder,false,false);
       curOrder=e->getOrder();
+      if (selStart.order==cursor.order) {
+        selStart.order=curOrder;
+      }
+      if (selEnd.order==cursor.order) {
+        selEnd.order=curOrder;
+      }
+      cursor.order=curOrder;
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_DUPLICATE:
@@ -1827,6 +1834,13 @@ void FurnaceGUI::doAction(int what) {
       if (curOrder>=e->curSubSong->ordersLen) {
         curOrder=e->curSubSong->ordersLen-1;
         e->setOrder(curOrder);
+        if (selStart.order==cursor.order) {
+          selStart.order=curOrder;
+        }
+        if (selEnd.order==cursor.order) {
+          selEnd.order=curOrder;
+        }
+        cursor.order=curOrder;
       }
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
@@ -1835,6 +1849,13 @@ void FurnaceGUI::doAction(int what) {
       e->moveOrderUp(curOrder);
       if (settings.cursorFollowsOrder) {
         e->setOrder(curOrder);
+        if (selStart.order==cursor.order) {
+          selStart.order=curOrder;
+        }
+        if (selEnd.order==cursor.order) {
+          selEnd.order=curOrder;
+        }
+        cursor.order=curOrder;
       }
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
@@ -1843,6 +1864,13 @@ void FurnaceGUI::doAction(int what) {
       e->moveOrderDown(curOrder);
       if (settings.cursorFollowsOrder) {
         e->setOrder(curOrder);
+        if (selStart.order==cursor.order) {
+          selStart.order=curOrder;
+        }
+        if (selEnd.order==cursor.order) {
+          selEnd.order=curOrder;
+        }
+        cursor.order=curOrder;
       }
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
