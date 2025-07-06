@@ -3258,8 +3258,8 @@ void FurnaceGUI::editOptions(bool topMenu) {
 
   if (topMenu) {
     ImGui::Separator();
-    if (ImGui::MenuItem(_("minimize selected channel"),BIND_FOR(GUI_ACTION_PAT_COLLAPSE_SELECTED))) doAction(GUI_ACTION_PAT_COLLAPSE_SELECTED);
-    if (ImGui::MenuItem(_("maximize selected channels"),BIND_FOR(GUI_ACTION_PAT_EXPAND_SELECTED))) doAction(GUI_ACTION_PAT_EXPAND_SELECTED);
+    if (ImGui::MenuItem(_("minimize channels"),BIND_FOR(GUI_ACTION_PAT_COLLAPSE_SELECTED))) doAction(GUI_ACTION_PAT_COLLAPSE_SELECTED);
+    if (ImGui::MenuItem(_("maximize channels"),BIND_FOR(GUI_ACTION_PAT_EXPAND_SELECTED))) doAction(GUI_ACTION_PAT_EXPAND_SELECTED);
   }
 
   if (topMenu) {
