@@ -4,7 +4,7 @@ Bifurcator instrument editor consists of these macros:
 
 - **Volume**: volume sequence.
 - **Arpeggio**: pitch sequence.
-- **Parametet**: set parameter of logistic map function.
+- **Parameter**: set parameter of logistic map function.
 - **Panning (left)**: output level for left channel.
 - **Panning (right)**: output level for right channel.
 - **Pitch**: fine pitch.
