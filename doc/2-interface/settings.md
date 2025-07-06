@@ -356,6 +356,10 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - **No**
   - **Yes**
   - **Inverted**
+- **How many steps to move with each scroll wheel step?**: only appears when "Move cursor with scroll wheel" is set to "Yes" or "Inverted".
+  - **One**
+  - **Edit Step**
+  - **Coarse Step**
 
 ### Assets
 
