@@ -1849,7 +1849,7 @@ void FurnaceGUI::drawSampleEdit() {
           ImGui::EndPopup();
         }
 
-        String statusBar=sampleDragMode?_("Draw"):_("Select:");
+        String statusBar=sampleDragMode?_("Draw"):_("Select");
         String statusBar2="";
         String statusBar3=fmt::sprintf(_("%d samples, %d bytes"),sample->samples,sample->getCurBufLen());
         String statusBar4="";
