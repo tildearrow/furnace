@@ -21,6 +21,7 @@
 #include "../ta-log.h"
 #include <stack>
 #include <unordered_map>
+#include <cassert>
 
 int DivCS::getCmdLength(unsigned char ext) {
   switch (ext) {
