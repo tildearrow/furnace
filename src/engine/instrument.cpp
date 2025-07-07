@@ -1747,6 +1747,10 @@ void DivInstrument::readFeatureFM(SafeReader& reader, short version) {
   next=reader.readC();
   fm.ams2=(next>>6)&3;
   fm.ops=(next&32)?4:2;
+  if (opCount>fm.ops) {
+    logD("Initial op count > packed value");
+    fm.ops = opCount;
+  }
   fm.opllPreset=next&31;
 
   if (version>=224) {
