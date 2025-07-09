@@ -351,11 +351,12 @@ void FurnaceGUI::drawSampleEdit() {
             break;
           case DIV_SYSTEM_SEGAPCM:
           case DIV_SYSTEM_SEGAPCM_COMPAT:
+          case DIV_SYSTEM_SEGAPCM_DISCRETE:
             if (sample->samples>65280) {
               SAMPLE_WARN(warnLength,_("SegaPCM: maximum sample length is 65280"));
             }
             if (dispatch!=NULL) {
-              MAX_RATE("SegaPCM",dispatch->chipClock/256);
+              MAX_RATE("SegaPCM",dispatch->rate);
             }
             break;
           case DIV_SYSTEM_K053260:
