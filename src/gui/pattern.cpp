@@ -472,7 +472,7 @@ void FurnaceGUI::drawPattern() {
     ImGui::SetNextWindowPos(patWindowPos);
     ImGui::SetNextWindowSize(patWindowSize);
   }
-  if (ImGui::Begin("Pattern",&patternOpen,globalWinFlags|(settings.avoidRaisingPattern?ImGuiWindowFlags_NoBringToFrontOnFocus:0)|(settings.cursorFollowsWheel?ImGuiWindowFlags_NoScrollWithMouse:0),_("Pattern"))) {
+  if (ImGui::Begin("Pattern",&patternOpen,globalWinFlags|(settings.avoidRaisingPattern?ImGuiWindowFlags_NoBringToFrontOnFocus:0)|((settings.cursorFollowsWheel && !selecting)?ImGuiWindowFlags_NoScrollWithMouse:0),_("Pattern"))) {
     if (!mobileUI) {
       patWindowPos=ImGui::GetWindowPos();
       patWindowSize=ImGui::GetWindowSize();
@@ -509,7 +509,7 @@ void FurnaceGUI::drawPattern() {
 
     if (chans<1) {
       ImGui::Text(_("there aren't any channels to show."));
-    } else if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea|((settings.cursorFollowsWheel || wheelCalmDown)?ImGuiTableFlags_NoScrollWithMouse:0))) {
+    } else if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea|(((settings.cursorFollowsWheel && !selecting) || wheelCalmDown)?ImGuiTableFlags_NoScrollWithMouse:0))) {
       char chanID[2048];
       float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
 
@@ -1320,7 +1320,7 @@ void FurnaceGUI::drawPattern() {
       }
 
       // cursor follows wheel
-      if (settings.cursorFollowsWheel && (!e->isPlaying() || !followPattern) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
+      if (settings.cursorFollowsWheel && (!e->isPlaying() || !followPattern || selecting) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
         if (wheelX!=0 || wheelY!=0) {
           int xAmount=wheelX;
           int yAmount=(settings.cursorFollowsWheel==2)?wheelY:-wheelY;
