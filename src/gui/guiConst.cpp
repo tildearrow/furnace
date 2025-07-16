@@ -597,6 +597,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("STEP_DOWN", _N("Decrease edit step"), FURKMOD_CMD|SDLK_KP_DIVIDE),
   D("TOGGLE_EDIT", _N("Toggle edit mode"), SDLK_SPACE),
   D("METRONOME", _N("Metronome"), FURKMOD_CMD|SDLK_m),
+  D("ORDER_LOCK", _N("Toggle order lock"), 0),
   D("REPEAT_PATTERN", _N("Toggle repeat pattern"), 0),
   D("FOLLOW_ORDERS", _N("Follow orders"), 0),
   D("FOLLOW_PATTERN", _N("Follow pattern"), 0),

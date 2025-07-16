@@ -723,6 +723,8 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         ImGui::Checkbox(_("Edit"),&edit);
         ImGui::SameLine();
+        ImGui::Checkbox(_("Lock"),&orderLock);
+        ImGui::SameLine();
         bool metro=e->getMetronome();
         if (ImGui::Checkbox(_("Metronome"),&metro)) {
           e->setMetronome(metro);
@@ -806,6 +808,15 @@ void FurnaceGUI::drawEditControls() {
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("Edit"));
+        }
+        popToggleColors();
+
+        pushToggleColors(orderLock);
+        if (ImGui::Button(ICON_FA_LOCK "##OrderLock")) {
+          orderLock=!orderLock;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Lock cursor/selection to this order"));
         }
         popToggleColors();
 
@@ -923,6 +934,15 @@ void FurnaceGUI::drawEditControls() {
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("Edit"));
+        }
+        popToggleColors();
+
+        pushToggleColors(orderLock);
+        if (ImGui::Button(ICON_FA_LOCK "##OrderLock",buttonSize)) {
+          orderLock=!orderLock;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Lock cursor/selection to this order"));
         }
         popToggleColors();
 
@@ -1062,6 +1082,16 @@ void FurnaceGUI::drawEditControls() {
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("Edit"));
+        }
+        popToggleColors();
+
+        ImGui::SameLine();
+        pushToggleColors(orderLock);
+        if (ImGui::Button(ICON_FA_LOCK "##OrderLock")) {
+          orderLock=!orderLock;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Lock cursor/selection to this order"));
         }
         popToggleColors();
 

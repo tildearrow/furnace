@@ -1227,9 +1227,13 @@ void FurnaceGUI::drawPattern() {
         if (viewOrder>=0 && viewOrder<e->curSubSong->ordersLen) for (int i=0; i<chans; i++) {
           patCache[i]=e->curPat[i].getPattern(e->curOrders->ord[i][viewOrder],false);
         }
-        ImGui::PushStyleVar(ImGuiStyleVar_Alpha,ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha);
+        if (orderLock) {
+          ImGui::BeginDisabled();
+        } else {
+          ImGui::PushStyleVar(ImGuiStyleVar_Alpha,ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha);
+        }
         for (int i=0; i<dummyRows-1; i++) {
-          patternRow(viewRow,e->isPlaying(),lineHeight,chans,viewOrder,patCache,false);
+          patternRow(viewRow,e->isPlaying(),lineHeight,chans,viewOrder,patCache,orderLock);
           if (++viewRow>=e->curSubSong->patLen) {
             viewRow=0;
             viewOrder++;
@@ -1238,7 +1242,11 @@ void FurnaceGUI::drawPattern() {
             }
           }
         }
-        ImGui::PopStyleVar();
+        if (orderLock) {
+          ImGui::EndDisabled();
+        } else {
+          ImGui::PopStyleVar();
+        }
       } else {
         for (int i=0; i<dummyRows-1; i++) {
           ImGui::TableNextRow(0,lineHeight);
@@ -1259,9 +1267,13 @@ void FurnaceGUI::drawPattern() {
         if (viewOrder<e->curSubSong->ordersLen) for (int i=0; i<chans; i++) {
           patCache[i]=e->curPat[i].getPattern(e->curOrders->ord[i][ord+1],true);
         }
-        ImGui::PushStyleVar(ImGuiStyleVar_Alpha,ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha);
+        if (orderLock) {
+          ImGui::BeginDisabled();
+        } else {
+          ImGui::PushStyleVar(ImGuiStyleVar_Alpha,ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha);
+        }
         for (int i=0; i<=dummyRows; i++) {
-          patternRow(viewRow,e->isPlaying(),lineHeight,chans,viewOrder,patCache,false);
+          patternRow(viewRow,e->isPlaying(),lineHeight,chans,viewOrder,patCache,orderLock);
           if (++viewRow>=e->curSubSong->patLen) {
             viewRow=0;
             viewOrder++;
@@ -1270,7 +1282,11 @@ void FurnaceGUI::drawPattern() {
             }
           }
         }
-        ImGui::PopStyleVar();
+        if (orderLock) {
+          ImGui::EndDisabled();
+        } else {
+          ImGui::PopStyleVar();
+        }
       } else {
         for (int i=0; i<=dummyRows; i++) {
           ImGui::TableNextRow(0,lineHeight);

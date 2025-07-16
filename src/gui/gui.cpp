@@ -7404,6 +7404,13 @@ bool FurnaceGUI::loop() {
     // to already have been made.
     checkRecordInstrumentUndoStep();
 
+    // the following code handles order lock (if it is enabled).
+    if (orderLock) {
+      cursor.order=curOrder;
+      selStart.order=curOrder;
+      selEnd.order=curOrder;
+    }
+
     if (shallDetectScale) {
       if (--shallDetectScale<1) {
         if (settings.dpiScale<0.5f) {

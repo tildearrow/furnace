@@ -170,6 +170,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_METRONOME:
       e->setMetronome(!e->getMetronome());
       break;
+    case GUI_ACTION_ORDER_LOCK:
+      orderLock=!orderLock;
+      break;
     case GUI_ACTION_REPEAT_PATTERN:
       e->setRepeatPattern(!e->getRepeatPattern());
       break;
