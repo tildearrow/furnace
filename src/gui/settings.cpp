@@ -2203,6 +2203,7 @@ void FurnaceGUI::drawSettings() {
             drawKeybindSettingsTableRow(GUI_ACTION_STEP_DOWN);
             drawKeybindSettingsTableRow(GUI_ACTION_TOGGLE_EDIT);
             drawKeybindSettingsTableRow(GUI_ACTION_METRONOME);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDER_LOCK);
             drawKeybindSettingsTableRow(GUI_ACTION_REPEAT_PATTERN);
             drawKeybindSettingsTableRow(GUI_ACTION_FOLLOW_ORDERS);
             drawKeybindSettingsTableRow(GUI_ACTION_FOLLOW_PATTERN);
