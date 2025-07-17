@@ -524,6 +524,7 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
     case DIV_SAMPLE_DEPTH_ADPCM_B:
     case DIV_SAMPLE_DEPTH_ADPCM_K:
     case DIV_SAMPLE_DEPTH_VOX:
+    case DIV_SAMPLE_DEPTH_4BIT:
       samples=lenDivided*2;
       break;
     case DIV_SAMPLE_DEPTH_IMA_ADPCM:
@@ -636,6 +637,7 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
       case DIV_SAMPLE_DEPTH_ADPCM_B:
       case DIV_SAMPLE_DEPTH_ADPCM_K:
       case DIV_SAMPLE_DEPTH_VOX:
+      case DIV_SAMPLE_DEPTH_4BIT:
         // swap nibbles
         for (unsigned int i=0; i<sample->getCurBufLen(); i++) {
           b[i]=(b[i]<<4)|(b[i]>>4);
