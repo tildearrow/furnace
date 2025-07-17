@@ -172,6 +172,15 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_ORDER_LOCK:
       orderLock=!orderLock;
+      if (selStart.order!=curOrder || selEnd.order!=curOrder) {
+        finishSelection();
+        // selection confinement logic
+        if (selStart.order<curOrder && selEnd.order>curOrder) {
+
+        } else if (selStart.order<curOrder && selEnd.order<=curOrder) {
+        } else if (selStart.order>=curOrder && selEnd.order>curOrder) {
+        }
+      }
       break;
     case GUI_ACTION_REPEAT_PATTERN:
       e->setRepeatPattern(!e->getRepeatPattern());
