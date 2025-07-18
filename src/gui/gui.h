@@ -1097,9 +1097,10 @@ struct UndoOtherData {
 
 struct UndoStep {
   ActionType type;
-  SelectionPoint cursor, selStart, selEnd;
-  float scroll;
-  int order;
+  SelectionPoint oldCursor, oldSelStart, oldSelEnd;
+  SelectionPoint newCursor, newSelStart, newSelEnd;
+  float oldScroll, newScroll;
+  int oldOrder, newOrder;
   bool nibble;
   int oldOrdersLen, newOrdersLen;
   int oldPatLen, newPatLen;
@@ -1109,11 +1110,16 @@ struct UndoStep {
 
   UndoStep():
     type(GUI_UNDO_CHANGE_ORDER),
-    cursor(),
-    selStart(),
-    selEnd(),
-    scroll(-1.0f),
-    order(0),
+    oldCursor(),
+    oldSelStart(),
+    oldSelEnd(),
+    newCursor(),
+    newSelStart(),
+    newSelEnd(),
+    oldScroll(-1.0f),
+    newScroll(-1.0f),
+    oldOrder(0),
+    newOrder(0),
     nibble(false),
     oldOrdersLen(0),
     newOrdersLen(0),
@@ -2346,7 +2352,7 @@ class FurnaceGUI {
   FixedQueue<bool*,64> pendingLayoutImportReopen;
 
   int curIns, curWave, curSample, curOctave, curOrder, playOrder, prevIns, oldRow, editStep, editStepCoarse, soloChan, orderEditMode, orderCursor;
-  int loopOrder, loopRow, loopEnd, isClipping, newSongCategory, latchTarget;
+  int loopOrder, loopRow, loopEnd, isClipping, newSongCategory, latchTarget, undoOrder;
   int wheelX, wheelY, dragSourceX, dragSourceXFine, dragSourceY, dragSourceOrder, dragDestinationX, dragDestinationXFine, dragDestinationY, dragDestinationOrder, oldBeat, oldBar;
   int curGroove, exitDisabledTimer;
   int curPaletteChoice, curPaletteType;
@@ -2373,7 +2379,8 @@ class FurnaceGUI {
   bool clockShowReal, clockShowRow, clockShowBeat, clockShowMetro, clockShowTime;
   float clockMetroTick[16];
 
-  SelectionPoint selStart, selEnd, cursor, cursorDrag, dragStart, dragEnd, prevCursor;
+  SelectionPoint selStart, selEnd, cursor, cursorDrag, dragStart, dragEnd;
+  SelectionPoint undoSelStart, undoSelEnd, undoCursor;
   bool selecting, selectingFull, dragging, curNibble, orderNibble, followOrders, followPattern, wasFollowing, changeAllOrders, mobileUI;
   bool collapseWindow, demandScrollX, fancyPattern, firstFrame, tempoView, waveHex, waveSigned, waveGenVisible, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
   bool keepLoopAlive, keepGrooveAlive, orderScrollLocked, orderScrollTolerance, dragMobileMenu, dragMobileEditButton, wantGrooveListFocus;

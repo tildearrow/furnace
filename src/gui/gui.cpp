@@ -8636,6 +8636,7 @@ FurnaceGUI::FurnaceGUI():
   isClipping(0),
   newSongCategory(0),
   latchTarget(0),
+  undoOrder(0),
   wheelX(0),
   wheelY(0),
   dragSourceX(0),

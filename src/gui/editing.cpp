@@ -53,7 +53,10 @@ const char* FurnaceGUI::noteNameNormal(short note, short octave) {
 }
 
 void FurnaceGUI::prepareUndo(ActionType action, UndoRegion region) {
-  prevCursor=cursor;
+  undoCursor=cursor;
+  undoSelStart=selStart;
+  undoSelEnd=selEnd;
+  undoOrder=curOrder;
 
   if (region.begin.ord==-1) {
     region.begin.ord=selStart.order;
@@ -128,11 +131,16 @@ void FurnaceGUI::makeUndo(ActionType action, UndoRegion region) {
   bool shallWalk=false;
   UndoStep s;
   s.type=action;
-  s.cursor=prevCursor;
-  s.selStart=selStart;
-  s.selEnd=selEnd;
-  s.scroll=patScroll;
-  s.order=curOrder;
+  s.oldCursor=undoCursor;
+  s.oldSelStart=undoSelStart;
+  s.oldSelEnd=undoSelEnd;
+  s.oldScroll=patScroll;
+  s.oldOrder=undoOrder;
+  s.newCursor=cursor;
+  s.newSelStart=selStart;
+  s.newSelEnd=selEnd;
+  s.newScroll=(nextScroll>=0.0f)?nextScroll:patScroll;
+  s.newOrder=curOrder;
   s.oldOrdersLen=oldOrdersLen;
   s.newOrdersLen=e->curSubSong->ordersLen;
   s.nibble=curNibble;
@@ -2134,6 +2142,7 @@ void FurnaceGUI::moveSelected(int x, int y) {
 void FurnaceGUI::doUndo() {
   if (undoHist.empty()) return;
   UndoStep& us=undoHist.back();
+  redoHist.push_back(us);
   MARK_MODIFIED;
 
   switch (us.type) {
@@ -2170,13 +2179,13 @@ void FurnaceGUI::doUndo() {
       }
       if (us.type!=GUI_UNDO_REPLACE) {
         if (!e->isPlaying() || !followPattern) {
-          cursor=us.cursor;
-          selStart=us.selStart;
-          selEnd=us.selEnd;
+          cursor=us.oldCursor;
+          selStart=us.oldSelStart;
+          selEnd=us.oldSelEnd;
           curNibble=us.nibble;
-          setOrder(us.order);
-          if (us.scroll>=0.0f) {
-            updateScrollRaw(us.scroll);
+          setOrder(us.oldOrder);
+          if (us.oldScroll>=0.0f) {
+            updateScrollRaw(us.oldScroll);
           }
         }
       }
@@ -2199,20 +2208,11 @@ void FurnaceGUI::doUndo() {
     }
   }
   if (shallReplay && e->isPlaying()) play();
-  
-  if (cursor.order!=curOrder) {
-    e->setOrder(cursor.order);
-  }
 
   if (curOrder>=e->curSubSong->ordersLen) {
     curOrder=e->curSubSong->ordersLen-1;
     e->setOrder(curOrder);
   }
-
-  // reverse state for redo
-  us.cursor=cursor;
-  us.scroll=patScroll;
-  redoHist.push_back(us);
 
   undoHist.pop_back();
 }
@@ -2257,13 +2257,13 @@ void FurnaceGUI::doRedo() {
       }
       if (us.type!=GUI_UNDO_REPLACE) {
         if (!e->isPlaying() || !followPattern) {
-          cursor=us.cursor;
-          selStart=us.selStart;
-          selEnd=us.selEnd;
+          cursor=us.newCursor;
+          selStart=us.newSelStart;
+          selEnd=us.newSelEnd;
           curNibble=us.nibble;
-          setOrder(us.order);
-          if (us.scroll>=0.0f) {
-            updateScrollRaw(us.scroll);
+          setOrder(us.newOrder);
+          if (us.newScroll>=0.0f) {
+            updateScrollRaw(us.newScroll);
           }
         }
       }
@@ -2286,10 +2286,6 @@ void FurnaceGUI::doRedo() {
     }
   }
   if (shallReplay && e->isPlaying()) play();
-
-  if (cursor.order!=curOrder) {
-    e->setOrder(cursor.order);
-  }
 
   if (curOrder>=e->curSubSong->ordersLen) {
     curOrder=e->curSubSong->ordersLen-1;
