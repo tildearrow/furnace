@@ -196,6 +196,10 @@ void FurnaceGUI::drawDebug() {
       ImGui::TextWrapped("%s",pdi.c_str());
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("GUI Status")) {
+      ImGui::Text("patScroll: %f",patScroll);
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Sample Debug")) {
       for (int i=0; i<e->song.sampleLen; i++) {
         DivSample* sample=e->getSample(i);

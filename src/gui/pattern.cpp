@@ -1401,6 +1401,8 @@ void FurnaceGUI::drawPattern() {
           }
         }
       }
+      // HACK: we need to capture the last scroll position in order to restore it during undo/redo
+      patScroll=ImGui::GetScrollY();
       // HACK: rendering here would cause the pairs to be drawn behind the pattern for some reason...
       // ...so we capture the table's window draw list...
       tdl=ImGui::GetWindowDrawList();

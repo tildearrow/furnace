@@ -563,6 +563,11 @@ void FurnaceGUI::updateScroll(int amount) {
   haveHitBounds=false;
 }
 
+void FurnaceGUI::updateScrollRaw(float amount) {
+  nextScroll=amount;
+  haveHitBounds=false;
+}
+
 void FurnaceGUI::addScroll(int amount) {
   float lineHeight=(patFont->FontSize+2*dpiScale);
   nextAddScroll=lineHeight*amount;
@@ -8836,6 +8841,7 @@ FurnaceGUI::FurnaceGUI():
   nextAddScroll(0.0f),
   orderScroll(0.0f),
   orderScrollSlideOrigin(0.0f),
+  patScroll(-1.0f),
   orderScrollRealOrigin(0.0f,0.0f),
   dragMobileMenuOrigin(0.0f,0.0f),
   layoutTimeBegin(0),

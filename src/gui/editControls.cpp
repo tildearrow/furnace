@@ -723,7 +723,10 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         ImGui::Checkbox(_("Edit"),&edit);
         ImGui::SameLine();
-        ImGui::Checkbox(_("Lock"),&orderLock);
+        bool ol=orderLock;
+        if (ImGui::Checkbox(_("Lock"),&ol)) {
+          doAction(GUI_ACTION_ORDER_LOCK);
+        }
         ImGui::SameLine();
         bool metro=e->getMetronome();
         if (ImGui::Checkbox(_("Metronome"),&metro)) {
@@ -813,7 +816,7 @@ void FurnaceGUI::drawEditControls() {
 
         pushToggleColors(orderLock);
         if (ImGui::Button(ICON_FA_LOCK "##OrderLock")) {
-          orderLock=!orderLock;
+          doAction(GUI_ACTION_ORDER_LOCK);
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("Lock cursor/selection to this order"));
@@ -939,7 +942,7 @@ void FurnaceGUI::drawEditControls() {
 
         pushToggleColors(orderLock);
         if (ImGui::Button(ICON_FA_LOCK "##OrderLock",buttonSize)) {
-          orderLock=!orderLock;
+          doAction(GUI_ACTION_ORDER_LOCK);
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("Lock cursor/selection to this order"));
@@ -1088,7 +1091,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         pushToggleColors(orderLock);
         if (ImGui::Button(ICON_FA_LOCK "##OrderLock")) {
-          orderLock=!orderLock;
+          doAction(GUI_ACTION_ORDER_LOCK);
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("Lock cursor/selection to this order"));

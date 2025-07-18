@@ -1098,6 +1098,7 @@ struct UndoOtherData {
 struct UndoStep {
   ActionType type;
   SelectionPoint cursor, selStart, selEnd;
+  float scroll;
   int order;
   bool nibble;
   int oldOrdersLen, newOrdersLen;
@@ -1111,6 +1112,7 @@ struct UndoStep {
     cursor(),
     selStart(),
     selEnd(),
+    scroll(-1.0f),
     order(0),
     nibble(false),
     oldOrdersLen(0),
@@ -2371,7 +2373,7 @@ class FurnaceGUI {
   bool clockShowReal, clockShowRow, clockShowBeat, clockShowMetro, clockShowTime;
   float clockMetroTick[16];
 
-  SelectionPoint selStart, selEnd, cursor, cursorDrag, dragStart, dragEnd;
+  SelectionPoint selStart, selEnd, cursor, cursorDrag, dragStart, dragEnd, prevCursor;
   bool selecting, selectingFull, dragging, curNibble, orderNibble, followOrders, followPattern, wasFollowing, changeAllOrders, mobileUI;
   bool collapseWindow, demandScrollX, fancyPattern, firstFrame, tempoView, waveHex, waveSigned, waveGenVisible, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
   bool keepLoopAlive, keepGrooveAlive, orderScrollLocked, orderScrollTolerance, dragMobileMenu, dragMobileEditButton, wantGrooveListFocus;
@@ -2531,6 +2533,7 @@ class FurnaceGUI {
   bool bindSetActive, bindSetPending;
 
   float nextScroll, nextAddScroll, nextAddScrollX, orderScroll, orderScrollSlideOrigin;
+  float patScroll;
 
   ImVec2 orderScrollRealOrigin;
   ImVec2 dragMobileMenuOrigin;
@@ -3114,6 +3117,7 @@ class FurnaceGUI {
     void bindEngine(DivEngine* eng);
     void enableSafeMode();
     void updateScroll(int amount);
+    void updateScrollRaw(float amount);
     void addScroll(int amount);
     void addScrollX(int amount);
     void setFileName(String name);
