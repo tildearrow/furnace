@@ -1338,8 +1338,8 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
       pat->data[y][3]=-1;
     }
   }
-  makeUndo(GUI_UNDO_PATTERN_EDIT);
   editAdvance();
+  makeUndo(GUI_UNDO_PATTERN_EDIT);
   curNibble=false;
 }
 
@@ -1377,7 +1377,6 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
       wavePreviewInit=true;
       updateFMPreview=true;
     }
-    makeUndo(GUI_UNDO_PATTERN_EDIT);
     if (direct) {
       curNibble=false;
     } else {
@@ -1389,13 +1388,13 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
         if (!curNibble) editAdvance();
       }
     }
+    makeUndo(GUI_UNDO_PATTERN_EDIT);
   } else if (cursor.xFine==2) {
     if (curNibble) {
       if (pat->data[y][target]>e->getMaxVolumeChan(ch)) pat->data[y][target]=e->getMaxVolumeChan(ch);
     } else {
       pat->data[y][target]&=15;
     }
-    makeUndo(GUI_UNDO_PATTERN_EDIT);
     if (direct) {
       curNibble=false;
     } else {
@@ -1408,8 +1407,8 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
         if (!curNibble) editAdvance();
       }
     }
-  } else {
     makeUndo(GUI_UNDO_PATTERN_EDIT);
+  } else {
     if (direct) {
       curNibble=false;
     } else {
@@ -1433,6 +1432,7 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
         }
       }
     }
+    makeUndo(GUI_UNDO_PATTERN_EDIT);
   }
 }
 

@@ -2040,6 +2040,8 @@ void FurnaceGUI::moveSelected(int x, int y) {
   selStartOld=selStart;
   selEndOld=selEnd;
 
+  prepareUndo(GUI_UNDO_PATTERN_DRAG);
+
   // move selection
   DETERMINE_FIRST_LAST;
 
@@ -2120,8 +2122,6 @@ void FurnaceGUI::moveSelected(int x, int y) {
   if (outOfBounds) {
     return;
   }
-
-  prepareUndo(GUI_UNDO_PATTERN_DRAG);
 
   // copy and clear
   String c=doCopy(true,false,selStart,selEnd);
