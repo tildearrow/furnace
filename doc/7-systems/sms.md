@@ -4,7 +4,7 @@ the SN76489 is a relatively simple sound chip made by Texas Instruments. a deriv
 
 the noise channel's default mode uses only 3 preset frequencies. to use the full range of pitches, one can enable a mode which matches the frequency of square wave channel 3. in addition, periodic noise mode can be enabled to create a "thin pulse" tone that sounds four octaves lower than the square wave channels.
 
-the original iteration of the SN76489 used in the TI-99/4A computer, the SN94624, runs at a clock speed of 447 kHz (NTSC 3.58 MHz pre-divided by 8) and can only produce square waves as low as approximately 110 Hz, or note A2. later versions of the chip (such as the one in the Master System and Genesis) instead have an internal /8 divider and generally run at higher clock rates (such as undivided NTSC 3.58 MHz) to achieve a matching or similar frequency range.
+the original iteration of the SN76489 used in the TI-99/4A computer, the SN94624, runs at a clock speed of 447 kHz and can only produce square waves as low as approximately 110 Hz, or note A2. later versions of the chip (such as the one in the Master System and Genesis) add an internal divide-by-8 stage and generally run at higher system clock rates to achieve a matching or similar frequency range.
 
 ## SN7 versions
 
