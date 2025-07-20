@@ -2017,10 +2017,21 @@ void FurnaceGUI::doAbsorbInstrument() {
 
 void FurnaceGUI::doDrag(bool copy) {
   int len=dragEnd.xCoarse-dragStart.xCoarse+1;
+  int firstOrder=e->curSubSong->ordersLen;
+  int lastOrder=0;
+
+  if (dragStart.order<firstOrder) firstOrder=dragStart.order;
+  if (dragEnd.order<firstOrder) firstOrder=dragEnd.order;
+  if (selStart.order<firstOrder) firstOrder=selStart.order;
+  if (dragStart.order>lastOrder) lastOrder=dragStart.order;
+  if (dragEnd.order>lastOrder) lastOrder=dragEnd.order;
+  if (selStart.order>lastOrder) lastOrder=selStart.order;
+
+  logV("UR: %d - %d",firstOrder,lastOrder);
 
   if (len<1) return;
   
-  prepareUndo(GUI_UNDO_PATTERN_DRAG);
+  prepareUndo(GUI_UNDO_PATTERN_DRAG,UndoRegion(firstOrder,0,0,lastOrder,e->getTotalChannelCount()-1,e->curSubSong->patLen-1));
 
   // copy and clear (if copy is false)
   String c=doCopy(!copy,false,dragStart,dragEnd);
