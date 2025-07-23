@@ -767,65 +767,81 @@ String macroHoverES5506FilterMode(int id, float val, void* u) {
 }
 
 String macroLFOWaves(int id, float val, void* u) {
+  const char* label="???";
   switch (((int)val)&3) {
     case 0:
-      return _("Saw");
+      label=_("Saw");
+      break;
     case 1:
-      return _("Square");
+      label=_("Square");
+      break;
     case 2:
-      return _("Triangle");
+      label=_("Triangle");
+      break;
     case 3:
-      return _("Random");
-    default:
-      return "???";
+      label=_("Random");
+      break;
+    default: break;
   }
-  return "???";
+  return fmt::sprintf("%d: %s",id,label);
 }
 
 String macroVERAWaves(int id, float val, void* u) {
+  const char* label="???";
   switch (((int)val)&3) {
     case 0:
-      return _("Pulse");
+      label=_("Pulse");
+      break;
     case 1:
-      return _("Saw");
+      label=_("Saw");
+      break;
     case 2:
-      return _("Triangle");
+      label=_("Triangle");
+      break;
     case 3:
-      return _("Noise");
-    default:
-      return "???";
+      label=_("Noise");
+      break;
+    default: break;
   }
-  return "???";
+  return fmt::sprintf("%d: %s",id,label);
 }
 
 String macroSoundUnitWaves(int id, float val, void* u) {
+  const char* label="???";
   switch (((int)val)&7) {
     case 0:
-      return _("Square");
+      label=_("Square");
+      break;
     case 1:
-      return _("Saw");
+      label=_("Saw");
+      break;
     case 2:
-      return _("Sine");
+      label=_("Sine");
+      break;
     case 3:
-      return _("Triangle");
+      label=_("Triangle");
+      break;
     case 4:
-      return _("Noise");
+      label=_("Noise");
+      break;
     case 5:
-      return _("Short Noise");
+      label=_("Short Noise");
+      break;
     case 6:
-      return _("XOR Sine");
+      label=_("XOR Sine");
+      break;
     case 7:
-      return _("XOR Triangle");
-    default:
-      return "???";
+      label=_("XOR Triangle");
+      break;
+    default: break;
   }
-  return "???";
+  return fmt::sprintf("%d: %s",id,label);
 }
 
 String macroSID3SpecialWaves(int id, float val, void* u) {
   if ((int)val<0 || (int)val>=SID3_NUM_SPECIAL_WAVES) return "???";
 
-  return _(sid3SpecialWaveforms[(int)val%SID3_NUM_SPECIAL_WAVES]);
+  return fmt::sprintf("%d: %s",id,_(sid3SpecialWaveforms[(int)val%SID3_NUM_SPECIAL_WAVES]));
 }
 
 String macroSID3SourceChan(int id, float val, void* u) {
@@ -852,13 +868,13 @@ String macroSID3NoiseLFSR(int id, float val, void* u) {
 String macroSID2WaveMixMode(int id, float val, void* u) {
   if ((int)val<0 || (int)val>3) return "???";
 
-  return _(sid2WaveMixModes[(int)val]);
+  return fmt::sprintf("%d: %s",id,_(sid2WaveMixModes[(int)val]));
 }
 
 String macroSID3WaveMixMode(int id, float val, void* u) {
   if ((int)val<0 || (int)val>4) return "???";
 
-  return _(sid3WaveMixModes[(int)val]);
+  return fmt::sprintf("%d: %s",id,_(sid3WaveMixModes[(int)val]));
 }
 
 void addAALine(ImDrawList* dl, const ImVec2& p1, const ImVec2& p2, const ImU32 color, float thickness=1.0f) {
