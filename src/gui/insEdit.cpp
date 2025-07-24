@@ -6745,7 +6745,7 @@ void FurnaceGUI::drawInsEdit() {
           for (DivInstrumentType i: insTypeList) {
             if (ImGui::Selectable(insTypes[i][0],insType==i)) {
               ins->type=i;
-              MARK_MODIFIED
+              MARK_MODIFIED;
 
               // reset macro zoom
               memset(ins->temp.vZoom,-1,sizeof(ins->temp.vZoom));
