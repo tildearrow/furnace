@@ -2043,7 +2043,7 @@ void FurnaceGUI::doDrag(bool copy) {
   doPaste(GUI_PASTE_MODE_OVERFLOW,0,false,c);
   updateScroll(cursor.y);
 
-  makeUndo(GUI_UNDO_PATTERN_DRAG);
+  makeUndo(GUI_UNDO_PATTERN_DRAG,UndoRegion(firstOrder,0,0,lastOrder,e->getTotalChannelCount()-1,e->curSubSong->patLen-1));
 }
 
 void FurnaceGUI::moveSelected(int x, int y) {
