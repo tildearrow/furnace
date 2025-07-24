@@ -2051,8 +2051,6 @@ void FurnaceGUI::moveSelected(int x, int y) {
   selStartOld=selStart;
   selEndOld=selEnd;
 
-  prepareUndo(GUI_UNDO_PATTERN_DRAG);
-
   // move selection
   DETERMINE_FIRST_LAST;
 
@@ -2134,6 +2132,20 @@ void FurnaceGUI::moveSelected(int x, int y) {
     return;
   }
 
+  int firstOrder=e->curSubSong->ordersLen;
+  int lastOrder=0;
+
+  if (selStartNew.order<firstOrder) firstOrder=selStartNew.order;
+  if (selEndNew.order<firstOrder) firstOrder=selEndNew.order;
+  if (selStart.order<firstOrder) firstOrder=selStart.order;
+  if (selStartNew.order>lastOrder) lastOrder=selStartNew.order;
+  if (selEndNew.order>lastOrder) lastOrder=selEndNew.order;
+  if (selStart.order>lastOrder) lastOrder=selStart.order;
+
+  logV("UR: %d - %d",firstOrder,lastOrder);
+
+  prepareUndo(GUI_UNDO_PATTERN_DRAG,UndoRegion(firstOrder,0,0,lastOrder,e->getTotalChannelCount()-1,e->curSubSong->patLen-1));
+
   // copy and clear
   String c=doCopy(true,false,selStart,selEnd);
 
@@ -2147,7 +2159,7 @@ void FurnaceGUI::moveSelected(int x, int y) {
   cursor=selStart;
   doPaste(GUI_PASTE_MODE_OVERFLOW,0,false,c);
 
-  makeUndo(GUI_UNDO_PATTERN_DRAG);
+  makeUndo(GUI_UNDO_PATTERN_DRAG,UndoRegion(firstOrder,0,0,lastOrder,e->getTotalChannelCount()-1,e->curSubSong->patLen-1));
 }
 
 void FurnaceGUI::doUndo() {
