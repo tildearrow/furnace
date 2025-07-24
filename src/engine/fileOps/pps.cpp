@@ -93,7 +93,7 @@ void DivEngine::loadPPS(SafeReader& reader, std::vector<DivSample*>& ret, String
             s->rate = PPS_SAMPLE_RATE;
             s->centerRate = PPS_SAMPLE_RATE;
             s->depth = DIV_SAMPLE_DEPTH_4BIT;
-            s->init(headers[i].sample_length);
+            s->init(headers[i].sample_length*2); // bytes->samples
 
             reader.seek((int)headers[i].start_pointer, SEEK_SET);
 

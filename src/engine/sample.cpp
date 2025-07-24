@@ -1343,7 +1343,7 @@ void DivSample::render(unsigned int formatMask) {
           } else {
             nibble=data4[i>>1]>>4;
           }
-          data16[i]=(nibble<<12)^0x8000;
+          data16[i]=((nibble<<12)|(nibble<<8)|(nibble<<4)|nibble)^0x8000;
         }
         break;
       }
