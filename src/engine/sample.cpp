@@ -877,6 +877,7 @@ void DivSample::convert(DivSampleDepth newDepth, unsigned int formatMask) {
       break;
     case DIV_SAMPLE_DEPTH_4BIT:
       setSampleCount((samples+1)&(~1));
+      break;
     default:
       break;
   }
@@ -1338,9 +1339,9 @@ void DivSample::render(unsigned int formatMask) {
         unsigned short nibble=0;
         for (unsigned int i=0; i<samples; i++) {
           if (i&1) {
-            nibble=data4[i/2]&0xf;
+            nibble=data4[i>>1]&0xf;
           } else {
-            nibble=data4[i/2]>>4;
+            nibble=data4[i>>1]>>4;
           }
           data16[i]=(nibble<<12)^0x8000;
         }
@@ -1558,7 +1559,7 @@ void DivSample::render(unsigned int formatMask) {
         _sample=(*samplePtr++^0x8000)>>12;
         sample4|=_sample;
       }
-      data4[i/2]=sample4;
+      data4[i>>1]=sample4;
     }
   }
 }
