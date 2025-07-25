@@ -7010,7 +7010,7 @@ bool FurnaceGUI::loop() {
         ImGui::SameLine();
         ImGui::SetNextItemWidth(120.0f*dpiScale);
         if (ImGui::InputInt("##RSChans",&pendingRawSampleChannels,1,2)) {
-          CLAMP_VAR(pendingRawSampleChannels, 1, 16)
+          if (pendingRawSampleChannels<1) pendingRawSampleChannels=1;
         }
         ImGui::Text(_("(will be mixed down to mono)"));
         ImGui::Checkbox(_("Unsigned"),&pendingRawSampleUnsigned);
