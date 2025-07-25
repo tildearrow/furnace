@@ -293,6 +293,7 @@ int DivSample::getSampleOffset(int offset, int length, DivSampleDepth depth) {
         break;
       case DIV_SAMPLE_DEPTH_4BIT:
         off=(offset+1)/2;
+        break;
       default:
         break;
     }
