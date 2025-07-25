@@ -68,6 +68,7 @@ class DivPlatformNES: public DivDispatch {
   signed char lastDPCMFreq;
   bool dpcmMode;
   bool dpcmModeDefault;
+  bool resetSweep;
   bool dacAntiClickOn;
   bool useNP;
   bool goingToLoop;

@@ -196,6 +196,10 @@ void FurnaceGUI::drawDebug() {
       ImGui::TextWrapped("%s",pdi.c_str());
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("GUI Status")) {
+      ImGui::Text("patScroll: %f",patScroll);
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Sample Debug")) {
       for (int i=0; i<e->song.sampleLen; i++) {
         DivSample* sample=e->getSample(i);
@@ -810,7 +814,7 @@ void FurnaceGUI::drawDebug() {
     if (ImGui::TreeNode("Settings")) {
       if (ImGui::Button("Sync")) syncSettings();
       ImGui::SameLine();
-      if (ImGui::Button("Commit")) commitSettings();
+      if (ImGui::Button("Commit")) willCommit=true;
       ImGui::SameLine();
       if (ImGui::Button("Force Load")) e->loadConf();
       ImGui::SameLine();

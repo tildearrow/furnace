@@ -338,11 +338,13 @@ void pcm_channel::output(output_data &output) const
 
 	// fetch current sample and add
 	int16_t sample = fetch_sample();
+        int32_t outl = (lvol * sample) >> 15;
+        int32_t outr = (rvol * sample) >> 15;
 	uint32_t outnum = m_regs.ch_output_channel(m_choffs) * 2;
-	output.data[outnum + 0] += (lvol * sample) >> 15;
-	output.data[outnum + 1] += (rvol * sample) >> 15;
-	m_output[outnum + 0] = output.data[outnum + 0];
-	m_output[outnum + 1] = output.data[outnum + 1];
+	output.data[outnum + 0] += outl;
+	output.data[outnum + 1] += outr;
+	m_output[outnum + 0] = outl;
+	m_output[outnum + 1] = outr;
 }
 
 

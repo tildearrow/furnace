@@ -43,6 +43,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
             cursor.xCoarse=0;
             cursor.xFine=0;
             cursor.y=0;
+            cursor.order=0;
             selStart=cursor;
             selEnd=cursor;
             curOrder=0;
@@ -80,6 +81,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
         cursor.xCoarse=0;
         cursor.xFine=0;
         cursor.y=0;
+        cursor.order=0;
         selStart=cursor;
         selEnd=cursor;
         curOrder=0;
@@ -101,6 +103,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
         cursor.xCoarse=0;
         cursor.xFine=0;
         cursor.y=0;
+        cursor.order=0;
         selStart=cursor;
         selEnd=cursor;
         curOrder=0;

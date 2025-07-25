@@ -18,6 +18,7 @@
  */
 
 #include "gui.h"
+#include "imgui_internal.h"
 
 void FurnaceGUI::drawXYOsc() {
   if (nextWindow==GUI_WINDOW_XY_OSC) {

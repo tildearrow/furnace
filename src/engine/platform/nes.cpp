@@ -352,9 +352,6 @@ void DivPlatformNES::tick(bool sysTick) {
     }
     if (chan[i].sweepChanged) {
       chan[i].sweepChanged=false;
-      if (i==0) {
-        // rWrite(16+i*5,chan[i].sweep);
-      }
     }
     if (i<3) if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
@@ -637,6 +634,13 @@ int DivPlatformNES::dispatch(DivCommand c) {
       } else if (!parent->song.brokenOutVol2) {
         rWrite(0x4000+c.chan*4,(chan[c.chan].envMode<<4)|chan[c.chan].vol|((chan[c.chan].duty&3)<<6));
       }
+      if (resetSweep && c.chan<2) {
+        if (chan[c.chan].sweep!=0x08 && !chan[c.chan].sweepChanged) {
+          chan[c.chan].sweep=0x08;
+          chan[c.chan].prevFreq=-1;
+          rWrite(0x4001+(c.chan*4),chan[c.chan].sweep);
+        }
+      }
       break;
     case DIV_CMD_NOTE_OFF:
       if (c.chan==4) {
@@ -724,6 +728,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
         }
       }
       rWrite(0x4001+(c.chan*4),chan[c.chan].sweep);
+      chan[c.chan].sweepChanged=true;
       break;
     case DIV_CMD_NES_ENV_MODE:
       chan[c.chan].envMode=c.value&3;
@@ -989,6 +994,7 @@ void DivPlatformNES::setFlags(const DivConfig& flags) {
   }
   
   dpcmModeDefault=flags.getBool("dpcmMode",true);
+  resetSweep=flags.getBool("resetSweep",false);
 }
 
 void DivPlatformNES::notifyInsDeletion(void* ins) {

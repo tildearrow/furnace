@@ -611,6 +611,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_5E01: {
       int clockSel=flags.getInt("clockSel",0);
       bool dpcmMode=flags.getBool("dpcmMode",true);
+      bool resetSweep=flags.getBool("resetSweep",false);
 
       ImGui::Text(_("Clock rate:"));
 
@@ -642,10 +643,15 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       ImGui::Unindent();
 
+      if (ImGui::Checkbox(_("Reset sweep on new note"),&resetSweep)) {
+        altered=true;
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("dpcmMode",dpcmMode);
+          flags.set("resetSweep",resetSweep);
         });
       }
       break;
