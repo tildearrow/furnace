@@ -168,7 +168,6 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
     ImGui::SetTooltip("%s",insType);
     ImGui::PopStyleColor();
     if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-      insEditOpen=true;
       nextWindow=GUI_WINDOW_INS_EDIT;
     }
   }
@@ -186,7 +185,6 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
       updateFMPreview=true;
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
       if (ImGui::MenuItem(_("edit"))) {
-        insEditOpen=true;
         nextWindow=GUI_WINDOW_INS_EDIT;
       }
       if (ImGui::MenuItem(_("duplicate"))) {
@@ -242,7 +240,6 @@ void FurnaceGUI::waveListItem(int i, float* wavePreview, int dir, int asset) {
   if (wantScrollListWave && curWave==i) ImGui::SetScrollHereY();
   if (ImGui::IsItemHovered()) {
     if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-      waveEditOpen=true;
       nextWindow=GUI_WINDOW_WAVE_EDIT;
     }
   }
@@ -286,7 +283,6 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
   }
   if (ImGui::IsItemHovered() && !mobileUI) {
     if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-      sampleEditOpen=true;
       nextWindow=GUI_WINDOW_SAMPLE_EDIT;
     }
   }
@@ -316,7 +312,6 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
     lastAssetType=2;
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
     if (ImGui::MenuItem(_("edit"))) {
-      sampleEditOpen=true;
       nextWindow=GUI_WINDOW_SAMPLE_EDIT;
     }
     if (ImGui::MenuItem(_("make instrument"))) {
@@ -363,15 +358,12 @@ void FurnaceGUI::drawInsList(bool asChild) {
     if (ImGui::Button(ICON_FA_PENCIL)) {
       switch (lastAssetType) {
         case 0:
-          insEditOpen=true;
           nextWindow=GUI_WINDOW_INS_EDIT;
           break;
         case 1:
-          waveEditOpen=true;
           nextWindow=GUI_WINDOW_WAVE_EDIT;
           break;
         case 2:
-          sampleEditOpen=true;
           nextWindow=GUI_WINDOW_SAMPLE_EDIT;
           break;
       }
@@ -815,7 +807,6 @@ void FurnaceGUI::drawWaveList(bool asChild) {
   if (began) {
     ImGui::BeginDisabled(e->song.waveLen==0);
     if (ImGui::Button(ICON_FA_PENCIL)) {
-      waveEditOpen=true;
       nextWindow=GUI_WINDOW_WAVE_EDIT;
     }
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
@@ -960,7 +951,6 @@ void FurnaceGUI::drawSampleList(bool asChild) {
   if (began) {
     ImGui::BeginDisabled(e->song.sampleLen==0);
     if (ImGui::Button(ICON_FA_PENCIL)) {
-      sampleEditOpen=true;
       nextWindow=GUI_WINDOW_SAMPLE_EDIT;
     }
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
