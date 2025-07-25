@@ -2,7 +2,7 @@
 
 a portable video game console from Nintendo, succeeding the Game Boy.
 
-it adds two stereo sample audio channels which can be used directly ("DMA", left/right) or used in a software mixing driver (most games do this) in order to have multiple voices.
+it starts with the [Game Boy sound hardware](game-boy.md) and adds two stereo sample audio channels which can be used directly ("DMA", hard-panned, usually used as left/right channels) or used in a software mixing driver (most games do this) in order to have multiple voices.
 
 # effects
 
@@ -20,7 +20,6 @@ it features echo and up to 16 voices.
     - put `110x` in the effect column.
     - set volume column to set feedback.
     - don't use the channel for anything else.
-
 - `12xy`: **toggle invert.**
   - `x` left channel.
   - `y` right channel.
