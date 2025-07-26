@@ -22,6 +22,7 @@
 #include <imgui.h>
 #include "../ta-log.h"
 #include "../engine/filter.h"
+#include "oscTrigger/analog.h"
 
 void FurnaceGUI::readOsc() {
   int writePos=e->oscWritePos;
@@ -53,6 +54,13 @@ void FurnaceGUI::readOsc() {
   for (int ch=0; ch<e->getAudioDescGot().outChans; ch++) {
     if (oscValues[ch]==NULL) {
       oscValues[ch]=new float[2048];
+    }
+    if (trigger[ch]==NULL) {
+      trigger[ch]=new TriggerAnalog(e->oscBuf[ch], 32768);
+    }
+    trigger[ch]->trigger(winSize, triggerLevel, triggerEdge);
+    if (trigger[ch]->getTriggered()) {
+      oscReadPos=trigger[ch]->getTriggerIndex();
     }
     memset(oscValues[ch],0,2048*sizeof(float));
     float* sincITable=DivFilterTables::getSincIntegralSmallTable();
@@ -135,8 +143,8 @@ void FurnaceGUI::readOsc() {
     peak[i]+=(newPeak-peak[i])*0.9;
   }
 
-  readPos=(readPos+total)&0x7fff;
-  e->oscReadPos=readPos;
+  // readPos=(readPos+total)&0x7fff;
+  e->oscReadPos=readPos&0x7fff;
 }
 
 PendingDrawOsc _do;
@@ -189,6 +197,11 @@ void FurnaceGUI::drawOsc() {
       if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
         oscWindowSize=20.0;
       }
+      ImGui::SameLine();
+      if (ImGui::VSliderFloat("##TrigLevel", ImVec2(20.0f*dpiScale,ImGui::GetContentRegionAvail().y), &triggerLevel, -1.0f, 1.0f)) {
+        if (triggerLevel<-1.0f) triggerLevel=-1.0f;
+        if (triggerLevel>1.0f) triggerLevel=1.0f;
+      } rightClickable
       ImGui::SameLine();
     }
 

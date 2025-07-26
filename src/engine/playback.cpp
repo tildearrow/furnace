@@ -2697,12 +2697,18 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
 
   // dump to oscillator buffer
-  for (unsigned int i=0; i<size; i++) {
-    for (int j=0; j<outChans; j++) {
-      if (oscBuf[j]==NULL) continue;
-      oscBuf[j][oscWritePos]=out[j][i];
+  // for (unsigned int i=0; i<size; i++) {
+  //   for (int j=0; j<outChans; j++) {
+  //     if (oscBuf[j]==NULL) continue;
+  //     oscBuf[j][oscWritePos]=out[j][i];
+  //   }
+  //   if (++oscWritePos>=32768) oscWritePos=0;
+  // }
+  for (int j=0; j<outChans; j++) {
+    memcpy(oscBuf[j], oscBuf[j]+size, (32768-size)*sizeof(float));
+    for (unsigned int i=0; i<size; i++) {
+      oscBuf[j][32768-size+i] = out[j][i];
     }
-    if (++oscWritePos>=32768) oscWritePos=0;
   }
   oscSize=size;
 

@@ -237,6 +237,28 @@ void FurnaceGUI::drawDebug() {
       }
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Master Scope Debug")) {
+      ImVec2 size = ImVec2(640.f,480.f);
+      ImGui::Text(
+        "buf size: %d\n"
+        "osc width: %u\n"
+        "trig idx: %lu",
+        oscWidth, (int)(e->getAudioDescGot().rate*(oscWindowSize/1000.0f)), trigger[0]->getTriggerIndex()
+      );
+      if (ImGui::BeginChild("##scopePLotArea", size)) {
+        ImDrawList* dl = ImGui::GetWindowDrawList();
+        ImVec2 origin = ImGui::GetWindowPos();
+        ImVec2* plot = new ImVec2[32768];
+        for (int i=0; i<32768; i++) {
+          plot[i].x = origin.x + ((float)i/32768)*size.x;
+          plot[i].y = origin.y + size.y/2.f - e->oscBuf[0][i]*size.y/2.f;
+        }
+        dl->AddPolyline(plot, 32768, ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_OSC_WAVE]), 0, 1.f);
+        delete[] plot;
+      }
+      ImGui::EndChild();
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Oscilloscope Debug")) {
       int c=0;
       ImGui::Checkbox("FFT debug view",&debugFFT);
