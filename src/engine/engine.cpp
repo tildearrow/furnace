@@ -2905,7 +2905,7 @@ void DivEngine::delWave(int index) {
 }
 
 int DivEngine::addSample() {
-  if (song.sample.size()>=256) {
+  if (song.sample.size()>=32768) {
     lastError=_("too many samples!");
     return -1;
   }
@@ -2928,7 +2928,7 @@ int DivEngine::addSample() {
 }
 
 int DivEngine::addSamplePtr(DivSample* which) {
-  if (song.sample.size()>=256) {
+  if (song.sample.size()>=32768) {
     lastError=_("too many samples!");
     delete which;
     return -1;

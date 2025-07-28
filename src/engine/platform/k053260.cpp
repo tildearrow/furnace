@@ -160,7 +160,7 @@ void DivPlatformK053260::tick(bool sysTick) {
         unsigned int start=0;
         unsigned int length=0;
         if (sample>=0 && sample<parent->song.sampleLen) {
-          start=sampleOffK053260[sample];
+          start=sampleOff[sample];
           length=(s->depth==DIV_SAMPLE_DEPTH_ADPCM_K)?s->lengthK:s->length8;
           if (chan[i].reverse) {
             start+=length;
@@ -470,7 +470,7 @@ size_t DivPlatformK053260::getSampleMemUsage(int index) {
 
 bool DivPlatformK053260::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -481,8 +481,8 @@ const DivMemoryComposition* DivPlatformK053260::getMemCompo(int index) {
 
 void DivPlatformK053260::renderSamples(int sysID) {
   memset(sampleMem,0,getSampleMemCapacity());
-  memset(sampleOffK053260,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOff,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="Sample ROM";
@@ -491,7 +491,7 @@ void DivPlatformK053260::renderSamples(int sysID) {
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
     if (!s->renderOn[0][sysID]) {
-      sampleOffK053260[i]=0;
+      sampleOff[i]=0;
       continue;
     }
 
@@ -501,7 +501,7 @@ void DivPlatformK053260::renderSamples(int sysID) {
       length=MIN(65535,s->getEndPosition(DIV_SAMPLE_DEPTH_ADPCM_K));
       actualLength=MIN((int)(getSampleMemCapacity()-memPos-1),length);
       if (actualLength>0) {
-        sampleOffK053260[i]=memPos-1;
+        sampleOff[i]=memPos-1;
         memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength+1));
         for (int j=0; j<actualLength; j++) {
           sampleMem[memPos++]=s->dataK[j];
@@ -512,7 +512,7 @@ void DivPlatformK053260::renderSamples(int sysID) {
       length=MIN(65535,s->getEndPosition(DIV_SAMPLE_DEPTH_8BIT));
       actualLength=MIN((int)(getSampleMemCapacity()-memPos-1),length);
       if (actualLength>0) {
-        sampleOffK053260[i]=memPos-1;
+        sampleOff[i]=memPos-1;
         memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength+1));
         for (int j=0; j<actualLength; j++) {
           sampleMem[memPos++]=s->data8[j];
@@ -554,4 +554,18 @@ void DivPlatformK053260::quit() {
   for (int i=0; i<4; i++) {
     delete oscBuf[i];
   }
+}
+
+// initialization of important arrays
+DivPlatformK053260::DivPlatformK053260():
+  DivDispatch(),
+  k053260_intf(),
+  k053260(*this) {
+  sampleOff=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
+DivPlatformK053260::~DivPlatformK053260() {
+  delete[] sampleOff;
+  delete[] sampleLoaded;
 }

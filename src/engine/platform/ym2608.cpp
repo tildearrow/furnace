@@ -1991,7 +1991,7 @@ size_t DivPlatformYM2608::getSampleMemUsage(int index) {
 
 bool DivPlatformYM2608::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -2002,8 +2002,8 @@ const DivMemoryComposition* DivPlatformYM2608::getMemCompo(int index) {
 
 void DivPlatformYM2608::renderSamples(int sysID) {
   memset(adpcmBMem,0,getSampleMemCapacity(0));
-  memset(sampleOffB,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOffB,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="ADPCM";
@@ -2148,5 +2148,16 @@ void DivPlatformYM2608::quit() {
   delete[] adpcmBMem;
 }
 
+// initialization of important arrays
+DivPlatformYM2608::DivPlatformYM2608():
+  DivPlatformOPN(2, 6, 9, 15, 16, 9440540.0, 72, 32, false, 16),
+  prescale(0x2d),
+  isCSM(0) {
+  sampleOffB=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
 DivPlatformYM2608::~DivPlatformYM2608() {
+  delete[] sampleOffB;
+  delete[] sampleLoaded;
 }

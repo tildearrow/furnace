@@ -75,14 +75,14 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     size_t adpcmBMemLen;
     DivYM2610Interface iface;
 
-    unsigned int sampleOffA[256];
-    unsigned int sampleOffB[256];
+    unsigned int* sampleOffA;
+    unsigned int* sampleOffB;
 
     unsigned char sampleBank;
   
     bool extMode, noExtMacros;
 
-    bool sampleLoaded[2][256];
+    bool* sampleLoaded[2];
   
     unsigned char writeADPCMAOff, writeADPCMAOn;
     int globalADPCMAVolume;
@@ -214,7 +214,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
 
     bool isSampleLoaded(int index, int sample) {
       if (index<0 || index>1) return false;
-      if (sample<0 || sample>255) return false;
+      if (sample<0 || sample>32767) return false;
       return sampleLoaded[index][sample];
     }
     
@@ -226,9 +226,10 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
 
     void renderSamples(int sysID) {
       memset(adpcmAMem,0,getSampleMemCapacity(0));
-      memset(sampleOffA,0,256*sizeof(unsigned int));
-      memset(sampleOffB,0,256*sizeof(unsigned int));
-      memset(sampleLoaded,0,256*2*sizeof(bool));
+      memset(sampleOffA,0,32768*sizeof(unsigned int));
+      memset(sampleOffB,0,32768*sizeof(unsigned int));
+      memset(sampleLoaded[0],0,32768*sizeof(bool));
+      memset(sampleLoaded[1],0,32768*sizeof(bool));
 
       memCompoA=DivMemoryComposition();
       memCompoA.name="ADPCM-A";
@@ -365,7 +366,18 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     }
 
     DivPlatformYM2610Base(int ext, int psg, int adpcmA, int adpcmB, int chanCount):
-      DivPlatformOPN(ext,psg,adpcmA,adpcmB,chanCount,9440540.0, 72, 32, false, 16) {}
+      DivPlatformOPN(ext,psg,adpcmA,adpcmB,chanCount,9440540.0, 72, 32, false, 16) {
+      sampleOffA=new unsigned int[32768];
+      sampleOffB=new unsigned int[32768];
+      sampleLoaded[0]=new bool[32768];
+      sampleLoaded[1]=new bool[32768];
+    }
+    ~DivPlatformYM2610Base() {
+      delete[] sampleOffA;
+      delete[] sampleOffB;
+      delete[] sampleLoaded[0];
+      delete[] sampleLoaded[1];
+    }
 };
 
 #endif

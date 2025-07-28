@@ -966,7 +966,7 @@ size_t DivPlatformSNES::getSampleMemUsage(int index) {
 
 bool DivPlatformSNES::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -977,8 +977,8 @@ const DivMemoryComposition* DivPlatformSNES::getMemCompo(int index) {
 
 void DivPlatformSNES::renderSamples(int sysID) {
   memset(copyOfSampleMem,0,65536);
-  memset(sampleOff,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOff,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="SPC/DSP Memory";
@@ -1076,4 +1076,15 @@ void DivPlatformSNES::quit() {
   for (int i=0; i<8; i++) {
     delete oscBuf[i];
   }
+}
+
+// initialization of important arrays
+DivPlatformSNES::DivPlatformSNES() {
+  sampleOff=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
+DivPlatformSNES::~DivPlatformSNES() {
+  delete[] sampleOff;
+  delete[] sampleLoaded;
 }

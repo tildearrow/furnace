@@ -46,8 +46,8 @@ class DivPlatformK053260: public DivDispatch, public k053260_intf {
   bool isMuted[4];
   int chipType;
   unsigned char curChan;
-  unsigned int sampleOffK053260[256];
-  bool sampleLoaded[256];
+  unsigned int* sampleOff;
+  bool* sampleLoaded;
 
   unsigned char* sampleMem;
   size_t sampleMemLen;
@@ -89,10 +89,8 @@ class DivPlatformK053260: public DivDispatch, public k053260_intf {
     virtual void renderSamples(int chipID) override;
     virtual int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) override;
     virtual void quit() override;
-    DivPlatformK053260():
-      DivDispatch(),
-      k053260_intf(),
-      k053260(*this) {}
+    DivPlatformK053260();
+    ~DivPlatformK053260();
   private:
     void chWrite(unsigned char ch, unsigned int addr, unsigned char val);
 };
