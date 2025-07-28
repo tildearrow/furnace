@@ -436,17 +436,14 @@ if CMake says something about NMake, then it means it couldn't find Visual Studi
 
 try running CMake again but tell it to use the Visual Studio generator (`-G "Visual Studio 17 2022"`). type `cmake --help` for a list of generators.
 
-#### CMake was unable to find a build program corresponding to "Unix Makefiles"
-
-if you're on Windows, you're most likely not on the MSYS2 MINGW64 environment. exit and start the MINGW64 environment (not the UCRT64 one!).
-
-otherwise make sure you've installed a compiler. read the compilation guide again.
-
 #### CMake was unable to find a build program
 
-don't run CMake standalone unless you have Visual Studio or a compiler installed.
+if you are on Windows, don't run CMake standalone unless you have Visual Studio or a compiler installed.
 
 if you are in the MSYS2 MINGW64 environment, make sure you installed `mingw-w64-x86_64-cmake` instead of `cmake`. restart the environment after doing so.
+if you are not, exit and start the MINGW64 environment (not the UCRT64 one!). read the guide!
+
+if you are not using Windows then you probably haven't set your development environment up correctly. read the guide again.
 
 #### Does not match the generator used previously
 
@@ -461,7 +458,11 @@ if you are using MSYS2, make sure you have launched the MINGW64 environment. do 
 
 #### ALSA API requested but no ALSA dev libraries found
 
-install the ALSA development libraries (libasound-dev or something like that).
+if you are on Windows, using MSYS2, then you most likely disregarded the guide and are attempting to build in the UCRT64 environment. don't do that!
+
+get out of the UCRT64 environment and start the MINGW64 one.
+
+otherwise, install the ALSA development libraries (libasound-dev or something like that).
 
 also make sure you've installed the rest of dependencies so you don't hit one of the errors below...
 
