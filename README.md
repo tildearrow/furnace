@@ -462,6 +462,8 @@ if you are on Windows, using MSYS2, then you most likely disregarded the guide a
 
 get out of the UCRT64 environment and start the MINGW64 one.
 
+however, if you already are in the MINGW64 environment, then make sure you installed `mingw-w64-x86_64-cmake` instead of `cmake`. restart the environment after doing so.
+
 otherwise, install the ALSA development libraries (libasound-dev or something like that).
 
 also make sure you've installed the rest of dependencies so you don't hit one of the errors below...
