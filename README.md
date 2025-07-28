@@ -436,6 +436,12 @@ if CMake says something about NMake, then it means it couldn't find Visual Studi
 
 try running CMake again but tell it to use the Visual Studio generator (`-G "Visual Studio 17 2022"`). type `cmake --help` for a list of generators.
 
+#### CMake was unable to find a build program corresponding to "Unix Makefiles"
+
+if you're on Windows, you're most likely not on the MSYS2 MINGW64 environment. exit and start the MINGW64 environment (not the UCRT64 one!).
+
+otherwise make sure you've installed a compiler. read the compilation guide again.
+
 #### CMake was unable to find a build program
 
 don't run CMake standalone unless you have Visual Studio or a compiler installed.
