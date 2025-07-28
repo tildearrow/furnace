@@ -764,8 +764,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
               pendingFreq[streamID]=write.val;
             } else {
               DivSample* sample=song.sample[write.val];
-              int pos=sampleOff8[write.val&0xff]+setPos[streamID];
-              int len=(int)sampleLen8[write.val&0xff]-setPos[streamID];
+              int pos=sampleOff8[write.val&0x7fff]+setPos[streamID];
+              int len=(int)sampleLen8[write.val&0x7fff]-setPos[streamID];
 
               if (len<0) len=0;
 
@@ -807,8 +807,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           loopFreq[streamID]=realFreq;
           if (pendingFreq[streamID]!=-1) {
             DivSample* sample=song.sample[pendingFreq[streamID]];
-            int pos=sampleOff8[pendingFreq[streamID]&0xff]+setPos[streamID];
-            int len=(int)sampleLen8[pendingFreq[streamID]&0xff]-setPos[streamID];
+            int pos=sampleOff8[pendingFreq[streamID]&0x7fff]+setPos[streamID];
+            int len=(int)sampleLen8[pendingFreq[streamID]&0x7fff]-setPos[streamID];
 
             if (len<0) len=0;
 
@@ -859,8 +859,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           if (playingSample[streamID]!=-1 && pendingFreq[streamID]==-1) {
             // play the sample again
             DivSample* sample=song.sample[playingSample[streamID]];
-            int pos=sampleOff8[playingSample[streamID]&0xff]+setPos[streamID];
-            int len=(int)sampleLen8[playingSample[streamID]&0xff]-setPos[streamID];
+            int pos=sampleOff8[playingSample[streamID]&0x7fff]+setPos[streamID];
+            int len=(int)sampleLen8[playingSample[streamID]&0x7fff]-setPos[streamID];
 
             if (len<0) len=0;
 
@@ -1329,9 +1329,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   int loopTickSong=-1;
   int songTick=0;
 
-  unsigned int sampleOff8[256];
-  unsigned int sampleLen8[256];
-  unsigned int sampleOffSegaPCM[256];
+  unsigned int* sampleOff8=new unsigned int[32768];
+  unsigned int* sampleLen8=new unsigned int[32768];
+  unsigned int* sampleOffSegaPCM=new unsigned int[32768];
 
   SafeWriter* w=new SafeWriter;
   w->init();
@@ -2202,9 +2202,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   unsigned int songOff=w->tell();
 
   // initialize sample offsets
-  memset(sampleOff8,0,256*sizeof(unsigned int));
-  memset(sampleLen8,0,256*sizeof(unsigned int));
-  memset(sampleOffSegaPCM,0,256*sizeof(unsigned int));
+  memset(sampleOff8,0,32768*sizeof(unsigned int));
+  memset(sampleLen8,0,32768*sizeof(unsigned int));
+  memset(sampleOffSegaPCM,0,32768*sizeof(unsigned int));
 
   // write samples
   unsigned int sampleSeek=0;
@@ -2976,6 +2976,10 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   extValuePresent=false;
 
   logI("%d register writes total.",writeCount);
+
+  delete[] sampleOff8;
+  delete[] sampleLen8;
+  delete[] sampleOffSegaPCM;
 
   BUSY_END;
   return w;

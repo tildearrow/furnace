@@ -513,7 +513,7 @@ size_t DivPlatformSupervision::getSampleMemUsage(int index) {
 
 bool DivPlatformSupervision::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -524,7 +524,7 @@ const DivMemoryComposition* DivPlatformSupervision::getMemCompo(int index) {
 
 void DivPlatformSupervision::renderSamples(int sysID) {
   memset(sampleMem,0,getSampleMemCapacity(0));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="Sample Memory";
@@ -603,5 +603,13 @@ void DivPlatformSupervision::quit() {
   }
 }
 
+// initialization of important arrays
+DivPlatformSupervision::DivPlatformSupervision() {
+  sampleOff=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
 DivPlatformSupervision::~DivPlatformSupervision() {
+  delete[] sampleOff;
+  delete[] sampleLoaded;
 }

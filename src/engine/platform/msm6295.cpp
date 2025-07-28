@@ -385,7 +385,7 @@ size_t DivPlatformMSM6295::getSampleMemUsage(int index) {
 
 bool DivPlatformMSM6295::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -395,12 +395,12 @@ const DivMemoryComposition* DivPlatformMSM6295::getMemCompo(int index) {
 }
 
 void DivPlatformMSM6295::renderSamples(int sysID) {
-  unsigned int sampleOffVOX[256];
+  unsigned int* sampleOffVOX=new unsigned int[32768];
 
   memset(adpcmMem,0,16777216);
-  memset(sampleOffVOX,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
-  for (int i=0; i<256; i++) {
+  memset(sampleOffVOX,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
+  for (int i=0; i<32768; i++) {
     bankedPhrase[i].bank=0;
     bankedPhrase[i].phrase=0;
   }
@@ -510,6 +510,8 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
 
   memCompo.capacity=getSampleMemCapacity(0);
   memCompo.used=adpcmMemLen;
+
+  delete[] sampleOffVOX;
 }
 
 void DivPlatformMSM6295::setFlags(const DivConfig& flags) {
@@ -600,5 +602,16 @@ void DivPlatformMSM6295::quit() {
   delete[] adpcmMem;
 }
 
+// initialization of important arrays
+DivPlatformMSM6295::DivPlatformMSM6295():
+  DivDispatch(),
+  vgsound_emu_mem_intf(),
+  msm(*this) {
+  bankedPhrase=new BankedPhrase[32768];
+  sampleLoaded=new bool[32768];
+}
+
 DivPlatformMSM6295::~DivPlatformMSM6295() {
+  delete[] bankedPhrase;
+  delete[] sampleLoaded;
 }

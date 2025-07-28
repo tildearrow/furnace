@@ -3247,7 +3247,7 @@ size_t DivPlatformOPL::getSampleMemOffset(int index) {
 
 bool DivPlatformOPL::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -3265,9 +3265,9 @@ void DivPlatformOPL::renderSamples(int sysID) {
   if (pcmChanOffs>=0 && pcmMem!=NULL) {
     memset(pcmMem,0,4194304);
   }
-  memset(sampleOffPCM,0,256*sizeof(unsigned int));
-  memset(sampleOffB,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOffPCM,0,32768*sizeof(unsigned int));
+  memset(sampleOffB,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="Sample Memory";
@@ -3507,5 +3507,17 @@ void DivPlatformOPL::quit() {
   }
 }
 
+// initialization of important arrays
+DivPlatformOPL::DivPlatformOPL():
+  pcmMemory(0x400000),
+  pcm(pcmMemory) {
+  sampleOffPCM=new unsigned int[32768];
+  sampleOffB=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
 DivPlatformOPL::~DivPlatformOPL() {
+  delete[] sampleOffPCM;
+  delete[] sampleOffB;
+  delete[] sampleLoaded;
 }

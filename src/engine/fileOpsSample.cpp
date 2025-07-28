@@ -27,7 +27,7 @@
 std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
   std::vector<DivSample*> ret;
 
-  if (song.sample.size()>=256) {
+  if (song.sample.size()>=32768) {
     lastError="too many samples!";
     return ret;
   }
@@ -432,7 +432,7 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
 }
 
 DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian, bool unsign, bool swapNibbles, int rate) {
-  if (song.sample.size()>=256) {
+  if (song.sample.size()>=32768) {
     lastError="too many samples!";
     return NULL;
   }

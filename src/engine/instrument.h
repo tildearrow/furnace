@@ -1097,8 +1097,8 @@ struct DivInstrument : DivInstrumentPOD {
   void writeFeatureN1(SafeWriter* w);
   void writeFeatureFD(SafeWriter* w);
   void writeFeatureWS(SafeWriter* w);
-  size_t writeFeatureSL(SafeWriter* w, std::vector<int>& list, const DivSong* song);
-  size_t writeFeatureWL(SafeWriter* w, std::vector<int>& list, const DivSong* song);
+  size_t writeFeatureLS(SafeWriter* w, std::vector<int>& list, const DivSong* song);
+  size_t writeFeatureLW(SafeWriter* w, std::vector<int>& list, const DivSong* song);
   void writeFeatureMP(SafeWriter* w);
   void writeFeatureSU(SafeWriter* w);
   void writeFeatureES(SafeWriter* w);
@@ -1123,6 +1123,8 @@ struct DivInstrument : DivInstrumentPOD {
   void readFeatureWS(SafeReader& reader, short version);
   void readFeatureSL(SafeReader& reader, DivSong* song, short version);
   void readFeatureWL(SafeReader& reader, DivSong* song, short version);
+  void readFeatureLS(SafeReader& reader, DivSong* song, short version);
+  void readFeatureLW(SafeReader& reader, DivSong* song, short version);
   void readFeatureMP(SafeReader& reader, short version);
   void readFeatureSU(SafeReader& reader, short version);
   void readFeatureES(SafeReader& reader, short version);
