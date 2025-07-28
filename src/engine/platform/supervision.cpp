@@ -606,10 +606,12 @@ void DivPlatformSupervision::quit() {
 // initialization of important arrays
 DivPlatformSupervision::DivPlatformSupervision() {
   sampleOff=new unsigned int[32768];
+  sampleLen=new unsigned int[32768];
   sampleLoaded=new bool[32768];
 }
 
 DivPlatformSupervision::~DivPlatformSupervision() {
   delete[] sampleOff;
+  delete[] sampleLen;
   delete[] sampleLoaded;
 }
