@@ -526,25 +526,6 @@ void FurnaceGUI::drawInsList(bool asChild) {
       ImGui::EndPopup();
     }
     ImGui::SameLine();
-    ImGui::BeginDisabled(e->song.insLen==0 && e->song.waveLen==0 && e->song.sampleLen==0);
-    if (ImGui::Button(ICON_FA_PENCIL)) {
-      switch (lastAssetType) {
-        case 0:
-          nextWindow=GUI_WINDOW_INS_EDIT;
-          break;
-        case 1:
-          nextWindow=GUI_WINDOW_WAVE_EDIT;
-          break;
-        case 2:
-          nextWindow=GUI_WINDOW_SAMPLE_EDIT;
-          break;
-      }
-    }
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-      ImGui::SetTooltip(_("Edit"));
-    }
-    ImGui::EndDisabled();
-    ImGui::SameLine();
     pushToggleColors(insListDir);
     if (ImGui::Button(ICON_FA_SITEMAP "##DirMode")) {
       doAction(GUI_ACTION_INS_LIST_DIR_VIEW);
@@ -853,15 +834,6 @@ void FurnaceGUI::drawWaveList(bool asChild) {
       }
     }
     ImGui::SameLine();
-    ImGui::BeginDisabled(e->song.waveLen==0);
-    if (ImGui::Button(ICON_FA_PENCIL)) {
-      nextWindow=GUI_WINDOW_WAVE_EDIT;
-    }
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-      ImGui::SetTooltip(_("Edit"));
-    }
-    ImGui::EndDisabled();
-    ImGui::SameLine();
     pushToggleColors(waveListDir);
     if (ImGui::Button(ICON_FA_SITEMAP "##WaveDirMode")) {
       doAction(GUI_ACTION_WAVE_LIST_DIR_VIEW);
@@ -949,6 +921,13 @@ void FurnaceGUI::drawSampleList(bool asChild) {
     began=ImGui::Begin("Samples",&sampleListOpen,globalWinFlags,_("Samples"));
   }
   if (began) {
+    // hide buttons if there isn't enough space
+    float buttonSize=ImGui::GetStyle().FramePadding.x*2.0f+settings.iconSize*dpiScale+ImGui::GetStyle().ItemSpacing.x;
+    float buttonSpace=ImGui::GetContentRegionAvail().x/MAX(1.0f,buttonSize);
+
+    logV("%f",buttonSpace);
+
+    // add
     if (ImGui::Button(ICON_FA_FILE "##SampleAdd")) {
       doAction(GUI_ACTION_SAMPLE_LIST_ADD);
     }
@@ -956,6 +935,8 @@ void FurnaceGUI::drawSampleList(bool asChild) {
       ImGui::SetTooltip(_("Add"));
     }
     ImGui::SameLine();
+
+    // duplicate
     if (ImGui::Button(ICON_FA_FILES_O "##SampleClone")) {
       doAction(GUI_ACTION_SAMPLE_LIST_DUPLICATE);
     }
@@ -963,6 +944,8 @@ void FurnaceGUI::drawSampleList(bool asChild) {
       ImGui::SetTooltip(_("Duplicate"));
     }
     ImGui::SameLine();
+
+    // open
     if (ImGui::Button(ICON_FA_FOLDER_OPEN "##SampleLoad")) {
       doAction(GUI_ACTION_SAMPLE_LIST_OPEN);
     }
@@ -987,6 +970,8 @@ void FurnaceGUI::drawSampleList(bool asChild) {
       ImGui::EndPopup();
     }
     ImGui::SameLine();
+
+    // save
     if (ImGui::Button(ICON_FA_FLOPPY_O "##SampleSave")) {
       doAction(GUI_ACTION_SAMPLE_LIST_SAVE);
     }
@@ -1007,15 +992,8 @@ void FurnaceGUI::drawSampleList(bool asChild) {
       ImGui::EndPopup();
     }
     ImGui::SameLine();
-    ImGui::BeginDisabled(e->song.sampleLen==0);
-    if (ImGui::Button(ICON_FA_PENCIL)) {
-      nextWindow=GUI_WINDOW_SAMPLE_EDIT;
-    }
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-      ImGui::SetTooltip(_("Edit"));
-    }
-    ImGui::EndDisabled();
-    ImGui::SameLine();
+
+    // dir mode
     pushToggleColors(sampleListDir);
     if (ImGui::Button(ICON_FA_SITEMAP "##SampleDirMode")) {
       doAction(GUI_ACTION_SAMPLE_LIST_DIR_VIEW);
