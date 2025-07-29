@@ -469,7 +469,13 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
     }
   } else {
     int sampleCount=parent->song.sampleLen;
-    if (sampleCount>127) sampleCount=127;
+    if (sampleCount>127) {
+      // mark the rest as unavailable
+      for (int i=127; i<sampleCount; i++) {
+        sampleLoaded[i]=false;
+      }
+      sampleCount=127;
+    }
     for (int i=0; i<sampleCount; i++) {
       DivSample* s=parent->song.sample[i];
       if (!s->renderOn[0][sysID]) {
