@@ -1040,19 +1040,7 @@ void FurnaceGUI::drawSampleList(bool asChild) {
       } else {
         if (ImGui::Button(ICON_FA_FOLDER "##SampleFolder")) {
           folderString="";
-        }
-        if (ImGui::BeginPopupContextItem("NewSampleFolder",ImGuiMouseButton_Left)) {
-          ImGui::InputText("##FolderName",&folderString);
-          ImGui::SameLine();
-          ImGui::BeginDisabled(folderString.empty());
-          if (ImGui::Button(_("Create"))) {
-            e->lockEngine([this]() {
-              e->song.sampleDir.push_back(DivAssetDir(folderString));
-            });
-            ImGui::CloseCurrentPopup();
-          }
-          ImGui::EndDisabled();
-          ImGui::EndPopup();
+          ImGui::OpenPopup("NewSampleFolder");
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("New folder"));
@@ -1136,7 +1124,8 @@ void FurnaceGUI::drawSampleList(bool asChild) {
             }
           } else {
             if (ImGui::MenuItem("new folder")) {
-              showError("to be done...");
+              folderString="";
+              ImGui::OpenPopup("NewSampleFolder");
             }
           }
         }
@@ -1154,6 +1143,20 @@ void FurnaceGUI::drawSampleList(bool asChild) {
 
         ImGui::EndPopup();
       }
+    }
+
+    if (ImGui::BeginPopup("NewSampleFolder",ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+      ImGui::InputText("##FolderName",&folderString);
+      ImGui::SameLine();
+      ImGui::BeginDisabled(folderString.empty());
+      if (ImGui::Button(_("Create"))) {
+        e->lockEngine([this]() {
+          e->song.sampleDir.push_back(DivAssetDir(folderString));
+        });
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndDisabled();
+      ImGui::EndPopup();
     }
 
     ImGui::Separator();
