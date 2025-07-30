@@ -8438,6 +8438,10 @@ bool FurnaceGUI::finish(bool saveConfig) {
       delete[] oscValues[i];
       oscValues[i]=NULL;
     }
+    if (trigger[i]) {
+      delete trigger[i];
+      trigger[i]=NULL;
+    }
   }
   if (oscValuesAverage) {
     delete[] oscValuesAverage;

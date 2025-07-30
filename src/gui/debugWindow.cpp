@@ -241,7 +241,7 @@ void FurnaceGUI::drawDebug() {
       ImVec2 size = ImVec2(ImGui::GetContentRegionAvail().x,240.0f);
       float peakMin=0.0f, peakMax=0.0f;
       int oscWidth=e->getAudioDescGot().rate*(oscWindowSize/1000.0);
-      if (ImGui::BeginChild("##scopePLotArea", size)) {
+      if (ImGui::BeginChild("##scopePlotArea", size)) {
         ImDrawList* dl=ImGui::GetWindowDrawList();
         ImVec2 origin=ImGui::GetWindowPos();
         ImVec2 plot[32768];
