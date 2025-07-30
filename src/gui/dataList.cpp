@@ -934,6 +934,7 @@ void FurnaceGUI::drawSampleList(bool asChild) {
     // - delete: 4
     float buttonSize=ImGui::GetStyle().FramePadding.x*2.0f+settings.iconSize*dpiScale+ImGui::GetStyle().ItemSpacing.x;
     float buttonSpace=ImGui::GetContentRegionAvail().x/MAX(1.0f,buttonSize);
+    bool mustOpenNewFolder=false;
 
     if (buttonSpace>=2.0f) {
       // add
@@ -1039,8 +1040,7 @@ void FurnaceGUI::drawSampleList(bool asChild) {
         }
       } else {
         if (ImGui::Button(ICON_FA_FOLDER "##SampleFolder")) {
-          folderString="";
-          ImGui::OpenPopup("NewSampleFolder");
+          mustOpenNewFolder=true;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("New folder"));
@@ -1124,8 +1124,7 @@ void FurnaceGUI::drawSampleList(bool asChild) {
             }
           } else {
             if (ImGui::MenuItem("new folder")) {
-              folderString="";
-              ImGui::OpenPopup("NewSampleFolder");
+              mustOpenNewFolder=true;
             }
           }
         }
@@ -1143,6 +1142,11 @@ void FurnaceGUI::drawSampleList(bool asChild) {
 
         ImGui::EndPopup();
       }
+    }
+
+    if (mustOpenNewFolder) {
+      folderString="";
+      ImGui::OpenPopup("NewSampleFolder");
     }
 
     if (ImGui::BeginPopup("NewSampleFolder",ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
