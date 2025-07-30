@@ -213,6 +213,10 @@ size_t DivDispatch::getSampleMemUsage(int index) {
   return 0;
 }
 
+size_t DivDispatch::getSampleMemOffset(int index) {
+  return 0;
+}
+
 const DivMemoryComposition* DivDispatch::getMemCompo(int index) {
   return NULL;
 }
