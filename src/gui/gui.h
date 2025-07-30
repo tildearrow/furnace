@@ -2637,7 +2637,7 @@ class FurnaceGUI {
   float oscWindowSize;
   float oscInput, oscInput1;
   float triggerLevel;
-  bool triggerEdge;
+  int triggerState;
   bool oscZoomSlider;
 
   // per-channel oscilloscope

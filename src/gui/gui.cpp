@@ -8192,6 +8192,8 @@ void FurnaceGUI::syncState() {
   oscZoom=e->getConfFloat("oscZoom",0.5f);
   oscZoomSlider=e->getConfBool("oscZoomSlider",false);
   oscWindowSize=e->getConfFloat("oscWindowSize",20.0f);
+  triggerLevel=e->getConfFloat("triggerLevel", 0.0f);
+  triggerState=e->getConfInt("triggerState", 1);
 
   pianoOctaves=e->getConfInt("pianoOctaves",pianoOctaves);
   pianoOctavesEdit=e->getConfInt("pianoOctavesEdit",pianoOctavesEdit);
@@ -8344,6 +8346,8 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("oscZoom",oscZoom);
   conf.set("oscZoomSlider",oscZoomSlider);
   conf.set("oscWindowSize",oscWindowSize);
+  conf.set("triggerLevel",triggerLevel);
+  conf.set("triggerState",triggerState);
 
   // commit piano state
   conf.set("pianoOctaves",pianoOctaves);
@@ -8952,7 +8956,7 @@ FurnaceGUI::FurnaceGUI():
   oscInput(0.0f),
   oscInput1(0.0f),
   triggerLevel(0.0f),
-  triggerEdge(false),
+  triggerState(1),
   oscZoomSlider(false),
   chanOscCols(3),
   chanOscAutoColsType(0),

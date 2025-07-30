@@ -37,19 +37,16 @@ bool TriggerAnalog::trigger(unsigned long int windowSize, float level, bool edge
   triggered = false;
   // locate trigger
   bool triggerHigh = false, triggerLow = false, foundTrigger = false;
-  float trigY = level; // temp
   triggerIndex = bufferSize - windowSize;
-  // do not touch the あルル
-  while (triggerIndex > 0) {
-    if (triggerIndex==1) return false;
+  while (triggerIndex) {
     triggerIndex--;
     float cur = chanBuf[triggerIndex + windowSize/2];
-    if (cur < trigY) {
+    if (cur < level) {
       triggerLow = true;
       CHECK_TRIGGERED;
       if (foundTrigger && !edge) break;
     }
-    if (cur > trigY) {
+    if (cur > level) {
       triggerHigh = true;
       CHECK_TRIGGERED;
       if (foundTrigger && edge) break;
