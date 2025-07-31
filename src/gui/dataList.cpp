@@ -236,7 +236,7 @@ void FurnaceGUI::waveListItem(int i, float* wavePreview, int dir, int asset) {
     lastAssetType=1;
   }
   ImGui::PopStyleVar();
-  curPos.x+=ImGui::CalcTextSize("2222").x;
+  curPos.x+=ImGui::CalcTextSize("2").x*(2+((int)log10(MAX(1,e->song.waveLen-1))));
   if (wantScrollListWave && curWave==i) ImGui::SetScrollHereY();
   if (ImGui::IsItemHovered()) {
     if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
