@@ -1478,3 +1478,9 @@ const char* chipCategoryNames[]={
   _N("Sample"),
   NULL
 };
+
+const char* triggerStates[3]={
+  _N("trigger: off"),
+  _N("trigger: rising edge"),
+  _N("trigger: falling edge")
+};
