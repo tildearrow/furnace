@@ -412,10 +412,18 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
 
   // sample data
   size_t memPos=128*8;
+  int sampleCount=parent->song.sampleLen;
   if (isBanked) {
+    if (sampleCount>8191) {
+      // mark the rest as unavailable
+      for (int i=8191; i<sampleCount; i++) {
+        sampleLoaded[i]=false;
+      }
+      sampleCount=8191;
+    }
     int bankInd=0;
     int phraseInd=0;
-    for (int i=0; i<parent->song.sampleLen; i++) {
+    for (int i=0; i<sampleCount; i++) {
       DivSample* s=parent->song.sample[i];
       if (!s->renderOn[0][sysID]) {
         sampleOffVOX[i]=0;
@@ -455,7 +463,7 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
     adpcmMemLen=memPos+256;
 
     // phrase book
-    for (int i=0; i<parent->song.sampleLen; i++) {
+    for (int i=0; i<sampleCount; i++) {
       int endPos=sampleOffVOX[i]+bankedPhrase[i].length;
       for (int b=0; b<4; b++) {
         unsigned int bankedAddr=((unsigned int)bankedPhrase[i].bank<<16)+(b<<8)+(bankedPhrase[i].phrase*8);
@@ -468,7 +476,6 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
       }
     }
   } else {
-    int sampleCount=parent->song.sampleLen;
     if (sampleCount>127) {
       // mark the rest as unavailable
       for (int i=127; i<sampleCount; i++) {
