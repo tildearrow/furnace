@@ -8192,6 +8192,8 @@ void FurnaceGUI::syncState() {
   oscZoom=e->getConfFloat("oscZoom",0.5f);
   oscZoomSlider=e->getConfBool("oscZoomSlider",false);
   oscWindowSize=e->getConfFloat("oscWindowSize",20.0f);
+  triggerLevel=e->getConfFloat("triggerLevel", 0.0f);
+  triggerState=e->getConfInt("triggerState", 1);
 
   pianoOctaves=e->getConfInt("pianoOctaves",pianoOctaves);
   pianoOctavesEdit=e->getConfInt("pianoOctavesEdit",pianoOctavesEdit);
@@ -8344,6 +8346,8 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("oscZoom",oscZoom);
   conf.set("oscZoomSlider",oscZoomSlider);
   conf.set("oscWindowSize",oscWindowSize);
+  conf.set("triggerLevel",triggerLevel);
+  conf.set("triggerState",triggerState);
 
   // commit piano state
   conf.set("pianoOctaves",pianoOctaves);
@@ -8433,6 +8437,10 @@ bool FurnaceGUI::finish(bool saveConfig) {
     if (oscValues[i]) {
       delete[] oscValues[i];
       oscValues[i]=NULL;
+    }
+    if (trigger[i]) {
+      delete trigger[i];
+      trigger[i]=NULL;
     }
   }
   if (oscValuesAverage) {
@@ -8951,6 +8959,8 @@ FurnaceGUI::FurnaceGUI():
   oscWindowSize(20.0f),
   oscInput(0.0f),
   oscInput1(0.0f),
+  triggerLevel(0.0f),
+  triggerState(1),
   oscZoomSlider(false),
   chanOscCols(3),
   chanOscAutoColsType(0),
@@ -9089,6 +9099,7 @@ FurnaceGUI::FurnaceGUI():
   memset(patChanX,0,sizeof(float)*(DIV_MAX_CHANS+1));
   memset(patChanSlideY,0,sizeof(float)*(DIV_MAX_CHANS+1));
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
+  memset(trigger,0,sizeof(void*)*DIV_MAX_OUTPUTS);
   memset(oscValues,0,sizeof(void*)*DIV_MAX_OUTPUTS);
 
   memset(chanOscLP0,0,sizeof(float)*DIV_MAX_CHANS);
