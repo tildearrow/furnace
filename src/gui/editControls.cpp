@@ -814,6 +814,7 @@ void FurnaceGUI::drawEditControls() {
         }
         popToggleColors();
 
+        ImGui::SameLine();
         pushToggleColors(orderLock);
         if (ImGui::Button(ICON_FA_LOCK "##OrderLock")) {
           doAction(GUI_ACTION_ORDER_LOCK);
