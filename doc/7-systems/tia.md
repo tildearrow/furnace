@@ -35,13 +35,13 @@ a song can be exported to assembly code for use with the TIunA software driver f
 
 the following options are available in the Chip Manager window:
 
-- **Software pitch driver**: use TIunA, a software pitch driver similar to TIATune. it increases pitch precision by rapidly switching between two pitches.
+- **Software pitch driver**: use TIunA, a software pitch driver similar to TIATune. it increases pitch precision by rapidly switching between two pitches. pitches are still limited to their original range; see pitch tables below.
 - **Old pitch table**: use an older method to calculate pitch. only for compatibility.
 - **Mixing mode**: changes mixing mode.
   - **Mono**: normal output.
   - **Mono (no distortion)**: process each channel separately to eliminate distortion.
   - **Stereo**: output two channels on left and right.
-- **PAL**: run slower blah blah blah
+- **PAL**: runs at a slightly different clock rate, affecting pitch.
 
 ## info
 
