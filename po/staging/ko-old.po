@@ -6709,12 +6709,12 @@ msgid "V 0.3.1"
 msgstr "V 0.3.1"
 
 #: src/gui/sysConf.cpp:2500
-msgid "V 47.0.0 (9-bit volume)"
-msgstr "V 47.0.0 (9-bit 볼륨)"
+msgid "V 47.0.2 (9-bit volume)"
+msgstr "V 47.0.2 (9-bit 볼륨)"
 
 #: src/gui/sysConf.cpp:2504
-msgid "V 47.0.2 (Tri/Saw PW XOR)"
-msgstr "V 47.0.2 (삼각파/톱니파 PW XOR)"
+msgid "V 48.0.1 (Tri/Saw PW XOR)"
+msgstr "V 48.0.1 (삼각파/톱니파 PW XOR)"
 
 #: src/gui/sysConf.cpp:2529 src/gui/settings.cpp:731
 msgid "nothing to configure"

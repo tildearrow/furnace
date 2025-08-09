@@ -9366,11 +9366,11 @@ msgid "V 0.3.1"
 msgstr ""
 
 #: src/gui/sysConf.cpp:2602
-msgid "V 47.0.0 (9-bit volume)"
-msgstr "V 47.0.0 (9-bitowa głośność)"
+msgid "V 47.0.2 (9-bit volume)"
+msgstr "V 47.0.2 (9-bitowa głośność)"
 
 #: src/gui/sysConf.cpp:2606
-msgid "V 47.0.2 (Tri/Saw PW XOR)"
+msgid "V 48.0.1 (Tri/Saw PW XOR)"
 msgstr ""
 
 #: src/gui/sysConf.cpp:2610
