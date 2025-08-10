@@ -137,7 +137,7 @@ void FurnaceGUIRenderSDL::destroyFontsTexture() {
 }
 
 void FurnaceGUIRenderSDL::renderGUI() {
-  ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
+  ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(),sdlRend);
 }
 
 void FurnaceGUIRenderSDL::wipe(float alpha) {
