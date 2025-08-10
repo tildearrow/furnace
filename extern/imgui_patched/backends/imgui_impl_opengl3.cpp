@@ -416,7 +416,7 @@ bool    ImGui_ImplOpenGL3_NewFrame()
     ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData();
     IM_ASSERT(bd != nullptr && "Context or backend not initialized! Did you call ImGui_ImplOpenGL3_Init()?");
 
-    bool ret=false;
+    bool ret=true;
 
     if (!bd->ShaderHandle)
         ret=ImGui_ImplOpenGL3_CreateDeviceObjects();
