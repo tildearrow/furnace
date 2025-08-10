@@ -28,7 +28,7 @@ this chip uses the [VERA](../4-instrument/vera.md) and [Generic Sample](../4-ins
 the following options are available in the Chip Manager window:
 
 - **Chip revision**: sets which version of the chip's firmware to use.
-  - **V 0.3.1**: all earlier versions.
+  - **Initial release**: all earlier versions.
   - **V 47.0.2 (9-bit volume)**: introduces a slightly different volume table.
   - **V 48.0.1 (Tri/Saw PW XOR)**: adds the ability to XOR the triangle or sawtooth waveforms with a pulse wave.
   - **X16 Emu R49 (Noise freq fix)**: fixes an emulation bug that previously doubled the noise frequency. default.

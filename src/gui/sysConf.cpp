@@ -2595,7 +2595,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
 
       ImGui::Text(_("Chip revision:"));
       ImGui::Indent();
-      if (ImGui::RadioButton(_("V 0.3.1"),chipType==0)) {
+      if (ImGui::RadioButton(_("Initial release"),chipType==0)) {
         chipType=0;
         altered=true;
       }
