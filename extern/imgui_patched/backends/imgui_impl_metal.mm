@@ -166,6 +166,7 @@ void ImGui_ImplMetal_Shutdown()
 bool ImGui_ImplMetal_NewFrame(MTLRenderPassDescriptor* renderPassDescriptor)
 {
     ImGui_ImplMetal_Data* bd = ImGui_ImplMetal_GetBackendData();
+    IM_ASSERT(bd != nil && "Context or backend not initialized! Did you call ImGui_ImplMetal_Init()?");
     IM_ASSERT(bd->SharedMetalContext != nil && "No Metal context. Did you call ImGui_ImplMetal_Init() ?");
     if (bd->SharedMetalContext.framebufferDescriptor != nil) {
       [bd->SharedMetalContext.framebufferDescriptor release];
