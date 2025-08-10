@@ -26,6 +26,11 @@
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
 //  2024-XX-XX: Platform: Added support for multiple windows via the ImGuiPlatformIO interface.
+//  2024-07-01: Update for SDL3 api changes: SDL_SetTextInputRect() changed to SDL_SetTextInputArea().
+//  2024-06-26: Update for SDL3 api changes: SDL_StartTextInput()/SDL_StopTextInput()/SDL_SetTextInputRect() functions signatures.
+//  2024-06-24: Update for SDL3 api changes: SDL_EVENT_KEY_DOWN/SDL_EVENT_KEY_UP contents.
+//  2024-06-03; Update for SDL3 api changes: SDL_SYSTEM_CURSOR_ renames.
+//  2024-05-15: Update for SDL3 api changes: SDLK_ renames.
 //  2024-04-15: Inputs: Re-enable calling SDL_StartTextInput()/SDL_StopTextInput() as SDL3 no longer enables it by default and should play nicer with IME.
 //  2024-02-13: Inputs: Fixed gamepad support. Handle gamepad disconnection. Added ImGui_ImplSDL3_SetGamepadMode().
 //  2023-11-13: Updated for recent SDL3 API changes.
@@ -82,6 +87,9 @@ struct ImGui_ImplSDL3_Data
     bool                    UseVulkan;
     bool                    WantUpdateMonitors;
 
+    // IME handling
+    SDL_Window*             ImeWindow;
+
     // Mouse handling
     Uint32                  MouseWindowID;
     int                     MouseButtonsDown;
@@ -130,6 +138,13 @@ static void ImGui_ImplSDL3_SetClipboardText(void*, const char* text)
 
 static void ImGui_ImplSDL3_SetPlatformImeData(ImGuiViewport* viewport, ImGuiPlatformImeData* data)
 {
+    ImGui_ImplSDL3_Data* bd = ImGui_ImplSDL3_GetBackendData();
+    SDL_Window* window = (SDL_Window*)viewport->PlatformHandle;
+    if ((data->WantVisible == false || bd->ImeWindow != window) && bd->ImeWindow != NULL)
+    {
+        SDL_StopTextInput(bd->ImeWindow);
+        bd->ImeWindow = nullptr;
+    }
     if (data->WantVisible)
     {
         SDL_Rect r;
@@ -137,12 +152,9 @@ static void ImGui_ImplSDL3_SetPlatformImeData(ImGuiViewport* viewport, ImGuiPlat
         r.y = (int)(data->InputPos.y - viewport->Pos.y + data->InputLineHeight);
         r.w = 1;
         r.h = (int)data->InputLineHeight;
-        SDL_SetTextInputRect(&r);
-        SDL_StartTextInput();
-    }
-    else
-    {
-        SDL_StopTextInput();
+        SDL_SetTextInputArea(window, &r, 0);
+        SDL_StartTextInput(window);
+        bd->ImeWindow = window;
     }
 }
 
@@ -345,10 +357,10 @@ bool ImGui_ImplSDL3_ProcessEvent(const SDL_Event* event)
         case SDL_EVENT_KEY_DOWN:
         case SDL_EVENT_KEY_UP:
         {
-            ImGui_ImplSDL3_UpdateKeyModifiers((SDL_Keymod)event->key.keysym.mod);
-            ImGuiKey key = ImGui_ImplSDL3_KeycodeToImGuiKey(event->key.keysym.sym);
+            ImGui_ImplSDL3_UpdateKeyModifiers((SDL_Keymod)event->key.mod);
+            ImGuiKey key = ImGui_ImplSDL3_KeycodeToImGuiKey(event->key.key);
             io.AddKeyEvent(key, (event->type == SDL_EVENT_KEY_DOWN));
-            io.SetKeyEventNativeData(key, event->key.keysym.sym, event->key.keysym.scancode, event->key.keysym.scancode); // To support legacy indexing (<1.87 user code). Legacy backend uses SDLK_*** as indices to IsKeyXXX() functions.
+            io.SetKeyEventNativeData(key, event->key.key, event->key.scancode, event->key.scancode); // To support legacy indexing (<1.87 user code). Legacy backend uses SDLK_*** as indices to IsKeyXXX() functions.
             return true;
         }
         case SDL_EVENT_DISPLAY_ORIENTATION:
@@ -502,6 +514,7 @@ static bool ImGui_ImplSDL3_Init(SDL_Window* window, SDL_Renderer* renderer, void
     return true;
 }
 
+// Should technically be a SDL_GLContext but due to typedef it is sane to keep it void* in public interface.
 bool ImGui_ImplSDL3_InitForOpenGL(SDL_Window* window, void* sdl_gl_context)
 {
     return ImGui_ImplSDL3_Init(window, nullptr, sdl_gl_context);
@@ -824,7 +837,7 @@ void ImGui_ImplSDL3_NewFrame()
     }
 
     // Our io.AddMouseViewportEvent() calls will only be valid when not capturing.
-    // Technically speaking testing for 'bd->MouseButtonsDown == 0' would be more rygorous, but testing for payload reduces noise and potential side-effects.
+    // Technically speaking testing for 'bd->MouseButtonsDown == 0' would be more rigorous, but testing for payload reduces noise and potential side-effects.
     if (bd->MouseCanReportHoveredViewport && ImGui::GetDragDropPayload() == nullptr)
         io.BackendFlags |= ImGuiBackendFlags_HasMouseHoveredViewport;
     else
@@ -1053,7 +1066,7 @@ static void ImGui_ImplSDL3_InitPlatformInterface(SDL_Window* window, void* sdl_g
     vd->Window = window;
     vd->WindowID = SDL_GetWindowID(window);
     vd->WindowOwned = false;
-    vd->GLContext = sdl_gl_context;
+    vd->GLContext = (SDL_GLContext)sdl_gl_context;
     main_viewport->PlatformUserData = vd;
     main_viewport->PlatformHandle = vd->Window;
 }
