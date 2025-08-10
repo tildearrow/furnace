@@ -1712,7 +1712,9 @@ void FurnaceGUI::drawSampleEdit() {
           updateSampleTex=false;
         }
 
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0,0));
         ImGui::ImageButton("SampleView",rend->getTextureID(sampleTex),avail,ImVec2(0,0),ImVec2(rend->getTextureU(sampleTex),rend->getTextureV(sampleTex)));
+        ImGui::PopStyleVar();
 
         ImVec2 rectMin=ImGui::GetItemRectMin();
         ImVec2 rectMax=ImGui::GetItemRectMax();
