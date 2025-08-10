@@ -31,7 +31,7 @@
 
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
-//  2023-XX-XX: Added support for multiple windows via the ImGuiPlatformIO interface.
+//  2024-XX-XX: Added support for multiple windows via the ImGuiPlatformIO interface.
 //  2023-10-05: Inputs: Added support for extra ImGuiKey values: F13 to F20 function keys. Stopped mapping F13 into PrintScreen.
 //  2023-04-09: Inputs: Added support for io.AddMouseSourceEvent() to discriminate ImGuiMouseSource_Mouse/ImGuiMouseSource_Pen.
 //  2023-02-01: Fixed scroll wheel scaling for devices emitting events with hasPreciseScrollingDeltas==false (e.g. non-Apple mices).
@@ -435,6 +435,7 @@ bool ImGui_ImplOSX_Init(NSView* view)
     bd->Window = view.window ?: NSApp.orderedWindows.firstObject;
     ImGuiViewport* main_viewport = ImGui::GetMainViewport();
     main_viewport->PlatformHandle = main_viewport->PlatformHandleRaw = (__bridge_retained void*)bd->Window;
+    ImGui_ImplOSX_UpdateMonitors();
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
         ImGui_ImplOSX_InitPlatformInterface();
 
@@ -1088,7 +1089,6 @@ static void ImGui_ImplOSX_UpdateMonitors()
 static void ImGui_ImplOSX_InitPlatformInterface()
 {
     ImGui_ImplOSX_Data* bd = ImGui_ImplOSX_GetBackendData();
-    ImGui_ImplOSX_UpdateMonitors();
 
     // Register platform interface (will be coupled with a renderer interface)
     ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();

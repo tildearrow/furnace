@@ -4396,7 +4396,7 @@ bool FurnaceGUI::loop() {
     if (!rend->newFrame()) {
       fontsFailed=true;
     }
-    ImGui_ImplSDL2_NewFrame(sdlWin);
+    ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
 
     // one second counter
