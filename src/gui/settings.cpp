@@ -334,7 +334,7 @@ const char* specificControls[18]={
     bool _subInit=false; \
     ImVec2 settingsViewSize=ImGui::GetContentRegionAvail(); \
     settingsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y; \
-    if (ImGui::BeginChild("SettingsView",settingsViewSize,false))
+    if (ImGui::BeginChild("SettingsView",settingsViewSize,0))
 
 #define END_SECTION } \
   ImGui::EndChild(); \
@@ -2175,7 +2175,7 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::Button(_("Reset defaults"))) {
           showWarning(_("Are you sure you want to reset the keyboard settings?"),GUI_WARN_RESET_KEYBINDS);
         }
-        if (ImGui::BeginChild("##HotkeysList",ImVec2(0,0),false,ImGuiWindowFlags_HorizontalScrollbar)) {
+        if (ImGui::BeginChild("##HotkeysList",ImVec2(0,0),0,ImGuiWindowFlags_HorizontalScrollbar)) {
           if (ImGui::TreeNode(_("Global hotkeys"))) {
             KEYBIND_CONFIG_BEGIN("keysGlobal");
 
