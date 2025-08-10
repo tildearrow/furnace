@@ -6709,7 +6709,7 @@ msgid "DSi (16MB RAM)"
 msgstr "DSi (16MB 램)"
 
 #: src/gui/sysConf.cpp:2496
-msgid "V 0.3.1"
+msgid "Initial release"
 msgstr "V 0.3.1"
 
 #: src/gui/sysConf.cpp:2500

@@ -8944,7 +8944,7 @@ msgid "DSi (16MB RAM)"
 msgstr ""
 
 #: src/gui/sysConf.cpp:2598
-msgid "V 0.3.1"
+msgid "Initial release"
 msgstr ""
 
 #: src/gui/sysConf.cpp:2602
