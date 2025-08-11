@@ -13,7 +13,6 @@
 //  [x] Platform: Multi-viewport support (multiple windows). Enable with 'io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable' -> the OS animation effect when window gets created/destroyed is problematic. SDL2 backend doesn't have issue.
 // Issues:
 //  [ ] Platform: Multi-viewport: Minimized windows seems to break mouse wheel events (at least under Windows).
-//  [ ] Platform: Multi-viewport: ParentViewportID not honored, and so io.ConfigViewportsNoDefaultParent has no effect (minor).
 
 // You can use unmodified imgui_impl_* files in your project. See examples/ folder for examples of using this.
 // Prefer including the entire imgui/ repository into your project (either as a copy or as a submodule), and only build the backends you need.
@@ -26,6 +25,7 @@
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
 //  2024-XX-XX: Platform: Added support for multiple windows via the ImGuiPlatformIO interface.
+//  2024-09-11: (Docking) Added support for viewport->ParentViewportId field to support parenting at OS level. (#7973)
 //  2024-09-03: Update for SDL3 api changes: SDL_GetGamepads() memory ownership revert. (#7918, #7898, #7807)
 //  2024-08-22: moved some OS/backend related function pointers from ImGuiIO to ImGuiPlatformIO:
 //               - io.GetClipboardTextFn    -> platform_io.Platform_GetClipboardTextFn
@@ -172,7 +172,8 @@ static void ImGui_ImplSDL3_PlatformSetImeData(ImGuiContext*, ImGuiViewport* view
     }
 }
 
-static ImGuiKey ImGui_ImplSDL3_KeyEventToImGuiKey(SDL_Keycode keycode, SDL_Scancode scancode)
+// Not static to allow third-party code to use that if they want to (but undocumented)
+ImGuiKey ImGui_ImplSDL3_KeyEventToImGuiKey(SDL_Keycode keycode, SDL_Scancode scancode)
 {
     // Keypad doesn't have individual key values in SDL3
     switch (scancode)
@@ -509,12 +510,14 @@ static bool ImGui_ImplSDL3_Init(SDL_Window* window, SDL_Renderer* renderer, void
 #else
     bd->MouseCanReportHoveredViewport = false;
 #endif
-    bd->WantUpdateMonitors = true;
 
     ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
     platform_io.Platform_SetClipboardTextFn = ImGui_ImplSDL3_SetClipboardText;
     platform_io.Platform_GetClipboardTextFn = ImGui_ImplSDL3_GetClipboardText;
     platform_io.Platform_SetImeDataFn = ImGui_ImplSDL3_PlatformSetImeData;
+
+    // Update monitor a first time during init
+    ImGui_ImplSDL3_UpdateMonitors();
 
     // Gamepad handling
     bd->GamepadMode = ImGui_ImplSDL3_GamepadMode_AutoFirst;
@@ -905,19 +908,33 @@ void ImGui_ImplSDL3_NewFrame()
 struct ImGui_ImplSDL3_ViewportData
 {
     SDL_Window*     Window;
+    SDL_Window*     ParentWindow;
     Uint32          WindowID;
     bool            WindowOwned;
     SDL_GLContext   GLContext;
 
-    ImGui_ImplSDL3_ViewportData() { Window = nullptr; WindowID = 0; WindowOwned = false; GLContext = nullptr; }
+    ImGui_ImplSDL3_ViewportData() { Window = ParentWindow = nullptr; WindowID = 0; WindowOwned = false; GLContext = nullptr; }
     ~ImGui_ImplSDL3_ViewportData() { IM_ASSERT(Window == nullptr && GLContext == nullptr); }
 };
+
+static SDL_Window* ImGui_ImplSDL3_GetSDLWindowFromViewportID(ImGuiID viewport_id)
+{
+    if (viewport_id != 0)
+        if (ImGuiViewport* viewport = ImGui::FindViewportByID(viewport_id))
+        {
+            SDL_WindowID window_id = (SDL_WindowID)(intptr_t)viewport->PlatformHandle;
+            return SDL_GetWindowFromID(window_id);
+        }
+    return nullptr;
+}
 
 static void ImGui_ImplSDL3_CreateWindow(ImGuiViewport* viewport)
 {
     ImGui_ImplSDL3_Data* bd = ImGui_ImplSDL3_GetBackendData();
     ImGui_ImplSDL3_ViewportData* vd = IM_NEW(ImGui_ImplSDL3_ViewportData)();
     viewport->PlatformUserData = vd;
+
+    vd->ParentWindow = ImGui_ImplSDL3_GetSDLWindowFromViewportID(viewport->ParentViewportId);
 
     ImGuiViewport* main_viewport = ImGui::GetMainViewport();
     ImGui_ImplSDL3_ViewportData* main_viewport_data = (ImGui_ImplSDL3_ViewportData*)main_viewport->PlatformUserData;
@@ -937,12 +954,10 @@ static void ImGui_ImplSDL3_CreateWindow(ImGuiViewport* viewport)
     sdl_flags |= SDL_GetWindowFlags(bd->Window);
     sdl_flags |= (viewport->Flags & ImGuiViewportFlags_NoDecoration) ? SDL_WINDOW_BORDERLESS : 0;
     sdl_flags |= (viewport->Flags & ImGuiViewportFlags_NoDecoration) ? 0 : SDL_WINDOW_RESIZABLE;
-#if !defined(_WIN32)
-    // See SDL hack in ImGui_ImplSDL3_ShowWindow().
     sdl_flags |= (viewport->Flags & ImGuiViewportFlags_NoTaskBarIcon) ? SDL_WINDOW_UTILITY : 0;
-#endif
     sdl_flags |= (viewport->Flags & ImGuiViewportFlags_TopMost) ? SDL_WINDOW_ALWAYS_ON_TOP : 0;
     vd->Window = SDL_CreateWindow("No Title Yet", (int)viewport->Size.x, (int)viewport->Size.y, sdl_flags);
+    SDL_SetWindowParent(vd->Window, vd->ParentWindow);
     SDL_SetWindowPosition(vd->Window, (int)viewport->Pos.x, (int)viewport->Pos.y);
     vd->WindowOwned = true;
     if (use_opengl)
@@ -977,19 +992,34 @@ static void ImGui_ImplSDL3_ShowWindow(ImGuiViewport* viewport)
 #if defined(_WIN32)
     HWND hwnd = (HWND)viewport->PlatformHandleRaw;
 
-    // SDL hack: Hide icon from task bar
-    // Note: SDL 3.0.0+ has a SDL_WINDOW_UTILITY flag which is supported under Windows but the way it create the window breaks our seamless transition.
-    if (viewport->Flags & ImGuiViewportFlags_NoTaskBarIcon)
+    // SDL hack: Show icon in task bar (#7989)
+    // Note: SDL_WINDOW_UTILITY can be used to control task bar visibility, but on Windows, it does not affect child windows.
+    if (!(viewport->Flags & ImGuiViewportFlags_NoTaskBarIcon))
     {
         LONG ex_style = ::GetWindowLong(hwnd, GWL_EXSTYLE);
-        ex_style &= ~WS_EX_APPWINDOW;
-        ex_style |= WS_EX_TOOLWINDOW;
+        ex_style |= WS_EX_APPWINDOW;
+        ex_style &= ~WS_EX_TOOLWINDOW;
+        ::ShowWindow(hwnd, SW_HIDE);
         ::SetWindowLong(hwnd, GWL_EXSTYLE, ex_style);
     }
 #endif
 
     SDL_SetHint(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, (viewport->Flags & ImGuiViewportFlags_NoFocusOnAppearing) ? "0" : "1");
     SDL_ShowWindow(vd->Window);
+}
+
+static void ImGui_ImplSDL3_UpdateWindow(ImGuiViewport* viewport)
+{
+    ImGui_ImplSDL3_ViewportData* vd = (ImGui_ImplSDL3_ViewportData*)viewport->PlatformUserData;
+
+    // Update SDL3 parent if it changed _after_ creation.
+    // This is for advanced apps that are manipulating ParentViewportID manually.
+    SDL_Window* new_parent = ImGui_ImplSDL3_GetSDLWindowFromViewportID(viewport->ParentViewportId);
+    if (new_parent != vd->ParentWindow)
+    {
+        vd->ParentWindow = new_parent;
+        SDL_SetWindowParent(vd->Window, vd->ParentWindow);
+    }
 }
 
 static ImVec2 ImGui_ImplSDL3_GetWindowPos(ImGuiViewport* viewport)
@@ -1085,6 +1115,7 @@ static void ImGui_ImplSDL3_InitPlatformInterface(SDL_Window* window, void* sdl_g
     platform_io.Platform_CreateWindow = ImGui_ImplSDL3_CreateWindow;
     platform_io.Platform_DestroyWindow = ImGui_ImplSDL3_DestroyWindow;
     platform_io.Platform_ShowWindow = ImGui_ImplSDL3_ShowWindow;
+    platform_io.Platform_UpdateWindow = ImGui_ImplSDL3_UpdateWindow;
     platform_io.Platform_SetWindowPos = ImGui_ImplSDL3_SetWindowPos;
     platform_io.Platform_GetWindowPos = ImGui_ImplSDL3_GetWindowPos;
     platform_io.Platform_SetWindowSize = ImGui_ImplSDL3_SetWindowSize;

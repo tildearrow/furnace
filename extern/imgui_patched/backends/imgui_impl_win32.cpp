@@ -23,6 +23,7 @@
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
 //  2024-XX-XX: Platform: Added support for multiple windows via the ImGuiPlatformIO interface.
+//  2024-09-16: [Docking] Inputs: fixed an issue where a viewport destroyed while clicking would hog mouse tracking and temporary lead to incorrect update of HoveredWindow. (#7971)
 //  2024-07-08: Inputs: Fixed ImGuiMod_Super being mapped to VK_APPS instead of VK_LWIN||VK_RWIN. (#7768)
 //  2023-10-05: Inputs: Added support for extra ImGuiKey values: F13 to F24 function keys, app back/forward keys.
 //  2023-09-25: Inputs: Synthesize key-down event on key-up for VK_SNAPSHOT / ImGuiKey_PrintScreen as Windows doesn't emit it (same behavior as GLFW/SDL).
@@ -114,7 +115,7 @@ struct ImGui_ImplWin32_Data
 {
     HWND                        hWnd;
     HWND                        MouseHwnd;
-    int                         MouseTrackedArea;   // 0: not tracked, 1: client are, 2: non-client area
+    int                         MouseTrackedArea;   // 0: not tracked, 1: client area, 2: non-client area
     int                         MouseButtonsDown;
     INT64                       Time;
     INT64                       TicksPerSecond;
@@ -175,11 +176,13 @@ static bool ImGui_ImplWin32_InitEx(void* hwnd, bool platform_has_own_dc)
     io.BackendFlags |= ImGuiBackendFlags_HasMouseHoveredViewport; // We can call io.AddMouseViewportEvent() with correct data (optional)
 
     bd->hWnd = (HWND)hwnd;
-    bd->WantUpdateMonitors = true;
     bd->TicksPerSecond = perf_frequency;
     bd->Time = perf_counter;
     bd->LastMouseCursor = ImGuiMouseCursor_COUNT;
     ImGui_ImplWin32_UpdateKeyboardCodePage();
+
+    // Update monitor a first time during init
+    ImGui_ImplWin32_UpdateMonitors();
 
     // Our mouse update function expect PlatformHandle to be filled for the main viewport
     ImGuiViewport* main_viewport = ImGui::GetMainViewport();
@@ -492,12 +495,14 @@ void    ImGui_ImplWin32_NewFrame()
     ImGui_ImplWin32_UpdateGamepads();
 }
 
-// There is no distinct VK_xxx for keypad enter, instead it is VK_RETURN + KF_EXTENDED, we assign it an arbitrary value to make code more readable (VK_ codes go up to 255)
-#define IM_VK_KEYPAD_ENTER      (VK_RETURN + 256)
-
 // Map VK_xxx to ImGuiKey_xxx.
-static ImGuiKey ImGui_ImplWin32_VirtualKeyToImGuiKey(WPARAM wParam)
+// Not static to allow third-party code to use that if they want to (but undocumented)
+ImGuiKey ImGui_ImplWin32_KeyEventToImGuiKey(WPARAM wParam, LPARAM lParam)
 {
+    // There is no distinct VK_xxx for keypad enter, instead it is VK_RETURN + KF_EXTENDED.
+    if ((wParam == VK_RETURN) && (HIWORD(lParam) & KF_EXTENDED))
+        return ImGuiKey_KeypadEnter;
+
     switch (wParam)
     {
         case VK_TAB: return ImGuiKey_Tab;
@@ -546,7 +551,6 @@ static ImGuiKey ImGui_ImplWin32_VirtualKeyToImGuiKey(WPARAM wParam)
         case VK_MULTIPLY: return ImGuiKey_KeypadMultiply;
         case VK_SUBTRACT: return ImGuiKey_KeypadSubtract;
         case VK_ADD: return ImGuiKey_KeypadAdd;
-        case IM_VK_KEYPAD_ENTER: return ImGuiKey_KeypadEnter;
         case VK_LSHIFT: return ImGuiKey_LeftShift;
         case VK_LCONTROL: return ImGuiKey_LeftCtrl;
         case VK_LMENU: return ImGuiKey_LeftAlt;
@@ -705,6 +709,16 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARA
         }
         return 0;
     }
+    case WM_DESTROY:
+        if (bd->MouseHwnd == hwnd && bd->MouseTrackedArea != 0)
+        {
+            TRACKMOUSEEVENT tme_cancel = { sizeof(tme_cancel), TME_CANCEL, hwnd, 0 };
+            ::TrackMouseEvent(&tme_cancel);
+            bd->MouseHwnd = nullptr;
+            bd->MouseTrackedArea = 0;
+            io.AddMousePosEvent(-FLT_MAX, -FLT_MAX);
+        }
+        return 0;
     case WM_LBUTTONDOWN: case WM_LBUTTONDBLCLK:
     case WM_RBUTTONDOWN: case WM_RBUTTONDBLCLK:
     case WM_MBUTTONDOWN: case WM_MBUTTONDBLCLK:
@@ -758,12 +772,9 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARA
             // Submit modifiers
             ImGui_ImplWin32_UpdateKeyModifiers();
 
-            // Obtain virtual key code
-            // (keypad enter doesn't have its own... VK_RETURN with KF_EXTENDED flag means keypad enter, see IM_VK_KEYPAD_ENTER definition for details, it is mapped to ImGuiKey_KeyPadEnter.)
-            int vk = (int)wParam;
-            if ((wParam == VK_RETURN) && (HIWORD(lParam) & KF_EXTENDED))
-                vk = IM_VK_KEYPAD_ENTER;
-            const ImGuiKey key = ImGui_ImplWin32_VirtualKeyToImGuiKey(vk);
+            // Obtain virtual key code and convert to ImGuiKey
+            const ImGuiKey key = ImGui_ImplWin32_KeyEventToImGuiKey(wParam, lParam);
+            const int vk = (int)wParam;
             const int scancode = (int)LOBYTE(HIWORD(lParam));
 
             // Special behavior for VK_SNAPSHOT / ImGuiKey_PrintScreen as Windows doesn't emit the key down event.
@@ -1158,11 +1169,20 @@ static ImVec2 ImGui_ImplWin32_GetWindowPos(ImGuiViewport* viewport)
     return ImVec2((float)pos.x, (float)pos.y);
 }
 
+static void ImGui_ImplWin32_UpdateWin32StyleFromWindow(ImGuiViewport* viewport)
+{
+    ImGui_ImplWin32_ViewportData* vd = (ImGui_ImplWin32_ViewportData*)viewport->PlatformUserData;
+    vd->DwStyle = ::GetWindowLongW(vd->Hwnd, GWL_STYLE);
+    vd->DwExStyle = ::GetWindowLongW(vd->Hwnd, GWL_EXSTYLE);
+}
+
 static void ImGui_ImplWin32_SetWindowPos(ImGuiViewport* viewport, ImVec2 pos)
 {
     ImGui_ImplWin32_ViewportData* vd = (ImGui_ImplWin32_ViewportData*)viewport->PlatformUserData;
     IM_ASSERT(vd->Hwnd != 0);
     RECT rect = { (LONG)pos.x, (LONG)pos.y, (LONG)pos.x, (LONG)pos.y };
+    if (viewport->Flags & ImGuiViewportFlags_OwnedByApp)
+        ImGui_ImplWin32_UpdateWin32StyleFromWindow(viewport); // Not our window, poll style before using
     ::AdjustWindowRectEx(&rect, vd->DwStyle, FALSE, vd->DwExStyle);
     ::SetWindowPos(vd->Hwnd, nullptr, rect.left, rect.top, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 }
@@ -1181,6 +1201,8 @@ static void ImGui_ImplWin32_SetWindowSize(ImGuiViewport* viewport, ImVec2 size)
     ImGui_ImplWin32_ViewportData* vd = (ImGui_ImplWin32_ViewportData*)viewport->PlatformUserData;
     IM_ASSERT(vd->Hwnd != 0);
     RECT rect = { 0, 0, (LONG)size.x, (LONG)size.y };
+    if (viewport->Flags & ImGuiViewportFlags_OwnedByApp)
+        ImGui_ImplWin32_UpdateWin32StyleFromWindow(viewport); // Not our window, poll style before using
     ::AdjustWindowRectEx(&rect, vd->DwStyle, FALSE, vd->DwExStyle); // Client to Screen
     ::SetWindowPos(vd->Hwnd, nullptr, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
 }
@@ -1227,14 +1249,14 @@ static void ImGui_ImplWin32_SetWindowAlpha(ImGuiViewport* viewport, float alpha)
     IM_ASSERT(alpha >= 0.0f && alpha <= 1.0f);
     if (alpha < 1.0f)
     {
-        DWORD style = ::GetWindowLongW(vd->Hwnd, GWL_EXSTYLE) | WS_EX_LAYERED;
-        ::SetWindowLongW(vd->Hwnd, GWL_EXSTYLE, style);
+        DWORD ex_style = ::GetWindowLongW(vd->Hwnd, GWL_EXSTYLE) | WS_EX_LAYERED;
+        ::SetWindowLongW(vd->Hwnd, GWL_EXSTYLE, ex_style);
         ::SetLayeredWindowAttributes(vd->Hwnd, 0, (BYTE)(255 * alpha), LWA_ALPHA);
     }
     else
     {
-        DWORD style = ::GetWindowLongW(vd->Hwnd, GWL_EXSTYLE) & ~WS_EX_LAYERED;
-        ::SetWindowLongW(vd->Hwnd, GWL_EXSTYLE, style);
+        DWORD ex_style = ::GetWindowLongW(vd->Hwnd, GWL_EXSTYLE) & ~WS_EX_LAYERED;
+        ::SetWindowLongW(vd->Hwnd, GWL_EXSTYLE, ex_style);
     }
 }
 
