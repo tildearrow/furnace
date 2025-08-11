@@ -27,7 +27,10 @@
 
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
-//  2024-XX-XX: Platform: Added support for multiple windows via the ImGuiPlatformIO interface.
+//  2025-XX-XX: Platform: Added support for multiple windows via the ImGuiPlatformIO interface.
+//  2025-01-09: Vulkan: Added IMGUI_IMPL_VULKAN_MINIMUM_IMAGE_SAMPLER_POOL_SIZE to clarify how many image sampler descriptors are expected to be available in descriptor pool. (#6642)
+//  2025-01-06: Vulkan: Added more ImGui_ImplVulkanH_XXXX helper functions to simplify our examples.
+//  2024-12-11: Vulkan: Fixed setting VkSwapchainCreateInfoKHR::preTransform for platforms not supporting VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR. (#8222)
 //  2024-11-27: Vulkan: Make user-provided descriptor pool optional. As a convenience, when setting init_info->DescriptorPoolSize the backend will create one itself. (#8172, #4867)
 //  2024-10-07: Vulkan: Changed default texture sampler to Clamp instead of Repeat/Wrap.
 //  2024-10-07: Vulkan: Expose selected render state in ImGui_ImplVulkan_RenderState, which you can access in 'void* platform_io.Renderer_RenderState' during draw callbacks.
@@ -168,6 +171,7 @@ static bool g_FunctionsLoaded = true;
     IMGUI_VULKAN_FUNC_MAP_MACRO(vkDestroySurfaceKHR) \
     IMGUI_VULKAN_FUNC_MAP_MACRO(vkDestroySwapchainKHR) \
     IMGUI_VULKAN_FUNC_MAP_MACRO(vkDeviceWaitIdle) \
+    IMGUI_VULKAN_FUNC_MAP_MACRO(vkEnumeratePhysicalDevices) \
     IMGUI_VULKAN_FUNC_MAP_MACRO(vkEndCommandBuffer) \
     IMGUI_VULKAN_FUNC_MAP_MACRO(vkFlushMappedMemoryRanges) \
     IMGUI_VULKAN_FUNC_MAP_MACRO(vkFreeCommandBuffers) \
@@ -175,7 +179,9 @@ static bool g_FunctionsLoaded = true;
     IMGUI_VULKAN_FUNC_MAP_MACRO(vkFreeMemory) \
     IMGUI_VULKAN_FUNC_MAP_MACRO(vkGetBufferMemoryRequirements) \
     IMGUI_VULKAN_FUNC_MAP_MACRO(vkGetImageMemoryRequirements) \
+    IMGUI_VULKAN_FUNC_MAP_MACRO(vkGetPhysicalDeviceProperties) \
     IMGUI_VULKAN_FUNC_MAP_MACRO(vkGetPhysicalDeviceMemoryProperties) \
+    IMGUI_VULKAN_FUNC_MAP_MACRO(vkGetPhysicalDeviceQueueFamilyProperties) \
     IMGUI_VULKAN_FUNC_MAP_MACRO(vkGetPhysicalDeviceSurfaceCapabilitiesKHR) \
     IMGUI_VULKAN_FUNC_MAP_MACRO(vkGetPhysicalDeviceSurfaceFormatsKHR) \
     IMGUI_VULKAN_FUNC_MAP_MACRO(vkGetPhysicalDeviceSurfacePresentModesKHR) \
@@ -230,7 +236,7 @@ struct ImGui_ImplVulkan_Texture
     VkImageView                 ImageView;
     VkDescriptorSet             DescriptorSet;
 
-    ImGui_ImplVulkan_Texture() { memset(this, 0, sizeof(*this)); }
+    ImGui_ImplVulkan_Texture() { memset((void*)this, 0, sizeof(*this)); }
 };
 
 // For multi-viewport support:
@@ -1047,8 +1053,9 @@ bool ImGui_ImplVulkan_CreateDeviceObjects()
         check_vk_result(err);
     }
 
-    if (v->DescriptorPoolSize)
+    if (v->DescriptorPoolSize != 0)
     {
+        IM_ASSERT(v->DescriptorPoolSize > IMGUI_IMPL_VULKAN_MINIMUM_IMAGE_SAMPLER_POOL_SIZE);
         VkDescriptorPoolSize pool_size = { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, v->DescriptorPoolSize };
         VkDescriptorPoolCreateInfo pool_info = {};
         pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -1384,6 +1391,49 @@ VkPresentModeKHR ImGui_ImplVulkanH_SelectPresentMode(VkPhysicalDevice physical_d
     return VK_PRESENT_MODE_FIFO_KHR; // Always available
 }
 
+VkPhysicalDevice ImGui_ImplVulkanH_SelectPhysicalDevice(VkInstance instance)
+{
+    uint32_t gpu_count;
+    VkResult err = vkEnumeratePhysicalDevices(instance, &gpu_count, nullptr);
+    check_vk_result(err);
+    IM_ASSERT(gpu_count > 0);
+
+    ImVector<VkPhysicalDevice> gpus;
+    gpus.resize(gpu_count);
+    err = vkEnumeratePhysicalDevices(instance, &gpu_count, gpus.Data);
+    check_vk_result(err);
+
+    // If a number >1 of GPUs got reported, find discrete GPU if present, or use first one available. This covers
+    // most common cases (multi-gpu/integrated+dedicated graphics). Handling more complicated setups (multiple
+    // dedicated GPUs) is out of scope of this sample.
+    for (VkPhysicalDevice& device : gpus)
+    {
+        VkPhysicalDeviceProperties properties;
+        vkGetPhysicalDeviceProperties(device, &properties);
+        if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+            return device;
+    }
+
+    // Use first GPU (Integrated) is a Discrete one is not available.
+    if (gpu_count > 0)
+        return gpus[0];
+    return VK_NULL_HANDLE;
+}
+
+
+uint32_t ImGui_ImplVulkanH_SelectQueueFamilyIndex(VkPhysicalDevice physical_device)
+{
+    uint32_t count;
+    vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &count, nullptr);
+    ImVector<VkQueueFamilyProperties> queues_properties;
+    queues_properties.resize((int)count);
+    vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &count, queues_properties.Data);
+    for (uint32_t i = 0; i < count; i++)
+        if (queues_properties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+            return i;
+    return (uint32_t)-1;
+}
+
 void ImGui_ImplVulkanH_CreateWindowCommandBuffers(VkPhysicalDevice physical_device, VkDevice device, ImGui_ImplVulkanH_Window* wd, uint32_t queue_family, const VkAllocationCallbacks* allocator)
 {
     IM_ASSERT(physical_device != VK_NULL_HANDLE && device != VK_NULL_HANDLE);
@@ -1475,6 +1525,10 @@ void ImGui_ImplVulkanH_CreateWindowSwapChain(VkPhysicalDevice physical_device, V
 
     // Create Swapchain
     {
+        VkSurfaceCapabilitiesKHR cap;
+        err = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device, wd->Surface, &cap);
+        check_vk_result(err);
+
         VkSwapchainCreateInfoKHR info = {};
         info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
         info.surface = wd->Surface;
@@ -1484,19 +1538,15 @@ void ImGui_ImplVulkanH_CreateWindowSwapChain(VkPhysicalDevice physical_device, V
         info.imageArrayLayers = 1;
         info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
         info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;           // Assume that graphics family == present family
-        info.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+        info.preTransform = (cap.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR) ? VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR : cap.currentTransform;
         info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
         info.presentMode = wd->PresentMode;
         info.clipped = VK_TRUE;
         info.oldSwapchain = old_swapchain;
-        VkSurfaceCapabilitiesKHR cap;
-        err = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device, wd->Surface, &cap);
-        check_vk_result(err);
         if (info.minImageCount < cap.minImageCount)
             info.minImageCount = cap.minImageCount;
         else if (cap.maxImageCount != 0 && info.minImageCount > cap.maxImageCount)
             info.minImageCount = cap.maxImageCount;
-
         if (cap.currentExtent.width == 0xffffffff)
         {
             info.imageExtent.width = wd->Width = w;
