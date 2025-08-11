@@ -20,7 +20,7 @@
 #include "../gui.h"
 
 ImTextureID FurnaceGUIRender::getTextureID(FurnaceGUITexture* which) {
-  return NULL;
+  return (ImTextureID)0;
 }
 
 float FurnaceGUIRender::getTextureU(FurnaceGUITexture* which) {

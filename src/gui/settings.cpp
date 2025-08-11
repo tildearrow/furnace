@@ -6454,7 +6454,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   sty.Colors[ImGuiCol_TableBorderStrong]=uiColors[GUI_COLOR_TABLE_BORDER_HARD];
   sty.Colors[ImGuiCol_TableBorderLight]=uiColors[GUI_COLOR_TABLE_BORDER_SOFT];
   sty.Colors[ImGuiCol_DragDropTarget]=uiColors[GUI_COLOR_DRAG_DROP_TARGET];
-  sty.Colors[ImGuiCol_NavHighlight]=uiColors[GUI_COLOR_NAV_HIGHLIGHT];
+  sty.Colors[ImGuiCol_NavCursor]=uiColors[GUI_COLOR_NAV_HIGHLIGHT];
   sty.Colors[ImGuiCol_NavWindowingHighlight]=uiColors[GUI_COLOR_NAV_WIN_HIGHLIGHT];
   sty.Colors[ImGuiCol_NavWindowingDimBg]=uiColors[GUI_COLOR_NAV_WIN_BACKDROP];
   sty.Colors[ImGuiCol_Text]=uiColors[GUI_COLOR_TEXT];

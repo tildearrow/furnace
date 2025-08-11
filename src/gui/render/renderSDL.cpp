@@ -32,7 +32,7 @@ class FurnaceSDLTexture: public FurnaceGUITexture {
 
 ImTextureID FurnaceGUIRenderSDL::getTextureID(FurnaceGUITexture* which) {
   FurnaceSDLTexture* t=(FurnaceSDLTexture*)which;
-  return t->tex;
+  return (ImTextureID)t->tex;
 }
 
 FurnaceGUITextureFormat FurnaceGUIRenderSDL::getTextureFormat(FurnaceGUITexture* which) {

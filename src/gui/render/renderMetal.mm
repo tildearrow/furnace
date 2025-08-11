@@ -56,7 +56,7 @@ class FurnaceMetalTexture: public FurnaceGUITexture {
 
 ImTextureID FurnaceGUIRenderMetal::getTextureID(FurnaceGUITexture* which) {
   FurnaceMetalTexture* t=(FurnaceMetalTexture*)which;
-  return t->tex;
+  return (ImTextureID)t->tex;
 }
 
 FurnaceGUITextureFormat FurnaceGUIRenderMetal::getTextureFormat(FurnaceGUITexture* which) {

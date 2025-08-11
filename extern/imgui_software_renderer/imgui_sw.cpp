@@ -710,7 +710,7 @@ bool ImGui_ImplSW_CreateFontsTexture() {
   int font_width, font_height;
   io.Fonts->GetTexDataAsAlpha8(&tex_data, &font_width, &font_height);
   SWTexture* texture = new SWTexture((uint32_t*)tex_data,font_width,font_height,true);
-  io.Fonts->SetTexID(texture);
+  io.Fonts->SetTexID((ImTextureID)texture);
   bd->FontTexture = texture;
 
   return true;

@@ -32,7 +32,7 @@ class FurnaceSoftwareTexture: public FurnaceGUITexture {
 
 ImTextureID FurnaceGUIRenderSoftware::getTextureID(FurnaceGUITexture* which) {
   FurnaceSoftwareTexture* t=(FurnaceSoftwareTexture*)which;
-  return t->tex;
+  return (ImTextureID)t->tex;
 }
 
 FurnaceGUITextureFormat FurnaceGUIRenderSoftware::getTextureFormat(FurnaceGUITexture* which) {
