@@ -1,4 +1,4 @@
-// dear imgui, v1.91.2
+// dear imgui, v1.91.3
 // (tables and columns code)
 
 /*
@@ -1487,7 +1487,9 @@ void    ImGui::EndTable()
     {
         short backup_nav_layers_active_mask = inner_window->DC.NavLayersActiveMask;
         inner_window->DC.NavLayersActiveMask |= 1 << ImGuiNavLayer_Main; // So empty table don't appear to navigate differently.
+        g.CurrentTable = NULL; // To avoid error recovery recursing
         EndChild();
+        g.CurrentTable = table;
         inner_window->DC.NavLayersActiveMask = backup_nav_layers_active_mask;
     }
     else
