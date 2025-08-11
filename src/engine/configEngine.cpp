@@ -47,7 +47,7 @@
 #endif
 #endif
 
-void DivEngine::initConfDir(String path="") {
+void DivEngine::initConfDir(String path) {
   if (path!="") {
     configPath=path;
     return;
