@@ -7383,13 +7383,13 @@ bool ImGui::Selectable(const char* label, bool selected, ImGuiSelectableFlags fl
     // Render
     if (is_visible)
     {
-        const bool highlighted = hovered || (flags & ImGuiSelectableFlags_Highlight);
-        if ((highlighted || selected) && !(g.IO.ConfigFlags&ImGuiConfigFlags_NoHoverColors))
+        const bool highlighted = (hovered || (flags & ImGuiSelectableFlags_Highlight)) && !(g.IO.ConfigFlags&ImGuiConfigFlags_NoHoverColors);
+        if ((highlighted || selected))
         {
             // FIXME-MULTISELECT: Styling: Color for 'selected' elements? ImGuiCol_HeaderSelected
             ImU32 col;
             if (selected && !highlighted)
-                col = GetColorU32(ImLerp(GetStyleColorVec4(ImGuiCol_Header), GetStyleColorVec4(ImGuiCol_HeaderHovered), 0.5f));
+                col = GetColorU32(GetStyleColorVec4(ImGuiCol_Header)); // tildearrow: this was ImLerp. why!
             else
                 col = GetColorU32((held && highlighted) ? ImGuiCol_HeaderActive : highlighted ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
             RenderFrame(bb.Min, bb.Max, col, false, 0.0f);
