@@ -211,13 +211,11 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* draw_data)
     unsigned short* idx_dst;
     if (bd->pVB->Lock(0, (UINT)(draw_data->TotalVtxCount * sizeof(CUSTOMVERTEX)), (void**)&vtx_dst, D3DLOCK_DISCARD) < 0)
     {
-        state_block->Release();
         return;
     }
     if (bd->pIB->Lock(0, (UINT)(draw_data->TotalIdxCount * sizeof(unsigned short)), (void**)&idx_dst, D3DLOCK_DISCARD) < 0)
     {
         bd->pVB->Unlock();
-        state_block->Release();
         return;
     }
 
