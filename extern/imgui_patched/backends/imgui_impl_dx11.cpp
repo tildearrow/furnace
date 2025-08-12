@@ -324,13 +324,15 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
                 // Bind texture, Draw
                 ID3D11ShaderResourceView* texture_srv = (ID3D11ShaderResourceView*)pcmd->GetTexID();
                 // tildearrow: possible workaround to some issue (TODO: test whether we still need it)
+                // unfortunately this workaround doesn't work anymore with the introduction of dynamic atlas
+                /*
                 if (texture_srv == bd->pFontTextureView && bd->SamplersSet) {
                   device->PSSetSamplers(0, 1, &bd->pFontSampler);
                   bd->SamplersSet=false;
                 } else if (texture_srv != bd->pFontTextureView && !bd->SamplersSet) {
                   device->PSSetSamplers(0, 1, &bd->pTexSampler);
                   bd->SamplersSet=true;
-                }
+                }*/
                 device->PSSetShaderResources(0, 1, &texture_srv);
                 device->DrawIndexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset);
             }
@@ -629,9 +631,6 @@ void    ImGui_ImplDX11_InvalidateDeviceObjects()
             ImGui_ImplDX11_DestroyTexture(tex);
 
     if (bd->pFontSampler)           { bd->pFontSampler->Release(); bd->pFontSampler = nullptr; }
-    // tildearrow: why do we not need this anymore?
-    if (bd->pTexSampler)            { bd->pTexSampler->Release(); bd->pTexSampler = nullptr; }
-    if (bd->pFontTextureView)       { bd->pFontTextureView->Release(); bd->pFontTextureView = nullptr; ImGui::GetIO().Fonts->SetTexID(0); } // We copied data->pFontTextureView to io.Fonts->TexID so let's clear that as well.
     // END
     if (bd->pIB)                    { bd->pIB->Release(); bd->pIB = nullptr; }
     if (bd->pVB)                    { bd->pVB->Release(); bd->pVB = nullptr; }
