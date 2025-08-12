@@ -4188,15 +4188,15 @@ msgstr "Cxxx: Ustaw częstotliwość odświeżania utworu (Hz)"
 
 #: src/engine/engine.cpp:103
 msgid "D3xx: Volume portamento"
-msgstr ""
+msgstr "D3xx: Portamento głośności"
 
 #: src/engine/engine.cpp:105
 msgid "D4xx: Volume portamento (fast)"
-msgstr ""
+msgstr "D4xx: Portamento głośności (szybkie)"
 
 #: src/engine/engine.cpp:107
 msgid "DCxx: Delayed mute"
-msgstr ""
+msgstr "DCxx: Opóźnionie wyciszenia"
 
 #: src/engine/engine.cpp:109
 msgid "E0xx: Set arp speed"
@@ -10581,7 +10581,7 @@ msgstr "Dodaj..."
 
 #: src/gui/settings.cpp:2340
 msgid "that key is bound already!"
-msgstr ""
+msgstr "ten klawisz jest już przypisany!"
 
 #: src/gui/settings.cpp:2429
 msgid "Instrument list"
@@ -10734,15 +10734,15 @@ msgstr "Tak (tylko przy wciśniętym klawiszu Ctrl)"
 
 #: src/gui/settings.cpp:2707
 msgid "Yes (copy)##dms3"
-msgstr ""
+msgstr "Tak (skopiuj)"
 
 #: src/gui/settings.cpp:2711
 msgid "Yes (while holding Ctrl only and copy)##dms4"
-msgstr ""
+msgstr "Tak (tylko przy wciśniętym klawiszu Ctrl i skopiuj)"
 
 #: src/gui/settings.cpp:2715
 msgid "Yes (holding Ctrl copies)##dms5"
-msgstr ""
+msgstr "Tak (wciśnięty klawisz Ctrl kopiuje)"
 
 #: src/gui/settings.cpp:2721
 msgid "Toggle channel solo on:"
@@ -10750,7 +10750,7 @@ msgstr "Włącz tryb solo dla kanału:"
 
 #: src/gui/settings.cpp:2723
 msgid "Right-click or double-click##soloA"
-msgstr "PPM alko podwójne kliknięcie"
+msgstr "PPM albo podwójne kliknięcie"
 
 #: src/gui/settings.cpp:2727
 msgid "Right-click##soloR"
@@ -10762,11 +10762,11 @@ msgstr "Podwójne kliknięcie"
 
 #: src/gui/settings.cpp:2737
 msgid "Modifier for alternate wheel-scrolling (vertical/zoom/slider-input):"
-msgstr ""
+msgstr "Klawisz trybu przewijania kólkiem myszy:"
 
 #: src/gui/settings.cpp:2739
 msgid "Ctrl or Meta/Cmd##cwm1"
-msgstr ""
+msgstr "Ctrl lub Meta/Cmd"
 
 #: src/gui/settings.cpp:2743
 msgid "Ctrl##cwm2"
@@ -11114,7 +11114,7 @@ msgid ""
 "uses more video memory."
 msgstr ""
 "nieco lepsza jakość renderowania\n"
-"użuwa więcej pamięci VRAM."
+"zużywa więcej pamięci VRAM."
 
 #: src/gui/settings.cpp:3168
 msgid "Load fallback font"
@@ -11126,7 +11126,7 @@ msgstr "wyłącz by oszczędzić pamięć VRAM."
 
 #: src/gui/settings.cpp:3177
 msgid "Load fallback font (pattern)"
-msgstr ""
+msgstr "Wczytaj zapasową czcionkę wzorca"
 
 #: src/gui/settings.cpp:3186
 msgid "Display Japanese characters"
@@ -11559,19 +11559,19 @@ msgstr "Użyj klasycznego pionowego paska przewijania"
 
 #: src/gui/settings.cpp:3673
 msgid "Macro step size/horizontal zoom:"
-msgstr ""
+msgstr "Wielkość kroku/zoom makra:"
 
 #: src/gui/settings.cpp:3675
 msgid "Manual"
-msgstr ""
+msgstr "Ręczny"
 
 #: src/gui/settings.cpp:3679
 msgid "Automatic per macro"
-msgstr ""
+msgstr "Automatyczny (na makro)"
 
 #: src/gui/settings.cpp:3683
 msgid "Automatic (use longest macro)"
-msgstr ""
+msgstr "Automatyczny (używaj najdłuższego makra)"
 
 #: src/gui/settings.cpp:3691
 msgid "Wave Editor"
@@ -11655,11 +11655,11 @@ msgstr "Po parametrze zwolnienia"
 
 #: src/gui/settings.cpp:3769
 msgid "After Release Rate, after spacing##susp2"
-msgstr ""
+msgstr "Po parametrze zwolnienia, po odstępie"
 
 #: src/gui/settings.cpp:3773
 msgid "After TL##susp3"
-msgstr ""
+msgstr "Po TL"
 
 #: src/gui/settings.cpp:3781
 msgid "Use separate colors for carriers/modulators in FM editor"
@@ -11804,15 +11804,15 @@ msgstr "Cieniowanie ramki"
 
 #: src/gui/settings.cpp:3970
 msgid "Color scheme type:"
-msgstr ""
+msgstr "Typ "
 
 #: src/gui/settings.cpp:3972
 msgid "Dark##gcb0"
-msgstr ""
+msgstr "Ciemny"
 
 #: src/gui/settings.cpp:3977
 msgid "Light##gcb1"
-msgstr ""
+msgstr "Jasny"
 
 #: src/gui/settings.cpp:3984
 msgid "Accent colors:"
@@ -11820,11 +11820,11 @@ msgstr ""
 
 #: src/gui/settings.cpp:3986
 msgid "Primary"
-msgstr ""
+msgstr "Podstawowy"
 
 #: src/gui/settings.cpp:3987
 msgid "Secondary"
-msgstr ""
+msgstr "Poboczny"
 
 #: src/gui/settings.cpp:4001
 msgid "Button"
@@ -13789,15 +13789,15 @@ msgstr "Emulator dźwięku NDS autorstwa cam900"
 
 #: src/gui/about.cpp:176
 msgid "openMSX YMF278 emulator (modified version) by the openMSX developers"
-msgstr ""
+msgstr "rdzen emulacji YMF278 z emulatora openMSX (wersja zmodyfikowana) autorstwa twórców openMSX"
 
 #: src/gui/about.cpp:177
 msgid "SID2 emulator by LTVA (modification of reSID emulator)"
-msgstr ""
+msgstr "emulator SID2 autorstwa LTVA (modyfikacja emulatora reSID)"
 
 #: src/gui/about.cpp:178
 msgid "SID3 emulator by LTVA"
-msgstr ""
+msgstr "emulator SID3 autorstwa LTVA"
 
 #: src/gui/about.cpp:180
 msgid "greetings to:"
@@ -17074,7 +17074,7 @@ msgstr "Górna granica"
 
 #: src/gui/gui.cpp:3225
 msgid "Set effect"
-msgstr ""
+msgstr "Ustaw efekt"
 
 #: src/gui/gui.cpp:3243
 msgid "flip selection"
@@ -18722,23 +18722,23 @@ msgstr "obwiednia"
 
 #: src/gui/insEdit.cpp:451
 msgid "special wave"
-msgstr ""
+msgstr "specialna fala"
 
 #: src/gui/insEdit.cpp:456
 msgid "From filter 1"
-msgstr ""
+msgstr "Z filtra 1"
 
 #: src/gui/insEdit.cpp:457
 msgid "From filter 2"
-msgstr ""
+msgstr "Z Filtra 2"
 
 #: src/gui/insEdit.cpp:458
 msgid "From filter 3"
-msgstr ""
+msgstr "Z filtra 3"
 
 #: src/gui/insEdit.cpp:459
 msgid "From filter 4"
-msgstr ""
+msgstr "Z filtra 4"
 
 #: src/gui/insEdit.cpp:464
 msgid "hold"
@@ -19123,7 +19123,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:797
 msgid "PCM/Wave channel"
-msgstr ""
+msgstr "Kanał PCM/fali"
 
 #: src/gui/insEdit.cpp:805
 msgid ""
@@ -19133,6 +19133,11 @@ msgid ""
 "Mode 2: 66\n"
 "Mode 3: 541065280"
 msgstr ""
+"wartości bliskie trybowy szumu SIDa2:\n"
+"\n"
+"Tryb 1: 524288\n"
+"Tryb 2: 66\n"
+"Tryb 3: 541065280"
 
 #: src/gui/insEdit.cpp:1949
 msgid ""
@@ -19540,11 +19545,11 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6125
 msgid "1-bit noise"
-msgstr ""
+msgstr "1-bitowy szum"
 
 #: src/gui/insEdit.cpp:6129
 msgid "special"
-msgstr ""
+msgstr "specjalne"
 
 #: src/gui/insEdit.cpp:6134
 msgid "Special wave"
@@ -19552,7 +19557,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6136
 msgid "Wavetable channel"
-msgstr ""
+msgstr "Kanał syntezy tablicowej"
 
 #: src/gui/insEdit.cpp:6144
 msgid "Forces waveform macro to control wavetable index."
@@ -19628,11 +19633,11 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6256
 msgid "Phase modulation"
-msgstr ""
+msgstr "Modulacja fazy"
 
 #: src/gui/insEdit.cpp:6263
 msgid "Source channel##pmsrc"
-msgstr ""
+msgstr "Kanał źródłowy"
 
 #: src/gui/insEdit.cpp:6269
 msgid "Separate noise pitch"
@@ -19647,7 +19652,7 @@ msgstr ""
 #: src/gui/insEdit.cpp:6285
 #, c-format
 msgid "Enable filter %d"
-msgstr ""
+msgstr "Włącz filtr %d"
 
 #: src/gui/insEdit.cpp:6292
 #, c-format
@@ -20538,7 +20543,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:8682
 msgid "1-Bit Noise"
-msgstr ""
+msgstr "1-bitowy szum"
 
 #: src/gui/insEdit.cpp:8685
 msgid "Sample Mode"
