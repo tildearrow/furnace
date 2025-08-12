@@ -701,7 +701,7 @@ void ImGui_ImplDX11_Shutdown()
     IM_DELETE(bd);
 }
 
-bool ImGui_ImplDX11_NewFrame()
+void ImGui_ImplDX11_NewFrame()
 {
     ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData();
     IM_ASSERT(bd != nullptr && "Context or backend not initialized! Did you call ImGui_ImplDX11_Init()?");

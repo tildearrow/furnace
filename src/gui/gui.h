@@ -71,6 +71,11 @@
 
 #define BIND_FOR(x) getMultiKeysName(actionKeys[x].data(),actionKeys[x].size(),true).c_str()
 
+#define MAIN_FONT_SIZE (settings.mainFontSize*dpiScale)
+#define PAT_FONT_SIZE (settings.patFontSize*dpiScale)
+#define ICON_FONT_SIZE (settings.iconSize*dpiScale)
+#define BIG_FONT_SIZE (MAX(1,40*dpiScale))
+
 #define FM_PREVIEW_SIZE 512
 
 #define CHECK_HIDDEN_SYSTEM(x) \
@@ -1568,10 +1573,8 @@ class FurnaceGUIRender {
     virtual void setBlendMode(FurnaceGUIBlendMode mode);
     virtual void resized(const SDL_Event& ev);
     virtual void clear(ImVec4 color);
-    virtual bool newFrame();
+    virtual void newFrame();
     virtual bool canVSync();
-    virtual void createFontsTexture();
-    virtual void destroyFontsTexture();
     virtual void renderGUI();
     virtual void wipe(float alpha);
     virtual void drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color, ImVec2 canvasSize, float lineWidth);
@@ -1773,8 +1776,6 @@ class FurnaceGUI {
   ImFont* patFont;
   ImFont* bigFont;
   ImFont* headFont;
-  ImWchar* fontRange;
-  ImWchar* fontRangeB;
   ImVec4 uiColors[GUI_COLOR_MAX];
   ImVec4 volColors[128];
   ImU32 pitchGrad[256];
@@ -1895,10 +1896,6 @@ class FurnaceGUI {
     int roundedMenus;
     int roundedTabs;
     int roundedScrollbars;
-    int loadJapanese;
-    int loadChinese;
-    int loadChineseTraditional;
-    int loadKorean;
     int loadFallback;
     int loadFallbackPat;
     int fmLayout;
@@ -2152,10 +2149,6 @@ class FurnaceGUI {
       roundedMenus(0),
       roundedTabs(1),
       roundedScrollbars(1),
-      loadJapanese(0),
-      loadChinese(0),
-      loadChineseTraditional(0),
-      loadKorean(0),
       loadFallback(1),
       loadFallbackPat(1),
       fmLayout(4),

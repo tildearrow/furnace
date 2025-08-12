@@ -169,7 +169,7 @@ void ImGui_ImplMetal_Shutdown()
     io.BackendFlags &= ~(ImGuiBackendFlags_RendererHasVtxOffset | ImGuiBackendFlags_RendererHasTextures | ImGuiBackendFlags_RendererHasViewports);
 }
 
-bool ImGui_ImplMetal_NewFrame(MTLRenderPassDescriptor* renderPassDescriptor)
+void ImGui_ImplMetal_NewFrame(MTLRenderPassDescriptor* renderPassDescriptor)
 {
     ImGui_ImplMetal_Data* bd = ImGui_ImplMetal_GetBackendData();
     IM_ASSERT(bd != nil && "Context or backend not initialized! Did you call ImGui_ImplMetal_Init()?");
@@ -183,9 +183,7 @@ bool ImGui_ImplMetal_NewFrame(MTLRenderPassDescriptor* renderPassDescriptor)
     bd->SharedMetalContext.framebufferDescriptor = [[FramebufferDescriptor alloc] initWithRenderPassDescriptor:renderPassDescriptor];
 #endif
     if (bd->SharedMetalContext.depthStencilState == nil)
-        return ImGui_ImplMetal_CreateDeviceObjects(bd->SharedMetalContext.device);
-
-    return true;
+        ImGui_ImplMetal_CreateDeviceObjects(bd->SharedMetalContext.device);
 }
 
 static void ImGui_ImplMetal_SetupRenderState(ImDrawData* draw_data, id<MTLCommandBuffer> commandBuffer,

@@ -499,7 +499,7 @@ void ImGui_ImplDX9_InvalidateDeviceObjects()
     ImGui_ImplDX9_InvalidateDeviceObjectsForPlatformWindows();
 }
 
-bool ImGui_ImplDX9_NewFrame()
+void ImGui_ImplDX9_NewFrame()
 {
     ImGui_ImplDX9_Data* bd = ImGui_ImplDX9_GetBackendData();
     IM_ASSERT(bd != nullptr && "Context or backend not initialized! Did you call ImGui_ImplDX9_Init()?");

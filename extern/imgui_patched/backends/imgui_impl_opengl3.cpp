@@ -440,12 +440,11 @@ void    ImGui_ImplOpenGL3_Shutdown()
     IM_DELETE(bd);
 }
 
-bool    ImGui_ImplOpenGL3_NewFrame()
+void    ImGui_ImplOpenGL3_NewFrame()
 {
     ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData();
     IM_ASSERT(bd != nullptr && "Context or backend not initialized! Did you call ImGui_ImplOpenGL3_Init()?");
 
-    bool ret=true;
     ImGui_ImplOpenGL3_InitLoader(); // Lazily init loader if not already done for e.g. DLL boundaries.
 
     if (!bd->ShaderHandle)
@@ -1028,7 +1027,7 @@ bool    ImGui_ImplOpenGL3_CreateDeviceObjects()
     glBindVertexArray(last_vertex_array);
 #endif
 
-    return whatReturn;
+    return true;
 }
 
 void    ImGui_ImplOpenGL3_DestroyDeviceObjects()

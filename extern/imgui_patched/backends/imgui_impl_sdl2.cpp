@@ -988,7 +988,7 @@ static void ImGui_ImplSDL2_UpdateMonitors()
     }
 }
 
-static void ImGui_ImplSDL2_GetWindowSizeAndFramebufferScale(SDL_Window* window, SDL_Renderer* renderer, ImVec2* out_size, ImVec2* out_framebuffer_scale)
+static void ImGui_ImplSDL2_GetWindowSizeAndFramebufferScale(SDL_Window* window, SDL_Renderer* renderer, ImVec2* out_size, ImVec2* out_framebuffer_scale, int* out_w, int* out_h, int* out_display_w, int* out_display_h)
 {
     int w, h;
     int display_w, display_h;
@@ -1007,10 +1007,11 @@ static void ImGui_ImplSDL2_GetWindowSizeAndFramebufferScale(SDL_Window* window, 
 #endif
     else
         SDL_GL_GetDrawableSize(window, &display_w, &display_h);
-    if (out_size != nullptr)
+    // tildearrow: don't set the size if it is 0
+    if (out_size != nullptr && w > 0 && h > 0)
         *out_size = ImVec2((float)w, (float)h);
     // tildearrow: TODO: good idea?
-    if (out_framebuffer_scale != nullptr)
+    if (out_framebuffer_scale != nullptr && w > 0 && h > 0)
         *out_framebuffer_scale = (w > 0 && h > 0) ? ImVec2((float)display_w / w, (float)display_h / h) : ImVec2(1.0f, 1.0f);
 }
 
@@ -1020,13 +1021,13 @@ void ImGui_ImplSDL2_NewFrame()
     IM_ASSERT(bd != nullptr && "Context or backend not initialized! Did you call ImGui_ImplSDL2_Init()?");
     ImGuiIO& io = ImGui::GetIO();
 
-    // Setup main viewport size (every frame to accommodate for window resizing)
-    ImGui_ImplSDL2_GetWindowSizeAndFramebufferScale(bd->Window, bd->Renderer, &io.DisplaySize, &io.DisplayFramebufferScale);
+    // tildearrow
+    int w=0, h=0;
+    int display_w=0, display_h=0;
 
-    if (w > 0 && h > 0) {
-        io.DisplaySize = ImVec2((float)w, (float)h);
-        io.DisplayFramebufferScale = ImVec2((float)display_w / w, (float)display_h / h);
-    }
+    // Setup main viewport size (every frame to accommodate for window resizing)
+    ImGui_ImplSDL2_GetWindowSizeAndFramebufferScale(bd->Window, bd->Renderer, &io.DisplaySize, &io.DisplayFramebufferScale, &w, &h, &display_w, &display_h);
+
 
     // TODO: is this before, or after?
     // Update monitors
@@ -1228,7 +1229,7 @@ static ImVec2 ImGui_ImplSDL2_GetWindowFramebufferScale(ImGuiViewport* viewport)
     // FIXME: SDL_Renderer does not support multi-viewport.
     ImGui_ImplSDL2_ViewportData* vd = (ImGui_ImplSDL2_ViewportData*)viewport->PlatformUserData;
     ImVec2 framebuffer_scale;
-    ImGui_ImplSDL2_GetWindowSizeAndFramebufferScale(vd->Window, nullptr, nullptr, &framebuffer_scale);
+    ImGui_ImplSDL2_GetWindowSizeAndFramebufferScale(vd->Window, nullptr, nullptr, &framebuffer_scale, NULL, NULL, NULL, NULL);
     return framebuffer_scale;
 }
 

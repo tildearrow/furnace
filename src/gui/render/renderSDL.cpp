@@ -120,20 +120,12 @@ void FurnaceGUIRenderSDL::clear(ImVec4 color) {
   SDL_RenderClear(sdlRend);
 }
 
-bool FurnaceGUIRenderSDL::newFrame() {
-  return ImGui_ImplSDLRenderer2_NewFrame();
+void FurnaceGUIRenderSDL::newFrame() {
+  ImGui_ImplSDLRenderer2_NewFrame();
 }
 
 bool FurnaceGUIRenderSDL::canVSync() {
   return swapIntervalSet;
-}
-
-void FurnaceGUIRenderSDL::createFontsTexture() {
-  ImGui_ImplSDLRenderer2_CreateFontsTexture();
-}
-
-void FurnaceGUIRenderSDL::destroyFontsTexture() {
-  ImGui_ImplSDLRenderer2_DestroyFontsTexture();
 }
 
 void FurnaceGUIRenderSDL::renderGUI() {

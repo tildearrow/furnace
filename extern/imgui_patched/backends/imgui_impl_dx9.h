@@ -25,7 +25,7 @@ struct IDirect3DDevice9;
 // Follow "Getting Started" link and check examples/ folder to learn about using backends!
 IMGUI_IMPL_API bool     ImGui_ImplDX9_Init(IDirect3DDevice9* device);
 IMGUI_IMPL_API void     ImGui_ImplDX9_Shutdown();
-IMGUI_IMPL_API bool     ImGui_ImplDX9_NewFrame();
+IMGUI_IMPL_API void     ImGui_ImplDX9_NewFrame();
 IMGUI_IMPL_API void     ImGui_ImplDX9_RenderDrawData(ImDrawData* draw_data);
 
 // Use if you want to reset your rendering device without losing Dear ImGui state.

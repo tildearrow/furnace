@@ -113,7 +113,7 @@ static void ImGui_ImplSDLRenderer2_SetupRenderState(SDL_Renderer* renderer)
     SDL_RenderSetClipRect(renderer, nullptr);
 }
 
-bool ImGui_ImplSDLRenderer2_NewFrame()
+void ImGui_ImplSDLRenderer2_NewFrame()
 {
     ImGui_ImplSDLRenderer2_Data* bd = ImGui_ImplSDLRenderer2_GetBackendData();
     IM_ASSERT(bd != nullptr && "Context or backend not initialized! Did you call ImGui_ImplSDLRenderer2_Init()?");
