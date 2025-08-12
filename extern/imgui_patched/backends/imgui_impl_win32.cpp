@@ -5,7 +5,7 @@
 //  [X] Platform: Clipboard support (for Win32 this is actually part of core dear imgui)
 //  [X] Platform: Mouse support. Can discriminate Mouse/TouchScreen/Pen.
 //  [X] Platform: Keyboard support. Since 1.87 we are using the io.AddKeyEvent() function. Pass ImGuiKey values to all key functions e.g. ImGui::IsKeyPressed(ImGuiKey_Space). [Legacy VK_* values are obsolete since 1.87 and not supported since 1.91.5]
-//  [X] Platform: Gamepad support. Enabled with 'io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad'.
+//  [X] Platform: Gamepad support.
 //  [X] Platform: Mouse cursor shape and visibility (ImGuiBackendFlags_HasMouseCursors). Disable with 'io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange'.
 //  [X] Platform: Multi-viewport support (multiple windows). Enable with 'io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable'.
 
@@ -23,6 +23,9 @@
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
 //  2025-XX-XX: Platform: Added support for multiple windows via the ImGuiPlatformIO interface.
+//  2025-06-02: [Docking] WM_DPICHANGED also apply io.ConfigDpiScaleViewports for main viewport instead of letting it be done by application code.
+//  2025-04-30: Inputs: Fixed an issue where externally losing mouse capture (due to e.g. focus loss) would fail to claim it again the next subsequent click. (#8594)
+//  2025-03-26: [Docking] Viewports: fixed an issue when closing a window from the OS close button (with io.ConfigViewportsNoDecoration = false) while user code was discarding the 'bool* p_open = false' output from Begin(). Because we allowed the Win32 window to close early, Windows destroyed it and our imgui window became not visible even though user code was still submitting it.
 //  2025-03-10: When dealing with OEM keys, use scancodes instead of translated keycodes to choose ImGuiKey values. (#7136, #7201, #7206, #7306, #7670, #7672, #8468)
 //  2025-02-21: [Docking] WM_SETTINGCHANGE's SPI_SETWORKAREA message also triggers a refresh of monitor list. (#8415)
 //  2025-02-18: Added ImGuiMouseCursor_Wait and ImGuiMouseCursor_Progress mouse cursor support.
@@ -396,8 +399,6 @@ static void ImGui_ImplWin32_UpdateGamepads(ImGuiIO& io)
 {
 #ifndef IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
     ImGui_ImplWin32_Data* bd = ImGui_ImplWin32_GetBackendData(io);
-    //if ((io.ConfigFlags & ImGuiConfigFlags_NavEnableGamepad) == 0) // FIXME: Technically feeding gamepad shouldn't depend on this now that they are regular inputs.
-    //    return;
 
     // Calling XInputGetState() every frame on disconnected gamepads is unfortunately too slow.
     // Instead we refresh gamepad availability by calling XInputGetCapabilities() _only_ after receiving WM_DEVICECHANGE.
@@ -667,6 +668,7 @@ ImGuiKey ImGui_ImplWin32_KeyEventToImGuiKey(WPARAM wParam, LPARAM lParam)
     case 51: return ImGuiKey_Comma;
     case 52: return ImGuiKey_Period;
     case 53: return ImGuiKey_Slash;
+    default: break;
     }
 
     return ImGuiKey_None;
@@ -704,6 +706,10 @@ static ImGuiMouseSource ImGui_ImplWin32_GetMouseSourceFromMessageExtraInfo()
 // Copy either line into your .cpp file to forward declare the function:
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);                // Use ImGui::GetCurrentContext()
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandlerEx(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, ImGuiIO& io); // Doesn't use ImGui::GetCurrentContext()
+
+#ifndef WM_DPICHANGED
+#define WM_DPICHANGED 0x02E0 // From Windows SDK 8.1+ headers
+#endif
 
 IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -782,7 +788,10 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandlerEx(HWND hwnd, UINT msg, WPA
         if (msg == WM_RBUTTONDOWN || msg == WM_RBUTTONDBLCLK) { button = 1; }
         if (msg == WM_MBUTTONDOWN || msg == WM_MBUTTONDBLCLK) { button = 2; }
         if (msg == WM_XBUTTONDOWN || msg == WM_XBUTTONDBLCLK) { button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? 3 : 4; }
-        if (bd->MouseButtonsDown == 0 && ::GetCapture() == nullptr)
+        HWND hwnd_with_capture = ::GetCapture();
+        if (bd->MouseButtonsDown != 0 && hwnd_with_capture != hwnd) // Did we externally lost capture?
+            bd->MouseButtonsDown = 0;
+        if (bd->MouseButtonsDown == 0 && hwnd_with_capture == nullptr)
             ::SetCapture(hwnd); // Allow us to read mouse coordinates when dragging mouse outside of our window bounds.
         bd->MouseButtonsDown |= 1 << button;
         io.AddMouseSourceEvent(mouse_source);
@@ -896,6 +905,13 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandlerEx(HWND hwnd, UINT msg, WPA
         if (wParam == SPI_SETWORKAREA)
             bd->WantUpdateMonitors = true;
         return 0;
+    case WM_DPICHANGED:
+    {
+        const RECT* suggested_rect = (RECT*)lParam;
+        if (io.ConfigDpiScaleViewports)
+            ::SetWindowPos(hwnd, nullptr, suggested_rect->left, suggested_rect->top, suggested_rect->right - suggested_rect->left, suggested_rect->bottom - suggested_rect->top, SWP_NOZORDER | SWP_NOACTIVATE);
+        return 0;
+    }
     }
     return 0;
 }
@@ -1357,14 +1373,14 @@ static LRESULT CALLBACK ImGui_ImplWin32_WndProcHandler_PlatformWindow(HWND hWnd,
     ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO(ctx);
     LRESULT result = 0;
     if (ImGui_ImplWin32_WndProcHandlerEx(hWnd, msg, wParam, lParam, io))
-        result = true;
+        result = 1;
     else if (ImGuiViewport* viewport = ImGui_ImplWin32_FindViewportByPlatformHandle(platform_io, hWnd))
     {
         switch (msg)
         {
         case WM_CLOSE:
             viewport->PlatformRequestClose = true;
-            break;
+            return 0; // 0 = Operating system will ignore the message and not destroy the window. We close ourselves.
         case WM_MOVE:
             viewport->PlatformRequestMove = true;
             break;

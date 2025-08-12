@@ -647,6 +647,7 @@ static void paint_imgui(uint32_t *pixels, ImDrawData *drawData, int fb_width, in
 
 bool ImGui_ImplSW_Init(SDL_Window* win) {
   ImGuiIO& io = ImGui::GetIO();
+  ImGuiIO& platform_io = ImGui::GetPlatformIO();
   IM_ASSERT(io.BackendRendererUserData == nullptr);
 
   if (SDL_HasWindowSurface(win)==SDL_FALSE) {
@@ -657,6 +658,9 @@ bool ImGui_ImplSW_Init(SDL_Window* win) {
   bd->Window = win;
   io.BackendRendererUserData = (void*)bd;
   io.BackendRendererName = "imgui_sw";
+  io.BackendFlags |= ImGuiBackendFlags_RendererHasTextures;
+
+  platform_io.Renderer_TextureMaxWidth = platform_io.Renderer_TextureMaxHeight = (int)4096;
 
   return true;
 }
@@ -669,14 +673,13 @@ void ImGui_ImplSW_Shutdown() {
   ImGui_ImplSW_DestroyDeviceObjects();
   io.BackendRendererName = nullptr;
   io.BackendRendererUserData = nullptr;
+  io.BackendFlags &= ~ImGuiBackendFlags_RendererHasTextures;
   IM_DELETE(bd);
 }
 
 bool ImGui_ImplSW_NewFrame() {
   ImGui_ImplSW_Data* bd = ImGui_ImplSW_GetBackendData();
   IM_ASSERT(bd != nullptr);
-
-  if (!bd->FontTexture) ImGui_ImplSW_CreateDeviceObjects();
 
   return true;
 }
@@ -728,7 +731,7 @@ void ImGui_ImplSW_DestroyFontsTexture() {
 }
 
 bool ImGui_ImplSW_CreateDeviceObjects() {
-  return ImGui_ImplSW_CreateFontsTexture();
+  return true;
 }
 
 void ImGui_ImplSW_DestroyDeviceObjects() {

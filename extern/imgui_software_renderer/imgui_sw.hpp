@@ -9,7 +9,7 @@
 //   The goal was to get something fast and decently accurate in not too many lines of code.
 // LIMITATIONS:
 //   * It is not pixel-perfect, but it is good enough for must use cases.
-//   * It does not support painting with any other texture than the default font texture.
+//   * It does not support texture scaling for the sake of performance.
 #pragma once
 #include "imgui.h"      // IMGUI_IMPL_API
 #ifndef IMGUI_DISABLE
