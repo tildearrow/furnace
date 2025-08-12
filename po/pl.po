@@ -4196,7 +4196,7 @@ msgstr "D4xx: Portamento głośności (szybkie)"
 
 #: src/engine/engine.cpp:107
 msgid "DCxx: Delayed mute"
-msgstr "DCxx: Opóźnionie wyciszenia"
+msgstr "DCxx: Opóźnione wyciszenie"
 
 #: src/engine/engine.cpp:109
 msgid "E0xx: Set arp speed"
@@ -4503,7 +4503,7 @@ msgstr ""
 
 #: src/engine/platform/pokey.cpp:435 src/engine/platform/pokey.cpp:444
 msgid "filter"
-msgstr ""
+msgstr "filtr"
 
 #: src/engine/platform/pokey.cpp:438 src/engine/platform/pokey.cpp:441
 msgid "16-bit"
@@ -4511,7 +4511,7 @@ msgstr ""
 
 #: src/engine/fileOpsSample.cpp:114
 msgid "did not read entire sample bank file!"
-msgstr ""
+msgstr "nie udało sie odczytać całego banku sampli!"
 
 #: src/main.cpp:708
 #, c-format
@@ -4521,7 +4521,7 @@ msgstr ""
 #: src/main.cpp:805
 #, c-format
 msgid "couldn't open file! (%s)"
-msgstr ""
+msgstr "nie udało się otworzyć pliku (%s)"
 
 #: src/main.cpp:811
 #, c-format
@@ -4577,7 +4577,7 @@ msgstr ""
 #: src/main.cpp:978
 #, c-format
 msgid "ROM export failed! (%s)"
-msgstr ""
+msgstr "eksport do pliku ROM nie powiódł się (%s)"
 
 #: src/main.cpp:981
 msgid "could not begin exporting process! TODO: elaborate"
@@ -4585,11 +4585,11 @@ msgstr ""
 
 #: src/main.cpp:985
 msgid "no matching ROM export target is available."
-msgstr ""
+msgstr "brak pasującego celu eksportu do piku ROM"
 
 #: src/main.cpp:1002
 msgid "could not write text!"
-msgstr ""
+msgstr "nie udało się zapisać do tekstu!"
 
 #: src/main.cpp:1019
 msgid "error while starting CLI!"
@@ -5025,7 +5025,7 @@ msgstr "MSX + Neotron (z YM2610B)"
 
 #: src/gui/presets.cpp:530
 msgid "MSX + Neotron (with YM2610B; extended channel 3)"
-msgstr "MSX + Neotron (z YM2610B; z rozszerzonym kanałem 3 3)"
+msgstr "MSX + Neotron (z YM2610B; z rozszerzonym kanałem 3)"
 
 #: src/gui/presets.cpp:536
 msgid "MSX + Neotron (with YM2610B; CSM)"
@@ -5729,7 +5729,7 @@ msgstr ""
 
 #: src/gui/presets.cpp:1878
 msgid "Data East Karnov (extended channel 3)"
-msgstr "Data East Karnov (z rozszerzonym kanałem 3 3)"
+msgstr "Data East Karnov (z rozszerzonym kanałem 3)"
 
 #: src/gui/presets.cpp:1884
 msgid "Data East Karnov (CSM)"
@@ -6408,11 +6408,11 @@ msgstr "Toaplan 1 (tryb perkusji)"
 
 #: src/gui/presets.cpp:3194
 msgid "Dynax/Nakanihon 3rd generation hardware"
-msgstr "Trzecia generacja sprzetu Dynax/Nakanihon"
+msgstr "Trzecia generacja sprzętu Dynax/Nakanihon"
 
 #: src/gui/presets.cpp:3201
 msgid "Dynax/Nakanihon 3rd generation hardware (drums mode)"
-msgstr "Trzecia generacja sprzetu Dynax/Nakanihon (tryb perkusji)"
+msgstr "Trzecia generacja sprzętu Dynax/Nakanihon (tryb perkusji)"
 
 #: src/gui/presets.cpp:3208
 msgid "Dynax/Nakanihon Real Break"
@@ -8026,7 +8026,7 @@ msgstr "Podutwory"
 
 #: src/gui/editControls.cpp:537
 msgid "Comments"
-msgstr ""
+msgstr "Komentarze"
 
 #: src/gui/editControls.cpp:546
 msgid "Channels here..."
@@ -8951,7 +8951,7 @@ msgstr "Początkowy limit ilości kanałów:"
 
 #: src/gui/sysConf.cpp:1283 src/gui/sysConf.cpp:2560
 msgid "Disable hissing"
-msgstr "Wyłącz trzeszczenie"
+msgstr "Wyłącz szeleszczenie"
 
 #: src/gui/sysConf.cpp:1286
 msgid "Scale frequency to wave length"
@@ -11239,8 +11239,7 @@ msgstr "Wyświetlaj nazwę układu/systemu na pasku tytułu okna"
 #: src/gui/settings.cpp:3275
 msgid "Display chip names instead of \"multi-system\" in title bar"
 msgstr ""
-"Wyświetlaj nazwy układów/systemów zamiast \"multi-system\" na pasku tytułu "
-"okna"
+"Wyświetlaj nazwy układów/systemów zamiast \"multi-system\" na pasku tytułu okna"
 
 #: src/gui/settings.cpp:3281
 msgid "Status bar:"
@@ -11256,7 +11255,7 @@ msgstr "Ścieżka do pliku"
 
 #: src/gui/settings.cpp:3291
 msgid "Cursor details or file path##sbar2"
-msgstr "Szczegóły zazanczenia lub ścieżka do pliku"
+msgstr "Szczegóły zaznaczenia lub ścieżka do pliku"
 
 #: src/gui/settings.cpp:3295
 msgid "Nothing##sbar3"
@@ -12783,11 +12782,11 @@ msgstr ""
 
 #: src/gui/settings.cpp:4319
 msgid "Status: warning"
-msgstr ""
+msgstr "Status: ostrzeżenie"
 
 #: src/gui/settings.cpp:4320
 msgid "Status: error"
-msgstr ""
+msgstr "Status: błąd"
 
 #: src/gui/settings.cpp:4323 src/gui/guiConst.cpp:627 src/gui/sampleEdit.cpp:96
 msgid "Sample Editor"
@@ -13789,7 +13788,7 @@ msgstr "Emulator dźwięku NDS autorstwa cam900"
 
 #: src/gui/about.cpp:176
 msgid "openMSX YMF278 emulator (modified version) by the openMSX developers"
-msgstr "rdzen emulacji YMF278 z emulatora openMSX (wersja zmodyfikowana) autorstwa twórców openMSX"
+msgstr "rdzeń emulacji YMF278 z emulatora openMSX (wersja zmodyfikowana) autorstwa twórców openMSX"
 
 #: src/gui/about.cpp:177
 msgid "SID2 emulator by LTVA (modification of reSID emulator)"
@@ -15628,7 +15627,7 @@ msgstr "Stwórz nowy"
 
 #: src/gui/waveEdit.cpp:386
 msgid "create sample from wavetable"
-msgstr ""
+msgstr "stwórz sampel z tablicy fal"
 
 #: src/gui/waveEdit.cpp:390
 msgid "Steps"
@@ -15653,6 +15652,14 @@ msgid ""
 "- 256 on SID3\n"
 "any other widths will be scaled during playback."
 msgstr ""
+"używaj szerokości:\n"
+"- dowolnej dla Amigi/N163\n"
+"- 32 dla Game Boya, PC Engine, SCC, Konami Bubble System, Namco WSG, Virtual "
+"Boya i WonderSwana\n"
+"- 64 na FDS\n"
+"- 128 na X1-010\n"
+"- 256 na SID3\n"
+"wszelkie inne szerokości zostaną przeskalowane podczas odtwarzania."
 
 #: src/gui/waveEdit.cpp:413
 msgid "Height"
@@ -16871,6 +16878,15 @@ msgid ""
 "\n"
 "have fun!"
 msgstr ""
+"zaimportowałeś moduł ProTrackera/SoundTrackera!\n"
+"Pamiętaj o następujących kwestiach:\n”
+„\n”
+"- Furnace nie zastępuje twojego odtwarzacza MOD\n"
+"- import nie jest idealny. Twoja piosenka może brzmieć inaczej:\n"
+"  - zapętlenie wzorca (E6x) nie jest wspierane\n"
+"\n"
+"miłej zabawy!"
+
 
 #: src/gui/gui.cpp:2480
 msgid ""
@@ -16883,6 +16899,14 @@ msgid ""
 "\n"
 "have fun!"
 msgstr ""
+"zaimportowałeś moduł Scream Trackera 3!\n"
+"Pamiętaj o następujących kwestiach:\n”
+„\n”
+"- Furnace nie zastępuje twojego odtwarzacza S3M\n"
+"- import nie jest idealny. Twoja piosenka może brzmieć inaczej:\n"
+"  - instrumenty OPLa mogą być rozstrojone\n"
+"\n"
+"miłej zabawy!"
 
 #: src/gui/gui.cpp:2483
 msgid ""
@@ -16896,6 +16920,15 @@ msgid ""
 "\n"
 "have fun!"
 msgstr ""
+"zaimportowałeś moduł Fast Trackera II!\n"
+"Pamiętaj o następujących kwestiach:\n”
+„\n”
+"- Furnace nie zastępuje twojego odtwarzacza XM\n"
+"- import nie jest idealny. Twoja piosenka może brzmieć inaczej:\n"
+"  - obwiednie zostały przekonwertowane na makra\n"
+"  - globalne zmiany głośności nie są obsługiwane\n"
+"\n”
+"miłej zabawy!"
 
 #: src/gui/gui.cpp:2486
 msgid ""
@@ -16911,6 +16944,17 @@ msgid ""
 "\n"
 "have fun!"
 msgstr ""
+"zaimportowałeś moduł Impulse Trackera!\n"
+"Pamiętaj o następujących kwestiach:\n”
+„\n”
+"- Furnace nie zastępuje twojego odtwarzacza IT\n"
+"- import nie jest idealny. Twoja piosenka może brzmieć inaczej:\n"
+"  - obwiednie zostały przekonwertowane na makra\n"
+"  - globalne zmiany głośności nie są obsługiwane\n"
+"  - zmiany głośności kanałów nie są obsługiwane\n"
+"  - New Note Actions (NNA) nie są obsługiwane\n"
+"\n”
+"miłej zabawy!"
 
 #: src/gui/gui.cpp:2494 src/gui/gui.cpp:3974 src/gui/gui.cpp:4455
 msgid "Unsaved changes! Save changes before opening file?"
@@ -17183,7 +17227,7 @@ msgstr "eksportuj VGM..."
 
 #: src/gui/gui.cpp:4497 src/gui/gui.cpp:4524
 msgid "export ROM..."
-msgstr ""
+msgstr "eksportuj ROM..."
 
 #: src/gui/gui.cpp:4502 src/gui/gui.cpp:4529
 msgid "export text..."
@@ -18722,7 +18766,7 @@ msgstr "obwiednia"
 
 #: src/gui/insEdit.cpp:451
 msgid "special wave"
-msgstr "specialna fala"
+msgstr "specjalna fala"
 
 #: src/gui/insEdit.cpp:456
 msgid "From filter 1"
@@ -19133,7 +19177,7 @@ msgid ""
 "Mode 2: 66\n"
 "Mode 3: 541065280"
 msgstr ""
-"wartości bliskie trybowy szumu SIDa2:\n"
+"wartości bliskie trybowi szumu SIDa2:\n"
 "\n"
 "Tryb 1: 524288\n"
 "Tryb 2: 66\n"
@@ -19235,7 +19279,7 @@ msgstr "Typ zwolnienia: pasywny (opóźnione zwolnienie)"
 
 #: src/gui/insEdit.cpp:2856
 msgid "Len##macroEditLengthShortLabel"
-msgstr ""
+msgstr "Dł."
 
 #: src/gui/insEdit.cpp:2869
 msgid "SLen##macroEditStepLenShortLabel"
@@ -19478,7 +19522,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:4619 src/gui/insEdit.cpp:5395 src/gui/insEdit.cpp:5718
 msgid "Pitch control"
-msgstr ""
+msgstr "Kontrola wysokości dźwięku"
 
 #: src/gui/insEdit.cpp:4628 src/gui/insEdit.cpp:5404 src/gui/insEdit.cpp:5727
 msgid ""
@@ -19512,7 +19556,7 @@ msgstr "Częst."
 
 #: src/gui/insEdit.cpp:5289
 msgid "Only on YM2151 and YM2414 (OPM and OPZ)"
-msgstr ""
+msgstr "Tylko dla YM2151 i YM2414 (OPM i OPZ)"
 
 #: src/gui/insEdit.cpp:5312
 msgid "Blk"
@@ -19532,7 +19576,7 @@ msgstr "Wł. SSG"
 
 #: src/gui/insEdit.cpp:6096 src/gui/insEdit.cpp:7145
 msgid "tri"
-msgstr "trojkatna"
+msgstr "trójkątna"
 
 #: src/gui/insEdit.cpp:6118
 msgid ""
@@ -19609,7 +19653,7 @@ msgstr "Tryb mieszania fali"
 
 #: src/gui/insEdit.cpp:6226 src/gui/insEdit.cpp:7212
 msgid "Reset duty on new note"
-msgstr ""
+msgstr "Resetuj szerokość fali prost. przy nowej nucie"
 
 #: src/gui/insEdit.cpp:6229 src/gui/insEdit.cpp:7274
 msgid "Absolute Duty Macro"
@@ -19621,7 +19665,7 @@ msgstr "Modulacja kołowa"
 
 #: src/gui/insEdit.cpp:6243
 msgid "Source channel##rmsrc"
-msgstr ""
+msgstr "Kanał źródłowy##rmsrc"
 
 #: src/gui/insEdit.cpp:6246 src/gui/insEdit.cpp:7221
 msgid "Oscillator Sync"
@@ -19629,7 +19673,7 @@ msgstr "Synchronizacja oscylotorów"
 
 #: src/gui/insEdit.cpp:6253
 msgid "Source channel##hssrc"
-msgstr ""
+msgstr "Kanał źródłowy##ssrc"
 
 #: src/gui/insEdit.cpp:6256
 msgid "Phase modulation"
@@ -19641,13 +19685,15 @@ msgstr "Kanał źródłowy"
 
 #: src/gui/insEdit.cpp:6269
 msgid "Separate noise pitch"
-msgstr ""
+msgstr "Osobna częstotliwość szumu"
 
 #: src/gui/insEdit.cpp:6273
 msgid ""
 "Make noise pitch independent from other waves' pitch.\n"
 "Noise pitch will be controllable via macros."
 msgstr ""
+"Sprawia, że wysokość dźwięku jest niezależna od wysokości innych fal.\n”
+"Wysokość dźwięku będzie można kontrolować za pomocą makr."
 
 #: src/gui/insEdit.cpp:6285
 #, c-format
@@ -19657,32 +19703,32 @@ msgstr "Włącz filtr %d"
 #: src/gui/insEdit.cpp:6292
 #, c-format
 msgid "Initialize filter %d"
-msgstr ""
+msgstr "Inicjalizuj filtr"
 
 #: src/gui/insEdit.cpp:6297
 #, c-format
 msgid "Connect to channel input##contoinput%d"
-msgstr ""
+msgstr "Połącz z wyjściem kanału##contoinput%d"
 
 #: src/gui/insEdit.cpp:6303
 #, c-format
 msgid "Cutoff##fcut%d"
-msgstr ""
+msgstr "Punkt odcięcia"
 
 #: src/gui/insEdit.cpp:6305
 #, c-format
 msgid "Resonance##fres%d"
-msgstr ""
+msgstr "Rezonans"
 
 #: src/gui/insEdit.cpp:6307
 #, c-format
 msgid "Output volume##foutvol%d"
-msgstr ""
+msgstr "Głośność na wyjściu"
 
 #: src/gui/insEdit.cpp:6309
 #, c-format
 msgid "Distortion level##fdist%d"
-msgstr ""
+msgstr "Poziom przesteru"
 
 #: src/gui/insEdit.cpp:6313 src/gui/insEdit.cpp:6518 src/gui/insEdit.cpp:7237
 #: src/gui/insEdit.cpp:7747 src/gui/insEdit.cpp:8048 src/gui/insEdit.cpp:8302
@@ -19693,22 +19739,22 @@ msgstr "typ filtra"
 #: src/gui/insEdit.cpp:6318
 #, c-format
 msgid "low##flow%d"
-msgstr ""
+msgstr "dolnoprzep."
 
 #: src/gui/insEdit.cpp:6327
 #, c-format
 msgid "band##fband%d"
-msgstr ""
+msgstr "środkowoprzep."
 
 #: src/gui/insEdit.cpp:6336
 #, c-format
 msgid "high##fhigh%d"
-msgstr ""
+msgstr "wysokoprzep."
 
 #: src/gui/insEdit.cpp:6344
 #, c-format
 msgid "Connect to channel output##contooutput%d"
-msgstr ""
+msgstr "Połącz z wyjściem kanału"
 
 #: src/gui/insEdit.cpp:6350
 #, c-format
@@ -19718,7 +19764,7 @@ msgstr ""
 #: src/gui/insEdit.cpp:6357
 #, c-format
 msgid "Change cutoff with pitch##bindcutoff%d"
-msgstr ""
+msgstr "Zmieniaj punkt odcięcia z wysokością dźwięku"
 
 #: src/gui/insEdit.cpp:6360
 msgid ""
@@ -19747,6 +19793,8 @@ msgid ""
 "The center note for cutoff changes. At this note no cutoff change happens.\n"
 "As pitch goes lower or higher,cutoff changes apply."
 msgstr ""
+"Środkowa nuta dla zmian punktu odcięcia. Przy tej nucie nie występują zmiany odcięcia\n"
+"W miarę obniżania lub podwyższania wysokości dźwięku następują zmiany odcięcia."
 
 #: src/gui/insEdit.cpp:6378
 #, c-format
@@ -19772,18 +19820,20 @@ msgstr ""
 #: src/gui/insEdit.cpp:6390
 #, c-format
 msgid "Change resonance with pitch##bindres%d"
-msgstr ""
+msgstr "Zmieniaj rezonans wraz z wysokością dźwięku##bindres%d"
 
 #: src/gui/insEdit.cpp:6393
 msgid ""
 "Filter resonance will change with frequency/pitch.\n"
 "See settings below."
 msgstr ""
+"Rezonans filtra zmienia się wraz z częstotliwością/wysokością dźwięku.\n"
+"Zobacz ustawienia poniżej."
 
 #: src/gui/insEdit.cpp:6397
 #, c-format
 msgid "Decrease resonance when pitch increases##decreaseres%d"
-msgstr ""
+msgstr "Zmniejszaj rezonans wraz z wzrostem wysokości dźwięku"
 
 #: src/gui/insEdit.cpp:6400
 msgid ""
@@ -19791,11 +19841,14 @@ msgid ""
 "pitch.\n"
 "If this is disabled,filter resonance will increase if you increase the pitch."
 msgstr ""
+"Jeśli ta opcja jest włączona, rezonans filtra zmniejszy się po zwiększeniu
+„wysokości dźwięku.\n”
+"Jeśli ta opcja jest wyłączona, rezonans filtra zwiększy się po zwiększeniu wysokości dźwięku."
 
 #: src/gui/insEdit.cpp:6405
 #, c-format
 msgid "Resonance change center note##bindrescenternote%d"
-msgstr ""
+msgstr "Środkowa nuta zmiany rezonansu"
 
 #: src/gui/insEdit.cpp:6408
 msgid ""
@@ -19803,31 +19856,36 @@ msgid ""
 "happens.\n"
 "As pitch goes lower or higher,resonance changes apply."
 msgstr ""
+"Środkowa nuta dla zmian rezonansu. Przy tej nucie nie występują zmiany rezonansu\n"
+"W miarę obniżania lub podwyższania wysokości dźwięku następują zmiany rezonansu."
 
 #: src/gui/insEdit.cpp:6411
 #, c-format
 msgid "Resonance change strength##bindresstrength%d"
-msgstr ""
+msgstr "Siła zmiany rezonansu"
 
 #: src/gui/insEdit.cpp:6414
 msgid "How much resonance changes for given pitch change."
-msgstr ""
+msgstr "Jak bardzo natężenie rezonansu zmienia się wraz ze zmianą wysokości dźwięku"
 
 #: src/gui/insEdit.cpp:6416
 #, c-format
 msgid "Scale resonance only once on new note##bindresnn%d"
-msgstr ""
+msgstr "Skaluj rezonans tylko raz przy nowej nucie ##bindresnn%d"
 
 #: src/gui/insEdit.cpp:6419
 msgid ""
 "Filter resonance will be changed only once on new note.\n"
 "If this option is disabled,resonance scaling will be applied\n"
 "every time a pitch change happens."
-msgstr ""
+msgstr""
+"Rezonans filtra zostanie zmieniony tylko raz przy nowej nucie.\n"
+"Jeśli ta opcja jest wyłączona, skalowanie rezonansu będzie stosowane\n”
+"za każdym razem, gdy nastąpi zmiana wysokości dźwięku."
 
 #: src/gui/insEdit.cpp:6432 src/gui/insEdit.cpp:6433
 msgid "Filters connection matrix"
-msgstr ""
+msgstr "Matryca połączenia filtrów"
 
 #: src/gui/insEdit.cpp:6440
 msgid "In"
@@ -19836,22 +19894,22 @@ msgstr ""
 #: src/gui/insEdit.cpp:6467
 #, c-format
 msgid "Feed signal from channel to filter %d input"
-msgstr ""
+msgstr "Prześlij sygnał z kanału na wejście filtra %d"
 
 #: src/gui/insEdit.cpp:6479
 #, c-format
 msgid "Feed signal from filter %d output to filter %d input"
-msgstr ""
+msgstr "Przeslij sygnał z wyjścia filtra %d na wyjście filtra %d"
 
 #: src/gui/insEdit.cpp:6491
 #, c-format
 msgid "Feed signal from filter %d output to channel output"
-msgstr ""
+msgstr "Prześlij sygnał z wyjścia filtra %d na wyjście kanału"
 
 #: src/gui/insEdit.cpp:6512
 #, c-format
 msgid "Filter %d macros"
-msgstr ""
+msgstr "Makra filtra %d"
 
 #: src/gui/insEdit.cpp:6515 src/gui/insEdit.cpp:7229 src/gui/insEdit.cpp:7232
 #: src/gui/insEdit.cpp:8046 src/gui/insEdit.cpp:8342 src/gui/insEdit.cpp:8610
@@ -19864,23 +19922,23 @@ msgstr "Wł./Wył. filtr"
 
 #: src/gui/insEdit.cpp:6519
 msgid "Distortion Level"
-msgstr ""
+msgstr "Poziom przesteru"
 
 #: src/gui/insEdit.cpp:6520
 msgid "Output Volume"
-msgstr ""
+msgstr "Głośność na wyjściu"
 
 #: src/gui/insEdit.cpp:6521
 msgid "Channel Input Connection"
-msgstr ""
+msgstr "Połączenia wejść kanałów"
 
 #: src/gui/insEdit.cpp:6522
 msgid "Channel Output Connection"
-msgstr ""
+msgstr "Połączenia wyjść kanałów"
 
 #: src/gui/insEdit.cpp:6523
 msgid "Connection Matrix Row"
-msgstr ""
+msgstr "Rząd matrycy połączeń"
 
 #: src/gui/insEdit.cpp:6551 src/gui/insEdit.cpp:6552
 msgid "waiting..."
@@ -20179,7 +20237,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:7860 src/gui/insEdit.cpp:7864 src/gui/insEdit.cpp:7868
 msgid "Only for OPL4 PCM."
-msgstr ""
+msgstr "Tylko dla trybu PCM OPL4"
 
 #: src/gui/insEdit.cpp:7862
 msgid "Pseudo Reverb"
@@ -20187,7 +20245,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:7866
 msgid "LFO Reset"
-msgstr ""
+msgstr "Reset LFO"
 
 #: src/gui/insEdit.cpp:7870
 msgid "Disable volume change ramp"
@@ -20288,7 +20346,7 @@ msgstr "Szerokość fali prostokątnej/tryb szumu"
 
 #: src/gui/insEdit.cpp:8062 src/gui/insEdit.cpp:8415
 msgid "Surround"
-msgstr "Dzwięk przestrzenny"
+msgstr "Dźwięk przestrzenny"
 
 #: src/gui/insEdit.cpp:8064 src/gui/insEdit.cpp:8077 src/gui/insEdit.cpp:8126
 #: src/gui/insEdit.cpp:8185 src/gui/insEdit.cpp:8244 src/gui/insEdit.cpp:8255
