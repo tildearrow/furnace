@@ -286,25 +286,6 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
       nextWindow=GUI_WINDOW_SAMPLE_EDIT;
     }
   }
-  if (sampleListDir || (settings.unifiedDataView && insListDir)) {
-    DIR_DRAG_SOURCE(dir,asset,"FUR_SDIR");
-    DIR_DRAG_TARGET(dir,asset,e->song.sampleDir,"FUR_SDIR");
-  } else {
-    SIMPLE_DRAG_SOURCE("FUR_SAMPLE",sampleToMove);
-    SIMPLE_DRAG_TARGET("FUR_SAMPLE",sampleToMove,curSample,e->swapSamples,e->moveSampleUp,e->moveSampleDown);
-  }
-  ImGui::SameLine();
-  ImGui::TextNoHashHide("%s",sample->name.c_str());
-  if (memWarning) {
-    ImGui::SameLine();
-    ImGui::Text(ICON_FA_EXCLAMATION_TRIANGLE);
-    if (ImGui::IsItemHovered() && !mobileUI) {
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
-      ImGui::SetTooltip(_("out of memory for this sample!"));
-      ImGui::PopStyleColor();
-    }
-    ImGui::PopStyleColor();
-  }
   if (ImGui::BeginPopupContextItem("SampleRightMenu")) {
     curSample=i;
     samplePos=0;
@@ -334,6 +315,25 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
     }
     ImGui::PopStyleColor();
     ImGui::EndPopup();
+  }
+  if (sampleListDir || (settings.unifiedDataView && insListDir)) {
+    DIR_DRAG_SOURCE(dir,asset,"FUR_SDIR");
+    DIR_DRAG_TARGET(dir,asset,e->song.sampleDir,"FUR_SDIR");
+  } else {
+    SIMPLE_DRAG_SOURCE("FUR_SAMPLE",sampleToMove);
+    SIMPLE_DRAG_TARGET("FUR_SAMPLE",sampleToMove,curSample,e->swapSamples,e->moveSampleUp,e->moveSampleDown);
+  }
+  ImGui::SameLine();
+  ImGui::TextNoHashHide("%s",sample->name.c_str());
+  if (memWarning) {
+    ImGui::SameLine();
+    ImGui::Text(ICON_FA_EXCLAMATION_TRIANGLE);
+    if (ImGui::IsItemHovered() && !mobileUI) {
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+      ImGui::SetTooltip(_("out of memory for this sample!"));
+      ImGui::PopStyleColor();
+    }
+    ImGui::PopStyleColor();
   }
   if (wantScrollListSample && curSample==i) ImGui::SetScrollHereY();
   ImGui::PopID();
