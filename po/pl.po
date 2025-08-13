@@ -16879,8 +16879,8 @@ msgid ""
 "have fun!"
 msgstr ""
 "zaimportowałeś moduł ProTrackera/SoundTrackera!\n"
-"Pamiętaj o następujących kwestiach:\n”
-„\n”
+"Pamiętaj o następujących kwestiach:\n"
+"\n"
 "- Furnace nie zastępuje twojego odtwarzacza MOD\n"
 "- import nie jest idealny. Twoja piosenka może brzmieć inaczej:\n"
 "  - zapętlenie wzorca (E6x) nie jest wspierane\n"
@@ -16900,8 +16900,8 @@ msgid ""
 "have fun!"
 msgstr ""
 "zaimportowałeś moduł Scream Trackera 3!\n"
-"Pamiętaj o następujących kwestiach:\n”
-„\n”
+"Pamiętaj o następujących kwestiach:\n"
+"\n"
 "- Furnace nie zastępuje twojego odtwarzacza S3M\n"
 "- import nie jest idealny. Twoja piosenka może brzmieć inaczej:\n"
 "  - instrumenty OPLa mogą być rozstrojone\n"
@@ -16921,13 +16921,13 @@ msgid ""
 "have fun!"
 msgstr ""
 "zaimportowałeś moduł Fast Trackera II!\n"
-"Pamiętaj o następujących kwestiach:\n”
-„\n”
+"Pamiętaj o następujących kwestiach:\n"
+"\n"
 "- Furnace nie zastępuje twojego odtwarzacza XM\n"
 "- import nie jest idealny. Twoja piosenka może brzmieć inaczej:\n"
 "  - obwiednie zostały przekonwertowane na makra\n"
 "  - globalne zmiany głośności nie są obsługiwane\n"
-"\n”
+"\n"
 "miłej zabawy!"
 
 #: src/gui/gui.cpp:2486
@@ -16945,15 +16945,15 @@ msgid ""
 "have fun!"
 msgstr ""
 "zaimportowałeś moduł Impulse Trackera!\n"
-"Pamiętaj o następujących kwestiach:\n”
-„\n”
+"Pamiętaj o następujących kwestiach:\n"
+"\n"
 "- Furnace nie zastępuje twojego odtwarzacza IT\n"
 "- import nie jest idealny. Twoja piosenka może brzmieć inaczej:\n"
 "  - obwiednie zostały przekonwertowane na makra\n"
 "  - globalne zmiany głośności nie są obsługiwane\n"
 "  - zmiany głośności kanałów nie są obsługiwane\n"
 "  - New Note Actions (NNA) nie są obsługiwane\n"
-"\n”
+"\n"
 "miłej zabawy!"
 
 #: src/gui/gui.cpp:2494 src/gui/gui.cpp:3974 src/gui/gui.cpp:4455
@@ -19692,7 +19692,7 @@ msgid ""
 "Make noise pitch independent from other waves' pitch.\n"
 "Noise pitch will be controllable via macros."
 msgstr ""
-"Sprawia, że wysokość dźwięku jest niezależna od wysokości innych fal.\n”
+"Sprawia, że wysokość dźwięku jest niezależna od wysokości innych fal.\n"
 "Wysokość dźwięku będzie można kontrolować za pomocą makr."
 
 #: src/gui/insEdit.cpp:6285
@@ -19841,8 +19841,8 @@ msgid ""
 "pitch.\n"
 "If this is disabled,filter resonance will increase if you increase the pitch."
 msgstr ""
-"Jeśli ta opcja jest włączona, rezonans filtra zmniejszy się po zwiększeniu
-„wysokości dźwięku.\n”
+"Jeśli ta opcja jest włączona, rezonans filtra zmniejszy się po zwiększeniu"
+"wysokości dźwięku.\n"
 "Jeśli ta opcja jest wyłączona, rezonans filtra zwiększy się po zwiększeniu wysokości dźwięku."
 
 #: src/gui/insEdit.cpp:6405
@@ -19878,9 +19878,9 @@ msgid ""
 "Filter resonance will be changed only once on new note.\n"
 "If this option is disabled,resonance scaling will be applied\n"
 "every time a pitch change happens."
-msgstr""
+msgstr ""
 "Rezonans filtra zostanie zmieniony tylko raz przy nowej nucie.\n"
-"Jeśli ta opcja jest wyłączona, skalowanie rezonansu będzie stosowane\n”
+"Jeśli ta opcja jest wyłączona, skalowanie rezonansu będzie stosowane\n"
 "za każdym razem, gdy nastąpi zmiana wysokości dźwięku."
 
 #: src/gui/insEdit.cpp:6432 src/gui/insEdit.cpp:6433
