@@ -472,7 +472,7 @@ void FurnaceGUI::drawPattern() {
     ImGui::SetNextWindowPos(patWindowPos);
     ImGui::SetNextWindowSize(patWindowSize);
   }
-  if (ImGui::Begin("Pattern",&patternOpen,globalWinFlags|(settings.avoidRaisingPattern?ImGuiWindowFlags_NoBringToFrontOnFocus:0)|(settings.cursorFollowsWheel?ImGuiWindowFlags_NoScrollWithMouse:0),_("Pattern"))) {
+  if (ImGui::Begin("Pattern",&patternOpen,globalWinFlags|(settings.avoidRaisingPattern?ImGuiWindowFlags_NoBringToFrontOnFocus:0)|((settings.cursorFollowsWheel && !selecting)?ImGuiWindowFlags_NoScrollWithMouse:0),_("Pattern"))) {
     if (!mobileUI) {
       patWindowPos=ImGui::GetWindowPos();
       patWindowSize=ImGui::GetWindowSize();
@@ -509,7 +509,7 @@ void FurnaceGUI::drawPattern() {
 
     if (chans<1) {
       ImGui::Text(_("there aren't any channels to show."));
-    } else if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea|((settings.cursorFollowsWheel || wheelCalmDown)?ImGuiTableFlags_NoScrollWithMouse:0))) {
+    } else if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea|(((settings.cursorFollowsWheel && !selecting) || wheelCalmDown)?ImGuiTableFlags_NoScrollWithMouse:0))) {
       char chanID[2048];
       float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
 
@@ -751,7 +751,8 @@ void FurnaceGUI::drawPattern() {
               signed char l;
               int ch=decodeUTF8((const unsigned char*)j,l);
 
-              totalAdvanced+=ImGui::GetFont()->GetCharAdvance(ch);
+              // TODO: eliminate use of GetFontBaked()?
+              totalAdvanced+=ImGui::GetFontBaked()->GetCharAdvance(ch);
               if (totalAdvanced>(chNameLimit-ellipsisSize)) break;
 
               for (int k=0; k<l; k++) {
@@ -1070,7 +1071,7 @@ void FurnaceGUI::drawPattern() {
                 onOffColor=uiColors[GUI_COLOR_PATTERN_STATUS_OFF];
               }
             }
-            iconPos[0].x-=mainFont->CalcTextSizeA(mainFont->FontSize,FLT_MAX,0.0f,ICON_FA_SQUARE).x*0.5f;
+            iconPos[0].x-=mainFont->CalcTextSizeA(MAIN_FONT_SIZE,FLT_MAX,0.0f,ICON_FA_SQUARE).x*0.5f;
             dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[0],ImGui::GetColorU32(onOffColor),ICON_FA_SQUARE);
 
             // 2. PITCH SLIDE/VIBRATO
@@ -1095,7 +1096,7 @@ void FurnaceGUI::drawPattern() {
             } else {
               pitchColor=uiColors[GUI_COLOR_PATTERN_STATUS_OFF];
             }
-            iconPos[1].x-=mainFont->CalcTextSizeA(mainFont->FontSize,FLT_MAX,0.0f,pitchIcon).x*0.5f;
+            iconPos[1].x-=mainFont->CalcTextSizeA(MAIN_FONT_SIZE,FLT_MAX,0.0f,pitchIcon).x*0.5f;
             dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[1],ImGui::GetColorU32(pitchColor),pitchIcon);
 
 
@@ -1115,7 +1116,7 @@ void FurnaceGUI::drawPattern() {
             } else {
               volColor=uiColors[GUI_COLOR_PATTERN_STATUS_OFF];
             }
-            iconPos[2].x-=mainFont->CalcTextSizeA(mainFont->FontSize,FLT_MAX,0.0f,volIcon).x*0.5f;
+            iconPos[2].x-=mainFont->CalcTextSizeA(MAIN_FONT_SIZE,FLT_MAX,0.0f,volIcon).x*0.5f;
             dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[2],ImGui::GetColorU32(volColor),volIcon);
 
             // 4. OTHER
@@ -1196,7 +1197,7 @@ void FurnaceGUI::drawPattern() {
                   hintColor=uiColors[GUI_COLOR_TEXT];
                   break;
               }
-              iconPos[i+3].x-=mainFont->CalcTextSizeA(mainFont->FontSize,FLT_MAX,0.0f,hints.hint[i]).x*0.5f;
+              iconPos[i+3].x-=mainFont->CalcTextSizeA(MAIN_FONT_SIZE,FLT_MAX,0.0f,hints.hint[i]).x*0.5f;
               dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[i+3],ImGui::GetColorU32(hintColor),hints.hint[i]);
             }
           }
@@ -1227,9 +1228,13 @@ void FurnaceGUI::drawPattern() {
         if (viewOrder>=0 && viewOrder<e->curSubSong->ordersLen) for (int i=0; i<chans; i++) {
           patCache[i]=e->curPat[i].getPattern(e->curOrders->ord[i][viewOrder],false);
         }
-        ImGui::PushStyleVar(ImGuiStyleVar_Alpha,ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha);
+        if (orderLock) {
+          ImGui::BeginDisabled();
+        } else {
+          ImGui::PushStyleVar(ImGuiStyleVar_Alpha,ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha);
+        }
         for (int i=0; i<dummyRows-1; i++) {
-          patternRow(viewRow,e->isPlaying(),lineHeight,chans,viewOrder,patCache,false);
+          patternRow(viewRow,e->isPlaying(),lineHeight,chans,viewOrder,patCache,orderLock);
           if (++viewRow>=e->curSubSong->patLen) {
             viewRow=0;
             viewOrder++;
@@ -1238,7 +1243,11 @@ void FurnaceGUI::drawPattern() {
             }
           }
         }
-        ImGui::PopStyleVar();
+        if (orderLock) {
+          ImGui::EndDisabled();
+        } else {
+          ImGui::PopStyleVar();
+        }
       } else {
         for (int i=0; i<dummyRows-1; i++) {
           ImGui::TableNextRow(0,lineHeight);
@@ -1259,9 +1268,13 @@ void FurnaceGUI::drawPattern() {
         if (viewOrder<e->curSubSong->ordersLen) for (int i=0; i<chans; i++) {
           patCache[i]=e->curPat[i].getPattern(e->curOrders->ord[i][ord+1],true);
         }
-        ImGui::PushStyleVar(ImGuiStyleVar_Alpha,ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha);
+        if (orderLock) {
+          ImGui::BeginDisabled();
+        } else {
+          ImGui::PushStyleVar(ImGuiStyleVar_Alpha,ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha);
+        }
         for (int i=0; i<=dummyRows; i++) {
-          patternRow(viewRow,e->isPlaying(),lineHeight,chans,viewOrder,patCache,false);
+          patternRow(viewRow,e->isPlaying(),lineHeight,chans,viewOrder,patCache,orderLock);
           if (++viewRow>=e->curSubSong->patLen) {
             viewRow=0;
             viewOrder++;
@@ -1270,7 +1283,11 @@ void FurnaceGUI::drawPattern() {
             }
           }
         }
-        ImGui::PopStyleVar();
+        if (orderLock) {
+          ImGui::EndDisabled();
+        } else {
+          ImGui::PopStyleVar();
+        }
       } else {
         for (int i=0; i<=dummyRows; i++) {
           ImGui::TableNextRow(0,lineHeight);
@@ -1320,7 +1337,7 @@ void FurnaceGUI::drawPattern() {
       }
 
       // cursor follows wheel
-      if (settings.cursorFollowsWheel && (!e->isPlaying() || !followPattern) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
+      if (settings.cursorFollowsWheel && (!e->isPlaying() || !followPattern || selecting) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
         if (wheelX!=0 || wheelY!=0) {
           int xAmount=wheelX;
           int yAmount=(settings.cursorFollowsWheel==2)?wheelY:-wheelY;
@@ -1385,6 +1402,8 @@ void FurnaceGUI::drawPattern() {
           }
         }
       }
+      // HACK: we need to capture the last scroll position in order to restore it during undo/redo
+      patScroll=ImGui::GetScrollY();
       // HACK: rendering here would cause the pairs to be drawn behind the pattern for some reason...
       // ...so we capture the table's window draw list...
       tdl=ImGui::GetWindowDrawList();
@@ -1739,7 +1758,7 @@ void FurnaceGUI::drawPattern() {
         for (int j=0; j<num; j++) {
           ImVec2 partPos=ImVec2(
             off.x+patChanX[i.chan]+fmod(rand(),width),
-            off.y+(playheadY)+randRange(0,patFont->FontSize)
+            off.y+(playheadY)+randRange(0,PAT_FONT_SIZE)
           );
 
           if (partPos.x<winMin.x || partPos.y<winMin.y || partPos.x>winMax.x || partPos.y>winMax.y) continue;
@@ -1830,7 +1849,7 @@ void FurnaceGUI::drawPattern() {
 
           ImVec2 partPos=ImVec2(
             off.x+patChanX[i]+(width*0.5+0.5*sin(M_PI*(float)ch->vibratoPosGiant/64.0f)*width),
-            off.y+(ImGui::GetWindowHeight()*0.5f)+randRange(0,patFont->FontSize)
+            off.y+(ImGui::GetWindowHeight()*0.5f)+randRange(0,PAT_FONT_SIZE)
           );
 
           if (!(partPos.x<winMin.x || partPos.y<winMin.y || partPos.x>winMax.x || partPos.y>winMax.y)) {
@@ -1860,8 +1879,8 @@ void FurnaceGUI::drawPattern() {
           if (part.life>255) part.life=255;
           fdl->AddText(
             iconFont,
-            iconFont->FontSize,
-            ImVec2(part.pos.x-iconFont->FontSize*0.5,part.pos.y-iconFont->FontSize*0.5),
+            ICON_FONT_SIZE,
+            ImVec2(part.pos.x-ICON_FONT_SIZE*0.5,part.pos.y-ICON_FONT_SIZE*0.5),
             part.colors[(int)part.life],
             part.type
           );

@@ -170,6 +170,34 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_METRONOME:
       e->setMetronome(!e->getMetronome());
       break;
+    case GUI_ACTION_ORDER_LOCK:
+      orderLock=!orderLock;
+      // move selection within bounds of current order if necessary
+      if (selStart.order!=curOrder || selEnd.order!=curOrder) {
+        // selection confinement logic
+        if (selStart.order==selEnd.order) {
+          // selection within one order - move it to the current one
+        } else if (selStart.order<curOrder && selEnd.order>curOrder) {
+          // current order is inside selection - confine it to this order
+          selStart.y=0;
+          selEnd.y=e->curSubSong->patLen;
+        } else if (selStart.order<curOrder && selEnd.order==curOrder) {
+          // current order intersects selection - clamp the top
+          selStart.y=0;
+        } else if (selStart.order==curOrder && selEnd.order>curOrder) {
+          // current order intersects selection - clamp the bottom
+          selEnd.y=e->curSubSong->patLen;
+        } else {
+          // something else - reset selection...
+          selStart=cursor;
+          selEnd=cursor;
+        }
+        selStart.order=curOrder;
+        selEnd.order=curOrder;
+        cursor.order=curOrder;
+        finishSelection();
+      }
+      break;
     case GUI_ACTION_REPEAT_PATTERN:
       e->setRepeatPattern(!e->getRepeatPattern());
       break;

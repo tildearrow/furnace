@@ -1712,7 +1712,9 @@ void FurnaceGUI::drawSampleEdit() {
           updateSampleTex=false;
         }
 
-        ImGui::ImageButton(rend->getTextureID(sampleTex),avail,ImVec2(0,0),ImVec2(rend->getTextureU(sampleTex),rend->getTextureV(sampleTex)),0);
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0,0));
+        ImGui::ImageButton("SampleView",rend->getTextureID(sampleTex),avail,ImVec2(0,0),ImVec2(rend->getTextureU(sampleTex),rend->getTextureV(sampleTex)));
+        ImGui::PopStyleVar();
 
         ImVec2 rectMin=ImGui::GetItemRectMin();
         ImVec2 rectMax=ImGui::GetItemRectMax();
@@ -1849,7 +1851,7 @@ void FurnaceGUI::drawSampleEdit() {
           ImGui::EndPopup();
         }
 
-        String statusBar=sampleDragMode?_("Draw"):_("Select:");
+        String statusBar=sampleDragMode?_("Draw"):_("Select");
         String statusBar2="";
         String statusBar3=fmt::sprintf(_("%d samples, %d bytes"),sample->samples,sample->getCurBufLen());
         String statusBar4="";
@@ -1929,7 +1931,18 @@ void FurnaceGUI::drawSampleEdit() {
             posX=samplePos+pos.x*sampleZoom;
             if (posX>(int)sample->samples) posX=-1;
           }
-          posY=(0.5-pos.y/rectSize.y)*((sample->depth==DIV_SAMPLE_DEPTH_8BIT)?255:65535);
+          switch (sample->depth) {
+            case DIV_SAMPLE_DEPTH_8BIT:
+              posY=(0.5-pos.y/rectSize.y)*255;
+              break;
+            case DIV_SAMPLE_DEPTH_4BIT:
+              posY=(1-pos.y/rectSize.y)*15;
+              break;
+            default:
+              posY=(0.5-pos.y/rectSize.y)*65535;
+              break;
+          }
+
           if (posX>=0) {
             statusBar2=fmt::sprintf("(%d, %d)",posX,posY);
           }
@@ -2082,8 +2095,8 @@ void FurnaceGUI::drawSampleEdit() {
             ImGui::SameLine();
             ImGui::SetNextItemWidth(140.0f*dpiScale);
             if (ImGui::InputInt("##SESelEnd",&sampleSelEnd)) {
-              if (sampleSelStart<0) sampleSelStart=0;
-              if (sampleSelStart>(int)sample->samples) sampleSelStart=sample->samples;
+              if (sampleSelEnd<0) sampleSelEnd=0;
+              if (sampleSelEnd>(int)sample->samples) sampleSelEnd=sample->samples;
               if (sampleSelEnd<sampleSelStart) sampleSelEnd=sampleSelStart;
             }
             if (!statusBar4.empty()) {

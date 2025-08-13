@@ -9064,15 +9064,15 @@ msgid "DSi (16MB RAM)"
 msgstr ""
 
 #: src/gui/sysConf.cpp:2598
-msgid "V 0.3.1"
+msgid "Initial release"
 msgstr ""
 
 #: src/gui/sysConf.cpp:2602
-msgid "V 47.0.0 (9-bit volume)"
+msgid "V 47.0.2 (9-bit volume)"
 msgstr ""
 
 #: src/gui/sysConf.cpp:2606
-msgid "V 47.0.2 (Tri/Saw PW XOR)"
+msgid "V 48.0.1 (Tri/Saw PW XOR)"
 msgstr ""
 
 #: src/gui/sysConf.cpp:2610

@@ -1089,7 +1089,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
               ins->fds.modSpeed = reader.readI();
               ins->fds.modDepth = reader.readI();
               reader.readI(); // this is delay. currently ignored. TODO.
-              if (ds.wave.size()>=256) {
+              if (ds.wave.size()>=32768) {
                 logW("too many waves! ignoring...");
                 delete wave;
               } else {
@@ -1210,7 +1210,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                   wave->data[jj] = val;
                 }
 
-                if (ds.wave.size()<256) {
+                if (ds.wave.size()<32768) {
                   ds.wave.push_back(wave);
                 } else {
                   logW("too many waves...");

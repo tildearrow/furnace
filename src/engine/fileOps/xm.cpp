@@ -1334,7 +1334,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
     }
 
     ds.sampleLen=ds.sample.size();
-    if (ds.sampleLen>256) {
+    if (ds.sampleLen>32768) {
       logE("too many samples!");
       lastError="too many samples";
       ds.unload();

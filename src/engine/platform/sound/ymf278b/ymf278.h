@@ -1,6 +1,7 @@
 #ifndef YMF278_HH
 #define YMF278_HH
 
+#include <stdint.h>
 #include <vector>
 #include <string>
 #include <algorithm>

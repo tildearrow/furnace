@@ -53,13 +53,13 @@ class DivPlatformQSound: public DivDispatch {
   size_t sampleMemLen;
   size_t sampleMemLenBS;
   size_t sampleMemUsage;
-  bool sampleLoaded[256];
-  bool sampleLoadedBS[256];
+  bool* sampleLoaded;
+  bool* sampleLoadedBS;
   struct qsound_chip chip;
   unsigned short regPool[512];
 
-  unsigned int offPCM[256];
-  unsigned int offBS[256];
+  unsigned int* offPCM;
+  unsigned int* offBS;
 
   DivMemoryComposition memCompo;
 
@@ -98,6 +98,8 @@ class DivPlatformQSound: public DivDispatch {
     void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
+    DivPlatformQSound();
+    ~DivPlatformQSound();
 };
 
 #endif

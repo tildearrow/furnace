@@ -334,7 +334,7 @@ const char* specificControls[18]={
     bool _subInit=false; \
     ImVec2 settingsViewSize=ImGui::GetContentRegionAvail(); \
     settingsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y; \
-    if (ImGui::BeginChild("SettingsView",settingsViewSize,false))
+    if (ImGui::BeginChild("SettingsView",settingsViewSize,0))
 
 #define END_SECTION } \
   ImGui::EndChild(); \
@@ -2185,7 +2185,7 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::Button(_("Reset defaults"))) {
           showWarning(_("Are you sure you want to reset the keyboard settings?"),GUI_WARN_RESET_KEYBINDS);
         }
-        if (ImGui::BeginChild("##HotkeysList",ImVec2(0,0),false,ImGuiWindowFlags_HorizontalScrollbar)) {
+        if (ImGui::BeginChild("##HotkeysList",ImVec2(0,0),0,ImGuiWindowFlags_HorizontalScrollbar)) {
           if (ImGui::TreeNode(_("Global hotkeys"))) {
             KEYBIND_CONFIG_BEGIN("keysGlobal");
 
@@ -2213,6 +2213,7 @@ void FurnaceGUI::drawSettings() {
             drawKeybindSettingsTableRow(GUI_ACTION_STEP_DOWN);
             drawKeybindSettingsTableRow(GUI_ACTION_TOGGLE_EDIT);
             drawKeybindSettingsTableRow(GUI_ACTION_METRONOME);
+            drawKeybindSettingsTableRow(GUI_ACTION_ORDER_LOCK);
             drawKeybindSettingsTableRow(GUI_ACTION_REPEAT_PATTERN);
             drawKeybindSettingsTableRow(GUI_ACTION_FOLLOW_ORDERS);
             drawKeybindSettingsTableRow(GUI_ACTION_FOLLOW_PATTERN);
@@ -3192,62 +3193,6 @@ void FurnaceGUI::drawSettings() {
           ImGui::SetTooltip(_("disable to save video memory."));
         }
 
-        bool loadJapaneseB=settings.loadJapanese;
-        if (ImGui::Checkbox(_("Display Japanese characters"),&loadJapaneseB)) {
-          settings.loadJapanese=loadJapaneseB;
-          settingsChanged=true;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_(
-            "Only toggle this option if you have enough graphics memory.\n"
-            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
-            "このオプションは、十分なグラフィックメモリがある場合にのみ切り替えてください。\n"
-            "これは、Dear ImGuiにダイナミックフォントアトラスが実装されるまでの一時的な解決策です。"
-          ));
-        }
-
-        bool loadChineseB=settings.loadChinese;
-        if (ImGui::Checkbox(_("Display Chinese (Simplified) characters"),&loadChineseB)) {
-          settings.loadChinese=loadChineseB;
-          settingsChanged=true;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_(
-            "Only toggle this option if you have enough graphics memory.\n"
-            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
-            "请在确保你有足够的显存后再启动此设定\n"
-            "这是一个在ImGui实现动态字体加载之前的临时解决方案"
-          ));
-        }
-
-        bool loadChineseTraditionalB=settings.loadChineseTraditional;
-        if (ImGui::Checkbox(_("Display Chinese (Traditional) characters"),&loadChineseTraditionalB)) {
-          settings.loadChineseTraditional=loadChineseTraditionalB;
-          settingsChanged=true;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_(
-            "Only toggle this option if you have enough graphics memory.\n"
-            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
-            "請在確保你有足夠的顯存后再啟動此設定\n"
-            "這是一個在ImGui實現動態字體加載之前的臨時解決方案"
-          ));
-        }
-
-        bool loadKoreanB=settings.loadKorean;
-        if (ImGui::Checkbox(_("Display Korean characters"),&loadKoreanB)) {
-          settings.loadKorean=loadKoreanB;
-          settingsChanged=true;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_(
-            "Only toggle this option if you have enough graphics memory.\n"
-            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
-            "그래픽 메모리가 충분한 경우에만 이 옵션을 선택하십시오.\n"
-            "이 옵션은 Dear ImGui에 동적 글꼴 아틀라스가 구현될 때까지 임시 솔루션입니다."
-          ));
-        }
-
         // SUBSECTION PROGRAM
         CONFIG_SUBSECTION(_("Program"));
         ImGui::Text(_("Title bar:"));
@@ -3907,6 +3852,10 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::Checkbox(_("Wrap text"), &songNotesWrapB)) {
           settings.songNotesWrap=songNotesWrapB;
           settingsChanged=true;
+        }
+        settings.songNotesWrap=false;
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Sorry, but, can you leave me alone?\nThere's plenty of other settings here for you to mess with."));
         }
 
         // SUBSECTION WINDOWS
@@ -5064,10 +5013,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.headFontPath=conf.getString("headFontPath","");
     settings.patFontPath=conf.getString("patFontPath","");
 
-    settings.loadJapanese=conf.getInt("loadJapanese",0);
-    settings.loadChinese=conf.getInt("loadChinese",0);
-    settings.loadChineseTraditional=conf.getInt("loadChineseTraditional",0);
-    settings.loadKorean=conf.getInt("loadKorean",0);
     settings.loadFallback=conf.getInt("loadFallback",1);
     settings.loadFallbackPat=conf.getInt("loadFallbackPat",1);
 
@@ -5321,10 +5266,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.roundedMenus,0,1);
   clampSetting(settings.roundedTabs,0,1);
   clampSetting(settings.roundedScrollbars,0,1);
-  clampSetting(settings.loadJapanese,0,1);
-  clampSetting(settings.loadChinese,0,1);
-  clampSetting(settings.loadChineseTraditional,0,1);
-  clampSetting(settings.loadKorean,0,1);
   clampSetting(settings.loadFallback,0,1);
   clampSetting(settings.loadFallbackPat,0,1);
   clampSetting(settings.fmLayout,0,7);
@@ -5657,10 +5598,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("headFontPath",settings.headFontPath);
     conf.set("patFontPath",settings.patFontPath);
 
-    conf.set("loadJapanese",settings.loadJapanese);
-    conf.set("loadChinese",settings.loadChinese);
-    conf.set("loadChineseTraditional",settings.loadChineseTraditional);
-    conf.set("loadKorean",settings.loadKorean);
     conf.set("loadFallback",settings.loadFallback);
     conf.set("loadFallbackPat",settings.loadFallbackPat);
 
@@ -5906,35 +5843,6 @@ void FurnaceGUI::commitSettings() {
   ImGui::GetIO().Fonts->Clear();
 
   applyUISettings();
-
-  if (rend) {
-    rend->destroyFontsTexture();
-    if (rend->areTexturesSquare()) {
-      ImGui::GetIO().Fonts->Flags|=ImFontAtlasFlags_Square;
-    }
-  }
-  if (!ImGui::GetIO().Fonts->Build()) {
-    logE("error while building font atlas!");
-    showError(_("error while loading fonts! please check your settings."));
-    ImGui::GetIO().Fonts->Clear();
-    mainFont=ImGui::GetIO().Fonts->AddFontDefault();
-    patFont=mainFont;
-    bigFont=mainFont;
-    headFont=mainFont;
-    if (rend) {
-      rend->destroyFontsTexture();
-      if (rend->areTexturesSquare()) {
-        ImGui::GetIO().Fonts->Flags|=ImFontAtlasFlags_Square;
-      }
-    }
-    if (!ImGui::GetIO().Fonts->Build()) {
-      logE("error again while building font atlas!");
-    } else {
-      rend->createFontsTexture();
-    }
-  } else {
-    rend->createFontsTexture();
-  }
 
   audioEngineChanged=false;
 }
@@ -6468,7 +6376,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   sty.Colors[ImGuiCol_TableBorderStrong]=uiColors[GUI_COLOR_TABLE_BORDER_HARD];
   sty.Colors[ImGuiCol_TableBorderLight]=uiColors[GUI_COLOR_TABLE_BORDER_SOFT];
   sty.Colors[ImGuiCol_DragDropTarget]=uiColors[GUI_COLOR_DRAG_DROP_TARGET];
-  sty.Colors[ImGuiCol_NavHighlight]=uiColors[GUI_COLOR_NAV_HIGHLIGHT];
+  sty.Colors[ImGuiCol_NavCursor]=uiColors[GUI_COLOR_NAV_HIGHLIGHT];
   sty.Colors[ImGuiCol_NavWindowingHighlight]=uiColors[GUI_COLOR_NAV_WIN_HIGHLIGHT];
   sty.Colors[ImGuiCol_NavWindowingDimBg]=uiColors[GUI_COLOR_NAV_WIN_BACKDROP];
   sty.Colors[ImGuiCol_Text]=uiColors[GUI_COLOR_TEXT];
@@ -6623,274 +6531,51 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     // prepare
 #ifdef HAVE_FREETYPE
     if (settings.fontBackend==1) {
-      ImGui::GetIO().Fonts->FontBuilderIO=ImGuiFreeType::GetBuilderForFreeType();
-      ImGui::GetIO().Fonts->FontBuilderFlags&=~(
-        ImGuiFreeTypeBuilderFlags_NoHinting|
-        ImGuiFreeTypeBuilderFlags_NoAutoHint|
-        ImGuiFreeTypeBuilderFlags_ForceAutoHint|
-        ImGuiFreeTypeBuilderFlags_LightHinting|
-        ImGuiFreeTypeBuilderFlags_MonoHinting|
-        ImGuiFreeTypeBuilderFlags_Bold|
-        ImGuiFreeTypeBuilderFlags_Oblique|
-        ImGuiFreeTypeBuilderFlags_Monochrome|
-        ImGuiFreeTypeBuilderFlags_LoadColor|
-        ImGuiFreeTypeBuilderFlags_Bitmap
+      ImGui::GetIO().Fonts->FontLoader=ImGuiFreeType::GetFontLoader();
+      ImGui::GetIO().Fonts->FontLoaderFlags&=~(
+        ImGuiFreeTypeLoaderFlags_NoHinting|
+        ImGuiFreeTypeLoaderFlags_NoAutoHint|
+        ImGuiFreeTypeLoaderFlags_ForceAutoHint|
+        ImGuiFreeTypeLoaderFlags_LightHinting|
+        ImGuiFreeTypeLoaderFlags_MonoHinting|
+        ImGuiFreeTypeLoaderFlags_Bold|
+        ImGuiFreeTypeLoaderFlags_Oblique|
+        ImGuiFreeTypeLoaderFlags_Monochrome|
+        ImGuiFreeTypeLoaderFlags_LoadColor|
+        ImGuiFreeTypeLoaderFlags_Bitmap
       );
 
-      if (!settings.fontAntiAlias) ImGui::GetIO().Fonts->FontBuilderFlags|=ImGuiFreeTypeBuilderFlags_Monochrome;
-      if (settings.fontBitmap) ImGui::GetIO().Fonts->FontBuilderFlags|=ImGuiFreeTypeBuilderFlags_Bitmap;
+      if (!settings.fontAntiAlias) ImGui::GetIO().Fonts->FontLoaderFlags|=ImGuiFreeTypeLoaderFlags_Monochrome;
+      if (settings.fontBitmap) ImGui::GetIO().Fonts->FontLoaderFlags|=ImGuiFreeTypeLoaderFlags_Bitmap;
 
       switch (settings.fontHinting) {
         case 0: // off
-          ImGui::GetIO().Fonts->FontBuilderFlags|=ImGuiFreeTypeBuilderFlags_NoHinting;
+          ImGui::GetIO().Fonts->FontLoaderFlags|=ImGuiFreeTypeLoaderFlags_NoHinting;
           break;
         case 1: // slight
-          ImGui::GetIO().Fonts->FontBuilderFlags|=ImGuiFreeTypeBuilderFlags_LightHinting;
+          ImGui::GetIO().Fonts->FontLoaderFlags|=ImGuiFreeTypeLoaderFlags_LightHinting;
           break;
         case 2: // normal
           break;
         case 3: // full
-          ImGui::GetIO().Fonts->FontBuilderFlags|=ImGuiFreeTypeBuilderFlags_MonoHinting;
+          ImGui::GetIO().Fonts->FontLoaderFlags|=ImGuiFreeTypeLoaderFlags_MonoHinting;
           break;
       }
 
       switch (settings.fontAutoHint) {
         case 0: // off
-          ImGui::GetIO().Fonts->FontBuilderFlags|=ImGuiFreeTypeBuilderFlags_NoAutoHint;
+          ImGui::GetIO().Fonts->FontLoaderFlags|=ImGuiFreeTypeLoaderFlags_NoAutoHint;
           break;
         case 1: // on
           break;
         case 2: // force
-          ImGui::GetIO().Fonts->FontBuilderFlags|=ImGuiFreeTypeBuilderFlags_ForceAutoHint;
+          ImGui::GetIO().Fonts->FontLoaderFlags|=ImGuiFreeTypeLoaderFlags_ForceAutoHint;
           break;
       }
     } else {
-      ImGui::GetIO().Fonts->FontBuilderIO=ImFontAtlasGetBuilderForStbTruetype();
+      ImGui::GetIO().Fonts->FontLoader=ImFontAtlasGetFontLoaderForStbTruetype();
     }
 #endif
-
-
-    // set to 800 for now due to problems with unifont
-    static const ImWchar upTo800[]={
-      // base
-      0x20,0x7e,0xa0,0x800,
-      // for "Display characters" and language choices
-      0x107, 0x107,
-      0x10d, 0x10d,
-      0x131, 0x131,
-      0x142, 0x142,
-      0x15f, 0x15f,
-      0x17c, 0x17c,
-      0x420, 0x420,
-      0x423, 0x423,
-      0x430, 0x430,
-      0x431, 0x431,
-      0x432, 0x432,
-      0x433, 0x433,
-      0x435, 0x435,
-      0x437, 0x437,
-      0x438, 0x438,
-      0x439, 0x439,
-      0x43a, 0x43a,
-      0x43b, 0x43b,
-      0x43c, 0x43c,
-      0x43d, 0x43d,
-      0x43e, 0x43e,
-      0x43f, 0x43f,
-      0x440, 0x440,
-      0x441, 0x441,
-      0x442, 0x442,
-      0x443, 0x443,
-      0x446, 0x446,
-      0x447, 0x447,
-      0x448, 0x448,
-      0x449, 0x449,
-      0x44b, 0x44b,
-      0x44c, 0x44c,
-      0x44d, 0x44d,
-      0x44f, 0x44f,
-      0x456, 0x456,
-      0x457, 0x457,
-      0x540, 0x540,
-      0x561, 0x561,
-      0x565, 0x565,
-      0x575, 0x575,
-      0x576, 0x576,
-      0x580, 0x580,
-      0xe17, 0xe17,
-      0xe22, 0xe22,
-      0xe44, 0xe44,
-      0x3001, 0x3001,
-      0x3002, 0x3002,
-      0x3042, 0x3042,
-      0x3044, 0x3044,
-      0x3048, 0x3048,
-      0x304c, 0x304c,
-      0x304f, 0x304f,
-      0x3053, 0x3053,
-      0x3055, 0x3055,
-      0x3059, 0x3059,
-      0x3060, 0x3060,
-      0x3066, 0x3066,
-      0x3067, 0x3067,
-      0x306a, 0x306a,
-      0x306b, 0x306b,
-      0x306e, 0x306e,
-      0x306f, 0x306f,
-      0x307e, 0x307e,
-      0x307f, 0x307f,
-      0x308a, 0x308a,
-      0x308b, 0x308b,
-      0x308c, 0x308c,
-      0x30a2, 0x30a2,
-      0x30a3, 0x30a3,
-      0x30a4, 0x30a4,
-      0x30a9, 0x30a9,
-      0x30aa, 0x30aa,
-      0x30af, 0x30af,
-      0x30b0, 0x30b0,
-      0x30b7, 0x30b7,
-      0x30b9, 0x30b9,
-      0x30c0, 0x30c0,
-      0x30c3, 0x30c3,
-      0x30c8, 0x30c8,
-      0x30ca, 0x30ca,
-      0x30d5, 0x30d5,
-      0x30d7, 0x30d7,
-      0x30df, 0x30df,
-      0x30e1, 0x30e1,
-      0x30e2, 0x30e2,
-      0x30e7, 0x30e7,
-      0x30e9, 0x30e9,
-      0x30ea, 0x30ea,
-      0x30f3, 0x30f3,
-      0x4e00, 0x4e00,
-      0x4e2a, 0x4e2a,
-      0x4e34, 0x4e34,
-      0x4e4b, 0x4e4b,
-      0x4f53, 0x4f53,
-      0x4f60, 0x4f60,
-      0x4fdd, 0x4fdd,
-      0x500b, 0x500b,
-      0x518d, 0x518d,
-      0x51b3, 0x51b3,
-      0x5206, 0x5206,
-      0x5207, 0x5207,
-      0x524d, 0x524d,
-      0x52a0, 0x52a0,
-      0x52a8, 0x52a8,
-      0x52d5, 0x52d5,
-      0x5341, 0x5341,
-      0x5408, 0x5408,
-      0x540e, 0x540e,
-      0x542f, 0x542f,
-      0x555f, 0x555f,
-      0x5728, 0x5728,
-      0x5834, 0x5834,
-      0x591f, 0x591f,
-      0x5920, 0x5920,
-      0x5b57, 0x5b57,
-      0x5b58, 0x5b58,
-      0x5b9a, 0x5b9a,
-      0x5b9e, 0x5b9e,
-      0x5b9f, 0x5b9f,
-      0x5be6, 0x5be6,
-      0x6001, 0x6001,
-      0x614b, 0x614b,
-      0x65b9, 0x65b9,
-      0x65e5, 0x65e5,
-      0x65f6, 0x65f6,
-      0x662f, 0x662f,
-      0x663e, 0x663e,
-      0x6642, 0x6642,
-      0x66ff, 0x66ff,
-      0x6709, 0x6709,
-      0x672c, 0x672c,
-      0x6848, 0x6848,
-      0x6b64, 0x6b64,
-      0x6c7a, 0x6c7a,
-      0x73b0, 0x73b0,
-      0x73fe, 0x73fe,
-      0x7684, 0x7684,
-      0x786e, 0x786e,
-      0x78ba, 0x78ba,
-      0x7b56, 0x7b56,
-      0x81e8, 0x81e8,
-      0x88c5, 0x88c5,
-      0x89e3, 0x89e3,
-      0x8a2d, 0x8a2d,
-      0x8a9e, 0x8a9e,
-      0x8acb, 0x8acb,
-      0x8bbe, 0x8bbe,
-      0x8bf7, 0x8bf7,
-      0x8db3, 0x8db3,
-      0x8f09, 0x8f09,
-      0x8f7d, 0x8f7d,
-      0x8fd9, 0x8fd9,
-      0x9019, 0x9019,
-      0x986f, 0x986f,
-      0x9ad4, 0x9ad4,
-      0xac00, 0xac00,
-      0xacbd, 0xacbd,
-      0xad6c, 0xad6c,
-      0xad6d, 0xad6d,
-      0xadf8, 0xadf8,
-      0xae00, 0xae00,
-      0xae4c, 0xae4c,
-      0xaf34, 0xaf34,
-      0xb2c8, 0xb2c8,
-      0xb2e4, 0xb2e4,
-      0xb3d9, 0xb3d9,
-      0xb420, 0xb420,
-      0xb54c, 0xb54c,
-      0xb77c, 0xb77c,
-      0xb798, 0xb798,
-      0xb824, 0xb824,
-      0xb8e8, 0xb8e8,
-      0xb97c, 0xb97c,
-      0xb9ac, 0xb9ac,
-      0xb9cc, 0xb9cc,
-      0xba54, 0xba54,
-      0xba74, 0xba74,
-      0xbaa8, 0xbaa8,
-      0xbd84, 0xbd84,
-      0xc120, 0xc120,
-      0xc124, 0xc124,
-      0xc158, 0xc158,
-      0xc194, 0xc194,
-      0xc2a4, 0xc2a4,
-      0xc2dc, 0xc2dc,
-      0xc2ed, 0xc2ed,
-      0xc544, 0xc544,
-      0xc57c, 0xc57c,
-      0xc5b4, 0xc5b4,
-      0xc5d0, 0xc5d0,
-      0xc624, 0xc624,
-      0xc635, 0xc635,
-      0xc6a9, 0xc6a9,
-      0xc6b0, 0xc6b0,
-      0xc740, 0xc740,
-      0xc744, 0xc744,
-      0xc774, 0xc774,
-      0xc784, 0xc784,
-      0xc785, 0xc785,
-      0xc791, 0xc791,
-      0xc801, 0xc801,
-      0xc815, 0xc815,
-      0xc9c0, 0xc9c0,
-      0xcda9, 0xcda9,
-      0xd0dd, 0xd0dd,
-      0xd2c0, 0xd2c0,
-      0xd53d, 0xd53d,
-      0xd558, 0xd558,
-      0xd55c, 0xd55c,
-      0xd569, 0xd569,
-      0xd574, 0xd574,
-      0xd604, 0xd604,
-      0
-    };
-    ImFontGlyphRangesBuilder range;
-    ImVector<ImWchar> outRange;
 
     ImFontConfig fontConf;
     ImFontConfig fontConfP;
@@ -6920,33 +6605,6 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     //fontConf.RasterizerMultiply=1.5;
     //fontConfP.RasterizerMultiply=1.5;
 
-    range.AddRanges(upTo800);
-    if (settings.loadJapanese || localeRequiresJapanese) {
-      range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesJapanese());
-    }
-    if (settings.loadChinese || localeRequiresChinese) {
-      range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesChineseSimplifiedCommon());
-    }
-    if (settings.loadChineseTraditional || localeRequiresChineseTrad) {
-      range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
-    }
-    if (settings.loadKorean || localeRequiresKorean) {
-      range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesKorean());
-    }
-    if (!localeExtraRanges.empty()) {
-      range.AddRanges(localeExtraRanges.data());
-    }
-    // I'm terribly sorry
-    range.UsedChars[0x80>>5]=0;
-
-    range.BuildRanges(&outRange);
-    if (fontRange!=NULL) delete[] fontRange;
-    fontRange=new ImWchar[outRange.size()];
-    int index=0;
-    for (ImWchar& i: outRange) {
-      fontRange[index++]=i;
-    }
-
     if (settings.mainFont<0 || settings.mainFont>6) settings.mainFont=0;
     if (settings.headFont<0 || settings.headFont>6) settings.headFont=0;
     if (settings.patFont<0 || settings.patFont>6) settings.patFont=0;
@@ -6971,21 +6629,21 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     fc1.OversampleV=1;
 
     if (settings.mainFont==6) { // custom font
-      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.mainFontPath.c_str(),MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf,fontRange))==NULL) {
+      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.mainFontPath.c_str(),MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf))==NULL) {
         logW("could not load UI font! reverting to default font");
         settings.mainFont=GUI_MAIN_FONT_DEFAULT;
-        if ((mainFont=addFontZlib(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf,fontRange))==NULL) {
+        if ((mainFont=addFontZlib(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf))==NULL) {
           logE("could not load UI font! falling back to Proggy Clean.");
           mainFont=ImGui::GetIO().Fonts->AddFontDefault();
         }
       }
     } else if (settings.mainFont==5) { // system font
-      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_1,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf,fontRange))==NULL) {
-        if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_2,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf,fontRange))==NULL) {
-          if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_3,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf,fontRange))==NULL) {
+      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_1,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf))==NULL) {
+        if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_2,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf))==NULL) {
+          if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_3,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf))==NULL) {
             logW("could not load UI font! reverting to default font");
             settings.mainFont=GUI_MAIN_FONT_DEFAULT;
-            if ((mainFont=addFontZlib(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf,fontRange))==NULL) {
+            if ((mainFont=addFontZlib(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf))==NULL) {
               logE("could not load UI font! falling back to Proggy Clean.");
               mainFont=ImGui::GetIO().Fonts->AddFontDefault();
             }
@@ -6993,26 +6651,18 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
         }
       }
     } else {
-      if ((mainFont=addFontZlib(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf,fontRange))==NULL) {
+      if ((mainFont=addFontZlib(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf))==NULL) {
         logE("could not load UI font! falling back to Proggy Clean.");
         mainFont=ImGui::GetIO().Fonts->AddFontDefault();
       }
     }
 
     // four fallback fonts
-    if (settings.loadJapanese ||
-        settings.loadChinese ||
-        settings.loadChineseTraditional ||
-        settings.loadKorean ||
-        localeRequiresJapanese ||
-        localeRequiresChinese ||
-        localeRequiresChineseTrad ||
-        localeRequiresKorean ||
-        settings.loadFallback) {
-      mainFont=addFontZlib(font_plexSans_compressed_data,font_plexSans_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
-      mainFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
-      mainFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
-      mainFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
+    if (settings.loadFallback) {
+      mainFont=addFontZlib(font_plexSans_compressed_data,font_plexSans_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1);
+      mainFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1);
+      mainFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1);
+      mainFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1);
     }
 
     ImFontConfig fc;
@@ -7021,13 +6671,11 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     fc.OversampleV=1;
     fc.PixelSnapH=true;
     fc.GlyphMinAdvanceX=e->getConfInt("iconSize",16)*dpiScale;
-    static const ImWchar fontRangeIcon[]={ICON_MIN_FA,ICON_MAX_FA,0};
-    if ((iconFont=addFontZlib(iconFont_compressed_data,iconFont_compressed_size,MAX(1,e->getConfInt("iconSize",16)*dpiScale),&fc,fontRangeIcon))==NULL) {
+    if ((iconFont=addFontZlib(iconFont_compressed_data,iconFont_compressed_size,MAX(1,e->getConfInt("iconSize",16)*dpiScale),&fc))==NULL) {
       logE("could not load icon font!");
     }
 
-    static const ImWchar fontRangeFurIcon[]={ICON_MIN_FUR,ICON_MAX_FUR,0};
-    if ((furIconFont=addFontZlib(furIcons_compressed_data,furIcons_compressed_size,MAX(1,e->getConfInt("iconSize",16)*dpiScale),&fc,fontRangeFurIcon))==NULL) {
+    if ((furIconFont=addFontZlib(furIcons_compressed_data,furIcons_compressed_size,MAX(1,e->getConfInt("iconSize",16)*dpiScale),&fc))==NULL) {
       logE("could not load Furnace icons font!");
     }
 
@@ -7036,21 +6684,21 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
       patFont=mainFont;
     } else {
       if (settings.patFont==6) { // custom font
-        if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.patFontPath.c_str(),MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP,upTo800))==NULL) {
+        if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.patFontPath.c_str(),MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP))==NULL) {
           logW("could not load pattern font! reverting to default font");
           settings.patFont=GUI_PAT_FONT_DEFAULT;
-          if ((patFont=addFontZlib(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP,upTo800))==NULL) {
+          if ((patFont=addFontZlib(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP))==NULL) {
             logE("could not load pattern font! falling back to Proggy Clean.");
             patFont=ImGui::GetIO().Fonts->AddFontDefault();
           }
         }
       } else if (settings.patFont==5) { // system font
-        if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_1,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP,upTo800))==NULL) {
-          if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_2,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP,upTo800))==NULL) {
-            if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_3,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP,upTo800))==NULL) {
+        if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_1,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP))==NULL) {
+          if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_2,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP))==NULL) {
+            if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_3,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP))==NULL) {
               logW("could not load pattern font! reverting to default font");
               settings.patFont=GUI_PAT_FONT_DEFAULT;
-              if ((patFont=addFontZlib(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP,upTo800))==NULL) {
+              if ((patFont=addFontZlib(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP))==NULL) {
                 logE("could not load pattern font! falling back to Proggy Clean.");
                 patFont=ImGui::GetIO().Fonts->AddFontDefault();
               }
@@ -7058,7 +6706,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
           }
         }
       } else {
-        if ((patFont=addFontZlib(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP,upTo800))==NULL) {
+        if ((patFont=addFontZlib(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP))==NULL) {
           logE("could not load pattern font!");
           patFont=ImGui::GetIO().Fonts->AddFontDefault();
         }
@@ -7066,58 +6714,28 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     }
 
     // four fallback fonts
-    if (settings.loadFallbackPat && (settings.loadJapanese ||
-        settings.loadChinese ||
-        settings.loadChineseTraditional ||
-        settings.loadKorean ||
+    if (settings.loadFallbackPat && (
         localeRequiresJapanese ||
         localeRequiresChinese ||
         localeRequiresChineseTrad ||
         localeRequiresKorean)) {
-      patFont=addFontZlib(font_plexMono_compressed_data,font_plexMono_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1,fontRange);
-      patFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1,fontRange);
-      patFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1,fontRange);
-      patFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1,fontRange);
+      patFont=addFontZlib(font_plexMono_compressed_data,font_plexMono_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1);
+      patFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1);
+      patFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1);
+      patFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1);
     }
 
-    // 0x39B = Λ
-    // Հայերեն
-    // 한국어
-    // Русский
-    // č
-    // ń
-    // ไทย
-    static const ImWchar bigFontRange[]={0x20,0xFF,0x39b,0x39b,0x10d,0x10d,0x144,0x144,0x420,0x420,0x423,0x423,0x430,0x430,0x438,0x438,0x439,0x439,0x43a,0x43a,0x43d,0x43d,0x440,0x440,0x441,0x441,0x443,0x443,0x44c,0x44c,0x457,0x457,0x540,0x540,0x561,0x561,0x565,0x565,0x575,0x575,0x576,0x576,0x580,0x580,0xe17,0xe17,0xe22,0xe22,0xe44,0xe44,0x65e5,0x65e5,0x672c,0x672c,0x8a9e,0x8a9e,0xad6d,0xad6d,0xc5b4,0xc5b4,0xd55c,0xd55c,0};
-
-    ImFontGlyphRangesBuilder bigFontRangeB;
-    ImVector<ImWchar> outRangeB;
-
-    bigFontRangeB.AddRanges(bigFontRange);
-    if (!localeExtraRanges.empty()) {
-      bigFontRangeB.AddRanges(localeExtraRanges.data());
-    }
-    // I'm terribly sorry
-    bigFontRangeB.UsedChars[0x80>>5]=0;
-
-    bigFontRangeB.BuildRanges(&outRangeB);
-    if (fontRangeB!=NULL) delete[] fontRangeB;
-    fontRangeB=new ImWchar[outRangeB.size()];
-    index=0;
-    for (ImWchar& i: outRangeB) {
-      fontRangeB[index++]=i;
-    }
-
-    if ((bigFont=addFontZlib(font_plexSans_compressed_data,font_plexSans_compressed_size,MAX(1,40*dpiScale),&fontConfB,fontRangeB))==NULL) {
+    if ((bigFont=addFontZlib(font_plexSans_compressed_data,font_plexSans_compressed_size,MAX(1,40*dpiScale),&fontConfB))==NULL) {
       logE("could not load big UI font!");
     }
     fontConfB.MergeMode=true;
-    if ((bigFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,40*dpiScale),&fontConfB,fontRangeB))==NULL) {
+    if ((bigFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,40*dpiScale),&fontConfB))==NULL) {
       logE("could not load big UI font (japanese)!");
     }
-    if ((bigFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,40*dpiScale),&fontConfB,fontRangeB))==NULL) {
+    if ((bigFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,40*dpiScale),&fontConfB))==NULL) {
       logE("could not load big UI font (korean)!");
     }
-    if ((bigFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,40*dpiScale),&fontConfB,fontRangeB))==NULL) {
+    if ((bigFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,40*dpiScale),&fontConfB))==NULL) {
       logE("could not load big UI font (fallback)!");
     }
 
@@ -7126,21 +6744,21 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
       headFont=mainFont;
     } else {
       if (settings.headFont==6) { // custom font
-        if ((headFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.headFontPath.c_str(),MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH,upTo800))==NULL) {
+        if ((headFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.headFontPath.c_str(),MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH))==NULL) {
           logW("could not load header font! reverting to default font");
           settings.headFont=0;
-          if ((headFont=addFontZlib(builtinFont[settings.headFont],builtinFontLen[settings.headFont],MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH,upTo800))==NULL) {
+          if ((headFont=addFontZlib(builtinFont[settings.headFont],builtinFontLen[settings.headFont],MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH))==NULL) {
             logE("could not load header font! falling back to IBM Plex Sans.");
             headFont=ImGui::GetIO().Fonts->AddFontDefault();
           }
         }
       } else if (settings.headFont==5) { // system font
-        if ((headFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_HEAD_FONT_PATH_1,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH,upTo800))==NULL) {
-          if ((headFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_HEAD_FONT_PATH_2,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH,upTo800))==NULL) {
-            if ((headFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_HEAD_FONT_PATH_3,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH,upTo800))==NULL) {
+        if ((headFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_HEAD_FONT_PATH_1,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH))==NULL) {
+          if ((headFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_HEAD_FONT_PATH_2,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH))==NULL) {
+            if ((headFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_HEAD_FONT_PATH_3,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH))==NULL) {
               logW("could not load header font! reverting to default font");
               settings.headFont=0;
-              if ((headFont=addFontZlib(builtinFont[settings.headFont],builtinFontLen[settings.headFont],MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH,upTo800))==NULL) {
+              if ((headFont=addFontZlib(builtinFont[settings.headFont],builtinFontLen[settings.headFont],MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH))==NULL) {
                 logE("could not load header font! falling back to IBM Plex Sans.");
                 headFont=ImGui::GetIO().Fonts->AddFontDefault();
               }
@@ -7148,7 +6766,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
           }
         }
       } else {
-        if ((headFont=addFontZlib(builtinFont[settings.headFont],builtinFontLen[settings.headFont],MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH,upTo800))==NULL) {
+        if ((headFont=addFontZlib(builtinFont[settings.headFont],builtinFontLen[settings.headFont],MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH))==NULL) {
           logE("could not load header font!");
           headFont=ImGui::GetIO().Fonts->AddFontDefault();
         }
@@ -7157,7 +6775,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
 
     mainFont->FallbackChar='?';
     mainFont->EllipsisChar='.';
-    mainFont->EllipsisCharCount=3;
+    //mainFont->EllipsisCharCount=3;
   } else if (updateFonts) {
     // safe mode
     mainFont=ImGui::GetIO().Fonts->AddFontDefault();
@@ -7167,33 +6785,32 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
 
     mainFont->FallbackChar='?';
     mainFont->EllipsisChar='.';
-    mainFont->EllipsisCharCount=3;
+    //mainFont->EllipsisCharCount=3;
   }
 
-
-    ImGuiFileDialog::Instance()->okButtonString=_("OK");
-    ImGuiFileDialog::Instance()->cancelButtonString=_("Cancel");
-    ImGuiFileDialog::Instance()->searchString=_("Search");
-    ImGuiFileDialog::Instance()->dirEntryString=_("[Dir]");
-    ImGuiFileDialog::Instance()->linkEntryString=_("[Link]");
-    ImGuiFileDialog::Instance()->fileEntryString=_("[File]");
-    ImGuiFileDialog::Instance()->fileNameString=_("Name:");
-    ImGuiFileDialog::Instance()->dirNameString=_("Path:");
-    ImGuiFileDialog::Instance()->buttonResetSearchString=_("Reset search");
-    ImGuiFileDialog::Instance()->buttonDriveString=_("Drives");
-    ImGuiFileDialog::Instance()->buttonEditPathString=_("Edit path\nYou can also right click on path buttons");
-    ImGuiFileDialog::Instance()->buttonResetPathString=_("Go to home directory");
-    ImGuiFileDialog::Instance()->buttonParentDirString=_("Go to parent directory");
-    ImGuiFileDialog::Instance()->buttonCreateDirString=_("Create Directory");
-    ImGuiFileDialog::Instance()->tableHeaderFileNameString=_("File name");
-    ImGuiFileDialog::Instance()->tableHeaderFileTypeString=_("Type");
-    ImGuiFileDialog::Instance()->tableHeaderFileSizeString=_("Size");
-    ImGuiFileDialog::Instance()->tableHeaderFileDateString=_("Date");
-    ImGuiFileDialog::Instance()->OverWriteDialogTitleString=_("Warning");
-    ImGuiFileDialog::Instance()->OverWriteDialogMessageString=_("The file you selected already exists! Would you like to overwrite it?");
-    ImGuiFileDialog::Instance()->OverWriteDialogConfirmButtonString=_("Yes");
-    ImGuiFileDialog::Instance()->OverWriteDialogCancelButtonString=_("No");
-    ImGuiFileDialog::Instance()->DateTimeFormat=_("%Y/%m/%d %H:%M");
+  ImGuiFileDialog::Instance()->okButtonString=_("OK");
+  ImGuiFileDialog::Instance()->cancelButtonString=_("Cancel");
+  ImGuiFileDialog::Instance()->searchString=_("Search");
+  ImGuiFileDialog::Instance()->dirEntryString=_("[Dir]");
+  ImGuiFileDialog::Instance()->linkEntryString=_("[Link]");
+  ImGuiFileDialog::Instance()->fileEntryString=_("[File]");
+  ImGuiFileDialog::Instance()->fileNameString=_("Name:");
+  ImGuiFileDialog::Instance()->dirNameString=_("Path:");
+  ImGuiFileDialog::Instance()->buttonResetSearchString=_("Reset search");
+  ImGuiFileDialog::Instance()->buttonDriveString=_("Drives");
+  ImGuiFileDialog::Instance()->buttonEditPathString=_("Edit path\nYou can also right click on path buttons");
+  ImGuiFileDialog::Instance()->buttonResetPathString=_("Go to home directory");
+  ImGuiFileDialog::Instance()->buttonParentDirString=_("Go to parent directory");
+  ImGuiFileDialog::Instance()->buttonCreateDirString=_("Create Directory");
+  ImGuiFileDialog::Instance()->tableHeaderFileNameString=_("File name");
+  ImGuiFileDialog::Instance()->tableHeaderFileTypeString=_("Type");
+  ImGuiFileDialog::Instance()->tableHeaderFileSizeString=_("Size");
+  ImGuiFileDialog::Instance()->tableHeaderFileDateString=_("Date");
+  ImGuiFileDialog::Instance()->OverWriteDialogTitleString=_("Warning");
+  ImGuiFileDialog::Instance()->OverWriteDialogMessageString=_("The file you selected already exists! Would you like to overwrite it?");
+  ImGuiFileDialog::Instance()->OverWriteDialogConfirmButtonString=_("Yes");
+  ImGuiFileDialog::Instance()->OverWriteDialogCancelButtonString=_("No");
+  ImGuiFileDialog::Instance()->DateTimeFormat=_("%Y/%m/%d %H:%M");
 
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeDir,"",uiColors[GUI_COLOR_FILE_DIR],ICON_FA_FOLDER_O);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeFile,"",uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_FILE_O);

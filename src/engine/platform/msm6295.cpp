@@ -385,7 +385,7 @@ size_t DivPlatformMSM6295::getSampleMemUsage(int index) {
 
 bool DivPlatformMSM6295::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -395,12 +395,12 @@ const DivMemoryComposition* DivPlatformMSM6295::getMemCompo(int index) {
 }
 
 void DivPlatformMSM6295::renderSamples(int sysID) {
-  unsigned int sampleOffVOX[256];
+  unsigned int* sampleOffVOX=new unsigned int[32768];
 
   memset(adpcmMem,0,16777216);
-  memset(sampleOffVOX,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
-  for (int i=0; i<256; i++) {
+  memset(sampleOffVOX,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
+  for (int i=0; i<32768; i++) {
     bankedPhrase[i].bank=0;
     bankedPhrase[i].phrase=0;
   }
@@ -412,10 +412,18 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
 
   // sample data
   size_t memPos=128*8;
+  int sampleCount=parent->song.sampleLen;
   if (isBanked) {
+    if (sampleCount>8191) {
+      // mark the rest as unavailable
+      for (int i=8191; i<sampleCount; i++) {
+        sampleLoaded[i]=false;
+      }
+      sampleCount=8191;
+    }
     int bankInd=0;
     int phraseInd=0;
-    for (int i=0; i<parent->song.sampleLen; i++) {
+    for (int i=0; i<sampleCount; i++) {
       DivSample* s=parent->song.sample[i];
       if (!s->renderOn[0][sysID]) {
         sampleOffVOX[i]=0;
@@ -455,7 +463,7 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
     adpcmMemLen=memPos+256;
 
     // phrase book
-    for (int i=0; i<parent->song.sampleLen; i++) {
+    for (int i=0; i<sampleCount; i++) {
       int endPos=sampleOffVOX[i]+bankedPhrase[i].length;
       for (int b=0; b<4; b++) {
         unsigned int bankedAddr=((unsigned int)bankedPhrase[i].bank<<16)+(b<<8)+(bankedPhrase[i].phrase*8);
@@ -468,8 +476,13 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
       }
     }
   } else {
-    int sampleCount=parent->song.sampleLen;
-    if (sampleCount>127) sampleCount=127;
+    if (sampleCount>127) {
+      // mark the rest as unavailable
+      for (int i=127; i<sampleCount; i++) {
+        sampleLoaded[i]=false;
+      }
+      sampleCount=127;
+    }
     for (int i=0; i<sampleCount; i++) {
       DivSample* s=parent->song.sample[i];
       if (!s->renderOn[0][sysID]) {
@@ -510,6 +523,8 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
 
   memCompo.capacity=getSampleMemCapacity(0);
   memCompo.used=adpcmMemLen;
+
+  delete[] sampleOffVOX;
 }
 
 void DivPlatformMSM6295::setFlags(const DivConfig& flags) {
@@ -600,5 +615,16 @@ void DivPlatformMSM6295::quit() {
   delete[] adpcmMem;
 }
 
+// initialization of important arrays
+DivPlatformMSM6295::DivPlatformMSM6295():
+  DivDispatch(),
+  vgsound_emu_mem_intf(),
+  msm(*this) {
+  bankedPhrase=new BankedPhrase[32768];
+  sampleLoaded=new bool[32768];
+}
+
 DivPlatformMSM6295::~DivPlatformMSM6295() {
+  delete[] bankedPhrase;
+  delete[] sampleLoaded;
 }

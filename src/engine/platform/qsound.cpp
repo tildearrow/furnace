@@ -747,7 +747,7 @@ size_t DivPlatformQSound::getSampleMemUsage(int index) {
 
 bool DivPlatformQSound::isSampleLoaded(int index, int sample) {
   if (index<0 || index>1) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   if (index==1) return sampleLoadedBS[sample];
   return sampleLoaded[sample];
 }
@@ -763,8 +763,10 @@ const DivMemoryComposition* DivPlatformQSound::getMemCompo(int index) {
 
 void DivPlatformQSound::renderSamples(int sysID) {
   memset(sampleMem,0,getSampleMemCapacity());
-  memset(sampleLoaded,0,256*sizeof(bool));
-  memset(sampleLoadedBS,0,256*sizeof(bool));
+  memset(offPCM,0,32768*sizeof(unsigned int));
+  memset(offBS,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
+  memset(sampleLoadedBS,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="Sample ROM";
@@ -879,4 +881,19 @@ void DivPlatformQSound::quit() {
   for (int i=0; i<19; i++) {
     delete oscBuf[i];
   }
+}
+
+// initialization of important arrays
+DivPlatformQSound::DivPlatformQSound() {
+  offPCM=new unsigned int[32768];
+  offBS=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+  sampleLoadedBS=new bool[32768];
+}
+
+DivPlatformQSound::~DivPlatformQSound() {
+  delete[] offPCM;
+  delete[] offBS;
+  delete[] sampleLoaded;
+  delete[] sampleLoadedBS;
 }
