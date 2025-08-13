@@ -6516,7 +6516,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     // prepare
 #ifdef HAVE_FREETYPE
     if (settings.fontBackend==1) {
-      ImGui::GetIO().Fonts->FontLoader=ImGuiFreeType::GetFontLoader();
+      ImGui::GetIO().Fonts->SetFontLoader(ImGuiFreeType::GetFontLoader());
       ImGui::GetIO().Fonts->FontLoaderFlags&=~(
         ImGuiFreeTypeLoaderFlags_NoHinting|
         ImGuiFreeTypeLoaderFlags_NoAutoHint|
@@ -6558,7 +6558,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
           break;
       }
     } else {
-      ImGui::GetIO().Fonts->FontLoader=ImFontAtlasGetFontLoaderForStbTruetype();
+      ImGui::GetIO().Fonts->SetFontLoader(ImFontAtlasGetFontLoaderForStbTruetype());
     }
 #endif
 
