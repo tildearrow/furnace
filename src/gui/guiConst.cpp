@@ -640,6 +640,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_COMPAT_FLAGS", _N("Compatibility Flags"), 0),
   D("WINDOW_PIANO", _N("Piano"), 0),
   D("WINDOW_NOTES", _N("Song Comments"), 0),
+  D("WINDOW_TUNER", _N("Tuner"), 0),
   D("WINDOW_CHANNELS", _N("Channels"), 0),
   D("WINDOW_PAT_MANAGER", _N("Pattern Manager"), 0),
   D("WINDOW_SYS_MANAGER", _N("Chip Manager"), 0),
