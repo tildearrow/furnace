@@ -1233,7 +1233,9 @@ void FurnaceGUI::drawPattern() {
         } else {
           ImGui::PushStyleVar(ImGuiStyleVar_Alpha,ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha);
         }
+        ImGui::PushID("prevPatterns");
         for (int i=0; i<dummyRows-1; i++) {
+          ImGui::PushID(i);
           patternRow(viewRow,e->isPlaying(),lineHeight,chans,viewOrder,patCache,orderLock);
           if (++viewRow>=e->curSubSong->patLen) {
             viewRow=0;
@@ -1242,7 +1244,9 @@ void FurnaceGUI::drawPattern() {
               patCache[j]=e->curPat[j].getPattern(e->curOrders->ord[j][viewOrder],false);
             }
           }
+          ImGui::PopID();
         }
+        ImGui::PopID();
         if (orderLock) {
           ImGui::EndDisabled();
         } else {
@@ -1273,7 +1277,9 @@ void FurnaceGUI::drawPattern() {
         } else {
           ImGui::PushStyleVar(ImGuiStyleVar_Alpha,ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha);
         }
+        ImGui::PushID("nextPatterns");
         for (int i=0; i<=dummyRows; i++) {
+          ImGui::PushID(i);
           patternRow(viewRow,e->isPlaying(),lineHeight,chans,viewOrder,patCache,orderLock);
           if (++viewRow>=e->curSubSong->patLen) {
             viewRow=0;
@@ -1282,7 +1288,9 @@ void FurnaceGUI::drawPattern() {
               patCache[j]=e->curPat[j].getPattern(e->curOrders->ord[j][viewOrder],false);
             }
           }
+          ImGui::PopID();
         }
+        ImGui::PopID();
         if (orderLock) {
           ImGui::EndDisabled();
         } else {
