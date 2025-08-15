@@ -1015,6 +1015,11 @@ static void ImGui_ImplSDL2_GetWindowSizeAndFramebufferScale(SDL_Window* window, 
     // tildearrow: TODO: good idea?
     if (out_framebuffer_scale != nullptr && w > 0 && h > 0)
         *out_framebuffer_scale = (w > 0 && h > 0) ? ImVec2((float)display_w / w, (float)display_h / h) : ImVec2(1.0f, 1.0f);
+
+    *out_w=w;
+    *out_h=h;
+    *out_display_w=display_w;
+    *out_display_h=display_h;
 }
 
 void ImGui_ImplSDL2_NewFrame()
@@ -1029,7 +1034,6 @@ void ImGui_ImplSDL2_NewFrame()
 
     // Setup main viewport size (every frame to accommodate for window resizing)
     ImGui_ImplSDL2_GetWindowSizeAndFramebufferScale(bd->Window, bd->Renderer, &io.DisplaySize, &io.DisplayFramebufferScale, &w, &h, &display_w, &display_h);
-
 
     // TODO: is this before, or after?
     // Update monitors
@@ -1228,11 +1232,8 @@ static void ImGui_ImplSDL2_SetWindowSize(ImGuiViewport* viewport, ImVec2 size)
 
 static ImVec2 ImGui_ImplSDL2_GetWindowFramebufferScale(ImGuiViewport* viewport)
 {
-    // FIXME: SDL_Renderer does not support multi-viewport.
-    ImGui_ImplSDL2_ViewportData* vd = (ImGui_ImplSDL2_ViewportData*)viewport->PlatformUserData;
-    ImVec2 framebuffer_scale;
-    ImGui_ImplSDL2_GetWindowSizeAndFramebufferScale(vd->Window, nullptr, nullptr, &framebuffer_scale, NULL, NULL, NULL, NULL);
-    return framebuffer_scale;
+    // tildearrow: not here please.
+    return ImVec2(1.0f,1.0f);
 }
 
 static void ImGui_ImplSDL2_SetWindowTitle(ImGuiViewport* viewport, const char* title)

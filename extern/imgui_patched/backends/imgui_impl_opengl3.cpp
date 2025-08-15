@@ -138,7 +138,7 @@
 #pragma clang diagnostic ignored "-Wsign-conversion"        // warning: implicit conversion changes signedness
 #pragma clang diagnostic ignored "-Wunused-macros"          // warning: macro is not used
 #pragma clang diagnostic ignored "-Wnonportable-system-include-path"
-//#pragma clang diagnostic ignored "-Wcast-function-type"     // warning: cast between incompatible function types (for loader)
+#pragma clang diagnostic ignored "-Wcast-function-type"     // warning: cast between incompatible function types (for loader)
 #endif
 #if defined(__GNUC__)
 #pragma GCC diagnostic push

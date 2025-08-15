@@ -109,9 +109,9 @@ bool ImGui_ImplMetal_Init(MTL::Device* device)
     return ImGui_ImplMetal_Init((__bridge id<MTLDevice>)(device));
 }
 
-bool ImGui_ImplMetal_NewFrame(MTL::RenderPassDescriptor* renderPassDescriptor)
+void ImGui_ImplMetal_NewFrame(MTL::RenderPassDescriptor* renderPassDescriptor)
 {
-    return ImGui_ImplMetal_NewFrame((__bridge MTLRenderPassDescriptor*)(renderPassDescriptor));
+    ImGui_ImplMetal_NewFrame((__bridge MTLRenderPassDescriptor*)(renderPassDescriptor));
 }
 
 void ImGui_ImplMetal_RenderDrawData(ImDrawData* draw_data,
@@ -173,6 +173,7 @@ void ImGui_ImplMetal_NewFrame(MTLRenderPassDescriptor* renderPassDescriptor)
 {
     ImGui_ImplMetal_Data* bd = ImGui_ImplMetal_GetBackendData();
     IM_ASSERT(bd != nil && "Context or backend not initialized! Did you call ImGui_ImplMetal_Init()?");
+    // TODO: enable IMGUI_IMPL_METAL_CPP and get rid of this hack?
     IM_ASSERT(bd->SharedMetalContext != nil && "No Metal context. Did you call ImGui_ImplMetal_Init() ?");
     if (bd->SharedMetalContext.framebufferDescriptor != nil) {
       [bd->SharedMetalContext.framebufferDescriptor release];
@@ -254,7 +255,6 @@ void ImGui_ImplMetal_RenderDrawData(ImDrawData* draw_data, id<MTLCommandBuffer> 
     id<MTLRenderPipelineState> renderPipelineState = ctx.renderPipelineStateCache[ctx.framebufferDescriptor];
     if (renderPipelineState == nil)
     {
-        printf("RPS NULL....\n");
         // No luck; make a new render pipeline state
         renderPipelineState = [ctx renderPipelineStateForFramebufferDescriptor:ctx.framebufferDescriptor device:commandBuffer.device];
 
