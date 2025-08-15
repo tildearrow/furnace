@@ -3953,8 +3953,10 @@ void FurnaceGUI::drawSettings() {
             UI_COLOR_CONFIG(GUI_COLOR_TAB,_("Tab"));
             UI_COLOR_CONFIG(GUI_COLOR_TAB_HOVER,_("Tab (hovered)"));
             UI_COLOR_CONFIG(GUI_COLOR_TAB_ACTIVE,_("Tab (active)"));
-            UI_COLOR_CONFIG(GUI_COLOR_TAB_UNFOCUSED,_("Tab (unfocused)"));
-            UI_COLOR_CONFIG(GUI_COLOR_TAB_UNFOCUSED_ACTIVE,_("Tab (unfocused and active)"));
+            UI_COLOR_CONFIG(GUI_COLOR_TAB_SELECTED_OVERLINE,_("Tab (active overline)"));
+            UI_COLOR_CONFIG(GUI_COLOR_TAB_UNFOCUSED,_("Tab (dimmed)"));
+            UI_COLOR_CONFIG(GUI_COLOR_TAB_UNFOCUSED_ACTIVE,_("Tab (dimmed and active)"));
+            UI_COLOR_CONFIG(GUI_COLOR_TAB_DIMMED_SELECTED_OVERLINE,_("Tab (dimmed and active overline)"));
             UI_COLOR_CONFIG(GUI_COLOR_IMGUI_HEADER,_("ImGui header"));
             UI_COLOR_CONFIG(GUI_COLOR_IMGUI_HEADER_HOVER,_("ImGui header (hovered)"));
             UI_COLOR_CONFIG(GUI_COLOR_IMGUI_HEADER_ACTIVE,_("ImGui header (active)"));
@@ -3968,7 +3970,9 @@ void FurnaceGUI::drawSettings() {
             UI_COLOR_CONFIG(GUI_COLOR_SLIDER_GRAB_ACTIVE,_("Slider grab (active)"));
             UI_COLOR_CONFIG(GUI_COLOR_TITLE_BACKGROUND_ACTIVE,_("Title background (active)"));
             UI_COLOR_CONFIG(GUI_COLOR_CHECK_MARK,_("Checkbox/radio button mark"));
+            UI_COLOR_CONFIG(GUI_COLOR_TEXT_LINK,_("Text link"));
             UI_COLOR_CONFIG(GUI_COLOR_TEXT_SELECTION,_("Text selection"));
+            UI_COLOR_CONFIG(GUI_COLOR_TREE_LINES,_("Tree lines"));
             UI_COLOR_CONFIG(GUI_COLOR_PLOT_LINES,_("Line plot"));
             UI_COLOR_CONFIG(GUI_COLOR_PLOT_LINES_HOVER,_("Line plot (hovered)"));
             UI_COLOR_CONFIG(GUI_COLOR_PLOT_HISTOGRAM,_("Histogram plot"));
@@ -4008,6 +4012,7 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_DRAG_DROP_TARGET,_("Drag and drop target"));
           UI_COLOR_CONFIG(GUI_COLOR_NAV_WIN_HIGHLIGHT,_("Window switcher (highlight)"));
           UI_COLOR_CONFIG(GUI_COLOR_NAV_WIN_BACKDROP,_("Window switcher backdrop"));
+          UI_COLOR_CONFIG(GUI_COLOR_INPUT_TEXT_CURSOR,_("Text input cursor"));
           ImGui::TreePop();
         }
         if (ImGui::TreeNode(_("Miscellaneous"))) {
@@ -6367,15 +6372,20 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   sty.Colors[ImGuiCol_Text]=uiColors[GUI_COLOR_TEXT];
   sty.Colors[ImGuiCol_TextDisabled]=uiColors[GUI_COLOR_TEXT_DISABLED];
 
+  // new stuff
+  sty.Colors[ImGuiCol_InputTextCursor]=uiColors[GUI_COLOR_INPUT_TEXT_CURSOR];
+
   if (settings.basicColors) {
     sty.Colors[ImGuiCol_Button]=primary;
     sty.Colors[ImGuiCol_ButtonHovered]=primaryHover;
     sty.Colors[ImGuiCol_ButtonActive]=primaryActive;
     sty.Colors[ImGuiCol_Tab]=primary;
     sty.Colors[ImGuiCol_TabHovered]=secondaryHover;
-    sty.Colors[ImGuiCol_TabActive]=secondarySemiActive;
-    sty.Colors[ImGuiCol_TabUnfocused]=primary;
-    sty.Colors[ImGuiCol_TabUnfocusedActive]=primaryHover;
+    sty.Colors[ImGuiCol_TabSelected]=secondarySemiActive;
+    sty.Colors[ImGuiCol_TabSelectedOverline]=secondaryActive;
+    sty.Colors[ImGuiCol_TabDimmed]=primary;
+    sty.Colors[ImGuiCol_TabDimmedSelected]=primaryHover;
+    sty.Colors[ImGuiCol_TabDimmedSelectedOverline]=primaryActive;
     sty.Colors[ImGuiCol_Header]=secondary;
     sty.Colors[ImGuiCol_HeaderHovered]=secondaryHover;
     sty.Colors[ImGuiCol_HeaderActive]=secondaryActive;
@@ -6389,7 +6399,9 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.Colors[ImGuiCol_SliderGrabActive]=primaryActive;
     sty.Colors[ImGuiCol_TitleBgActive]=primary;
     sty.Colors[ImGuiCol_CheckMark]=primaryActive;
+    sty.Colors[ImGuiCol_TextLink]=secondaryActive;
     sty.Colors[ImGuiCol_TextSelectedBg]=secondaryHoverActual;
+    sty.Colors[ImGuiCol_TreeLines]=uiColors[GUI_COLOR_BORDER];
     sty.Colors[ImGuiCol_PlotHistogram]=uiColors[GUI_COLOR_MACRO_OTHER];
     sty.Colors[ImGuiCol_PlotHistogramHovered]=uiColors[GUI_COLOR_MACRO_OTHER];
   } else {
@@ -6398,9 +6410,11 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.Colors[ImGuiCol_ButtonActive]=uiColors[GUI_COLOR_BUTTON_ACTIVE];
     sty.Colors[ImGuiCol_Tab]=uiColors[GUI_COLOR_TAB];
     sty.Colors[ImGuiCol_TabHovered]=uiColors[GUI_COLOR_TAB_HOVER];
-    sty.Colors[ImGuiCol_TabActive]=uiColors[GUI_COLOR_TAB_ACTIVE];
-    sty.Colors[ImGuiCol_TabUnfocused]=uiColors[GUI_COLOR_TAB_UNFOCUSED];
-    sty.Colors[ImGuiCol_TabUnfocusedActive]=uiColors[GUI_COLOR_TAB_UNFOCUSED_ACTIVE];
+    sty.Colors[ImGuiCol_TabSelected]=uiColors[GUI_COLOR_TAB_ACTIVE];
+    sty.Colors[ImGuiCol_TabSelectedOverline]=uiColors[GUI_COLOR_TAB_SELECTED_OVERLINE];
+    sty.Colors[ImGuiCol_TabDimmed]=uiColors[GUI_COLOR_TAB_UNFOCUSED];
+    sty.Colors[ImGuiCol_TabDimmedSelected]=uiColors[GUI_COLOR_TAB_UNFOCUSED_ACTIVE];
+    sty.Colors[ImGuiCol_TabDimmedSelectedOverline]=uiColors[GUI_COLOR_TAB_DIMMED_SELECTED_OVERLINE];
     sty.Colors[ImGuiCol_Header]=uiColors[GUI_COLOR_IMGUI_HEADER];
     sty.Colors[ImGuiCol_HeaderHovered]=uiColors[GUI_COLOR_IMGUI_HEADER_HOVER];
     sty.Colors[ImGuiCol_HeaderActive]=uiColors[GUI_COLOR_IMGUI_HEADER_ACTIVE];
@@ -6414,7 +6428,9 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.Colors[ImGuiCol_SliderGrabActive]=uiColors[GUI_COLOR_SLIDER_GRAB_ACTIVE];
     sty.Colors[ImGuiCol_TitleBgActive]=uiColors[GUI_COLOR_TITLE_BACKGROUND_ACTIVE];
     sty.Colors[ImGuiCol_CheckMark]=uiColors[GUI_COLOR_CHECK_MARK];
+    sty.Colors[ImGuiCol_TextLink]=uiColors[GUI_COLOR_TEXT_LINK];
     sty.Colors[ImGuiCol_TextSelectedBg]=uiColors[GUI_COLOR_TEXT_SELECTION];
+    sty.Colors[ImGuiCol_TreeLines]=uiColors[GUI_COLOR_TREE_LINES];
     sty.Colors[ImGuiCol_PlotLines]=uiColors[GUI_COLOR_PLOT_LINES];
     sty.Colors[ImGuiCol_PlotLinesHovered]=uiColors[GUI_COLOR_PLOT_LINES_HOVER];
     sty.Colors[ImGuiCol_PlotHistogram]=uiColors[GUI_COLOR_PLOT_HISTOGRAM];
