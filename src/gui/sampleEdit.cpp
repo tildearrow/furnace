@@ -1620,7 +1620,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
 
             int ij=0;
-            for (int i=0; i<availY; i++) {
+            if (availY>0) {
               for (int j=0; j<availX; j++) {
                 int scaledPos=samplePos+(j*sampleZoom);
                 if (sample->isLoopable() && (scaledPos>=sample->loopStart && scaledPos<=sample->loopEnd)) {
@@ -1629,12 +1629,15 @@ void FurnaceGUI::drawSampleEdit() {
                   data[ij++]=bgColor;
                 }
               }
-            }
-            if (availY>0) {
+              for (int i=1; i<availY; i++) {
+                memcpy(&data[ij],data,availX*sizeof(unsigned int));
+                ij+=availX;
+              }
               for (int i=availX*(availY>>1); i<availX*(1+(availY>>1)); i++) {
                 data[i]=centerLineColor;
               }
             }
+
             unsigned int xCoarse=samplePos;
             unsigned int xFine=0;
             unsigned int xAdvanceCoarse=sampleZoom;
