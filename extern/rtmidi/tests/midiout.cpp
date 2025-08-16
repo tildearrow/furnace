@@ -11,7 +11,7 @@
 #include "RtMidi.h"
 
 // Platform-dependent sleep routines.
-#if defined(WIN32)
+#if defined(_WIN32)
   #include <windows.h>
   #define SLEEP( milliseconds ) Sleep( (DWORD) milliseconds ) 
 #else // Unix variants
@@ -24,6 +24,8 @@
 // It returns false if there are no ports available.
 bool chooseMidiPort( RtMidiOut *rtmidi );
 
+RtMidi::Api chooseMidiApi();
+
 int main( void )
 {
   RtMidiOut *midiout = 0;
@@ -31,7 +33,7 @@ int main( void )
 
   // RtMidiOut constructor
   try {
-    midiout = new RtMidiOut();
+    midiout = new RtMidiOut(chooseMidiApi());
   }
   catch ( RtMidiError &error ) {
     error.printMessage();
@@ -143,4 +145,26 @@ bool chooseMidiPort( RtMidiOut *rtmidi )
   rtmidi->openPort( i );
 
   return true;
+}
+
+RtMidi::Api chooseMidiApi()
+{
+  std::vector< RtMidi::Api > apis;
+  RtMidi::getCompiledApi(apis);
+
+  if (apis.size() <= 1)
+    return RtMidi::Api::UNSPECIFIED;
+
+  std::cout << "\nAPIs\n  API #0: unspecified / default\n";
+  for (size_t n = 0; n < apis.size(); n++)
+    std::cout << "  API #" << apis[n] << ": " << RtMidi::getApiDisplayName(apis[n]) << "\n";
+
+  std::cout << "\nChoose an API number: ";
+  unsigned int i;
+  std::cin >> i;
+
+  std::string dummy;
+  std::getline(std::cin, dummy);  // used to clear out stdin
+
+  return static_cast<RtMidi::Api>(i);
 }

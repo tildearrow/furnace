@@ -1,7 +1,7 @@
 package rtmidi
 
 /*
-#cgo CXXFLAGS: -g
+#cgo CXXFLAGS: -g -std=c++11
 #cgo LDFLAGS: -g
 
 #cgo linux CXXFLAGS: -D__LINUX_ALSA__
@@ -39,17 +39,18 @@ const (
 	// APIUnspecified searches for a working compiled API.
 	APIUnspecified API = C.RTMIDI_API_UNSPECIFIED
 	// APIMacOSXCore uses Macintosh OS-X CoreMIDI API.
-	APIMacOSXCore = C.RTMIDI_API_MACOSX_CORE
+	APIMacOSXCore API = C.RTMIDI_API_MACOSX_CORE
 	// APILinuxALSA uses the Advanced Linux Sound Architecture API.
-	APILinuxALSA = C.RTMIDI_API_LINUX_ALSA
+	APILinuxALSA API = C.RTMIDI_API_LINUX_ALSA
 	// APIUnixJack uses the JACK Low-Latency MIDI Server API.
-	APIUnixJack = C.RTMIDI_API_UNIX_JACK
+	APIUnixJack API = C.RTMIDI_API_UNIX_JACK
 	// APIWindowsMM uses the Microsoft Multimedia MIDI API.
-	APIWindowsMM = C.RTMIDI_API_WINDOWS_MM
+	APIWindowsMM API = C.RTMIDI_API_WINDOWS_MM
 	// APIDummy is a compilable but non-functional API.
-	APIDummy = C.RTMIDI_API_RTMIDI_DUMMY
+	APIDummy API = C.RTMIDI_API_RTMIDI_DUMMY
 )
 
+// Format an API as a string
 func (api API) String() string {
 	switch api {
 	case APIUnspecified:
@@ -66,6 +67,11 @@ func (api API) String() string {
 		return "dummy"
 	}
 	return "?"
+}
+
+// GetVersion Return the current RtMidi version.
+func GetVersion() string {
+	return C.GoString(C.rtmidi_get_version())
 }
 
 // CompiledAPI determines the available compiled MIDI APIs.
@@ -121,6 +127,7 @@ type midi struct {
 	midi C.RtMidiPtr
 }
 
+// Open a MIDI input connection given by enumeration number.
 func (m *midi) OpenPort(port int, name string) error {
 	p := C.CString(name)
 	defer C.free(unsafe.Pointer(p))
@@ -131,6 +138,8 @@ func (m *midi) OpenPort(port int, name string) error {
 	return nil
 }
 
+// Create a virtual input port, with optional name, to allow software connections
+// (OS X, JACK and ALSA only).
 func (m *midi) OpenVirtualPort(name string) error {
 	p := C.CString(name)
 	defer C.free(unsafe.Pointer(p))
@@ -141,15 +150,31 @@ func (m *midi) OpenVirtualPort(name string) error {
 	return nil
 }
 
+// Return a string identifier for the specified MIDI input port number.
 func (m *midi) PortName(port int) (string, error) {
-	p := C.rtmidi_get_port_name(m.midi, C.uint(port))
+	bufLen := C.int(0)
+
+	C.rtmidi_get_port_name(m.midi, C.uint(port), nil, &bufLen)
 	if !m.midi.ok {
 		return "", errors.New(C.GoString(m.midi.msg))
 	}
-	defer C.free(unsafe.Pointer(p))
-	return C.GoString(p), nil
+
+	if bufLen < 1 {
+		return "", nil
+	}
+
+	bufOut := make([]byte, int(bufLen))
+	p := (*C.char)(unsafe.Pointer(&bufOut[0]))
+
+	C.rtmidi_get_port_name(m.midi, C.uint(port), p, &bufLen)
+	if !m.midi.ok {
+		return "", errors.New(C.GoString(m.midi.msg))
+	}
+
+	return string(bufOut[0 : bufLen-1]), nil
 }
 
+// Return the number of available MIDI input ports.
 func (m *midi) PortCount() (int, error) {
 	n := C.rtmidi_get_port_count(m.midi)
 	if !m.midi.ok {
@@ -158,6 +183,7 @@ func (m *midi) PortCount() (int, error) {
 	return int(n), nil
 }
 
+// Close an open MIDI connection.
 func (m *midi) Close() error {
 	C.rtmidi_close_port(C.RtMidiPtr(m.midi))
 	if !m.midi.ok {
@@ -177,7 +203,7 @@ type midiOut struct {
 	out C.RtMidiOutPtr
 }
 
-// NewMIDIInDefault opens a default MIDIIn port.
+// Open a default MIDIIn port.
 func NewMIDIInDefault() (MIDIIn, error) {
 	in := C.rtmidi_in_create_default()
 	if !in.ok {
@@ -187,8 +213,8 @@ func NewMIDIInDefault() (MIDIIn, error) {
 	return &midiIn{in: in, midi: midi{midi: C.RtMidiPtr(in)}}, nil
 }
 
-// NewMIDIIn opens a single MIDIIn port using the given API. One can provide a
-// custom port name and a desired queue size for the incomming MIDI messages.
+// Open a single MIDIIn port using the given API. One can provide a
+// custom port name and a desired queue size for the incoming MIDI messages.
 func NewMIDIIn(api API, name string, queueSize int) (MIDIIn, error) {
 	p := C.CString(name)
 	defer C.free(unsafe.Pointer(p))
@@ -200,6 +226,7 @@ func NewMIDIIn(api API, name string, queueSize int) (MIDIIn, error) {
 	return &midiIn{in: in, midi: midi{midi: C.RtMidiPtr(in)}}, nil
 }
 
+// Return the MIDI API specifier for the current instance of RtMidiIn.
 func (m *midiIn) API() (API, error) {
 	api := C.rtmidi_in_get_current_api(m.in)
 	if !m.in.ok {
@@ -208,6 +235,7 @@ func (m *midiIn) API() (API, error) {
 	return API(api), nil
 }
 
+// Close an open MIDI connection (if one exists).
 func (m *midiIn) Close() error {
 	unregisterMIDIIn(m)
 	if err := m.midi.Close(); err != nil {
@@ -217,6 +245,13 @@ func (m *midiIn) Close() error {
 	return nil
 }
 
+// Specify whether certain MIDI message types should be queued or ignored during input.
+//
+// By default, MIDI timing and active sensing messages are ignored
+// during message input because of their relative high data rates.
+// MIDI sysex messages are ignored by default as well.  Variable
+// values of "true" imply that the respective message type will be
+// ignored.
 func (m *midiIn) IgnoreTypes(midiSysex bool, midiTime bool, midiSense bool) error {
 	C.rtmidi_in_ignore_types(m.in, C._Bool(midiSysex), C._Bool(midiTime), C._Bool(midiSense))
 	if !m.in.ok {
@@ -265,6 +300,7 @@ func goMIDIInCallback(ts C.double, msg *C.uchar, msgsz C.size_t, arg unsafe.Poin
 	m.cb(m, C.GoBytes(unsafe.Pointer(msg), C.int(msgsz)), float64(ts))
 }
 
+// Set a callback function to be invoked for incoming MIDI messages.
 func (m *midiIn) SetCallback(cb func(MIDIIn, []byte, float64)) error {
 	k := registerMIDIIn(m)
 	m.cb = cb
@@ -275,6 +311,7 @@ func (m *midiIn) SetCallback(cb func(MIDIIn, []byte, float64)) error {
 	return nil
 }
 
+// Cancel use of the current callback function (if one exists).
 func (m *midiIn) CancelCallback() error {
 	unregisterMIDIIn(m)
 	C.rtmidi_in_cancel_callback(m.in)
@@ -284,6 +321,10 @@ func (m *midiIn) CancelCallback() error {
 	return nil
 }
 
+// Fill a byte buffer with the next available MIDI message in the input queue
+// and return the event delta-time in seconds.
+//
+// This function returns immediately whether a new message is available or not.
 func (m *midiIn) Message() ([]byte, float64, error) {
 	msg := make([]C.uchar, 64*1024, 64*1024)
 	sz := C.size_t(len(msg))
@@ -302,7 +343,7 @@ func (m *midiIn) Destroy() {
 	C.rtmidi_in_free(m.in)
 }
 
-// NewMIDIOutDefault opens a default MIDIOut port.
+// Open a default MIDIOut port.
 func NewMIDIOutDefault() (MIDIOut, error) {
 	out := C.rtmidi_out_create_default()
 	if !out.ok {
@@ -312,7 +353,7 @@ func NewMIDIOutDefault() (MIDIOut, error) {
 	return &midiOut{out: out, midi: midi{midi: C.RtMidiPtr(out)}}, nil
 }
 
-// NewMIDIOut opens a single MIDIIn port using the given API with the given port name.
+// Open a single MIDIIn port using the given API with the given port name.
 func NewMIDIOut(api API, name string) (MIDIOut, error) {
 	p := C.CString(name)
 	defer C.free(unsafe.Pointer(p))
@@ -324,6 +365,7 @@ func NewMIDIOut(api API, name string) (MIDIOut, error) {
 	return &midiOut{out: out, midi: midi{midi: C.RtMidiPtr(out)}}, nil
 }
 
+// Return the MIDI API specifier for the current instance of RtMidiOut.
 func (m *midiOut) API() (API, error) {
 	api := C.rtmidi_out_get_current_api(m.out)
 	if !m.out.ok {
@@ -332,6 +374,7 @@ func (m *midiOut) API() (API, error) {
 	return API(api), nil
 }
 
+// Close an open MIDI connection.
 func (m *midiOut) Close() error {
 	if err := m.midi.Close(); err != nil {
 		return err
@@ -340,6 +383,7 @@ func (m *midiOut) Close() error {
 	return nil
 }
 
+// Immediately send a single message out an open MIDI output port.
 func (m *midiOut) SendMessage(b []byte) error {
 	p := C.CBytes(b)
 	defer C.free(unsafe.Pointer(p))

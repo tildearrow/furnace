@@ -1,14 +1,15 @@
 # RtMidi
 
 ![Build Status](https://github.com/thestk/rtmidi/actions/workflows/ci.yml/badge.svg)
+[![Conan Center](https://shields.io/conan/v/rtmidi)](https://conan.io/center/rtmidi)
 
-A set of C++ classes that provide a common API for realtime MIDI input/output across Linux (ALSA & JACK), Macintosh OS X (CoreMIDI & JACK) and Windows (Multimedia).
+A set of C++ classes that provide a common API for realtime MIDI input/output across Linux (ALSA & JACK), Macintosh OS X (CoreMIDI & JACK), Windows (Multimedia Library & UWP), Web MIDI, iOS and Android.
 
-By Gary P. Scavone, 2003-2021.
+By Gary P. Scavone, 2003-2023.
 
 This distribution of RtMidi contains the following:
 
-- `doc`:      RtMidi documentation (also online at http://www.music.mcgill.ca/~gary/rtmidi/)
+- `doc`:      RtMidi documentation (also online at https://caml.music.mcgill.ca/~gary/rtmidi/)
 - `tests`:    example RtMidi programs
 
 On Unix systems, type `./configure` in the top level directory, then `make` in the `tests/` directory to compile the test programs.  In Windows, open the Visual C++ workspace file located in the `tests/` directory.
@@ -32,7 +33,7 @@ In some cases, for example to use RtMidi with GS Synth, it may be necessary for 
 
 ## Further reading
 
-For complete documentation on RtMidi, see the `doc` directory of the distribution or surf to http://www.music.mcgill.ca/~gary/rtmidi/.
+For complete documentation on RtMidi, see the `doc` directory of the distribution or surf to https://caml.music.mcgill.ca/~gary/rtmidi/.
 
 ## Legal and ethical
 

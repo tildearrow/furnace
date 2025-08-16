@@ -1,0 +1,64 @@
+/aclocal.m4
+/autom4te.cache
+/config
+/config.log
+/config.status
+/configure
+/libtool
+/rtmidi-config
+/rtmidi.pc
+/m4
+
+/Makefile
+/Makefile.in
+/doc/Makefile
+/doc/Makefile.in
+/tests/Makefile
+/tests/Makefile.in
+
+/doc/html
+/doc/doxygen-build.stamp
+/doc/doxygen/Doxyfile
+
+/build*/
+
+/.deps
+/.libs
+/tests/.deps
+/tests/.libs
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Go
+!/contrib/go/rtmidi/go.mod

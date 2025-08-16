@@ -6,10 +6,10 @@
     MIDI input/output subclasses RtMidiIn and RtMidiOut.
 
     RtMidi GitHub site: https://github.com/thestk/rtmidi
-    RtMidi WWW site: http://www.music.mcgill.ca/~gary/rtmidi/
+    RtMidi WWW site: https://caml.music.mcgill.ca/~gary/rtmidi/
 
     RtMidi: realtime MIDI i/o C++ classes
-    Copyright (c) 2003-2021 Gary P. Scavone
+    Copyright (c) 2003-2023 Gary P. Scavone
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation files
@@ -39,8 +39,10 @@
 
 #include "RtMidi.h"
 #include <sstream>
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
 
-#ifdef TARGET_OS_IPHONE
 #if (TARGET_OS_IPHONE == 1)
 
     #define AudioGetCurrentHostTime CAHostTimeBase::GetCurrentTime
@@ -67,11 +69,16 @@
   #define EndianS32_BtoN(n) n
 
 #endif
-#endif
 
 // Default for Windows is to add an identifier to the port names; this
 // flag can be defined (e.g. in your project file) to disable this behaviour.
 //#define RTMIDI_DO_NOT_ENSURE_UNIQUE_PORTNAMES
+
+// Default for Windows UWP is to enable a workaround to fix BLE-MIDI IN ports'
+// wrong timestamps that occur at least in Windows 10 21H2;
+// this flag can be defined (e.g. in your project file)
+// to disable this behavior.
+//#define RTMIDI_DO_NOT_ENABLE_WORKAROUND_UWP_WRONG_TIMESTAMPS
 
 // **************************************************************** //
 //
@@ -79,7 +86,7 @@
 //
 // **************************************************************** //
 
-#if !defined(__LINUX_ALSA__) && !defined(__UNIX_JACK__) && !defined(__MACOSX_CORE__) && !defined(__WINDOWS_MM__) && !defined(TARGET_IPHONE_OS) && !defined(__WEB_MIDI_API__)
+#if !defined(__LINUX_ALSA__) && !defined(__UNIX_JACK__) && !defined(__MACOSX_CORE__) && !defined(__WINDOWS_MM__) && !defined(__WINDOWS_UWP__) && !defined(TARGET_IPHONE_OS) && !defined(__WEB_MIDI_API__)  && !defined(__AMIDI__)
   #define __RTMIDI_DUMMY__
 #endif
 
@@ -256,6 +263,48 @@ class MidiOutWinMM: public MidiOutApi
 
 #endif
 
+#if defined(__WINDOWS_UWP__)
+
+class MidiInWinUWP : public MidiInApi
+{
+public:
+    MidiInWinUWP(const std::string& clientName, unsigned int queueSizeLimit);
+    ~MidiInWinUWP(void) override;
+    RtMidi::Api getCurrentApi(void) override { return RtMidi::WINDOWS_UWP; };
+    void openPort(unsigned int portNumber, const std::string& portName) override;
+    void openVirtualPort(const std::string& portName) override;
+    void closePort(void) override;
+    void setClientName(const std::string& clientName) override;
+    void setPortName(const std::string& portName) override;
+    unsigned int getPortCount(void) override;
+    std::string getPortName(unsigned int portNumber) override;
+    double getMessage(std::vector<unsigned char>* message) override;
+
+protected:
+    void initialize(const std::string& clientName) override;
+};
+
+class MidiOutWinUWP : public MidiOutApi
+{
+public:
+    MidiOutWinUWP(const std::string& clientName);
+    ~MidiOutWinUWP(void) override;
+    RtMidi::Api getCurrentApi(void) override { return RtMidi::WINDOWS_UWP; };
+    void openPort(unsigned int portNumber, const std::string& portName) override;
+    void openVirtualPort(const std::string& portName) override;
+    void closePort(void) override;
+    void setClientName(const std::string& clientName) override;
+    void setPortName(const std::string& portName) override;
+    unsigned int getPortCount(void) override;
+    std::string getPortName(unsigned int portNumber) override;
+    void sendMessage(const unsigned char* message, size_t size) override;
+
+protected:
+    void initialize(const std::string& clientName) override;
+};
+
+#endif
+
 #if defined(__WEB_MIDI_API__)
 
 class MidiInWeb : public MidiInApi
@@ -303,6 +352,67 @@ class MidiOutWeb: public MidiOutApi
 
  protected:
   void initialize( const std::string& clientName );
+};
+
+#endif
+
+#if defined(__AMIDI__)
+
+#define LOG_TAG "RtMidi"
+#include <amidi/AMidi.h>
+#include <android/log.h>
+#include <pthread.h>
+#include <atomic>
+#include <string>
+#include <vector>
+#include <jni.h>
+#include <unistd.h>
+
+class MidiInAndroid : public MidiInApi
+{
+ public:
+  MidiInAndroid(const std::string &/*clientName*/, unsigned int queueSizeLimit );
+  ~MidiInAndroid( void );
+  RtMidi::Api getCurrentApi( void ) { return RtMidi::ANDROID_AMIDI; };
+  void openPort( unsigned int portNumber, const std::string &portName );
+  void openVirtualPort( const std::string &portName );
+  void closePort( void );
+  void setClientName( const std::string &clientName );
+  void setPortName( const std::string &portName );
+  unsigned int getPortCount( void );
+  std::string getPortName( unsigned int portNumber );
+
+  void onMidiMessage( uint8_t* data, double domHishResTimeStamp );
+
+  void initialize( const std::string& clientName );
+  void connect();
+  AMidiDevice* receiveDevice = NULL;
+  AMidiOutputPort* midiOutputPort = NULL;
+  pthread_t readThread;
+  std::atomic<bool> reading = ATOMIC_VAR_INIT(false);
+  static void* pollMidi(void* context);
+  double lastTime;
+};
+
+class MidiOutAndroid: public MidiOutApi
+{
+ public:
+  MidiOutAndroid( const std::string &clientName );
+  ~MidiOutAndroid( void );
+  RtMidi::Api getCurrentApi( void ) { return RtMidi::ANDROID_AMIDI; };
+  void openPort( unsigned int portNumber, const std::string &portName );
+  void openVirtualPort( const std::string &portName );
+  void closePort( void );
+  void setClientName( const std::string &clientName );
+  void setPortName( const std::string &portName );
+  unsigned int getPortCount( void );
+  std::string getPortName( unsigned int portNumber );
+  void sendMessage( const unsigned char *message, size_t size );
+
+  void initialize( const std::string& clientName );
+  void connect();
+  AMidiDevice* sendDevice = NULL;
+  AMidiInputPort* midiInputPort = NULL;
 };
 
 #endif
@@ -380,8 +490,10 @@ const char* rtmidi_api_names[][2] = {
   { "alsa"        , "ALSA" },
   { "jack"        , "Jack" },
   { "winmm"       , "Windows MultiMedia" },
-  { "web"         , "Web MIDI API" },
   { "dummy"       , "Dummy" },
+  { "web"         , "Web MIDI API" },
+  { "winuwp"      , "Windows UWP" },
+  { "amidi"       , "Android MIDI API" },
 };
 const unsigned int rtmidi_num_api_names =
   sizeof(rtmidi_api_names)/sizeof(rtmidi_api_names[0]);
@@ -401,8 +513,17 @@ extern "C" const RtMidi::Api rtmidi_compiled_apis[] = {
 #if defined(__WINDOWS_MM__)
   RtMidi::WINDOWS_MM,
 #endif
+#if defined(__WINDOWS_UWP__)
+  RtMidi::WINDOWS_UWP,
+#endif
 #if defined(__WEB_MIDI_API__)
   RtMidi::WEB_MIDI_API,
+#endif
+#if defined(__WEB_MIDI_API__)
+  RtMidi::WEB_MIDI_API,
+#endif
+#if defined(__AMIDI__)
+  RtMidi::ANDROID_AMIDI,
 #endif
 #if defined(__RTMIDI_DUMMY__)
   RtMidi::RTMIDI_DUMMY,
@@ -482,6 +603,10 @@ void RtMidiIn :: openMidiApi( RtMidi::Api api, const std::string &clientName, un
   if ( api == WINDOWS_MM )
     rtapi_ = new MidiInWinMM( clientName, queueSizeLimit );
 #endif
+#if defined(__WINDOWS_UWP__)
+  if (api == WINDOWS_UWP)
+      rtapi_ = new MidiInWinUWP(clientName, queueSizeLimit);
+#endif
 #if defined(__MACOSX_CORE__)
   if ( api == MACOSX_CORE )
     rtapi_ = new MidiInCore( clientName, queueSizeLimit );
@@ -489,6 +614,10 @@ void RtMidiIn :: openMidiApi( RtMidi::Api api, const std::string &clientName, un
 #if defined(__WEB_MIDI_API__)
     if ( api == WEB_MIDI_API )
     rtapi_ = new MidiInWeb( clientName, queueSizeLimit );
+#endif
+#if defined(__AMIDI__)
+    if ( api == ANDROID_AMIDI )
+    rtapi_ = new MidiInAndroid( clientName, queueSizeLimit );
 #endif
 #if defined(__RTMIDI_DUMMY__)
   if ( api == RTMIDI_DUMMY )
@@ -554,6 +683,10 @@ void RtMidiOut :: openMidiApi( RtMidi::Api api, const std::string &clientName )
   if ( api == WINDOWS_MM )
     rtapi_ = new MidiOutWinMM( clientName );
 #endif
+#if defined(__WINDOWS_UWP__)
+  if (api == WINDOWS_UWP)
+      rtapi_ = new MidiOutWinUWP(clientName);
+#endif
 #if defined(__MACOSX_CORE__)
   if ( api == MACOSX_CORE )
     rtapi_ = new MidiOutCore( clientName );
@@ -561,6 +694,10 @@ void RtMidiOut :: openMidiApi( RtMidi::Api api, const std::string &clientName )
 #if defined(__WEB_MIDI_API__)
     if ( api == WEB_MIDI_API )
     rtapi_ = new MidiOutWeb( clientName );
+#endif
+#if defined(__AMIDI__)
+    if ( api == ANDROID_AMIDI )
+    rtapi_ = new MidiOutAndroid( clientName );
 #endif
 #if defined(__RTMIDI_DUMMY__)
   if ( api == RTMIDI_DUMMY )
@@ -816,7 +953,7 @@ MidiOutApi :: ~MidiOutApi( void )
 // time values.
 
 // These are not available on iOS.
-#ifdef TARGET_OS_IPHONE
+#if (TARGET_OS_IPHONE == 0)
   #include <CoreAudio/HostTime.h>
   #include <CoreServices/CoreServices.h>
 #endif
@@ -982,6 +1119,8 @@ static void midiInputCallback( const MIDIPacketList *list, void *procRef, void *
                 std::cerr << "\nMidiInCore: message queue limit reached!!\n\n";
             }
             message.bytes.clear();
+            // All subsequent messages within same MIDI packet will have time delta 0
+            message.timeStamp = 0.0;
           }
           iByte += size;
         }
@@ -1062,7 +1201,7 @@ void MidiInCore :: openPort( unsigned int portNumber, const std::string &portNam
   }
 
   CFRunLoopRunInMode( kCFRunLoopDefaultMode, 0, false );
-  unsigned int nSrc = MIDIGetNumberOfSources();
+  auto nSrc = MIDIGetNumberOfSources();
   if ( nSrc < 1 ) {
     errorString_ = "MidiInCore::openPort: no MIDI input sources found!";
     error( RtMidiError::NO_DEVICES_FOUND, errorString_ );
@@ -1173,12 +1312,12 @@ void MidiInCore :: setPortName ( const std::string& )
 unsigned int MidiInCore :: getPortCount()
 {
   CFRunLoopRunInMode( kCFRunLoopDefaultMode, 0, false );
-  return MIDIGetNumberOfSources();
+  return static_cast<unsigned int> (MIDIGetNumberOfSources());
 }
 
 // This function was submitted by Douglas Casey Tucker and apparently
 // derived largely from PortMidi.
-CFStringRef EndpointName( MIDIEndpointRef endpoint, bool isExternal )
+CFStringRef CreateEndpointName( MIDIEndpointRef endpoint, bool isExternal )
 {
   CFMutableStringRef result = CFStringCreateMutable( NULL, 0 );
   CFStringRef str;
@@ -1188,13 +1327,11 @@ CFStringRef EndpointName( MIDIEndpointRef endpoint, bool isExternal )
   MIDIObjectGetStringProperty( endpoint, kMIDIPropertyName, &str );
   if ( str != NULL ) {
     CFStringAppend( result, str );
-    CFRelease( str );
+    CFRelease(str);
   }
 
   // some MIDI devices have a leading space in endpoint name. trim
-  CFStringRef space = CFStringCreateWithCString(NULL, " ", kCFStringEncodingUTF8);
-  CFStringTrim(result, space);
-  CFRelease(space);
+  CFStringTrim(result, CFSTR(" "));
 
   MIDIEntityRef entity = 0;
   MIDIEndpointGetEntity( endpoint, &entity );
@@ -1208,7 +1345,6 @@ CFStringRef EndpointName( MIDIEndpointRef endpoint, bool isExternal )
     MIDIObjectGetStringProperty( entity, kMIDIPropertyName, &str );
     if ( str != NULL ) {
       CFStringAppend( result, str );
-      CFRelease( str );
     }
   }
   // now consider the device's name
@@ -1221,6 +1357,7 @@ CFStringRef EndpointName( MIDIEndpointRef endpoint, bool isExternal )
   MIDIObjectGetStringProperty( device, kMIDIPropertyName, &str );
   if ( CFStringGetLength( result ) == 0 ) {
       CFRelease( result );
+      CFRetain( str );
       return str;
   }
   if ( str != NULL ) {
@@ -1228,10 +1365,10 @@ CFStringRef EndpointName( MIDIEndpointRef endpoint, bool isExternal )
     // the endpoint name and just use the device name
     if ( isExternal && MIDIDeviceGetNumberOfEntities( device ) < 2 ) {
       CFRelease( result );
+      CFRetain( str );
       return str;
     } else {
       if ( CFStringGetLength( str ) == 0 ) {
-        CFRelease( str );
         return result;
       }
       // does the entity name already start with the device name?
@@ -1245,8 +1382,8 @@ CFStringRef EndpointName( MIDIEndpointRef endpoint, bool isExternal )
           CFStringInsert( result, 0, CFSTR(" ") );
 
         CFStringInsert( result, 0, str );
+        CFRelease(str);
       }
-      CFRelease( str );
     }
   }
   return result;
@@ -1254,7 +1391,7 @@ CFStringRef EndpointName( MIDIEndpointRef endpoint, bool isExternal )
 
 // This function was submitted by Douglas Casey Tucker and apparently
 // derived largely from PortMidi.
-static CFStringRef ConnectedEndpointName( MIDIEndpointRef endpoint )
+static CFStringRef CreateConnectedEndpointName( MIDIEndpointRef endpoint )
 {
   CFMutableStringRef result = CFStringCreateMutable( NULL, 0 );
   CFStringRef str;
@@ -1263,7 +1400,7 @@ static CFStringRef ConnectedEndpointName( MIDIEndpointRef endpoint )
 
   // Does the endpoint have connections?
   CFDataRef connections = NULL;
-  int nConnected = 0;
+  size_t nConnected = 0;
   bool anyStrings = false;
   err = MIDIObjectGetDataProperty( endpoint, kMIDIPropertyConnectionUniqueID, &connections );
   if ( connections != NULL ) {
@@ -1281,11 +1418,12 @@ static CFStringRef ConnectedEndpointName( MIDIEndpointRef endpoint )
           if ( connObjectType == kMIDIObjectType_ExternalSource  ||
                connObjectType == kMIDIObjectType_ExternalDestination ) {
             // Connected to an external device's endpoint (10.3 and later).
-            str = EndpointName( (MIDIEndpointRef)(connObject), true );
+            str = CreateEndpointName( (MIDIEndpointRef)(connObject), true );
           } else {
             // Connected to an external device (10.2) (or something else, catch-
             str = NULL;
             MIDIObjectGetStringProperty( connObject, kMIDIPropertyName, &str );
+            if ( str ) CFRetain ( str );
           }
           if ( str != NULL ) {
             if ( anyStrings )
@@ -1306,7 +1444,7 @@ static CFStringRef ConnectedEndpointName( MIDIEndpointRef endpoint )
   CFRelease( result );
 
   // Here, either the endpoint had no connections, or we failed to obtain names
-  return EndpointName( endpoint, false );
+  return CreateEndpointName( endpoint, false );
 }
 
 std::string MidiInCore :: getPortName( unsigned int portNumber )
@@ -1326,7 +1464,7 @@ std::string MidiInCore :: getPortName( unsigned int portNumber )
   }
 
   portRef = MIDIGetSource( portNumber );
-  nameRef = ConnectedEndpointName( portRef );
+  nameRef = CreateConnectedEndpointName( portRef );
   CFStringGetCString( nameRef, name, sizeof(name), kCFStringEncodingUTF8 );
   CFRelease( nameRef );
 
@@ -1393,7 +1531,7 @@ void MidiOutCore :: initialize( const std::string& clientName )
 unsigned int MidiOutCore :: getPortCount()
 {
   CFRunLoopRunInMode( kCFRunLoopDefaultMode, 0, false );
-  return MIDIGetNumberOfDestinations();
+  return static_cast<unsigned int> (MIDIGetNumberOfDestinations());
 }
 
 std::string MidiOutCore :: getPortName( unsigned int portNumber )
@@ -1413,7 +1551,7 @@ std::string MidiOutCore :: getPortName( unsigned int portNumber )
   }
 
   portRef = MIDIGetDestination( portNumber );
-  nameRef = ConnectedEndpointName(portRef);
+  nameRef = CreateConnectedEndpointName(portRef);
   CFStringGetCString( nameRef, name, sizeof(name), kCFStringEncodingUTF8 );
   CFRelease( nameRef );
 
@@ -1429,7 +1567,7 @@ void MidiOutCore :: openPort( unsigned int portNumber, const std::string &portNa
   }
 
   CFRunLoopRunInMode( kCFRunLoopDefaultMode, 0, false );
-  unsigned int nDest = MIDIGetNumberOfDestinations();
+  auto nDest = MIDIGetNumberOfDestinations();
   if (nDest < 1) {
     errorString_ = "MidiOutCore::openPort: no MIDI output destinations found!";
     error( RtMidiError::NO_DEVICES_FOUND, errorString_ );
@@ -1536,12 +1674,6 @@ void MidiOutCore :: sendMessage( const unsigned char *message, size_t size )
   unsigned int nBytes = static_cast<unsigned int> (size);
   if ( nBytes == 0 ) {
     errorString_ = "MidiOutCore::sendMessage: no data in message argument!";
-    error( RtMidiError::WARNING, errorString_ );
-    return;
-  }
-
-  if ( message[0] != 0xF0 && nBytes > 3 ) {
-    errorString_ = "MidiOutCore::sendMessage: message format problem ... not sysex but > 3 bytes?";
     error( RtMidiError::WARNING, errorString_ );
     return;
   }
@@ -1718,14 +1850,14 @@ static void *alsaMidiHandler( void *ptr )
 
     case SND_SEQ_EVENT_PORT_SUBSCRIBED:
 #if defined(__RTMIDI_DEBUG__)
-      std::cerr << "MidiInAlsa::alsaMidiHandler: port connection made!\n";
+      std::cout << "MidiInAlsa::alsaMidiHandler: port connection made!\n";
 #endif
       break;
 
     case SND_SEQ_EVENT_PORT_UNSUBSCRIBED:
 #if defined(__RTMIDI_DEBUG__)
       std::cerr << "MidiInAlsa::alsaMidiHandler: port connection has closed!\n";
-      std::cerr << "sender = " << (int) ev->data.connect.sender.client << ":"
+      std::cout << "sender = " << (int) ev->data.connect.sender.client << ":"
                 << (int) ev->data.connect.sender.port
                 << ", dest = " << (int) ev->data.connect.dest.client << ":"
                 << (int) ev->data.connect.dest.port
@@ -1805,7 +1937,7 @@ static void *alsaMidiHandler( void *ptr )
           struct timespec y;
           y.tv_nsec = apiData->lastTime.tv_nsec;
           y.tv_sec = apiData->lastTime.tv_sec;
-          if ( (long int) x.tv_nsec < y.tv_nsec ) {
+          if ( x.tv_nsec < y.tv_nsec ) {
               int nsec = (y.tv_nsec - (int)x.tv_nsec) / 1000000000 + 1;
               y.tv_nsec -= 1000000000 * nsec;
               y.tv_sec += nsec;
@@ -1956,7 +2088,9 @@ unsigned int portInfo( snd_seq_t *seq, snd_seq_port_info_t *pinfo, unsigned int 
            ( ( atyp & SND_SEQ_PORT_TYPE_APPLICATION ) == 0 ) ) continue;
 
       unsigned int caps = snd_seq_port_info_get_capability( pinfo );
-      if ( ( caps & type ) != type ) continue;
+      if ( ( ( caps & type ) != type ) ||
+           ( ( caps & SND_SEQ_PORT_CAP_NO_EXPORT ) != 0 ) ) continue;
+
       if ( count == portNumber ) return 1;
       ++count;
     }
@@ -3011,7 +3145,7 @@ void MidiOutWinMM :: sendMessage( const unsigned char *message, size_t size )
 
   MMRESULT result;
   WinMidiData *data = static_cast<WinMidiData *> (apiData_);
-  if ( message[0] == 0xF0 ) { // Sysex message
+  if ( nBytes > 3 ) { // Sysex message
 
     // Allocate buffer for sysex data.
     char *buffer = (char *) malloc( nBytes );
@@ -3025,7 +3159,7 @@ void MidiOutWinMM :: sendMessage( const unsigned char *message, size_t size )
     for ( unsigned int i=0; i<nBytes; ++i ) buffer[i] = message[i];
 
     // Create and prepare MIDIHDR structure.
-    MIDIHDR sysex;
+    MIDIHDR sysex{};
     sysex.lpData = (LPSTR) buffer;
     sysex.dwBufferLength = nBytes;
     sysex.dwFlags = 0;
@@ -3052,13 +3186,6 @@ void MidiOutWinMM :: sendMessage( const unsigned char *message, size_t size )
   }
   else { // Channel or system message.
 
-    // Make sure the message size isn't too big.
-    if ( nBytes > 3 ) {
-      errorString_ = "MidiOutWinMM::sendMessage: message size is greater than 3 bytes (and not sysex)!";
-      error( RtMidiError::WARNING, errorString_ );
-      return;
-    }
-
     // Pack MIDI bytes into double word.
     DWORD packet;
     unsigned char *ptr = (unsigned char *) &packet;
@@ -3080,6 +3207,767 @@ void MidiOutWinMM :: sendMessage( const unsigned char *message, size_t size )
 
 
 //*********************************************************************//
+//  API: Universal Windows Platform (UWP)
+//*********************************************************************//
+
+// C++/WinRT
+//   https://github.com/microsoft/cppwinrt
+//
+// UWP MIDI API
+//   https://docs.microsoft.com/en-us/windows/uwp/audio-video-camera/midi
+//
+// Example implementation using UWP MIDI in C++/WinRT
+//   https://github.com/trueroad/uwp_midiio
+
+#if defined(__WINDOWS_UWP__)
+
+#include <algorithm>
+#include <chrono>
+#include <regex>
+#include <string_view>
+#include <mutex>
+
+#include <windows.h>
+#include <winrt/base.h>
+#include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.Foundation.Collections.h>
+#include <winrt/Windows.Devices.Enumeration.h>
+#include <winrt/Windows.Devices.Midi.h>
+#include <winrt/Windows.Storage.Streams.h>
+#include <winrt/Windows.Security.Cryptography.h>
+
+using namespace winrt;
+using namespace Windows::Foundation;
+using namespace Windows::Devices::Enumeration;
+using namespace Windows::Devices::Midi;
+using namespace Windows::Storage::Streams;
+using namespace Windows::Security::Cryptography;
+
+// Class for initializing C++/WinRT
+class UWPMidiInit
+{
+public:
+    UWPMidiInit()
+    {
+        winrt::init_apartment();
+    }
+};
+
+// Class for handling UWP MIDI
+class UWPMidiClass
+{
+public:
+    // Structure to store MIDI port name and ID
+    struct port
+    {
+        std::string name;
+        std::wstring id;
+        std::string hex_id;
+        std::string display_name;
+    };
+
+    UWPMidiClass(MidiApi& midi_api) :
+        midi_api_(midi_api)
+    {
+    }
+
+    ~UWPMidiClass()
+    {
+        close();
+    }
+
+    // Initialize for MIDI IN
+    void in_init(MidiInApi::RtMidiInData* input_data)
+    {
+        input_data_ = input_data;
+
+        try
+        {
+            ports_ = list_ports(MidiInPort::GetDeviceSelector());
+        }
+        catch (hresult_error const& ex)
+        {
+            raise_hresult_error("UWPMidiClass::in_init: ", ex);
+        }
+        sort_display_name(ports_);
+    }
+
+    // Initialize for MIDI OUT
+    void out_init()
+    {
+        try
+        {
+            ports_ = list_ports(MidiOutPort::GetDeviceSelector());
+            fix_display_name(list_ports(MidiInPort::GetDeviceSelector()), ports_);
+        }
+        catch (hresult_error const& ex)
+        {
+            raise_hresult_error("UWPMidiClass::out_init: ", ex);
+        }
+        sort_display_name(ports_);
+    }
+
+    size_t get_num_ports()
+    {
+        return ports_.size();
+    }
+
+    std::string get_port_name(size_t n)
+    {
+        return ports_[n].display_name;
+    }
+
+    bool in_open(size_t port_number);
+    bool out_open(size_t port_number);
+    void close();
+
+    void midi_in_callback(const MidiInPort&, const MidiMessageReceivedEventArgs& e);
+    bool send_buffer(const unsigned char* buff, size_t len);
+
+    // Raise RtMidi error for hresult error
+    void raise_hresult_error(std::string_view message, hresult_error const& ex)
+    {
+        std::ostringstream ss;
+        ss << message << "exception HRESULT 0x" << std::hex << ex.code() << ", "
+            << utf16_to_utf8(static_cast<std::wstring_view>(ex.message()))
+            << "\n";
+        midi_api_.error(RtMidiError::DRIVER_ERROR, ss.str());
+    }
+
+    // Mutex for MIDI port open/close
+    std::mutex mtx_open_close_;
+    // Mutex for MIDI IN message queue access
+    std::mutex mtx_queue_;
+
+private:
+    std::vector<port> list_ports(winrt::hstring device_selector);
+    void fix_display_name(const std::vector<port>& in_ports,
+        std::vector<port>& out_ports);
+    void sort_display_name(std::vector<port>& ports);
+    std::string utf16_to_utf8(const std::wstring_view wstr);
+
+    template<class MidiPort_T, class IMidiPort_T>
+    IMidiPort_T open(size_t port_number);
+
+    // MidiApi class
+    MidiApi& midi_api_;
+
+    // List of MIDI ports
+    std::vector<port> ports_;
+    // MIDI IN port
+    MidiInPort in_port_{ nullptr };
+    // MIDI OUT port
+    IMidiOutPort out_port_{ nullptr };
+    // Backup initial MessageReceived event token
+    winrt::event_token before_token_;
+    // Input data
+    MidiInApi::RtMidiInData* input_data_{ nullptr };
+    // Last timestamp
+    std::chrono::duration<TimeSpan::rep, TimeSpan::period> last_time_{ 0 };
+
+    // C++/WinRT initializer
+    static UWPMidiInit uwp_midi_init_;
+    // Regex pattern to extract 8 hex digits from UWP MIDI ID string
+    static const std::wregex hex_id_pattern_;
+
+#ifndef RTMIDI_DO_NOT_ENABLE_WORKAROUND_UWP_WRONG_TIMESTAMPS
+    // QueryPerformanceFrequency
+    LONGLONG qpc_freq_{ 0 };
+    // Last QueryPerformanceCounter
+    LONGLONG before_qpc_;
+    // Weather overflow low occurred or not
+    bool b_overflow_low_{ false };
+
+    // BLE-MIDI timestamp periods
+    inline constexpr static std::chrono::duration<TimeSpan::rep, TimeSpan::period> ble_midi_period_low_{ std::chrono::milliseconds{128} };
+    inline constexpr static std::chrono::duration<TimeSpan::rep, TimeSpan::period> ble_midi_period_high_{ std::chrono::milliseconds{8192} };
+    // QPC threshold 4096 ms
+    inline constexpr static LONGLONG qpc_threshold_{ 4096 };
+
+    // Regex pattern to detect BLE-MIDI IN
+    static const std::wregex ble_midi_pattern_;
+#endif
+};
+
+// C++/WinRT initializer
+UWPMidiInit UWPMidiClass::uwp_midi_init_;
+// Regex pattern to extract 8 hex digits from UWP MIDI ID string
+const std::wregex UWPMidiClass::hex_id_pattern_{ std::wregex(L"#MIDII_([0-9A-F]{8})\\..+#") };
+
+#ifndef RTMIDI_DO_NOT_ENABLE_WORKAROUND_UWP_WRONG_TIMESTAMPS
+const std::wregex UWPMidiClass::ble_midi_pattern_{ std::wregex(L"#MIDII_[0-9A-F]{8}\\.BLE[0-9]{2}#") };
+#endif
+
+// Find and create a list of UWP MIDI ports
+std::vector<UWPMidiClass::port> UWPMidiClass::list_ports(winrt::hstring device_selector)
+{
+    const auto devs{ DeviceInformation::FindAllAsync(device_selector).get() };
+
+    std::vector<port> retval;
+    for (const auto& d : devs)
+    {
+        port p;
+        p.name = utf16_to_utf8(d.Name());
+        p.id = d.Id();
+
+        std::wsmatch m;
+        if (std::regex_search(p.id, m, hex_id_pattern_))
+        {
+            // Ordinary MIDI ports
+            // Append hex digits extracted from the UWP MIDI ID string to the port name.
+            p.hex_id = utf16_to_utf8(m[1].str());
+
+            std::ostringstream ss;
+            ss << p.name
+                << " [ "
+                << p.hex_id
+                << " ]";
+            p.display_name = ss.str();
+        }
+        else
+        {
+            // Microsoft GS Wavetable Synth etc.
+            // Unable to extract hex digits from UWP MIDI ID string.
+            // Use the device name as the port name.
+            p.display_name = p.name;
+        }
+
+        retval.push_back(p);
+    }
+    return retval;
+}
+
+// Fix MIDI OUT port names starting with `MIDI` to MIDI IN port names with similar ID strings
+void UWPMidiClass::fix_display_name(const std::vector<port>& in_ports,
+    std::vector<port>& out_ports)
+{
+    for (auto& outp : out_ports)
+    {
+        if (outp.hex_id.empty() ||
+            std::string_view{ outp.name }.substr(0, 4) != "MIDI")
+            continue;
+
+        for (const auto& inp : in_ports)
+        {
+            if (outp.hex_id == inp.hex_id)
+            {
+                outp.display_name = inp.display_name;
+                break;
+            }
+        }
+    }
+}
+
+void UWPMidiClass::sort_display_name(std::vector<port>& ports)
+{
+    std::sort(ports.begin(), ports.end(),
+        [](const auto& lhs, const auto& rhs)
+    {
+        return lhs.display_name < rhs.display_name;
+    });
+}
+
+std::string UWPMidiClass::utf16_to_utf8(const std::wstring_view wstr)
+{
+    auto len{ WideCharToMultiByte(CP_UTF8, 0, wstr.data(), static_cast<int>(wstr.size()), nullptr, 0, nullptr, nullptr) };
+    std::string u8str(len, '\0');
+    if (len)
+        WideCharToMultiByte(CP_UTF8, 0, wstr.data(), static_cast<int>(wstr.size()), u8str.data(), len, nullptr, nullptr);
+    return u8str;
+}
+
+// Open MIDI IN/OUT port
+template<class MidiPort_T, class IMidiPort_T>
+IMidiPort_T UWPMidiClass::open(size_t port_number)
+{
+    try
+    {
+        auto async{ MidiPort_T::FromIdAsync(ports_[port_number].id) };
+        // Timeout 3 seconds
+        if (async.wait_for(std::chrono::seconds(3)) == AsyncStatus::Completed)
+            return async.GetResults();
+    }
+    catch (hresult_error const& ex)
+    {
+        raise_hresult_error("UWPMidiClass::open: ", ex);
+    }
+    return nullptr;
+}
+
+// Open MIDI IN port
+bool UWPMidiClass::in_open(size_t port_number)
+{
+    if (in_port_)
+        in_port_.Close();
+
+    in_port_ = open<MidiInPort, MidiInPort>(port_number);
+    if (!in_port_)
+        return false;
+
+#ifndef RTMIDI_DO_NOT_ENABLE_WORKAROUND_UWP_WRONG_TIMESTAMPS
+    std::wsmatch m;
+    if (std::regex_search(ports_[port_number].id, m, ble_midi_pattern_))
+    {
+        // BLE-MIDI IN port
+        LARGE_INTEGER li;
+        if (::QueryPerformanceFrequency(&li))
+            qpc_freq_ = li.QuadPart;
+    }
+#endif
+
+    try
+    {
+        before_token_ = in_port_.MessageReceived({ this, &UWPMidiClass::midi_in_callback });
+    }
+    catch (hresult_error const& ex)
+    {
+        raise_hresult_error("UWPMidiClass::in_open: ", ex);
+    }
+
+    return true;
+}
+
+// Open MIDI Out port
+bool UWPMidiClass::out_open(size_t port_number)
+{
+    if (out_port_)
+        out_port_.Close();
+
+    out_port_ = open<MidiOutPort, IMidiOutPort>(port_number);
+    if (!out_port_)
+        return false;
+
+    return true;
+}
+
+// Close MIDI IN/OUT port
+void UWPMidiClass::close()
+{
+    if (in_port_)
+    {
+        if (before_token_)
+            in_port_.MessageReceived(before_token_);
+
+        in_port_.Close();
+        in_port_ = nullptr;
+    }
+    if (out_port_)
+    {
+        out_port_.Close();
+        out_port_ = nullptr;
+    }
+}
+
+// MessageReceived event handler
+void UWPMidiClass::midi_in_callback(const MidiInPort&, const MidiMessageReceivedEventArgs& e)
+{
+#ifndef RTMIDI_DO_NOT_ENABLE_WORKAROUND_UWP_WRONG_TIMESTAMPS
+    LARGE_INTEGER qpc;
+    if (qpc_freq_)
+    {
+        if (!::QueryPerformanceCounter(&qpc))
+            qpc_freq_ = 0;
+    }
+#endif
+
+    const auto& m{ e.Message() };
+    if (!m)
+        return;
+
+    MidiInApi::MidiMessage message;
+    const std::chrono::duration<TimeSpan::rep, TimeSpan::period> duration{ m.Timestamp() };
+
+    // Calculate time stamp.
+    if (input_data_->firstMessage == true)
+    {
+        message.timeStamp = 0.0;
+        input_data_->firstMessage = false;
+        last_time_ = duration;
+
+#ifndef RTMIDI_DO_NOT_ENABLE_WORKAROUND_UWP_WRONG_TIMESTAMPS
+        if (qpc_freq_)
+            before_qpc_ = qpc.QuadPart;
+#endif
+    }
+    else
+    {
+        auto delta{ duration - last_time_ };
+
+#ifndef RTMIDI_DO_NOT_ENABLE_WORKAROUND_UWP_WRONG_TIMESTAMPS
+        if (qpc_freq_)
+        {
+            if (b_overflow_low_)
+            {
+                if (delta >= ble_midi_period_low_)
+                {
+                    // Fix after overflow low
+                    // https://github.com/trueroad/BLE_MIDI_packet_data_set#page-7-overflow-both
+                    delta -= ble_midi_period_low_;
+                    b_overflow_low_ = false;
+                }
+            }
+            else
+            {
+                if ((ble_midi_period_high_ - ble_midi_period_low_) < delta && delta < ble_midi_period_high_ &&
+                    ((before_qpc_ - qpc.QuadPart) * 1000 / qpc_freq_) < qpc_threshold_)
+                {
+                    // Fix overflow low
+                    // https://github.com/trueroad/BLE_MIDI_packet_data_set#page-7-overflow-low
+                    delta = delta - ble_midi_period_high_ + ble_midi_period_low_;
+                    b_overflow_low_ = true;
+                }
+            }
+
+            before_qpc_ = qpc.QuadPart;
+        }
+#endif
+
+        const std::chrono::duration<double> sec{ delta };
+        message.timeStamp = sec.count();
+    }
+
+    if (((input_data_->ignoreFlags & 0x01) &&
+            (m.Type() == MidiMessageType::SystemExclusive || m.Type() == MidiMessageType::EndSystemExclusive)) ||
+        ((input_data_->ignoreFlags & 0x02) &&
+            (m.Type() == MidiMessageType::MidiTimeCode || m.Type() == MidiMessageType::TimingClock)) ||
+        ((input_data_->ignoreFlags & 0x04) &&
+            m.Type() == MidiMessageType::ActiveSensing))
+    {
+        return;
+    }
+
+    const auto& raw_data{ m.RawData() };
+    const size_t len{ raw_data.Length() };
+
+    if (len)
+        message.bytes.assign(raw_data.data(), raw_data.data() + len);
+
+    last_time_ = duration;
+
+    if (input_data_->usingCallback)
+    {
+        (input_data_->userCallback)(message.timeStamp, &message.bytes, input_data_->userData);
+    }
+    else
+    {
+        std::lock_guard<std::mutex> lock(mtx_queue_);
+
+        if (!input_data_->queue.push(message))
+        {
+            std::cerr << "\nMidiInWinUWP: message queue limit reached!!\n\n";
+        }
+    }
+}
+
+// Send MIDI message
+bool UWPMidiClass::send_buffer(const unsigned char* buff, size_t len)
+{
+    if (!out_port_)
+        return false;
+
+    try
+    {
+        out_port_.SendBuffer(CryptographicBuffer::CreateFromByteArray(array_view(buff, buff + len)));
+    }
+    catch (hresult_error const& ex)
+    {
+        raise_hresult_error("UWPMidiClass::send_buffer: ", ex);
+    }
+
+    return true;
+}
+
+//*********************************************************************//
+//  API: Windows UWP
+//  Class Definitions: MidiInWinUWP
+//*********************************************************************//
+
+MidiInWinUWP::MidiInWinUWP(const std::string& clientName, unsigned int queueSizeLimit)
+    : MidiInApi(queueSizeLimit)
+{
+    MidiInWinUWP::initialize(clientName);
+}
+
+MidiInWinUWP :: ~MidiInWinUWP()
+{
+    // Close a connection if it exists.
+    MidiInWinUWP::closePort();
+
+    // Cleanup.
+    UWPMidiClass *data = static_cast<UWPMidiClass*> (apiData_);
+    delete data;
+}
+
+void MidiInWinUWP::initialize(const std::string& /*clientName*/)
+{
+    // Save our api-specific connection information.
+    UWPMidiClass* data{ new UWPMidiClass(*this) };
+    data->in_init(&inputData_);
+    apiData_ = static_cast<void*>(data);
+
+    // We'll issue a warning here if no devices are available but not
+    // throw an error since the user can plugin something later.
+    const auto nDevices{ data->get_num_ports() };
+    if (nDevices == 0)
+    {
+        errorString_ = "MidiInWinUWP::initialize: no MIDI input devices currently available.";
+        error(RtMidiError::WARNING, errorString_);
+    }
+}
+
+void MidiInWinUWP::openPort(unsigned int portNumber, const std::string&/*portName*/)
+{
+    UWPMidiClass* data{ static_cast<UWPMidiClass*>(apiData_) };
+    std::lock_guard<std::mutex> lock(data->mtx_open_close_);
+
+    if (connected_)
+    {
+        errorString_ = "MidiInWinUWP::openPort: a valid connection already exists!";
+        error(RtMidiError::WARNING, errorString_);
+        return;
+    }
+
+    if (data->get_num_ports() == 0)
+    {
+        errorString_ = "MidiInWinUWP::openPort: no MIDI input sources found!";
+        error(RtMidiError::NO_DEVICES_FOUND, errorString_);
+        return;
+    }
+
+    if (portNumber >= data->get_num_ports())
+    {
+        std::ostringstream ost;
+        ost << "MidiInWinUWP::openPort: the 'portNumber' argument (" << portNumber << ") is invalid.";
+        errorString_ = ost.str();
+        error(RtMidiError::INVALID_PARAMETER, errorString_);
+        return;
+    }
+
+    if (!data->in_open(portNumber))
+    {
+        errorString_ = "MidiInWinUWP::openPort: error creating Windows UWP MIDI input port.";
+        error(RtMidiError::DRIVER_ERROR, errorString_);
+        return;
+    }
+
+    connected_ = true;
+}
+
+void MidiInWinUWP::openVirtualPort(const std::string&/*portName*/)
+{
+    // This function cannot be implemented for the Windows UWP MIDI API.
+    errorString_ = "MidiInWinUWP::openVirtualPort: cannot be implemented in Windows UWP MIDI API!";
+    error(RtMidiError::WARNING, errorString_);
+}
+
+void MidiInWinUWP::closePort(void)
+{
+    UWPMidiClass* data{ static_cast<UWPMidiClass*>(apiData_) };
+    std::lock_guard<std::mutex> lock(data->mtx_open_close_);
+
+    if (connected_)
+    {
+        data->close();
+        connected_ = false;
+    }
+}
+
+void MidiInWinUWP::setClientName(const std::string&)
+{
+    errorString_ = "MidiInWinUWP::setClientName: this function is not implemented for the WINDOWS_UWP API!";
+    error(RtMidiError::WARNING, errorString_);
+}
+
+void MidiInWinUWP::setPortName(const std::string&)
+{
+    errorString_ = "MidiInWinUWP::setPortName: this function is not implemented for the WINDOWS_UWP API!";
+    error(RtMidiError::WARNING, errorString_);
+}
+
+unsigned int MidiInWinUWP::getPortCount()
+{
+    UWPMidiClass* data{ static_cast<UWPMidiClass*>(apiData_) };
+    return static_cast<unsigned int>(data->get_num_ports());
+}
+
+std::string MidiInWinUWP::getPortName(unsigned int portNumber)
+{
+    UWPMidiClass* data{ static_cast<UWPMidiClass*>(apiData_) };
+
+    const auto nDevices{ data->get_num_ports() };
+    if (portNumber >= nDevices)
+    {
+        std::ostringstream ost;
+        ost << "MidiInWinUWP::getPortName: the 'portNumber' argument (" << portNumber << ") is invalid.";
+        errorString_ = ost.str();
+        error(RtMidiError::WARNING, errorString_);
+        return "";
+    }
+
+    return data->get_port_name(portNumber);
+}
+
+double MidiInWinUWP::getMessage(std::vector<unsigned char>* message)
+{
+    UWPMidiClass* data{ static_cast<UWPMidiClass*>(apiData_) };
+    std::lock_guard<std::mutex> lock(data->mtx_queue_);
+
+    return MidiInApi::getMessage(message);
+}
+
+//*********************************************************************//
+//  API: Windows UWP
+//  Class Definitions: MidiOutWinUWP
+//*********************************************************************//
+
+MidiOutWinUWP::MidiOutWinUWP(const std::string& clientName) : MidiOutApi()
+{
+    MidiOutWinUWP::initialize(clientName);
+}
+
+MidiOutWinUWP :: ~MidiOutWinUWP()
+{
+    // Close a connection if it exists.
+    MidiOutWinUWP::closePort();
+
+    // Cleanup.
+    UWPMidiClass* data = static_cast<UWPMidiClass*> (apiData_);
+    delete data;
+}
+
+void MidiOutWinUWP::initialize(const std::string& /*clientName*/)
+{
+    // Save our api-specific connection information.
+    UWPMidiClass* data{ new UWPMidiClass(*this) };
+    data->out_init();
+    apiData_ = static_cast<void*>(data);
+
+    // We'll issue a warning here if no devices are available but not
+    // throw an error since the user can plug something in later.
+    const auto nDevices{ data->get_num_ports() };
+    if (nDevices == 0)
+    {
+        errorString_ = "MidiOutWinUWP::initialize: no MIDI output devices currently available.";
+        error(RtMidiError::WARNING, errorString_);
+    }
+}
+
+unsigned int MidiOutWinUWP::getPortCount()
+{
+    UWPMidiClass* data{ static_cast<UWPMidiClass*>(apiData_) };
+    return static_cast<unsigned int>(data->get_num_ports());
+}
+
+std::string MidiOutWinUWP::getPortName(unsigned int portNumber)
+{
+    UWPMidiClass* data{ static_cast<UWPMidiClass*>(apiData_) };
+
+    const auto nDevices{ data->get_num_ports() };
+    if (portNumber >= nDevices)
+    {
+        std::ostringstream ost;
+        ost << "MidiOutWinUWP::getPortName: the 'portNumber' argument (" << portNumber << ") is invalid.";
+        errorString_ = ost.str();
+        error(RtMidiError::WARNING, errorString_);
+        return "";
+    }
+
+    return data->get_port_name(portNumber);
+}
+
+void MidiOutWinUWP::openPort(unsigned int portNumber, const std::string&/*portName*/)
+{
+    UWPMidiClass* data{ static_cast<UWPMidiClass*>(apiData_) };
+    std::lock_guard<std::mutex> lock(data->mtx_open_close_);
+
+    if (connected_)
+    {
+        errorString_ = "MidiOutWinUWP::openPort: a valid connection already exists!";
+        error(RtMidiError::WARNING, errorString_);
+        return;
+    }
+
+    if (data->get_num_ports() == 0)
+    {
+        errorString_ = "MidiOutWinUWP::openPort: no MIDI output destinations found!";
+        error(RtMidiError::NO_DEVICES_FOUND, errorString_);
+        return;
+    }
+
+    if (portNumber >= data->get_num_ports())
+    {
+        std::ostringstream ost;
+        ost << "MidiOutWinUWP::openPort: the 'portNumber' argument (" << portNumber << ") is invalid.";
+        errorString_ = ost.str();
+        error(RtMidiError::INVALID_PARAMETER, errorString_);
+        return;
+    }
+
+    if (!data->out_open(portNumber))
+    {
+        errorString_ = "MidiOutWinUWP::openPort: error creating Windows UWP MIDI output port.";
+        error(RtMidiError::DRIVER_ERROR, errorString_);
+        return;
+    }
+
+    connected_ = true;
+}
+
+void MidiOutWinUWP::closePort(void)
+{
+    UWPMidiClass* data{ static_cast<UWPMidiClass*>(apiData_) };
+    std::lock_guard<std::mutex> lock(data->mtx_open_close_);
+
+    if (connected_)
+    {
+        data->close();
+        connected_ = false;
+    }
+}
+
+void MidiOutWinUWP::setClientName(const std::string&)
+{
+    errorString_ = "MidiOutWinUWP::setClientName: this function is not implemented for the WINDOWS_UWP API!";
+    error(RtMidiError::WARNING, errorString_);
+}
+
+void MidiOutWinUWP::setPortName(const std::string&)
+{
+    errorString_ = "MidiOutWinUWP::setPortName: this function is not implemented for the WINDOWS_UWP API!";
+    error(RtMidiError::WARNING, errorString_);
+}
+
+void MidiOutWinUWP::openVirtualPort(const std::string&/*portName*/)
+{
+    // This function cannot be implemented for the Windows UWP MIDI API.
+    errorString_ = "MidiOutWinUWP::openVirtualPort: cannot be implemented in Windows UWP MIDI API!";
+    error(RtMidiError::WARNING, errorString_);
+}
+
+void MidiOutWinUWP::sendMessage(const unsigned char* message, size_t size)
+{
+    if (!connected_)
+        return;
+
+    if (size == 0)
+    {
+        errorString_ = "MidiOutWinUWP::sendMessage: message argument is empty!";
+        error(RtMidiError::WARNING, errorString_);
+        return;
+    }
+
+    UWPMidiClass* data{ static_cast<UWPMidiClass*>(apiData_) };
+    if (!data->send_buffer(message, size))
+    {
+        errorString_ = "MidiOutWinUWP::sendMessage: error sending message.";
+        error(RtMidiError::DRIVER_ERROR, errorString_);
+    }
+}
+
+#endif  // __WINDOWS_UWP__
+
+
+//*********************************************************************//
 //  API: UNIX JACK
 //
 //  Written primarily by Alexander Svetalkin, with updates for delta
@@ -3094,6 +3982,7 @@ void MidiOutWinMM :: sendMessage( const unsigned char *message, size_t size )
 #include <jack/midiport.h>
 #include <jack/ringbuffer.h>
 #include <pthread.h>
+#include <sched.h>
 #ifdef HAVE_SEMAPHORE
   #include <semaphore.h>
 #endif
@@ -3610,7 +4499,7 @@ void MidiOutJack :: sendMessage( const unsigned char *message, size_t size )
       return;
 
   while ( jack_ringbuffer_write_space(data->buff) < sizeof(nBytes) + size )
-      pthread_yield();
+      sched_yield();
 
   // Write full message to buffer
   jack_ringbuffer_write( data->buff, ( char * ) &nBytes, sizeof( nBytes ) );
@@ -3725,7 +4614,7 @@ std::string WebMidiAccessShim::getPortName( unsigned int portNumber, bool isInpu
     var ret = _malloc(length);
     stringToUTF8(port.name, ret, length);
     return ret;
-  }, portNumber, isInput, &ret );
+  }, portNumber, isInput);
   if (ret == nullptr)
       return "";
   std::string s = ret;
@@ -3780,6 +4669,7 @@ void MidiInWeb::openPort( unsigned int portNumber, const std::string &portName )
     };
   }, portNumber, &inputData_ );
   open_port_number = portNumber;
+  connected_ = true;
 }
 
 void MidiInWeb::openVirtualPort( const std::string &portName )
@@ -3805,6 +4695,7 @@ void MidiInWeb::closePort( void )
     input.onmidimessage = null;
   }, open_port_number );
   open_port_number = -1;
+  connected_ = false;
 }
 
 void MidiInWeb::setClientName( const std::string &clientName )
@@ -3864,6 +4755,7 @@ void MidiOutWeb::openPort( unsigned int portNumber, const std::string &portName 
   // In Web MIDI API world, there is no step to open a port.
 
   open_port_number = portNumber;
+  connected_ = true;
 }
 
 void MidiOutWeb::openVirtualPort( const std::string &portName )
@@ -3878,6 +4770,7 @@ void MidiOutWeb::closePort( void )
 {
   // there is really nothing to do for output at JS side.
   open_port_number = -1;
+  connected_ = false;
 }
 
 void MidiOutWeb::setClientName( const std::string &clientName )
@@ -3934,3 +4827,445 @@ void MidiOutWeb::initialize( const std::string& clientName )
 }
 
 #endif  // __WEB_MIDI_API__
+
+
+//*********************************************************************//
+//  API: ANDROID AMIDI
+//
+//  Written by Yellow Labrador, May 2023.
+//  https://github.com/YellowLabrador/rtmidi
+//  *********************************************************************//
+
+#if defined(__AMIDI__)
+
+#include <cstdint>
+
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#define LOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+
+static std::string androidClientName;
+static std::vector<jobject> androidMidiDevices;
+
+//*********************************************************************//
+//  API: Android AMIDI
+//  Class Definitions: MidiInAndroid
+//*********************************************************************//
+
+static JNIEnv* androidGetThreadEnv() {
+  // Every Android app has only one JVM. Calling JNI_GetCreatedJavaVMs
+  // will retrieve the JVM running the app.
+  jsize jvmsFound = 0;
+  JavaVM jvms[1];
+  JavaVM* pjvms = jvms;
+  jint result = JNI_GetCreatedJavaVMs(&pjvms, 1, &jvmsFound);
+
+  // Something went terribly wrong, no JVM was found
+  if (jvmsFound != 1 || result != JNI_OK) {
+      LOGE("No JVM found");
+      return NULL;
+  }
+
+  // Get the JNIEnv for the current thread
+  JNIEnv* env = NULL;
+  int rc = pjvms->GetEnv((void**)&env, JNI_VERSION_1_6);
+
+  // The current thread was not attached to the JVM. Add it to the JVM
+  if (rc == JNI_EDETACHED) {
+      pjvms->AttachCurrentThreadAsDaemon(&env, NULL);
+  }
+
+  // Neither way to retrieve the JNIEnv worked
+  if (env == NULL) {
+      LOGE("Unable to retrieve JNI environment");
+  }
+
+  return env;
+}
+
+static jobject androidGetContext(JNIEnv *env) {
+  auto activityThread = env->FindClass("android/app/ActivityThread");
+  auto currentActivityThread = env->GetStaticMethodID(activityThread, "currentActivityThread", "()Landroid/app/ActivityThread;");
+  auto at = env->CallStaticObjectMethod(activityThread, currentActivityThread);
+  if (at == NULL) {
+      LOGE("Unable to locate the global ActivityThread");
+      return NULL;
+  }
+
+  auto getApplication = env->GetMethodID(activityThread, "getApplication", "()Landroid/app/Application;");
+  auto context = env->CallObjectMethod(at, getApplication);
+  if (context == NULL) {
+      LOGE("Application context was NULL");
+  }
+
+  return context;
+}
+
+static jobject androidGetMidiManager(JNIEnv *env, jobject context) {
+  // MidiManager midiManager = (MidiManager) getSystemService(Context.MIDI_SERVICE);
+  auto contextClass = env->FindClass("android/content/Context");
+  auto getServiceMethod = env->GetMethodID(contextClass, "getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;");
+  return env->CallObjectMethod(context, getServiceMethod, env->NewStringUTF("midi"));
+}
+
+static void androidRefreshMidiDevices(JNIEnv *env, jobject context, bool isOutput) {
+  // Remove all midi devices
+  for (jobject jMidiDevice : androidMidiDevices) {
+    env->DeleteGlobalRef(jMidiDevice);
+  }
+  androidMidiDevices.clear();
+
+  auto midiService = androidGetMidiManager(env, context);
+
+  // MidiDeviceInfo[] devInfos = mMidiManager.getDevices();
+  auto midiMgrClass = env->FindClass("android/media/midi/MidiManager");
+  auto getDevicesMethod = env->GetMethodID(midiMgrClass, "getDevices", "()[Landroid/media/midi/MidiDeviceInfo;");
+  auto jDevices = (jobjectArray) env->CallObjectMethod(midiService, getDevicesMethod);
+
+  auto deviceInfoClass = env->FindClass("android/media/midi/MidiDeviceInfo");
+  auto getInputPortCountMethod = env->GetMethodID(deviceInfoClass, "getInputPortCount", "()I");
+  auto getOutputPortCountMethod = env->GetMethodID(deviceInfoClass, "getOutputPortCount", "()I");
+
+  jsize len = env->GetArrayLength((jarray)jDevices);
+  for (int i=0; i<len; i++) {
+      auto jDeviceInfo = env->GetObjectArrayElement(jDevices, i);
+
+      int numPorts = env->CallIntMethod(jDeviceInfo, isOutput ? getOutputPortCountMethod : getInputPortCountMethod);
+      if (numPorts > 0) {
+          androidMidiDevices.push_back(env->NewGlobalRef(jDeviceInfo));
+      }
+  }
+}
+
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_yellowlab_rtmidi_MidiDeviceOpenedListener_midiDeviceOpened(JNIEnv *env, jclass clazz,
+                                                                    jobject midi_device, jlong targetPtr, jboolean isOutput) {
+  if (isOutput) {
+    auto midiOut = reinterpret_cast<MidiOutAndroid*>(targetPtr);
+    AMidiDevice_fromJava(env, midi_device, &midiOut->sendDevice);
+    AMidiInputPort_open(midiOut->sendDevice, 0, &midiOut->midiInputPort);
+  } else {
+    auto midiIn = reinterpret_cast<MidiInAndroid*>(targetPtr);
+    AMidiDevice_fromJava(env, midi_device, &midiIn->receiveDevice);
+    AMidiOutputPort_open(midiIn->receiveDevice, 0, &midiIn->midiOutputPort);
+    pthread_create(&midiIn->readThread, NULL, MidiInAndroid::pollMidi, midiIn);
+  }
+}
+
+static void androidOpenDevice(jobject deviceInfo, void* target, bool isOutput) {
+    auto env = androidGetThreadEnv();
+    auto context = androidGetContext(env);
+    auto midiMgr = androidGetMidiManager(env, context);
+
+    auto looperClass = env->FindClass("android/os/Looper");
+    auto getMyLooperMethod = env->GetStaticMethodID(looperClass, "myLooper", "()Landroid/os/Looper;");
+    auto looperObj = env->CallStaticObjectMethod(looperClass, getMyLooperMethod);
+    auto getLooperPrepareMethod = env->GetStaticMethodID(looperClass, "prepare", "()V");
+    auto getLooperQuitMethod = env->GetMethodID(looperClass, "quit", "()V");
+
+    if (!looperObj)
+        env->CallStaticVoidMethod(looperClass, getLooperPrepareMethod);
+
+    // openDevice(MidiDeviceInfo deviceInfo, OnDeviceOpenedListener listener, Handler handler)
+    auto midiMgrClass = env->GetObjectClass(midiMgr);
+    auto openDevicesMethod = env->GetMethodID(midiMgrClass, "openDevice", "(Landroid/media/midi/MidiDeviceInfo;Landroid/media/midi/MidiManager$OnDeviceOpenedListener;Landroid/os/Handler;)V");
+
+    auto handlerClass = env->FindClass("android/os/Handler");
+    auto getMainLooperMethod = env->GetStaticMethodID(looperClass, "getMainLooper", "()Landroid/os/Looper;");
+    auto mainLooperObj = env->CallStaticObjectMethod(looperClass, getMainLooperMethod);
+    auto handlerCtor = env->GetMethodID(handlerClass, "<init>", "(Landroid/os/Looper;)V");
+    auto handler = env->NewObject(handlerClass, handlerCtor, mainLooperObj);
+
+    jclass listenerClass = env->FindClass("com/yellowlab/rtmidi/MidiDeviceOpenedListener");
+    if (!listenerClass) {
+      LOGE("Midi listener class not found com.yellowlab.rtmidi.MidiDeviceOpenedListener. Did you forget to add it to your APK?");
+      return;
+    }
+
+    auto targetPtr = reinterpret_cast<jlong>(target);
+    auto listenerCtor = env->GetMethodID(listenerClass, "<init>", "(JZ)V");
+    auto listener = env->NewObject(listenerClass, listenerCtor, targetPtr, isOutput);
+
+    env->CallVoidMethod(midiMgr, openDevicesMethod, deviceInfo, listener, handler);
+    env->DeleteLocalRef(handler);
+}
+
+static std::string androidPortName(JNIEnv *env, unsigned int portNumber) {
+  if (portNumber >= androidMidiDevices.size()) {
+    LOGE("androidPortName: Invalid port number");
+    return "";
+  }
+
+  // String deviceName = devInfo.getProperties().getString(MidiDeviceInfo.PROPERTY_NAME);
+  auto deviceInfoClass = env->FindClass("android/media/midi/MidiDeviceInfo");
+  auto getPropsMethod = env->GetMethodID(deviceInfoClass, "getProperties", "()Landroid/os/Bundle;");
+  auto bundle = env->CallObjectMethod(androidMidiDevices[portNumber], getPropsMethod);
+
+  auto bundleClass = env->FindClass("android/os/Bundle");
+  auto getStringMethod = env->GetMethodID(bundleClass, "getString", "(Ljava/lang/String;)Ljava/lang/String;");
+  auto jPortName = (jstring) env->CallObjectMethod(bundle, getStringMethod, env->NewStringUTF("name"));
+
+  auto portNameChars = env->GetStringUTFChars(jPortName, NULL);
+  auto name = std::string(portNameChars);
+  env->ReleaseStringUTFChars(jPortName, portNameChars);
+
+  return name;
+}
+
+MidiInAndroid :: MidiInAndroid( const std::string &clientName, unsigned int queueSizeLimit )
+  : MidiInApi( queueSizeLimit ) {
+  MidiInAndroid::initialize( clientName );
+}
+
+void MidiInAndroid :: initialize( const std::string& clientName ) {
+  androidClientName = clientName;
+  connect();
+}
+
+void MidiInAndroid :: connect() {
+  auto env = androidGetThreadEnv();
+  auto context = androidGetContext(env);
+  androidRefreshMidiDevices(env, context, true);
+
+  env->DeleteLocalRef(context);
+}
+
+MidiInAndroid :: ~MidiInAndroid() {
+  auto env = androidGetThreadEnv();
+
+  // Remove all midi devices
+  for (jobject jMidiDevice : androidMidiDevices) {
+    env->DeleteGlobalRef(jMidiDevice);
+  }
+  androidMidiDevices.clear();
+
+  androidClientName = "";
+}
+
+void MidiInAndroid :: openPort(unsigned int portNumber, const std::string &portName) {
+  if (portNumber >= androidMidiDevices.size()) {
+    errorString_ = "MidiInAndroid::openPort: Invalid port number";
+    error( RtMidiError::INVALID_PARAMETER, errorString_ );
+
+    return;
+  }
+
+  if (reading) {
+    errorString_ = "MidiInAndroid::openPort: A port is already open";
+    error( RtMidiError::INVALID_USE, errorString_ );
+
+    return;
+  }
+
+  androidOpenDevice(androidMidiDevices[portNumber], this, false);
+}
+
+void MidiInAndroid :: openVirtualPort(const std::string &portName) {
+  errorString_ = "MidiInAndroid::openVirtualPort: this function is not implemented for the Android API!";
+  error( RtMidiError::WARNING, errorString_ );
+}
+
+unsigned int MidiInAndroid :: getPortCount() {
+  connect();
+  return androidMidiDevices.size();
+}
+
+std::string MidiInAndroid :: getPortName(unsigned int portNumber) {
+  auto env = androidGetThreadEnv();
+  return androidPortName(env, portNumber);
+}
+
+void MidiInAndroid :: closePort() {
+  // Don't try to close a port before it was open
+  if (!reading) {
+    return;
+  }
+
+  reading = false;
+  pthread_join(readThread, NULL);
+
+  AMidiDevice_release(receiveDevice);
+  receiveDevice = NULL;
+  midiOutputPort = NULL;
+}
+
+void MidiInAndroid:: setClientName(const std::string& clientName) {
+  androidClientName = clientName;
+}
+
+void MidiInAndroid :: setPortName(const std::string &portName) {
+  errorString_ = "MidiInAndroid::setPortName: this function is not implemented for the Android API!";
+  error( RtMidiError::WARNING, errorString_ );
+}
+
+void* MidiInAndroid :: pollMidi(void* context) {
+  auto self = (MidiInAndroid*) context;
+  self->reading = true;
+
+  const size_t MAX_BYTES_TO_RECEIVE = 128;
+  uint8_t incomingMessage[MAX_BYTES_TO_RECEIVE];
+
+  while (self->reading) {
+    // AMidiOutputPort_receive is non-blocking, must poll with some sleep
+    usleep(2000);
+    auto ignoreFlags = self->inputData_.ignoreFlags;
+    bool& continueSysex = self->inputData_.continueSysex;
+
+    int32_t opcode;
+    size_t numBytesReceived;
+    int64_t timestamp;
+    ssize_t numMessagesReceived = AMidiOutputPort_receive(
+        self->midiOutputPort, &opcode, incomingMessage, MAX_BYTES_TO_RECEIVE,
+        &numBytesReceived, &timestamp);
+
+    if (numMessagesReceived < 0) {
+      self->errorString_ = "MidiInAndroid::pollMidi: error receiving MIDI data";
+      self->error( RtMidiError::SYSTEM_ERROR, self->errorString_ );
+      self->reading = false;
+      break;
+    }
+
+    switch (incomingMessage[0]) {
+      case 0xF0:
+        // Start of a SysEx message
+        continueSysex = incomingMessage[numBytesReceived - 1] != 0xF7;
+            if (ignoreFlags & 0x01) continue;
+            break;
+      case 0xF1:
+      case 0xF8:
+        // MIDI Time Code or Timing Clock message
+        if (ignoreFlags & 0x02) continue;
+            break;
+      case 0xFE:
+        // Active Sensing message
+        if (ignoreFlags & 0x04) continue;
+            break;
+      default:
+        if (continueSysex) {
+          // Continuation of a SysEx message
+          continueSysex = incomingMessage[numBytesReceived - 1] != 0xF7;
+          if (ignoreFlags & 0x01) continue;
+        }
+            // All other MIDI messages
+    }
+
+    if (numMessagesReceived > 0 && numBytesReceived >= 0) {
+      auto message = self->inputData_.message;
+
+      if (self->inputData_.firstMessage == true) {
+        message.timeStamp = 0.0;
+        self->inputData_.firstMessage = false;
+      } else {
+        message.timeStamp = (timestamp * 0.000001) - self->lastTime;
+      }
+      self->lastTime = (timestamp * 0.000001);
+
+      if (!continueSysex) message.bytes.clear();
+
+      if ( !( ( continueSysex || incomingMessage[0] == 0xF0 ) && ( ignoreFlags & 0x01 ) ) ) {
+        // Unless this is a (possibly continued) SysEx message and we're ignoring SysEx,
+        // copy the event buffer into the MIDI message struct.
+        for (unsigned int i=0; i<numBytesReceived; i++)
+          message.bytes.push_back(incomingMessage[i]);
+      }
+
+      if (!continueSysex) {
+        if (self->inputData_.usingCallback) {
+          auto callback = (RtMidiIn::RtMidiCallback) self->inputData_.userCallback;
+          callback(message.timeStamp, &message.bytes, self->inputData_.userData);
+        } else {
+          if (!self->inputData_.queue.push(message))
+            std::cerr << "\nMidiInAndroid: message queue limit reached!!\n\n";
+        }
+      }
+    }
+  }
+
+  return NULL;
+}
+
+
+//*********************************************************************//
+//  API: Android AMIDI
+//  Class Definitions: MidiOutAndroid
+//*********************************************************************//
+
+
+MidiOutAndroid :: MidiOutAndroid( const std::string &clientName ) : MidiOutApi() {
+  MidiOutAndroid::initialize( clientName );
+}
+
+void MidiOutAndroid :: initialize( const std::string& clientName ) {
+  androidClientName = clientName;
+  connect();
+}
+
+void MidiOutAndroid :: connect() {
+  auto env = androidGetThreadEnv();
+  auto context = androidGetContext(env);
+  androidRefreshMidiDevices(env, context, false);
+
+  env->DeleteLocalRef(context);
+}
+
+MidiOutAndroid :: ~MidiOutAndroid() {
+  auto env = androidGetThreadEnv();
+
+  // Remove all midi devices
+  for (jobject jMidiDevice : androidMidiDevices) {
+    env->DeleteGlobalRef(jMidiDevice);
+  }
+  androidMidiDevices.clear();
+
+  androidClientName = "";
+}
+
+void MidiOutAndroid :: openPort( unsigned int portNumber, const std::string &portName ) {
+  if (portNumber >= androidMidiDevices.size()) {
+    errorString_ = "MidiOutAndroid::openPort: Invalid port number";
+    error( RtMidiError::INVALID_PARAMETER, errorString_ );
+
+    return;
+  }
+
+  androidOpenDevice(androidMidiDevices[portNumber], this, true);
+}
+
+void MidiOutAndroid :: openVirtualPort( const std::string &portName ) {
+  errorString_ = "MidiOutAndroid::openVirtualPort: this function is not implemented for the Android API!";
+  error( RtMidiError::WARNING, errorString_ );
+}
+
+unsigned int MidiOutAndroid :: getPortCount() {
+  connect();
+  return androidMidiDevices.size();
+}
+
+std::string MidiOutAndroid :: getPortName( unsigned int portNumber ) {
+  auto env = androidGetThreadEnv();
+  return androidPortName(env, portNumber);
+}
+
+void MidiOutAndroid :: closePort() {
+  AMidiDevice_release(sendDevice);
+  sendDevice = NULL;
+  midiInputPort = NULL;
+}
+
+void MidiOutAndroid:: setClientName( const std::string& name ) {
+  androidClientName = name;
+}
+
+void MidiOutAndroid :: setPortName( const std::string &portName ) {
+  errorString_ = "MidiOutAndroid::setPortName: this function is not implemented for the Android API!";
+  error( RtMidiError::WARNING, errorString_ );
+}
+
+void MidiOutAndroid :: sendMessage( const unsigned char *message, size_t size ) {
+  AMidiInputPort_send(midiInputPort, (uint8_t*)message, size);
+}
+
+#endif  // __AMIDI__

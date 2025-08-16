@@ -36,7 +36,7 @@ read the \"developer info\" section of README.md for more information.")
 endif()
 
 if (ANDROID)
-  set(USE_RTMIDI_DEFAULT OFF)
+  set(USE_RTMIDI_DEFAULT ON)
   set(WITH_PORTAUDIO_DEFAULT OFF)
   set(USE_BACKWARD_DEFAULT OFF)
   find_library(TERMUX rt)

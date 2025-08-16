@@ -1,5 +1,5 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(RtMidi, 5.0.0, gary.scavone@mcgill.ca, rtmidi)
+AC_INIT(RtMidi, 6.0.0, gary.scavone@mcgill.ca, rtmidi)
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_SRCDIR(RtMidi.cpp)
 AC_CONFIG_FILES([rtmidi-config rtmidi.pc Makefile tests/Makefile doc/Makefile doc/doxygen/Doxyfile])
@@ -18,7 +18,7 @@ AM_INIT_AUTOMAKE([1.14 -Wall -Werror foreign subdir-objects])
 #
 # If any interfaces have been removed since the last public release, then set
 # age to 0.
-m4_define([lt_current], 6)
+m4_define([lt_current], 7)
 m4_define([lt_revision], 0)
 m4_define([lt_age], 0)
 
@@ -45,9 +45,15 @@ AS_IF([test "x$CFLAGS" = "x" ], [override_c=yes], [override_c=no])
 
 # Check version number coherency between RtMidi.h and configure.ac
 AC_MSG_CHECKING([that version numbers are coherent])
-RTMIDI_VERSION=`sed -n 's/#define RTMIDI_VERSION "\(.*\)"/\1/p' $srcdir/RtMidi.h`
+RTMIDI_VERSION_MAJOR=`sed -n 's/#define RTMIDI_VERSION_MAJOR *\([0-9]*\)/\1/p' $srcdir/RtMidi.h`
+RTMIDI_VERSION_MINOR=`sed -n 's/#define RTMIDI_VERSION_MINOR *\([0-9]*\)/\1/p' $srcdir/RtMidi.h`
+RTMIDI_VERSION_PATCH=`sed -n 's/#define RTMIDI_VERSION_PATCH *\([0-9]*\)/\1/p' $srcdir/RtMidi.h`
+RTMIDI_VERSION_BETA=`sed -n 's/#define RTMIDI_VERSION_BETA *\([0-9]*\)/\1/p' $srcdir/RtMidi.h`
 AS_IF(
-   [test "x$RTMIDI_VERSION" != "x$PACKAGE_VERSION"],
+   [test '('   "0$RTMIDI_VERSION_BETA" -le 0 \
+            -o "x$RTMIDI_VERSION_MAJOR.$RTMIDI_VERSION_MINOR.${RTMIDI_VERSION_PATCH}beta${RTMIDI_VERSION_BETA}" != "x$PACKAGE_VERSION" ')' \
+      -a '('   "0$RTMIDI_VERSION_BETA" -ne 0\
+            -o "x$RTMIDI_VERSION_MAJOR.$RTMIDI_VERSION_MINOR.${RTMIDI_VERSION_PATCH}" != "x$PACKAGE_VERSION" ')' ],
    [AC_MSG_FAILURE([testing RTMIDI_VERSION==PACKAGE_VERSION failed, check that RtMidi.h defines RTMIDI_VERSION as "$PACKAGE_VERSION" or that the first line of configure.ac has been updated.])])
 
 # Enable some nice automake features if they are available
@@ -66,6 +72,7 @@ AC_ARG_WITH(core, [AS_HELP_STRING([--with-core], [ choose CoreMIDI API support (
 AC_ARG_WITH(winmm, [AS_HELP_STRING([--with-winmm], [ choose Windows MultiMedia (MM) API support (win32 only)])])
 AC_ARG_WITH(winks, [AS_HELP_STRING([--with-winks], [  choose kernel streaming support (win32 only)])])
 AC_ARG_WITH(webmidi, [AS_HELP_STRING([--with-webmidi], [  choose Web MIDI support])])
+AC_ARG_WITH(android, [AS_HELP_STRING([--with-android], [  choose Android support])])
 
 
 # Checks for programs.
@@ -140,6 +147,7 @@ AS_IF([test "x$with_core"   = "xyes"], [systems="$systems core"])
 AS_IF([test "x$with_winmm"  = "xyes"], [systems="$systems winmm"])
 AS_IF([test "x$with_winks"  = "xyes"], [systems="$systems winks"])
 AS_IF([test "x$with_webmidi" = "xyes"], [systems="$systems webmidi"])
+AS_IF([test "x$with_android" = "xyes"], [systems="$systems android"])
 AS_IF([test "x$with_dummy"  = "xyes"], [systems="$systems dummy"])
 required=" $systems "
 
@@ -162,6 +170,7 @@ AS_IF([test "x$with_winmm"  = "xno"], [systems=`echo $systems|tr ' ' \\\\n|grep 
 AS_IF([test "x$with_winks"  = "xno"], [systems=`echo $systems|tr ' ' \\\\n|grep -v winks`])
 AS_IF([test "x$with_core"   = "xno"], [systems=`echo $systems|tr ' ' \\\\n|grep -v core`])
 AS_IF([test "x$with_webmidi" = "xno"], [systems=`echo $systems|tr ' ' \\\\n|grep -v webmidi`])
+AS_IF([test "x$with_android" = "xno"], [systems=`echo $systems|tr ' ' \\\\n|grep -v android`])
 AS_IF([test "x$with_dummy"  = "xno"], [systems=`echo $systems|tr ' ' \\\\n|grep -v dummy`])
 systems=" `echo $systems|tr \\\\n ' '` "
 
@@ -228,6 +237,10 @@ AS_CASE(["$systems"], [*" webmidi "*], [
   AC_CHECK_HEADERS(emscripten.h,
     [api="$api -D__WEB_MIDI_API__"
      found="$found Web MIDI"])
+])
+
+AS_CASE(["$systems"], [*" android "*], [
+      AC_MSG_ERROR([Android NDK configuration not implemented, use CMAKE])
 ])
 
 AS_IF([test -n "$need_ole32"], [LIBS="-lole32 $LIBS"])
