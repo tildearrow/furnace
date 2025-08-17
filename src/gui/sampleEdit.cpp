@@ -2042,33 +2042,75 @@ void FurnaceGUI::drawSampleEdit() {
         }
         dl->PopClipRect();
 
-        //bool displayLoopHintsNES=false;
+        bool displayLoopHintsNES=false;
         bool displayLoopHintsSNES=false;
-        //bool displayLoopHintsAmiga=false;
+        bool displayLoopHintsAmiga=false;
+        bool displayLoopHintsGBADMA=false;
 
         for (int i=0; i<e->song.systemLen; i++) {
-          /*
           if (e->song.system[i]==DIV_SYSTEM_NES) {
             displayLoopHintsNES=true;
-          }*/
+          }
           if (e->song.system[i]==DIV_SYSTEM_SNES) {
             displayLoopHintsSNES=true;
           }
-          /*if (e->song.system[i]==DIV_SYSTEM_AMIGA) {
+          if (e->song.system[i]==DIV_SYSTEM_AMIGA || e->song.system[i]==DIV_SYSTEM_C219) {
             displayLoopHintsAmiga=true;
-          }*/
+          }
+          if (e->song.system[i]==DIV_SYSTEM_GBA_DMA) {
+            displayLoopHintsGBADMA=true;
+          }
         }
 
         if (displayLoopStartHints) {
+          if (displayLoopHintsNES) {
+            if (sampleZoom<3.0) {
+              for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
+                if (((i+samplePos)&511)==0) {
+                  ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
+                  ImVec2 p2=p1;
+                  p2.y=rectMax.y;
+
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
+                }
+              }
+            }
+          }
           if (displayLoopHintsSNES) {
-            if (sampleZoom<0.5) {
+            if (sampleZoom<0.75) {
               for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
                 if (((i+samplePos)&15)==0) {
                   ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
                   ImVec2 p2=p1;
                   p2.y=rectMax.y;
 
-                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_NEEDLE]));
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
+                }
+              }
+            }
+          }
+          if (displayLoopHintsAmiga) {
+            if (sampleZoom<0.35) {
+              for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
+                if (((i+samplePos)&1)==0) {
+                  ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
+                  ImVec2 p2=p1;
+                  p2.y=rectMax.y;
+
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
+                }
+              }
+            }
+          }
+          if (displayLoopHintsGBADMA) {
+            if (sampleZoom<0.6) {
+              for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
+                if (((i+samplePos)&3)==0) {
+                  ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
+                  ImVec2 p2=p1;
+                  p2.y=rectMax.y;
+
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
                 }
               }
             }
@@ -2076,15 +2118,54 @@ void FurnaceGUI::drawSampleEdit() {
         }
 
         if (displayLoopEndHints) {
+          if (displayLoopHintsNES) {
+            if (sampleZoom<3.0) {
+              for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
+                if (((i+samplePos-8)&128)==0) {
+                  ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
+                  ImVec2 p2=p1;
+                  p2.y=rectMax.y;
+
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
+                }
+              }
+            }
+          }
           if (displayLoopHintsSNES) {
-            if (sampleZoom<0.5) {
+            if (sampleZoom<0.75) {
               for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
                 if (((i+samplePos)&15)==0) {
                   ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
                   ImVec2 p2=p1;
                   p2.y=rectMax.y;
 
-                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_NEEDLE]));
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
+                }
+              }
+            }
+          }
+          if (displayLoopHintsAmiga) {
+            if (sampleZoom<0.35) {
+              for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
+                if (((i+samplePos)&1)==0) {
+                  ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
+                  ImVec2 p2=p1;
+                  p2.y=rectMax.y;
+
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
+                }
+              }
+            }
+          }
+          if (displayLoopHintsGBADMA) {
+            if (sampleZoom<0.6) {
+              for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
+                if (((i+samplePos-sample->loopStart)&15)==0) {
+                  ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
+                  ImVec2 p2=p1;
+                  p2.y=rectMax.y;
+
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
                 }
               }
             }

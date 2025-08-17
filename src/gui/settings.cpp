@@ -4287,6 +4287,7 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_NEEDLE,_("Preview needle"));
           UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_NEEDLE_PLAYING,_("Playing needles"));
           UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_LOOP_POINT,_("Loop markers"));
+          UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_LOOP_HINT,_("Valid loop position hints"));
           UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_CHIP_DISABLED,_("Chip select: disabled"));
           UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_CHIP_ENABLED,_("Chip select: enabled"));
           UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_CHIP_WARNING,_("Chip select: enabled (failure)"));
