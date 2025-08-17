@@ -30,6 +30,7 @@
 #include "guiConst.h"
 #include "sampleUtil.h"
 #include "util.h"
+#include "intConst.h"
 
 #define SWAP_COLOR_ARGB(x) \
   x=(x&0xff00ff00)|((x&0xff)<<16)|((x&0xff0000)>>16);
@@ -1108,12 +1109,22 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::OpenPopup("SResampleOpt");
       }
       if (ImGui::BeginPopupContextItem("SResampleOpt",ImGuiPopupFlags_MouseButtonLeft)) {
-        ImGui::Text(_("Rate"));
-        if (ImGui::InputDouble("##SRRate",&resampleTarget,1.0,50.0,"%g")) {
+        if (ImGui::InputDouble("Rate##SRRate",&resampleTarget,1.0,50.0,"%g")) {
           if (resampleTarget<0) resampleTarget=0;
           if (resampleTarget>96000) resampleTarget=96000;
         }
-        ImGui::SameLine();
+        double factor=resampleTarget/(double)targetRate;
+        unsigned int targetLength=sample->samples*factor;
+        if (ImGui::InputScalar("Length##SRLen",ImGuiDataType_U32,&targetLength, &_ONE, &_SIXTEEN)) {
+          resampleTarget=targetRate/((double)sample->samples/targetLength);
+          if (resampleTarget<0) resampleTarget=0;
+          if (resampleTarget>96000) resampleTarget=96000;
+        }
+        if (ImGui::InputDouble(_("Factor"),&factor,0.125,0.5,"%g")) {
+          resampleTarget=(double)targetRate*factor;
+          if (resampleTarget<0) resampleTarget=0;
+          if (resampleTarget>96000) resampleTarget=96000;
+        }
         if (ImGui::Button("0.5x")) {
           resampleTarget*=0.5;
         }
@@ -1124,12 +1135,6 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::SameLine();
         if (ImGui::Button("2.0x")) {
           resampleTarget*=2.0;
-        }
-        double factor=resampleTarget/(double)targetRate;
-        if (ImGui::InputDouble(_("Factor"),&factor,0.125,0.5,"%g")) {
-          resampleTarget=(double)targetRate*factor;
-          if (resampleTarget<0) resampleTarget=0;
-          if (resampleTarget>96000) resampleTarget=96000;
         }
         ImGui::Combo(_("Filter"),&resampleStrat,LocalizedComboGetter,resampleStrats,6);
         if (ImGui::Button(_("Resample"))) {
