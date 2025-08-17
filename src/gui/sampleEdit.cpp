@@ -216,6 +216,9 @@ void FurnaceGUI::drawSampleEdit() {
       memset(isMemVisible,0,DIV_MAX_CHIPS*DIV_MAX_SAMPLE_TYPE*sizeof(bool));
       memset(isMemWarning,0,DIV_MAX_CHIPS*DIV_MAX_SAMPLE_TYPE*sizeof(bool));
 
+      bool displayLoopStartHints=false;
+      bool displayLoopEndHints=false;
+
       for (int i=0; i<e->song.systemLen; i++) {
         DivDispatch* dispatch=e->getDispatch(i);
 
@@ -753,8 +756,12 @@ void FurnaceGUI::drawSampleEdit() {
           if (ImGui::IsItemActive()) {
             keepLoopAlive=true;
             sampleCheckLoopStart=false;
+            displayLoopStartHints=true;
           } else {
             sampleCheckLoopStart=true;
+          }
+          if (ImGui::IsItemHovered()) {
+            displayLoopStartHints=true;
           }
           if (ImGui::IsItemHovered() && (!warnLoopPos.empty() || (!warnLoopStart.empty() && sampleCheckLoopStart) || sample->depth==DIV_SAMPLE_DEPTH_BRR)) {
             if (ImGui::BeginTooltip()) {
@@ -792,8 +799,12 @@ void FurnaceGUI::drawSampleEdit() {
           if (ImGui::IsItemActive()) {
             keepLoopAlive=true;
             sampleCheckLoopEnd=false;
+            displayLoopEndHints=true;
           } else {
             sampleCheckLoopEnd=true;
+          }
+          if (ImGui::IsItemHovered()) {
+            displayLoopEndHints=true;
           }
           if (ImGui::IsItemHovered() && (!warnLoopPos.empty() || (!warnLoopEnd.empty() && sampleCheckLoopEnd) || sample->depth==DIV_SAMPLE_DEPTH_BRR)) {
             if (ImGui::BeginTooltip()) {
@@ -2030,6 +2041,14 @@ void FurnaceGUI::drawSampleEdit() {
           }
         }
         dl->PopClipRect();
+
+        if (displayLoopStartHints) {
+          dl->AddText(ImVec2(minArea.x,minArea.y),0xffffffff,"Loop start hints.");
+        }
+
+        if (displayLoopEndHints) {
+          dl->AddText(ImVec2(minArea.x,minArea.y),0xffffffff,"Loop end hints.");
+        }
 
         if (drawSelection) {
           int start=sampleSelStart;
