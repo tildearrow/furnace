@@ -80,6 +80,13 @@ const double timeMultipliers[13]={
      } \
    }
 
+#define EXACT_2RATES(_name,_x,_y) \
+   if (e->isPreviewingSample()) { \
+     if (((int)e->getSamplePreviewRate()!=(int)(_x)) || (int)e->getSamplePreviewRate()!=(int)(_y)) { \
+       SAMPLE_WARN(warnRate,fmt::sprintf(_("%s: sample rate must be %d or %d"),_name,(int)(_x),(int)(_y))); \
+     } \
+   }
+
 void FurnaceGUI::drawSampleEdit() {
   if (nextWindow==GUI_WINDOW_SAMPLE_EDIT) {
     sampleEditOpen=true;
@@ -282,7 +289,7 @@ void FurnaceGUI::drawSampleEdit() {
               SAMPLE_WARN(warnLoop,_("X1-010: samples can't loop"));
             }
             if (sample->samples>131072) {
-              SAMPLE_WARN(warnLength,_("X1-010: maximum sample length is 131072"));
+              SAMPLE_WARN(warnLength,_("X1-010: maximum bankswitched sample length is 131072"));
             }
             break;
           case DIV_SYSTEM_GA20:
@@ -304,6 +311,9 @@ void FurnaceGUI::drawSampleEdit() {
                 SAMPLE_WARN(warnLength,_("YM2608: sample length will be padded to multiple of 512"));
               }
             }
+            if (dispatch!=NULL) {
+              MAX_RATE("YM2608",dispatch->chipClock/144);
+            }
             break;
           case DIV_SYSTEM_YM2610_FULL:
           case DIV_SYSTEM_YM2610_FULL_EXT:
@@ -311,9 +321,12 @@ void FurnaceGUI::drawSampleEdit() {
           case DIV_SYSTEM_YM2610B:
           case DIV_SYSTEM_YM2610B_EXT:
             if (sample->loop) {
-              SAMPLE_WARN(warnLoop,_("YM2610: ADPCM-A samples can't loop"));
-              if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
-                SAMPLE_WARN(warnLoopPos,_("YM2610: loop point ignored on ADPCM-B (may only loop entire sample)"));
+              if (sample->depth==DIV_SAMPLE_DEPTH_ADPCM_A) {
+                SAMPLE_WARN(warnLoop,_("YM2610: ADPCM-A samples can't loop"));
+              } else {
+                if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
+                  SAMPLE_WARN(warnLoopPos,_("YM2610: loop point ignored on ADPCM-B (may only loop entire sample)"));
+                }
               }
               if (sample->samples&511) {
                 SAMPLE_WARN(warnLength,_("YM2610: sample length will be padded to multiple of 512"));
@@ -323,7 +336,11 @@ void FurnaceGUI::drawSampleEdit() {
               SAMPLE_WARN(warnLength,_("YM2610: maximum ADPCM-A sample length is 2097152"));
             }
             if (dispatch!=NULL) {
-              EXACT_RATE("YM2610 (ADPCM-A)",dispatch->chipClock/432);
+              if (sample->depth==DIV_SAMPLE_DEPTH_ADPCM_A) {
+                EXACT_RATE("YM2610 (ADPCM-A)",dispatch->chipClock/432);
+              } else {
+                MAX_RATE("YM2610 (ADPCM-B)",dispatch->chipClock/144);
+              }
             }
             break;
           case DIV_SYSTEM_Y8950:
@@ -334,6 +351,9 @@ void FurnaceGUI::drawSampleEdit() {
               if (sample->samples&511) {
                 SAMPLE_WARN(warnLength,_("Y8950: sample length will be padded to multiple of 512"));
               }
+            }
+            if (dispatch!=NULL) {
+              MAX_RATE("Y8950",dispatch->chipClock/72);
             }
             break;
           case DIV_SYSTEM_AMIGA:
@@ -358,7 +378,12 @@ void FurnaceGUI::drawSampleEdit() {
               SAMPLE_WARN(warnLength,_("SegaPCM: maximum sample length is 65280"));
             }
             if (dispatch!=NULL) {
-              MAX_RATE("SegaPCM",dispatch->chipClock/256);
+              MAX_RATE("SegaPCM",dispatch->rate);
+            }
+            break;
+          case DIV_SYSTEM_K007232:
+            if (sample->samples>131071) {
+              SAMPLE_WARN(warnLength,_("K007232: maximum sample length is 131071"));
             }
             break;
           case DIV_SYSTEM_K053260:
@@ -402,6 +427,9 @@ void FurnaceGUI::drawSampleEdit() {
             if (sample->samples>129024) {
               SAMPLE_WARN(warnLength,_("MSM6295: maximum bankswitched sample length is 129024"));
             }
+            if (dispatch!=NULL) {
+              EXACT_2RATES("MSM6295",dispatch->chipClock/165,dispatch->chipClock/132);
+            }
             break;
           case DIV_SYSTEM_GBA_DMA:
             if (sample->loop) {
@@ -435,6 +463,96 @@ void FurnaceGUI::drawSampleEdit() {
               SAMPLE_WARN(warnLength,_("Supervision: maximum sample length is 8192"));
             }
             break;
+          case DIV_SYSTEM_YMZ280B:
+            if (sample->depth==DIV_SAMPLE_DEPTH_YMZ_ADPCM) {
+              if (sample->loop) {
+                if (sample->loopStart&1) {
+                  SAMPLE_WARN(warnLoopStart,_("YMZ280B: loop start on ADPCM must be a multiple of 2"));
+                }
+                if (sample->loopEnd&1) {
+                  SAMPLE_WARN(warnLoopEnd,_("YMZ280B: loop end on ADPCM must be a multiple of 2"));
+                }
+              }
+              if (dispatch!=NULL) {
+                MAX_RATE("YMZ280B (ADPCM)",dispatch->rate);
+              }
+            } else {
+              if (dispatch!=NULL) {
+                MAX_RATE("YMZ280B (PCM)",dispatch->chipClock/192);
+              }
+            }
+            break;
+          case DIV_SYSTEM_NDS:
+            switch (sample->depth) {
+              case DIV_SAMPLE_DEPTH_IMA_ADPCM:
+                if (sample->loop) {
+                  if (sample->loopStart&7) {
+                    SAMPLE_WARN(warnLoopStart,_("NDS: loop start on ADPCM must be a multiple of 8"));
+                  }
+                  if (sample->loopEnd&7) {
+                    SAMPLE_WARN(warnLoopEnd,_("NDS: loop end on ADPCM must be a multiple of 8"));
+                  }
+                  if (sample->loopStart>524280) {
+                    SAMPLE_WARN(warnLoopPos,_("NDS: loop cannot be longer than 524280 samples on ADPCM"));
+                  }
+                  if ((sample->loopEnd-sample->loopStart)>33554424) {
+                    SAMPLE_WARN(warnLoopPos,_("NDS: maximum ADPCM loop length is 33554424"));
+                  }
+                } else {
+                  if (sample->samples>33554424) {
+                    SAMPLE_WARN(warnLength,_("NDS: maximum ADPCM sample length is 33554424"));
+                  }
+                }
+                break;
+              case DIV_SAMPLE_DEPTH_8BIT:
+                if (sample->loop) {
+                  if (sample->loopStart&3) {
+                    SAMPLE_WARN(warnLoopStart,_("NDS: loop start on 8 bit PCM must be a multiple of 4"));
+                  }
+                  if (sample->loopEnd&3) {
+                    SAMPLE_WARN(warnLoopEnd,_("NDS: loop end on 8 bit PCM must be a multiple of 4"));
+                  }
+                  if (sample->loopStart>262140) {
+                    SAMPLE_WARN(warnLoopPos,_("NDS: loop cannot be longer than 262140 samples on 8 bit PCM"));
+                  }
+                  if ((sample->loopEnd-sample->loopStart)>16777212) {
+                    SAMPLE_WARN(warnLoopPos,_("NDS: maximum 8 bit PCM loop length is 16777212"));
+                  }
+                } else {
+                  if (sample->samples>16777212) {
+                    SAMPLE_WARN(warnLength,_("NDS: maximum 8 bit PCM sample length is 16777212"));
+                  }
+                }
+                break;
+              case DIV_SAMPLE_DEPTH_16BIT:
+                if (sample->loop) {
+                  if (sample->loopStart&1) {
+                    SAMPLE_WARN(warnLoopStart,_("NDS: loop start on 16 bit PCM must be a multiple of 2"));
+                  }
+                  if (sample->loopEnd&1) {
+                    SAMPLE_WARN(warnLoopEnd,_("NDS: loop end on 16 bit PCM must be a multiple of 2"));
+                  }
+                  if (sample->loopStart>131070) {
+                    SAMPLE_WARN(warnLoopPos,_("NDS: loop cannot be longer than 131070 samples on 16 bit PCM"));
+                  }
+                  if ((sample->loopEnd-sample->loopStart)>8388606) {
+                    SAMPLE_WARN(warnLoopPos,_("NDS: maximum 16 bit PCM loop length is 8388606"));
+                  }
+                } else {
+                  if (sample->samples>8388606) {
+                    SAMPLE_WARN(warnLength,_("NDS: maximum 16 bit PCM sample length is 8388606"));
+                  }
+                }
+                break;
+              default:
+                break;
+            }
+            break;
+          case DIV_SYSTEM_ES5506:
+            if (sample->samples>2097024) {
+              SAMPLE_WARN(warnLength,_("ES5506: maximum sample length is 2097024"));
+            }
+            break;
           default:
             break;
         }
@@ -464,7 +582,7 @@ void FurnaceGUI::drawSampleEdit() {
       for (int i=0; i<DIV_MAX_CHIPS; i++) {
         if (isChipVisible[i]) selColumns++;
       }
-      
+
       int targetRate=sampleCompatRate?sample->rate:sample->centerRate;
 
       if (ImGui::BeginTable("SampleProps",(selColumns>1)?4:3,ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_BordersV|ImGuiTableFlags_BordersOuterH)) {
@@ -2044,6 +2162,8 @@ void FurnaceGUI::drawSampleEdit() {
 
         bool displayLoopHintsNES=false;
         bool displayLoopHintsSNES=false;
+        bool displayLoopHintsNDSA=false;
+        bool displayLoopHintsNDS8=false;
         bool displayLoopHintsAmiga=false;
         bool displayLoopHintsGBADMA=false;
 
@@ -2054,7 +2174,16 @@ void FurnaceGUI::drawSampleEdit() {
           if (e->song.system[i]==DIV_SYSTEM_SNES) {
             displayLoopHintsSNES=true;
           }
-          if (e->song.system[i]==DIV_SYSTEM_AMIGA || e->song.system[i]==DIV_SYSTEM_C219) {
+          if (((e->song.system[i]==DIV_SYSTEM_NDS) && (sample->depth==DIV_SAMPLE_DEPTH_IMA_ADPCM))) {
+            displayLoopHintsNDSA=true;
+          }
+          if (((e->song.system[i]==DIV_SYSTEM_NDS) && (sample->depth==DIV_SAMPLE_DEPTH_8BIT))) {
+            displayLoopHintsNDS8=true;
+          }
+          if (e->song.system[i]==DIV_SYSTEM_AMIGA ||
+            e->song.system[i]==DIV_SYSTEM_C219 ||
+            ((e->song.system[i]==DIV_SYSTEM_YMZ280B) && (sample->depth==DIV_SAMPLE_DEPTH_YMZ_ADPCM)) ||
+            ((e->song.system[i]==DIV_SYSTEM_NDS) && (sample->depth==DIV_SAMPLE_DEPTH_16BIT))) {
             displayLoopHintsAmiga=true;
           }
           if (e->song.system[i]==DIV_SYSTEM_GBA_DMA) {
@@ -2080,6 +2209,32 @@ void FurnaceGUI::drawSampleEdit() {
             if (sampleZoom<0.75) {
               for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
                 if (((i+samplePos)&15)==0) {
+                  ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
+                  ImVec2 p2=p1;
+                  p2.y=rectMax.y;
+
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
+                }
+              }
+            }
+          }
+          if (displayLoopHintsNDSA) {
+            if (sampleZoom<0.5) {
+              for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
+                if (((i+samplePos)&7)==0) {
+                  ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
+                  ImVec2 p2=p1;
+                  p2.y=rectMax.y;
+
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
+                }
+              }
+            }
+          }
+          if (displayLoopHintsNDS8) {
+            if (sampleZoom<0.375) {
+              for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
+                if (((i+samplePos)&3)==0) {
                   ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
                   ImVec2 p2=p1;
                   p2.y=rectMax.y;
