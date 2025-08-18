@@ -1634,7 +1634,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (availY>0) {
               for (int j=0; j<availX; j++) {
                 int scaledPos=samplePos+(j*sampleZoom);
-                if (sample->isLoopable() && (scaledPos>=sample->loopStart && scaledPos<=sample->loopEnd)) {
+                if (sample->isLoopable() && (scaledPos>=sample->loopStart && scaledPos<sample->loopEnd)) {
                   data[ij++]=bgColorLoop;
                 } else {
                   data[ij++]=bgColor;
@@ -2090,7 +2090,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
           }
           if (displayLoopHintsAmiga) {
-            if (sampleZoom<0.35) {
+            if (sampleZoom<0.25) {
               for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
                 if (((i+samplePos)&1)==0) {
                   ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
@@ -2145,7 +2145,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
           }
           if (displayLoopHintsAmiga) {
-            if (sampleZoom<0.35) {
+            if (sampleZoom<0.25) {
               for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
                 if (((i+samplePos)&1)==0) {
                   ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
