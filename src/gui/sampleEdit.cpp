@@ -1110,19 +1110,20 @@ void FurnaceGUI::drawSampleEdit() {
       }
       if (ImGui::BeginPopupContextItem("SResampleOpt",ImGuiPopupFlags_MouseButtonLeft)) {
         if (ImGui::InputDouble("Rate##SRRate",&resampleTarget,1.0,50.0,"%g")) {
-          if (resampleTarget<0) resampleTarget=0;
+          if (resampleTarget<1) resampleTarget=1;
           if (resampleTarget>96000) resampleTarget=96000;
         }
         double factor=resampleTarget/(double)targetRate;
         unsigned int targetLength=sample->samples*factor;
         if (ImGui::InputScalar("Length##SRLen",ImGuiDataType_U32,&targetLength, &_ONE, &_SIXTEEN)) {
-          resampleTarget=targetRate/((double)sample->samples/targetLength);
-          if (resampleTarget<0) resampleTarget=0;
+          if (targetLength<1) targetLength=1;
+          resampleTarget=targetRate*targetLength/(double)sample->samples;
+          if (resampleTarget<1) resampleTarget=1;
           if (resampleTarget>96000) resampleTarget=96000;
         }
         if (ImGui::InputDouble(_("Factor"),&factor,0.125,0.5,"%g")) {
           resampleTarget=(double)targetRate*factor;
-          if (resampleTarget<0) resampleTarget=0;
+          if (resampleTarget<1) resampleTarget=1;
           if (resampleTarget>96000) resampleTarget=96000;
         }
         if (ImGui::Button("0.5x")) {
