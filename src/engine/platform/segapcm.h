@@ -80,9 +80,9 @@ class DivPlatformSegaPCM: public DivDispatch {
     short oldWrites[256];
     short pendingWrites[256];
 
-    unsigned int sampleOffSegaPCM[256];
-    unsigned char sampleEndSegaPCM[256];
-    bool sampleLoaded[256];
+    unsigned int* sampleOffSegaPCM;
+    unsigned char* sampleEndSegaPCM;
+    bool* sampleLoaded;
 
     DivMemoryComposition memCompo;
   
@@ -119,6 +119,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void setChipModel(bool isDiscrete);
     void quit();
+    DivPlatformSegaPCM();
     ~DivPlatformSegaPCM();
 };
 #endif

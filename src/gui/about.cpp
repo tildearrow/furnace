@@ -35,12 +35,14 @@ const char* aboutLine[]={
   _N("-- program --"),
   "tildearrow",
   _N("A M 4 N (intro tune)"),
+  "AArt1256",
   "Adam Lederer",
   "akumanatt",
   "asiekierka",
   "cam900",
   "djtuBIG-MaliceX",
   "Eknous",
+  "host12prog",
   "Kagamiin~",
   "laoo",
   "LTVA",
@@ -71,6 +73,7 @@ const char* aboutLine[]={
   _N("-- localization/translation team --"),
   "Bahasa Indonesia: ZoomTen (Zumi)",
   "Español: CrimsonZN, ThaCuber, tildearrow",
+  "Français: fouinne44",
   "Հայերեն: Eknous",
   "한국어: Heemin, leejh20, Nicknamé",
   "Nederlands: Lunathir",
@@ -90,6 +93,7 @@ const char* aboutLine[]={
   "Lumigado",
   "Lunathir",
   "plane",
+  "skyfloogle",
   "TheEssem",
   "",
   _N("-- Metal backend test team --"),
@@ -260,19 +264,19 @@ void FurnaceGUI::drawAbout() {
       double posX=(canvasW/2.0)+(sin(double(i)*0.5+double(aboutScroll)/(90.0*dpiScale))*120*dpiScale)-(ImGui::CalcTextSize(nextLine).x*0.5);
       double posY=(canvasH-aboutScroll+42*i*dpiScale);
       if (posY<-80*dpiScale || posY>canvasH) continue;
-      dl->AddText(bigFont,bigFont->FontSize,
+      dl->AddText(bigFont,BIG_FONT_SIZE,
                   ImVec2(posX+dpiScale,posY+dpiScale),
                   0xff000000,nextLine);
-      dl->AddText(bigFont,bigFont->FontSize,
+      dl->AddText(bigFont,BIG_FONT_SIZE,
                   ImVec2(posX+dpiScale,posY-dpiScale),
                   0xff000000,nextLine);
-      dl->AddText(bigFont,bigFont->FontSize,
+      dl->AddText(bigFont,BIG_FONT_SIZE,
                   ImVec2(posX-dpiScale,posY+dpiScale),
                   0xff000000,nextLine);
-      dl->AddText(bigFont,bigFont->FontSize,
+      dl->AddText(bigFont,BIG_FONT_SIZE,
                   ImVec2(posX-dpiScale,posY-dpiScale),
                   0xff000000,nextLine);
-      dl->AddText(bigFont,bigFont->FontSize,
+      dl->AddText(bigFont,BIG_FONT_SIZE,
                   ImVec2(posX,posY),
                   0xffffffff,nextLine);
     }

@@ -197,6 +197,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
       extSys(isExtSys),
       fbAllOps(false),
       useCombo(0) {}
+    virtual ~DivPlatformOPN() {}
   public:
     void setCombo(unsigned char combo) {
       useCombo=combo;

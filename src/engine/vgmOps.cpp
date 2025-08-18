@@ -195,6 +195,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       case DIV_SYSTEM_YM2610_EXT:
       case DIV_SYSTEM_YM2610_FULL_EXT:
       case DIV_SYSTEM_YM2610B_EXT:
+      case DIV_SYSTEM_YM2610_CSM:
+      case DIV_SYSTEM_YM2610B_CSM:
         // TODO: YM2610B channels 1 and 4 and ADPCM-B
         for (int i=0; i<2; i++) { // set SL and RR to highest
           w->writeC(8|baseAddr1);
@@ -271,6 +273,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         break;
       case DIV_SYSTEM_YM2203:
       case DIV_SYSTEM_YM2203_EXT:
+      case DIV_SYSTEM_YM2203_CSM:
         for (int i=0; i<3; i++) { // set SL and RR to highest
           w->writeC(5|baseAddr1);
           w->writeC(0x80+i);
@@ -768,8 +771,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
               pendingFreq[streamID]=write.val;
             } else {
               DivSample* sample=song.sample[write.val];
-              int pos=sampleOff8[write.val&0xff]+setPos[streamID];
-              int len=(int)sampleLen8[write.val&0xff]-setPos[streamID];
+              int pos=sampleOff8[write.val&0x7fff]+setPos[streamID];
+              int len=(int)sampleLen8[write.val&0x7fff]-setPos[streamID];
 
               if (len<0) len=0;
 
@@ -811,8 +814,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           loopFreq[streamID]=realFreq;
           if (pendingFreq[streamID]!=-1) {
             DivSample* sample=song.sample[pendingFreq[streamID]];
-            int pos=sampleOff8[pendingFreq[streamID]&0xff]+setPos[streamID];
-            int len=(int)sampleLen8[pendingFreq[streamID]&0xff]-setPos[streamID];
+            int pos=sampleOff8[pendingFreq[streamID]&0x7fff]+setPos[streamID];
+            int len=(int)sampleLen8[pendingFreq[streamID]&0x7fff]-setPos[streamID];
 
             if (len<0) len=0;
 
@@ -863,8 +866,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           if (playingSample[streamID]!=-1 && pendingFreq[streamID]==-1) {
             // play the sample again
             DivSample* sample=song.sample[playingSample[streamID]];
-            int pos=sampleOff8[playingSample[streamID]&0xff]+setPos[streamID];
-            int len=(int)sampleLen8[playingSample[streamID]&0xff]-setPos[streamID];
+            int pos=sampleOff8[playingSample[streamID]&0x7fff]+setPos[streamID];
+            int len=(int)sampleLen8[playingSample[streamID]&0x7fff]-setPos[streamID];
 
             if (len<0) len=0;
 
@@ -985,6 +988,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
     case DIV_SYSTEM_YM2610_EXT:
     case DIV_SYSTEM_YM2610_FULL_EXT:
     case DIV_SYSTEM_YM2610B_EXT:
+    case DIV_SYSTEM_YM2610_CSM:
+    case DIV_SYSTEM_YM2610B_CSM:
       switch (write.addr>>8) {
         case 0: // port 0
           w->writeC(8|baseAddr1);
@@ -1000,12 +1005,14 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       break;
     case DIV_SYSTEM_YM2203:
     case DIV_SYSTEM_YM2203_EXT:
+    case DIV_SYSTEM_YM2203_CSM:
       w->writeC(5|baseAddr1);
       w->writeC(write.addr&0xff);
       w->writeC(write.val);
       break;
     case DIV_SYSTEM_YM2608:
     case DIV_SYSTEM_YM2608_EXT:
+    case DIV_SYSTEM_YM2608_CSM:
       switch (write.addr>>8) {
         case 0: // port 0
           w->writeC(6|baseAddr1);
@@ -1330,9 +1337,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   int loopTickSong=-1;
   int songTick=0;
 
-  unsigned int sampleOff8[256];
-  unsigned int sampleLen8[256];
-  unsigned int sampleOffSegaPCM[256];
+  unsigned int* sampleOff8=new unsigned int[32768];
+  unsigned int* sampleLen8=new unsigned int[32768];
+  unsigned int* sampleOffSegaPCM=new unsigned int[32768];
 
   SafeWriter* w=new SafeWriter;
   w->init();
@@ -1537,6 +1544,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_YM2610_EXT:
       case DIV_SYSTEM_YM2610_FULL_EXT:
       case DIV_SYSTEM_YM2610B_EXT:
+      case DIV_SYSTEM_YM2610_CSM:
+      case DIV_SYSTEM_YM2610B_CSM:
         if (!hasOPNB) {
           hasOPNB=disCont[i].dispatch->chipClock;
           CHIP_VOL(8,1.0);
@@ -1552,7 +1561,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           hasOPNB|=0x40000000;
           howManyChips++;
         }
-        if (((song.system[i]==DIV_SYSTEM_YM2610B) || (song.system[i]==DIV_SYSTEM_YM2610B_EXT)) && (!(hasOPNB&0x80000000))) { // YM2610B flag
+        if (((song.system[i]==DIV_SYSTEM_YM2610B) || (song.system[i]==DIV_SYSTEM_YM2610B_EXT) || (song.system[i]==DIV_SYSTEM_YM2610B_CSM)) && (!(hasOPNB&0x80000000))) { // YM2610B flag
           hasOPNB|=0x80000000;
         }
         break;
@@ -1648,6 +1657,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         break;
       case DIV_SYSTEM_YM2203:
       case DIV_SYSTEM_YM2203_EXT:
+      case DIV_SYSTEM_YM2203_CSM:
         if (!hasOPN) {
           hasOPN=disCont[i].dispatch->chipClock;
           willExport[i]=true;
@@ -1664,6 +1674,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         break;
       case DIV_SYSTEM_YM2608:
       case DIV_SYSTEM_YM2608_EXT:
+      case DIV_SYSTEM_YM2608_CSM:
         if (!hasOPNA) {
           hasOPNA=disCont[i].dispatch->chipClock;
           CHIP_VOL(7,1.0);
@@ -2212,9 +2223,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   unsigned int songOff=w->tell();
 
   // initialize sample offsets
-  memset(sampleOff8,0,256*sizeof(unsigned int));
-  memset(sampleLen8,0,256*sizeof(unsigned int));
-  memset(sampleOffSegaPCM,0,256*sizeof(unsigned int));
+  memset(sampleOff8,0,32768*sizeof(unsigned int));
+  memset(sampleLen8,0,32768*sizeof(unsigned int));
+  memset(sampleOffSegaPCM,0,32768*sizeof(unsigned int));
 
   // write samples
   unsigned int sampleSeek=0;
@@ -2977,6 +2988,10 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   extValuePresent=false;
 
   logI("%d register writes total.",writeCount);
+
+  delete[] sampleOff8;
+  delete[] sampleLen8;
+  delete[] sampleOffSegaPCM;
 
   BUSY_END;
   return w;

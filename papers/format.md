@@ -397,7 +397,7 @@ size | description
   1  | legacy "always set volume" behavior (>=191)
   1  | legacy sample offset effect (>=200)
  --- | **speed pattern of first song** (>=139)
-  1  | length of speed pattern (fail if this is lower than 0 or higher than 16)
+  1  | length of speed pattern (fail if this is lower than 1 or higher than 16)
  16  | speed pattern (this overrides speed 1 and speed 2 settings)
  --- | **groove list** (>=139)
   1  | number of entries
@@ -478,7 +478,7 @@ size | description
  S?? | channel short names
      | - same as above
  --- | **speed pattern** (>=139)
-  1  | length of speed pattern (fail if this is lower than 0 or higher than 16)
+  1  | length of speed pattern (fail if this is lower than 1 or higher than 16)
  16  | speed pattern (this overrides speed 1 and speed 2 settings)
 ```
 

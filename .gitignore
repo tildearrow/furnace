@@ -1,6 +1,7 @@
 .vscode/
 build/
 clangbuild/
+oldwinbuild/
 nosdl/
 release/
 t/

@@ -54,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev231"
-#define DIV_ENGINE_VERSION 231
+#define DIV_VERSION "dev233"
+#define DIV_ENGINE_VERSION 233
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -577,7 +577,7 @@ class DivEngine {
   DivWorkPool* renderPool;
 
   // MIDI stuff
-  std::function<int(const TAMidiMessage&)> midiCallback=[](const TAMidiMessage&) -> int {return -2;};
+  std::function<int(const TAMidiMessage&)> midiCallback=[](const TAMidiMessage&) -> int {return -3;};
 
   void processRowPre(int i);
   void processRow(int i, bool afterDelay);
@@ -675,6 +675,8 @@ class DivEngine {
   friend class DivExportSAPR;
   friend class DivExportTiuna;
   friend class DivExportZSM;
+  friend class DivExportiPod;
+  friend class DivExportGRUB;
 
   public:
     DivSong song;
@@ -1336,7 +1338,7 @@ class DivEngine {
     void setMidiVolExp(float value);
 
     // set MIDI input callback
-    // if the specified function returns -2, note feedback will be inhibited.
+    // if the specified function returns -3, note feedback will be inhibited.
     void setMidiCallback(std::function<int(const TAMidiMessage&)> what);
 
     // send MIDI message
