@@ -937,6 +937,7 @@ src/gui/sysEx.cpp
 src/gui/sysManager.cpp
 src/gui/sysMiscInfo.cpp
 src/gui/sysPicker.cpp
+src/gui/tuner.cpp
 src/gui/tutorial.cpp
 src/gui/userPresets.cpp
 src/gui/util.cpp

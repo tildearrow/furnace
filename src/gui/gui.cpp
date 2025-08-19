@@ -4986,7 +4986,7 @@ bool FurnaceGUI::loop() {
       MEASURE(compatFlags,drawCompatFlags());
       MEASURE(piano,drawPiano());
       MEASURE(notes,drawNotes());
-      MEASURE(tuner, drawTuner());
+      MEASURE(tuner,drawTuner());
       MEASURE(channels,drawChannels());
       MEASURE(patManager,drawPatManager());
       MEASURE(sysManager,drawSysManager());
@@ -8067,7 +8067,7 @@ void FurnaceGUI::syncState() {
   pianoOpen=e->getConfBool("pianoOpen",false);
 #endif
   notesOpen=e->getConfBool("notesOpen",false);
-  tunerOpen = e->getConfBool("tunerOpen", false);
+  tunerOpen=e->getConfBool("tunerOpen",false);
   channelsOpen=e->getConfBool("channelsOpen",false);
   patManagerOpen=e->getConfBool("patManagerOpen",false);
   sysManagerOpen=e->getConfBool("sysManagerOpen",false);
@@ -8226,7 +8226,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("compatFlagsOpen",compatFlagsOpen);
   conf.set("pianoOpen",pianoOpen);
   conf.set("notesOpen",notesOpen);
-  conf.set("tunerOpen", tunerOpen);
+  conf.set("tunerOpen",tunerOpen);
   conf.set("channelsOpen",channelsOpen);
   conf.set("patManagerOpen",patManagerOpen);
   conf.set("sysManagerOpen",sysManagerOpen);

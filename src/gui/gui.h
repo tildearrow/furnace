@@ -2934,7 +2934,7 @@ class FurnaceGUI {
   void drawCompatFlags();
   void drawPiano();
   void drawNotes(bool asChild=false);
-  void drawTuner(bool asChild=false);
+  void drawTuner();
   void drawChannels();
   void drawPatManager();
   void drawSysManager();
