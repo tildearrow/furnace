@@ -1111,7 +1111,7 @@ void FurnaceGUI::drawSampleEdit() {
       if (ImGui::BeginPopupContextItem("SResampleOpt",ImGuiPopupFlags_MouseButtonLeft)) {
         if (ImGui::InputDouble("Rate##SRRate",&resampleTarget,1.0,50.0,"%g")) {
           if (resampleTarget<100) resampleTarget=100;
-          if (resampleTarget>96000) resampleTarget=96000;
+          if (resampleTarget>384000) resampleTarget=384000;
         }
         double factor=resampleTarget/(double)targetRate;
         unsigned int targetLength=sample->samples*factor;
@@ -1119,17 +1119,17 @@ void FurnaceGUI::drawSampleEdit() {
           if (targetLength<1) targetLength=1;
           resampleTarget=targetRate*targetLength/(double)sample->samples;
           if (resampleTarget<100) resampleTarget=100;
-          if (resampleTarget>96000) resampleTarget=96000;
+          if (resampleTarget>384000) resampleTarget=384000;
         }
         if (ImGui::InputDouble(_("Factor"),&factor,0.125,0.5,"%g")) {
           resampleTarget=(double)targetRate*factor;
           if (resampleTarget<100) resampleTarget=100;
-          if (resampleTarget>96000) resampleTarget=96000;
+          if (resampleTarget>384000) resampleTarget=384000;
         }
         if (ImGui::Button("0.5x")) {
           resampleTarget*=0.5;
           if (resampleTarget<100) resampleTarget=100;
-          if (resampleTarget>96000) resampleTarget=96000;
+          if (resampleTarget>384000) resampleTarget=384000;
         }
         ImGui::SameLine();
         if (ImGui::Button("==")) {
@@ -1139,7 +1139,7 @@ void FurnaceGUI::drawSampleEdit() {
         if (ImGui::Button("2.0x")) {
           resampleTarget*=2.0;
           if (resampleTarget<100) resampleTarget=100;
-          if (resampleTarget>96000) resampleTarget=96000;
+          if (resampleTarget>384000) resampleTarget=384000;
         }
         ImGui::Combo(_("Filter"),&resampleStrat,LocalizedComboGetter,resampleStrats,6);
         if (ImGui::Button(_("Resample"))) {
