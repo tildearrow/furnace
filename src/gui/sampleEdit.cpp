@@ -256,12 +256,21 @@ void FurnaceGUI::drawSampleEdit() {
             break;
           case DIV_SYSTEM_QSOUND:
             if (sample->loop) {
-              if (sample->loopEnd-sample->loopStart>32767) {
+              if (sample->depth==DIV_SAMPLE_DEPTH_QSOUND_ADPCM) {
+                SAMPLE_WARN(warnLoop,_("QSound: ADPCM samples can't loop"));
+              } else if (sample->loopEnd-sample->loopStart>32767) {
                 SAMPLE_WARN(warnLoopPos,_("QSound: loop cannot be longer than 32767 samples"));
               }
             }
-            if (sample->samples>65535) {
-              SAMPLE_WARN(warnLength,"QSound: maximum sample length is 65535");
+            if (sample->depth==DIV_SAMPLE_DEPTH_QSOUND_ADPCM) {
+              if (sample->samples>131070) {
+                SAMPLE_WARN(warnLength,"QSound: maximum ADPCM sample length is 131070");
+              }
+              if (dispatch!=NULL) {
+                EXACT_RATE("QSound (ADPCM)",dispatch->chipClock/7488.0);
+              }
+            } else if (sample->samples>65535) {
+              SAMPLE_WARN(warnLength,"QSound: maximum PCM sample length is 65535");
             }
             break;
           case DIV_SYSTEM_NES: {
