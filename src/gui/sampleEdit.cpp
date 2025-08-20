@@ -503,7 +503,7 @@ void FurnaceGUI::drawSampleEdit() {
                     SAMPLE_WARN(warnLoopEnd,_("NDS: loop end on ADPCM must be a multiple of 8"));
                   }
                   if (sample->loopStart>524280) {
-                    SAMPLE_WARN(warnLoopPos,_("NDS: loop cannot be longer than 524280 samples on ADPCM"));
+                    SAMPLE_WARN(warnLoopPos,_("NDS: loop start cannot be longer than 524280 samples on ADPCM"));
                   }
                   if ((sample->loopEnd-sample->loopStart)>33554424) {
                     SAMPLE_WARN(warnLoopPos,_("NDS: maximum ADPCM loop length is 33554424"));
@@ -523,7 +523,7 @@ void FurnaceGUI::drawSampleEdit() {
                     SAMPLE_WARN(warnLoopEnd,_("NDS: loop end on 8 bit PCM must be a multiple of 4"));
                   }
                   if (sample->loopStart>262140) {
-                    SAMPLE_WARN(warnLoopPos,_("NDS: loop cannot be longer than 262140 samples on 8 bit PCM"));
+                    SAMPLE_WARN(warnLoopPos,_("NDS: loop start cannot be longer than 262140 samples on 8 bit PCM"));
                   }
                   if ((sample->loopEnd-sample->loopStart)>16777212) {
                     SAMPLE_WARN(warnLoopPos,_("NDS: maximum 8 bit PCM loop length is 16777212"));
@@ -543,7 +543,7 @@ void FurnaceGUI::drawSampleEdit() {
                     SAMPLE_WARN(warnLoopEnd,_("NDS: loop end on 16 bit PCM must be a multiple of 2"));
                   }
                   if (sample->loopStart>131070) {
-                    SAMPLE_WARN(warnLoopPos,_("NDS: loop cannot be longer than 131070 samples on 16 bit PCM"));
+                    SAMPLE_WARN(warnLoopPos,_("NDS: loop start cannot be longer than 131070 samples on 16 bit PCM"));
                   }
                   if ((sample->loopEnd-sample->loopStart)>8388606) {
                     SAMPLE_WARN(warnLoopPos,_("NDS: maximum 16 bit PCM loop length is 8388606"));
