@@ -26,6 +26,7 @@
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
 //  2025-XX-XX: Platform: Added support for multiple windows via the ImGuiPlatformIO interface.
+//  2025-07-08: Made ImGui_ImplSDL2_GetContentScaleForWindow(), ImGui_ImplSDL2_GetContentScaleForDisplay() helpers return 1.0f on Emscripten and Android platforms, matching macOS logic. (#8742, #8733)
 //  2025-06-11: Added ImGui_ImplSDL2_GetContentScaleForWindow(SDL_Window* window) and ImGui_ImplSDL2_GetContentScaleForDisplay(int display_index) helper to facilitate making DPI-aware apps.
 //  2025-05-15: [Docking] Add Platform_GetWindowFramebufferScale() handler, to allow varying Retina display density on multiple monitors.
 //  2025-04-09: [Docking] Revert update monitors and work areas information every frame. Only do it on Windows. (#8415, #8558)
@@ -133,6 +134,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 #include <emscripten/em_js.h>
 #endif
+#undef Status // X11 headers are leaking this.
 
 #if SDL_VERSION_ATLEAST(2,0,4) && !defined(__EMSCRIPTEN__) && !defined(__ANDROID__) && !(defined(__APPLE__) && TARGET_OS_IOS) && !defined(__amigaos4__)
 #define SDL_HAS_CAPTURE_AND_GLOBAL_MOUSE    1
@@ -838,7 +840,7 @@ float ImGui_ImplSDL2_GetContentScaleForWindow(SDL_Window* window)
 float ImGui_ImplSDL2_GetContentScaleForDisplay(int display_index)
 {
 #if SDL_HAS_PER_MONITOR_DPI
-#ifndef __APPLE__
+#if !defined(__APPLE__) && !defined(__EMSCRIPTEN__) && !defined(__ANDROID__)
     float dpi = 0.0f;
     if (SDL_GetDisplayDPI(display_index, &dpi, nullptr, nullptr) == 0)
         return dpi / 96.0f;
@@ -1013,6 +1015,11 @@ static void ImGui_ImplSDL2_GetWindowSizeAndFramebufferScale(SDL_Window* window, 
     // tildearrow: TODO: good idea?
     if (out_framebuffer_scale != nullptr && w > 0 && h > 0)
         *out_framebuffer_scale = (w > 0 && h > 0) ? ImVec2((float)display_w / w, (float)display_h / h) : ImVec2(1.0f, 1.0f);
+
+    *out_w=w;
+    *out_h=h;
+    *out_display_w=display_w;
+    *out_display_h=display_h;
 }
 
 void ImGui_ImplSDL2_NewFrame()
@@ -1027,7 +1034,6 @@ void ImGui_ImplSDL2_NewFrame()
 
     // Setup main viewport size (every frame to accommodate for window resizing)
     ImGui_ImplSDL2_GetWindowSizeAndFramebufferScale(bd->Window, bd->Renderer, &io.DisplaySize, &io.DisplayFramebufferScale, &w, &h, &display_w, &display_h);
-
 
     // TODO: is this before, or after?
     // Update monitors
@@ -1226,11 +1232,8 @@ static void ImGui_ImplSDL2_SetWindowSize(ImGuiViewport* viewport, ImVec2 size)
 
 static ImVec2 ImGui_ImplSDL2_GetWindowFramebufferScale(ImGuiViewport* viewport)
 {
-    // FIXME: SDL_Renderer does not support multi-viewport.
-    ImGui_ImplSDL2_ViewportData* vd = (ImGui_ImplSDL2_ViewportData*)viewport->PlatformUserData;
-    ImVec2 framebuffer_scale;
-    ImGui_ImplSDL2_GetWindowSizeAndFramebufferScale(vd->Window, nullptr, nullptr, &framebuffer_scale, NULL, NULL, NULL, NULL);
-    return framebuffer_scale;
+    // tildearrow: not here please.
+    return ImVec2(1.0f,1.0f);
 }
 
 static void ImGui_ImplSDL2_SetWindowTitle(ImGuiViewport* viewport, const char* title)

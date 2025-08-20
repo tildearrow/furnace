@@ -465,6 +465,16 @@ void DivPlatformYM2610::acquire_lle(short** buf, size_t len) {
     signed char subCycle=0;
     unsigned char subSubCycle=0;
 
+    // AY -> OPN
+    ay->runDAC();
+    ay->runTFX(rate);
+    ay->flushWrites();
+    for (DivRegWrite& i: ay->getRegisterWrites()) {
+      if (i.addr>15) continue;
+      immWrite(i.addr&15,i.val);
+    }
+    ay->getRegisterWrites().clear();
+
     for (int i=0; i<6; i++) {
       fmOut[i]=0;
     }

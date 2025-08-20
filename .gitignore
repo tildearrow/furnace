@@ -24,6 +24,7 @@ android/.gradle/
 android/app/build/
 android/app/.cxx/
 .vs/
+.idea/
 CMakeSettings.json
 CMakePresets.json
 extern/imgui_patched/examples/
