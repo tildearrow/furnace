@@ -98,6 +98,18 @@ void FurnaceGUI::enableSafeMode() {
   safeMode=true;
 }
 
+const char* FurnaceGUI::noteName(short note) {
+  if (note<0 || note>=180) {
+    return "???";
+  }
+  if (settings.flatNotes) {
+    if (settings.germanNotation) return noteNamesGF[note];
+    return noteNamesF[note];
+  }
+  if (settings.germanNotation) return noteNamesG[note];
+  return noteNames[note];
+}
+
 const char* FurnaceGUI::noteName(short note, short octave) {
   if (note==100) {
     return noteOffLabel;
@@ -8395,6 +8407,23 @@ bool FurnaceGUI::finish(bool saveConfig) {
   delete[] opTouched;
   opTouched=NULL;
 
+  if (tunerFFTInBuf) {
+    delete[] tunerFFTInBuf;
+    tunerFFTInBuf=NULL;
+  }
+  if (tunerFFTOutBuf) {
+    fftw_free(tunerFFTOutBuf);
+    tunerFFTOutBuf=NULL;
+  }
+  if (spectrumPlan) {
+    fftw_free(spectrumPlan);
+    spectrumPlan=NULL;
+  }
+  if (tunerPlan) {
+    fftw_free(tunerPlan);
+    tunerPlan=NULL;
+  }
+
   return true;
 }
 
@@ -8929,6 +8958,9 @@ FurnaceGUI::FurnaceGUI():
   xyOscDecayTime(10.0f),
   xyOscIntensity(2.0f),
   xyOscThickness(2.0f),
+  spectrumPlan(NULL),
+  tunerPlan(NULL),
+  spectrumBins(2048),
   followLog(true),
 #ifdef IS_MOBILE
   pianoOctaves(7),

@@ -2705,6 +2705,12 @@ class FurnaceGUI {
   float xyOscIntensity;
   float xyOscThickness;
 
+  // spectrum and tuner
+  double* tunerFFTInBuf;
+  fftw_complex* tunerFFTOutBuf;
+  fftw_plan spectrumPlan, tunerPlan;
+  int spectrumBins;
+
   // visualizer
   float keyHit[DIV_MAX_CHANS];
   float keyHit1[DIV_MAX_CHANS];
@@ -3121,6 +3127,7 @@ class FurnaceGUI {
     void showError(String what);
     String getLastError();
     const char* noteNameNormal(short note, short octave);
+    const char* noteName(short note);
     const char* noteName(short note, short octave);
     bool decodeNote(const char* what, short& note, short& octave);
     void bindEngine(DivEngine* eng);
