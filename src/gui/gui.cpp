@@ -1004,6 +1004,11 @@ Pos=60,60\n\
 Size=395,171\n\
 Collapsed=0\n\
 \n\
+[Window][Tuner]\n\
+Pos=60,60\n\
+Size=395,171\n\
+Collapsed=0\n\
+\n\
 [Window][Warning##Export AudioFileDialogOverWriteDialog]\n\
 Pos=381,351\n\
 Size=500,71\n\
@@ -3748,6 +3753,7 @@ bool FurnaceGUI::loop() {
   DECLARE_METRIC(compatFlags)
   DECLARE_METRIC(piano)
   DECLARE_METRIC(notes)
+  DECLARE_METRIC(tuner)
   DECLARE_METRIC(channels)
   DECLARE_METRIC(patManager)
   DECLARE_METRIC(sysManager)
@@ -4339,6 +4345,7 @@ bool FurnaceGUI::loop() {
         IMPORT_CLOSE(compatFlagsOpen);
         IMPORT_CLOSE(pianoOpen);
         IMPORT_CLOSE(notesOpen);
+        IMPORT_CLOSE(tunerOpen);
         IMPORT_CLOSE(channelsOpen);
         IMPORT_CLOSE(regViewOpen);
         IMPORT_CLOSE(logOpen);
@@ -4704,6 +4711,7 @@ bool FurnaceGUI::loop() {
           if (ImGui::MenuItem(_("oscilloscope (per-channel)"),BIND_FOR(GUI_ACTION_WINDOW_CHAN_OSC),chanOscOpen)) chanOscOpen=!chanOscOpen;
           if (ImGui::MenuItem(_("oscilloscope (X-Y)"),BIND_FOR(GUI_ACTION_WINDOW_XY_OSC),xyOscOpen)) xyOscOpen=!xyOscOpen;
           if (ImGui::MenuItem(_("volume meter"),BIND_FOR(GUI_ACTION_WINDOW_VOL_METER),volMeterOpen)) volMeterOpen=!volMeterOpen;
+          if (ImGui::MenuItem(_("tuner"), BIND_FOR(GUI_ACTION_WINDOW_TUNER), tunerOpen)) tunerOpen = !tunerOpen;
           ImGui::EndMenu();
         }
         if (ImGui::BeginMenu(_("tempo"))) {
@@ -4978,6 +4986,7 @@ bool FurnaceGUI::loop() {
       MEASURE(compatFlags,drawCompatFlags());
       MEASURE(piano,drawPiano());
       MEASURE(notes,drawNotes());
+      MEASURE(tuner,drawTuner());
       MEASURE(channels,drawChannels());
       MEASURE(patManager,drawPatManager());
       MEASURE(sysManager,drawSysManager());
@@ -8066,6 +8075,7 @@ void FurnaceGUI::syncState() {
   pianoOpen=e->getConfBool("pianoOpen",false);
 #endif
   notesOpen=e->getConfBool("notesOpen",false);
+  tunerOpen=e->getConfBool("tunerOpen",false);
   channelsOpen=e->getConfBool("channelsOpen",false);
   patManagerOpen=e->getConfBool("patManagerOpen",false);
   sysManagerOpen=e->getConfBool("sysManagerOpen",false);
@@ -8224,6 +8234,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("compatFlagsOpen",compatFlagsOpen);
   conf.set("pianoOpen",pianoOpen);
   conf.set("notesOpen",notesOpen);
+  conf.set("tunerOpen",tunerOpen);
   conf.set("channelsOpen",channelsOpen);
   conf.set("patManagerOpen",patManagerOpen);
   conf.set("sysManagerOpen",sysManagerOpen);
@@ -8618,6 +8629,7 @@ FurnaceGUI::FurnaceGUI():
   compatFlagsOpen(false),
   pianoOpen(false),
   notesOpen(false),
+  tunerOpen(false),
   channelsOpen(false),
   regViewOpen(false),
   logOpen(false),

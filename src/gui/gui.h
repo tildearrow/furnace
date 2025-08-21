@@ -548,6 +548,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_COMPAT_FLAGS,
   GUI_WINDOW_PIANO,
   GUI_WINDOW_NOTES,
+  GUI_WINDOW_TUNER,
   GUI_WINDOW_CHANNELS,
   GUI_WINDOW_PAT_MANAGER,
   GUI_WINDOW_SYS_MANAGER,
@@ -752,6 +753,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_COMPAT_FLAGS,
   GUI_ACTION_WINDOW_PIANO,
   GUI_ACTION_WINDOW_NOTES,
+  GUI_ACTION_WINDOW_TUNER,
   GUI_ACTION_WINDOW_CHANNELS,
   GUI_ACTION_WINDOW_PAT_MANAGER,
   GUI_ACTION_WINDOW_SYS_MANAGER,
@@ -2366,7 +2368,7 @@ class FurnaceGUI {
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
-  bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
+  bool pianoOpen, notesOpen, tunerOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
   bool groovesOpen, xyOscOpen, memoryOpen, csPlayerOpen, cvOpen, userPresetsOpen;
 
@@ -2938,6 +2940,7 @@ class FurnaceGUI {
   void drawCompatFlags();
   void drawPiano();
   void drawNotes(bool asChild=false);
+  void drawTuner();
   void drawChannels();
   void drawPatManager();
   void drawSysManager();
