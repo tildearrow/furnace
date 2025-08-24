@@ -30,6 +30,7 @@
 #include "guiConst.h"
 #include "sampleUtil.h"
 #include "util.h"
+#include "intConst.h"
 
 #define SWAP_COLOR_ARGB(x) \
   x=(x&0xff00ff00)|((x&0xff)<<16)|((x&0xff0000)>>16);
@@ -77,6 +78,13 @@ const double timeMultipliers[13]={
    if (e->isPreviewingSample()) { \
      if ((int)e->getSamplePreviewRate()!=(int)(_x)) { \
        SAMPLE_WARN(warnRate,fmt::sprintf(_("%s: sample rate must be %d"),_name,(int)(_x))); \
+     } \
+   }
+
+#define EXACT_2RATES(_name,_x,_y) \
+   if (e->isPreviewingSample()) { \
+     if (((int)e->getSamplePreviewRate()!=(int)(_x)) || (int)e->getSamplePreviewRate()!=(int)(_y)) { \
+       SAMPLE_WARN(warnRate,fmt::sprintf(_("%s: sample rate must be %d or %d"),_name,(int)(_x),(int)(_y))); \
      } \
    }
 
@@ -216,6 +224,9 @@ void FurnaceGUI::drawSampleEdit() {
       memset(isMemVisible,0,DIV_MAX_CHIPS*DIV_MAX_SAMPLE_TYPE*sizeof(bool));
       memset(isMemWarning,0,DIV_MAX_CHIPS*DIV_MAX_SAMPLE_TYPE*sizeof(bool));
 
+      bool displayLoopStartHints=false;
+      bool displayLoopEndHints=false;
+
       for (int i=0; i<e->song.systemLen; i++) {
         DivDispatch* dispatch=e->getDispatch(i);
 
@@ -245,12 +256,21 @@ void FurnaceGUI::drawSampleEdit() {
             break;
           case DIV_SYSTEM_QSOUND:
             if (sample->loop) {
-              if (sample->loopEnd-sample->loopStart>32767) {
+              if (sample->depth==DIV_SAMPLE_DEPTH_QSOUND_ADPCM) {
+                SAMPLE_WARN(warnLoop,_("QSound: ADPCM samples can't loop"));
+              } else if (sample->loopEnd-sample->loopStart>32767) {
                 SAMPLE_WARN(warnLoopPos,_("QSound: loop cannot be longer than 32767 samples"));
               }
             }
-            if (sample->samples>65535) {
-              SAMPLE_WARN(warnLength,"QSound: maximum sample length is 65535");
+            if (sample->depth==DIV_SAMPLE_DEPTH_QSOUND_ADPCM) {
+              if (sample->samples>131070) {
+                SAMPLE_WARN(warnLength,"QSound: maximum ADPCM sample length is 131070");
+              }
+              if (dispatch!=NULL) {
+                EXACT_RATE("QSound (ADPCM)",dispatch->chipClock/7488.0);
+              }
+            } else if (sample->samples>65535) {
+              SAMPLE_WARN(warnLength,"QSound: maximum PCM sample length is 65535");
             }
             break;
           case DIV_SYSTEM_NES: {
@@ -279,7 +299,7 @@ void FurnaceGUI::drawSampleEdit() {
               SAMPLE_WARN(warnLoop,_("X1-010: samples can't loop"));
             }
             if (sample->samples>131072) {
-              SAMPLE_WARN(warnLength,_("X1-010: maximum sample length is 131072"));
+              SAMPLE_WARN(warnLength,_("X1-010: maximum bankswitched sample length is 131072"));
             }
             break;
           case DIV_SYSTEM_GA20:
@@ -301,6 +321,9 @@ void FurnaceGUI::drawSampleEdit() {
                 SAMPLE_WARN(warnLength,_("YM2608: sample length will be padded to multiple of 512"));
               }
             }
+            if (dispatch!=NULL) {
+              MAX_RATE("YM2608",dispatch->chipClock/144);
+            }
             break;
           case DIV_SYSTEM_YM2610_FULL:
           case DIV_SYSTEM_YM2610_FULL_EXT:
@@ -308,9 +331,12 @@ void FurnaceGUI::drawSampleEdit() {
           case DIV_SYSTEM_YM2610B:
           case DIV_SYSTEM_YM2610B_EXT:
             if (sample->loop) {
-              SAMPLE_WARN(warnLoop,_("YM2610: ADPCM-A samples can't loop"));
-              if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
-                SAMPLE_WARN(warnLoopPos,_("YM2610: loop point ignored on ADPCM-B (may only loop entire sample)"));
+              if (sample->depth==DIV_SAMPLE_DEPTH_ADPCM_A) {
+                SAMPLE_WARN(warnLoop,_("YM2610: ADPCM-A samples can't loop"));
+              } else {
+                if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
+                  SAMPLE_WARN(warnLoopPos,_("YM2610: loop point ignored on ADPCM-B (may only loop entire sample)"));
+                }
               }
               if (sample->samples&511) {
                 SAMPLE_WARN(warnLength,_("YM2610: sample length will be padded to multiple of 512"));
@@ -320,7 +346,11 @@ void FurnaceGUI::drawSampleEdit() {
               SAMPLE_WARN(warnLength,_("YM2610: maximum ADPCM-A sample length is 2097152"));
             }
             if (dispatch!=NULL) {
-              EXACT_RATE("YM2610 (ADPCM-A)",dispatch->chipClock/432);
+              if (sample->depth==DIV_SAMPLE_DEPTH_ADPCM_A) {
+                EXACT_RATE("YM2610 (ADPCM-A)",dispatch->chipClock/432);
+              } else {
+                MAX_RATE("YM2610 (ADPCM-B)",dispatch->chipClock/144);
+              }
             }
             break;
           case DIV_SYSTEM_Y8950:
@@ -331,6 +361,9 @@ void FurnaceGUI::drawSampleEdit() {
               if (sample->samples&511) {
                 SAMPLE_WARN(warnLength,_("Y8950: sample length will be padded to multiple of 512"));
               }
+            }
+            if (dispatch!=NULL) {
+              MAX_RATE("Y8950",dispatch->chipClock/72);
             }
             break;
           case DIV_SYSTEM_AMIGA:
@@ -355,7 +388,12 @@ void FurnaceGUI::drawSampleEdit() {
               SAMPLE_WARN(warnLength,_("SegaPCM: maximum sample length is 65280"));
             }
             if (dispatch!=NULL) {
-              MAX_RATE("SegaPCM",dispatch->chipClock/256);
+              MAX_RATE("SegaPCM",dispatch->rate);
+            }
+            break;
+          case DIV_SYSTEM_K007232:
+            if (sample->samples>131071) {
+              SAMPLE_WARN(warnLength,_("K007232: maximum sample length is 131071"));
             }
             break;
           case DIV_SYSTEM_K053260:
@@ -399,6 +437,9 @@ void FurnaceGUI::drawSampleEdit() {
             if (sample->samples>129024) {
               SAMPLE_WARN(warnLength,_("MSM6295: maximum bankswitched sample length is 129024"));
             }
+            if (dispatch!=NULL) {
+              EXACT_2RATES("MSM6295",dispatch->chipClock/165,dispatch->chipClock/132);
+            }
             break;
           case DIV_SYSTEM_GBA_DMA:
             if (sample->loop) {
@@ -432,6 +473,96 @@ void FurnaceGUI::drawSampleEdit() {
               SAMPLE_WARN(warnLength,_("Supervision: maximum sample length is 8192"));
             }
             break;
+          case DIV_SYSTEM_YMZ280B:
+            if (sample->depth==DIV_SAMPLE_DEPTH_YMZ_ADPCM) {
+              if (sample->loop) {
+                if (sample->loopStart&1) {
+                  SAMPLE_WARN(warnLoopStart,_("YMZ280B: loop start on ADPCM must be a multiple of 2"));
+                }
+                if (sample->loopEnd&1) {
+                  SAMPLE_WARN(warnLoopEnd,_("YMZ280B: loop end on ADPCM must be a multiple of 2"));
+                }
+              }
+              if (dispatch!=NULL) {
+                MAX_RATE("YMZ280B (ADPCM)",dispatch->rate);
+              }
+            } else {
+              if (dispatch!=NULL) {
+                MAX_RATE("YMZ280B (PCM)",dispatch->chipClock/192);
+              }
+            }
+            break;
+          case DIV_SYSTEM_NDS:
+            switch (sample->depth) {
+              case DIV_SAMPLE_DEPTH_IMA_ADPCM:
+                if (sample->loop) {
+                  if (sample->loopStart&7) {
+                    SAMPLE_WARN(warnLoopStart,_("NDS: loop start on ADPCM must be a multiple of 8"));
+                  }
+                  if (sample->loopEnd&7) {
+                    SAMPLE_WARN(warnLoopEnd,_("NDS: loop end on ADPCM must be a multiple of 8"));
+                  }
+                  if (sample->loopStart>524280) {
+                    SAMPLE_WARN(warnLoopStart,_("NDS: loop start cannot be longer than 524280 samples on ADPCM"));
+                  }
+                  if ((sample->loopEnd-sample->loopStart)>33554424) {
+                    SAMPLE_WARN(warnLoopPos,_("NDS: maximum ADPCM loop length is 33554424"));
+                  }
+                } else {
+                  if (sample->samples>33554424) {
+                    SAMPLE_WARN(warnLength,_("NDS: maximum ADPCM sample length is 33554424"));
+                  }
+                }
+                break;
+              case DIV_SAMPLE_DEPTH_8BIT:
+                if (sample->loop) {
+                  if (sample->loopStart&3) {
+                    SAMPLE_WARN(warnLoopStart,_("NDS: loop start on 8 bit PCM must be a multiple of 4"));
+                  }
+                  if (sample->loopEnd&3) {
+                    SAMPLE_WARN(warnLoopEnd,_("NDS: loop end on 8 bit PCM must be a multiple of 4"));
+                  }
+                  if (sample->loopStart>262140) {
+                    SAMPLE_WARN(warnLoopStart,_("NDS: loop start cannot be longer than 262140 samples on 8 bit PCM"));
+                  }
+                  if ((sample->loopEnd-sample->loopStart)>16777212) {
+                    SAMPLE_WARN(warnLoopPos,_("NDS: maximum 8 bit PCM loop length is 16777212"));
+                  }
+                } else {
+                  if (sample->samples>16777212) {
+                    SAMPLE_WARN(warnLength,_("NDS: maximum 8 bit PCM sample length is 16777212"));
+                  }
+                }
+                break;
+              case DIV_SAMPLE_DEPTH_16BIT:
+                if (sample->loop) {
+                  if (sample->loopStart&1) {
+                    SAMPLE_WARN(warnLoopStart,_("NDS: loop start on 16 bit PCM must be a multiple of 2"));
+                  }
+                  if (sample->loopEnd&1) {
+                    SAMPLE_WARN(warnLoopEnd,_("NDS: loop end on 16 bit PCM must be a multiple of 2"));
+                  }
+                  if (sample->loopStart>131070) {
+                    SAMPLE_WARN(warnLoopStart,_("NDS: loop start cannot be longer than 131070 samples on 16 bit PCM"));
+                  }
+                  if ((sample->loopEnd-sample->loopStart)>8388606) {
+                    SAMPLE_WARN(warnLoopPos,_("NDS: maximum 16 bit PCM loop length is 8388606"));
+                  }
+                } else {
+                  if (sample->samples>8388606) {
+                    SAMPLE_WARN(warnLength,_("NDS: maximum 16 bit PCM sample length is 8388606"));
+                  }
+                }
+                break;
+              default:
+                break;
+            }
+            break;
+          case DIV_SYSTEM_ES5506:
+            if (sample->samples>2097024) {
+              SAMPLE_WARN(warnLength,_("ES5506: maximum sample length is 2097024"));
+            }
+            break;
           default:
             break;
         }
@@ -461,7 +592,7 @@ void FurnaceGUI::drawSampleEdit() {
       for (int i=0; i<DIV_MAX_CHIPS; i++) {
         if (isChipVisible[i]) selColumns++;
       }
-      
+
       int targetRate=sampleCompatRate?sample->rate:sample->centerRate;
 
       if (ImGui::BeginTable("SampleProps",(selColumns>1)?4:3,ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_BordersV|ImGuiTableFlags_BordersOuterH)) {
@@ -753,8 +884,12 @@ void FurnaceGUI::drawSampleEdit() {
           if (ImGui::IsItemActive()) {
             keepLoopAlive=true;
             sampleCheckLoopStart=false;
+            displayLoopStartHints=true;
           } else {
             sampleCheckLoopStart=true;
+          }
+          if (ImGui::IsItemHovered()) {
+            displayLoopStartHints=true;
           }
           if (ImGui::IsItemHovered() && (!warnLoopPos.empty() || (!warnLoopStart.empty() && sampleCheckLoopStart) || sample->depth==DIV_SAMPLE_DEPTH_BRR)) {
             if (ImGui::BeginTooltip()) {
@@ -792,8 +927,12 @@ void FurnaceGUI::drawSampleEdit() {
           if (ImGui::IsItemActive()) {
             keepLoopAlive=true;
             sampleCheckLoopEnd=false;
+            displayLoopEndHints=true;
           } else {
             sampleCheckLoopEnd=true;
+          }
+          if (ImGui::IsItemHovered()) {
+            displayLoopEndHints=true;
           }
           if (ImGui::IsItemHovered() && (!warnLoopPos.empty() || (!warnLoopEnd.empty() && sampleCheckLoopEnd) || sample->depth==DIV_SAMPLE_DEPTH_BRR)) {
             if (ImGui::BeginTooltip()) {
@@ -979,14 +1118,27 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::OpenPopup("SResampleOpt");
       }
       if (ImGui::BeginPopupContextItem("SResampleOpt",ImGuiPopupFlags_MouseButtonLeft)) {
-        ImGui::Text(_("Rate"));
-        if (ImGui::InputDouble("##SRRate",&resampleTarget,1.0,50.0,"%g")) {
-          if (resampleTarget<0) resampleTarget=0;
-          if (resampleTarget>96000) resampleTarget=96000;
+        if (ImGui::InputDouble("Rate##SRRate",&resampleTarget,1.0,50.0,"%g")) {
+          if (resampleTarget<100) resampleTarget=100;
+          if (resampleTarget>384000) resampleTarget=384000;
         }
-        ImGui::SameLine();
+        double factor=resampleTarget/(double)targetRate;
+        unsigned int targetLength=sample->samples*factor;
+        if (ImGui::InputScalar("Length##SRLen",ImGuiDataType_U32,&targetLength, &_ONE, &_SIXTEEN)) {
+          if (targetLength<1) targetLength=1;
+          resampleTarget=targetRate*targetLength/(double)sample->samples;
+          if (resampleTarget<100) resampleTarget=100;
+          if (resampleTarget>384000) resampleTarget=384000;
+        }
+        if (ImGui::InputDouble(_("Factor"),&factor,0.125,0.5,"%g")) {
+          resampleTarget=(double)targetRate*factor;
+          if (resampleTarget<100) resampleTarget=100;
+          if (resampleTarget>384000) resampleTarget=384000;
+        }
         if (ImGui::Button("0.5x")) {
           resampleTarget*=0.5;
+          if (resampleTarget<100) resampleTarget=100;
+          if (resampleTarget>384000) resampleTarget=384000;
         }
         ImGui::SameLine();
         if (ImGui::Button("==")) {
@@ -995,19 +1147,15 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::SameLine();
         if (ImGui::Button("2.0x")) {
           resampleTarget*=2.0;
-        }
-        double factor=resampleTarget/(double)targetRate;
-        if (ImGui::InputDouble(_("Factor"),&factor,0.125,0.5,"%g")) {
-          resampleTarget=(double)targetRate*factor;
-          if (resampleTarget<0) resampleTarget=0;
-          if (resampleTarget>96000) resampleTarget=96000;
+          if (resampleTarget<100) resampleTarget=100;
+          if (resampleTarget>384000) resampleTarget=384000;
         }
         ImGui::Combo(_("Filter"),&resampleStrat,LocalizedComboGetter,resampleStrats,6);
         if (ImGui::Button(_("Resample"))) {
           sample->prepareUndo(true);
           e->lockEngine([this,sample,targetRate]() {
             if (!sample->resample(targetRate,resampleTarget,resampleStrat)) {
-              showError(_("couldn't resample! make sure your sample is 8 or 16-bit."));
+              showError(_("couldn't resample! make sure your sample is 8 or 16-bit and that the target rate is at least 100Hz."));
             }
             e->renderSamples(curSample);
           });
@@ -1620,21 +1768,24 @@ void FurnaceGUI::drawSampleEdit() {
             }
 
             int ij=0;
-            for (int i=0; i<availY; i++) {
+            if (availY>0) {
               for (int j=0; j<availX; j++) {
                 int scaledPos=samplePos+(j*sampleZoom);
-                if (sample->isLoopable() && (scaledPos>=sample->loopStart && scaledPos<=sample->loopEnd)) {
+                if (sample->isLoopable() && (scaledPos>=sample->loopStart && scaledPos<sample->loopEnd)) {
                   data[ij++]=bgColorLoop;
                 } else {
                   data[ij++]=bgColor;
                 }
               }
-            }
-            if (availY>0) {
+              for (int i=1; i<availY; i++) {
+                memcpy(&data[ij],data,availX*sizeof(unsigned int));
+                ij+=availX;
+              }
               for (int i=availX*(availY>>1); i<availX*(1+(availY>>1)); i++) {
                 data[i]=centerLineColor;
               }
             }
+
             unsigned int xCoarse=samplePos;
             unsigned int xFine=0;
             unsigned int xAdvanceCoarse=sampleZoom;
@@ -2027,6 +2178,173 @@ void FurnaceGUI::drawSampleEdit() {
           }
         }
         dl->PopClipRect();
+
+        bool displayLoopHintsNES=false;
+        bool displayLoopHintsSNES=false;
+        bool displayLoopHintsNDSA=false;
+        bool displayLoopHintsNDS8=false;
+        bool displayLoopHintsAmiga=false;
+        bool displayLoopHintsGBADMA=false;
+
+        for (int i=0; i<e->song.systemLen; i++) {
+          if (e->song.system[i]==DIV_SYSTEM_NES) {
+            displayLoopHintsNES=true;
+          }
+          if (e->song.system[i]==DIV_SYSTEM_SNES) {
+            displayLoopHintsSNES=true;
+          }
+          if (((e->song.system[i]==DIV_SYSTEM_NDS) && (sample->depth==DIV_SAMPLE_DEPTH_IMA_ADPCM))) {
+            displayLoopHintsNDSA=true;
+          }
+          if (((e->song.system[i]==DIV_SYSTEM_NDS) && (sample->depth==DIV_SAMPLE_DEPTH_8BIT))) {
+            displayLoopHintsNDS8=true;
+          }
+          if (e->song.system[i]==DIV_SYSTEM_AMIGA ||
+            e->song.system[i]==DIV_SYSTEM_C219 ||
+            ((e->song.system[i]==DIV_SYSTEM_YMZ280B) && (sample->depth==DIV_SAMPLE_DEPTH_YMZ_ADPCM)) ||
+            ((e->song.system[i]==DIV_SYSTEM_NDS) && (sample->depth==DIV_SAMPLE_DEPTH_16BIT))) {
+            displayLoopHintsAmiga=true;
+          }
+          if (e->song.system[i]==DIV_SYSTEM_GBA_DMA) {
+            displayLoopHintsGBADMA=true;
+          }
+        }
+
+        if (displayLoopStartHints) {
+          if (displayLoopHintsNES) {
+            if (sampleZoom<3.0) {
+              for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
+                if (((i+samplePos)&511)==0) {
+                  ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
+                  ImVec2 p2=p1;
+                  p2.y=rectMax.y;
+
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
+                }
+              }
+            }
+          }
+          if (displayLoopHintsSNES) {
+            if (sampleZoom<0.75) {
+              for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
+                if (((i+samplePos)&15)==0) {
+                  ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
+                  ImVec2 p2=p1;
+                  p2.y=rectMax.y;
+
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
+                }
+              }
+            }
+          }
+          if (displayLoopHintsNDSA) {
+            if (sampleZoom<0.5) {
+              for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
+                if (((i+samplePos)&7)==0) {
+                  ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
+                  ImVec2 p2=p1;
+                  p2.y=rectMax.y;
+
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
+                }
+              }
+            }
+          }
+          if (displayLoopHintsNDS8) {
+            if (sampleZoom<0.375) {
+              for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
+                if (((i+samplePos)&3)==0) {
+                  ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
+                  ImVec2 p2=p1;
+                  p2.y=rectMax.y;
+
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
+                }
+              }
+            }
+          }
+          if (displayLoopHintsAmiga) {
+            if (sampleZoom<0.25) {
+              for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
+                if (((i+samplePos)&1)==0) {
+                  ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
+                  ImVec2 p2=p1;
+                  p2.y=rectMax.y;
+
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
+                }
+              }
+            }
+          }
+          if (displayLoopHintsGBADMA) {
+            if (sampleZoom<0.6) {
+              for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
+                if (((i+samplePos)&3)==0) {
+                  ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
+                  ImVec2 p2=p1;
+                  p2.y=rectMax.y;
+
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
+                }
+              }
+            }
+          }
+        }
+
+        if (displayLoopEndHints) {
+          if (displayLoopHintsNES) {
+            if (sampleZoom<3.0) {
+              for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
+                if (((i+samplePos-8)&128)==0) {
+                  ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
+                  ImVec2 p2=p1;
+                  p2.y=rectMax.y;
+
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
+                }
+              }
+            }
+          }
+          if (displayLoopHintsSNES) {
+            if (sampleZoom<0.75) {
+              for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
+                if (((i+samplePos)&15)==0) {
+                  ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
+                  ImVec2 p2=p1;
+                  p2.y=rectMax.y;
+
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
+                }
+              }
+            }
+          }
+          if (displayLoopHintsAmiga) {
+            if (sampleZoom<0.25) {
+              for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
+                if (((i+samplePos)&1)==0) {
+                  ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
+                  ImVec2 p2=p1;
+                  p2.y=rectMax.y;
+
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
+                }
+              }
+            }
+          }
+          if (displayLoopHintsGBADMA) {
+            if (sampleZoom<0.6) {
+              for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
+                if (((i+samplePos-sample->loopStart)&15)==0) {
+                  ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
+                  ImVec2 p2=p1;
+                  p2.y=rectMax.y;
+
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
+                }
+              }
+            }
+          }
+        }
 
         if (drawSelection) {
           int start=sampleSelStart;

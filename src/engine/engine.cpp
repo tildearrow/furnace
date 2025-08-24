@@ -939,6 +939,7 @@ void DivEngine::delUnusedSamples() {
 
   bool* isUsed=new bool[song.sample.size()];
   memset(isUsed,0,song.sample.size()*sizeof(bool));
+  int isUsedMax=((int)song.sample.size())-1;
 
   // scan in instruments
   for (DivInstrument* i: song.ins) {
@@ -1020,10 +1021,10 @@ void DivEngine::delUnusedSamples() {
     if (!isUsed[i]) {
       delSampleUnsafe(i,false);
       // rotate
-      for (int j=i; j<255; j++) {
+      for (int j=i; j<isUsedMax; j++) {
         isUsed[j]=isUsed[j+1];
       }
-      isUsed[255]=true;
+      isUsed[isUsedMax]=true;
       i--;
     }
   }
