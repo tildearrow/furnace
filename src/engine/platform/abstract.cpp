@@ -213,6 +213,14 @@ size_t DivDispatch::getSampleMemUsage(int index) {
   return 0;
 }
 
+bool DivDispatch::hasSamplePtrHeader(int index) {
+  return false;
+}
+
+bool DivDispatch::hasSampleInstHeader(int index) {
+  return false;
+}
+
 const DivMemoryComposition* DivDispatch::getMemCompo(int index) {
   return NULL;
 }

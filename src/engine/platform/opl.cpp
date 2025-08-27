@@ -3244,6 +3244,14 @@ size_t DivPlatformOPL::getSampleMemUsage(int index) {
           (index==0 && adpcmChan>=0)?adpcmBMemLen:0;
 }
 
+bool DivPlatformOPL::hasSamplePtrHeader(int index) {
+  return (index==0 && pcmChanOffs>=0);
+}
+
+bool DivPlatformOPL::hasSampleInstHeader(int index) {
+  return (index==0 && pcmChanOffs>=0);
+}
+
 bool DivPlatformOPL::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
   if (sample<0 || sample>32767) return false;

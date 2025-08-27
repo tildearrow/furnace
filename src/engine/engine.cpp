@@ -2648,6 +2648,15 @@ int DivEngine::addInstrument(int refChan, DivInstrumentType fallbackType) {
   song.insLen=insCount+1;
   checkAssetDir(song.insDir,song.ins.size());
   saveLock.unlock();
+  bool hasSampleInst=false;
+  for (int s=0; s<song.systemLen; s++) {
+    if (disCont[s].dispatch->hasSampleInstHeader()) {
+      hasSampleInst=true;
+    }
+  }
+  if (hasSampleInst) {
+    renderSamplesP();
+  }
   BUSY_END;
   return insCount;
 }
@@ -2665,6 +2674,15 @@ int DivEngine::addInstrumentPtr(DivInstrument* which) {
   checkAssetDir(song.waveDir,song.wave.size());
   checkAssetDir(song.sampleDir,song.sample.size());
   saveLock.unlock();
+  bool hasSampleInst=false;
+  for (int s=0; s<song.systemLen; s++) {
+    if (disCont[s].dispatch->hasSampleInstHeader()) {
+      hasSampleInst=true;
+    }
+  }
+  if (hasSampleInst) {
+    renderSamplesP();
+  }
   BUSY_END;
   return song.insLen;
 }
@@ -2700,6 +2718,15 @@ void DivEngine::delInstrumentUnsafe(int index) {
     }
     removeAsset(song.insDir,index);
     checkAssetDir(song.insDir,song.ins.size());
+    bool hasSampleInst=false;
+    for (int s=0; s<song.systemLen; s++) {
+      if (disCont[s].dispatch->hasSampleInstHeader()) {
+        hasSampleInst=true;
+      }
+    }
+    if (hasSampleInst) {
+      renderSamplesP();
+    }
   }
 }
 

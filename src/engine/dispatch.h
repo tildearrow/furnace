@@ -966,14 +966,14 @@ class DivDispatch {
      * @param index the memory index.
      * @return a pointer to sample memory, or NULL.
      */
-    virtual const void* getSampleMem(int index = 0);
+    virtual const void* getSampleMem(int index=0);
 
     /**
      * Get sample memory capacity.
      * @param index the memory index.
      * @return memory capacity in bytes, or 0 if memory doesn't exist.
      */
-    virtual size_t getSampleMemCapacity(int index = 0);
+    virtual size_t getSampleMemCapacity(int index=0);
 
     /**
      * get sample memory name.
@@ -987,8 +987,22 @@ class DivDispatch {
      * @param index the memory index.
      * @return memory usage in bytes.
      */
-    virtual size_t getSampleMemUsage(int index = 0);
+    virtual size_t getSampleMemUsage(int index=0);
 
+    /**
+     * check whether chip has sample pointer header in sample memory.
+     * @param index the memory index.
+     * @return whether it did.
+     */
+    virtual bool hasSamplePtrHeader(int index=0);
+    
+    /**
+     * check whether chip has sample instrument header in sample memory.
+     * @param index the memory index.
+     * @return whether it did.
+     */
+    virtual bool hasSampleInstHeader(int index=0);
+    
     /**
      * check whether sample has been loaded in memory.
      * @param index index.

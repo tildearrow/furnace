@@ -1982,6 +1982,22 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
   updateFMPreview=true; \
 }
 
+// with instrument header in sample memory
+#define PH(x) if (x) { \
+  MARK_MODIFIED; \
+  e->notifyInsChange(curIns); \
+  updateFMPreview=true; \
+  bool hasSampleInst=false; \
+  for (int s=0; s<e->song.systemLen; s++) { \
+    if (e->getDispatch(s)->hasSampleInstHeader()) { \
+      hasSampleInst=true; \
+    } \
+  } \
+  if (hasSampleInst) { \
+    e->renderSamplesP(curSample); \
+  } \
+}
+
 #define PARAMETER MARK_MODIFIED; e->notifyInsChange(curIns); updateFMPreview=true;
 
 String genericGuide(float value) {
@@ -3512,6 +3528,9 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
     // Note map
     ImGui::BeginDisabled(ins->amiga.useWave);
     P(ImGui::Checkbox(_("Use sample map"),&ins->amiga.useNoteMap));
+    if ((ins->type==DIV_INS_MULTIPCM) && ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(_("Only for OPL4 PCM."));
+    }
     if (ins->amiga.useNoteMap) {
       if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) sampleMapFocused=false;
       if (curWindowLast!=GUI_WINDOW_INS_EDIT) sampleMapFocused=false;
@@ -7885,17 +7904,17 @@ void FurnaceGUI::drawInsEdit() {
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Attack Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.ar,&_ZERO,&_FIFTEEN)); rightClickable
+              PH(CWVSliderScalar("##Attack Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.ar,&_ZERO,&_FIFTEEN)); rightClickable
               ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Decay 1 Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.d1r,&_ZERO,&_FIFTEEN)); rightClickable
+              PH(CWVSliderScalar("##Decay 1 Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.d1r,&_ZERO,&_FIFTEEN)); rightClickable
               ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Decay Level",sliderSize,ImGuiDataType_U8,&ins->multipcm.dl,&_ZERO,&_FIFTEEN)); rightClickable
+              PH(CWVSliderScalar("##Decay Level",sliderSize,ImGuiDataType_U8,&ins->multipcm.dl,&_ZERO,&_FIFTEEN)); rightClickable
               ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Decay 2 Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.d2r,&_ZERO,&_FIFTEEN)); rightClickable
+              PH(CWVSliderScalar("##Decay 2 Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.d2r,&_ZERO,&_FIFTEEN)); rightClickable
               ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Release Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.rr,&_ZERO,&_FIFTEEN)); rightClickable
+              PH(CWVSliderScalar("##Release Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.rr,&_ZERO,&_FIFTEEN)); rightClickable
               ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Rate Correction",sliderSize,ImGuiDataType_U8,&ins->multipcm.rc,&_ZERO,&_FIFTEEN)); rightClickable
+              PH(CWVSliderScalar("##Rate Correction",sliderSize,ImGuiDataType_U8,&ins->multipcm.rc,&_ZERO,&_FIFTEEN)); rightClickable
               ImGui::TableNextColumn();
               drawFMEnv(0,ins->multipcm.ar,ins->multipcm.d1r,ins->multipcm.d2r,ins->multipcm.rr,ins->multipcm.dl,0,0,0,127,15,15,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
               ImGui::EndTable();
@@ -7905,11 +7924,11 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
               ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.0);
               ImGui::TableNextColumn();
-              P(CWSliderScalar(_("LFO Rate"),ImGuiDataType_U8,&ins->multipcm.lfo,&_ZERO,&_SEVEN)); rightClickable
+              PH(CWSliderScalar(_("LFO Rate"),ImGuiDataType_U8,&ins->multipcm.lfo,&_ZERO,&_SEVEN)); rightClickable
               ImGui::TableNextColumn();
-              P(CWSliderScalar(_("PM Depth"),ImGuiDataType_U8,&ins->multipcm.vib,&_ZERO,&_SEVEN)); rightClickable
+              PH(CWSliderScalar(_("PM Depth"),ImGuiDataType_U8,&ins->multipcm.vib,&_ZERO,&_SEVEN)); rightClickable
               ImGui::TableNextColumn();
-              P(CWSliderScalar(_("AM Depth"),ImGuiDataType_U8,&ins->multipcm.am,&_ZERO,&_SEVEN)); rightClickable
+              PH(CWSliderScalar(_("AM Depth"),ImGuiDataType_U8,&ins->multipcm.am,&_ZERO,&_SEVEN)); rightClickable
               ImGui::EndTable();
             }
             P(ImGui::Checkbox(_("Damp"),&ins->multipcm.damp));
