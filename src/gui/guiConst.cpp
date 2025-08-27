@@ -212,7 +212,7 @@ const char* sampleDepths[DIV_SAMPLE_DEPTH_MAX]={
   "C219 PCM",
   "IMA ADPCM",
   "12-bit PCM",
-  NULL,
+  "4-bit PCM",
   "16-bit PCM"
 };
 
@@ -597,6 +597,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("STEP_DOWN", _N("Decrease edit step"), FURKMOD_CMD|SDLK_KP_DIVIDE),
   D("TOGGLE_EDIT", _N("Toggle edit mode"), SDLK_SPACE),
   D("METRONOME", _N("Metronome"), FURKMOD_CMD|SDLK_m),
+  D("ORDER_LOCK", _N("Toggle order lock"), 0),
   D("REPEAT_PATTERN", _N("Toggle repeat pattern"), 0),
   D("FOLLOW_ORDERS", _N("Follow orders"), 0),
   D("FOLLOW_PATTERN", _N("Follow pattern"), 0),
@@ -910,6 +911,11 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_TEXT_SELECTION,"",ImVec4(0.165f,0.313f,0.49f,1.0f)),
   D(GUI_COLOR_TABLE_ROW_EVEN,"",ImVec4(0.0f,0.0f,0.0f,0.0f)),
   D(GUI_COLOR_TABLE_ROW_ODD,"",ImVec4(1.0f,1.0f,1.0f,0.06f)),
+  D(GUI_COLOR_INPUT_TEXT_CURSOR,"",ImVec4(1.0f,1.0f,1.0f,1.0f)),
+  D(GUI_COLOR_TAB_SELECTED_OVERLINE,"",ImVec4(0.26f,0.59f,0.98f,1.0f)),
+  D(GUI_COLOR_TAB_DIMMED_SELECTED_OVERLINE,"",ImVec4(0.5f,0.5f,0.5f,1.0f)),
+  D(GUI_COLOR_TEXT_LINK,"",ImVec4(0.26f,0.59f,0.98f,1.0f)),
+  D(GUI_COLOR_TREE_LINES,"",ImVec4(0.43f,0.43f,0.5f,0.5f)),
 
   D(GUI_COLOR_TOGGLE_OFF,"",ImVec4(0.2f,0.2f,0.2f,1.0f)),
   D(GUI_COLOR_TOGGLE_ON,"",ImVec4(0.2f,0.6f,0.2f,1.0f)),
@@ -1134,6 +1140,8 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_PATTERN_STATUS_INC,"",ImVec4(0.1f,0.1f,1.0f,1.0f)),
   D(GUI_COLOR_PATTERN_STATUS_BENT,"",ImVec4(1.0f,1.0f,0.1f,1.0f)),
   D(GUI_COLOR_PATTERN_STATUS_DIRECT,"",ImVec4(1.0f,0.5f,0.2f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_WARNING,"",ImVec4(0.98f,0.98f,0.06f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_ERROR,"",ImVec4(0.98f,0.06f,0.06f,1.0f)),
 
   D(GUI_COLOR_PATTERN_PAIR,"",ImVec4(0.6f,0.8f,1.0f,1.0f)),
 
@@ -1152,6 +1160,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_SAMPLE_CHIP_DISABLED,"",ImVec4(0.6f,0.6f,0.6f,1.0f)),
   D(GUI_COLOR_SAMPLE_CHIP_ENABLED,"",ImVec4(0.3f,1.0f,0.3f,1.0f)),
   D(GUI_COLOR_SAMPLE_CHIP_WARNING,"",ImVec4(1.0f,0.75f,0.3f,1.0f)),
+  D(GUI_COLOR_SAMPLE_LOOP_HINT,"",ImVec4(1.0f,0.7f,0.0f,0.8f)),
 
   D(GUI_COLOR_PAT_MANAGER_NULL,"",ImVec4(0.15f,0.15f,0.15f,1.0f)),
   D(GUI_COLOR_PAT_MANAGER_USED,"",ImVec4(0.15f,1.0f,0.15f,1.0f)),

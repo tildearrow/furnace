@@ -748,7 +748,7 @@ void DivPlatformES5506::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (amigaPitch && parent->song.linearPitch!=2) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch*16,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,2,chan[i].pitch2*16,16*COLOR_NTSC,chan[i].pcm.freqOffs);
-        chan[i].freq=524288*(COLOR_NTSC/chan[i].freq)/(chipClock/32.0);
+        chan[i].freq=PITCH_OFFSET*(COLOR_NTSC/chan[i].freq)/(chipClock/16.0);
         chan[i].freq=CLAMP(chan[i].freq,0,0x1ffff);
       } else {
         chan[i].freq=CLAMP(parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,chan[i].pcm.freqOffs),0,0x1ffff);
@@ -1439,7 +1439,7 @@ size_t DivPlatformES5506::getSampleMemOffset(int index) {
 
 bool DivPlatformES5506::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -1450,8 +1450,8 @@ const DivMemoryComposition* DivPlatformES5506::getMemCompo(int index) {
 
 void DivPlatformES5506::renderSamples(int sysID) {
   memset(sampleMem,0,getSampleMemCapacity());
-  memset(sampleOffES5506,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOffES5506,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="Sample Memory";
@@ -1523,4 +1523,18 @@ void DivPlatformES5506::quit() {
   for (int i=0; i<32; i++) {
     delete oscBuf[i];
   }
+}
+
+// initialization of important arrays
+DivPlatformES5506::DivPlatformES5506():
+  DivDispatch(),
+  es550x_intf(),
+  es5506(*this) {
+  sampleOffES5506=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
+DivPlatformES5506::~DivPlatformES5506() {
+  delete[] sampleOffES5506;
+  delete[] sampleLoaded;
 }

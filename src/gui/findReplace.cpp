@@ -105,6 +105,8 @@ void FurnaceGUI::doFind() {
   if (curQueryRangeY==1) {
     finishSelection();
 
+    firstOrder=selStart.order;
+    lastOrder=selEnd.order;
     firstRow=selStart.y;
     lastRow=selEnd.y;
   }

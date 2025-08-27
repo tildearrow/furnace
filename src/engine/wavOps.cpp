@@ -145,7 +145,9 @@ void DivEngine::runExportThread() {
 
       // take control of audio output
       deinitAudioBackend();
+      freelance=false;
       playSub(false);
+      freelance=false;
 
       logI("rendering to file...");
 
@@ -244,7 +246,9 @@ void DivEngine::runExportThread() {
 
       // take control of audio output
       deinitAudioBackend();
+      freelance=false;
       playSub(false);
+      freelance=false;
 
       logI("rendering to files...");
 
@@ -380,7 +384,9 @@ void DivEngine::runExportThread() {
         totalLoops=0;
         isFadingOut=false;
         remainingLoops=-1;
+        freelance=false;
         playSub(false);
+        freelance=false;
 
         while (playing) {
           size_t total=0;

@@ -126,6 +126,13 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
     w->writeText(fmt::sprintf("- type: %d\n",(int)ins->type));
 
     if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPM || ins->type==DIV_INS_ESFM) {
+      int opCount=4;
+      if (ins->type==DIV_INS_OPLL) {
+        opCount=2;
+      } else if (ins->type==DIV_INS_OPL) {
+        opCount=(ins->fm.ops==4)?4:2;
+      }
+
       w->writeText("- FM parameters:\n");
       w->writeText(fmt::sprintf("  - ALG: %d\n",ins->fm.alg));
       w->writeText(fmt::sprintf("  - FB: %d\n",ins->fm.fb));
@@ -133,14 +140,14 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
       w->writeText(fmt::sprintf("  - AMS: %d\n",ins->fm.ams));
       w->writeText(fmt::sprintf("  - FMS2: %d\n",ins->fm.fms2));
       w->writeText(fmt::sprintf("  - AMS2: %d\n",ins->fm.ams2));
-      w->writeText(fmt::sprintf("  - operators: %d\n",ins->fm.ops));
+      w->writeText(fmt::sprintf("  - operators: %d\n",opCount));
       w->writeText(fmt::sprintf("  - OPLL patch: %d\n",ins->fm.opllPreset));
       w->writeText(fmt::sprintf("  - fixed drum freq: %s\n",trueFalse[ins->fm.fixedDrums?1:0]));
       w->writeText(fmt::sprintf("  - kick freq: %.4X\n",ins->fm.kickFreq));
       w->writeText(fmt::sprintf("  - snare/hat freq: %.4X\n",ins->fm.snareHatFreq));
       w->writeText(fmt::sprintf("  - tom/top freq: %.4X\n",ins->fm.tomTopFreq));
       
-      for (int j=0; j<ins->fm.ops; j++) {
+      for (int j=0; j<opCount; j++) {
         DivInstrumentFM::Operator& op=ins->fm.op[j];
 
         w->writeText(fmt::sprintf("  - operator %d:\n",j));
@@ -173,7 +180,7 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
       w->writeText("- ESFM parameters:\n");
       w->writeText(fmt::sprintf("  - noise mode: %d\n",ins->esfm.noise));
 
-      for (int j=0; j<ins->fm.ops; j++) {
+      for (int j=0; j<4; j++) {
         DivInstrumentESFM::Operator& opE=ins->esfm.op[j];
 
         w->writeText(fmt::sprintf("  - operator %d:\n",j));

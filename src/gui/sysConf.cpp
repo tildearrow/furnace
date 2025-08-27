@@ -611,6 +611,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_5E01: {
       int clockSel=flags.getInt("clockSel",0);
       bool dpcmMode=flags.getBool("dpcmMode",true);
+      bool resetSweep=flags.getBool("resetSweep",false);
 
       ImGui::Text(_("Clock rate:"));
 
@@ -642,10 +643,15 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       ImGui::Unindent();
 
+      if (ImGui::Checkbox(_("Reset sweep on new note"),&resetSweep)) {
+        altered=true;
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("dpcmMode",dpcmMode);
+          flags.set("resetSweep",resetSweep);
         });
       }
       break;
@@ -2589,15 +2595,15 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
 
       ImGui::Text(_("Chip revision:"));
       ImGui::Indent();
-      if (ImGui::RadioButton(_("V 0.3.1"),chipType==0)) {
+      if (ImGui::RadioButton(_("Initial release"),chipType==0)) {
         chipType=0;
         altered=true;
       }
-      if (ImGui::RadioButton(_("V 47.0.0 (9-bit volume)"),chipType==1)) {
+      if (ImGui::RadioButton(_("V 47.0.2 (9-bit volume)"),chipType==1)) {
         chipType=1;
         altered=true;
       }
-      if (ImGui::RadioButton(_("V 47.0.2 (Tri/Saw PW XOR)"),chipType==2)) {
+      if (ImGui::RadioButton(_("V 48.0.1 (Tri/Saw PW XOR)"),chipType==2)) {
         chipType=2;
         altered=true;
       }

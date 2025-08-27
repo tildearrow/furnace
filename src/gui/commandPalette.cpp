@@ -249,7 +249,7 @@ void FurnaceGUI::drawPalette() {
   ImVec2 avail=ImGui::GetContentRegionAvail();
   avail.y-=ImGui::GetFrameHeightWithSpacing();
 
-  if (ImGui::BeginChild("CommandPaletteList",avail,false,0)) {
+  if (ImGui::BeginChild("CommandPaletteList",avail,0,0)) {
       bool navigated=false;
       if (ImGui::IsKeyPressed(ImGuiKey_UpArrow) && curPaletteChoice>0) {
         curPaletteChoice-=1;

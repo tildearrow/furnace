@@ -37,6 +37,9 @@
 #define PCM_CHECK(ch) ((chipType==4) && (ch>=pcmChanOffs))
 #define PCM_REG(ch) (ch-pcmChanOffs)
 
+// check if PCM in RAM (and size is <= 2MB) - 4MB uses whole sample area
+#define PCM_IN_RAM (ramSize<=0x200000)
+
 // N = invalid
 #define N 255
 
@@ -1338,7 +1341,7 @@ void DivPlatformOPL::tick(bool sysTick) {
         unsigned char slot=slots[j][i];
         if (slot==255) continue;
         unsigned short baseAddr=slotMap[slot];
-        if (baseAddr>0x100) {
+        if (baseAddr>=0x100) {
           weWillWriteRRLater[(baseAddr&0xff)|32]=true;
         } else {
           weWillWriteRRLater[(baseAddr&0xff)]=true;
@@ -1464,38 +1467,43 @@ void DivPlatformOPL::tick(bool sysTick) {
         chan[i].freqL=(chan[i].freq>>chan[i].freqH)&0x3ff;
         chan[i].freqH=8^chan[i].freqH;
         ctrl|=(chan[i].active?0x80:0)|(chan[i].damp?0x40:0)|(chan[i].lfoReset?0x20:0)|(chan[i].ch?0x10:0)|(isMuted[i]?8:(chan[i].pan&0xf));
-        unsigned int waveNum=chan[i].sample;
-        if (ramSize<=0x200000) {
-          waveNum=CLAMP(waveNum,0,0x7f)|0x180;
-        }
-        if (chan[i].keyOn) {
-          immWrite(PCM_ADDR_KEY_DAMP_LFORST_CH_PAN+PCM_REG(i),ctrl&~0x80); // force keyoff first
-          immWrite(PCM_ADDR_WAVE_H_FN_L+PCM_REG(i),((chan[i].freqL&0x7f)<<1)|((waveNum>>8)&1));
-          immWrite(PCM_ADDR_WAVE_L+PCM_REG(i),waveNum&0xff);
-          immWrite(PCM_ADDR_LFO_VIB+PCM_REG(i),(chan[i].lfo<<3)|(chan[i].vib));
-          immWrite(PCM_ADDR_AR_D1R+PCM_REG(i),(chan[i].ar<<4)|(chan[i].d1r));
-          immWrite(PCM_ADDR_DL_D2R+PCM_REG(i),(chan[i].dl<<4)|(chan[i].d2r));
-          immWrite(PCM_ADDR_RC_RR+PCM_REG(i),(chan[i].rc<<4)|(chan[i].rr));
-          immWrite(PCM_ADDR_AM+PCM_REG(i),chan[i].am);
-          if (!chan[i].std.vol.had) {
-            chan[i].outVol=chan[i].vol;
-            immWrite(PCM_ADDR_TL+(PCM_REG(i)),((0x7f-chan[i].outVol)<<1)|(chan[i].levelDirect?1:0));
+        int waveNum=chan[i].sample;
+        if (waveNum>=0) {
+          if (PCM_IN_RAM) {
+            waveNum=CLAMP(waveNum,0,0x7f)|0x180;
           }
-          chan[i].writeCtrl=true;
-          chan[i].keyOn=false;
-        }
-        if (chan[i].keyOff) {
-          chan[i].writeCtrl=true;
-          chan[i].keyOff=false;
-        }
-        if (chan[i].freqChanged) {
-          immWrite(PCM_ADDR_WAVE_H_FN_L+PCM_REG(i),((chan[i].freqL&0x7f)<<1)|((waveNum>>8)&1));
-          immWrite(PCM_ADDR_FN_H_PR_OCT+PCM_REG(i),((chan[i].freqH&0xf)<<4)|(chan[i].pseudoReverb?0x08:0x00)|((chan[i].freqL>>7)&0x7));
-          chan[i].freqChanged=false;
-        }
-        if (chan[i].writeCtrl) {
-          immWrite(PCM_ADDR_KEY_DAMP_LFORST_CH_PAN+PCM_REG(i),ctrl);
-          chan[i].writeCtrl=false;
+          if (chan[i].keyOn) {
+            immWrite(PCM_ADDR_KEY_DAMP_LFORST_CH_PAN+PCM_REG(i),ctrl&~0x80); // force keyoff first
+            immWrite(PCM_ADDR_WAVE_H_FN_L+PCM_REG(i),((chan[i].freqL&0x7f)<<1)|((waveNum>>8)&1));
+            immWrite(PCM_ADDR_WAVE_L+PCM_REG(i),waveNum&0xff);
+            immWrite(PCM_ADDR_LFO_VIB+PCM_REG(i),(chan[i].lfo<<3)|(chan[i].vib));
+            immWrite(PCM_ADDR_AR_D1R+PCM_REG(i),(chan[i].ar<<4)|(chan[i].d1r));
+            immWrite(PCM_ADDR_DL_D2R+PCM_REG(i),(chan[i].dl<<4)|(chan[i].d2r));
+            immWrite(PCM_ADDR_RC_RR+PCM_REG(i),(chan[i].rc<<4)|(chan[i].rr));
+            immWrite(PCM_ADDR_AM+PCM_REG(i),chan[i].am);
+            if (!chan[i].std.vol.had) {
+              chan[i].outVol=chan[i].vol;
+              immWrite(PCM_ADDR_TL+(PCM_REG(i)),((0x7f-chan[i].outVol)<<1)|(chan[i].levelDirect?1:0));
+            }
+            chan[i].writeCtrl=true;
+            chan[i].keyOn=false;
+          }
+          if (chan[i].keyOff) {
+            chan[i].writeCtrl=true;
+            chan[i].keyOff=false;
+          }
+          if (chan[i].freqChanged) {
+            immWrite(PCM_ADDR_WAVE_H_FN_L+PCM_REG(i),((chan[i].freqL&0x7f)<<1)|((waveNum>>8)&1));
+            immWrite(PCM_ADDR_FN_H_PR_OCT+PCM_REG(i),((chan[i].freqH&0xf)<<4)|(chan[i].pseudoReverb?0x08:0x00)|((chan[i].freqL>>7)&0x7));
+            chan[i].freqChanged=false;
+          }
+          if (chan[i].writeCtrl) {
+            immWrite(PCM_ADDR_KEY_DAMP_LFORST_CH_PAN+PCM_REG(i),ctrl);
+            chan[i].writeCtrl=false;
+          }
+        } else {
+          // cut if we don't have a sample
+          immWrite(PCM_ADDR_KEY_DAMP_LFORST_CH_PAN+PCM_REG(i),ctrl&~0x80);
         }
       }
     } else {
@@ -2936,7 +2944,7 @@ void DivPlatformOPL::reset() {
     if (chipType==4) {
       immWrite(0x105,3);
       // Reset wavetable header
-      immWrite(0x202,(ramSize<=0x200000)?0x10:0x00);
+      immWrite(0x202,PCM_IN_RAM?0x10:0x00);
       // initialize mixer volume
       fmMixL=7;
       fmMixR=7;
@@ -3204,7 +3212,7 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
       pcm.setClockFrequency(chipClock);
       rate=chipClock/768;
       chipRateBase=chipClock/684;
-      immWrite(0x202,(ramSize<=0x200000)?0x10:0x00);
+      immWrite(0x202,PCM_IN_RAM?0x10:0x00);
       break;
     case 759:
       rate=48000;
@@ -3227,7 +3235,7 @@ const void* DivPlatformOPL::getSampleMem(int index) {
 
 size_t DivPlatformOPL::getSampleMemCapacity(int index) {
   return (index==0 && pcmChanOffs>=0)?
-          ((ramSize<=0x200000)?0x200000+ramSize:ramSize):
+          (PCM_IN_RAM?0x200000+ramSize:ramSize):
           ((index==0 && adpcmChan>=0)?262144:0);
 }
 
@@ -3242,7 +3250,7 @@ size_t DivPlatformOPL::getSampleMemOffset(int index) {
 
 bool DivPlatformOPL::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -3260,18 +3268,24 @@ void DivPlatformOPL::renderSamples(int sysID) {
   if (pcmChanOffs>=0 && pcmMem!=NULL) {
     memset(pcmMem,0,4194304);
   }
-  memset(sampleOffPCM,0,256*sizeof(unsigned int));
-  memset(sampleOffB,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOffPCM,0,32768*sizeof(unsigned int));
+  memset(sampleOffB,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="Sample Memory";
 
   if (pcmChanOffs>=0) { // OPL4 PCM
-    size_t memPos=((ramSize<=0x200000)?0x200600:0x1800);
-    const int maxSample=(ramSize<=0x200000)?127:511;
+    size_t memPos=(PCM_IN_RAM?0x200600:0x1800);
+    const int maxSample=PCM_IN_RAM?128:512;
     int sampleCount=parent->song.sampleLen;
-    if (sampleCount>maxSample) sampleCount=maxSample;
+    if (sampleCount>maxSample) {
+      // mark the rest as unavailable
+      for (int i=maxSample; i<sampleCount; i++) {
+        sampleLoaded[i]=false;
+      }
+      sampleCount=maxSample;
+    }
     for (int i=0; i<sampleCount; i++) {
       DivSample* s=parent->song.sample[i];
       if (!s->renderOn[0][sysID]) {
@@ -3334,7 +3348,7 @@ void DivPlatformOPL::renderSamples(int sysID) {
     // instrument table
     for (int i=0; i<sampleCount; i++) {
       DivSample* s=parent->song.sample[i];
-      unsigned int insAddr=(i*12)+((ramSize<=0x200000)?0x200000:0);
+      unsigned int insAddr=(i*12)+(PCM_IN_RAM?0x200000:0);
       unsigned char bitDepth;
       int endPos=CLAMP(s->isLoopable()?s->loopEnd:(s->samples+1),1,0x10000);
       int loop=s->isLoopable()?CLAMP(s->loopStart,0,endPos-2):(endPos-2);
@@ -3365,12 +3379,12 @@ void DivPlatformOPL::renderSamples(int sysID) {
       pcmMem[6+insAddr]=(~(endPos-1))&0xff;
       // on MultiPCM this consists of instrument params, but on OPL4 this is not used
       pcmMem[7+insAddr]=0; // LFO, VIB
-      pcmMem[8+insAddr]=(0xf << 4) | (0xf << 0); // AR, D1R
+      pcmMem[8+insAddr]=(0xf<<4)|(0xf<<0); // AR, D1R
       pcmMem[9+insAddr]=0; // DL, D2R
-      pcmMem[10+insAddr]=(0xf << 4) | (0xf << 0); // RC, RR
+      pcmMem[10+insAddr]=(0xf<<4)|(0xf<<0); // RC, RR
       pcmMem[11+insAddr]=0; // AM
     }
-    if (ramSize<=0x200000) {
+    if (PCM_IN_RAM) {
       memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_RESERVED,"ROM data",0,0,0x200000));
     }
 
@@ -3502,5 +3516,17 @@ void DivPlatformOPL::quit() {
   }
 }
 
+// initialization of important arrays
+DivPlatformOPL::DivPlatformOPL():
+  pcmMemory(0x400000),
+  pcm(pcmMemory) {
+  sampleOffPCM=new unsigned int[32768];
+  sampleOffB=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
 DivPlatformOPL::~DivPlatformOPL() {
+  delete[] sampleOffPCM;
+  delete[] sampleOffB;
+  delete[] sampleLoaded;
 }

@@ -482,7 +482,8 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
 
       std::string guide1=guideFunc(scale_min);
       ImVec2 maxPos=frame_bb.Min;
-      maxPos.y=frame_bb.Max.y-ImGui::GetFont()->FontSize;
+      // TODO: get rid of LegacySize somehow
+      maxPos.y=frame_bb.Max.y-ImGui::GetFont()->LegacySize;
       window->DrawList->AddText(maxPos+ImVec2(1.0f,1.0f),0xff000000,guide1.c_str());
       window->DrawList->AddText(maxPos+ImVec2(1.0f,-1.0f),0xff000000,guide1.c_str());
       window->DrawList->AddText(maxPos+ImVec2(-1.0f,1.0f),0xff000000,guide1.c_str());
