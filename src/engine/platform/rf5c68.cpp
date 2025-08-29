@@ -420,7 +420,7 @@ size_t DivPlatformRF5C68::getSampleMemUsage(int index) {
 
 bool DivPlatformRF5C68::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -431,8 +431,8 @@ const DivMemoryComposition* DivPlatformRF5C68::getMemCompo(int index) {
 
 void DivPlatformRF5C68::renderSamples(int sysID) {
   memset(sampleMem,0,getSampleMemCapacity());
-  memset(sampleOffRFC,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOffRFC,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="Sample Memory";
@@ -496,4 +496,15 @@ void DivPlatformRF5C68::quit() {
   for (int i=0; i<8; i++) {
     delete oscBuf[i];
   }
+}
+
+// initialization of important arrays
+DivPlatformRF5C68::DivPlatformRF5C68() {
+  sampleOffRFC=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
+DivPlatformRF5C68::~DivPlatformRF5C68() {
+  delete[] sampleOffRFC;
+  delete[] sampleLoaded;
 }

@@ -146,7 +146,7 @@ const char* aboutLine[]={
   _N("MAME µPD1771C-017 HLE core by David Viens"),
   _N("SAASound by Dave Hooper and Simon Owen"),
   _N("SameBoy by Lior Halphon"),
-  _N("Mednafen PCE, WonderSwan, T6W28 and Virtual Boy audio cores"),
+  _N("Mednafen PCE, WonderSwan, T6W28 (modified) and Virtual Boy audio cores"),
   _N("WonderSwan new core by asiekierka"),
   _N("SNES DSP core by Blargg"),
   _N("puNES (NES, MMC5 and FDS) by FHorse (modified version)"),
@@ -264,19 +264,19 @@ void FurnaceGUI::drawAbout() {
       double posX=(canvasW/2.0)+(sin(double(i)*0.5+double(aboutScroll)/(90.0*dpiScale))*120*dpiScale)-(ImGui::CalcTextSize(nextLine).x*0.5);
       double posY=(canvasH-aboutScroll+42*i*dpiScale);
       if (posY<-80*dpiScale || posY>canvasH) continue;
-      dl->AddText(bigFont,bigFont->FontSize,
+      dl->AddText(bigFont,BIG_FONT_SIZE,
                   ImVec2(posX+dpiScale,posY+dpiScale),
                   0xff000000,nextLine);
-      dl->AddText(bigFont,bigFont->FontSize,
+      dl->AddText(bigFont,BIG_FONT_SIZE,
                   ImVec2(posX+dpiScale,posY-dpiScale),
                   0xff000000,nextLine);
-      dl->AddText(bigFont,bigFont->FontSize,
+      dl->AddText(bigFont,BIG_FONT_SIZE,
                   ImVec2(posX-dpiScale,posY+dpiScale),
                   0xff000000,nextLine);
-      dl->AddText(bigFont,bigFont->FontSize,
+      dl->AddText(bigFont,BIG_FONT_SIZE,
                   ImVec2(posX-dpiScale,posY-dpiScale),
                   0xff000000,nextLine);
-      dl->AddText(bigFont,bigFont->FontSize,
+      dl->AddText(bigFont,BIG_FONT_SIZE,
                   ImVec2(posX,posY),
                   0xffffffff,nextLine);
     }

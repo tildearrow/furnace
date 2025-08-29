@@ -196,6 +196,10 @@ void FurnaceGUI::drawDebug() {
       ImGui::TextWrapped("%s",pdi.c_str());
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("GUI Status")) {
+      ImGui::Text("patScroll: %f",patScroll);
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Sample Debug")) {
       for (int i=0; i<e->song.sampleLen; i++) {
         DivSample* sample=e->getSample(i);
@@ -757,7 +761,7 @@ void FurnaceGUI::drawDebug() {
       auto DrawSpot=[&](const CursorJumpPoint& spot) {
         ImGui::Text("[%d:%d] <%d:%d, %d>", spot.subSong, spot.order, spot.point.xCoarse, spot.point.xFine, spot.point.y);
       };
-      if (ImGui::BeginChild("##CursorUndoDebugChild", ImVec2(0, 300), true)) {
+      if (ImGui::BeginChild("##CursorUndoDebugChild", ImVec2(0, 300), ImGuiChildFlags_Border)) {
         if (ImGui::BeginTable("##CursorUndoDebug", 2, ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
           for (size_t row=0; row<MAX(cursorUndoHist.size(),cursorRedoHist.size()); ++row) {
             ImGui::TableNextRow();

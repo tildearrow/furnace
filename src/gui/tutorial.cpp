@@ -1040,7 +1040,8 @@ void FurnaceGUI::drawTutorial() {
         for (int i=0; i<e->curSubSong->speeds.len; i++) {
           avgSpeed+=e->curSubSong->speeds.val[i];
         }
-        int oneQuarter=(e->curSubSong->ordersLen*e->curSubSong->patLen*avgSpeed)/e->curSubSong->speeds.len;
+        int oneQuarter=(e->curSubSong->ordersLen*e->curSubSong->patLen*avgSpeed);
+        if (e->curSubSong->speeds.len) oneQuarter/=e->curSubSong->speeds.len;
         oneQuarter=(oneQuarter*e->curSubSong->virtualTempoN)/e->curSubSong->virtualTempoD;
         oneQuarter/=e->curSubSong->hz;
         oneQuarter/=4;

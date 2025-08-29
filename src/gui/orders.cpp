@@ -359,6 +359,13 @@ void FurnaceGUI::drawOrders() {
             if (orderEditMode==0) {
               handleUnimportant;
             }
+
+            if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y && cursor.order==selStart.order &&
+                cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y && cursor.order==selEnd.order) {
+              cursor.order=curOrder;
+              selStart=cursor;
+              selEnd=cursor;
+            }
           }
           ImGui::PopStyleColor();
           for (int j=0; j<e->getTotalChannelCount(); j++) {
@@ -397,6 +404,14 @@ void FurnaceGUI::drawOrders() {
                 if (orderEditMode!=0) {
                   orderCursor=j;
                   curNibble=false;
+                }
+
+                // i wonder whether this is necessary
+                if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y && cursor.order==selStart.order &&
+                    cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y && cursor.order==selEnd.order) {
+                  cursor.order=curOrder;
+                  selStart=cursor;
+                  selEnd=cursor;
                 }
               }
 
@@ -438,6 +453,13 @@ void FurnaceGUI::drawOrders() {
                 if (orderEditMode!=0) {
                   orderCursor=j;
                   curNibble=false;
+                }
+
+                if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y && cursor.order==selStart.order &&
+                    cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y && cursor.order==selEnd.order) {
+                  cursor.order=curOrder;
+                  selStart=cursor;
+                  selEnd=cursor;
                 }
               }
             }

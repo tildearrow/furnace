@@ -87,7 +87,7 @@ DivSystem FurnaceGUI::systemPicker(bool fullWidth) {
     }
     ImGui::EndTable();
   }
-  if (ImGui::BeginChild("SysDesc",ImVec2(0.0f,150.0f*dpiScale),false,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse)) {
+  if (ImGui::BeginChild("SysDesc",ImVec2(0.0f,150.0f*dpiScale),0,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse)) {
     if (hoveredSys!=DIV_SYSTEM_NULL) {
       const DivSysDef* sysDef=e->getSystemDef(hoveredSys);
       ImGui::TextWrapped("%s",sysDef->description);

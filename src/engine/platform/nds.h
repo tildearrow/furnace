@@ -50,8 +50,8 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
   bool isDSi;
   int globalVolume;
   int lastOut[2];
-  unsigned int sampleOff[256];
-  bool sampleLoaded[256];
+  unsigned int* sampleOff;
+  bool* sampleLoaded;
   struct QueuedWrite {
     unsigned short addr;
     unsigned char size;
@@ -104,10 +104,8 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
     virtual void setFlags(const DivConfig& flags) override;
     virtual int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) override;
     virtual void quit() override;
-    DivPlatformNDS():
-      DivDispatch(),
-      nds_sound_intf(),
-      nds(*this) {}
+    DivPlatformNDS();
+    ~DivPlatformNDS();
   private:
     void writeOutVol(int ch);
 };
