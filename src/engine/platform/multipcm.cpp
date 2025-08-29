@@ -694,7 +694,7 @@ void DivPlatformMultiPCM::renderSamples(int sysID) {
         pcmMem[6+insAddr]=0xff;
         pcmMem[7+insAddr]=0; // LFO, VIB
         pcmMem[8+insAddr]=(0xf<<4)|(0xf<<0); // AR, D1R
-        pcmMem[9+insAddr]=(0xf<<4); // DL, D2R
+        pcmMem[9+insAddr]=(0xf<<4)|(0xf<<0); // DL, D2R
         pcmMem[10+insAddr]=(0xf<<4)|(0xf<<0); // RC, RR
         pcmMem[11+insAddr]=0; // AM
       }
