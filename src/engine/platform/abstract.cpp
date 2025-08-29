@@ -164,6 +164,10 @@ void DivDispatch::notifyWaveChange(int ins) {
 
 }
 
+void DivDispatch::notifyInsAddition(int sysID) {
+
+}
+
 void DivDispatch::notifyInsDeletion(void* ins) {
   logE("notifyInsDeletion NOT implemented!");
   abort();
@@ -217,7 +221,7 @@ bool DivDispatch::hasSamplePtrHeader(int index) {
   return false;
 }
 
-bool DivDispatch::hasSampleInstHeader(int index) {
+bool DivDispatch::hasSampleInsHeader(int index) {
   return false;
 }
 

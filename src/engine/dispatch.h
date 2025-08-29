@@ -918,6 +918,11 @@ class DivDispatch {
     virtual void notifyWaveChange(int wave);
 
     /**
+     * notify addition of an instrument.
+     */
+    virtual void notifyInsAddition(int sysID);
+
+    /**
      * notify deletion of an instrument.
      */
     virtual void notifyInsDeletion(void* ins);
@@ -1001,7 +1006,7 @@ class DivDispatch {
      * @param index the memory index.
      * @return whether it did.
      */
-    virtual bool hasSampleInstHeader(int index=0);
+    virtual bool hasSampleInsHeader(int index=0);
     
     /**
      * check whether sample has been loaded in memory.

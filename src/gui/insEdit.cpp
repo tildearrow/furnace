@@ -1987,18 +1987,29 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
   MARK_MODIFIED; \
   e->notifyInsChange(curIns); \
   updateFMPreview=true; \
-  bool hasSampleInst=false; \
+  bool hasSampleIns=false; \
   for (int s=0; s<e->song.systemLen; s++) { \
-    if (e->getDispatch(s)->hasSampleInstHeader()) { \
-      hasSampleInst=true; \
+    if (e->getDispatch(s)->hasSampleInsHeader()) { \
+      hasSampleIns=true; \
     } \
   } \
-  if (hasSampleInst) { \
+  if (hasSampleIns) { \
     e->renderSamplesP(curSample); \
   } \
 }
 
 #define PARAMETER MARK_MODIFIED; e->notifyInsChange(curIns); updateFMPreview=true;
+
+#define REFRESH_INSTRUMENTS \
+  bool hasSampleIns=false; \
+  for (int s=0; s<e->song.systemLen; s++) { \
+    if (e->getDispatch(s)->hasSampleInsHeader()) { \
+      hasSampleIns=true; \
+    } \
+  } \
+  if (hasSampleIns) { \
+    e->renderSamplesP(curSample); \
+  }
 
 String genericGuide(float value) {
   return fmt::sprintf("%d",(int)value);
@@ -3494,6 +3505,7 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
         id=fmt::sprintf("%d: %s",i,e->song.sample[i]->name);
         if (ImGui::Selectable(id.c_str(),ins->amiga.initSample==i)) { PARAMETER
           ins->amiga.initSample=i;
+          REFRESH_INSTRUMENTS
         }
       }
       ImGui::EndCombo();
@@ -6768,6 +6780,7 @@ void FurnaceGUI::drawInsEdit() {
 
               // reset macro zoom
               memset(ins->temp.vZoom,-1,sizeof(ins->temp.vZoom));
+              REFRESH_INSTRUMENTS
             }
           }
           ImGui::EndCombo();

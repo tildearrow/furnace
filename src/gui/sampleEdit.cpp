@@ -575,6 +575,11 @@ void FurnaceGUI::drawSampleEdit() {
               SAMPLE_WARN(warnLength,_("ES5506: maximum sample length is 2097024"));
             }
             break;
+          case DIV_SYSTEM_MULTIPCM:
+            if (sample->samples>65535) {
+              SAMPLE_WARN(warnLength,_("MultiPCM: maximum sample length is 65535"));
+            }
+            break;
           default:
             break;
         }

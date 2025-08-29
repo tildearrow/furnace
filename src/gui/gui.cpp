@@ -1861,13 +1861,13 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
           int sampleCountBefore=e->song.sampleLen;
           std::vector<DivInstrument*> instruments=e->instrumentFromFile(path,false);
           if (!instruments.empty()) {
-            int hasSampleInst=false;
+            int hasSampleIns=false;
             for (int s=0; s<e->song.systemLen; s++) {
-              if (e->getDispatch(s)->hasSampleInstHeader()) {
-                hasSampleInst=true;
+              if (e->getDispatch(s)->hasSampleInsHeader()) {
+                hasSampleIns=true;
               }
             }
-            if ((e->song.sampleLen!=sampleCountBefore) || hasSampleInst) {
+            if ((e->song.sampleLen!=sampleCountBefore) || hasSampleIns) {
               e->renderSamplesP();
             }
             if (curFileDialog==GUI_FILE_INS_OPEN_REPLACE) {
@@ -3934,13 +3934,13 @@ bool FurnaceGUI::loop() {
             DivWavetable* droppedWave=NULL;
             //DivSample* droppedSample=NULL;
             if (!instruments.empty()) {
-              bool hasSampleInst=false;
+              bool hasSampleIns=false;
               for (int s=0; s<e->song.systemLen; s++) {
-                if (e->getDispatch(s)->hasSampleInstHeader()) {
-                  hasSampleInst=true;
+                if (e->getDispatch(s)->hasSampleInsHeader()) {
+                  hasSampleIns=true;
                 }
               }
-              if ((e->song.sampleLen!=sampleCountBefore) || hasSampleInst) {
+              if ((e->song.sampleLen!=sampleCountBefore) || hasSampleIns) {
                 e->renderSamplesP();
               }
               if (!e->getWarnings().empty()) {
@@ -5533,13 +5533,13 @@ bool FurnaceGUI::loop() {
                   instruments.push_back(j);
                 }
               }
-              bool hasSampleInst=false;
+              bool hasSampleIns=false;
               for (int s=0; s<e->song.systemLen; s++) {
-                if (e->getDispatch(s)->hasSampleInstHeader()) {
-                  hasSampleInst=true;
+                if (e->getDispatch(s)->hasSampleInsHeader()) {
+                  hasSampleIns=true;
                 }
               }
-              if ((e->song.sampleLen!=sampleCountBefore) || hasSampleInst) {
+              if ((e->song.sampleLen!=sampleCountBefore) || hasSampleIns) {
                 e->renderSamplesP();
               }
               if (warn) {
@@ -5579,13 +5579,13 @@ bool FurnaceGUI::loop() {
               int sampleCountBefore=e->song.sampleLen;
               std::vector<DivInstrument*> instruments=e->instrumentFromFile(copyOfName.c_str(),true,settings.readInsNames);
               if (!instruments.empty()) {
-                bool hasSampleInst=false;
+                bool hasSampleIns=false;
                 for (int s=0; s<e->song.systemLen; s++) {
-                  if (e->getDispatch(s)->hasSampleInstHeader()) {
-                    hasSampleInst=true;
+                  if (e->getDispatch(s)->hasSampleInsHeader()) {
+                    hasSampleIns=true;
                   }
                 }
-                if ((e->song.sampleLen!=sampleCountBefore) || hasSampleInst) {
+                if ((e->song.sampleLen!=sampleCountBefore) || hasSampleIns) {
                   e->renderSamplesP();
                 }
                 if (!e->getWarnings().empty()) {
