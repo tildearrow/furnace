@@ -630,7 +630,7 @@ void DivPlatformMultiPCM::renderSamples(int sysID) {
       memPos+=length;
     }
     if (actualLength<length) {
-      logW("out of OPL4 PCM memory for sample %d!",i);
+      logW("out of MultiPCM memory for sample %d!",i);
       break;
     }
     sampleLoaded[i]=true;
@@ -640,49 +640,65 @@ void DivPlatformMultiPCM::renderSamples(int sysID) {
     int insCount=parent->song.insLen;
     for (int i=0; i<insCount; i++) {
       DivInstrument* ins=parent->song.ins[i];
-      DivSample* s=parent->song.sample[ins->amiga.initSample];
       unsigned int insAddr=(i*12);
-      unsigned char bitDepth;
-      int startPos=sampleOff[ins->amiga.initSample];
-      int endPos=CLAMP(s->isLoopable()?s->loopEnd:(s->samples+1),1,0x10000);
-      int loop=s->isLoopable()?CLAMP(s->loopStart,0,endPos-2):(endPos-2);
-      switch (s->depth) {
-        case DIV_SAMPLE_DEPTH_8BIT:
-          bitDepth=0;
-          break;
-        case DIV_SAMPLE_DEPTH_12BIT:
-          bitDepth=3;
-          if (!s->isLoopable()) {
-            endPos++;
-            loop++;
-          }
-          break;
-        default:
-          bitDepth=0;
-          break;
-      }
-      pcmMem[insAddr]=(bitDepth<<6)|((startPos>>16)&0x1f);
-      pcmMem[1+insAddr]=(startPos>>8)&0xff;
-      pcmMem[2+insAddr]=(startPos)&0xff;
-      pcmMem[3+insAddr]=(loop>>8)&0xff;
-      pcmMem[4+insAddr]=(loop)&0xff;
-      pcmMem[5+insAddr]=((~(endPos-1))>>8)&0xff;
-      pcmMem[6+insAddr]=(~(endPos-1))&0xff;
-      if (ins->type==DIV_INS_MULTIPCM) {
-        pcmMem[7+insAddr]=(ins->multipcm.lfo<<3)|ins->multipcm.vib; // LFO, VIB
-        pcmMem[8+insAddr]=(ins->multipcm.ar<<4)|ins->multipcm.d1r; // AR, D1R
-        pcmMem[9+insAddr]=(ins->multipcm.dl<<4)|ins->multipcm.d2r; // DL, D2R
-        pcmMem[10+insAddr]=(ins->multipcm.rc<<4)|ins->multipcm.rr; // RC, RR
-        pcmMem[11+insAddr]=ins->multipcm.am; // AM
+      short sample=ins->amiga.initSample;
+      if (sample>=0 && sample<parent->song.sampleLen) {
+        DivSample* s=parent->song.sample[sample];
+        unsigned char bitDepth;
+        int startPos=sampleOff[sample];
+        int endPos=CLAMP(s->isLoopable()?s->loopEnd:(s->samples+1),1,0x10000);
+        int loop=s->isLoopable()?CLAMP(s->loopStart,0,endPos-2):(endPos-2);
+        switch (s->depth) {
+          case DIV_SAMPLE_DEPTH_8BIT:
+            bitDepth=0;
+            break;
+          case DIV_SAMPLE_DEPTH_12BIT:
+            bitDepth=3;
+            if (!s->isLoopable()) {
+              endPos++;
+              loop++;
+            }
+            break;
+          default:
+            bitDepth=0;
+            break;
+        }
+        pcmMem[insAddr]=(bitDepth<<6)|((startPos>>16)&0x1f);
+        pcmMem[1+insAddr]=(startPos>>8)&0xff;
+        pcmMem[2+insAddr]=(startPos)&0xff;
+        pcmMem[3+insAddr]=(loop>>8)&0xff;
+        pcmMem[4+insAddr]=(loop)&0xff;
+        pcmMem[5+insAddr]=((~(endPos-1))>>8)&0xff;
+        pcmMem[6+insAddr]=(~(endPos-1))&0xff;
+        if (ins->type==DIV_INS_MULTIPCM) {
+          pcmMem[7+insAddr]=(ins->multipcm.lfo<<3)|ins->multipcm.vib; // LFO, VIB
+          pcmMem[8+insAddr]=(ins->multipcm.ar<<4)|ins->multipcm.d1r; // AR, D1R
+          pcmMem[9+insAddr]=(ins->multipcm.dl<<4)|ins->multipcm.d2r; // DL, D2R
+          pcmMem[10+insAddr]=(ins->multipcm.rc<<4)|ins->multipcm.rr; // RC, RR
+          pcmMem[11+insAddr]=ins->multipcm.am; // AM
+        } else {
+          pcmMem[7+insAddr]=0; // LFO, VIB
+          pcmMem[8+insAddr]=(0xf<<4)|(0xf<<0); // AR, D1R
+          pcmMem[9+insAddr]=0; // DL, D2R
+          pcmMem[10+insAddr]=(0xf<<4)|(0xf<<0); // RC, RR
+          pcmMem[11+insAddr]=0; // AM
+        }
       } else {
+        // fill to dummy instrument
+        pcmMem[insAddr]=0;
+        pcmMem[1+insAddr]=0;
+        pcmMem[2+insAddr]=0;
+        pcmMem[3+insAddr]=0;
+        pcmMem[4+insAddr]=0;
+        pcmMem[5+insAddr]=0xff;
+        pcmMem[6+insAddr]=0xff;
         pcmMem[7+insAddr]=0; // LFO, VIB
         pcmMem[8+insAddr]=(0xf<<4)|(0xf<<0); // AR, D1R
-        pcmMem[9+insAddr]=0; // DL, D2R
+        pcmMem[9+insAddr]=(0xf<<4); // DL, D2R
         pcmMem[10+insAddr]=(0xf<<4)|(0xf<<0); // RC, RR
         pcmMem[11+insAddr]=0; // AM
       }
     }
-
     memCompo.used=pcmMemLen;
   }
   memCompo.capacity=getSampleMemCapacity(0);
