@@ -30,6 +30,7 @@
 #include "guiConst.h"
 #include "sampleUtil.h"
 #include "util.h"
+#include "intConst.h"
 
 #define SWAP_COLOR_ARGB(x) \
   x=(x&0xff00ff00)|((x&0xff)<<16)|((x&0xff0000)>>16);
@@ -255,12 +256,21 @@ void FurnaceGUI::drawSampleEdit() {
             break;
           case DIV_SYSTEM_QSOUND:
             if (sample->loop) {
-              if (sample->loopEnd-sample->loopStart>32767) {
+              if (sample->depth==DIV_SAMPLE_DEPTH_QSOUND_ADPCM) {
+                SAMPLE_WARN(warnLoop,_("QSound: ADPCM samples can't loop"));
+              } else if (sample->loopEnd-sample->loopStart>32767) {
                 SAMPLE_WARN(warnLoopPos,_("QSound: loop cannot be longer than 32767 samples"));
               }
             }
-            if (sample->samples>65535) {
-              SAMPLE_WARN(warnLength,"QSound: maximum sample length is 65535");
+            if (sample->depth==DIV_SAMPLE_DEPTH_QSOUND_ADPCM) {
+              if (sample->samples>131070) {
+                SAMPLE_WARN(warnLength,"QSound: maximum ADPCM sample length is 131070");
+              }
+              if (dispatch!=NULL) {
+                EXACT_RATE("QSound (ADPCM)",dispatch->chipClock/7488.0);
+              }
+            } else if (sample->samples>65535) {
+              SAMPLE_WARN(warnLength,"QSound: maximum PCM sample length is 65535");
             }
             break;
           case DIV_SYSTEM_NES: {
@@ -494,7 +504,7 @@ void FurnaceGUI::drawSampleEdit() {
                     SAMPLE_WARN(warnLoopEnd,_("NDS: loop end on ADPCM must be a multiple of 8"));
                   }
                   if (sample->loopStart>524280) {
-                    SAMPLE_WARN(warnLoopPos,_("NDS: loop cannot be longer than 524280 samples on ADPCM"));
+                    SAMPLE_WARN(warnLoopStart,_("NDS: loop start cannot be longer than 524280 samples on ADPCM"));
                   }
                   if ((sample->loopEnd-sample->loopStart)>33554424) {
                     SAMPLE_WARN(warnLoopPos,_("NDS: maximum ADPCM loop length is 33554424"));
@@ -514,7 +524,7 @@ void FurnaceGUI::drawSampleEdit() {
                     SAMPLE_WARN(warnLoopEnd,_("NDS: loop end on 8 bit PCM must be a multiple of 4"));
                   }
                   if (sample->loopStart>262140) {
-                    SAMPLE_WARN(warnLoopPos,_("NDS: loop cannot be longer than 262140 samples on 8 bit PCM"));
+                    SAMPLE_WARN(warnLoopStart,_("NDS: loop start cannot be longer than 262140 samples on 8 bit PCM"));
                   }
                   if ((sample->loopEnd-sample->loopStart)>16777212) {
                     SAMPLE_WARN(warnLoopPos,_("NDS: maximum 8 bit PCM loop length is 16777212"));
@@ -534,7 +544,7 @@ void FurnaceGUI::drawSampleEdit() {
                     SAMPLE_WARN(warnLoopEnd,_("NDS: loop end on 16 bit PCM must be a multiple of 2"));
                   }
                   if (sample->loopStart>131070) {
-                    SAMPLE_WARN(warnLoopPos,_("NDS: loop cannot be longer than 131070 samples on 16 bit PCM"));
+                    SAMPLE_WARN(warnLoopStart,_("NDS: loop start cannot be longer than 131070 samples on 16 bit PCM"));
                   }
                   if ((sample->loopEnd-sample->loopStart)>8388606) {
                     SAMPLE_WARN(warnLoopPos,_("NDS: maximum 16 bit PCM loop length is 8388606"));
@@ -1109,14 +1119,27 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::OpenPopup("SResampleOpt");
       }
       if (ImGui::BeginPopupContextItem("SResampleOpt",ImGuiPopupFlags_MouseButtonLeft)) {
-        ImGui::Text(_("Rate"));
-        if (ImGui::InputDouble("##SRRate",&resampleTarget,1.0,50.0,"%g")) {
-          if (resampleTarget<0) resampleTarget=0;
-          if (resampleTarget>96000) resampleTarget=96000;
+        if (ImGui::InputDouble("Rate##SRRate",&resampleTarget,1.0,50.0,"%g")) {
+          if (resampleTarget<100) resampleTarget=100;
+          if (resampleTarget>384000) resampleTarget=384000;
         }
-        ImGui::SameLine();
+        double factor=resampleTarget/(double)targetRate;
+        unsigned int targetLength=sample->samples*factor;
+        if (ImGui::InputScalar("Length##SRLen",ImGuiDataType_U32,&targetLength, &_ONE, &_SIXTEEN)) {
+          if (targetLength<1) targetLength=1;
+          resampleTarget=targetRate*targetLength/(double)sample->samples;
+          if (resampleTarget<100) resampleTarget=100;
+          if (resampleTarget>384000) resampleTarget=384000;
+        }
+        if (ImGui::InputDouble(_("Factor"),&factor,0.125,0.5,"%g")) {
+          resampleTarget=(double)targetRate*factor;
+          if (resampleTarget<100) resampleTarget=100;
+          if (resampleTarget>384000) resampleTarget=384000;
+        }
         if (ImGui::Button("0.5x")) {
           resampleTarget*=0.5;
+          if (resampleTarget<100) resampleTarget=100;
+          if (resampleTarget>384000) resampleTarget=384000;
         }
         ImGui::SameLine();
         if (ImGui::Button("==")) {
@@ -1125,19 +1148,15 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::SameLine();
         if (ImGui::Button("2.0x")) {
           resampleTarget*=2.0;
-        }
-        double factor=resampleTarget/(double)targetRate;
-        if (ImGui::InputDouble(_("Factor"),&factor,0.125,0.5,"%g")) {
-          resampleTarget=(double)targetRate*factor;
-          if (resampleTarget<0) resampleTarget=0;
-          if (resampleTarget>96000) resampleTarget=96000;
+          if (resampleTarget<100) resampleTarget=100;
+          if (resampleTarget>384000) resampleTarget=384000;
         }
         ImGui::Combo(_("Filter"),&resampleStrat,LocalizedComboGetter,resampleStrats,6);
         if (ImGui::Button(_("Resample"))) {
           sample->prepareUndo(true);
           e->lockEngine([this,sample,targetRate]() {
             if (!sample->resample(targetRate,resampleTarget,resampleStrat)) {
-              showError(_("couldn't resample! make sure your sample is 8 or 16-bit."));
+              showError(_("couldn't resample! make sure your sample is 8 or 16-bit and that the target rate is at least 100Hz."));
             }
             e->renderSamples(curSample);
           });
@@ -2291,6 +2310,32 @@ void FurnaceGUI::drawSampleEdit() {
             if (sampleZoom<0.75) {
               for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
                 if (((i+samplePos)&15)==0) {
+                  ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
+                  ImVec2 p2=p1;
+                  p2.y=rectMax.y;
+
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
+                }
+              }
+            }
+          }
+          if (displayLoopHintsNDSA) {
+            if (sampleZoom<0.5) {
+              for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
+                if (((i+samplePos)&7)==0) {
+                  ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
+                  ImVec2 p2=p1;
+                  p2.y=rectMax.y;
+
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
+                }
+              }
+            }
+          }
+          if (displayLoopHintsNDS8) {
+            if (sampleZoom<0.375) {
+              for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
+                if (((i+samplePos)&3)==0) {
                   ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
                   ImVec2 p2=p1;
                   p2.y=rectMax.y;

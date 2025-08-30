@@ -146,7 +146,7 @@ const char* aboutLine[]={
   _N("MAME µPD1771C-017 HLE core by David Viens"),
   _N("SAASound by Dave Hooper and Simon Owen"),
   _N("SameBoy by Lior Halphon"),
-  _N("Mednafen PCE, WonderSwan, T6W28 and Virtual Boy audio cores"),
+  _N("Mednafen PCE, WonderSwan, T6W28 (modified) and Virtual Boy audio cores"),
   _N("WonderSwan new core by asiekierka"),
   _N("SNES DSP core by Blargg"),
   _N("puNES (NES, MMC5 and FDS) by FHorse (modified version)"),

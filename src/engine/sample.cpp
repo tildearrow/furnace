@@ -1189,6 +1189,7 @@ bool DivSample::resampleSinc(double sRate, double tRate) {
 
 bool DivSample::resample(double sRate, double tRate, int filter) {
   if (depth!=DIV_SAMPLE_DEPTH_8BIT && depth!=DIV_SAMPLE_DEPTH_16BIT) return false;
+  if (tRate<100) return false;
   switch (filter) {
     case DIV_RESAMPLE_NONE:
       return resampleNone(sRate,tRate);
