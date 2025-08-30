@@ -600,6 +600,11 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_SEGAPCM:
     case DIV_SYSTEM_SEGAPCM_COMPAT:
       dispatch=new DivPlatformSegaPCM;
+      ((DivPlatformSegaPCM*)dispatch)->setChipModel(false);
+      break;
+    case DIV_SYSTEM_SEGAPCM_DISCRETE:
+      dispatch=new DivPlatformSegaPCM;
+      ((DivPlatformSegaPCM*)dispatch)->setChipModel(true);
       break;
     case DIV_SYSTEM_X1_010:
       dispatch=new DivPlatformX1_010;
