@@ -163,6 +163,11 @@ class ProcWriter {
     int writeFd;
     int format;
     int channelCount;
+// #ifdef TA_BIG_ENDIAN
+//     uint16_t *buf;
+// #else
+//     int16_t *buf;
+// #endif
   public:
     ProcWriter(int channelCount):
       proc(NULL),
@@ -173,14 +178,19 @@ class ProcWriter {
       proc=proc_;
       writeFd=writeFd_;
       format=format_;
+// #ifdef TA_BIG_ENDIAN
+//       buf=new uint16_t[EXPORT_BUFSIZE*channelCount];
+// #else
+//       buf=new int16_t[EXPORT_BUFSIZE*channelCount];
+// #endif
 
       int flags=fcntl(writeFd,F_GETFL);
-      if (flags==-1) {
+      if (flags<0) {
         logE("error with fcntl (%s)",strerror(errno));
         return false;
       }
       flags|=O_NONBLOCK;
-      if (fcntl(writeFd,F_SETFL,flags)==-1) {
+      if (fcntl(writeFd,F_SETFL,flags)<0) {
         logE("error with fcntl (%s)",strerror(errno));
         return false;
       }
@@ -196,21 +206,45 @@ class ProcWriter {
       return channelCount;
     }
 
-    bool write(float* samples, size_t count_, size_t exportOutputs) {
-      size_t count=count_*exportOutputs;
+    /**
+     * Auxiliary function to write raw bytes to the stdin of the subprocess.
+     */
+    bool writeRaw(const uint8_t* buf, size_t size) {
+      const uint8_t* next=buf;
+      ssize_t length=size;
 
-      const auto doWrite=[this](void* buf, size_t size) {
-        while (true) {
-          if (::write(writeFd,buf,size)==(ssize_t)size) return true;
-          // buffer got full! wait for it to unblock
-          if (!proc->waitStdinOrExit()) {
-            int exitCode=-1;
-            proc->getExitCode(&exitCode, false);
-            logE("subprocess exited before finishing export (exit code %d)", exitCode);
-            return false;
-          }
+      while (true) {
+        ssize_t ret=::write(writeFd,buf,size);
+        if (ret<0) {
+          logE("ProcWriter::writeRaw: error while writing: %s",strerror(errno));
+          return false;
         }
-      };
+
+        // advance read pointer and return if done
+        length-=ret;
+        next+=ret;
+        if (length<=0) {
+          return true;
+        }
+
+        // buffer got full! wait for it to unblock
+        if (!proc->waitStdinOrExit()) {
+          int exitCode=-1;
+          proc->getExitCode(&exitCode, false);
+          logE("ProcWriter::writeRaw: subprocess exited abruptly (exit code %d)", exitCode);
+          return false;
+        }
+      }
+    }
+
+    /**
+     * Send 32-bit float samples to the subprocess.
+     *
+     * @param samples the sample buffer where everything is sent.
+     * @param count_ the size of the sample buffer.
+     */
+    bool write(const float* samples, size_t count_, size_t exportOutputs) { // TODO: rename to writeFloat, remove exportOutputs
+      size_t count=count_*exportOutputs;
 
       if (format==DIV_EXPORT_FORMAT_S16) {
 #ifdef TA_BIG_ENDIAN
@@ -220,16 +254,16 @@ class ProcWriter {
           uint16_t sampleU=*(uint16_t*)&sample;
           buf[i]=(sampleU>>8)|(sampleU<<8); // byte swap from BE to LE
         }
-        return doWrite(buf,count*sizeof(uint16_t));
+        return writeRaw((const uint8_t*)buf,count*sizeof(uint16_t));
 #else
         int16_t buf[count];
         for (size_t i=0; i<count; i++) {
           buf[i]=32767.0f*samples[i];
         }
-        return doWrite(buf,count*sizeof(int16_t));
+        return writeRaw((const uint8_t*)buf,count*sizeof(int16_t));
 #endif
       } else if (format==DIV_EXPORT_FORMAT_F32) {
-        return doWrite(samples,count*sizeof(float));
+        return writeRaw((const uint8_t*)samples,count*sizeof(float));
       } else {
         logE("invalid export format: %d",format);
         return false;
@@ -239,25 +273,6 @@ class ProcWriter {
     bool writeShort(short* samples, size_t count_) {
       size_t count=count_*channelCount;
 
-      const auto doWrite=[this](const uint8_t* buf, size_t size) {
-        const uint8_t *ptr=buf;
-        ssize_t counter=size;
-        while (true) {
-          size_t n=::write(writeFd,ptr,counter);
-          counter-=n;
-          ptr=&ptr[n];
-          if (counter<=0) return true;
-
-          // buffer got full! wait for it to unblock
-          if (!proc->waitStdinOrExit()) {
-            int exitCode=-1;
-            proc->getExitCode(&exitCode, false);
-            logE("subprocess exited before finishing export (exit code %d)", exitCode);
-            return false;
-          }
-        }
-      };
-
       if (format==DIV_EXPORT_FORMAT_S16) {
 #ifdef TA_BIG_ENDIAN
         uint16_t buf[count];
@@ -265,16 +280,16 @@ class ProcWriter {
           uint16_t sampleU=*(uint16_t*)&samples[i];
           buf[i]=(sampleU>>8)|(sampleU<<8); // byte swap from BE to LE
         }
-        return doWrite((const uint8_t*)buf,count*sizeof(uint16_t));
+        return writeRaw((const uint8_t*)buf,count*sizeof(uint16_t));
 #else
-        return doWrite((const uint8_t*)samples,count*sizeof(int16_t));
+        return writeRaw((const uint8_t*)samples,count*sizeof(int16_t));
 #endif
       } else if (format==DIV_EXPORT_FORMAT_F32) {
         float buf[count];
         for (size_t i=0; i<count; i++) {
           buf[i]=(float)samples[i]/32767.0f;
         }
-        return doWrite((const uint8_t*)buf,count*sizeof(float));
+        return writeRaw((const uint8_t*)buf,count*sizeof(float));
       } else {
         logE("invalid export format: %d",format);
         return false;
@@ -548,7 +563,7 @@ void DivEngine::runExportThread() {
 
         Subprocess proc(args);
         int writeFd=proc.pipeStdin();
-        if (writeFd==-1) {
+        if (writeFd<0) {
           logE("failed to create stdin pipe for subprocess");
           exporting=false;
           return;

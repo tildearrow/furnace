@@ -31,22 +31,11 @@
 /**
  * Try to make a pipe.
  *
- * @param p where to build the pipe
- * @return whether it succeeded
+ * @return whether it succeeded.
  */
-bool makePipe(Subprocess::Pipe *p) {
+static bool makePipe(Subprocess::Pipe *p) {
   int arr[2];
-  if (pipe(arr)<0) return false;
-  logD("Got pipes: %d %d",arr[0],arr[1]); // FIXME: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-
-  logD("Honestly...");
-
-  int arr2[2];
-  if (pipe(arr2)<0) return false;
-  logD("ONE %d %d",arr2[0],arr2[1]);
-
-  if (pipe(arr2)<0) return false;
-  logD("TWO %d %d",arr2[0],arr2[1]);
+  if (::pipe(arr)<0) return false;
 
   *p=Subprocess::Pipe(arr);
   return true;
@@ -105,15 +94,15 @@ bool Subprocess::start() {
     // and then close the original copies (to avoid stalling)
     if (stdinPipe.readFd!=-1) {
       dup2(stdinPipe.readFd,STDIN_FILENO);
-      // stdinPipe.close(); // FIXME: not needed?
+      stdinPipe.close();
     }
     if (stdoutPipe.writeFd!=-1) {
       dup2(stdoutPipe.writeFd,STDOUT_FILENO);
-      // stdoutPipe.close(); // FIXME: not needed?
+      stdoutPipe.close();
     }
     if (stderrPipe.writeFd!=-1) {
       dup2(stderrPipe.writeFd,STDERR_FILENO);
-      // stderrPipe.close(); // FIXME: not needed?
+      stderrPipe.close();
     }
 
     // could not find a guaranteed way to cast a vector<String> to a char*[] so let's just create our own array and copy stuff to it
@@ -132,7 +121,7 @@ bool Subprocess::start() {
 
     // attempt to close the ends not used by the parent process
     // (to avoid stalling)
-    // FIXME: I think this is not needed? Becaue it wasn't happening anyway and it still worked
+    // FIXME: I think this is not needed? Because it wasn't happening anyway and it still worked
     // const auto closeEnd=[](int& fd) {
     //   if (fd!=-1) return;
     //   close(fd);

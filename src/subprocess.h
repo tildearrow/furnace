@@ -69,17 +69,23 @@ class Subprocess {
     // subprocess to die.
     bool waitStdinOrExit();
 
-    // Tries to get the subprocess's exit code.
-    // if `wait` is true, waits for the subprocess to finish and sets its exit code to `outCode`.
-    // if not, just checks if it has finished already.
-    // returns whether it has succeeded.
-    bool getExitCode(int *outCode, bool wait);
+    /**
+     * Try to get the subprocess's exit code.
+     *
+     * For simpler argument passing, see `waitForExitCode` and `getExitCodeNoWait`.
+     *
+     * @param outCode the destination where the exit code should be written
+     *
+     * @param wait whether to wait for the subprocess to finish (if it hasn't
+     * finished yet)
+     *
+     * @return whether it managed to get the exit code
+     */
+    bool getExitCode(int* outCode, bool wait);
 
-    // Simpler versions of `getExitCode`.
-    bool waitForExitCode(int *outCode);
+    bool waitForExitCode(int* outCode);
 
-    // Simpler versions of `getExitCode`.
-    bool getExitCodeNoWait(int *outCode);
+    bool getExitCodeNoWait(int* outCode);
 };
 #endif
 
