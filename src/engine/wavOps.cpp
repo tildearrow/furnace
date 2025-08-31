@@ -146,8 +146,7 @@ class SndfileWavWriter {
       return si.channels;
     }
 
-    bool write(float* samples, sf_count_t count, size_t exportOutputs) {
-      // FIXME: we're ignoring exportOutputs here. this is hacky!
+    bool writeFloat(float* samples, sf_count_t count) {
       return sf_writef_float(sf,samples,count)==count;
     }
 
@@ -163,11 +162,18 @@ class ProcWriter {
     int writeFd;
     int format;
     int channelCount;
-// #ifdef TA_BIG_ENDIAN
-//     uint16_t *buf;
-// #else
-//     int16_t *buf;
-// #endif
+
+#ifdef TA_BIG_ENDIAN
+    uint16_t* bufShort;
+#else
+    int16_t* bufShort;
+#endif
+    float* bufFloat;
+
+    inline size_t writeBufSize() const {
+      return EXPORT_BUFSIZE*channelCount;
+    }
+
   public:
     ProcWriter(int channelCount):
       proc(NULL),
@@ -178,11 +184,13 @@ class ProcWriter {
       proc=proc_;
       writeFd=writeFd_;
       format=format_;
-// #ifdef TA_BIG_ENDIAN
-//       buf=new uint16_t[EXPORT_BUFSIZE*channelCount];
-// #else
-//       buf=new int16_t[EXPORT_BUFSIZE*channelCount];
-// #endif
+
+#ifdef TA_BIG_ENDIAN
+      bufShort=new uint16_t[writeBufSize()];
+#else
+      bufShort=new int16_t[writeBufSize()];
+#endif
+      bufFloat=new float[writeBufSize()];
 
       int flags=fcntl(writeFd,F_GETFL);
       if (flags<0) {
@@ -200,6 +208,8 @@ class ProcWriter {
 
     void close() {
       ::close(writeFd);
+      delete[] bufShort;
+      delete[] bufFloat;
     }
 
     inline int getChannelCount() {
@@ -245,56 +255,68 @@ class ProcWriter {
     /**
      * Send 32-bit float samples to the subprocess.
      *
-     * @param samples the sample buffer where everything is sent.
-     * @param count_ the size of the sample buffer.
+     * @param samples the input buffer
+     * @param size the size of the input buffer - per channel (the actual buffer size is multiplied by the channel count)
+     * @return whether it succeeded
      */
-    bool write(const float* samples, size_t count_, size_t exportOutputs) { // TODO: rename to writeFloat, remove exportOutputs
-      size_t count=count_*exportOutputs;
+    bool writeFloat(const float* samples, size_t size) {
+      size_t actualSize=size*channelCount;
+      if (actualSize>writeBufSize()) {
+        logE("ProcWriter::writeFloat: buffer too large! (got %lu, should be <=%lu)", actualSize, writeBufSize());
+        return false;
+      }
 
       if (format==DIV_EXPORT_FORMAT_S16) {
 #ifdef TA_BIG_ENDIAN
-        uint16_t buf[count];
-        for (size_t i=0; i<count; i++) {
+        for (size_t i=0; i<actualSize; i++) {
           int16_t sample=32767.0f*samples[i];
           uint16_t sampleU=*(uint16_t*)&sample;
-          buf[i]=(sampleU>>8)|(sampleU<<8); // byte swap from BE to LE
+          bufShort[i]=(sampleU>>8)|(sampleU<<8); // byte swap from BE to LE
         }
-        return writeRaw((const uint8_t*)buf,count*sizeof(uint16_t));
+        return writeRaw((const uint8_t*)bufShort,actualSize*sizeof(uint16_t));
 #else
-        int16_t buf[count];
-        for (size_t i=0; i<count; i++) {
-          buf[i]=32767.0f*samples[i];
+        for (size_t i=0; i<actualSize; i++) {
+          bufShort[i]=32767.0f*samples[i];
         }
-        return writeRaw((const uint8_t*)buf,count*sizeof(int16_t));
+        return writeRaw((const uint8_t*)bufShort,actualSize*sizeof(int16_t));
 #endif
       } else if (format==DIV_EXPORT_FORMAT_F32) {
-        return writeRaw((const uint8_t*)samples,count*sizeof(float));
+        return writeRaw((const uint8_t*)samples,actualSize*sizeof(float));
       } else {
         logE("invalid export format: %d",format);
         return false;
       }
     }
 
-    bool writeShort(short* samples, size_t count_) {
-      size_t count=count_*channelCount;
+    /**
+     * Send 16-bit integer samples to the subprocess.
+     *
+     * @param samples the input buffer
+     * @param size the size of the input buffer - per channel (the actual buffer size is multiplied by the channel count)
+     * @return whether it succeeded
+     */
+    bool writeShort(short* samples, size_t size) {
+      size_t actualSize=size*channelCount;
+      if (actualSize>writeBufSize()) {
+        logE("ProcWriter::writeShort: buffer too large! (got %lu, should be <=%lu)", actualSize, writeBufSize());
+        return false;
+      }
 
       if (format==DIV_EXPORT_FORMAT_S16) {
 #ifdef TA_BIG_ENDIAN
-        uint16_t buf[count];
-        for (size_t i=0; i<count; i++) {
+        for (size_t i=0; i<actualSize; i++) {
           uint16_t sampleU=*(uint16_t*)&samples[i];
-          buf[i]=(sampleU>>8)|(sampleU<<8); // byte swap from BE to LE
+          bufShort[i]=(sampleU>>8)|(sampleU<<8); // byte swap from BE to LE
         }
-        return writeRaw((const uint8_t*)buf,count*sizeof(uint16_t));
+        return writeRaw((const uint8_t*)bufShort,actualSize*sizeof(uint16_t));
 #else
-        return writeRaw((const uint8_t*)samples,count*sizeof(int16_t));
+        return writeRaw((const uint8_t*)samples,actualSize*sizeof(int16_t));
 #endif
       } else if (format==DIV_EXPORT_FORMAT_F32) {
-        float buf[count];
-        for (size_t i=0; i<count; i++) {
-          buf[i]=(float)samples[i]/32767.0f;
+        for (size_t i=0; i<actualSize; i++) {
+          bufFloat[i]=(float)samples[i]/32767.0f;
         }
-        return writeRaw((const uint8_t*)buf,count*sizeof(float));
+        return writeRaw((const uint8_t*)bufFloat,actualSize*sizeof(float));
       } else {
         logE("invalid export format: %d",format);
         return false;
@@ -424,7 +446,7 @@ void DivEngine::runExportThread() {
         }
       }
 
-      if (!wr->write(outBufFinal,total,exportOutputs)) {
+      if (!wr->writeFloat(outBufFinal,total)) {
         logE("error: failed to write entire buffer!");
         break;
       }
