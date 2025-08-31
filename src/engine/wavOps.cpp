@@ -216,8 +216,13 @@ class ProcWriter {
       while (true) {
         ssize_t ret=::write(writeFd,buf,size);
         if (ret<0) {
-          logE("ProcWriter::writeRaw: error while writing: %s",strerror(errno));
-          return false;
+          if (errno!=EAGAIN && errno!=EWOULDBLOCK) {
+            logE("ProcWriter::writeRaw: error while writing: %s",strerror(errno));
+            return false;
+          } else {
+            // if we don't set this to zero the read pointer goes back lol
+            ret=0;
+          }
         }
 
         // advance read pointer and return if done
