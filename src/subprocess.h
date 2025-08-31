@@ -48,7 +48,6 @@ class Subprocess {
 
   public:
     Subprocess(std::vector<String> args);
-    ~Subprocess();
 
     // These functions enable piping, and return a file descriptor to an end of the created pipe.
     // On stdin, it's the writable end; on stdout and stderr, it's the readable end.
@@ -61,22 +60,25 @@ class Subprocess {
     void closeStdoutPipe(bool careAboutError=true);
     void closeStderrPipe(bool careAboutError=true);
 
-    // starts the subprocess.
-    // returns whether it successfully started
+    // Starts the subprocess.
+    //
+    // Returns whether it successfully started
     bool start();
 
-    // waits for the stdin pipe (write end) to be writable, or for the subprocess
-    // to die
+    // Waits for the stdin pipe (write end) to be writable, or for the
+    // subprocess to die.
     bool waitStdinOrExit();
 
-    // tries to get the subprocess's exit code.
+    // Tries to get the subprocess's exit code.
     // if `wait` is true, waits for the subprocess to finish and sets its exit code to `outCode`.
     // if not, just checks if it has finished already.
     // returns whether it has succeeded.
     bool getExitCode(int *outCode, bool wait);
 
-    // simpler versions of `getExitCode`
+    // Simpler versions of `getExitCode`.
     bool waitForExitCode(int *outCode);
+
+    // Simpler versions of `getExitCode`.
     bool getExitCodeNoWait(int *outCode);
 };
 #endif

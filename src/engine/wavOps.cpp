@@ -239,9 +239,15 @@ class ProcWriter {
     bool writeShort(short* samples, size_t count_) {
       size_t count=count_*channelCount;
 
-      const auto doWrite=[this](void* buf, size_t size) {
+      const auto doWrite=[this](const uint8_t* buf, size_t size) {
+        const uint8_t *ptr=buf;
+        ssize_t counter=size;
         while (true) {
-          if (::write(writeFd,buf,size)==(ssize_t)size) return true;
+          size_t n=::write(writeFd,ptr,counter);
+          counter-=n;
+          ptr=&ptr[n];
+          if (counter<=0) return true;
+
           // buffer got full! wait for it to unblock
           if (!proc->waitStdinOrExit()) {
             int exitCode=-1;
@@ -259,16 +265,16 @@ class ProcWriter {
           uint16_t sampleU=*(uint16_t*)&samples[i];
           buf[i]=(sampleU>>8)|(sampleU<<8); // byte swap from BE to LE
         }
-        return doWrite(buf,count*sizeof(uint16_t));
+        return doWrite((const uint8_t*)buf,count*sizeof(uint16_t));
 #else
-        return doWrite(samples,count*sizeof(int16_t));
+        return doWrite((const uint8_t*)samples,count*sizeof(int16_t));
 #endif
       } else if (format==DIV_EXPORT_FORMAT_F32) {
         float buf[count];
         for (size_t i=0; i<count; i++) {
           buf[i]=(float)samples[i]/32767.0f;
         }
-        return doWrite(buf,count*sizeof(float));
+        return doWrite((const uint8_t*)buf,count*sizeof(float));
       } else {
         logE("invalid export format: %d",format);
         return false;
