@@ -23,6 +23,9 @@
 #include "ta-utils.h"
 
 #ifndef _WIN32 // TODO: windows impl
+/**
+ * Manages a child process and facilitates communication with it through pipes.
+ */
 class Subprocess {
   public:
     struct Pipe {
@@ -33,13 +36,13 @@ class Subprocess {
       Pipe(int pipeArr[2]): readFd(pipeArr[0]), writeFd(pipeArr[1]) {}
     };
 
+  private:
     enum Status {
       SUBPROCESS_NOT_STARTED,
       SUBPROCESS_RUNNING,
       SUBPROCESS_FINISHED
     };
 
-  private:
     std::vector<String> args;
     pid_t childPid=-1;
     int statusCode;
@@ -49,24 +52,47 @@ class Subprocess {
   public:
     Subprocess(std::vector<String> args);
 
-    // These functions enable piping, and return a file descriptor to an end of the created pipe.
-    // On stdin, it's the writable end; on stdout and stderr, it's the readable end.
-    // These should only be called before start(). They return -1 on error.
+    /**
+     * Create a pipe for communication with the subprocess.
+     *
+     * Should only be called before `start()`.
+     *
+     * @return the writable end of the pipe, or -1 on error
+     */
     int pipeStdin();
+
+    /**
+     * Same as `pipeStdin`, but for stdout.
+     *
+     * @return the readable end of the pipe, or -1 on error
+     */
     int pipeStdout();
+
+    /**
+     * Same as `pipeStdin`, but for stderr.
+     *
+     * @return the readable end of the pipe, or -1 on error
+     */
     int pipeStderr();
 
     void closeStdinPipe(bool careAboutError=true);
     void closeStdoutPipe(bool careAboutError=true);
     void closeStderrPipe(bool careAboutError=true);
 
-    // Starts the subprocess.
-    //
-    // Returns whether it successfully started
+    /*
+     * Start the subprocess.
+     *
+     * @return whether it successfully started
+     */
     bool start();
 
-    // Waits for the stdin pipe (write end) to be writable, or for the
-    // subprocess to die.
+    /*
+     * Wait for the stdin pipe (write end) to be writable, or for the subprocess
+     * to exit.
+     *
+     * @return whether it got more data in the pipe (if false, it might mean the
+     * child process exited, or that an error ocurred).
+     */
     bool waitStdinOrExit();
 
     /**
