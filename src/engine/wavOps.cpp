@@ -224,7 +224,7 @@ class ProcWriter {
       ssize_t length=size;
 
       while (true) {
-        ssize_t ret=::write(writeFd,buf,size);
+        ssize_t ret=::write(writeFd,next,length);
         if (ret<0) {
           if (errno!=EAGAIN && errno!=EWOULDBLOCK) {
             logE("ProcWriter::writeRaw: error while writing: %s",strerror(errno));
