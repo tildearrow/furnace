@@ -759,7 +759,7 @@ void DivEngine::runExportThread() {
       for (int i=0; i<chans; i++) {
         if (!exportChannelMask[i]) continue;
 
-        String fname=fmt::sprintf("%s_c%02d.wav",exportPath,i+1);
+        String fname=fmt::sprintf("%s_c%02d.%s",exportPath,i+1,exportFileExtNoDot);
         logI("rendering to %s...",fname);
 
         // mute all channels except the current one
@@ -799,24 +799,54 @@ void DivEngine::runExportThread() {
             return;
           }
           doExportChan(&wr);
+        } else if (exportWriter==DIV_EXPORT_WRITER_COMMAND) {
+#ifdef _WIN32
+          logE("ffmpeg export is not yet supported");
+#else
 
-          curExportChan++;
+          std::vector<String> args;
+          splitString(exportCommand,' ',args);
+          String inputFormatArg=(exportFormat==DIV_EXPORT_FORMAT_S16)?"s16le":"f32le";
+          args=buildFinalArgs(args,inputFormatArg,got.rate,exportOutputs,fname.c_str());
 
-          // skip FM operator channels
-          if (getChannelType(i)==5) {
-            i++;
-            while (true) {
-              if (i>=chans) break;
-              if (getChannelType(i)!=5) break;
-              i++;
-            }
-            i--;
+          Subprocess proc(args);
+          int writeFd=proc.pipeStdin();
+          if (writeFd<0) {
+            logE("failed to create stdin pipe for subprocess");
+            exporting=false;
+            return;
           }
 
-          if (stopExport) break;
-        } else if (exportWriter==DIV_EXPORT_WRITER_COMMAND) {
-          logE("TODO"); // TODO lol
+          if (!proc.start()) {
+            logE("failed to start ffmpeg subprocess");
+            exporting=false;
+            return;
+          }
+
+          ProcWriter wr(exportOutputs);
+          if (!wr.open(&proc,writeFd,exportFormat)) {
+            logE("could not initialize export writer");
+            exporting=false;
+            return;
+          }
+          doExportChan(&wr);
+#endif
         }
+
+        curExportChan++;
+
+        // skip FM operator channels
+        if (getChannelType(i)==5) {
+          i++;
+          while (true) {
+            if (i>=chans) break;
+            if (getChannelType(i)!=5) break;
+            i++;
+          }
+          i--;
+        }
+
+        if (stopExport) break;
       }
 
       delete[] outBufFinal;
