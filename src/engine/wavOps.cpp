@@ -716,55 +716,7 @@ void DivEngine::runExportThread() {
 
       logI("rendering to files...");
 
-      for (int i=0; i<chans; i++) {
-        if (!exportChannelMask[i]) continue;
-
-        SNDFILE* sf;
-        SF_INFO si;
-        SFWrapper sfWrap;
-        String fname=fmt::sprintf("%s_c%02d.wav",exportPath,i+1);
-        logI("- %s",fname.c_str());
-        si.samplerate=got.rate;
-        si.channels=exportOutputs;
-        if (exportFormat==DIV_EXPORT_FORMAT_S16) {
-          si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
-        } else {
-          si.format=SF_FORMAT_WAV|SF_FORMAT_FLOAT;
-        }
-
-        sf=sfWrap.doOpen(fname.c_str(),SFM_WRITE,&si);
-        if (sf==NULL) {
-          logE("could not open file for writing! (%s)",sf_strerror(NULL));
-          break;
-        }
-
-        for (int j=0; j<chans; j++) {
-          bool mute=(j!=i);
-          isMuted[j]=mute;
-        }
-        if (getChannelType(i)==5) {
-          for (int j=i; j<chans; j++) {
-            if (getChannelType(j)!=5) break;
-            isMuted[j]=false;
-          }
-        }
-        for (int j=0; j<chans; j++) {
-          if (disCont[dispatchOfChan[j]].dispatch!=NULL) {
-            disCont[dispatchOfChan[j]].dispatch->muteChannel(dispatchChanOfChan[j],isMuted[j]);
-          }
-        }
-
-        curOrder=0;
-        prevOrder=0;
-        curFadeOutSample=0;
-        lastLoopPos=-1;
-        totalLoops=0;
-        isFadingOut=false;
-        remainingLoops=-1;
-        freelance=false;
-        playSub(false);
-        freelance=false;
-
+      const auto doExportChan=[&outBuf,&outBufFinal,&curFadeOutSample,&fadeOutSamples,this](auto writer) {
         while (playing) {
           size_t total=0;
           nextBuf(NULL,outBuf,0,exportOutputs,EXPORT_BUFSIZE);
@@ -795,29 +747,76 @@ void DivEngine::runExportThread() {
               }
             }
           }
-          if (sf_writef_float(sf,outBufFinal,total)!=(int)total) {
+          if (!writer->writeFloat(outBufFinal,total)) {
             logE("error: failed to write entire buffer!");
             break;
           }
         }
 
-        curExportChan++;
+        writer->close();
+      };
 
-        if (sfWrap.doClose()!=0) {
-          logE("could not close audio file!");
+      for (int i=0; i<chans; i++) {
+        if (!exportChannelMask[i]) continue;
+
+        String fname=fmt::sprintf("%s_c%02d.wav",exportPath,i+1);
+        logI("rendering to %s...",fname);
+
+        // mute all channels except the current one
+        for (int j=0; j<chans; j++) {
+          bool mute=(j!=i);
+          isMuted[j]=mute;
         }
 
         if (getChannelType(i)==5) {
-          i++;
-          while (true) {
-            if (i>=chans) break;
-            if (getChannelType(i)!=5) break;
-            i++;
+          for (int j=i; j<chans; j++) {
+            if (getChannelType(j)!=5) break;
+            isMuted[j]=false;
           }
-          i--;
+        }
+        for (int j=0; j<chans; j++) {
+          if (disCont[dispatchOfChan[j]].dispatch!=NULL) {
+            disCont[dispatchOfChan[j]].dispatch->muteChannel(dispatchChanOfChan[j],isMuted[j]);
+          }
         }
 
-        if (stopExport) break;
+        curOrder=0;
+        prevOrder=0;
+        curFadeOutSample=0;
+        lastLoopPos=-1;
+        totalLoops=0;
+        isFadingOut=false;
+        remainingLoops=-1;
+        freelance=false;
+        playSub(false);
+        freelance=false;
+
+        if (exportWriter==DIV_EXPORT_WRITER_SNDFILE) {
+          SndfileWavWriter wr;
+          if (!wr.open(makeSfInfo(),fname.c_str())) {
+            logE("could not initialize export writer");
+            exporting=false;
+            return;
+          }
+          doExportChan(&wr);
+
+          curExportChan++;
+
+          // skip FM operator channels
+          if (getChannelType(i)==5) {
+            i++;
+            while (true) {
+              if (i>=chans) break;
+              if (getChannelType(i)!=5) break;
+              i++;
+            }
+            i--;
+          }
+
+          if (stopExport) break;
+        } else if (exportWriter==DIV_EXPORT_WRITER_COMMAND) {
+          logE("TODO"); // TODO lol
+        }
       }
 
       delete[] outBufFinal;
