@@ -682,6 +682,11 @@ bool DivCSPlayer::init() {
       chan[i].readPos=chan[i].startPos;
     }
   }
+  
+  // read stack sizes
+  for (unsigned int i=0; i<fileChans; i++) {
+    chan[i].callStackSize=stream.readC();
+  }
 
   // initialize state
   for (int i=0; i<e->getTotalChannelCount(); i++) {
