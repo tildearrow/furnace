@@ -1346,7 +1346,7 @@ void FurnaceCV::buildStage(int which) {
   memset(busy,0,28*40*sizeof(bool));
 
   // special stages
-  if ((which%10)==19) {
+  if ((which%20)==19) {
     for (int i=0; i<20+(which>>2); i++) {
       int tries=0;
       while (tries<20) {
