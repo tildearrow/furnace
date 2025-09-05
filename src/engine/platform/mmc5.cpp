@@ -378,7 +378,7 @@ void DivPlatformMMC5::forceIns() {
     chan[i].insChanged=true;
     chan[i].prevFreq=65535;
     if (i<2) {
-      // TODO: implement noise mode
+      // TODO: implement envelope mode
       rWrite(0x5000+i*4,(0x30)|(chan[i].active?chan[i].outVol:0)|((chan[i].duty&3)<<6));
     }
   }
