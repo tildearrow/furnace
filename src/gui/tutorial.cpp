@@ -1313,7 +1313,7 @@ void FurnaceCV::buildStage(int which) {
     curStage=NULL;
   }
 
-  if (which>19 || which==4 || which==7 || which==9 || which==11 || which==13 || which==16 || which==17) {
+  if (which>18 || which==4 || which==7 || which==9 || which==11 || which==13 || which==16 || which==17) {
     stageWidth=80;
     stageHeight=56;
   } else {
@@ -1346,26 +1346,7 @@ void FurnaceCV::buildStage(int which) {
   memset(busy,0,28*40*sizeof(bool));
 
   // special stages
-  if ((which%10)==9) {
-    // vortex
-    for (int i=0; i<20+(which>>2); i++) {
-      int tries=0;
-      while (tries<20) {
-        int x=rand()%(stageWidth>>1);
-        int y=rand()%(stageHeight>>1);
-        int finalX=x<<4;
-        int finalY=y<<4;
-        if (busy[y][x]) {
-          tries++;
-          continue;
-        }
-        createObject<FurnaceCVEnemyVortex>(finalX,finalY);
-        createObject<FurnaceCVFurBallMedium>(finalX-4,finalY-4);
-        busy[y][x]=true;
-        break;
-      }
-    }
-  } else if ((which%10)==19) {
+  if ((which%20)==19) {
     for (int i=0; i<20+(which>>2); i++) {
       int tries=0;
       while (tries<20) {
@@ -1384,6 +1365,25 @@ void FurnaceCV::buildStage(int which) {
         busy[y][x+1]=true;
         busy[y+1][x]=true;
         busy[y+1][x+1]=true;
+        break;
+      }
+    }
+  } else if ((which%10)==9) {
+    // vortex
+    for (int i=0; i<20+(which>>2); i++) {
+      int tries=0;
+      while (tries<20) {
+        int x=rand()%(stageWidth>>1);
+        int y=rand()%(stageHeight>>1);
+        int finalX=x<<4;
+        int finalY=y<<4;
+        if (busy[y][x]) {
+          tries++;
+          continue;
+        }
+        createObject<FurnaceCVEnemyVortex>(finalX,finalY);
+        createObject<FurnaceCVFurBallMedium>(finalX-4,finalY-4);
+        busy[y][x]=true;
         break;
       }
     }
@@ -1675,6 +1675,7 @@ void FurnaceCV::render(unsigned char joyIn) {
       lives+=lifeBank;
       respawnTime=1;
       lifeBank=0;
+      score=0;
       gameOver=false;
     }
 
