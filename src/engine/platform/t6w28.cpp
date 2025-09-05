@@ -129,7 +129,7 @@ void DivPlatformT6W28::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (i==3 && chan[i].std.duty.had) {
-      if (chan[i].duty!=chan[i].std.duty.val) {
+      if (chan[i].duty!=(((chan[i].std.duty.val==1)?4:0)|3)) {
         chan[i].duty=((chan[i].std.duty.val==1)?4:0)|3;
         rWrite(1,0xe0+chan[i].duty);
       }
