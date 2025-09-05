@@ -1479,7 +1479,8 @@ void DivSample::render(unsigned int formatMask) {
     }
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_BRR)) { // BRR
-    int sampleCount=loop?loopEnd:samples;
+    int sampleCount=isLoopable()?loopEnd:samples;
+    if (sampleCount>(int)samples) sampleCount=samples;
     if (!initInternal(DIV_SAMPLE_DEPTH_BRR,sampleCount)) return;
     brrEncode(data16,dataBRR,sampleCount,loop?loopStart:-1,brrEmphasis,brrNoFilter);
   }

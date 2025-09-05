@@ -525,6 +525,72 @@ void FurnaceGUI::drawCSPlayer() {
           ImGui::PopFont();
           ImGui::EndTabItem();
         }
+        if (ImGui::BeginTabItem(_("Data Access Visualizer"))) {
+          ImGui::Text("%d bytes",(int)cs->getDataLen());
+
+          ImGui::PushFont(patFont);
+          if (ImGui::BeginTable("CSHexPos",chans,ImGuiTableFlags_SizingStretchSame)) {
+            ImGui::TableNextRow();
+            for (int i=0; i<chans; i++) {
+              ImGui::TableNextColumn();
+              ImGui::Text("%d",i);
+            }
+            ImGui::TableNextRow();
+            for (int i=0; i<chans; i++) {
+              DivCSChannelState* state=cs->getChanState(i);
+              ImGui::TableNextColumn();
+              ImGui::Text("$%.4x",state->readPos);
+            }
+            ImGui::EndTable();
+          }
+          ImGui::PopFont();
+
+          if (csTex==NULL || !rend->isTextureValid(csTex)) {
+            logD("recreating command stream data texture.");
+            csTex=rend->createTexture(true,256,256,false,GUI_TEXFORMAT_ABGR32);
+            if (csTex==NULL) {
+              logE("error while creating command stream data texture! %s",SDL_GetError());
+            }
+          }
+          if (csTex!=NULL) {
+            unsigned int* dataT=NULL;
+            int pitch=0;
+            if (!rend->lockTexture(csTex,(void**)&dataT,&pitch)) {
+              logE("error while locking command stream data texture! %s",SDL_GetError());
+            } else {
+              unsigned short* accessTS=cs->getDataAccess();
+              unsigned int csTick=cs->getCurTick();
+              const float fadeTime=64.0f;
+              size_t bufSize=cs->getDataLen();
+              if (bufSize>65536) bufSize=65536;
+
+              for (size_t i=0; i<bufSize; i++) {
+                float cellAlpha=(float)(fadeTime-(((short)(csTick&0xffff))-(short)accessTS[i]))/fadeTime;
+                if (cellAlpha>0.0f) {
+                  dataT[i]=ImGui::GetColorU32(ImGuiCol_HeaderActive,cellAlpha);
+                } else {
+                  dataT[i]=0;
+                }
+              }
+              for (size_t i=bufSize; i<65536; i++) {
+                dataT[i]=0;
+              }
+
+              for (int i=0; i<e->getTotalChannelCount(); i++) {
+                unsigned int pos=cs->getChanState(i)->readPos;
+                if (pos<65536) {
+                  ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f);
+                  ImGui::ColorConvertHSVtoRGB((float)i/(float)e->getTotalChannelCount(),0.8f,1.0f,col.x,col.y,col.z);
+                  dataT[pos]=ImGui::GetColorU32(col);
+                }
+              }
+              rend->unlockTexture(csTex);
+            }
+
+            ImGui::Image(rend->getTextureID(csTex),ImVec2(768.0*dpiScale,768.0*dpiScale));
+          }
+          ImGui::EndTabItem();
+        }
         if (ImGui::BeginTabItem(_("Stream Info"))) {
           ImGui::Text("%d bytes",(int)cs->getDataLen());
           ImGui::Text("%u channels",cs->getFileChans());
@@ -537,6 +603,11 @@ void FurnaceGUI::drawCSPlayer() {
           for (int i=0; i<16; i++) {
             ImGui::SameLine();
             ImGui::Text("%d",cs->getFastCmds()[i]);
+          }
+          ImGui::Text("stack sizes:");
+          for (unsigned int i=0; i<cs->getFileChans(); i++) {
+            ImGui::SameLine();
+            ImGui::Text("%d",cs->getChanState(i)->callStackSize);
           }
           ImGui::Text("ticks: %u",cs->getCurTick());
           ImGui::EndTabItem();
