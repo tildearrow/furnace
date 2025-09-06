@@ -708,6 +708,21 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(0x04);
         w->writeC(0x00);
         break;
+      case DIV_SYSTEM_MULTIPCM:
+        for (int i=0; i<28; i++) {
+          w->writeC(0xb5); // set channel
+          w->writeC(baseAddr2|1);
+          w->writeC(i);
+          for (int j=0; j<8; j++) {
+            w->writeC(0xb5);
+            w->writeC(baseAddr2|2);
+            w->writeC(j);
+            w->writeC(0xb5); // keyoff
+            w->writeC(baseAddr2|0);
+            w->writeC(0);
+          }
+        }
+        break;
       default:
         break;
     }
@@ -1216,6 +1231,11 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC(write.addr&0xff);
       w->writeC(write.val);
       break;
+    case DIV_SYSTEM_MULTIPCM:
+      w->writeC(0xb5);
+      w->writeC(baseAddr2|(write.addr&0x7f));
+      w->writeC(write.val);
+      break;
     default:
       logW("write not handled!");
       break;
@@ -1398,6 +1418,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   DivDispatch* writeC219[2]={NULL,NULL};
   DivDispatch* writeNES[2]={NULL,NULL};
   DivDispatch* writePCM_OPL4[2]={NULL,NULL};
+  DivDispatch* writeMultiPCM[2]={NULL,NULL};
   
   int writeNESIndex[2]={0,0};
 
@@ -2018,6 +2039,21 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           howManyChips++;
         }
         break;
+      case DIV_SYSTEM_MULTIPCM:
+        if (!hasMultiPCM) {
+          hasMultiPCM=disCont[i].dispatch->rate*180; // for fix pitch in VGM players
+          CHIP_VOL(13,1.0);
+          willExport[i]=true;
+          writeMultiPCM[0]=disCont[i].dispatch;
+        } else if (!(hasMultiPCM&0x40000000)) {
+          isSecond[i]=true;
+          CHIP_VOL_SECOND(13,1.0);
+          willExport[i]=true;
+          writeMultiPCM[1]=disCont[i].dispatch;
+          hasMultiPCM|=0x40000000;
+          howManyChips++;
+        }
+        break;
       default:
         break;
     }
@@ -2376,6 +2412,15 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       w->writeI(writePCM_OPL4[i]->getSampleMemCapacity(0));
       w->writeI(0);
       w->write(writePCM_OPL4[i]->getSampleMem(0),writePCM_OPL4[i]->getSampleMemUsage(0));
+    }
+    if (writeMultiPCM[i]!=NULL && writeMultiPCM[i]->getSampleMemUsage()>0) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0x89);
+      w->writeI((writeMultiPCM[i]->getSampleMemUsage()+8)|(i*0x80000000));
+      w->writeI(writeMultiPCM[i]->getSampleMemCapacity());
+      w->writeI(0);
+      w->write(writeMultiPCM[i]->getSampleMem(),writeMultiPCM[i]->getSampleMemUsage());
     }
   }
 

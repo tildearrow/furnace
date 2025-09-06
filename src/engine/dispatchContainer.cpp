@@ -93,6 +93,7 @@
 #include "platform/bifurcator.h"
 #include "platform/sid2.h"
 #include "platform/sid3.h"
+#include "platform/multipcm.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
 #include "song.h"
@@ -786,6 +787,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       } else {
         ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl4Core",0));
       }
+      break;
+    case DIV_SYSTEM_MULTIPCM:
+      dispatch=new DivPlatformMultiPCM;
       break;
     case DIV_SYSTEM_DUMMY:
       dispatch=new DivPlatformDummy;
