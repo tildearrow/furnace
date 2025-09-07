@@ -325,7 +325,9 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
     for (unsigned short i=0; i<patCount; i++) {
       logV("pattern %d",i);
       headerSeek=reader.tell();
-      headerSeek+=reader.readI();
+      unsigned int headerSeekAdd=reader.readI();
+      logV("seek is %d",headerSeekAdd);
+      headerSeek+=headerSeekAdd;
 
       unsigned char packType=reader.readC();
       if (packType!=0) {
@@ -350,7 +352,10 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
         return false;
       }
 
-      unsigned int packedSeek=headerSeek+(unsigned short)reader.readS();
+      unsigned short packedSize=reader.readS();
+      logV("packed size: %d",packedSize);
+
+      unsigned int packedSeek=headerSeek+packedSize;
 
       logV("seeking to %x...",headerSeek);
       if (!reader.seek(headerSeek,SEEK_SET)) {
@@ -363,6 +368,10 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
 
       // read data
       for (int j=0; j<totalRows; j++) {
+        if (reader.tell()>=packedSeek) {
+          logV("end of data - stopping here...");
+          break;
+        }
         for (int k=0; k<totalChans; k++) {
           unsigned char note=reader.readC();
           unsigned char vol=0;
@@ -836,7 +845,10 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
         return false;
       }
 
-      unsigned int packedSeek=headerSeek+(unsigned short)reader.readS();
+      unsigned short packedSize=reader.readS();
+      logV("packed size: %d",packedSize);
+
+      unsigned int packedSeek=headerSeek+packedSize;
 
       logV("seeking to %x...",headerSeek);
       if (!reader.seek(headerSeek,SEEK_SET)) {
@@ -849,6 +861,10 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
 
       // read data
       for (int j=0; j<totalRows; j++) {
+        if (reader.tell()>=packedSeek) {
+          logV("end of data - stopping here...");
+          break;
+        }
         for (int k=0; k<totalChans; k++) {
           DivPattern* p=ds.subsong[0]->pat[k].getPattern(i,true);
 
