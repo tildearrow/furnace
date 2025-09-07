@@ -153,7 +153,9 @@ void DivPlatformT6W28::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.phaseReset.had) {
-      rWrite(1,0xe0+chan[i].duty);
+      if (chan[i].std.phaseReset.val==1) {
+        rWrite(1,0xe0+chan[i].duty);
+      }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=snCalcFreq(i);
