@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,8 @@
 #include "export/sapr.h"
 #include "export/tiuna.h"
 #include "export/zsm.h"
+#include "export/ipod.h"
+#include "export/grub.h"
 
 DivROMExport* DivEngine::buildROM(DivROMExportOptions sys) {
   DivROMExport* exporter=NULL;
@@ -38,6 +40,12 @@ DivROMExport* DivEngine::buildROM(DivROMExportOptions sys) {
       break;
     case DIV_ROM_SAP_R:
       exporter=new DivExportSAPR;
+      break;
+    case DIV_ROM_IPOD:
+      exporter=new DivExportiPod;
+      break;
+    case DIV_ROM_GRUB:
+      exporter=new DivExportGRUB;
       break;
     default:
       exporter=new DivROMExport;

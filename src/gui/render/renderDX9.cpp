@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -344,20 +344,12 @@ void FurnaceGUIRenderDX9::present() {
   }
 }
 
-bool FurnaceGUIRenderDX9::newFrame() {
-  return ImGui_ImplDX9_NewFrame();
+void FurnaceGUIRenderDX9::newFrame() {
+  ImGui_ImplDX9_NewFrame();
 }
 
 bool FurnaceGUIRenderDX9::canVSync() {
   return supportsVSync;
-}
-
-void FurnaceGUIRenderDX9::createFontsTexture() {
-  ImGui_ImplDX9_CreateDeviceObjects();
-}
-
-void FurnaceGUIRenderDX9::destroyFontsTexture() {
-  ImGui_ImplDX9_InvalidateDeviceObjects();
 }
 
 void FurnaceGUIRenderDX9::renderGUI() {

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -468,7 +468,6 @@ void putDispatchChip(void* data, int type) {
       ImGui::Text("> VRC6");
       COMMON_CHIP_DEBUG;
       ImGui::Text("- sampleBank: %.2x",ch->sampleBank);
-      ImGui::Text("- writeOscBuf: %.2x",ch->writeOscBuf);
       COMMON_CHIP_DEBUG_BOOL;
       break;
     }
@@ -495,13 +494,11 @@ void putDispatchChip(void* data, int type) {
       ImGui::Text("- cycle: %d",ch->cycle);
       ImGui::Text("- curPage: %d",ch->curPage);
       ImGui::Text("- volScale: %d",ch->volScale);
-      ImGui::Text("- maskedVal: %.2x",ch->maskedVal);
       ImGui::Text("- irqv: %.2x",ch->irqv);
       ImGui::Text("- curCR: %.8x",ch->curCR);
       ImGui::Text("- initChanMax: %d",ch->initChanMax);
       ImGui::Text("- chanMax: %d",ch->chanMax);
       COMMON_CHIP_DEBUG_BOOL;
-      ImGui::TextColored(ch->isMasked?colorOn:colorOff,">> IsMasked");
       ImGui::TextColored(ch->isReaded?colorOn:colorOff,">> isReaded");
       ImGui::TextColored(ch->irqTrigger?colorOn:colorOff,">> IrqTrigger");
       break;
@@ -521,7 +518,6 @@ void putDispatchChip(void* data, int type) {
       DivPlatformGA20* ch=(DivPlatformGA20*)data;
       ImGui::Text("> GA20");
       COMMON_CHIP_DEBUG;
-      ImGui::Text("- delay: %.2x",ch->delay);
       COMMON_CHIP_DEBUG_BOOL;
       break;
     }
@@ -554,9 +550,12 @@ void putDispatchChip(void* data, int type) {
       COMMON_CHIP_DEBUG_BOOL;
       break;
     }
-    default:
+    default: {
+      DivDispatch* ch=(DivDispatch*)data;
+      COMMON_CHIP_DEBUG;
       ImGui::Text("Unimplemented chip! Help!");
       break;
+    }
   }
 }
 void putDispatchChan(void* data, int chanNum, int type) {
@@ -884,6 +883,9 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text("- wave: %d",ch->wave);
       ImGui::Text("- VolMacroMax: %d",ch->volMacroMax);
       ImGui::Text("- PanMacroMax: %d",ch->panMacroMax);
+      ImGui::Text("- CR: %.4x",ch->cr);
+      ImGui::Text("- CRWriteVal: %.4x",ch->crWriteVal);
+      ImGui::Text("- CRDirVal: %.4x",ch->crDirVal);
       ImGui::Text("* PCM:");
       ImGui::Text(" * index: %d",ch->pcm.index);
       ImGui::Text("  - next: %d",ch->pcm.next);
@@ -949,6 +951,9 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::TextColored(ch->pcmChanged.position?colorOn:colorOff,">> PCMPositionChanged");
       ImGui::TextColored(ch->pcmChanged.loopBank?colorOn:colorOff,">> PCMLoopBankChanged");
       ImGui::TextColored(ch->isReverseLoop?colorOn:colorOff,">> IsReverseLoop");
+      ImGui::TextColored(ch->crChanged?colorOn:colorOff,">> CRChanged");
+      ImGui::TextColored(ch->crDirValChanged?colorOn:colorOff,">> CRDirValChanged");
+      ImGui::TextColored(ch->crDirValInit?colorOn:colorOff,">> CRDirValInit");
       ImGui::TextColored(ch->pcm.isNoteMap?colorOn:colorOff,">> PCMIsNoteMap");
       ImGui::TextColored(ch->pcm.pause?colorOn:colorOff,">> PCMPause");
       ImGui::TextColored(ch->pcm.direction?colorOn:colorOff,">> PCMDirection");

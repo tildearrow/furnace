@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,7 +41,6 @@ class DivPlatformSCC: public DivDispatch {
   unsigned char writeOscBuf;
   int lastUpdated34;
 
-  int coreQuality;
   scc_core* scc;
   bool isPlus;
   unsigned char regBase;
@@ -51,6 +50,7 @@ class DivPlatformSCC: public DivDispatch {
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -62,6 +62,7 @@ class DivPlatformSCC: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
+    bool hasAcquireDirect();
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
@@ -69,7 +70,6 @@ class DivPlatformSCC: public DivDispatch {
     const char** getRegisterSheet();
     void setFlags(const DivConfig& flags);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
-    void setCoreQuality(unsigned char q);
     void setChipModel(bool isPlus);
     void quit();
     ~DivPlatformSCC();

@@ -130,6 +130,9 @@ the following instrument types are available:
 - 61: GBA MinMod
 - 62: Bifurcator
 - 63: SID2
+- 64: Supervision
+- 65: µPD1771C
+- 66: SID3
 
 the following feature codes are recognized:
 
@@ -148,8 +151,10 @@ the following feature codes are recognized:
 - `N1`: Namco 163 ins data
 - `FD`: FDS/Virtual Boy ins data
 - `WS`: wavetable synth data
-- `SL`: list of samples
-- `WL`: list of wavetables
+- `SL`: list of samples (<233)
+- `WL`: list of wavetables (<233)
+- `LS`: list of samples (>=233)
+- `LW`: list of wavetables (>=233)
 - `MP`: MultiPCM ins data
 - `SU`: Sound Unit ins data
 - `ES`: ES5506 ins data
@@ -192,6 +197,7 @@ size | description
   1  | |x| ALG |x| FB  |
   1  | |FMS2 |AMS| FMS |
   1  | |AM2|4| LLPatch |
+  1  | |xxxxxxx| Block | (>=224)
 -----|------------------------------------
      | **operator data × opCount**
      | /7 6 5 4 3 2 1 0|
@@ -254,6 +260,8 @@ size | description
      | - 17: ex6
      | - 18: ex7
      | - 19: ex8
+     | - 20: ex9
+     | - 21: ex10
      | - 255: stop reading and move on
   1  | macro length
   1  | macro loop
@@ -549,7 +557,7 @@ size | description
   1  | parameter 4
 ```
 
-# list of samples (SL)
+# old list of samples (SL) (<233)
 
 ```
 size | description
@@ -560,13 +568,35 @@ size | description
      | - these use the Furnace sample format.
 ```
 
-# list of wavetables (WL)
+# old list of wavetables (WL) (<233)
 
 ```
 size | description
 -----|------------------------------------
   1  | number of wavetables
  1?? | wavetable indexes...
+ 4?? | pointers to wavetables...
+     | - these use the Furnace wavetable format.
+```
+
+# new list of samples (LS) (>=233)
+
+```
+size | description
+-----|------------------------------------
+  2  | number of samples
+ 2?? | sample indexes...
+ 4?? | pointers to samples...
+     | - these use the Furnace sample format.
+```
+
+# new list of wavetables (LW) (>=233)
+
+```
+size | description
+-----|------------------------------------
+  2  | number of wavetables
+ 2?? | wavetable indexes...
  4?? | pointers to wavetables...
      | - these use the Furnace wavetable format.
 ```

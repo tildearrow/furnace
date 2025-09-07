@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -193,6 +193,4 @@ void DivEngine::factoryReset() {
     if (i>0) path+=fmt::sprintf(".%d",i);
     deleteFile(path.c_str());
   }
-
-  exit(0);
 }

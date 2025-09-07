@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,47 +54,73 @@ inline void DivPlatformK007232::chWrite(unsigned char ch, unsigned int addr, uns
   }
 }
 
-void DivPlatformK007232::acquire(short** buf, size_t len) {
+void DivPlatformK007232::acquireDirect(blip_buffer_t** bb, size_t len) {
+  for (int i=0; i<2; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
-    if ((--delay)<=0) {
-      delay=MAX(0,delay);
-      if (!writes.empty()) {
-        QueuedWrite& w=writes.front();
-        // write on-chip register
-        if (w.addr<=0xd) {
-          k007232.write(w.addr,w.val);
-        }
-        regPool[w.addr]=w.val;
-        writes.pop();
-        delay=w.delay;
+    int advance=len-h;
+    if (!writes.empty()) {
+      advance=1;
+      QueuedWrite& w=writes.front();
+      // write on-chip register
+      if (w.addr<=0xd) {
+        k007232.write(w.addr,w.val);
       }
+      regPool[w.addr]=w.val;
+      writes.pop();
+    } else {
+      for (int i=0; i<2; i++) {
+        if (k007232.m_voice[i].m_busy) {
+          const int remain=4096-k007232.m_voice[i].m_counter;
+          if (remain<advance) advance=remain;
+        }
+      }
+      if (advance<1) advance=1;
     }
 
-    k007232.tick();
+    k007232.tick(advance);
+
+    h+=advance-1;
 
     if (stereo) {
       const unsigned char vol1=regPool[0x10],vol2=regPool[0x11];
       const signed int lout[2]={(k007232.output(0)*(vol1&0xf)),(k007232.output(1)*(vol2&0xf))};
       const signed int rout[2]={(k007232.output(0)*((vol1>>4)&0xf)),(k007232.output(1)*((vol2>>4)&0xf))};
-      buf[0][h]=(lout[0]+lout[1])<<4;
-      buf[1][h]=(rout[0]+rout[1])<<4;
-      if (++oscDivider>=8) {
-        oscDivider=0;
-        for (int i=0; i<2; i++) {
-          oscBuf[i]->data[oscBuf[i]->needle++]=(lout[i]+rout[i])<<3;
-        }
+      const int outL=(lout[0]+lout[1])<<4;
+      const int outR=(rout[0]+rout[1])<<4;
+
+      if (outL!=lastOut[0]) {
+        blip_add_delta(bb[0],h,outL-lastOut[0]);
+        lastOut[0]=outL;
+      }
+      if (outR!=lastOut[1]) {
+        blip_add_delta(bb[1],h,outR-lastOut[1]);
+        lastOut[1]=outR;
+      }
+
+      for (int i=0; i<2; i++) {
+        oscBuf[i]->putSample(h,(lout[i]+rout[i])<<3);
       }
     } else {
       const unsigned char vol=regPool[0xc];
       const signed int out[2]={(k007232.output(0)*(vol&0xf)),(k007232.output(1)*((vol>>4)&0xf))};
-      buf[0][h]=(out[0]+out[1])<<4;
-      if (++oscDivider>=8) {
-        oscDivider=0;
-        for (int i=0; i<2; i++) {
-          oscBuf[i]->data[oscBuf[i]->needle++]=out[i]<<4;
-        }
+      const int outFinal=(out[0]+out[1])<<4;
+
+      if (outFinal!=lastOut[0]) {
+        blip_add_delta(bb[0],h,outFinal-lastOut[0]);
+        lastOut[0]=outFinal;
+      }
+
+      for (int i=0; i<2; i++) {
+        oscBuf[i]->putSample(h,out[i]<<4);
       }
     }
+  }
+
+  for (int i=0; i<2; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -187,7 +213,7 @@ void DivPlatformK007232::tick(bool sysTick) {
         if (s->centerRate<1) {
           off=1.0;
         } else {
-          off=8363.0/s->centerRate;
+          off=parent->getCenterRate()/s->centerRate;
         }
       }
       DivSample* s=parent->getSample(chan[i].sample);
@@ -448,7 +474,8 @@ void DivPlatformK007232::reset() {
   k007232.reset();
   lastLoop=0;
   lastVolume=0;
-  delay=0;
+  lastOut[0]=0;
+  lastOut[1]=0;
   for (int i=0; i<2; i++) {
     chan[i]=DivPlatformK007232::Channel();
     chan[i].std.setEngine(parent);
@@ -464,6 +491,10 @@ void DivPlatformK007232::reset() {
 
 int DivPlatformK007232::getOutputCount() {
   return stereo?2:1;
+}
+
+bool DivPlatformK007232::hasAcquireDirect() {
+  return true;
 }
 
 void DivPlatformK007232::notifyInsChange(int ins) {
@@ -490,7 +521,7 @@ void DivPlatformK007232::setFlags(const DivConfig& flags) {
   stereo=flags.getBool("stereo",false);
   for (int i=0; i<2; i++) {
     chan[i].volumeChanged=true;
-    oscBuf[i]->rate=rate/8;
+    oscBuf[i]->setRate(rate);
   }
 }
 
@@ -524,7 +555,7 @@ size_t DivPlatformK007232::getSampleMemUsage(int index) {
 
 bool DivPlatformK007232::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -535,8 +566,8 @@ const DivMemoryComposition* DivPlatformK007232::getMemCompo(int index) {
 
 void DivPlatformK007232::renderSamples(int sysID) {
   memset(sampleMem,0xc0,getSampleMemCapacity());
-  memset(sampleOffK007232,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOffK007232,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="Sample ROM";
@@ -593,7 +624,6 @@ int DivPlatformK007232::init(DivEngine* p, int channels, int sugRate, const DivC
   }
   sampleMem=new unsigned char[getSampleMemCapacity()];
   sampleMemLen=0;
-  oscDivider=0;
   setFlags(flags);
   reset();
   
@@ -605,4 +635,18 @@ void DivPlatformK007232::quit() {
   for (int i=0; i<2; i++) {
     delete oscBuf[i];
   }
+}
+
+// initialization of important arrays
+DivPlatformK007232::DivPlatformK007232():
+  DivDispatch(),
+  k007232_intf(),
+  k007232(*this) {
+  sampleOffK007232=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
+DivPlatformK007232::~DivPlatformK007232() {
+  delete[] sampleOffK007232;
+  delete[] sampleLoaded;
 }

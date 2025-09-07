@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 extern const unsigned char image_icon_data[];
 extern const unsigned int image_icon_size;
 
+#ifndef NO_INTRO
 extern const unsigned char image_talogo_data[];
 extern const unsigned int image_talogo_size;
 
@@ -39,4 +40,5 @@ extern const unsigned int image_introbg_size;
 
 extern const unsigned char image_pat_data[];
 extern const unsigned int image_pat_size;
+#endif
 #endif

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -692,9 +692,9 @@ void DivEngine::convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivS
 }
 
 bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
-  unsigned int insPtr[256];
-  unsigned int wavePtr[256];
-  unsigned int samplePtr[256];
+  std::vector<unsigned int> insPtr;
+  std::vector<unsigned int> wavePtr;
+  std::vector<unsigned int> samplePtr;
   unsigned int subSongPtr[256];
   unsigned int sysFlagsPtr[DIV_MAX_CHIPS];
   unsigned int assetDirPtr[3];
@@ -934,13 +934,13 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       delete[] file;
       return false;
     }
-    if (ds.waveLen<0 || ds.waveLen>256) {
+    if (ds.waveLen<0 || ds.waveLen>32768) {
       logE("invalid wavetable count!");
       lastError="invalid wavetable count!";
       delete[] file;
       return false;
     }
-    if (ds.sampleLen<0 || ds.sampleLen>256) {
+    if (ds.sampleLen<0 || ds.sampleLen>32768) {
       logE("invalid sample count!");
       lastError="invalid sample count!";
       delete[] file;
@@ -1142,14 +1142,17 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
     }
 
     // pointers
+    insPtr.reserve(ds.insLen);
     for (int i=0; i<ds.insLen; i++) {
-      insPtr[i]=reader.readI();
+      insPtr.push_back(reader.readI());
     }
+    wavePtr.reserve(ds.waveLen);
     for (int i=0; i<ds.waveLen; i++) {
-      wavePtr[i]=reader.readI();
+      wavePtr.push_back(reader.readI());
     }
+    samplePtr.reserve(ds.sampleLen);
     for (int i=0; i<ds.sampleLen; i++) {
-      samplePtr[i]=reader.readI();
+      samplePtr.push_back(reader.readI());
     }
     patPtr.reserve(numberOfPats);
     for (int i=0; i<numberOfPats; i++) patPtr.push_back(reader.readI());
@@ -2100,6 +2103,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
           ds.systemFlags[i].set("chipType",1);
         }
       }
+    } else if (ds.version<229) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_VERA) {
+          ds.systemFlags[i].set("chipType",2);
+        }
+      }
     }
 
     // SNES no anti-click
@@ -2120,6 +2129,21 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
     }
 
+    // YM2612 chip type
+    if (ds.version<231) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_YM2612 ||
+            ds.system[i]==DIV_SYSTEM_YM2612_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2612_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2612_DUALPCM ||
+            ds.system[i]==DIV_SYSTEM_YM2612_DUALPCM_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2612_CSM) {
+          if (!ds.systemFlags[i].has("chipType") && !ds.systemFlags[i].has("ladderEffect")) {
+            ds.systemFlags[i].set("chipType",0);
+          }
+        }
+      }
+    }
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
@@ -2180,15 +2204,15 @@ SafeWriter* DivEngine::saveFur(bool notPrimary, bool newPatternFormat) {
     saveLock.unlock();
     return NULL;
   }
-  if (song.wave.size()>256) {
-    logE("maximum number of wavetables is 256!");
-    lastError="maximum number of wavetables is 256";
+  if (song.wave.size()>32768) {
+    logE("maximum number of wavetables is 32768!");
+    lastError="maximum number of wavetables is 32768";
     saveLock.unlock();
     return NULL;
   }
-  if (song.sample.size()>256) {
-    logE("maximum number of samples is 256!");
-    lastError="maximum number of samples is 256";
+  if (song.sample.size()>32768) {
+    logE("maximum number of samples is 32768!");
+    lastError="maximum number of samples is 32768";
     saveLock.unlock();
     return NULL;
   }

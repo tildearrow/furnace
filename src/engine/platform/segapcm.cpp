@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,10 @@
 void DivPlatformSegaPCM::acquire(short** buf, size_t len) {
   thread_local int os[2];
 
+  for (int i=0; i<16; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -49,8 +53,12 @@ void DivPlatformSegaPCM::acquire(short** buf, size_t len) {
     buf[1][h]=os[1];
 
     for (int i=0; i<16; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(pcm.lastOut[i][0]+pcm.lastOut[i][1])>>1;
+      oscBuf[i]->putSample(h,(pcm.lastOut[i][0]+pcm.lastOut[i][1])>>1);
     }
+  }
+
+  for (int i=0; i<16; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -119,7 +127,7 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
         double off=1.0;
         if (chan[i].pcm.sample>=0 && chan[i].pcm.sample<parent->song.sampleLen) {
           DivSample* s=parent->getSample(chan[i].pcm.sample);
-          off=(double)s->centerRate/8363.0;
+          off=(double)s->centerRate/parent->getCenterRate();
         }
         chan[i].pcm.freq=MIN(255,((rate*0.5)+(off*parent->song.tuning*pow(2.0,double(chan[i].freq+512)/(128.0*12.0)))*255)/rate)+(oldSlides?chan[i].pitch2:0);
         rWrite(7+(i<<3),chan[i].pcm.freq);
@@ -146,7 +154,7 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
             if (!s->isLoopable()) {
               rWrite(0x86+(i<<3),2+((actualPos>>16)<<3));
             } else {
-              int loopPos=(actualPos&0xffff)+loopStart;
+              int loopPos=(sampleOffSegaPCM[chan[i].pcm.sample]&0xffff)+loopStart;
               logV("sampleOff: %x loopPos: %x",actualPos,loopPos);
               rWrite(4+(i<<3),loopPos&0xff);
               rWrite(5+(i<<3),(loopPos>>8)&0xff);
@@ -165,7 +173,7 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
             if (!s->isLoopable()) {
               rWrite(0x86+(i<<3),2+((actualPos>>16)<<3));
             } else {
-              int loopPos=(actualPos&0xffff)+loopStart;
+              int loopPos=(sampleOffSegaPCM[chan[i].pcm.sample]&0xffff)+loopStart;
               rWrite(4+(i<<3),loopPos&0xff);
               rWrite(5+(i<<3),(loopPos>>8)&0xff);
               rWrite(0x86+(i<<3),((actualPos>>16)<<3));
@@ -462,7 +470,7 @@ size_t DivPlatformSegaPCM::getSampleMemUsage(int index) {
 
 bool DivPlatformSegaPCM::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -501,9 +509,9 @@ void DivPlatformSegaPCM::renderSamples(int sysID) {
   size_t memPos=0;
 
   memset(sampleMem,0,2097152);
-  memset(sampleLoaded,0,256*sizeof(bool));
-  memset(sampleOffSegaPCM,0,256*sizeof(unsigned int));
-  memset(sampleEndSegaPCM,0,256);
+  memset(sampleLoaded,0,32768*sizeof(bool));
+  memset(sampleOffSegaPCM,0,32768*sizeof(unsigned int));
+  memset(sampleEndSegaPCM,0,32768);
 
   memCompo=DivMemoryComposition();
   memCompo.name="Sample ROM";
@@ -551,7 +559,7 @@ void DivPlatformSegaPCM::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/256;
   for (int i=0; i<16; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 
   oldSlides=flags.getBool("oldSlides",false);
@@ -587,5 +595,15 @@ void DivPlatformSegaPCM::quit() {
   delete sampleMem;
 }
 
+// initialization of important arrays
+DivPlatformSegaPCM::DivPlatformSegaPCM() {
+  sampleOffSegaPCM=new unsigned int[32768];
+  sampleEndSegaPCM=new unsigned char[32768];
+  sampleLoaded=new bool[32768];
+}
+
 DivPlatformSegaPCM::~DivPlatformSegaPCM() {
+  delete[] sampleOffSegaPCM;
+  delete[] sampleEndSegaPCM;
+  delete[] sampleLoaded;
 }

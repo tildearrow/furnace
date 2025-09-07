@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,9 @@
 #include <windows.h>
 #include <combaseapi.h>
 #include <shellapi.h>
+#if defined(HAVE_SDL2) && !defined(SUPPORT_XP)
+#include <versionhelpers.h>
+#endif
 #include "utfutils.h"
 #include "gui/shellScalingStub.h"
 
@@ -86,9 +89,13 @@ FurnaceCLI cli;
 String outName;
 String vgmOutName;
 String cmdOutName;
+String romOutName;
+String txtOutName;
 int benchMode=0;
 int subsong=-1;
+DivCSOptions csExportOptions;
 DivAudioExportOptions exportOptions;
+DivConfig romExportConfig;
 
 #ifdef HAVE_GUI
 bool consoleMode=false;
@@ -266,7 +273,7 @@ TAParamResult pLogLevel(String val) {
 
 TAParamResult pVersion(String) {
   printf("Furnace version " DIV_VERSION ".\n\n");
-  printf("copyright (C) 2021-2024 tildearrow and contributors.\n");
+  printf("copyright (C) 2021-2025 tildearrow and contributors.\n");
   printf("licensed under the GNU General Public License version 2 or later\n");
   printf("<https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.\n\n");
   printf("this is free software with ABSOLUTELY NO WARRANTY.\n");
@@ -310,8 +317,9 @@ TAParamResult pVersion(String) {
   printf("- MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya (GPLv2)\n");
   printf("- MAME MSM6258 core by Barry Rodewald (BSD 3-clause)\n");
   printf("- MAME YMZ280B core by Aaron Giles (BSD 3-clause)\n");
-  printf("- MAME GA20 core by Acho A. Tang and R. Belmont (BSD 3-clause)\n");
+  printf("- MAME GA20 core (modified version) by Acho A. Tang, R. Belmont and Valley Bell (BSD 3-clause)\n");
   printf("- MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert (BSD 3-clause)\n");
+  printf("- MAME µPD1771C-017 HLE core by David Viens (BSD 3-clause)\n");
   printf("- QSound core by superctr (BSD 3-clause)\n");
   printf("- VICE VIC-20 by Rami Rasanen and viznut (GPLv2)\n");
   printf("- VICE TED by Andreas Boose, Tibor Biczo and Marco van den Heuvel (GPLv2)\n");
@@ -319,9 +327,10 @@ TAParamResult pVersion(String) {
   printf("- SAASound by Dave Hooper and Simon Owen (BSD 3-clause)\n");
   printf("- SameBoy by Lior Halphon (MIT)\n");
   printf("- Mednafen PCE, WonderSwan and Virtual Boy by Mednafen Team (GPLv2)\n");
-  printf("- Mednafen T6W28 by Blargg (GPLv2)\n");
+  printf("- Mednafen T6W28 (modified version) by Blargg (GPLv2)\n");
+  printf("- WonderSwan new core by asiekierka (zlib license)\n");
   printf("- SNES DSP core by Blargg (LGPLv2.1)\n");
-  printf("- puNES by FHorse (GPLv2)\n");
+  printf("- puNES (modified version) by FHorse (GPLv2)\n");
   printf("- NSFPlay by Brad Smith and Brezza (unknown open-source license)\n");
   printf("- reSID by Dag Lem (GPLv2)\n");
   printf("- reSIDfp by Dag Lem, Antti Lankila and Leandro Nini (GPLv2)\n");
@@ -330,7 +339,6 @@ TAParamResult pVersion(String) {
   printf("- vgsound_emu (second version, modified version) by cam900 (zlib license)\n");
   printf("- Impulse Tracker GUS volume table by Jeffrey Lim (BSD 3-clause)\n");
   printf("- Schism Tracker IT sample decompression (GPLv2)\n");
-  printf("- MAME GA20 core by Acho A. Tang, R. Belmont, Valley Bell (BSD 3-clause)\n");
   printf("- Atari800 mzpokeysnd POKEY emulator by Michael Borisov (GPLv2)\n");
   printf("- ASAP POKEY emulator by Piotr Fusik ported to C++ by laoo (GPLv2)\n");
   printf("- SM8521 emulator (modified version) by cam900 (zlib license)\n");
@@ -437,6 +445,30 @@ TAParamResult pCmdOut(String val) {
   return TA_PARAM_SUCCESS;
 }
 
+TAParamResult pROMOut(String val) {
+  romOutName=val;
+  e.setAudio(DIV_AUDIO_DUMMY);
+  return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pROMConf(String val) {
+  size_t eqSplit=val.find_first_of('=');
+  if (eqSplit==String::npos) {
+    logE("invalid romconf parameter, must contain '=' as in: <key>=<value>");
+    return TA_PARAM_ERROR;
+  }
+  String key=val.substr(0,eqSplit);
+  String param=val.substr(eqSplit+1);
+  romExportConfig.set(key,param);
+  return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pTxtOut(String val) {
+  txtOutName=val;
+  e.setAudio(DIV_AUDIO_DUMMY);
+  return TA_PARAM_SUCCESS;
+}
+
 bool needsValue(String param) {
   for (size_t i=0; i<params.size(); i++) {
     if (params[i].name==param) {
@@ -454,6 +486,9 @@ void initParams() {
   params.push_back(TAParam("O","vgmout",true,pVGMOut,"<filename>","output .vgm data"));
   params.push_back(TAParam("D","direct",false,pDirect,"","set VGM export direct stream mode"));
   params.push_back(TAParam("C","cmdout",true,pCmdOut,"<filename>","output command stream"));
+  params.push_back(TAParam("r","romout",true,pROMOut,"<filename|path>","export ROM file, or path for multi-file export"));
+  params.push_back(TAParam("R","romconf",true,pROMConf,"<key>=<value>","set configuration parameter for ROM export"));
+  params.push_back(TAParam("t","txtout",true,pTxtOut,"<filename>","export as text file"));
   params.push_back(TAParam("L","loglevel",true,pLogLevel,"debug|info|warning|error","set the log level (info by default)"));
   params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (nothing by default)"));
   params.push_back(TAParam("i","info",false,pInfo,"","get info about a song"));
@@ -513,11 +548,13 @@ int main(int argc, char** argv) {
   // Windows console thing - thanks dj.tuBIG/MaliceX
 #ifdef _WIN32
 #ifndef TA_SUBSYSTEM_CONSOLE
+#ifndef SUPPORT_XP
   if (AttachConsole(ATTACH_PARENT_PROCESS)) {
     freopen("CONOUT$", "w", stdout);
     freopen("CONOUT$", "w", stderr);
     freopen("CONIN$", "r", stdin);
   }
+#endif
 #endif
 #endif
 
@@ -549,6 +586,8 @@ int main(int argc, char** argv) {
   outName="";
   vgmOutName="";
   cmdOutName="";
+  romOutName="";
+  txtOutName="";
 
   // load config for locale
   e.prePreInit();
@@ -642,8 +681,8 @@ int main(int argc, char** argv) {
         logV("text domain 2: %s",localeRet);
       }
     }
-#endif
   }
+#endif
 
   initParams();
 
@@ -675,7 +714,7 @@ int main(int argc, char** argv) {
         arg=arg.substr(0,eqSplit);
       }
       for (size_t j=0; j<params.size(); j++) {
-        if (params[j].name==arg || params[j].shortName==arg) {
+        if (params[j].name==arg || (params[j].shortName!="" && params[j].shortName==arg)) {
           switch (params[j].func(val)) {
             case TA_PARAM_ERROR:
               return 1;
@@ -716,14 +755,22 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  if (fileName.empty() && (benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+  const bool outputMode = outName!="" || vgmOutName!="" || cmdOutName!="" || romOutName!="" || txtOutName!="";
+
+  if (fileName.empty() && (benchMode || infoMode || outputMode)) {
     logE("provide a file!");
     return 1;
   }
 
+#if defined(HAVE_SDL2) && defined(_WIN32) && !defined(SUPPORT_XP)
+  if (!IsWindows7OrGreater()) {
+    SDL_SetHint(SDL_HINT_AUDIODRIVER,"winmm");
+  }
+#endif
+
 #ifdef HAVE_GUI
-  if (e.preInit(consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
-    if (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="") {
+  if (e.preInit(consoleMode || benchMode || infoMode || outputMode)) {
+    if (consoleMode || benchMode || infoMode || outputMode) {
       logW("engine wants safe mode, but Furnace GUI is not going to start.");
     } else {
       safeMode=true;
@@ -735,7 +782,7 @@ int main(int argc, char** argv) {
   }
 #endif
 
-  if (safeMode && (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+  if (safeMode && (consoleMode || benchMode || infoMode || outputMode)) {
     logE("you can't use safe mode and console/export mode together.");
     return 1;
   }
@@ -751,8 +798,7 @@ int main(int argc, char** argv) {
   }
 #endif
 
-
-  if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",TUT_INTRO_PLAYED)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+  if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",TUT_INTRO_PLAYED)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || infoMode || outputMode)) {
     logI("loading module...");
     FILE* f=ps_fopen(fileName.c_str(),"rb");
     if (f==NULL) {
@@ -844,16 +890,16 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  if (outName!="" || vgmOutName!="" || cmdOutName!="") {
+  if (outputMode) {
     if (cmdOutName!="") {
-      SafeWriter* w=e.saveCommand();
+      SafeWriter* w=e.saveCommand(NULL);
       if (w!=NULL) {
-        FILE* f=fopen(cmdOutName.c_str(),"wb");
+        FILE* f=ps_fopen(cmdOutName.c_str(),"wb");
         if (f!=NULL) {
           fwrite(w->getFinalBuf(),1,w->size(),f);
           fclose(f);
         } else {
-          reportError(fmt::sprintf(_("could not open file! (%s)"),e.getLastError()));
+          reportError(fmt::sprintf(_("could not open file! (%s)"),strerror(errno)));
         }
         w->finish();
         delete w;
@@ -864,12 +910,12 @@ int main(int argc, char** argv) {
     if (vgmOutName!="") {
       SafeWriter* w=e.saveVGM(NULL,true,0x171,false,vgmOutDirect);
       if (w!=NULL) {
-        FILE* f=fopen(vgmOutName.c_str(),"wb");
+        FILE* f=ps_fopen(vgmOutName.c_str(),"wb");
         if (f!=NULL) {
           fwrite(w->getFinalBuf(),1,w->size(),f);
           fclose(f);
         } else {
-          reportError(fmt::sprintf(_("could not open file! (%s)"),e.getLastError()));
+          reportError(fmt::sprintf(_("could not open file! (%s)"),strerror(errno)));
         }
         w->finish();
         delete w;
@@ -881,6 +927,80 @@ int main(int argc, char** argv) {
       e.setConsoleMode(true);
       e.saveAudio(outName.c_str(),exportOptions);
       e.waitAudioFile();
+    }
+    if (romOutName!="") {
+      e.setConsoleMode(true);
+      // select ROM target type
+      DivROMExportOptions romTarget = DIV_ROM_ABSTRACT;
+      String lowerCase=romOutName;
+      for (char& i: lowerCase) {
+        if (i>='A' && i<='Z') i+='a'-'A';
+      }
+      for (int i=0; i<DIV_ROM_MAX; i++) {
+        DivROMExportOptions opt = (DivROMExportOptions)i;
+        if (e.isROMExportViable(opt)) {
+          const DivROMExportDef* newDef=e.getROMExportDef((DivROMExportOptions)i);
+          if (newDef->fileExt &&
+              lowerCase.length()>=strlen(newDef->fileExt) &&
+              lowerCase.substr(lowerCase.length()-strlen(newDef->fileExt))==newDef->fileExt) {
+            romTarget = opt;
+            break; // extension matched, stop searching
+          }
+          if (romTarget == DIV_ROM_ABSTRACT) {
+            romTarget = opt; // use first viable, but keep searching for extension match
+          }
+        }
+      }
+      if (romTarget > DIV_ROM_ABSTRACT && romTarget < DIV_ROM_MAX) {
+        DivROMExport* pendingExport = e.buildROM(romTarget);
+        if (pendingExport==NULL) {
+          reportError(_("could not create exporter! you may want to report this issue..."));
+        } else {
+          pendingExport->setConf(romExportConfig);
+          if (pendingExport->go(&e)) {
+            pendingExport->wait();
+            if (!pendingExport->hasFailed()) {
+              for (DivROMExportOutput& i: pendingExport->getResult()) {
+                String path=romOutName;
+                if (e.getROMExportDef(romTarget)->multiOutput) {
+                  path+=DIR_SEPARATOR_STR;
+                  path+=i.name;
+                }
+                FILE* f=ps_fopen(path.c_str(),"wb");
+                if (f!=NULL) {
+                  fwrite(i.data->getFinalBuf(),1,i.data->size(),f);
+                  fclose(f);
+                } else {
+                  reportError(fmt::sprintf(_("could not open file! (%s)"),strerror(errno)));
+                }
+              }
+            } else {
+              reportError(fmt::sprintf(_("ROM export failed! (%s)"),e.getLastError()));
+            }
+          } else {
+            reportError(_("could not begin exporting process! TODO: elaborate"));
+          }
+        }
+      } else {
+        reportError(_("no matching ROM export target is available."));
+      }
+    }
+    if (txtOutName!="") {
+      e.setConsoleMode(true);
+      SafeWriter* w=e.saveText(false);
+      if (w!=NULL) {
+        FILE* f=ps_fopen(txtOutName.c_str(),"wb");
+        if (f!=NULL) {
+          fwrite(w->getFinalBuf(),1,w->size(),f);
+          fclose(f);
+        } else {
+          reportError(fmt::sprintf(_("could not open file! (%s)"),strerror(errno)));
+        }
+        w->finish();
+        delete w;
+      } else {
+        reportError(_("could not write text!"));
+      }
     }
     finishLogFile();
     return 0;
@@ -984,5 +1104,10 @@ int main(int argc, char** argv) {
   }
 #endif
   e.everythingOK();
+
+#ifdef HAVE_SDL2
+  SDL_Quit();
+#endif
+
   return 0;
 }

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -69,7 +69,11 @@ u8 DivPlatformK053260::read_sample(u32 address) {
 }
 
 void DivPlatformK053260::acquire(short** buf, size_t len) {
-  for (size_t i=0; i<len; i++) {
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+
+  for (size_t h=0; h<len; h++) {
     k053260.tick(TICK_DIVIDER);
     int lout=(k053260.output(0)); // scale to 16 bit
     int rout=(k053260.output(1)); // scale to 16 bit
@@ -77,12 +81,16 @@ void DivPlatformK053260::acquire(short** buf, size_t len) {
     if (lout<-32768) lout=-32768;
     if (rout>32767) rout=32767;
     if (rout<-32768) rout=-32768;
-    buf[0][i]=lout;
-    buf[1][i]=rout;
+    buf[0][h]=lout;
+    buf[1][h]=rout;
 
     for (int i=0; i<4; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(k053260.voice_out(i,0)+k053260.voice_out(i,1))>>1;
+      oscBuf[i]->putSample(h,(k053260.voice_out(i,0)+k053260.voice_out(i,1))>>1);
     }
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -142,7 +150,7 @@ void DivPlatformK053260::tick(bool sysTick) {
         if (s->centerRate<1) {
           off=1.0;
         } else {
-          off=8363.0/s->centerRate;
+          off=parent->getCenterRate()/s->centerRate;
         }
       }
       chan[i].freq=0x1000-(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER));
@@ -152,7 +160,7 @@ void DivPlatformK053260::tick(bool sysTick) {
         unsigned int start=0;
         unsigned int length=0;
         if (sample>=0 && sample<parent->song.sampleLen) {
-          start=sampleOffK053260[sample];
+          start=sampleOff[sample];
           length=(s->depth==DIV_SAMPLE_DEPTH_ADPCM_K)?s->lengthK:s->length8;
           if (chan[i].reverse) {
             start+=length;
@@ -427,7 +435,7 @@ void DivPlatformK053260::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/TICK_DIVIDER;
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 
@@ -462,7 +470,7 @@ size_t DivPlatformK053260::getSampleMemUsage(int index) {
 
 bool DivPlatformK053260::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -473,8 +481,8 @@ const DivMemoryComposition* DivPlatformK053260::getMemCompo(int index) {
 
 void DivPlatformK053260::renderSamples(int sysID) {
   memset(sampleMem,0,getSampleMemCapacity());
-  memset(sampleOffK053260,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOff,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="Sample ROM";
@@ -483,7 +491,7 @@ void DivPlatformK053260::renderSamples(int sysID) {
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
     if (!s->renderOn[0][sysID]) {
-      sampleOffK053260[i]=0;
+      sampleOff[i]=0;
       continue;
     }
 
@@ -493,7 +501,7 @@ void DivPlatformK053260::renderSamples(int sysID) {
       length=MIN(65535,s->getEndPosition(DIV_SAMPLE_DEPTH_ADPCM_K));
       actualLength=MIN((int)(getSampleMemCapacity()-memPos-1),length);
       if (actualLength>0) {
-        sampleOffK053260[i]=memPos-1;
+        sampleOff[i]=memPos-1;
         memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength+1));
         for (int j=0; j<actualLength; j++) {
           sampleMem[memPos++]=s->dataK[j];
@@ -504,7 +512,7 @@ void DivPlatformK053260::renderSamples(int sysID) {
       length=MIN(65535,s->getEndPosition(DIV_SAMPLE_DEPTH_8BIT));
       actualLength=MIN((int)(getSampleMemCapacity()-memPos-1),length);
       if (actualLength>0) {
-        sampleOffK053260[i]=memPos-1;
+        sampleOff[i]=memPos-1;
         memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength+1));
         for (int j=0; j<actualLength; j++) {
           sampleMem[memPos++]=s->data8[j];
@@ -546,4 +554,18 @@ void DivPlatformK053260::quit() {
   for (int i=0; i<4; i++) {
     delete oscBuf[i];
   }
+}
+
+// initialization of important arrays
+DivPlatformK053260::DivPlatformK053260():
+  DivDispatch(),
+  k053260_intf(),
+  k053260(*this) {
+  sampleOff=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
+DivPlatformK053260::~DivPlatformK053260() {
+  delete[] sampleOff;
+  delete[] sampleLoaded;
 }

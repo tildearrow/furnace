@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,8 +64,18 @@ void DivEngine::getTotalAudioFiles(int &files) {
     }
     case DIV_EXPORT_MODE_MANY_CHAN: {
       for (int i=0; i<chans; i++) {
-        if (exportChannelMask[i]) {
-          files++;
+        if (!exportChannelMask[i]) continue;
+
+        files++;
+
+        if (getChannelType(i)==5) {
+          i++;
+          while (true) {
+            if (i>=chans) break;
+            if (getChannelType(i)!=5) break;
+            i++;
+          }
+          i--;
         }
       }
       break;
@@ -135,7 +145,9 @@ void DivEngine::runExportThread() {
 
       // take control of audio output
       deinitAudioBackend();
+      freelance=false;
       playSub(false);
+      freelance=false;
 
       logI("rendering to file...");
 
@@ -207,11 +219,7 @@ void DivEngine::runExportThread() {
         sf[i]=NULL;
         si[i].samplerate=got.rate;
         si[i].channels=disCont[i].dispatch->getOutputCount();
-        if (exportFormat==DIV_EXPORT_FORMAT_S16) {
-          si[i].format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
-        } else {
-          si[i].format=SF_FORMAT_WAV|SF_FORMAT_FLOAT;
-        }
+        si[i].format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
       }
 
       for (int i=0; i<song.systemLen; i++) {
@@ -238,7 +246,9 @@ void DivEngine::runExportThread() {
 
       // take control of audio output
       deinitAudioBackend();
+      freelance=false;
       playSub(false);
+      freelance=false;
 
       logI("rendering to files...");
 
@@ -374,7 +384,9 @@ void DivEngine::runExportThread() {
         totalLoops=0;
         isFadingOut=false;
         remainingLoops=-1;
+        freelance=false;
         playSub(false);
+        freelance=false;
 
         while (playing) {
           size_t total=0;

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,11 +22,9 @@
 #include "../utfutils.h"
 #include "song.h"
 
-constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
-
 // this function is so long
 // may as well make it something else
-void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, int* setPos, unsigned int* sampleOff8, unsigned int* sampleLen8, size_t bankOffset, bool directStream, bool* sampleStoppable) {
+void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, int* setPos, unsigned int* sampleOff8, unsigned int* sampleLen8, size_t bankOffset, bool directStream, bool* sampleStoppable, bool dpcm07, DivDispatch** writeNES, int rateCorrection) {
   unsigned char baseAddr1=isSecond?0xa0:0x50;
   unsigned char baseAddr2=isSecond?0x80:0;
   unsigned short baseAddr2S=isSecond?0x8000:0;
@@ -190,6 +188,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       case DIV_SYSTEM_YM2610_EXT:
       case DIV_SYSTEM_YM2610_FULL_EXT:
       case DIV_SYSTEM_YM2610B_EXT:
+      case DIV_SYSTEM_YM2610_CSM:
+      case DIV_SYSTEM_YM2610B_CSM:
         // TODO: YM2610B channels 1 and 4 and ADPCM-B
         for (int i=0; i<2; i++) { // set SL and RR to highest
           w->writeC(8|baseAddr1);
@@ -266,6 +266,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         break;
       case DIV_SYSTEM_YM2203:
       case DIV_SYSTEM_YM2203_EXT:
+      case DIV_SYSTEM_YM2203_CSM:
         for (int i=0; i<3; i++) { // set SL and RR to highest
           w->writeC(5|baseAddr1);
           w->writeC(0x80+i);
@@ -391,31 +392,31 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         for (int i=0; i<32; i++) {
           for (int b=0; b<4; b++) {
             w->writeC(0xbe);
-            w->writeC((0xf<<2)+b);
-            w->writeC(i);
+            w->writeC(baseAddr2|((0xf<<2)+b));
+            w->writeC((b==3)?i:0);
           }
           unsigned int init_cr=0x0303;
           for (int b=0; b<4; b++) {
             w->writeC(0xbe);
-            w->writeC(b);
+            w->writeC(baseAddr2|b);
             w->writeC(init_cr>>(24-(b<<3)));
           }
           for (int r=1; r<11; r++) {
             for (int b=0; b<4; b++) {
               w->writeC(0xbe);
-              w->writeC((r<<2)+b);
+              w->writeC(baseAddr2|((r<<2)+b));
               w->writeC(((r==7 || r==9) && b&2)?0xff:0);
             }
           }
           for (int b=0; b<4; b++) {
             w->writeC(0xbe);
-            w->writeC((0xf<<2)+b);
+            w->writeC(baseAddr2|((0xf<<2)+b));
             w->writeC(0x20|i);
           }
           for (int r=1; r<10; r++) {
             for (int b=0; b<4; b++) {
               w->writeC(0xbe);
-              w->writeC((r<<2)+b);
+              w->writeC(baseAddr2|((r<<2)+b));
               w->writeC(0);
             }
           }
@@ -714,19 +715,37 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
   if (write.addr==0xffff0004) { // switch sample bank
     switch (sys) {
       case DIV_SYSTEM_NES: {
-        unsigned int bankAddr=bankOffset+(write.val<<14);
-        w->writeC(0x68);
-        w->writeC(0x66);
-        w->writeC(0x07|(isSecond?0x80:0x00));
-        w->writeC(bankAddr&0xff);
-        w->writeC((bankAddr>>8)&0xff);
-        w->writeC((bankAddr>>16)&0xff);
-        w->writeC(0x00);
-        w->writeC(0xc0);
-        w->writeC(0x00);
-        w->writeC(0x00);
-        w->writeC(0x40);
-        w->writeC(0x00);
+        if (dpcm07) {
+          unsigned int bankAddr=bankOffset+(write.val<<14);
+          w->writeC(0x68);
+          w->writeC(0x66);
+          w->writeC(0x07|(isSecond?0x80:0x00));
+          w->writeC(bankAddr&0xff);
+          w->writeC((bankAddr>>8)&0xff);
+          w->writeC((bankAddr>>16)&0xff);
+          w->writeC(0x00);
+          w->writeC(0xc0);
+          w->writeC(0x00);
+          w->writeC(0x00);
+          w->writeC(0x40);
+          w->writeC(0x00);
+        } else {
+          // write the whole damn bank.
+          // this code looks like a mess because it is a hack.
+          // don't blame me if your VGM ends up being over a gigabyte!
+          size_t howMuchWillBeWritten=writeNES[isSecond?1:0]->getSampleMemUsage();
+          // refuse to switch if we're going out of bounds
+          if ((write.val<<14)>=howMuchWillBeWritten) break;
+          howMuchWillBeWritten-=(write.val<<14);
+          if (howMuchWillBeWritten>16384) howMuchWillBeWritten=16384;
+          w->writeC(0x67);
+          w->writeC(0x66);
+          w->writeC(0xc2);
+          w->writeI((isSecond?0x80000000:0)|(howMuchWillBeWritten+2));
+          // data
+          w->writeS(0xc000);
+          w->write(&(((unsigned char*)writeNES[isSecond?1:0]->getSampleMem())[write.val<<14]),howMuchWillBeWritten);
+        }
         break;
       }
       default:
@@ -745,8 +764,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
               pendingFreq[streamID]=write.val;
             } else {
               DivSample* sample=song.sample[write.val];
-              int pos=sampleOff8[write.val&0xff]+setPos[streamID];
-              int len=(int)sampleLen8[write.val&0xff]-setPos[streamID];
+              int pos=sampleOff8[write.val&0x7fff]+setPos[streamID];
+              int len=(int)sampleLen8[write.val&0x7fff]-setPos[streamID];
 
               if (len<0) len=0;
 
@@ -779,7 +798,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           break;
         case 1: { // set sample freq
           sampleStoppable[streamID]=true;
-          int realFreq=write.val;
+          int realFreq=(write.val*44100)/rateCorrection;
           if (realFreq<0) realFreq=0;
           if (realFreq>44100) realFreq=44100;
           w->writeC(0x92);
@@ -788,8 +807,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           loopFreq[streamID]=realFreq;
           if (pendingFreq[streamID]!=-1) {
             DivSample* sample=song.sample[pendingFreq[streamID]];
-            int pos=sampleOff8[pendingFreq[streamID]&0xff]+setPos[streamID];
-            int len=(int)sampleLen8[pendingFreq[streamID]&0xff]-setPos[streamID];
+            int pos=sampleOff8[pendingFreq[streamID]&0x7fff]+setPos[streamID];
+            int len=(int)sampleLen8[pendingFreq[streamID]&0x7fff]-setPos[streamID];
 
             if (len<0) len=0;
 
@@ -840,8 +859,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           if (playingSample[streamID]!=-1 && pendingFreq[streamID]==-1) {
             // play the sample again
             DivSample* sample=song.sample[playingSample[streamID]];
-            int pos=sampleOff8[playingSample[streamID]&0xff]+setPos[streamID];
-            int len=(int)sampleLen8[playingSample[streamID]&0xff]-setPos[streamID];
+            int pos=sampleOff8[playingSample[streamID]&0x7fff]+setPos[streamID];
+            int len=(int)sampleLen8[playingSample[streamID]&0x7fff]-setPos[streamID];
 
             if (len<0) len=0;
 
@@ -961,6 +980,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
     case DIV_SYSTEM_YM2610_EXT:
     case DIV_SYSTEM_YM2610_FULL_EXT:
     case DIV_SYSTEM_YM2610B_EXT:
+    case DIV_SYSTEM_YM2610_CSM:
+    case DIV_SYSTEM_YM2610B_CSM:
       switch (write.addr>>8) {
         case 0: // port 0
           w->writeC(8|baseAddr1);
@@ -976,12 +997,14 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       break;
     case DIV_SYSTEM_YM2203:
     case DIV_SYSTEM_YM2203_EXT:
+    case DIV_SYSTEM_YM2203_CSM:
       w->writeC(5|baseAddr1);
       w->writeC(write.addr&0xff);
       w->writeC(write.val);
       break;
     case DIV_SYSTEM_YM2608:
     case DIV_SYSTEM_YM2608_EXT:
+    case DIV_SYSTEM_YM2608_CSM:
       switch (write.addr>>8) {
         case 0: // port 0
           w->writeC(6|baseAddr1);
@@ -1043,7 +1066,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       break;
     case DIV_SYSTEM_ES5506:
       w->writeC(0xbe);
-      w->writeC(write.addr&0xff);
+      w->writeC(baseAddr2|(write.addr&0x7f));
       w->writeC(write.val&0xff);
       break;
     case DIV_SYSTEM_VBOY:
@@ -1217,7 +1240,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
   chipVol.push_back((_id)|(0x80000100)|(((unsigned int)_vol)<<16)); \
 }
 
-SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool patternHints, bool directStream, int trailingTicks) {
+SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool patternHints, bool directStream, int trailingTicks, bool dpcm07, int correctedRate) {
   if (version<0x150) {
     lastError="VGM version is too low";
     return NULL;
@@ -1227,7 +1250,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   setOrder(0);
   BUSY_BEGIN_SOFT;
   double origRate=got.rate;
-  got.rate=44100;
+  got.rate=correctedRate;
   // determine loop point
   int loopOrder=0;
   int loopRow=0;
@@ -1306,9 +1329,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   int loopTickSong=-1;
   int songTick=0;
 
-  unsigned int sampleOff8[256];
-  unsigned int sampleLen8[256];
-  unsigned int sampleOffSegaPCM[256];
+  unsigned int* sampleOff8=new unsigned int[32768];
+  unsigned int* sampleLen8=new unsigned int[32768];
+  unsigned int* sampleOffSegaPCM=new unsigned int[32768];
 
   SafeWriter* w=new SafeWriter;
   w->init();
@@ -1432,7 +1455,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         break;
       case DIV_SYSTEM_PCE:
         if (!hasPCE) {
-          hasPCE=disCont[i].dispatch->chipClock;
+          // the clock is halved in VGM...
+          hasPCE=disCont[i].dispatch->chipClock/2;
           CHIP_VOL(27,0.98);
           willExport[i]=true;
           writePCESamples=true;
@@ -1499,6 +1523,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_YM2610_EXT:
       case DIV_SYSTEM_YM2610_FULL_EXT:
       case DIV_SYSTEM_YM2610B_EXT:
+      case DIV_SYSTEM_YM2610_CSM:
+      case DIV_SYSTEM_YM2610B_CSM:
         if (!hasOPNB) {
           hasOPNB=disCont[i].dispatch->chipClock;
           CHIP_VOL(8,1.0);
@@ -1514,7 +1540,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           hasOPNB|=0x40000000;
           howManyChips++;
         }
-        if (((song.system[i]==DIV_SYSTEM_YM2610B) || (song.system[i]==DIV_SYSTEM_YM2610B_EXT)) && (!(hasOPNB&0x80000000))) { // YM2610B flag
+        if (((song.system[i]==DIV_SYSTEM_YM2610B) || (song.system[i]==DIV_SYSTEM_YM2610B_EXT) || (song.system[i]==DIV_SYSTEM_YM2610B_CSM)) && (!(hasOPNB&0x80000000))) { // YM2610B flag
           hasOPNB|=0x80000000;
         }
         break;
@@ -1610,6 +1636,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         break;
       case DIV_SYSTEM_YM2203:
       case DIV_SYSTEM_YM2203_EXT:
+      case DIV_SYSTEM_YM2203_CSM:
         if (!hasOPN) {
           hasOPN=disCont[i].dispatch->chipClock;
           willExport[i]=true;
@@ -1626,6 +1653,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         break;
       case DIV_SYSTEM_YM2608:
       case DIV_SYSTEM_YM2608_EXT:
+      case DIV_SYSTEM_YM2608_CSM:
         if (!hasOPNA) {
           hasOPNA=disCont[i].dispatch->chipClock;
           CHIP_VOL(7,1.0);
@@ -2174,9 +2202,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   unsigned int songOff=w->tell();
 
   // initialize sample offsets
-  memset(sampleOff8,0,256*sizeof(unsigned int));
-  memset(sampleLen8,0,256*sizeof(unsigned int));
-  memset(sampleOffSegaPCM,0,256*sizeof(unsigned int));
+  memset(sampleOff8,0,32768*sizeof(unsigned int));
+  memset(sampleLen8,0,32768*sizeof(unsigned int));
+  memset(sampleOffSegaPCM,0,32768*sizeof(unsigned int));
 
   // write samples
   unsigned int sampleSeek=0;
@@ -2195,7 +2223,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     w->writeC(0);
     w->writeI(sample->length8);
     for (unsigned int j=0; j<sample->length8; j++) {
-      w->writeC((unsigned char)sample->data8[j]+0x80);
+      w->writeC((unsigned char)sample->data8[j]^0x80);
     }
   }
 
@@ -2206,7 +2234,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     w->writeC(7);
     w->writeI(sample->length8);
     for (unsigned int j=0; j<sample->length8; j++) {
-      w->writeC(((unsigned char)sample->data8[j]+0x80)>>1);
+      w->writeC(((unsigned char)sample->data8[j]^0x80)>>1);
     }
     bankOffsetNESCurrent+=sample->length8;
   }
@@ -2218,7 +2246,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     w->writeC(5);
     w->writeI(sample->length8);
     for (unsigned int j=0; j<sample->length8; j++) {
-      w->writeC(((unsigned char)sample->data8[j]+0x80)>>3);
+      w->writeC(((unsigned char)sample->data8[j]^0x80)>>3);
     }
   }
 
@@ -2388,41 +2416,64 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       w->write(writeK053260[i]->getSampleMem(),writeK053260[i]->getSampleMemUsage());
     }
     if (writeNES[i]!=NULL && writeNES[i]->getSampleMemUsage()>0) {
-      size_t howMuchWillBeWritten=writeNES[i]->getSampleMemUsage();
-      w->writeC(0x67);
-      w->writeC(0x66);
-      w->writeC(7);
-      w->writeI(howMuchWillBeWritten);
-      w->write(writeNES[i]->getSampleMem(),howMuchWillBeWritten);
-      bankOffsetNES[i]=bankOffsetNESCurrent;
-      bankOffset[writeNESIndex[i]]=bankOffsetNES[i];
-      bankOffsetNESCurrent+=howMuchWillBeWritten;
-      // force the first bank
-      w->writeC(0x68);
-      w->writeC(0x6c);
-      w->writeC(0x07|(i?0x80:0x00));
-      w->writeC(bankOffsetNES[i]&0xff);
-      w->writeC((bankOffsetNES[i]>>8)&0xff);
-      w->writeC((bankOffsetNES[i]>>16)&0xff);
-      w->writeC(0x00);
-      w->writeC(0xc0);
-      w->writeC(0x00);
-      w->writeC(0x00);
-      w->writeC(0x40);
-      w->writeC(0x00);
+      if (dpcm07) {
+        size_t howMuchWillBeWritten=writeNES[i]->getSampleMemUsage();
+        w->writeC(0x67);
+        w->writeC(0x66);
+        w->writeC(7);
+        w->writeI(howMuchWillBeWritten);
+        w->write(writeNES[i]->getSampleMem(),howMuchWillBeWritten);
+        bankOffsetNES[i]=bankOffsetNESCurrent;
+        bankOffset[writeNESIndex[i]]=bankOffsetNES[i];
+        bankOffsetNESCurrent+=howMuchWillBeWritten;
+        // force the first bank
+        w->writeC(0x68);
+        w->writeC(0x6c);
+        w->writeC(0x07|(i?0x80:0x00));
+        w->writeC(bankOffsetNES[i]&0xff);
+        w->writeC((bankOffsetNES[i]>>8)&0xff);
+        w->writeC((bankOffsetNES[i]>>16)&0xff);
+        w->writeC(0x00);
+        w->writeC(0xc0);
+        w->writeC(0x00);
+        w->writeC(0x00);
+        w->writeC(0x40);
+        w->writeC(0x00);
+      } else {
+        // write the first bank
+        size_t howMuchWillBeWritten=writeNES[i]->getSampleMemUsage();
+        if (howMuchWillBeWritten>16384) howMuchWillBeWritten=16384;
+        w->writeC(0x67);
+        w->writeC(0x66);
+        w->writeC(0xc2);
+        w->writeI((i?0x80000000:0)|(howMuchWillBeWritten+2));
+        // data
+        w->writeS(0xc000);
+        w->write(writeNES[i]->getSampleMem(),howMuchWillBeWritten);
+      }
     }
   }
 
   // TODO
   for (int i=0; i<2; i++) {
     if (writeES5506[i]!=NULL && writeES5506[i]->getSampleMemUsage()>0) {
-      w->writeC(0x67);
-      w->writeC(0x66);
-      w->writeC(0x8F);
-      w->writeI((writeES5506[i]->getSampleMemUsage()+8)|(i*0x80000000));
-      w->writeI(writeES5506[i]->getSampleMemCapacity());
-      w->writeI(0);
-      w->write(writeES5506[i]->getSampleMem(),writeES5506[i]->getSampleMemUsage());
+      // split sample data into 4 areas
+      unsigned short* mem=(unsigned short*)writeES5506[i]->getSampleMem();
+      for (int b=0; b<4; b++) {
+        int offs=b<<22;
+        int memLen=CLAMP((int)writeES5506[i]->getSampleMemUsage()-offs,0,0x400000);
+        if (memLen>0) {
+          w->writeC(0x67);
+          w->writeC(0x66);
+          w->writeC(0x90);
+          w->writeI((memLen+8)|(i*0x80000000));
+          w->writeI(MIN(writeES5506[i]->getSampleMemCapacity(),0x400000));
+          w->writeI(b<<28);
+          for (int i=0; i<(memLen>>1); i++) {
+            w->writeS(mem[(offs>>1)+i]);
+          }
+        }
+      }
     }
     if (writeC140[i]!=NULL && writeC140[i]->getSampleMemUsage()>0) {
       w->writeC(0x67);
@@ -2740,7 +2791,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     };
 
     // calculate number of samples in this tick
-    int totalWait=cycles>>MASTER_CLOCK_PREC;
+    int totalWait=cycles;
 
     // get register dumps and put them into delayed writes
     int writeNum=0;
@@ -2800,7 +2851,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           lastOne=i.second.time;
         }
         // write write
-        performVGMWrite(w,song.system[i.first],i.second.write,streamIDs[i.first],loopTimer,loopFreq,loopSample,sampleDir,isSecond[i.first],pendingFreq,playingSample,setPos,sampleOff8,sampleLen8,bankOffset[i.first],directStream,sampleStoppable);
+        performVGMWrite(w,song.system[i.first],i.second.write,streamIDs[i.first],loopTimer,loopFreq,loopSample,sampleDir,isSecond[i.first],pendingFreq,playingSample,setPos,sampleOff8,sampleLen8,bankOffset[i.first],directStream,sampleStoppable,dpcm07,writeNES,correctedRate);
         writeCount++;
       }
       sortedWrites.clear();
@@ -2916,6 +2967,10 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   extValuePresent=false;
 
   logI("%d register writes total.",writeCount);
+
+  delete[] sampleOff8;
+  delete[] sampleLen8;
+  delete[] sampleOffSegaPCM;
 
   BUSY_END;
   return w;

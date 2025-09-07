@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ void DivPlatformYM2608Ext::commitStateExt(int ch, DivInstrument* ins) {
     }
     chan[2].state.fms=ins->fm.fms;
     chan[2].state.ams=ins->fm.ams;
+    chan[extChanOffs].state.block=ins->fm.block;
     chan[2].state.op[ordch]=ins->fm.op[ordch];
   }
   
@@ -93,7 +94,7 @@ int DivPlatformYM2608Ext::dispatch(DivCommand c) {
       opChan[ch].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
-        opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
+        opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[extChanOffs].state.block);
         opChan[ch].portaPause=false;
         opChan[ch].note=c.value;
         opChan[ch].freqChanged=true;
@@ -188,7 +189,7 @@ int DivPlatformYM2608Ext::dispatch(DivCommand c) {
         }
         break;
       }
-      PLEASE_HELP_ME(opChan[ch]);
+      PLEASE_HELP_ME(opChan[ch],chan[extChanOffs].state.block);
       break;
     }
     case DIV_CMD_LEGATO: {
@@ -197,7 +198,7 @@ int DivPlatformYM2608Ext::dispatch(DivCommand c) {
         commitStateExt(ch,ins);
         opChan[ch].insChanged=false;
       }
-      opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
+      opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[extChanOffs].state.block);
       opChan[ch].freqChanged=true;
       break;
     }
@@ -218,9 +219,25 @@ int DivPlatformYM2608Ext::dispatch(DivCommand c) {
       rWrite(0x22,lfoValue);
       break;
     }
+    case DIV_CMD_FM_ALG: {
+      chan[extChanOffs].state.alg=c.value&7;
+      // TODO: TL compensation?
+      rWrite(ADDR_FB_ALG+chanOffs[extChanOffs],(chan[extChanOffs].state.alg&7)|(chan[extChanOffs].state.fb<<3));
+      break;
+    }
     case DIV_CMD_FM_FB: {
       chan[2].state.fb=c.value&7;
       rWrite(chanOffs[2]+ADDR_FB_ALG,(chan[2].state.alg&7)|(chan[2].state.fb<<3));
+      break;
+    }
+    case DIV_CMD_FM_FMS: {
+      chan[extChanOffs].state.fms=c.value&7;
+      rWrite(chanOffs[extChanOffs]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch].pan<<6))|(chan[extChanOffs].state.fms&7)|((chan[extChanOffs].state.ams&3)<<4));
+      break;
+    }
+    case DIV_CMD_FM_AMS: {
+      chan[extChanOffs].state.ams=c.value&3;
+      rWrite(chanOffs[extChanOffs]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch].pan<<6))|(chan[extChanOffs].state.fms&7)|((chan[extChanOffs].state.ams&3)<<4));
       break;
     }
     case DIV_CMD_FM_MULT: {
@@ -470,9 +487,11 @@ void DivPlatformYM2608Ext::tick(bool sysTick) {
       }
     }
 
-    if (opChan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      opChan[i].handleArp();
+    } else if (opChan[i].std.arp.had) {
       if (!opChan[i].inPorta) {
-        opChan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(opChan[i].note,opChan[i].std.arp.val),11);
+        opChan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(opChan[i].note,opChan[i].std.arp.val),11,chan[extChanOffs].state.block);
       }
       opChan[i].freqChanged=true;
     }
@@ -594,7 +613,7 @@ void DivPlatformYM2608Ext::tick(bool sysTick) {
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
       if (parent->song.linearPitch==2) {
-        opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,4,opChan[i].pitch2,chipClock,CHIP_FREQBASE,11);
+        opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,4,opChan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[extChanOffs].state.block);
       } else {
         int fNum=parent->calcFreq(opChan[i].baseFreq&0x7ff,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,4,opChan[i].pitch2);
         int block=(opChan[i].baseFreq&0xf800)>>11;

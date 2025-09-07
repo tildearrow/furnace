@@ -6,7 +6,7 @@ YM2413's biggest flaw (or, rather, cost-saving feature) was that it could use on
 
 therefore, much more variety can be forced out, without using custom instruments. As of July 2023, Furnace is the only tool supporting this feature. It is accessed in 'Macros' tab in OPLL instrument editor.
 
-For example, try putting the first macro value as 14 (acoustic bass preset), followed by 4 (flute preset). This way you will get distortion guitar-like sound this is nothing like other 2413 preset! There are many combination to test out, which is highly recommended (I can only say, 12->1 or 12->4 produces sound similiar to the well-known 4-op FM mallet brass)
+For example, try putting the first macro value as 14 (acoustic bass preset), followed by 4 (flute preset). This way you will get distortion guitar-like sound this is nothing like other 2413 preset! There are many combination to test out, which is highly recommended (I can only say, 12->1 or 12->4 produces sound similar to the well-known 4-op FM mallet brass)
 
 ## drums using this technique
 

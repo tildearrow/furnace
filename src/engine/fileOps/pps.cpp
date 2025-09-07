@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,23 +92,14 @@ void DivEngine::loadPPS(SafeReader& reader, std::vector<DivSample*>& ret, String
 
             s->rate = PPS_SAMPLE_RATE;
             s->centerRate = PPS_SAMPLE_RATE;
-            s->depth = DIV_SAMPLE_DEPTH_8BIT;
-            s->init(headers[i].sample_length * 2); //byte per sample
+            s->depth = DIV_SAMPLE_DEPTH_4BIT;
+            s->init(headers[i].sample_length*2); // bytes->samples
 
             reader.seek((int)headers[i].start_pointer, SEEK_SET);
 
-            int sample_pos = 0;
-
             for(int j = 0; j < headers[i].sample_length; j++)
             {
-                unsigned char curr_byte = (unsigned char)reader.readC();
-
-                s->data8[sample_pos] = (curr_byte >> 4) | (curr_byte & 0xf0);
-                s->data8[sample_pos] += 0x80;
-                sample_pos++;
-                s->data8[sample_pos] = (curr_byte << 4) | (curr_byte & 0xf);
-                s->data8[sample_pos] += 0x80;
-                sample_pos++;
+              s->data4[j] = reader.readC();
             }
 
             ret.push_back(s);

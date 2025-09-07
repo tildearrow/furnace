@@ -38,7 +38,7 @@ the following options also are available:
 - **Match effect position**: chooses how the order of effect types and effect values will matter when finding them.
   - **No**: no attention is paid to what order the effects appear in.
   - **Lax**: matches effects if they appear in the same order as selected above.
-  - **Strict**: effects may only match in their correponding effects columns.
+  - **Strict**: effects may only match in their corresponding effects columns.
 
 - **Find**: finds everything that matches the query and displays it in a list.
   - the **order**, **row**, and **channel** columns are as they say.

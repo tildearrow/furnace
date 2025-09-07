@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -362,6 +362,103 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     for (int i=0; i<patCount; i++) {
       patPtr[i]=reader.readI();
     }
+
+    // skip edit history if present
+    if (special&2) {
+      logD("skipping edit history...");
+      unsigned short editHistSize=reader.readS();
+      if (editHistSize>0) {
+        if (!reader.seek(editHistSize*8,SEEK_CUR)) {
+          logV("what? I wasn't expecting that from you.");
+        }
+      }
+    }
+
+    // read extension blocks, if any
+    logD("looking for extensions...");
+    bool hasExtensions=true;
+    while (hasExtensions) {
+      char extType[4];
+      unsigned int extSize=0;
+      memset(extType,0,4);
+
+      reader.read(extType,4);
+      extSize=reader.readI();
+
+      if (memcmp(extType,"PNAM",4)==0) {
+        logV("found MPT extension: pattern names");
+        // check whether this block is valid
+        if (extSize>patCount*32) {
+          logV("block may not be valid");
+          break;
+        }
+        // read pattern names
+        logV("reading pattern names...");
+        for (unsigned int i=0; i<(extSize>>5); i++) {
+          DivPattern* p=ds.subsong[0]->pat[0].getPattern(i,true);
+          p->name=reader.readStringLatin1(32);
+        }
+      } else if (memcmp(extType,"CNAM",4)==0) {
+        logV("found MPT extension: channel names");
+        // check whether this block is valid
+        if (extSize>DIV_MAX_CHANS*20) {
+          logV("block may not be valid");
+          break;
+        }
+        // read channel names
+        logV("reading channel names...");
+        for (unsigned int i=0; i<(extSize>>5); i++) {
+          String chanName=reader.readStringLatin1(20);
+          for (DivSubSong* j: ds.subsong) {
+            j->chanName[i]=chanName;
+          }
+        }
+      } else if (memcmp(extType,"CHFX",4)==0) {
+        logV("found MPT extension: channel effects");
+        // skip (stop if we cannot seek)
+        if (!reader.seek(extSize,SEEK_CUR)) {
+          break;
+        }
+      } else if (
+        extType[0]=='F' &&
+        (extType[1]=='X' || (extType[1]>='0' && extType[1]<='9')) &&
+        (extType[2]>='0' && extType[2]<='9') &&
+        (extType[3]>='0' && extType[3]<='9')
+      ) { // effect slot
+        logV("found MPT extension: effect slot");
+        // skip (stop if we cannot seek)
+        if (!reader.seek(extSize,SEEK_CUR)) {
+          break;
+        }
+      } else {
+        logV("no further extensions found... %.2x%.2x%.2x%.2x",extType[0],extType[1],extType[2],extType[3]);
+        hasExtensions=false;
+      }
+    }
+
+    // read song comment
+    logD("reading song comment...");
+    if (reader.seek(commentPtr,SEEK_SET)) {
+      try {
+        String comment=reader.readStringLatin1Special(commentLen);
+
+        ds.notes="";
+        ds.notes.reserve(comment.size());
+
+        for (char& i: comment) {
+          if (i=='\r') {
+            ds.notes+='\n';
+          } else {
+            ds.notes+=i;
+          }
+        }
+      } catch (EndOfFileException& e) {
+        logW("couldn't read song comment due to premature end of file.");
+      }
+    } else {
+      logW("couldn't seek to comment!");
+    }
+    
 
     // read instruments
     for (int i=0; i<ds.insLen; i++) {

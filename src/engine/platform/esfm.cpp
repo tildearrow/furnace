@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 
 #include "esfm.h"
 #include "../engine.h"
+#include "../bsr.h"
 #include "../../ta-log.h"
 #include <string.h>
 #include <stdio.h>
@@ -39,6 +40,9 @@
 
 void DivPlatformESFM::acquire(short** buf, size_t len) {
   thread_local short o[2];
+  for (int i=0; i<18; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t h=0; h<len; h++) {
     if (!writes.empty()) {
       QueuedWrite& w=writes.front();
@@ -51,11 +55,51 @@ void DivPlatformESFM::acquire(short** buf, size_t len) {
 
     ESFM_generate(&chip,o);
     for (int c=0; c<18; c++) {
-      oscBuf[c]->data[oscBuf[c]->needle++]=ESFM_get_channel_output_native(&chip,c);
+      oscBuf[c]->putSample(h,ESFM_get_channel_output_native(&chip,c));
     }
 
     buf[0][h]=o[0];
     buf[1][h]=o[1];
+  }
+  for (int i=0; i<18; i++) {
+    oscBuf[i]->end(len);
+  }
+}
+
+void DivPlatformESFM::acquireDirect(blip_buffer_t** bb, size_t len) {
+  thread_local short o[2];
+  unsigned int sharedNeedlePos=oscBuf[0]->needle;
+  for (int i=0; i<18; i++) {
+    oscBuf[i]->begin(len);
+  }
+  for (size_t h=0; h<len; h++) {
+    if (!writes.empty()) {
+      QueuedWrite& w=writes.front();
+      ESFM_write_reg_buffered_fast(&chip,w.addr,w.val);
+      if (w.addr<ESFM_REG_POOL_SIZE) {
+        regPool[w.addr]=w.val;
+      }
+      writes.pop();
+    }
+
+    ESFM_generate(&chip,o);
+    const unsigned int shiftedNeedlePos=sharedNeedlePos>>OSCBUF_PREC;
+    for (int c=0; c<18; c++) {
+      putSampleIKnowWhatIAmDoing(oscBuf[c],shiftedNeedlePos,ESFM_get_channel_output_native(&chip,c));
+    }
+    sharedNeedlePos+=oscBuf[0]->rateMul;
+
+    if (o[0]!=oldOut[0]) {
+      blip_add_delta(bb[0],h,o[0]-oldOut[0]);
+      oldOut[0]=o[0];
+    }
+    if (o[1]!=oldOut[1]) {
+      blip_add_delta(bb[1],h,o[1]-oldOut[1]);
+      oldOut[1]=o[1];
+    }
+  }
+  for (int i=0; i<18; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -291,7 +335,12 @@ void DivPlatformESFM::tick(bool sysTick) {
 
   for (int i=0; i<18; i++) {
     if (chan[i].freqChanged) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,octave(chan[i].baseFreq)*2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      int mul=2;
+      int fixedBlock=chan[i].state.fm.block;
+      if (parent->song.linearPitch!=2) {
+        mul=octave(chan[i].baseFreq,fixedBlock)*2;
+      }
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,mul,chan[i].pitch2,chipClock,CHIP_FREQBASE);
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>131071) chan[i].freq=131071;
 
@@ -314,10 +363,10 @@ void DivPlatformESFM::tick(bool sysTick) {
           if(chan[i].opsState[o].hasOpPitch) {
             pitch2=chan[i].opsState[o].pitch2+dt;
           }
-          int opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,arp,fixedArp,false,octave(chan[i].baseFreq)*2,pitch2,chipClock,CHIP_FREQBASE);
+          int opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,arp,fixedArp,false,mul,pitch2,chipClock,CHIP_FREQBASE);
           if (opFreq<0) opFreq=0;
           if (opFreq>131071) opFreq=131071;
-          int freqt=toFreq(opFreq);
+          int freqt=toFreq(opFreq,fixedBlock);
           chan[i].freqL[o]=freqt&0xff;
           chan[i].freqH[o]=freqt>>8;
         }
@@ -365,22 +414,27 @@ void DivPlatformESFM::tick(bool sysTick) {
   }
 }
 
-int DivPlatformESFM::octave(int freq) {
-  int result=1;
-  while (freq>0x3ff) {
-    freq>>=1;
-    result<<=1;
+int DivPlatformESFM::octave(int freq, int fixedBlock) {
+  if (fixedBlock>0) {
+    return 1<<(fixedBlock-1);
   }
-  return result;
+  if (freq>0x3ff) {
+    return 1<<(bsr32(freq)-10);
+  }
+  return 1;
 }
 
-int DivPlatformESFM::toFreq(int freq) {
+int DivPlatformESFM::toFreq(int freq, int fixedBlock) {
   int block=0;
-  while (freq>0x3ff) {
-    freq>>=1;
-    block++;
+  if (fixedBlock>0) {
+    block=fixedBlock-1;
+    freq>>=block;
+    if (freq>0x3ff) freq=0x3ff;
+  } else if (freq>0x3ff) {
+    block=bsr32(freq)-10;
+    freq>>=block;
   }
-  return ((block&7)<<10)|(freq&0x3ff);
+  return (block<<10)|(freq&0x3ff);
 }
 
 void DivPlatformESFM::muteChannel(int ch, bool mute) {
@@ -513,21 +567,27 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       int destFreq=NOTE_FREQUENCY(c.value2);
       int newFreq;
       bool return2=false;
+      int mul=1;
+      int fixedBlock=0;
+      if (parent->song.linearPitch!=2) {
+        fixedBlock=chan[c.chan].state.fm.block;
+        mul=octave(chan[c.chan].baseFreq,fixedBlock);
+      }
       if (destFreq>chan[c.chan].baseFreq) {
-        newFreq=chan[c.chan].baseFreq+c.value*((parent->song.linearPitch==2)?1:octave(chan[c.chan].baseFreq));
+        newFreq=chan[c.chan].baseFreq+c.value*mul;
         if (newFreq>=destFreq) {
           newFreq=destFreq;
           return2=true;
         }
       } else {
-        newFreq=chan[c.chan].baseFreq-c.value*((parent->song.linearPitch==2)?1:octave(chan[c.chan].baseFreq));
+        newFreq=chan[c.chan].baseFreq-c.value*mul;
         if (newFreq<=destFreq) {
           newFreq=destFreq;
           return2=true;
         }
       }
       if (!chan[c.chan].portaPause && parent->song.linearPitch!=2) {
-        if (octave(chan[c.chan].baseFreq)!=octave(newFreq)) {
+        if (mul!=octave(newFreq,fixedBlock)) {
           chan[c.chan].portaPause=true;
           break;
         }
@@ -1001,6 +1061,9 @@ void DivPlatformESFM::reset() {
     chan[i].vol=0x3f;
     chan[i].outVol=0x3f;
   }
+
+  oldOut[0]=0;
+  oldOut[1]=0;
 }
 
 int DivPlatformESFM::getOutputCount() {
@@ -1013,6 +1076,10 @@ bool DivPlatformESFM::keyOffAffectsArp(int ch) {
 
 bool DivPlatformESFM::keyOffAffectsPorta(int ch) {
   return false;
+}
+
+bool DivPlatformESFM::hasAcquireDirect() {
+  return true;
 }
 
 bool DivPlatformESFM::getLegacyAlwaysSetVolume() {
@@ -1051,6 +1118,9 @@ void DivPlatformESFM::poke(std::vector<DivRegWrite>& wlist) {
 void DivPlatformESFM::setFlags(const DivConfig& flags) {
   chipClock=COLOR_NTSC*4.0;
   rate=chipClock/288.0;
+  for (int i=0; i<18; i++) {
+    oscBuf[i]->setRate(rate);
+  }
 }
 
 void DivPlatformESFM::setFast(bool fast) {

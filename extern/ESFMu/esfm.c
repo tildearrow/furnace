@@ -1785,7 +1785,7 @@ ESFM_process_feedback(esfm_chip *chip)
 				phase_acc += phase_offset;
 			} else {
 			// ASM optimizaions!
-#if defined(__GNUC__) && defined(__x86_64__)
+#if defined(__GNUC__) && defined(__x86_64__) && !defined(ANDROID)
 			asm (
 				"movzbq  %[wave], %%r8               \n\t"
 				"shll    $11, %%r8d                  \n\t"
@@ -1850,7 +1850,7 @@ ESFM_process_feedback(esfm_chip *chip)
 				  [exprom] "m"   (exprom)
 				: "cc", "ax", "bx", "cx", "dx", "r8", "r9", "r10", "r11"
 			);
-#elif defined(__GNUC__) && defined(__i386__)
+#elif defined(__GNUC__) && defined(__i386__) && !defined(ANDROID)
 			asm (
 				"movzbl  %b[wave], %%eax             \n\t"
 				"shll    $11, %%eax                  \n\t"

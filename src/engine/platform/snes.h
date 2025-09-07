@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -93,8 +93,8 @@ class DivPlatformSNES: public DivDispatch {
   signed char sampleMem[65536];
   signed char copyOfSampleMem[65536];
   size_t sampleMemLen;
-  unsigned int sampleOff[256];
-  bool sampleLoaded[256];
+  unsigned int* sampleOff;
+  bool* sampleLoaded;
   DivMemoryComposition memCompo;
   unsigned char regPool[0x80];
   SPC_DSP dsp;
@@ -132,6 +132,8 @@ class DivPlatformSNES: public DivDispatch {
     void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
+    DivPlatformSNES();
+    ~DivPlatformSNES();
   private:
     void updateWave(int ch);
     void writeOutVol(int ch);

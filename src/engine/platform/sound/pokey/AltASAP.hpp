@@ -3,9 +3,6 @@
 #include <cstdint>
 #include <memory>
 
-// can you forgive me
-#include "../../../dispatch.h"
-
 namespace AltASAP
 {
 
@@ -20,7 +17,7 @@ public:
   ~Pokey();
 
   void write( uint8_t address, uint8_t value );
-  int16_t sampleAudio( DivDispatchOscBuffer** oscb = nullptr );
+  int16_t sampleAudio( short* oscb = nullptr );
 
   uint8_t const* getRegisterPool();
 

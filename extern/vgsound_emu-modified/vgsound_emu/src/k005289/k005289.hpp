@@ -45,7 +45,7 @@ class k005289_core : public vgsound_emu_core
 				// getters
 				inline u8 addr() { return m_addr; }
 
-			private:
+			public:
 				// registers
 				u8 m_addr	  = 0;	// external address pin
 				u16 m_pitch	  = 0;	// pitch
@@ -77,7 +77,7 @@ class k005289_core : public vgsound_emu_core
 		// 1QA...E/2QA...E pin
 		inline u8 addr(int voice) { return m_timer[voice & 1].addr(); }
 
-	private:
+	public:
 		std::array<timer_t, 2> m_timer;
 };
 

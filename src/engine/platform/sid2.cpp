@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -73,8 +73,11 @@ const char** DivPlatformSID2::getRegisterSheet() {
   return regCheatSheetSID2;
 }
 
-void DivPlatformSID2::acquire(short** buf, size_t len) 
-{
+void DivPlatformSID2::acquire(short** buf, size_t len) {
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t i=0; i<len; i++) 
   {
     if (!writes.empty()) 
@@ -96,9 +99,13 @@ void DivPlatformSID2::acquire(short** buf, size_t len)
         int co=sid2->chan_out[j]>>2;
         if (co<-32768) co=-32768;
         if (co>32767) co=32767;
-        oscBuf[j]->data[oscBuf[j]->needle++]=co;
+        oscBuf[j]->putSample(i,co);
       }
     }
+  }
+
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -254,7 +261,7 @@ void DivPlatformSID2::tick(bool sysTick) {
           rWrite(i*7+6,(chan[i].sustain<<4)|(chan[i].release));
         }
 
-        rWrite(i*7+3, (chan[i].duty>>8) | (isMuted[i] ? 0 : (chan[i].outVol << 4))); //set volume
+        rWrite(i*7+3, (chan[i].duty>>8) | (chan[i].outVol << 4)); //set volume
 
         rWrite(0x1e, (chan[0].noise_mode) | (chan[1].noise_mode << 2) | (chan[2].noise_mode << 4) | ((chan[0].freq >> 16) << 6) | ((chan[1].freq >> 16) << 7));
         rWrite(0x1f, (chan[0].mix_mode) | (chan[1].mix_mode << 2) | (chan[2].mix_mode << 4) | ((chan[2].freq >> 16) << 6));
@@ -710,7 +717,7 @@ void DivPlatformSID2::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock;
   for (int i=0; i<3; i++) {
-    oscBuf[i]->rate=rate/16;
+    oscBuf[i]->setRate(rate);
   }
   keyPriority=flags.getBool("keyPriority",true);
 

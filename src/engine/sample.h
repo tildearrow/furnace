@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,6 +48,7 @@ enum DivSampleDepth: unsigned char {
   DIV_SAMPLE_DEPTH_C219=12,
   DIV_SAMPLE_DEPTH_IMA_ADPCM=13,
   DIV_SAMPLE_DEPTH_12BIT=14,
+  DIV_SAMPLE_DEPTH_4BIT=15,
   DIV_SAMPLE_DEPTH_16BIT=16,
   DIV_SAMPLE_DEPTH_MAX // boundary for sample depth
 };
@@ -147,8 +148,9 @@ struct DivSample {
   unsigned char* dataC219; // 12
   unsigned char* dataIMA; // 13
   unsigned char* data12; // 14
+  unsigned char* data4; // 15
 
-  unsigned int length8, length16, length1, lengthDPCM, lengthZ, lengthQSoundA, lengthA, lengthB, lengthK, lengthBRR, lengthVOX, lengthMuLaw, lengthC219, lengthIMA, length12;
+  unsigned int length8, length16, length1, lengthDPCM, lengthZ, lengthQSoundA, lengthA, lengthB, lengthK, lengthBRR, lengthVOX, lengthMuLaw, lengthC219, lengthIMA, length12, length4;
 
   unsigned int samples;
 
@@ -360,6 +362,7 @@ struct DivSample {
     dataC219(NULL),
     dataIMA(NULL),
     data12(NULL),
+    data4(NULL),
     length8(0),
     length16(0),
     length1(0),
@@ -375,6 +378,7 @@ struct DivSample {
     lengthC219(0),
     lengthIMA(0),
     length12(0),
+    length4(0),
     samples(0) {
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       for (int j=0; j<DIV_MAX_SAMPLE_TYPE; j++) {

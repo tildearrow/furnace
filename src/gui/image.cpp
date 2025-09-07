@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,22 +28,32 @@
 
 const unsigned char* imageData[GUI_IMAGE_MAX]={
   image_icon_data,
+#ifdef NO_INTRO
+  NULL, NULL, NULL,
+  NULL, NULL, NULL
+#else
   image_talogo_data,
   image_tachip_data,
   image_logo_data,
   image_wordmark_data,
   image_introbg_data,
   image_pat_data
+#endif
 };
 
 const unsigned int imageLen[GUI_IMAGE_MAX]={
   image_icon_size,
+#ifdef NO_INTRO
+  0, 0, 0,
+  0, 0, 0
+#else
   image_talogo_size,
   image_tachip_size,
   image_logo_size,
   image_wordmark_size,
   image_introbg_size,
   image_pat_size
+#endif
 };
 
 FurnaceGUITexture* FurnaceGUI::getTexture(FurnaceGUIImages image, FurnaceGUIBlendMode blendMode) {

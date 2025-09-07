@@ -27,12 +27,13 @@ Amiga         |  ≤256 | 256    |
 ![wavetable editor](wave-editor.png)
 
 controls across the top line:
-- waveform number. the `-` and `+` buttons step through the list.
-- open. opens a file selector to choose the file to open.
-- save. opens a file selector to choose the file to save to.
+- waveform number: the `-` and `+` buttons step through the list.
+- open: opens a file selector to choose the file to open.
+- save: opens a file selector to choose the file to save to.
   - right-clicking brings up a menu:
     - **save as .dmw...**: saves the selected wavetable in DefleMask format.
     - **save raw...**: saves the selected wavetable as raw data.
+- create sample from wavetable: copies wavetable to a new looped sample.
 - **Steps**: view waveform as discrete blocks.
 - **Lines**: view waveform as a continuous line.
 - **Width**: length of the waveform data. maximum is 256.

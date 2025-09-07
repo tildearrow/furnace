@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,10 +35,8 @@ class FurnaceGUIRenderSDL: public FurnaceGUIRender {
     void setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode);
     void setBlendMode(FurnaceGUIBlendMode mode);
     void clear(ImVec4 color);
-    bool newFrame();
+    void newFrame();
     bool canVSync();
-    void createFontsTexture();
-    void destroyFontsTexture();
     void renderGUI();
     void wipe(float alpha);
     void present();

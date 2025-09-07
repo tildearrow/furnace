@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,25 +26,31 @@
 
 void DivPlatformDummy::acquire(short** buf, size_t len) {
   int chanOut;
+  for (int i=0; i<chans; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t i=0; i<len; i++) {
     int out=0;
     for (unsigned char j=0; j<chans; j++) {
       if (chan[j].active) {
         if (!isMuted[j]) {
           chanOut=(((signed short)chan[j].pos)*chan[j].amp*chan[j].vol)>>12;
-          oscBuf[j]->data[oscBuf[j]->needle++]=chanOut<<1;
+          oscBuf[j]->putSample(i,chanOut<<1);
           out+=chanOut;
         } else {
-          oscBuf[j]->data[oscBuf[j]->needle++]=0;
+          oscBuf[j]->putSample(i,0);
         }
         chan[j].pos+=chan[j].freq;
       } else {
-        oscBuf[j]->data[oscBuf[j]->needle++]=0;
+        oscBuf[j]->putSample(i,0);
       }
     }
     if (out<-32768) out=-32768;
     if (out>32767) out=32767;
     buf[0][i]=out;
+  }
+  for (int i=0; i<chans; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -150,7 +156,7 @@ int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate, const DivCon
     isMuted[i]=false;
     if (i<channels) {
       oscBuf[i]=new DivDispatchOscBuffer;
-      oscBuf[i]->rate=65536;
+      oscBuf[i]->setRate(65536);
     }
   }
   rate=65536;

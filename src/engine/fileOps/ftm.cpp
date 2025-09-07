@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -358,7 +358,6 @@ void copyMacro(DivInstrument* ins, DivInstrumentMacro* from, int macro_type, int
 
   to->len = from->len;
   to->delay = from->delay;
-  to->lenMemory = from->lenMemory;
   to->mode = from->mode;
   to->rel = from->rel;
   to->speed = from->speed;
@@ -390,7 +389,6 @@ void copyMacro(DivInstrument* ins, DivInstrumentMacro* from, int macro_type, int
 
     wave->len = to->len;
     wave->delay = to->delay;
-    wave->lenMemory = to->lenMemory;
     wave->mode = to->mode;
     wave->rel = to->rel;
     wave->speed = to->speed;
@@ -438,6 +436,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
     unsigned int expansions = 0;
     unsigned int tchans = 0;
     unsigned int n163Chans = 0;
+    int n163WaveOff[128];
     bool hasSequence[256][8];
     unsigned char sequenceIndex[256][8];
     unsigned char macro_types[256][8];
@@ -461,6 +460,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
     int total_chans = 0;
 
+    memset(n163WaveOff,0,128*sizeof(int));
     memset(hasSequence, 0, 256 * 8 * sizeof(bool));
     memset(sequenceIndex, 0, 256 * 8);
     memset(macro_types, 0, 256 * 8);
@@ -469,6 +469,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
     for (int i = 0; i < 256; i++) {
       for (int j = 0; j < 8; j++) {
         macros[i].push_back(DivInstrumentMacro(DIV_MACRO_VOL));
+        macros[i][j].open|=9;
       }
     }
 
@@ -654,6 +655,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         int map_ch = 0;
 
         ds.system[systemID++] = DIV_SYSTEM_NES;
+        ds.systemFlags[0].set("resetSweep",true); // FamiTracker behavior
 
         if (pal) {
           ds.systemFlags[0].set("clockSel", 1); // PAL clock
@@ -1087,7 +1089,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
               ins->fds.modSpeed = reader.readI();
               ins->fds.modDepth = reader.readI();
               reader.readI(); // this is delay. currently ignored. TODO.
-              if (ds.wave.size()>=256) {
+              if (ds.wave.size()>=32768) {
                 logW("too many waves! ignoring...");
                 delete wave;
               } else {
@@ -1188,7 +1190,8 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
               }
 
               unsigned int wave_count = reader.readI();
-              size_t waveOff = ds.wave.size();
+              n163WaveOff[insIndex] = ds.wave.size();
+              ins->n163.wave = n163WaveOff[insIndex];
 
               if (wave_size>256) {
                 logE("wave size %d out of range",wave_size);
@@ -1207,22 +1210,11 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                   wave->data[jj] = val;
                 }
 
-                if (ds.wave.size()<256) {
+                if (ds.wave.size()<32768) {
                   ds.wave.push_back(wave);
                 } else {
                   logW("too many waves...");
                   delete wave;
-                }
-              }
-
-              // offset wave macro
-              if (ins->std.waveMacro.len == 0) // empty wave macro
-              {
-                ins->std.waveMacro.len = 1;
-                ins->std.waveMacro.val[0] = waveOff;
-              } else {
-                for (int p=0; p<ins->std.waveMacro.len; p++) {
-                  ins->std.waveMacro.val[p] += waveOff;
                 }
               }
 
@@ -1946,10 +1938,22 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                     for (int v = 0; v < 8; v++) {
                       if (map_channels[ch] == n163_chans[v]) {
                         if (pat->data[row][4 + (j * 2)] == 0x12) {
-                          pat->data[row][4 + (j * 2)] = 0x10; // TODO: map wave
+                          pat->data[row][4 + (j * 2)] = 0x110; // N163 wave change (we'll map this later)
                         }
                       }
                     }
+
+                    for (int vrr = 0; vrr < 6; vrr++)
+                    {
+                      if (map_channels[ch] == vrc7_chans[vrr])
+                      {
+                        if (pat->data[row][4 + (j * 2)] == 0x12)
+                        {
+                          pat->data[row][4 + (j * 2)] = 0x10; // set VRC7 patch
+                        }
+                      }
+                    }
+
                     for (int v = 0; v < 3; v++) {
                       if (map_channels[ch] == s5b_chans[v] || map_channels[ch] == ay8930_chans[v]) {
                         if (pat->data[row][4 + (j * 2)] == 0x22 && (pat->data[row][5 + (j * 2)] & 0xf0) != 0) {
@@ -2744,7 +2748,8 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
       }
     }
 
-    ds.delayBehavior=0;
+    // why? I thought FamiTracker was lax
+    //ds.delayBehavior=0;
 
     ds.version=DIV_VERSION_FTM;
     ds.insLen = ds.ins.size();
@@ -2759,6 +2764,46 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
       }
       if (i->virtualTempoN<1) i->virtualTempoN=1;
       if (i->virtualTempoD<1) i->virtualTempoD=1;
+    }
+
+    // offset N163 wave macros (local -> global wave conversion)
+    for (size_t i=0; i<ds.ins.size(); i++) {
+      DivInstrument* ins=ds.ins[i];
+      int waveOff=n163WaveOff[i];
+      if (ins->type==DIV_INS_N163) {
+        for (int j=0; j<ins->std.waveMacro.len; j++) {
+          ins->std.waveMacro.val[j]+=waveOff;
+        }
+      }
+    }
+
+    // offset N163 wave change effects whether possible
+    for (DivSubSong* i: ds.subsong) {
+      for (int j=0; j<total_chans; j++) {
+        int curWaveOff=0;
+        for (int k=0; k<i->ordersLen; k++) {
+          DivPattern* p=i->pat[j].getPattern(i->orders.ord[j][k],true);
+          for (int l=0; l<i->patLen; l++) {
+            // check for instrument change
+            if (p->data[l][2]!=-1) {
+              curWaveOff=n163WaveOff[p->data[l][2]&127];
+            }
+
+            // check effect columns for 0x110 (dummy wave change)
+            for (int m=0; m<i->pat[j].effectCols; m++) {
+              if (p->data[l][4+(m<<1)]==0x110) {
+                // map wave
+                p->data[l][4+(m<<1)]=0x10;
+                if (p->data[l][5+(m<<1)]==-1) {
+                  p->data[l][5+(m<<1)]=curWaveOff&0xff;
+                } else {
+                  p->data[l][5+(m<<1)]=(p->data[l][5+(m<<1)]+curWaveOff)&0xff;
+                }
+              }
+            }
+          }
+        }
+      }
     }
 
     if (active) quitDispatch();

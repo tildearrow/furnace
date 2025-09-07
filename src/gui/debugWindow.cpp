@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -196,6 +196,10 @@ void FurnaceGUI::drawDebug() {
       ImGui::TextWrapped("%s",pdi.c_str());
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("GUI Status")) {
+      ImGui::Text("patScroll: %f",patScroll);
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Sample Debug")) {
       for (int i=0; i<e->song.sampleLen; i++) {
         DivSample* sample=e->getSample(i);
@@ -240,11 +244,12 @@ void FurnaceGUI::drawDebug() {
         DivSystem system=e->song.system[i];
         if (e->getChannelCount(system)>0) {
           if (ImGui::TreeNode(fmt::sprintf("%d: %s",i,e->getSystemName(system)).c_str())) {
-            if (ImGui::BeginTable("OscilloscopeTable",4,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
+            if (ImGui::BeginTable("OscilloscopeTable",5,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
               ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
               ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
               ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
               ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch);
+              ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch);
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
@@ -252,9 +257,11 @@ void FurnaceGUI::drawDebug() {
               ImGui::TableNextColumn();
               ImGui::Text("Follow");
               ImGui::TableNextColumn();
-              ImGui::Text("Address");
+              ImGui::Text("Needle");
               ImGui::TableNextColumn();
               ImGui::Text("Data");
+              ImGui::TableNextColumn();
+              ImGui::Text("I am so bored!");
 
               for (int j=0; j<e->getChannelCount(system); j++, c++) {
                 DivDispatchOscBuffer* oscBuf=e->getOscBuffer(c);
@@ -276,15 +283,25 @@ void FurnaceGUI::drawDebug() {
                 ImGui::Checkbox(fmt::sprintf("##%d_OSCFollow_%d",i,c).c_str(),&oscBuf->follow);
                 // address
                 ImGui::TableNextColumn();
-                int needle=oscBuf->follow?oscBuf->needle:oscBuf->followNeedle;
-                ImGui::BeginDisabled(oscBuf->follow);
-                if (ImGui::InputInt(fmt::sprintf("##%d_OSCFollowNeedle_%d",i,c).c_str(),&needle,1,100)) {
-                  oscBuf->followNeedle=MIN(MAX(needle,0),65535);
-                }
-                ImGui::EndDisabled();
+                unsigned int needle=oscBuf->needle;
+                ImGui::Text("%.8x",needle);
                 // data
                 ImGui::TableNextColumn();
-                ImGui::Text("%d",oscBuf->data[needle]);
+                ImGui::Text("%d",oscBuf->data[needle>>16]);
+                // save
+                ImGui::TableNextColumn();
+                if (ImGui::Button(fmt::sprintf("Help me!##%d_OSCSaveDamnIt",j).c_str())) {
+                  FILE* f=fopen("/tmp/oscbuf.bin","wb");
+                  if (f==NULL) {
+                    showError(fmt::sprintf("screw this bullshit! it FAILED! %s\nnow I am about to be consumed by the tsunami!\nCOME GET ME FAST, my location is [REDACTED] CQD SOS",strerror(errno)));
+                  } else {
+                    e->synchronized([f,oscBuf]() {
+                      fwrite(oscBuf->data,sizeof(short),65536,f);
+                    });
+                    fclose(f);
+                    showError(fmt::sprintf("DATA WRITTEN TO /tmp/oscbuf.bin\nthe needle was at %.8x during operation ((needle>>16)<<1 = %u for its actual position in the file).\n\nnow go inspect the file and find out who's biting on that stupid triangle before\nyou succumb to the tsunami, tildearrow is stabbed by Codename Redacted and the Furnace factory comes to a\nperennial halt. HURRY UP!!!",needle,needle>>16));
+                  }
+                }
               }
               ImGui::EndTable();
             }
@@ -744,7 +761,7 @@ void FurnaceGUI::drawDebug() {
       auto DrawSpot=[&](const CursorJumpPoint& spot) {
         ImGui::Text("[%d:%d] <%d:%d, %d>", spot.subSong, spot.order, spot.point.xCoarse, spot.point.xFine, spot.point.y);
       };
-      if (ImGui::BeginChild("##CursorUndoDebugChild", ImVec2(0, 300), true)) {
+      if (ImGui::BeginChild("##CursorUndoDebugChild", ImVec2(0, 300), ImGuiChildFlags_Border)) {
         if (ImGui::BeginTable("##CursorUndoDebug", 2, ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
           for (size_t row=0; row<MAX(cursorUndoHist.size(),cursorRedoHist.size()); ++row) {
             ImGui::TableNextRow();
@@ -797,7 +814,7 @@ void FurnaceGUI::drawDebug() {
     if (ImGui::TreeNode("Settings")) {
       if (ImGui::Button("Sync")) syncSettings();
       ImGui::SameLine();
-      if (ImGui::Button("Commit")) commitSettings();
+      if (ImGui::Button("Commit")) willCommit=true;
       ImGui::SameLine();
       if (ImGui::Button("Force Load")) e->loadConf();
       ImGui::SameLine();
