@@ -306,8 +306,13 @@ SafeWriter* DivEngine::saveMMLGB(bool useLegacyNoiseTable) {
       // Handle different command types for state update
       switch (cmd.cmd) {
       case DIV_CMD_NOTE_ON: {
-        int noteVal = (chan == 3) ? _convertNoiseValue(cmd.value, useLegacyNoiseTable) : cmd.value;
-        st.currNote[chan] = noteVal;
+        if (chan == 3) {
+            if (cmd.value < 0x100) {
+                st.currNote[chan] = _convertNoiseValue(cmd.value, useLegacyNoiseTable);
+            }
+        } else {
+            st.currNote[chan] = cmd.value;
+        }
         st.noteOn[chan] = false;
 
         DivInstrument* ins = getIns(st.currIns[chan], DivInstrumentType::DIV_INS_GB);
