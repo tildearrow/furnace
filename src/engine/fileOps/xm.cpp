@@ -1147,11 +1147,11 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
               case 0xe: // special...
                 // TODO: implement the rest
                 switch (effectVal>>4) {
-                  case 0x5:
+                  case 0x5: // fine tune
                     p->data[j][effectCol[k]++]=0xe5;
                     p->data[j][effectCol[k]++]=(effectVal&15)<<4;
                     break;
-                  case 0x9:
+                  case 0x9: // retrigger
                     p->data[j][effectCol[k]++]=0x0c;
                     p->data[j][effectCol[k]++]=(effectVal&15);
                     break;
@@ -1171,11 +1171,11 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                     }
                     volSliding[k]=true;
                     break;
-                  case 0xc:
+                  case 0xc: // note cut
                     p->data[j][effectCol[k]++]=0xdc;
                     p->data[j][effectCol[k]++]=MAX(1,effectVal&15);
                     break;
-                  case 0xd:
+                  case 0xd: // note delay
                     p->data[j][effectCol[k]++]=0xed;
                     p->data[j][effectCol[k]++]=MAX(1,effectVal&15);
                     break;
