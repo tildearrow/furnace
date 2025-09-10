@@ -1147,7 +1147,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
               case 0xe: // special...
                 // TODO: implement the rest
                 switch (effectVal>>4) {
-                  case 0x3: // vibrato waveform
+                  case 0x4: // vibrato waveform
                     switch (effectVal&3) {
                       case 0x0: // sine
                         p->data[j][effectCol[k]++]=0xe3;
