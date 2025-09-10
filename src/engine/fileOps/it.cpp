@@ -1536,9 +1536,45 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
                       break;
                   }
                   break;
+                case 0x7:
+                  switch (effectVal[chan]&15) {
+                    case 0x7: // volume envelope off
+                      p->data[readRow][effectCol[chan]++]=0xf5;
+                      p->data[readRow][effectCol[chan]++]=0x00;
+                      break;
+                    case 0x8: // volume envelope on
+                      p->data[readRow][effectCol[chan]++]=0xf6;
+                      p->data[readRow][effectCol[chan]++]=0x00;
+                      break;
+                    case 0x9: // panning envelope off
+                      p->data[readRow][effectCol[chan]++]=0xf5;
+                      p->data[readRow][effectCol[chan]++]=0x0c;
+                      p->data[readRow][effectCol[chan]++]=0xf5;
+                      p->data[readRow][effectCol[chan]++]=0x0d;
+                      break;
+                    case 0xa: // panning envelope on
+                      p->data[readRow][effectCol[chan]++]=0xf6;
+                      p->data[readRow][effectCol[chan]++]=0x0c;
+                      p->data[readRow][effectCol[chan]++]=0xf6;
+                      p->data[readRow][effectCol[chan]++]=0x0d;
+                      break;
+                    case 0xb: // pitch envelope off
+                      p->data[readRow][effectCol[chan]++]=0xf5;
+                      p->data[readRow][effectCol[chan]++]=0x04;
+                      break;
+                    case 0xc: //pitch envelope on
+                      p->data[readRow][effectCol[chan]++]=0xf6;
+                      p->data[readRow][effectCol[chan]++]=0x04;
+                      break;
+                  }
+                  break;
                 case 0x8: // panning
                   p->data[readRow][effectCol[chan]++]=0x80;
                   p->data[readRow][effectCol[chan]++]=(effectVal[chan]&15)<<4;
+                  break;
+                case 0xa: // offset (high nibble)
+                  p->data[readRow][effectCol[chan]++]=0x92;
+                  p->data[readRow][effectCol[chan]++]=effectVal[chan]&15;
                   break;
                 case 0xc: // note cut
                   p->data[readRow][effectCol[chan]++]=0xec;
