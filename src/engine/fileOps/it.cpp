@@ -1516,6 +1516,26 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
               break;
             case 'S': // special...
               switch (effectVal[chan]>>4) {
+                case 0x3: // vibrato waveform
+                  switch (effectVal[chan]&3) {
+                    case 0x0: // sine
+                      p->data[readRow][effectCol[chan]++]=0xe3;
+                      p->data[readRow][effectCol[chan]++]=0x00;
+                      break;
+                    case 0x1: // ramp down
+                      p->data[readRow][effectCol[chan]++]=0xe3;
+                      p->data[readRow][effectCol[chan]++]=0x05;
+                      break;
+                    case 0x2: // square
+                      p->data[readRow][effectCol[chan]++]=0xe3;
+                      p->data[readRow][effectCol[chan]++]=0x06;
+                      break;
+                    case 0x3: // random
+                      p->data[readRow][effectCol[chan]++]=0xe3;
+                      p->data[readRow][effectCol[chan]++]=0x07;
+                      break;
+                  }
+                  break;
                 case 0x8: // panning
                   p->data[readRow][effectCol[chan]++]=0x80;
                   p->data[readRow][effectCol[chan]++]=(effectVal[chan]&15)<<4;
