@@ -541,6 +541,10 @@ int DivPlatformK007232::getRegisterPoolSize() {
   return 20;
 }
 
+size_t DivPlatformK007232::getSampleMemNum() {
+  return 1;
+}
+
 const void* DivPlatformK007232::getSampleMem(int index) {
   return index == 0 ? sampleMem : NULL;
 }

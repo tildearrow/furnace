@@ -674,7 +674,7 @@ void DivPlatformYM2610B::acquire_lle(short** buf, size_t len) {
         adMemAddrB|=((fm_lle.o_pad&0xff)|((fm_lle.o_pa8&15)<<8))<<12;
       }
       if (!fm_lle.o_poe) {
-        fm_lle.input.pad=adpcmBMem[adMemAddrB&0xffffff];
+        fm_lle.input.pad=hasSharedAdpcmBus?adpcmAMem[adMemAddrB&0xffffff]:adpcmBMem[adMemAddrB&0xffffff];
       }
       pmpx=fm_lle.o_pmpx;
 

@@ -555,6 +555,10 @@ float DivPlatformNDS::getPostAmp() {
   return 1.0f;
 }
 
+size_t DivPlatformNDS::getSampleMemNum() {
+  return 1;
+}
+
 const void* DivPlatformNDS::getSampleMem(int index) {
   return index == 0 ? sampleMem : NULL;
 }

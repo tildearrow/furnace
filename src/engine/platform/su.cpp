@@ -676,6 +676,10 @@ void DivPlatformSoundUnit::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
+size_t DivPlatformSoundUnit::getSampleMemNum() {
+  return 1;
+}
+
 const void* DivPlatformSoundUnit::getSampleMem(int index) {
   return (index==0)?sampleMem:NULL;
 }

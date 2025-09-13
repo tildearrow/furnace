@@ -102,6 +102,7 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
     virtual void poke(unsigned int addr, unsigned short val) override;
     virtual void poke(std::vector<DivRegWrite>& wlist) override;
     virtual const char** getRegisterSheet() override;
+    virtual size_t getSampleMemNum() override;
     virtual const void* getSampleMem(int index = 0) override;
     virtual size_t getSampleMemCapacity(int index = 0) override;
     virtual size_t getSampleMemUsage(int index = 0) override;

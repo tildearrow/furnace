@@ -456,6 +456,10 @@ int DivPlatformK053260::getRegisterPoolSize() {
   return 64;
 }
 
+size_t DivPlatformK053260::getSampleMemNum() {
+  return 1;
+}
+
 const void* DivPlatformK053260::getSampleMem(int index) {
   return index == 0 ? sampleMem : NULL;
 }

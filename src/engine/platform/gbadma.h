@@ -85,6 +85,7 @@ class DivPlatformGBADMA: public DivDispatch {
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    size_t getSampleMemNum();
     const void* getSampleMem(int index = 0);
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);

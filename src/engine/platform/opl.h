@@ -215,6 +215,7 @@ class DivPlatformOPL: public DivDispatch {
     int getPortaFloor(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
+    size_t getSampleMemNum();
     const void* getSampleMem(int index);
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);

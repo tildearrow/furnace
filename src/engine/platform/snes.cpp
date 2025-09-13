@@ -952,6 +952,10 @@ void DivPlatformSNES::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
+size_t DivPlatformSNES::getSampleMemNum() {
+  return 1;
+}
+
 const void* DivPlatformSNES::getSampleMem(int index) {
   return index == 0 ? sampleMem : NULL;
 }

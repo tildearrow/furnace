@@ -434,6 +434,10 @@ void DivPlatformGBADMA::notifyInsDeletion(void* ins) {
   }
 }
 
+size_t DivPlatformGBADMA::getSampleMemNum() {
+  return 1;
+}
+
 const void* DivPlatformGBADMA::getSampleMem(int index) {
   return index == 0 ? sampleMem : NULL;
 }

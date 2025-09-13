@@ -3228,6 +3228,10 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
   }
 }
 
+size_t DivPlatformOPL::getSampleMemNum() {
+  return ((pcmChanOffs>=0) || (adpcmChan>=0))?1:0;
+}
+
 const void* DivPlatformOPL::getSampleMem(int index) {
   return (index==0 && pcmChanOffs>=0)?pcmMem:
           (index==0 && adpcmChan>=0)?adpcmBMem:NULL;

@@ -314,6 +314,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     virtual void notifyInsDeletion(void* ins) override;
     virtual void poke(unsigned int addr, unsigned short val) override;
     virtual void poke(std::vector<DivRegWrite>& wlist) override;
+    virtual size_t getSampleMemNum() override;
     virtual const void* getSampleMem(int index = 0) override;
     virtual size_t getSampleMemCapacity(int index = 0) override;
     virtual size_t getSampleMemUsage(int index = 0) override;

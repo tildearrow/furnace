@@ -464,6 +464,10 @@ int DivPlatformGA20::getRegisterPoolSize() {
   return 32;
 }
 
+size_t DivPlatformGA20::getSampleMemNum() {
+  return 1;
+}
+
 const void* DivPlatformGA20::getSampleMem(int index) {
   return index == 0 ? sampleMem : NULL;
 }
