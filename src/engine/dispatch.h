@@ -983,6 +983,13 @@ class DivDispatch {
     virtual const char* getSampleMemName(int index=0);
 
     /**
+     * Get sample memory start offset.
+     * @param index the memory index.
+     * @return memory start offset in bytes.
+     */
+    virtual size_t getSampleMemOffset(int index = 0);
+
+    /**
      * Get sample memory usage.
      * @param index the memory index.
      * @return memory usage in bytes.
