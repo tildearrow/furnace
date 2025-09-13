@@ -227,355 +227,468 @@ void FurnaceGUI::drawSampleEdit() {
       bool displayLoopStartHints=false;
       bool displayLoopEndHints=false;
 
-      for (int i=0; i<e->song.systemLen; i++) {
-        DivDispatch* dispatch=e->getDispatch(i);
-
-        // warnings
-        switch (e->song.system[i]) {
-          case DIV_SYSTEM_SNES:
-            if (sample->loop) {
-              if (sample->loopStart&15) {
-                int tryWith=(sample->loopStart+8)&(~15);
-                if (tryWith>(int)sample->samples) tryWith-=16;
-                String alignHint=fmt::sprintf(_("SNES: loop start must be a multiple of 16 (try with %d)"),tryWith);
-                SAMPLE_WARN(warnLoopStart,alignHint);
-              }
-              if (sample->loopEnd&15) {
-                int tryWith=(sample->loopEnd+8)&(~15);
-                if (tryWith>(int)sample->samples) tryWith-=16;
-                String alignHint=fmt::sprintf(_("SNES: loop end must be a multiple of 16 (try with %d)"),tryWith);
-                SAMPLE_WARN(warnLoopEnd,alignHint);
-              }
-            }
-            if (sample->samples&15) {
-              SAMPLE_WARN(warnLength,_("SNES: sample length will be padded to multiple of 16"));
-            }
-            if (dispatch!=NULL) {
-              MAX_RATE("SNES",dispatch->chipClock/8.0);
-            }
-            break;
-          case DIV_SYSTEM_QSOUND:
-            if (sample->loop) {
-              if (sample->depth==DIV_SAMPLE_DEPTH_QSOUND_ADPCM) {
-                SAMPLE_WARN(warnLoop,_("QSound: ADPCM samples can't loop"));
-              } else if (sample->loopEnd-sample->loopStart>32767) {
-                SAMPLE_WARN(warnLoopPos,_("QSound: loop cannot be longer than 32767 samples"));
-              }
-            }
-            if (sample->depth==DIV_SAMPLE_DEPTH_QSOUND_ADPCM) {
-              if (sample->samples>131070) {
-                SAMPLE_WARN(warnLength,"QSound: maximum ADPCM sample length is 131070");
-              }
-              if (dispatch!=NULL) {
-                EXACT_RATE("QSound (ADPCM)",dispatch->chipClock/7488.0);
-              }
-            } else if (sample->samples>65535) {
-              SAMPLE_WARN(warnLength,"QSound: maximum PCM sample length is 65535");
-            }
-            break;
-          case DIV_SYSTEM_NES: {
-            if (sample->loop) {
-              if (sample->loopStart&511) {
-                int tryWith=(sample->loopStart)&(~511);
-                if (tryWith>(int)sample->samples) tryWith-=512;
-                String alignHint=fmt::sprintf(_("NES: loop start must be a multiple of 512 (try with %d)"),tryWith);
-                SAMPLE_WARN(warnLoopStart,alignHint);
-              }
-              if ((sample->loopEnd-8)&127) {
-                int tryWith=(sample->loopEnd-8)&(~127);
-                if (tryWith>(int)sample->samples) tryWith-=128;
-                tryWith+=8; // +1 bc of how sample length is treated: https://www.nesdev.org/wiki/APU_DMC
-                String alignHint=fmt::sprintf(_("NES: loop end must be a multiple of 128 + 8 (try with %d)"),tryWith);
-                SAMPLE_WARN(warnLoopEnd,alignHint);
-              }
-            }
-            if (sample->samples>32648) {
-              SAMPLE_WARN(warnLength,_("NES: maximum DPCM sample length is 32648"));
-            }
-            break;
+      // warnings
+      int chanFocus=cursor.xCoarse;
+      int curDispatch=e->dispatchOfChan[chanFocus];
+      if (curDispatch>=0 && curDispatch<DIV_MAX_CHIPS) {
+        DivDispatch* dChan=e->getDispatch(curDispatch);
+        int curChan=e->dispatchChanOfChan[chanFocus];
+        bool warnEnable=false;
+        int opnaAdpcmChan=-1;
+        int opnbAdpcmChan=-1;
+        int y8950AdpcmChan=-1;
+        int opl4PcmChan=-1;
+        for (int j=0; j<DIV_MAX_SAMPLE_TYPE; j++) {
+          if (sample->renderOn[j][curDispatch]) {
+            warnEnable=true;
           }
-          case DIV_SYSTEM_X1_010:
-            if (sample->loop) {
-              SAMPLE_WARN(warnLoop,_("X1-010: samples can't loop"));
-            }
-            if (sample->samples>131072) {
-              SAMPLE_WARN(warnLength,_("X1-010: maximum bankswitched sample length is 131072"));
-            }
-            break;
-          case DIV_SYSTEM_GA20:
-            if (sample->loop) {
-              SAMPLE_WARN(warnLoop,_("GA20: samples can't loop"));
-            }
-            if (dispatch!=NULL) {
-              MIN_RATE("GA20",dispatch->chipClock/1024);
-            }
-            break;
-          case DIV_SYSTEM_YM2608:
-          case DIV_SYSTEM_YM2608_EXT:
-          case DIV_SYSTEM_YM2608_CSM:
-            if (sample->loop) {
-              if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
-                SAMPLE_WARN(warnLoopPos,_("YM2608: loop point ignored on ADPCM (may only loop entire sample)"));
-              }
-              if (sample->samples&511) {
-                SAMPLE_WARN(warnLength,_("YM2608: sample length will be padded to multiple of 512"));
-              }
-            }
-            if (dispatch!=NULL) {
-              MAX_RATE("YM2608",dispatch->chipClock/144);
-            }
-            break;
-          case DIV_SYSTEM_YM2610_FULL:
-          case DIV_SYSTEM_YM2610_FULL_EXT:
-          case DIV_SYSTEM_YM2610_CSM:
-          case DIV_SYSTEM_YM2610B:
-          case DIV_SYSTEM_YM2610B_EXT:
-            if (sample->loop) {
-              if (sample->depth==DIV_SAMPLE_DEPTH_ADPCM_A) {
-                SAMPLE_WARN(warnLoop,_("YM2610: ADPCM-A samples can't loop"));
-              } else {
-                if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
-                  SAMPLE_WARN(warnLoopPos,_("YM2610: loop point ignored on ADPCM-B (may only loop entire sample)"));
-                }
-              }
-              if (sample->samples&511) {
-                SAMPLE_WARN(warnLength,_("YM2610: sample length will be padded to multiple of 512"));
-              }
-            }
-            if (sample->samples>2097152) {
-              SAMPLE_WARN(warnLength,_("YM2610: maximum ADPCM-A sample length is 2097152"));
-            }
-            if (dispatch!=NULL) {
-              if (sample->depth==DIV_SAMPLE_DEPTH_ADPCM_A) {
-                EXACT_RATE("YM2610 (ADPCM-A)",dispatch->chipClock/432);
-              } else {
-                MAX_RATE("YM2610 (ADPCM-B)",dispatch->chipClock/144);
-              }
-            }
-            break;
-          case DIV_SYSTEM_Y8950:
-            if (sample->loop) {
-              if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
-                SAMPLE_WARN(warnLoopPos,_("Y8950: loop point ignored on ADPCM (may only loop entire sample)"));
-              }
-              if (sample->samples&511) {
-                SAMPLE_WARN(warnLength,_("Y8950: sample length will be padded to multiple of 512"));
-              }
-            }
-            if (dispatch!=NULL) {
-              MAX_RATE("Y8950",dispatch->chipClock/72);
-            }
-            break;
-          case DIV_SYSTEM_AMIGA:
-            if (sample->loop) {
-              if (sample->loopStart&1) {
-                SAMPLE_WARN(warnLoopStart,_("Amiga: loop start must be a multiple of 2"));
-              }
-              if (sample->loopEnd&1) {
-                SAMPLE_WARN(warnLoopEnd,_("Amiga: loop end must be a multiple of 2"));
-              }
-            }
-            if (sample->samples>131070) {
-              SAMPLE_WARN(warnLength,_("Amiga: maximum sample length is 131070"));
-            }
-            if (dispatch!=NULL) {
-              MAX_RATE("Amiga",31250.0);
-            }
-            break;
-          case DIV_SYSTEM_SEGAPCM:
-          case DIV_SYSTEM_SEGAPCM_COMPAT:
-            if (sample->samples>65280) {
-              SAMPLE_WARN(warnLength,_("SegaPCM: maximum sample length is 65280"));
-            }
-            if (dispatch!=NULL) {
-              MAX_RATE("SegaPCM",dispatch->rate);
-            }
-            break;
-          case DIV_SYSTEM_K007232:
-            if (sample->samples>131071) {
-              SAMPLE_WARN(warnLength,_("K007232: maximum sample length is 131071"));
-            }
-            break;
-          case DIV_SYSTEM_K053260:
-            if (sample->loop) {
-              if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
-                SAMPLE_WARN(warnLoopPos,_("K053260: loop point ignored (may only loop entire sample)"));
-              }
-            }
-            if (sample->samples>65535) {
-              SAMPLE_WARN(warnLength,_("K053260: maximum sample length is 65535"));
-            }
-            break;
-          case DIV_SYSTEM_C140:
-            if (sample->samples>65535) {
-              SAMPLE_WARN(warnLength,_("C140: maximum sample length is 65535"));
-            }
-            if (dispatch!=NULL) {
-              MAX_RATE("C140",dispatch->rate);
-            }
-            break;
-          case DIV_SYSTEM_C219:
-            if (sample->loop) {
-              if (sample->loopStart&1) {
-                SAMPLE_WARN(warnLoopStart,_("C219: loop start must be a multiple of 2"));
-              }
-              if (sample->loopEnd&1) {
-                SAMPLE_WARN(warnLoopEnd,_("C219: loop end must be a multiple of 2"));
-              }
-            }
-            if (sample->samples>131072) {
-              SAMPLE_WARN(warnLength,_("C219: maximum sample length is 131072"));
-            }
-            if (dispatch!=NULL) {
-              MAX_RATE("C219",dispatch->rate);
-            }
-            break;
-          case DIV_SYSTEM_MSM6295:
-            if (sample->loop) {
-              SAMPLE_WARN(warnLoop,_("MSM6295: samples can't loop"));
-            }
-            if (sample->samples>129024) {
-              SAMPLE_WARN(warnLength,_("MSM6295: maximum bankswitched sample length is 129024"));
-            }
-            if (dispatch!=NULL) {
-              EXACT_2RATES("MSM6295",dispatch->chipClock/165,dispatch->chipClock/132);
-            }
-            break;
-          case DIV_SYSTEM_GBA_DMA:
-            if (sample->loop) {
-              if (sample->loopStart&3) {
-                SAMPLE_WARN(warnLoopStart,_("GBA DMA: loop start must be a multiple of 4"));
-              }
-              if ((sample->loopEnd-sample->loopStart)&15) {
-                SAMPLE_WARN(warnLoopEnd,_("GBA DMA: loop length must be a multiple of 16"));
-              }
-            }
-            if (sample->samples&15) {
-              SAMPLE_WARN(warnLength,_("GBA DMA: sample length will be padded to multiple of 16"));
-            }
-            break;
-          case DIV_SYSTEM_OPL4:
-          case DIV_SYSTEM_OPL4_DRUMS:
-            if (sample->samples>65535) {
-              SAMPLE_WARN(warnLength,_("OPL4: maximum sample length is 65535"));
-            }
-            break;
-          case DIV_SYSTEM_SUPERVISION:
-            if (sample->loop) {
-              if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
-                SAMPLE_WARN(warnLoopPos,_("Supervision: loop point ignored on sample channel"));
-              }
-            }
-            if (sample->samples&31) {
-              SAMPLE_WARN(warnLength,_("Supervision: sample length will be padded to multiple of 32"));
-            }
-            if (sample->samples>8192) {
-              SAMPLE_WARN(warnLength,_("Supervision: maximum sample length is 8192"));
-            }
-            break;
-          case DIV_SYSTEM_YMZ280B:
-            if (sample->depth==DIV_SAMPLE_DEPTH_YMZ_ADPCM) {
-              if (sample->loop) {
-                if (sample->loopStart&1) {
-                  SAMPLE_WARN(warnLoopStart,_("YMZ280B: loop start on ADPCM must be a multiple of 2"));
-                }
-                if (sample->loopEnd&1) {
-                  SAMPLE_WARN(warnLoopEnd,_("YMZ280B: loop end on ADPCM must be a multiple of 2"));
-                }
-              }
-              if (dispatch!=NULL) {
-                MAX_RATE("YMZ280B (ADPCM)",dispatch->rate);
-              }
-            } else {
-              if (dispatch!=NULL) {
-                MAX_RATE("YMZ280B (PCM)",dispatch->chipClock/192);
-              }
-            }
-            break;
-          case DIV_SYSTEM_NDS:
-            switch (sample->depth) {
-              case DIV_SAMPLE_DEPTH_IMA_ADPCM:
+        }
+
+        if (warnEnable) {
+          switch (e->song.system[curDispatch]) {
+            case DIV_SYSTEM_SNES:
+              if (sample->renderOn[0][curDispatch]) {
                 if (sample->loop) {
-                  if (sample->loopStart&7) {
-                    SAMPLE_WARN(warnLoopStart,_("NDS: loop start on ADPCM must be a multiple of 8"));
+                  if (sample->loopStart&15) {
+                    int tryWith=(sample->loopStart+8)&(~15);
+                    if (tryWith>(int)sample->samples) tryWith-=16;
+                    String alignHint=fmt::sprintf(_("SNES: loop start must be a multiple of 16 (try with %d)"),tryWith);
+                    SAMPLE_WARN(warnLoopStart,alignHint);
                   }
-                  if (sample->loopEnd&7) {
-                    SAMPLE_WARN(warnLoopEnd,_("NDS: loop end on ADPCM must be a multiple of 8"));
-                  }
-                  if (sample->loopStart>524280) {
-                    SAMPLE_WARN(warnLoopStart,_("NDS: loop start cannot be longer than 524280 samples on ADPCM"));
-                  }
-                  if ((sample->loopEnd-sample->loopStart)>33554424) {
-                    SAMPLE_WARN(warnLoopPos,_("NDS: maximum ADPCM loop length is 33554424"));
-                  }
-                } else {
-                  if (sample->samples>33554424) {
-                    SAMPLE_WARN(warnLength,_("NDS: maximum ADPCM sample length is 33554424"));
+                  if (sample->loopEnd&15) {
+                    int tryWith=(sample->loopEnd+8)&(~15);
+                    if (tryWith>(int)sample->samples) tryWith-=16;
+                    String alignHint=fmt::sprintf(_("SNES: loop end must be a multiple of 16 (try with %d)"),tryWith);
+                    SAMPLE_WARN(warnLoopEnd,alignHint);
                   }
                 }
-                break;
-              case DIV_SAMPLE_DEPTH_8BIT:
+                if (sample->samples&15) {
+                  SAMPLE_WARN(warnLength,_("SNES: sample length will be padded to multiple of 16"));
+                }
+                if (dChan!=NULL) {
+                  MAX_RATE("SNES",dChan->chipClock/8.0);
+                }
+              }
+              break;
+            case DIV_SYSTEM_QSOUND:
+              // PCM
+              if (sample->renderOn[0][curDispatch] && curChan<16) {
                 if (sample->loop) {
-                  if (sample->loopStart&3) {
-                    SAMPLE_WARN(warnLoopStart,_("NDS: loop start on 8 bit PCM must be a multiple of 4"));
-                  }
-                  if (sample->loopEnd&3) {
-                    SAMPLE_WARN(warnLoopEnd,_("NDS: loop end on 8 bit PCM must be a multiple of 4"));
-                  }
-                  if (sample->loopStart>262140) {
-                    SAMPLE_WARN(warnLoopStart,_("NDS: loop start cannot be longer than 262140 samples on 8 bit PCM"));
-                  }
-                  if ((sample->loopEnd-sample->loopStart)>16777212) {
-                    SAMPLE_WARN(warnLoopPos,_("NDS: maximum 8 bit PCM loop length is 16777212"));
-                  }
-                } else {
-                  if (sample->samples>16777212) {
-                    SAMPLE_WARN(warnLength,_("NDS: maximum 8 bit PCM sample length is 16777212"));
+                  if (sample->loopEnd-sample->loopStart>32767) {
+                    SAMPLE_WARN(warnLoopPos,_("QSound: PCM loop cannot be longer than 32767 samples"));
                   }
                 }
-                break;
-              case DIV_SAMPLE_DEPTH_16BIT:
+                if (sample->samples>65535) {
+                  SAMPLE_WARN(warnLength,"QSound: maximum PCM sample length is 65535");
+                }
+              }
+              // ADPCM
+              if (sample->renderOn[1][curDispatch] && curChan>=16) {
+                if (sample->loop) {
+                  SAMPLE_WARN(warnLoop,_("QSound: ADPCM samples can't loop"));
+                }
+                if (sample->samples>131070) {
+                  SAMPLE_WARN(warnLength,"QSound: maximum ADPCM sample length is 131070");
+                }
+                if (dChan!=NULL) {
+                  EXACT_RATE("QSound (ADPCM)",dChan->chipClock/7488.0);
+                }
+              }
+              break;
+            case DIV_SYSTEM_NES: {
+              if (sample->renderOn[0][curDispatch] && curChan>=4) {
+                if (sample->loop) {
+                  if (sample->loopStart&511) {
+                    int tryWith=(sample->loopStart)&(~511);
+                    if (tryWith>(int)sample->samples) tryWith-=512;
+                    String alignHint=fmt::sprintf(_("NES: loop start must be a multiple of 512 (try with %d)"),tryWith);
+                    SAMPLE_WARN(warnLoopStart,alignHint);
+                  }
+                  if ((sample->loopEnd-8)&127) {
+                    int tryWith=(sample->loopEnd-8)&(~127);
+                    if (tryWith>(int)sample->samples) tryWith-=128;
+                    tryWith+=8; // +1 bc of how sample length is treated: https://www.nesdev.org/wiki/APU_DMC
+                    String alignHint=fmt::sprintf(_("NES: loop end must be a multiple of 128 + 8 (try with %d)"),tryWith);
+                    SAMPLE_WARN(warnLoopEnd,alignHint);
+                  }
+                }
+                if (sample->samples>32648) {
+                  SAMPLE_WARN(warnLength,_("NES: maximum DPCM sample length is 32648"));
+                }
+              }
+              break;
+            }
+            case DIV_SYSTEM_X1_010:
+              if (sample->renderOn[0][curDispatch]) {
+                if (sample->loop) {
+                  SAMPLE_WARN(warnLoop,_("X1-010: samples can't loop"));
+                }
+                if (sample->samples>131072) {
+                  SAMPLE_WARN(warnLength,_("X1-010: maximum bankswitched sample length is 131072"));
+                }
+              }
+              break;
+            case DIV_SYSTEM_GA20:
+              if (sample->renderOn[0][curDispatch]) {
+                if (sample->loop) {
+                  SAMPLE_WARN(warnLoop,_("GA20: samples can't loop"));
+                }
+                if (dChan!=NULL) {
+                  MIN_RATE("GA20",dChan->chipClock/1024);
+                }
+              }
+              break;
+            case DIV_SYSTEM_YM2608:
+              opnaAdpcmChan=6+3+6;
+              break;
+            case DIV_SYSTEM_YM2608_EXT:
+              opnaAdpcmChan=6+3+3+6;
+              break;
+            case DIV_SYSTEM_YM2608_CSM:
+              opnaAdpcmChan=6+3+1+3+6;
+              break;
+            case DIV_SYSTEM_YM2610:
+            case DIV_SYSTEM_YM2610_FULL:
+              opnbAdpcmChan=4+3;
+              break;
+            case DIV_SYSTEM_YM2610_EXT:
+            case DIV_SYSTEM_YM2610_FULL_EXT:
+              opnbAdpcmChan=4+3+3;
+              break;
+            case DIV_SYSTEM_YM2610_CSM:
+              opnbAdpcmChan=4+3+3+1;
+              break;
+            case DIV_SYSTEM_YM2610B:
+              opnbAdpcmChan=6+3;
+              break;
+            case DIV_SYSTEM_YM2610B_EXT:
+              opnbAdpcmChan=6+3+3;
+              break;
+            case DIV_SYSTEM_YM2610B_CSM:
+              opnbAdpcmChan=6+3+3+1;
+              break;
+            case DIV_SYSTEM_Y8950:
+              y8950AdpcmChan=6+3;
+              break;
+            case DIV_SYSTEM_Y8950_DRUMS:
+              y8950AdpcmChan=6+5;
+              break;
+            case DIV_SYSTEM_AMIGA:
+              if (sample->renderOn[0][curDispatch]) {
                 if (sample->loop) {
                   if (sample->loopStart&1) {
-                    SAMPLE_WARN(warnLoopStart,_("NDS: loop start on 16 bit PCM must be a multiple of 2"));
+                    SAMPLE_WARN(warnLoopStart,_("Amiga: loop start must be a multiple of 2"));
                   }
                   if (sample->loopEnd&1) {
-                    SAMPLE_WARN(warnLoopEnd,_("NDS: loop end on 16 bit PCM must be a multiple of 2"));
-                  }
-                  if (sample->loopStart>131070) {
-                    SAMPLE_WARN(warnLoopStart,_("NDS: loop start cannot be longer than 131070 samples on 16 bit PCM"));
-                  }
-                  if ((sample->loopEnd-sample->loopStart)>8388606) {
-                    SAMPLE_WARN(warnLoopPos,_("NDS: maximum 16 bit PCM loop length is 8388606"));
-                  }
-                } else {
-                  if (sample->samples>8388606) {
-                    SAMPLE_WARN(warnLength,_("NDS: maximum 16 bit PCM sample length is 8388606"));
+                    SAMPLE_WARN(warnLoopEnd,_("Amiga: loop end must be a multiple of 2"));
                   }
                 }
-                break;
-              default:
-                break;
+                if (sample->samples>131070) {
+                  SAMPLE_WARN(warnLength,_("Amiga: maximum sample length is 131070"));
+                }
+                if (dChan!=NULL) {
+                  MAX_RATE("Amiga",31250.0);
+                }
+              }
+              break;
+            case DIV_SYSTEM_SEGAPCM:
+            case DIV_SYSTEM_SEGAPCM_COMPAT:
+              if (sample->renderOn[0][curDispatch]) {
+                if (sample->samples>65280) {
+                  SAMPLE_WARN(warnLength,_("SegaPCM: maximum sample length is 65280"));
+                }
+                if (dChan!=NULL) {
+                  MAX_RATE("SegaPCM",dChan->rate);
+                }
+              }
+              break;
+            case DIV_SYSTEM_K007232:
+              if (sample->renderOn[0][curDispatch]) {
+                if (sample->samples>131071) {
+                  SAMPLE_WARN(warnLength,_("K007232: maximum sample length is 131071"));
+                }
+              }
+              break;
+            case DIV_SYSTEM_K053260:
+              if (sample->renderOn[0][curDispatch]) {
+                if (sample->loop) {
+                  if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
+                    SAMPLE_WARN(warnLoopPos,_("K053260: loop point ignored (may only loop entire sample)"));
+                  }
+                }
+                if (sample->samples>65535) {
+                  SAMPLE_WARN(warnLength,_("K053260: maximum sample length is 65535"));
+                }
+              }
+              break;
+            case DIV_SYSTEM_C140:
+              if (sample->renderOn[0][curDispatch]) {
+                if (sample->samples>65535) {
+                  SAMPLE_WARN(warnLength,_("C140: maximum sample length is 65535"));
+                }
+                if (dChan!=NULL) {
+                  MAX_RATE("C140",dChan->rate);
+                }
+              }
+              break;
+            case DIV_SYSTEM_C219:
+              if (sample->renderOn[0][curDispatch]) {
+                if (sample->loop) {
+                  if (sample->loopStart&1) {
+                    SAMPLE_WARN(warnLoopStart,_("C219: loop start must be a multiple of 2"));
+                  }
+                  if (sample->loopEnd&1) {
+                    SAMPLE_WARN(warnLoopEnd,_("C219: loop end must be a multiple of 2"));
+                  }
+                }
+                if (sample->samples>131072) {
+                  SAMPLE_WARN(warnLength,_("C219: maximum sample length is 131072"));
+                }
+                if (dChan!=NULL) {
+                  MAX_RATE("C219",dChan->rate);
+                }
+              }
+              break;
+            case DIV_SYSTEM_MSM6295:
+              if (sample->renderOn[0][curDispatch]) {
+                if (sample->loop) {
+                  SAMPLE_WARN(warnLoop,_("MSM6295: samples can't loop"));
+                }
+                if (sample->samples>129024) {
+                  SAMPLE_WARN(warnLength,_("MSM6295: maximum bankswitched sample length is 129024"));
+                }
+                if (dChan!=NULL) {
+                  EXACT_2RATES("MSM6295",dChan->chipClock/165,dChan->chipClock/132);
+                }
+              }
+              break;
+            case DIV_SYSTEM_GBA_DMA:
+              if (sample->renderOn[0][curDispatch]) {
+                if (sample->loop) {
+                  if (sample->loopStart&3) {
+                    SAMPLE_WARN(warnLoopStart,_("GBA DMA: loop start must be a multiple of 4"));
+                  }
+                  if ((sample->loopEnd-sample->loopStart)&15) {
+                    SAMPLE_WARN(warnLoopEnd,_("GBA DMA: loop length must be a multiple of 16"));
+                  }
+                }
+                if (sample->samples&15) {
+                  SAMPLE_WARN(warnLength,_("GBA DMA: sample length will be padded to multiple of 16"));
+                }
+              }
+              break;
+            case DIV_SYSTEM_OPL4:
+              opl4PcmChan=15+3;
+              break;
+            case DIV_SYSTEM_OPL4_DRUMS:
+              opl4PcmChan=15+5;
+              break;
+            case DIV_SYSTEM_SUPERVISION:
+              if (sample->renderOn[0][curDispatch] && curChan==2) {
+                if (sample->loop) {
+                  if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
+                    SAMPLE_WARN(warnLoopPos,_("Supervision: loop point ignored on sample channel"));
+                  }
+                }
+                if (sample->samples&31) {
+                  SAMPLE_WARN(warnLength,_("Supervision: sample length will be padded to multiple of 32"));
+                }
+                if (sample->samples>8192) {
+                  SAMPLE_WARN(warnLength,_("Supervision: maximum sample length is 8192"));
+                }
+              }
+              break;
+            case DIV_SYSTEM_YMZ280B:
+              if (sample->renderOn[0][curDispatch]) {
+                if (sample->depth==DIV_SAMPLE_DEPTH_YMZ_ADPCM) {
+                  if (sample->loop) {
+                    if (sample->loopStart&1) {
+                      SAMPLE_WARN(warnLoopStart,_("YMZ280B: loop start on ADPCM must be a multiple of 2"));
+                    }
+                    if (sample->loopEnd&1) {
+                      SAMPLE_WARN(warnLoopEnd,_("YMZ280B: loop end on ADPCM must be a multiple of 2"));
+                    }
+                  }
+                  if (dChan!=NULL) {
+                    MAX_RATE("YMZ280B (ADPCM)",dChan->rate);
+                  }
+                } else {
+                  if (dChan!=NULL) {
+                    MAX_RATE("YMZ280B (PCM)",dChan->chipClock/192);
+                  }
+                }
+              }
+              break;
+            case DIV_SYSTEM_NDS:
+              if (sample->renderOn[0][curDispatch]) {
+                switch (sample->depth) {
+                  case DIV_SAMPLE_DEPTH_IMA_ADPCM:
+                    if (sample->loop) {
+                      if (sample->loopStart&7) {
+                        SAMPLE_WARN(warnLoopStart,_("NDS: loop start on ADPCM must be a multiple of 8"));
+                      }
+                      if (sample->loopEnd&7) {
+                        SAMPLE_WARN(warnLoopEnd,_("NDS: loop end on ADPCM must be a multiple of 8"));
+                      }
+                      if (sample->loopStart>524280) {
+                        SAMPLE_WARN(warnLoopStart,_("NDS: loop start cannot be longer than 524280 samples on ADPCM"));
+                      }
+                      if ((sample->loopEnd-sample->loopStart)>33554424) {
+                        SAMPLE_WARN(warnLoopPos,_("NDS: maximum ADPCM loop length is 33554424"));
+                      }
+                    } else {
+                      if (sample->samples>33554424) {
+                        SAMPLE_WARN(warnLength,_("NDS: maximum ADPCM sample length is 33554424"));
+                      }
+                    }
+                    break;
+                  case DIV_SAMPLE_DEPTH_8BIT:
+                    if (sample->loop) {
+                      if (sample->loopStart&3) {
+                        SAMPLE_WARN(warnLoopStart,_("NDS: loop start on 8 bit PCM must be a multiple of 4"));
+                      }
+                      if (sample->loopEnd&3) {
+                        SAMPLE_WARN(warnLoopEnd,_("NDS: loop end on 8 bit PCM must be a multiple of 4"));
+                      }
+                      if (sample->loopStart>262140) {
+                        SAMPLE_WARN(warnLoopStart,_("NDS: loop start cannot be longer than 262140 samples on 8 bit PCM"));
+                      }
+                      if ((sample->loopEnd-sample->loopStart)>16777212) {
+                        SAMPLE_WARN(warnLoopPos,_("NDS: maximum 8 bit PCM loop length is 16777212"));
+                      }
+                    } else {
+                      if (sample->samples>16777212) {
+                        SAMPLE_WARN(warnLength,_("NDS: maximum 8 bit PCM sample length is 16777212"));
+                      }
+                    }
+                    break;
+                  case DIV_SAMPLE_DEPTH_16BIT:
+                    if (sample->loop) {
+                      if (sample->loopStart&1) {
+                        SAMPLE_WARN(warnLoopStart,_("NDS: loop start on 16 bit PCM must be a multiple of 2"));
+                      }
+                      if (sample->loopEnd&1) {
+                        SAMPLE_WARN(warnLoopEnd,_("NDS: loop end on 16 bit PCM must be a multiple of 2"));
+                      }
+                      if (sample->loopStart>131070) {
+                        SAMPLE_WARN(warnLoopStart,_("NDS: loop start cannot be longer than 131070 samples on 16 bit PCM"));
+                      }
+                      if ((sample->loopEnd-sample->loopStart)>8388606) {
+                        SAMPLE_WARN(warnLoopPos,_("NDS: maximum 16 bit PCM loop length is 8388606"));
+                      }
+                    } else {
+                      if (sample->samples>8388606) {
+                        SAMPLE_WARN(warnLength,_("NDS: maximum 16 bit PCM sample length is 8388606"));
+                      }
+                    }
+                    break;
+                  default:
+                    break;
+                }
+              }
+              break;
+            case DIV_SYSTEM_ES5506:
+              if (sample->renderOn[0][curDispatch]) {
+                if (sample->samples>2097024) {
+                  SAMPLE_WARN(warnLength,_("ES5506: maximum sample length is 2097024"));
+                }
+              }
+              break;
+            default:
+              break;
+          }
+          // YM2608 warnings
+          if (sample->renderOn[0][curDispatch] && opnaAdpcmChan>=0) {
+            if (curChan==opnaAdpcmChan) {
+              if (sample->loop) {
+                if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
+                  SAMPLE_WARN(warnLoopPos,_("YM2608: loop point ignored on ADPCM (may only loop entire sample)"));
+                }
+                if (sample->samples&511) {
+                  SAMPLE_WARN(warnLength,_("YM2608: sample length will be padded to multiple of 512"));
+                }
+              }
+              if (dChan!=NULL) {
+                MAX_RATE("YM2608",dChan->chipClock/144);
+              }
             }
-            break;
-          case DIV_SYSTEM_ES5506:
-            if (sample->samples>2097024) {
-              SAMPLE_WARN(warnLength,_("ES5506: maximum sample length is 2097024"));
+          }
+          // YM2610(B) warnings
+          if (opnbAdpcmChan>=0) {
+            int opnbAdpcmBChan=opnbAdpcmChan+6;
+            if (sample->renderOn[0][curDispatch] || sample->renderOn[1][curDispatch]) {
+              if (curChan>=opnbAdpcmChan && curChan<=opnbAdpcmBChan) {
+                if (sample->samples&511) {
+                  SAMPLE_WARN(warnLength,_("YM2610: sample length will be padded to multiple of 512"));
+                }
+              }
             }
-            break;
-          default:
-            break;
-        }
-        if (e->song.system[i]!=DIV_SYSTEM_PCM_DAC) {
-          if (e->song.system[i]==DIV_SYSTEM_ES5506) {
-            if (sample->loopMode==DIV_SAMPLE_LOOP_BACKWARD) {
-              SAMPLE_WARN(warnLoopMode,_("ES5506: backward loop mode isn't supported"));
+            if (sample->renderOn[0][curDispatch]) {
+              // ADPCM-A
+              if (curChan>=opnbAdpcmChan && curChan<opnbAdpcmBChan) {
+                if (sample->loop) {
+                  SAMPLE_WARN(warnLoop,_("YM2610: ADPCM-A samples can't loop"));
+                }
+                if (sample->samples>2097152) {
+                  SAMPLE_WARN(warnLength,_("YM2610: maximum ADPCM-A sample length is 2097152"));
+                }
+                if (dChan!=NULL) {
+                  EXACT_RATE("YM2610 (ADPCM-A)",dChan->chipClock/432);
+                }
+              }
             }
-          } else if (sample->loopMode!=DIV_SAMPLE_LOOP_FORWARD) {
-            SAMPLE_WARN(warnLoopMode,_("backward/ping-pong only supported in Generic PCM DAC\nping-pong also on ES5506"));
+            if (sample->renderOn[1][curDispatch]) {
+              // ADPCM-B
+              if (curChan==opnbAdpcmBChan) {
+                if (sample->loop) {
+                  if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
+                    SAMPLE_WARN(warnLoopPos,_("YM2610: loop point ignored on ADPCM-B (may only loop entire sample)"));
+                  }
+                }
+                if (dChan!=NULL) {
+                  MAX_RATE("YM2610 (ADPCM-B)",dChan->chipClock/144);
+                }
+              }
+            }
+          }
+          // Y8950 warnings
+          if (sample->renderOn[0][curDispatch] && y8950AdpcmChan>=0) {
+            if (curChan==y8950AdpcmChan) {
+              if (sample->loop) {
+                if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
+                  SAMPLE_WARN(warnLoopPos,_("Y8950: loop point ignored on ADPCM (may only loop entire sample)"));
+                }
+                if (sample->samples&511) {
+                  SAMPLE_WARN(warnLength,_("Y8950: sample length will be padded to multiple of 512"));
+                }
+              }
+              if (dChan!=NULL) {
+                MAX_RATE("Y8950",dChan->chipClock/72);
+              }
+            }
+          }
+          // YMF278B warnings
+          if (sample->renderOn[0][curDispatch] && opl4PcmChan>=0) {
+            if (curChan>=opl4PcmChan && (curChan<opl4PcmChan+24)) {
+              if (sample->samples>65535) {
+                SAMPLE_WARN(warnLength,_("OPL4: maximum sample length is 65535"));
+              }
+            }
+          }
+          if (sample->renderOn[0][curDispatch] && e->song.system[chanFocus]!=DIV_SYSTEM_PCM_DAC) {
+            if (e->song.system[chanFocus]==DIV_SYSTEM_ES5506) {
+              if (sample->loopMode==DIV_SAMPLE_LOOP_BACKWARD) {
+                SAMPLE_WARN(warnLoopMode,_("ES5506: backward loop mode isn't supported"));
+              }
+            } else if (sample->loopMode!=DIV_SAMPLE_LOOP_FORWARD) {
+              SAMPLE_WARN(warnLoopMode,_("backward/ping-pong only supported in Generic PCM DAC\nping-pong also on ES5506"));
+            }
           }
         }
+      }
 
+      for (int i=0; i<e->song.systemLen; i++) {
+        DivDispatch* dispatch=e->getDispatch(i);
         // chips grid
         if (dispatch==NULL) continue;
 
