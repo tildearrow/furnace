@@ -492,6 +492,9 @@ void DivPlatformLynx::forceIns() {
     if (chan[i].active) {
       chan[i].insChanged=true;
       chan[i].freqChanged=true;
+      if (!chan[i].pcm) {
+        WRITE_FEEDBACK(i,chan[i].duty.feedback);
+      }
     }
     WRITE_ATTEN(i,chan[i].pan);
   }

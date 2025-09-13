@@ -225,6 +225,10 @@ bool DivDispatch::hasSampleInsHeader(int index) {
   return false;
 }
 
+size_t DivDispatch::getSampleMemOffset(int index) {
+  return 0;
+}
+
 const DivMemoryComposition* DivDispatch::getMemCompo(int index) {
   return NULL;
 }

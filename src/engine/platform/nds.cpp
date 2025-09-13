@@ -23,6 +23,7 @@
 #include <math.h>
 
 #define CHIP_DIVIDER 32
+#define NDS_CORE_QUALITY 64
 
 #define rRead8(a) (nds.read8(a))
 #define rWrite8(a,v) {if(!skipRegisterWrites){writes.push_back(QueuedWrite((a),1,(v)));regPool[(a)]=(v);if(dumpWrites)addWrite((a),(v));}}
@@ -68,6 +69,45 @@ const char** DivPlatformNDS::getRegisterSheet() {
   return regCheatSheetNDS;
 }
 
+#ifdef ORIG_NDS_CORE
+void DivPlatformNDS::acquire(short** buf, size_t len) {
+  for (int i=0; i<16; i++) {
+    oscBuf[i]->begin(len);
+  }
+
+  while (!writes.empty()) {
+    QueuedWrite w=writes.front();
+    if (w.size==4) {
+      nds.write32(w.addr>>2,w.val);
+    } else if (w.size==2) {
+      nds.write16(w.addr>>1,w.val);
+    } else {
+      nds.write8(w.addr,w.val);
+    }
+    writes.pop();
+  }
+
+  for (size_t h=0; h<len; h++) {
+    nds.tick(NDS_CORE_QUALITY);
+    int lout=((nds.loutput()-0x200)<<5); // scale to 16 bit
+    int rout=((nds.routput()-0x200)<<5); // scale to 16 bit
+    if (lout>32767) lout=32767;
+    if (lout<-32768) lout=-32768;
+    if (rout>32767) rout=32767;
+    if (rout<-32768) rout=-32768;
+    buf[0][h]=lout;
+    buf[1][h]=rout;
+
+    for (int i=0; i<16; i++) {
+      oscBuf[i]->putSample(h,(nds.chan_lout(i)+nds.chan_rout(i))>>1);
+    }
+  }
+
+  for (int i=0; i<16; i++) {
+    oscBuf[i]->end(len);
+  }
+}
+#else
 void DivPlatformNDS::acquireDirect(blip_buffer_t** bb, size_t len) {
   for (int i=0; i<16; i++) {
     oscBuf[i]->begin(len);
@@ -95,13 +135,7 @@ void DivPlatformNDS::acquireDirect(blip_buffer_t** bb, size_t len) {
     oscBuf[i]->end(len);
   }
 }
-
-void DivPlatformNDS::postProcess(short* buf, int outIndex, size_t len, int sampleRate) {
-  // this is where we handle global volume. it is faster than doing it on each blip...
-  for (size_t i=0; i<len; i++) {
-    buf[i]=((buf[i]*globalVolume)>>7);
-  }
-}
+#endif
 
 u8 DivPlatformNDS::read_byte(u32 addr) {
   if (addr<getSampleMemCapacity()) {
@@ -475,7 +509,11 @@ int DivPlatformNDS::getOutputCount() {
 }
 
 bool DivPlatformNDS::hasAcquireDirect() {
+#ifdef ORIG_NDS_CORE
+  return false;
+#else
   return true;
+#endif
 }
 
 void DivPlatformNDS::notifyInsChange(int ins) {
@@ -598,7 +636,11 @@ void DivPlatformNDS::setFlags(const DivConfig& flags) {
   isDSi=flags.getBool("chipType",0);
   chipClock=33513982;
   CHECK_CUSTOM_CLOCK;
+#ifdef ORIG_NDS_CORE
+  rate=chipClock/(2*NDS_CORE_QUALITY);
+#else
   rate=chipClock/2;
+#endif
   for (int i=0; i<16; i++) {
     oscBuf[i]->setRate(rate);
   }

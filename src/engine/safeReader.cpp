@@ -271,6 +271,15 @@ String SafeReader::readStringWithEncoding(DivStringEncoding encoding, size_t stl
             ret.push_back(c);
           }
         }
+      } else if (encoding==DIV_ENCODING_LATIN1_SPECIAL) {
+        if (c&0x80) {
+          if (c>=0xa0) {
+            ret.push_back(0xc0|(c>>6));
+            ret.push_back(0x80|(c&63));
+          }
+        } else {
+          ret.push_back(c);
+        }
       } else {
         ret.push_back(c);
       }
@@ -297,6 +306,15 @@ String SafeReader::readStringWithEncoding(DivStringEncoding encoding) {
           ret.push_back(c);
         }
       }
+    } else if (encoding==DIV_ENCODING_LATIN1_SPECIAL) {
+      if (c&0x80) {
+        if (c>=0xa0) {
+          ret.push_back(0xc0|(c>>6));
+          ret.push_back(0x80|(c&63));
+        }
+      } else {
+        ret.push_back(c);
+      }
     } else {
       ret.push_back(c);
     }
@@ -318,6 +336,14 @@ String SafeReader::readStringLatin1() {
 
 String SafeReader::readStringLatin1(size_t stlen) {
   return readStringWithEncoding(DIV_ENCODING_LATIN1,stlen);
+}
+
+String SafeReader::readStringLatin1Special() {
+  return readStringWithEncoding(DIV_ENCODING_LATIN1_SPECIAL);
+}
+
+String SafeReader::readStringLatin1Special(size_t stlen) {
+  return readStringWithEncoding(DIV_ENCODING_LATIN1_SPECIAL,stlen);
 }
 
 String SafeReader::readStringLine() {
