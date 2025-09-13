@@ -233,21 +233,14 @@ void FurnaceGUI::drawSampleEdit() {
       if (curDispatch>=0 && curDispatch<DIV_MAX_CHIPS) {
         DivDispatch* dChan=e->getDispatch(curDispatch);
         int curChan=e->dispatchChanOfChan[chanFocus];
-        bool warnEnable[DIV_MAX_SAMPLE_TYPE];
-        memset(warnEnable,false,DIV_MAX_SAMPLE_TYPE*sizeof(bool));
         int opnaAdpcmChan=-1;
         int opnbAdpcmChan=-1;
         int y8950AdpcmChan=-1;
         int opl4PcmChan=-1;
-        for (int i=0; i<DIV_MAX_SAMPLE_TYPE; i++) {
-          if (sample->renderOn[i][curDispatch]) {
-            warnEnable[i]=true;
-          }
-        }
 
         switch (e->song.system[curDispatch]) {
           case DIV_SYSTEM_SNES:
-            if (warnEnable[0]) {
+            if (sample->renderOn[0][curDispatch]) {
               if (sample->loop) {
                 if (sample->loopStart&15) {
                   int tryWith=(sample->loopStart+8)&(~15);
@@ -272,7 +265,7 @@ void FurnaceGUI::drawSampleEdit() {
             break;
           case DIV_SYSTEM_QSOUND:
             // PCM
-            if (warnEnable[0] && curChan<16) {
+            if (sample->renderOn[0][curDispatch] && curChan<16) {
               if (sample->loop) {
                 if (sample->loopEnd-sample->loopStart>32767) {
                   SAMPLE_WARN(warnLoopPos,_("QSound: PCM loop cannot be longer than 32767 samples"));
@@ -283,7 +276,7 @@ void FurnaceGUI::drawSampleEdit() {
               }
             }
             // ADPCM
-            if (warnEnable[1] && curChan>=16) {
+            if (sample->renderOn[1][curDispatch] && curChan>=16) {
               if (sample->loop) {
                 SAMPLE_WARN(warnLoop,_("QSound: ADPCM samples can't loop"));
               }
@@ -296,7 +289,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
             break;
           case DIV_SYSTEM_NES: {
-            if (warnEnable[0] && curChan>=4) {
+            if (sample->renderOn[0][curDispatch] && curChan>=4) {
               if (sample->loop) {
                 if (sample->loopStart&511) {
                   int tryWith=(sample->loopStart)&(~511);
@@ -319,7 +312,7 @@ void FurnaceGUI::drawSampleEdit() {
             break;
           }
           case DIV_SYSTEM_X1_010:
-            if (warnEnable[0]) {
+            if (sample->renderOn[0][curDispatch]) {
               if (sample->loop) {
                 SAMPLE_WARN(warnLoop,_("X1-010: samples can't loop"));
               }
@@ -329,7 +322,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
             break;
           case DIV_SYSTEM_GA20:
-            if (warnEnable[0]) {
+            if (sample->renderOn[0][curDispatch]) {
               if (sample->loop) {
                 SAMPLE_WARN(warnLoop,_("GA20: samples can't loop"));
               }
@@ -374,7 +367,7 @@ void FurnaceGUI::drawSampleEdit() {
             y8950AdpcmChan=6+5;
             break;
           case DIV_SYSTEM_AMIGA:
-            if (warnEnable[0]) {
+            if (sample->renderOn[0][curDispatch]) {
               if (sample->loop) {
                 if (sample->loopStart&1) {
                   SAMPLE_WARN(warnLoopStart,_("Amiga: loop start must be a multiple of 2"));
@@ -393,7 +386,7 @@ void FurnaceGUI::drawSampleEdit() {
             break;
           case DIV_SYSTEM_SEGAPCM:
           case DIV_SYSTEM_SEGAPCM_COMPAT:
-            if (warnEnable[0]) {
+            if (sample->renderOn[0][curDispatch]) {
               if (sample->samples>65280) {
                 SAMPLE_WARN(warnLength,_("SegaPCM: maximum sample length is 65280"));
               }
@@ -403,14 +396,14 @@ void FurnaceGUI::drawSampleEdit() {
             }
             break;
           case DIV_SYSTEM_K007232:
-            if (warnEnable[0]) {
+            if (sample->renderOn[0][curDispatch]) {
               if (sample->samples>131071) {
                 SAMPLE_WARN(warnLength,_("K007232: maximum sample length is 131071"));
               }
             }
             break;
           case DIV_SYSTEM_K053260:
-            if (warnEnable[0]) {
+            if (sample->renderOn[0][curDispatch]) {
               if (sample->loop) {
                 if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
                   SAMPLE_WARN(warnLoopPos,_("K053260: loop point ignored (may only loop entire sample)"));
@@ -422,7 +415,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
             break;
           case DIV_SYSTEM_C140:
-            if (warnEnable[0]) {
+            if (sample->renderOn[0][curDispatch]) {
               if (sample->samples>65535) {
                 SAMPLE_WARN(warnLength,_("C140: maximum sample length is 65535"));
               }
@@ -432,7 +425,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
             break;
           case DIV_SYSTEM_C219:
-            if (warnEnable[0]) {
+            if (sample->renderOn[0][curDispatch]) {
               if (sample->loop) {
                 if (sample->loopStart&1) {
                   SAMPLE_WARN(warnLoopStart,_("C219: loop start must be a multiple of 2"));
@@ -450,7 +443,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
             break;
           case DIV_SYSTEM_MSM6295:
-            if (warnEnable[0]) {
+            if (sample->renderOn[0][curDispatch]) {
               if (sample->loop) {
                 SAMPLE_WARN(warnLoop,_("MSM6295: samples can't loop"));
               }
@@ -463,7 +456,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
             break;
           case DIV_SYSTEM_GBA_DMA:
-            if (warnEnable[0]) {
+            if (sample->renderOn[0][curDispatch]) {
               if (sample->loop) {
                 if (sample->loopStart&3) {
                   SAMPLE_WARN(warnLoopStart,_("GBA DMA: loop start must be a multiple of 4"));
@@ -484,7 +477,7 @@ void FurnaceGUI::drawSampleEdit() {
             opl4PcmChan=15+5;
             break;
           case DIV_SYSTEM_SUPERVISION:
-            if (warnEnable[0] && curChan==2) {
+            if (sample->renderOn[0][curDispatch] && curChan==2) {
               if (sample->loop) {
                 if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
                   SAMPLE_WARN(warnLoopPos,_("Supervision: loop point ignored on sample channel"));
@@ -499,7 +492,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
             break;
           case DIV_SYSTEM_YMZ280B:
-            if (warnEnable[0]) {
+            if (sample->renderOn[0][curDispatch]) {
               if (sample->depth==DIV_SAMPLE_DEPTH_YMZ_ADPCM) {
                 if (sample->loop) {
                   if (sample->loopStart&1) {
@@ -520,7 +513,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
             break;
           case DIV_SYSTEM_NDS:
-            if (warnEnable[0]) {
+            if (sample->renderOn[0][curDispatch]) {
               switch (sample->depth) {
                 case DIV_SAMPLE_DEPTH_IMA_ADPCM:
                   if (sample->loop) {
@@ -588,7 +581,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
             break;
           case DIV_SYSTEM_ES5506:
-            if (warnEnable[0]) {
+            if (sample->renderOn[0][curDispatch]) {
               if (sample->samples>2097024) {
                 SAMPLE_WARN(warnLength,_("ES5506: maximum sample length is 2097024"));
               }
@@ -598,7 +591,7 @@ void FurnaceGUI::drawSampleEdit() {
             break;
         }
         // YM2608 warnings
-        if (warnEnable[0] && opnaAdpcmChan>=0) {
+        if (sample->renderOn[0][curDispatch] && opnaAdpcmChan>=0) {
           if (curChan==opnaAdpcmChan) {
             if (sample->loop) {
               if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
@@ -616,12 +609,12 @@ void FurnaceGUI::drawSampleEdit() {
         // YM2610(B) warnings
         if (opnbAdpcmChan>=0) {
           int opnbAdpcmBChan=opnbAdpcmChan+6;
-          if ((warnEnable[0] && curChan>=opnbAdpcmChan && curChan<opnbAdpcmBChan) || (warnEnable[1] && curChan==opnbAdpcmBChan)) {
+          if ((sample->renderOn[0][curDispatch] && curChan>=opnbAdpcmChan && curChan<opnbAdpcmBChan) || (sample->renderOn[1][curDispatch] && curChan==opnbAdpcmBChan)) {
             if (sample->samples&511) {
               SAMPLE_WARN(warnLength,_("YM2610: sample length will be padded to multiple of 512"));
             }
           }
-          if (warnEnable[0] && curChan>=opnbAdpcmChan && curChan<opnbAdpcmBChan) {
+          if (sample->renderOn[0][curDispatch] && curChan>=opnbAdpcmChan && curChan<opnbAdpcmBChan) {
             // ADPCM-A
             if (sample->loop) {
               SAMPLE_WARN(warnLoop,_("YM2610: ADPCM-A samples can't loop"));
@@ -633,7 +626,7 @@ void FurnaceGUI::drawSampleEdit() {
               EXACT_RATE("YM2610 (ADPCM-A)",dChan->chipClock/432);
             }
           }
-          if (warnEnable[1] && curChan==opnbAdpcmBChan) {
+          if (sample->renderOn[1][curDispatch] && curChan==opnbAdpcmBChan) {
             // ADPCM-B
             if (sample->loop) {
               if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
@@ -646,7 +639,7 @@ void FurnaceGUI::drawSampleEdit() {
           }
         }
         // Y8950 warnings
-        if (warnEnable[0] && y8950AdpcmChan>=0) {
+        if (sample->renderOn[0][curDispatch] && y8950AdpcmChan>=0) {
           if (curChan==y8950AdpcmChan) {
             if (sample->loop) {
               if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
@@ -662,14 +655,14 @@ void FurnaceGUI::drawSampleEdit() {
           }
         }
         // YMF278B warnings
-        if (warnEnable[0] && opl4PcmChan>=0) {
+        if (sample->renderOn[0][curDispatch] && opl4PcmChan>=0) {
           if (curChan>=opl4PcmChan && (curChan<opl4PcmChan+24)) {
             if (sample->samples>65535) {
               SAMPLE_WARN(warnLength,_("OPL4: maximum sample length is 65535"));
             }
           }
         }
-        if (warnEnable[0] && e->song.system[chanFocus]!=DIV_SYSTEM_PCM_DAC) {
+        if (sample->renderOn[0][curDispatch] && e->song.system[chanFocus]!=DIV_SYSTEM_PCM_DAC) {
           if (e->song.system[chanFocus]==DIV_SYSTEM_ES5506) {
             if (sample->loopMode==DIV_SAMPLE_LOOP_BACKWARD) {
               SAMPLE_WARN(warnLoopMode,_("ES5506: backward loop mode isn't supported"));
