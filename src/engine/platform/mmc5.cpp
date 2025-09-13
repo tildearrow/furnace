@@ -377,6 +377,10 @@ void DivPlatformMMC5::forceIns() {
   for (int i=0; i<3; i++) {
     chan[i].insChanged=true;
     chan[i].prevFreq=65535;
+    if (i<2) {
+      // TODO: implement envelope mode
+      rWrite(0x5000+i*4,(0x30)|(chan[i].active?chan[i].outVol:0)|((chan[i].duty&3)<<6));
+    }
   }
 }
 
@@ -429,6 +433,10 @@ void DivPlatformMMC5::reset() {
 
   rWrite(0x5015,0x03);
   rWrite(0x5010,0x00);
+
+  for (int i=0; i<2; i++) {
+    rWrite(0x5000+i*4,(0x30)|0|((chan[i].duty&3)<<6));
+  }
 }
 
 bool DivPlatformMMC5::keyOffAffectsArp(int ch) {

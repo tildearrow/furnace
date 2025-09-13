@@ -5,17 +5,6 @@
 NDS sound emulator
 by cam900
 
-MODIFIED BY TILDEARROW!!!
-MODIFIED BY TILDEARROW!!!
-MODIFIED BY TILDEARROW!!!
-MODIFIED BY TILDEARROW!!!
-MODIFIED BY TILDEARROW!!!
-MODIFIED BY TILDEARROW!!!
-
-making it SUPER CLEAR to comply with the license
-this is NOT the original version! for the original version, git checkout
-any commit from January 2025.
-
 This file is licensed under zlib license.
 
 ============================================================================
@@ -48,8 +37,7 @@ Tech info: https://problemkaputt.de/gbatek.htm
 
 */
 
-#include "nds.hpp"
-#include <stdlib.h>
+#include "nds_unopt.hpp"
 
 namespace nds_sound_emu
 {
@@ -62,38 +50,13 @@ namespace nds_sound_emu
 
 		m_control = 0;
 		m_bias = 0;
-	}
-
-  s32 nds_sound_t::predict() {
-    s32 ret=INT32_MAX;
-    for (u8 i = 0; i < 16; i++) {
-      const s32 next=m_channel[i].predict();
-      if (next<ret) ret=next;
-    }
-    return ret;
-  }
-
-	void nds_sound_t::resetTS(u32 what) {
-		m_lastts = what;
-		for (u8 i = 0; i < 16; i++) {
-			m_channel[i].resetTS(m_lastts);
-		}
-	}
-
-	void nds_sound_t::set_bb(blip_buffer_t* bbLeft, blip_buffer_t* bbRight) {
-		for (u8 i = 0; i < 16; i++) {
-			m_channel[i].set_bb(bbLeft,bbRight);
-		}
-	}
-
-	void nds_sound_t::set_oscbuf(DivDispatchOscBuffer** oscBuf) {
-		for (u8 i = 0; i < 16; i++) {
-			m_channel[i].set_oscbuf(oscBuf[i]);
-		}
+		m_loutput = 0;
+		m_routput = 0;
 	}
 
 	void nds_sound_t::tick(s32 cycle)
 	{
+		m_loutput = m_routput = (m_bias & 0x3ff);
 		if (!enable())
 			return;
 
@@ -103,17 +66,13 @@ namespace nds_sound_emu
 		{
 			channel_t &channel = m_channel[i];
 			channel.update(cycle);
-			/*
 			// bypass mixer
 			if (((i == 1) && (mix_ch1())) || ((i == 3) && (mix_ch3())))
 				continue;
 
 			lmix += channel.loutput();
 			rmix += channel.routput();
-			*/
 		}
-
-		return; // don't care about the rest
 
 		// send mixer output to capture
 		m_capture[0].update(lmix, cycle);
@@ -153,6 +112,10 @@ namespace nds_sound_emu
 		// adjust master volume
 		lmix = (lmix * mvol()) >> 13;
 		rmix = (rmix * mvol()) >> 13;
+
+		// add bias and clip output
+		m_loutput = clamp<s32>((lmix + (m_bias & 0x3ff)), 0, 0x3ff);
+		m_routput = clamp<s32>((rmix + (m_bias & 0x3ff)), 0, 0x3ff);
 	}
 
 	u8 nds_sound_t::read8(u32 addr)
@@ -225,9 +188,6 @@ namespace nds_sound_emu
 				{
 					case 0x00:
 						m_control = (m_control & ~mask) | (data & mask);
-            for (u8 i = 0; i < 16; i++) {
-		        	m_channel[i].setMasterVol(mvol());
-		        }
 						break;
 					case 0x04:
 						mask &= 0x3ff;
@@ -261,15 +221,6 @@ namespace nds_sound_emu
 		m_loopstart = 0;
 		m_length = 0;
 
-		m_ctl_volume = 0;
-		m_ctl_voldiv = 0;
-		m_ctl_hold = 0;
-		m_ctl_pan = 0;
-		m_ctl_duty = 0;
-		m_ctl_repeat = 0;
-		m_ctl_format = 0;
-		m_ctl_busy = 0;
-
 		m_playing = false;
 		m_adpcm_out = 0;
 		m_adpcm_index = 0;
@@ -295,32 +246,17 @@ namespace nds_sound_emu
 		{
 			case 0: // Control/Status
 				m_control = (m_control & ~mask) | (data & mask);
-
-				// explode this register
-				m_ctl_volume = bitfield(m_control, 0, 7);
-				m_ctl_voldiv = m_voldiv_shift[bitfield(m_control, 8, 2)];
-				m_ctl_hold = bitfield(m_control, 15);
-				m_ctl_pan = bitfield(m_control, 16, 7);
-				m_ctl_duty = bitfield(m_control, 24, 3);
-				m_ctl_repeat = bitfield(m_control, 27, 2);
-				m_ctl_format = bitfield(m_control, 29, 2);
-				m_ctl_busy = bitfield(m_control, 31);
-        computeVol();
-
 				if (bitfield(old ^ m_control, 31))
 				{
-					if (m_ctl_busy)
+					if (busy())
 						keyon();
-					else if (!m_ctl_busy)
+					else if (!busy())
 						keyoff();
 				}
 				// reset hold flag
-				if (!m_playing && !m_ctl_hold)
+				if (!m_playing && !hold())
 				{
 					m_sample = m_lfsr_out = 0;
-                                        m_oscBuf->putSample(m_lastts,0);
-                                        blip_add_delta(m_bb[0],m_lastts,-m_loutput);
-                                        blip_add_delta(m_bb[1],m_lastts,-m_routput);
 					m_output = m_loutput = m_routput = 0;
 				}
 				break;
@@ -346,9 +282,9 @@ namespace nds_sound_emu
 		if (!m_playing)
 		{
 			m_playing = true;
-			m_delay = m_ctl_format == 2 ? 11 : 3; // 3 (11 for ADPCM) delay for playing sample
+			m_delay = format() == 2 ? 11 : 3; // 3 (11 for ADPCM) delay for playing sample
 			m_cur_bitaddr = m_cur_addr = 0;
-			m_cur_state = (m_ctl_format == 2) ? STATE_ADPCM_LOAD : ((m_loopstart == 0) ? STATE_POST_LOOP : STATE_PRE_LOOP);
+			m_cur_state = (format() == 2) ? STATE_ADPCM_LOAD : ((m_loopstart == 0) ? STATE_POST_LOOP : STATE_PRE_LOOP);
 			m_counter = 0x10000;
 			m_sample = 0;
 			m_lfsr_out = 0x7fff;
@@ -361,16 +297,11 @@ namespace nds_sound_emu
 	{
 		if (m_playing)
 		{
-			if (m_ctl_busy) {
+			if (busy())
 				m_control &= ~(1 << 31);
-				m_ctl_busy = false;
-			}
-			if (!m_ctl_hold)
+			if (!hold())
 			{
 				m_sample = m_lfsr_out = 0;
-                                m_oscBuf->putSample(m_lastts,0);
-                                blip_add_delta(m_bb[0],m_lastts,-m_loutput);
-                                blip_add_delta(m_bb[1],m_lastts,-m_routput);
 				m_output = m_loutput = m_routput = 0;
 			}
 
@@ -378,59 +309,31 @@ namespace nds_sound_emu
 		}
 	}
 
-  // sorry. I need my spaces back.
-  void nds_sound_t::channel_t::update(s32 timestamp)
-  {
-    if (m_playing)
-    {
-      for (s32 i=m_lastts; i<timestamp; i++) {
-        int cycle = m_counter - m_freq;
-        if (cycle>timestamp-i) cycle=timestamp-i;
-        if (cycle<1) cycle=1;
-
-	// get output
-	m_counter -= cycle;
-	while (m_counter <= m_freq)
+	void nds_sound_t::channel_t::update(s32 cycle)
 	{
-	  // advance
-	  fetch();
-	  advance();
-	  m_counter += 0x10000 - m_freq;
+		if (m_playing)
+		{
+			// get output
+			fetch();
+			m_counter -= cycle;
+			while (m_counter <= m_freq)
+			{
+				// advance
+				advance();
+				m_counter += 0x10000 - m_freq;
+			}
+			m_output = (m_sample * volume()) >> (7 + voldiv());
+			m_loutput = (m_output * lvol()) >> 7;
+			m_routput = (m_output * rvol()) >> 7;
+		}
 	}
-	m_output = (m_sample * m_final_volume) >> (14 + m_ctl_voldiv);
-	const s32 loutput = (m_output * lvol()) >> 8;
-	const s32 routput = (m_output * rvol()) >> 8;
-
-        i+=cycle-1;
-
-        if (m_loutput!=loutput || m_routput!=routput) {
-          m_oscBuf->putSample(i,(loutput+routput));
-        }
-        if (m_loutput!=loutput) {
-          blip_add_delta(m_bb[0],i,loutput-m_loutput);
-          m_loutput=loutput;
-        }
-        if (m_routput!=routput) {
-          blip_add_delta(m_bb[1],i,routput-m_routput);
-          m_routput=routput;
-        }
-      }
-    }
-    m_lastts = timestamp;
-  }
-
-  s32 nds_sound_t::channel_t::predict() {
-    if (!m_playing) return INT32_MAX;
-    if (!(m_ctl_volume)) return INT32_MAX;
-    return m_counter-m_freq;
-  }
 
 	void nds_sound_t::channel_t::fetch()
 	{
 		if (m_playing)
 		{
 			// fetch samples
-			switch (m_ctl_format)
+			switch (format())
 			{
 			case 0: // PCM8
 				m_sample = s16(m_host.m_intf.read_byte(addr()) << 8);
@@ -444,7 +347,7 @@ namespace nds_sound_emu
 			case 3: // PSG or Noise
 				m_sample = 0;
 				if (m_psg) // psg
-					m_sample = (m_ctl_duty == 7) ? -0x7fff : ((m_cur_bitaddr < s32(u32(7) - m_ctl_duty)) ? -0x7fff : 0x7fff);
+					m_sample = (duty() == 7) ? -0x7fff : ((m_cur_bitaddr < s32(u32(7) - duty())) ? -0x7fff : 0x7fff);
 				else if (m_noise) // noise
 					m_sample = m_lfsr_out;
 				break;
@@ -452,7 +355,7 @@ namespace nds_sound_emu
 		}
 
 		// apply delay
-		if (m_ctl_format != 3 && m_delay > 0)
+		if (format() != 3 && m_delay > 0)
 			m_sample = 0;
 	}
 
@@ -461,7 +364,7 @@ namespace nds_sound_emu
 		if (m_playing)
 		{
 			// advance bit address
-			switch (m_ctl_format)
+			switch (format())
 			{
 			case 0: // PCM8
 				m_cur_bitaddr += 8;
@@ -507,7 +410,7 @@ namespace nds_sound_emu
 			}
 
 			// address update
-			if (m_ctl_format != 3)
+			if (format() != 3)
 			{
 				// adjust delay
 				m_delay--;
@@ -516,7 +419,7 @@ namespace nds_sound_emu
 				while (m_cur_bitaddr >= 32)
 				{
 					// already loaded?
-					if (m_ctl_format == 2 && m_cur_state == STATE_ADPCM_LOAD)
+					if (format() == 2 && m_cur_state == STATE_ADPCM_LOAD)
 					{
 						m_cur_state = m_loopstart == 0 ? STATE_POST_LOOP : STATE_PRE_LOOP;
 					}
@@ -525,7 +428,7 @@ namespace nds_sound_emu
 					{
 						m_cur_state = STATE_POST_LOOP;
 						m_cur_addr = 0;
-						if (m_ctl_format == 2)
+						if (format() == 2)
 						{
 							m_prev_adpcm_out = m_adpcm_out;
 							m_prev_adpcm_index = m_adpcm_index;
@@ -533,7 +436,7 @@ namespace nds_sound_emu
 					}
 					else if (m_cur_state == STATE_POST_LOOP && m_cur_addr >= m_length)
 					{
-						switch (m_ctl_repeat)
+						switch (repeat())
 						{
 						case 0: // manual; not correct?
 						case 2: // one-shot
@@ -541,7 +444,7 @@ namespace nds_sound_emu
 							keyoff();
 							break;
 						case 1: // loop infinitely
-							if (m_ctl_format == 2)
+							if (format() == 2)
 							{
 								if (m_loopstart == 0) // reload ADPCM
 								{
@@ -562,17 +465,6 @@ namespace nds_sound_emu
 			}
 		}
 	}
-
-  void nds_sound_t::channel_t::computeVol()
-  {
-    m_final_volume = m_ctl_volume * m_master_volume;
-  }
-
-  void nds_sound_t::channel_t::setMasterVol(s32 masterVol)
-  {
-    m_master_volume = masterVol;
-    computeVol();
-  }
 
 	// capture
 	void nds_sound_t::capture_t::reset()

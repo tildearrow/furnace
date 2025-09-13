@@ -2318,6 +2318,32 @@ void FurnaceGUI::drawSampleEdit() {
               }
             }
           }
+          if (displayLoopHintsNDSA) {
+            if (sampleZoom<0.5) {
+              for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
+                if (((i+samplePos)&7)==0) {
+                  ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
+                  ImVec2 p2=p1;
+                  p2.y=rectMax.y;
+
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
+                }
+              }
+            }
+          }
+          if (displayLoopHintsNDS8) {
+            if (sampleZoom<0.375) {
+              for (int i=0; i<(int)(sampleZoom*avail.x); i++) {
+                if (((i+samplePos)&3)==0) {
+                  ImVec2 p1=ImVec2(rectMin.x+((float)i/sampleZoom),rectMin.y);
+                  ImVec2 p2=p1;
+                  p2.y=rectMax.y;
+
+                  dl->AddLine(p1,p2,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP_HINT]));
+                }
+              }
+            }
+          }
           if (displayLoopHintsAmiga) {
             if (sampleZoom<0.25) {
               for (int i=0; i<(int)(sampleZoom*avail.x); i++) {

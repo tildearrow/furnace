@@ -6761,7 +6761,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
               logW("could not load header font! reverting to default font");
               settings.headFont=0;
               if ((headFont=addFontZlib(builtinFont[settings.headFont],builtinFontLen[settings.headFont],MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH))==NULL) {
-                logE("could not load header font! falling back to IBM Plex Sans.");
+                logE("could not load header font! falling back to fallback. wahahaha, get it? fallback.");
                 headFont=ImGui::GetIO().Fonts->AddFontDefault();
               }
             }
@@ -6773,6 +6773,14 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
           headFont=ImGui::GetIO().Fonts->AddFontDefault();
         }
       }
+    }
+
+    // four fallback fonts
+    if (settings.loadFallback) {
+      headFont=addFontZlib(font_plexSans_compressed_data,font_plexSans_compressed_size,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fc1);
+      headFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fc1);
+      headFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fc1);
+      headFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fc1);
     }
 
     mainFont->FallbackChar='?';

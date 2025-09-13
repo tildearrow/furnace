@@ -322,7 +322,7 @@ void DivPlatformQSound::tick(bool sysTick) {
       }
 
       int loopStart=s->loopStart;
-      int length=s->loopEnd;
+      int length=s->isLoopable()?s->loopEnd:s->samples;
       if (i<16) {
         if (length>65536-16) {
           length=65536-16;
