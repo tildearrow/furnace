@@ -230,7 +230,7 @@ void FurnaceGUI::drawSampleEdit() {
       // warnings
       int chanFocus=cursor.xCoarse;
       int curDispatch=e->dispatchOfChan[chanFocus];
-      if (curDispatch>=0 && curDispatch<DIV_MAX_CHIPS) {
+      if (curDispatch>=0 && curDispatch<e->song.systemLen) {
         DivDispatch* dChan=e->getDispatch(curDispatch);
         int curChan=e->dispatchChanOfChan[chanFocus];
         int opnaAdpcmChan=-1;
