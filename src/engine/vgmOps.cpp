@@ -2305,14 +2305,32 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       w->write(writeADPCM_OPNB[i]->getSampleMem(0),writeADPCM_OPNB[i]->getSampleMemUsage(0));
     }
     // ADPCM-B (OPNB)
-    if (writeADPCM_OPNB[i]!=NULL && writeADPCM_OPNB[i]->getSampleMemUsage(1)>0) {
-      w->writeC(0x67);
-      w->writeC(0x66);
-      w->writeC(0x83);
-      w->writeI((writeADPCM_OPNB[i]->getSampleMemUsage(1)+8)|(i*0x80000000));
-      w->writeI(writeADPCM_OPNB[i]->getSampleMemCapacity(1));
-      w->writeI(0);
-      w->write(writeADPCM_OPNB[i]->getSampleMem(1),writeADPCM_OPNB[i]->getSampleMemUsage(1));
+    if (writeADPCM_OPNB[i]!=NULL) {
+      if (writeADPCM_OPNB[i]->getSampleMemNum()>=2) { // Separated memory
+        if (writeADPCM_OPNB[i]->getSampleMemUsage(1)>0) {
+          w->writeC(0x67);
+          w->writeC(0x66);
+          w->writeC(0x83);
+          w->writeI((writeADPCM_OPNB[i]->getSampleMemUsage(1)+8)|(i*0x80000000));
+          w->writeI(writeADPCM_OPNB[i]->getSampleMemCapacity(1));
+          w->writeI(0);
+          w->write(writeADPCM_OPNB[i]->getSampleMem(1),writeADPCM_OPNB[i]->getSampleMemUsage(1));
+        }
+      } else { // Shared memory
+        if (writeADPCM_OPNB[i]->getSampleMemUsage(1)>0) {
+          unsigned int blockSize=(writeADPCM_OPNB[i]->getSampleMemUsage(0)+writeADPCM_OPNB[i]->getSampleMemUsage(1)+0xff)&(~0xff);
+          if (blockSize>0x1000000) {
+            blockSize=0x1000000;
+          }
+          w->writeC(0x67);
+          w->writeC(0x66);
+          w->writeC(0x83);
+          w->writeI((blockSize+8)|(i*0x80000000));
+          w->writeI(writeADPCM_OPNB[i]->getSampleMemCapacity(0));
+          w->writeI(0);
+          w->write(writeADPCM_OPNB[i]->getSampleMem(0),blockSize);
+        }
+      }
     }
     // ADPCM (Y8950)
     if (writeADPCM_Y8950[i]!=NULL && writeADPCM_Y8950[i]->getSampleMemUsage(0)>0) {

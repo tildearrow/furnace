@@ -39,6 +39,7 @@ class DivYM2610Interface: public DivOPNInterface {
     unsigned char* adpcmAMem;
     unsigned char* adpcmBMem;
     int sampleBank;
+    bool hasSharedAdpcmBus;
     uint8_t ymfm_external_read(ymfm::access_class type, uint32_t address);
     void ymfm_external_write(ymfm::access_class type, uint32_t address, uint8_t data);
     DivYM2610Interface():
@@ -73,6 +74,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     size_t adpcmAMemLen;
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
+    size_t adpcmAMemUsage;
     DivYM2610Interface iface;
 
     unsigned int* sampleOffA;
@@ -80,12 +82,12 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
 
     unsigned char sampleBank;
   
-    bool extMode, noExtMacros;
+    bool extMode, noExtMacros, hasSharedAdpcmBus;
 
     bool* sampleLoaded[2];
   
     unsigned char writeADPCMAOff, writeADPCMAOn;
-    int globalADPCMAVolume;
+    int globalADPCMAVolume, sysIDCache;
 
     DivMemoryComposition memCompoA;
     DivMemoryComposition memCompoB;
@@ -196,20 +198,24 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       return 2;
     }
 
+    size_t getSampleMemNum() {
+      return hasSharedAdpcmBus?1:2;
+    }
+
     const void* getSampleMem(int index) {
-      return index == 0 ? adpcmAMem : index == 1 ? adpcmBMem : NULL;
+      return hasSharedAdpcmBus?((index==0 || index==1)?adpcmAMem:NULL):(index==0?adpcmAMem:index==1?adpcmBMem:NULL);
     }
 
     size_t getSampleMemCapacity(int index) {
-      return index == 0 ? 16777216 : index == 1 ? 16777216 : 0;
+      return hasSharedAdpcmBus?(index==0?16777216:index==1?(adpcmAMemUsage>=16777216?1:(16777216-adpcmAMemUsage)):0):(index==0?16777216:index==1?16777216:0);
     }
 
     const char* getSampleMemName(int index=0) {
-      return index == 0 ? "ADPCM-A" : index == 1 ? "ADPCM-B" : NULL;
+      return index==0?"ADPCM-A":index==1?"ADPCM-B":NULL;
     }
 
     size_t getSampleMemUsage(int index) {
-      return index == 0 ? adpcmAMemLen : index == 1 ? adpcmBMemLen : 0;
+      return hasSharedAdpcmBus?(index==0?adpcmAMemLen:index==1?((adpcmAMemUsage>=adpcmBMemLen)?0:(adpcmBMemLen-adpcmAMemUsage)):0):(index==0?adpcmAMemLen:index==1?adpcmBMemLen:0);
     }
 
     bool isSampleLoaded(int index, int sample) {
@@ -219,20 +225,24 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     }
     
     const DivMemoryComposition* getMemCompo(int index) {
-      if (index==0) return &memCompoA;
-      if (index==1) return &memCompoB;
+      if (hasSharedAdpcmBus) {
+        if (index==0) return &memCompoA;
+      } else {
+        if (index==0) return &memCompoA;
+        if (index==1) return &memCompoB;
+      }
       return NULL;
     }
 
     void renderSamples(int sysID) {
-      memset(adpcmAMem,0,getSampleMemCapacity(0));
+      memset(adpcmAMem,0,16777216);
       memset(sampleOffA,0,32768*sizeof(unsigned int));
       memset(sampleOffB,0,32768*sizeof(unsigned int));
       memset(sampleLoaded[0],0,32768*sizeof(bool));
       memset(sampleLoaded[1],0,32768*sizeof(bool));
 
       memCompoA=DivMemoryComposition();
-      memCompoA.name="ADPCM-A";
+      memCompoA.name=hasSharedAdpcmBus?"Sample ROM":"ADPCM-A";
 
       memCompoB=DivMemoryComposition();
       memCompoB.name="ADPCM-B";
@@ -266,42 +276,77 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       }
       adpcmAMemLen=memPos+256;
 
-      memCompoA.used=adpcmAMemLen;
-      memCompoA.capacity=getSampleMemCapacity(0);
+      if (hasSharedAdpcmBus) {
+        memPos=(memPos+0xff)&0xffff00;
+        adpcmAMemUsage=memPos;
 
-      memset(adpcmBMem,0,getSampleMemCapacity(1));
+        for (int i=0; i<parent->song.sampleLen; i++) {
+          DivSample* s=parent->song.sample[i];
+          if (!s->renderOn[1][sysID]) {
+            sampleOffB[i]=0;
+            continue;
+          }
 
-      memPos=0;
-      for (int i=0; i<parent->song.sampleLen; i++) {
-        DivSample* s=parent->song.sample[i];
-        if (!s->renderOn[1][sysID]) {
-          sampleOffB[i]=0;
-          continue;
+          int paddedLen=(s->lengthB+255)&(~0xff);
+          if (memPos>=getSampleMemCapacity(0)) {
+            logW("out of ADPCM-B memory for sample %d!",i);
+            break;
+          }
+          if (memPos+paddedLen>=getSampleMemCapacity(0)) {
+            memcpy(adpcmAMem+memPos,s->dataB,getSampleMemCapacity(0)-memPos);
+            logW("out of ADPCM-B memory for sample %d!",i);
+          } else {
+            memcpy(adpcmAMem+memPos,s->dataB,paddedLen);
+            sampleLoaded[1][i]=true;
+          }
+          sampleOffB[i]=memPos;
+          memCompoA.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE_ALT1,"ADPCM-B",i,memPos,memPos+paddedLen));
+          memPos+=paddedLen;
         }
+        adpcmBMemLen=memPos+256;
 
-        int paddedLen=(s->lengthB+255)&(~0xff);
-        if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
-          memPos=(memPos+0xfffff)&0xf00000;
+        memCompoA.used=adpcmBMemLen;
+        memCompoA.capacity=getSampleMemCapacity(0);
+      } else {
+        memCompoA.used=adpcmAMemLen;
+        memCompoA.capacity=getSampleMemCapacity(0);
+
+        memset(adpcmBMem,0,16777216);
+
+        memPos=0;
+        for (int i=0; i<parent->song.sampleLen; i++) {
+          DivSample* s=parent->song.sample[i];
+          if (!s->renderOn[1][sysID]) {
+            sampleOffB[i]=0;
+            continue;
+          }
+
+          int paddedLen=(s->lengthB+255)&(~0xff);
+          // TODO: per-sample size limit is remains for compatibility?
+          if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
+            memPos=(memPos+0xfffff)&0xf00000;
+          }
+          if (memPos>=getSampleMemCapacity(1)) {
+            logW("out of ADPCM-B memory for sample %d!",i);
+            break;
+          }
+          if (memPos+paddedLen>=getSampleMemCapacity(1)) {
+            memcpy(adpcmBMem+memPos,s->dataB,getSampleMemCapacity(1)-memPos);
+            logW("out of ADPCM-B memory for sample %d!",i);
+          } else {
+            memcpy(adpcmBMem+memPos,s->dataB,paddedLen);
+            sampleLoaded[1][i]=true;
+          }
+          sampleOffB[i]=memPos;
+          memCompoB.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+paddedLen));
+          memPos+=paddedLen;
         }
-        if (memPos>=getSampleMemCapacity(1)) {
-          logW("out of ADPCM-B memory for sample %d!",i);
-          break;
-        }
-        if (memPos+paddedLen>=getSampleMemCapacity(1)) {
-          memcpy(adpcmBMem+memPos,s->dataB,getSampleMemCapacity(1)-memPos);
-          logW("out of ADPCM-B memory for sample %d!",i);
-        } else {
-          memcpy(adpcmBMem+memPos,s->dataB,paddedLen);
-          sampleLoaded[1][i]=true;
-        }
-        sampleOffB[i]=memPos;
-        memCompoB.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+paddedLen));
-        memPos+=paddedLen;
+        adpcmBMemLen=memPos+256;
+
+        memCompoB.used=adpcmBMemLen;
+        memCompoB.capacity=getSampleMemCapacity(1);
       }
-      adpcmBMemLen=memPos+256;
-
-      memCompoB.used=adpcmBMemLen;
-      memCompoB.capacity=getSampleMemCapacity(1);
+      sysIDCache=sysID;
     }
 
     void setFlags(const DivConfig& flags) {
@@ -318,10 +363,16 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       fbAllOps=flags.getBool("fbAllOps",false);
       ssgVol=flags.getInt("ssgVol",128);
       fmVol=flags.getInt("fmVol",256);
+      bool prev=hasSharedAdpcmBus;
+      hasSharedAdpcmBus=flags.getBool("hasSharedAdpcmBus",false);
+      iface.hasSharedAdpcmBus=hasSharedAdpcmBus;
       if (useCombo==2) {
         rate=chipClock/144;
       } else {
         rate=fm->sample_rate(chipClock);
+      }
+      if (prev!=hasSharedAdpcmBus) {
+        renderSamples(sysIDCache);
       }
       for (int i=0; i<17; i++) {
         oscBuf[i]->setRate(rate);
@@ -337,13 +388,15 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
         isMuted[i]=false;
         oscBuf[i]=new DivDispatchOscBuffer;
       }
-      adpcmAMem=new unsigned char[getSampleMemCapacity(0)];
+      adpcmAMem=new unsigned char[16777216];
       adpcmAMemLen=0;
-      adpcmBMem=new unsigned char[getSampleMemCapacity(1)];
+      adpcmBMem=new unsigned char[16777216];
       adpcmBMemLen=0;
+      adpcmAMemUsage=0;
       iface.adpcmAMem=adpcmAMem;
       iface.adpcmBMem=adpcmBMem;
       iface.sampleBank=0;
+      sysIDCache=0;
       fm=new ymfm::ym2610b(iface);
       fm->set_fidelity(ymfm::OPN_FIDELITY_MED);
       setFlags(flags);
