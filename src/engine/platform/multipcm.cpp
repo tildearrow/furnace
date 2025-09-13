@@ -471,6 +471,7 @@ void DivPlatformMultiPCM::reset() {
   for (int i=0; i<28; i++) {
     chan[i]=DivPlatformMultiPCM::Channel();
     chan[i].std.setEngine(parent);
+    chImmWrite(i,PCM_ADDR_PAN,(isMuted[i]?8:chan[i].pan)<<4);
   }
 
   for (int i=0; i<224; i++) {
