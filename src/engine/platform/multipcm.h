@@ -95,6 +95,8 @@ class DivPlatformMultiPCM: public DivDispatch {
 
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
+
+    void renderInstruments();
   
   public:
     void acquire(short** buf, size_t len);

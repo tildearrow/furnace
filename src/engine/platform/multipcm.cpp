@@ -468,6 +468,8 @@ void DivPlatformMultiPCM::reset() {
 
   pcm.reset();
 
+  renderInstruments();
+
   for (int i=0; i<28; i++) {
     chan[i]=DivPlatformMultiPCM::Channel();
     chan[i].std.setEngine(parent);
@@ -506,6 +508,7 @@ bool DivPlatformMultiPCM::getLegacyAlwaysSetVolume() {
 }
 
 void DivPlatformMultiPCM::notifyInsChange(int ins) {
+  renderInstruments();
   for (int i=0; i<28; i++) {
     if (chan[i].ins==ins) {
       chan[i].insChanged=true;
@@ -514,10 +517,11 @@ void DivPlatformMultiPCM::notifyInsChange(int ins) {
 }
 
 void DivPlatformMultiPCM::notifyInsAddition(int sysID) {
-  renderSamples(sysID);
+  renderInstruments();
 }
 
 void DivPlatformMultiPCM::notifyInsDeletion(void* ins) {
+  renderInstruments();
   for (int i=0; i<28; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
@@ -577,6 +581,75 @@ const DivMemoryComposition* DivPlatformMultiPCM::getMemCompo(int index) {
   return &memCompo;
 }
 
+// this is called on instrument change, reset and/or renderSamples().
+// I am not making this part of DivDispatch as this is the only chip with
+// instruments in ROM.
+void DivPlatformMultiPCM::renderInstruments() {
+  // instrument table
+  int insCount=parent->song.insLen;
+  for (int i=0; i<insCount; i++) {
+    DivInstrument* ins=parent->song.ins[i];
+    unsigned int insAddr=(i*12);
+    short sample=ins->amiga.initSample;
+    if (sample>=0 && sample<parent->song.sampleLen) {
+      DivSample* s=parent->song.sample[sample];
+      unsigned char bitDepth;
+      int startPos=sampleOff[sample];
+      int endPos=CLAMP(s->isLoopable()?s->loopEnd:(s->samples+1),1,0x10000);
+      int loop=s->isLoopable()?CLAMP(s->loopStart,0,endPos-2):(endPos-2);
+      switch (s->depth) {
+        case DIV_SAMPLE_DEPTH_8BIT:
+          bitDepth=0;
+          break;
+        case DIV_SAMPLE_DEPTH_12BIT:
+          bitDepth=3;
+          if (!s->isLoopable()) {
+            endPos++;
+            loop++;
+          }
+          break;
+        default:
+          bitDepth=0;
+          break;
+      }
+      pcmMem[insAddr]=(bitDepth<<6)|((startPos>>16)&0x1f);
+      pcmMem[1+insAddr]=(startPos>>8)&0xff;
+      pcmMem[2+insAddr]=(startPos)&0xff;
+      pcmMem[3+insAddr]=(loop>>8)&0xff;
+      pcmMem[4+insAddr]=(loop)&0xff;
+      pcmMem[5+insAddr]=((~(endPos-1))>>8)&0xff;
+      pcmMem[6+insAddr]=(~(endPos-1))&0xff;
+      if (ins->type==DIV_INS_MULTIPCM) {
+        pcmMem[7+insAddr]=(ins->multipcm.lfo<<3)|ins->multipcm.vib; // LFO, VIB
+        pcmMem[8+insAddr]=(ins->multipcm.ar<<4)|ins->multipcm.d1r; // AR, D1R
+        pcmMem[9+insAddr]=(ins->multipcm.dl<<4)|ins->multipcm.d2r; // DL, D2R
+        pcmMem[10+insAddr]=(ins->multipcm.rc<<4)|ins->multipcm.rr; // RC, RR
+        pcmMem[11+insAddr]=ins->multipcm.am; // AM
+      } else {
+        pcmMem[7+insAddr]=0; // LFO, VIB
+        pcmMem[8+insAddr]=(0xf<<4)|(0xf<<0); // AR, D1R
+        pcmMem[9+insAddr]=0; // DL, D2R
+        pcmMem[10+insAddr]=(0xf<<4)|(0xf<<0); // RC, RR
+        pcmMem[11+insAddr]=0; // AM
+      }
+    } else {
+      // fill to dummy instrument
+      pcmMem[insAddr]=0;
+      pcmMem[1+insAddr]=0;
+      pcmMem[2+insAddr]=0;
+      pcmMem[3+insAddr]=0;
+      pcmMem[4+insAddr]=0;
+      pcmMem[5+insAddr]=0xff;
+      pcmMem[6+insAddr]=0xff;
+      pcmMem[7+insAddr]=0; // LFO, VIB
+      pcmMem[8+insAddr]=(0xf<<4)|(0xf<<0); // AR, D1R
+      pcmMem[9+insAddr]=(0xf<<4)|(0xf<<0); // DL, D2R
+      pcmMem[10+insAddr]=(0xf<<4)|(0xf<<0); // RC, RR
+      pcmMem[11+insAddr]=0; // AM
+    }
+  }
+}
+
 void DivPlatformMultiPCM::renderSamples(int sysID) {
   memset(pcmMem,0,2097152);
   memset(sampleOff,0,32768*sizeof(unsigned int));
@@ -584,6 +657,8 @@ void DivPlatformMultiPCM::renderSamples(int sysID) {
 
   memCompo=DivMemoryComposition();
   memCompo.name="Sample Memory";
+
+  renderInstruments();
 
   size_t memPos=0x1800;
   int sampleCount=parent->song.sampleLen;
@@ -636,70 +711,6 @@ void DivPlatformMultiPCM::renderSamples(int sysID) {
     }
     sampleLoaded[i]=true;
     pcmMemLen=memPos+256;
-
-    // instrument table
-    int insCount=parent->song.insLen;
-    for (int i=0; i<insCount; i++) {
-      DivInstrument* ins=parent->song.ins[i];
-      unsigned int insAddr=(i*12);
-      short sample=ins->amiga.initSample;
-      if (sample>=0 && sample<parent->song.sampleLen) {
-        DivSample* s=parent->song.sample[sample];
-        unsigned char bitDepth;
-        int startPos=sampleOff[sample];
-        int endPos=CLAMP(s->isLoopable()?s->loopEnd:(s->samples+1),1,0x10000);
-        int loop=s->isLoopable()?CLAMP(s->loopStart,0,endPos-2):(endPos-2);
-        switch (s->depth) {
-          case DIV_SAMPLE_DEPTH_8BIT:
-            bitDepth=0;
-            break;
-          case DIV_SAMPLE_DEPTH_12BIT:
-            bitDepth=3;
-            if (!s->isLoopable()) {
-              endPos++;
-              loop++;
-            }
-            break;
-          default:
-            bitDepth=0;
-            break;
-        }
-        pcmMem[insAddr]=(bitDepth<<6)|((startPos>>16)&0x1f);
-        pcmMem[1+insAddr]=(startPos>>8)&0xff;
-        pcmMem[2+insAddr]=(startPos)&0xff;
-        pcmMem[3+insAddr]=(loop>>8)&0xff;
-        pcmMem[4+insAddr]=(loop)&0xff;
-        pcmMem[5+insAddr]=((~(endPos-1))>>8)&0xff;
-        pcmMem[6+insAddr]=(~(endPos-1))&0xff;
-        if (ins->type==DIV_INS_MULTIPCM) {
-          pcmMem[7+insAddr]=(ins->multipcm.lfo<<3)|ins->multipcm.vib; // LFO, VIB
-          pcmMem[8+insAddr]=(ins->multipcm.ar<<4)|ins->multipcm.d1r; // AR, D1R
-          pcmMem[9+insAddr]=(ins->multipcm.dl<<4)|ins->multipcm.d2r; // DL, D2R
-          pcmMem[10+insAddr]=(ins->multipcm.rc<<4)|ins->multipcm.rr; // RC, RR
-          pcmMem[11+insAddr]=ins->multipcm.am; // AM
-        } else {
-          pcmMem[7+insAddr]=0; // LFO, VIB
-          pcmMem[8+insAddr]=(0xf<<4)|(0xf<<0); // AR, D1R
-          pcmMem[9+insAddr]=0; // DL, D2R
-          pcmMem[10+insAddr]=(0xf<<4)|(0xf<<0); // RC, RR
-          pcmMem[11+insAddr]=0; // AM
-        }
-      } else {
-        // fill to dummy instrument
-        pcmMem[insAddr]=0;
-        pcmMem[1+insAddr]=0;
-        pcmMem[2+insAddr]=0;
-        pcmMem[3+insAddr]=0;
-        pcmMem[4+insAddr]=0;
-        pcmMem[5+insAddr]=0xff;
-        pcmMem[6+insAddr]=0xff;
-        pcmMem[7+insAddr]=0; // LFO, VIB
-        pcmMem[8+insAddr]=(0xf<<4)|(0xf<<0); // AR, D1R
-        pcmMem[9+insAddr]=(0xf<<4)|(0xf<<0); // DL, D2R
-        pcmMem[10+insAddr]=(0xf<<4)|(0xf<<0); // RC, RR
-        pcmMem[11+insAddr]=0; // AM
-      }
-    }
     memCompo.used=pcmMemLen;
   }
   memCompo.capacity=getSampleMemCapacity(0);
