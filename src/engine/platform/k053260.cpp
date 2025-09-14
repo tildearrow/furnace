@@ -472,6 +472,10 @@ size_t DivPlatformK053260::getSampleMemUsage(int index) {
   return index == 0 ? sampleMemLen : 0;
 }
 
+size_t DivPlatformK053260::getSampleMemOffset(int index) {
+  return index == 0 ? 1 : 0;
+}
+
 bool DivPlatformK053260::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
   if (sample<0 || sample>32767) return false;
@@ -491,7 +495,7 @@ void DivPlatformK053260::renderSamples(int sysID) {
   memCompo=DivMemoryComposition();
   memCompo.name="Sample ROM";
 
-  size_t memPos=1; // for avoid silence
+  size_t memPos=getSampleMemOffset(); // for avoid silence
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
     if (!s->renderOn[0][sysID]) {
@@ -503,10 +507,10 @@ void DivPlatformK053260::renderSamples(int sysID) {
 
     if (s->depth==DIV_SAMPLE_DEPTH_ADPCM_K) {
       length=MIN(65535,s->getEndPosition(DIV_SAMPLE_DEPTH_ADPCM_K));
-      actualLength=MIN((int)(getSampleMemCapacity()-memPos-1),length);
+      actualLength=MIN((int)(getSampleMemCapacity()-memPos-getSampleMemOffset()),length);
       if (actualLength>0) {
-        sampleOff[i]=memPos-1;
-        memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength+1));
+        sampleOff[i]=memPos-getSampleMemOffset();
+        memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength+getSampleMemOffset()));
         for (int j=0; j<actualLength; j++) {
           sampleMem[memPos++]=s->dataK[j];
         }
@@ -514,10 +518,10 @@ void DivPlatformK053260::renderSamples(int sysID) {
       }
     } else {
       length=MIN(65535,s->getEndPosition(DIV_SAMPLE_DEPTH_8BIT));
-      actualLength=MIN((int)(getSampleMemCapacity()-memPos-1),length);
+      actualLength=MIN((int)(getSampleMemCapacity()-memPos-getSampleMemOffset()),length);
       if (actualLength>0) {
-        sampleOff[i]=memPos-1;
-        memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength+1));
+        sampleOff[i]=memPos-getSampleMemOffset();
+        memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength+getSampleMemOffset()));
         for (int j=0; j<actualLength; j++) {
           sampleMem[memPos++]=s->data8[j];
         }

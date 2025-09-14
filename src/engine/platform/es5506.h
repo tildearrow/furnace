@@ -318,6 +318,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     virtual const void* getSampleMem(int index = 0) override;
     virtual size_t getSampleMemCapacity(int index = 0) override;
     virtual size_t getSampleMemUsage(int index = 0) override;
+    virtual size_t getSampleMemOffset(int index = 0) override;
     virtual bool isSampleLoaded(int index, int sample) override;
     virtual const DivMemoryComposition* getMemCompo(int index) override;
     virtual void renderSamples(int sysID) override;
