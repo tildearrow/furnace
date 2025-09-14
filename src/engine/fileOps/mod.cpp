@@ -356,6 +356,20 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
                 case 2: // single note slide down
                   writeFxCol(fxTyp-1+0xf1,fxVal);
                   break;
+                case 4: // vibrato waveform
+                  switch (fxVal&3) {
+                    case 0: // sine
+                      writeFxCol(0xe3,0x00);
+                      break;
+                    case 1: // ramp down
+                      writeFxCol(0xe3,0x05);
+                      break;
+                    case 2: // square
+                    case 3: 
+                      writeFxCol(0xe3,0x06);
+                      break;
+                  }
+                break;
                 case 9: // retrigger
                   writeFxCol(0x0c,fxVal);
                   break;
