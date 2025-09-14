@@ -1870,6 +1870,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
               }
               if (prevIns>=0 && prevIns<=(int)e->song.ins.size()) {
                 *e->song.ins[prevIns]=*instruments[0];
+                e->notifyInsChange(prevIns);
               }
             } else {
               e->loadTempIns(instruments[0]);
@@ -5050,6 +5051,7 @@ bool FurnaceGUI::loop() {
           if (prevInsData!=NULL) {
             if (prevIns>=0 && prevIns<(int)e->song.ins.size()) {
               *e->song.ins[prevIns]=*prevInsData;
+              e->notifyInsChange(prevIns);
             }
           }
         } else {
@@ -5579,6 +5581,7 @@ bool FurnaceGUI::loop() {
                     // reset macro zoom
                     memset(e->song.ins[curIns]->temp.vZoom,-1,sizeof(e->song.ins[curIns]->temp.vZoom));
                     MARK_MODIFIED;
+                    e->notifyInsChange(curIns);
                   } else {
                     showError(_("...but you haven't selected an instrument!"));
                   }
@@ -6792,6 +6795,7 @@ bool FurnaceGUI::loop() {
                 *e->song.ins[curIns]=*i.first;
                 // reset macro zoom
                 memset(e->song.ins[curIns]->temp.vZoom,-1,sizeof(e->song.ins[curIns]->temp.vZoom));
+                e->notifyInsChange(curIns);
               } else {
                 showError(_("...but you haven't selected an instrument!"));
               }

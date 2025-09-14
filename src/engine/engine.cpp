@@ -2647,6 +2647,9 @@ int DivEngine::addInstrument(int refChan, DivInstrumentType fallbackType) {
   song.ins.push_back(ins);
   song.insLen=insCount+1;
   checkAssetDir(song.insDir,song.ins.size());
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].dispatch->notifyInsAddition(i);
+  }
   saveLock.unlock();
   BUSY_END;
   return insCount;
@@ -2664,6 +2667,9 @@ int DivEngine::addInstrumentPtr(DivInstrument* which) {
   checkAssetDir(song.insDir,song.ins.size());
   checkAssetDir(song.waveDir,song.wave.size());
   checkAssetDir(song.sampleDir,song.sample.size());
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].dispatch->notifyInsAddition(i);
+  }
   saveLock.unlock();
   BUSY_END;
   return song.insLen;
@@ -2675,6 +2681,9 @@ void DivEngine::loadTempIns(DivInstrument* which) {
     tempIns=new DivInstrument;
   }
   *tempIns=*which;
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].dispatch->notifyInsAddition(i);
+  }
   BUSY_END;
 }
 
