@@ -219,6 +219,7 @@ class DivPlatformOPL: public DivDispatch {
     const void* getSampleMem(int index);
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);
+    bool hasSamplePtrHeader(int index=0);
     size_t getSampleMemOffset(int index);
     bool isSampleLoaded(int index, int sample);
     const DivMemoryComposition* getMemCompo(int index);

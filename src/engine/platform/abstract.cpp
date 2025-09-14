@@ -164,6 +164,10 @@ void DivDispatch::notifyWaveChange(int ins) {
 
 }
 
+void DivDispatch::notifyInsAddition(int sysID) {
+
+}
+
 void DivDispatch::notifyInsDeletion(void* ins) {
   logE("notifyInsDeletion NOT implemented!");
   abort();
@@ -215,6 +219,10 @@ const char* DivDispatch::getSampleMemName(int index) {
 
 size_t DivDispatch::getSampleMemUsage(int index) {
   return 0;
+}
+
+bool DivDispatch::hasSamplePtrHeader(int index) {
+  return false;
 }
 
 size_t DivDispatch::getSampleMemOffset(int index) {
