@@ -1861,13 +1861,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
           int sampleCountBefore=e->song.sampleLen;
           std::vector<DivInstrument*> instruments=e->instrumentFromFile(path,false);
           if (!instruments.empty()) {
-            int hasSampleIns=false;
-            for (int s=0; s<e->song.systemLen; s++) {
-              if (e->getDispatch(s)->hasSampleInsHeader()) {
-                hasSampleIns=true;
-              }
-            }
-            if ((e->song.sampleLen!=sampleCountBefore) || hasSampleIns) {
+            if (e->song.sampleLen!=sampleCountBefore) {
               e->renderSamplesP();
             }
             if (curFileDialog==GUI_FILE_INS_OPEN_REPLACE) {
@@ -1876,6 +1870,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
               }
               if (prevIns>=0 && prevIns<=(int)e->song.ins.size()) {
                 *e->song.ins[prevIns]=*instruments[0];
+                e->notifyInsChange(prevIns);
               }
             } else {
               e->loadTempIns(instruments[0]);
@@ -3934,13 +3929,7 @@ bool FurnaceGUI::loop() {
             DivWavetable* droppedWave=NULL;
             //DivSample* droppedSample=NULL;
             if (!instruments.empty()) {
-              bool hasSampleIns=false;
-              for (int s=0; s<e->song.systemLen; s++) {
-                if (e->getDispatch(s)->hasSampleInsHeader()) {
-                  hasSampleIns=true;
-                }
-              }
-              if ((e->song.sampleLen!=sampleCountBefore) || hasSampleIns) {
+              if (e->song.sampleLen!=sampleCountBefore) {
                 e->renderSamplesP();
               }
               if (!e->getWarnings().empty()) {
@@ -5062,6 +5051,7 @@ bool FurnaceGUI::loop() {
           if (prevInsData!=NULL) {
             if (prevIns>=0 && prevIns<(int)e->song.ins.size()) {
               *e->song.ins[prevIns]=*prevInsData;
+              e->notifyInsChange(prevIns);
             }
           }
         } else {
@@ -5533,13 +5523,7 @@ bool FurnaceGUI::loop() {
                   instruments.push_back(j);
                 }
               }
-              bool hasSampleIns=false;
-              for (int s=0; s<e->song.systemLen; s++) {
-                if (e->getDispatch(s)->hasSampleInsHeader()) {
-                  hasSampleIns=true;
-                }
-              }
-              if ((e->song.sampleLen!=sampleCountBefore) || hasSampleIns) {
+              if (e->song.sampleLen!=sampleCountBefore) {
                 e->renderSamplesP();
               }
               if (warn) {
@@ -5579,13 +5563,7 @@ bool FurnaceGUI::loop() {
               int sampleCountBefore=e->song.sampleLen;
               std::vector<DivInstrument*> instruments=e->instrumentFromFile(copyOfName.c_str(),true,settings.readInsNames);
               if (!instruments.empty()) {
-                bool hasSampleIns=false;
-                for (int s=0; s<e->song.systemLen; s++) {
-                  if (e->getDispatch(s)->hasSampleInsHeader()) {
-                    hasSampleIns=true;
-                  }
-                }
-                if ((e->song.sampleLen!=sampleCountBefore) || hasSampleIns) {
+                if (e->song.sampleLen!=sampleCountBefore) {
                   e->renderSamplesP();
                 }
                 if (!e->getWarnings().empty()) {
@@ -5603,6 +5581,7 @@ bool FurnaceGUI::loop() {
                     // reset macro zoom
                     memset(e->song.ins[curIns]->temp.vZoom,-1,sizeof(e->song.ins[curIns]->temp.vZoom));
                     MARK_MODIFIED;
+                    e->notifyInsChange(curIns);
                   } else {
                     showError(_("...but you haven't selected an instrument!"));
                   }
@@ -6816,6 +6795,7 @@ bool FurnaceGUI::loop() {
                 *e->song.ins[curIns]=*i.first;
                 // reset macro zoom
                 memset(e->song.ins[curIns]->temp.vZoom,-1,sizeof(e->song.ins[curIns]->temp.vZoom));
+                e->notifyInsChange(curIns);
               } else {
                 showError(_("...but you haven't selected an instrument!"));
               }

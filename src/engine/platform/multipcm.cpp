@@ -566,10 +566,6 @@ bool DivPlatformMultiPCM::hasSamplePtrHeader(int index) {
   return (index==0);
 }
 
-bool DivPlatformMultiPCM::hasSampleInsHeader(int index) {
-  return (index==0);
-}
-
 bool DivPlatformMultiPCM::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
   if (sample<0 || sample>32767) return false;

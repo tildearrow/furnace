@@ -2681,6 +2681,9 @@ void DivEngine::loadTempIns(DivInstrument* which) {
     tempIns=new DivInstrument;
   }
   *tempIns=*which;
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].dispatch->notifyInsAddition(i);
+  }
   BUSY_END;
 }
 
@@ -2706,15 +2709,6 @@ void DivEngine::delInstrumentUnsafe(int index) {
     }
     removeAsset(song.insDir,index);
     checkAssetDir(song.insDir,song.ins.size());
-    bool hasSampleIns=false;
-    for (int s=0; s<song.systemLen; s++) {
-      if (disCont[s].dispatch->hasSampleInsHeader()) {
-        hasSampleIns=true;
-      }
-    }
-    if (hasSampleIns) {
-      renderSamplesP();
-    }
   }
 }
 

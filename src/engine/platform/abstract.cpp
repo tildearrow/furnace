@@ -221,10 +221,6 @@ bool DivDispatch::hasSamplePtrHeader(int index) {
   return false;
 }
 
-bool DivDispatch::hasSampleInsHeader(int index) {
-  return false;
-}
-
 size_t DivDispatch::getSampleMemOffset(int index) {
   return 0;
 }

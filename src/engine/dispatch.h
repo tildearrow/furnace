@@ -1007,14 +1007,7 @@ class DivDispatch {
      * @return whether it did.
      */
     virtual bool hasSamplePtrHeader(int index=0);
-    
-    /**
-     * check whether chip has sample instrument header in sample memory.
-     * @param index the memory index.
-     * @return whether it did.
-     */
-    virtual bool hasSampleInsHeader(int index=0);
-    
+
     /**
      * check whether sample has been loaded in memory.
      * @param index index.
