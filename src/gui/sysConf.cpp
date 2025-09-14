@@ -842,8 +842,11 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         altered=true;
       } rightClickable
 
-      if (ImGui::Checkbox(_("Use shared ADPCM memory space"),&hasSharedAdpcmBus)) {
-        altered=true;
+      if ((type!=DIV_SYSTEM_YM2610) && (type!=DIV_SYSTEM_YM2610_EXT)) {
+        if (ImGui::Checkbox(_("Use shared ADPCM memory space"),&hasSharedAdpcmBus)) {
+          altered=true;
+          mustRender=true;
+        }
       }
 
       if (altered) {

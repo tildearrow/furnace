@@ -87,7 +87,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     bool* sampleLoaded[2];
   
     unsigned char writeADPCMAOff, writeADPCMAOn;
-    int globalADPCMAVolume, sysIDCache;
+    int globalADPCMAVolume;
 
     DivMemoryComposition memCompoA;
     DivMemoryComposition memCompoB;
@@ -346,7 +346,6 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
         memCompoB.used=adpcmBMemLen;
         memCompoB.capacity=getSampleMemCapacity(1);
       }
-      sysIDCache=sysID;
     }
 
     void setFlags(const DivConfig& flags) {
@@ -363,16 +362,12 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       fbAllOps=flags.getBool("fbAllOps",false);
       ssgVol=flags.getInt("ssgVol",128);
       fmVol=flags.getInt("fmVol",256);
-      bool prev=hasSharedAdpcmBus;
       hasSharedAdpcmBus=flags.getBool("hasSharedAdpcmBus",false);
       iface.hasSharedAdpcmBus=hasSharedAdpcmBus;
       if (useCombo==2) {
         rate=chipClock/144;
       } else {
         rate=fm->sample_rate(chipClock);
-      }
-      if (prev!=hasSharedAdpcmBus) {
-        renderSamples(sysIDCache);
       }
       for (int i=0; i<17; i++) {
         oscBuf[i]->setRate(rate);
@@ -396,7 +391,6 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       iface.adpcmAMem=adpcmAMem;
       iface.adpcmBMem=adpcmBMem;
       iface.sampleBank=0;
-      sysIDCache=0;
       fm=new ymfm::ym2610b(iface);
       fm->set_fidelity(ymfm::OPN_FIDELITY_MED);
       setFlags(flags);
