@@ -1333,6 +1333,7 @@ const int availableSystems[]={
   DIV_SYSTEM_UPD1771C,
   DIV_SYSTEM_SID3,
   DIV_SYSTEM_NEXTSOUND,
+  DIV_SYSTEM_MULTIPCM,
   0 // don't remove this last one!
 };
 
@@ -1466,6 +1467,7 @@ const int chipsSample[]={
   DIV_SYSTEM_GBA_MINMOD,
   DIV_SYSTEM_OPL4,
   DIV_SYSTEM_OPL4_DRUMS,
+  DIV_SYSTEM_MULTIPCM,
   0 // don't remove this last one!
 };
 

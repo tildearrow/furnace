@@ -817,6 +817,7 @@ src/engine/platform/bifurcator.cpp
 src/engine/platform/sid2.cpp
 src/engine/platform/sid3.cpp
 src/engine/platform/nextsound.cpp
+src/engine/platform/multipcm.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 
