@@ -2626,6 +2626,63 @@ void FurnaceGUI::initSystemPresets() {
         ) // 12.5MHz
       }
     );
+    SUB_ENTRY(
+      _("Sega System Multi 32"), {
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, 
+          "clockSel=2\n"
+          "chipType=0\n"
+        ), // discrete 8MHz YM3438
+        CH(DIV_SYSTEM_MULTIPCM, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      _("Sega System Multi 32 (extended channel 3)"), {
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, 
+          "clockSel=2\n"
+          "chipType=0\n"
+        ), // discrete 8MHz YM3438
+        CH(DIV_SYSTEM_MULTIPCM, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      _("Sega System Multi 32 (CSM)"), {
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, 
+          "clockSel=2\n"
+          "chipType=0\n"
+        ), // discrete 8MHz YM3438
+        CH(DIV_SYSTEM_MULTIPCM, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      _("Sega Model 1/2"), {
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, 
+          "clockSel=2\n"
+          "chipType=0\n"
+        ), // discrete 8MHz YM3438
+        CH(DIV_SYSTEM_MULTIPCM, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_MULTIPCM, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      _("Sega Model 1/2 (extended channel 3)"), {
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, 
+          "clockSel=2\n"
+          "chipType=0\n"
+        ), // discrete 8MHz YM3438
+        CH(DIV_SYSTEM_MULTIPCM, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_MULTIPCM, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      _("Sega Model 1/2 (CSM)"), {
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, 
+          "clockSel=2\n"
+          "chipType=0\n"
+        ), // discrete 8MHz YM3438
+        CH(DIV_SYSTEM_MULTIPCM, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_MULTIPCM, 1.0f, 0, "")
+      }
+    );
 
   ENTRY(
     _("Seta"), {}
@@ -3657,6 +3714,11 @@ void FurnaceGUI::initSystemPresets() {
         CH(DIV_SYSTEM_OPL4_DRUMS, 1.0f, 0, "")
       }
     );
+  ENTRY(
+    "Yamaha YMW258-F (MultiPCM)", {
+      CH(DIV_SYSTEM_MULTIPCM, 1.0f, 0, "")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN(_("Wavetable"),_("chips which use user-specified waveforms to generate sound."));
