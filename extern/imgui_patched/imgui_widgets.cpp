@@ -607,6 +607,9 @@ void ImGui::ScrollText(ImGuiID id, const char* text, const ImVec2& pos, ImVec2 s
   }
 
   ImVec2 minArea=pos;
+  if (pos.x==0 && pos.y==0) {
+    minArea=ImVec2(window->DC.CursorPos.x, window->DC.CursorPos.y + window->DC.CurrLineTextBaseOffset);
+  }
   ImVec2 maxArea=ImVec2(
     minArea.x+size.x,
     minArea.y+size.y

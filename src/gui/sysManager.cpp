@@ -44,20 +44,14 @@ void FurnaceGUI::drawSysManager() {
     ImGui::Checkbox(_("Clone channel data"),&sysDupCloneChannels);
     ImGui::SameLine();
     ImGui::Checkbox(_("Clone at end"),&sysDupEnd);
-    if (ImGui::BeginTable("SystemList",3)) {
-      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
-      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
-      ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed);
-      ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-      ImGui::TableNextColumn();
-      ImGui::TableNextColumn();
-      ImGui::Text(_("Name"));
-      ImGui::TableNextColumn();
-      ImGui::Text(_("Actions"));
-      for (unsigned char i=0; i<e->song.systemLen; i++) {
-        ImGui::PushID(i);
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
+
+    for (int i=0; i<e->song.systemLen; i++) {
+      String rackID=fmt::sprintf("SysEntry%d",i);
+      String rackNameID=fmt::sprintf("SysName%d",i);
+      const DivSysDef* sysDef=e->getSystemDef(e->song.system[i]);
+
+      ImGui::PushID(i);
+      if (ImGui::BeginChild(rackID.c_str(),ImVec2(0,0),ImGuiChildFlags_Border|ImGuiChildFlags_AutoResizeY)) {
         if (ImGui::Button(ICON_FA_ARROWS)) {
         }
         if (ImGui::BeginDragDropSource()) {
@@ -81,6 +75,84 @@ void FurnaceGUI::drawSysManager() {
           }
           ImGui::EndDragDropTarget();
         }
+        ImGui::SameLine();
+        float sideButtonSize=200.0f*dpiScale;
+        ImGui::AlignTextToFramePadding();
+        ImGui::ScrollText(ImGui::GetID(rackNameID.c_str()),sysDef->name,ImVec2(0.0f,0.0f),ImVec2(ImGui::GetContentRegionAvail().x-sideButtonSize,0));
+        ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvail().x-sideButtonSize,1.0f));
+        ImGui::SameLine();
+        if (ImGui::Button(_("Clone##SysDup"))) {
+          if (!e->duplicateSystem(i,sysDupCloneChannels,sysDupEnd)) {
+            showError(fmt::sprintf(_("cannot clone chip! (%s)"),e->getLastError()));
+          } else {
+            if (e->song.autoSystem) {
+              autoDetectSystem();
+              updateWindowTitle();
+            }
+            updateROMExportAvail();
+            MARK_MODIFIED;
+          }
+        }
+        ImGui::SameLine();
+        ImGui::Button(_("Change##SysChange"));
+        if (ImGui::BeginPopupContextItem("SysPickerC",ImGuiPopupFlags_MouseButtonLeft)) {
+          DivSystem picked=systemPicker(false);
+          if (picked!=DIV_SYSTEM_NULL) {
+            if (e->changeSystem(i,picked,preserveChanPos)) {
+              MARK_MODIFIED;
+              if (e->song.autoSystem) {
+                autoDetectSystem();
+              }
+              updateWindowTitle();
+              updateROMExportAvail();
+            } else {
+              showError(fmt::sprintf(_("cannot change chip! (%s)"),e->getLastError()));
+            }
+            ImGui::CloseCurrentPopup();
+          }
+          if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::EndPopup();
+        }
+        ImGui::SameLine();
+        ImGui::BeginDisabled(e->song.systemLen<=1);
+        pushDestColor();
+        if (ImGui::Button(ICON_FA_TIMES "##SysRemove")) {
+          sysToDelete=i;
+          showWarning(_("Are you sure you want to remove this chip?"),GUI_WARN_SYSTEM_DEL);
+        }
+        popDestColor();
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Remove"));
+        }
+        ImGui::EndDisabled();
+
+        drawSystemChannelInfo(sysDef);
+
+        ImGui::Indent();
+        drawSysConf(i,i,e->song.system[i],e->song.systemFlags[i],true);
+        ImGui::Unindent();
+      }
+      ImGui::EndChild();
+      ImGui::PopID();
+    }
+
+    /*
+    if (ImGui::BeginTable("SystemList",3)) {
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed);
+      ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+      ImGui::TableNextColumn();
+      ImGui::TableNextColumn();
+      ImGui::Text(_("Name"));
+      ImGui::TableNextColumn();
+      ImGui::Text(_("Actions"));
+      for (unsigned char i=0; i<e->song.systemLen; i++) {
+        ImGui::PushID(i);
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
         ImGui::TableNextColumn();
         bool isNotCollapsed=true;
         if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSM%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
@@ -180,6 +252,7 @@ void FurnaceGUI::drawSysManager() {
       }
       ImGui::EndTable();
     }
+    */
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SYS_MANAGER;
   ImGui::End();
