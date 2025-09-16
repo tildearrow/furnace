@@ -45,6 +45,7 @@ void FurnaceGUI::drawSysManager() {
     ImGui::SameLine();
     ImGui::Checkbox(_("Clone at end"),&sysDupEnd);
 
+    int dispatchOff=0;
     for (int i=0; i<e->song.systemLen; i++) {
       String rackID=fmt::sprintf("SysEntry%d",i);
       String rackNameID=fmt::sprintf("SysName%d",i);
@@ -76,12 +77,13 @@ void FurnaceGUI::drawSysManager() {
           ImGui::EndDragDropTarget();
         }
         ImGui::SameLine();
-        float sideButtonSize=200.0f*dpiScale;
+        float buttonInnerSize=ImGui::CalcTextSize(ICON_FA_CLONE ICON_FA_EJECT ICON_FA_TIMES).x;
+        float sideButtonSize=ImGui::GetStyle().ItemSpacing.x*3.0f+buttonInnerSize+ImGui::GetStyle().ItemInnerSpacing.x*6;
         ImGui::AlignTextToFramePadding();
         ImGui::ScrollText(ImGui::GetID(rackNameID.c_str()),sysDef->name,ImVec2(0.0f,0.0f),ImVec2(ImGui::GetContentRegionAvail().x-sideButtonSize,0));
         ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvail().x-sideButtonSize,1.0f));
         ImGui::SameLine();
-        if (ImGui::Button(_("Clone##SysDup"))) {
+        if (ImGui::Button(ICON_FA_CLONE "##SysDup")) {
           if (!e->duplicateSystem(i,sysDupCloneChannels,sysDupEnd)) {
             showError(fmt::sprintf(_("cannot clone chip! (%s)"),e->getLastError()));
           } else {
@@ -92,9 +94,11 @@ void FurnaceGUI::drawSysManager() {
             updateROMExportAvail();
             MARK_MODIFIED;
           }
+        }if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Clone"));
         }
         ImGui::SameLine();
-        ImGui::Button(_("Change##SysChange"));
+        ImGui::Button(ICON_FA_EJECT "##SysChange");
         if (ImGui::BeginPopupContextItem("SysPickerC",ImGuiPopupFlags_MouseButtonLeft)) {
           DivSystem picked=systemPicker(false);
           if (picked!=DIV_SYSTEM_NULL) {
@@ -115,6 +119,9 @@ void FurnaceGUI::drawSysManager() {
           }
           ImGui::EndPopup();
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Change"));
+        }
         ImGui::SameLine();
         ImGui::BeginDisabled(e->song.systemLen<=1);
         pushDestColor();
@@ -128,14 +135,16 @@ void FurnaceGUI::drawSysManager() {
         }
         ImGui::EndDisabled();
 
-        drawSystemChannelInfo(sysDef);
+        drawSystemChannelInfo(sysDef,dispatchOff);
 
-        ImGui::Indent();
+        /*ImGui::Indent();
         drawSysConf(i,i,e->song.system[i],e->song.systemFlags[i],true);
-        ImGui::Unindent();
+        ImGui::Unindent();*/
       }
       ImGui::EndChild();
       ImGui::PopID();
+
+      dispatchOff+=sysDef->channels;
     }
 
     /*
