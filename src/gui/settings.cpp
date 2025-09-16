@@ -6783,8 +6783,8 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
       headFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fc1);
     }
 
-    mainFont->FallbackChar='?';
-    mainFont->EllipsisChar='.';
+    //mainFont->FallbackChar='?';
+    //mainFont->EllipsisChar='.';
     //mainFont->EllipsisCharCount=3;
   } else if (updateFonts) {
     // safe mode
@@ -6793,8 +6793,8 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     bigFont=mainFont;
     headFont=mainFont;
 
-    mainFont->FallbackChar='?';
-    mainFont->EllipsisChar='.';
+    //mainFont->FallbackChar='?';
+    //mainFont->EllipsisChar='.';
     //mainFont->EllipsisCharCount=3;
   }
 
