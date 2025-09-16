@@ -83,7 +83,7 @@ void FurnaceGUI::drawSysManager() {
         float buttonInnerSize=ImGui::CalcTextSize(ICON_FA_CLONE).x;
         float sideButtonSize=ImGui::GetStyle().ItemSpacing.x*3.0f+buttonInnerSize*3.0f+ImGui::GetStyle().FramePadding.x*6;
         ImGui::AlignTextToFramePadding();
-        ImGui::ScrollText(ImGui::GetID(rackNameID.c_str()),sysDef->name,ImVec2(0.0f,0.0f),ImVec2(ImGui::GetContentRegionAvail().x-sideButtonSize,0));
+        ImGui::ScrollText(ImGui::GetID(rackNameID.c_str()),sysDef->name,ImVec2(0.0f,0.0f),ImVec2(ImGui::GetContentRegionAvail().x-sideButtonSize,0),false);
         ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvail().x-sideButtonSize,1.0f));
         // action buttons
         ImGui::SameLine();
@@ -141,7 +141,7 @@ void FurnaceGUI::drawSysManager() {
         ImGui::EndDisabled();
 
         // channel LEDs and chip config button
-        drawSystemChannelInfo(sysDef,dispatchOff,ImGui::GetContentRegionAvail().x-(ImGui::CalcTextSize(ICON_FA_CHEVRON_DOWN).x+ImGui::GetStyle().FramePadding.x*2.0f+ImGui::GetStyle().ItemSpacing.x));
+        float height=drawSystemChannelInfo(sysDef,dispatchOff,ImGui::GetContentRegionAvail().x-(ImGui::CalcTextSize(ICON_FA_CHEVRON_DOWN).x+ImGui::GetStyle().FramePadding.x*2.0f+ImGui::GetStyle().ItemSpacing.x));
 
         ImGuiID openedID=ImGui::GetID("OpenSysConfig");
         bool opened=openedConfig->GetBool(openedID,false);
@@ -152,7 +152,7 @@ void FurnaceGUI::drawSysManager() {
         ImGui::PushStyleColor(ImGuiCol_Button,0);
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered,ImGui::GetColorU32(uiColors[GUI_COLOR_SCROLL]));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive,ImGui::GetColorU32(uiColors[GUI_COLOR_SCROLL_ACTIVE]));
-        if (ImGui::SmallButton(opened?(ICON_FA_CHEVRON_UP "###OpenThing"):(ICON_FA_CHEVRON_DOWN "###OpenThing"))) {
+        if (ImGui::Selectable(opened?(ICON_FA_CHEVRON_UP "###OpenThing"):(ICON_FA_CHEVRON_DOWN "###OpenThing"),false,0,ImVec2(0,height))) {
           opened=!opened;
           openedConfig->SetBool(openedID,opened);
         }

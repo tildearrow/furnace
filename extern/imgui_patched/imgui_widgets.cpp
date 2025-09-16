@@ -597,13 +597,14 @@ void ImGui::ScrollText(ImGuiID id, const char* text, const ImVec2& pos, ImVec2 s
 
   if (size.x==0) {
     size.x=((window->DC.CurrentColumns || g.CurrentTable) ? window->WorkRect.Max : window->ContentRegionRect.Max).x-pos.x;
-    if (textSize.x<size.x) {
-      size.x=textSize.x;
-      mustNotScroll=true;
-    }
   }
   if (size.y==0) {
     size.y=ImGui::GetFontSize();
+  }
+  // ???????
+  if (textSize.x<size.x) {
+    size.x=textSize.x;
+    mustNotScroll=true;
   }
 
   ImVec2 minArea=pos;

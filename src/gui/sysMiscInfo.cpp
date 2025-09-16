@@ -296,14 +296,15 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
   }
 }
 
-void FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset, float tooltipWidth) {
+float FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset, float tooltipWidth) {
   ImDrawList* dl=ImGui::GetWindowDrawList();
   const ImVec2 p=ImGui::GetCursorScreenPos();
   if (tooltipWidth<=0.0f) tooltipWidth=ImGui::GetContentRegionAvail().x;
   ImVec2 sep=ImGui::GetStyle().ItemSpacing;
+  sep.x*=0.5f;
   ImVec2 ledSize=ImVec2(
     (tooltipWidth-sep.x*(whichDef->channels-1))/(float)whichDef->channels,
-    8.0f*dpiScale
+    settings.iconSize*dpiScale
   );
   if (ledSize.x<8.0f*dpiScale) ledSize.x=8.0f*dpiScale;
   float x=p.x, y=p.y;
@@ -329,6 +330,7 @@ void FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffs
     x+=ledSize.x+sep.x;
   }
   ImGui::Dummy(ImVec2(tooltipWidth,(y-p.y)+ledSize.y));
+  return (y-p.y)+ledSize.y;
 }
 
 void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
