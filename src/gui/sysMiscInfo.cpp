@@ -296,19 +296,19 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
   }
 }
 
-void FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset) {
+void FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset, float tooltipWidth) {
   ImDrawList* dl=ImGui::GetWindowDrawList();
   const ImVec2 p=ImGui::GetCursorScreenPos();
+  if (tooltipWidth<=0.0f) tooltipWidth=ImGui::GetContentRegionAvail().x;
   ImVec2 sep=ImGui::GetStyle().ItemSpacing;
   ImVec2 ledSize=ImVec2(
-    (ImGui::GetContentRegionAvail().x-sep.x*(whichDef->channels-1))/(float)whichDef->channels,
+    (tooltipWidth-sep.x*(whichDef->channels-1))/(float)whichDef->channels,
     8.0f*dpiScale
   );
-  if (ledSize.x<7.5f*dpiScale) ledSize.x=7.5f*dpiScale;
+  if (ledSize.x<8.0f*dpiScale) ledSize.x=8.0f*dpiScale;
   float x=p.x, y=p.y;
-  float tooltipWidth=ImGui::GetContentRegionAvail().x;
   for (int i=0; i<whichDef->channels; i++) {
-    if (x>tooltipWidth+p.x) {
+    if (x+ledSize.x-0.125>tooltipWidth+p.x) {
       x=p.x;
       y+=ledSize.y+sep.y;
     }
@@ -328,7 +328,7 @@ void FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffs
     dl->AddRectFilled(ImVec2(x,y),ImVec2(x+ledSize.x,y+ledSize.y),ImGui::GetColorU32(color),ledSize.y);
     x+=ledSize.x+sep.x;
   }
-  ImGui::Dummy(ImVec2(0,(y-p.y)+ledSize.y));
+  ImGui::Dummy(ImVec2(tooltipWidth,(y-p.y)+ledSize.y));
 }
 
 void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
