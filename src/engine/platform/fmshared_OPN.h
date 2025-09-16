@@ -214,6 +214,13 @@ class DivPlatformOPN: public DivPlatformFMBase {
       return DivPlatformFMBase::mapVelocity(ch,vel);
     }
     virtual float getGain(int ch, int vol) {
+      if (extSys) {
+        if (ch>=extChanOffs+4) {
+          ch-=4;
+        } else if (ch>=extChanOffs) {
+          ch=extChanOffs;
+        }
+      }
       if (vol==0) return 0;
       if (ch==csmChan) return 1;
       if (ch==adpcmBChanOffs) return (float)vol/255.0;
