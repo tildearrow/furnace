@@ -39,6 +39,7 @@ void FurnaceGUI::drawSysManager() {
     //ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
   if (ImGui::Begin("Chip Manager",&sysManagerOpen,globalWinFlags,_("Chip Manager"))) {
+    ImGuiStorage* openedConfig=ImGui::GetStateStorage();
     ImGui::Checkbox(_("Preserve channel order"),&preserveChanPos);
     ImGui::SameLine();
     ImGui::Checkbox(_("Clone channel data"),&sysDupCloneChannels);
@@ -137,14 +138,56 @@ void FurnaceGUI::drawSysManager() {
 
         drawSystemChannelInfo(sysDef,dispatchOff);
 
-        /*ImGui::Indent();
-        drawSysConf(i,i,e->song.system[i],e->song.systemFlags[i],true);
-        ImGui::Unindent();*/
+        ImGui::Separator();
+
+        ImGuiID openedID=ImGui::GetID("OpenSysConfig");
+        bool opened=openedConfig->GetBool(openedID,false);
+        if (opened) {
+          ImGui::Indent();
+          drawSysConf(i,i,e->song.system[i],e->song.systemFlags[i],true);
+          ImGui::Unindent();
+        }
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize,0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameShading,0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding,0.0f);
+        ImGui::PushStyleColor(ImGuiCol_Button,0);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered,ImGui::GetColorU32(uiColors[GUI_COLOR_SCROLL]));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,ImGui::GetColorU32(uiColors[GUI_COLOR_SCROLL_ACTIVE]));
+        if (ImGui::Button(opened?(ICON_FA_CHEVRON_UP "   " ICON_FA_CHEVRON_UP "   " ICON_FA_CHEVRON_UP "   " "###OpenThing"):(ICON_FA_CHEVRON_DOWN "   " ICON_FA_CHEVRON_DOWN "   " ICON_FA_CHEVRON_DOWN "   " "###OpenThing"),ImVec2(ImGui::GetContentRegionAvail().x,0.0f))) {
+          opened=!opened;
+          openedConfig->SetBool(openedID,opened);
+        }
+        ImGui::PopStyleColor(3);
+        ImGui::PopStyleVar(3);
       }
       ImGui::EndChild();
       ImGui::PopID();
 
       dispatchOff+=sysDef->channels;
+    }
+
+    if (e->song.systemLen<DIV_MAX_CHIPS) {
+      ImGui::Button(ICON_FA_PLUS "##SysAdd");
+      if (ImGui::BeginPopupContextItem("SysPickerA",ImGuiPopupFlags_MouseButtonLeft)) {
+        DivSystem picked=systemPicker(false);
+        if (picked!=DIV_SYSTEM_NULL) {
+          if (!e->addSystem(picked)) {
+            showError(fmt::sprintf(_("cannot add chip! (%s)"),e->getLastError()));
+          } else {
+            MARK_MODIFIED;
+          }
+          if (e->song.autoSystem) {
+            autoDetectSystem();
+          }
+          updateWindowTitle();
+          updateROMExportAvail();
+          ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+      }
     }
 
     /*

@@ -314,9 +314,16 @@ void FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffs
     }
     ImVec4 color=uiColors[whichDef->chanTypes[i]+GUI_COLOR_CHANNEL_FM];
     if (keyHitOffset>=0) {
-      color.x*=MIN(1.0f,0.125f+keyHit1[keyHitOffset+i]*0.875f);
-      color.y*=MIN(1.0f,0.125f+keyHit1[keyHitOffset+i]*0.875f);
-      color.z*=MIN(1.0f,0.125f+keyHit1[keyHitOffset+i]*0.875f);
+      if (e->isChannelMuted(keyHitOffset+i)) {
+        color=uiColors[GUI_COLOR_CHANNEL_MUTED];
+        color.x*=MIN(1.0f,0.125f+keyHit1[keyHitOffset+i]*0.875f);
+        color.y*=MIN(1.0f,0.125f+keyHit1[keyHitOffset+i]*0.875f);
+        color.z*=MIN(1.0f,0.125f+keyHit1[keyHitOffset+i]*0.875f);
+      } else {
+        color.x*=MIN(1.0f,0.125f+keyHit1[keyHitOffset+i]*0.875f);
+        color.y*=MIN(1.0f,0.125f+keyHit1[keyHitOffset+i]*0.875f);
+        color.z*=MIN(1.0f,0.125f+keyHit1[keyHitOffset+i]*0.875f);
+      }
     }
     dl->AddRectFilled(ImVec2(x,y),ImVec2(x+ledSize.x,y+ledSize.y),ImGui::GetColorU32(color),ledSize.y);
     x+=ledSize.x+sep.x;
