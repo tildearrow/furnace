@@ -3848,6 +3848,14 @@ void FurnaceGUI::drawSettings() {
           ImGui::SetTooltip(_("Sorry, but, can you leave me alone?\nThere's plenty of other settings here for you to mess with."));
         }
 
+        // SUBSECTION SONG COMMENTS
+        CONFIG_SUBSECTION(_("Chip Manager"));
+        bool rackShowLEDsB=settings.rackShowLEDs;
+        if (ImGui::Checkbox(_("Show channel indicators"), &rackShowLEDsB)) {
+          settings.rackShowLEDs=rackShowLEDsB;
+          settingsChanged=true;
+        }
+
         // SUBSECTION WINDOWS
         CONFIG_SUBSECTION(_("Windows"));
         bool roundedWindowsB=settings.roundedWindows;
@@ -5030,6 +5038,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
     settings.songNotesWrap=conf.getInt("songNotesWrap", 0);
 
+    settings.rackShowLEDs=conf.getInt("rackShowLEDs", 1);
+
     settings.channelColors=conf.getInt("channelColors",1);
     settings.channelTextColors=conf.getInt("channelTextColors",0);
     settings.channelStyle=conf.getInt("channelStyle",1);
@@ -5367,6 +5377,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.shaderOsc,0,1);
   clampSetting(settings.oscLineSize,0.25f,16.0f);
   clampSetting(settings.songNotesWrap, 0, 1);
+  clampSetting(settings.rackShowLEDs, 0, 1);
   clampSetting(settings.cursorWheelStep,0,2);
   clampSetting(settings.vsync,0,4);
   clampSetting(settings.frameRateLimit,0,1000);
@@ -5611,6 +5622,8 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("oscLineSize",settings.oscLineSize);
 
     conf.set("songNotesWrap",settings.songNotesWrap);
+
+    conf.set("rackShowLEDs", settings.rackShowLEDs);
 
     conf.set("channelColors",settings.channelColors);
     conf.set("channelTextColors",settings.channelTextColors);

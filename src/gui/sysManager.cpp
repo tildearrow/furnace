@@ -81,7 +81,8 @@ void FurnaceGUI::drawSysManager() {
         }
         ImGui::SameLine();
         float buttonInnerSize=ImGui::CalcTextSize(ICON_FA_CLONE).x;
-        float sideButtonSize=ImGui::GetStyle().ItemSpacing.x*3.0f+buttonInnerSize*3.0f+ImGui::GetStyle().FramePadding.x*6;
+        float buttonCount=settings.rackShowLEDs?3.0f:4.0f;
+        float sideButtonSize=ImGui::GetStyle().ItemSpacing.x*buttonCount+buttonInnerSize*buttonCount+ImGui::GetStyle().FramePadding.x*2*buttonCount;
         ImGui::AlignTextToFramePadding();
         ImGui::ScrollText(ImGui::GetID(rackNameID.c_str()),sysDef->name,ImVec2(0.0f,0.0f),ImVec2(ImGui::GetContentRegionAvail().x-sideButtonSize,0),false);
         ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvail().x-sideButtonSize,1.0f));
@@ -141,7 +142,10 @@ void FurnaceGUI::drawSysManager() {
         ImGui::EndDisabled();
 
         // channel LEDs and chip config button
-        float height=drawSystemChannelInfo(sysDef,dispatchOff,ImGui::GetContentRegionAvail().x-(ImGui::CalcTextSize(ICON_FA_CHEVRON_DOWN).x+ImGui::GetStyle().ItemSpacing.x));
+        float height=0;
+        if (settings.rackShowLEDs) {
+          height=drawSystemChannelInfo(sysDef,dispatchOff,ImGui::GetContentRegionAvail().x-(ImGui::CalcTextSize(ICON_FA_CHEVRON_DOWN).x+ImGui::GetStyle().ItemSpacing.x));
+        }
 
         ImGuiID openedID=ImGui::GetID("OpenSysConfig");
         bool opened=openedConfig->GetBool(openedID,false);
