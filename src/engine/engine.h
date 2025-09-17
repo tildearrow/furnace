@@ -106,9 +106,26 @@ enum DivAudioExportFormats {
   DIV_EXPORT_FORMAT_F32
 };
 
+enum DivAudioExportWriters {
+  DIV_EXPORT_WRITER_SNDFILE=0,
+  DIV_EXPORT_WRITER_COMMAND
+};
+
+struct DivAudioCommandExportDef {
+  String name, fileExt, commandTemplate;
+  DivAudioCommandExportDef(String n, String fe, String ct):
+    name(n),
+    fileExt(fe),
+    commandTemplate(ct) {}
+};
+
 struct DivAudioExportOptions {
   DivAudioExportModes mode;
   DivAudioExportFormats format;
+  String extraFlags;
+  DivAudioExportWriters curWriter;
+  std::vector<DivAudioCommandExportDef> commandExportWriterDefs;
+  int curCommandWriterIndex;
   int sampleRate;
   int chans;
   int loops;
@@ -118,6 +135,9 @@ struct DivAudioExportOptions {
   DivAudioExportOptions():
     mode(DIV_EXPORT_MODE_ONE),
     format(DIV_EXPORT_FORMAT_S16),
+    extraFlags(""),
+    curWriter(DIV_EXPORT_WRITER_SNDFILE),
+    curCommandWriterIndex(0),
     sampleRate(44100),
     chans(2),
     loops(0),
@@ -127,6 +147,16 @@ struct DivAudioExportOptions {
     for (int i=0; i<DIV_MAX_CHANS; i++) {
       channelMask[i]=true;
     }
+
+    const char *ffmpegTemplate="%ffmpeg% -y -v verbose -f %input_format% -ar %sample_rate% -ac %channel_count% -i pipe:0 %output_file%"; // TODO: %extra_flags% (or maybe don't use that)
+
+    commandExportWriterDefs={
+      DivAudioCommandExportDef("FLAC file (.flac) (ffmpeg)","flac",ffmpegTemplate),
+      DivAudioCommandExportDef("OGG file (.ogg) (ffmpeg)","ogg",ffmpegTemplate),
+      DivAudioCommandExportDef("MP3 file (.mp3) (ffmpeg)","mp3",ffmpegTemplate),
+      DivAudioCommandExportDef("M4A file (.m4a) (ffmpeg)","m4a",ffmpegTemplate),
+      DivAudioCommandExportDef("OPUS file (.opus) (ffmpeg)","opus",ffmpegTemplate)
+    };
   }
 };
 
@@ -499,6 +529,10 @@ class DivEngine {
   DivAudioEngines audioEngine;
   DivAudioExportModes exportMode;
   DivAudioExportFormats exportFormat;
+  DivAudioExportWriters exportWriter;
+  String exportCommand;
+  String exportFileExtNoDot;
+  String exportExtraFlags;
   double exportFadeOut;
   bool isFadingOut;
   int exportOutputs;
@@ -623,8 +657,8 @@ class DivEngine {
   void loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadWOPL(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
- 
- //sample banks
+
+  // sample banks
   void loadP(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
   void loadPPC(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
   void loadPPS(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
@@ -632,8 +666,6 @@ class DivEngine {
   void loadPDX(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
   void loadPZI(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
   void loadP86(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
-
-
 
   int loadSampleROM(String path, ssize_t expectedSize, unsigned char*& ret);
 
@@ -695,6 +727,8 @@ class DivEngine {
     int tickMult;
     int lastNBIns, lastNBOuts, lastNBSize;
     std::atomic<size_t> processTime;
+    String exportFfmpegPath;
+    bool exportFfmpegSearched;
 
     void runExportThread();
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
@@ -1479,6 +1513,10 @@ class DivEngine {
       audioEngine(DIV_AUDIO_NULL),
       exportMode(DIV_EXPORT_MODE_ONE),
       exportFormat(DIV_EXPORT_FORMAT_S16),
+      exportWriter(DIV_EXPORT_WRITER_SNDFILE),
+      exportCommand(""),
+      exportFileExtNoDot("wav"),
+      exportExtraFlags(""),
       exportFadeOut(0.0),
       isFadingOut(false),
       exportOutputs(2),
@@ -1516,6 +1554,8 @@ class DivEngine {
       lastNBOuts(0),
       lastNBSize(0),
       processTime(0),
+      exportFfmpegPath(""),
+      exportFfmpegSearched(false),
       yrw801ROM(NULL),
       tg100ROM(NULL),
       mu5ROM(NULL) {

@@ -1940,6 +1940,7 @@ class FurnaceGUI {
     int insEditColorize;
     int metroVol;
     int sampleVol;
+    String exportFfmpegPath;
     int pushNibble;
     int scrollChangesOrder;
     int oplStandardWaveNames;
@@ -2194,6 +2195,7 @@ class FurnaceGUI {
       insEditColorize(0),
       metroVol(100),
       sampleVol(50),
+      exportFfmpegPath(""),
       pushNibble(0),
       scrollChangesOrder(0),
       oplStandardWaveNames(0),
@@ -2826,7 +2828,7 @@ class FurnaceGUI {
   std::vector<String> randomDemoSong;
 
   void commandExportOptions();
-  
+
   void drawExportAudio(bool onWindow=false);
   void drawExportVGM(bool onWindow=false);
   void drawExportROM(bool onWindow=false);

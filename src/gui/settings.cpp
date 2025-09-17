@@ -1501,6 +1501,16 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
+        // SUBSECTION EXPORT
+        CONFIG_SUBSECTION(_("Export"));
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text(_("ffmpeg executable path"));
+        ImGui::SameLine();
+        if (ImGui::InputText("##FfmpegPath",&settings.exportFfmpegPath)) {
+          e->exportFfmpegSearched=false;
+          settingsChanged=true;
+        }
+
         END_SECTION;
       }
       CONFIG_SECTION(_("MIDI")) {
@@ -4918,6 +4928,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
     settings.metroVol=conf.getInt("metroVol",100);
     settings.sampleVol=conf.getInt("sampleVol",50);
+    settings.exportFfmpegPath=conf.getString("exportFfmpegPath","");
 
     settings.wasapiEx=conf.getInt("wasapiEx",0);
 
@@ -5405,6 +5416,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
+
+  audioExportOptions.extraFlags=conf.getString("audioExportExtraFlags","");
 }
 
 void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
@@ -5466,6 +5479,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("exportLoops",settings.exportLoops);
     conf.set("exportFadeOut",settings.exportFadeOut);
 
+
     conf.set("doubleClickTime",settings.doubleClickTime);
     conf.set("disableFadeIn",settings.disableFadeIn);
     conf.set("alwaysPlayIntro",settings.alwaysPlayIntro);
@@ -5509,6 +5523,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
     conf.set("metroVol",settings.metroVol);
     conf.set("sampleVol",settings.sampleVol);
+    conf.set("exportFfmpegPath",settings.exportFfmpegPath);
 
     conf.set("wasapiEx",settings.wasapiEx);
 
