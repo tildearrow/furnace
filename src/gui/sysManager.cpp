@@ -141,23 +141,17 @@ void FurnaceGUI::drawSysManager() {
         ImGui::EndDisabled();
 
         // channel LEDs and chip config button
-        float height=drawSystemChannelInfo(sysDef,dispatchOff,ImGui::GetContentRegionAvail().x-(ImGui::CalcTextSize(ICON_FA_CHEVRON_DOWN).x+ImGui::GetStyle().FramePadding.x*2.0f+ImGui::GetStyle().ItemSpacing.x));
+        float height=drawSystemChannelInfo(sysDef,dispatchOff,ImGui::GetContentRegionAvail().x-(ImGui::CalcTextSize(ICON_FA_CHEVRON_DOWN).x+ImGui::GetStyle().ItemSpacing.x));
 
         ImGuiID openedID=ImGui::GetID("OpenSysConfig");
         bool opened=openedConfig->GetBool(openedID,false);
         ImGui::SameLine();
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize,0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameShading,0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding,0.0f);
-        ImGui::PushStyleColor(ImGuiCol_Button,0);
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered,ImGui::GetColorU32(uiColors[GUI_COLOR_SCROLL]));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive,ImGui::GetColorU32(uiColors[GUI_COLOR_SCROLL_ACTIVE]));
+        ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign,ImVec2(0.5f,0.5f));
         if (ImGui::Selectable(opened?(ICON_FA_CHEVRON_UP "###OpenThing"):(ICON_FA_CHEVRON_DOWN "###OpenThing"),false,0,ImVec2(0,height))) {
           opened=!opened;
           openedConfig->SetBool(openedID,opened);
         }
-        ImGui::PopStyleColor(3);
-        ImGui::PopStyleVar(3);
+        ImGui::PopStyleVar();
 
         if (opened) {
           ImGui::Separator();
