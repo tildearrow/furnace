@@ -6607,6 +6607,11 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     //fontConf.RasterizerMultiply=1.5;
     //fontConfP.RasterizerMultiply=1.5;
 
+    fontConf.PixelSnapH=0;
+    fontConfP.PixelSnapH=0;
+    fontConfB.PixelSnapH=0;
+    fontConfH.PixelSnapH=0;
+
     if (settings.mainFont<0 || settings.mainFont>6) settings.mainFont=0;
     if (settings.headFont<0 || settings.headFont>6) settings.headFont=0;
     if (settings.patFont<0 || settings.patFont>6) settings.patFont=0;

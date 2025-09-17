@@ -499,7 +499,9 @@ static bool ImGui_ImplFreeType_FontBakedLoadGlyph(ImFontAtlas* atlas, ImFontConf
     const float rasterizer_density = src->RasterizerDensity * baked->RasterizerDensity;
 
     // Load metrics only mode
-    const float advance_x = (slot->advance.x / FT_SCALEFACTOR) / rasterizer_density;
+    // tildearrow: this fixes blurry text.
+    const float advance_x = (float)FT_CEIL(slot->advance.x-((src->FontLoaderFlags&ImGuiFreeTypeLoaderFlags_NoHinting)?31:0));
+    //const float advance_x = (slot->advance.x / FT_SCALEFACTOR) / rasterizer_density;
     if (out_advance_x != NULL)
     {
         IM_ASSERT(out_glyph == NULL);
