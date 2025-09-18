@@ -3843,10 +3843,6 @@ void FurnaceGUI::drawSettings() {
           settings.songNotesWrap=songNotesWrapB;
           settingsChanged=true;
         }
-        settings.songNotesWrap=false;
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("Sorry, but, can you leave me alone?\nThere's plenty of other settings here for you to mess with."));
-        }
 
         // SUBSECTION SONG COMMENTS
         CONFIG_SUBSECTION(_("Chip Manager"));
