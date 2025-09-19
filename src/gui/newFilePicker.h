@@ -33,5 +33,5 @@ class FurnaceFilePicker {
 
   public:
     bool draw();
-    bool open(String name);
+    bool open(String name, String path, bool modal);
 };
