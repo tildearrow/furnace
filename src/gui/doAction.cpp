@@ -222,6 +222,9 @@ void FurnaceGUI::doAction(int what) {
       }
       break;
     }
+    case GUI_ACTION_OPEN_EDIT_MENU:
+      openEditMenu=true;
+      break;
     case GUI_ACTION_PANIC:
       e->syncReset();
       break;

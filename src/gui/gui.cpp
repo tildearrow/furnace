@@ -8680,6 +8680,7 @@ FurnaceGUI::FurnaceGUI():
   dragMobileEditButton(false),
   wantGrooveListFocus(false),
   mobilePatSel(false),
+  openEditMenu(false),
   lastAssetType(0),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
