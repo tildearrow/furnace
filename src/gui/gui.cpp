@@ -4987,6 +4987,8 @@ bool FurnaceGUI::loop() {
       MEASURE(log,drawLog());
       MEASURE(effectList,drawEffectList());
       MEASURE(userPresets,drawUserPresets());
+
+      newFilePicker->draw();
     }
 
     // release selection if mouse released
@@ -7867,6 +7869,9 @@ bool FurnaceGUI::init() {
 
   userEvents=SDL_RegisterEvents(1);
 
+  newFilePicker=new FurnaceFilePicker;
+  newFilePicker->open("New File Picker","/home",false);
+
   e->setMidiCallback([this](const TAMidiMessage& msg) -> int {
     if (introPos<11.0) return -3;
     midiLock.lock();
@@ -8511,6 +8516,7 @@ FurnaceGUI::FurnaceGUI():
   postWarnAction(GUI_WARN_GENERIC),
   mobScene(GUI_SCENE_PATTERN),
   fileDialog(NULL),
+  newFilePicker(NULL),
   scrW(GUI_WIDTH_DEFAULT),
   scrH(GUI_HEIGHT_DEFAULT),
   scrConfW(GUI_WIDTH_DEFAULT),

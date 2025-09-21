@@ -18,20 +18,40 @@
  */
 
 #include "../ta-utils.h"
+#include <thread>
 
 class FurnaceFilePicker {
+  enum FileType {
+    FP_TYPE_UNKNOWN=0,
+    FP_TYPE_NORMAL,
+    FP_TYPE_DIR,
+    FP_TYPE_LINK,
+    FP_TYPE_PIPE,
+    FP_TYPE_SOCKET,
+  };
   struct FileEntry {
     String path;
     String name;
+    String ext;
     uint64_t size;
     struct tm time;
+    FileType type;
   };
   std::vector<FileEntry*> entries;
   std::vector<FileEntry*> sortedEntries;
+  std::thread* fileThread;
   std::mutex entryLock;
+  String windowName;
   String path;
+  String failMessage;
+  bool haveFiles, haveStat, stopReading, isOpen;
+
+  void clearAllFiles();
+  void readDirectory(String path);
 
   public:
+    void readDirectorySub();
     bool draw();
     bool open(String name, String path, bool modal);
+    FurnaceFilePicker();
 };

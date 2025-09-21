@@ -38,6 +38,7 @@
 #include "../pch.h"
 
 #include "fileDialog.h"
+#include "newFilePicker.h"
 
 #define FURNACE_APP_ID "org.tildearrow.furnace"
 
@@ -1765,6 +1766,7 @@ class FurnaceGUI {
   FurnaceGUIMobileScenes mobScene;
 
   FurnaceGUIFileDialog* fileDialog;
+  FurnaceFilePicker* newFilePicker;
 
   int scrW, scrH, scrConfW, scrConfH, canvasW, canvasH;
   int scrX, scrY, scrConfX, scrConfY;

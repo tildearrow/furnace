@@ -894,6 +894,7 @@ src/gui/image.cpp
 
 src/gui/debug.cpp
 src/gui/fileDialog.cpp
+src/gui/newFilePicker.cpp
 
 src/gui/intConst.cpp
 src/gui/guiConst.cpp
