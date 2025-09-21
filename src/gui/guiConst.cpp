@@ -603,6 +603,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("FOLLOW_PATTERN", _N("Follow pattern"), 0),
   D("FULLSCREEN", _N("Toggle full-screen"), SDLK_F11),
   D("TX81Z_REQUEST", _N("Request voice from TX81Z"), 0),
+  D("OPEN_EDIT_MENU", _N("Open pattern edit menu"), 0),
   D("PANIC", _N("Panic"), SDLK_F12),
   D("CLEAR", _N("Clear song data"), 0),
 

@@ -719,6 +719,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_FOLLOW_PATTERN,
   GUI_ACTION_FULLSCREEN,
   GUI_ACTION_TX81Z_REQUEST,
+  GUI_ACTION_OPEN_EDIT_MENU,
   GUI_ACTION_PANIC,
   GUI_ACTION_CLEAR,
 
@@ -2401,6 +2402,7 @@ class FurnaceGUI {
   bool collapseWindow, demandScrollX, fancyPattern, firstFrame, tempoView, waveHex, waveSigned, waveGenVisible, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
   bool keepLoopAlive, keepGrooveAlive, orderScrollLocked, orderScrollTolerance, dragMobileMenu, dragMobileEditButton, wantGrooveListFocus;
   bool mobilePatSel;
+  bool openEditMenu;
   unsigned char lastAssetType;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   std::atomic<FurnaceGUIWindows> curWindowThreadSafe;
