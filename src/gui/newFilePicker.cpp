@@ -21,9 +21,11 @@
 // this will eventually replace ImGuiFileDialog as the built-in file picker.
 
 #include "newFilePicker.h"
-#include "imgui.h"
 #include <IconsFontAwesome4.h>
 #include <dirent.h>
+#include <inttypes.h>
+#include <sys/stat.h>
+#include <time.h>
 
 static void _fileThread(void* item) {
   ((FurnaceFilePicker*)item)->readDirectorySub();
@@ -68,6 +70,9 @@ void FurnaceFilePicker::readDirectorySub() {
     }
 
     entries.push_back(newEntry);
+    if (stopReading) {
+      break;
+    }
   }
   if (closedir(dir)!=0) {
     // ?!
@@ -77,7 +82,33 @@ void FurnaceFilePicker::readDirectorySub() {
   haveFiles=true;
 
   /// STAGE 2: retrieve file information
+  struct stat st;
+  String filePath;
+  for (FileEntry* i: entries) {
+    if (stopReading) {
+      return;
+    }
 
+    if (*path.rbegin()=='/') {
+      filePath=path+i->name;
+    } else {
+      filePath=path+'/'+i->name;
+    }
+
+    if (stat(filePath.c_str(),&st)<0) {
+      // fall back to unknown
+      continue;
+    }
+
+    // read file information
+    struct tm* retTM=localtime_r(&st.st_mtime,&i->time);
+    if (retTM!=NULL) {
+      i->hasTime=true;
+    }
+
+    i->size=st.st_size;
+    i->hasSize=true;
+  }
   haveStat=true;
 }
 
@@ -137,32 +168,47 @@ bool FurnaceFilePicker::draw() {
           ImGui::Text("Could not load this directory!\n(%s)",failMessage.c_str());
         }
       } else {
-        if (ImGui::BeginTable("FileList",3,ImGuiTableFlags_Borders)) {
+        if (ImGui::BeginTable("FileList",3,ImGuiTableFlags_Borders|ImGuiTableFlags_ScrollY)) {
           entryLock.lock();
           int index=0;
-          for (FileEntry* i: entries) {
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            if (i->type==FP_TYPE_DIR) {
-              ImGui::PushStyleColor(ImGuiCol_Text,0xff00ffff);
-            }
-            ImGui::PushID(index++);
-            if (ImGui::Selectable("##File",false)) {
-              if (i->type==FP_TYPE_DIR || i->type==FP_TYPE_LINK) {
-                if (*path.rbegin()=='/') {
-                  newDir=path+i->name;
-                } else {
-                  newDir=path+'/'+i->name;
+          listClipper.Begin(entries.size());
+          while (listClipper.Step()) {
+            for (int _i=listClipper.DisplayStart; _i<listClipper.DisplayEnd; _i++) {
+              FileEntry* i=entries[_i];
+
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              if (i->type==FP_TYPE_DIR) {
+                ImGui::PushStyleColor(ImGuiCol_Text,0xff00ffff);
+              }
+              ImGui::PushID(index++);
+              if (ImGui::Selectable("##File",false)) {
+                if (i->type==FP_TYPE_DIR || i->type==FP_TYPE_LINK) {
+                  if (*path.rbegin()=='/') {
+                    newDir=path+i->name;
+                  } else {
+                    newDir=path+'/'+i->name;
+                  }
                 }
               }
-            }
-            ImGui::PopID();
-            ImGui::SameLine();
-            
-            ImGui::TextUnformatted(i->name.c_str());
+              ImGui::PopID();
+              ImGui::SameLine();
+              
+              ImGui::TextUnformatted(i->name.c_str());
 
-            if (i->type==FP_TYPE_DIR) {
-              ImGui::PopStyleColor();
+              ImGui::TableNextColumn();
+              if (i->hasSize) {
+                ImGui::Text("%" PRIu64,i->size);
+              }
+
+              ImGui::TableNextColumn();
+              if (i->hasTime) {
+                ImGui::Text("%d/%02d/%02d %02d:%02d",i->time.tm_year+1900,i->time.tm_mon+1,i->time.tm_mday,i->time.tm_hour,i->time.tm_min);
+              }
+
+              if (i->type==FP_TYPE_DIR) {
+                ImGui::PopStyleColor();
+              }
             }
           }
           ImGui::EndTable();

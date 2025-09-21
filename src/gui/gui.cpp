@@ -4944,6 +4944,8 @@ bool FurnaceGUI::loop() {
       MEASURE(effectList,drawEffectList());
       MEASURE(userPresets,drawUserPresets());
       MEASURE(patManager,drawPatManager());
+
+      newFilePicker->draw();
     } else {
       globalWinFlags=0;
       ImGui::DockSpaceOverViewport(0,NULL,lockLayout?(ImGuiDockNodeFlags_NoWindowMenuButton|ImGuiDockNodeFlags_NoMove|ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplit|ImGuiDockNodeFlags_NoDockingSplitOther):0);

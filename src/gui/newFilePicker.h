@@ -18,7 +18,9 @@
  */
 
 #include "../ta-utils.h"
+#include <stdint.h>
 #include <thread>
+#include "imgui.h"
 
 class FurnaceFilePicker {
   enum FileType {
@@ -33,9 +35,13 @@ class FurnaceFilePicker {
     String path;
     String name;
     String ext;
+    bool hasSize, hasTime;
     uint64_t size;
     struct tm time;
     FileType type;
+    FileEntry():
+      hasSize(false), hasTime(false),
+      size(0), type(FP_TYPE_UNKNOWN) {}
   };
   std::vector<FileEntry*> entries;
   std::vector<FileEntry*> sortedEntries;
@@ -44,6 +50,7 @@ class FurnaceFilePicker {
   String windowName;
   String path;
   String failMessage;
+  ImGuiListClipper listClipper;
   bool haveFiles, haveStat, stopReading, isOpen;
 
   void clearAllFiles();
