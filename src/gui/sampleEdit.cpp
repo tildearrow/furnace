@@ -656,6 +656,7 @@ void FurnaceGUI::drawSampleEdit() {
             sample->loopEnd=sample->samples;*/
           }
           updateSampleTex=true;
+          notifySampleChange=true;
           REFRESH_SAMPLE
         }
         popWarningColor();
@@ -688,6 +689,7 @@ void FurnaceGUI::drawSampleEdit() {
                   e->renderSamples(curSample);
                 });
                 updateSampleTex=true;
+                notifySampleChange=true;
                 MARK_MODIFIED;
               }
             }
@@ -708,6 +710,7 @@ void FurnaceGUI::drawSampleEdit() {
               sample->brrEmphasis=be;
               e->renderSamplesP(curSample);
               updateSampleTex=true;
+              notifySampleChange=true;
               MARK_MODIFIED;
             }
             if (ImGui::IsItemHovered()) {
@@ -725,6 +728,7 @@ void FurnaceGUI::drawSampleEdit() {
               sample->brrNoFilter=bf;
               e->renderSamplesP(curSample);
               updateSampleTex=true;
+              notifySampleChange=true;
               MARK_MODIFIED;
             }
             if (ImGui::IsItemHovered()) {
@@ -738,6 +742,7 @@ void FurnaceGUI::drawSampleEdit() {
               sample->dither=di;
               e->renderSamplesP(curSample);
               updateSampleTex=true;
+              notifySampleChange=true;
               MARK_MODIFIED;
             }
             if (ImGui::IsItemHovered()) {
@@ -870,6 +875,7 @@ void FurnaceGUI::drawSampleEdit() {
                 sample->loopMode=(DivSampleLoopMode)i;
                 e->renderSamplesP(curSample);
                 updateSampleTex=true;
+                notifySampleChange=true;
                 MARK_MODIFIED;
               }
             }
@@ -893,6 +899,7 @@ void FurnaceGUI::drawSampleEdit() {
               sample->loopStart=sample->loopEnd;
             }
             updateSampleTex=true;
+            notifySampleChange=true;
             REFRESH_SAMPLE
           }
           if (ImGui::IsItemActive()) {
@@ -934,6 +941,7 @@ void FurnaceGUI::drawSampleEdit() {
               sample->loopEnd=sample->samples;
             }
             updateSampleTex=true;
+            notifySampleChange=true;
             REFRESH_SAMPLE
           }
           if (ImGui::IsItemActive()) {
@@ -1108,6 +1116,7 @@ void FurnaceGUI::drawSampleEdit() {
             e->renderSamples(curSample);
           });
           updateSampleTex=true;
+          notifySampleChange=true;
           sampleSelStart=-1;
           sampleSelEnd=-1;
           MARK_MODIFIED;
@@ -1172,6 +1181,7 @@ void FurnaceGUI::drawSampleEdit() {
             e->renderSamples(curSample);
           });
           updateSampleTex=true;
+          notifySampleChange=true;
           sampleSelStart=-1;
           sampleSelEnd=-1;
           MARK_MODIFIED;
@@ -1239,6 +1249,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
 
             updateSampleTex=true;
+            notifySampleChange=true;
 
             e->renderSamples(curSample);
           });
@@ -1292,6 +1303,7 @@ void FurnaceGUI::drawSampleEdit() {
             e->renderSamples(curSample);
           });
           updateSampleTex=true;
+          notifySampleChange=true;
           sampleSelStart=pos;
           sampleSelEnd=pos+silenceSize;
           MARK_MODIFIED;
@@ -1467,6 +1479,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
 
             updateSampleTex=true;
+            notifySampleChange=true;
 
             e->renderSamples(curSample);
           });
@@ -1546,6 +1559,7 @@ void FurnaceGUI::drawSampleEdit() {
                 }
               }
               updateSampleTex=true;
+              notifySampleChange=true;
 
               e->renderSamples(curSample);
             });
@@ -2508,6 +2522,7 @@ void FurnaceGUI::doUndoSample() {
     if (sample->undo()==2) {
       e->renderSamples(curSample);
       updateSampleTex=true;
+      notifySampleChange=true;
     }
   });
 }
@@ -2520,6 +2535,7 @@ void FurnaceGUI::doRedoSample() {
     if (sample->redo()==2) {
       e->renderSamples(curSample);
       updateSampleTex=true;
+      notifySampleChange=true;
     }
   });
 }

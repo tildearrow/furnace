@@ -748,6 +748,8 @@ class DivEngine {
     void notifyInsChange(int ins);
     // notify wavetable change
     void notifyWaveChange(int wave);
+    // notify sample change
+    void notifySampleChange(int sample);
 
     // dispatch a command
     int dispatchCmd(DivCommand c);
