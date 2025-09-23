@@ -18,9 +18,16 @@
  */
 
 #include "../ta-utils.h"
+#include "../engine/config.h"
 #include <stdint.h>
 #include <thread>
 #include "imgui.h"
+
+enum FilePickerStatus {
+  FP_STATUS_WAITING=0,
+  FP_STATUS_ACCEPTED,
+  FP_STATUS_CLOSED
+};
 
 class FurnaceFilePicker {
   enum FileType {
@@ -35,30 +42,43 @@ class FurnaceFilePicker {
     String path;
     String name;
     String ext;
-    bool hasSize, hasTime;
+    bool hasSize, hasTime, isDir;
     uint64_t size;
     struct tm time;
     FileType type;
     FileEntry():
-      hasSize(false), hasTime(false),
+      hasSize(false), hasTime(false), isDir(false),
       size(0), type(FP_TYPE_UNKNOWN) {}
   };
   std::vector<FileEntry*> entries;
   std::vector<FileEntry*> sortedEntries;
+  std::vector<FileEntry*> filteredEntries;
+  std::vector<FileEntry*> chosenEntries;
   std::thread* fileThread;
   std::mutex entryLock;
   String windowName;
-  String path;
+  String path, filter;
   String failMessage;
+  String homeDir;
+  String entryName;
   ImGuiListClipper listClipper;
   bool haveFiles, haveStat, stopReading, isOpen;
+  int scheduledSort;
+  FilePickerStatus curStatus;
 
+  void sortFiles();
+  void filterFiles();
   void clearAllFiles();
   void readDirectory(String path);
 
   public:
     void readDirectorySub();
+    void setHomeDir(String where);
+    FilePickerStatus getStatus();
+    const std::vector<FileEntry*>& getSelected();
     bool draw();
     bool open(String name, String path, bool modal);
+    void loadSettings(DivConfig& conf);
+    void saveSettings(DivConfig& conf);
     FurnaceFilePicker();
 };

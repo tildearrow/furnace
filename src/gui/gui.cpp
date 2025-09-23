@@ -7872,6 +7872,7 @@ bool FurnaceGUI::init() {
   userEvents=SDL_RegisterEvents(1);
 
   newFilePicker=new FurnaceFilePicker;
+  newFilePicker->setHomeDir(getHomeDir());
   newFilePicker->open("New File Picker","/home",false);
 
   e->setMidiCallback([this](const TAMidiMessage& msg) -> int {

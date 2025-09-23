@@ -21,7 +21,8 @@
 // this will eventually replace ImGuiFileDialog as the built-in file picker.
 
 #include "newFilePicker.h"
-#include <IconsFontAwesome4.h>
+#include "IconsFontAwesome4.h"
+#include "misc/cpp/imgui_stdlib.h"
 #include <dirent.h>
 #include <inttypes.h>
 #include <sys/stat.h>
@@ -57,9 +58,11 @@ void FurnaceFilePicker::readDirectorySub() {
         break;
       case DT_DIR:
         newEntry->type=FP_TYPE_DIR;
+        newEntry->isDir=true;
         break;
       case DT_LNK:
         newEntry->type=FP_TYPE_LINK;
+        // TODO: resolve link
         break;
       case DT_SOCK:
         newEntry->type=FP_TYPE_SOCKET;
@@ -134,7 +137,59 @@ void FurnaceFilePicker::readDirectory(String path) {
   haveFiles=false;
   haveStat=false;
   stopReading=false;
+  scheduledSort=1;
   fileThread=new std::thread(_fileThread,this);
+}
+
+void FurnaceFilePicker::setHomeDir(String where) {
+  homeDir=where;
+}
+
+void FurnaceFilePicker::sortFiles() {
+  entryLock.lock();
+  sortedEntries=entries;
+  entryLock.unlock();
+
+  // sort by name
+  std::sort(sortedEntries.begin(),sortedEntries.end(),[](const FileEntry* a, const FileEntry* b) -> bool {
+    if (a->isDir && !b->isDir) return true;
+    if (!a->isDir && b->isDir) return false;
+
+    String aLower=a->name;
+    for (char& i: aLower) {
+      if (i>='A' && i<='Z') i+='a'-'A';
+    }
+    String bLower=b->name;
+    for (char& i: bLower) {
+      if (i>='A' && i<='Z') i+='a'-'A';
+    }
+    return aLower<bLower;
+  });
+}
+
+void FurnaceFilePicker::filterFiles() {
+  if (filter.empty()) {
+    filteredEntries=sortedEntries;
+    return;
+  }
+
+  filteredEntries.clear();
+
+  String lowerFilter=filter;
+  for (char& i: lowerFilter) {
+    if (i>='A' && i<='Z') i+='a'-'A';
+  }
+
+  for (FileEntry* i: sortedEntries) {
+    String lowerName=i->name;
+    for (char& j: lowerName) {
+      if (j>='A' && j<='Z') j+='a'-'A';
+    }
+
+    if (lowerName.find(lowerFilter)!=String::npos) {
+      filteredEntries.push_back(i);
+    }
+  }
 }
 
 bool FurnaceFilePicker::draw() {
@@ -144,6 +199,10 @@ bool FurnaceFilePicker::draw() {
 
   ImGui::SetNextWindowSizeConstraints(ImVec2(800.0,600.0),ImVec2(8000.0,6000.0));
   if (ImGui::Begin(windowName.c_str(),NULL,ImGuiWindowFlags_NoSavedSettings)) {
+    if (ImGui::Button(ICON_FA_HOME "##HomeDir")) {
+      newDir=homeDir;
+    }
+    ImGui::SameLine();
     if (ImGui::Button(ICON_FA_CHEVRON_UP "##ParentDir")) {
       size_t pos=path.rfind('/');
       if (pos!=String::npos && path!="/") {
@@ -160,21 +219,47 @@ bool FurnaceFilePicker::draw() {
       } else {
         ImGui::Text("Loading... (%s)",path.c_str());
       }
+      if (ImGui::Button(ICON_FA_REPEAT "##ClearFilter")) {
+        filter="";
+        filterFiles();
+      }
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+      if (ImGui::InputTextWithHint("##Filter","Search",&filter)) {
+        filterFiles();
+      }
 
-      if (entries.empty()) {
-        if (failMessage.empty()) {
-          ImGui::Text("This directory is empty!");
+      if (scheduledSort) {
+        scheduledSort=0;
+        sortFiles();
+        filterFiles();
+      }
+
+      ImVec2 tableSize=ImGui::GetContentRegionAvail();
+      tableSize.y-=ImGui::GetFrameHeightWithSpacing()*2.0f;
+
+      if (filteredEntries.empty()) {
+        if (sortedEntries.empty()) {
+          if (failMessage.empty()) {
+            ImGui::Text("This directory is empty!");
+          } else {
+            ImGui::Text("Could not load this directory!\n(%s)",failMessage.c_str());
+          }
         } else {
-          ImGui::Text("Could not load this directory!\n(%s)",failMessage.c_str());
+          if (failMessage.empty()) {
+            ImGui::Text("No results");
+          } else {
+            ImGui::Text("Could not load this directory!\n(%s)",failMessage.c_str());
+          }
         }
       } else {
-        if (ImGui::BeginTable("FileList",3,ImGuiTableFlags_Borders|ImGuiTableFlags_ScrollY)) {
+        if (ImGui::BeginTable("FileList",3,ImGuiTableFlags_Borders|ImGuiTableFlags_ScrollY,tableSize)) {
           entryLock.lock();
           int index=0;
-          listClipper.Begin(entries.size());
+          listClipper.Begin(filteredEntries.size());
           while (listClipper.Step()) {
             for (int _i=listClipper.DisplayStart; _i<listClipper.DisplayEnd; _i++) {
-              FileEntry* i=entries[_i];
+              FileEntry* i=filteredEntries[_i];
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
@@ -215,6 +300,20 @@ bool FurnaceFilePicker::draw() {
           entryLock.unlock();
         }
       }
+
+      ImGui::AlignTextToFramePadding();
+      ImGui::TextUnformatted("Name: ");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+      if (ImGui::InputText("##EntryName",&entryName)) {
+      }
+
+      ImGui::Button("OK");
+      ImGui::SameLine();
+      if (ImGui::Button("Cancel")) {
+        curStatus=FP_STATUS_CLOSED;
+        isOpen=false;
+      }
     }
   }
   ImGui::End();
@@ -235,11 +334,19 @@ bool FurnaceFilePicker::open(String name, String path, bool modal) {
   return true;
 }
 
+FilePickerStatus FurnaceFilePicker::getStatus() {
+  FilePickerStatus retStatus=curStatus;
+  curStatus=FP_STATUS_WAITING;
+  return retStatus;
+}
+
 FurnaceFilePicker::FurnaceFilePicker():
   fileThread(NULL),
   haveFiles(false),
   haveStat(false),
   stopReading(false),
-  isOpen(false) {
+  isOpen(false),
+  scheduledSort(0),
+  curStatus(FP_STATUS_WAITING) {
 
 }
