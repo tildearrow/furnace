@@ -23,6 +23,8 @@
 #include "newFilePicker.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
+#include "../ta-log.h"
+#include <algorithm>
 #include <dirent.h>
 #include <inttypes.h>
 #include <sys/stat.h>
@@ -130,6 +132,8 @@ void FurnaceFilePicker::readDirectory(String path) {
     delete i;
   }
   entries.clear();
+  chosenEntries.clear();
+  updateEntryName();
 
   // start new file thread
   this->path=path;
@@ -143,6 +147,16 @@ void FurnaceFilePicker::readDirectory(String path) {
 
 void FurnaceFilePicker::setHomeDir(String where) {
   homeDir=where;
+}
+
+void FurnaceFilePicker::updateEntryName() {
+  if (chosenEntries.empty()) {
+    entryName="";
+  } else if (chosenEntries.size()>1) {
+    entryName="<multiple files selected>";
+  } else {
+    entryName=chosenEntries[0]->name;
+  }
 }
 
 void FurnaceFilePicker::sortFiles() {
@@ -214,6 +228,8 @@ bool FurnaceFilePicker::draw() {
     if (!haveFiles) {
       ImGui::Text("Loading... (%s)",path.c_str());
     } else {
+      bool acknowledged=false;
+      
       if (haveStat) {
         ImGui::Text("Hiya! (%s)",path.c_str());
       } else {
@@ -267,13 +283,17 @@ bool FurnaceFilePicker::draw() {
                 ImGui::PushStyleColor(ImGuiCol_Text,0xff00ffff);
               }
               ImGui::PushID(index++);
-              if (ImGui::Selectable("##File",false)) {
-                if (i->type==FP_TYPE_DIR || i->type==FP_TYPE_LINK) {
-                  if (*path.rbegin()=='/') {
-                    newDir=path+i->name;
-                  } else {
-                    newDir=path+'/'+i->name;
-                  }
+              if (ImGui::Selectable("CLICK ME....##File",i->isSelected)) {
+                for (FileEntry* j: chosenEntries) {
+                  j->isSelected=false;
+                }
+                chosenEntries.clear();
+                chosenEntries.push_back(i);
+                i->isSelected=true;
+                updateEntryName();
+                if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+                  logV("the fucking hell.......\n");
+                  acknowledged=true;
                 }
               }
               ImGui::PopID();
@@ -282,7 +302,7 @@ bool FurnaceFilePicker::draw() {
               ImGui::TextUnformatted(i->name.c_str());
 
               ImGui::TableNextColumn();
-              if (i->hasSize) {
+              if (i->hasSize && !i->isDir) {
                 ImGui::Text("%" PRIu64,i->size);
               }
 
@@ -308,11 +328,31 @@ bool FurnaceFilePicker::draw() {
       if (ImGui::InputText("##EntryName",&entryName)) {
       }
 
-      ImGui::Button("OK");
+      ImGui::BeginDisabled(chosenEntries.empty());
+      if (ImGui::Button("OK")) {
+        // accept entry
+        acknowledged=true;
+      }
+      ImGui::EndDisabled();
       ImGui::SameLine();
       if (ImGui::Button("Cancel")) {
         curStatus=FP_STATUS_CLOSED;
         isOpen=false;
+      }
+
+      if (acknowledged) {
+        if (!chosenEntries.empty()) {
+          if (chosenEntries.size()==1) {
+            if (chosenEntries[0]->isDir) {
+              // go there unless we've been required to select a directory
+              if (*path.rbegin()=='/') {
+                newDir=path+chosenEntries[0]->name;
+              } else {
+                newDir=path+'/'+chosenEntries[0]->name;
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -338,6 +378,14 @@ FilePickerStatus FurnaceFilePicker::getStatus() {
   FilePickerStatus retStatus=curStatus;
   curStatus=FP_STATUS_WAITING;
   return retStatus;
+}
+
+void FurnaceFilePicker::loadSettings(DivConfig& conf) {
+
+}
+
+void FurnaceFilePicker::saveSettings(DivConfig& conf) {
+
 }
 
 FurnaceFilePicker::FurnaceFilePicker():

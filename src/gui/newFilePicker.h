@@ -42,12 +42,12 @@ class FurnaceFilePicker {
     String path;
     String name;
     String ext;
-    bool hasSize, hasTime, isDir;
+    bool hasSize, hasTime, isDir, isSelected;
     uint64_t size;
     struct tm time;
     FileType type;
     FileEntry():
-      hasSize(false), hasTime(false), isDir(false),
+      hasSize(false), hasTime(false), isDir(false), isSelected(false),
       size(0), type(FP_TYPE_UNKNOWN) {}
   };
   std::vector<FileEntry*> entries;
@@ -69,6 +69,7 @@ class FurnaceFilePicker {
   void sortFiles();
   void filterFiles();
   void clearAllFiles();
+  void updateEntryName();
   void readDirectory(String path);
 
   public:
