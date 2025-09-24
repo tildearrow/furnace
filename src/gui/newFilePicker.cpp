@@ -283,7 +283,7 @@ bool FurnaceFilePicker::draw() {
                 ImGui::PushStyleColor(ImGuiCol_Text,0xff00ffff);
               }
               ImGui::PushID(index++);
-              if (ImGui::Selectable("CLICK ME....##File",i->isSelected)) {
+              if (ImGui::Selectable("##File",i->isSelected,ImGuiSelectableFlags_AllowDoubleClick|ImGuiSelectableFlags_SpanAllColumns|ImGuiSelectableFlags_SpanAvailWidth)) {
                 for (FileEntry* j: chosenEntries) {
                   j->isSelected=false;
                 }
@@ -292,7 +292,6 @@ bool FurnaceFilePicker::draw() {
                 i->isSelected=true;
                 updateEntryName();
                 if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-                  logV("the fucking hell.......\n");
                   acknowledged=true;
                 }
               }
@@ -342,15 +341,17 @@ bool FurnaceFilePicker::draw() {
 
       if (acknowledged) {
         if (!chosenEntries.empty()) {
-          if (chosenEntries.size()==1) {
-            if (chosenEntries[0]->isDir) {
-              // go there unless we've been required to select a directory
-              if (*path.rbegin()=='/') {
-                newDir=path+chosenEntries[0]->name;
-              } else {
-                newDir=path+'/'+chosenEntries[0]->name;
-              }
+          if (chosenEntries.size()==1 && chosenEntries[0]->isDir) {
+            // go there unless we've been required to select a directory
+            if (*path.rbegin()=='/') {
+              newDir=path+chosenEntries[0]->name;
+            } else {
+              newDir=path+'/'+chosenEntries[0]->name;
             }
+          } else {
+            // select this entry
+            curStatus=FP_STATUS_ACCEPTED;
+            isOpen=false;
           }
         }
       }
