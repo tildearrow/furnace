@@ -2869,6 +2869,8 @@ class FurnaceGUI {
   // inverted checkbox
   bool InvCheckbox(const char* label, bool* value);
 
+  bool NoteSelector(int* value, bool showOffRel, int octaveMin=-5, int octaveMax=9);
+
   // mixer stuff
   ImVec2 calcPortSetSize(String label, int ins, int outs);
   bool portSet(String label, unsigned int portSetID, int ins, int outs, int activeIns, int activeOuts, int& clickedPort, std::map<unsigned int,ImVec2>& portPos);
