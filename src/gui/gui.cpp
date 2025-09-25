@@ -3294,6 +3294,7 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
       ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NoHoverColors;
       ImGui::GetIO().AlwaysScrollText=true;
       fileDialog->mobileUI=true;
+      newFilePicker->setMobile(true);
     } else {
       ImGui::GetIO().IniFilename=NULL;
       if (!ImGui::LoadIniSettingsFromDisk(finalLayoutPath,true)) {
@@ -3304,6 +3305,7 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
       ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NoHoverColors;
       ImGui::GetIO().AlwaysScrollText=false;
       fileDialog->mobileUI=false;
+      newFilePicker->setMobile(false);
     }
   }
 }
@@ -7766,6 +7768,10 @@ bool FurnaceGUI::init() {
     }
   }
 
+  newFilePicker=new FurnaceFilePicker;
+  newFilePicker->setHomeDir(getHomeDir());
+  newFilePicker->open("New File Picker","/home",false);
+
   updateWindowTitle();
   updateROMExportAvail();
 
@@ -7870,10 +7876,6 @@ bool FurnaceGUI::init() {
   firstFrame=true;
 
   userEvents=SDL_RegisterEvents(1);
-
-  newFilePicker=new FurnaceFilePicker;
-  newFilePicker->setHomeDir(getHomeDir());
-  newFilePicker->open("New File Picker","/home",false);
 
   e->setMidiCallback([this](const TAMidiMessage& msg) -> int {
     if (introPos<11.0) return -3;

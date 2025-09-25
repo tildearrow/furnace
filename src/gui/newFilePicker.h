@@ -62,7 +62,7 @@ class FurnaceFilePicker {
   String homeDir;
   String entryName;
   ImGuiListClipper listClipper;
-  bool haveFiles, haveStat, stopReading, isOpen;
+  bool haveFiles, haveStat, stopReading, isOpen, isMobile;
   int scheduledSort;
   FilePickerStatus curStatus;
 
@@ -76,7 +76,9 @@ class FurnaceFilePicker {
     void readDirectorySub();
     void setHomeDir(String where);
     FilePickerStatus getStatus();
+    const String& getEntryName();
     const std::vector<FileEntry*>& getSelected();
+    void setMobile(bool val);
     bool draw();
     bool open(String name, String path, bool modal);
     void loadSettings(DivConfig& conf);

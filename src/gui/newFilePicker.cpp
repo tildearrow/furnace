@@ -291,7 +291,9 @@ bool FurnaceFilePicker::draw() {
                 chosenEntries.push_back(i);
                 i->isSelected=true;
                 updateEntryName();
-                if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+                if (isMobile) {
+                  acknowledged=true;
+                } else if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
                   acknowledged=true;
                 }
               }
@@ -325,6 +327,9 @@ bool FurnaceFilePicker::draw() {
       ImGui::SameLine();
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
       if (ImGui::InputText("##EntryName",&entryName)) {
+        // find an entry with this name
+
+        
       }
 
       ImGui::BeginDisabled(chosenEntries.empty());
@@ -375,6 +380,14 @@ bool FurnaceFilePicker::open(String name, String path, bool modal) {
   return true;
 }
 
+const String& FurnaceFilePicker::getEntryName() {
+  return entryName;
+}
+
+void FurnaceFilePicker::setMobile(bool val) {
+  isMobile=val;
+}
+
 FilePickerStatus FurnaceFilePicker::getStatus() {
   FilePickerStatus retStatus=curStatus;
   curStatus=FP_STATUS_WAITING;
@@ -395,6 +408,7 @@ FurnaceFilePicker::FurnaceFilePicker():
   haveStat(false),
   stopReading(false),
   isOpen(false),
+  isMobile(false),
   scheduledSort(0),
   curStatus(FP_STATUS_WAITING) {
 
