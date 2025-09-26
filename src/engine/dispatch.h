@@ -918,6 +918,11 @@ class DivDispatch {
     virtual void notifyWaveChange(int wave);
 
     /**
+     * notify sample change.
+     */
+    virtual void notifySampleChange(int sample);
+
+    /**
      * notify addition of an instrument.
      */
     virtual void notifyInsAddition(int sysID);

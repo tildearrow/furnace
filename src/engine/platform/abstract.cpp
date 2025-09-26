@@ -160,7 +160,11 @@ void DivDispatch::notifyInsChange(int ins) {
 
 }
 
-void DivDispatch::notifyWaveChange(int ins) {
+void DivDispatch::notifyWaveChange(int wave) {
+
+}
+
+void DivDispatch::notifySampleChange(int sample) {
 
 }
 

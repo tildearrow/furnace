@@ -279,6 +279,7 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
     curSample=i;
     samplePos=0;
     updateSampleTex=true;
+    notifySampleChange=true;
     lastAssetType=2;
   }
   if (ImGui::IsItemHovered() && !mobileUI) {
@@ -309,6 +310,7 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
     curSample=i;
     samplePos=0;
     updateSampleTex=true;
+    notifySampleChange=true;
     lastAssetType=2;
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
     if (ImGui::MenuItem(_("edit"))) {

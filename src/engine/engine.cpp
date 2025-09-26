@@ -283,6 +283,14 @@ void DivEngine::notifyWaveChange(int wave) {
   BUSY_END;
 }
 
+void DivEngine::notifySampleChange(int sample) {
+  BUSY_BEGIN;
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].dispatch->notifySampleChange(sample);
+  }
+  BUSY_END;
+}
+
 int DivEngine::loadSampleROM(String path, ssize_t expectedSize, unsigned char*& ret) {
   ret=NULL;
   if (path.empty()) {

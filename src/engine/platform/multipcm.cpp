@@ -516,6 +516,10 @@ void DivPlatformMultiPCM::notifyInsChange(int ins) {
   }
 }
 
+void DivPlatformMultiPCM::notifySampleChange(int sample) {
+  renderInstruments();
+}
+
 void DivPlatformMultiPCM::notifyInsAddition(int sysID) {
   renderInstruments();
 }
@@ -654,8 +658,6 @@ void DivPlatformMultiPCM::renderSamples(int sysID) {
   memCompo=DivMemoryComposition();
   memCompo.name="Sample Memory";
 
-  renderInstruments();
-
   size_t memPos=0x1800;
   int sampleCount=parent->song.sampleLen;
   if (sampleCount>512) {
@@ -709,6 +711,7 @@ void DivPlatformMultiPCM::renderSamples(int sysID) {
     pcmMemLen=memPos+256;
     memCompo.used=pcmMemLen;
   }
+  renderInstruments();
   memCompo.capacity=getSampleMemCapacity(0);
 }
 

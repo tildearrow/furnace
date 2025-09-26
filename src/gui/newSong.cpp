@@ -289,6 +289,7 @@ void FurnaceGUI::drawNewSong() {
     orderCursor=-1;
     samplePos=0;
     updateSampleTex=true;
+    notifySampleChange=true;
     selStart=SelectionPoint();
     selEnd=SelectionPoint();
     cursor=SelectionPoint();

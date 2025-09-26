@@ -2993,6 +2993,12 @@ void DivPlatformOPL::notifyInsChange(int ins) {
   }
 }
 
+void DivPlatformOPL::notifySampleChange(int sample) {
+  if (pcmChanOffs>=0) {
+    renderInstruments();
+  }
+}
+
 void DivPlatformOPL::notifyInsDeletion(void* ins) {
   for (int i=0; i<totalChans; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
@@ -3264,6 +3270,58 @@ const DivMemoryComposition* DivPlatformOPL::getMemCompo(int index) {
   return &memCompo;
 }
 
+// this is called on instrument change, reset and/or renderSamples().
+// I am not making this part of DivDispatch as this is the only chip with
+// instruments in ROM.
+void DivPlatformOPL::renderInstruments() {
+  if (pcmChanOffs>=0) {
+    const int maxSample=PCM_IN_RAM?128:512;
+    int sampleCount=parent->song.sampleLen;
+    if (sampleCount>maxSample) {
+      sampleCount=maxSample;
+    }
+    // instrument table
+    for (int i=0; i<sampleCount; i++) {
+      DivSample* s=parent->song.sample[i];
+      unsigned int insAddr=(i*12)+(PCM_IN_RAM?0x200000:0);
+      unsigned char bitDepth;
+      int endPos=CLAMP(s->isLoopable()?s->loopEnd:(s->samples+1),1,0x10000);
+      int loop=s->isLoopable()?CLAMP(s->loopStart,0,endPos-2):(endPos-2);
+      switch (s->depth) {
+        case DIV_SAMPLE_DEPTH_8BIT:
+          bitDepth=0;
+          break;
+        case DIV_SAMPLE_DEPTH_12BIT:
+          bitDepth=1;
+          if (!s->isLoopable()) {
+            endPos++;
+            loop++;
+          }
+          break;
+        case DIV_SAMPLE_DEPTH_16BIT:
+          bitDepth=2;
+          break;
+        default:
+          bitDepth=0;
+          break;
+      }
+      pcmMem[insAddr]=(bitDepth<<6)|((sampleOffPCM[i]>>16)&0x3f);
+      pcmMem[1+insAddr]=(sampleOffPCM[i]>>8)&0xff;
+      pcmMem[2+insAddr]=(sampleOffPCM[i])&0xff;
+      pcmMem[3+insAddr]=(loop>>8)&0xff;
+      pcmMem[4+insAddr]=(loop)&0xff;
+      pcmMem[5+insAddr]=((~(endPos-1))>>8)&0xff;
+      pcmMem[6+insAddr]=(~(endPos-1))&0xff;
+      // on MultiPCM this consists of instrument params, but on OPL4 this is not used
+      pcmMem[7+insAddr]=0; // LFO, VIB
+      pcmMem[8+insAddr]=(0xf<<4)|(0xf<<0); // AR, D1R
+      pcmMem[9+insAddr]=0; // DL, D2R
+      pcmMem[10+insAddr]=(0xf<<4)|(0xf<<0); // RC, RR
+      pcmMem[11+insAddr]=0; // AM
+    }
+  }
+}
+
 void DivPlatformOPL::renderSamples(int sysID) {
   if (adpcmChan<0 && pcmChanOffs<0) return;
   if (adpcmChan>=0 && adpcmBMem!=NULL) {
@@ -3349,45 +3407,7 @@ void DivPlatformOPL::renderSamples(int sysID) {
     }
     pcmMemLen=memPos+256;
 
-    // instrument table
-    for (int i=0; i<sampleCount; i++) {
-      DivSample* s=parent->song.sample[i];
-      unsigned int insAddr=(i*12)+(PCM_IN_RAM?0x200000:0);
-      unsigned char bitDepth;
-      int endPos=CLAMP(s->isLoopable()?s->loopEnd:(s->samples+1),1,0x10000);
-      int loop=s->isLoopable()?CLAMP(s->loopStart,0,endPos-2):(endPos-2);
-      switch (s->depth) {
-        case DIV_SAMPLE_DEPTH_8BIT:
-          bitDepth=0;
-          break;
-        case DIV_SAMPLE_DEPTH_12BIT:
-          bitDepth=1;
-          if (!s->isLoopable()) {
-            endPos++;
-            loop++;
-          }
-          break;
-        case DIV_SAMPLE_DEPTH_16BIT:
-          bitDepth=2;
-          break;
-        default:
-          bitDepth=0;
-          break;
-      }
-      pcmMem[insAddr]=(bitDepth<<6)|((sampleOffPCM[i]>>16)&0x3f);
-      pcmMem[1+insAddr]=(sampleOffPCM[i]>>8)&0xff;
-      pcmMem[2+insAddr]=(sampleOffPCM[i])&0xff;
-      pcmMem[3+insAddr]=(loop>>8)&0xff;
-      pcmMem[4+insAddr]=(loop)&0xff;
-      pcmMem[5+insAddr]=((~(endPos-1))>>8)&0xff;
-      pcmMem[6+insAddr]=(~(endPos-1))&0xff;
-      // on MultiPCM this consists of instrument params, but on OPL4 this is not used
-      pcmMem[7+insAddr]=0; // LFO, VIB
-      pcmMem[8+insAddr]=(0xf<<4)|(0xf<<0); // AR, D1R
-      pcmMem[9+insAddr]=0; // DL, D2R
-      pcmMem[10+insAddr]=(0xf<<4)|(0xf<<0); // RC, RR
-      pcmMem[11+insAddr]=0; // AM
-    }
+    renderInstruments();
     if (PCM_IN_RAM) {
       memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_RESERVED,"ROM data",0,0,0x200000));
     }
