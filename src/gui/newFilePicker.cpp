@@ -30,6 +30,8 @@
 #include <sys/stat.h>
 #include <time.h>
 
+static const char* sizeSuffixes=".KMGTPEZ";
+
 static void _fileThread(void* item) {
   ((FurnaceFilePicker*)item)->readDirectorySub();
 }
@@ -270,6 +272,19 @@ bool FurnaceFilePicker::draw() {
         }
       } else {
         if (ImGui::BeginTable("FileList",3,ImGuiTableFlags_Borders|ImGuiTableFlags_ScrollY,tableSize)) {
+          ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
+          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize(" 999.99G").x);
+          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize(" 6969/69/69 04:20").x);
+          ImGui::TableSetupScrollFreeze(0,1);
+
+          ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+          ImGui::TableNextColumn();
+          ImGui::Text("Name");
+          ImGui::TableNextColumn();
+          ImGui::Text("Size");
+          ImGui::TableNextColumn();
+          ImGui::Text("Date");
+
           entryLock.lock();
           int index=0;
           listClipper.Begin(filteredEntries.size());
@@ -303,8 +318,28 @@ bool FurnaceFilePicker::draw() {
               ImGui::TextUnformatted(i->name.c_str());
 
               ImGui::TableNextColumn();
-              if (i->hasSize && !i->isDir) {
-                ImGui::Text("%" PRIu64,i->size);
+              if (i->hasSize && i->type==FP_TYPE_NORMAL) {
+                int sizeShift=0;
+                uint64_t sizeShifted=i->size;
+
+                while (sizeShifted && sizeShift<7) {
+                  sizeShifted>>=10;
+                  sizeShift++;
+                }
+
+                sizeShift--;
+
+                uint64_t intPart=i->size>>(sizeShift*10);
+                uint64_t fracPart=i->size&((1U<<(sizeShift*10))-1);
+                // shift so we have sufficient digits for 100
+                // (precision loss is negligible)
+                if (sizeShift>0) {
+                  fracPart=(100*(fracPart>>3))>>((sizeShift*10)-3);
+                  if (fracPart>99) fracPart=99;
+                  ImGui::Text("%" PRIu64 ".%02" PRIu64 "%c",intPart,fracPart,sizeSuffixes[sizeShift&7]);
+                } else {
+                  ImGui::Text("%" PRIu64,i->size);
+                }
               }
 
               ImGui::TableNextColumn();
