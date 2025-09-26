@@ -603,6 +603,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("FOLLOW_PATTERN", _N("Follow pattern"), 0),
   D("FULLSCREEN", _N("Toggle full-screen"), SDLK_F11),
   D("TX81Z_REQUEST", _N("Request voice from TX81Z"), 0),
+  D("OPEN_EDIT_MENU", _N("Open pattern edit menu"), 0),
   D("PANIC", _N("Panic"), SDLK_F12),
   D("CLEAR", _N("Clear song data"), 0),
 
@@ -1331,6 +1332,7 @@ const int availableSystems[]={
   DIV_SYSTEM_SUPERVISION,
   DIV_SYSTEM_UPD1771C,
   DIV_SYSTEM_SID3,
+  DIV_SYSTEM_MULTIPCM,
   0 // don't remove this last one!
 };
 
@@ -1463,6 +1465,7 @@ const int chipsSample[]={
   DIV_SYSTEM_GBA_MINMOD,
   DIV_SYSTEM_OPL4,
   DIV_SYSTEM_OPL4_DRUMS,
+  DIV_SYSTEM_MULTIPCM,
   0 // don't remove this last one!
 };
 
