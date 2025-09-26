@@ -1025,6 +1025,10 @@ unsigned char DivPlatformNES::readDMC(unsigned short addr) {
   return dpcmMem[(addr&0x3fff)|((dpcmBank&15)<<14)];
 }
 
+size_t DivPlatformNES::getSampleMemNum() {
+  return 1;
+}
+
 const void* DivPlatformNES::getSampleMem(int index) {
   return index==0?dpcmMem:NULL;
 }
