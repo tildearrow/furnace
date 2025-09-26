@@ -38,9 +38,16 @@ class FurnaceFilePicker {
     FP_TYPE_PIPE,
     FP_TYPE_SOCKET,
   };
+  enum SortModes {
+    FP_SORT_NAME=0,
+    FP_SORT_EXT,
+    FP_SORT_SIZE,
+    FP_SORT_DATE
+  };
   struct FileEntry {
     String path;
     String name;
+    String nameLower;
     String ext;
     bool hasSize, hasTime, isDir, isSelected;
     uint64_t size;
@@ -62,8 +69,9 @@ class FurnaceFilePicker {
   String homeDir;
   String entryName;
   ImGuiListClipper listClipper;
-  bool haveFiles, haveStat, stopReading, isOpen, isMobile;
+  bool haveFiles, haveStat, stopReading, isOpen, isMobile, sortInvert;
   int scheduledSort;
+  SortModes sortMode;
   FilePickerStatus curStatus;
 
   void sortFiles();
@@ -80,7 +88,7 @@ class FurnaceFilePicker {
     const std::vector<FileEntry*>& getSelected();
     void setMobile(bool val);
     bool draw();
-    bool open(String name, String path, bool modal);
+    bool open(String name, String path, bool modal, const std::vector<String>& filter);
     void loadSettings(DivConfig& conf);
     void saveSettings(DivConfig& conf);
     FurnaceFilePicker();

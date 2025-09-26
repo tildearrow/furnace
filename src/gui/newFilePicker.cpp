@@ -25,10 +25,13 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include "../ta-log.h"
 #include <algorithm>
+#include <chrono>
 #include <dirent.h>
+#include <fcntl.h>
 #include <inttypes.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <unistd.h>
 
 static const char* sizeSuffixes=".KMGTPEZ";
 
@@ -55,7 +58,13 @@ void FurnaceFilePicker::readDirectorySub() {
     if (strcmp(entry->d_name,"..")==0) continue;
 
     FileEntry* newEntry=new FileEntry;
+
     newEntry->name=entry->d_name;
+    newEntry->nameLower=entry->d_name;
+    for (char& i: newEntry->nameLower) {
+      if (i>='A' && i<='Z') i+='a'-'A';
+    }
+
     switch (entry->d_type) {
       case DT_REG:
         newEntry->type=FP_TYPE_NORMAL;
@@ -64,16 +73,42 @@ void FurnaceFilePicker::readDirectorySub() {
         newEntry->type=FP_TYPE_DIR;
         newEntry->isDir=true;
         break;
-      case DT_LNK:
+      case DT_LNK: {
         newEntry->type=FP_TYPE_LINK;
-        // TODO: resolve link
+        // resolve link to determine whether this is a directory
+        String readLinkPath;
+        DIR* readLinkDir=NULL;
+        if (*path.rbegin()=='/') {
+          readLinkPath=path+newEntry->name;
+        } else {
+          readLinkPath=path+'/'+newEntry->name;
+        }
+        // silly, but works.
+        logV("Read a symlink...");
+        readLinkDir=opendir(readLinkPath.c_str());
+        if (readLinkDir!=NULL) {
+          logV("Is file");
+          newEntry->isDir=true;
+          closedir(readLinkDir);
+        }
         break;
+      }
       case DT_SOCK:
         newEntry->type=FP_TYPE_SOCKET;
         break;
       default:
         newEntry->type=FP_TYPE_UNKNOWN;
         break;
+    }
+
+    if (!newEntry->isDir) {
+      size_t extPos=newEntry->name.rfind('.');
+      if (extPos!=String::npos) {
+        newEntry->ext=newEntry->name.substr(extPos);
+        for (char& i: newEntry->ext) {
+          if (i>='A' && i<='Z') i+='a'-'A';
+        }
+      }
     }
 
     entries.push_back(newEntry);
@@ -108,6 +143,7 @@ void FurnaceFilePicker::readDirectorySub() {
     }
 
     // read file information
+    entryLock.lock();
     struct tm* retTM=localtime_r(&st.st_mtime,&i->time);
     if (retTM!=NULL) {
       i->hasTime=true;
@@ -115,6 +151,7 @@ void FurnaceFilePicker::readDirectorySub() {
 
     i->size=st.st_size;
     i->hasSize=true;
+    entryLock.unlock();
   }
   haveStat=true;
 }
@@ -162,25 +199,67 @@ void FurnaceFilePicker::updateEntryName() {
 }
 
 void FurnaceFilePicker::sortFiles() {
+  std::chrono::high_resolution_clock::time_point timeStart=std::chrono::high_resolution_clock::now();
   entryLock.lock();
   sortedEntries=entries;
-  entryLock.unlock();
 
   // sort by name
-  std::sort(sortedEntries.begin(),sortedEntries.end(),[](const FileEntry* a, const FileEntry* b) -> bool {
+  std::sort(sortedEntries.begin(),sortedEntries.end(),[this](const FileEntry* a, const FileEntry* b) -> bool {
     if (a->isDir && !b->isDir) return true;
     if (!a->isDir && b->isDir) return false;
 
-    String aLower=a->name;
-    for (char& i: aLower) {
-      if (i>='A' && i<='Z') i+='a'-'A';
+    switch (sortMode) {
+      case FP_SORT_NAME: {
+        // don't do anything. this is handled below.
+        break;
+      }
+      case FP_SORT_EXT: {
+        int result=a->ext.compare(b->ext);
+        // only sort if extensions differ
+        if (result!=0) {
+          return result<0;
+        }
+        break;
+      }
+      case FP_SORT_SIZE: {
+        // only sort if sizes differ
+        if (a->size!=b->size) {
+          return a->size<b->size;
+        }
+        break;
+      }
+      case FP_SORT_DATE: {
+        // only sort if dates differ
+        if (a->time.tm_year==b->time.tm_year) {
+          if (a->time.tm_mon==b->time.tm_mon) {
+            if (a->time.tm_mday==b->time.tm_mday) {
+              if (a->time.tm_hour==b->time.tm_hour) {
+                if (a->time.tm_min==b->time.tm_min) {
+                  if (a->time.tm_sec==b->time.tm_sec) {
+                    // fall back to sorting by name
+                    return a->nameLower<b->nameLower;
+                  }
+                  return a->time.tm_sec<b->time.tm_sec;
+                }
+                return a->time.tm_min<b->time.tm_min;
+              }
+              return a->time.tm_hour<b->time.tm_hour;
+            }
+            return a->time.tm_mday<b->time.tm_mday;
+          }
+          return a->time.tm_mon<b->time.tm_mon;
+        }
+        return a->time.tm_year<b->time.tm_year;
+        break;
+      }
     }
-    String bLower=b->name;
-    for (char& i: bLower) {
-      if (i>='A' && i<='Z') i+='a'-'A';
-    }
-    return aLower<bLower;
+
+    // fall back to sorting by name
+    return a->nameLower<b->nameLower;
   });
+  entryLock.unlock();
+  std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
+  logV("sortFiles() took %dµs",std::chrono::duration_cast<std::chrono::microseconds>(timeEnd-timeStart).count());
 }
 
 void FurnaceFilePicker::filterFiles() {
@@ -271,26 +350,60 @@ bool FurnaceFilePicker::draw() {
           }
         }
       } else {
-        if (ImGui::BeginTable("FileList",3,ImGuiTableFlags_Borders|ImGuiTableFlags_ScrollY,tableSize)) {
+        // this is the list view. I might add other view modes in the future...
+        if (ImGui::BeginTable("FileList",4,ImGuiTableFlags_Borders|ImGuiTableFlags_ScrollY,tableSize)) {
           ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
-          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize(" 999.99G").x);
-          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize(" 6969/69/69 04:20").x);
+          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize(" .eeee").x);
+          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize(" 999.99G").x);
+          ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize(" 6969/69/69 04:20").x);
           ImGui::TableSetupScrollFreeze(0,1);
 
+          // header (sort options)
           ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
           ImGui::TableNextColumn();
-          ImGui::Text("Name");
+          if (ImGui::Selectable("Name##SortName")) {
+            if (sortMode==FP_SORT_NAME) {
+              sortInvert=!sortInvert;
+            } else {
+              sortMode=FP_SORT_NAME;
+              scheduledSort=1;
+            }
+          }
           ImGui::TableNextColumn();
-          ImGui::Text("Size");
+          if (ImGui::Selectable("Type##SortType")) {
+            if (sortMode==FP_SORT_EXT) {
+              sortInvert=!sortInvert;
+            } else {
+              sortMode=FP_SORT_EXT;
+              scheduledSort=1;
+            }
+          }
           ImGui::TableNextColumn();
-          ImGui::Text("Date");
+          if (ImGui::Selectable("Size##SortSize")) {
+            if (sortMode==FP_SORT_SIZE) {
+              sortInvert=!sortInvert;
+            } else {
+              sortMode=FP_SORT_SIZE;
+              scheduledSort=1;
+            }
+          }
+          ImGui::TableNextColumn();
+          if (ImGui::Selectable("Date##SortDate")) {
+            if (sortMode==FP_SORT_DATE) {
+              sortInvert=!sortInvert;
+            } else {
+              sortMode=FP_SORT_DATE;
+              scheduledSort=1;
+            }
+          }
 
+          // file list
           entryLock.lock();
           int index=0;
           listClipper.Begin(filteredEntries.size());
           while (listClipper.Step()) {
             for (int _i=listClipper.DisplayStart; _i<listClipper.DisplayEnd; _i++) {
-              FileEntry* i=filteredEntries[_i];
+              FileEntry* i=filteredEntries[sortInvert?(filteredEntries.size()-_i-1):_i];
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
@@ -316,6 +429,9 @@ bool FurnaceFilePicker::draw() {
               ImGui::SameLine();
               
               ImGui::TextUnformatted(i->name.c_str());
+
+              ImGui::TableNextColumn();
+              ImGui::TextUnformatted(i->ext.c_str());
 
               ImGui::TableNextColumn();
               if (i->hasSize && i->type==FP_TYPE_NORMAL) {
@@ -406,7 +522,7 @@ bool FurnaceFilePicker::draw() {
   return false;
 }
 
-bool FurnaceFilePicker::open(String name, String path, bool modal) {
+bool FurnaceFilePicker::open(String name, String path, bool modal, const std::vector<String>& filter) {
   if (isOpen) return false;
 
   readDirectory(path);
@@ -444,7 +560,9 @@ FurnaceFilePicker::FurnaceFilePicker():
   stopReading(false),
   isOpen(false),
   isMobile(false),
+  sortInvert(false),
   scheduledSort(0),
+  sortMode(FP_SORT_NAME),
   curStatus(FP_STATUS_WAITING) {
 
 }

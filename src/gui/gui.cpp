@@ -7770,7 +7770,7 @@ bool FurnaceGUI::init() {
 
   newFilePicker=new FurnaceFilePicker;
   newFilePicker->setHomeDir(getHomeDir());
-  newFilePicker->open("New File Picker","/home",false);
+  newFilePicker->open("New File Picker","/home",false,{});
 
   updateWindowTitle();
   updateROMExportAvail();
