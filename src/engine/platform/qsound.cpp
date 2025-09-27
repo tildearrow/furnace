@@ -307,39 +307,44 @@ void DivPlatformQSound::tick(bool sysTick) {
         }
       }
     }
-    uint16_t qsound_bank = 0;
-    uint16_t qsound_addr = 0;
-    uint16_t qsound_loop = 0;
-    uint16_t qsound_end = 0;
+    uint16_t qsoundBank=0;
+    uint16_t qsoundAddr=0;
+    uint16_t qsoundLoop=0;
+    uint16_t qsoundEnd=0;
     if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
       DivSample* s=parent->getSample(chan[i].sample);
       if (i<16) {
-        qsound_bank = 0x8000 | (offPCM[chan[i].sample] >> 16);
-        qsound_addr = offPCM[chan[i].sample] & 0xffff;
+        qsoundBank=0x8000|(offPCM[chan[i].sample]>>16);
+        qsoundAddr=offPCM[chan[i].sample]&0xffff;
       } else {
-        qsound_bank = 0x8000 | (offBS[chan[i].sample] >> 16);
-        qsound_addr = offBS[chan[i].sample] & 0xffff;
+        qsoundBank=0x8000|(offBS[chan[i].sample]>>16);
+        qsoundAddr=offBS[chan[i].sample]&0xffff;
       }
 
       int loopStart=s->loopStart;
-      int length = s->loopEnd;
-      if (length > 65536 - 16) {
-        length = 65536 - 16;
-      }
-      if (!s->isLoopable()) {
-        if (i<16) {
-          qsound_end = offPCM[chan[i].sample] + length + 15;
-        } else {
-          qsound_end = offBS[chan[i].sample] + (length>>1) + 15;
+      int length=s->isLoopable()?s->loopEnd:s->samples;
+      if (i<16) {
+        if (length>65536-16) {
+          length=65536-16;
         }
-        qsound_loop = 15;
       } else {
-        if (i<16) {
-          qsound_end = offPCM[chan[i].sample] + length;
-        } else {
-          qsound_end = offBS[chan[i].sample] + (length>>1);
+        // ADPCM address is byte aligned
+        length>>=1;
+        if (length>65535) {
+          length=65535;
         }
-        qsound_loop = length - loopStart;
+      }
+      if (i<16) {
+        if (!s->isLoopable()) {
+          qsoundEnd=offPCM[chan[i].sample]+length+15;
+          qsoundLoop=15;
+        } else {
+          qsoundEnd=offPCM[chan[i].sample]+length;
+          qsoundLoop=length-loopStart;
+        }
+      } else {
+        // ADPCM can't loop
+        qsoundEnd=offBS[chan[i].sample]+length;
       }
     }
     if (NEW_ARP_STRAT) {
@@ -406,19 +411,19 @@ void DivPlatformQSound::tick(bool sysTick) {
         }
 
         if (i<16) {
-          rWrite(q1_reg_map[Q1V_BANK][i], qsound_bank);
-          rWrite(q1_reg_map[Q1V_END][i], qsound_end);
-          rWrite(q1_reg_map[Q1V_LOOP][i], qsound_loop);
-          rWrite(q1_reg_map[Q1V_START][i], qsound_addr+chan[i].audPos);
+          rWrite(q1_reg_map[Q1V_BANK][i], qsoundBank);
+          rWrite(q1_reg_map[Q1V_END][i], qsoundEnd);
+          rWrite(q1_reg_map[Q1V_LOOP][i], qsoundLoop);
+          rWrite(q1_reg_map[Q1V_START][i], qsoundAddr+chan[i].audPos);
           rWrite(q1_reg_map[Q1V_PHASE][i], 0x8000);
         } else {
           rWrite(Q1A_KEYON+(i-16),0);
-          rWrite(q1a_bank_map[i-16], qsound_bank);
-          rWrite(q1a_end_map[i-16], qsound_end);
-          rWrite(q1a_start_map[i-16], qsound_addr+chan[i].audPos);
+          rWrite(q1a_bank_map[i-16], qsoundBank);
+          rWrite(q1a_end_map[i-16], qsoundEnd);
+          rWrite(q1a_start_map[i-16], qsoundAddr+chan[i].audPos);
           rWrite(Q1A_KEYON+(i-16),1);
         }
-        //logV("ch %d bank=%04x, addr=%04x, end=%04x, loop=%04x!",i,qsound_bank,qsound_addr,qsound_end,qsound_loop);
+        //logV("ch %d bank=%04x, addr=%04x, end=%04x, loop=%04x!",i,qsoundBank,qsoundAddr,qsoundEnd,qsoundLoop);
         // Write sample address. Enable volume
         if (!chan[i].std.vol.had) {
           if (chan[i].isNewQSound) {
@@ -841,7 +846,7 @@ void DivPlatformQSound::renderSamples(int sysID) {
     }
     offBS[i]=memPos;
     memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE_ALT1,"ADPCM",i,memPos,memPos+length));
-    memPos+=length+16;
+    memPos+=length;
   }
   sampleMemLenBS=memPos+256;
 

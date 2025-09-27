@@ -102,6 +102,9 @@
 #define ImDrawIdx unsigned int
 #endif
 
+// we need this
+#define IMGUI_USE_LEGACY_CRC32_ADLER
+
 //---- Override ImDrawCallback signature (will need to modify renderer backends accordingly)
 //struct ImDrawList;
 //struct ImDrawCmd;

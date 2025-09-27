@@ -140,6 +140,7 @@ option(CONSOLE_SUBSYSTEM "Build Furnace with Console subsystem on Windows" OFF)
 option(FORCE_CODEVIEW "Force -gcodeview on MinGW GCC" OFF)
 option(FLATPAK_WORKAROUNDS "Enable Flatpak-specific workaround for system file picker" OFF)
 option(NO_INTRO "Disable intro animation entirely" OFF)
+option(ORIG_NDS_CORE "Use original NDS emulation core (no acquireDirect)" OFF)
 if (APPLE)
   option(FORCE_APPLE_BIN "Force enable binary installation to /bin" OFF)
   option(MAKE_BUNDLE "Make a bundle" OFF)
@@ -674,8 +675,6 @@ src/engine/platform/sound/c140_c219.c
 
 src/engine/platform/sound/dave/dave.cpp
 
-src/engine/platform/sound/nds.cpp
-
 src/engine/platform/sound/sid2/envelope.cc
 src/engine/platform/sound/sid2/filter.cc
 src/engine/platform/sound/sid2/sid.cc
@@ -815,6 +814,7 @@ src/engine/platform/nds.cpp
 src/engine/platform/bifurcator.cpp
 src/engine/platform/sid2.cpp
 src/engine/platform/sid3.cpp
+src/engine/platform/multipcm.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 
@@ -829,6 +829,13 @@ src/engine/export/grub.cpp
 src/engine/effect/abstract.cpp
 src/engine/effect/dummy.cpp
 )
+
+if (ORIG_NDS_CORE)
+  list(APPEND ENGINE_SOURCES src/engine/platform/sound/nds_unopt.cpp)
+  list(APPEND DEPENDENCIES_DEFINES ORIG_NDS_CORE)
+else()
+  list(APPEND ENGINE_SOURCES src/engine/platform/sound/nds.cpp)
+endif()
 
 if (USE_SNDFILE)
   list(APPEND ENGINE_SOURCES src/engine/sfWrapper.cpp)

@@ -603,6 +603,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("FOLLOW_PATTERN", _N("Follow pattern"), 0),
   D("FULLSCREEN", _N("Toggle full-screen"), SDLK_F11),
   D("TX81Z_REQUEST", _N("Request voice from TX81Z"), 0),
+  D("OPEN_EDIT_MENU", _N("Open pattern edit menu"), 0),
   D("PANIC", _N("Panic"), SDLK_F12),
   D("CLEAR", _N("Clear song data"), 0),
 
@@ -911,6 +912,11 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_TEXT_SELECTION,"",ImVec4(0.165f,0.313f,0.49f,1.0f)),
   D(GUI_COLOR_TABLE_ROW_EVEN,"",ImVec4(0.0f,0.0f,0.0f,0.0f)),
   D(GUI_COLOR_TABLE_ROW_ODD,"",ImVec4(1.0f,1.0f,1.0f,0.06f)),
+  D(GUI_COLOR_INPUT_TEXT_CURSOR,"",ImVec4(1.0f,1.0f,1.0f,1.0f)),
+  D(GUI_COLOR_TAB_SELECTED_OVERLINE,"",ImVec4(0.26f,0.59f,0.98f,1.0f)),
+  D(GUI_COLOR_TAB_DIMMED_SELECTED_OVERLINE,"",ImVec4(0.5f,0.5f,0.5f,1.0f)),
+  D(GUI_COLOR_TEXT_LINK,"",ImVec4(0.26f,0.59f,0.98f,1.0f)),
+  D(GUI_COLOR_TREE_LINES,"",ImVec4(0.43f,0.43f,0.5f,0.5f)),
 
   D(GUI_COLOR_TOGGLE_OFF,"",ImVec4(0.2f,0.2f,0.2f,1.0f)),
   D(GUI_COLOR_TOGGLE_ON,"",ImVec4(0.2f,0.6f,0.2f,1.0f)),
@@ -1155,6 +1161,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_SAMPLE_CHIP_DISABLED,"",ImVec4(0.6f,0.6f,0.6f,1.0f)),
   D(GUI_COLOR_SAMPLE_CHIP_ENABLED,"",ImVec4(0.3f,1.0f,0.3f,1.0f)),
   D(GUI_COLOR_SAMPLE_CHIP_WARNING,"",ImVec4(1.0f,0.75f,0.3f,1.0f)),
+  D(GUI_COLOR_SAMPLE_LOOP_HINT,"",ImVec4(1.0f,0.7f,0.0f,0.8f)),
 
   D(GUI_COLOR_PAT_MANAGER_NULL,"",ImVec4(0.15f,0.15f,0.15f,1.0f)),
   D(GUI_COLOR_PAT_MANAGER_USED,"",ImVec4(0.15f,1.0f,0.15f,1.0f)),
@@ -1324,6 +1331,7 @@ const int availableSystems[]={
   DIV_SYSTEM_SUPERVISION,
   DIV_SYSTEM_UPD1771C,
   DIV_SYSTEM_SID3,
+  DIV_SYSTEM_MULTIPCM,
   0 // don't remove this last one!
 };
 
@@ -1456,6 +1464,7 @@ const int chipsSample[]={
   DIV_SYSTEM_GBA_MINMOD,
   DIV_SYSTEM_OPL4,
   DIV_SYSTEM_OPL4_DRUMS,
+  DIV_SYSTEM_MULTIPCM,
   0 // don't remove this last one!
 };
 

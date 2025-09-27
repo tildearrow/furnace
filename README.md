@@ -6,7 +6,7 @@ the biggest multi-system chiptune tracker ever made!
 
 [mini-site](https://tildearrow.org/furnace/) | [downloads](#downloads) | [installation](#installation) | [Unix/Linux packages](#packages)
 
-[documentation/discussion//help](#quick-references) | [developer info](#developer-info)
+[documentation/discussion/help](#quick-references) | [developer info](#developer-info)
 
 ---
 ## downloads

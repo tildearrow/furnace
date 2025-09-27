@@ -751,7 +751,8 @@ void FurnaceGUI::drawPattern() {
               signed char l;
               int ch=decodeUTF8((const unsigned char*)j,l);
 
-              totalAdvanced+=ImGui::GetFont()->GetCharAdvance(ch);
+              // TODO: eliminate use of GetFontBaked()?
+              totalAdvanced+=ImGui::GetFontBaked()->GetCharAdvance(ch);
               if (totalAdvanced>(chNameLimit-ellipsisSize)) break;
 
               for (int k=0; k<l; k++) {
@@ -1070,7 +1071,7 @@ void FurnaceGUI::drawPattern() {
                 onOffColor=uiColors[GUI_COLOR_PATTERN_STATUS_OFF];
               }
             }
-            iconPos[0].x-=mainFont->CalcTextSizeA(mainFont->FontSize,FLT_MAX,0.0f,ICON_FA_SQUARE).x*0.5f;
+            iconPos[0].x-=mainFont->CalcTextSizeA(MAIN_FONT_SIZE,FLT_MAX,0.0f,ICON_FA_SQUARE).x*0.5f;
             dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[0],ImGui::GetColorU32(onOffColor),ICON_FA_SQUARE);
 
             // 2. PITCH SLIDE/VIBRATO
@@ -1095,7 +1096,7 @@ void FurnaceGUI::drawPattern() {
             } else {
               pitchColor=uiColors[GUI_COLOR_PATTERN_STATUS_OFF];
             }
-            iconPos[1].x-=mainFont->CalcTextSizeA(mainFont->FontSize,FLT_MAX,0.0f,pitchIcon).x*0.5f;
+            iconPos[1].x-=mainFont->CalcTextSizeA(MAIN_FONT_SIZE,FLT_MAX,0.0f,pitchIcon).x*0.5f;
             dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[1],ImGui::GetColorU32(pitchColor),pitchIcon);
 
 
@@ -1115,7 +1116,7 @@ void FurnaceGUI::drawPattern() {
             } else {
               volColor=uiColors[GUI_COLOR_PATTERN_STATUS_OFF];
             }
-            iconPos[2].x-=mainFont->CalcTextSizeA(mainFont->FontSize,FLT_MAX,0.0f,volIcon).x*0.5f;
+            iconPos[2].x-=mainFont->CalcTextSizeA(MAIN_FONT_SIZE,FLT_MAX,0.0f,volIcon).x*0.5f;
             dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[2],ImGui::GetColorU32(volColor),volIcon);
 
             // 4. OTHER
@@ -1196,7 +1197,7 @@ void FurnaceGUI::drawPattern() {
                   hintColor=uiColors[GUI_COLOR_TEXT];
                   break;
               }
-              iconPos[i+3].x-=mainFont->CalcTextSizeA(mainFont->FontSize,FLT_MAX,0.0f,hints.hint[i]).x*0.5f;
+              iconPos[i+3].x-=mainFont->CalcTextSizeA(MAIN_FONT_SIZE,FLT_MAX,0.0f,hints.hint[i]).x*0.5f;
               dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[i+3],ImGui::GetColorU32(hintColor),hints.hint[i]);
             }
           }
@@ -1232,7 +1233,9 @@ void FurnaceGUI::drawPattern() {
         } else {
           ImGui::PushStyleVar(ImGuiStyleVar_Alpha,ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha);
         }
+        ImGui::PushID("prevPatterns");
         for (int i=0; i<dummyRows-1; i++) {
+          ImGui::PushID(i);
           patternRow(viewRow,e->isPlaying(),lineHeight,chans,viewOrder,patCache,orderLock);
           if (++viewRow>=e->curSubSong->patLen) {
             viewRow=0;
@@ -1241,7 +1244,9 @@ void FurnaceGUI::drawPattern() {
               patCache[j]=e->curPat[j].getPattern(e->curOrders->ord[j][viewOrder],false);
             }
           }
+          ImGui::PopID();
         }
+        ImGui::PopID();
         if (orderLock) {
           ImGui::EndDisabled();
         } else {
@@ -1272,7 +1277,9 @@ void FurnaceGUI::drawPattern() {
         } else {
           ImGui::PushStyleVar(ImGuiStyleVar_Alpha,ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha);
         }
+        ImGui::PushID("nextPatterns");
         for (int i=0; i<=dummyRows; i++) {
+          ImGui::PushID(i);
           patternRow(viewRow,e->isPlaying(),lineHeight,chans,viewOrder,patCache,orderLock);
           if (++viewRow>=e->curSubSong->patLen) {
             viewRow=0;
@@ -1281,7 +1288,9 @@ void FurnaceGUI::drawPattern() {
               patCache[j]=e->curPat[j].getPattern(e->curOrders->ord[j][viewOrder],false);
             }
           }
+          ImGui::PopID();
         }
+        ImGui::PopID();
         if (orderLock) {
           ImGui::EndDisabled();
         } else {
@@ -1757,7 +1766,7 @@ void FurnaceGUI::drawPattern() {
         for (int j=0; j<num; j++) {
           ImVec2 partPos=ImVec2(
             off.x+patChanX[i.chan]+fmod(rand(),width),
-            off.y+(playheadY)+randRange(0,patFont->FontSize)
+            off.y+(playheadY)+randRange(0,PAT_FONT_SIZE)
           );
 
           if (partPos.x<winMin.x || partPos.y<winMin.y || partPos.x>winMax.x || partPos.y>winMax.y) continue;
@@ -1848,7 +1857,7 @@ void FurnaceGUI::drawPattern() {
 
           ImVec2 partPos=ImVec2(
             off.x+patChanX[i]+(width*0.5+0.5*sin(M_PI*(float)ch->vibratoPosGiant/64.0f)*width),
-            off.y+(ImGui::GetWindowHeight()*0.5f)+randRange(0,patFont->FontSize)
+            off.y+(ImGui::GetWindowHeight()*0.5f)+randRange(0,PAT_FONT_SIZE)
           );
 
           if (!(partPos.x<winMin.x || partPos.y<winMin.y || partPos.x>winMax.x || partPos.y>winMax.y)) {
@@ -1878,8 +1887,8 @@ void FurnaceGUI::drawPattern() {
           if (part.life>255) part.life=255;
           fdl->AddText(
             iconFont,
-            iconFont->FontSize,
-            ImVec2(part.pos.x-iconFont->FontSize*0.5,part.pos.y-iconFont->FontSize*0.5),
+            ICON_FONT_SIZE,
+            ImVec2(part.pos.x-ICON_FONT_SIZE*0.5,part.pos.y-ICON_FONT_SIZE*0.5),
             part.colors[(int)part.life],
             part.type
           );
@@ -1898,6 +1907,7 @@ void FurnaceGUI::drawPattern() {
   ImGui::PopStyleVar();
   if (patternOpen) {
     if (!inhibitMenu && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) ImGui::OpenPopup("patternActionMenu");
+    if (openEditMenu) ImGui::OpenPopup("patternActionMenu");
     if (ImGui::BeginPopup("patternActionMenu",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
       editOptions(false);
       ImGui::EndPopup();
@@ -1905,5 +1915,7 @@ void FurnaceGUI::drawPattern() {
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PATTERN;
   ImGui::End();
+
+  openEditMenu=false;
 }
 

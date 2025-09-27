@@ -363,6 +363,103 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
       patPtr[i]=reader.readI();
     }
 
+    // skip edit history if present
+    if (special&2) {
+      logD("skipping edit history...");
+      unsigned short editHistSize=reader.readS();
+      if (editHistSize>0) {
+        if (!reader.seek(editHistSize*8,SEEK_CUR)) {
+          logV("what? I wasn't expecting that from you.");
+        }
+      }
+    }
+
+    // read extension blocks, if any
+    logD("looking for extensions...");
+    bool hasExtensions=true;
+    while (hasExtensions) {
+      char extType[4];
+      unsigned int extSize=0;
+      memset(extType,0,4);
+
+      reader.read(extType,4);
+      extSize=reader.readI();
+
+      if (memcmp(extType,"PNAM",4)==0) {
+        logV("found MPT extension: pattern names");
+        // check whether this block is valid
+        if (extSize>patCount*32) {
+          logV("block may not be valid");
+          break;
+        }
+        // read pattern names
+        logV("reading pattern names...");
+        for (unsigned int i=0; i<(extSize>>5); i++) {
+          DivPattern* p=ds.subsong[0]->pat[0].getPattern(i,true);
+          p->name=reader.readStringLatin1(32);
+        }
+      } else if (memcmp(extType,"CNAM",4)==0) {
+        logV("found MPT extension: channel names");
+        // check whether this block is valid
+        if (extSize>DIV_MAX_CHANS*20) {
+          logV("block may not be valid");
+          break;
+        }
+        // read channel names
+        logV("reading channel names...");
+        for (unsigned int i=0; i<(extSize>>5); i++) {
+          String chanName=reader.readStringLatin1(20);
+          for (DivSubSong* j: ds.subsong) {
+            j->chanName[i]=chanName;
+          }
+        }
+      } else if (memcmp(extType,"CHFX",4)==0) {
+        logV("found MPT extension: channel effects");
+        // skip (stop if we cannot seek)
+        if (!reader.seek(extSize,SEEK_CUR)) {
+          break;
+        }
+      } else if (
+        extType[0]=='F' &&
+        (extType[1]=='X' || (extType[1]>='0' && extType[1]<='9')) &&
+        (extType[2]>='0' && extType[2]<='9') &&
+        (extType[3]>='0' && extType[3]<='9')
+      ) { // effect slot
+        logV("found MPT extension: effect slot");
+        // skip (stop if we cannot seek)
+        if (!reader.seek(extSize,SEEK_CUR)) {
+          break;
+        }
+      } else {
+        logV("no further extensions found... %.2x%.2x%.2x%.2x",extType[0],extType[1],extType[2],extType[3]);
+        hasExtensions=false;
+      }
+    }
+
+    // read song comment
+    logD("reading song comment...");
+    if (reader.seek(commentPtr,SEEK_SET)) {
+      try {
+        String comment=reader.readStringLatin1Special(commentLen);
+
+        ds.notes="";
+        ds.notes.reserve(comment.size());
+
+        for (char& i: comment) {
+          if (i=='\r') {
+            ds.notes+='\n';
+          } else {
+            ds.notes+=i;
+          }
+        }
+      } catch (EndOfFileException& e) {
+        logW("couldn't read song comment due to premature end of file.");
+      }
+    } else {
+      logW("couldn't seek to comment!");
+    }
+    
+
     // read instruments
     for (int i=0; i<ds.insLen; i++) {
       DivInstrument* ins=new DivInstrument;
@@ -1419,15 +1516,71 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
               break;
             case 'S': // special...
               switch (effectVal[chan]>>4) {
-                case 0x8:
+                case 0x3: // vibrato waveform
+                  switch (effectVal[chan]&3) {
+                    case 0x0: // sine
+                      p->data[readRow][effectCol[chan]++]=0xe3;
+                      p->data[readRow][effectCol[chan]++]=0x00;
+                      break;
+                    case 0x1: // ramp down
+                      p->data[readRow][effectCol[chan]++]=0xe3;
+                      p->data[readRow][effectCol[chan]++]=0x05;
+                      break;
+                    case 0x2: // square
+                      p->data[readRow][effectCol[chan]++]=0xe3;
+                      p->data[readRow][effectCol[chan]++]=0x06;
+                      break;
+                    case 0x3: // random
+                      p->data[readRow][effectCol[chan]++]=0xe3;
+                      p->data[readRow][effectCol[chan]++]=0x07;
+                      break;
+                  }
+                  break;
+                case 0x7:
+                  switch (effectVal[chan]&15) {
+                    case 0x7: // volume envelope off
+                      p->data[readRow][effectCol[chan]++]=0xf5;
+                      p->data[readRow][effectCol[chan]++]=0x00;
+                      break;
+                    case 0x8: // volume envelope on
+                      p->data[readRow][effectCol[chan]++]=0xf6;
+                      p->data[readRow][effectCol[chan]++]=0x00;
+                      break;
+                    case 0x9: // panning envelope off
+                      p->data[readRow][effectCol[chan]++]=0xf5;
+                      p->data[readRow][effectCol[chan]++]=0x0c;
+                      p->data[readRow][effectCol[chan]++]=0xf5;
+                      p->data[readRow][effectCol[chan]++]=0x0d;
+                      break;
+                    case 0xa: // panning envelope on
+                      p->data[readRow][effectCol[chan]++]=0xf6;
+                      p->data[readRow][effectCol[chan]++]=0x0c;
+                      p->data[readRow][effectCol[chan]++]=0xf6;
+                      p->data[readRow][effectCol[chan]++]=0x0d;
+                      break;
+                    case 0xb: // pitch envelope off
+                      p->data[readRow][effectCol[chan]++]=0xf5;
+                      p->data[readRow][effectCol[chan]++]=0x04;
+                      break;
+                    case 0xc: //pitch envelope on
+                      p->data[readRow][effectCol[chan]++]=0xf6;
+                      p->data[readRow][effectCol[chan]++]=0x04;
+                      break;
+                  }
+                  break;
+                case 0x8: // panning
                   p->data[readRow][effectCol[chan]++]=0x80;
                   p->data[readRow][effectCol[chan]++]=(effectVal[chan]&15)<<4;
                   break;
-                case 0xc:
+                case 0xa: // offset (high nibble)
+                  p->data[readRow][effectCol[chan]++]=0x92;
+                  p->data[readRow][effectCol[chan]++]=effectVal[chan]&15;
+                  break;
+                case 0xc: // note cut
                   p->data[readRow][effectCol[chan]++]=0xec;
                   p->data[readRow][effectCol[chan]++]=effectVal[chan]&15;
                   break;
-                case 0xd:
+                case 0xd: // note delay
                   p->data[readRow][effectCol[chan]++]=0xed;
                   p->data[readRow][effectCol[chan]++]=effectVal[chan]&15;
                   break;

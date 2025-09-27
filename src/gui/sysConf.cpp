@@ -2595,15 +2595,15 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
 
       ImGui::Text(_("Chip revision:"));
       ImGui::Indent();
-      if (ImGui::RadioButton(_("V 0.3.1"),chipType==0)) {
+      if (ImGui::RadioButton(_("Initial release"),chipType==0)) {
         chipType=0;
         altered=true;
       }
-      if (ImGui::RadioButton(_("V 47.0.0 (9-bit volume)"),chipType==1)) {
+      if (ImGui::RadioButton(_("V 47.0.2 (9-bit volume)"),chipType==1)) {
         chipType=1;
         altered=true;
       }
-      if (ImGui::RadioButton(_("V 47.0.2 (Tri/Saw PW XOR)"),chipType==2)) {
+      if (ImGui::RadioButton(_("V 48.0.1 (Tri/Saw PW XOR)"),chipType==2)) {
         chipType=2;
         altered=true;
       }
@@ -2728,6 +2728,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_BIFURCATOR:
     case DIV_SYSTEM_POWERNOISE:
     case DIV_SYSTEM_UPD1771C:
+    case DIV_SYSTEM_MULTIPCM:
       break;
     case DIV_SYSTEM_YMU759:
     case DIV_SYSTEM_ESFM:
