@@ -103,6 +103,7 @@ class FurnaceFilePicker {
   void clearAllFiles();
   void updateEntryName();
   void readDirectory(String path);
+  String normalizePath(const String& which);
 
   public:
     void readDirectorySub();

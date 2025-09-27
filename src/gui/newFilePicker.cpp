@@ -165,6 +165,53 @@ void FurnaceFilePicker::readDirectorySub() {
   haveStat=true;
 }
 
+String FurnaceFilePicker::normalizePath(const String& which) {
+  String ret;
+  char temp[PATH_MAX];
+  memset(temp,0,PATH_MAX);
+
+  if (which=="/") {
+    ret=which;
+    return ret;
+  }
+
+  if (which.empty()) {
+    if (getcwd(temp,PATH_MAX)==NULL) {
+      // sorry...
+      return "";
+    }
+    ret=temp;
+  } else {
+    // remove redundant directory separators
+    bool alreadySep=false;
+    for (const char& i: which) {
+      if (i=='/') {
+        if (!alreadySep) {
+          alreadySep=true;
+          ret+=i;
+        }
+      } else {
+        alreadySep=false;
+        ret+=i;
+      }
+    }
+  }
+
+  if (!ret.empty()) {
+    // resolve path
+    if (realpath(ret.c_str(),temp)!=NULL) {
+      ret=temp;
+    }
+
+    // remove dir separator at the end
+    if (*ret.rbegin()=='/') {
+      ret.resize(ret.size()-1);
+    }
+  }
+
+  return ret;
+}
+
 void FurnaceFilePicker::readDirectory(String path) {
   if (fileThread!=NULL) {
     // stop current file thread
@@ -184,8 +231,9 @@ void FurnaceFilePicker::readDirectory(String path) {
   updateEntryName();
 
   // start new file thread
-  this->path=path;
+  this->path=normalizePath(path);
   failMessage="";
+  editingPath=false;
   haveFiles=false;
   haveStat=false;
   stopReading=false;
@@ -413,17 +461,38 @@ bool FurnaceFilePicker::draw() {
 
     ImGui::SameLine();
     ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-    ImGui::SameLine();
 
     if (editingPath) {
-      ImGui::Text("It's a little early for that... don't you think?");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(ImGui::GetStyle().ItemSpacing.x+ImGui::GetStyle().FramePadding.x*2.0f+ImGui::CalcTextSize("OK").x));
+      ImGui::InputText("##EditablePath",&editablePath);
+      ImGui::SameLine();
+      if (ImGui::Button("OK##AcceptPath")) {
+        newDir=editablePath;
+      }
     } else {
-      // TODO: path buttons
-      ImGui::TextUnformatted(path.c_str());
-      /*String nextButton;
-      for (char i: path) {
-
-      }*/
+      // explode path into buttons
+      String pathLeading=path;
+      if (*path.rbegin()!='/') pathLeading+="/";
+      String nextButton="/";
+      String pathAsOfNow;
+      int pathLevel=0x10000000;
+      for (char i: pathLeading) {
+        pathAsOfNow+=i;
+        if (i=='/') {
+          // create button
+          ImGui::PushID(pathLevel);
+          ImGui::SameLine();
+          if (ImGui::Button(nextButton.c_str())) {
+            newDir=pathAsOfNow;
+          }
+          pathLevel++;
+          ImGui::PopID();
+          nextButton="";
+        } else {
+          nextButton+=i;
+        }
+      }
     }
 
     // search bar
@@ -438,7 +507,9 @@ bool FurnaceFilePicker::draw() {
     }
 
     if (scheduledSort && haveFiles) {
-      scheduledSort=0;
+      if (haveStat) {
+        scheduledSort=0;
+      }
       sortFiles();
       filterFiles();
     }
@@ -717,7 +788,7 @@ bool FurnaceFilePicker::draw() {
   return false;
 }
 
-bool FurnaceFilePicker::open(String name, String path, bool modal, const std::vector<String>& filter) {
+bool FurnaceFilePicker::open(String name, String pa, bool modal, const std::vector<String>& filter) {
   if (isOpen) return false;
   if (filter.size()&1) {
     logE("invalid filter data! it should be an even-sized vector with even elements containing names and odd ones being the filters.");
@@ -732,7 +803,7 @@ bool FurnaceFilePicker::open(String name, String path, bool modal, const std::ve
   }
   curFilterType=0;
 
-  readDirectory(path);
+  readDirectory(pa);
   windowName=name;
   isOpen=true;
   return true;
