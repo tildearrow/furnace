@@ -198,10 +198,53 @@ void FurnaceFilePicker::updateEntryName() {
   }
 }
 
+// the name of this function is somewhat misleading.
+// it filters files by type, then sorts them.
 void FurnaceFilePicker::sortFiles() {
   std::chrono::high_resolution_clock::time_point timeStart=std::chrono::high_resolution_clock::now();
   entryLock.lock();
-  sortedEntries=entries;
+  // check for "no filter"
+  if (filterOptions[curFilterType+1]=="*") {
+    // copy entire list
+    sortedEntries=entries;
+  } else {
+    // sort by extension
+    std::vector<String> parsedSort;
+    String nextType;
+    for (char i: filterOptions[curFilterType+1]) {
+      switch (i) {
+        case '*': // ignore
+          break;
+        case ' ': // separator
+          if (!nextType.empty()) {
+            parsedSort.push_back(nextType);
+            nextType="";
+          }
+          break;
+        default: // push
+          nextType.push_back(i);
+          break;
+      }
+    }
+    if (!nextType.empty()) {
+      parsedSort.push_back(nextType);
+      nextType="";
+    }
+
+    sortedEntries.clear();
+    for (FileEntry* i: entries) {
+      if (i->isDir) {
+        sortedEntries.push_back(i);
+        continue;
+      }
+      for (const String& j: parsedSort) {
+        if (i->ext==j) {
+          sortedEntries.push_back(i);
+          break;
+        }
+      }
+    }
+  }
 
   // sort by name
   std::sort(sortedEntries.begin(),sortedEntries.end(),[this](const FileEntry* a, const FileEntry* b) -> bool {
@@ -276,12 +319,7 @@ void FurnaceFilePicker::filterFiles() {
   }
 
   for (FileEntry* i: sortedEntries) {
-    String lowerName=i->name;
-    for (char& j: lowerName) {
-      if (j>='A' && j<='Z') j+='a'-'A';
-    }
-
-    if (lowerName.find(lowerFilter)!=String::npos) {
+    if (i->nameLower.find(lowerFilter)!=String::npos) {
       filteredEntries.push_back(i);
     }
   }
@@ -291,6 +329,7 @@ bool FurnaceFilePicker::draw() {
   if (!isOpen) return false;
 
   String newDir;
+  String tempID;
 
   ImGui::SetNextWindowSizeConstraints(ImVec2(800.0,600.0),ImVec2(8000.0,6000.0));
   if (ImGui::Begin(windowName.c_str(),NULL,ImGuiWindowFlags_NoSavedSettings)) {
@@ -335,23 +374,39 @@ bool FurnaceFilePicker::draw() {
       ImVec2 tableSize=ImGui::GetContentRegionAvail();
       tableSize.y-=ImGui::GetFrameHeightWithSpacing()*2.0f;
 
+      // display a message on empty dir, no matches or error
       if (filteredEntries.empty()) {
-        if (sortedEntries.empty()) {
-          if (failMessage.empty()) {
-            ImGui::Text("This directory is empty!");
+        if (ImGui::BeginTable("NoFiles",3,ImGuiTableFlags_BordersOuter,tableSize)) {
+          ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.5f);
+          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.5f);
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+
+          ImGui::TableNextColumn();
+          ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(tableSize.y-ImGui::GetTextLineHeight())*0.5);
+          if (sortedEntries.empty()) {
+            if (failMessage.empty()) {
+              ImGui::Text("This directory is empty!");
+            } else {
+              ImGui::Text("%s!",failMessage.c_str());
+            }
           } else {
-            ImGui::Text("Could not load this directory!\n(%s)",failMessage.c_str());
+            if (failMessage.empty()) {
+              ImGui::Text("No results");
+            } else {
+              ImGui::Text("%s!",failMessage.c_str());
+            }
           }
-        } else {
-          if (failMessage.empty()) {
-            ImGui::Text("No results");
-          } else {
-            ImGui::Text("Could not load this directory!\n(%s)",failMessage.c_str());
-          }
+
+          ImGui::TableNextColumn();
+          ImGui::EndTable();
         }
       } else {
         // this is the list view. I might add other view modes in the future...
-        if (ImGui::BeginTable("FileList",4,ImGuiTableFlags_Borders|ImGuiTableFlags_ScrollY,tableSize)) {
+        if (ImGui::BeginTable("FileList",4,ImGuiTableFlags_BordersOuter|ImGuiTableFlags_ScrollY|ImGuiTableFlags_RowBg,tableSize)) {
+          float rowHeight=ImGui::GetTextLineHeight()+ImGui::GetStyle().CellPadding.y*2.0f;
           ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
           ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize(" .eeee").x);
           ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize(" 999.99G").x);
@@ -359,9 +414,45 @@ bool FurnaceFilePicker::draw() {
           ImGui::TableSetupScrollFreeze(0,1);
 
           // header (sort options)
-          ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+          const char* nameHeader="Name##SortName";
+          const char* typeHeader="Type##SortType";
+          const char* sizeHeader="Size##SortSize";
+          const char* dateHeader="Date##SortDate";
+
+          switch (sortMode) {
+            case FP_SORT_NAME:
+              if (sortInvert) {
+                nameHeader=ICON_FA_CHEVRON_UP "Name##SortName";
+              } else {
+                nameHeader=ICON_FA_CHEVRON_DOWN "Name##SortName";
+              }
+              break;
+            case FP_SORT_EXT:
+              if (sortInvert) {
+                typeHeader=ICON_FA_CHEVRON_UP "Type##SortType";
+              } else {
+                typeHeader=ICON_FA_CHEVRON_DOWN "Type##SortType";
+              }
+              break;
+            case FP_SORT_SIZE:
+              if (sortInvert) {
+                sizeHeader=ICON_FA_CHEVRON_UP "Size##SortSize";
+              } else {
+                sizeHeader=ICON_FA_CHEVRON_DOWN "Size##SortSize";
+              }
+              break;
+            case FP_SORT_DATE:
+              if (sortInvert) {
+                dateHeader=ICON_FA_CHEVRON_UP "Date##SortDate";
+              } else {
+                dateHeader=ICON_FA_CHEVRON_DOWN "Date##SortDate";
+              }
+              break;
+          }
+
+          ImGui::TableNextRow(ImGuiTableRowFlags_Headers,rowHeight);
           ImGui::TableNextColumn();
-          if (ImGui::Selectable("Name##SortName")) {
+          if (ImGui::Selectable(nameHeader)) {
             if (sortMode==FP_SORT_NAME) {
               sortInvert=!sortInvert;
             } else {
@@ -370,7 +461,7 @@ bool FurnaceFilePicker::draw() {
             }
           }
           ImGui::TableNextColumn();
-          if (ImGui::Selectable("Type##SortType")) {
+          if (ImGui::Selectable(typeHeader)) {
             if (sortMode==FP_SORT_EXT) {
               sortInvert=!sortInvert;
             } else {
@@ -379,7 +470,7 @@ bool FurnaceFilePicker::draw() {
             }
           }
           ImGui::TableNextColumn();
-          if (ImGui::Selectable("Size##SortSize")) {
+          if (ImGui::Selectable(sizeHeader)) {
             if (sortMode==FP_SORT_SIZE) {
               sortInvert=!sortInvert;
             } else {
@@ -388,7 +479,7 @@ bool FurnaceFilePicker::draw() {
             }
           }
           ImGui::TableNextColumn();
-          if (ImGui::Selectable("Date##SortDate")) {
+          if (ImGui::Selectable(dateHeader)) {
             if (sortMode==FP_SORT_DATE) {
               sortInvert=!sortInvert;
             } else {
@@ -400,18 +491,28 @@ bool FurnaceFilePicker::draw() {
           // file list
           entryLock.lock();
           int index=0;
-          listClipper.Begin(filteredEntries.size());
+          listClipper.Begin(filteredEntries.size(),rowHeight);
           while (listClipper.Step()) {
             for (int _i=listClipper.DisplayStart; _i<listClipper.DisplayEnd; _i++) {
               FileEntry* i=filteredEntries[sortInvert?(filteredEntries.size()-_i-1):_i];
+              FileTypeStyle* style=&defaultTypeStyle[i->type];
 
-              ImGui::TableNextRow();
-              ImGui::TableNextColumn();
-              if (i->type==FP_TYPE_DIR) {
-                ImGui::PushStyleColor(ImGuiCol_Text,0xff00ffff);
+              // get style for this entry
+              if (!i->ext.empty()) {
+                for (FileTypeStyle& j: fileTypeRegistry) {
+                  if (i->ext==j.ext) {
+                    style=&j;
+                    break;
+                  }
+                }
               }
+
+              // draw
+              ImGui::TableNextRow(0,rowHeight);
+              ImGui::TableNextColumn();
+              ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(style->color));
               ImGui::PushID(index++);
-              if (ImGui::Selectable("##File",i->isSelected,ImGuiSelectableFlags_AllowDoubleClick|ImGuiSelectableFlags_SpanAllColumns|ImGuiSelectableFlags_SpanAvailWidth)) {
+              if (ImGui::Selectable(style->icon.c_str(),i->isSelected,ImGuiSelectableFlags_AllowDoubleClick|ImGuiSelectableFlags_SpanAllColumns|ImGuiSelectableFlags_SpanAvailWidth)) {
                 for (FileEntry* j: chosenEntries) {
                   j->isSelected=false;
                 }
@@ -463,9 +564,7 @@ bool FurnaceFilePicker::draw() {
                 ImGui::Text("%d/%02d/%02d %02d:%02d",i->time.tm_year+1900,i->time.tm_mon+1,i->time.tm_mday,i->time.tm_hour,i->time.tm_min);
               }
 
-              if (i->type==FP_TYPE_DIR) {
-                ImGui::PopStyleColor();
-              }
+              ImGui::PopStyleColor();
             }
           }
           ImGui::EndTable();
@@ -473,16 +572,27 @@ bool FurnaceFilePicker::draw() {
         }
       }
 
+      // file name input
       ImGui::AlignTextToFramePadding();
       ImGui::TextUnformatted("Name: ");
       ImGui::SameLine();
-      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x*0.68f);
       if (ImGui::InputText("##EntryName",&entryName)) {
         // find an entry with this name
-
-        
+      }
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+      if (ImGui::BeginCombo("##FilterType",filterOptions[curFilterType].c_str())) {
+        for (size_t i=0; i<filterOptions.size(); i+=2) {
+          if (ImGui::Selectable(filterOptions[i].c_str(),curFilterType==i)) {
+            curFilterType=i;
+            scheduledSort=1;
+          }
+        }
+        ImGui::EndCombo();
       }
 
+      // OK/Cancel buttons
       ImGui::BeginDisabled(chosenEntries.empty());
       if (ImGui::Button("OK")) {
         // accept entry
@@ -524,6 +634,18 @@ bool FurnaceFilePicker::draw() {
 
 bool FurnaceFilePicker::open(String name, String path, bool modal, const std::vector<String>& filter) {
   if (isOpen) return false;
+  if (filter.size()&1) {
+    logE("invalid filter data! it should be an even-sized vector with even elements containing names and odd ones being the filters.");
+    return false;
+  }
+
+  filterOptions=filter;
+
+  if (filterOptions.size()<2) {
+    filterOptions.push_back("all files");
+    filterOptions.push_back("*");
+  }
+  curFilterType=0;
 
   readDirectory(path);
   windowName=name;
@@ -553,6 +675,25 @@ void FurnaceFilePicker::saveSettings(DivConfig& conf) {
 
 }
 
+void FurnaceFilePicker::setTypeStyle(FileType type, ImVec4 color, String icon) {
+  // "##File" is appended here for performance.
+  defaultTypeStyle[type].icon=icon+"##File";
+  defaultTypeStyle[type].color=color;
+}
+
+void FurnaceFilePicker::registerType(String ext, ImVec4 color, String icon) {
+  FileTypeStyle t;
+  t.ext=ext;
+  // "##File" is appended here for performance.
+  t.icon=icon+"##File";
+  t.color=color;
+  fileTypeRegistry.push_back(t);
+}
+
+void FurnaceFilePicker::clearTypes() {
+  fileTypeRegistry.clear();
+}
+
 FurnaceFilePicker::FurnaceFilePicker():
   fileThread(NULL),
   haveFiles(false),
@@ -562,7 +703,11 @@ FurnaceFilePicker::FurnaceFilePicker():
   isMobile(false),
   sortInvert(false),
   scheduledSort(0),
+  curFilterType(0),
   sortMode(FP_SORT_NAME),
   curStatus(FP_STATUS_WAITING) {
-
+  for (int i=0; i<FP_TYPE_MAX; i++) {
+    // "##File" is appended here for performance.
+    defaultTypeStyle[i].icon=ICON_FA_QUESTION "##File";
+  }
 }

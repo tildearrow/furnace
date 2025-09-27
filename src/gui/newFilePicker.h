@@ -29,20 +29,30 @@ enum FilePickerStatus {
   FP_STATUS_CLOSED
 };
 
+enum FileType {
+  FP_TYPE_UNKNOWN=0,
+  FP_TYPE_NORMAL,
+  FP_TYPE_DIR,
+  FP_TYPE_LINK,
+  FP_TYPE_PIPE,
+  FP_TYPE_SOCKET,
+
+  FP_TYPE_MAX
+};
+
 class FurnaceFilePicker {
-  enum FileType {
-    FP_TYPE_UNKNOWN=0,
-    FP_TYPE_NORMAL,
-    FP_TYPE_DIR,
-    FP_TYPE_LINK,
-    FP_TYPE_PIPE,
-    FP_TYPE_SOCKET,
-  };
   enum SortModes {
     FP_SORT_NAME=0,
     FP_SORT_EXT,
     FP_SORT_SIZE,
     FP_SORT_DATE
+  };
+  struct FileTypeStyle {
+    String ext;
+    String icon;
+    ImVec4 color;
+    FileTypeStyle():
+      ext(""), icon(""), color(0.0f,0.0f,0.0f,1.0f) {}
   };
   struct FileEntry {
     String path;
@@ -61,6 +71,7 @@ class FurnaceFilePicker {
   std::vector<FileEntry*> sortedEntries;
   std::vector<FileEntry*> filteredEntries;
   std::vector<FileEntry*> chosenEntries;
+  std::vector<String> filterOptions;
   std::thread* fileThread;
   std::mutex entryLock;
   String windowName;
@@ -71,8 +82,12 @@ class FurnaceFilePicker {
   ImGuiListClipper listClipper;
   bool haveFiles, haveStat, stopReading, isOpen, isMobile, sortInvert;
   int scheduledSort;
+  size_t curFilterType;
   SortModes sortMode;
   FilePickerStatus curStatus;
+
+  std::vector<FileTypeStyle> fileTypeRegistry;
+  FileTypeStyle defaultTypeStyle[FP_TYPE_MAX];
 
   void sortFiles();
   void filterFiles();
@@ -91,5 +106,8 @@ class FurnaceFilePicker {
     bool open(String name, String path, bool modal, const std::vector<String>& filter);
     void loadSettings(DivConfig& conf);
     void saveSettings(DivConfig& conf);
+    void setTypeStyle(FileType type, ImVec4 color, String icon);
+    void registerType(String ext, ImVec4 color, String icon);
+    void clearTypes();
     FurnaceFilePicker();
 };

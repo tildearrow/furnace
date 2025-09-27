@@ -7770,7 +7770,12 @@ bool FurnaceGUI::init() {
 
   newFilePicker=new FurnaceFilePicker;
   newFilePicker->setHomeDir(getHomeDir());
-  newFilePicker->open("New File Picker","/home",false,{});
+  newFilePicker->open("New File Picker","/home",false,
+    {_("songs"), "*.fur *.dmf *.mod *.s3m *.xm *.it *.fc13 *.fc14 *.smod *.fc *.ftm *.0cc *.dnm *.eft *.fub *.tfe",
+     _("instruments"), "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn",
+     _("audio"), "*.wav",
+     _("all files"), "*"}
+  );
 
   updateWindowTitle();
   updateROMExportAvail();
