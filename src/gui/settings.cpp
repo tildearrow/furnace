@@ -6890,9 +6890,11 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   newFilePicker->setTypeStyle(FP_TYPE_UNKNOWN,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_QUESTION);
   newFilePicker->setTypeStyle(FP_TYPE_NORMAL,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_FILE_O);
   newFilePicker->setTypeStyle(FP_TYPE_DIR,uiColors[GUI_COLOR_FILE_DIR],ICON_FA_FOLDER_O);
-  newFilePicker->setTypeStyle(FP_TYPE_LINK,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_FILE_O);
-  newFilePicker->setTypeStyle(FP_TYPE_PIPE,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_FILE_O);
-  newFilePicker->setTypeStyle(FP_TYPE_SOCKET,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_FILE_O);
+  newFilePicker->setTypeStyle(FP_TYPE_LINK,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_EXTERNAL_LINK);
+  newFilePicker->setTypeStyle(FP_TYPE_PIPE,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_EXCHANGE);
+  newFilePicker->setTypeStyle(FP_TYPE_SOCKET,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_PLUG);
+  newFilePicker->setTypeStyle(FP_TYPE_CHARDEV,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_MICROCHIP);
+  newFilePicker->setTypeStyle(FP_TYPE_BLOCKDEV,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_HDD_O);
 
   newFilePicker->registerType(".fur",uiColors[GUI_COLOR_FILE_SONG_NATIVE],ICON_FA_FILE);
   newFilePicker->registerType(".fui",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);

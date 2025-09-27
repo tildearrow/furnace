@@ -96,6 +96,15 @@ void FurnaceFilePicker::readDirectorySub() {
       case DT_SOCK:
         newEntry->type=FP_TYPE_SOCKET;
         break;
+      case DT_FIFO:
+        newEntry->type=FP_TYPE_PIPE;
+        break;
+      case DT_CHR:
+        newEntry->type=FP_TYPE_CHARDEV;
+        break;
+      case DT_BLK:
+        newEntry->type=FP_TYPE_BLOCKDEV;
+        break;
       default:
         newEntry->type=FP_TYPE_UNKNOWN;
         break;
@@ -411,6 +420,10 @@ bool FurnaceFilePicker::draw() {
     } else {
       // TODO: path buttons
       ImGui::TextUnformatted(path.c_str());
+      /*String nextButton;
+      for (char i: path) {
+
+      }*/
     }
 
     // search bar
@@ -561,11 +574,15 @@ bool FurnaceFilePicker::draw() {
             FileTypeStyle* style=&defaultTypeStyle[i->type];
 
             // get style for this entry
-            if (!i->ext.empty()) {
-              for (FileTypeStyle& j: fileTypeRegistry) {
-                if (i->ext==j.ext) {
-                  style=&j;
-                  break;
+            if (i->isDir) {
+              style=&defaultTypeStyle[FP_TYPE_DIR];
+            } else {
+              if (!i->ext.empty()) {
+                for (FileTypeStyle& j: fileTypeRegistry) {
+                  if (i->ext==j.ext) {
+                    style=&j;
+                    break;
+                  }
                 }
               }
             }
