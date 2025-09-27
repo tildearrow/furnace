@@ -657,6 +657,14 @@ bool FurnaceFilePicker::draw() {
       }
 #endif
     }
+#ifdef _WIN32
+    // drives button only on Windows
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_FA_HDD_O "##DriveList")) {
+      newDir="";
+      readDrives=true;
+    }
+#endif
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_PENCIL "##EditPath")) {
       editablePath=path;
