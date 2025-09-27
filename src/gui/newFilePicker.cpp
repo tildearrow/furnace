@@ -28,13 +28,14 @@
 #include <chrono>
 #ifdef _WIN32
 #include <windows.h>
+#include "../utfutils.h"
 #else
 #include <dirent.h>
 #include <fcntl.h>
-#include <inttypes.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #endif
+#include <inttypes.h>
 #include <time.h>
 
 static const char* sizeSuffixes=".KMGTPEZ";
@@ -84,12 +85,13 @@ void FurnaceFilePicker::readDirectorySub() {
   HANDLE dir=FindFirstFileW(pathW.c_str(),&entry);
   if (dir==INVALID_HANDLE_VALUE) {
     wchar_t* errorStr=NULL;
-    int errorSize=FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM,NULL,GetLastError(),0,&errorStr,0,NULL);
+    int errorSize=FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS,NULL,GetLastError(),MAKELANGID(LANG_NEUTRAL,SUBLANG_DEFAULT),(wchar_t*)&errorStr,0,NULL);
     if (errorSize==0) {
       failMessage="Unknown error";
     } else {
       failMessage=utf16To8(errorStr);
     }
+    LocalFree(errorStr);
 
     haveFiles=true;
     haveStat=true;
@@ -280,8 +282,13 @@ void FurnaceFilePicker::readDirectorySub() {
 
 String FurnaceFilePicker::normalizePath(const String& which) {
   String ret;
+#ifdef _WIN32
+  wchar_t temp[4096];
+  memset(temp,0,4096*sizeof(wchar_t));
+#else
   char temp[PATH_MAX];
   memset(temp,0,PATH_MAX);
+#endif
 
 #ifndef _WIN32
   // don't reject the root on Linux/Unix
@@ -317,12 +324,13 @@ String FurnaceFilePicker::normalizePath(const String& which) {
   }
 
   if (!ret.empty()) {
-    // resolve path
-    if (realpath(ret.c_str(),temp)!=NULL) {
-      ret=temp;
+#ifdef _WIN32
+    // resolve parh
+    WString retW=utf8To16(ret);
+    if (GetFullPathNameW(retW.c_str(),4095,temp,NULL)!=0) {
+      ret=utf16To8(temp);
     }
 
-#ifdef _WIN32
     // if this is the root of a drive, don't remove dir separator
     if (ret.size()>=5) {
       // remove dir separator at the end
@@ -331,6 +339,11 @@ String FurnaceFilePicker::normalizePath(const String& which) {
       }
     }
 #else
+    // resolve path
+    if (realpath(ret.c_str(),temp)!=NULL) {
+      ret=temp;
+    }
+
     // remove dir separator at the end
     if (*ret.rbegin()==DIR_SEPARATOR) {
       ret.resize(ret.size()-1);
@@ -536,6 +549,51 @@ bool FurnaceFilePicker::draw() {
           if (mkdirPath.empty()) {
             mkdirError="Maybe try that again under better circumstances...";
           } else {
+#ifdef _WIN32
+            // convert to absolute path if necessary
+            bool willConvert=(mkdirPath.size()<3);
+            if (!willConvert) {
+              // test for drive letter
+              if (!(((mkdirPath[0]>='A' && mkdirPath[0]<='Z') || (mkdirPath[0]>='a' && mkdirPath[0]<='z')) && mkdirPath[1]==':' && mkdirPath[2]=='\\')) {
+                if (mkdirPath.size()<4) {
+                  willConvert=true;
+                } else {
+                  if (!(((mkdirPath[0]>='A' && mkdirPath[0]<='Z') || (mkdirPath[0]>='a' && mkdirPath[0]<='z')) && ((mkdirPath[1]>='A' && mkdirPath[1]<='Z') || (mkdirPath[1]>='a' && mkdirPath[1]<='z')) && mkdirPath[2]==':' && mkdirPath[3]=='\\')) {
+                    willConvert=true;
+                  }
+                }
+              }
+            }
+
+            if (willConvert) {
+              if (path.empty()) {
+                // error out in the drives view
+                mkdirError="Trying to create a directory in the drives list";
+              } else if (*path.rbegin()=='\\') {
+                mkdirPath=path+mkdirPath;
+              } else {
+                mkdirPath=path+'\\'+mkdirPath;
+              }
+            }
+
+            // create directory
+            if (mkdirError.empty()) {
+              WString mkdirPathW=utf8To16(mkdirPath);
+              if (CreateDirectoryW(mkdirPathW.c_str(),NULL)==0) {
+                wchar_t* errorStr=NULL;
+                int errorSize=FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS,NULL,GetLastError(),MAKELANGID(LANG_NEUTRAL,SUBLANG_DEFAULT),(wchar_t*)&errorStr,0,NULL);
+                if (errorSize==0) {
+                  mkdirError="Unknown error";
+                } else {
+                  mkdirError=utf16To8(errorStr);
+                }
+                LocalFree(errorStr);
+              } else {
+                newDir=mkdirPath;
+                ImGui::CloseCurrentPopup();
+              }
+            }
+#else
             // convert to absolute path if necessary
             if (mkdirPath[0]!='/') {
               if (!path.empty()) {
@@ -546,6 +604,7 @@ bool FurnaceFilePicker::draw() {
                 }
               }
             }
+
             // create directory
             int result=mkdir(mkdirPath.c_str(),0755);
             if (result!=0) {
@@ -554,6 +613,7 @@ bool FurnaceFilePicker::draw() {
               newDir=mkdirPath;
               ImGui::CloseCurrentPopup();
             }
+#endif
           }
         }
         ImGui::EndDisabled();
