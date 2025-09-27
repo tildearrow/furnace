@@ -535,6 +535,72 @@ bool FurnaceGUI::InvCheckbox(const char* label, bool* value) {
   return false;
 }
 
+bool FurnaceGUI::NoteSelector(int* value, bool showOffRel, int octaveMin, int octaveMax) {
+  bool ret=false, calcNote=false;
+  char tempID[64];
+  if (*value==130) {
+    snprintf(tempID,64,"%s##MREL",macroRelLabel);
+  } else if (*value==129) {
+    snprintf(tempID,64,"%s##NREL",noteRelLabel);
+  } else if (*value==128) {
+    snprintf(tempID,64,"%s##NOFF",noteOffLabel);
+  } else if (*value>=-60 && *value<120) {
+    snprintf(tempID,64,"%c%c",noteNames[*value%12+72][0],(noteNames[*value%12+72][1]=='-')?' ':noteNames[*value%12+72][1]);
+  } else {
+    snprintf(tempID,64,"???");
+    *value=0;
+  }
+  float width=ImGui::GetContentRegionAvail().x/2-ImGui::GetStyle().FramePadding.x;
+  ImGui::SetNextItemWidth(width);
+  int note=(*value+60)%12;
+  int oct=0;
+  if (*value<120) oct=(*value-note)/12;
+  ImGui::BeginGroup();
+  ImGui::PushID(value);
+  if (ImGui::BeginCombo("##NoteSelectorNote",tempID)) {
+    for (int j=0; j<12; j++) {
+      snprintf(tempID,64,"%c%c",noteNames[j+72][0],(noteNames[j+72][1]=='-')?' ':noteNames[j+72][1]);
+      if (ImGui::Selectable(tempID,note==j && *value<128)) {
+        note=j;
+        calcNote=true;
+      }
+      if (note==j && *value<120) ImGui::SetItemDefaultFocus();
+    }
+    if (showOffRel) {
+      if (ImGui::Selectable(noteOffLabel,*value==128)) {
+        *value=128;
+        ret=true;
+      }
+      if (ImGui::Selectable(noteRelLabel,*value==129)) {
+        *value=129;
+        ret=true;
+      }
+      if (ImGui::Selectable(macroRelLabel,*value==130)) {
+        *value=130;
+        ret=true;
+      }
+      if (*value>=128 && *value<=130) ImGui::SetItemDefaultFocus();
+    }
+    ImGui::EndCombo();
+  }
+  ImGui::SameLine();
+  if (*value<120) {
+    ImGui::SetNextItemWidth(width/2);
+    if (ImGui::InputScalar("##NoteSelectorOctave",ImGuiDataType_S32,&oct)) {
+      if (oct<octaveMin) oct=octaveMin;
+      if (oct>octaveMax) oct=octaveMax;
+      calcNote=true;
+    }
+  }
+  if (calcNote) {
+    *value=oct*12+note;
+    ret=true;
+  }
+  ImGui::PopID();
+  ImGui::EndGroup();
+  return ret;
+}
+
 bool FurnaceGUI::LocalizedComboGetter(void* data, int idx, const char** out_text) {
   const char* const* items=(const char* const*)data;
   if (out_text) *out_text=_(items[idx]);

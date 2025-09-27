@@ -1279,8 +1279,8 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   for (int i=0; i<chans; i++) {
     for (int j=0; j<curSubSong->ordersLen; j++) {
       if (curOrders->ord[i][j]>0x7f) {
-        logE("order %d, %d is out of range (0-127)!",curOrders->ord[i][j]);
-        lastError=fmt::sprintf("order %d, %d is out of range (0-127)",curOrders->ord[i][j]);
+        logE("order %d, %d is out of range (0-127)!",i,j);
+        lastError=fmt::sprintf("order %d, %d is out of range (0-127)",i,j);
         return NULL;
       }
     }
