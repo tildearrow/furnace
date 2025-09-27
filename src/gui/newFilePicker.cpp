@@ -26,12 +26,16 @@
 #include "../ta-log.h"
 #include <algorithm>
 #include <chrono>
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include <dirent.h>
 #include <fcntl.h>
 #include <inttypes.h>
 #include <sys/stat.h>
-#include <time.h>
 #include <unistd.h>
+#endif
+#include <time.h>
 
 static const char* sizeSuffixes=".KMGTPEZ";
 
@@ -39,6 +43,110 @@ static void _fileThread(void* item) {
   ((FurnaceFilePicker*)item)->readDirectorySub();
 }
 
+#ifdef _WIN32
+// Windows implementation
+void FurnaceFilePicker::readDirectorySub() {
+  /// SPECIAL CASE: empty path returns drive list
+  if (path=="") {
+    unsigned int drives=GetLogicalDrives();
+
+    for (int i=0; i<32; i++) {
+      if (!(drives&(1U<<i))) continue;
+      FileEntry* newEntry=new FileEntry;
+
+      if (i>=26) {
+        newEntry->name='A';
+        newEntry->name+=('A'+(i-26));
+      } else {
+        newEntry->name+=('A'+i);
+      }
+      newEntry->name+=":\\";
+      newEntry->nameLower=newEntry->name;
+      for (char& i: newEntry->nameLower) {
+        if (i>='A' && i<='Z') i+='a'-'A';
+      }
+
+      newEntry->isDir=true;
+      newEntry->type=FP_TYPE_DIR;
+
+      entries.push_back(newEntry);
+    }
+
+    haveFiles=true;
+    haveStat=true;
+    return;
+  }
+
+  /// STAGE 1: get file list
+  WString pathW=utf8To16(path.c_str());
+  WIN32_FIND_DATAW entry;
+  SYSTEMTIME tempTM;
+  HANDLE dir=FindFirstFileW(pathW.c_str(),&entry);
+  if (dir==INVALID_HANDLE_VALUE) {
+    wchar_t* errorStr=NULL;
+    int errorSize=FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM,NULL,GetLastError(),0,&errorStr,0,NULL);
+    if (errorSize==0) {
+      failMessage="Unknown error";
+    } else {
+      failMessage=utf16To8(errorStr);
+    }
+
+    haveFiles=true;
+    haveStat=true;
+    return;
+  }
+
+  do {
+    FileEntry* newEntry=new FileEntry;
+
+    newEntry->name=utf16To8(entry.cFileName);
+    newEntry->nameLower=newEntry->name;
+    for (char& i: newEntry->nameLower) {
+      if (i>='A' && i<='Z') i+='a'-'A';
+    }
+
+    newEntry->isDir=entry.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY;
+    newEntry->type=newEntry->isDir?FP_TYPE_DIR:FP_TYPE_NORMAL;
+
+    if (!newEntry->isDir) {
+      size_t extPos=newEntry->name.rfind('.');
+      if (extPos!=String::npos) {
+        newEntry->ext=newEntry->name.substr(extPos);
+        for (char& i: newEntry->ext) {
+          if (i>='A' && i<='Z') i+='a'-'A';
+        }
+      }
+    }
+
+    newEntry->size=((uint64_t)entry.nFileSizeHigh<<32)|(uint64_t)entry.nFileSizeLow;
+    newEntry->hasSize=true;
+
+    if (FileTimeToSystemTime(&entry.ftLastWriteTime,&tempTM)) {
+      // we only use these
+      newEntry->time.tm_year=tempTM.wYear-1900;
+      newEntry->time.tm_mon=tempTM.wMonth-1;
+      newEntry->time.tm_mday=tempTM.wDay;
+      newEntry->time.tm_hour=tempTM.wHour;
+      newEntry->time.tm_min=tempTM.wMinute;
+      newEntry->time.tm_sec=tempTM.wSecond;
+
+      newEntry->hasTime=true;
+    }
+
+    entries.push_back(newEntry);
+    if (stopReading) {
+      break;
+    }
+  } while (FindNextFileW(dir,&entry)!=0);
+  FindClose(dir);
+
+  // on Windows, directory entries contain all the information the file picker needs.
+  // no extra calls needed.
+  haveFiles=true;
+  haveStat=true;
+}
+#else
+// Linux/Unix implementation
 void FurnaceFilePicker::readDirectorySub() {
   /// STAGE 1: get file list
   DIR* dir=opendir(path.c_str());
@@ -78,7 +186,9 @@ void FurnaceFilePicker::readDirectorySub() {
         // resolve link to determine whether this is a directory
         String readLinkPath;
         DIR* readLinkDir=NULL;
-        if (*path.rbegin()=='/') {
+        if (path.empty()) {
+          readLinkPath=newEntry->name;
+        } else if (*path.rbegin()=='/') {
           readLinkPath=path+newEntry->name;
         } else {
           readLinkPath=path+'/'+newEntry->name;
@@ -140,7 +250,9 @@ void FurnaceFilePicker::readDirectorySub() {
       return;
     }
 
-    if (*path.rbegin()=='/') {
+    if (path.empty()) {
+      filePath=i->name;
+    } else if (*path.rbegin()=='/') {
       filePath=path+i->name;
     } else {
       filePath=path+'/'+i->name;
@@ -164,28 +276,35 @@ void FurnaceFilePicker::readDirectorySub() {
   }
   haveStat=true;
 }
+#endif
 
 String FurnaceFilePicker::normalizePath(const String& which) {
   String ret;
   char temp[PATH_MAX];
   memset(temp,0,PATH_MAX);
 
+#ifndef _WIN32
+  // don't reject the root on Linux/Unix
   if (which=="/") {
     ret=which;
     return ret;
   }
+#endif
 
   if (which.empty()) {
+    // on Windows we don't reject an empty path as it has a special meaning
+#ifndef _WIN32
     if (getcwd(temp,PATH_MAX)==NULL) {
       // sorry...
       return "";
     }
     ret=temp;
+#endif
   } else {
     // remove redundant directory separators
     bool alreadySep=false;
     for (const char& i: which) {
-      if (i=='/') {
+      if (i==DIR_SEPARATOR) {
         if (!alreadySep) {
           alreadySep=true;
           ret+=i;
@@ -203,10 +322,20 @@ String FurnaceFilePicker::normalizePath(const String& which) {
       ret=temp;
     }
 
+#ifdef _WIN32
+    // if this is the root of a drive, don't remove dir separator
+    if (ret.size()>=5) {
+      // remove dir separator at the end
+      if (*ret.rbegin()==DIR_SEPARATOR) {
+        ret.resize(ret.size()-1);
+      }
+    }
+#else
     // remove dir separator at the end
-    if (*ret.rbegin()=='/') {
+    if (*ret.rbegin()==DIR_SEPARATOR) {
       ret.resize(ret.size()-1);
     }
+#endif
   }
 
   return ret;
@@ -387,6 +516,7 @@ bool FurnaceFilePicker::draw() {
 
   String newDir;
   bool acknowledged=false;
+  bool readDrives=false;
 
   ImGui::SetNextWindowSizeConstraints(ImVec2(800.0,600.0),ImVec2(8000.0,6000.0));
   if (ImGui::Begin(windowName.c_str(),NULL,ImGuiWindowFlags_NoSavedSettings)) {
@@ -408,10 +538,12 @@ bool FurnaceFilePicker::draw() {
           } else {
             // convert to absolute path if necessary
             if (mkdirPath[0]!='/') {
-              if (*path.rbegin()=='/') {
-                mkdirPath=path+mkdirPath;
-              } else {
-                mkdirPath=path+'/'+mkdirPath;
+              if (!path.empty()) {
+                if (*path.rbegin()=='/') {
+                  mkdirPath=path+mkdirPath;
+                } else {
+                  mkdirPath=path+'/'+mkdirPath;
+                }
               }
             }
             // create directory
@@ -447,11 +579,23 @@ bool FurnaceFilePicker::draw() {
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_CHEVRON_UP "##ParentDir")) {
-      size_t pos=path.rfind('/');
+      size_t pos=path.rfind(DIR_SEPARATOR);
+#ifdef _WIN32
+      if (pos==2 || pos==3) {
+        if (path.size()<5) {
+          newDir="";
+          readDrives=true;
+        } else {
+          newDir=path.substr(0,pos+1);
+        }
+      }
+#else
+      // stop at the root
       if (pos!=String::npos && path!="/") {
         newDir=path.substr(0,pos);
         if (newDir.empty()) newDir="/";
       }
+#endif
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_PENCIL "##EditPath")) {
@@ -473,13 +617,19 @@ bool FurnaceFilePicker::draw() {
     } else {
       // explode path into buttons
       String pathLeading=path;
-      if (*path.rbegin()!='/') pathLeading+="/";
+      if (!path.empty()) {
+        if (*path.rbegin()!=DIR_SEPARATOR) pathLeading+=DIR_SEPARATOR_STR;
+      }
+#ifdef _WIN32
+      String nextButton;
+#else
       String nextButton="/";
+#endif
       String pathAsOfNow;
       int pathLevel=0x10000000;
       for (char i: pathLeading) {
         pathAsOfNow+=i;
-        if (i=='/') {
+        if (i==DIR_SEPARATOR) {
           // create button
           ImGui::PushID(pathLevel);
           ImGui::SameLine();
@@ -765,11 +915,15 @@ bool FurnaceFilePicker::draw() {
     if (acknowledged) {
       if (!chosenEntries.empty()) {
         if (chosenEntries.size()==1 && chosenEntries[0]->isDir) {
-          // go there unless we've been required to select a directory
-          if (*path.rbegin()=='/') {
-            newDir=path+chosenEntries[0]->name;
+          if (path.empty()) {
+            newDir=chosenEntries[0]->name;
           } else {
-            newDir=path+'/'+chosenEntries[0]->name;
+            // go there unless we've been required to select a directory
+            if (*path.rbegin()==DIR_SEPARATOR) {
+              newDir=path+chosenEntries[0]->name;
+            } else {
+              newDir=path+DIR_SEPARATOR+chosenEntries[0]->name;
+            }
           }
         } else {
           // select this entry
@@ -781,7 +935,7 @@ bool FurnaceFilePicker::draw() {
   }
   ImGui::End();
 
-  if (!newDir.empty()) {
+  if (!newDir.empty() || readDrives) {
     // change directory
     readDirectory(newDir);
   }
