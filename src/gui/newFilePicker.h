@@ -89,6 +89,13 @@ class FurnaceFilePicker {
   std::vector<FileTypeStyle> fileTypeRegistry;
   FileTypeStyle defaultTypeStyle[FP_TYPE_MAX];
 
+  // for "create directory"
+  String mkdirPath, mkdirError;
+
+  // for the "edit path" button
+  String editablePath;
+  bool editingPath;
+
   void sortFiles();
   void filterFiles();
   void clearAllFiles();
