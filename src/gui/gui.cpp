@@ -5115,6 +5115,23 @@ bool FurnaceGUI::loop() {
 #endif
 #endif
 
+    switch (newFilePicker->getStatus()) {
+      case FP_STATUS_ACCEPTED: {
+        String combined="The file picker says: ";
+        for (const String& i: newFilePicker->getSelected()) {
+          combined+="\n- ";
+          combined+=i;
+        }
+        showError(combined);
+        break;
+      }
+      case FP_STATUS_CLOSED:
+        showError("The file picker was closed.");
+        break;
+      default:
+        break;
+    }
+
     if (fileDialog->render(mobileUI?ImVec2(canvasW-(portrait?0:(60.0*dpiScale)),canvasH-60.0*dpiScale):ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW-((mobileUI && !portrait)?(60.0*dpiScale):0),canvasH-(mobileUI?(60.0*dpiScale):0)))) {
       bool openOpen=false;
       //ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NavEnableKeyboard;

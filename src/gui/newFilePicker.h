@@ -73,6 +73,7 @@ class FurnaceFilePicker {
   std::vector<FileEntry*> sortedEntries;
   std::vector<FileEntry*> filteredEntries;
   std::vector<FileEntry*> chosenEntries;
+  std::vector<String> finalSelection;
   std::vector<String> filterOptions;
   std::thread* fileThread;
   std::mutex entryLock;
@@ -104,13 +105,14 @@ class FurnaceFilePicker {
   void updateEntryName();
   void readDirectory(String path);
   String normalizePath(const String& which);
+  bool isPathAbsolute(const String& p);
 
   public:
     void readDirectorySub();
     void setHomeDir(String where);
     FilePickerStatus getStatus();
     const String& getEntryName();
-    const std::vector<FileEntry*>& getSelected();
+    const std::vector<String>& getSelected();
     void setMobile(bool val);
     bool draw();
     bool open(String name, String path, bool modal, const std::vector<String>& filter);

@@ -196,10 +196,8 @@ void FurnaceFilePicker::readDirectorySub() {
           readLinkPath=path+'/'+newEntry->name;
         }
         // silly, but works.
-        logV("Read a symlink...");
         readLinkDir=opendir(readLinkPath.c_str());
         if (readLinkDir!=NULL) {
-          logV("Is file");
           newEntry->isDir=true;
           closedir(readLinkDir);
         }
@@ -524,6 +522,32 @@ void FurnaceFilePicker::filterFiles() {
   }
 }
 
+bool FurnaceFilePicker::isPathAbsolute(const String& p) {
+#ifdef _WIN32
+  // TODO: test for UNC path?
+
+  // convert to absolute path if necessary
+  bool willConvert=(p.size()<3);
+  if (!willConvert) {
+    // test for drive letter
+    if (!(((p[0]>='A' && p[0]<='Z') || (p[0]>='a' && p[0]<='z')) && p[1]==':' && p[2]=='\\')) {
+      if (p.size()<4) {
+        willConvert=true;
+      } else {
+        if (!(((p[0]>='A' && p[0]<='Z') || (p[0]>='a' && p[0]<='z')) && ((p[1]>='A' && p[1]<='Z') || (p[1]>='a' && p[1]<='z')) && p[2]==':' && p[3]=='\\')) {
+          willConvert=true;
+        }
+      }
+    }
+  }
+
+  return !willConvert;
+#else
+  if (p.size()<1) return false;
+  return (p[0]=='/');
+#endif
+}
+
 bool FurnaceFilePicker::draw() {
   if (!isOpen) return false;
 
@@ -550,22 +574,7 @@ bool FurnaceFilePicker::draw() {
             mkdirError="Maybe try that again under better circumstances...";
           } else {
 #ifdef _WIN32
-            // convert to absolute path if necessary
-            bool willConvert=(mkdirPath.size()<3);
-            if (!willConvert) {
-              // test for drive letter
-              if (!(((mkdirPath[0]>='A' && mkdirPath[0]<='Z') || (mkdirPath[0]>='a' && mkdirPath[0]<='z')) && mkdirPath[1]==':' && mkdirPath[2]=='\\')) {
-                if (mkdirPath.size()<4) {
-                  willConvert=true;
-                } else {
-                  if (!(((mkdirPath[0]>='A' && mkdirPath[0]<='Z') || (mkdirPath[0]>='a' && mkdirPath[0]<='z')) && ((mkdirPath[1]>='A' && mkdirPath[1]<='Z') || (mkdirPath[1]>='a' && mkdirPath[1]<='z')) && mkdirPath[2]==':' && mkdirPath[3]=='\\')) {
-                    willConvert=true;
-                  }
-                }
-              }
-            }
-
-            if (willConvert) {
+            if (!isPathAbsolute(mkdirPath)) {
               if (path.empty()) {
                 // error out in the drives view
                 mkdirError="Trying to create a directory in the drives list";
@@ -595,7 +604,7 @@ bool FurnaceFilePicker::draw() {
             }
 #else
             // convert to absolute path if necessary
-            if (mkdirPath[0]!='/') {
+            if (!isPathAbsolute(mkdirPath)) {
               if (!path.empty()) {
                 if (*path.rbegin()=='/') {
                   mkdirPath=path+mkdirPath;
@@ -947,7 +956,10 @@ bool FurnaceFilePicker::draw() {
     ImGui::SameLine();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x*0.68f);
     if (ImGui::InputText("##EntryName",&entryName)) {
-      // find an entry with this name
+      for (FileEntry* j: chosenEntries) {
+        j->isSelected=false;
+      }
+      chosenEntries.clear();
     }
     ImGui::SameLine();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -962,7 +974,7 @@ bool FurnaceFilePicker::draw() {
     }
 
     // OK/Cancel buttons
-    ImGui::BeginDisabled(chosenEntries.empty());
+    ImGui::BeginDisabled(entryName.empty() && chosenEntries.empty());
     if (ImGui::Button("OK")) {
       // accept entry
       acknowledged=true;
@@ -995,8 +1007,60 @@ bool FurnaceFilePicker::draw() {
           }
         } else {
           // select this entry
+          finalSelection.clear();
+          for (FileEntry* i: chosenEntries) {
+            if (path.empty()) {
+              finalSelection.push_back(i->name);
+            } else if (*path.rbegin()==DIR_SEPARATOR) {
+              finalSelection.push_back(path+i->name);
+            } else {
+              finalSelection.push_back(path+DIR_SEPARATOR_STR+i->name);
+            }
+          }
+
           curStatus=FP_STATUS_ACCEPTED;
           isOpen=false;
+        }
+      } else {
+        // return the user-provided entry
+        finalSelection.clear();
+        if (!entryName.empty()) {
+          String dirCheckPath;
+          if (isPathAbsolute(entryName)) {
+            dirCheckPath=entryName;
+          } else {
+            if (path.empty()) {
+              dirCheckPath=entryName;
+            } else if (*path.rbegin()==DIR_SEPARATOR) {
+              dirCheckPath=path+entryName;
+            } else {
+              dirCheckPath=path+DIR_SEPARATOR_STR+entryName;
+            }
+          }
+
+          // check whether this is a directory
+          bool isDir=false;
+#ifdef _WIN32
+          WString dirCheckPathW=utf8To16(dirCheckPath);
+          isDir=PathIsDirectoryW(dirCheckPathW.c_str());
+#else
+          // again, silly but works.
+          DIR* checkDir=opendir(dirCheckPath.c_str());
+          if (checkDir!=NULL) {
+            isDir=true;
+            closedir(checkDir);
+          }
+#endif
+
+          if (isDir) {
+            // go to directory
+            newDir=dirCheckPath;
+          } else {
+            // return now
+            finalSelection.push_back(dirCheckPath);
+            curStatus=FP_STATUS_ACCEPTED;
+            isOpen=false;
+          }
         }
       }
     }
@@ -1031,10 +1095,6 @@ bool FurnaceFilePicker::open(String name, String pa, bool modal, const std::vect
   return true;
 }
 
-const String& FurnaceFilePicker::getEntryName() {
-  return entryName;
-}
-
 void FurnaceFilePicker::setMobile(bool val) {
   isMobile=val;
 }
@@ -1051,6 +1111,14 @@ void FurnaceFilePicker::loadSettings(DivConfig& conf) {
 
 void FurnaceFilePicker::saveSettings(DivConfig& conf) {
 
+}
+
+const String& FurnaceFilePicker::getEntryName() {
+  return entryName;
+}
+
+const std::vector<String>& FurnaceFilePicker::getSelected() {
+  return finalSelection;
 }
 
 void FurnaceFilePicker::setTypeStyle(FileType type, ImVec4 color, String icon) {
