@@ -3843,9 +3843,13 @@ void FurnaceGUI::drawSettings() {
           settings.songNotesWrap=songNotesWrapB;
           settingsChanged=true;
         }
-        settings.songNotesWrap=false;
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("Sorry, but, can you leave me alone?\nThere's plenty of other settings here for you to mess with."));
+
+        // SUBSECTION SONG COMMENTS
+        CONFIG_SUBSECTION(_("Chip Manager"));
+        bool rackShowLEDsB=settings.rackShowLEDs;
+        if (ImGui::Checkbox(_("Show channel indicators"), &rackShowLEDsB)) {
+          settings.rackShowLEDs=rackShowLEDsB;
+          settingsChanged=true;
         }
 
         // SUBSECTION WINDOWS
@@ -5030,6 +5034,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
     settings.songNotesWrap=conf.getInt("songNotesWrap", 0);
 
+    settings.rackShowLEDs=conf.getInt("rackShowLEDs", 1);
+
     settings.channelColors=conf.getInt("channelColors",1);
     settings.channelTextColors=conf.getInt("channelTextColors",0);
     settings.channelStyle=conf.getInt("channelStyle",1);
@@ -5367,6 +5373,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.shaderOsc,0,1);
   clampSetting(settings.oscLineSize,0.25f,16.0f);
   clampSetting(settings.songNotesWrap, 0, 1);
+  clampSetting(settings.rackShowLEDs, 0, 1);
   clampSetting(settings.cursorWheelStep,0,2);
   clampSetting(settings.vsync,0,4);
   clampSetting(settings.frameRateLimit,0,1000);
@@ -5611,6 +5618,8 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("oscLineSize",settings.oscLineSize);
 
     conf.set("songNotesWrap",settings.songNotesWrap);
+
+    conf.set("rackShowLEDs", settings.rackShowLEDs);
 
     conf.set("channelColors",settings.channelColors);
     conf.set("channelTextColors",settings.channelTextColors);
@@ -6607,6 +6616,11 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     //fontConf.RasterizerMultiply=1.5;
     //fontConfP.RasterizerMultiply=1.5;
 
+    fontConf.PixelSnapH=0;
+    fontConfP.PixelSnapH=0;
+    fontConfB.PixelSnapH=0;
+    fontConfH.PixelSnapH=0;
+
     if (settings.mainFont<0 || settings.mainFont>6) settings.mainFont=0;
     if (settings.headFont<0 || settings.headFont>6) settings.headFont=0;
     if (settings.patFont<0 || settings.patFont>6) settings.patFont=0;
@@ -6783,8 +6797,8 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
       headFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fc1);
     }
 
-    mainFont->FallbackChar='?';
-    mainFont->EllipsisChar='.';
+    //mainFont->FallbackChar='?';
+    //mainFont->EllipsisChar='.';
     //mainFont->EllipsisCharCount=3;
   } else if (updateFonts) {
     // safe mode
@@ -6793,8 +6807,8 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     bigFont=mainFont;
     headFont=mainFont;
 
-    mainFont->FallbackChar='?';
-    mainFont->EllipsisChar='.';
+    //mainFont->FallbackChar='?';
+    //mainFont->EllipsisChar='.';
     //mainFont->EllipsisCharCount=3;
   }
 

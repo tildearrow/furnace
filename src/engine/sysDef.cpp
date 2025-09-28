@@ -1175,6 +1175,8 @@ void DivEngine::registerSystems() {
     {},
     {
       {0x10, {DIV_CMD_WAVE, _("10xx: Set waveform")}},
+    },
+    {
       {0x11, {DIV_CMD_FDS_MOD_DEPTH, _("11xx: Set modulation depth")}},
       {0x12, {DIV_CMD_FDS_MOD_HIGH, _("12xy: Set modulation speed high byte (x: enable; y: value)")}},
       {0x13, {DIV_CMD_FDS_MOD_LOW, _("13xx: Set modulation speed low byte")}},
