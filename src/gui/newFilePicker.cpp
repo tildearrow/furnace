@@ -131,6 +131,7 @@ void FurnaceFilePicker::readDirectorySub() {
     }
 
     newEntry->isDir=entry.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY;
+    newEntry->isHidden=(entry.dwFileAttributes&FILE_ATTRIBUTE_HIDDEN) || (entry.dwFileAttributes&FILE_ATTRIBUTE_SYSTEM);
     newEntry->type=newEntry->isDir?FP_TYPE_DIR:FP_TYPE_NORMAL;
 
     if (!newEntry->isDir) {
@@ -194,6 +195,7 @@ void FurnaceFilePicker::readDirectorySub() {
 
     newEntry->name=entry->d_name;
     newEntry->nameLower=entry->d_name;
+    newEntry->isHidden=(entry->d_name[0]=='.');
     for (char& i: newEntry->nameLower) {
       if (i>='A' && i<='Z') i+='a'-'A';
     }
@@ -422,14 +424,18 @@ void FurnaceFilePicker::updateEntryName() {
 }
 
 // the name of this function is somewhat misleading.
-// it filters files by type, then sorts them.
+// it filters files by type/hidden status, then sorts them.
 void FurnaceFilePicker::sortFiles() {
   std::chrono::high_resolution_clock::time_point timeStart=std::chrono::high_resolution_clock::now();
   entryLock.lock();
   // check for "no filter"
   if (filterOptions[curFilterType+1]=="*") {
-    // copy entire list
-    sortedEntries=entries;
+    // only filter hidden files if needed
+    sortedEntries.clear();
+    for (FileEntry* i: entries) {
+      if (i->isHidden && !showHiddenFiles) continue;
+      sortedEntries.push_back(i);
+    }
   } else {
     // sort by extension
     std::vector<String> parsedSort;
@@ -456,6 +462,7 @@ void FurnaceFilePicker::sortFiles() {
 
     sortedEntries.clear();
     for (FileEntry* i: entries) {
+      if (i->isHidden && !showHiddenFiles) continue;
       if (i->isDir) {
         sortedEntries.push_back(i);
         continue;
@@ -471,8 +478,10 @@ void FurnaceFilePicker::sortFiles() {
 
   // sort by name
   std::sort(sortedEntries.begin(),sortedEntries.end(),[this](const FileEntry* a, const FileEntry* b) -> bool {
-    if (a->isDir && !b->isDir) return true;
-    if (!a->isDir && b->isDir) return false;
+    if (sortDirsFirst) {
+      if (a->isDir && !b->isDir) return true;
+      if (!a->isDir && b->isDir) return false;
+    }
 
     switch (sortMode) {
       case FP_SORT_NAME: {
@@ -518,6 +527,9 @@ void FurnaceFilePicker::sortFiles() {
         return a->time.tm_year<b->time.tm_year;
         break;
       }
+      case FP_SORT_MAX:
+        // impossible
+        break;
     }
 
     // fall back to sorting by name
@@ -790,6 +802,24 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     }
 
     // search bar
+    if (ImGui::Button(showBookmarks?(ICON_FA_BOOKMARK "##Bookmarks"):(ICON_FA_BOOKMARK_O "##Bookmarks"))) {
+      showBookmarks=!showBookmarks;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_FA_COG "##Settings")) {
+    }
+    if (ImGui::BeginPopupContextItem("FilePickerSettings",ImGuiPopupFlags_MouseButtonLeft)) {
+      if (ImGui::Checkbox("Show hidden files",&showHiddenFiles)) {
+        scheduledSort=1;
+      }
+      ImGui::Checkbox("Single click selects entries",&singleClickSelect);
+      ImGui::Checkbox("Clear search query when changing directory",&clearSearchOnDirChange);
+      if (ImGui::Checkbox("Sort directories first",&sortDirsFirst)) {
+        scheduledSort=1;
+      }
+      ImGui::EndPopup();
+    }
+    ImGui::SameLine();
     if (ImGui::Button(ICON_FA_REPEAT "##ClearFilter")) {
       filter="";
       filterFiles();
@@ -870,32 +900,35 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
 
         switch (sortMode) {
           case FP_SORT_NAME:
-            if (sortInvert) {
+            if (sortInvert[FP_SORT_NAME]) {
               nameHeader=ICON_FA_CHEVRON_UP "Name##SortName";
             } else {
               nameHeader=ICON_FA_CHEVRON_DOWN "Name##SortName";
             }
             break;
           case FP_SORT_EXT:
-            if (sortInvert) {
+            if (sortInvert[FP_SORT_EXT]) {
               typeHeader=ICON_FA_CHEVRON_UP "Type##SortType";
             } else {
               typeHeader=ICON_FA_CHEVRON_DOWN "Type##SortType";
             }
             break;
           case FP_SORT_SIZE:
-            if (sortInvert) {
+            if (sortInvert[FP_SORT_SIZE]) {
               sizeHeader=ICON_FA_CHEVRON_UP "Size##SortSize";
             } else {
               sizeHeader=ICON_FA_CHEVRON_DOWN "Size##SortSize";
             }
             break;
           case FP_SORT_DATE:
-            if (sortInvert) {
+            if (sortInvert[FP_SORT_DATE]) {
               dateHeader=ICON_FA_CHEVRON_UP "Date##SortDate";
             } else {
               dateHeader=ICON_FA_CHEVRON_DOWN "Date##SortDate";
             }
+            break;
+          case FP_SORT_MAX:
+            // impossible
             break;
         }
 
@@ -903,7 +936,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
         ImGui::TableNextColumn();
         if (ImGui::Selectable(nameHeader)) {
           if (sortMode==FP_SORT_NAME) {
-            sortInvert=!sortInvert;
+            sortInvert[sortMode]=!sortInvert[sortMode];
           } else {
             sortMode=FP_SORT_NAME;
             scheduledSort=1;
@@ -912,7 +945,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
         ImGui::TableNextColumn();
         if (ImGui::Selectable(typeHeader)) {
           if (sortMode==FP_SORT_EXT) {
-            sortInvert=!sortInvert;
+            sortInvert[sortMode]=!sortInvert[sortMode];
           } else {
             sortMode=FP_SORT_EXT;
             scheduledSort=1;
@@ -921,7 +954,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
         ImGui::TableNextColumn();
         if (ImGui::Selectable(sizeHeader)) {
           if (sortMode==FP_SORT_SIZE) {
-            sortInvert=!sortInvert;
+            sortInvert[sortMode]=!sortInvert[sortMode];
           } else {
             sortMode=FP_SORT_SIZE;
             scheduledSort=1;
@@ -930,7 +963,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
         ImGui::TableNextColumn();
         if (ImGui::Selectable(dateHeader)) {
           if (sortMode==FP_SORT_DATE) {
-            sortInvert=!sortInvert;
+            sortInvert[sortMode]=!sortInvert[sortMode];
           } else {
             sortMode=FP_SORT_DATE;
             scheduledSort=1;
@@ -943,7 +976,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
         listClipper.Begin(filteredEntries.size(),rowHeight);
         while (listClipper.Step()) {
           for (int _i=listClipper.DisplayStart; _i<listClipper.DisplayEnd; _i++) {
-            FileEntry* i=filteredEntries[sortInvert?(filteredEntries.size()-_i-1):_i];
+            FileEntry* i=filteredEntries[sortInvert[sortMode]?(filteredEntries.size()-_i-1):_i];
             FileTypeStyle* style=&defaultTypeStyle[i->type];
 
             // get style for this entry
@@ -966,8 +999,10 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
             ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(style->color));
             ImGui::PushID(index++);
             if (ImGui::Selectable(style->icon.c_str(),i->isSelected,ImGuiSelectableFlags_AllowDoubleClick|ImGuiSelectableFlags_SpanAllColumns|ImGuiSelectableFlags_SpanAvailWidth)) {
+              bool doNotAcknowledge=false;
               if ((ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) && multiSelect) {
                 // multiple selection
+                doNotAcknowledge=true;
               } else {
                 // clear selected entries
                 for (FileEntry* j: chosenEntries) {
@@ -986,10 +1021,12 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
                 chosenEntries.push_back(i);
                 i->isSelected=true;
                 updateEntryName();
-                if (isMobile) {
-                  acknowledged=true;
-                } else if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-                  acknowledged=true;
+                if (!doNotAcknowledge) {
+                  if (isMobile || singleClickSelect) {
+                    acknowledged=true;
+                  } else if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+                    acknowledged=true;
+                  }
                 }
               }
             }
@@ -1185,6 +1222,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
 
   if (!newDir.empty() || readDrives) {
     // change directory
+    if (clearSearchOnDirChange) filter="";
     readDirectory(newDir);
   }
   return (curStatus!=FP_STATUS_WAITING);
@@ -1283,7 +1321,6 @@ FurnaceFilePicker::FurnaceFilePicker():
   stopReading(false),
   isOpen(false),
   isMobile(false),
-  sortInvert(false),
   multiSelect(false),
   confirmOverwrite(false),
   dirSelect(false),
@@ -1291,11 +1328,19 @@ FurnaceFilePicker::FurnaceFilePicker():
   isModal(false),
   isEmbed(false),
   hasSizeConstraints(false),
+  showBookmarks(false),
   scheduledSort(0),
   curFilterType(0),
   sortMode(FP_SORT_NAME),
   curStatus(FP_STATUS_WAITING),
-  editingPath(false) {
+  editingPath(false),
+  showHiddenFiles(true),
+  singleClickSelect(false),
+  clearSearchOnDirChange(false),
+  sortDirsFirst(true) {
+  memset(sortInvert,0,FP_SORT_MAX*sizeof(bool));
+  sortInvert[FP_SORT_SIZE]=true;
+  sortInvert[FP_SORT_DATE]=true;
   for (int i=0; i<FP_TYPE_MAX; i++) {
     // "##File" is appended here for performance.
     defaultTypeStyle[i].icon=ICON_FA_QUESTION "##File";

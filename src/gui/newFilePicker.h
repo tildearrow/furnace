@@ -66,7 +66,9 @@ class FurnaceFilePicker {
     FP_SORT_NAME=0,
     FP_SORT_EXT,
     FP_SORT_SIZE,
-    FP_SORT_DATE
+    FP_SORT_DATE,
+
+    FP_SORT_MAX
   };
   struct FileTypeStyle {
     String ext;
@@ -80,12 +82,12 @@ class FurnaceFilePicker {
     String name;
     String nameLower;
     String ext;
-    bool hasSize, hasTime, isDir, isSelected;
+    bool hasSize, hasTime, isDir, isHidden, isSelected;
     uint64_t size;
     struct tm time;
     FileType type;
     FileEntry():
-      hasSize(false), hasTime(false), isDir(false), isSelected(false),
+      hasSize(false), hasTime(false), isDir(false), isHidden(false), isSelected(false),
       size(0), type(FP_TYPE_UNKNOWN) {}
   };
   std::vector<FileEntry*> entries;
@@ -104,8 +106,11 @@ class FurnaceFilePicker {
   String entryNameHint;
   ImGuiListClipper listClipper;
   ImVec2 minSize, maxSize;
-  bool haveFiles, haveStat, stopReading, isOpen, isMobile, sortInvert, multiSelect;
+  bool haveFiles, haveStat, stopReading, isOpen, isMobile;
+  bool sortInvert[FP_SORT_MAX];
+  bool multiSelect;
   bool confirmOverwrite, dirSelect, noClose, isModal, isEmbed, hasSizeConstraints;
+  bool showBookmarks;
   int scheduledSort, imguiFlags;
   size_t curFilterType;
   SortModes sortMode;
@@ -120,6 +125,13 @@ class FurnaceFilePicker {
   // for the "edit path" button
   String editablePath;
   bool editingPath;
+
+  // configuration
+  std::vector<String> bookmarks;
+  bool showHiddenFiles;
+  bool singleClickSelect;
+  bool clearSearchOnDirChange;
+  bool sortDirsFirst;
 
   void sortFiles();
   void filterFiles();
