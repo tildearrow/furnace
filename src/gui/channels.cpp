@@ -50,7 +50,7 @@ void FurnaceGUI::drawChannels() {
       ImGui::TableNextColumn();
       ImGui::Text(_("Osc"));
       ImGui::TableNextColumn();
-      ImGui::Text(_("Drg"));
+      ImGui::Text("%s", "");
       ImGui::TableNextColumn();
       ImGui::Text(_("Name"));
       for (int i=0; i<e->getTotalChannelCount(); i++) {
