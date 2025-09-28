@@ -29,6 +29,7 @@
 #include <imgui.h>
 #ifdef _WIN32
 #include <windows.h>
+#include <shlwapi.h>
 #include "../utfutils.h"
 #else
 #include <dirent.h>
@@ -50,6 +51,7 @@ static void _fileThread(void* item) {
 void FurnaceFilePicker::readDirectorySub() {
   /// SPECIAL CASE: empty path returns drive list
   if (path=="") {
+    /// STAGE 1: get list of drives
     unsigned int drives=GetLogicalDrives();
 
     for (int i=0; i<32; i++) {
@@ -75,12 +77,27 @@ void FurnaceFilePicker::readDirectorySub() {
     }
 
     haveFiles=true;
+
+    /// STAGE 2: get drive information (size!)
+    for (FileEntry* i: entries) {
+      logV("get info for drive %s",i->name);
+      DWORD bytes, sectors, freeClusters, clusters;
+      WString nameW=utf8To16(i->name);
+      if (GetDiskFreeSpaceW(nameW.c_str(),&sectors,&bytes,&freeClusters,&clusters)!=0) {
+        i->size=(uint64_t)bytes*(uint64_t)sectors*(uint64_t)clusters;
+	logV("SIZE: %" PRIu64,i->size);
+        i->hasSize=true;
+      } else {
+        logE("COULD NOT..... %x",GetLastError());
+      }
+    }
     haveStat=true;
     return;
   }
 
   /// STAGE 1: get file list
   WString pathW=utf8To16(path.c_str());
+  pathW+=L"\\*";
   WIN32_FIND_DATAW entry;
   SYSTEMTIME tempTM;
   HANDLE dir=FindFirstFileW(pathW.c_str(),&entry);
@@ -88,9 +105,11 @@ void FurnaceFilePicker::readDirectorySub() {
     wchar_t* errorStr=NULL;
     int errorSize=FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS,NULL,GetLastError(),MAKELANGID(LANG_NEUTRAL,SUBLANG_DEFAULT),(wchar_t*)&errorStr,0,NULL);
     if (errorSize==0) {
-      failMessage="Unknown error";
+      failMessage="Unknown error!";
     } else {
       failMessage=utf16To8(errorStr);
+      // remove trailing new-line
+      if (failMessage.size()>=2) failMessage.resize(failMessage.size()-2);
     }
     LocalFree(errorStr);
 
@@ -100,6 +119,9 @@ void FurnaceFilePicker::readDirectorySub() {
   }
 
   do {
+    if (wcscmp(entry.cFileName,L".")==0) continue;
+    if (wcscmp(entry.cFileName,L"..")==0) continue;
+
     FileEntry* newEntry=new FileEntry;
 
     newEntry->name=utf16To8(entry.cFileName);
@@ -634,6 +656,8 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
                   mkdirError="Unknown error";
                 } else {
                   mkdirError=utf16To8(errorStr);
+                  // remove trailing new-line
+                  if (mkdirError.size()>=2) mkdirError.resize(mkdirError.size()-2);
                 }
                 LocalFree(errorStr);
               } else {
@@ -687,6 +711,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_CHEVRON_UP "##ParentDir")) {
+      logV("Parent dir......");
       size_t pos=path.rfind(DIR_SEPARATOR);
 #ifdef _WIN32
       if (pos==2 || pos==3) {
@@ -696,6 +721,9 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
         } else {
           newDir=path.substr(0,pos+1);
         }
+      } else if (pos!=String::npos) {
+        newDir=path.substr(0,pos);
+        if (newDir.empty()) readDrives=true;
       }
 #else
       // stop at the root
@@ -803,13 +831,21 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
           if (failMessage.empty()) {
             ImGui::Text("This directory is empty!");
           } else {
+#ifdef _WIN32
+            ImGui::Text("%s",failMessage.c_str());
+#else
             ImGui::Text("%s!",failMessage.c_str());
+#endif
           }
         } else {
           if (failMessage.empty()) {
             ImGui::Text("No results");
           } else {
+#ifdef _WIN32
+            ImGui::Text("%s",failMessage.c_str());
+#else
             ImGui::Text("%s!",failMessage.c_str());
+#endif
           }
         }
 
@@ -966,7 +1002,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
             ImGui::TextUnformatted(i->ext.c_str());
 
             ImGui::TableNextColumn();
-            if (i->hasSize && i->type==FP_TYPE_NORMAL) {
+            if (i->hasSize && (i->type==FP_TYPE_NORMAL || path.empty())) {
               int sizeShift=0;
               uint64_t sizeShifted=i->size;
 
