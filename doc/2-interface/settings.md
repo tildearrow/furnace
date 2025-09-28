@@ -572,6 +572,10 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 
 - **Wrap text**: visually breaks long lines at the width of the text box. does not affect the text itself.
 
+### Chip Manager
+
+- **Show channel indicators**: chooses whether to show the row "LED" channel indicators in the chip manager.
+
 ### Windows
 
 - **Rounded window corners**
