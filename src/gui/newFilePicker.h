@@ -142,6 +142,8 @@ class FurnaceFilePicker {
   String normalizePath(const String& which);
   bool isPathAbsolute(const String& p);
 
+  void drawFileList(ImVec2& tableSize, bool& acknowledged);
+
   public:
     void readDirectorySub();
     void setHomeDir(String where);

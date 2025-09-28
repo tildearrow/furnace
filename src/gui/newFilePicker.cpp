@@ -592,6 +592,263 @@ void FurnaceFilePicker::setSizeConstraints(const ImVec2& min, const ImVec2& max)
   hasSizeConstraints=true;
 }
 
+void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
+  // display a message on empty dir, no matches or error
+  if (!haveFiles) {
+    if (ImGui::BeginTable("LoadingFiles",1,ImGuiTableFlags_BordersOuter,tableSize)) {
+      ImGui::EndTable();
+    }
+  } else if (filteredEntries.empty()) {
+    if (ImGui::BeginTable("NoFiles",3,ImGuiTableFlags_BordersOuter,tableSize)) {
+      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.5f);
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.5f);
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+
+      ImGui::TableNextColumn();
+      ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(tableSize.y-ImGui::GetTextLineHeight())*0.5);
+      if (sortedEntries.empty()) {
+        if (failMessage.empty()) {
+          ImGui::Text("This directory is empty!");
+        } else {
+#ifdef _WIN32
+          ImGui::Text("%s",failMessage.c_str());
+#else
+          ImGui::Text("%s!",failMessage.c_str());
+#endif
+        }
+      } else {
+        if (failMessage.empty()) {
+          ImGui::Text("No results");
+        } else {
+#ifdef _WIN32
+          ImGui::Text("%s",failMessage.c_str());
+#else
+          ImGui::Text("%s!",failMessage.c_str());
+#endif
+        }
+      }
+
+      ImGui::TableNextColumn();
+      ImGui::EndTable();
+    }
+  } else {
+    // this is the list view. I might add other view modes in the future...
+    int columns=1;
+    if (displayType) columns++;
+    if (displaySize) columns++;
+    if (displayDate) columns++;
+    if (ImGui::BeginTable("FileList",columns,ImGuiTableFlags_BordersOuter|ImGuiTableFlags_ScrollY|ImGuiTableFlags_RowBg,tableSize)) {
+      float rowHeight=ImGui::GetTextLineHeight()+ImGui::GetStyle().CellPadding.y*2.0f;
+      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
+      if (displayType) ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize(" .eeee").x);
+      if (displaySize) ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize(" 999.99G").x);
+      if (displayDate) ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize(" 6969/69/69 04:20").x);
+      ImGui::TableSetupScrollFreeze(0,1);
+
+      // header (sort options)
+      const char* nameHeader="Name##SortName";
+      const char* typeHeader="Type##SortType";
+      const char* sizeHeader="Size##SortSize";
+      const char* dateHeader="Date##SortDate";
+
+      switch (sortMode) {
+        case FP_SORT_NAME:
+          if (sortInvert[FP_SORT_NAME]) {
+            nameHeader=ICON_FA_CHEVRON_UP "Name##SortName";
+          } else {
+            nameHeader=ICON_FA_CHEVRON_DOWN "Name##SortName";
+          }
+          break;
+        case FP_SORT_EXT:
+          if (sortInvert[FP_SORT_EXT]) {
+            typeHeader=ICON_FA_CHEVRON_UP "Type##SortType";
+          } else {
+            typeHeader=ICON_FA_CHEVRON_DOWN "Type##SortType";
+          }
+          break;
+        case FP_SORT_SIZE:
+          if (sortInvert[FP_SORT_SIZE]) {
+            sizeHeader=ICON_FA_CHEVRON_UP "Size##SortSize";
+          } else {
+            sizeHeader=ICON_FA_CHEVRON_DOWN "Size##SortSize";
+          }
+          break;
+        case FP_SORT_DATE:
+          if (sortInvert[FP_SORT_DATE]) {
+            dateHeader=ICON_FA_CHEVRON_UP "Date##SortDate";
+          } else {
+            dateHeader=ICON_FA_CHEVRON_DOWN "Date##SortDate";
+          }
+          break;
+        case FP_SORT_MAX:
+          // impossible
+          break;
+      }
+
+      ImGui::TableNextRow(ImGuiTableRowFlags_Headers,rowHeight);
+      ImGui::TableNextColumn();
+      if (ImGui::Selectable(nameHeader)) {
+        if (sortMode==FP_SORT_NAME) {
+          sortInvert[sortMode]=!sortInvert[sortMode];
+        } else {
+          sortMode=FP_SORT_NAME;
+          scheduledSort=1;
+        }
+      }
+      if (displayType) {
+        ImGui::TableNextColumn();
+        if (ImGui::Selectable(typeHeader)) {
+          if (sortMode==FP_SORT_EXT) {
+            sortInvert[sortMode]=!sortInvert[sortMode];
+          } else {
+            sortMode=FP_SORT_EXT;
+            scheduledSort=1;
+          }
+        }
+      }
+      if (displaySize) {
+        ImGui::TableNextColumn();
+        if (ImGui::Selectable(sizeHeader)) {
+          if (sortMode==FP_SORT_SIZE) {
+            sortInvert[sortMode]=!sortInvert[sortMode];
+          } else {
+            sortMode=FP_SORT_SIZE;
+            scheduledSort=1;
+          }
+        }
+      }
+      if (displayDate) {
+        ImGui::TableNextColumn();
+        if (ImGui::Selectable(dateHeader)) {
+          if (sortMode==FP_SORT_DATE) {
+            sortInvert[sortMode]=!sortInvert[sortMode];
+          } else {
+            sortMode=FP_SORT_DATE;
+            scheduledSort=1;
+          }
+        }
+      }
+
+      // file list
+      entryLock.lock();
+      int index=0;
+      listClipper.Begin(filteredEntries.size(),rowHeight);
+      while (listClipper.Step()) {
+        for (int _i=listClipper.DisplayStart; _i<listClipper.DisplayEnd; _i++) {
+          FileEntry* i=filteredEntries[sortInvert[sortMode]?(filteredEntries.size()-_i-1):_i];
+          FileTypeStyle* style=&defaultTypeStyle[i->type];
+
+          // get style for this entry
+          if (i->isDir) {
+            style=&defaultTypeStyle[FP_TYPE_DIR];
+          } else {
+            if (!i->ext.empty()) {
+              for (FileTypeStyle& j: fileTypeRegistry) {
+                if (i->ext==j.ext) {
+                  style=&j;
+                  break;
+                }
+              }
+            }
+          }
+
+          // draw
+          ImGui::TableNextRow(0,rowHeight);
+          // name
+          ImGui::TableNextColumn();
+          ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(style->color));
+          ImGui::PushID(index++);
+          if (ImGui::Selectable(style->icon.c_str(),i->isSelected,ImGuiSelectableFlags_AllowDoubleClick|ImGuiSelectableFlags_SpanAllColumns|ImGuiSelectableFlags_SpanAvailWidth)) {
+            bool doNotAcknowledge=false;
+            if ((ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) && multiSelect) {
+              // multiple selection
+              doNotAcknowledge=true;
+            } else {
+              // clear selected entries
+              for (FileEntry* j: chosenEntries) {
+                j->isSelected=false;
+              }
+              chosenEntries.clear();
+            }
+
+            bool alreadySelected=false;
+            for (FileEntry* j: chosenEntries) {
+              if (j==i) alreadySelected=true;
+            }
+
+            if (!alreadySelected) {
+              // select this entry
+              chosenEntries.push_back(i);
+              i->isSelected=true;
+              updateEntryName();
+              if (!doNotAcknowledge) {
+                if (isMobile || singleClickSelect) {
+                  acknowledged=true;
+                } else if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+                  acknowledged=true;
+                }
+              }
+            }
+          }
+          ImGui::PopID();
+          ImGui::SameLine();
+          
+          ImGui::TextUnformatted(i->name.c_str());
+
+          // type
+          if (displayType) {
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted(i->ext.c_str());
+          }
+
+          // size
+          if (displaySize) {
+            ImGui::TableNextColumn();
+            if (i->hasSize && (i->type==FP_TYPE_NORMAL || path.empty())) {
+              int sizeShift=0;
+              uint64_t sizeShifted=i->size;
+
+              while (sizeShifted && sizeShift<7) {
+                sizeShifted>>=10;
+                sizeShift++;
+              }
+
+              sizeShift--;
+
+              uint64_t intPart=i->size>>(sizeShift*10);
+              uint64_t fracPart=i->size&((1U<<(sizeShift*10))-1);
+              // shift so we have sufficient digits for 100
+              // (precision loss is negligible)
+              if (sizeShift>0) {
+                fracPart=(100*(fracPart>>3))>>((sizeShift*10)-3);
+                if (fracPart>99) fracPart=99;
+                ImGui::Text("%" PRIu64 ".%02" PRIu64 "%c",intPart,fracPart,sizeSuffixes[sizeShift&7]);
+              } else {
+                ImGui::Text("%" PRIu64,i->size);
+              }
+            }
+          }
+
+          // date
+          if (displayDate) {
+            ImGui::TableNextColumn();
+            if (i->hasTime) {
+              ImGui::Text("%d/%02d/%02d %02d:%02d",i->time.tm_year+1900,i->time.tm_mon+1,i->time.tm_mday,i->time.tm_hour,i->time.tm_min);
+            }
+          }
+
+          ImGui::PopStyleColor();
+        }
+      }
+      ImGui::EndTable();
+      entryLock.unlock();
+    }
+  }
+}
+
 bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
   if (!isOpen) {
     hasSizeConstraints=false;
@@ -849,270 +1106,24 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
 
     // bookmarks view, if open
     if (showBookmarks) {
-      ImVec2 bookmarksSize=tableSize;
-      bookmarksSize.x*=0.2f;
-      if (ImGui::BeginChild("Bookmarks",bookmarksSize)) {
-        ImGui::Text("Here we go...");
-      }
-      ImGui::EndChild();
-      ImGui::SameLine();
-
-      tableSize.x=ImGui::GetContentRegionAvail().x;
-    }
-
-    // display a message on empty dir, no matches or error
-    if (!haveFiles) {
-      if (ImGui::BeginTable("LoadingFiles",1,ImGuiTableFlags_BordersOuter,tableSize)) {
-        ImGui::EndTable();
-      }
-    } else if (filteredEntries.empty()) {
-      if (ImGui::BeginTable("NoFiles",3,ImGuiTableFlags_BordersOuter,tableSize)) {
-        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.5f);
-        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
-        ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.5f);
-
+      ImVec2 oldCellPadding=ImGui::GetStyle().CellPadding;
+      ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(oldCellPadding.x,0));
+      if (ImGui::BeginTable("BMPanel",2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_Resizable)) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-
+        ImGui::Text("Here we go...");
         ImGui::TableNextColumn();
-        ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(tableSize.y-ImGui::GetTextLineHeight())*0.5);
-        if (sortedEntries.empty()) {
-          if (failMessage.empty()) {
-            ImGui::Text("This directory is empty!");
-          } else {
-#ifdef _WIN32
-            ImGui::Text("%s",failMessage.c_str());
-#else
-            ImGui::Text("%s!",failMessage.c_str());
-#endif
-          }
-        } else {
-          if (failMessage.empty()) {
-            ImGui::Text("No results");
-          } else {
-#ifdef _WIN32
-            ImGui::Text("%s",failMessage.c_str());
-#else
-            ImGui::Text("%s!",failMessage.c_str());
-#endif
-          }
-        }
-
-        ImGui::TableNextColumn();
+        tableSize.x=ImGui::GetContentRegionAvail().x;
+        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,oldCellPadding);
+        drawFileList(tableSize,acknowledged);
+        ImGui::PopStyleVar();
         ImGui::EndTable();
       }
+      ImGui::PopStyleVar();
+
     } else {
-      // this is the list view. I might add other view modes in the future...
-      int columns=1;
-      if (displayType) columns++;
-      if (displaySize) columns++;
-      if (displayDate) columns++;
-      if (ImGui::BeginTable("FileList",columns,ImGuiTableFlags_BordersOuter|ImGuiTableFlags_ScrollY|ImGuiTableFlags_RowBg,tableSize)) {
-        float rowHeight=ImGui::GetTextLineHeight()+ImGui::GetStyle().CellPadding.y*2.0f;
-        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
-        if (displayType) ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize(" .eeee").x);
-        if (displaySize) ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize(" 999.99G").x);
-        if (displayDate) ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize(" 6969/69/69 04:20").x);
-        ImGui::TableSetupScrollFreeze(0,1);
-
-        // header (sort options)
-        const char* nameHeader="Name##SortName";
-        const char* typeHeader="Type##SortType";
-        const char* sizeHeader="Size##SortSize";
-        const char* dateHeader="Date##SortDate";
-
-        switch (sortMode) {
-          case FP_SORT_NAME:
-            if (sortInvert[FP_SORT_NAME]) {
-              nameHeader=ICON_FA_CHEVRON_UP "Name##SortName";
-            } else {
-              nameHeader=ICON_FA_CHEVRON_DOWN "Name##SortName";
-            }
-            break;
-          case FP_SORT_EXT:
-            if (sortInvert[FP_SORT_EXT]) {
-              typeHeader=ICON_FA_CHEVRON_UP "Type##SortType";
-            } else {
-              typeHeader=ICON_FA_CHEVRON_DOWN "Type##SortType";
-            }
-            break;
-          case FP_SORT_SIZE:
-            if (sortInvert[FP_SORT_SIZE]) {
-              sizeHeader=ICON_FA_CHEVRON_UP "Size##SortSize";
-            } else {
-              sizeHeader=ICON_FA_CHEVRON_DOWN "Size##SortSize";
-            }
-            break;
-          case FP_SORT_DATE:
-            if (sortInvert[FP_SORT_DATE]) {
-              dateHeader=ICON_FA_CHEVRON_UP "Date##SortDate";
-            } else {
-              dateHeader=ICON_FA_CHEVRON_DOWN "Date##SortDate";
-            }
-            break;
-          case FP_SORT_MAX:
-            // impossible
-            break;
-        }
-
-        ImGui::TableNextRow(ImGuiTableRowFlags_Headers,rowHeight);
-        ImGui::TableNextColumn();
-        if (ImGui::Selectable(nameHeader)) {
-          if (sortMode==FP_SORT_NAME) {
-            sortInvert[sortMode]=!sortInvert[sortMode];
-          } else {
-            sortMode=FP_SORT_NAME;
-            scheduledSort=1;
-          }
-        }
-        if (displayType) {
-          ImGui::TableNextColumn();
-          if (ImGui::Selectable(typeHeader)) {
-            if (sortMode==FP_SORT_EXT) {
-              sortInvert[sortMode]=!sortInvert[sortMode];
-            } else {
-              sortMode=FP_SORT_EXT;
-              scheduledSort=1;
-            }
-          }
-        }
-        if (displaySize) {
-          ImGui::TableNextColumn();
-          if (ImGui::Selectable(sizeHeader)) {
-            if (sortMode==FP_SORT_SIZE) {
-              sortInvert[sortMode]=!sortInvert[sortMode];
-            } else {
-              sortMode=FP_SORT_SIZE;
-              scheduledSort=1;
-            }
-          }
-        }
-        if (displayDate) {
-          ImGui::TableNextColumn();
-          if (ImGui::Selectable(dateHeader)) {
-            if (sortMode==FP_SORT_DATE) {
-              sortInvert[sortMode]=!sortInvert[sortMode];
-            } else {
-              sortMode=FP_SORT_DATE;
-              scheduledSort=1;
-            }
-          }
-        }
-
-        // file list
-        entryLock.lock();
-        int index=0;
-        listClipper.Begin(filteredEntries.size(),rowHeight);
-        while (listClipper.Step()) {
-          for (int _i=listClipper.DisplayStart; _i<listClipper.DisplayEnd; _i++) {
-            FileEntry* i=filteredEntries[sortInvert[sortMode]?(filteredEntries.size()-_i-1):_i];
-            FileTypeStyle* style=&defaultTypeStyle[i->type];
-
-            // get style for this entry
-            if (i->isDir) {
-              style=&defaultTypeStyle[FP_TYPE_DIR];
-            } else {
-              if (!i->ext.empty()) {
-                for (FileTypeStyle& j: fileTypeRegistry) {
-                  if (i->ext==j.ext) {
-                    style=&j;
-                    break;
-                  }
-                }
-              }
-            }
-
-            // draw
-            ImGui::TableNextRow(0,rowHeight);
-            // name
-            ImGui::TableNextColumn();
-            ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(style->color));
-            ImGui::PushID(index++);
-            if (ImGui::Selectable(style->icon.c_str(),i->isSelected,ImGuiSelectableFlags_AllowDoubleClick|ImGuiSelectableFlags_SpanAllColumns|ImGuiSelectableFlags_SpanAvailWidth)) {
-              bool doNotAcknowledge=false;
-              if ((ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) && multiSelect) {
-                // multiple selection
-                doNotAcknowledge=true;
-              } else {
-                // clear selected entries
-                for (FileEntry* j: chosenEntries) {
-                  j->isSelected=false;
-                }
-                chosenEntries.clear();
-              }
-
-              bool alreadySelected=false;
-              for (FileEntry* j: chosenEntries) {
-                if (j==i) alreadySelected=true;
-              }
-
-              if (!alreadySelected) {
-                // select this entry
-                chosenEntries.push_back(i);
-                i->isSelected=true;
-                updateEntryName();
-                if (!doNotAcknowledge) {
-                  if (isMobile || singleClickSelect) {
-                    acknowledged=true;
-                  } else if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-                    acknowledged=true;
-                  }
-                }
-              }
-            }
-            ImGui::PopID();
-            ImGui::SameLine();
-            
-            ImGui::TextUnformatted(i->name.c_str());
-
-            // type
-            if (displayType) {
-              ImGui::TableNextColumn();
-              ImGui::TextUnformatted(i->ext.c_str());
-            }
-
-            // size
-            if (displaySize) {
-              ImGui::TableNextColumn();
-              if (i->hasSize && (i->type==FP_TYPE_NORMAL || path.empty())) {
-                int sizeShift=0;
-                uint64_t sizeShifted=i->size;
-
-                while (sizeShifted && sizeShift<7) {
-                  sizeShifted>>=10;
-                  sizeShift++;
-                }
-
-                sizeShift--;
-
-                uint64_t intPart=i->size>>(sizeShift*10);
-                uint64_t fracPart=i->size&((1U<<(sizeShift*10))-1);
-                // shift so we have sufficient digits for 100
-                // (precision loss is negligible)
-                if (sizeShift>0) {
-                  fracPart=(100*(fracPart>>3))>>((sizeShift*10)-3);
-                  if (fracPart>99) fracPart=99;
-                  ImGui::Text("%" PRIu64 ".%02" PRIu64 "%c",intPart,fracPart,sizeSuffixes[sizeShift&7]);
-                } else {
-                  ImGui::Text("%" PRIu64,i->size);
-                }
-              }
-            }
-
-            // date
-            if (displayDate) {
-              ImGui::TableNextColumn();
-              if (i->hasTime) {
-                ImGui::Text("%d/%02d/%02d %02d:%02d",i->time.tm_year+1900,i->time.tm_mon+1,i->time.tm_mday,i->time.tm_hour,i->time.tm_min);
-              }
-            }
-
-            ImGui::PopStyleColor();
-          }
-        }
-        ImGui::EndTable();
-        entryLock.unlock();
-      }
+      // file list
+      drawFileList(tableSize,acknowledged);
     }
 
     // file name input
