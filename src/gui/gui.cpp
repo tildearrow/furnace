@@ -1904,11 +1904,12 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openLoad(
         _("Load Instrument"),
-        {_("all compatible files"), "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn",
+        {_("all compatible files"), "*.fui *.dmp *.tfi *.vgi *.eif *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn",
          _("Furnace instrument"), "*.fui",
          _("DefleMask preset"), "*.dmp",
          _("TFM Music Maker instrument"), "*.tfi",
          _("VGM Music Maker instrument"), "*.vgi",
+         _("Echo instrument"), "*.eif",
          _("Scream Tracker 3 instrument"), "*.s3i",
          _("SoundBlaster instrument"), "*.sbi",
          _("Wohlstand OPL instrument"), "*.opli",
