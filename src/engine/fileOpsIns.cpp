@@ -505,7 +505,7 @@ void DivEngine::loadEIF(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     ins->type=DIV_INS_FM;
     ins->name=stripPath;
 
-    for (int i=0; i < 29; i++) {
+    for (int i=0; i<29; i++) {
       bytes[i] = reader.readC();
     }
 
