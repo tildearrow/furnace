@@ -27,6 +27,7 @@ enum DivInsFormats {
   DIV_INSFORMAT_DMP,
   DIV_INSFORMAT_TFI,
   DIV_INSFORMAT_VGI,
+  DIV_INSFORMAT_EIF,
   DIV_INSFORMAT_FTI,
   DIV_INSFORMAT_BTI,
   DIV_INSFORMAT_S3I,
@@ -485,6 +486,23 @@ void DivEngine::loadVGI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       op.ssgEnv=reader.readC();
     }
   } catch (EndOfFileException& e) {
+    lastError="premature end of file";
+    logE("premature end of file");
+    delete ins;
+    return;
+  }
+
+  ret.push_back(ins);
+}
+
+void DivEngine::loadEIF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
+  DivInstrument* ins=new DivInstrument;
+  try {
+    reader.seek(0,SEEK_SET);
+
+    ins->type=DIV_INS_FM;
+    ins->name=stripPath;
+   } catch (EndOfFileException& e) {
     lastError="premature end of file";
     logE("premature end of file");
     delete ins;
@@ -1971,6 +1989,8 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path, bool
         format=DIV_INSFORMAT_TFI;
       } else if (extS==".vgi") {
         format=DIV_INSFORMAT_VGI;
+      } else if (extS==".eif") {
+        format=DIV_INSFORMAT_EIF;
       } else if (extS==".fti") {
         format=DIV_INSFORMAT_FTI;
       } else if (extS==".bti") {
@@ -2014,6 +2034,9 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path, bool
         break;
       case DIV_INSFORMAT_VGI:
         loadVGI(reader,ret,stripPath);
+        break;
+      case DIV_INSFORMAT_EIF:
+        loadEIF(reader,ret,stripPath);
         break;
       case DIV_INSFORMAT_FTI: // TODO
         break;
