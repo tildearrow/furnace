@@ -86,6 +86,7 @@ this is the full list of chips that Furnace supports.
 - [MSM5232](msm5232.md)
 - [MSM6258](msm6258.md)
 - [MSM6295](msm6295.md)
+- [MultiPCM](multipcm.md)
 - [Namco 163](n163.md)
 - [Namco C140](c140.md)
 - [Namco WSG/C15/C30](namco.md)
