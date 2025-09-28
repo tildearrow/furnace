@@ -555,8 +555,18 @@ bool FurnaceFilePicker::draw() {
   bool acknowledged=false;
   bool readDrives=false;
 
-  ImGui::SetNextWindowSizeConstraints(ImVec2(800.0,600.0),ImVec2(8000.0,6000.0));
-  if (ImGui::Begin(windowName.c_str(),NULL,ImGuiWindowFlags_NoSavedSettings)) {
+  bool began=false;
+
+  if (isEmbed) {
+    began=true;
+  } else if (isModal) {
+    ImGui::OpenPopup(windowName.c_str());
+    began=ImGui::BeginPopupModal(windowName.c_str(),NULL,ImGuiWindowFlags_NoSavedSettings);
+  } else {
+    began=ImGui::Begin(windowName.c_str(),NULL,ImGuiWindowFlags_NoSavedSettings);
+  }
+
+  if (began) {
     // header bars
     if (ImGui::Button(ICON_FA_PLUS "##MakeDir")) {
       mkdirError="";
@@ -891,17 +901,31 @@ bool FurnaceFilePicker::draw() {
             ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(style->color));
             ImGui::PushID(index++);
             if (ImGui::Selectable(style->icon.c_str(),i->isSelected,ImGuiSelectableFlags_AllowDoubleClick|ImGuiSelectableFlags_SpanAllColumns|ImGuiSelectableFlags_SpanAvailWidth)) {
-              for (FileEntry* j: chosenEntries) {
-                j->isSelected=false;
+              if ((ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) && multiSelect) {
+                // multiple selection
+              } else {
+                // clear selected entries
+                for (FileEntry* j: chosenEntries) {
+                  j->isSelected=false;
+                }
+                chosenEntries.clear();
               }
-              chosenEntries.clear();
-              chosenEntries.push_back(i);
-              i->isSelected=true;
-              updateEntryName();
-              if (isMobile) {
-                acknowledged=true;
-              } else if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-                acknowledged=true;
+
+              bool alreadySelected=false;
+              for (FileEntry* j: chosenEntries) {
+                if (j==i) alreadySelected=true;
+              }
+
+              if (!alreadySelected) {
+                // select this entry
+                chosenEntries.push_back(i);
+                i->isSelected=true;
+                updateEntryName();
+                if (isMobile) {
+                  acknowledged=true;
+                } else if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+                  acknowledged=true;
+                }
               }
             }
             ImGui::PopID();
@@ -980,10 +1004,12 @@ bool FurnaceFilePicker::draw() {
       acknowledged=true;
     }
     ImGui::EndDisabled();
-    ImGui::SameLine();
-    if (ImGui::Button("Cancel")) {
-      curStatus=FP_STATUS_CLOSED;
-      isOpen=false;
+    if (!noClose) {
+      ImGui::SameLine();
+      if (ImGui::Button("Cancel")) {
+        curStatus=FP_STATUS_CLOSED;
+        isOpen=false;
+      }
     }
     ImGui::SameLine();
     if (!haveFiles) {
@@ -1019,7 +1045,15 @@ bool FurnaceFilePicker::draw() {
           }
 
           curStatus=FP_STATUS_ACCEPTED;
-          isOpen=false;
+          if (noClose) {
+            for (FileEntry* j: chosenEntries) {
+              j->isSelected=false;
+            }
+            chosenEntries.clear();
+            updateEntryName();
+          } else {
+            isOpen=false;
+          }
         }
       } else {
         // return the user-provided entry
@@ -1059,27 +1093,49 @@ bool FurnaceFilePicker::draw() {
             // return now
             finalSelection.push_back(dirCheckPath);
             curStatus=FP_STATUS_ACCEPTED;
-            isOpen=false;
+            if (noClose) {
+              for (FileEntry* j: chosenEntries) {
+                j->isSelected=false;
+              }
+              chosenEntries.clear();
+              updateEntryName();
+            } else {
+              isOpen=false;
+            }
           }
         }
       }
     }
   }
-  ImGui::End();
+  if (!isEmbed) {
+    if (isModal && began) {
+      if (!isOpen) ImGui::CloseCurrentPopup();
+      ImGui::EndPopup();
+    } else {
+      ImGui::End();
+    }
+  }
 
   if (!newDir.empty() || readDrives) {
     // change directory
     readDirectory(newDir);
   }
-  return false;
+  return isOpen;
 }
 
-bool FurnaceFilePicker::open(String name, String pa, bool modal, const std::vector<String>& filter) {
+bool FurnaceFilePicker::open(String name, String pa, int flags, const std::vector<String>& filter) {
   if (isOpen) return false;
   if (filter.size()&1) {
     logE("invalid filter data! it should be an even-sized vector with even elements containing names and odd ones being the filters.");
     return false;
   }
+
+  isModal=(flags&FP_FLAGS_MODAL);
+  noClose=(flags&FP_FLAGS_NO_CLOSE);
+  confirmOverwrite=(flags&FP_FLAGS_SAVE);
+  multiSelect=(flags&FP_FLAGS_MULTI_SELECT);
+  dirSelect=(flags&FP_FLAGS_DIR_SELECT);
+  isEmbed=(flags&FP_FLAGS_EMBEDDABLE);
 
   filterOptions=filter;
 
@@ -1111,6 +1167,10 @@ void FurnaceFilePicker::loadSettings(DivConfig& conf) {
 
 void FurnaceFilePicker::saveSettings(DivConfig& conf) {
 
+}
+
+const String& FurnaceFilePicker::getPath() {
+  return path;
 }
 
 const String& FurnaceFilePicker::getEntryName() {
@@ -1148,6 +1208,12 @@ FurnaceFilePicker::FurnaceFilePicker():
   isOpen(false),
   isMobile(false),
   sortInvert(false),
+  multiSelect(false),
+  confirmOverwrite(false),
+  dirSelect(false),
+  noClose(false),
+  isModal(false),
+  isEmbed(false),
   scheduledSort(0),
   curFilterType(0),
   sortMode(FP_SORT_NAME),

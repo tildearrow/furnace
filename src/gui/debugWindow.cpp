@@ -335,6 +335,35 @@ void FurnaceGUI::drawDebug() {
       ImGui::Unindent();
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("New File Picker Test")) {
+      static bool check0, check1, check2, check3, check4, check5;
+
+      ImGui::Checkbox("Modal",&check0);
+      ImGui::Checkbox("No Close",&check1);
+      ImGui::Checkbox("Save",&check2);
+      ImGui::Checkbox("Multi Select",&check3);
+      ImGui::Checkbox("Dir Select",&check4);
+      ImGui::Checkbox("Embeddable",&check5);
+
+      int fpFlags=(
+        (check0?FP_FLAGS_MODAL:0)|
+        (check1?FP_FLAGS_NO_CLOSE:0)|
+        (check2?FP_FLAGS_SAVE:0)|
+        (check3?FP_FLAGS_MULTI_SELECT:0)|
+        (check4?FP_FLAGS_DIR_SELECT:0)|
+        (check5?FP_FLAGS_EMBEDDABLE:0)
+      );
+
+      if (ImGui::Button("Open")) {
+        newFilePicker->open("New File Picker","/home",fpFlags,
+          {_("songs"), "*.fur *.dmf *.mod *.s3m *.xm *.it *.fc13 *.fc14 *.smod *.fc *.ftm *.0cc *.dnm *.eft *.fub *.tfe",
+           _("instruments"), "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn",
+           _("audio"), "*.wav",
+           _("all files"), "*"}
+        );
+      }
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("File Selection Test")) {
       if (ImGui::Button("Test Open")) {
         openFileDialog(GUI_FILE_TEST_OPEN);

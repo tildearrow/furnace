@@ -42,6 +42,22 @@ enum FileType {
   FP_TYPE_MAX
 };
 
+enum FilePickerFlags {
+  // display file picker as a modal pop-up
+  FP_FLAGS_MODAL=1,
+  // don't close the file picker on result
+  FP_FLAGS_NO_CLOSE=2,
+  // confirm overwrite and don't auto-acknowledge-on-tap on mobile
+  FP_FLAGS_SAVE=4,
+  // allow multiple selection
+  FP_FLAGS_MULTI_SELECT=8,
+  // directory selection mode
+  FP_FLAGS_DIR_SELECT=16,
+  // allows you to embed the file picker in an existing window (with draw())
+  // DO NOT USE with FP_FLAGS_MODAL!
+  FP_FLAGS_EMBEDDABLE=32
+};
+
 class FurnaceFilePicker {
   enum SortModes {
     FP_SORT_NAME=0,
@@ -83,7 +99,8 @@ class FurnaceFilePicker {
   String homeDir;
   String entryName;
   ImGuiListClipper listClipper;
-  bool haveFiles, haveStat, stopReading, isOpen, isMobile, sortInvert;
+  bool haveFiles, haveStat, stopReading, isOpen, isMobile, sortInvert, multiSelect;
+  bool confirmOverwrite, dirSelect, noClose, isModal, isEmbed;
   int scheduledSort;
   size_t curFilterType;
   SortModes sortMode;
@@ -111,11 +128,12 @@ class FurnaceFilePicker {
     void readDirectorySub();
     void setHomeDir(String where);
     FilePickerStatus getStatus();
+    const String& getPath();
     const String& getEntryName();
     const std::vector<String>& getSelected();
     void setMobile(bool val);
     bool draw();
-    bool open(String name, String path, bool modal, const std::vector<String>& filter);
+    bool open(String name, String path, int flags, const std::vector<String>& filter);
     void loadSettings(DivConfig& conf);
     void saveSettings(DivConfig& conf);
     void setTypeStyle(FileType type, ImVec4 color, String icon);
