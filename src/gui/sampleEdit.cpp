@@ -293,7 +293,7 @@ void FurnaceGUI::drawSampleEdit() {
                 String alignHint=fmt::sprintf(_("NES: loop start must be a multiple of 512 (try with %d)"),tryWith);
                 SAMPLE_WARN(warnLoopStart,alignHint);
               }
-              if ((sample->loopEnd-8)&127) {
+              if ((sample->loopEnd>0) && ((sample->loopEnd-8)&127)) {
                 int tryWith=(sample->loopEnd-8)&(~127);
                 if (tryWith>(int)sample->samples) tryWith-=128;
                 tryWith+=8; // +1 bc of how sample length is treated: https://www.nesdev.org/wiki/APU_DMC
