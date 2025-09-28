@@ -26,6 +26,7 @@
 #include "../ta-log.h"
 #include <algorithm>
 #include <chrono>
+#include <imgui.h>
 #ifdef _WIN32
 #include <windows.h>
 #include "../utfutils.h"
@@ -369,6 +370,9 @@ void FurnaceFilePicker::readDirectory(String path) {
   entries.clear();
   chosenEntries.clear();
   updateEntryName();
+  if (!entryNameHint.empty()) {
+    entryName=entryNameHint;
+  }
 
   // start new file thread
   this->path=normalizePath(path);
@@ -548,8 +552,17 @@ bool FurnaceFilePicker::isPathAbsolute(const String& p) {
 #endif
 }
 
-bool FurnaceFilePicker::draw() {
-  if (!isOpen) return false;
+void FurnaceFilePicker::setSizeConstraints(const ImVec2& min, const ImVec2& max) {
+  minSize=min;
+  maxSize=max;
+  hasSizeConstraints=true;
+}
+
+bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
+  if (!isOpen) {
+    hasSizeConstraints=false;
+    return false;
+  }
 
   String newDir;
   bool acknowledged=false;
@@ -561,12 +574,28 @@ bool FurnaceFilePicker::draw() {
     began=true;
   } else if (isModal) {
     ImGui::OpenPopup(windowName.c_str());
-    began=ImGui::BeginPopupModal(windowName.c_str(),NULL,ImGuiWindowFlags_NoSavedSettings);
+    if (hasSizeConstraints) ImGui::SetNextWindowSizeConstraints(minSize,maxSize);
+    began=ImGui::BeginPopupModal(windowName.c_str(),NULL,ImGuiWindowFlags_NoScrollbar|winFlags);
   } else {
-    began=ImGui::Begin(windowName.c_str(),NULL,ImGuiWindowFlags_NoSavedSettings);
+    if (hasSizeConstraints) ImGui::SetNextWindowSizeConstraints(minSize,maxSize);
+    began=ImGui::Begin(windowName.c_str(),NULL,ImGuiWindowFlags_NoScrollbar|winFlags);
   }
 
   if (began) {
+    // center the window if it is unmovable
+    if (winFlags&ImGuiWindowFlags_NoMove) {
+      ImGui::SetWindowPos(ImVec2(
+        (ImGui::GetMainViewport()->Size.x-ImGui::GetWindowWidth())*0.5f,
+        (ImGui::GetMainViewport()->Size.y-ImGui::GetWindowHeight())*0.5f)
+      );
+    }
+    // enforce window constraints if necessary
+    if (hasSizeConstraints) {
+      if (ImGui::GetWindowSize().x<minSize.x || ImGui::GetWindowSize().y<minSize.y) {
+        ImGui::SetWindowSize(minSize,ImGuiCond_Always);
+      }
+    }
+
     // header bars
     if (ImGui::Button(ICON_FA_PLUS "##MakeDir")) {
       mkdirError="";
@@ -1116,6 +1145,8 @@ bool FurnaceFilePicker::draw() {
     }
   }
 
+  hasSizeConstraints=false;
+
   if (!newDir.empty() || readDrives) {
     // change directory
     readDirectory(newDir);
@@ -1127,7 +1158,7 @@ bool FurnaceFilePicker::isOpened() {
   return isOpen;
 }
 
-bool FurnaceFilePicker::open(String name, String pa, int flags, const std::vector<String>& filter) {
+bool FurnaceFilePicker::open(String name, String pa, String hint, int flags, const std::vector<String>& filter) {
   if (isOpen) return false;
   if (filter.size()&1) {
     logE("invalid filter data! it should be an even-sized vector with even elements containing names and odd ones being the filters.");
@@ -1151,6 +1182,7 @@ bool FurnaceFilePicker::open(String name, String pa, int flags, const std::vecto
 
   readDirectory(pa);
   windowName=name;
+  hint=entryNameHint;
   isOpen=true;
   return true;
 }
@@ -1222,6 +1254,7 @@ FurnaceFilePicker::FurnaceFilePicker():
   noClose(false),
   isModal(false),
   isEmbed(false),
+  hasSizeConstraints(false),
   scheduledSort(0),
   curFilterType(0),
   sortMode(FP_SORT_NAME),

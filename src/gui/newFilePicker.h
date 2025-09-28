@@ -101,10 +101,12 @@ class FurnaceFilePicker {
   String failMessage;
   String homeDir;
   String entryName;
+  String entryNameHint;
   ImGuiListClipper listClipper;
+  ImVec2 minSize, maxSize;
   bool haveFiles, haveStat, stopReading, isOpen, isMobile, sortInvert, multiSelect;
-  bool confirmOverwrite, dirSelect, noClose, isModal, isEmbed;
-  int scheduledSort;
+  bool confirmOverwrite, dirSelect, noClose, isModal, isEmbed, hasSizeConstraints;
+  int scheduledSort, imguiFlags;
   size_t curFilterType;
   SortModes sortMode;
   FilePickerStatus curStatus;
@@ -135,10 +137,11 @@ class FurnaceFilePicker {
     const String& getEntryName();
     const std::vector<String>& getSelected();
     void setMobile(bool val);
-    bool draw();
+    void setSizeConstraints(const ImVec2& min, const ImVec2& max);
+    bool draw(ImGuiWindowFlags winFlags=0);
     bool isOpened();
     void close();
-    bool open(String name, String path, int flags, const std::vector<String>& filter);
+    bool open(String name, String path, String hint, int flags, const std::vector<String>& filter);
     void loadSettings(DivConfig& conf);
     void saveSettings(DivConfig& conf);
     void setTypeStyle(FileType type, ImVec4 color, String icon);

@@ -191,9 +191,9 @@ bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, S
     }
 #endif
 
-    // TODO: hint, clickCallback, "FileDialog" ID
+    // TODO: clickCallback
     newFilePicker->setHomeDir(getHomeDir());
-    newFilePicker->open(header+"##FileDialog",path,FP_FLAGS_MODAL|(allowMultiple?FP_FLAGS_MULTI_SELECT:0),filter);
+    newFilePicker->open(header+"##FileDialog",path,hint,FP_FLAGS_MODAL|(allowMultiple?FP_FLAGS_MULTI_SELECT:0),filter);
   }
   opened=true;
   return true;
@@ -276,9 +276,8 @@ bool FurnaceGUIFileDialog::openSave(String header, std::vector<String> filter, S
   } else {
     hasError=false;
 
-    // TODO: hint, clickCallback, "FileDialog" ID
     newFilePicker->setHomeDir(getHomeDir());
-    newFilePicker->open(header+"##FileDialog",path,FP_FLAGS_MODAL|FP_FLAGS_SAVE,filter);
+    newFilePicker->open(header+"##FileDialog",path,hint,FP_FLAGS_MODAL|FP_FLAGS_SAVE,filter);
   }
   opened=true;
   return true;
@@ -325,9 +324,8 @@ bool FurnaceGUIFileDialog::openSelectDir(String header, String path, double dpiS
     }
 #endif
 
-    // TODO: hint, "FileDialog" ID
     newFilePicker->setHomeDir(getHomeDir());
-    newFilePicker->open(header+"##FileDialog",path,FP_FLAGS_MODAL|FP_FLAGS_DIR_SELECT,{});
+    newFilePicker->open(header+"##FileDialog",path,hint,FP_FLAGS_MODAL|FP_FLAGS_DIR_SELECT,{});
   }
   opened=true;
   return true;
@@ -457,7 +455,8 @@ bool FurnaceGUIFileDialog::render(const ImVec2& min, const ImVec2& max) {
     return false;
 #endif
   } else {
-    return newFilePicker->draw();
+    newFilePicker->setSizeConstraints(min,max);
+    return newFilePicker->draw(ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoScrollWithMouse);
   }
 }
 
