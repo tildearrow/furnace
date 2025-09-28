@@ -4,7 +4,7 @@ this is a list that contains some of the systems that Furnace supports, as shown
 
 some systems have alternate chips, such as the Sega Genesis having a YM2612 or YM3438 depending on the model. this list shows the default configuration.
 
-- **Sega Genesis**: [YM3438](ym2612.md), [SN76489](sms.md)
+- **Sega Genesis**: [YM2612](ym2612.md), [SN76489](sms.md)
 - **Sega Genesis (with Sega CD)**: [YM3438](ym2612.md), [SN76489](sms.md), [RF5C164](ricoh.md)
 <!-- -->
 - **Sega Master System**: [SN76489](sms.md)
