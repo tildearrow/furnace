@@ -817,6 +817,12 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       if (ImGui::Checkbox("Sort directories first",&sortDirsFirst)) {
         scheduledSort=1;
       }
+      ImGui::Text("Columns to display:");
+      ImGui::Indent();
+      ImGui::Checkbox("Type",&displayType);
+      ImGui::Checkbox("Size",&displaySize);
+      ImGui::Checkbox("Date",&displayDate);
+      ImGui::Unindent();
       ImGui::EndPopup();
     }
     ImGui::SameLine();
@@ -840,6 +846,19 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
 
     ImVec2 tableSize=ImGui::GetContentRegionAvail();
     tableSize.y-=ImGui::GetFrameHeightWithSpacing()*2.0f;
+
+    // bookmarks view, if open
+    if (showBookmarks) {
+      ImVec2 bookmarksSize=tableSize;
+      bookmarksSize.x*=0.2f;
+      if (ImGui::BeginChild("Bookmarks",bookmarksSize)) {
+        ImGui::Text("Here we go...");
+      }
+      ImGui::EndChild();
+      ImGui::SameLine();
+
+      tableSize.x=ImGui::GetContentRegionAvail().x;
+    }
 
     // display a message on empty dir, no matches or error
     if (!haveFiles) {
@@ -884,12 +903,16 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       }
     } else {
       // this is the list view. I might add other view modes in the future...
-      if (ImGui::BeginTable("FileList",4,ImGuiTableFlags_BordersOuter|ImGuiTableFlags_ScrollY|ImGuiTableFlags_RowBg,tableSize)) {
+      int columns=1;
+      if (displayType) columns++;
+      if (displaySize) columns++;
+      if (displayDate) columns++;
+      if (ImGui::BeginTable("FileList",columns,ImGuiTableFlags_BordersOuter|ImGuiTableFlags_ScrollY|ImGuiTableFlags_RowBg,tableSize)) {
         float rowHeight=ImGui::GetTextLineHeight()+ImGui::GetStyle().CellPadding.y*2.0f;
         ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
-        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize(" .eeee").x);
-        ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize(" 999.99G").x);
-        ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize(" 6969/69/69 04:20").x);
+        if (displayType) ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize(" .eeee").x);
+        if (displaySize) ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize(" 999.99G").x);
+        if (displayDate) ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize(" 6969/69/69 04:20").x);
         ImGui::TableSetupScrollFreeze(0,1);
 
         // header (sort options)
@@ -942,31 +965,37 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
             scheduledSort=1;
           }
         }
-        ImGui::TableNextColumn();
-        if (ImGui::Selectable(typeHeader)) {
-          if (sortMode==FP_SORT_EXT) {
-            sortInvert[sortMode]=!sortInvert[sortMode];
-          } else {
-            sortMode=FP_SORT_EXT;
-            scheduledSort=1;
+        if (displayType) {
+          ImGui::TableNextColumn();
+          if (ImGui::Selectable(typeHeader)) {
+            if (sortMode==FP_SORT_EXT) {
+              sortInvert[sortMode]=!sortInvert[sortMode];
+            } else {
+              sortMode=FP_SORT_EXT;
+              scheduledSort=1;
+            }
           }
         }
-        ImGui::TableNextColumn();
-        if (ImGui::Selectable(sizeHeader)) {
-          if (sortMode==FP_SORT_SIZE) {
-            sortInvert[sortMode]=!sortInvert[sortMode];
-          } else {
-            sortMode=FP_SORT_SIZE;
-            scheduledSort=1;
+        if (displaySize) {
+          ImGui::TableNextColumn();
+          if (ImGui::Selectable(sizeHeader)) {
+            if (sortMode==FP_SORT_SIZE) {
+              sortInvert[sortMode]=!sortInvert[sortMode];
+            } else {
+              sortMode=FP_SORT_SIZE;
+              scheduledSort=1;
+            }
           }
         }
-        ImGui::TableNextColumn();
-        if (ImGui::Selectable(dateHeader)) {
-          if (sortMode==FP_SORT_DATE) {
-            sortInvert[sortMode]=!sortInvert[sortMode];
-          } else {
-            sortMode=FP_SORT_DATE;
-            scheduledSort=1;
+        if (displayDate) {
+          ImGui::TableNextColumn();
+          if (ImGui::Selectable(dateHeader)) {
+            if (sortMode==FP_SORT_DATE) {
+              sortInvert[sortMode]=!sortInvert[sortMode];
+            } else {
+              sortMode=FP_SORT_DATE;
+              scheduledSort=1;
+            }
           }
         }
 
@@ -995,6 +1024,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
 
             // draw
             ImGui::TableNextRow(0,rowHeight);
+            // name
             ImGui::TableNextColumn();
             ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(style->color));
             ImGui::PushID(index++);
@@ -1035,37 +1065,46 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
             
             ImGui::TextUnformatted(i->name.c_str());
 
-            ImGui::TableNextColumn();
-            ImGui::TextUnformatted(i->ext.c_str());
+            // type
+            if (displayType) {
+              ImGui::TableNextColumn();
+              ImGui::TextUnformatted(i->ext.c_str());
+            }
 
-            ImGui::TableNextColumn();
-            if (i->hasSize && (i->type==FP_TYPE_NORMAL || path.empty())) {
-              int sizeShift=0;
-              uint64_t sizeShifted=i->size;
+            // size
+            if (displaySize) {
+              ImGui::TableNextColumn();
+              if (i->hasSize && (i->type==FP_TYPE_NORMAL || path.empty())) {
+                int sizeShift=0;
+                uint64_t sizeShifted=i->size;
 
-              while (sizeShifted && sizeShift<7) {
-                sizeShifted>>=10;
-                sizeShift++;
-              }
+                while (sizeShifted && sizeShift<7) {
+                  sizeShifted>>=10;
+                  sizeShift++;
+                }
 
-              sizeShift--;
+                sizeShift--;
 
-              uint64_t intPart=i->size>>(sizeShift*10);
-              uint64_t fracPart=i->size&((1U<<(sizeShift*10))-1);
-              // shift so we have sufficient digits for 100
-              // (precision loss is negligible)
-              if (sizeShift>0) {
-                fracPart=(100*(fracPart>>3))>>((sizeShift*10)-3);
-                if (fracPart>99) fracPart=99;
-                ImGui::Text("%" PRIu64 ".%02" PRIu64 "%c",intPart,fracPart,sizeSuffixes[sizeShift&7]);
-              } else {
-                ImGui::Text("%" PRIu64,i->size);
+                uint64_t intPart=i->size>>(sizeShift*10);
+                uint64_t fracPart=i->size&((1U<<(sizeShift*10))-1);
+                // shift so we have sufficient digits for 100
+                // (precision loss is negligible)
+                if (sizeShift>0) {
+                  fracPart=(100*(fracPart>>3))>>((sizeShift*10)-3);
+                  if (fracPart>99) fracPart=99;
+                  ImGui::Text("%" PRIu64 ".%02" PRIu64 "%c",intPart,fracPart,sizeSuffixes[sizeShift&7]);
+                } else {
+                  ImGui::Text("%" PRIu64,i->size);
+                }
               }
             }
 
-            ImGui::TableNextColumn();
-            if (i->hasTime) {
-              ImGui::Text("%d/%02d/%02d %02d:%02d",i->time.tm_year+1900,i->time.tm_mon+1,i->time.tm_mday,i->time.tm_hour,i->time.tm_min);
+            // date
+            if (displayDate) {
+              ImGui::TableNextColumn();
+              if (i->hasTime) {
+                ImGui::Text("%d/%02d/%02d %02d:%02d",i->time.tm_year+1900,i->time.tm_mon+1,i->time.tm_mday,i->time.tm_hour,i->time.tm_min);
+              }
             }
 
             ImGui::PopStyleColor();
@@ -1337,7 +1376,10 @@ FurnaceFilePicker::FurnaceFilePicker():
   showHiddenFiles(true),
   singleClickSelect(false),
   clearSearchOnDirChange(false),
-  sortDirsFirst(true) {
+  sortDirsFirst(true),
+  displayType(true),
+  displaySize(true),
+  displayDate(true) {
   memset(sortInvert,0,FP_SORT_MAX*sizeof(bool));
   sortInvert[FP_SORT_SIZE]=true;
   sortInvert[FP_SORT_DATE]=true;
