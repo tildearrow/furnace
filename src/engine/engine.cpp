@@ -612,8 +612,16 @@ void DivEngine::copyChannel(int src, int dest) {
 
   for (int i=0; i<DIV_MAX_PATTERNS; i++) {
     curOrders->ord[dest][i]=curOrders->ord[src][i];
-    if (curPat[src].data[i]!=NULL && curPat[dest].data[i]!=NULL) {
-      curPat[src].data[i]->copyOn(curPat[dest].data[i]);
+
+    DivPattern* srcPat=curPat[src].data[i];
+    DivPattern* destPat=curPat[dest].data[i];
+    if (srcPat==NULL) {
+      if (destPat!=NULL) {
+        delete destPat;
+        curPat[dest].data[i]=NULL;
+      }
+    } else {
+      curPat[src].data[i]->copyOn(curPat[dest].getPattern(i, true));
     }
   }
 
