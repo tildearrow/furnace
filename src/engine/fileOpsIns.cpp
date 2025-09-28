@@ -509,23 +509,23 @@ void DivEngine::loadEIF(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       bytes[i] = reader.readC();
     }
 
-    ins->fm.fb=(bytes[0]>>3)&0x7;
     ins->fm.alg=bytes[0]&0x7;
+    ins->fm.fb=(bytes[0]>>3)&0x7;
 
     for (int i=0; i<4; i++) {
       DivInstrumentFM::Operator& op=ins->fm.op[i];
 
-      //TODO: finish missing parameters
-
       op.mult=bytes[1+i]&0xF;
       op.dt=(bytes[1+i]>>4)&0x07;
       op.tl=bytes[5+i]&0x7F;
-      op.ar=bytes[9+i]&0x1F;
       op.rs=(bytes[9+i]>>6)&0x03;
+      op.ar=bytes[9+i]&0x1F;
       op.dr=bytes[13+i]&0x1F;
+      op.am=(bytes[13+i]&0x80)?1:0;
       op.d2r=bytes[17+i]&0x1F;
-      op.sl=(bytes[21+i]>>4)&0x0F;
       op.rr=bytes[21+i]&0x0F;
+      op.sl=(bytes[21+i]>>4)&0x0F;
+      op.ssgEnv=bytes[25+i]&0x0F;
     }
    } catch (EndOfFileException& e) {
     lastError="premature end of file";
