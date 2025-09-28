@@ -17,6 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#ifndef _NEW_FILE_DIALOG_H
+#define _NEW_FILE_DIALOG_H
+
 #include "../ta-utils.h"
 #include "../engine/config.h"
 #include <stdint.h>
@@ -133,6 +136,8 @@ class FurnaceFilePicker {
     const std::vector<String>& getSelected();
     void setMobile(bool val);
     bool draw();
+    bool isOpened();
+    void close();
     bool open(String name, String path, int flags, const std::vector<String>& filter);
     void loadSettings(DivConfig& conf);
     void saveSettings(DivConfig& conf);
@@ -141,3 +146,5 @@ class FurnaceFilePicker {
     void clearTypes();
     FurnaceFilePicker();
 };
+
+#endif

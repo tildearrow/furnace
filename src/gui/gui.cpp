@@ -29,7 +29,6 @@
 #include "../fileutils.h"
 #include "imgui.h"
 #include "imgui_internal.h"
-#include "ImGuiFileDialog.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "plot_nolerp.h"
@@ -1556,7 +1555,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
     mapped|=FURKMOD_SHIFT;
   }
 
-  if (!ImGuiFileDialog::Instance()->IsOpened()) {
+  if (!newFilePicker->isOpened()) {
     if (bindSetActive) {
       if (!ev.key.repeat) {
         switch (ev.key.keysym.sym) {
@@ -1809,7 +1808,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
   if (actionI!=actionMapGlobal.cend()) {
     int action=actionI->second;
     if (action>0) {
-      if (ImGuiFileDialog::Instance()->IsOpened()) {
+      if (newFilePicker->isOpened()) {
         if (action!=GUI_ACTION_OCTAVE_UP && action!=GUI_ACTION_OCTAVE_DOWN) return;
       }
       doAction(action);
@@ -3964,7 +3963,7 @@ bool FurnaceGUI::loop() {
         }
 #endif
         case SDL_KEYDOWN:
-          if (!ImGui::GetIO().WantCaptureKeyboard || (ImGuiFileDialog::Instance()->IsOpened() && !ImGui::GetIO().WantTextInput)) {
+          if (!ImGui::GetIO().WantCaptureKeyboard || (newFilePicker->isOpened() && !ImGui::GetIO().WantTextInput)) {
             keyDown(ev);
           }
           if (introPos<11.0 && !shortIntro) {
@@ -5013,7 +5012,6 @@ bool FurnaceGUI::loop() {
       MEASURE(userPresets,drawUserPresets());
       MEASURE(patManager,drawPatManager());
 
-      newFilePicker->draw();
     } else {
       globalWinFlags=0;
       ImGui::DockSpaceOverViewport(0,NULL,lockLayout?(ImGuiDockNodeFlags_NoWindowMenuButton|ImGuiDockNodeFlags_NoMove|ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplit|ImGuiDockNodeFlags_NoDockingSplitOther):0);
@@ -5058,7 +5056,6 @@ bool FurnaceGUI::loop() {
       MEASURE(effectList,drawEffectList());
       MEASURE(userPresets,drawUserPresets());
 
-      newFilePicker->draw();
     }
 
     // release selection if mouse released
@@ -5114,23 +5111,6 @@ bool FurnaceGUI::loop() {
     }
 #endif
 #endif
-
-    switch (newFilePicker->getStatus()) {
-      case FP_STATUS_ACCEPTED: {
-        String combined="The file picker says: ";
-        for (const String& i: newFilePicker->getSelected()) {
-          combined+="\n- ";
-          combined+=i;
-        }
-        showError(combined);
-        break;
-      }
-      case FP_STATUS_CLOSED:
-        showError("The file picker was closed.");
-        break;
-      default:
-        break;
-    }
 
     if (fileDialog->render(mobileUI?ImVec2(canvasW-(portrait?0:(60.0*dpiScale)),canvasH-60.0*dpiScale):ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW-((mobileUI && !portrait)?(60.0*dpiScale):0),canvasH-(mobileUI?(60.0*dpiScale):0)))) {
       bool openOpen=false;
@@ -7852,7 +7832,6 @@ bool FurnaceGUI::init() {
   }
 
   newFilePicker=new FurnaceFilePicker;
-  newFilePicker->setHomeDir(getHomeDir());
 
   updateWindowTitle();
   updateROMExportAvail();

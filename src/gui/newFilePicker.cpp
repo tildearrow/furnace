@@ -18,7 +18,7 @@
  */
 
 // this is the code to a new file picker using Dear ImGui.
-// this will eventually replace ImGuiFileDialog as the built-in file picker.
+// this replaces ImGuiFileDialog as the built-in file picker.
 
 #include "newFilePicker.h"
 #include "IconsFontAwesome4.h"
@@ -1120,6 +1120,10 @@ bool FurnaceFilePicker::draw() {
     // change directory
     readDirectory(newDir);
   }
+  return (curStatus!=FP_STATUS_WAITING);
+}
+
+bool FurnaceFilePicker::isOpened() {
   return isOpen;
 }
 
@@ -1149,6 +1153,10 @@ bool FurnaceFilePicker::open(String name, String pa, int flags, const std::vecto
   windowName=name;
   isOpen=true;
   return true;
+}
+
+void FurnaceFilePicker::close() {
+  isOpen=false;
 }
 
 void FurnaceFilePicker::setMobile(bool val) {

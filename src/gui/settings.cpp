@@ -26,7 +26,6 @@
 #include "util.h"
 #include "guiConst.h"
 #include "intConst.h"
-#include "ImGuiFileDialog.h"
 #include "IconsFontAwesome4.h"
 #include "furIcons.h"
 #include "misc/cpp/imgui_stdlib.h"
@@ -6806,85 +6805,34 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     patFont=mainFont;
     bigFont=mainFont;
     headFont=mainFont;
-
-    //mainFont->FallbackChar='?';
-    //mainFont->EllipsisChar='.';
-    //mainFont->EllipsisCharCount=3;
   }
 
   // set built-in file picker up (OLD)
-  ImGuiFileDialog::Instance()->okButtonString=_("OK");
-  ImGuiFileDialog::Instance()->cancelButtonString=_("Cancel");
-  ImGuiFileDialog::Instance()->searchString=_("Search");
-  ImGuiFileDialog::Instance()->dirEntryString=_("[Dir]");
-  ImGuiFileDialog::Instance()->linkEntryString=_("[Link]");
-  ImGuiFileDialog::Instance()->fileEntryString=_("[File]");
-  ImGuiFileDialog::Instance()->fileNameString=_("Name:");
-  ImGuiFileDialog::Instance()->dirNameString=_("Path:");
-  ImGuiFileDialog::Instance()->buttonResetSearchString=_("Reset search");
-  ImGuiFileDialog::Instance()->buttonDriveString=_("Drives");
-  ImGuiFileDialog::Instance()->buttonEditPathString=_("Edit path\nYou can also right click on path buttons");
-  ImGuiFileDialog::Instance()->buttonResetPathString=_("Go to home directory");
-  ImGuiFileDialog::Instance()->buttonParentDirString=_("Go to parent directory");
-  ImGuiFileDialog::Instance()->buttonCreateDirString=_("Create Directory");
-  ImGuiFileDialog::Instance()->tableHeaderFileNameString=_("File name");
-  ImGuiFileDialog::Instance()->tableHeaderFileTypeString=_("Type");
-  ImGuiFileDialog::Instance()->tableHeaderFileSizeString=_("Size");
-  ImGuiFileDialog::Instance()->tableHeaderFileDateString=_("Date");
-  ImGuiFileDialog::Instance()->OverWriteDialogTitleString=_("Warning");
-  ImGuiFileDialog::Instance()->OverWriteDialogMessageString=_("The file you selected already exists! Would you like to overwrite it?");
-  ImGuiFileDialog::Instance()->OverWriteDialogConfirmButtonString=_("Yes");
-  ImGuiFileDialog::Instance()->OverWriteDialogCancelButtonString=_("No");
-  ImGuiFileDialog::Instance()->DateTimeFormat=_("%Y/%m/%d %H:%M");
-
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeDir,"",uiColors[GUI_COLOR_FILE_DIR],ICON_FA_FOLDER_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeFile,"",uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_FILE_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fur",uiColors[GUI_COLOR_FILE_SONG_NATIVE],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fui",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fuw",uiColors[GUI_COLOR_FILE_WAVE],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmp",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmw",uiColors[GUI_COLOR_FILE_WAVE],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".wav",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmc",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".brr",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".vgm",uiColors[GUI_COLOR_FILE_VGM],ICON_FA_FILE_AUDIO_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".zsm",uiColors[GUI_COLOR_FILE_ZSM],ICON_FA_FILE_AUDIO_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ttf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".otf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ttc",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dfont",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fon",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".pcf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".psf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
-
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmf",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".mod",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".s3m",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".xm",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".it",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fc13",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fc14",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fc",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".smod",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ftm",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".0cc",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dnm",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".eft",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fub",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".tfi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".vgi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".s3i",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".sbi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".opli",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".opni",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".y12",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".bnk",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fti",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".bti",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ff",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".opm",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  /*
+  IGFDOld::Instance()->okButtonString=_("OK");
+  IGFDOld::Instance()->cancelButtonString=_("Cancel");
+  IGFDOld::Instance()->searchString=_("Search");
+  IGFDOld::Instance()->dirEntryString=_("[Dir]");
+  IGFDOld::Instance()->linkEntryString=_("[Link]");
+  IGFDOld::Instance()->fileEntryString=_("[File]");
+  IGFDOld::Instance()->fileNameString=_("Name:");
+  IGFDOld::Instance()->dirNameString=_("Path:");
+  IGFDOld::Instance()->buttonResetSearchString=_("Reset search");
+  IGFDOld::Instance()->buttonDriveString=_("Drives");
+  IGFDOld::Instance()->buttonEditPathString=_("Edit path\nYou can also right click on path buttons");
+  IGFDOld::Instance()->buttonResetPathString=_("Go to home directory");
+  IGFDOld::Instance()->buttonParentDirString=_("Go to parent directory");
+  IGFDOld::Instance()->buttonCreateDirString=_("Create Directory");
+  IGFDOld::Instance()->tableHeaderFileNameString=_("File name");
+  IGFDOld::Instance()->tableHeaderFileTypeString=_("Type");
+  IGFDOld::Instance()->tableHeaderFileSizeString=_("Size");
+  IGFDOld::Instance()->tableHeaderFileDateString=_("Date");
+  IGFDOld::Instance()->OverWriteDialogTitleString=_("Warning");
+  IGFDOld::Instance()->OverWriteDialogMessageString=_("The file you selected already exists! Would you like to overwrite it?");
+  IGFDOld::Instance()->OverWriteDialogConfirmButtonString=_("Yes");
+  IGFDOld::Instance()->OverWriteDialogCancelButtonString=_("No");
+  IGFDOld::Instance()->DateTimeFormat=_("%Y/%m/%d %H:%M");
+  */
 
   // set built-in file picker up (NEW)
   newFilePicker->setTypeStyle(FP_TYPE_UNKNOWN,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_QUESTION);
@@ -6946,9 +6894,9 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   if (updateFonts) {
     if (fileDialog!=NULL) delete fileDialog;
 #ifdef FLATPAK_WORKAROUNDS
-    fileDialog=new FurnaceGUIFileDialog(false);
+    fileDialog=new FurnaceGUIFileDialog(false,newFilePicker);
 #else
-    fileDialog=new FurnaceGUIFileDialog(settings.sysFileDialog);
+    fileDialog=new FurnaceGUIFileDialog(settings.sysFileDialog,newFilePicker);
 #endif
 
     fileDialog->mobileUI=mobileUI;
