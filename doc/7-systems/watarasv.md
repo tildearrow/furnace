@@ -15,7 +15,7 @@ this chip uses the [Watara Supervision](../4-instrument/watarasv.md) and [Generi
 
 ### sample info
 
-sample channel is a 4-bit DMA channel with 4 frequencies assigned to sample octaves (C2, C3, C4, C5; C, C#, D, D# in Furnace respectively). max sample size is 4 kilobytes (8192 samples).
+the sample channel is a 4-bit DMA channel with 4 frequencies assigned to sample octaves (C2, C3, C4, C5; C, C#, D, D# in Furnace respectively). max sample size is 4 kilobytes (8192 samples), samples are padded to multiples of 32 samples, and loop points are ignored.
 
 ## chip config
 
