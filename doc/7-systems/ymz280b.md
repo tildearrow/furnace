@@ -2,7 +2,7 @@
 
 8-channel PCM/ADPCM sample-based sound chip designed for use with arcade machines. it lived throughout mid to late 90s.
 
-it has 16-level stereo panning, up to 16-bit PCM and up to 16MB of external PCM data. 4-bit ADPCM has a sample playback rate limit of 44.1 kHz with a tunning resolution of 256 Hz, while 8-bit and 16-bit PCM can go up to 88.2kHz with a tuning resolution of 512 Hz.
+it has 16-level stereo panning, up to 16-bit PCM and up to 16MB of external PCM data. 4-bit ADPCM has a sample playback rate limit of 44.1 kHz with a tuning resolution of 256 Hz, while 8-bit and 16-bit PCM can go up to 88.2kHz with a tuning resolution of 512 Hz.
 
 ## effects
 
