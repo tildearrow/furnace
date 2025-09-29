@@ -37,6 +37,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #endif
+#include "../fileutils.h"
 #include <inttypes.h>
 #include <time.h>
 
@@ -1196,15 +1197,21 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
             }
           }
 
-          curStatus=FP_STATUS_ACCEPTED;
-          if (noClose) {
-            for (FileEntry* j: chosenEntries) {
-              j->isSelected=false;
-            }
-            chosenEntries.clear();
-            updateEntryName();
+          // if we ought to confirm overwrite, stop and do so
+          if (confirmOverwrite) {
+            ImGui::OpenPopup("Warning##ConfirmOverwrite");
+            logV("confirm overwrite");
           } else {
-            isOpen=false;
+            curStatus=FP_STATUS_ACCEPTED;
+            if (noClose) {
+              for (FileEntry* j: chosenEntries) {
+                j->isSelected=false;
+              }
+              chosenEntries.clear();
+              updateEntryName();
+            } else {
+              isOpen=false;
+            }
           }
         }
       } else {
@@ -1232,9 +1239,12 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
 #else
           // again, silly but works.
           DIR* checkDir=opendir(dirCheckPath.c_str());
+          int dirError=0;
           if (checkDir!=NULL) {
             isDir=true;
             closedir(checkDir);
+          } else {
+            dirError=errno;
           }
 #endif
 
@@ -1242,21 +1252,83 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
             // go to directory
             newDir=dirCheckPath;
           } else {
-            // return now
-            finalSelection.push_back(dirCheckPath);
-            curStatus=FP_STATUS_ACCEPTED;
-            if (noClose) {
-              for (FileEntry* j: chosenEntries) {
-                j->isSelected=false;
+            bool extCheck=false;
+            if (confirmOverwrite) {
+              // check whether the file may exist with an extension
+              std::vector<String> parsedExtensions;
+              String nextType;
+              for (char i: filterOptions[curFilterType+1]) {
+                switch (i) {
+                  case '*': // ignore
+                    break;
+                  case ' ': // separator
+                    if (!nextType.empty()) {
+                      parsedExtensions.push_back(nextType);
+                      nextType="";
+                    }
+                    break;
+                  default: // push
+                    nextType.push_back(i);
+                    break;
+                }
               }
-              chosenEntries.clear();
-              updateEntryName();
+              if (!nextType.empty()) {
+                parsedExtensions.push_back(nextType);
+                nextType="";
+              }
+              for (String& i: parsedExtensions) {
+                String fileWithExt=dirCheckPath+i;
+                logV("testing %s",fileWithExt);
+                if (fileExists(fileWithExt.c_str())) {
+                  extCheck=true;
+                  break;
+                }
+              }
+            }
+
+            // return now unless we gotta confirm overwrite
+            if (confirmOverwrite && (dirError==ENOTDIR || extCheck)) {
+              ImGui::OpenPopup("Warning##ConfirmOverwrite");
+              logV("confirm overwrite");
             } else {
-              isOpen=false;
+              finalSelection.push_back(dirCheckPath);
+              curStatus=FP_STATUS_ACCEPTED;
+              if (noClose) {
+                for (FileEntry* j: chosenEntries) {
+                  j->isSelected=false;
+                }
+                chosenEntries.clear();
+                updateEntryName();
+              } else {
+                isOpen=false;
+              }
             }
           }
         }
       }
+    }
+
+    ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),ImGuiCond_Always,ImVec2(0.5,0.5));
+    if (ImGui::BeginPopupModal("Warning##ConfirmOverwrite",NULL,ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoSavedSettings)) {
+      ImGui::Text("The file you selected already exists! Would you like to overwrite it?");
+      if (ImGui::Button("Yes")) {
+        curStatus=FP_STATUS_ACCEPTED;
+        if (noClose) {
+          for (FileEntry* j: chosenEntries) {
+            j->isSelected=false;
+          }
+          chosenEntries.clear();
+          updateEntryName();
+        } else {
+          isOpen=false;
+        }
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("No")) {
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndPopup();
     }
   }
   if (!isEmbed) {
@@ -1267,6 +1339,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       ImGui::End();
     }
   }
+  
 
   hasSizeConstraints=false;
 
