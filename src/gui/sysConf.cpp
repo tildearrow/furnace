@@ -1242,6 +1242,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
 
       if (ImGui::Checkbox(_("Bankswitched (Seta 2)"),&isBanked)) {
         altered=true;
+        mustRender=true;
       }
 
       if (altered) {
@@ -1743,6 +1744,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
 
       if (ImGui::Checkbox(_("Bankswitched (NMK112)"),&isBanked)) {
         altered=true;
+        mustRender=true;
       }
 
       if (altered) {
