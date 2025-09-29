@@ -862,6 +862,11 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
 
   bool began=false;
 
+  // center the window if it is unmovable and not an embed
+  if ((winFlags&ImGuiWindowFlags_NoMove) && !isEmbed) {
+    ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),ImGuiCond_Always,ImVec2(0.5f,0.5f));
+  }
+
   if (isEmbed) {
     began=true;
   } else if (isModal) {
@@ -874,13 +879,6 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
   }
 
   if (began) {
-    // center the window if it is unmovable
-    if (winFlags&ImGuiWindowFlags_NoMove) {
-      ImGui::SetWindowPos(ImVec2(
-        (ImGui::GetMainViewport()->Size.x-ImGui::GetWindowWidth())*0.5f,
-        (ImGui::GetMainViewport()->Size.y-ImGui::GetWindowHeight())*0.5f)
-      );
-    }
     // enforce window constraints if necessary
     if (hasSizeConstraints) {
       if (ImGui::GetWindowSize().x<minSize.x || ImGui::GetWindowSize().y<minSize.y) {
