@@ -509,13 +509,13 @@ void DivEngine::loadEIF(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       bytes[i] = reader.readC();
     }
 
-    ins->fm.alg=bytes[0]&0x7;
-    ins->fm.fb=(bytes[0]>>3)&0x7;
+    ins->fm.alg=bytes[0]&0x07;
+    ins->fm.fb=(bytes[0]>>3)&0x07;
 
     for (int i=0; i<4; i++) {
       DivInstrumentFM::Operator& op=ins->fm.op[i];
 
-      op.mult=bytes[1+i]&0xF;
+      op.mult=bytes[1+i]&0x0F;
       op.dt=(bytes[1+i]>>4)&0x07;
       op.tl=bytes[5+i]&0x7F;
       op.rs=(bytes[9+i]>>6)&0x03;
