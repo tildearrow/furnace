@@ -1323,10 +1323,13 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
         ImGui::CloseCurrentPopup();
       }
       ImGui::SameLine();
-      if (ImGui::Button("No")) {
+      if (ImGui::Button("No") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
         ImGui::CloseCurrentPopup();
       }
       ImGui::EndPopup();
+    } else if (isModal && !noClose && ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+      curStatus=FP_STATUS_CLOSED;
+      isOpen=false;
     }
   }
   if (!isEmbed) {
