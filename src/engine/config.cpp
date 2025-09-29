@@ -340,6 +340,34 @@ std::vector<int> DivConfig::getIntList(String key, std::initializer_list<int> fa
   return fallback;
 }
 
+std::vector<String> DivConfig::getStringList(String key, std::initializer_list<String> fallback) const {
+  String next;
+  std::vector<String> ret;
+  auto val=conf.find(key);
+  if (val!=conf.cend()) {
+    try {
+      for (char i: val->second) {
+        if (i==',') {
+          String result=taDecodeBase64(next);
+          ret.push_back(result);
+          next="";
+        } else {
+          next+=i;
+        }
+      }
+      if (!next.empty()) {
+        String result=taDecodeBase64(next);
+        ret.push_back(result);
+      }
+
+      return ret;
+    } catch (std::out_of_range& e) {
+    } catch (std::invalid_argument& e) {
+    }
+  }
+  return fallback;
+}
+
 bool DivConfig::has(String key) const {
   auto val=conf.find(key);
   return (val!=conf.cend());
@@ -379,6 +407,17 @@ void DivConfig::set(String key, const std::vector<int>& value) {
   for (int i: value) {
     if (comma) val+=',';
     val+=fmt::sprintf("%d",i);
+    comma=true;
+  }
+  conf[key]=val;
+}
+
+void DivConfig::set(String key, const std::vector<String>& value) {
+  String val;
+  bool comma=false;
+  for (const String& i: value) {
+    if (comma) val+=',';
+    val+=taEncodeBase64(i);
     comma=true;
   }
   conf[key]=val;

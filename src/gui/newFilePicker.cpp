@@ -1326,11 +1326,29 @@ FilePickerStatus FurnaceFilePicker::getStatus() {
 }
 
 void FurnaceFilePicker::loadSettings(DivConfig& conf) {
-
+  showHiddenFiles=conf.getBool(configPrefix+"showHiddenFiles",true);
+  singleClickSelect=conf.getBool(configPrefix+"singleClickSelect",false);
+  clearSearchOnDirChange=conf.getBool(configPrefix+"clearSearchOnDirChange",false);
+  sortDirsFirst=conf.getBool(configPrefix+"sortDirsFirst",true);
+  displayType=conf.getBool(configPrefix+"displayType",true);
+  displaySize=conf.getBool(configPrefix+"displaySize",true);
+  displayDate=conf.getBool(configPrefix+"displayDate",true);
+  bookmarks=conf.getStringList(configPrefix+"bookmarks",{});
 }
 
 void FurnaceFilePicker::saveSettings(DivConfig& conf) {
+  conf.set(configPrefix+"showHiddenFiles",showHiddenFiles);
+  conf.set(configPrefix+"singleClickSelect",singleClickSelect);
+  conf.set(configPrefix+"clearSearchOnDirChange",clearSearchOnDirChange);
+  conf.set(configPrefix+"sortDirsFirst",sortDirsFirst);
+  conf.set(configPrefix+"displayType",displayType);
+  conf.set(configPrefix+"displaySize",displaySize);
+  conf.set(configPrefix+"displayDate",displayDate);
+  conf.set(configPrefix+"bookmarks",bookmarks);
+}
 
+void FurnaceFilePicker::setConfigPrefix(String prefix) {
+  configPrefix=prefix;
 }
 
 const String& FurnaceFilePicker::getPath() {

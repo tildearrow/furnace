@@ -7516,6 +7516,9 @@ bool FurnaceGUI::loop() {
 bool FurnaceGUI::init() {
   logI("initializing GUI.");
 
+  newFilePicker=new FurnaceFilePicker;
+  newFilePicker->setConfigPrefix("fp_");
+
   opTouched=new bool[DIV_MAX_PATTERNS*DIV_MAX_ROWS];
 
   syncState();
@@ -7830,8 +7833,6 @@ bool FurnaceGUI::init() {
       }
     }
   }
-
-  newFilePicker=new FurnaceFilePicker;
 
   updateWindowTitle();
   updateROMExportAvail();
@@ -8250,6 +8251,8 @@ void FurnaceGUI::syncState() {
   xyOscThickness=e->getConfFloat("xyOscThickness",2.0f);
 
   cvHiScore=e->getConfInt("cvHiScore",25000);
+
+  newFilePicker->loadSettings(e->getConfObject());
 }
 
 void FurnaceGUI::commitState(DivConfig& conf) {
@@ -8414,6 +8417,8 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   }
 
   conf.set("cvHiScore",cvHiScore);
+
+  newFilePicker->saveSettings(e->getConfObject());
 }
 
 bool FurnaceGUI::finish(bool saveConfig) {

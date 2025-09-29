@@ -127,6 +127,7 @@ class FurnaceFilePicker {
   bool editingPath;
 
   // configuration
+  String configPrefix;
   std::vector<String> bookmarks;
   bool showHiddenFiles;
   bool singleClickSelect;
@@ -162,6 +163,7 @@ class FurnaceFilePicker {
     void setTypeStyle(FileType type, ImVec4 color, String icon);
     void registerType(String ext, ImVec4 color, String icon);
     void clearTypes();
+    void setConfigPrefix(String prefix);
     FurnaceFilePicker();
 };
 
