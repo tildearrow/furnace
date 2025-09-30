@@ -6178,8 +6178,6 @@ void FurnaceGUI::popWarningColor() {
   }
 }
 
-#define IGFD_FileStyleByExtension IGFD_FileStyleByExtention
-
 #ifdef _WIN32
 #define SYSTEM_FONT_PATH_1 "C:\\Windows\\Fonts\\segoeui.ttf"
 #define SYSTEM_FONT_PATH_2 "C:\\Windows\\Fonts\\tahoma.ttf"

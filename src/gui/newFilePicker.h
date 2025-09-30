@@ -110,7 +110,7 @@ class FurnaceFilePicker {
   bool sortInvert[FP_SORT_MAX];
   bool multiSelect;
   bool confirmOverwrite, dirSelect, noClose, isModal, isEmbed, hasSizeConstraints;
-  bool showBookmarks;
+  bool isPathBookmarked;
   int scheduledSort, imguiFlags;
   size_t curFilterType;
   SortModes sortMode;
@@ -129,6 +129,7 @@ class FurnaceFilePicker {
   // configuration
   String configPrefix;
   std::vector<String> bookmarks;
+  bool showBookmarks;
   bool showHiddenFiles;
   bool singleClickSelect;
   bool clearSearchOnDirChange;
@@ -142,8 +143,10 @@ class FurnaceFilePicker {
   void readDirectory(String path);
   String normalizePath(const String& which);
   bool isPathAbsolute(const String& p);
+  void addBookmark(const String& p);
 
   void drawFileList(ImVec2& tableSize, bool& acknowledged);
+  void drawBookmarks(ImVec2& tableSize, String& newDir);
 
   public:
     void readDirectorySub();

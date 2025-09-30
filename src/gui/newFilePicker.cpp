@@ -408,6 +408,20 @@ void FurnaceFilePicker::readDirectory(String path) {
   stopReading=false;
   scheduledSort=1;
   fileThread=new std::thread(_fileThread,this);
+
+  // check whether this path is bookmarked
+  isPathBookmarked=false;
+  for (String& i: bookmarks) {
+    size_t separator=i.find('\n');
+    if (separator==String::npos) continue;
+    String iName=i.substr(0,separator);
+    String iPath=i.substr(separator+1);
+
+    if (this->path==iPath) {
+      isPathBookmarked=true;
+      break;
+    }
+  }
 }
 
 void FurnaceFilePicker::setHomeDir(String where) {
@@ -585,6 +599,32 @@ bool FurnaceFilePicker::isPathAbsolute(const String& p) {
   if (p.size()<1) return false;
   return (p[0]=='/');
 #endif
+}
+
+void FurnaceFilePicker::addBookmark(const String& p) {
+  if (p==path) isPathBookmarked=true;
+  for (String& i: bookmarks) {
+    size_t separator=i.find('\n');
+    if (separator==String::npos) continue;
+    String iName=i.substr(0,separator);
+    String iPath=i.substr(separator+1);
+
+    if (p==iPath) return;
+  }
+  size_t lastSep=p.rfind(DIR_SEPARATOR);
+  if (lastSep==String::npos) {
+    String name=p;
+    name+="\n";
+    name+=p;
+
+    bookmarks.push_back(name);
+  } else {
+    String name=p.substr(lastSep+1);
+    name+="\n";
+    name+=p;
+
+    bookmarks.push_back(name);
+  }
 }
 
 void FurnaceFilePicker::setSizeConstraints(const ImVec2& min, const ImVec2& max) {
@@ -850,6 +890,55 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
   }
 }
 
+void FurnaceFilePicker::drawBookmarks(ImVec2& tableSize, String& newDir) {
+  if (ImGui::BeginTable("BookmarksList",1,ImGuiTableFlags_BordersOuter|ImGuiTableFlags_ScrollY,tableSize)) {
+    ImGui::TableSetupScrollFreeze(0,1);
+    ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+    ImGui::TableNextColumn();
+    ImGui::Text("Bookmarks");
+    ImGui::SameLine();
+    float iconSize=ImGui::CalcTextSize(ICON_FA_PLUS).x;
+    if (ImGui::Selectable(ICON_FA_PLUS "##AddBookmark",false,0,ImVec2(iconSize,0))) {
+    }
+    if (ImGui::BeginPopupContextItem("NewBookmark",ImGuiPopupFlags_MouseButtonLeft)) {
+      ImGui::Text("UI for new bookmark here...");
+      ImGui::EndPopup();
+    }
+    ImGui::SameLine();
+    if (ImGui::Selectable(ICON_FA_TIMES "##CloseBookmarks",false,0,ImVec2(iconSize,0))) {
+      showBookmarks=false;
+    }
+
+    int index=-1;
+    int markedForRemoval=-1;
+    for (String& i: bookmarks) {
+      ++index;
+      size_t separator=i.find('\n');
+      if (separator==String::npos) continue;
+      String iName=i.substr(0,separator);
+      String iPath=i.substr(separator+1);
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::PushID(index);
+      if (ImGui::Selectable(iName.c_str(),iPath==path)) {
+        newDir=iPath;
+      }
+      if (ImGui::BeginPopupContextItem("BookmarkOpts")) {
+        if (ImGui::MenuItem("remove")) {
+          markedForRemoval=index;
+          if (iPath==path) isPathBookmarked=false;
+        }
+      }
+      ImGui::PopID();
+    }
+    if (markedForRemoval>=0) {
+      bookmarks.erase(bookmarks.begin()+markedForRemoval);
+    }
+    ImGui::EndTable();
+  }
+}
+
 bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
   if (!isOpen) {
     hasSizeConstraints=false;
@@ -1058,13 +1147,30 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     }
 
     // search bar
-    if (ImGui::Button(showBookmarks?(ICON_FA_BOOKMARK "##Bookmarks"):(ICON_FA_BOOKMARK_O "##Bookmarks"))) {
-      showBookmarks=!showBookmarks;
+    if (ImGui::Button(isPathBookmarked?(ICON_FA_BOOKMARK "##Bookmarks"):(ICON_FA_BOOKMARK_O "##Bookmarks"))) {
+      if (isPathBookmarked && showBookmarks) {
+        for (size_t i=0; i<bookmarks.size(); i++) {
+          size_t separator=bookmarks[i].find('\n');
+          if (separator==String::npos) continue;
+          String iName=bookmarks[i].substr(0,separator);
+          String iPath=bookmarks[i].substr(separator+1);
+
+          if (iPath==path) {
+            bookmarks.erase(bookmarks.begin()+i);
+            break;
+          }
+        }
+        isPathBookmarked=false;
+      } else {
+        addBookmark(path);
+      }
+      showBookmarks=true;
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_COG "##Settings")) {
     }
     if (ImGui::BeginPopupContextItem("FilePickerSettings",ImGuiPopupFlags_MouseButtonLeft)) {
+      ImGui::Checkbox("Show bookmarks",&showBookmarks);
       if (ImGui::Checkbox("Show hidden files",&showHiddenFiles)) {
         scheduledSort=1;
       }
@@ -1108,9 +1214,16 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       ImVec2 oldCellPadding=ImGui::GetStyle().CellPadding;
       ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(oldCellPadding.x,0));
       if (ImGui::BeginTable("BMPanel",2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_Resizable)) {
+        ImGui::TableSetupColumn("left",ImGuiTableColumnFlags_WidthStretch,0.2f);
+        ImGui::TableSetupColumn("right",ImGuiTableColumnFlags_WidthStretch,0.8f);
+
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("Here we go...");
+        ImVec2 bookmarksSize=tableSize;
+        bookmarksSize.x=ImGui::GetContentRegionAvail().x;
+        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,oldCellPadding);
+        drawBookmarks(bookmarksSize,newDir);
+        ImGui::PopStyleVar();
         ImGui::TableNextColumn();
         tableSize.x=ImGui::GetContentRegionAvail().x;
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,oldCellPadding);
@@ -1400,6 +1513,7 @@ FilePickerStatus FurnaceFilePicker::getStatus() {
 }
 
 void FurnaceFilePicker::loadSettings(DivConfig& conf) {
+  showBookmarks=conf.getBool(configPrefix+"showBookmarks",true);
   showHiddenFiles=conf.getBool(configPrefix+"showHiddenFiles",true);
   singleClickSelect=conf.getBool(configPrefix+"singleClickSelect",false);
   clearSearchOnDirChange=conf.getBool(configPrefix+"clearSearchOnDirChange",false);
@@ -1411,6 +1525,7 @@ void FurnaceFilePicker::loadSettings(DivConfig& conf) {
 }
 
 void FurnaceFilePicker::saveSettings(DivConfig& conf) {
+  conf.set(configPrefix+"showBookmarks",showBookmarks);
   conf.set(configPrefix+"showHiddenFiles",showHiddenFiles);
   conf.set(configPrefix+"singleClickSelect",singleClickSelect);
   conf.set(configPrefix+"clearSearchOnDirChange",clearSearchOnDirChange);
@@ -1470,12 +1585,13 @@ FurnaceFilePicker::FurnaceFilePicker():
   isModal(false),
   isEmbed(false),
   hasSizeConstraints(false),
-  showBookmarks(false),
+  isPathBookmarked(false),
   scheduledSort(0),
   curFilterType(0),
   sortMode(FP_SORT_NAME),
   curStatus(FP_STATUS_WAITING),
   editingPath(false),
+  showBookmarks(true),
   showHiddenFiles(true),
   singleClickSelect(false),
   clearSearchOnDirChange(false),
