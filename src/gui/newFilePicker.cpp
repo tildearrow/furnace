@@ -929,6 +929,7 @@ void FurnaceFilePicker::drawBookmarks(ImVec2& tableSize, String& newDir) {
           markedForRemoval=index;
           if (iPath==path) isPathBookmarked=false;
         }
+        ImGui::EndPopup();
       }
       ImGui::PopID();
     }
