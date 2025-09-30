@@ -933,10 +933,10 @@ void FurnaceGUI::doAction(int what) {
               sample->loopEnd=waveLen;
               sample->loop=true;
               sample->loopMode=DIV_SAMPLE_LOOP_FORWARD;
-              sample->depth=DIV_SAMPLE_DEPTH_8BIT;
+              sample->depth=DIV_SAMPLE_DEPTH_16BIT;
               if (sample->init(waveLen)) {
                 for (unsigned short i=0; i<waveLen; i++) {
-                  sample->data8[i]=((wave->data[i]*256)/(wave->max+1))-128;
+                  sample->data16[i]=((wave->data[i]*65535.0f)/(wave->max))-32768;
                 }
               }
             }
