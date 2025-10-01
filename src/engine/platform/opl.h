@@ -186,6 +186,8 @@ class DivPlatformOPL: public DivDispatch {
     void acquire_ymfm2(short** buf, size_t len);
     void acquire_ymfm1(short** buf, size_t len);
   
+    void renderInstruments();
+  
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
@@ -211,6 +213,7 @@ class DivPlatformOPL: public DivDispatch {
     void toggleRegisterDump(bool enable);
     void setFlags(const DivConfig& flags);
     void notifyInsChange(int ins);
+    void notifySampleChange(int sample);
     void notifyInsDeletion(void* ins);
     int getPortaFloor(int ch);
     void poke(unsigned int addr, unsigned short val);
