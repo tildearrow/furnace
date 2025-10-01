@@ -580,6 +580,10 @@ void DivPlatformC140::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   }
 }
 
+size_t DivPlatformC140::getSampleMemNum() {
+  return 1;
+}
+
 const void* DivPlatformC140::getSampleMem(int index) {
   return index == 0 ? sampleMem : NULL;
 }
