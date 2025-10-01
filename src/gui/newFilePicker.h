@@ -122,6 +122,9 @@ class FurnaceFilePicker {
   // for "create directory"
   String mkdirPath, mkdirError;
 
+  // for "create bookmark"
+  String newBookmarkName, newBookmarkPath;
+
   // for the "edit path" button
   String editablePath;
   bool editingPath;
@@ -143,7 +146,7 @@ class FurnaceFilePicker {
   void readDirectory(String path);
   String normalizePath(const String& which);
   bool isPathAbsolute(const String& p);
-  void addBookmark(const String& p);
+  void addBookmark(const String& p, String n="");
 
   void drawFileList(ImVec2& tableSize, bool& acknowledged);
   void drawBookmarks(ImVec2& tableSize, String& newDir);

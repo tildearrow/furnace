@@ -601,7 +601,7 @@ bool FurnaceFilePicker::isPathAbsolute(const String& p) {
 #endif
 }
 
-void FurnaceFilePicker::addBookmark(const String& p) {
+void FurnaceFilePicker::addBookmark(const String& p, String n) {
   if (p==path) isPathBookmarked=true;
   for (String& i: bookmarks) {
     size_t separator=i.find('\n');
@@ -611,15 +611,23 @@ void FurnaceFilePicker::addBookmark(const String& p) {
 
     if (p==iPath) return;
   }
-  size_t lastSep=p.rfind(DIR_SEPARATOR);
-  if (lastSep==String::npos) {
-    String name=p;
-    name+="\n";
-    name+=p;
+  if (n.empty()) {
+    size_t lastSep=p.rfind(DIR_SEPARATOR);
+    if (lastSep==String::npos) {
+      String name=p;
+      name+="\n";
+      name+=p;
 
-    bookmarks.push_back(name);
+      bookmarks.push_back(name);
+    } else {
+      String name=p.substr(lastSep+1);
+      name+="\n";
+      name+=p;
+
+      bookmarks.push_back(name);
+    }
   } else {
-    String name=p.substr(lastSep+1);
+    String name=n;
     name+="\n";
     name+=p;
 
@@ -899,9 +907,27 @@ void FurnaceFilePicker::drawBookmarks(ImVec2& tableSize, String& newDir) {
     ImGui::SameLine();
     float iconSize=ImGui::CalcTextSize(ICON_FA_PLUS).x;
     if (ImGui::Selectable(ICON_FA_PLUS "##AddBookmark",false,0,ImVec2(iconSize,0))) {
+      newBookmarkName="New Bookmark";
+      newBookmarkPath=path;
     }
     if (ImGui::BeginPopupContextItem("NewBookmark",ImGuiPopupFlags_MouseButtonLeft)) {
-      ImGui::Text("UI for new bookmark here...");
+      ImGui::Text("Name");
+      ImGui::InputText("##NameI",&newBookmarkName);
+
+      ImGui::Text("Path:");
+      ImGui::InputText("##PathI",&newBookmarkPath);
+
+      ImGui::BeginDisabled(newBookmarkName.empty() || newBookmarkPath.empty());
+      if (ImGui::Button("OK")) {
+        if (newBookmarkName.empty() || newBookmarkPath.empty()) {
+          // no!
+        } else {
+          newBookmarkPath=normalizePath(newBookmarkPath);
+          addBookmark(newBookmarkPath,newBookmarkName);
+        }
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndDisabled();
       ImGui::EndPopup();
     }
     ImGui::SameLine();
