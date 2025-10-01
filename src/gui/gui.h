@@ -2058,6 +2058,7 @@ class FurnaceGUI {
     int s3mOPL3;
     int songNotesWrap;
     int rackShowLEDs;
+    int sampleImportInstDetune;
     String mainFontPath;
     String headFontPath;
     String patFontPath;
@@ -2311,6 +2312,7 @@ class FurnaceGUI {
       s3mOPL3(1),
       songNotesWrap(0),
       rackShowLEDs(1),
+      sampleImportInstDetune(0),
       mainFontPath(""),
       headFontPath(""),
       patFontPath(""),
