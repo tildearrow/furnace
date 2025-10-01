@@ -21,3 +21,5 @@ it has a whopping 28 channels of stereo 16-bit PCM and:
 ## info
 
 this chip uses the [MultiPCM](../4-instrument/multipcm.md) instrument editor.
+
+maximum sample length is 65535 samples.
