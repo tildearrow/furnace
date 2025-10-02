@@ -99,7 +99,7 @@ class FurnaceFilePicker {
   std::thread* fileThread;
   std::mutex entryLock;
   String windowName;
-  String path, filter;
+  String path, filter, searchQuery;
   String failMessage;
   String homeDir;
   String entryName;
@@ -110,7 +110,7 @@ class FurnaceFilePicker {
   bool sortInvert[FP_SORT_MAX];
   bool multiSelect;
   bool confirmOverwrite, dirSelect, noClose, isModal, isEmbed, hasSizeConstraints;
-  bool isPathBookmarked;
+  bool isPathBookmarked, isSearch;
   int scheduledSort, imguiFlags;
   size_t curFilterType;
   SortModes sortMode;
@@ -147,12 +147,14 @@ class FurnaceFilePicker {
   String normalizePath(const String& which);
   bool isPathAbsolute(const String& p);
   void addBookmark(const String& p, String n="");
+  FileEntry* makeEntry(void* _entry, const char* prefix=NULL);
 
   void drawFileList(ImVec2& tableSize, bool& acknowledged);
   void drawBookmarks(ImVec2& tableSize, String& newDir);
 
   public:
     void readDirectorySub();
+    void searchSub(String subPath, int depth);
     void setHomeDir(String where);
     FilePickerStatus getStatus();
     const String& getPath();

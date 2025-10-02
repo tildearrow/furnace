@@ -47,6 +47,89 @@ static void _fileThread(void* item) {
   ((FurnaceFilePicker*)item)->readDirectorySub();
 }
 
+static void _searchThread(void* item) {
+  ((FurnaceFilePicker*)item)->searchSub("",0);
+}
+
+#ifdef _WIN32
+#else
+FurnaceFilePicker::FileEntry* FurnaceFilePicker::makeEntry(void* _entry, const char* prefix) {
+  struct dirent* entry=(struct dirent*)_entry;
+  FileEntry* newEntry=new FileEntry;
+  if (prefix!=NULL) {
+    if (prefix[0]=='/') {
+      newEntry->name=String(&prefix[1])+"/"+entry->d_name;
+    } else {
+
+    }
+  } else {
+    newEntry->name=entry->d_name;
+  }
+  newEntry->nameLower=entry->d_name;
+  newEntry->isHidden=(entry->d_name[0]=='.');
+  for (char& i: newEntry->nameLower) {
+    if (i>='A' && i<='Z') i+='a'-'A';
+  }
+
+  switch (entry->d_type) {
+    case DT_REG:
+      newEntry->type=FP_TYPE_NORMAL;
+      break;
+    case DT_DIR:
+      newEntry->type=FP_TYPE_DIR;
+      newEntry->isDir=true;
+      break;
+    case DT_LNK: {
+      newEntry->type=FP_TYPE_LINK;
+      // resolve link to determine whether this is a directory
+      String readLinkPath;
+      DIR* readLinkDir=NULL;
+      if (path.empty()) {
+        readLinkPath=newEntry->name;
+      } else if (*path.rbegin()=='/') {
+        readLinkPath=path+newEntry->name;
+      } else {
+        readLinkPath=path+'/'+newEntry->name;
+      }
+      // silly, but works.
+      readLinkDir=opendir(readLinkPath.c_str());
+      if (readLinkDir!=NULL) {
+        newEntry->isDir=true;
+        closedir(readLinkDir);
+      }
+      break;
+    }
+    case DT_SOCK:
+      newEntry->type=FP_TYPE_SOCKET;
+      break;
+    case DT_FIFO:
+      newEntry->type=FP_TYPE_PIPE;
+      break;
+    case DT_CHR:
+      newEntry->type=FP_TYPE_CHARDEV;
+      break;
+    case DT_BLK:
+      newEntry->type=FP_TYPE_BLOCKDEV;
+      break;
+    default:
+      newEntry->type=FP_TYPE_UNKNOWN;
+      break;
+  }
+
+  if (!newEntry->isDir) {
+    size_t extPos=newEntry->name.rfind('.');
+    if (extPos!=String::npos) {
+      newEntry->ext=newEntry->name.substr(extPos);
+      for (char& i: newEntry->ext) {
+        if (i>='A' && i<='Z') i+='a'-'A';
+      }
+    }
+  }
+
+  return newEntry;
+}
+#endif
+
 #ifdef _WIN32
 // Windows implementation
 void FurnaceFilePicker::readDirectorySub() {
@@ -160,7 +243,9 @@ void FurnaceFilePicker::readDirectorySub() {
       newEntry->hasTime=true;
     }
 
+    entryLock.lock();
     entries.push_back(newEntry);
+    entryLock.unlock();
     if (stopReading) {
       break;
     }
@@ -192,71 +277,11 @@ void FurnaceFilePicker::readDirectorySub() {
     if (strcmp(entry->d_name,".")==0) continue;
     if (strcmp(entry->d_name,"..")==0) continue;
 
-    FileEntry* newEntry=new FileEntry;
+    FileEntry* newEntry=makeEntry(entry,NULL);
 
-    newEntry->name=entry->d_name;
-    newEntry->nameLower=entry->d_name;
-    newEntry->isHidden=(entry->d_name[0]=='.');
-    for (char& i: newEntry->nameLower) {
-      if (i>='A' && i<='Z') i+='a'-'A';
-    }
-
-    switch (entry->d_type) {
-      case DT_REG:
-        newEntry->type=FP_TYPE_NORMAL;
-        break;
-      case DT_DIR:
-        newEntry->type=FP_TYPE_DIR;
-        newEntry->isDir=true;
-        break;
-      case DT_LNK: {
-        newEntry->type=FP_TYPE_LINK;
-        // resolve link to determine whether this is a directory
-        String readLinkPath;
-        DIR* readLinkDir=NULL;
-        if (path.empty()) {
-          readLinkPath=newEntry->name;
-        } else if (*path.rbegin()=='/') {
-          readLinkPath=path+newEntry->name;
-        } else {
-          readLinkPath=path+'/'+newEntry->name;
-        }
-        // silly, but works.
-        readLinkDir=opendir(readLinkPath.c_str());
-        if (readLinkDir!=NULL) {
-          newEntry->isDir=true;
-          closedir(readLinkDir);
-        }
-        break;
-      }
-      case DT_SOCK:
-        newEntry->type=FP_TYPE_SOCKET;
-        break;
-      case DT_FIFO:
-        newEntry->type=FP_TYPE_PIPE;
-        break;
-      case DT_CHR:
-        newEntry->type=FP_TYPE_CHARDEV;
-        break;
-      case DT_BLK:
-        newEntry->type=FP_TYPE_BLOCKDEV;
-        break;
-      default:
-        newEntry->type=FP_TYPE_UNKNOWN;
-        break;
-    }
-
-    if (!newEntry->isDir) {
-      size_t extPos=newEntry->name.rfind('.');
-      if (extPos!=String::npos) {
-        newEntry->ext=newEntry->name.substr(extPos);
-        for (char& i: newEntry->ext) {
-          if (i>='A' && i<='Z') i+='a'-'A';
-        }
-      }
-    }
-
+    entryLock.lock();
     entries.push_back(newEntry);
+    entryLock.unlock();
     if (stopReading) {
       break;
     }
@@ -301,6 +326,68 @@ void FurnaceFilePicker::readDirectorySub() {
     entryLock.unlock();
   }
   haveStat=true;
+}
+#endif
+
+#ifdef _WIN32
+// Windows implementation
+void FurnaceFilePicker::searchSub(String subPath, int depth) {
+}
+#else
+// Linux/Unix implementation
+void FurnaceFilePicker::searchSub(String subPath, int depth) {
+  /// STAGE 1: get file list
+  if (depth>15) logW("searchSub(%s,%d)",subPath,depth);
+  String actualPath=path+subPath;
+  DIR* dir=opendir(actualPath.c_str());
+
+  if (dir==NULL) {
+    if (depth==0) {
+      failMessage=strerror(errno);
+      haveFiles=true;
+      haveStat=true;
+    }
+    return;
+  }
+
+  struct dirent* entry=NULL;
+  while (true) {
+    entry=readdir(dir);
+    if (entry==NULL) break;
+    if (strcmp(entry->d_name,".")==0) continue;
+    if (strcmp(entry->d_name,"..")==0) continue;
+
+    if (entry->d_type==DT_DIR) {
+      //if (depth<20) {
+        searchSub(subPath+String("/")+entry->d_name,depth+1);
+      //}
+    } else {
+      String lower=entry->d_name;
+      for (char& i: lower) {
+        if (i>='A' && i<='Z') i+='a'-'A';
+      }
+
+      if (lower.find(searchQuery)!=String::npos) {
+        FileEntry* newEntry=makeEntry(entry,subPath.c_str());
+        entryLock.lock();
+        entries.push_back(newEntry);
+        entryLock.unlock();
+      }
+    }
+
+    if (stopReading) {
+      break;
+    }
+  }
+  if (closedir(dir)!=0) {
+    // ?!
+  }
+
+  if (depth==0) {
+    haveFiles=true;
+    haveStat=true;
+    return;
+  }
 }
 #endif
 
@@ -407,7 +494,11 @@ void FurnaceFilePicker::readDirectory(String path) {
   haveStat=false;
   stopReading=false;
   scheduledSort=1;
-  fileThread=new std::thread(_fileThread,this);
+  if (isSearch) {
+    fileThread=new std::thread(_searchThread,this);
+  } else {
+    fileThread=new std::thread(_fileThread,this);
+  }
 
   // check whether this path is bookmarked
   isPathBookmarked=false;
@@ -556,7 +647,7 @@ void FurnaceFilePicker::sortFiles() {
 }
 
 void FurnaceFilePicker::filterFiles() {
-  if (filter.empty()) {
+  if (filter.empty() || isSearch) {
     filteredEntries=sortedEntries;
     return;
   }
@@ -643,7 +734,7 @@ void FurnaceFilePicker::setSizeConstraints(const ImVec2& min, const ImVec2& max)
 
 void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
   // display a message on empty dir, no matches or error
-  if (!haveFiles) {
+  if (!haveFiles && !isSearch) {
     if (ImGui::BeginTable("LoadingFiles",1,ImGuiTableFlags_BordersOuter,tableSize)) {
       ImGui::EndTable();
     }
@@ -975,6 +1066,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
   String newDir;
   bool acknowledged=false;
   bool readDrives=false;
+  bool wantSearch=false;
 
   bool began=false;
 
@@ -1220,12 +1312,21 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       filterFiles();
     }
     ImGui::SameLine();
+    if (ImGui::Button("Recurse")) {
+      newDir=path;
+      searchQuery=filter;
+      for (char& i: searchQuery) {
+        if (i>='A' && i<='Z') i+='a'-'A';
+      }
+      wantSearch=true;
+    }
+    ImGui::SameLine();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
     if (ImGui::InputTextWithHint("##Filter","Search",&filter)) {
       filterFiles();
     }
 
-    if (scheduledSort && haveFiles) {
+    if (scheduledSort && (haveFiles || isSearch)) {
       if (haveStat) {
         scheduledSort=0;
       }
@@ -1487,6 +1588,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
   if (!newDir.empty() || readDrives) {
     // change directory
     if (clearSearchOnDirChange) filter="";
+    isSearch=wantSearch;
     readDirectory(newDir);
   }
   return (curStatus!=FP_STATUS_WAITING);
@@ -1518,6 +1620,8 @@ bool FurnaceFilePicker::open(String name, String pa, String hint, int flags, con
   }
   curFilterType=0;
 
+  if (isSearch) this->filter="";
+  isSearch=false;
   readDirectory(pa);
   windowName=name;
   hint=entryNameHint;
@@ -1613,6 +1717,7 @@ FurnaceFilePicker::FurnaceFilePicker():
   isEmbed(false),
   hasSizeConstraints(false),
   isPathBookmarked(false),
+  isSearch(false),
   scheduledSort(0),
   curFilterType(0),
   sortMode(FP_SORT_NAME),
