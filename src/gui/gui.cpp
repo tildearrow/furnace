@@ -25,22 +25,23 @@
 
 #include "gui.h"
 #include "util.h"
+#include "guiConst.h"
+#include "intConst.h"
+#include "scaling.h"
+#include "introTune.h"
 #include "../ta-log.h"
 #include "../fileutils.h"
+#include "../engine/export/mmlHelpers.h"
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "ImGuiFileDialog.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "plot_nolerp.h"
-#include "guiConst.h"
-#include "intConst.h"
-#include "scaling.h"
-#include "introTune.h"
 #include <stdint.h>
 #include <zlib.h>
-#include <fmt/printf.h>
 #include <stdexcept>
+#include <fmt/printf.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -2118,6 +2119,16 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         (settings.autoFillSave)?shortName:""
       );
       break;
+    case GUI_FILE_EXPORT_MML:
+      if (!dirExists(workingDirMMLExport)) workingDirMMLExport=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        _("Export MML"),
+        {_("MML file"), "*.mml"},
+        workingDirMMLExport,
+        dpiScale,
+        (settings.autoFillSave)?shortName:""
+      );
+      break;
     case GUI_FILE_EXPORT_TEXT:
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
       hasOpened=fileDialog->openSave(
@@ -2697,9 +2708,10 @@ void FurnaceGUI::exportAudio(String path, DivAudioExportModes mode) {
   int loopOrder=0;
   int loopRow=0;
   int loopEnd=0;
+  int loopTick=0;
   e->walkSong(loopOrder,loopRow,loopEnd);
 
-  e->findSongLength(loopOrder,loopRow,audioExportOptions.fadeOut,songFadeoutSectionLength,songHasSongEndCommand,songOrdersLengths,songLength); // for progress estimation
+  e->findSongLength(loopOrder,loopRow,audioExportOptions.fadeOut,songFadeoutSectionLength,songHasSongEndCommand,songOrdersLengths,songLength,loopTick); // for progress estimation
 
   songLoopedSectionLength=songLength;
   for (int i=0; i<loopOrder && i<(int)songOrdersLengths.size(); i++) {
@@ -4566,6 +4578,10 @@ bool FurnaceGUI::loop() {
             drawExportDMF();
             ImGui::EndMenu();
           }
+          if (ImGui::BeginMenu(_("export .mml..."))) {
+            drawExportMML();
+            ImGui::EndMenu();
+          }
         } else if (settings.exportOptionsLayout==2) {
           if (ImGui::MenuItem(_("export audio..."))) {
             curExportType=GUI_EXPORT_AUDIO;
@@ -4591,6 +4607,10 @@ bool FurnaceGUI::loop() {
           }
           if (ImGui::MenuItem(_("export .dmf..."))) {
             curExportType=GUI_EXPORT_DMF;
+            displayExport=true;
+          }
+          if (ImGui::MenuItem(_("export .mml..."))) {
+            curExportType=GUI_EXPORT_MML;
             displayExport=true;
           }
         } else {
@@ -5169,6 +5189,9 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_EXPORT_VGM:
           workingDirVGMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
+        case GUI_FILE_EXPORT_MML:
+          workingDirMMLExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
+          break;
         case GUI_FILE_EXPORT_ROM:
         case GUI_FILE_EXPORT_TEXT:
         case GUI_FILE_EXPORT_CMDSTREAM:
@@ -5264,6 +5287,9 @@ bool FurnaceGUI::loop() {
           }
           if (curFileDialog==GUI_FILE_EXPORT_VGM) {
             checkExtension(".vgm");
+          }
+          if (curFileDialog==GUI_FILE_EXPORT_MML) {
+            checkExtension(".mml");
           }
           if (curFileDialog==GUI_FILE_EXPORT_ROM) {
             checkExtension(romFilterExt.c_str());
@@ -5735,6 +5761,46 @@ bool FurnaceGUI::loop() {
                 }
               } else {
                 showError(fmt::sprintf(_("could not write VGM! (%s)"),e->getLastError()));
+              }
+              break;
+            }
+            case GUI_FILE_EXPORT_MML: {
+              SafeWriter* w = NULL;
+              String exportDir = copyOfName.substr(0, copyOfName.find_last_of(DIR_SEPARATOR));
+
+              switch (mmlExportType) {
+                case MML_EXPORT_MMLGB: // mmlgb
+                  w = e->saveMMLGB(mmlExportMMLGBUseLegacyNoise);
+                  break;
+                case MML_EXPORT_AMK: // AddMusicK
+                  w = e->saveMMLSNESAMK(mmlExportAMKVersion, mmlExportAMKHasDefaultHeader, exportDir);
+                  break;
+                default:
+                  showError(_("This MML format is currently unimplemented."));
+                  break;
+              }
+              
+              if (w != NULL) {
+                FILE* f = ps_fopen(copyOfName.c_str(), "wb");
+                if (f != NULL) {
+                  size_t bytesWritten = fwrite(w->getFinalBuf(), 1, w->size(), f);
+                  fclose(f);
+
+                  if (bytesWritten != w->size()) {
+                    showError(fmt::sprintf("Write error: failed to write entire file! %s", strerror(errno)));
+                    // Optionally handle cleanup here
+                  } else {
+                    pushRecentSys(copyOfName.c_str());
+                  }
+                } else {
+                  showError(fmt::sprintf("Could not open file! %s", strerror(errno)));
+                }
+                w->finish();
+                delete w;
+
+                if (!e->getWarnings().empty()) {
+                  showWarning(e->getWarnings(), GUI_WARN_GENERIC);
+                }
               }
               break;
             }
@@ -8108,6 +8174,7 @@ void FurnaceGUI::syncState() {
   workingDirAudioExport=e->getConfString("lastDirAudioExport",workingDir);
   workingDirVGMExport=e->getConfString("lastDirVGMExport",workingDir);
   workingDirROMExport=e->getConfString("lastDirROMExport",workingDir);
+  workingDirMMLExport=e->getConfString("lastDirMMLExport",workingDir);
   workingDirFont=e->getConfString("lastDirFont",workingDir);
   workingDirColors=e->getConfString("lastDirColors",workingDir);
   workingDirKeybinds=e->getConfString("lastDirKeybinds",workingDir);
@@ -8269,6 +8336,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("lastDirAudioExport",workingDirAudioExport);
   conf.set("lastDirVGMExport",workingDirVGMExport);
   conf.set("lastDirROMExport",workingDirROMExport);
+  conf.set("lastDirMMLExport",workingDirMMLExport);
   conf.set("lastDirFont",workingDirFont);
   conf.set("lastDirColors",workingDirColors);
   conf.set("lastDirKeybinds",workingDirKeybinds);
@@ -9046,6 +9114,10 @@ FurnaceGUI::FurnaceGUI():
   csExportDone(false),
   dmfExportVersion(0),
   curExportType(GUI_EXPORT_NONE),
+  mmlExportType(MML_EXPORT_AMK),
+  mmlExportMMLGBUseLegacyNoise(false),
+  mmlExportAMKVersion(2),
+  mmlExportAMKHasDefaultHeader(false),
   romTarget(DIV_ROM_ABSTRACT),
   romMultiFile(false),
   romExportSave(false),
