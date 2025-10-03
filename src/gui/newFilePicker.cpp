@@ -734,11 +734,7 @@ void FurnaceFilePicker::setSizeConstraints(const ImVec2& min, const ImVec2& max)
 
 void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
   // display a message on empty dir, no matches or error
-  if (!haveFiles && !isSearch) {
-    if (ImGui::BeginTable("LoadingFiles",1,ImGuiTableFlags_BordersOuter,tableSize)) {
-      ImGui::EndTable();
-    }
-  } else if (filteredEntries.empty()) {
+  if (filteredEntries.empty()) {
     if (ImGui::BeginTable("NoFiles",3,ImGuiTableFlags_BordersOuter,tableSize)) {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.5f);
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
@@ -749,26 +745,30 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
 
       ImGui::TableNextColumn();
       ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(tableSize.y-ImGui::GetTextLineHeight())*0.5);
-      if (sortedEntries.empty()) {
-        if (failMessage.empty()) {
-          ImGui::Text("This directory is empty!");
-        } else {
+      if (haveFiles) {
+        if (sortedEntries.empty()) {
+          if (failMessage.empty()) {
+            ImGui::Text("This directory is empty!");
+          } else {
 #ifdef _WIN32
-          ImGui::Text("%s",failMessage.c_str());
+            ImGui::Text("%s",failMessage.c_str());
 #else
-          ImGui::Text("%s!",failMessage.c_str());
+            ImGui::Text("%s!",failMessage.c_str());
 #endif
+          }
+        } else {
+          if (failMessage.empty()) {
+            ImGui::Text("No results");
+          } else {
+#ifdef _WIN32
+            ImGui::Text("%s",failMessage.c_str());
+#else
+            ImGui::Text("%s!",failMessage.c_str());
+#endif
+          }
         }
       } else {
-        if (failMessage.empty()) {
-          ImGui::Text("No results");
-        } else {
-#ifdef _WIN32
-          ImGui::Text("%s",failMessage.c_str());
-#else
-          ImGui::Text("%s!",failMessage.c_str());
-#endif
-        }
+        // don't
       }
 
       ImGui::TableNextColumn();
@@ -1321,7 +1321,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       wantSearch=true;
     }
 
-    if (scheduledSort && (haveFiles || isSearch)) {
+    if (scheduledSort) {
       if (haveStat) {
         scheduledSort=0;
       }
