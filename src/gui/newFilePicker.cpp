@@ -65,7 +65,7 @@ FurnaceFilePicker::FileEntry* FurnaceFilePicker::makeEntry(void* _entry, const c
   } else {
     newEntry->name=entry->d_name;
   }
-  newEntry->nameLower=entry->d_name;
+  newEntry->nameLower=newEntry->name;
   newEntry->isHidden=(entry->d_name[0]=='.');
   for (char& i: newEntry->nameLower) {
     if (i>='A' && i<='Z') i+='a'-'A';
@@ -366,7 +366,6 @@ void FurnaceFilePicker::searchSub(String subPath, int depth) {
       for (char& i: lower) {
         if (i>='A' && i<='Z') i+='a'-'A';
       }
-            if (depth==0) logV("%s=%s",searchQuery,lower);
 
       if (lower.find(searchQuery)!=String::npos) {
         FileEntry* newEntry=makeEntry(entry,subPath.c_str());
