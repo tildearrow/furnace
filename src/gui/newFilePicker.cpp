@@ -60,7 +60,7 @@ FurnaceFilePicker::FileEntry* FurnaceFilePicker::makeEntry(void* _entry, const c
     if (prefix[0]=='/') {
       newEntry->name=String(&prefix[1])+"/"+entry->d_name;
     } else {
-
+      newEntry->name=entry->d_name;
     }
   } else {
     newEntry->name=entry->d_name;
@@ -366,6 +366,7 @@ void FurnaceFilePicker::searchSub(String subPath, int depth) {
       for (char& i: lower) {
         if (i>='A' && i<='Z') i+='a'-'A';
       }
+            if (depth==0) logV("%s=%s",searchQuery,lower);
 
       if (lower.find(searchQuery)!=String::npos) {
         FileEntry* newEntry=makeEntry(entry,subPath.c_str());
@@ -1307,23 +1308,18 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       ImGui::EndPopup();
     }
     ImGui::SameLine();
-    if (ImGui::Button(ICON_FA_REPEAT "##ClearFilter")) {
-      filter="";
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(ImGui::GetStyle().ItemSpacing.x+ImGui::GetStyle().FramePadding.x*2.0f+ImGui::CalcTextSize(ICON_FA_SEARCH).x));
+    if (ImGui::InputTextWithHint("##Filter","Search",&filter)) {
       filterFiles();
     }
     ImGui::SameLine();
-    if (ImGui::Button("Recurse")) {
+    if (ImGui::Button(ICON_FA_SEARCH "##Recurse")) {
       newDir=path;
       searchQuery=filter;
       for (char& i: searchQuery) {
         if (i>='A' && i<='Z') i+='a'-'A';
       }
       wantSearch=true;
-    }
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-    if (ImGui::InputTextWithHint("##Filter","Search",&filter)) {
-      filterFiles();
     }
 
     if (scheduledSort && (haveFiles || isSearch)) {
