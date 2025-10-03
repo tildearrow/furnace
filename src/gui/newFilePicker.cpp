@@ -280,7 +280,7 @@ void FurnaceFilePicker::readDirectorySub() {
     wchar_t* errorStr=NULL;
     int errorSize=FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS,NULL,GetLastError(),MAKELANGID(LANG_NEUTRAL,SUBLANG_DEFAULT),(wchar_t*)&errorStr,0,NULL);
     if (errorSize==0) {
-      failMessage="Unknown error!";
+      failMessage=_("Unknown error!");
     } else {
       failMessage=utf16To8(errorStr);
       // remove trailing new-line
@@ -360,7 +360,7 @@ void FurnaceFilePicker::readDirectorySub() {
 void FurnaceFilePicker::searchSub(String subPath, int depth) {
   /// refuse to if we're on the drive list
   if (path=="") {
-    failMessage="Select a drive!";
+    failMessage=_("Select a drive!");
     haveFiles=true;
     haveStat=true;
     return;
@@ -381,7 +381,7 @@ void FurnaceFilePicker::searchSub(String subPath, int depth) {
       wchar_t* errorStr=NULL;
       int errorSize=FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS,NULL,GetLastError(),MAKELANGID(LANG_NEUTRAL,SUBLANG_DEFAULT),(wchar_t*)&errorStr,0,NULL);
       if (errorSize==0) {
-        failMessage="Unknown error!";
+        failMessage=_("Unknown error!");
       } else {
         failMessage=utf16To8(errorStr);
         // remove trailing new-line
@@ -616,7 +616,7 @@ void FurnaceFilePicker::updateEntryName() {
   if (chosenEntries.empty()) {
     entryName="";
   } else if (chosenEntries.size()>1) {
-    entryName="<multiple files selected>";
+    entryName=_("<multiple files selected>");
   } else {
     entryName=chosenEntries[0]->name;
   }
@@ -841,7 +841,11 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
       if (haveFiles) {
         if (sortedEntries.empty()) {
           if (failMessage.empty()) {
-            ImGui::Text("This directory is empty!");
+            if (isSearch) {
+              ImGui::TextUnformatted(_("No results"));
+            } else {
+              ImGui::TextUnformatted(_("This directory is empty!"));
+            }
           } else {
 #ifdef _WIN32
             ImGui::Text("%s",failMessage.c_str());
@@ -851,7 +855,7 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
           }
         } else {
           if (failMessage.empty()) {
-            ImGui::Text("No results");
+            ImGui::TextUnformatted(_("No results"));
           } else {
 #ifdef _WIN32
             ImGui::Text("%s",failMessage.c_str());
@@ -862,6 +866,7 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
         }
       } else {
         // don't
+        ImGui::TextUnformatted(_("Loading..."));
       }
 
       ImGui::TableNextColumn();
@@ -882,38 +887,38 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
       ImGui::TableSetupScrollFreeze(0,1);
 
       // header (sort options)
-      const char* nameHeader="Name##SortName";
-      const char* typeHeader="Type##SortType";
-      const char* sizeHeader="Size##SortSize";
-      const char* dateHeader="Date##SortDate";
+      String nameHeader=_("Name")+String("###SortName");
+      String typeHeader=_("Type")+String("###SortType");
+      String sizeHeader=_("Size")+String("###SortSize");
+      String dateHeader=_("Date")+String("###SortDate");
 
       switch (sortMode) {
         case FP_SORT_NAME:
           if (sortInvert[FP_SORT_NAME]) {
-            nameHeader=ICON_FA_CHEVRON_UP "Name##SortName";
+            nameHeader.insert(0,ICON_FA_CHEVRON_UP);
           } else {
-            nameHeader=ICON_FA_CHEVRON_DOWN "Name##SortName";
+            nameHeader.insert(0,ICON_FA_CHEVRON_DOWN);
           }
           break;
         case FP_SORT_EXT:
           if (sortInvert[FP_SORT_EXT]) {
-            typeHeader=ICON_FA_CHEVRON_UP "Type##SortType";
+            typeHeader.insert(0,ICON_FA_CHEVRON_UP);
           } else {
-            typeHeader=ICON_FA_CHEVRON_DOWN "Type##SortType";
+            typeHeader.insert(0,ICON_FA_CHEVRON_DOWN);
           }
           break;
         case FP_SORT_SIZE:
           if (sortInvert[FP_SORT_SIZE]) {
-            sizeHeader=ICON_FA_CHEVRON_UP "Size##SortSize";
+            sizeHeader.insert(0,ICON_FA_CHEVRON_UP);
           } else {
-            sizeHeader=ICON_FA_CHEVRON_DOWN "Size##SortSize";
+            sizeHeader.insert(0,ICON_FA_CHEVRON_DOWN);
           }
           break;
         case FP_SORT_DATE:
           if (sortInvert[FP_SORT_DATE]) {
-            dateHeader=ICON_FA_CHEVRON_UP "Date##SortDate";
+            dateHeader.insert(0,ICON_FA_CHEVRON_UP);
           } else {
-            dateHeader=ICON_FA_CHEVRON_DOWN "Date##SortDate";
+            dateHeader.insert(0,ICON_FA_CHEVRON_DOWN);
           }
           break;
         case FP_SORT_MAX:
@@ -923,7 +928,7 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
 
       ImGui::TableNextRow(ImGuiTableRowFlags_Headers,rowHeight);
       ImGui::TableNextColumn();
-      if (ImGui::Selectable(nameHeader)) {
+      if (ImGui::Selectable(nameHeader.c_str())) {
         if (sortMode==FP_SORT_NAME) {
           sortInvert[sortMode]=!sortInvert[sortMode];
         } else {
@@ -933,7 +938,7 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
       }
       if (displayType) {
         ImGui::TableNextColumn();
-        if (ImGui::Selectable(typeHeader)) {
+        if (ImGui::Selectable(typeHeader.c_str())) {
           if (sortMode==FP_SORT_EXT) {
             sortInvert[sortMode]=!sortInvert[sortMode];
           } else {
@@ -944,7 +949,7 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
       }
       if (displaySize) {
         ImGui::TableNextColumn();
-        if (ImGui::Selectable(sizeHeader)) {
+        if (ImGui::Selectable(sizeHeader.c_str())) {
           if (sortMode==FP_SORT_SIZE) {
             sortInvert[sortMode]=!sortInvert[sortMode];
           } else {
@@ -955,7 +960,7 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
       }
       if (displayDate) {
         ImGui::TableNextColumn();
-        if (ImGui::Selectable(dateHeader)) {
+        if (ImGui::Selectable(dateHeader.c_str())) {
           if (sortMode==FP_SORT_DATE) {
             sortInvert[sortMode]=!sortInvert[sortMode];
           } else {
@@ -1087,28 +1092,32 @@ void FurnaceFilePicker::drawBookmarks(ImVec2& tableSize, String& newDir) {
     ImGui::TableSetupScrollFreeze(0,1);
     ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
     ImGui::TableNextColumn();
-    ImGui::Text("Bookmarks");
+    ImGui::TextUnformatted(_("Bookmarks"));
     ImGui::SameLine();
     float iconSize=ImGui::CalcTextSize(ICON_FA_PLUS).x;
     if (ImGui::Selectable(ICON_FA_PLUS "##AddBookmark",false,0,ImVec2(iconSize,0))) {
-      newBookmarkName="New Bookmark";
+      newBookmarkName=_("New Bookmark");
       newBookmarkPath=path;
     }
     if (ImGui::BeginPopupContextItem("NewBookmark",ImGuiPopupFlags_MouseButtonLeft)) {
-      ImGui::Text("Name");
+      ImGui::TextUnformatted(_("Name:"));
       ImGui::InputText("##NameI",&newBookmarkName);
 
-      ImGui::Text("Path:");
+      ImGui::TextUnformatted(_("Path:"));
       ImGui::InputText("##PathI",&newBookmarkPath);
 
       ImGui::BeginDisabled(newBookmarkName.empty() || newBookmarkPath.empty());
-      if (ImGui::Button("OK")) {
+      if (ImGui::Button(_("OK"))) {
         if (newBookmarkName.empty() || newBookmarkPath.empty()) {
           // no!
         } else {
           newBookmarkPath=normalizePath(newBookmarkPath);
           addBookmark(newBookmarkPath,newBookmarkName);
         }
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(_("Cancel"))) {
         ImGui::CloseCurrentPopup();
       }
       ImGui::EndDisabled();
@@ -1135,7 +1144,7 @@ void FurnaceFilePicker::drawBookmarks(ImVec2& tableSize, String& newDir) {
         newDir=iPath;
       }
       if (ImGui::BeginPopupContextItem("BookmarkOpts")) {
-        if (ImGui::MenuItem("remove")) {
+        if (ImGui::MenuItem(_("remove"))) {
           markedForRemoval=index;
           if (iPath==path) isPathBookmarked=false;
         }
@@ -1194,20 +1203,20 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     }
     if (ImGui::BeginPopupContextItem("CreateDir",ImGuiPopupFlags_MouseButtonLeft)) {
       if (mkdirError.empty()) {
-        ImGui::Text("Directory name:");
+        ImGui::TextUnformatted(_("Directory name:"));
 
         ImGui::InputText("##DirName",&mkdirPath);
 
         ImGui::BeginDisabled(mkdirPath.empty());
-        if (ImGui::Button("OK")) {
+        if (ImGui::Button(_("OK"))) {
           if (mkdirPath.empty()) {
-            mkdirError="Maybe try that again under better circumstances...";
+            mkdirError=_("Maybe try that again under better circumstances...");
           } else {
 #ifdef _WIN32
             if (!isPathAbsolute(mkdirPath)) {
               if (path.empty()) {
                 // error out in the drives view
-                mkdirError="Trying to create a directory in the drives list";
+                mkdirError=_("Trying to create a directory in the drives list");
               } else if (*path.rbegin()=='\\') {
                 mkdirPath=path+mkdirPath;
               } else {
@@ -1222,7 +1231,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
                 wchar_t* errorStr=NULL;
                 int errorSize=FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS,NULL,GetLastError(),MAKELANGID(LANG_NEUTRAL,SUBLANG_DEFAULT),(wchar_t*)&errorStr,0,NULL);
                 if (errorSize==0) {
-                  mkdirError="Unknown error";
+                  mkdirError=_("Unknown error");
                 } else {
                   mkdirError=utf16To8(errorStr);
                   // remove trailing new-line
@@ -1259,12 +1268,12 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
         }
         ImGui::EndDisabled();
         ImGui::SameLine();
-        if (ImGui::Button("Cancel")) {
+        if (ImGui::Button(_("Cancel"))) {
           ImGui::CloseCurrentPopup();
         }
       } else {
-        ImGui::Text("I can't! (%s)\nCheck whether the path is correct and you have access to it.",mkdirError.c_str());
-        if (ImGui::Button("Back")) {
+        ImGui::Text(_("I can't! (%s)\nCheck whether the path is correct and you have access to it."),mkdirError.c_str());
+        if (ImGui::Button(_("Back"))) {
           mkdirError="";
         }
       }
@@ -1321,10 +1330,10 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
 
     if (editingPath) {
       ImGui::SameLine();
-      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(ImGui::GetStyle().ItemSpacing.x+ImGui::GetStyle().FramePadding.x*2.0f+ImGui::CalcTextSize("OK").x));
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(ImGui::GetStyle().ItemSpacing.x+ImGui::GetStyle().FramePadding.x*2.0f+ImGui::CalcTextSize(_("OK")).x));
       ImGui::InputText("##EditablePath",&editablePath);
       ImGui::SameLine();
-      if (ImGui::Button("OK##AcceptPath")) {
+      if (ImGui::Button(_("OK##AcceptPath"))) {
         newDir=editablePath;
       }
     } else {
@@ -1382,26 +1391,26 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     if (ImGui::Button(ICON_FA_COG "##Settings")) {
     }
     if (ImGui::BeginPopupContextItem("FilePickerSettings",ImGuiPopupFlags_MouseButtonLeft)) {
-      ImGui::Checkbox("Show bookmarks",&showBookmarks);
-      if (ImGui::Checkbox("Show hidden files",&showHiddenFiles)) {
+      ImGui::Checkbox(_("Show bookmarks"),&showBookmarks);
+      if (ImGui::Checkbox(_("Show hidden files"),&showHiddenFiles)) {
         scheduledSort=1;
       }
-      ImGui::Checkbox("Single click selects entries",&singleClickSelect);
-      ImGui::Checkbox("Clear search query when changing directory",&clearSearchOnDirChange);
-      if (ImGui::Checkbox("Sort directories first",&sortDirsFirst)) {
+      ImGui::Checkbox(_("Single click selects entries"),&singleClickSelect);
+      ImGui::Checkbox(_("Clear search query when changing directory"),&clearSearchOnDirChange);
+      if (ImGui::Checkbox(_("Sort directories first"),&sortDirsFirst)) {
         scheduledSort=1;
       }
-      ImGui::Text("Columns to display:");
+      ImGui::TextUnformatted(_("Columns to display:"));
       ImGui::Indent();
-      ImGui::Checkbox("Type",&displayType);
-      ImGui::Checkbox("Size",&displaySize);
-      ImGui::Checkbox("Date",&displayDate);
+      ImGui::Checkbox(_("Type"),&displayType);
+      ImGui::Checkbox(_("Size"),&displaySize);
+      ImGui::Checkbox(_("Date"),&displayDate);
       ImGui::Unindent();
       ImGui::EndPopup();
     }
     ImGui::SameLine();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(ImGui::GetStyle().ItemSpacing.x+ImGui::GetStyle().FramePadding.x*2.0f+ImGui::CalcTextSize(ICON_FA_SEARCH).x));
-    if (ImGui::InputTextWithHint("##Filter","Search",&filter)) {
+    if (ImGui::InputTextWithHint("##Filter",_("Search"),&filter)) {
       filterFiles();
     }
     ImGui::SameLine();
@@ -1464,7 +1473,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
 
     // file name input
     ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted("Name: ");
+    ImGui::TextUnformatted(_("Name: "));
     ImGui::SameLine();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x*0.68f);
     if (ImGui::InputText("##EntryName",&entryName)) {
@@ -1487,23 +1496,23 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
 
     // OK/Cancel buttons
     ImGui::BeginDisabled(entryName.empty() && chosenEntries.empty());
-    if (ImGui::Button("OK")) {
+    if (ImGui::Button(_("OK"))) {
       // accept entry
       acknowledged=true;
     }
     ImGui::EndDisabled();
     if (!noClose) {
       ImGui::SameLine();
-      if (ImGui::Button("Cancel")) {
+      if (ImGui::Button(_("Cancel"))) {
         curStatus=FP_STATUS_CLOSED;
         isOpen=false;
       }
     }
     ImGui::SameLine();
     if (!haveFiles) {
-      ImGui::Text("Loading...");
+      ImGui::TextUnformatted(_("Loading..."));
     } else if (!haveStat) {
-      ImGui::Text("Loading... (stat)");
+      ImGui::TextUnformatted(_("Loading..."));
     }
 
     if (acknowledged) {
@@ -1534,7 +1543,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
 
           // if we ought to confirm overwrite, stop and do so
           if (confirmOverwrite) {
-            ImGui::OpenPopup("Warning##ConfirmOverwrite");
+            ImGui::OpenPopup(_("Warning###ConfirmOverwrite"));
             logV("confirm overwrite");
           } else {
             curStatus=FP_STATUS_ACCEPTED;
@@ -1623,7 +1632,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
 
             // return now unless we gotta confirm overwrite
             if (confirmOverwrite && (dirError==ENOTDIR || extCheck)) {
-              ImGui::OpenPopup("Warning##ConfirmOverwrite");
+              ImGui::OpenPopup(_("Warning###ConfirmOverwrite"));
               logV("confirm overwrite");
             } else {
               finalSelection.push_back(dirCheckPath);
@@ -1644,9 +1653,9 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     }
 
     ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),ImGuiCond_Always,ImVec2(0.5,0.5));
-    if (ImGui::BeginPopupModal("Warning##ConfirmOverwrite",NULL,ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoSavedSettings)) {
-      ImGui::Text("The file you selected already exists! Would you like to overwrite it?");
-      if (ImGui::Button("Yes")) {
+    if (ImGui::BeginPopupModal(_("Warning###ConfirmOverwrite"),NULL,ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoSavedSettings)) {
+      ImGui::TextUnformatted(_("The file you selected already exists! Would you like to overwrite it?"));
+      if (ImGui::Button(_("Yes"))) {
         curStatus=FP_STATUS_ACCEPTED;
         if (noClose) {
           for (FileEntry* j: chosenEntries) {
@@ -1660,7 +1669,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
         ImGui::CloseCurrentPopup();
       }
       ImGui::SameLine();
-      if (ImGui::Button("No") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+      if (ImGui::Button(_("No")) || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
         ImGui::CloseCurrentPopup();
       }
       ImGui::EndPopup();
@@ -1711,7 +1720,7 @@ bool FurnaceFilePicker::open(String name, String pa, String hint, int flags, con
   filterOptions=filter;
 
   if (filterOptions.size()<2) {
-    filterOptions.push_back("all files");
+    filterOptions.push_back(_("all files"));
     filterOptions.push_back("*");
   }
   curFilterType=0;
