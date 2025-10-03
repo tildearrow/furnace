@@ -328,7 +328,8 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Watara Supervision", {
       CH(DIV_SYSTEM_SUPERVISION, 1.0f, 0, "")
-    }
+    },
+    "tickRate=50.81300813008130081301"
   );
   CATEGORY_END;
 
