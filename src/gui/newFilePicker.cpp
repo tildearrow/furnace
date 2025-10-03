@@ -1099,6 +1099,7 @@ void FurnaceFilePicker::drawBookmarks(ImVec2& tableSize, String& newDir) {
       newBookmarkName=_("New Bookmark");
       newBookmarkPath=path;
     }
+    ImGui::SetItemTooltip(_("Create bookmark"));
     if (ImGui::BeginPopupContextItem("NewBookmark",ImGuiPopupFlags_MouseButtonLeft)) {
       ImGui::TextUnformatted(_("Name:"));
       ImGui::InputText("##NameI",&newBookmarkName);
@@ -1127,6 +1128,7 @@ void FurnaceFilePicker::drawBookmarks(ImVec2& tableSize, String& newDir) {
     if (ImGui::Selectable(ICON_FA_TIMES "##CloseBookmarks",false,0,ImVec2(iconSize,0))) {
       showBookmarks=false;
     }
+    ImGui::SetItemTooltip(_("Hide bookmarks list"));
 
     int index=-1;
     int markedForRemoval=-1;
@@ -1201,6 +1203,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       mkdirError="";
       mkdirPath="";
     }
+    ImGui::SetItemTooltip(_("Create directory"));
     if (ImGui::BeginPopupContextItem("CreateDir",ImGuiPopupFlags_MouseButtonLeft)) {
       if (mkdirError.empty()) {
         ImGui::TextUnformatted(_("Directory name:"));
@@ -1287,6 +1290,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     if (ImGui::Button(ICON_FA_HOME "##HomeDir")) {
       newDir=homeDir;
     }
+    ImGui::SetItemTooltip(_("Go to home directory"));
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_CHEVRON_UP "##ParentDir")) {
       logV("Parent dir......");
@@ -1311,6 +1315,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       }
 #endif
     }
+    ImGui::SetItemTooltip(_("Go to parent directory"));
 #ifdef _WIN32
     // drives button only on Windows
     ImGui::SameLine();
@@ -1318,12 +1323,14 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       newDir="";
       readDrives=true;
     }
+    ImGui::SetItemTooltip(_("Drives"));
 #endif
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_PENCIL "##EditPath")) {
       editablePath=path;
       editingPath=true;
     }
+    ImGui::SetItemTooltip(_("Edit path"));
 
     ImGui::SameLine();
     ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
@@ -1387,9 +1394,17 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       }
       showBookmarks=true;
     }
+    if (isPathBookmarked && showBookmarks) {
+      ImGui::SetItemTooltip(_("Remove bookmark"));
+    } else if (isPathBookmarked) {
+      ImGui::SetItemTooltip(_("Show bookmarks"));
+    } else {
+      ImGui::SetItemTooltip(_("Bookmark"));
+    }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_COG "##Settings")) {
     }
+    ImGui::SetItemTooltip(_("Settings"));
     if (ImGui::BeginPopupContextItem("FilePickerSettings",ImGuiPopupFlags_MouseButtonLeft)) {
       ImGui::Checkbox(_("Show bookmarks"),&showBookmarks);
       if (ImGui::Checkbox(_("Show hidden files"),&showHiddenFiles)) {
@@ -1418,6 +1433,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       if (ImGui::Button(ICON_FA_TIMES "##RecurseStop")) {
         stopReading=true;
       }
+      ImGui::SetItemTooltip(_("Stop searching"));
     } else {
       ImGui::BeginDisabled(filter.empty());
       if (ImGui::Button(ICON_FA_SEARCH "##Recurse")) {
@@ -1428,6 +1444,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
         }
         wantSearch=true;
       }
+      ImGui::SetItemTooltip(_("Search recursively"));
       ImGui::EndDisabled();
     }
 
