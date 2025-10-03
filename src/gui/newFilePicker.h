@@ -148,6 +148,7 @@ class FurnaceFilePicker {
   bool isPathAbsolute(const String& p);
   void addBookmark(const String& p, String n="");
   FileEntry* makeEntry(void* _entry, const char* prefix=NULL);
+  void completeStat();
 
   void drawFileList(ImVec2& tableSize, bool& acknowledged);
   void drawBookmarks(ImVec2& tableSize, String& newDir);

@@ -52,6 +52,47 @@ static void _searchThread(void* item) {
 }
 
 #ifdef _WIN32
+void FurnaceFilePicker::completeStat() {
+  // no need to.
+}
+#else
+void FurnaceFilePicker::completeStat() {
+  // get file information
+  struct stat st;
+  String filePath;
+  for (FileEntry* i: entries) {
+    if (stopReading) {
+      return;
+    }
+
+    if (path.empty()) {
+      filePath=i->name;
+    } else if (*path.rbegin()=='/') {
+      filePath=path+i->name;
+    } else {
+      filePath=path+'/'+i->name;
+    }
+
+    if (stat(filePath.c_str(),&st)<0) {
+      // fall back to unknown
+      continue;
+    }
+
+    // read file information
+    entryLock.lock();
+    struct tm* retTM=localtime_r(&st.st_mtime,&i->time);
+    if (retTM!=NULL) {
+      i->hasTime=true;
+    }
+
+    i->size=st.st_size;
+    i->hasSize=true;
+    entryLock.unlock();
+  }
+}
+#endif
+
+#ifdef _WIN32
 #else
 FurnaceFilePicker::FileEntry* FurnaceFilePicker::makeEntry(void* _entry, const char* prefix) {
   struct dirent* entry=(struct dirent*)_entry;
@@ -294,37 +335,7 @@ void FurnaceFilePicker::readDirectorySub() {
   haveFiles=true;
 
   /// STAGE 2: retrieve file information
-  struct stat st;
-  String filePath;
-  for (FileEntry* i: entries) {
-    if (stopReading) {
-      return;
-    }
-
-    if (path.empty()) {
-      filePath=i->name;
-    } else if (*path.rbegin()=='/') {
-      filePath=path+i->name;
-    } else {
-      filePath=path+'/'+i->name;
-    }
-
-    if (stat(filePath.c_str(),&st)<0) {
-      // fall back to unknown
-      continue;
-    }
-
-    // read file information
-    entryLock.lock();
-    struct tm* retTM=localtime_r(&st.st_mtime,&i->time);
-    if (retTM!=NULL) {
-      i->hasTime=true;
-    }
-
-    i->size=st.st_size;
-    i->hasSize=true;
-    entryLock.unlock();
-  }
+  completeStat();
   haveStat=true;
 }
 #endif
@@ -357,22 +368,20 @@ void FurnaceFilePicker::searchSub(String subPath, int depth) {
     if (strcmp(entry->d_name,".")==0) continue;
     if (strcmp(entry->d_name,"..")==0) continue;
 
-    if (entry->d_type==DT_DIR) {
-      //if (depth<20) {
-        searchSub(subPath+String("/")+entry->d_name,depth+1);
-      //}
-    } else {
-      String lower=entry->d_name;
-      for (char& i: lower) {
-        if (i>='A' && i<='Z') i+='a'-'A';
-      }
+    String lower=entry->d_name;
+    for (char& i: lower) {
+      if (i>='A' && i<='Z') i+='a'-'A';
+    }
 
-      if (lower.find(searchQuery)!=String::npos) {
-        FileEntry* newEntry=makeEntry(entry,subPath.c_str());
-        entryLock.lock();
-        entries.push_back(newEntry);
-        entryLock.unlock();
-      }
+    if (lower.find(searchQuery)!=String::npos) {
+      FileEntry* newEntry=makeEntry(entry,subPath.c_str());
+      entryLock.lock();
+      entries.push_back(newEntry);
+      entryLock.unlock();
+    }
+
+    if (entry->d_type==DT_DIR) {
+      searchSub(subPath+String("/")+entry->d_name,depth+1);
     }
 
     if (stopReading) {
@@ -383,10 +392,12 @@ void FurnaceFilePicker::searchSub(String subPath, int depth) {
     // ?!
   }
 
+  /// STAGE 2: retrieve file information
   if (depth==0) {
     haveFiles=true;
+
+    completeStat();
     haveStat=true;
-    return;
   }
 }
 #endif
@@ -1312,13 +1323,21 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       filterFiles();
     }
     ImGui::SameLine();
-    if (ImGui::Button(ICON_FA_SEARCH "##Recurse")) {
-      newDir=path;
-      searchQuery=filter;
-      for (char& i: searchQuery) {
-        if (i>='A' && i<='Z') i+='a'-'A';
+    if (isSearch && !haveFiles) {
+      if (ImGui::Button(ICON_FA_TIMES "##RecurseStop")) {
+        stopReading=true;
       }
-      wantSearch=true;
+    } else {
+      ImGui::BeginDisabled(filter.empty());
+      if (ImGui::Button(ICON_FA_SEARCH "##Recurse")) {
+        newDir=path;
+        searchQuery=filter;
+        for (char& i: searchQuery) {
+          if (i>='A' && i<='Z') i+='a'-'A';
+        }
+        wantSearch=true;
+      }
+      ImGui::EndDisabled();
     }
 
     if (scheduledSort) {
@@ -1615,10 +1634,12 @@ bool FurnaceFilePicker::open(String name, String pa, String hint, int flags, con
   }
   curFilterType=0;
 
-  if (isSearch) this->filter="";
-  isSearch=false;
-  readDirectory(pa);
-  windowName=name;
+  if (!isSearch || windowName!=name) {
+    if (isSearch) this->filter="";
+    isSearch=false;
+    readDirectory(pa);
+    windowName=name;
+  }
   hint=entryNameHint;
   isOpen=true;
   return true;
