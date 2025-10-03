@@ -93,6 +93,57 @@ void FurnaceFilePicker::completeStat() {
 #endif
 
 #ifdef _WIN32
+FurnaceFilePicker::FileEntry* FurnaceFilePicker::makeEntry(void* _entry, const char* prefix) {
+  WIN32_FIND_DATAW* entry=(WIN32_FIND_DATAW*)_entry;
+  SYSTEMTIME tempTM;
+
+  FileEntry* newEntry=new FileEntry;
+
+  if (prefix!=NULL) {
+    if (prefix[0]=='\\') {
+      newEntry->name=String(&prefix[1])+"\\"+utf16To8(entry->cFileName);
+    } else {
+      newEntry->name=utf16To8(entry->cFileName);
+    }
+  } else {
+    newEntry->name=utf16To8(entry->cFileName);
+  }
+  newEntry->nameLower=newEntry->name;
+  for (char& i: newEntry->nameLower) {
+    if (i>='A' && i<='Z') i+='a'-'A';
+  }
+
+  newEntry->isDir=entry->dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY;
+  newEntry->isHidden=(entry->dwFileAttributes&FILE_ATTRIBUTE_HIDDEN) || (entry->dwFileAttributes&FILE_ATTRIBUTE_SYSTEM);
+  newEntry->type=newEntry->isDir?FP_TYPE_DIR:FP_TYPE_NORMAL;
+
+  if (!newEntry->isDir) {
+    size_t extPos=newEntry->name.rfind('.');
+    if (extPos!=String::npos) {
+      newEntry->ext=newEntry->name.substr(extPos);
+      for (char& i: newEntry->ext) {
+        if (i>='A' && i<='Z') i+='a'-'A';
+      }
+    }
+  }
+
+  newEntry->size=((uint64_t)entry->nFileSizeHigh<<32)|(uint64_t)entry->nFileSizeLow;
+  newEntry->hasSize=true;
+
+  if (FileTimeToSystemTime(&entry->ftLastWriteTime,&tempTM)) {
+    // we only use these
+    newEntry->time.tm_year=tempTM.wYear-1900;
+    newEntry->time.tm_mon=tempTM.wMonth-1;
+    newEntry->time.tm_mday=tempTM.wDay;
+    newEntry->time.tm_hour=tempTM.wHour;
+    newEntry->time.tm_min=tempTM.wMinute;
+    newEntry->time.tm_sec=tempTM.wSecond;
+
+    newEntry->hasTime=true;
+  }
+
+  return newEntry;
+}
 #else
 FurnaceFilePicker::FileEntry* FurnaceFilePicker::makeEntry(void* _entry, const char* prefix) {
   struct dirent* entry=(struct dirent*)_entry;
@@ -224,7 +275,6 @@ void FurnaceFilePicker::readDirectorySub() {
   WString pathW=utf8To16(path.c_str());
   pathW+=L"\\*";
   WIN32_FIND_DATAW entry;
-  SYSTEMTIME tempTM;
   HANDLE dir=FindFirstFileW(pathW.c_str(),&entry);
   if (dir==INVALID_HANDLE_VALUE) {
     wchar_t* errorStr=NULL;
@@ -247,42 +297,7 @@ void FurnaceFilePicker::readDirectorySub() {
     if (wcscmp(entry.cFileName,L".")==0) continue;
     if (wcscmp(entry.cFileName,L"..")==0) continue;
 
-    FileEntry* newEntry=new FileEntry;
-
-    newEntry->name=utf16To8(entry.cFileName);
-    newEntry->nameLower=newEntry->name;
-    for (char& i: newEntry->nameLower) {
-      if (i>='A' && i<='Z') i+='a'-'A';
-    }
-
-    newEntry->isDir=entry.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY;
-    newEntry->isHidden=(entry.dwFileAttributes&FILE_ATTRIBUTE_HIDDEN) || (entry.dwFileAttributes&FILE_ATTRIBUTE_SYSTEM);
-    newEntry->type=newEntry->isDir?FP_TYPE_DIR:FP_TYPE_NORMAL;
-
-    if (!newEntry->isDir) {
-      size_t extPos=newEntry->name.rfind('.');
-      if (extPos!=String::npos) {
-        newEntry->ext=newEntry->name.substr(extPos);
-        for (char& i: newEntry->ext) {
-          if (i>='A' && i<='Z') i+='a'-'A';
-        }
-      }
-    }
-
-    newEntry->size=((uint64_t)entry.nFileSizeHigh<<32)|(uint64_t)entry.nFileSizeLow;
-    newEntry->hasSize=true;
-
-    if (FileTimeToSystemTime(&entry.ftLastWriteTime,&tempTM)) {
-      // we only use these
-      newEntry->time.tm_year=tempTM.wYear-1900;
-      newEntry->time.tm_mon=tempTM.wMonth-1;
-      newEntry->time.tm_mday=tempTM.wDay;
-      newEntry->time.tm_hour=tempTM.wHour;
-      newEntry->time.tm_min=tempTM.wMinute;
-      newEntry->time.tm_sec=tempTM.wSecond;
-
-      newEntry->hasTime=true;
-    }
+    FileEntry* newEntry=makeEntry(&entry,NULL);
 
     entryLock.lock();
     entries.push_back(newEntry);
@@ -343,6 +358,73 @@ void FurnaceFilePicker::readDirectorySub() {
 #ifdef _WIN32
 // Windows implementation
 void FurnaceFilePicker::searchSub(String subPath, int depth) {
+  /// refuse to if we're on the drive list
+  if (path=="") {
+    failMessage="Select a drive!";
+    haveFiles=true;
+    haveStat=true;
+    return;
+  }
+
+  WString searchQueryW=utf8To16(searchQuery);
+
+  if (depth>15) logW("searchSub(%s,%d)",subPath,depth);
+
+  /// STAGE 1: get file list
+  String actualPath=path+subPath;
+  WString pathW=utf8To16(actualPath.c_str());
+  pathW+=L"\\*";
+  WIN32_FIND_DATAW entry;
+  HANDLE dir=FindFirstFileW(pathW.c_str(),&entry);
+  if (dir==INVALID_HANDLE_VALUE) {
+    if (depth==0) {
+      wchar_t* errorStr=NULL;
+      int errorSize=FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS,NULL,GetLastError(),MAKELANGID(LANG_NEUTRAL,SUBLANG_DEFAULT),(wchar_t*)&errorStr,0,NULL);
+      if (errorSize==0) {
+        failMessage="Unknown error!";
+      } else {
+        failMessage=utf16To8(errorStr);
+        // remove trailing new-line
+        if (failMessage.size()>=2) failMessage.resize(failMessage.size()-2);
+      }
+      LocalFree(errorStr);
+
+      haveFiles=true;
+      haveStat=true;
+    }
+    return;
+  }
+
+  do {
+    if (stopReading) {
+      break;
+    }
+
+    if (wcscmp(entry.cFileName,L".")==0) continue;
+    if (wcscmp(entry.cFileName,L"..")==0) continue;
+
+    WString lower=entry.cFileName;
+    for (auto& i: lower) {
+      if (i>='A' && i<='Z') i+='a'-'A';
+    }
+
+    if (lower.find(searchQueryW)!=WString::npos) {
+      FileEntry* newEntry=makeEntry(&entry,NULL);
+      entryLock.lock();
+      entries.push_back(newEntry);
+      entryLock.unlock();
+    }
+
+    if (entry.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY) {
+      searchSub(subPath+String("\\")+utf16To8(entry.cFileName),depth+1);
+    }
+  } while (FindNextFileW(dir,&entry)!=0);
+  FindClose(dir);
+
+  if (depth==0) {
+    haveFiles=true;
+    haveStat=true;
+  }
 }
 #else
 // Linux/Unix implementation
@@ -363,6 +445,10 @@ void FurnaceFilePicker::searchSub(String subPath, int depth) {
 
   struct dirent* entry=NULL;
   while (true) {
+    if (stopReading) {
+      break;
+    }
+
     entry=readdir(dir);
     if (entry==NULL) break;
     if (strcmp(entry->d_name,".")==0) continue;
@@ -382,10 +468,6 @@ void FurnaceFilePicker::searchSub(String subPath, int depth) {
 
     if (entry->d_type==DT_DIR) {
       searchSub(subPath+String("/")+entry->d_name,depth+1);
-    }
-
-    if (stopReading) {
-      break;
     }
   }
   if (closedir(dir)!=0) {
