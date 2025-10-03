@@ -485,7 +485,7 @@ void DivPlatformSAA1099::setCoreQuality(unsigned char q) {
       coreQuality=8;
       break;
     case 5:
-      coreQuality=1;
+      coreQuality=4;
       break;
     default:
       coreQuality=32;
