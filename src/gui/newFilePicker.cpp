@@ -1141,7 +1141,7 @@ void FurnaceFilePicker::drawBookmarks(ImVec2& tableSize, String& newDir) {
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      ImGui::PushID(index);
+      ImGui::PushID(200000+index);
       if (ImGui::Selectable(iName.c_str(),iPath==path)) {
         newDir=iPath;
       }
@@ -1360,7 +1360,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
         pathAsOfNow+=i;
         if (i==DIR_SEPARATOR) {
           // create button
-          ImGui::PushID(pathLevel);
+          ImGui::PushID(100000+pathLevel);
           ImGui::SameLine();
           if (ImGui::Button(nextButton.c_str())) {
             newDir=pathAsOfNow;
