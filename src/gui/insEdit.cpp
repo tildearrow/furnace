@@ -3510,6 +3510,8 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
         }
       }
       ImGui::EndDisabled();
+    } else {
+      ins->amiga.useWave=false;
     }
     // Note map
     ImGui::BeginDisabled(ins->amiga.useWave);
