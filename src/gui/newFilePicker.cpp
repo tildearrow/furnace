@@ -878,7 +878,7 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
     if (displayType) columns++;
     if (displaySize) columns++;
     if (displayDate) columns++;
-    if (ImGui::BeginTable("FileList",columns,ImGuiTableFlags_BordersOuter|ImGuiTableFlags_ScrollY|ImGuiTableFlags_RowBg,tableSize)) {
+    if (ImGui::BeginTable("FileList",columns,ImGuiTableFlags_BordersOuter|ImGuiTableFlags_NoBordersInBody|ImGuiTableFlags_Resizable|ImGuiTableFlags_ScrollY|ImGuiTableFlags_RowBg,tableSize)) {
       float rowHeight=ImGui::GetTextLineHeight()+ImGui::GetStyle().CellPadding.y*2.0f;
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
       if (displayType) ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize(" .eeee").x);
