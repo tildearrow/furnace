@@ -191,9 +191,8 @@ bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, S
     }
 #endif
 
-    // TODO: clickCallback
     newFilePicker->setHomeDir(getHomeDir());
-    newFilePicker->open(header+"###FileDialog",path,hint,FP_FLAGS_MODAL|(allowMultiple?FP_FLAGS_MULTI_SELECT:0),filter);
+    newFilePicker->open(header+"###FileDialog",path,hint,FP_FLAGS_MODAL|(allowMultiple?FP_FLAGS_MULTI_SELECT:0),filter,clickCallback);
   }
   opened=true;
   return true;

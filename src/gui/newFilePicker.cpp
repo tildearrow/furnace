@@ -1029,6 +1029,21 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
                   acknowledged=true;
                 }
               }
+
+              // trigger callback if set
+              if (selCallback!=NULL) {
+                String callbackPath;
+                if (path.empty()) {
+                  callbackPath=i->name;
+                } else {
+                  if (*path.rbegin()==DIR_SEPARATOR) {
+                    callbackPath=path+i->name;
+                  } else {
+                    callbackPath=path+DIR_SEPARATOR+i->name;
+                  }
+                }
+                selCallback(callbackPath.c_str());
+              }
             }
           }
           ImGui::PopID();
@@ -1720,7 +1735,7 @@ bool FurnaceFilePicker::isOpened() {
   return isOpen;
 }
 
-bool FurnaceFilePicker::open(String name, String pa, String hint, int flags, const std::vector<String>& filter) {
+bool FurnaceFilePicker::open(String name, String pa, String hint, int flags, const std::vector<String>& filter, FilePickerSelectCallback selectCallback) {
   if (isOpen) return false;
   if (filter.size()&1) {
     logE("invalid filter data! it should be an even-sized vector with even elements containing names and odd ones being the filters.");
@@ -1741,6 +1756,8 @@ bool FurnaceFilePicker::open(String name, String pa, String hint, int flags, con
     filterOptions.push_back("*");
   }
   curFilterType=0;
+
+  selectCallback=selCallback;
 
   if (!isSearch || windowName!=name) {
     if (isSearch) this->filter="";
@@ -1846,6 +1863,7 @@ FurnaceFilePicker::FurnaceFilePicker():
   curFilterType(0),
   sortMode(FP_SORT_NAME),
   curStatus(FP_STATUS_WAITING),
+  selCallback(NULL),
   editingPath(false),
   showBookmarks(true),
   showHiddenFiles(true),

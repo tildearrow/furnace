@@ -23,6 +23,7 @@
 #include "../ta-utils.h"
 #include "../engine/config.h"
 #include <stdint.h>
+#include <functional>
 #include <thread>
 #include "imgui.h"
 
@@ -60,6 +61,8 @@ enum FilePickerFlags {
   // DO NOT USE with FP_FLAGS_MODAL!
   FP_FLAGS_EMBEDDABLE=32
 };
+
+typedef std::function<void(const char*)> FilePickerSelectCallback;
 
 class FurnaceFilePicker {
   enum SortModes {
@@ -115,6 +118,7 @@ class FurnaceFilePicker {
   size_t curFilterType;
   SortModes sortMode;
   FilePickerStatus curStatus;
+  FilePickerSelectCallback selCallback;
 
   std::vector<FileTypeStyle> fileTypeRegistry;
   FileTypeStyle defaultTypeStyle[FP_TYPE_MAX];
@@ -166,7 +170,7 @@ class FurnaceFilePicker {
     bool draw(ImGuiWindowFlags winFlags=0);
     bool isOpened();
     void close();
-    bool open(String name, String path, String hint, int flags, const std::vector<String>& filter);
+    bool open(String name, String path, String hint, int flags, const std::vector<String>& filter, FilePickerSelectCallback selectCallback=NULL);
     void loadSettings(DivConfig& conf);
     void saveSettings(DivConfig& conf);
     void setTypeStyle(FileType type, ImVec4 color, String icon);
