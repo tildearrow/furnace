@@ -649,6 +649,7 @@ class DivEngine {
   void exchangeWave(int one, int two);
   void exchangeSample(int one, int two);
 
+  void copyChannel(int src, int dest);
   void swapChannels(int src, int dest);
   void stompChannel(int ch);
 
@@ -748,6 +749,8 @@ class DivEngine {
     void notifyInsChange(int ins);
     // notify wavetable change
     void notifyWaveChange(int wave);
+    // notify sample change
+    void notifySampleChange(int sample);
 
     // dispatch a command
     int dispatchCmd(DivCommand c);
@@ -1259,6 +1262,9 @@ class DivEngine {
     // -1: render all samples
     // >=0: render specific sample
     void renderSamplesP(int whichSample=-1);
+
+    // public copy channel
+    void copyChannelP(int src, int dest);
 
     // public swap channels
     void swapChannelsP(int src, int dest);

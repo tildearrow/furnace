@@ -293,10 +293,11 @@ void FurnaceGUI::drawSampleEdit() {
                 String alignHint=fmt::sprintf(_("NES: loop start must be a multiple of 512 (try with %d)"),tryWith);
                 SAMPLE_WARN(warnLoopStart,alignHint);
               }
-              if ((sample->loopEnd>0) && ((sample->loopEnd-8)&127)) {
+              if ((sample->loopEnd-8)&127) {
                 int tryWith=(sample->loopEnd-8)&(~127);
                 if (tryWith>(int)sample->samples) tryWith-=128;
                 tryWith+=8; // +1 bc of how sample length is treated: https://www.nesdev.org/wiki/APU_DMC
+                if (tryWith<8) tryWith=8;
                 String alignHint=fmt::sprintf(_("NES: loop end must be a multiple of 128 + 8 (try with %d)"),tryWith);
                 SAMPLE_WARN(warnLoopEnd,alignHint);
               }
@@ -655,6 +656,7 @@ void FurnaceGUI::drawSampleEdit() {
             sample->loopEnd=sample->samples;*/
           }
           updateSampleTex=true;
+          notifySampleChange=true;
           REFRESH_SAMPLE
         }
         popWarningColor();
@@ -687,6 +689,7 @@ void FurnaceGUI::drawSampleEdit() {
                   e->renderSamples(curSample);
                 });
                 updateSampleTex=true;
+                notifySampleChange=true;
                 MARK_MODIFIED;
               }
             }
@@ -707,6 +710,7 @@ void FurnaceGUI::drawSampleEdit() {
               sample->brrEmphasis=be;
               e->renderSamplesP(curSample);
               updateSampleTex=true;
+              notifySampleChange=true;
               MARK_MODIFIED;
             }
             if (ImGui::IsItemHovered()) {
@@ -724,6 +728,7 @@ void FurnaceGUI::drawSampleEdit() {
               sample->brrNoFilter=bf;
               e->renderSamplesP(curSample);
               updateSampleTex=true;
+              notifySampleChange=true;
               MARK_MODIFIED;
             }
             if (ImGui::IsItemHovered()) {
@@ -737,6 +742,7 @@ void FurnaceGUI::drawSampleEdit() {
               sample->dither=di;
               e->renderSamplesP(curSample);
               updateSampleTex=true;
+              notifySampleChange=true;
               MARK_MODIFIED;
             }
             if (ImGui::IsItemHovered()) {
@@ -869,6 +875,7 @@ void FurnaceGUI::drawSampleEdit() {
                 sample->loopMode=(DivSampleLoopMode)i;
                 e->renderSamplesP(curSample);
                 updateSampleTex=true;
+                notifySampleChange=true;
                 MARK_MODIFIED;
               }
             }
@@ -892,6 +899,7 @@ void FurnaceGUI::drawSampleEdit() {
               sample->loopStart=sample->loopEnd;
             }
             updateSampleTex=true;
+            notifySampleChange=true;
             REFRESH_SAMPLE
           }
           if (ImGui::IsItemActive()) {
@@ -933,6 +941,7 @@ void FurnaceGUI::drawSampleEdit() {
               sample->loopEnd=sample->samples;
             }
             updateSampleTex=true;
+            notifySampleChange=true;
             REFRESH_SAMPLE
           }
           if (ImGui::IsItemActive()) {
@@ -1107,6 +1116,7 @@ void FurnaceGUI::drawSampleEdit() {
             e->renderSamples(curSample);
           });
           updateSampleTex=true;
+          notifySampleChange=true;
           sampleSelStart=-1;
           sampleSelEnd=-1;
           MARK_MODIFIED;
@@ -1171,6 +1181,7 @@ void FurnaceGUI::drawSampleEdit() {
             e->renderSamples(curSample);
           });
           updateSampleTex=true;
+          notifySampleChange=true;
           sampleSelStart=-1;
           sampleSelEnd=-1;
           MARK_MODIFIED;
@@ -1238,6 +1249,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
 
             updateSampleTex=true;
+            notifySampleChange=true;
 
             e->renderSamples(curSample);
           });
@@ -1291,6 +1303,7 @@ void FurnaceGUI::drawSampleEdit() {
             e->renderSamples(curSample);
           });
           updateSampleTex=true;
+          notifySampleChange=true;
           sampleSelStart=pos;
           sampleSelEnd=pos+silenceSize;
           MARK_MODIFIED;
@@ -1466,6 +1479,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
 
             updateSampleTex=true;
+            notifySampleChange=true;
 
             e->renderSamples(curSample);
           });
@@ -1545,6 +1559,7 @@ void FurnaceGUI::drawSampleEdit() {
                 }
               }
               updateSampleTex=true;
+              notifySampleChange=true;
 
               e->renderSamples(curSample);
             });
@@ -2507,6 +2522,7 @@ void FurnaceGUI::doUndoSample() {
     if (sample->undo()==2) {
       e->renderSamples(curSample);
       updateSampleTex=true;
+      notifySampleChange=true;
     }
   });
 }
@@ -2519,6 +2535,7 @@ void FurnaceGUI::doRedoSample() {
     if (sample->redo()==2) {
       e->renderSamples(curSample);
       updateSampleTex=true;
+      notifySampleChange=true;
     }
   });
 }

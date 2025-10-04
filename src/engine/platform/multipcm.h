@@ -120,6 +120,7 @@ class DivPlatformMultiPCM: public DivDispatch {
     void toggleRegisterDump(bool enable);
     void setFlags(const DivConfig& flags);
     void notifyInsChange(int ins);
+    void notifySampleChange(int sample);
     void notifyInsAddition(int sysID);
     void notifyInsDeletion(void* ins);
     int getPortaFloor(int ch);

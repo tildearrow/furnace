@@ -1161,8 +1161,9 @@ void FurnaceGUI::drawSettings() {
           settings.newSongBehavior=1;
           settingsChanged=true;
         }
-        if (ImGui::InputText(_("Default author name"), &settings.defaultAuthorName)) settingsChanged=true;
         ImGui::Unindent();
+
+        if (ImGui::InputText(_("Default author name"), &settings.defaultAuthorName)) settingsChanged=true;
 
         // SUBSECTION START-UP
         CONFIG_SUBSECTION(_("Start-up"));
@@ -1228,6 +1229,14 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::Checkbox(_("Use OPL3 instead of OPL2 for S3M import"),&s3mOPL3B)) {
           settings.s3mOPL3=s3mOPL3B;
           settingsChanged=true;
+        }
+        bool sampleImportInstDetuneB=settings.sampleImportInstDetune;
+        if (ImGui::Checkbox(_("Load sample fine tuning when importing a sample"), &sampleImportInstDetuneB)) {
+          settings.sampleImportInstDetune=sampleImportInstDetuneB;
+          settingsChanged=true;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("this may result in glitches with some samples."));
         }
 
 #ifdef ANDROID
@@ -3843,7 +3852,7 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
-        // SUBSECTION SONG COMMENTS
+        // SUBSECTION CHIP MANAGER
         CONFIG_SUBSECTION(_("Chip Manager"));
         bool rackShowLEDsB=settings.rackShowLEDs;
         if (ImGui::Checkbox(_("Show channel indicators"), &rackShowLEDsB)) {
@@ -4880,6 +4889,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.vibrationLength=conf.getInt("vibrationLength",20);
 
     settings.s3mOPL3=conf.getInt("s3mOPL3",1);
+    settings.sampleImportInstDetune=conf.getInt("sampleImportInstDetune",0);
 
     settings.backupEnable=conf.getInt("backupEnable",1);
     settings.backupInterval=conf.getInt("backupInterval",30);
@@ -5395,6 +5405,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.autoFillSave,0,1);
   clampSetting(settings.autoMacroStepSize,0,2);
   clampSetting(settings.s3mOPL3,0,1);
+  clampSetting(settings.sampleImportInstDetune,0,1);
   clampSetting(settings.backgroundPlay,0,1);
   clampSetting(settings.noMaximizeWorkaround,0,1);
 
@@ -5477,6 +5488,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("vibrationLength",settings.vibrationLength);
 
     conf.set("s3mOPL3",settings.s3mOPL3);
+    conf.set("sampleImportInstDetune",settings.sampleImportInstDetune);
 
     conf.set("backupEnable",settings.backupEnable);
     conf.set("backupInterval",settings.backupInterval);

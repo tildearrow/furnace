@@ -50,7 +50,7 @@ void FurnaceGUI::drawChannels() {
       ImGui::TableNextColumn();
       ImGui::Text(_("Osc"));
       ImGui::TableNextColumn();
-      ImGui::Text(_("Swap"));
+      ImGui::Text("%s", "");
       ImGui::TableNextColumn();
       ImGui::Text(_("Name"));
       for (int i=0; i<e->getTotalChannelCount(); i++) {
@@ -79,14 +79,17 @@ void FurnaceGUI::drawChannels() {
           ImGui::Button(ICON_FA_ARROWS "##ChanDrag");
           ImGui::EndDragDropSource();
         } else if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("%s #%d\n(drag to swap channels)"),e->getSystemName(e->sysOfChan[i]),e->dispatchChanOfChan[i]);
+          ImGui::SetTooltip(_("%s #%d\n(drag to swap channels)\n(shift+drag to copy channel contents)"),e->getSystemName(e->sysOfChan[i]),e->dispatchChanOfChan[i]);
         }
         if (ImGui::BeginDragDropTarget()) {
           const ImGuiPayload* dragItem=ImGui::AcceptDragDropPayload("FUR_CHAN");
           if (dragItem!=NULL) {
             if (dragItem->IsDataType("FUR_CHAN")) {
               if (chanToMove!=i && chanToMove>=0) {
-                e->swapChannelsP(chanToMove,i);
+                if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
+                  e->copyChannelP(chanToMove,i);
+                else
+                  e->swapChannelsP(chanToMove,i);
                 MARK_MODIFIED;
               }
               chanToMove=-1;

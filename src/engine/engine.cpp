@@ -283,6 +283,14 @@ void DivEngine::notifyWaveChange(int wave) {
   BUSY_END;
 }
 
+void DivEngine::notifySampleChange(int sample) {
+  BUSY_BEGIN;
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].dispatch->notifySampleChange(sample);
+  }
+  BUSY_END;
+}
+
 int DivEngine::loadSampleROM(String path, ssize_t expectedSize, unsigned char*& ret) {
   ret=NULL;
   if (path.empty()) {
@@ -595,10 +603,41 @@ void DivEngine::createNewFromDefaults() {
   BUSY_END;
 }
 
+void DivEngine::copyChannel(int src, int dest) {
+  logV("copying channel %d to %d",src,dest);
+  if (src==dest) {
+    logV("not copying because it's the same channel!");
+    return;
+  }
+
+  for (int i=0; i<DIV_MAX_PATTERNS; i++) {
+    curOrders->ord[dest][i]=curOrders->ord[src][i];
+
+    DivPattern* srcPat=curPat[src].data[i];
+    DivPattern* destPat=curPat[dest].data[i];
+    if (srcPat==NULL) {
+      if (destPat!=NULL) {
+        delete destPat;
+        curPat[dest].data[i]=NULL;
+      }
+    } else {
+      curPat[src].data[i]->copyOn(curPat[dest].getPattern(i, true));
+    }
+  }
+
+  curPat[dest].effectCols=curPat[src].effectCols;
+
+  curSubSong->chanName[dest]=curSubSong->chanName[src];
+  curSubSong->chanShortName[dest]=curSubSong->chanShortName[src];
+  curSubSong->chanShow[dest]=curSubSong->chanShow[src];
+  curSubSong->chanShowChanOsc[dest]=curSubSong->chanShowChanOsc[src];
+  curSubSong->chanCollapse[dest]=curSubSong->chanCollapse[src];
+}
+
 void DivEngine::swapChannels(int src, int dest) {
   logV("swapping channel %d with %d",src,dest);
   if (src==dest) {
-    logV("not swapping channels because it's the same channel!",src,dest);
+    logV("not swapping channels because it's the same channel!");
     return;
   }
 
@@ -736,6 +775,16 @@ void DivEngine::checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries) {
   }
 
   delete[] inAssetDir;
+}
+
+void DivEngine::copyChannelP(int src, int dest) {
+  if (src<0 || src>=chans) return;
+  if (dest<0 || dest>=chans) return;
+  BUSY_BEGIN;
+  saveLock.lock();
+  copyChannel(src,dest);
+  saveLock.unlock();
+  BUSY_END;
 }
 
 void DivEngine::swapChannelsP(int src, int dest) {
