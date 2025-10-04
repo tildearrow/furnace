@@ -1445,6 +1445,14 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       ImGui::EndPopup();
     }
     ImGui::SameLine();
+    if (ImGui::Button(ICON_FA_REPEAT "##ClearFilter")) {
+      if (isSearch) {
+        newDir=path;
+      }
+      filter="";
+    }
+    ImGui::SetItemTooltip(_("Clear search query"));
+    ImGui::SameLine();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(ImGui::GetStyle().ItemSpacing.x+ImGui::GetStyle().FramePadding.x*2.0f+ImGui::CalcTextSize(ICON_FA_SEARCH).x));
     if (ImGui::InputTextWithHint("##Filter",_("Search"),&filter)) {
       filterFiles();
