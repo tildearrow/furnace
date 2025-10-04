@@ -409,7 +409,7 @@ void FurnaceFilePicker::searchSub(String subPath, int depth) {
     }
 
     if (lower.find(searchQueryW)!=WString::npos) {
-      FileEntry* newEntry=makeEntry(&entry,NULL);
+      FileEntry* newEntry=makeEntry(&entry,subPath.c_str());
       entryLock.lock();
       entries.push_back(newEntry);
       entryLock.unlock();
@@ -1634,6 +1634,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
 #ifdef _WIN32
           WString dirCheckPathW=utf8To16(dirCheckPath);
           isDir=PathIsDirectoryW(dirCheckPathW.c_str());
+          int dirError=0;
 #else
           // again, silly but works.
           DIR* checkDir=opendir(dirCheckPath.c_str());
