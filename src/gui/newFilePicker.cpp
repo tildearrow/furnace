@@ -1354,6 +1354,9 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       ImGui::SameLine();
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(ImGui::GetStyle().ItemSpacing.x+ImGui::GetStyle().FramePadding.x*2.0f+ImGui::CalcTextSize(_("OK")).x));
       ImGui::InputText("##EditablePath",&editablePath);
+      if ((ImGui::IsKeyDown(ImGuiKey_Enter) || ImGui::IsKeyReleased(ImGuiKey_Enter)) && ImGui::IsItemDeactivatedAfterEdit()) {
+        newDir=editablePath;
+      }
       ImGui::SameLine();
       if (ImGui::Button(_("OK##AcceptPath"))) {
         newDir=editablePath;
@@ -1466,12 +1469,21 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       ImGui::EndDisabled();
     }
 
-    if (scheduledSort) {
-      if (haveStat) {
-        scheduledSort=0;
+    if (!haveFiles || !haveStat) {
+      ImGui::GetIO().IsSomethingHappening=true;
+    }
+
+    if (haveStat && scheduledSort>1) scheduledSort=1;
+    if (scheduledSort>0) {
+      if (--scheduledSort==0) {
+        if (haveStat) {
+          scheduledSort=0;
+        } else {
+          scheduledSort=20;
+        }
+        sortFiles();
+        filterFiles();
       }
-      sortFiles();
-      filterFiles();
     }
 
     ImVec2 tableSize=ImGui::GetContentRegionAvail();
@@ -1516,6 +1528,11 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
         j->isSelected=false;
       }
       chosenEntries.clear();
+    }
+    if ((ImGui::IsKeyDown(ImGuiKey_Enter) || ImGui::IsKeyReleased(ImGuiKey_Enter)) && ImGui::IsItemDeactivatedAfterEdit()) {
+      if (!entryName.empty()) {
+        acknowledged=true;
+      }
     }
     ImGui::SameLine();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
