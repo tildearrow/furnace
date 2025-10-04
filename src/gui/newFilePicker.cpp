@@ -1354,7 +1354,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       ImGui::SameLine();
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(ImGui::GetStyle().ItemSpacing.x+ImGui::GetStyle().FramePadding.x*2.0f+ImGui::CalcTextSize(_("OK")).x));
       ImGui::InputText("##EditablePath",&editablePath);
-      if ((ImGui::IsKeyDown(ImGuiKey_Enter) || ImGui::IsKeyReleased(ImGuiKey_Enter)) && ImGui::IsItemDeactivatedAfterEdit()) {
+      if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyReleased(ImGuiKey_Enter)) && ImGui::IsItemDeactivatedAfterEdit()) {
         newDir=editablePath;
       }
       ImGui::SameLine();
@@ -1449,6 +1449,12 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     if (ImGui::InputTextWithHint("##Filter",_("Search"),&filter)) {
       filterFiles();
     }
+    if ((ImGui::IsKeyDown(ImGuiKey_Enter) || ImGui::IsKeyReleased(ImGuiKey_Enter)) && ImGui::IsItemDeactivated()) {
+      newDir=path;
+      if (!filter.empty()) {
+        wantSearch=true;
+      }
+    }
     ImGui::SameLine();
     if (isSearch && !haveFiles) {
       if (ImGui::Button(ICON_FA_TIMES "##RecurseStop")) {
@@ -1459,10 +1465,6 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       ImGui::BeginDisabled(filter.empty());
       if (ImGui::Button(ICON_FA_SEARCH "##Recurse")) {
         newDir=path;
-        searchQuery=filter;
-        for (char& i: searchQuery) {
-          if (i>='A' && i<='Z') i+='a'-'A';
-        }
         wantSearch=true;
       }
       ImGui::SetItemTooltip(_("Search recursively"));
@@ -1746,6 +1748,12 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     // change directory
     if (clearSearchOnDirChange) filter="";
     isSearch=wantSearch;
+    if (wantSearch) {
+      searchQuery=filter;
+      for (char& i: searchQuery) {
+        if (i>='A' && i<='Z') i+='a'-'A';
+      }
+    }
     readDirectory(newDir);
   }
   return (curStatus!=FP_STATUS_WAITING);
@@ -1787,6 +1795,8 @@ bool FurnaceFilePicker::open(String name, String pa, String hint, int flags, con
   }
   hint=entryNameHint;
   isOpen=true;
+
+  //ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NavEnableKeyboard;
   return true;
 }
 
