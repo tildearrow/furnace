@@ -6553,6 +6553,14 @@ bool FurnaceGUI::loop() {
               MARK_MODIFIED;
               ImGui::CloseCurrentPopup();
             }
+            if (ImGui::Button(_("Remove unused patterns"))) {
+              stop();
+              e->lockEngine([this]() {
+                e->curSubSong->removeUnusedPatterns();
+              });
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }
             if (ImGui::Button(_("Remove unused instruments"))) {
               stop();
               e->delUnusedIns();

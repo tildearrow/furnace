@@ -278,6 +278,24 @@ void DivSubSong::clearData() {
   ordersLen=1;
 }
 
+void DivSubSong::removeUnusedPatterns() {
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
+    bool used[DIV_MAX_PATTERNS];
+    memset(used,0,DIV_MAX_PATTERNS*sizeof(bool));
+
+    for (int j=0; j<ordersLen; j++) {
+      used[orders.ord[i][j]]=true;
+    }
+
+    for (int j=0; j<DIV_MAX_PATTERNS; j++) {
+      if (!used[j] && pat[i].data[j]!=NULL) {
+        delete pat[i].data[j];
+        pat[i].data[j]=NULL;
+      }
+    }
+  }
+}
+
 void DivSubSong::optimizePatterns() {
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     logD("optimizing channel %d...",i);
