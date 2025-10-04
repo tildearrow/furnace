@@ -141,6 +141,7 @@ class FurnaceFilePicker {
   bool singleClickSelect;
   bool clearSearchOnDirChange;
   bool sortDirsFirst;
+  bool naturalSort;
   bool displayType, displaySize, displayDate;
 
   void sortFiles();

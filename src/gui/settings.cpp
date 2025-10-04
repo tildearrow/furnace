@@ -6805,33 +6805,6 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     headFont=mainFont;
   }
 
-  // set built-in file picker up (OLD)
-  /*
-  IGFDOld::Instance()->okButtonString=_("OK");
-  IGFDOld::Instance()->cancelButtonString=_("Cancel");
-  IGFDOld::Instance()->searchString=_("Search");
-  IGFDOld::Instance()->dirEntryString=_("[Dir]");
-  IGFDOld::Instance()->linkEntryString=_("[Link]");
-  IGFDOld::Instance()->fileEntryString=_("[File]");
-  IGFDOld::Instance()->fileNameString=_("Name:");
-  IGFDOld::Instance()->dirNameString=_("Path:");
-  IGFDOld::Instance()->buttonResetSearchString=_("Reset search");
-  IGFDOld::Instance()->buttonDriveString=_("Drives");
-  IGFDOld::Instance()->buttonEditPathString=_("Edit path\nYou can also right click on path buttons");
-  IGFDOld::Instance()->buttonResetPathString=_("Go to home directory");
-  IGFDOld::Instance()->buttonParentDirString=_("Go to parent directory");
-  IGFDOld::Instance()->buttonCreateDirString=_("Create Directory");
-  IGFDOld::Instance()->tableHeaderFileNameString=_("File name");
-  IGFDOld::Instance()->tableHeaderFileTypeString=_("Type");
-  IGFDOld::Instance()->tableHeaderFileSizeString=_("Size");
-  IGFDOld::Instance()->tableHeaderFileDateString=_("Date");
-  IGFDOld::Instance()->OverWriteDialogTitleString=_("Warning");
-  IGFDOld::Instance()->OverWriteDialogMessageString=_("The file you selected already exists! Would you like to overwrite it?");
-  IGFDOld::Instance()->OverWriteDialogConfirmButtonString=_("Yes");
-  IGFDOld::Instance()->OverWriteDialogCancelButtonString=_("No");
-  IGFDOld::Instance()->DateTimeFormat=_("%Y/%m/%d %H:%M");
-  */
-
   // set built-in file picker up (NEW)
   newFilePicker->setTypeStyle(FP_TYPE_UNKNOWN,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_QUESTION);
   newFilePicker->setTypeStyle(FP_TYPE_NORMAL,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_FILE_O);

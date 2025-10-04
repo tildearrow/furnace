@@ -711,7 +711,7 @@ void FurnaceFilePicker::sortFiles() {
                 if (a->time.tm_min==b->time.tm_min) {
                   if (a->time.tm_sec==b->time.tm_sec) {
                     // fall back to sorting by name
-                    return a->nameLower<b->nameLower;
+                    break;
                   }
                   return a->time.tm_sec<b->time.tm_sec;
                 }
@@ -1430,6 +1430,9 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       if (ImGui::Checkbox(_("Sort directories first"),&sortDirsFirst)) {
         scheduledSort=1;
       }
+      /*if (ImGui::Checkbox(_("Numeric sort"),&naturalSort)) {
+        scheduledSort=1;
+      }*/
       ImGui::TextUnformatted(_("Columns to display:"));
       ImGui::Indent();
       ImGui::Checkbox(_("Type"),&displayType);
@@ -1790,6 +1793,7 @@ void FurnaceFilePicker::loadSettings(DivConfig& conf) {
   singleClickSelect=conf.getBool(configPrefix+"singleClickSelect",false);
   clearSearchOnDirChange=conf.getBool(configPrefix+"clearSearchOnDirChange",false);
   sortDirsFirst=conf.getBool(configPrefix+"sortDirsFirst",true);
+  naturalSort=conf.getBool(configPrefix+"naturalSort",false);
   displayType=conf.getBool(configPrefix+"displayType",true);
   displaySize=conf.getBool(configPrefix+"displaySize",true);
   displayDate=conf.getBool(configPrefix+"displayDate",true);
@@ -1802,6 +1806,7 @@ void FurnaceFilePicker::saveSettings(DivConfig& conf) {
   conf.set(configPrefix+"singleClickSelect",singleClickSelect);
   conf.set(configPrefix+"clearSearchOnDirChange",clearSearchOnDirChange);
   conf.set(configPrefix+"sortDirsFirst",sortDirsFirst);
+  conf.set(configPrefix+"naturalSort",naturalSort);
   conf.set(configPrefix+"displayType",displayType);
   conf.set(configPrefix+"displaySize",displaySize);
   conf.set(configPrefix+"displayDate",displayDate);
@@ -1870,6 +1875,7 @@ FurnaceFilePicker::FurnaceFilePicker():
   singleClickSelect(false),
   clearSearchOnDirChange(false),
   sortDirsFirst(true),
+  naturalSort(false),
   displayType(true),
   displaySize(true),
   displayDate(true) {
