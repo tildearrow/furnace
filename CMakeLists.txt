@@ -866,7 +866,6 @@ extern/imgui_patched/imgui_widgets.cpp
 extern/imgui_patched/backends/imgui_impl_sdl2.cpp
 extern/imgui_software_renderer/imgui_sw.cpp
 extern/imgui_patched/misc/cpp/imgui_stdlib.cpp
-extern/igfd/ImGuiFileDialog.cpp
 
 src/gui/plot_nolerp.cpp
 
@@ -1166,7 +1165,6 @@ if (BUILD_GUI)
     extern/imgui_patched
     extern/imgui_patched/backends
     extern/imgui_software_renderer
-    extern/igfd
   )
   if (WIN32 OR APPLE)
     list(APPEND DEPENDENCIES_INCLUDE_DIRS
