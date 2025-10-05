@@ -543,7 +543,7 @@ bool DivSample::saveRaw(const char* path) {
 }
 
 // 16-bit memory is padded to 512, to make things easier for ADPCM-A/B.
-bool DivSample::initInternal(DivSampleDepth d, int count) {
+bool DivSample::initInternal(DivSampleDepth d, unsigned int count) {
   logV("initInternal(%d,%d)",(int)d,count);
   switch (d) {
     case DIV_SAMPLE_DEPTH_1BIT: // 1-bit
@@ -651,6 +651,7 @@ bool DivSample::initInternal(DivSampleDepth d, int count) {
 }
 
 bool DivSample::init(unsigned int count) {
+  if (count>16777215) return false;
   if (!initInternal(depth,count)) return false;
   setSampleCount(count);
   return true;

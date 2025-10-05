@@ -236,7 +236,7 @@ struct DivSample {
    * @param count number of samples.
    * @return whether it was successful.
    */
-  bool initInternal(DivSampleDepth d, int count);
+  bool initInternal(DivSampleDepth d, unsigned int count);
 
   /**
    * initialize sample data. make sure you have set `depth` before doing so.
