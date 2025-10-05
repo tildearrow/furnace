@@ -226,73 +226,34 @@ void FurnaceGUI::drawMixer() {
   if (ImGui::Begin("Mixer",&mixerOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking),_("Mixer"))) {
     if (ImGui::BeginTabBar("MixerView")) {
       if (ImGui::BeginTabItem(_("Mixer"))) {
-        if (ImGui::SliderFloat(_("Master Volume"),&e->song.masterVol,0,3,"%.2fx")) {
+        if (ImGui::VSliderFloat("##mixerMaster",ImVec2(40*dpiScale,ImGui::GetContentRegionAvail().y),&e->song.masterVol,0,3,"%.2fx")) {
           if (e->song.masterVol<0) e->song.masterVol=0;
           if (e->song.masterVol>3) e->song.masterVol=3;
           MARK_MODIFIED;
-        } rightClickable
-
-        if (ImGui::BeginTable("CurPortSet",2)) {
-          ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
-          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
-
+        } rightClickable //_("Master Volume")
+        ImGui::SameLine();
+        if (ImGui::BeginChild("##mixerPerChipContainer",ImGui::GetContentRegionAvail())) {
+          const float childWidth=60*dpiScale;
           for (int i=0; i<e->song.systemLen; i++) {
-            bool doInvert=e->song.systemVol[i]<0;
-            float vol=fabs(e->song.systemVol[i]);
-
             ImGui::PushID(i);
-
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::AlignTextToFramePadding();
-            ImGui::Text("%d. %s",i+1,getSystemName(e->song.system[i]));
-            ImGui::TableNextColumn();
-            if (ImGui::Checkbox(_("Invert"),&doInvert)) {
-              e->song.systemVol[i]=-e->song.systemVol[i];
-              MARK_MODIFIED;
+            if (ImGui::BeginChild(fmt::sprintf("##MixerChip%d", i).c_str(), ImVec2(childWidth,0))) {
+              float textHeight=ImGui::GetFontSize();
+              ImGui::ScrollText(ImGui::GetID(i),fmt::sprintf("%d. %s",i+1,getSystemName(e->song.system[i])).c_str(),ImGui::GetCursorPos(),ImVec2(childWidth,textHeight));
+              ImGui::Dummy(ImVec2(childWidth,textHeight));
+              float volSliderHeight=ImGui::GetContentRegionAvail().y-ImGui::GetStyle().FramePadding.y*7-textHeight*2;
+              // ImGui::PushStyleColor(ImGuiCol_FrameBg,0);
+              // ImGui::PushStyleColor(ImGuiCol_FrameBgActive,0);
+              ImGui::VSliderFloat("##mixerVol", ImVec2(childWidth,volSliderHeight), &e->song.systemVol[i], 0.0f, 2.0f);
+              // ImGui::PopStyleColor(2);
+              ImGui::SetNextItemWidth(childWidth);
+              ImGui::SliderFloat("##mixerPan", &e->song.systemPan[i], -1.0f, 1.0f);
+              ImGui::SetNextItemWidth(childWidth);
+              ImGui::SliderFloat("##mixerPanFR", &e->song.systemPanFR[i], -1.0f, 1.0f);
             }
-
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (CWSliderFloat("##Volume",&vol,0,2)) {
-              if (doInvert) {
-                if (vol<0.0001) vol=0.0001;
-              }
-              if (vol<0) vol=0;
-              if (vol>10) vol=10;
-              e->song.systemVol[i]=(doInvert)?-vol:vol;
-              MARK_MODIFIED;
-            } rightClickable
-            ImGui::TableNextColumn();
-            ImGui::Text(_("Volume"));
-
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (CWSliderFloat("##Panning",&e->song.systemPan[i],-1.0f,1.0f)) {
-              if (e->song.systemPan[i]<-1.0f) e->song.systemPan[i]=-1.0f;
-              if (e->song.systemPan[i]>1.0f) e->song.systemPan[i]=1.0f;
-              MARK_MODIFIED;
-            } rightClickable
-            ImGui::TableNextColumn();
-            ImGui::Text(_("Panning"));
-
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (CWSliderFloat("##FrontRear",&e->song.systemPanFR[i],-1.0f,1.0f)) {
-              if (e->song.systemPanFR[i]<-1.0f) e->song.systemPanFR[i]=-1.0f;
-              if (e->song.systemPanFR[i]>1.0f) e->song.systemPanFR[i]=1.0f;
-              MARK_MODIFIED;
-            } rightClickable
-            ImGui::TableNextColumn();
-            ImGui::Text(_("Front/Rear"));
-
+            ImGui::EndChild();
             ImGui::PopID();
+            ImGui::SameLine();
           }
-
-          ImGui::EndTable();
         }
         ImGui::EndTabItem();
       }
