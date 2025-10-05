@@ -558,7 +558,8 @@ String FurnaceFilePicker::normalizePath(const String& which) {
   return ret;
 }
 
-void FurnaceFilePicker::readDirectory(String path) {
+bool FurnaceFilePicker::readDirectory(String path) {
+  bool ret=true;
   if (fileThread!=NULL) {
     // stop current file thread
     stopReading=true;
@@ -580,7 +581,9 @@ void FurnaceFilePicker::readDirectory(String path) {
   }
 
   // start new file thread
-  this->path=normalizePath(path);
+  String newPath=normalizePath(path);
+  if (newPath==this->path) ret=false;
+  this->path=newPath;
   failMessage="";
   editingPath=false;
   haveFiles=false;
@@ -606,6 +609,8 @@ void FurnaceFilePicker::readDirectory(String path) {
       break;
     }
   }
+
+  return ret;
 }
 
 void FurnaceFilePicker::setHomeDir(String where) {
@@ -1096,8 +1101,18 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
           ImGui::PopStyleColor();
         }
       }
+
+      if (enforceScrollY<=0) {
+        lastScrollY=ImGui::GetScrollY();
+      } else {
+        ImGui::SetScrollY(lastScrollY);
+      }
+
       ImGui::EndTable();
       entryLock.unlock();
+    }
+    if (enforceScrollY>0 && haveFiles) {
+      enforceScrollY--;
     }
   }
 }
@@ -1756,6 +1771,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
   if (!newDir.empty() || readDrives) {
     // change directory
     if (clearSearchOnDirChange) filter="";
+    bool isSearchPrev=isSearch;
     isSearch=wantSearch;
     if (wantSearch) {
       searchQuery=filter;
@@ -1763,7 +1779,11 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
         if (i>='A' && i<='Z') i+='a'-'A';
       }
     }
-    readDirectory(newDir);
+    if (readDirectory(newDir) || isSearch || (isSearchPrev!=isSearch)) {
+      // scroll to top
+      lastScrollY=0.0f;
+      enforceScrollY=2;
+    }
   }
   return (curStatus!=FP_STATUS_WAITING);
 }
@@ -1799,7 +1819,10 @@ bool FurnaceFilePicker::open(String name, String pa, String hint, int flags, con
   if (!isSearch || windowName!=name) {
     if (isSearch) this->filter="";
     isSearch=false;
-    readDirectory(pa);
+    if (readDirectory(pa)) {
+      lastScrollY=0.0f;
+      enforceScrollY=2;
+    }
     windowName=name;
   }
   hint=entryNameHint;
@@ -1902,6 +1925,8 @@ FurnaceFilePicker::FurnaceFilePicker():
   isSearch(false),
   scheduledSort(0),
   curFilterType(0),
+  lastScrollY(0.0f),
+  enforceScrollY(0),
   sortMode(FP_SORT_NAME),
   curStatus(FP_STATUS_WAITING),
   selCallback(NULL),

@@ -116,6 +116,8 @@ class FurnaceFilePicker {
   bool isPathBookmarked, isSearch;
   int scheduledSort, imguiFlags;
   size_t curFilterType;
+  float lastScrollY;
+  int enforceScrollY;
   SortModes sortMode;
   FilePickerStatus curStatus;
   FilePickerSelectCallback selCallback;
@@ -148,7 +150,7 @@ class FurnaceFilePicker {
   void filterFiles();
   void clearAllFiles();
   void updateEntryName();
-  void readDirectory(String path);
+  bool readDirectory(String path);
   String normalizePath(const String& which);
   bool isPathAbsolute(const String& p);
   void addBookmark(const String& p, String n="");
