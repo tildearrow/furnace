@@ -1461,10 +1461,12 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_REPEAT "##ClearFilter")) {
+      filter="";
       if (isSearch) {
         newDir=path;
+      } else {
+        filterFiles();
       }
-      filter="";
     }
     ImGui::SetItemTooltip(_("Clear search query"));
     ImGui::SameLine();
