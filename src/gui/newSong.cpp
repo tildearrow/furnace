@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -130,7 +130,7 @@ void FurnaceGUI::drawNewSong() {
   ImVec2 avail=ImGui::GetContentRegionAvail();
   avail.y-=ImGui::GetFrameHeightWithSpacing();
 
-  if (ImGui::BeginChild("sysPickerC",avail,false,ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
+  if (ImGui::BeginChild("sysPickerC",avail,0,ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
     if (newSongFirstFrame)
       ImGui::SetKeyboardFocusHere();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -289,6 +289,7 @@ void FurnaceGUI::drawNewSong() {
     orderCursor=-1;
     samplePos=0;
     updateSampleTex=true;
+    notifySampleChange=true;
     selStart=SelectionPoint();
     selEnd=SelectionPoint();
     cursor=SelectionPoint();

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -382,20 +382,12 @@ void FurnaceGUIRenderGL::clear(ImVec4 color) {
   C(glClear(GL_COLOR_BUFFER_BIT));
 }
 
-bool FurnaceGUIRenderGL::newFrame() {
-  return ImGui_ImplOpenGL3_NewFrame();
+void FurnaceGUIRenderGL::newFrame() {
+  ImGui_ImplOpenGL3_NewFrame();
 }
 
 bool FurnaceGUIRenderGL::canVSync() {
   return swapIntervalSet;
-}
-
-void FurnaceGUIRenderGL::createFontsTexture() {
-  ImGui_ImplOpenGL3_CreateFontsTexture();
-}
-
-void FurnaceGUIRenderGL::destroyFontsTexture() {
-  ImGui_ImplOpenGL3_DestroyFontsTexture();
 }
 
 void FurnaceGUIRenderGL::renderGUI() {
@@ -625,8 +617,10 @@ void FurnaceGUIRenderGL::preInit(const DivConfig& conf) {
   SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE,conf.getInt("glAlphaSize",0));
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER,conf.getInt("glDoubleBuffer",1));
   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,conf.getInt("glDepthSize",24));
-  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE,conf.getInt("glStencilSize",0));
-  SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE,conf.getInt("glBufferSize",32));
+  if (conf.getInt("glSetBS",0)) {
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE,conf.getInt("glStencilSize",0));
+    SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE,conf.getInt("glBufferSize",32));
+  }
 }
 
 #define LOAD_PROC_MANDATORY(_v,_t,_s) \

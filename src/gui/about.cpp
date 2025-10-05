@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,12 +35,14 @@ const char* aboutLine[]={
   _N("-- program --"),
   "tildearrow",
   _N("A M 4 N (intro tune)"),
+  "AArt1256",
   "Adam Lederer",
   "akumanatt",
   "asiekierka",
   "cam900",
   "djtuBIG-MaliceX",
   "Eknous",
+  "host12prog",
   "Kagamiin~",
   "laoo",
   "LTVA",
@@ -71,8 +73,9 @@ const char* aboutLine[]={
   _N("-- localization/translation team --"),
   "Bahasa Indonesia: ZoomTen (Zumi)",
   "Español: CrimsonZN, ThaCuber, tildearrow",
+  "Français: fouinne44",
   "Հայերեն: Eknous",
-  "한국어: Heemin, leejh20",
+  "한국어: Heemin, leejh20, Nicknamé",
   "Nederlands: Lunathir",
   "Polski: freq-mod, PoznańskiSzybkowiec",
   "Português (Brasil): Kagamiin~",
@@ -90,6 +93,7 @@ const char* aboutLine[]={
   "Lumigado",
   "Lunathir",
   "plane",
+  "skyfloogle",
   "TheEssem",
   "",
   _N("-- Metal backend test team --"),
@@ -138,13 +142,15 @@ const char* aboutLine[]={
   _N("MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya"),
   _N("MAME MSM6258 core by Barry Rodewald"),
   _N("MAME YMZ280B core by Aaron Giles"),
-  _N("MAME GA20 core by Acho A. Tang and R. Belmont"),
+  _N("MAME GA20 core by Acho A. Tang, R. Belmont and Valley Bell (modified version)"),
   _N("MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert"),
+  _N("MAME µPD1771C-017 HLE core by David Viens"),
   _N("SAASound by Dave Hooper and Simon Owen"),
   _N("SameBoy by Lior Halphon"),
-  _N("Mednafen PCE, WonderSwan, T6W28 and Virtual Boy audio cores"),
+  _N("Mednafen PCE, WonderSwan, T6W28 (modified) and Virtual Boy audio cores"),
+  _N("WonderSwan new core by asiekierka"),
   _N("SNES DSP core by Blargg"),
-  _N("puNES (NES, MMC5 and FDS) by FHorse"),
+  _N("puNES (NES, MMC5 and FDS) by FHorse (modified version)"),
   _N("NSFPlay (NES and FDS) by Brad Smith and Brezza"),
   _N("reSID by Dag Lem"),
   _N("reSIDfp by Dag Lem, Antti Lankila"),
@@ -179,7 +185,7 @@ const char* aboutLine[]={
   "@party",
   _N("all members of Deflers of Noice!"),
   "",
-  _N("copyright © 2021-2024 tildearrow"),
+  _N("copyright © 2021-2025 tildearrow"),
   _N("(and contributors)."),
   _N("licensed under GPLv2+! see"),
   _N("LICENSE for more information."),
@@ -259,19 +265,19 @@ void FurnaceGUI::drawAbout() {
       double posX=(canvasW/2.0)+(sin(double(i)*0.5+double(aboutScroll)/(90.0*dpiScale))*120*dpiScale)-(ImGui::CalcTextSize(nextLine).x*0.5);
       double posY=(canvasH-aboutScroll+42*i*dpiScale);
       if (posY<-80*dpiScale || posY>canvasH) continue;
-      dl->AddText(bigFont,bigFont->FontSize,
+      dl->AddText(bigFont,BIG_FONT_SIZE,
                   ImVec2(posX+dpiScale,posY+dpiScale),
                   0xff000000,nextLine);
-      dl->AddText(bigFont,bigFont->FontSize,
+      dl->AddText(bigFont,BIG_FONT_SIZE,
                   ImVec2(posX+dpiScale,posY-dpiScale),
                   0xff000000,nextLine);
-      dl->AddText(bigFont,bigFont->FontSize,
+      dl->AddText(bigFont,BIG_FONT_SIZE,
                   ImVec2(posX-dpiScale,posY+dpiScale),
                   0xff000000,nextLine);
-      dl->AddText(bigFont,bigFont->FontSize,
+      dl->AddText(bigFont,BIG_FONT_SIZE,
                   ImVec2(posX-dpiScale,posY-dpiScale),
                   0xff000000,nextLine);
-      dl->AddText(bigFont,bigFont->FontSize,
+      dl->AddText(bigFont,BIG_FONT_SIZE,
                   ImVec2(posX,posY),
                   0xffffffff,nextLine);
     }

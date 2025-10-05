@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,6 +71,9 @@ const char** DivPlatformSNES::getRegisterSheet() {
 void DivPlatformSNES::acquire(short** buf, size_t len) {
   short out[2];
   short chOut[16];
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t h=0; h<len; h++) {
     if (--delay<=0) {
       delay=0;
@@ -94,8 +97,11 @@ void DivPlatformSNES::acquire(short** buf, size_t len) {
       next=(next*254)/MAX(1,globalVolL+globalVolR);
       if (next<-32768) next=-32768;
       if (next>32767) next=32767;
-      oscBuf[i]->data[oscBuf[i]->needle++]=next>>1;
+      oscBuf[i]->putSample(h,next>>1);
     }
+  }
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -208,7 +214,7 @@ void DivPlatformSNES::tick(bool sysTick) {
     // TODO: if wavetable length is higher than 32, we lose precision!
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivSample* s=parent->getSample(chan[i].sample);
-      double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
+      double off=(s->centerRate>=1)?((double)s->centerRate/parent->getCenterRate()):1.0;
       if (chan[i].useWave) off=(double)chan[i].wtLen/32.0;
       chan[i].freq=(unsigned int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE));
       if (chan[i].freq>16383) chan[i].freq=16383;
@@ -383,6 +389,11 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       }
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
+      // this is the fix. it needs testing.
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+        if (chan[c.chan].outVol!=chan[c.chan].vol) chan[c.chan].shallWriteVol=true;
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       chan[c.chan].insChanged=false;
       break;
     }
@@ -953,9 +964,13 @@ size_t DivPlatformSNES::getSampleMemUsage(int index) {
   return index == 0 ? sampleMemLen : 0;
 }
 
+bool DivPlatformSNES::hasSamplePtrHeader(int index) {
+  return true;
+}
+
 bool DivPlatformSNES::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -966,8 +981,8 @@ const DivMemoryComposition* DivPlatformSNES::getMemCompo(int index) {
 
 void DivPlatformSNES::renderSamples(int sysID) {
   memset(copyOfSampleMem,0,65536);
-  memset(sampleOff,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOff,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="SPC/DSP Memory";
@@ -1053,7 +1068,7 @@ int DivPlatformSNES::init(DivEngine* p, int channels, int sugRate, const DivConf
   rate=chipClock/32;
   for (int i=0; i<8; i++) {
     oscBuf[i]=new DivDispatchOscBuffer;
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
     isMuted[i]=false;
   }
   setFlags(flags);
@@ -1065,4 +1080,15 @@ void DivPlatformSNES::quit() {
   for (int i=0; i<8; i++) {
     delete oscBuf[i];
   }
+}
+
+// initialization of important arrays
+DivPlatformSNES::DivPlatformSNES() {
+  sampleOff=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
+DivPlatformSNES::~DivPlatformSNES() {
+  delete[] sampleOff;
+  delete[] sampleLoaded;
 }

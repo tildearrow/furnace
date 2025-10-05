@@ -485,7 +485,7 @@ public:
     return mAudioChannels[timer].fireAction( tick );
   }
 
-  AudioSample sampleAudio( DivDispatchOscBuffer** oscb ) const
+  AudioSample sampleAudio( int* oscb ) const
   {
     int left{};
     int right{};
@@ -509,7 +509,7 @@ public:
       }
 
       if (oscb!=NULL) {
-        oscb[i]->data[oscb[i]->needle++]=oscbWrite;
+        oscb[i]=oscbWrite;
       }
     }
 
@@ -570,7 +570,7 @@ void Mikey::enqueueSampling()
   mQueue->push( ( mNextTick & ~15 ) | 4 );
 }
 
-void Mikey::sampleAudio( int16_t* bufL, int16_t* bufR, size_t size, DivDispatchOscBuffer** oscb )
+void Mikey::sampleAudio( int16_t* bufL, int16_t* bufR, size_t size, int* oscb )
 {
   size_t i = 0;
   while ( i < size )

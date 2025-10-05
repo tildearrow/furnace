@@ -16,7 +16,7 @@ see the Discussions section.
 
 ## Getting ready
 
-log into your Github account, and click the Fork button in the header of the project's page.
+log into your GitHub account, and click the Fork button in the header of the project's page.
 
 then open a terminal and clone your fork:
 
@@ -102,15 +102,7 @@ if you do so, your pull request will be closed.
 
 ### Demo Songs
 
-just put your demo song in `demos/`! be noted there are some guidelines:
-
-- avoid Nintendo song covers.
-- avoid big label song covers.
-- low effort compositions/covers may not be accepted at all.
-- the following systems are not acceptable:
-  - YMU759/MA-2: exists only for compatibility.
-  - Pong: it is a joke system.
-- the song shall be in Furnace file format.
+we are not accepting demo song submissions at the moment. sorry!
 
 ## Finishing
 

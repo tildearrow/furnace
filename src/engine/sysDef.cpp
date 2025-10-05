@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -353,9 +353,6 @@ int DivEngine::minVGMVersion(DivSystem which) {
   return sysDefs[which]->vgmVersion;
 }
 
-#define IS_YM2610 (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT || sysOfChan[ch]==DIV_SYSTEM_YM2610_FULL || sysOfChan[ch]==DIV_SYSTEM_YM2610_FULL_EXT || sysOfChan[ch]==DIV_SYSTEM_YM2610B || sysOfChan[ch]==DIV_SYSTEM_YM2610B_EXT)
-#define IS_OPM_LIKE (sysOfChan[ch]==DIV_SYSTEM_YM2151 || sysOfChan[ch]==DIV_SYSTEM_OPZ)
-
 #define OP_EFFECT_MULTI(x,c,op,mask) \
   case x: \
     dispatchCmd(DivCommand(c,ch,op,effectVal&mask)); \
@@ -505,6 +502,9 @@ void DivEngine::registerSystems() {
     {0x5e, {DIV_CMD_FM_D2R, _("5Exx: Set decay 2 of operator 3 (0 to 1F)"), constVal<2>, effectValAnd<31>}},
     {0x5f, {DIV_CMD_FM_D2R, _("5Fxx: Set decay 2 of operator 4 (0 to 1F)"), constVal<3>, effectValAnd<31>}},
     {0x60, {DIV_CMD_FM_OPMASK, _("60xx: Set operator mask (bits 0-3)")}},
+    {0x61, {DIV_CMD_FM_ALG, _("61xx: Set algorithm (0 to 7)")}},
+    {0x62, {DIV_CMD_FM_FMS, _("62xx: Set LFO FM depth (0 to 7)")}},
+    {0x63, {DIV_CMD_FM_AMS, _("63xx: Set LFO AM depth (0 to 3)")}},
   };
 
   EffectHandlerMap fmOPMPostEffectHandlerMap(fmOPNPostEffectHandlerMap);
@@ -528,6 +528,8 @@ void DivEngine::registerSystems() {
     {0x2a, {DIV_CMD_FM_WS, _("2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 7)"), effectOpVal<4>, effectValAnd<7>}},
     {0x2b, {DIV_CMD_FM_EG_SHIFT, _("2Bxy: Set envelope generator shift (x: operator from 1 to 4 (0 for all ops); y: shift from 0 to 3)"), effectOpVal<4>, effectValAnd<3>}},
     {0x2c, {DIV_CMD_FM_FINE, _("2Cxy: Set fine multiplier (x: operator from 1 to 4 (0 for all ops); y: fine)"), effectOpVal<4>, effectValAnd<15>}},
+    {0x64, {DIV_CMD_FM_FMS2, _("64xx: Set LFO2 FM depth (0 to 7)")}},
+    {0x65, {DIV_CMD_FM_AMS2, _("65xx: Set LFO2 AM depth (0 to 3)")}},
   });
   const EffectHandler fmOPZFixFreqHandler[4]={
     {DIV_CMD_FM_FIXFREQ, _("3xyy: Set fixed frequency of operator 1 (x: octave from 0 to 7; y: frequency)"), constVal<0>, effectValLong<11>},
@@ -620,6 +622,12 @@ void DivEngine::registerSystems() {
     {0x2e, {DIV_CMD_MULTIPCM_LFO_RESET, _("2Exx: PCM LFO Reset"), effectValAnd<1>}},
     {0x2f, {DIV_CMD_MULTIPCM_LEVEL_DIRECT, _("2Fxx: PCM Level Direct"), effectValAnd<1>}},
   });
+
+  EffectHandlerMap multiPCMPostEffectHandlerMap={
+    {0x20, {DIV_CMD_MULTIPCM_LFO, _("20xx: PCM LFO Rate (0 to 7)"), effectValAnd<7>}},
+    {0x21, {DIV_CMD_MULTIPCM_VIB, _("21xx: PCM LFO PM Depth (0 to 7)"), effectValAnd<7>}},
+    {0x22, {DIV_CMD_MULTIPCM_AM, _("22xx: PCM LFO AM Depth (0 to 7)"), effectValAnd<7>}},
+  };
 
   EffectHandlerMap c64PostEffectHandlerMap={
     {0x10, {DIV_CMD_WAVE, _("10xx: Set waveform (bit 0: triangle; bit 1: saw; bit 2: pulse; bit 3: noise)")}},
@@ -1167,6 +1175,8 @@ void DivEngine::registerSystems() {
     {},
     {
       {0x10, {DIV_CMD_WAVE, _("10xx: Set waveform")}},
+    },
+    {
       {0x11, {DIV_CMD_FDS_MOD_DEPTH, _("11xx: Set modulation depth")}},
       {0x12, {DIV_CMD_FDS_MOD_HIGH, _("12xy: Set modulation speed high byte (x: enable; y: value)")}},
       {0x13, {DIV_CMD_FDS_MOD_LOW, _("13xx: Set modulation speed low byte")}},
@@ -1325,14 +1335,16 @@ void DivEngine::registerSystems() {
     fmOPLPostEffectHandlerMap
   );
 
-  // TODO: add 12-bit and 16-bit big endian formats
   sysDefs[DIV_SYSTEM_MULTIPCM]=new DivSysDef(
-    _("MultiPCM"), NULL, 0x92, 0, 28, false, true, 0, false, (1U<<DIV_SAMPLE_DEPTH_8BIT)|(1U<<DIV_SAMPLE_DEPTH_16BIT), 0, 0,
+    _("MultiPCM"), NULL, 0x92, 0, 28, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_8BIT)|(1U<<DIV_SAMPLE_DEPTH_12BIT), 0, 0,
     _("how many channels of PCM do you want?\nMultiPCM: yes"),
     {_("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Channel 7"), _("Channel 8"), _("Channel 9"), _("Channel 10"), _("Channel 11"), _("Channel 12"), _("Channel 13"), _("Channel 14"), _("Channel 15"), _("Channel 16"), _("Channel 17"), _("Channel 18"), _("Channel 19"), _("Channel 20"), _("Channel 21"), _("Channel 22"), _("Channel 23"), _("Channel 24"), _("Channel 25"), _("Channel 26"), _("Channel 27"), _("Channel 28")},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
-    {DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM}
+    {DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {},
+    multiPCMPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_PCSPKR]=new DivSysDef(
@@ -1392,6 +1404,9 @@ void DivEngine::registerSystems() {
       {0x12, {DIV_CMD_WS_SWEEP_TIME, _("12xx: Setup sweep period (0: disabled; 1-20: enabled/period)")}},
       {0x13, {DIV_CMD_WS_SWEEP_AMOUNT, _("13xx: Set sweep amount")}},
       {0x17, {DIV_CMD_SAMPLE_MODE, _("17xx: Toggle PCM mode (LEGACY)")}},
+    },
+    {
+      {0x20, {DIV_CMD_WS_GLOBAL_SPEAKER_VOLUME, _("20xx: Set internal speaker loudness (0-1: 100%, 2-3: 200%, 4-7: 400%, 8: 800%)")}},
     }
   );
 
@@ -2061,12 +2076,12 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_UPD1771C]=new DivSysDef(
-    _("NEC μPD1771C"), NULL, 0xe4, 0, 1, false, true, 0, false, 0, 0, 0,
-    _("this was an SoC with some funky wavetable/noise hardware"),
-    {_("Wave/Noise")},
-    {"W"},
-    {DIV_CH_NOISE},
-    {DIV_INS_UPD1771C},
+    _("NEC μPD1771C-017"), NULL, 0xe5, 0, 4, false, true, 0, false, 0, 0, 0,
+    _("a microcontroller which has been used as a sound generator in the Super Cassette Vision."),
+    {_("Square 1"), _("Square 2"), _("Square 3"), _("Wave/Noise")},
+    {"S1", "S2", "S3", "NO"},
+    {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE},
+    {DIV_INS_UPD1771C, DIV_INS_UPD1771C, DIV_INS_UPD1771C, DIV_INS_UPD1771C},
     {},
     {
       {0x10, {DIV_CMD_STD_NOISE_MODE, _("10xx: Set duty/waveform (bit 0-3: waveform; bit 4: mode)")}},
@@ -2314,6 +2329,18 @@ void DivEngine::registerSystems() {
     {},
     {}, 
     SID3PostEffectHandlerMap
+  );
+
+  sysDefs[DIV_SYSTEM_C64_PCM]=new DivSysDef(
+    _("Commodore 64 (SID 6581) with software PCM"), NULL, 0xe2, 0, 4, false, true, 0, false, (1U<<DIV_SAMPLE_DEPTH_8BIT)|(1U<<DIV_SAMPLE_DEPTH_16BIT), 0, 0,
+    _("the 6581 had a quirk which allowed playback of 4-bit samples by writing PCM data to the volume register."),
+    {_("Channel 1"), _("Channel 2"), _("Channel 3"), _("PCM")},
+    {"CH1", "CH2", "CH3", "P"},
+    {DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_PCM},
+    {DIV_INS_C64, DIV_INS_C64, DIV_INS_C64, DIV_INS_AMIGA},
+    {},
+    {},
+    c64PostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(

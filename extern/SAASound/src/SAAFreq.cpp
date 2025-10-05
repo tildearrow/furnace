@@ -20,7 +20,7 @@ const int INITIAL_LEVEL = 1;
 
 CSAAFreq::CSAAFreq(CSAANoise * const NoiseGenerator, CSAAEnv * const EnvGenerator)
 :
-m_nCounter(0), m_nAdd(0), m_nCounter_low(0),
+m_nClockRate(0), m_nCounter(0), m_nAdd(0), m_nCounter_low(0),
 m_nOversample(0),
 m_nCounterLimit_low(1), m_nLevel(INITIAL_LEVEL),
 m_nCurrentOffset(0), m_nCurrentOctave(0), m_nNextOffset(0), m_nNextOctave(0),

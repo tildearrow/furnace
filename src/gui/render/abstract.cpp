@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 #include "../gui.h"
 
 ImTextureID FurnaceGUIRender::getTextureID(FurnaceGUITexture* which) {
-  return NULL;
+  return (ImTextureID)0;
 }
 
 float FurnaceGUIRender::getTextureU(FurnaceGUITexture* which) {
@@ -71,18 +71,11 @@ void FurnaceGUIRender::resized(const SDL_Event& ev) {
 void FurnaceGUIRender::clear(ImVec4 color) {
 }
 
-bool FurnaceGUIRender::newFrame() {
-  return true;
+void FurnaceGUIRender::newFrame() {
 }
 
 bool FurnaceGUIRender::canVSync() {
   return true;
-}
-
-void FurnaceGUIRender::createFontsTexture() {
-}
-
-void FurnaceGUIRender::destroyFontsTexture() {
 }
 
 void FurnaceGUIRender::renderGUI() {

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,6 +63,10 @@ u8 DivPlatformMSM6295::read_byte(u32 address) {
 }
 
 void DivPlatformMSM6295::acquire(short** buf, size_t len) {
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+  
   for (size_t h=0; h<len; h++) {
     if (delay<=0) {
       if (!writes.empty()) {
@@ -106,9 +110,13 @@ void DivPlatformMSM6295::acquire(short** buf, size_t len) {
     if (++updateOsc>=22) {
       updateOsc=0;
       for (int i=0; i<4; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=msm.voice_out(i)<<5;
+        oscBuf[i]->putSample(h,msm.voice_out(i)<<5);
       }
     }
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -377,7 +385,7 @@ size_t DivPlatformMSM6295::getSampleMemUsage(int index) {
 
 bool DivPlatformMSM6295::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -387,12 +395,12 @@ const DivMemoryComposition* DivPlatformMSM6295::getMemCompo(int index) {
 }
 
 void DivPlatformMSM6295::renderSamples(int sysID) {
-  unsigned int sampleOffVOX[256];
+  unsigned int* sampleOffVOX=new unsigned int[32768];
 
   memset(adpcmMem,0,16777216);
-  memset(sampleOffVOX,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
-  for (int i=0; i<256; i++) {
+  memset(sampleOffVOX,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
+  for (int i=0; i<32768; i++) {
     bankedPhrase[i].bank=0;
     bankedPhrase[i].phrase=0;
   }
@@ -404,10 +412,18 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
 
   // sample data
   size_t memPos=128*8;
+  int sampleCount=parent->song.sampleLen;
   if (isBanked) {
+    if (sampleCount>8191) {
+      // mark the rest as unavailable
+      for (int i=8191; i<sampleCount; i++) {
+        sampleLoaded[i]=false;
+      }
+      sampleCount=8191;
+    }
     int bankInd=0;
     int phraseInd=0;
-    for (int i=0; i<parent->song.sampleLen; i++) {
+    for (int i=0; i<sampleCount; i++) {
       DivSample* s=parent->song.sample[i];
       if (!s->renderOn[0][sysID]) {
         sampleOffVOX[i]=0;
@@ -447,7 +463,7 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
     adpcmMemLen=memPos+256;
 
     // phrase book
-    for (int i=0; i<parent->song.sampleLen; i++) {
+    for (int i=0; i<sampleCount; i++) {
       int endPos=sampleOffVOX[i]+bankedPhrase[i].length;
       for (int b=0; b<4; b++) {
         unsigned int bankedAddr=((unsigned int)bankedPhrase[i].bank<<16)+(b<<8)+(bankedPhrase[i].phrase*8);
@@ -460,8 +476,13 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
       }
     }
   } else {
-    int sampleCount=parent->song.sampleLen;
-    if (sampleCount>127) sampleCount=127;
+    if (sampleCount>127) {
+      // mark the rest as unavailable
+      for (int i=127; i<sampleCount; i++) {
+        sampleLoaded[i]=false;
+      }
+      sampleCount=127;
+    }
     for (int i=0; i<sampleCount; i++) {
       DivSample* s=parent->song.sample[i];
       if (!s->renderOn[0][sysID]) {
@@ -502,6 +523,8 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
 
   memCompo.capacity=getSampleMemCapacity(0);
   memCompo.used=adpcmMemLen;
+
+  delete[] sampleOffVOX;
 }
 
 void DivPlatformMSM6295::setFlags(const DivConfig& flags) {
@@ -560,7 +583,7 @@ void DivPlatformMSM6295::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/3;
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate/22;
+    oscBuf[i]->setRate(rate);;
   }
   if (rateSel!=rateSelInit) {
     rWrite(12,!rateSelInit);
@@ -592,5 +615,16 @@ void DivPlatformMSM6295::quit() {
   delete[] adpcmMem;
 }
 
+// initialization of important arrays
+DivPlatformMSM6295::DivPlatformMSM6295():
+  DivDispatch(),
+  vgsound_emu_mem_intf(),
+  msm(*this) {
+  bankedPhrase=new BankedPhrase[32768];
+  sampleLoaded=new bool[32768];
+}
+
 DivPlatformMSM6295::~DivPlatformMSM6295() {
+  delete[] bankedPhrase;
+  delete[] sampleLoaded;
 }

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,8 +67,8 @@ class DivPlatformYM2608: public DivPlatformOPN {
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
     DivYM2608Interface iface;
-    unsigned int sampleOffB[256];
-    bool sampleLoaded[256];
+    unsigned int* sampleOffB;
+    bool* sampleLoaded;
   
     DivPlatformAY8910* ay;
     unsigned char sampleBank;
@@ -76,7 +76,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     int globalRSSVolume;
 
     bool extMode, noExtMacros;
-    unsigned char prescale, nukedMult;
+    unsigned char prescale, nukedMult, memConfig;
 
     DivMemoryComposition memCompo;
   
@@ -124,10 +124,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void setCSM(bool isCSM);
     void quit();
-    DivPlatformYM2608():
-      DivPlatformOPN(2, 6, 9, 15, 16, 9440540.0, 72, 32, false, 16),
-      prescale(0x2d),
-      isCSM(0) {}
+    DivPlatformYM2608();
     ~DivPlatformYM2608();
 };
 #endif

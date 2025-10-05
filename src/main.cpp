@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,9 @@
 #include <windows.h>
 #include <combaseapi.h>
 #include <shellapi.h>
+#if defined(HAVE_SDL2) && !defined(SUPPORT_XP)
+#include <versionhelpers.h>
+#endif
 #include "utfutils.h"
 #include "gui/shellScalingStub.h"
 
@@ -90,6 +93,7 @@ String romOutName;
 String txtOutName;
 int benchMode=0;
 int subsong=-1;
+DivCSOptions csExportOptions;
 DivAudioExportOptions exportOptions;
 DivConfig romExportConfig;
 
@@ -269,7 +273,7 @@ TAParamResult pLogLevel(String val) {
 
 TAParamResult pVersion(String) {
   printf("Furnace version " DIV_VERSION ".\n\n");
-  printf("copyright (C) 2021-2024 tildearrow and contributors.\n");
+  printf("copyright (C) 2021-2025 tildearrow and contributors.\n");
   printf("licensed under the GNU General Public License version 2 or later\n");
   printf("<https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.\n\n");
   printf("this is free software with ABSOLUTELY NO WARRANTY.\n");
@@ -314,8 +318,9 @@ TAParamResult pVersion(String) {
   printf("- MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya (GPLv2)\n");
   printf("- MAME MSM6258 core by Barry Rodewald (BSD 3-clause)\n");
   printf("- MAME YMZ280B core by Aaron Giles (BSD 3-clause)\n");
-  printf("- MAME GA20 core by Acho A. Tang and R. Belmont (BSD 3-clause)\n");
+  printf("- MAME GA20 core (modified version) by Acho A. Tang, R. Belmont and Valley Bell (BSD 3-clause)\n");
   printf("- MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert (BSD 3-clause)\n");
+  printf("- MAME µPD1771C-017 HLE core by David Viens (BSD 3-clause)\n");
   printf("- QSound core by superctr (BSD 3-clause)\n");
   printf("- VICE VIC-20 by Rami Rasanen and viznut (GPLv2)\n");
   printf("- VICE TED by Andreas Boose, Tibor Biczo and Marco van den Heuvel (GPLv2)\n");
@@ -323,9 +328,10 @@ TAParamResult pVersion(String) {
   printf("- SAASound by Dave Hooper and Simon Owen (BSD 3-clause)\n");
   printf("- SameBoy by Lior Halphon (MIT)\n");
   printf("- Mednafen PCE, WonderSwan and Virtual Boy by Mednafen Team (GPLv2)\n");
-  printf("- Mednafen T6W28 by Blargg (GPLv2)\n");
+  printf("- Mednafen T6W28 (modified version) by Blargg (GPLv2)\n");
+  printf("- WonderSwan new core by asiekierka (zlib license)\n");
   printf("- SNES DSP core by Blargg (LGPLv2.1)\n");
-  printf("- puNES by FHorse (GPLv2)\n");
+  printf("- puNES (modified version) by FHorse (GPLv2)\n");
   printf("- NSFPlay by Brad Smith and Brezza (unknown open-source license)\n");
   printf("- reSID by Dag Lem (GPLv2)\n");
   printf("- reSIDfp by Dag Lem, Antti Lankila and Leandro Nini (GPLv2)\n");
@@ -334,7 +340,6 @@ TAParamResult pVersion(String) {
   printf("- vgsound_emu (second version, modified version) by cam900 (zlib license)\n");
   printf("- Impulse Tracker GUS volume table by Jeffrey Lim (BSD 3-clause)\n");
   printf("- Schism Tracker IT sample decompression (GPLv2)\n");
-  printf("- MAME GA20 core by Acho A. Tang, R. Belmont, Valley Bell (BSD 3-clause)\n");
   printf("- Atari800 mzpokeysnd POKEY emulator by Michael Borisov (GPLv2)\n");
   printf("- ASAP POKEY emulator by Piotr Fusik ported to C++ by laoo (GPLv2)\n");
   printf("- SM8521 emulator (modified version) by cam900 (zlib license)\n");
@@ -544,11 +549,13 @@ int main(int argc, char** argv) {
   // Windows console thing - thanks dj.tuBIG/MaliceX
 #ifdef _WIN32
 #ifndef TA_SUBSYSTEM_CONSOLE
+#ifndef SUPPORT_XP
   if (AttachConsole(ATTACH_PARENT_PROCESS)) {
     freopen("CONOUT$", "w", stdout);
     freopen("CONOUT$", "w", stderr);
     freopen("CONIN$", "r", stdin);
   }
+#endif
 #endif
 #endif
 
@@ -675,8 +682,8 @@ int main(int argc, char** argv) {
         logV("text domain 2: %s",localeRet);
       }
     }
-#endif
   }
+#endif
 
   initParams();
 
@@ -708,7 +715,7 @@ int main(int argc, char** argv) {
         arg=arg.substr(0,eqSplit);
       }
       for (size_t j=0; j<params.size(); j++) {
-        if (params[j].name==arg || params[j].shortName==arg) {
+        if (params[j].name==arg || (params[j].shortName!="" && params[j].shortName==arg)) {
           switch (params[j].func(val)) {
             case TA_PARAM_ERROR:
               return 1;
@@ -756,6 +763,12 @@ int main(int argc, char** argv) {
     return 1;
   }
 
+#if defined(HAVE_SDL2) && defined(_WIN32) && !defined(SUPPORT_XP)
+  if (!IsWindows7OrGreater()) {
+    SDL_SetHint(SDL_HINT_AUDIODRIVER,"winmm");
+  }
+#endif
+
 #ifdef HAVE_GUI
   if (e.preInit(consoleMode || benchMode || infoMode || outputMode)) {
     if (consoleMode || benchMode || infoMode || outputMode) {
@@ -785,7 +798,6 @@ int main(int argc, char** argv) {
     SDL_SetHint(SDL_HINT_ANDROID_BLOCK_ON_PAUSE_PAUSEAUDIO,"0");
   }
 #endif
-
 
   if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",TUT_INTRO_PLAYED)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || infoMode || outputMode)) {
     logI("loading module...");
@@ -881,7 +893,7 @@ int main(int argc, char** argv) {
 
   if (outputMode) {
     if (cmdOutName!="") {
-      SafeWriter* w=e.saveCommand();
+      SafeWriter* w=e.saveCommand(NULL);
       if (w!=NULL) {
         FILE* f=ps_fopen(cmdOutName.c_str(),"wb");
         if (f!=NULL) {
@@ -1093,5 +1105,10 @@ int main(int argc, char** argv) {
   }
 #endif
   e.everythingOK();
+
+#ifdef HAVE_SDL2
+  SDL_Quit();
+#endif
+
   return 0;
 }

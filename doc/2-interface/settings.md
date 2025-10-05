@@ -284,6 +284,7 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 - **Double-click time (seconds)**: maximum time between mouse clicks to recognize them as a double-click.
 - **Don't raise pattern editor on click**
 - **Focus pattern editor when selecting instrument**
+- **Draggable instruments/samples/waves:** allow dragging and dropping assets within their lists to reorder them.
 - **Note preview behavior:** allows you to disable note preview when entering notes in the pattern.
   - **Never**: don't preview notes at all.
   - **When cursor is in Note column**: only when the cursor is in the Note column
@@ -355,6 +356,10 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - **No**
   - **Yes**
   - **Inverted**
+- **How many steps to move with each scroll wheel step?**: only appears when "Move cursor with scroll wheel" is set to "Yes" or "Inverted".
+  - **One**
+  - **Edit Step**
+  - **Coarse Step**
 
 ### Assets
 
@@ -398,8 +403,7 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - higher settings use more video memory.
   - for pixel or bitmap fonts, set this to **1x**.
 - **Load fallback font**: load an extra font that contains nearly all characters that can be used, in case the selected fonts lack them. uses much video memory
-- **Display Japanese characters**, **Display Chinese (Simplified) characters**, **Display Chinese (Traditional) characters** and **Display Korean characters**: only toggle these options if you have enough graphics memory.
-  - these are a temporary solution until dynamic font atlas is implemented in Dear ImGui.
+- **Load fallback font (pattern)**: as "Load fallback font" above but for the pattern font.
 
 ### Program
 
@@ -526,6 +530,7 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 - **Use standard OPL waveform names**
 - **FM parameter editor layout:**
   - **Modern**
+  - **Modern with more labels**
   - **Compact (2x2, classic)**
   - **Compact (1x4)**
   - **Compact (4x1)**
@@ -557,10 +562,19 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - slight performance cost and slightly buggy.
 - **Fill entire window**: removes the gap between the waveform and the edge of the window.
 - **Waveform goes out of bounds**: allows the waveform to draw past the top and bottom of the oscilloscope.
+- **Line size**: line thickness.
+- **Per-channel oscilloscope threads**: number of CPU threads allocated to handle individual oscilloscopes. a reasonable setting is the total number of available cores minus two.
+- **Oscilloscope rendering engine**: chooses which line-drawing method to use.
+  - **ImGui line plot**: use the UI's native rendering method. default.
+  - **GLSL (if available)**: render using shaders that run on the graphics card. only available when using the OpenGL 3.0 render backend.
 
 ### Song Comments
 
 - **Wrap text**: visually breaks long lines at the width of the text box. does not affect the text itself.
+
+### Chip Manager
+
+- **Show channel indicators**: chooses whether to show the row "LED" channel indicators in the chip manager.
 
 ### Windows
 

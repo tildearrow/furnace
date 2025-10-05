@@ -4,7 +4,7 @@ this is a list that contains some of the systems that Furnace supports, as shown
 
 some systems have alternate chips, such as the Sega Genesis having a YM2612 or YM3438 depending on the model. this list shows the default configuration.
 
-- **Sega Genesis**: [YM3438](ym2612.md), [SN76489](sms.md)
+- **Sega Genesis**: [YM2612](ym2612.md), [SN76489](sms.md)
 - **Sega Genesis (with Sega CD)**: [YM3438](ym2612.md), [SN76489](sms.md), [RF5C164](ricoh.md)
 <!-- -->
 - **Sega Master System**: [SN76489](sms.md)
@@ -12,7 +12,7 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612 or Y
 <!-- -->
 - **NES**: [2A03](nes.md)
 - **Famicom with Konami VRC6**: [2A03](nes.md), [VRC6](vrc6.md)
-- **Famicom with Konami VRC7**: [2A03](nes.md), [VRC7](opl.md)
+- **Famicom with Konami VRC7**: [2A03](nes.md), [VRC7](opll.md)
 - **Famicom with MMC5**: [2A03](nes.md), [MMC5](mmc5.md)
 - **Famicom with Sunsoft 5B**: [2A03](nes.md), [5B](ay8910.md)
 - **Famicom with Namco 163**: [2A03](nes.md), [N163](n163.md)
@@ -86,6 +86,7 @@ this is the full list of chips that Furnace supports.
 - [MSM5232](msm5232.md)
 - [MSM6258](msm6258.md)
 - [MSM6295](msm6295.md)
+- [MultiPCM](multipcm.md)
 - [Namco 163](n163.md)
 - [Namco C140](c140.md)
 - [Namco WSG/C15/C30](namco.md)
@@ -114,9 +115,10 @@ this is the full list of chips that Furnace supports.
 - [VIC](vic20.md)
 - [Virtual Boy](virtual-boy.md)
 - [VRC6](vrc6.md)
+- [Watara Supervision](watarasv.md)
 - [WonderSwan](wonderswan.md)
 - [X1-010](x1-010.md)
-- [Y8950, YM3526, YM3812 and YMF262 (OPL)](opl.md)
+- [Y8950, YM3526, YM3812, YMF262 and YMF278 (OPL)](opl.md)
 - [ESFM](esfm.md)
 - [VRC7 and YM2413 (OPLL)](opll.md)
 - [YM2414 (OPZ)](opz.md)

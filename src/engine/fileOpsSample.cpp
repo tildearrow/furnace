@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
 std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
   std::vector<DivSample*> ret;
 
-  if (song.sample.size()>=256) {
+  if (song.sample.size()>=32768) {
     lastError="too many samples!";
     return ret;
   }
@@ -313,12 +313,18 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
     logD("sample is 32-bit float");
     buf=new float[si.channels*si.frames];
     sampleLen=sizeof(float);
+  } else if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_DOUBLE)  {
+    logD("sample is 64-bit float");
+    buf=new float[si.channels*si.frames];
+    sampleLen=sizeof(double);
   } else {
     logD("sample is 16-bit signed");
     buf=new short[si.channels*si.frames];
     sampleLen=sizeof(short);
   }
-  if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8 || (si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_FLOAT) {
+  if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8 ||
+      (si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_FLOAT ||
+      (si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_DOUBLE) {
     if (sf_read_raw(f,buf,si.frames*si.channels*sampleLen)!=(si.frames*si.channels*sampleLen)) {
       logW("sample read size mismatch!");
     }
@@ -361,6 +367,19 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
       sample->data16[index++]=averaged;
     }
     delete[] (float*)buf;
+  } else if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_DOUBLE)  {
+    for (int i=0; i<si.frames*si.channels; i+=si.channels) {
+      double averaged=0.0f;
+      for (int j=0; j<si.channels; j++) {
+        averaged+=((double*)buf)[i+j];
+      }
+      averaged/=si.channels;
+      averaged*=32767.0;
+      if (averaged<-32768.0) averaged=-32768.0;
+      if (averaged>32767.0) averaged=32767.0;
+      sample->data16[index++]=averaged;
+    }
+    delete[] (double*)buf;
   } else {
     for (int i=0; i<si.frames*si.channels; i+=si.channels) {
       int averaged=0;
@@ -383,13 +402,12 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
   {
     // There's no documentation on libsndfile detune range, but the code
     // implies -50..50. Yet when loading a file you can get a >50 value.
-    // disabled for now
-    /*
-    if(inst.detune > 50)
-      inst.detune = inst.detune - 100;
-    short pitch = ((0x3c-inst.basenote)*100) + inst.detune;
-    sample->centerRate=si.samplerate*pow(2.0,pitch/(12.0 * 100.0));
-    */
+    if (getConfInt("sampleImportInstDetune", 0)) {
+      if(inst.detune > 50)
+        inst.detune = inst.detune - 100;
+      short pitch = ((0x3c-inst.basenote)*100) + inst.detune;
+      sample->centerRate=si.samplerate*pow(2.0,pitch/(12.0 * 100.0));
+    }
     if(inst.loop_count && inst.loops[0].mode >= SF_LOOP_FORWARD)
     {
       sample->loop=true;
@@ -413,7 +431,7 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
 }
 
 DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian, bool unsign, bool swapNibbles, int rate) {
-  if (song.sample.size()>=256) {
+  if (song.sample.size()>=32768) {
     lastError="too many samples!";
     return NULL;
   }
@@ -505,6 +523,7 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
     case DIV_SAMPLE_DEPTH_ADPCM_B:
     case DIV_SAMPLE_DEPTH_ADPCM_K:
     case DIV_SAMPLE_DEPTH_VOX:
+    case DIV_SAMPLE_DEPTH_4BIT:
       samples=lenDivided*2;
       break;
     case DIV_SAMPLE_DEPTH_IMA_ADPCM:
@@ -517,6 +536,9 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
       break;
     case DIV_SAMPLE_DEPTH_BRR:
       samples=16*((lenDivided+8)/9);
+      break;
+    case DIV_SAMPLE_DEPTH_12BIT:
+      samples=(2+(lenDivided*2))/3;
       break;
     case DIV_SAMPLE_DEPTH_16BIT:
       samples=(lenDivided+1)/2;
@@ -614,6 +636,7 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
       case DIV_SAMPLE_DEPTH_ADPCM_B:
       case DIV_SAMPLE_DEPTH_ADPCM_K:
       case DIV_SAMPLE_DEPTH_VOX:
+      case DIV_SAMPLE_DEPTH_4BIT:
         // swap nibbles
         for (unsigned int i=0; i<sample->getCurBufLen(); i++) {
           b[i]=(b[i]<<4)|(b[i]>>4);

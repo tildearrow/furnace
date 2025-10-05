@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,9 @@ void DivPlatformGBADMA::acquire(short** buf, size_t len) {
   // HLE for now
   int outL[2]={0,0};
   int outR[2]={0,0};
+  for (int i=0; i<2; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t h=0; h<len; h++) {
     // internal mixing is always 10-bit
     for (int i=0; i<2; i++) {
@@ -87,7 +90,7 @@ void DivPlatformGBADMA::acquire(short** buf, size_t len) {
         outL[i]=(chan[i].pan&2)?out:0;
         outR[i]=(chan[i].pan&1)?out:0;
       }
-      oscBuf[i]->data[oscBuf[i]->needle++]=(short)((outL[i]+outR[i])<<5);
+      oscBuf[i]->putSample(h,(short)((outL[i]+outR[i])<<5));
     }
     int l=outL[0]+outL[1];
     int r=outR[0]+outR[1];
@@ -99,6 +102,9 @@ void DivPlatformGBADMA::acquire(short** buf, size_t len) {
     if (r>32767) r=32767;
     buf[0][h]=(short)l;
     buf[1][h]=(short)r;
+  }
+  for (int i=0; i<2; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -159,7 +165,7 @@ void DivPlatformGBADMA::tick(bool sysTick) {
       double off=1.0;
       if (!chan[i].useWave && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
         DivSample* s=parent->getSample(chan[i].sample);
-        off=(s->centerRate>=1)?(8363.0/(double)s->centerRate):1.0;
+        off=(s->centerRate>=1)?(parent->getCenterRate()/(double)s->centerRate):1.0;
       }
       chan[i].freq=off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
 
@@ -442,7 +448,7 @@ size_t DivPlatformGBADMA::getSampleMemUsage(int index) {
 
 bool DivPlatformGBADMA::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -457,6 +463,8 @@ const DivMemoryComposition* DivPlatformGBADMA::getMemCompo(int index) {
 void DivPlatformGBADMA::renderSamples(int sysID) {
   size_t maxPos=getSampleMemCapacity();
   memset(sampleMem,0,maxPos);
+  memset(sampleOff,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
   romMemCompo.entries.clear();
   romMemCompo.capacity=maxPos;
 
@@ -493,7 +501,7 @@ void DivPlatformGBADMA::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock>>outDepth;
   for (int i=0; i<2; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 
@@ -526,4 +534,15 @@ void DivPlatformGBADMA::quit() {
   for (int i=0; i<2; i++) {
     delete oscBuf[i];
   }
+}
+
+// initialization of important arrays
+DivPlatformGBADMA::DivPlatformGBADMA() {
+  sampleOff=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
+DivPlatformGBADMA::~DivPlatformGBADMA() {
+  delete[] sampleOff;
+  delete[] sampleLoaded;
 }

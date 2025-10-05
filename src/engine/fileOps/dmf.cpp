@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -910,7 +910,8 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       int vol=50;
       short* data;
       unsigned char* adpcmData;
-      if (length<0) {
+      // I don't think a sample can be that big
+      if (length<0 || length>(1<<29L)) {
         logE("invalid sample length %d. are we doing something wrong?",length);
         lastError="file is corrupt or unreadable at samples";
         delete[] file;
@@ -928,6 +929,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         sample->centerRate=sample->rate;
         pitch=reader.readC();
         vol=reader.readC();
+
+        if (pitch<0 || pitch>10) {
+          logW("%d: sample pitch is wrong! (%d)",i,pitch);
+          pitch=5;
+        }
       }
       if (ds.version<=0x08) {
         sample->rate=ymuSampleRate*400;
@@ -1273,8 +1279,8 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   for (int i=0; i<chans; i++) {
     for (int j=0; j<curSubSong->ordersLen; j++) {
       if (curOrders->ord[i][j]>0x7f) {
-        logE("order %d, %d is out of range (0-127)!",curOrders->ord[i][j]);
-        lastError=fmt::sprintf("order %d, %d is out of range (0-127)",curOrders->ord[i][j]);
+        logE("order %d, %d is out of range (0-127)!",i,j);
+        lastError=fmt::sprintf("order %d, %d is out of range (0-127)",i,j);
         return NULL;
       }
     }

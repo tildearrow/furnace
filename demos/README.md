@@ -7,24 +7,27 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 # contributors
 
 - 0x5066
-- aarchMoth
+- 4sythe
 - Abstract 64
 - Aburtos
 - ActualNK358
 - Aishi Tsukumo
 - akumanatt
 - aloelucidity
+- ALTMUS
 - AmigaX
 - AquaDoesStuff
+- asikwus
 - AstralBlue
-- Background2982
 - battybeats
 - bbqzzd
 - Bernie
 - billimanmcjonnson
+- biolizardshadow
 - BlastBrothers
 - Blaze Weednix
 - BlueElectric05
+- Boycraft18462
 - breakthetargets
 - brickblock369
 - Brightonic
@@ -51,18 +54,23 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - Forte
 - Fragmare
 - freq-mod
+- Furmilion
 - gtr3qq
+- halberd (lordlydumbass)
+- Heckett Heriot
 - Heemin
 - Hortus
 - ifrit05
 - iyatemu
+- jaezu
 - JayBOB18
 - Jimmy-DS
+- jvsTSX
 - Kagamiin~
 - Kaoru
 - kleeder
 - Korbo
-- jaezu
+- KungFuFurby
 - Laggy
 - leejh20
 - LovelyA72
@@ -75,6 +83,7 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - Miker
 - Molkirill
 - MrCoolDude
+- Mr. Saturn
 - NeoWar
 - Nerreave
 - niffuM
@@ -83,6 +92,7 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - Notakin
 - nwcr
 - NyaongI
+- OddPandemonium
 - PeyPey
 - PichuMario
 - pixelated
@@ -107,6 +117,8 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - Someone64
 - Spinning Square Waves
 - src3453
+- StarryPen / Pen64
+- stomatol
 - SuperJet Spade
 - Supper\_E1
 - SwapXFO
@@ -118,10 +130,11 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - TCORPStudios
 - Teuthida
 - ThaCuber
+- The Beesh-Spweesh!
 - The Blender Fiddler
 - TheDuccinator
+- The Goofy-Mouse
 - theloredev
-- The Beesh-Spweesh!
 - TheRealHedgehogSonic
 - tildearrow
 - tom\_atom
@@ -132,21 +145,12 @@ these demo songs are not under the GPL. all rights are reserved to the original 
 - Weeppiko
 - Wegfrei
 - Xan
-- Yuzu4K
+- Yuzugure!
 - Zabir
+- Zaxinoth Digital
 - Zaxolotl
 - ZoomTen (Zumi)
 
 # submit demo songs!
 
-contact me or send a pull request if you want your song to be added to this collection. be noted we have three rules:
-
-- Nintendo covers are frowned upon
-- big label music covers also are discouraged
-- low effort compositions/covers may not be accepted at all.
-
-make sure to put your demo song under the respective category.
-
-tildearrow also accepts demo songs in the .dmf format as well as the .fur format.
-
-thank you for contributing!
+we are not accepting demo song submissions at the moment. sorry!

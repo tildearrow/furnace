@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 
 FILE* ps_fopen(const char* path, const char* mode);
 bool moveFiles(const char* src, const char* dest);
+bool copyFiles(const char* src, const char* dest);
 bool deleteFile(const char* path);
 // returns 1 if file exists, 0 if it doesn't and -1 on error.
 int fileExists(const char* path);

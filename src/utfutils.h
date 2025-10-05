@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,5 +32,8 @@ char utf8csize(const unsigned char* c);
 
 WString utf8To16(const char* in);
 String utf16To8(const wchar_t* in);
+
+WString utf8To16(String& in);
+String utf16To8(WString& in);
 
 #endif

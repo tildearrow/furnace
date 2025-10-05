@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,10 +24,10 @@
 #include "../../../extern/opn/ym3438.h"
 #include "sound/ymfm/ymfm_opn.h"
 
-#define PLEASE_HELP_ME(_targetChan) \
+#define PLEASE_HELP_ME(_targetChan,blk) \
   int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,0,false); \
   int boundaryTop=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,12,false); \
-  int destFreq=NOTE_FNUM_BLOCK(c.value2,11); \
+  int destFreq=NOTE_FNUM_BLOCK(c.value2,11,blk); \
   int newFreq; \
   bool return2=false; \
   if (_targetChan.portaPause) { \
@@ -197,6 +197,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
       extSys(isExtSys),
       fbAllOps(false),
       useCombo(0) {}
+    virtual ~DivPlatformOPN() {}
   public:
     void setCombo(unsigned char combo) {
       useCombo=combo;
@@ -213,6 +214,13 @@ class DivPlatformOPN: public DivPlatformFMBase {
       return DivPlatformFMBase::mapVelocity(ch,vel);
     }
     virtual float getGain(int ch, int vol) {
+      if (extSys) {
+        if (ch>=extChanOffs+4) {
+          ch-=4;
+        } else if (ch>=extChanOffs) {
+          ch=extChanOffs;
+        }
+      }
       if (vol==0) return 0;
       if (ch==csmChan) return 1;
       if (ch==adpcmBChanOffs) return (float)vol/255.0;

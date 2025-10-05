@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,5 +24,6 @@
 
 std::string taEncodeBase64(const std::string& data);
 std::string taDecodeBase64(const char* str);
+std::string taDecodeBase64(const std::string& str);
 
 #endif

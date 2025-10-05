@@ -4,9 +4,11 @@ a handheld console released only in Japan by Bandai, designed by the same people
 for this reason it has lots of similar elements from those two systems in the sound department.
 
 it has 4 wavetable channels. some of them have additional capabilities:
-- the second channel could play samples
-- the third one has hardware sweep
-- the fourth one also does noise
+- the second channel could play samples.
+- the third one has hardware sweep.
+- the fourth one also does noise.
+
+unfortunately, the system mixes and outputs sound at only 24kHz, leading to noticeable aliasing noise...
 
 ## effects
 
@@ -15,15 +17,27 @@ it has 4 wavetable channels. some of them have additional capabilities:
   - 0: disable.
   - 1-8: enable and set length.
 - `12xx`: **setup sweep period.** channel 3 only.
-  - 0: disable.
-  - 1-32: enable and set period.
+  - `00`: disable.
+  - `01`-`20`: enable and set period for 1 to 32.
 - `13xx`: **setup sweep amount.** channel 3 only.
   - `00` to `7F` for 0 to 127.
   - `80` to `FF` for -128 to -1.
+- `20xx`: **set internal speaker loudness.**
+  - 0-1: 100% (default).
+  - 2-3: 200%.
+  - 4-7: 400%.
+  - 8: 800%.
+  - has no effect when "Headphone output" is on. see "chip config" below.
 
 ## info
 
 this chip uses the [WonderSwan](../4-instrument/wonderswan.md) instrument editor.
+
+## chip config
+
+the following option is available in the Chip Manager window:
+
+- **Headphone output**: enables stereo 16-bit output. if disabled, the internal speaker's 8-bit mono output is used. default is on.
 
 ## channel status
 

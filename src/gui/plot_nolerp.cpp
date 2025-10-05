@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -135,7 +135,7 @@ int PlotNoLerpEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
         const ImU32 col_base = ImGui::GetColorU32((plot_type == ImGuiPlotType_Lines) ? ImGuiCol_PlotLines : ImGuiCol_PlotHistogram);
         const ImU32 col_hovered = ImGui::GetColorU32((plot_type == ImGuiPlotType_Lines) ? ImGuiCol_PlotLinesHovered : ImGuiCol_PlotHistogramHovered);
 
-        for (int n = 0; n < res_w; n++)
+        for (int n = 1; n <= res_w; n++)
         {
             const float t1 = t0 + t_step;
             const int v1_idx = (int)(t0 * item_count + 0.5f);
@@ -153,7 +153,8 @@ int PlotNoLerpEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
             if (plot_type == ImGuiPlotType_Lines)
             {
                 window->DrawList->AddLine(pos0, pos1, idx_hovered == v1_idx ? col_hovered : col_base);
-                window->DrawList->AddLine(pos2, pos3, idx_hovered == v1_idx ? col_hovered : col_base);
+                if (n < res_w)
+                    window->DrawList->AddLine(pos2, pos3, idx_hovered == v1_idx ? col_hovered : col_base);
             }
             else if (plot_type == ImGuiPlotType_Histogram)
             {
@@ -439,15 +440,17 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
                 if (blockMode) {
                   if ((int)v0>=(int)(scale_max+0.5)) {
                     float chScale=(pos1.x-pos0.x)*0.125;
-                    chevron[0]=ImVec2(pos0.x+(pos1.x-pos0.x)*0.25,pos1.y+4.0f*chScale);
-                    chevron[1]=ImVec2(pos0.x+(pos1.x-pos0.x)*0.5,pos1.y+2.0f*chScale);
-                    chevron[2]=ImVec2(pos0.x+(pos1.x-pos0.x)*0.75,pos1.y+4.0f*chScale);
+                    if (chScale>frame_size.y*0.05) chScale=frame_size.y*0.05;
+                    chevron[0]=ImVec2((pos1.x+pos0.x)*0.5-(2.0f*chScale),pos1.y+4.0f*chScale);
+                    chevron[1]=ImVec2((pos1.x+pos0.x)*0.5,pos1.y+2.0f*chScale);
+                    chevron[2]=ImVec2((pos1.x+pos0.x)*0.5+(2.0f*chScale),pos1.y+4.0f*chScale);
                     window->DrawList->AddPolyline(chevron, 3, rCol, 0, chScale);
                   } else if ((int)v0<(int)(scale_min)) {
                     float chScale=(pos1.x-pos0.x)*0.125;
-                    chevron[0]=ImVec2(pos0.x+(pos1.x-pos0.x)*0.25,pos1.y-4.0f*chScale);
-                    chevron[1]=ImVec2(pos0.x+(pos1.x-pos0.x)*0.5,pos1.y-2.0f*chScale);
-                    chevron[2]=ImVec2(pos0.x+(pos1.x-pos0.x)*0.75,pos1.y-4.0f*chScale);
+                    if (chScale>frame_size.y*0.05) chScale=frame_size.y*0.05;
+                    chevron[0]=ImVec2((pos1.x+pos0.x)*0.5-(2.0f*chScale),pos1.y-4.0f*chScale);
+                    chevron[1]=ImVec2((pos1.x+pos0.x)*0.5,pos1.y-2.0f*chScale);
+                    chevron[2]=ImVec2((pos1.x+pos0.x)*0.5+(2.0f*chScale),pos1.y-4.0f*chScale);
                     window->DrawList->AddPolyline(chevron, 3, rCol, 0, chScale);
                   } else {
                     window->DrawList->AddRectFilled(pos0, pos1, rCol);
@@ -480,7 +483,8 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
 
       std::string guide1=guideFunc(scale_min);
       ImVec2 maxPos=frame_bb.Min;
-      maxPos.y=frame_bb.Max.y-ImGui::GetFont()->FontSize;
+      // TODO: get rid of LegacySize somehow
+      maxPos.y=frame_bb.Max.y-ImGui::GetFont()->LegacySize;
       window->DrawList->AddText(maxPos+ImVec2(1.0f,1.0f),0xff000000,guide1.c_str());
       window->DrawList->AddText(maxPos+ImVec2(1.0f,-1.0f),0xff000000,guide1.c_str());
       window->DrawList->AddText(maxPos+ImVec2(-1.0f,1.0f),0xff000000,guide1.c_str());

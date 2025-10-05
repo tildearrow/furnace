@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -88,6 +88,7 @@ void DivPlatformPokeMini::rWrite(unsigned char addr, unsigned char val) {
 
 void DivPlatformPokeMini::acquire(short** buf, size_t len) {
   int out=0;
+  oscBuf->begin(len);
   for (size_t i=0; i<len; i++) {
     for (int j=0; j<PCSPKR_DIVIDER; j++) {
       elapsedMain++;
@@ -103,12 +104,13 @@ void DivPlatformPokeMini::acquire(short** buf, size_t len) {
     if (on) {
       out=(pos>=pivot && !isMuted[0])?volTable[vol&3]:0;
       buf[0][i]=out;
-      oscBuf->data[oscBuf->needle++]=out;
+      oscBuf->putSample(i,out);
     } else {
       buf[0][i]=0;
-      oscBuf->data[oscBuf->needle++]=0;
+      oscBuf->putSample(i,0);
     }
   }
+  oscBuf->end(len);
 }
 
 void DivPlatformPokeMini::tick(bool sysTick) {
@@ -323,7 +325,7 @@ void DivPlatformPokeMini::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
 
   rate=chipClock/PCSPKR_DIVIDER;
-  oscBuf->rate=rate;
+  oscBuf->setRate(rate);
 }
 
 void DivPlatformPokeMini::notifyInsDeletion(void* ins) {

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev223"
-#define DIV_ENGINE_VERSION 223
+#define DIV_VERSION "dev233"
+#define DIV_ENGINE_VERSION 233
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -261,8 +261,8 @@ struct DivDispatchContainer {
   void setRates(double gotRate);
   void setQuality(bool lowQual, bool dcHiPass);
   void grow(size_t size);
-  void acquire(size_t offset, size_t count);
-  void flush(size_t count);
+  void acquire(size_t count);
+  void flush(size_t offset, size_t count);
   void fillBuf(size_t runtotal, size_t offset, size_t size);
   void clear();
   void init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, const DivConfig& flags, bool isRender=false);
@@ -475,7 +475,7 @@ class DivEngine {
   int midiOutTimeRate;
   float midiVolExp;
   int softLockCount;
-  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, curExportChan, nextSpeed, elapsedBars, elapsedBeats, curSpeed;
+  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, curExportChan, nextSpeed, prevSpeed, elapsedBars, elapsedBeats, curSpeed;
   size_t curSubSongIndex;
   size_t bufferPos;
   double divider;
@@ -577,13 +577,13 @@ class DivEngine {
   DivWorkPool* renderPool;
 
   // MIDI stuff
-  std::function<int(const TAMidiMessage&)> midiCallback=[](const TAMidiMessage&) -> int {return -2;};
+  std::function<int(const TAMidiMessage&)> midiCallback=[](const TAMidiMessage&) -> int {return -3;};
 
   void processRowPre(int i);
   void processRow(int i, bool afterDelay);
   void nextOrder();
   void nextRow();
-  void performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, int* setPos, unsigned int* sampleOff8, unsigned int* sampleLen8, size_t bankOffset, bool directStream, bool* sampleStoppable);
+  void performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, int* setPos, unsigned int* sampleOff8, unsigned int* sampleLen8, size_t bankOffset, bool directStream, bool* sampleStoppable, bool dpcm07, DivDispatch** writeNES, int rateCorrection);
   // returns true if end of song.
   bool nextTick(bool noAccum=false, bool inhibitLowLat=false);
   bool perSystemEffect(int ch, unsigned char effect, unsigned char effectVal);
@@ -612,6 +612,7 @@ class DivEngine {
   void loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadTFI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadVGI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadEIF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadS3I(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
@@ -648,6 +649,7 @@ class DivEngine {
   void exchangeWave(int one, int two);
   void exchangeSample(int one, int two);
 
+  void copyChannel(int src, int dest);
   void swapChannels(int src, int dest);
   void stompChannel(int ch);
 
@@ -675,6 +677,8 @@ class DivEngine {
   friend class DivExportSAPR;
   friend class DivExportTiuna;
   friend class DivExportZSM;
+  friend class DivExportiPod;
+  friend class DivExportGRUB;
 
   public:
     DivSong song;
@@ -726,11 +730,11 @@ class DivEngine {
     // - x to add x+1 ticks of trailing
     // - -1 to auto-determine trailing
     // - -2 to add a whole loop of trailing
-    SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171, bool patternHints=false, bool directStream=false, int trailingTicks=-1);
+    SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171, bool patternHints=false, bool directStream=false, int trailingTicks=-1, bool dpcm07=false, int correctedRate=44100);
     // dump to TIunA.
     SafeWriter* saveTiuna(const bool* sysToExport, const char* baseLabel, int firstBankSize, int otherBankSize);
     // dump command stream.
-    SafeWriter* saveCommand();
+    SafeWriter* saveCommand(DivCSProgress* progress=NULL, DivCSOptions options=DivCSOptions());
     // export to text
     SafeWriter* saveText(bool separatePatterns=true);
     // export to an audio file
@@ -745,6 +749,8 @@ class DivEngine {
     void notifyInsChange(int ins);
     // notify wavetable change
     void notifyWaveChange(int wave);
+    // notify sample change
+    void notifySampleChange(int sample);
 
     // dispatch a command
     int dispatchCmd(DivCommand c);
@@ -805,10 +811,10 @@ class DivEngine {
     double calcBaseFreq(double clock, double divider, int note, bool period);
 
     // calculate base frequency in f-num/block format
-    int calcBaseFreqFNumBlock(double clock, double divider, int note, int bits);
+    int calcBaseFreqFNumBlock(double clock, double divider, int note, int bits, int fixedBlock);
 
     // calculate frequency/period
-    int calcFreq(int base, int pitch, int arp, bool arpFixed, bool period=false, int octave=0, int pitch2=0, double clock=1.0, double divider=1.0, int blockBits=0);
+    int calcFreq(int base, int pitch, int arp, bool arpFixed, bool period=false, int octave=0, int pitch2=0, double clock=1.0, double divider=1.0, int blockBits=0, int fixedBlock=0);
 
     // calculate arpeggio
     int calcArp(int note, int arp, int offset=0);
@@ -838,6 +844,9 @@ class DivEngine {
 
     // reset playback state
     void syncReset();
+
+    // get C-4 rate for samples
+    double getCenterRate();
 
     // sample preview query
     bool isPreviewingSample();
@@ -962,6 +971,7 @@ class DivEngine {
 
     // synchronous get order/row
     void getPlayPos(int& order, int& row);
+    void getPlayPosTick(int& order, int& row, int& tick, int& speed);
 
     // get beat/bar
     int getElapsedBars();
@@ -1257,6 +1267,9 @@ class DivEngine {
     // >=0: render specific sample
     void renderSamplesP(int whichSample=-1);
 
+    // public copy channel
+    void copyChannelP(int src, int dest);
+
     // public swap channels
     void swapChannelsP(int src, int dest);
 
@@ -1336,7 +1349,7 @@ class DivEngine {
     void setMidiVolExp(float value);
 
     // set MIDI input callback
-    // if the specified function returns -2, note feedback will be inhibited.
+    // if the specified function returns -3, note feedback will be inhibited.
     void setMidiCallback(std::function<int(const TAMidiMessage&)> what);
 
     // send MIDI message
@@ -1439,6 +1452,7 @@ class DivEngine {
       exportLoopCount(0),
       curExportChan(0),
       nextSpeed(3),
+      prevSpeed(6),
       elapsedBars(0),
       elapsedBeats(0),
       curSpeed(0),

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,13 @@
 void DivDispatch::acquire(short** buf, size_t len) {
 }
 
+void DivDispatch::acquireDirect(blip_buffer_t** bb, size_t len) {
+}
+
 void DivDispatch::fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len) {
+}
+
+void DivDispatch::postProcess(short* buf, int outIndex, size_t len, int sampleRate) {
 }
 
 void DivDispatch::tick(bool sysTick) {
@@ -127,6 +133,10 @@ bool DivDispatch::getDCOffRequired() {
   return false;
 }
 
+bool DivDispatch::hasAcquireDirect() {
+  return false;
+}
+
 bool DivDispatch::getWantPreNote() {
   return false;
 }
@@ -150,7 +160,15 @@ void DivDispatch::notifyInsChange(int ins) {
 
 }
 
-void DivDispatch::notifyWaveChange(int ins) {
+void DivDispatch::notifyWaveChange(int wave) {
+
+}
+
+void DivDispatch::notifySampleChange(int sample) {
+
+}
+
+void DivDispatch::notifyInsAddition(int sysID) {
 
 }
 
@@ -200,6 +218,14 @@ const char* DivDispatch::getSampleMemName(int index) {
 }
 
 size_t DivDispatch::getSampleMemUsage(int index) {
+  return 0;
+}
+
+bool DivDispatch::hasSamplePtrHeader(int index) {
+  return false;
+}
+
+size_t DivDispatch::getSampleMemOffset(int index) {
   return 0;
 }
 

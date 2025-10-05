@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,8 +44,8 @@ class DivPlatformRF5C68: public DivDispatch {
   bool isMuted[8];
   int chipType;
   unsigned char curChan;
-  unsigned int sampleOffRFC[256];
-  bool sampleLoaded[256];
+  unsigned int* sampleOffRFC;
+  bool* sampleLoaded;
 
   unsigned char* sampleMem;
   size_t sampleMemLen;
@@ -85,6 +85,8 @@ class DivPlatformRF5C68: public DivDispatch {
     void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
+    DivPlatformRF5C68();
+    ~DivPlatformRF5C68();
   private:
     void chWrite(unsigned char ch, unsigned int addr, unsigned char val);
 };

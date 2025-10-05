@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@ enum DivStringEncoding {
   DIV_ENCODING_NONE=0,
   DIV_ENCODING_UTF8,
   DIV_ENCODING_LATIN1,
+  DIV_ENCODING_LATIN1_SPECIAL,
   DIV_ENCODING_SHIFT_JIS
 };
 
@@ -77,6 +78,8 @@ class SafeReader {
     String readString(size_t len);
     String readStringLatin1();
     String readStringLatin1(size_t len);
+    String readStringLatin1Special();
+    String readStringLatin1Special(size_t len);
     String readStringLine();
     String readStringToken(unsigned char delim, bool stripContiguous);
     String readStringToken();

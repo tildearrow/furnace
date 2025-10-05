@@ -32,6 +32,10 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 228: Furnace 0.6.8.1
+- 227: Furnace 0.6.8
+- 226: Furnace 0.6.8pre2
+- 225: Furnace 0.6.8pre1
 - 219: Furnace 0.6.7
 - 218: Furnace 0.6.6
 - 214: Furnace 0.6.5
@@ -178,7 +182,7 @@ size | description
      |   - 0x8f: OPL (YM3526) - 9 channels
      |   - 0x90: OPL2 (YM3812) - 9 channels
      |   - 0x91: OPL3 (YMF262) - 18 channels
-     |   - 0x92: MultiPCM - 28 channels (UNAVAILABLE)
+     |   - 0x92: MultiPCM - 28 channels
      |   - 0x93: Intel 8253 (beeper) - 1 channel
      |   - 0x94: POKEY - 4 channels
      |   - 0x95: RF5C68 - 8 channels
@@ -257,9 +261,9 @@ size | description
      |   - 0xdf: YM2612 XGM extended - 13 channels (UNAVAILABLE)
      |   - 0xe0: QSound - 19 channels
      |   - 0xe1: PS1 - 24 channels (UNAVAILABLE)
-     |   - 0xe2: C64 (6581) with PCM - 4 channels (UNAVAILABLE)
+     |   - 0xe2: C64 (6581) with PCM - 4 channels
      |   - 0xe3: Watara Supervision - 4 channels
-     |   - 0xe4: µPD1771C - 1 channel
+     |   - 0xe5: µPD1771C-017 - 4 channels
      |   - 0xf0: SID2 - 3 channels
      |   - 0xf1: 5E01 - 5 channels
      |   - 0xf5: SID3 - 7 channels
@@ -393,7 +397,7 @@ size | description
   1  | legacy "always set volume" behavior (>=191)
   1  | legacy sample offset effect (>=200)
  --- | **speed pattern of first song** (>=139)
-  1  | length of speed pattern (fail if this is lower than 0 or higher than 16)
+  1  | length of speed pattern (fail if this is lower than 1 or higher than 16)
  16  | speed pattern (this overrides speed 1 and speed 2 settings)
  --- | **groove list** (>=139)
   1  | number of entries
@@ -474,7 +478,7 @@ size | description
  S?? | channel short names
      | - same as above
  --- | **speed pattern** (>=139)
-  1  | length of speed pattern (fail if this is lower than 0 or higher than 16)
+  1  | length of speed pattern (fail if this is lower than 1 or higher than 16)
  16  | speed pattern (this overrides speed 1 and speed 2 settings)
 ```
 

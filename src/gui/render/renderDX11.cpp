@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -308,21 +308,13 @@ void FurnaceGUIRenderDX11::clear(ImVec4 color) {
   context->ClearRenderTargetView(renderTarget,floatColor);
 }
 
-bool FurnaceGUIRenderDX11::newFrame() {
-  return ImGui_ImplDX11_NewFrame();
+void FurnaceGUIRenderDX11::newFrame() {
+  ImGui_ImplDX11_NewFrame();
 }
 
 bool FurnaceGUIRenderDX11::canVSync() {
   // TODO: find out how to retrieve VSync status
   return true;
-}
-
-void FurnaceGUIRenderDX11::createFontsTexture() {
-  ImGui_ImplDX11_CreateDeviceObjects();
-}
-
-void FurnaceGUIRenderDX11::destroyFontsTexture() {
-  ImGui_ImplDX11_InvalidateDeviceObjects();
 }
 
 void FurnaceGUIRenderDX11::renderGUI() {

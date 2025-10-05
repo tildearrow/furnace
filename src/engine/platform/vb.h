@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,22 +27,29 @@
 
 class DivPlatformVB: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
+    int antiClickPeriodCount, antiClickWavePos;
     unsigned char pan, envLow, envHigh;
-    bool noise, deferredWaveUpdate;
+    bool noise, deferredWaveUpdate, intWritten;
+    unsigned char hasEnvWarning;
     signed short wave;
     DivWaveSynth ws;
     Channel():
       SharedChannel<signed char>(15),
+      antiClickPeriodCount(0),
+      antiClickWavePos(0),
       pan(255),
       envLow(0),
       envHigh(0),
       noise(false),
       deferredWaveUpdate(false),
+      intWritten(false),
+      hasEnvWarning(0),
       wave(-1) {}
   };
   Channel chan[6];
   DivDispatchOscBuffer* oscBuf[6];
   bool isMuted[6];
+  bool antiClickEnabled, screwThis;
   struct QueuedWrite {
     unsigned short addr;
     unsigned char val;
@@ -68,11 +75,12 @@ class DivPlatformVB: public DivDispatch {
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
-    void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
+    DivChannelModeHints getModeHints(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
@@ -83,6 +91,7 @@ class DivPlatformVB: public DivDispatch {
     void muteChannel(int ch, bool mute);
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
+    bool hasAcquireDirect();
     float getPostAmp();
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
@@ -90,7 +99,6 @@ class DivPlatformVB: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    void setCoreQuality(unsigned char q);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformVB();

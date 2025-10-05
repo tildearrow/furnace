@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1101,15 +1101,35 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
               break;
             case 'S': // special...
               switch (effectVal>>4) {
-                case 0x8:
+                case 0x3: // vibrato waveform
+                  switch (effectVal&3) {
+                    case 0x0: // sine
+                      p->data[readRow][effectCol[chan]++]=0xe3;
+                      p->data[readRow][effectCol[chan]++]=0x00;
+                      break;
+                    case 0x1: // ramp down
+                      p->data[readRow][effectCol[chan]++]=0xe3;
+                      p->data[readRow][effectCol[chan]++]=0x05;
+                      break;
+                    case 0x2: // square
+                      p->data[readRow][effectCol[chan]++]=0xe3;
+                      p->data[readRow][effectCol[chan]++]=0x06;
+                      break;
+                    case 0x3: // random
+                      p->data[readRow][effectCol[chan]++]=0xe3;
+                      p->data[readRow][effectCol[chan]++]=0x07;
+                      break;
+                  }
+                  break;
+                case 0x8: // panning
                   p->data[readRow][effectCol[chan]++]=0x80;
                   p->data[readRow][effectCol[chan]++]=(effectVal&15)<<4;
                   break;
-                case 0xc:
+                case 0xc: // note cut
                   p->data[readRow][effectCol[chan]++]=0xec;
                   p->data[readRow][effectCol[chan]++]=effectVal&15;
                   break;
-                case 0xd:
+                case 0xd: // note delay
                   p->data[readRow][effectCol[chan]++]=0xed;
                   p->data[readRow][effectCol[chan]++]=effectVal&15;
                   break;

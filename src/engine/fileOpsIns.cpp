@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ enum DivInsFormats {
   DIV_INSFORMAT_DMP,
   DIV_INSFORMAT_TFI,
   DIV_INSFORMAT_VGI,
+  DIV_INSFORMAT_EIF,
   DIV_INSFORMAT_FTI,
   DIV_INSFORMAT_BTI,
   DIV_INSFORMAT_S3I,
@@ -485,6 +486,48 @@ void DivEngine::loadVGI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       op.ssgEnv=reader.readC();
     }
   } catch (EndOfFileException& e) {
+    lastError="premature end of file";
+    logE("premature end of file");
+    delete ins;
+    return;
+  }
+
+  ret.push_back(ins);
+}
+
+void DivEngine::loadEIF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
+  DivInstrument* ins=new DivInstrument;
+  try {
+    unsigned char bytes[29];
+
+    reader.seek(0,SEEK_SET);
+
+    ins->type=DIV_INS_FM;
+    ins->name=stripPath;
+
+    for (int i=0; i<29; i++) {
+      bytes[i] = reader.readC();
+    }
+
+    ins->fm.alg=bytes[0]&0x07;
+    ins->fm.fb=(bytes[0]>>3)&0x07;
+
+    for (int i=0; i<4; i++) {
+      DivInstrumentFM::Operator& op=ins->fm.op[i];
+
+      op.mult=bytes[1+i]&0x0F;
+      op.dt=(bytes[1+i]>>4)&0x07;
+      op.tl=bytes[5+i]&0x7F;
+      op.rs=(bytes[9+i]>>6)&0x03;
+      op.ar=bytes[9+i]&0x1F;
+      op.dr=bytes[13+i]&0x1F;
+      op.am=(bytes[13+i]&0x80)?1:0;
+      op.d2r=bytes[17+i]&0x1F;
+      op.rr=bytes[21+i]&0x0F;
+      op.sl=(bytes[21+i]>>4)&0x0F;
+      op.ssgEnv=bytes[25+i]&0x0F;
+    }
+   } catch (EndOfFileException& e) {
     lastError="premature end of file";
     logE("premature end of file");
     delete ins;
@@ -1971,6 +2014,8 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path, bool
         format=DIV_INSFORMAT_TFI;
       } else if (extS==".vgi") {
         format=DIV_INSFORMAT_VGI;
+      } else if (extS==".eif") {
+        format=DIV_INSFORMAT_EIF;
       } else if (extS==".fti") {
         format=DIV_INSFORMAT_FTI;
       } else if (extS==".bti") {
@@ -2014,6 +2059,9 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path, bool
         break;
       case DIV_INSFORMAT_VGI:
         loadVGI(reader,ret,stripPath);
+        break;
+      case DIV_INSFORMAT_EIF:
+        loadEIF(reader,ret,stripPath);
         break;
       case DIV_INSFORMAT_FTI: // TODO
         break;

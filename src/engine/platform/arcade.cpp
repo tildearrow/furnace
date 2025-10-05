@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,6 +54,10 @@ const char** DivPlatformArcade::getRegisterSheet() {
 void DivPlatformArcade::acquire_nuked(short** buf, size_t len) {
   thread_local int o[2];
 
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     if (delay>0) delay--;
     for (int i=0; i<8; i++) {
@@ -81,7 +85,7 @@ void DivPlatformArcade::acquire_nuked(short** buf, size_t len) {
 
     for (int i=0; i<8; i++) {
       int chOut=(int16_t)fm.ch_out[i];
-      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(chOut<<1,-32768,32767);
+      oscBuf[i]->putSample(h,CLAMP(chOut<<1,-32768,32767));
     }
 
     if (o[0]<-32768) o[0]=-32768;
@@ -93,12 +97,20 @@ void DivPlatformArcade::acquire_nuked(short** buf, size_t len) {
     buf[0][h]=o[0];
     buf[1][h]=o[1];
   }
+
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->end(len);
+  }
 }
 
 void DivPlatformArcade::acquire_ymfm(short** buf, size_t len) {
   thread_local int os[2];
 
   ymfm::ym2151::fm_engine* fme=fm_ymfm->debug_engine();
+
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->begin(len);
+  }
 
   for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
@@ -121,7 +133,7 @@ void DivPlatformArcade::acquire_ymfm(short** buf, size_t len) {
 
     for (int i=0; i<8; i++) {
       int chOut=fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1);
-      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(chOut,-32768,32767);
+      oscBuf[i]->putSample(h,CLAMP(chOut,-32768,32767));
     }
 
     os[0]=out_ymfm.data[0];
@@ -134,6 +146,10 @@ void DivPlatformArcade::acquire_ymfm(short** buf, size_t len) {
 
     buf[0][h]=os[0];
     buf[1][h]=os[1];
+  }
+
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -585,6 +601,26 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       rWrite(0x1b,c.value&3);
       break;
     }
+    case DIV_CMD_FM_ALG: {
+      chan[c.chan].state.alg=c.value&7;
+      if (isMuted[c.chan]) {
+        rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
+      } else {
+        rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3)|((chan[c.chan].chVolL&1)<<6)|((chan[c.chan].chVolR&1)<<7));
+      }
+      for (int i=0; i<4; i++) {
+        unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
+        DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
+        if (!op.enable) {
+          rWrite(baseAddr+ADDR_TL,127);
+        } else if (KVS(c.chan,i)) {
+          rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[c.chan].outVol&0x7f,127));
+        } else {
+          rWrite(baseAddr+ADDR_TL,op.tl);
+        }
+      }
+      break;
+    }
     case DIV_CMD_FM_FB: {
       chan[c.chan].state.fb=c.value&7;
       if (isMuted[c.chan]) {
@@ -592,6 +628,16 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       } else {
         rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3)|((chan[c.chan].chVolL&1)<<6)|((chan[c.chan].chVolR&1)<<7));
       }
+      break;
+    }
+    case DIV_CMD_FM_FMS: {
+      chan[c.chan].state.fms=c.value&7;
+      rWrite(chanOffs[c.chan]+ADDR_FMS_AMS,((chan[c.chan].state.fms&7)<<4)|(chan[c.chan].state.ams&3));
+      break;
+    }
+    case DIV_CMD_FM_AMS: {
+      chan[c.chan].state.ams=c.value&3;
+      rWrite(chanOffs[c.chan]+ADDR_FMS_AMS,((chan[c.chan].state.fms&7)<<4)|(chan[c.chan].state.ams&3));
       break;
     }
     case DIV_CMD_FM_MULT: {
@@ -964,7 +1010,7 @@ void DivPlatformArcade::setFlags(const DivConfig& flags) {
 
   rate=chipClock/64;
   for (int i=0; i<8; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 }
 

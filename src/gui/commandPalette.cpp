@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -146,7 +146,7 @@ static void matchFuzzyTest() {
 void FurnaceGUI::drawPalette() {
   bool accepted=false;
 
-  if (paletteFirstFrame)
+  if (paletteFirstFrame && !mobileUI)
     ImGui::SetKeyboardFocusHere();
 
   int width=ImGui::GetContentRegionAvail().x;
@@ -249,7 +249,7 @@ void FurnaceGUI::drawPalette() {
   ImVec2 avail=ImGui::GetContentRegionAvail();
   avail.y-=ImGui::GetFrameHeightWithSpacing();
 
-  if (ImGui::BeginChild("CommandPaletteList",avail,false,0)) {
+  if (ImGui::BeginChild("CommandPaletteList",avail,0,0)) {
       bool navigated=false;
       if (ImGui::IsKeyPressed(ImGuiKey_UpArrow) && curPaletteChoice>0) {
         curPaletteChoice-=1;

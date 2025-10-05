@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -360,6 +360,39 @@ void FurnaceGUI::drawUserPresets() {
           userCategory->systems.push_back(FurnaceGUISysDef(_("New Preset"),{}));
           selectedUserPreset.clear();
           selectedUserPreset.push_back(userCategory->systems.size()-1);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Add a new preset"));
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_UPLOAD)) {
+          userCategory->systems.push_back(FurnaceGUISysDef(e->song.systemName.c_str(),{}));
+          FurnaceGUISysDef* cur = &userCategory->systems[userCategory->systems.size()-1];
+          for (int i=0; i<e->song.systemLen; i++) { // get systems and flags
+            cur->orig.push_back(FurnaceGUISysDefChip(
+              e->song.system[i],
+              e->song.systemVol[i],
+              e->song.systemPan[i],
+              e->song.systemFlags[i].toString().c_str(),
+              e->song.systemPanFR[i]
+            ));
+          }
+          // get preset flags
+          DivConfig curFlags;
+          curFlags.set("tickRate", e->curSubSong->hz);
+          String chanMask;
+          for (int i=0; i<e->getTotalChannelCount(); i++) {
+            if (!e->curSubSong->chanShow[i]) {
+              if (chanMask.size()>0) chanMask+=", ";
+              chanMask+=fmt::sprintf("%d", i+1);
+            }
+          }
+          if (chanMask.size()>0) curFlags.set("chanMask", chanMask);
+          cur->extra=curFlags.toString().c_str();
+          cur->bake();
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Create a preset from this song"));
         }
         printPresets(userCategory->systems,0,depthStack);
       }

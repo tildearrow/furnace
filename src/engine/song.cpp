@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -276,6 +276,24 @@ void DivSubSong::clearData() {
 
   memset(orders.ord,0,DIV_MAX_CHANS*DIV_MAX_PATTERNS);
   ordersLen=1;
+}
+
+void DivSubSong::removeUnusedPatterns() {
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
+    bool used[DIV_MAX_PATTERNS];
+    memset(used,0,DIV_MAX_PATTERNS*sizeof(bool));
+
+    for (int j=0; j<ordersLen; j++) {
+      used[orders.ord[i][j]]=true;
+    }
+
+    for (int j=0; j<DIV_MAX_PATTERNS; j++) {
+      if (!used[j] && pat[i].data[j]!=NULL) {
+        delete pat[i].data[j];
+        pat[i].data[j]=NULL;
+      }
+    }
+  }
 }
 
 void DivSubSong::optimizePatterns() {

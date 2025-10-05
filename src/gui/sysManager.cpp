@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,25 +39,23 @@ void FurnaceGUI::drawSysManager() {
     //ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
   if (ImGui::Begin("Chip Manager",&sysManagerOpen,globalWinFlags,_("Chip Manager"))) {
+    ImGuiStorage* openedConfig=ImGui::GetStateStorage();
     ImGui::Checkbox(_("Preserve channel order"),&preserveChanPos);
     ImGui::SameLine();
     ImGui::Checkbox(_("Clone channel data"),&sysDupCloneChannels);
     ImGui::SameLine();
     ImGui::Checkbox(_("Clone at end"),&sysDupEnd);
-    if (ImGui::BeginTable("SystemList",3)) {
-      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
-      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
-      ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed);
-      ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-      ImGui::TableNextColumn();
-      ImGui::TableNextColumn();
-      ImGui::Text(_("Name"));
-      ImGui::TableNextColumn();
-      ImGui::Text(_("Actions"));
-      for (unsigned char i=0; i<e->song.systemLen; i++) {
-        ImGui::PushID(i);
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
+
+    // this is a "rack" style chip list
+    int dispatchOff=0;
+    for (int i=0; i<e->song.systemLen; i++) {
+      String rackID=fmt::sprintf("SysEntry%d",i);
+      String rackNameID=fmt::sprintf("SysName%d",i);
+      const DivSysDef* sysDef=e->getSystemDef(e->song.system[i]);
+
+      ImGui::PushID(i);
+      if (ImGui::BeginChild(rackID.c_str(),ImVec2(0,0),ImGuiChildFlags_Border|ImGuiChildFlags_AutoResizeY)) {
+        // swap handle and name
         if (ImGui::Button(ICON_FA_ARROWS)) {
         }
         if (ImGui::BeginDragDropSource()) {
@@ -81,30 +79,16 @@ void FurnaceGUI::drawSysManager() {
           }
           ImGui::EndDragDropTarget();
         }
-        ImGui::TableNextColumn();
-        bool isNotCollapsed=true;
-        if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSM%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-          drawSysConf(i,i,e->song.system[i],e->song.systemFlags[i],true);
-          isNotCollapsed=false;
-          ImGui::TreePop();
-        }
-        if (ImGui::IsItemHovered(ImGuiHoveredFlags_Stationary) && isNotCollapsed) {
-          if (e->song.system[i]!=DIV_SYSTEM_NULL) {
-            const DivSysDef* sysDef=e->getSystemDef(e->song.system[i]);
-            if (ImGui::BeginTooltip()) {
-              ImGui::Dummy(ImVec2(MIN(scrW*dpiScale,400.0f*dpiScale),0.0f));
-              ImGui::PushTextWrapPos(MIN(scrW*dpiScale,400.0f*dpiScale)); // arbitrary constant
-              ImGui::TextWrapped("%s",sysDef->description);
-              ImGui::Separator();
-              drawSystemChannelInfoText(sysDef);
-              drawSystemChannelInfo(sysDef);
-              ImGui::PopTextWrapPos();
-              ImGui::EndTooltip();
-            }
-          }
-        }
-        ImGui::TableNextColumn();
-        if (ImGui::Button(_("Clone##SysDup"))) {
+        ImGui::SameLine();
+        float buttonInnerSize=ImGui::CalcTextSize(ICON_FA_CLONE).x;
+        float buttonCount=settings.rackShowLEDs?3.0f:4.0f;
+        float sideButtonSize=ImGui::GetStyle().ItemSpacing.x*buttonCount+buttonInnerSize*buttonCount+ImGui::GetStyle().FramePadding.x*2*buttonCount;
+        ImGui::AlignTextToFramePadding();
+        ImGui::ScrollText(ImGui::GetID(rackNameID.c_str()),sysDef->name,ImVec2(0.0f,0.0f),ImVec2(ImGui::GetContentRegionAvail().x-sideButtonSize,0),false);
+        ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvail().x-sideButtonSize,1.0f));
+        // action buttons
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_CLONE "##SysDup")) {
           if (!e->duplicateSystem(i,sysDupCloneChannels,sysDupEnd)) {
             showError(fmt::sprintf(_("cannot clone chip! (%s)"),e->getLastError()));
           } else {
@@ -116,8 +100,11 @@ void FurnaceGUI::drawSysManager() {
             MARK_MODIFIED;
           }
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Clone"));
+        }
         ImGui::SameLine();
-        ImGui::Button(_("Change##SysChange"));
+        ImGui::Button(ICON_FA_EJECT "##SysChange");
         if (ImGui::BeginPopupContextItem("SysPickerC",ImGuiPopupFlags_MouseButtonLeft)) {
           DivSystem picked=systemPicker(false);
           if (picked!=DIV_SYSTEM_NULL) {
@@ -138,6 +125,9 @@ void FurnaceGUI::drawSysManager() {
           }
           ImGui::EndPopup();
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Change"));
+        }
         ImGui::SameLine();
         ImGui::BeginDisabled(e->song.systemLen<=1);
         pushDestColor();
@@ -150,35 +140,58 @@ void FurnaceGUI::drawSysManager() {
           ImGui::SetTooltip(_("Remove"));
         }
         ImGui::EndDisabled();
-        ImGui::PopID();
-      }
-      if (e->song.systemLen<DIV_MAX_CHIPS) {
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::TableNextColumn();
-        ImGui::Button(ICON_FA_PLUS "##SysAdd");
-        if (ImGui::BeginPopupContextItem("SysPickerA",ImGuiPopupFlags_MouseButtonLeft)) {
-          DivSystem picked=systemPicker(false);
-          if (picked!=DIV_SYSTEM_NULL) {
-            if (!e->addSystem(picked)) {
-              showError(fmt::sprintf(_("cannot add chip! (%s)"),e->getLastError()));
-            } else {
-              MARK_MODIFIED;
-            }
-            if (e->song.autoSystem) {
-              autoDetectSystem();
-            }
-            updateWindowTitle();
-            updateROMExportAvail();
-            ImGui::CloseCurrentPopup();
-          }
-          if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
-            ImGui::CloseCurrentPopup();
-          }
-          ImGui::EndPopup();
+
+        // channel LEDs and chip config button
+        float height=0;
+        if (settings.rackShowLEDs) {
+          height=drawSystemChannelInfo(sysDef,dispatchOff,ImGui::GetContentRegionAvail().x-(ImGui::CalcTextSize(ICON_FA_CHEVRON_DOWN).x+ImGui::GetStyle().ItemSpacing.x));
+        }
+
+        ImGuiID openedID=ImGui::GetID("OpenSysConfig");
+        bool opened=openedConfig->GetBool(openedID,false);
+        ImGui::SameLine();
+        ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign,ImVec2(0.5f,0.5f));
+        if (ImGui::Selectable(opened?(ICON_FA_CHEVRON_UP "###OpenThing"):(ICON_FA_CHEVRON_DOWN "###OpenThing"),false,0,ImVec2(0,height))) {
+          opened=!opened;
+          openedConfig->SetBool(openedID,opened);
+        }
+        ImGui::PopStyleVar();
+
+        if (opened) {
+          ImGui::Separator();
+          ImGui::Indent();
+          drawSysConf(i,i,e->song.system[i],e->song.systemFlags[i],true);
+          ImGui::Unindent();
         }
       }
-      ImGui::EndTable();
+      ImGui::EndChild();
+      ImGui::PopID();
+
+      dispatchOff+=sysDef->channels;
+    }
+
+    if (e->song.systemLen<DIV_MAX_CHIPS) {
+      ImGui::Button(ICON_FA_PLUS "##SysAdd");
+      if (ImGui::BeginPopupContextItem("SysPickerA",ImGuiPopupFlags_MouseButtonLeft)) {
+        DivSystem picked=systemPicker(false);
+        if (picked!=DIV_SYSTEM_NULL) {
+          if (!e->addSystem(picked)) {
+            showError(fmt::sprintf(_("cannot add chip! (%s)"),e->getLastError()));
+          } else {
+            MARK_MODIFIED;
+          }
+          if (e->song.autoSystem) {
+            autoDetectSystem();
+          }
+          updateWindowTitle();
+          updateROMExportAvail();
+          ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+      }
     }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SYS_MANAGER;

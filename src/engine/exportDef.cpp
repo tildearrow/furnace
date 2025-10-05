@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2025 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -118,5 +118,28 @@ void DivEngine::registerROMExports() {
       DIV_SYSTEM_POKEY
     },
     false, DIV_REQPOL_EXACT
+  );
+
+  romExportDefs[DIV_ROM_IPOD]=new DivROMExportDef(
+    "iPod .tone alarm", "AArt1256",
+    "iPod Beeper (.tone) Alarm export\n"
+    "for playback, you can drag the resulting file\n"
+    "into iPod_Control/Tones to your iPod IN DISK MODE",
+    "alarm tone files", ".tone",
+    {
+      DIV_SYSTEM_PCSPKR
+    },
+    false, DIV_REQPOL_ANY
+  );
+
+  romExportDefs[DIV_ROM_GRUB]=new DivROMExportDef(
+    "GRUB_INIT_TUNE", "AArt1256",
+    "GRUB_INIT_TUNE export\n"
+    "for use with the GRUB bootloader using the \"play\" command",
+    "Text/Binary files", NULL,
+    {
+      DIV_SYSTEM_PCSPKR
+    },
+    false, DIV_REQPOL_ANY
   );
 }
