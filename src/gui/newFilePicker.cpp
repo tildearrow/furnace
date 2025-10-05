@@ -1106,13 +1106,13 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
         lastScrollY=ImGui::GetScrollY();
       } else {
         ImGui::SetScrollY(lastScrollY);
+        if (ImGui::GetScrollMaxY()>=lastScrollY) {
+          enforceScrollY--;
+        }
       }
 
       ImGui::EndTable();
       entryLock.unlock();
-    }
-    if (enforceScrollY>0 && haveFiles) {
-      enforceScrollY--;
     }
   }
 }
@@ -1784,8 +1784,8 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     if (readDirectory(newDir) || isSearch || (isSearchPrev!=isSearch)) {
       // scroll to top
       lastScrollY=0.0f;
-      enforceScrollY=2;
     }
+    enforceScrollY=2;
   }
   return (curStatus!=FP_STATUS_WAITING);
 }
@@ -1823,8 +1823,8 @@ bool FurnaceFilePicker::open(String name, String pa, String hint, int flags, con
     isSearch=false;
     if (readDirectory(pa)) {
       lastScrollY=0.0f;
-      enforceScrollY=2;
     }
+    enforceScrollY=2;
     windowName=name;
   }
   hint=entryNameHint;
