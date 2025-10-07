@@ -8932,6 +8932,7 @@ FurnaceGUI::FurnaceGUI():
   amplifyVol(100.0),
   sampleSelStart(-1),
   sampleSelEnd(-1),
+  sampleToWaveSeqWaveSize(256),
   sampleInfo(true),
   sampleCompatRate(false),
   sampleDragActive(false),
