@@ -2876,6 +2876,7 @@ class FurnaceGUI {
   bool NoteSelector(int* value, bool showOffRel, int octaveMin=-5, int octaveMax=9);
 
   // mixer stuff
+  bool chipMixer(int which, ImVec2 size=ImVec2(0.0f,0.0f));
   ImVec2 calcPortSetSize(String label, int ins, int outs);
   bool portSet(String label, unsigned int portSetID, int ins, int outs, int activeIns, int activeOuts, int& clickedPort, std::map<unsigned int,ImVec2>& portPos);
 
@@ -2984,8 +2985,10 @@ class FurnaceGUI {
   void drawTutorial();
   void drawXYOsc();
   void drawUserPresets();
+
   float drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset=-1, float width=-1.0f);
   void drawSystemChannelInfoText(const DivSysDef* whichDef);
+  void drawVolMeterInternal(ImDrawList* dl, ImRect rect, float* data, int chans);
 
   void assignActionMap(std::map<int,int>& actionMap, int first, int last);
   void drawKeybindSettingsTableRow(FurnaceGUIActions actionIdx);

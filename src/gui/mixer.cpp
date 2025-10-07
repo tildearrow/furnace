@@ -235,23 +235,7 @@ void FurnaceGUI::drawMixer() {
         if (ImGui::BeginChild("##mixerPerChipContainer",ImGui::GetContentRegionAvail())) {
           const float childWidth=60*dpiScale;
           for (int i=0; i<e->song.systemLen; i++) {
-            ImGui::PushID(i);
-            if (ImGui::BeginChild(fmt::sprintf("##MixerChip%d", i).c_str(), ImVec2(childWidth,0))) {
-              float textHeight=ImGui::GetFontSize();
-              ImGui::ScrollText(ImGui::GetID(i),fmt::sprintf("%d. %s",i+1,getSystemName(e->song.system[i])).c_str(),ImGui::GetCursorPos(),ImVec2(childWidth,textHeight));
-              ImGui::Dummy(ImVec2(childWidth,textHeight));
-              float volSliderHeight=ImGui::GetContentRegionAvail().y-ImGui::GetStyle().FramePadding.y*7-textHeight*2;
-              // ImGui::PushStyleColor(ImGuiCol_FrameBg,0);
-              // ImGui::PushStyleColor(ImGuiCol_FrameBgActive,0);
-              ImGui::VSliderFloat("##mixerVol", ImVec2(childWidth,volSliderHeight), &e->song.systemVol[i], 0.0f, 2.0f);
-              // ImGui::PopStyleColor(2);
-              ImGui::SetNextItemWidth(childWidth);
-              ImGui::SliderFloat("##mixerPan", &e->song.systemPan[i], -1.0f, 1.0f);
-              ImGui::SetNextItemWidth(childWidth);
-              ImGui::SliderFloat("##mixerPanFR", &e->song.systemPanFR[i], -1.0f, 1.0f);
-            }
-            ImGui::EndChild();
-            ImGui::PopID();
+            if (chipMixer(i, ImVec2(childWidth, ImGui::GetContentRegionAvail().y))) MARK_MODIFIED;
             ImGui::SameLine();
           }
         }
@@ -419,4 +403,33 @@ void FurnaceGUI::drawMixer() {
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_MIXER;
   ImGui::End();
+}
+
+bool FurnaceGUI::chipMixer(int which, ImVec2 size) {
+  bool ret=false;
+  ImGui::PushID(which);
+  ImGui::BeginGroup();
+    float textHeight=ImGui::GetFontSize();
+
+    float volSliderHeight=size.y-ImGui::GetStyle().FramePadding.y*8-textHeight*3;
+    // TODO: per-chip per-out peak
+    float vol[2];
+    ImVec2 pos=ImGui::GetWindowPos()+ImGui::GetCursorPos();
+    drawVolMeterInternal(ImGui::GetWindowDrawList(),ImRect(pos,pos+ImVec2(size.x,volSliderHeight)),vol,2);
+
+    ImGui::PushStyleColor(ImGuiCol_FrameBg,0);
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive,0);
+    if (ImGui::VSliderFloat("##ChipVol", ImVec2(size.x,volSliderHeight), &e->song.systemVol[which], 0.0f, 2.0f)) ret=true;
+    ImGui::PopStyleColor(2);
+
+    ImGui::SetNextItemWidth(size.x);
+    if (ImGui::SliderFloat("##ChipPan", &e->song.systemPan[which], -1.0f, 1.0f)) ret=true;
+    ImGui::SetNextItemWidth(size.x);
+    if (ImGui::SliderFloat("##ChipPanFR", &e->song.systemPanFR[which], -1.0f, 1.0f)) ret=true;
+
+    ImGui::ScrollText(ImGui::GetID(which),fmt::sprintf("%d. %s",which+1,getSystemName(e->song.system[which])).c_str(),ImGui::GetCursorPos(),ImVec2(size.x,textHeight));
+    ImGui::Dummy(ImVec2(size.x,textHeight));
+  ImGui::EndGroup();
+  ImGui::PopID();
+  return ret;
 }

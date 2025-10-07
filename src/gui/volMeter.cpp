@@ -102,3 +102,48 @@ void FurnaceGUI::drawVolMeter() {
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_VOL_METER;
   ImGui::End();
 }
+
+void FurnaceGUI::drawVolMeterInternal(ImDrawList* dl, ImRect rect, float* data, int chans) {
+  bool aspectRatio=(ImGui::GetWindowSize().x/ImGui::GetWindowSize().y)>1.0;
+  ImU32 lowColor=ImGui::GetColorU32(uiColors[GUI_COLOR_VOLMETER_LOW]);
+  ImGuiStyle& style=ImGui::GetStyle();
+  ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
+  int isClipping=0;
+  for (int i=0; i<chans; i++) {
+    float logPeak=(20*log10(data[i])/36.0);
+    if (logPeak==NAN) logPeak=0.0;
+    if (logPeak<-1.0) logPeak=-1.0;
+    if (logPeak>0.0) {
+      isClipping=8;
+      logPeak=0.0;
+    }
+    logPeak+=1.0;
+    ImU32 highColor=ImGui::GetColorU32(
+      ImLerp(uiColors[GUI_COLOR_VOLMETER_LOW],uiColors[GUI_COLOR_VOLMETER_HIGH],logPeak)
+    );
+    ImRect s;
+    if (aspectRatio) {
+      s=ImRect(
+        ImLerp(rect.Min,rect.Max,ImVec2(0,float(i)/chans)),
+        ImLerp(rect.Min,rect.Max,ImVec2(logPeak,float(i+1)/chans))
+      );
+      if (i!=(chans-1)) s.Max.y-=dpiScale;
+      if (isClipping) {
+        dl->AddRectFilled(s.Min,s.Max,ImGui::GetColorU32(uiColors[GUI_COLOR_VOLMETER_PEAK]));
+      } else {
+        dl->AddRectFilledMultiColor(s.Min,s.Max,lowColor,highColor,highColor,lowColor);
+      }
+    } else {
+      s=ImRect(
+        ImLerp(rect.Min,rect.Max,ImVec2(float(i)/chans,1.0-logPeak)),
+        ImLerp(rect.Min,rect.Max,ImVec2(float(i+1)/chans,1.0))
+      );
+      if (i!=(chans-1)) s.Max.x-=dpiScale;
+      if (isClipping) {
+        dl->AddRectFilled(s.Min,s.Max,ImGui::GetColorU32(uiColors[GUI_COLOR_VOLMETER_PEAK]));
+      } else {
+        dl->AddRectFilledMultiColor(s.Min,s.Max,highColor,highColor,lowColor,lowColor);
+      }
+    }
+  }
+}
