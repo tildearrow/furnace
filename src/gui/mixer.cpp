@@ -239,6 +239,7 @@ void FurnaceGUI::drawMixer() {
             ImGui::SameLine();
           }
         }
+        ImGui::EndChild();
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem(_("Patchbay"))) {
@@ -411,26 +412,31 @@ bool FurnaceGUI::chipMixer(int which, ImVec2 size) {
   ImGui::BeginGroup();
     float textHeight=ImGui::GetFontSize();
 
-    float vol=abs(e->song.systemVol[which]);
-    bool vInvert=e->song.systemVol[which]<0;
-    if (ImGui::Checkbox("##ChipInvert", &vInvert)) {
-      e->song.systemVol[which]=vInvert?-vol:vol;
+    float vol=fabs(e->song.systemVol[which]);
+    bool doInvert=e->song.systemVol[which]<0;
+    if (ImGui::Checkbox("##ChipInvert", &doInvert)) {
+      e->song.systemVol[which]=doInvert?-vol:vol;
       ret=true;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(_("Invert"));
     }
     // hack to get the same line from here
     ImGui::SameLine();
     ImVec2 curPos=ImGui::GetCursorPos();
     ImGui::NewLine();
 
+    float volSliderHeight=size.y-ImGui::GetStyle().FramePadding.y*7-textHeight*2;
 
-    VerticalText("%s",e->getSystemName(e->song.system[which]));
+    VerticalText(volSliderHeight-(ImGui::GetCursorPosY()-curPos.y),"%s",e->getSystemName(e->song.system[which]));
 
     ImGui::SameLine();
 
-    float volSliderHeight=size.y-ImGui::GetStyle().FramePadding.y*7-textHeight*2;
     float vTextWidth=textHeight+2*ImGui::GetStyle().FramePadding.x;
     // TODO: per-chip per-out peak
     float volMeter[2];
+    volMeter[0]=0;
+    volMeter[1]=0;
     ImGui::SetCursorPos(curPos);
     ImVec2 pos=ImGui::GetCursorScreenPos();
     drawVolMeterInternal(ImGui::GetWindowDrawList(),ImRect(pos,pos+ImVec2(size.x-vTextWidth,volSliderHeight)),volMeter,2);
@@ -438,15 +444,38 @@ bool FurnaceGUI::chipMixer(int which, ImVec2 size) {
     ImGui::PushStyleColor(ImGuiCol_FrameBg,0);
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive,0);
     if (ImGui::VSliderFloat("##ChipVol", ImVec2(size.x-vTextWidth,volSliderHeight), &vol, 0.0f, 2.0f)) {
-      e->song.systemVol[which]=vInvert?-vol:vol;
+      if (doInvert) {
+        if (vol<0.0001) vol=0.0001;
+      }
+      if (vol<0) vol=0;
+      if (vol>10) vol=10;
+      e->song.systemVol[which]=doInvert?-vol:vol;
       ret=true;
+    } rightClickable
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
+      ImGui::SetTooltip(_("Volume"));
     }
     ImGui::PopStyleColor(2);
 
-    ImGui::SetNextItemWidth(size.x);
-    if (ImGui::SliderFloat("##ChipPan", &e->song.systemPan[which], -1.0f, 1.0f)) ret=true;
-    ImGui::SetNextItemWidth(size.x);
-    if (ImGui::SliderFloat("##ChipPanFR", &e->song.systemPanFR[which], -1.0f, 1.0f)) ret=true;
+    ImGui::SetNextItemWidth(size.x+1.5f*ImGui::GetStyle().FramePadding.x);
+    if (ImGui::SliderFloat("##ChipPan", &e->song.systemPan[which], -1.0f, 1.0f)) {
+      if (e->song.systemPan[which]<-1.0f) e->song.systemPan[which]=-1.0f;
+      if (e->song.systemPan[which]>1.0f) e->song.systemPan[which]=1.0f;
+      ret=true;
+    } rightClickable
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
+      ImGui::SetTooltip(_("Panning"));
+    }
+
+    ImGui::SetNextItemWidth(size.x+1.5f*ImGui::GetStyle().FramePadding.x);
+    if (ImGui::SliderFloat("##ChipPanFR", &e->song.systemPanFR[which], -1.0f, 1.0f)) {
+      if (e->song.systemPanFR[which]<-1.0f) e->song.systemPanFR[which]=-1.0f;
+      if (e->song.systemPanFR[which]>1.0f) e->song.systemPanFR[which]=1.0f;
+      ret=true;
+    } rightClickable
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
+      ImGui::SetTooltip(_("Front/Rear"));
+    }
 
   ImGui::EndGroup();
   ImGui::PopID();
