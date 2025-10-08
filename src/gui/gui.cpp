@@ -455,7 +455,7 @@ void FurnaceGUI::VerticalText(const char* fmt, ...) {
   ImGui::Dummy(ImVec2(size.y,size.x));
 }
 
-void FurnaceGUI::VerticalText(float maxSize, const char* fmt, ...) {
+void FurnaceGUI::VerticalText(float maxSize, bool centered, const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
   ImVec2 pos=ImGui::GetCursorScreenPos();
@@ -464,11 +464,13 @@ void FurnaceGUI::VerticalText(float maxSize, const char* fmt, ...) {
   vtxBegin=dl->_VtxCurrentIdx;
   char text[4096];
   vsnprintf(text, 4096, fmt, args);
+  const char* textEol=ImGui::FindRenderedTextEnd(text);
   ImVec2 size=ImGui::CalcTextSize(text);
-  ImGui::RenderTextEllipsis(dl,pos,pos+ImVec2(maxSize,ImGui::GetFontSize()),maxSize,text,ImGui::FindRenderedTextEnd(text),&size);
+  ImGui::RenderTextEllipsis(dl,pos,pos+ImVec2(maxSize,ImGui::GetFontSize()),maxSize,text,textEol,&size);
   vtxEnd=dl->_VtxCurrentIdx;
-  ImGui::ShadeVertsTransformPos(dl, vtxBegin, vtxEnd, pos+ImVec2(size.x>maxSize?maxSize:size.x,0), 0, -1, pos);
-  ImGui::Dummy(ImVec2(size.y,size.x>maxSize?maxSize:size.x));
+  float ySize=(size.x>maxSize)?maxSize:size.x;
+  ImGui::ShadeVertsTransformPos(dl, vtxBegin, vtxEnd, pos, 0, -1, pos+ImVec2(0,ySize+(centered?(maxSize-size.x)/2.0f:0)));
+  ImGui::Dummy(ImVec2(size.y,centered?maxSize:ySize));
 }
 
 bool FurnaceGUI::CWSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags) {

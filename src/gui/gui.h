@@ -2860,7 +2860,7 @@ class FurnaceGUI {
   void renderFMPreviewESFM(const DivInstrumentFM& params, const DivInstrumentESFM& esfmParams, int pos=0);
 
   void VerticalText(const char* fmt, ...);
-  void VerticalText(float maxSize, const char* fmt, ...);
+  void VerticalText(float maxSize, bool centered, const char* fmt, ...);
 
   // combo with locale
   static bool LocalizedComboGetter(void* data, int idx, const char** out_text);
@@ -2991,7 +2991,7 @@ class FurnaceGUI {
 
   float drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset=-1, float width=-1.0f);
   void drawSystemChannelInfoText(const DivSysDef* whichDef);
-  void drawVolMeterInternal(ImDrawList* dl, ImRect rect, float* data, int chans);
+  void drawVolMeterInternal(ImDrawList* dl, ImRect rect, float* data, int chans, bool aspectRatio);
 
   void assignActionMap(std::map<int,int>& actionMap, int first, int last);
   void drawKeybindSettingsTableRow(FurnaceGUIActions actionIdx);

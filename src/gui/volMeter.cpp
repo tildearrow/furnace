@@ -48,47 +48,11 @@ void FurnaceGUI::drawVolMeter() {
     ImRect rect=ImRect(minArea,maxArea);
     ImGuiStyle& style=ImGui::GetStyle();
     ImGui::ItemSize(ImVec2(4.0f,4.0f),style.FramePadding.y);
-    ImU32 lowColor=ImGui::GetColorU32(uiColors[GUI_COLOR_VOLMETER_LOW]);
+    // ImU32 lowColor=ImGui::GetColorU32(uiColors[GUI_COLOR_VOLMETER_LOW]);
     if (ImGui::ItemAdd(rect,ImGui::GetID("volMeter"))) {
       ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
       int outChans=e->getAudioDescGot().outChans;
-      for (int i=0; i<outChans; i++) {
-        float logPeak=(20*log10(peak[i])/36.0);
-        if (logPeak==NAN) logPeak=0.0;
-        if (logPeak<-1.0) logPeak=-1.0;
-        if (logPeak>0.0) {
-          isClipping=8;
-          logPeak=0.0;
-        }
-        logPeak+=1.0;
-        ImU32 highColor=ImGui::GetColorU32(
-          ImLerp(uiColors[GUI_COLOR_VOLMETER_LOW],uiColors[GUI_COLOR_VOLMETER_HIGH],logPeak)
-        );
-        ImRect s;
-        if (aspectRatio) {
-          s=ImRect(
-            ImLerp(rect.Min,rect.Max,ImVec2(0,float(i)/outChans)),
-            ImLerp(rect.Min,rect.Max,ImVec2(logPeak,float(i+1)/outChans))
-          );
-          if (i!=(outChans-1)) s.Max.y-=dpiScale;
-          if (isClipping) {
-            dl->AddRectFilled(s.Min,s.Max,ImGui::GetColorU32(uiColors[GUI_COLOR_VOLMETER_PEAK]));
-          } else {
-            dl->AddRectFilledMultiColor(s.Min,s.Max,lowColor,highColor,highColor,lowColor);
-          }
-        } else {
-          s=ImRect(
-            ImLerp(rect.Min,rect.Max,ImVec2(float(i)/outChans,1.0-logPeak)),
-            ImLerp(rect.Min,rect.Max,ImVec2(float(i+1)/outChans,1.0))
-          );
-          if (i!=(outChans-1)) s.Max.x-=dpiScale;
-          if (isClipping) {
-            dl->AddRectFilled(s.Min,s.Max,ImGui::GetColorU32(uiColors[GUI_COLOR_VOLMETER_PEAK]));
-          } else {
-            dl->AddRectFilledMultiColor(s.Min,s.Max,highColor,highColor,lowColor,lowColor);
-          }
-        }
-      }
+      drawVolMeterInternal(dl, rect, peak, outChans, aspectRatio);
       if (ImGui::IsItemHovered()) {
         if (aspectRatio) {
           ImGui::SetTooltip("%.1fdB",36*((ImGui::GetMousePos().x-ImGui::GetItemRectMin().x)/(rect.Max.x-rect.Min.x)-1.0));
@@ -103,8 +67,7 @@ void FurnaceGUI::drawVolMeter() {
   ImGui::End();
 }
 
-void FurnaceGUI::drawVolMeterInternal(ImDrawList* dl, ImRect rect, float* data, int chans) {
-  bool aspectRatio=(ImGui::GetWindowSize().x/ImGui::GetWindowSize().y)>1.0;
+void FurnaceGUI::drawVolMeterInternal(ImDrawList* dl, ImRect rect, float* data, int chans, bool aspectRatio) {
   ImU32 lowColor=ImGui::GetColorU32(uiColors[GUI_COLOR_VOLMETER_LOW]);
   ImGuiStyle& style=ImGui::GetStyle();
   ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);

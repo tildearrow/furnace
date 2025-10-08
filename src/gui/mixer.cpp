@@ -226,16 +226,19 @@ void FurnaceGUI::drawMixer() {
   if (ImGui::Begin("Mixer",&mixerOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking),_("Mixer"))) {
     if (ImGui::BeginTabBar("MixerView")) {
       if (ImGui::BeginTabItem(_("Mixer"))) {
-        if (ImGui::VSliderFloat("##mixerMaster",ImVec2(40*dpiScale,ImGui::GetContentRegionAvail().y),&e->song.masterVol,0,3,"%.2fx")) {
+        float maxY=ImGui::GetContentRegionAvail().y;
+        VerticalText(maxY, true,_("Master Volume"));
+        ImGui::SameLine();
+        if (ImGui::VSliderFloat("##mixerMaster",ImVec2(40*dpiScale,maxY),&e->song.masterVol,0,3,"%.2fx")) {
           if (e->song.masterVol<0) e->song.masterVol=0;
           if (e->song.masterVol>3) e->song.masterVol=3;
           MARK_MODIFIED;
-        } rightClickable //_("Master Volume")
+        } rightClickable
         ImGui::SameLine();
-        if (ImGui::BeginChild("##mixerPerChipContainer",ImGui::GetContentRegionAvail())) {
+        if (ImGui::BeginChild("##mixerPerChipContainer")) {
           const float childWidth=60*dpiScale;
           for (int i=0; i<e->song.systemLen; i++) {
-            if (chipMixer(i, ImVec2(childWidth, ImGui::GetContentRegionAvail().y))) MARK_MODIFIED;
+            if (chipMixer(i, ImVec2(childWidth,maxY))) MARK_MODIFIED;
             ImGui::SameLine();
           }
         }
@@ -428,21 +431,22 @@ bool FurnaceGUI::chipMixer(int which, ImVec2 size) {
 
     float volSliderHeight=size.y-ImGui::GetStyle().FramePadding.y*7-textHeight*2;
 
-    VerticalText(volSliderHeight-(ImGui::GetCursorPosY()-curPos.y),"%s",e->getSystemName(e->song.system[which]));
+    VerticalText(volSliderHeight-(ImGui::GetCursorPosY()-curPos.y), true,"%s",e->getSystemName(e->song.system[which]));
 
     ImGui::SameLine();
 
     float vTextWidth=textHeight+2*ImGui::GetStyle().FramePadding.x;
     // TODO: per-chip per-out peak
     float volMeter[2];
-    volMeter[0]=0;
-    volMeter[1]=0;
+    volMeter[0]=0.5;
+    volMeter[1]=0.5;
     ImGui::SetCursorPos(curPos);
     ImVec2 pos=ImGui::GetCursorScreenPos();
-    drawVolMeterInternal(ImGui::GetWindowDrawList(),ImRect(pos,pos+ImVec2(size.x-vTextWidth,volSliderHeight)),volMeter,2);
+    drawVolMeterInternal(ImGui::GetWindowDrawList(),ImRect(pos,pos+ImVec2(size.x-vTextWidth,volSliderHeight)),volMeter,2,false);
 
     ImGui::PushStyleColor(ImGuiCol_FrameBg,0);
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive,0);
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered,127<<IM_COL32_A_SHIFT);
     if (ImGui::VSliderFloat("##ChipVol", ImVec2(size.x-vTextWidth,volSliderHeight), &vol, 0.0f, 2.0f)) {
       if (doInvert) {
         if (vol<0.0001) vol=0.0001;
@@ -455,7 +459,7 @@ bool FurnaceGUI::chipMixer(int which, ImVec2 size) {
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
       ImGui::SetTooltip(_("Volume"));
     }
-    ImGui::PopStyleColor(2);
+    ImGui::PopStyleColor(3);
 
     ImGui::SetNextItemWidth(size.x+1.5f*ImGui::GetStyle().FramePadding.x);
     if (ImGui::SliderFloat("##ChipPan", &e->song.systemPan[which], -1.0f, 1.0f)) {
