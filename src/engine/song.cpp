@@ -52,6 +52,7 @@ bool DivSubSong::walk(int& loopOrder, int& loopRow, int& loopEnd, int chans, int
         loopEnd=lastSuspectedLoopEnd;
         return true;
       }
+      
       for (int k=0; k<chans; k++) {
         for (int l=0; l<pat[k].effectCols; l++) {
           effectVal=subPat[k]->data[j][5+(l<<1)];
@@ -117,7 +118,7 @@ double calcRowLenInSeconds(const DivGroovePattern& speeds, float hz, int vN, int
   return 1.0/((60.0*hz/(timeBase*hl*speedSum))*(double)vN/(double)vD/60.0);
 }
 
-void DivSubSong::findLength(int loopOrder, int loopRow, double fadeoutLen, int& rowsForFadeout, bool& hasFFxx, std::vector<int>& orders_vec, std::vector<DivGroovePattern>& grooves, int& length, int chans, int jumpTreatment, int ignoreJumpAtEnd, int firstPat) {
+void DivSubSong::findLength(int loopOrder, int loopRow, double fadeoutLen, int& rowsForFadeout, bool& hasFFxx, std::vector<int>& orders_vec, std::vector<DivGroovePattern>& grooves, int& length, int& loopTick, int chans, int jumpTreatment, int ignoreJumpAtEnd, int firstPat) {
   length=0;
   hasFFxx=false;
   rowsForFadeout=0;
@@ -131,7 +132,9 @@ void DivSubSong::findLength(int loopOrder, int loopRow, double fadeoutLen, int& 
   double curDivider=(double)timeBase;
 
   double curLen=0.0; //how many seconds passed since the start of song
+  int tickCounter = 0; //how many ticks passed since the start of song
 
+  int curGrooveIndex = 0;
   int nextOrder=-1;
   int nextRow=0;
   int effectVal=0;
@@ -158,6 +161,10 @@ void DivSubSong::findLength(int loopOrder, int loopRow, double fadeoutLen, int& 
       if (wsWalked[((i<<5)+(j>>3))&8191]&(1<<(j&7))) {
         return;
       }
+      if (i == loopOrder && j == loopRow) {
+          loopTick = tickCounter;
+      }
+
       for (int k=0; k<chans; k++) {
         for (int l=0; l<pat[k].effectCols; l++) {
           effectVal=subPat[k]->data[j][5+(l<<1)];
@@ -250,6 +257,16 @@ void DivSubSong::findLength(int loopOrder, int loopRow, double fadeoutLen, int& 
           rowsForFadeout++;
         }
       }
+
+      // Calculate ticks for this row
+      int ticksThisRow = 6; // default
+
+      if (curSpeeds.len > 0) {
+          ticksThisRow = curSpeeds.val[curGrooveIndex % curSpeeds.len];
+          curGrooveIndex++;
+      }
+
+      tickCounter += ticksThisRow;
 
       wsWalked[((i<<5)+(j>>3))&8191]|=1<<(j&7);
       
