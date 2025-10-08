@@ -400,6 +400,13 @@ void FurnaceGUI::drawDebug() {
       ImGui::ScrollText(ImGui::GetID("scrolltest4"),"quam nihil molestiae consequatur, vel illum, qui dolorem eum fugiat, quo voluptas nulla pariatur?",ImGui::GetCursorPos(),ImVec2(0,0),true);
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Vertical Text Test")) {
+      VerticalText("Test");
+      VerticalText("Test 2");
+      ImGui::SameLine();
+      VerticalText("Test 3");
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Pitch Table Calculator")) {
       ImGui::InputDouble("Clock",&ptcClock);
       ImGui::InputDouble("Divider/FreqBase",&ptcDivider);

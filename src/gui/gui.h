@@ -2859,6 +2859,8 @@ class FurnaceGUI {
   void renderFMPreviewOPZ(const DivInstrumentFM& params, int pos=0);
   void renderFMPreviewESFM(const DivInstrumentFM& params, const DivInstrumentESFM& esfmParams, int pos=0);
 
+  void VerticalText(const char* fmt, ...);
+
   // combo with locale
   static bool LocalizedComboGetter(void* data, int idx, const char** out_text);
 

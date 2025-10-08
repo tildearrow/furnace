@@ -411,15 +411,36 @@ bool FurnaceGUI::chipMixer(int which, ImVec2 size) {
   ImGui::BeginGroup();
     float textHeight=ImGui::GetFontSize();
 
-    float volSliderHeight=size.y-ImGui::GetStyle().FramePadding.y*8-textHeight*3;
+    float vol=abs(e->song.systemVol[which]);
+    bool vInvert=e->song.systemVol[which]<0;
+    if (ImGui::Checkbox("##ChipInvert", &vInvert)) {
+      e->song.systemVol[which]=vInvert?-vol:vol;
+      ret=true;
+    }
+    // hack to get the same line from here
+    ImGui::SameLine();
+    ImVec2 curPos=ImGui::GetCursorPos();
+    ImGui::NewLine();
+
+
+    VerticalText("%s",e->getSystemName(e->song.system[which]));
+
+    ImGui::SameLine();
+
+    float volSliderHeight=size.y-ImGui::GetStyle().FramePadding.y*7-textHeight*2;
+    float vTextWidth=textHeight+2*ImGui::GetStyle().FramePadding.x;
     // TODO: per-chip per-out peak
-    float vol[2];
-    ImVec2 pos=ImGui::GetWindowPos()+ImGui::GetCursorPos();
-    drawVolMeterInternal(ImGui::GetWindowDrawList(),ImRect(pos,pos+ImVec2(size.x,volSliderHeight)),vol,2);
+    float volMeter[2];
+    ImGui::SetCursorPos(curPos);
+    ImVec2 pos=ImGui::GetCursorScreenPos();
+    drawVolMeterInternal(ImGui::GetWindowDrawList(),ImRect(pos,pos+ImVec2(size.x-vTextWidth,volSliderHeight)),volMeter,2);
 
     ImGui::PushStyleColor(ImGuiCol_FrameBg,0);
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive,0);
-    if (ImGui::VSliderFloat("##ChipVol", ImVec2(size.x,volSliderHeight), &e->song.systemVol[which], 0.0f, 2.0f)) ret=true;
+    if (ImGui::VSliderFloat("##ChipVol", ImVec2(size.x-vTextWidth,volSliderHeight), &vol, 0.0f, 2.0f)) {
+      e->song.systemVol[which]=vInvert?-vol:vol;
+      ret=true;
+    }
     ImGui::PopStyleColor(2);
 
     ImGui::SetNextItemWidth(size.x);
@@ -427,8 +448,6 @@ bool FurnaceGUI::chipMixer(int which, ImVec2 size) {
     ImGui::SetNextItemWidth(size.x);
     if (ImGui::SliderFloat("##ChipPanFR", &e->song.systemPanFR[which], -1.0f, 1.0f)) ret=true;
 
-    ImGui::ScrollText(ImGui::GetID(which),fmt::sprintf("%d. %s",which+1,getSystemName(e->song.system[which])).c_str(),ImGui::GetCursorPos(),ImVec2(size.x,textHeight));
-    ImGui::Dummy(ImVec2(size.x,textHeight));
   ImGui::EndGroup();
   ImGui::PopID();
   return ret;
