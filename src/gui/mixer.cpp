@@ -229,16 +229,34 @@ void FurnaceGUI::drawMixer() {
         float maxY=ImGui::GetContentRegionAvail().y;
         VerticalText(maxY, true,_("Master Volume"));
         ImGui::SameLine();
+        ImVec2 pos=ImGui::GetCursorScreenPos();
+        drawVolMeterInternal(ImGui::GetWindowDrawList(), ImRect(pos,pos+ImVec2(40*dpiScale,maxY)),peak,e->getAudioDescGot().outChans,false);
+        ImGui::PushStyleColor(ImGuiCol_FrameBg,0);
+        ImGui::PushStyleColor(ImGuiCol_FrameBgActive,0);
+        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered,127<<IM_COL32_A_SHIFT);
         if (ImGui::VSliderFloat("##mixerMaster",ImVec2(40*dpiScale,maxY),&e->song.masterVol,0,3,"%.2fx")) {
           if (e->song.masterVol<0) e->song.masterVol=0;
           if (e->song.masterVol>3) e->song.masterVol=3;
           MARK_MODIFIED;
         } rightClickable
+        ImGui::PopStyleColor(3);
         ImGui::SameLine();
-        if (ImGui::BeginChild("##mixerPerChipContainer")) {
-          const float childWidth=60*dpiScale;
+
+        const float itemWidth=60*dpiScale;
+        // figure out if we need to cut the height for the scrollbar
+        float calcWidth=(itemWidth+1.5f*ImGui::GetStyle().FramePadding.x+4*ImGui::GetStyle().FramePadding.x+dpiScale)*e->song.systemLen;
+        float realwidth=ImGui::GetWindowWidth()-ImGui::GetCursorPosX();
+        if (calcWidth>realwidth) maxY-=ImGui::GetStyle().ScrollbarSize;
+        if (ImGui::BeginChild("##mixerPerChipContainer", ImVec2(0,0),0,ImGuiWindowFlags_HorizontalScrollbar)) {
           for (int i=0; i<e->song.systemLen; i++) {
-            if (chipMixer(i, ImVec2(childWidth,maxY))) MARK_MODIFIED;
+            ImGui::GetWindowDrawList()->AddRectFilled(
+              ImGui::GetCursorScreenPos(),
+              ImGui::GetCursorScreenPos()+ImVec2(dpiScale,maxY),
+              ImGui::GetColorU32(ImGuiCol_Separator)
+            );
+            ImGui::Dummy(ImVec2(dpiScale,maxY));
+            ImGui::SameLine();
+            if (chipMixer(i, ImVec2(itemWidth,maxY))) MARK_MODIFIED;
             ImGui::SameLine();
           }
         }
@@ -436,17 +454,14 @@ bool FurnaceGUI::chipMixer(int which, ImVec2 size) {
     ImGui::SameLine();
 
     float vTextWidth=textHeight+2*ImGui::GetStyle().FramePadding.x;
-    // TODO: per-chip per-out peak
-    float volMeter[2];
-    volMeter[0]=0.5;
-    volMeter[1]=0.5;
     ImGui::SetCursorPos(curPos);
     ImVec2 pos=ImGui::GetCursorScreenPos();
-    drawVolMeterInternal(ImGui::GetWindowDrawList(),ImRect(pos,pos+ImVec2(size.x-vTextWidth,volSliderHeight)),volMeter,2,false);
+    drawVolMeterInternal(ImGui::GetWindowDrawList(),ImRect(pos,pos+ImVec2(size.x-vTextWidth,volSliderHeight)),e->chipPeak[which],e->getDispatch(which)->getOutputCount(),false);
 
     ImGui::PushStyleColor(ImGuiCol_FrameBg,0);
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive,0);
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered,127<<IM_COL32_A_SHIFT);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0);
     if (ImGui::VSliderFloat("##ChipVol", ImVec2(size.x-vTextWidth,volSliderHeight), &vol, 0.0f, 2.0f)) {
       if (doInvert) {
         if (vol<0.0001) vol=0.0001;
@@ -459,6 +474,7 @@ bool FurnaceGUI::chipMixer(int which, ImVec2 size) {
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
       ImGui::SetTooltip(_("Volume"));
     }
+    ImGui::PopStyleVar(1);
     ImGui::PopStyleColor(3);
 
     ImGui::SetNextItemWidth(size.x+1.5f*ImGui::GetStyle().FramePadding.x);

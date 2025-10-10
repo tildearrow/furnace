@@ -2706,6 +2706,36 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
   oscSize=size;
 
+  // get per-chip peaks
+  float decay=2.f*size/got.rate;
+  for (int i=0; i<song.systemLen; i++) {
+    DivDispatch* disp=disCont[i].dispatch;
+    for (int j=0; j<disp->getOutputCount(); j++) {
+      chipPeak[i][j]*=1.0-decay;
+      float peak=chipPeak[i][j];
+      for (unsigned int k=0; k<size; k++) {
+        float out=disCont[i].bbOut[j][k]*song.systemVol[i]*disp->getPostAmp()/32768.0f; // TODO: PARSE PANNING, FRONT/REAR AND PATCHBAY
+        // switch (j) {
+        //   case 0:
+        //     out*=MIN(1.0f,1.0f-song.systemPan[i])*MIN(1.0f,1.0f+song.systemPanFR[i]);
+        //     break;
+        //   case 1:
+        //     out*=MIN(1.0f,1.0f+song.systemPan[i])*MIN(1.0f,1.0f+song.systemPanFR[i]);
+        //     break;
+        //   case 2:
+        //     out*=MIN(1.0f,1.0f-song.systemPan[i])*MIN(1.0f,1.0f-song.systemPanFR[i]);
+        //     break;
+        //   case 3:
+        //     out*=MIN(1.0f,1.0f+song.systemPan[i])*MIN(1.0f,1.0f-song.systemPanFR[i]);
+        //     break;
+        //   default: break;
+        // }
+        if (out>peak) peak=out;
+      }
+      chipPeak[i][j]+=(peak-chipPeak[i][j])*0.9;
+    }
+  }
+
   // force mono audio (if enabled)
   if (forceMono && outChans>1) {
     for (size_t i=0; i<size; i++) {
