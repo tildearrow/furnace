@@ -227,10 +227,10 @@ void FurnaceGUI::drawMixer() {
     if (ImGui::BeginTabBar("MixerView")) {
       if (ImGui::BeginTabItem(_("Mixer"))) {
         float maxY=ImGui::GetContentRegionAvail().y;
-        VerticalText(maxY, true,_("Master Volume"));
+        VerticalText(maxY,true,_("Master Volume"));
         ImGui::SameLine();
         ImVec2 pos=ImGui::GetCursorScreenPos();
-        drawVolMeterInternal(ImGui::GetWindowDrawList(), ImRect(pos,pos+ImVec2(40*dpiScale,maxY)),peak,e->getAudioDescGot().outChans,false);
+        drawVolMeterInternal(ImGui::GetWindowDrawList(),ImRect(pos,pos+ImVec2(40*dpiScale,maxY)),peak,e->getAudioDescGot().outChans,false);
         ImGui::PushStyleColor(ImGuiCol_FrameBg,0);
         ImGui::PushStyleColor(ImGuiCol_FrameBgActive,0);
         ImGui::PushStyleColor(ImGuiCol_FrameBgHovered,127<<IM_COL32_A_SHIFT);
@@ -247,7 +247,7 @@ void FurnaceGUI::drawMixer() {
         float calcWidth=(itemWidth+1.5f*ImGui::GetStyle().FramePadding.x+4*ImGui::GetStyle().FramePadding.x+dpiScale)*e->song.systemLen;
         float realwidth=ImGui::GetWindowWidth()-ImGui::GetCursorPosX();
         if (calcWidth>realwidth) maxY-=ImGui::GetStyle().ScrollbarSize;
-        if (ImGui::BeginChild("##mixerPerChipContainer", ImVec2(0,0),0,ImGuiWindowFlags_HorizontalScrollbar)) {
+        if (ImGui::BeginChild("##mixerPerChipContainer",ImVec2(0,0),0,ImGuiWindowFlags_HorizontalScrollbar)) {
           for (int i=0; i<e->song.systemLen; i++) {
             ImGui::GetWindowDrawList()->AddRectFilled(
               ImGui::GetCursorScreenPos(),
@@ -256,7 +256,7 @@ void FurnaceGUI::drawMixer() {
             );
             ImGui::Dummy(ImVec2(dpiScale,maxY));
             ImGui::SameLine();
-            if (chipMixer(i, ImVec2(itemWidth,maxY))) MARK_MODIFIED;
+            if (chipMixer(i,ImVec2(itemWidth,maxY))) MARK_MODIFIED;
             ImGui::SameLine();
           }
         }
@@ -435,7 +435,7 @@ bool FurnaceGUI::chipMixer(int which, ImVec2 size) {
 
     float vol=fabs(e->song.systemVol[which]);
     bool doInvert=e->song.systemVol[which]<0;
-    if (ImGui::Checkbox("##ChipInvert", &doInvert)) {
+    if (ImGui::Checkbox("##ChipInvert",&doInvert)) {
       e->song.systemVol[which]=doInvert?-vol:vol;
       ret=true;
     }
@@ -449,7 +449,7 @@ bool FurnaceGUI::chipMixer(int which, ImVec2 size) {
 
     float volSliderHeight=size.y-ImGui::GetStyle().FramePadding.y*7-textHeight*2;
 
-    VerticalText(volSliderHeight-(ImGui::GetCursorPosY()-curPos.y), true,"%s",e->getSystemName(e->song.system[which]));
+    VerticalText(volSliderHeight-(ImGui::GetCursorPosY()-curPos.y),true,"%s",e->getSystemName(e->song.system[which]));
 
     ImGui::SameLine();
 
@@ -461,8 +461,8 @@ bool FurnaceGUI::chipMixer(int which, ImVec2 size) {
     ImGui::PushStyleColor(ImGuiCol_FrameBg,0);
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive,0);
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered,127<<IM_COL32_A_SHIFT);
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0);
-    if (ImGui::VSliderFloat("##ChipVol", ImVec2(size.x-vTextWidth,volSliderHeight), &vol, 0.0f, 2.0f)) {
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding,0);
+    if (ImGui::VSliderFloat("##ChipVol",ImVec2(size.x-vTextWidth,volSliderHeight),&vol,0.0f,2.0f)) {
       if (doInvert) {
         if (vol<0.0001) vol=0.0001;
       }
@@ -478,7 +478,7 @@ bool FurnaceGUI::chipMixer(int which, ImVec2 size) {
     ImGui::PopStyleColor(3);
 
     ImGui::SetNextItemWidth(size.x+1.5f*ImGui::GetStyle().FramePadding.x);
-    if (ImGui::SliderFloat("##ChipPan", &e->song.systemPan[which], -1.0f, 1.0f)) {
+    if (ImGui::SliderFloat("##ChipPan",&e->song.systemPan[which],-1.0f,1.0f)) {
       if (e->song.systemPan[which]<-1.0f) e->song.systemPan[which]=-1.0f;
       if (e->song.systemPan[which]>1.0f) e->song.systemPan[which]=1.0f;
       ret=true;
@@ -488,7 +488,7 @@ bool FurnaceGUI::chipMixer(int which, ImVec2 size) {
     }
 
     ImGui::SetNextItemWidth(size.x+1.5f*ImGui::GetStyle().FramePadding.x);
-    if (ImGui::SliderFloat("##ChipPanFR", &e->song.systemPanFR[which], -1.0f, 1.0f)) {
+    if (ImGui::SliderFloat("##ChipPanFR",&e->song.systemPanFR[which],-1.0f,1.0f)) {
       if (e->song.systemPanFR[which]<-1.0f) e->song.systemPanFR[which]=-1.0f;
       if (e->song.systemPanFR[which]>1.0f) e->song.systemPanFR[which]=1.0f;
       ret=true;

@@ -48,11 +48,10 @@ void FurnaceGUI::drawVolMeter() {
     ImRect rect=ImRect(minArea,maxArea);
     ImGuiStyle& style=ImGui::GetStyle();
     ImGui::ItemSize(ImVec2(4.0f,4.0f),style.FramePadding.y);
-    // ImU32 lowColor=ImGui::GetColorU32(uiColors[GUI_COLOR_VOLMETER_LOW]);
     if (ImGui::ItemAdd(rect,ImGui::GetID("volMeter"))) {
       ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
       int outChans=e->getAudioDescGot().outChans;
-      drawVolMeterInternal(dl, rect, peak, outChans, aspectRatio);
+      drawVolMeterInternal(dl,rect,peak,outChans,aspectRatio);
       if (ImGui::IsItemHovered()) {
         if (aspectRatio) {
           ImGui::SetTooltip("%.1fdB",36*((ImGui::GetMousePos().x-ImGui::GetItemRectMin().x)/(rect.Max.x-rect.Min.x)-1.0));
