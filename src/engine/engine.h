@@ -698,6 +698,8 @@ class DivEngine {
     int lastNBIns, lastNBOuts, lastNBSize;
     std::atomic<size_t> processTime;
 
+    float chipPeak[DIV_MAX_CHIPS][DIV_MAX_OUTPUTS];
+
     void runExportThread();
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
     DivInstrument* getIns(int index, DivInstrumentType fallbackType=DIV_INS_FM);
@@ -1542,6 +1544,7 @@ class DivEngine {
       memset(walked,0,8192);
       memset(oscBuf,0,DIV_MAX_OUTPUTS*(sizeof(float*)));
       memset(exportChannelMask,1,DIV_MAX_CHANS*sizeof(bool));
+      memset(chipPeak,0,DIV_MAX_CHIPS*DIV_MAX_OUTPUTS*sizeof(float));
 
       for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {
         sysFileMapFur[i]=DIV_SYSTEM_NULL;
