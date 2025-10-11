@@ -1176,7 +1176,17 @@ void FurnaceFilePicker::drawBookmarks(ImVec2& tableSize, String& newDir) {
         newDir=iPath;
       }
       if (ImGui::BeginPopupContextItem("BookmarkOpts")) {
+        if (ImGui::MenuItem(_("edit"))) {
+
+          size_t separator=i.find('\n');
+          if (separator!=String::npos) {
+            editingBookmark=index;
+            newBookmarkName=i.substr(0,separator);
+            newBookmarkPath=i.substr(separator+1);
+          }
+        }
         if (ImGui::MenuItem(_("remove"))) {
+
           markedForRemoval=index;
           if (iPath==path) isPathBookmarked=false;
         }
@@ -1188,6 +1198,24 @@ void FurnaceFilePicker::drawBookmarks(ImVec2& tableSize, String& newDir) {
       bookmarks.erase(bookmarks.begin()+markedForRemoval);
     }
     ImGui::EndTable();
+  }
+
+  if (editingBookmark>=0 && editingBookmark<(int)bookmarks.size()) {
+    ImGui::OpenPopup("BookmarkEdit");
+  }
+  if (ImGui::BeginPopup("BookmarkEdit",ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+    ImGui::Text("Name:");
+    ImGui::InputText("##BookEditText",&newBookmarkName);
+    if (ImGui::Button("OK")) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+  if (!ImGui::IsPopupOpen("BookmarkEdit")) {
+    if (editingBookmark>=0 && editingBookmark<(int)bookmarks.size()) {
+      bookmarks[editingBookmark]=newBookmarkName+"\n"+newBookmarkPath;
+    }
+    editingBookmark=-1;
   }
 }
 
@@ -1926,6 +1954,8 @@ FurnaceFilePicker::FurnaceFilePicker():
   isPathBookmarked(false),
   isSearch(false),
   scheduledSort(0),
+  imguiFlags(0),
+  editingBookmark(-1),
   curFilterType(0),
   lastScrollY(0.0f),
   enforceScrollY(0),

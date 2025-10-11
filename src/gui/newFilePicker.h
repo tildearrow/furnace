@@ -114,7 +114,7 @@ class FurnaceFilePicker {
   bool multiSelect;
   bool confirmOverwrite, dirSelect, noClose, isModal, isEmbed, hasSizeConstraints;
   bool isPathBookmarked, isSearch;
-  int scheduledSort, imguiFlags;
+  int scheduledSort, imguiFlags, editingBookmark;
   size_t curFilterType;
   float lastScrollY;
   int enforceScrollY;
