@@ -978,7 +978,6 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
 
       // file list
       entryLock.lock();
-      int index=0;
       listClipper.Begin(filteredEntries.size(),rowHeight);
       while (listClipper.Step()) {
         for (int _i=listClipper.DisplayStart; _i<listClipper.DisplayEnd; _i++) {
@@ -1004,7 +1003,7 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
           // name
           ImGui::TableNextColumn();
           ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(style->color));
-          ImGui::PushID(index++);
+          ImGui::PushID(_i);
           if (ImGui::Selectable(style->icon.c_str(),i->isSelected,ImGuiSelectableFlags_AllowDoubleClick|ImGuiSelectableFlags_SpanAllColumns|ImGuiSelectableFlags_SpanAvailWidth)) {
             bool doNotAcknowledge=false;
             if ((ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) && multiSelect) {
