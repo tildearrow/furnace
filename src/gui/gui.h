@@ -24,6 +24,7 @@
 #include "../engine/workPool.h"
 #include "../engine/waveSynth.h"
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "imgui_impl_sdl2.h"
 #include <SDL.h>
 #include <fftw3.h>
@@ -2061,6 +2062,7 @@ class FurnaceGUI {
     int songNotesWrap;
     int rackShowLEDs;
     int sampleImportInstDetune;
+    int mixerStyle;
     String mainFontPath;
     String headFontPath;
     String patFontPath;
@@ -2315,6 +2317,7 @@ class FurnaceGUI {
       songNotesWrap(0),
       rackShowLEDs(1),
       sampleImportInstDetune(0),
+      mixerStyle(0),
       mainFontPath(""),
       headFontPath(""),
       patFontPath(""),
@@ -2879,7 +2882,7 @@ class FurnaceGUI {
   bool NoteSelector(int* value, bool showOffRel, int octaveMin=-5, int octaveMax=9);
 
   // mixer stuff
-  bool chipMixer(int which, ImVec2 size=ImVec2(0.0f,0.0f));
+  bool chipMixer(int which, ImVec2 size);
   ImVec2 calcPortSetSize(String label, int ins, int outs);
   bool portSet(String label, unsigned int portSetID, int ins, int outs, int activeIns, int activeOuts, int& clickedPort, std::map<unsigned int,ImVec2>& portPos);
 
