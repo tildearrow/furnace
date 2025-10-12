@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <chrono>
 #include <imgui.h>
+#include <imgui_internal.h>
 #ifdef _WIN32
 #include <windows.h>
 #include <shlwapi.h>
@@ -1054,12 +1055,13 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
           ImGui::PopID();
           ImGui::SameLine();
           
-          ImGui::TextUnformatted(i->name.c_str());
+          // why? can't I just not format?
+          ImGui::TextNoHashHide("%s",i->name.c_str());
 
           // type
           if (displayType) {
             ImGui::TableNextColumn();
-            ImGui::TextUnformatted(i->ext.c_str());
+            ImGui::TextNoHashHide("%s",i->ext.c_str());
           }
 
           // size
@@ -1172,7 +1174,7 @@ void FurnaceFilePicker::drawBookmarks(ImVec2& tableSize, String& newDir) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::PushID(200000+index);
-      if (ImGui::Selectable(iName.c_str(),iPath==path)) {
+      if (ImGui::Selectable(iName.c_str(),iPath==path,ImGuiSelectableFlags_NoHashTextHide)) {
         newDir=iPath;
       }
       if (ImGui::BeginPopupContextItem("BookmarkOpts")) {
@@ -1423,7 +1425,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
           // create button
           ImGui::PushID(100000+pathLevel);
           ImGui::SameLine();
-          if (ImGui::Button(nextButton.c_str())) {
+          if (ImGui::ButtonEx(nextButton.c_str(),ImVec2(0,0),ImGuiButtonFlags_NoHashTextHide)) {
             newDir=pathAsOfNow;
           }
           pathLevel++;
