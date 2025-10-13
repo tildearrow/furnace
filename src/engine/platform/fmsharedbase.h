@@ -84,7 +84,7 @@ class DivPlatformFMBase: public DivDispatch {
       QueuedWrite(unsigned int a, unsigned char v): addr(a), val(v), addrOrVal(false), urgent(false) {}
       QueuedWrite(unsigned int a, unsigned char v, bool u): addr(a), val(v), addrOrVal(false), urgent(u) {}
     };
-    FixedQueue<QueuedWrite,2048> writes;
+    FixedQueue<QueuedWrite,4096> writes;
 
     unsigned char lastBusy;
     int delay;
