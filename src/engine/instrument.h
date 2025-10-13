@@ -186,7 +186,7 @@ enum DivMacroTypeOp: unsigned char {
 struct DivInstrumentFM {
   unsigned char alg, fb, fms, ams, fms2, ams2, fms3, ams3, ops, opllPreset, block;
   unsigned char lfoRate, lfoFmDepth, lfoAmDepth, lfoWs, lfoNoise, lfoRate2, lfoFmDepth2, lfoAmDepth2, lfoWs2, lfoNoise2;
-  bool fixedDrums;
+  bool fixedDrums, lfoSync2, lfoSync3;
   unsigned short kickFreq, snareHatFreq, tomTopFreq;
 
   bool operator==(const DivInstrumentFM& other);
@@ -250,6 +250,8 @@ struct DivInstrumentFM {
     lfoWs2(0),
     lfoNoise2(0),
     fixedDrums(false),
+    lfoSync2(false),
+    lfoSync3(false),
     kickFreq(0x520),
     snareHatFreq(0x550),
     tomTopFreq(0x1c0) {
