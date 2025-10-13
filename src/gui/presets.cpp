@@ -3346,6 +3346,21 @@ void FurnaceGUI::initSystemPresets() {
       }
     );
   ENTRY(
+    _("YM2610X (OPNX)"), {
+      CH(DIV_SYSTEM_YM2610X, 1.0f, 0, "")
+    }
+  );
+    SUB_ENTRY(
+      _("YM2610X (extended channel 3)"), {
+        CH(DIV_SYSTEM_YM2610X_EXT, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      _("YM2610X (CSM)"), {
+        CH(DIV_SYSTEM_YM2610X_CSM, 1.0f, 0, "")
+      }
+    );
+  ENTRY(
     _("Yamaha YM2612 (OPN2)"), {
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "chipType=1")
     }
@@ -3819,6 +3834,11 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     _("Microchip AY8930"), {
       CH(DIV_SYSTEM_AY8930, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    _("AY8930X"), {
+      CH(DIV_SYSTEM_AY8930X, 1.0f, 0, "")
     }
   );
   ENTRY(

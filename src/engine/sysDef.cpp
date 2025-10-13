@@ -290,6 +290,8 @@ const char* DivEngine::getSystemNameJ(DivSystem sys) {
       return "";
     case DIV_SYSTEM_AY8930:
       return "";
+    case DIV_SYSTEM_AY8930X:
+      return "";
     default: // TODO
       return "";
   }
@@ -454,6 +456,22 @@ void DivEngine::registerSystems() {
     {0x2d, {DIV_CMD_AY_IO_WRITE, _("2Dxx: NOT TO BE EMPLOYED BY THE COMPOSER"), constVal<255>, effectVal}},
   };
 
+  EffectHandlerMap ay8930XPostEffectHandlerMap={
+    {0x20, {DIV_CMD_STD_NOISE_MODE, _("20xx: Set channel mode (bit 0: square; bit 1: noise; bit 2: envelope)")}},
+    {0x21, {DIV_CMD_STD_NOISE_FREQ, _("21xx: Set noise frequency (0 to FF)")}},
+    {0x22, {DIV_CMD_AY_ENVELOPE_SET, _("22xy: Set envelope mode (x: shape, y: enable for this channel)")}},
+    {0x23, {DIV_CMD_AY_ENVELOPE_LOW, _("23xx: Set envelope period low byte")}},
+    {0x24, {DIV_CMD_AY_ENVELOPE_HIGH, _("24xx: Set envelope period high byte")}},
+    {0x25, {DIV_CMD_AY_ENVELOPE_SLIDE, _("25xx: Envelope slide up"), negEffectVal}},
+    {0x26, {DIV_CMD_AY_ENVELOPE_SLIDE, _("26xx: Envelope slide down")}},
+    {0x29, {DIV_CMD_AY_AUTO_ENVELOPE, _("29xy: Set auto-envelope (x: numerator; y: denominator)")}},
+    {0x12, {DIV_CMD_STD_NOISE_MODE, _("12xx: Set duty cycle (0 to 1F)"),
+      [](unsigned char, unsigned char val) -> int { return 0x10+(val&31); }}},
+    {0x27, {DIV_CMD_AY_NOISE_MASK_AND, _("27xx: Set noise AND mask")}},
+    {0x28, {DIV_CMD_AY_NOISE_MASK_OR, _("28xx: Set noise OR mask")}},
+    {0x2c, {DIV_CMD_AY_AUTO_PWM, _("2Cxy: Automatic noise frequency (x: mode (0: disable, 1: freq, 2: freq + OR mask); y: offset)")}},
+  };
+
   EffectHandlerMap fmEffectHandlerMap={
     {0x30, {DIV_CMD_FM_HARD_RESET, _("30xx: Toggle hard envelope reset on new notes")}},
   };
@@ -553,6 +571,45 @@ void DivEngine::registerSystems() {
   fmOPNAPostEffectHandlerMap.insert({
     {0x1f, {DIV_CMD_ADPCMA_GLOBAL_VOLUME, _("1Fxx: Set ADPCM-A global volume (0 to 3F)")}},
   });
+
+  EffectHandlerMap fmOPNXPostEffectHandlerMap={
+    {0x10, {DIV_CMD_FM_LFO, _("10xy: Setup LFO (x: enable; y: speed)")}},
+    {0x11, {DIV_CMD_FM_FB, _("11xx: Set feedback (0 to 7)")}},
+    {0x12, {DIV_CMD_FM_TL, _("12xx: Set level of operator 1 (0 highest, 7F lowest)"), constVal<0>, effectVal}},
+    {0x13, {DIV_CMD_FM_TL, _("13xx: Set level of operator 2 (0 highest, 7F lowest)"), constVal<1>, effectVal}},
+    {0x14, {DIV_CMD_FM_TL, _("14xx: Set level of operator 3 (0 highest, 7F lowest)"), constVal<2>, effectVal}},
+    {0x15, {DIV_CMD_FM_TL, _("15xx: Set level of operator 4 (0 highest, 7F lowest)"), constVal<3>, effectVal}},
+    {0x16, {DIV_CMD_FM_MULT, _("16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)"), effectOpValNoZero<4>, effectValAnd<15>}},
+    {0x19, {DIV_CMD_FM_AR, _("19xx: Set attack of all operators (0 to 1F)"), constVal<-1>, effectValAnd<31>}},
+    {0x1a, {DIV_CMD_FM_AR, _("1Axx: Set attack of operator 1 (0 to 1F)"), constVal<0>, effectValAnd<31>}},
+    {0x1b, {DIV_CMD_FM_AR, _("1Bxx: Set attack of operator 2 (0 to 1F)"), constVal<1>, effectValAnd<31>}},
+    {0x1c, {DIV_CMD_FM_AR, _("1Cxx: Set attack of operator 3 (0 to 1F)"), constVal<2>, effectValAnd<31>}},
+    {0x1d, {DIV_CMD_FM_AR, _("1Dxx: Set attack of operator 4 (0 to 1F)"), constVal<3>, effectValAnd<31>}},
+    {0x1f, {DIV_CMD_ADPCMA_GLOBAL_VOLUME, _("1Fxx: Set ADPCM-A global volume (0 to 3F)")}},
+    {0x2a, {DIV_CMD_FM_WS, _("2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 15)"), effectOpVal<4>, effectValAnd<15>}},
+    {0x50, {DIV_CMD_FM_AM, _("50xy: Set AM (x: operator from 1 to 4 (0 for all ops); y: AM)"), effectOpVal<4>, effectValAnd<1>}},
+    {0x51, {DIV_CMD_FM_SL, _("51xy: Set sustain level (x: operator from 1 to 4 (0 for all ops); y: sustain)"), effectOpVal<4>, effectValAnd<15>}},
+    {0x52, {DIV_CMD_FM_RR, _("52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)"), effectOpVal<4>, effectValAnd<15>}},
+    {0x53, {DIV_CMD_FM_DT, _("53xy: Set detune (x: operator from 1 to 4 (0 for all ops); y: detune where 3 is center)"), effectOpVal<4>, effectValAnd<7>}},
+    {0x54, {DIV_CMD_FM_RS, _("54xy: Set envelope scale (x: operator from 1 to 4 (0 for all ops); y: scale from 0 to 3)"), effectOpVal<4>, effectValAnd<3>}},
+    {0x55, {DIV_CMD_FM_SSG, _("55xy: Set SSG envelope (x: operator from 1 to 4 (0 for all ops); y: 0-7 on, 8 off)"), effectOpVal<4>, effectValAnd<15>}},
+    {0x56, {DIV_CMD_FM_DR, _("56xx: Set decay of all operators (0 to 1F)"), constVal<-1>, effectValAnd<31>}},
+    {0x57, {DIV_CMD_FM_DR, _("57xx: Set decay of operator 1 (0 to 1F)"), constVal<0>, effectValAnd<31>}},
+    {0x58, {DIV_CMD_FM_DR, _("58xx: Set decay of operator 2 (0 to 1F)"), constVal<1>, effectValAnd<31>}},
+    {0x59, {DIV_CMD_FM_DR, _("59xx: Set decay of operator 3 (0 to 1F)"), constVal<2>, effectValAnd<31>}},
+    {0x5a, {DIV_CMD_FM_DR, _("5Axx: Set decay of operator 4 (0 to 1F)"), constVal<3>, effectValAnd<31>}},
+    {0x5b, {DIV_CMD_FM_D2R, _("5Bxx: Set decay 2 of all operators (0 to 1F)"), constVal<-1>, effectValAnd<31>}},
+    {0x5c, {DIV_CMD_FM_D2R, _("5Cxx: Set decay 2 of operator 1 (0 to 1F)"), constVal<0>, effectValAnd<31>}},
+    {0x5d, {DIV_CMD_FM_D2R, _("5Dxx: Set decay 2 of operator 2 (0 to 1F)"), constVal<1>, effectValAnd<31>}},
+    {0x5e, {DIV_CMD_FM_D2R, _("5Exx: Set decay 2 of operator 3 (0 to 1F)"), constVal<2>, effectValAnd<31>}},
+    {0x5f, {DIV_CMD_FM_D2R, _("5Fxx: Set decay 2 of operator 4 (0 to 1F)"), constVal<3>, effectValAnd<31>}},
+    {0x60, {DIV_CMD_FM_OPMASK, _("60xx: Set operator mask (bits 0-3)")}},
+    {0x61, {DIV_CMD_FM_ALG, _("61xx: Set algorithm (0 to 7)")}},
+    {0x62, {DIV_CMD_FM_FMS, _("62xx: Set LFO FM depth (0 to 7)")}},
+    {0x63, {DIV_CMD_FM_AMS, _("63xx: Set LFO AM depth (0 to 3)")}},
+  };
+
+  fmOPNXPostEffectHandlerMap.insert(ay8930XPostEffectHandlerMap.begin(), ay8930XPostEffectHandlerMap.end());
 
   EffectHandlerMap fmOPLLPostEffectHandlerMap={
     {0x10, {DIV_CMD_WAVE, _("10xx: Set patch (0 to F)")}},
@@ -2341,6 +2398,57 @@ void DivEngine::registerSystems() {
     {},
     {},
     c64PostEffectHandlerMap
+  );
+
+  sysDefs[DIV_SYSTEM_AY8930X]=new DivSysDef(
+    _("AY8930X"), NULL, 0xfe /* placeholder */, 0, 3, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
+    _("an improved version of the AY8930 with a bigger frequency range, duty cycles, per-channel noise and envelopes!"),
+    {_("PSG 1"), _("PSG 2"), _("PSG 3")},
+    {"S1", "S2", "S3"},
+    {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
+    {DIV_INS_AY8930X, DIV_INS_AY8930X, DIV_INS_AY8930X},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {},
+    ay8930XPostEffectHandlerMap
+  );
+
+  sysDefs[DIV_SYSTEM_YM2610X]=new DivSysDef(
+    _("YM2610X (OPNX)"), NULL, 0xf8/* placeholder */, 0, 18, true, false, 0, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
+    _("Basically YM2610B, but with AY8930X SSG core and bunch of improvements, ex: 16 waveforms and per-channel LFO."),
+    {_("FM 1"), _("FM 2"), _("FM 3"), _("FM 4"), _("FM 5"), _("FM 6"), _("FM 7"), _("FM 8"), _("PSG 1"), _("PSG 2"), _("PSG 3"), _("ADPCM-A 1"), _("ADPCM-A 2"), _("ADPCM-A 3"), _("ADPCM-A 4"), _("ADPCM-A 5"), _("ADPCM-A 6"), _("ADPCM-B")},
+    {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"},
+    {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
+    {DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_AY8930X, DIV_INS_AY8930X, DIV_INS_AY8930X, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMB},
+    {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    fmEffectHandlerMap,
+    fmOPNXPostEffectHandlerMap
+  );
+
+  sysDefs[DIV_SYSTEM_YM2610X_EXT]=new DivSysDef(
+    _("YM2610X (OPNX) Extended Channel 3"), NULL, 0xf9/* placeholder */, 0, 21, true, false, 0, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
+    _("Basically YM2610B, but with AY8930X SSG core and bunch of improvements, ex: 16 waveforms and per-channel LFO.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies."),
+    {_("FM 1"), _("FM 2"), _("FM 3 OP1"), _("FM 3 OP2"), _("FM 3 OP3"), _("FM 3 OP4"), _("FM 4"), _("FM 5"), _("FM 6"), _("FM 7"), _("FM 8"), _("PSG 1"), _("PSG 2"), _("PSG 3"), _("ADPCM-A 1"), _("ADPCM-A 2"), _("ADPCM-A 3"), _("ADPCM-A 4"), _("ADPCM-A 5"), _("ADPCM-A 6"), _("ADPCM-B")},
+    {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "F7", "F8", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"},
+    {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
+    {DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_AY8930X, DIV_INS_AY8930X, DIV_INS_AY8930X, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMB},
+    {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {},
+    fmOPNXPostEffectHandlerMap,
+    fmExtChEffectHandlerMap
+  );
+
+  sysDefs[DIV_SYSTEM_YM2610X_CSM]=new DivSysDef(
+    _("YM2610X (OPNX) CSM"), NULL, 0xfa/* placeholder */, 0, 22, true, false, 0, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
+    _("Basically YM2610B, but with AY8930X SSG core and bunch of improvements, ex: 16 waveforms and per-channel LFO.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies."
+    "\nthis one includes CSM mode control for special effects on Channel 3."),
+    {_("FM 1"), _("FM 2"), _("FM 3 OP1"), _("FM 3 OP2"), _("FM 3 OP3"), _("FM 3 OP4"), _("FM 4"), _("FM 5"), _("FM 6"), _("FM 7"), _("FM 8"), _("CSM Timer"), _("PSG 1"), _("PSG 2"), _("PSG 3"), _("ADPCM-A 1"), _("ADPCM-A 2"), _("ADPCM-A 3"), _("ADPCM-A 4"), _("ADPCM-A 5"), _("ADPCM-A 6"), _("ADPCM-B")},
+    {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "F7", "F8", "CSM", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"},
+    {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
+    {DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_OPNX, DIV_INS_AY8930X, DIV_INS_AY8930X, DIV_INS_AY8930X, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMB},
+    {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {},
+    fmOPNXPostEffectHandlerMap,
+    fmExtChEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(

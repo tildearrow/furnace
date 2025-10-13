@@ -90,9 +90,9 @@ class DivPlatformFMBase: public DivDispatch {
     int delay;
     bool flushFirst;
 
-    unsigned char regPool[512];
-    short oldWrites[512];
-    short pendingWrites[512];
+    unsigned char regPool[1024];
+    short oldWrites[1024];
+    short pendingWrites[1024];
 
     inline void rWrite(unsigned short a, short v) {
       if (!skipRegisterWrites) {

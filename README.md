@@ -1,3 +1,37 @@
+# IMPORTANT
+
+This branch is modified for add AY8930X and YM2610X fantasy sound hardware.
+
+## AY8930X
+
+Basically AY8930 with:
+
+* per-channel noise frequency
+* 32 pulse duty levels
+* stereo sound output (hard-panned)
+* per-channel envelope volume (similar as intellivision AY-3-8914 but 8 levels)
+* emulation/native mode select and register bank register is moved for fix envelope reset in channel A when mode or register bank changes
+* Increased input clock to 8X for handling 32 pulse duty levels
+
+## YM2610X
+
+Basically YM2610B with:
+
+* per-channel LFO (similar as YM2414 OPZ, usable with global LFO)
+* per-operator waveform (same as OPL3, plus 2 waveform shape mode - sine and triangle (from OPZ))
+* increased FM channel to 8
+* embeds AY8930X instead YM2149 as SSG
+* 32 bit address register for ADPCMs
+* Remove 1MiB limit of ADPCM-A
+* loop enable in ADPCM-A (no loop point register - it always loops entire sample)
+* loop point in ADPCM-B
+* increase input clock to 4X for handling 8 FM channels
+* increase clock divider to 576 to match output rate to YM2610(B)s
+
+# TODO:
+
+* Implement missing per-channel LFO parameters/macros in instrument editor
+
 # Furnace (chiptune tracker)
 
 ![screenshot](papers/screenshot3.png)

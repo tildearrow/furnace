@@ -37,8 +37,11 @@
 #include "../engine/platform/ym2610ext.h"
 #include "../engine/platform/ym2610b.h"
 #include "../engine/platform/ym2610bext.h"
+#include "../engine/platform/ym2610x.h"
+#include "../engine/platform/ym2610xext.h"
 #include "../engine/platform/ay.h"
 #include "../engine/platform/ay8930.h"
+#include "../engine/platform/ay8930x.h"
 #include "../engine/platform/tia.h"
 #include "../engine/platform/saa.h"
 #include "../engine/platform/amiga.h"
@@ -288,16 +291,26 @@ void putDispatchChip(void* data, int type) {
     case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_EXT:
     case DIV_SYSTEM_YM2610_FULL:
-    case DIV_SYSTEM_YM2610_FULL_EXT: {
+    case DIV_SYSTEM_YM2610_FULL_EXT:
+    case DIV_SYSTEM_YM2610_CSM: {
       DivPlatformYM2610* ch=(DivPlatformYM2610*)data;
       ImGui::Text("> YM2610");
       OPNB_CHIP_DEBUG;
       break;
     }
     case DIV_SYSTEM_YM2610B:
-    case DIV_SYSTEM_YM2610B_EXT: {
+    case DIV_SYSTEM_YM2610B_EXT:
+    case DIV_SYSTEM_YM2610B_CSM: {
       DivPlatformYM2610B* ch=(DivPlatformYM2610B*)data;
       ImGui::Text("> YM2610B");
+      OPNB_CHIP_DEBUG;
+      break;
+    }
+    case DIV_SYSTEM_YM2610X:
+    case DIV_SYSTEM_YM2610X_EXT:
+    case DIV_SYSTEM_YM2610X_CSM: {
+      DivPlatformYM2610X* ch=(DivPlatformYM2610X*)data;
+      ImGui::Text("> YM2610X");
       OPNB_CHIP_DEBUG;
       break;
     }
@@ -429,6 +442,21 @@ void putDispatchChip(void* data, int type) {
       ImGui::TextColored(ch->clockSel?colorOn:colorOff,">> ClockSel");
       ImGui::TextColored(ch->ioPortA?colorOn:colorOff,">> IoPortA");
       ImGui::TextColored(ch->ioPortB?colorOn:colorOff,">> IoPortB");
+      break;
+    }
+    case DIV_SYSTEM_AY8930X: {
+      DivPlatformAY8930X* ch=(DivPlatformAY8930X*)data;
+      ImGui::Text("> AY8930X");
+      COMMON_CHIP_DEBUG;
+      ImGui::Text("* noise:");
+      ImGui::Text(" - and: %d",ch->ayNoiseAnd);
+      ImGui::Text(" - or: %d",ch->ayNoiseOr);
+      ImGui::Text("- sampleBank: %d",ch->sampleBank);
+      ImGui::Text("- delay: %d",ch->delay);
+      ImGui::Text("- lastFlag: %d",ch->lastFlag);
+      COMMON_CHIP_DEBUG_BOOL;
+      ImGui::TextColored(ch->bank?colorOn:colorOff,">> Bank");
+      ImGui::TextColored(ch->clockSel?colorOn:colorOff,">> ClockSel");
       break;
     }
     case DIV_SYSTEM_QSOUND: {
@@ -681,6 +709,24 @@ void putDispatchChan(void* data, int chanNum, int type) {
       }
       break;
     }
+    case DIV_SYSTEM_YM2610X: {
+      DivPlatformOPN::OPNChannelStereo* ch=(DivPlatformOPN::OPNChannelStereo*)data;
+      ImGui::Text("> YM2610X");
+      OPNB_CHAN_DEBUG;
+      break;
+    }
+    case DIV_SYSTEM_YM2610X_EXT: {
+      if (chanNum>=2 && chanNum<=5) {
+        DivPlatformOPN::OPNOpChannelStereo* ch=(DivPlatformOPN::OPNOpChannelStereo*)data;
+        ImGui::Text("> YM2610X (per operator)");
+        OPNB_OPCHAN_DEBUG;
+      } else {
+        DivPlatformOPN::OPNChannelStereo* ch=(DivPlatformOPN::OPNChannelStereo*)data;
+        ImGui::Text("> YM2610X");
+        OPNB_CHAN_DEBUG;
+      }
+      break;
+    }
     case DIV_SYSTEM_GB: {
       DivPlatformGB::Channel* ch=(DivPlatformGB::Channel*)data;
       ImGui::Text("> GameBoy");
@@ -796,6 +842,43 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text("> AY8930");
       COMMON_CHAN_DEBUG;
       ImGui::Text("- duty: %d",ch->duty);
+      ImGui::Text("* curPSGmode:");
+      ImGui::Text(" - val: %d",ch->curPSGMode.val);
+      ImGui::Text("* nextPSGMode:");
+      ImGui::Text(" - val: %d",ch->nextPSGMode.val);
+      ImGui::Text("* Envelope:");
+      ImGui::Text(" - mode: %d",ch->envelope.mode);
+      ImGui::Text(" - period: %d",ch->envelope.period);
+      ImGui::Text(" - slideLow: %d",ch->envelope.slideLow);
+      ImGui::Text(" - slide: %d",ch->envelope.slide);
+      ImGui::Text("* DAC:");
+      ImGui::Text(" - sample: %d",ch->dac.sample);
+      ImGui::Text(" - rate: %d",ch->dac.rate);
+      ImGui::Text(" - period: %d",ch->dac.period);
+      ImGui::Text(" - pos: %d",ch->dac.pos);
+      ImGui::Text(" - out: %d",ch->dac.out);
+      ImGui::Text("- autoEnvNum: %.2x",ch->autoEnvNum);
+      ImGui::Text("- autoEnvDen: %.2x",ch->autoEnvDen);
+      COMMON_CHAN_DEBUG_BOOL;
+      ImGui::TextColored(ch->dac.furnaceDAC?colorOn:colorOff,">> furnaceDAC");
+      break;
+    }
+    case DIV_SYSTEM_AY8930X: {
+      DivPlatformAY8930X::Channel* ch=(DivPlatformAY8930X::Channel*)data;
+      ImGui::Text("> AY8930X");
+      COMMON_CHAN_DEBUG;
+      ImGui::Text("- duty: %d",ch->duty);
+      ImGui::Text("* curPSGmode:");
+      ImGui::Text(" - val: %d",ch->curPSGMode.val);
+      ImGui::Text("* nextPSGMode:");
+      ImGui::Text(" - val: %d",ch->nextPSGMode.val);
+      ImGui::Text("* Noise:");
+      ImGui::Text(" - period: %d",ch->noise.period);
+      ImGui::Text("* Envelope:");
+      ImGui::Text(" - mode: %d",ch->envelope.mode);
+      ImGui::Text(" - period: %d",ch->envelope.period);
+      ImGui::Text(" - slideLow: %d",ch->envelope.slideLow);
+      ImGui::Text(" - slide: %d",ch->envelope.slide);
       ImGui::Text("* DAC:");
       ImGui::Text(" - sample: %d",ch->dac.sample);
       ImGui::Text(" - rate: %d",ch->dac.rate);

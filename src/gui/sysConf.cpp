@@ -852,6 +852,32 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
+    case DIV_SYSTEM_YM2610X:
+    case DIV_SYSTEM_YM2610X_EXT:
+    case DIV_SYSTEM_YM2610X_CSM: {
+      int ssgVol=flags.getInt("ssgVol",128);
+      int fmVol=flags.getInt("fmVol",256);
+
+      if (CWSliderInt(_("SSG Volume"),&ssgVol,0,256)) {
+        if (ssgVol<0) ssgVol=0;
+        if (ssgVol>256) ssgVol=256;
+        altered=true;
+      } rightClickable
+
+      if (CWSliderInt(_("FM/ADPCM Volume"),&fmVol,0,256)) {
+        if (fmVol<0) fmVol=0;
+        if (fmVol>256) fmVol=256;
+        altered=true;
+      } rightClickable
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("ssgVol",ssgVol);
+          flags.set("fmVol",fmVol);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_AY8910:
     case DIV_SYSTEM_AY8930: {
       int clockSel=flags.getInt("clockSel",0);
@@ -988,6 +1014,45 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           flags.set("halfClock",halfClock);
           flags.set("stereo",stereo);
           flags.set("stereoSep",stereoSep);
+        });
+      }
+      break;
+    }
+    case DIV_SYSTEM_AY8930X: {
+      int clockSel=flags.getInt("clockSel",0);
+      bool halfClock=flags.getBool("halfClock",false);
+
+      ImGui::Text(_("Clock rate:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("14.32MHz (NTSC)"),clockSel==0)) {
+        clockSel=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("14.19MHz (PAL)"),clockSel==1)) {
+        clockSel=1;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("16MHz"),clockSel==2)) {
+        clockSel=2;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("12MHz"),clockSel==3)) {
+        clockSel=3;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("12.288MHz"),clockSel==4)) {
+        clockSel=4;
+        altered=true;
+      }
+      ImGui::Unindent();
+      if (ImGui::Checkbox(_("Half Clock divider##_AY8930X_CLKSEL"),&halfClock)) {
+        altered=true;
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("clockSel",clockSel);
+          flags.set("halfClock",halfClock);
         });
       }
       break;

@@ -99,6 +99,8 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_SUPERVISION=64,
   DIV_INS_UPD1771C=65,
   DIV_INS_SID3=66,
+  DIV_INS_AY8930X=67,
+  DIV_INS_OPNX=68,
   DIV_INS_MAX,
   DIV_INS_NULL
 };
@@ -125,7 +127,22 @@ enum DivMacroType: unsigned char {
   DIV_MACRO_EX7,
   DIV_MACRO_EX8,
   DIV_MACRO_EX9,
-  DIV_MACRO_EX10
+  DIV_MACRO_EX10,
+  DIV_MACRO_EX11,
+  DIV_MACRO_EX12,
+  DIV_MACRO_EX13,
+  DIV_MACRO_EX14,
+  DIV_MACRO_EX15,
+  DIV_MACRO_EX16,
+  DIV_MACRO_EX17,
+  DIV_MACRO_EX18,
+  DIV_MACRO_EX19,
+  DIV_MACRO_EX20,
+  DIV_MACRO_EX21=0xa0,
+  DIV_MACRO_EX22,
+  DIV_MACRO_EX23,
+  DIV_MACRO_EX24,
+  DIV_MACRO_EX25
 };
 
 enum DivMacroTypeOp: unsigned char {
@@ -167,7 +184,8 @@ enum DivMacroTypeOp: unsigned char {
 //   - WS, DVB = MULT (FINE), DAM = REV, KSL = EGShift, EGT = Fixed
 
 struct DivInstrumentFM {
-  unsigned char alg, fb, fms, ams, fms2, ams2, ops, opllPreset, block;
+  unsigned char alg, fb, fms, ams, fms2, ams2, fms3, ams3, ops, opllPreset, block;
+  unsigned char lfoRate, lfoFmDepth, lfoAmDepth, lfoWs, lfoNoise, lfoRate2, lfoFmDepth2, lfoAmDepth2, lfoWs2, lfoNoise2;
   bool fixedDrums;
   unsigned short kickFreq, snareHatFreq, tomTopFreq;
 
@@ -216,9 +234,21 @@ struct DivInstrumentFM {
     ams(0),
     fms2(0),
     ams2(0),
+    fms3(0),
+    ams3(0),
     ops(2),
     opllPreset(0),
     block(0),
+    lfoRate(0),
+    lfoFmDepth(0),
+    lfoAmDepth(0),
+    lfoWs(0),
+    lfoNoise(0),
+    lfoRate2(0),
+    lfoFmDepth2(0),
+    lfoAmDepth2(0),
+    lfoWs2(0),
+    lfoNoise2(0),
     fixedDrums(false),
     kickFreq(0x520),
     snareHatFreq(0x550),
@@ -305,6 +335,21 @@ struct DivInstrumentSTD {
   DivInstrumentMacro ex8Macro;
   DivInstrumentMacro ex9Macro;
   DivInstrumentMacro ex10Macro;
+  DivInstrumentMacro ex11Macro;
+  DivInstrumentMacro ex12Macro;
+  DivInstrumentMacro ex13Macro;
+  DivInstrumentMacro ex14Macro;
+  DivInstrumentMacro ex15Macro;
+  DivInstrumentMacro ex16Macro;
+  DivInstrumentMacro ex17Macro;
+  DivInstrumentMacro ex18Macro;
+  DivInstrumentMacro ex19Macro;
+  DivInstrumentMacro ex20Macro;
+  DivInstrumentMacro ex21Macro;
+  DivInstrumentMacro ex22Macro;
+  DivInstrumentMacro ex23Macro;
+  DivInstrumentMacro ex24Macro;
+  DivInstrumentMacro ex25Macro;
 
   struct OpMacro {
     // ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
@@ -360,7 +405,22 @@ struct DivInstrumentSTD {
     ex7Macro(DIV_MACRO_EX7),
     ex8Macro(DIV_MACRO_EX8),
     ex9Macro(DIV_MACRO_EX9),
-    ex10Macro(DIV_MACRO_EX10) {
+    ex10Macro(DIV_MACRO_EX10),
+    ex11Macro(DIV_MACRO_EX11),
+    ex12Macro(DIV_MACRO_EX12),
+    ex13Macro(DIV_MACRO_EX13),
+    ex14Macro(DIV_MACRO_EX14),
+    ex15Macro(DIV_MACRO_EX15),
+    ex16Macro(DIV_MACRO_EX16),
+    ex17Macro(DIV_MACRO_EX17),
+    ex18Macro(DIV_MACRO_EX18),
+    ex19Macro(DIV_MACRO_EX19),
+    ex20Macro(DIV_MACRO_EX20),
+    ex21Macro(DIV_MACRO_EX21),
+    ex22Macro(DIV_MACRO_EX22),
+    ex23Macro(DIV_MACRO_EX23),
+    ex24Macro(DIV_MACRO_EX24),
+    ex25Macro(DIV_MACRO_EX25) {
     for (int i=0; i<4; i++) {
       opMacros[i].amMacro.macroType=DIV_MACRO_OP_AM+(i<<5);
       opMacros[i].arMacro.macroType=DIV_MACRO_OP_AR+(i<<5);

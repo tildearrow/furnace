@@ -244,6 +244,21 @@ void DivMacroInt::mask(unsigned char id, bool enabled) {
     CONSIDER(ex8,19)
     CONSIDER(ex9,20)
     CONSIDER(ex10,21)
+    CONSIDER(ex11,22)
+    CONSIDER(ex12,23)
+    CONSIDER(ex13,24)
+    CONSIDER(ex14,25)
+    CONSIDER(ex15,26)
+    CONSIDER(ex16,27)
+    CONSIDER(ex17,28)
+    CONSIDER(ex18,29)
+    CONSIDER(ex19,30)
+    CONSIDER(ex20,31)
+    CONSIDER(ex21,0xa0)
+    CONSIDER(ex22,0xa1)
+    CONSIDER(ex23,0xa2)
+    CONSIDER(ex24,0xa3)
+    CONSIDER(ex25,0xa4)
 
     CONSIDER_OP(0,0x20)
     CONSIDER_OP(2,0x40)
@@ -313,6 +328,21 @@ void DivMacroInt::restart(unsigned char id) {
     CONSIDER(ex8,ex8Macro,19)
     CONSIDER(ex9,ex9Macro,20)
     CONSIDER(ex10,ex10Macro,21)
+    CONSIDER(ex11,ex11Macro,22)
+    CONSIDER(ex12,ex12Macro,23)
+    CONSIDER(ex13,ex13Macro,24)
+    CONSIDER(ex14,ex14Macro,25)
+    CONSIDER(ex15,ex15Macro,26)
+    CONSIDER(ex16,ex16Macro,27)
+    CONSIDER(ex17,ex17Macro,28)
+    CONSIDER(ex18,ex18Macro,29)
+    CONSIDER(ex19,ex19Macro,30)
+    CONSIDER(ex20,ex20Macro,31)
+    CONSIDER(ex21,ex21Macro,0xa0)
+    CONSIDER(ex22,ex22Macro,0xa1)
+    CONSIDER(ex23,ex23Macro,0xa2)
+    CONSIDER(ex24,ex24Macro,0xa3)
+    CONSIDER(ex25,ex25Macro,0xa4)
 
     CONSIDER_OP(0,0x20)
     CONSIDER_OP(2,0x40)
@@ -428,6 +458,51 @@ void DivMacroInt::init(DivInstrument* which) {
   if (ins->std.ex10Macro.len>0) {
     ADD_MACRO(ex10,ins->std.ex10Macro);
   }
+  if (ins->std.ex11Macro.len>0) {
+    ADD_MACRO(ex11,ins->std.ex11Macro);
+  }
+  if (ins->std.ex12Macro.len>0) {
+    ADD_MACRO(ex12,ins->std.ex12Macro);
+  }
+  if (ins->std.ex13Macro.len>0) {
+    ADD_MACRO(ex13,ins->std.ex13Macro);
+  }
+  if (ins->std.ex14Macro.len>0) {
+    ADD_MACRO(ex14,ins->std.ex14Macro);
+  }
+  if (ins->std.ex15Macro.len>0) {
+    ADD_MACRO(ex15,ins->std.ex15Macro);
+  }
+  if (ins->std.ex16Macro.len>0) {
+    ADD_MACRO(ex16,ins->std.ex16Macro);
+  }
+  if (ins->std.ex17Macro.len>0) {
+    ADD_MACRO(ex17,ins->std.ex17Macro);
+  }
+  if (ins->std.ex18Macro.len>0) {
+    ADD_MACRO(ex18,ins->std.ex18Macro);
+  }
+  if (ins->std.ex19Macro.len>0) {
+    ADD_MACRO(ex19,ins->std.ex19Macro);
+  }
+  if (ins->std.ex20Macro.len>0) {
+    ADD_MACRO(ex20,ins->std.ex20Macro);
+  }
+  if (ins->std.ex21Macro.len>0) {
+    ADD_MACRO(ex21,ins->std.ex21Macro);
+  }
+  if (ins->std.ex22Macro.len>0) {
+    ADD_MACRO(ex22,ins->std.ex22Macro);
+  }
+  if (ins->std.ex23Macro.len>0) {
+    ADD_MACRO(ex23,ins->std.ex23Macro);
+  }
+  if (ins->std.ex24Macro.len>0) {
+    ADD_MACRO(ex24,ins->std.ex24Macro);
+  }
+  if (ins->std.ex25Macro.len>0) {
+    ADD_MACRO(ex25,ins->std.ex25Macro);
+  }
 
   // prepare FM operator macros
   for (int i=0; i<4; i++) {
@@ -518,6 +593,7 @@ void DivMacroInt::notifyInsDeletion(DivInstrument* which) {
 }
 
 #define CONSIDER(x,y) case (y&0x1f): return &x; break;
+#define CONSIDERX(x,y) case (y&0xff): return &x; break;
 
 DivMacroStruct* DivMacroInt::structByType(unsigned char type) {
   if (type>=0x20) {
@@ -571,6 +647,21 @@ DivMacroStruct* DivMacroInt::structByType(unsigned char type) {
     CONSIDER(ex8,DIV_MACRO_EX8)
     CONSIDER(ex9,DIV_MACRO_EX9)
     CONSIDER(ex10,DIV_MACRO_EX10)
+    CONSIDER(ex11,DIV_MACRO_EX11)
+    CONSIDER(ex12,DIV_MACRO_EX12)
+    CONSIDER(ex13,DIV_MACRO_EX13)
+    CONSIDER(ex14,DIV_MACRO_EX14)
+    CONSIDER(ex15,DIV_MACRO_EX15)
+    CONSIDER(ex16,DIV_MACRO_EX16)
+    CONSIDER(ex17,DIV_MACRO_EX17)
+    CONSIDER(ex18,DIV_MACRO_EX18)
+    CONSIDER(ex19,DIV_MACRO_EX19)
+    CONSIDER(ex20,DIV_MACRO_EX20)
+    CONSIDERX(ex21,DIV_MACRO_EX21)
+    CONSIDERX(ex22,DIV_MACRO_EX22)
+    CONSIDERX(ex23,DIV_MACRO_EX23)
+    CONSIDERX(ex24,DIV_MACRO_EX24)
+    CONSIDERX(ex25,DIV_MACRO_EX25)
   }
 
   return NULL;

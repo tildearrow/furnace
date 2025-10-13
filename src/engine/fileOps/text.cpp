@@ -125,7 +125,7 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
 
     w->writeText(fmt::sprintf("- type: %d\n",(int)ins->type));
 
-    if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPM || ins->type==DIV_INS_ESFM) {
+    if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPM || ins->type==DIV_INS_ESFM || ins->type==DIV_INS_OPNX) {
       int opCount=4;
       if (ins->type==DIV_INS_OPLL) {
         opCount=2;
@@ -230,6 +230,21 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
     writeTextMacro(w,ins->std.ex8Macro,"ex8",header);
     writeTextMacro(w,ins->std.ex9Macro,"ex9",header);
     writeTextMacro(w,ins->std.ex10Macro,"ex10",header);
+    writeTextMacro(w,ins->std.ex11Macro,"ex11",header);
+    writeTextMacro(w,ins->std.ex12Macro,"ex12",header);
+    writeTextMacro(w,ins->std.ex13Macro,"ex13",header);
+    writeTextMacro(w,ins->std.ex14Macro,"ex14",header);
+    writeTextMacro(w,ins->std.ex15Macro,"ex15",header);
+    writeTextMacro(w,ins->std.ex16Macro,"ex16",header);
+    writeTextMacro(w,ins->std.ex17Macro,"ex17",header);
+    writeTextMacro(w,ins->std.ex18Macro,"ex18",header);
+    writeTextMacro(w,ins->std.ex19Macro,"ex19",header);
+    writeTextMacro(w,ins->std.ex20Macro,"ex20",header);
+    writeTextMacro(w,ins->std.ex21Macro,"ex21",header);
+    writeTextMacro(w,ins->std.ex22Macro,"ex22",header);
+    writeTextMacro(w,ins->std.ex23Macro,"ex23",header);
+    writeTextMacro(w,ins->std.ex24Macro,"ex24",header);
+    writeTextMacro(w,ins->std.ex25Macro,"ex25",header);
     writeTextMacro(w,ins->std.algMacro,"alg",header);
     writeTextMacro(w,ins->std.fbMacro,"fb",header);
     writeTextMacro(w,ins->std.fmsMacro,"fms",header);

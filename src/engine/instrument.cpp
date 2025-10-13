@@ -35,9 +35,21 @@ bool DivInstrumentFM::operator==(const DivInstrumentFM& other) {
     _C(ams) &&
     _C(fms2) &&
     _C(ams2) &&
+    _C(fms3) &&
+    _C(ams3) &&
     _C(ops) &&
     _C(opllPreset) &&
     _C(block) &&
+    _C(lfoRate) &&
+    _C(lfoFmDepth) &&
+    _C(lfoAmDepth) &&
+    _C(lfoWs) &&
+    _C(lfoNoise) &&
+    _C(lfoRate2) &&
+    _C(lfoFmDepth2) &&
+    _C(lfoAmDepth2) &&
+    _C(lfoWs2) &&
+    _C(lfoNoise2) &&
     _C(fixedDrums) &&
     _C(kickFreq) &&
     _C(snareHatFreq) &&
@@ -362,6 +374,21 @@ DivInstrumentMacro* DivInstrumentSTD::macroByType(DivMacroType type) {
     CONSIDER(ex8Macro,DIV_MACRO_EX8)
     CONSIDER(ex9Macro,DIV_MACRO_EX9)
     CONSIDER(ex10Macro,DIV_MACRO_EX10)
+    CONSIDER(ex11Macro,DIV_MACRO_EX11)
+    CONSIDER(ex12Macro,DIV_MACRO_EX12)
+    CONSIDER(ex13Macro,DIV_MACRO_EX13)
+    CONSIDER(ex14Macro,DIV_MACRO_EX14)
+    CONSIDER(ex15Macro,DIV_MACRO_EX15)
+    CONSIDER(ex16Macro,DIV_MACRO_EX16)
+    CONSIDER(ex17Macro,DIV_MACRO_EX17)
+    CONSIDER(ex18Macro,DIV_MACRO_EX18)
+    CONSIDER(ex19Macro,DIV_MACRO_EX19)
+    CONSIDER(ex20Macro,DIV_MACRO_EX20)
+    CONSIDER(ex21Macro,DIV_MACRO_EX21)
+    CONSIDER(ex22Macro,DIV_MACRO_EX22)
+    CONSIDER(ex23Macro,DIV_MACRO_EX23)
+    CONSIDER(ex24Macro,DIV_MACRO_EX24)
+    CONSIDER(ex25Macro,DIV_MACRO_EX25)
   }
 
   return NULL;
@@ -426,6 +453,7 @@ void DivInstrument::writeFeatureFM(SafeWriter* w, bool fui) {
     w->writeC(((op.sl&15)<<4)|(op.rr&15));
     w->writeC(((op.dvb&15)<<4)|(op.ssgEnv&15));
     w->writeC(((op.dam&7)<<5)|((op.dt2&3)<<3)|(op.ws&7));
+    w->writeC((op.ws&8));
   }
 
   FEATURE_END;
@@ -652,6 +680,21 @@ void DivInstrument::writeFeatureMA(SafeWriter* w) {
   writeMacro(w,std.ex8Macro);
   writeMacro(w,std.ex9Macro);
   writeMacro(w,std.ex10Macro);
+  writeMacro(w,std.ex11Macro);
+  writeMacro(w,std.ex12Macro);
+  writeMacro(w,std.ex13Macro);
+  writeMacro(w,std.ex14Macro);
+  writeMacro(w,std.ex15Macro);
+  writeMacro(w,std.ex16Macro);
+  writeMacro(w,std.ex17Macro);
+  writeMacro(w,std.ex18Macro);
+  writeMacro(w,std.ex19Macro);
+  writeMacro(w,std.ex20Macro);
+  writeMacro(w,std.ex21Macro);
+  writeMacro(w,std.ex22Macro);
+  writeMacro(w,std.ex23Macro);
+  writeMacro(w,std.ex24Macro);
+  writeMacro(w,std.ex25Macro);
 
   // "stop reading" code
   w->writeC(-1);
@@ -1230,6 +1273,10 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         featureSM=true;
         if (amiga.useSample) featureSL=true;
         break;
+      case DIV_INS_AY8930X:
+        featureSM=true;
+        if (amiga.useSample) featureSL=true;
+        break;
       case DIV_INS_TIA:
         break;
       case DIV_INS_SAA1099:
@@ -1532,7 +1579,22 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
       std.ex7Macro.len ||
       std.ex8Macro.len ||
       std.ex9Macro.len ||
-      std.ex10Macro.len) {
+      std.ex10Macro.len ||
+      std.ex11Macro.len ||
+      std.ex12Macro.len ||
+      std.ex13Macro.len ||
+      std.ex14Macro.len ||
+      std.ex15Macro.len ||
+      std.ex16Macro.len ||
+      std.ex17Macro.len ||
+      std.ex18Macro.len ||
+      std.ex19Macro.len ||
+      std.ex20Macro.len ||
+      std.ex21Macro.len ||
+      std.ex22Macro.len ||
+      std.ex23Macro.len ||
+      std.ex24Macro.len ||
+      std.ex25Macro.len) {
     featureMA=true;
   }
 
@@ -1800,6 +1862,9 @@ void DivInstrument::readFeatureFM(SafeReader& reader, short version) {
     op.dam=(next>>5)&7;
     op.dt2=(next>>3)&3;
     op.ws=next&7;
+
+    next=reader.readC();
+    op.ws|=next&8;
   }
 
   READ_FEAT_END;
@@ -1891,6 +1956,51 @@ void DivInstrument::readFeatureMA(SafeReader& reader, short version) {
         break;
       case 21:
         target=&std.ex10Macro;
+        break;
+      case 22:
+        target=&std.ex11Macro;
+        break;
+      case 23:
+        target=&std.ex12Macro;
+        break;
+      case 24:
+        target=&std.ex13Macro;
+        break;
+      case 25:
+        target=&std.ex14Macro;
+        break;
+      case 26:
+        target=&std.ex15Macro;
+        break;
+      case 27:
+        target=&std.ex16Macro;
+        break;
+      case 28:
+        target=&std.ex17Macro;
+        break;
+      case 29:
+        target=&std.ex18Macro;
+        break;
+      case 30:
+        target=&std.ex19Macro;
+        break;
+      case 31:
+        target=&std.ex20Macro;
+        break;
+      case 0xa0:
+        target=&std.ex21Macro;
+        break;
+      case 0xa1:
+        target=&std.ex22Macro;
+        break;
+      case 0xa2:
+        target=&std.ex23Macro;
+        break;
+      case 0xa3:
+        target=&std.ex24Macro;
+        break;
+      case 0xa4:
+        target=&std.ex25Macro;
         break;
       default:
         logW("invalid macro code %d!", macroCode);

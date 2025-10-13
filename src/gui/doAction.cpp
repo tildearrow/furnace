@@ -1133,6 +1133,7 @@ void FurnaceGUI::doAction(int what) {
             i==DIV_INS_SWAN ||
             i==DIV_INS_AY ||
             i==DIV_INS_AY8930 ||
+            i==DIV_INS_AY8930X ||
             i==DIV_INS_VRC6 ||
             i==DIV_INS_SU ||
             i==DIV_INS_SNES ||
@@ -1680,6 +1681,7 @@ void FurnaceGUI::doAction(int what) {
             i==DIV_INS_SWAN ||
             i==DIV_INS_AY ||
             i==DIV_INS_AY8930 ||
+            i==DIV_INS_AY8930X ||
             i==DIV_INS_VRC6 ||
             i==DIV_INS_SU ||
             i==DIV_INS_SNES ||

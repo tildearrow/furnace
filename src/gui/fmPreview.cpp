@@ -100,6 +100,63 @@ void FurnaceGUI::renderFMPreviewOPN(const DivInstrumentFM& params, int pos) {
   }
 }
 
+void FurnaceGUI::renderFMPreviewOPNX(const DivInstrumentFM& params, int pos) {
+  if (fmPreviewOPN==NULL) {
+    fmPreviewOPN=new ym3438_t;
+    pos=0;
+  }
+  short out[2];
+  int aOut=0;
+  bool mult0=false;
+
+  if (pos==0) {
+    OPN2_Reset((ym3438_t*)fmPreviewOPN);
+    OPN2_SetChipType((ym3438_t*)fmPreviewOPN,ym3438_mode_opn);
+
+    // set params
+    for (int i=0; i<4; i++) {
+      if ((params.op[i].mult&15)==0) {
+        mult0=true;
+        break;
+      }
+    }
+    for (int i=0; i<4; i++) {
+      const DivInstrumentFM::Operator& op=params.op[i];
+      unsigned short baseAddr=i*4;
+      OPN_WRITE(baseAddr+0x40,op.tl);
+      OPN_WRITE(baseAddr+0x30,(op.mult&15)|(dtTableFMP[op.dt&7]<<4));
+      OPN_WRITE(baseAddr+0x50,(op.ar&31)|(op.rs<<6));
+      OPN_WRITE(baseAddr+0x60,(op.dr&31)|(op.am<<7));
+      OPN_WRITE(baseAddr+0x70,op.d2r&31);
+      OPN_WRITE(baseAddr+0x80,(op.rr&15)|(op.sl<<4));
+      OPN_WRITE(baseAddr+0x90,(op.ssgEnv&15)|((op.ws&15)<<4));
+    }
+    OPN_WRITE(0xb0,(params.alg&7)|((params.fb&7)<<3));
+    OPN_WRITE(0xb4,0xc0|(params.fms&7)|((params.ams&3)<<4));
+    OPN_WRITE(0xa4,mult0?0x1c:0x14); // frequency
+    OPN_WRITE(0xa0,0);
+    OPN_WRITE(
+     0x28,
+     (params.op[0].enable?0x10:0)|
+     (params.op[2].enable?0x20:0)|
+     (params.op[1].enable?0x40:0)|
+     (params.op[3].enable?0x80:0)
+    ); // key on
+  }
+
+  // render
+  for (int i=0; i<FM_PREVIEW_SIZE; i++) {
+    aOut=0;
+    for (int j=0; j<24; j++) {
+      OPN2_Clock((ym3438_t*)fmPreviewOPN,out);
+    }
+    aOut+=((ym3438_t*)fmPreviewOPN)->ch_out[0];
+    if (aOut<-32768) aOut=-32768;
+    if (aOut>32767) aOut=32767;
+    fmPreview[i]=aOut;
+  }
+}
+
 #define OPM_WRITE(addr,val) \
   OPM_Write((opm_t*)fmPreviewOPM,0,(addr)); \
   do { \
@@ -440,6 +497,10 @@ void FurnaceGUI::renderFMPreview(const DivInstrument* ins, int pos) {
       break;
     case DIV_INS_ESFM:
       renderFMPreviewESFM(ins->fm,ins->esfm,pos);
+      break;
+    case DIV_INS_OPNX:
+      renderFMPreviewOPN(ins->fm,pos);
+      break;
     default:
       break;
   }

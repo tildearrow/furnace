@@ -558,6 +558,7 @@ src/pch.cpp
 
 src/engine/platform/sound/sn76496.cpp
 src/engine/platform/sound/ay8910.cpp
+src/engine/platform/sound/ay8930x.cpp
 src/engine/platform/sound/saa1099.cpp
 src/engine/platform/sound/namco.cpp
 src/engine/platform/sound/segapcm.cpp
@@ -625,12 +626,15 @@ src/engine/platform/sound/tia/AudioChannel.cpp
 src/engine/platform/sound/tia/Audio.cpp
 
 src/engine/platform/sound/ymfm/ymfm_adpcm.cpp
+src/engine/platform/sound/ymfm/ymfm_adpcmx.cpp
 src/engine/platform/sound/ymfm/ymfm_opl.cpp
 src/engine/platform/sound/ymfm/ymfm_opm.cpp
 src/engine/platform/sound/ymfm/ymfm_opn.cpp
+src/engine/platform/sound/ymfm/ymfm_opnx.cpp
 src/engine/platform/sound/ymfm/ymfm_opz.cpp
 src/engine/platform/sound/ymfm/ymfm_pcm.cpp
 src/engine/platform/sound/ymfm/ymfm_ssg.cpp
+src/engine/platform/sound/ymfm/ymfm_ssgx.cpp
 
 src/engine/platform/sound/lynx/Mikey.cpp
 
@@ -691,6 +695,7 @@ src/engine/platform/sound/sid3.c
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
 src/engine/platform/ym2610Interface.cpp
+src/engine/platform/ym2610xInterface.cpp
 
 src/engine/fileOps/fileOpsCommon.cpp
 src/engine/fileOps/dmf.cpp
@@ -760,8 +765,11 @@ src/engine/platform/ym2610.cpp
 src/engine/platform/ym2610ext.cpp
 src/engine/platform/ym2610b.cpp
 src/engine/platform/ym2610bext.cpp
+src/engine/platform/ym2610x.cpp
+src/engine/platform/ym2610xext.cpp
 src/engine/platform/ay.cpp
 src/engine/platform/ay8930.cpp
+src/engine/platform/ay8930x.cpp
 src/engine/platform/opl.cpp
 src/engine/platform/fds.cpp
 src/engine/platform/tia.cpp

@@ -1008,6 +1008,7 @@ void DivEngine::delUnusedSamples() {
         (i->type==DIV_INS_SWAN && i->amiga.useSample) ||
         (i->type==DIV_INS_AY && i->amiga.useSample) ||
         (i->type==DIV_INS_AY8930 && i->amiga.useSample) ||
+        (i->type==DIV_INS_AY8930X && i->amiga.useSample) ||
         (i->type==DIV_INS_VRC6 && i->amiga.useSample) ||
         (i->type==DIV_INS_SU && i->amiga.useSample) ||
         i->type==DIV_INS_SNES ||
@@ -2279,7 +2280,17 @@ int DivEngine::getEffectiveSampleRate(int rate) {
       return (31250*MIN(255,(rate*255/31250)))/255;
     case DIV_SYSTEM_QSOUND:
       return (24038*MIN(65535,(rate*4096/24038)))/4096;
-    case DIV_SYSTEM_YM2610: case DIV_SYSTEM_YM2610_EXT: case DIV_SYSTEM_YM2610_FULL: case DIV_SYSTEM_YM2610_FULL_EXT: case DIV_SYSTEM_YM2610B: case DIV_SYSTEM_YM2610B_EXT:
+    case DIV_SYSTEM_YM2610:
+    case DIV_SYSTEM_YM2610_EXT:
+    case DIV_SYSTEM_YM2610_FULL:
+    case DIV_SYSTEM_YM2610_FULL_EXT:
+    case DIV_SYSTEM_YM2610_CSM:
+    case DIV_SYSTEM_YM2610B:
+    case DIV_SYSTEM_YM2610B_EXT:
+    case DIV_SYSTEM_YM2610B_CSM:
+    case DIV_SYSTEM_YM2610X:
+    case DIV_SYSTEM_YM2610X_EXT:
+    case DIV_SYSTEM_YM2610X_CSM:
       return 18518;
     case DIV_SYSTEM_VERA:
       return (48828*MIN(128,(rate*128/48828)))/128;

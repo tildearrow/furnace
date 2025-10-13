@@ -135,6 +135,7 @@ const char* aboutLine[]={
   _N("MAME SN76496 by Nicola Salmoria"),
   _N("MAME AY-3-8910 by Couriersud"),
   _N("with AY8930 fixes by Eulous, cam900 and Grauw"),
+  _N("AY8930X by cam900"),
   _N("MAME SAA1099 by Juergen Buchmueller and Manuel Abadia"),
   _N("MAME Namco WSG by Nicola Salmoria and Aaron Giles"),
   _N("MAME RF5C68 core by Olivier Galibert and Aaron Giles"),

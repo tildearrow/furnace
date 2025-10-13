@@ -366,6 +366,33 @@ void FurnaceGUI::drawSampleEdit() {
               }
             }
             break;
+          case DIV_SYSTEM_YM2610X:
+          case DIV_SYSTEM_YM2610X_EXT:
+            if (sample->loop) {
+              if (sample->depth==DIV_SAMPLE_DEPTH_ADPCM_A) {
+                if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
+                  SAMPLE_WARN(warnLoop,_("YM2610X: loop point ignored on ADPCM-A (may only loop entire sample)"));
+                }
+              } else {
+                if (sample->loopStart&1) {
+                  SAMPLE_WARN(warnLoopStart,_("YM2610X: loop start must be a multiple of 2"));
+                }
+                if (sample->loopEnd&1) {
+                  SAMPLE_WARN(warnLoopEnd,_("YM2610X: loop end must be a multiple of 2"));
+                }
+              }
+              if (sample->samples&1) {
+                SAMPLE_WARN(warnLength,_("YM2610X: sample length will be padded to multiple of 2"));
+              }
+            }
+            if (dispatch!=NULL) {
+              if (sample->depth==DIV_SAMPLE_DEPTH_ADPCM_A) {
+                EXACT_RATE("YM2610X (ADPCM-A)",dispatch->chipClock/1728);
+              } else {
+                MAX_RATE("YM2610X (ADPCM-B)",dispatch->chipClock/576);
+              }
+            }
+            break;
           case DIV_SYSTEM_Y8950:
             if (sample->loop) {
               if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {

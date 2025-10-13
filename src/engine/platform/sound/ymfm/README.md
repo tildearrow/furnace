@@ -6,6 +6,12 @@
 
 this is a modified version which contains many fixes.
 
+This is a modified version with YM2610X support.
+
+TODO:
+
+* Sync PSG with ay8930x.cpp core
+
 ## Supported environments
 
 This code should compile cleanly in any environment that has C++14 support.
