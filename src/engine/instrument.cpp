@@ -51,6 +51,8 @@ bool DivInstrumentFM::operator==(const DivInstrumentFM& other) {
     _C(lfoWs2) &&
     _C(lfoNoise2) &&
     _C(fixedDrums) &&
+    _C(lfoSync2) &&
+    _C(lfoSync3) &&
     _C(kickFreq) &&
     _C(snareHatFreq) &&
     _C(tomTopFreq) &&
