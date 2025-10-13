@@ -2344,7 +2344,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       break;
   }
   if (hasOpened) curFileDialog=type;
-  //ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NavEnableKeyboard;
 }
 
 int FurnaceGUI::save(String path, int dmfVersion) {
@@ -7946,6 +7945,8 @@ bool FurnaceGUI::init() {
   prepareLayout();
 
   ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_DockingEnable;
+  //ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NavEnableKeyboard;
+  //ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NavCaptureKeyboard;
   toggleMobileUI(mobileUI,true);
 
   firstFrame=true;
