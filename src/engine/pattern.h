@@ -22,7 +22,7 @@
 
 struct DivPattern {
   String name;
-  short data[DIV_MAX_ROWS][DIV_MAX_COLS];
+  unsigned char newData[DIV_MAX_ROWS][DIV_MAX_COLS];
 
   /**
    * clear the pattern.

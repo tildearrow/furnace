@@ -31,6 +31,26 @@
 #define DIV_MAX_COLS 32
 #define DIV_MAX_EFFECTS 8
 
+// pattern fields
+#define DIV_PAT_NOTE 0
+#define DIV_PAT_INS 1
+#define DIV_PAT_VOL 2
+#define DIV_PAT_BITS 3
+#define DIV_PAT_FXBITS 4
+#define DIV_PAT_VALBITS 5
+#define DIV_PAT_EFFECTS 16
+#define DIV_PAT_EFFECT_VALS 17
+
+#define DIV_NOTE_NULL_PAT 252
+#define DIV_NOTE_OFF 253
+#define DIV_NOTE_REL 254
+#define DIV_MACRO_REL 255
+
+#define DIV_NOTE_BIT 1
+#define DIV_INS_BIT 2
+#define DIV_VOL_BIT 4
+#define DIV_EFFECT_BIT(x) (1<<(x));
+
 // sample related
 #define DIV_MAX_SAMPLE_TYPE 4
 

@@ -783,35 +783,49 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         DivPattern* pat=chan.getPattern(ds.subsong[0]->orders.ord[i][j],true);
         if (ds.version>0x08) { // current pattern format
           for (int k=0; k<ds.subsong[0]->patLen; k++) {
-            // note
-            pat->data[k][0]=reader.readS();
-            // octave
-            pat->data[k][1]=reader.readS();
-            if (ds.system[0]==DIV_SYSTEM_SMS && ds.version<0x0e && pat->data[k][1]>0) {
+            short note=reader.readS();
+            short octave=reader.readS();
+            if (ds.system[0]==DIV_SYSTEM_SMS && ds.version<0x0e && octave>0) {
               // apparently it was up one octave before
-              pat->data[k][1]--;
-            } else if (ds.system[0]==DIV_SYSTEM_GENESIS && ds.version<0x0e && pat->data[k][1]>0 && i>5) {
+              octave--;
+            } else if (ds.system[0]==DIV_SYSTEM_GENESIS && ds.version<0x0e && octave>0 && i>5) {
               // ditto
-              pat->data[k][1]--;
-            } else if (ds.system[0]==DIV_SYSTEM_MSX2 && pat->data[k][1]>0 && i<3) {
+              octave--;
+            } else if (ds.system[0]==DIV_SYSTEM_MSX2 && octave>0 && i<3) {
               // why the hell?
-              pat->data[k][1]++;
+              octave++;
             }
             if (ds.version<0x12) {
-              if (ds.system[0]==DIV_SYSTEM_GB && i==3 && pat->data[k][1]>0) {
+              if (ds.system[0]==DIV_SYSTEM_GB && i==3 && octave>0) {
                 // back then noise was 2 octaves lower
-                pat->data[k][1]-=2;
+                octave-=2;
               }
             }
-            if (ds.system[0]==DIV_SYSTEM_YMU759 && pat->data[k][0]!=0) {
+            if (ds.system[0]==DIV_SYSTEM_YMU759 && note!=0) {
               // apparently YMU759 is stored 2 octaves lower
-              pat->data[k][1]+=2;
+              octave+=2;
             }
-            if (pat->data[k][0]==0 && pat->data[k][1]!=0) {
-              logD("what? %d:%d:%d note %d octave %d",i,j,k,pat->data[k][0],pat->data[k][1]);
-              pat->data[k][0]=12;
-              pat->data[k][1]--;
+            if (note==0 && octave!=0) {
+              logD("what? %d:%d:%d note %d octave %d",i,j,k,note,octave);
+              note=12;
+              octave--;
             }
+
+            if (note==100) {
+              pat->newData[k][DIV_PAT_NOTE]=DIV_NOTE_OFF;
+            } else if (note==101) {
+              pat->newData[k][DIV_PAT_NOTE]=DIV_NOTE_REL;
+            } else if (note==102) {
+              pat->newData[k][DIV_PAT_NOTE]=DIV_MACRO_REL;
+            } else if (note==0 && octave!=0) {
+              // "BUG" note!
+              pat->newData[k][DIV_PAT_NOTE]=DIV_NOTE_NULL_PAT;
+            } else
+            int seek=(note+(signed char)octave*12)+60;
+            if (seek<0 || seek>=180) {
+              return "???";
+            }
+
             // volume
             pat->data[k][3]=reader.readS();
             if (ds.version<0x0a) {
