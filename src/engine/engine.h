@@ -721,7 +721,7 @@ class DivEngine {
     SafeWriter* saveDMF(unsigned char version);
     // save as .fur.
     // if notPrimary is true then the song will not be altered
-    SafeWriter* saveFur(bool notPrimary=false, bool newPatternFormat=true);
+    SafeWriter* saveFur(bool notPrimary=false);
     // return a ROM exporter.
     DivROMExport* buildROM(DivROMExportOptions sys);
     // dump to VGM.
@@ -926,6 +926,10 @@ class DivEngine {
 
     // get effective sample rate
     int getEffectiveSampleRate(int rate);
+
+    // convert between old and new note/octave format
+    short splitNoteToNote(short note, short octave);
+    void noteToSplitNote(short note, short& outNote, short& outOctave);
 
     // is FM system
     bool isFMSystem(DivSystem sys);

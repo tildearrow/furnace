@@ -2293,6 +2293,63 @@ int DivEngine::getEffectiveSampleRate(int rate) {
   return rate;
 }
 
+short DivEngine::splitNoteToNote(short note, short octave) {
+  if (note==100) {
+    return DIV_NOTE_OFF;
+  } else if (note==101) {
+    return DIV_NOTE_REL;
+  } else if (note==102) {
+    return DIV_MACRO_REL;
+  } else if (note==0 && octave!=0) {
+    // "BUG" note!
+    return DIV_NOTE_NULL_PAT;
+  } else if (note==0 && octave==0) {
+    return -1;
+  } else {
+    int seek=(note+(signed char)octave*12)+60;
+    if (seek<0 || seek>=180) {
+      return DIV_NOTE_NULL_PAT;
+    } else {
+      return seek;
+    }
+  }
+
+  return -1;
+}
+
+void DivEngine::noteToSplitNote(short note, short& outNote, short& outOctave) {
+  switch (note) {
+    case DIV_NOTE_OFF:
+      outNote=100;
+      outOctave=0;
+      break;
+    case DIV_NOTE_REL:
+      outNote=101;
+      outOctave=0;
+      break;
+    case DIV_MACRO_REL:
+      outNote=102;
+      outOctave=0;
+      break;
+    case DIV_NOTE_NULL_PAT:
+      // "BUG" note!
+      outNote=0;
+      outOctave=1;
+      break;
+    case -1:
+      outNote=0;
+      outOctave=0;
+    default:
+      outNote=note%12;
+      outOctave=(unsigned char)(note-60)/12;
+      if (outNote==0) {
+        outNote=12;
+        outOctave--;
+      }
+      break;
+  }
+}
+
 void DivEngine::previewSample(int sample, int note, int pStart, int pEnd) {
   BUSY_BEGIN;
   previewSampleNoLock(sample,note,pStart,pEnd);

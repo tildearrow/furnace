@@ -811,82 +811,82 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
           for (int j=0; j<32; j++) {
             DivPattern* p=ds.subsong[0]->pat[chanMap[j]].getPattern(i,true);
             if (vibing[j]!=vibingOld[j] || vibStatusChanged[j]) {
-              p->data[readRow][effectCol[j]++]=0x04;
-              p->data[readRow][effectCol[j]++]=vibing[j]?vibStatus[j]:0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0x04;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=vibing[j]?vibStatus[j]:0;
               doesVibrato[j]=true;
             } else if (doesVibrato[j] && mustCommitInitial) {
-              p->data[readRow][effectCol[j]++]=0x04;
-              p->data[readRow][effectCol[j]++]=0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0x04;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0;
             }
 
             if (volSliding[j]!=volSlidingOld[j] || volSlideStatusChanged[j]) {
               if (volSlideStatus[j]>=0xf1 && volSliding[j]) {
-                p->data[readRow][effectCol[j]++]=0xf9;
-                p->data[readRow][effectCol[j]++]=volSlideStatus[j]&15;
+                p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0xf9;
+                p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=volSlideStatus[j]&15;
                 volSliding[j]=false;
               } else if ((volSlideStatus[j]&15)==15 && volSlideStatus[j]>=0x10 && volSliding[j]) {
-                p->data[readRow][effectCol[j]++]=0xf8;
-                p->data[readRow][effectCol[j]++]=volSlideStatus[j]>>4;
+                p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0xf8;
+                p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=volSlideStatus[j]>>4;
                 volSliding[j]=false;
               } else {
-                p->data[readRow][effectCol[j]++]=0xfa;
-                p->data[readRow][effectCol[j]++]=volSliding[j]?volSlideStatus[j]:0;
+                p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0xfa;
+                p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=volSliding[j]?volSlideStatus[j]:0;
               }
               doesVolSlide[j]=true;
             } else if (doesVolSlide[j] && mustCommitInitial) {
-              p->data[readRow][effectCol[j]++]=0xfa;
-              p->data[readRow][effectCol[j]++]=0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0xfa;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0;
             }
 
             if (porting[j]!=portingOld[j] || portaStatusChanged[j]) {
               if (portaStatus[j]>=0xe0 && portaType[j]!=3 && porting[j]) {
-                p->data[readRow][effectCol[j]++]=portaType[j]|0xf0;
-                p->data[readRow][effectCol[j]++]=(portaStatus[j]&15)*((portaStatus[j]>=0xf0)?1:1);
+                p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=portaType[j]|0xf0;
+                p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=(portaStatus[j]&15)*((portaStatus[j]>=0xf0)?1:1);
                 porting[j]=false;
               } else {
-                p->data[readRow][effectCol[j]++]=portaType[j];
-                p->data[readRow][effectCol[j]++]=porting[j]?portaStatus[j]:0;
+                p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=portaType[j];
+                p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=porting[j]?portaStatus[j]:0;
               }
               doesPitchSlide[j]=true;
             } else if (doesPitchSlide[j] && mustCommitInitial) {
-              p->data[readRow][effectCol[j]++]=0x01;
-              p->data[readRow][effectCol[j]++]=0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0x01;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0;
             }
 
             if (arping[j]!=arpingOld[j] || arpStatusChanged[j]) {
-              p->data[readRow][effectCol[j]++]=0x00;
-              p->data[readRow][effectCol[j]++]=arping[j]?arpStatus[j]:0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0x00;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=arping[j]?arpStatus[j]:0;
               doesArp[j]=true;
             } else if (doesArp[j] && mustCommitInitial) {
-              p->data[readRow][effectCol[j]++]=0x00;
-              p->data[readRow][effectCol[j]++]=0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0x00;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0;
             }
 
             if (treming[j]!=tremingOld[j] || tremStatusChanged[j]) {
-              p->data[readRow][effectCol[j]++]=0x07;
-              p->data[readRow][effectCol[j]++]=treming[j]?tremStatus[j]:0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0x07;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=treming[j]?tremStatus[j]:0;
               doesTremolo[j]=true;
             } else if (doesTremolo[j] && mustCommitInitial) {
-              p->data[readRow][effectCol[j]++]=0x07;
-              p->data[readRow][effectCol[j]++]=0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0x07;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0;
             }
 
             if (panning[j]!=panningOld[j] || panStatusChanged[j]) {
-              p->data[readRow][effectCol[j]++]=0x84;
-              p->data[readRow][effectCol[j]++]=panning[j]?panStatus[j]:0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0x84;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=panning[j]?panStatus[j]:0;
               doesPanbrello[j]=true;
             } else if (doesPanbrello[j] && mustCommitInitial) {
-              p->data[readRow][effectCol[j]++]=0x84;
-              p->data[readRow][effectCol[j]++]=0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0x84;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0;
             }
 
             if (panSliding[j]!=panSlidingOld[j] || panSlideStatusChanged[j]) {
-              p->data[readRow][effectCol[j]++]=0x83;
-              p->data[readRow][effectCol[j]++]=panSliding[j]?panSlideStatus[j]:0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0x83;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=panSliding[j]?panSlideStatus[j]:0;
               doesPanSlide[j]=true;
             } else if (doesPanSlide[j] && mustCommitInitial) {
-              p->data[readRow][effectCol[j]++]=0x83;
-              p->data[readRow][effectCol[j]++]=0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0x83;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0;
             }
 
             if (effectCol[j]>=4+8*2) {

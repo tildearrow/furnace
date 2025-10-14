@@ -418,8 +418,8 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
         ds.subsong[0]->orders.ord[j][i]=i;
         DivPattern* p=ds.subsong[0]->pat[j].getPattern(i,true);
         if (j==3 && seq[i].speed) {
-          p->data[0][6]=0x0f;
-          p->data[0][7]=seq[i].speed;
+          p->newData[0][DIV_PAT_FX(1)]=0x0f;
+          p->newData[0][DIV_PAT_FXVAL(1)]=seq[i].speed;
         }
 
         bool ignoreNext=false;
@@ -428,80 +428,65 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
           FCPattern& fp=pat[seq[i].pat[j]];
           if (fp.note[k]>0 && fp.note[k]<0x49) {
             lastNote[j]=fp.note[k];
-            short note=(fp.note[k]+seq[i].transpose[j])%12;
-            short octave=2+((fp.note[k]+seq[i].transpose[j])/12);
-            if (fp.note[k]>=0x3d) octave-=6;
-            if (note==0) {
-              note=12;
-              octave--;
-            }
-            octave&=0xff;
-            p->data[k][0]=note;
-            p->data[k][1]=octave;
+            p->newData[k][DIV_PAT_NOTE]=fp.note[k]+seq[i].transpose[j]+60;
+            // wrap-around if the note is too high
+            if (fp.note[k]>=0x3d) p->newData[k][DIV_PAT_NOTE]-=6*12;
             if (isSliding[j]) {
               isSliding[j]=false;
-              p->data[k][4]=2;
-              p->data[k][5]=0;
+              p->newData[k][DIV_PAT_FX(0)]=2;
+              p->newData[k][DIV_PAT_FXVAL(0)]=0;
             }
           } else if (fp.note[k]==0x49) {
             if (k>0) {
-              p->data[k-1][4]=0x0d;
-              p->data[k-1][5]=0;
+              p->newData[k-1][DIV_PAT_FX(0)]=0x0d;
+              p->newData[k-1][DIV_PAT_FXVAL(0)]=0;
             }
           } else if (k==0 && lastTranspose[j]!=seq[i].transpose[j]) {
-            p->data[0][2]=lastIns[j];
-            p->data[0][4]=0x03;
-            p->data[0][5]=0xff;
+            p->newData[0][DIV_PAT_INS]=lastIns[j];
+            p->newData[0][DIV_PAT_FX(0)]=0x03;
+            p->newData[0][DIV_PAT_FXVAL(0)]=0xff;
             lastTranspose[j]=seq[i].transpose[j];
 
-            short note=(lastNote[j]+seq[i].transpose[j])%12;
-            short octave=2+((lastNote[j]+seq[i].transpose[j])/12);
-            if (lastNote[j]>=0x3d) octave-=6;
-            if (note==0) {
-              note=12;
-              octave--;
-            }
-            octave&=0xff;
-            p->data[k][0]=note;
-            p->data[k][1]=octave;
+            p->newData[k][DIV_PAT_NOTE]=lastNote[j]+seq[i].transpose[j]+60;
+            // wrap-around if the note is too high
+            if (lastNote[j]>=0x3d) p->newData[k][DIV_PAT_NOTE]-=6*12;
           }
           if (fp.val[k]) {
             if (ignoreNext) {
               ignoreNext=false;
             } else {
               if (fp.val[k]==0xf0) {
-                p->data[k][0]=100;
-                p->data[k][1]=0;
-                p->data[k][2]=-1;
+                p->newData[k][DIV_PAT_NOTE]=DIV_NOTE_OFF;
+                p->newData[k][DIV_PAT_INS]=-1;
               } else if (fp.val[k]&0xe0) {
                 if (fp.val[k]&0x40) {
-                  p->data[k][4]=2;
-                  p->data[k][5]=0;
+                  p->newData[k][DIV_PAT_FX(0)]=2;
+                  p->newData[k][DIV_PAT_FXVAL(0)]=0;
                   isSliding[j]=false;
                 } else if (fp.val[k]&0x80) {
                   isSliding[j]=true;
                   if (k<31) {
                     if (fp.val[k+1]&0x20) {
-                      p->data[k][4]=2;
-                      p->data[k][5]=fp.val[k+1]&0x1f;
+                      p->newData[k][DIV_PAT_FX(0)]=2;
+                      p->newData[k][DIV_PAT_FXVAL(0)]=fp.val[k+1]&0x1f;
                     } else {
-                      p->data[k][4]=1;
-                      p->data[k][5]=fp.val[k+1]&0x1f;
+                      p->newData[k][DIV_PAT_FX(0)]=1;
+                      p->newData[k][DIV_PAT_FXVAL(0)]=fp.val[k+1]&0x1f;
                     }
                     ignoreNext=true;
                   } else {
-                    p->data[k][4]=2;
-                    p->data[k][5]=0;
+                    p->newData[k][DIV_PAT_FX(0)]=2;
+                    p->newData[k][DIV_PAT_FXVAL(0)]=0;
                   }
                 }
               } else {
-                p->data[k][2]=(fp.val[k]+seq[i].offsetIns[j])&0x3f;
-                lastIns[j]=p->data[k][2];
+                p->newData[k][DIV_PAT_INS]=(fp.val[k]+seq[i].offsetIns[j])&0x3f;
+                lastIns[j]=p->newData[k][DIV_PAT_INS];
               }
             }
           } else if (fp.note[k]>0 && fp.note[k]<0x49) {
-            p->data[k][2]=seq[i].offsetIns[j];
-            lastIns[j]=p->data[k][2];
+            p->newData[k][DIV_PAT_INS]=seq[i].offsetIns[j];
+            lastIns[j]=p->newData[k][DIV_PAT_INS];
           }
         }
       }
