@@ -271,12 +271,13 @@ int32_t opnx_registers::clock_noise_and_lfo()
 	for (uint32_t chan = 0; chan < CHANNELS; chan++)
 	{
 		pclfo_t &pclfo = m_pclfo[chan];
+		uint32_t choffs = (chan & 3) | (((chan >> 2) & 1) << 8);
 		for (int param = 0; param < 2; param++)
 		{
 			pclfo_t::pclfo_params_t &params = pclfo.m_params[param];
 			// base noise frequency is measured at 2x 1/2 FM frequency; this
 			// means each tick counts as two steps against the noise counter
-			uint32_t freq = ch_pclfo_noise(chan, param) ^ 0xff;
+			uint32_t freq = ch_pclfo_noise(choffs, param) ^ 0xff;
 			for (int rep = 0; rep < 2; rep++)
 			{
 				// evidence seems to suggest the LFSR is clocked continually and just
@@ -297,7 +298,7 @@ int32_t opnx_registers::clock_noise_and_lfo()
 			// treat the rate as a 4.4 floating-point step value with implied
 			// leading 1; this matches exactly the frequencies in the application
 			// manual, though it might not be implemented exactly this way on chip
-			uint32_t rate = ch_pclfo_rate(chan, param);
+			uint32_t rate = ch_pclfo_rate(choffs, param);
 			if (rate != 0)
 			{
 				params.m_lfo_counter += (0x10 | bitfield(rate, 0, 4)) << bitfield(rate, 4, 4);
@@ -313,13 +314,13 @@ int32_t opnx_registers::clock_noise_and_lfo()
 			// fetch the AM/PM values based on the waveform; AM is unsigned and
 			// encoded in the low 8 bits, while PM signed and encoded in the upper
 			// 8 bits
-			int32_t ampm = ch_pclfo_waveform(chan, param) == 3 ? params.m_noise_waveform[lfo] : m_lfo_waveform[ch_pclfo_waveform(chan, param)][lfo];
+			int32_t ampm = ch_pclfo_waveform(choffs, param) == 3 ? params.m_noise_waveform[lfo] : m_lfo_waveform[ch_pclfo_waveform(choffs, param)][lfo];
 
 			// apply depth to the AM values and store for later
-			params.m_lfo_am = ((ampm & 0xff) * ch_pclfo_am_depth(chan, param)) >> 8;
+			params.m_lfo_am = ((ampm & 0xff) * ch_pclfo_am_depth(choffs, param)) >> 8;
 
 			// apply depth to the PM values and return them combined into two
-			params.m_lfo_pm = ((ampm >> 8) * int32_t(ch_pclfo_pm_depth(chan, param))) >> 8;
+			params.m_lfo_pm = ((ampm >> 8) * int32_t(ch_pclfo_pm_depth(choffs, param))) >> 8;
 		}
 	}
 
@@ -454,7 +455,7 @@ void opnx_registers::cache_operator_data(uint32_t choffs, uint32_t opoffs, opdat
 
 	// phase step, or PHASE_STEP_DYNAMIC if PM is active; this depends on
 	// block_freq, detune, and multiple, so compute it after we've done those
-	if ((lfo_enable() == 0 || ch_lfo_pm_sens(choffs) == 0))
+	if ((lfo_enable() == 0 || ch_lfo_pm_sens(choffs) == 0) && (ch_pclfo_rate(choffs, 0) == 0 && ch_pclfo_pm_depth(choffs, 0) == 0 && ch_pclfo_pm_sens(choffs, 0) == 0) && (ch_pclfo_rate(choffs, 1) == 0 && ch_pclfo_pm_depth(choffs, 1) == 0 && ch_pclfo_pm_sens(choffs, 1) == 0))
 		cache.phase_step = compute_phase_step(choffs, opoffs, cache, 0);
 	else
 		cache.phase_step = opdata_cache::PHASE_STEP_DYNAMIC;
@@ -502,9 +503,8 @@ uint32_t opnx_registers::compute_phase_step(uint32_t choffs, uint32_t opoffs, op
 
 	for (int param = 0; param < 2; param++)
 	{
-		pclfo_t::pclfo_params_t &params = m_pclfo[choffs].m_params[param];
-
 		uint32_t pclfo_pm_sensitivity = ch_pclfo_pm_sens(choffs, param);
+		pclfo_t::pclfo_params_t &params = m_pclfo->m_params[(choffs & 3) | (((choffs >> 8) & 1) << 2)];
 		if (pclfo_pm_sensitivity != 0)
 		{
 			// raw PM value is -127..128 which is +/- 200 cents
@@ -513,9 +513,9 @@ uint32_t opnx_registers::compute_phase_step(uint32_t choffs, uint32_t opoffs, op
 			// this roughly corresponds to shifting the 200-cent value:
 			//    0  >> 5,  >> 4,  >> 3,  >> 2,  >> 1,   << 1,   << 2
 			if (pm_sensitivity < 6)
-				fnum += int8_t(params.m_lfo_pm) >> (6 - pclfo_pm_sensitivity);
+				fnum += int32_t(int16_t(int8_t(params.m_lfo_pm >> (param << 3)))) >> (6 - pclfo_pm_sensitivity);
 			else
-				fnum += int8_t(params.m_lfo_pm) << (pclfo_pm_sensitivity - 5);
+				fnum += int32_t(int16_t(int8_t(params.m_lfo_pm >> (param << 3)))) << (pclfo_pm_sensitivity - 5);
 
 			// keep fnum to 12 bits
 			fnum &= 0xfff;

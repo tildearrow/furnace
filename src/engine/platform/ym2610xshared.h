@@ -50,12 +50,12 @@ class DivYM2610XInterface: public DivOPNInterface {
 class DivPlatformYM2610XBase: public DivPlatformOPN {
   protected:
     const unsigned short ADDR_PCLFO_R=0xc0;
-    const unsigned short ADDR_PCLFO_PMD=0xc4;
+    const unsigned short ADDR_PCLFO_FMD=0xc4;
     const unsigned short ADDR_PCLFO_AMD=0xc8;
     const unsigned short ADDR_PCLFO_CTL=0xcc;
     const unsigned short ADDR_PCLFO_NOI=0xd0;
     const unsigned short ADDR_PCLFO2_R=0xe0;
-    const unsigned short ADDR_PCLFO2_PMD=0xe4;
+    const unsigned short ADDR_PCLFO2_FMD=0xe4;
     const unsigned short ADDR_PCLFO2_AMD=0xe8;
     const unsigned short ADDR_PCLFO2_CTL=0xec;
     const unsigned short ADDR_PCLFO2_NOI=0xf0;
@@ -163,13 +163,13 @@ class DivPlatformYM2610XBase: public DivPlatformOPN {
       writeADPCMAOn=0;
       writeADPCMALoop=0;
       globalADPCMAVolume=0x3f;
+      ssgBank=0;
+      adpcmABank=0;
+      adpcmBBank=0;
 
       ay->reset();
       ay->getRegisterWrites().clear();
       ay->flushWrites();
-      ssgBank=0;
-      adpcmABank=0;
-      adpcmBBank=0;
     }
 
     void muteChannel(int ch, bool mute) {

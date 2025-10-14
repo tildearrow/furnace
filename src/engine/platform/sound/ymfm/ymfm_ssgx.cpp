@@ -163,7 +163,7 @@ void ssgx_engine::clock(uint32_t tick)
 		// clock envelope; envelope period units are clock/8 (manual says clock/256
 		// but that's for all 32 steps)
 		envelope_t &envelope = m_envelope[chan];
-		uint32_t envelope_period = std::max<uint32_t>(1, m_regs.ch_envelope_period(chan)) << 6;
+		uint32_t envelope_period = std::max<uint32_t>(1, m_regs.ch_envelope_period(chan)) << 5;
 		envelope.m_envelope_count += tick;
 		while (envelope.m_envelope_count >= envelope_period)
 		{
@@ -222,7 +222,7 @@ void ssgx_engine::output(output_data &output)
 
 		// if the envelope is enabled, use its amplitude
 		else if (m_regs.ch_envelope_enable(chan))
-			volume = envelope_volume;
+			volume = envelope_volume >> m_regs.ch_envelope_volume(chan);
 
 		// otherwise, scale the tone amplitude up to match envelope values
 		// according to the datasheet, amplitude 15 maps to envelope 31

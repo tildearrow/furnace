@@ -51,8 +51,8 @@ bool DivInstrumentFM::operator==(const DivInstrumentFM& other) {
     _C(lfoWs2) &&
     _C(lfoNoise2) &&
     _C(fixedDrums) &&
+    _C(lfoSync) &&
     _C(lfoSync2) &&
-    _C(lfoSync3) &&
     _C(kickFreq) &&
     _C(snareHatFreq) &&
     _C(tomTopFreq) &&
@@ -443,6 +443,18 @@ void DivInstrument::writeFeatureFM(SafeWriter* w, bool fui) {
   w->writeC(((fm.ams2&3)<<6)|((fm.ops==4)?32:0)|(fm.opllPreset&31));
   w->writeC(fm.block&15);
 
+  w->writeC(fm.lfoRate);
+  w->writeC(fm.lfoFmDepth);
+  w->writeC(fm.lfoAmDepth);
+  w->writeC(fm.lfoNoise);
+  w->writeC((fm.ams3&3)|((fm.lfoWs&3)<<2)|((fm.fms3&7)<<4)|(fm.lfoSync?128:0));
+
+  w->writeC(fm.lfoRate2);
+  w->writeC(fm.lfoFmDepth2);
+  w->writeC(fm.lfoAmDepth2);
+  w->writeC(fm.lfoNoise2);
+  w->writeC(((fm.lfoWs2&3)<<2)|(fm.lfoSync2?128:0));
+
   // operator data
   for (int i=0; i<opCount; i++) {
     DivInstrumentFM::Operator& op=fm.op[i];
@@ -619,7 +631,7 @@ void DivInstrument::writeMacro(SafeWriter* w, const DivInstrumentMacro& m) {
     wordSize=192; // 32-bit signed
   }
 
-  w->writeC(m.macroType&31);
+  w->writeC((m.macroType>=0xa0)?m.macroType:m.macroType&31);
   w->writeC(m.len);
   w->writeC(m.loop);
   w->writeC(m.rel);
@@ -1824,6 +1836,26 @@ void DivInstrument::readFeatureFM(SafeReader& reader, short version) {
     fm.block=next&15;
   }
 
+  if (version>=235) {
+    fm.lfoRate=reader.readC();
+    fm.lfoFmDepth=reader.readC();
+    fm.lfoAmDepth=reader.readC();
+    fm.lfoNoise=reader.readC();
+    next=reader.readC();
+    fm.lfoSync=(next>>7)&1;
+    fm.fms3=(next>>4)&7;
+    fm.lfoWs=(next>>2)&3;
+    fm.ams3=next&3;
+
+    fm.lfoRate2=reader.readC();
+    fm.lfoFmDepth2=reader.readC();
+    fm.lfoAmDepth2=reader.readC();
+    fm.lfoNoise2=reader.readC();
+    next=reader.readC();
+    fm.lfoSync2=(next>>7)&1;
+    fm.lfoWs2=(next>>2)&3;
+  }
+
   // read operators
   for (int i=0; i<opCount; i++) {
     DivInstrumentFM::Operator& op=fm.op[i];
@@ -1865,8 +1897,10 @@ void DivInstrument::readFeatureFM(SafeReader& reader, short version) {
     op.dt2=(next>>3)&3;
     op.ws=next&7;
 
-    next=reader.readC();
-    op.ws|=next&8;
+    if (version>=235) {
+      next=reader.readC();
+      op.ws|=next&8;
+    }
   }
 
   READ_FEAT_END;

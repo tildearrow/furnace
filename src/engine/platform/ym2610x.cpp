@@ -531,6 +531,72 @@ void DivPlatformYM2610X::tick(bool sysTick) {
       chan[i].opMask=chan[i].std.ex4.val&15;
       chan[i].opMaskChanged=true;
     }
+
+    if (chan[i].std.ex5.had) { // per-channel LFOA rate
+      chan[i].state.lfoRate=chan[i].std.ex5.val;
+      rWrite(chanOffs[i]+ADDR_PCLFO_R,chan[i].state.lfoRate);
+    }
+    if (chan[i].std.ex6.had) { // per-channel LFOA FM depth
+      chan[i].state.lfoFmDepth=chan[i].std.ex6.val;
+      rWrite(chanOffs[i]+ADDR_PCLFO_FMD,chan[i].state.lfoFmDepth);
+    }
+    if (chan[i].std.ex7.had) { // per-channel LFOA AM depth
+      chan[i].state.lfoAmDepth=chan[i].std.ex7.val;
+      rWrite(chanOffs[i]+ADDR_PCLFO_AMD,chan[i].state.lfoAmDepth);
+    }
+    if (chan[i].std.ex8.had) { // per-channel LFOA waveform
+      chan[i].state.lfoWs=chan[i].std.ex8.val&3;
+      rWrite(chanOffs[i]+ADDR_PCLFO_CTL,(chan[i].state.lfoSync?128:0)|((chan[i].state.fms2&7)<<4)|((chan[i].state.lfoWs&3)<<2)|(chan[i].state.ams2&3));
+    }
+    if (chan[i].std.ex9.had) { // per-channel LFOA Noise frequency
+      chan[i].state.lfoNoise=chan[i].std.ex9.val;
+      rWrite(chanOffs[i]+ADDR_PCLFO_NOI,chan[i].state.lfoNoise);
+    }
+    if (chan[i].std.ex10.had) { // per-channel LFOA FMS
+      chan[i].state.fms2=chan[i].std.ex10.val&7;
+      rWrite(chanOffs[i]+ADDR_PCLFO_CTL,(chan[i].state.lfoSync?128:0)|((chan[i].state.fms2&7)<<4)|((chan[i].state.lfoWs&3)<<2)|(chan[i].state.ams2&3));
+    }
+    if (chan[i].std.ex11.had) { // per-channel LFOA AMS
+      chan[i].state.ams2=chan[i].std.ex11.val&3;
+      rWrite(chanOffs[i]+ADDR_PCLFO_CTL,(chan[i].state.lfoSync?128:0)|((chan[i].state.fms2&7)<<4)|((chan[i].state.lfoWs&3)<<2)|(chan[i].state.ams2&3));
+    }
+    if (chan[i].std.ex12.had) { // per-channel LFOA Sync
+      chan[i].state.lfoSync=chan[i].std.ex12.val&1;
+      rWrite(chanOffs[i]+ADDR_PCLFO_CTL,(chan[i].state.lfoSync?128:0)|((chan[i].state.fms2&7)<<4)|((chan[i].state.lfoWs&3)<<2)|(chan[i].state.ams2&3));
+    }
+
+    if (chan[i].std.ex13.had) { // per-channel LFOB rate
+      chan[i].state.lfoRate2=chan[i].std.ex13.val;
+      rWrite(chanOffs[i]+ADDR_PCLFO2_R,chan[i].state.lfoRate2);
+    }
+    if (chan[i].std.ex14.had) { // per-channel LFOB FM depth
+      chan[i].state.lfoFmDepth2=chan[i].std.ex14.val;
+      rWrite(chanOffs[i]+ADDR_PCLFO2_FMD,chan[i].state.lfoFmDepth2);
+    }
+    if (chan[i].std.ex15.had) { // per-channel LFOB AM depth
+      chan[i].state.lfoAmDepth2=chan[i].std.ex15.val;
+      rWrite(chanOffs[i]+ADDR_PCLFO2_AMD,chan[i].state.lfoAmDepth2);
+    }
+    if (chan[i].std.ex16.had) { // per-channel LFOB waveform
+      chan[i].state.lfoWs2=chan[i].std.ex16.val&3;
+      rWrite(chanOffs[i]+ADDR_PCLFO2_CTL,(chan[i].state.lfoSync2?128:0)|((chan[i].state.fms3&7)<<4)|((chan[i].state.lfoWs2&3)<<2)|(chan[i].state.ams3&3));
+    }
+    if (chan[i].std.ex17.had) { // per-channel LFOB Noise frequency
+      chan[i].state.lfoNoise2=chan[i].std.ex17.val;
+      rWrite(chanOffs[i]+ADDR_PCLFO2_NOI,chan[i].state.lfoNoise2);
+    }
+    if (chan[i].std.ex18.had) { // per-channel LFOB FMS
+      chan[i].state.fms3=chan[i].std.ex18.val&7;
+      rWrite(chanOffs[i]+ADDR_PCLFO2_CTL,(chan[i].state.lfoSync2?128:0)|((chan[i].state.fms3&7)<<4)|((chan[i].state.lfoWs2&3)<<2)|(chan[i].state.ams3&3));
+    }
+    if (chan[i].std.ex19.had) { // per-channel LFOB AMS
+      chan[i].state.ams3=chan[i].std.ex19.val&3;
+      rWrite(chanOffs[i]+ADDR_PCLFO2_CTL,(chan[i].state.lfoSync2?128:0)|((chan[i].state.fms3&7)<<4)|((chan[i].state.lfoWs2&3)<<2)|(chan[i].state.ams3&3));
+    }
+    if (chan[i].std.ex20.had) { // per-channel LFOB Sync
+      chan[i].state.lfoSync2=chan[i].std.ex20.val&1;
+      rWrite(chanOffs[i]+ADDR_PCLFO2_CTL,(chan[i].state.lfoSync2?128:0)|((chan[i].state.fms3&7)<<4)|((chan[i].state.lfoWs2&3)<<2)|(chan[i].state.ams3&3));
+    }
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
@@ -858,6 +924,16 @@ void DivPlatformYM2610X::commitState(int ch, DivInstrument* ins) {
   if (chan[ch].insChanged) {
     rWrite(chanOffs[ch]+ADDR_FB_ALG,(chan[ch].state.alg&7)|(chan[ch].state.fb<<3));
     rWrite(chanOffs[ch]+ADDR_LRAF,(isMuted[ch]?0:(chan[ch].pan<<6))|(chan[ch].state.fms&7)|((chan[ch].state.ams&3)<<4));
+    rWrite(chanOffs[ch]+ADDR_PCLFO_R,chan[ch].state.lfoRate);
+    rWrite(chanOffs[ch]+ADDR_PCLFO_FMD,chan[ch].state.lfoFmDepth);
+    rWrite(chanOffs[ch]+ADDR_PCLFO_AMD,chan[ch].state.lfoAmDepth);
+    rWrite(chanOffs[ch]+ADDR_PCLFO_CTL,(chan[ch].state.lfoSync?128:0)|((chan[ch].state.fms2&7)<<4)|((chan[ch].state.lfoWs&3)<<2)|(chan[ch].state.ams2&3));
+    rWrite(chanOffs[ch]+ADDR_PCLFO_NOI,chan[ch].state.lfoNoise);
+    rWrite(chanOffs[ch]+ADDR_PCLFO2_R,chan[ch].state.lfoRate2);
+    rWrite(chanOffs[ch]+ADDR_PCLFO2_FMD,chan[ch].state.lfoFmDepth2);
+    rWrite(chanOffs[ch]+ADDR_PCLFO2_AMD,chan[ch].state.lfoAmDepth2);
+    rWrite(chanOffs[ch]+ADDR_PCLFO2_CTL,(chan[ch].state.lfoSync2?128:0)|((chan[ch].state.fms3&7)<<4)|((chan[ch].state.lfoWs2&3)<<2)|(chan[ch].state.ams3&3));
+    rWrite(chanOffs[ch]+ADDR_PCLFO2_NOI,chan[ch].state.lfoNoise2);
   }
 }
 
@@ -1300,6 +1376,102 @@ int DivPlatformYM2610X::dispatch(DivCommand c) {
       rWrite(chanOffs[c.chan]+ADDR_LRAF,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|(chan[c.chan].state.fms&7)|((chan[c.chan].state.ams&3)<<4));
       break;
     }
+    case DIV_CMD_FM_FMS2: {
+      if (c.chan>=psgChanOffs) break;
+      chan[c.chan].state.fms2=c.value&7;
+      rWrite(chanOffs[c.chan]+ADDR_PCLFO_CTL,(chan[c.chan].state.lfoSync?128:0)|((chan[c.chan].state.fms2&7)<<4)|((chan[c.chan].state.lfoWs&3)<<2)|(chan[c.chan].state.ams2&3));
+      break;
+    }
+    case DIV_CMD_FM_AMS2: {
+      if (c.chan>=psgChanOffs) break;
+      chan[c.chan].state.ams2=c.value&3;
+      rWrite(chanOffs[c.chan]+ADDR_PCLFO_CTL,(chan[c.chan].state.lfoSync?128:0)|((chan[c.chan].state.fms2&7)<<4)|((chan[c.chan].state.lfoWs&3)<<2)|(chan[c.chan].state.ams2&3));
+      break;
+    }
+    case DIV_CMD_FM_LFOA_WAVEFORM: {
+      if (c.chan>=psgChanOffs) break;
+      chan[c.chan].state.lfoWs=c.value&3;
+      rWrite(chanOffs[c.chan]+ADDR_PCLFO_CTL,(chan[c.chan].state.lfoSync?128:0)|((chan[c.chan].state.fms2&7)<<4)|((chan[c.chan].state.lfoWs&3)<<2)|(chan[c.chan].state.ams2&3));
+      break;
+    }
+    case DIV_CMD_FM_LFOA_SYNC: {
+      if (c.chan>=psgChanOffs) break;
+      chan[c.chan].state.lfoSync=c.value&3;
+      rWrite(chanOffs[c.chan]+ADDR_PCLFO_CTL,(chan[c.chan].state.lfoSync?128:0)|((chan[c.chan].state.fms2&7)<<4)|((chan[c.chan].state.lfoWs&3)<<2)|(chan[c.chan].state.ams2&3));
+      break;
+    }
+    case DIV_CMD_FM_FMS3: {
+      if (c.chan>=psgChanOffs) break;
+      chan[c.chan].state.fms3=c.value&7;
+      rWrite(chanOffs[c.chan]+ADDR_PCLFO2_CTL,(chan[c.chan].state.lfoSync2?128:0)|((chan[c.chan].state.fms3&7)<<4)|((chan[c.chan].state.lfoWs2&3)<<2)|(chan[c.chan].state.ams3&3));
+      break;
+    }
+    case DIV_CMD_FM_AMS3: {
+      if (c.chan>=psgChanOffs) break;
+      chan[c.chan].state.ams3=c.value&3;
+      rWrite(chanOffs[c.chan]+ADDR_PCLFO2_CTL,(chan[c.chan].state.lfoSync2?128:0)|((chan[c.chan].state.fms3&7)<<4)|((chan[c.chan].state.lfoWs2&3)<<2)|(chan[c.chan].state.ams3&3));
+      break;
+    }
+    case DIV_CMD_FM_LFOB_WAVEFORM: {
+      if (c.chan>=psgChanOffs) break;
+      chan[c.chan].state.lfoWs2=c.value&3;
+      rWrite(chanOffs[c.chan]+ADDR_PCLFO2_CTL,(chan[c.chan].state.lfoSync2?128:0)|((chan[c.chan].state.fms3&7)<<4)|((chan[c.chan].state.lfoWs2&3)<<2)|(chan[c.chan].state.ams3&3));
+      break;
+    }
+    case DIV_CMD_FM_LFOB_SYNC: {
+      if (c.chan>=psgChanOffs) break;
+      chan[c.chan].state.lfoSync2=c.value&3;
+      rWrite(chanOffs[c.chan]+ADDR_PCLFO2_CTL,(chan[c.chan].state.lfoSync2?128:0)|((chan[c.chan].state.fms3&7)<<4)|((chan[c.chan].state.lfoWs2&3)<<2)|(chan[c.chan].state.ams3&3));
+      break;
+    }
+    case DIV_CMD_FM_LFOA_RATE: {
+      if (c.chan>=psgChanOffs) break;
+      chan[c.chan].state.lfoRate=c.value&0xff;
+      rWrite(chanOffs[c.chan]+ADDR_PCLFO_R,chan[c.chan].state.lfoRate);
+      break;
+    }
+    case DIV_CMD_FM_LFOA_FMDEPTH: {
+      if (c.chan>=psgChanOffs) break;
+      chan[c.chan].state.lfoFmDepth=c.value&0xff;
+      rWrite(chanOffs[c.chan]+ADDR_PCLFO_FMD,chan[c.chan].state.lfoFmDepth);
+      break;
+    }
+    case DIV_CMD_FM_LFOA_AMDEPTH: {
+      if (c.chan>=psgChanOffs) break;
+      chan[c.chan].state.lfoAmDepth=c.value&0xff;
+      rWrite(chanOffs[c.chan]+ADDR_PCLFO_AMD,chan[c.chan].state.lfoAmDepth);
+      break;
+    }
+    case DIV_CMD_FM_LFOA_NOISE: {
+      if (c.chan>=psgChanOffs) break;
+      chan[c.chan].state.lfoNoise=c.value&0xff;
+      rWrite(chanOffs[c.chan]+ADDR_PCLFO_NOI,chan[c.chan].state.lfoNoise);
+      break;
+    }
+    case DIV_CMD_FM_LFOB_RATE: {
+      if (c.chan>=psgChanOffs) break;
+      chan[c.chan].state.lfoRate2=c.value&0xff;
+      rWrite(chanOffs[c.chan]+ADDR_PCLFO2_R,chan[c.chan].state.lfoRate2);
+      break;
+    }
+    case DIV_CMD_FM_LFOB_FMDEPTH: {
+      if (c.chan>=psgChanOffs) break;
+      chan[c.chan].state.lfoFmDepth2=c.value&0xff;
+      rWrite(chanOffs[c.chan]+ADDR_PCLFO2_FMD,chan[c.chan].state.lfoFmDepth2);
+      break;
+    }
+    case DIV_CMD_FM_LFOB_AMDEPTH: {
+      if (c.chan>=psgChanOffs) break;
+      chan[c.chan].state.lfoAmDepth2=c.value&0xff;
+      rWrite(chanOffs[c.chan]+ADDR_PCLFO2_AMD,chan[c.chan].state.lfoAmDepth2);
+      break;
+    }
+    case DIV_CMD_FM_LFOB_NOISE: {
+      if (c.chan>=psgChanOffs) break;
+      chan[c.chan].state.lfoNoise2=c.value&0xff;
+      rWrite(chanOffs[c.chan]+ADDR_PCLFO2_NOI,chan[c.chan].state.lfoNoise2);
+      break;
+    }
     case DIV_CMD_FM_MULT: {
       if (c.chan>=psgChanOffs) break;
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
@@ -1467,13 +1639,13 @@ int DivPlatformYM2610X::dispatch(DivCommand c) {
           DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
           op.ssgEnv=8^(c.value2&15);
           unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
-          rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
+          rWrite(baseAddr+ADDR_SSG,(op.ssgEnv&15)|((op.ws&15)<<4));
         }
       } else if (c.value<4) {
         DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
         op.ssgEnv=8^(c.value2&15);
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
-        rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
+        rWrite(baseAddr+ADDR_SSG,(op.ssgEnv&15)|((op.ws&15)<<4));
       }
       break;
     }
@@ -1596,6 +1768,16 @@ void DivPlatformYM2610X::forceIns() {
     }
     rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
     rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+    rWrite(chanOffs[i]+ADDR_PCLFO_R,chan[i].state.lfoRate);
+    rWrite(chanOffs[i]+ADDR_PCLFO_FMD,chan[i].state.lfoFmDepth);
+    rWrite(chanOffs[i]+ADDR_PCLFO_AMD,chan[i].state.lfoAmDepth);
+    rWrite(chanOffs[i]+ADDR_PCLFO_CTL,(chan[i].state.lfoSync?128:0)|((chan[i].state.fms2&7)<<4)|((chan[i].state.lfoWs&3)<<2)|(chan[i].state.ams2&3));
+    rWrite(chanOffs[i]+ADDR_PCLFO_NOI,chan[i].state.lfoNoise);
+    rWrite(chanOffs[i]+ADDR_PCLFO2_R,chan[i].state.lfoRate2);
+    rWrite(chanOffs[i]+ADDR_PCLFO2_FMD,chan[i].state.lfoFmDepth2);
+    rWrite(chanOffs[i]+ADDR_PCLFO2_AMD,chan[i].state.lfoAmDepth2);
+    rWrite(chanOffs[i]+ADDR_PCLFO2_CTL,(chan[i].state.lfoSync2?128:0)|((chan[i].state.fms3&7)<<4)|((chan[i].state.lfoWs2&3)<<2)|(chan[i].state.ams3&3));
+    rWrite(chanOffs[i]+ADDR_PCLFO2_NOI,chan[i].state.lfoNoise2);
     if (chan[i].active) {
       chan[i].keyOn=true;
       chan[i].freqChanged=true;
@@ -1666,8 +1848,8 @@ void DivPlatformYM2610X::reset() {
     chan[i].outVol=0x7f;
   }
   for (int i=psgChanOffs; i<adpcmAChanOffs; i++) {
-    chan[i].vol=0x0f;
-    chan[i].outVol=0x0f;
+    chan[i].vol=0x1f;
+    chan[i].outVol=0x1f;
   }
   for (int i=adpcmAChanOffs; i<adpcmBChanOffs; i++) {
     chan[i].vol=0x1f;

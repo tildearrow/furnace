@@ -315,7 +315,25 @@ const char* cmdName[]={
   "FM_FMS",
   "FM_AMS",
   "FM_FMS2",
-  "FM_AMS2"
+  "FM_AMS2",
+
+  "FM_LFOA_RATE",
+  "FM_LFOA_FMDEPTH",
+  "FM_LFOA_AMDEPTH",
+  "FM_LFOA_WAVEFORM",
+  "FM_LFOA_NOISE",
+  "FM_LFOA_SYNC",
+
+  "FM_LFOB_RATE",
+  "FM_LFOB_FMDEPTH",
+  "FM_LFOB_AMDEPTH",
+  "FM_LFOB_WAVEFORM",
+  "FM_LFOB_NOISE",
+  "FM_LFOB_SYNC",
+
+  "FM_FMS3",
+  "FM_AMS3",
+
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");

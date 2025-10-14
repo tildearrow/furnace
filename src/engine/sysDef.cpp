@@ -457,6 +457,8 @@ void DivEngine::registerSystems() {
   };
 
   EffectHandlerMap ay8930XPostEffectHandlerMap={
+    {0x12, {DIV_CMD_STD_NOISE_MODE, _("12xx: Set duty cycle (0 to 1F)"),
+      [](unsigned char, unsigned char val) -> int { return 0x10+(val&31); }}},
     {0x20, {DIV_CMD_STD_NOISE_MODE, _("20xx: Set channel mode (bit 0: square; bit 1: noise; bit 2: envelope)")}},
     {0x21, {DIV_CMD_STD_NOISE_FREQ, _("21xx: Set noise frequency (0 to FF)")}},
     {0x22, {DIV_CMD_AY_ENVELOPE_SET, _("22xy: Set envelope mode (x: shape, y: enable for this channel)")}},
@@ -464,11 +466,9 @@ void DivEngine::registerSystems() {
     {0x24, {DIV_CMD_AY_ENVELOPE_HIGH, _("24xx: Set envelope period high byte")}},
     {0x25, {DIV_CMD_AY_ENVELOPE_SLIDE, _("25xx: Envelope slide up"), negEffectVal}},
     {0x26, {DIV_CMD_AY_ENVELOPE_SLIDE, _("26xx: Envelope slide down")}},
-    {0x29, {DIV_CMD_AY_AUTO_ENVELOPE, _("29xy: Set auto-envelope (x: numerator; y: denominator)")}},
-    {0x12, {DIV_CMD_STD_NOISE_MODE, _("12xx: Set duty cycle (0 to 1F)"),
-      [](unsigned char, unsigned char val) -> int { return 0x10+(val&31); }}},
     {0x27, {DIV_CMD_AY_NOISE_MASK_AND, _("27xx: Set noise AND mask")}},
     {0x28, {DIV_CMD_AY_NOISE_MASK_OR, _("28xx: Set noise OR mask")}},
+    {0x29, {DIV_CMD_AY_AUTO_ENVELOPE, _("29xy: Set auto-envelope (x: numerator; y: denominator)")}},
     {0x2c, {DIV_CMD_AY_AUTO_PWM, _("2Cxy: Automatic noise frequency (x: mode (0: disable, 1: freq, 2: freq + OR mask); y: offset)")}},
   };
 
@@ -607,6 +607,22 @@ void DivEngine::registerSystems() {
     {0x61, {DIV_CMD_FM_ALG, _("61xx: Set algorithm (0 to 7)")}},
     {0x62, {DIV_CMD_FM_FMS, _("62xx: Set LFO FM depth (0 to 7)")}},
     {0x63, {DIV_CMD_FM_AMS, _("63xx: Set LFO AM depth (0 to 3)")}},
+    {0x64, {DIV_CMD_FM_LFOA_RATE, _("64xx: Set PCLFOA speed (0 to FF)")}},
+    {0x65, {DIV_CMD_FM_LFOA_FMDEPTH, _("65xx: Set PCLFOA FM depth (0 to FF)")}},
+    {0x66, {DIV_CMD_FM_LFOA_AMDEPTH, _("66xx: Set PCLFOA AM depth (0 to FF)")}},
+    {0x67, {DIV_CMD_FM_LFOA_WAVEFORM, _("67xx: Set PCLFOA Waveform (0 saw, 1 square, 2 triangle, 3 noise)")}},
+    {0x68, {DIV_CMD_FM_LFOA_NOISE, _("68xx: Set PCLFOA Noise frequency (0 to FF)")}},
+    {0x69, {DIV_CMD_FM_FMS2, _("69xx: Set PCLFOA FM sensitivity (0 to 7)")}},
+    {0x70, {DIV_CMD_FM_AMS2, _("70xx: Set PCLFOA AM sensitivity (0 to 7)")}},
+    {0x71, {DIV_CMD_FM_LFOA_SYNC, _("71xx: Set PCLFOA Sync (0 to 1)")}},
+    {0x72, {DIV_CMD_FM_LFOB_RATE, _("72xx: Set PCLFOB speed (0 to FF)")}},
+    {0x73, {DIV_CMD_FM_LFOB_FMDEPTH, _("73xx: Set PCLFOB FM depth (0 to FF)")}},
+    {0x74, {DIV_CMD_FM_LFOB_AMDEPTH, _("74xx: Set PCLFOB AM depth (0 to FF)")}},
+    {0x75, {DIV_CMD_FM_LFOB_WAVEFORM, _("75xx: Set PCLFOB Waveform (0 saw, 1 square, 2 triangle, 3 noise)")}},
+    {0x76, {DIV_CMD_FM_LFOB_NOISE, _("76xx: Set PCLFOB Noise frequency (0 to FF)")}},
+    {0x77, {DIV_CMD_FM_FMS3, _("77xx: Set PCLFOB FM sensitivity (0 to 7)")}},
+    {0x78, {DIV_CMD_FM_AMS3, _("78xx: Set PCLFOB AM sensitivity (0 to 7)")}},
+    {0x79, {DIV_CMD_FM_LFOB_SYNC, _("79xx: Set PCLFOB Sync (0 to 1)")}},
   };
 
   fmOPNXPostEffectHandlerMap.insert(ay8930XPostEffectHandlerMap.begin(), ay8930XPostEffectHandlerMap.end());

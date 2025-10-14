@@ -4109,12 +4109,38 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           ImGui::TableNextColumn();
           P(CWSliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN)); rightClickable
           P(CWSliderScalar(FM_NAME(FM_FMS),ImGuiDataType_U8,&ins->fm.fms,&_ZERO,&_SEVEN)); rightClickable
+          if (ins->type==DIV_INS_OPNX) {
+            P(CWSliderScalar(_("PCLFOA rate"),ImGuiDataType_U8,&ins->fm.lfoRate,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+            P(CWSliderScalar(_("PCLFOA FM depth"),ImGuiDataType_U8,&ins->fm.lfoFmDepth,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+            P(CWSliderScalar(_("PCLFOA AM depth"),ImGuiDataType_U8,&ins->fm.lfoAmDepth,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+            P(CWSliderScalar(_("PCLFOA Waveform"),ImGuiDataType_U8,&ins->fm.lfoWs,&_ZERO,&_THREE)); rightClickable
+            P(CWSliderScalar(_("PCLFOA Noise Freq."),ImGuiDataType_U8,&ins->fm.lfoNoise,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+            P(CWSliderScalar(_("PCLFOA FMS/PMS"),ImGuiDataType_U8,&ins->fm.fms2,&_ZERO,&_SEVEN)); rightClickable
+            P(CWSliderScalar(_("PCLFOA AMS"),ImGuiDataType_U8,&ins->fm.ams2,&_ZERO,&_THREE)); rightClickable
+            bool pclfoASync=ins->fm.lfoSync;
+            if (ImGui::Checkbox(_("PCLFOA Sync"),&pclfoASync)) { PARAMETER
+              ins->fm.lfoSync=pclfoASync;
+            }
+          }
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPNX) {
             P(CWSliderScalar(FM_NAME(FM_BLOCK),ImGuiDataType_U8,&ins->fm.block,&_ZERO,&_EIGHT,blockTxt.c_str())); rightClickable
           }
           ImGui::TableNextColumn();
           P(CWSliderScalar(FM_NAME(FM_ALG),ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&_SEVEN)); rightClickable
           P(CWSliderScalar(FM_NAME(FM_AMS),ImGuiDataType_U8,&ins->fm.ams,&_ZERO,&_THREE)); rightClickable
+          if (ins->type==DIV_INS_OPNX) {
+            P(CWSliderScalar(_("PCLFOB rate"),ImGuiDataType_U8,&ins->fm.lfoRate2,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+            P(CWSliderScalar(_("PCLFOB FM depth"),ImGuiDataType_U8,&ins->fm.lfoFmDepth2,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+            P(CWSliderScalar(_("PCLFOB AM depth"),ImGuiDataType_U8,&ins->fm.lfoAmDepth2,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+            P(CWSliderScalar(_("PCLFOB Waveform"),ImGuiDataType_U8,&ins->fm.lfoWs2,&_ZERO,&_THREE)); rightClickable
+            P(CWSliderScalar(_("PCLFOB Noise Freq."),ImGuiDataType_U8,&ins->fm.lfoNoise2,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+            P(CWSliderScalar(_("PCLFOB FMS/PMS"),ImGuiDataType_U8,&ins->fm.fms3,&_ZERO,&_SEVEN)); rightClickable
+            P(CWSliderScalar(_("PCLFOB AMS"),ImGuiDataType_U8,&ins->fm.ams3,&_ZERO,&_THREE)); rightClickable
+            bool pclfoBSync=ins->fm.lfoSync2;
+            if (ImGui::Checkbox(_("PCLFOB Sync"),&pclfoBSync)) { PARAMETER
+              ins->fm.lfoSync2=pclfoBSync;
+            }
+          }
           ImGui::TableNextColumn();
           if (fmPreviewOn) {
             drawFMPreview(ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
@@ -6883,6 +6909,24 @@ void FurnaceGUI::drawInsEdit() {
                 macroList.push_back(FurnaceGUIMacroDesc(_("LFO2 Speed"),&ins->std.ex7Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
                 macroList.push_back(FurnaceGUIMacroDesc(_("LFO2 Shape"),&ins->std.ex8Macro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroLFOWaves));
               }
+              if (ins->type==DIV_INS_OPNX) {
+                macroList.push_back(FurnaceGUIMacroDesc(_("PCLFOA Speed"),&ins->std.ex5Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(_("PCLFOA AM Depth"),&ins->std.ex7Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(_("PCLFOA PM Depth"),&ins->std.ex6Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(_("PCLFOA Shape"),&ins->std.ex8Macro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroLFOWaves));
+                macroList.push_back(FurnaceGUIMacroDesc(_("PCLFOA Noise"),&ins->std.ex9Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(_("PCLFOA FMS/PMS"),&ins->std.ex10Macro,0,7,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(_("PCLFOA AMS"),&ins->std.ex11Macro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(_("PCLFOA Sync"),&ins->std.ex12Macro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+                macroList.push_back(FurnaceGUIMacroDesc(_("PCLFOB Speed"),&ins->std.ex13Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(_("PCLFOB AM Depth"),&ins->std.ex15Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(_("PCLFOB PM Depth"),&ins->std.ex14Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(_("PCLFOB Shape"),&ins->std.ex16Macro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroLFOWaves));
+                macroList.push_back(FurnaceGUIMacroDesc(_("PCLFOB Noise"),&ins->std.ex17Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(_("PCLFOB FMS/PMS"),&ins->std.ex18Macro,0,7,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(_("PCLFOB AMS"),&ins->std.ex19Macro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(_("PCLFOB Sync"),&ins->std.ex20Macro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              }
               drawMacros(macroList,macroEditStateFM,ins);
               ImGui::EndTabItem();
             }
@@ -6980,9 +7024,9 @@ void FurnaceGUI::drawInsEdit() {
 
                 if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPNX) {
                   macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_SSG),&ins->std.opMacros[ordi].ssgMacro,0,4,64,uiColors[GUI_COLOR_MACRO_ENVELOPE],false,NULL,NULL,true,ssgEnvBits));
-                }
-                if (ins->type==DIV_INS_OPNX) {
-                  macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_WS),&ins->std.opMacros[ordi].wsMacro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+                  if (ins->type==DIV_INS_OPNX) {
+                    macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_WS),&ins->std.opMacros[ordi].wsMacro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+                  }
                 }
               } else if (ins->type==DIV_INS_OPZ) {
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_TL),&ins->std.opMacros[ordi].tlMacro,0,maxTl,128,uiColors[GUI_COLOR_MACRO_VOLUME]));
