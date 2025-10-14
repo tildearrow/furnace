@@ -820,54 +820,60 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             } else if (note==0 && octave!=0) {
               // "BUG" note!
               pat->newData[k][DIV_PAT_NOTE]=DIV_NOTE_NULL_PAT;
-            } else
-            int seek=(note+(signed char)octave*12)+60;
-            if (seek<0 || seek>=180) {
-              return "???";
+            } else if (note==0 && octave==0) {
+                pat->newData[k][DIV_PAT_NOTE]=-1;
+            } else {
+              int seek=(note+(signed char)octave*12)+60;
+              if (seek<0 || seek>=180) {
+                pat->newData[k][DIV_PAT_NOTE]=DIV_NOTE_NULL_PAT;
+              } else {
+                pat->newData[k][DIV_PAT_NOTE]=seek;
+              }
             }
 
             // volume
-            pat->data[k][3]=reader.readS();
+            pat->newData[k][DIV_PAT_VOL]=reader.readS();
             if (ds.version<0x0a) {
               // back then volume was stored as 00-ff instead of 00-7f/0-f
               if (i>5) {
-                pat->data[k][3]>>=4;
+                pat->newData[k][DIV_PAT_VOL]>>=4;
               } else {
-                pat->data[k][3]>>=1;
+                pat->newData[k][DIV_PAT_VOL]>>=1;
               }
             }
             if (ds.version<0x12) {
-              if (ds.system[0]==DIV_SYSTEM_GB && i==2 && pat->data[k][3]>0) {
+              if (ds.system[0]==DIV_SYSTEM_GB && i==2 && pat->newData[k][DIV_PAT_VOL]>0) {
                 // volume range of GB wave channel was 0-3 rather than 0-F
-                pat->data[k][3]=(pat->data[k][3]&3)*5;
+                pat->newData[k][DIV_PAT_VOL]=(pat->data[k][DIV_PAT_VOL]&3)*5;
               }
             }
             for (int l=0; l<chan.effectCols; l++) {
               // effect
-              pat->data[k][4+(l<<1)]=reader.readS();
-              pat->data[k][5+(l<<1)]=reader.readS();
+              pat->newData[k][DIV_PAT_FX(l)]=reader.readS();
+              pat->newData[k][DIV_PAT_FXVAL(l)]=reader.readS();
 
               if (ds.version<0x14) {
-                if (pat->data[k][4+(l<<1)]==0xe5 && pat->data[k][5+(l<<1)]!=-1) {
-                  pat->data[k][5+(l<<1)]=128+((pat->data[k][5+(l<<1)]-128)/4);
+                // the range of E5xx was different back then
+                if (pat->newData[k][DIV_PAT_FX(l)]==0xe5 && pat->newData[k][DIV_PAT_FXVAL(l)]!=-1) {
+                  pat->newData[k][DIV_PAT_FXVAL(l)]=128+((pat->newData[k][DIV_PAT_FXVAL(l)]-128)/4);
                 }
               }
             }
             // instrument
-            pat->data[k][2]=reader.readS();
+            pat->newData[k][DIV_PAT_INS]=reader.readS();
 
             // this is sad
             if (ds.system[0]==DIV_SYSTEM_NES_FDS) {
-              if (i==5 && pat->data[k][2]!=-1) {
-                if (pat->data[k][2]>=0 && pat->data[k][2]<ds.insLen) {
-                  ds.ins[pat->data[k][2]]->type=DIV_INS_FDS;
+              if (i==5 && pat->newData[k][DIV_PAT_INS]!=-1) {
+                if (pat->newData[k][DIV_PAT_INS]>=0 && pat->newData[k][DIV_PAT_INS]<ds.insLen) {
+                  ds.ins[pat->newData[k][DIV_PAT_INS]]->type=DIV_INS_FDS;
                 }
               }
             }
             if (ds.system[0]==DIV_SYSTEM_MSX2) {
-              if (i>=3 && pat->data[k][2]!=-1) {
-                if (pat->data[k][2]>=0 && pat->data[k][2]<ds.insLen) {
-                  ds.ins[pat->data[k][2]]->type=DIV_INS_SCC;
+              if (i>=3 && pat->newData[k][DIV_PAT_INS]!=-1) {
+                if (pat->newData[k][DIV_PAT_INS]>=0 && pat->newData[k][DIV_PAT_INS]<ds.insLen) {
+                  ds.ins[pat->newData[k][DIV_PAT_INS]]->type=DIV_INS_SCC;
                 }
               }
             }
