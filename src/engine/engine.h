@@ -54,6 +54,7 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
+// Version number is placeholder
 #define DIV_VERSION "YM2610X branch version"
 #define DIV_ENGINE_VERSION 235
 // for imports
