@@ -320,18 +320,18 @@ const char* cmdName[]={
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");
 
-const char* formatNote(unsigned char note, unsigned char octave) {
+const char* formatNote(short note) {
   static char ret[4];
-  if (note==100) {
+  if (note==DIV_NOTE_OFF) {
     return "OFF";
-  } else if (note==101) {
+  } else if (note==DIV_NOTE_REL) {
     return "===";
-  } else if (note==102) {
+  } else if (note==DIV_MACRO_REL) {
     return "REL";
-  } else if (octave==0 && note==0) {
+  } else if (note<0) {
     return "---";
   }
-  snprintf(ret,4,"%s%d",notes[note%12],octave+note/12);
+  snprintf(ret,4,"%s%d",notes[note%12],(note-60)/12);
   return ret;
 }
 
@@ -509,8 +509,8 @@ void DivEngine::processRowPre(int i) {
   int whatRow=curRow;
   DivPattern* pat=curPat[i].getPattern(curOrders->ord[i][whatOrder],false);
   for (int j=0; j<curPat[i].effectCols; j++) {
-    short effect=pat->data[whatRow][4+(j<<1)];
-    short effectVal=pat->data[whatRow][5+(j<<1)];
+    short effect=pat->newData[whatRow][DIV_PAT_FX(j)];
+    short effectVal=pat->newData[whatRow][DIV_PAT_FXVAL(j)];
 
     if (effectVal==-1) effectVal=0;
     effectVal&=255;
@@ -526,8 +526,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
   if (!afterDelay) {
     bool returnAfterPre=false;
     for (int j=0; j<curPat[i].effectCols; j++) {
-      short effect=pat->data[whatRow][4+(j<<1)];
-      short effectVal=pat->data[whatRow][5+(j<<1)];
+      short effect=pat->newData[whatRow][DIV_PAT_FX(j)];
+      short effectVal=pat->newData[whatRow][DIV_PAT_FXVAL(j)];
 
       if (effectVal==-1) effectVal=0;
       effectVal&=255;
@@ -615,10 +615,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
   // instrument
   bool insChanged=false;
-  if (pat->data[whatRow][2]!=-1) {
-    if (chan[i].lastIns!=pat->data[whatRow][2]) {
-      dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,i,pat->data[whatRow][2]));
-      chan[i].lastIns=pat->data[whatRow][2];
+  if (pat->newData[whatRow][DIV_PAT_INS]!=-1) {
+    if (chan[i].lastIns!=pat->newData[whatRow][DIV_PAT_INS]) {
+      dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,i,pat->newData[whatRow][DIV_PAT_INS]));
+      chan[i].lastIns=pat->newData[whatRow][DIV_PAT_INS];
       insChanged=true;
       if (song.legacyVolumeSlides && chan[i].volume==chan[i].volMax+1) {
         logV("forcing volume");
@@ -629,7 +629,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     }
   }
   // note
-  if (pat->data[whatRow][0]==100) { // note off
+  if (pat->newData[whatRow][DIV_PAT_NOTE]==DIV_NOTE_OFF) { // note off
     //chan[i].note=-1;
     chan[i].keyOn=false;
     chan[i].keyOff=true;
@@ -652,7 +652,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
       chan[i].scheduledSlideReset=true;
     }
     dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
-  } else if (pat->data[whatRow][0]==101) { // note off + env release
+  } else if (pat->newData[whatRow][DIV_PAT_NOTE]==DIV_NOTE_REL) { // note off + env release
     //chan[i].note=-1;
     chan[i].keyOn=false;
     chan[i].keyOff=true;
@@ -676,12 +676,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
     }
     dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,i));
     chan[i].releasing=true;
-  } else if (pat->data[whatRow][0]==102) { // env release
+  } else if (pat->newData[whatRow][DIV_PAT_NOTE]==DIV_MACRO_REL) { // env release
     dispatchCmd(DivCommand(DIV_CMD_ENV_RELEASE,i));
     chan[i].releasing=true;
-  } else if (!(pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0)) {
+  } else if (pat->newData[whatRow][DIV_PAT_NOTE]!=-1) {
     chan[i].oldNote=chan[i].note;
-    chan[i].note=pat->data[whatRow][0]+((signed char)pat->data[whatRow][1])*12;
+    chan[i].note=pat->newData[whatRow][DIV_PAT_NOTE]-60;
     if (!chan[i].keyOn) {
       if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsArp(dispatchChanOfChan[i])) {
         chan[i].arp=0;
@@ -698,11 +698,11 @@ void DivEngine::processRow(int i, bool afterDelay) {
   int volPortaTarget=-1;
   bool noApplyVolume=false;
   for (int j=0; j<curPat[i].effectCols; j++) {
-    short effect=pat->data[whatRow][4+(j<<1)];
+    short effect=pat->newData[whatRow][DIV_PAT_FX(j)];
     if (effect==0xd3 || effect==0xd4) { // vol porta
-      volPortaTarget=pat->data[whatRow][3]<<8; // can be -256
+      volPortaTarget=pat->newData[whatRow][DIV_PAT_VOL]<<8; // can be -256
 
-      short effectVal=pat->data[whatRow][5+(j<<1)];
+      short effectVal=pat->newData[whatRow][DIV_PAT_FXVAL(j)];
       if (effectVal==-1) effectVal=0;
       effectVal&=255;
 
@@ -711,12 +711,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
     }
   }
   
-  if (pat->data[whatRow][3]!=-1 && !noApplyVolume) {
-    if (!song.oldAlwaysSetVolume || disCont[dispatchOfChan[i]].dispatch->getLegacyAlwaysSetVolume() || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->data[whatRow][3]) {
-      if (pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0) {
+  if (pat->newData[whatRow][DIV_PAT_VOL]!=-1 && !noApplyVolume) {
+    if (!song.oldAlwaysSetVolume || disCont[dispatchOfChan[i]].dispatch->getLegacyAlwaysSetVolume() || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->newData[whatRow][DIV_PAT_VOL]) {
+      if (pat->newData[whatRow][DIV_PAT_NOTE]==-1) {
         chan[i].midiAftertouch=true;
       }
-      chan[i].volume=pat->data[whatRow][3]<<8;
+      chan[i].volume=pat->newData[whatRow][DIV_PAT_VOL]<<8;
       dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
       dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
     }
@@ -732,8 +732,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
   // effects
   for (int j=0; j<curPat[i].effectCols; j++) {
-    short effect=pat->data[whatRow][4+(j<<1)];
-    short effectVal=pat->data[whatRow][5+(j<<1)];
+    short effect=pat->newData[whatRow][DIV_PAT_FX(j)];
+    short effectVal=pat->newData[whatRow][DIV_PAT_FXVAL(j)];
 
     if (effectVal==-1) effectVal=0;
     effectVal&=255;
@@ -1306,8 +1306,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
   // post effects
   for (int j=0; j<curPat[i].effectCols; j++) {
-    short effect=pat->data[whatRow][4+(j<<1)];
-    short effectVal=pat->data[whatRow][5+(j<<1)];
+    short effect=pat->newData[whatRow][DIV_PAT_FX(j)];
+    short effectVal=pat->newData[whatRow][DIV_PAT_FXVAL(j)];
 
     if (effectVal==-1) effectVal=0;
     effectVal&=255;
@@ -1352,31 +1352,31 @@ void DivEngine::nextRow() {
       
       DivPattern* pat=curPat[i].getPattern(curOrders->ord[i][curOrder],false);
       snprintf(pb2,4095,"\x1b[37m %s",
-              formatNote(pat->data[curRow][0],pat->data[curRow][1]));
+              formatNote(pat->newData[curRow][DIV_PAT_NOTE]));
       strcat(pb3,pb2);
-      if (pat->data[curRow][3]==-1) {
+      if (pat->newData[curRow][DIV_PAT_VOL]==-1) {
         strcat(pb3,"\x1b[m--");
       } else {
-        snprintf(pb2,4095,"\x1b[1;32m%.2x",pat->data[curRow][3]);
+        snprintf(pb2,4095,"\x1b[1;32m%.2x",pat->newData[curRow][DIV_PAT_VOL]);
         strcat(pb3,pb2);
       }
-      if (pat->data[curRow][2]==-1) {
+      if (pat->newData[curRow][DIV_PAT_INS]==-1) {
         strcat(pb3,"\x1b[m--");
       } else {
-        snprintf(pb2,4095,"\x1b[0;36m%.2x",pat->data[curRow][2]);
+        snprintf(pb2,4095,"\x1b[0;36m%.2x",pat->newData[curRow][DIV_PAT_INS]);
         strcat(pb3,pb2);
       }
       for (int j=0; j<curPat[i].effectCols; j++) {
-        if (pat->data[curRow][4+(j<<1)]==-1) {
+        if (pat->newData[curRow][DIV_PAT_FX(j)]==-1) {
           strcat(pb3,"\x1b[m--");
         } else {
-          snprintf(pb2,4095,"\x1b[1;31m%.2x",pat->data[curRow][4+(j<<1)]);
+          snprintf(pb2,4095,"\x1b[1;31m%.2x",pat->newData[curRow][DIV_PAT_FX(j)]);
           strcat(pb3,pb2);
         }
-        if (pat->data[curRow][5+(j<<1)]==-1) {
+        if (pat->newData[curRow][DIV_PAT_FXVAL(j)]==-1) {
           strcat(pb3,"\x1b[m--");
         } else {
-          snprintf(pb2,4095,"\x1b[1;37m%.2x",pat->data[curRow][5+(j<<1)]);
+          snprintf(pb2,4095,"\x1b[1;37m%.2x",pat->newData[curRow][DIV_PAT_FXVAL(j)]);
           strcat(pb3,pb2);
         }
       }
@@ -1481,8 +1481,8 @@ void DivEngine::nextRow() {
   // post row details
   for (int i=0; i<chans; i++) {
     DivPattern* pat=curPat[i].getPattern(curOrders->ord[i][curOrder],false);
-    if (!(pat->data[curRow][0]==0 && pat->data[curRow][1]==0)) {
-      if (pat->data[curRow][0]!=100 && pat->data[curRow][0]!=101 && pat->data[curRow][0]!=102) {
+    if (pat->newData[curRow][DIV_PAT_NOTE]!=-1) {
+      if (pat->newData[curRow][DIV_PAT_NOTE]!=DIV_NOTE_OFF && pat->newData[curRow][DIV_PAT_NOTE]!=DIV_NOTE_REL && pat->newData[curRow][DIV_PAT_NOTE]!=DIV_MACRO_REL) {
         if (!chan[i].legato) {
           bool wantPreNote=false;
           if (disCont[dispatchOfChan[i]].dispatch!=NULL) {
@@ -1493,24 +1493,24 @@ void DivEngine::nextRow() {
 
               for (int j=0; j<curPat[i].effectCols; j++) {
                 if (!song.preNoteNoEffect) {
-                  if (pat->data[curRow][4+(j<<1)]==0x03 && pat->data[curRow][5+(j<<1)]!=0 && pat->data[curRow][5+(j<<1)]!=-1) {
+                  if (pat->newData[curRow][DIV_PAT_FX(j)]==0x03 && pat->newData[curRow][DIV_PAT_FXVAL(j)]!=0 && pat->newData[curRow][DIV_PAT_FXVAL(j)]!=-1) {
                     doPreparePreNote=false;
                     break;
                   }
-                  if (pat->data[curRow][4+(j<<1)]==0x06 && pat->data[curRow][5+(j<<1)]!=0 && pat->data[curRow][5+(j<<1)]!=-1) {
+                  if (pat->newData[curRow][DIV_PAT_FX(j)]==0x06 && pat->newData[curRow][DIV_PAT_FXVAL(j)]!=0 && pat->newData[curRow][DIV_PAT_FXVAL(j)]!=-1) {
                     doPreparePreNote=false;
                     break;
                   }
-                  if (pat->data[curRow][4+(j<<1)]==0xea) {
-                    if (pat->data[curRow][5+(j<<1)]>0) {
+                  if (pat->newData[curRow][DIV_PAT_FX(j)]==0xea) {
+                    if (pat->newData[curRow][DIV_PAT_FXVAL(j)]>0) {
                       doPreparePreNote=false;
                       break;
                     }
                   }
                 }
-                if (pat->data[curRow][4+(j<<1)]==0xed) {
-                  if (pat->data[curRow][5+(j<<1)]>0) {
-                    addition=pat->data[curRow][5+(j<<1)]&255;
+                if (pat->newData[curRow][DIV_PAT_FX(j)]==0xed) {
+                  if (pat->newData[curRow][DIV_PAT_FXVAL(j)]>0) {
+                    addition=pat->newData[curRow][DIV_PAT_FXVAL(j)]&255;
                     break;
                   }
                 }
@@ -1524,23 +1524,23 @@ void DivEngine::nextRow() {
             int addition=0;
 
             for (int j=0; j<curPat[i].effectCols; j++) {
-              if (pat->data[curRow][4+(j<<1)]==0x03 && pat->data[curRow][5+(j<<1)]!=0 && pat->data[curRow][5+(j<<1)]!=-1) {
+              if (pat->newData[curRow][DIV_PAT_FX(j)]==0x03 && pat->newData[curRow][DIV_PAT_FXVAL(j)]!=0 && pat->newData[curRow][DIV_PAT_FXVAL(j)]!=-1) {
                 doPrepareCut=false;
                 break;
               }
-              if (pat->data[curRow][4+(j<<1)]==0x06 && pat->data[curRow][5+(j<<1)]!=0 && pat->data[curRow][5+(j<<1)]!=-1) {
+              if (pat->newData[curRow][DIV_PAT_FX(j)]==0x06 && pat->newData[curRow][DIV_PAT_FXVAL(j)]!=0 && pat->newData[curRow][DIV_PAT_FXVAL(j)]!=-1) {
                 doPrepareCut=false;
                 break;
               }
-              if (pat->data[curRow][4+(j<<1)]==0xea) {
-                if (pat->data[curRow][5+(j<<1)]>0) {
+              if (pat->newData[curRow][DIV_PAT_FX(j)]==0xea) {
+                if (pat->newData[curRow][DIV_PAT_FXVAL(j)]>0) {
                   doPrepareCut=false;
                   break;
                 }
               }
-              if (pat->data[curRow][4+(j<<1)]==0xed) {
-                if (pat->data[curRow][5+(j<<1)]>0) {
-                  addition=pat->data[curRow][5+(j<<1)]&255;
+              if (pat->newData[curRow][DIV_PAT_FX(j)]==0xed) {
+                if (pat->newData[curRow][DIV_PAT_FXVAL(j)]>0) {
+                  addition=pat->newData[curRow][DIV_PAT_FXVAL(j)]&255;
                   break;
                 }
               }
