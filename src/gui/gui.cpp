@@ -97,66 +97,54 @@ void FurnaceGUI::enableSafeMode() {
   safeMode=true;
 }
 
-const char* FurnaceGUI::noteName(short note, short octave) {
-  if (note==100) {
+const char* FurnaceGUI::noteName(short note) {
+  if (note==DIV_NOTE_OFF) {
     return noteOffLabel;
-  } else if (note==101) { // note off and envelope release
+  } else if (note==DIV_NOTE_REL) { // note off and envelope release
     return noteRelLabel;
-  } else if (note==102) { // envelope release only
+  } else if (note==DIV_MACRO_REL) { // envelope release only
     return macroRelLabel;
-  } else if (octave==0 && note==0) {
+  } else if (note==-1) {
     return emptyLabel;
-  } else if (note==0 && octave!=0) {
+  } else if (note==DIV_NOTE_NULL_PAT) {
     return "BUG";
   }
-  int seek=(note+(signed char)octave*12)+60;
-  if (seek<0 || seek>=180) {
+  if (note<0 || note>=180) {
     return "???";
   }
   if (settings.flatNotes) {
-    if (settings.germanNotation) return noteNamesGF[seek];
-    return noteNamesF[seek];
+    if (settings.germanNotation) return noteNamesGF[note];
+    return noteNamesF[note];
   }
-  if (settings.germanNotation) return noteNamesG[seek];
-  return noteNames[seek];
+  if (settings.germanNotation) return noteNamesG[note];
+  return noteNames[note];
 }
 
-bool FurnaceGUI::decodeNote(const char* what, short& note, short& octave) {
+bool FurnaceGUI::decodeNote(const char* what, short& note) {
   if (strlen(what)!=3) return false;
   if (strcmp(what,"...")==0) {
-    note=0;
-    octave=0;
+    note=-1;
     return true;
   }
   if (strcmp(what,"???")==0) {
-    note=0;
-    octave=0;
+    note=DIV_NOTE_NULL_PAT;
     return true;
   }
   if (strcmp(what,"OFF")==0) {
-    note=100;
-    octave=0;
+    note=DIV_NOTE_OFF;
     return true;
   }
   if (strcmp(what,"===")==0) {
-    note=101;
-    octave=0;
+    note=DIV_NOTE_REL;
     return true;
   }
   if (strcmp(what,"REL")==0) {
-    note=102;
-    octave=0;
+    note=DIV_MACRO_REL;
     return true;
   }
   for (int i=0; i<180; i++) {
     if (strcmp(what,noteNames[i])==0) {
-      if ((i%12)==0) {
-        note=12;
-        octave=(unsigned char)((i/12)-6);
-      } else {
-        note=i%12;
-        octave=(unsigned char)((i/12)-5);
-      }
+      note=i;
       return true;
     }
   }
