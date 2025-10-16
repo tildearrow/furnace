@@ -2307,6 +2307,7 @@ void DivEngine::noteToSplitNote(short note, short& outNote, short& outOctave) {
     case -1:
       outNote=0;
       outOctave=0;
+      break;
     default:
       outNote=note%12;
       outOctave=(unsigned char)(note-60)/12;

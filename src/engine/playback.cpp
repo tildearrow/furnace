@@ -321,7 +321,7 @@ const char* cmdName[]={
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");
 
 const char* formatNote(short note) {
-  static char ret[4];
+  static char ret[16];
   if (note==DIV_NOTE_OFF) {
     return "OFF";
   } else if (note==DIV_NOTE_REL) {
@@ -331,7 +331,7 @@ const char* formatNote(short note) {
   } else if (note<0) {
     return "---";
   }
-  snprintf(ret,4,"%s%d",notes[note%12],(note-60)/12);
+  snprintf(ret,16,"%s%d",notes[note%12],(note-60)/12);
   return ret;
 }
 
