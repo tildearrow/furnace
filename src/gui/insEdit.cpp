@@ -6447,7 +6447,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins) {
             "If this is disabled,filter cutoff will increase if you increase the pitch."));
           }
 
-          snprintf(buffer2,100,_("%s"),noteNameNormal(filt->bindCutoffToNoteCenter%12,(short)(filt->bindCutoffToNoteCenter / 12)-5));
+          snprintf(buffer2,100,_("%s"),noteNameNormal(filt->bindCutoffToNoteCenter));
           snprintf(buffer,100,_("Cutoff change center note##bindcutcenternote%d"),i+1);
           P(CWSliderScalar(buffer,ImGuiDataType_U8,&filt->bindCutoffToNoteCenter,&_ZERO,&_ONE_HUNDRED_SEVENTY_NINE,buffer2)); rightClickable
           if (ImGui::IsItemHovered()) {
@@ -6480,7 +6480,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins) {
             "If this is disabled,filter resonance will increase if you increase the pitch."));
           }
 
-          snprintf(buffer2,100,_("%s"),noteNameNormal(filt->bindResonanceToNoteCenter%12,(short)(filt->bindResonanceToNoteCenter / 12)-5));
+          snprintf(buffer2,100,_("%s"),noteNameNormal(filt->bindResonanceToNoteCenter));
           snprintf(buffer,100,_("Resonance change center note##bindrescenternote%d"),i+1);
           P(CWSliderScalar(buffer,ImGuiDataType_U8,&filt->bindResonanceToNoteCenter,&_ZERO,&_ONE_HUNDRED_SEVENTY_NINE,buffer2)); rightClickable
           if (ImGui::IsItemHovered()) {

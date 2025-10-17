@@ -525,53 +525,53 @@ bool FurnaceGUI::InvCheckbox(const char* label, bool* value) {
 bool FurnaceGUI::NoteSelector(int* value, bool showOffRel, int octaveMin, int octaveMax) {
   bool ret=false, calcNote=false;
   char tempID[64];
-  if (*value==130) {
+  if (*value==DIV_MACRO_REL) {
     snprintf(tempID,64,"%s##MREL",macroRelLabel);
-  } else if (*value==129) {
+  } else if (*value==DIV_NOTE_REL) {
     snprintf(tempID,64,"%s##NREL",noteRelLabel);
-  } else if (*value==128) {
+  } else if (*value==DIV_NOTE_OFF) {
     snprintf(tempID,64,"%s##NOFF",noteOffLabel);
-  } else if (*value>=-60 && *value<120) {
-    snprintf(tempID,64,"%c%c",noteNames[*value%12+72][0],(noteNames[*value%12+72][1]=='-')?' ':noteNames[*value%12+72][1]);
+  } else if (*value>=0 && *value<180) {
+    snprintf(tempID,64,"%c%c",noteNames[*value%12][0],(noteNames[*value%12][1]=='-')?' ':noteNames[*value%12][1]);
   } else {
     snprintf(tempID,64,"???");
     *value=0;
   }
   float width=ImGui::GetContentRegionAvail().x/2-ImGui::GetStyle().FramePadding.x;
   ImGui::SetNextItemWidth(width);
-  int note=(*value+60)%12;
-  int oct=0;
-  if (*value<120) oct=(*value-note)/12;
+  int note=(*value)%12;
+  int oct=-5;
+  if (*value<180) oct=(*value-note-60)/12;
   ImGui::BeginGroup();
   ImGui::PushID(value);
   if (ImGui::BeginCombo("##NoteSelectorNote",tempID)) {
     for (int j=0; j<12; j++) {
-      snprintf(tempID,64,"%c%c",noteNames[j+72][0],(noteNames[j+72][1]=='-')?' ':noteNames[j+72][1]);
-      if (ImGui::Selectable(tempID,note==j && *value<128)) {
+      snprintf(tempID,64,"%c%c",noteNames[j][0],(noteNames[j][1]=='-')?' ':noteNames[j][1]);
+      if (ImGui::Selectable(tempID,note==j && *value<180)) {
         note=j;
         calcNote=true;
       }
-      if (note==j && *value<120) ImGui::SetItemDefaultFocus();
+      if (note==j && *value<180) ImGui::SetItemDefaultFocus();
     }
     if (showOffRel) {
-      if (ImGui::Selectable(noteOffLabel,*value==128)) {
-        *value=128;
+      if (ImGui::Selectable(noteOffLabel,*value==DIV_NOTE_OFF)) {
+        *value=DIV_NOTE_OFF;
         ret=true;
       }
-      if (ImGui::Selectable(noteRelLabel,*value==129)) {
-        *value=129;
+      if (ImGui::Selectable(noteRelLabel,*value==DIV_NOTE_REL)) {
+        *value=DIV_NOTE_REL;
         ret=true;
       }
-      if (ImGui::Selectable(macroRelLabel,*value==130)) {
-        *value=130;
+      if (ImGui::Selectable(macroRelLabel,*value==DIV_MACRO_REL)) {
+        *value=DIV_MACRO_REL;
         ret=true;
       }
-      if (*value>=128 && *value<=130) ImGui::SetItemDefaultFocus();
+      if (*value>=DIV_NOTE_OFF && *value<=DIV_MACRO_REL) ImGui::SetItemDefaultFocus();
     }
     ImGui::EndCombo();
   }
   ImGui::SameLine();
-  if (*value<120) {
+  if (*value<180) {
     ImGui::SetNextItemWidth(width/2);
     if (ImGui::InputScalar("##NoteSelectorOctave",ImGuiDataType_S32,&oct)) {
       if (oct<octaveMin) oct=octaveMin;
@@ -580,7 +580,7 @@ bool FurnaceGUI::NoteSelector(int* value, bool showOffRel, int octaveMin, int oc
     }
   }
   if (calcNote) {
-    *value=oct*12+note;
+    *value=(oct+5)*12+note;
     ret=true;
   }
   ImGui::PopID();
@@ -1347,48 +1347,39 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
   prepareUndo(GUI_UNDO_PATTERN_EDIT);
 
   if (key==GUI_NOTE_OFF) { // note off
-    pat->data[y][0]=100;
-    pat->data[y][1]=0;
+    pat->newData[y][DIV_PAT_NOTE]=DIV_NOTE_OFF;
     removeIns=true;
   } else if (key==GUI_NOTE_OFF_RELEASE) { // note off + env release
-    pat->data[y][0]=101;
-    pat->data[y][1]=0;
+    pat->newData[y][DIV_PAT_NOTE]=DIV_NOTE_REL;
     removeIns=true;
   } else if (key==GUI_NOTE_RELEASE) { // env release only
-    pat->data[y][0]=102;
-    pat->data[y][1]=0;
+    pat->newData[y][DIV_PAT_NOTE]=DIV_MACRO_REL;
     removeIns=true;
   } else {
-    pat->data[y][0]=num%12;
-    pat->data[y][1]=num/12;
-    if (pat->data[y][0]==0) {
-      pat->data[y][0]=12;
-      pat->data[y][1]--;
-    }
-    pat->data[y][1]=(unsigned char)pat->data[y][1];
+    pat->newData[y][DIV_PAT_NOTE]=num+60;
     if (latchIns==-2) {
       if (curIns>=(int)e->song.ins.size()) curIns=-1;
       if (curIns>=0) {
-        pat->data[y][2]=curIns;
+        pat->newData[y][DIV_PAT_INS]=curIns;
       }
     } else if (latchIns!=-1 && !e->song.ins.empty()) {
-      pat->data[y][2]=MIN(((int)e->song.ins.size())-1,latchIns);
+      pat->newData[y][DIV_PAT_INS]=MIN(((int)e->song.ins.size())-1,latchIns);
     }
     int maxVol=e->getMaxVolumeChan(ch);
     if (latchVol!=-1) {
-      pat->data[y][3]=MIN(maxVol,latchVol);
+      pat->newData[y][DIV_PAT_VOL]=MIN(maxVol,latchVol);
     } else if (vol!=-1) {
-      pat->data[y][3]=e->mapVelocity(ch,pow((float)vol/127.0f,midiMap.volExp));
+      pat->newData[y][DIV_PAT_VOL]=e->mapVelocity(ch,pow((float)vol/127.0f,midiMap.volExp));
     }
-    if (latchEffect!=-1) pat->data[y][4]=latchEffect;
-    if (latchEffectVal!=-1) pat->data[y][5]=latchEffectVal;
+    if (latchEffect!=-1) pat->newData[y][DIV_PAT_FX(0)]=latchEffect;
+    if (latchEffectVal!=-1) pat->newData[y][DIV_PAT_FXVAL(0)]=latchEffectVal;
   }
   if (removeIns) {
     if (settings.removeInsOff) {
-      pat->data[y][2]=-1;
+      pat->newData[y][DIV_PAT_INS]=-1;
     }
     if (settings.removeVolOff) {
-      pat->data[y][3]=-1;
+      pat->newData[y][DIV_PAT_VOL]=-1;
     }
   }
   editAdvance();
@@ -1407,26 +1398,27 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
 
   DivPattern* pat=e->curPat[ch].getPattern(e->curOrders->ord[ch][ord],true);
   prepareUndo(GUI_UNDO_PATTERN_EDIT);
-  if (target==-1) target=cursor.xFine+1;
+  if (target==-1) target=cursor.xFine;
   if (direct) {
-    pat->data[y][target]=num&0xff;
+    pat->newData[y][target]=num&0xff;
   } else {
-    if (pat->data[y][target]==-1) pat->data[y][target]=0;
+    if (pat->newData[y][target]==-1) pat->newData[y][target]=0;
     if (!settings.pushNibble && !curNibble) {
-      pat->data[y][target]=num;
+      pat->newData[y][target]=num;
     } else {
-      pat->data[y][target]=((pat->data[y][target]<<4)|num)&0xff;
+      pat->newData[y][target]=((pat->newData[y][target]<<4)|num)&0xff;
     }
   }
-  if (cursor.xFine==1) { // instrument
-    if (pat->data[y][target]>=(int)e->song.ins.size()) {
-      pat->data[y][target]&=0x0f;
-      if (pat->data[y][target]>=(int)e->song.ins.size()) {
-        pat->data[y][target]=(int)e->song.ins.size()-1;
+  // TODO: shouldn't this be target?
+  if (cursor.xFine==DIV_PAT_INS) { // instrument
+    if (pat->newData[y][target]>=(int)e->song.ins.size()) {
+      pat->newData[y][target]&=0x0f;
+      if (pat->newData[y][target]>=(int)e->song.ins.size()) {
+        pat->newData[y][target]=(int)e->song.ins.size()-1;
       }
     }
     if (settings.absorbInsInput) {
-      curIns=pat->data[y][target];
+      curIns=pat->newData[y][target];
       wavePreviewInit=true;
       updateFMPreview=true;
     }
@@ -1442,18 +1434,18 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
       }
     }
     makeUndo(GUI_UNDO_PATTERN_EDIT);
-  } else if (cursor.xFine==2) {
+  } else if (cursor.xFine==DIV_PAT_VOL) {
     if (curNibble) {
-      if (pat->data[y][target]>e->getMaxVolumeChan(ch)) pat->data[y][target]=e->getMaxVolumeChan(ch);
+      if (pat->newData[y][target]>e->getMaxVolumeChan(ch)) pat->newData[y][target]=e->getMaxVolumeChan(ch);
     } else {
-      pat->data[y][target]&=15;
+      pat->newData[y][target]&=15;
     }
     if (direct) {
       curNibble=false;
     } else {
       if (e->getMaxVolumeChan(ch)<16) {
         curNibble=false;
-        if (pat->data[y][target]>e->getMaxVolumeChan(ch)) pat->data[y][target]=e->getMaxVolumeChan(ch);
+        if (pat->newData[y][target]>e->getMaxVolumeChan(ch)) pat->newData[y][target]=e->getMaxVolumeChan(ch);
         editAdvance();
       } else {
         curNibble=!curNibble;
@@ -2341,7 +2333,7 @@ int FurnaceGUI::save(String path, int dmfVersion) {
     if (dmfVersion<24) dmfVersion=24;
     w=e->saveDMF(dmfVersion);
   } else {
-    w=e->saveFur(false,settings.newPatternFormat);
+    w=e->saveFur(false);
   }
   if (w==NULL) {
     lastError=e->getLastError();
@@ -3148,10 +3140,10 @@ void FurnaceGUI::editOptions(bool topMenu) {
   ImGui::SameLine();
   if (ImGui::Button(_("Set"))) {
     DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
-    latchIns=pat->data[cursor.y][2];
-    latchVol=pat->data[cursor.y][3];
-    latchEffect=pat->data[cursor.y][4];
-    latchEffectVal=pat->data[cursor.y][5];
+    latchIns=pat->newData[cursor.y][DIV_PAT_INS];
+    latchVol=pat->newData[cursor.y][DIV_PAT_VOL];
+    latchEffect=pat->newData[cursor.y][DIV_PAT_FX(0)];
+    latchEffectVal=pat->newData[cursor.y][DIV_PAT_FXVAL(0)];
     latchTarget=0;
     latchNibble=false;
   }
@@ -4866,46 +4858,50 @@ bool FurnaceGUI::loop() {
           DivPattern* p=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],false);
           if (cursor.xFine>=0) switch (cursor.xFine) {
             case 0: // note
-              if (p->data[cursor.y][0]>0) {
-                if (p->data[cursor.y][0]==100) {
+              if (p->newData[cursor.y][DIV_PAT_NOTE]>=0) {
+                if (p->newData[cursor.y][DIV_PAT_NOTE]==DIV_NOTE_OFF) {
                   info=fmt::sprintf(_("Note off (cut)"));
-                } else if (p->data[cursor.y][0]==101) {
+                } else if (p->newData[cursor.y][DIV_PAT_NOTE]==DIV_NOTE_REL) {
                   info=fmt::sprintf(_("Note off (release)"));
-                } else if (p->data[cursor.y][0]==102) {
+                } else if (p->newData[cursor.y][DIV_PAT_NOTE]==DIV_MACRO_REL) {
                   info=fmt::sprintf(_("Macro release only"));
                 } else {
-                  info=fmt::sprintf(_("Note on: %s"),noteName(p->data[cursor.y][0],p->data[cursor.y][1]));
+                  info=fmt::sprintf(_("Note on: %s"),noteName(p->newData[cursor.y][DIV_PAT_NOTE]));
                 }
                 hasInfo=true;
               }
               break;
             case 1: // instrument
-              if (p->data[cursor.y][2]>-1) {
-                if (p->data[cursor.y][2]>=(int)e->song.ins.size()) {
-                  info=fmt::sprintf(_("Ins %d: <invalid>"),p->data[cursor.y][2]);
+              if (p->newData[cursor.y][DIV_PAT_INS]>-1) {
+                if (p->newData[cursor.y][DIV_PAT_INS]>=(int)e->song.ins.size()) {
+                  info=fmt::sprintf(_("Ins %d: <invalid>"),p->newData[cursor.y][DIV_PAT_INS]);
                 } else {
-                  DivInstrument* ins=e->getIns(p->data[cursor.y][2]);
-                  info=fmt::sprintf(_("Ins %d: %s"),p->data[cursor.y][2],ins->name);
+                  DivInstrument* ins=e->getIns(p->newData[cursor.y][DIV_PAT_INS]);
+                  info=fmt::sprintf(_("Ins %d: %s"),p->newData[cursor.y][DIV_PAT_INS],ins->name);
                 }
                 hasInfo=true;
               }
               break;
             case 2: // volume
-              if (p->data[cursor.y][3]>-1) {
+              if (p->newData[cursor.y][DIV_PAT_VOL]>-1) {
                 int maxVol=e->getMaxVolumeChan(cursor.xCoarse);
-                if (maxVol<1 || p->data[cursor.y][3]>maxVol) {
-                  info=fmt::sprintf(_("Set volume: %d (%.2X, INVALID!)"),p->data[cursor.y][3],p->data[cursor.y][3]);
+                if (maxVol<1 || p->newData[cursor.y][DIV_PAT_VOL]>maxVol) {
+                  info=fmt::sprintf(_("Set volume: %d (%.2X, INVALID!)"),p->newData[cursor.y][DIV_PAT_VOL],p->newData[cursor.y][DIV_PAT_VOL]);
                 } else {
-                  float realVol=e->getGain(cursor.xCoarse,p->data[cursor.y][3]);
-                  info=fmt::sprintf(_("Set volume: %d (%.2X, %d%%)"),p->data[cursor.y][3],p->data[cursor.y][3],(int)(realVol*100.0f));
+                  float realVol=e->getGain(cursor.xCoarse,p->newData[cursor.y][DIV_PAT_VOL]);
+                  info=fmt::sprintf(_("Set volume: %d (%.2X, %d%%)"),p->newData[cursor.y][DIV_PAT_VOL],p->newData[cursor.y][DIV_PAT_VOL],(int)(realVol*100.0f));
                 }
                 hasInfo=true;
               }
               break;
             default: // effect
-              int actualCursor=((cursor.xFine+1)&(~1));
-              if (p->data[cursor.y][actualCursor]>-1) {
-                info=e->getEffectDesc(p->data[cursor.y][actualCursor],cursor.xCoarse,true);
+              if (cursor.xFine<DIV_MAX_COLS) {
+                if (p->newData[cursor.y][cursor.xFine]>-1) {
+                  info=e->getEffectDesc(p->newData[cursor.y][cursor.xFine],cursor.xCoarse,true);
+                  hasInfo=true;
+                }
+              } else {
+                info=_("Error!");
                 hasInfo=true;
               }
               break;
@@ -6487,11 +6483,7 @@ bool FurnaceGUI::loop() {
               e->lockEngine([this]() {
                 for (int i=0; i<e->getTotalChannelCount(); i++) {
                   DivPattern* pat=e->curPat[i].getPattern(e->curOrders->ord[i][curOrder],true);
-                  memset(pat->data,-1,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short));
-                  for (int j=0; j<DIV_MAX_ROWS; j++) {
-                    pat->data[j][0]=0;
-                    pat->data[j][1]=0;
-                  }
+                  memset(pat->newData,-1,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short));
                 }
               });
               MARK_MODIFIED;
@@ -7258,7 +7250,7 @@ bool FurnaceGUI::loop() {
               }
             }
             logD("saving backup...");
-            SafeWriter* w=e->saveFur(true,true);
+            SafeWriter* w=e->saveFur(true);
             logV("writing file...");
 
             if (w!=NULL) {

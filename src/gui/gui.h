@@ -2001,7 +2001,6 @@ class FurnaceGUI {
     int iCannotWait;
     int orderButtonPos;
     int compress;
-    int newPatternFormat;
     int renderClearPos;
     int insertBehavior;
     int pullDeleteRow;
@@ -2255,7 +2254,6 @@ class FurnaceGUI {
       iCannotWait(0),
       orderButtonPos(2),
       compress(1),
-      newPatternFormat(1),
       renderClearPos(0),
       insertBehavior(1),
       pullDeleteRow(1),

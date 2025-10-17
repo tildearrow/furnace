@@ -853,15 +853,6 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
-        bool newPatternFormatB=settings.newPatternFormat;
-        if (ImGui::Checkbox(_("Use new pattern format when saving"),&newPatternFormatB)) {
-          settings.newPatternFormat=newPatternFormatB;
-          settingsChanged=true;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("use a packed format which saves space when saving songs.\ndisable if you need compatibility with older Furnace and/or tools\nwhich do not support this format."));
-        }
-
         bool noDMFCompatB=settings.noDMFCompat;
         if (ImGui::Checkbox(_("Don't apply compatibility flags when loading .dmf"),&noDMFCompatB)) {
           settings.noDMFCompat=noDMFCompatB;
@@ -4880,7 +4871,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.noMaximizeWorkaround=conf.getInt("noMaximizeWorkaround",0);
 
     settings.compress=conf.getInt("compress",1);
-    settings.newPatternFormat=conf.getInt("newPatternFormat",1);
     settings.newSongBehavior=conf.getInt("newSongBehavior",0);
     settings.playOnLoad=conf.getInt("playOnLoad",0);
     settings.centerPopup=conf.getInt("centerPopup",1);
@@ -5348,7 +5338,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.iCannotWait,0,1);
   clampSetting(settings.orderButtonPos,0,2);
   clampSetting(settings.compress,0,1);
-  clampSetting(settings.newPatternFormat,0,1);
   clampSetting(settings.renderClearPos,0,1);
   clampSetting(settings.insertBehavior,0,1);
   clampSetting(settings.pullDeleteRow,0,1);
@@ -5479,7 +5468,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("noMaximizeWorkaround",settings.noMaximizeWorkaround);
 
     conf.set("compress",settings.compress);
-    conf.set("newPatternFormat",settings.newPatternFormat);
     conf.set("newSongBehavior",settings.newSongBehavior);
     conf.set("playOnLoad",settings.playOnLoad);
     conf.set("centerPopup",settings.centerPopup);
