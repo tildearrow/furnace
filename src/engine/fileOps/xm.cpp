@@ -325,7 +325,9 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
     for (unsigned short i=0; i<patCount; i++) {
       logV("pattern %d",i);
       headerSeek=reader.tell();
-      headerSeek+=reader.readI();
+      unsigned int headerSeekAdd=reader.readI();
+      logV("seek is %d",headerSeekAdd);
+      headerSeek+=headerSeekAdd;
 
       unsigned char packType=reader.readC();
       if (packType!=0) {
@@ -350,7 +352,10 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
         return false;
       }
 
-      unsigned int packedSeek=headerSeek+(unsigned short)reader.readS();
+      unsigned short packedSize=reader.readS();
+      logV("packed size: %d",packedSize);
+
+      unsigned int packedSeek=headerSeek+packedSize;
 
       logV("seeking to %x...",headerSeek);
       if (!reader.seek(headerSeek,SEEK_SET)) {
@@ -363,6 +368,10 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
 
       // read data
       for (int j=0; j<totalRows; j++) {
+        if (reader.tell()>=packedSeek) {
+          logV("end of data - stopping here...");
+          break;
+        }
         for (int k=0; k<totalChans; k++) {
           unsigned char note=reader.readC();
           unsigned char vol=0;
@@ -836,7 +845,10 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
         return false;
       }
 
-      unsigned int packedSeek=headerSeek+(unsigned short)reader.readS();
+      unsigned short packedSize=reader.readS();
+      logV("packed size: %d",packedSize);
+
+      unsigned int packedSeek=headerSeek+packedSize;
 
       logV("seeking to %x...",headerSeek);
       if (!reader.seek(headerSeek,SEEK_SET)) {
@@ -849,6 +861,10 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
 
       // read data
       for (int j=0; j<totalRows; j++) {
+        if (reader.tell()>=packedSeek) {
+          logV("end of data - stopping here...");
+          break;
+        }
         for (int k=0; k<totalChans; k++) {
           DivPattern* p=ds.subsong[0]->pat[k].getPattern(i,true);
 
@@ -1131,11 +1147,28 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
               case 0xe: // special...
                 // TODO: implement the rest
                 switch (effectVal>>4) {
-                  case 0x5:
+                  case 0x4: // vibrato waveform
+                    switch (effectVal&3) {
+                      case 0x0: // sine
+                        p->data[j][effectCol[k]++]=0xe3;
+                        p->data[j][effectCol[k]++]=0x00;
+                        break;
+                      case 0x1: // ramp down
+                        p->data[j][effectCol[k]++]=0xe3;
+                        p->data[j][effectCol[k]++]=0x05;
+                        break;
+                      case 0x2: // square
+                      case 0x3:
+                        p->data[j][effectCol[k]++]=0xe3;
+                        p->data[j][effectCol[k]++]=0x06;
+                        break;
+                    }
+                  break;
+                  case 0x5: // fine tune
                     p->data[j][effectCol[k]++]=0xe5;
                     p->data[j][effectCol[k]++]=(effectVal&15)<<4;
                     break;
-                  case 0x9:
+                  case 0x9: // retrigger
                     p->data[j][effectCol[k]++]=0x0c;
                     p->data[j][effectCol[k]++]=(effectVal&15);
                     break;
@@ -1155,11 +1188,11 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                     }
                     volSliding[k]=true;
                     break;
-                  case 0xc:
+                  case 0xc: // note cut
                     p->data[j][effectCol[k]++]=0xdc;
                     p->data[j][effectCol[k]++]=MAX(1,effectVal&15);
                     break;
-                  case 0xd:
+                  case 0xd: // note delay
                     p->data[j][effectCol[k]++]=0xed;
                     p->data[j][effectCol[k]++]=MAX(1,effectVal&15);
                     break;

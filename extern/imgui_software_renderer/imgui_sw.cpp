@@ -678,6 +678,9 @@ void ImGui_ImplSW_Shutdown() {
 
 void ImGui_ImplSW_NewFrame() {
   ImGui_ImplSW_Data* bd = ImGui_ImplSW_GetBackendData();
+  // look I am USING THIS VARIABLE
+  // don't go around saying I don't use it
+  if (bd==NULL) abort();
   IM_ASSERT(bd != nullptr);
 }
 

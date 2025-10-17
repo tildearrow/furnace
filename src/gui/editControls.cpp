@@ -76,7 +76,7 @@ const char* mobileButtonLabels[32]={
 
   // page 4
   _N("fade"),
-  _N("randomize"),
+  _N("menu"),
   _N("opmask"),
   _N("scroll\nmode"),
   _N("input\nlatch"),
@@ -118,7 +118,7 @@ const int mobileButtonActions[32]={
 
   // page 4
   GUI_ACTION_PAT_FADE,
-  0,
+  GUI_ACTION_OPEN_EDIT_MENU,
   0,
   GUI_ACTION_PAT_SCROLL_MODE,
   0,

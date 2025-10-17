@@ -45,6 +45,7 @@ class DivConfig {
     double getDouble(String key, double fallback) const;
     String getString(String key, String fallback) const;
     std::vector<int> getIntList(String key, std::initializer_list<int> fallback) const;
+    std::vector<String> getStringList(String key, std::initializer_list<String> fallback) const;
 
     // check for existence
     bool has(String key) const;
@@ -57,6 +58,7 @@ class DivConfig {
     void set(String key, const char* value);
     void set(String key, String value);
     void set(String key, const std::vector<int>& value);
+    void set(String key, const std::vector<String>& value);
 
     // remove a config value
     bool remove(String key);

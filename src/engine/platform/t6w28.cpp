@@ -129,7 +129,7 @@ void DivPlatformT6W28::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (i==3 && chan[i].std.duty.had) {
-      if (chan[i].duty!=chan[i].std.duty.val) {
+      if (chan[i].duty!=(((chan[i].std.duty.val==1)?4:0)|3)) {
         chan[i].duty=((chan[i].std.duty.val==1)?4:0)|3;
         rWrite(1,0xe0+chan[i].duty);
       }
@@ -153,7 +153,9 @@ void DivPlatformT6W28::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.phaseReset.had) {
-      rWrite(1,0xe0+chan[i].duty);
+      if (chan[i].std.phaseReset.val==1) {
+        rWrite(1,0xe0+chan[i].duty);
+      }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=snCalcFreq(i);

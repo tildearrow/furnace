@@ -38,6 +38,7 @@
 #include "../pch.h"
 
 #include "fileDialog.h"
+#include "newFilePicker.h"
 
 #define FURNACE_APP_ID "org.tildearrow.furnace"
 
@@ -719,6 +720,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_FOLLOW_PATTERN,
   GUI_ACTION_FULLSCREEN,
   GUI_ACTION_TX81Z_REQUEST,
+  GUI_ACTION_OPEN_EDIT_MENU,
   GUI_ACTION_PANIC,
   GUI_ACTION_CLEAR,
 
@@ -1546,6 +1548,18 @@ struct FurnaceGUIPerfMetric {
     elapsed(0) {}
 };
 
+struct FurnaceGUIUncompFont {
+  const void* origPtr;
+  size_t origLen;
+  void* data;
+  size_t len;
+  FurnaceGUIUncompFont(const void* ptr, size_t len, void* d, size_t l):
+    origPtr(ptr),
+    origLen(len),
+    data(d),
+    len(l) {}
+};
+
 struct FurnaceGUIBackupEntry {
   String name;
   uint64_t size;
@@ -1666,6 +1680,8 @@ class FurnaceGUI {
   int sampleTexW, sampleTexH;
   bool updateSampleTex;
 
+  FurnaceGUITexture* csTex;
+
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile, sysSearchQuery, newSongQuery, paletteQuery, sampleBankSearchQuery;
   String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport;
   String workingDirVGMExport, workingDirROMExport;
@@ -1692,7 +1708,7 @@ class FurnaceGUI {
   bool vgmExportDirectStream, displayInsTypeList, displayWaveSizeList;
   bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
-  bool displayNew, displayExport, displayPalette, fullScreen, preserveChanPos, sysDupCloneChannels, sysDupEnd, noteInputPoly, notifyWaveChange;
+  bool displayNew, displayExport, displayPalette, fullScreen, preserveChanPos, sysDupCloneChannels, sysDupEnd, noteInputPoly, notifyWaveChange, notifySampleChange;
   bool wantScrollListIns, wantScrollListWave, wantScrollListSample;
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool displayPendingSamples, replacePendingSample;
@@ -1750,6 +1766,7 @@ class FurnaceGUI {
   FurnaceGUIMobileScenes mobScene;
 
   FurnaceGUIFileDialog* fileDialog;
+  FurnaceFilePicker* newFilePicker;
 
   int scrW, scrH, scrConfW, scrConfH, canvasW, canvasH;
   int scrX, scrY, scrConfX, scrConfY;
@@ -1776,6 +1793,7 @@ class FurnaceGUI {
   MIDIMap midiMap;
   int learning;
 
+  std::vector<FurnaceGUIUncompFont> fontCache;
   ImFont* mainFont;
   ImFont* iconFont;
   ImFont* furIconFont;
@@ -2042,6 +2060,8 @@ class FurnaceGUI {
     int vibrationLength;
     int s3mOPL3;
     int songNotesWrap;
+    int rackShowLEDs;
+    int sampleImportInstDetune;
     String mainFontPath;
     String headFontPath;
     String patFontPath;
@@ -2295,6 +2315,8 @@ class FurnaceGUI {
       vibrationLength(20),
       s3mOPL3(1),
       songNotesWrap(0),
+      rackShowLEDs(1),
+      sampleImportInstDetune(0),
       mainFontPath(""),
       headFontPath(""),
       patFontPath(""),
@@ -2386,6 +2408,7 @@ class FurnaceGUI {
   bool collapseWindow, demandScrollX, fancyPattern, firstFrame, tempoView, waveHex, waveSigned, waveGenVisible, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
   bool keepLoopAlive, keepGrooveAlive, orderScrollLocked, orderScrollTolerance, dragMobileMenu, dragMobileEditButton, wantGrooveListFocus;
   bool mobilePatSel;
+  bool openEditMenu;
   unsigned char lastAssetType;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   std::atomic<FurnaceGUIWindows> curWindowThreadSafe;
@@ -2852,6 +2875,8 @@ class FurnaceGUI {
   // inverted checkbox
   bool InvCheckbox(const char* label, bool* value);
 
+  bool NoteSelector(int* value, bool showOffRel, int octaveMin=-5, int octaveMax=9);
+
   // mixer stuff
   ImVec2 calcPortSetSize(String label, int ins, int outs);
   bool portSet(String label, unsigned int portSetID, int ins, int outs, int activeIns, int activeOuts, int& clickedPort, std::map<unsigned int,ImVec2>& portPos);
@@ -2961,7 +2986,7 @@ class FurnaceGUI {
   void drawTutorial();
   void drawXYOsc();
   void drawUserPresets();
-  void drawSystemChannelInfo(const DivSysDef* whichDef);
+  float drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset=-1, float width=-1.0f);
   void drawSystemChannelInfoText(const DivSysDef* whichDef);
 
   void assignActionMap(std::map<int,int>& actionMap, int first, int last);

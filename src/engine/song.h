@@ -196,6 +196,7 @@ struct DivSubSong {
   void findLength(int loopOrder, int loopRow, double fadeoutLen, int& rowsForFadeout, bool& hasFFxx, std::vector<int>& orders, std::vector<DivGroovePattern>& grooves, int& length, int chans, int jumpTreatment, int ignoreJumpAtEnd, int firstPat=0);
 
   void clearData();
+  void removeUnusedPatterns();
   void optimizePatterns();
   void rearrangePatterns();
   void sortOrders();

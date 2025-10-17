@@ -335,6 +335,35 @@ void FurnaceGUI::drawDebug() {
       ImGui::Unindent();
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("New File Picker Test")) {
+      static bool check0, check1, check2, check3, check4, check5;
+
+      ImGui::Checkbox("Modal",&check0);
+      ImGui::Checkbox("No Close",&check1);
+      ImGui::Checkbox("Save",&check2);
+      ImGui::Checkbox("Multi Select",&check3);
+      ImGui::Checkbox("Dir Select",&check4);
+      ImGui::Checkbox("Embeddable",&check5);
+
+      int fpFlags=(
+        (check0?FP_FLAGS_MODAL:0)|
+        (check1?FP_FLAGS_NO_CLOSE:0)|
+        (check2?FP_FLAGS_SAVE:0)|
+        (check3?FP_FLAGS_MULTI_SELECT:0)|
+        (check4?FP_FLAGS_DIR_SELECT:0)|
+        (check5?FP_FLAGS_EMBEDDABLE:0)
+      );
+
+      if (ImGui::Button("Open")) {
+        newFilePicker->open("New File Picker","/home","",fpFlags,
+          {_("songs"), "*.fur *.dmf *.mod *.s3m *.xm *.it *.fc13 *.fc14 *.smod *.fc *.ftm *.0cc *.dnm *.eft *.fub *.tfe",
+           _("instruments"), "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn",
+           _("audio"), "*.wav",
+           _("all files"), "*"}
+        );
+      }
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("File Selection Test")) {
       if (ImGui::Button("Test Open")) {
         openFileDialog(GUI_FILE_TEST_OPEN);
@@ -365,12 +394,10 @@ void FurnaceGUI::drawDebug() {
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Scroll Text Test")) {
-      /*
-      ImGui::ScrollText(ImGui::GetID("scrolltest1"),"Lorem ipsum, quia dolor sit, amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt, ut labore et dolore magnam aliquam quaerat voluptatem. ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur?");
-      ImGui::ScrollText(ImGui::GetID("scrolltest2"),"quis autem vel eum iure reprehenderit");
-      ImGui::ScrollText(ImGui::GetID("scrolltest3"),"qui in ea voluptate velit esse",ImVec2(100.0f*dpiScale,0),true);
-      ImGui::ScrollText(ImGui::GetID("scrolltest4"),"quam nihil molestiae consequatur, vel illum, qui dolorem eum fugiat, quo voluptas nulla pariatur?",ImVec2(0,0),true);
-      */
+      ImGui::ScrollText(ImGui::GetID("scrolltest1"),"Lorem ipsum, quia dolor sit, amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt, ut labore et dolore magnam aliquam quaerat voluptatem. ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur?",ImGui::GetCursorPos());
+      ImGui::ScrollText(ImGui::GetID("scrolltest2"),"quis autem vel eum iure reprehenderit",ImGui::GetCursorPos());
+      ImGui::ScrollText(ImGui::GetID("scrolltest3"),"qui in ea voluptate velit esse",ImGui::GetCursorPos(),ImVec2(100.0f*dpiScale,0),true);
+      ImGui::ScrollText(ImGui::GetID("scrolltest4"),"quam nihil molestiae consequatur, vel illum, qui dolorem eum fugiat, quo voluptas nulla pariatur?",ImGui::GetCursorPos(),ImVec2(0,0),true);
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Pitch Table Calculator")) {

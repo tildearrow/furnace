@@ -182,7 +182,7 @@ size | description
      |   - 0x8f: OPL (YM3526) - 9 channels
      |   - 0x90: OPL2 (YM3812) - 9 channels
      |   - 0x91: OPL3 (YMF262) - 18 channels
-     |   - 0x92: MultiPCM - 28 channels (UNAVAILABLE)
+     |   - 0x92: MultiPCM - 28 channels
      |   - 0x93: Intel 8253 (beeper) - 1 channel
      |   - 0x94: POKEY - 4 channels
      |   - 0x95: RF5C68 - 8 channels

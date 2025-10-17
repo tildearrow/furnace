@@ -1624,6 +1624,29 @@ void FurnaceGUI::doRandomize(int bottom, int top, bool mode, bool eff, int effVa
           }
           j=0;
         }
+      } else {
+        // random notes
+        int absoluteTop=179;
+        for (; jOrder<=selEnd.order; jOrder++) {
+          DivPattern* pat=e->curPat[iCoarse].getPattern(e->curOrders->ord[iCoarse][jOrder],true);
+          for (; j<e->curSubSong->patLen && (j<=selEnd.y || jOrder<selEnd.order); j++) {
+            int value=0;
+            touch(jOrder,j);
+            if (top-bottom<=0) {
+              value=MIN(absoluteTop,bottom);
+            } else {
+              value=MIN(absoluteTop,bottom+(rand()%(top-bottom+1)));
+            }
+            pat->data[j][0]=value%12;
+            pat->data[j][1]=(value-60)/12;
+            if (pat->data[j][0]==0) {
+              pat->data[j][0]=12;
+              pat->data[j][1]--;
+            }
+            pat->data[j][1]=(unsigned char)pat->data[j][1];
+          }
+          j=0;
+        }
       }
     }
     iFine=0;

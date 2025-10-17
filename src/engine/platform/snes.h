@@ -124,9 +124,10 @@ class DivPlatformSNES: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const void* getSampleMem(int index = 0);
-    size_t getSampleMemCapacity(int index = 0);
-    size_t getSampleMemUsage(int index = 0);
+    const void* getSampleMem(int index=0);
+    size_t getSampleMemCapacity(int index=0);
+    size_t getSampleMemUsage(int index=0);
+    bool hasSamplePtrHeader(int index=0);
     bool isSampleLoaded(int index, int sample);
     const DivMemoryComposition* getMemCompo(int index);
     void renderSamples(int chipID);

@@ -36,7 +36,7 @@ static const int msmRates[4]={
 
 int DivPlatformMSM6258::calcVGMRate() {
   int ret=chipClock/((clockSel+1)*512*msmRates[rateSel&3]);
-  logD("MSM rate: %d",ret);
+  //logD("MSM rate: %d",ret);
   return ret;
 }
 

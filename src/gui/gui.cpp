@@ -30,7 +30,6 @@
 #include "../stringutils.h"
 #include "imgui.h"
 #include "imgui_internal.h"
-#include "ImGuiFileDialog.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "plot_nolerp.h"
@@ -534,6 +533,72 @@ bool FurnaceGUI::InvCheckbox(const char* label, bool* value) {
     return true;
   }
   return false;
+}
+
+bool FurnaceGUI::NoteSelector(int* value, bool showOffRel, int octaveMin, int octaveMax) {
+  bool ret=false, calcNote=false;
+  char tempID[64];
+  if (*value==130) {
+    snprintf(tempID,64,"%s##MREL",macroRelLabel);
+  } else if (*value==129) {
+    snprintf(tempID,64,"%s##NREL",noteRelLabel);
+  } else if (*value==128) {
+    snprintf(tempID,64,"%s##NOFF",noteOffLabel);
+  } else if (*value>=-60 && *value<120) {
+    snprintf(tempID,64,"%c%c",noteNames[*value%12+72][0],(noteNames[*value%12+72][1]=='-')?' ':noteNames[*value%12+72][1]);
+  } else {
+    snprintf(tempID,64,"???");
+    *value=0;
+  }
+  float width=ImGui::GetContentRegionAvail().x/2-ImGui::GetStyle().FramePadding.x;
+  ImGui::SetNextItemWidth(width);
+  int note=(*value+60)%12;
+  int oct=0;
+  if (*value<120) oct=(*value-note)/12;
+  ImGui::BeginGroup();
+  ImGui::PushID(value);
+  if (ImGui::BeginCombo("##NoteSelectorNote",tempID)) {
+    for (int j=0; j<12; j++) {
+      snprintf(tempID,64,"%c%c",noteNames[j+72][0],(noteNames[j+72][1]=='-')?' ':noteNames[j+72][1]);
+      if (ImGui::Selectable(tempID,note==j && *value<128)) {
+        note=j;
+        calcNote=true;
+      }
+      if (note==j && *value<120) ImGui::SetItemDefaultFocus();
+    }
+    if (showOffRel) {
+      if (ImGui::Selectable(noteOffLabel,*value==128)) {
+        *value=128;
+        ret=true;
+      }
+      if (ImGui::Selectable(noteRelLabel,*value==129)) {
+        *value=129;
+        ret=true;
+      }
+      if (ImGui::Selectable(macroRelLabel,*value==130)) {
+        *value=130;
+        ret=true;
+      }
+      if (*value>=128 && *value<=130) ImGui::SetItemDefaultFocus();
+    }
+    ImGui::EndCombo();
+  }
+  ImGui::SameLine();
+  if (*value<120) {
+    ImGui::SetNextItemWidth(width/2);
+    if (ImGui::InputScalar("##NoteSelectorOctave",ImGuiDataType_S32,&oct)) {
+      if (oct<octaveMin) oct=octaveMin;
+      if (oct>octaveMax) oct=octaveMax;
+      calcNote=true;
+    }
+  }
+  if (calcNote) {
+    *value=oct*12+note;
+    ret=true;
+  }
+  ImGui::PopID();
+  ImGui::EndGroup();
+  return ret;
 }
 
 bool FurnaceGUI::LocalizedComboGetter(void* data, int idx, const char** out_text) {
@@ -1491,7 +1556,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
     mapped|=FURKMOD_SHIFT;
   }
 
-  if (!ImGuiFileDialog::Instance()->IsOpened()) {
+  if (!newFilePicker->isOpened()) {
     if (bindSetActive) {
       if (!ev.key.repeat) {
         switch (ev.key.keysym.sym) {
@@ -1744,7 +1809,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
   if (actionI!=actionMapGlobal.cend()) {
     int action=actionI->second;
     if (action>0) {
-      if (ImGuiFileDialog::Instance()->IsOpened()) {
+      if (newFilePicker->isOpened()) {
         if (action!=GUI_ACTION_OCTAVE_UP && action!=GUI_ACTION_OCTAVE_DOWN) return;
       }
       doAction(action);
@@ -1848,11 +1913,12 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openLoad(
         _("Load Instrument"),
-        {_("all compatible files"), "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn",
+        {_("all compatible files"), "*.fui *.dmp *.tfi *.vgi *.eif *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn",
          _("Furnace instrument"), "*.fui",
          _("DefleMask preset"), "*.dmp",
          _("TFM Music Maker instrument"), "*.tfi",
          _("VGM Music Maker instrument"), "*.vgi",
+         _("Echo instrument"), "*.eif",
          _("Scream Tracker 3 instrument"), "*.s3i",
          _("SoundBlaster instrument"), "*.sbi",
          _("Wohlstand OPL instrument"), "*.opli",
@@ -1880,6 +1946,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
               }
               if (prevIns>=0 && prevIns<=(int)e->song.ins.size()) {
                 *e->song.ins[prevIns]=*instruments[0];
+                e->notifyInsChange(prevIns);
               }
             } else {
               e->loadTempIns(instruments[0]);
@@ -2290,7 +2357,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       break;
   }
   if (hasOpened) curFileDialog=type;
-  //ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NavEnableKeyboard;
 }
 
 int FurnaceGUI::save(String path, int dmfVersion) {
@@ -2646,7 +2712,7 @@ void FurnaceGUI::exportAudio(String path, DivAudioExportModes mode) {
   e->findSongLength(loopOrder,loopRow,audioExportOptions.fadeOut,songFadeoutSectionLength,songHasSongEndCommand,songOrdersLengths,songLength); // for progress estimation
 
   songLoopedSectionLength=songLength;
-  for (int i=0; i<loopOrder; i++) {
+  for (int i=0; i<loopOrder && i<(int)songOrdersLengths.size(); i++) {
     songLoopedSectionLength-=songOrdersLengths[i];
   }
   songLoopedSectionLength-=loopRow;
@@ -2859,6 +2925,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
           for (int i=x; i<=x1; i++) ((signed char*)sampleDragTarget)[i]=val;
         }
         updateSampleTex=true;
+        notifySampleChange=true;
       }
     } else { // select
       if (sampleSelStart<0) {
@@ -3302,6 +3369,7 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
       ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NoHoverColors;
       ImGui::GetIO().AlwaysScrollText=true;
       fileDialog->mobileUI=true;
+      newFilePicker->setMobile(true);
     } else {
       ImGui::GetIO().IniFilename=NULL;
       if (!ImGui::LoadIniSettingsFromDisk(finalLayoutPath,true)) {
@@ -3312,6 +3380,7 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
       ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NoHoverColors;
       ImGui::GetIO().AlwaysScrollText=false;
       fileDialog->mobileUI=false;
+      newFilePicker->setMobile(false);
     }
   }
 }
@@ -3904,7 +3973,7 @@ bool FurnaceGUI::loop() {
         }
 #endif
         case SDL_KEYDOWN:
-          if (!ImGui::GetIO().WantCaptureKeyboard || (ImGuiFileDialog::Instance()->IsOpened() && !ImGui::GetIO().WantTextInput)) {
+          if (!ImGui::GetIO().WantCaptureKeyboard || (newFilePicker->isOpened() && !ImGui::GetIO().WantTextInput)) {
             keyDown(ev);
           }
           if (introPos<11.0 && !shortIntro) {
@@ -3960,26 +4029,22 @@ bool FurnaceGUI::loop() {
               }
               nextWindow=GUI_WINDOW_WAVE_LIST;
               MARK_MODIFIED;
-            }
-            else if (!samples.empty())
-            {
+            } else if (!samples.empty()) {
               if (e->song.sampleLen!=sampleCountBefore) {
                 //e->renderSamplesP();
               }
-              if (!e->getWarnings().empty())
-              {
+              if (!e->getWarnings().empty()) {
                 showWarning(e->getWarnings(),GUI_WARN_GENERIC);
               }
               int sampleCount=-1;
-              for (DivSample* s: samples)
-              {
+              for (DivSample* s: samples) {
                 sampleCount=e->addSamplePtr(s);
               }
               //sampleCount=e->addSamplePtr(droppedSample);
-              if (sampleCount>=0 && settings.selectAssetOnLoad)
-              {
+              if (sampleCount>=0 && settings.selectAssetOnLoad) {
                 curSample=sampleCount;
                 updateSampleTex=true;
+                notifySampleChange=true;
               }
               nextWindow=GUI_WINDOW_SAMPLE_LIST;
               MARK_MODIFIED;
@@ -4216,6 +4281,11 @@ bool FurnaceGUI::loop() {
     if (notifyWaveChange) {
       notifyWaveChange=false;
       e->notifyWaveChange(curWave);
+    }
+
+    if (notifySampleChange) {
+      notifySampleChange=false;
+      e->notifySampleChange(curSample);
     }
 
     eventTimeEnd=SDL_GetPerformanceCounter();
@@ -4952,6 +5022,7 @@ bool FurnaceGUI::loop() {
       MEASURE(effectList,drawEffectList());
       MEASURE(userPresets,drawUserPresets());
       MEASURE(patManager,drawPatManager());
+
     } else {
       globalWinFlags=0;
       ImGui::DockSpaceOverViewport(0,NULL,lockLayout?(ImGuiDockNodeFlags_NoWindowMenuButton|ImGuiDockNodeFlags_NoMove|ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplit|ImGuiDockNodeFlags_NoDockingSplitOther):0);
@@ -4995,6 +5066,7 @@ bool FurnaceGUI::loop() {
       MEASURE(log,drawLog());
       MEASURE(effectList,drawEffectList());
       MEASURE(userPresets,drawUserPresets());
+
     }
 
     // release selection if mouse released
@@ -5013,7 +5085,7 @@ bool FurnaceGUI::loop() {
     }
 
     for (int i=0; i<e->getTotalChannelCount(); i++) {
-      keyHit1[i]-=0.2f;
+      keyHit1[i]-=0.08f;
       if (keyHit1[i]<0.0f) keyHit1[i]=0.0f;
     }
 
@@ -5059,6 +5131,7 @@ bool FurnaceGUI::loop() {
           if (prevInsData!=NULL) {
             if (prevIns>=0 && prevIns<(int)e->song.ins.size()) {
               *e->song.ins[prevIns]=*prevInsData;
+              e->notifyInsChange(prevIns);
             }
           }
         } else {
@@ -5470,6 +5543,7 @@ bool FurnaceGUI::loop() {
                       MARK_MODIFIED;
                     });
                     updateSampleTex=true;
+                    notifySampleChange=true;
                   } else {
                     showError(_("...but you haven't selected a sample!"));
                     delete samples[0];
@@ -5595,6 +5669,7 @@ bool FurnaceGUI::loop() {
                     // reset macro zoom
                     memset(e->song.ins[curIns]->temp.vZoom,-1,sizeof(e->song.ins[curIns]->temp.vZoom));
                     MARK_MODIFIED;
+                    e->notifyInsChange(curIns);
                   } else {
                     showError(_("...but you haven't selected an instrument!"));
                   }
@@ -6493,6 +6568,14 @@ bool FurnaceGUI::loop() {
               MARK_MODIFIED;
               ImGui::CloseCurrentPopup();
             }
+            if (ImGui::Button(_("Remove unused patterns"))) {
+              stop();
+              e->lockEngine([this]() {
+                e->curSubSong->removeUnusedPatterns();
+              });
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }
             if (ImGui::Button(_("Remove unused instruments"))) {
               stop();
               e->delUnusedIns();
@@ -6808,6 +6891,7 @@ bool FurnaceGUI::loop() {
                 *e->song.ins[curIns]=*i.first;
                 // reset macro zoom
                 memset(e->song.ins[curIns]->temp.vZoom,-1,sizeof(e->song.ins[curIns]->temp.vZoom));
+                e->notifyInsChange(curIns);
               } else {
                 showError(_("...but you haven't selected an instrument!"));
               }
@@ -7091,6 +7175,7 @@ bool FurnaceGUI::loop() {
                 MARK_MODIFIED;
               });
               updateSampleTex=true;
+              notifySampleChange=true;
             } else {
               showError(_("...but you haven't selected a sample!"));
               delete s;
@@ -7458,6 +7543,9 @@ bool FurnaceGUI::loop() {
 
 bool FurnaceGUI::init() {
   logI("initializing GUI.");
+
+  newFilePicker=new FurnaceFilePicker;
+  newFilePicker->setConfigPrefix("fp_");
 
   opTouched=new bool[DIV_MAX_PATTERNS*DIV_MAX_ROWS];
 
@@ -7873,6 +7961,8 @@ bool FurnaceGUI::init() {
   prepareLayout();
 
   ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_DockingEnable;
+  //ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NavEnableKeyboard;
+  //ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NavCaptureKeyboard;
   toggleMobileUI(mobileUI,true);
 
   firstFrame=true;
@@ -8191,6 +8281,8 @@ void FurnaceGUI::syncState() {
   xyOscThickness=e->getConfFloat("xyOscThickness",2.0f);
 
   cvHiScore=e->getConfInt("cvHiScore",25000);
+
+  newFilePicker->loadSettings(e->getConfObject());
 }
 
 void FurnaceGUI::commitState(DivConfig& conf) {
@@ -8357,6 +8449,8 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   }
 
   conf.set("cvHiScore",cvHiScore);
+
+  newFilePicker->saveSettings(e->getConfObject());
 }
 
 bool FurnaceGUI::finish(bool saveConfig) {
@@ -8458,6 +8552,7 @@ FurnaceGUI::FurnaceGUI():
   sysDupEnd(false),
   noteInputPoly(true),
   notifyWaveChange(false),
+  notifySampleChange(false),
   wantScrollListIns(false),
   wantScrollListWave(false),
   wantScrollListSample(false),
@@ -8525,6 +8620,7 @@ FurnaceGUI::FurnaceGUI():
   postWarnAction(GUI_WARN_GENERIC),
   mobScene(GUI_SCENE_PATTERN),
   fileDialog(NULL),
+  newFilePicker(NULL),
   scrW(GUI_WIDTH_DEFAULT),
   scrH(GUI_HEIGHT_DEFAULT),
   scrConfW(GUI_WIDTH_DEFAULT),
@@ -8694,6 +8790,7 @@ FurnaceGUI::FurnaceGUI():
   dragMobileEditButton(false),
   wantGrooveListFocus(false),
   mobilePatSel(false),
+  openEditMenu(false),
   lastAssetType(0),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),

@@ -19,3 +19,5 @@ Furnace also has a five channel version of this chip, but it only exists for Def
 ## info
 
 this chip uses the [SegaPCM](../4-instrument/segapcm.md) instrument editor.
+
+maximum sample length is 65280 samples.

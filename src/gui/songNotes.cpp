@@ -31,7 +31,7 @@ void FurnaceGUI::drawNotes(bool asChild) {
   if (!notesOpen && !asChild) return;
   bool began=asChild?ImGui::BeginChild("Song Info##Song Information"):ImGui::Begin("Song Comments",&notesOpen,globalWinFlags,_("Song Comments"));
   if (began) {
-    if (ImGui::InputTextMultiline("##SongNotes",&e->song.notes,ImGui::GetContentRegionAvail(),ImGuiInputTextFlags_UndoRedo|(settings.songNotesWrap?ImGuiInputTextFlags_WordWrapping:0))) {
+    if (ImGui::InputTextMultiline("##SongNotes",&e->song.notes,ImGui::GetContentRegionAvail(),ImGuiInputTextFlags_UndoRedo|(settings.songNotesWrap?ImGuiInputTextFlags_WordWrap:0))) {
       MARK_MODIFIED;
     }
   }

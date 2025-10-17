@@ -23,6 +23,7 @@
 
 FILE* ps_fopen(const char* path, const char* mode);
 bool moveFiles(const char* src, const char* dest);
+bool copyFiles(const char* src, const char* dest);
 bool deleteFile(const char* path);
 // returns 1 if file exists, 0 if it doesn't and -1 on error.
 int fileExists(const char* path);

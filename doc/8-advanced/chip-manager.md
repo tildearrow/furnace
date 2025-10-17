@@ -10,12 +10,14 @@ the **chip manager** window allows you to manage chips, including adding, changi
 
 **Clone at end**: instead of inserting the clone directly after the cloned chip, add it to the end.
 
+each chip shows an "LED" row with segments corresponding to its channels. (they light up when a new note plays!)
+
 to move a chip around, click and drag the ![crossed-arrows](chip-manager-move.png) button to the left.
 
-to duplicate a chip, click the **Clone** button.
+to clone a chip, click the ![two pages](chip-manager-clone.png) button to the right.
 
-to replace a chip with a different one, click the **Change** button. this will display the chip selector.
+to replace a chip with a different one, click the !["eject"](chip-manager-change.png) button. this will display the chip selector.
 
 to remove a chip, click the ![X](chip-manager-remove.png) button.
 
-click on a chip's name to open chip configuration. this allows you to change chip options, such as clock rate, chip type and so on.
+to configure a chip, click the  ![chevron](chip-manager-edit.png) to the right of the LEDs. this allows you to change chip options such as clock rate, chip type, and so on. refer to [each chip's documentation](../7-systems/README.md) for more information on its options. 

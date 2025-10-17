@@ -1907,6 +1907,7 @@ void FurnaceGUI::drawPattern() {
   ImGui::PopStyleVar();
   if (patternOpen) {
     if (!inhibitMenu && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) ImGui::OpenPopup("patternActionMenu");
+    if (openEditMenu) ImGui::OpenPopup("patternActionMenu");
     if (ImGui::BeginPopup("patternActionMenu",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
       editOptions(false);
       ImGui::EndPopup();
@@ -1914,5 +1915,7 @@ void FurnaceGUI::drawPattern() {
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PATTERN;
   ImGui::End();
+
+  openEditMenu=false;
 }
 

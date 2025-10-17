@@ -140,6 +140,7 @@ option(CONSOLE_SUBSYSTEM "Build Furnace with Console subsystem on Windows" OFF)
 option(FORCE_CODEVIEW "Force -gcodeview on MinGW GCC" OFF)
 option(FLATPAK_WORKAROUNDS "Enable Flatpak-specific workaround for system file picker" OFF)
 option(NO_INTRO "Disable intro animation entirely" OFF)
+option(ORIG_NDS_CORE "Use original NDS emulation core (no acquireDirect)" OFF)
 if (APPLE)
   option(FORCE_APPLE_BIN "Force enable binary installation to /bin" OFF)
   option(MAKE_BUNDLE "Make a bundle" OFF)
@@ -676,8 +677,6 @@ src/engine/platform/sound/c140_c219.c
 
 src/engine/platform/sound/dave/dave.cpp
 
-src/engine/platform/sound/nds.cpp
-
 src/engine/platform/sound/sid2/envelope.cc
 src/engine/platform/sound/sid2/filter.cc
 src/engine/platform/sound/sid2/sid.cc
@@ -817,6 +816,7 @@ src/engine/platform/nds.cpp
 src/engine/platform/bifurcator.cpp
 src/engine/platform/sid2.cpp
 src/engine/platform/sid3.cpp
+src/engine/platform/multipcm.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 
@@ -831,6 +831,13 @@ src/engine/export/grub.cpp
 src/engine/effect/abstract.cpp
 src/engine/effect/dummy.cpp
 )
+
+if (ORIG_NDS_CORE)
+  list(APPEND ENGINE_SOURCES src/engine/platform/sound/nds_unopt.cpp)
+  list(APPEND DEPENDENCIES_DEFINES ORIG_NDS_CORE)
+else()
+  list(APPEND ENGINE_SOURCES src/engine/platform/sound/nds.cpp)
+endif()
 
 if (USE_SNDFILE)
   list(APPEND ENGINE_SOURCES src/engine/sfWrapper.cpp)
@@ -861,7 +868,6 @@ extern/imgui_patched/imgui_widgets.cpp
 extern/imgui_patched/backends/imgui_impl_sdl2.cpp
 extern/imgui_software_renderer/imgui_sw.cpp
 extern/imgui_patched/misc/cpp/imgui_stdlib.cpp
-extern/igfd/ImGuiFileDialog.cpp
 
 src/gui/plot_nolerp.cpp
 
@@ -889,6 +895,7 @@ src/gui/image.cpp
 
 src/gui/debug.cpp
 src/gui/fileDialog.cpp
+src/gui/newFilePicker.cpp
 
 src/gui/intConst.cpp
 src/gui/guiConst.cpp
@@ -1133,15 +1140,7 @@ if (USE_BACKWARD)
   list(APPEND USED_SOURCES src/backtrace.cpp)
   if (WIN32)
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-      include(CheckCXXCompilerFlag)
-      check_cxx_compiler_flag(-gcodeview GCC_CODEVIEW)
-      if (GCC_CODEVIEW OR FORCE_CODEVIEW)
-        set(CMAKE_EXE_LINKER_FLAGS "-Wl,--pdb= ")
-        add_compile_options(-gcodeview)
-        message(STATUS "Enabling -gcodeview flag for backward-cpp.")
-      else()
-        message(WARNING "Could not enable -gcodeview! backward-cpp will not work.")
-      endif()
+      message(WARNING "Could not enable -gcodeview! backward-cpp will not work.")
       list(APPEND DEPENDENCIES_LIBRARIES dbghelp psapi)
     endif()
   endif()
@@ -1160,7 +1159,6 @@ if (BUILD_GUI)
     extern/imgui_patched
     extern/imgui_patched/backends
     extern/imgui_software_renderer
-    extern/igfd
   )
   if (WIN32 OR APPLE)
     list(APPEND DEPENDENCIES_INCLUDE_DIRS

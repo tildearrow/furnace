@@ -54,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev233"
-#define DIV_ENGINE_VERSION 233
+#define DIV_VERSION "dev234"
+#define DIV_ENGINE_VERSION 234
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -646,6 +646,7 @@ class DivEngine {
   void loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadTFI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadVGI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadEIF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadS3I(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
@@ -680,6 +681,7 @@ class DivEngine {
   void exchangeWave(int one, int two);
   void exchangeSample(int one, int two);
 
+  void copyChannel(int src, int dest);
   void swapChannels(int src, int dest);
   void stompChannel(int ch);
 
@@ -781,6 +783,8 @@ class DivEngine {
     void notifyInsChange(int ins);
     // notify wavetable change
     void notifyWaveChange(int wave);
+    // notify sample change
+    void notifySampleChange(int sample);
 
     // dispatch a command
     int dispatchCmd(DivCommand c);
@@ -1292,6 +1296,9 @@ class DivEngine {
     // -1: render all samples
     // >=0: render specific sample
     void renderSamplesP(int whichSample=-1);
+
+    // public copy channel
+    void copyChannelP(int src, int dest);
 
     // public swap channels
     void swapChannelsP(int src, int dest);

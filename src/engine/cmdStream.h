@@ -41,7 +41,7 @@ struct DivCSChannelState {
   unsigned char arp, arpStage, arpTicks;
 
   unsigned int callStack[DIV_MAX_CSSTACK];
-  unsigned char callStackPos;
+  unsigned char callStackPos, callStackSize;
 
   unsigned int trace[DIV_MAX_CSTRACE];
   unsigned char tracePos;
@@ -67,6 +67,7 @@ struct DivCSChannelState {
     arpStage(0),
     arpTicks(0),
     callStackPos(0),
+    callStackSize(0),
     tracePos(0) {
     for (int i=0; i<DIV_MAX_CSTRACE; i++) {
       trace[i]=0;

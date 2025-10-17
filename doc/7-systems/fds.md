@@ -24,6 +24,11 @@ it also offers an additional 6-bit, 64-byte wavetable sound channel with (somewh
     - 6: -2
     - 7: -1
   - **do not use this effect.** it only exists for compatibility reasons
+- `16xy`: **enable automatic modulation speed mode.**
+  - in this mode the modulation speed is set to the channel's notes, multiplied by a fraction.
+  - `x` is the numerator.
+  - `y` is the denominator.
+  - if `x` or `y` are 0 this will disable automatic modulation speed mode.
 
 ## info
 

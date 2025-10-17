@@ -21,7 +21,11 @@
 #define _NDS_H
 
 #include "../dispatch.h"
+#ifdef ORIG_NDS_CORE
+#include "sound/nds_unopt.hpp"
+#else
 #include "sound/nds.hpp"
+#endif
 
 using namespace nds_sound_emu;
 
@@ -73,8 +77,11 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
     virtual u8 read_byte(u32 addr) override;
     virtual void write_byte(u32 addr, u8 data) override;
 
+#ifdef ORIG_NDS_CORE
+    virtual void acquire(short** buf, size_t len) override;
+#else
     virtual void acquireDirect(blip_buffer_t** bb, size_t len) override;
-    virtual void postProcess(short* buf, int outIndex, size_t len, int sampleRate) override;
+#endif
     virtual int dispatch(DivCommand c) override;
     virtual void* getChanState(int chan) override;
     virtual DivMacroInt* getChanMacroInt(int ch) override;

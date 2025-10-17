@@ -24,6 +24,7 @@
 
 // CHANGELOG
 //  2025-XX-XX: Platform: Added support for multiple windows via the ImGuiPlatformIO interface.
+//  2025-08-20: Added ImGui_ImplSDLGPU3_InitInfo::SwapchainComposition and ImGui_ImplSDLGPU3_InitInfo::PresentMode to configure how secondary viewports are created.
 //  2025-08-08: *BREAKING* Changed ImTextureID type from SDL_GPUTextureSamplerBinding* to SDL_GPUTexture*, which is more natural and easier for user to manage. If you need to change the current sampler, you can access the ImGui_ImplSDLGPU3_RenderState struct. (#8866, #8163, #7998, #7988)
 //  2025-08-08: Expose SamplerDefault and SamplerCurrent in ImGui_ImplSDLGPU3_RenderState. Allow callback to change sampler.
 //  2025-06-25: Mapping transfer buffer for texture update use cycle=true. Fixes artifacts e.g. on Metal backend.
@@ -60,7 +61,7 @@ struct ImGui_ImplSDLGPU3_Data
     SDL_GPUShader*               VertexShader           = nullptr;
     SDL_GPUShader*               FragmentShader         = nullptr;
     SDL_GPUGraphicsPipeline*     Pipeline               = nullptr;
-    SDL_GPUSampler*              TexSampler             = nullptr;
+    SDL_GPUSampler*              TexSamplerLinear       = nullptr;
     SDL_GPUTransferBuffer*       TexTransferBuffer      = nullptr;
     uint32_t                     TexTransferBufferSize  = 0;
 
@@ -86,7 +87,7 @@ static ImGui_ImplSDLGPU3_Data* ImGui_ImplSDLGPU3_GetBackendData()
 static void ImGui_ImplSDLGPU3_SetupRenderState(ImDrawData* draw_data, ImGui_ImplSDLGPU3_RenderState* render_state, SDL_GPUGraphicsPipeline* pipeline, SDL_GPUCommandBuffer* command_buffer, SDL_GPURenderPass* render_pass, ImGui_ImplSDLGPU3_FrameData* fd, uint32_t fb_width, uint32_t fb_height)
 {
     ImGui_ImplSDLGPU3_Data* bd = ImGui_ImplSDLGPU3_GetBackendData();
-    render_state->SamplerCurrent = render_state->SamplerCurrent = bd->TexSampler;
+    render_state->SamplerCurrent = bd->TexSamplerLinear;
 
     // Bind graphics pipeline
     SDL_BindGPUGraphicsPipeline(render_pass, pipeline);
@@ -235,7 +236,7 @@ void ImGui_ImplSDLGPU3_RenderDrawData(ImDrawData* draw_data, SDL_GPUCommandBuffe
     ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
     ImGui_ImplSDLGPU3_RenderState render_state;
     render_state.Device = bd->InitInfo.Device;
-    render_state.SamplerDefault = render_state.SamplerCurrent = bd->TexSampler;
+    render_state.SamplerDefault = render_state.SamplerCurrent = bd->TexSamplerLinear;
     platform_io.Renderer_RenderState = &render_state;
 
     ImGui_ImplSDLGPU3_SetupRenderState(draw_data, &render_state, pipeline, command_buffer, render_pass, fd, fb_width, fb_height);
@@ -340,7 +341,7 @@ void ImGui_ImplSDLGPU3_UpdateTexture(ImTextureData* tex)
         texture_info.sample_count = SDL_GPU_SAMPLECOUNT_1;
 
         SDL_GPUTexture* raw_tex = SDL_CreateGPUTexture(v->Device, &texture_info);
-        IM_ASSERT(raw_tex != nullptr && "Failed to create font texture, call SDL_GetError() for more info");
+        IM_ASSERT(raw_tex != nullptr && "Failed to create texture, call SDL_GetError() for more info");
 
         // Store identifiers
         tex->SetTexID((ImTextureID)(intptr_t)raw_tex);
@@ -370,7 +371,7 @@ void ImGui_ImplSDLGPU3_UpdateTexture(ImTextureData* tex)
             transferbuffer_info.size = upload_size + 1024;
             bd->TexTransferBufferSize = upload_size + 1024;
             bd->TexTransferBuffer = SDL_CreateGPUTransferBuffer(v->Device, &transferbuffer_info);
-            IM_ASSERT(bd->TexTransferBuffer != nullptr && "Failed to create font transfer buffer, call SDL_GetError() for more information");
+            IM_ASSERT(bd->TexTransferBuffer != nullptr && "Failed to create transfer buffer, call SDL_GetError() for more information");
         }
 
         // Copy to transfer buffer
@@ -559,7 +560,7 @@ void ImGui_ImplSDLGPU3_CreateDeviceObjects()
 
     ImGui_ImplSDLGPU3_DestroyDeviceObjects();
 
-    if (bd->TexSampler == nullptr)
+    if (bd->TexSamplerLinear == nullptr)
     {
         // Bilinear sampling is required by default. Set 'io.Fonts->Flags |= ImFontAtlasFlags_NoBakedLines' or 'style.AntiAliasedLinesUseTex = false' to allow point/nearest sampling.
         SDL_GPUSamplerCreateInfo sampler_info = {};
@@ -576,8 +577,8 @@ void ImGui_ImplSDLGPU3_CreateDeviceObjects()
         sampler_info.max_anisotropy = 1.0f;
         sampler_info.enable_compare = false;
 
-        bd->TexSampler = SDL_CreateGPUSampler(v->Device, &sampler_info);
-        IM_ASSERT(bd->TexSampler != nullptr && "Failed to create font sampler, call SDL_GetError() for more information");
+        bd->TexSamplerLinear = SDL_CreateGPUSampler(v->Device, &sampler_info);
+        IM_ASSERT(bd->TexSamplerLinear != nullptr && "Failed to create sampler, call SDL_GetError() for more information");
     }
 
     ImGui_ImplSDLGPU3_CreateGraphicsPipeline();
@@ -612,7 +613,7 @@ void ImGui_ImplSDLGPU3_DestroyDeviceObjects()
     if (bd->TexTransferBuffer)  { SDL_ReleaseGPUTransferBuffer(v->Device, bd->TexTransferBuffer); bd->TexTransferBuffer = nullptr; }
     if (bd->VertexShader)       { SDL_ReleaseGPUShader(v->Device, bd->VertexShader); bd->VertexShader = nullptr; }
     if (bd->FragmentShader)     { SDL_ReleaseGPUShader(v->Device, bd->FragmentShader); bd->FragmentShader = nullptr; }
-    if (bd->TexSampler)         { SDL_ReleaseGPUSampler(v->Device, bd->TexSampler); bd->TexSampler = nullptr; }
+    if (bd->TexSamplerLinear)   { SDL_ReleaseGPUSampler(v->Device, bd->TexSamplerLinear); bd->TexSamplerLinear = nullptr; }
     if (bd->Pipeline)           { SDL_ReleaseGPUGraphicsPipeline(v->Device, bd->Pipeline); bd->Pipeline = nullptr; }
 }
 
@@ -662,7 +663,7 @@ void ImGui_ImplSDLGPU3_NewFrame()
     ImGui_ImplSDLGPU3_Data* bd = ImGui_ImplSDLGPU3_GetBackendData();
     IM_ASSERT(bd != nullptr && "Context or backend not initialized! Did you call ImGui_ImplSDLGPU3_Init()?");
 
-    if (!bd->TexSampler)
+    if (!bd->TexSamplerLinear)
         ImGui_ImplSDLGPU3_CreateDeviceObjects();
 }
 
@@ -677,6 +678,7 @@ static void ImGui_ImplSDLGPU3_CreateWindow(ImGuiViewport* viewport)
     ImGui_ImplSDLGPU3_Data* data = ImGui_ImplSDLGPU3_GetBackendData();
     SDL_Window* window = SDL_GetWindowFromID((SDL_WindowID)(intptr_t)viewport->PlatformHandle);
     SDL_ClaimWindowForGPUDevice(data->InitInfo.Device, window);
+    SDL_SetGPUSwapchainParameters(data->InitInfo.Device, window, data->InitInfo.SwapchainComposition, data->InitInfo.PresentMode);
     viewport->RendererUserData = (void*)1;
 }
 
