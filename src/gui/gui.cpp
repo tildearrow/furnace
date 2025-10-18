@@ -1829,6 +1829,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
   bool hasOpened=false;
 
   String shortName;
+  String saveNameTemplate=String(DIR_SEPARATOR_STR)+_("example");
   size_t shortNamePos=curFileName.rfind(DIR_SEPARATOR);
   if (shortNamePos!=String::npos && (shortNamePos+1)<curFileName.size()) {
     shortName=curFileName.substr(shortNamePos+1);
@@ -1867,7 +1868,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         _("Save File"),
         {_("Furnace song"), "*.fur"},
-        workingDirSong,
+        workingDirSong+saveNameTemplate+".fur",
         dpiScale
       );
       break;
@@ -1876,7 +1877,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         _("Export DMF"),
         {_("DefleMask 1.1.3 module"), "*.dmf"},
-        workingDirSong,
+        workingDirSong+saveNameTemplate+".dmf",
         dpiScale,
         (settings.autoFillSave)?shortName:""
       );
@@ -1886,7 +1887,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         _("Export DMF"),
         {_("DefleMask 1.0/legacy module"), "*.dmf"},
-        workingDirSong,
+        workingDirSong+saveNameTemplate+".dmf",
         dpiScale,
         (settings.autoFillSave)?shortName:""
       );
@@ -1956,7 +1957,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         _("Save Instrument"),
         {_("Furnace instrument"), "*.fui"},
-        workingDirIns,
+        workingDirIns+saveNameTemplate+".fui",
         dpiScale,
         (settings.autoFillSave)?e->getIns(curIns)->name:""
       );
@@ -1966,7 +1967,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         _("Save Instrument"),
         {_("DefleMask preset"), "*.dmp"},
-        workingDirIns,
+        workingDirIns+saveNameTemplate+".dmp",
         dpiScale,
         (settings.autoFillSave)?e->getIns(curIns)->name:""
       );
@@ -1997,7 +1998,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         _("Save Wavetable"),
         {_("Furnace wavetable"), ".fuw"},
-        workingDirWave,
+        workingDirWave+saveNameTemplate+".fuw",
         dpiScale
       );
       break;
@@ -2006,7 +2007,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         _("Save Wavetable"),
         {_("DefleMask wavetable"), ".dmw"},
-        workingDirWave,
+        workingDirWave+saveNameTemplate+".dmw",
         dpiScale
       );
       break;
@@ -2015,7 +2016,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         _("Save Wavetable"),
         {_("raw data"), ".raw"},
-        workingDirWave,
+        workingDirWave+saveNameTemplate+".raw",
         dpiScale
       );
       break;
@@ -2054,7 +2055,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         _("Save Sample"),
         {_("Wave file"), "*.wav"},
-        workingDirSample,
+        workingDirSample+saveNameTemplate+".wav",
         dpiScale,
         (settings.autoFillSave)?e->getSample(curSample)->name:""
       );
@@ -2064,7 +2065,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         _("Save Raw Sample"),
         {_("all files"), "*"},
-        workingDirSample,
+        workingDirSample+saveNameTemplate,
         dpiScale,
         (settings.autoFillSave)?e->getSample(curSample)->name:""
       );
@@ -2082,7 +2083,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         _("Export Audio"),
         {_("Wave file"), "*.wav"},
-        workingDirAudioExport,
+        workingDirAudioExport+saveNameTemplate+".wav",
         dpiScale,
         (settings.autoFillSave)?shortName:""
       );
@@ -2092,7 +2093,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         _("Export Audio"),
         {_("Wave file"), "*.wav"},
-        workingDirAudioExport,
+        workingDirAudioExport+saveNameTemplate+".wav",
         dpiScale,
         (settings.autoFillSave)?shortName:""
       );
@@ -2102,7 +2103,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         _("Export Audio"),
         {_("Wave file"), "*.wav"},
-        workingDirAudioExport,
+        workingDirAudioExport+saveNameTemplate+".wav",
         dpiScale,
         (settings.autoFillSave)?shortName:""
       );
@@ -2112,7 +2113,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         _("Export VGM"),
         {_("VGM file"), "*.vgm"},
-        workingDirVGMExport,
+        workingDirVGMExport+saveNameTemplate+".vgm",
         dpiScale,
         (settings.autoFillSave)?shortName:""
       );
@@ -2122,7 +2123,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         _("Export Command Stream"),
         {_("text file"), "*.txt"},
-        workingDirROMExport,
+        workingDirROMExport+saveNameTemplate+".txt",
         dpiScale,
         (settings.autoFillSave)?shortName:""
       );
@@ -2132,7 +2133,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         _("Export Command Stream"),
         {_("binary file"), "*.bin"},
-        workingDirROMExport,
+        workingDirROMExport+saveNameTemplate+".bin",
         dpiScale,
         (settings.autoFillSave)?shortName:""
       );
@@ -2149,7 +2150,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         hasOpened=fileDialog->openSave(
           _("Export ROM"),
           {romFilterName, "*"+romFilterExt},
-          workingDirROMExport,
+          workingDirROMExport+saveNameTemplate+romFilterExt,
           dpiScale,
           (settings.autoFillSave)?shortName:""
         );
@@ -2233,7 +2234,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         _("Export Colors"),
         {_("configuration files"), "*.cfgc"},
-        workingDirColors,
+        workingDirColors+saveNameTemplate+".cfgc",
         dpiScale
       );
       break;
@@ -2242,7 +2243,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         _("Export Keybinds"),
         {_("configuration files"), "*.cfgk"},
-        workingDirKeybinds,
+        workingDirKeybinds+saveNameTemplate+".cfgk",
         dpiScale
       );
       break;
@@ -2251,7 +2252,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         _("Export Layout"),
         {_(".ini files"), "*.ini"},
-        workingDirLayout,
+        workingDirLayout+saveNameTemplate+".ini",
         dpiScale
       );
       break;
@@ -2260,7 +2261,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         _("Export User Presets"),
         {_("configuration files"), "*.cfgu"},
-        workingDirConfig,
+        workingDirConfig+saveNameTemplate+".cfgu",
         dpiScale
       );
       break;
@@ -2269,7 +2270,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         _("Export Settings"),
         {_("configuration files"), "*.cfg"},
-        workingDirConfig,
+        workingDirConfig+saveNameTemplate+".cfg",
         dpiScale
       );
       break;
@@ -2338,7 +2339,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         _("Save Test"),
         {_("Furnace song"), "*.fur",
          _("DefleMask module"), "*.dmf"},
-        workingDirTest,
+        workingDirTest+saveNameTemplate+".fur",
         dpiScale
       );
       break;
