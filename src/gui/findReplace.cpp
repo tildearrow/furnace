@@ -577,15 +577,15 @@ void FurnaceGUI::drawFindReplace() {
               ImGui::Combo("##NCondition",&i.noteMode,LocalizedComboGetter,queryModes,GUI_QUERY_MAX);
               ImGui::TableNextColumn();
               if (FIRST_VISIBLE(i.noteMode)) {
-                if ((i.noteMode==GUI_QUERY_RANGE || i.noteMode==GUI_QUERY_RANGE_NOT) && i.note>=120) {
-                  i.note=0;
+                if ((i.noteMode==GUI_QUERY_RANGE || i.noteMode==GUI_QUERY_RANGE_NOT) && i.note>=180) {
+                  i.note=108;
                 }
                 NoteSelector(&i.note, i.noteMode!=GUI_QUERY_RANGE && i.noteMode!=GUI_QUERY_RANGE_NOT);
               }
               ImGui::TableNextColumn();
               if (SECOND_VISIBLE(i.noteMode)) {
                 if (i.noteMax<0 || i.noteMax>=256) {
-                  i.noteMax=0;
+                  i.noteMax=108;
                 }
                 NoteSelector(&i.noteMax, false);
               }
