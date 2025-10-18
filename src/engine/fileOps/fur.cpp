@@ -2654,15 +2654,15 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
       for (int k=0; k<song.subsong[i.subsong]->pat[i.chan].effectCols*2; k+=2) {
         if (k==0) {
           if (pat->newData[j][DIV_PAT_FX(0)+k]!=-1) mask|=8;
-          if (pat->newData[j][DIV_PAT_FXVAL(1)+k]!=-1) mask|=16;
+          if (pat->newData[j][DIV_PAT_FXVAL(0)+k]!=-1) mask|=16;
         } else if (k<8) {
-          if (pat->newData[j][DIV_PAT_FX(0)+k]!=-1 || pat->newData[j][DIV_PAT_FXVAL(1)+k]!=-1) mask|=32;
+          if (pat->newData[j][DIV_PAT_FX(0)+k]!=-1 || pat->newData[j][DIV_PAT_FXVAL(0)+k]!=-1) mask|=32;
         } else {
-          if (pat->newData[j][DIV_PAT_FX(0)+k]!=-1 || pat->newData[j][DIV_PAT_FXVAL(1)+k]!=-1) mask|=64;
+          if (pat->newData[j][DIV_PAT_FX(0)+k]!=-1 || pat->newData[j][DIV_PAT_FXVAL(0)+k]!=-1) mask|=64;
         }
 
         if (pat->newData[j][DIV_PAT_FX(0)+k]!=-1) effectMask|=(1<<k);
-        if (pat->newData[j][DIV_PAT_FXVAL(1)+k]!=-1) effectMask|=(2<<k);
+        if (pat->newData[j][DIV_PAT_FXVAL(0)+k]!=-1) effectMask|=(2<<k);
       }
 
       if (mask==0) {
