@@ -428,7 +428,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
           FCPattern& fp=pat[seq[i].pat[j]];
           if (fp.note[k]>0 && fp.note[k]<0x49) {
             lastNote[j]=fp.note[k];
-            p->newData[k][DIV_PAT_NOTE]=fp.note[k]+seq[i].transpose[j]+60;
+            p->newData[k][DIV_PAT_NOTE]=fp.note[k]+seq[i].transpose[j]+84;
             // wrap-around if the note is too high
             if (fp.note[k]>=0x3d) p->newData[k][DIV_PAT_NOTE]-=6*12;
             if (isSliding[j]) {
@@ -447,7 +447,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
             p->newData[0][DIV_PAT_FXVAL(0)]=0xff;
             lastTranspose[j]=seq[i].transpose[j];
 
-            p->newData[k][DIV_PAT_NOTE]=lastNote[j]+seq[i].transpose[j]+60;
+            p->newData[k][DIV_PAT_NOTE]=lastNote[j]+seq[i].transpose[j]+84;
             // wrap-around if the note is too high
             if (lastNote[j]>=0x3d) p->newData[k][DIV_PAT_NOTE]-=6*12;
           }

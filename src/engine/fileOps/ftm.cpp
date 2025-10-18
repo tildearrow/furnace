@@ -1758,7 +1758,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
               } else if (nextNote == 0) {
                 pat->newData[row][DIV_PAT_NOTE] = -1;
               } else if (nextNote < 0x0d) {
-                pat->newData[row][DIV_PAT_NOTE] = nextOctave*12 + (nextNote - 1);
+                pat->newData[row][DIV_PAT_NOTE] = nextOctave*12 + (nextNote - 1) + 60;
               }
             }
 

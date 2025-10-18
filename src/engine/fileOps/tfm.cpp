@@ -257,7 +257,7 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
           pat->newData[k][DIV_PAT_NOTE]=DIV_NOTE_OFF;
         } else {
           unsigned char invertedNote=~patDataBuf[k];
-          pat->newData[k][DIV_PAT_NOTE]=invertedNote;
+          pat->newData[k][DIV_PAT_NOTE]=invertedNote+60;
         }
       }
 
