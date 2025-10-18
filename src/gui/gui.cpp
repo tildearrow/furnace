@@ -532,7 +532,7 @@ bool FurnaceGUI::NoteSelector(int* value, bool showOffRel, int octaveMin, int oc
   } else if (*value==DIV_NOTE_OFF) {
     snprintf(tempID,64,"%s##NOFF",noteOffLabel);
   } else if (*value>=0 && *value<180) {
-    snprintf(tempID,64,"%c%c",noteNames[*value%12][0],(noteNames[*value%12][1]=='-')?' ':noteNames[*value%12][1]);
+    snprintf(tempID,64,"%c%c",noteNames[60+(*value%12)][0],(noteNames[60+(*value%12)][1]=='-')?' ':noteNames[60+(*value%12)][1]);
   } else {
     snprintf(tempID,64,"???");
     *value=0;
@@ -546,7 +546,7 @@ bool FurnaceGUI::NoteSelector(int* value, bool showOffRel, int octaveMin, int oc
   ImGui::PushID(value);
   if (ImGui::BeginCombo("##NoteSelectorNote",tempID)) {
     for (int j=0; j<12; j++) {
-      snprintf(tempID,64,"%c%c",noteNames[j][0],(noteNames[j][1]=='-')?' ':noteNames[j][1]);
+      snprintf(tempID,64,"%c%c",noteNames[60+j][0],(noteNames[60+j][1]=='-')?' ':noteNames[60+j][1]);
       if (ImGui::Selectable(tempID,note==j && *value<180)) {
         note=j;
         calcNote=true;
@@ -8785,7 +8785,7 @@ FurnaceGUI::FurnaceGUI():
   queryReplaceNoteMode(0),
   queryReplaceInsMode(0),
   queryReplaceVolMode(0),
-  queryReplaceNote(0),
+  queryReplaceNote(96),
   queryReplaceIns(0),
   queryReplaceVol(0),
   queryReplaceNoteDo(false),
