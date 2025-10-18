@@ -1062,7 +1062,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
       int readRow=0;
       bool mustCommitInitial=true;
 
-      memset(effectCol,4,64);
+      memset(effectCol,0,64);
       memset(vibStatus,0,64);
       memset(vibStatusChanged,0,64*sizeof(bool));
       memset(vibing,0,64*sizeof(bool));
@@ -1217,8 +1217,8 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
               p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0;
             }
 
-            if ((effectCol[j]>>1)-2>ds.subsong[0]->pat[j].effectCols) {
-              ds.subsong[0]->pat[j].effectCols=(effectCol[j]>>1)-1;
+            if ((effectCol[j]>>1)>=ds.subsong[0]->pat[j].effectCols) {
+              ds.subsong[0]->pat[j].effectCols=(effectCol[j]>>1)+1;
             }
           }
 
@@ -1253,13 +1253,13 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
               p->newData[readRow-1][DIV_PAT_FX(0)+effectCol[0]++]=0x0d;
               p->newData[readRow-1][DIV_PAT_FX(0)+effectCol[0]++]=0;
 
-              if ((effectCol[0]>>1)-2>ds.subsong[0]->pat[0].effectCols) {
-                ds.subsong[0]->pat[0].effectCols=(effectCol[0]>>1)-1;
+              if ((effectCol[0]>>1)>=ds.subsong[0]->pat[0].effectCols) {
+                ds.subsong[0]->pat[0].effectCols=(effectCol[0]>>1)+1;
               }
             }
             break;
           }
-          memset(effectCol,4,64);
+          memset(effectCol,0,64);
           continue;
         }
 

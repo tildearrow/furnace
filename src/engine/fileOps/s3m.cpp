@@ -771,7 +771,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
 
       bool mustCommitInitial=true;
 
-      memset(effectCol,4,32);
+      memset(effectCol,0,32);
       memset(vibStatus,0,32);
       memset(vibStatusChanged,0,32*sizeof(bool));
       memset(vibing,0,32*sizeof(bool));
@@ -889,17 +889,17 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
               p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0;
             }
 
-            if (effectCol[j]>=4+8*2) {
+            if (effectCol[j]>=8*2) {
               logE("oh crap!");
             }
 
-            if ((effectCol[j]>>1)-2>ds.subsong[0]->pat[j].effectCols) {
-              ds.subsong[0]->pat[chanMap[j]].effectCols=(effectCol[j]>>1)-1;
+            if ((effectCol[j]>>1)>=ds.subsong[0]->pat[j].effectCols) {
+              ds.subsong[0]->pat[chanMap[j]].effectCols=(effectCol[j]>>1)+1;
             }
           }
 
           readRow++;
-          memset(effectCol,4,32);
+          memset(effectCol,0,32);
           memcpy(vibingOld,vibing,32*sizeof(bool));
           memcpy(volSlidingOld,volSliding,32*sizeof(bool));
           memcpy(portingOld,porting,32*sizeof(bool));
@@ -937,7 +937,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
           if (note==254) { // note off
             p->newData[readRow][DIV_PAT_NOTE]=DIV_NOTE_OFF;
           } else if (note!=255) {
-            p->newData[readRow][DIV_PAT_NOTE]=(note&15)+(note>>4)*12;
+            p->newData[readRow][DIV_PAT_NOTE]=(note&15)+(note>>4)*12+60;
           }
           p->newData[readRow][DIV_PAT_INS]=(short)ins-1;
         }

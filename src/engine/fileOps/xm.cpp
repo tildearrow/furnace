@@ -786,7 +786,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
 
       bool mustCommitInitial=true;
 
-      memset(effectCol,4,128);
+      memset(effectCol,0,128);
       memset(vibStatus,0,128);
       memset(vibStatusChanged,0,128*sizeof(bool));
       memset(vibing,0,128*sizeof(bool));
@@ -1319,8 +1319,8 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
             p->newData[j][DIV_PAT_FX(0)+effectCol[k]++]=0;
           }
 
-          if ((effectCol[k]>>1)-2>ds.subsong[0]->pat[k].effectCols) {
-            ds.subsong[0]->pat[k].effectCols=(effectCol[k]>>1)-1;
+          if ((effectCol[k]>>1)>=ds.subsong[0]->pat[k].effectCols) {
+            ds.subsong[0]->pat[k].effectCols=(effectCol[k]>>1)+1;
           }
         }
 
@@ -1343,11 +1343,11 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
           p->newData[j][DIV_PAT_FX(0)+effectCol[0]++]=0x0d;
           p->newData[j][DIV_PAT_FX(0)+effectCol[0]++]=0;
 
-          if ((effectCol[0]>>1)-2>ds.subsong[0]->pat[0].effectCols) {
-            ds.subsong[0]->pat[0].effectCols=(effectCol[0]>>1)-1;
+          if ((effectCol[0]>>1)>=ds.subsong[0]->pat[0].effectCols) {
+            ds.subsong[0]->pat[0].effectCols=(effectCol[0]>>1)+1;
           }
         }
-        memset(effectCol,4,64);
+        memset(effectCol,0,64);
       }
 
       logV("seeking to %x...",packedSeek);
