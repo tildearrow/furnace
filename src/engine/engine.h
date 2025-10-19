@@ -140,7 +140,7 @@ struct DivChannelState {
   int panDepth, panRate, panPos, panSpeed;
   int sampleOff;
   unsigned char arp, arpStage, arpTicks, panL, panR, panRL, panRR, lastVibrato, lastPorta, cutType;
-  bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff, releasing;
+  bool doNote, legato, portaStop, keyOn, keyOff, stopOnOff, releasing;
   bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, wasShorthandPorta, noteOnInhibit, resetArp, sampleOffSet;
   bool wentThroughNote, goneThroughNote;
 
@@ -197,7 +197,6 @@ struct DivChannelState {
     portaStop(false),
     keyOn(false),
     keyOff(false),
-    nowYouCanStop(true),
     stopOnOff(false),
     releasing(false),
     arpYield(false),
