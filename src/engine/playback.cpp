@@ -2585,6 +2585,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     if (stepPlay!=1) {
       if (!noAccum) {
         double dt=divider*tickMult;
+        // TODO: is this responsible for timing differences when skipping?
         if (skipping) {
           dt*=(double)virtualTempoN/(double)MAX(1,virtualTempoD);
         }
@@ -2617,19 +2618,25 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
   return ret;
 }
 
+// returns the buffer position. used by audio export.
 int DivEngine::getBufferPos() {
   return bufferPos;
 }
 
+// runs MIDI clock.
 void DivEngine::runMidiClock(int totalCycles) {
+  // not in freelance mode
   if (freelance) return;
   midiClockCycles-=totalCycles;
+  // run by the amount of cycles
   while (midiClockCycles<=0) {
+    // send MIDI clock event
     curMidiClock++;
     if (output) if (!skipping && output->midiOut!=NULL && midiOutClock) {
       output->midiOut->send(TAMidiMessage(TA_MIDI_CLOCK,0,0));
     }
 
+    // calculate tempo using highlight, timeBase, tick rate, speeds and virtual tempo
     double hl=curSubSong->hilightA;
     if (hl<=0.0) hl=4.0;
     double timeBase=curSubSong->timeBase+1;
@@ -2643,10 +2650,13 @@ void DivEngine::runMidiClock(int totalCycles) {
     if (speedSum<1.0) speedSum=1.0;
     if (vD<1) vD=1;
     double bpm=((24.0*divider)/(timeBase*hl*speedSum))*(double)virtualTempoN/vD;
+    // avoid a division by zer
     if (bpm<1.0) bpm=1.0;
     int increment=got.rate/(bpm);
+    // increment should be at least 1
     if (increment<1) increment=1;
 
+    // drift is for precision
     midiClockCycles+=increment;
     midiClockDrift+=fmod(got.rate,(double)(bpm));
     if (midiClockDrift>=(bpm)) {
@@ -2656,9 +2666,13 @@ void DivEngine::runMidiClock(int totalCycles) {
   }
 }
 
+// runs MIDI timecode.
 void DivEngine::runMidiTime(int totalCycles) {
+  // not in freelance mode
   if (freelance) return;
+  // not if the rate is too low
   if (got.rate<1) return;
+  // run by the amount of cycles
   midiTimeCycles-=totalCycles;
   while (midiTimeCycles<=0) {
     if (curMidiTimePiece==0) {
@@ -2668,6 +2682,7 @@ void DivEngine::runMidiTime(int totalCycles) {
 
     double frameRate=96.0;
     int timeRate=midiOutTimeRate;
+    // determine the rate depending on tick rate if set to automatic
     if (timeRate<1 || timeRate>4) {
       if (curSubSong->hz>=47.98 && curSubSong->hz<=48.02) {
         timeRate=1;
@@ -2680,6 +2695,7 @@ void DivEngine::runMidiTime(int totalCycles) {
       }
     }
 
+    // calculate the current time
     int hour=0;
     int minute=0;
     int second=0;
@@ -2724,6 +2740,7 @@ void DivEngine::runMidiTime(int totalCycles) {
         break;
     }
 
+    // output timecode
     if (output) if (!skipping && output->midiOut!=NULL && midiOutTime) {
       unsigned char val=0;
       switch (curMidiTimePiece) {
@@ -2766,6 +2783,8 @@ void DivEngine::runMidiTime(int totalCycles) {
   }
 }
 
+// these two functions are either leftovers or something or they are there for test purposes.
+// I don't remember very well.
 void _runDispatch1(void* d) {
 }
 
@@ -2773,24 +2792,32 @@ void _runDispatch2(void* d) {
 
 }
 
+// this fills the audio buffer and runs tbe engine.
+// called by the audio backend and during audio export.
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
+  // debug information
   lastNBIns=inChans;
   lastNBOuts=outChans;
   lastNBSize=size;
 
+  // don't fill a buffer if the size is 0
   if (!size) {
     logW("nextBuf called with size 0!");
     return;
   }
   lastLoopPos=-1;
 
+  // clear the output
   if (out!=NULL) {
     for (int i=0; i<outChans; i++) {
       memset(out[i],0,size*sizeof(float));
     }
   }
 
+  // check the mutex.
+  // soft-locking happens when synchronizedSoft is called.
   if (softLocked) {
+    // in this case we just return
     if (!isBusy.try_lock()) {
       logV("audio is soft-locked (%d)",softLockCount++);
       return;
@@ -2800,8 +2827,10 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
   got.bufsize=size;
 
+  // this is used to calculate audio load
   std::chrono::steady_clock::time_point ts_processBegin=std::chrono::steady_clock::now();
 
+  // set up the render thread pool
   if (renderPool==NULL) {
     unsigned int howManyThreads=song.systemLen;
     if (howManyThreads<2) howManyThreads=0;
@@ -2809,9 +2838,10 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     renderPool=new DivWorkPool(howManyThreads);
   }
 
-  // process MIDI events (TODO: everything)
+  // process MIDI input events
   if (output) if (output->midiIn) while (!output->midiIn->queue.empty()) {
     TAMidiMessage& msg=output->midiIn->queue.front();
+    // print MIDI events if MIDI debug is enabled
     if (midiDebug) {
       if (msg.type==TA_MIDI_SYSEX) {
         logD("MIDI debug: %.2X SysEx",msg.type);
@@ -2819,17 +2849,28 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         logD("MIDI debug: %.2X %.2X %.2X",msg.type,msg.data[0],msg.data[1]);
       }
     }
+    // call the MIDI callback, which may process this event further.
+    // the function should return an instrument index, which will be used
+    // for all forthcoming notes.
+    // special values:
+    // - -1: don't change
+    // - -2: "preview" instrument
+    // - -3: cancel event (do not add to pending notes)
     int ins=-1;
     if ((ins=midiCallback(msg))!=-3) {
+      // process event if not canceled
       int chan=msg.type&15;
       switch (msg.type&0xf0) {
         case TA_MIDI_NOTE_OFF: {
           if (midiIsDirect) {
+            // in direct mode, map the event directly to the channel
             if (chan<0 || chan>=chans) break;
             pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false,false,true));
           } else {
+            // find a suitable channel and add this event to the queue
             autoNoteOff(msg.type&15,msg.data[0]-12,msg.data[1]);
           }
+          // start the engine if necessary
           if (!playing) {
             reset();
             freelance=true;
@@ -2838,24 +2879,31 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           break;
         }
         case TA_MIDI_NOTE_ON: {
+          // trigger note off if the velocity is 0
           if (msg.data[1]==0) {
             if (midiIsDirect) {
+              // in direct mode, map the event directly to the channel
               if (chan<0 || chan>=chans) break;
               pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false,false,true));
             } else {
+              // find a suitable channel and add this event to the queue
               autoNoteOff(msg.type&15,msg.data[0]-12,msg.data[1]);
             }
           } else {
             if (midiIsDirect) {
+              // in direct mode, map the event directly to the channel
               if (chan<0 || chan>=chans) break;
               pendingNotes.push_back(DivNoteEvent(chan,ins,msg.data[0]-12,msg.data[1],true,false,true));
             } else {
+              // find a suitable channel and add this event to the queue
               autoNoteOn(msg.type&15,ins,msg.data[0]-12,msg.data[1]);
             }
           }
           break;
         }
         case TA_MIDI_PROGRAM: {
+          // program changes in direct mode are handled here
+          // the GUI should cancel this event and change the current instrument
           if (midiIsDirect && midiIsDirectProgram) {
             pendingNotes.push_back(DivNoteEvent(chan,msg.data[0],0,0,false,true,true));
           }
@@ -2869,24 +2917,31 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     output->midiIn->queue.pop();
   }
   
-  // process sample/wave preview
+  // process sample/wave preview (not during audio export)
   if (((sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) || (sPreview.wave>=0 && sPreview.wave<(int)song.wave.size())) && !exporting) {
+    // we use blip_buf to pitch the sample
     unsigned int samp_bbOff=0;
+    // if there are samples, flush them (this can happen when the playback
+    // rate is less than the output rate)
     unsigned int prevAvail=blip_samples_avail(samp_bb);
     if (prevAvail>size) prevAvail=size;
     if (prevAvail>0) {
       blip_read_samples(samp_bb,samp_bbOut,prevAvail,0);
       samp_bbOff=prevAvail;
     }
+    // prepare to fill the buffer
     size_t prevtotal=blip_clocks_needed(samp_bb,size-prevAvail);
 
+    // play the sample
     if (sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) {
       DivSample* s=song.sample[sPreview.sample];
 
       for (size_t i=0; i<prevtotal; i++) {
         if (sPreview.pos>=(int)s->samples || (sPreview.pEnd>=0 && sPreview.pos>=sPreview.pEnd)) {
+          // zero if out of bounds
           samp_temp=0;
         } else {
+          // fetch sample
           samp_temp=s->data16[sPreview.pos];
           if (--sPreview.posSub<=0) {
             sPreview.posSub=sPreview.rateMul;
@@ -2897,9 +2952,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
             }
           }
         }
+        // insert sample
         blip_add_delta(samp_bb,i,samp_temp-samp_prevSample);
         samp_prevSample=samp_temp;
 
+        // check playback direction and move needle
         if (sPreview.dir) { // backward
           if (sPreview.pos<s->loopStart || (sPreview.pBegin>=0 && sPreview.pos<sPreview.pBegin)) {
             if (s->isLoopable() && sPreview.pos<s->loopEnd) {
@@ -3016,24 +3073,30 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     memset(samp_bbOut,0,size*sizeof(short));
   }
 
-  // process audio
+  // process audio (run the engine)
   bool mustPlay=playing && !halted;
   if (mustPlay) {
     // logic starts here
+    // first reset the run position of all dispatches
     for (int i=0; i<song.systemLen; i++) {
       disCont[i].runPos=0;
     }
 
+    // resize the metronome tick buffer if necessary
     if (metroTickLen<size) {
       if (metroTick!=NULL) delete[] metroTick;
       metroTick=new unsigned char[size];
       metroTickLen=size;
     }
 
+    // reset the metronome tick buffer
     memset(metroTick,0,size);
 
+    // this variable counts how many loops we had to go through in order to fill audio buffer
+    // it prevents hangs under extraordinary bug situations
     int attempts=0;
     int runLeftG=size;
+    // run until the buffer is full or we believe the engine stalled
     while (++attempts<(int)size) {
       // -1. set bufferPos
       bufferPos=size-runLeftG;
@@ -3049,9 +3112,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         if (nextTick()) {
           /*totalTicks=0;
           totalSeconds=0;*/
+          // used by audio export to determine how many samples to write (otherwise it'll add silence at the end)
           lastLoopPos=size-runLeftG;
           logD("last loop pos: %d for a size of %d and runLeftG of %d",lastLoopPos,size,runLeftG);
           totalLoops++;
+          // stop playing once we hit a specific number of loops (set during audio export)
           if (remainingLoops>0) {
             remainingLoops--;
             if (!remainingLoops) {
@@ -3064,6 +3129,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
             }
           }
         }
+        // check whether we gotta insert a metronome tick
         if (pendingMetroTick) {
           unsigned int realPos=size-runLeftG;
           if (realPos>=size) realPos=size-1;
@@ -3071,6 +3137,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           pendingMetroTick=0;
         }
       } else {
+        // we don't have to tick yet. run chip dispatches.
         // 3. run MIDI clock
         int midiTotal=MIN(cycles,runLeftG);
         runMidiClock(midiTotal);
@@ -3079,7 +3146,9 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         runMidiTime(midiTotal);
 
         // 5. tick the clock and fill buffers as needed
+        // check which is nearest: a tick or end of audio buffer
         if (cycles<runLeftG) {
+          // a tick will happen before the buffer ends
           // run until the end of this tick
           for (int i=0; i<song.systemLen; i++) {
             disCont[i].cycles=cycles;
@@ -3100,6 +3169,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
                 }
               }
               
+              // if the buffer is too small, resize it
               int total=blip_clocks_needed(dc->bb[0],dc->cycles);
               if (total>(int)dc->bbInLen) {
                 logD("growing dispatch %p bbIn to %d",(void*)dc,total+256);
@@ -3107,6 +3177,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
               }
               dc->acquire(total);
               dc->fillBuf(total,dc->runPos,dc->cycles);
+              // advance run position
               dc->runPos+=dc->cycles;
             },&disCont[i]);
           }
@@ -3114,6 +3185,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           runLeftG-=cycles;
           cycles=0;
         } else {
+          // the buffer will end before a tick happens
           // run until the end of this audio buffer
           cycles-=runLeftG;
           for (int i=0; i<song.systemLen; i++) {
@@ -3143,12 +3215,14 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
               dc->fillBuf(total,dc->runPos,dc->cycles);
             },&disCont[i]);
           }
+          // at this point runLeftG will be zero and we can break out of the loop
           runLeftG=0;
           renderPool->wait();
         }
       }
     }
 
+    // complain and stop playback if we believe the engine has stalled
     //logD("attempts: %d",attempts);
     if (attempts>=(int)(size+10)) {
       logE("hang detected! stopping! at %d seconds %d micro (%d>=%d)",totalSeconds,totalTicks,attempts,(int)size);
@@ -3156,8 +3230,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       playing=false;
       extValuePresent=false;
     }
+    // this is also used by audio export to cut out unnecessary silence after a stop song effect (FFxx)
     totalProcessed=size-runLeftG;
 
+    // complain if a dispatch's audio buffer must be flushed and our audio buffer is too small for it
+    // this may happen when a chip's output rate is lower than the sample rate
     for (int i=0; i<song.systemLen; i++) {
       if (size<disCont[i].lastAvail) {
         logW("%d: size<lastAvail! %d<%d",i,size,disCont[i].lastAvail);
@@ -3174,6 +3251,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
 
   // process metronome
+  // resize the metronome's audio buffer if necessary
   if (metroBufLen<size || metroBuf==NULL) {
     if (metroBuf!=NULL) delete[] metroBuf;
     metroBuf=new float[size];
@@ -3182,6 +3260,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   memset(metroBuf,0,metroBufLen*sizeof(float));
 
+  // insert metronome ticks
+  // a 1400Hz tick is used for bars (highlight 2) and a 1050Hz one for beats (highlight 1)
   if (mustPlay && metronome && !freelance) {
     for (size_t i=0; i<size; i++) {
       if (metroTick[i]) {
@@ -3193,11 +3273,13 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         metroPos=0;
         metroAmp=0.7f;
       }
+      // mix in the tick
       if (metroAmp>0.0f) {
         for (int j=0; j<outChans; j++) {
           metroBuf[i]=(sin(metroPos*2*M_PI))*metroAmp*metroVol;
         }
       }
+      // decay
       metroAmp-=0.0003f;
       if (metroAmp<0.0f) metroAmp=0.0f;
       metroPos+=metroFreq;
@@ -3205,8 +3287,9 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     }
   }
 
-  // resolve patchbay
+  // now mix everything (resolve patchbay)
   for (unsigned int i: song.patchbay) {
+    // there are 4096 portsets. each portset may have up to 16 outputs (subports).
     const unsigned short srcPort=i>>16;
     const unsigned short destPort=i&0xffff;
 
@@ -3215,10 +3298,10 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     const unsigned char srcSubPort=srcPort&15;
     const unsigned char destSubPort=destPort&15;
 
-    // null portset
+    // null portset (disconnected)
     if (destPortSet==0xfff) continue;
 
-    // system outputs
+    // system outputs (the audio buffer)
     if (destPortSet==0x000) {
       if (destSubPort>=outChans) continue;
 
@@ -3227,6 +3310,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         if (srcSubPort<disCont[srcPortSet].dispatch->getOutputCount()) {
           float vol=song.systemVol[srcPortSet]*disCont[srcPortSet].dispatch->getPostAmp()*song.masterVol;
 
+          // apply volume and panning
           switch (destSubPort&3) {
             case 0:
               vol*=MIN(1.0f,1.0f-song.systemPan[srcPortSet])*MIN(1.0f,1.0f+song.systemPanFR[srcPortSet]);
@@ -3264,7 +3348,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     // nothing/invalid
   }
 
-  // dump to oscillator buffer
+  // dump to oscillator buffer (a ring buffer)
   for (unsigned int i=0; i<size; i++) {
     for (int j=0; j<outChans; j++) {
       if (oscBuf[j]==NULL) continue;
@@ -3301,5 +3385,6 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   std::chrono::steady_clock::time_point ts_processEnd=std::chrono::steady_clock::now();
 
+  // this is shown in the GUI as audio load
   processTime=std::chrono::duration_cast<std::chrono::nanoseconds>(ts_processEnd-ts_processBegin).count();
 }
