@@ -947,8 +947,8 @@ void DivEngine::delUnusedIns() {
       for (int k=0; k<DIV_MAX_PATTERNS; k++) {
         if (song.subsong[j]->pat[i].data[k]==NULL) continue;
         for (int l=0; l<song.subsong[j]->patLen; l++) {
-          if (song.subsong[j]->pat[i].data[k]->data[l][2]>=0 && song.subsong[j]->pat[i].data[k]->data[l][2]<256) {
-            isUsed[song.subsong[j]->pat[i].data[k]->data[l][2]]=true;
+          if (song.subsong[j]->pat[i].data[k]->newData[l][DIV_PAT_INS]>=0 && song.subsong[j]->pat[i].data[k]->newData[l][DIV_PAT_INS]<256) {
+            isUsed[song.subsong[j]->pat[i].data[k]->newData[l][DIV_PAT_INS]]=true;
           }
         }
       }
@@ -1032,38 +1032,6 @@ void DivEngine::delUnusedSamples() {
       }
     }
   }
-
-  // scan in pattern (legacy sample mode)
-  // disabled because it is unreliable
-  /*
-  for (DivSubSong* i: song.subsong) {
-    for (int j=0; j<getTotalChannelCount(); j++) {
-      bool is17On=false;
-      int bank=0;
-      for (int k=0; k<i->ordersLen; k++) {
-        DivPattern* p=i->pat[j].getPattern(i->orders.ord[j][k],false);
-        for (int l=0; l<i->patLen; l++) {
-          for (int m=0; m<i->pat[j].effectCols; m++) {
-            if (p->data[l][4+(m<<1)]==0x17) {
-              is17On=(p->data[l][5+(m<<1)]>0);
-            }
-            if (p->data[l][4+(m<<1)]==0xeb) {
-              bank=p->data[l][5+(m<<1)];
-              if (bank==-1) bank=0;
-            }
-          }
-          if (is17On) {
-            if (p->data[l][1]!=0 || p->data[l][0]!=0) {
-              if (p->data[l][0]<=12) {
-                int note=(12*bank)+(p->data[l][0]%12);
-                if (note<256) isUsed[note]=true;
-              }
-            }
-          }
-        }
-      }
-    }
-  }*/
 
   // delete
   for (int i=0; i<song.sampleLen; i++) {
@@ -2293,6 +2261,64 @@ int DivEngine::getEffectiveSampleRate(int rate) {
   return rate;
 }
 
+short DivEngine::splitNoteToNote(short note, short octave) {
+  if (note==100) {
+    return DIV_NOTE_OFF;
+  } else if (note==101) {
+    return DIV_NOTE_REL;
+  } else if (note==102) {
+    return DIV_MACRO_REL;
+  } else if (note==0 && octave!=0) {
+    // "BUG" note!
+    return DIV_NOTE_NULL_PAT;
+  } else if (note==0 && octave==0) {
+    return -1;
+  } else {
+    int seek=(note+(signed char)octave*12)+60;
+    if (seek<0 || seek>=180) {
+      return DIV_NOTE_NULL_PAT;
+    } else {
+      return seek;
+    }
+  }
+
+  return -1;
+}
+
+void DivEngine::noteToSplitNote(short note, short& outNote, short& outOctave) {
+  switch (note) {
+    case DIV_NOTE_OFF:
+      outNote=100;
+      outOctave=0;
+      break;
+    case DIV_NOTE_REL:
+      outNote=101;
+      outOctave=0;
+      break;
+    case DIV_MACRO_REL:
+      outNote=102;
+      outOctave=0;
+      break;
+    case DIV_NOTE_NULL_PAT:
+      // "BUG" note!
+      outNote=0;
+      outOctave=1;
+      break;
+    case -1:
+      outNote=0;
+      outOctave=0;
+      break;
+    default:
+      outNote=note%12;
+      outOctave=(unsigned char)(note-60)/12;
+      if (outNote==0) {
+        outNote=12;
+        outOctave--;
+      }
+      break;
+  }
+}
+
 void DivEngine::previewSample(int sample, int note, int pStart, int pEnd) {
   BUSY_BEGIN;
   previewSampleNoLock(sample,note,pStart,pEnd);
@@ -2749,8 +2775,8 @@ void DivEngine::delInstrumentUnsafe(int index) {
         for (int k=0; k<DIV_MAX_PATTERNS; k++) {
           if (song.subsong[j]->pat[i].data[k]==NULL) continue;
           for (int l=0; l<song.subsong[j]->patLen; l++) {
-            if (song.subsong[j]->pat[i].data[k]->data[l][2]>index) {
-              song.subsong[j]->pat[i].data[k]->data[l][2]--;
+            if (song.subsong[j]->pat[i].data[k]->newData[l][DIV_PAT_INS]>index) {
+              song.subsong[j]->pat[i].data[k]->newData[l][DIV_PAT_INS]--;
             }
           }
         }
@@ -3111,7 +3137,7 @@ void DivEngine::deepCloneOrder(int pos, bool where) {
         order[i]=j;
         DivPattern* oldPat=curPat[i].getPattern(origOrd,false);
         DivPattern* pat=curPat[i].getPattern(j,true);
-        memcpy(pat->data,oldPat->data,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short));
+        memcpy(pat->newData,oldPat->newData,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short));
         logD("found at %d",j);
         didNotFind=false;
         break;
@@ -3217,10 +3243,10 @@ void DivEngine::exchangeIns(int one, int two) {
       for (int k=0; k<DIV_MAX_PATTERNS; k++) {
         if (song.subsong[j]->pat[i].data[k]==NULL) continue;
         for (int l=0; l<song.subsong[j]->patLen; l++) {
-          if (song.subsong[j]->pat[i].data[k]->data[l][2]==one) {
-            song.subsong[j]->pat[i].data[k]->data[l][2]=two;
-          } else if (song.subsong[j]->pat[i].data[k]->data[l][2]==two) {
-            song.subsong[j]->pat[i].data[k]->data[l][2]=one;
+          if (song.subsong[j]->pat[i].data[k]->newData[l][DIV_PAT_INS]==one) {
+            song.subsong[j]->pat[i].data[k]->newData[l][DIV_PAT_INS]=two;
+          } else if (song.subsong[j]->pat[i].data[k]->newData[l][DIV_PAT_INS]==two) {
+            song.subsong[j]->pat[i].data[k]->newData[l][DIV_PAT_INS]=one;
           }
         }
       }

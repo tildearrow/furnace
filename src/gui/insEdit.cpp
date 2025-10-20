@@ -1952,7 +1952,7 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
     ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
     
     float volY=1.0-((float)vol/15.0);
-    float lenPos=(sLen>62)?1.0:((float)sLen/384.0);
+    float lenPos=(sLen>63)?1.0:((float)sLen/384.0);
     float envEndPoint=((float)len/7.0)*((float)(dir?(15-vol):vol)/15.0);
 
     ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.0,volY));
@@ -1978,10 +1978,10 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
         pos2=ImLerp(rect.Min,rect.Max,ImVec2(lenPos,volY));
       }
     }
-    ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(lenPos,(len>0 || sLen<63)?((dir && sLen>62)?0.0:1.0):volY));
+    ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(lenPos,(len>0 || sLen<64)?((dir && sLen>62)?0.0:1.0):volY));
 
     addAALine(dl,pos1,pos2,color);
-    if (lenPos>=envEndPoint && sLen<63 && dir) {
+    if (lenPos>=envEndPoint && sLen<64 && dir) {
       pos3=ImLerp(rect.Min,rect.Max,ImVec2(lenPos,0.0));
       addAALine(dl,pos2,pos3,color);
       ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(lenPos,1.0));
@@ -6447,7 +6447,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins) {
             "If this is disabled,filter cutoff will increase if you increase the pitch."));
           }
 
-          snprintf(buffer2,100,_("%s"),noteNameNormal(filt->bindCutoffToNoteCenter%12,(short)(filt->bindCutoffToNoteCenter / 12)-5));
+          snprintf(buffer2,100,_("%s"),noteNameNormal(filt->bindCutoffToNoteCenter));
           snprintf(buffer,100,_("Cutoff change center note##bindcutcenternote%d"),i+1);
           P(CWSliderScalar(buffer,ImGuiDataType_U8,&filt->bindCutoffToNoteCenter,&_ZERO,&_ONE_HUNDRED_SEVENTY_NINE,buffer2)); rightClickable
           if (ImGui::IsItemHovered()) {
@@ -6480,7 +6480,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins) {
             "If this is disabled,filter resonance will increase if you increase the pitch."));
           }
 
-          snprintf(buffer2,100,_("%s"),noteNameNormal(filt->bindResonanceToNoteCenter%12,(short)(filt->bindResonanceToNoteCenter / 12)-5));
+          snprintf(buffer2,100,_("%s"),noteNameNormal(filt->bindResonanceToNoteCenter));
           snprintf(buffer,100,_("Resonance change center note##bindrescenternote%d"),i+1);
           P(CWSliderScalar(buffer,ImGuiDataType_U8,&filt->bindResonanceToNoteCenter,&_ZERO,&_ONE_HUNDRED_SEVENTY_NINE,buffer2)); rightClickable
           if (ImGui::IsItemHovered()) {

@@ -54,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev233"
-#define DIV_ENGINE_VERSION 233
+#define DIV_VERSION "dev235"
+#define DIV_ENGINE_VERSION 235
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -140,7 +140,7 @@ struct DivChannelState {
   int panDepth, panRate, panPos, panSpeed;
   int sampleOff;
   unsigned char arp, arpStage, arpTicks, panL, panR, panRL, panRR, lastVibrato, lastPorta, cutType;
-  bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff, releasing;
+  bool doNote, legato, portaStop, keyOn, keyOff, stopOnOff, releasing;
   bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, wasShorthandPorta, noteOnInhibit, resetArp, sampleOffSet;
   bool wentThroughNote, goneThroughNote;
 
@@ -197,7 +197,6 @@ struct DivChannelState {
     portaStop(false),
     keyOn(false),
     keyOff(false),
-    nowYouCanStop(true),
     stopOnOff(false),
     releasing(false),
     arpYield(false),
@@ -723,7 +722,7 @@ class DivEngine {
     SafeWriter* saveDMF(unsigned char version);
     // save as .fur.
     // if notPrimary is true then the song will not be altered
-    SafeWriter* saveFur(bool notPrimary=false, bool newPatternFormat=true);
+    SafeWriter* saveFur(bool notPrimary=false);
     // return a ROM exporter.
     DivROMExport* buildROM(DivROMExportOptions sys);
     // dump to VGM.
@@ -928,6 +927,10 @@ class DivEngine {
 
     // get effective sample rate
     int getEffectiveSampleRate(int rate);
+
+    // convert between old and new note/octave format
+    short splitNoteToNote(short note, short octave);
+    void noteToSplitNote(short note, short& outNote, short& outOctave);
 
     // is FM system
     bool isFMSystem(DivSystem sys);

@@ -58,6 +58,9 @@ bool DivConfig::save(const char* path, bool redundancy) {
     reportError(fmt::sprintf("could not write config file! %s",strerror(errno)));
     return false;
   }
+  if (redundancy) {
+    fputs("!DIV_CONFIG_START!\n",f);
+  }
   for (auto& i: conf) {
     String toWrite=fmt::sprintf("%s=%s\n",i.first,i.second);
     if (fwrite(toWrite.c_str(),1,toWrite.size(),f)!=toWrite.size()) {
@@ -68,6 +71,9 @@ bool DivConfig::save(const char* path, bool redundancy) {
       deleteFile(path);
       return false;
     }
+  }
+  if (redundancy) {
+    fputs("~DIV_CONFIG_END~\n",f);
   }
   fclose(f);
   logD("config file written successfully.");
@@ -124,8 +130,12 @@ bool DivConfig::loadFromFile(const char* path, bool createOnFail, bool redundanc
   if (redundancy) {
     unsigned char* readBuf=new unsigned char[CHECK_BUF_SIZE];
     size_t readBufLen=0;
+    bool weRescued=false;
     for (int i=0; i<REDUNDANCY_NUM_ATTEMPTS; i++) {
       bool viable=false;
+      bool startCheck=true;
+      bool hasStartMarker=false;
+      unsigned char endMarker[18];
       if (i>0) {
         snprintf(line,4095,"%s.%d",path,i);
       } else {
@@ -143,15 +153,27 @@ bool DivConfig::loadFromFile(const char* path, bool createOnFail, bool redundanc
 
       // check whether there's something
       while (!feof(f)) {
+        bool willBreak=false;
         readBufLen=fread(readBuf,1,CHECK_BUF_SIZE,f);
         if (ferror(f)) {
           logV("fread(): %s",strerror(errno));
           break;
         }
 
+        if (startCheck) {
+          if (readBufLen>=19) {
+            if (memcmp(readBuf,"!DIV_CONFIG_START!\n",19)==0) {
+              hasStartMarker=true;
+              logV("start marker found");
+            }
+          }
+          startCheck=false;
+        }
+
         for (size_t j=0; j<readBufLen; j++) {
           if (readBuf[j]==0) {
             viable=false;
+            willBreak=true;
             logW("a zero?");
             break;
           }
@@ -160,7 +182,30 @@ bool DivConfig::loadFromFile(const char* path, bool createOnFail, bool redundanc
           }
         }
 
-        if (viable) break;
+        if (readBufLen>=18) {
+          memcpy(endMarker,&readBuf[readBufLen-18],18);
+        } else if (readBufLen>0) {
+          // shift buffer left
+          for (size_t j=0, k=readBufLen; j<readBufLen && k<18; j++, k++) {
+            endMarker[j]=endMarker[k];
+          }
+
+          // copy to end
+          memcpy(&endMarker[18-readBufLen],readBuf,readBufLen);
+        }
+
+        if (willBreak) break;
+      }
+
+      // check for end marker if start marker is present
+      if (hasStartMarker) {
+        if (memcmp(endMarker,"\n~DIV_CONFIG_END~\n",18)!=0) {
+          // file is incomplete
+          viable=false;
+          logV("end marker NOT found!");
+          reportError("saved from an incomplete config.\nyeah! for a second I thought you were going to lose it.");
+          weRescued=true;
+        }
       }
 
       // there's something
@@ -184,6 +229,9 @@ bool DivConfig::loadFromFile(const char* path, bool createOnFail, bool redundanc
       logD("config does not exist");
       if (createOnFail) {
         logI("creating default config.");
+        if (weRescued) {
+          reportError("what the FUCK is that supposed to mean?!");
+        }
         //reportError(fmt::sprintf("Creating default config: %s",strerror(errno)));
         return save(path,redundancy);
       } else {

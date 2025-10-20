@@ -43,25 +43,6 @@ const char* queryReplaceModes[GUI_QUERY_REPLACE_MAX]={
   _N("clear")
 };
 
-int queryNote(int note, int octave) {
-  if (note==100) {
-    return 128;
-  } else if (note==101) { // note off and envelope release
-    return 129;
-  } else if (note==102) { // envelope release only
-    return 130;
-  } else if (octave==0 && note==0) {
-    return -61;
-  } else if (note==0 && octave!=0) {
-    return -61; // bug note?
-  }
-  int seek=(note+(signed char)octave*12);
-  if (seek<-60 || seek>=120) {
-    return -61; // out of range note
-  }
-  return seek;
-}
-
 bool checkCondition(int mode, int arg, int argMax, int val, bool noteMode=false) {
   const int emptyVal=noteMode?-61:-1;
   switch (mode) {
@@ -137,9 +118,9 @@ void FurnaceGUI::doFind() {
         for (FurnaceGUIFindQuery& l: curQuery) {
           if (matched) break;
 
-          if (!checkCondition(l.noteMode,l.note,l.noteMax,queryNote(p->data[j][0],p->data[j][1]),true)) continue;
-          if (!checkCondition(l.insMode,l.ins,l.insMax,p->data[j][2])) continue;
-          if (!checkCondition(l.volMode,l.vol,l.volMax,p->data[j][3])) continue;
+          if (!checkCondition(l.noteMode,l.note,l.noteMax,p->newData[j][DIV_PAT_NOTE],true)) continue;
+          if (!checkCondition(l.insMode,l.ins,l.insMax,p->newData[j][DIV_PAT_INS])) continue;
+          if (!checkCondition(l.volMode,l.vol,l.volMax,p->newData[j][DIV_PAT_VOL])) continue;
 
           if (l.effectCount>0) {
             bool notMatched=false;
@@ -148,8 +129,8 @@ void FurnaceGUI::doFind() {
                 for (int m=0; m<l.effectCount; m++) {
                   bool allGood=false;
                   for (int n=0; n<e->curPat[k].effectCols; n++) {
-                    if (!checkCondition(l.effectMode[m],l.effect[m],l.effectMax[m],p->data[j][4+n*2])) continue;
-                    if (!checkCondition(l.effectValMode[m],l.effectVal[m],l.effectValMax[m],p->data[j][5+n*2])) continue;
+                    if (!checkCondition(l.effectMode[m],l.effect[m],l.effectMax[m],p->newData[j][DIV_PAT_FX(n)])) continue;
+                    if (!checkCondition(l.effectValMode[m],l.effectVal[m],l.effectValMax[m],p->newData[j][DIV_PAT_FXVAL(n)])) continue;
                     allGood=true;
                     effectPos[m]=n;
                     break;
@@ -164,8 +145,8 @@ void FurnaceGUI::doFind() {
                 // locate first effect
                 int posOfFirst=-1;
                 for (int m=0; m<e->curPat[k].effectCols; m++) {
-                  if (!checkCondition(l.effectMode[0],l.effect[0],l.effectMax[0],p->data[j][4+m*2])) continue;
-                  if (!checkCondition(l.effectValMode[0],l.effectVal[0],l.effectValMax[0],p->data[j][5+m*2])) continue;
+                  if (!checkCondition(l.effectMode[0],l.effect[0],l.effectMax[0],p->newData[j][DIV_PAT_FX(m)])) continue;
+                  if (!checkCondition(l.effectValMode[0],l.effectVal[0],l.effectValMax[0],p->newData[j][DIV_PAT_FXVAL(m)])) continue;
                   posOfFirst=m;
                   break;
                 }
@@ -180,11 +161,11 @@ void FurnaceGUI::doFind() {
                 }
                 // search from first effect location
                 for (int m=0; m<l.effectCount; m++) {
-                  if (!checkCondition(l.effectMode[m],l.effect[m],l.effectMax[m],p->data[j][4+(m+posOfFirst)*2])) {
+                  if (!checkCondition(l.effectMode[m],l.effect[m],l.effectMax[m],p->newData[j][DIV_PAT_FX(m+posOfFirst)])) {
                     notMatched=true;
                     break;
                   }
-                  if (!checkCondition(l.effectValMode[m],l.effectVal[m],l.effectValMax[m],p->data[j][5+(m+posOfFirst)*2])) {
+                  if (!checkCondition(l.effectValMode[m],l.effectVal[m],l.effectValMax[m],p->newData[j][DIV_PAT_FXVAL(m+posOfFirst)])) {
                     notMatched=true;
                     break;
                   }
@@ -198,11 +179,11 @@ void FurnaceGUI::doFind() {
                   notMatched=true;
                 } else {
                   for (int m=0; m<effectMax; m++) {
-                    if (!checkCondition(l.effectMode[m],l.effect[m],l.effectMax[m],p->data[j][4+m*2])) {
+                    if (!checkCondition(l.effectMode[m],l.effect[m],l.effectMax[m],p->newData[j][DIV_PAT_FX(m)])) {
                       notMatched=true;
                       break;
                     }
-                    if (!checkCondition(l.effectValMode[m],l.effectVal[m],l.effectValMax[m],p->data[j][5+m*2])) {
+                    if (!checkCondition(l.effectValMode[m],l.effectVal[m],l.effectValMax[m],p->newData[j][DIV_PAT_FXVAL(m)])) {
                       notMatched=true;
                       break;
                     }
@@ -248,131 +229,107 @@ void FurnaceGUI::doReplace() {
     if (touched[i.x][(patIndex<<8)|i.y]) continue;
     touched[i.x][(patIndex<<8)|i.y]=true;
 
-    memcpy(prevVal,p->data[i.y],DIV_MAX_COLS*sizeof(short));
+    memcpy(prevVal,p->newData[i.y],DIV_MAX_COLS*sizeof(short));
 
+    // replace note
     if (queryReplaceNoteDo) {
       switch (queryReplaceNoteMode) {
         case GUI_QUERY_REPLACE_SET:
-          if (queryReplaceNote==130) { // macro release
-            p->data[i.y][0]=102;
-            p->data[i.y][1]=0;
-          } else if (queryReplaceNote==129) { // note release
-            p->data[i.y][0]=101;
-            p->data[i.y][1]=0;
-          } else if (queryReplaceNote==128) { // note off
-            p->data[i.y][0]=100;
-            p->data[i.y][1]=0;
-          } else if (queryReplaceNote>=-60 && queryReplaceNote<120) { // note
-            p->data[i.y][0]=(queryReplaceNote+60)%12;
-            if (p->data[i.y][0]==0) p->data[i.y][0]=12;
-            p->data[i.y][1]=(unsigned char)((queryReplaceNote-1)/12);
-          } else { // invalid
-            p->data[i.y][0]=0;
-            p->data[i.y][1]=0;
-          }
+          p->newData[i.y][DIV_PAT_NOTE]=queryReplaceNote;
           break;
-        case GUI_QUERY_REPLACE_ADD:
-          if (p->data[i.y][0]<100) {
-            int note=queryNote(p->data[i.y][0],p->data[i.y][1]);
-            if (note>=-60 && note<120) {
-              note+=queryReplaceNote;
-              if (note<-60) note=-60;
-              if (note>119) note=119;
+        case GUI_QUERY_REPLACE_ADD: {
+          int note=p->newData[i.y][DIV_PAT_NOTE];
+          if (note>=0 && note<180) {
+            note+=queryReplaceNote;
+            if (note<0) note=0;
+            if (note>179) note=179;
 
-              p->data[i.y][0]=(note+60)%12;
-              p->data[i.y][1]=(unsigned char)(((note+60)/12)-5);
-              if (p->data[i.y][0]==0) {
-                p->data[i.y][0]=12;
-                p->data[i.y][1]=(unsigned char)(p->data[i.y][1]-1);
-              }
-            }
+            p->newData[i.y][DIV_PAT_NOTE]=note;
           }
           break;
-        case GUI_QUERY_REPLACE_ADD_OVERFLOW:
-          if (p->data[i.y][0]<100) {
-            int note=queryNote(p->data[i.y][0],p->data[i.y][1]);
-            if (note>=-60 && note<120) {
+        }
+        case GUI_QUERY_REPLACE_ADD_OVERFLOW: {
+            int note=p->newData[i.y][DIV_PAT_NOTE];
+            if (note>=0 && note<180) {
               note+=queryReplaceNote;
-              if (note<-60) {
-                while (note<-60) note+=180;
-              } else if (note>119) {
-                while (note>119) note-=180;
+              if (note<0) {
+                while (note<0) note+=180;
+              } else if (note>179) {
+                while (note>179) note-=180;
               }
 
-              p->data[i.y][0]=(note+60)%12;
-              p->data[i.y][1]=(unsigned char)(((note+60)/12)-5);
-              if (p->data[i.y][0]==0) {
-                p->data[i.y][0]=12;
-                p->data[i.y][1]=(unsigned char)(p->data[i.y][1]-1);
-              }
+              p->newData[i.y][DIV_PAT_NOTE]=note;
             }
-          }
           break;
+        }
         case GUI_QUERY_REPLACE_SCALE:
           break;
         case GUI_QUERY_REPLACE_CLEAR:
-          p->data[i.y][0]=0;
-          p->data[i.y][1]=0;
+          p->newData[i.y][DIV_PAT_NOTE]=-1;
           break;
       }
     }
 
+    // replace ins
     if (queryReplaceInsDo) {
       switch (queryReplaceInsMode) {
         case GUI_QUERY_REPLACE_SET:
-          p->data[i.y][2]=queryReplaceIns;
+          p->newData[i.y][DIV_PAT_INS]=queryReplaceIns;
           break;
         case GUI_QUERY_REPLACE_ADD:
-          if (p->data[i.y][2]>=0) {
-            p->data[i.y][2]+=queryReplaceIns;
-            if (p->data[i.y][2]<0) p->data[i.y][2]=0;
-            if (p->data[i.y][2]>255) p->data[i.y][2]=255;
+          if (p->newData[i.y][DIV_PAT_INS]>=0) {
+            p->newData[i.y][DIV_PAT_INS]+=queryReplaceIns;
+            if (p->newData[i.y][DIV_PAT_INS]<0) p->newData[i.y][DIV_PAT_INS]=0;
+            if (p->newData[i.y][DIV_PAT_INS]>255) p->newData[i.y][DIV_PAT_INS]=255;
           }
           break;
         case GUI_QUERY_REPLACE_ADD_OVERFLOW:
-          if (p->data[i.y][2]>=0) p->data[i.y][2]=(p->data[i.y][2]+queryReplaceIns)&0xff;
+          if (p->newData[i.y][DIV_PAT_INS]>=0) p->newData[i.y][DIV_PAT_INS]=(p->newData[i.y][DIV_PAT_INS]+queryReplaceIns)&0xff;
           break;
         case GUI_QUERY_REPLACE_SCALE:
-          if (p->data[i.y][2]>=0) {
-            p->data[i.y][2]=(p->data[i.y][2]*queryReplaceIns)/100;
-            if (p->data[i.y][2]<0) p->data[i.y][2]=0;
-            if (p->data[i.y][2]>255) p->data[i.y][2]=255;
+          if (p->newData[i.y][DIV_PAT_INS]>=0) {
+            p->newData[i.y][DIV_PAT_INS]=(p->newData[i.y][DIV_PAT_INS]*queryReplaceIns)/100;
+            if (p->newData[i.y][DIV_PAT_INS]<0) p->newData[i.y][DIV_PAT_INS]=0;
+            if (p->newData[i.y][DIV_PAT_INS]>255) p->newData[i.y][DIV_PAT_INS]=255;
           }
           break;
         case GUI_QUERY_REPLACE_CLEAR:
-          p->data[i.y][2]=-1;
+          p->newData[i.y][DIV_PAT_INS]=-1;
           break;
       }
     }
 
+    // replace vol
     if (queryReplaceVolDo) {
       switch (queryReplaceVolMode) {
         case GUI_QUERY_REPLACE_SET:
-          p->data[i.y][3]=queryReplaceVol;
+          p->newData[i.y][DIV_PAT_VOL]=queryReplaceVol;
           break;
         case GUI_QUERY_REPLACE_ADD:
-          if (p->data[i.y][3]>=0) {
-            p->data[i.y][3]+=queryReplaceVol;
-            if (p->data[i.y][3]<0) p->data[i.y][3]=0;
-            if (p->data[i.y][3]>255) p->data[i.y][3]=255;
+          if (p->newData[i.y][DIV_PAT_VOL]>=0) {
+            p->newData[i.y][DIV_PAT_VOL]+=queryReplaceVol;
+            if (p->newData[i.y][DIV_PAT_VOL]<0) p->newData[i.y][DIV_PAT_VOL]=0;
+            if (p->newData[i.y][DIV_PAT_VOL]>255) p->newData[i.y][DIV_PAT_VOL]=255;
           }
           break;
         case GUI_QUERY_REPLACE_ADD_OVERFLOW:
-          if (p->data[i.y][3]>=0) p->data[i.y][3]=(p->data[i.y][3]+queryReplaceVol)&0xff;
+          if (p->newData[i.y][DIV_PAT_VOL]>=0) p->newData[i.y][DIV_PAT_VOL]=(p->newData[i.y][DIV_PAT_VOL]+queryReplaceVol)&0xff;
           break;
         case GUI_QUERY_REPLACE_SCALE:
-          if (p->data[i.y][3]>=0) {
-            p->data[i.y][3]=(p->data[i.y][3]*queryReplaceVol)/100;
-            if (p->data[i.y][3]<0) p->data[i.y][3]=0;
-            if (p->data[i.y][3]>255) p->data[i.y][3]=255;
+          if (p->newData[i.y][DIV_PAT_VOL]>=0) {
+            p->newData[i.y][DIV_PAT_VOL]=(p->newData[i.y][DIV_PAT_VOL]*queryReplaceVol)/100;
+            if (p->newData[i.y][DIV_PAT_VOL]<0) p->newData[i.y][DIV_PAT_VOL]=0;
+            if (p->newData[i.y][DIV_PAT_VOL]>255) p->newData[i.y][DIV_PAT_VOL]=255;
           }
           break;
         case GUI_QUERY_REPLACE_CLEAR:
-          p->data[i.y][3]=-1;
+          p->newData[i.y][DIV_PAT_VOL]=-1;
           break;
       }
     }
 
+    // effect replacement is a bit more complicated
+    // first we consider effect replacement position
     signed char effectOrder[8];
     memset(effectOrder,-1,8);
 
@@ -388,7 +345,7 @@ void FurnaceGUI::doReplace() {
           effectOrder[placementIndex++]=i.effectPos[j];
         }
         for (int j=0; j<e->song.subsong[i.subsong]->pat[i.x].effectCols && placementIndex<8 && j<8; j++) {
-          if (p->data[i.y][4+j*2]!=-1 || p->data[i.y][5+j*2]!=-1) {
+          if (p->newData[i.y][DIV_PAT_FX(j)]!=-1 || p->newData[i.y][DIV_PAT_FXVAL(j)]!=-1) {
             effectOrder[placementIndex++]=j;
           }
         }
@@ -400,12 +357,12 @@ void FurnaceGUI::doReplace() {
           effectOrder[placementIndex++]=i.effectPos[j];
         }
         for (int j=0; j<e->song.subsong[i.subsong]->pat[i.x].effectCols && placementIndex<8 && j<8; j++) {
-          if (p->data[i.y][4+j*2]!=-1 || p->data[i.y][5+j*2]!=-1) {
+          if (p->newData[i.y][DIV_PAT_FX(j)]!=-1 || p->newData[i.y][DIV_PAT_FXVAL(j)]!=-1) {
             effectOrder[placementIndex++]=j;
           }
         }
         for (int j=0; j<e->song.subsong[i.subsong]->pat[i.x].effectCols; j++) {
-          if (p->data[i.y][4+j*2]==-1 && p->data[i.y][5+j*2]==-1) {
+          if (p->newData[i.y][DIV_PAT_FX(j)]==-1 && p->newData[i.y][DIV_PAT_FXVAL(j)]==-1) {
             effectOrder[placementIndex++]=j;
           }
         }
@@ -414,7 +371,7 @@ void FurnaceGUI::doReplace() {
       case 3: { // insert in free spaces
         int placementIndex=0;
         for (int j=0; j<e->song.subsong[i.subsong]->pat[i.x].effectCols && j<8; j++) {
-          if (p->data[i.y][4+j*2]==-1 && p->data[i.y][5+j*2]==-1) {
+          if (p->newData[i.y][DIV_PAT_FX(j)]==-1 && p->newData[i.y][DIV_PAT_FXVAL(j)]==-1) {
             effectOrder[placementIndex++]=j;
           }
         }
@@ -422,61 +379,66 @@ void FurnaceGUI::doReplace() {
       }
     }
 
+    // then we replace effects/values
     for (int j=0; j<queryReplaceEffectCount && j<8; j++) {
       signed char pos=effectOrder[j];
+      // don't replace if we cannot find a position
       if (pos==-1) continue;
+
+      // replace effect
       if (queryReplaceEffectDo[j]) {
         switch (queryReplaceEffectMode[j]) {
           case GUI_QUERY_REPLACE_SET:
-            p->data[i.y][4+pos*2]=queryReplaceEffect[j];
+            p->newData[i.y][DIV_PAT_FX(pos)]=queryReplaceEffect[j];
             break;
           case GUI_QUERY_REPLACE_ADD:
-            if (p->data[i.y][4+pos*2]>=0) {
-              p->data[i.y][4+pos*2]+=queryReplaceEffect[j];
-              if (p->data[i.y][4+pos*2]<0) p->data[i.y][4+pos*2]=0;
-              if (p->data[i.y][4+pos*2]>255) p->data[i.y][4+pos*2]=255;
+            if (p->newData[i.y][DIV_PAT_FX(pos)]>=0) {
+              p->newData[i.y][DIV_PAT_FX(pos)]+=queryReplaceEffect[j];
+              if (p->newData[i.y][DIV_PAT_FX(pos)]<0) p->newData[i.y][DIV_PAT_FX(pos)]=0;
+              if (p->newData[i.y][DIV_PAT_FX(pos)]>255) p->newData[i.y][DIV_PAT_FX(pos)]=255;
             }
             break;
           case GUI_QUERY_REPLACE_ADD_OVERFLOW:
-            if (p->data[i.y][4+pos*2]>=0) p->data[i.y][4+pos*2]=(p->data[i.y][4+pos*2]+queryReplaceEffect[j])&0xff;
+            if (p->newData[i.y][DIV_PAT_FX(pos)]>=0) p->newData[i.y][DIV_PAT_FX(pos)]=(p->newData[i.y][DIV_PAT_FX(pos)]+queryReplaceEffect[j])&0xff;
             break;
           case GUI_QUERY_REPLACE_SCALE:
-            if (p->data[i.y][4+pos*2]>=0) {
-              p->data[i.y][4+pos*2]=(p->data[i.y][4+pos*2]*queryReplaceEffect[j])/100;
-              if (p->data[i.y][4+pos*2]<0) p->data[i.y][4+pos*2]=0;
-              if (p->data[i.y][4+pos*2]>255) p->data[i.y][4+pos*2]=255;
+            if (p->newData[i.y][DIV_PAT_FX(pos)]>=0) {
+              p->newData[i.y][DIV_PAT_FX(pos)]=(p->newData[i.y][DIV_PAT_FX(pos)]*queryReplaceEffect[j])/100;
+              if (p->newData[i.y][DIV_PAT_FX(pos)]<0) p->newData[i.y][DIV_PAT_FX(pos)]=0;
+              if (p->newData[i.y][DIV_PAT_FX(pos)]>255) p->newData[i.y][DIV_PAT_FX(pos)]=255;
             }
             break;
           case GUI_QUERY_REPLACE_CLEAR:
-            p->data[i.y][4+pos*2]=-1;
+            p->newData[i.y][DIV_PAT_FX(pos)]=-1;
             break;
         }
       }
 
+      // replace effect value
       if (queryReplaceEffectValDo[j]) {
         switch (queryReplaceEffectValMode[j]) {
           case GUI_QUERY_REPLACE_SET:
-            p->data[i.y][5+pos*2]=queryReplaceEffectVal[j];
+            p->newData[i.y][DIV_PAT_FXVAL(pos)]=queryReplaceEffectVal[j];
             break;
           case GUI_QUERY_REPLACE_ADD:
-            if (p->data[i.y][5+pos*2]>=0) {
-              p->data[i.y][5+pos*2]+=queryReplaceEffectVal[j];
-              if (p->data[i.y][5+pos*2]<0) p->data[i.y][5+pos*2]=0;
-              if (p->data[i.y][5+pos*2]>255) p->data[i.y][5+pos*2]=255;
+            if (p->newData[i.y][DIV_PAT_FXVAL(pos)]>=0) {
+              p->newData[i.y][DIV_PAT_FXVAL(pos)]+=queryReplaceEffectVal[j];
+              if (p->newData[i.y][DIV_PAT_FXVAL(pos)]<0) p->newData[i.y][DIV_PAT_FXVAL(pos)]=0;
+              if (p->newData[i.y][DIV_PAT_FXVAL(pos)]>255) p->newData[i.y][DIV_PAT_FXVAL(pos)]=255;
             }
             break;
           case GUI_QUERY_REPLACE_ADD_OVERFLOW:
-            if (p->data[i.y][5+pos*2]>=0) p->data[i.y][5+pos*2]=(p->data[i.y][5+pos*2]+queryReplaceEffectVal[j])&0xff;
+            if (p->newData[i.y][DIV_PAT_FXVAL(pos)]>=0) p->newData[i.y][DIV_PAT_FXVAL(pos)]=(p->newData[i.y][DIV_PAT_FXVAL(pos)]+queryReplaceEffectVal[j])&0xff;
             break;
           case GUI_QUERY_REPLACE_SCALE:
-            if (p->data[i.y][5+pos*2]>=0) {
-              p->data[i.y][5+pos*2]=(p->data[i.y][5+pos*2]*queryReplaceEffectVal[j])/100;
-              if (p->data[i.y][5+pos*2]<0) p->data[i.y][5+pos*2]=0;
-              if (p->data[i.y][5+pos*2]>255) p->data[i.y][5+pos*2]=255;
+            if (p->newData[i.y][DIV_PAT_FXVAL(pos)]>=0) {
+              p->newData[i.y][DIV_PAT_FXVAL(pos)]=(p->newData[i.y][DIV_PAT_FXVAL(pos)]*queryReplaceEffectVal[j])/100;
+              if (p->newData[i.y][DIV_PAT_FXVAL(pos)]<0) p->newData[i.y][DIV_PAT_FXVAL(pos)]=0;
+              if (p->newData[i.y][DIV_PAT_FXVAL(pos)]>255) p->newData[i.y][DIV_PAT_FXVAL(pos)]=255;
             }
             break;
           case GUI_QUERY_REPLACE_CLEAR:
-            p->data[i.y][5+pos*2]=-1;
+            p->newData[i.y][DIV_PAT_FXVAL(pos)]=-1;
             break;
         }
       }
@@ -484,8 +446,8 @@ void FurnaceGUI::doReplace() {
 
     // issue undo step
     for (int j=0; j<DIV_MAX_COLS; j++) {
-      if (p->data[i.y][j]!=prevVal[j]) {
-        us.pat.push_back(UndoPatternData(i.subsong,i.x,patIndex,i.y,j,prevVal[j],p->data[i.y][j]));
+      if (p->newData[i.y][j]!=prevVal[j]) {
+        us.pat.push_back(UndoPatternData(i.subsong,i.x,patIndex,i.y,j,prevVal[j],p->newData[i.y][j]));
       }
     }
   }
@@ -615,15 +577,15 @@ void FurnaceGUI::drawFindReplace() {
               ImGui::Combo("##NCondition",&i.noteMode,LocalizedComboGetter,queryModes,GUI_QUERY_MAX);
               ImGui::TableNextColumn();
               if (FIRST_VISIBLE(i.noteMode)) {
-                if ((i.noteMode==GUI_QUERY_RANGE || i.noteMode==GUI_QUERY_RANGE_NOT) && i.note>=120) {
-                  i.note=0;
+                if ((i.noteMode==GUI_QUERY_RANGE || i.noteMode==GUI_QUERY_RANGE_NOT) && i.note>=180) {
+                  i.note=108;
                 }
                 NoteSelector(&i.note, i.noteMode!=GUI_QUERY_RANGE && i.noteMode!=GUI_QUERY_RANGE_NOT);
               }
               ImGui::TableNextColumn();
               if (SECOND_VISIBLE(i.noteMode)) {
-                if (i.noteMax<-60 || i.noteMax>=120) {
-                  i.noteMax=0;
+                if (i.noteMax<0 || i.noteMax>=256) {
+                  i.noteMax=108;
                 }
                 NoteSelector(&i.noteMax, false);
               }
