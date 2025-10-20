@@ -1380,7 +1380,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0xe5: // pitch
         chan[i].pitch=effectVal-0x80;
-        // why isn't this removed yet? we shpuldn't give this chip special treatment!
+        // why isn't this removed yet? we shouldn't give this chip special treatment!
         if (sysOfChan[i]==DIV_SYSTEM_YM2151) { // YM2151 pitch oddity
           chan[i].pitch*=2;
           if (chan[i].pitch<-128) chan[i].pitch=-128;
