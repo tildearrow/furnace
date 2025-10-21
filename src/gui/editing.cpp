@@ -1395,7 +1395,7 @@ void FurnaceGUI::doInterpolate() {
           for (int k=0, k_p=curPoint.first; k<distance; k++) {
             DivPattern* pat=e->curPat[iCoarse].getPattern(e->curOrders->ord[iCoarse][(k_p>>8)&0xff],true);
             int val=curPoint.second+((nextPoint.second-curPoint.second)*(double)k/(double)distance);
-            pat->newData[k_p&0xff][DIV_PAT_NOTE]=val%12;
+            pat->newData[k_p&0xff][DIV_PAT_NOTE]=val;
             k_p++;
             if ((k_p&0xff)>=e->curSubSong->patLen) {
               k_p&=~0xff;
