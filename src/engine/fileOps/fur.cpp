@@ -2143,6 +2143,37 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
     }
 
+    // YM2151 E5xx range was different
+    if (ds.version<236) {
+      int ch=0;
+      // so much nesting
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_YM2151) {
+          // find all E5xx effects and adapt to normal range
+          for (int j=ch; j<ch+8; j++) {
+            for (size_t k=0; k<ds.subsong.size(); k++) {
+              for (int l=0; l<DIV_MAX_PATTERNS; l++) {
+                DivPattern* p=ds.subsong[k]->pat[j].data[l];
+                if (p==NULL) continue;
+
+                for (int m=0; m<DIV_MAX_ROWS; m++) {
+                  for (int n=0; n<ds.subsong[k]->pat[j].effectCols; n++) {
+                    if (p->newData[m][DIV_PAT_FX(n)]==0xe5 && p->newData[m][DIV_PAT_FXVAL(n)]!=-1) {
+                      int newVal=(2*((p->newData[m][DIV_PAT_FXVAL(n)]&0xff)-0x80))+0x80;
+                      if (newVal<0) newVal=0;
+                      if (newVal>0xff) newVal=0xff;
+                      p->newData[m][DIV_PAT_FXVAL(n)]=newVal;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        ch+=getChannelCount(ds.system[i]);
+      }
+    }
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
