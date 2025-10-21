@@ -765,17 +765,21 @@ void ImGui_ImplSW_UpdateTexture(ImTextureData* tex) {
     // update region
     if (t->isAlpha) {
       unsigned char* data=(unsigned char*)t->pixels;
-      int i_y=t->width*tex->UpdateRect.y;
-      for (int i=tex->UpdateRect.y; i<tex->UpdateRect.y+tex->UpdateRect.w; i++) {
-        memcpy(&data[i_y],tex->GetPixelsAt(tex->UpdateRect.x,i),tex->UpdateRect.w);
-        i_y+=t->width;
+      for (ImTextureRect& h: tex->Updates) {
+        int i_y=t->width*h.y;
+        for (int i=h.y; i<h.y+h.h; i++) {
+          memcpy(&data[i_y+h.x],tex->GetPixelsAt(h.x,i),h.w);
+          i_y+=t->width;
+        }
       }
     } else {
       uint32_t* data=t->pixels;
-      int i_y=t->width*tex->UpdateRect.y;
-      for (int i=tex->UpdateRect.y; i<tex->UpdateRect.y+tex->UpdateRect.w; i++) {
-        memcpy(&data[i_y],tex->GetPixelsAt(tex->UpdateRect.x,i),tex->UpdateRect.w*sizeof(uint32_t));
-        i_y+=t->width;
+      for (ImTextureRect& h: tex->Updates) {
+        int i_y=t->width*h.y;
+        for (int i=h.y; i<h.y+h.h; i++) {
+          memcpy(&data[i_y+h.x],tex->GetPixelsAt(h.x,i),h.w*sizeof(uint32_t));
+          i_y+=t->width;
+        }
       }
     }
 
