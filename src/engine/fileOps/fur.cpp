@@ -2174,6 +2174,11 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
     }
 
+    // warn on partial pitch linearity
+    if (ds.linearPitch==1) {
+      addWarning("this song uses partial pitch linearity, which will be removed soon. please migrate to full or none by going to Compatibility Flags and then adjusting your song afterwards.");
+    }
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
