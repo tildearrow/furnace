@@ -697,10 +697,10 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_PAT_LATCH: {
       DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][cursor.order],true);
-      latchIns=pat->data[cursor.y][2];
-      latchVol=pat->data[cursor.y][3];
-      latchEffect=pat->data[cursor.y][4];
-      latchEffectVal=pat->data[cursor.y][5];
+      latchIns=pat->newData[cursor.y][DIV_PAT_INS];
+      latchVol=pat->newData[cursor.y][DIV_PAT_VOL];
+      latchEffect=pat->newData[cursor.y][DIV_PAT_FX(0)];
+      latchEffectVal=pat->newData[cursor.y][DIV_PAT_FXVAL(0)];
       latchTarget=0;
       latchNibble=false;
       break;

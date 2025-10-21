@@ -783,109 +783,120 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         DivPattern* pat=chan.getPattern(ds.subsong[0]->orders.ord[i][j],true);
         if (ds.version>0x08) { // current pattern format
           for (int k=0; k<ds.subsong[0]->patLen; k++) {
-            // note
-            pat->data[k][0]=reader.readS();
-            // octave
-            pat->data[k][1]=reader.readS();
-            if (ds.system[0]==DIV_SYSTEM_SMS && ds.version<0x0e && pat->data[k][1]>0) {
+            short note=reader.readS();
+            short octave=reader.readS();
+            if (ds.system[0]==DIV_SYSTEM_SMS && ds.version<0x0e && octave>0) {
               // apparently it was up one octave before
-              pat->data[k][1]--;
-            } else if (ds.system[0]==DIV_SYSTEM_GENESIS && ds.version<0x0e && pat->data[k][1]>0 && i>5) {
+              octave--;
+            } else if (ds.system[0]==DIV_SYSTEM_GENESIS && ds.version<0x0e && octave>0 && i>5) {
               // ditto
-              pat->data[k][1]--;
-            } else if (ds.system[0]==DIV_SYSTEM_MSX2 && pat->data[k][1]>0 && i<3) {
+              octave--;
+            } else if (ds.system[0]==DIV_SYSTEM_MSX2 && octave>0 && i<3) {
               // why the hell?
-              pat->data[k][1]++;
+              octave++;
             }
             if (ds.version<0x12) {
-              if (ds.system[0]==DIV_SYSTEM_GB && i==3 && pat->data[k][1]>0) {
+              if (ds.system[0]==DIV_SYSTEM_GB && i==3 && octave>0) {
                 // back then noise was 2 octaves lower
-                pat->data[k][1]-=2;
+                octave-=2;
               }
             }
-            if (ds.system[0]==DIV_SYSTEM_YMU759 && pat->data[k][0]!=0) {
+            if (ds.system[0]==DIV_SYSTEM_YMU759 && note!=0) {
               // apparently YMU759 is stored 2 octaves lower
-              pat->data[k][1]+=2;
+              octave+=2;
             }
-            if (pat->data[k][0]==0 && pat->data[k][1]!=0) {
-              logD("what? %d:%d:%d note %d octave %d",i,j,k,pat->data[k][0],pat->data[k][1]);
-              pat->data[k][0]=12;
-              pat->data[k][1]--;
+            if (note==0 && octave!=0) {
+              logD("what? %d:%d:%d note %d octave %d",i,j,k,note,octave);
+              note=12;
+              octave--;
             }
+
+            pat->newData[k][DIV_PAT_NOTE]=splitNoteToNote(note,octave);
+
             // volume
-            pat->data[k][3]=reader.readS();
+            pat->newData[k][DIV_PAT_VOL]=reader.readS();
             if (ds.version<0x0a) {
               // back then volume was stored as 00-ff instead of 00-7f/0-f
               if (i>5) {
-                pat->data[k][3]>>=4;
+                pat->newData[k][DIV_PAT_VOL]>>=4;
               } else {
-                pat->data[k][3]>>=1;
+                pat->newData[k][DIV_PAT_VOL]>>=1;
               }
             }
             if (ds.version<0x12) {
-              if (ds.system[0]==DIV_SYSTEM_GB && i==2 && pat->data[k][3]>0) {
+              if (ds.system[0]==DIV_SYSTEM_GB && i==2 && pat->newData[k][DIV_PAT_VOL]>0) {
                 // volume range of GB wave channel was 0-3 rather than 0-F
-                pat->data[k][3]=(pat->data[k][3]&3)*5;
+                pat->newData[k][DIV_PAT_VOL]=(pat->newData[k][DIV_PAT_VOL]&3)*5;
               }
             }
             for (int l=0; l<chan.effectCols; l++) {
               // effect
-              pat->data[k][4+(l<<1)]=reader.readS();
-              pat->data[k][5+(l<<1)]=reader.readS();
+              pat->newData[k][DIV_PAT_FX(l)]=reader.readS();
+              pat->newData[k][DIV_PAT_FXVAL(l)]=reader.readS();
 
               if (ds.version<0x14) {
-                if (pat->data[k][4+(l<<1)]==0xe5 && pat->data[k][5+(l<<1)]!=-1) {
-                  pat->data[k][5+(l<<1)]=128+((pat->data[k][5+(l<<1)]-128)/4);
+                // the range of E5xx was different back then
+                if (pat->newData[k][DIV_PAT_FX(l)]==0xe5 && pat->newData[k][DIV_PAT_FXVAL(l)]!=-1) {
+                  pat->newData[k][DIV_PAT_FXVAL(l)]=128+((pat->newData[k][DIV_PAT_FXVAL(l)]-128)/4);
                 }
+              }
+              // YM2151: pitch effect range is different
+              if (ds.system[0]==DIV_SYSTEM_ARCADE && pat->newData[k][DIV_PAT_FX(l)]==0xe5 && pat->newData[k][DIV_PAT_FXVAL(l)]!=-1) {
+                int newVal=(2*((pat->newData[k][DIV_PAT_FXVAL(l)]&0xff)-0x80))+0x80;
+                if (newVal<0) newVal=0;
+                if (newVal>0xff) newVal=0xff;
+                pat->newData[k][DIV_PAT_FXVAL(l)]=newVal;
               }
             }
             // instrument
-            pat->data[k][2]=reader.readS();
+            pat->newData[k][DIV_PAT_INS]=reader.readS();
 
             // this is sad
             if (ds.system[0]==DIV_SYSTEM_NES_FDS) {
-              if (i==5 && pat->data[k][2]!=-1) {
-                if (pat->data[k][2]>=0 && pat->data[k][2]<ds.insLen) {
-                  ds.ins[pat->data[k][2]]->type=DIV_INS_FDS;
+              if (i==5 && pat->newData[k][DIV_PAT_INS]!=-1) {
+                if (pat->newData[k][DIV_PAT_INS]>=0 && pat->newData[k][DIV_PAT_INS]<ds.insLen) {
+                  ds.ins[pat->newData[k][DIV_PAT_INS]]->type=DIV_INS_FDS;
                 }
               }
             }
             if (ds.system[0]==DIV_SYSTEM_MSX2) {
-              if (i>=3 && pat->data[k][2]!=-1) {
-                if (pat->data[k][2]>=0 && pat->data[k][2]<ds.insLen) {
-                  ds.ins[pat->data[k][2]]->type=DIV_INS_SCC;
+              if (i>=3 && pat->newData[k][DIV_PAT_INS]!=-1) {
+                if (pat->newData[k][DIV_PAT_INS]>=0 && pat->newData[k][DIV_PAT_INS]<ds.insLen) {
+                  ds.ins[pat->newData[k][DIV_PAT_INS]]->type=DIV_INS_SCC;
                 }
               }
             }
           }
         } else { // historic pattern format
-          if (i<16) pat->data[0][2]=historicColIns[i];
+          if (i<16) pat->newData[0][DIV_PAT_INS]=historicColIns[i];
           for (int k=0; k<ds.subsong[0]->patLen; k++) {
-            // note
-            pat->data[k][0]=reader.readC();
-            // octave
-            pat->data[k][1]=reader.readC();
-            if (pat->data[k][0]!=0) {
+            short note=reader.readC();
+            short octave=reader.readC();
+
+            if (note!=0) {
               // YMU759 is stored 2 octaves lower
-              pat->data[k][1]+=2;
+              octave+=2;
             }
-            if (pat->data[k][0]==0 && pat->data[k][1]!=0) {
-              logD("what? %d:%d:%d note %d octave %d",i,j,k,pat->data[k][0],pat->data[k][1]);
-              pat->data[k][0]=12;
-              pat->data[k][1]--;
+            if (note==0 && octave!=0) {
+              logD("what? %d:%d:%d note %d octave %d",i,j,k,note,octave);
+              note=12;
+              octave--;
             }
+
+            pat->newData[k][DIV_PAT_NOTE]=splitNoteToNote(note,octave);
+
             // volume and effect
             unsigned char vol=reader.readC();
             unsigned char fx=reader.readC();
             unsigned char fxVal=reader.readC();
-            pat->data[k][3]=(vol==0x80 || vol==0xff)?-1:vol;
+            pat->newData[k][DIV_PAT_VOL]=(vol==0x80 || vol==0xff)?-1:vol;
             // effect
-            pat->data[k][4]=(fx==0x80 || fx==0xff)?-1:fx;
-            pat->data[k][5]=(fxVal==0x80 || fx==0xff)?-1:fxVal;
+            pat->newData[k][DIV_PAT_FX(0)]=(fx==0x80 || fx==0xff)?-1:fx;
+            pat->newData[k][DIV_PAT_FXVAL(0)]=(fxVal==0x80 || fx==0xff)?-1:fxVal;
             // instrument
             if (ds.version>0x05) {
-              pat->data[k][2]=reader.readC();
-              if (pat->data[k][2]==0x80 || pat->data[k][2]==0xff) pat->data[k][2]=-1;
+              pat->newData[k][DIV_PAT_INS]=reader.readC();
+              if (pat->newData[k][DIV_PAT_INS]==0x80 || pat->newData[k][DIV_PAT_INS]==0xff) pat->newData[k][DIV_PAT_INS]=-1;
             }
           }
         }
@@ -1630,12 +1641,13 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   bool relWarning=false;
 
   for (int i=0; i<getChannelCount(sys); i++) {
+    short note, octave;
     w->writeC(curPat[i].effectCols);
 
     for (int j=0; j<curSubSong->ordersLen; j++) {
       DivPattern* pat=curPat[i].getPattern(curOrders->ord[i][j],false);
       for (int k=0; k<curSubSong->patLen; k++) {
-        if ((pat->data[k][0]==101 || pat->data[k][0]==102) && pat->data[k][1]==0) {
+        if (pat->newData[k][DIV_PAT_NOTE]==DIV_NOTE_REL || pat->newData[k][DIV_PAT_NOTE]==DIV_MACRO_REL) {
           w->writeS(100);
           w->writeS(0);
           if (!relWarning) {
@@ -1643,18 +1655,19 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
             addWarning("note/macro release will be converted to note off!");
           }
         } else {
-          w->writeS(pat->data[k][0]); // note
-          w->writeS(pat->data[k][1]); // octave
+          noteToSplitNote(pat->newData[k][DIV_PAT_NOTE],note,octave);
+          w->writeS(note); // note
+          w->writeS(octave); // octave
         }
-        w->writeS(pat->data[k][3]); // volume
+        w->writeS(pat->newData[k][DIV_PAT_VOL]); // volume
 #ifdef TA_BIG_ENDIAN
         for (int l=0; l<curPat[i].effectCols*2; l++) {
-          w->writeS(pat->data[k][4+l]);
+          w->writeS(pat->newData[k][DIV_PAT_FX(0)+l]);
         }
 #else
-        w->write(&pat->data[k][4],2*curPat[i].effectCols*2); // effects
+        w->write(&pat->newData[k][DIV_PAT_FX(0)],2*curPat[i].effectCols*2); // effects
 #endif
-        w->writeS(pat->data[k][2]); // instrument
+        w->writeS(pat->newData[k][DIV_PAT_INS]); // instrument
       }
     }
   }

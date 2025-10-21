@@ -1468,8 +1468,8 @@ struct FurnaceGUIFindQuery {
     insMode(GUI_QUERY_IGNORE),
     volMode(GUI_QUERY_IGNORE),
     effectCount(0),
-    note(0),
-    noteMax(0),
+    note(108),
+    noteMax(108),
     ins(0),
     insMax(0),
     vol(0),
@@ -2003,7 +2003,6 @@ class FurnaceGUI {
     int iCannotWait;
     int orderButtonPos;
     int compress;
-    int newPatternFormat;
     int renderClearPos;
     int insertBehavior;
     int pullDeleteRow;
@@ -2257,7 +2256,6 @@ class FurnaceGUI {
       iCannotWait(0),
       orderButtonPos(2),
       compress(1),
-      newPatternFormat(1),
       renderClearPos(0),
       insertBehavior(1),
       pullDeleteRow(1),
@@ -3145,9 +3143,9 @@ class FurnaceGUI {
     void showWarning(String what, FurnaceGUIWarnings type);
     void showError(String what);
     String getLastError();
-    const char* noteNameNormal(short note, short octave);
-    const char* noteName(short note, short octave);
-    bool decodeNote(const char* what, short& note, short& octave);
+    const char* noteNameNormal(short note);
+    const char* noteName(short note);
+    bool decodeNote(const char* what, short& note);
     void bindEngine(DivEngine* eng);
     void enableSafeMode();
     void updateScroll(int amount);

@@ -45,7 +45,7 @@ std::vector<std::pair<int,int>> DivChannelData::optimize() {
       for (int j=0; j<DIV_MAX_PATTERNS; j++) {
         if (j==i) continue;
         if (data[j]==NULL) continue;
-        if (memcmp(data[i]->data,data[j]->data,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short))==0) {
+        if (memcmp(data[i]->newData,data[j]->newData,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short))==0) {
           delete data[j];
           data[j]=NULL;
           logV("%d == %d",i,j);
@@ -86,15 +86,11 @@ void DivChannelData::wipePatterns() {
 
 void DivPattern::copyOn(DivPattern* dest) {
   dest->name=name;
-  memcpy(dest->data,data,sizeof(data));
+  memcpy(dest->newData,newData,sizeof(newData));
 }
 
 void DivPattern::clear() {
-  memset(data,-1,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short));
-  for (int i=0; i<DIV_MAX_ROWS; i++) {
-    data[i][0]=0;
-    data[i][1]=0;
-  }
+  memset(newData,-1,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short));
 }
 
 DivChannelData::DivChannelData():
