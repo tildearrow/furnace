@@ -2315,7 +2315,7 @@ class FurnaceGUI {
       songNotesWrap(0),
       rackShowLEDs(1),
       sampleImportInstDetune(0),
-      mixerStyle(0),
+      mixerStyle(1),
       mainFontPath(""),
       headFontPath(""),
       patFontPath(""),
