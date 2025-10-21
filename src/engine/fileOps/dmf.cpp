@@ -840,6 +840,13 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
                   pat->newData[k][DIV_PAT_FXVAL(l)]=128+((pat->newData[k][DIV_PAT_FXVAL(l)]-128)/4);
                 }
               }
+              // YM2151: pitch effect range is different
+              if (ds.system[0]==DIV_SYSTEM_ARCADE && pat->newData[k][DIV_PAT_FX(l)]==0xe5 && pat->newData[k][DIV_PAT_FXVAL(l)]!=-1) {
+                int newVal=(2*((pat->newData[k][DIV_PAT_FXVAL(l)]&0xff)-0x80))+0x80;
+                if (newVal<0) newVal=0;
+                if (newVal>0xff) newVal=0xff;
+                pat->newData[k][DIV_PAT_FXVAL(l)]=newVal;
+              }
             }
             // instrument
             pat->newData[k][DIV_PAT_INS]=reader.readS();

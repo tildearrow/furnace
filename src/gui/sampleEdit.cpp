@@ -1144,7 +1144,7 @@ void FurnaceGUI::drawSampleEdit() {
           if (resampleTarget>384000) resampleTarget=384000;
         }
         double factor=resampleTarget/(double)targetRate;
-        unsigned int targetLength=sample->samples*factor;
+        unsigned int targetLength=round(sample->samples*factor);
         if (ImGui::InputScalar("Length##SRLen",ImGuiDataType_U32,&targetLength, &_ONE, &_SIXTEEN)) {
           if (targetLength<1) targetLength=1;
           resampleTarget=targetRate*targetLength/(double)sample->samples;
