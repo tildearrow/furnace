@@ -3356,6 +3356,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   float decay=2.f*size/got.rate;
   for (int i=0; i<song.systemLen; i++) {
     DivDispatch* disp=disCont[i].dispatch;
+    if (disp==NULL) continue;
     for (int j=0; j<disp->getOutputCount(); j++) {
       chipPeak[i][j]*=1.0-decay;
       float peak=chipPeak[i][j];
