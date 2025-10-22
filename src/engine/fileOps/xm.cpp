@@ -251,7 +251,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
     unsigned short totalChans=reader.readS();
     unsigned short patCount=reader.readS();
     ds.insLen=(unsigned short)reader.readS();
-    ds.linearPitch=(reader.readS()&1)?2:0;
+    ds.linearPitch=(reader.readS()&1)?1:0;
     ds.subsong[0]->speeds.val[0]=reader.readS();
     ds.subsong[0]->speeds.len=1;
     double bpm=(unsigned short)reader.readS();

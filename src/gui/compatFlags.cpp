@@ -302,15 +302,15 @@ void FurnaceGUI::drawCompatFlags() {
       if (ImGui::BeginTabItem(_("Pitch/Playback"))) {
         ImGui::Text(_("Pitch linearity:"));
         ImGui::Indent();
-        if (ImGui::RadioButton(_("None"),e->song.linearPitch==0)) {
+        if (ImGui::RadioButton(_("None"),!e->song.linearPitch)) {
           e->song.linearPitch=0;
           MARK_MODIFIED;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("like ProTracker/FamiTracker"));
         }
-        if (ImGui::RadioButton(_("Full"),e->song.linearPitch==2)) {
-          e->song.linearPitch=2;
+        if (ImGui::RadioButton(_("Full"),e->song.linearPitch)) {
+          e->song.linearPitch=1;
           MARK_MODIFIED;
         }
         if (ImGui::IsItemHovered()) {

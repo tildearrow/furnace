@@ -54,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev236"
-#define DIV_ENGINE_VERSION 236
+#define DIV_VERSION "dev237"
+#define DIV_ENGINE_VERSION 237
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -548,8 +548,6 @@ class DivEngine {
 
   short vibTable[64];
   short tremTable[128];
-  int reversePitchTable[4096];
-  int pitchTable[4096];
   short effectSlotMap[4096];
   int midiBaseChan;
   bool midiPoly;
@@ -1539,8 +1537,6 @@ class DivEngine {
       memset(sysOfChan,0,DIV_MAX_CHANS*sizeof(int));
       memset(vibTable,0,64*sizeof(short));
       memset(tremTable,0,128*sizeof(short));
-      memset(reversePitchTable,0,4096*sizeof(int));
-      memset(pitchTable,0,4096*sizeof(int));
       memset(effectSlotMap,-1,4096*sizeof(short));
       memset(sysDefs,0,DIV_MAX_CHIP_DEFS*sizeof(void*));
       memset(romExportDefs,0,DIV_ROM_MAX*sizeof(void*));

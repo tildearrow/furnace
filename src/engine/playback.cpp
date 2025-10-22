@@ -1699,7 +1699,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].inPorta=false;
           // COMPAT FLAG: arpeggio inhibits non-porta slides
           if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
-          dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch==2?song.pitchSlideSpeed:1),chan[i].portaNote));
+          dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch?song.pitchSlideSpeed:1),chan[i].portaNote));
           chan[i].portaNote=-1;
           chan[i].portaSpeed=-1;
           chan[i].inPorta=false;
@@ -2420,11 +2420,10 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
             // it returns whether the portamento is complete and has reached the target note.
             // COMPAT FLAG: pitch linearity
             // - 0: none (pitch control and slides non-linear)
-            // - 1: partial (pitch control linear; pitch slides non-linear)
-            // - 2: full (pitch slides linear... we multiply the portamento speed by a user-defined multiplier)
+            // - 1: full (pitch slides linear... we multiply the portamento speed by a user-defined multiplier)
             // COMPAT FLAG: reset pitch slide/portamento upon reaching target (inverted in the GUI)
             // - when disabled, portamento remains active after it has finished
-            if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch==2?song.pitchSlideSpeed:1),chan[i].portaNote))==2 && chan[i].portaStop && song.targetResetsSlides) {
+            if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch?song.pitchSlideSpeed:1),chan[i].portaNote))==2 && chan[i].portaStop && song.targetResetsSlides) {
               // if we are here, it means we reached the target and shall stop
               chan[i].portaSpeed=0;
               dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));

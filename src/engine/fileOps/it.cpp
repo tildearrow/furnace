@@ -277,7 +277,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     }
 
     if (flags&8) {
-      ds.linearPitch=2;
+      ds.linearPitch=1;
     } else {
       ds.linearPitch=0;
     }
@@ -1667,7 +1667,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     for (int i=0; i<(maxChan+32)>>5; i++) {
       ds.system[i]=DIV_SYSTEM_ES5506;
       ds.systemFlags[i].set("amigaVol",true);
-      if (ds.linearPitch!=2) {
+      if (!ds.linearPitch) {
         ds.systemFlags[i].set("amigaPitch",true);
       }
     }
