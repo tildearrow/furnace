@@ -1520,14 +1520,13 @@ String DivEngine::getPlaybackDebugInfo() {
     "totalCmds: %d\n"
     "lastCmds: %d\n"
     "cmdsPerSecond: %d\n"
-    "globalPitch: %d\n"
     "extValue: %d\n"
     "tempoAccum: %d\n"
     "totalProcessed: %d\n"
     "bufferPos: %d\n",
     curOrder,prevOrder,curRow,prevRow,ticks,subticks,totalLoops,lastLoopPos,nextSpeed,divider,cycles,clockDrift,
     midiClockCycles,midiClockDrift,midiTimeCycles,midiTimeDrift,changeOrd,changePos,totalSeconds,totalTicks,
-    totalTicksR,curMidiClock,curMidiTime,totalCmds,lastCmds,cmdsPerSecond,globalPitch,
+    totalTicksR,curMidiClock,curMidiTime,totalCmds,lastCmds,cmdsPerSecond,
     (int)extValue,(int)tempoAccum,(int)totalProcessed,(int)bufferPos
   );
 }
@@ -2174,7 +2173,6 @@ void DivEngine::reset() {
   elapsedBeats=0;
   nextSpeed=speeds.val[0];
   divider=curSubSong->hz;
-  globalPitch=0;
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].dispatch->reset();
     disCont[i].clear();

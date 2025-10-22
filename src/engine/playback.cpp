@@ -1465,12 +1465,6 @@ void DivEngine::processRow(int i, bool afterDelay) {
         extValuePresent=true;
         dispatchCmd(DivCommand(DIV_CMD_EXTERNAL,i,effectVal));
         break;
-      case 0xef: // global pitch
-        // this is a legacy effect that only works in partial pitch linearity.
-        // it adds to the global pitch but results in crazy frequency errors if this is too high.
-        // it is hidden from the GUI and will be removed once partial pitch linearity is obliterated from Furnace.
-        globalPitch+=(signed char)(effectVal-0x80);
-        break;
       case 0xf0: // set Hz by tempo
         // the resulting tick rate is effectVal*2/5
         // 125 BPM = 50Hz; 150 BPM = 60Hz...

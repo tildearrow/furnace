@@ -485,7 +485,7 @@ class DivEngine {
   int midiTimeCycles;
   double midiTimeDrift;
   int stepPlay;
-  int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, curMidiClock, curMidiTime, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
+  int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, curMidiClock, curMidiTime, totalCmds, lastCmds, cmdsPerSecond;
   double totalTicksOff;
   int curMidiTimePiece, curMidiTimeCode;
   unsigned char extValue, pendingMetroTick;
@@ -1475,7 +1475,6 @@ class DivEngine {
       totalCmds(0),
       lastCmds(0),
       cmdsPerSecond(0),
-      globalPitch(0),
       totalTicksOff(0.0),
       curMidiTimePiece(0),
       curMidiTimeCode(0),
