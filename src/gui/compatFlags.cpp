@@ -309,17 +309,6 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("like ProTracker/FamiTracker"));
         }
-        if (e->song.linearPitch==1) {
-          pushWarningColor(true);
-          if (ImGui::RadioButton(_("Partial (only 04xy/E5xx)"),e->song.linearPitch==1)) {
-            e->song.linearPitch=1;
-            MARK_MODIFIED;
-          }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("like DefleMask\n\nthis pitch linearity mode is deprecated due to:\n- excessive complexity\n- lack of possible optimization\n\nit is recommended to change it now because I will remove this option in the future!"));
-          }
-          popWarningColor();
-        }
         if (ImGui::RadioButton(_("Full"),e->song.linearPitch==2)) {
           e->song.linearPitch=2;
           MARK_MODIFIED;
