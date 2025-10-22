@@ -99,7 +99,8 @@ endif()
 
 if(MSVC)
   set(OPUS_STATIC_RUNTIME_HELP_STR "build with static runtime library.")
-  option(OPUS_STATIC_RUNTIME ${OPUS_STATIC_RUNTIME_HELP_STR} OFF)
+  # tildearrow: set to on in order to pass build.
+  option(OPUS_STATIC_RUNTIME ${OPUS_STATIC_RUNTIME_HELP_STR} ON)
   add_feature_info(OPUS_STATIC_RUNTIME OPUS_STATIC_RUNTIME ${OPUS_STATIC_RUNTIME_HELP_STR})
 endif()
 
