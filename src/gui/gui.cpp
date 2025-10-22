@@ -4933,7 +4933,7 @@ bool FurnaceGUI::loop() {
             default: // effect
               if (cursor.xFine<DIV_MAX_COLS) {
                 if (p->newData[cursor.y][cursor.xFine]>-1) {
-                  info=e->getEffectDesc(p->newData[cursor.y][cursor.xFine],cursor.xCoarse,true);
+                  info=e->getEffectDesc(p->newData[cursor.y][(cursor.xFine-1)|1],cursor.xCoarse,true);
                   hasInfo=true;
                 }
               } else {
