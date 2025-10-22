@@ -223,7 +223,7 @@ void DivPlatformPOKEY::tick(bool sysTick) {
       }
 
       // non-linear pitch
-      if (parent->song.linearPitch==0) {
+      if (!parent->song.linearPitch) {
         chan[i].freq-=chan[i].pitch;
       }
 

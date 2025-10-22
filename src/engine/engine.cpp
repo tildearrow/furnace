@@ -1780,7 +1780,7 @@ int DivEngine::calcBaseFreq(double clock, double divider, int note, bool period)
 }*/
 
 double DivEngine::calcBaseFreq(double clock, double divider, int note, bool period) {
-  if (song.linearPitch==2) { // full linear
+  if (song.linearPitch) { // linear
     return (note<<7);
   }
   double base=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(note+3)/12.0);
@@ -1830,7 +1830,7 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
   return bf|((block)<<(bits));
 
 int DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int bits, int fixedBlock) {
-  if (song.linearPitch==2) { // full linear
+  if (song.linearPitch) { // linear
     return (note<<7);
   }
   int bf=calcBaseFreq(clock,divider,note,false);
@@ -1842,7 +1842,8 @@ int DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int
 }
 
 int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period, int octave, int pitch2, double clock, double divider, int blockBits, int fixedBlock) {
-  if (song.linearPitch==2) {
+  // linear pitch
+  if (song.linearPitch) {
     // do frequency calculation here
     int nbase=base+pitch+pitch2;
     if (!song.oldArpStrategy) {
@@ -1866,24 +1867,7 @@ int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period
       return bf;
     }
   }
-  if (song.linearPitch==1) {
-    // global pitch multiplier
-    int whatTheFuck=(1024+(globalPitch<<6)-(globalPitch<0?globalPitch-6:0));
-    if (whatTheFuck<1) whatTheFuck=1; // avoids division by zero but please kill me
-    if (song.pitchMacroIsLinear) {
-      pitch+=pitch2;
-    }
-    pitch+=2048;
-    if (pitch<0) pitch=0;
-    if (pitch>4095) pitch=4095;
-    int ret=period?
-              ((base*(reversePitchTable[pitch]))/whatTheFuck):
-              (((base*(pitchTable[pitch]))>>10)*whatTheFuck)/1024;
-    if (!song.pitchMacroIsLinear) {
-      ret+=period?(-pitch2):pitch2;
-    }
-    return ret;
-  }
+  // non-linear pitch
   return period?
            base-pitch-pitch2:
            base+((pitch*octave)>>1)+pitch2;
@@ -2175,7 +2159,7 @@ void DivEngine::reset() {
     chan[i]=DivChannelState();
     if (i<chans) chan[i].volMax=(disCont[dispatchOfChan[i]].dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,dispatchChanOfChan[i]))<<8)|0xff;
     chan[i].volume=chan[i].volMax;
-    if (song.linearPitch==0) chan[i].vibratoFine=4;
+    if (!song.linearPitch) chan[i].vibratoFine=4;
   }
   extValue=0;
   extValuePresent=0;
@@ -4242,10 +4226,6 @@ bool DivEngine::init() {
   }
   for (int i=0; i<128; i++) {
     tremTable[i]=255*0.5*(1.0-cos(((double)i/128.0)*(2*M_PI)));
-  }
-  for (int i=0; i<4096; i++) {
-    reversePitchTable[i]=round(1024.0*pow(2.0,(2048.0-(double)i)/(12.0*128.0)));
-    pitchTable[i]=round(1024.0*pow(2.0,((double)i-2048.0)/(12.0*128.0)));
   }
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {

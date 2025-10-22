@@ -261,13 +261,13 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       int destFreq=NOTE_PERIODIC(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
-        chan[c.chan].baseFreq+=c.value*((parent->song.linearPitch==2)?1:(8-chan[c.chan].freqH));
+        chan[c.chan].baseFreq+=c.value*((parent->song.linearPitch)?1:(8-chan[c.chan].freqH));
         if (chan[c.chan].baseFreq>=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
         }
       } else {
-        chan[c.chan].baseFreq-=c.value*((parent->song.linearPitch==2)?1:(8-chan[c.chan].freqH));
+        chan[c.chan].baseFreq-=c.value*((parent->song.linearPitch)?1:(8-chan[c.chan].freqH));
         if (chan[c.chan].baseFreq<=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
