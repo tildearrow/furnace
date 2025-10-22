@@ -8079,9 +8079,17 @@ bool FurnaceGUI::init() {
     // just in case
     if (strcmp(f.extension,"dmc")==0) continue;
     if (strcmp(f.extension,"brr")==0) continue;
-    audioLoadFormats.push_back(f.name);
-    audioLoadFormats.push_back(fmt::sprintf("*.%s",f.extension));
-    compatFormats+=fmt::sprintf("*.%s ",f.extension);
+
+    // special treatment for Ogg
+    if (strcmp(f.extension,"oga")==0) {
+      audioLoadFormats.push_back(f.name);
+      audioLoadFormats.push_back("*.ogg *.oga *.opus");
+      compatFormats+="*.ogg *.oga *.opus";
+    } else {
+      audioLoadFormats.push_back(f.name);
+      audioLoadFormats.push_back(fmt::sprintf("*.%s",f.extension));
+      compatFormats+=fmt::sprintf("*.%s ",f.extension);
+    }
   }
 #endif
 
