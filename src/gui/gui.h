@@ -2811,6 +2811,7 @@ class FurnaceGUI {
 
   // export options
   DivAudioExportOptions audioExportOptions;
+  String audioExportFilterName, audioExportFilterExt;
   int dmfExportVersion;
   FurnaceGUIExportTypes curExportType;
   DivCSOptions csExportOptions;

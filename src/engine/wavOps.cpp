@@ -123,10 +123,25 @@ void DivEngine::runExportThread() {
       SFWrapper sfWrap;
       si.samplerate=got.rate;
       si.channels=exportOutputs;
-      if (exportFormat==DIV_EXPORT_FORMAT_S16) {
-        si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
-      } else {
-        si.format=SF_FORMAT_WAV|SF_FORMAT_FLOAT;
+      switch (exportFormat) {
+        case DIV_EXPORT_FORMAT_S16:
+          si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
+          break;
+        case DIV_EXPORT_FORMAT_F32:
+          si.format=SF_FORMAT_WAV|SF_FORMAT_FLOAT;
+          break;
+        case DIV_EXPORT_FORMAT_OPUS:
+          si.format=SF_FORMAT_OGG|SF_FORMAT_OPUS;
+          break;
+        case DIV_EXPORT_FORMAT_FLAC:
+          si.format=SF_FORMAT_FLAC;
+          break;
+        case DIV_EXPORT_FORMAT_VORBIS:
+          si.format=SF_FORMAT_OGG|SF_FORMAT_VORBIS;
+          break;
+        case DIV_EXPORT_FORMAT_MPEG_L3:
+          si.format=SF_FORMAT_MPEG|SF_FORMAT_MPEG_LAYER_III;
+          break;
       }
 
       sf=sfWrap.doOpen(exportPath.c_str(),SFM_WRITE,&si);
@@ -134,6 +149,59 @@ void DivEngine::runExportThread() {
         logE("could not open file for writing! (%s)",sf_strerror(NULL));
         exporting=false;
         return;
+      }
+
+      if (exportFormat!=DIV_EXPORT_FORMAT_S16 && exportFormat!=DIV_EXPORT_FORMAT_F32) {
+        float mappedLevel=0.0f;
+
+        switch (exportFormat) {
+          case DIV_EXPORT_FORMAT_OPUS:
+            mappedLevel=(float)(256000-exportBitRate)/250000.0;
+            break;
+          case DIV_EXPORT_FORMAT_FLAC:
+            mappedLevel=exportVBRQuality*0.125;
+            break;
+          case DIV_EXPORT_FORMAT_VORBIS:
+            mappedLevel=10.0-exportVBRQuality*0.1;
+            break;
+          case DIV_EXPORT_FORMAT_MPEG_L3: {
+            int mappedBitRateMode=SF_BITRATE_MODE_CONSTANT;
+            switch (exportBitRateMode) {
+              case DIV_EXPORT_BITRATE_CONSTANT:
+                mappedBitRateMode=SF_BITRATE_MODE_CONSTANT;
+                break;
+              case DIV_EXPORT_BITRATE_VARIABLE:
+                mappedBitRateMode=SF_BITRATE_MODE_VARIABLE;
+                break;
+              case DIV_EXPORT_BITRATE_AVERAGE:
+                mappedBitRateMode=SF_BITRATE_MODE_AVERAGE;
+                break;
+            }
+            if (exportBitRateMode==DIV_EXPORT_BITRATE_VARIABLE) {
+              mappedLevel=exportVBRQuality*0.1;
+            } else {
+              // a bit complicated
+              if (got.rate>=32000) {
+                mappedLevel=(320000.0f-(float)exportBitRate)/288000.0f;
+              } else if (got.rate>=16000) {
+                mappedLevel=(160000.0f-(float)exportBitRate)/152000.0f;
+              } else {
+                mappedLevel=(64000.0f-(float)exportBitRate)/56000.0f;
+              }
+            }
+
+            if (sf_command(sf,SFC_SET_BITRATE_MODE,&mappedBitRateMode,sizeof(mappedBitRateMode))!=SF_TRUE) {
+              logE("could not set bit rate mode! (%s)",sf_strerror(sf));
+            }
+            break;
+          }
+          default:
+            break;
+        }
+
+        if (sf_command(sf,SFC_SET_COMPRESSION_LEVEL,&mappedLevel,sizeof(mappedLevel))!=SF_TRUE) {
+          logE("could not set compression level! (%s)",sf_strerror(sf));
+        }
       }
 
       float* outBuf[DIV_MAX_OUTPUTS];
@@ -349,10 +417,25 @@ void DivEngine::runExportThread() {
         logI("- %s",fname.c_str());
         si.samplerate=got.rate;
         si.channels=exportOutputs;
-        if (exportFormat==DIV_EXPORT_FORMAT_S16) {
-          si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
-        } else {
-          si.format=SF_FORMAT_WAV|SF_FORMAT_FLOAT;
+        switch (exportFormat) {
+          case DIV_EXPORT_FORMAT_S16:
+            si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
+            break;
+          case DIV_EXPORT_FORMAT_F32:
+            si.format=SF_FORMAT_WAV|SF_FORMAT_FLOAT;
+            break;
+          case DIV_EXPORT_FORMAT_OPUS:
+            si.format=SF_FORMAT_OGG|SF_FORMAT_OPUS;
+            break;
+          case DIV_EXPORT_FORMAT_FLAC:
+            si.format=SF_FORMAT_FLAC;
+            break;
+          case DIV_EXPORT_FORMAT_VORBIS:
+            si.format=SF_FORMAT_OGG|SF_FORMAT_VORBIS;
+            break;
+          case DIV_EXPORT_FORMAT_MPEG_L3:
+            si.format=SF_FORMAT_MPEG|SF_FORMAT_MPEG_LAYER_III;
+            break;
         }
 
         sf=sfWrap.doOpen(fname.c_str(),SFM_WRITE,&si);
@@ -490,6 +573,9 @@ bool DivEngine::saveAudio(const char* path, DivAudioExportOptions options) {
   exportPath=path;
   exportMode=options.mode;
   exportFormat=options.format;
+  exportBitRate=options.bitRate;
+  exportBitRateMode=options.bitRateMode;
+  exportVBRQuality=options.vbrQuality;
   exportFadeOut=options.fadeOut;
   memcpy(exportChannelMask,options.channelMask,DIV_MAX_CHANS*sizeof(bool));
   if (exportMode!=DIV_EXPORT_MODE_ONE) {
