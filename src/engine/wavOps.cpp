@@ -121,6 +121,7 @@ void DivEngine::runExportThread() {
       SNDFILE* sf;
       SF_INFO si;
       SFWrapper sfWrap;
+      memset(&si,0,sizeof(SF_INFO));
       si.samplerate=got.rate;
       si.channels=exportOutputs;
       switch (exportFormat) {
@@ -231,6 +232,7 @@ void DivEngine::runExportThread() {
           total++;
           if (isFadingOut) {
             double mul=(1.0-((double)curFadeOutSample/(double)fadeOutSamples));
+            if (fadeOutSamples<1.0) mul=0.0;
             for (int j=0; j<exportOutputs; j++) {
               outBufFinal[fi++]=MAX(-1.0f,MIN(1.0f,outBuf[j][i]))*mul;
             }
@@ -284,6 +286,7 @@ void DivEngine::runExportThread() {
       String fname[DIV_MAX_CHIPS];
       SFWrapper sfWrap[DIV_MAX_CHIPS];
       for (int i=0; i<song.systemLen; i++) {
+        memset(&si[0],0,sizeof(SF_INFO));
         sf[i]=NULL;
         si[i].samplerate=got.rate;
         si[i].channels=disCont[i].dispatch->getOutputCount();
@@ -331,6 +334,7 @@ void DivEngine::runExportThread() {
           total++;
           if (isFadingOut) {
             double mul=(1.0-((double)curFadeOutSample/(double)fadeOutSamples));
+            if (fadeOutSamples<1.0) mul=0.0;
             for (int i=0; i<song.systemLen; i++) {
               for (int k=0; k<si[i].channels; k++) {
                 if (disCont[i].bbOut[k]==NULL) {
@@ -413,6 +417,7 @@ void DivEngine::runExportThread() {
         SNDFILE* sf;
         SF_INFO si;
         SFWrapper sfWrap;
+        memset(&si,0,sizeof(SF_INFO));
         String fname=fmt::sprintf("%s_c%02d.wav",exportPath,i+1);
         logI("- %s",fname.c_str());
         si.samplerate=got.rate;
@@ -483,6 +488,7 @@ void DivEngine::runExportThread() {
             total++;
             if (isFadingOut) {
               double mul=(1.0-((double)curFadeOutSample/(double)fadeOutSamples));
+              if (fadeOutSamples<1.0) mul=0.0;
               for (int k=0; k<exportOutputs; k++) {
                 outBufFinal[fi++]=MAX(-1.0f,MIN(1.0f,outBuf[k][j]))*mul;
               }
