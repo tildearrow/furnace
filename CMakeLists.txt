@@ -314,7 +314,7 @@ if (WITH_MPEG)
   set(MP3LAME_LIBRARY mp3lame CACHE STRING "LAME library" FORCE)
   add_subdirectory(extern/lame EXCLUDE_FROM_ALL)
   add_subdirectory(extern/mpg123 EXCLUDE_FROM_ALL)
-  set(mpg123_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/mpg123/src/include CACHE STRING "mpg123 include dir" FORCE)
+  set(mpg123_INCLUDE_DIR extern/mpg123/src/include CACHE STRING "mpg123 include dir" FORCE)
   set(mpg123_LIBRARY mpg123 CACHE STRING "mpg123 library" FORCE)
 endif()
 

@@ -207,116 +207,7 @@ if(NOT HAVE_FPU)
 endif()
 
 # Modules
-
-if(BUILD_LIBOUT123)
-    if(CHECK_MODULES)
-        list(FIND CHECK_MODULES alsa ALSA_REQUIRED)
-        list(FIND CHECK_MODULES coreaudio COREAUDIO_REQUIRED)
-        list(FIND CHECK_MODULES pulse PULSE_REQUIRED)
-        list(FIND CHECK_MODULES jack JACK_REQUIRED)
-        list(FIND CHECK_MODULES tinyalsa TINYALSA_REQUIRED)
-        list(FIND CHECK_MODULES win32 WIN32_REQUIRED)
-        list(FIND CHECK_MODULES win32_wasapi WIN32_WASAPI_REQUIRED)
-        set(MODULE_NOT_FOUND_MESSAGE "module required but couldn't be found")
-    endif()
-
-    if(NOT CHECK_MODULES OR NOT ALSA_REQUIRED EQUAL -1)
-        find_package(ALSA)
-        if(TARGET ALSA::ALSA)
-            list(APPEND OUTPUT_MODULES alsa)
-        elseif(CHECK_MODULES AND NOT ALSA_REQUIRED EQUAL -1)
-            message(FATAL_ERROR "alsa ${MODULE_NOT_FOUND_MESSAGE}")
-        endif()
-    endif()
-
-    if(NOT CHECK_MODULES OR NOT COREAUDIO_REQUIRED EQUAL -1)
-        if(APPLE)
-            find_library(AUDIO_TOOLBOX AudioToolbox)
-            list(APPEND OUTPUT_MODULES coreaudio)
-        elseif(CHECK_MODULES AND NOT COREAUDIO_REQUIRED EQUAL -1)
-            message(FATAL_ERROR "coreaudio ${MODULE_NOT_FOUND_MESSAGE}")
-        endif()
-    endif()
-
-    find_package(PkgConfig)
-    if(PKG_CONFIG_FOUND)
-        if(NOT CHECK_MODULES OR NOT PULSE_REQUIRED EQUAL -1)
-            pkg_search_module(PULSE libpulse-simple)
-            if(PULSE_FOUND)
-                list(APPEND OUTPUT_MODULES pulse)
-            elseif(CHECK_MODULES AND NOT PULSE_REQUIRED EQUAL -1)
-                message(FATAL_ERROR "pulse ${MODULE_NOT_FOUND_MESSAGE}")
-            endif()
-        endif()
-
-        if(NOT CHECK_MODULES OR NOT JACK_REQUIRED EQUAL -1)
-            pkg_search_module(JACK jack)
-            if(JACK_FOUND)
-                list(APPEND OUTPUT_MODULES jack)
-            elseif(CHECK_MODULES AND NOT JACK_REQUIRED EQUAL -1)
-                message(FATAL_ERROR "jack ${MODULE_NOT_FOUND_MESSAGE}")
-            endif()
-        endif()
-
-        if(NOT CHECK_MODULES OR NOT TINYALSA_REQUIRED EQUAL -1)
-            pkg_search_module(TINYALSA tinyalsa)
-            if(TINYALSA_FOUND)
-                list(APPEND OUTPUT_MODULES tinyalsa)
-            elseif(CHECK_MODULES AND NOT TINYALSA_REQUIRED EQUAL -1)
-                message(FATAL_ERROR "tinyalsa ${MODULE_NOT_FOUND_MESSAGE}")
-            endif()
-        endif()
-    endif()
-
-    if(NOT CHECK_MODULES OR NOT WIN32_REQUIRED EQUAL -1)
-        if(HAVE_WINDOWS_H)
-            set(WIN32_LIBRARIES winmm)
-            list(APPEND OUTPUT_MODULES win32)
-        elseif(CHECK_MODULES AND NOT WIN32_REQUIRED EQUAL -1)
-            message(FATAL_ERROR "win32 ${MODULE_NOT_FOUND_MESSAGE}")
-        endif()
-    endif()
-
-    if(NOT CHECK_MODULES OR NOT WIN32_WASAPI_REQUIRED EQUAL -1)
-        set(WASAPI_INCLUDES "initguid.h" "audioclient.h" "mmdeviceapi.h" "avrt.h")
-        check_include_files("${WASAPI_INCLUDES}" HAVE_WASAPI)
-        if(HAVE_WASAPI)
-            set(WIN32_WASAPI_LIBRARIES ole32 avrt)
-            list(APPEND OUTPUT_MODULES win32_wasapi)
-        elseif(CHECK_MODULES AND NOT WIN32_WASAPI_REQUIRED EQUAL -1)
-            message(FATAL_ERROR "win32_wasapi ${MODULE_NOT_FOUND_MESSAGE}")
-        endif()
-    endif()
-
-    if(CHECK_MODULES)
-        list(REMOVE_AT CHECK_MODULES
-            ${ALSA_REQUIRED}
-            ${COREAUDIO_REQUIRED}
-            ${PULSE_REQUIRED}
-            ${JACK_REQUIRED}
-            ${TINYALSA_REQUIRED}
-            ${WIN32_REQUIRED}
-            ${WIN32_WASAPI_REQUIRED})
-        list(LENGTH CHECK_MODULES CHECK_MODULES_LENGTH)
-        if(NOT CHECK_MODULES_LENGTH EQUAL 0)
-            message(FATAL_ERROR "Dunno how to find modules: ${CHECK_MODULES}")
-        endif()
-    endif()
-
-    if(NOT OUTPUT_MODULES)
-        set(DEFAULT_OUTPUT_MODULE dummy)
-        set(DEFAULT_OUTPUT_MODULES ${DEFAULT_OUTPUT_MODULE})
-    else()
-        list(GET OUTPUT_MODULES 0 _DEFAULT_OUTPUT_MODULE)
-        set(DEFAULT_OUTPUT_MODULE ${_DEFAULT_OUTPUT_MODULE} CACHE STRING "Default output module")
-        if(BUILD_SHARED_LIBS)
-            string(REPLACE ";" "," DEFAULT_OUTPUT_MODULES "${OUTPUT_MODULES}")
-        else()
-            set(DEFAULT_OUTPUT_MODULES ${DEFAULT_OUTPUT_MODULE})
-        endif()
-        set_property(CACHE DEFAULT_OUTPUT_MODULE PROPERTY STRINGS ${OUTPUT_MODULES})
-    endif()
-endif()
+# tildearrow: removed libout123
 
 option(ACCURATE_ROUNDING "use rounding instead of fast truncation for integer output, where possible" ON)
 cmake_dependent_option(FIFO "FIFO support for control interface" ON "HAVE_MKFIFO" OFF)
@@ -353,26 +244,299 @@ option(SYN123_NO_CASES "include special cases for likely parameter values (chann
 cmake_dependent_option(USE_MODULES "dynamically loadable output modules" OFF "BUILD_SHARED_LIBS;HAVE_WIN_DL OR HAVE_UNIX_DL" OFF)
 option(USE_NEW_HUFFTABLE "use new huffman decoding scheme by Taihei (faster on modern CPUs at least, so on by default)" ON)
 
-# what a hack
-include_directories(
-    "${CMAKE_CURRENT_BINARY_DIR}"
-    "include")
+
+# again
+set(TARGET compat)
+add_library(${TARGET} OBJECT
+    "compat/compat.c"
+    "compat/compat_str.c")
+if(BUILD_SHARED_LIBS)
+    set_target_properties(${TARGET} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
+add_library(${TARGET}_dl OBJECT
+    "compat/compat_dl.c")
+if(BUILD_SHARED_LIBS)
+    set_target_properties(${TARGET}_dl PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
+add_library(${TARGET}_str OBJECT
+    "compat/compat_str.c")
+if(BUILD_SHARED_LIBS)
+    set_target_properties(${TARGET}_str PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
+target_include_directories(${TARGET} PRIVATE
+    "${CMAKE_CURRENT_BINARY_DIR}")
 #    "${CMAKE_CURRENT_SOURCE_DIR}"
 
-add_compile_definitions(
+# a motherfiretrucking explosion because I NEED the include directory
+option(NO_FEATURE_REPORT "Disable feature report function" OFF)
+if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+    option(WITH_SSE "x86: build with SSE support if detected. Turn OFF for older devices where autodetection is misleading." ON)
+endif()
+
+if(HAVE_STDLIB_H)
+    set(INCLUDE_STDLIB_H "#include <stdlib.h>")
+else()
+    set(INCLUDE_STDLIB_H "/* #include <stdlib.h> is not available on this system */")
+endif()
+if(HAVE_SYS_TYPES_H)
+    set(INCLUDE_SYS_TYPE_H "#include <sys/types.h>")
+else()
+    set(INCLUDE_SYS_TYPE_H "/* #include <sys/types.h> is not available on this system */")
+endif()
+
+
+
+# PPC with AltiVec is missing. But probably obsolete enough for CMake users.
+
+if(ARCH_IS_X64)
+    set(MACHINE amd64)
+elseif(ARCH_IS_X86)
+    set(MACHINE x86)
+elseif(ARCH_IS_ARM64)
+    set(MACHINE arm64)
+elseif(ARCH_IS_ARM32)
+    set(MACHINE arm32)
+else()
+    message(WARNING "Unknown processor. Using generic optimizations.")
+    set(MACHINE generic)
+endif()
+message(STATUS "Detected machine: ${MACHINE}")
+
+set(TARGET mpg123)
+add_library(${TARGET} STATIC
+    "libmpg123/parse.c"
+    "libmpg123/frame.c"
+    "libmpg123/format.c"
+    "libmpg123/dct64.c"
+    "libmpg123/equalizer.c"
+    "libmpg123/id3.c"
+    "libmpg123/optimize.c"
+    "libmpg123/readers.c"
+    "libmpg123/tabinit.c"
+    "libmpg123/libmpg123.c"
+    "libmpg123/index.c"
+    "$<$<NOT:$<BOOL:${NO_ICY}>>:libmpg123/icy.c>"
+    "$<$<NOT:$<BOOL:${NO_ICY}>>:libmpg123/icy2utf8.c>"
+    "$<$<NOT:$<BOOL:${NO_LAYER1}>>:libmpg123/layer1.c>"
+    "$<$<NOT:$<OR:$<BOOL:${NO_LAYER1}>,$<BOOL:${NO_LAYER2}>>>:libmpg123/layer2.c>"
+    "$<$<NOT:$<BOOL:${NO_LAYER3}>>:libmpg123/layer3.c>"
+    "$<$<NOT:$<BOOL:${NO_NTOM}>>:libmpg123/ntom.c>"
+    "$<$<NOT:$<BOOL:${NO_8BIT}>>:libmpg123/synth_8bit.c>"
+    "$<$<NOT:$<BOOL:${NO_16BIT}>>:libmpg123/synth.c>"
+    "$<$<AND:$<BOOL:${HAVE_FPU}>,$<NOT:$<BOOL:${NO_32BIT}>>>:libmpg123/synth_s32.c>"
+    "$<$<AND:$<BOOL:${HAVE_FPU}>,$<NOT:$<BOOL:${NO_REAL}>>>:libmpg123/synth_real.c>"
+    "$<$<NOT:$<BOOL:${NO_STRING}>>:libmpg123/stringbuf.c>"
+    "$<$<NOT:$<BOOL:${NO_FEATURE_REPORT}>>:libmpg123/feature.c>"
+    "$<$<NOT:$<BOOL:${PORTABLE_API}>>:libmpg123/lfs_wrap.c>"
+    $<TARGET_OBJECTS:compat>)
+
+add_library(MPG123::mpg123 ALIAS mpg123)
+
+if(MSVC)
+    if(MACHINE MATCHES "x86|amd64")
+      find_program(YASM_ASSEMBLER yasm)
+      if(NOT YASM_ASSEMBLER)
+          message(WARNING "Couldn't find yasm assembler for optimizded decoders. Please set YASM_ASSEMBLER variable")
+          set(MACHINE generic)
+      endif()
+    else()
+      message(WARNING "Need work to support non-x86 assembly optimizations with MSVC.")
+      set(MACHINE generic)
+    endif()
+endif()
+
+if(MACHINE STREQUAL "amd64")
+    if(HAVE_FPU)
+        set(PLATFORM_DEFINITIONS OPT_MULTI OPT_X86_64 OPT_AVX OPT_GENERIC OPT_GENERIC_DITHER)
+        set(PLATFORM_SOURCES
+            "libmpg123/dct36_x86_64.S"
+            "libmpg123/dct64_x86_64_float.S"
+            "libmpg123/synth_x86_64_float.S"
+            "libmpg123/synth_x86_64_s32.S"
+            "libmpg123/synth_stereo_x86_64_float.S"
+            "libmpg123/synth_stereo_x86_64_s32.S"
+            "libmpg123/dct36_avx.S"
+            "libmpg123/dct64_avx_float.S"
+            "libmpg123/synth_stereo_avx_float.S"
+            "libmpg123/synth_stereo_avx_s32.S"
+            "libmpg123/getcpuflags_x86_64.S")
+        target_sources(${TARGET} PRIVATE
+            "libmpg123/dither.c")
+        if(ACCURATE_ROUNDING)
+            list(APPEND PLATFORM_SOURCES
+                "libmpg123/synth_x86_64_accurate.S"
+                "libmpg123/synth_stereo_x86_64_accurate.S"
+                "libmpg123/synth_stereo_avx_accurate.S")
+        else()
+            list(APPEND PLATFORM_SOURCES
+                "libmpg123/dct64_x86_64.S"
+                "libmpg123/synth_x86_64.S"
+                "libmpg123/synth_stereo_x86_64.S"
+                "libmpg123/synth_stereo_avx.S"
+                "libmpg123/dct64_avx.S")
+        endif()
+    else()
+        set(PLATFORM_DEFINITIONS OPT_GENERIC)
+    endif()
+elseif(MACHINE STREQUAL "x86")
+    if(TRUE)
+        set(PLATFORM_DEFINITIONS OPT_I386)
+        target_sources(${TARGET} PRIVATE
+            "libmpg123/dct64_i386.c")
+    endif()
+
+    cmake_host_system_information(RESULT HAVE_SSE QUERY HAS_SSE)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+        set(HAVE_SSE ${WITH_SSE})
+    endif()
+    if(HAVE_SSE)
+        set(PLATFORM_DEFINITIONS OPT_SSE)
+        set(PLATFORM_SOURCES
+            "libmpg123/tabinit_mmx.S"
+            "libmpg123/dct36_sse.S"
+            "libmpg123/dct64_sse_float.S"
+            "libmpg123/synth_sse_float.S"
+            "libmpg123/synth_stereo_sse_float.S"
+            "libmpg123/synth_sse_s32.S"
+            "libmpg123/synth_stereo_sse_s32.S")
+        if(ACCURATE_ROUNDING)
+            list(APPEND PLATFORM_SOURCES
+                "libmpg123/synth_sse_accurate.S"
+                "libmpg123/synth_stereo_sse_accurate.S")
+        else()
+            list(APPEND PLATFORM_SOURCES
+                "libmpg123/dct64_sse.S"
+                "libmpg123/synth_sse.S")
+        endif()
+    endif()
+elseif(MACHINE STREQUAL "arm64")
+        set(PLATFORM_DEFINITIONS OPT_MULTI OPT_GENERIC OPT_GENERIC_DITHER OPT_NEON64)
+        set(PLATFORM_SOURCES
+            "libmpg123/dct36_neon64.S"
+            "libmpg123/dct64_neon64_float.S"
+            "libmpg123/synth_neon64_float.S"
+            "libmpg123/synth_neon64_s32.S"
+            "libmpg123/synth_stereo_neon64_float.S"
+            "libmpg123/synth_stereo_neon64_s32.S"
+            "libmpg123/check_neon.S")
+        if(ACCURATE_ROUNDING)
+            list(APPEND PLATFORM_SOURCES
+                "libmpg123/synth_neon64_accurate.S"
+                "libmpg123/synth_stereo_neon64_accurate.S")
+        else()
+            list(APPEND PLATFORM_SOURCES
+                "libmpg123/synth_neon64.S"
+                "libmpg123/synth_stereo_neon64.S")
+        endif()
+        target_sources(${TARGET} PRIVATE
+            "libmpg123/dither.c"
+            "libmpg123/getcpuflags_arm.c")
+elseif(MACHINE STREQUAL "arm32")
+    if(HAVE_FPU)
+            set(PLATFORM_DEFINITIONS OPT_MULTI OPT_GENERIC OPT_GENERIC_DITHER OPT_NEON)
+            set(PLATFORM_SOURCES
+                "libmpg123/dct36_neon.S"
+                "libmpg123/dct64_neon_float.S"
+                "libmpg123/synth_neon_float.S"
+                "libmpg123/synth_neon_s32.S"
+                "libmpg123/synth_stereo_neon_float.S"
+                "libmpg123/synth_stereo_neon_s32.S"
+                "libmpg123/check_neon.S")
+            target_sources(${TARGET} PRIVATE
+                "libmpg123/getcpuflags_arm.c")
+            if(ACCURATE_ROUNDING)
+                list(APPEND PLATFORM_SOURCES
+                    "libmpg123/synth_neon_accurate.S"
+                    "libmpg123/synth_stereo_neon_accurate.S")
+            else()
+                list(APPEND PLATFORM_SOURCES
+                    "libmpg123/dct64_neon.S"
+                    "libmpg123/synth_neon.S"
+                    "libmpg123/synth_stereo_neon.S")
+            endif()
+            target_sources(${TARGET} PRIVATE ${PLATFORM_SOURCES})
+            target_sources(${TARGET} PRIVATE
+                "libmpg123/dither.c")
+    else()
+            set(PLATFORM_DEFINITIONS OPT_ARM)
+            if(ACCURATE_ROUNDING)
+                set(PLATFORM_SOURCES
+                    "libmpg123/synth_arm_accurate.S")
+            else()
+                set(PLATFORM_SOURCES
+                    "libmpg123/synth_arm.S")
+            endif()
+            target_sources(${TARGET} PRIVATE ${PLATFORM_SOURCES})
+    endif()
+elseif(MACHINE STREQUAL "generic")
+    set(PLATFORM_DEFINITIONS OPT_GENERIC)
+endif()
+
+#set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME mpg123)
+
+target_compile_definitions(${TARGET} PRIVATE
     $<$<BOOL:${WIN32}>:_CRT_SECURE_NO_WARNINGS>
     $<$<BOOL:${NO_BUFFER}>:NOXFERMEM>
     $<$<BOOL:${NEWOLD_WRITE_SAMPLE}>:NEWOLD_WRITE_SAMPLE>)
 
-add_compile_options(
+target_compile_options(${TARGET} PRIVATE
     $<$<BOOL:${MSVC}>:/wd4996>)
 
-add_subdirectory("compat")
-add_subdirectory("libmpg123")
-#add_subdirectory("libsyn123")
+target_compile_definitions(${TARGET} PRIVATE
+    $<$<BOOL:$<TARGET_PROPERTY:POSITION_INDEPENDENT_CODE>>:PIC>)
+
+target_compile_definitions(${TARGET} PRIVATE
+    ${PLATFORM_DEFINITIONS}
+    $<$<BOOL:${HAVE_FPU}>:REAL_IS_FLOAT>
+    $<$<NOT:$<BOOL:${HAVE_FPU}>>:REAL_IS_FIXED>)
+
+if(MSVC AND MACHINE MATCHES "x86|amd64" AND YASM_ASSEMBLER)
+    list(TRANSFORM PLATFORM_DEFINITIONS PREPEND /D)
+    foreach(FILE ${PLATFORM_SOURCES})
+        get_filename_component(FILENAME ${FILE} NAME)
+        add_custom_command(
+            OUTPUT ${FILENAME}.asm
+            COMMAND ${CMAKE_C_COMPILER} /DASMALIGN_BALIGN ${PLATFORM_DEFINITIONS}
+            /I"${PROJECT_SOURCE_DIR}/src" /I"${PROJECT_BINARY_DIR}/src" /P /Fi${FILENAME}.asm /Tc "${FILE}"
+            DEPENDS ${FILE}
+            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+        add_custom_command(
+            OUTPUT ${FILENAME}.obj
+            COMMAND ${YASM_ASSEMBLER} -a x86 -m ${MACHINE} -p gas -r raw -f win32 -g null -o ${FILENAME}.obj ${FILENAME}.asm
+            DEPENDS ${FILENAME}.asm
+            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+        target_sources(${TARGET} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}.obj")
+    endforeach()
+else()
+    target_sources(${TARGET} PRIVATE ${PLATFORM_SOURCES})
+endif()
+
+if(HAVE_M)
+    string(APPEND LIBMPG123_LIBS " -lm")
+endif()
+if(WANT_WIN32_UNICODE)
+    string(APPEND LIBMPG123_LIBS " -lshlwapi")
+endif()
+set(LIBMPG123_LIBS "${LIBMPG123_LIBS}" PARENT_SCOPE)
+target_link_libraries(${TARGET} PRIVATE
+    $<$<BOOL:${HAVE_M}>:m>
+    $<$<BOOL:${WANT_WIN32_UNICODE}>:shlwapi>)
+#target_include_directories(${TARGET} INTERFACE
+#    "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
+#    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
+# what a hack
+target_include_directories(${TARGET} PUBLIC
+    "include"
+    PRIVATE
+    "${CMAKE_CURRENT_BINARY_DIR}")
+#    "${CMAKE_CURRENT_SOURCE_DIR}"
+
+
 
 configure_file(config.cmake.h.in config.h)
 
 set(LIBMPG123_LIBS "${LIBMPG123_LIBS}" PARENT_SCOPE)
-set(LIBOUT123_LIBS "${LIBOUT123_LIBS}" PARENT_SCOPE)
 #set(LIBSYN123_LIBS "${LIBSYN123_LIBS}" PARENT_SCOPE)
