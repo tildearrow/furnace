@@ -22,6 +22,7 @@ set(BUILD_GUI_DEFAULT ON)
 set(USE_SDL2_DEFAULT ON)
 set(USE_SNDFILE_DEFAULT ON)
 set(WITH_OGG_DEFAULT ON)
+set(WITH_MPEG_DEFAULT ON)
 set(SYSTEM_SDL2_DEFAULT OFF)
 
 include(CheckIncludeFile)
@@ -113,6 +114,7 @@ option(USE_SNDFILE "Build with libsndfile. Required in order to work with audio 
 option(USE_BACKWARD "Use backward-cpp to print a backtrace on crash/abort." ${USE_BACKWARD_DEFAULT})
 option(USE_MOMO "Build a libintl implementation instead of using the system one." ${USE_MOMO_DEFAULT})
 option(WITH_OGG "Whether to build with Ogg and Vorbis support." ${WITH_OGG_DEFAULT})
+option(WITH_MPEG "Whether to build with MPEG audio support (including MP3)." ${WITH_MPEG_DEFAULT})
 option(WITH_JACK "Whether to build with JACK support. Auto-detects if JACK is available" ${WITH_JACK_DEFAULT})
 option(WITH_PORTAUDIO "Whether to build with PortAudio for audio output." ${WITH_PORTAUDIO_DEFAULT})
 option(WITH_RENDER_SDL "Whether to build with the SDL_Renderer render backend." ${WITH_RENDER_SDL_DEFAULT})
@@ -303,6 +305,9 @@ if (WITH_OGG)
   add_subdirectory(extern/libogg EXCLUDE_FROM_ALL)
   add_subdirectory(extern/libvorbis EXCLUDE_FROM_ALL)
   add_subdirectory(extern/flac EXCLUDE_FROM_ALL)
+endif()
+
+if (WITH_MPEG)
   
 endif()
 
