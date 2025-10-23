@@ -540,7 +540,7 @@ void FurnaceGUI::drawExport() {
         ImGui::CloseCurrentPopup();
       }
       if (ImGui::Button(_("Set pitch linearity to Partial"))) {
-        e->song.linearPitch=1;
+        showError(_("No!"));
         ImGui::CloseCurrentPopup();
       }
       if (ImGui::Button(_("Set fat to max"))) {

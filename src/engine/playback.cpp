@@ -1483,12 +1483,6 @@ void DivEngine::processRow(int i, bool afterDelay) {
         extValuePresent=true;
         dispatchCmd(DivCommand(DIV_CMD_EXTERNAL,i,effectVal));
         break;
-      case 0xef: // global pitch
-        // this is a legacy effect that only works in partial pitch linearity.
-        // it adds to the global pitch but results in crazy frequency errors if this is too high.
-        // it is hidden from the GUI and will be removed once partial pitch linearity is obliterated from Furnace.
-        globalPitch+=(signed char)(effectVal-0x80);
-        break;
       case 0xf0: // set Hz by tempo
         // the resulting tick rate is effectVal*2/5
         // 125 BPM = 50Hz; 150 BPM = 60Hz...
@@ -1717,7 +1711,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].inPorta=false;
           // COMPAT FLAG: arpeggio inhibits non-porta slides
           if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
-          dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch==2?song.pitchSlideSpeed:1),chan[i].portaNote));
+          dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch?song.pitchSlideSpeed:1),chan[i].portaNote));
           chan[i].portaNote=-1;
           chan[i].portaSpeed=-1;
           chan[i].inPorta=false;
@@ -2438,11 +2432,10 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
             // it returns whether the portamento is complete and has reached the target note.
             // COMPAT FLAG: pitch linearity
             // - 0: none (pitch control and slides non-linear)
-            // - 1: partial (pitch control linear; pitch slides non-linear)
-            // - 2: full (pitch slides linear... we multiply the portamento speed by a user-defined multiplier)
+            // - 1: full (pitch slides linear... we multiply the portamento speed by a user-defined multiplier)
             // COMPAT FLAG: reset pitch slide/portamento upon reaching target (inverted in the GUI)
             // - when disabled, portamento remains active after it has finished
-            if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch==2?song.pitchSlideSpeed:1),chan[i].portaNote))==2 && chan[i].portaStop && song.targetResetsSlides) {
+            if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch?song.pitchSlideSpeed:1),chan[i].portaNote))==2 && chan[i].portaStop && song.targetResetsSlides) {
               // if we are here, it means we reached the target and shall stop
               chan[i].portaSpeed=0;
               dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
@@ -3369,6 +3362,37 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     if (++oscWritePos>=32768) oscWritePos=0;
   }
   oscSize=size;
+
+  // get per-chip peaks
+  float decay=2.f*size/got.rate;
+  for (int i=0; i<song.systemLen; i++) {
+    DivDispatch* disp=disCont[i].dispatch;
+    if (disp==NULL) continue;
+    for (int j=0; j<disp->getOutputCount(); j++) {
+      chipPeak[i][j]*=1.0-decay;
+      float peak=chipPeak[i][j];
+      for (unsigned int k=0; k<size; k++) {
+        float out=disCont[i].bbOut[j][k]*song.systemVol[i]*disp->getPostAmp()/32768.0f; // TODO: PARSE PANNING, FRONT/REAR AND PATCHBAY
+        // switch (j) {
+        //   case 0:
+        //     out*=MIN(1.0f,1.0f-song.systemPan[i])*MIN(1.0f,1.0f+song.systemPanFR[i]);
+        //     break;
+        //   case 1:
+        //     out*=MIN(1.0f,1.0f+song.systemPan[i])*MIN(1.0f,1.0f+song.systemPanFR[i]);
+        //     break;
+        //   case 2:
+        //     out*=MIN(1.0f,1.0f-song.systemPan[i])*MIN(1.0f,1.0f-song.systemPanFR[i]);
+        //     break;
+        //   case 3:
+        //     out*=MIN(1.0f,1.0f+song.systemPan[i])*MIN(1.0f,1.0f-song.systemPanFR[i]);
+        //     break;
+        //   default: break;
+        // }
+        if (out>peak) peak=out;
+      }
+      chipPeak[i][j]+=(peak-chipPeak[i][j])*0.9;
+    }
+  }
 
   // force mono audio (if enabled)
   if (forceMono && outChans>1) {

@@ -1836,7 +1836,7 @@ void DivInstrument::readFeatureFM(SafeReader& reader, short version) {
     fm.block=next&15;
   }
 
-  if (version>=237) {
+  if (version>=238) {
     fm.lfoRate=reader.readC();
     fm.lfoFmDepth=reader.readC();
     fm.lfoAmDepth=reader.readC();
@@ -1897,7 +1897,7 @@ void DivInstrument::readFeatureFM(SafeReader& reader, short version) {
     op.dt2=(next>>3)&3;
     op.ws=next&7;
 
-    if (version>=237) {
+    if (version>=238) {
       next=reader.readC();
       op.ws|=next&8;
     }

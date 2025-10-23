@@ -55,8 +55,8 @@ class DivWorkPool;
 #define DIV_UNSTABLE
 
 // Version number is placeholder
-#define DIV_VERSION "YM2610X branch version 237"
-#define DIV_ENGINE_VERSION 237
+#define DIV_VERSION "YM2610X branch version 238"
+#define DIV_ENGINE_VERSION 238
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -486,7 +486,7 @@ class DivEngine {
   int midiTimeCycles;
   double midiTimeDrift;
   int stepPlay;
-  int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, curMidiClock, curMidiTime, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
+  int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, curMidiClock, curMidiTime, totalCmds, lastCmds, cmdsPerSecond;
   double totalTicksOff;
   int curMidiTimePiece, curMidiTimeCode;
   unsigned char extValue, pendingMetroTick;
@@ -549,8 +549,6 @@ class DivEngine {
 
   short vibTable[64];
   short tremTable[128];
-  int reversePitchTable[4096];
-  int pitchTable[4096];
   short effectSlotMap[4096];
   int midiBaseChan;
   bool midiPoly;
@@ -697,6 +695,8 @@ class DivEngine {
     int tickMult;
     int lastNBIns, lastNBOuts, lastNBSize;
     std::atomic<size_t> processTime;
+
+    float chipPeak[DIV_MAX_CHIPS][DIV_MAX_OUTPUTS];
 
     void runExportThread();
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
@@ -1476,7 +1476,6 @@ class DivEngine {
       totalCmds(0),
       lastCmds(0),
       cmdsPerSecond(0),
-      globalPitch(0),
       totalTicksOff(0.0),
       curMidiTimePiece(0),
       curMidiTimeCode(0),
@@ -1538,14 +1537,13 @@ class DivEngine {
       memset(sysOfChan,0,DIV_MAX_CHANS*sizeof(int));
       memset(vibTable,0,64*sizeof(short));
       memset(tremTable,0,128*sizeof(short));
-      memset(reversePitchTable,0,4096*sizeof(int));
-      memset(pitchTable,0,4096*sizeof(int));
       memset(effectSlotMap,-1,4096*sizeof(short));
       memset(sysDefs,0,DIV_MAX_CHIP_DEFS*sizeof(void*));
       memset(romExportDefs,0,DIV_ROM_MAX*sizeof(void*));
       memset(walked,0,8192);
       memset(oscBuf,0,DIV_MAX_OUTPUTS*(sizeof(float*)));
       memset(exportChannelMask,1,DIV_MAX_CHANS*sizeof(bool));
+      memset(chipPeak,0,DIV_MAX_CHIPS*DIV_MAX_OUTPUTS*sizeof(float));
 
       for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {
         sysFileMapFur[i]=DIV_SYSTEM_NULL;

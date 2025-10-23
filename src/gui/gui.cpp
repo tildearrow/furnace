@@ -427,6 +427,42 @@ bool FurnaceGUI::isCtrlWheelModifierHeld() const {
   }
 }
 
+void FurnaceGUI::VerticalText(const char* fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  ImVec2 pos=ImGui::GetCursorScreenPos();
+  ImDrawList* dl=ImGui::GetWindowDrawList();
+  int vtxBegin, vtxEnd;
+  vtxBegin=dl->_VtxCurrentIdx;
+  char text[4096];
+  vsnprintf(text, 4096, fmt, args);
+  ImVec2 size=ImGui::CalcTextSize(text);
+  dl->AddText(pos, ImGui::GetColorU32(ImGuiCol_Text), text);
+  vtxEnd=dl->_VtxCurrentIdx;
+  ImGui::ShadeVertsTransformPos(dl, vtxBegin, vtxEnd, pos+ImVec2(size.x,0), 0, -1, ImGui::GetCursorScreenPos());
+  ImGui::Dummy(ImVec2(size.y,size.x));
+}
+
+void FurnaceGUI::VerticalText(float maxSize, bool centered, const char* fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  ImVec2 pos=ImGui::GetWindowPos();
+  ImDrawList* dl=ImGui::GetWindowDrawList();
+  int vtxBegin, vtxEnd;
+  vtxBegin=dl->_VtxCurrentIdx;
+  char text[4096];
+  vsnprintf(text, 4096, fmt, args);
+  const char* textEol=ImGui::FindRenderedTextEnd(text);
+  ImVec2 size=ImGui::CalcTextSize(text);
+  dl->PushClipRect(pos,pos+ImGui::GetWindowSize());
+  ImGui::RenderTextEllipsis(dl,pos,pos+ImVec2(maxSize,ImGui::GetFontSize()),maxSize,text,textEol,&size);
+  dl->PopClipRect();
+  vtxEnd=dl->_VtxCurrentIdx;
+  float ySize=(size.x>maxSize)?maxSize:size.x;
+  ImGui::ShadeVertsTransformPos(dl, vtxBegin, vtxEnd, pos, 0, -1, ImGui::GetCursorScreenPos()+ImVec2(0,(size.x+ySize)/2+(centered?(maxSize-size.x)/2.0f:0)));
+  ImGui::Dummy(ImVec2(size.y,centered?maxSize:ySize));
+}
+
 bool FurnaceGUI::CWSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags) {
   flags^=ImGuiSliderFlags_AlwaysClamp;
   if (ImGui::SliderScalar(label,data_type,p_data,p_min,p_max,format,flags)) {
@@ -4897,7 +4933,7 @@ bool FurnaceGUI::loop() {
             default: // effect
               if (cursor.xFine<DIV_MAX_COLS) {
                 if (p->newData[cursor.y][cursor.xFine]>-1) {
-                  info=e->getEffectDesc(p->newData[cursor.y][cursor.xFine],cursor.xCoarse,true);
+                  info=e->getEffectDesc(p->newData[cursor.y][(cursor.xFine-1)|1],cursor.xCoarse,true);
                   hasInfo=true;
                 }
               } else {
@@ -6217,7 +6253,9 @@ bool FurnaceGUI::loop() {
 
     centerNextWindow(_("Warning"),canvasW,canvasH);
     if (ImGui::BeginPopupModal(_("Warning"),NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
-      ImGui::Text("%s",warnString.c_str());
+      ImGui::PushTextWrapPos(canvasW);
+      ImGui::TextUnformatted(warnString.c_str());
+      ImGui::PopTextWrapPos();
       switch (warnAction) {
         case GUI_WARN_QUIT:
           if (ImGui::Button(_("Yes"))) {

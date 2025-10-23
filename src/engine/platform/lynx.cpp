@@ -429,7 +429,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
         }
       }
       chan[c.chan].freqChanged=true;
-      if (chan[c.chan].pcm && parent->song.linearPitch==2) {
+      if (chan[c.chan].pcm && parent->song.linearPitch) {
         chan[c.chan].sampleBaseFreq=chan[c.chan].baseFreq;
       }
       if (return2) {

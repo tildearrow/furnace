@@ -24,6 +24,7 @@
 #include "../engine/workPool.h"
 #include "../engine/waveSynth.h"
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "imgui_impl_sdl2.h"
 #include <SDL.h>
 #include <fftw3.h>
@@ -2062,6 +2063,7 @@ class FurnaceGUI {
     int songNotesWrap;
     int rackShowLEDs;
     int sampleImportInstDetune;
+    int mixerStyle;
     String mainFontPath;
     String headFontPath;
     String patFontPath;
@@ -2315,6 +2317,7 @@ class FurnaceGUI {
       songNotesWrap(0),
       rackShowLEDs(1),
       sampleImportInstDetune(0),
+      mixerStyle(1),
       mainFontPath(""),
       headFontPath(""),
       patFontPath(""),
@@ -2860,6 +2863,9 @@ class FurnaceGUI {
   void renderFMPreviewESFM(const DivInstrumentFM& params, const DivInstrumentESFM& esfmParams, int pos=0);
   void renderFMPreviewOPNX(const DivInstrumentFM& params, int pos=0);
 
+  void VerticalText(const char* fmt, ...);
+  void VerticalText(float maxSize, bool centered, const char* fmt, ...);
+
   // combo with locale
   static bool LocalizedComboGetter(void* data, int idx, const char** out_text);
 
@@ -2877,6 +2883,7 @@ class FurnaceGUI {
   bool NoteSelector(int* value, bool showOffRel, int octaveMin=-5, int octaveMax=9);
 
   // mixer stuff
+  bool chipMixer(int which, ImVec2 size);
   ImVec2 calcPortSetSize(String label, int ins, int outs);
   bool portSet(String label, unsigned int portSetID, int ins, int outs, int activeIns, int activeOuts, int& clickedPort, std::map<unsigned int,ImVec2>& portPos);
 
@@ -2985,8 +2992,10 @@ class FurnaceGUI {
   void drawTutorial();
   void drawXYOsc();
   void drawUserPresets();
+
   float drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset=-1, float width=-1.0f);
   void drawSystemChannelInfoText(const DivSysDef* whichDef);
+  void drawVolMeterInternal(ImDrawList* dl, ImRect rect, float* data, int chans, bool aspectRatio);
 
   void assignActionMap(std::map<int,int>& actionMap, int first, int last);
   void drawKeybindSettingsTableRow(FurnaceGUIActions actionIdx);
