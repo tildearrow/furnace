@@ -111,6 +111,60 @@ bool DivEngine::getIsFadingOut() {
 }
 
 #ifdef HAVE_SNDFILE
+
+#define MAP_BITRATE \
+  if (exportFormat!=DIV_EXPORT_FORMAT_S16 && exportFormat!=DIV_EXPORT_FORMAT_F32) { \
+    double mappedLevel=0.0; \
+\
+    switch (exportFormat) { \
+      case DIV_EXPORT_FORMAT_OPUS: \
+        mappedLevel=1.0-((double)((exportBitRate/(double)MAX(1,exportOutputs))-6000.0)/250000.0); \
+        break; \
+      case DIV_EXPORT_FORMAT_FLAC: \
+        mappedLevel=exportVBRQuality*0.125; \
+        break; \
+      case DIV_EXPORT_FORMAT_VORBIS: \
+        mappedLevel=1.0-(exportVBRQuality*0.1); \
+        break; \
+      case DIV_EXPORT_FORMAT_MPEG_L3: { \
+        int mappedBitRateMode=SF_BITRATE_MODE_CONSTANT; \
+        switch (exportBitRateMode) { \
+          case DIV_EXPORT_BITRATE_CONSTANT: \
+            mappedBitRateMode=SF_BITRATE_MODE_CONSTANT; \
+            break; \
+          case DIV_EXPORT_BITRATE_VARIABLE: \
+            mappedBitRateMode=SF_BITRATE_MODE_VARIABLE; \
+            break; \
+          case DIV_EXPORT_BITRATE_AVERAGE: \
+            mappedBitRateMode=SF_BITRATE_MODE_AVERAGE; \
+            break; \
+        } \
+        if (exportBitRateMode==DIV_EXPORT_BITRATE_VARIABLE) { \
+          mappedLevel=exportVBRQuality*0.1; \
+        } else { \
+          if (got.rate>=32000) { \
+            mappedLevel=(320000.0-(double)exportBitRate)/288000.0; \
+          } else if (got.rate>=16000) { \
+            mappedLevel=(160000.0-(double)exportBitRate)/152000.0; \
+          } else { \
+            mappedLevel=(64000.0-(double)exportBitRate)/56000.0; \
+          } \
+        } \
+\
+        if (sf_command(sf,SFC_SET_BITRATE_MODE,&mappedBitRateMode,sizeof(mappedBitRateMode))==SF_FALSE) { \
+          logE("could not set bit rate mode! (%s)",sf_strerror(sf)); \
+        } \
+        break; \
+      } \
+      default: \
+        break; \
+    } \
+\
+    if (sf_command(sf,SFC_SET_COMPRESSION_LEVEL,&mappedLevel,sizeof(mappedLevel))!=SF_TRUE) { \
+      logE("could not set compression level! (%s)",sf_strerror(sf)); \
+    } \
+  }
+
 void DivEngine::runExportThread() {
   size_t fadeOutSamples=got.rate*exportFadeOut;
   size_t curFadeOutSample=0;
@@ -152,58 +206,7 @@ void DivEngine::runExportThread() {
         return;
       }
 
-      if (exportFormat!=DIV_EXPORT_FORMAT_S16 && exportFormat!=DIV_EXPORT_FORMAT_F32) {
-        double mappedLevel=0.0;
-
-        switch (exportFormat) {
-          case DIV_EXPORT_FORMAT_OPUS:
-            mappedLevel=1.0-((double)((exportBitRate/(double)MAX(1,exportOutputs))-6000.0)/250000.0);
-            break;
-          case DIV_EXPORT_FORMAT_FLAC:
-            mappedLevel=exportVBRQuality*0.125;
-            break;
-          case DIV_EXPORT_FORMAT_VORBIS:
-            mappedLevel=1.0-(exportVBRQuality*0.1);
-            break;
-          case DIV_EXPORT_FORMAT_MPEG_L3: {
-            int mappedBitRateMode=SF_BITRATE_MODE_CONSTANT;
-            switch (exportBitRateMode) {
-              case DIV_EXPORT_BITRATE_CONSTANT:
-                mappedBitRateMode=SF_BITRATE_MODE_CONSTANT;
-                break;
-              case DIV_EXPORT_BITRATE_VARIABLE:
-                mappedBitRateMode=SF_BITRATE_MODE_VARIABLE;
-                break;
-              case DIV_EXPORT_BITRATE_AVERAGE:
-                mappedBitRateMode=SF_BITRATE_MODE_AVERAGE;
-                break;
-            }
-            if (exportBitRateMode==DIV_EXPORT_BITRATE_VARIABLE) {
-              mappedLevel=exportVBRQuality*0.1;
-            } else {
-              // a bit complicated
-              if (got.rate>=32000) {
-                mappedLevel=(320000.0-(double)exportBitRate)/288000.0;
-              } else if (got.rate>=16000) {
-                mappedLevel=(160000.0-(double)exportBitRate)/152000.0;
-              } else {
-                mappedLevel=(64000.0-(double)exportBitRate)/56000.0;
-              }
-            }
-
-            if (sf_command(sf,SFC_SET_BITRATE_MODE,&mappedBitRateMode,sizeof(mappedBitRateMode))==SF_FALSE) {
-              logE("could not set bit rate mode! (%s)",sf_strerror(sf));
-            }
-            break;
-          }
-          default:
-            break;
-        }
-
-        if (sf_command(sf,SFC_SET_COMPRESSION_LEVEL,&mappedLevel,sizeof(mappedLevel))!=SF_TRUE) {
-          logE("could not set compression level! (%s)",sf_strerror(sf));
-        }
-      }
+      MAP_BITRATE;
 
       float* outBuf[DIV_MAX_OUTPUTS];
       float* outBufFinal;
@@ -433,7 +436,7 @@ void DivEngine::runExportThread() {
             si.format=SF_FORMAT_OGG|SF_FORMAT_OPUS;
             break;
           case DIV_EXPORT_FORMAT_FLAC:
-            si.format=SF_FORMAT_FLAC;
+            si.format=SF_FORMAT_FLAC|SF_FORMAT_PCM_16;
             break;
           case DIV_EXPORT_FORMAT_VORBIS:
             si.format=SF_FORMAT_OGG|SF_FORMAT_VORBIS;
@@ -448,6 +451,8 @@ void DivEngine::runExportThread() {
           logE("could not open file for writing! (%s)",sf_strerror(NULL));
           break;
         }
+
+        MAP_BITRATE;
 
         for (int j=0; j<chans; j++) {
           bool mute=(j!=i);
