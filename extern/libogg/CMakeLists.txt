@@ -21,7 +21,7 @@ endif()
 # tildearrow: disabled for vendored libogg.
 option(INSTALL_DOCS "Install documentation" OFF)
 option(INSTALL_PKG_CONFIG_MODULE "Install ogg.pc file" OFF)
-option(INSTALL_CMAKE_PACKAGE_MODULE "Install CMake package configuration module" OFF)
+option(INSTALL_CMAKE_PACKAGE_MODULE "Install CMake package configuration module" ON)
 
 # Extract library version from configure.ac
 string(REGEX MATCH "LIB_CURRENT=([0-9]*)" DUMMY ${CONFIGURE_AC_CONTENTS})

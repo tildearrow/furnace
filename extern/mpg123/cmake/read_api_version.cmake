@@ -1,6 +1,6 @@
 function(read_api_version project_version)
 
-    file( READ "${CMAKE_CURRENT_SOURCE_DIR}/../../src/version.h" version_h )
+    file( READ "${CMAKE_CURRENT_SOURCE_DIR}/src/version.h" version_h )
 
     string( REGEX MATCH "#define +MPG123_MAJOR +([0-9]+)" result ${version_h} )
     set( major_version ${CMAKE_MATCH_1})

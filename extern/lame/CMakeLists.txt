@@ -52,6 +52,6 @@ include/lame/lame.h
 )
 
 target_compile_definitions(mp3lame PRIVATE ${LAME_DEFINES})
-target_include_directories(mp3lame PRIVATE config_ta include)
+target_include_directories(mp3lame PUBLIC include PRIVATE config_ta)
 
 add_library(mp3lame::mp3lame ALIAS mp3lame)

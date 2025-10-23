@@ -9,7 +9,7 @@ Imported Targets
 
 This module provides the following imported targets, if found:
 
-``MPG123::libmpg123``
+``MPG123::mpg123``
   The mpg123 library
 
 Result Variables
@@ -40,7 +40,7 @@ if (mpg123_INCLUDE_DIR)
 endif ()
 
 find_package (PkgConfig QUIET)
-pkg_check_modules(PC_MPG123 QUIET libmpg123>=1.25.10)
+pkg_check_modules(PC_MPG123 QUIET mpg123>=1.25.10)
 
 find_path (mpg123_INCLUDE_DIR mpg123.h
 	HINTS
@@ -83,9 +83,9 @@ find_package_handle_standard_args (mpg123
 		mpg123_VERSION
 	)
 
-if (mpg123_FOUND AND NOT TARGET MPG123::libmpg123)
-	add_library (MPG123::libmpg123 UNKNOWN IMPORTED)
-	set_target_properties (MPG123::libmpg123
+if (mpg123_FOUND AND NOT TARGET MPG123::mpg123)
+	add_library (MPG123::mpg123 UNKNOWN IMPORTED)
+	set_target_properties (MPG123::mpg123
 		PROPERTIES 
 			IMPORTED_LOCATION "${mpg123_LIBRARY}"
 			INTERFACE_INCLUDE_DIRECTORIES "${mpg123_INCLUDE_DIR}"
