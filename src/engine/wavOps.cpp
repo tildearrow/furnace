@@ -152,17 +152,17 @@ void DivEngine::runExportThread() {
       }
 
       if (exportFormat!=DIV_EXPORT_FORMAT_S16 && exportFormat!=DIV_EXPORT_FORMAT_F32) {
-        float mappedLevel=0.0f;
+        double mappedLevel=0.0;
 
         switch (exportFormat) {
           case DIV_EXPORT_FORMAT_OPUS:
-            mappedLevel=(float)(256000-exportBitRate)/250000.0;
+            mappedLevel=(double)(256000-exportBitRate)/250000.0;
             break;
           case DIV_EXPORT_FORMAT_FLAC:
             mappedLevel=exportVBRQuality*0.125;
             break;
           case DIV_EXPORT_FORMAT_VORBIS:
-            mappedLevel=10.0-exportVBRQuality*0.1;
+            mappedLevel=1.0-(exportVBRQuality*0.1);
             break;
           case DIV_EXPORT_FORMAT_MPEG_L3: {
             int mappedBitRateMode=SF_BITRATE_MODE_CONSTANT;
@@ -182,11 +182,11 @@ void DivEngine::runExportThread() {
             } else {
               // a bit complicated
               if (got.rate>=32000) {
-                mappedLevel=(320000.0f-(float)exportBitRate)/288000.0f;
+                mappedLevel=(320000.0-(double)exportBitRate)/288000.0;
               } else if (got.rate>=16000) {
-                mappedLevel=(160000.0f-(float)exportBitRate)/152000.0f;
+                mappedLevel=(160000.0-(double)exportBitRate)/152000.0;
               } else {
-                mappedLevel=(64000.0f-(float)exportBitRate)/56000.0f;
+                mappedLevel=(64000.0-(double)exportBitRate)/56000.0;
               }
             }
 
