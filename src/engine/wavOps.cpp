@@ -135,7 +135,7 @@ void DivEngine::runExportThread() {
           si.format=SF_FORMAT_OGG|SF_FORMAT_OPUS;
           break;
         case DIV_EXPORT_FORMAT_FLAC:
-          si.format=SF_FORMAT_FLAC;
+          si.format=SF_FORMAT_FLAC|SF_FORMAT_PCM_16;
           break;
         case DIV_EXPORT_FORMAT_VORBIS:
           si.format=SF_FORMAT_OGG|SF_FORMAT_VORBIS;
@@ -157,7 +157,7 @@ void DivEngine::runExportThread() {
 
         switch (exportFormat) {
           case DIV_EXPORT_FORMAT_OPUS:
-            mappedLevel=(double)(256000-exportBitRate)/250000.0;
+            mappedLevel=1.0-((double)((exportBitRate/(double)MAX(1,exportOutputs))-6000.0)/250000.0);
             break;
           case DIV_EXPORT_FORMAT_FLAC:
             mappedLevel=exportVBRQuality*0.125;
@@ -191,7 +191,7 @@ void DivEngine::runExportThread() {
               }
             }
 
-            if (sf_command(sf,SFC_SET_BITRATE_MODE,&mappedBitRateMode,sizeof(mappedBitRateMode))!=SF_TRUE) {
+            if (sf_command(sf,SFC_SET_BITRATE_MODE,&mappedBitRateMode,sizeof(mappedBitRateMode))==SF_FALSE) {
               logE("could not set bit rate mode! (%s)",sf_strerror(sf));
             }
             break;
