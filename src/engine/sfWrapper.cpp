@@ -54,7 +54,13 @@ sf_count_t SFWrapper::ioGetSize() {
 }
 
 sf_count_t SFWrapper::ioSeek(sf_count_t offset, int whence) {
-  return fseek(f,offset,whence);
+  printf("SFWrapper: SEEK!\n");
+  fseek(f,offset,whence);
+  long ret=ftell(f);
+  if (ret<0) {
+    return -1;
+  }
+  return ret;
 }
 
 sf_count_t SFWrapper::ioRead(void* ptr, sf_count_t count) {

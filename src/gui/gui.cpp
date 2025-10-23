@@ -8082,11 +8082,15 @@ bool FurnaceGUI::init() {
     if (strcmp(f.extension,"dmc")==0) continue;
     if (strcmp(f.extension,"brr")==0) continue;
 
-    // special treatment for Ogg
+    // special treatment for Ogg and MPEG
     if (strcmp(f.extension,"oga")==0) {
       audioLoadFormats.push_back(f.name);
       audioLoadFormats.push_back("*.ogg *.oga *.opus");
-      compatFormats+="*.ogg *.oga *.opus";
+      compatFormats+="*.ogg *.oga *.opus ";
+    } else if (strcmp(f.extension,"m1a")==0) {
+      audioLoadFormats.push_back(f.name);
+      audioLoadFormats.push_back("*.m1a *.mp1 *.mp2 *.mp3");
+      compatFormats+="*.m1a *.mp1 *.mp2 *.mp3 ";
     } else {
       audioLoadFormats.push_back(f.name);
       audioLoadFormats.push_back(fmt::sprintf("*.%s",f.extension));

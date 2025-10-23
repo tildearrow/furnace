@@ -308,7 +308,12 @@ if (WITH_OGG)
 endif()
 
 if (WITH_MPEG)
-  
+  list(APPEND DEPENDENCIES_DEFINES HAVE_MP3_EXPORT)
+  # why do I have to provide an absolute path?
+  set(MP3LAME_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/lame/include CACHE STRING "LAME include dir" FORCE)
+  set(MP3LAME_LIBRARY mp3lame CACHE STRING "LAME library" FORCE)
+  add_subdirectory(extern/lame EXCLUDE_FROM_ALL)
+  add_subdirectory(extern/mpg123/ports/cmake EXCLUDE_FROM_ALL)
 endif()
 
 if (USE_SNDFILE)
@@ -328,7 +333,7 @@ if (USE_SNDFILE)
     set(BUILD_PROGRAMS OFF CACHE BOOL "aaa" FORCE)
     set(BUILD_EXAMPLES OFF CACHE BOOL "a" FORCE)
     set(ENABLE_EXTERNAL_LIBS ${WITH_OGG} CACHE BOOL "come on" FORCE)
-    set(ENABLE_MPEG OFF CACHE BOOL "come on" FORCE)
+    set(ENABLE_MPEG ${WITH_MPEG} CACHE BOOL "come on" FORCE)
     add_subdirectory(extern/libsndfile-modified EXCLUDE_FROM_ALL)
     list(APPEND DEPENDENCIES_LIBRARIES sndfile)
     message(STATUS "Using vendored libsndfile")
