@@ -282,6 +282,16 @@ TAParamResult pVersion(String) {
   printf("\n");
   printf("furnace is powered by:\n");
   printf("- libsndfile by Erik de Castro Lopo and rest of libsndfile team (LGPLv2.1)\n");
+#ifdef HAVE_OGG
+  printf("- libogg by Xiph.Org Foundation (Xiph.Org, BSD-like license)\n");
+  printf("- libvorbis by Xiph.Org Foundation (Xiph.Org, BSD-like license)\n");
+  printf("- FLAC library by Xiph.Org Foundation (Xiph.Org, BSD-like license)\n");
+  printf("- libopus by Xiph.Org and contributors (BSD 3-clause)\n");
+#endif
+#ifdef HAVE_MP3_EXPORT
+  printf("- libmpg123 by Michael Hipp, Thomas Orgis, Taihei Momma and contributors (LGPLv2.1)\n");
+  printf("- LAME by Mike Cheng, Mark Taylor and The LAME Project (LGPLv2)\n");
+#endif
   printf("- SDL2 by Sam Lantinga (zlib license)\n");
   printf("- zlib by Jean-loup Gailly and Mark Adler (zlib license)\n");
   printf("- PortAudio (PortAudio license)\n");
