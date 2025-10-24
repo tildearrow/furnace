@@ -35,7 +35,7 @@ const char* audioExportWavFormats[]={
   _("Unsigned 8-bit"),
   _("Signed 16-bit"),
   _("Signed 32-bit"),
-  _("FLoat 32-bit"),
+  _("Float 32-bit"),
 };
 
 void FurnaceGUI::drawExportAudio(bool onWindow) {
