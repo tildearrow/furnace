@@ -496,7 +496,7 @@ target_compile_definitions(${TARGET} PRIVATE
 if(MSVC AND MACHINE MATCHES "x86|amd64" AND YASM_ASSEMBLER)
     list(TRANSFORM PLATFORM_DEFINITIONS PREPEND /D)
     list(TRANSFORM PLATFORM_SOURCES PREPEND "${PROJECT_SOURCE_DIR}/src/")
-    message("PLATFORM_SOURCES: ${PLATFORM_SOURCES}")
+    #message("PLATFORM_SOURCES: ${PLATFORM_SOURCES}")
     foreach(FILE ${PLATFORM_SOURCES})
         get_filename_component(FILENAME ${FILE} NAME)
         add_custom_command(
