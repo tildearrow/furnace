@@ -102,8 +102,7 @@ enum DivMIDIModes {
 };
 
 enum DivAudioExportFormats {
-  DIV_EXPORT_FORMAT_S16=0,
-  DIV_EXPORT_FORMAT_F32,
+  DIV_EXPORT_FORMAT_WAV=0,
   DIV_EXPORT_FORMAT_OPUS,
   DIV_EXPORT_FORMAT_FLAC,
   DIV_EXPORT_FORMAT_VORBIS,
@@ -116,10 +115,18 @@ enum DivAudioExportBitrateModes {
   DIV_EXPORT_BITRATE_AVERAGE,
 };
 
+enum DivAudioExportWavFormats {
+  DIV_EXPORT_WAV_U8=0,
+  DIV_EXPORT_WAV_S16,
+  DIV_EXPORT_WAV_S32,
+  DIV_EXPORT_WAV_F32
+};
+
 struct DivAudioExportOptions {
   DivAudioExportModes mode;
   DivAudioExportFormats format;
   DivAudioExportBitrateModes bitRateMode;
+  DivAudioExportWavFormats wavFormat;
   int sampleRate;
   int chans;
   int loops;
@@ -130,7 +137,7 @@ struct DivAudioExportOptions {
   float vbrQuality;
   DivAudioExportOptions():
     mode(DIV_EXPORT_MODE_ONE),
-    format(DIV_EXPORT_FORMAT_S16),
+    format(DIV_EXPORT_FORMAT_WAV),
     bitRateMode(DIV_EXPORT_BITRATE_CONSTANT),
     sampleRate(44100),
     chans(2),
@@ -514,6 +521,7 @@ class DivEngine {
   DivAudioEngines audioEngine;
   DivAudioExportModes exportMode;
   DivAudioExportFormats exportFormat;
+  DivAudioExportWavFormats wavFormat;
   DivAudioExportBitrateModes exportBitRateMode;
   double exportFadeOut;
   bool isFadingOut;
@@ -1506,7 +1514,8 @@ class DivEngine {
       haltOn(DIV_HALT_NONE),
       audioEngine(DIV_AUDIO_NULL),
       exportMode(DIV_EXPORT_MODE_ONE),
-      exportFormat(DIV_EXPORT_FORMAT_S16),
+      exportFormat(DIV_EXPORT_FORMAT_WAV),
+      wavFormat(DIV_EXPORT_WAV_S16),
       exportBitRateMode(DIV_EXPORT_BITRATE_CONSTANT),
       exportFadeOut(0.0),
       isFadingOut(false),

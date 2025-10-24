@@ -23,6 +23,21 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include <imgui.h>
 
+const char* audioExportFormats[]={
+  _("Wave"),
+  _("Opus"),
+  _("FLAC (Free Lossless Audio Codec)"),
+  _("Vorbis"),
+  _("MP3")
+};
+
+const char* audioExportWavFormats[]={
+  _("Unsigned 8-bit"),
+  _("Signed 16-bit"),
+  _("Signed 32-bit"),
+  _("FLoat 32-bit"),
+};
+
 void FurnaceGUI::drawExportAudio(bool onWindow) {
   exitDisabledTimer=1;
 
@@ -34,7 +49,8 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
   }
   if (ImGui::RadioButton(_("multiple files (one per chip)"),audioExportOptions.mode==DIV_EXPORT_MODE_MANY_SYS)) {
     audioExportOptions.mode=DIV_EXPORT_MODE_MANY_SYS;
-    audioExportOptions.format=DIV_EXPORT_FORMAT_S16;
+    audioExportOptions.format=DIV_EXPORT_FORMAT_WAV;
+    audioExportOptions.wavFormat=DIV_EXPORT_WAV_S16;
   }
   if (ImGui::RadioButton(_("multiple files (one per channel)"),audioExportOptions.mode==DIV_EXPORT_MODE_MANY_CHAN)) {
     audioExportOptions.mode=DIV_EXPORT_MODE_MANY_CHAN;
@@ -42,31 +58,14 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
   ImGui::Unindent();
 
   if (audioExportOptions.mode!=DIV_EXPORT_MODE_MANY_SYS) {
-    ImGui::Text(_("File format:"));
-    ImGui::Indent();
-    if (ImGui::RadioButton(_("Wave (16-bit integer)"),audioExportOptions.format==DIV_EXPORT_FORMAT_S16)) {
-      audioExportOptions.format=DIV_EXPORT_FORMAT_S16;
-    }
-    if (ImGui::RadioButton(_("Wave (32-bit float)"),audioExportOptions.format==DIV_EXPORT_FORMAT_F32)) {
-      audioExportOptions.format=DIV_EXPORT_FORMAT_F32;
-    }
-    if (supportsOgg) {
-      if (ImGui::RadioButton(_("Opus"),audioExportOptions.format==DIV_EXPORT_FORMAT_OPUS)) {
-        audioExportOptions.format=DIV_EXPORT_FORMAT_OPUS;
-      }
-      if (ImGui::RadioButton(_("FLAC (Free Lossless Audio Codec)"),audioExportOptions.format==DIV_EXPORT_FORMAT_FLAC)) {
-        audioExportOptions.format=DIV_EXPORT_FORMAT_FLAC;
-      }
-      if (ImGui::RadioButton(_("Vorbis"),audioExportOptions.format==DIV_EXPORT_FORMAT_VORBIS)) {
-        audioExportOptions.format=DIV_EXPORT_FORMAT_VORBIS;
+  if (ImGui::BeginCombo(_("File Format"), audioExportFormats[audioExportOptions.format])) {
+    for (size_t i=0; i<(supportsMP3?5:4); i++) {
+      if (ImGui::Selectable(audioExportFormats[i],audioExportOptions.format==i)) {
+        audioExportOptions.format=(DivAudioExportFormats)i;
       }
     }
-    if (supportsMP3) {
-      if (ImGui::RadioButton(_("MP3"),audioExportOptions.format==DIV_EXPORT_FORMAT_MPEG_L3)) {
-        audioExportOptions.format=DIV_EXPORT_FORMAT_MPEG_L3;
-      }
-    }
-    ImGui::Unindent();
+    ImGui::EndCombo();
+  }
   }
 
   bool rateCheck=(
@@ -126,7 +125,7 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
     }
   }
 
-  if (audioExportOptions.format!=DIV_EXPORT_FORMAT_S16 && audioExportOptions.format!=DIV_EXPORT_FORMAT_F32) {
+  if (audioExportOptions.format!=DIV_EXPORT_FORMAT_WAV) {
     if (audioExportOptions.format==DIV_EXPORT_FORMAT_FLAC) {
       if (ImGui::SliderFloat(_("Compression level"),&audioExportOptions.vbrQuality,0,8)) {
         if (audioExportOptions.vbrQuality<0) audioExportOptions.vbrQuality=0;
@@ -142,6 +141,15 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
       }
       if (audioExportOptions.bitRate<minBitRate) audioExportOptions.bitRate=minBitRate;
       if (audioExportOptions.bitRate>maxBitRate) audioExportOptions.bitRate=maxBitRate;
+    }
+  } else {
+    if (ImGui::BeginCombo(_("Format"), audioExportWavFormats[audioExportOptions.wavFormat])) {
+      for (size_t i=0; i<4; i++) {
+        if (ImGui::Selectable(audioExportWavFormats[i], audioExportOptions.wavFormat==i)) {
+          audioExportOptions.wavFormat=(DivAudioExportWavFormats)i;
+        }
+      }
+      ImGui::EndCombo();
     }
   }
 
@@ -207,8 +215,7 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
   if (isOneOn && !rateCheck) {
     if (ImGui::Button(_("Export"),ImVec2(200.0f*dpiScale,0))) {
       switch (audioExportOptions.format) {
-        case DIV_EXPORT_FORMAT_S16:
-        case DIV_EXPORT_FORMAT_F32:
+        case DIV_EXPORT_FORMAT_WAV:
           audioExportFilterName=_("Wave file");
           audioExportFilterExt=".wav";
           break;

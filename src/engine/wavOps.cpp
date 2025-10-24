@@ -113,7 +113,7 @@ bool DivEngine::getIsFadingOut() {
 #ifdef HAVE_SNDFILE
 
 #define MAP_BITRATE \
-  if (exportFormat!=DIV_EXPORT_FORMAT_S16 && exportFormat!=DIV_EXPORT_FORMAT_F32) { \
+  if (exportFormat!=DIV_EXPORT_FORMAT_WAV) { \
     double mappedLevel=0.0; \
 \
     switch (exportFormat) { \
@@ -179,11 +179,26 @@ void DivEngine::runExportThread() {
       si.samplerate=got.rate;
       si.channels=exportOutputs;
       switch (exportFormat) {
-        case DIV_EXPORT_FORMAT_S16:
-          si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
-          break;
-        case DIV_EXPORT_FORMAT_F32:
-          si.format=SF_FORMAT_WAV|SF_FORMAT_FLOAT;
+        case DIV_EXPORT_FORMAT_WAV:
+          si.format=SF_FORMAT_WAV;
+          switch (wavFormat) {
+            case DIV_EXPORT_WAV_U8:
+              si.format|=SF_FORMAT_PCM_U8;
+              break;
+            case DIV_EXPORT_WAV_S16:
+              si.format|=SF_FORMAT_PCM_16;
+              break;
+            case DIV_EXPORT_WAV_S32:
+              si.format|=SF_FORMAT_PCM_32;
+              break;
+            case DIV_EXPORT_WAV_F32:
+              si.format|=SF_FORMAT_FLOAT;
+              break;
+            default:
+              si.format|=SF_FORMAT_PCM_U8;
+              logW("wtf");
+              break;
+          }
           break;
         case DIV_EXPORT_FORMAT_OPUS:
           si.format=SF_FORMAT_OGG|SF_FORMAT_OPUS;
@@ -426,11 +441,26 @@ void DivEngine::runExportThread() {
         si.samplerate=got.rate;
         si.channels=exportOutputs;
         switch (exportFormat) {
-          case DIV_EXPORT_FORMAT_S16:
-            si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
-            break;
-          case DIV_EXPORT_FORMAT_F32:
-            si.format=SF_FORMAT_WAV|SF_FORMAT_FLOAT;
+          case DIV_EXPORT_FORMAT_WAV:
+            si.format=SF_FORMAT_WAV;
+            switch (wavFormat) {
+              case DIV_EXPORT_WAV_U8:
+                si.format|=SF_FORMAT_PCM_U8;
+                break;
+              case DIV_EXPORT_WAV_S16:
+                si.format|=SF_FORMAT_PCM_16;
+                break;
+              case DIV_EXPORT_WAV_S32:
+                si.format|=SF_FORMAT_PCM_32;
+                break;
+              case DIV_EXPORT_WAV_F32:
+                si.format|=SF_FORMAT_FLOAT;
+                break;
+              default:
+                si.format|=SF_FORMAT_PCM_U8;
+                logW("wtf");
+                break;
+            }
             break;
           case DIV_EXPORT_FORMAT_OPUS:
             si.format=SF_FORMAT_OGG|SF_FORMAT_OPUS;
@@ -584,6 +614,7 @@ bool DivEngine::saveAudio(const char* path, DivAudioExportOptions options) {
   exportPath=path;
   exportMode=options.mode;
   exportFormat=options.format;
+  wavFormat=options.wavFormat;
   exportBitRate=options.bitRate;
   exportBitRateMode=options.bitRateMode;
   exportVBRQuality=options.vbrQuality;
