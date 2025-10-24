@@ -188,15 +188,11 @@ void DivEngine::runExportThread() {
             case DIV_EXPORT_WAV_S16:
               si.format|=SF_FORMAT_PCM_16;
               break;
-            case DIV_EXPORT_WAV_S32:
-              si.format|=SF_FORMAT_PCM_32;
-              break;
             case DIV_EXPORT_WAV_F32:
               si.format|=SF_FORMAT_FLOAT;
               break;
             default:
               si.format|=SF_FORMAT_PCM_U8;
-              logW("wtf");
               break;
           }
           break;
@@ -450,15 +446,11 @@ void DivEngine::runExportThread() {
               case DIV_EXPORT_WAV_S16:
                 si.format|=SF_FORMAT_PCM_16;
                 break;
-              case DIV_EXPORT_WAV_S32:
-                si.format|=SF_FORMAT_PCM_32;
-                break;
               case DIV_EXPORT_WAV_F32:
                 si.format|=SF_FORMAT_FLOAT;
                 break;
               default:
                 si.format|=SF_FORMAT_PCM_U8;
-                logW("wtf");
                 break;
             }
             break;

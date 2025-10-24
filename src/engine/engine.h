@@ -118,7 +118,6 @@ enum DivAudioExportBitrateModes {
 enum DivAudioExportWavFormats {
   DIV_EXPORT_WAV_U8=0,
   DIV_EXPORT_WAV_S16,
-  DIV_EXPORT_WAV_S32,
   DIV_EXPORT_WAV_F32
 };
 

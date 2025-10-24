@@ -35,7 +35,6 @@ const char* audioExportFormats[]={
 const char* audioExportWavFormats[]={
   _N("8-bit int (unsigned)"),
   _N("16-bit int"),
-  _N("32-bit int"),
   _N("32-bit float"),
   NULL
 };
