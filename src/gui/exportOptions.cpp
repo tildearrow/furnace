@@ -50,22 +50,22 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
     if (ImGui::RadioButton(_("Wave (32-bit float)"),audioExportOptions.format==DIV_EXPORT_FORMAT_F32)) {
       audioExportOptions.format=DIV_EXPORT_FORMAT_F32;
     }
-#ifdef HAVE_OGG
-    if (ImGui::RadioButton(_("Opus (lossy compression)"),audioExportOptions.format==DIV_EXPORT_FORMAT_OPUS)) {
-      audioExportOptions.format=DIV_EXPORT_FORMAT_OPUS;
+    if (supportsOgg) {
+      if (ImGui::RadioButton(_("Opus"),audioExportOptions.format==DIV_EXPORT_FORMAT_OPUS)) {
+        audioExportOptions.format=DIV_EXPORT_FORMAT_OPUS;
+      }
+      if (ImGui::RadioButton(_("FLAC (Free Lossless Audio Codec)"),audioExportOptions.format==DIV_EXPORT_FORMAT_FLAC)) {
+        audioExportOptions.format=DIV_EXPORT_FORMAT_FLAC;
+      }
+      if (ImGui::RadioButton(_("Vorbis"),audioExportOptions.format==DIV_EXPORT_FORMAT_VORBIS)) {
+        audioExportOptions.format=DIV_EXPORT_FORMAT_VORBIS;
+      }
     }
-    if (ImGui::RadioButton(_("FLAC (Free Lossless Audio Codec)"),audioExportOptions.format==DIV_EXPORT_FORMAT_FLAC)) {
-      audioExportOptions.format=DIV_EXPORT_FORMAT_FLAC;
+    if (supportsMP3) {
+      if (ImGui::RadioButton(_("MP3"),audioExportOptions.format==DIV_EXPORT_FORMAT_MPEG_L3)) {
+        audioExportOptions.format=DIV_EXPORT_FORMAT_MPEG_L3;
+      }
     }
-    if (ImGui::RadioButton(_("Vorbis (lossy compression)"),audioExportOptions.format==DIV_EXPORT_FORMAT_VORBIS)) {
-      audioExportOptions.format=DIV_EXPORT_FORMAT_VORBIS;
-    }
-#endif
-#ifdef HAVE_MP3_EXPORT
-    if (ImGui::RadioButton(_("MP3 (lossy compression)"),audioExportOptions.format==DIV_EXPORT_FORMAT_MPEG_L3)) {
-      audioExportOptions.format=DIV_EXPORT_FORMAT_MPEG_L3;
-    }
-#endif
     ImGui::Unindent();
   }
 
