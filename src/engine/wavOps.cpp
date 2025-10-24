@@ -140,7 +140,7 @@ bool DivEngine::getIsFadingOut() {
             break; \
         } \
         if (exportBitRateMode==DIV_EXPORT_BITRATE_VARIABLE) { \
-          mappedLevel=exportVBRQuality*0.1; \
+          mappedLevel=1.0-(exportVBRQuality*0.1); \
         } else { \
           if (got.rate>=32000) { \
             mappedLevel=(320000.0-(double)exportBitRate)/288000.0; \
