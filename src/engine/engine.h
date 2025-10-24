@@ -139,6 +139,7 @@ struct DivAudioExportOptions {
     mode(DIV_EXPORT_MODE_ONE),
     format(DIV_EXPORT_FORMAT_WAV),
     bitRateMode(DIV_EXPORT_BITRATE_CONSTANT),
+    wavFormat(DIV_EXPORT_WAV_S16),
     sampleRate(44100),
     chans(2),
     loops(0),

@@ -15,10 +15,10 @@ include(GNUInstallDirs)
 set(PACKAGE_VERSION ${PROJECT_VERSION})
 add_subdirectory("src")
 
-install(
-    EXPORT targets
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
-    NAMESPACE MPG123::)
+#install(
+#    EXPORT targets
+#    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+#    NAMESPACE MPG123::)
 
 configure_package_config_file(
     mpg123-config.cmake.in mpg123-config.cmake

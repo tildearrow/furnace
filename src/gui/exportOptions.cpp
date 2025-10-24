@@ -24,18 +24,20 @@
 #include <imgui.h>
 
 const char* audioExportFormats[]={
-  _("Wave"),
-  _("Opus"),
-  _("FLAC (Free Lossless Audio Codec)"),
-  _("Vorbis"),
-  _("MP3")
+  _N("Wave"),
+  _N("Opus"),
+  _N("FLAC (Free Lossless Audio Codec)"),
+  _N("Vorbis"),
+  _N("MP3"),
+  NULL
 };
 
 const char* audioExportWavFormats[]={
-  _("Unsigned 8-bit"),
-  _("Signed 16-bit"),
-  _("Signed 32-bit"),
-  _("Float 32-bit"),
+  _N("8-bit int (unsigned)"),
+  _N("16-bit int"),
+  _N("32-bit int"),
+  _N("32-bit float"),
+  NULL
 };
 
 void FurnaceGUI::drawExportAudio(bool onWindow) {
@@ -58,14 +60,17 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
   ImGui::Unindent();
 
   if (audioExportOptions.mode!=DIV_EXPORT_MODE_MANY_SYS) {
-  if (ImGui::BeginCombo(_("File Format"), audioExportFormats[audioExportOptions.format])) {
-    for (size_t i=0; i<(supportsMP3?5:4); i++) {
-      if (ImGui::Selectable(audioExportFormats[i],audioExportOptions.format==i)) {
-        audioExportOptions.format=(DivAudioExportFormats)i;
+    if (ImGui::BeginCombo(_("File Format"), audioExportFormats[audioExportOptions.format])) {
+      for (size_t i=0; i<(supportsMP3?5:4); i++) {
+        if (ImGui::Selectable(_(audioExportFormats[i]),audioExportOptions.format==i)) {
+          audioExportOptions.format=(DivAudioExportFormats)i;
+        }
       }
+      ImGui::EndCombo();
     }
-    ImGui::EndCombo();
-  }
+  } else {
+    audioExportOptions.format=DIV_EXPORT_FORMAT_WAV;
+    audioExportOptions.wavFormat=DIV_EXPORT_WAV_S16;
   }
 
   bool rateCheck=(
@@ -142,10 +147,10 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
       if (audioExportOptions.bitRate<minBitRate) audioExportOptions.bitRate=minBitRate;
       if (audioExportOptions.bitRate>maxBitRate) audioExportOptions.bitRate=maxBitRate;
     }
-  } else {
+  } else if (audioExportOptions.mode!=DIV_EXPORT_MODE_MANY_SYS) {
     if (ImGui::BeginCombo(_("Format"), audioExportWavFormats[audioExportOptions.wavFormat])) {
-      for (size_t i=0; i<4; i++) {
-        if (ImGui::Selectable(audioExportWavFormats[i], audioExportOptions.wavFormat==i)) {
+      for (size_t i=0; audioExportWavFormats[i]; i++) {
+        if (ImGui::Selectable(_(audioExportWavFormats[i]), audioExportOptions.wavFormat==i)) {
           audioExportOptions.wavFormat=(DivAudioExportWavFormats)i;
         }
       }
