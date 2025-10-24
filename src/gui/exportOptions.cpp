@@ -57,9 +57,10 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
     audioExportOptions.mode=DIV_EXPORT_MODE_MANY_CHAN;
   }
   ImGui::Unindent();
+  ImGui::Separator();
 
   if (audioExportOptions.mode!=DIV_EXPORT_MODE_MANY_SYS) {
-    if (ImGui::BeginCombo(_("File Format"), audioExportFormats[audioExportOptions.format])) {
+    if (ImGui::BeginCombo(_("File Format"),audioExportFormats[audioExportOptions.format])) {
       for (size_t i=0; i<(supportsMP3?5:4); i++) {
         if (ImGui::Selectable(_(audioExportFormats[i]),audioExportOptions.format==i)) {
           audioExportOptions.format=(DivAudioExportFormats)i;
@@ -67,6 +68,7 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
       }
       ImGui::EndCombo();
     }
+    ImGui::Separator();
   } else {
     audioExportOptions.format=DIV_EXPORT_FORMAT_WAV;
     audioExportOptions.wavFormat=DIV_EXPORT_WAV_S16;
@@ -81,6 +83,18 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
       audioExportOptions.sampleRate!=48000
     )
   );
+  
+  if (audioExportOptions.mode!=DIV_EXPORT_MODE_MANY_SYS && audioExportOptions.format==DIV_EXPORT_FORMAT_WAV) {
+    if (ImGui::BeginCombo(_("Format"),audioExportWavFormats[audioExportOptions.wavFormat])) {
+      for (size_t i=0; audioExportWavFormats[i]; i++) {
+        if (ImGui::Selectable(_(audioExportWavFormats[i]),audioExportOptions.wavFormat==i)) {
+          audioExportOptions.wavFormat=(DivAudioExportWavFormats)i;
+        }
+      }
+      ImGui::EndCombo();
+    }
+  }
+
   pushWarningColor(false,rateCheck);
   if (ImGui::InputInt(_("Sample rate"),&audioExportOptions.sampleRate,100,10000)) {
     if (audioExportOptions.sampleRate<8000) audioExportOptions.sampleRate=8000;
@@ -146,16 +160,8 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
       if (audioExportOptions.bitRate<minBitRate) audioExportOptions.bitRate=minBitRate;
       if (audioExportOptions.bitRate>maxBitRate) audioExportOptions.bitRate=maxBitRate;
     }
-  } else if (audioExportOptions.mode!=DIV_EXPORT_MODE_MANY_SYS) {
-    if (ImGui::BeginCombo(_("Format"), audioExportWavFormats[audioExportOptions.wavFormat])) {
-      for (size_t i=0; audioExportWavFormats[i]; i++) {
-        if (ImGui::Selectable(_(audioExportWavFormats[i]), audioExportOptions.wavFormat==i)) {
-          audioExportOptions.wavFormat=(DivAudioExportWavFormats)i;
-        }
-      }
-      ImGui::EndCombo();
-    }
   }
+  ImGui::Separator();
 
   if (ImGui::InputInt(_("Loops"),&audioExportOptions.loops,1,2)) {
     if (audioExportOptions.loops<0) audioExportOptions.loops=0;
