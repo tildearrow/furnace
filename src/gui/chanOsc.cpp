@@ -903,7 +903,7 @@ void FurnaceGUI::drawChanOsc() {
                         DivChannelState* chanState=e->getChanState(ch);
                         if (chanState==NULL || !(chanState->keyOn)) break;
                         // no more conversion necessary after the note/octave unification :>
-                        text+=fmt::sprintf("%s",noteName(chanState->note));
+                        text+=fmt::sprintf("%s",noteName(chanState->note+60));
                         break;
                       }
                       case 'l': {
