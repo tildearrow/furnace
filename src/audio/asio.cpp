@@ -150,6 +150,110 @@ void TAAudioASIO::onProcess(int index) {
   }*/
 }
 
+String TAAudioASIO::getErrorStr(ASIOError which) {
+  switch (which) {
+    case ASE_OK:
+      return "OK";
+      break;
+    case ASE_SUCCESS:
+      return "Success";
+      break;
+    case ASE_NotPresent:
+      return "Not present";
+      break;
+    case ASE_HWMalfunction:
+      return "Hardware error";
+      break;
+    case ASE_InvalidParameter:
+      return "Invalid parameter";
+      break;
+    case ASE_InvalidMode:
+      return "Invalid mode";
+      break;
+    case ASE_SPNotAdvancing:
+      return "Sample position not advancing";
+      break;
+    case ASE_NoClock:
+      return "Clock not initialized";
+      break;
+    case ASE_NoMemory:
+      return "Out of memory";
+      break;
+    default:
+      break;
+  }
+  return "Unknown error";
+}
+
+String TAAudioASIO::getFormatName(ASIOSampleType which) {
+  switch (which) {
+    case ASIOSTInt16LSB:
+      return "16-bit LSB";
+      break;
+    case ASIOSTInt24LSB:
+      return "24-bit packed LSB";
+      break;
+    case ASIOSTInt32LSB:
+      return "32-bit LSB";
+      break;
+    case ASIOSTFloat32LSB:
+      return "32-bit float LSB";
+      break;
+    case ASIOSTFloat64LSB:
+      return "64-bit float LSB";
+      break;
+    case ASIOSTInt16MSB:
+      return "16-bit MSB";
+      break;
+    case ASIOSTInt24MSB:
+      return "24-bit packed MSB";
+      break;
+    case ASIOSTInt32MSB:
+      return "32-bit MSB";
+      break;
+    case ASIOSTFloat32MSB:
+      return "32-bit float MSB";
+      break;
+    case ASIOSTFloat64MSB:
+      return "64-bit float MSB";
+      break;
+    case ASIOSTInt32LSB16:
+      return "16-bit padded LSB";
+      break;
+    case ASIOSTInt32LSB18:
+      return "18-bit padded LSB";
+      break;
+    case ASIOSTInt32LSB20:
+      return "20-bit padded LSB";
+      break;
+    case ASIOSTInt32LSB24:
+      return "24-bit padded LSB";
+      break;
+    case ASIOSTInt32MSB16:
+      return "16-bit padded MSB";
+      break;
+    case ASIOSTInt32MSB18:
+      return "18-bit padded MSB";
+      break;
+    case ASIOSTInt32MSB20:
+      return "20-bit padded MSB";
+      break;
+    case ASIOSTInt32MSB24:
+      return "24-bit padded MSB";
+      break;
+    case ASIOSTDSDInt8LSB1:
+      return "1-bit LSB";
+      break;
+    case ASIOSTDSDInt8MSB1:
+      return "1-bit MSB";
+      break;
+    case ASIOSTDSDInt8NER8:
+      return "1-bit padded";
+      break;
+  }
+  return "Unknown";
+}
+
 void* TAAudioASIO::getContext() {
   return (void*)&driverInfo;
 }
@@ -157,14 +261,22 @@ void* TAAudioASIO::getContext() {
 bool TAAudioASIO::quit() {
   if (!initialized) return false;
 
+  ASIOError result;
+
   if (running) {
     logV("CRASH: STOPPING NOW (QUIT)......");
-    ASIOStop();
+    result=ASIOStop();
+    if (result!=ASE_OK) {
+      logE("could not stop on quit! (%s)",getErrorStr(result));
+    }
     running=false;
   }
 
   logV("CRASH: ASIODisposeBuffers()");
-  ASIODisposeBuffers();
+  result=ASIODisposeBuffers();
+  if (result!=ASE_OK) {
+    logE("could not destroy buffers! (%s)",getErrorStr(result));
+  }
   
   logV("CRASH: erase inBufs");
   for (int i=0; i<desc.inChans; i++) {
@@ -188,7 +300,10 @@ bool TAAudioASIO::quit() {
   }
 
   logV("CRASH: ASIOExit()");
-  ASIOExit();
+  result=ASIOExit();
+  if (result!=ASE_OK) {
+    logE("could not exit!",getErrorStr(result));
+  }
   logV("CRASH: removeCurrentDriver()");
   drivers.removeCurrentDriver();
 
@@ -204,13 +319,23 @@ bool TAAudioASIO::setRun(bool run) {
   if (running==run) {
     return running;
   }
+
+  ASIOError result;
+
   if (run) {
-    if (ASIOStart()!=ASE_OK) return false;
+    result=ASIOStart();
+    if (result!=ASE_OK) {
+      logE("could not start running! (%s)",getErrorStr(result));
+      return false;
+    }
     running=true;
   } else {
     // does it matter whether stop was successful?
     logV("CRASH: STOPPING NOW......");
-    ASIOStop();
+    result=ASIOStop();
+    if (result!=ASE_OK) {
+      logE("could not stop running! (%s)",getErrorStr(result));
+    }
     running=false;
   }
   return running;
@@ -264,7 +389,7 @@ bool TAAudioASIO::init(TAAudioDesc& request, TAAudioDesc& response) {
   ASIOError result=ASIOInit(&driverInfo);
 
   if (result!=ASE_OK) {
-    logE("could not init device!");
+    logE("could not init device! (%s)",getErrorStr(result));
     drivers.removeCurrentDriver();
     return false;
   }
@@ -283,7 +408,7 @@ bool TAAudioASIO::init(TAAudioDesc& request, TAAudioDesc& response) {
 
   result=ASIOGetChannels(&maxInChans,&maxOutChans);
   if (result!=ASE_OK) {
-    logE("could not get channel count!");
+    logE("could not get channel count! (%s)",getErrorStr(result));
     ASIOExit();
     drivers.removeCurrentDriver();
     return false;
@@ -301,7 +426,7 @@ bool TAAudioASIO::init(TAAudioDesc& request, TAAudioDesc& response) {
   long bufSizeGranularity=0;
   result=ASIOGetBufferSize(&minBufSize,&maxBufSize,&actualBufSize,&bufSizeGranularity);
   if (result!=ASE_OK) {
-    logE("could not get buffer size!");
+    logE("could not get buffer size! (%s)",getErrorStr(result));
     ASIOExit();
     drivers.removeCurrentDriver();
     return false;
@@ -310,7 +435,7 @@ bool TAAudioASIO::init(TAAudioDesc& request, TAAudioDesc& response) {
   ASIOSampleRate outRate;
   result=ASIOGetSampleRate(&outRate);
   if (result!=ASE_OK) {
-    logE("could not get sample rate!");
+    logE("could not get sample rate! (%s)",getErrorStr(result));
     ASIOExit();
     drivers.removeCurrentDriver();
     return false;
@@ -324,7 +449,10 @@ bool TAAudioASIO::init(TAAudioDesc& request, TAAudioDesc& response) {
     for (int i=0; i<desc.inChans; i++) {
       chanInfo[totalChans].channel=i;
       chanInfo[totalChans].isInput=ASIOTrue;
-      ASIOGetChannelInfo(&chanInfo[totalChans]);
+      result=ASIOGetChannelInfo(&chanInfo[totalChans];
+      if (result!=ASE_OK) {
+        logW("failed to get channel info for input channel %d! (%s)",i,getErrorStr(result));
+      }
       bufInfo[totalChans].channelNum=i;
       bufInfo[totalChans++].isInput=ASIOTrue;
       inBufs[i]=new float[actualBufSize];
@@ -335,16 +463,28 @@ bool TAAudioASIO::init(TAAudioDesc& request, TAAudioDesc& response) {
     for (int i=0; i<desc.outChans; i++) {
       chanInfo[totalChans].channel=i;
       chanInfo[totalChans].isInput=ASIOFalse;
-      ASIOGetChannelInfo(&chanInfo[totalChans]);
+      result=ASIOGetChannelInfo(&chanInfo[totalChans]);
+      if (result!=ASE_OK) {
+        logW("failed to get channel info for output channel %d! (%s)",i,getErrorStr(result));
+      }
       bufInfo[totalChans].channelNum=i;
       bufInfo[totalChans++].isInput=ASIOFalse;
       outBufs[i]=new float[actualBufSize];
     }
   }
 
+  for (int i=0; i<totalChans; i++) {
+    logV("channel %d info: (index %d)",chanInfo[i].channel,i);
+    logV("- name: %s",chanInfo[i].name);
+    logV("- sample type: %s",getFormatName(chanInfo[i].type));
+    logV("- group: %d",chanInfo[i].channelGroup);
+    logV("- is input: %s",(chanInfo[i].isInput==ASIOTrue)?"yes":"no");
+    logV("- is active: %s",(chanInfo[i].isActive==ASIOTrue)?"yes":"no");
+  }
+
   result=ASIOCreateBuffers(bufInfo,totalChans,actualBufSize,&callbacks);
   if (result!=ASE_OK) {
-    logE("could not create buffers!");
+    logE("could not create buffers! (%s)",getErrorStr(result));
     if (inBufs!=NULL) {
       for (int i=0; i<desc.inChans; i++) {
         if (inBufs[i]!=NULL) {
@@ -365,7 +505,10 @@ bool TAAudioASIO::init(TAAudioDesc& request, TAAudioDesc& response) {
       delete[] outBufs;
       outBufs=NULL;
     }
-    ASIOExit();
+    result=ASIOExit();
+    if (result!=ASE_OK) {
+      logE("could not exit either! (%s)",getErrorStr(result));
+    }
     drivers.removeCurrentDriver();
     return false;
   }
