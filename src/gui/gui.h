@@ -1684,7 +1684,7 @@ class FurnaceGUI {
 
   FurnaceGUITexture* csTex;
 
-  String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile, sysSearchQuery, newSongQuery, paletteQuery, sampleBankSearchQuery;
+  String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile, sysSearchQuery, newSongQuery, paletteQuery /*, sampleBankSearchQuery*/;
   String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport;
   String workingDirVGMExport, workingDirROMExport;
   String workingDirFont, workingDirColors, workingDirKeybinds;
@@ -1713,7 +1713,7 @@ class FurnaceGUI {
   bool displayNew, displayExport, displayPalette, fullScreen, preserveChanPos, sysDupCloneChannels, sysDupEnd, noteInputPoly, notifyWaveChange, notifySampleChange;
   bool wantScrollListIns, wantScrollListWave, wantScrollListSample;
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
-  bool displayPendingSamples, replacePendingSample;
+  bool displayPendingSamples, replacePendingSample, isPendingSampleBank;
   bool displayExportingROM, displayExportingCS;
   bool quitNoSave;
   bool changeCoarse;
