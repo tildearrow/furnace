@@ -435,6 +435,10 @@ float DivPlatformYMZ280B::getPostAmp() {
   return 4.0f;
 }
 
+size_t DivPlatformYMZ280B::getSampleMemNum() {
+  return 1;
+}
+
 const void* DivPlatformYMZ280B::getSampleMem(int index) {
   return index == 0 ? sampleMem : NULL;
 }
