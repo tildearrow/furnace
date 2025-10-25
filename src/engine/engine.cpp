@@ -3798,6 +3798,16 @@ TAAudioDesc& DivEngine::getAudioDescGot() {
   return got;
 }
 
+TAAudioDeviceStatus DivEngine::getAudioDeviceStatus() {
+  if (output==NULL) return TA_AUDIO_DEVICE_OK;
+  return output->getDeviceStatus();
+}
+
+void DivEngine::acceptAudioDeviceStatus() {
+  if (output==NULL) return;
+  output->acceptDeviceStatus();
+}
+
 std::vector<String>& DivEngine::getAudioDevices() {
   return audioDevs;
 }

@@ -41,6 +41,7 @@ class TAAudioASIO: public TAAudio {
     void onSampleRate(double rate);
     void onBufferSize(int bufsize);
     void onProcess(int nframes);
+    void requestDeviceChange();
 
     String getErrorStr(ASIOError which);
     String getFormatName(ASIOSampleType which);

@@ -1403,6 +1403,12 @@ class DivEngine {
     // get audio desc
     TAAudioDesc& getAudioDescGot();
 
+    // get audio device status
+    TAAudioDeviceStatus getAudioDeviceStatus();
+
+    // acknowledge an audio device status change
+    void acceptAudioDeviceStatus();
+
     // init dispatch
     void initDispatch(bool isRender=false);
 

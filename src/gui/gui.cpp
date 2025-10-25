@@ -4333,6 +4333,17 @@ bool FurnaceGUI::loop() {
       });
     }
 
+    // recover from audio resets
+    TAAudioDeviceStatus audioStatus=e->getAudioDeviceStatus();
+    if (audioStatus!=TA_AUDIO_DEVICE_OK) {
+      logI("audio device reset!");
+      e->acceptAudioDeviceStatus();
+
+      if (!e->switchMaster(false)) {
+        showError(_("audio device has reset or has been disconnected! check audio settings."));
+      }
+    }
+
     // recover from dead graphics
     if (rend->isDead() || killGraphics) {
       killGraphics=false;

@@ -36,6 +36,36 @@ static void _onSampleRate(ASIOSampleRate rate) {
 }
 
 static long _onMessage(long type, long value, void* msg, double* opt) {
+  if (callbackInstance==NULL) return;
+  switch (type) {
+    case kAsioSelectorSupported:
+      switch (value) {
+        case kAsioSelectorSupported:
+        case kAsioEngineVersion:
+        case kAsioResetRequest:
+        case kAsioBufferSizeChange:
+        case kAsioResyncRequest:
+          return 1;
+        default:
+          return 0;
+      }
+      break;
+    case kAsioEngineVersion:
+      return 2;
+      break;
+    case kAsioResetRequest:
+      callbackInstance->requestDeviceChange();
+      return 1;
+      break;
+    case kAsioBufferSizeChange:
+      callbackInstance->onBufferSize(value);
+      return 1;
+      break;
+    case kAsioResyncRequest:
+      // ignore
+      return 1;
+      break;
+  }
   return 0;
 }
 
@@ -341,6 +371,10 @@ bool TAAudioASIO::setRun(bool run) {
     running=false;
   }
   return running;
+}
+
+void TAAudioASIO::requestDeviceChange() {
+  deviceStatus=TA_AUDIO_DEVICE_RESET;
 }
 
 bool TAAudioASIO::init(TAAudioDesc& request, TAAudioDesc& response) {
