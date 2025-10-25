@@ -22,6 +22,7 @@
 #include "../ta-log.h"
 
 static TAAudioASIO* callbackInstance=NULL;
+extern AsioDrivers* asioDrivers;
 
 static void _onBufferSwitch(long index, ASIOBool isDirect) {
   if (callbackInstance==NULL) return;
@@ -305,7 +306,7 @@ bool TAAudioASIO::quit() {
     logE("could not exit!",getErrorStr(result));
   }
   logV("CRASH: removeCurrentDriver()");
-  drivers.removeCurrentDriver();
+  asioDrivers->removeCurrentDriver();
 
   logV("CRASH: reset callback instance");
   callbackInstance=NULL;
@@ -361,7 +362,7 @@ bool TAAudioASIO::init(TAAudioDesc& request, TAAudioDesc& response) {
       }
       driverNamesInit=true;
     }
-    driverCount=drivers.getDriverNames(driverNames,ASIO_DRIVER_MAX);
+    driverCount=asioDrivers->getDriverNames(driverNames,ASIO_DRIVER_MAX);
 
     // quit if we couldn't find any drivers
     if (driverCount<1) {
@@ -375,7 +376,7 @@ bool TAAudioASIO::init(TAAudioDesc& request, TAAudioDesc& response) {
   // load driver
   logV("loading ASIO driver... (%s)",desc.deviceName);
   strncpy(deviceNameCopy,desc.deviceName.c_str(),63);
-  if (!drivers.loadDriver(deviceNameCopy)) {
+  if (!loadAsioDriver(deviceNameCopy)) {
     logE("failed to load ASIO driver!");
     return false;
   }
@@ -390,7 +391,7 @@ bool TAAudioASIO::init(TAAudioDesc& request, TAAudioDesc& response) {
 
   if (result!=ASE_OK) {
     logE("could not init device! (%s)",getErrorStr(result));
-    drivers.removeCurrentDriver();
+    asioDrivers->removeCurrentDriver();
     return false;
   }
 
@@ -410,7 +411,7 @@ bool TAAudioASIO::init(TAAudioDesc& request, TAAudioDesc& response) {
   if (result!=ASE_OK) {
     logE("could not get channel count! (%s)",getErrorStr(result));
     ASIOExit();
-    drivers.removeCurrentDriver();
+    asioDrivers->removeCurrentDriver();
     return false;
   }
 
@@ -428,7 +429,7 @@ bool TAAudioASIO::init(TAAudioDesc& request, TAAudioDesc& response) {
   if (result!=ASE_OK) {
     logE("could not get buffer size! (%s)",getErrorStr(result));
     ASIOExit();
-    drivers.removeCurrentDriver();
+    asioDrivers->removeCurrentDriver();
     return false;
   }
 
@@ -437,7 +438,7 @@ bool TAAudioASIO::init(TAAudioDesc& request, TAAudioDesc& response) {
   if (result!=ASE_OK) {
     logE("could not get sample rate! (%s)",getErrorStr(result));
     ASIOExit();
-    drivers.removeCurrentDriver();
+    asioDrivers->removeCurrentDriver();
     return false;
   }
   desc.rate=*(double*)(&outRate);
@@ -509,7 +510,7 @@ bool TAAudioASIO::init(TAAudioDesc& request, TAAudioDesc& response) {
     if (result!=ASE_OK) {
       logE("could not exit either! (%s)",getErrorStr(result));
     }
-    drivers.removeCurrentDriver();
+    asioDrivers->removeCurrentDriver();
     return false;
   }
 
@@ -524,6 +525,8 @@ bool TAAudioASIO::init(TAAudioDesc& request, TAAudioDesc& response) {
 std::vector<String> TAAudioASIO::listAudioDevices() {
   std::vector<String> ret;
 
+  if (!asioDrivers) asioDrivers=new AsioDrivers;
+
   if (!driverNamesInit) {
     for (int i=0; i<ASIO_DRIVER_MAX; i++) {
       // 64 just in case
@@ -531,7 +534,7 @@ std::vector<String> TAAudioASIO::listAudioDevices() {
     }
     driverNamesInit=true;
   }
-  driverCount=drivers.getDriverNames(driverNames,ASIO_DRIVER_MAX);
+  driverCount=asioDrivers->getDriverNames(driverNames,ASIO_DRIVER_MAX);
   for (int i=0; i<driverCount; i++) {
     ret.push_back(driverNames[i]);
   }

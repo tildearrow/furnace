@@ -25,7 +25,6 @@
 #define ASIO_CHANNEL_MAX 16
 
 class TAAudioASIO: public TAAudio {
-  AsioDrivers drivers;
   ASIODriverInfo driverInfo;
   ASIOBufferInfo bufInfo[ASIO_CHANNEL_MAX*2];
   ASIOChannelInfo chanInfo[ASIO_CHANNEL_MAX*2];
