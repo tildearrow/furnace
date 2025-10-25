@@ -196,8 +196,13 @@ const char* aboutLine[]={
   "",
   _N("copyright © 2021-2025 tildearrow"),
   _N("(and contributors)."),
+#ifdef FURNACE_GPL3
+  _N("licensed under GPLv3! see"),
+  _N("LICENSE for more information."),
+#else
   _N("licensed under GPLv2+! see"),
   _N("LICENSE for more information."),
+#endif
   "",
   _N("help Furnace grow:"),
   "https://github.com/tildearrow/furnace",
@@ -213,6 +218,10 @@ const char* aboutLine[]={
   _N("the original program."),
   "",
   _N("it also comes with ABSOLUTELY NO WARRANTY."),
+#ifdef HAVE_ASIO
+  "",
+  _N("ASIO is a registered trademark of Steinberg Media Technologies GmbH."),
+#endif
   "",
   _N("thanks to all contributors/bug reporters!")
 };
