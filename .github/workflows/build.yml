@@ -2,7 +2,7 @@ name: Build furnace
 
 on:
   push:
-    branches: [master, 0.6-fixes-real]
+    branches: [master, 0.6-fixes-real, asio]
   pull_request:
     branches: master
 
@@ -328,7 +328,7 @@ jobs:
         tar -zcv -f ../${{ steps.package-identify.outputs.filename }} furnace
 
     - name: Upload artifact
-      if: ${{ github.repository == 'tildearrow/furnace' && github.ref_name == 'master' }}
+      if: ${{ github.repository == 'tildearrow/furnace' && github.ref_name == 'asio' }}
       uses: actions/upload-artifact@v4.3.0
       with:
         name: ${{ steps.package-identify.outputs.id }}
