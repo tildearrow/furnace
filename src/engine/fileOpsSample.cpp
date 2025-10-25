@@ -334,15 +334,11 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
   int sampleCount=(int)song.sample.size();
   const int sampleChans=si.channels;
   const bool isNotMono=sampleChans>1;
-  DivSample** samples=NULL;
-  if (isNotMono) {
-    samples=new DivSample*[sampleChans+1];
-  } else {
-    samples=new DivSample*;
-  }
+  std::vector<DivSample*> samples;
   for (int c=0; c<sampleChans+(isNotMono?1:0); c++) {
-    samples[c]=new DivSample;
+    samples.push_back(new DivSample);
     if (isNotMono) {
+      // set sample name(s)
       if (c==sampleChans) {
         samples[c]->name=stripPath;
       } else {
@@ -367,40 +363,40 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
   if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8) {
     for (int i=0; i<si.frames*sampleChans; i+=sampleChans) {
       int averaged=0,perCh=0;
-      for (int j=0; j<sampleChans; j++) {
-        perCh=((int)((unsigned char*)buf)[i+j])-128;
-        if (isNotMono) {
+      if (isNotMono) {
+        for (int j=0; j<sampleChans; j++) {
+          perCh=((int)((unsigned char*)buf)[i+j])-128;
           averaged+=perCh;
           samples[j]->data8[index]=perCh;
         }
-      }
-      if (isNotMono) {
         averaged/=sampleChans;
         samples[sampleChans]->data8[index]=averaged;
       } else {
-        // samples[0]->data8[index]=perCh;
+        perCh=((int)((unsigned char*)buf)[i])-128;
+        samples[0]->data8[index]=perCh;
       }
       index++;
     }
     delete[] (unsigned char*)buf;
   } else if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_DOUBLE)  {
     for (int i=0; i<si.frames*sampleChans; i+=sampleChans) {
-      double averaged=0.0f,perCh=0.0f;
-      for (int j=0; j<sampleChans; j++) {
-        perCh=((double*)buf)[i+j];
-        averaged+=perCh;
-        if (perCh<-32768.0) perCh=-32768.0;
-        if (perCh>32767.0) perCh=32767.0;
-        if (isNotMono) samples[j]->data16[index]=perCh;
-      }
+      double averaged=0,perCh=0;
       if (isNotMono) {
+        for (int j=0; j<sampleChans; j++) {
+          perCh=((double*)buf)[i+j];
+          averaged+=perCh;
+          if (perCh<-32768.0) perCh=-32768.0;
+          if (perCh>32767.0) perCh=32767.0;
+          samples[j]->data16[index]=perCh;
+        }
         averaged/=sampleChans;
-        averaged*=32767.0;
+        averaged*=32768.0;
         if (averaged<-32768.0) averaged=-32768.0;
         if (averaged>32767.0) averaged=32767.0;
         samples[sampleChans]->data16[index]=averaged;
       } else {
-        // samples[0]->data16[index]=perCh;
+        perCh=((double*)buf)[i];
+        samples[0]->data16[index]=perCh;
       }
       index++;
     }
@@ -408,38 +404,40 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
   } else if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_16) {
     for (int i=0; i<si.frames*si.channels; i+=si.channels) {
       int averaged=0, perCh=0;
-      for (int j=0; j<si.channels; j++) {
-        perCh=((short*)buf)[i+j];
-        averaged+=perCh;
-        if (isNotMono) samples[j]->data16[index]=perCh;
-      }
       if (isNotMono) {
+        for (int j=0; j<sampleChans; j++) {
+          perCh=((short*)buf)[i+j];
+          averaged+=perCh;
+          samples[j]->data16[index]=perCh;
+        }
         averaged/=sampleChans;
         samples[sampleChans]->data16[index]=averaged;
       } else {
-        // samples[0]->data16[index]=perCh;
+        perCh=((short*)buf)[i];
+        samples[0]->data16[index]=perCh;
       }
       index++;
     }
     delete[] (short*)buf;
   } else {
     for (int i=0; i<si.frames*si.channels; i+=si.channels) {
-      float averaged=0.0f, perCh=0.0f;
-      for (int j=0; j<si.channels; j++) {
-        perCh=((float*)buf)[i+j];
-        averaged+=perCh;
-        if (perCh<-32768.0) perCh=-32768.0;
-        if (perCh>32767.0) perCh=32767.0;
-        if (isNotMono) samples[j]->data16[index]=perCh;
-      }
+      float averaged=0,perCh=0;
       if (isNotMono) {
+        for (int j=0; j<sampleChans; j++) {
+          perCh=((float*)buf)[i+j];
+          averaged+=perCh;
+          if (perCh<-32768.0f) perCh=-32768.0f;
+          if (perCh>32767.0f) perCh=32767.0f;
+          samples[j]->data16[index]=perCh*32768.0f;
+        }
         averaged/=sampleChans;
-        averaged*=32767.0;
-        if (averaged<-32768.0) averaged=-32768.0;
-        if (averaged>32767.0) averaged=32767.0;
+        averaged*=32768.0f;
+        if (averaged<-32768.0f) averaged=-32768.0f;
+        if (averaged>32767.0f) averaged=32767.0f;
         samples[sampleChans]->data16[index]=averaged;
       } else {
-        // samples[0]->data16[index]=perCh;
+        perCh=((float*)buf)[i];
+        samples[0]->data16[index]=perCh;
       }
       index++;
     }
@@ -483,8 +481,6 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
     if (samples[c]->centerRate>384000) samples[c]->centerRate=384000;
     ret.push_back(samples[c]);
   }
-  delete[] samples;
-  samples=NULL;
 
   sfWrap.doClose();
   BUSY_END;
