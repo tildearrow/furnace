@@ -615,7 +615,7 @@ int main(int argc, char** argv) {
   }
 
   // co initialize ex
-  HRESULT coResult=CoInitializeEx(NULL,COINIT_MULTITHREADED);
+  HRESULT coResult=CoInitializeEx(NULL,COINIT_APARTMENTTHREADED);
   if (coResult!=S_OK) {
     logE("CoInitializeEx failed!");
   }
