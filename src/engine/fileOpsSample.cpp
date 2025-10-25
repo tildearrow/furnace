@@ -378,12 +378,11 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
         averaged/=sampleChans;
         samples[sampleChans]->data8[index]=averaged;
       } else {
-        samples[0]->data8[index]=perCh;
+        // samples[0]->data8[index]=perCh;
       }
       index++;
     }
     delete[] (unsigned char*)buf;
-<<<<<< < polysamples // FIX FIX FIX
   } else if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_DOUBLE)  {
     for (int i=0; i<si.frames*sampleChans; i+=sampleChans) {
       double averaged=0.0f,perCh=0.0f;
@@ -401,61 +400,48 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
         if (averaged>32767.0) averaged=32767.0;
         samples[sampleChans]->data16[index]=averaged;
       } else {
-        samples[0]->data16[index]=perCh;
+        // samples[0]->data16[index]=perCh;
       }
       index++;
     }
     delete[] (double*)buf;
-  } else {
-    for (int i=0; i<si.frames*sampleChans; i+=sampleChans) {
-      int averaged=0,perCh=0;
-      for (int j=0; j<sampleChans; j++) {
-        perCh=((short*)buf)[i+j];
-        if (isNotMono) {
-          averaged+=perCh;
-          samples[j]->data16[index]=perCh;
-        }
-====== =
-  } else if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_DOUBLE) {
-    for (int i=0; i<si.frames*si.channels; i+=si.channels) {
-      double averaged=0.0f;
-      for (int j=0; j<si.channels; j++) {
-        averaged+=((double*)buf)[i+j];
-      }
-      averaged/=si.channels;
-      averaged*=32767.0;
-      if (averaged<-32768.0) averaged=-32768.0;
-      if (averaged>32767.0) averaged=32767.0;
-      sample->data16[index++]=averaged;
-    }
-    delete[] (double*)buf;
   } else if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_16) {
     for (int i=0; i<si.frames*si.channels; i+=si.channels) {
-      int averaged=0;
+      int averaged=0, perCh=0;
       for (int j=0; j<si.channels; j++) {
-        averaged+=((short*)buf)[i+j];
->>>>>> > master
+        perCh=((short*)buf)[i+j];
+        averaged+=perCh;
+        if (isNotMono) samples[j]->data16[index]=perCh;
       }
       if (isNotMono) {
         averaged/=sampleChans;
         samples[sampleChans]->data16[index]=averaged;
       } else {
-        samples[0]->data16[index]=perCh;
+        // samples[0]->data16[index]=perCh;
       }
       index++;
     }
     delete[] (short*)buf;
   } else {
     for (int i=0; i<si.frames*si.channels; i+=si.channels) {
-      float averaged=0.0f;
+      float averaged=0.0f, perCh=0.0f;
       for (int j=0; j<si.channels; j++) {
-        averaged+=((float*)buf)[i+j];
+        perCh=((float*)buf)[i+j];
+        averaged+=perCh;
+        if (perCh<-32768.0) perCh=-32768.0;
+        if (perCh>32767.0) perCh=32767.0;
+        if (isNotMono) samples[j]->data16[index]=perCh;
       }
-      averaged/=si.channels;
-      averaged*=32767.0;
-      if (averaged<-32768.0) averaged=-32768.0;
-      if (averaged>32767.0) averaged=32767.0;
-      sample->data16[index++]=averaged;
+      if (isNotMono) {
+        averaged/=sampleChans;
+        averaged*=32767.0;
+        if (averaged<-32768.0) averaged=-32768.0;
+        if (averaged>32767.0) averaged=32767.0;
+        samples[sampleChans]->data16[index]=averaged;
+      } else {
+        // samples[0]->data16[index]=perCh;
+      }
+      index++;
     }
     delete[] (float*)buf;
   }
@@ -469,22 +455,25 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
 
   SF_INSTRUMENT inst;
   if (sf_command(f,SFC_GET_INSTRUMENT,&inst,sizeof(inst))==SF_TRUE) {
-    // There's no documentation on libsndfile detune range, but the code
-    // implies -50..50. Yet when loading a file you can get a >50 value.
-    if (getConfInt("sampleImportInstDetune",0)) {
-      if(inst.detune>50) {
-        inst.detune=inst.detune-100;
+    bool loadDetune=getConfInt("sampleImportInstDetune",0);
+    for (int i=0; i<sampleChans+(isNotMono?1:0); i++) {
+      // There's no documentation on libsndfile detune range, but the code
+      // implies -50..50. Yet when loading a file you can get a >50 value.
+      if (loadDetune) {
+        if(inst.detune>50) {
+          inst.detune=inst.detune-100;
+        }
+        short pitch=((0x3c-inst.basenote)*100)+inst.detune;
+        samples[i]->centerRate=si.samplerate*pow(2.0,pitch/(12.0*100.0));
       }
-      short pitch=((0x3c-inst.basenote)*100)+inst.detune;
-      sample->centerRate=si.samplerate*pow(2.0,pitch/(12.0*100.0));
-    }
-    if(inst.loop_count && inst.loops[0].mode >= SF_LOOP_FORWARD) {
-      sample->loop=true;
-      sample->loopMode=(DivSampleLoopMode)(inst.loops[0].mode-SF_LOOP_FORWARD);
-      sample->loopStart=inst.loops[0].start;
-      sample->loopEnd=inst.loops[0].end;
-      if(inst.loops[0].end<(unsigned int)sampleCount) {
-        sampleCount=inst.loops[0].end;
+      if(inst.loop_count && inst.loops[0].mode >= SF_LOOP_FORWARD) {
+        samples[i]->loop=true;
+        samples[i]->loopMode=(DivSampleLoopMode)(inst.loops[0].mode-SF_LOOP_FORWARD);
+        samples[i]->loopStart=inst.loops[0].start;
+        samples[i]->loopEnd=inst.loops[0].end;
+        if(inst.loops[0].end<(unsigned int)sampleCount) {
+          sampleCount=inst.loops[0].end;
+        }
       }
     }
   }
