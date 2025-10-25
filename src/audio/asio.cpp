@@ -23,6 +23,7 @@
 
 static TAAudioASIO* callbackInstance=NULL;
 extern AsioDrivers* asioDrivers;
+bool loadAsioDriver(char *name);
 
 static void _onBufferSwitch(long index, ASIOBool isDirect) {
   if (callbackInstance==NULL) return;
