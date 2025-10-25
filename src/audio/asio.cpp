@@ -449,7 +449,7 @@ bool TAAudioASIO::init(TAAudioDesc& request, TAAudioDesc& response) {
     for (int i=0; i<desc.inChans; i++) {
       chanInfo[totalChans].channel=i;
       chanInfo[totalChans].isInput=ASIOTrue;
-      result=ASIOGetChannelInfo(&chanInfo[totalChans];
+      result=ASIOGetChannelInfo(&chanInfo[totalChans]);
       if (result!=ASE_OK) {
         logW("failed to get channel info for input channel %d! (%s)",i,getErrorStr(result));
       }
