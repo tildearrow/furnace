@@ -287,6 +287,8 @@ endif()
 
 # Opus is mandatory
 set(OPUS_X86_MAY_HAVE_AVX2 OFF CACHE BOOL "Enable AVX2 for Opus" FORCE)
+set(OPUS_FORTIFY_SOURCE OFF CACHE BOOL "Enable Fortify Source" FORCE)
+set(OPUS_STACK_PROTECTOR OFF CACHE BOOL "Enable Fortify Source" FORCE)
 add_subdirectory(extern/opus EXCLUDE_FROM_ALL)
 
 if (USE_SNDFILE)
