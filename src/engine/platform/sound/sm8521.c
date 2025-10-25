@@ -72,11 +72,19 @@ void sm8521_noise_tick(struct sm8521_noise_t *noise, const int cycle)
 	noise->base.counter += cycle;
 	while (noise->base.counter >= (noise->base.t + 1))
 	{
+                // https://github.com/tildearrow/furnace/issues/2567
                 // unknown algorithm, but don't use rand()
+                //
+                // some research suggests VIC-like noise, although
+                // that remains to be confirmed
+                noise->oldLFSR = noise->lfsr & 1;
 		noise->lfsr = ( noise->lfsr>>1|(((noise->lfsr) ^ (noise->lfsr >> 5) ^ (noise->lfsr >> 8) ^ (noise->lfsr >> 13) ) & 1)<<31);
 		noise->base.counter -= (noise->base.t + 1);
+                if (noise->oldLFSR^(noise->lfsr&1)) {
+                  noise->out ^= 1;
+                }
 	}
-	noise->base.out = (((noise->lfsr & 0x1) ? 7 : -8) * noise->base.level) >> 1; // scale out to 8bit
+	noise->base.out = ((noise->out ? 7 : -8) * noise->base.level) >> 1; // scale out to 8bit
 }
 
 void sm8521_sound_tick(struct sm8521_t *sm8521, const int cycle)
@@ -130,6 +138,8 @@ void sm8521_reset(struct sm8521_t *sm8521)
 	sm8521->noise.base.out = 0;
 	sm8521->noise.base.counter = 0;
 	sm8521->noise.lfsr = 0x89abcdef;
+	sm8521->noise.oldLFSR = 1;
+	sm8521->noise.out = 0;
 	sm8521->out = 0;
 	sm8521->sgda = 0;
 	sm8521->sgc = 0;

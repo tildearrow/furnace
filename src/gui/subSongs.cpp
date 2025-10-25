@@ -43,6 +43,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
             cursor.xCoarse=0;
             cursor.xFine=0;
             cursor.y=0;
+            cursor.order=0;
             selStart=cursor;
             selEnd=cursor;
             curOrder=0;
@@ -80,6 +81,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
         cursor.xCoarse=0;
         cursor.xFine=0;
         cursor.y=0;
+        cursor.order=0;
         selStart=cursor;
         selEnd=cursor;
         curOrder=0;
@@ -101,6 +103,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
         cursor.xCoarse=0;
         cursor.xFine=0;
         cursor.y=0;
+        cursor.order=0;
         selStart=cursor;
         selEnd=cursor;
         curOrder=0;
@@ -133,7 +136,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
     }
 
     if (ImGui::GetContentRegionAvail().y>(10.0f*dpiScale)) {
-      if (ImGui::InputTextMultiline("##SubSongNotes",&e->curSubSong->notes,ImGui::GetContentRegionAvail(),ImGuiInputTextFlags_UndoRedo|(settings.songNotesWrap?ImGuiInputTextFlags_WordWrapping:0))) {
+      if (ImGui::InputTextMultiline("##SubSongNotes",&e->curSubSong->notes,ImGui::GetContentRegionAvail(),ImGuiInputTextFlags_UndoRedo|(settings.songNotesWrap?ImGuiInputTextFlags_WordWrap:0))) {
         MARK_MODIFIED;
       }
     }

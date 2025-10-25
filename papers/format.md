@@ -182,7 +182,7 @@ size | description
      |   - 0x8f: OPL (YM3526) - 9 channels
      |   - 0x90: OPL2 (YM3812) - 9 channels
      |   - 0x91: OPL3 (YMF262) - 18 channels
-     |   - 0x92: MultiPCM - 28 channels (UNAVAILABLE)
+     |   - 0x92: MultiPCM - 28 channels
      |   - 0x93: Intel 8253 (beeper) - 1 channel
      |   - 0x94: POKEY - 4 channels
      |   - 0x95: RF5C68 - 8 channels
@@ -290,8 +290,9 @@ size | description
   1  | limit slides (>=36) or reserved
   1  | linear pitch (>=36) or reserved
      | - 0: non-linear
-     | - 1: only pitch change (04xy/E5xx) linear
-     | - 2: full linear (>=94)
+     | - 1: only pitch change (04xy/E5xx) linear (<237) - full linear (>=237)
+     |   - partial pitch linearity removed in 237
+     | - 2: full linear (>=94, <237)
   1  | loop modality (>=36) or reserved
   1  | proper noise layout (>=42) or reserved
   1  | wave duty is volume (>=42) or reserved
@@ -397,7 +398,7 @@ size | description
   1  | legacy "always set volume" behavior (>=191)
   1  | legacy sample offset effect (>=200)
  --- | **speed pattern of first song** (>=139)
-  1  | length of speed pattern (fail if this is lower than 0 or higher than 16)
+  1  | length of speed pattern (fail if this is lower than 1 or higher than 16)
  16  | speed pattern (this overrides speed 1 and speed 2 settings)
  --- | **groove list** (>=139)
   1  | number of entries
@@ -478,7 +479,7 @@ size | description
  S?? | channel short names
      | - same as above
  --- | **speed pattern** (>=139)
-  1  | length of speed pattern (fail if this is lower than 0 or higher than 16)
+  1  | length of speed pattern (fail if this is lower than 1 or higher than 16)
  16  | speed pattern (this overrides speed 1 and speed 2 settings)
 ```
 

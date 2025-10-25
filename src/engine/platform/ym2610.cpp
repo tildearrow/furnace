@@ -465,6 +465,16 @@ void DivPlatformYM2610::acquire_lle(short** buf, size_t len) {
     signed char subCycle=0;
     unsigned char subSubCycle=0;
 
+    // AY -> OPN
+    ay->runDAC();
+    ay->runTFX(rate);
+    ay->flushWrites();
+    for (DivRegWrite& i: ay->getRegisterWrites()) {
+      if (i.addr>15) continue;
+      immWrite(i.addr&15,i.val);
+    }
+    ay->getRegisterWrites().clear();
+
     for (int i=0; i<6; i++) {
       fmOut[i]=0;
     }
@@ -826,7 +836,7 @@ void DivPlatformYM2610::tick(bool sysTick) {
   for (int i=0; i<(psgChanOffs-isCSM); i++) {
     if (i==1 && extMode) continue;
     if (chan[i].freqChanged) {
-      if (parent->song.linearPitch==2) {
+      if (parent->song.linearPitch) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[i].state.block);
       } else {
         int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
@@ -1344,7 +1354,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
         }
         break;
       }
-      if (c.chan>=psgChanOffs || parent->song.linearPitch==2) { // PSG, ADPCM-B
+      if (c.chan>=psgChanOffs || parent->song.linearPitch) { // PSG, ADPCM-B
         int destFreq=NOTE_OPNB(c.chan,c.value2+chan[c.chan].sampleNoteDelta);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {

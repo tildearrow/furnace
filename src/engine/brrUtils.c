@@ -256,7 +256,7 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart, unsigne
     total+=9;
   }
   // encode loop block
-  if (loopStart>=0) {
+  if (loopStart>=0 && loopStart<len) {
     long p=loopStart;
     for (int i=0; i<17; i++) {
       if (p>=len) {

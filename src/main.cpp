@@ -31,6 +31,9 @@
 #include <windows.h>
 #include <combaseapi.h>
 #include <shellapi.h>
+#if defined(HAVE_SDL2) && !defined(SUPPORT_XP)
+#include <versionhelpers.h>
+#endif
 #include "utfutils.h"
 #include "gui/shellScalingStub.h"
 
@@ -279,6 +282,16 @@ TAParamResult pVersion(String) {
   printf("\n");
   printf("furnace is powered by:\n");
   printf("- libsndfile by Erik de Castro Lopo and rest of libsndfile team (LGPLv2.1)\n");
+#ifdef HAVE_OGG
+  printf("- libogg by Xiph.Org Foundation (Xiph.Org, BSD-like license)\n");
+  printf("- libvorbis by Xiph.Org Foundation (Xiph.Org, BSD-like license)\n");
+  printf("- FLAC library by Xiph.Org Foundation (Xiph.Org, BSD-like license)\n");
+  printf("- libopus by Xiph.Org and contributors (BSD 3-clause)\n");
+#endif
+#ifdef HAVE_MP3_EXPORT
+  printf("- libmpg123 by Michael Hipp, Thomas Orgis, Taihei Momma and contributors (LGPLv2.1)\n");
+  printf("- LAME by Mike Cheng, Mark Taylor and The LAME Project (LGPLv2)\n");
+#endif
   printf("- SDL2 by Sam Lantinga (zlib license)\n");
   printf("- zlib by Jean-loup Gailly and Mark Adler (zlib license)\n");
   printf("- PortAudio (PortAudio license)\n");
@@ -324,7 +337,7 @@ TAParamResult pVersion(String) {
   printf("- SAASound by Dave Hooper and Simon Owen (BSD 3-clause)\n");
   printf("- SameBoy by Lior Halphon (MIT)\n");
   printf("- Mednafen PCE, WonderSwan and Virtual Boy by Mednafen Team (GPLv2)\n");
-  printf("- Mednafen T6W28 by Blargg (GPLv2)\n");
+  printf("- Mednafen T6W28 (modified version) by Blargg (GPLv2)\n");
   printf("- WonderSwan new core by asiekierka (zlib license)\n");
   printf("- SNES DSP core by Blargg (LGPLv2.1)\n");
   printf("- puNES (modified version) by FHorse (GPLv2)\n");
@@ -759,6 +772,12 @@ int main(int argc, char** argv) {
     return 1;
   }
 
+#if defined(HAVE_SDL2) && defined(_WIN32) && !defined(SUPPORT_XP)
+  if (!IsWindows7OrGreater()) {
+    SDL_SetHint(SDL_HINT_AUDIODRIVER,"winmm");
+  }
+#endif
+
 #ifdef HAVE_GUI
   if (e.preInit(consoleMode || benchMode || infoMode || outputMode)) {
     if (consoleMode || benchMode || infoMode || outputMode) {
@@ -788,7 +807,6 @@ int main(int argc, char** argv) {
     SDL_SetHint(SDL_HINT_ANDROID_BLOCK_ON_PAUSE_PAUSEAUDIO,"0");
   }
 #endif
-
 
   if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",TUT_INTRO_PLAYED)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || infoMode || outputMode)) {
     logI("loading module...");
@@ -1096,5 +1114,10 @@ int main(int argc, char** argv) {
   }
 #endif
   e.everythingOK();
+
+#ifdef HAVE_SDL2
+  SDL_Quit();
+#endif
+
   return 0;
 }

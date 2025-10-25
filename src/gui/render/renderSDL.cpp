@@ -32,7 +32,7 @@ class FurnaceSDLTexture: public FurnaceGUITexture {
 
 ImTextureID FurnaceGUIRenderSDL::getTextureID(FurnaceGUITexture* which) {
   FurnaceSDLTexture* t=(FurnaceSDLTexture*)which;
-  return t->tex;
+  return (ImTextureID)t->tex;
 }
 
 FurnaceGUITextureFormat FurnaceGUIRenderSDL::getTextureFormat(FurnaceGUITexture* which) {
@@ -120,24 +120,16 @@ void FurnaceGUIRenderSDL::clear(ImVec4 color) {
   SDL_RenderClear(sdlRend);
 }
 
-bool FurnaceGUIRenderSDL::newFrame() {
-  return ImGui_ImplSDLRenderer2_NewFrame();
+void FurnaceGUIRenderSDL::newFrame() {
+  ImGui_ImplSDLRenderer2_NewFrame();
 }
 
 bool FurnaceGUIRenderSDL::canVSync() {
   return swapIntervalSet;
 }
 
-void FurnaceGUIRenderSDL::createFontsTexture() {
-  ImGui_ImplSDLRenderer2_CreateFontsTexture();
-}
-
-void FurnaceGUIRenderSDL::destroyFontsTexture() {
-  ImGui_ImplSDLRenderer2_DestroyFontsTexture();
-}
-
 void FurnaceGUIRenderSDL::renderGUI() {
-  ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
+  ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(),sdlRend);
 }
 
 void FurnaceGUIRenderSDL::wipe(float alpha) {

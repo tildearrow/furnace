@@ -21,6 +21,7 @@
 #define _TA_UTILS_H
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 #include "pch.h"
 
 #ifdef _MSC_VER

@@ -54,9 +54,9 @@ bool DivSubSong::walk(int& loopOrder, int& loopRow, int& loopEnd, int chans, int
       }
       for (int k=0; k<chans; k++) {
         for (int l=0; l<pat[k].effectCols; l++) {
-          effectVal=subPat[k]->data[j][5+(l<<1)];
+          effectVal=subPat[k]->newData[j][DIV_PAT_FXVAL(l)];
           if (effectVal<0) effectVal=0;
-          if (subPat[k]->data[j][4+(l<<1)]==0x0d) {
+          if (subPat[k]->newData[j][DIV_PAT_FX(l)]==0x0d) {
             if (jumpTreatment==2) {
               if ((i<ordersLen-1 || !ignoreJumpAtEnd)) {
                 nextOrder=i+1;
@@ -78,7 +78,7 @@ bool DivSubSong::walk(int& loopOrder, int& loopRow, int& loopEnd, int chans, int
                 nextRow=effectVal;
               }
             }
-          } else if (subPat[k]->data[j][4+(l<<1)]==0x0b) {
+          } else if (subPat[k]->newData[j][DIV_PAT_FX(l)]==0x0b) {
             if (nextOrder==-1 || jumpTreatment==0) {
               nextOrder=effectVal;
               if (jumpTreatment==1 || jumpTreatment==2 || !jumpingOrder) {
@@ -160,10 +160,10 @@ void DivSubSong::findLength(int loopOrder, int loopRow, double fadeoutLen, int& 
       }
       for (int k=0; k<chans; k++) {
         for (int l=0; l<pat[k].effectCols; l++) {
-          effectVal=subPat[k]->data[j][5+(l<<1)];
+          effectVal=subPat[k]->newData[j][DIV_PAT_FXVAL(l)];
           if (effectVal<0) effectVal=0;
 
-          if (subPat[k]->data[j][4+(l<<1)]==0xff) {
+          if (subPat[k]->newData[j][DIV_PAT_FX(l)]==0xff) {
             hasFFxx=true;
 
             // FFxx makes YOU SHALL NOT PASS!!! move
@@ -173,7 +173,7 @@ void DivSubSong::findLength(int loopOrder, int loopRow, double fadeoutLen, int& 
             return;
           }
 
-          switch (subPat[k]->data[j][4+(l<<1)]) {
+          switch (subPat[k]->newData[j][DIV_PAT_FX(l)]) {
             case 0x09: { // select groove pattern/speed 1
               if (grooves.empty()) {
                 if (effectVal>0) curSpeeds.val[0]=effectVal;
@@ -208,7 +208,7 @@ void DivSubSong::findLength(int loopOrder, int loopRow, double fadeoutLen, int& 
             }
           }
 
-          if (subPat[k]->data[j][4+(l<<1)]==0x0d) {
+          if (subPat[k]->newData[j][DIV_PAT_FX(l)]==0x0d) {
             if (jumpTreatment==2) {
               if ((i<ordersLen-1 || !ignoreJumpAtEnd)) {
                 nextOrder=i+1;
@@ -230,7 +230,7 @@ void DivSubSong::findLength(int loopOrder, int loopRow, double fadeoutLen, int& 
                 nextRow=effectVal;
               }
             }
-          } else if (subPat[k]->data[j][4+(l<<1)]==0x0b) {
+          } else if (subPat[k]->newData[j][DIV_PAT_FX(l)]==0x0b) {
             if (nextOrder==-1 || jumpTreatment==0) {
               nextOrder=effectVal;
               if (jumpTreatment==1 || jumpTreatment==2 || !jumpingOrder) {
@@ -276,6 +276,24 @@ void DivSubSong::clearData() {
 
   memset(orders.ord,0,DIV_MAX_CHANS*DIV_MAX_PATTERNS);
   ordersLen=1;
+}
+
+void DivSubSong::removeUnusedPatterns() {
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
+    bool used[DIV_MAX_PATTERNS];
+    memset(used,0,DIV_MAX_PATTERNS*sizeof(bool));
+
+    for (int j=0; j<ordersLen; j++) {
+      used[orders.ord[i][j]]=true;
+    }
+
+    for (int j=0; j<DIV_MAX_PATTERNS; j++) {
+      if (!used[j] && pat[i].data[j]!=NULL) {
+        delete pat[i].data[j];
+        pat[i].data[j]=NULL;
+      }
+    }
+  }
 }
 
 void DivSubSong::optimizePatterns() {

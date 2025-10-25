@@ -23,7 +23,7 @@
 #include <math.h>
 
 #define PITCH_OFFSET ((double)(16*2048*(chanMax+1)))
-#define NOTE_ES5506(c,note) ((amigaPitch && parent->song.linearPitch!=2)?parent->calcBaseFreq(COLOR_NTSC*16,chan[c].pcm.freqOffs,note,true):parent->calcBaseFreq(chipClock,chan[c].pcm.freqOffs,note,false))
+#define NOTE_ES5506(c,note) ((amigaPitch && !parent->song.linearPitch)?parent->calcBaseFreq(COLOR_NTSC*16,chan[c].pcm.freqOffs,note,true):parent->calcBaseFreq(chipClock,chan[c].pcm.freqOffs,note,false))
 
 #define rWrite(a,...) {if(!skipRegisterWrites) {hostIntf32.push_back(QueuedHostIntf(4,(a),__VA_ARGS__)); }}
 #define immWrite(a,...) {hostIntf32.push_back(QueuedHostIntf(4,(a),__VA_ARGS__));}
@@ -603,7 +603,7 @@ void DivPlatformES5506::tick(bool sysTick) {
             const unsigned int length=s->samples-1;
             const unsigned int end=start+(length<<11);
             const unsigned int nextBank=(offES5506>>22)&3;
-            const double nextFreqOffs=((amigaPitch && parent->song.linearPitch!=2)?16:PITCH_OFFSET)*off;
+            const double nextFreqOffs=((amigaPitch && !parent->song.linearPitch)?16:PITCH_OFFSET)*off;
             chan[i].pcm.loopMode=loopMode;
             chan[i].pcm.bank=nextBank;
             chan[i].pcm.start=start;
@@ -746,9 +746,9 @@ void DivPlatformES5506::tick(bool sysTick) {
       chan[i].pcm.nextPos=0;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      if (amigaPitch && parent->song.linearPitch!=2) {
+      if (amigaPitch && !parent->song.linearPitch) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch*16,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,2,chan[i].pitch2*16,16*COLOR_NTSC,chan[i].pcm.freqOffs);
-        chan[i].freq=524288*(COLOR_NTSC/chan[i].freq)/(chipClock/32.0);
+        chan[i].freq=PITCH_OFFSET*(COLOR_NTSC/chan[i].freq)/(chipClock/16.0);
         chan[i].freq=CLAMP(chan[i].freq,0,0x1ffff);
       } else {
         chan[i].freq=CLAMP(parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,chan[i].pcm.freqOffs),0,0x1ffff);
@@ -767,7 +767,7 @@ void DivPlatformES5506::tick(bool sysTick) {
           }
           chan[i].pcm.loopStart=(chan[i].pcm.start+(s->loopStart<<11))&0xfffff800;
           chan[i].pcm.loopEnd=(chan[i].pcm.start+((s->loopEnd)<<11))&0xffffff80;
-          chan[i].pcm.freqOffs=((amigaPitch && parent->song.linearPitch!=2)?16:PITCH_OFFSET)*off;
+          chan[i].pcm.freqOffs=((amigaPitch && !parent->song.linearPitch)?16:PITCH_OFFSET)*off;
           unsigned int startPos=chan[i].pcm.direction?chan[i].pcm.end:chan[i].pcm.start;
           if (chan[i].pcm.nextPos) {
             const unsigned int start=chan[i].pcm.start;
@@ -1212,7 +1212,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       int nextFreq=chan[c.chan].baseFreq;
       int destFreq=NOTE_ES5506(c.chan,c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
-      if (amigaPitch && parent->song.linearPitch!=2) {
+      if (amigaPitch && !parent->song.linearPitch) {
         c.value*=16;
       }
       if (destFreq>nextFreq) {
@@ -1433,9 +1433,13 @@ size_t DivPlatformES5506::getSampleMemUsage(int index) {
   return index == 0 ? sampleMemLen : 0;
 }
 
+size_t DivPlatformES5506::getSampleMemOffset(int index) {
+  return index == 0 ? 128 : 0;
+}
+
 bool DivPlatformES5506::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -1446,13 +1450,13 @@ const DivMemoryComposition* DivPlatformES5506::getMemCompo(int index) {
 
 void DivPlatformES5506::renderSamples(int sysID) {
   memset(sampleMem,0,getSampleMemCapacity());
-  memset(sampleOffES5506,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOffES5506,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="Sample Memory";
 
-  size_t memPos=128; // add silent at begin and end of each bank for reverse playback and add 1 for loop
+  size_t memPos=getSampleMemOffset(); // add silent at begin and end of each bank for reverse playback and add 1 for loop
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
     if (!s->renderOn[0][sysID]) {
@@ -1462,18 +1466,18 @@ void DivPlatformES5506::renderSamples(int sysID) {
 
     unsigned int length=s->length16;
     // fit sample size to single bank size
-    if (length>(4194304-128)) {
-      length=4194304-128;
+    if (length>(4194304-getSampleMemOffset())) {
+      length=4194304-getSampleMemOffset();
     }
-    if ((memPos&0xc00000)!=((memPos+length+128)&0xc00000)) {
-      memPos=((memPos+0x3fffff)&0xffc00000)+128;
+    if ((memPos&0xc00000)!=((memPos+length+getSampleMemOffset())&0xc00000)) {
+      memPos=((memPos+0x3fffff)&0xffc00000)+getSampleMemOffset();
     }
-    if (memPos>=(getSampleMemCapacity()-128)) {
+    if (memPos>=(getSampleMemCapacity()-getSampleMemOffset())) {
       logW("out of ES5506 memory for sample %d!",i);
       break;
     }
-    if (memPos+length>=(getSampleMemCapacity()-128)) {
-      memcpy(sampleMem+(memPos/sizeof(short)),s->data16,(getSampleMemCapacity()-128)-memPos);
+    if (memPos+length>=(getSampleMemCapacity()-getSampleMemOffset())) {
+      memcpy(sampleMem+(memPos/sizeof(short)),s->data16,(getSampleMemCapacity()-getSampleMemOffset())-memPos);
       logW("out of ES5506 memory for sample %d!",i);
     } else {
       memcpy(sampleMem+(memPos/sizeof(short)),s->data16,length);
@@ -1519,4 +1523,18 @@ void DivPlatformES5506::quit() {
   for (int i=0; i<32; i++) {
     delete oscBuf[i];
   }
+}
+
+// initialization of important arrays
+DivPlatformES5506::DivPlatformES5506():
+  DivDispatch(),
+  es550x_intf(),
+  es5506(*this) {
+  sampleOffES5506=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
+DivPlatformES5506::~DivPlatformES5506() {
+  delete[] sampleOffES5506;
+  delete[] sampleLoaded;
 }

@@ -30,6 +30,7 @@ class DivPlatformVB: public DivDispatch {
     int antiClickPeriodCount, antiClickWavePos;
     unsigned char pan, envLow, envHigh;
     bool noise, deferredWaveUpdate, intWritten;
+    unsigned char hasEnvWarning;
     signed short wave;
     DivWaveSynth ws;
     Channel():
@@ -42,6 +43,7 @@ class DivPlatformVB: public DivDispatch {
       noise(false),
       deferredWaveUpdate(false),
       intWritten(false),
+      hasEnvWarning(0),
       wave(-1) {}
   };
   Channel chan[6];
@@ -78,6 +80,7 @@ class DivPlatformVB: public DivDispatch {
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
+    DivChannelModeHints getModeHints(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();

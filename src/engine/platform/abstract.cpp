@@ -160,7 +160,15 @@ void DivDispatch::notifyInsChange(int ins) {
 
 }
 
-void DivDispatch::notifyWaveChange(int ins) {
+void DivDispatch::notifyWaveChange(int wave) {
+
+}
+
+void DivDispatch::notifySampleChange(int sample) {
+
+}
+
+void DivDispatch::notifyInsAddition(int sysID) {
 
 }
 
@@ -210,6 +218,14 @@ const char* DivDispatch::getSampleMemName(int index) {
 }
 
 size_t DivDispatch::getSampleMemUsage(int index) {
+  return 0;
+}
+
+bool DivDispatch::hasSamplePtrHeader(int index) {
+  return false;
+}
+
+size_t DivDispatch::getSampleMemOffset(int index) {
   return 0;
 }
 

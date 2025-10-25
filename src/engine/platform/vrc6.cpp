@@ -418,6 +418,9 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
     case DIV_CMD_STD_NOISE_MODE:
       if ((c.chan!=2) && (!chan[c.chan].pcm)) { // pulse
         chan[c.chan].duty=c.value;
+        if (!isMuted[c.chan]) { // pulse
+          chWrite(c.chan,0,(chan[c.chan].outVol&0xf)|((chan[c.chan].duty&7)<<4));
+        }
       }
       break;
     case DIV_CMD_SAMPLE_MODE:

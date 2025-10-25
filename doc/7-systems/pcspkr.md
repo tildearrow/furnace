@@ -34,6 +34,17 @@ ha! effects...
 
 this chip uses the [Beeper](../4-instrument/beeper.md) instrument editor.
 
+## ROM export
+
+two ROM export options exist:
+
+- **iPod .tone alarm**: with the iPod _in disk mode,_ drag the export file into the `iPod_Control/Tones` folder.
+- **GRUB_INIT_TUNE**: use with the GRUB bootloader.
+  - into the file `/etc/default/grub` add the following line with the text output copied and pasted where `text` is:\
+    `GRUB_INIT_TUNE="text"`\
+    then regenerate GRUB config.
+  - **export binary file**: creates a binary file instead of text. in either the GRUB shell or the GRUB config file, use the `play` command followed by the exported file's name.
+
 ## chip config
 
 the following options are available in the Chip Manager window:

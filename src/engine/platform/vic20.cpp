@@ -284,13 +284,13 @@ void DivPlatformVIC20::muteChannel(int ch, bool mute) {
 void DivPlatformVIC20::forceIns() {
   for (int i=0; i<4; i++) {
     chan[i].insChanged=true;
-    // I give up!
-    if (chan[i].onOff) {
+    if (chan[i].onOff && chan[i].active) {
       chan[i].freqChanged=true;
     } else {
       chan[i].freqChanged=false;
       chan[i].keyOff=true;
       chan[i].keyOn=false;
+      chan[i].waveWriteCycle=-1;
     }
     writeOutVol(i);
   }

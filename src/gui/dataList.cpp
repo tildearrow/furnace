@@ -154,7 +154,7 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
   bool insPressed=ImGui::IsItemActivated();
   if (insReleased || (!insListDir && insPressed && !settings.draggableDataView)) {
     curIns=i;
-    if (!insReleased || insListDir) {
+    if (!insReleased || insListDir || settings.draggableDataView) {
       wavePreviewInit=true;
       updateFMPreview=true;
     }
@@ -168,7 +168,6 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
     ImGui::SetTooltip("%s",insType);
     ImGui::PopStyleColor();
     if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-      insEditOpen=true;
       nextWindow=GUI_WINDOW_INS_EDIT;
     }
   }
@@ -185,6 +184,9 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
       curIns=i;
       updateFMPreview=true;
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+      if (ImGui::MenuItem(_("edit"))) {
+        nextWindow=GUI_WINDOW_INS_EDIT;
+      }
       if (ImGui::MenuItem(_("duplicate"))) {
         doAction(GUI_ACTION_INS_LIST_DUPLICATE);
       }
@@ -234,11 +236,10 @@ void FurnaceGUI::waveListItem(int i, float* wavePreview, int dir, int asset) {
     lastAssetType=1;
   }
   ImGui::PopStyleVar();
-  curPos.x+=ImGui::CalcTextSize("2222").x;
+  curPos.x+=ImGui::CalcTextSize("2").x*(2+((int)log10(MAX(1,e->song.waveLen-1))));
   if (wantScrollListWave && curWave==i) ImGui::SetScrollHereY();
   if (ImGui::IsItemHovered()) {
     if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-      waveEditOpen=true;
       nextWindow=GUI_WINDOW_WAVE_EDIT;
     }
   }
@@ -278,11 +279,11 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
     curSample=i;
     samplePos=0;
     updateSampleTex=true;
+    notifySampleChange=true;
     lastAssetType=2;
   }
   if (ImGui::IsItemHovered() && !mobileUI) {
     if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-      sampleEditOpen=true;
       nextWindow=GUI_WINDOW_SAMPLE_EDIT;
     }
   }
@@ -309,8 +310,12 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
     curSample=i;
     samplePos=0;
     updateSampleTex=true;
+    notifySampleChange=true;
     lastAssetType=2;
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+    if (ImGui::MenuItem(_("edit"))) {
+      nextWindow=GUI_WINDOW_SAMPLE_EDIT;
+    }
     if (ImGui::MenuItem(_("make instrument"))) {
       doAction(GUI_ACTION_SAMPLE_MAKE_INS);
     }
@@ -783,108 +788,214 @@ void FurnaceGUI::drawWaveList(bool asChild) {
     began=ImGui::Begin("Wavetables",&waveListOpen,globalWinFlags,_("Wavetables"));
   }
   if (began) {
-    if (ImGui::Button(ICON_FA_PLUS "##WaveAdd")) {
-      doAction(GUI_ACTION_WAVE_LIST_ADD);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_("Add"));
-    }
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_FA_FILES_O "##WaveClone")) {
-      doAction(GUI_ACTION_WAVE_LIST_DUPLICATE);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_("Duplicate"));
-    }
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_FA_FOLDER_OPEN "##WaveLoad")) {
-      doAction(GUI_ACTION_WAVE_LIST_OPEN);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_("Open"));
-    }
-    if (ImGui::BeginPopupContextItem("WaveOpenOpt")) {
-      if (ImGui::MenuItem(_("replace..."))) {
-        doAction((curWave>=0 && curWave<(int)e->song.wave.size())?GUI_ACTION_WAVE_LIST_OPEN_REPLACE:GUI_ACTION_WAVE_LIST_OPEN);
+    // hide buttons if there isn't enough space
+    // buttons and their space requirements:
+    // - new: 2
+    // - duplicate: 6
+    // - open: 3
+    // - save: 5
+    // - folder view: 7
+    // - move up: 8
+    // - move down: 8
+    // - delete: 4
+    float buttonSize=ImGui::GetStyle().FramePadding.x*2.0f+settings.iconSize*dpiScale+ImGui::GetStyle().ItemSpacing.x;
+    float buttonSpace=ImGui::GetContentRegionAvail().x/MAX(1.0f,buttonSize);
+    bool mustOpenNewFolder=false;
+
+    if (buttonSpace>=2.0f) {
+      // add
+      if (ImGui::Button(ICON_FA_PLUS "##WaveAdd")) {
+        doAction(GUI_ACTION_WAVE_LIST_ADD);
       }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Add"));
+      }
+      ImGui::SameLine();
+    }
+
+    if (buttonSpace>=6.0f) {
+      // duplicate
+      if (ImGui::Button(ICON_FA_FILES_O "##WaveClone")) {
+        doAction(GUI_ACTION_WAVE_LIST_DUPLICATE);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Duplicate"));
+      }
+      ImGui::SameLine();
+    }
+
+    if (buttonSpace>=3.0f) {
+      // open
+      if (ImGui::Button(ICON_FA_FOLDER_OPEN "##WaveLoad")) {
+        doAction(GUI_ACTION_WAVE_LIST_OPEN);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Open"));
+      }
+      if (ImGui::BeginPopupContextItem("WaveOpenOpt")) {
+        if (ImGui::MenuItem(_("replace..."))) {
+          doAction((curWave>=0 && curWave<(int)e->song.wave.size())?GUI_ACTION_WAVE_LIST_OPEN_REPLACE:GUI_ACTION_WAVE_LIST_OPEN);
+        }
+        ImGui::EndPopup();
+      }
+      ImGui::SameLine();
+    }
+
+    if (buttonSpace>=5.0f) {
+      // save
+      if (ImGui::Button(ICON_FA_FLOPPY_O "##WaveSave")) {
+        doAction(GUI_ACTION_WAVE_LIST_SAVE);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Save"));
+      }
+      if (!settings.unifiedDataView) {
+        if (ImGui::BeginPopupContextItem("WaveSaveFormats",ImGuiMouseButton_Right)) {
+          if (ImGui::MenuItem(_("save as .dmw..."))) {
+            doAction(GUI_ACTION_WAVE_LIST_SAVE_DMW);
+          }
+          if (ImGui::MenuItem(_("save raw..."))) {
+            doAction(GUI_ACTION_WAVE_LIST_SAVE_RAW);
+          }
+          if (ImGui::MenuItem(_("save all..."))) {
+            doAction(GUI_ACTION_WAVE_LIST_SAVE_ALL);
+          }
+          ImGui::EndPopup();
+        }
+      }
+      ImGui::SameLine();
+    }
+
+    if (buttonSpace>=7.0f) {
+      // dir mode
+      pushToggleColors(waveListDir);
+      if (ImGui::Button(ICON_FA_SITEMAP "##WaveDirMode")) {
+        doAction(GUI_ACTION_WAVE_LIST_DIR_VIEW);
+      }
+      popToggleColors();
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Toggle folders/standard view"));
+      }
+      ImGui::SameLine();
+    }
+
+    if (buttonSpace>=(waveListDir?7.0f:8.0f)) {
+      // move up/down
+      if (!waveListDir) {
+        if (ImGui::Button(ICON_FA_ARROW_UP "##WaveUp")) {
+          doAction(GUI_ACTION_WAVE_LIST_MOVE_UP);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Move up"));
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_ARROW_DOWN "##WaveDown")) {
+          doAction(GUI_ACTION_WAVE_LIST_MOVE_DOWN);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Move down"));
+        }
+      } else {
+        if (ImGui::Button(ICON_FA_FOLDER "##WaveFolder")) {
+          mustOpenNewFolder=true;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("New folder"));
+        }
+      }
+      ImGui::SameLine();
+    }
+
+    if (buttonSpace>=4.0f) {
+      // delete
+      pushDestColor();
+      if (ImGui::Button(ICON_FA_TIMES "##WaveDelete")) {
+        doAction(GUI_ACTION_WAVE_LIST_DELETE);
+      }
+      popDestColor();
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Delete"));
+      }
+      if (buttonSpace<8.0f) {
+        ImGui::SameLine();
+      }
+    }
+
+    if (buttonSpace<(waveListDir?7.0f:8.0f)) {
+      if (ImGui::Button(ICON_FA_ELLIPSIS_H "##WaveMore")) {
+      }
+      if (ImGui::BeginPopupContextItem("WaveListMore",ImGuiMouseButton_Left)) {
+        if (buttonSpace<2.0f) if (ImGui::MenuItem("add")) {
+          doAction(GUI_ACTION_WAVE_LIST_ADD);
+        }
+        if (buttonSpace<6.0f) if (ImGui::MenuItem("duplicate")) {
+          doAction(GUI_ACTION_WAVE_LIST_DUPLICATE);
+        }
+        if (buttonSpace<3.0f) {
+          if (ImGui::MenuItem("open...")) {
+            doAction(GUI_ACTION_WAVE_LIST_OPEN);
+          }
+          if (ImGui::MenuItem("replace...")) {
+            doAction((curWave>=0 && curWave<(int)e->song.wave.size())?GUI_ACTION_WAVE_LIST_OPEN_REPLACE:GUI_ACTION_WAVE_LIST_OPEN);
+          }
+        }
+        if (buttonSpace<5.0f) {
+          if (ImGui::MenuItem("save...")) {
+            doAction(GUI_ACTION_WAVE_LIST_SAVE);
+          }
+          if (ImGui::MenuItem(_("save as .dmw..."))) {
+            doAction(GUI_ACTION_WAVE_LIST_SAVE_DMW);
+          }
+          if (ImGui::MenuItem(_("save raw..."))) {
+            doAction(GUI_ACTION_WAVE_LIST_SAVE_RAW);
+          }
+          if (ImGui::MenuItem(_("save all..."))) {
+            doAction(GUI_ACTION_WAVE_LIST_SAVE_ALL);
+          }
+        }
+        if (buttonSpace<7.0f) if (ImGui::MenuItem("folder view",NULL,waveListDir)) {
+          doAction(GUI_ACTION_WAVE_LIST_DIR_VIEW);
+        }
+        if (buttonSpace<(waveListDir?7.0f:8.0f)) {
+          if (!waveListDir) {
+            if (ImGui::MenuItem("move up")) {
+              doAction(GUI_ACTION_WAVE_LIST_MOVE_UP);
+            }
+            if (ImGui::MenuItem("move down")) {
+              doAction(GUI_ACTION_WAVE_LIST_MOVE_DOWN);
+            }
+          } else {
+            if (ImGui::MenuItem("new folder")) {
+              mustOpenNewFolder=true;
+            }
+          }
+        }
+        if (buttonSpace<4.0f) if (ImGui::MenuItem("delete")) {
+          doAction(GUI_ACTION_WAVE_LIST_DELETE);
+        }
+        ImGui::EndPopup();
+      }
+    }
+
+    if (mustOpenNewFolder) {
+      folderString="";
+      ImGui::OpenPopup("NewWaveFolder");
+    }
+
+    if (ImGui::BeginPopup("NewWaveFolder",ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+      ImGui::InputText("##FolderName",&folderString);
+      ImGui::SameLine();
+      ImGui::BeginDisabled(folderString.empty());
+      if (ImGui::Button(_("Create"))) {
+        e->lockEngine([this]() {
+          e->song.waveDir.push_back(DivAssetDir(folderString));
+        });
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndDisabled();
       ImGui::EndPopup();
     }
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_FA_FLOPPY_O "##WaveSave")) {
-      doAction(GUI_ACTION_WAVE_LIST_SAVE);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_("Save"));
-    }
-    if (!settings.unifiedDataView) {
-      if (ImGui::BeginPopupContextItem("WaveSaveFormats",ImGuiMouseButton_Right)) {
-        if (ImGui::MenuItem(_("save as .dmw..."))) {
-          doAction(GUI_ACTION_WAVE_LIST_SAVE_DMW);
-        }
-        if (ImGui::MenuItem(_("save raw..."))) {
-          doAction(GUI_ACTION_WAVE_LIST_SAVE_RAW);
-        }
-        if (ImGui::MenuItem(_("save all..."))) {
-          doAction(GUI_ACTION_WAVE_LIST_SAVE_ALL);
-        }
-        ImGui::EndPopup();
-      }
-    }
-    ImGui::SameLine();
-    pushToggleColors(waveListDir);
-    if (ImGui::Button(ICON_FA_SITEMAP "##WaveDirMode")) {
-      doAction(GUI_ACTION_WAVE_LIST_DIR_VIEW);
-    }
-    popToggleColors();
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_("Toggle folders/standard view"));
-    }
-    if (!waveListDir) {
-      ImGui::SameLine();
-      if (ImGui::Button(ICON_FA_ARROW_UP "##WaveUp")) {
-        doAction(GUI_ACTION_WAVE_LIST_MOVE_UP);
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_("Move up"));
-      }
-      ImGui::SameLine();
-      if (ImGui::Button(ICON_FA_ARROW_DOWN "##WaveDown")) {
-        doAction(GUI_ACTION_WAVE_LIST_MOVE_DOWN);
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_("Move down"));
-      }
-    } else {
-      ImGui::SameLine();
-      if (ImGui::Button(ICON_FA_FOLDER "##WaveFolder")) {
-        folderString="";
-      }
-      if (ImGui::BeginPopupContextItem("NewWaveFolder",ImGuiMouseButton_Left)) {
-        ImGui::InputText("##FolderName",&folderString);
-        ImGui::SameLine();
-        ImGui::BeginDisabled(folderString.empty());
-        if (ImGui::Button(_("Create"))) {
-          e->lockEngine([this]() {
-            e->song.waveDir.push_back(DivAssetDir(folderString));
-          });
-          ImGui::CloseCurrentPopup();
-        }
-        ImGui::EndDisabled();
-        ImGui::EndPopup();
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_("New folder"));
-      }
-    }
-    ImGui::SameLine();
-    pushDestColor();
-    if (ImGui::Button(ICON_FA_TIMES "##WaveDelete")) {
-      doAction(GUI_ACTION_WAVE_LIST_DELETE);
-    }
-    popDestColor();
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_("Delete"));
-    }
+
     ImGui::Separator();
     if (ImGui::BeginTable("WaveListScroll",1,ImGuiTableFlags_ScrollY)) {
       actualWaveList();
@@ -918,128 +1029,248 @@ void FurnaceGUI::drawSampleList(bool asChild) {
     began=ImGui::Begin("Samples",&sampleListOpen,globalWinFlags,_("Samples"));
   }
   if (began) {
-    if (ImGui::Button(ICON_FA_FILE "##SampleAdd")) {
-      doAction(GUI_ACTION_SAMPLE_LIST_ADD);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_("Add"));
-    }
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_FA_FILES_O "##SampleClone")) {
-      doAction(GUI_ACTION_SAMPLE_LIST_DUPLICATE);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_("Duplicate"));
-    }
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_FA_FOLDER_OPEN "##SampleLoad")) {
-      doAction(GUI_ACTION_SAMPLE_LIST_OPEN);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_("Open"));
-    }
-    if (mobileUI && ImGui::IsItemActive() && CHECK_LONG_HOLD) {
-      ImGui::OpenPopup("SampleOpenOpt");
-      NOTIFY_LONG_HOLD;
-    }
-    if (ImGui::BeginPopupContextItem("SampleOpenOpt")) {
-      if (ImGui::MenuItem(_("replace..."))) {
-        doAction((curSample>=0 && curSample<(int)e->song.sample.size())?GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE:GUI_ACTION_SAMPLE_LIST_OPEN);
-      }
-      ImGui::Separator();
-      if (ImGui::MenuItem(_("import raw..."))) {
-        doAction(GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
-      }
-      if (ImGui::MenuItem(_("import raw (replace)..."))) {
-        doAction((curSample>=0 && curSample<(int)e->song.sample.size())?GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE_RAW:GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
-      }
-      ImGui::EndPopup();
-    }
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_FA_FLOPPY_O "##SampleSave")) {
-      doAction(GUI_ACTION_SAMPLE_LIST_SAVE);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_("Save"));
-    }
-    if (mobileUI && ImGui::IsItemActive() && CHECK_LONG_HOLD) {
-      ImGui::OpenPopup("SampleSaveOpt");
-      NOTIFY_LONG_HOLD;
-    }
-    if (ImGui::BeginPopupContextItem("SampleSaveOpt")) {
-      if (ImGui::MenuItem(_("save raw..."))) {
-        doAction(GUI_ACTION_SAMPLE_LIST_SAVE_RAW);
-      }
-      if (ImGui::MenuItem(_("save all..."))) {
-        doAction(GUI_ACTION_SAMPLE_LIST_SAVE_ALL);
-      }
-      ImGui::EndPopup();
-    }
-    ImGui::SameLine();
-    pushToggleColors(sampleListDir);
-    if (ImGui::Button(ICON_FA_SITEMAP "##SampleDirMode")) {
-      doAction(GUI_ACTION_SAMPLE_LIST_DIR_VIEW);
-    }
-    popToggleColors();
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_("Toggle folders/standard view"));
-    }
-    if (!sampleListDir) {
-      ImGui::SameLine();
-      if (ImGui::Button(ICON_FA_ARROW_UP "##SampleUp")) {
-        doAction(GUI_ACTION_SAMPLE_LIST_MOVE_UP);
+    // hide buttons if there isn't enough space
+    // buttons and their space requirements:
+    // - new: 2
+    // - duplicate: 7
+    // - open: 3
+    // - save: 5
+    // - folder view: 8
+    // - move up: 9
+    // - move down: 9
+    // - preview: 6
+    // - delete: 4
+    float buttonSize=ImGui::GetStyle().FramePadding.x*2.0f+settings.iconSize*dpiScale+ImGui::GetStyle().ItemSpacing.x;
+    float buttonSpace=ImGui::GetContentRegionAvail().x/MAX(1.0f,buttonSize);
+    bool mustOpenNewFolder=false;
+
+    if (buttonSpace>=2.0f) {
+      // add
+      if (ImGui::Button(ICON_FA_FILE "##SampleAdd")) {
+        doAction(GUI_ACTION_SAMPLE_LIST_ADD);
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_("Move up"));
+        ImGui::SetTooltip(_("Add"));
       }
       ImGui::SameLine();
-      if (ImGui::Button(ICON_FA_ARROW_DOWN "##SampleDown")) {
-        doAction(GUI_ACTION_SAMPLE_LIST_MOVE_DOWN);
+    }
+
+    if (buttonSpace>=7.0f) {
+      // duplicate
+      if (ImGui::Button(ICON_FA_FILES_O "##SampleClone")) {
+        doAction(GUI_ACTION_SAMPLE_LIST_DUPLICATE);
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_("Move down"));
+        ImGui::SetTooltip(_("Duplicate"));
       }
-    } else {
       ImGui::SameLine();
-      if (ImGui::Button(ICON_FA_FOLDER "##SampleFolder")) {
-        folderString="";
+    }
+
+    if (buttonSpace>=3.0f) {
+      // open
+      if (ImGui::Button(ICON_FA_FOLDER_OPEN "##SampleLoad")) {
+        doAction(GUI_ACTION_SAMPLE_LIST_OPEN);
       }
-      if (ImGui::BeginPopupContextItem("NewSampleFolder",ImGuiMouseButton_Left)) {
-        ImGui::InputText("##FolderName",&folderString);
-        ImGui::SameLine();
-        ImGui::BeginDisabled(folderString.empty());
-        if (ImGui::Button(_("Create"))) {
-          e->lockEngine([this]() {
-            e->song.sampleDir.push_back(DivAssetDir(folderString));
-          });
-          ImGui::CloseCurrentPopup();
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Open"));
+      }
+      if (mobileUI && ImGui::IsItemActive() && CHECK_LONG_HOLD) {
+        ImGui::OpenPopup("SampleOpenOpt");
+        NOTIFY_LONG_HOLD;
+      }
+      if (ImGui::BeginPopupContextItem("SampleOpenOpt")) {
+        if (ImGui::MenuItem(_("replace..."))) {
+          doAction((curSample>=0 && curSample<(int)e->song.sample.size())?GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE:GUI_ACTION_SAMPLE_LIST_OPEN);
         }
-        ImGui::EndDisabled();
+        ImGui::Separator();
+        if (ImGui::MenuItem(_("import raw..."))) {
+          doAction(GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
+        }
+        if (ImGui::MenuItem(_("import raw (replace)..."))) {
+          doAction((curSample>=0 && curSample<(int)e->song.sample.size())?GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE_RAW:GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
+        }
         ImGui::EndPopup();
       }
+      ImGui::SameLine();
+    }
+
+    if (buttonSpace>=5.0f) {
+      // save
+      if (ImGui::Button(ICON_FA_FLOPPY_O "##SampleSave")) {
+        doAction(GUI_ACTION_SAMPLE_LIST_SAVE);
+      }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_("New folder"));
+        ImGui::SetTooltip(_("Save"));
+      }
+      if (mobileUI && ImGui::IsItemActive() && CHECK_LONG_HOLD) {
+        ImGui::OpenPopup("SampleSaveOpt");
+        NOTIFY_LONG_HOLD;
+      }
+      if (ImGui::BeginPopupContextItem("SampleSaveOpt")) {
+        if (ImGui::MenuItem(_("save raw..."))) {
+          doAction(GUI_ACTION_SAMPLE_LIST_SAVE_RAW);
+        }
+        if (ImGui::MenuItem(_("save all..."))) {
+          doAction(GUI_ACTION_SAMPLE_LIST_SAVE_ALL);
+        }
+        ImGui::EndPopup();
+      }
+      ImGui::SameLine();
+    }
+
+    if (buttonSpace>=8.0f) {
+      // dir mode
+      pushToggleColors(sampleListDir);
+      if (ImGui::Button(ICON_FA_SITEMAP "##SampleDirMode")) {
+        doAction(GUI_ACTION_SAMPLE_LIST_DIR_VIEW);
+      }
+      popToggleColors();
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Toggle folders/standard view"));
+      }
+      ImGui::SameLine();
+    }
+
+    if (buttonSpace>=(sampleListDir?8.0f:9.0f)) {
+      if (!sampleListDir) {
+        if (ImGui::Button(ICON_FA_ARROW_UP "##SampleUp")) {
+          doAction(GUI_ACTION_SAMPLE_LIST_MOVE_UP);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Move up"));
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_ARROW_DOWN "##SampleDown")) {
+          doAction(GUI_ACTION_SAMPLE_LIST_MOVE_DOWN);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Move down"));
+        }
+      } else {
+        if (ImGui::Button(ICON_FA_FOLDER "##SampleFolder")) {
+          mustOpenNewFolder=true;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("New folder"));
+        }
+      }
+      ImGui::SameLine();
+    }
+
+    if (buttonSpace>=6.0f) {
+      if (ImGui::Button(ICON_FA_VOLUME_UP "##PreviewSampleL")) {
+        doAction(GUI_ACTION_SAMPLE_LIST_PREVIEW);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Preview (right click to stop)"));
+      }
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        doAction(GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW);
+      }
+      ImGui::SameLine();
+    }
+
+    if (buttonSpace>=4.0f) {
+      pushDestColor();
+      if (ImGui::Button(ICON_FA_TIMES "##SampleDelete")) {
+        doAction(GUI_ACTION_SAMPLE_LIST_DELETE);
+      }
+      popDestColor();
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Delete"));
+      }
+      if (buttonSpace<9.0f) {
+        ImGui::SameLine();
       }
     }
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_FA_VOLUME_UP "##PreviewSampleL")) {
-      doAction(GUI_ACTION_SAMPLE_LIST_PREVIEW);
+
+    if (buttonSpace<(sampleListDir?8.0f:9.0f)) {
+      if (ImGui::Button(ICON_FA_ELLIPSIS_H "##SampleMore")) {
+      }
+      if (ImGui::BeginPopupContextItem("SampleListMore",ImGuiMouseButton_Left)) {
+        if (buttonSpace<2.0f) if (ImGui::MenuItem("add")) {
+          doAction(GUI_ACTION_SAMPLE_LIST_ADD);
+        }
+        if (buttonSpace<7.0f) if (ImGui::MenuItem("duplicate")) {
+          doAction(GUI_ACTION_SAMPLE_LIST_DUPLICATE);
+        }
+        if (buttonSpace<3.0f) {
+          if (ImGui::MenuItem("open...")) {
+            doAction(GUI_ACTION_SAMPLE_LIST_OPEN);
+          }
+          if (ImGui::MenuItem("replace...")) {
+            doAction((curSample>=0 && curSample<(int)e->song.sample.size())?GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE:GUI_ACTION_SAMPLE_LIST_OPEN);
+          }
+          if (ImGui::MenuItem("import raw...")) {
+            doAction(GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
+          }
+          if (ImGui::MenuItem("import raw (replace)...")) {
+            doAction((curSample>=0 && curSample<(int)e->song.sample.size())?GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE_RAW:GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
+          }
+        }
+        if (buttonSpace<5.0f) {
+          if (ImGui::MenuItem("save...")) {
+            doAction(GUI_ACTION_SAMPLE_LIST_SAVE);
+          }
+          if (ImGui::MenuItem("save raw...")) {
+            doAction(GUI_ACTION_SAMPLE_LIST_SAVE_RAW);
+          }
+          if (ImGui::MenuItem("save all...")) {
+            doAction(GUI_ACTION_SAMPLE_LIST_SAVE_ALL);
+          }
+        }
+        if (buttonSpace<8.0f) if (ImGui::MenuItem("folder view",NULL,sampleListDir)) {
+          doAction(GUI_ACTION_SAMPLE_LIST_DIR_VIEW);
+        }
+        if (buttonSpace<(sampleListDir?8.0f:9.0f)) {
+          if (!sampleListDir) {
+            if (ImGui::MenuItem("move up")) {
+              doAction(GUI_ACTION_SAMPLE_LIST_MOVE_UP);
+            }
+            if (ImGui::MenuItem("move down")) {
+              doAction(GUI_ACTION_SAMPLE_LIST_MOVE_DOWN);
+            }
+          } else {
+            if (ImGui::MenuItem("new folder")) {
+              mustOpenNewFolder=true;
+            }
+          }
+        }
+        if (buttonSpace<6.0f) {
+          if (ImGui::MenuItem("preview")) {
+            doAction(GUI_ACTION_SAMPLE_LIST_PREVIEW);
+          }
+          if (ImGui::MenuItem("stop preview")) {
+            doAction(GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW);
+          }
+        }
+        if (buttonSpace<4.0f) if (ImGui::MenuItem("delete")) {
+          doAction(GUI_ACTION_SAMPLE_LIST_DELETE);
+        }
+
+        ImGui::EndPopup();
+      }
     }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_("Preview (right click to stop)"));
+
+    if (mustOpenNewFolder) {
+      folderString="";
+      ImGui::OpenPopup("NewSampleFolder");
     }
-    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-      doAction(GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW);
+
+    if (ImGui::BeginPopup("NewSampleFolder",ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+      ImGui::InputText("##FolderName",&folderString);
+      ImGui::SameLine();
+      ImGui::BeginDisabled(folderString.empty());
+      if (ImGui::Button(_("Create"))) {
+        e->lockEngine([this]() {
+          e->song.sampleDir.push_back(DivAssetDir(folderString));
+        });
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndDisabled();
+      ImGui::EndPopup();
     }
-    ImGui::SameLine();
-    pushDestColor();
-    if (ImGui::Button(ICON_FA_TIMES "##SampleDelete")) {
-      doAction(GUI_ACTION_SAMPLE_LIST_DELETE);
-    }
-    popDestColor();
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_("Delete"));
-    }
+
     ImGui::Separator();
     if (ImGui::BeginTable("SampleListScroll",1,ImGuiTableFlags_ScrollY)) {
       actualSampleList();

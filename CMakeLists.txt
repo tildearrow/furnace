@@ -21,6 +21,8 @@ set(CMAKE_PROJECT_VERSION_PATCH 8)
 set(BUILD_GUI_DEFAULT ON)
 set(USE_SDL2_DEFAULT ON)
 set(USE_SNDFILE_DEFAULT ON)
+set(WITH_OGG_DEFAULT ON)
+set(WITH_MPEG_DEFAULT ON)
 set(SYSTEM_SDL2_DEFAULT OFF)
 
 include(CheckIncludeFile)
@@ -111,6 +113,8 @@ option(USE_SDL2 "Build with SDL2. Required to build with GUI." ${USE_SDL2_DEFAUL
 option(USE_SNDFILE "Build with libsndfile. Required in order to work with audio files." ${USE_SNDFILE_DEFAULT})
 option(USE_BACKWARD "Use backward-cpp to print a backtrace on crash/abort." ${USE_BACKWARD_DEFAULT})
 option(USE_MOMO "Build a libintl implementation instead of using the system one." ${USE_MOMO_DEFAULT})
+option(WITH_OGG "Whether to build with Ogg and Vorbis support." ${WITH_OGG_DEFAULT})
+option(WITH_MPEG "Whether to build with MPEG audio support (including MP3)." ${WITH_MPEG_DEFAULT})
 option(WITH_JACK "Whether to build with JACK support. Auto-detects if JACK is available" ${WITH_JACK_DEFAULT})
 option(WITH_PORTAUDIO "Whether to build with PortAudio for audio output." ${WITH_PORTAUDIO_DEFAULT})
 option(WITH_RENDER_SDL "Whether to build with the SDL_Renderer render backend." ${WITH_RENDER_SDL_DEFAULT})
@@ -139,6 +143,8 @@ option(SHOW_OPEN_ASSETS_MENU_ENTRY "Show option to open built-in assets director
 option(CONSOLE_SUBSYSTEM "Build Furnace with Console subsystem on Windows" OFF)
 option(FORCE_CODEVIEW "Force -gcodeview on MinGW GCC" OFF)
 option(FLATPAK_WORKAROUNDS "Enable Flatpak-specific workaround for system file picker" OFF)
+option(NO_INTRO "Disable intro animation entirely" OFF)
+option(ORIG_NDS_CORE "Use original NDS emulation core (no acquireDirect)" OFF)
 if (APPLE)
   option(FORCE_APPLE_BIN "Force enable binary installation to /bin" OFF)
   option(MAKE_BUNDLE "Make a bundle" OFF)
@@ -276,6 +282,10 @@ if (BUILD_GUI AND USE_FREETYPE)
   list(APPEND DEPENDENCIES_DEFINES HAVE_FREETYPE)
 endif()
 
+# Opus is mandatory
+set(OPUS_X86_MAY_HAVE_AVX2 OFF CACHE BOOL "Enable AVX2 for Opus" FORCE)
+add_subdirectory(extern/opus EXCLUDE_FROM_ALL)
+
 if (USE_SNDFILE)
   list(APPEND DEPENDENCIES_DEFINES HAVE_SNDFILE)
   if (SYSTEM_LIBSNDFILE)
@@ -289,11 +299,42 @@ if (USE_SNDFILE)
     list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${LIBSNDFILE_LDFLAGS})
     message(STATUS "Using system-installed libsndfile")
   else()
+    # Ogg, Vorbis, FLAC and MP3
+    if (WITH_OGG)
+      list(APPEND DEPENDENCIES_DEFINES HAVE_OGG)
+      set(OGG_INCLUDE_DIR extern/libogg/include CACHE STRING "Ogg include dir" FORCE)
+      set(OGG_LIBRARY Ogg::ogg CACHE STRING "Ogg library" FORCE)
+      set(Vorbis_Vorbis_INCLUDE_DIR extern/libvorbis/include CACHE STRING "Vorbis include dir" FORCE)
+      set(Vorbis_Enc_INCLUDE_DIR extern/libvorbis/include CACHE STRING "Vorbis enc include dir" FORCE)
+      set(Vorbis_File_INCLUDE_DIR extern/libvorbis/include CACHE STRING "Vorbis file include dir" FORCE)
+      set(Vorbis_Vorbis_LIBRARY Vorbis::vorbis CACHE STRING "Vorbis library" FORCE)
+      set(Vorbis_Enc_LIBRARY Vorbis::enc CACHE STRING "Vorbis enc library" FORCE)
+      set(Vorbis_File_LIBRARY Vorbis::file CACHE STRING "Vorbis file library" FORCE)
+      set(FLAC_INCLUDE_DIR extern/flac/include CACHE STRING "FLAC include dir" FORCE)
+      set(FLAC_LIBRARY FLAC CACHE STRING "FLAC library" FORCE)
+      set(OPUS_INCLUDE_DIR extern/opus/include CACHE STRING "Opus include dir" FORCE)
+      set(OPUS_LIBRARY opus CACHE STRING "Opus library" FORCE)
+      add_subdirectory(extern/libogg EXCLUDE_FROM_ALL)
+      add_subdirectory(extern/libvorbis EXCLUDE_FROM_ALL)
+      add_subdirectory(extern/flac EXCLUDE_FROM_ALL)
+    endif()
+
+    if (WITH_MPEG)
+      list(APPEND DEPENDENCIES_DEFINES HAVE_MP3_EXPORT)
+      set(MP3LAME_INCLUDE_DIR extern/lame/include CACHE STRING "LAME include dir" FORCE)
+      set(MP3LAME_LIBRARY mp3lame CACHE STRING "LAME library" FORCE)
+      add_subdirectory(extern/lame EXCLUDE_FROM_ALL)
+      add_subdirectory(extern/mpg123 EXCLUDE_FROM_ALL)
+      set(mpg123_INCLUDE_DIR extern/mpg123/src/include CACHE STRING "mpg123 include dir" FORCE)
+      set(mpg123_LIBRARY mpg123 CACHE STRING "mpg123 library" FORCE)
+    endif()
+
+    # the rest
     set(BUILD_TESTING OFF CACHE BOOL "aaaaaa" FORCE)
     set(BUILD_PROGRAMS OFF CACHE BOOL "aaa" FORCE)
     set(BUILD_EXAMPLES OFF CACHE BOOL "a" FORCE)
-    set(ENABLE_EXTERNAL_LIBS OFF CACHE BOOL "come on" FORCE)
-    set(ENABLE_MPEG OFF CACHE BOOL "come on" FORCE)
+    set(ENABLE_EXTERNAL_LIBS ${WITH_OGG} CACHE BOOL "come on" FORCE)
+    set(ENABLE_MPEG ${WITH_MPEG} CACHE BOOL "come on" FORCE)
     add_subdirectory(extern/libsndfile-modified EXCLUDE_FROM_ALL)
     list(APPEND DEPENDENCIES_LIBRARIES sndfile)
     message(STATUS "Using vendored libsndfile")
@@ -357,6 +398,7 @@ else()
   set(BUILD_EXAMPLES OFF CACHE BOOL "a" FORCE)
   set(ENABLE_EXTERNAL_LIBS OFF CACHE BOOL "come on" FORCE)
   set(ENABLE_MPEG OFF CACHE BOOL "come on" FORCE)
+  set(ZLIB_BUILD_EXAMPLES OFF CACHE BOOL "come on" FORCE)
   add_subdirectory(extern/zlib EXCLUDE_FROM_ALL)
   list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/zlib ${CMAKE_CURRENT_BINARY_DIR}/extern/zlib)
   list(APPEND DEPENDENCIES_LIBRARIES zlibstatic)
@@ -672,8 +714,6 @@ src/engine/platform/sound/c140_c219.c
 
 src/engine/platform/sound/dave/dave.cpp
 
-src/engine/platform/sound/nds.cpp
-
 src/engine/platform/sound/sid2/envelope.cc
 src/engine/platform/sound/sid2/filter.cc
 src/engine/platform/sound/sid2/sid.cc
@@ -813,6 +853,7 @@ src/engine/platform/nds.cpp
 src/engine/platform/bifurcator.cpp
 src/engine/platform/sid2.cpp
 src/engine/platform/sid3.cpp
+src/engine/platform/multipcm.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 
@@ -821,10 +862,19 @@ src/engine/export/amigaValidation.cpp
 src/engine/export/sapr.cpp
 src/engine/export/tiuna.cpp
 src/engine/export/zsm.cpp
+src/engine/export/ipod.cpp
+src/engine/export/grub.cpp
 
 src/engine/effect/abstract.cpp
 src/engine/effect/dummy.cpp
 )
+
+if (ORIG_NDS_CORE)
+  list(APPEND ENGINE_SOURCES src/engine/platform/sound/nds_unopt.cpp)
+  list(APPEND DEPENDENCIES_DEFINES ORIG_NDS_CORE)
+else()
+  list(APPEND ENGINE_SOURCES src/engine/platform/sound/nds.cpp)
+endif()
 
 if (USE_SNDFILE)
   list(APPEND ENGINE_SOURCES src/engine/sfWrapper.cpp)
@@ -855,7 +905,6 @@ extern/imgui_patched/imgui_widgets.cpp
 extern/imgui_patched/backends/imgui_impl_sdl2.cpp
 extern/imgui_software_renderer/imgui_sw.cpp
 extern/imgui_patched/misc/cpp/imgui_stdlib.cpp
-extern/igfd/ImGuiFileDialog.cpp
 
 src/gui/plot_nolerp.cpp
 
@@ -879,21 +928,14 @@ src/gui/fonts.cpp
 src/gui/fontzlib.cpp
 
 src/gui/image_icon.cpp
-src/gui/image_talogo.cpp
-src/gui/image_tachip.cpp
-src/gui/image_logo.cpp
-src/gui/image_wordmark.cpp
-src/gui/image_introbg.cpp
-src/gui/image_pat.cpp
 src/gui/image.cpp
 
 src/gui/debug.cpp
 src/gui/fileDialog.cpp
+src/gui/newFilePicker.cpp
 
 src/gui/intConst.cpp
 src/gui/guiConst.cpp
-
-src/gui/introTune.cpp
 
 src/gui/about.cpp
 src/gui/channels.cpp
@@ -914,7 +956,6 @@ src/gui/fmPreview.cpp
 src/gui/gradient.cpp
 src/gui/grooves.cpp
 src/gui/insEdit.cpp
-src/gui/intro.cpp
 src/gui/log.cpp
 src/gui/memory.cpp
 src/gui/mixer.cpp
@@ -950,6 +991,21 @@ src/gui/volMeter.cpp
 src/gui/xyOsc.cpp
 src/gui/gui.cpp
 )
+
+if (NOT NO_INTRO)
+  list(APPEND GUI_SOURCES src/gui/introTune.cpp)
+  list(APPEND GUI_SOURCES src/gui/intro.cpp)
+  list(APPEND GUI_SOURCES
+  src/gui/image_talogo.cpp
+  src/gui/image_tachip.cpp
+  src/gui/image_logo.cpp
+  src/gui/image_wordmark.cpp
+  src/gui/image_introbg.cpp
+  src/gui/image_pat.cpp
+  )
+else()
+  list(APPEND DEPENDENCIES_DEFINES NO_INTRO)
+endif()
 
 if (WIN32 AND NOT SUPPORT_XP)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_common.cpp)
@@ -1121,15 +1177,7 @@ if (USE_BACKWARD)
   list(APPEND USED_SOURCES src/backtrace.cpp)
   if (WIN32)
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-      include(CheckCXXCompilerFlag)
-      check_cxx_compiler_flag(-gcodeview GCC_CODEVIEW)
-      if (GCC_CODEVIEW OR FORCE_CODEVIEW)
-        set(CMAKE_EXE_LINKER_FLAGS "-Wl,--pdb= ")
-        add_compile_options(-gcodeview)
-        message(STATUS "Enabling -gcodeview flag for backward-cpp.")
-      else()
-        message(WARNING "Could not enable -gcodeview! backward-cpp will not work.")
-      endif()
+      message(WARNING "Could not enable -gcodeview! backward-cpp will not work.")
       list(APPEND DEPENDENCIES_LIBRARIES dbghelp psapi)
     endif()
   endif()
@@ -1148,7 +1196,6 @@ if (BUILD_GUI)
     extern/imgui_patched
     extern/imgui_patched/backends
     extern/imgui_software_renderer
-    extern/igfd
   )
   if (WIN32 OR APPLE)
     list(APPEND DEPENDENCIES_INCLUDE_DIRS

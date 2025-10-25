@@ -84,7 +84,7 @@ the keys in the "Global hotkeys" section can be used in any window, although not
 | Samples (Palette)                                      | —                |
 |                                                        |                  |
 | **Note input**                                         |                  |
-| _see "note input" section after table_                 |                  |
+| _see [settings](./settings.md#note-input)._            |                  |
 |                                                        |                  |
 | **Pattern**                                            |                  |
 | Transpose (+1)                                         | `Ctrl-F2`        |

@@ -22,7 +22,22 @@
 
 struct DivPattern {
   String name;
-  short data[DIV_MAX_ROWS][DIV_MAX_COLS];
+  /**
+   * pattern data is stored in this order:
+   * - 0 note: 0 (min) is C-(-5), 60 is C-0, and 179 (max) is B-9.
+               252 is null/bug, 253 is note off, 254 is note release and
+               255 is macro release.
+   * - 1 instrument
+   * - 2 volume
+   * - 3 effect
+   * - 4 effect value
+   * - 5... (the rest of effects/effect values)
+   *
+   * use the DIV_PAT_* macros in defines.h for convenience.
+   *
+   * if a cell is -1, it means "empty".
+   */
+  short newData[DIV_MAX_ROWS][DIV_MAX_COLS];
 
   /**
    * clear the pattern.
@@ -39,14 +54,10 @@ struct DivPattern {
 
 struct DivChannelData {
   unsigned char effectCols;
-  // data goes as follows: data[ROW][TYPE]
-  // TYPE is:
-  // 0: note
-  // 1: octave
-  // 2: instrument
-  // 3: volume
-  // 4-5+: effect/effect value
-  // do NOT access directly unless you know what you're doing!
+  /**
+   * do NOT access directly unless you know what you're doing!
+   * use getPattern() instead.
+   */
   DivPattern* data[DIV_MAX_PATTERNS];
 
   /**

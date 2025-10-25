@@ -44,8 +44,8 @@ class DivPlatformYMZ280B: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[8];
   bool isMuted[8];
   int chipType;
-  unsigned int sampleOff[256];
-  bool sampleLoaded[256];
+  unsigned int* sampleOff;
+  bool* sampleLoaded;
 
   unsigned char* sampleMem;
   size_t sampleMemLen;
@@ -86,6 +86,8 @@ class DivPlatformYMZ280B: public DivDispatch {
     void setFlags(const DivConfig& flags);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
+    DivPlatformYMZ280B();
+    ~DivPlatformYMZ280B();
   private:
     void writeOutVol(int ch);
 };
