@@ -130,7 +130,10 @@ const char* patFonts[]={
 const char* audioBackends[]={
   "JACK",
   "SDL",
-  "PortAudio"
+  "PortAudio",
+  // pipe (invalid choice in GUI)
+  "Uhh, can you explain to me what exactly you were trying to do?",
+  "ASIO"
 };
 
 const char* audioQualities[]={
@@ -1248,7 +1251,7 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::BeginTable("##Output",2)) {
           ImGui::TableSetupColumn("##Label",ImGuiTableColumnFlags_WidthFixed);
           ImGui::TableSetupColumn("##Combo",ImGuiTableColumnFlags_WidthStretch);
-#if defined(HAVE_JACK) || defined(HAVE_PA)
+#if defined(HAVE_JACK) || defined(HAVE_PA) || defined(HAVE_ASIO)
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
@@ -1269,6 +1272,12 @@ void FurnaceGUI::drawSettings() {
 #ifdef HAVE_PA
             if (ImGui::Selectable("PortAudio",settings.audioEngine==DIV_AUDIO_PORTAUDIO)) {
               settings.audioEngine=DIV_AUDIO_PORTAUDIO;
+              settingsChanged=true;
+            }
+#endif
+#ifdef HAVE_ASIO
+            if (ImGui::Selectable("ASIO",settings.audioEngine==DIV_AUDIO_ASIO)) {
+              settings.audioEngine=DIV_AUDIO_ASIO;
               settingsChanged=true;
             }
 #endif
@@ -4917,6 +4926,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
       settings.audioEngine=DIV_AUDIO_JACK;
     } else if (conf.getString("audioEngine","SDL")=="PortAudio") {
       settings.audioEngine=DIV_AUDIO_PORTAUDIO;
+    } else if (conf.getString("audioEngine","SDL")=="ASIO") {
+      settings.audioEngine=DIV_AUDIO_ASIO;
     } else {
       settings.audioEngine=DIV_AUDIO_SDL;
     }
@@ -5201,7 +5212,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.headFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
   clampSetting(settings.iconSize,2,48);
-  clampSetting(settings.audioEngine,0,2);
+  clampSetting(settings.audioEngine,0,4);
   clampSetting(settings.audioQuality,0,1);
   clampSetting(settings.audioHiPass,0,1);
   clampSetting(settings.audioBufSize,32,4096);

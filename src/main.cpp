@@ -178,11 +178,13 @@ TAParamResult pAudio(String val) {
     e.setAudio(DIV_AUDIO_SDL);
   } else if (val=="portaudio") {
     e.setAudio(DIV_AUDIO_PORTAUDIO);
+  } else if (val=="asio") {
+    e.setAudio(DIV_AUDIO_ASIO);
   } else if (val=="pipe") {
     e.setAudio(DIV_AUDIO_PIPE);
     changeLogOutput(stderr);
   } else {
-    logE("invalid value for audio engine! valid values are: jack, sdl, portaudio, pipe.");
+    logE("invalid value for audio engine! valid values are: jack, sdl, portaudio, asio, pipe.");
     return TA_PARAM_ERROR;
   }
   return TA_PARAM_SUCCESS;

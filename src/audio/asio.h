@@ -34,6 +34,7 @@ class TAAudioASIO: public TAAudio {
 
   char* driverNames[ASIO_DRIVER_MAX];
   int driverCount;
+  bool driverNamesInit;
 
   char deviceNameCopy[64];
 
@@ -51,5 +52,6 @@ class TAAudioASIO: public TAAudio {
 
     TAAudioASIO():
       totalChans(0),
-      driverCount(0) {}
+      driverCount(0),
+      driverNamesInit(false) {}
 };

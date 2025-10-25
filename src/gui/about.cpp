@@ -131,6 +131,9 @@ const char* aboutLine[]={
   _N("Portable File Dialogs by Sam Hocevar"),
   _N("Native File Dialog by Frogtoss Games"),
   "PortAudio",
+#ifdef HAVE_ASIO
+  _N("ASIO® by Steinberg Media Technologies"),
+#endif
   _N("Weak-JACK by x42"),
   _N("RtMidi by Gary P. Scavone"),
   _N("FFTW by Matteo Frigo and Steven G. Johnson"),

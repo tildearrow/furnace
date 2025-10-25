@@ -36,6 +36,9 @@
 #ifdef HAVE_PA
 #include "../audio/pa.h"
 #endif
+#ifdef HAVE_ASIO
+#include "../audio/asio.h"
+#endif
 #include "../audio/pipe.h"
 #include <math.h>
 #include <float.h>
@@ -3909,6 +3912,8 @@ bool DivEngine::initAudioBackend() {
       audioEngine=DIV_AUDIO_JACK;
     } else if (getConfString("audioEngine","SDL")=="PortAudio") {
       audioEngine=DIV_AUDIO_PORTAUDIO;
+    } else if (getConfString("audioEngine","SDL")=="ASIO") {
+      audioEngine=DIV_AUDIO_ASIO;
     } else {
       audioEngine=DIV_AUDIO_SDL;
     }
@@ -3970,6 +3975,21 @@ bool DivEngine::initAudioBackend() {
 #endif
 #else
       output=new TAAudioPA;
+#endif
+      break;
+    case DIV_AUDIO_ASIO:
+#ifndef HAVE_ASIO
+      logE("Furnace was not compiled with ASIO support!");
+      setConf("audioEngine","SDL");
+      saveConf();
+#ifdef HAVE_SDL2
+      output=new TAAudioSDL;
+#else
+      logE("Furnace was not compiled with SDL support either!");
+      output=new TAAudio;
+#endif
+#else
+      output=new TAAudioASIO;
 #endif
       break;
     case DIV_AUDIO_SDL:

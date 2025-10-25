@@ -52,6 +52,98 @@ void TAAudioASIO::onProcess(int index) {
   }
 
   // upload here...
+  for (int i=0; i<totalChans; i++) {
+    if (chanInfo[i].isInput==ASIOTrue) continue;
+    int ch=chanInfo[i].channel;
+    if (ch>=desc.outChans) continue;
+    float* srcBuf=outBufs[ch];
+
+    switch (chanInfo[i].type) {
+      // little-endian
+      case ASIOSTInt16LSB: {
+        short* buf=(short*)bufInfo[i].buffers[index];
+        for (unsigned int j=0; j<desc.bufsize; j++) {
+          buf[j]=CLAMP(srcBuf[j],-1.0,1.0)*32767.0f;
+        }
+        break;
+      }
+      // TODO: how does this work? it's vaguely described in the docs
+      case ASIOSTInt24LSB: {
+        break;
+      }
+      case ASIOSTInt32LSB: {
+        int* buf=(int*)bufInfo[i].buffers[index];
+        for (unsigned int j=0; j<desc.bufsize; j++) {
+          int val=CLAMP(srcBuf[j],-1.0,1.0)*8388608.0f;
+          if (val<-8388608) val=-8388608;
+          if (val>8388607) val=-8388607;
+          val<<=8;
+          buf[j]=val;
+        }
+        break;
+      }
+      case ASIOSTFloat32LSB: {
+        float* buf=(float*)bufInfo[i].buffers[index];
+        for (unsigned int j=0; j<desc.bufsize; j++) {
+          buf[j]=srcBuf[j];
+        }
+        break;
+      }
+      case ASIOSTFloat64LSB: {
+        double* buf=(double*)bufInfo[i].buffers[index];
+        for (unsigned int j=0; j<desc.bufsize; j++) {
+          buf[j]=srcBuf[j];
+        }
+        break;
+      }
+
+      // TODO: implement these formats D:
+      // big-endian
+      case ASIOSTInt16MSB: {
+        break;
+      }
+      case ASIOSTInt24MSB: {
+        break;
+      }
+      case ASIOSTInt32MSB: {
+        break;
+      }
+      case ASIOSTFloat32MSB: {
+        break;
+      }
+      case ASIOSTFloat64MSB: {
+        break;
+      }
+
+      // what the hell..............
+      case ASIOSTInt32LSB16: {
+        break;
+      }
+      case ASIOSTInt32LSB18: {
+        break;
+      }
+      case ASIOSTInt32LSB20: {
+        break;
+      }
+      case ASIOSTInt32LSB24: {
+        break;
+      }
+      case ASIOSTInt32MSB16: {
+        break;
+      }
+      case ASIOSTInt32MSB18: {
+        break;
+      }
+      case ASIOSTInt32MSB20: {
+        break;
+      }
+      case ASIOSTInt32MSB24: {
+        break;
+      }
+      default: // unsupported
+        break;
+    }
+  }
 
   /*if (nframes!=desc.bufsize) {
     desc.bufsize=nframes;
@@ -66,29 +158,41 @@ bool TAAudioASIO::quit() {
   if (!initialized) return false;
 
   if (running) {
+    logV("CRASH: STOPPING NOW (QUIT)......");
     ASIOStop();
     running=false;
   }
 
+  logV("CRASH: ASIODisposeBuffers()");
   ASIODisposeBuffers();
   
+  logV("CRASH: erase inBufs");
   for (int i=0; i<desc.inChans; i++) {
     delete[] inBufs[i];
     inBufs[i]=NULL;
   }
+  logV("CRASH: erase outBufs");
   for (int i=0; i<desc.outChans; i++) {
     delete[] outBufs[i];
     outBufs[i]=NULL;
   }
 
-  delete[] inBufs;
-  delete[] outBufs;
-  inBufs=NULL;
-  outBufs=NULL;
+  logV("CRASH: erase arrays");
+  if (inBufs!=NULL) {
+    delete[] inBufs;
+    inBufs=NULL;
+  }
+  if (outBufs!=NULL) {
+    delete[] outBufs;
+    outBufs=NULL;
+  }
 
+  logV("CRASH: ASIOExit()");
   ASIOExit();
+  logV("CRASH: removeCurrentDriver()");
   drivers.removeCurrentDriver();
 
+  logV("CRASH: reset callback instance");
   callbackInstance=NULL;
   initialized=false;
 
@@ -105,6 +209,7 @@ bool TAAudioASIO::setRun(bool run) {
     running=true;
   } else {
     // does it matter whether stop was successful?
+    logV("CRASH: STOPPING NOW......");
     ASIOStop();
     running=false;
   }
@@ -124,6 +229,13 @@ bool TAAudioASIO::init(TAAudioDesc& request, TAAudioDesc& response) {
   if (desc.deviceName.empty()) {
     // load first driver if not specified
     logV("getting driver names...");
+    if (!driverNamesInit) {
+      for (int i=0; i<ASIO_DRIVER_MAX; i++) {
+        // 64 just in case
+        driverNames[i]=new char[64];
+      }
+      driverNamesInit=true;
+    }
     driverCount=drivers.getDriverNames(driverNames,ASIO_DRIVER_MAX);
 
     // quit if we couldn't find any drivers
@@ -136,7 +248,7 @@ bool TAAudioASIO::init(TAAudioDesc& request, TAAudioDesc& response) {
   }
 
   // load driver
-  logV("loading ASIO driver...");
+  logV("loading ASIO driver... (%s)",desc.deviceName);
   strncpy(deviceNameCopy,desc.deviceName.c_str(),63);
   if (!drivers.loadDriver(deviceNameCopy)) {
     logE("failed to load ASIO driver!");
@@ -225,7 +337,7 @@ bool TAAudioASIO::init(TAAudioDesc& request, TAAudioDesc& response) {
       chanInfo[totalChans].isInput=ASIOFalse;
       ASIOGetChannelInfo(&chanInfo[totalChans]);
       bufInfo[totalChans].channelNum=i;
-      bufInfo[totalChans++].isInput=ASIOTrue;
+      bufInfo[totalChans++].isInput=ASIOFalse;
       outBufs[i]=new float[actualBufSize];
     }
   }
@@ -268,7 +380,14 @@ bool TAAudioASIO::init(TAAudioDesc& request, TAAudioDesc& response) {
 
 std::vector<String> TAAudioASIO::listAudioDevices() {
   std::vector<String> ret;
-  memset(driverNames,0,sizeof(void*)*ASIO_DRIVER_MAX);
+
+  if (!driverNamesInit) {
+    for (int i=0; i<ASIO_DRIVER_MAX; i++) {
+      // 64 just in case
+      driverNames[i]=new char[64];
+    }
+    driverNamesInit=true;
+  }
   driverCount=drivers.getDriverNames(driverNames,ASIO_DRIVER_MAX);
   for (int i=0; i<driverCount; i++) {
     ret.push_back(driverNames[i]);
