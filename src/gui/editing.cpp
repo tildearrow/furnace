@@ -1674,7 +1674,7 @@ void FurnaceGUI::doCollapse(int divider, const SelectionPoint& sStart, const Sel
         if (j*divider>=sEnd.y-sStart.y) {
           pat->newData[j+sStart.y][iFine]=-1;
         } else {
-          pat->newData[j+sStart.y][iFine+1]=patBuffer.newData[j*divider+sStart.y][iFine];
+          pat->newData[j+sStart.y][iFine]=patBuffer.newData[j*divider+sStart.y][iFine];
 
           for (int k=1; k<divider; k++) {
             if ((j*divider+k)>=sEnd.y-sStart.y) break;
