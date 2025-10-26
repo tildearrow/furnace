@@ -629,7 +629,12 @@ bool DivEngine::saveAudio(const char* path, DivAudioExportOptions options) {
   repeatPattern=false;
   setOrder(0);
   remainingLoops=-1;
-  got.rate=options.sampleRate;
+  if (options.format==DIV_EXPORT_FORMAT_OPUS) {
+    // Opus only supports 48KHz and a couple divisors of that number...
+    got.rate=48000;
+  } else {
+    got.rate=options.sampleRate;
+  }
 
   if (shallSwitchCores()) {
     bool isMutedBefore[DIV_MAX_CHANS];

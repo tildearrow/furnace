@@ -73,16 +73,6 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
     audioExportOptions.format=DIV_EXPORT_FORMAT_WAV;
     audioExportOptions.wavFormat=DIV_EXPORT_WAV_S16;
   }
-
-  bool rateCheck=(
-    audioExportOptions.format==DIV_EXPORT_FORMAT_OPUS && (
-      audioExportOptions.sampleRate!=8000 &&
-      audioExportOptions.sampleRate!=12000 &&
-      audioExportOptions.sampleRate!=16000 &&
-      audioExportOptions.sampleRate!=24000 &&
-      audioExportOptions.sampleRate!=48000
-    )
-  );
   
   if (audioExportOptions.mode!=DIV_EXPORT_MODE_MANY_SYS && audioExportOptions.format==DIV_EXPORT_FORMAT_WAV) {
     if (ImGui::BeginCombo(_("Format"),audioExportWavFormats[audioExportOptions.wavFormat])) {
@@ -95,15 +85,12 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
     }
   }
 
-  pushWarningColor(false,rateCheck);
-  if (ImGui::InputInt(_("Sample rate"),&audioExportOptions.sampleRate,100,10000)) {
-    if (audioExportOptions.sampleRate<8000) audioExportOptions.sampleRate=8000;
-    if (audioExportOptions.sampleRate>384000) audioExportOptions.sampleRate=384000;
+  if (audioExportOptions.format!=DIV_EXPORT_FORMAT_OPUS) {
+    if (ImGui::InputInt(_("Sample rate"),&audioExportOptions.sampleRate,100,10000)) {
+      if (audioExportOptions.sampleRate<8000) audioExportOptions.sampleRate=8000;
+      if (audioExportOptions.sampleRate>384000) audioExportOptions.sampleRate=384000;
+    }
   }
-  if (rateCheck) {
-    ImGui::SetItemTooltip(_("Opus only supports the following sample rates: 8000, 12000, 16000, 24000 and 48000."));
-  }
-  popWarningColor();
 
   if (audioExportOptions.mode!=DIV_EXPORT_MODE_MANY_SYS) {
     if (ImGui::InputInt(_("Channels in file"),&audioExportOptions.chans,1,1)) {
@@ -222,7 +209,7 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
     ImGui::SameLine();
   }
 
-  if (isOneOn && !rateCheck) {
+  if (isOneOn) {
     if (ImGui::Button(_("Export"),ImVec2(200.0f*dpiScale,0))) {
       switch (audioExportOptions.format) {
         case DIV_EXPORT_FORMAT_WAV:
@@ -262,11 +249,7 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
       ImGui::CloseCurrentPopup();
     }
   } else {
-    if (rateCheck) {
-      ImGui::Text(_("check sample rate"));
-    } else {
-      ImGui::Text(_("select at least one channel"));
-    }
+    ImGui::Text(_("select at least one channel"));
   }
 }
 
