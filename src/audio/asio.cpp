@@ -75,6 +75,7 @@ void TAAudioASIO::onSampleRate(double rate) {
 
 void TAAudioASIO::onBufferSize(int bufsize) {
   bufferSizeChanged(BufferSizeChangeEvent(bufsize));
+  desc.bufsize=bufsize;
 }
 
 void TAAudioASIO::onProcess(int index) {
@@ -99,11 +100,23 @@ void TAAudioASIO::onProcess(int index) {
         }
         break;
       }
-      // TODO: how does this work? it's vaguely described in the docs
       case ASIOSTInt24LSB: {
+        unsigned char* buf=(unsigned char*)bufInfo[i].buffers[index];
+        for (unsigned int j=0; j<desc.bufsize; j++) {
+          int val=CLAMP(srcBuf[j],-1.0,1.0)*8388608.0f;
+          if (val<-8388608) val=-8388608;
+          if (val>8388607) val=-8388607;
+          *(buf++)=(val)&0xff;
+          *(buf++)=(val>>8)&0xff;
+          *(buf++)=(val>>16)&0xff;
+        }
         break;
       }
-      case ASIOSTInt32LSB: {
+      case ASIOSTInt32LSB:
+      case ASIOSTInt32LSB16:
+      case ASIOSTInt32LSB18:
+      case ASIOSTInt32LSB20:
+      case ASIOSTInt32LSB24: {
         int* buf=(int*)bufInfo[i].buffers[index];
         for (unsigned int j=0; j<desc.bufsize; j++) {
           int val=CLAMP(srcBuf[j],-1.0,1.0)*8388608.0f;
@@ -129,57 +142,73 @@ void TAAudioASIO::onProcess(int index) {
         break;
       }
 
-      // TODO: implement these formats D:
       // big-endian
       case ASIOSTInt16MSB: {
+        unsigned short* buf=(unsigned short*)bufInfo[i].buffers[index];
+        for (unsigned int j=0; j<desc.bufsize; j++) {
+          unsigned short val=(unsigned short)((short)(CLAMP(srcBuf[j],-1.0,1.0)*32767.0f));
+          buf[j]=(val>>8)|(val<<8);
+        }
         break;
       }
       case ASIOSTInt24MSB: {
+        unsigned char* buf=(unsigned char*)bufInfo[i].buffers[index];
+        for (unsigned int j=0; j<desc.bufsize; j++) {
+          int val=CLAMP(srcBuf[j],-1.0,1.0)*8388608.0f;
+          if (val<-8388608) val=-8388608;
+          if (val>8388607) val=-8388607;
+          *(buf++)=(val>>16)&0xff;
+          *(buf++)=(val>>8)&0xff;
+          *(buf++)=(val)&0xff;
+        }
         break;
       }
-      case ASIOSTInt32MSB: {
+      case ASIOSTInt32MSB:
+      case ASIOSTInt32MSB16:
+      case ASIOSTInt32MSB18:
+      case ASIOSTInt32MSB20:
+      case ASIOSTInt32MSB24: {
+        unsigned int* buf=(unsigned int*)bufInfo[i].buffers[index];
+        for (unsigned int j=0; j<desc.bufsize; j++) {
+          int val=CLAMP(srcBuf[j],-1.0,1.0)*8388608.0f;
+          if (val<-8388608) val=-8388608;
+          if (val>8388607) val=-8388607;
+          val<<=8;
+          unsigned char* uVal=(unsigned char*)&val;
+          buf[j]=(uVal[0]<<24)|(uVal[1]<<16)|(uVal[2]<<8)|(uVal[3]);
+        }
         break;
       }
       case ASIOSTFloat32MSB: {
+        unsigned int* buf=(unsigned int*)bufInfo[i].buffers[index];
+        for (unsigned int j=0; j<desc.bufsize; j++) {
+          float val=srcBuf[j];
+          unsigned char* uVal=(unsigned char*)&val;
+          buf[j]=(uVal[0]<<24)|(uVal[1]<<16)|(uVal[2]<<8)|(uVal[3]);
+        }
         break;
       }
       case ASIOSTFloat64MSB: {
+        unsigned char* buf=(unsigned char*)bufInfo[i].buffers[index];
+        for (unsigned int j=0; j<desc.bufsize; j++) {
+          double val=srcBuf[j];
+          unsigned char* uVal=(unsigned char*)&val;
+          *(buf++)=uVal[7];
+          *(buf++)=uVal[6];
+          *(buf++)=uVal[5];
+          *(buf++)=uVal[4];
+          *(buf++)=uVal[3];
+          *(buf++)=uVal[2];
+          *(buf++)=uVal[1];
+          *(buf++)=uVal[0];
+        }
         break;
       }
 
-      // what the hell..............
-      case ASIOSTInt32LSB16: {
-        break;
-      }
-      case ASIOSTInt32LSB18: {
-        break;
-      }
-      case ASIOSTInt32LSB20: {
-        break;
-      }
-      case ASIOSTInt32LSB24: {
-        break;
-      }
-      case ASIOSTInt32MSB16: {
-        break;
-      }
-      case ASIOSTInt32MSB18: {
-        break;
-      }
-      case ASIOSTInt32MSB20: {
-        break;
-      }
-      case ASIOSTInt32MSB24: {
-        break;
-      }
       default: // unsupported
         break;
     }
   }
-
-  /*if (nframes!=desc.bufsize) {
-    desc.bufsize=nframes;
-  }*/
 }
 
 String TAAudioASIO::getErrorStr(ASIOError which) {
