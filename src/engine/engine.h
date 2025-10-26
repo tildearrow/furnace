@@ -76,6 +76,7 @@ enum DivAudioEngines {
   DIV_AUDIO_SDL=1,
   DIV_AUDIO_PORTAUDIO=2,
   DIV_AUDIO_PIPE=3,
+  DIV_AUDIO_ASIO=4,
 
   DIV_AUDIO_NULL=126,
   DIV_AUDIO_DUMMY=127
@@ -1401,6 +1402,15 @@ class DivEngine {
 
     // get audio desc
     TAAudioDesc& getAudioDescGot();
+
+    // get audio device status
+    TAAudioDeviceStatus getAudioDeviceStatus();
+
+    // acknowledge an audio device status change
+    void acceptAudioDeviceStatus();
+
+    // send command to audio backend
+    int audioBackendCommand(TAAudioCommand which);
 
     // init dispatch
     void initDispatch(bool isRender=false);
