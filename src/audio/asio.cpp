@@ -36,7 +36,7 @@ static void _onSampleRate(ASIOSampleRate rate) {
 }
 
 static long _onMessage(long type, long value, void* msg, double* opt) {
-  if (callbackInstance==NULL) return;
+  if (callbackInstance==NULL) return 0;
   switch (type) {
     case kAsioSelectorSupported:
       switch (value) {
