@@ -1350,7 +1350,7 @@ void FurnaceGUI::drawSettings() {
           if (settings.audioEngine==DIV_AUDIO_ASIO) {
             ImGui::SameLine();
             if (ImGui::Button(_("Control panel"))) {
-              if (e->audioBackendCommand(TA_AUDIO_CMD_SETUP)!=2) {
+              if (e->audioBackendCommand(TA_AUDIO_CMD_SETUP)!=1) {
                 showError(_("this driver doesn't have a control panel."));
               }
             }
