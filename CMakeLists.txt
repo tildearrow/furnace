@@ -321,6 +321,8 @@ if (USE_SNDFILE)
       set(OPUS_LIBRARY opus CACHE STRING "Opus library" FORCE)
       add_subdirectory(extern/libogg EXCLUDE_FROM_ALL)
       add_subdirectory(extern/libvorbis EXCLUDE_FROM_ALL)
+      set(WITH_FORTIFY_SOURCE OFF CACHE BOOL "Enable Fortify Source" FORCE)
+      set(WITH_STACK_PROTECTOR OFF CACHE BOOL "Enable Fortify Source" FORCE)
       add_subdirectory(extern/flac EXCLUDE_FROM_ALL)
     endif()
 
