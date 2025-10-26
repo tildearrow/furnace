@@ -3808,6 +3808,11 @@ void DivEngine::acceptAudioDeviceStatus() {
   output->acceptDeviceStatus();
 }
 
+int DivEngine::audioBackendCommand(TAAudioCommand which) {
+  if (output==NULL) return -1;
+  return output->specialCommand(which);
+}
+
 std::vector<String>& DivEngine::getAudioDevices() {
   return audioDevs;
 }

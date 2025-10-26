@@ -47,6 +47,7 @@ class TAAudioASIO: public TAAudio {
     String getFormatName(ASIOSampleType which);
 
     void* getContext();
+    int specialCommand(TAAudioCommand which);
     bool quit();
     bool setRun(bool run);
     bool init(TAAudioDesc& request, TAAudioDesc& response);

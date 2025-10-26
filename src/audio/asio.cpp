@@ -319,6 +319,16 @@ void* TAAudioASIO::getContext() {
   return (void*)&driverInfo;
 }
 
+int TAAudioASIO::specialCommand(TAAudioCommand which) {
+  switch (which) {
+    case TA_AUDIO_CMD_SETUP:
+      if (ASIOControlPanel()==ASE_NotPresent) return 0;
+      return 1;
+      break;
+  }
+  return -1;
+}
+
 bool TAAudioASIO::quit() {
   if (!initialized) return false;
 

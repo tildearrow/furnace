@@ -1409,6 +1409,9 @@ class DivEngine {
     // acknowledge an audio device status change
     void acceptAudioDeviceStatus();
 
+    // send command to audio backend
+    int audioBackendCommand(TAAudioCommand which);
+
     // init dispatch
     void initDispatch(bool isRender=false);
 

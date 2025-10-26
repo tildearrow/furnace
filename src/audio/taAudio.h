@@ -45,6 +45,11 @@ enum TAAudioDeviceStatus {
   TA_AUDIO_DEVICE_REMOVED
 };
 
+enum TAAudioCommand {
+  // open control panel for audio device
+  TA_AUDIO_CMD_SETUP=0
+};
+
 enum TAAudioFormat {
   TA_AUDIO_FORMAT_F32=0,
   TA_AUDIO_FORMAT_F64,
@@ -184,6 +189,7 @@ class TAAudio {
     void setCallback(void (*callback)(void*,float**,float**,int,int,unsigned int), void* user);
 
     virtual void* getContext();
+    virtual int specialCommand(TAAudioCommand which);
     virtual bool quit();
     virtual bool setRun(bool run);
     virtual std::vector<String> listAudioDevices();
