@@ -3394,8 +3394,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   if (clampSamples) {
     for (size_t i=0; i<size; i++) {
       for (int j=0; j<outChans; j++) {
-        if (out[j][i]<-1.0) out[j][i]=-1.0;
-        if (out[j][i]>1.0) out[j][i]=1.0;
+        if (out[j][i]<-0.9999) out[j][i]=-0.9999;
+        if (out[j][i]>0.9999) out[j][i]=0.9999;
       }
     }
   }
