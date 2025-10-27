@@ -21,7 +21,6 @@
 #include "imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "intConst.h"
-#include "IconsFontAwesome4.h"
 
 void FurnaceGUI::drawSpeed(bool asChild) {
   if (nextWindow==GUI_WINDOW_SPEED) {
@@ -50,7 +49,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         }
       }
       ImGui::TableNextColumn();
-      float avail=ImGui::GetContentRegionAvail().x-ImGui::GetStyle().ItemSpacing.x*2-ImGui::GetFontSize();
+      float avail=ImGui::GetContentRegionAvail().x;
       float halfAvail=(avail-ImGui::GetStyle().ItemSpacing.x)*0.5;
       ImGui::SetNextItemWidth(halfAvail);
       float setHz=tempoView?e->curSubSong->hz*2.5:e->curSubSong->hz;
@@ -162,37 +161,6 @@ void FurnaceGUI::drawSpeed(bool asChild) {
           }
         }
       }
-      ImGui::SameLine();
-      ImGui::Button(ICON_FA_CALCULATOR "##grooveCalc");
-      if (ImGui::BeginPopupContextItem("##grooveCalc", ImGuiPopupFlags_MouseButtonLeft)) {
-        ImGui::InputDouble("Desired BPM", &desBpm);
-        if (ImGui::Button("OK")) {;
-          e->lockEngine([this]() {
-            unsigned char* out=e->curSubSong->speeds.val;
-            memset(out, 0, 16*sizeof(char));
-            double calcBpm=0, tickTrack=0;
-            int len=0;
-            while (len<16) {
-              if (fabs(desBpm-calcBpm)<2.2204460492503130808472633361816e-12) break;
-              double noteTime=(1.0/(desBpm/60.0))/e->curSubSong->hilightA;
-              double noteTick=noteTime*e->curSubSong->hz;
-              tickTrack+=noteTick;
-              int totalNum=0;
-              for (int i=0; i<len; i++) totalNum+=out[i];
-              out[len++]=round(tickTrack)-totalNum;
-              totalNum+=out[len-1];
-              calcBpm=60.0/((((double)totalNum/len)/e->curSubSong->hz)*e->curSubSong->hilightA);
-            }
-            e->curSubSong->speeds.len=len;
-          });
-          if (e->isPlaying()) play();
-          MARK_MODIFIED;
-          ImGui::CloseCurrentPopup();
-        }
-        ImGui::EndPopup();
-      }
-      avail=ImGui::GetContentRegionAvail().x;
-      halfAvail=(avail-ImGui::GetStyle().ItemSpacing.x)*0.5;
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();

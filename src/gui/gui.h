@@ -2835,8 +2835,6 @@ class FurnaceGUI {
 
   std::vector<String> randomDemoSong;
 
-  double desBpm;
-
   void commandExportOptions();
   
   void drawExportAudio(bool onWindow=false);
