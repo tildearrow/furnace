@@ -41,6 +41,7 @@ class DivFilePlayer {
   SF_INFO si;
 
   size_t playPos;
+  size_t lastBlock;
   int outRate;
   int rateAccum;
   float volume;
@@ -56,6 +57,8 @@ class DivFilePlayer {
     size_t getPos();
     size_t setPos(size_t newPos, unsigned int offset=0);
     
+    bool isBlockPresent(size_t pos);
+    bool isLoaded();
     bool isPlaying();
     void play(unsigned int offset=0);
     void stop(unsigned int offset=0);
@@ -63,6 +66,7 @@ class DivFilePlayer {
     bool loadFile(const char* path);
 
     String getLastError();
+    const SF_INFO& getFileInfo();
     void setOutputRate(int rate);
     float getVolume();
     void setVolume(float vol);
@@ -70,3 +74,5 @@ class DivFilePlayer {
     DivFilePlayer();
     ~DivFilePlayer();
 };
+
+#endif

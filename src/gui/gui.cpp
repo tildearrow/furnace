@@ -2311,6 +2311,17 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale
       );
       break;
+    case GUI_FILE_MUSIC_OPEN:
+      if (!dirExists(workingDirMusic)) workingDirMusic=getHomeDir();
+      hasOpened=fileDialog->openLoad(
+        _("Open Audio File"),
+        audioLoadFormats,
+        workingDirMusic,
+        dpiScale,
+        NULL,
+        false
+      );
+      break;
     case GUI_FILE_TEST_OPEN:
       if (!dirExists(workingDirTest)) workingDirTest=getHomeDir();
       hasOpened=fileDialog->openLoad(
@@ -3841,6 +3852,7 @@ bool FurnaceGUI::loop() {
   DECLARE_METRIC(log)
   DECLARE_METRIC(effectList)
   DECLARE_METRIC(userPresets)
+  DECLARE_METRIC(refPlayer)
   DECLARE_METRIC(popup)
 
 #ifdef IS_MOBILE
@@ -4453,6 +4465,7 @@ bool FurnaceGUI::loop() {
         IMPORT_CLOSE(memoryOpen);
         IMPORT_CLOSE(csPlayerOpen);
         IMPORT_CLOSE(userPresetsOpen);
+        IMPORT_CLOSE(refPlayerOpen);
       } else if (pendingLayoutImportStep==1) {
         // let the UI settle
       } else if (pendingLayoutImportStep==2) {
@@ -4821,6 +4834,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem(_("effect list"),BIND_FOR(GUI_ACTION_WINDOW_EFFECT_LIST),effectListOpen)) effectListOpen=!effectListOpen;
         if (ImGui::MenuItem(_("play/edit controls"),BIND_FOR(GUI_ACTION_WINDOW_EDIT_CONTROLS),editControlsOpen)) editControlsOpen=!editControlsOpen;
         if (ImGui::MenuItem(_("piano/input pad"),BIND_FOR(GUI_ACTION_WINDOW_PIANO),pianoOpen)) pianoOpen=!pianoOpen;
+        if (ImGui::MenuItem(_("reference music player"),BIND_FOR(GUI_ACTION_WINDOW_REF_PLAYER),refPlayerOpen)) refPlayerOpen=!refPlayerOpen;
         if (spoilerOpen) if (ImGui::MenuItem(_("spoiler"),NULL,spoilerOpen)) spoilerOpen=!spoilerOpen;
 
         ImGui::EndMenu();
@@ -5043,6 +5057,7 @@ bool FurnaceGUI::loop() {
       MEASURE(memory,drawMemory());
       MEASURE(effectList,drawEffectList());
       MEASURE(userPresets,drawUserPresets());
+      MEASURE(refPlayer,drawRefPlayer());
       MEASURE(patManager,drawPatManager());
 
     } else {
@@ -5088,6 +5103,7 @@ bool FurnaceGUI::loop() {
       MEASURE(log,drawLog());
       MEASURE(effectList,drawEffectList());
       MEASURE(userPresets,drawUserPresets());
+      MEASURE(refPlayer,drawRefPlayer());
 
     }
 
@@ -5238,6 +5254,9 @@ bool FurnaceGUI::loop() {
           break;
         case GUI_FILE_CMDSTREAM_OPEN:
           workingDirROM=fileDialog->getPath()+DIR_SEPARATOR_STR;
+          break;
+        case GUI_FILE_MUSIC_OPEN:
+          workingDirMusic=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_TEST_OPEN:
         case GUI_FILE_TEST_OPEN_MULTI:
@@ -5875,6 +5894,11 @@ bool FurnaceGUI::loop() {
             case GUI_FILE_CMDSTREAM_OPEN:
               if (loadStream(copyOfName)>0) {
                 showError(fmt::sprintf(_("Error while loading file! (%s)"),lastError));
+              }
+              break;
+            case GUI_FILE_MUSIC_OPEN:
+              if (!e->getFilePlayer()->loadFile(copyOfName.c_str())) {
+                showError(fmt::sprintf(_("Error while loading file!")));
               }
               break;
             case GUI_FILE_TEST_OPEN:
@@ -8170,11 +8194,13 @@ void FurnaceGUI::syncState() {
   workingDirAudioExport=e->getConfString("lastDirAudioExport",workingDir);
   workingDirVGMExport=e->getConfString("lastDirVGMExport",workingDir);
   workingDirROMExport=e->getConfString("lastDirROMExport",workingDir);
+  workingDirROM=e->getConfString("lastDirROM",workingDir);
   workingDirFont=e->getConfString("lastDirFont",workingDir);
   workingDirColors=e->getConfString("lastDirColors",workingDir);
   workingDirKeybinds=e->getConfString("lastDirKeybinds",workingDir);
   workingDirLayout=e->getConfString("lastDirLayout",workingDir);
   workingDirConfig=e->getConfString("lastDirConfig",workingDir);
+  workingDirMusic=e->getConfString("lastDirMusic",workingDir);
   workingDirTest=e->getConfString("lastDirTest",workingDir);
 
   editControlsOpen=e->getConfBool("editControlsOpen",true);
@@ -8216,6 +8242,7 @@ void FurnaceGUI::syncState() {
   findOpen=e->getConfBool("findOpen",false);
   spoilerOpen=e->getConfBool("spoilerOpen",false);
   userPresetsOpen=e->getConfBool("userPresetsOpen",false);
+  refPlayerOpen=e->getConfBool("refPlayerOpen",false);
 
   insListDir=e->getConfBool("insListDir",false);
   waveListDir=e->getConfBool("waveListDir",false);
@@ -8333,11 +8360,13 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("lastDirAudioExport",workingDirAudioExport);
   conf.set("lastDirVGMExport",workingDirVGMExport);
   conf.set("lastDirROMExport",workingDirROMExport);
+  conf.set("lastDirROM",workingDirROM);
   conf.set("lastDirFont",workingDirFont);
   conf.set("lastDirColors",workingDirColors);
   conf.set("lastDirKeybinds",workingDirKeybinds);
   conf.set("lastDirLayout",workingDirLayout);
   conf.set("lastDirConfig",workingDirConfig);
+  conf.set("lastDirMusic",workingDirMusic);
   conf.set("lastDirTest",workingDirTest);
 
   // commit last open windows
@@ -8376,6 +8405,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("findOpen",findOpen);
   conf.set("spoilerOpen",spoilerOpen);
   conf.set("userPresetsOpen",userPresetsOpen);
+  conf.set("refPlayerOpen",refPlayerOpen);
 
   // commit dir state
   conf.set("insListDir",insListDir);
@@ -8779,6 +8809,7 @@ FurnaceGUI::FurnaceGUI():
   csPlayerOpen(false),
   cvOpen(false),
   userPresetsOpen(false),
+  refPlayerOpen(false),
   cvNotSerious(false),
   shortIntro(false),
   insListDir(false),

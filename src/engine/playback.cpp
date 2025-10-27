@@ -3237,6 +3237,19 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     renderPool->wait();
   }
 
+  // process file player
+  // resize file player audio buffer if necessary
+  if (filePlayerBufLen<size) {
+    for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+      if (filePlayerBuf[i]!=NULL) delete[] filePlayerBuf[i];
+      filePlayerBuf[i]=new float[size];
+    }
+    filePlayerBufLen=size;
+  }
+  if (curFilePlayer!=NULL) {
+    curFilePlayer->mix(filePlayerBuf,outChans,size);
+  }
+
   // process metronome
   // resize the metronome's audio buffer if necessary
   if (metroBufLen<size || metroBuf==NULL) {
@@ -3316,6 +3329,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           for (size_t j=0; j<size; j++) {
             out[destSubPort][j]+=((float)disCont[srcPortSet].bbOut[srcSubPort][j]/32768.0)*vol;
           }
+        }
+      } else if (srcPortSet==0xffc) {
+        // file player
+        for (size_t j=0; j<size; j++) {
+          out[destSubPort][j]+=filePlayerBuf[srcSubPort][j];
         }
       } else if (srcPortSet==0xffd) {
         // sample preview

@@ -1648,6 +1648,16 @@ void DivEngine::getCommandStream(std::vector<DivCommand>& where) {
   BUSY_END;
 }
 
+DivFilePlayer* DivEngine::getFilePlayer() {
+  if (curFilePlayer==NULL) {
+    BUSY_BEGIN_SOFT;
+    curFilePlayer=new DivFilePlayer;
+    curFilePlayer->setOutputRate(got.rate);
+    BUSY_END;
+  }
+  return curFilePlayer;
+}
+
 void DivEngine::playSub(bool preserveDrift, int goalRow) {
   logV("playSub() called");
   std::chrono::high_resolution_clock::time_point timeStart=std::chrono::high_resolution_clock::now();
@@ -3419,6 +3429,12 @@ void DivEngine::autoPatchbay() {
     }
   }
 
+  // file player
+  song.patchbay.reserve(DIV_MAX_OUTPUTS);
+  for (unsigned int j=0; j<DIV_MAX_OUTPUTS; j++) {
+    song.patchbay.push_back(0xffc00000|j|(j<<16));
+  }
+
   // wave/sample preview
   song.patchbay.reserve(DIV_MAX_OUTPUTS);
   for (unsigned int j=0; j<DIV_MAX_OUTPUTS; j++) {
@@ -4301,6 +4317,10 @@ bool DivEngine::quit(bool saveConfig) {
     delete[] metroBuf;
     metroBuf=NULL;
     metroBufLen=0;
+  }
+  if (curFilePlayer!=NULL) {
+    delete curFilePlayer;
+    curFilePlayer=NULL;
   }
   if (yrw801ROM!=NULL) delete[] yrw801ROM;
   if (tg100ROM!=NULL) delete[] tg100ROM;
