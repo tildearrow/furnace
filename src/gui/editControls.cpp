@@ -633,6 +633,10 @@ void FurnaceGUI::drawMobileControls() {
         if (ImGui::Button(_("EffectList"))) {
           effectListOpen=!effectListOpen;
         }
+        ImGui::SameLine();
+        if (ImGui::Button(_("RefPlayer"))) {
+          refPlayerOpen=!refPlayerOpen;
+        }
         if (ImGui::Button(_("Switch to Desktop Mode"))) {
           toggleMobileUI(!mobileUI);
         }

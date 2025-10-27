@@ -76,6 +76,8 @@ void FurnaceGUI::drawRefPlayer() {
       if (vol>1.0f) vol=1.0f;
       fp->setVolume(vol);
     }
+
+    ImGui::Text("Memory usage: %" PRIu64 "K",fp->getMemUsage()>>10);
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_REF_PLAYER;
   ImGui::End();

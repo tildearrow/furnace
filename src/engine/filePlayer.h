@@ -20,7 +20,10 @@
 #ifndef _FILEPLAYER_H
 #define _FILEPLAYER_H
 
+#include "../ta-utils.h"
+#include <thread>
 #include <mutex>
+#include <condition_variable>
 
 #ifdef HAVE_SNDFILE
 #include "sfWrapper.h"
@@ -32,32 +35,47 @@ struct SF_INFO {
 #endif
 
 class DivFilePlayer {
+  float* sincTable;
   float* discardBuf;
   float** blocks;
+  bool* priorityBlock;
   size_t numBlocks;
   String lastError;
   SFWrapper sfw;
   SNDFILE* sf;
   SF_INFO si;
 
-  size_t playPos;
-  size_t lastBlock;
+  ssize_t playPos;
+  ssize_t lastWantBlock;
+  ssize_t wantBlock;
   int outRate;
   int rateAccum;
   float volume;
   bool playing;
   bool fileError;
+  bool quitThread;
+  bool threadHasQuit;
 
+  std::thread* cacheThread;
   std::mutex cacheMutex;
+  std::mutex cacheThreadLock;
+  std::condition_variable cacheCV;
 
-  void fillBlocksNear(size_t pos);
+  void fillBlocksNear(ssize_t pos);
+  void collectGarbage(ssize_t pos);
+  float getSampleAt(ssize_t pos, int ch);
 
   public:
+    void runCacheThread();
+
+    size_t getMemUsage();
+
     void mix(float** buf, int chans, unsigned int size);
-    size_t getPos();
-    size_t setPos(size_t newPos, unsigned int offset=0);
+    ssize_t getPos();
+    ssize_t setPos(ssize_t newPos, unsigned int offset=0);
     
-    bool isBlockPresent(size_t pos);
+    bool isBlockPresent(ssize_t pos);
+    bool setBlockPriority(ssize_t pos, bool priority);
     bool isLoaded();
     bool isPlaying();
     void play(unsigned int offset=0);

@@ -18,17 +18,24 @@
  */
 
 #include "filePlayer.h"
+#include "filter.h"
 #include "../ta-log.h"
 #include <inttypes.h>
+#include <chrono>
 
-#define DIV_FPCACHE_BLOCK_SHIFT 16
-#define DIV_FPCACHE_BLOCK_SIZE (1U<<DIV_FPCACHE_BLOCK_SHIFT)
+#define DIV_FPCACHE_BLOCK_SHIFT 15
+#define DIV_FPCACHE_BLOCK_SIZE (1<<DIV_FPCACHE_BLOCK_SHIFT)
 #define DIV_FPCACHE_BLOCK_MASK (DIV_FPCACHE_BLOCK_SIZE-1)
 
-#define DIV_FPCACHE_BLOCKS_FROM_FILL 8
+#define DIV_FPCACHE_BLOCKS_FROM_FILL 3
 #define DIV_FPCACHE_DISCARD_SIZE 4096
 
-void DivFilePlayer::fillBlocksNear(size_t pos) {
+// 5MB should be enough
+#define DIV_MAX_MEMORY (5<<20)
+
+#define DIV_NO_BLOCK (-10)
+
+void DivFilePlayer::fillBlocksNear(ssize_t pos) {
   logV("DivFilePlayer: fillBlocksNear(%" PRIu64 ")",pos);
 
   // don't if file isn't present
@@ -41,15 +48,19 @@ void DivFilePlayer::fillBlocksNear(size_t pos) {
   // (if this is set the file is already read in its entirety)
   if (!si.seekable) return;
 
-  size_t firstBlock=pos>>DIV_FPCACHE_BLOCK_SHIFT;
-  size_t lastBlock=firstBlock+DIV_FPCACHE_BLOCKS_FROM_FILL;
-  if (lastBlock>=numBlocks) lastBlock=numBlocks-1;
+  ssize_t firstBlock=pos>>DIV_FPCACHE_BLOCK_SHIFT;
+  ssize_t lastBlock=firstBlock+DIV_FPCACHE_BLOCKS_FROM_FILL;
+  if (firstBlock<0) firstBlock=0;
+  if (firstBlock>=(ssize_t)numBlocks) firstBlock=numBlocks-1;
+  if (lastBlock<0) lastBlock=0;
+  if (lastBlock>=(ssize_t)numBlocks) lastBlock=numBlocks-1;
 
   // don't read if we're after end of file
   if (firstBlock>lastBlock) return;
   
   bool needToFill=false;
-  for (size_t i=firstBlock; i<=lastBlock; i++) {
+  for (ssize_t i=firstBlock; i<=lastBlock; i++) {
+    if (i<0 || i>=(ssize_t)numBlocks) continue;
     if (!blocks[i]) {
       needToFill=true;
       firstBlock=i;
@@ -67,7 +78,7 @@ void DivFilePlayer::fillBlocksNear(size_t pos) {
     return;
   }
 
-  if ((curSeek&DIV_FPCACHE_BLOCK_MASK)!=0 || (((size_t)curSeek)>>DIV_FPCACHE_BLOCK_SHIFT)!=firstBlock) {
+  if ((curSeek&DIV_FPCACHE_BLOCK_MASK)!=0 || (curSeek>>DIV_FPCACHE_BLOCK_SHIFT)!=firstBlock) {
     // we need to seek
     logV("- seeking");
     // we seek to a previous position in order to compensate for possible decoding differences when seeking
@@ -90,7 +101,7 @@ void DivFilePlayer::fillBlocksNear(size_t pos) {
   }
 
   // read blocks
-  for (size_t i=firstBlock; i<=lastBlock; i++) {
+  for (ssize_t i=firstBlock; i<=lastBlock; i++) {
     if (!blocks[i]) {
       blocks[i]=new float[DIV_FPCACHE_BLOCK_SIZE*si.channels];
       memset(blocks[i],0,DIV_FPCACHE_BLOCK_SIZE*si.channels*sizeof(float));
@@ -103,6 +114,82 @@ void DivFilePlayer::fillBlocksNear(size_t pos) {
   }
 }
 
+void DivFilePlayer::collectGarbage(ssize_t pos) {
+  // don't if file isn't present
+  if (!blocks) return;
+
+  // don't if there was an I/O error
+  if (fileError) return;
+  
+  // don't if we cannot seek
+  if (!si.seekable) return;
+
+  size_t memUsage=getMemUsage();
+  if (memUsage<DIV_MAX_MEMORY) return;
+
+  pos>>=DIV_FPCACHE_BLOCK_SHIFT;
+  if (pos<0) pos=0;
+  if (pos>=(ssize_t)numBlocks) pos=numBlocks-1;
+
+  // collect garbage
+  // start with blocks before the given position
+  // then try with blocks after given position
+  // prioritize far away ones
+  // do not destroy priority blocks
+  for (ssize_t i=0; i<pos-2; i++) {
+    if (!blocks[i]) continue;
+    if (priorityBlock[i]) continue;
+    logV("erasing block %d",(int)i);
+    float* block=blocks[i];
+    blocks[i]=NULL;
+    delete[] block;
+
+    memUsage-=DIV_FPCACHE_BLOCK_SIZE*si.channels*sizeof(float);
+    if (memUsage<DIV_MAX_MEMORY) return;
+  }
+  for (ssize_t i=numBlocks-1; i>pos+DIV_FPCACHE_BLOCKS_FROM_FILL; i--) {
+    if (!blocks[i]) continue;
+    if (priorityBlock[i]) continue;
+    logV("erasing block %d",(int)i);
+    float* block=blocks[i];
+    blocks[i]=NULL;
+    delete[] block;
+
+    memUsage-=DIV_FPCACHE_BLOCK_SIZE*si.channels*sizeof(float);
+    if (memUsage<DIV_MAX_MEMORY) return;
+  }
+}
+
+void DivFilePlayer::runCacheThread() {
+  std::unique_lock<std::mutex> lock(cacheThreadLock);
+
+  while (!quitThread) {
+    ssize_t wantBlockC=wantBlock;
+    if (wantBlockC!=DIV_NO_BLOCK) {
+      wantBlock=DIV_NO_BLOCK;
+      logV("thread fill %" PRIu64,wantBlockC);
+      fillBlocksNear(wantBlockC);
+      collectGarbage(wantBlockC);
+    }
+    cacheCV.wait(lock);
+  }
+
+  threadHasQuit=true;
+  logV("DivFilePlayer: cache thread over.");
+}
+
+float DivFilePlayer::getSampleAt(ssize_t pos, int ch) {
+  if (blocks==NULL) return 0.0f;
+  ssize_t blockIndex=pos>>DIV_FPCACHE_BLOCK_SHIFT;
+  if (blockIndex<0 || blockIndex>=(ssize_t)numBlocks) return 0.0f;
+
+  float* block=blocks[blockIndex];
+  size_t posInBlock=(pos&DIV_FPCACHE_BLOCK_MASK)*si.channels+ch;
+  if (block==NULL) return 0.0f;
+
+  return block[posInBlock];
+}
+
 void DivFilePlayer::mix(float** buf, int chans, unsigned int size) {
   // fill with zero if we don't have a file
   if (sf==NULL) {
@@ -112,40 +199,65 @@ void DivFilePlayer::mix(float** buf, int chans, unsigned int size) {
     return;
   }
 
-  for (unsigned int i=0; i<size; i++) {
-    if (playing) {
-      size_t blockIndex=playPos>>DIV_FPCACHE_BLOCK_SHIFT;
-      if (blockIndex!=lastBlock) {
-        fillBlocksNear(playPos);
-        lastBlock=blockIndex;
-      }
-      if (blockIndex>=numBlocks) {
-        // stop here
-        for (int j=0; j<chans; j++) {
-          buf[j][i]=0.0f;
-        }
-        continue;
-      }
-      float* block=blocks[blockIndex];
-      size_t posInBlock=(playPos&DIV_FPCACHE_BLOCK_MASK)*si.channels;
+  if (wantBlock!=DIV_NO_BLOCK) {
+    cacheCV.notify_one();
+  }
 
-      // put
-      if (block==NULL) {
+  for (unsigned int i=0; i<size; i++) {
+    ssize_t blockIndex=playPos>>DIV_FPCACHE_BLOCK_SHIFT;
+    if (blockIndex!=lastWantBlock) {
+      wantBlock=playPos;
+      cacheCV.notify_one();
+      lastWantBlock=blockIndex;
+    }
+
+    if (playing) {
+      // sinc interpolation
+      float x[8];
+
+      unsigned int n=(8192*rateAccum)/outRate;
+      n&=8191;
+      float* t1=&sincTable[(8191-n)<<2];
+      float* t2=&sincTable[n<<2];
+      if (si.channels==1) {
+        // mono optimization
+        for (int k=0; k<8; k++) {
+          x[k]=getSampleAt(playPos+k-3,0);
+        }
+
+        float s=(
+          x[0]*t2[3]+
+          x[1]*t2[2]+
+          x[2]*t2[1]+
+          x[3]*t2[0]+
+          x[4]*t1[0]+
+          x[5]*t1[1]+
+          x[6]*t1[2]+
+          x[7]*t1[3]
+        )*volume;
+
         for (int j=0; j<chans; j++) {
+          buf[j][i]=s;
+        }
+      } else for (int j=0; j<chans; j++) {
+        if (j>=si.channels) {
           buf[j][i]=0.0f;
+          continue;
         }
-      } else if (si.channels==1) {
-        for (int j=0; j<chans; j++) {
-          buf[j][i]=block[posInBlock]*volume;
+
+        for (int k=0; k<8; k++) {
+          x[k]=getSampleAt(playPos+k-3,j);
         }
-      } else {
-        for (int j=0; j<chans; j++) {
-          if (j>=si.channels) {
-            buf[j][i]=0.0f;
-          } else {
-            buf[j][i]=block[posInBlock++]*volume;
-          }
-        }
+        buf[j][i]=(
+          x[0]*t2[3]+
+          x[1]*t2[2]+
+          x[2]*t2[1]+
+          x[3]*t2[0]+
+          x[4]*t1[0]+
+          x[5]*t1[1]+
+          x[6]*t1[2]+
+          x[7]*t1[3]
+        )*volume;
       }
 
       // advance
@@ -153,7 +265,7 @@ void DivFilePlayer::mix(float** buf, int chans, unsigned int size) {
       while (rateAccum>=outRate) {
         rateAccum-=outRate;
         playPos++;
-        if (playPos>=(size_t)si.frames) {
+        if (playPos>=(ssize_t)si.frames) {
           playPos=0;
         }
       }
@@ -165,18 +277,37 @@ void DivFilePlayer::mix(float** buf, int chans, unsigned int size) {
   }
 }
 
-size_t DivFilePlayer::getPos() {
+ssize_t DivFilePlayer::getPos() {
   return playPos;
 }
 
-size_t DivFilePlayer::setPos(size_t newPos, unsigned int offset) {
+ssize_t DivFilePlayer::setPos(ssize_t newPos, unsigned int offset) {
   playPos=newPos;
   return playPos;
 }
 
-bool DivFilePlayer::isBlockPresent(size_t pos) {
+size_t DivFilePlayer::getMemUsage() {
+  if (blocks==NULL) return 0;
+  size_t ret=0;
+  for (size_t i=0; i<numBlocks; i++) {
+    if (blocks[i]) ret+=DIV_FPCACHE_BLOCK_SIZE*si.channels*sizeof(float);
+  }
+  return ret;
+}
+
+bool DivFilePlayer::isBlockPresent(ssize_t pos) {
   if (blocks==NULL) return false;
-  return (blocks[pos>>DIV_FPCACHE_BLOCK_SHIFT]!=NULL);
+  ssize_t which=pos>>DIV_FPCACHE_BLOCK_SHIFT;
+  if (which<0 || which>=(ssize_t)numBlocks) return false;
+  return (blocks[which]!=NULL);
+}
+
+bool DivFilePlayer::setBlockPriority(ssize_t pos, bool priority) {
+  if (priorityBlock==NULL) return false;
+  ssize_t which=pos>>DIV_FPCACHE_BLOCK_SHIFT;
+  if (which<0 || which>=(ssize_t)numBlocks) return false;
+  priorityBlock[which]=priority;
+  return priority;
 }
 
 bool DivFilePlayer::isLoaded() {
@@ -199,9 +330,27 @@ void DivFilePlayer::stop(unsigned int offset) {
 
 bool DivFilePlayer::closeFile() {
   if (sf==NULL) return false;
+
+  logD("DivFilePlayer: closing file.");
+
+  if (cacheThread) {
+    quitThread=true;
+    while (!threadHasQuit) {
+      cacheCV.notify_one();
+      std::this_thread::yield();
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    // this join is guaranteed to work
+    cacheThread->join();
+    delete cacheThread;
+    cacheThread=NULL;
+  }
+
   sfw.doClose();
   sf=NULL;
   playing=false;
+  quitThread=false;
+  threadHasQuit=false;
 
   for (size_t i=0; i<numBlocks; i++) {
     if (blocks[i]) {
@@ -235,10 +384,18 @@ bool DivFilePlayer::loadFile(const char* path) {
 
   numBlocks=(DIV_FPCACHE_BLOCK_MASK+si.frames)>>DIV_FPCACHE_BLOCK_SHIFT;
   blocks=new float*[numBlocks];
+  priorityBlock=new bool[numBlocks];
   memset(blocks,0,numBlocks*sizeof(void*));
+  memset(priorityBlock,0,numBlocks*sizeof(bool));
+
+  // mark the first blocks as important
+  for (size_t i=0; i<DIV_FPCACHE_BLOCKS_FROM_FILL; i++) {
+    if (i>=numBlocks) break;
+    priorityBlock[i]=true;
+  }
 
   playPos=0;
-  lastBlock=SIZE_MAX;
+  lastWantBlock=DIV_NO_BLOCK;
   rateAccum=0;
   fileError=false;
 
@@ -262,6 +419,13 @@ bool DivFilePlayer::loadFile(const char* path) {
   }
 
   discardBuf=new float[DIV_FPCACHE_DISCARD_SIZE*si.channels];
+
+  // stsrt the block cache thread
+  if (cacheThread==NULL) {
+    quitThread=false;
+    threadHasQuit=false;
+    cacheThread=new std::thread(&DivFilePlayer::runCacheThread,this);
+  }
   return true;
 }
 
@@ -289,16 +453,22 @@ void DivFilePlayer::setVolume(float vol) {
 DivFilePlayer::DivFilePlayer():
   discardBuf(NULL),
   blocks(NULL),
+  priorityBlock(NULL),
   numBlocks(0),
   sf(NULL),
   playPos(0),
-  lastBlock(SIZE_MAX),
+  lastWantBlock(DIV_NO_BLOCK),
+  wantBlock(DIV_NO_BLOCK),
   outRate(44100),
   rateAccum(0),
   volume(1.0f),
   playing(false),
-  fileError(false) {
+  fileError(false),
+  quitThread(false),
+  threadHasQuit(false),
+  cacheThread(NULL) {
   memset(&si,0,sizeof(SF_INFO));
+  sincTable=DivFilterTables::getSincTable8();
 }
 
 DivFilePlayer::~DivFilePlayer() {
