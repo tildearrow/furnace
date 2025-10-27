@@ -32,8 +32,11 @@ struct SF_INFO {
 #endif
 
 class DivFilePlayer {
+  float* discardBuf;
   float** blocks;
+  size_t numBlocks;
   String lastError;
+  SFWrapper sfw;
   SNDFILE* sf;
   SF_INFO si;
 
