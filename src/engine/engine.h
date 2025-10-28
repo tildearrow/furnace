@@ -659,8 +659,6 @@ class DivEngine {
   void loadPZI(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
   void loadP86(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
 
-
-
   int loadSampleROM(String path, ssize_t expectedSize, unsigned char*& ret);
 
   bool initAudioBackend();
@@ -764,6 +762,10 @@ class DivEngine {
     SafeWriter* saveCommand(DivCSProgress* progress=NULL, DivCSOptions options=DivCSOptions());
     // export to text
     SafeWriter* saveText(bool separatePatterns=true);
+    // export to various mml formats
+    SafeWriter* saveMMLGB(bool legacyNoise);
+    SafeWriter* saveMMLSNESAMK(int version, bool hasDefaultHeader, const String& exportDir);
+
     // export to an audio file
     bool saveAudio(const char* path, DivAudioExportOptions options);
     // wait for audio export to finish
@@ -854,8 +856,8 @@ class DivEngine {
     // find song loop position
     void walkSong(int& loopOrder, int& loopRow, int& loopEnd);
 
-    // find song length in rows (up to specified loop point), and find length of every order
-    void findSongLength(int loopOrder, int loopRow, double fadeoutLen, int& rowsForFadeout, bool& hasFFxx, std::vector<int>& orders, int& length);
+    // find song length in rows (up to specified loop point, which is also returned in ticks), and find length of every order
+    void findSongLength(int loopOrder, int loopRow, double fadeoutLen, int& rowsForFadeout, bool& hasFFxx, std::vector<int>& orders, int& length, int& loopTick);
 
     // play (returns whether successful)
     bool play();
