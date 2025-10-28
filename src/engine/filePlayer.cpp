@@ -285,6 +285,7 @@ ssize_t DivFilePlayer::setPos(ssize_t newPos, unsigned int offset) {
   playPos=newPos;
   rateAccum=0;
   wantBlock=playPos;
+  logD("DivFilePlayer: setPos(%" PRIi64 ")",newPos);
   return playPos;
 }
 
@@ -294,6 +295,7 @@ ssize_t DivFilePlayer::setPosSeconds(ssize_t seconds, unsigned int micros, unsig
   playPos=seconds*si.samplerate+(int)microsD;
   rateAccum=0;
   wantBlock=playPos;
+  logD("DivFilePlayer: setPosSeconds(%" PRIi64 ".%06d)",seconds,micros);
   return playPos;
 }
 

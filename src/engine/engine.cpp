@@ -1696,6 +1696,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   midiTimeDrift=0;
   if (!preserveDrift) {
     ticks=1;
+    subticks=0;
     tempoAccum=0;
     totalTicks=0;
     totalTicksOff=0;
@@ -1789,6 +1790,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   cmdStream.clear();
   std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
   logV("playSub() took %dµs",std::chrono::duration_cast<std::chrono::microseconds>(timeEnd-timeStart).count());
+  logV("and landed us at %d.%06d (%d ticks, %d:%d.%d)",totalSeconds,totalTicks,totalTicksR,curOrder,curRow,ticks);
 }
 
 /*
