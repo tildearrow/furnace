@@ -890,6 +890,8 @@ src/engine/export/tiuna.cpp
 src/engine/export/zsm.cpp
 src/engine/export/ipod.cpp
 src/engine/export/grub.cpp
+src/engine/export/mmlHelpers.cpp
+src/engine/export/mmlOps.cpp
 
 src/engine/effect/abstract.cpp
 src/engine/effect/dummy.cpp

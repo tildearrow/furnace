@@ -629,6 +629,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_CMDSTREAM,
   GUI_FILE_EXPORT_TEXT,
   GUI_FILE_EXPORT_ROM,
+  GUI_FILE_EXPORT_MML,
   GUI_FILE_LOAD_MAIN_FONT,
   GUI_FILE_LOAD_HEAD_FONT,
   GUI_FILE_LOAD_PAT_FONT,
@@ -681,7 +682,8 @@ enum FurnaceGUIExportTypes {
   GUI_EXPORT_ROM,
   GUI_EXPORT_CMD_STREAM,
   GUI_EXPORT_TEXT,
-  GUI_EXPORT_DMF
+  GUI_EXPORT_DMF,
+  GUI_EXPORT_MML
 };
 
 enum FurnaceGUIFMAlgs {
@@ -1686,7 +1688,7 @@ class FurnaceGUI {
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile, sysSearchQuery, newSongQuery, paletteQuery, sampleBankSearchQuery;
   String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport;
-  String workingDirVGMExport, workingDirROMExport;
+  String workingDirVGMExport, workingDirROMExport, workingDirMMLExport;
   String workingDirFont, workingDirColors, workingDirKeybinds;
   String workingDirLayout, workingDirROM, workingDirTest;
   String workingDirConfig;
@@ -2819,6 +2821,11 @@ class FurnaceGUI {
   DivCSOptions csExportOptions;
   DivCSProgress csProgress;
 
+  // MML export specific
+  int mmlExportType;
+  bool mmlExportUseLegacyNoise;
+  int mmlExportAMKVersion;
+
   // ROM export specific
   DivROMExportOptions romTarget;
   DivConfig romConfig;
@@ -2843,6 +2850,7 @@ class FurnaceGUI {
   void drawExportText(bool onWindow=false);
   void drawExportCommand(bool onWindow=false);
   void drawExportDMF(bool onWindow=false);
+  void drawExportMML(bool onWindow=false);
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
