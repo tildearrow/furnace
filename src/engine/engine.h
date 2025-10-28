@@ -603,12 +603,15 @@ class DivEngine {
   DivFilePlayer* curFilePlayer;
   bool filePlayerSync;
   ssize_t filePlayerCueSeconds;
-  unsigned int filePlayerCueMillis;
+  unsigned int filePlayerCueMicros;
 
   size_t totalProcessed;
 
   unsigned int renderPoolThreads;
   DivWorkPool* renderPool;
+
+  // song timestamps
+  DivSongTimestamps* songTimestamps;
 
   // MIDI stuff
   std::function<int(const TAMidiMessage&)> midiCallback=[](const TAMidiMessage&) -> int {return -3;};
@@ -629,6 +632,8 @@ class DivEngine {
   void runMidiClock(int totalCycles=1);
   void runMidiTime(int totalCycles=1);
   bool shallSwitchCores();
+
+  void syncFilePlayer();
 
   void testFunction();
 
@@ -873,6 +878,9 @@ class DivEngine {
 
     // find song length in rows (up to specified loop point), and find length of every order
     void findSongLength(int loopOrder, int loopRow, double fadeoutLen, int& rowsForFadeout, bool& hasFFxx, std::vector<int>& orders, int& length);
+
+    // calculate all song timestamps
+    void calcSongTimestamps();
 
     // play (returns whether successful)
     bool play();
@@ -1573,7 +1581,7 @@ class DivEngine {
       curFilePlayer(NULL),
       filePlayerSync(true),
       filePlayerCueSeconds(0),
-      filePlayerCueMillis(0),
+      filePlayerCueMicros(0),
       totalProcessed(0),
       renderPoolThreads(0),
       renderPool(NULL),

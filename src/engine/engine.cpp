@@ -1666,6 +1666,19 @@ void DivEngine::setFilePlayerSync(bool doSync) {
   filePlayerSync=doSync;
 }
 
+void DivEngine::syncFilePlayer() {
+  if (curFilePlayer==NULL) return;
+  int finalSeconds=totalSeconds+filePlayerCueSeconds;
+  int finalMicros=totalTicks+filePlayerCueMicros;
+
+  while (finalMicros>=1000000) {
+    finalMicros-=1000000;
+    finalSeconds++;
+  }
+
+  curFilePlayer->setPosSeconds(finalSeconds,finalMicros);
+}
+
 void DivEngine::playSub(bool preserveDrift, int goalRow) {
   logV("playSub() called");
   std::chrono::high_resolution_clock::time_point timeStart=std::chrono::high_resolution_clock::now();
@@ -2020,7 +2033,7 @@ bool DivEngine::play() {
   bool didItPlay=playing;
   if (didItPlay) {
     if (curFilePlayer && filePlayerSync) {
-      curFilePlayer->setPosSeconds(totalSeconds,totalTicks);
+      syncFilePlayer();
       curFilePlayer->play();
     }
   }
@@ -2042,7 +2055,7 @@ bool DivEngine::playToRow(int row) {
   bool didItPlay=playing;
   if (didItPlay) {
     if (curFilePlayer && filePlayerSync) {
-      curFilePlayer->setPosSeconds(totalSeconds,totalTicks);
+      syncFilePlayer();
       curFilePlayer->play();
     }
   }
@@ -2055,6 +2068,9 @@ void DivEngine::stepOne(int row) {
     BUSY_BEGIN_SOFT;
     freelance=false;
     playSub(false,row);
+    if (curFilePlayer && filePlayerSync) {
+      syncFilePlayer();
+    }
     for (int i=0; i<DIV_MAX_CHANS; i++) {
       keyHit[i]=false;
     }
@@ -3136,6 +3152,10 @@ void DivEngine::addOrder(int pos, bool duplicate, bool where) {
     prevOrder=curOrder;
     if (playing && !freelance) {
       playSub(false);
+      if (curFilePlayer && filePlayerSync) {
+        syncFilePlayer();
+        curFilePlayer->play();
+      }
     }
   }
   BUSY_END;
@@ -3188,6 +3208,10 @@ void DivEngine::deepCloneOrder(int pos, bool where) {
     if (pos<=curOrder) curOrder++;
     if (playing && !freelance) {
       playSub(false);
+      if (curFilePlayer && filePlayerSync) {
+        syncFilePlayer();
+        curFilePlayer->play();
+      }
     }
   }
   BUSY_END;
@@ -3208,6 +3232,10 @@ void DivEngine::deleteOrder(int pos) {
   if (curOrder>=curSubSong->ordersLen) curOrder=curSubSong->ordersLen-1;
   if (playing && !freelance) {
     playSub(false);
+    if (curFilePlayer && filePlayerSync) {
+      syncFilePlayer();
+      curFilePlayer->play();
+    }
   }
   BUSY_END;
 }
@@ -3231,6 +3259,10 @@ void DivEngine::moveOrderUp(int& pos) {
   pos--;
   if (playing && !freelance) {
     playSub(false);
+    if (curFilePlayer && filePlayerSync) {
+      syncFilePlayer();
+      curFilePlayer->play();
+    }
   }
   BUSY_END;
 }
@@ -3254,6 +3286,10 @@ void DivEngine::moveOrderDown(int& pos) {
   pos++;
   if (playing && !freelance) {
     playSub(false);
+    if (curFilePlayer && filePlayerSync) {
+      syncFilePlayer();
+      curFilePlayer->play();
+    }
   }
   BUSY_END;
 }
@@ -3674,7 +3710,7 @@ void DivEngine::setOrder(unsigned char order) {
     playSub(false);
 
     if (curFilePlayer && filePlayerSync) {
-      curFilePlayer->setPosSeconds(totalSeconds,totalTicks);
+      syncFilePlayer();
       curFilePlayer->play();
     }
   }
@@ -3697,6 +3733,10 @@ void DivEngine::updateSysFlags(int system, bool restart, bool render) {
   if (restart) {
     if (isPlaying()) {
       playSub(false);
+      if (curFilePlayer && filePlayerSync) {
+        syncFilePlayer();
+        curFilePlayer->play();
+      }
     } else if (freelance) {
       reset();
     }

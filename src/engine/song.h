@@ -245,6 +245,13 @@ struct DivEffectStorage {
     storageLen(0) {}
 };
 
+struct DivSongTimestamps {
+  int totalSeconds;
+  int totalMicros;
+
+  // TODO
+};
+
 struct DivSong {
   unsigned short version;
   bool isDMF;
