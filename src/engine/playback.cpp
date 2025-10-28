@@ -3246,7 +3246,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     }
     filePlayerBufLen=size;
   }
-  if (curFilePlayer!=NULL) {
+  if (curFilePlayer!=NULL && !exporting) {
     curFilePlayer->mix(filePlayerBuf,outChans,size);
   } else {
     for (int i=0; i<DIV_MAX_OUTPUTS; i++) {

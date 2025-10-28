@@ -32,7 +32,12 @@ void FurnaceGUI::drawRefPlayer() {
   if (ImGui::Begin("Music Player",&refPlayerOpen,globalWinFlags,_("Music Player"))) {
     DivFilePlayer* fp=e->getFilePlayer();
 
-    size_t playPos=fp->getPos();
+    bool playPosNegative=false;
+    ssize_t playPos=fp->getPos();
+    if (playPos<0) {
+      playPos=-playPos;
+      playPosNegative=true;
+    }
     size_t minPos=0;
     size_t maxPos=fp->getFileInfo().frames;
     int fileRate=fp->getFileInfo().samplerate;
@@ -41,7 +46,11 @@ void FurnaceGUI::drawRefPlayer() {
     int posMinutes=((playPos/fileRate)/60)%60;
     int posSeconds=(playPos/fileRate)%60;
     int posMillis=(1000*(playPos%fileRate))/fileRate;
-    ImGui::Text("%d:%02d:%02d.%03d",posHours,posMinutes,posSeconds,posMillis);
+    if (playPosNegative) {
+      ImGui::Text("-%d:%02d:%02d.%03d",posHours,posMinutes,posSeconds,posMillis);
+    } else {
+      ImGui::Text("%d:%02d:%02d.%03d",posHours,posMinutes,posSeconds,posMillis);
+    }
 
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
     if (ImGui::SliderScalar("##Position",ImGuiDataType_U64,&playPos,&minPos,&maxPos,"")) {
@@ -69,9 +78,16 @@ void FurnaceGUI::drawRefPlayer() {
       }
     }
     ImGui::SameLine();
+
+    pushToggleColors(e->getFilePlayerSync());
+    if (ImGui::Button(_("Sync"))) {
+      e->setFilePlayerSync(!e->getFilePlayerSync());
+    }
+    popToggleColors();
     
     float vol=fp->getVolume();
-    if (ImGui::SliderFloat("Volume",&vol,0.0f,1.0f)) {
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+    if (ImGui::SliderFloat("##Volume",&vol,0.0f,1.0f)) {
       if (vol<0.0f) vol=0.0f;
       if (vol>1.0f) vol=1.0f;
       fp->setVolume(vol);

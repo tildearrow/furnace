@@ -283,6 +283,17 @@ ssize_t DivFilePlayer::getPos() {
 
 ssize_t DivFilePlayer::setPos(ssize_t newPos, unsigned int offset) {
   playPos=newPos;
+  rateAccum=0;
+  wantBlock=playPos;
+  return playPos;
+}
+
+ssize_t DivFilePlayer::setPosSeconds(ssize_t seconds, unsigned int micros, unsigned int offset) {
+  if (sf==NULL) return 0;
+  double microsD=(double)si.samplerate*((double)micros/1000000.0);
+  playPos=seconds*si.samplerate+(int)microsD;
+  rateAccum=0;
+  wantBlock=playPos;
   return playPos;
 }
 

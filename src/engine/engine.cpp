@@ -1658,6 +1658,14 @@ DivFilePlayer* DivEngine::getFilePlayer() {
   return curFilePlayer;
 }
 
+bool DivEngine::getFilePlayerSync() {
+  return filePlayerSync;
+}
+
+void DivEngine::setFilePlayerSync(bool doSync) {
+  filePlayerSync=doSync;
+}
+
 void DivEngine::playSub(bool preserveDrift, int goalRow) {
   logV("playSub() called");
   std::chrono::high_resolution_clock::time_point timeStart=std::chrono::high_resolution_clock::now();
@@ -2008,6 +2016,12 @@ bool DivEngine::play() {
     output->midiOut->send(TAMidiMessage(TA_MIDI_MACHINE_PLAY,0,0));
   }
   bool didItPlay=playing;
+  if (didItPlay) {
+    if (curFilePlayer && filePlayerSync) {
+      curFilePlayer->setPosSeconds(totalSeconds,totalTicks);
+      curFilePlayer->play();
+    }
+  }
   BUSY_END;
   return didItPlay;
 }
@@ -2024,6 +2038,12 @@ bool DivEngine::playToRow(int row) {
     keyHit[i]=false;
   }
   bool didItPlay=playing;
+  if (didItPlay) {
+    if (curFilePlayer && filePlayerSync) {
+      curFilePlayer->setPosSeconds(totalSeconds,totalTicks);
+      curFilePlayer->play();
+    }
+  }
   BUSY_END;
   return didItPlay;
 }
@@ -2077,6 +2097,10 @@ void DivEngine::stop() {
         output->midiOut->send(TAMidiMessage(0x80|(i&15),chan[i].curMidiNote,0));
       }
     }
+  }
+
+  if (curFilePlayer && filePlayerSync) {
+    curFilePlayer->stop();
   }
 
   // reset all chan oscs
@@ -3646,6 +3670,11 @@ void DivEngine::setOrder(unsigned char order) {
   prevOrder=curOrder;
   if (playing && !freelance) {
     playSub(false);
+
+    if (curFilePlayer && filePlayerSync) {
+      curFilePlayer->setPosSeconds(totalSeconds,totalTicks);
+      curFilePlayer->play();
+    }
   }
   BUSY_END;
 }

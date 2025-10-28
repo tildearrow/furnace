@@ -73,6 +73,7 @@ class DivFilePlayer {
     void mix(float** buf, int chans, unsigned int size);
     ssize_t getPos();
     ssize_t setPos(ssize_t newPos, unsigned int offset=0);
+    ssize_t setPosSeconds(ssize_t seconds, unsigned int micros, unsigned int offset=0);
     
     bool isBlockPresent(ssize_t pos);
     bool setBlockPriority(ssize_t pos, bool priority);

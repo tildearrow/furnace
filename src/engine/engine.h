@@ -601,6 +601,9 @@ class DivEngine {
   float* filePlayerBuf[DIV_MAX_OUTPUTS];
   size_t filePlayerBufLen;
   DivFilePlayer* curFilePlayer;
+  bool filePlayerSync;
+  ssize_t filePlayerCueSeconds;
+  unsigned int filePlayerCueMillis;
 
   size_t totalProcessed;
 
@@ -754,6 +757,9 @@ class DivEngine {
 
     // get the audio file player.
     DivFilePlayer* getFilePlayer();
+    // get whether the player is synchronized with song playback.
+    bool getFilePlayerSync();
+    void setFilePlayerSync(bool doSync);
 
     // save as .dmf.
     SafeWriter* saveDMF(unsigned char version);
@@ -1565,6 +1571,9 @@ class DivEngine {
       previewVol(1.0f),
       filePlayerBufLen(0),
       curFilePlayer(NULL),
+      filePlayerSync(true),
+      filePlayerCueSeconds(0),
+      filePlayerCueMillis(0),
       totalProcessed(0),
       renderPoolThreads(0),
       renderPool(NULL),
