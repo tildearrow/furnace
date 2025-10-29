@@ -1278,7 +1278,6 @@ void FurnaceGUI::play(int row) {
     chanOscChan[i].pitch=0.0f;
   }
   memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
-  e->calcSongTimestamps();
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
   if (wasFollowing) {
     followPattern=true;
@@ -1309,7 +1308,6 @@ void FurnaceGUI::setOrder(unsigned char order, bool forced) {
 
 void FurnaceGUI::stop() {
   bool wasPlaying=e->isPlaying();
-  e->calcSongTimestamps();
   e->stop();
   curNibble=false;
   orderNibble=false;
@@ -1375,7 +1373,7 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
     }
   }
 
-  logV("chan %d, %d:%d %d/%d",ch,ord,y,tick,speed);
+  logV("noteInput: chan %d, %d:%d %d/%d",ch,ord,y,tick,speed);
 
   DivPattern* pat=e->curPat[ch].getPattern(e->curOrders->ord[ch][ord],true);
   bool removeIns=false;
@@ -1427,6 +1425,8 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
   int ch=cursor.xCoarse;
   int ord=curOrder;
   int y=cursor.y;
+
+  logV("valueInput: chan %d, %d:%d",ch,ord,y);
 
   if (e->isPlaying() && !e->isStepping() && followPattern) {
     e->getPlayPos(ord,y);
@@ -1538,7 +1538,6 @@ void FurnaceGUI::orderInput(int num) {
         }
       }
     }
-    e->calcSongTimestamps();
     makeUndo(GUI_UNDO_CHANGE_ORDER);
   }
 }
@@ -4644,6 +4643,7 @@ bool FurnaceGUI::loop() {
                 showError(fmt::sprintf(_("cannot add chip! (%s)"),e->getLastError()));
               } else {
                 MARK_MODIFIED;
+                recalcTimestamps=true;
               }
               ImGui::CloseCurrentPopup();
               if (e->song.autoSystem) {
@@ -4673,6 +4673,7 @@ bool FurnaceGUI::loop() {
                 if (picked!=DIV_SYSTEM_NULL) {
                   if (e->changeSystem(i,picked,preserveChanPos)) {
                     MARK_MODIFIED;
+                    recalcTimestamps=true;
                     if (e->song.autoSystem) {
                       autoDetectSystem();
                     }
@@ -4697,6 +4698,7 @@ bool FurnaceGUI::loop() {
                   showError(fmt::sprintf(_("cannot remove chip! (%s)"),e->getLastError()));
                 } else {
                   MARK_MODIFIED;
+                  recalcTimestamps=true;
                 }
                 if (e->song.autoSystem) {
                   autoDetectSystem();
@@ -6496,6 +6498,7 @@ bool FurnaceGUI::loop() {
               selStart.order=0;
               selEnd.order=0;
               MARK_MODIFIED;
+              recalcTimestamps=true;
               ImGui::CloseCurrentPopup();
             }
             if (ImGui::Button(_("Current subsong"))) {
@@ -6509,6 +6512,7 @@ bool FurnaceGUI::loop() {
               selStart.order=0;
               selEnd.order=0;
               MARK_MODIFIED;
+              recalcTimestamps=true;
               ImGui::CloseCurrentPopup();
             }
             if (ImGui::Button(_("Orders"))) {
@@ -6523,6 +6527,7 @@ bool FurnaceGUI::loop() {
               selStart.order=0;
               selEnd.order=0;
               MARK_MODIFIED;
+              recalcTimestamps=true;
               ImGui::CloseCurrentPopup();
             }
             if (ImGui::Button(_("Pattern"))) {
@@ -6534,6 +6539,7 @@ bool FurnaceGUI::loop() {
                 }
               });
               MARK_MODIFIED;
+              recalcTimestamps=true;
               ImGui::CloseCurrentPopup();
             }
             if (ImGui::Button(_("Instruments"))) {
@@ -6577,6 +6583,7 @@ bool FurnaceGUI::loop() {
                 e->curSubSong->rearrangePatterns();
               });
               MARK_MODIFIED;
+              recalcTimestamps=true;
               ImGui::CloseCurrentPopup();
             }
             if (ImGui::Button(_("Remove unused patterns"))) {
@@ -6585,6 +6592,7 @@ bool FurnaceGUI::loop() {
                 e->curSubSong->removeUnusedPatterns();
               });
               MARK_MODIFIED;
+              recalcTimestamps=true;
               ImGui::CloseCurrentPopup();
             }
             if (ImGui::Button(_("Remove unused instruments"))) {
@@ -6638,6 +6646,7 @@ bool FurnaceGUI::loop() {
               selStart=cursor;
               selEnd=cursor;
               curOrder=0;
+              recalcTimestamps=true;
               MARK_MODIFIED;
             }
             ImGui::CloseCurrentPopup();
@@ -6656,6 +6665,7 @@ bool FurnaceGUI::loop() {
               MARK_MODIFIED;
             }
             updateROMExportAvail();
+            recalcTimestamps=true;
             ImGui::CloseCurrentPopup();
           }
           ImGui::SameLine();
@@ -7366,6 +7376,12 @@ bool FurnaceGUI::loop() {
           });
         }
       }
+    }
+
+    if (recalcTimestamps) {
+      logV("need to recalc timestamps...");
+      e->calcSongTimestamps();
+      recalcTimestamps=false;
     }
 
     sampleMapWaitingInput=(curWindow==GUI_WINDOW_INS_EDIT && sampleMapFocused);
@@ -8582,6 +8598,7 @@ FurnaceGUI::FurnaceGUI():
   noteInputPoly(true),
   notifyWaveChange(false),
   notifySampleChange(false),
+  recalcTimestamps(false),
   wantScrollListIns(false),
   wantScrollListWave(false),
   wantScrollListSample(false),

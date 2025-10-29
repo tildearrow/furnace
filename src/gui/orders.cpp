@@ -392,7 +392,6 @@ void FurnaceGUI::drawOrders() {
                       if (e->curOrders->ord[j][i]<(unsigned char)(DIV_MAX_PATTERNS-1)) e->curOrders->ord[j][i]++;
                     }
                   });
-                  e->calcSongTimestamps();
                   makeUndo(GUI_UNDO_CHANGE_ORDER);
                 } else {
                   orderCursor=j;
@@ -400,7 +399,6 @@ void FurnaceGUI::drawOrders() {
                 }
               } else {
                 setOrder(i);
-                e->calcSongTimestamps();
                 if (orderEditMode!=0) {
                   orderCursor=j;
                   curNibble=false;
@@ -441,7 +439,6 @@ void FurnaceGUI::drawOrders() {
                       if (e->curOrders->ord[j][i]>0) e->curOrders->ord[j][i]--;
                     }
                   });
-                  e->calcSongTimestamps();
                   makeUndo(GUI_UNDO_CHANGE_ORDER);
                 } else {
                   orderCursor=j;
@@ -449,7 +446,6 @@ void FurnaceGUI::drawOrders() {
                 }
               } else {
                 setOrder(i);
-                e->calcSongTimestamps();
                 if (orderEditMode!=0) {
                   orderCursor=j;
                   curNibble=false;

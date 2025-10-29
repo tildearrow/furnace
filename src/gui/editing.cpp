@@ -129,7 +129,6 @@ void FurnaceGUI::prepareUndo(ActionType action, UndoRegion region) {
 
 void FurnaceGUI::makeUndo(ActionType action, UndoRegion region) {
   bool doPush=false;
-  bool shallWalk=false;
   UndoStep s;
   s.type=action;
   s.oldCursor=undoCursor;
@@ -184,6 +183,7 @@ void FurnaceGUI::makeUndo(ActionType action, UndoRegion region) {
       if (!s.ord.empty()) {
         doPush=true;
       }
+      recalcTimestamps=true;
       break;
     case GUI_UNDO_PATTERN_EDIT:
     case GUI_UNDO_PATTERN_DELETE:
@@ -227,13 +227,29 @@ void FurnaceGUI::makeUndo(ActionType action, UndoRegion region) {
                 s.pat.push_back(UndoPatternData(subSong,i,e->curOrders->ord[i][h],j,k,op->newData[j][k],p->newData[j][k]));
 
                 if (k>=DIV_PAT_FX(0)) {
-                  if (op->newData[j][k&(~1)]==0x0b ||
-                      p->newData[j][k&(~1)]==0x0b ||
-                      op->newData[j][k&(~1)]==0x0d ||
-                      p->newData[j][k&(~1)]==0x0d ||
-                      op->newData[j][k&(~1)]==0xff ||
-                      p->newData[j][k&(~1)]==0xff) {
-                    shallWalk=true;
+                  int fxCol=(k&1)?k:(k-1);
+                  if (op->newData[j][fxCol]==0x09 ||
+                      op->newData[j][fxCol]==0x0b ||
+                      op->newData[j][fxCol]==0x0d ||
+                      op->newData[j][fxCol]==0x0f ||
+                      op->newData[j][fxCol]==0xc0 ||
+                      op->newData[j][fxCol]==0xc1 ||
+                      op->newData[j][fxCol]==0xc2 ||
+                      op->newData[j][fxCol]==0xc3 ||
+                      op->newData[j][fxCol]==0xf0 ||
+                      op->newData[j][fxCol]==0xff ||
+                      p->newData[j][fxCol]==0x09 ||
+                      p->newData[j][fxCol]==0x0b ||
+                      p->newData[j][fxCol]==0x0d ||
+                      p->newData[j][fxCol]==0x0f ||
+                      p->newData[j][fxCol]==0xc0 ||
+                      p->newData[j][fxCol]==0xc1 ||
+                      p->newData[j][fxCol]==0xc2 ||
+                      p->newData[j][fxCol]==0xc3 ||
+                      p->newData[j][fxCol]==0xf0 ||
+                      p->newData[j][fxCol]==0xff) {
+                    logV("recalcTimestamps due to speed effect.");
+                    recalcTimestamps=true;
                   }
                 }
 
@@ -257,9 +273,6 @@ void FurnaceGUI::makeUndo(ActionType action, UndoRegion region) {
     undoHist.push_back(s);
     redoHist.clear();
     if (undoHist.size()>settings.maxUndoSteps) undoHist.pop_front();
-  }
-  if (shallWalk) {
-    e->calcSongTimestamps();
   }
 
   // garbage collection
@@ -1798,6 +1811,7 @@ void FurnaceGUI::doCollapseSong(int divider) {
     redoHist.clear();
     if (undoHist.size()>settings.maxUndoSteps) undoHist.pop_front();
   }
+  recalcTimestamps=true;
   
   if (e->isPlaying()) e->play();
 }
@@ -1874,6 +1888,7 @@ void FurnaceGUI::doExpandSong(int multiplier) {
     redoHist.clear();
     if (undoHist.size()>settings.maxUndoSteps) undoHist.pop_front();
   }
+  recalcTimestamps=true;
 
   if (e->isPlaying()) e->play();
 }
@@ -2065,6 +2080,7 @@ void FurnaceGUI::moveSelected(int x, int y) {
   // replace
   cursor=selStart;
   doPaste(GUI_PASTE_MODE_OVERFLOW,0,false,c);
+  recalcTimestamps=true;
 
   makeUndo(GUI_UNDO_PATTERN_DRAG,UndoRegion(firstOrder,0,0,lastOrder,e->getTotalChannelCount()-1,e->curSubSong->patLen-1));
 }
@@ -2119,9 +2135,10 @@ void FurnaceGUI::doUndo() {
           }
         }
       }
-      e->calcSongTimestamps();
       break;
   }
+
+  recalcTimestamps=true;
 
   bool shallReplay=false;
   for (UndoOtherData& i: us.other) {
@@ -2197,9 +2214,10 @@ void FurnaceGUI::doRedo() {
           }
         }
       }
-      e->calcSongTimestamps();
       break;
   }
+
+  recalcTimestamps=true;
 
   bool shallReplay=false;
   for (UndoOtherData& i: us.other) {

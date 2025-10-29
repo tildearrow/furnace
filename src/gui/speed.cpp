@@ -58,6 +58,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         if (setHz<1) setHz=1;
         if (setHz>999) setHz=999;
         e->setSongRate(setHz);
+        recalcTimestamps=true;
       }
       if (tempoView) {
         ImGui::SameLine();
@@ -82,6 +83,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
             e->curSubSong->speeds.len=1;
           });
           if (e->isPlaying()) play();
+          recalcTimestamps=true;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("click for one speed"));
@@ -94,6 +96,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
             e->curSubSong->speeds.val[3]=e->curSubSong->speeds.val[1];
           });
           if (e->isPlaying()) play();
+          recalcTimestamps=true;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("click for groove pattern"));
@@ -105,6 +108,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
             e->curSubSong->speeds.val[1]=e->curSubSong->speeds.val[0];
           });
           if (e->isPlaying()) play();
+          recalcTimestamps=true;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("click for two (alternating) speeds"));
@@ -138,6 +142,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
               e->curSubSong->speeds.val[i]=intVersion[i];
             }
           });
+          recalcTimestamps=true;
           if (e->isPlaying()) play();
           MARK_MODIFIED;
         }
@@ -151,6 +156,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         if (ImGui::InputScalar("##Speed1",ImGuiDataType_U8,&e->curSubSong->speeds.val[0],&_ONE,&_THREE)) { MARK_MODIFIED
           if (e->curSubSong->speeds.val[0]<1) e->curSubSong->speeds.val[0]=1;
           if (e->isPlaying()) play();
+          recalcTimestamps=true;
         }
         if (e->curSubSong->speeds.len>1) {
           ImGui::SameLine();
@@ -158,6 +164,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
           if (ImGui::InputScalar("##Speed2",ImGuiDataType_U8,&e->curSubSong->speeds.val[1],&_ONE,&_THREE)) { MARK_MODIFIED
             if (e->curSubSong->speeds.val[1]<1) e->curSubSong->speeds.val[1]=1;
             if (e->isPlaying()) play();
+            recalcTimestamps=true;
           }
         }
       }
@@ -172,6 +179,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         if (e->curSubSong->virtualTempoN<1) e->curSubSong->virtualTempoN=1;
         if (e->curSubSong->virtualTempoN>255) e->curSubSong->virtualTempoN=255;
         e->virtualTempoChanged();
+        recalcTimestamps=true;
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(_("Numerator"));
@@ -182,6 +190,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         if (e->curSubSong->virtualTempoD<1) e->curSubSong->virtualTempoD=1;
         if (e->curSubSong->virtualTempoD>255) e->curSubSong->virtualTempoD=255;
         e->virtualTempoChanged();
+        recalcTimestamps=true;
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(_("Denominator (set to base tempo)"));
@@ -198,6 +207,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         if (realTB<1) realTB=1;
         if (realTB>16) realTB=16;
         e->curSubSong->timeBase=realTB-1;
+        recalcTimestamps=true;
       }
       ImGui::SameLine();
       ImGui::Text("%.2f BPM",calcBPM(e->curSubSong->speeds,e->curSubSong->hz,e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD));
@@ -237,6 +247,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         if (patLen<1) patLen=1;
         if (patLen>DIV_MAX_PATTERNS) patLen=DIV_MAX_PATTERNS;
         e->curSubSong->patLen=patLen;
+        recalcTimestamps=true;
       }
 
       ImGui::TableNextRow();
@@ -253,6 +264,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         if (curOrder>=ordLen) {
           setOrder(ordLen-1);
         }
+        recalcTimestamps=true;
       }
 
       ImGui::EndTable();

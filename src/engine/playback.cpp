@@ -2572,10 +2572,6 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     if (stepPlay!=1) {
       if (!noAccum) {
         double dt=divider*tickMult;
-        // TODO: is this responsible for timing differences when skipping?
-        if (skipping) {
-          dt*=(double)virtualTempoN/(double)MAX(1,virtualTempoD);
-        }
         totalTicksR++;
         // despite the name, totalTicks is in microseconds...
         totalTicks+=1000000/dt;
