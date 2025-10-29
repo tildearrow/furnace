@@ -215,7 +215,7 @@ void DivEngine::findSongLength(int loopOrder, int loopRow, double fadeoutLen, in
 
 void DivEngine::calcSongTimestamps() {
   if (curSubSong!=NULL) {
-    curSubSong->calcTimestamps(chans,song.grooves.song.jumpTreatment,song.ignoreJumpAtEnd,song.brokenSpeedSel,song.delayBehavior);
+    curSubSong->calcTimestamps(chans,song.grooves,song.jumpTreatment,song.ignoreJumpAtEnd,song.brokenSpeedSel,song.delayBehavior);
   }
 }
 

@@ -347,19 +347,19 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
   memset(delayRow,0,DIV_MAX_CHANS);
   if (divider<1) divider=1;
 
-  auto tinyProcessRow=[&](int i, bool afterDelay) {
+  auto tinyProcessRow=[&,this](int i, bool afterDelay) {
     // if this is after delay, use the order/row where delay occurred
     int whatOrder=afterDelay?delayOrder[i]:curOrder;
     int whatRow=afterDelay?delayRow[i]:curRow;
-    DivPattern* pat=pat[i].getPattern(orders.ord[i][whatOrder],false);
+    DivPattern* p=pat[i].getPattern(orders.ord[i][whatOrder],false);
     // pre effects
     if (!afterDelay) {
       // set to true if we found an EDxx effect
       bool returnAfterPre=false;
       // check all effects
-      for (int j=0; j<curPat[i].effectCols; j++) {
-        short effect=pat->newData[whatRow][DIV_PAT_FX(j)];
-        short effectVal=pat->newData[whatRow][DIV_PAT_FXVAL(j)];
+      for (int j=0; j<pat[i].effectCols; j++) {
+        short effect=p->newData[whatRow][DIV_PAT_FX(j)];
+        short effectVal=p->newData[whatRow][DIV_PAT_FXVAL(j)];
 
         // empty effect value is the same as zero
         if (effectVal==-1) effectVal=0;
@@ -389,10 +389,10 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
             }
             break;
           case 0xfd: // virtual tempo num
-            if (effectVal>0) virtualTempoN=effectVal;
+            if (effectVal>0) curVirtualTempoN=effectVal;
             break;
           case 0xfe: // virtual tempo den
-            if (effectVal>0) virtualTempoD=effectVal;
+            if (effectVal>0) curVirtualTempoD=effectVal;
             break;
           case 0x0b: // change order
             // this actually schedules an order change
@@ -410,7 +410,7 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
             // COMPAT FLAG: simultaneous jump treatment
             if (jumpTreatment==2) {
               // - 2: DefleMask (jump to next order unless it is the last one and ignoreJumpAtEnd is on)
-              if ((curOrder<(curSubSong->ordersLen-1) || !ignoreJumpAtEnd)) {
+              if ((curOrder<(ordersLen-1) || !ignoreJumpAtEnd)) {
                 // changeOrd -2 means increase order by 1
                 // it overrides a previous 0Bxx effect
                 changeOrd=-2;
@@ -418,13 +418,13 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
               }
             } else if (jumpTreatment==1) {
               // - 1: old Furnace (same as 2 but ignored if 0Bxx is present)
-              if (changeOrd<0 && (curOrder<(curSubSong->ordersLen-1) || !ignoreJumpAtEnd)) {
+              if (changeOrd<0 && (curOrder<(ordersLen-1) || !ignoreJumpAtEnd)) {
                 changeOrd=-2;
                 changePos=effectVal;
               }
             } else {
               // - 0: normal
-              if (curOrder<(curSubSong->ordersLen-1) || !ignoreJumpAtEnd) {
+              if (curOrder<(ordersLen-1) || !ignoreJumpAtEnd) {
                 // set the target order if not set, allowing you to use 0B and 0D regardless of position
                 if (changeOrd<0) {
                   changeOrd=-2;
@@ -442,32 +442,16 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
               //   - delays equal or greater to the speed are ignored
               // - 2: lax (default)
               //   - no delay is ever ignored unless overridden by another
-              bool comparison=(delayBehavior==1)?(effectVal<=nextSpeed):(effectVal<(nextSpeed*(curSubSong->timeBase+1)));
+              bool comparison=(delayBehavior==1)?(effectVal<=nextSpeed):(effectVal<(nextSpeed*(timeBase+1)));
               if (delayBehavior==2) comparison=true;
               if (comparison) {
                 // set the delay row, order and timer
-                chan[i].rowDelay=effectVal;
-                chan[i].delayOrder=whatOrder;
-                chan[i].delayRow=whatRow;
-
-                // this here was a compatibility hack for DefleMask...
-                // if the delay time happens to be equal to the speed, it'll
-                // result in "delay lock" which halts all row processing
-                // until another good EDxx effect is found
-                // for some reason this didn't occur on Neo Geo...
-                // this hack is disabled due to its dirtiness and the fact I
-                // don't feel like being compatible with a buggy tracker any further
-                if (effectVal==nextSpeed) {
-                  //if (sysOfChan[i]!=DIV_SYSTEM_YM2610 && sysOfChan[i]!=DIV_SYSTEM_YM2610_EXT) chan[i].delayLocked=true;
-                } else {
-                  chan[i].delayLocked=false;
-                }
+                rowDelay[i]=effectVal;
+                delayOrder[i]=whatOrder;
+                delayRow[i]=whatRow;
 
                 // once we're done with pre-effects, get out and don't process any further
                 returnAfterPre=true;
-              } else {
-                logV("higher than nextSpeed! %d>%d",effectVal,nextSpeed);
-                chan[i].delayLocked=false;
               }
             }
             break;
@@ -481,9 +465,9 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
 
 
     // effects
-    for (int j=0; j<curPat[i].effectCols; j++) {
-      short effect=pat->newData[whatRow][DIV_PAT_FX(j)];
-      short effectVal=pat->newData[whatRow][DIV_PAT_FXVAL(j)];
+    for (int j=0; j<pat[i].effectCols; j++) {
+      short effect=p->newData[whatRow][DIV_PAT_FX(j)];
+      short effectVal=p->newData[whatRow][DIV_PAT_FXVAL(j)];
 
       // an empty effect value is treated as zero
       if (effectVal==-1) effectVal=0;
@@ -499,7 +483,6 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
         case 0xf0: // set tempo
           divider=(double)effectVal*2.0/5.0;
           if (divider<1) divider=1;
-          cycles=got.rate/divider;
           break;
         case 0xff: // stop song
           shallStopSched=true;
@@ -508,7 +491,7 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
     }
   };
 
-  auto tinyNextRow=[&]() {
+  auto tinyNextRow=[&,this]() {
     for (int i=0; i<chans; i++) {
       tinyProcessRow(i,false);
     }
@@ -568,7 +551,7 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
 
     // perform speed alternation
     // COMPAT FLAG: broken speed alternation
-    if (song.brokenSpeedSel) {
+    if (brokenSpeedSel) {
       unsigned char speed2=(curSpeeds.len>=2)?curSpeeds.val[1]:curSpeeds.val[0];
       unsigned char speed1=curSpeeds.val[0];
       
@@ -657,12 +640,12 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
     // log row time here
     if (!endOfSong) {
       if (rowChanged) {
-        if (ts.orders[curOrder]==NULL) ts.orders[curOrder]=new Timestamp[DIV_MAX_ROWS];
-        ts.orders[curOrder][curRow]=Timestamp(ts.totalSeconds,ts.totalMicros);
+        if (ts.orders[curOrder]==NULL) ts.orders[curOrder]=new DivSongTimestamps::Timestamp[DIV_MAX_ROWS];
+        ts.orders[curOrder][curRow]=DivSongTimestamps::Timestamp(ts.totalSeconds,ts.totalMicros);
         rowChanged=false;
       }
     }
-    if (maxRow[curOrder]<curRow) maxRow[curOrder]=curRow;
+    if (ts.maxRow[curOrder]<curRow) ts.maxRow[curOrder]=curRow;
   }
 
   ts.loopStart.order=curOrder;
