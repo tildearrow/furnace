@@ -47,256 +47,10 @@ DivSongTimestamps::~DivSongTimestamps() {
     }
   }
 }
-bool DivSubSong::walk(int& loopOrder, int& loopRow, int& loopEnd, int chans, int jumpTreatment, int ignoreJumpAtEnd, int firstPat) {
-  loopOrder=0;
-  loopRow=0;
-  loopEnd=-1;
-  int nextOrder=-1;
-  int nextRow=0;
-  int effectVal=0;
-  int lastSuspectedLoopEnd=-1;
-  DivPattern* subPat[DIV_MAX_CHANS];
-  unsigned char wsWalked[8192];
-  memset(wsWalked,0,8192);
-  if (firstPat>0) {
-    memset(wsWalked,255,32*firstPat);
-  }
-  for (int i=firstPat; i<ordersLen; i++) {
-    for (int j=0; j<chans; j++) {
-      subPat[j]=pat[j].getPattern(orders.ord[j][i],false);
-    }
-    if (i>lastSuspectedLoopEnd) {
-      lastSuspectedLoopEnd=i;
-    }
-    for (int j=nextRow; j<patLen; j++) {
-      nextRow=0;
-      bool changingOrder=false;
-      bool jumpingOrder=false;
-      if (wsWalked[((i<<5)+(j>>3))&8191]&(1<<(j&7))) {
-        loopOrder=i;
-        loopRow=j;
-        loopEnd=lastSuspectedLoopEnd;
-        return true;
-      }
-      for (int k=0; k<chans; k++) {
-        for (int l=0; l<pat[k].effectCols; l++) {
-          effectVal=subPat[k]->newData[j][DIV_PAT_FXVAL(l)];
-          if (effectVal<0) effectVal=0;
-          if (subPat[k]->newData[j][DIV_PAT_FX(l)]==0x0d) {
-            if (jumpTreatment==2) {
-              if ((i<ordersLen-1 || !ignoreJumpAtEnd)) {
-                nextOrder=i+1;
-                nextRow=effectVal;
-                jumpingOrder=true;
-              }
-            } else if (jumpTreatment==1) {
-              if (nextOrder==-1 && (i<ordersLen-1 || !ignoreJumpAtEnd)) {
-                nextOrder=i+1;
-                nextRow=effectVal;
-                jumpingOrder=true;
-              }
-            } else {
-              if ((i<ordersLen-1 || !ignoreJumpAtEnd)) {
-                if (!changingOrder) {
-                  nextOrder=i+1;
-                }
-                jumpingOrder=true;
-                nextRow=effectVal;
-              }
-            }
-          } else if (subPat[k]->newData[j][DIV_PAT_FX(l)]==0x0b) {
-            if (nextOrder==-1 || jumpTreatment==0) {
-              nextOrder=effectVal;
-              if (jumpTreatment==1 || jumpTreatment==2 || !jumpingOrder) {
-                nextRow=0;
-              }
-              changingOrder=true;
-            }
-          }
-        }
-      }
-
-      wsWalked[((i<<5)+(j>>3))&8191]|=1<<(j&7);
-      
-      if (nextOrder!=-1) {
-        i=nextOrder-1;
-        nextOrder=-1;
-        break;
-      }
-    }
-  }
-  return false;
-}
-
-double calcRowLenInSeconds(const DivGroovePattern& speeds, float hz, int vN, int vD, int timeBaseFromSong) {
-  double hl=1; //count for 1 row
-  if (hl<=0.0) hl=4.0;
-  double timeBase=timeBaseFromSong+1;
-  double speedSum=0;
-  for (int i=0; i<MIN(16,speeds.len); i++) {
-    speedSum+=speeds.val[i];
-  }
-  speedSum/=MAX(1,speeds.len);
-  if (timeBase<1.0) timeBase=1.0;
-  if (speedSum<1.0) speedSum=1.0;
-  if (vD<1) vD=1;
-  return 1.0/((60.0*hz/(timeBase*hl*speedSum))*(double)vN/(double)vD/60.0);
-}
-
-void DivSubSong::findLength(int loopOrder, int loopRow, double fadeoutLen, int& rowsForFadeout, bool& hasFFxx, std::vector<int>& orders_vec, std::vector<DivGroovePattern>& grooves, int& length, int chans, int jumpTreatment, int ignoreJumpAtEnd, int firstPat) {
-  length=0;
-  hasFFxx=false;
-  rowsForFadeout=0;
-
-  float secondsPerThisRow=0.0f;
-
-  DivGroovePattern curSpeeds=speeds; //simulate that we are playing the song, track all speed/BPM/tempo/engine rate changes
-  short curVirtualTempoN=virtualTempoN;
-  short curVirtualTempoD=virtualTempoD;
-  float curHz=hz;
-  double curDivider=(double)timeBase;
-
-  double curLen=0.0; //how many seconds passed since the start of song
-
-  int nextOrder=-1;
-  int nextRow=0;
-  int effectVal=0;
-  int lastSuspectedLoopEnd=-1;
-  DivPattern* subPat[DIV_MAX_CHANS];
-  unsigned char wsWalked[8192];
-  memset(wsWalked,0,8192);
-  if (firstPat>0) {
-    memset(wsWalked,255,32*firstPat);
-  }
-  for (int i=firstPat; i<ordersLen; i++) {
-    bool jumped=false;
-
-    for (int j=0; j<chans; j++) {
-      subPat[j]=pat[j].getPattern(orders.ord[j][i],false);
-    }
-    if (i>lastSuspectedLoopEnd) {
-      lastSuspectedLoopEnd=i;
-    }
-    for (int j=nextRow; j<patLen; j++) {
-      nextRow=0;
-      bool changingOrder=false;
-      bool jumpingOrder=false;
-      if (wsWalked[((i<<5)+(j>>3))&8191]&(1<<(j&7))) {
-        return;
-      }
-      for (int k=0; k<chans; k++) {
-        for (int l=0; l<pat[k].effectCols; l++) {
-          effectVal=subPat[k]->newData[j][DIV_PAT_FXVAL(l)];
-          if (effectVal<0) effectVal=0;
-
-          if (subPat[k]->newData[j][DIV_PAT_FX(l)]==0xff) {
-            hasFFxx=true;
-
-            // FFxx makes YOU SHALL NOT PASS!!! move
-            orders_vec.push_back(j+1); // order len
-            length+=j+1; // add length of order to song length
-
-            return;
-          }
-
-          switch (subPat[k]->newData[j][DIV_PAT_FX(l)]) {
-            case 0x09: { // select groove pattern/speed 1
-              if (grooves.empty()) {
-                if (effectVal>0) curSpeeds.val[0]=effectVal;
-              } else {
-                if (effectVal<(short)grooves.size()) {
-                  curSpeeds=grooves[effectVal];
-                  //curSpeed=0;
-                }
-              }
-              break;
-            }
-            case 0x0f: { //  speed 1/speed 2
-              if (curSpeeds.len==2 && grooves.empty()) {
-                if (effectVal>0) curSpeeds.val[1]=effectVal;
-              } else {
-                if (effectVal>0) curSpeeds.val[0]=effectVal;
-              }
-              break;
-            }
-            case 0xfd: { //  virtual tempo num
-              if (effectVal>0) curVirtualTempoN=effectVal;
-              break;
-            }
-            case 0xfe: { //  virtual tempo den
-              if (effectVal>0) curVirtualTempoD=effectVal;
-              break;
-            }
-            case 0xf0: { //  set Hz by tempo (set bpm)
-              curDivider=(double)effectVal*2.0/5.0;
-              if (curDivider<1) curDivider=1;
-              break;
-            }
-          }
-
-          if (subPat[k]->newData[j][DIV_PAT_FX(l)]==0x0d) {
-            if (jumpTreatment==2) {
-              if ((i<ordersLen-1 || !ignoreJumpAtEnd)) {
-                nextOrder=i+1;
-                nextRow=effectVal;
-                jumpingOrder=true;
-              }
-            } else if (jumpTreatment==1) {
-              if (nextOrder==-1 && (i<ordersLen-1 || !ignoreJumpAtEnd)) {
-                nextOrder=i+1;
-                nextRow=effectVal;
-                jumpingOrder=true;
-              }
-            } else {
-              if ((i<ordersLen-1 || !ignoreJumpAtEnd)) {
-                if (!changingOrder) {
-                  nextOrder=i+1;
-                }
-                jumpingOrder=true;
-                nextRow=effectVal;
-              }
-            }
-          } else if (subPat[k]->newData[j][DIV_PAT_FX(l)]==0x0b) {
-            if (nextOrder==-1 || jumpTreatment==0) {
-              nextOrder=effectVal;
-              if (jumpTreatment==1 || jumpTreatment==2 || !jumpingOrder) {
-                nextRow=0;
-              }
-              changingOrder=true;
-            }
-          }
-        }
-      }
-
-      if (i>loopOrder || (i==loopOrder && j>loopRow)) {
-        //  we count each row fadeout lasts. When our time is greater than fadeout length we successfully counted the number of fadeout rows
-        if (curLen<=fadeoutLen && fadeoutLen>0.0) {
-          secondsPerThisRow=calcRowLenInSeconds(speeds,curHz,curVirtualTempoN,curVirtualTempoD,curDivider);
-          curLen+=secondsPerThisRow;
-          rowsForFadeout++;
-        }
-      }
-
-      wsWalked[((i<<5)+(j>>3))&8191]|=1<<(j&7);
-      
-      if (nextOrder!=-1) {
-        i=nextOrder-1;
-        orders_vec.push_back(j+1); // order len
-        length+=j+1; // add length of order to song length
-        jumped=true;
-        nextOrder=-1;
-        break;
-      }
-    }
-    if (!jumped) { // if no jump occured we add full pattern length
-      orders_vec.push_back(patLen); // order len
-      length+=patLen; // add length of order to song length
-    }
-  }
-}
 
 void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& grooves, int jumpTreatment, int ignoreJumpAtEnd, int brokenSpeedSel, int delayBehavior, int firstPat) {
   // reduced version of the playback routine for calculation.
+  std::chrono::high_resolution_clock::time_point timeStart=std::chrono::high_resolution_clock::now();
 
   // reset state
   ts.totalSeconds=0;
@@ -647,7 +401,7 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
 
     if (!endOfSong) {
       // update playback time
-      double dt=divider*((double)virtualTempoN/(double)MAX(1,virtualTempoD));
+      double dt=divider;//*((double)virtualTempoN/(double)MAX(1,virtualTempoD));
       ts.totalTicks++;
 
       ts.totalMicros+=1000000/dt;
@@ -669,6 +423,9 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
   ts.loopStart.order=prevOrder;
   ts.loopStart.row=prevRow;
   ts.loopStartTime=ts.getTimes(ts.loopStart.order,ts.loopStart.row);
+
+  std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
+  logV("calcTimestamps() took %dµs",std::chrono::duration_cast<std::chrono::microseconds>(timeEnd-timeStart).count());
 }
 
 void DivSubSong::clearData() {
@@ -802,24 +559,22 @@ void DivSong::findSubSongs(int chans) {
   for (DivSubSong* i: subsong) {
     std::vector<int> subSongStart;
     std::vector<int> subSongEnd;
-    int loopOrder=0;
-    int loopRow=0;
-    int loopEnd=-1;
     int curStart=-1;
 
     // find possible subsongs
     logD("finding subsongs...");
     while (++curStart<i->ordersLen) {
-      if (!i->walk(loopOrder,loopRow,loopEnd,chans,jumpTreatment,ignoreJumpAtEnd,curStart)) break;
+      i->calcTimestamps(chans,grooves,jumpTreatment,ignoreJumpAtEnd,brokenSpeedSel,delayBehavior,curStart);
+      if (!i->ts.isLoopable) break;
       
       // make sure we don't pick the same range twice
       if (!subSongEnd.empty()) {
-        if (subSongEnd.back()==loopEnd) continue;
+        if (subSongEnd.back()==i->ts.loopEnd.order) continue;
       }
 
-      logV("found a subsong: %d-%d",curStart,loopEnd);
+      logV("found a subsong: %d-%d",curStart,i->ts.loopEnd.order);
       subSongStart.push_back(curStart);
-      subSongEnd.push_back(loopEnd);
+      subSongEnd.push_back(i->ts.loopEnd.order);
     }
 
     // if this is the only song, quit

@@ -870,11 +870,8 @@ class DivEngine {
     int convertPanSplitToLinearLR(unsigned char left, unsigned char right, int range);
     unsigned int convertPanLinearToSplit(int val, unsigned char bits, int range);
 
-    // find song loop position
+    // DEPRECATED - find song loop position
     void walkSong(int& loopOrder, int& loopRow, int& loopEnd);
-
-    // find song length in rows (up to specified loop point), and find length of every order
-    void findSongLength(int loopOrder, int loopRow, double fadeoutLen, int& rowsForFadeout, bool& hasFFxx, std::vector<int>& orders, int& length);
 
     // calculate all song timestamps
     void calcSongTimestamps();

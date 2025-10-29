@@ -2717,20 +2717,15 @@ int FurnaceGUI::loadStream(String path) {
 
 
 void FurnaceGUI::exportAudio(String path, DivAudioExportModes mode) {
-  songOrdersLengths.clear();
-
   int loopOrder=0;
   int loopRow=0;
   int loopEnd=0;
   e->walkSong(loopOrder,loopRow,loopEnd);
 
-  e->findSongLength(loopOrder,loopRow,audioExportOptions.fadeOut,songFadeoutSectionLength,songHasSongEndCommand,songOrdersLengths,songLength); // for progress estimation
-
-  songLoopedSectionLength=songLength;
-  for (int i=0; i<loopOrder && i<(int)songOrdersLengths.size(); i++) {
-    songLoopedSectionLength-=songOrdersLengths[i];
-  }
-  songLoopedSectionLength-=loopRow;
+  // TODO: fix!
+  songFadeoutSectionLength=0;
+  songHasSongEndCommand=!e->curSubSong->ts.isLoopable;
+  songLength=e->curSubSong->ts.totalRows;
 
   e->saveAudio(path.c_str(),audioExportOptions);
 
@@ -6039,43 +6034,21 @@ bool FurnaceGUI::loop() {
       float* progressLambda=&curProgress;
       int curPosInRows=0;
       int* curPosInRowsLambda=&curPosInRows;
-      int loopsLeft=0;
-      int* loopsLeftLambda=&loopsLeft;
-      int totalLoops=0;
-      int* totalLoopsLambda=&totalLoops;
       int curFile=0;
       int* curFileLambda=&curFile;
       if (e->isExporting()) {
         e->lockEngine(
-          [this, progressLambda, curPosInRowsLambda, curFileLambda, loopsLeftLambda, totalLoopsLambda] () {
-            int curRow=0; int curOrder=0;
-            e->getCurSongPos(curRow, curOrder);
+          [this, progressLambda, curPosInRowsLambda, curFileLambda] () {
             *curFileLambda=0;
             e->getCurFileIndex(*curFileLambda);
-            *curPosInRowsLambda=curRow;
-            for (int i=0; i<MIN(curOrder,(int)songOrdersLengths.size()); i++) *curPosInRowsLambda+=songOrdersLengths[i];
-            if (!songHasSongEndCommand) {
-              e->getLoopsLeft(*loopsLeftLambda);
-              e->getTotalLoops(*totalLoopsLambda);
-              if ((*totalLoopsLambda)!=(*loopsLeftLambda)) { // we are going 2nd, 3rd, etc. time through the song
-                *curPosInRowsLambda-=(songLength-songLoopedSectionLength); // a hack so progress bar does not jump?
-              }
-              if (e->getIsFadingOut()) { // we are in fadeout??? why it works like that bruh
-                // LIVE WITH IT damn it
-                *curPosInRowsLambda-=(songLength-songLoopedSectionLength); // a hack so progress bar does not jump?
-              }
-            }
-            if (totalLength<0.1) {
-              // DON'T
-              *progressLambda=0;
-            } else {
-              *progressLambda=(float)((*curPosInRowsLambda)+((*totalLoopsLambda)-(*loopsLeftLambda))*songLength+lengthOfOneFile*(*curFileLambda))/(float)totalLength;
-            }
+            *progressLambda=(double)e->getTotalSeconds()/(double)MAX(1,e->curSubSong->ts.totalSeconds);
+            // TODO: fix
+            *curPosInRowsLambda=0;
           }
         );
       }
 
-      ImGui::Text(_("Row %d of %d"),curPosInRows+((totalLoops)-(loopsLeft))*songLength,lengthOfOneFile);
+      ImGui::Text(_("Row %d of %d"),songLength,lengthOfOneFile);
       if (audioExportOptions.mode==DIV_EXPORT_MODE_MANY_CHAN) ImGui::Text(_("Channel %d of %d"),curFile+1,totalFiles);
 
       ImGui::ProgressBar(curProgress,ImVec2(320.0f*dpiScale,0),fmt::sprintf("%.2f%%",curProgress*100.0f).c_str());
@@ -9273,8 +9246,6 @@ FurnaceGUI::FurnaceGUI():
   memset(effectsShow,1,sizeof(bool)*10);
 
   memset(romExportAvail,0,sizeof(bool)*DIV_ROM_MAX);
-
-  songOrdersLengths.clear();
 
   strncpy(noteOffLabel,"OFF",32);
   strncpy(noteRelLabel,"===",32);

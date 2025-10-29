@@ -203,13 +203,10 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
 
 void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {
   if (curSubSong!=NULL) {
-    curSubSong->walk(loopOrder,loopRow,loopEnd,chans,song.jumpTreatment,song.ignoreJumpAtEnd);
-  }
-}
-
-void DivEngine::findSongLength(int loopOrder, int loopRow, double fadeoutLen, int& rowsForFadeout, bool& hasFFxx, std::vector<int>& orders, int& length) {
-  if (curSubSong!=NULL) {
-    curSubSong->findLength(loopOrder,loopRow,fadeoutLen,rowsForFadeout,hasFFxx,orders,song.grooves,length,chans,song.jumpTreatment,song.ignoreJumpAtEnd);
+    curSubSong->calcTimestamps(chans,song.grooves,song.jumpTreatment,song.ignoreJumpAtEnd,song.brokenSpeedSel,song.delayBehavior);
+    loopOrder=curSubSong->ts.loopStart.order;
+    loopRow=curSubSong->ts.loopStart.row;
+    loopEnd=curSubSong->ts.loopEnd.order;
   }
 }
 
