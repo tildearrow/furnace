@@ -259,7 +259,7 @@ void FurnaceGUI::makeUndo(ActionType action, UndoRegion region) {
     if (undoHist.size()>settings.maxUndoSteps) undoHist.pop_front();
   }
   if (shallWalk) {
-    e->walkSong(loopOrder,loopRow,loopEnd);
+    e->calcSongTimestamps();
   }
 
   // garbage collection
@@ -2119,7 +2119,7 @@ void FurnaceGUI::doUndo() {
           }
         }
       }
-      e->walkSong(loopOrder,loopRow,loopEnd);
+      e->calcSongTimestamps();
       break;
   }
 
@@ -2197,7 +2197,7 @@ void FurnaceGUI::doRedo() {
           }
         }
       }
-      e->walkSong(loopOrder,loopRow,loopEnd);
+      e->calcSongTimestamps();
       break;
   }
 

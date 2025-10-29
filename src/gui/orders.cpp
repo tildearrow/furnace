@@ -344,7 +344,7 @@ void FurnaceGUI::drawOrders() {
             ImGui::PopClipRect();
           }
           ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_ORDER_ROW_INDEX]);
-          bool highlightLoop=(i>=loopOrder && i<=loopEnd);
+          bool highlightLoop=(i>=e->curSubSong->ts.loopStart.order && i<=e->curSubSong->ts.loopEnd.order && e->curSubSong->ts.isLoopDefined);
           if (highlightLoop) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(uiColors[GUI_COLOR_SONG_LOOP]));
           if (settings.orderRowsBase==1) {
             snprintf(selID,4096,"%.2X##O_S%.2x",i,i);
@@ -392,7 +392,7 @@ void FurnaceGUI::drawOrders() {
                       if (e->curOrders->ord[j][i]<(unsigned char)(DIV_MAX_PATTERNS-1)) e->curOrders->ord[j][i]++;
                     }
                   });
-                  e->walkSong(loopOrder,loopRow,loopEnd);
+                  e->calcSongTimestamps();
                   makeUndo(GUI_UNDO_CHANGE_ORDER);
                 } else {
                   orderCursor=j;
@@ -400,7 +400,7 @@ void FurnaceGUI::drawOrders() {
                 }
               } else {
                 setOrder(i);
-                e->walkSong(loopOrder,loopRow,loopEnd);
+                e->calcSongTimestamps();
                 if (orderEditMode!=0) {
                   orderCursor=j;
                   curNibble=false;
@@ -441,7 +441,7 @@ void FurnaceGUI::drawOrders() {
                       if (e->curOrders->ord[j][i]>0) e->curOrders->ord[j][i]--;
                     }
                   });
-                  e->walkSong(loopOrder,loopRow,loopEnd);
+                  e->calcSongTimestamps();
                   makeUndo(GUI_UNDO_CHANGE_ORDER);
                 } else {
                   orderCursor=j;
@@ -449,7 +449,7 @@ void FurnaceGUI::drawOrders() {
                 }
               } else {
                 setOrder(i);
-                e->walkSong(loopOrder,loopRow,loopEnd);
+                e->calcSongTimestamps();
                 if (orderEditMode!=0) {
                   orderCursor=j;
                   curNibble=false;
