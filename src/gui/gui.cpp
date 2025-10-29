@@ -8636,6 +8636,7 @@ FurnaceGUI::FurnaceGUI():
   audioEngineChanged(false),
   settingsChanged(false),
   debugFFT(false),
+  debugRowTimestamps(false),
   vgmExportVersion(0x171),
   vgmExportTrailingTicks(-1),
   vgmExportCorrectedRate(44100),

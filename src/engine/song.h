@@ -172,6 +172,7 @@ struct DivSongTimestamps {
   int totalSeconds;
   int totalMicros;
   int totalTicks;
+  int totalRows;
 
   // loop region (order/row positions)
   struct Position {
@@ -195,6 +196,7 @@ struct DivSongTimestamps {
       seconds(0), micros(0) {}
   };
   Timestamp* orders[DIV_MAX_PATTERNS];
+  Timestamp loopStartTime;
 
   // the furthest row that the playhead goes through in an order.
   unsigned char maxRow[DIV_MAX_PATTERNS];

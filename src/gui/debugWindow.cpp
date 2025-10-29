@@ -199,6 +199,32 @@ void FurnaceGUI::drawDebug() {
       ImGui::Text("patScroll: %f",patScroll);
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Song Timestamps")) {
+      if (ImGui::Button("Recalculate")) {
+        e->calcSongTimestamps();
+      }
+
+      DivSongTimestamps& ts=e->curSubSong->ts;
+
+      ImGui::Text("song duration: %d.%06d (%d ticks; %d rows)",ts.totalSeconds,ts.totalMicros,ts.totalTicks,ts.totalRows);
+      if (ts.isLoopDefined) {
+        ImGui::Text("loop region is defined");
+      } else {
+        ImGui::Text("no loop region");
+      }
+      if (ts.isLoopable) {
+        ImGui::Text("song can loop");
+      } else {
+        ImGui::Text("song will stop");
+      }
+
+      ImGui::Text("loop region: %d:%d - %d:%d",ts.loopStart.order,ts.loopStart.row,ts.loopEnd.order,ts.loopEnd.row);
+      ImGui::Text("loop start time: %d.%06d",ts.loopStartTime.seconds,ts.loopStartTime.micros);
+
+      ImGui::Checkbox("Enable row timestamps (in pattern view)",&debugRowTimestamps);
+      
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Sample Debug")) {
       for (int i=0; i<e->song.sampleLen; i++) {
         DivSample* sample=e->getSample(i);

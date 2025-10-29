@@ -621,6 +621,15 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
       break;
     }
 
+    // log row time here
+    if (!endOfSong) {
+      if (rowChanged) {
+        if (ts.orders[prevOrder]==NULL) ts.orders[prevOrder]=new DivSongTimestamps::Timestamp[DIV_MAX_ROWS];
+        ts.orders[prevOrder][prevRow]=DivSongTimestamps::Timestamp(ts.totalSeconds,ts.totalMicros);
+        rowChanged=false;
+      }
+    }
+
     // update playback time
     double dt=divider*((double)virtualTempoN/(double)MAX(1,virtualTempoD));
     ts.totalTicks++;
@@ -635,15 +644,6 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
       ts.totalMicros-=1000000;
       // who's gonna play a song for 68 years?
       if (ts.totalSeconds<0x7fffffff) ts.totalSeconds++;
-    }
-
-    // log row time here
-    if (!endOfSong) {
-      if (rowChanged) {
-        if (ts.orders[curOrder]==NULL) ts.orders[curOrder]=new DivSongTimestamps::Timestamp[DIV_MAX_ROWS];
-        ts.orders[curOrder][curRow]=DivSongTimestamps::Timestamp(ts.totalSeconds,ts.totalMicros);
-        rowChanged=false;
-      }
     }
     if (ts.maxRow[curOrder]<curRow) ts.maxRow[curOrder]=curRow;
   }
