@@ -32,6 +32,7 @@ DivSongTimestamps::DivSongTimestamps():
   totalSeconds(0),
   totalMicros(0),
   totalTicks(0),
+  totalRows(0),
   isLoopDefined(false),
   isLoopable(true) {
   memset(orders,0,DIV_MAX_PATTERNS*sizeof(void*));
@@ -301,6 +302,7 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
   ts.totalSeconds=0;
   ts.totalMicros=0;
   ts.totalTicks=0;
+  ts.totalRows=0;
   ts.isLoopDefined=true;
   ts.isLoopable=true;
 
@@ -339,6 +341,7 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
   unsigned char delayRow[DIV_MAX_CHANS];
   bool shallStopSched=false;
   bool shallStop=false;
+  bool songWillEnd=false;
   bool endOfSong=false;
   bool rowChanged=false;
 
@@ -492,6 +495,14 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
   };
 
   auto tinyNextRow=[&,this]() {
+    // store the previous position
+    prevOrder=curOrder;
+    prevRow=curRow;
+
+    if (songWillEnd) {
+      endOfSong=true;
+    }
+
     for (int i=0; i<chans; i++) {
       tinyProcessRow(i,false);
     }
@@ -514,7 +525,7 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
       if (curOrder>=ordersLen) {
         curOrder=0;
         ts.isLoopDefined=false;
-        endOfSong=true;
+        songWillEnd=true;
         memset(wsWalked,0,8192);
       }
       changeOrd=-1;
@@ -529,7 +540,7 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
         if (++curOrder>=ordersLen) {
           logV("end of orders reached");
           ts.isLoopDefined=false;
-          endOfSong=true;
+          songWillEnd=true;
           // the walked array is used for loop detection
           // since we've reached the end, we are guaranteed to loop here, so
           // just reset it.
@@ -539,16 +550,16 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
       }
     }
     rowChanged=true;
+    ts.totalRows++;
 
     // new loop detection routine
     // if we're stepping on a row we've already walked over, we found loop
     // if the song is going to stop though, don't do anything
-    if (!endOfSong && wsWalked[((curOrder<<5)+(curRow>>3))&8191]&(1<<(curRow&7)) && !shallStopSched) {
+    if (!songWillEnd && wsWalked[((curOrder<<5)+(curRow>>3))&8191]&(1<<(curRow&7)) && !shallStopSched) {
       logV("loop reached");
-      endOfSong=true;
+      songWillEnd=true;
       memset(wsWalked,0,8192);
     }
-
     // perform speed alternation
     // COMPAT FLAG: broken speed alternation
     if (brokenSpeedSel) {
@@ -574,14 +585,15 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
       // cache the next speed for future operations
       nextSpeed=curSpeeds.val[curSpeed];
     }
+
+    if (songWillEnd && !endOfSong) {
+      ts.loopEnd.order=prevOrder;
+      ts.loopEnd.row=prevRow;
+    }
   };
 
   // MAKE IT WORK
   while (!endOfSong) {
-    // store the previous position
-    prevOrder=curOrder;
-    prevRow=curRow;
-
     // cycle channels to find a tick rate/tempo change effect after delay
     // (unfortunately Cxxx and F0xx are not pre-effects and obey EDxx)
     for (int i=0; i<chans; i++) {
@@ -622,36 +634,41 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
     }
 
     // log row time here
-    if (!endOfSong) {
-      if (rowChanged) {
-        if (ts.orders[prevOrder]==NULL) ts.orders[prevOrder]=new DivSongTimestamps::Timestamp[DIV_MAX_ROWS];
-        ts.orders[prevOrder][prevRow]=DivSongTimestamps::Timestamp(ts.totalSeconds,ts.totalMicros);
-        rowChanged=false;
+    if (rowChanged && !endOfSong) {
+      if (ts.orders[prevOrder]==NULL) {
+        ts.orders[prevOrder]=new DivSongTimestamps::Timestamp[DIV_MAX_ROWS];
+        for (int i=0; i<DIV_MAX_ROWS; i++) {
+          ts.orders[prevOrder][i].seconds=-1;
+        }
       }
+      ts.orders[prevOrder][prevRow]=DivSongTimestamps::Timestamp(ts.totalSeconds,ts.totalMicros);
+      rowChanged=false;
     }
 
-    // update playback time
-    double dt=divider*((double)virtualTempoN/(double)MAX(1,virtualTempoD));
-    ts.totalTicks++;
+    if (!endOfSong) {
+      // update playback time
+      double dt=divider*((double)virtualTempoN/(double)MAX(1,virtualTempoD));
+      ts.totalTicks++;
 
-    ts.totalMicros+=1000000/dt;
-    totalMicrosOff+=fmod(1000000.0,dt);
-    while (totalMicrosOff>=dt) {
-      totalMicrosOff-=dt;
-      ts.totalMicros++;
-    }
-    if (ts.totalMicros>=1000000) {
-      ts.totalMicros-=1000000;
-      // who's gonna play a song for 68 years?
-      if (ts.totalSeconds<0x7fffffff) ts.totalSeconds++;
+      ts.totalMicros+=1000000/dt;
+      totalMicrosOff+=fmod(1000000.0,dt);
+      while (totalMicrosOff>=dt) {
+        totalMicrosOff-=dt;
+        ts.totalMicros++;
+      }
+      if (ts.totalMicros>=1000000) {
+        ts.totalMicros-=1000000;
+        // who's gonna play a song for 68 years?
+        if (ts.totalSeconds<0x7fffffff) ts.totalSeconds++;
+      }
     }
     if (ts.maxRow[curOrder]<curRow) ts.maxRow[curOrder]=curRow;
   }
 
-  ts.loopStart.order=curOrder;
-  ts.loopStart.row=curRow;
-  ts.loopEnd.order=prevOrder;
-  ts.loopEnd.row=prevRow;
+  ts.totalRows--;
+  ts.loopStart.order=prevOrder;
+  ts.loopStart.row=prevRow;
+  ts.loopStartTime=ts.getTimes(ts.loopStart.order,ts.loopStart.row);
 }
 
 void DivSubSong::clearData() {

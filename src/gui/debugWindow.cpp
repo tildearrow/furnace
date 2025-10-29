@@ -221,6 +221,13 @@ void FurnaceGUI::drawDebug() {
       ImGui::Text("loop region: %d:%d - %d:%d",ts.loopStart.order,ts.loopStart.row,ts.loopEnd.order,ts.loopEnd.row);
       ImGui::Text("loop start time: %d.%06d",ts.loopStartTime.seconds,ts.loopStartTime.micros);
 
+      if (ImGui::TreeNode("Maximum rows")) {
+        for (int i=0; i<e->curSubSong->ordersLen; i++) {
+          ImGui::Text("- Order %d: %d",i,ts.maxRow[i]);
+        }
+        ImGui::TreePop();
+      }
+
       ImGui::Checkbox("Enable row timestamps (in pattern view)",&debugRowTimestamps);
       
       ImGui::TreePop();
