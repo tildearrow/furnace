@@ -575,6 +575,7 @@ void DivSong::findSubSongs(int chans) {
       logV("found a subsong: %d-%d",curStart,i->ts.loopEnd.order);
       subSongStart.push_back(curStart);
       subSongEnd.push_back(i->ts.loopEnd.order);
+      curStart=i->ts.loopEnd.order;
     }
 
     // if this is the only song, quit
