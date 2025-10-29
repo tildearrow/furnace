@@ -20,7 +20,32 @@
 #include "song.h"
 #include "../ta-log.h"
 
+DivSongTimestamps::Timestamp DivSongTimestamps::getTimes(int order, int row) {
+  if (order<0 || order>=DIV_MAX_PATTERNS) return Timestamp(-1,0);
+  if (row<0 || row>=DIV_MAX_ROWS) return Timestamp(-1,0);
+  Timestamp* t=orders[order];
+  if (t==NULL) return Timestamp(-1,0);
+  return t[row];
+}
 
+DivSongTimestamps::DivSongTimestamps():
+  totalSeconds(0),
+  totalMicros(0),
+  totalTicks(0),
+  isLoopDefined(false),
+  isLoopable(true) {
+  memset(orders,0,DIV_MAX_PATTERNS*sizeof(void*));
+  memset(maxRow,0,DIV_MAX_PATTERNS);
+}
+
+DivSongTimestamps::~DivSongTimestamps() {
+  for (int i=0; i<DIV_MAX_PATTERNS; i++) {
+    if (orders[i]) {
+      delete[] orders[i];
+      orders[i]=NULL;
+    }
+  }
+}
 bool DivSubSong::walk(int& loopOrder, int& loopRow, int& loopEnd, int chans, int jumpTreatment, int ignoreJumpAtEnd, int firstPat) {
   loopOrder=0;
   loopRow=0;
@@ -267,6 +292,383 @@ void DivSubSong::findLength(int loopOrder, int loopRow, double fadeoutLen, int& 
       length+=patLen; // add length of order to song length
     }
   }
+}
+
+void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& grooves, int jumpTreatment, int ignoreJumpAtEnd, int brokenSpeedSel, int delayBehavior, int firstPat) {
+  // reduced version of the playback routine for calculation.
+
+  // reset state
+  ts.totalSeconds=0;
+  ts.totalMicros=0;
+  ts.totalTicks=0;
+  ts.isLoopDefined=true;
+  ts.isLoopable=true;
+
+  memset(ts.maxRow,0,DIV_MAX_PATTERNS);
+  
+  for (int i=0; i<DIV_MAX_PATTERNS; i++) {
+    if (ts.orders[i]) {
+      delete[] ts.orders[i];
+      ts.orders[i]=NULL;
+    }
+  }
+
+  // walking state
+  unsigned char wsWalked[8192];
+  memset(wsWalked,0,8192);
+  if (firstPat>0) {
+    memset(wsWalked,255,32*firstPat);
+  }
+  int curOrder=firstPat;
+  int curRow=0;
+  int prevOrder=firstPat;
+  int prevRow=0;
+  DivGroovePattern curSpeeds=speeds;
+  int curVirtualTempoN=virtualTempoN;
+  int curVirtualTempoD=virtualTempoD;
+  int nextSpeed=curSpeeds.val[0];
+  double divider=hz;
+  double totalMicrosOff=0.0;
+  int ticks=1;
+  int tempoAccum=0;
+  int curSpeed=0;
+  int changeOrd=-1;
+  int changePos=0;
+  unsigned char rowDelay[DIV_MAX_CHANS];
+  unsigned char delayOrder[DIV_MAX_CHANS];
+  unsigned char delayRow[DIV_MAX_CHANS];
+  bool shallStopSched=false;
+  bool shallStop=false;
+  bool endOfSong=false;
+  bool rowChanged=false;
+
+  memset(rowDelay,0,DIV_MAX_CHANS);
+  memset(delayOrder,0,DIV_MAX_CHANS);
+  memset(delayRow,0,DIV_MAX_CHANS);
+  if (divider<1) divider=1;
+
+  auto tinyProcessRow=[&](int i, bool afterDelay) {
+    // if this is after delay, use the order/row where delay occurred
+    int whatOrder=afterDelay?delayOrder[i]:curOrder;
+    int whatRow=afterDelay?delayRow[i]:curRow;
+    DivPattern* pat=pat[i].getPattern(orders.ord[i][whatOrder],false);
+    // pre effects
+    if (!afterDelay) {
+      // set to true if we found an EDxx effect
+      bool returnAfterPre=false;
+      // check all effects
+      for (int j=0; j<curPat[i].effectCols; j++) {
+        short effect=pat->newData[whatRow][DIV_PAT_FX(j)];
+        short effectVal=pat->newData[whatRow][DIV_PAT_FXVAL(j)];
+
+        // empty effect value is the same as zero
+        if (effectVal==-1) effectVal=0;
+        effectVal&=255;
+
+        switch (effect) {
+          case 0x09: // select groove pattern/speed 1
+            if (grooves.empty()) {
+              // special case: sets speed 1 if the song lacks groove patterns
+              if (effectVal>0) curSpeeds.val[0]=effectVal;
+            } else {
+              // sets the groove pattern and resets current speed index
+              if (effectVal<(short)grooves.size()) {
+                curSpeeds=grooves[effectVal];
+                curSpeed=0;
+              }
+            }
+            break;
+          case 0x0f: // speed 1/speed 2
+            // if the value is 0 then ignore it
+            if (curSpeeds.len==2 && grooves.empty()) {
+              // if there are two speeds and no groove patterns, set the second speed
+              if (effectVal>0) curSpeeds.val[1]=effectVal;
+            } else {
+              // otherwise set the first speed
+              if (effectVal>0) curSpeeds.val[0]=effectVal;
+            }
+            break;
+          case 0xfd: // virtual tempo num
+            if (effectVal>0) virtualTempoN=effectVal;
+            break;
+          case 0xfe: // virtual tempo den
+            if (effectVal>0) virtualTempoD=effectVal;
+            break;
+          case 0x0b: // change order
+            // this actually schedules an order change
+            // we perform this change at the end of nextRow()
+
+            // COMPAT FLAG: simultaneous jump treatment
+            if (changeOrd==-1 || jumpTreatment==0) {
+              changeOrd=effectVal;
+              if (jumpTreatment==1 || jumpTreatment==2) {
+                changePos=0;
+              }
+            }
+            break;
+          case 0x0d: // next order
+            // COMPAT FLAG: simultaneous jump treatment
+            if (jumpTreatment==2) {
+              // - 2: DefleMask (jump to next order unless it is the last one and ignoreJumpAtEnd is on)
+              if ((curOrder<(curSubSong->ordersLen-1) || !ignoreJumpAtEnd)) {
+                // changeOrd -2 means increase order by 1
+                // it overrides a previous 0Bxx effect
+                changeOrd=-2;
+                changePos=effectVal;
+              }
+            } else if (jumpTreatment==1) {
+              // - 1: old Furnace (same as 2 but ignored if 0Bxx is present)
+              if (changeOrd<0 && (curOrder<(curSubSong->ordersLen-1) || !ignoreJumpAtEnd)) {
+                changeOrd=-2;
+                changePos=effectVal;
+              }
+            } else {
+              // - 0: normal
+              if (curOrder<(curSubSong->ordersLen-1) || !ignoreJumpAtEnd) {
+                // set the target order if not set, allowing you to use 0B and 0D regardless of position
+                if (changeOrd<0) {
+                  changeOrd=-2;
+                }
+                changePos=effectVal;
+              }
+            }
+            break;
+          case 0xed: // delay
+            if (effectVal!=0) {
+              // COMPAT FLAG: cut/delay effect policy (delayBehavior)
+              // - 0: strict
+              //   - delays equal or greater to the speed * timeBase are ignored
+              // - 1: strict old
+              //   - delays equal or greater to the speed are ignored
+              // - 2: lax (default)
+              //   - no delay is ever ignored unless overridden by another
+              bool comparison=(delayBehavior==1)?(effectVal<=nextSpeed):(effectVal<(nextSpeed*(curSubSong->timeBase+1)));
+              if (delayBehavior==2) comparison=true;
+              if (comparison) {
+                // set the delay row, order and timer
+                chan[i].rowDelay=effectVal;
+                chan[i].delayOrder=whatOrder;
+                chan[i].delayRow=whatRow;
+
+                // this here was a compatibility hack for DefleMask...
+                // if the delay time happens to be equal to the speed, it'll
+                // result in "delay lock" which halts all row processing
+                // until another good EDxx effect is found
+                // for some reason this didn't occur on Neo Geo...
+                // this hack is disabled due to its dirtiness and the fact I
+                // don't feel like being compatible with a buggy tracker any further
+                if (effectVal==nextSpeed) {
+                  //if (sysOfChan[i]!=DIV_SYSTEM_YM2610 && sysOfChan[i]!=DIV_SYSTEM_YM2610_EXT) chan[i].delayLocked=true;
+                } else {
+                  chan[i].delayLocked=false;
+                }
+
+                // once we're done with pre-effects, get out and don't process any further
+                returnAfterPre=true;
+              } else {
+                logV("higher than nextSpeed! %d>%d",effectVal,nextSpeed);
+                chan[i].delayLocked=false;
+              }
+            }
+            break;
+        }
+      }
+      // stop processing if EDxx was found
+      if (returnAfterPre) return;
+    } else {
+      //logV("honoring delay at position %d",whatRow);
+    }
+
+
+    // effects
+    for (int j=0; j<curPat[i].effectCols; j++) {
+      short effect=pat->newData[whatRow][DIV_PAT_FX(j)];
+      short effectVal=pat->newData[whatRow][DIV_PAT_FXVAL(j)];
+
+      // an empty effect value is treated as zero
+      if (effectVal==-1) effectVal=0;
+      effectVal&=255;
+
+      // tempo/tick rate effects
+      switch (effect) {
+        case 0xc0: case 0xc1: case 0xc2: case 0xc3: // set tick rate
+          // Cxxx, where `xxx` is between 1 and 1023
+          divider=(double)(((effect&0x3)<<8)|effectVal);
+          if (divider<1) divider=1;
+          break;
+        case 0xf0: // set tempo
+          divider=(double)effectVal*2.0/5.0;
+          if (divider<1) divider=1;
+          cycles=got.rate/divider;
+          break;
+        case 0xff: // stop song
+          shallStopSched=true;
+          break;
+      }
+    }
+  };
+
+  auto tinyNextRow=[&]() {
+    for (int i=0; i<chans; i++) {
+      tinyProcessRow(i,false);
+    }
+
+    // mark this row as "walked" over
+    wsWalked[((curOrder<<5)+(curRow>>3))&8191]|=1<<(curRow&7);
+
+    // commit a pending jump if there is one
+    // otherwise, advance row position
+    if (changeOrd!=-1) {
+      // jump to order and reset position
+      curRow=changePos;
+      changePos=0;
+      // jump to next order if it is -2
+      if (changeOrd==-2) changeOrd=curOrder+1;
+      curOrder=changeOrd;
+
+      // if we're out of bounds, return to the beginning
+      // if this happens we're guaranteed to loop
+      if (curOrder>=ordersLen) {
+        curOrder=0;
+        ts.isLoopDefined=false;
+        endOfSong=true;
+        memset(wsWalked,0,8192);
+      }
+      changeOrd=-1;
+    } else if (++curRow>=patLen) {
+      // if we are here it means we reached the end of this pattern, so
+      // advance to next order unless the song is about to stop
+      if (shallStopSched) {
+        curRow=patLen-1;
+      } else {
+        // go to next order
+        curRow=0;
+        if (++curOrder>=ordersLen) {
+          logV("end of orders reached");
+          ts.isLoopDefined=false;
+          endOfSong=true;
+          // the walked array is used for loop detection
+          // since we've reached the end, we are guaranteed to loop here, so
+          // just reset it.
+          memset(wsWalked,0,8192);
+          curOrder=0;
+        }
+      }
+    }
+    rowChanged=true;
+
+    // new loop detection routine
+    // if we're stepping on a row we've already walked over, we found loop
+    // if the song is going to stop though, don't do anything
+    if (!endOfSong && wsWalked[((curOrder<<5)+(curRow>>3))&8191]&(1<<(curRow&7)) && !shallStopSched) {
+      logV("loop reached");
+      endOfSong=true;
+      memset(wsWalked,0,8192);
+    }
+
+    // perform speed alternation
+    // COMPAT FLAG: broken speed alternation
+    if (song.brokenSpeedSel) {
+      unsigned char speed2=(curSpeeds.len>=2)?curSpeeds.val[1]:curSpeeds.val[0];
+      unsigned char speed1=curSpeeds.val[0];
+      
+      // if the pattern length is odd and the current order is odd, use speed 2 for even rows and speed 1 for odd ones
+      // we subtract firstPat from curOrder as firstPat is used by a function which finds sub-songs
+      // (the beginning of a new sub-song will be in order 0)
+      if ((patLen&1) && (curOrder-firstPat)&1) {
+        ticks=((curRow&1)?speed2:speed1)*(timeBase+1);
+        nextSpeed=(curRow&1)?speed1:speed2;
+      } else {
+        ticks=((curRow&1)?speed1:speed2)*(timeBase+1);
+        nextSpeed=(curRow&1)?speed2:speed1;
+      }
+    } else {
+      // normal speed alternation
+      // set the number of ticks and cycle to the next speed
+      ticks=curSpeeds.val[curSpeed]*(timeBase+1);
+      curSpeed++;
+      if (curSpeed>=curSpeeds.len) curSpeed=0;
+      // cache the next speed for future operations
+      nextSpeed=curSpeeds.val[curSpeed];
+    }
+  };
+
+  // MAKE IT WORK
+  while (!endOfSong) {
+    // store the previous position
+    prevOrder=curOrder;
+    prevRow=curRow;
+
+    // cycle channels to find a tick rate/tempo change effect after delay
+    // (unfortunately Cxxx and F0xx are not pre-effects and obey EDxx)
+    for (int i=0; i<chans; i++) {
+      if (rowDelay[i]>0) {
+        if (--rowDelay[i]==0) {
+          tinyProcessRow(i,true);
+        }
+      }
+    }
+
+    // run virtual tempo
+    tempoAccum+=curVirtualTempoN;
+    while (tempoAccum>=curVirtualTempoD) {
+      tempoAccum-=curVirtualTempoD;
+      // tick counter
+      if (--ticks<=0) {
+        if (shallStopSched) {
+          shallStop=true;
+          break;
+        } else if (endOfSong) {
+          break;
+        }
+
+        // next row
+        tinyNextRow();
+        break;
+      }
+
+      // limit tempo accumulator
+      if (tempoAccum>1023) tempoAccum=1023;
+    }
+
+    if (shallStop) {
+      // FFxx found - the song doesn't loop
+      ts.isLoopable=false;
+      ts.isLoopDefined=false;
+      break;
+    }
+
+    // update playback time
+    double dt=divider*((double)virtualTempoN/(double)MAX(1,virtualTempoD));
+    ts.totalTicks++;
+
+    ts.totalMicros+=1000000/dt;
+    totalMicrosOff+=fmod(1000000.0,dt);
+    while (totalMicrosOff>=dt) {
+      totalMicrosOff-=dt;
+      ts.totalMicros++;
+    }
+    if (ts.totalMicros>=1000000) {
+      ts.totalMicros-=1000000;
+      // who's gonna play a song for 68 years?
+      if (ts.totalSeconds<0x7fffffff) ts.totalSeconds++;
+    }
+
+    // log row time here
+    if (!endOfSong) {
+      if (rowChanged) {
+        if (ts.orders[curOrder]==NULL) ts.orders[curOrder]=new Timestamp[DIV_MAX_ROWS];
+        ts.orders[curOrder][curRow]=Timestamp(ts.totalSeconds,ts.totalMicros);
+        rowChanged=false;
+      }
+    }
+    if (maxRow[curOrder]<curRow) maxRow[curOrder]=curRow;
+  }
+
+  ts.loopStart.order=curOrder;
+  ts.loopStart.row=curRow;
+  ts.loopEnd.order=prevOrder;
+  ts.loopEnd.row=prevRow;
 }
 
 void DivSubSong::clearData() {

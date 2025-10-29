@@ -610,9 +610,6 @@ class DivEngine {
   unsigned int renderPoolThreads;
   DivWorkPool* renderPool;
 
-  // song timestamps
-  DivSongTimestamps* songTimestamps;
-
   // MIDI stuff
   std::function<int(const TAMidiMessage&)> midiCallback=[](const TAMidiMessage&) -> int {return -3;};
 

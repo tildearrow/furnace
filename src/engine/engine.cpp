@@ -213,6 +213,12 @@ void DivEngine::findSongLength(int loopOrder, int loopRow, double fadeoutLen, in
   }
 }
 
+void DivEngine::calcSongTimestamps() {
+  if (curSubSong!=NULL) {
+    curSubSong->calcTimestamps(chans,song.grooves.song.jumpTreatment,song.ignoreJumpAtEnd,song.brokenSpeedSel,song.delayBehavior);
+  }
+}
+
 #define EXPORT_BUFSIZE 2048
 
 double DivEngine::benchmarkPlayback() {

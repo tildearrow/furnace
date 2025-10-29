@@ -167,6 +167,46 @@ struct DivGroovePattern {
     }
 };
 
+struct DivSongTimestamps {
+  // song duration (in seconds and microseconds)
+  int totalSeconds;
+  int totalMicros;
+  int totalTicks;
+
+  // loop region (order/row positions)
+  struct Position {
+    int order, row;
+    Position():
+      order(0), row(0) {}
+  } loopStart, loopEnd;
+  // set to true if a 0Bxx effect is found and it defines a loop region
+  bool isLoopDefined;
+  // set to false if FFxx is found
+  bool isLoopable;
+
+  // timestamp of a row
+  // DO NOT ACCESS DIRECTLY! use the functions instead.
+  struct Timestamp {
+    // if seconds is -1, it means this row is not touched at all.
+    int seconds, micros;
+    Timestamp(int s, int u):
+      seconds(s), micros(u) {}
+    Timestamp():
+      seconds(0), micros(0) {}
+  };
+  Timestamp* orders[DIV_MAX_PATTERNS];
+
+  // the furthest row that the playhead goes through in an order.
+  unsigned char maxRow[DIV_MAX_PATTERNS];
+
+  // call this function to get the timestamp of a row.
+  Timestamp getTimes(int order, int row);
+
+  DivSongTimestamps();
+  ~DivSongTimestamps();
+};
+
+
 struct DivSubSong {
   String name, notes;
   unsigned char hilightA, hilightB;
@@ -185,6 +225,9 @@ struct DivSubSong {
   String chanName[DIV_MAX_CHANS];
   String chanShortName[DIV_MAX_CHANS];
 
+  // song timestamps
+  DivSongTimestamps ts;
+
   /**
    * walk through the song and determine loop position.
    */
@@ -194,6 +237,11 @@ struct DivSubSong {
    * find song length in rows (up to specified loop point).
    */
   void findLength(int loopOrder, int loopRow, double fadeoutLen, int& rowsForFadeout, bool& hasFFxx, std::vector<int>& orders, std::vector<DivGroovePattern>& grooves, int& length, int chans, int jumpTreatment, int ignoreJumpAtEnd, int firstPat=0);
+
+  /**
+   * calculate timestamps (loop position, song length and more).
+   */
+  void calcTimestamps(int chans, std::vector<DivGroovePattern>& grooves, int jumpTreatment, int ignoreJumpAtEnd, int brokenSpeedSel, int delayBehavior, int firstPat=0);
 
   void clearData();
   void removeUnusedPatterns();
@@ -243,13 +291,6 @@ struct DivEffectStorage {
     dryWet(1.0f),
     storage(NULL),
     storageLen(0) {}
-};
-
-struct DivSongTimestamps {
-  int totalSeconds;
-  int totalMicros;
-
-  // TODO
 };
 
 struct DivSong {
