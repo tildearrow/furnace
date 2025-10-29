@@ -321,9 +321,8 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
 
           for (int l=0; l<chans; l++) {
             DivPattern* p=s->pat[l].getPattern(s->orders.ord[l][j],false);
-
-            int note=p->data[k][0];
-            int octave=p->data[k][1];
+            short note, octave;
+            noteToSplitNote(p->newData[k][DIV_PAT_NOTE],note,octave);
 
             if (note==0 && octave==0) {
               w->writeText("|... ");
@@ -344,28 +343,28 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
               w->writeText(fmt::sprintf("|%s%d ",(octave<0)?notesNegative[note]:notes[note],(octave<0)?(-octave):octave));
             }
 
-            if (p->data[k][2]==-1) {
+            if (p->newData[k][DIV_PAT_INS]==-1) {
               w->writeText(".. ");
             } else {
-              w->writeText(fmt::sprintf("%.2X ",p->data[k][2]&0xff));
+              w->writeText(fmt::sprintf("%.2X ",p->newData[k][DIV_PAT_INS]&0xff));
             }
 
-            if (p->data[k][3]==-1) {
+            if (p->newData[k][DIV_PAT_VOL]==-1) {
               w->writeText("..");
             } else {
-              w->writeText(fmt::sprintf("%.2X",p->data[k][3]&0xff));
+              w->writeText(fmt::sprintf("%.2X",p->newData[k][DIV_PAT_VOL]&0xff));
             }
 
             for (int m=0; m<s->pat[l].effectCols; m++) {
-              if (p->data[k][4+(m<<1)]==-1) {
+              if (p->newData[k][DIV_PAT_FX(m)]==-1) {
                 w->writeText(" ..");
               } else {
-                w->writeText(fmt::sprintf(" %.2X",p->data[k][4+(m<<1)]&0xff));
+                w->writeText(fmt::sprintf(" %.2X",p->newData[k][DIV_PAT_FX(m)]&0xff));
               }
-              if (p->data[k][5+(m<<1)]==-1) {
+              if (p->newData[k][DIV_PAT_FXVAL(m)]==-1) {
                 w->writeText("..");
               } else {
-                w->writeText(fmt::sprintf("%.2X",p->data[k][5+(m<<1)]&0xff));
+                w->writeText(fmt::sprintf("%.2X",p->newData[k][DIV_PAT_FXVAL(m)]&0xff));
               }
             }
           }

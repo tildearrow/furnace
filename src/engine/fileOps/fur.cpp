@@ -1778,32 +1778,28 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
 
           if (mask&1) { // note
             unsigned char note=reader.readC();
+            // TODO: PAT2 format with new off/===/rel values!
             if (note==180) {
-              pat->data[j][0]=100;
-              pat->data[j][1]=0;
+              pat->newData[j][0]=DIV_NOTE_OFF;
             } else if (note==181) {
-              pat->data[j][0]=101;
-              pat->data[j][1]=0;
+              pat->newData[j][0]=DIV_NOTE_REL;
             } else if (note==182) {
-              pat->data[j][0]=102;
-              pat->data[j][1]=0;
+              pat->newData[j][0]=DIV_MACRO_REL;
             } else if (note<180) {
-              pat->data[j][0]=newFormatNotes[note];
-              pat->data[j][1]=newFormatOctaves[note];
+              pat->newData[j][DIV_PAT_NOTE]=note;
             } else {
-              pat->data[j][0]=0;
-              pat->data[j][1]=0;
+              pat->newData[j][0]=-1;
             }
           }
           if (mask&2) { // instrument
-            pat->data[j][2]=(unsigned char)reader.readC();
+            pat->newData[j][DIV_PAT_INS]=(unsigned char)reader.readC();
           }
           if (mask&4) { // volume
-            pat->data[j][3]=(unsigned char)reader.readC();
+            pat->newData[j][DIV_PAT_VOL]=(unsigned char)reader.readC();
           }
           for (unsigned char k=0; k<16; k++) {
             if (effectMask&(1<<k)) {
-              pat->data[j][4+k]=(unsigned char)reader.readC();
+              pat->newData[j][DIV_PAT_FX(0)+k]=(unsigned char)reader.readC();
             }
           }
         }
@@ -1844,18 +1840,20 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
 
         DivPattern* pat=ds.subsong[subs]->pat[chan].getPattern(index,true);
         for (int j=0; j<ds.subsong[subs]->patLen; j++) {
-          pat->data[j][0]=reader.readS();
-          pat->data[j][1]=reader.readS();
-          pat->data[j][2]=reader.readS();
-          pat->data[j][3]=reader.readS();
-          for (int k=0; k<ds.subsong[subs]->pat[chan].effectCols; k++) {
-            pat->data[j][4+(k<<1)]=reader.readS();
-            pat->data[j][5+(k<<1)]=reader.readS();
+          short note=reader.readS();
+          short octave=reader.readS();
+          if (note==0 && octave!=0) {
+            logD("what? %d:%d:%d note %d octave %d",chan,i,j,note,octave);
+            note=12;
+            octave--;
           }
-          if (pat->data[j][0]==0 && pat->data[j][1]!=0) {
-            logD("what? %d:%d:%d note %d octave %d",chan,i,j,pat->data[j][0],pat->data[j][1]);
-            pat->data[j][0]=12;
-            pat->data[j][1]--;
+          pat->newData[j][DIV_PAT_NOTE]=splitNoteToNote(note,octave);
+
+          pat->newData[j][DIV_PAT_INS]=reader.readS();
+          pat->newData[j][DIV_PAT_VOL]=reader.readS();
+          for (int k=0; k<ds.subsong[subs]->pat[chan].effectCols; k++) {
+            pat->newData[j][DIV_PAT_FX(k)]=reader.readS();
+            pat->newData[j][DIV_PAT_FXVAL(k)]=reader.readS();
           }
         }
 
@@ -2145,6 +2143,44 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
     }
 
+    // YM2151 E5xx range was different
+    if (ds.version<236) {
+      int ch=0;
+      // so much nesting
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_YM2151) {
+          // find all E5xx effects and adapt to normal range
+          for (int j=ch; j<ch+8; j++) {
+            for (size_t k=0; k<ds.subsong.size(); k++) {
+              for (int l=0; l<DIV_MAX_PATTERNS; l++) {
+                DivPattern* p=ds.subsong[k]->pat[j].data[l];
+                if (p==NULL) continue;
+
+                for (int m=0; m<DIV_MAX_ROWS; m++) {
+                  for (int n=0; n<ds.subsong[k]->pat[j].effectCols; n++) {
+                    if (p->newData[m][DIV_PAT_FX(n)]==0xe5 && p->newData[m][DIV_PAT_FXVAL(n)]!=-1) {
+                      int newVal=(2*((p->newData[m][DIV_PAT_FXVAL(n)]&0xff)-0x80))+0x80;
+                      if (newVal<0) newVal=0;
+                      if (newVal>0xff) newVal=0xff;
+                      p->newData[m][DIV_PAT_FXVAL(n)]=newVal;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        ch+=getChannelCount(ds.system[i]);
+      }
+    }
+
+    // warn on partial pitch linearity
+    if (ds.linearPitch>1) {
+      ds.linearPitch=1;
+    } else if (ds.version<237 && ds.linearPitch!=0) {
+      addWarning("this song used partial pitch linearity, which has been removed from Furnace. you may have to adjust your song.");
+    }
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
@@ -2171,7 +2207,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
   return true;
 }
 
-SafeWriter* DivEngine::saveFur(bool notPrimary, bool newPatternFormat) {
+SafeWriter* DivEngine::saveFur(bool notPrimary) {
   saveLock.lock();
   std::vector<int> subSongPtr;
   std::vector<int> sysFlagsPtr;
@@ -2622,132 +2658,99 @@ SafeWriter* DivEngine::saveFur(bool notPrimary, bool newPatternFormat) {
     DivPattern* pat=song.subsong[i.subsong]->pat[i.chan].getPattern(i.pat,false);
     patPtr.push_back(w->tell());
 
-    if (newPatternFormat) {
-      w->write("PATN",4);
-      blockStartSeek=w->tell();
-      w->writeI(0);
+    w->write("PATN",4);
+    blockStartSeek=w->tell();
+    w->writeI(0);
 
-      w->writeC(i.subsong);
-      w->writeC(i.chan);
-      w->writeS(i.pat);
-      w->writeString(pat->name,false);
+    w->writeC(i.subsong);
+    w->writeC(i.chan);
+    w->writeS(i.pat);
+    w->writeString(pat->name,false);
 
-      unsigned char emptyRows=0;
+    unsigned char emptyRows=0;
 
-      for (int j=0; j<song.subsong[i.subsong]->patLen; j++) {
-        unsigned char mask=0;
-        unsigned char finalNote=255;
-        unsigned short effectMask=0;
+    for (int j=0; j<song.subsong[i.subsong]->patLen; j++) {
+      unsigned char mask=0;
+      unsigned char finalNote=255;
+      unsigned short effectMask=0;
 
-        if (pat->data[j][0]==100) {
-          finalNote=180;
-        } else if (pat->data[j][0]==101) { // note release
-          finalNote=181;
-        } else if (pat->data[j][0]==102) { // macro release
-          finalNote=182;
-        } else if (pat->data[j][1]==0 && pat->data[j][0]==0) {
-          finalNote=255;
-        } else {
-          int seek=(pat->data[j][0]+(signed char)pat->data[j][1]*12)+60;
-          if (seek<0 || seek>=180) {
-            finalNote=255;
-          } else {
-            finalNote=seek;
-          }
-        }
-
-        if (finalNote!=255) mask|=1; // note
-        if (pat->data[j][2]!=-1) mask|=2; // instrument
-        if (pat->data[j][3]!=-1) mask|=4; // volume
-        for (int k=0; k<song.subsong[i.subsong]->pat[i.chan].effectCols*2; k+=2) {
-          if (k==0) {
-            if (pat->data[j][4+k]!=-1) mask|=8;
-            if (pat->data[j][5+k]!=-1) mask|=16;
-          } else if (k<8) {
-            if (pat->data[j][4+k]!=-1 || pat->data[j][5+k]!=-1) mask|=32;
-          } else {
-            if (pat->data[j][4+k]!=-1 || pat->data[j][5+k]!=-1) mask|=64;
-          }
-
-          if (pat->data[j][4+k]!=-1) effectMask|=(1<<k);
-          if (pat->data[j][5+k]!=-1) effectMask|=(2<<k);
-        }
-
-        if (mask==0) {
-          emptyRows++;
-          if (emptyRows>127) {
-            w->writeC(128|(emptyRows-2));
-            emptyRows=0;
-          }
-        } else {
-          if (emptyRows>1) {
-            w->writeC(128|(emptyRows-2));
-            emptyRows=0;
-          } else if (emptyRows) {
-            w->writeC(0);
-            emptyRows=0;
-          }
-
-          w->writeC(mask);
-
-          if (mask&32) w->writeC(effectMask&0xff);
-          if (mask&64) w->writeC((effectMask>>8)&0xff);
-
-          if (mask&1) w->writeC(finalNote);
-          if (mask&2) w->writeC(pat->data[j][2]);
-          if (mask&4) w->writeC(pat->data[j][3]);
-          if (mask&8) w->writeC(pat->data[j][4]);
-          if (mask&16) w->writeC(pat->data[j][5]);
-          if (mask&32) {
-            if (effectMask&4) w->writeC(pat->data[j][6]);
-            if (effectMask&8) w->writeC(pat->data[j][7]);
-            if (effectMask&16) w->writeC(pat->data[j][8]);
-            if (effectMask&32) w->writeC(pat->data[j][9]);
-            if (effectMask&64) w->writeC(pat->data[j][10]);
-            if (effectMask&128) w->writeC(pat->data[j][11]);
-          }
-          if (mask&64) {
-            if (effectMask&256) w->writeC(pat->data[j][12]);
-            if (effectMask&512) w->writeC(pat->data[j][13]);
-            if (effectMask&1024) w->writeC(pat->data[j][14]);
-            if (effectMask&2048) w->writeC(pat->data[j][15]);
-            if (effectMask&4096) w->writeC(pat->data[j][16]);
-            if (effectMask&8192) w->writeC(pat->data[j][17]);
-            if (effectMask&16384) w->writeC(pat->data[j][18]);
-            if (effectMask&32768) w->writeC(pat->data[j][19]);
-          }
-        }
+      if (pat->newData[j][DIV_PAT_NOTE]==DIV_NOTE_OFF) { // note off
+        finalNote=180;
+      } else if (pat->newData[j][DIV_PAT_NOTE]==DIV_NOTE_REL) { // note release
+        finalNote=181;
+      } else if (pat->newData[j][DIV_PAT_NOTE]==DIV_MACRO_REL) { // macro release
+        finalNote=182;
+      } else if (pat->newData[j][DIV_PAT_NOTE]==-1) { // empty
+        finalNote=255;
+      } else {
+        finalNote=pat->newData[j][DIV_PAT_NOTE];
       }
 
-      // stop
-      w->writeC(0xff);
-    } else {
-      w->write("PATR",4);
-      blockStartSeek=w->tell();
-      w->writeI(0);
-
-      w->writeS(i.chan);
-      w->writeS(i.pat);
-      w->writeS(i.subsong);
-
-      w->writeS(0); // reserved
-
-      for (int j=0; j<song.subsong[i.subsong]->patLen; j++) {
-        w->writeS(pat->data[j][0]); // note
-        w->writeS(pat->data[j][1]); // octave
-        w->writeS(pat->data[j][2]); // instrument
-        w->writeS(pat->data[j][3]); // volume
-#ifdef TA_BIG_ENDIAN
-        for (int k=0; k<song.subsong[i.subsong]->pat[i.chan].effectCols*2; k++) {
-          w->writeS(pat->data[j][4+k]);
+      if (finalNote!=255) mask|=1; // note
+      if (pat->newData[j][DIV_PAT_INS]!=-1) mask|=2; // instrument
+      if (pat->newData[j][DIV_PAT_VOL]!=-1) mask|=4; // volume
+      for (int k=0; k<song.subsong[i.subsong]->pat[i.chan].effectCols*2; k+=2) {
+        if (k==0) {
+          if (pat->newData[j][DIV_PAT_FX(0)+k]!=-1) mask|=8;
+          if (pat->newData[j][DIV_PAT_FXVAL(0)+k]!=-1) mask|=16;
+        } else if (k<8) {
+          if (pat->newData[j][DIV_PAT_FX(0)+k]!=-1 || pat->newData[j][DIV_PAT_FXVAL(0)+k]!=-1) mask|=32;
+        } else {
+          if (pat->newData[j][DIV_PAT_FX(0)+k]!=-1 || pat->newData[j][DIV_PAT_FXVAL(0)+k]!=-1) mask|=64;
         }
-#else
-        w->write(&pat->data[j][4],2*song.subsong[i.subsong]->pat[i.chan].effectCols*2); // effects
-#endif
+
+        if (pat->newData[j][DIV_PAT_FX(0)+k]!=-1) effectMask|=(1<<k);
+        if (pat->newData[j][DIV_PAT_FXVAL(0)+k]!=-1) effectMask|=(2<<k);
       }
 
-      w->writeString(pat->name,false);
+      if (mask==0) {
+        emptyRows++;
+        if (emptyRows>127) {
+          w->writeC(128|(emptyRows-2));
+          emptyRows=0;
+        }
+      } else {
+        if (emptyRows>1) {
+          w->writeC(128|(emptyRows-2));
+          emptyRows=0;
+        } else if (emptyRows) {
+          w->writeC(0);
+          emptyRows=0;
+        }
+
+        w->writeC(mask);
+
+        if (mask&32) w->writeC(effectMask&0xff);
+        if (mask&64) w->writeC((effectMask>>8)&0xff);
+
+        if (mask&1) w->writeC(finalNote);
+        if (mask&2) w->writeC(pat->newData[j][DIV_PAT_INS]);
+        if (mask&4) w->writeC(pat->newData[j][DIV_PAT_VOL]);
+        if (mask&8) w->writeC(pat->newData[j][DIV_PAT_FX(0)]);
+        if (mask&16) w->writeC(pat->newData[j][DIV_PAT_FXVAL(0)]);
+        if (mask&32) {
+          if (effectMask&4) w->writeC(pat->newData[j][DIV_PAT_FX(1)]);
+          if (effectMask&8) w->writeC(pat->newData[j][DIV_PAT_FXVAL(1)]);
+          if (effectMask&16) w->writeC(pat->newData[j][DIV_PAT_FX(2)]);
+          if (effectMask&32) w->writeC(pat->newData[j][DIV_PAT_FXVAL(2)]);
+          if (effectMask&64) w->writeC(pat->newData[j][DIV_PAT_FX(3)]);
+          if (effectMask&128) w->writeC(pat->newData[j][DIV_PAT_FXVAL(3)]);
+        }
+        if (mask&64) {
+          if (effectMask&256) w->writeC(pat->newData[j][DIV_PAT_FX(4)]);
+          if (effectMask&512) w->writeC(pat->newData[j][DIV_PAT_FXVAL(4)]);
+          if (effectMask&1024) w->writeC(pat->newData[j][DIV_PAT_FX(5)]);
+          if (effectMask&2048) w->writeC(pat->newData[j][DIV_PAT_FXVAL(5)]);
+          if (effectMask&4096) w->writeC(pat->newData[j][DIV_PAT_FX(6)]);
+          if (effectMask&8192) w->writeC(pat->newData[j][DIV_PAT_FXVAL(6)]);
+          if (effectMask&16384) w->writeC(pat->newData[j][DIV_PAT_FX(7)]);
+          if (effectMask&32768) w->writeC(pat->newData[j][DIV_PAT_FXVAL(7)]);
+        }
+      }
     }
+
+    // stop
+    w->writeC(0xff);
 
     blockEndSeek=w->tell();
     w->seek(blockStartSeek,SEEK_SET);

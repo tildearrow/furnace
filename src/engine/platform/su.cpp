@@ -484,13 +484,13 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
       int destFreq=NOTE_SU(c.chan,c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
-        chan[c.chan].baseFreq+=c.value*((parent->song.linearPitch==2)?1:(1+(chan[c.chan].baseFreq>>9)));
+        chan[c.chan].baseFreq+=c.value*((parent->song.linearPitch)?1:(1+(chan[c.chan].baseFreq>>9)));
         if (chan[c.chan].baseFreq>=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
         }
       } else {
-        chan[c.chan].baseFreq-=c.value*((parent->song.linearPitch==2)?1:(1+(chan[c.chan].baseFreq>>9)));
+        chan[c.chan].baseFreq-=c.value*((parent->song.linearPitch)?1:(1+(chan[c.chan].baseFreq>>9)));
         if (chan[c.chan].baseFreq<=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;

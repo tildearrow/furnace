@@ -1,0 +1,88 @@
+# Module for non-recursive mpg123 build system.
+
+# Component selection:
+# If HAVE_MODULES, the library can be built fully independently.
+# If not, the library depends on the one builtin module from
+# the subdirectory.
+
+# For dynamic modules.
+if HAVE_MODULES
+include src/libout123/modules/Makemodule.am
+endif
+
+if NEED_MAINLIB
+if BUILD_LIBOUT123
+
+# Just for libdefaultmodule.la.
+if !HAVE_MODULES
+include src/libout123/modules/Makemodule.am
+endif
+
+include_HEADERS += src/include/out123.h
+
+noinst_LTLIBRARIES += src/libout123/libmodule.la
+
+lib_LTLIBRARIES += src/libout123/libout123.la
+
+endif
+endif
+
+src_libout123_libout123_la_SOURCES = \
+  src/libout123/libout123.c \
+  src/libout123/stringlists.h \
+  src/libout123/stringlists.c \
+  src/libout123/out123_int.h \
+  src/libout123/wav.c \
+  src/libout123/wav.h \
+  src/libout123/hextxt.c \
+  src/libout123/hextxt.h \
+  src/libout123/wavhead.h
+
+if BUILD_BUFFER
+src_libout123_libout123_la_SOURCES += \
+  src/libout123/buffer.c \
+  src/libout123/buffer.h \
+  src/libout123/xfermem.c \
+  src/libout123/xfermem.h
+endif
+
+src_libout123_libout123_la_CFLAGS = @LIB_CFLAGS@
+
+src_libout123_libout123_la_LDFLAGS = \
+  -no-undefined -version-info @LIBOUT123_VERSION@ -export-symbols-regex '^out123_'
+
+src_libout123_libout123_la_LIBADD = \
+  src/libout123/libmodule.la \
+  src/compat/libcompat.la \
+  @LIBOUT123_LIBS@
+
+if HAVE_MODULES
+
+src_libout123_libout123_la_LIBADD += \
+  src/compat/libcompat_dl.la
+
+else
+
+src_libout123_libout123_la_LIBADD += \
+  src/libout123/modules/libdefaultmodule.la
+
+endif
+
+src_libout123_libmodule_la_SOURCES = src/libout123/module.h
+ 
+if HAVE_MODULES
+
+src_libout123_libmodule_la_SOURCES += src/libout123/module.c
+
+else
+
+src_libout123_libmodule_la_SOURCES += src/libout123/legacy_module.c
+
+endif
+
+
+# The sfifo code is directly used in some modules.
+EXTRA_DIST += \
+  src/libout123/sfifo.c \
+  src/libout123/sfifo.h
+

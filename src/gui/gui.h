@@ -24,6 +24,7 @@
 #include "../engine/workPool.h"
 #include "../engine/waveSynth.h"
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "imgui_impl_sdl2.h"
 #include <SDL.h>
 #include <fftw3.h>
@@ -38,6 +39,7 @@
 #include "../pch.h"
 
 #include "fileDialog.h"
+#include "newFilePicker.h"
 
 #define FURNACE_APP_ID "org.tildearrow.furnace"
 
@@ -235,6 +237,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_FILE_SONG_IMPORT,
   GUI_COLOR_FILE_INSTR,
   GUI_COLOR_FILE_AUDIO,
+  GUI_COLOR_FILE_AUDIO_COMPRESSED,
   GUI_COLOR_FILE_WAVE,
   GUI_COLOR_FILE_VGM,
   GUI_COLOR_FILE_ZSM,
@@ -720,6 +723,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_FOLLOW_PATTERN,
   GUI_ACTION_FULLSCREEN,
   GUI_ACTION_TX81Z_REQUEST,
+  GUI_ACTION_OPEN_EDIT_MENU,
   GUI_ACTION_PANIC,
   GUI_ACTION_CLEAR,
 
@@ -1466,8 +1470,8 @@ struct FurnaceGUIFindQuery {
     insMode(GUI_QUERY_IGNORE),
     volMode(GUI_QUERY_IGNORE),
     effectCount(0),
-    note(0),
-    noteMax(0),
+    note(108),
+    noteMax(108),
     ins(0),
     insMax(0),
     vol(0),
@@ -1546,6 +1550,18 @@ struct FurnaceGUIPerfMetric {
   FurnaceGUIPerfMetric():
     name(NULL),
     elapsed(0) {}
+};
+
+struct FurnaceGUIUncompFont {
+  const void* origPtr;
+  size_t origLen;
+  void* data;
+  size_t len;
+  FurnaceGUIUncompFont(const void* ptr, size_t len, void* d, size_t l):
+    origPtr(ptr),
+    origLen(len),
+    data(d),
+    len(l) {}
 };
 
 struct FurnaceGUIBackupEntry {
@@ -1696,7 +1712,7 @@ class FurnaceGUI {
   bool vgmExportDirectStream, displayInsTypeList, displayWaveSizeList;
   bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
-  bool displayNew, displayExport, displayPalette, fullScreen, preserveChanPos, sysDupCloneChannels, sysDupEnd, noteInputPoly, notifyWaveChange;
+  bool displayNew, displayExport, displayPalette, fullScreen, preserveChanPos, sysDupCloneChannels, sysDupEnd, noteInputPoly, notifyWaveChange, notifySampleChange;
   bool wantScrollListIns, wantScrollListWave, wantScrollListSample;
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool displayPendingSamples, replacePendingSample;
@@ -1754,6 +1770,7 @@ class FurnaceGUI {
   FurnaceGUIMobileScenes mobScene;
 
   FurnaceGUIFileDialog* fileDialog;
+  FurnaceFilePicker* newFilePicker;
 
   int scrW, scrH, scrConfW, scrConfH, canvasW, canvasH;
   int scrX, scrY, scrConfX, scrConfY;
@@ -1780,6 +1797,7 @@ class FurnaceGUI {
   MIDIMap midiMap;
   int learning;
 
+  std::vector<FurnaceGUIUncompFont> fontCache;
   ImFont* mainFont;
   ImFont* iconFont;
   ImFont* furIconFont;
@@ -1987,7 +2005,6 @@ class FurnaceGUI {
     int iCannotWait;
     int orderButtonPos;
     int compress;
-    int newPatternFormat;
     int renderClearPos;
     int insertBehavior;
     int pullDeleteRow;
@@ -2045,6 +2062,9 @@ class FurnaceGUI {
     int vibrationLength;
     int s3mOPL3;
     int songNotesWrap;
+    int rackShowLEDs;
+    int sampleImportInstDetune;
+    int mixerStyle;
     String mainFontPath;
     String headFontPath;
     String patFontPath;
@@ -2239,7 +2259,6 @@ class FurnaceGUI {
       iCannotWait(0),
       orderButtonPos(2),
       compress(1),
-      newPatternFormat(1),
       renderClearPos(0),
       insertBehavior(1),
       pullDeleteRow(1),
@@ -2297,6 +2316,9 @@ class FurnaceGUI {
       vibrationLength(20),
       s3mOPL3(1),
       songNotesWrap(0),
+      rackShowLEDs(1),
+      sampleImportInstDetune(0),
+      mixerStyle(1),
       mainFontPath(""),
       headFontPath(""),
       patFontPath(""),
@@ -2388,6 +2410,7 @@ class FurnaceGUI {
   bool collapseWindow, demandScrollX, fancyPattern, firstFrame, tempoView, waveHex, waveSigned, waveGenVisible, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
   bool keepLoopAlive, keepGrooveAlive, orderScrollLocked, orderScrollTolerance, dragMobileMenu, dragMobileEditButton, wantGrooveListFocus;
   bool mobilePatSel;
+  bool openEditMenu;
   unsigned char lastAssetType;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   std::atomic<FurnaceGUIWindows> curWindowThreadSafe;
@@ -2473,6 +2496,7 @@ class FurnaceGUI {
   std::vector<FurnaceGUISysCategory> sysCategories;
 
   std::vector<String> audioLoadFormats;
+  bool supportsOgg, supportsMP3;
 
   bool wavePreviewOn;
   SDL_Scancode wavePreviewKey;
@@ -2797,6 +2821,7 @@ class FurnaceGUI {
 
   // export options
   DivAudioExportOptions audioExportOptions;
+  String audioExportFilterName, audioExportFilterExt;
   int dmfExportVersion;
   FurnaceGUIExportTypes curExportType;
   DivCSOptions csExportOptions;
@@ -2846,6 +2871,9 @@ class FurnaceGUI {
   void renderFMPreviewOPZ(const DivInstrumentFM& params, int pos=0);
   void renderFMPreviewESFM(const DivInstrumentFM& params, const DivInstrumentESFM& esfmParams, int pos=0);
 
+  void VerticalText(const char* fmt, ...);
+  void VerticalText(float maxSize, bool centered, const char* fmt, ...);
+
   // combo with locale
   static bool LocalizedComboGetter(void* data, int idx, const char** out_text);
 
@@ -2860,7 +2888,10 @@ class FurnaceGUI {
   // inverted checkbox
   bool InvCheckbox(const char* label, bool* value);
 
+  bool NoteSelector(int* value, bool showOffRel, int octaveMin=-5, int octaveMax=9);
+
   // mixer stuff
+  bool chipMixer(int which, ImVec2 size);
   ImVec2 calcPortSetSize(String label, int ins, int outs);
   bool portSet(String label, unsigned int portSetID, int ins, int outs, int activeIns, int activeOuts, int& clickedPort, std::map<unsigned int,ImVec2>& portPos);
 
@@ -2970,8 +3001,10 @@ class FurnaceGUI {
   void drawTutorial();
   void drawXYOsc();
   void drawUserPresets();
-  void drawSystemChannelInfo(const DivSysDef* whichDef);
+
+  float drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset=-1, float width=-1.0f);
   void drawSystemChannelInfoText(const DivSysDef* whichDef);
+  void drawVolMeterInternal(ImDrawList* dl, ImRect rect, float* data, int chans, bool aspectRatio);
 
   void assignActionMap(std::map<int,int>& actionMap, int first, int last);
   void drawKeybindSettingsTableRow(FurnaceGUIActions actionIdx);
@@ -3128,10 +3161,9 @@ class FurnaceGUI {
     void showWarning(String what, FurnaceGUIWarnings type);
     void showError(String what);
     String getLastError();
-    const char* noteNameNormal(short note, short octave);
+    const char* noteNameNormal(short note);
     const char* noteName(short note);
-    const char* noteName(short note, short octave);
-    bool decodeNote(const char* what, short& note, short& octave);
+    bool decodeNote(const char* what, short& note);
     void bindEngine(DivEngine* eng);
     void enableSafeMode();
     void updateScroll(int amount);

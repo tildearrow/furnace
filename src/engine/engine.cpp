@@ -36,6 +36,9 @@
 #ifdef HAVE_PA
 #include "../audio/pa.h"
 #endif
+#ifdef HAVE_ASIO
+#include "../audio/asio.h"
+#endif
 #include "../audio/pipe.h"
 #include <math.h>
 #include <float.h>
@@ -279,6 +282,14 @@ void DivEngine::notifyWaveChange(int wave) {
   BUSY_BEGIN;
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].dispatch->notifyWaveChange(wave);
+  }
+  BUSY_END;
+}
+
+void DivEngine::notifySampleChange(int sample) {
+  BUSY_BEGIN;
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].dispatch->notifySampleChange(sample);
   }
   BUSY_END;
 }
@@ -595,10 +606,41 @@ void DivEngine::createNewFromDefaults() {
   BUSY_END;
 }
 
+void DivEngine::copyChannel(int src, int dest) {
+  logV("copying channel %d to %d",src,dest);
+  if (src==dest) {
+    logV("not copying because it's the same channel!");
+    return;
+  }
+
+  for (int i=0; i<DIV_MAX_PATTERNS; i++) {
+    curOrders->ord[dest][i]=curOrders->ord[src][i];
+
+    DivPattern* srcPat=curPat[src].data[i];
+    DivPattern* destPat=curPat[dest].data[i];
+    if (srcPat==NULL) {
+      if (destPat!=NULL) {
+        delete destPat;
+        curPat[dest].data[i]=NULL;
+      }
+    } else {
+      curPat[src].data[i]->copyOn(curPat[dest].getPattern(i, true));
+    }
+  }
+
+  curPat[dest].effectCols=curPat[src].effectCols;
+
+  curSubSong->chanName[dest]=curSubSong->chanName[src];
+  curSubSong->chanShortName[dest]=curSubSong->chanShortName[src];
+  curSubSong->chanShow[dest]=curSubSong->chanShow[src];
+  curSubSong->chanShowChanOsc[dest]=curSubSong->chanShowChanOsc[src];
+  curSubSong->chanCollapse[dest]=curSubSong->chanCollapse[src];
+}
+
 void DivEngine::swapChannels(int src, int dest) {
   logV("swapping channel %d with %d",src,dest);
   if (src==dest) {
-    logV("not swapping channels because it's the same channel!",src,dest);
+    logV("not swapping channels because it's the same channel!");
     return;
   }
 
@@ -736,6 +778,16 @@ void DivEngine::checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries) {
   }
 
   delete[] inAssetDir;
+}
+
+void DivEngine::copyChannelP(int src, int dest) {
+  if (src<0 || src>=chans) return;
+  if (dest<0 || dest>=chans) return;
+  BUSY_BEGIN;
+  saveLock.lock();
+  copyChannel(src,dest);
+  saveLock.unlock();
+  BUSY_END;
 }
 
 void DivEngine::swapChannelsP(int src, int dest) {
@@ -898,8 +950,8 @@ void DivEngine::delUnusedIns() {
       for (int k=0; k<DIV_MAX_PATTERNS; k++) {
         if (song.subsong[j]->pat[i].data[k]==NULL) continue;
         for (int l=0; l<song.subsong[j]->patLen; l++) {
-          if (song.subsong[j]->pat[i].data[k]->data[l][2]>=0 && song.subsong[j]->pat[i].data[k]->data[l][2]<256) {
-            isUsed[song.subsong[j]->pat[i].data[k]->data[l][2]]=true;
+          if (song.subsong[j]->pat[i].data[k]->newData[l][DIV_PAT_INS]>=0 && song.subsong[j]->pat[i].data[k]->newData[l][DIV_PAT_INS]<256) {
+            isUsed[song.subsong[j]->pat[i].data[k]->newData[l][DIV_PAT_INS]]=true;
           }
         }
       }
@@ -983,38 +1035,6 @@ void DivEngine::delUnusedSamples() {
       }
     }
   }
-
-  // scan in pattern (legacy sample mode)
-  // disabled because it is unreliable
-  /*
-  for (DivSubSong* i: song.subsong) {
-    for (int j=0; j<getTotalChannelCount(); j++) {
-      bool is17On=false;
-      int bank=0;
-      for (int k=0; k<i->ordersLen; k++) {
-        DivPattern* p=i->pat[j].getPattern(i->orders.ord[j][k],false);
-        for (int l=0; l<i->patLen; l++) {
-          for (int m=0; m<i->pat[j].effectCols; m++) {
-            if (p->data[l][4+(m<<1)]==0x17) {
-              is17On=(p->data[l][5+(m<<1)]>0);
-            }
-            if (p->data[l][4+(m<<1)]==0xeb) {
-              bank=p->data[l][5+(m<<1)];
-              if (bank==-1) bank=0;
-            }
-          }
-          if (is17On) {
-            if (p->data[l][1]!=0 || p->data[l][0]!=0) {
-              if (p->data[l][0]<=12) {
-                int note=(12*bank)+(p->data[l][0]%12);
-                if (note<256) isUsed[note]=true;
-              }
-            }
-          }
-        }
-      }
-    }
-  }*/
 
   // delete
   for (int i=0; i<song.sampleLen; i++) {
@@ -1503,14 +1523,13 @@ String DivEngine::getPlaybackDebugInfo() {
     "totalCmds: %d\n"
     "lastCmds: %d\n"
     "cmdsPerSecond: %d\n"
-    "globalPitch: %d\n"
     "extValue: %d\n"
     "tempoAccum: %d\n"
     "totalProcessed: %d\n"
     "bufferPos: %d\n",
     curOrder,prevOrder,curRow,prevRow,ticks,subticks,totalLoops,lastLoopPos,nextSpeed,divider,cycles,clockDrift,
     midiClockCycles,midiClockDrift,midiTimeCycles,midiTimeDrift,changeOrd,changePos,totalSeconds,totalTicks,
-    totalTicksR,curMidiClock,curMidiTime,totalCmds,lastCmds,cmdsPerSecond,globalPitch,
+    totalTicksR,curMidiClock,curMidiTime,totalCmds,lastCmds,cmdsPerSecond,
     (int)extValue,(int)tempoAccum,(int)totalProcessed,(int)bufferPos
   );
 }
@@ -1763,7 +1782,7 @@ int DivEngine::calcBaseFreq(double clock, double divider, int note, bool period)
 }*/
 
 double DivEngine::calcBaseFreq(double clock, double divider, int note, bool period) {
-  if (song.linearPitch==2) { // full linear
+  if (song.linearPitch) { // linear
     return (note<<7);
   }
   double base=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(note+3)/12.0);
@@ -1813,7 +1832,7 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
   return bf|((block)<<(bits));
 
 int DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int bits, int fixedBlock) {
-  if (song.linearPitch==2) { // full linear
+  if (song.linearPitch) { // linear
     return (note<<7);
   }
   int bf=calcBaseFreq(clock,divider,note,false);
@@ -1825,7 +1844,8 @@ int DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int
 }
 
 int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period, int octave, int pitch2, double clock, double divider, int blockBits, int fixedBlock) {
-  if (song.linearPitch==2) {
+  // linear pitch
+  if (song.linearPitch) {
     // do frequency calculation here
     int nbase=base+pitch+pitch2;
     if (!song.oldArpStrategy) {
@@ -1849,24 +1869,7 @@ int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period
       return bf;
     }
   }
-  if (song.linearPitch==1) {
-    // global pitch multiplier
-    int whatTheFuck=(1024+(globalPitch<<6)-(globalPitch<0?globalPitch-6:0));
-    if (whatTheFuck<1) whatTheFuck=1; // avoids division by zero but please kill me
-    if (song.pitchMacroIsLinear) {
-      pitch+=pitch2;
-    }
-    pitch+=2048;
-    if (pitch<0) pitch=0;
-    if (pitch>4095) pitch=4095;
-    int ret=period?
-              ((base*(reversePitchTable[pitch]))/whatTheFuck):
-              (((base*(pitchTable[pitch]))>>10)*whatTheFuck)/1024;
-    if (!song.pitchMacroIsLinear) {
-      ret+=period?(-pitch2):pitch2;
-    }
-    return ret;
-  }
+  // non-linear pitch
   return period?
            base-pitch-pitch2:
            base+((pitch*octave)>>1)+pitch2;
@@ -2158,7 +2161,7 @@ void DivEngine::reset() {
     chan[i]=DivChannelState();
     if (i<chans) chan[i].volMax=(disCont[dispatchOfChan[i]].dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,dispatchChanOfChan[i]))<<8)|0xff;
     chan[i].volume=chan[i].volMax;
-    if (song.linearPitch==0) chan[i].vibratoFine=4;
+    if (!song.linearPitch) chan[i].vibratoFine=4;
   }
   extValue=0;
   extValuePresent=0;
@@ -2173,7 +2176,6 @@ void DivEngine::reset() {
   elapsedBeats=0;
   nextSpeed=speeds.val[0];
   divider=curSubSong->hz;
-  globalPitch=0;
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].dispatch->reset();
     disCont[i].clear();
@@ -2242,6 +2244,64 @@ int DivEngine::getEffectiveSampleRate(int rate) {
       break;
   }
   return rate;
+}
+
+short DivEngine::splitNoteToNote(short note, short octave) {
+  if (note==100) {
+    return DIV_NOTE_OFF;
+  } else if (note==101) {
+    return DIV_NOTE_REL;
+  } else if (note==102) {
+    return DIV_MACRO_REL;
+  } else if (note==0 && octave!=0) {
+    // "BUG" note!
+    return DIV_NOTE_NULL_PAT;
+  } else if (note==0 && octave==0) {
+    return -1;
+  } else {
+    int seek=(note+(signed char)octave*12)+60;
+    if (seek<0 || seek>=180) {
+      return DIV_NOTE_NULL_PAT;
+    } else {
+      return seek;
+    }
+  }
+
+  return -1;
+}
+
+void DivEngine::noteToSplitNote(short note, short& outNote, short& outOctave) {
+  switch (note) {
+    case DIV_NOTE_OFF:
+      outNote=100;
+      outOctave=0;
+      break;
+    case DIV_NOTE_REL:
+      outNote=101;
+      outOctave=0;
+      break;
+    case DIV_MACRO_REL:
+      outNote=102;
+      outOctave=0;
+      break;
+    case DIV_NOTE_NULL_PAT:
+      // "BUG" note!
+      outNote=0;
+      outOctave=1;
+      break;
+    case -1:
+      outNote=0;
+      outOctave=0;
+      break;
+    default:
+      outNote=note%12;
+      outOctave=(unsigned char)(note-60)/12;
+      if (outNote==0) {
+        outNote=12;
+        outOctave--;
+      }
+      break;
+  }
 }
 
 void DivEngine::previewSample(int sample, int note, int pStart, int pEnd) {
@@ -2647,6 +2707,9 @@ int DivEngine::addInstrument(int refChan, DivInstrumentType fallbackType) {
   song.ins.push_back(ins);
   song.insLen=insCount+1;
   checkAssetDir(song.insDir,song.ins.size());
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].dispatch->notifyInsAddition(i);
+  }
   saveLock.unlock();
   BUSY_END;
   return insCount;
@@ -2664,6 +2727,9 @@ int DivEngine::addInstrumentPtr(DivInstrument* which) {
   checkAssetDir(song.insDir,song.ins.size());
   checkAssetDir(song.waveDir,song.wave.size());
   checkAssetDir(song.sampleDir,song.sample.size());
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].dispatch->notifyInsAddition(i);
+  }
   saveLock.unlock();
   BUSY_END;
   return song.insLen;
@@ -2675,6 +2741,9 @@ void DivEngine::loadTempIns(DivInstrument* which) {
     tempIns=new DivInstrument;
   }
   *tempIns=*which;
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].dispatch->notifyInsAddition(i);
+  }
   BUSY_END;
 }
 
@@ -2691,8 +2760,8 @@ void DivEngine::delInstrumentUnsafe(int index) {
         for (int k=0; k<DIV_MAX_PATTERNS; k++) {
           if (song.subsong[j]->pat[i].data[k]==NULL) continue;
           for (int l=0; l<song.subsong[j]->patLen; l++) {
-            if (song.subsong[j]->pat[i].data[k]->data[l][2]>index) {
-              song.subsong[j]->pat[i].data[k]->data[l][2]--;
+            if (song.subsong[j]->pat[i].data[k]->newData[l][DIV_PAT_INS]>index) {
+              song.subsong[j]->pat[i].data[k]->newData[l][DIV_PAT_INS]--;
             }
           }
         }
@@ -3053,7 +3122,7 @@ void DivEngine::deepCloneOrder(int pos, bool where) {
         order[i]=j;
         DivPattern* oldPat=curPat[i].getPattern(origOrd,false);
         DivPattern* pat=curPat[i].getPattern(j,true);
-        memcpy(pat->data,oldPat->data,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short));
+        memcpy(pat->newData,oldPat->newData,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short));
         logD("found at %d",j);
         didNotFind=false;
         break;
@@ -3159,10 +3228,10 @@ void DivEngine::exchangeIns(int one, int two) {
       for (int k=0; k<DIV_MAX_PATTERNS; k++) {
         if (song.subsong[j]->pat[i].data[k]==NULL) continue;
         for (int l=0; l<song.subsong[j]->patLen; l++) {
-          if (song.subsong[j]->pat[i].data[k]->data[l][2]==one) {
-            song.subsong[j]->pat[i].data[k]->data[l][2]=two;
-          } else if (song.subsong[j]->pat[i].data[k]->data[l][2]==two) {
-            song.subsong[j]->pat[i].data[k]->data[l][2]=one;
+          if (song.subsong[j]->pat[i].data[k]->newData[l][DIV_PAT_INS]==one) {
+            song.subsong[j]->pat[i].data[k]->newData[l][DIV_PAT_INS]=two;
+          } else if (song.subsong[j]->pat[i].data[k]->newData[l][DIV_PAT_INS]==two) {
+            song.subsong[j]->pat[i].data[k]->newData[l][DIV_PAT_INS]=one;
           }
         }
       }
@@ -3729,6 +3798,21 @@ TAAudioDesc& DivEngine::getAudioDescGot() {
   return got;
 }
 
+TAAudioDeviceStatus DivEngine::getAudioDeviceStatus() {
+  if (output==NULL) return TA_AUDIO_DEVICE_OK;
+  return output->getDeviceStatus();
+}
+
+void DivEngine::acceptAudioDeviceStatus() {
+  if (output==NULL) return;
+  output->acceptDeviceStatus();
+}
+
+int DivEngine::audioBackendCommand(TAAudioCommand which) {
+  if (output==NULL) return -1;
+  return output->specialCommand(which);
+}
+
 std::vector<String>& DivEngine::getAudioDevices() {
   return audioDevs;
 }
@@ -3843,6 +3927,8 @@ bool DivEngine::initAudioBackend() {
       audioEngine=DIV_AUDIO_JACK;
     } else if (getConfString("audioEngine","SDL")=="PortAudio") {
       audioEngine=DIV_AUDIO_PORTAUDIO;
+    } else if (getConfString("audioEngine","SDL")=="ASIO") {
+      audioEngine=DIV_AUDIO_ASIO;
     } else {
       audioEngine=DIV_AUDIO_SDL;
     }
@@ -3904,6 +3990,21 @@ bool DivEngine::initAudioBackend() {
 #endif
 #else
       output=new TAAudioPA;
+#endif
+      break;
+    case DIV_AUDIO_ASIO:
+#ifndef HAVE_ASIO
+      logE("Furnace was not compiled with ASIO support!");
+      setConf("audioEngine","SDL");
+      saveConf();
+#ifdef HAVE_SDL2
+      output=new TAAudioSDL;
+#else
+      logE("Furnace was not compiled with SDL support either!");
+      output=new TAAudio;
+#endif
+#else
+      output=new TAAudioASIO;
 #endif
       break;
     case DIV_AUDIO_SDL:
@@ -4158,10 +4259,6 @@ bool DivEngine::init() {
   }
   for (int i=0; i<128; i++) {
     tremTable[i]=255*0.5*(1.0-cos(((double)i/128.0)*(2*M_PI)));
-  }
-  for (int i=0; i<4096; i++) {
-    reversePitchTable[i]=round(1024.0*pow(2.0,(2048.0-(double)i)/(12.0*128.0)));
-    pitchTable[i]=round(1024.0*pow(2.0,((double)i-2048.0)/(12.0*128.0)));
   }
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {

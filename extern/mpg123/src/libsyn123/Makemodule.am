@@ -1,0 +1,32 @@
+# Module for non-recursive mpg123 build system.
+
+# This bulds libsyn123, a basic library for some sound synthesis
+# and format conversion for the mpg123 project.
+
+if BUILD_LIBSYN123
+include_HEADERS += src/include/syn123.h
+
+lib_LTLIBRARIES += src/libsyn123/libsyn123.la
+endif
+
+src_libsyn123_libsyn123_la_CFLAGS = @LIB_CFLAGS@
+
+src_libsyn123_libsyn123_la_LDFLAGS = \
+  -no-undefined \
+  -version-info @LIBSYN123_VERSION@ \
+  -export-symbols-regex '^syn123_'
+
+src_libsyn123_libsyn123_la_LIBADD = \
+  src/compat/libcompat_str.la \
+  @LIBSYN123_LIBS@
+
+src_libsyn123_libsyn123_la_SOURCES = \
+  src/libsyn123/syn123_int.h \
+  src/libsyn123/g711_impl.h \
+  src/libsyn123/pinknoise.c \
+  src/libsyn123/geiger.c \
+  src/libsyn123/libsyn123.c \
+  src/libsyn123/volume.c \
+  src/libsyn123/resample.c \
+  src/libsyn123/filter.c \
+  src/libsyn123/sampleconv.c

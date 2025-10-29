@@ -1,0 +1,209 @@
+The libmpg123 web of reader abstractions
+========================================
+
+Somehow the differing ways of getting compressed data into libmpg123 reached
+unholy numbers with the years. As keeper of the legacy, I got quite some of that
+to keep. There are intersectional layers ... however you might call it.
+
+An attempt to get an overview and be able to refactor that for the glorious
+portable API of mpg123 1.32.0.
+
+The frame struct has two parts concerned with input streams.
+
+	struct reader *rd; /* pointer to the reading functions */
+	struct reader_data rdat; /* reader data and state info */
+
+The distinction is blurred a bit: Over time, I added function pointers to
+the latter.
+
+1. Basic methods of data input for (seekable) streams
+-----------------------------------------------------
+
+These reside in the struct reader_data member of the frame struct (mpg123_handle), so
+normally fr->rdat. This is an assortment of (user-supplied) function pointers
+and stores the stream position and length. The latter was the initial purpose.
+
+1.1 Reader based around POSIX I/O
+---------------------------------
+
+This one relies on some read() and lseek() to give the input bytes. With an
+innocent mpg123_open(), you trigger compat_open() and further work on the
+resulting fd.
+
+But you can also do mpg123_open_fd() to provide the descriptor yourself. Same
+further code path, just no closing.
+
+1.1.1 Timeout read
+------------------
+
+The timeout reader is a variant that squeezes into the internal POSIX I/O with
+some fcntl() and select() on the file descriptor, and a separate reader callback
+stored as fdread().
+
+1.2 Replaced I/O on file descriptor
+-----------------------------------
+
+After calling mpg123_replace_reader(), you have your callbacks (or the respective
+fallback callback) operating on the file descriptor that could have resulted
+from internal opening or been handed over to libmpg123.
+
+1.3 Replaced I/O on custom handle
+---------------------------------
+
+This replaces both read() and lseek() with your callbacks and opening is
+full external, just the handle being handed over via mpg123_open_handle().
+
+1.4 Replaced I/O on custom handle using 64 bit offsets
+------------------------------------------------------
+
+This is to come, the above just with a differing style of callbacks that avoid
+off_t. I intend to pack all the above into wrapper code and have this whole
+first aspect of differing callbacks removed.
+
+
+2. Abstractions
+---------------
+
+The actual interface to the parser is given by instances of struct reader. This
+is usually accessed as fr->rd and contains function pointers to specific routines
+like fullread() and head_read(). These access the basic methods behind the scenes.
+
+There is overlap in the functions. The main differentiator is the fullread() call,
+which is the next layer of read(). I guess code sharing could be one excuse not
+to have each of these as a wholly separate I/O layer implementation.
+
+2.1 READER_STREAM
+-----------------
+
+This reader handles a plain possibly seekable input stream. It introduces the
+plain_fullread() function which loops over fr->rdat.fdread() until the desired
+bytes are aquired or EOF occurs. There is no signal handling. A return value
+less than zero is an error and the end, the function returning a short byte
+count. This function also advances fr->rdat.filepos if the reader is not
+buffered.
+
+2.2 READER_ICY_STREAM
+---------------------
+
+This replaces plain_fullread() with icy_fullread(), which looks out for ICY
+metadata at the configured interval. It resorts to fr->rdat.fdread() and
+plain_fullread() to do its chores.
+
+2.3 READER_FEED
+---------------
+
+The reader handling libmpg123 feeder mode. It stuffs data into an internal buffer
+and extracts from that, handing out READER_MORE as error to be recovered from
+when the client provides more data. It provides a bit of seeking within the
+buffer for parsing (look-ahead) purposes, before read data is purged from the
+buffer chain.
+
+The actual mid-level reader here is feed_read(), wrapping over the bufferchain data
+structre with its methods.
+
+2.4 READER_BUF_STREAM
+---------------------
+
+For some reason, I had to add a mode for a stream with some buffering
+(MPG123_SEEKBUFFER). Well ... yes, MPEG parsing is just more fun if you can peek
+ahead and have a little window of input data to work with. This used to employ
+buffered_fullread(), which in turn called fr->rdat.fullread(), which was
+plain_fullread() for this variant, and wraped a bufferchain around it.
+
+Now this got its separate buffered_plain_fullread() without the extra function
+pointer in fr->rdat.
+
+2.5 READER_BUF_ICY_STREAM
+-------------------------
+
+This is the same buffered reader but with buffered_icy_fullread() instead.
+
+
+3. Control flow for setting up a stream
+=======================================
+
+3.1 mpg123_open()
+-----------------
+
+Client code just opens a track or possibly called mpg123_replace_reader()
+beforehand, which does not change the opening behaviour.
+
+This accesses the given file path via compat_open(), stores a file descriptor,
+calls reader stream init which checks seekability (also fetching ID3v1) and
+stores file size. This results in one of the READER_*STREAM family.
+
+The lfs_wrap machinery gets triggrered and inserts its callbacks, working
+on the prepared wrapper data.
+
+3.2 mpg123_open_fd()
+--------------------
+
+This just skips the compat_open() and stores the given file descriptor, assuming
+that it works with the configured callbacks. The same dance with stream setup.
+
+The lfs_wrap machinery gets triggrered and inserts its callbacks, working
+on the prepared wrapper data.
+
+3.3 mpg123_open_handle()
+------------------------
+
+Also skips the opening, stores the handle and does the stream setup.
+
+This shall not trigger callback insertion. The idea is that the user did
+call mpg123_reader64() or a wrapper variant of it before. The wrapper code
+itself finalizes its work with a call to mpg123_reader64().
+
+Oh, wait. What about the other wrapper calls? Client code calls
+mpg123_replace_reader_handle() with its callbacks, be it off_t or off64_t.
+This needs to trigger preparation of wrapperdata and installment of wrapper
+callbacks via mpg123_reader64(). A subsequent mpg123_open_handle() needs
+to store the actual client handle inside the wrapperdata structure and use
+the latter as iohandle for stream operation. I need tell apart internal and
+external use of mpg123_reader64().
+
+So store a flag for that? Is there another way without introducing yet another
+function? Well, the wrapperdata can have two states that fit this scenario:
+
+- not present at all
+- present with a respective state set
+
+I want to avoid unnecessary allocation of the wrapperdata (just because I am that
+kind of person). So I need to ensure that INT123_wrap_open() when called with
+an external handle and not encountering an existing wrapperdata instance, does not
+allocate one, but just silently does nothing, as there is nothing to do. Well,
+it can check if callbacks are in place. At least that.
+
+
+3.4 mpg123_open_feed()
+----------------------
+
+Prepares for the non-seekable feeder mode, limited stream setup because peeking
+at the end won't work.
+
+This does not trigger the wrapper ... except ... should it unregister its
+callbacks? No. The code path of the feeder is separate enough that it does
+not interfere.
+
+
+4. Plan
+=======
+
+Keep the abstractions in readers.c, move all variants of POSIX-like callback stuff
+into the wrapper section (lfs_wrap.c for now). In theory, the buffer chain for
+the feeder could also be moved into a variant hidden behind mpg123_reader64(). Maybe
+in the future. At some point.
+
+I don't want any mpg123 internals regarding the frame struct in the wrapper
+implementation. So maybe lfs_wrap.c only offers wrapper setup as such and
+libmpg123.c does the actual stream opening? No. The explicit largefile stuff
+needs to be handled (O_LARGEFILE). But the further stream setup ... that
+should happen in mpg123_open() and friends, after reader handle setup.
+
+I still need fr->rdat.flags for selecting buffered etc., but not for
+READER_FD_OPENEND or READER_NONBLOCK.
+
+Both fr->rdat.fullread and fr->rdat.fdread are gone now. The picture is getting
+clearer.
+
+I made the static functions fdread() and fdseek() robust against missing
+callbacks. It's a question if we'd rather want to catch those earlier, though.

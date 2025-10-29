@@ -270,7 +270,7 @@ int convert_vrc6_duties[4] = {1, 3, 7, 3};
 
 int findEmptyFx(short* data) {
   for (int i=0; i<7; i++) {
-    if (data[4+i*2]==-1) return i;
+    if (data[DIV_PAT_FX(i)]==-1) return i;
   }
   return -1;
 }
@@ -1752,17 +1752,13 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
             if (map_channels[ch] != 0xff) {
               if (nextNote == 0x0d) {
-                pat->data[row][0] = 101;
+                pat->newData[row][DIV_PAT_NOTE] = DIV_NOTE_REL;
               } else if (nextNote == 0x0e) {
-                pat->data[row][0] = 100;
-              } else if (nextNote == 0x01) {
-                pat->data[row][0] = 12;
-                pat->data[row][1] = nextOctave - 1;
+                pat->newData[row][DIV_PAT_NOTE] = DIV_NOTE_OFF;
               } else if (nextNote == 0) {
-                pat->data[row][0] = 0;
+                pat->newData[row][DIV_PAT_NOTE] = -1;
               } else if (nextNote < 0x0d) {
-                pat->data[row][0] = nextNote - 1;
-                pat->data[row][1] = nextOctave;
+                pat->newData[row][DIV_PAT_NOTE] = nextOctave*12 + (nextNote - 1) + 60;
               }
             }
 
@@ -1770,27 +1766,27 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
             // TODO: you sure about 0xff?
             if (map_channels[ch] != 0xff) {
               if (nextIns < 0x40 && nextNote != 0x0d && nextNote != 0x0e) {
-                pat->data[row][2] = nextIns;
+                pat->newData[row][DIV_PAT_INS] = nextIns;
               } else {
-                pat->data[row][2] = -1;
+                pat->newData[row][DIV_PAT_INS] = -1;
               }
             }
 
             unsigned char nextVol = reader.readC();
             if (map_channels[ch] != 0xff) {
               if (nextVol < 0x10) {
-                pat->data[row][3] = nextVol;
+                pat->newData[row][DIV_PAT_VOL] = nextVol;
                 if (map_channels[ch] == vrc6_saw_chan) // scale volume
                 {
                   // TODO: shouldn't it be 32?
-                  pat->data[row][3] = (pat->data[row][3] * 42) / 15;
+                  pat->newData[row][DIV_PAT_VOL] = (pat->newData[row][DIV_PAT_VOL] * 42) / 15;
                 }
 
                 if (map_channels[ch] == fds_chan) {
-                  pat->data[row][3] = (pat->data[row][3] * 31) / 15;
+                  pat->newData[row][DIV_PAT_VOL] = (pat->newData[row][DIV_PAT_VOL] * 31) / 15;
                 }
               } else {
-                pat->data[row][3] = -1;
+                pat->newData[row][DIV_PAT_VOL] = -1;
               }
             }
 
@@ -1829,15 +1825,15 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                 if (nextEffect == FT_EF_SPEED && nextEffectVal < 20)
                   nextEffectVal++;
 
-                if (pat->data[row][3] == 0)
-                  pat->data[row][3] = 0xf;
+                if (pat->newData[row][DIV_PAT_VOL] == 0)
+                  pat->newData[row][DIV_PAT_VOL] = 0xf;
                 else {
-                  pat->data[row][3]--;
-                  pat->data[row][3] &= 0x0F;
+                  pat->newData[row][DIV_PAT_VOL]--;
+                  pat->newData[row][DIV_PAT_VOL] &= 0x0F;
                 }
 
-                if (pat->data[row][0] == 0)
-                  pat->data[row][2] = -1;
+                if (pat->newData[row][DIV_PAT_NOTE] == -1)
+                  pat->newData[row][DIV_PAT_INS] = -1;
               }
 
               if (blockVersion == 3) {
@@ -1902,43 +1898,43 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
               if (map_channels[ch] != 0xff) {
                 if (nextEffect == 0 && nextEffectVal == 0) {
-                  pat->data[row][4 + (j * 2)] = -1;
-                  pat->data[row][5 + (j * 2)] = -1;
+                  pat->newData[row][DIV_PAT_FX(j)] = -1;
+                  pat->newData[row][DIV_PAT_FXVAL(j)] = -1;
                 } else {
                   if ((eft && nextEffect<eftEffectMapSize) || (!eft && nextEffect<ftEffectMapSize)) {
                     if (eft) {
-                      pat->data[row][4 + (j * 2)] = eftEffectMap[nextEffect];
-                      pat->data[row][5 + (j * 2)] = eftEffectMap[nextEffect] == -1 ? -1 : nextEffectVal;
+                      pat->newData[row][DIV_PAT_FX(j)] = eftEffectMap[nextEffect];
+                      pat->newData[row][DIV_PAT_FXVAL(j)] = eftEffectMap[nextEffect] == -1 ? -1 : nextEffectVal;
 
-                      if (pat->data[row][4 + (j * 2)] == 0x100) {
-                        pat->data[row][3] += pat->data[row][5 + (j * 2)] ? 0x10 : 0; // extra volume bit for AY8930
-                        pat->data[row][4 + (j * 2)] = -1;
-                        pat->data[row][5 + (j * 2)] = -1;
+                      if (pat->newData[row][DIV_PAT_FX(j)] == 0x100) {
+                        pat->newData[row][DIV_PAT_VOL] += pat->newData[row][DIV_PAT_FXVAL(j)] ? 0x10 : 0; // extra volume bit for AY8930
+                        pat->newData[row][DIV_PAT_FX(j)] = -1;
+                        pat->newData[row][DIV_PAT_FXVAL(j)] = -1;
                       }
 
                       if (eftEffectMap[nextEffect] == 0x0f && nextEffectVal > 0x1f) {
-                        pat->data[row][4 + (j * 2)] = 0xfd; // BPM speed change!
+                        pat->newData[row][DIV_PAT_FX(j)] = 0xfd; // BPM speed change!
                       }
 
                       if ((eftEffectMap[nextEffect] == 0xe1 || eftEffectMap[nextEffect] == 0xe2) && (nextEffectVal & 0xf0) == 0) {
-                        pat->data[row][5 + (j * 2)] |= 0x10; // in FamiTracker if e1/e2 commands speed is 0 the portamento still has some speed!
+                        pat->newData[row][DIV_PAT_FXVAL(j)] |= 0x10; // in FamiTracker if e1/e2 commands speed is 0 the portamento still has some speed!
                       }
                     } else {
-                      pat->data[row][4 + (j * 2)] = ftEffectMap[nextEffect];
-                      pat->data[row][5 + (j * 2)] = ftEffectMap[nextEffect] == -1 ? -1 : nextEffectVal;
+                      pat->newData[row][DIV_PAT_FX(j)] = ftEffectMap[nextEffect];
+                      pat->newData[row][DIV_PAT_FXVAL(j)] = ftEffectMap[nextEffect] == -1 ? -1 : nextEffectVal;
 
                       if (ftEffectMap[nextEffect] == 0x0f && nextEffectVal > 0x1f) {
-                        pat->data[row][4 + (j * 2)] = 0xfd; // BPM speed change!
+                        pat->newData[row][DIV_PAT_FX(j)] = 0xfd; // BPM speed change!
                       }
 
                       if ((ftEffectMap[nextEffect] == 0xe1 || ftEffectMap[nextEffect] == 0xe2) && (nextEffectVal & 0xf0) == 0) {
-                        pat->data[row][5 + (j * 2)] |= 0x10; // in FamiTracker if e1/e2 commands speed is 0 the portamento still has some speed!
+                        pat->newData[row][DIV_PAT_FXVAL(j)] |= 0x10; // in FamiTracker if e1/e2 commands speed is 0 the portamento still has some speed!
                       }
                     }
                     for (int v = 0; v < 8; v++) {
                       if (map_channels[ch] == n163_chans[v]) {
-                        if (pat->data[row][4 + (j * 2)] == 0x12) {
-                          pat->data[row][4 + (j * 2)] = 0x110; // N163 wave change (we'll map this later)
+                        if (pat->newData[row][DIV_PAT_FX(j)] == 0x12) {
+                          pat->newData[row][DIV_PAT_FX(j)] = 0x110; // N163 wave change (we'll map this later)
                         }
                       }
                     }
@@ -1947,23 +1943,24 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                     {
                       if (map_channels[ch] == vrc7_chans[vrr])
                       {
-                        if (pat->data[row][4 + (j * 2)] == 0x12)
+                        if (pat->newData[row][DIV_PAT_FX(j)] == 0x12)
                         {
-                          pat->data[row][4 + (j * 2)] = 0x10; // set VRC7 patch
+                          pat->newData[row][DIV_PAT_FX(j)] = 0x10; // set VRC7 patch
                         }
                       }
                     }
 
                     for (int v = 0; v < 3; v++) {
                       if (map_channels[ch] == s5b_chans[v] || map_channels[ch] == ay8930_chans[v]) {
-                        if (pat->data[row][4 + (j * 2)] == 0x22 && (pat->data[row][5 + (j * 2)] & 0xf0) != 0) {
-                          pat->data[row][4 + (7 * 2)] = -666; //marker
+                        if (pat->newData[row][DIV_PAT_FX(j)] == 0x22 && (pat->newData[row][DIV_PAT_FXVAL(j)] & 0xf0) != 0) {
+                          // TODO: in the second stage of pattern refactor this will have to change.
+                          pat->newData[row][DIV_PAT_FX(7)] = -666; //marker
                         }
                       }
                     }
                   } else {
-                    pat->data[row][4 + (j * 2)] = -1;
-                    pat->data[row][5 + (j * 2)] = -1;
+                    pat->newData[row][DIV_PAT_FX(j)] = -1;
+                    pat->newData[row][DIV_PAT_FXVAL(j)] = -1;
                   }
                 }
               }
@@ -2374,7 +2371,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         CHECK_BLOCK_VERSION(3);
         unsigned int linear_pitch = reader.readI();
 
-        ds.linearPitch = linear_pitch == 0 ? 0 : 2;
+        ds.linearPitch = linear_pitch == 0 ? 0 : 1;
 
         if (blockVersion >= 2) {
           int fineTuneCents = reader.readC() * 100;
@@ -2438,8 +2435,8 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                   if (ds.subsong[j]->pat[ii].data[k] == NULL)
                     continue;
                   for (int l = 0; l < ds.subsong[j]->patLen; l++) {
-                    if (ds.subsong[j]->pat[ii].data[k]->data[l][2] > index) {
-                      ds.subsong[j]->pat[ii].data[k]->data[l][2]--;
+                    if (ds.subsong[j]->pat[ii].data[k]->newData[l][DIV_PAT_INS] > index) {
+                      ds.subsong[j]->pat[ii].data[k]->newData[l][DIV_PAT_INS]--;
                     }
                   }
                 }
@@ -2456,12 +2453,12 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           if (ds.subsong[j]->pat[ii].data[k] == NULL)
             continue;
           for (int l = 0; l < ds.subsong[j]->patLen; l++) {
-            if (ds.subsong[j]->pat[ii].data[k]->data[l][4 + 7*2] == -666) {
+            if (ds.subsong[j]->pat[ii].data[k]->newData[l][DIV_PAT_FX(7)] == -666) {
               bool converted = false;
               // for()? if()? THESE ARE NOT FUNCTIONS!
               for (int hh = 0; hh < 7; hh++) { // oh and now you 1TBS up. oh man...
-                if (ds.subsong[j]->pat[ii].data[k]->data[l][4 + hh*2] == 0x22 && !converted) {
-                  int slot = findEmptyFx(ds.subsong[j]->pat[ii].data[k]->data[l]);
+                if (ds.subsong[j]->pat[ii].data[k]->newData[l][DIV_PAT_FX(hh)] == 0x22 && !converted) {
+                  int slot = findEmptyFx(ds.subsong[j]->pat[ii].data[k]->newData[l]);
                   if (slot != -1) {
                     // space your comments damn it!
                     // Hxy - Envelope automatic pitch
@@ -2469,7 +2466,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                     // Sets envelope period to the note period shifted by x and envelope type y.
                     // Approximate envelope frequency is note frequency * (2^|x - 8|) / 32.
 
-                    int ftAutoEnv = (ds.subsong[j]->pat[ii].data[k]->data[l][5 + hh*2] >> 4) & 15;
+                    int ftAutoEnv = (ds.subsong[j]->pat[ii].data[k]->newData[l][DIV_PAT_FXVAL(hh)] >> 4) & 15;
                     int autoEnvDen = 16; // ???? with 32 it's an octave lower...
                     int autoEnvNum = (1 << (abs(ftAutoEnv - 8)));
 
@@ -2479,18 +2476,18 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                     }
 
                     if (autoEnvDen < 16 && autoEnvNum < 16) {
-                      ds.subsong[j]->pat[ii].data[k]->data[l][4 + slot*2] = 0x29;
-                      ds.subsong[j]->pat[ii].data[k]->data[l][5 + slot*2] = (autoEnvNum << 4) | autoEnvDen;
+                      ds.subsong[j]->pat[ii].data[k]->newData[l][DIV_PAT_FX(slot)] = 0x29;
+                      ds.subsong[j]->pat[ii].data[k]->newData[l][DIV_PAT_FXVAL(slot)] = (autoEnvNum << 4) | autoEnvDen;
                     }
 
-                    ds.subsong[j]->pat[ii].data[k]->data[l][5 + hh*2] = (ds.subsong[j]->pat[ii].data[k]->data[l][5 + hh*2] & 0xf) << 4;
+                    ds.subsong[j]->pat[ii].data[k]->newData[l][DIV_PAT_FXVAL(hh)] = (ds.subsong[j]->pat[ii].data[k]->newData[l][DIV_PAT_FXVAL(hh)] & 0xf) << 4;
 
                     converted = true;
                   }
                 }
               }
 
-              ds.subsong[j]->pat[ii].data[k]->data[l][4 + (7 * 2)] = -1; //delete marker
+              ds.subsong[j]->pat[ii].data[k]->newData[l][DIV_PAT_FX(7)] = -1; //delete marker
             }
           }
         }
@@ -2506,10 +2503,10 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         for (int p = 0; p < s->ordersLen; p++) {
           for (int r = 0; r < s->patLen; r++) {
             DivPattern* pat = s->pat[c].getPattern(s->orders.ord[c][p], true);
-            short* s_row_data = pat->data[r];
+            short* s_row_data = pat->newData[r];
 
             for (int eff = 0; eff < DIV_MAX_EFFECTS - 1; eff++) {
-              if (s_row_data[4 + 2 * eff] != -1 && eff + 1 > num_fx) {
+              if (s_row_data[DIV_PAT_FX(eff)] != -1 && eff + 1 > num_fx) {
                   num_fx = eff + 1;
               }
             }
@@ -2556,7 +2553,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
               continue;
             for (int l = 0; l < ds.subsong[j]->patLen; l++) {
               // 1TBS > GNU
-              if (ds.subsong[j]->pat[ii].data[k]->data[l][2] == i) { // instrument
+              if (ds.subsong[j]->pat[ii].data[k]->newData[l][DIV_PAT_INS] == i) { // instrument
                 DivInstrument* ins = ds.ins[i];
                 bool go_to_end = false;
 
@@ -2606,7 +2603,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
             if (ds.subsong[j]->pat[ii].data[k] == NULL)
               continue;
             for (int l = 0; l < ds.subsong[j]->patLen; l++) {
-              if (ds.subsong[j]->pat[ii].data[k]->data[l][2] == i) // instrument
+              if (ds.subsong[j]->pat[ii].data[k]->newData[l][DIV_PAT_INS] == i) // instrument
               {
                 DivInstrument* ins = ds.ins[i];
                 bool go_to_end = false;
@@ -2658,7 +2655,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
             if (ds.subsong[j]->pat[ii].data[k] == NULL)
               continue;
             for (int l = 0; l < ds.subsong[j]->patLen; l++) {
-              if (ds.subsong[j]->pat[ii].data[k]->data[l][2] == i) // instrument
+              if (ds.subsong[j]->pat[ii].data[k]->newData[l][DIV_PAT_INS] == i) // instrument
               {
                 DivInstrument* ins = ds.ins[i];
                 bool go_to_end = false;
@@ -2729,17 +2726,17 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
               if (ds.subsong[j]->pat[ii].data[k] == NULL)
                 continue;
               for (int l = 0; l < ds.subsong[j]->patLen; l++) {
-                if (ds.subsong[j]->pat[ii].data[k]->data[l][2] == ins_vrc6_conv[i][0] && (ii == vrc6_chans[0] || ii == vrc6_chans[1])) // change ins index
+                if (ds.subsong[j]->pat[ii].data[k]->newData[l][DIV_PAT_INS] == ins_vrc6_conv[i][0] && (ii == vrc6_chans[0] || ii == vrc6_chans[1])) // change ins index
                 {
-                  ds.subsong[j]->pat[ii].data[k]->data[l][2] = ins_vrc6_conv[i][1];
+                  ds.subsong[j]->pat[ii].data[k]->newData[l][DIV_PAT_INS] = ins_vrc6_conv[i][1];
                 }
 
-                if (ds.subsong[j]->pat[ii].data[k]->data[l][2] == ins_vrc6_saw_conv[i][0] && ii == vrc6_saw_chan) {
-                  ds.subsong[j]->pat[ii].data[k]->data[l][2] = ins_vrc6_saw_conv[i][1];
+                if (ds.subsong[j]->pat[ii].data[k]->newData[l][DIV_PAT_INS] == ins_vrc6_saw_conv[i][0] && ii == vrc6_saw_chan) {
+                  ds.subsong[j]->pat[ii].data[k]->newData[l][DIV_PAT_INS] = ins_vrc6_saw_conv[i][1];
                 }
 
-                if (ds.subsong[j]->pat[ii].data[k]->data[l][2] == ins_nes_conv[i][0] && (ii == mmc5_chans[0] || ii == mmc5_chans[1] || ii < 5)) {
-                  ds.subsong[j]->pat[ii].data[k]->data[l][2] = ins_nes_conv[i][1];
+                if (ds.subsong[j]->pat[ii].data[k]->newData[l][DIV_PAT_INS] == ins_nes_conv[i][0] && (ii == mmc5_chans[0] || ii == mmc5_chans[1] || ii < 5)) {
+                  ds.subsong[j]->pat[ii].data[k]->newData[l][DIV_PAT_INS] = ins_nes_conv[i][1];
                 }
               }
             }
@@ -2785,19 +2782,19 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           DivPattern* p=i->pat[j].getPattern(i->orders.ord[j][k],true);
           for (int l=0; l<i->patLen; l++) {
             // check for instrument change
-            if (p->data[l][2]!=-1) {
-              curWaveOff=n163WaveOff[p->data[l][2]&127];
+            if (p->newData[l][DIV_PAT_INS]!=-1) {
+              curWaveOff=n163WaveOff[p->newData[l][DIV_PAT_INS]&127];
             }
 
             // check effect columns for 0x110 (dummy wave change)
             for (int m=0; m<i->pat[j].effectCols; m++) {
-              if (p->data[l][4+(m<<1)]==0x110) {
+              if (p->newData[l][DIV_PAT_FX(m)]==0x110) {
                 // map wave
-                p->data[l][4+(m<<1)]=0x10;
-                if (p->data[l][5+(m<<1)]==-1) {
-                  p->data[l][5+(m<<1)]=curWaveOff&0xff;
+                p->newData[l][DIV_PAT_FX(m)]=0x10;
+                if (p->newData[l][DIV_PAT_FXVAL(m)]==-1) {
+                  p->newData[l][DIV_PAT_FXVAL(m)]=curWaveOff&0xff;
                 } else {
-                  p->data[l][5+(m<<1)]=(p->data[l][5+(m<<1)]+curWaveOff)&0xff;
+                  p->newData[l][DIV_PAT_FXVAL(m)]=(p->newData[l][DIV_PAT_FXVAL(m)]+curWaveOff)&0xff;
                 }
               }
             }

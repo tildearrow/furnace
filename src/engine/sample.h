@@ -243,7 +243,7 @@ struct DivSample {
    * @param count number of samples.
    * @return whether it was successful.
    */
-  bool init(unsigned int count);
+  bool init(int count);
 
   /**
    * resize sample data. make sure the sample has been initialized before doing so.

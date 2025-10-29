@@ -1893,7 +1893,7 @@ void DivInstrument::readFeatureMA(SafeReader& reader, short version) {
         target=&std.ex10Macro;
         break;
       default:
-        logW("invalid macro code %d!");
+        logW("invalid macro code %d!", macroCode);
         break;
     }
 

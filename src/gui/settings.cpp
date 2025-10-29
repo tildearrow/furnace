@@ -26,7 +26,6 @@
 #include "util.h"
 #include "guiConst.h"
 #include "intConst.h"
-#include "ImGuiFileDialog.h"
 #include "IconsFontAwesome4.h"
 #include "furIcons.h"
 #include "misc/cpp/imgui_stdlib.h"
@@ -131,7 +130,10 @@ const char* patFonts[]={
 const char* audioBackends[]={
   "JACK",
   "SDL",
-  "PortAudio"
+  "PortAudio",
+  // pipe (invalid choice in GUI)
+  "Uhh, can you explain to me what exactly you were trying to do?",
+  "ASIO"
 };
 
 const char* audioQualities[]={
@@ -854,15 +856,6 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
-        bool newPatternFormatB=settings.newPatternFormat;
-        if (ImGui::Checkbox(_("Use new pattern format when saving"),&newPatternFormatB)) {
-          settings.newPatternFormat=newPatternFormatB;
-          settingsChanged=true;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("use a packed format which saves space when saving songs.\ndisable if you need compatibility with older Furnace and/or tools\nwhich do not support this format."));
-        }
-
         bool noDMFCompatB=settings.noDMFCompat;
         if (ImGui::Checkbox(_("Don't apply compatibility flags when loading .dmf"),&noDMFCompatB)) {
           settings.noDMFCompat=noDMFCompatB;
@@ -1162,8 +1155,9 @@ void FurnaceGUI::drawSettings() {
           settings.newSongBehavior=1;
           settingsChanged=true;
         }
-        if (ImGui::InputText(_("Default author name"), &settings.defaultAuthorName)) settingsChanged=true;
         ImGui::Unindent();
+
+        if (ImGui::InputText(_("Default author name"),&settings.defaultAuthorName)) settingsChanged=true;
 
         // SUBSECTION START-UP
         CONFIG_SUBSECTION(_("Start-up"));
@@ -1230,6 +1224,14 @@ void FurnaceGUI::drawSettings() {
           settings.s3mOPL3=s3mOPL3B;
           settingsChanged=true;
         }
+        bool sampleImportInstDetuneB=settings.sampleImportInstDetune;
+        if (ImGui::Checkbox(_("Load sample fine tuning when importing a sample"),&sampleImportInstDetuneB)) {
+          settings.sampleImportInstDetune=sampleImportInstDetuneB;
+          settingsChanged=true;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("this may result in glitches with some samples."));
+        }
 
 #ifdef ANDROID
         // SUBSECTION ANDROID
@@ -1249,7 +1251,7 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::BeginTable("##Output",2)) {
           ImGui::TableSetupColumn("##Label",ImGuiTableColumnFlags_WidthFixed);
           ImGui::TableSetupColumn("##Combo",ImGuiTableColumnFlags_WidthStretch);
-#if defined(HAVE_JACK) || defined(HAVE_PA)
+#if defined(HAVE_JACK) || defined(HAVE_PA) || defined(HAVE_ASIO)
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
@@ -1270,6 +1272,12 @@ void FurnaceGUI::drawSettings() {
 #ifdef HAVE_PA
             if (ImGui::Selectable("PortAudio",settings.audioEngine==DIV_AUDIO_PORTAUDIO)) {
               settings.audioEngine=DIV_AUDIO_PORTAUDIO;
+              settingsChanged=true;
+            }
+#endif
+#ifdef HAVE_ASIO
+            if (ImGui::Selectable("ASIO",settings.audioEngine==DIV_AUDIO_ASIO)) {
+              settings.audioEngine=DIV_AUDIO_ASIO;
               settingsChanged=true;
             }
 #endif
@@ -1336,6 +1344,15 @@ void FurnaceGUI::drawSettings() {
                 }
               }
               ImGui::EndCombo();
+            }
+          }
+
+          if (settings.audioEngine==DIV_AUDIO_ASIO) {
+            ImGui::SameLine();
+            if (ImGui::Button(_("Control panel"))) {
+              if (e->audioBackendCommand(TA_AUDIO_CMD_SETUP)!=1) {
+                showError(_("this driver doesn't have a control panel."));
+              }
             }
           }
 
@@ -3839,14 +3856,36 @@ void FurnaceGUI::drawSettings() {
         // SUBSECTION SONG COMMENTS
         CONFIG_SUBSECTION(_("Song Comments"));
         bool songNotesWrapB=settings.songNotesWrap;
-        if (ImGui::Checkbox(_("Wrap text"), &songNotesWrapB)) {
+        if (ImGui::Checkbox(_("Wrap text"),&songNotesWrapB)) {
           settings.songNotesWrap=songNotesWrapB;
           settingsChanged=true;
         }
-        settings.songNotesWrap=false;
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("Sorry, but, can you leave me alone?\nThere's plenty of other settings here for you to mess with."));
+
+        // SUBSECTION CHIP MANAGER
+        CONFIG_SUBSECTION(_("Chip Manager"));
+        bool rackShowLEDsB=settings.rackShowLEDs;
+        if (ImGui::Checkbox(_("Show channel indicators"),&rackShowLEDsB)) {
+          settings.rackShowLEDs=rackShowLEDsB;
+          settingsChanged=true;
         }
+
+        // SUBSECTION MIXER
+        CONFIG_SUBSECTION(_("Mixer"))
+        ImGui::Text(_("Mixer style:"));
+        ImGui::Indent();
+        if (ImGui::RadioButton(_("No volume meters"),settings.mixerStyle==0)) {
+          settings.mixerStyle=0;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton(_("Volume meters to the side"),settings.mixerStyle==1)) {
+          settings.mixerStyle=1;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton(_("Volume meters in volume sliders"),settings.mixerStyle==2)) {
+          settings.mixerStyle=2;
+          settingsChanged=true;
+        }
+        ImGui::Unindent();
 
         // SUBSECTION WINDOWS
         CONFIG_SUBSECTION(_("Windows"));
@@ -4030,6 +4069,7 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_FILE_SONG_IMPORT,_("Song (import)"));
           UI_COLOR_CONFIG(GUI_COLOR_FILE_INSTR,_("Instrument"));
           UI_COLOR_CONFIG(GUI_COLOR_FILE_AUDIO,_("Audio"));
+          UI_COLOR_CONFIG(GUI_COLOR_FILE_AUDIO_COMPRESSED,_("Audio (compressed)"));
           UI_COLOR_CONFIG(GUI_COLOR_FILE_WAVE,_("Wavetable"));
           UI_COLOR_CONFIG(GUI_COLOR_FILE_VGM,_("VGM"));
           UI_COLOR_CONFIG(GUI_COLOR_FILE_ZSM,_("ZSM"));
@@ -4868,7 +4908,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.noMaximizeWorkaround=conf.getInt("noMaximizeWorkaround",0);
 
     settings.compress=conf.getInt("compress",1);
-    settings.newPatternFormat=conf.getInt("newPatternFormat",1);
     settings.newSongBehavior=conf.getInt("newSongBehavior",0);
     settings.playOnLoad=conf.getInt("playOnLoad",0);
     settings.centerPopup=conf.getInt("centerPopup",1);
@@ -4877,6 +4916,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.vibrationLength=conf.getInt("vibrationLength",20);
 
     settings.s3mOPL3=conf.getInt("s3mOPL3",1);
+    settings.sampleImportInstDetune=conf.getInt("sampleImportInstDetune",0);
 
     settings.backupEnable=conf.getInt("backupEnable",1);
     settings.backupInterval=conf.getInt("backupInterval",30);
@@ -4895,6 +4935,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
       settings.audioEngine=DIV_AUDIO_JACK;
     } else if (conf.getString("audioEngine","SDL")=="PortAudio") {
       settings.audioEngine=DIV_AUDIO_PORTAUDIO;
+    } else if (conf.getString("audioEngine","SDL")=="ASIO") {
+      settings.audioEngine=DIV_AUDIO_ASIO;
     } else {
       settings.audioEngine=DIV_AUDIO_SDL;
     }
@@ -5028,7 +5070,11 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.oscAntiAlias=conf.getInt("oscAntiAlias",1);
     settings.oscLineSize=conf.getFloat("oscLineSize",1.0f);
 
-    settings.songNotesWrap=conf.getInt("songNotesWrap", 0);
+    settings.songNotesWrap=conf.getInt("songNotesWrap",0);
+
+    settings.rackShowLEDs=conf.getInt("rackShowLEDs",1);
+
+    settings.mixerStyle=conf.getInt("mixerStyle",1);
 
     settings.channelColors=conf.getInt("channelColors",1);
     settings.channelTextColors=conf.getInt("channelTextColors",0);
@@ -5175,7 +5221,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.headFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
   clampSetting(settings.iconSize,2,48);
-  clampSetting(settings.audioEngine,0,2);
+  clampSetting(settings.audioEngine,0,4);
   clampSetting(settings.audioQuality,0,1);
   clampSetting(settings.audioHiPass,0,1);
   clampSetting(settings.audioBufSize,32,4096);
@@ -5333,7 +5379,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.iCannotWait,0,1);
   clampSetting(settings.orderButtonPos,0,2);
   clampSetting(settings.compress,0,1);
-  clampSetting(settings.newPatternFormat,0,1);
   clampSetting(settings.renderClearPos,0,1);
   clampSetting(settings.insertBehavior,0,1);
   clampSetting(settings.pullDeleteRow,0,1);
@@ -5366,7 +5411,9 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.playbackTime,0,1);
   clampSetting(settings.shaderOsc,0,1);
   clampSetting(settings.oscLineSize,0.25f,16.0f);
-  clampSetting(settings.songNotesWrap, 0, 1);
+  clampSetting(settings.songNotesWrap,0,1);
+  clampSetting(settings.rackShowLEDs,0,1);
+  clampSetting(settings.mixerStyle,0,2);
   clampSetting(settings.cursorWheelStep,0,2);
   clampSetting(settings.vsync,0,4);
   clampSetting(settings.frameRateLimit,0,1000);
@@ -5389,6 +5436,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.autoFillSave,0,1);
   clampSetting(settings.autoMacroStepSize,0,2);
   clampSetting(settings.s3mOPL3,0,1);
+  clampSetting(settings.sampleImportInstDetune,0,1);
   clampSetting(settings.backgroundPlay,0,1);
   clampSetting(settings.noMaximizeWorkaround,0,1);
 
@@ -5462,7 +5510,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("noMaximizeWorkaround",settings.noMaximizeWorkaround);
 
     conf.set("compress",settings.compress);
-    conf.set("newPatternFormat",settings.newPatternFormat);
     conf.set("newSongBehavior",settings.newSongBehavior);
     conf.set("playOnLoad",settings.playOnLoad);
     conf.set("centerPopup",settings.centerPopup);
@@ -5471,6 +5518,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("vibrationLength",settings.vibrationLength);
 
     conf.set("s3mOPL3",settings.s3mOPL3);
+    conf.set("sampleImportInstDetune",settings.sampleImportInstDetune);
 
     conf.set("backupEnable",settings.backupEnable);
     conf.set("backupInterval",settings.backupInterval);
@@ -5611,6 +5659,10 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("oscLineSize",settings.oscLineSize);
 
     conf.set("songNotesWrap",settings.songNotesWrap);
+
+    conf.set("rackShowLEDs",settings.rackShowLEDs);
+
+    conf.set("mixerStyle",settings.mixerStyle);
 
     conf.set("channelColors",settings.channelColors);
     conf.set("channelTextColors",settings.channelTextColors);
@@ -6170,8 +6222,6 @@ void FurnaceGUI::popWarningColor() {
   }
 }
 
-#define IGFD_FileStyleByExtension IGFD_FileStyleByExtention
-
 #ifdef _WIN32
 #define SYSTEM_FONT_PATH_1 "C:\\Windows\\Fonts\\segoeui.ttf"
 #define SYSTEM_FONT_PATH_2 "C:\\Windows\\Fonts\\tahoma.ttf"
@@ -6607,6 +6657,11 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     //fontConf.RasterizerMultiply=1.5;
     //fontConfP.RasterizerMultiply=1.5;
 
+    fontConf.PixelSnapH=0;
+    fontConfP.PixelSnapH=0;
+    fontConfB.PixelSnapH=0;
+    fontConfH.PixelSnapH=0;
+
     if (settings.mainFont<0 || settings.mainFont>6) settings.mainFont=0;
     if (settings.headFont<0 || settings.headFont>6) settings.headFont=0;
     if (settings.patFont<0 || settings.patFont>6) settings.patFont=0;
@@ -6761,7 +6816,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
               logW("could not load header font! reverting to default font");
               settings.headFont=0;
               if ((headFont=addFontZlib(builtinFont[settings.headFont],builtinFontLen[settings.headFont],MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH))==NULL) {
-                logE("could not load header font! falling back to IBM Plex Sans.");
+                logE("could not load header font! falling back to fallback. wahahaha, get it? fallback.");
                 headFont=ImGui::GetIO().Fonts->AddFontDefault();
               }
             }
@@ -6775,8 +6830,16 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
       }
     }
 
-    mainFont->FallbackChar='?';
-    mainFont->EllipsisChar='.';
+    // four fallback fonts
+    if (settings.loadFallback) {
+      headFont=addFontZlib(font_plexSans_compressed_data,font_plexSans_compressed_size,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fc1);
+      headFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fc1);
+      headFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fc1);
+      headFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fc1);
+    }
+
+    //mainFont->FallbackChar='?';
+    //mainFont->EllipsisChar='.';
     //mainFont->EllipsisCharCount=3;
   } else if (updateFonts) {
     // safe mode
@@ -6784,91 +6847,97 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     patFont=mainFont;
     bigFont=mainFont;
     headFont=mainFont;
-
-    mainFont->FallbackChar='?';
-    mainFont->EllipsisChar='.';
-    //mainFont->EllipsisCharCount=3;
   }
 
-  ImGuiFileDialog::Instance()->okButtonString=_("OK");
-  ImGuiFileDialog::Instance()->cancelButtonString=_("Cancel");
-  ImGuiFileDialog::Instance()->searchString=_("Search");
-  ImGuiFileDialog::Instance()->dirEntryString=_("[Dir]");
-  ImGuiFileDialog::Instance()->linkEntryString=_("[Link]");
-  ImGuiFileDialog::Instance()->fileEntryString=_("[File]");
-  ImGuiFileDialog::Instance()->fileNameString=_("Name:");
-  ImGuiFileDialog::Instance()->dirNameString=_("Path:");
-  ImGuiFileDialog::Instance()->buttonResetSearchString=_("Reset search");
-  ImGuiFileDialog::Instance()->buttonDriveString=_("Drives");
-  ImGuiFileDialog::Instance()->buttonEditPathString=_("Edit path\nYou can also right click on path buttons");
-  ImGuiFileDialog::Instance()->buttonResetPathString=_("Go to home directory");
-  ImGuiFileDialog::Instance()->buttonParentDirString=_("Go to parent directory");
-  ImGuiFileDialog::Instance()->buttonCreateDirString=_("Create Directory");
-  ImGuiFileDialog::Instance()->tableHeaderFileNameString=_("File name");
-  ImGuiFileDialog::Instance()->tableHeaderFileTypeString=_("Type");
-  ImGuiFileDialog::Instance()->tableHeaderFileSizeString=_("Size");
-  ImGuiFileDialog::Instance()->tableHeaderFileDateString=_("Date");
-  ImGuiFileDialog::Instance()->OverWriteDialogTitleString=_("Warning");
-  ImGuiFileDialog::Instance()->OverWriteDialogMessageString=_("The file you selected already exists! Would you like to overwrite it?");
-  ImGuiFileDialog::Instance()->OverWriteDialogConfirmButtonString=_("Yes");
-  ImGuiFileDialog::Instance()->OverWriteDialogCancelButtonString=_("No");
-  ImGuiFileDialog::Instance()->DateTimeFormat=_("%Y/%m/%d %H:%M");
+  // set built-in file picker up (NEW)
+  newFilePicker->clearTypes();
 
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeDir,"",uiColors[GUI_COLOR_FILE_DIR],ICON_FA_FOLDER_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeFile,"",uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_FILE_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fur",uiColors[GUI_COLOR_FILE_SONG_NATIVE],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fui",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fuw",uiColors[GUI_COLOR_FILE_WAVE],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmp",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmw",uiColors[GUI_COLOR_FILE_WAVE],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".wav",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmc",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".brr",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".vgm",uiColors[GUI_COLOR_FILE_VGM],ICON_FA_FILE_AUDIO_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".zsm",uiColors[GUI_COLOR_FILE_ZSM],ICON_FA_FILE_AUDIO_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ttf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".otf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ttc",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dfont",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fon",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".pcf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".psf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
+  newFilePicker->setTypeStyle(FP_TYPE_UNKNOWN,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_QUESTION);
+  newFilePicker->setTypeStyle(FP_TYPE_NORMAL,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_FILE_O);
+  newFilePicker->setTypeStyle(FP_TYPE_DIR,uiColors[GUI_COLOR_FILE_DIR],ICON_FA_FOLDER_O);
+  newFilePicker->setTypeStyle(FP_TYPE_LINK,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_EXTERNAL_LINK);
+  newFilePicker->setTypeStyle(FP_TYPE_PIPE,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_EXCHANGE);
+  newFilePicker->setTypeStyle(FP_TYPE_SOCKET,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_PLUG);
+  newFilePicker->setTypeStyle(FP_TYPE_CHARDEV,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_MICROCHIP);
+  newFilePicker->setTypeStyle(FP_TYPE_BLOCKDEV,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_HDD_O);
 
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmf",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".mod",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".s3m",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".xm",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".it",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fc13",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fc14",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fc",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".smod",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ftm",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".0cc",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dnm",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".eft",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".fur",uiColors[GUI_COLOR_FILE_SONG_NATIVE],ICON_FA_FILE);
+  newFilePicker->registerType(".fui",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".dmp",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".fuw",uiColors[GUI_COLOR_FILE_WAVE],ICON_FA_FILE);
+  newFilePicker->registerType(".dmw",uiColors[GUI_COLOR_FILE_WAVE],ICON_FA_FILE);
 
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fub",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".wav",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".dmc",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".aiff",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".aifc",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".au",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".caf",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".iff",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".mat",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".w64",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".wve",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".rf64",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
 
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".tfi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".vgi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".s3i",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".sbi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".opli",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".opni",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".y12",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".bnk",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fti",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".bti",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ff",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".opm",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".brr",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".flac",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".m1a",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".mp1",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".mp2",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".mp3",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".oga",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".ogg",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".opus",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".pvf",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".voc",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".vox",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+
+  newFilePicker->registerType(".vgm",uiColors[GUI_COLOR_FILE_VGM],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".zsm",uiColors[GUI_COLOR_FILE_ZSM],ICON_FA_FILE_AUDIO_O);
+
+  newFilePicker->registerType(".ttf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
+  newFilePicker->registerType(".otf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
+  newFilePicker->registerType(".ttc",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
+  newFilePicker->registerType(".dfont",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
+  newFilePicker->registerType(".fon",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
+  newFilePicker->registerType(".pcf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
+  newFilePicker->registerType(".psf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
+
+  newFilePicker->registerType(".dmf",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".mod",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".s3m",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".xm",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".it",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".fc13",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".fc14",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".fc",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".smod",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".ftm",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".0cc",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".dnm",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".eft",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+
+  newFilePicker->registerType(".fub",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+
+  newFilePicker->registerType(".tfi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".vgi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".s3i",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".sbi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".opli",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".opni",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".y12",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".bnk",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".fti",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".bti",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".ff",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".opm",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
 
   if (updateFonts) {
     if (fileDialog!=NULL) delete fileDialog;
 #ifdef FLATPAK_WORKAROUNDS
-    fileDialog=new FurnaceGUIFileDialog(false);
+    fileDialog=new FurnaceGUIFileDialog(false,newFilePicker);
 #else
-    fileDialog=new FurnaceGUIFileDialog(settings.sysFileDialog);
+    fileDialog=new FurnaceGUIFileDialog(settings.sysFileDialog,newFilePicker);
 #endif
 
     fileDialog->mobileUI=mobileUI;

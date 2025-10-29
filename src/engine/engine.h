@@ -54,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev233"
-#define DIV_ENGINE_VERSION 233
+#define DIV_VERSION "dev237"
+#define DIV_ENGINE_VERSION 237
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -76,6 +76,7 @@ enum DivAudioEngines {
   DIV_AUDIO_SDL=1,
   DIV_AUDIO_PORTAUDIO=2,
   DIV_AUDIO_PIPE=3,
+  DIV_AUDIO_ASIO=4,
 
   DIV_AUDIO_NULL=126,
   DIV_AUDIO_DUMMY=127
@@ -102,28 +103,51 @@ enum DivMIDIModes {
 };
 
 enum DivAudioExportFormats {
-  DIV_EXPORT_FORMAT_S16=0,
-  DIV_EXPORT_FORMAT_F32
+  DIV_EXPORT_FORMAT_WAV=0,
+  DIV_EXPORT_FORMAT_OPUS,
+  DIV_EXPORT_FORMAT_FLAC,
+  DIV_EXPORT_FORMAT_VORBIS,
+  DIV_EXPORT_FORMAT_MPEG_L3
+};
+
+enum DivAudioExportBitrateModes {
+  DIV_EXPORT_BITRATE_CONSTANT=0,
+  DIV_EXPORT_BITRATE_VARIABLE,
+  DIV_EXPORT_BITRATE_AVERAGE,
+};
+
+enum DivAudioExportWavFormats {
+  DIV_EXPORT_WAV_U8=0,
+  DIV_EXPORT_WAV_S16,
+  DIV_EXPORT_WAV_F32
 };
 
 struct DivAudioExportOptions {
   DivAudioExportModes mode;
   DivAudioExportFormats format;
+  DivAudioExportBitrateModes bitRateMode;
+  DivAudioExportWavFormats wavFormat;
   int sampleRate;
   int chans;
   int loops;
   double fadeOut;
   int orderBegin, orderEnd;
   bool channelMask[DIV_MAX_CHANS];
+  int bitRate;
+  float vbrQuality;
   DivAudioExportOptions():
     mode(DIV_EXPORT_MODE_ONE),
-    format(DIV_EXPORT_FORMAT_S16),
+    format(DIV_EXPORT_FORMAT_WAV),
+    bitRateMode(DIV_EXPORT_BITRATE_CONSTANT),
+    wavFormat(DIV_EXPORT_WAV_S16),
     sampleRate(44100),
     chans(2),
     loops(0),
     fadeOut(0.0),
     orderBegin(-1),
-    orderEnd(-1) {
+    orderEnd(-1),
+    bitRate(128000),
+    vbrQuality(6.0f) {
     for (int i=0; i<DIV_MAX_CHANS; i++) {
       channelMask[i]=true;
     }
@@ -140,7 +164,7 @@ struct DivChannelState {
   int panDepth, panRate, panPos, panSpeed;
   int sampleOff;
   unsigned char arp, arpStage, arpTicks, panL, panR, panRL, panRR, lastVibrato, lastPorta, cutType;
-  bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff, releasing;
+  bool doNote, legato, portaStop, keyOn, keyOff, stopOnOff, releasing;
   bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, wasShorthandPorta, noteOnInhibit, resetArp, sampleOffSet;
   bool wentThroughNote, goneThroughNote;
 
@@ -197,7 +221,6 @@ struct DivChannelState {
     portaStop(false),
     keyOn(false),
     keyOff(false),
-    nowYouCanStop(true),
     stopOnOff(false),
     releasing(false),
     arpYield(false),
@@ -486,7 +509,7 @@ class DivEngine {
   int midiTimeCycles;
   double midiTimeDrift;
   int stepPlay;
-  int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, curMidiClock, curMidiTime, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
+  int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, curMidiClock, curMidiTime, totalCmds, lastCmds, cmdsPerSecond;
   double totalTicksOff;
   int curMidiTimePiece, curMidiTimeCode;
   unsigned char extValue, pendingMetroTick;
@@ -499,9 +522,13 @@ class DivEngine {
   DivAudioEngines audioEngine;
   DivAudioExportModes exportMode;
   DivAudioExportFormats exportFormat;
+  DivAudioExportWavFormats wavFormat;
+  DivAudioExportBitrateModes exportBitRateMode;
   double exportFadeOut;
   bool isFadingOut;
   int exportOutputs;
+  int exportBitRate;
+  float exportVBRQuality;
   bool exportChannelMask[DIV_MAX_CHANS];
   DivConfig conf;
   FixedQueue<DivNoteEvent,8192> pendingNotes;
@@ -549,8 +576,6 @@ class DivEngine {
 
   short vibTable[64];
   short tremTable[128];
-  int reversePitchTable[4096];
-  int pitchTable[4096];
   short effectSlotMap[4096];
   int midiBaseChan;
   bool midiPoly;
@@ -612,6 +637,7 @@ class DivEngine {
   void loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadTFI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadVGI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadEIF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadS3I(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
@@ -648,6 +674,7 @@ class DivEngine {
   void exchangeWave(int one, int two);
   void exchangeSample(int one, int two);
 
+  void copyChannel(int src, int dest);
   void swapChannels(int src, int dest);
   void stompChannel(int ch);
 
@@ -696,6 +723,8 @@ class DivEngine {
     int lastNBIns, lastNBOuts, lastNBSize;
     std::atomic<size_t> processTime;
 
+    float chipPeak[DIV_MAX_CHIPS][DIV_MAX_OUTPUTS];
+
     void runExportThread();
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
     DivInstrument* getIns(int index, DivInstrumentType fallbackType=DIV_INS_FM);
@@ -719,7 +748,7 @@ class DivEngine {
     SafeWriter* saveDMF(unsigned char version);
     // save as .fur.
     // if notPrimary is true then the song will not be altered
-    SafeWriter* saveFur(bool notPrimary=false, bool newPatternFormat=true);
+    SafeWriter* saveFur(bool notPrimary=false);
     // return a ROM exporter.
     DivROMExport* buildROM(DivROMExportOptions sys);
     // dump to VGM.
@@ -747,6 +776,8 @@ class DivEngine {
     void notifyInsChange(int ins);
     // notify wavetable change
     void notifyWaveChange(int wave);
+    // notify sample change
+    void notifySampleChange(int sample);
 
     // dispatch a command
     int dispatchCmd(DivCommand c);
@@ -922,6 +953,10 @@ class DivEngine {
 
     // get effective sample rate
     int getEffectiveSampleRate(int rate);
+
+    // convert between old and new note/octave format
+    short splitNoteToNote(short note, short octave);
+    void noteToSplitNote(short note, short& outNote, short& outOctave);
 
     // is FM system
     bool isFMSystem(DivSystem sys);
@@ -1259,6 +1294,9 @@ class DivEngine {
     // >=0: render specific sample
     void renderSamplesP(int whichSample=-1);
 
+    // public copy channel
+    void copyChannelP(int src, int dest);
+
     // public swap channels
     void swapChannelsP(int src, int dest);
 
@@ -1365,6 +1403,15 @@ class DivEngine {
     // get audio desc
     TAAudioDesc& getAudioDescGot();
 
+    // get audio device status
+    TAAudioDeviceStatus getAudioDeviceStatus();
+
+    // acknowledge an audio device status change
+    void acceptAudioDeviceStatus();
+
+    // send command to audio backend
+    int audioBackendCommand(TAAudioCommand which);
+
     // init dispatch
     void initDispatch(bool isRender=false);
 
@@ -1465,7 +1512,6 @@ class DivEngine {
       totalCmds(0),
       lastCmds(0),
       cmdsPerSecond(0),
-      globalPitch(0),
       totalTicksOff(0.0),
       curMidiTimePiece(0),
       curMidiTimeCode(0),
@@ -1478,10 +1524,14 @@ class DivEngine {
       haltOn(DIV_HALT_NONE),
       audioEngine(DIV_AUDIO_NULL),
       exportMode(DIV_EXPORT_MODE_ONE),
-      exportFormat(DIV_EXPORT_FORMAT_S16),
+      exportFormat(DIV_EXPORT_FORMAT_WAV),
+      wavFormat(DIV_EXPORT_WAV_S16),
+      exportBitRateMode(DIV_EXPORT_BITRATE_CONSTANT),
       exportFadeOut(0.0),
       isFadingOut(false),
       exportOutputs(2),
+      exportBitRate(128000),
+      exportVBRQuality(6.0f),
       cmdStreamInt(NULL),
       midiBaseChan(0),
       midiPoly(true),
@@ -1527,14 +1577,13 @@ class DivEngine {
       memset(sysOfChan,0,DIV_MAX_CHANS*sizeof(int));
       memset(vibTable,0,64*sizeof(short));
       memset(tremTable,0,128*sizeof(short));
-      memset(reversePitchTable,0,4096*sizeof(int));
-      memset(pitchTable,0,4096*sizeof(int));
       memset(effectSlotMap,-1,4096*sizeof(short));
       memset(sysDefs,0,DIV_MAX_CHIP_DEFS*sizeof(void*));
       memset(romExportDefs,0,DIV_ROM_MAX*sizeof(void*));
       memset(walked,0,8192);
       memset(oscBuf,0,DIV_MAX_OUTPUTS*(sizeof(float*)));
       memset(exportChannelMask,1,DIV_MAX_CHANS*sizeof(bool));
+      memset(chipPeak,0,DIV_MAX_CHIPS*DIV_MAX_OUTPUTS*sizeof(float));
 
       for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {
         sysFileMapFur[i]=DIV_SYSTEM_NULL;

@@ -315,7 +315,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=((c.value2+chan[c.chan].sampleNoteDelta)<<7);
       int newFreq;
-      int mul=(oldSlides || parent->song.linearPitch!=2)?8:1;
+      int mul=(oldSlides || !parent->song.linearPitch)?8:1;
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         newFreq=chan[c.chan].baseFreq+c.value*mul;

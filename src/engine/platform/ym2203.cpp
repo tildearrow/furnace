@@ -661,7 +661,7 @@ void DivPlatformYM2203::tick(bool sysTick) {
   for (int i=0; i<3; i++) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
-      if (parent->song.linearPitch==2) {
+      if (parent->song.linearPitch) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[i].state.block);
       } else {
         int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2);
@@ -867,7 +867,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
         }
         break;
       }
-      if (c.chan>(psgChanOffs-1) || parent->song.linearPitch==2) { // PSG
+      if (c.chan>(psgChanOffs-1) || parent->song.linearPitch) { // PSG
         int destFreq=NOTE_FNUM_BLOCK(c.value2,11,chan[c.chan].state.block);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {

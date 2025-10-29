@@ -48,6 +48,10 @@
     tutorial.popupTimer=0; \
   }
 #else
+#ifndef _WIN32
+#include "../fileutils.h"
+#include <dirent.h>
+#endif
 #define CLICK_TO_OPEN(t) ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],t); if (ImGui::IsItemClicked()) SDL_OpenURL(t);
 #endif
 
@@ -879,6 +883,39 @@ void FurnaceGUI::drawTutorial() {
       commitTutorial();
       ImGui::CloseCurrentPopup();
     }
+
+#ifdef IS_MOBILE
+    ImGui::SameLine();
+    if (ImGui::Button(_("My config was reset!"))) {
+#ifndef _WIN32
+      String configPath1=e->getConfigPath();
+      makeDir("/storage/emulated/0/failedConfig");
+      DIR* dir=opendir(configPath1.c_str());
+      if (dir==NULL) {
+        showError(fmt::sprintf("Current config path is %s\nERROR - ERROR - ERROR\n%s",configPath1,strerror(errno)));
+      } else {
+        struct dirent* de;
+        String inPath, outPath;
+        while ((de=readdir(dir))!=NULL) {
+          if (de->d_type==DT_REG) {
+            inPath=configPath1+"/"+de->d_name;
+            outPath=String("/storage/emulated/0/failedConfig/")+String(de->d_name);
+
+            logV("copying %s",de->d_name);
+            if (!copyFiles(inPath.c_str(),outPath.c_str())) {
+              logV("ERROR!!! %s",strerror(errno));
+            }
+          }
+        }
+        closedir(dir);
+
+        showError(fmt::sprintf("Current config path is %s\nNow exporting last config to storage. Check it out for bug diagnosis.",configPath1));
+      }
+      tutorial.protoWelcome=true;
+      ImGui::CloseCurrentPopup();
+#endif
+    }
+#endif
 
     ImGui::SetWindowPos(ImVec2(
       (canvasW-ImGui::GetWindowSize().x)*0.5,

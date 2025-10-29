@@ -1242,6 +1242,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
 
       if (ImGui::Checkbox(_("Bankswitched (Seta 2)"),&isBanked)) {
         altered=true;
+        mustRender=true;
       }
 
       if (altered) {
@@ -1320,11 +1321,11 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       if (ImGui::Checkbox(_("Amiga channel volumes (64)"),&amigaVol)) {
         altered=true;
       }
-      pushWarningColor(amigaPitch && e->song.linearPitch==2);
+      pushWarningColor(amigaPitch && e->song.linearPitch);
       if (ImGui::Checkbox(_("Amiga-like pitch (non-linear pitch only)"),&amigaPitch)) {
         altered=true;
       }
-      if (amigaPitch && e->song.linearPitch==2) {
+      if (amigaPitch && e->song.linearPitch) {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("pitch linearity is set to linear. this won't do anything!");
         }
@@ -1743,6 +1744,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
 
       if (ImGui::Checkbox(_("Bankswitched (NMK112)"),&isBanked)) {
         altered=true;
+        mustRender=true;
       }
 
       if (altered) {
@@ -2728,6 +2730,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_BIFURCATOR:
     case DIV_SYSTEM_POWERNOISE:
     case DIV_SYSTEM_UPD1771C:
+    case DIV_SYSTEM_MULTIPCM:
       break;
     case DIV_SYSTEM_YMU759:
     case DIV_SYSTEM_ESFM:

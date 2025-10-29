@@ -196,6 +196,7 @@ struct DivSubSong {
   void findLength(int loopOrder, int loopRow, double fadeoutLen, int& rowsForFadeout, bool& hasFFxx, std::vector<int>& orders, std::vector<DivGroovePattern>& grooves, int& length, int chans, int jumpTreatment, int ignoreJumpAtEnd, int firstPat=0);
 
   void clearData();
+  void removeUnusedPatterns();
   void optimizePatterns();
   void rearrangePatterns();
   void sortOrders();
@@ -280,9 +281,6 @@ struct DivSong {
   // compatibility flags
   bool limitSlides;
   // linear pitch
-  // 0: not linear
-  // 1: only pitch changes (04xy/E5xx) linear
-  // 2: full linear
   unsigned char linearPitch;
   unsigned char pitchSlideSpeed;
   // loop behavior
@@ -427,7 +425,7 @@ struct DivSong {
     masterVol(1.0f),
     tuning(440.0f),
     limitSlides(false),
-    linearPitch(2),
+    linearPitch(1),
     pitchSlideSpeed(4),
     loopModality(2),
     delayBehavior(2),
