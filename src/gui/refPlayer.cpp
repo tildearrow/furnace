@@ -208,7 +208,7 @@ void FurnaceGUI::drawRefPlayer() {
       e->getFilePlayerCue(cueSeconds,cueMicros);
       if (rowTS.seconds==-1) {
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-          showError(_("the row that the pattern cursor is at isn't going to play. trying moving the cursor."));
+          showError(_("the row that the pattern cursor is at isn't going to play. try moving the cursor."));
         } else {
           showError(_("the first row of this order isn't going to play. try another order."));
         }
