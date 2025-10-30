@@ -208,6 +208,19 @@ void DivFilePlayer::mix(float** buf, int chans, unsigned int size) {
   }
 
   for (unsigned int i=0; i<size; i++) {
+    // acknowledge pending events
+    if (pendingPosOffset==i) {
+      pendingPosOffset=UINT_MAX;
+      playPos=pendingPos;
+      rateAccum=0;
+    }
+    if (pendingPlayOffset==i) {
+      playing=true;
+    }
+    if (pendingStopOffset==i) {
+      playing=false;
+    }
+
     ssize_t blockIndex=playPos>>DIV_FPCACHE_BLOCK_SHIFT;
     if (blockIndex!=lastWantBlock) {
       wantBlock=playPos;
@@ -285,22 +298,49 @@ ssize_t DivFilePlayer::getPos() {
   return playPos;
 }
 
+void DivFilePlayer::getPosSeconds(ssize_t& seconds, unsigned int& micros) {
+  if (sf==NULL) {
+    seconds=0;
+    micros=0;
+    return;
+  }
+  double microsD=playPos%si.samplerate;
+  seconds=playPos/si.samplerate;
+  micros=(int)((1000000.0*microsD)/(double)si.samplerate);
+}
+
 ssize_t DivFilePlayer::setPos(ssize_t newPos, unsigned int offset) {
-  playPos=newPos;
-  rateAccum=0;
-  wantBlock=playPos;
-  logD("DivFilePlayer: setPos(%" PRIi64 ")",newPos);
-  return playPos;
+  if (offset==UINT_MAX) {
+    playPos=newPos;
+    rateAccum=0;
+    wantBlock=playPos;
+    logD("DivFilePlayer: setPos(%" PRIi64 ")",newPos);
+    return playPos;
+  } else {
+    pendingPosOffset=offset;
+    pendingPos=newPos;
+    wantBlock=playPos;
+    logD("DivFilePlayer: offset %u setPos(%" PRIi64 ")",offset,newPos);
+    return newPos;
+  }
 }
 
 ssize_t DivFilePlayer::setPosSeconds(ssize_t seconds, unsigned int micros, unsigned int offset) {
   if (sf==NULL) return 0;
   double microsD=(double)si.samplerate*((double)micros/1000000.0);
-  playPos=seconds*si.samplerate+(int)microsD;
-  rateAccum=0;
-  wantBlock=playPos;
-  logD("DivFilePlayer: setPosSeconds(%" PRIi64 ".%06d)",seconds,micros);
-  return playPos;
+  if (offset==UINT_MAX) {
+    playPos=seconds*si.samplerate+(int)microsD;
+    rateAccum=0;
+    wantBlock=playPos;
+    logD("DivFilePlayer: setPosSeconds(%" PRIi64 ".%06d)",seconds,micros);
+    return playPos;
+  } else {
+    pendingPosOffset=offset;
+    pendingPos=seconds*si.samplerate+(int)microsD;
+    wantBlock=pendingPos;
+    logD("DivFilePlayer: offset %u setPosSeconds(%" PRIi64 ".%06d)",offset,seconds,micros);
+    return pendingPos;
+  }
 }
 
 size_t DivFilePlayer::getMemUsage() {
@@ -336,13 +376,23 @@ bool DivFilePlayer::isPlaying() {
 }
 
 void DivFilePlayer::play(unsigned int offset) {
-  logV("DivFilePlayer: playing");
-  playing=true;
+  if (offset!=UINT_MAX) {
+    pendingPlayOffset=offset;
+    logV("DivFilePlayer: playing (offset: %u)",offset);
+  } else {
+    playing=true;
+    logV("DivFilePlayer: playing");
+  }
 }
 
 void DivFilePlayer::stop(unsigned int offset) {
-  logV("DivFilePlayer: stopping");
-  playing=false;
+  if (offset!=UINT_MAX) {
+    pendingStopOffset=offset;
+    logV("DivFilePlayer: stopping (offset: %u)",offset);
+  } else {
+    playing=false;
+    logV("DivFilePlayer: stopping");
+  }
 }
 
 bool DivFilePlayer::closeFile() {
@@ -492,6 +542,10 @@ DivFilePlayer::DivFilePlayer():
   quitThread(false),
   threadHasQuit(false),
   isActive(false),
+  pendingPos(0),
+  pendingPosOffset(UINT_MAX),
+  pendingPlayOffset(UINT_MAX),
+  pendingStopOffset(UINT_MAX),
   cacheThread(NULL) {
   memset(&si,0,sizeof(SF_INFO));
   sincTable=DivFilterTables::getSincTable8();

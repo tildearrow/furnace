@@ -5892,9 +5892,15 @@ bool FurnaceGUI::loop() {
               }
               break;
             case GUI_FILE_MUSIC_OPEN:
-              if (!e->getFilePlayer()->loadFile(copyOfName.c_str())) {
-                showError(fmt::sprintf(_("Error while loading file!")));
-              }
+              e->synchronizedSoft([this,copyOfName]() {
+                bool wasPlaying=e->getFilePlayer()->isPlaying();
+                if (!e->getFilePlayer()->loadFile(copyOfName.c_str())) {
+                  showError(fmt::sprintf(_("Error while loading file!")));
+                } else if (wasPlaying && filePlayerSync && refPlayerOpen && e->isPlaying()) {
+                  e->syncFilePlayer();
+                  e->getFilePlayer()->play();
+                }
+              });
               break;
             case GUI_FILE_TEST_OPEN:
               showWarning(fmt::sprintf(_("You opened: %s"),copyOfName),GUI_WARN_GENERIC);
@@ -7392,6 +7398,16 @@ bool FurnaceGUI::loop() {
         if (!fp->isPlaying()) {
           DivSongTimestamps::Timestamp rowTS=e->curSubSong->ts.getTimes(cursor.order,cursor.y);
           if (rowTS.seconds!=-1) {
+            int cueSeconds=0;
+            int cueMicros=0;
+            e->getFilePlayerCue(cueSeconds,cueMicros);
+            rowTS.seconds+=cueSeconds;
+            rowTS.micros+=cueMicros;
+            while (rowTS.micros>=1000000) {
+              rowTS.micros-=1000000;
+              rowTS.seconds++;
+            }
+
             fp->setPosSeconds(rowTS.seconds,rowTS.micros);
           }
         }

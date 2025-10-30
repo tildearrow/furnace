@@ -57,6 +57,11 @@ class DivFilePlayer {
   bool threadHasQuit;
   bool isActive;
 
+  ssize_t pendingPos;
+  unsigned int pendingPosOffset;
+  unsigned int pendingPlayOffset;
+  unsigned int pendingStopOffset;
+
   std::thread* cacheThread;
   std::mutex cacheMutex;
   std::mutex cacheThreadLock;
@@ -73,15 +78,16 @@ class DivFilePlayer {
 
     void mix(float** buf, int chans, unsigned int size);
     ssize_t getPos();
-    ssize_t setPos(ssize_t newPos, unsigned int offset=0);
-    ssize_t setPosSeconds(ssize_t seconds, unsigned int micros, unsigned int offset=0);
+    void getPosSeconds(ssize_t& seconds, unsigned int& micros);
+    ssize_t setPos(ssize_t newPos, unsigned int offset=UINT_MAX);
+    ssize_t setPosSeconds(ssize_t seconds, unsigned int micros, unsigned int offset=UINT_MAX);
     
     bool isBlockPresent(ssize_t pos);
     bool setBlockPriority(ssize_t pos, bool priority);
     bool isLoaded();
     bool isPlaying();
-    void play(unsigned int offset=0);
-    void stop(unsigned int offset=0);
+    void play(unsigned int offset=UINT_MAX);
+    void stop(unsigned int offset=UINT_MAX);
     bool closeFile();
     bool loadFile(const char* path);
 

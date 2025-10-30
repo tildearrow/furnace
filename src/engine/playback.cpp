@@ -3106,6 +3106,22 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           // used by audio export to determine how many samples to write (otherwise it'll add silence at the end)
           lastLoopPos=size-runLeftG;
           logD("last loop pos: %d for a size of %d and runLeftG of %d",lastLoopPos,size,runLeftG);
+          // if file player is synchronized then set its position to that of the loop row
+          if (curFilePlayer && filePlayerSync) {
+            if (curFilePlayer->isPlaying()) {
+              DivSongTimestamps::Timestamp rowTS=curSubSong->ts.loopStartTime;
+              int finalSeconds=rowTS.seconds+filePlayerCueSeconds;
+              int finalMicros=rowTS.micros+filePlayerCueMicros;
+
+              while (finalMicros>=1000000) {
+                finalMicros-=1000000;
+                finalSeconds++;
+              }
+
+              curFilePlayer->setPosSeconds(finalSeconds,finalMicros,lastLoopPos);
+            }
+          }
+          // increase total loop count
           totalLoops++;
           // stop playing once we hit a specific number of loops (set during audio export)
           if (remainingLoops>0) {

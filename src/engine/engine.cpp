@@ -1662,6 +1662,16 @@ void DivEngine::setFilePlayerSync(bool doSync) {
   filePlayerSync=doSync;
 }
 
+void DivEngine::getFilePlayerCue(int& seconds, int& micros) {
+  seconds=filePlayerCueSeconds;
+  micros=filePlayerCueMicros;
+}
+
+void DivEngine::setFilePlayerCue(int seconds, int micros) {
+  filePlayerCueSeconds=seconds;
+  filePlayerCueMicros=micros;
+}
+
 void DivEngine::syncFilePlayer() {
   if (curFilePlayer==NULL) return;
   int finalSeconds=totalSeconds+filePlayerCueSeconds;

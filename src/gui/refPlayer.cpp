@@ -47,10 +47,14 @@ void FurnaceGUI::drawRefPlayer() {
     int posMinutes=((playPos/fileRate)/60)%60;
     int posSeconds=(playPos/fileRate)%60;
     int posMillis=(1000*(playPos%fileRate))/fileRate;
-    if (playPosNegative) {
-      ImGui::Text("-%d:%02d:%02d.%03d",posHours,posMinutes,posSeconds,posMillis);
+    if (fp->isLoaded()) {
+      if (playPosNegative) {
+        ImGui::Text("-%d:%02d:%02d.%03d",posHours,posMinutes,posSeconds,posMillis);
+      } else {
+        ImGui::Text("%d:%02d:%02d.%03d",posHours,posMinutes,posSeconds,posMillis);
+      }
     } else {
-      ImGui::Text("%d:%02d:%02d.%03d",posHours,posMinutes,posSeconds,posMillis);
+      ImGui::TextUnformatted(_("no file loaded"));
     }
 
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -58,13 +62,80 @@ void FurnaceGUI::drawRefPlayer() {
       fp->setPos(playPos);
     }
 
-    if (ImGui::Button("Open")) {
+    if (ImGui::Button(ICON_FA_FOLDER_OPEN "##Open")) {
       openFileDialog(GUI_FILE_MUSIC_OPEN);
     }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      e->synchronizedSoft([this,fp]() {
+        if (!fp->closeFile()) {
+          showError(_("you haven't loaded a file!"));
+        }
+      });
+    }
+    ImGui::SetItemTooltip(_("open file\n(right click to unload current file)"));
     ImGui::SameLine();
-    if (ImGui::Button(ICON_FA_FAST_BACKWARD)) {
-      fp->stop();
-      fp->setPos(0);
+    if (ImGui::Button(ICON_FA_STEP_BACKWARD)) {
+      // handled outside
+    }
+    if (fp->isPlaying()) {
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+        int cueSeconds=0;
+        int cueMicros=0;
+        fp->stop();
+        e->getFilePlayerCue(cueSeconds,cueMicros);
+        fp->setPosSeconds(cueSeconds,cueMicros);
+      }
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
+        fp->stop();
+        fp->setPos(0);
+      }
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        int cueSeconds=0;
+        int cueMicros=0;
+        e->getFilePlayerCue(cueSeconds,cueMicros);
+        fp->setPosSeconds(cueSeconds,cueMicros);
+      }
+      ImGui::SetItemTooltip(
+        _("left click: go to cue position\n"
+        "middle click: go to beginning\n"
+        "right click: go to cue position (but don't stop)")
+      );
+    } else {
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+        // try setting cue pos
+        ssize_t curSeconds=0;
+        unsigned int curMicros=0;
+        fp->getPosSeconds(curSeconds,curMicros);
+        DivSongTimestamps::Timestamp rowTS=e->curSubSong->ts.getTimes(curOrder,0);
+        if (rowTS.seconds==-1) {
+          showError("the first row of this order isn't going to play.");
+        } else {
+          // calculate difference and set cue pos
+          curSeconds-=rowTS.seconds;
+          int curMicrosI=curMicros-rowTS.micros;
+          while (curMicrosI<0) {
+            curMicrosI+=1000000;
+            curSeconds--;
+          }
+          e->setFilePlayerCue(curSeconds,curMicrosI);
+        }
+      }
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
+        fp->setPos(0);
+      }
+      if (ImGui::BeginPopupContextItem("Edit Cue Position",ImGuiPopupFlags_MouseButtonRight)) {
+        ImGui::Text("Edit me");
+        if (ImGui::Button("OK")) {
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+      }
+      ImGui::SetItemTooltip(
+        _("left click: set cue position here\n"
+        " - current playback time becomes position at first row of current order\n"
+        "middle click: go to beginning\n"
+        "right click: fine edit cue position")
+      );
     }
     ImGui::SameLine();
     if (fp->isPlaying()) {
@@ -72,11 +143,13 @@ void FurnaceGUI::drawRefPlayer() {
       if (ImGui::Button(ICON_FA_PAUSE "##Pause")) {
         fp->stop();
       }
+      ImGui::SetItemTooltip(_("pause"));
       popToggleColors();
     } else {
       if (ImGui::Button(ICON_FA_PLAY "##Play")) {
         fp->play();
       }
+      ImGui::SetItemTooltip(_("play"));
     }
     ImGui::SameLine();
 
@@ -84,6 +157,7 @@ void FurnaceGUI::drawRefPlayer() {
     if (ImGui::Button(_("Sync"))) {
       filePlayerSync=!filePlayerSync;
     }
+    ImGui::SetItemTooltip(_("synchronize playback with tracker playback"));
     popToggleColors();
     e->setFilePlayerSync(filePlayerSync);
 

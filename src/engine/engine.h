@@ -604,6 +604,8 @@ class DivEngine {
   bool filePlayerSync;
   ssize_t filePlayerCueSeconds;
   unsigned int filePlayerCueMicros;
+  int filePlayerLoopTrail;
+  int curFilePlayerTrail;
 
   size_t totalProcessed;
 
@@ -629,8 +631,6 @@ class DivEngine {
   void runMidiClock(int totalCycles=1);
   void runMidiTime(int totalCycles=1);
   bool shallSwitchCores();
-
-  void syncFilePlayer();
 
   void testFunction();
 
@@ -762,6 +762,11 @@ class DivEngine {
     // get whether the player is synchronized with song playback.
     bool getFilePlayerSync();
     void setFilePlayerSync(bool doSync);
+    // get/set file player cue position.
+    void getFilePlayerCue(int& seconds, int& micros);
+    void setFilePlayerCue(int seconds, int micros);
+    // UNSAFE - sync file player to current playback position.
+    void syncFilePlayer();
 
     // save as .dmf.
     SafeWriter* saveDMF(unsigned char version);
@@ -1573,6 +1578,8 @@ class DivEngine {
       filePlayerSync(false),
       filePlayerCueSeconds(0),
       filePlayerCueMicros(0),
+      filePlayerLoopTrail(0),
+      curFilePlayerTrail(0),
       totalProcessed(0),
       renderPoolThreads(0),
       renderPool(NULL),
