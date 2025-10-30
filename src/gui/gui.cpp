@@ -7386,7 +7386,7 @@ bool FurnaceGUI::loop() {
     }
 
     if (!e->isPlaying() && e->getFilePlayerSync()) {
-      if (cursor.y!=prevCursor.y || cursor.order) {
+      if (cursor.y!=prevCursor.y || cursor.order!=prevCursor.order) {
         DivFilePlayer* fp=e->getFilePlayer();
         logV("cursor moved to %d:%d",cursor.order,cursor.y);
         if (!fp->isPlaying()) {
