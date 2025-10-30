@@ -2717,11 +2717,10 @@ int FurnaceGUI::loadStream(String path) {
 
 void FurnaceGUI::exportAudio(String path, DivAudioExportModes mode) {
   e->calcSongTimestamps();
+  DivSongTimestamps& ts=e->curSubSong->ts;
 
-  // TODO: fix!
-  songFadeoutSectionLength=0;
-  songHasSongEndCommand=!e->curSubSong->ts.isLoopable;
-  songLength=e->curSubSong->ts.totalRows;
+  songLength=ts.totalSeconds+(double)ts.totalMicros/1000000.0;
+  double loopLength=songLength-(ts.loopStartTime.seconds+(double)ts.loopStartTime.micros/1000000.0);
 
   e->saveAudio(path.c_str(),audioExportOptions);
 
@@ -2729,19 +2728,15 @@ void FurnaceGUI::exportAudio(String path, DivAudioExportModes mode) {
   e->getTotalAudioFiles(totalFiles);
   int totalLoops=0;
 
-  lengthOfOneFile=songLength;
-
-  if (!songHasSongEndCommand) {
+  if (ts.isLoopable) {
     e->getTotalLoops(totalLoops);
-
-    lengthOfOneFile+=songLoopedSectionLength*totalLoops;
-    lengthOfOneFile+=songFadeoutSectionLength; // account for fadeout
+    songLength+=loopLength*totalLoops;
+    songLength+=audioExportOptions.fadeOut;
   }
 
-  totalLength=lengthOfOneFile*totalFiles;
+  totalLength=songLength*totalFiles;
 
   curProgress=0.0f;
-
   displayExporting=true;
 }
 
@@ -6037,24 +6032,21 @@ bool FurnaceGUI::loop() {
       if (audioExportOptions.mode!=DIV_EXPORT_MODE_MANY_CHAN) {
         ImGui::Text(_("Please wait..."));
       }
-      float* progressLambda=&curProgress;
-      int curPosInRows=0;
-      int* curPosInRowsLambda=&curPosInRows;
       int curFile=0;
       int* curFileLambda=&curFile;
       if (e->isExporting()) {
         e->lockEngine(
-          [this, progressLambda, curPosInRowsLambda, curFileLambda] () {
+          [this, curFileLambda] () {
             *curFileLambda=0;
             e->getCurFileIndex(*curFileLambda);
-            *progressLambda=(double)e->getTotalSeconds()/(double)MAX(1,e->curSubSong->ts.totalSeconds);
-            // TODO: fix
-            *curPosInRowsLambda=0;
+            curProgress=(((double)e->getTotalSeconds()+(double)e->getTotalTicks()/1000000.0)+(songLength*(*curFileLambda)))/totalLength;
           }
         );
       }
 
-      ImGui::Text(_("Row %d of %d"),songLength,lengthOfOneFile);
+      if (curProgress<0.0f) curProgress=0.0f;
+      if (curProgress>1.0f) curProgress=1.0f;
+
       if (audioExportOptions.mode==DIV_EXPORT_MODE_MANY_CHAN) ImGui::Text(_("Channel %d of %d"),curFile+1,totalFiles);
 
       ImGui::ProgressBar(curProgress,ImVec2(320.0f*dpiScale,0),fmt::sprintf("%.2f%%",curProgress*100.0f).c_str());
@@ -8727,12 +8719,8 @@ FurnaceGUI::FurnaceGUI():
   patFont(NULL),
   bigFont(NULL),
   headFont(NULL),
-  songLength(0),
-  songLoopedSectionLength(0),
-  songFadeoutSectionLength(0),
-  songHasSongEndCommand(false),
-  lengthOfOneFile(0),
-  totalLength(0),
+  songLength(0.0),
+  totalLength(0.0),
   curProgress(0.0f),
   totalFiles(0),
   localeRequiresJapanese(false),
