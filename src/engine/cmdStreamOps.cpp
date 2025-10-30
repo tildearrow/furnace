@@ -1252,10 +1252,9 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
   setOrder(0);
   BUSY_BEGIN_SOFT;
   // determine loop point
-  int loopOrder=0;
-  int loopRow=0;
-  int loopEnd=0;
-  walkSong(loopOrder,loopRow,loopEnd);
+  calcSongTimestamps();
+  int loopOrder=curSubSong->ts.loopStart.order;
+  int loopRow=curSubSong->ts.loopStart.row;
   logI("loop point: %d %d",loopOrder,loopRow);
 
   int cmdPopularity[256];

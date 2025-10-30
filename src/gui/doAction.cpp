@@ -357,6 +357,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_USER_PRESETS:
       nextWindow=GUI_WINDOW_USER_PRESETS;
       break;
+    case GUI_ACTION_WINDOW_REF_PLAYER:
+      nextWindow=GUI_WINDOW_REF_PLAYER;
+      break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;
@@ -464,6 +467,10 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_USER_PRESETS:
           userPresetsOpen=false;
+          break;
+        case GUI_WINDOW_REF_PLAYER:
+          refPlayerOpen=false;
+          break;
         default:
           break;
       }

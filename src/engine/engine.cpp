@@ -201,15 +201,9 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
   return notNull?_("Invalid effect"):NULL;
 }
 
-void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {
+void DivEngine::calcSongTimestamps() {
   if (curSubSong!=NULL) {
-    curSubSong->walk(loopOrder,loopRow,loopEnd,chans,song.jumpTreatment,song.ignoreJumpAtEnd);
-  }
-}
-
-void DivEngine::findSongLength(int loopOrder, int loopRow, double fadeoutLen, int& rowsForFadeout, bool& hasFFxx, std::vector<int>& orders, int& length) {
-  if (curSubSong!=NULL) {
-    curSubSong->findLength(loopOrder,loopRow,fadeoutLen,rowsForFadeout,hasFFxx,orders,song.grooves,length,chans,song.jumpTreatment,song.ignoreJumpAtEnd);
+    curSubSong->calcTimestamps(chans,song.grooves,song.jumpTreatment,song.ignoreJumpAtEnd,song.brokenSpeedSel,song.delayBehavior);
   }
 }
 
@@ -566,6 +560,7 @@ void DivEngine::createNew(const char* description, String sysName, bool inBase64
   BUSY_BEGIN;
   renderSamples();
   reset();
+  calcSongTimestamps();
   BUSY_END;
 }
 
@@ -603,6 +598,7 @@ void DivEngine::createNewFromDefaults() {
   BUSY_BEGIN;
   renderSamples();
   reset();
+  calcSongTimestamps();
   BUSY_END;
 }
 
@@ -1648,6 +1644,47 @@ void DivEngine::getCommandStream(std::vector<DivCommand>& where) {
   BUSY_END;
 }
 
+DivFilePlayer* DivEngine::getFilePlayer() {
+  if (curFilePlayer==NULL) {
+    BUSY_BEGIN_SOFT;
+    curFilePlayer=new DivFilePlayer;
+    curFilePlayer->setOutputRate(got.rate);
+    BUSY_END;
+  }
+  return curFilePlayer;
+}
+
+bool DivEngine::getFilePlayerSync() {
+  return filePlayerSync;
+}
+
+void DivEngine::setFilePlayerSync(bool doSync) {
+  filePlayerSync=doSync;
+}
+
+void DivEngine::getFilePlayerCue(int& seconds, int& micros) {
+  seconds=filePlayerCueSeconds;
+  micros=filePlayerCueMicros;
+}
+
+void DivEngine::setFilePlayerCue(int seconds, int micros) {
+  filePlayerCueSeconds=seconds;
+  filePlayerCueMicros=micros;
+}
+
+void DivEngine::syncFilePlayer() {
+  if (curFilePlayer==NULL) return;
+  int finalSeconds=totalSeconds+filePlayerCueSeconds;
+  int finalMicros=totalTicks+filePlayerCueMicros;
+
+  while (finalMicros>=1000000) {
+    finalMicros-=1000000;
+    finalSeconds++;
+  }
+
+  curFilePlayer->setPosSeconds(finalSeconds,finalMicros);
+}
+
 void DivEngine::playSub(bool preserveDrift, int goalRow) {
   logV("playSub() called");
   std::chrono::high_resolution_clock::time_point timeStart=std::chrono::high_resolution_clock::now();
@@ -1678,6 +1715,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   midiTimeDrift=0;
   if (!preserveDrift) {
     ticks=1;
+    subticks=0;
     tempoAccum=0;
     totalTicks=0;
     totalTicksOff=0;
@@ -1771,6 +1809,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   cmdStream.clear();
   std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
   logV("playSub() took %dµs",std::chrono::duration_cast<std::chrono::microseconds>(timeEnd-timeStart).count());
+  logV("and landed us at %d.%06d (%d ticks, %d:%d.%d)",totalSeconds,totalTicks,totalTicksR,curOrder,curRow,ticks);
 }
 
 /*
@@ -1998,6 +2037,12 @@ bool DivEngine::play() {
     output->midiOut->send(TAMidiMessage(TA_MIDI_MACHINE_PLAY,0,0));
   }
   bool didItPlay=playing;
+  if (didItPlay) {
+    if (curFilePlayer && filePlayerSync) {
+      syncFilePlayer();
+      curFilePlayer->play();
+    }
+  }
   BUSY_END;
   return didItPlay;
 }
@@ -2014,15 +2059,28 @@ bool DivEngine::playToRow(int row) {
     keyHit[i]=false;
   }
   bool didItPlay=playing;
+  if (didItPlay) {
+    if (curFilePlayer && filePlayerSync) {
+      syncFilePlayer();
+      curFilePlayer->play();
+    }
+  }
   BUSY_END;
   return didItPlay;
 }
 
 void DivEngine::stepOne(int row) {
+  if (curFilePlayer && filePlayerSync) {
+    curFilePlayer->stop();
+  }
+
   if (!isPlaying()) {
     BUSY_BEGIN_SOFT;
     freelance=false;
     playSub(false,row);
+    if (curFilePlayer && filePlayerSync) {
+      syncFilePlayer();
+    }
     for (int i=0; i<DIV_MAX_CHANS; i++) {
       keyHit[i]=false;
     }
@@ -2067,6 +2125,10 @@ void DivEngine::stop() {
         output->midiOut->send(TAMidiMessage(0x80|(i&15),chan[i].curMidiNote,0));
       }
     }
+  }
+
+  if (curFilePlayer && filePlayerSync) {
+    curFilePlayer->stop();
   }
 
   // reset all chan oscs
@@ -3100,6 +3162,10 @@ void DivEngine::addOrder(int pos, bool duplicate, bool where) {
     prevOrder=curOrder;
     if (playing && !freelance) {
       playSub(false);
+      if (curFilePlayer && filePlayerSync) {
+        syncFilePlayer();
+        curFilePlayer->play();
+      }
     }
   }
   BUSY_END;
@@ -3152,6 +3218,10 @@ void DivEngine::deepCloneOrder(int pos, bool where) {
     if (pos<=curOrder) curOrder++;
     if (playing && !freelance) {
       playSub(false);
+      if (curFilePlayer && filePlayerSync) {
+        syncFilePlayer();
+        curFilePlayer->play();
+      }
     }
   }
   BUSY_END;
@@ -3172,6 +3242,10 @@ void DivEngine::deleteOrder(int pos) {
   if (curOrder>=curSubSong->ordersLen) curOrder=curSubSong->ordersLen-1;
   if (playing && !freelance) {
     playSub(false);
+    if (curFilePlayer && filePlayerSync) {
+      syncFilePlayer();
+      curFilePlayer->play();
+    }
   }
   BUSY_END;
 }
@@ -3195,6 +3269,10 @@ void DivEngine::moveOrderUp(int& pos) {
   pos--;
   if (playing && !freelance) {
     playSub(false);
+    if (curFilePlayer && filePlayerSync) {
+      syncFilePlayer();
+      curFilePlayer->play();
+    }
   }
   BUSY_END;
 }
@@ -3218,6 +3296,10 @@ void DivEngine::moveOrderDown(int& pos) {
   pos++;
   if (playing && !freelance) {
     playSub(false);
+    if (curFilePlayer && filePlayerSync) {
+      syncFilePlayer();
+      curFilePlayer->play();
+    }
   }
   BUSY_END;
 }
@@ -3417,6 +3499,12 @@ void DivEngine::autoPatchbay() {
         song.patchbay.push_back((i<<20)|(j<<16)|j);
       }
     }
+  }
+
+  // file player
+  song.patchbay.reserve(DIV_MAX_OUTPUTS);
+  for (unsigned int j=0; j<DIV_MAX_OUTPUTS; j++) {
+    song.patchbay.push_back(0xffc00000|j|(j<<16));
   }
 
   // wave/sample preview
@@ -3630,6 +3718,11 @@ void DivEngine::setOrder(unsigned char order) {
   prevOrder=curOrder;
   if (playing && !freelance) {
     playSub(false);
+
+    if (curFilePlayer && filePlayerSync) {
+      syncFilePlayer();
+      curFilePlayer->play();
+    }
   }
   BUSY_END;
 }
@@ -3650,6 +3743,10 @@ void DivEngine::updateSysFlags(int system, bool restart, bool render) {
   if (restart) {
     if (isPlaying()) {
       playSub(false);
+      if (curFilePlayer && filePlayerSync) {
+        syncFilePlayer();
+        curFilePlayer->play();
+      }
     } else if (freelance) {
       reset();
     }
@@ -3909,6 +4006,9 @@ void DivEngine::quitDispatch() {
   totalCmds=0;
   lastCmds=0;
   cmdsPerSecond=0;
+  if (filePlayerSync) {
+    if (curFilePlayer!=NULL) curFilePlayer->stop();
+  }
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     isMuted[i]=0;
   }
@@ -4301,6 +4401,10 @@ bool DivEngine::quit(bool saveConfig) {
     delete[] metroBuf;
     metroBuf=NULL;
     metroBufLen=0;
+  }
+  if (curFilePlayer!=NULL) {
+    delete curFilePlayer;
+    curFilePlayer=NULL;
   }
   if (yrw801ROM!=NULL) delete[] yrw801ROM;
   if (tg100ROM!=NULL) delete[] tg100ROM;

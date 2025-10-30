@@ -38,6 +38,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
           if (ImGui::Selectable(id,i==e->getCurrentSubSong())) {
             makeCursorUndo();
             e->changeSongP(i);
+            recalcTimestamps=true;
             updateScroll(0);
             oldRow=0;
             cursor.xCoarse=0;
@@ -76,6 +77,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
       } else {
         makeCursorUndo();
         e->changeSongP(e->song.subsong.size()-1);
+        recalcTimestamps=true;
         updateScroll(0);
         oldRow=0;
         cursor.xCoarse=0;
@@ -98,6 +100,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
       } else {
         makeCursorUndo();
         e->changeSongP(e->song.subsong.size()-1);
+        recalcTimestamps=true;
         updateScroll(0);
         oldRow=0;
         cursor.xCoarse=0;

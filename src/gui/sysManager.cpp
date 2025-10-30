@@ -110,6 +110,7 @@ void FurnaceGUI::drawSysManager() {
           if (picked!=DIV_SYSTEM_NULL) {
             if (e->changeSystem(i,picked,preserveChanPos)) {
               MARK_MODIFIED;
+              recalcTimestamps=true;
               if (e->song.autoSystem) {
                 autoDetectSystem();
               }
@@ -179,6 +180,7 @@ void FurnaceGUI::drawSysManager() {
             showError(fmt::sprintf(_("cannot add chip! (%s)"),e->getLastError()));
           } else {
             MARK_MODIFIED;
+            recalcTimestamps=true;
           }
           if (e->song.autoSystem) {
             autoDetectSystem();

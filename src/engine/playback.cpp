@@ -2169,6 +2169,14 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
               prevOrder=curOrder;
               prevRow=curRow;
               playPosLock.unlock();
+
+              // also set the playback position and sync file player if necessary
+              DivSongTimestamps::Timestamp rowTS=curSubSong->ts.getTimes(curOrder,curRow);
+              totalSeconds=rowTS.seconds;
+              totalTicks=rowTS.micros;
+              if (curFilePlayer && filePlayerSync) {
+                syncFilePlayer();
+              }
             }
             // ...and now process the next row!
             nextRow();
@@ -2572,10 +2580,6 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     if (stepPlay!=1) {
       if (!noAccum) {
         double dt=divider*tickMult;
-        // TODO: is this responsible for timing differences when skipping?
-        if (skipping) {
-          dt*=(double)virtualTempoN/(double)MAX(1,virtualTempoD);
-        }
         totalTicksR++;
         // despite the name, totalTicks is in microseconds...
         totalTicks+=1000000/dt;
@@ -3102,6 +3106,22 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           // used by audio export to determine how many samples to write (otherwise it'll add silence at the end)
           lastLoopPos=size-runLeftG;
           logD("last loop pos: %d for a size of %d and runLeftG of %d",lastLoopPos,size,runLeftG);
+          // if file player is synchronized then set its position to that of the loop row
+          if (curFilePlayer && filePlayerSync) {
+            if (curFilePlayer->isPlaying()) {
+              DivSongTimestamps::Timestamp rowTS=curSubSong->ts.loopStartTime;
+              int finalSeconds=rowTS.seconds+filePlayerCueSeconds;
+              int finalMicros=rowTS.micros+filePlayerCueMicros;
+
+              while (finalMicros>=1000000) {
+                finalMicros-=1000000;
+                finalSeconds++;
+              }
+
+              curFilePlayer->setPosSeconds(finalSeconds,finalMicros,lastLoopPos);
+            }
+          }
+          // increase total loop count
           totalLoops++;
           // stop playing once we hit a specific number of loops (set during audio export)
           if (remainingLoops>0) {
@@ -3237,6 +3257,23 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     renderPool->wait();
   }
 
+  // process file player
+  // resize file player audio buffer if necessary
+  if (filePlayerBufLen<size) {
+    for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+      if (filePlayerBuf[i]!=NULL) delete[] filePlayerBuf[i];
+      filePlayerBuf[i]=new float[size];
+    }
+    filePlayerBufLen=size;
+  }
+  if (curFilePlayer!=NULL && !exporting) {
+    curFilePlayer->mix(filePlayerBuf,outChans,size);
+  } else {
+    for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+      memset(filePlayerBuf[i],0,size*sizeof(float));
+    }
+  }
+
   // process metronome
   // resize the metronome's audio buffer if necessary
   if (metroBufLen<size || metroBuf==NULL) {
@@ -3274,6 +3311,19 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     }
   }
 
+  // calculate volume of reference file player (so we can attenuate the rest according to the mix slider)
+  // -1 to 0: player volume goes from 0% to 100%
+  // 0 to +1: tracker volume goes from 100% to 0%
+  float refPlayerVol=1.0f;
+  if (curFilePlayer!=NULL) {
+    // only if the player window is open
+    if (curFilePlayer->getActive()) {
+      refPlayerVol=1.0f-curFilePlayer->getVolume();
+      if (refPlayerVol<0.0f) refPlayerVol=0.0f;
+      if (refPlayerVol>1.0f) refPlayerVol=1.0f;
+    }
+  }
+
   // now mix everything (resolve patchbay)
   for (unsigned int i: song.patchbay) {
     // there are 4096 portsets. each portset may have up to 16 outputs (subports).
@@ -3295,7 +3345,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       // chip outputs
       if (srcPortSet<song.systemLen && playing && !halted) {
         if (srcSubPort<disCont[srcPortSet].dispatch->getOutputCount()) {
-          float vol=song.systemVol[srcPortSet]*disCont[srcPortSet].dispatch->getPostAmp()*song.masterVol;
+          float vol=song.systemVol[srcPortSet]*disCont[srcPortSet].dispatch->getPostAmp()*song.masterVol*refPlayerVol;
 
           // apply volume and panning
           switch (destSubPort&3) {
@@ -3316,6 +3366,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           for (size_t j=0; j<size; j++) {
             out[destSubPort][j]+=((float)disCont[srcPortSet].bbOut[srcSubPort][j]/32768.0)*vol;
           }
+        }
+      } else if (srcPortSet==0xffc) {
+        // file player
+        for (size_t j=0; j<size; j++) {
+          out[destSubPort][j]+=filePlayerBuf[srcSubPort][j];
         }
       } else if (srcPortSet==0xffd) {
         // sample preview

@@ -1272,10 +1272,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   double origRate=got.rate;
   got.rate=correctedRate;
   // determine loop point
-  int loopOrder=0;
-  int loopRow=0;
-  int loopEnd=0;
-  walkSong(loopOrder,loopRow,loopEnd);
+  calcSongTimestamps();
+  int loopOrder=curSubSong->ts.loopStart.order;
+  int loopRow=curSubSong->ts.loopStart.row;
   logI("loop point: %d %d",loopOrder,loopRow);
   warnings="";
 
