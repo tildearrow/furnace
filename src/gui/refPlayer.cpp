@@ -124,7 +124,27 @@ void FurnaceGUI::drawRefPlayer() {
         fp->setPos(0);
       }
       if (ImGui::BeginPopupContextItem("Edit Cue Position",ImGuiPopupFlags_MouseButtonRight)) {
-        ImGui::Text("Edit me");
+        ImGui::Text("Set cue position at first order:");
+        int cueSeconds=0;
+        int cueMicros=0;
+        bool altered=false;
+        e->getFilePlayerCue(cueSeconds,cueMicros);
+        // TODO: improve this...
+        ImGui::SetNextItemWidth(240.0f*dpiScale);
+        if (ImGui::InputInt(_("Seconds##CuePosS"),&cueSeconds)) {
+          if (cueSeconds<-3600) cueSeconds=-3600;
+          if (cueSeconds>3600) cueSeconds=3600;
+          altered=true;
+        }
+        ImGui::SetNextItemWidth(240.0f*dpiScale);
+        if (ImGui::InputInt(_("Microseconds##CuePosM"),&cueMicros,1000,10000)) {
+          if (cueMicros<0) cueMicros=0;
+          if (cueMicros>999999) cueMicros=999999;
+          altered=true;
+        }
+        if (altered) {
+          e->setFilePlayerCue(cueSeconds,cueMicros);
+        }
         if (ImGui::Button("OK")) {
           ImGui::CloseCurrentPopup();
         }
@@ -143,7 +163,27 @@ void FurnaceGUI::drawRefPlayer() {
       if (ImGui::Button(ICON_FA_PAUSE "##Pause")) {
         fp->stop();
       }
-      ImGui::SetItemTooltip(_("pause"));
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        // try setting cue pos
+        ssize_t curSeconds=0;
+        unsigned int curMicros=0;
+        fp->getPosSeconds(curSeconds,curMicros);
+        DivSongTimestamps::Timestamp rowTS=e->curSubSong->ts.getTimes(curOrder,0);
+        if (rowTS.seconds==-1) {
+          showError("the first row of this order isn't going to play.");
+        } else {
+          // calculate difference and set cue pos
+          curSeconds-=rowTS.seconds;
+          int curMicrosI=curMicros-rowTS.micros;
+          while (curMicrosI<0) {
+            curMicrosI+=1000000;
+            curSeconds--;
+          }
+          e->setFilePlayerCue(curSeconds,curMicrosI);
+          fp->stop();
+        }
+      }
+      ImGui::SetItemTooltip(_("pause\n(right click to set cue position and pause)"));
       popToggleColors();
     } else {
       if (ImGui::Button(ICON_FA_PLAY "##Play")) {
@@ -175,6 +215,7 @@ void FurnaceGUI::drawRefPlayer() {
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
       fp->setVolume(0.0f);
     }
+    ImGui::SetItemTooltip(_("right click to reset"));
 
     //ImGui::Text("Memory usage: %" PRIu64 "K",fp->getMemUsage()>>10);
   }
