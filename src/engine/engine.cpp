@@ -2060,6 +2060,10 @@ bool DivEngine::playToRow(int row) {
 }
 
 void DivEngine::stepOne(int row) {
+  if (curFilePlayer && filePlayerSync) {
+    curFilePlayer->stop();
+  }
+
   if (!isPlaying()) {
     BUSY_BEGIN_SOFT;
     freelance=false;

@@ -2169,6 +2169,14 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
               prevOrder=curOrder;
               prevRow=curRow;
               playPosLock.unlock();
+
+              // also set the playback position and sync file player if necessary
+              DivSongTimestamps::Timestamp rowTS=curSubSong->ts.getTimes(curOrder,curRow);
+              totalSeconds=rowTS.seconds;
+              totalTicks=rowTS.micros;
+              if (curFilePlayer && filePlayerSync) {
+                syncFilePlayer();
+              }
             }
             // ...and now process the next row!
             nextRow();
@@ -3295,6 +3303,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     // only if the player window is open
     if (curFilePlayer->getActive()) {
       refPlayerVol=1.0f-curFilePlayer->getVolume();
+      if (refPlayerVol<0.0f) refPlayerVol=0.0f;
       if (refPlayerVol>1.0f) refPlayerVol=1.0f;
     }
   }
