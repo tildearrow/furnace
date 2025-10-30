@@ -199,6 +199,10 @@ void DivFilePlayer::mix(float** buf, int chans, unsigned int size) {
     return;
   }
 
+  float actualVolume=volume+1.0f;
+  if (actualVolume<0.0f) actualVolume=0.0f;
+  if (actualVolume>1.0f) actualVolume=1.0f;
+
   if (wantBlock!=DIV_NO_BLOCK) {
     cacheCV.notify_one();
   }
@@ -234,7 +238,7 @@ void DivFilePlayer::mix(float** buf, int chans, unsigned int size) {
           x[5]*t1[1]+
           x[6]*t1[2]+
           x[7]*t1[3]
-        )*volume;
+        )*actualVolume;
 
         for (int j=0; j<chans; j++) {
           buf[j][i]=s;
@@ -257,7 +261,7 @@ void DivFilePlayer::mix(float** buf, int chans, unsigned int size) {
           x[5]*t1[1]+
           x[6]*t1[2]+
           x[7]*t1[3]
-        )*volume;
+        )*actualVolume;
       }
 
       // advance
@@ -463,6 +467,14 @@ void DivFilePlayer::setVolume(float vol) {
   volume=vol;
 }
 
+bool DivFilePlayer::getActive() {
+  return isActive;
+}
+
+void DivFilePlayer::setActive(bool active) {
+  isActive=active;
+}
+
 DivFilePlayer::DivFilePlayer():
   discardBuf(NULL),
   blocks(NULL),
@@ -474,11 +486,12 @@ DivFilePlayer::DivFilePlayer():
   wantBlock(DIV_NO_BLOCK),
   outRate(44100),
   rateAccum(0),
-  volume(1.0f),
+  volume(0.0f),
   playing(false),
   fileError(false),
   quitThread(false),
   threadHasQuit(false),
+  isActive(false),
   cacheThread(NULL) {
   memset(&si,0,sizeof(SF_INFO));
   sincTable=DivFilterTables::getSincTable8();

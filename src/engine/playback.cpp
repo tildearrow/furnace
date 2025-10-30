@@ -3287,6 +3287,18 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     }
   }
 
+  // calculate volume of reference file player (so we can attenuate the rest according to the mix slider)
+  // -1 to 0: player volume goes from 0% to 100%
+  // 0 to +1: tracker volume goes from 100% to 0%
+  float refPlayerVol=1.0f;
+  if (curFilePlayer!=NULL) {
+    // only if the player window is open
+    if (curFilePlayer->getActive()) {
+      refPlayerVol=1.0f-curFilePlayer->getVolume();
+      if (refPlayerVol>1.0f) refPlayerVol=1.0f;
+    }
+  }
+
   // now mix everything (resolve patchbay)
   for (unsigned int i: song.patchbay) {
     // there are 4096 portsets. each portset may have up to 16 outputs (subports).
@@ -3308,7 +3320,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       // chip outputs
       if (srcPortSet<song.systemLen && playing && !halted) {
         if (srcSubPort<disCont[srcPortSet].dispatch->getOutputCount()) {
-          float vol=song.systemVol[srcPortSet]*disCont[srcPortSet].dispatch->getPostAmp()*song.masterVol;
+          float vol=song.systemVol[srcPortSet]*disCont[srcPortSet].dispatch->getPostAmp()*song.masterVol*refPlayerVol;
 
           // apply volume and panning
           switch (destSubPort&3) {

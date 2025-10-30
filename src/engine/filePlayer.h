@@ -55,6 +55,7 @@ class DivFilePlayer {
   bool fileError;
   bool quitThread;
   bool threadHasQuit;
+  bool isActive;
 
   std::thread* cacheThread;
   std::mutex cacheMutex;
@@ -89,6 +90,8 @@ class DivFilePlayer {
     void setOutputRate(int rate);
     float getVolume();
     void setVolume(float vol);
+    bool getActive();
+    void setActive(bool active);
 
     DivFilePlayer();
     ~DivFilePlayer();

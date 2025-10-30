@@ -23,15 +23,16 @@
 #include "IconsFontAwesome4.h"
 
 void FurnaceGUI::drawRefPlayer() {
+  DivFilePlayer* fp=e->getFilePlayer();
   if (nextWindow==GUI_WINDOW_REF_PLAYER) {
     refPlayerOpen=true;
     ImGui::SetNextWindowFocus();
     nextWindow=GUI_WINDOW_NOTHING;
   }
+  fp->setActive(refPlayerOpen);
   if (!refPlayerOpen) return;
-  if (ImGui::Begin("Music Player",&refPlayerOpen,globalWinFlags,_("Music Player"))) {
-    DivFilePlayer* fp=e->getFilePlayer();
 
+  if (ImGui::Begin("Music Player",&refPlayerOpen,globalWinFlags,_("Music Player"))) {
     bool playPosNegative=false;
     ssize_t playPos=fp->getPos();
     if (playPos<0) {
@@ -85,23 +86,30 @@ void FurnaceGUI::drawRefPlayer() {
     }
     popToggleColors();
     e->setFilePlayerSync(filePlayerSync);
+
+    ImGui::SameLine();
+    ImGui::Text(_("Mix:"));
     
     float vol=fp->getVolume();
     ImGui::SameLine();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-    if (ImGui::SliderFloat("##Volume",&vol,0.0f,1.0f)) {
-      if (vol<0.0f) vol=0.0f;
+    if (ImGui::SliderFloat("##Volume",&vol,-1.0f,1.0f,_("<-- Tracker / Reference -->"))) {
+      if (vol<-1.0f) vol=-1.0f;
       if (vol>1.0f) vol=1.0f;
       fp->setVolume(vol);
     }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      fp->setVolume(0.0f);
+    }
 
     //ImGui::Text("Memory usage: %" PRIu64 "K",fp->getMemUsage()>>10);
-
-    if (!refPlayerOpen) {
-      fp->stop();
-      e->setFilePlayerSync(false);
-    }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_REF_PLAYER;
   ImGui::End();
+
+
+  if (!refPlayerOpen) {
+    fp->stop();
+    e->setFilePlayerSync(false);
+  }
 }
