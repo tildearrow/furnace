@@ -2621,7 +2621,7 @@ class FurnaceGUI {
   int resizeSize, silenceSize;
   double resampleTarget;
   int resampleStrat;
-  float amplifyVol;
+  float amplifyVol, amplifyOff;
   int sampleSelStart, sampleSelEnd;
   bool sampleInfo, sampleCompatRate;
   bool sampleDragActive, sampleDragMode, sampleDrag16, sampleZoomAuto;

@@ -9017,6 +9017,7 @@ FurnaceGUI::FurnaceGUI():
   resampleTarget(32000),
   resampleStrat(5),
   amplifyVol(100.0),
+  amplifyOff(0.0),
   sampleSelStart(-1),
   sampleSelEnd(-1),
   sampleInfo(true),

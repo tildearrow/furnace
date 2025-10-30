@@ -1212,7 +1212,7 @@ void FurnaceGUI::drawSampleEdit() {
       sameLineMaybe();
       ImGui::Button(ICON_FA_VOLUME_UP "##SAmplify");
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_("Amplify"));
+        ImGui::SetTooltip(_("Amplify/Offset"));
       }
       if (openSampleAmplifyOpt) {
         openSampleAmplifyOpt=false;
@@ -1226,6 +1226,11 @@ void FurnaceGUI::drawSampleEdit() {
         }
         ImGui::SameLine();
         ImGui::Text("(%.1fdB)",20.0*log10(amplifyVol/100.0f));
+        ImGui::Text(_("DC offset"));
+        if (ImGui::InputFloat("##Offset",&amplifyOff,-100.0,100.0,"%g%%")) {
+          if (amplifyOff<-100) amplifyOff=-100;
+          if (amplifyOff>100) amplifyOff=100;
+        }
         if (ImGui::Button(_("Apply"))) {
           sample->prepareUndo(true);
           e->lockEngine([this,sample]() {
@@ -1233,15 +1238,17 @@ void FurnaceGUI::drawSampleEdit() {
             float vol=amplifyVol/100.0f;
 
             if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
+              float off=32767.0f*(amplifyOff/100.0f);
               for (unsigned int i=start; i<end; i++) {
-                float val=sample->data16[i]*vol;
+                float val=off+sample->data16[i]*vol;
                 if (val<-32768) val=-32768;
                 if (val>32767) val=32767;
                 sample->data16[i]=val;
               }
             } else if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
+              float off=127.0f*(amplifyOff/100.0f);
               for (unsigned int i=start; i<end; i++) {
-                float val=sample->data8[i]*vol;
+                float val=off+sample->data8[i]*vol;
                 if (val<-128) val=-128;
                 if (val>127) val=127;
                 sample->data8[i]=val;
