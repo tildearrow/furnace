@@ -52,13 +52,13 @@ void process(void* u, float** in, float** out, int inChans, int outChans, unsign
 const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNull) {
   switch (effect) {
     case 0x00:
-      return _("00xy: Arpeggio");
+      return _("00xy: Arpeggio (x: semitones; y: semitones)");
     case 0x01:
-      return _("01xx: Pitch slide up");
+      return _("01xx: Pitch slide up (xx: speed)");
     case 0x02:
-      return _("02xx: Pitch slide down");
+      return _("02xx: Pitch slide down (xx: speed)");
     case 0x03:
-      return _("03xx: Portamento");
+      return _("03xx: Portamento (xx: speed)");
     case 0x04:
       return _("04xy: Vibrato (x: speed; y: depth)");
     case 0x05:
