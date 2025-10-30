@@ -23,6 +23,7 @@
 #include "../pch.h"
 
 #include "defines.h"
+#include "../timeutils.h"
 #include "../ta-utils.h"
 #include "config.h"
 #include "orders.h"
@@ -187,22 +188,15 @@ struct DivSongTimestamps {
 
   // timestamp of a row
   // DO NOT ACCESS DIRECTLY! use the functions instead.
-  struct Timestamp {
-    // if seconds is -1, it means this row is not touched at all.
-    int seconds, micros;
-    Timestamp(int s, int u):
-      seconds(s), micros(u) {}
-    Timestamp():
-      seconds(0), micros(0) {}
-  };
-  Timestamp* orders[DIV_MAX_PATTERNS];
-  Timestamp loopStartTime;
+  // if seconds is -1, it means this row is not touched at all.
+  TimeMicros* orders[DIV_MAX_PATTERNS];
+  TimeMicros loopStartTime;
 
   // the furthest row that the playhead goes through in an order.
   unsigned char maxRow[DIV_MAX_PATTERNS];
 
   // call this function to get the timestamp of a row.
-  Timestamp getTimes(int order, int row);
+  TimeMicros getTimes(int order, int row);
 
   DivSongTimestamps();
   ~DivSongTimestamps();

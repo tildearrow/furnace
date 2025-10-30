@@ -106,7 +106,7 @@ void FurnaceGUI::drawRefPlayer() {
         ssize_t curSeconds=0;
         unsigned int curMicros=0;
         fp->getPosSeconds(curSeconds,curMicros);
-        DivSongTimestamps::Timestamp rowTS=e->curSubSong->ts.getTimes(curOrder,0);
+        TimeMicros rowTS=e->curSubSong->ts.getTimes(curOrder,0);
         if (rowTS.seconds==-1) {
           showError(_("the first row of this order isn't going to play."));
         } else {
@@ -168,7 +168,7 @@ void FurnaceGUI::drawRefPlayer() {
         ssize_t curSeconds=0;
         unsigned int curMicros=0;
         fp->getPosSeconds(curSeconds,curMicros);
-        DivSongTimestamps::Timestamp rowTS=e->curSubSong->ts.getTimes(curOrder,0);
+        TimeMicros rowTS=e->curSubSong->ts.getTimes(curOrder,0);
         if (rowTS.seconds==-1) {
           showError(_("the first row of this order isn't going to play."));
         } else {
@@ -197,7 +197,7 @@ void FurnaceGUI::drawRefPlayer() {
       // handled outside
     }
     if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-      DivSongTimestamps::Timestamp rowTS;
+      TimeMicros rowTS;
       if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         rowTS=e->curSubSong->ts.getTimes(cursor.order,cursor.y);
       } else {

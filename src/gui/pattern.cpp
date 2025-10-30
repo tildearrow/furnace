@@ -408,7 +408,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   }
 
   if (debugRowTimestamps) {
-    DivSongTimestamps::Timestamp rowTS=e->curSubSong->ts.getTimes(ord,i);
+    TimeMicros rowTS=e->curSubSong->ts.getTimes(ord,i);
     if (rowTS.seconds==-1) {
       ImGui::Text("---");
     } else {

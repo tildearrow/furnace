@@ -554,6 +554,7 @@ set(ENGINE_SOURCES
 src/log.cpp
 src/baseutils.cpp
 src/fileutils.cpp
+src/timeutils.cpp
 src/utfutils.cpp
 
 extern/itcompress/compression.c

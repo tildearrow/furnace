@@ -21,11 +21,11 @@
 #include "../ta-log.h"
 #include <chrono>
 
-DivSongTimestamps::Timestamp DivSongTimestamps::getTimes(int order, int row) {
-  if (order<0 || order>=DIV_MAX_PATTERNS) return Timestamp(-1,0);
-  if (row<0 || row>=DIV_MAX_ROWS) return Timestamp(-1,0);
-  Timestamp* t=orders[order];
-  if (t==NULL) return Timestamp(-1,0);
+TimeMicros DivSongTimestamps::getTimes(int order, int row) {
+  if (order<0 || order>=DIV_MAX_PATTERNS) return TimeMicros(-1,0);
+  if (row<0 || row>=DIV_MAX_ROWS) return TimeMicros(-1,0);
+  TimeMicros* t=orders[order];
+  if (t==NULL) return TimeMicros(-1,0);
   return t[row];
 }
 
@@ -391,12 +391,12 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
     // log row time here
     if (rowChanged && !endOfSong) {
       if (ts.orders[prevOrder]==NULL) {
-        ts.orders[prevOrder]=new DivSongTimestamps::Timestamp[DIV_MAX_ROWS];
+        ts.orders[prevOrder]=new TimeMicros[DIV_MAX_ROWS];
         for (int i=0; i<DIV_MAX_ROWS; i++) {
           ts.orders[prevOrder][i].seconds=-1;
         }
       }
-      ts.orders[prevOrder][prevRow]=DivSongTimestamps::Timestamp(ts.totalSeconds,ts.totalMicros);
+      ts.orders[prevOrder][prevRow]=TimeMicros(ts.totalSeconds,ts.totalMicros);
       rowChanged=false;
     }
 

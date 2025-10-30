@@ -7388,7 +7388,7 @@ bool FurnaceGUI::loop() {
         DivFilePlayer* fp=e->getFilePlayer();
         logV("cursor moved to %d:%d",cursor.order,cursor.y);
         if (!fp->isPlaying()) {
-          DivSongTimestamps::Timestamp rowTS=e->curSubSong->ts.getTimes(cursor.order,cursor.y);
+          TimeMicros rowTS=e->curSubSong->ts.getTimes(cursor.order,cursor.y);
           if (rowTS.seconds!=-1) {
             int cueSeconds=0;
             int cueMicros=0;

@@ -2171,7 +2171,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
               playPosLock.unlock();
 
               // also set the playback position and sync file player if necessary
-              DivSongTimestamps::Timestamp rowTS=curSubSong->ts.getTimes(curOrder,curRow);
+              TimeMicros rowTS=curSubSong->ts.getTimes(curOrder,curRow);
               totalSeconds=rowTS.seconds;
               totalTicks=rowTS.micros;
               if (curFilePlayer && filePlayerSync) {
@@ -3109,7 +3109,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           // if file player is synchronized then set its position to that of the loop row
           if (curFilePlayer && filePlayerSync) {
             if (curFilePlayer->isPlaying()) {
-              DivSongTimestamps::Timestamp rowTS=curSubSong->ts.loopStartTime;
+              TimeMicros rowTS=curSubSong->ts.loopStartTime;
               int finalSeconds=rowTS.seconds+filePlayerCueSeconds;
               int finalMicros=rowTS.micros+filePlayerCueMicros;
 
