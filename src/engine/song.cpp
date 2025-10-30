@@ -19,6 +19,7 @@
 
 #include "song.h"
 #include "../ta-log.h"
+#include <chrono>
 
 DivSongTimestamps::Timestamp DivSongTimestamps::getTimes(int order, int row) {
   if (order<0 || order>=DIV_MAX_PATTERNS) return Timestamp(-1,0);
