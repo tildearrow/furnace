@@ -3865,6 +3865,7 @@ bool FurnaceGUI::loop() {
 
   while (!quit) {
     SDL_Event ev;
+    SelectionPoint prevCursor=cursor;
     if (e->isPlaying()) {
       WAKE_UP;
     }
@@ -7384,6 +7385,19 @@ bool FurnaceGUI::loop() {
       recalcTimestamps=false;
     }
 
+    if (!e->isPlaying() && e->getFilePlayerSync()) {
+      if (cursor.y!=prevCursor.y || cursor.order) {
+        DivFilePlayer* fp=e->getFilePlayer();
+        logV("cursor moved to %d:%d",cursor.order,cursor.y);
+        if (!fp->isPlaying()) {
+          DivSongTimestamps::Timestamp rowTS=e->curSubSong->ts.getTimes(cursor.order,cursor.y);
+          if (rowTS.seconds!=-1) {
+            fp->setPosSeconds(rowTS.seconds,rowTS.micros);
+          }
+        }
+      }
+    }
+
     sampleMapWaitingInput=(curWindow==GUI_WINDOW_INS_EDIT && sampleMapFocused);
     
     curWindowThreadSafe=curWindow;
@@ -8598,7 +8612,7 @@ FurnaceGUI::FurnaceGUI():
   noteInputPoly(true),
   notifyWaveChange(false),
   notifySampleChange(false),
-  recalcTimestamps(false),
+  recalcTimestamps(true),
   wantScrollListIns(false),
   wantScrollListWave(false),
   wantScrollListSample(false),

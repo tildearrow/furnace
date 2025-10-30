@@ -1573,7 +1573,7 @@ class DivEngine {
       previewVol(1.0f),
       filePlayerBufLen(0),
       curFilePlayer(NULL),
-      filePlayerSync(true),
+      filePlayerSync(false),
       filePlayerCueSeconds(0),
       filePlayerCueMicros(0),
       totalProcessed(0),

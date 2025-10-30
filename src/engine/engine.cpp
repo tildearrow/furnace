@@ -569,6 +569,7 @@ void DivEngine::createNew(const char* description, String sysName, bool inBase64
   BUSY_BEGIN;
   renderSamples();
   reset();
+  calcSongTimestamps();
   BUSY_END;
 }
 
@@ -606,6 +607,7 @@ void DivEngine::createNewFromDefaults() {
   BUSY_BEGIN;
   renderSamples();
   reset();
+  calcSongTimestamps();
   BUSY_END;
 }
 
@@ -3999,6 +4001,9 @@ void DivEngine::quitDispatch() {
   totalCmds=0;
   lastCmds=0;
   cmdsPerSecond=0;
+  if (filePlayerSync) {
+    if (curFilePlayer!=NULL) curFilePlayer->stop();
+  }
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     isMuted[i]=0;
   }

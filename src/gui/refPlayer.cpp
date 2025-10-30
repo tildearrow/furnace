@@ -86,6 +86,7 @@ void FurnaceGUI::drawRefPlayer() {
     popToggleColors();
     
     float vol=fp->getVolume();
+    ImGui::SameLine();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
     if (ImGui::SliderFloat("##Volume",&vol,0.0f,1.0f)) {
       if (vol<0.0f) vol=0.0f;
@@ -93,7 +94,12 @@ void FurnaceGUI::drawRefPlayer() {
       fp->setVolume(vol);
     }
 
-    ImGui::Text("Memory usage: %" PRIu64 "K",fp->getMemUsage()>>10);
+    //ImGui::Text("Memory usage: %" PRIu64 "K",fp->getMemUsage()>>10);
+
+    if (!refPlayerOpen) {
+      fp->stop();
+      e->setFilePlayerSync(false);
+    }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_REF_PLAYER;
   ImGui::End();

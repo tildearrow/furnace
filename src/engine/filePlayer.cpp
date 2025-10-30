@@ -265,9 +265,9 @@ void DivFilePlayer::mix(float** buf, int chans, unsigned int size) {
       while (rateAccum>=outRate) {
         rateAccum-=outRate;
         playPos++;
-        if (playPos>=(ssize_t)si.frames) {
+        /*if (playPos>=(ssize_t)si.frames) {
           playPos=0;
-        }
+        }*/
       }
     } else {
       for (int j=0; j<chans; j++) {
