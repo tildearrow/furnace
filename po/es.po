@@ -4023,20 +4023,20 @@ msgid "this is a system designed for testing purposes."
 msgstr "un sistema diseñado para propósitos de prueba."
 
 #: src/engine/engine.cpp:52
-msgid "00xy: Arpeggio"
-msgstr "00xy: Arpegio"
+msgid "00xy: Arpeggio (x: semitones; y: semitones)"
+msgstr "00xy: Arpegio (x: semitonos; y: semitonos)"
 
 #: src/engine/engine.cpp:54
-msgid "01xx: Pitch slide up"
-msgstr "01xx: Deslizamiento de tono hacia arriba"
+msgid "01xx: Pitch slide up (xx: speed)"
+msgstr "01xx: Deslizamiento de tono hacia arriba (xx: velocidad)"
 
 #: src/engine/engine.cpp:56
-msgid "02xx: Pitch slide down"
-msgstr "02xx: Deslizamiento de tono hacia abajo"
+msgid "02xx: Pitch slide down (xx: speed)"
+msgstr "02xx: Deslizamiento de tono hacia abajo (xx: velocidad)"
 
 #: src/engine/engine.cpp:58
-msgid "03xx: Portamento"
-msgstr "03xx: Portamento"
+msgid "03xx: Portamento (xx: speed)"
+msgstr "03xx: Portamento (xx: velocidad)"
 
 #: src/engine/engine.cpp:60
 msgid "04xy: Vibrato (x: speed; y: depth)"

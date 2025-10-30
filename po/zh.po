@@ -3798,20 +3798,20 @@ msgid "this is a system designed for testing purposes."
 msgstr "此系统只是为了测试"
 
 #: src/engine/engine.cpp:52
-msgid "00xy: Arpeggio"
-msgstr "00xy: 琶音"
+msgid "00xy: Arpeggio (x: semitones; y: semitones)"
+msgstr "00xy: 琶音 (x: 半音; y: 半音)"
 
 #: src/engine/engine.cpp:54
-msgid "01xx: Pitch slide up"
-msgstr "01xx: 音高上滑"
+msgid "01xx: Pitch slide up (xx: speed)"
+msgstr "01xx: 音高上滑 (xx: 速率)"
 
 #: src/engine/engine.cpp:56
-msgid "02xx: Pitch slide down"
-msgstr "02xx: 音高下滑"
+msgid "02xx: Pitch slide down (xx: speed)"
+msgstr "02xx: 音高下滑 (xx: 速率)"
 
 #: src/engine/engine.cpp:58
-msgid "03xx: Portamento"
-msgstr "03xx: 滑音"
+msgid "03xx: Portamento (xx: speed)"
+msgstr "03xx: 滑音 (xx: 速率)"
 
 #: src/engine/engine.cpp:60
 msgid "04xy: Vibrato (x: speed; y: depth)"
