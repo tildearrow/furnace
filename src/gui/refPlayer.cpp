@@ -79,11 +79,12 @@ void FurnaceGUI::drawRefPlayer() {
     }
     ImGui::SameLine();
 
-    pushToggleColors(e->getFilePlayerSync());
+    pushToggleColors(filePlayerSync);
     if (ImGui::Button(_("Sync"))) {
-      e->setFilePlayerSync(!e->getFilePlayerSync());
+      filePlayerSync=!filePlayerSync;
     }
     popToggleColors();
+    e->setFilePlayerSync(filePlayerSync);
     
     float vol=fp->getVolume();
     ImGui::SameLine();
