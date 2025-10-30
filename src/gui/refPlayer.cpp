@@ -108,7 +108,7 @@ void FurnaceGUI::drawRefPlayer() {
         fp->getPosSeconds(curSeconds,curMicros);
         DivSongTimestamps::Timestamp rowTS=e->curSubSong->ts.getTimes(curOrder,0);
         if (rowTS.seconds==-1) {
-          showError("the first row of this order isn't going to play.");
+          showError(_("the first row of this order isn't going to play."));
         } else {
           // calculate difference and set cue pos
           curSeconds-=rowTS.seconds;
@@ -124,7 +124,7 @@ void FurnaceGUI::drawRefPlayer() {
         fp->setPos(0);
       }
       if (ImGui::BeginPopupContextItem("Edit Cue Position",ImGuiPopupFlags_MouseButtonRight)) {
-        ImGui::Text("Set cue position at first order:");
+        ImGui::TextUnformatted(_("Set cue position at first order:"));
         int cueSeconds=0;
         int cueMicros=0;
         bool altered=false;
@@ -145,7 +145,7 @@ void FurnaceGUI::drawRefPlayer() {
         if (altered) {
           e->setFilePlayerCue(cueSeconds,cueMicros);
         }
-        if (ImGui::Button("OK")) {
+        if (ImGui::Button(_("OK"))) {
           ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
@@ -170,7 +170,7 @@ void FurnaceGUI::drawRefPlayer() {
         fp->getPosSeconds(curSeconds,curMicros);
         DivSongTimestamps::Timestamp rowTS=e->curSubSong->ts.getTimes(curOrder,0);
         if (rowTS.seconds==-1) {
-          showError("the first row of this order isn't going to play.");
+          showError(_("the first row of this order isn't going to play."));
         } else {
           // calculate difference and set cue pos
           curSeconds-=rowTS.seconds;
@@ -191,6 +191,48 @@ void FurnaceGUI::drawRefPlayer() {
       }
       ImGui::SetItemTooltip(_("play"));
     }
+    ImGui::SameLine();
+
+    if (ImGui::Button(ICON_FA_STEP_FORWARD "##PlayPos")) {
+      // handled outside
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      DivSongTimestamps::Timestamp rowTS;
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        rowTS=e->curSubSong->ts.getTimes(cursor.order,cursor.y);
+      } else {
+        rowTS=e->curSubSong->ts.getTimes(curOrder,0);
+      }
+      int cueSeconds=0;
+      int cueMicros=0;
+      e->getFilePlayerCue(cueSeconds,cueMicros);
+      if (rowTS.seconds==-1) {
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+          showError(_("the row that the pattern cursor is at isn't going to play. trying moving the cursor."));
+        } else {
+          showError(_("the first row of this order isn't going to play. try another order."));
+        }
+      } else {
+        int finalSeconds=rowTS.seconds+cueSeconds;
+        int finalMicros=rowTS.micros+cueMicros;
+
+        while (finalMicros>=1000000) {
+          finalMicros-=1000000;
+          finalSeconds++;
+        }
+
+        fp->setPosSeconds(finalSeconds,finalMicros);
+        fp->play();
+      }
+    }
+    if (ImGui::IsItemHovered() && (ImGui::IsMouseReleased(ImGuiMouseButton_Left) || ImGui::IsMouseReleased(ImGuiMouseButton_Right))) {
+      fp->stop();
+    }
+    ImGui::SetItemTooltip(_(
+      "hold left click to play from current order\n"
+      "hold right click to play from pattern cursor position\n"
+      "release mouse button to stop"
+    ));
     ImGui::SameLine();
 
     pushToggleColors(filePlayerSync);
