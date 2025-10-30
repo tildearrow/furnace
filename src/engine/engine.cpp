@@ -201,15 +201,6 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
   return notNull?_("Invalid effect"):NULL;
 }
 
-void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {
-  if (curSubSong!=NULL) {
-    curSubSong->calcTimestamps(chans,song.grooves,song.jumpTreatment,song.ignoreJumpAtEnd,song.brokenSpeedSel,song.delayBehavior);
-    loopOrder=curSubSong->ts.loopStart.order;
-    loopRow=curSubSong->ts.loopStart.row;
-    loopEnd=curSubSong->ts.loopEnd.order;
-  }
-}
-
 void DivEngine::calcSongTimestamps() {
   if (curSubSong!=NULL) {
     curSubSong->calcTimestamps(chans,song.grooves,song.jumpTreatment,song.ignoreJumpAtEnd,song.brokenSpeedSel,song.delayBehavior);

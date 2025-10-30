@@ -55,10 +55,9 @@ void DivExportAmigaValidation::run() {
   EXTERN_BUSY_BEGIN_SOFT;
 
   // determine loop point
-  int loopOrder=0;
-  int loopRow=0;
-  int loopEnd=0;
-  e->walkSong(loopOrder,loopRow,loopEnd);
+  e->calcSongTimestamps();
+  int loopOrder=e->curSubSong->ts.loopStart.order;
+  int loopRow=e->curSubSong->ts.loopStart.row;
 
   e->curOrder=0;
   e->freelance=false;

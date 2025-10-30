@@ -870,9 +870,6 @@ class DivEngine {
     int convertPanSplitToLinearLR(unsigned char left, unsigned char right, int range);
     unsigned int convertPanLinearToSplit(int val, unsigned char bits, int range);
 
-    // DEPRECATED - find song loop position
-    void walkSong(int& loopOrder, int& loopRow, int& loopEnd);
-
     // calculate all song timestamps
     void calcSongTimestamps();
 
