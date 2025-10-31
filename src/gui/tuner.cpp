@@ -33,7 +33,7 @@ void FurnaceGUI::drawTuner() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!tunerOpen) return;
-  if (ImGui::Begin("Tuner",&tunerOpen,globalWinFlags,_("Tuner"))) {
+  if (ImGui::Begin("Tuner",&tunerOpen,globalWinFlags|ImGuiWindowFlags_NoScrollbar,_("Tuner"))) {
     // fft buffer
     if (!tunerFFTInBuf) tunerFFTInBuf=new double[FURNACE_TUNER_FFT_SIZE];
     if (!tunerFFTOutBuf) tunerFFTOutBuf=(fftw_complex*)fftw_malloc(sizeof(fftw_complex)*FURNACE_TUNER_FFT_SIZE);
@@ -152,7 +152,7 @@ void FurnaceGUI::drawTuner() {
         dl->AddRectFilled(
           pianoPos+ImVec2(keySize*i,0),
           pianoPos+ImVec2(keySize*(i+1),pianoSize.y),
-          ImGui::GetColorU32(uiColors[bottomKeyNotes[i]==noteMod?GUI_COLOR_PIANO_KEY_BOTTOM_HIT:GUI_COLOR_PIANO_KEY_BOTTOM]));
+          ImGui::GetColorU32(uiColors[(noteRounded&&bottomKeyNotes[i]==noteMod)?GUI_COLOR_PIANO_KEY_BOTTOM_HIT:GUI_COLOR_PIANO_KEY_BOTTOM]));
         dl->AddLine(
           pianoPos+ImVec2(keySize*i,0),
           pianoPos+ImVec2(keySize*i,pianoSize.y),
@@ -163,7 +163,7 @@ void FurnaceGUI::drawTuner() {
         dl->AddRectFilled(
           pianoPos+ImVec2(pianoSize.x*topKeyStarts[i]-keySize/3.0f,0),
           pianoPos+ImVec2(pianoSize.x*topKeyStarts[i]+keySize/3.0f,2.0f*pianoSize.y/3.0f),
-          ImGui::GetColorU32(uiColors[topKeyNotes[i]==noteMod?GUI_COLOR_PIANO_KEY_TOP_HIT:GUI_COLOR_PIANO_KEY_TOP]));
+          ImGui::GetColorU32(uiColors[(noteRounded&&topKeyNotes[i]==noteMod)?GUI_COLOR_PIANO_KEY_TOP_HIT:GUI_COLOR_PIANO_KEY_TOP]));
       }
       ImGui::Dummy(pianoSize);
     }
