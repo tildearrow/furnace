@@ -39,7 +39,7 @@ void FurnaceGUI::drawTuner() {
     if (!tunerFFTOutBuf) tunerFFTOutBuf=(fftw_complex*)fftw_malloc(sizeof(fftw_complex)*FURNACE_TUNER_FFT_SIZE);
 
     if (!tunerPlan) {
-      tunerPlan=fftw_plan_dft_r2c_1d(FURNACE_TUNER_FFT_SIZE, tunerFFTInBuf, tunerFFTOutBuf, FFTW_ESTIMATE);
+      tunerPlan=fftw_plan_dft_r2c_1d(FURNACE_TUNER_FFT_SIZE,tunerFFTInBuf,tunerFFTOutBuf,FFTW_ESTIMATE);
     }
 
     int chans=e->getAudioDescGot().outChans;
@@ -97,7 +97,7 @@ void FurnaceGUI::drawTuner() {
       noteRounded=round(noteExact);
       cents=(noteExact-noteRounded);
       noteText=fmt::sprintf("%s",noteName(noteRounded));
-      subtext=fmt::sprintf("%3.3f Hz %dc", freq, (int)(cents*100.0f));
+      subtext=fmt::sprintf("%3.3f Hz %dc",freq,(int)(cents*100.0f));
     }
 
     {
@@ -132,7 +132,7 @@ void FurnaceGUI::drawTuner() {
       dl->AddLine(origin+ImVec2(size.x/2.0f,0),origin+ImVec2(size.x/2.0f,boxHeight),ImGui::GetColorU32(uiColors[GUI_COLOR_TUNER_NEEDLE]),2.0f*dpiScale);
 
       float needleX=size.x*(0.5f+cents);
-      dl->AddLine(origin+ImVec2(needleX, boxHeight-needleHeight),origin+ImVec2(needleX,needleHeight),ImGui::GetColorU32(uiColors[GUI_COLOR_TUNER_NEEDLE]),4.0f*dpiScale);
+      dl->AddLine(origin+ImVec2(needleX,boxHeight-needleHeight),origin+ImVec2(needleX,needleHeight),ImGui::GetColorU32(uiColors[GUI_COLOR_TUNER_NEEDLE]),4.0f*dpiScale);
       // text
       ImGui::PushFont(bigFont);
       ImVec2 textSize=ImGui::CalcTextSize(noteText.c_str());
@@ -174,4 +174,3 @@ void FurnaceGUI::drawTuner() {
 
   ImGui::End();
 }
-

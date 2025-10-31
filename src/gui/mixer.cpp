@@ -495,7 +495,7 @@ bool FurnaceGUI::chipMixer(int which, ImVec2 size) {
     float vol=fabs(e->song.systemVol[which]);
     bool doInvert=e->song.systemVol[which]<0;
     if (settings.mixerLayout) {
-      if (ImGui::BeginTable("mixerVectRow1", 2)) {
+      if (ImGui::BeginTable("mixerVectRow1",2)) {
         ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableNextRow();
@@ -538,7 +538,7 @@ bool FurnaceGUI::chipMixer(int which, ImVec2 size) {
         ImGui::PopStyleVar(1);
         ImGui::PopStyleColor(3);
       } 
-      if (ImGui::BeginTable("mixerVectRow3", 2)) {
+      if (ImGui::BeginTable("mixerVectRow3",2)) {
         ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableNextRow();

@@ -147,7 +147,7 @@ void FurnaceGUI::drawSpectrum() {
     if (spectrum.running) {
       for (int z=spectrum.mono?0:(chans-1); z>=0; z--) {
         // get buffer
-        memset(spectrum.in, 0, sizeof(double)*spectrum.bins);
+        memset(spectrum.in,0,sizeof(double)*spectrum.bins);
         int needle=e->oscReadPos-spectrum.bins;
 
         for (int j=0; j<spectrum.bins; j++) {
@@ -174,8 +174,8 @@ void FurnaceGUI::drawSpectrum() {
           spectrum.plot[i].x=origin.x+x;
           spectrum.plot[i].y=origin.y+size.y*(y-spectrum.yOffset);
         }
-        ImGui::PushClipRect(origin, origin+size, true);
-        dl->AddPolyline(spectrum.plot, count, ImGui::GetColorU32(uiColors[spectrum.mono?GUI_COLOR_OSC_WAVE:GUI_COLOR_OSC_WAVE_CH0+z]), 0, 1.0f);
+        ImGui::PushClipRect(origin,origin+size,true);
+        dl->AddPolyline(spectrum.plot,count,ImGui::GetColorU32(uiColors[spectrum.mono?GUI_COLOR_OSC_WAVE:GUI_COLOR_OSC_WAVE_CH0+z]),0,1.0f);
         dl->PathFillConcave(ImGui::GetColorU32(uiColors[spectrum.mono?GUI_COLOR_OSC_WAVE:GUI_COLOR_OSC_WAVE_CH0+z]));
         ImGui::PopClipRect();
       }
@@ -186,31 +186,31 @@ void FurnaceGUI::drawSpectrum() {
       ImGui::TextUnformatted(ICON_FA_BARS "##spectrumSettings");
     }
     if (ImGui::BeginPopupContextItem("spectrumSettingsPopup",ImGuiPopupFlags_MouseButtonLeft)) {
-      ImGui::Checkbox(_("Mono##spec"), &spectrum.mono);
+      ImGui::Checkbox(_("Mono##spec"),&spectrum.mono);
       if (ImGui::InputScalar("Bins",ImGuiDataType_U32,&spectrum.bins)) {
         if (spectrum.bins<32) spectrum.bins=32;
         if (spectrum.bins>32768) spectrum.bins=32768;
         spectrum.update=true;
       }
       ImGui::Separator();
-      if (ImGui::SliderFloat("X Zoom", &spectrum.xZoom, 1.0f, 10.0f)) {
+      if (ImGui::SliderFloat("X Zoom",&spectrum.xZoom,1.0f,10.0f)) {
         if (spectrum.xZoom<1.0f) spectrum.xZoom=1.0f;
         if (spectrum.xZoom>10.0f) spectrum.xZoom=10.0f;
       }
-      if (ImGui::SliderFloat("X Offset", &spectrum.xOffset, 0.0f, 1.0f)) {
+      if (ImGui::SliderFloat("X Offset",&spectrum.xOffset,0.0f,1.0f)) {
         if (spectrum.xOffset<0.0f) spectrum.xOffset=0.0f;
         if (spectrum.xOffset>1.0f) spectrum.xOffset=1.0f;
       }
       ImGui::Separator();
-      if (ImGui::SliderFloat("Y Offset", &spectrum.yOffset, 0.0f, 1.0f)) {
+      if (ImGui::SliderFloat("Y Offset",&spectrum.yOffset,0.0f,1.0f)) {
         if (spectrum.yOffset<0.0f) spectrum.yOffset=0.0f;
         if (spectrum.yOffset>1.0f) spectrum.yOffset=1.0f;
       }
       ImGui::Separator();
-      ImGui::Checkbox(_("Show X Grid"), &spectrum.showXGrid);
-      ImGui::Checkbox(_("Show Y Grid"), &spectrum.showYGrid);
-      ImGui::Checkbox(_("Show X Scale"), &spectrum.showXScale);
-      ImGui::Checkbox(_("Show Y Scale"), &spectrum.showYScale);
+      ImGui::Checkbox(_("Show X Grid"),&spectrum.showXGrid);
+      ImGui::Checkbox(_("Show Y Grid"),&spectrum.showYGrid);
+      ImGui::Checkbox(_("Show X Scale"),&spectrum.showXScale);
+      ImGui::Checkbox(_("Show Y Scale"),&spectrum.showYScale);
     }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SPECTRUM;

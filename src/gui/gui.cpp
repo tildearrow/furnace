@@ -8249,7 +8249,7 @@ void FurnaceGUI::syncState() {
 #endif
   notesOpen=e->getConfBool("notesOpen",false);
   tunerOpen=e->getConfBool("tunerOpen",false);
-  spectrumOpen=e->getConfBool("spectrumOpen", false);
+  spectrumOpen=e->getConfBool("spectrumOpen",false);
   channelsOpen=e->getConfBool("channelsOpen",false);
   patManagerOpen=e->getConfBool("patManagerOpen",false);
   sysManagerOpen=e->getConfBool("sysManagerOpen",false);
