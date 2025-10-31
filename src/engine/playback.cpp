@@ -2583,9 +2583,9 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         double dt=divider*tickMult;
         totalTicksR++;
         totalTime.micros+=1000000/dt;
-        totalTicksOff+=fmod(1000000.0,dt);
-        while (totalTicksOff>=dt) {
-          totalTicksOff-=dt;
+        totalTimeDrift+=fmod(1000000.0,dt);
+        while (totalTimeDrift>=dt) {
+          totalTimeDrift-=dt;
           totalTime.micros++;
         }
       }

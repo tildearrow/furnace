@@ -1707,7 +1707,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
     subticks=0;
     tempoAccum=0;
     totalTime=TimeMicros(0,0);
-    totalTicksOff=0;
+    totalTimeDrift=0;
     totalTicksR=0;
     curMidiClock=0;
     curMidiTime=0;
@@ -3980,7 +3980,7 @@ void DivEngine::quitDispatch() {
   changeOrd=-1;
   changePos=0;
   totalTime=TimeMicros(0,0);
-  totalTicksOff=0;
+  totalTimeDrift=0;
   totalTicksR=0;
   curMidiClock=0;
   curMidiTime=0;

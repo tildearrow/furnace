@@ -512,7 +512,7 @@ class DivEngine {
   int stepPlay;
   int changeOrd, changePos, totalTicksR, curMidiClock, curMidiTime, totalCmds, lastCmds, cmdsPerSecond;
   TimeMicros totalTime;
-  double totalTicksOff;
+  double totalTimeDrift;
   int curMidiTimePiece, curMidiTimeCode;
   unsigned char extValue, pendingMetroTick;
   DivGroovePattern speeds;
@@ -1530,7 +1530,7 @@ class DivEngine {
       totalCmds(0),
       lastCmds(0),
       cmdsPerSecond(0),
-      totalTicksOff(0.0),
+      totalTimeDrift(0.0),
       curMidiTimePiece(0),
       curMidiTimeCode(0),
       extValue(0),
