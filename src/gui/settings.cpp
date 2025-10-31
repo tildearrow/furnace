@@ -3871,13 +3871,24 @@ void FurnaceGUI::drawSettings() {
 
         // SUBSECTION MIXER
         CONFIG_SUBSECTION(_("Mixer"))
+        ImGui::Text(_("Mixer layout:"));
+        ImGui::Indent();
+        if (ImGui::RadioButton(_("Horizontal##mixl0"),settings.mixerLayout==0)) {
+          settings.mixerLayout=0;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton(_("Vertical##mixl1"),settings.mixerLayout==1)) {
+          settings.mixerLayout=1;
+          settingsChanged=true;
+        }
+        ImGui::Unindent();
         ImGui::Text(_("Mixer style:"));
         ImGui::Indent();
         if (ImGui::RadioButton(_("No volume meters"),settings.mixerStyle==0)) {
           settings.mixerStyle=0;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton(_("Volume meters to the side"),settings.mixerStyle==1)) {
+        if (ImGui::RadioButton(_("Volume meters separate"),settings.mixerStyle==1)) {
           settings.mixerStyle=1;
           settingsChanged=true;
         }
@@ -4392,6 +4403,12 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_MEMORY_BANK6,_("Sample (bank 6)"));
           UI_COLOR_CONFIG(GUI_COLOR_MEMORY_BANK7,_("Sample (bank 7)"));
 
+          ImGui::TreePop();
+        }
+        if (ImGui::TreeNode(_("Tuner"))) {
+          UI_COLOR_CONFIG(GUI_COLOR_TUNER_NEEDLE,_("Needle##tuner"));
+          UI_COLOR_CONFIG(GUI_COLOR_TUNER_SCALE_LOW,_("Scale center"));
+          UI_COLOR_CONFIG(GUI_COLOR_TUNER_SCALE_HIGH,_("Scale edges"));
           ImGui::TreePop();
         }
         if (ImGui::TreeNode(_("Log Viewer"))) {
@@ -5075,6 +5092,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.rackShowLEDs=conf.getInt("rackShowLEDs",1);
 
     settings.mixerStyle=conf.getInt("mixerStyle",1);
+    settings.mixerLayout=conf.getInt("mixerLayout",1);
 
     settings.channelColors=conf.getInt("channelColors",1);
     settings.channelTextColors=conf.getInt("channelTextColors",0);
@@ -5414,6 +5432,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.songNotesWrap,0,1);
   clampSetting(settings.rackShowLEDs,0,1);
   clampSetting(settings.mixerStyle,0,2);
+  clampSetting(settings.mixerLayout,0,1);
   clampSetting(settings.cursorWheelStep,0,2);
   clampSetting(settings.vsync,0,4);
   clampSetting(settings.frameRateLimit,0,1000);
@@ -5663,6 +5682,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("rackShowLEDs",settings.rackShowLEDs);
 
     conf.set("mixerStyle",settings.mixerStyle);
+    conf.set("mixerLayout",settings.mixerLayout);
 
     conf.set("channelColors",settings.channelColors);
     conf.set("channelTextColors",settings.channelTextColors);

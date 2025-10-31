@@ -1000,6 +1000,7 @@ src/gui/scaling.cpp
 src/gui/settings.cpp
 src/gui/songInfo.cpp
 src/gui/songNotes.cpp
+src/gui/spectrum.cpp
 src/gui/speed.cpp
 src/gui/spoiler.cpp
 src/gui/stats.cpp
