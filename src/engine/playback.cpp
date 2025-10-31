@@ -2172,8 +2172,9 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
 
               // also set the playback position and sync file player if necessary
               TimeMicros rowTS=curSubSong->ts.getTimes(curOrder,curRow);
-              totalSeconds=rowTS.seconds;
-              totalTicks=rowTS.micros;
+              if (rowTS.seconds!=-1) {
+                totalTime=rowTS;
+              }
               if (curFilePlayer && filePlayerSync) {
                 syncFilePlayer();
               }
@@ -2581,25 +2582,27 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       if (!noAccum) {
         double dt=divider*tickMult;
         totalTicksR++;
-        // despite the name, totalTicks is in microseconds...
-        totalTicks+=1000000/dt;
+        totalTime.micros+=1000000/dt;
         totalTicksOff+=fmod(1000000.0,dt);
         while (totalTicksOff>=dt) {
           totalTicksOff-=dt;
-          totalTicks++;
+          totalTime.micros++;
         }
       }
-      if (totalTicks>=1000000) {
-        totalTicks-=1000000;
+      if (totalTime.micros>=1000000) {
+        totalTime.micros-=1000000;
         // who's gonna play a song for 68 years?
-        if (totalSeconds<0x7fffffff) totalSeconds++;
+        if (totalTime.seconds<0x7fffffff) totalTime.seconds++;
         cmdsPerSecond=totalCmds-lastCmds;
         lastCmds=totalCmds;
       }
     }
 
     // print status in console mode
-    if (consoleMode && !disableStatusOut && subticks<=1 && !skipping) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000,curOrder,curSubSong->ordersLen,curRow,curSubSong->patLen,cmdsPerSecond);
+    if (consoleMode && !disableStatusOut && subticks<=1 && !skipping) {
+      String timeFormatted=totalTime.toString(2,TA_TIME_FORMAT_HMS);
+      fprintf(stderr,"\x1b[2K> %s  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",timeFormatted.c_str(),curOrder,curSubSong->ordersLen,curRow,curSubSong->patLen,cmdsPerSecond);
+    }
   }
 
   
@@ -3110,15 +3113,12 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           if (curFilePlayer && filePlayerSync) {
             if (curFilePlayer->isPlaying()) {
               TimeMicros rowTS=curSubSong->ts.loopStartTime;
-              int finalSeconds=rowTS.seconds+filePlayerCueSeconds;
-              int finalMicros=rowTS.micros+filePlayerCueMicros;
 
-              while (finalMicros>=1000000) {
-                finalMicros-=1000000;
-                finalSeconds++;
+              if (rowTS.seconds==-1) {
+                logW("that row isn't supposed to play. report this now!");
               }
 
-              curFilePlayer->setPosSeconds(finalSeconds,finalMicros,lastLoopPos);
+              curFilePlayer->setPosSeconds(rowTS+filePlayerCue,lastLoopPos);
             }
           }
           // increase total loop count
@@ -3232,7 +3232,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     // complain and stop playback if we believe the engine has stalled
     //logD("attempts: %d",attempts);
     if (attempts>=(int)(size+10)) {
-      logE("hang detected! stopping! at %d seconds %d micro (%d>=%d)",totalSeconds,totalTicks,attempts,(int)size);
+      logE("hang detected! stopping! at %s (%d>=%d)",totalTime.toString(),attempts,(int)size);
       freelance=false;
       playing=false;
       extValuePresent=false;

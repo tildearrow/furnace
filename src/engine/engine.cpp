@@ -1511,8 +1511,7 @@ String DivEngine::getPlaybackDebugInfo() {
     "midiTimeDrift: %f\n"
     "changeOrd: %d\n"
     "changePos: %d\n"
-    "totalSeconds: %d\n"
-    "totalTicks: %d\n"
+    "totalTime: %s\n"
     "totalTicksR: %d\n"
     "curMidiClock: %d\n"
     "curMidiTime: %d\n"
@@ -1524,7 +1523,7 @@ String DivEngine::getPlaybackDebugInfo() {
     "totalProcessed: %d\n"
     "bufferPos: %d\n",
     curOrder,prevOrder,curRow,prevRow,ticks,subticks,totalLoops,lastLoopPos,nextSpeed,divider,cycles,clockDrift,
-    midiClockCycles,midiClockDrift,midiTimeCycles,midiTimeDrift,changeOrd,changePos,totalSeconds,totalTicks,
+    midiClockCycles,midiClockDrift,midiTimeCycles,midiTimeDrift,changeOrd,changePos,totalTime.toString(),
     totalTicksR,curMidiClock,curMidiTime,totalCmds,lastCmds,cmdsPerSecond,
     (int)extValue,(int)tempoAccum,(int)totalProcessed,(int)bufferPos
   );
@@ -1662,27 +1661,17 @@ void DivEngine::setFilePlayerSync(bool doSync) {
   filePlayerSync=doSync;
 }
 
-void DivEngine::getFilePlayerCue(int& seconds, int& micros) {
-  seconds=filePlayerCueSeconds;
-  micros=filePlayerCueMicros;
+TimeMicros DivEngine::getFilePlayerCue() {
+  return filePlayerCue;
 }
 
-void DivEngine::setFilePlayerCue(int seconds, int micros) {
-  filePlayerCueSeconds=seconds;
-  filePlayerCueMicros=micros;
+void DivEngine::setFilePlayerCue(TimeMicros cue) {
+  filePlayerCue=cue;
 }
 
 void DivEngine::syncFilePlayer() {
   if (curFilePlayer==NULL) return;
-  int finalSeconds=totalSeconds+filePlayerCueSeconds;
-  int finalMicros=totalTicks+filePlayerCueMicros;
-
-  while (finalMicros>=1000000) {
-    finalMicros-=1000000;
-    finalSeconds++;
-  }
-
-  curFilePlayer->setPosSeconds(finalSeconds,finalMicros);
+  curFilePlayer->setPosSeconds(totalTime+filePlayerCue);
 }
 
 void DivEngine::playSub(bool preserveDrift, int goalRow) {
@@ -1717,9 +1706,8 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
     ticks=1;
     subticks=0;
     tempoAccum=0;
-    totalTicks=0;
+    totalTime=TimeMicros(0,0);
     totalTicksOff=0;
-    totalSeconds=0;
     totalTicksR=0;
     curMidiClock=0;
     curMidiTime=0;
@@ -1809,7 +1797,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   cmdStream.clear();
   std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
   logV("playSub() took %dµs",std::chrono::duration_cast<std::chrono::microseconds>(timeEnd-timeStart).count());
-  logV("and landed us at %d.%06d (%d ticks, %d:%d.%d)",totalSeconds,totalTicks,totalTicksR,curOrder,curRow,ticks);
+  logV("and landed us at %s (%d ticks, %d:%d.%d)",totalTime.toString(),totalTicksR,curOrder,curRow,ticks);
 }
 
 /*
@@ -2569,12 +2557,8 @@ void DivEngine::virtualTempoChanged() {
   BUSY_END;
 }
 
-int DivEngine::getTotalSeconds() {
-  return totalSeconds;
-}
-
-int DivEngine::getTotalTicks() {
-  return totalTicks;
+TimeMicros DivEngine::getCurTime() {
+  return totalTime;
 }
 
 bool DivEngine::getRepeatPattern() {
@@ -3995,9 +3979,8 @@ void DivEngine::quitDispatch() {
   nextSpeed=3;
   changeOrd=-1;
   changePos=0;
-  totalTicks=0;
+  totalTime=TimeMicros(0,0);
   totalTicksOff=0;
-  totalSeconds=0;
   totalTicksR=0;
   curMidiClock=0;
   curMidiTime=0;

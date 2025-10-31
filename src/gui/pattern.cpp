@@ -412,7 +412,8 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     if (rowTS.seconds==-1) {
       ImGui::Text("---");
     } else {
-      ImGui::Text("%d.%06d",rowTS.seconds,rowTS.micros);
+      String timeFormatted=rowTS.toString(2,TA_TIME_FORMAT_AUTO_MS_ZERO);
+      ImGui::TextUnformatted(timeFormatted.c_str());
     }
   }
 }

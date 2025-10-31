@@ -21,6 +21,7 @@
 #define _FILEPLAYER_H
 
 #include "../ta-utils.h"
+#include "../timeutils.h"
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -78,9 +79,9 @@ class DivFilePlayer {
 
     void mix(float** buf, int chans, unsigned int size);
     ssize_t getPos();
-    void getPosSeconds(ssize_t& seconds, unsigned int& micros);
+    TimeMicros getPosSeconds();
     ssize_t setPos(ssize_t newPos, unsigned int offset=UINT_MAX);
-    ssize_t setPosSeconds(ssize_t seconds, unsigned int micros, unsigned int offset=UINT_MAX);
+    ssize_t setPosSeconds(TimeMicros newTime, unsigned int offset=UINT_MAX);
     
     bool isBlockPresent(ssize_t pos);
     bool setBlockPriority(ssize_t pos, bool priority);

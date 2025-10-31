@@ -2719,7 +2719,7 @@ void FurnaceGUI::exportAudio(String path, DivAudioExportModes mode) {
   e->calcSongTimestamps();
   DivSongTimestamps& ts=e->curSubSong->ts;
 
-  songLength=ts.totalSeconds+(double)ts.totalMicros/1000000.0;
+  songLength=ts.totalTime.toDouble();
   double loopLength=songLength-(ts.loopStartTime.seconds+(double)ts.loopStartTime.micros/1000000.0);
 
   e->saveAudio(path.c_str(),audioExportOptions);
@@ -4843,8 +4843,7 @@ bool FurnaceGUI::loop() {
       }
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PLAYBACK_STAT]);
       if (e->isPlaying() && settings.playbackTime) {
-        int totalTicks=e->getTotalTicks();
-        int totalSeconds=e->getTotalSeconds();
+        TimeMicros totalTime=e->getCurTime();
 
         String info;
 
@@ -4873,32 +4872,10 @@ bool FurnaceGUI::loop() {
 
         info+=_("| ");
 
-        if (totalSeconds==0x7fffffff) {
+        if (totalTime.seconds==0x7fffffff) {
           info+=_("Don't you have anything better to do?");
         } else {
-          if (totalSeconds>=86400) {
-            int totalDays=totalSeconds/86400;
-            int totalYears=totalDays/365;
-            totalDays%=365;
-            int totalMonths=totalDays/30;
-            totalDays%=30;
-
-#ifdef HAVE_LOCALE
-            info+=fmt::sprintf(ngettext("%d year ","%d years ",totalYears),totalYears);
-            info+=fmt::sprintf(ngettext("%d month ","%d months ",totalMonths),totalMonths);
-            info+=fmt::sprintf(ngettext("%d day ","%d days ",totalDays),totalDays);
-#else
-            info+=fmt::sprintf(_GN("%d year ","%d years ",totalYears),totalYears);
-            info+=fmt::sprintf(_GN("%d month ","%d months ",totalMonths),totalMonths);
-            info+=fmt::sprintf(_GN("%d day ","%d days ",totalDays),totalDays);
-#endif
-          }
-
-          if (totalSeconds>=3600) {
-            info+=fmt::sprintf("%.2d:",(totalSeconds/3600)%24);
-          }
-
-          info+=fmt::sprintf("%.2d:%.2d.%.2d",(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
+          info+=totalTime.toString(2,TA_TIME_FORMAT_AUTO_MS_ZERO);
         }
 
         ImGui::TextUnformatted(info.c_str());
@@ -6039,7 +6016,7 @@ bool FurnaceGUI::loop() {
           [this, curFileLambda] () {
             *curFileLambda=0;
             e->getCurFileIndex(*curFileLambda);
-            curProgress=(((double)e->getTotalSeconds()+(double)e->getTotalTicks()/1000000.0)+(songLength*(*curFileLambda)))/totalLength;
+            curProgress=(e->getCurTime().toDouble()+(songLength*(*curFileLambda)))/totalLength;
           }
         );
       }
@@ -7390,17 +7367,8 @@ bool FurnaceGUI::loop() {
         if (!fp->isPlaying()) {
           TimeMicros rowTS=e->curSubSong->ts.getTimes(cursor.order,cursor.y);
           if (rowTS.seconds!=-1) {
-            int cueSeconds=0;
-            int cueMicros=0;
-            e->getFilePlayerCue(cueSeconds,cueMicros);
-            rowTS.seconds+=cueSeconds;
-            rowTS.micros+=cueMicros;
-            while (rowTS.micros>=1000000) {
-              rowTS.micros-=1000000;
-              rowTS.seconds++;
-            }
-
-            fp->setPosSeconds(rowTS.seconds,rowTS.micros);
+            TimeMicros cueTime=e->getFilePlayerCue();
+            fp->setPosSeconds(cueTime+rowTS);
           }
         }
       }

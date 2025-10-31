@@ -170,8 +170,7 @@ struct DivGroovePattern {
 
 struct DivSongTimestamps {
   // song duration (in seconds and microseconds)
-  int totalSeconds;
-  int totalMicros;
+  TimeMicros totalTime;
   int totalTicks;
   int totalRows;
 

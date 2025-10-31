@@ -298,15 +298,15 @@ ssize_t DivFilePlayer::getPos() {
   return playPos;
 }
 
-void DivFilePlayer::getPosSeconds(ssize_t& seconds, unsigned int& micros) {
+TimeMicros DivFilePlayer::getPosSeconds() {
   if (sf==NULL) {
-    seconds=0;
-    micros=0;
-    return;
+    return TimeMicros(0,0);
   }
   double microsD=playPos%si.samplerate;
-  seconds=playPos/si.samplerate;
-  micros=(int)((1000000.0*microsD)/(double)si.samplerate);
+  return TimeMicros(
+    playPos/si.samplerate, // seconds
+    (int)((1000000.0*microsD)/(double)si.samplerate) // microseconds
+  );
 }
 
 ssize_t DivFilePlayer::setPos(ssize_t newPos, unsigned int offset) {
@@ -325,20 +325,20 @@ ssize_t DivFilePlayer::setPos(ssize_t newPos, unsigned int offset) {
   }
 }
 
-ssize_t DivFilePlayer::setPosSeconds(ssize_t seconds, unsigned int micros, unsigned int offset) {
+ssize_t DivFilePlayer::setPosSeconds(TimeMicros newTime, unsigned int offset) {
   if (sf==NULL) return 0;
-  double microsD=(double)si.samplerate*((double)micros/1000000.0);
+  double microsD=(double)si.samplerate*((double)newTime.micros/1000000.0);
   if (offset==UINT_MAX) {
-    playPos=seconds*si.samplerate+(int)microsD;
+    playPos=(ssize_t)newTime.seconds*(ssize_t)si.samplerate+(int)microsD;
     rateAccum=0;
     wantBlock=playPos;
-    logD("DivFilePlayer: setPosSeconds(%" PRIi64 ".%06d)",seconds,micros);
+    logD("DivFilePlayer: setPosSeconds(%s)",newTime.toString());
     return playPos;
   } else {
     pendingPosOffset=offset;
-    pendingPos=seconds*si.samplerate+(int)microsD;
+    pendingPos=(ssize_t)newTime.seconds*(ssize_t)si.samplerate+(int)microsD;
     wantBlock=pendingPos;
-    logD("DivFilePlayer: offset %u setPosSeconds(%" PRIi64 ".%06d)",offset,seconds,micros);
+    logD("DivFilePlayer: offset %u setPosSeconds(%s)",offset,newTime.toString());
     return pendingPos;
   }
 }

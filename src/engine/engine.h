@@ -510,7 +510,8 @@ class DivEngine {
   int midiTimeCycles;
   double midiTimeDrift;
   int stepPlay;
-  int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, curMidiClock, curMidiTime, totalCmds, lastCmds, cmdsPerSecond;
+  int changeOrd, changePos, totalTicksR, curMidiClock, curMidiTime, totalCmds, lastCmds, cmdsPerSecond;
+  TimeMicros totalTime;
   double totalTicksOff;
   int curMidiTimePiece, curMidiTimeCode;
   unsigned char extValue, pendingMetroTick;
@@ -602,8 +603,7 @@ class DivEngine {
   size_t filePlayerBufLen;
   DivFilePlayer* curFilePlayer;
   bool filePlayerSync;
-  ssize_t filePlayerCueSeconds;
-  unsigned int filePlayerCueMicros;
+  TimeMicros filePlayerCue;
   int filePlayerLoopTrail;
   int curFilePlayerTrail;
 
@@ -763,8 +763,8 @@ class DivEngine {
     bool getFilePlayerSync();
     void setFilePlayerSync(bool doSync);
     // get/set file player cue position.
-    void getFilePlayerCue(int& seconds, int& micros);
-    void setFilePlayerCue(int seconds, int micros);
+    TimeMicros getFilePlayerCue();
+    void setFilePlayerCue(TimeMicros cue);
     // UNSAFE - sync file player to current playback position.
     void syncFilePlayer();
 
@@ -1049,8 +1049,7 @@ class DivEngine {
     void virtualTempoChanged();
 
     // get time
-    int getTotalTicks(); // 1/1000000th of a second
-    int getTotalSeconds();
+    TimeMicros getCurTime();
 
     // get repeat pattern
     bool getRepeatPattern();
@@ -1525,8 +1524,6 @@ class DivEngine {
       stepPlay(0),
       changeOrd(-1),
       changePos(0),
-      totalSeconds(0),
-      totalTicks(0),
       totalTicksR(0),
       curMidiClock(0),
       curMidiTime(0),
@@ -1576,8 +1573,7 @@ class DivEngine {
       filePlayerBufLen(0),
       curFilePlayer(NULL),
       filePlayerSync(false),
-      filePlayerCueSeconds(0),
-      filePlayerCueMicros(0),
+      filePlayerCue(0,0),
       filePlayerLoopTrail(0),
       curFilePlayerTrail(0),
       totalProcessed(0),

@@ -79,21 +79,15 @@ void FurnaceGUI::drawRefPlayer() {
     }
     if (fp->isPlaying()) {
       if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-        int cueSeconds=0;
-        int cueMicros=0;
         fp->stop();
-        e->getFilePlayerCue(cueSeconds,cueMicros);
-        fp->setPosSeconds(cueSeconds,cueMicros);
+        fp->setPosSeconds(e->getFilePlayerCue());
       }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
         fp->stop();
         fp->setPos(0);
       }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        int cueSeconds=0;
-        int cueMicros=0;
-        e->getFilePlayerCue(cueSeconds,cueMicros);
-        fp->setPosSeconds(cueSeconds,cueMicros);
+        fp->setPosSeconds(e->getFilePlayerCue());
       }
       ImGui::SetItemTooltip(
         _("left click: go to cue position\n"
@@ -103,21 +97,12 @@ void FurnaceGUI::drawRefPlayer() {
     } else {
       if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
         // try setting cue pos
-        ssize_t curSeconds=0;
-        unsigned int curMicros=0;
-        fp->getPosSeconds(curSeconds,curMicros);
+        TimeMicros curPos=fp->getPosSeconds();
         TimeMicros rowTS=e->curSubSong->ts.getTimes(curOrder,0);
         if (rowTS.seconds==-1) {
           showError(_("the first row of this order isn't going to play."));
         } else {
-          // calculate difference and set cue pos
-          curSeconds-=rowTS.seconds;
-          int curMicrosI=curMicros-rowTS.micros;
-          while (curMicrosI<0) {
-            curMicrosI+=1000000;
-            curSeconds--;
-          }
-          e->setFilePlayerCue(curSeconds,curMicrosI);
+          e->setFilePlayerCue(curPos-rowTS);
         }
       }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
@@ -125,25 +110,23 @@ void FurnaceGUI::drawRefPlayer() {
       }
       if (ImGui::BeginPopupContextItem("Edit Cue Position",ImGuiPopupFlags_MouseButtonRight)) {
         ImGui::TextUnformatted(_("Set cue position at first order:"));
-        int cueSeconds=0;
-        int cueMicros=0;
+        TimeMicros cueTime=e->getFilePlayerCue();
         bool altered=false;
-        e->getFilePlayerCue(cueSeconds,cueMicros);
         // TODO: improve this...
         ImGui::SetNextItemWidth(240.0f*dpiScale);
-        if (ImGui::InputInt(_("Seconds##CuePosS"),&cueSeconds)) {
-          if (cueSeconds<-3600) cueSeconds=-3600;
-          if (cueSeconds>3600) cueSeconds=3600;
+        if (ImGui::InputInt(_("Seconds##CuePosS"),&cueTime.seconds)) {
+          if (cueTime.seconds<-3600) cueTime.seconds=-3600;
+          if (cueTime.seconds>3600) cueTime.seconds=3600;
           altered=true;
         }
         ImGui::SetNextItemWidth(240.0f*dpiScale);
-        if (ImGui::InputInt(_("Microseconds##CuePosM"),&cueMicros,1000,10000)) {
-          if (cueMicros<0) cueMicros=0;
-          if (cueMicros>999999) cueMicros=999999;
+        if (ImGui::InputInt(_("Microseconds##CuePosM"),&cueTime.micros,1000,10000)) {
+          if (cueTime.micros<0) cueTime.micros=0;
+          if (cueTime.micros>999999) cueTime.micros=999999;
           altered=true;
         }
         if (altered) {
-          e->setFilePlayerCue(cueSeconds,cueMicros);
+          e->setFilePlayerCue(cueTime);
         }
         if (ImGui::Button(_("OK"))) {
           ImGui::CloseCurrentPopup();
@@ -165,21 +148,12 @@ void FurnaceGUI::drawRefPlayer() {
       }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         // try setting cue pos
-        ssize_t curSeconds=0;
-        unsigned int curMicros=0;
-        fp->getPosSeconds(curSeconds,curMicros);
+        TimeMicros curPos=fp->getPosSeconds();
         TimeMicros rowTS=e->curSubSong->ts.getTimes(curOrder,0);
         if (rowTS.seconds==-1) {
           showError(_("the first row of this order isn't going to play."));
         } else {
-          // calculate difference and set cue pos
-          curSeconds-=rowTS.seconds;
-          int curMicrosI=curMicros-rowTS.micros;
-          while (curMicrosI<0) {
-            curMicrosI+=1000000;
-            curSeconds--;
-          }
-          e->setFilePlayerCue(curSeconds,curMicrosI);
+          e->setFilePlayerCue(curPos-rowTS);
           fp->stop();
         }
       }
@@ -203,9 +177,7 @@ void FurnaceGUI::drawRefPlayer() {
       } else {
         rowTS=e->curSubSong->ts.getTimes(curOrder,0);
       }
-      int cueSeconds=0;
-      int cueMicros=0;
-      e->getFilePlayerCue(cueSeconds,cueMicros);
+      TimeMicros cueTime=e->getFilePlayerCue();
       if (rowTS.seconds==-1) {
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
           showError(_("the row that the pattern cursor is at isn't going to play. try moving the cursor."));
@@ -213,15 +185,7 @@ void FurnaceGUI::drawRefPlayer() {
           showError(_("the first row of this order isn't going to play. try another order."));
         }
       } else {
-        int finalSeconds=rowTS.seconds+cueSeconds;
-        int finalMicros=rowTS.micros+cueMicros;
-
-        while (finalMicros>=1000000) {
-          finalMicros-=1000000;
-          finalSeconds++;
-        }
-
-        fp->setPosSeconds(finalSeconds,finalMicros);
+        fp->setPosSeconds(rowTS+cueTime);
         fp->play();
       }
     }

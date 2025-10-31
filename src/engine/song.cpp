@@ -30,8 +30,7 @@ TimeMicros DivSongTimestamps::getTimes(int order, int row) {
 }
 
 DivSongTimestamps::DivSongTimestamps():
-  totalSeconds(0),
-  totalMicros(0),
+  totalTime(0,0),
   totalTicks(0),
   totalRows(0),
   isLoopDefined(false),
@@ -54,8 +53,7 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
   std::chrono::high_resolution_clock::time_point timeStart=std::chrono::high_resolution_clock::now();
 
   // reset state
-  ts.totalSeconds=0;
-  ts.totalMicros=0;
+  ts.totalTime=TimeMicros(0,0);
   ts.totalTicks=0;
   ts.totalRows=0;
   ts.isLoopDefined=true;
@@ -396,7 +394,7 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
           ts.orders[prevOrder][i].seconds=-1;
         }
       }
-      ts.orders[prevOrder][prevRow]=TimeMicros(ts.totalSeconds,ts.totalMicros);
+      ts.orders[prevOrder][prevRow]=ts.totalTime;
       rowChanged=false;
     }
 
@@ -405,16 +403,16 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
       double dt=divider;//*((double)virtualTempoN/(double)MAX(1,virtualTempoD));
       ts.totalTicks++;
 
-      ts.totalMicros+=1000000/dt;
+      ts.totalTime.micros+=1000000/dt;
       totalMicrosOff+=fmod(1000000.0,dt);
       while (totalMicrosOff>=dt) {
         totalMicrosOff-=dt;
-        ts.totalMicros++;
+        ts.totalTime.micros++;
       }
-      if (ts.totalMicros>=1000000) {
-        ts.totalMicros-=1000000;
+      if (ts.totalTime.micros>=1000000) {
+        ts.totalTime.micros-=1000000;
         // who's gonna play a song for 68 years?
-        if (ts.totalSeconds<0x7fffffff) ts.totalSeconds++;
+        if (ts.totalTime.seconds<0x7fffffff) ts.totalTime.seconds++;
       }
     }
     if (ts.maxRow[curOrder]<curRow) ts.maxRow[curOrder]=curRow;

@@ -206,7 +206,8 @@ void FurnaceGUI::drawDebug() {
 
       DivSongTimestamps& ts=e->curSubSong->ts;
 
-      ImGui::Text("song duration: %d.%06d (%d ticks; %d rows)",ts.totalSeconds,ts.totalMicros,ts.totalTicks,ts.totalRows);
+      String timeFormatted=ts.totalTime.toString(-1,TA_TIME_FORMAT_AUTO);
+      ImGui::Text("song duration: %s (%d ticks; %d rows)",timeFormatted.c_str(),ts.totalTicks,ts.totalRows);
       if (ts.isLoopDefined) {
         ImGui::Text("loop region is defined");
       } else {
@@ -219,7 +220,8 @@ void FurnaceGUI::drawDebug() {
       }
 
       ImGui::Text("loop region: %d:%d - %d:%d",ts.loopStart.order,ts.loopStart.row,ts.loopEnd.order,ts.loopEnd.row);
-      ImGui::Text("loop start time: %d.%06d",ts.loopStartTime.seconds,ts.loopStartTime.micros);
+      timeFormatted=ts.loopStartTime.toString(-1,TA_TIME_FORMAT_AUTO);
+      ImGui::Text("loop start time: %s",timeFormatted.c_str());
 
       if (ImGui::TreeNode("Maximum rows")) {
         for (int i=0; i<e->curSubSong->ordersLen; i++) {

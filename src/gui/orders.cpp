@@ -90,30 +90,11 @@ void FurnaceGUI::drawMobileOrderSel() {
 
     // time
     if (e->isPlaying() && settings.playbackTime) {
-      int totalTicks=e->getTotalTicks();
-      int totalSeconds=e->getTotalSeconds();
-      String info="";
+      TimeMicros totalTime=e->getCurTime();
+      String info=totalTime.toString(2,TA_TIME_FORMAT_AUTO_MS_ZERO);
 
-      if (totalSeconds==0x7fffffff) {
+      if (totalTime.seconds==0x7fffffff) {
         info="∞";
-      } else {
-        if (totalSeconds>=86400) {
-          int totalDays=totalSeconds/86400;
-          int totalYears=totalDays/365;
-          totalDays%=365;
-          int totalMonths=totalDays/30;
-          totalDays%=30;
-
-          info+=fmt::sprintf("%dy",totalYears);
-          info+=fmt::sprintf("%dm",totalMonths);
-          info+=fmt::sprintf("%dd",totalDays);
-        }
-
-        if (totalSeconds>=3600) {
-          info+=fmt::sprintf("%.2d:",(totalSeconds/3600)%24);
-        }
-
-        info+=fmt::sprintf("%.2d:%.2d.%.2d",(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
       }
 
       ImVec2 textSize=ImGui::CalcTextSize(info.c_str());

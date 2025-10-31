@@ -1082,7 +1082,7 @@ void FurnaceGUI::drawTutorial() {
         oneQuarter=(oneQuarter*e->curSubSong->virtualTempoN)/e->curSubSong->virtualTempoD;
         oneQuarter/=e->curSubSong->hz;
         oneQuarter/=4;
-        if (cv->playSongs && e->getTotalSeconds()>=oneQuarter) {
+        if (cv->playSongs && e->getCurTime().seconds>=oneQuarter) {
           if (loadRandomDemoSong()) {
             cv->loadInstruments();
             e->changeSongP(0);
