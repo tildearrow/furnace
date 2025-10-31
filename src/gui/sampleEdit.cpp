@@ -1604,6 +1604,19 @@ void FurnaceGUI::drawSampleEdit() {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(_("Create instrument from sample"));
       }
+      sameLineMaybe();
+      ImGui::Button(ICON_FA_UPLOAD "##CreateWaveSeq");
+        if (ImGui::BeginPopupContextItem("##CreateWaveSeqPopup",ImGuiPopupFlags_MouseButtonLeft)) {
+          if (ImGui::InputInt(_("wavetable length"), &sampleToWaveSeqWaveSize)) {
+            if (sampleToWaveSeqWaveSize<0) sampleToWaveSeqWaveSize=0;
+            if (sampleToWaveSeqWaveSize>256) sampleToWaveSeqWaveSize=256;
+          }
+          if (ImGui::Button(_("Create!"))) doAction(GUI_ACTION_SAMPLE_CREATE_WAVE_SEQ);
+          ImGui::EndPopup();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Create wavetable sequence sample"));
+      }
 
       sameLineMaybe(ImGui::CalcTextSize("Zoom").x+150.0f*dpiScale+ImGui::CalcTextSize("100%").x);
       double zoomPercent=100.0/sampleZoom;
