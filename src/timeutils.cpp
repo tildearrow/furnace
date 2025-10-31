@@ -19,6 +19,7 @@
 
 #include "timeutils.h"
 #include <fmt/printf.h>
+#include <stdexcept>
 
 String TimeMicros::toString(signed char prec, TATimeFormats hms) {
   String ret;
@@ -189,6 +190,215 @@ String TimeMicros::toString(signed char prec, TATimeFormats hms) {
   return ret;
 }
 
-TimeMicros TimeMicros::fromString(String s) {
-  return TimeMicros(0,0);
+TimeMicros TimeMicros::fromString(const String& s) {
+  bool seenYears=false;
+  bool seenMonths=false;
+  bool seenDays=false;
+  bool seenDecimal=false;
+  bool needSomething=true;
+  bool canNegative=true;
+  bool isNegative=false;
+  unsigned int element[4];
+  unsigned int elementDigits[4];
+  int elementCount=0;
+  int curElement=0;
+  int curElementDigits=0;
+
+  int years=0;
+  int months=0;
+  int days=0;
+
+  element[0]=0;
+  element[1]=0;
+  element[2]=0;
+  element[3]=0;
+  elementDigits[0]=0;
+  elementDigits[1]=0;
+  elementDigits[2]=0;
+  elementDigits[3]=0;
+
+  for (char i: s) {
+    switch (i) {
+      // numbers
+      case '0': case '1': case '2': case '3': case '4':
+      case '5': case '6': case '7': case '8': case '9':
+        if (curElementDigits<9) {
+          curElement*=10;
+          curElement+=(i-'0');
+          curElementDigits++;
+          needSomething=false;
+        } else {
+          throw std::invalid_argument("value out of range");
+        }
+        break;
+
+      // negative indicator
+      case '-':
+        if (!canNegative) {
+          throw std::invalid_argument("negative symbol shall be at the beginning");
+        }
+        isNegative=true;
+        break;
+
+      // element separator
+      case ':':
+        if (needSomething) {
+          throw std::invalid_argument("missing value");
+        }
+        if (seenDecimal) {
+          throw std::invalid_argument("after decimal");
+        }
+        if (elementCount>=3) {
+          throw std::invalid_argument("too many elements");
+        }
+        element[elementCount]=curElement;
+        elementDigits[elementCount++]=curElementDigits;
+        curElement=0;
+        curElementDigits=0;
+        break;
+
+      // decimal separator
+      case '.': case ',':
+        if (needSomething && elementCount!=0) {
+          throw std::invalid_argument("wrong decimal separator");
+        }
+        if (elementCount>=3) {
+          throw std::invalid_argument("too many elements");
+        }
+        element[elementCount]=curElement;
+        elementDigits[elementCount++]=curElementDigits;
+        curElement=0;
+        curElementDigits=0;
+        needSomething=true;
+        seenDecimal=true;
+        break;
+
+      // year/month/day marker
+      case 'Y': case 'y':
+        if (seenYears) {
+          throw std::invalid_argument("already have years");
+        }
+        if (elementCount!=0) {
+          throw std::invalid_argument("years must be before time");
+        }
+        years=curElement;
+        curElement=0;
+        curElementDigits=0;
+        needSomething=true;
+        seenYears=true;
+        break;
+      case 'M': case 'm':
+        if (seenMonths) {
+          throw std::invalid_argument("already have months");
+        }
+        if (elementCount!=0) {
+          throw std::invalid_argument("months must be before time");
+        }
+        months=curElement;
+        curElement=0;
+        curElementDigits=0;
+        needSomething=true;
+        seenMonths=true;
+        break;
+      case 'D': case 'd':
+        if (seenDays) {
+          throw std::invalid_argument("already have days");
+        }
+        if (elementCount!=0) {
+          throw std::invalid_argument("days must be before time");
+        }
+        days=curElement;
+        curElement=0;
+        curElementDigits=0;
+        needSomething=true;
+        seenDays=true;
+        break;
+
+      // ignore spaces
+      case ' ':
+        break;
+      
+      // fail if any other character is seen
+      default:
+        throw std::invalid_argument("invalid character");
+        break;
+    }
+    canNegative=false;
+  }
+
+  // fail if you didn't provide an element
+  if (needSomething) {
+    throw std::invalid_argument("missing value at the end");
+  }
+
+  element[elementCount]=curElement;
+  elementDigits[elementCount]=curElementDigits;
+
+  // safety checks (yeah I know these are a bit off but whatever)
+  if (years>68 || months>828 || (years*365+months*30+days)>24855) {
+    throw std::invalid_argument("years/months/days out of range");
+  }
+  
+  // now combine elements
+  TimeMicros ret;
+  ret.seconds=86400*(years*365+months*30+days);
+  if (seenDecimal || elementCount==3) {
+    if (elementDigits[elementCount]<6) {
+      for (int i=elementDigits[elementCount]; i<6; i++) {
+        element[elementCount]*=10;
+      }
+    } else if (elementDigits[elementCount]>6) {
+      for (int i=elementDigits[elementCount]; i>6; i--) {
+        element[elementCount]/=10;
+      }
+    }
+    ret.micros=element[elementCount];
+    
+    elementCount--;
+  }
+  switch (elementCount) {
+    case 0: // seconds only
+      ret.seconds+=element[0];
+      break;
+    case 1: // minutes and seconds
+      if (element[0]>=35791394) {
+        throw std::invalid_argument("minutes out of range");
+      }
+      if (element[1]>=60) {
+        throw std::invalid_argument("seconds out of range");
+      }
+      ret.seconds+=(element[0]*60)+element[1];
+      break;
+    case 2: // hours, minutes and seconds
+      if (seenYears || seenMonths || seenDays) {
+        if (element[0]>=24) {
+          throw std::invalid_argument("hours out of range");
+        }
+      } else {
+        if (element[0]>=596523) {
+          throw std::invalid_argument("hours out of range");
+        }
+      }
+      if (element[1]>=60) {
+        throw std::invalid_argument("minutes out of range");
+      }
+      if (element[2]>=60) {
+        throw std::invalid_argument("seconds out of range");
+      }
+      ret.seconds+=(element[0]*3600)+(element[1]*60)+element[2];
+      break;
+    default:
+      throw std::invalid_argument("shouldn't happen");
+      break;
+  }
+
+  if (isNegative) {
+    ret.seconds=-ret.seconds;
+    if (ret.micros!=0) {
+      ret.micros=1000000-ret.micros;
+      ret.seconds--;
+    }
+  }
+
+  return ret;
 }

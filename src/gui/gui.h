@@ -2734,6 +2734,11 @@ class FurnaceGUI {
   float keyHit1[DIV_MAX_CHANS];
   int lastIns[DIV_MAX_CHANS];
 
+  // file player temp variables
+  String fpCueInput;
+  bool fpCueInputFailed;
+  String fpCueInputFailReason;
+
   // log window
   bool followLog;
 

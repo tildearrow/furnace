@@ -21,6 +21,7 @@
 #include <fmt/printf.h>
 #include "imgui.h"
 #include "IconsFontAwesome4.h"
+#include "misc/cpp/imgui_stdlib.h"
 
 void FurnaceGUI::drawRefPlayer() {
   DivFilePlayer* fp=e->getFilePlayer();
@@ -112,19 +113,25 @@ void FurnaceGUI::drawRefPlayer() {
         ImGui::TextUnformatted(_("Set cue position at first order:"));
         TimeMicros cueTime=e->getFilePlayerCue();
         bool altered=false;
-        // TODO: improve this...
-        ImGui::SetNextItemWidth(240.0f*dpiScale);
-        if (ImGui::InputInt(_("Seconds##CuePosS"),&cueTime.seconds)) {
-          if (cueTime.seconds<-3600) cueTime.seconds=-3600;
-          if (cueTime.seconds>3600) cueTime.seconds=3600;
-          altered=true;
+        fpCueInput=cueTime.toString(-1,TA_TIME_FORMAT_AUTO);
+        pushWarningColor(false,fpCueInputFailed);
+        if (ImGui::InputText("##CuePos",&fpCueInput)) {
+          try {
+            cueTime=TimeMicros::fromString(fpCueInput);
+            altered=true;
+            fpCueInputFailed=false;
+          } catch (std::invalid_argument& e) {
+            fpCueInputFailed=true;
+            fpCueInputFailReason=e.what();
+          }
         }
-        ImGui::SetNextItemWidth(240.0f*dpiScale);
-        if (ImGui::InputInt(_("Microseconds##CuePosM"),&cueTime.micros,1000,10000)) {
-          if (cueTime.micros<0) cueTime.micros=0;
-          if (cueTime.micros>999999) cueTime.micros=999999;
-          altered=true;
+        if (!ImGui::IsItemActive()) {
+          fpCueInputFailed=false;
         }
+        if (ImGui::IsItemHovered() && fpCueInputFailed) {
+          ImGui::SetTooltip("%s",fpCueInputFailReason.c_str());
+        }
+        popWarningColor();
         if (altered) {
           e->setFilePlayerCue(cueTime);
         }

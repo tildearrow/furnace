@@ -110,7 +110,7 @@ struct TimeMicros {
    * @return formatted TimeMicros.
    */
   String toString(signed char prec=6, TATimeFormats hms=TA_TIME_FORMAT_SECONDS);
-  static TimeMicros fromString(String s);
+  static TimeMicros fromString(const String& s);
 
   TimeMicros(int s, int u):
     seconds(s), micros(u) {}

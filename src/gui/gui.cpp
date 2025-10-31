@@ -9069,6 +9069,9 @@ FurnaceGUI::FurnaceGUI():
   xyOscDecayTime(10.0f),
   xyOscIntensity(2.0f),
   xyOscThickness(2.0f),
+  fpCueInput(""),
+  fpCueInputFailed(false),
+  fpCueInputFailReason(""),
   followLog(true),
 #ifdef IS_MOBILE
   pianoOctaves(7),
