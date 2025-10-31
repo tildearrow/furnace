@@ -28,6 +28,7 @@
 #include "dataErrors.h"
 #include "safeWriter.h"
 #include "cmdStream.h"
+#include "filePlayer.h"
 #include "../audio/taAudio.h"
 #include "blip_buf.h"
 #include <functional>
@@ -54,8 +55,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev237"
-#define DIV_ENGINE_VERSION 237
+#define DIV_VERSION "dev238"
+#define DIV_ENGINE_VERSION 238
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -509,8 +510,9 @@ class DivEngine {
   int midiTimeCycles;
   double midiTimeDrift;
   int stepPlay;
-  int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, curMidiClock, curMidiTime, totalCmds, lastCmds, cmdsPerSecond;
-  double totalTicksOff;
+  int changeOrd, changePos, totalTicksR, curMidiClock, curMidiTime, totalCmds, lastCmds, cmdsPerSecond;
+  TimeMicros totalTime;
+  double totalTimeDrift;
   int curMidiTimePiece, curMidiTimeCode;
   unsigned char extValue, pendingMetroTick;
   DivGroovePattern speeds;
@@ -587,6 +589,7 @@ class DivEngine {
   int samp_temp, samp_prevSample;
   short* samp_bbIn;
   short* samp_bbOut;
+
   unsigned char* metroTick;
   size_t metroTickLen;
   float* metroBuf;
@@ -595,6 +598,14 @@ class DivEngine {
   float metroAmp;
   float metroVol;
   float previewVol;
+
+  float* filePlayerBuf[DIV_MAX_OUTPUTS];
+  size_t filePlayerBufLen;
+  DivFilePlayer* curFilePlayer;
+  bool filePlayerSync;
+  TimeMicros filePlayerCue;
+  int filePlayerLoopTrail;
+  int curFilePlayerTrail;
 
   size_t totalProcessed;
 
@@ -738,12 +749,25 @@ class DivEngine {
     void createNewFromDefaults();
     // load a file.
     bool load(unsigned char* f, size_t length, const char* nameHint=NULL);
+
     // play a binary command stream.
     bool playStream(unsigned char* f, size_t length);
     // get the playing stream.
     DivCSPlayer* getStreamPlayer();
     // destroy command stream player.
     bool killStream();
+
+    // get the audio file player.
+    DivFilePlayer* getFilePlayer();
+    // get whether the player is synchronized with song playback.
+    bool getFilePlayerSync();
+    void setFilePlayerSync(bool doSync);
+    // get/set file player cue position.
+    TimeMicros getFilePlayerCue();
+    void setFilePlayerCue(TimeMicros cue);
+    // UNSAFE - sync file player to current playback position.
+    void syncFilePlayer();
+
     // save as .dmf.
     SafeWriter* saveDMF(unsigned char version);
     // save as .fur.
@@ -851,11 +875,8 @@ class DivEngine {
     int convertPanSplitToLinearLR(unsigned char left, unsigned char right, int range);
     unsigned int convertPanLinearToSplit(int val, unsigned char bits, int range);
 
-    // find song loop position
-    void walkSong(int& loopOrder, int& loopRow, int& loopEnd);
-
-    // find song length in rows (up to specified loop point), and find length of every order
-    void findSongLength(int loopOrder, int loopRow, double fadeoutLen, int& rowsForFadeout, bool& hasFFxx, std::vector<int>& orders, int& length);
+    // calculate all song timestamps
+    void calcSongTimestamps();
 
     // play (returns whether successful)
     bool play();
@@ -1028,8 +1049,7 @@ class DivEngine {
     void virtualTempoChanged();
 
     // get time
-    int getTotalTicks(); // 1/1000000th of a second
-    int getTotalSeconds();
+    TimeMicros getCurTime();
 
     // get repeat pattern
     bool getRepeatPattern();
@@ -1181,6 +1201,10 @@ class DivEngine {
 
     // set whether autoNoteIn is mono or poly
     void setAutoNotePoly(bool poly);
+
+    // get next viable channel with an offset
+    // chan is the base channel, off is the offset and ins is the instrument.
+    int getViableChannel(int chan, int off, int ins);
 
     // go to order
     void setOrder(unsigned char order);
@@ -1504,15 +1528,13 @@ class DivEngine {
       stepPlay(0),
       changeOrd(-1),
       changePos(0),
-      totalSeconds(0),
-      totalTicks(0),
       totalTicksR(0),
       curMidiClock(0),
       curMidiTime(0),
       totalCmds(0),
       lastCmds(0),
       cmdsPerSecond(0),
-      totalTicksOff(0.0),
+      totalTimeDrift(0.0),
       curMidiTimePiece(0),
       curMidiTimeCode(0),
       extValue(0),
@@ -1552,6 +1574,12 @@ class DivEngine {
       metroAmp(0.0f),
       metroVol(1.0f),
       previewVol(1.0f),
+      filePlayerBufLen(0),
+      curFilePlayer(NULL),
+      filePlayerSync(false),
+      filePlayerCue(0,0),
+      filePlayerLoopTrail(0),
+      curFilePlayerTrail(0),
       totalProcessed(0),
       renderPoolThreads(0),
       renderPool(NULL),
@@ -1584,6 +1612,7 @@ class DivEngine {
       memset(oscBuf,0,DIV_MAX_OUTPUTS*(sizeof(float*)));
       memset(exportChannelMask,1,DIV_MAX_CHANS*sizeof(bool));
       memset(chipPeak,0,DIV_MAX_CHIPS*DIV_MAX_OUTPUTS*sizeof(float));
+      memset(filePlayerBuf,0,DIV_MAX_OUTPUTS*sizeof(float));
 
       for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {
         sysFileMapFur[i]=DIV_SYSTEM_NULL;

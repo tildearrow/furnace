@@ -406,6 +406,16 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   for (int k=mustSetXOf; k<=chans; k++)  {
     patChanX[k]=ImGui::GetCursorScreenPos().x;
   }
+
+  if (debugRowTimestamps) {
+    TimeMicros rowTS=e->curSubSong->ts.getTimes(ord,i);
+    if (rowTS.seconds==-1) {
+      ImGui::Text("---");
+    } else {
+      String timeFormatted=rowTS.toString(2,TA_TIME_FORMAT_AUTO_MS_ZERO);
+      ImGui::TextUnformatted(timeFormatted.c_str());
+    }
+  }
 }
 
 void FurnaceGUI::drawPattern() {

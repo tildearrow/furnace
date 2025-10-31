@@ -432,6 +432,7 @@ reserved input portsets:
 
 reserved output portsets:
 - `000` through `01F`: chip outputs
+- `FFC`: reference file/music player (>=238)
 - `FFD`: wave/sample preview
 - `FFE`: metronome
 - `FFF`: "null" portset

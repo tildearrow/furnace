@@ -2169,6 +2169,15 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
               prevOrder=curOrder;
               prevRow=curRow;
               playPosLock.unlock();
+
+              // also set the playback position and sync file player if necessary
+              TimeMicros rowTS=curSubSong->ts.getTimes(curOrder,curRow);
+              if (rowTS.seconds!=-1) {
+                totalTime=rowTS;
+              }
+              if (curFilePlayer && filePlayerSync) {
+                syncFilePlayer();
+              }
             }
             // ...and now process the next row!
             nextRow();
@@ -2572,30 +2581,28 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     if (stepPlay!=1) {
       if (!noAccum) {
         double dt=divider*tickMult;
-        // TODO: is this responsible for timing differences when skipping?
-        if (skipping) {
-          dt*=(double)virtualTempoN/(double)MAX(1,virtualTempoD);
-        }
         totalTicksR++;
-        // despite the name, totalTicks is in microseconds...
-        totalTicks+=1000000/dt;
-        totalTicksOff+=fmod(1000000.0,dt);
-        while (totalTicksOff>=dt) {
-          totalTicksOff-=dt;
-          totalTicks++;
+        totalTime.micros+=1000000/dt;
+        totalTimeDrift+=fmod(1000000.0,dt);
+        while (totalTimeDrift>=dt) {
+          totalTimeDrift-=dt;
+          totalTime.micros++;
         }
       }
-      if (totalTicks>=1000000) {
-        totalTicks-=1000000;
+      if (totalTime.micros>=1000000) {
+        totalTime.micros-=1000000;
         // who's gonna play a song for 68 years?
-        if (totalSeconds<0x7fffffff) totalSeconds++;
+        if (totalTime.seconds<0x7fffffff) totalTime.seconds++;
         cmdsPerSecond=totalCmds-lastCmds;
         lastCmds=totalCmds;
       }
     }
 
     // print status in console mode
-    if (consoleMode && !disableStatusOut && subticks<=1 && !skipping) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000,curOrder,curSubSong->ordersLen,curRow,curSubSong->patLen,cmdsPerSecond);
+    if (consoleMode && !disableStatusOut && subticks<=1 && !skipping) {
+      String timeFormatted=totalTime.toString(2,TA_TIME_FORMAT_HMS);
+      fprintf(stderr,"\x1b[2K> %s  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",timeFormatted.c_str(),curOrder,curSubSong->ordersLen,curRow,curSubSong->patLen,cmdsPerSecond);
+    }
   }
 
   
@@ -3102,6 +3109,19 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           // used by audio export to determine how many samples to write (otherwise it'll add silence at the end)
           lastLoopPos=size-runLeftG;
           logD("last loop pos: %d for a size of %d and runLeftG of %d",lastLoopPos,size,runLeftG);
+          // if file player is synchronized then set its position to that of the loop row
+          if (curFilePlayer && filePlayerSync) {
+            if (curFilePlayer->isPlaying()) {
+              TimeMicros rowTS=curSubSong->ts.loopStartTime;
+
+              if (rowTS.seconds==-1) {
+                logW("that row isn't supposed to play. report this now!");
+              }
+
+              curFilePlayer->setPosSeconds(rowTS+filePlayerCue,lastLoopPos);
+            }
+          }
+          // increase total loop count
           totalLoops++;
           // stop playing once we hit a specific number of loops (set during audio export)
           if (remainingLoops>0) {
@@ -3212,7 +3232,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     // complain and stop playback if we believe the engine has stalled
     //logD("attempts: %d",attempts);
     if (attempts>=(int)(size+10)) {
-      logE("hang detected! stopping! at %d seconds %d micro (%d>=%d)",totalSeconds,totalTicks,attempts,(int)size);
+      logE("hang detected! stopping! at %s (%d>=%d)",totalTime.toString(),attempts,(int)size);
       freelance=false;
       playing=false;
       extValuePresent=false;
@@ -3235,6 +3255,23 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       },&disCont[i]);*/
     }
     renderPool->wait();
+  }
+
+  // process file player
+  // resize file player audio buffer if necessary
+  if (filePlayerBufLen<size) {
+    for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+      if (filePlayerBuf[i]!=NULL) delete[] filePlayerBuf[i];
+      filePlayerBuf[i]=new float[size];
+    }
+    filePlayerBufLen=size;
+  }
+  if (curFilePlayer!=NULL && !exporting) {
+    curFilePlayer->mix(filePlayerBuf,outChans,size);
+  } else {
+    for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+      memset(filePlayerBuf[i],0,size*sizeof(float));
+    }
   }
 
   // process metronome
@@ -3274,6 +3311,19 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     }
   }
 
+  // calculate volume of reference file player (so we can attenuate the rest according to the mix slider)
+  // -1 to 0: player volume goes from 0% to 100%
+  // 0 to +1: tracker volume goes from 100% to 0%
+  float refPlayerVol=1.0f;
+  if (curFilePlayer!=NULL) {
+    // only if the player window is open
+    if (curFilePlayer->getActive()) {
+      refPlayerVol=1.0f-curFilePlayer->getVolume();
+      if (refPlayerVol<0.0f) refPlayerVol=0.0f;
+      if (refPlayerVol>1.0f) refPlayerVol=1.0f;
+    }
+  }
+
   // now mix everything (resolve patchbay)
   for (unsigned int i: song.patchbay) {
     // there are 4096 portsets. each portset may have up to 16 outputs (subports).
@@ -3295,7 +3345,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       // chip outputs
       if (srcPortSet<song.systemLen && playing && !halted) {
         if (srcSubPort<disCont[srcPortSet].dispatch->getOutputCount()) {
-          float vol=song.systemVol[srcPortSet]*disCont[srcPortSet].dispatch->getPostAmp()*song.masterVol;
+          float vol=song.systemVol[srcPortSet]*disCont[srcPortSet].dispatch->getPostAmp()*song.masterVol*refPlayerVol;
 
           // apply volume and panning
           switch (destSubPort&3) {
@@ -3316,6 +3366,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           for (size_t j=0; j<size; j++) {
             out[destSubPort][j]+=((float)disCont[srcPortSet].bbOut[srcSubPort][j]/32768.0)*vol;
           }
+        }
+      } else if (srcPortSet==0xffc) {
+        // file player
+        for (size_t j=0; j<size; j++) {
+          out[destSubPort][j]+=filePlayerBuf[srcSubPort][j];
         }
       } else if (srcPortSet==0xffd) {
         // sample preview

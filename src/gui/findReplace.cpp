@@ -459,6 +459,7 @@ void FurnaceGUI::doReplace() {
   if (!curQueryResults.empty()) {
     MARK_MODIFIED;
   }
+  recalcTimestamps=true;
 
   if (!us.pat.empty()) {
     undoHist.push_back(us);

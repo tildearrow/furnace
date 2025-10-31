@@ -633,6 +633,10 @@ void FurnaceGUI::drawMobileControls() {
         if (ImGui::Button(_("EffectList"))) {
           effectListOpen=!effectListOpen;
         }
+        ImGui::SameLine();
+        if (ImGui::Button(_("RefPlayer"))) {
+          refPlayerOpen=!refPlayerOpen;
+        }
         if (ImGui::Button(_("Switch to Desktop Mode"))) {
           toggleMobileUI(!mobileUI);
         }
@@ -755,8 +759,18 @@ void FurnaceGUI::drawEditControls() {
 
         ImGui::SameLine();
         pushToggleColors(noteInputPoly);
-        if (ImGui::Button(noteInputPoly?(_("Poly##PolyInput")):(_("Mono##PolyInput")))) {
-          noteInputPoly=!noteInputPoly;
+        if (ImGui::Button(noteInputPoly?(noteInputChord?(_("Chord##PolyInput")):(_("Poly##PolyInput"))):(_("Mono##PolyInput")))) {
+          if (noteInputPoly) {
+            if (noteInputChord) {
+              noteInputPoly=false;
+              noteInputChord=false;
+            } else {
+              noteInputChord=true;
+            }
+          } else {
+            noteInputPoly=true;
+            noteInputChord=false;
+          }
           e->setAutoNotePoly(noteInputPoly);
         }
         if (ImGui::IsItemHovered()) {
@@ -885,8 +899,18 @@ void FurnaceGUI::drawEditControls() {
 
         ImGui::SameLine();
         pushToggleColors(noteInputPoly);
-        if (ImGui::Button(noteInputPoly?_("Poly##PolyInput"):_("Mono##PolyInput"))) {
-          noteInputPoly=!noteInputPoly;
+        if (ImGui::Button(noteInputPoly?(noteInputChord?(_("Chord##PolyInput")):(_("Poly##PolyInput"))):(_("Mono##PolyInput")))) {
+          if (noteInputPoly) {
+            if (noteInputChord) {
+              noteInputPoly=false;
+              noteInputChord=false;
+            } else {
+              noteInputChord=true;
+            }
+          } else {
+            noteInputPoly=true;
+            noteInputChord=false;
+          }
           e->setAutoNotePoly(noteInputPoly);
         }
         if (ImGui::IsItemHovered()) {
@@ -1023,8 +1047,18 @@ void FurnaceGUI::drawEditControls() {
         popToggleColors();
 
         pushToggleColors(noteInputPoly);
-        if (ImGui::Button(noteInputPoly?_("Poly##PolyInput"):_("Mono##PolyInput"))) {
-          noteInputPoly=!noteInputPoly;
+        if (ImGui::Button(noteInputPoly?(noteInputChord?(_("Chord##PolyInput")):(_("Poly##PolyInput"))):(_("Mono##PolyInput")))) {
+          if (noteInputPoly) {
+            if (noteInputChord) {
+              noteInputPoly=false;
+              noteInputChord=false;
+            } else {
+              noteInputChord=true;
+            }
+          } else {
+            noteInputPoly=true;
+            noteInputChord=false;
+          }
           e->setAutoNotePoly(noteInputPoly);
         }
         if (ImGui::IsItemHovered()) {
@@ -1123,8 +1157,18 @@ void FurnaceGUI::drawEditControls() {
 
         ImGui::SameLine();
         pushToggleColors(noteInputPoly);
-        if (ImGui::Button(noteInputPoly?_("Poly##PolyInput"):_("Mono##PolyInput"))) {
-          noteInputPoly=!noteInputPoly;
+        if (ImGui::Button(noteInputPoly?(noteInputChord?(_("Chord##PolyInput")):(_("Poly##PolyInput"))):(_("Mono##PolyInput")))) {
+          if (noteInputPoly) {
+            if (noteInputChord) {
+              noteInputPoly=false;
+              noteInputChord=false;
+            } else {
+              noteInputChord=true;
+            }
+          } else {
+            noteInputPoly=true;
+            noteInputChord=false;
+          }
           e->setAutoNotePoly(noteInputPoly);
         }
         if (ImGui::IsItemHovered()) {

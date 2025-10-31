@@ -362,8 +362,21 @@ void FurnaceGUI::drawMixer() {
             }
           }
 
-          // metronome/sample preview
+          // file player/metronome/sample preview
           if (displayInternalPorts) {
+            if (portSet(_("Music Player"),0xffc,0,16,0,16,selectedSubPort,portPos)) {
+              selectedPortSet=0xffc;
+              if (selectedSubPort>=0) {
+                portDragActive=true;
+                ImGui::InhibitInertialScroll();
+                auto subPortI=portPos.find((selectedPortSet<<4)|selectedSubPort);
+                if (subPortI!=portPos.cend()) {
+                  subPortPos=subPortI->second;
+                } else {
+                  portDragActive=false;
+                }
+              }
+            }
             if (portSet(_("Sample Preview"),0xffd,0,1,0,1,selectedSubPort,portPos)) {
               selectedPortSet=0xffd;
               if (selectedSubPort>=0) {

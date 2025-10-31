@@ -381,6 +381,7 @@ void FurnaceGUI::drawPalette() {
               showError("cannot add chip! ("+e->getLastError()+")");
             } else {
               MARK_MODIFIED;
+              recalcTimestamps=true;
             }
             ImGui::CloseCurrentPopup();
             if (e->song.autoSystem) {
