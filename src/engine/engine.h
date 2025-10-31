@@ -1202,6 +1202,10 @@ class DivEngine {
     // set whether autoNoteIn is mono or poly
     void setAutoNotePoly(bool poly);
 
+    // get next viable channel with an offset
+    // chan is the base channel, off is the offset and ins is the instrument.
+    int getViableChannel(int chan, int off, int ins);
+
     // go to order
     void setOrder(unsigned char order);
 

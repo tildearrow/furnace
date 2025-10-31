@@ -3598,6 +3598,73 @@ void DivEngine::noteOff(int chan) {
   BUSY_END;
 }
 
+int DivEngine::getViableChannel(int chan, int off, int ins) {
+  // if the offset is zero, we don't have to do anything
+  if (off==0) return chan;
+
+  // if there isn't an instrument, just offset chan by off
+  if (ins==-1) {
+    return (chan+off)%chans;
+  }
+  
+  bool isViable[DIV_MAX_CHANS];
+  bool isAtLeastOneViable=false;
+  int finalChan=chan;
+  int finalChanType=getChannelType(finalChan);
+
+  // this is a copy of the routine in autoNoteOn...... I am lazy
+  DivInstrument* insInst=getIns(ins);
+  for (int i=0; i<chans; i++) {
+    if (ins==-1 || ins>=song.insLen || getPreferInsType(i)==insInst->type || (getPreferInsType(i)==DIV_INS_NULL && finalChanType==DIV_CH_NOISE) || getPreferInsSecondType(i)==insInst->type) {
+      if (insInst->type==DIV_INS_OPL) {
+        if (insInst->fm.ops==2 || getChannelType(i)==DIV_CH_OP) {
+          isViable[i]=true;
+          isAtLeastOneViable=true;
+        } else {
+          isViable[i]=false;
+        }
+      } else {
+        isViable[i]=true;
+        isAtLeastOneViable=true;
+      }
+    } else {
+      isViable[i]=false;
+    }
+  }
+
+  // screw it if none of the channels are viable
+  if (!isAtLeastOneViable) {
+    return (chan+off)%chans;
+  }
+
+  // now offset (confined to viable channels)
+  int channelsCycled=0;
+  int i=(chan+1)%chans;
+  int attempts=0;
+  while (true) {
+    if (isViable[i]) {
+      channelsCycled++;
+      if (channelsCycled==off) {
+        // we found it
+        return i;
+      }
+    }
+
+    if (++i>=chans) {
+      i=0;
+    }
+
+    // fail-safe
+    if (++attempts>1024) {
+      logE("getViableChannel(): too many attempts!");
+      break;
+    }
+  }
+
+  // fail-safe
+  return (chan+off)%chans;
+}
+
 bool DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
   bool isViable[DIV_MAX_CHANS];
   bool canPlayAnyway=false;

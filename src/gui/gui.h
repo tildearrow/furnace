@@ -1713,7 +1713,8 @@ class FurnaceGUI {
   bool vgmExportDirectStream, displayInsTypeList, displayWaveSizeList;
   bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
-  bool displayNew, displayExport, displayPalette, fullScreen, preserveChanPos, sysDupCloneChannels, sysDupEnd, noteInputPoly, notifyWaveChange, notifySampleChange;
+  bool displayNew, displayExport, displayPalette, fullScreen, preserveChanPos, sysDupCloneChannels, sysDupEnd, noteInputPoly, noteInputChord;
+  bool notifyWaveChange, notifySampleChange;
   bool recalcTimestamps;
   bool wantScrollListIns, wantScrollListWave, wantScrollListSample;
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
@@ -1737,6 +1738,7 @@ class FurnaceGUI {
   int drawHalt;
   int macroPointSize;
   int waveEditStyle;
+  int chordInputOffset;
   int displayInsTypeListMakeInsSample;
   int makeDrumkitOctave;
   int mobileEditPage;
@@ -3080,7 +3082,7 @@ class FurnaceGUI {
   void doDrag(bool copy=false);
   void editOptions(bool topMenu);
   DivSystem systemPicker(bool fullWidth);
-  void noteInput(int num, int key, int vol=-1);
+  void noteInput(int num, int key, int vol=-1, int chanOff=0);
   void valueInput(int num, bool direct=false, int target=-1);
   void orderInput(int num);
 

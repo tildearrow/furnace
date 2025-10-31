@@ -1296,6 +1296,7 @@ void FurnaceGUI::play(int row) {
   }
   curNibble=false;
   orderNibble=false;
+  chordInputOffset=0;
   activeNotes.clear();
 }
 
@@ -1311,6 +1312,7 @@ void FurnaceGUI::stop() {
   e->stop();
   curNibble=false;
   orderNibble=false;
+  chordInputOffset=0;
   if (followPattern && wasPlaying) {
     nextScroll=-1.0f;
     nextAddScroll=0.0f;
@@ -1353,12 +1355,23 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
   }
 }
 
-void FurnaceGUI::noteInput(int num, int key, int vol) {
+void FurnaceGUI::noteInput(int num, int key, int vol, int chanOff) {
   int ch=cursor.xCoarse;
   int ord=curOrder;
   int y=cursor.y;
   int tick=0;
   int speed=0;
+
+  if (chanOff>0 && noteInputChord) {
+    ch=e->getViableChannel(ch,chanOff,curIns);
+    if ((!e->isPlaying() || !followPattern)) {
+      y-=editStep;
+      while (y<0) {
+        if (--ord<0) ord=0;
+        y+=e->curSubSong->patLen;
+      }
+    }
+  }
 
   if (e->isPlaying() && !e->isStepping() && followPattern) {
     e->getPlayPosTick(ord,y,tick,speed);
@@ -1373,12 +1386,12 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
     }
   }
 
-  logV("noteInput: chan %d, %d:%d %d/%d",ch,ord,y,tick,speed);
+  logV("noteInput: chan %d, offset %d, %d:%d %d/%d",ch,chanOff,ord,y,tick,speed);
 
   DivPattern* pat=e->curPat[ch].getPattern(e->curOrders->ord[ch][ord],true);
   bool removeIns=false;
 
-  prepareUndo(GUI_UNDO_PATTERN_EDIT);
+  prepareUndo(GUI_UNDO_PATTERN_EDIT,UndoRegion(ord,ch,y,ord,ch,y));
 
   if (key==GUI_NOTE_OFF) { // note off
     pat->newData[y][DIV_PAT_NOTE]=DIV_NOTE_OFF;
@@ -1416,8 +1429,10 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
       pat->newData[y][DIV_PAT_VOL]=-1;
     }
   }
-  editAdvance();
-  makeUndo(GUI_UNDO_PATTERN_EDIT);
+  if ((!e->isPlaying() || !followPattern) && (chanOff<1 || !noteInputChord)) {
+    editAdvance();
+  }
+  makeUndo(GUI_UNDO_PATTERN_EDIT,UndoRegion(ord,ch,y,ord,ch,y));
   curNibble=false;
 }
 
@@ -1736,8 +1751,9 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
               if (num>119) num=119; // B-9
 
               if (edit) {
-                noteInput(num,key);
+                noteInput(num,key,-1,chordInputOffset);
               }
+              chordInputOffset++;
             }
           } else if (edit) { // value
             auto it=valueKeys.find(ev.key.keysym.sym);
@@ -1833,7 +1849,10 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
 }
 
 void FurnaceGUI::keyUp(SDL_Event& ev) {
-  // nothing for now
+  // this is very, very lazy...
+  if (--chordInputOffset<0) {
+    chordInputOffset=0;
+  }
 }
 
 bool dirExists(String s) {
@@ -3995,6 +4014,9 @@ bool FurnaceGUI::loop() {
           break;
         case SDL_KEYUP:
           // for now
+          if (!ImGui::GetIO().WantCaptureKeyboard || (newFilePicker->isOpened() && !ImGui::GetIO().WantTextInput)) {
+            keyUp(ev);
+          }
           insEditMayBeDirty=true;
           if (introPos<11.0 && introSkip<0.5 && !shortIntro) {
             introSkipDo=false;
@@ -4178,14 +4200,19 @@ bool FurnaceGUI::loop() {
         if (action!=0) {
           doAction(action);
         } else switch (msg.type&0xf0) {
+          case TA_MIDI_NOTE_OFF:
+            if (--chordInputOffset<0) chordInputOffset=0;
+            break;
           case TA_MIDI_NOTE_ON:
             if (midiMap.valueInputStyle==0 || midiMap.valueInputStyle>3 || cursor.xFine==0) {
               if (midiMap.noteInput && edit && msg.data[1]!=0) {
                 noteInput(
                   msg.data[0]-12,
                   0,
-                  midiMap.volInput?msg.data[1]:-1
+                  midiMap.volInput?msg.data[1]:-1,
+                  chordInputOffset
                 );
+                chordInputOffset++;
               }
             } else {
               if (edit && msg.data[1]!=0) {
@@ -7423,6 +7450,9 @@ bool FurnaceGUI::loop() {
             break;
         }
       }
+
+      // reset chord count just in case
+      chordInputOffset=0;
     }
 
     if (!settings.renderClearPos || renderBackend==GUI_BACKEND_METAL) {
@@ -8254,6 +8284,7 @@ void FurnaceGUI::syncState() {
   followOrders=e->getConfBool("followOrders",true);
   followPattern=e->getConfBool("followPattern",true);
   noteInputPoly=e->getConfBool("noteInputPoly",true);
+  noteInputChord=e->getConfBool("noteInputChord",false);
   filePlayerSync=e->getConfBool("filePlayerSync",true);
   audioExportOptions.loops=e->getConfInt("exportLoops",0);
   if (audioExportOptions.loops<0) audioExportOptions.loops=0;
@@ -8414,6 +8445,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("followPattern",followPattern);
   conf.set("orderEditMode",orderEditMode);
   conf.set("noteInputPoly",noteInputPoly);
+  conf.set("noteInputChord",noteInputChord);
   conf.set("filePlayerSync",filePlayerSync);
   if (settings.persistFadeOut) {
     conf.set("exportLoops",audioExportOptions.loops);
@@ -8588,6 +8620,7 @@ FurnaceGUI::FurnaceGUI():
   sysDupCloneChannels(true),
   sysDupEnd(false),
   noteInputPoly(true),
+  noteInputChord(false),
   notifyWaveChange(false),
   notifySampleChange(false),
   recalcTimestamps(true),
@@ -8623,6 +8656,7 @@ FurnaceGUI::FurnaceGUI():
   drawHalt(10),
   macroPointSize(16),
   waveEditStyle(0),
+  chordInputOffset(0),
   displayInsTypeListMakeInsSample(-1),
   makeDrumkitOctave(3),
   mobileEditPage(0),
