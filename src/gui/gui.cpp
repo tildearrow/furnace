@@ -868,13 +868,14 @@ void FurnaceGUI::autoDetectSystem() {
   }
 }
 
-void FurnaceGUI::setCurIns(int newIns) {     curIns=newIns;
+void FurnaceGUI::setCurIns(int newIns) {
+  curIns=newIns;
   memset(multiIns,-1,7*sizeof(int));
 }
 
 bool FurnaceGUI::setMultiIns(int newIns) {
-  // set primary instrument if not set
-  if (curIns<0) {
+  // set primary instrument if not set (or if polyphony is mono)
+  if (curIns<0 || noteInputMode==GUI_NOTE_INPUT_MONO) {
     setCurIns(newIns);
     return true;
   }
