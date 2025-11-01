@@ -407,6 +407,43 @@ void FurnaceGUI::drawOrders() {
             if (!pat->name.empty() && ImGui::IsItemHovered()) {
               ImGui::SetTooltip("%s",pat->name.c_str());
             }
+            bool findFreePat=ImGui::IsItemClicked(ImGuiMouseButton_Middle);
+            if (ImGui::IsItemHovered() && CHECK_LONG_HOLD) {
+              NOTIFY_LONG_HOLD;
+              findFreePat=true;
+            }
+            if (findFreePat) {
+              // find free pattern and assign it
+              prepareUndo(GUI_UNDO_CHANGE_ORDER);
+              e->lockSave([this,i,j]() {
+                bool foundOne=false;
+                bool available[DIV_MAX_PATTERNS];
+                memset(available,1,DIV_MAX_PATTERNS*sizeof(bool));
+                for (int k=0; k<e->curSubSong->ordersLen; k++) {
+                  available[e->curOrders->ord[j][k]]=false;
+                }
+                for (int k=0; k<DIV_MAX_PATTERNS; k++) {
+                  // don't accept a used pattern
+                  if (!available[k]) continue;
+                  // accept an unallocated pattern (guaranteed to be empty)
+                  if (e->curPat[j].data[k]==NULL) {
+                    e->curOrders->ord[j][i]=k;
+                    foundOne=true;
+                    break;
+                  } else {
+                    // check whether this pattern is empty and accept it if so
+                    DivPattern* p=e->curPat[j].getPattern(k,false);
+                    if (p->isEmpty()) {
+                      e->curOrders->ord[j][i]=k;
+                      foundOne=true;
+                      break;
+                    }
+                  }
+                }
+                if (!foundOne) showError(_("no free patterns available on this channel!"));
+              });
+              makeUndo(GUI_UNDO_CHANGE_ORDER);
+            }
             if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
               if (curOrder==i) {
                 if (orderEditMode==0) {
