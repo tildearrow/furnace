@@ -429,6 +429,11 @@ void FurnaceGUI::drawPiano() {
                   } else {
                     e->synchronized([this,note]() {
                       if (!e->autoNoteOn(-1,curIns,note)) failedNoteOn=true;
+                      for (int mi=0; mi<7; mi++) {
+                        if (multiIns[mi]!=-1) {
+                          e->autoNoteOn(-1,multiIns[mi],note,-1,multiInsTranspose[mi]);
+                        }
+                      }
                     });
                     if (edit && curWindow!=GUI_WINDOW_INS_LIST && curWindow!=GUI_WINDOW_INS_EDIT) noteInput(note,0);
                   }

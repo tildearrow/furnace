@@ -143,16 +143,18 @@ void FurnaceGUI::doAction(int what) {
       }
       break;
     case GUI_ACTION_INS_UP:
-      if (--curIns<-1) {
-        curIns=-1;
+      setCurIns(curIns-1);
+      if (curIns<-1) {
+        setCurIns(-1);
       }
       wavePreviewInit=true;
       wantScrollListIns=true;
       updateFMPreview=true;
       break;
     case GUI_ACTION_INS_DOWN:
-      if (++curIns>=(int)e->song.ins.size()) {
-        curIns=((int)e->song.ins.size())-1;
+      setCurIns(curIns+1);
+      if (curIns>=(int)e->song.ins.size()) {
+        setCurIns(((int)e->song.ins.size())-1);
       }
       wavePreviewInit=true;
       wantScrollListIns=true;
@@ -360,6 +362,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_REF_PLAYER:
       nextWindow=GUI_WINDOW_REF_PLAYER;
       break;
+    case GUI_ACTION_WINDOW_MULTI_INS_SETUP:
+      nextWindow=GUI_WINDOW_MULTI_INS_SETUP;
+      break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;
@@ -470,6 +475,9 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_REF_PLAYER:
           refPlayerOpen=false;
+          break;
+        case GUI_WINDOW_MULTI_INS_SETUP:
+          multiInsSetupOpen=false;
           break;
         default:
           break;
@@ -739,7 +747,7 @@ void FurnaceGUI::doAction(int what) {
           break;
         }
       }
-      curIns=e->addInstrument(cursor.xCoarse);
+      setCurIns(e->addInstrument(cursor.xCoarse));
       if (curIns==-1) {
         showError(_("too many instruments!"));
       } else {
@@ -768,7 +776,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_INS_LIST_DUPLICATE:
       if (curIns>=0 && curIns<(int)e->song.ins.size()) {
         int prevIns=curIns;
-        curIns=e->addInstrument(cursor.xCoarse);
+        setCurIns(e->addInstrument(cursor.xCoarse));
         if (curIns==-1) {
           showError(_("too many instruments!"));
         } else {
@@ -820,13 +828,15 @@ void FurnaceGUI::doAction(int what) {
       insEditOpen=true;
       break;
     case GUI_ACTION_INS_LIST_UP:
-      if (--curIns<0) curIns=0;
+      setCurIns(curIns-1);
+      if (curIns<0) setCurIns(0);
       wantScrollListIns=true;
       wavePreviewInit=true;
       updateFMPreview=true;
       break;
     case GUI_ACTION_INS_LIST_DOWN:
-      if (++curIns>=(int)e->song.ins.size()) curIns=((int)e->song.ins.size())-1;
+      setCurIns(curIns+1);
+      if (curIns>=(int)e->song.ins.size()) setCurIns(((int)e->song.ins.size())-1);
       wantScrollListIns=true;
       wavePreviewInit=true;
       updateFMPreview=true;
@@ -1715,7 +1725,7 @@ void FurnaceGUI::doAction(int what) {
       }
 
       DivSample* sample=e->song.sample[curSample];
-      curIns=e->addInstrument(cursor.xCoarse);
+      setCurIns(e->addInstrument(cursor.xCoarse));
       if (curIns==-1) {
         showError(_("too many instruments!"));
       } else {
