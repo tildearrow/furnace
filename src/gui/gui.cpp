@@ -1886,10 +1886,8 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
 }
 
 void FurnaceGUI::keyUp(SDL_Event& ev) {
-  // this is very, very lazy...
-  if (--chordInputOffset<0) {
-    chordInputOffset=0;
-  }
+  // this is very, very lazy... but it works.
+  chordInputOffset=0;
 }
 
 bool dirExists(String s) {
@@ -4239,7 +4237,7 @@ bool FurnaceGUI::loop() {
           doAction(action);
         } else switch (msg.type&0xf0) {
           case TA_MIDI_NOTE_OFF:
-            if (--chordInputOffset<0) chordInputOffset=0;
+            chordInputOffset=0;
             break;
           case TA_MIDI_NOTE_ON:
             if (midiMap.valueInputStyle==0 || midiMap.valueInputStyle>3 || cursor.xFine==0) {
