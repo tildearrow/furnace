@@ -1195,7 +1195,7 @@ class DivEngine {
     void noteOff(int chan);
 
     // returns whether it could
-    bool autoNoteOn(int chan, int ins, int note, int vol=-1);
+    bool autoNoteOn(int chan, int ins, int note, int vol=-1, int transpose=0);
     void autoNoteOff(int chan, int note, int vol=-1);
     void autoNoteOffAll();
 

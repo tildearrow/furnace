@@ -6649,10 +6649,10 @@ void FurnaceGUI::drawInsEdit() {
             for (size_t i=0; i<e->song.ins.size(); i++) {
               name=fmt::sprintf("%.2X: %s##_INSS%d",i,e->song.ins[i]->name,i);
               if (ImGui::Selectable(name.c_str(),curIns==(int)i)) {
-                curIns=i;
+                setCurIns(i);
                 wavePreviewInit=true;
                 updateFMPreview=true;
-                ins = e->song.ins[curIns];
+                ins=e->song.ins[curIns];
               }
             }
             ImGui::EndCombo();
@@ -6700,7 +6700,7 @@ void FurnaceGUI::drawInsEdit() {
           for (size_t i=0; i<e->song.ins.size(); i++) {
             name=fmt::sprintf("%.2X: %s##_INSS%d",i,e->song.ins[i]->name,i);
             if (ImGui::Selectable(name.c_str(),curIns==(int)i)) {
-              curIns=i;
+              setCurIns(i);
               ins=e->song.ins[curIns];
               wavePreviewInit=true;
               updateFMPreview=true;

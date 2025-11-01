@@ -4177,6 +4177,16 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_MACRO_HIGHLIGHT,_("Step Highlight"));
           ImGui::TreePop();
         }
+        if (ImGui::TreeNode(_("Multi-instrument Play"))) {
+          UI_COLOR_CONFIG(GUI_COLOR_MULTI_INS_1,_("Second instrument"));
+          UI_COLOR_CONFIG(GUI_COLOR_MULTI_INS_2,_("Third instrument"));
+          UI_COLOR_CONFIG(GUI_COLOR_MULTI_INS_3,_("Fourth instrument"));
+          UI_COLOR_CONFIG(GUI_COLOR_MULTI_INS_4,_("Fifth instrument"));
+          UI_COLOR_CONFIG(GUI_COLOR_MULTI_INS_5,_("Sixth instrument"));
+          UI_COLOR_CONFIG(GUI_COLOR_MULTI_INS_6,_("Seventh instrument"));
+          UI_COLOR_CONFIG(GUI_COLOR_MULTI_INS_7,_("Eighth instrument"));
+          ImGui::TreePop();
+        }
         if (ImGui::TreeNode(_("Instrument Types"))) {
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_FM,_("FM (OPN)"));
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_STD,_("SN76489/Sega PSG"));

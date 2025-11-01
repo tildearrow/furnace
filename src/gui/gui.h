@@ -309,6 +309,14 @@ enum FurnaceGUIColors {
   GUI_COLOR_MACRO_ENVELOPE,
   GUI_COLOR_MACRO_GLOBAL,
 
+  GUI_COLOR_MULTI_INS_1,
+  GUI_COLOR_MULTI_INS_2,
+  GUI_COLOR_MULTI_INS_3,
+  GUI_COLOR_MULTI_INS_4,
+  GUI_COLOR_MULTI_INS_5,
+  GUI_COLOR_MULTI_INS_6,
+  GUI_COLOR_MULTI_INS_7,
+
   GUI_COLOR_INSTR_STD,
   GUI_COLOR_INSTR_FM,
   GUI_COLOR_INSTR_GB,
@@ -574,6 +582,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_CS_PLAYER,
   GUI_WINDOW_USER_PRESETS,
   GUI_WINDOW_REF_PLAYER,
+  GUI_WINDOW_MULTI_INS_SETUP,
   GUI_WINDOW_SPOILER
 };
 
@@ -782,6 +791,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_CS_PLAYER,
   GUI_ACTION_WINDOW_USER_PRESETS,
   GUI_ACTION_WINDOW_REF_PLAYER,
+  GUI_ACTION_WINDOW_MULTI_INS_SETUP,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -1671,6 +1681,12 @@ struct CSDisAsmIns {
   }
 };
 
+enum NoteInputModes: unsigned char {
+  GUI_NOTE_INPUT_MONO=0,
+  GUI_NOTE_INPUT_POLY,
+  GUI_NOTE_INPUT_CHORD
+};
+
 struct FurnaceCV;
 
 class FurnaceGUI {
@@ -1721,7 +1737,8 @@ class FurnaceGUI {
   bool vgmExportDirectStream, displayInsTypeList, displayWaveSizeList;
   bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
-  bool displayNew, displayExport, displayPalette, fullScreen, preserveChanPos, sysDupCloneChannels, sysDupEnd, noteInputPoly, noteInputChord;
+  bool displayNew, displayExport, displayPalette, fullScreen, preserveChanPos, sysDupCloneChannels, sysDupEnd;
+  unsigned char noteInputMode;
   bool notifyWaveChange, notifySampleChange;
   bool recalcTimestamps;
   bool wantScrollListIns, wantScrollListWave, wantScrollListSample;
@@ -2386,12 +2403,18 @@ class FurnaceGUI {
   int pendingLayoutImportStep;
   FixedQueue<bool*,64> pendingLayoutImportReopen;
 
-  int curIns, curWave, curSample, curOctave, curOrder, playOrder, prevIns, oldRow, editStep, editStepCoarse, soloChan, orderEditMode, orderCursor;
+  // do not set curIns directly! use setCurIns() instead.
+  int curIns, curWave, curSample;
+  int curOctave, curOrder, playOrder, prevIns, oldRow, editStep, editStepCoarse, soloChan, orderEditMode, orderCursor;
   int isClipping, newSongCategory, latchTarget, undoOrder;
   int wheelX, wheelY, dragSourceX, dragSourceXFine, dragSourceY, dragSourceOrder, dragDestinationX, dragDestinationXFine, dragDestinationY, dragDestinationOrder, oldBeat, oldBar;
   int curGroove, exitDisabledTimer;
   int curPaletteChoice, curPaletteType;
   float soloTimeout;
+
+  int multiIns[7];
+  int multiInsTranspose[7];
+  bool mobileMultiInsToggle;
 
   int purgeYear, purgeMonth, purgeDay;
 
@@ -2405,6 +2428,7 @@ class FurnaceGUI {
   bool pianoOpen, notesOpen, tunerOpen, spectrumOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
   bool groovesOpen, xyOscOpen, memoryOpen, csPlayerOpen, cvOpen, userPresetsOpen, refPlayerOpen;
+  bool multiInsSetupOpen;
 
   bool cvNotSerious;
 
@@ -2803,13 +2827,22 @@ class FurnaceGUI {
     PIANO_INPUT_PAD_MAX
   };
 
+  enum PianoLabelsMode {
+    PIANO_LABELS_OFF=0,
+    PIANO_LABELS_OCTAVE,
+    PIANO_LABELS_NOTE,
+    PIANO_LABELS_NOTE_C,
+    PIANO_LABELS_OCTAVE_C,
+    PIANO_LABELS_OCTAVE_NOTE
+  };
+
   int pianoOctaves, pianoOctavesEdit;
   bool pianoOptions, pianoSharePosition, pianoOptionsSet;
   float pianoKeyHit[180];
   bool pianoKeyPressed[180];
   bool pianoReadonly;
   int pianoOffset, pianoOffsetEdit;
-  int pianoView, pianoInputPadMode;
+  int pianoView, pianoInputPadMode, pianoLabelsMode;
 
   // effect sorting / searching
   bool effectsShow[10];
@@ -2937,6 +2970,9 @@ class FurnaceGUI {
   ImVec2 calcPortSetSize(String label, int ins, int outs);
   bool portSet(String label, unsigned int portSetID, int ins, int outs, int activeIns, int activeOuts, int& clickedPort, std::map<unsigned int,ImVec2>& portPos);
 
+  // piano
+  void pianoLabel(ImDrawList* dl, ImVec2& p0, ImVec2& p1, int note);
+
   void updateWindowTitle();
   void updateROMExportAvail();
   void autoDetectSystem();
@@ -3045,6 +3081,7 @@ class FurnaceGUI {
   void drawXYOsc();
   void drawUserPresets();
   void drawRefPlayer();
+  void drawMultiInsSetup();
 
   float drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset=-1, float width=-1.0f);
   void drawSystemChannelInfoText(const DivSysDef* whichDef);
@@ -3199,6 +3236,10 @@ class FurnaceGUI {
 
   const char* getSystemName(DivSystem which);
   const char* getSystemPartNumber(DivSystem sys, DivConfig& flags);
+
+  void setCurIns(int newIns);
+  bool setMultiIns(int newIns);
+  bool isMultiInsActive();
 
   public:
     void editStr(String* which);

@@ -969,6 +969,7 @@ src/gui/about.cpp
 src/gui/channels.cpp
 src/gui/chanOsc.cpp
 src/gui/clock.cpp
+src/gui/commandPalette.cpp
 src/gui/compatFlags.cpp
 src/gui/csPlayer.cpp
 src/gui/cursor.cpp
@@ -988,8 +989,8 @@ src/gui/log.cpp
 src/gui/memory.cpp
 src/gui/mixer.cpp
 src/gui/midiMap.cpp
+src/gui/multiInsSetup.cpp
 src/gui/newSong.cpp
-src/gui/commandPalette.cpp
 src/gui/orders.cpp
 src/gui/osc.cpp
 src/gui/patManager.cpp

@@ -1912,7 +1912,7 @@ void FurnaceGUI::doAbsorbInstrument() {
       // absorb most recent instrument
       if (!foundIns && pat->newData[i][DIV_PAT_INS] >= 0) {
         foundIns=true;
-        curIns=pat->newData[i][DIV_PAT_INS];
+        setCurIns(pat->newData[i][DIV_PAT_INS]);
       }
 
       // absorb most recent octave (i.e. set curOctave such that the "main row" (QWERTY) of
@@ -1932,7 +1932,7 @@ void FurnaceGUI::doAbsorbInstrument() {
   }
 
   // if no instrument has been set at this point, the only way to match it is to use "none"
-  if (!foundIns) curIns=-1;
+  if (!foundIns) setCurIns(-1);
 
   logD("doAbsorbInstrument -- searched %d orders", curOrder-orderIdx);
 }

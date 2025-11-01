@@ -40,6 +40,12 @@ struct DivPattern {
   short newData[DIV_MAX_ROWS][DIV_MAX_COLS];
 
   /**
+   * check whether this pattern is empty.
+   * @return whether it is.
+   */
+  bool isEmpty();
+
+  /**
    * clear the pattern.
    */
   void clear();

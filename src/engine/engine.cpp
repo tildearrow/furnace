@@ -3665,7 +3665,7 @@ int DivEngine::getViableChannel(int chan, int off, int ins) {
   return (chan+off)%chans;
 }
 
-bool DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
+bool DivEngine::autoNoteOn(int ch, int ins, int note, int vol, int transpose) {
   bool isViable[DIV_MAX_CHANS];
   bool canPlayAnyway=false;
   bool notInViableChannel=false;
@@ -3708,7 +3708,7 @@ bool DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
     if ((!midiPoly) || (isViable[finalChan] && chan[finalChan].midiNote==-1 && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType || notInViableChannel))) {
       chan[finalChan].midiNote=note;
       chan[finalChan].midiAge=midiAgeCounter++;
-      pendingNotes.push_back(DivNoteEvent(finalChan,ins,note,vol,true));
+      pendingNotes.push_back(DivNoteEvent(finalChan,ins,note+transpose,vol,true));
       return true;
     }
     if (++finalChan>=chans) {
@@ -3729,7 +3729,7 @@ bool DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
 
   chan[candidate].midiNote=note;
   chan[candidate].midiAge=midiAgeCounter++;
-  pendingNotes.push_back(DivNoteEvent(candidate,ins,note,vol,true));
+  pendingNotes.push_back(DivNoteEvent(candidate,ins,note+transpose,vol,true));
   return true;
 }
 

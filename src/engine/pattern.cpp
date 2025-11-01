@@ -84,6 +84,15 @@ void DivChannelData::wipePatterns() {
   }
 }
 
+bool DivPattern::isEmpty() {
+  for (int i=0; i<DIV_MAX_ROWS; i++) {
+    for (int j=0; j<DIV_MAX_COLS; j++) {
+      if (newData[i][j]!=-1) return false;
+    }
+  }
+  return true;
+}
+
 void DivPattern::copyOn(DivPattern* dest) {
   dest->name=name;
   memcpy(dest->newData,newData,sizeof(newData));

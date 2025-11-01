@@ -675,6 +675,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_CS_PLAYER", _N("Command Stream Player"), 0),
   D("WINDOW_USER_PRESETS", _N("User Presets"), 0),
   D("WINDOW_REF_PLAYER", _N("Reference Music Player"), 0),
+  D("MULTI_INS_SETUP", _N("Multi-Instrument Setup"), 0),
 
   D("COLLAPSE_WINDOW", _N("Collapse/expand current window"), 0),
   D("CLOSE_WINDOW", _N("Close current window"), FURKMOD_SHIFT|SDLK_ESCAPE),
@@ -1022,6 +1023,14 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_MACRO_FILTER,"",ImVec4(0.4f,0.2f,1.0f,1.0f)),
   D(GUI_COLOR_MACRO_ENVELOPE,"",ImVec4(0.0f,1.0f,0.5f,1.0f)),
   D(GUI_COLOR_MACRO_GLOBAL,"",ImVec4(1.0f,0.1f,0.1f,1.0f)),
+
+  D(GUI_COLOR_MULTI_INS_1,"",ImVec4(0.2f,1.0f,1.0f,1.0f)),
+  D(GUI_COLOR_MULTI_INS_2,"",ImVec4(0.2f,1.0f,0.2f,1.0f)),
+  D(GUI_COLOR_MULTI_INS_3,"",ImVec4(0.7f,1.0f,0.2f,1.0f)),
+  D(GUI_COLOR_MULTI_INS_4,"",ImVec4(1.0f,0.7f,0.2f,1.0f)),
+  D(GUI_COLOR_MULTI_INS_5,"",ImVec4(1.0f,0.2f,0.2f,1.0f)),
+  D(GUI_COLOR_MULTI_INS_6,"",ImVec4(1.0f,0.2f,1.0f,1.0f)),
+  D(GUI_COLOR_MULTI_INS_7,"",ImVec4(0.4f,0.2f,1.0f,1.0f)),
 
   D(GUI_COLOR_INSTR_STD,"",ImVec4(0.6f,1.0f,0.5f,1.0f)),
   D(GUI_COLOR_INSTR_FM,"",ImVec4(0.6f,0.9f,1.0f,1.0f)),

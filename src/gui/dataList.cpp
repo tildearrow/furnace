@@ -150,10 +150,42 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
   } else {
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
   }
-  bool insReleased=ImGui::Selectable(name.c_str(),(i==-1)?(curIns<0 || curIns>=e->song.insLen):(curIns==i));
+  bool insSelected=(curIns==i);
+  int multiInsColor=-1;
+  if (i==-1) {
+    insSelected=(curIns<0 || curIns>=e->song.insLen);
+  } else {
+    for (int j=0; j<7; j++) {
+      if (multiIns[j]==i) {
+        insSelected=true;
+        multiInsColor=j;
+        break;
+      }
+    }
+  }
+
+  // push multi ins colors if necessary
+  if (multiInsColor>=0) {
+    ImVec4 colorActive=uiColors[GUI_COLOR_MULTI_INS_1+multiInsColor];
+    ImVec4 colorHover=ImVec4(colorActive.x,colorActive.y,colorActive.z,colorActive.w*0.5);
+    ImVec4 color=ImVec4(colorActive.x,colorActive.y,colorActive.z,colorActive.w*0.25);
+    ImGui::PushStyleColor(ImGuiCol_Header,color);
+    ImGui::PushStyleColor(ImGuiCol_HeaderHovered,colorHover);
+    ImGui::PushStyleColor(ImGuiCol_HeaderActive,colorActive);
+  }
+
+  bool insReleased=ImGui::Selectable(name.c_str(),insSelected);
+
+  if (multiInsColor>=0) {
+    ImGui::PopStyleColor(3);
+  }
   bool insPressed=ImGui::IsItemActivated();
   if (insReleased || (!insListDir && insPressed && !settings.draggableDataView)) {
-    curIns=i;
+    if (mobileMultiInsToggle || ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) {
+      setMultiIns(i);
+    } else {
+      setCurIns(i);
+    }
     if (!insReleased || insListDir || settings.draggableDataView) {
       wavePreviewInit=true;
       updateFMPreview=true;
@@ -181,7 +213,7 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
     }
 
     if (ImGui::BeginPopupContextItem("InsRightMenu")) {
-      curIns=i;
+      setCurIns(i);
       updateFMPreview=true;
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
       if (ImGui::MenuItem(_("edit"))) {
@@ -730,6 +762,16 @@ void FurnaceGUI::drawInsList(bool asChild) {
             if (++curRow>=availableRows) curRow=0;
           }
         }
+      }
+
+      if (mobileUI) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        pushToggleColors(mobileMultiInsToggle);
+        if (ImGui::SmallButton("Select multiple")) {
+          mobileMultiInsToggle=!mobileMultiInsToggle;
+        }
+        popToggleColors();
       }
 
       if (settings.unifiedDataView) {
