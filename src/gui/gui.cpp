@@ -8611,8 +8611,16 @@ bool FurnaceGUI::finish(bool saveConfig) {
     delete[] spectrum.in;
     spectrum.in=NULL;
   }
+  if (spectrum.plan) {
+    fftw_free(spectrum.plan);
+    spectrum.plan=NULL;
+  }
   if (spectrum.buffer) {
     fftw_free(spectrum.buffer);
+  }
+  if (spectrum.plot) {
+    delete[] spectrum.plot;
+    spectrum.plot=NULL;
   }
 
   return true;

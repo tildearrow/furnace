@@ -75,7 +75,8 @@ void FurnaceGUI::drawSpectrum() {
         dl->AddLine(
           origin+ImVec2(0,size.y*((float)z/lines-offset)),
           origin+ImVec2(size.x,size.y*((float)z/lines-offset)),
-          0x55ffffff);
+          0x55ffffff,
+        dpiScale);
       }
     }
     // x grid
@@ -104,7 +105,8 @@ void FurnaceGUI::drawSpectrum() {
         if (spectrum.showXGrid) dl->AddLine(
           origin+ImVec2(pos,0),
           origin+ImVec2(pos,size.y),
-          color);
+          color,
+        dpiScale);
         prevPos=pos;
       }
     }
@@ -124,6 +126,10 @@ void FurnaceGUI::drawSpectrum() {
         delete[] spectrum.plot;
         spectrum.plot=NULL;
       }
+      if (spectrum.plan) {
+        fftw_free(spectrum.plan);
+        spectrum.plan=NULL;
+      }
       spectrum.buffer=(fftw_complex*)fftw_malloc(sizeof(fftw_complex)*spectrum.bins);
       if (!spectrum.buffer) spectrum.running=false;
       spectrum.in=new double[spectrum.bins];
@@ -131,6 +137,7 @@ void FurnaceGUI::drawSpectrum() {
       spectrum.plot=new ImVec2[spectrum.bins/2];
       if (!spectrum.plot) spectrum.running=false;
       spectrum.plan=fftw_plan_dft_r2c_1d(spectrum.bins,spectrum.in,spectrum.buffer,FFTW_ESTIMATE);
+      if (!spectrum.plan) spectrum.running=false;
       spectrum.frequencies.clear();
       float freq;
       float maxRate=e->getAudioDescGot().rate/2;
@@ -175,7 +182,7 @@ void FurnaceGUI::drawSpectrum() {
           spectrum.plot[i].y=origin.y+size.y*(y-spectrum.yOffset);
         }
         ImGui::PushClipRect(origin,origin+size,true);
-        dl->AddPolyline(spectrum.plot,count,ImGui::GetColorU32(uiColors[spectrum.mono?GUI_COLOR_OSC_WAVE:GUI_COLOR_OSC_WAVE_CH0+z]),0,1.0f);
+        dl->AddPolyline(spectrum.plot,count,ImGui::GetColorU32(uiColors[spectrum.mono?GUI_COLOR_OSC_WAVE:GUI_COLOR_OSC_WAVE_CH0+z]),0,dpiScale);
         dl->PathFillConcave(ImGui::GetColorU32(uiColors[spectrum.mono?GUI_COLOR_OSC_WAVE:GUI_COLOR_OSC_WAVE_CH0+z]));
         ImGui::PopClipRect();
       }

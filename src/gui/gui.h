@@ -2757,12 +2757,13 @@ class FurnaceGUI {
     bool update, running, mono;
     bool showXGrid, showYGrid, showXScale, showYScale;
     SpectrumSettings():
-      bins(2048),
+      bins(4096),
       xZoom(1.0f),
       xOffset(0.0f),
       yOffset(0.0f),
       buffer(NULL),
       in(NULL),
+      plot(NULL),
       frequencies({}),
       update(true),
       running(false),

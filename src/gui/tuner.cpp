@@ -126,11 +126,12 @@ void FurnaceGUI::drawTuner() {
       ImU32 lowColor=ImGui::GetColorU32(uiColors[GUI_COLOR_TUNER_SCALE_LOW]);
       ImU32 highColor=ImGui::GetColorU32(uiColors[GUI_COLOR_TUNER_SCALE_HIGH]);
 
+      // needle bg
       ImGui::Dummy(ImVec2(size.x,boxHeight));
       dl->AddRectFilledMultiColor(origin,origin+ImVec2(size.x/2.0f,boxHeight),highColor,lowColor,lowColor,highColor);
       dl->AddRectFilledMultiColor(origin+ImVec2(size.x/2.0f,0),origin+ImVec2(size.x,boxHeight),lowColor,highColor,highColor,lowColor);
       dl->AddLine(origin+ImVec2(size.x/2.0f,0),origin+ImVec2(size.x/2.0f,boxHeight),ImGui::GetColorU32(uiColors[GUI_COLOR_TUNER_NEEDLE]),2.0f*dpiScale);
-
+      // needle
       float needleX=size.x*(0.5f+cents);
       dl->AddLine(origin+ImVec2(needleX,boxHeight-needleHeight),origin+ImVec2(needleX,needleHeight),ImGui::GetColorU32(uiColors[GUI_COLOR_TUNER_NEEDLE]),4.0f*dpiScale);
       // text
