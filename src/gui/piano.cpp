@@ -49,6 +49,46 @@ const bool isTopKey[12]={
     } \
   }
 
+void FurnaceGUI::pianoLabel(ImDrawList* dl, ImVec2& p0, ImVec2& p1, int note) {
+  switch (pianoLabelsMode) {
+    case PIANO_LABELS_OFF:
+      return;
+    case PIANO_LABELS_OCTAVE:
+    case PIANO_LABELS_OCTAVE_C:
+      if (note%12) return;
+  }
+  String label="";
+  float padding=0.0f;
+  switch (pianoLabelsMode) {
+    case PIANO_LABELS_OCTAVE:
+      label=fmt::sprintf("%d",(note-60)/12);
+      padding=ImGui::GetStyle().ItemSpacing.y;
+      break;
+    case PIANO_LABELS_NOTE:
+      label=noteNames[60+(note%12)][0];
+      padding=ImGui::GetStyle().ItemSpacing.y;
+      break;
+    case PIANO_LABELS_NOTE_C:
+      if ((note%12)==0) {
+        label+=fmt::sprintf("%d\nC",(note-60)/12);
+      } else {
+        label=noteNames[60+(note%12)][0];
+      }
+      break;
+    case PIANO_LABELS_OCTAVE_C:
+      label=fmt::sprintf("C\n%d",(note-60)/12);
+      break;
+    case PIANO_LABELS_OCTAVE_NOTE:
+      label=fmt::sprintf("%c\n%d",noteNames[60+(note%12)][0],(note-60)/12);
+      break;
+  }
+  ImVec2 pText=ImLerp(p0,p1,ImVec2(0.5f,1.0f));
+  ImVec2 labelSize=ImGui::CalcTextSize(label.c_str());
+  pText.x-=labelSize.x*0.5f;
+  pText.y-=labelSize.y+padding;
+  dl->AddText(pText,0xff404040,label.c_str());
+}
+
 void FurnaceGUI::drawPiano() {
   if (nextWindow==GUI_WINDOW_PIANO) {
     pianoOpen=true;
@@ -132,19 +172,22 @@ void FurnaceGUI::drawPiano() {
           ImGui::Unindent();
           ImGui::Text(_("Key labels:"));
           ImGui::Indent();
-          if (ImGui::RadioButton(_("Disabled"),pianoLabelsMode==PIANO_LABELS_OFF)) {
+          if (ImGui::RadioButton(_("Off##keyLabel0"),pianoLabelsMode==PIANO_LABELS_OFF)) {
             pianoLabelsMode=PIANO_LABELS_OFF;
           }
-          if (ImGui::RadioButton(_("Octaves"),pianoLabelsMode==PIANO_LABELS_OCTAVE)) {
+          if (ImGui::RadioButton(_("Octaves##keyLabel1"),pianoLabelsMode==PIANO_LABELS_OCTAVE)) {
             pianoLabelsMode=PIANO_LABELS_OCTAVE;
           }
-          if (ImGui::RadioButton(_("Notes"),pianoLabelsMode==PIANO_LABELS_NOTE)) {
+          if (ImGui::RadioButton(_("Notes##keyLabel2"),pianoLabelsMode==PIANO_LABELS_NOTE)) {
             pianoLabelsMode=PIANO_LABELS_NOTE;
           }
-          if (ImGui::RadioButton(_("Octaves (with C)"),pianoLabelsMode==PIANO_LABELS_OCTAVE_C)) {
+          if (ImGui::RadioButton(_("Notes (with octave)##keyLabel3"),pianoLabelsMode==PIANO_LABELS_NOTE_C)) {
+            pianoLabelsMode=PIANO_LABELS_NOTE_C;
+          }
+          if (ImGui::RadioButton(_("Octaves (with C)##keyLabel4"),pianoLabelsMode==PIANO_LABELS_OCTAVE_C)) {
             pianoLabelsMode=PIANO_LABELS_OCTAVE_C;
           }
-          if (ImGui::RadioButton(_("Notes + Octaves"),pianoLabelsMode==PIANO_LABELS_OCTAVE_NOTE)) {
+          if (ImGui::RadioButton(_("Notes + Octaves##keyLabel5"),pianoLabelsMode==PIANO_LABELS_OCTAVE_NOTE)) {
             pianoLabelsMode=PIANO_LABELS_OCTAVE_NOTE;
           }
           ImGui::Unindent();
@@ -285,19 +328,7 @@ void FurnaceGUI::drawPiano() {
               ImVec2 p1=ImLerp(rect.Min,rect.Max,ImVec2((float)(i+1)/notes,1.0f));
               p1.x-=dpiScale;
               dl->AddRectFilled(p0,p1,ImGui::ColorConvertFloat4ToU32(color));
-              if ((i%12)==0) {
-                String label="";
-                switch (pianoLabelsMode) {
-                  case PIANO_LABELS_OCTAVE:
-                    label=fmt::sprintf("%d",(note-60)/12);
-                    break;
-                }
-                ImVec2 pText=ImLerp(p0,p1,ImVec2(0.5f,1.0f));
-                ImVec2 labelSize=ImGui::CalcTextSize(label.c_str());
-                pText.x-=labelSize.x*0.5f;
-                pText.y-=labelSize.y+ImGui::GetStyle().ItemSpacing.y;
-                dl->AddText(pText,0xff404040,label.c_str());
-              }
+              if (isTopKey[i%12]) pianoLabel(dl,p0,p1,note);
             }
           } else {
             int bottomNotes=7*oct;
@@ -357,14 +388,7 @@ void FurnaceGUI::drawPiano() {
               p1.x-=dpiScale;
 
               dl->AddRectFilled(p0,p1,ImGui::ColorConvertFloat4ToU32(color));
-              if ((i%7)==0) {
-                String label=fmt::sprintf("%d",(note-60)/12);
-                ImVec2 pText=ImLerp(p0,p1,ImVec2(0.5f,1.0f));
-                ImVec2 labelSize=ImGui::CalcTextSize(label.c_str());
-                pText.x-=labelSize.x*0.5f;
-                pText.y-=labelSize.y+ImGui::GetStyle().ItemSpacing.y;
-                dl->AddText(pText,0xff404040,label.c_str());
-              }
+              pianoLabel(dl,p0,p1,note);
             }
 
             for (int i=0; i<oct; i++) {

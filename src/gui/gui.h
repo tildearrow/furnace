@@ -2781,6 +2781,7 @@ class FurnaceGUI {
     PIANO_LABELS_OFF=0,
     PIANO_LABELS_OCTAVE,
     PIANO_LABELS_NOTE,
+    PIANO_LABELS_NOTE_C,
     PIANO_LABELS_OCTAVE_C,
     PIANO_LABELS_OCTAVE_NOTE
   };
@@ -2918,6 +2919,9 @@ class FurnaceGUI {
   bool chipMixer(int which, ImVec2 size);
   ImVec2 calcPortSetSize(String label, int ins, int outs);
   bool portSet(String label, unsigned int portSetID, int ins, int outs, int activeIns, int activeOuts, int& clickedPort, std::map<unsigned int,ImVec2>& portPos);
+
+  // piano
+  void pianoLabel(ImDrawList* dl, ImVec2& p0, ImVec2& p1, int note);
 
   void updateWindowTitle();
   void updateROMExportAvail();
