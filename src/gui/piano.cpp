@@ -130,6 +130,24 @@ void FurnaceGUI::drawPiano() {
             pianoInputPadMode=PIANO_INPUT_PAD_SPLIT_VISIBLE;
           }
           ImGui::Unindent();
+          ImGui::Text(_("Key labels:"));
+          ImGui::Indent();
+          if (ImGui::RadioButton(_("Disabled"),pianoLabelsMode==PIANO_LABELS_OFF)) {
+            pianoLabelsMode=PIANO_LABELS_OFF;
+          }
+          if (ImGui::RadioButton(_("Octaves"),pianoLabelsMode==PIANO_LABELS_OCTAVE)) {
+            pianoLabelsMode=PIANO_LABELS_OCTAVE;
+          }
+          if (ImGui::RadioButton(_("Notes"),pianoLabelsMode==PIANO_LABELS_NOTE)) {
+            pianoLabelsMode=PIANO_LABELS_NOTE;
+          }
+          if (ImGui::RadioButton(_("Octaves (with C)"),pianoLabelsMode==PIANO_LABELS_OCTAVE_C)) {
+            pianoLabelsMode=PIANO_LABELS_OCTAVE_C;
+          }
+          if (ImGui::RadioButton(_("Notes + Octaves"),pianoLabelsMode==PIANO_LABELS_OCTAVE_NOTE)) {
+            pianoLabelsMode=PIANO_LABELS_OCTAVE_NOTE;
+          }
+          ImGui::Unindent();
           ImGui::Checkbox(_("Share play/edit offset/range"),&pianoSharePosition);
           ImGui::Checkbox(_("Read-only (can't input notes)"),&pianoReadonly);
           ImGui::EndPopup();
@@ -268,7 +286,12 @@ void FurnaceGUI::drawPiano() {
               p1.x-=dpiScale;
               dl->AddRectFilled(p0,p1,ImGui::ColorConvertFloat4ToU32(color));
               if ((i%12)==0) {
-                String label=fmt::sprintf("%d",(note-60)/12);
+                String label="";
+                switch (pianoLabelsMode) {
+                  case PIANO_LABELS_OCTAVE:
+                    label=fmt::sprintf("%d",(note-60)/12);
+                    break;
+                }
                 ImVec2 pText=ImLerp(p0,p1,ImVec2(0.5f,1.0f));
                 ImVec2 labelSize=ImGui::CalcTextSize(label.c_str());
                 pText.x-=labelSize.x*0.5f;

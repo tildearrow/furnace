@@ -8351,6 +8351,7 @@ void FurnaceGUI::syncState() {
   pianoOffsetEdit=e->getConfInt("pianoOffsetEdit",pianoOffsetEdit);
   pianoView=e->getConfInt("pianoView",pianoView);
   pianoInputPadMode=e->getConfInt("pianoInputPadMode",pianoInputPadMode);
+  pianoLabelsMode=e->getConfInt("pianoLabelsMode",pianoLabelsMode);
 
   chanOscCols=e->getConfInt("chanOscCols",3);
   chanOscAutoColsType=e->getConfInt("chanOscAutoColsType",0);
@@ -8512,6 +8513,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("pianoOffsetEdit",pianoOffsetEdit);
   conf.set("pianoView",pianoView);
   conf.set("pianoInputPadMode",pianoInputPadMode);
+  conf.set("pianoLabelsMode",pianoLabelsMode);
 
   // commit per-chan osc state
   conf.set("chanOscCols",chanOscCols);
@@ -9164,6 +9166,7 @@ FurnaceGUI::FurnaceGUI():
   pianoOffsetEdit(9),
   pianoView(PIANO_LAYOUT_AUTOMATIC),
   pianoInputPadMode(PIANO_INPUT_PAD_SPLIT_AUTO),
+  pianoLabelsMode(PIANO_LABELS_OCTAVE),
 #else
   pianoOctaves(7),
   pianoOctavesEdit(4),
@@ -9174,6 +9177,7 @@ FurnaceGUI::FurnaceGUI():
   pianoOffsetEdit(6),
   pianoView(PIANO_LAYOUT_STANDARD),
   pianoInputPadMode(PIANO_INPUT_PAD_DISABLE),
+  pianoLabelsMode(PIANO_LABELS_OCTAVE),
 #endif
   hasACED(false),
   waveGenBaseShape(0),
