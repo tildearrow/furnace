@@ -55,6 +55,9 @@ void FurnaceGUI::drawMultiInsSetup() {
         if (ImGui::Button(ICON_FA_CHEVRON_UP "##Up",ImVec2(ImGui::GetContentRegionAvail().x,0))) {
           if (i>0) multiInsTranspose[i-1]++;
         }
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+          if (i>0) multiInsTranspose[i-1]+=12;
+        }
         ImGui::PopStyleVar();
         ImGui::PopItemFlag();
 
@@ -67,10 +70,12 @@ void FurnaceGUI::drawMultiInsSetup() {
           ImGui::PushStyleColor(ImGuiCol_HeaderActive,colorActive);
         }
         ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign,ImVec2(0.5f,0.5f));
-        ImGui::Selectable(id.c_str(),thisInsOn,0,ImVec2(
-          ImGui::GetContentRegionAvail().x,
-          ImGui::GetContentRegionAvail().y-ImGui::GetTextLineHeightWithSpacing()
-        ));
+        if (ImGui::Selectable(id.c_str(),thisInsOn,0,ImVec2(
+            ImGui::GetContentRegionAvail().x,
+            ImGui::GetContentRegionAvail().y-ImGui::GetTextLineHeightWithSpacing()
+          ))) {
+          if (i>0) multiInsTranspose[i-1]=0;
+        }
         ImGui::PopStyleVar();
         if (i>0) {
           ImGui::PopStyleColor(3);
@@ -80,6 +85,9 @@ void FurnaceGUI::drawMultiInsSetup() {
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
         if (ImGui::Button(ICON_FA_CHEVRON_DOWN "##Down",ImVec2(ImGui::GetContentRegionAvail().x,0))) {
           if (i>0) multiInsTranspose[i-1]--;
+        }
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+          if (i>0) multiInsTranspose[i-1]-=12;
         }
         ImGui::PopStyleVar();
         ImGui::PopItemFlag();
