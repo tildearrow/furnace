@@ -1673,6 +1673,12 @@ struct CSDisAsmIns {
   }
 };
 
+enum NoteInputModes: unsigned char {
+  GUI_NOTE_INPUT_MONO=0,
+  GUI_NOTE_INPUT_POLY,
+  GUI_NOTE_INPUT_CHORD
+};
+
 struct FurnaceCV;
 
 class FurnaceGUI {
@@ -1723,7 +1729,8 @@ class FurnaceGUI {
   bool vgmExportDirectStream, displayInsTypeList, displayWaveSizeList;
   bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
-  bool displayNew, displayExport, displayPalette, fullScreen, preserveChanPos, sysDupCloneChannels, sysDupEnd, noteInputPoly, noteInputChord;
+  bool displayNew, displayExport, displayPalette, fullScreen, preserveChanPos, sysDupCloneChannels, sysDupEnd;
+  unsigned char noteInputMode;
   bool notifyWaveChange, notifySampleChange;
   bool recalcTimestamps;
   bool wantScrollListIns, wantScrollListWave, wantScrollListSample;

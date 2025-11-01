@@ -1399,7 +1399,7 @@ void FurnaceGUI::noteInput(int num, int key, int vol, int chanOff) {
   int tick=0;
   int speed=0;
 
-  if (chanOff>0 && noteInputChord) {
+  if (chanOff>0 && noteInputMode==GUI_NOTE_INPUT_CHORD) {
     ch=e->getViableChannel(ch,chanOff,curIns);
     if ((!e->isPlaying() || !followPattern)) {
       y-=editStep;
@@ -1466,7 +1466,7 @@ void FurnaceGUI::noteInput(int num, int key, int vol, int chanOff) {
       pat->newData[y][DIV_PAT_VOL]=-1;
     }
   }
-  if ((!e->isPlaying() || !followPattern) && (chanOff<1 || !noteInputChord)) {
+  if ((!e->isPlaying() || !followPattern) && (chanOff<1 || noteInputMode!=GUI_NOTE_INPUT_CHORD)) {
     editAdvance();
   }
   makeUndo(GUI_UNDO_PATTERN_EDIT,UndoRegion(ord,ch,y,ord,ch,y));
@@ -7657,7 +7657,7 @@ bool FurnaceGUI::init() {
 
   initSystemPresets();
 
-  e->setAutoNotePoly(noteInputPoly);
+  e->setAutoNotePoly(noteInputMode!=GUI_NOTE_INPUT_MONO);
 
   SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER,"1");
 #if SDL_VERSION_ATLEAST(2,0,17)
@@ -8326,8 +8326,10 @@ void FurnaceGUI::syncState() {
   orderLock=e->getConfBool("orderLock",false);
   followOrders=e->getConfBool("followOrders",true);
   followPattern=e->getConfBool("followPattern",true);
-  noteInputPoly=e->getConfBool("noteInputPoly",true);
-  noteInputChord=e->getConfBool("noteInputChord",false);
+  noteInputMode=e->getConfInt("noteInputMode",GUI_NOTE_INPUT_POLY);
+  if (noteInputMode!=GUI_NOTE_INPUT_MONO && noteInputMode!=GUI_NOTE_INPUT_POLY && noteInputMode!=GUI_NOTE_INPUT_CHORD) {
+    noteInputMode=GUI_NOTE_INPUT_POLY;
+  }
   filePlayerSync=e->getConfBool("filePlayerSync",true);
   audioExportOptions.loops=e->getConfInt("exportLoops",0);
   if (audioExportOptions.loops<0) audioExportOptions.loops=0;
@@ -8489,8 +8491,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("followOrders",followOrders);
   conf.set("followPattern",followPattern);
   conf.set("orderEditMode",orderEditMode);
-  conf.set("noteInputPoly",noteInputPoly);
-  conf.set("noteInputChord",noteInputChord);
+  conf.set("noteInputMode",(int)noteInputMode);
   conf.set("filePlayerSync",filePlayerSync);
   if (settings.persistFadeOut) {
     conf.set("exportLoops",audioExportOptions.loops);
@@ -8665,8 +8666,7 @@ FurnaceGUI::FurnaceGUI():
   preserveChanPos(false),
   sysDupCloneChannels(true),
   sysDupEnd(false),
-  noteInputPoly(true),
-  noteInputChord(false),
+  noteInputMode(GUI_NOTE_INPUT_POLY),
   notifyWaveChange(false),
   notifySampleChange(false),
   recalcTimestamps(true),
