@@ -226,55 +226,84 @@ void FurnaceGUI::drawMixer() {
   if (ImGui::Begin("Mixer",&mixerOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking),_("Mixer"))) {
     if (ImGui::BeginTabBar("MixerView")) {
       if (ImGui::BeginTabItem(_("Mixer"))) {
-        float maxY=ImGui::GetContentRegionAvail().y;
-        VerticalText(maxY,true,_("Master Volume"));
-        ImGui::SameLine();
-        if (settings.mixerStyle==2) {
-          ImVec2 pos=ImGui::GetCursorScreenPos();
-          drawVolMeterInternal(ImGui::GetWindowDrawList(),ImRect(pos,pos+ImVec2(40*dpiScale,maxY)),peak,e->getAudioDescGot().outChans,false);
-          ImGui::PushStyleColor(ImGuiCol_FrameBg,0);
-          ImGui::PushStyleColor(ImGuiCol_FrameBgActive,0);
-          ImGui::PushStyleColor(ImGuiCol_FrameBgHovered,127<<IM_COL32_A_SHIFT);
-          ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding,0);
-        }
-        if (ImGui::VSliderFloat("##mixerMaster",ImVec2(40*dpiScale,maxY),&e->song.masterVol,0,3,"%.2fx")) {
-          if (e->song.masterVol<0) e->song.masterVol=0;
-          if (e->song.masterVol>3) e->song.masterVol=3;
-          MARK_MODIFIED;
-        } rightClickable
-        ImGui::SameLine();
-        if (settings.mixerStyle==2) {
-          ImGui::PopStyleColor(3);
-          ImGui::PopStyleVar();
-        } else if (settings.mixerStyle==1) {
-          ImVec2 pos=ImGui::GetCursorScreenPos();
-          drawVolMeterInternal(ImGui::GetWindowDrawList(),ImRect(pos,pos+ImVec2(40*dpiScale,maxY)),peak,e->getAudioDescGot().outChans,false);
-          ImGui::Dummy(ImVec2(40*dpiScale,maxY));
-        ImGui::SameLine();
-        }
-
         const float itemWidth=60*dpiScale;
-        // figure out if we need to cut the height for the scrollbar
-        float itemCalcWidth=
-          itemWidth+
-          1.5f*ImGui::GetStyle().FramePadding.x+
-          4*ImGui::GetStyle().FramePadding.x+
-          dpiScale+ // separator
-          (settings.mixerStyle==1?(itemWidth-ImGui::GetFontSize()-ImGui::GetStyle().FramePadding.x):0)
-        ;
-        float realwidth=ImGui::GetWindowWidth()-ImGui::GetCursorPosX();
-        if ((itemCalcWidth*e->song.systemLen)>realwidth) maxY-=ImGui::GetStyle().ScrollbarSize;
+        float maxY=ImGui::GetContentRegionAvail().y;
+        if (settings.mixerLayout) {
+          ImGui::TextUnformatted(_("Master Volume"));
+          if (settings.mixerStyle==2) {
+            ImVec2 pos=ImGui::GetCursorScreenPos(),
+                  size=ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetFontSize()+ImGui::GetStyle().FramePadding.y*2.0f);
+            drawVolMeterInternal(ImGui::GetWindowDrawList(),ImRect(pos,pos+size),peak,e->getAudioDescGot().outChans,true);
+            ImGui::PushStyleColor(ImGuiCol_FrameBg,0);
+            ImGui::PushStyleColor(ImGuiCol_FrameBgActive,0);
+            ImGui::PushStyleColor(ImGuiCol_FrameBgHovered,127<<IM_COL32_A_SHIFT);
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding,0);
+          }
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::SliderFloat("##mixerMaster",&e->song.masterVol,0,3,"%.2fx")) {
+            if (e->song.masterVol<0) e->song.masterVol=0;
+            if (e->song.masterVol>3) e->song.masterVol=3;
+            MARK_MODIFIED;
+          } rightClickable
+          if (settings.mixerStyle==2) {
+            ImGui::PopStyleColor(3);
+            ImGui::PopStyleVar();
+          } else if (settings.mixerStyle==1) {
+            ImVec2 pos=ImGui::GetCursorScreenPos(),
+                  size=ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetFontSize()+ImGui::GetStyle().FramePadding.y*2.0f);
+            drawVolMeterInternal(ImGui::GetWindowDrawList(),ImRect(pos,pos+size),peak,e->getAudioDescGot().outChans,true);
+            ImGui::Dummy(size);
+          }
+        } else {
+          VerticalText(maxY,true,_("Master Volume"));
+          ImGui::SameLine();
+          if (settings.mixerStyle==2) {
+            ImVec2 pos=ImGui::GetCursorScreenPos();
+            drawVolMeterInternal(ImGui::GetWindowDrawList(),ImRect(pos,pos+ImVec2(40*dpiScale,maxY)),peak,e->getAudioDescGot().outChans,false);
+            ImGui::PushStyleColor(ImGuiCol_FrameBg,0);
+            ImGui::PushStyleColor(ImGuiCol_FrameBgActive,0);
+            ImGui::PushStyleColor(ImGuiCol_FrameBgHovered,127<<IM_COL32_A_SHIFT);
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding,0);
+          }
+          if (ImGui::VSliderFloat("##mixerMaster",ImVec2(40*dpiScale,maxY),&e->song.masterVol,0,3,"%.2fx")) {
+            if (e->song.masterVol<0) e->song.masterVol=0;
+            if (e->song.masterVol>3) e->song.masterVol=3;
+            MARK_MODIFIED;
+          } rightClickable
+          ImGui::SameLine();
+          if (settings.mixerStyle==2) {
+            ImGui::PopStyleColor(3);
+            ImGui::PopStyleVar();
+          } else if (settings.mixerStyle==1) {
+            ImVec2 pos=ImGui::GetCursorScreenPos();
+            drawVolMeterInternal(ImGui::GetWindowDrawList(),ImRect(pos,pos+ImVec2(40*dpiScale,maxY)),peak,e->getAudioDescGot().outChans,false);
+            ImGui::Dummy(ImVec2(40*dpiScale,maxY));
+            ImGui::SameLine();
+          }
+          // figure out if we need to cut the height for the scrollbar
+          float itemCalcWidth=
+            itemWidth+
+            1.5f*ImGui::GetStyle().FramePadding.x+
+            4*ImGui::GetStyle().FramePadding.x+
+            dpiScale+ // separator
+            (settings.mixerStyle==1?(itemWidth-ImGui::GetFontSize()-ImGui::GetStyle().FramePadding.x):0)
+          ;
+          float realwidth=ImGui::GetWindowWidth()-ImGui::GetCursorPosX();
+          if ((itemCalcWidth*e->song.systemLen)>realwidth) maxY-=ImGui::GetStyle().ScrollbarSize;
+        }
         if (ImGui::BeginChild("##mixerPerChipContainer",ImVec2(0,0),0,ImGuiWindowFlags_HorizontalScrollbar)) {
           for (int i=0; i<e->song.systemLen; i++) {
-            ImGui::GetWindowDrawList()->AddRectFilled(
-              ImGui::GetCursorScreenPos(),
-              ImGui::GetCursorScreenPos()+ImVec2(dpiScale,maxY),
-              ImGui::GetColorU32(ImGuiCol_Separator)
-            );
-            ImGui::Dummy(ImVec2(dpiScale,maxY));
-            ImGui::SameLine();
+            if (settings.mixerLayout==0) {
+              ImGui::GetWindowDrawList()->AddRectFilled(
+                ImGui::GetCursorScreenPos(),
+                ImGui::GetCursorScreenPos()+ImVec2(dpiScale,maxY),
+                ImGui::GetColorU32(ImGuiCol_Separator)
+              );
+              ImGui::Dummy(ImVec2(dpiScale,maxY));
+              ImGui::SameLine();
+            }
             if (chipMixer(i,ImVec2(itemWidth,maxY))) MARK_MODIFIED;
-            ImGui::SameLine();
+            if (settings.mixerLayout==0) ImGui::SameLine();
           }
         }
         ImGui::EndChild();
@@ -465,76 +494,154 @@ bool FurnaceGUI::chipMixer(int which, ImVec2 size) {
 
     float vol=fabs(e->song.systemVol[which]);
     bool doInvert=e->song.systemVol[which]<0;
-    if (ImGui::Checkbox("##ChipInvert",&doInvert)) {
-      e->song.systemVol[which]=doInvert?-vol:vol;
-      ret=true;
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_("Invert"));
-    }
-    // hack to get the same line from here
-    ImGui::SameLine();
-    ImVec2 curPos=ImGui::GetCursorPos();
-    ImGui::NewLine();
-
-    float volSliderHeight=size.y-ImGui::GetStyle().FramePadding.y*7-textHeight*2;
-
-    VerticalText(volSliderHeight-(ImGui::GetCursorPosY()-curPos.y),true,"%s",e->getSystemName(e->song.system[which]));
-
-    ImGui::SameLine();
-
-    float vTextWidth=textHeight+2*ImGui::GetStyle().FramePadding.x;
-
-    ImGui::SetCursorPos(curPos);
-    ImVec2 pos=ImGui::GetCursorScreenPos();
-    if (settings.mixerStyle==2) {
-      drawVolMeterInternal(ImGui::GetWindowDrawList(),ImRect(pos,pos+ImVec2(size.x-vTextWidth,volSliderHeight)),e->chipPeak[which],e->getDispatch(which)->getOutputCount(),false);
-
-      ImGui::PushStyleColor(ImGuiCol_FrameBg,0);
-      ImGui::PushStyleColor(ImGuiCol_FrameBgActive,0);
-      ImGui::PushStyleColor(ImGuiCol_FrameBgHovered,127<<IM_COL32_A_SHIFT);
-      ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding,0);
-    }
-    if (ImGui::VSliderFloat("##ChipVol",ImVec2(size.x-vTextWidth,volSliderHeight),&vol,0.0f,2.0f)) {
-      if (doInvert) {
-        if (vol<0.0001) vol=0.0001;
+    if (settings.mixerLayout) {
+      if (ImGui::BeginTable("mixerVectRow1",2)) {
+        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted(e->getSystemName(e->song.system[which]));
+        ImGui::TableNextColumn();
+        if (ImGui::Checkbox("##ChipInvert",&doInvert)) {
+          e->song.systemVol[which]=doInvert?-vol:vol;
+          ret=true;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Invert"));
+        }
+        ImGui::EndTable();
       }
-      if (vol<0) vol=0;
-      if (vol>10) vol=10;
-      e->song.systemVol[which]=doInvert?-vol:vol;
-      ret=true;
-    } rightClickable
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
-      ImGui::SetTooltip(_("Volume"));
-    }
-    if (settings.mixerStyle==2) {
-      ImGui::PopStyleVar(1);
-      ImGui::PopStyleColor(3);
-    } else if (settings.mixerStyle==1) {
-      ImGui::SetCursorPos(curPos+ImVec2(size.x-vTextWidth+ImGui::GetStyle().FramePadding.x,0));
-      pos=ImGui::GetCursorScreenPos();
-      ImGui::Dummy(ImVec2(size.x-vTextWidth,volSliderHeight));
-      drawVolMeterInternal(ImGui::GetWindowDrawList(),ImRect(pos,pos+ImVec2(size.x-vTextWidth,volSliderHeight)),e->chipPeak[which],e->getDispatch(which)->getOutputCount(),false);
-    }
-    float panSliderWidth=size.x+1.5f*ImGui::GetStyle().FramePadding.x+((settings.mixerStyle!=1)?0:size.x-vTextWidth+ImGui::GetStyle().FramePadding.x);
-    ImGui::SetNextItemWidth(panSliderWidth);
-    if (ImGui::SliderFloat("##ChipPan",&e->song.systemPan[which],-1.0f,1.0f)) {
-      if (e->song.systemPan[which]<-1.0f) e->song.systemPan[which]=-1.0f;
-      if (e->song.systemPan[which]>1.0f) e->song.systemPan[which]=1.0f;
-      ret=true;
-    } rightClickable
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
-      ImGui::SetTooltip(_("Panning"));
-    }
+      if (settings.mixerStyle==2) {
+        ImVec2 pos=ImGui::GetCursorScreenPos(),
+            posMax=pos+ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetFontSize()+ImGui::GetStyle().FramePadding.y*2.0f);
+        drawVolMeterInternal(ImGui::GetWindowDrawList(),ImRect(pos,posMax),e->chipPeak[which],e->getDispatch(which)->getOutputCount(),true);
 
-    ImGui::SetNextItemWidth(panSliderWidth);
-    if (ImGui::SliderFloat("##ChipPanFR",&e->song.systemPanFR[which],-1.0f,1.0f)) {
-      if (e->song.systemPanFR[which]<-1.0f) e->song.systemPanFR[which]=-1.0f;
-      if (e->song.systemPanFR[which]>1.0f) e->song.systemPanFR[which]=1.0f;
-      ret=true;
-    } rightClickable
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
-      ImGui::SetTooltip(_("Front/Rear"));
+        ImGui::PushStyleColor(ImGuiCol_FrameBg,0);
+        ImGui::PushStyleColor(ImGuiCol_FrameBgActive,0);
+        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered,127<<IM_COL32_A_SHIFT);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding,0);
+      }
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+      if (ImGui::SliderFloat("##ChipVol",&vol,0.0f,2.0f)) {
+        if (doInvert) {
+          if (vol<0.0001) vol=0.0001;
+        }
+        if (vol<0) vol=0;
+        if (vol>10) vol=10;
+        e->song.systemVol[which]=doInvert?-vol:vol;
+        ret=true;
+      } rightClickable
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
+        ImGui::SetTooltip(_("Volume"));
+      }
+      if (settings.mixerStyle==2) {
+        ImGui::PopStyleVar(1);
+        ImGui::PopStyleColor(3);
+      } 
+      if (ImGui::BeginTable("mixerVectRow3",2)) {
+        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::SliderFloat("##ChipPan",&e->song.systemPan[which],-1.0f,1.0f)) {
+          if (e->song.systemPan[which]<-1.0f) e->song.systemPan[which]=-1.0f;
+          if (e->song.systemPan[which]>1.0f) e->song.systemPan[which]=1.0f;
+          ret=true;
+        } rightClickable
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
+          ImGui::SetTooltip(_("Panning"));
+        }
+        ImGui::TableNextColumn();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::SliderFloat("##ChipPanFR",&e->song.systemPanFR[which],-1.0f,1.0f)) {
+          if (e->song.systemPanFR[which]<-1.0f) e->song.systemPanFR[which]=-1.0f;
+          if (e->song.systemPanFR[which]>1.0f) e->song.systemPanFR[which]=1.0f;
+          ret=true;
+        } rightClickable
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
+          ImGui::SetTooltip(_("Front/Rear"));
+        }
+        ImGui::EndTable();
+      }
+      if (settings.mixerStyle==1) {
+        ImVec2 pos=ImGui::GetCursorScreenPos(),
+              size=ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetFontSize()+ImGui::GetStyle().FramePadding.y*2.0f);
+        ImGui::Dummy(size);
+        drawVolMeterInternal(ImGui::GetWindowDrawList(),ImRect(pos,pos+size),e->chipPeak[which],e->getDispatch(which)->getOutputCount(),true);
+      }
+    } else {
+      if (ImGui::Checkbox("##ChipInvert",&doInvert)) {
+        e->song.systemVol[which]=doInvert?-vol:vol;
+        ret=true;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Invert"));
+      }
+      // hack to get the same line from here
+      ImGui::SameLine();
+      ImVec2 curPos=ImGui::GetCursorPos();
+      ImGui::NewLine();
+
+      float volSliderHeight=size.y-ImGui::GetStyle().FramePadding.y*7-textHeight*2;
+
+      VerticalText(volSliderHeight-(ImGui::GetCursorPosY()-curPos.y),true,"%s",e->getSystemName(e->song.system[which]));
+
+      ImGui::SameLine();
+
+      float vTextWidth=textHeight+2*ImGui::GetStyle().FramePadding.x;
+
+      ImGui::SetCursorPos(curPos);
+      ImVec2 pos=ImGui::GetCursorScreenPos();
+      if (settings.mixerStyle==2) {
+        drawVolMeterInternal(ImGui::GetWindowDrawList(),ImRect(pos,pos+ImVec2(size.x-vTextWidth,volSliderHeight)),e->chipPeak[which],e->getDispatch(which)->getOutputCount(),false);
+
+        ImGui::PushStyleColor(ImGuiCol_FrameBg,0);
+        ImGui::PushStyleColor(ImGuiCol_FrameBgActive,0);
+        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered,127<<IM_COL32_A_SHIFT);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding,0);
+      }
+      if (ImGui::VSliderFloat("##ChipVol",ImVec2(size.x-vTextWidth,volSliderHeight),&vol,0.0f,2.0f)) {
+        if (doInvert) {
+          if (vol<0.0001) vol=0.0001;
+        }
+        if (vol<0) vol=0;
+        if (vol>10) vol=10;
+        e->song.systemVol[which]=doInvert?-vol:vol;
+        ret=true;
+      } rightClickable
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
+        ImGui::SetTooltip(_("Volume"));
+      }
+      if (settings.mixerStyle==2) {
+        ImGui::PopStyleVar(1);
+        ImGui::PopStyleColor(3);
+      } else if (settings.mixerStyle==1) {
+        ImGui::SetCursorPos(curPos+ImVec2(size.x-vTextWidth+ImGui::GetStyle().FramePadding.x,0));
+        pos=ImGui::GetCursorScreenPos();
+        ImGui::Dummy(ImVec2(size.x-vTextWidth,volSliderHeight));
+        drawVolMeterInternal(ImGui::GetWindowDrawList(),ImRect(pos,pos+ImVec2(size.x-vTextWidth,volSliderHeight)),e->chipPeak[which],e->getDispatch(which)->getOutputCount(),false);
+      }
+      float panSliderWidth=size.x+1.5f*ImGui::GetStyle().FramePadding.x+((settings.mixerStyle!=1)?0:size.x-vTextWidth+ImGui::GetStyle().FramePadding.x);
+      ImGui::SetNextItemWidth(panSliderWidth);
+      if (ImGui::SliderFloat("##ChipPan",&e->song.systemPan[which],-1.0f,1.0f)) {
+        if (e->song.systemPan[which]<-1.0f) e->song.systemPan[which]=-1.0f;
+        if (e->song.systemPan[which]>1.0f) e->song.systemPan[which]=1.0f;
+        ret=true;
+      } rightClickable
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
+        ImGui::SetTooltip(_("Panning"));
+      }
+
+      ImGui::SetNextItemWidth(panSliderWidth);
+      if (ImGui::SliderFloat("##ChipPanFR",&e->song.systemPanFR[which],-1.0f,1.0f)) {
+        if (e->song.systemPanFR[which]<-1.0f) e->song.systemPanFR[which]=-1.0f;
+        if (e->song.systemPanFR[which]>1.0f) e->song.systemPanFR[which]=1.0f;
+        ret=true;
+      } rightClickable
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
+        ImGui::SetTooltip(_("Front/Rear"));
+      }
     }
 
   ImGui::EndGroup();

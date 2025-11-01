@@ -320,6 +320,12 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_NOTES:
       nextWindow=GUI_WINDOW_NOTES;
       break;
+    case GUI_ACTION_WINDOW_TUNER:
+      nextWindow = GUI_WINDOW_TUNER;
+      break;
+    case GUI_ACTION_WINDOW_SPECTRUM:
+      nextWindow = GUI_WINDOW_SPECTRUM;
+      break;
     case GUI_ACTION_WINDOW_CHANNELS:
       nextWindow=GUI_WINDOW_CHANNELS;
       break;
@@ -478,6 +484,12 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_MULTI_INS_SETUP:
           multiInsSetupOpen=false;
+          break;
+        case GUI_WINDOW_TUNER:
+          tunerOpen=false;
+          break;
+        case GUI_WINDOW_SPECTRUM:
+          spectrumOpen=false;
           break;
         default:
           break;
