@@ -3860,6 +3860,9 @@ bool DivEngine::switchMaster(bool full) {
       disCont[i].setRates(got.rate);
       disCont[i].setQuality(lowQuality,dcHiPass);
     }
+    if (curFilePlayer!=NULL) {
+      curFilePlayer->setOutputRate(got.rate);
+    }
     if (!output->setRun(true)) {
       logE("error while activating audio!");
       return false;
@@ -4420,6 +4423,10 @@ bool DivEngine::init() {
   renderSamples();
   reset();
   active=true;
+
+  if (curFilePlayer!=NULL) {
+    curFilePlayer->setOutputRate(got.rate);
+  }
 
   if (!haveAudio) {
     return false;
