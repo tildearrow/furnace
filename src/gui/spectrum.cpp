@@ -23,6 +23,7 @@
 #include "imgui_internal.h"
 #include <IconsFontAwesome4.h>
 #include <fftw3.h>
+#include <imgui.h>
 #include <math.h> // fmod
 
 inline float scaleFuncLog(float x) {
@@ -195,35 +196,38 @@ void FurnaceGUI::drawSpectrum() {
     if (ImGui::IsWindowHovered()) {
       ImGui::SetCursorPosX(ImGui::GetWindowSize().x-ImGui::GetStyle().ItemSpacing.x-ImGui::CalcTextSize(ICON_FA_BARS).x);
       ImGui::TextUnformatted(ICON_FA_BARS "##spectrumSettings");
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
+        ImGui::SetTooltip(_("Spectrum settings"));
+      }
     }
     if (ImGui::BeginPopupContextItem("spectrumSettingsPopup",ImGuiPopupFlags_MouseButtonLeft)) {
       if (ImGui::Checkbox(_("Mono##spec"),&spectrum.mono)) {
         spectrum.update=true;
       }
-      if (ImGui::InputScalar("Bins",ImGuiDataType_U32,&spectrum.bins)) {
+      if (ImGui::InputScalar(_("Bins##spec"),ImGuiDataType_U32,&spectrum.bins)) {
         if (spectrum.bins<32) spectrum.bins=32;
         if (spectrum.bins>32768) spectrum.bins=32768;
         spectrum.update=true;
       }
       ImGui::Separator();
-      if (ImGui::SliderFloat("X Zoom",&spectrum.xZoom,1.0f,10.0f)) {
+      if (ImGui::SliderFloat(("X Zoom##spec"),&spectrum.xZoom,1.0f,10.0f)) {
         if (spectrum.xZoom<1.0f) spectrum.xZoom=1.0f;
         if (spectrum.xZoom>10.0f) spectrum.xZoom=10.0f;
       }
-      if (ImGui::SliderFloat("X Offset",&spectrum.xOffset,0.0f,1.0f)) {
+      if (ImGui::SliderFloat(_("X Offset##spec"),&spectrum.xOffset,0.0f,1.0f)) {
         if (spectrum.xOffset<0.0f) spectrum.xOffset=0.0f;
         if (spectrum.xOffset>1.0f) spectrum.xOffset=1.0f;
       }
       ImGui::Separator();
-      if (ImGui::SliderFloat("Y Offset",&spectrum.yOffset,0.0f,1.0f)) {
+      if (ImGui::SliderFloat(_("Y Offset##spec"),&spectrum.yOffset,0.0f,1.0f)) {
         if (spectrum.yOffset<0.0f) spectrum.yOffset=0.0f;
         if (spectrum.yOffset>1.0f) spectrum.yOffset=1.0f;
       }
       ImGui::Separator();
-      ImGui::Checkbox(_("Show X Grid"),&spectrum.showXGrid);
-      ImGui::Checkbox(_("Show Y Grid"),&spectrum.showYGrid);
-      ImGui::Checkbox(_("Show X Scale"),&spectrum.showXScale);
-      ImGui::Checkbox(_("Show Y Scale"),&spectrum.showYScale);
+      ImGui::Checkbox(_("Show X Grid##spec"),&spectrum.showXGrid);
+      ImGui::Checkbox(_("Show Y Grid##spec"),&spectrum.showYGrid);
+      ImGui::Checkbox(_("Show X Scale##spec"),&spectrum.showXScale);
+      ImGui::Checkbox(_("Show Y Scale##spec"),&spectrum.showYScale);
     }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SPECTRUM;
