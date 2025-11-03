@@ -6926,6 +6926,9 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   newFilePicker->registerType(".0cc",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
   newFilePicker->registerType(".dnm",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
   newFilePicker->registerType(".eft",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".a2m",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".a2t",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".rad",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
 
   newFilePicker->registerType(".fub",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
 
@@ -6941,6 +6944,10 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   newFilePicker->registerType(".bti",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
   newFilePicker->registerType(".ff",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
   newFilePicker->registerType(".opm",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".a2i",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".a2b",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".a2w",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".a2f",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
 
   if (updateFonts) {
     if (fileDialog!=NULL) delete fileDialog;
