@@ -270,9 +270,10 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
     if (properDrums) {
       for (int i=0; i<melodicChans+1; i++) {
         unsigned char ch=outChanMap[i];
+        unsigned char chMute=(i<12 && chan[i&(~1)].fourOp)?(i^1):i;
         int chOut=0;
         if (ch==255) continue;
-        if (isMuted[i]) continue;
+        if (isMuted[chMute]) continue;
         if (fm.channel[i].out[0]!=NULL) {
           chOut+=*fm.channel[ch].out[0];
         }
@@ -295,9 +296,10 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
     } else {
       for (int i=0; i<chans; i++) {
         unsigned char ch=outChanMap[i];
+        unsigned char chMute=(i<12 && chan[i&(~1)].fourOp)?(i^1):i;
         int chOut=0;
         if (ch==255) continue;
-        if (isMuted[i]) continue;
+        if (isMuted[chMute]) continue;
         if (fm.channel[i].out[0]!=NULL) {
           chOut+=*fm.channel[ch].out[0];
         }
@@ -587,8 +589,9 @@ void DivPlatformOPL::acquire_ymfm3(short** buf, size_t len) {
     if (properDrums) {
       for (int i=0; i<16; i++) {
         unsigned char ch=(i<12 && chan[i&(~1)].fourOp)?outChanMap[i^1]:outChanMap[i];
+        unsigned char chMute=(i<12 && chan[i&(~1)].fourOp)?(i^1):i;
         if (ch==255) continue;
-        if (isMuted[i]) continue;
+        if (isMuted[chMute]) continue;
         int chOut=fmChan[ch]->debug_output(0)+fmChan[ch]->debug_output(1);
         if (chOut==0) {
           chOut=fmChan[ch]->debug_output(2);
@@ -608,9 +611,10 @@ void DivPlatformOPL::acquire_ymfm3(short** buf, size_t len) {
       oscBuf[19]->putSample(h,CLAMP(fmChan[7]->debug_special1()<<1,-32768,32767));
     } else {
       for (int i=0; i<18; i++) {
-        unsigned char ch=outChanMap[i];
+        unsigned char ch=(i<12 && chan[i&(~1)].fourOp)?outChanMap[i^1]:outChanMap[i];
+        unsigned char chMute=(i<12 && chan[i&(~1)].fourOp)?(i^1):i;
         if (ch==255) continue;
-        if (isMuted[i]) continue;
+        if (isMuted[chMute]) continue;
         int chOut=fmChan[ch]->debug_output(0)+fmChan[ch]->debug_output(1);
         if (chOut==0) {
           chOut=fmChan[ch]->debug_output(2);
@@ -683,8 +687,9 @@ void DivPlatformOPL::acquire_ymfm4(short** buf, size_t len) {
     if (properDrums) {
       for (int i=0; i<16; i++) {
         unsigned char ch=(i<12 && chan[i&(~1)].fourOp)?outChanMap[i^1]:outChanMap[i];
+        unsigned char chMute=(i<12 && chan[i&(~1)].fourOp)?(i^1):i;
         if (ch==255) continue;
-        if (isMuted[i]) continue;
+        if (isMuted[chMute]) continue;
         int chOut=fmChan[ch]->debug_output(0);
         if (chOut==0) {
           chOut=fmChan[ch]->debug_output(1);
@@ -707,9 +712,10 @@ void DivPlatformOPL::acquire_ymfm4(short** buf, size_t len) {
       oscBuf[19]->putSample(h,CLAMP(fmChan[7]->debug_special1()<<1,-32768,32767));
     } else {
       for (int i=0; i<18; i++) {
-        unsigned char ch=outChanMap[i];
+        unsigned char ch=(i<12 && chan[i&(~1)].fourOp)?outChanMap[i^1]:outChanMap[i];
+        unsigned char chMute=(i<12 && chan[i&(~1)].fourOp)?(i^1):i;
         if (ch==255) continue;
-        if (isMuted[i]) continue;
+        if (isMuted[chMute]) continue;
         int chOut=fmChan[ch]->debug_output(0);
         if (chOut==0) {
           chOut=fmChan[ch]->debug_output(1);
@@ -1019,7 +1025,8 @@ void DivPlatformOPL::acquire_nukedLLE3(short** buf, size_t len) {
     }
 
     for (int i=0; i<20; i++) {
-      if (isMuted[i]) continue;
+      unsigned char chMute=(i<12 && chan[i&(~1)].fourOp)?(i^1):i;
+      if (isMuted[chMute]) continue;
       if (chOut[i]<-32768) chOut[i]=-32768;
       if (chOut[i]>32767) chOut[i]=32767;
       oscBuf[i]->putSample(h,chOut[i]);
