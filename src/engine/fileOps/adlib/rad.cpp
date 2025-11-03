@@ -100,7 +100,7 @@ static int findEmptyEffectSlot(short* data)
 {
     for(int i = 0; i < DIV_MAX_EFFECTS; i++)
     {
-        if(data[4 + i * 2] == -1)
+        if(data[DIV_PAT_FX(i)] == -1)
         {
             return i;
         }
@@ -119,53 +119,53 @@ void RAD_convert_effect(DivPattern* furnace_pat, RAD_pattern* pat, int i, int j)
         case 2:
         case 3:
         {
-            furnace_pat->data[j][4] = pat->step[i][j].effect;
-            furnace_pat->data[j][5] = pat->step[i][j].effect_param;
+            furnace_pat->newData[j][DIV_PAT_FX(0)] = pat->step[i][j].effect;
+            furnace_pat->newData[j][DIV_PAT_FXVAL(0)] = pat->step[i][j].effect_param;
             break;
         }
         case 5:
         {
-            furnace_pat->data[j][4] = 0x06;
+            furnace_pat->newData[j][DIV_PAT_FX(0)] = 0x06;
 
             if(pat->step[i][j].effect_param >= 1 && pat->step[i][j].effect_param <= 49)
             {
-                furnace_pat->data[j][5] = (pat->step[i][j].effect_param * 0xF / 49) & 0xF;
+                furnace_pat->newData[j][DIV_PAT_FXVAL(0)] = (pat->step[i][j].effect_param * 0xF / 49) & 0xF;
             }
             if(pat->step[i][j].effect_param >= 51 && pat->step[i][j].effect_param <= 99)
             {
-                furnace_pat->data[j][5] = (((pat->step[i][j].effect_param - 51) * 0xF / (99 - 51)) & 0xF) << 4;
+                furnace_pat->newData[j][DIV_PAT_FXVAL(0)] = (((pat->step[i][j].effect_param - 51) * 0xF / (99 - 51)) & 0xF) << 4;
             }
             break;
         }
         case ('A' - 'A' + 10):
         {
-            furnace_pat->data[j][4] = 0x0A;
+            furnace_pat->newData[j][DIV_PAT_FX(0)] = 0x0A;
 
             if(pat->step[i][j].effect_param >= 1 && pat->step[i][j].effect_param <= 49)
             {
-                furnace_pat->data[j][5] = ((pat->step[i][j].effect_param > 0xF) ? 0xF : pat->step[i][j].effect_param) & 0xF;
+                furnace_pat->newData[j][DIV_PAT_FXVAL(0)] = ((pat->step[i][j].effect_param > 0xF) ? 0xF : pat->step[i][j].effect_param) & 0xF;
             }
             if(pat->step[i][j].effect_param >= 51 && pat->step[i][j].effect_param <= 99)
             {
-                furnace_pat->data[j][5] = (((pat->step[i][j].effect_param - 51) > 0xF ? 0xF : (pat->step[i][j].effect_param - 51)) & 0xF) << 4;
+                furnace_pat->newData[j][DIV_PAT_FXVAL(0)] = (((pat->step[i][j].effect_param - 51) > 0xF ? 0xF : (pat->step[i][j].effect_param - 51)) & 0xF) << 4;
             }
             break;
         }
         case ('C' - 'A' + 10):
         {
-            furnace_pat->data[j][3] = ((pat->step[i][j].effect_param > 0x3F) ? 0x3F : pat->step[i][j].effect_param); //just instrument volume
+            furnace_pat->newData[j][DIV_PAT_VOL] = ((pat->step[i][j].effect_param > 0x3F) ? 0x3F : pat->step[i][j].effect_param); //just instrument volume
             break;
         }
         case ('D' - 'A' + 10):
         {
-            furnace_pat->data[j][4] = 0x0d;
-            furnace_pat->data[j][5] = pat->step[i][j].effect_param;
+            furnace_pat->newData[j][DIV_PAT_FX(0)] = 0x0d;
+            furnace_pat->newData[j][DIV_PAT_FXVAL(0)] = pat->step[i][j].effect_param;
             break;
         }
         case ('F' - 'A' + 10):
         {
-            furnace_pat->data[j][4] = 0x0f;
-            furnace_pat->data[j][5] = pat->step[i][j].effect_param;
+            furnace_pat->newData[j][DIV_PAT_FX(0)] = 0x0f;
+            furnace_pat->newData[j][DIV_PAT_FXVAL(0)] = pat->step[i][j].effect_param;
             break;
         }
         case ('I' - 'A' + 10):
@@ -179,8 +179,8 @@ void RAD_convert_effect(DivPattern* furnace_pat, RAD_pattern* pat, int i, int j)
             {
                 unsigned char op = chan_to_op_map[i];
 
-                furnace_pat->data[j][4] = 0x16;
-                furnace_pat->data[j][5] = (op << 4) | pat->step[i][j].effect_param;
+                furnace_pat->newData[j][DIV_PAT_FX(0)] = 0x16;
+                furnace_pat->newData[j][DIV_PAT_FXVAL(0)] = (op << 4) | pat->step[i][j].effect_param;
             }
             break;
         }
@@ -188,22 +188,22 @@ void RAD_convert_effect(DivPattern* furnace_pat, RAD_pattern* pat, int i, int j)
         {
             //play global riff
             //convert to non-existent effect just so it hints what should happen there
-            furnace_pat->data[j][4] = 0xA0;
-            furnace_pat->data[j][5] = pat->step[i][j].effect_param;
+            furnace_pat->newData[j][DIV_PAT_FX(0)] = 0xA0;
+            furnace_pat->newData[j][DIV_PAT_FXVAL(0)] = pat->step[i][j].effect_param;
             break;
         }
         case ('T' - 'A' + 10):
         {
             //play global transposed riff
             //convert to non-existent effect just so it hints what should happen there
-            furnace_pat->data[j][4] = 0xA1;
-            furnace_pat->data[j][5] = pat->step[i][j].effect_param;
+            furnace_pat->newData[j][DIV_PAT_FX(0)] = 0xA1;
+            furnace_pat->newData[j][DIV_PAT_FXVAL(0)] = pat->step[i][j].effect_param;
             break;
         }
         case ('U' - 'A' + 10):
         {
-            furnace_pat->data[j][4] = 0x11;
-            furnace_pat->data[j][5] = (pat->step[i][j].effect_param > 7) ? ((pat->step[i][j].effect_param - 10) | 0x10) : pat->step[i][j].effect_param;
+            furnace_pat->newData[j][DIV_PAT_FX(0)] = 0x11;
+            furnace_pat->newData[j][DIV_PAT_FXVAL(0)] = (pat->step[i][j].effect_param > 7) ? ((pat->step[i][j].effect_param - 10) | 0x10) : pat->step[i][j].effect_param;
             break;
         }
         case ('V' - 'A' + 10):
@@ -212,8 +212,8 @@ void RAD_convert_effect(DivPattern* furnace_pat, RAD_pattern* pat, int i, int j)
             {
                 unsigned char op = chan_to_op_map[i]; //same thing as with multiplier but for op's TL
 
-                furnace_pat->data[j][4] = 0x12 + op;
-                furnace_pat->data[j][5] = (0x3F - ((pat->step[i][j].effect_param > 0x3F) ? 0x3F : pat->step[i][j].effect_param));
+                furnace_pat->newData[j][DIV_PAT_FX(0)] = 0x12 + op;
+                furnace_pat->newData[j][DIV_PAT_FXVAL(0)] = (0x3F - ((pat->step[i][j].effect_param > 0x3F) ? 0x3F : pat->step[i][j].effect_param));
             }
             break;
         }
@@ -323,33 +323,33 @@ bool RAD_read_pattern(SafeReader* reader, RAD_pattern* pat, DivPattern** furnace
         {
             if(pat->step[i][j].note == 0xF)
             {
-                furnace_pat->data[j][0] = 101; //key off
+                furnace_pat->newData[j][DIV_PAT_NOTE] = DIV_NOTE_REL; //key off
             }
             else if(pat->step[i][j].note > 0)
             {
                 if(version == 1)
                 {
-                    furnace_pat->data[j][0] = pat->step[i][j].note - 1;
-                    furnace_pat->data[j][1] = pat->step[i][j].octave;
+                    furnace_pat->newData[j][DIV_PAT_NOTE] = (pat->step[i][j].note - 1) + pat->step[i][j].octave * 12 + 60;
+                    //furnace_pat->newData[j][1] = pat->step[i][j].octave;
                 }
                 if(version == 2)
                 {
                     if(pat->step[i][j].note == 12)
                     {
-                        furnace_pat->data[j][0] = 12;
-                        furnace_pat->data[j][1] = pat->step[i][j].octave;
+                        furnace_pat->newData[j][DIV_PAT_NOTE] = 12 + pat->step[i][j].octave * 12 + 60;
+                        //furnace_pat->newData[j][1] = pat->step[i][j].octave;
                     }
                     else
                     {
-                        furnace_pat->data[j][0] = pat->step[i][j].note;
-                        furnace_pat->data[j][1] = pat->step[i][j].octave;
+                        furnace_pat->newData[j][DIV_PAT_NOTE] = pat->step[i][j].note + pat->step[i][j].octave * 12 + 60;
+                        //furnace_pat->newData[j][1] = pat->step[i][j].octave;
                     }
                 }
             }
 
             if(pat->step[i][j].instrument > 0)
             {
-                furnace_pat->data[j][2] = pat->step[i][j].instrument;
+                furnace_pat->newData[j][DIV_PAT_INS] = pat->step[i][j].instrument;
             }
 
             if(pat->step[i][j].has_effect)
@@ -908,12 +908,12 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                     {
                         for(int ch = 0; ch < 9; ch++)
                         {
-                            if(patterns[ch]->data[row][4] == 0x0d)
+                            if(patterns[ch]->newData[row][DIV_PAT_FX(0)] == 0x0d)
                             {
                                 goto end;
                             }
 
-                            if(patterns[ch]->data[row][4] == 0x01 || patterns[ch]->data[row][4] == 0x02)
+                            if(patterns[ch]->newData[row][DIV_PAT_FX(0)] == 0x01 || patterns[ch]->newData[row][DIV_PAT_FX(0)] == 0x02)
                             {
                                 ins->std.pitchMacro.mode = 1; //relative mode
 
@@ -921,41 +921,41 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                                 {
                                     for(int sp = 0; sp < instr_s.riff_def_speed; sp++)
                                     {
-                                        ins->std.pitchMacro.val[ins->std.pitchMacro.len] = patterns[ch]->data[row][5] * ((patterns[ch]->data[row][4]) == 0x02 ? -6 : 6);
+                                        ins->std.pitchMacro.val[ins->std.pitchMacro.len] = patterns[ch]->newData[row][DIV_PAT_FXVAL(0)] * ((patterns[ch]->newData[row][DIV_PAT_FX(0)]) == 0x02 ? -6 : 6);
                                         ins->std.pitchMacro.len++;
                                     }
                                 }
 
-                                if(patterns[ch]->data[row][5] == 0)
+                                if(patterns[ch]->newData[row][DIV_PAT_FXVAL(0)] == 0)
                                 {
                                     end_pitch_slide = false;
                                 }
                             }
 
-                            if(patterns[ch]->data[row][4] >= 0x12 && patterns[ch]->data[row][4] <= 0x15) //volume (TL)
+                            if(patterns[ch]->newData[row][DIV_PAT_FX(0)] >= 0x12 && patterns[ch]->newData[row][DIV_PAT_FX(0)] <= 0x15) //volume (TL)
                             {
                                 DivInstrumentMacro* op_volume = NULL;
 
                                 if(instr_s.connect <= 1)
                                 {
-                                    if(patterns[ch]->data[row][4] <= 0x13)
+                                    if(patterns[ch]->newData[row][DIV_PAT_FX(0)] <= 0x13)
                                     {
-                                        op_volume = &ins->std.opMacros[rad_order[opOrder[0x13 - patterns[ch]->data[row][4]]]].tlMacro;
+                                        op_volume = &ins->std.opMacros[rad_order[opOrder[0x13 - patterns[ch]->newData[row][DIV_PAT_FX(0)]]]].tlMacro;
                                     }
                                 }
                                 if(instr_s.connect > 1 && instr_s.connect <= 3) //one 4-op instrument
                                 {
-                                    op_volume = &ins->std.opMacros[rad_order[opOrder[0x15 - patterns[ch]->data[row][4]]]].tlMacro;
+                                    op_volume = &ins->std.opMacros[rad_order[opOrder[0x15 - patterns[ch]->newData[row][DIV_PAT_FX(0)]]]].tlMacro;
                                 }
                                 if(instr_s.connect > 3) //two 2-op instruments
                                 {
-                                    if(patterns[ch]->data[row][4] <= 0x13)
+                                    if(patterns[ch]->newData[row][DIV_PAT_FX(0)] <= 0x13)
                                     {
-                                        op_volume = &ins->std.opMacros[0x13 - patterns[ch]->data[row][4]].tlMacro;
+                                        op_volume = &ins->std.opMacros[0x13 - patterns[ch]->newData[row][DIV_PAT_FX(0)]].tlMacro;
                                     }
-                                    if(patterns[ch]->data[row][4] >= 0x14)
+                                    if(patterns[ch]->newData[row][DIV_PAT_FX(0)] >= 0x14)
                                     {
-                                        op_volume = &ins2->std.opMacros[0x15 - patterns[ch]->data[row][4]].tlMacro;
+                                        op_volume = &ins2->std.opMacros[0x15 - patterns[ch]->newData[row][DIV_PAT_FX(0)]].tlMacro;
                                     }
                                 }
 
@@ -972,7 +972,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                                     }
 
                                     op_volume->len = row + 1;
-                                    op_volume->val[row] = patterns[ch]->data[row][5];
+                                    op_volume->val[row] = patterns[ch]->newData[row][DIV_PAT_FXVAL(0)];
 
                                     for(int iii = 1; iii < 256; iii++)
                                     {
@@ -990,33 +990,33 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                                 }
                             }
 
-                            if(patterns[ch]->data[row][4] == 0x16) //multiplier
+                            if(patterns[ch]->newData[row][DIV_PAT_FX(0)] == 0x16) //multiplier
                             {
                                 DivInstrumentMacro* op_mult = NULL;
 
                                 if(instr_s.connect <= 1)
                                 {
-                                    if((patterns[ch]->data[row][5] >> 4) < 2)
+                                    if((patterns[ch]->newData[row][DIV_PAT_FXVAL(0)] >> 4) < 2)
                                     {
-                                        op_mult = &ins->std.opMacros[1 - (patterns[ch]->data[row][5] >> 4)].multMacro;
+                                        op_mult = &ins->std.opMacros[1 - (patterns[ch]->newData[row][DIV_PAT_FXVAL(0)] >> 4)].multMacro;
                                     }
                                 }
                                 if(instr_s.connect > 1 && instr_s.connect <= 3) //one 4-op instrument
                                 {
-                                    if((patterns[ch]->data[row][5] >> 4) < 4)
+                                    if((patterns[ch]->newData[row][DIV_PAT_FXVAL(0)] >> 4) < 4)
                                     {
-                                        op_mult = &ins->std.opMacros[rad_order[opOrder[3 - (patterns[ch]->data[row][5] >> 4)]]].multMacro;
+                                        op_mult = &ins->std.opMacros[rad_order[opOrder[3 - (patterns[ch]->newData[row][DIV_PAT_FXVAL(0)] >> 4)]]].multMacro;
                                     }
                                 }
                                 if(instr_s.connect > 3) //two 2-op instruments
                                 {
-                                    if((patterns[ch]->data[row][5] >> 4) < 2)
+                                    if((patterns[ch]->newData[row][DIV_PAT_FXVAL(0)] >> 4) < 2)
                                     {
-                                        op_mult = &ins->std.opMacros[1 - (patterns[ch]->data[row][5] >> 4)].multMacro;
+                                        op_mult = &ins->std.opMacros[1 - (patterns[ch]->newData[row][DIV_PAT_FXVAL(0)] >> 4)].multMacro;
                                     }
-                                    if((patterns[ch]->data[row][5] >> 4) >= 2 && (patterns[ch]->data[row][5] >> 4) < 4)
+                                    if((patterns[ch]->newData[row][DIV_PAT_FXVAL(0)] >> 4) >= 2 && (patterns[ch]->newData[row][DIV_PAT_FXVAL(0)] >> 4) < 4)
                                     {
-                                        op_mult = &ins2->std.opMacros[1 - ((patterns[ch]->data[row][5] >> 4) - 2)].multMacro;
+                                        op_mult = &ins2->std.opMacros[1 - ((patterns[ch]->newData[row][DIV_PAT_FXVAL(0)] >> 4) - 2)].multMacro;
                                     }
                                 }
 
@@ -1033,7 +1033,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                                     }
 
                                     op_mult->len = row + 1;
-                                    op_mult->val[row] = patterns[ch]->data[row][5] & 0xF;
+                                    op_mult->val[row] = patterns[ch]->newData[row][DIV_PAT_FXVAL(0)] & 0xF;
 
                                     for(int iii = 1; iii < 256; iii++)
                                     {
@@ -1051,7 +1051,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                                 }
                             }
 
-                            if(patterns[ch]->data[row][4] == 0x11) //feedback
+                            if(patterns[ch]->newData[row][DIV_PAT_FX(0)] == 0x11) //feedback
                             {
                                 DivInstrumentMacro* op_fb = NULL;
 
@@ -1061,10 +1061,10 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                                 }
                                 if(instr_s.connect > 3) //two 2-op instruments
                                 {
-                                    if(patterns[ch]->data[row][5] & 0x10)
+                                    if(patterns[ch]->newData[row][DIV_PAT_FXVAL(0)] & 0x10)
                                     {
                                         op_fb = &ins2->std.fbMacro;
-                                        patterns[ch]->data[row][5] &= ~0x10;
+                                        patterns[ch]->newData[row][DIV_PAT_FXVAL(0)] &= ~0x10;
                                     }
                                     else
                                     {
@@ -1085,7 +1085,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                                     }
 
                                     op_fb->len = row + 1;
-                                    op_fb->val[row] = patterns[ch]->data[row][5];
+                                    op_fb->val[row] = patterns[ch]->newData[row][DIV_PAT_FXVAL(0)];
 
                                     for(int iii = 1; iii < 256; iii++)
                                     {
@@ -1324,19 +1324,19 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                             
                             if((note & 0xF) > 0 && (note & 0xF) <= 12)
                             {
-                                patterns[(channel & 0x7F) % 9]->data[line_number][0] = (note & 0xF);
-                                patterns[(channel & 0x7F) % 9]->data[line_number][1] = (note >> 4) & 7; //octave
+                                patterns[(channel & 0x7F) % 9]->newData[line_number][DIV_PAT_NOTE] = (note & 0xF) + ((note >> 4) & 7) * 12 + 60;
+                                //patterns[(channel & 0x7F) % 9]->newData[line_number][1] = (note >> 4) & 7; //octave
                             }
                             if((note & 0xF) == 0xF)
                             {
-                                patterns[(channel & 0x7F) % 9]->data[line_number][0] = 101; //key off
+                                patterns[(channel & 0x7F) % 9]->newData[line_number][DIV_PAT_NOTE] = DIV_NOTE_REL; //key off
                             }
 
                             unsigned char instrument = ((note >> 7) << 4) | (effect >> 4);
 
                             if(instrument != 0)
                             {
-                                patterns[(channel & 0x7F) % 9]->data[line_number][2] = instrument;
+                                patterns[(channel & 0x7F) % 9]->newData[line_number][DIV_PAT_INS] = instrument;
                             }
 
                             if((effect & 0xF) != 0)
@@ -1565,33 +1565,33 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                 {
                     if(pat->step[channel][j].note == 0xF)
                     {
-                        furnace_pat->data[j][0] = 101; //key off
+                        furnace_pat->newData[j][DIV_PAT_NOTE] = DIV_NOTE_REL; //key off
                     }
                     else if(pat->step[channel][j].note > 0)
                     {
                         if((version >> 4) == 1)
                         {
-                            furnace_pat->data[j][0] = pat->step[channel][j].note - 1;
-                            furnace_pat->data[j][1] = pat->step[channel][j].octave;
+                            furnace_pat->newData[j][DIV_PAT_NOTE] = pat->step[channel][j].note - 1 + pat->step[channel][j].octave * 12 + 60;
+                            //furnace_pat->newData[j][1] = pat->step[channel][j].octave;
                         }
                         if((version >> 4) == 2)
                         {
                             if(pat->step[channel][j].note == 12)
                             {
-                                furnace_pat->data[j][0] = 12;
-                                furnace_pat->data[j][1] = pat->step[channel][j].octave;
+                                furnace_pat->newData[j][DIV_PAT_NOTE] = 12 + pat->step[channel][j].octave * 12 + 60;
+                                //furnace_pat->newData[j][1] = pat->step[channel][j].octave;
                             }
                             else
                             {
-                                furnace_pat->data[j][0] = pat->step[channel][j].note;
-                                furnace_pat->data[j][1] = pat->step[channel][j].octave;
+                                furnace_pat->newData[j][DIV_PAT_NOTE] = pat->step[channel][j].note + pat->step[channel][j].octave * 12 + 60;
+                                //furnace_pat->newData[j][1] = pat->step[channel][j].octave;
                             }
                         }
                     }
 
                     if(pat->step[channel][j].instrument > 0)
                     {
-                        furnace_pat->data[j][2] = pat->step[channel][j].instrument;
+                        furnace_pat->newData[j][DIV_PAT_INS] = pat->step[channel][j].instrument;
                     }
 
                     if(pat->step[channel][j].has_effect)
@@ -1621,7 +1621,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                 for(int r = 0; r < s->patLen; r++)
                 {
-                    if(search->data[r][4] == 0x0D)
+                    if(search->newData[r][DIV_PAT_FX(0)] == 0x0D)
                     {
                         line = r;
                         goto next;
@@ -1631,9 +1631,9 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
             next:;
 
-            int fx = findEmptyEffectSlot(pat->data[line]);
-            pat->data[line][4 + fx*2] = 0x0B;
-            pat->data[line][5 + fx*2] = jump_dest;
+            int fx = findEmptyEffectSlot(pat->newData[line]);
+            pat->newData[line][DIV_PAT_FX(fx)] = 0x0B;
+            pat->newData[line][DIV_PAT_FXVAL(fx)] = jump_dest;
 
             s->ordersLen--;
         }
@@ -1663,9 +1663,9 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                     for (int l = 0; l < s->patLen; l++) 
                     {
-                        if (pat1->data[l][2] != -1 && pat1->data[l][2] > 0 && pat1->data[l][2] < 257) 
+                        if (pat1->newData[l][DIV_PAT_INS] != -1 && pat1->newData[l][DIV_PAT_INS] > 0 && pat1->newData[l][DIV_PAT_INS] < 257) 
                         {
-                            if(two_twoop_inst[pat1->data[l][2]])
+                            if(two_twoop_inst[pat1->newData[l][DIV_PAT_INS]])
                             {
                                 currently_using_twotwoop_inst = true;
                             }
@@ -1677,22 +1677,22 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                         if(currently_using_twotwoop_inst)
                         {
-                            memcpy((void*)pat2->data[l], (void*)pat1->data[l], sizeof(pat1->data[0]));
+                            memcpy((void*)pat2->newData[l], (void*)pat1->newData[l], sizeof(pat1->newData[0]));
 
-                            if(pat1->data[l][2] != -1)
+                            if(pat1->newData[l][DIV_PAT_INS] != -1)
                             {
-                                pat2->data[l][2]++; //increment inst number so we have second-pair-of-two-2op-instruments inst there
+                                pat2->newData[l][DIV_PAT_INS]++; //increment inst number so we have second-pair-of-two-2op-instruments inst there
                             }
 
-                            if(pat1->data[l][4 + 0*2] == 0x0B) //erase jump effect from copy
+                            if(pat1->newData[l][DIV_PAT_FX(0)] == 0x0B) //erase jump effect from copy
                             {
-                                pat2->data[l][4 + 0*2] = -1;
-                                pat2->data[l][5 + 0*2] = -1;
+                                pat2->newData[l][DIV_PAT_FX(0)] = -1;
+                                pat2->newData[l][DIV_PAT_FXVAL(0)] = -1;
                             }
-                            if(pat1->data[l][4 + 1*2] == 0x0B)
+                            if(pat1->newData[l][DIV_PAT_FX(1)] == 0x0B)
                             {
-                                pat2->data[l][4 + 1*2] = -1;
-                                pat2->data[l][5 + 1*2] = -1;
+                                pat2->newData[l][DIV_PAT_FX(1)] = -1;
+                                pat2->newData[l][DIV_PAT_FXVAL(1)] = -1;
                             }
                         }
                     }
@@ -1728,15 +1728,15 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                         DivPattern* pat = ss->pat[c].getPattern(ss->orders.ord[c][p], true);
 
-                        short* row_data = pat->data[r];
+                        short* row_data = pat->newData[r];
 
                         porta[0] = false;
                         vol_slide[0] = false;
 
                         for(int eff = 0; eff < DIV_MAX_EFFECTS - 1; eff++)
                         {
-                            short effect = row_data[4 + eff * 2];
-                            short param = row_data[5 + eff * 2];
+                            short effect = row_data[DIV_PAT_FX(eff)];
+                            short param = row_data[DIV_PAT_FXVAL(eff)];
 
                             if(effect == 0x01 || effect == 0x02)
                             {
@@ -1745,16 +1745,16 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                                 if(porta_speed == param && (porta_dir[0] == porta_dir[1]))
                                 {
-                                    row_data[4 + eff * 2] = -1;
-                                    row_data[5 + eff * 2] = -1; //delete effect
+                                    row_data[DIV_PAT_FX(eff)] = -1;
+                                    row_data[DIV_PAT_FXVAL(eff)] = -1; //delete effect
                                 }
 
                                 porta_speed = param;
                             }
                             if(effect == 0x03 && param == 0)
                             {
-                                row_data[4 + eff * 2] = -1;
-                                row_data[5 + eff * 2] = -1; //delete effect
+                                row_data[DIV_PAT_FX(eff)] = -1;
+                                row_data[DIV_PAT_FXVAL(eff)] = -1; //delete effect
                             }
                             if(effect == 0x0A)
                             {
@@ -1762,8 +1762,8 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
                                 if(vol_slide_speed == param)
                                 {
-                                    row_data[4 + eff * 2] = -1;
-                                    row_data[5 + eff * 2] = -1; //delete effect
+                                    row_data[DIV_PAT_FX(eff)] = -1;
+                                    row_data[DIV_PAT_FXVAL(eff)] = -1; //delete effect
                                 }
 
                                 vol_slide_speed = param;
@@ -1772,26 +1772,26 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                             }
                         }
 
-                        if(row_data[3] != -1)
+                        if(row_data[DIV_PAT_VOL] != -1)
                         {
-                            curr_volume = row_data[3];
+                            curr_volume = row_data[DIV_PAT_VOL];
                         }
 
-                        if(row_data[0] > 0 && row_data[0] < 100) //actual note
+                        if(row_data[DIV_PAT_NOTE] > 0 && row_data[DIV_PAT_NOTE] < 176) //actual note
                         {
-                            if(curr_volume != 0x3F && row_data[3] == -1)
+                            if(curr_volume != 0x3F && row_data[DIV_PAT_VOL] == -1)
                             {
-                                row_data[3] = 0x3F;
+                                row_data[DIV_PAT_VOL] = 0x3F;
                                 curr_volume = 0x3F;
                             }
                         }
 
-                        if(!porta[0] && porta[1] && row_data[4] != 0x03) //place 0200 style effect to end the effect
+                        if(!porta[0] && porta[1] && row_data[DIV_PAT_FX(0)] != 0x03) //place 0200 style effect to end the effect
                         {
                             int emptyEffSlot = findEmptyEffectSlot(row_data);
 
-                            row_data[4 + emptyEffSlot * 2] = 0x01;
-                            row_data[5 + emptyEffSlot * 2] = 0;
+                            row_data[DIV_PAT_FX(emptyEffSlot)] = 0x01;
+                            row_data[DIV_PAT_FXVAL(emptyEffSlot)] = 0;
 
                             porta_speed = -1;
                         }
@@ -1800,8 +1800,8 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                         {
                             int emptyEffSlot = findEmptyEffectSlot(row_data);
 
-                            row_data[4 + emptyEffSlot * 2] = 0x0A;
-                            row_data[5 + emptyEffSlot * 2] = 0;
+                            row_data[DIV_PAT_FX(emptyEffSlot)] = 0x0A;
+                            row_data[DIV_PAT_FXVAL(emptyEffSlot)] = 0;
 
                             vol_slide_speed = -1;
                         }
@@ -1815,19 +1815,19 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                         for(int s_ch = 0; s_ch < ((shifted_version == 2) ? 18 : 9); s_ch++) //search for 0Dxx/0Bxx and jump accordingly
                         {
                             DivPattern* s_pat = s->pat[s_ch].getPattern(p, true);
-                            short* s_row_data = s_pat->data[r];
+                            short* s_row_data = s_pat->newData[r];
 
                             for(int eff = 0; eff < DIV_MAX_EFFECTS - 1; eff++)
                             {
-                                if(s_row_data[4 + 2 * eff] == 0x0B && s_row_data[5 + 2 * eff] > p) //so we aren't stuck in infinite loop
+                                if(s_row_data[DIV_PAT_FX(eff)] == 0x0B && s_row_data[DIV_PAT_FXVAL(eff)] > p) //so we aren't stuck in infinite loop
                                 {
-                                    p = s_row_data[5 + 2 * eff];
+                                    p = s_row_data[DIV_PAT_FXVAL(eff)];
                                     goto start_patt;
                                 }
-                                if(s_row_data[4 + 2 * eff] == 0x0D && p < s->ordersLen - 1)
+                                if(s_row_data[DIV_PAT_FX(eff)] == 0x0D && p < s->ordersLen - 1)
                                 {
                                     p++;
-                                    r = s_row_data[5 + 2 * eff];
+                                    r = s_row_data[DIV_PAT_FXVAL(eff)];
 
                                     goto start_row;
                                 }
@@ -1852,11 +1852,11 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                 for (int r = 0; r < s->patLen; r++) 
                 {
                     DivPattern* pat = s->pat[c].getPattern(s->orders.ord[c][p], true);
-                    short* s_row_data = pat->data[r];
+                    short* s_row_data = pat->newData[r];
 
                     for (int eff = 0; eff < DIV_MAX_EFFECTS - 1; eff++) 
                     {
-                        if (s_row_data[4 + 2 * eff] != -1 && eff + 1 > num_fx) 
+                        if (s_row_data[DIV_PAT_FX(eff)] != -1 && eff + 1 > num_fx) 
                         {
                             num_fx = eff + 1;
                         }
@@ -1899,9 +1899,9 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
                                     
                                     for (int l = 0; l < ds.subsong[j]->patLen; l++) 
                                     {
-                                        if (ds.subsong[j]->pat[ii].data[k]->data[l][2] > index)
+                                        if (ds.subsong[j]->pat[ii].data[k]->newData[l][DIV_PAT_INS] > index)
                                         {
-                                            ds.subsong[j]->pat[ii].data[k]->data[l][2]--;
+                                            ds.subsong[j]->pat[ii].data[k]->newData[l][DIV_PAT_INS]--;
                                         }
                                     }
                                 }
