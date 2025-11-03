@@ -1365,6 +1365,18 @@ struct Gradient2D {
   }
 };
 
+struct PointList {
+  struct Point {
+    unsigned int x;
+    float xFrac, y, c;
+    Point():
+      x(0), xFrac(0.0f), y(0.0f), c(0.0f) {}
+  };
+  std::vector<Point> points;
+
+  float* compile(size_t& length);
+};
+
 struct FurnaceGUISysDefChip {
   DivSystem sys;
   float vol, pan, panFR;
