@@ -2773,10 +2773,10 @@ class FurnaceGUI {
     int bins;
     float xZoom, xOffset;
     float yOffset;
-    fftw_plan plan;
-    fftw_complex* buffer;
-    double* in;
-    ImVec2* plot;
+    fftw_plan plan[DIV_MAX_OUTPUTS];
+    double* in[DIV_MAX_OUTPUTS];
+    fftw_complex* buffer[DIV_MAX_OUTPUTS];
+    ImVec2* plot[DIV_MAX_OUTPUTS];
     std::vector<int> frequencies;
     bool update, running, mono;
     bool showXGrid, showYGrid, showXScale, showYScale;
@@ -2785,9 +2785,6 @@ class FurnaceGUI {
       xZoom(1.0f),
       xOffset(0.0f),
       yOffset(0.0f),
-      buffer(NULL),
-      in(NULL),
-      plot(NULL),
       frequencies({}),
       update(true),
       running(false),
@@ -2795,7 +2792,12 @@ class FurnaceGUI {
       showXGrid(true),
       showYGrid(true),
       showXScale(true),
-      showYScale(true) {}
+      showYScale(true) {
+        memset(plan,0,DIV_MAX_OUTPUTS*sizeof(fftw_plan*));
+        memset(in,0,DIV_MAX_OUTPUTS*sizeof(double*));
+        memset(buffer,0,DIV_MAX_OUTPUTS*sizeof(fftw_complex*));
+        memset(plot,0,DIV_MAX_OUTPUTS*sizeof(ImVec2*));
+      }
   } spectrum;
 
   // visualizer

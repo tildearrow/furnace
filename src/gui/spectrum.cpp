@@ -114,30 +114,34 @@ void FurnaceGUI::drawSpectrum() {
     if (spectrum.update) {
       spectrum.update=false;
       spectrum.running=true;
-      if (spectrum.buffer) {
-        fftw_free(spectrum.buffer);
-        spectrum.buffer=NULL;
+      for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+        if (spectrum.buffer[i]) {
+          fftw_free(spectrum.buffer[i]);
+          spectrum.buffer[i]=NULL;
+        }
+        if (spectrum.in[i]) {
+          delete[] spectrum.in[i];
+          spectrum.in[i]=NULL;
+        }
+        if (spectrum.plan[i]) {
+          fftw_free(spectrum.plan[i]);
+          spectrum.plan[i]=NULL;
+        }
+        if (spectrum.plot[i]) {
+          delete[] spectrum.plot[i];
+          spectrum.plot[i]=NULL;
+        }
       }
-      if (spectrum.in) {
-        delete[] spectrum.in;
-        spectrum.in=NULL;
+      for (int i=0; i<(spectrum.mono?1:chans); i++) {
+        spectrum.buffer[i]=(fftw_complex*)fftw_malloc(sizeof(fftw_complex)*spectrum.bins);
+        if (!spectrum.buffer[i]) spectrum.running=false;
+        spectrum.in[i]=new double[spectrum.bins];
+        if (!spectrum.in[i]) spectrum.running=false;
+        spectrum.plan[i]=fftw_plan_dft_r2c_1d(spectrum.bins,spectrum.in[i],spectrum.buffer[i],FFTW_ESTIMATE);
+        if (!spectrum.plan[i]) spectrum.running=false;
+        spectrum.plot[i]=new ImVec2[spectrum.bins/2];
+        if (!spectrum.plot[i]) spectrum.running=false;
       }
-      if (spectrum.plot) {
-        delete[] spectrum.plot;
-        spectrum.plot=NULL;
-      }
-      if (spectrum.plan) {
-        fftw_free(spectrum.plan);
-        spectrum.plan=NULL;
-      }
-      spectrum.buffer=(fftw_complex*)fftw_malloc(sizeof(fftw_complex)*spectrum.bins);
-      if (!spectrum.buffer) spectrum.running=false;
-      spectrum.in=new double[spectrum.bins];
-      if (!spectrum.in) spectrum.running=false;
-      spectrum.plot=new ImVec2[spectrum.bins/2];
-      if (!spectrum.plot) spectrum.running=false;
-      spectrum.plan=fftw_plan_dft_r2c_1d(spectrum.bins,spectrum.in,spectrum.buffer,FFTW_ESTIMATE);
-      if (!spectrum.plan) spectrum.running=false;
       spectrum.frequencies.clear();
       float freq;
       float maxRate=e->getAudioDescGot().rate/2;
@@ -154,7 +158,7 @@ void FurnaceGUI::drawSpectrum() {
     if (spectrum.running) {
       for (int z=spectrum.mono?0:(chans-1); z>=0; z--) {
         // get buffer
-        memset(spectrum.in,0,sizeof(double)*spectrum.bins);
+        memset(spectrum.in[z],0,sizeof(double)*spectrum.bins);
         int needle=e->oscReadPos-spectrum.bins;
 
         for (int j=0; j<spectrum.bins; j++) {
@@ -168,21 +172,21 @@ void FurnaceGUI::drawSpectrum() {
           } else {
             sample+=e->oscBuf[z][pos];
           }
-          spectrum.in[j]=sample*(0.5*(1.0-cos(2.0*M_PI*j/(spectrum.bins-1))));
+          spectrum.in[z][j]=sample*(0.5*(1.0-cos(2.0*M_PI*j/(spectrum.bins-1))));
         }
-        fftw_execute(spectrum.plan);
+        fftw_execute(spectrum.plan[z]);
         unsigned int count=0;
         float mag=0.0f, x=0.0f, y=0.0f;
         count=spectrum.bins/2;
         for (unsigned int i=0; i<count; i++) {
           x=spectrum.xZoom*size.x*(scaleFuncLog((float)i/count)-spectrum.xOffset);
-          mag=2.0f*sqrt(spectrum.buffer[i][0]*spectrum.buffer[i][0]+spectrum.buffer[i][1]*spectrum.buffer[i][1])/count;
+          mag=2.0f*sqrt(spectrum.buffer[z][i][0]*spectrum.buffer[z][i][0]+spectrum.buffer[z][i][1]*spectrum.buffer[z][i][1])/count;
           y=1.0-scaleFuncDb(mag);
-          spectrum.plot[i].x=origin.x+x;
-          spectrum.plot[i].y=origin.y+size.y*(y-spectrum.yOffset);
+          spectrum.plot[z][i].x=origin.x+x;
+          spectrum.plot[z][i].y=origin.y+size.y*(y-spectrum.yOffset);
         }
         ImGui::PushClipRect(origin,origin+size,true);
-        dl->AddPolyline(spectrum.plot,count,ImGui::GetColorU32(uiColors[spectrum.mono?GUI_COLOR_OSC_WAVE:GUI_COLOR_OSC_WAVE_CH0+z]),0,dpiScale);
+        dl->AddPolyline(spectrum.plot[z],count,ImGui::GetColorU32(uiColors[spectrum.mono?GUI_COLOR_OSC_WAVE:GUI_COLOR_OSC_WAVE_CH0+z]),0,dpiScale);
         dl->PathFillConcave(ImGui::GetColorU32(uiColors[spectrum.mono?GUI_COLOR_OSC_WAVE:GUI_COLOR_OSC_WAVE_CH0+z]));
         ImGui::PopClipRect();
       }
@@ -193,7 +197,9 @@ void FurnaceGUI::drawSpectrum() {
       ImGui::TextUnformatted(ICON_FA_BARS "##spectrumSettings");
     }
     if (ImGui::BeginPopupContextItem("spectrumSettingsPopup",ImGuiPopupFlags_MouseButtonLeft)) {
-      ImGui::Checkbox(_("Mono##spec"),&spectrum.mono);
+      if (ImGui::Checkbox(_("Mono##spec"),&spectrum.mono)) {
+        spectrum.update=true;
+      }
       if (ImGui::InputScalar("Bins",ImGuiDataType_U32,&spectrum.bins)) {
         if (spectrum.bins<32) spectrum.bins=32;
         if (spectrum.bins>32768) spectrum.bins=32768;

@@ -8653,20 +8653,23 @@ bool FurnaceGUI::finish(bool saveConfig) {
     fftw_free(tunerPlan);
     tunerPlan=NULL;
   }
-  if (spectrum.in) {
-    delete[] spectrum.in;
-    spectrum.in=NULL;
-  }
-  if (spectrum.plan) {
-    fftw_free(spectrum.plan);
-    spectrum.plan=NULL;
-  }
-  if (spectrum.buffer) {
-    fftw_free(spectrum.buffer);
-  }
-  if (spectrum.plot) {
-    delete[] spectrum.plot;
-    spectrum.plot=NULL;
+  for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+    if (spectrum.buffer[i]) {
+      fftw_free(spectrum.buffer[i]);
+      spectrum.buffer[i]=NULL;
+    }
+    if (spectrum.in[i]) {
+      delete[] spectrum.in[i];
+      spectrum.in[i]=NULL;
+    }
+    if (spectrum.plan[i]) {
+      fftw_free(spectrum.plan[i]);
+      spectrum.plan[i]=NULL;
+    }
+    if (spectrum.plot[i]) {
+      delete[] spectrum.plot[i];
+      spectrum.plot[i]=NULL;
+    }
   }
 
   return true;
