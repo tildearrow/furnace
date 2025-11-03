@@ -127,24 +127,45 @@ void FurnaceGUI::updateSelection(int xCoarse, int xFine, int y, int ord, bool fu
       }
       if (dragStart.xFine+(dragDestinationXFine-dragSourceXFine)<3) {
         dragDestinationXFine=3-dragStart.xFine+dragSourceXFine;
-      } 
+      }
     }
 
-    // TODO: new cursor logic
-    if (dragStart.y+(dragDestinationY-dragSourceY)<0) {
-      dragDestinationY=dragSourceY-dragStart.y;
-    }
+    int dragStartYAbs=dragStart.y+(dragStart.order*e->curSubSong->patLen);
+    int dragEndYAbs=dragEnd.y+(dragEnd.order*e->curSubSong->patLen);
+    int dragSourceYAbs=dragSourceY+(dragSourceOrder*e->curSubSong->patLen);
+    int dragDestinationYAbs=dragDestinationY+(dragDestinationOrder*e->curSubSong->patLen);
 
-    if (dragEnd.y+(dragDestinationY-dragSourceY)>=e->curSubSong->patLen) {
-      dragDestinationY=e->curSubSong->patLen-(dragEnd.y-dragSourceY)-1;
-    }
+    if (e->curSubSong->patLen>0) {
+      int newSelStartYAbs=dragStartYAbs+(dragDestinationYAbs-dragSourceYAbs);
+      int newSelEndYAbs=dragEndYAbs+(dragDestinationYAbs-dragSourceYAbs);
 
-    selStart.xCoarse=dragStart.xCoarse+(dragDestinationX-dragSourceX);
-    selStart.xFine=dragStart.xFine+(dragDestinationXFine-dragSourceXFine);
-    selStart.y=dragStart.y+(dragDestinationY-dragSourceY);
-    selEnd.xCoarse=dragEnd.xCoarse+(dragDestinationX-dragSourceX);
-    selEnd.xFine=dragEnd.xFine+(dragDestinationXFine-dragSourceXFine);
-    selEnd.y=dragEnd.y+(dragDestinationY-dragSourceY);
+      logV("SS: %d SE: %d",newSelStartYAbs,newSelEndYAbs);
+
+      if (newSelStartYAbs<0) {
+        int newDragDestination=dragSourceYAbs-dragStartYAbs;
+        newSelStartYAbs=0;
+        newSelEndYAbs=dragEndYAbs-dragStartYAbs;
+        dragDestinationY=newDragDestination%e->curSubSong->patLen;
+        dragDestinationOrder=newDragDestination/e->curSubSong->patLen;
+      }
+
+      if (newSelEndYAbs>=(e->curSubSong->ordersLen*e->curSubSong->patLen)) {
+        int newDragDestination=(e->curSubSong->ordersLen*e->curSubSong->patLen)-(dragEndYAbs-dragSourceYAbs)-1;
+        newSelStartYAbs=(e->curSubSong->ordersLen*e->curSubSong->patLen)-1-(dragEndYAbs-dragStartYAbs);
+        newSelEndYAbs=(e->curSubSong->ordersLen*e->curSubSong->patLen)-1;
+        dragDestinationY=newDragDestination%e->curSubSong->patLen;
+        dragDestinationOrder=newDragDestination/e->curSubSong->patLen;
+      }
+
+      selStart.xCoarse=dragStart.xCoarse+(dragDestinationX-dragSourceX);
+      selStart.xFine=dragStart.xFine+(dragDestinationXFine-dragSourceXFine);
+      selStart.y=newSelStartYAbs%e->curSubSong->patLen;
+      selStart.order=newSelStartYAbs/e->curSubSong->patLen;
+      selEnd.xCoarse=dragEnd.xCoarse+(dragDestinationX-dragSourceX);
+      selEnd.xFine=dragEnd.xFine+(dragDestinationXFine-dragSourceXFine);
+      selEnd.y=newSelEndYAbs%e->curSubSong->patLen;
+      selEnd.order=newSelEndYAbs/e->curSubSong->patLen;
+    }
   } else {
     if (selectingFull) {
       DETERMINE_LAST;
@@ -329,8 +350,10 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
               if (!e->isPlaying() || !followPattern) {
                 if (curOrder<(e->curSubSong->ordersLen-1)) {
                   setOrder(curOrder+1);
+                  cursor.order=curOrder;
                 } else if (settings.wrapVertical==3) {
                   setOrder(0);
+                  cursor.order=curOrder;
                 } else {
                   cursor.y=e->curSubSong->patLen-1;
                 }
@@ -353,8 +376,10 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
               if (!e->isPlaying() || !followPattern) {
                 if (curOrder>0) {
                   setOrder(curOrder-1);
+                  cursor.order=curOrder;
                 } else if (settings.wrapVertical==3) {
                   setOrder(e->curSubSong->ordersLen-1);
+                  cursor.order=curOrder;
                 } else {
                   cursor.y=0;
                 }
@@ -499,6 +524,7 @@ void FurnaceGUI::editAdvance() {
         if (curOrder<(e->curSubSong->ordersLen-1)) {
           cursor.y-=e->curSubSong->patLen;
           setOrder(curOrder+1);
+          cursor.order=curOrder;
         } else {
           cursor.y=e->curSubSong->patLen-1;
         }
@@ -510,6 +536,7 @@ void FurnaceGUI::editAdvance() {
         } else {
           setOrder(0);
         }
+        cursor.order=curOrder;
         break;
       default: // don't wrap
         cursor.y=e->curSubSong->patLen-1;

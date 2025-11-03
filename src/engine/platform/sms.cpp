@@ -189,7 +189,7 @@ void DivPlatformSMS::acquireDirect(blip_buffer_t** bb, size_t len) {
 double DivPlatformSMS::NOTE_SN(int ch, int note) {
   double CHIP_DIVIDER=toneDivider;
   if (ch==3) CHIP_DIVIDER=noiseDivider;
-  if (parent->song.linearPitch==2 || !easyNoise) {
+  if (parent->song.linearPitch || !easyNoise) {
     return NOTE_PERIODIC(note);
   }
   int easyStartingPeriod=16;
@@ -209,7 +209,7 @@ int DivPlatformSMS::snCalcFreq(int ch) {
   if (chan[ch].fixedArp) {
     curFreq=chan[ch].baseNoteOverride<<7;
   }
-  if (parent->song.linearPitch==2 && easyNoise && curFreq>easyThreshold) {
+  if (parent->song.linearPitch && easyNoise && curFreq>easyThreshold) {
     int ret=(((easyStartingPeriod<<7))-(curFreq-(easyThreshold)))>>7;
     if (ret<0) ret=0;
     return ret;

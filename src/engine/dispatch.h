@@ -918,6 +918,16 @@ class DivDispatch {
     virtual void notifyWaveChange(int wave);
 
     /**
+     * notify sample change.
+     */
+    virtual void notifySampleChange(int sample);
+
+    /**
+     * notify addition of an instrument.
+     */
+    virtual void notifyInsAddition(int sysID);
+
+    /**
      * notify deletion of an instrument.
      */
     virtual void notifyInsDeletion(void* ins);
@@ -966,14 +976,14 @@ class DivDispatch {
      * @param index the memory index.
      * @return a pointer to sample memory, or NULL.
      */
-    virtual const void* getSampleMem(int index = 0);
+    virtual const void* getSampleMem(int index=0);
 
     /**
      * Get sample memory capacity.
      * @param index the memory index.
      * @return memory capacity in bytes, or 0 if memory doesn't exist.
      */
-    virtual size_t getSampleMemCapacity(int index = 0);
+    virtual size_t getSampleMemCapacity(int index=0);
 
     /**
      * get sample memory name.
@@ -983,11 +993,25 @@ class DivDispatch {
     virtual const char* getSampleMemName(int index=0);
 
     /**
+     * Get sample memory start offset.
+     * @param index the memory index.
+     * @return memory start offset in bytes.
+     */
+    virtual size_t getSampleMemOffset(int index = 0);
+
+    /**
      * Get sample memory usage.
      * @param index the memory index.
      * @return memory usage in bytes.
      */
-    virtual size_t getSampleMemUsage(int index = 0);
+    virtual size_t getSampleMemUsage(int index=0);
+
+    /**
+     * check whether chip has sample pointer header in sample memory.
+     * @param index the memory index.
+     * @return whether it did.
+     */
+    virtual bool hasSamplePtrHeader(int index=0);
 
     /**
      * check whether sample has been loaded in memory.
@@ -1074,7 +1098,7 @@ class DivDispatch {
   if ((x)<(xMin)) (x)=(xMin); \
   if ((x)>(xMax)) (x)=(xMax);
 
-#define NEW_ARP_STRAT (parent->song.linearPitch==2 && !parent->song.oldArpStrategy)
+#define NEW_ARP_STRAT (parent->song.linearPitch && !parent->song.oldArpStrategy)
 #define HACKY_LEGATO_MESS chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode && !NEW_ARP_STRAT
 
 #endif

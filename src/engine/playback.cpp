@@ -17,6 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+// this file contains most of the playback code.
+// it is a mess due to the amount of compatibility flags that have been
+// added over time, so I have tried my best to comment it.
+// these compatibility flags are preceded by a "COMPAT FLAG" comment upon use.
+
 #include "macroInt.h"
 #include <chrono>
 #define _USE_MATH_DEFINES
@@ -26,22 +31,27 @@
 #include "../ta-log.h"
 #include <math.h>
 
+// go to next order
 void DivEngine::nextOrder() {
   curRow=0;
   if (repeatPattern) return;
   if (++curOrder>=curSubSong->ordersLen) {
     logV("end of orders reached");
     endOfSong=true;
+    // the walked array is used for loop detection
+    // since we've reached the end, we are guaranteed to loop here, so
+    // just reset it.
     memset(walked,0,8192);
     curOrder=0;
   }
 }
 
+// used for the pattern visualizer in console mode.
 static const char* notes[12]={
   "C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "B-"
 };
 
-// update this when adding new commands.
+// update this when adding new commands in dispatch.h.
 const char* cmdName[]={
   "NOTE_ON",
   "NOTE_OFF",
@@ -318,25 +328,32 @@ const char* cmdName[]={
   "FM_AMS2"
 };
 
+// fail build if you forgot to update the array
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");
 
-const char* formatNote(unsigned char note, unsigned char octave) {
-  static char ret[4];
-  if (note==100) {
+// formats a note
+// used for the pattern visualizer in console mode, justifying the use
+// of a static array.
+const char* formatNote(short note) {
+  static char ret[16];
+  if (note==DIV_NOTE_OFF) {
     return "OFF";
-  } else if (note==101) {
+  } else if (note==DIV_NOTE_REL) {
     return "===";
-  } else if (note==102) {
+  } else if (note==DIV_MACRO_REL) {
     return "REL";
-  } else if (octave==0 && note==0) {
+  } else if (note<0) {
     return "---";
   }
-  snprintf(ret,4,"%s%d",notes[note%12],octave+note/12);
+  snprintf(ret,16,"%s%d",notes[note%12],(note-60)/12);
   return ret;
 }
 
+// send a command to a dispatch.
 int DivEngine::dispatchCmd(DivCommand c) {
+  // used for the commands visualizer in console mode
   if (view==DIV_STATUS_COMMANDS) {
+    // don't print if we are "skipping" (seeking to a position, usually after channel reset on loop)
     if (!skipping) {
       switch (c.cmd) {
         // strip away hinted/useless commands
@@ -353,55 +370,73 @@ int DivEngine::dispatchCmd(DivCommand c) {
         case DIV_CMD_PRE_NOTE:
           break;
         default:
+          // print command
           printf("%8d | %d: %s(%d, %d)\n",totalTicksR,c.chan,cmdName[c.cmd],c.value,c.value2);
       }
     }
   }
   totalCmds++;
+  // up to 2000 commands can be queued in the command queue (used by the GUI for pattern visualizer)
   if (cmdStreamEnabled && cmdStream.size()<2000) {
     cmdStream.push_back(c);
   }
 
+  // MIDI output code
+  // we turn this command into MIDI messages if the output mode is "melodic"
+  // if the channel is outside the range 0-15, it will be wrapped back
   if (output) if (!skipping && output->midiOut!=NULL && !isChannelMuted(c.chan)) {
     if (output->midiOut->isDeviceOpen()) {
       if (midiOutMode==DIV_MIDI_MODE_NOTE) {
+        // scale volume to MIDI velocity range
         int scaledVol=(chan[c.chan].volume*127)/MAX(1,chan[c.chan].volMax);
         if (scaledVol<0) scaledVol=0;
         if (scaledVol>127) scaledVol=127;
+
+        // process the command
         switch (c.cmd) {
           case DIV_CMD_NOTE_ON:
           case DIV_CMD_LEGATO:
+            // turn the previous note off (if we have one)
             if (chan[c.chan].curMidiNote>=0) {
               output->midiOut->send(TAMidiMessage(0x80|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
             }
+            // set current MIDI note
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].curMidiNote=c.value+12;
               if (chan[c.chan].curMidiNote<0) chan[c.chan].curMidiNote=0;
               if (chan[c.chan].curMidiNote>127) chan[c.chan].curMidiNote=127;
             }
+            // send note on (if we have one)
             if (chan[c.chan].curMidiNote>=0) {
               output->midiOut->send(TAMidiMessage(0x90|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
             }
             break;
           case DIV_CMD_NOTE_OFF:
           case DIV_CMD_NOTE_OFF_ENV:
+            // turn the current note off (if we have one)
+            // we don't do this for macro release...
             if (chan[c.chan].curMidiNote>=0) {
               output->midiOut->send(TAMidiMessage(0x80|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
             }
             chan[c.chan].curMidiNote=-1;
             break;
           case DIV_CMD_INSTRUMENT:
+            // instrument changes mapped to program change
+            // only first 128 instruments
             if (chan[c.chan].lastIns!=c.value && midiOutProgramChange) {
               output->midiOut->send(TAMidiMessage(0xc0|(c.chan&15),c.value&0x7f,0));
             }
             break;
           case DIV_CMD_VOLUME:
+            // volume changes are sent as MIDI aftertouch, as long as there isn't a note
+            // (processRow will set midiAftertouch to true on every row without note)
             if (chan[c.chan].curMidiNote>=0 && chan[c.chan].midiAftertouch) {
               chan[c.chan].midiAftertouch=false;
               output->midiOut->send(TAMidiMessage(0xa0|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
             }
             break;
           case DIV_CMD_PITCH: {
+            // map pitch changes to pitch bend (including vibrato)
             int pitchBend=8192+(c.value<<5);
             if (pitchBend<0) pitchBend=0;
             if (pitchBend>16383) pitchBend=16383;
@@ -412,6 +447,7 @@ int DivEngine::dispatchCmd(DivCommand c) {
             break;
           }
           case DIV_CMD_PANNING: {
+            // this is mapped to General MIDI panning CC
             int pan=convertPanSplitToLinearLR(c.value,c.value2,127);
             if (pan<0) pan=0;
             if (pan>127) pan=127;
@@ -419,25 +455,40 @@ int DivEngine::dispatchCmd(DivCommand c) {
             break;
           }
           case DIV_CMD_HINT_PORTA: {
+            // portamento handling is complicated
+            // in General MIDI, portamento consists of sending a CC for duration and another for target note
+            // this differs from Furnace, where the parameter is speed rather than duration
+            // it is also impossible to perform an indefinite slide down/up other than
+            // by using pitch bend, but the default range is limited and we already
+            // use it for pitch changes/vibrato
+
+            // only send portamento if it is enabling
             if (c.value2>0) {
+              // and only if we have a target note
               if (c.value<=0 || c.value>=255) break;
               //output->midiOut->send(TAMidiMessage(0x80|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
               int target=c.value+12;
               if (target<0) target=0;
               if (target>127) target=127;
               
+              // set the source note?
               if (chan[c.chan].curMidiNote>=0) {
                 output->midiOut->send(TAMidiMessage(0xb0|(c.chan&15),0x54,chan[c.chan].curMidiNote));
               }
+              // set the duration
+              // no effort whatsoever is done to predict how long will the slide last
               output->midiOut->send(TAMidiMessage(0xb0|(c.chan&15),0x05,1/*MIN(0x7f,c.value2/4)*/));
+              // turn portamento on
               output->midiOut->send(TAMidiMessage(0xb0|(c.chan&15),0x41,0x7f));
-              
+              // send a note on (why?)
               output->midiOut->send(TAMidiMessage(0x90|(c.chan&15),target,scaledVol));
             } else {
+              // disable portamento otherwise
               output->midiOut->send(TAMidiMessage(0xb0|(c.chan&15),0x41,0));
             }
             break;
           }
+          // other commands are simply ignored
           default:
             break;
         }
@@ -445,47 +496,61 @@ int DivEngine::dispatchCmd(DivCommand c) {
     }
   }
 
+  // map the channel to channel of chip
+  // c.dis is a copy of c.chan because we'll use it in the next call
   c.chan=dispatchChanOfChan[c.dis];
 
+  // dispatch command to chip dispatch
   return disCont[dispatchOfChan[c.dis]].dispatch->dispatch(c);
 }
 
+// this function handles per-chip normal effects
 bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effectVal) {
+  // don't process invalid chips
   DivSysDef* sysDef=sysDefs[sysOfChan[ch]];
   if (sysDef==NULL) return false;
+  // find the effect handler
   auto iter=sysDef->effectHandlers.find(effect);
   if (iter==sysDef->effectHandlers.end()) return false;
   EffectHandler handler=iter->second;
   int val=0;
   int val2=0;
+  // map values using the handler's function
   try {
     val=handler.val?handler.val(effect,effectVal):effectVal;
     val2=handler.val2?handler.val2(effect,effectVal):0;
   } catch (DivDoNotHandleEffect& e) {
     return false;
   }
+  // dispatch command
   // wouldn't this cause problems if it were to return 0?
   return dispatchCmd(DivCommand(handler.dispatchCmd,ch,val,val2));
 }
 
+// this handles per-chip post effects...
 bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal) {
+  // don't process invalid chips
   DivSysDef* sysDef=sysDefs[sysOfChan[ch]];
   if (sysDef==NULL) return false;
+  // find the effect handler
   auto iter=sysDef->postEffectHandlers.find(effect);
   if (iter==sysDef->postEffectHandlers.end()) return false;
   EffectHandler handler=iter->second;
   int val=0;
   int val2=0;
+  // map values using the handler's function
   try {
     val=handler.val?handler.val(effect,effectVal):effectVal;
     val2=handler.val2?handler.val2(effect,effectVal):0;
   } catch (DivDoNotHandleEffect& e) {
     return true;
   }
+  // dispatch command
   // wouldn't this cause problems if it were to return 0?
   return dispatchCmd(DivCommand(handler.dispatchCmd,ch,val,val2));
 }
 
+// ...and this handles chip pre-effects
 bool DivEngine::perSystemPreEffect(int ch, unsigned char effect, unsigned char effectVal) {
   DivSysDef* sysDef=sysDefs[sysOfChan[ch]];
   if (sysDef==NULL) return false;
@@ -504,39 +569,64 @@ bool DivEngine::perSystemPreEffect(int ch, unsigned char effect, unsigned char e
   return dispatchCmd(DivCommand(handler.dispatchCmd,ch,val,val2));
 }
 
+// this is called by nextRow() before it calls processRow()
+// `i` is the channel
 void DivEngine::processRowPre(int i) {
   int whatOrder=curOrder;
   int whatRow=curRow;
   DivPattern* pat=curPat[i].getPattern(curOrders->ord[i][whatOrder],false);
+  // check all effects
   for (int j=0; j<curPat[i].effectCols; j++) {
-    short effect=pat->data[whatRow][4+(j<<1)];
-    short effectVal=pat->data[whatRow][5+(j<<1)];
+    short effect=pat->newData[whatRow][DIV_PAT_FX(j)];
+    short effectVal=pat->newData[whatRow][DIV_PAT_FXVAL(j)];
 
+    // empty effect value is the same as zero
     if (effectVal==-1) effectVal=0;
     effectVal&=255;
+
+    // per-chip pre-effects (that's it for now!)
+    // the other pre-effects are handled in processRow()
     perSystemPreEffect(i,effect,effectVal);
   }
 }
 
+// this is called by nextRow() or nextTick() (in the case of delay). it processes the next row for a channel.
+// `i` is the channel and `afterDelay` determines whether this happens after EDxx or not.
+// the processing order is:
+// 1. pre-effects (delay and song control)
+// 2. instrument
+// 3. note reading (note off is done immediately)
+// 4. volume
+// 5. effects
+// 6. note on
+// 7. post-effects
 void DivEngine::processRow(int i, bool afterDelay) {
+  // if this is after delay, use the order/row where delay occurred
   int whatOrder=afterDelay?chan[i].delayOrder:curOrder;
   int whatRow=afterDelay?chan[i].delayRow:curRow;
   DivPattern* pat=curPat[i].getPattern(curOrders->ord[i][whatOrder],false);
   // pre effects
+  // these include song control ones such as speed, tempo or jumps which shall not be delayed
+  // it also includes EDxx (delay) itself so we can handle it
   if (!afterDelay) {
+    // set to true if we found an EDxx effect
     bool returnAfterPre=false;
+    // check all effects
     for (int j=0; j<curPat[i].effectCols; j++) {
-      short effect=pat->data[whatRow][4+(j<<1)];
-      short effectVal=pat->data[whatRow][5+(j<<1)];
+      short effect=pat->newData[whatRow][DIV_PAT_FX(j)];
+      short effectVal=pat->newData[whatRow][DIV_PAT_FXVAL(j)];
 
+      // empty effect value is the same as zero
       if (effectVal==-1) effectVal=0;
       effectVal&=255;
 
       switch (effect) {
         case 0x09: // select groove pattern/speed 1
           if (song.grooves.empty()) {
+            // special case: sets speed 1 if the song lacks groove patterns
             if (effectVal>0) speeds.val[0]=effectVal;
           } else {
+            // sets the groove pattern and resets current speed index
             if (effectVal<(short)song.grooves.size()) {
               speeds=song.grooves[effectVal];
               curSpeed=0;
@@ -544,9 +634,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
           }
           break;
         case 0x0f: // speed 1/speed 2
+          // if the value is 0 then ignore it
           if (speeds.len==2 && song.grooves.empty()) {
+            // if there are two speeds and no groove patterns, set the second speed
             if (effectVal>0) speeds.val[1]=effectVal;
           } else {
+            // otherwise set the first speed
             if (effectVal>0) speeds.val[0]=effectVal;
           }
           break;
@@ -557,6 +650,15 @@ void DivEngine::processRow(int i, bool afterDelay) {
           if (effectVal>0) virtualTempoD=effectVal;
           break;
         case 0x0b: // change order
+          // this actually schedules an order change
+          // we perform this change at the end of nextRow()
+
+          // COMPAT FLAG: simultaneous jump treatment
+          // - 0: normal (another 0Bxx effect will override the previous one)
+          // - 1: old Furnace (only the first 0Bxx effect in a row takes effect)
+          // - 2: DefleMask (same as 1)
+          // in the case of normal, the jump row (changePos) is not reset to 0
+          // this means that you can do 0Dxx 0Byy and it'll work, taking you to row xx of order yy
           if (changeOrd==-1 || song.jumpTreatment==0) {
             changeOrd=effectVal;
             if (song.jumpTreatment==1 || song.jumpTreatment==2) {
@@ -565,18 +667,28 @@ void DivEngine::processRow(int i, bool afterDelay) {
           }
           break;
         case 0x0d: // next order
+          // COMPAT FLAG: ignore 0Dxx on the last order (ignoreJumpAtEnd)
+          // if there is a 0Dxx effect on the very last order, it is ignored
+
+          // COMPAT FLAG: simultaneous jump treatment
           if (song.jumpTreatment==2) {
+            // - 2: DefleMask (jump to next order unless it is the last one and ignoreJumpAtEnd is on)
             if ((curOrder<(curSubSong->ordersLen-1) || !song.ignoreJumpAtEnd)) {
+              // changeOrd -2 means increase order by 1
+              // it overrides a previous 0Bxx effect
               changeOrd=-2;
               changePos=effectVal;
             }
           } else if (song.jumpTreatment==1) {
+            // - 1: old Furnace (same as 2 but ignored if 0Bxx is present)
             if (changeOrd<0 && (curOrder<(curSubSong->ordersLen-1) || !song.ignoreJumpAtEnd)) {
               changeOrd=-2;
               changePos=effectVal;
             }
           } else {
+            // - 0: normal
             if (curOrder<(curSubSong->ordersLen-1) || !song.ignoreJumpAtEnd) {
+              // set the target order if not set, allowing you to use 0B and 0D regardless of position
               if (changeOrd<0) {
                 changeOrd=-2;
               }
@@ -586,17 +698,35 @@ void DivEngine::processRow(int i, bool afterDelay) {
           break;
         case 0xed: // delay
           if (effectVal!=0) {
+            // COMPAT FLAG: cut/delay effect policy (delayBehavior)
+            // - 0: strict
+            //   - delays equal or greater to the speed * timeBase are ignored
+            // - 1: strict old
+            //   - delays equal or greater to the speed are ignored
+            // - 2: lax (default)
+            //   - no delay is ever ignored unless overridden by another
             bool comparison=(song.delayBehavior==1)?(effectVal<=nextSpeed):(effectVal<(nextSpeed*(curSubSong->timeBase+1)));
             if (song.delayBehavior==2) comparison=true;
             if (comparison) {
+              // set the delay row, order and timer
               chan[i].rowDelay=effectVal;
               chan[i].delayOrder=whatOrder;
               chan[i].delayRow=whatRow;
+
+              // this here was a compatibility hack for DefleMask...
+              // if the delay time happens to be equal to the speed, it'll
+              // result in "delay lock" which halts all row processing
+              // until another good EDxx effect is found
+              // for some reason this didn't occur on Neo Geo...
+              // this hack is disabled due to its dirtiness and the fact I
+              // don't feel like being compatible with a buggy tracker any further
               if (effectVal==nextSpeed) {
                 //if (sysOfChan[i]!=DIV_SYSTEM_YM2610 && sysOfChan[i]!=DIV_SYSTEM_YM2610_EXT) chan[i].delayLocked=true;
               } else {
                 chan[i].delayLocked=false;
               }
+
+              // once we're done with pre-effects, get out and don't process any further
               returnAfterPre=true;
             } else {
               logV("higher than nextSpeed! %d>%d",effectVal,nextSpeed);
@@ -606,20 +736,27 @@ void DivEngine::processRow(int i, bool afterDelay) {
           break;
       }
     }
+    // stop processing if EDxx was found
     if (returnAfterPre) return;
   } else {
     //logV("honoring delay at position %d",whatRow);
   }
 
+  // stop processing if delay lock is on (won't happen, ever)
   if (chan[i].delayLocked) return;
 
+  // now we start reading...
   // instrument
   bool insChanged=false;
-  if (pat->data[whatRow][2]!=-1) {
-    if (chan[i].lastIns!=pat->data[whatRow][2]) {
-      dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,i,pat->data[whatRow][2]));
-      chan[i].lastIns=pat->data[whatRow][2];
+  if (pat->newData[whatRow][DIV_PAT_INS]!=-1) {
+    // only send an instrument change if it differs from the current ins
+    if (chan[i].lastIns!=pat->newData[whatRow][DIV_PAT_INS]) {
+      dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,i,pat->newData[whatRow][DIV_PAT_INS]));
+      chan[i].lastIns=pat->newData[whatRow][DIV_PAT_INS];
       insChanged=true;
+
+      // COMPAT FLAG: legacy volume slides
+      // - sets volume to max once a vol slide down has finished (thus setting volume to volMax+1)
       if (song.legacyVolumeSlides && chan[i].volume==chan[i].volMax+1) {
         logV("forcing volume");
         chan[i].volume=chan[i].volMax;
@@ -628,34 +765,46 @@ void DivEngine::processRow(int i, bool afterDelay) {
       }
     }
   }
-  // note
-  if (pat->data[whatRow][0]==100) { // note off
-    //chan[i].note=-1;
+
+  // note reading
+  // note offs are sent immediately
+  if (pat->newData[whatRow][DIV_PAT_NOTE]==DIV_NOTE_OFF) { // note off
     chan[i].keyOn=false;
     chan[i].keyOff=true;
+
+    // COMPAT FLAG: reset slides on note off (inverted in the GUI)
+    // - a portamento/pitch slide will be halted upon encountering note off
+    // - this will not occur if the stopPortaOnNoteOff flag is on and this is a portamento
     if (chan[i].inPorta && song.noteOffResetsSlides) {
+      // stopOnOff will be false if stopPortaOnNoteOff flag is off
       if (chan[i].stopOnOff) {
         chan[i].portaNote=-1;
         chan[i].portaSpeed=-1;
         dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
         chan[i].stopOnOff=false;
       }
+      // depending on the system, portamento may still be disabled
       if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
         chan[i].portaNote=-1;
         chan[i].portaSpeed=-1;
         dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
+        // this here is a now-disabled hack which makes the noise channel also stop when square 3 is
         /*if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
           chan[i+1].portaNote=-1;
           chan[i+1].portaSpeed=-1;
         }*/
       }
+      // another compatibility hack which schedules a second reset later just in case
       chan[i].scheduledSlideReset=true;
     }
+
+    // send note off
     dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
-  } else if (pat->data[whatRow][0]==101) { // note off + env release
+  } else if (pat->newData[whatRow][DIV_PAT_NOTE]==DIV_NOTE_REL) { // note off + env release
     //chan[i].note=-1;
     chan[i].keyOn=false;
     chan[i].keyOff=true;
+    // same thing here regarding reset slide behavior
     if (chan[i].inPorta && song.noteOffResetsSlides) {
       if (chan[i].stopOnOff) {
         chan[i].portaNote=-1;
@@ -674,21 +823,30 @@ void DivEngine::processRow(int i, bool afterDelay) {
       }
       chan[i].scheduledSlideReset=true;
     }
+
+    // send note release
     dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,i));
     chan[i].releasing=true;
-  } else if (pat->data[whatRow][0]==102) { // env release
+  } else if (pat->newData[whatRow][DIV_PAT_NOTE]==DIV_MACRO_REL) { // env release
+    // send macro release
     dispatchCmd(DivCommand(DIV_CMD_ENV_RELEASE,i));
     chan[i].releasing=true;
-  } else if (!(pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0)) {
+  } else if (pat->newData[whatRow][DIV_PAT_NOTE]!=-1) {
+    // prepare/schedule a new note
     chan[i].oldNote=chan[i].note;
-    chan[i].note=pat->data[whatRow][0]+((signed char)pat->data[whatRow][1])*12;
+    chan[i].note=pat->newData[whatRow][DIV_PAT_NOTE]-60;
+    // I have no idea why is this check here since keyOn is guaranteed to be false at this point
+    // ...unless there's a way to trigger keyOn twice
     if (!chan[i].keyOn) {
+      // the behavior of arpeggio reset upon note off varies per system
       if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsArp(dispatchChanOfChan[i])) {
         chan[i].arp=0;
         dispatchCmd(DivCommand(DIV_CMD_HINT_ARPEGGIO,i,chan[i].arp));
       }
     }
     chan[i].doNote=true;
+    // COMPAT FLAG: compatible arpeggio
+    // - once a new note plays, arp will not be applied for this tick
     if (chan[i].arp!=0 && song.compatibleArpeggio) {
       chan[i].arpYield=true;
     }
@@ -697,12 +855,14 @@ void DivEngine::processRow(int i, bool afterDelay) {
   // volume
   int volPortaTarget=-1;
   bool noApplyVolume=false;
+  // here we read all effects and check for a volume slide with target/volume "portamento"/"scivolando" (a term I invented as an equivalent)
   for (int j=0; j<curPat[i].effectCols; j++) {
-    short effect=pat->data[whatRow][4+(j<<1)];
+    short effect=pat->newData[whatRow][DIV_PAT_FX(j)];
     if (effect==0xd3 || effect==0xd4) { // vol porta
-      volPortaTarget=pat->data[whatRow][3]<<8; // can be -256
+      volPortaTarget=pat->newData[whatRow][DIV_PAT_VOL]<<8; // can be -256
 
-      short effectVal=pat->data[whatRow][5+(j<<1)];
+      // empty effect value is treated as 0
+      short effectVal=pat->newData[whatRow][DIV_PAT_FXVAL(j)];
       if (effectVal==-1) effectVal=0;
       effectVal&=255;
 
@@ -711,19 +871,28 @@ void DivEngine::processRow(int i, bool afterDelay) {
     }
   }
   
-  if (pat->data[whatRow][3]!=-1 && !noApplyVolume) {
-    if (!song.oldAlwaysSetVolume || disCont[dispatchOfChan[i]].dispatch->getLegacyAlwaysSetVolume() || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->data[whatRow][3]) {
-      if (pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0) {
+  // don't apply volume if a scivolando is set
+  if (pat->newData[whatRow][DIV_PAT_VOL]!=-1 && !noApplyVolume) {
+    // COMPAT FLAG: legacy ALWAYS_SET_VOLUME behavior (oldAlwaysSetVolume)
+    // - prior to its addition, volume changes wouldn't be effective depending on the system if the volume is the same as the current one
+    // - afterwards, volume change is made regardless in order to set the bottom byte of volume ("subvolume")
+    if (!song.oldAlwaysSetVolume || disCont[dispatchOfChan[i]].dispatch->getLegacyAlwaysSetVolume() || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->newData[whatRow][DIV_PAT_VOL]) {
+      // here we let dispatchCmd() know we can do MIDI aftertouch if there isn't a note
+      if (pat->newData[whatRow][DIV_PAT_NOTE]==-1) {
         chan[i].midiAftertouch=true;
       }
-      chan[i].volume=pat->data[whatRow][3]<<8;
+      // set the volume (bottom byte is set to 0)
+      chan[i].volume=pat->newData[whatRow][DIV_PAT_VOL]<<8;
       dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
       dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
     }
   }
 
+  // reset retrigger status
+  // this is the only effect that takes place only in the row it is placed, in a ProTracker-like fashion (why?)
   chan[i].retrigSpeed=0;
 
+  // stuff necessary for effect processing
   short lastSlide=-1;
   bool calledPorta=false;
   bool panChanged=false;
@@ -732,20 +901,25 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
   // effects
   for (int j=0; j<curPat[i].effectCols; j++) {
-    short effect=pat->data[whatRow][4+(j<<1)];
-    short effectVal=pat->data[whatRow][5+(j<<1)];
+    short effect=pat->newData[whatRow][DIV_PAT_FX(j)];
+    short effectVal=pat->newData[whatRow][DIV_PAT_FXVAL(j)];
 
+    // an empty effect value is treated as zero
     if (effectVal==-1) effectVal=0;
     effectVal&=255;
 
     // per-system effect
+    // if there isn't one, go through normal effects
     if (!perSystemEffect(i,effect,effectVal)) switch (effect) {
+      /// PANNING
       case 0x08: // panning (split 4-bit)
         chan[i].panL=(effectVal>>4)|(effectVal&0xf0);
         chan[i].panR=(effectVal&15)|((effectVal&15)<<4);
+        // panning command isn't sent until later
         panChanged=true;
         break;
       case 0x80: { // panning (linear)
+        // convert to splir
         unsigned short pan=convertPanLinearToSplit(effectVal,8,255);
         chan[i].panL=pan>>8;
         chan[i].panR=pan&0xff;
@@ -762,6 +936,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0x83: // pan slide
         if (effectVal!=0) {
+          // set the pan slide speed
           if ((effectVal&15)!=0) {
             chan[i].panSpeed=(effectVal&15);
           } else {
@@ -774,6 +949,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         } else {
           chan[i].panSpeed=0;
         }
+        // send hint (for command stream export)
         dispatchCmd(DivCommand(DIV_CMD_HINT_PAN_SLIDE,i,chan[i].panSpeed&0xff));
         break;
       case 0x84: // panbrello
@@ -783,8 +959,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].panDepth=effectVal&15;
         chan[i].panRate=effectVal>>4;
         if (chan[i].panDepth!=0) {
+          // panbrello and slides are incompatible
           chan[i].panSpeed=0;
         }
+        // send hint (for command stream export)
         dispatchCmd(DivCommand(DIV_CMD_HINT_PANBRELLO,i,effectVal));
         break;
       case 0x88: // panning rear (split 4-bit)
@@ -800,7 +978,14 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].panRR=effectVal;
         surroundPanChanged=true;
         break;
-      case 0x01: // ramp up
+      /// PITCH and more
+      // internally, slides and portamento share the same variables
+      case 0x01: // pitch slide up
+        // COMPAT FLAG: ignore duplicate slides
+        // - only the first 01xx effect is considered
+        // - 02xx still works
+        // - a previous portamento (03xx) will prevent this slide from occurring
+        // - E1xy/E2xy also will if *another* flag is set
         if (song.ignoreDuplicateSlides && (lastSlide==0x01 || lastSlide==0x1337)) break;
         lastSlide=0x01;
         if (effectVal==0) {
@@ -808,21 +993,39 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].portaSpeed=-1;
           dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
           chan[i].inPorta=false;
+          // COMPAT FLAG: arpeggio inhibits non-porta slides
+          // - the PRE_PORTA command is used to let the dispatch know we're entering a pitch slide
+          // - this prompts dispatch to stop processing arp macros during a slide
+          // - this only happens if pitch linearity is set to None
+          // - if we don't let dispatch know, the slide will never occur as arp takes over
           if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         } else {
+          // COMPAT FLAG: limit slide range
+          // - this confines pitch slides from dispatch->getPortaFloor to C-8 (I think)
+          // - yep, the lowest portamento note depends on the system...
           chan[i].portaNote=song.limitSlides?0x60:255;
           chan[i].portaSpeed=effectVal;
           dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
+          // most of these are used for compat flag handling
           chan[i].portaStop=true;
-          chan[i].nowYouCanStop=false;
           chan[i].stopOnOff=false;
           chan[i].scheduledSlideReset=false;
           chan[i].wasShorthandPorta=false;
           chan[i].inPorta=false;
+          // COMPAT FLAG: arpeggio inhibits non-porta slides
+          // - the PRE_PORTA command is used to let the dispatch know we're entering a pitch slide
+          // - this prompts dispatch to stop processing arp macros during a slide
+          // - this only happens if pitch linearity is set to None
+          // - if we don't let dispatch know, the slide will never occur as arp takes over
           if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
         }
         break;
-      case 0x02: // ramp down
+      case 0x02: // pitch slide down
+        // COMPAT FLAG: ignore duplicate slides
+        // - only the first 02xx effect is considered
+        // - 01xx still works
+        // - a previous portamento (03xx) will prevent this slide from occurring
+        // - E1xy/E2xy also will if *another* flag is set
         if (song.ignoreDuplicateSlides && (lastSlide==0x02 || lastSlide==0x1337)) break;
         lastSlide=0x02;
         if (effectVal==0) {
@@ -830,21 +1033,27 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].portaSpeed=-1;
           dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
           chan[i].inPorta=false;
+          // COMPAT FLAG: arpeggio inhibits non-porta slides
           if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         } else {
+          // COMPAT FLAG: limit slide range
+          // - this confines pitch slides from dispatch->getPortaFloor to C-8 (I think)
+          // - yep, the lowest portamento note depends on the system...
           chan[i].portaNote=song.limitSlides?disCont[dispatchOfChan[i]].dispatch->getPortaFloor(dispatchChanOfChan[i]):-60;
           chan[i].portaSpeed=effectVal;
           dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
           chan[i].portaStop=true;
-          chan[i].nowYouCanStop=false;
           chan[i].stopOnOff=false;
           chan[i].scheduledSlideReset=false;
           chan[i].wasShorthandPorta=false;
           chan[i].inPorta=false;
+          // COMPAT FLAG: arpeggio inhibits non-porta slides
           if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
         }
         break;
       case 0x03: // portamento
+        // exception: the arpNonPorta flag is not checked here.
+        // a portamento shall override arp macros on non-linear pitch.
         if (effectVal==0) {
           chan[i].portaNote=-1;
           chan[i].portaSpeed=-1;
@@ -852,34 +1061,54 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].inPorta=false;
           dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         } else {
+          // lastPorta is used for the 06xy effect
           chan[i].lastPorta=effectVal;
+          // this here is for a compatibility flag...
           calledPorta=true;
+          // COMPAT FLAG: buggy portamento after sliding
+          // - you might want to slide up or down and then 03xx to return to the original note
+          // - if a porta to the same note is attempted after slide, for some reason it does not occur
           if (chan[i].note==chan[i].oldNote && !chan[i].inPorta && song.buggyPortaAfterSlide) {
             chan[i].portaNote=chan[i].note;
             chan[i].portaSpeed=-1;
           } else {
+            // compat flags get on my way
             chan[i].portaNote=chan[i].note;
             chan[i].portaSpeed=effectVal;
             chan[i].inPorta=true;
+            // ...but this one is for ANOTHER compat flag. yuck!
             chan[i].wasShorthandPorta=false;
           }
           dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
+          // TODO; portaStop is guaranteed to be true anyway. what's the point of this?
           chan[i].portaStop=true;
+          // this is why we didn't send noye on before.
+          // there may be a portamento which of course prevents a note on
           if (chan[i].keyOn) chan[i].doNote=false;
+          // COMPAT FLAG: stop portamento on note off
+          // - if a portamento is called and then a note off occurs, stop portamento before the next note
+          // - ...unless noteOffResetsSlides is disabled
           chan[i].stopOnOff=song.stopPortaOnNoteOff; // what?!
           chan[i].scheduledSlideReset=false;
           dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,1));
+          // this is used to inhibit any other slide commands if the respective compat flag is enabled
           lastSlide=0x1337; // i hate this so much
         }
         break;
+      // vibratos and pitch changes are mixed in.
       case 0x04: // vibrato
+        // remember the last vibrato for 05xy
         if (effectVal) chan[i].lastVibrato=effectVal;
         chan[i].vibratoDepth=effectVal&15;
         chan[i].vibratoRate=effectVal>>4;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VIBRATO,i,(chan[i].vibratoDepth&15)|(chan[i].vibratoRate<<4)));
+        // update pitch now
         dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
         break;
+      /// VOLUME-RELATED
       case 0x05: // vol slide + vibrato
+        // this effect is weird. it shouldn't be here considering we have more
+        // than one effect column, but I guess it had to be done
         if (effectVal==0) {
           chan[i].vibratoDepth=0;
           chan[i].vibratoRate=0;
@@ -888,6 +1117,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].vibratoRate=chan[i].lastVibrato>>4;
         }
         dispatchCmd(DivCommand(DIV_CMD_HINT_VIBRATO,i,(chan[i].vibratoDepth&15)|(chan[i].vibratoRate<<4)));
+        // update pitch now
         dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
         // TODO: non-0x-or-x0 value should be treated as 00
         if (effectVal!=0) {
@@ -906,6 +1136,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
         break;
       case 0x06: // vol slide + porta
+        // same thing here. this is another effect that doesn't need to exist.
         if (effectVal==0 || chan[i].lastPorta==0) {
           chan[i].portaNote=-1;
           chan[i].portaSpeed=-1;
@@ -913,7 +1144,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].inPorta=false;
           dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         } else {
+          // this here is for a compatibility flag...
           calledPorta=true;
+          // COMPAT FLAG: buggy portamento after sliding
+          // yes, this also affects 06xy.
           if (chan[i].note==chan[i].oldNote && !chan[i].inPorta && song.buggyPortaAfterSlide) {
             chan[i].portaNote=chan[i].note;
             chan[i].portaSpeed=-1;
@@ -924,6 +1158,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
             chan[i].wasShorthandPorta=false;
           }
           dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
+          // this is the same as 03xx.
           chan[i].portaStop=true;
           if (chan[i].keyOn) chan[i].doNote=false;
           chan[i].stopOnOff=song.stopPortaOnNoteOff; // what?!
@@ -931,6 +1166,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,1));
           lastSlide=0x1337; // i hate this so much
         }
+        // now handle volume slide
         // TODO: non-0x-or-x0 value should be treated as 00
         if (effectVal!=0) {
           if ((effectVal&15)!=0) {
@@ -948,21 +1184,28 @@ void DivEngine::processRow(int i, bool afterDelay) {
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
         break;
       case 0x07: // tremolo
+        // the implementation of tremolo in Furnace is more like that of
+        // vibrato. it oscillates according to a waveform.
+        // this differs from Defle where it is a consecutive vol slide
+        // up/down and exhibits a numbee of bugs.
         if (chan[i].tremoloDepth==0) {
           chan[i].tremoloPos=0;
         }
         chan[i].tremoloDepth=effectVal&15;
         chan[i].tremoloRate=effectVal>>4;
         dispatchCmd(DivCommand(DIV_CMD_HINT_TREMOLO,i,effectVal));
+        // unfortunately, we cannot run both tremolo and vol slide at once.
         if (chan[i].tremoloDepth!=0) {
           chan[i].volSpeed=0;
           chan[i].volSpeedTarget=-1;
         } else {
+          // restore the volume if tremolo is disabled
           dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
           dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
         }
         break;
-      case 0x0a: // volume ramp
+      case 0x0a: // volume slide
+        // the speed multipler is 64, which means 4 ticks between volume changes with a value of 1
         // TODO: non-0x-or-x0 value should be treated as 00
         if (effectVal!=0) {
           if ((effectVal&15)!=0) {
@@ -976,29 +1219,42 @@ void DivEngine::processRow(int i, bool afterDelay) {
         } else {
           chan[i].volSpeed=0;
         }
+        // reset the volume target
         chan[i].volSpeedTarget=-1;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
         break;
+      /// NOTE
       case 0x00: // arpeggio
         chan[i].arp=effectVal;
+        // COMPAT FLAG: reset note to base on arp stop (inverted in the GUI)
+        // - a 0000 effect resets arpeggio position
         if (chan[i].arp==0 && song.arp0Reset) {
           chan[i].resetArp=true;
         }
         dispatchCmd(DivCommand(DIV_CMD_HINT_ARPEGGIO,i,chan[i].arp));
         break;
       case 0x0c: // retrigger
+        // this is the only non-continuous effect. it takes place exclusively
+        // within one row like most PC/Amiga trackers.
+        // consecutive 0Cxx effects will reset on each row...
         if (effectVal!=0) {
           chan[i].retrigSpeed=effectVal;
           chan[i].retrigTick=0;
         }
         break;
+      /// MISC
       case 0x90: case 0x91: case 0x92: case 0x93:
       case 0x94: case 0x95: case 0x96: case 0x97: 
       case 0x98: case 0x99: case 0x9a: case 0x9b:
       case 0x9c: case 0x9d: case 0x9e: case 0x9f: // set samp. pos
+        // COMPAT FLAG: old sample offset effect
+        // - before 0.6.3 the sample offset effect was 9xxx, where `xxx` is multiplied by 256
+        // - the effect was then changed to 90xx/91xx/92xx, allowing you to set the low, mid and high bytes of the offset respectively
         if (song.oldSampleOffset) {
+          // send sample position now
           dispatchCmd(DivCommand(DIV_CMD_SAMPLE_POS,i,(((effect&0x0f)<<8)|effectVal)*256));
         } else {
+          // change one byte and schedule sample position
           if (effect<0x93) {
             chan[i].sampleOff&=~(0xff<<((effect-0x90)<<3));
             chan[i].sampleOff|=effectVal<<((effect-0x90)<<3);
@@ -1008,6 +1264,11 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0xc0: case 0xc1: case 0xc2: case 0xc3: // set Hz
         if((double)(((effect&0x3)<<8)|effectVal) * (double)curSubSong->macroSpeedMult > 1025.0) break; //macro rate can't exceed 1025 Hz
+        // Cxxx, where `xxx` is between 1 and 1023
+        // divider is the tick rate in Hz
+        // cycles is the number of samples between ticks
+        // clockDrift is used for accuracy and subticks for low-latency mode
+        // (where we run faster thsn the tick rate to allow sub-tick note events from live playback)
         divider=(double)(((effect&0x3)<<8)|effectVal) * (double)curSubSong->macroSpeedMult;
         if (divider<1) divider=1;
         cycles=got.rate/divider;
@@ -1015,20 +1276,32 @@ void DivEngine::processRow(int i, bool afterDelay) {
         subticks=0;
         break;
       case 0xdc: // delayed mute
+        // used on XM import, where ECx actually mutes the note
+        // COMPAT FLAG: cut/delay effect policy (delayBehavior)
+        // - 0: strict
+        //   - ignore cut if equal or greater than speed
+        // - 1: strict old
+        //   - ignore cut if equal or greater than speed
+        // - 2: lax (default)
+        //   - no cut is ever ignored unless overridden by another
         if (effectVal>0 && (song.delayBehavior==2 || effectVal<nextSpeed)) {
+          // the cut timer is ticked after nextRow(), so we set it one tick higher.
           chan[i].volCut=effectVal+1;
           chan[i].cutType=0;
         }
         break;
-      case 0xd3: // volume portamento (vol porta)
+      case 0xd3: // volume portamento (vol porta)/scivolando
         // tremolo and vol slides are incompatible
         chan[i].tremoloDepth=0;
         chan[i].tremoloRate=0;
+        // check whether we will slide up or down
+        // the speed is 1, which means that 256 ticks will elapse between volume changes with a value of 1.
         chan[i].volSpeed=volPortaTarget<0 ? 0 : volPortaTarget>chan[i].volume ? effectVal : -effectVal;
         chan[i].volSpeedTarget=chan[i].volSpeed==0 ? -1 : volPortaTarget;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE_TARGET,i,chan[i].volSpeed,chan[i].volSpeedTarget));
         break;
       case 0xd4: // volume portamento fast (vol porta fast)
+        // this is the same as D3xx, but 256 times faster.
         // tremolo and vol slides are incompatible
         chan[i].tremoloDepth=0;
         chan[i].tremoloRate=0;
@@ -1037,46 +1310,63 @@ void DivEngine::processRow(int i, bool afterDelay) {
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE_TARGET,i,chan[i].volSpeed,chan[i].volSpeedTarget));
         break;
       case 0xe0: // arp speed
+        // the arp speed is global. I have no idea why.
         if (effectVal>0) {
           curSubSong->arpLen=effectVal;
           dispatchCmd(DivCommand(DIV_CMD_HINT_ARP_TIME,i,curSubSong->arpLen));
         }
         break;
       case 0xe1: // portamento up
+        // this is a shortcut for 03xx and a higher note.
+        // it has the benefit of being able to be used in conjunction with a note.
         chan[i].portaNote=chan[i].note+(effectVal&15);
         chan[i].portaSpeed=(effectVal>>4)*4;
         dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
+        // these are for compatibility stuff
         chan[i].portaStop=true;
-        chan[i].nowYouCanStop=false;
+        // COMPAT FLAG: stop portamento on note off
         chan[i].stopOnOff=song.stopPortaOnNoteOff; // what?!
         chan[i].scheduledSlideReset=false;
+        // only enter portamento if the speed is set
         if ((effectVal&15)!=0) {
           chan[i].inPorta=true;
+          // these are for compatibility flaga.
           chan[i].shorthandPorta=true;
           chan[i].wasShorthandPorta=true;
+          // COMPAT FLAG: broken shortcut slides
+          // - oddly enough, shortcut slides are not communicated to the dispatch
+          // - this was fixed in 0.5.7
           if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
+          // COMPAT FLAG: E1xy/E2xy also take priority over slides
+          // - another Defle hack. it places shortcut slides above pitch slides.
           if (song.e1e2AlsoTakePriority) lastSlide=0x1337; // ...
         } else {
           chan[i].inPorta=false;
+          // COMPAT FLAG: broken shortcut slides
           if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         }
         break;
       case 0xe2: // portamento down
+        // this is the same as E1xy but in the opposite direction.
         chan[i].portaNote=chan[i].note-(effectVal&15);
         chan[i].portaSpeed=(effectVal>>4)*4;
         dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
         chan[i].portaStop=true;
-        chan[i].nowYouCanStop=false;
+        // COMPAT FLAG: stop portamento on note off
         chan[i].stopOnOff=song.stopPortaOnNoteOff; // what?!
         chan[i].scheduledSlideReset=false;
         if ((effectVal&15)!=0) {
           chan[i].inPorta=true;
+          // these are for compatibility flaga.
           chan[i].shorthandPorta=true;
           chan[i].wasShorthandPorta=true;
+          // COMPAT FLAG: broken shortcut slides
           if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
+          // COMPAT FLAG: E1xy/E2xy also take priority over slides
           if (song.e1e2AlsoTakePriority) lastSlide=0x1337; // ...
         } else {
           chan[i].inPorta=false;
+          // COMPAT FLAG: broken shortcut slides
           if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         }
         break;
@@ -1085,21 +1375,17 @@ void DivEngine::processRow(int i, bool afterDelay) {
         dispatchCmd(DivCommand(DIV_CMD_HINT_VIBRATO_SHAPE,i,chan[i].vibratoShape));
         break;
       case 0xe4: // vibrato fine
+        // this sets the multiplier for vibrato depth
         chan[i].vibratoFine=effectVal;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VIBRATO_RANGE,i,chan[i].vibratoFine));
         break;
       case 0xe5: // pitch
         chan[i].pitch=effectVal-0x80;
-        if (sysOfChan[i]==DIV_SYSTEM_YM2151) { // YM2151 pitch oddity
-          chan[i].pitch*=2;
-          if (chan[i].pitch<-128) chan[i].pitch=-128;
-          if (chan[i].pitch>127) chan[i].pitch=127;
-        }
-        //chan[i].pitch+=globalPitch;
+        // send pitch now
         dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
         dispatchCmd(DivCommand(DIV_CMD_HINT_PITCH,i,chan[i].pitch));
         break;
-      case 0xe6: // Delayed legato
+      case 0xe6: // delayed legato
         // why does this have to follow FamiTracker verbatim
         // couldn't you do better?
         if ((effectVal&15)!=0) {
@@ -1115,8 +1401,16 @@ void DivEngine::processRow(int i, bool afterDelay) {
         }
         break;
       case 0xe7: // delayed macro release
+        // COMPAT FLAG: cut/delay effect policy (delayBehavior)
+        // - 0: strict
+        //   - ignore cut if equal or greater than speed
+        // - 1: strict old
+        //   - ignore cut if equal or greater than speed
+        // - 2: lax (default)
+        //   - no cut is ever ignored unless overridden by another
         // "Bruh"
         if (effectVal>0 && (song.delayBehavior==2 || effectVal<nextSpeed)) {
+          // the cut timer is ticked after nextRow(), so we set it one tick higher.
           chan[i].cut=effectVal+1;
           chan[i].cutType=2;
         }
@@ -1141,45 +1435,60 @@ void DivEngine::processRow(int i, bool afterDelay) {
         }
         break;
       case 0xea: // legato mode
+        // again, that's why we didn't just send note on back then.
+        // this effect inhibits note on.
         chan[i].legato=effectVal;
         break;
       case 0xeb: // sample bank
+        // this is a legacy effect for compatibility.
+        // in legacy sample mode (17xx), 12 samples are mapped to an octave.
+        // this effect allows you to use another group of 12 samples.
         dispatchCmd(DivCommand(DIV_CMD_SAMPLE_BANK,i,effectVal));
         break;
       case 0xec: // delayed note cut
+        // COMPAT FLAG: cut/delay effect policy (delayBehavior)
+        // - 0: strict
+        //   - ignore cut if equal or greater than speed
+        // - 1: strict old
+        //   - ignore cut if equal or greater than speed
+        // - 2: lax (default)
+        //   - no cut is ever ignored unless overridden by another
         if (effectVal>0 && (song.delayBehavior==2 || effectVal<nextSpeed)) {
+          // the cut timer is ticked after nextRow(), so we set it one tick higher.
           chan[i].cut=effectVal+1;
           chan[i].cutType=0;
         }
         break;
       case 0xee: // external command
+        // this does nothing in Furnace but is useful for export.
         //printf("\x1b[1;36m%d: extern command %d\x1b[m\n",i,effectVal);
         extValue=effectVal;
         extValuePresent=true;
         dispatchCmd(DivCommand(DIV_CMD_EXTERNAL,i,effectVal));
         break;
-      case 0xef: // global pitch
-        globalPitch+=(signed char)(effectVal-0x80);
-        break;
       case 0xf0: // set Hz by tempo
+        // the resulting tick rate is effectVal*2/5
+        // 125 BPM = 50Hz; 150 BPM = 60Hz...
         divider=(double)effectVal*2.0/5.0;
         if (divider<1) divider=1;
         cycles=got.rate/divider;
         clockDrift=0;
         subticks=0;
         break;
-      case 0xf3: // fine volume ramp up
+      case 0xf3: // fine volume slide up
         // tremolo and vol slides are incompatible
         chan[i].tremoloDepth=0;
         chan[i].tremoloRate=0;
+        // this is 64 times slower than 0Axy.
         chan[i].volSpeed=effectVal;
         chan[i].volSpeedTarget=-1;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
         break;
-      case 0xf4: // fine volume ramp down
+      case 0xf4: // fine volume slide down
         // tremolo and vol slides are incompatible
         chan[i].tremoloDepth=0;
         chan[i].tremoloRate=0;
+        // this is 64 times slower than 0Axy.
         chan[i].volSpeed=-effectVal;
         chan[i].volSpeedTarget=-1;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
@@ -1193,21 +1502,25 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0xf7: // restart macro
         dispatchCmd(DivCommand(DIV_CMD_MACRO_RESTART,i,effectVal&0xff));
         break;
-      case 0xf8: // single volume ramp up
+      case 0xf8: // single volume slide up
+        // this will stop volume slides
         chan[i].volSpeed=0; // add compat flag?
         chan[i].volSpeedTarget=-1;
         chan[i].volume=MIN(chan[i].volume+effectVal*256,chan[i].volMax);
         dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
         break;
-      case 0xf9: // single volume ramp down
+      case 0xf9: // single volume slide down
+        // this will stop volume slides
         chan[i].volSpeed=0; // add compat flag?
         chan[i].volSpeedTarget=-1;
         chan[i].volume=MAX(chan[i].volume-effectVal*256,0);
         dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
         break;
-      case 0xfa: // fast volume ramp
+      case 0xfa: // fast volume slide
+        // this is four times the speed of 0Axy.
+        // effectively the value is the number of volume steps to change on each tick.
         if (effectVal!=0) {
           if ((effectVal&15)!=0) {
             chan[i].volSpeed=-(effectVal&15)*256;
@@ -1224,23 +1537,35 @@ void DivEngine::processRow(int i, bool afterDelay) {
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
         break;
       case 0xfc: // delayed note release
+        // COMPAT FLAG: cut/delay effect policy (delayBehavior)
+        // - 0: strict
+        //   - ignore cut if equal or greater than speed
+        // - 1: strict old
+        //   - ignore cut if equal or greater than speed
+        // - 2: lax (default)
+        //   - no cut is ever ignored unless overridden by another
         if (song.delayBehavior==2 || effectVal<nextSpeed) {
+          // the cut timer is ticked after nextRow(), so we set it one tick higher.
           chan[i].cut=effectVal+1;
           chan[i].cutType=1;
         }
         break;
-      
+
       case 0xff: // stop song
+        // this is handled in nextTick()
         shallStopSched=true;
         logV("scheduling stop");
         break;
     }
   }
 
+  // commit pending effects
+  // sample offset (9xxx)
   if (sampleOffSet) {
     dispatchCmd(DivCommand(DIV_CMD_SAMPLE_POS,i,chan[i].sampleOff));
   }
 
+  // panning effects
   if (panChanged) {
     dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
     dispatchCmd(DivCommand(DIV_CMD_HINT_PANNING,i,chan[i].panL,chan[i].panR));
@@ -1250,42 +1575,74 @@ void DivEngine::processRow(int i, bool afterDelay) {
     dispatchCmd(DivCommand(DIV_CMD_SURROUND_PANNING,i,3,chan[i].panRR));
   }
 
+  // COMPAT FLAG: instrument changes triggee on portamento (inverted in the GUI)
+  // - before 0.6pre1 it was not possible to change instrument during portamento
+  // - now it is. this sends a "null" note to allow such change
   if (insChanged && (chan[i].inPorta || calledPorta) && song.newInsTriggersInPorta) {
     dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
   }
 
+  // commit note on
   if (chan[i].doNote) {
+    // COMPAT FLAG: continuous vibrato
+    // - when enabled, the vibrato position is not reset on each note
     if (!song.continuousVibrato) {
       chan[i].vibratoPos=0;
     }
+    // send pitch now (why? didn't we do that already?)
     dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
+    // handle legato
+    // COMPAT FLAG: broken portamento during legato
+    // - portamento would not occur if legato is on
+    // - this was fixed in 0.6pre4
     if (chan[i].legato && (!chan[i].inPorta || song.brokenPortaLegato)) {
       dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
       dispatchCmd(DivCommand(DIV_CMD_HINT_LEGATO,i,chan[i].note));
     } else {
+      // this is where we actually send a note on command to the dispatch.
+      // this does not occur if portamento is in progress and it is not a shortcut slide (E1xy/E2xy)
       if (chan[i].inPorta && chan[i].keyOn && !chan[i].shorthandPorta) {
+        // COMPAT FLAG: E1xy/E2xy stop on same note
+        // - if there was a shortcut slide, stop it
         if (song.e1e2StopOnSameNote && chan[i].wasShorthandPorta) {
           chan[i].portaSpeed=-1;
           dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
+          // COMPAT FLAG: broken shortcut slides
+          // - oddly enough, shortcut slides are not communicated to the dispatch
+          // - this was fixed in 0.5.7
           if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
           chan[i].wasShorthandPorta=false;
           chan[i].inPorta=false;
         } else {
+          // otherwise we change the portamento target
           chan[i].portaNote=chan[i].note;
           dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
         }
       } else if (!chan[i].noteOnInhibit) {
+        // noteOnInhibit is set during live playback to prevent an extra note from playing
+        // we finally send the note on command
         dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note,chan[i].volume>>8));
         chan[i].releasing=false;
+        // COMPAT FLAG: reset arp position on new note
+        // - this does exactly what it says
         if (song.resetArpPhaseOnNewNote) {
            chan[i].arpStage=-1;
         }
+        // these are used by VGM/ROM export to determine the duration of loop trail.
+        // goneThroughNote and wentThroughNote arw set once a note plays on a channel.
+        // wentThroughNote is then reset on loop, and the loop trail begins.
+        // once all channels which had gone through a note get a note on, the loop trail duration is determined.
         chan[i].goneThroughNote=true;
         chan[i].wentThroughNote=true;
+        // this may be used by the GUI for visualizers.
         keyHit[i]=true;
       }
     }
+    // now that we did note, clear this flag
     chan[i].doNote=false;
+    // keyOn is false after a keyOff so we can do this
+    // reset slide if scheduled and not keying on
+    // I don't understand
     if (!chan[i].keyOn && chan[i].scheduledSlideReset) {
       chan[i].portaNote=-1;
       chan[i].portaSpeed=-1;
@@ -1293,45 +1650,55 @@ void DivEngine::processRow(int i, bool afterDelay) {
       chan[i].scheduledSlideReset=false;
       chan[i].inPorta=false;
     }
+    // cap the volume if it is too high and not key on
     if (!chan[i].keyOn && chan[i].volume>chan[i].volMax) {
       chan[i].volume=chan[i].volMax;
       dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
       dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
     }
+    // now set key on
     chan[i].keyOn=true;
     chan[i].keyOff=false;
   }
-  chan[i].nowYouCanStop=true;
+  // reset these
   chan[i].shorthandPorta=false;
   chan[i].noteOnInhibit=false;
 
   // post effects
   for (int j=0; j<curPat[i].effectCols; j++) {
-    short effect=pat->data[whatRow][4+(j<<1)];
-    short effectVal=pat->data[whatRow][5+(j<<1)];
+    short effect=pat->newData[whatRow][DIV_PAT_FX(j)];
+    short effectVal=pat->newData[whatRow][DIV_PAT_FXVAL(j)];
 
+    // an empty effect value is treated as zero
     if (effectVal==-1) effectVal=0;
     effectVal&=255;
+
+    // per-system post-effects
+    // if there isn't one, try with normal effects
     if (!perSystemPostEffect(i,effect,effectVal)) {
       switch (effect) {
-        case 0xf1: // single pitch ramp up
-        case 0xf2: // single pitch ramp down
+        // these are done later to let note on happen first
+        case 0xf1: // single pitch slide up
+        case 0xf2: // single pitch slide down
           if (effect==0xf1) {
+            // COMPAT FLAG: limit slide range
             chan[i].portaNote=song.limitSlides?0x60:255;
           } else {
+            // COMPAT FLAG: limit slide range
             chan[i].portaNote=song.limitSlides?disCont[dispatchOfChan[i]].dispatch->getPortaFloor(dispatchChanOfChan[i]):-60;
           }
           chan[i].portaSpeed=effectVal;
           chan[i].portaStop=true;
-          chan[i].nowYouCanStop=false;
           chan[i].stopOnOff=false;
           chan[i].scheduledSlideReset=false;
           chan[i].inPorta=false;
+          // COMPAT FLAG: arpeggio inhibits non-porta slides
           if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
-          dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch==2?song.pitchSlideSpeed:1),chan[i].portaNote));
+          dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch?song.pitchSlideSpeed:1),chan[i].portaNote));
           chan[i].portaNote=-1;
           chan[i].portaSpeed=-1;
           chan[i].inPorta=false;
+          // COMPAT FLAG: arpeggio inhibits non-porta slides
           if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
           break;
       }
@@ -1339,7 +1706,20 @@ void DivEngine::processRow(int i, bool afterDelay) {
   }
 }
 
+// this is called by nextTick().
+// this reads the next row:
+// 1. update pattern console visualizer
+// 2. update the metronome
+// 3. call processRowPre() on all channels
+// 4. call processRow() on all channels
+// 5. mark row as "walked" on
+// 6. advance to next row/commit pattern jumps
+// 7. detect song loop
+// 8. perform speed alternation
+// 9. schedule cuts and pre-notes if necessary
 void DivEngine::nextRow() {
+  // update pattern visualizer in console mode
+  // buffers for printing the next row
   static char pb[4096];
   static char pb1[4096];
   static char pb2[4096];
@@ -1348,43 +1728,48 @@ void DivEngine::nextRow() {
     strcpy(pb1,"");
     strcpy(pb3,"");
     for (int i=0; i<chans; i++) {
+      // orders
       snprintf(pb,4095," %.2x",curOrders->ord[i][curOrder]);
       strcat(pb1,pb);
-      
+
+      // pattern data
       DivPattern* pat=curPat[i].getPattern(curOrders->ord[i][curOrder],false);
       snprintf(pb2,4095,"\x1b[37m %s",
-              formatNote(pat->data[curRow][0],pat->data[curRow][1]));
+              formatNote(pat->newData[curRow][DIV_PAT_NOTE]));
       strcat(pb3,pb2);
-      if (pat->data[curRow][3]==-1) {
+      if (pat->newData[curRow][DIV_PAT_VOL]==-1) {
         strcat(pb3,"\x1b[m--");
       } else {
-        snprintf(pb2,4095,"\x1b[1;32m%.2x",pat->data[curRow][3]);
+        snprintf(pb2,4095,"\x1b[1;32m%.2x",pat->newData[curRow][DIV_PAT_VOL]);
         strcat(pb3,pb2);
       }
-      if (pat->data[curRow][2]==-1) {
+      if (pat->newData[curRow][DIV_PAT_INS]==-1) {
         strcat(pb3,"\x1b[m--");
       } else {
-        snprintf(pb2,4095,"\x1b[0;36m%.2x",pat->data[curRow][2]);
+        snprintf(pb2,4095,"\x1b[0;36m%.2x",pat->newData[curRow][DIV_PAT_INS]);
         strcat(pb3,pb2);
       }
       for (int j=0; j<curPat[i].effectCols; j++) {
-        if (pat->data[curRow][4+(j<<1)]==-1) {
+        if (pat->newData[curRow][DIV_PAT_FX(j)]==-1) {
           strcat(pb3,"\x1b[m--");
         } else {
-          snprintf(pb2,4095,"\x1b[1;31m%.2x",pat->data[curRow][4+(j<<1)]);
+          snprintf(pb2,4095,"\x1b[1;31m%.2x",pat->newData[curRow][DIV_PAT_FX(j)]);
           strcat(pb3,pb2);
         }
-        if (pat->data[curRow][5+(j<<1)]==-1) {
+        if (pat->newData[curRow][DIV_PAT_FXVAL(j)]==-1) {
           strcat(pb3,"\x1b[m--");
         } else {
-          snprintf(pb2,4095,"\x1b[1;37m%.2x",pat->data[curRow][5+(j<<1)]);
+          snprintf(pb2,4095,"\x1b[1;37m%.2x",pat->newData[curRow][DIV_PAT_FXVAL(j)]);
           strcat(pb3,pb2);
         }
       }
     }
+    // print orders and pattern row
     printf("| %.2x:%s | \x1b[1;33m%3d%s\x1b[m\n",curOrder,pb1,curRow,pb3);
   }
 
+  // update and tick metronome if necessary
+  // elapsedBeats/Bars is used by the GUI for the clock
   if (curSubSong->hilightA>0) {
     if ((curRow%curSubSong->hilightA)==0) {
       pendingMetroTick=1;
@@ -1399,6 +1784,7 @@ void DivEngine::nextRow() {
     }
   }
 
+  // set the previous order as we'll be in the next one once done
   if (!stepPlay) {
     playPosLock.lock();
     prevOrder=curOrder;
@@ -1406,31 +1792,45 @@ void DivEngine::nextRow() {
     playPosLock.unlock();
   }
 
+  // process row pre on all channels
   for (int i=0; i<chans; i++) {
     // try to find pre effects
     processRowPre(i);
   }
 
+  // process row on all channels
   for (int i=0; i<chans; i++) {
+    // COMPAT FLAG: cut/delay effect policy (delayBehavior)
+    // - if not lax, reset the row delay timer so it never happens
     if (song.delayBehavior!=2) {
       chan[i].rowDelay=0;
     }
     processRow(i,false);
   }
 
+  // mark this row as "walked" over
+  // this is used to determine loop position
   walked[((curOrder<<5)+(curRow>>3))&8191]|=1<<(curRow&7);
 
+  // commit a pending jump if there is one
+  // otherwise, advance row position
   if (changeOrd!=-1) {
+    // disregard if repeat pattern is on
     if (repeatPattern) {
       curRow=0;
       changeOrd=-1;
     } else {
+      // jump to order and reset position
       curRow=changePos;
       changePos=0;
+      // jump to next order if it is -2
       if (changeOrd==-2) changeOrd=curOrder+1;
-      // old loop detection routine
+      // old loop detection routine, now commented
       //if (changeOrd<=curOrder) endOfSong=true;
       curOrder=changeOrd;
+
+      // if we're out of bounds, return to the beginning
+      // if this happens we're guaranteed to loop
       if (curOrder>=curSubSong->ordersLen) {
         curOrder=0;
         endOfSong=true;
@@ -1438,28 +1838,40 @@ void DivEngine::nextRow() {
       }
       changeOrd=-1;
     }
+    // halt engine if requested (debug menu)
     if (haltOn==DIV_HALT_PATTERN) halted=true;
   } else if (playing) if (++curRow>=curSubSong->patLen) {
+    // if we are here it means we reached the end of this pattern, so
+    // advance to next order unless the song is about to stop
     if (shallStopSched) {
       curRow=curSubSong->patLen-1;
     } else {
       nextOrder();
     }
+    // halt engine if requested (debug menu)
     if (haltOn==DIV_HALT_PATTERN) halted=true;
   }
 
   // new loop detection routine
+  // if we're stepping on a row we've already walked over, we found loop
+  // if the song is going to stop though, don't do anything
   if (!endOfSong && walked[((curOrder<<5)+(curRow>>3))&8191]&(1<<(curRow&7)) && !shallStopSched) {
     logV("loop reached");
     endOfSong=true;
     memset(walked,0,8192);
   }
 
+  // perform speed alternation
   prevSpeed=nextSpeed;
+  // COMPAT FLAG: broken speed alternation
+  // - DefleMask uses a mandatory two-speed system
+  // - if the pattern length is odd, the speed to use is determined correctly...
+  // - ...unless the order count is also odd! in that case the first row of order 0 will always use speed 1, even if the song looped and we should be using speed 2
   if (song.brokenSpeedSel) {
     unsigned char speed2=(speeds.len>=2)?speeds.val[1]:speeds.val[0];
     unsigned char speed1=speeds.val[0];
     
+    // if the pattern length is odd and the current order is odd, use speed 2 for even rows and speed 1 for odd ones
     if ((curSubSong->patLen&1) && curOrder&1) {
       ticks=((curRow&1)?speed2:speed1)*(curSubSong->timeBase+1);
       nextSpeed=(curRow&1)?speed1:speed2;
@@ -1468,9 +1880,12 @@ void DivEngine::nextRow() {
       nextSpeed=(curRow&1)?speed2:speed1;
     }
   } else {
+    // normal speed alternation
+    // set the number of ticks and cycle to the next speed
     ticks=speeds.val[curSpeed]*(curSubSong->timeBase+1);
     curSpeed++;
     if (curSpeed>=speeds.len) curSpeed=0;
+    // cache the next speed for future operations
     nextSpeed=speeds.val[curSpeed];
   }
 
@@ -1480,11 +1895,15 @@ void DivEngine::nextRow() {
   }*/
 
   // post row details
+  // schedule pre-notes and delays (for C64 and/or a compat flag)
   for (int i=0; i<chans; i++) {
     DivPattern* pat=curPat[i].getPattern(curOrders->ord[i][curOrder],false);
-    if (!(pat->data[curRow][0]==0 && pat->data[curRow][1]==0)) {
-      if (pat->data[curRow][0]!=100 && pat->data[curRow][0]!=101 && pat->data[curRow][0]!=102) {
+    if (pat->newData[curRow][DIV_PAT_NOTE]!=-1) {
+      // if there is a note
+      if (pat->newData[curRow][DIV_PAT_NOTE]!=DIV_NOTE_OFF && pat->newData[curRow][DIV_PAT_NOTE]!=DIV_NOTE_REL && pat->newData[curRow][DIV_PAT_NOTE]!=DIV_MACRO_REL) {
+        // if legato isn't on
         if (!chan[i].legato) {
+          // check whether we should fire a pre-note event
           bool wantPreNote=false;
           if (disCont[dispatchOfChan[i]].dispatch!=NULL) {
             wantPreNote=disCont[dispatchOfChan[i]].dispatch->getWantPreNote();
@@ -1492,60 +1911,79 @@ void DivEngine::nextRow() {
               bool doPreparePreNote=true;
               int addition=0;
 
+              // check whether there is a portamento, legato or delay effect
+              // in the former two we shouldn't send pre-note
+              // the latter one will delay our pre-note command
               for (int j=0; j<curPat[i].effectCols; j++) {
+                // COMPAT FLAG: pre-note does not take effect into consideration
+                // - a bug which does not cancel pre-note before a portamento or during legato
+                // - fixed in 0.6pre9
                 if (!song.preNoteNoEffect) {
-                  if (pat->data[curRow][4+(j<<1)]==0x03 && pat->data[curRow][5+(j<<1)]!=0 && pat->data[curRow][5+(j<<1)]!=-1) {
+                  // handle portamento
+                  if (pat->newData[curRow][DIV_PAT_FX(j)]==0x03 && pat->newData[curRow][DIV_PAT_FXVAL(j)]!=0 && pat->newData[curRow][DIV_PAT_FXVAL(j)]!=-1) {
                     doPreparePreNote=false;
                     break;
                   }
-                  if (pat->data[curRow][4+(j<<1)]==0x06 && pat->data[curRow][5+(j<<1)]!=0 && pat->data[curRow][5+(j<<1)]!=-1) {
+                  // handle vol slide + portamento
+                  if (pat->newData[curRow][DIV_PAT_FX(j)]==0x06 && pat->newData[curRow][DIV_PAT_FXVAL(j)]!=0 && pat->newData[curRow][DIV_PAT_FXVAL(j)]!=-1) {
                     doPreparePreNote=false;
                     break;
                   }
-                  if (pat->data[curRow][4+(j<<1)]==0xea) {
-                    if (pat->data[curRow][5+(j<<1)]>0) {
+                  // handle legato
+                  if (pat->newData[curRow][DIV_PAT_FX(j)]==0xea) {
+                    if (pat->newData[curRow][DIV_PAT_FXVAL(j)]>0) {
                       doPreparePreNote=false;
                       break;
                     }
                   }
                 }
-                if (pat->data[curRow][4+(j<<1)]==0xed) {
-                  if (pat->data[curRow][5+(j<<1)]>0) {
-                    addition=pat->data[curRow][5+(j<<1)]&255;
+                // delay pre-note if there is a delay effect
+                if (pat->newData[curRow][DIV_PAT_FX(j)]==0xed) {
+                  if (pat->newData[curRow][DIV_PAT_FXVAL(j)]>0) {
+                    addition=pat->newData[curRow][DIV_PAT_FXVAL(j)]&255;
                     break;
                   }
                 }
               }
+              // send pre-note command
               if (doPreparePreNote) dispatchCmd(DivCommand(DIV_CMD_PRE_NOTE,i,ticks+addition));
             }
           }
 
+          // COMPAT FLAG: auto-insert one tick gap between notes
+          // - simulates behavior of certain Amiga/C64 sound drivers where a one-tick cut occurred before another note
           if (song.oneTickCut) {
             bool doPrepareCut=true;
             int addition=0;
 
             for (int j=0; j<curPat[i].effectCols; j++) {
-              if (pat->data[curRow][4+(j<<1)]==0x03 && pat->data[curRow][5+(j<<1)]!=0 && pat->data[curRow][5+(j<<1)]!=-1) {
+              // handle portamento
+              if (pat->newData[curRow][DIV_PAT_FX(j)]==0x03 && pat->newData[curRow][DIV_PAT_FXVAL(j)]!=0 && pat->newData[curRow][DIV_PAT_FXVAL(j)]!=-1) {
                 doPrepareCut=false;
                 break;
               }
-              if (pat->data[curRow][4+(j<<1)]==0x06 && pat->data[curRow][5+(j<<1)]!=0 && pat->data[curRow][5+(j<<1)]!=-1) {
+              // handle vol slide + portamento
+              if (pat->newData[curRow][DIV_PAT_FX(j)]==0x06 && pat->newData[curRow][DIV_PAT_FXVAL(j)]!=0 && pat->newData[curRow][DIV_PAT_FXVAL(j)]!=-1) {
                 doPrepareCut=false;
                 break;
               }
-              if (pat->data[curRow][4+(j<<1)]==0xea) {
-                if (pat->data[curRow][5+(j<<1)]>0) {
+              // handle legato
+              if (pat->newData[curRow][DIV_PAT_FX(j)]==0xea) {
+                if (pat->newData[curRow][DIV_PAT_FXVAL(j)]>0) {
                   doPrepareCut=false;
                   break;
                 }
               }
-              if (pat->data[curRow][4+(j<<1)]==0xed) {
-                if (pat->data[curRow][5+(j<<1)]>0) {
-                  addition=pat->data[curRow][5+(j<<1)]&255;
+              // delay cut if there is a delay effect
+              if (pat->newData[curRow][DIV_PAT_FX(j)]==0xed) {
+                if (pat->newData[curRow][DIV_PAT_FXVAL(j)]>0) {
+                  addition=pat->newData[curRow][DIV_PAT_FXVAL(j)]&255;
                   break;
                 }
               }
             }
+            // prepare a cut if a cut hasn't been scheduled already
+            // and the dispatch does not want pre-note events
             if (doPrepareCut && !wantPreNote && chan[i].cut<=0) {
               chan[i].cut=ticks+addition;
               chan[i].cutType=0;
@@ -1556,12 +1994,21 @@ void DivEngine::nextRow() {
     }
   }
 
+  // halt engine if requested (debug menu)
   if (haltOn==DIV_HALT_ROW) halted=true;
+
+  // set firstTick to indicate this is the first tick (used for a compat flag)
   firstTick=true;
 }
 
+// advances one tick.
+// it is called by nextBuf(), playSub() nd the export functions.
+// noAccum will prevent the playback time from increasing.
+// if inhibitLowLat is on, low-latency mode is not taken into account. this is used by the export functions.
+// returns whether the song has ended.
 bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
   bool ret=false;
+  // prevent a division by zero
   if (divider<1) divider=1;
 
   bool advanceSong = false;
@@ -1572,6 +2019,8 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     advanceSong = true;
   }
 
+  // low-latency mode only
+  // set the tick multiplier so that when multiplied by the divider the product is close to 1000
   if (lowLatency && !skipping && !inhibitLowLat) {
     tickMult=1000/divider;
     if (tickMult<1) tickMult=1;
@@ -1579,9 +2028,11 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     tickMult=1;
   }
   
+  // set the number of samples between ticks (or sub-ticks in low-latency mode)
   cycles=got.rate/(divider*tickMult);
   clockDrift+=fmod(got.rate,(double)(divider*tickMult));
   if (clockDrift>=(divider*tickMult)) {
+    // correct clock since cycles is an integer
     clockDrift-=(divider*tickMult);
     cycles++;
   }
@@ -1591,16 +2042,21 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     // don't let user play anything during export
     if (exporting) pendingNotes.clear();
 
-    if (!pendingNotes.empty()) {
+    // process pending notes (live playback)
+  if (!pendingNotes.empty()) {
       bool isOn[DIV_MAX_CHANS];
       memset(isOn,0,DIV_MAX_CHANS*sizeof(bool));
-      
-      for (int i=pendingNotes.size()-1; i>=0; i--) {
+  
+      // this is a check that nullifies any note off event that right after a note on
+    // it prevents a situation where some notes do not play
+    for (int i=pendingNotes.size()-1; i>=0; i--) {
         if (pendingNotes[i].channel<0 || pendingNotes[i].channel>=chans) continue;
         if (pendingNotes[i].on) {
           isOn[pendingNotes[i].channel]=true;
         } else {
-          if (isOn[pendingNotes[i].channel]) {
+          // this is a note off - check whether the channel is going up.
+        // if so, cancel this event.
+        if (isOn[pendingNotes[i].channel]) {
             //logV("erasing off -> on sequence in %d",pendingNotes[i].channel);
             pendingNotes[i].nop=true;
           }
@@ -1608,36 +2064,52 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       }
     }
 
-    while (!pendingNotes.empty()) {
-      DivNoteEvent& note=pendingNotes.front();
-      if (note.nop || note.channel<0 || note.channel>=chans) {
+    // process pending notes, for real this time
+  while (!pendingNotes.empty()) {
+      // fetch event
+    DivNoteEvent& note=pendingNotes.front();
+      // don't if channel is out of bounds or event is canceled
+    if (note.nop || note.channel<0 || note.channel>=chans) {
         pendingNotes.pop_front();
         continue;
       }
-      if (note.insChange) {
+      // process an instrument change event
+    if (note.insChange) {
         dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,0));
         pendingNotes.pop_front();
         continue;
       }
-      if (note.on) {
-        if (!(midiIsDirect && midiIsDirectProgram && note.fromMIDI)) {
+      // otherwise process a note event
+    if (note.on) {
+        // note on
+      // set the instrument except on MIDI direct mode
+      if (!(midiIsDirect && midiIsDirectProgram && note.fromMIDI)) {
           dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,1));
         }
-        if (note.volume>=0 && !disCont[dispatchOfChan[note.channel]].dispatch->isVolGlobal()) {
-          float curvedVol=pow((float)note.volume/127.0f,midiVolExp);
+        // set volume as long as there's one associated with the event
+      // and the chip has per-channel volume
+      if (note.volume>=0 && !disCont[dispatchOfChan[note.channel]].dispatch->isVolGlobal()) {
+          // map velocity to curve and then to equivalent chip volume
+        float curvedVol=pow((float)note.volume/127.0f,midiVolExp);
           int mappedVol=disCont[dispatchOfChan[note.channel]].dispatch->mapVelocity(dispatchChanOfChan[note.channel],curvedVol);
-          dispatchCmd(DivCommand(DIV_CMD_VOLUME,note.channel,mappedVol));
+          // fire command
+        dispatchCmd(DivCommand(DIV_CMD_VOLUME,note.channel,mappedVol));
         }
-        dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,note.channel,note.note));
+        // send note on command and set channel state
+      dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,note.channel,note.note));
         keyHit[note.channel]=true;
-        chan[note.channel].note = note.note;
+        chan[note.channel].note=note.note;
         chan[note.channel].releasing=false;
-        chan[note.channel].noteOnInhibit=true;
+        // this prevents a duplicate note from being played while editing the pattern
+      chan[note.channel].noteOnInhibit=true;
         chan[note.channel].lastIns=note.ins;
       } else {
-        DivMacroInt* macroInt=disCont[dispatchOfChan[note.channel]].dispatch->getChanMacroInt(dispatchChanOfChan[note.channel]);
+        // note off
+      DivMacroInt* macroInt=disCont[dispatchOfChan[note.channel]].dispatch->getChanMacroInt(dispatchChanOfChan[note.channel]);
         if (macroInt!=NULL) {
-          if (macroInt->hasRelease && !disCont[dispatchOfChan[note.channel]].dispatch->isVolGlobal()) {
+          // if the current instrument has a release point in any macros and
+        // volume is per-channel, send a note release instead of a note off
+        if (macroInt->hasRelease && !disCont[dispatchOfChan[note.channel]].dispatch->isVolGlobal()) {
             dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,note.channel));
           } else {
             dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
@@ -1652,71 +2124,109 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
 
   if(advanceSong)
   {
-    if (!freelance) {
-      if (--subticks<=0) {
+    // tick the engine state if we are not in freelance mode (engine active but not running).
+  // this includes ticking the sub-tick counter, processing delayed rows,
+  // effects and of course, playing the next row.
+  if (!freelance) {
+      // decrease sub-tick counter (low-latency mode)
+    // run a tick once it reached zero
+    if (--subticks<=0) {
         subticks=tickMult;
 
         // apply delayed rows before potentially advancing to a new row, which would overwrite the
         // delayed row's state before it has a chance to do anything. a typical example would be
         // a delay scheduling a note-on to be simultaneous with the next row, and the next row also
-        // containing a delayed note. if we don't apply the delayed row first, 
+        // containing a delayed note. if we don't apply the delayed row first, the world explodes.
         for (int i=0; i<chans; i++) {
           // delay effects
           if (chan[i].rowDelay>0) {
             if (--chan[i].rowDelay==0) {
-              processRow(i,true);
+              // we call processRow() here for the delayed row
+            processRow(i,true);
             }
           }
         }
 
-        if (stepPlay!=1) {
-          tempoAccum+=(skipping && virtualTempoN<virtualTempoD)?virtualTempoD:virtualTempoN;
-          while (tempoAccum>=virtualTempoD) {
-            tempoAccum-=virtualTempoD;
-            if (--ticks<=0) {
+        // advance tempo accumulator (for virtual tempo) unless we are step playing and waiting for the next step (stepPlay==2)
+      // then advance tick counter and then call nextRow()
+      if (stepPlay!=1) {
+          // fast-forward the accumulator if we are "skipping" (seeking to a position)
+        // otherwise increase accumulator by virtual tempo numerator
+        tempoAccum+=(skipping && virtualTempoN<virtualTempoD)?virtualTempoD:virtualTempoN;
+          // while accumulator is higher than virtual tempo denominator
+        while (tempoAccum>=virtualTempoD) {
+            // wrap the accumulator back
+          tempoAccum-=virtualTempoD;
+            // tick the tick counter
+          if (--ticks<=0) {
               ret=endOfSong;
-              if (shallStopSched) {
+              // get out if the song is going to stop (we'll stop at the end of this function)
+            if (shallStopSched) {
                 logV("acknowledging scheduled stop");
                 shallStop=true;
                 break;
               } else if (endOfSong) {
-                if (song.loopModality!=2) {
+                // COMPAT FLAG: loop modality
+              // - 0: reset channels. call playSub() to seek back to the loop position
+              // - 1: soft-reset channels. same as 0 for now
+              // - 2: don't reset
+              if (song.loopModality!=2) {
                   playSub(true);
                 }
               }
               endOfSong=false;
-              if (stepPlay==2) {
+              // check whether we were told to step to the next row
+            // if so, go back to waiting state (stepPlay==1) and update position
+            if (stepPlay==2) {
                 stepPlay=1;
                 playPosLock.lock();
                 prevOrder=curOrder;
                 prevRow=curRow;
                 playPosLock.unlock();
+  
+              // also set the playback position and sync file player if necessary
+              TimeMicros rowTS=curSubSong->ts.getTimes(curOrder,curRow);
+              if (rowTS.seconds!=-1) {
+                totalTime=rowTS;
               }
-              nextRow();
+                if (curFilePlayer && filePlayerSync) {
+                syncFilePlayer();
+              }
+            }
+            // ...and now process the next row!
+            nextRow();
               break;
             }
           }
           // under no circumstances shall the accumulator become this large
           if (tempoAccum>1023) tempoAccum=1023;
         }
-        // process stuff
+        // process stuff such as effects
         if (!shallStop) for (int i=0; i<chans; i++) {
           // retrigger
           if (chan[i].retrigSpeed) {
             if (--chan[i].retrigTick<0) {
               chan[i].retrigTick=chan[i].retrigSpeed-1;
-              dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
+              // retrigger is a null note, which allows it to be combined with a pitch slide
+            dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
               keyHit[i]=true;
             }
           }
 
           // volume slides and tremolo
-          if (!song.noSlidesOnFirstTick || !firstTick) {
-            if (chan[i].volSpeed!=0) {
-              chan[i].volume=(chan[i].volume&0xff)|(dispatchCmd(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
+          // COMPAT FLAG: don't slide on the first tick of a row
+        // - Amiga/PC tracker behavior where slides and vibrato do not take course during the first tick of a row
+        if (!song.noSlidesOnFirstTick || !firstTick) {
+            // volume slides
+          if (chan[i].volSpeed!=0) {
+              // the call to GET_VOLUME is part of a compatibility process
+            // where the stored volume in the dispatch may be different
+            // from our volume (see legacy volume slides)
+            chan[i].volume=(chan[i].volume&0xff)|(dispatchCmd(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
               int preSpeedVol=chan[i].volume;
               chan[i].volume+=chan[i].volSpeed;
-              if (chan[i].volSpeedTarget!=-1) {
+              // handle scivolando
+            if (chan[i].volSpeedTarget!=-1) {
                 bool atTarget=false;
                 if (chan[i].volSpeed>0) {
                   atTarget=(chan[i].volume>=chan[i].volSpeedTarget);
@@ -1728,7 +2238,8 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
                 }
 
                 if (atTarget) {
-                  if (chan[i].volSpeed>0) {
+                  // once we are there, stop the slide
+                if (chan[i].volSpeed>0) {
                     chan[i].volume=MAX(preSpeedVol,chan[i].volSpeedTarget);
                   } else if (chan[i].volSpeed<0) {
                     chan[i].volume=MIN(preSpeedVol,chan[i].volSpeedTarget);
@@ -1740,7 +2251,9 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
                   dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,0));
                 }
               }
-              if (chan[i].volume>chan[i].volMax) {
+              // stop sliding if we reach maximum/minimum volume
+            // there isn't a compat flag for this yet... sorry...
+            if (chan[i].volume>chan[i].volMax) {
                 chan[i].volume=chan[i].volMax;
                 chan[i].volSpeed=0;
                 chan[i].volSpeedTarget=-1;
@@ -1750,7 +2263,10 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
               } else if (chan[i].volume<0) {
                 chan[i].volSpeed=0;
                 dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,0));
-                if (song.legacyVolumeSlides) {
+                // COMPAT FLAG: legacy volume slides
+              // - sets volume to max once a vol slide down has finished (thus setting volume to volMax+1)
+              // - there is more to this, such as the first step of volume macro resulting in unpredictable behavior, but I don't feel like implementing THAT...
+              if (song.legacyVolumeSlides) {
                   chan[i].volume=chan[i].volMax+1;
                 } else {
                   chan[i].volume=0;
@@ -1762,7 +2278,8 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
                 dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
               }
             } else if (chan[i].tremoloDepth>0) {
-              chan[i].tremoloPos+=chan[i].tremoloRate;
+              // tremolo (increase position in look-up table and send a volume change)
+            chan[i].tremoloPos+=chan[i].tremoloRate;
               chan[i].tremoloPos&=127;
               dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,MAX(0,chan[i].volume-(tremTable[chan[i].tremoloPos]*chan[i].tremoloDepth))>>8));
             }
@@ -1772,7 +2289,8 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
           if (chan[i].panSpeed!=0) {
             int newPanL=chan[i].panL;
             int newPanR=chan[i].panR;
-            if (chan[i].panSpeed>0) { // right
+            // increase one side until it has reached max. then decrease the other.
+          if (chan[i].panSpeed>0) { // right
               if (newPanR>=0xff) {
                 newPanL-=chan[i].panSpeed;
               } else {
@@ -1786,21 +2304,26 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
               }
             }
 
-            if (newPanL<0) newPanL=0;
+            // clamp to boundaries
+          if (newPanL<0) newPanL=0;
             if (newPanL>0xff) newPanL=0xff;
             if (newPanR<0) newPanR=0;
             if (newPanR>0xff) newPanR=0xff;
 
-            chan[i].panL=newPanL;
+            // set new pan
+          chan[i].panL=newPanL;
             chan[i].panR=newPanR;
 
-            dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
+            // send panning command
+          dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
           } else if (chan[i].panDepth>0) {
-            chan[i].panPos+=chan[i].panRate;
+            // panbrello, similar to vibrato and tremolo
+          chan[i].panPos+=chan[i].panRate;
             chan[i].panPos&=255;
 
             // calculate inverted...
-            switch (chan[i].panPos&0xc0) {
+            // split position into four sections and calculate panning value
+          switch (chan[i].panPos&0xc0) {
               case 0: // center -> right
                 chan[i].panL=((chan[i].panPos&0x3f)<<2);
                 chan[i].panR=0;
@@ -1833,12 +2356,15 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
           // vibrato
           if (chan[i].vibratoDepth>0) {
             chan[i].vibratoPos+=chan[i].vibratoRate;
-            while (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
+            // clamp vibrato position
+          while (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
 
-            chan[i].vibratoPosGiant+=chan[i].vibratoRate;
+            // this is for the GUI's pattern visualizer
+          chan[i].vibratoPosGiant+=chan[i].vibratoRate;
             while (chan[i].vibratoPosGiant>=512) chan[i].vibratoPosGiant-=512;
 
-            int vibratoOut=0;
+            // look-up table
+          int vibratoOut=0;
             switch (chan[i].vibratoShape) {
               case 1: // sine, up only
                 vibratoOut=MAX(0,vibTable[chan[i].vibratoPos]);
@@ -1884,13 +2410,15 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
                 vibratoOut=vibTable[chan[i].vibratoPos];
                 break;
             }
-            dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibratoOut*chan[i].vibratoFine)>>4)/15)));
+            // vibrato and pitch are merged into one
+          dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibratoOut*chan[i].vibratoFine)>>4)/15)));
           }
 
           // delayed legato
           if (chan[i].legatoDelay>0) {
             if (--chan[i].legatoDelay<1) {
-              chan[i].note+=chan[i].legatoTarget;
+              // change note and send legato
+            chan[i].note+=chan[i].legatoTarget;
               dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
               dispatchCmd(DivCommand(DIV_CMD_HINT_LEGATO,i,chan[i].note));
               chan[i].legatoDelay=-1;
@@ -1899,15 +2427,27 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
           }
 
           // portamento and pitch slides
-          if (!song.noSlidesOnFirstTick || !firstTick) {
-            if ((chan[i].keyOn || chan[i].keyOff) && chan[i].portaSpeed>0) {
-              if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch==2?song.pitchSlideSpeed:1),chan[i].portaNote))==2 && chan[i].portaStop && song.targetResetsSlides) {
-                chan[i].portaSpeed=0;
+          // COMPAT FLAG: don't slide on the first tick of a row
+        // - Amiga/PC tracker behavior where slides and vibrato do not take course during the first tick of a row
+        if (!song.noSlidesOnFirstTick || !firstTick) {
+            // portamento only runs if the channel has been used and the porta speed is higher than 0
+          if ((chan[i].keyOn || chan[i].keyOff) && chan[i].portaSpeed>0) {
+              // send a portamento update command to the dispatch.
+            // it returns whether the portamento is complete and has reached the target note.
+            // COMPAT FLAG: pitch linearity
+            // - 0: none (pitch control and slides non-linear)
+            // - 1: full (pitch slides linear... we multiply the portamento speed by a user-defined multiplier)
+            // COMPAT FLAG: reset pitch slide/portamento upon reaching target (inverted in the GUI)
+            // - when disabled, portamento remains active after it has finished
+            if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch?song.pitchSlideSpeed:1),chan[i].portaNote))==2 && chan[i].portaStop && song.targetResetsSlides) {
+                // if we are here, it means we reached the target and shall stop
+              chan[i].portaSpeed=0;
                 dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
                 chan[i].oldNote=chan[i].note;
                 chan[i].note=chan[i].portaNote;
                 chan[i].inPorta=false;
-                dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+                // send legato just in case
+              dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
                 dispatchCmd(DivCommand(DIV_CMD_HINT_LEGATO,i,chan[i].note));
               }
             }
@@ -1916,35 +2456,42 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
           // note cut
           if (chan[i].cut>0) {
             if (--chan[i].cut<1) {
-              if (chan[i].cutType==2) {
+              if (chan[i].cutType==2) { // macro release
                 dispatchCmd(DivCommand(DIV_CMD_ENV_RELEASE,i));
                 chan[i].releasing=true;
-              } else {
+              } else { // note off or release
                 chan[i].oldNote=chan[i].note;
                 //chan[i].note=-1;
-                if (chan[i].inPorta && song.noteOffResetsSlides) {
+                // COMPAT FLAG: reset slides on note off (inverted in the GUI)
+              // - a portamento/pitch slide will be halted upon encountering note off
+              // - this will not occur if the stopPortaOnNoteOff flag is on and this is a portamento
+              if (chan[i].inPorta && song.noteOffResetsSlides) {
                   chan[i].keyOff=true;
                   chan[i].keyOn=false;
-                  if (chan[i].stopOnOff) {
+                  // stopOnOff will be false if stopPortaOnNoteOff flag is off
+                if (chan[i].stopOnOff) {
                     chan[i].portaNote=-1;
                     chan[i].portaSpeed=-1;
                     dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
                     chan[i].stopOnOff=false;
                   }
-                  if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
+                  // depending on the system, portamento may still be disabled
+                if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
                     chan[i].portaNote=-1;
                     chan[i].portaSpeed=-1;
                     dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
                   }
                   dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
-                  chan[i].scheduledSlideReset=true;
+                  // another compatibility hack which schedules a second reset later just in case
+                chan[i].scheduledSlideReset=true;
                 }
-                if (chan[i].cutType==1) {
+                if (chan[i].cutType==1) { // note release
                   dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,i));
-                } else {
+                } else { // note off
                   dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
                 }
-                chan[i].releasing=true;
+                // I am not sure why is this here and not inside the previous statement
+              chan[i].releasing=true;
               }
             }
           }
@@ -1960,19 +2507,26 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
 
           // arpeggio
           if (chan[i].resetArp) {
-            dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+            // if we must reset arp, sent a legato with the current note
+          dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
             dispatchCmd(DivCommand(DIV_CMD_HINT_LEGATO,i,chan[i].note));
             chan[i].resetArp=false;
           }
-          if (song.rowResetsArpPos && firstTick) {
+          // COMPAT FLAG: reset arp position on row change
+        // - simulates Amiga/PC tracker behavior where the next row resets arp pos
+        if (song.rowResetsArpPos && firstTick) {
             chan[i].arpStage=-1;
           }
-          if (chan[i].arp!=0 && !chan[i].arpYield && chan[i].portaSpeed<1) {
+          // arpeggio (actually)
+        // don't run it if arp yield is enabled (which will be if a compat flag is on)
+        if (chan[i].arp!=0 && !chan[i].arpYield && chan[i].portaSpeed<1) {
             if (--chan[i].arpTicks<1) {
               chan[i].arpTicks=curSubSong->arpLen;
-              chan[i].arpStage++;
+              // there are three arp stages, corresponding to note, note+x and note+y in the 00xy effect
+            chan[i].arpStage++;
               if (chan[i].arpStage>2) chan[i].arpStage=0;
-              switch (chan[i].arpStage) {
+              // arp is sent as legato
+            switch (chan[i].arpStage) {
                 case 0:
                   dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
                   break;
@@ -1985,27 +2539,31 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
               }
             }
           } else {
-            chan[i].arpYield=false;
+            // acknowledge arp yield
+          chan[i].arpYield=false;
           }
         }
       }
     } else {
-      // still tick the subtick counter
+      // we are in freelance mode
+    // still tick the subtick counter
       if (--subticks<=0) {
         subticks=tickMult;
       }
     }
   }
 
+  // tick the command stream player if one is attached
   if (subticks==tickMult && cmdStreamInt) {
     if (!cmdStreamInt->tick()) {
       // !!!
     }
   }
 
-
+  // this was set by nextRow()
   firstTick=false;
 
+  // acknowledge request to stop playback
   if (shallStop) {
     freelance=false;
     playing=false;
@@ -2029,50 +2587,64 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     return ret;
   }
 
-  // system tick
+  // tick all chip dispatches (the argument determines whether it is a system tick or a sub-tick)
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->tick(subticks==tickMult);
 
-  if(advanceSong)
-  {
-    if (!freelance) {
-      if (stepPlay!=1) {
-        if (!noAccum) {
-          double dt=divider*tickMult;
-          if (skipping) {
-            dt*=(double)virtualTempoN/(double)MAX(1,virtualTempoD);
-          }
-          totalTicksR++;
-          totalTicks+=1000000/dt;
-          totalTicksOff+=fmod(1000000.0,dt);
-          while (totalTicksOff>=dt) {
-            totalTicksOff-=dt;
-            totalTicks++;
-          }
+  // update playback time
+  if (!freelance) {
+    if (stepPlay!=1) {
+      if (!noAccum) {
+        double dt=divider*tickMult;
+        totalTicksR++;
+        totalTime.micros+=1000000/dt;
+        totalTimeDrift+=fmod(1000000.0,dt);
+        while (totalTimeDrift>=dt) {
+          totalTimeDrift-=dt;
+          totalTime.micros++;
         }
       }
+      if (totalTime.micros>=1000000) {
+        totalTime.micros-=1000000;
+        // who's gonna play a song for 68 years?
+        if (totalTime.seconds<0x7fffffff) totalTime.seconds++;
+        cmdsPerSecond=totalCmds-lastCmds;
+        lastCmds=totalCmds;
+      }
+    }
 
-      if (consoleMode && !disableStatusOut && subticks<=1 && !skipping) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000,curOrder,curSubSong->ordersLen,curRow,curSubSong->patLen,cmdsPerSecond);
+    // print status in console mode
+    if (consoleMode && !disableStatusOut && subticks<=1 && !skipping) {
+      String timeFormatted=totalTime.toString(2,TA_TIME_FORMAT_HMS);
+      fprintf(stderr,"\x1b[2K> %s  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",timeFormatted.c_str(),curOrder,curSubSong->ordersLen,curRow,curSubSong->patLen,cmdsPerSecond);
     }
   }
 
+  
+  // halt engine if requested (debug menu)
   if (haltOn==DIV_HALT_TICK) halted=true;
 
   return ret;
 }
 
+// returns the buffer position. used by audio export.
 int DivEngine::getBufferPos() {
   return bufferPos;
 }
 
+// runs MIDI clock.
 void DivEngine::runMidiClock(int totalCycles) {
+  // not in freelance mode
   if (freelance) return;
   midiClockCycles-=totalCycles;
+  // run by the amount of cycles
   while (midiClockCycles<=0) {
+    // send MIDI clock event
     curMidiClock++;
     if (output) if (!skipping && output->midiOut!=NULL && midiOutClock) {
       output->midiOut->send(TAMidiMessage(TA_MIDI_CLOCK,0,0));
     }
 
+    // calculate tempo using highlight, timeBase, tick rate, speeds and virtual tempo
     double hl=curSubSong->hilightA;
     if (hl<=0.0) hl=4.0;
     double timeBase=curSubSong->timeBase+1;
@@ -2086,10 +2658,13 @@ void DivEngine::runMidiClock(int totalCycles) {
     if (speedSum<1.0) speedSum=1.0;
     if (vD<1) vD=1;
     double bpm=((24.0*divider)/(timeBase*hl*speedSum))*(double)virtualTempoN/vD;
+    // avoid a division by zer
     if (bpm<1.0) bpm=1.0;
     int increment=got.rate/(bpm);
+    // increment should be at least 1
     if (increment<1) increment=1;
 
+    // drift is for precision
     midiClockCycles+=increment;
     midiClockDrift+=fmod(got.rate,(double)(bpm));
     if (midiClockDrift>=(bpm)) {
@@ -2099,9 +2674,13 @@ void DivEngine::runMidiClock(int totalCycles) {
   }
 }
 
+// runs MIDI timecode.
 void DivEngine::runMidiTime(int totalCycles) {
+  // not in freelance mode
   if (freelance) return;
+  // not if the rate is too low
   if (got.rate<1) return;
+  // run by the amount of cycles
   midiTimeCycles-=totalCycles;
   while (midiTimeCycles<=0) {
     if (curMidiTimePiece==0) {
@@ -2111,6 +2690,7 @@ void DivEngine::runMidiTime(int totalCycles) {
 
     double frameRate=96.0;
     int timeRate=midiOutTimeRate;
+    // determine the rate depending on tick rate if set to automatic
     if (timeRate<1 || timeRate>4) {
       if (curSubSong->hz>=47.98 && curSubSong->hz<=48.02) {
         timeRate=1;
@@ -2123,6 +2703,7 @@ void DivEngine::runMidiTime(int totalCycles) {
       }
     }
 
+    // calculate the current time
     int hour=0;
     int minute=0;
     int second=0;
@@ -2167,6 +2748,7 @@ void DivEngine::runMidiTime(int totalCycles) {
         break;
     }
 
+    // output timecode
     if (output) if (!skipping && output->midiOut!=NULL && midiOutTime) {
       unsigned char val=0;
       switch (curMidiTimePiece) {
@@ -2209,6 +2791,8 @@ void DivEngine::runMidiTime(int totalCycles) {
   }
 }
 
+// these two functions are either leftovers or something or they are there for test purposes.
+// I don't remember very well.
 void _runDispatch1(void* d) {
 }
 
@@ -2216,24 +2800,32 @@ void _runDispatch2(void* d) {
 
 }
 
+// this fills the audio buffer and runs tbe engine.
+// called by the audio backend and during audio export.
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
+  // debug information
   lastNBIns=inChans;
   lastNBOuts=outChans;
   lastNBSize=size;
 
+  // don't fill a buffer if the size is 0
   if (!size) {
     logW("nextBuf called with size 0!");
     return;
   }
   lastLoopPos=-1;
 
+  // clear the output
   if (out!=NULL) {
     for (int i=0; i<outChans; i++) {
       memset(out[i],0,size*sizeof(float));
     }
   }
 
+  // check the mutex.
+  // soft-locking happens when synchronizedSoft is called.
   if (softLocked) {
+    // in this case we just return
     if (!isBusy.try_lock()) {
       logV("audio is soft-locked (%d)",softLockCount++);
       return;
@@ -2243,8 +2835,10 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
   got.bufsize=size;
 
+  // this is used to calculate audio load
   std::chrono::steady_clock::time_point ts_processBegin=std::chrono::steady_clock::now();
 
+  // set up the render thread pool
   if (renderPool==NULL) {
     unsigned int howManyThreads=song.systemLen;
     if (howManyThreads<2) howManyThreads=0;
@@ -2252,9 +2846,10 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     renderPool=new DivWorkPool(howManyThreads);
   }
 
-  // process MIDI events (TODO: everything)
+  // process MIDI input events
   if (output) if (output->midiIn) while (!output->midiIn->queue.empty()) {
     TAMidiMessage& msg=output->midiIn->queue.front();
+    // print MIDI events if MIDI debug is enabled
     if (midiDebug) {
       if (msg.type==TA_MIDI_SYSEX) {
         logD("MIDI debug: %.2X SysEx",msg.type);
@@ -2262,17 +2857,28 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         logD("MIDI debug: %.2X %.2X %.2X",msg.type,msg.data[0],msg.data[1]);
       }
     }
+    // call the MIDI callback, which may process this event further.
+    // the function should return an instrument index, which will be used
+    // for all forthcoming notes.
+    // special values:
+    // - -1: don't change
+    // - -2: "preview" instrument
+    // - -3: cancel event (do not add to pending notes)
     int ins=-1;
     if ((ins=midiCallback(msg))!=-3) {
+      // process event if not canceled
       int chan=msg.type&15;
       switch (msg.type&0xf0) {
         case TA_MIDI_NOTE_OFF: {
           if (midiIsDirect) {
+            // in direct mode, map the event directly to the channel
             if (chan<0 || chan>=chans) break;
             pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false,false,true));
           } else {
+            // find a suitable channel and add this event to the queue
             autoNoteOff(msg.type&15,msg.data[0]-12,msg.data[1]);
           }
+          // start the engine if necessary
           if (!playing) {
             reset();
             freelance=true;
@@ -2281,24 +2887,31 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           break;
         }
         case TA_MIDI_NOTE_ON: {
+          // trigger note off if the velocity is 0
           if (msg.data[1]==0) {
             if (midiIsDirect) {
+              // in direct mode, map the event directly to the channel
               if (chan<0 || chan>=chans) break;
               pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false,false,true));
             } else {
+              // find a suitable channel and add this event to the queue
               autoNoteOff(msg.type&15,msg.data[0]-12,msg.data[1]);
             }
           } else {
             if (midiIsDirect) {
+              // in direct mode, map the event directly to the channel
               if (chan<0 || chan>=chans) break;
               pendingNotes.push_back(DivNoteEvent(chan,ins,msg.data[0]-12,msg.data[1],true,false,true));
             } else {
+              // find a suitable channel and add this event to the queue
               autoNoteOn(msg.type&15,ins,msg.data[0]-12,msg.data[1]);
             }
           }
           break;
         }
         case TA_MIDI_PROGRAM: {
+          // program changes in direct mode are handled here
+          // the GUI should cancel this event and change the current instrument
           if (midiIsDirect && midiIsDirectProgram) {
             pendingNotes.push_back(DivNoteEvent(chan,msg.data[0],0,0,false,true,true));
           }
@@ -2312,24 +2925,31 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     output->midiIn->queue.pop();
   }
   
-  // process sample/wave preview
+  // process sample/wave preview (not during audio export)
   if (((sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) || (sPreview.wave>=0 && sPreview.wave<(int)song.wave.size())) && !exporting) {
+    // we use blip_buf to pitch the sample
     unsigned int samp_bbOff=0;
+    // if there are samples, flush them (this can happen when the playback
+    // rate is less than the output rate)
     unsigned int prevAvail=blip_samples_avail(samp_bb);
     if (prevAvail>size) prevAvail=size;
     if (prevAvail>0) {
       blip_read_samples(samp_bb,samp_bbOut,prevAvail,0);
       samp_bbOff=prevAvail;
     }
+    // prepare to fill the buffer
     size_t prevtotal=blip_clocks_needed(samp_bb,size-prevAvail);
 
+    // play the sample
     if (sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) {
       DivSample* s=song.sample[sPreview.sample];
 
       for (size_t i=0; i<prevtotal; i++) {
         if (sPreview.pos>=(int)s->samples || (sPreview.pEnd>=0 && sPreview.pos>=sPreview.pEnd)) {
+          // zero if out of bounds
           samp_temp=0;
         } else {
+          // fetch sample
           samp_temp=s->data16[sPreview.pos];
           if (--sPreview.posSub<=0) {
             sPreview.posSub=sPreview.rateMul;
@@ -2340,9 +2960,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
             }
           }
         }
+        // insert sample
         blip_add_delta(samp_bb,i,samp_temp-samp_prevSample);
         samp_prevSample=samp_temp;
 
+        // check playback direction and move needle
         if (sPreview.dir) { // backward
           if (sPreview.pos<s->loopStart || (sPreview.pBegin>=0 && sPreview.pos<sPreview.pBegin)) {
             if (s->isLoopable() && sPreview.pos<s->loopEnd) {
@@ -2459,24 +3081,30 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     memset(samp_bbOut,0,size*sizeof(short));
   }
 
-  // process audio
+  // process audio (run the engine)
   bool mustPlay=playing && !halted;
   if (mustPlay) {
     // logic starts here
+    // first reset the run position of all dispatches
     for (int i=0; i<song.systemLen; i++) {
       disCont[i].runPos=0;
     }
 
+    // resize the metronome tick buffer if necessary
     if (metroTickLen<size) {
       if (metroTick!=NULL) delete[] metroTick;
       metroTick=new unsigned char[size];
       metroTickLen=size;
     }
 
+    // reset the metronome tick buffer
     memset(metroTick,0,size);
 
+    // this variable counts how many loops we had to go through in order to fill audio buffer
+    // it prevents hangs under extraordinary bug situations
     int attempts=0;
     int runLeftG=size;
+    // run until the buffer is full or we believe the engine stalled
     while (++attempts<(int)size) {
       // -1. set bufferPos
       bufferPos=size-runLeftG;
@@ -2492,9 +3120,24 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         if (nextTick()) {
           /*totalTicks=0;
           totalSeconds=0;*/
+          // used by audio export to determine how many samples to write (otherwise it'll add silence at the end)
           lastLoopPos=size-runLeftG;
           logD("last loop pos: %d for a size of %d and runLeftG of %d",lastLoopPos,size,runLeftG);
+          // if file player is synchronized then set its position to that of the loop row
+          if (curFilePlayer && filePlayerSync) {
+            if (curFilePlayer->isPlaying()) {
+              TimeMicros rowTS=curSubSong->ts.loopStartTime;
+
+              if (rowTS.seconds==-1) {
+                logW("that row isn't supposed to play. report this now!");
+              }
+
+              curFilePlayer->setPosSeconds(rowTS+filePlayerCue,lastLoopPos);
+            }
+          }
+          // increase total loop count
           totalLoops++;
+          // stop playing once we hit a specific number of loops (set during audio export)
           if (remainingLoops>0) {
             remainingLoops--;
             if (!remainingLoops) {
@@ -2507,6 +3150,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
             }
           }
         }
+        // check whether we gotta insert a metronome tick
         if (pendingMetroTick) {
           unsigned int realPos=size-runLeftG;
           if (realPos>=size) realPos=size-1;
@@ -2514,6 +3158,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           pendingMetroTick=0;
         }
       } else {
+        // we don't have to tick yet. run chip dispatches.
         // 3. run MIDI clock
         int midiTotal=MIN(cycles,runLeftG);
         runMidiClock(midiTotal);
@@ -2522,7 +3167,9 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         runMidiTime(midiTotal);
 
         // 5. tick the clock and fill buffers as needed
+        // check which is nearest: a tick or end of audio buffer
         if (cycles<runLeftG) {
+          // a tick will happen before the buffer ends
           // run until the end of this tick
           for (int i=0; i<song.systemLen; i++) {
             disCont[i].cycles=cycles;
@@ -2543,6 +3190,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
                 }
               }
               
+              // if the buffer is too small, resize it
               int total=blip_clocks_needed(dc->bb[0],dc->cycles);
               if (total>(int)dc->bbInLen) {
                 logD("growing dispatch %p bbIn to %d",(void*)dc,total+256);
@@ -2550,6 +3198,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
               }
               dc->acquire(total);
               dc->fillBuf(total,dc->runPos,dc->cycles);
+              // advance run position
               dc->runPos+=dc->cycles;
             },&disCont[i]);
           }
@@ -2557,6 +3206,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           runLeftG-=cycles;
           cycles=0;
         } else {
+          // the buffer will end before a tick happens
           // run until the end of this audio buffer
           cycles-=runLeftG;
           for (int i=0; i<song.systemLen; i++) {
@@ -2586,21 +3236,26 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
               dc->fillBuf(total,dc->runPos,dc->cycles);
             },&disCont[i]);
           }
+          // at this point runLeftG will be zero and we can break out of the loop
           runLeftG=0;
           renderPool->wait();
         }
       }
     }
 
+    // complain and stop playback if we believe the engine has stalled
     //logD("attempts: %d",attempts);
     if (attempts>=(int)(size+10)) {
-      logE("hang detected! stopping! at %d seconds %d micro (%d>=%d)",totalSeconds,totalTicks,attempts,(int)size);
+      logE("hang detected! stopping! at %s (%d>=%d)",totalTime.toString(),attempts,(int)size);
       freelance=false;
       playing=false;
       extValuePresent=false;
     }
+    // this is also used by audio export to cut out unnecessary silence after a stop song effect (FFxx)
     totalProcessed=size-runLeftG;
 
+    // complain if a dispatch's audio buffer must be flushed and our audio buffer is too small for it
+    // this may happen when a chip's output rate is lower than the sample rate
     for (int i=0; i<song.systemLen; i++) {
       if (size<disCont[i].lastAvail) {
         logW("%d: size<lastAvail! %d<%d",i,size,disCont[i].lastAvail);
@@ -2616,7 +3271,25 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     renderPool->wait();
   }
 
+  // process file player
+  // resize file player audio buffer if necessary
+  if (filePlayerBufLen<size) {
+    for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+      if (filePlayerBuf[i]!=NULL) delete[] filePlayerBuf[i];
+      filePlayerBuf[i]=new float[size];
+    }
+    filePlayerBufLen=size;
+  }
+  if (curFilePlayer!=NULL && !exporting) {
+    curFilePlayer->mix(filePlayerBuf,outChans,size);
+  } else {
+    for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+      memset(filePlayerBuf[i],0,size*sizeof(float));
+    }
+  }
+
   // process metronome
+  // resize the metronome's audio buffer if necessary
   if (metroBufLen<size || metroBuf==NULL) {
     if (metroBuf!=NULL) delete[] metroBuf;
     metroBuf=new float[size];
@@ -2625,6 +3298,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   memset(metroBuf,0,metroBufLen*sizeof(float));
 
+  // insert metronome ticks
+  // a 1400Hz tick is used for bars (highlight 2) and a 1050Hz one for beats (highlight 1)
   if (mustPlay && metronome && !freelance) {
     for (size_t i=0; i<size; i++) {
       if (metroTick[i]) {
@@ -2636,11 +3311,13 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         metroPos=0;
         metroAmp=0.7f;
       }
+      // mix in the tick
       if (metroAmp>0.0f) {
         for (int j=0; j<outChans; j++) {
           metroBuf[i]=(sin(metroPos*2*M_PI))*metroAmp*metroVol;
         }
       }
+      // decay
       metroAmp-=0.0003f;
       if (metroAmp<0.0f) metroAmp=0.0f;
       metroPos+=metroFreq;
@@ -2648,8 +3325,22 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     }
   }
 
-  // resolve patchbay
+  // calculate volume of reference file player (so we can attenuate the rest according to the mix slider)
+  // -1 to 0: player volume goes from 0% to 100%
+  // 0 to +1: tracker volume goes from 100% to 0%
+  float refPlayerVol=1.0f;
+  if (curFilePlayer!=NULL) {
+    // only if the player window is open
+    if (curFilePlayer->getActive()) {
+      refPlayerVol=1.0f-curFilePlayer->getVolume();
+      if (refPlayerVol<0.0f) refPlayerVol=0.0f;
+      if (refPlayerVol>1.0f) refPlayerVol=1.0f;
+    }
+  }
+
+  // now mix everything (resolve patchbay)
   for (unsigned int i: song.patchbay) {
+    // there are 4096 portsets. each portset may have up to 16 outputs (subports).
     const unsigned short srcPort=i>>16;
     const unsigned short destPort=i&0xffff;
 
@@ -2658,18 +3349,19 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     const unsigned char srcSubPort=srcPort&15;
     const unsigned char destSubPort=destPort&15;
 
-    // null portset
+    // null portset (disconnected)
     if (destPortSet==0xfff) continue;
 
-    // system outputs
+    // system outputs (the audio buffer)
     if (destPortSet==0x000) {
       if (destSubPort>=outChans) continue;
 
       // chip outputs
       if (srcPortSet<song.systemLen && playing && !halted) {
         if (srcSubPort<disCont[srcPortSet].dispatch->getOutputCount()) {
-          float vol=song.systemVol[srcPortSet]*disCont[srcPortSet].dispatch->getPostAmp()*song.masterVol;
+          float vol=song.systemVol[srcPortSet]*disCont[srcPortSet].dispatch->getPostAmp()*song.masterVol*refPlayerVol;
 
+          // apply volume and panning
           switch (destSubPort&3) {
             case 0:
               vol*=MIN(1.0f,1.0f-song.systemPan[srcPortSet])*MIN(1.0f,1.0f+song.systemPanFR[srcPortSet]);
@@ -2689,6 +3381,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
             out[destSubPort][j]+=((float)disCont[srcPortSet].bbOut[srcSubPort][j]/32768.0)*vol;
           }
         }
+      } else if (srcPortSet==0xffc) {
+        // file player
+        for (size_t j=0; j<size; j++) {
+          out[destSubPort][j]+=filePlayerBuf[srcSubPort][j];
+        }
       } else if (srcPortSet==0xffd) {
         // sample preview
         for (size_t j=0; j<size; j++) {
@@ -2707,7 +3404,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     // nothing/invalid
   }
 
-  // dump to oscillator buffer
+  // dump to oscillator buffer (a ring buffer)
   for (unsigned int i=0; i<size; i++) {
     for (int j=0; j<outChans; j++) {
       if (oscBuf[j]==NULL) continue;
@@ -2716,6 +3413,38 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     if (++oscWritePos>=32768) oscWritePos=0;
   }
   oscSize=size;
+
+  // get per-chip peaks
+  float decay=2.f*size/got.rate;
+  for (int i=0; i<song.systemLen; i++) {
+    DivDispatch* disp=disCont[i].dispatch;
+    if (disp==NULL) continue;
+    for (int j=0; j<disp->getOutputCount(); j++) {
+      if (disCont[i].bbOut[j]==NULL) continue;
+      chipPeak[i][j]*=1.0-decay;
+      float peak=chipPeak[i][j];
+      for (unsigned int k=0; k<size; k++) {
+        float out=disCont[i].bbOut[j][k]*song.systemVol[i]*disp->getPostAmp()/32768.0f; // TODO: PARSE PANNING, FRONT/REAR AND PATCHBAY
+        // switch (j) {
+        //   case 0:
+        //     out*=MIN(1.0f,1.0f-song.systemPan[i])*MIN(1.0f,1.0f+song.systemPanFR[i]);
+        //     break;
+        //   case 1:
+        //     out*=MIN(1.0f,1.0f+song.systemPan[i])*MIN(1.0f,1.0f+song.systemPanFR[i]);
+        //     break;
+        //   case 2:
+        //     out*=MIN(1.0f,1.0f-song.systemPan[i])*MIN(1.0f,1.0f-song.systemPanFR[i]);
+        //     break;
+        //   case 3:
+        //     out*=MIN(1.0f,1.0f+song.systemPan[i])*MIN(1.0f,1.0f-song.systemPanFR[i]);
+        //     break;
+        //   default: break;
+        // }
+        if (out>peak) peak=out;
+      }
+      chipPeak[i][j]+=(peak-chipPeak[i][j])*0.9;
+    }
+  }
 
   // force mono audio (if enabled)
   if (forceMono && outChans>1) {
@@ -2735,8 +3464,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   if (clampSamples) {
     for (size_t i=0; i<size; i++) {
       for (int j=0; j<outChans; j++) {
-        if (out[j][i]<-1.0) out[j][i]=-1.0;
-        if (out[j][i]>1.0) out[j][i]=1.0;
+        if (out[j][i]<-0.9999) out[j][i]=-0.9999;
+        if (out[j][i]>0.9999) out[j][i]=0.9999;
       }
     }
   }
@@ -2744,5 +3473,6 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   std::chrono::steady_clock::time_point ts_processEnd=std::chrono::steady_clock::now();
 
+  // this is shown in the GUI as audio load
   processTime=std::chrono::duration_cast<std::chrono::nanoseconds>(ts_processEnd-ts_processBegin).count();
 }

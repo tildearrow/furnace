@@ -68,6 +68,16 @@ each chip has its own set of limitations regarding what frequencies it can play.
 
 not yet, but it's in the early development stage.
 
+### why do some key combinations not work, such as Ctrl-F1 or Ctrl-F3?
+
+check whether another application has set these combinations as global hotkeys/shortcuts.
+if that's the case, you have two choices:
+
+- disable conflicting binds set by other applications, or
+- bind the non-working key combination to another key or key combination. go to Settings > Keyboard to do so.
+
+on Linux and other Unix/Unix-like operating systems, KDE Plasma binds Ctrl-F1 to Ctrl-F4 to select virtual desktops by default. this interferes with Furnace's transpose key combinations.
+
 ## chips
 
 ### will Furnace support the Sony PlayStation?

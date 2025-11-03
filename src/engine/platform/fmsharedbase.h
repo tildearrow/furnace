@@ -147,6 +147,7 @@ class DivPlatformFMBase: public DivDispatch {
       lastBusy(0),
       delay(0),
       flushFirst(false) {}
+    virtual ~DivPlatformFMBase() {}
 };
 
 #endif

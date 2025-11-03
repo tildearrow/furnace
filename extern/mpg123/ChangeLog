@@ -1,0 +1,5 @@
+This is a dummy file. If you want to see the change log, use subversion:
+
+	svn log -v svn://scm.orgis.org/mpg123
+
+The tool svn2cl provides nice formatting in traditional ChangeLog style.

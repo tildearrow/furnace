@@ -98,6 +98,7 @@ if (ENABLE_EXTERNAL_LIBS AND NOT (Vorbis_FOUND OR FLAC_FOUND OR OPUS_FOUND))
 	set (ENABLE_EXTERNAL_LIBS OFF)
 endif()
 if(ENABLE_MPEG AND (NOT HAVE_MPEG_LIBS))
+        message(FATAL_ERROR "NO MPEG FOR YOU")
 	set (ENABLE_MPEG OFF)
 endif()
 if (BUILD_REGTEST AND (NOT SQLITE3_FOUND))
@@ -396,7 +397,8 @@ target_link_libraries (sndfile
 		$<$<BOOL:${HAVE_EXTERNAL_XIPH_LIBS}>:FLAC::FLAC>
 		$<$<AND:$<BOOL:${ENABLE_EXPERIMENTAL}>,$<BOOL:${HAVE_EXTERNAL_XIPH_LIBS}>,$<BOOL:${HAVE_SPEEX}>>:Speex::Speex>
 		$<$<BOOL:${HAVE_EXTERNAL_XIPH_LIBS}>:Opus::opus>
-		$<$<BOOL:${HAVE_MPEG}>:MPG123::libmpg123>
+                # tildearrow: oh my freaking
+		$<$<BOOL:${HAVE_MPEG}>:MPG123::mpg123>
 		$<$<BOOL:${HAVE_MPEG}>:mp3lame::mp3lame>
 	)
 set_target_properties (sndfile PROPERTIES

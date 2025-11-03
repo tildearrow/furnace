@@ -178,11 +178,13 @@ TAParamResult pAudio(String val) {
     e.setAudio(DIV_AUDIO_SDL);
   } else if (val=="portaudio") {
     e.setAudio(DIV_AUDIO_PORTAUDIO);
+  } else if (val=="asio") {
+    e.setAudio(DIV_AUDIO_ASIO);
   } else if (val=="pipe") {
     e.setAudio(DIV_AUDIO_PIPE);
     changeLogOutput(stderr);
   } else {
-    logE("invalid value for audio engine! valid values are: jack, sdl, portaudio, pipe.");
+    logE("invalid value for audio engine! valid values are: jack, sdl, portaudio, asio, pipe.");
     return TA_PARAM_ERROR;
   }
   return TA_PARAM_SUCCESS;
@@ -274,18 +276,36 @@ TAParamResult pLogLevel(String val) {
 TAParamResult pVersion(String) {
   printf("Furnace version " DIV_VERSION ".\n\n");
   printf("copyright (C) 2021-2025 tildearrow and contributors.\n");
+#ifdef FURNACE_GPL3
+  printf("licensed under the GNU General Public License version 3\n");
+  printf("<https://www.gnu.org/licenses/gpl-3.0.en.html>.\n\n");
+#else
   printf("licensed under the GNU General Public License version 2 or later\n");
   printf("<https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.\n\n");
+#endif
   printf("this is free software with ABSOLUTELY NO WARRANTY.\n");
   printf("pass the -warranty parameter for more information.\n\n");
   printf("DISCLAIMER: this program is not affiliated with Delek in any form.\n");
   printf("\n");
   printf("furnace is powered by:\n");
   printf("- libsndfile by Erik de Castro Lopo and rest of libsndfile team (LGPLv2.1)\n");
+#ifdef HAVE_OGG
+  printf("- libogg by Xiph.Org Foundation (Xiph.Org, BSD-like license)\n");
+  printf("- libvorbis by Xiph.Org Foundation (Xiph.Org, BSD-like license)\n");
+  printf("- FLAC library by Xiph.Org Foundation (Xiph.Org, BSD-like license)\n");
+  printf("- libopus by Xiph.Org and contributors (BSD 3-clause)\n");
+#endif
+#ifdef HAVE_MP3_EXPORT
+  printf("- libmpg123 by Michael Hipp, Thomas Orgis, Taihei Momma and contributors (LGPLv2.1)\n");
+  printf("- LAME by Mike Cheng, Mark Taylor and The LAME Project (LGPLv2)\n");
+#endif
   printf("- SDL2 by Sam Lantinga (zlib license)\n");
   printf("- zlib by Jean-loup Gailly and Mark Adler (zlib license)\n");
   printf("- PortAudio (PortAudio license)\n");
   printf("- Weak-JACK by x42 (GPLv2)\n");
+#ifdef HAVE_ASIO
+  printf("- ASIO® by Steinberg (GPLv3)\n");
+#endif
   printf("- RtMidi by Gary P. Scavone (RtMidi license)\n");
   printf("- backward-cpp by Google (MIT)\n");
   printf("- Dear ImGui by Omar Cornut (MIT)\n");
@@ -327,7 +347,7 @@ TAParamResult pVersion(String) {
   printf("- SAASound by Dave Hooper and Simon Owen (BSD 3-clause)\n");
   printf("- SameBoy by Lior Halphon (MIT)\n");
   printf("- Mednafen PCE, WonderSwan and Virtual Boy by Mednafen Team (GPLv2)\n");
-  printf("- Mednafen T6W28 by Blargg (GPLv2)\n");
+  printf("- Mednafen T6W28 (modified version) by Blargg (GPLv2)\n");
   printf("- WonderSwan new core by asiekierka (zlib license)\n");
   printf("- SNES DSP core by Blargg (LGPLv2.1)\n");
   printf("- puNES (modified version) by FHorse (GPLv2)\n");
@@ -351,10 +371,26 @@ TAParamResult pVersion(String) {
   printf("- SID3 emulator by LTVA (MIT)\n");
   printf("- openMSX YMF278 emulator (modified version) by the openMSX developers (GPLv2)\n");
   printf("- Adlib-related formats import routines adapted from adlib2vgm by SudoMaker (AGPL-3.0 license)\n");
+#ifdef HAVE_ASIO
+  printf("\nASIO is a registered trademark of Steinberg Media Technologies GmbH.\n");
+#endif
   return TA_PARAM_QUIT;
 }
 
 TAParamResult pWarranty(String) {
+#ifdef FURNACE_GPL3
+  printf("This program is free software: you can redistribute it and/or modify\n"
+         "it under the terms of the GNU General Public License as published by\n"
+         "the Free Software Foundation, version 3.\n\n"
+
+         "This program is distributed in the hope that it will be useful,\n"
+         "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+         "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+         "GNU General Public License for more details.\n\n"
+
+         "You should have received a copy of the GNU General Public License\n"
+         "along with this program.  If not, see <https://www.gnu.org/licenses/>.\n");
+#else
   printf("This program is free software; you can redistribute it and/or\n"
          "modify it under the terms of the GNU General Public License\n"
          "as published by the Free Software Foundation; either version 2\n"
@@ -368,6 +404,7 @@ TAParamResult pWarranty(String) {
          "You should have received a copy of the GNU General Public License\n"
          "along with this program; if not, write to the Free Software\n"
          "Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.\n");
+#endif
   return TA_PARAM_QUIT;
 }
 
@@ -579,7 +616,7 @@ int main(int argc, char** argv) {
   }
 
   // co initialize ex
-  HRESULT coResult=CoInitializeEx(NULL,COINIT_MULTITHREADED);
+  HRESULT coResult=CoInitializeEx(NULL,COINIT_APARTMENTTHREADED);
   if (coResult!=S_OK) {
     logE("CoInitializeEx failed!");
   }

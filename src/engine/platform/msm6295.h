@@ -52,7 +52,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
 
     unsigned char* adpcmMem;
     size_t adpcmMemLen;
-    bool sampleLoaded[256];
+    bool* sampleLoaded;
     unsigned char sampleBank;
 
     int delay, updateOsc;
@@ -68,7 +68,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
         bank(0),
         phrase(0),
         length(0) {}
-    } bankedPhrase[256];
+    }* bankedPhrase;
 
     DivMemoryComposition memCompo;
   
@@ -106,10 +106,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
 
     virtual int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) override;
     virtual void quit() override;
-    DivPlatformMSM6295():
-      DivDispatch(),
-      vgsound_emu_mem_intf(),
-      msm(*this) {}
+    DivPlatformMSM6295();
     ~DivPlatformMSM6295();
 };
 #endif

@@ -586,7 +586,7 @@ bool DivCSPlayer::tick() {
     }
 
     if (chan[i].portaSpeed) {
-      e->dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(e->song.linearPitch==2?e->song.pitchSlideSpeed:1),chan[i].portaTarget));
+      e->dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(e->song.linearPitch?e->song.pitchSlideSpeed:1),chan[i].portaTarget));
     }
     if (chan[i].arp && !chan[i].portaSpeed) {
       if (chan[i].arpTicks==0) {
@@ -681,6 +681,11 @@ bool DivCSPlayer::init() {
       }
       chan[i].readPos=chan[i].startPos;
     }
+  }
+  
+  // read stack sizes
+  for (unsigned int i=0; i<fileChans; i++) {
+    chan[i].callStackSize=stream.readC();
   }
 
   // initialize state

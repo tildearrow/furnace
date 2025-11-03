@@ -531,6 +531,16 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
     signed char subCycle=0;
     unsigned char subSubCycle=0;
 
+    // AY -> OPN
+    ay->runDAC();
+    ay->runTFX(rate);
+    ay->flushWrites();
+    for (DivRegWrite& i: ay->getRegisterWrites()) {
+      if (i.addr>15) continue;
+      immWrite(i.addr&15,i.val);
+    }
+    ay->getRegisterWrites().clear();
+
     for (int i=0; i<6; i++) {
       fmOut[i]=0;
     }
@@ -906,7 +916,7 @@ void DivPlatformYM2608::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
-      if (parent->song.linearPitch==2) {
+      if (parent->song.linearPitch) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[i].state.block);
       } else {
         int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2);
@@ -1385,7 +1395,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
         }
         break;
       }
-      if (c.chan>(5+isCSM) || parent->song.linearPitch==2) { // PSG, ADPCM-B
+      if (c.chan>(5+isCSM) || parent->song.linearPitch) { // PSG, ADPCM-B
         int destFreq=NOTE_OPNB(c.chan,c.value2+chan[c.chan].sampleNoteDelta);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
@@ -1991,7 +2001,7 @@ size_t DivPlatformYM2608::getSampleMemUsage(int index) {
 
 bool DivPlatformYM2608::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -2002,8 +2012,8 @@ const DivMemoryComposition* DivPlatformYM2608::getMemCompo(int index) {
 
 void DivPlatformYM2608::renderSamples(int sysID) {
   memset(adpcmBMem,0,getSampleMemCapacity(0));
-  memset(sampleOffB,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOffB,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="ADPCM";
@@ -2148,5 +2158,16 @@ void DivPlatformYM2608::quit() {
   delete[] adpcmBMem;
 }
 
+// initialization of important arrays
+DivPlatformYM2608::DivPlatformYM2608():
+  DivPlatformOPN(2, 6, 9, 15, 16, 9440540.0, 72, 32, false, 16),
+  prescale(0x2d),
+  isCSM(0) {
+  sampleOffB=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
 DivPlatformYM2608::~DivPlatformYM2608() {
+  delete[] sampleOffB;
+  delete[] sampleLoaded;
 }

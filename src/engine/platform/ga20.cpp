@@ -478,7 +478,7 @@ size_t DivPlatformGA20::getSampleMemUsage(int index) {
 
 bool DivPlatformGA20::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -489,8 +489,8 @@ const DivMemoryComposition* DivPlatformGA20::getMemCompo(int index) {
 
 void DivPlatformGA20::renderSamples(int sysID) {
   memset(sampleMem,0x00,getSampleMemCapacity());
-  memset(sampleOffGA20,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOffGA20,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="Sample ROM";
@@ -557,4 +557,18 @@ void DivPlatformGA20::quit() {
     delete[] ga20Buf[i];
     delete oscBuf[i];
   }
+}
+
+// initialization of important arrays
+DivPlatformGA20::DivPlatformGA20():
+  DivDispatch(),
+  iremga20_intf(),
+  ga20(*this) {
+  sampleOffGA20=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
+DivPlatformGA20::~DivPlatformGA20() {
+  delete[] sampleOffGA20;
+  delete[] sampleLoaded;
 }

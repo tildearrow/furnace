@@ -232,8 +232,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
   bool isMuted[32];
   signed short* sampleMem; // ES5506 uses 16 bit data bus for samples
   size_t sampleMemLen;
-  unsigned int sampleOffES5506[256];
-  bool sampleLoaded[256];
+  unsigned int* sampleOffES5506;
+  bool* sampleLoaded;
   struct QueuedHostIntf {
       unsigned char state;
       unsigned char step;
@@ -317,16 +317,15 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     virtual const void* getSampleMem(int index = 0) override;
     virtual size_t getSampleMemCapacity(int index = 0) override;
     virtual size_t getSampleMemUsage(int index = 0) override;
+    virtual size_t getSampleMemOffset(int index = 0) override;
     virtual bool isSampleLoaded(int index, int sample) override;
     virtual const DivMemoryComposition* getMemCompo(int index) override;
     virtual void renderSamples(int sysID) override;
     virtual const char** getRegisterSheet() override;
     virtual int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) override;
     virtual void quit() override;
-    DivPlatformES5506():
-      DivDispatch(),
-      es550x_intf(),
-      es5506(*this) {}
+    DivPlatformES5506();
+    ~DivPlatformES5506();
 };
 
 #endif

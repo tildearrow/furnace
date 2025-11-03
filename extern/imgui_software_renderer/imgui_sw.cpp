@@ -17,7 +17,6 @@
 struct ImGui_ImplSW_Data
 {
     SDL_Window*  Window;
-    SWTexture*   FontTexture;
 
     ImGui_ImplSW_Data() { memset((void*)this, 0, sizeof(*this)); }
 };
@@ -114,8 +113,6 @@ Barycentric operator+(const Barycentric &a, const Barycentric &b)
 // Useful operators on ImGui vectors:
 
 ImVec2 operator*(const float f, const ImVec2 &v) { return ImVec2{ f * v.x, f * v.y }; }
-
-bool operator!=(const ImVec2 &a, const ImVec2 &b) { return a.x != b.x || a.y != b.y; }
 
 ImVec4 operator*(const float f, const ImVec4 &v) { return ImVec4{ f * v.x, f * v.y, f * v.z, f * v.w }; }
 
@@ -539,7 +536,7 @@ static void paint_draw_cmd(const PaintTarget &target,
   const ImDrawCmd &pcmd,
   const ImVec2& white_uv)
 {
-  const SWTexture* texture = (const SWTexture*)(pcmd.TextureId);
+  const SWTexture* texture = (const SWTexture*)(pcmd.GetTexID());
   IM_ASSERT(texture);
 
   for (unsigned int i = 0; i + 3 <= pcmd.ElemCount;) {
@@ -649,6 +646,7 @@ static void paint_imgui(uint32_t *pixels, ImDrawData *drawData, int fb_width, in
 
 bool ImGui_ImplSW_Init(SDL_Window* win) {
   ImGuiIO& io = ImGui::GetIO();
+  ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
   IM_ASSERT(io.BackendRendererUserData == nullptr);
 
   if (SDL_HasWindowSurface(win)==SDL_FALSE) {
@@ -659,6 +657,9 @@ bool ImGui_ImplSW_Init(SDL_Window* win) {
   bd->Window = win;
   io.BackendRendererUserData = (void*)bd;
   io.BackendRendererName = "imgui_sw";
+  io.BackendFlags |= ImGuiBackendFlags_RendererHasTextures;
+
+  platform_io.Renderer_TextureMaxWidth = platform_io.Renderer_TextureMaxHeight = (int)4096;
 
   return true;
 }
@@ -671,21 +672,28 @@ void ImGui_ImplSW_Shutdown() {
   ImGui_ImplSW_DestroyDeviceObjects();
   io.BackendRendererName = nullptr;
   io.BackendRendererUserData = nullptr;
+  io.BackendFlags &= ~ImGuiBackendFlags_RendererHasTextures;
   IM_DELETE(bd);
 }
 
-bool ImGui_ImplSW_NewFrame() {
+void ImGui_ImplSW_NewFrame() {
   ImGui_ImplSW_Data* bd = ImGui_ImplSW_GetBackendData();
+  // look I am USING THIS VARIABLE
+  // don't go around saying I don't use it
+  if (bd==NULL) abort();
   IM_ASSERT(bd != nullptr);
-
-  if (!bd->FontTexture) ImGui_ImplSW_CreateDeviceObjects();
-
-  return true;
 }
 
 void ImGui_ImplSW_RenderDrawData(ImDrawData* draw_data) {
   ImGui_ImplSW_Data* bd = ImGui_ImplSW_GetBackendData();
   IM_ASSERT(bd != nullptr);
+
+  // update textures if needed
+  if (draw_data->Textures!=NULL) {
+    for (ImTextureData* i: *draw_data->Textures) {
+      if (i->Status!=ImTextureStatus_OK) ImGui_ImplSW_UpdateTexture(i);
+    }
+  }
 
   SDL_Surface* surf = SDL_GetWindowSurface(bd->Window);
   if (!surf) return;
@@ -703,38 +711,88 @@ void ImGui_ImplSW_RenderDrawData(ImDrawData* draw_data) {
 
 /// CREATE OBJECTS
 
-bool ImGui_ImplSW_CreateFontsTexture() {
-  ImGuiIO &io = ImGui::GetIO();
-  ImGui_ImplSW_Data* bd = ImGui_ImplSW_GetBackendData();
-
-  // Load default font (embedded in code):
-  uint8_t *tex_data;
-  int font_width, font_height;
-  io.Fonts->GetTexDataAsAlpha8(&tex_data, &font_width, &font_height);
-  SWTexture* texture = new SWTexture((uint32_t*)tex_data,font_width,font_height,true);
-  io.Fonts->SetTexID(texture);
-  bd->FontTexture = texture;
-
+bool ImGui_ImplSW_CreateDeviceObjects() {
   return true;
 }
 
-void ImGui_ImplSW_DestroyFontsTexture() {
-  ImGuiIO& io = ImGui::GetIO();
-  ImGui_ImplSW_Data* bd = ImGui_ImplSW_GetBackendData();
-  if (bd->FontTexture)
-  {
-      delete bd->FontTexture;
-      io.Fonts->SetTexID(0);
-      bd->FontTexture = 0;
-  }
-}
-
-bool ImGui_ImplSW_CreateDeviceObjects() {
-  return ImGui_ImplSW_CreateFontsTexture();
-}
-
 void ImGui_ImplSW_DestroyDeviceObjects() {
-  ImGui_ImplSW_DestroyFontsTexture();
+}
+
+void ImGui_ImplSW_UpdateTexture(ImTextureData* tex) {
+  if (tex->Status==ImTextureStatus_WantCreate) {
+    SWTexture* t=new SWTexture(tex->Width,tex->Height,tex->Format==ImTextureFormat_Alpha8);
+    memcpy(t->pixels,tex->GetPixels(),tex->GetSizeInBytes());
+
+    tex->SetTexID((ImTextureID)t);
+    tex->SetStatus(ImTextureStatus_OK);
+  } else if (tex->Status==ImTextureStatus_WantUpdates) {
+    SWTexture* t=(SWTexture*)tex->GetTexID();
+
+    // we don't support format changes (this should not happen)
+    assert(t->isAlpha==(tex->Format==ImTextureFormat_Alpha8));
+
+    if (t->width!=tex->Width || t->height!=tex->Height) {
+      // width/height changed; recreate texture
+      SWTexture* newTex=new SWTexture(tex->Width,tex->Height,tex->Format==ImTextureFormat_Alpha8);
+
+      // copy previous texture to new one
+      int i_y=0;
+      int i_y1=0;
+      if (t->isAlpha) {
+        for (int i=0; i<t->height; i++) {
+          unsigned char* dataOld=(unsigned char*)t->pixels;
+          unsigned char* dataNew=(unsigned char*)newTex->pixels;
+          memcpy(&dataNew[i_y1],&dataOld[i_y],t->width);
+          i_y1+=newTex->width;
+          i_y+=t->width;
+        }
+      } else {
+        for (int i=0; i<t->height; i++) {
+          uint32_t* dataOld=t->pixels;
+          uint32_t* dataNew=newTex->pixels;
+          memcpy(&dataNew[i_y1],&dataOld[i_y],t->width*sizeof(uint32_t));
+          i_y1+=newTex->width;
+          i_y+=t->width;
+        }
+      }
+
+      // delete previous texture and change texture ID
+      tex->SetTexID((ImTextureID)newTex);
+      delete t;
+      t=newTex;
+    }
+
+    // update region
+    if (t->isAlpha) {
+      unsigned char* data=(unsigned char*)t->pixels;
+      for (ImTextureRect& h: tex->Updates) {
+        int i_y=t->width*h.y;
+        for (int i=h.y; i<h.y+h.h; i++) {
+          memcpy(&data[i_y+h.x],tex->GetPixelsAt(h.x,i),h.w);
+          i_y+=t->width;
+        }
+      }
+    } else {
+      uint32_t* data=t->pixels;
+      for (ImTextureRect& h: tex->Updates) {
+        int i_y=t->width*h.y;
+        for (int i=h.y; i<h.y+h.h; i++) {
+          memcpy(&data[i_y+h.x],tex->GetPixelsAt(h.x,i),h.w*sizeof(uint32_t));
+          i_y+=t->width;
+        }
+      }
+    }
+
+    tex->SetStatus(ImTextureStatus_OK);
+  } else if (tex->Status==ImTextureStatus_WantDestroy && tex->UnusedFrames>0) {
+    SWTexture* t=(SWTexture*)tex->GetTexID();
+    delete t;
+
+    tex->SetTexID(ImTextureID_Invalid);
+    tex->SetStatus(ImTextureStatus_Destroyed);
+  } else {
+    // ????????
+  }
 }
 
 #endif // #ifndef IMGUI_DISABLE

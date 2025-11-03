@@ -123,9 +123,9 @@ class DivPlatformOPL: public DivDispatch {
     size_t pcmMemLen;
     DivOPLAInterface iface;
     DivYMF278MemoryInterface pcmMemory;
-    unsigned int sampleOffB[256];
-    unsigned int sampleOffPCM[256];
-    bool sampleLoaded[256];
+    unsigned int* sampleOffB;
+    unsigned int* sampleOffPCM;
+    bool* sampleLoaded;
   
     ymfm::adpcm_b_engine* adpcmB;
     const unsigned char** slotsNonDrums;
@@ -186,6 +186,8 @@ class DivPlatformOPL: public DivDispatch {
     void acquire_ymfm2(short** buf, size_t len);
     void acquire_ymfm1(short** buf, size_t len);
   
+    void renderInstruments();
+  
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
@@ -211,6 +213,7 @@ class DivPlatformOPL: public DivDispatch {
     void toggleRegisterDump(bool enable);
     void setFlags(const DivConfig& flags);
     void notifyInsChange(int ins);
+    void notifySampleChange(int sample);
     void notifyInsDeletion(void* ins);
     int getPortaFloor(int ch);
     void poke(unsigned int addr, unsigned short val);
@@ -218,14 +221,14 @@ class DivPlatformOPL: public DivDispatch {
     const void* getSampleMem(int index);
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);
+    bool hasSamplePtrHeader(int index=0);
+    size_t getSampleMemOffset(int index);
     bool isSampleLoaded(int index, int sample);
     const DivMemoryComposition* getMemCompo(int index);
     void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
-    DivPlatformOPL():
-      pcmMemory(0x400000),
-      pcm(pcmMemory) {}
+    DivPlatformOPL();
     ~DivPlatformOPL();
 };
 #endif

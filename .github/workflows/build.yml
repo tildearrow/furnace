@@ -226,7 +226,7 @@ jobs:
         mkdir ${{ steps.package-identify.outputs.filename }}
         pushd ${{ steps.package-identify.outputs.filename }}
 
-        cp -v ../LICENSE LICENSE.txt
+        cp -v ../LICENSE.GPLv3 LICENSE.txt
         cp -v ../res/releaseReadme/unstable-win.txt README.txt
         cp -vr ../po/locale locale
         cp -vr ../papers ../${binPath}/furnace.exe ./
@@ -261,7 +261,7 @@ jobs:
         sync
 
         echo "copying extra stuff"
-        cp -v ../LICENSE new/LICENSE.txt
+        cp -v ../LICENSE.GPLv2 new/LICENSE.txt
         cp -v ../res/releaseReadme/stable-mac.txt new/README
         cp -v -r ../demos new/demos
         cp -v -r ../instruments new/instruments
@@ -316,7 +316,7 @@ jobs:
 
         cd ..
 
-        cp ../../LICENSE .
+        cp ../../LICENSE.GPLv2 .
         cp ../../res/releaseReadme/unstable-other.txt .
         cp -r ../../papers papers
         rmdir usr
