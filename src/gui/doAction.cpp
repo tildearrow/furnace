@@ -321,10 +321,10 @@ void FurnaceGUI::doAction(int what) {
       nextWindow=GUI_WINDOW_NOTES;
       break;
     case GUI_ACTION_WINDOW_TUNER:
-      nextWindow = GUI_WINDOW_TUNER;
+      nextWindow=GUI_WINDOW_TUNER;
       break;
     case GUI_ACTION_WINDOW_SPECTRUM:
-      nextWindow = GUI_WINDOW_SPECTRUM;
+      nextWindow=GUI_WINDOW_SPECTRUM;
       break;
     case GUI_ACTION_WINDOW_CHANNELS:
       nextWindow=GUI_WINDOW_CHANNELS;

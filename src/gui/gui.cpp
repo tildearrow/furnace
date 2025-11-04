@@ -4878,8 +4878,8 @@ bool FurnaceGUI::loop() {
           if (ImGui::MenuItem(_("oscilloscope (per-channel)"),BIND_FOR(GUI_ACTION_WINDOW_CHAN_OSC),chanOscOpen)) chanOscOpen=!chanOscOpen;
           if (ImGui::MenuItem(_("oscilloscope (X-Y)"),BIND_FOR(GUI_ACTION_WINDOW_XY_OSC),xyOscOpen)) xyOscOpen=!xyOscOpen;
           if (ImGui::MenuItem(_("volume meter"),BIND_FOR(GUI_ACTION_WINDOW_VOL_METER),volMeterOpen)) volMeterOpen=!volMeterOpen;
-          if (ImGui::MenuItem(_("tuner"), BIND_FOR(GUI_ACTION_WINDOW_TUNER), tunerOpen)) tunerOpen = !tunerOpen;
-          if (ImGui::MenuItem(_("spectrum"), BIND_FOR(GUI_ACTION_WINDOW_SPECTRUM), spectrumOpen)) spectrumOpen = !spectrumOpen;
+          if (ImGui::MenuItem(_("tuner"),BIND_FOR(GUI_ACTION_WINDOW_TUNER),tunerOpen)) tunerOpen=!tunerOpen;
+          if (ImGui::MenuItem(_("spectrum"),BIND_FOR(GUI_ACTION_WINDOW_SPECTRUM),spectrumOpen)) spectrumOpen=!spectrumOpen;
           ImGui::EndMenu();
         }
         if (ImGui::BeginMenu(_("tempo"))) {
@@ -5104,7 +5104,8 @@ bool FurnaceGUI::loop() {
       MEASURE(refPlayer,drawRefPlayer());
       MEASURE(multiInsSetup,drawMultiInsSetup());
       MEASURE(patManager,drawPatManager());
-
+      MEASURE(tuner,drawTuner());
+      MEASURE(spectrum,drawSpectrum());
     } else {
       globalWinFlags=0;
       ImGui::DockSpaceOverViewport(0,NULL,lockLayout?(ImGuiDockNodeFlags_NoWindowMenuButton|ImGuiDockNodeFlags_NoMove|ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplit|ImGuiDockNodeFlags_NoDockingSplitOther):0);
@@ -5141,7 +5142,7 @@ bool FurnaceGUI::loop() {
       MEASURE(piano,drawPiano());
       MEASURE(notes,drawNotes());
       MEASURE(tuner,drawTuner());
-      MEASURE(spectrum, drawSpectrum());
+      MEASURE(spectrum,drawSpectrum());
       MEASURE(channels,drawChannels());
       MEASURE(patManager,drawPatManager());
       MEASURE(sysManager,drawSysManager());
@@ -8907,6 +8908,7 @@ FurnaceGUI::FurnaceGUI():
   pianoOpen(false),
   notesOpen(false),
   tunerOpen(false),
+  spectrumOpen(false),
   channelsOpen(false),
   regViewOpen(false),
   logOpen(false),
@@ -9212,6 +9214,8 @@ FurnaceGUI::FurnaceGUI():
   xyOscDecayTime(10.0f),
   xyOscIntensity(2.0f),
   xyOscThickness(2.0f),
+  tunerFFTInBuf(NULL),
+  tunerFFTOutBuf(NULL),
   tunerPlan(NULL),
   fpCueInput(""),
   fpCueInputFailed(false),
