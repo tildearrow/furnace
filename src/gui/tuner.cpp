@@ -59,7 +59,10 @@ void FurnaceGUI::drawTuner() {
     fftw_execute(tunerPlan);
 
     std::vector<double> mag(FURNACE_TUNER_FFT_SIZE/2);
-    mag[0]=0;mag[1]=0;mag[2]=0;mag[3]=0; // skip some of the low frequencies
+    mag[0]=0;
+    mag[1]=0;
+    mag[2]=0;
+    mag[3]=0; // skip some of the low frequencies
     for (int k=4; k<FURNACE_TUNER_FFT_SIZE/2; k++) {
       mag[k]=sqrt(tunerFFTOutBuf[k][0]*tunerFFTOutBuf[k][0]+tunerFFTOutBuf[k][1]*tunerFFTOutBuf[k][1]);
     }
@@ -147,26 +150,28 @@ void FurnaceGUI::drawTuner() {
       int noteMod=noteRounded%12;
       ImVec2 pianoPos=ImGui::GetCursorScreenPos();
       pianoPos.x=ImGui::GetWindowPos().x;
-      ImVec2 pianoSize=ImVec2(ImGui::GetWindowSize().x,40.0f);
-      float keySize=pianoSize.x/7.0f;
-      for (int i=0; i<7; i++) {
-        dl->AddRectFilled(
-          pianoPos+ImVec2(keySize*i,0),
-          pianoPos+ImVec2(keySize*(i+1),pianoSize.y),
-          ImGui::GetColorU32(uiColors[(noteRounded&&bottomKeyNotes[i]==noteMod)?GUI_COLOR_PIANO_KEY_BOTTOM_HIT:GUI_COLOR_PIANO_KEY_BOTTOM]));
-        dl->AddLine(
-          pianoPos+ImVec2(keySize*i,0),
-          pianoPos+ImVec2(keySize*i,pianoSize.y),
-          ImGui::GetColorU32(uiColors[GUI_COLOR_PIANO_BACKGROUND]),
-        dpiScale);
+      ImVec2 pianoSize=ImVec2(ImGui::GetWindowSize().x,ImGui::GetContentRegionAvail().y);
+      if (pianoSize.y>1.0f) {
+        float keySize=pianoSize.x/7.0f;
+        for (int i=0; i<7; i++) {
+          dl->AddRectFilled(
+            pianoPos+ImVec2(keySize*i,0),
+            pianoPos+ImVec2(keySize*(i+1),pianoSize.y),
+            ImGui::GetColorU32(uiColors[(noteRounded && bottomKeyNotes[i]==noteMod)?GUI_COLOR_PIANO_KEY_BOTTOM_HIT:GUI_COLOR_PIANO_KEY_BOTTOM]));
+          dl->AddLine(
+            pianoPos+ImVec2(keySize*i,0),
+            pianoPos+ImVec2(keySize*i,pianoSize.y),
+            ImGui::GetColorU32(uiColors[GUI_COLOR_PIANO_BACKGROUND]),
+          dpiScale);
+        }
+        for (int i=0; i<5; i++) {
+          dl->AddRectFilled(
+            pianoPos+ImVec2(pianoSize.x*topKeyStarts[i]-keySize/3.0f,0),
+            pianoPos+ImVec2(pianoSize.x*topKeyStarts[i]+keySize/3.0f,2.0f*pianoSize.y/3.0f),
+            ImGui::GetColorU32(uiColors[(noteRounded && topKeyNotes[i]==noteMod)?GUI_COLOR_PIANO_KEY_TOP_HIT:GUI_COLOR_PIANO_KEY_TOP]));
+        }
+        ImGui::Dummy(pianoSize);
       }
-      for (int i=0; i<5; i++) {
-        dl->AddRectFilled(
-          pianoPos+ImVec2(pianoSize.x*topKeyStarts[i]-keySize/3.0f,0),
-          pianoPos+ImVec2(pianoSize.x*topKeyStarts[i]+keySize/3.0f,2.0f*pianoSize.y/3.0f),
-          ImGui::GetColorU32(uiColors[(noteRounded&&topKeyNotes[i]==noteMod)?GUI_COLOR_PIANO_KEY_TOP_HIT:GUI_COLOR_PIANO_KEY_TOP]));
-      }
-      ImGui::Dummy(pianoSize);
     }
   }
 

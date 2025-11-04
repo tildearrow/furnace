@@ -21,7 +21,7 @@
 
 #include "gui.h"
 #include "imgui_internal.h"
-#include <IconsFontAwesome4.h>
+#include "IconsFontAwesome4.h"
 #include <fftw3.h>
 #include <math.h> // fmod
 
@@ -50,7 +50,7 @@ void FurnaceGUI::drawSpectrum() {
     size.y-=titleBar;
     // x scale labels (precalc)
     if (spectrum.showXScale) size.y-=ImGui::GetFontSize();
-    // v scale labels
+    // y scale labels
     if (spectrum.showYScale) {
       float padding=ImGui::GetStyle().FramePadding.x;
       ImVec2 p1, textSize;
@@ -88,7 +88,7 @@ void FurnaceGUI::drawSpectrum() {
         ImU32 color=0x22ffffff;
         pos=spectrum.xZoom*size.x*(scaleFuncLog(i/(e->getAudioDescGot().rate/2.0f))-spectrum.xOffset);
         if (pos>size.x) break;
-        if (j%9==0) color=0x55ffffff;
+        if ((j%9)==0) color=0x55ffffff;
         if (spectrum.showXScale) {
           if (i>=1000) {
             snprintf(buf,16,"%dk",(int)i/1000);
@@ -96,7 +96,7 @@ void FurnaceGUI::drawSpectrum() {
             snprintf(buf,16,"%d",(int)i);
           }
           float x=ImGui::CalcTextSize(buf).x;
-          if (pos-prevPos>x || j%9==0) dl->AddText(
+          if (pos-prevPos>x || (j%9)==0) dl->AddText(
             origin+ImVec2(pos-x/2,size.y),
             ImGui::GetColorU32(ImGuiCol_Text),
             buf
@@ -147,7 +147,7 @@ void FurnaceGUI::drawSpectrum() {
       float maxRate=e->getAudioDescGot().rate/2;
       for (int j=10; j<maxRate; j*=10) {
         for (int i=1; i<10; i++) {
-          freq = i*j;
+          freq=i*j;
           if (freq>maxRate) break;
           spectrum.frequencies.push_back((int)freq);
         }
