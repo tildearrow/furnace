@@ -23,7 +23,6 @@
 #include "imgui_internal.h"
 #include <IconsFontAwesome4.h>
 #include <fftw3.h>
-#include <imgui.h>
 #include <math.h> // fmod
 
 inline float scaleFuncLog(float x) {
@@ -177,7 +176,8 @@ void FurnaceGUI::drawSpectrum() {
         }
         fftw_execute(spectrum.plan[z]);
         unsigned int count=0;
-        float mag=0.0f, x=0.0f, y=0.0f;
+        double mag=0.0f;
+        float x=0.0f, y=0.0f;
         count=spectrum.bins/2;
         for (unsigned int i=0; i<count; i++) {
           x=spectrum.xZoom*size.x*(scaleFuncLog((float)i/count)-spectrum.xOffset);
