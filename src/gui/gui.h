@@ -1367,14 +1367,18 @@ struct Gradient2D {
 
 struct PointList {
   struct Point {
-    unsigned int x;
+    int x;
     float y, c;
-    Point(unsigned int xPos, float yPos, float curve=0.0f):
+    Point(int xPos, float yPos, float curve=0.0f):
       x(xPos), y(yPos), c(curve) {}
     Point():
       x(0), y(0.0f), c(0.0f) {}
   };
   std::vector<Point> points;
+
+  float pointRadius, pointSelRadius;
+
+  ImVec4 lineColor, pointColor, pointColorActive;
 
   int editorOffset;
   float editorOffsetFine;
@@ -1404,9 +1408,9 @@ struct PointList {
   /**
    * set a constraint for the range.
    * this will add an unmovable point at the maximum X position if necessary.
-   * @param maxX the maximum X position.
+   * @param maxX the maximum X position. must be 1 or higher.
    */
-  void setXConstraints(unsigned int maxX);
+  void setXConstraints(int maxX);
 
   PointList();
 };

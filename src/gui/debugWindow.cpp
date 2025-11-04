@@ -391,6 +391,8 @@ void FurnaceGUI::drawDebug() {
     }
     if (ImGui::TreeNode("Point List Test")) {
       static PointList debugPL;
+      debugPL.pointRadius=4.0f*dpiScale;
+      debugPL.pointSelRadius=5.0f*dpiScale;
 
       debugPL.drawEditor("PointTest",true,ImVec2(0.0f,200.0f*dpiScale));
       if (ImGui::Button("Compile")) {

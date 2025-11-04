@@ -26,8 +26,6 @@
     1.0-((_x.y-editorMinY)/editorMaxY) \
   )
 
-#define POINT_RADIUS 8.0f
-
 float* PointList::compile(size_t& length) {
   if (points.size()<1) return NULL;
   length=points[points.size()-1].x+1;
@@ -39,10 +37,10 @@ float* PointList::compile(size_t& length) {
     Point& point=points[i];
     Point& nextPoint=points[i+1];
 
-    unsigned int dist=nextPoint.x-point.x;
+    int dist=nextPoint.x-point.x;
     if (dist==0) continue;
 
-    for (unsigned int j=0, j_index=points[i].x; j<=dist; j++, j_index++) {
+    for (int j=0, j_index=points[i].x; j<=dist; j++, j_index++) {
       ret[j_index]=point.y+(nextPoint.y-point.y)*((float)j/(float)dist);
     }
   }
@@ -96,16 +94,16 @@ void PointList::drawEditor(const char* itemID, bool frame, const ImVec2& size) {
       if (i>0) {
         Point& prevPoint=points[i-1];
         ImVec2 prevPointPos=ImLerp(minArea,maxArea,POINT_POS(prevPoint));
-        dl->AddLine(prevPointPos,pointPos,0xffffffff);
+        dl->AddLine(prevPointPos,pointPos,ImGui::GetColorU32(lineColor));
       }
 
-      dl->AddCircle(pointPos,POINT_RADIUS,0xffffffff);
+      dl->AddCircle(pointPos,pointRadius,ImGui::GetColorU32((selectedPoint==(int)i)?pointColorActive:pointColor));
 
       if (mouseDist.x>=0) nearestPoint=i;
 
       if (hovered) {
         float mouseDistSquared=mouseDist.x*mouseDist.x+mouseDist.y*mouseDist.y;
-        if (mouseDistSquared<=(POINT_RADIUS*POINT_RADIUS)) {
+        if (mouseDistSquared<=(pointSelRadius*pointSelRadius)) {
           hoveredPoint=i;
         }
       }
@@ -118,31 +116,40 @@ void PointList::drawEditor(const char* itemID, bool frame, const ImVec2& size) {
       }
     }
 
-    if (selectedPoint>=0 && selectedPoint<(int)points.size()) {
-      // move the point
-      if (selectedPoint==0) {
-        points[selectedPoint].x=0;
-      } else if (selectedPoint==(int)points.size()-1 && constrainX>0) {
-        points[selectedPoint].x=constrainX;
-      } else {
-        points[selectedPoint].x=resultingX;
-        if (points[selectedPoint].x<points[selectedPoint-1].x) points[selectedPoint].x=points[selectedPoint-1].x;
-        if (selectedPoint<(int)points.size()-1) {
-          if (points[selectedPoint].x>points[selectedPoint+1].x) points[selectedPoint].x=points[selectedPoint+1].x;
-        }
-      }
-
-      points[selectedPoint].y=resultingY;
-    } else if (hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-      // create a point
-      if (nearestPoint>=0) {
-        points.insert(points.begin()+nearestPoint+1,Point(resultingX,resultingY));
-        selectedPoint=nearestPoint+1;
+    if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+      if (hoveredPoint!=-1) {
+        selectedPoint=hoveredPoint;
+        ImGui::OpenPopup("PointListMenu");
       }
     }
 
-    if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
-      selectedPoint=-1;
+    if (!ImGui::IsPopupOpen("PointListMenu")) {
+      if (selectedPoint>=0 && selectedPoint<(int)points.size()) {
+        // move the point
+        if (selectedPoint==0) {
+          points[selectedPoint].x=0;
+        } else if (selectedPoint==(int)points.size()-1 && constrainX>0) {
+          points[selectedPoint].x=constrainX;
+        } else {
+          points[selectedPoint].x=resultingX;
+          if (points[selectedPoint].x<points[selectedPoint-1].x) points[selectedPoint].x=points[selectedPoint-1].x;
+          if (selectedPoint<(int)points.size()-1) {
+            if (points[selectedPoint].x>points[selectedPoint+1].x) points[selectedPoint].x=points[selectedPoint+1].x;
+          }
+        }
+
+        points[selectedPoint].y=resultingY;
+      } else if (hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+        // create a point
+        if (nearestPoint>=0) {
+          points.insert(points.begin()+nearestPoint+1,Point(resultingX,resultingY));
+          selectedPoint=nearestPoint+1;
+        }
+      }
+
+      if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+        selectedPoint=-1;
+      }
     }
 
     String debugText=fmt::sprintf("hoveredPoint: %d\nselectedPoint: %d\nnearestPoint: %d",hoveredPoint,selectedPoint,nearestPoint);
@@ -150,12 +157,19 @@ void PointList::drawEditor(const char* itemID, bool frame, const ImVec2& size) {
       debugText+=fmt::sprintf("\npoint: %d, %f",points[selectedPoint].x,points[selectedPoint].y);
     }
     dl->AddText(minArea,0xffffffff,debugText.c_str());
-  } else {
-    selectedPoint=-1;
+  }
+
+  if (ImGui::BeginPopup("PointListMenu",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+    if (selectedPoint>=0 && selectedPoint<(int)points.size()) {
+      if (ImGui::MenuItem("delete")) {
+        points.erase(points.begin()+selectedPoint);
+      }
+    }
+    ImGui::EndPopup();
   }
 }
 
-void PointList::setXConstraints(unsigned int maxX) {
+void PointList::setXConstraints(int maxX) {
   constrainX=maxX;
   if (points.size()<1) {
     points.push_back((Point(maxX,0)));
@@ -163,6 +177,11 @@ void PointList::setXConstraints(unsigned int maxX) {
 }
 
 PointList::PointList():
+  pointRadius(4.0f),
+  pointSelRadius(5.0f),
+  lineColor(0.7f,0.7f,0.7f,1.0f),
+  pointColor(1.0f,1.0f,1.0f,1.0f),
+  pointColorActive(0.0f,1.0f,0.0f,1.0f),
   editorOffset(0),
   editorOffsetFine(0.0f),
   editorZoomX(100),
