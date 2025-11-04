@@ -393,6 +393,23 @@ void FurnaceGUI::drawDebug() {
       static PointList debugPL;
 
       debugPL.drawEditor("PointTest",true,ImVec2(0.0f,200.0f*dpiScale));
+      if (ImGui::Button("Compile")) {
+        size_t resultLen=0;
+        float* result=debugPL.compile(resultLen);
+
+        if (result==NULL) {
+          showError("no result");
+        } else {
+          String output=fmt::sprintf("%" PRIu64 " elements:\n",resultLen);
+
+          for (size_t i=0; i<resultLen; i++) {
+            output+=fmt::sprintf("%f ",result[i]);
+          }
+
+          showError(output);
+          delete[] result;
+        }
+      }
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("New File Picker Test")) {
