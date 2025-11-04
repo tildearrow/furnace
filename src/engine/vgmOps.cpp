@@ -1695,6 +1695,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_VRC7:
         if (!hasOPLL) {
           hasOPLL=disCont[i].dispatch->chipClock;
+          if (song.system[i]==DIV_SYSTEM_VRC7) hasOPLL|=0x80000000;
           CHIP_VOL(1,3.2);
           willExport[i]=true;
         } else if (!(hasOPLL&0x40000000)) {

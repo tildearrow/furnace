@@ -53,10 +53,16 @@ void FurnaceGUI::drawMultiInsSetup() {
         ImGui::PushItemFlag(ImGuiItemFlags_ButtonRepeat,true);
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
         if (ImGui::Button(ICON_FA_CHEVRON_UP "##Up",ImVec2(ImGui::GetContentRegionAvail().x,0))) {
-          if (i>0) multiInsTranspose[i-1]++;
+          if (i>0) {
+            multiInsTranspose[i-1]++;
+            if (multiInsTranspose[i-1]>60) multiInsTranspose[i-1]=60;
+          }
         }
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-          if (i>0) multiInsTranspose[i-1]+=12;
+          if (i>0) {
+            multiInsTranspose[i-1]+=12;
+            if (multiInsTranspose[i-1]>60) multiInsTranspose[i-1]=60;
+          }
         }
         ImGui::PopStyleVar();
         ImGui::PopItemFlag();
@@ -84,10 +90,16 @@ void FurnaceGUI::drawMultiInsSetup() {
         ImGui::PushItemFlag(ImGuiItemFlags_ButtonRepeat,true);
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
         if (ImGui::Button(ICON_FA_CHEVRON_DOWN "##Down",ImVec2(ImGui::GetContentRegionAvail().x,0))) {
-          if (i>0) multiInsTranspose[i-1]--;
+          if (i>0) {
+            multiInsTranspose[i-1]--;
+            if (multiInsTranspose[i-1]<-60) multiInsTranspose[i-1]=-60;
+          }
         }
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-          if (i>0) multiInsTranspose[i-1]-=12;
+          if (i>0) {
+            multiInsTranspose[i-1]-=12;
+            if (multiInsTranspose[i-1]<-60) multiInsTranspose[i-1]=-60;
+          }
         }
         ImGui::PopStyleVar();
         ImGui::PopItemFlag();

@@ -43,7 +43,7 @@ static long _onMessage(long type, long value, void* msg, double* opt) {
         case kAsioSelectorSupported:
         case kAsioEngineVersion:
         case kAsioResetRequest:
-        case kAsioBufferSizeChange:
+        //case kAsioBufferSizeChange:
         case kAsioResyncRequest:
           return 1;
         default:
@@ -58,8 +58,9 @@ static long _onMessage(long type, long value, void* msg, double* opt) {
       return 1;
       break;
     case kAsioBufferSizeChange:
-      callbackInstance->onBufferSize(value);
-      return 1;
+      // unfortunately the following triggers a crash, so I am disabling it for now.
+      //callbackInstance->onBufferSize(value);
+      return 0;
       break;
     case kAsioResyncRequest:
       // ignore
