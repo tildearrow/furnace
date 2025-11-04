@@ -389,6 +389,12 @@ void FurnaceGUI::drawDebug() {
 
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Point List Test")) {
+      static PointList debugPL;
+
+      debugPL.drawEditor("PointTest",true,ImVec2(0.0f,200.0f*dpiScale));
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("New File Picker Test")) {
       static bool check0, check1, check2, check3, check4, check5;
 

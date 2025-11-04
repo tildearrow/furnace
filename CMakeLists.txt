@@ -935,6 +935,7 @@ extern/imgui_software_renderer/imgui_sw.cpp
 extern/imgui_patched/misc/cpp/imgui_stdlib.cpp
 
 src/gui/plot_nolerp.cpp
+src/gui/pointList.cpp
 
 src/gui/render.cpp
 src/gui/render/abstract.cpp

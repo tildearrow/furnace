@@ -1369,10 +1369,22 @@ struct PointList {
   struct Point {
     unsigned int x;
     float y, c;
+    Point(unsigned int xPos, float yPos, float curve=0.0f):
+      x(xPos), y(yPos), c(curve) {}
     Point():
       x(0), y(0.0f), c(0.0f) {}
   };
   std::vector<Point> points;
+
+  int editorOffset;
+  float editorOffsetFine;
+  int editorZoomX;
+  float editorZoomFineX;
+  double editorMinY, editorMaxY;
+
+  int constrainX;
+
+  int selectedPoint;
 
   /**
    * turn this point list into a discrete array of floats.
@@ -1380,7 +1392,23 @@ struct PointList {
    * @returns an array of floats, which must be deallocated with delete[]; or NULL if it failed.
    */
   float* compile(size_t& length);
-  void drawEditor(const ImVec2& size=ImVec2(0.0f,0.0f));
+
+  /**
+   * draw an editor widget.
+   * @param itemID the item ID.
+   * @param frame whether to draw a frame (disable if you want to overlay on top of something).
+   * @param size item size. 0.0f means use available space.
+   */
+  void drawEditor(const char* itemID, bool frame=true, const ImVec2& size=ImVec2(0.0f,0.0f));
+
+  /**
+   * set a constraint for the range.
+   * this will add an unmovable point at the maximum X position if necessary.
+   * @param maxX the maximum X position.
+   */
+  void setXConstraints(unsigned int maxX);
+
+  PointList();
 };
 
 struct FurnaceGUISysDefChip {
