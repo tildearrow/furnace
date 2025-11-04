@@ -1368,13 +1368,19 @@ struct Gradient2D {
 struct PointList {
   struct Point {
     unsigned int x;
-    float xFrac, y, c;
+    float y, c;
     Point():
-      x(0), xFrac(0.0f), y(0.0f), c(0.0f) {}
+      x(0), y(0.0f), c(0.0f) {}
   };
   std::vector<Point> points;
 
+  /**
+   * turn this point list into a discrete array of floats.
+   * @param length the array's length will be stored here.
+   * @returns an array of floats, which must be deallocated with delete[]; or NULL if it failed.
+   */
   float* compile(size_t& length);
+  void drawEditor(const ImVec2& size=ImVec2(0.0f,0.0f));
 };
 
 struct FurnaceGUISysDefChip {
