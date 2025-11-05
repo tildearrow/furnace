@@ -1988,7 +1988,6 @@ class FurnaceGUI {
     int noMultiSystem;
     int oldMacroVSlider;
     int displayAllInsTypes;
-    int displayPartial;
     int noteCellSpacing;
     int insCellSpacing;
     int volCellSpacing;
@@ -2244,7 +2243,6 @@ class FurnaceGUI {
       noMultiSystem(0),
       oldMacroVSlider(0),
       displayAllInsTypes(0),
-      displayPartial(0),
       noteCellSpacing(0),
       insCellSpacing(0),
       volCellSpacing(0),

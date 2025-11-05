@@ -4740,10 +4740,6 @@ void FurnaceGUI::drawSettings() {
               mmlString[30]=_("enabled all instrument types");
               settings.displayAllInsTypes=!settings.displayAllInsTypes;
             }
-            if (checker==0x3f88abcc && checker1==0xf4a6) {
-              mmlString[30]=_("OK, if I bring your Partial pitch linearity will you stop bothering me?");
-              settings.displayPartial=1;
-            }
             if (checker==0x94222d83 && checker1==0x6600) {
               mmlString[30]=_("enabled \"comfortable\" mode");
               ImGuiStyle& sty=ImGui::GetStyle();
@@ -4915,7 +4911,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.sysFileDialog=conf.getInt("sysFileDialog",SYS_FILE_DIALOG_DEFAULT);
 #endif
     settings.displayAllInsTypes=conf.getInt("displayAllInsTypes",0);
-    settings.displayPartial=conf.getInt("displayPartial",0);
 
     settings.blankIns=conf.getInt("blankIns",0);
 
@@ -5367,7 +5362,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.noMultiSystem,0,1);
   clampSetting(settings.oldMacroVSlider,0,1);
   clampSetting(settings.displayAllInsTypes,0,1);
-  clampSetting(settings.displayPartial,0,1);
   clampSetting(settings.noteCellSpacing,0,32);
   clampSetting(settings.insCellSpacing,0,32);
   clampSetting(settings.volCellSpacing,0,32);
@@ -5519,7 +5513,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("sysFileDialog",settings.sysFileDialog);
 #endif
     conf.set("displayAllInsTypes",settings.displayAllInsTypes);
-    conf.set("displayPartial",settings.displayPartial);
 
     conf.set("blankIns",settings.blankIns);
 
