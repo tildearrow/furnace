@@ -110,10 +110,10 @@ void FurnaceGUI::drawSpectrum() {
         prevPos=pos;
       }
     }
+    int chans=e->getAudioDescGot().outChans;
     if (spectrum.update) {
       spectrum.update=false;
       spectrum.running=true;
-      spectrum.chans=e->getAudioDescGot().outChans; // save our own channel count in case it changes at around line 157
       for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
         if (spectrum.buffer[i]) {
           fftw_free(spectrum.buffer[i]);
@@ -132,7 +132,7 @@ void FurnaceGUI::drawSpectrum() {
           spectrum.plot[i]=NULL;
         }
       }
-      for (int i=0; i<(spectrum.mono?1:spectrum.chans); i++) {
+      for (int i=0; i<(spectrum.mono?1:chans); i++) {
         spectrum.buffer[i]=(fftw_complex*)fftw_malloc(sizeof(fftw_complex)*spectrum.bins);
         if (!spectrum.buffer[i]) spectrum.running=false;
         spectrum.in[i]=new double[spectrum.bins];
@@ -156,7 +156,7 @@ void FurnaceGUI::drawSpectrum() {
       if (spectrum.running) logV("spectrum ready!");
     }
     if (spectrum.running) {
-      for (int z=spectrum.mono?0:(spectrum.chans-1); z>=0; z--) {
+      for (int z=spectrum.mono?0:(chans-1); z>=0; z--) {
         // get buffer
         memset(spectrum.in[z],0,sizeof(double)*spectrum.bins);
         int needle=e->oscReadPos-spectrum.bins;
@@ -165,10 +165,10 @@ void FurnaceGUI::drawSpectrum() {
           int pos=(needle+j)&0x7fff;
           double sample=0.0;
           if (spectrum.mono) {
-            for (int i=0; i<spectrum.chans; i++) {
+            for (int i=0; i<chans; i++) {
               sample+=e->oscBuf[i][pos];
             }
-            sample/=spectrum.chans;
+            sample/=chans;
           } else {
             sample+=e->oscBuf[z][pos];
           }
