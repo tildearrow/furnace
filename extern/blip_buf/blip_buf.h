@@ -6,7 +6,7 @@ Sample buffer that resamples from input clock rate to output sample rate */
 #define BLIP_BUF_H
 
 // MODIFIED by tildearrow:
-// - add option to disable high-pass filter
+// - disable high-pass filter
 
 #ifdef __cplusplus
 	extern "C" {
@@ -20,9 +20,6 @@ typedef struct blip_t blip_t;
 so that there are blip_max_ratio clocks per sample. Returns pointer to new
 buffer, or NULL if insufficient memory. */
 blip_t* blip_new( int sample_count );
-
-/** (tildearrow) sets whether to enable high-pass filter. */
-void blip_set_dc( blip_t*, unsigned char enable );
 
 /** Sets approximate input clock rate and output sample rate. For every
 clock_rate input clocks, approximately sample_rate samples are generated. */

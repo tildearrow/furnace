@@ -4393,7 +4393,6 @@ bool DivEngine::init() {
     logE("not enough memory!");
     return false;
   }
-  blip_set_dc(samp_bb,0);
 
   samp_bbOut=new short[32768];
 

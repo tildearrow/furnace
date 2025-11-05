@@ -113,7 +113,6 @@ void DivDispatchContainer::setQuality(bool lowQual, bool dcHiPass) {
   hiPass=dcHiPass;
   for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
     if (bb[i]==NULL) continue;
-    blip_set_dc(bb[i],dcHiPass);
   }
 }
 
@@ -140,7 +139,6 @@ void DivDispatchContainer::grow(size_t size) {
         logE("not enough memory!"); \
         return; \
       } \
-      blip_set_dc(bb[i],hiPass); \
       blip_set_rates(bb[i],dispatch->rate,rateMemory); \
  \
       if (bbIn[i]==NULL) bbIn[i]=new short[bbInLen]; \
@@ -816,7 +814,6 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     bbOut[i]=new short[bbInLen];
     memset(bbIn[i],0,bbInLen*sizeof(short));
     memset(bbOut[i],0,bbInLen*sizeof(short));
-    blip_set_dc(bb[i],hiPass);
   }
 }
 
