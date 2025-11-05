@@ -2770,7 +2770,7 @@ class FurnaceGUI {
   fftw_complex* tunerFFTOutBuf;
   fftw_plan tunerPlan;
   struct SpectrumSettings {
-    int bins;
+    int bins, chans;
     float xZoom, xOffset;
     float yOffset;
     fftw_plan plan[DIV_MAX_OUTPUTS];
@@ -2782,6 +2782,7 @@ class FurnaceGUI {
     bool showXGrid, showYGrid, showXScale, showYScale;
     SpectrumSettings():
       bins(4096),
+      chans(0),
       xZoom(1.0f),
       xOffset(0.0f),
       yOffset(0.0f),
