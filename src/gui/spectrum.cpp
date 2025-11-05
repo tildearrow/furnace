@@ -157,6 +157,26 @@ void FurnaceGUI::drawSpectrum() {
     }
     if (spectrum.running) {
       for (int z=spectrum.mono?0:(chans-1); z>=0; z--) {
+        if (!spectrum.buffer[z]) {
+          spectrum.buffer[z]=(fftw_complex*)fftw_malloc(sizeof(fftw_complex)*spectrum.bins);
+          if (!spectrum.buffer[z]) spectrum.running=false;
+        }
+        if (!spectrum.in[z]) {
+          spectrum.in[z]=new double[spectrum.bins];
+          if (!spectrum.in[z]) spectrum.running=false;
+        }
+        if (!spectrum.plan[z]) {
+          spectrum.plan[z]=fftw_plan_dft_r2c_1d(spectrum.bins,spectrum.in[z],spectrum.buffer[z],FFTW_ESTIMATE);
+          if (!spectrum.plan[z]) spectrum.running=false;
+        }
+        if (!spectrum.plot[z]) {
+          spectrum.plot[z]=new ImVec2[spectrum.bins/2];
+          if (!spectrum.plot[z]) spectrum.running=false;
+        }
+        if (!spectrum.running) {
+          logE("oh no what why");
+          break;
+        }
         // get buffer
         memset(spectrum.in[z],0,sizeof(double)*spectrum.bins);
         int needle=e->oscReadPos-spectrum.bins;
