@@ -483,6 +483,18 @@ TAParamResult pOutFormat(String val) {
   return TA_PARAM_SUCCESS;
 }
 
+TAParamResult pBitRate(String val) {
+  return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pRateMode(String val) {
+  return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pCompression(String val) {
+  return TA_PARAM_SUCCESS;
+}
+
 TAParamResult pBenchmark(String val) {
   if (val=="render") {
     benchMode=1;
@@ -577,6 +589,11 @@ void initParams() {
   params.push_back(TAParam("a","audio",true,pAudio,"jack|sdl|portaudio|pipe","set audio engine (SDL by default)"));
   params.push_back(TAParam("o","output",true,pOutput,"<filename>","output audio to file"));
   params.push_back(TAParam("f","outformat",true,pOutFormat,"u8|s16|f32|opus|flac|vorbis|mp3","set audio output format"));
+  params.push_back(TAParam("b","bitrate",true,pBitRate,"<rate>","set output file bit rate (lossy compression only)"));
+  params.push_back(TAParam("M","ratemode",true,pRateMode,"constant|variable|average","set output bit rate mode (MP3 only)"));
+  params.push_back(TAParam("Q","compression",true,pCompression,"<level>","set output quality/compression level (Vorbis, FLAC and MP3 VBR only)"));
+
+
   params.push_back(TAParam("O","vgmout",true,pVGMOut,"<filename>","output .vgm data"));
   params.push_back(TAParam("D","direct",false,pDirect,"","set VGM export direct stream mode"));
   params.push_back(TAParam("C","cmdout",true,pCmdOut,"<filename>","output command stream"));
