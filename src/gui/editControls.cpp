@@ -181,12 +181,12 @@ const char* scaleModeNames[9]={
   _N("Chromatic##ScaleMode"),
   _N("Major##ScaleMode"),
   _N("Minor##ScaleMode"),
-  _N("HarmMin##ScaleMode"),
-  _N("MelMin##ScaleMode"),
-  _N("HarmMaj##ScaleMode"),
-  _N("DblHarm##ScaleMode"),
-  _N("PhrygDom##ScaleMode"),
-  _N("LydDom##ScaleMode"),
+  _N("Harmonic Minor##ScaleMode"),
+  _N("Melodic Minor##ScaleMode"),
+  _N("Harmonic Major##ScaleMode"),
+  _N("Double Harmonic##ScaleMode"),
+  _N("Phrygian Dominant##ScaleMode"),
+  _N("Lydian Dominant##ScaleMode"),
 };
 
 #define CHANGE_NOTE_INPUT_MODE \
@@ -836,23 +836,14 @@ void FurnaceGUI::drawEditControls() {
 
         if (scaleMode!=GUI_SCALE_CHROMATIC) {
           ImGui::SameLine();
-          if (ImGui::Button("-##ScaleRootDown")) {
+          if (ImGui::Button(_(formatScaleRoot(scaleRoot).c_str()))) {
+            CHANGE_SCALE_ROOT_UP;
+          }
+          if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
             CHANGE_SCALE_ROOT_DOWN;
           }
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("Pitch down"));
-          }
-          ImGui::SameLine();
-          ImGui::Text("%s", formatScaleRoot(scaleRoot).c_str());
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("Key"));
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("+##ScaleRootUp")) {
-            CHANGE_SCALE_ROOT_UP;
-          }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("Pitch up"));
+            ImGui::SetTooltip(_("Key: Click (+); R-click (-)"));
           }
         }
       }
@@ -997,23 +988,14 @@ void FurnaceGUI::drawEditControls() {
 
         if (scaleMode!=GUI_SCALE_CHROMATIC) {
           ImGui::SameLine();
-          if (ImGui::Button("-##ScaleRootDown")) {
+          if (ImGui::Button(_(formatScaleRoot(scaleRoot).c_str()))) {
+            CHANGE_SCALE_ROOT_UP;
+          }
+          if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
             CHANGE_SCALE_ROOT_DOWN;
           }
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("Pitch down"));
-          }
-          ImGui::SameLine();
-          ImGui::Text("%s", formatScaleRoot(scaleRoot).c_str());
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("Key"));
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("+##ScaleRootUp")) {
-            CHANGE_SCALE_ROOT_UP;
-          }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("Pitch up"));
+            ImGui::SetTooltip(_("Key: Click (+); R-click (-)"));
           }
         }
       }
@@ -1145,14 +1127,6 @@ void FurnaceGUI::drawEditControls() {
         }
         popToggleColors();
 
-        pushToggleColors(noteInputMode!=GUI_NOTE_INPUT_MONO);
-        if (ImGui::Button(_(noteInputModes[noteInputMode&3]))) {
-          CHANGE_NOTE_INPUT_MODE;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("Polyphony"));
-        }
-        popToggleColors();
         pushToggleColors(scaleMode!=GUI_SCALE_CHROMATIC);
         if (ImGui::Button(_(scaleModeNames[scaleMode]))) {
           CHANGE_SCALE_MODE;
@@ -1164,23 +1138,14 @@ void FurnaceGUI::drawEditControls() {
 
         if (scaleMode!=GUI_SCALE_CHROMATIC) {
           ImGui::SameLine();
-          if (ImGui::Button("-##ScaleRootDown")) {
+          if (ImGui::Button(_(formatScaleRoot(scaleRoot).c_str()))) {
+            CHANGE_SCALE_ROOT_UP;
+          }
+          if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
             CHANGE_SCALE_ROOT_DOWN;
           }
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("Pitch down"));
-          }
-          ImGui::SameLine();
-          ImGui::Text("%s", formatScaleRoot(scaleRoot).c_str());
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("Key"));
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("+##ScaleRootUp")) {
-            CHANGE_SCALE_ROOT_UP;
-          }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("Pitch up"));
+            ImGui::SetTooltip(_("Key: Click (+); R-click (-)"));
           }
         }
       }
@@ -1295,23 +1260,14 @@ void FurnaceGUI::drawEditControls() {
 
         if (scaleMode!=GUI_SCALE_CHROMATIC) {
           ImGui::SameLine();
-          if (ImGui::Button("-##ScaleRootDown")) {
+          if (ImGui::Button(_(formatScaleRoot(scaleRoot).c_str()))) {
+            CHANGE_SCALE_ROOT_UP;
+          }
+          if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
             CHANGE_SCALE_ROOT_DOWN;
           }
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("Pitch down"));
-          }
-          ImGui::SameLine();
-          ImGui::Text("%s", formatScaleRoot(scaleRoot).c_str());
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("Key"));
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("+##ScaleRootUp")) {
-            CHANGE_SCALE_ROOT_UP;
-          }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("Pitch up"));
+            ImGui::SetTooltip(_("Key: Click (+); R-click (-)"));
           }
         }
       }
