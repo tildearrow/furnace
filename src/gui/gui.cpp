@@ -88,15 +88,46 @@ void FurnaceGUI::centerNextWindow(const char* name, float w, float h) {
   }
 }
 
-// Scale intervals. Can add more scales here later
-static const int majorScale[7] = {0, 2, 4, 5, 7, 9, 11}; // Major: W-W-H-W-W-W-H
-static const int minorScale[7] = {0, 2, 3, 5, 7, 8, 10}; // Natural Minor: W-H-W-W-H-W-W
+static const int majorScale[7] = {0, 2, 4, 5, 7, 9, 11};
+static const int minorScale[7] = {0, 2, 3, 5, 7, 8, 10};
+static const int harmonicMinorScale[7] = {0, 2, 3, 5, 7, 8, 11};
+static const int melodicMinorScale[7] = {0, 2, 3, 5, 7, 9, 11};
+static const int hungarianMinorScale[7] = {0, 2, 3, 6, 7, 8, 11};
+static const int neapolitanMajorScale[7] = {0, 1, 3, 5, 7, 9, 11};
+static const int doubleHarmonicScale[7] = {0, 1, 4, 5, 7, 8, 11};
 
 int FurnaceGUI::transposeToScale(int chromaticNote) {
   if (scaleMode == GUI_SCALE_CHROMATIC) {
     return chromaticNote;
   }
-  const int* currentScale = (scaleMode == GUI_SCALE_MAJOR) ? majorScale : minorScale;
+
+  const int* currentScale;
+  switch (scaleMode) {
+    case GUI_SCALE_MAJOR:
+      currentScale = majorScale;
+      break;
+    case GUI_SCALE_MINOR:
+      currentScale = minorScale;
+      break;
+    case GUI_SCALE_HARMONIC_MINOR:
+      currentScale = harmonicMinorScale;
+      break;
+    case GUI_SCALE_MELODIC_MINOR:
+      currentScale = melodicMinorScale;
+      break;
+    case GUI_SCALE_HUNGARIAN_MINOR:
+      currentScale = hungarianMinorScale;
+      break;
+    case GUI_SCALE_NEAPOLITAN_MAJOR:
+      currentScale = neapolitanMajorScale;
+      break;
+    case GUI_SCALE_DOUBLE_HARMONIC:
+      currentScale = doubleHarmonicScale;
+      break;
+    default:
+      currentScale = majorScale;
+      break;
+  }
   int octave = chromaticNote/12;
   int noteInOctave = chromaticNote%12;
   if (chromaticNote<0 && noteInOctave!=0) {
