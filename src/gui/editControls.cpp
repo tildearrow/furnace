@@ -177,11 +177,42 @@ const char* noteInputModes[4]={
   _N("Of fuckin' course!##PolyInput")
 };
 
+const char* scaleModeNames[3]={
+  _N("Chromatic##ScaleMode"),
+  _N("Major##ScaleMode"),
+  _N("Minor##ScaleMode"),
+};
+
 #define CHANGE_NOTE_INPUT_MODE \
   noteInputMode++; \
   if (noteInputMode>GUI_NOTE_INPUT_CHORD) noteInputMode=GUI_NOTE_INPUT_MONO; \
   if (noteInputMode==GUI_NOTE_INPUT_MONO) memset(multiIns,-1,7*sizeof(int)); \
   e->setAutoNotePoly(noteInputMode!=GUI_NOTE_INPUT_MONO);
+
+#define CHANGE_SCALE_MODE \
+  scaleMode++; \
+  if (scaleMode>GUI_SCALE_MINOR) scaleMode=GUI_SCALE_CHROMATIC;
+
+#define CHANGE_SCALE_ROOT_DOWN \
+  scaleRoot--; \
+  if (scaleRoot<-48) scaleRoot=-48;
+
+#define CHANGE_SCALE_ROOT_UP \
+  scaleRoot++; \
+  if (scaleRoot>48) scaleRoot=48;
+
+const char* startingNote[12]={"C","C#","D","D#","E","F","F#","G","G#","A","A#","B"};
+
+String FurnaceGUI::formatScaleRoot(signed char root) {
+  int midiNote=60+root;
+  int octave=(midiNote/12)-1;
+  int note=midiNote%12;
+  if (midiNote<0) {
+    octave=((midiNote-11)/12)-1;
+    note=((midiNote%12)+12)%12;
+  }
+  return fmt::sprintf("%s%d", startingNote[note], octave);
+}
 
 void FurnaceGUI::drawMobileControls() {
   float timeScale=60.0*ImGui::GetIO().DeltaTime;
@@ -342,7 +373,6 @@ void FurnaceGUI::drawMobileControls() {
     ImGui::End();
     ImGui::PopStyleVar(2);
   }
-  
   ImGui::SetNextWindowPos(portrait?ImVec2(0.0f,((1.0-mobileMenuPos*0.65)*canvasH)-(0.16*canvasW)):ImVec2(0.5*canvasW*mobileMenuPos,0.0f));
   ImGui::SetNextWindowSize(portrait?ImVec2(canvasW,0.16*canvasW):ImVec2(0.16*canvasH,canvasH));
   if (ImGui::Begin("Mobile Controls",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags,_("Mobile Controls"))) {
@@ -787,6 +817,29 @@ void FurnaceGUI::drawEditControls() {
           ImGui::SetTooltip(_("Polyphony"));
         }
         popToggleColors();
+
+        ImGui::SameLine();
+        pushToggleColors(scaleMode!=GUI_SCALE_CHROMATIC);
+        if (ImGui::Button(_(scaleModeNames[scaleMode%3]))) {
+          CHANGE_SCALE_MODE;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Scale"));
+        }
+        popToggleColors();
+
+        if (scaleMode!=GUI_SCALE_CHROMATIC) {
+          ImGui::SameLine();
+          if (ImGui::Button("-##ScaleRootDown")) {
+            CHANGE_SCALE_ROOT_DOWN;
+          }
+          ImGui::SameLine();
+          ImGui::Text("%s", formatScaleRoot(scaleRoot).c_str());
+          ImGui::SameLine();
+          if (ImGui::Button("+##ScaleRootUp")) {
+            CHANGE_SCALE_ROOT_UP;
+          }
+        }
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -916,6 +969,29 @@ void FurnaceGUI::drawEditControls() {
           ImGui::SetTooltip(_("Polyphony"));
         }
         popToggleColors();
+
+        ImGui::SameLine();
+        pushToggleColors(scaleMode!=GUI_SCALE_CHROMATIC);
+        if (ImGui::Button(_(scaleModeNames[scaleMode%3]))) {
+          CHANGE_SCALE_MODE;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Scale"));
+        }
+        popToggleColors();
+
+        if (scaleMode!=GUI_SCALE_CHROMATIC) {
+          ImGui::SameLine();
+          if (ImGui::Button("-##ScaleRootDown")) {
+            CHANGE_SCALE_ROOT_DOWN;
+          }
+          ImGui::SameLine();
+          ImGui::Text("%s", formatScaleRoot(scaleRoot).c_str());
+          ImGui::SameLine();
+          if (ImGui::Button("+##ScaleRootUp")) {
+            CHANGE_SCALE_ROOT_UP;
+          }
+        }
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -1053,6 +1129,27 @@ void FurnaceGUI::drawEditControls() {
           ImGui::SetTooltip(_("Polyphony"));
         }
         popToggleColors();
+        pushToggleColors(scaleMode!=GUI_SCALE_CHROMATIC);
+        if (ImGui::Button(_(scaleModeNames[scaleMode%3]))) {
+          CHANGE_SCALE_MODE;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Scale"));
+        }
+        popToggleColors();
+
+        if (scaleMode!=GUI_SCALE_CHROMATIC) {
+          ImGui::SameLine();
+          if (ImGui::Button("-##ScaleRootDown")) {
+            CHANGE_SCALE_ROOT_DOWN;
+          }
+          ImGui::SameLine();
+          ImGui::Text("%s", formatScaleRoot(scaleRoot).c_str());
+          ImGui::SameLine();
+          if (ImGui::Button("+##ScaleRootUp")) {
+            CHANGE_SCALE_ROOT_UP;
+          }
+        }
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -1152,6 +1249,29 @@ void FurnaceGUI::drawEditControls() {
           ImGui::SetTooltip(_("Polyphony"));
         }
         popToggleColors();
+
+        ImGui::SameLine();
+        pushToggleColors(scaleMode!=GUI_SCALE_CHROMATIC);
+        if (ImGui::Button(_(scaleModeNames[scaleMode%3]))) {
+          CHANGE_SCALE_MODE;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Scale"));
+        }
+        popToggleColors();
+
+        if (scaleMode!=GUI_SCALE_CHROMATIC) {
+          ImGui::SameLine();
+          if (ImGui::Button("-##ScaleRootDown")) {
+            CHANGE_SCALE_ROOT_DOWN;
+          }
+          ImGui::SameLine();
+          ImGui::Text("%s", formatScaleRoot(scaleRoot).c_str());
+          ImGui::SameLine();
+          if (ImGui::Button("+##ScaleRootUp")) {
+            CHANGE_SCALE_ROOT_UP;
+          }
+        }
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();

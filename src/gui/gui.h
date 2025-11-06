@@ -117,7 +117,7 @@ enum FurnaceGUIRenderBackend {
       #define GUI_BACKEND_DEFAULT_NAME "SDL"
     #else
       #define GUI_BACKEND_DEFAULT GUI_BACKEND_SOFTWARE
-      #define GUI_BACKEDN_DEFAULT_NAME "Software"
+      #define GUI_BACKEND_DEFAULT_NAME "Software"
     #endif
   #endif
 #endif
@@ -1687,6 +1687,12 @@ enum NoteInputModes: unsigned char {
   GUI_NOTE_INPUT_CHORD
 };
 
+enum ScaleModes: unsigned char {
+  GUI_SCALE_CHROMATIC=0,
+  GUI_SCALE_MAJOR,
+  GUI_SCALE_MINOR
+};
+
 struct FurnaceCV;
 
 class FurnaceGUI {
@@ -1739,6 +1745,8 @@ class FurnaceGUI {
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, displayExport, displayPalette, fullScreen, preserveChanPos, sysDupCloneChannels, sysDupEnd;
   unsigned char noteInputMode;
+  unsigned char scaleMode;
+  signed char scaleRoot;
   bool notifyWaveChange, notifySampleChange;
   bool recalcTimestamps;
   bool wantScrollListIns, wantScrollListWave, wantScrollListSample;
@@ -2919,7 +2927,6 @@ class FurnaceGUI {
   std::vector<String> randomDemoSong;
 
   void commandExportOptions();
-  
   void drawExportAudio(bool onWindow=false);
   void drawExportVGM(bool onWindow=false);
   void drawExportROM(bool onWindow=false);
@@ -3036,6 +3043,7 @@ class FurnaceGUI {
   void drawMobileControls();
   void drawMobileOrderSel();
   void drawEditControls();
+  String formatScaleRoot(signed char root);
   void drawSongInfo(bool asChild=false);
   void drawSpeed(bool asChild=false);
   void drawGrooves();
@@ -3167,6 +3175,7 @@ class FurnaceGUI {
   void noteInput(int num, int key, int vol=-1, int chanOff=0);
   void valueInput(int num, bool direct=false, int target=-1);
   void orderInput(int num);
+  int transposeToScale(int chromaticNote);
 
   void doGenerateWave();
 

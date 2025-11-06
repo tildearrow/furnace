@@ -88,6 +88,28 @@ void FurnaceGUI::centerNextWindow(const char* name, float w, float h) {
   }
 }
 
+// Scale intervals. Can add more scales here later
+static const int majorScale[7] = {0, 2, 4, 5, 7, 9, 11}; // Major: W-W-H-W-W-W-H
+static const int minorScale[7] = {0, 2, 3, 5, 7, 8, 10}; // Natural Minor: W-H-W-W-H-W-W
+
+int FurnaceGUI::transposeToScale(int chromaticNote) {
+  if (scaleMode == GUI_SCALE_CHROMATIC) {
+    return chromaticNote;
+  }
+  const int* currentScale = (scaleMode == GUI_SCALE_MAJOR) ? majorScale : minorScale;
+  int octave = chromaticNote/12;
+  int noteInOctave = chromaticNote%12;
+  if (chromaticNote<0 && noteInOctave!=0) {
+    octave-=1;
+    noteInOctave+=12;
+  }
+  int scalePos = noteInOctave%7;
+  int extraOctaves = noteInOctave/7;
+  int scaledNote = currentScale[scalePos];
+  int result = (octave+extraOctaves)*12+scaledNote+scaleRoot;
+  return result;
+}
+
 void FurnaceGUI::bindEngine(DivEngine* eng) {
   e=eng;
   wavePreview.setEngine(e);
@@ -1384,6 +1406,8 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
   if (it!=noteKeys.cend()) {
     int key=it->second;
     int num=12*curOctave+key;
+    num = transposeToScale(num);
+
     if (num<-60) num=-60; // C-(-5)
     if (num>119) num=119; // B-9
 
@@ -1789,6 +1813,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
             if (it!=noteKeys.cend()) {
               int key=it->second;
               int num=12*curOctave+key;
+              num = transposeToScale(num);
 
               if (num<-60) num=-60; // C-(-5)
               if (num>119) num=119; // B-9
@@ -3562,12 +3587,11 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
           if (it!=noteKeys.cend()) {
             int key=it->second;
             int num=12*curOctave+key;
-
-            if (num<-60) num=-60; // C-(-5)
-            if (num>119) num=119; // B-9
-
+            int transposedNum = transposeToScale(num);
+            if (transposedNum<-60) transposedNum=-60;
+            if (transposedNum>119) transposedNum=119;
             if (key!=100 && key!=101 && key!=102) {
-              previewNote(cursor.xCoarse,num);
+              previewNote(cursor.xCoarse,transposedNum);
             }
           }
           break;
@@ -4250,8 +4274,10 @@ bool FurnaceGUI::loop() {
           case TA_MIDI_NOTE_ON:
             if (midiMap.valueInputStyle==0 || midiMap.valueInputStyle>3 || cursor.xFine==0) {
               if (midiMap.noteInput && edit && msg.data[1]!=0) {
+                int midiNote = msg.data[0]-12;
+                int transposedNote = transposeToScale(midiNote);
                 noteInput(
-                  msg.data[0]-12,
+                  transposedNote,
                   0,
                   midiMap.volInput?msg.data[1]:-1,
                   chordInputOffset
@@ -4419,7 +4445,7 @@ bool FurnaceGUI::loop() {
       killGraphics=false;
 
       logW("graphics are dead! restarting...");
-      
+
       if (sampleTex!=NULL) {
         rend->destroyTexture(sampleTex);
         sampleTex=NULL;
@@ -5576,8 +5602,8 @@ bool FurnaceGUI::loop() {
                   } else {;
                     showError(e->getLastError());
                   }
-                } 
-                else 
+                }
+                else
                 {
                   if((int)samples.size() == 1)
                   {
@@ -5587,13 +5613,13 @@ bool FurnaceGUI::loop() {
                       {
                         warn=true;
                         errs+=fmt::sprintf("- %s: %s\n",i,e->getLastError());
-                      } 
-                      else 
+                      }
+                      else
                       {
                         showError(e->getLastError());
                       }
-                    } 
-                    else 
+                    }
+                    else
                     {
                       MARK_MODIFIED;
                     }
@@ -7008,29 +7034,29 @@ bool FurnaceGUI::loop() {
 
       bool anySelected=false;
       float sizeY=ImGui::GetFrameHeightWithSpacing()*pendingSamples.size();
-      if (sizeY>(canvasH-180.0*dpiScale)) 
+      if (sizeY>(canvasH-180.0*dpiScale))
       {
         sizeY=canvasH-180.0*dpiScale;
         if (sizeY<60.0*dpiScale) sizeY=60.0*dpiScale;
       }
-      if (ImGui::BeginTable("PendingSamplesList",1,ImGuiTableFlags_ScrollY,ImVec2(0.0f,sizeY))) 
+      if (ImGui::BeginTable("PendingSamplesList",1,ImGuiTableFlags_ScrollY,ImVec2(0.0f,sizeY)))
       {
         if (sampleBankSearchQuery.empty())
         {
-          for (size_t i=0; i<pendingSamples.size(); i++) 
+          for (size_t i=0; i<pendingSamples.size(); i++)
           {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             String id=fmt::sprintf("%d: %s",(int)i,pendingSamples[i].first->name);
-            if (pendingInsSingle) 
+            if (pendingInsSingle)
             {
-              if (ImGui::Selectable(id.c_str())) 
+              if (ImGui::Selectable(id.c_str()))
               {
                 pendingSamples[i].second=true;
                 quitPlease=true;
               }
-            } 
-            else 
+            }
+            else
             {
               // TODO:fixstyle from hereonwards
               ImGuiIO& io = ImGui::GetIO();
@@ -7059,22 +7085,22 @@ bool FurnaceGUI::loop() {
           {
             String lowerCase=sampleBankSearchQuery;
 
-            for (char& ii: lowerCase) 
+            for (char& ii: lowerCase)
             {
               if (ii>='A' && ii<='Z') ii+='a'-'A';
             }
 
             sampleBankSearchResults.clear();
-            for (int j=0; j < (int)pendingSamples.size(); j++) 
+            for (int j=0; j < (int)pendingSamples.size(); j++)
             {
               String lowerCase1 = pendingSamples[j].first->name;
 
-              for (char& ii: lowerCase1) 
+              for (char& ii: lowerCase1)
               {
                 if (ii>='A' && ii<='Z') ii+='a'-'A';
               }
 
-              if (lowerCase1.find(lowerCase)!=String::npos) 
+              if (lowerCase1.find(lowerCase)!=String::npos)
               {
                 sampleBankSearchResults.push_back(std::make_pair(pendingSamples[j].first, pendingSamples[j].second));
               }
@@ -7138,11 +7164,11 @@ bool FurnaceGUI::loop() {
         }
         quitPlease=true;
       }
-      if (quitPlease) 
+      if (quitPlease)
       {
         ImGui::CloseCurrentPopup();
         int counter = 0;
-        for (std::pair<DivSample*,bool>& i: pendingSamples) 
+        for (std::pair<DivSample*,bool>& i: pendingSamples)
         {
           if (!i.second)
           {
@@ -7412,7 +7438,6 @@ bool FurnaceGUI::loop() {
 #endif
 
               String finalPath=backupPath+String(DIR_SEPARATOR_STR)+backupFileName;
-              
               FILE* outFile=ps_fopen(finalPath.c_str(),"wb");
               if (outFile!=NULL) {
                 if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
@@ -7457,7 +7482,7 @@ bool FurnaceGUI::loop() {
     }
 
     sampleMapWaitingInput=(curWindow==GUI_WINDOW_INS_EDIT && sampleMapFocused);
-    
+
     curWindowThreadSafe=curWindow;
 
     if (curWindow!=curWindowLast) {
@@ -7604,7 +7629,7 @@ bool FurnaceGUI::loop() {
     if (shallDetectScale) {
       if (--shallDetectScale<1) {
         if (settings.dpiScale<0.5f) {
-          const char* videoBackend=SDL_GetCurrentVideoDriver();      
+          const char* videoBackend=SDL_GetCurrentVideoDriver();
           double newScale=getScaleFactor(videoBackend,sdlWin);
           if (newScale<0.1f) {
             logW("scale what?");
@@ -8728,6 +8753,8 @@ FurnaceGUI::FurnaceGUI():
   sysDupCloneChannels(true),
   sysDupEnd(false),
   noteInputMode(GUI_NOTE_INPUT_POLY),
+  scaleMode(GUI_SCALE_CHROMATIC),
+  scaleRoot(0),
   notifyWaveChange(false),
   notifySampleChange(false),
   recalcTimestamps(true),
