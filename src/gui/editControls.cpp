@@ -177,15 +177,16 @@ const char* noteInputModes[4]={
   _N("Of fuckin' course!##PolyInput")
 };
 
-const char* scaleModeNames[8]={
+const char* scaleModeNames[9]={
   _N("Chromatic##ScaleMode"),
   _N("Major##ScaleMode"),
   _N("Minor##ScaleMode"),
   _N("HarmMin##ScaleMode"),
   _N("MelMin##ScaleMode"),
-  _N("HungMin##ScaleMode"),
-  _N("NeapMaj##ScaleMode"),
+  _N("HarmMaj##ScaleMode"),
   _N("DblHarm##ScaleMode"),
+  _N("PhrygDom##ScaleMode"),
+  _N("LydDom##ScaleMode"),
 };
 
 #define CHANGE_NOTE_INPUT_MODE \
@@ -196,7 +197,7 @@ const char* scaleModeNames[8]={
 
 #define CHANGE_SCALE_MODE \
   scaleMode++; \
-  if (scaleMode>GUI_SCALE_DOUBLE_HARMONIC) scaleMode=GUI_SCALE_CHROMATIC;
+  if (scaleMode>GUI_SCALE_LYDIAN_DOMINANT) scaleMode=GUI_SCALE_CHROMATIC;
 
 #define CHANGE_SCALE_ROOT_DOWN \
   scaleRoot--; \

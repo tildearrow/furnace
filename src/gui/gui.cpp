@@ -92,9 +92,10 @@ static const int majorScale[7] = {0, 2, 4, 5, 7, 9, 11};
 static const int minorScale[7] = {0, 2, 3, 5, 7, 8, 10};
 static const int harmonicMinorScale[7] = {0, 2, 3, 5, 7, 8, 11};
 static const int melodicMinorScale[7] = {0, 2, 3, 5, 7, 9, 11};
-static const int hungarianMinorScale[7] = {0, 2, 3, 6, 7, 8, 11};
-static const int neapolitanMajorScale[7] = {0, 1, 3, 5, 7, 9, 11};
+static const int harmonicMajorScale[7] = {0, 2, 4, 5, 7, 8, 11};
 static const int doubleHarmonicScale[7] = {0, 1, 4, 5, 7, 8, 11};
+static const int phrygianDominantScale[7] = {0, 1, 4, 5, 7, 8, 10};
+static const int lydianDominantScale[7] = {0, 2, 4, 6, 7, 9, 10};
 
 int FurnaceGUI::transposeToScale(int chromaticNote) {
   if (scaleMode == GUI_SCALE_CHROMATIC) {
@@ -115,15 +116,18 @@ int FurnaceGUI::transposeToScale(int chromaticNote) {
     case GUI_SCALE_MELODIC_MINOR:
       currentScale = melodicMinorScale;
       break;
-    case GUI_SCALE_HUNGARIAN_MINOR:
-      currentScale = hungarianMinorScale;
-      break;
-    case GUI_SCALE_NEAPOLITAN_MAJOR:
-      currentScale = neapolitanMajorScale;
+    case GUI_SCALE_HARMONIC_MAJOR:
+      currentScale = harmonicMajorScale;
       break;
     case GUI_SCALE_DOUBLE_HARMONIC:
       currentScale = doubleHarmonicScale;
       break;
+    case GUI_SCALE_PHRYGIAN_DOMINANT:
+      currentScale = phrygianDominantScale;
+      break;
+    case GUI_SCALE_LYDIAN_DOMINANT:
+      currentScale = lydianDominantScale;
+      break;  
     default:
       currentScale = majorScale;
       break;
