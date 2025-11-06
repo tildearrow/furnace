@@ -4445,7 +4445,7 @@ bool FurnaceGUI::loop() {
       killGraphics=false;
 
       logW("graphics are dead! restarting...");
-
+      
       if (sampleTex!=NULL) {
         rend->destroyTexture(sampleTex);
         sampleTex=NULL;
@@ -5602,8 +5602,8 @@ bool FurnaceGUI::loop() {
                   } else {;
                     showError(e->getLastError());
                   }
-                }
-                else
+                } 
+                else 
                 {
                   if((int)samples.size() == 1)
                   {
@@ -5613,13 +5613,13 @@ bool FurnaceGUI::loop() {
                       {
                         warn=true;
                         errs+=fmt::sprintf("- %s: %s\n",i,e->getLastError());
-                      }
-                      else
+                      } 
+                      else 
                       {
                         showError(e->getLastError());
                       }
-                    }
-                    else
+                    } 
+                    else 
                     {
                       MARK_MODIFIED;
                     }
@@ -7034,29 +7034,29 @@ bool FurnaceGUI::loop() {
 
       bool anySelected=false;
       float sizeY=ImGui::GetFrameHeightWithSpacing()*pendingSamples.size();
-      if (sizeY>(canvasH-180.0*dpiScale))
+      if (sizeY>(canvasH-180.0*dpiScale)) 
       {
         sizeY=canvasH-180.0*dpiScale;
         if (sizeY<60.0*dpiScale) sizeY=60.0*dpiScale;
       }
-      if (ImGui::BeginTable("PendingSamplesList",1,ImGuiTableFlags_ScrollY,ImVec2(0.0f,sizeY)))
+      if (ImGui::BeginTable("PendingSamplesList",1,ImGuiTableFlags_ScrollY,ImVec2(0.0f,sizeY))) 
       {
         if (sampleBankSearchQuery.empty())
         {
-          for (size_t i=0; i<pendingSamples.size(); i++)
+          for (size_t i=0; i<pendingSamples.size(); i++) 
           {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             String id=fmt::sprintf("%d: %s",(int)i,pendingSamples[i].first->name);
-            if (pendingInsSingle)
+            if (pendingInsSingle) 
             {
-              if (ImGui::Selectable(id.c_str()))
+              if (ImGui::Selectable(id.c_str())) 
               {
                 pendingSamples[i].second=true;
                 quitPlease=true;
               }
-            }
-            else
+            } 
+            else 
             {
               // TODO:fixstyle from hereonwards
               ImGuiIO& io = ImGui::GetIO();
@@ -7085,22 +7085,22 @@ bool FurnaceGUI::loop() {
           {
             String lowerCase=sampleBankSearchQuery;
 
-            for (char& ii: lowerCase)
+            for (char& ii: lowerCase) 
             {
               if (ii>='A' && ii<='Z') ii+='a'-'A';
             }
 
             sampleBankSearchResults.clear();
-            for (int j=0; j < (int)pendingSamples.size(); j++)
+            for (int j=0; j < (int)pendingSamples.size(); j++) 
             {
               String lowerCase1 = pendingSamples[j].first->name;
 
-              for (char& ii: lowerCase1)
+              for (char& ii: lowerCase1) 
               {
                 if (ii>='A' && ii<='Z') ii+='a'-'A';
               }
 
-              if (lowerCase1.find(lowerCase)!=String::npos)
+              if (lowerCase1.find(lowerCase)!=String::npos) 
               {
                 sampleBankSearchResults.push_back(std::make_pair(pendingSamples[j].first, pendingSamples[j].second));
               }
@@ -7164,11 +7164,11 @@ bool FurnaceGUI::loop() {
         }
         quitPlease=true;
       }
-      if (quitPlease)
+      if (quitPlease) 
       {
         ImGui::CloseCurrentPopup();
         int counter = 0;
-        for (std::pair<DivSample*,bool>& i: pendingSamples)
+        for (std::pair<DivSample*,bool>& i: pendingSamples) 
         {
           if (!i.second)
           {
@@ -7438,6 +7438,7 @@ bool FurnaceGUI::loop() {
 #endif
 
               String finalPath=backupPath+String(DIR_SEPARATOR_STR)+backupFileName;
+              
               FILE* outFile=ps_fopen(finalPath.c_str(),"wb");
               if (outFile!=NULL) {
                 if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
@@ -7482,7 +7483,7 @@ bool FurnaceGUI::loop() {
     }
 
     sampleMapWaitingInput=(curWindow==GUI_WINDOW_INS_EDIT && sampleMapFocused);
-
+    
     curWindowThreadSafe=curWindow;
 
     if (curWindow!=curWindowLast) {
@@ -7629,7 +7630,7 @@ bool FurnaceGUI::loop() {
     if (shallDetectScale) {
       if (--shallDetectScale<1) {
         if (settings.dpiScale<0.5f) {
-          const char* videoBackend=SDL_GetCurrentVideoDriver();
+          const char* videoBackend=SDL_GetCurrentVideoDriver();      
           double newScale=getScaleFactor(videoBackend,sdlWin);
           if (newScale<0.1f) {
             logW("scale what?");
