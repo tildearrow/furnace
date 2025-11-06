@@ -825,7 +825,7 @@ void FurnaceGUI::drawEditControls() {
 
         ImGui::SameLine();
         pushToggleColors(scaleMode!=GUI_SCALE_CHROMATIC);
-        if (ImGui::Button(_(scaleModeNames[scaleMode%3]))) {
+        if (ImGui::Button(_(scaleModeNames[scaleMode]))) {
           CHANGE_SCALE_MODE;
         }
         if (ImGui::IsItemHovered()) {
@@ -986,7 +986,7 @@ void FurnaceGUI::drawEditControls() {
 
         ImGui::SameLine();
         pushToggleColors(scaleMode!=GUI_SCALE_CHROMATIC);
-        if (ImGui::Button(_(scaleModeNames[scaleMode%3]))) {
+        if (ImGui::Button(_(scaleModeNames[scaleMode]))) {
           CHANGE_SCALE_MODE;
         }
         if (ImGui::IsItemHovered()) {
@@ -1153,7 +1153,7 @@ void FurnaceGUI::drawEditControls() {
         }
         popToggleColors();
         pushToggleColors(scaleMode!=GUI_SCALE_CHROMATIC);
-        if (ImGui::Button(_(scaleModeNames[scaleMode%3]))) {
+        if (ImGui::Button(_(scaleModeNames[scaleMode]))) {
           CHANGE_SCALE_MODE;
         }
         if (ImGui::IsItemHovered()) {
@@ -1284,7 +1284,7 @@ void FurnaceGUI::drawEditControls() {
 
         ImGui::SameLine();
         pushToggleColors(scaleMode!=GUI_SCALE_CHROMATIC);
-        if (ImGui::Button(_(scaleModeNames[scaleMode%3]))) {
+        if (ImGui::Button(_(scaleModeNames[scaleMode]))) {
           CHANGE_SCALE_MODE;
         }
         if (ImGui::IsItemHovered()) {
