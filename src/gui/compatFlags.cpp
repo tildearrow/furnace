@@ -318,7 +318,7 @@ void FurnaceGUI::drawCompatFlags() {
         }
         ImGui::Unindent();
 
-        if (e->song.linearPitch==2) {
+        if (e->song.linearPitch) {
           ImGui::SameLine();
           ImGui::SetNextItemWidth(120.0f*dpiScale);
           if (ImGui::InputScalar(_("Pitch slide speed multiplier"),ImGuiDataType_U8,&e->song.pitchSlideSpeed,&_ONE,&_ONE)) {
