@@ -484,14 +484,53 @@ TAParamResult pOutFormat(String val) {
 }
 
 TAParamResult pBitRate(String val) {
+  try {
+    int br=std::stoi(val);
+    if (br<0) {
+      logE("bit rate shall be positive.");
+      return TA_PARAM_ERROR;
+    }
+    if (br<1000) {
+      // let's assume the user meant kilobits.
+      br*=1000;
+    }
+    exportOptions.bitRate=br;
+  } catch (std::exception& e) {
+    logE("bit rate shall be a number.");
+    return TA_PARAM_ERROR;
+  }
   return TA_PARAM_SUCCESS;
 }
 
 TAParamResult pRateMode(String val) {
+  if (val=="constant") {
+    exportOptions.bitRateMode=DIV_EXPORT_BITRATE_CONSTANT;
+  } else if (val=="variable") {
+    exportOptions.bitRateMode=DIV_EXPORT_BITRATE_VARIABLE;
+  } else if (val=="average") {
+    exportOptions.bitRateMode=DIV_EXPORT_BITRATE_AVERAGE;
+  } else {
+    logE("invalid value for ratemode! valid values are: constant, variable and average.");
+    return TA_PARAM_ERROR;
+  }
   return TA_PARAM_SUCCESS;
 }
 
 TAParamResult pCompression(String val) {
+  try {
+    float qual=std::stof(val);
+    if (qual<0) {
+      logE("quality/compression level shall be positive.");
+      return TA_PARAM_ERROR;
+    }
+    if (qual>10) {
+      qual=10;
+    }
+    exportOptions.vbrQuality=qual;
+  } catch (std::exception& e) {
+    logE("quality/compression level shall be a number.");
+    return TA_PARAM_ERROR;
+  }
   return TA_PARAM_SUCCESS;
 }
 
@@ -591,7 +630,7 @@ void initParams() {
   params.push_back(TAParam("f","outformat",true,pOutFormat,"u8|s16|f32|opus|flac|vorbis|mp3","set audio output format"));
   params.push_back(TAParam("b","bitrate",true,pBitRate,"<rate>","set output file bit rate (lossy compression only)"));
   params.push_back(TAParam("M","ratemode",true,pRateMode,"constant|variable|average","set output bit rate mode (MP3 only)"));
-  params.push_back(TAParam("Q","compression",true,pCompression,"<level>","set output quality/compression level (Vorbis, FLAC and MP3 VBR only)"));
+  params.push_back(TAParam("Q","compression",true,pCompression,"<level>","set output quality/compression level from 0-10 (Vorbis, FLAC and MP3 VBR only)"));
 
 
   params.push_back(TAParam("O","vgmout",true,pVGMOut,"<filename>","output .vgm data"));
