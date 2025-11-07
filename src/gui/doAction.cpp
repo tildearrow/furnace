@@ -1797,7 +1797,32 @@ void FurnaceGUI::doAction(int what) {
       }
       break;
     }
-
+    case GUI_ACTION_SAMPLE_CREATE_WAVE_SEQ: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      SAMPLE_OP_BEGIN;
+      if (sample->length16==0) break;
+      for (unsigned int i=0; i<=ceil((sample->samples)/sampleToWaveSeqWaveSize); i++) {
+        curWave=e->addWave();
+        if (curWave==-1) {
+          showError(_("too many wavetables!"));
+          break;
+        } else {
+          DivWavetable* wave=e->song.wave[curWave];
+          wave->min=0;
+          wave->max=255;
+          wave->len=sampleToWaveSeqWaveSize;
+          if ((i+1)*sampleToWaveSeqWaveSize>sample->samples) wave->len=sample->samples%sampleToWaveSeqWaveSize;
+          for (int j=0; j<sampleToWaveSeqWaveSize; j++) {
+            wave->data[j]=(((unsigned short)sample->data16[j+i*sampleToWaveSeqWaveSize]&0xff00)>>8)^0x80;
+          }
+        }
+      }
+      nextWindow=GUI_WINDOW_WAVE_EDIT;
+      MARK_MODIFIED;
+      RESET_WAVE_MACRO_ZOOM;
+      break;
+    }
     case GUI_ACTION_ORDERS_UP:
       if (curOrder>0) {
         setOrder(curOrder-1);
