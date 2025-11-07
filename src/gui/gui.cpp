@@ -5001,7 +5001,7 @@ bool FurnaceGUI::loop() {
               break;
             default: // effect
               if (cursor.xFine<DIV_MAX_COLS) {
-                if (p->newData[cursor.y][cursor.xFine]>-1) {
+                if (p->newData[cursor.y][(cursor.xFine-1)|1]>-1) {
                   info=e->getEffectDesc(p->newData[cursor.y][(cursor.xFine-1)|1],cursor.xCoarse,true);
                   hasInfo=true;
                 }

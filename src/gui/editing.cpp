@@ -1582,8 +1582,11 @@ void FurnaceGUI::doRandomize(int bottom, int top, bool mode, bool eff, int effVa
             value=MIN(absoluteTop,bottom);
             value2=MIN(absoluteTop,bottom);
           } else {
-            value=MIN(absoluteTop,bottom+(rand()%(top-bottom+1)));
-            value2=MIN(absoluteTop,bottom+(rand()%(top-bottom+1)));
+            // HACK: MIN will call rand() twice....
+            int randVal=rand();
+            value=MIN(absoluteTop,bottom+(randVal%(top-bottom+1)));
+            randVal=rand();
+            value2=MIN(absoluteTop,bottom+(randVal%(top-bottom+1)));
           }
           if (mode) {
             value&=15;
