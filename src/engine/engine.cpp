@@ -130,8 +130,6 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return _("E9xy: Quick legato down (x: time; y: semitones)");
     case 0xea:
       return _("EAxx: Legato");
-    case 0xeb:
-      return _("EBxx: Set LEGACY sample mode bank");
     case 0xec:
       return _("ECxx: Note cut");
     case 0xed:
