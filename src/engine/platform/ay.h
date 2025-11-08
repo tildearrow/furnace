@@ -65,7 +65,7 @@ class DivPlatformAY8910: public DivDispatch {
 
       struct DAC {
         int sample, rate, period, pos, out;
-        bool furnaceDAC, setPos;
+        bool setPos;
 
         DAC():
           sample(-1),
@@ -73,7 +73,6 @@ class DivPlatformAY8910: public DivDispatch {
           period(0),
           pos(0),
           out(0),
-          furnaceDAC(false),
           setPos(false) {}
       } dac;
 

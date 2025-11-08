@@ -1603,7 +1603,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     }
 
     // OK/Cancel buttons
-    ImGui::BeginDisabled(entryName.empty() && chosenEntries.empty());
+    ImGui::BeginDisabled(entryName.empty() && chosenEntries.empty() && !dirSelect);
     if (ImGui::Button(_("OK"))) {
       // accept entry
       acknowledged=true;

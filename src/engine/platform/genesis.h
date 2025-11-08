@@ -37,7 +37,6 @@ class DivPlatformGenesis: public DivPlatformOPN {
     };
 
     struct Channel: public FMChannelStereo {
-      bool furnaceDac;
       bool dacMode;
       int dacPeriod;
       int dacRate;
@@ -49,7 +48,6 @@ class DivPlatformGenesis: public DivPlatformOPN {
       signed char dacOutput;
       Channel():
         FMChannelStereo(),
-        furnaceDac(false),
         dacMode(false),
         dacPeriod(0),
         dacRate(0),
