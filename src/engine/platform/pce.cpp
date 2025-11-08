@@ -466,12 +466,6 @@ int DivPlatformPCE::dispatch(DivCommand c) {
     case DIV_CMD_SAMPLE_MODE:
       chan[c.chan].pcm=c.value;
       break;
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
-      break;
     case DIV_CMD_SAMPLE_POS:
       chan[c.chan].dacPos=c.value;
       chan[c.chan].setPos=true;
@@ -605,7 +599,6 @@ void DivPlatformPCE::reset() {
   pce->Power(0);
   lastPan=0xff;
   curChan=-1;
-  sampleBank=0;
   lfoMode=0;
   lfoSpeed=255;
   // set global volume

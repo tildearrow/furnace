@@ -53,7 +53,6 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
     unsigned char* adpcmMem;
     size_t adpcmMemLen;
     bool* sampleLoaded;
-    unsigned char sampleBank;
 
     int delay, updateOsc;
 

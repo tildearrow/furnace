@@ -59,7 +59,6 @@ class DivPlatformNES: public DivDispatch {
   size_t dpcmMemLen;
   bool* sampleLoaded;
   unsigned char dpcmBank;
-  unsigned char sampleBank;
   unsigned char writeOscBuf;
   unsigned char apuType;
   unsigned char linearCount;

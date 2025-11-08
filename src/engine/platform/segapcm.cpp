@@ -330,12 +330,6 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     }
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
-      break;
     case DIV_CMD_SAMPLE_POS:
       chan[c.chan].pcm.pos=c.value;
       chan[c.chan].setPos=true;
@@ -475,7 +469,6 @@ void DivPlatformSegaPCM::reset() {
   pcmCycles=0;
   pcmL=0;
   pcmR=0;
-  sampleBank=0;
   delay=0;
 
   pcm.device_start();

@@ -1392,13 +1392,6 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
       PLEASE_HELP_ME(chan[c.chan],chan[c.chan].state.block);
       break;
     }
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
-      iface.sampleBank=sampleBank;
-      break;
     case DIV_CMD_LEGATO: {
       if (c.chan==csmChan) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
@@ -1884,7 +1877,6 @@ void DivPlatformYM2608::reset() {
 
   lastBusy=60;
   lfoValue=8;
-  sampleBank=0;
   writeRSSOff=0;
   writeRSSOn=0;
   globalRSSVolume=0x3f;
@@ -2087,7 +2079,6 @@ int DivPlatformYM2608::init(DivEngine* p, int channels, int sugRate, const DivCo
   adpcmBMem=new unsigned char[getSampleMemCapacity(0)];
   adpcmBMemLen=0;
   iface.adpcmBMem=adpcmBMem;
-  iface.sampleBank=0;
   dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<17; i++) {

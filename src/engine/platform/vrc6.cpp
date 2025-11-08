@@ -407,12 +407,6 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
         }
       }
       break;
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
-      break;
     case DIV_CMD_SAMPLE_POS:
       chan[c.chan].dacPos=c.value;
       chan[c.chan].setPos=true;
@@ -510,7 +504,6 @@ void DivPlatformVRC6::reset() {
     addWrite(0xffffffff,0);
   }
 
-  sampleBank=0;
   prevSample=0;
 
   vrc6.reset();

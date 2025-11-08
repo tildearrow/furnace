@@ -70,7 +70,7 @@ class DivPlatformPCE: public DivDispatch {
   unsigned char lastPan;
 
   int curChan;
-  unsigned char sampleBank, lfoMode, lfoSpeed;
+  unsigned char lfoMode, lfoSpeed;
   PCE_PSG* pce;
   unsigned char regPool[128];
   void updateWave(int ch);

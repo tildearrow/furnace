@@ -121,7 +121,6 @@ class DivPlatformAY8910: public DivDispatch {
     unsigned char regPool[16];
     unsigned char lastBusy;
   
-    unsigned char sampleBank;
     unsigned char stereoSep;
     unsigned char selCore;
 

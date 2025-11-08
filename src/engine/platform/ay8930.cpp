@@ -750,12 +750,6 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
         chan[c.chan].curPSGMode.val|=chan[c.chan].nextPSGMode.val&8;
       }
       break;
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
-      break;
     case DIV_CMD_SAMPLE_POS:
       chan[c.chan].dac.pos=c.value;
       chan[c.chan].dac.setPos=true;
@@ -873,7 +867,6 @@ void DivPlatformAY8930::reset() {
     pendingWrites[i]=-1;
   }
 
-  sampleBank=0;
   ayNoiseAnd=2;
   ayNoiseOr=0;
   delay=0;

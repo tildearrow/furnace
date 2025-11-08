@@ -527,12 +527,6 @@ int DivPlatformSwan::dispatch(DivCommand c) {
         }
       }
       break;
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
-      break;
     case DIV_CMD_SAMPLE_POS:
       dacPos=c.value;
       setPos=true;
@@ -665,7 +659,6 @@ void DivPlatformSwan::reset() {
   dacRate=0;
   dacPos=0;
   dacSample=-1;
-  sampleBank=0;
   rWrite(0x0f,0x00); // wave table at 0x0000
   rWrite(0x11,0x0f); // enable speakers, minimum headphone volume 
 }

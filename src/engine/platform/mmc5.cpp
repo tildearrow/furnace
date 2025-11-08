@@ -304,12 +304,6 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
       chan[c.chan].duty=c.value;
       rWrite(0x5000+c.chan*4,0x30|(chan[c.chan].active?chan[c.chan].outVol:0)|((chan[c.chan].duty&3)<<6));
       break;
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
-      break;
     case DIV_CMD_SAMPLE_POS:
       if (c.chan!=2) break;
       dacPos=c.value;
@@ -403,7 +397,6 @@ void DivPlatformMMC5::reset() {
   dacPos=0;
   dacRate=0;
   dacSample=-1;
-  sampleBank=0;
 
   map_init_MMC5(mmc5);
   memset(regPool,0,128);

@@ -42,7 +42,7 @@ class DivPlatformSwan: public DivDispatch {
   bool stereo;
   bool useMdfn;
   bool pcm, sweep, furnaceDac, setPos;
-  unsigned char sampleBank, noise;
+  unsigned char noise;
   int dacPeriod, dacRate;
   unsigned int dacPos;
   int dacSample;

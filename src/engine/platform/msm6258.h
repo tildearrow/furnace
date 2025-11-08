@@ -48,7 +48,7 @@ class DivPlatformMSM6258: public DivDispatch {
     FixedQueue<QueuedWrite,256> writes;
     okim6258_device* msm;
 
-    unsigned char sampleBank, msmPan, msmDivider, rateSel, msmClock, clockSel;
+    unsigned char msmPan, msmDivider, rateSel, msmClock, clockSel;
     signed char msmDividerCount, msmClockCount;
     bool updateSampleFreq;
     bool variableRate;

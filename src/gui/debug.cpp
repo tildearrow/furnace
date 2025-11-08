@@ -103,7 +103,6 @@
 
 #define OPNB_CHIP_DEBUG \
   FM_OPN_CHIP_DEBUG; \
-  ImGui::Text("- sampleBank: %d",ch->sampleBank); \
   ImGui::Text("- writeADPCMAOff: %d",ch->writeADPCMAOff); \
   ImGui::Text("- writeADPCMAOn: %d",ch->writeADPCMAOn); \
   ImGui::Text("- globalADPCMAVolume: %d",ch->globalADPCMAVolume); \
@@ -164,7 +163,6 @@
   ImGui::Text(" - output: %d",ch->dacOutput); \
   ImGui::Text("- pan: %x",ch->pan); \
   ImGui::Text("- opMask: %x",ch->opMask); \
-  ImGui::Text("- sampleBank: %d",ch->sampleBank); \
   COMMON_CHAN_DEBUG_BOOL; \
   ImGui::TextColored(ch->furnaceDac?colorOn:colorOff,">> FurnaceDAC"); \
   ImGui::TextColored(ch->hardReset?colorOn:colorOff,">> hardReset"); \
@@ -265,7 +263,6 @@ void putDispatchChip(void* data, int type) {
       DivPlatformYM2203* ch=(DivPlatformYM2203*)data;
       ImGui::Text("> YM2203");
       FM_OPN_CHIP_DEBUG;
-      ImGui::Text("- sampleBank: %d",ch->sampleBank);
       ImGui::Text("- prescale: %d",ch->prescale);
       FM_OPN_CHIP_DEBUG_BOOL;
       ImGui::TextColored(ch->extMode?colorOn:colorOff,">> ExtMode");
@@ -276,7 +273,6 @@ void putDispatchChip(void* data, int type) {
       DivPlatformYM2608* ch=(DivPlatformYM2608*)data;
       ImGui::Text("> YM2608");
       FM_OPN_CHIP_DEBUG;
-      ImGui::Text("- sampleBank: %d",ch->sampleBank);
       ImGui::Text("- writeRSSOff: %d",ch->writeRSSOff);
       ImGui::Text("- writeRSSOn: %d",ch->writeRSSOn);
       ImGui::Text("- globalRSSVolume: %d",ch->globalRSSVolume);
@@ -318,7 +314,6 @@ void putDispatchChip(void* data, int type) {
       COMMON_CHIP_DEBUG;
       ImGui::Text("- lastPan: %d",ch->lastPan);
       ImGui::Text("- curChan: %d",ch->curChan);
-      ImGui::Text("- sampleBank: %d",ch->sampleBank);
       ImGui::Text("- lfoMode: %d",ch->lfoMode);
       ImGui::Text("- lfoSpeed: %d",ch->lfoSpeed);
       COMMON_CHIP_DEBUG_BOOL;
@@ -336,7 +331,6 @@ void putDispatchChip(void* data, int type) {
       ImGui::Text(" - AntiClick: %d",ch->dacAntiClick);
       ImGui::Text(" - Sample: %d",ch->dacSample);
       ImGui::Text("- dpcmBank: %d",ch->dpcmBank);
-      ImGui::Text("- sampleBank: %d",ch->sampleBank);
       ImGui::Text("- writeOscBuf: %d",ch->writeOscBuf);
       ImGui::Text("- apuType: %d",ch->apuType);
       COMMON_CHIP_DEBUG_BOOL;
@@ -380,7 +374,6 @@ void putDispatchChip(void* data, int type) {
       ImGui::Text("- pcmL: %d",ch->pcmL);
       ImGui::Text("- pcmR: %d",ch->pcmR);
       ImGui::Text("- pcmCycles: %d",ch->pcmCycles);
-      ImGui::Text("- sampleBank: %d",ch->sampleBank);
       COMMON_CHIP_DEBUG_BOOL;
       break;
     }
@@ -388,7 +381,6 @@ void putDispatchChip(void* data, int type) {
       DivPlatformAY8910* ch=(DivPlatformAY8910*)data;
       ImGui::Text("> AY-3-8910");
       COMMON_CHIP_DEBUG;
-      ImGui::Text("- sampleBank: %d",ch->sampleBank);
       ImGui::Text("- stereoSep: %d",ch->stereoSep);
       ImGui::Text("- delay: %d",ch->delay);
       ImGui::Text("- extClock: %d",ch->extClock);
@@ -417,7 +409,6 @@ void putDispatchChip(void* data, int type) {
       ImGui::Text("* noise:");
       ImGui::Text(" - and: %d",ch->ayNoiseAnd);
       ImGui::Text(" - or: %d",ch->ayNoiseOr);
-      ImGui::Text("- sampleBank: %d",ch->sampleBank);
       ImGui::Text("- stereoSep: %d",ch->stereoSep);
       ImGui::Text("- delay: %d",ch->delay);
       ImGui::Text("- portAVal: %d",ch->portAVal);
@@ -445,7 +436,6 @@ void putDispatchChip(void* data, int type) {
       DivPlatformX1_010* ch=(DivPlatformX1_010*)data;
       ImGui::Text("> X1-010");
       COMMON_CHIP_DEBUG;
-      ImGui::Text("- sampleBank: %d",ch->sampleBank);
       ImGui::Text("- bankSlot: [%d,%d,%d,%d,%d,%d,%d,%d]",ch->bankSlot[0],ch->bankSlot[1],ch->bankSlot[2],ch->bankSlot[3],ch->bankSlot[4],ch->bankSlot[5],ch->bankSlot[6],ch->bankSlot[7]);
       COMMON_CHIP_DEBUG_BOOL;
       ImGui::TextColored(ch->stereo?colorOn:colorOff,">> Stereo");
@@ -468,7 +458,6 @@ void putDispatchChip(void* data, int type) {
       DivPlatformVRC6* ch=(DivPlatformVRC6*)data;
       ImGui::Text("> VRC6");
       COMMON_CHIP_DEBUG;
-      ImGui::Text("- sampleBank: %.2x",ch->sampleBank);
       COMMON_CHIP_DEBUG_BOOL;
       break;
     }

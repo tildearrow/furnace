@@ -2128,14 +2128,6 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       }
       break;
     }
-    case DIV_CMD_SAMPLE_BANK:
-      if (adpcmChan<0) break;
-      sampleBank=c.value;
-      if (sampleBank>(int)(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
-      iface.sampleBank=sampleBank;
-      break;
     case DIV_CMD_LEGATO: {
       // TODO: OPL4 PCM
       if (chan[c.chan].insChanged) {
@@ -2908,7 +2900,6 @@ void DivPlatformOPL::reset() {
   lastBusy=60;
   lfoValue=8;
   drumState=0;
-  sampleBank=0;
 
   drumVol[0]=0;
   drumVol[1]=0;
@@ -3471,7 +3462,6 @@ int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, const DivConfi
     adpcmBMem=new unsigned char[262144];
     adpcmBMemLen=0;
     iface.adpcmBMem=adpcmBMem;
-    iface.sampleBank=0;
     adpcmB=new ymfm::adpcm_b_engine(iface,2);
   }
 
@@ -3479,7 +3469,6 @@ int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, const DivConfi
     pcmMem=new unsigned char[4194304];
     pcmMemLen=0;
     iface.pcmMem=pcmMem;
-    iface.sampleBank=0;
     pcmMemory.memory=pcmMem;
   }
 

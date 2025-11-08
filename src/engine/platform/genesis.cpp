@@ -1283,13 +1283,6 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       rWrite(0x2b,c.value<<7);
       break;
     }
-    case DIV_CMD_SAMPLE_BANK:
-      if (c.chan<5) c.chan=5;
-      chan[c.chan].sampleBank=c.value;
-      if (chan[c.chan].sampleBank>(parent->song.sample.size()/12)) {
-        chan[c.chan].sampleBank=parent->song.sample.size()/12;
-      }
-      break;
     case DIV_CMD_SAMPLE_DIR: {
       if (c.chan<5) c.chan=5;
       chan[c.chan].dacDirection=c.value;

@@ -36,10 +36,9 @@ class DivOPLAInterface: public ymfm::ymfm_interface {
   public:
     unsigned char* adpcmBMem;
     unsigned char* pcmMem;
-    int sampleBank;
     uint8_t ymfm_external_read(ymfm::access_class type, uint32_t address);
     void ymfm_external_write(ymfm::access_class type, uint32_t address, uint8_t data);
-    DivOPLAInterface(): adpcmBMem(NULL), pcmMem(NULL), sampleBank(0) {}
+    DivOPLAInterface(): adpcmBMem(NULL), pcmMem(NULL) {}
 };
 
 class DivYMF278MemoryInterface: public MemoryInterface {
@@ -134,7 +133,7 @@ class DivPlatformOPL: public DivDispatch {
     const unsigned short* chanMap;
     const unsigned char* outChanMap;
     int chipFreqBase, chipRateBase;
-    int delay, chipType, oplType, chans, melodicChans, totalChans, adpcmChan=-1, pcmChanOffs=-1, sampleBank, totalOutputs, ramSize;
+    int delay, chipType, oplType, chans, melodicChans, totalChans, adpcmChan=-1, pcmChanOffs=-1, totalOutputs, ramSize;
     int fmMixL=7, fmMixR=7, pcmMixL=7, pcmMixR=7;
     unsigned char lastBusy;
     unsigned char drumState;

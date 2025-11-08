@@ -711,12 +711,6 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
         chan[c.chan].envChanged=true;
       }
       break;
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
-      break;
     case DIV_CMD_PANNING: {
       if (!stereo) break;
       unsigned char newPan=(c.value&0xf0)|(c.value2>>4);
@@ -891,7 +885,6 @@ void DivPlatformX1_010::reset() {
     chan[i].ws.init(NULL,128,255,false);
   }
   x1_010.reset();
-  sampleBank=0;
   // set per-channel initial panning
   for (int i=0; i<16; i++) {
     chWrite(i,0,0);

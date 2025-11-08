@@ -49,7 +49,6 @@ class DivPlatformMMC5: public DivDispatch {
   int dacPeriod, dacRate;
   unsigned int dacPos;
   int dacSample;
-  unsigned char sampleBank;
   unsigned char writeOscBuf;
   struct _mmc5* mmc5;
   unsigned char regPool[128];

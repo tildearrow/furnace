@@ -46,7 +46,6 @@ class DivPlatformGenesis: public DivPlatformOPN {
       int dacDelay;
       bool dacDirection;
       bool setPos;
-      unsigned char sampleBank;
       signed char dacOutput;
       Channel():
         FMChannelStereo(),
@@ -59,7 +58,6 @@ class DivPlatformGenesis: public DivPlatformOPN {
         dacDelay(0),
         dacDirection(false),
         setPos(false),
-        sampleBank(0),
         dacOutput(0) {}
     };
     Channel chan[10];

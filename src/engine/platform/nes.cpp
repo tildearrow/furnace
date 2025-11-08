@@ -737,12 +737,6 @@ int DivPlatformNES::dispatch(DivCommand c) {
       }
       break;
     }
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
-      break;
     case DIV_CMD_SAMPLE_POS:
       if (c.chan!=4) break;
       dacPos=c.value;
@@ -858,7 +852,6 @@ void DivPlatformNES::reset() {
   dpcmPos=0;
   dacRate=0;
   dacSample=-1;
-  sampleBank=0;
   dpcmBank=0;
   dpcmMode=dpcmModeDefault;
   goingToLoop=false;

@@ -1225,31 +1225,7 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
             break;
           }
         } else {
-          chan[c.chan].sample=-1;
-          chan[c.chan].macroInit(NULL);
-          chan[c.chan].outVol=chan[c.chan].vol;
-          if ((12*sampleBank+c.value%12)>=parent->song.sampleLen) {
-            break;
-          }
-          chan[c.chan].sample=12*sampleBank+c.value%12;
-          if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
-            DivSample* s=parent->getSample(12*sampleBank+c.value%12);
-            immWrite(0x110+c.chan-adpcmAChanOffs,(sampleOffA[chan[c.chan].sample]>>8)&0xff);
-            immWrite(0x118+c.chan-adpcmAChanOffs,sampleOffA[chan[c.chan].sample]>>16);
-            int end=sampleOffA[chan[c.chan].sample]+s->lengthA-1;
-            immWrite(0x120+c.chan-adpcmAChanOffs,(end>>8)&0xff);
-            immWrite(0x128+c.chan-adpcmAChanOffs,end>>16);
-            immWrite(0x108+c.chan-adpcmAChanOffs,isMuted[c.chan]?0:((chan[c.chan].pan<<6)|chan[c.chan].outVol));
-            chan[c.chan].active=true;
-            chan[c.chan].keyOn=true;
-          } else {
-            writeADPCMAOff|=(1<<(c.chan-adpcmAChanOffs));
-            immWrite(0x110+c.chan-adpcmAChanOffs,0);
-            immWrite(0x118+c.chan-adpcmAChanOffs,0);
-            immWrite(0x120+c.chan-adpcmAChanOffs,0);
-            immWrite(0x128+c.chan-adpcmAChanOffs,0);
-            break;
-          }
+          assert(false && "LEGACY SAMPLE MODE!!!");
         }
         break;
       }
@@ -1421,13 +1397,6 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
       PLEASE_HELP_ME(chan[c.chan],chan[c.chan].state.block);
       break;
     }
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
-      iface.sampleBank=sampleBank;
-      break;
     case DIV_CMD_LEGATO: {
       if (c.chan==adpcmBChanOffs && !chan[c.chan].furnacePCM) break;
       if (c.chan==csmChan) {
@@ -1861,7 +1830,6 @@ void DivPlatformYM2610B::reset() {
 
   lastBusy=60;
   lfoValue=8;
-  sampleBank=0;
   DivPlatformYM2610Base::reset();
 
   delay=0;

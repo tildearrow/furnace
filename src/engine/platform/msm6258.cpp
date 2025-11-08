@@ -185,18 +185,6 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
         } else {
           break;
         }
-      } else {
-        chan[c.chan].sample=-1;
-        chan[c.chan].macroInit(NULL);
-        chan[c.chan].outVol=chan[c.chan].vol;
-        if ((12*sampleBank+c.value%12)<0 || (12*sampleBank+c.value%12)>=parent->song.sampleLen) {
-          break;
-        }
-        //DivSample* s=parent->getSample(12*sampleBank+c.value%12);
-        sample=12*sampleBank+c.value%12;
-        samplePos=0;
-        chan[c.chan].active=true;
-        chan[c.chan].keyOn=true;
       }
       break;
     }
@@ -238,12 +226,6 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_PORTA: {
       return 2;
     }
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
-      break;
     case DIV_CMD_SAMPLE_FREQ:
       rateSel=c.value&3;
       rWrite(12,rateSel);
@@ -360,7 +342,6 @@ void DivPlatformMSM6258::reset() {
     chan[i].outVol=8;
   }
 
-  sampleBank=0;
   sample=-1;
   samplePos=0;
 

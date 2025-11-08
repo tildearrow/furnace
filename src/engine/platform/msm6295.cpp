@@ -186,18 +186,6 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
         } else {
           break;
         }
-      } else {
-        chan[c.chan].sample=-1;
-        chan[c.chan].macroInit(NULL);
-        chan[c.chan].outVol=chan[c.chan].vol;
-        if ((12*sampleBank+c.value%12)<0 || (12*sampleBank+c.value%12)>=parent->song.sampleLen) {
-          break;
-        }
-        //DivSample* s=parent->getSample(12*sampleBank+c.value%12);
-        chan[c.chan].sample=12*sampleBank+c.value%12;
-        rWriteDelay(0,(8<<c.chan),180); // turn off
-        setPhrase(c.chan);
-        rWrite(0,(16<<c.chan)|(8-chan[c.chan].outVol)); // turn on
       }
       break;
     }
@@ -244,12 +232,6 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
     case DIV_CMD_SAMPLE_FREQ:
       rateSel=c.value;
       rWrite(12,!rateSel);
-      break;
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
       break;
     case DIV_CMD_LEGATO: {
       break;
@@ -335,7 +317,6 @@ void DivPlatformMSM6295::reset() {
     chan[i].outVol=8;
   }
 
-  sampleBank=0;
   rateSel=rateSelInit;
   rWrite(12,!rateSelInit);
   if (isBanked) {

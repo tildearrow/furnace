@@ -111,8 +111,6 @@ class DivPlatformAY8930: public DivDispatch {
     unsigned char stereoSep;
     bool bank;
 
-    unsigned char sampleBank;
-
     int delay;
     int lastOut[2];
 
