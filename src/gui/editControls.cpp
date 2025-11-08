@@ -769,8 +769,8 @@ void FurnaceGUI::drawEditControls() {
         //   ImGui::SetTooltip(_("Key: Click (+); R-click (-)"));
         // }
 
-        //   ImGui::EndTable();
-        // }
+          ImGui::EndTable();
+        }
 
         pushToggleColors(e->isPlaying());
         if (ImGui::Button(ICON_FA_PLAY "##Play")) {
