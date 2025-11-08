@@ -758,19 +758,19 @@ void FurnaceGUI::drawEditControls() {
             }
           }
 
-        ImGui::SameLine();
-        if (ImGui::Button(_(formatScaleRoot(scaleRoot).c_str()))) {
-          CHANGE_SCALE_ROOT_UP;
-        }
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-          CHANGE_SCALE_ROOT_DOWN;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("Key: Click (+); R-click (-)"));
-        }
+        // ImGui::SameLine();
+        // if (ImGui::Button(_(formatScaleRoot(scaleRoot).c_str()))) {
+        //   CHANGE_SCALE_ROOT_UP;
+        // }
+        // if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        //   CHANGE_SCALE_ROOT_DOWN;
+        // }
+        // if (ImGui::IsItemHovered()) {
+        //   ImGui::SetTooltip(_("Key: Click (+); R-click (-)"));
+        // }
 
-          ImGui::EndTable();
-        }
+        //   ImGui::EndTable();
+        // }
 
         pushToggleColors(e->isPlaying());
         if (ImGui::Button(ICON_FA_PLAY "##Play")) {
@@ -952,7 +952,7 @@ void FurnaceGUI::drawEditControls() {
           }
         }
         ImGui::SameLine();
-        ImGui::Text(_("Transpose"));
+        ImGui::Text(_("Pitch"));
         ImGui::SameLine();
         ImGui::SetNextItemWidth(96.0f*dpiScale);
         int tempScaleRoot = scaleRoot;
@@ -1101,16 +1101,16 @@ void FurnaceGUI::drawEditControls() {
           }
         }
 
-        ImGui::SameLine();
-        if (ImGui::Button(_(formatScaleRoot(scaleRoot).c_str()))) {
-          CHANGE_SCALE_ROOT_UP;
-        }
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-          CHANGE_SCALE_ROOT_DOWN;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("Key: Click (+); R-click (-)"));
-        }
+        // ImGui::SameLine();
+        // if (ImGui::Button(_(formatScaleRoot(scaleRoot).c_str()))) {
+        //   CHANGE_SCALE_ROOT_UP;
+        // }
+        // if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        //   CHANGE_SCALE_ROOT_DOWN;
+        // }
+        // if (ImGui::IsItemHovered()) {
+        //   ImGui::SetTooltip(_("Key: Click (+); R-click (-)"));
+        // }
 
         ImGui::Text(_("Foll."));
         if (ImGui::IsItemHovered()) {
