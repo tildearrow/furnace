@@ -207,14 +207,6 @@ const char* scaleModeNames[9]={
   scaleRoot++; \
   if (scaleRoot>48) scaleRoot=48;
 
-String FurnaceGUI::formatScaleRoot(signed char root) {
-  if (root >= 0) {
-    return fmt::sprintf("+%d", root);
-  } else {
-    return fmt::sprintf("%d", root);
-  }
-}
-
 void FurnaceGUI::drawMobileControls() {
   float timeScale=60.0*ImGui::GetIO().DeltaTime;
   if (dragMobileMenu) {
@@ -716,17 +708,33 @@ void FurnaceGUI::drawEditControls() {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
-          ImGui::Text(_("Octave"));
+          if (ImGui::SmallButton(changePitch?_("Pitch"):_("Octave"))) {
+            changePitch=!changePitch;
+          }
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
-            if (curOctave>GUI_EDIT_OCTAVE_MAX) curOctave=GUI_EDIT_OCTAVE_MAX;
-            if (curOctave<GUI_EDIT_OCTAVE_MIN) curOctave=GUI_EDIT_OCTAVE_MIN;
-            e->autoNoteOffAll();
-            failedNoteOn=false;
+          if (changePitch) {
+            if (ImGui::InputInt("##ScaleRoot",&scaleRoot,1,1)) {
+              if (scaleRoot > 127) scaleRoot = 127;
+              if (scaleRoot < -128) scaleRoot = -128;
+              scaleRoot = (signed char)scaleRoot;
+              e->autoNoteOffAll();
+              failedNoteOn=false;
 
-            if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+              if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
               nextWindow=GUI_WINDOW_PATTERN;
+              }
+            }
+          } else {
+            if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
+              if (curOctave>GUI_EDIT_OCTAVE_MAX) curOctave=GUI_EDIT_OCTAVE_MAX;
+              if (curOctave<GUI_EDIT_OCTAVE_MIN) curOctave=GUI_EDIT_OCTAVE_MIN;
+              e->autoNoteOffAll();
+              failedNoteOn=false;
+
+              if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+                nextWindow=GUI_WINDOW_PATTERN;
+              }
             }
           }
 
@@ -912,17 +920,33 @@ void FurnaceGUI::drawEditControls() {
         popToggleColors();
 
         ImGui::SameLine();
-        ImGui::Text(_("Octave"));
+        if (ImGui::SmallButton(changePitch?_("Pitch"):_("Octave"))) {
+          changePitch=!changePitch;
+        }
         ImGui::SameLine();
         ImGui::SetNextItemWidth(96.0f*dpiScale);
-        if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
-          if (curOctave>GUI_EDIT_OCTAVE_MAX) curOctave=GUI_EDIT_OCTAVE_MAX;
-          if (curOctave<GUI_EDIT_OCTAVE_MIN) curOctave=GUI_EDIT_OCTAVE_MIN;
-          e->autoNoteOffAll();
-          failedNoteOn=false;
+        if (changePitch) {
+          if (ImGui::InputInt("##ScaleRoot",&scaleRoot,1,1)) {
+            if (scaleRoot > 127) scaleRoot = 127;
+            if (scaleRoot < -128) scaleRoot = -128;
+            scaleRoot = (signed char)scaleRoot;
+            e->autoNoteOffAll();
+            failedNoteOn=false;
 
-          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;
+            }
+          }
+        } else {
+          if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
+            if (curOctave>GUI_EDIT_OCTAVE_MAX) curOctave=GUI_EDIT_OCTAVE_MAX;
+            if (curOctave<GUI_EDIT_OCTAVE_MIN) curOctave=GUI_EDIT_OCTAVE_MIN;
+            e->autoNoteOffAll();
+            failedNoteOn=false;
+
+            if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+              nextWindow=GUI_WINDOW_PATTERN;
+            }
           }
         }
 
@@ -949,22 +973,6 @@ void FurnaceGUI::drawEditControls() {
             if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
               nextWindow=GUI_WINDOW_PATTERN;
             }
-          }
-        }
-        ImGui::SameLine();
-        ImGui::Text(_("Pitch"));
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(96.0f*dpiScale);
-        int tempScaleRoot = scaleRoot;
-        if (ImGui::InputInt("##ScaleRoot",&tempScaleRoot,1,1)) {
-          if (tempScaleRoot > 127) tempScaleRoot = 127;
-          if (tempScaleRoot < -128) tempScaleRoot = -128;
-          scaleRoot = (signed char)tempScaleRoot;
-          e->autoNoteOffAll();
-          failedNoteOn=false;
-
-          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
-            nextWindow=GUI_WINDOW_PATTERN;
           }
         }
         ImGui::SameLine();
@@ -1060,20 +1068,36 @@ void FurnaceGUI::drawEditControls() {
         }
         popToggleColors();
 
-        ImGui::Text(_("Oct."));
+        if (ImGui::SmallButton(changePitch?_("Pit."):_("Oct."))) {
+          changePitch=!changePitch;
+        }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("Octave"));
+          ImGui::SetTooltip(changePitch?_("Pitch"):_("Octave"));
         }
         float avail=ImGui::GetContentRegionAvail().x;
         ImGui::SetNextItemWidth(avail);
-        if (ImGui::InputInt("##Octave",&curOctave,0,0)) {
-          if (curOctave>GUI_EDIT_OCTAVE_MAX) curOctave=GUI_EDIT_OCTAVE_MAX;
-          if (curOctave<GUI_EDIT_OCTAVE_MIN) curOctave=GUI_EDIT_OCTAVE_MIN;
-          e->autoNoteOffAll();
-          failedNoteOn=false;
+        if (changePitch) {
+          if (ImGui::InputInt("##ScaleRoot",&scaleRoot,1,1)) {
+            if (scaleRoot > 127) scaleRoot = 127;
+            if (scaleRoot < -128) scaleRoot = -128;
+            scaleRoot = (signed char)scaleRoot;
+            e->autoNoteOffAll();
+            failedNoteOn=false;
 
-          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;
+            }
+          }
+        } else {
+          if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
+            if (curOctave>GUI_EDIT_OCTAVE_MAX) curOctave=GUI_EDIT_OCTAVE_MAX;
+            if (curOctave<GUI_EDIT_OCTAVE_MIN) curOctave=GUI_EDIT_OCTAVE_MIN;
+            e->autoNoteOffAll();
+            failedNoteOn=false;
+
+            if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+              nextWindow=GUI_WINDOW_PATTERN;
+            }
           }
         }
 
@@ -1257,22 +1281,37 @@ void FurnaceGUI::drawEditControls() {
       if (ImGui::Begin("Edit Controls",&editControlsOpen,globalWinFlags,_("Edit Controls"))) {
         ImGui::Columns(2);
         ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Octave"));
+        if (ImGui::SmallButton(changePitch?_("Pitch"):_("Octave"))) {
+          changePitch=!changePitch;
+        }
         ImGui::SameLine();
         float cursor=ImGui::GetCursorPosX();
         float avail=ImGui::GetContentRegionAvail().x;
         ImGui::SetNextItemWidth(avail);
-        if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
-          if (curOctave>GUI_EDIT_OCTAVE_MAX) curOctave=GUI_EDIT_OCTAVE_MAX;
-          if (curOctave<GUI_EDIT_OCTAVE_MIN) curOctave=GUI_EDIT_OCTAVE_MIN;
-          e->autoNoteOffAll();
-          failedNoteOn=false;
+        if (changePitch) {
+          if (ImGui::InputInt("##ScaleRoot",&scaleRoot,1,1)) {
+            if (scaleRoot > 127) scaleRoot = 127;
+            if (scaleRoot < -128) scaleRoot = -128;
+            scaleRoot = (signed char)scaleRoot;
+            e->autoNoteOffAll();
+            failedNoteOn=false;
 
-          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;
+            }
+          }
+        } else {
+          if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
+            if (curOctave>GUI_EDIT_OCTAVE_MAX) curOctave=GUI_EDIT_OCTAVE_MAX;
+            if (curOctave<GUI_EDIT_OCTAVE_MIN) curOctave=GUI_EDIT_OCTAVE_MIN;
+            e->autoNoteOffAll();
+            failedNoteOn=false;
+
+            if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+              nextWindow=GUI_WINDOW_PATTERN;
+            }
           }
         }
-
         ImGui::AlignTextToFramePadding();
         if (ImGui::SmallButton(changeCoarse?_("Coarse"):_("Step"))) {
           changeCoarse=!changeCoarse;
@@ -1297,23 +1336,6 @@ void FurnaceGUI::drawEditControls() {
             if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
               nextWindow=GUI_WINDOW_PATTERN;
             }
-          }
-        }
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Pitch"));
-        ImGui::SameLine();
-        ImGui::SetCursorPosX(cursor);
-        ImGui::SetNextItemWidth(avail);
-        int tempScaleRoot = scaleRoot;
-        if (ImGui::InputInt("##ScaleRoot",&tempScaleRoot,1,1)) {
-          if (tempScaleRoot > 127) tempScaleRoot = 127;
-          if (tempScaleRoot < -128) tempScaleRoot = -128;
-          scaleRoot = (signed char)tempScaleRoot;
-          e->autoNoteOffAll();
-          failedNoteOn=false;
-
-          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
-            nextWindow=GUI_WINDOW_PATTERN;
           }
         }
         ImGui::NextColumn();

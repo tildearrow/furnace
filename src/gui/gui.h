@@ -1752,7 +1752,7 @@ class FurnaceGUI {
   bool displayNew, displayExport, displayPalette, fullScreen, preserveChanPos, sysDupCloneChannels, sysDupEnd;
   unsigned char noteInputMode;
   unsigned char scaleMode;
-  signed char scaleRoot;
+  int scaleRoot;
   bool notifyWaveChange, notifySampleChange;
   bool recalcTimestamps;
   bool wantScrollListIns, wantScrollListWave, wantScrollListSample;
@@ -1761,6 +1761,7 @@ class FurnaceGUI {
   bool displayExportingROM, displayExportingCS;
   bool quitNoSave;
   bool changeCoarse;
+  bool changePitch;
   bool orderLock;
   bool mobileEdit;
   bool killGraphics;
@@ -3049,7 +3050,6 @@ class FurnaceGUI {
   void drawMobileControls();
   void drawMobileOrderSel();
   void drawEditControls();
-  String formatScaleRoot(signed char root);
   void drawSongInfo(bool asChild=false);
   void drawSpeed(bool asChild=false);
   void drawGrooves();

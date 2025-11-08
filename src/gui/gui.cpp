@@ -8809,6 +8809,7 @@ FurnaceGUI::FurnaceGUI():
   displayExportingCS(false),
   quitNoSave(false),
   changeCoarse(false),
+  changePitch(false),
   orderLock(false),
   mobileEdit(false),
   killGraphics(false),
