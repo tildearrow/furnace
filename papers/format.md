@@ -1,8 +1,6 @@
 # the Furnace file format (.fur)
 
-while Furnace works directly with the .dmf format, I had to create a new format to handle future additions to the program.
-
-this document has the goal of detailing the format.
+this document has the goal of describing the file format used by Furnace for loading and saving songs.
 
 **notice:** GitHub's Markdown formatter may break on this file as it doesn't seem to treat tables correctly.
 
@@ -146,11 +144,6 @@ size | description
   4f | chip volume
   4f | chip panning
   4f | chip front/rear balance
- --- | **groove list**
-  1  | number of entries
- ??? | groove entries. the format is:
-     | - 1 byte: length of groove
-     | - 16 bytes: groove pattern
  --- | **patchbay**
   4  | patchbay connection count
  4?? | patchbay
@@ -309,7 +302,7 @@ the following element types are available:
  ## |  ID  | description
 ----|------|-----------------------------
  00 | ---- | end of element list (end of info header)
- 01 | SONG | sub-song
+ 01 | SNG2 | sub-song
  02 | FLAG | chip flags
  03 | ADIR | asset directory**
  04 | INS2 | instrument
@@ -318,6 +311,7 @@ the following element types are available:
  07 | PATN | pattern
  08 | CFLG | compatibility flags*
  09 | CMNT | song comments*
+ 0a | GROV | groove pattern
 
 * element is unique (read only one pointer and assume the pointer list is over)
 
@@ -350,28 +344,29 @@ reserved output portsets:
 - `FFE`: metronome
 - `FFF`: "null" portset
 
-# subsong
+# subsong (>=239)
 
 ```
 size | description
 -----|------------------------------------
-  4  | "SONG" block ID
+  4  | "SNG2" block ID
   4  | size of this block
-  1  | time base
-  1  | speed 1
-  1  | speed 2
-  1  | initial arpeggio time
   4f | ticks per second
      | - 60 is NTSC
      | - 50 is PAL
+  1  | initial arpeggio speed
+  1  | effect speed divider
   2  | pattern length
      | - the limit is 256.
   2  | orders length
      | - the limit is 256.
-  1  | highlight A
-  1  | highlight B
+  1  | highlight A (rows per beat)
+  1  | highlight B (rows per bar)
   2  | virtual tempo numerator
   2  | virtual tempo denominator
+  1  | length of speed pattern in entries (fail if this is lower than 1 or higher than 16)
+ 2?? | speed pattern (always 16 entries)
+     | - each speed is an unsigned short
  STR | subsong name
  STR | subsong comment
  ??? | orders
@@ -389,9 +384,18 @@ size | description
      | - a list of channelCount C strings
  S?? | channel short names
      | - same as above
- --- | **speed pattern** (>=139)
-  1  | length of speed pattern (fail if this is lower than 1 or higher than 16)
- 16  | speed pattern (this overrides speed 1 and speed 2 settings)
+```
+
+# groove pattern (>=239)
+
+```
+size | description
+-----|------------------------------------
+  4  | "GROV" block ID
+  4  | size of this block
+  1  | length of groove in entries (fail if this is lower than 1 or higher than 16)
+ 2?? | groove pattern (always 16 entries)
+     | - each speed is an unsigned short
 ```
 
 # chip flags
@@ -514,7 +518,10 @@ size | description
   4  | "PATN" block ID
   4  | size of this block
   1  | subsong
-  1  | channel
+  1  | channel (<239)
+  2  | channel (>=239)
+     | - the channel index was 8-bit in previous versions.
+     | - in order to accommodate higher channel counts, it has been extended to 16-bit.
   2  | pattern index
  STR | pattern name (>=51)
  ??? | pattern data
@@ -734,6 +741,51 @@ size | description
   4  | wavetable directories
   4  | sample directories
 ```
+
+# old subsong (<239)
+
+```
+size | description
+-----|------------------------------------
+  4  | "SONG" block ID
+  4  | size of this block
+  1  | time base
+  1  | speed 1
+  1  | speed 2
+  1  | initial arpeggio time
+  4f | ticks per second
+     | - 60 is NTSC
+     | - 50 is PAL
+  2  | pattern length
+     | - the limit is 256.
+  2  | orders length
+     | - the limit is 256.
+  1  | highlight A
+  1  | highlight B
+  2  | virtual tempo numerator
+  2  | virtual tempo denominator
+ STR | subsong name
+ STR | subsong comment
+ ??? | orders
+     | - a table of bytes
+     | - size=channels*ordLen
+     | - read orders then channels
+     | - the maximum value of a cell is FF.
+ ??? | effect columns
+     | - size=channels
+ 1?? | channel hide status
+     | - size=channels
+ 1?? | channel collapse status
+     | - size=channels
+ S?? | channel names
+     | - a list of channelCount C strings
+ S?? | channel short names
+     | - same as above
+ --- | **speed pattern** (>=139)
+  1  | length of speed pattern (fail if this is lower than 1 or higher than 16)
+ 16  | speed pattern (this overrides speed 1 and speed 2 settings)
+```
+
 
 ## old instrument (<127)
 
