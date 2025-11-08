@@ -142,6 +142,7 @@ void DivPlatformSMS::acquire_mame(blip_buffer_t** bb, size_t len) {
     // wahahaha heuristic...
     int advance=len-h;
     for (int i=0; i<4; i++) {
+      if (sn->m_volume[i]==0) continue;
       if (sn->m_count[i]<advance) advance=sn->m_count[i];
     }
     if (advance<1) advance=1;

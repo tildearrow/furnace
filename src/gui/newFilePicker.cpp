@@ -1757,6 +1757,20 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
               }
             }
           }
+        } else {
+          if (dirSelect) {
+            finalSelection.push_back(path);
+            curStatus=FP_STATUS_ACCEPTED;
+            if (noClose) {
+              for (FileEntry* j: chosenEntries) {
+                j->isSelected=false;
+              }
+              chosenEntries.clear();
+              updateEntryName();
+            } else {
+              isOpen=false;
+            }
+          }
         }
       }
     }
