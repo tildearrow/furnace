@@ -195,14 +195,6 @@ const char* scaleModeNames[9]={
   if (noteInputMode==GUI_NOTE_INPUT_MONO) memset(multiIns,-1,7*sizeof(int)); \
   e->setAutoNotePoly(noteInputMode!=GUI_NOTE_INPUT_MONO);
 
-#define CHANGE_SCALE_ROOT_DOWN \
-  scaleRoot--; \
-  if (scaleRoot<-48) scaleRoot=-48;
-
-#define CHANGE_SCALE_ROOT_UP \
-  scaleRoot++; \
-  if (scaleRoot>48) scaleRoot=48;
-
 void FurnaceGUI::drawMobileControls() {
   float timeScale=60.0*ImGui::GetIO().DeltaTime;
   if (dragMobileMenu) {
