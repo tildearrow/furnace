@@ -195,10 +195,6 @@ const char* scaleModeNames[9]={
   if (noteInputMode==GUI_NOTE_INPUT_MONO) memset(multiIns,-1,7*sizeof(int)); \
   e->setAutoNotePoly(noteInputMode!=GUI_NOTE_INPUT_MONO);
 
-#define CHANGE_SCALE_MODE \
-  scaleMode++; \
-  if (scaleMode>GUI_SCALE_LYDIAN_DOMINANT) scaleMode=GUI_SCALE_CHROMATIC;
-
 #define CHANGE_SCALE_ROOT_DOWN \
   scaleRoot--; \
   if (scaleRoot<-48) scaleRoot=-48;
