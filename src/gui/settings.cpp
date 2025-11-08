@@ -2214,6 +2214,8 @@ void FurnaceGUI::drawSettings() {
             drawKeybindSettingsTableRow(GUI_ACTION_STEP_ONE);
             drawKeybindSettingsTableRow(GUI_ACTION_OCTAVE_UP);
             drawKeybindSettingsTableRow(GUI_ACTION_OCTAVE_DOWN);
+            drawKeybindSettingsTableRow(GUI_ACTION_PITCH_UP);
+            drawKeybindSettingsTableRow(GUI_ACTION_PITCH_DOWN);
             drawKeybindSettingsTableRow(GUI_ACTION_INS_UP);
             drawKeybindSettingsTableRow(GUI_ACTION_INS_DOWN);
             drawKeybindSettingsTableRow(GUI_ACTION_STEP_UP);

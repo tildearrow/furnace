@@ -152,6 +152,8 @@ enum FurnaceGUIRenderBackend {
 
 #define GUI_EDIT_OCTAVE_MIN -5
 #define GUI_EDIT_OCTAVE_MAX 7
+#define GUI_EDIT_PITCH_MIN -128
+#define GUI_EDIT_PITCH_MAX 127
 
 // TODO:
 // - add colors for FM envelope and waveform
@@ -727,6 +729,8 @@ enum FurnaceGUIActions {
   GUI_ACTION_STEP_ONE,
   GUI_ACTION_OCTAVE_UP,
   GUI_ACTION_OCTAVE_DOWN,
+  GUI_ACTION_PITCH_UP,
+  GUI_ACTION_PITCH_DOWN,
   GUI_ACTION_INS_UP,
   GUI_ACTION_INS_DOWN,
   GUI_ACTION_STEP_UP,

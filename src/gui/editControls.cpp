@@ -181,12 +181,12 @@ const char* scaleModeNames[9]={
   _N("Chromatic##ScaleMode"),
   _N("Major##ScaleMode"),
   _N("Minor##ScaleMode"),
-  _N("Harmonic Minor##ScaleMode"),
-  _N("Melodic Minor##ScaleMode"),
-  _N("Harmonic Major##ScaleMode"),
-  _N("Double Harmonic##ScaleMode"),
-  _N("Phrygian Dominant##ScaleMode"),
-  _N("Lydian Dominant##ScaleMode"),
+  _N("Harm. Min.##ScaleMode"),
+  _N("Mel. Min.##ScaleMode"),
+  _N("Harm. Maj.##ScaleMode"),
+  _N("Dbl. Harm.##ScaleMode"),
+  _N("Phryg. Dom.##ScaleMode"),
+  _N("Lyd. Dom.##ScaleMode"),
 };
 
 #define CHANGE_NOTE_INPUT_MODE \
@@ -765,18 +765,6 @@ void FurnaceGUI::drawEditControls() {
               }
             }
           }
-
-        // ImGui::SameLine();
-        // if (ImGui::Button(_(formatScaleRoot(scaleRoot).c_str()))) {
-        //   CHANGE_SCALE_ROOT_UP;
-        // }
-        // if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        //   CHANGE_SCALE_ROOT_DOWN;
-        // }
-        // if (ImGui::IsItemHovered()) {
-        //   ImGui::SetTooltip(_("Key: Click (+); R-click (-)"));
-        // }
-
           ImGui::EndTable();
         }
 
@@ -1068,7 +1056,7 @@ void FurnaceGUI::drawEditControls() {
         }
         popToggleColors();
 
-        if (ImGui::SmallButton(changePitch?_("Pit."):_("Oct."))) {
+        if (ImGui::SmallButton(changePitch?_("Pitch"):_("Oct."))) {
           changePitch=!changePitch;
         }
         if (ImGui::IsItemHovered()) {
@@ -1077,10 +1065,9 @@ void FurnaceGUI::drawEditControls() {
         float avail=ImGui::GetContentRegionAvail().x;
         ImGui::SetNextItemWidth(avail);
         if (changePitch) {
-          if (ImGui::InputInt("##ScaleRoot",&scaleRoot,1,1)) {
+          if (ImGui::InputInt("##ScaleRoot",&scaleRoot,0,0)) {
             if (scaleRoot > 127) scaleRoot = 127;
             if (scaleRoot < -128) scaleRoot = -128;
-            scaleRoot = (signed char)scaleRoot;
             e->autoNoteOffAll();
             failedNoteOn=false;
 
@@ -1089,7 +1076,7 @@ void FurnaceGUI::drawEditControls() {
             }
           }
         } else {
-          if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
+          if (ImGui::InputInt("##Octave",&curOctave,0,0)) {
             if (curOctave>GUI_EDIT_OCTAVE_MAX) curOctave=GUI_EDIT_OCTAVE_MAX;
             if (curOctave<GUI_EDIT_OCTAVE_MIN) curOctave=GUI_EDIT_OCTAVE_MIN;
             e->autoNoteOffAll();
@@ -1106,7 +1093,7 @@ void FurnaceGUI::drawEditControls() {
         }
         ImGui::SetNextItemWidth(avail);
         if (changeCoarse) {
-          if (ImGui::InputInt("##CoarseStep",&editStepCoarse,1,1)) {
+          if (ImGui::InputInt("##CoarseStep",&editStepCoarse,0,0)) {
             if (editStepCoarse>=e->curSubSong->patLen) editStepCoarse=e->curSubSong->patLen-1;
             if (editStepCoarse<0) editStepCoarse=0;
 
@@ -1124,17 +1111,6 @@ void FurnaceGUI::drawEditControls() {
             }
           }
         }
-
-        // ImGui::SameLine();
-        // if (ImGui::Button(_(formatScaleRoot(scaleRoot).c_str()))) {
-        //   CHANGE_SCALE_ROOT_UP;
-        // }
-        // if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        //   CHANGE_SCALE_ROOT_DOWN;
-        // }
-        // if (ImGui::IsItemHovered()) {
-        //   ImGui::SetTooltip(_("Key: Click (+); R-click (-)"));
-        // }
 
         ImGui::Text(_("Foll."));
         if (ImGui::IsItemHovered()) {
