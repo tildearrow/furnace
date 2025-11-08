@@ -221,26 +221,7 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
           chan[c.chan].keyOn=true;
           chan[c.chan].furnaceDac=true;
         } else {
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].note=c.value;
-          }
-          dacSample=12*sampleBank+chan[c.chan].note%12;
-          if (dacSample>=parent->song.sampleLen) {
-            dacSample=-1;
-            if (dumpWrites) addWrite(0xffff0002,0);
-            break;
-          } else {
-            if (dumpWrites) addWrite(0xffff0000,dacSample);
-          }
-          if (chan[c.chan].setPos) {
-            chan[c.chan].setPos=false;
-          } else {
-            dacPos=0;
-          }
-          dacPeriod=0;
-          dacRate=parent->getSample(dacSample)->rate;
-          if (dumpWrites) addWrite(0xffff0001,dacRate);
-          chan[c.chan].furnaceDac=false;
+          assert(false && "LEGACY SAMPLE MODE!!!");
         }
         break;
       } else {

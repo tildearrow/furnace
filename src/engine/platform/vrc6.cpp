@@ -303,32 +303,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
             //chan[c.chan].keyOn=true;
             chan[c.chan].furnaceDac=true;
           } else {
-            chan[c.chan].sampleNote=DIV_NOTE_NULL;
-            chan[c.chan].sampleNoteDelta=0;
-            if (c.value!=DIV_NOTE_NULL) {
-              chan[c.chan].note=c.value;
-            }
-            chan[c.chan].dacSample=12*sampleBank+chan[c.chan].note%12;
-            if (chan[c.chan].dacSample>=parent->song.sampleLen) {
-              chan[c.chan].dacSample=-1;
-              if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
-              break;
-            } else {
-              if (dumpWrites) addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dacSample);
-            }
-            if (chan[c.chan].setPos) {
-              chan[c.chan].setPos=false;
-            } else {
-              chan[c.chan].dacPos=0;
-            }
-            chan[c.chan].dacPeriod=0;
-            chan[c.chan].dacRate=parent->getSample(chan[c.chan].dacSample)->rate;
-            if (dumpWrites) {
-              chWrite(c.chan,2,0x80);
-              chWrite(c.chan,0,isMuted[c.chan]?0:0x80);
-              addWrite(0xffff0001+(c.chan<<8),chan[c.chan].dacRate);
-            }
-            chan[c.chan].furnaceDac=false;
+            assert(false && "LEGACY SAMPLE MODE!!!");
           }
           break;
         }

@@ -1196,36 +1196,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
             break;
           }
         } else {
-          chan[c.chan].sample=-1;
-          chan[c.chan].macroInit(NULL);
-          chan[c.chan].outVol=chan[c.chan].vol;
-          if ((12*sampleBank+c.value%12)>=parent->song.sampleLen) {
-            break;
-          }
-          chan[c.chan].sample=12*sampleBank+c.value%12;
-          if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
-            DivSample* s=parent->getSample(chan[c.chan].sample);
-            immWrite(0x100,0x01); // reset
-            immWrite(0x102,(sampleOffB[chan[c.chan].sample]>>5)&0xff);
-            immWrite(0x103,(sampleOffB[chan[c.chan].sample]>>13)&0xff);
-            int end=sampleOffB[chan[c.chan].sample]+s->lengthB-1;
-            immWrite(0x104,(end>>5)&0xff);
-            immWrite(0x105,(end>>13)&0xff);
-            immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|memConfig);
-            int freq=(65536.0*(double)s->rate)/((double)chipClock/144.0);
-            immWrite(0x109,freq&0xff);
-            immWrite(0x10a,(freq>>8)&0xff);
-            immWrite(0x10b,chan[c.chan].outVol);
-            chan[c.chan].active=true;
-            chan[c.chan].keyOn=true;
-          } else {
-            immWrite(0x100,0x01); // reset
-            immWrite(0x102,0);
-            immWrite(0x103,0);
-            immWrite(0x104,0);
-            immWrite(0x105,0);
-            break;
-          }
+          assert(false && "LEGACY SAMPLE MODE!!!");
         }
         break;
       }

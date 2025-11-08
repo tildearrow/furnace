@@ -233,20 +233,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
         chan[c.chan].active=true;
         chan[c.chan].keyOn=true;
       } else {
-        chan[c.chan].macroInit(NULL);
-        if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].note=c.value;
-        }
-        chan[c.chan].pcm.sample=12*sampleBank+chan[c.chan].note%12;
-        if (chan[c.chan].pcm.sample>=parent->song.sampleLen) {
-          chan[c.chan].pcm.sample=-1;
-          rWrite(0x86+(c.chan<<3),3);
-          break;
-        }
-        chan[c.chan].pcm.freq=MIN(255,(parent->getSample(chan[c.chan].pcm.sample)->rate*255)/rate);
-        chan[c.chan].furnacePCM=false;
-        chan[c.chan].active=true;
-        chan[c.chan].keyOn=true;
+        assert(false && "LEGACY SAMPLE MODE!!!");
       }
       break;
     }

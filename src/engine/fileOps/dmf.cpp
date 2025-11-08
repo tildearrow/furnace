@@ -934,10 +934,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         sample->name="";
       }
       logD("%d name %s (%d)",i,sample->name.c_str(),length);
-      sample->rate=22050;
+      sample->centerRate=22050;
       if (ds.version>=0x0b) {
-        sample->rate=fileToDivRate(reader.readC());
-        sample->centerRate=sample->rate;
+        sample->centerRate=fileToDivRate(reader.readC());
         pitch=reader.readC();
         vol=reader.readC();
 
@@ -947,7 +946,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         }
       }
       if (ds.version<=0x08) {
-        sample->rate=ymuSampleRate*400;
+        sample->centerRate=ymuSampleRate*400;
       }
       if (ds.version>0x15) {
         sample->depth=(DivSampleDepth)reader.readC();
@@ -1680,7 +1679,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   for (DivSample* i: song.sample) {
     w->writeI(i->samples);
     w->writeString(i->name,true);
-    w->writeC(divToFileRate(i->rate));
+    w->writeC(divToFileRate(i->centerRate));
     w->writeC(5);
     w->writeC(50);
     // i'm too lazy to deal with .dmf's weird way of storing 8-bit samples

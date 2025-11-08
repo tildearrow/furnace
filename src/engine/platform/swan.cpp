@@ -397,24 +397,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
             chan[1].macroInit(ins);
             furnaceDac=true;
           } else {
-            if (c.value!=DIV_NOTE_NULL) {
-              chan[1].note=c.value;
-            }
-            dacSample=12*sampleBank+chan[1].note%12;
-            if (dacSample>=parent->song.sampleLen) {
-              dacSample=-1;
-              if (dumpWrites) postWrite(0xffff0002,0);
-              break;
-            } else {
-              if (dumpWrites) postWrite(0xffff0000,dacSample);
-            }
-            dacRate=parent->getSample(dacSample)->rate;
-            if (dumpWrites) {
-              postWrite(0xffff0001,dacRate);
-            }
-            chan[1].active=true;
-            chan[1].keyOn=true;
-            furnaceDac=false;
+            assert(false && "LEGACY SAMPLE MODE!!!");
           }
           break;
         }

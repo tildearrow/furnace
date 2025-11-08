@@ -243,7 +243,6 @@ void FurnaceGUI::drawDebug() {
           continue;
         }
         if (ImGui::TreeNode(fmt::sprintf("%d: %s",i,sample->name).c_str())) {
-          ImGui::Text("rate: %d",sample->rate);
           ImGui::Text("centerRate: %d",sample->centerRate);
           ImGui::Text("loopStart: %d",sample->loopStart);
           ImGui::Text("loopEnd: %d", sample->loopEnd);

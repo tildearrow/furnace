@@ -348,32 +348,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
           }
           //chan[c.chan].keyOn=true;
         } else {
-          chan[c.chan].furnaceDac=false;
-          chan[c.chan].sampleNote=DIV_NOTE_NULL;
-          chan[c.chan].sampleNoteDelta=0;
-          if (skipRegisterWrites) break;
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].note=c.value;
-          }
-          chan[c.chan].dacSample=12*sampleBank+chan[c.chan].note%12;
-          if (chan[c.chan].dacSample>=parent->song.sampleLen) {
-            chan[c.chan].dacSample=-1;
-            if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
-            break;
-          } else {
-            if (dumpWrites) addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dacSample);
-          }
-          if (chan[c.chan].setPos) {
-            chan[c.chan].setPos=false;
-          } else {
-            chan[c.chan].dacPos=0;
-          }
-          chan[c.chan].dacPeriod=0;
-          chan[c.chan].dacRate=parent->getSample(chan[c.chan].dacSample)->rate;
-          if (dumpWrites) {
-            chWrite(c.chan,0x04,parent->song.disableSampleMacro?0xdf:(0xc0|chan[c.chan].vol));
-            addWrite(0xffff0001+(c.chan<<8),chan[c.chan].dacRate);
-          }
+          assert(false && "LEGACY SAMPLE MODE!!!");
         }
         break;
       }

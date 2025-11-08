@@ -723,29 +723,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
           //chan[c.chan].keyOn=true;
           chan[c.chan].dac.furnaceDAC=true;
         } else {
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].note=c.value;
-          }
-          chan[c.chan].dac.sample=12*sampleBank+chan[c.chan].note%12;
-          if (chan[c.chan].dac.sample>=parent->song.sampleLen) {
-            chan[c.chan].dac.sample=-1;
-            //if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
-            break;
-          } else {
-            //if (dumpWrites) addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dac.sample);
-          }
-          if (chan[c.chan].dac.setPos) {
-            chan[c.chan].dac.setPos=false;
-          } else {
-            chan[c.chan].dac.pos=0;
-          }
-          chan[c.chan].dac.period=0;
-          chan[c.chan].dac.rate=parent->getSample(chan[c.chan].dac.sample)->rate*2048;
-          if (dumpWrites) {
-            rWrite(0x08+c.chan,0);
-            //addWrite(0xffff0001+(c.chan<<8),chan[c.chan].dac.rate);
-          }
-          chan[c.chan].dac.furnaceDAC=false;
+          assert(false && "LEGACY SAMPLE MODE!!!");
         }
         chan[c.chan].curPSGMode.val&=~8;
         chan[c.chan].curPSGMode.val|=chan[c.chan].nextPSGMode.val&8;

@@ -1879,34 +1879,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
             break;
           }
         } else {
-          chan[c.chan].sample=-1;
-          chan[c.chan].macroInit(NULL);
-          chan[c.chan].outVol=chan[c.chan].vol;
-          if ((12*sampleBank+c.value%12)>=parent->song.sampleLen) {
-            break;
-          }
-          chan[c.chan].sample=12*sampleBank+c.value%12;
-          if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
-            DivSample* s=parent->getSample(12*sampleBank+c.value%12);
-            immWrite(8,0);
-            immWrite(9,(sampleOffB[chan[c.chan].sample]>>2)&0xff);
-            immWrite(10,(sampleOffB[chan[c.chan].sample]>>10)&0xff);
-            int end=sampleOffB[chan[c.chan].sample]+s->lengthB-1;
-            immWrite(11,(end>>2)&0xff);
-            immWrite(12,(end>>10)&0xff);
-            int freq=(65536.0*(double)s->rate)/(double)chipRateBase;
-            chan[c.chan].fixedFreq=freq;
-            immWrite(16,freq&0xff);
-            immWrite(17,(freq>>8)&0xff);
-            chan[c.chan].active=true;
-            chan[c.chan].keyOn=true;
-          } else {
-            immWrite(7,0x01); // reset
-            immWrite(9,0);
-            immWrite(10,0);
-            immWrite(11,0);
-            immWrite(12,0);
-          }
+          assert(false && "LEGACY SAMPLE MODE!!!");
         }
         break;
       }

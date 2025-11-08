@@ -565,49 +565,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
           chan[c.chan].keyOn=true;
           chan[c.chan].furnaceDac=true;
         } else {
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].note=c.value;
-          }
-          dacSample=12*sampleBank+chan[c.chan].note%12;
-          if (dacSample>=parent->song.sampleLen) {
-            dacSample=-1;
-            if (dumpWrites && !dpcmMode) addWrite(0xffff0002,0);
-            break;
-          } else {
-            if (dumpWrites && !dpcmMode) addWrite(0xffff0000,dacSample);
-          }
-          if (chan[c.chan].setPos) {
-            chan[c.chan].setPos=false;
-          } else {
-            dacPos=0;
-          }
-          dacPeriod=0;
-          dacRate=parent->getSample(dacSample)->rate;
-          if (dumpWrites && !dpcmMode) addWrite(0xffff0001,dacRate);
-          chan[c.chan].furnaceDac=false;
-          if (dpcmMode && !skipRegisterWrites) {
-            unsigned int dpcmAddr=sampleOffDPCM[dacSample]+(dacPos>>3);
-            int dpcmLen=(parent->getSample(dacSample)->lengthDPCM-(dacPos>>3))>>4;
-            if (dpcmLen<0) dpcmLen=0;
-            if (dpcmLen>255) dpcmLen=255;
-            goingToLoop=parent->getSample(dacSample)->isLoopable();
-            // write DPCM
-            rWrite(0x4015,15);
-            if (nextDPCMFreq>=0) {
-              rWrite(0x4010,nextDPCMFreq|(goingToLoop?0x40:0));
-              nextDPCMFreq=-1;
-            } else {
-              rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
-            }
-            rWrite(0x4012,(dpcmAddr>>6)&0xff);
-            rWrite(0x4013,dpcmLen&0xff);
-            rWrite(0x4015,31);
-            if (dpcmBank!=(dpcmAddr>>14)) {
-              dpcmBank=dpcmAddr>>14;
-              logV("switching bank to %d",dpcmBank);
-              if (dumpWrites) addWrite(0xffff0004,dpcmBank);
-            }
-          }
+          assert(false && "LEGACY SAMPLE MODE!!!");
         }
         break;
       } else if (c.chan==3) { // noise

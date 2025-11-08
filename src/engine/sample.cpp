@@ -51,7 +51,7 @@ void DivSample::putSampleData(SafeWriter* w) {
 
   w->writeString(name,false);
   w->writeI(samples);
-  w->writeI(rate);
+  w->writeI(centerRate);
   w->writeI(centerRate);
   w->writeC(depth);
   w->writeC(loopMode);
@@ -116,7 +116,8 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
   if (!isNewSample) {
     loopEnd=samples;
   }
-  rate=reader.readI();
+  // just in case it's not new sample, it's a very old version and we gotta read a rate.
+  centerRate=reader.readI();
 
   if (isNewSample) {
     centerRate=reader.readI();
@@ -916,7 +917,6 @@ void DivSample::convert(DivSampleDepth newDepth, unsigned int formatMask) {
   if (loopStart>=0) loopStart=(double)loopStart*(tRate/sRate); \
   if (loopEnd>=0) loopEnd=(double)loopEnd*(tRate/sRate); \
   centerRate=(int)((double)centerRate*(tRate/sRate)); \
-  rate=(int)((double)rate*(tRate/sRate)); \
   samples=finalCount; \
   if (depth==DIV_SAMPLE_DEPTH_16BIT) { \
     delete[] oldData16; \
@@ -1665,9 +1665,9 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
       duplicate=new unsigned char[getCurBufLen()];
       memcpy(duplicate,getCurBuf(),getCurBufLen());
     }
-    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,brrNoFilter,dither,loopMode);
+    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,centerRate,loopStart,loopEnd,loop,brrEmphasis,brrNoFilter,dither,loopMode);
   } else {
-    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,brrNoFilter,dither,loopMode);
+    h=new DivSampleHistory(depth,centerRate,loopStart,loopEnd,loop,brrEmphasis,brrNoFilter,dither,loopMode);
   }
   if (!doNotPush) {
     while (!redoHist.empty()) {
@@ -1695,7 +1695,6 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
       memcpy(buf,h->data,h->length); \
     } \
   } \
-  rate=h->rate; \
   centerRate=h->centerRate; \
   loopStart=h->loopStart; \
   loopEnd=h->loopEnd; \
