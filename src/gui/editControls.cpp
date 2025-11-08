@@ -207,17 +207,12 @@ const char* scaleModeNames[9]={
   scaleRoot++; \
   if (scaleRoot>48) scaleRoot=48;
 
-const char* startingNote[12]={"C","C#","D","D#","E","F","F#","G","G#","A","A#","B"};
-
 String FurnaceGUI::formatScaleRoot(signed char root) {
-  int midiNote=60+root;
-  int octave=(midiNote/12)-1;
-  int note=midiNote%12;
-  if (midiNote<0) {
-    octave=((midiNote-11)/12)-1;
-    note=((midiNote%12)+12)%12;
+  if (root >= 0) {
+    return fmt::sprintf("+%d", root);
+  } else {
+    return fmt::sprintf("%d", root);
   }
-  return fmt::sprintf("%s%d", startingNote[note], octave);
 }
 
 void FurnaceGUI::drawMobileControls() {
@@ -763,6 +758,17 @@ void FurnaceGUI::drawEditControls() {
             }
           }
 
+        ImGui::SameLine();
+        if (ImGui::Button(_(formatScaleRoot(scaleRoot).c_str()))) {
+          CHANGE_SCALE_ROOT_UP;
+        }
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+          CHANGE_SCALE_ROOT_DOWN;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Key: Click (+); R-click (-)"));
+        }
+
           ImGui::EndTable();
         }
 
@@ -833,19 +839,6 @@ void FurnaceGUI::drawEditControls() {
           ImGui::SetTooltip(_("Scale"));
         }
         popToggleColors();
-
-        if (scaleMode!=GUI_SCALE_CHROMATIC) {
-          ImGui::SameLine();
-          if (ImGui::Button(_(formatScaleRoot(scaleRoot).c_str()))) {
-            CHANGE_SCALE_ROOT_UP;
-          }
-          if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-            CHANGE_SCALE_ROOT_DOWN;
-          }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("Key: Click (+); R-click (-)"));
-          }
-        }
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -958,7 +951,22 @@ void FurnaceGUI::drawEditControls() {
             }
           }
         }
+        ImGui::SameLine();
+        ImGui::Text(_("Transpose"));
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(96.0f*dpiScale);
+        int tempScaleRoot = scaleRoot;
+        if (ImGui::InputInt("##ScaleRoot",&tempScaleRoot,1,1)) {
+          if (tempScaleRoot > 127) tempScaleRoot = 127;
+          if (tempScaleRoot < -128) tempScaleRoot = -128;
+          scaleRoot = (signed char)tempScaleRoot;
+          e->autoNoteOffAll();
+          failedNoteOn=false;
 
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
+        }
         ImGui::SameLine();
         ImGui::Text(_("Follow"));
         ImGui::SameLine();
@@ -985,19 +993,6 @@ void FurnaceGUI::drawEditControls() {
           ImGui::SetTooltip(_("Scale"));
         }
         popToggleColors();
-
-        if (scaleMode!=GUI_SCALE_CHROMATIC) {
-          ImGui::SameLine();
-          if (ImGui::Button(_(formatScaleRoot(scaleRoot).c_str()))) {
-            CHANGE_SCALE_ROOT_UP;
-          }
-          if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-            CHANGE_SCALE_ROOT_DOWN;
-          }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("Key: Click (+); R-click (-)"));
-          }
-        }
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -1106,6 +1101,17 @@ void FurnaceGUI::drawEditControls() {
           }
         }
 
+        ImGui::SameLine();
+        if (ImGui::Button(_(formatScaleRoot(scaleRoot).c_str()))) {
+          CHANGE_SCALE_ROOT_UP;
+        }
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+          CHANGE_SCALE_ROOT_DOWN;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Key: Click (+); R-click (-)"));
+        }
+
         ImGui::Text(_("Foll."));
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("Follow"));
@@ -1135,19 +1141,6 @@ void FurnaceGUI::drawEditControls() {
           ImGui::SetTooltip(_("Scale"));
         }
         popToggleColors();
-
-        if (scaleMode!=GUI_SCALE_CHROMATIC) {
-          ImGui::SameLine();
-          if (ImGui::Button(_(formatScaleRoot(scaleRoot).c_str()))) {
-            CHANGE_SCALE_ROOT_UP;
-          }
-          if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-            CHANGE_SCALE_ROOT_DOWN;
-          }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("Key: Click (+); R-click (-)"));
-          }
-        }
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -1257,19 +1250,6 @@ void FurnaceGUI::drawEditControls() {
           ImGui::SetTooltip(_("Scale"));
         }
         popToggleColors();
-
-        if (scaleMode!=GUI_SCALE_CHROMATIC) {
-          ImGui::SameLine();
-          if (ImGui::Button(_(formatScaleRoot(scaleRoot).c_str()))) {
-            CHANGE_SCALE_ROOT_UP;
-          }
-          if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-            CHANGE_SCALE_ROOT_DOWN;
-          }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("Key: Click (+); R-click (-)"));
-          }
-        }
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -1317,6 +1297,23 @@ void FurnaceGUI::drawEditControls() {
             if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
               nextWindow=GUI_WINDOW_PATTERN;
             }
+          }
+        }
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text(_("Pitch"));
+        ImGui::SameLine();
+        ImGui::SetCursorPosX(cursor);
+        ImGui::SetNextItemWidth(avail);
+        int tempScaleRoot = scaleRoot;
+        if (ImGui::InputInt("##ScaleRoot",&tempScaleRoot,1,1)) {
+          if (tempScaleRoot > 127) tempScaleRoot = 127;
+          if (tempScaleRoot < -128) tempScaleRoot = -128;
+          scaleRoot = (signed char)tempScaleRoot;
+          e->autoNoteOffAll();
+          failedNoteOn=false;
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
           }
         }
         ImGui::NextColumn();

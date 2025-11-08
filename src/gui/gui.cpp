@@ -99,7 +99,7 @@ static const int lydianDominantScale[7] = {0, 2, 4, 6, 7, 9, 10};
 
 int FurnaceGUI::transposeToScale(int chromaticNote) {
   if (scaleMode == GUI_SCALE_CHROMATIC) {
-    return chromaticNote;
+    return chromaticNote+scaleRoot;
   }
 
   const int* currentScale;
