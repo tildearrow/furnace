@@ -695,6 +695,10 @@ class DivEngine {
   // change song (UNSAFE)
   void changeSong(size_t songIndex);
 
+  // convert legacy sample mode to normal
+  // returns whether conversion occurred
+  bool convertLegacySampleMode();
+
   void swapSystemUnsafe(int src, int dest, bool preserveOrder=true);
 
   // move an asset

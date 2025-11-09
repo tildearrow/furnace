@@ -729,22 +729,3 @@ void DivSong::unload() {
   }
   subsong.clear();
 }
-
-// from this point onwards, a mess.
-
-void DivSong::convertLegacySampleMode(int chans) {
-  for (DivSubSong* h: subsong) {
-    for (int i=0; i<chans; i++) {
-      unsigned char sampleMode=0;
-      for (int j=0; j<h->ordersLen; j++) {
-        DivPattern* p=h->pat[i].data[h->orders.ord[i][j]];
-        if (p==NULL) continue;
-
-        switch (
-        for (int k=0; k<h->patLen; k++) {
-          
-        }
-      }
-    }
-  }
-}

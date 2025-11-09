@@ -2181,11 +2181,6 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       addWarning("this song used partial pitch linearity, which has been removed from Furnace. you may have to adjust your song.");
     }
 
-    // removal of legacy sample mode
-    if (ds.version<239) {
-      ds.convertLegacySampleMode(tchans);
-    }
-
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
@@ -2193,6 +2188,10 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
     song=ds;
     changeSong(0);
     recalcChans();
+    // removal of legacy sample mode
+    if (song.version<239) {
+      convertLegacySampleMode();
+    }
     saveLock.unlock();
     BUSY_END;
     if (active) {
