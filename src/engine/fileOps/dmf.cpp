@@ -948,6 +948,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       if (ds.version<=0x08) {
         sample->centerRate=ymuSampleRate*400;
       }
+      sample->legacyRate=sample->centerRate;
       if (ds.version>0x15) {
         sample->depth=(DivSampleDepth)reader.readC();
         if (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT) {

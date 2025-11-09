@@ -32,6 +32,61 @@ bool DivEngine::convertLegacySampleMode() {
     return false;
   }
 
+  // check which samples are used by instruments so we don't touch them
+  bool* isUsedByIns=new bool[MAX(1,song.sample.size())];
+  memset(isUsedByIns,0,MAX(1,song.sample.size())*sizeof(bool));
+  for (DivInstrument* ins: song.ins) {
+    bool canUse=false;
+    if (ins->type==DIV_INS_MSM6258 ||
+        ins->type==DIV_INS_MSM6295 ||
+        ins->type==DIV_INS_ADPCMA ||
+        ins->type==DIV_INS_ADPCMB ||
+        ins->type==DIV_INS_SEGAPCM ||
+        ins->type==DIV_INS_QSOUND ||
+        ins->type==DIV_INS_YMZ280B ||
+        ins->type==DIV_INS_RF5C68 ||
+        ins->type==DIV_INS_AMIGA ||
+        ins->type==DIV_INS_MULTIPCM ||
+        ins->type==DIV_INS_SNES ||
+        ins->type==DIV_INS_ES5506 ||
+        ins->type==DIV_INS_K007232 ||
+        ins->type==DIV_INS_GA20 ||
+        ins->type==DIV_INS_K053260 ||
+        ins->type==DIV_INS_C140 ||
+        ins->type==DIV_INS_C219 ||
+        ins->type==DIV_INS_NDS ||
+        ins->type==DIV_INS_GBA_DMA ||
+        ins->type==DIV_INS_GBA_MINMOD ||
+        ins->type==DIV_INS_NES ||
+        ins->type==DIV_INS_SUPERVISION) {
+      canUse=true;
+    }
+    if (ins->type==DIV_INS_SU ||
+        ins->type==DIV_INS_AY ||
+        ins->type==DIV_INS_AY8930 ||
+        ins->type==DIV_INS_MIKEY ||
+        ins->type==DIV_INS_PCE ||
+        ins->type==DIV_INS_X1_010 ||
+        ins->type==DIV_INS_SWAN ||
+        ins->type==DIV_INS_VRC6) {
+      if (ins->amiga.useSample) canUse=true;
+    }
+
+    if (canUse) {
+      if (ins->amiga.useNoteMap) {
+        for (int i=0; i<120; i++) {
+          if (ins->amiga.noteMap[i].map>=0 && ins->amiga.noteMap[i].map<(int)song.sample.size()) {
+            isUsedByIns[ins->amiga.noteMap[i].map]=true;
+          }
+        }
+      } else {
+        if (ins->amiga.initSample>=0 && ins->amiga.initSample<(int)song.sample.size()) {
+          isUsedByIns[ins->amiga.initSample]=true;
+        }
+      }
+    }
+  }
+
   auto initSampleInsIfNeeded=[this,&legacyInsInit]() {
     if (legacyInsInit==-1) {
       legacyInsInit=(int)song.ins.size();
@@ -293,8 +348,15 @@ bool DivEngine::convertLegacySampleMode() {
             // we've got a note
             if (sampleMode==1) {
               initSampleInsIfNeeded();
-              //p->newData[k][DIV_PAT_NOTE]=60+12*sampleBank+(p->newData[k][DIV_PAT_NOTE]%12);
               p->newData[k][DIV_PAT_INS]=MIN(0xff,legacyInsInit+sampleBank);
+
+              int involvedSample=12*sampleBank+(p->newData[k][DIV_PAT_NOTE]%12);
+              if (involvedSample>=0 && involvedSample<song.sampleLen) {
+                if (!isUsedByIns[involvedSample]) {
+                  DivSample* sample=song.sample[involvedSample];
+                  sample->centerRate=sample->legacyRate;
+                }
+              }
             }
           } else if (p->newData[k][DIV_PAT_NOTE]==DIV_NOTE_OFF && noteOffDisablesSampleMode) {
             sampleMode=0;

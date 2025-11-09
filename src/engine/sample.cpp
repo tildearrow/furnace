@@ -118,6 +118,7 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
   }
   // just in case it's not new sample, it's a very old version and we gotta read a rate.
   centerRate=reader.readI();
+  legacyRate=centerRate;
 
   if (isNewSample) {
     centerRate=reader.readI();

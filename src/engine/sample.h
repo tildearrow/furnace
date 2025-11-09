@@ -104,6 +104,7 @@ struct DivSampleHistory {
 struct DivSample {
   String name;
   int centerRate, loopStart, loopEnd;
+  int legacyRate;
   // valid values are:
   // - 0: ZX Spectrum overlay drum (1-bit)
   // - 1: 1-bit NES DPCM (1-bit)
@@ -338,6 +339,7 @@ struct DivSample {
     centerRate(8363),
     loopStart(-1),
     loopEnd(-1),
+    legacyRate(32000),
     depth(DIV_SAMPLE_DEPTH_16BIT),
     loop(false),
     brrEmphasis(true),
