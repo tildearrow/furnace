@@ -2183,7 +2183,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
 
     // removal of legacy sample mode
     if (ds.version<239) {
-      ds.convertLegacySampleMode();
+      ds.convertLegacySampleMode(tchans);
     }
 
     if (active) quitDispatch();

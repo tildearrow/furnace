@@ -1103,6 +1103,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       }
     }
 
+    // store channel count for later
+    int chCount=getChannelCount(ds.system[0]);
+
     // handle compound systems
     if (ds.system[0]==DIV_SYSTEM_GENESIS) {
       ds.systemLen=2;
@@ -1167,7 +1170,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     }
 
     // always convert to normal sample mode (I have no idea how will I do export)
-    ds.convertLegacySampleMode();
+    ds.convertLegacySampleMode(chCount);
 
     ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
 

@@ -411,7 +411,7 @@ struct DivSong {
   /**
    * try to convert usage of legacy sample mode into normal mode.
    */
-   void convertLegacySampleMode();
+   void convertLegacySampleMode(int chans);
 
   /**
    * clear orders and patterns.
