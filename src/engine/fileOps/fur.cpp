@@ -2190,7 +2190,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
     recalcChans();
     // removal of legacy sample mode
     if (song.version<239) {
-      convertLegacySampleMode();
+      if (convertLegacySampleMode()) {
+        addWarning("Furnace no longer supports legacy sample mode. your song has been converted.");
+      }
     }
     saveLock.unlock();
     BUSY_END;

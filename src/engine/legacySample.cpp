@@ -20,6 +20,7 @@
 // from this point onwards, a mess.
 
 #include "engine.h"
+#include <fmt/printf.h>
 
 bool DivEngine::convertLegacySampleMode() {
   logD("converting legacy sample mode...");
@@ -33,18 +34,25 @@ bool DivEngine::convertLegacySampleMode() {
 
   auto initSampleInsIfNeeded=[this,&legacyInsInit]() {
     if (legacyInsInit==-1) {
-      DivInstrument* ins=new DivInstrument;
       legacyInsInit=(int)song.ins.size();
+      for (size_t bank=0; bank<(11+song.sample.size())/12; bank++) {
+        DivInstrument* ins=new DivInstrument;
 
-      ins->type=DIV_INS_AMIGA;
-      ins->amiga.useNoteMap=true;
-      ins->name="Legacy Samples";
-      for (int i=0; i<120; i++) {
-        ins->amiga.noteMap[i].freq=48; // C-4
-        ins->amiga.noteMap[i].map=i%12;
+        ins->type=DIV_INS_AMIGA;
+        ins->amiga.useNoteMap=true;
+        if (bank==0) {
+          ins->name="Legacy Samples";
+        } else {
+          ins->name=fmt::sprintf("Legacy Samples (bank %d)",(int)bank);
+        }
+        for (int i=0; i<120; i++) {
+          ins->amiga.noteMap[i].freq=48; // C-4
+          ins->amiga.noteMap[i].map=12*bank+(i%12);
+        }
+
+        song.ins.push_back(ins);
+        if (song.ins.size()>=256) break;
       }
-
-      song.ins.push_back(ins);
       song.insLen=song.ins.size();
       checkAssetDir(song.insDir,song.ins.size());
     }
@@ -60,11 +68,20 @@ bool DivEngine::convertLegacySampleMode() {
       DivInstrumentType preferredInsType=DIV_INS_AMIGA;
       DivInstrumentType preferredInsType2=DIV_INS_AMIGA;
       bool noteOffDisablesSampleMode=false;
+      bool hasLegacyToggle=false;
 
       switch (sysOfChan[i]) {
         case DIV_SYSTEM_NES:
+        case DIV_SYSTEM_5E01:
           // NES PCM channel (on by default)
           if (dispatchChanOfChan[i]!=4) {
+            continue;
+          }
+          sampleMode=1;
+          break;
+        case DIV_SYSTEM_MMC5:
+          // MMC5 PCM channel
+          if (dispatchChanOfChan[i]!=2) {
             continue;
           }
           sampleMode=1;
@@ -74,16 +91,25 @@ bool DivEngine::convertLegacySampleMode() {
           if (dispatchChanOfChan[i]!=5) {
             continue;
           }
+          hasLegacyToggle=true;
           break;
         case DIV_SYSTEM_YM2612_EXT:
+        case DIV_SYSTEM_YM2612_CSM:
           // YM2612 DAC channel
           if (dispatchChanOfChan[i]!=8) {
             continue;
           }
+          hasLegacyToggle=true;
           break;
         case DIV_SYSTEM_PCE:
+        case DIV_SYSTEM_X1_010:
           // any channel can be DAC'd
           noteOffDisablesSampleMode=true;
+          hasLegacyToggle=true;
+          break;
+        case DIV_SYSTEM_AY8910:
+        case DIV_SYSTEM_AY8930:
+          // any channel can be DAC'd
           break;
         case DIV_SYSTEM_YM2610:
         case DIV_SYSTEM_YM2610_FULL:
@@ -99,6 +125,15 @@ bool DivEngine::convertLegacySampleMode() {
         case DIV_SYSTEM_YM2610_FULL_EXT:
           // Neo Geo CD ADPCM channels
           if (dispatchChanOfChan[i]<10) {
+            continue;
+          }
+          sampleMode=1;
+          preferredInsType=DIV_INS_ADPCMA;
+          preferredInsType2=DIV_INS_ADPCMB;
+          break;
+        case DIV_SYSTEM_YM2610_CSM:
+          // Neo Geo CD ADPCM channels
+          if (dispatchChanOfChan[i]<11) {
             continue;
           }
           sampleMode=1;
@@ -123,11 +158,81 @@ bool DivEngine::convertLegacySampleMode() {
           preferredInsType=DIV_INS_ADPCMA;
           preferredInsType2=DIV_INS_ADPCMB;
           break;
+        case DIV_SYSTEM_YM2610B_CSM:
+          // ADPCM channels
+          if (dispatchChanOfChan[i]<13) {
+            continue;
+          }
+          sampleMode=1;
+          preferredInsType=DIV_INS_ADPCMA;
+          preferredInsType2=DIV_INS_ADPCMB;
+          break;
+        case DIV_SYSTEM_YM2608:
+          // ADPCM channel
+          if (dispatchChanOfChan[i]!=15) {
+            continue;
+          }
+          sampleMode=1;
+          preferredInsType=DIV_INS_ADPCMB;
+          break;
+        case DIV_SYSTEM_YM2608_EXT:
+          // ADPCM channel
+          if (dispatchChanOfChan[i]!=18) {
+            continue;
+          }
+          sampleMode=1;
+          preferredInsType=DIV_INS_ADPCMB;
+          break;
+        case DIV_SYSTEM_YM2608_CSM:
+          // ADPCM channel
+          if (dispatchChanOfChan[i]!=19) {
+            continue;
+          }
+          sampleMode=1;
+          preferredInsType=DIV_INS_ADPCMB;
+          break;
         case DIV_SYSTEM_SEGAPCM:
         case DIV_SYSTEM_SEGAPCM_COMPAT:
           // all channels can play back samples
           sampleMode=1;
           preferredInsType=DIV_INS_SEGAPCM;
+          break;
+        case DIV_SYSTEM_MSM6258:
+          sampleMode=1;
+          preferredInsType=DIV_INS_MSM6258;
+          break;
+        case DIV_SYSTEM_MSM6295:
+          sampleMode=1;
+          preferredInsType=DIV_INS_MSM6295;
+          break;
+        case DIV_SYSTEM_Y8950:
+          // Y8950 ADPCM
+          if (dispatchChanOfChan[i]!=9) {
+            continue;
+          }
+          sampleMode=1;
+          break;
+        case DIV_SYSTEM_Y8950_DRUMS:
+          // Y8950 ADPCM
+          if (dispatchChanOfChan[i]!=11) {
+            continue;
+          }
+          sampleMode=1;
+          break;
+        case DIV_SYSTEM_SWAN:
+          // PCM channel
+          if (dispatchChanOfChan[i]!=1) {
+            continue;
+          }
+          noteOffDisablesSampleMode=true;
+          hasLegacyToggle=true;
+          break;
+        case DIV_SYSTEM_VRC6:
+          // pulse DAC mode
+          if (dispatchChanOfChan[i]>=2) {
+            continue;
+          }
+          hasLegacyToggle=true;
           break;
         default: // not a chip with convertible channels
           continue;
@@ -152,14 +257,16 @@ bool DivEngine::convertLegacySampleMode() {
             if (fxVal<0) fxVal=0;
             switch (p->newData[k][DIV_PAT_FX(l)]) {
               case 0x17: // set legacy sample mode
-                if (fxVal==0) {
-                  sampleMode=0;
-                } else {
-                  sampleMode=1;
+                if (hasLegacyToggle) {
+                  if (fxVal==0) {
+                    sampleMode=0;
+                  } else {
+                    sampleMode=1;
+                  }
+                  // clear effect
+                  p->newData[k][DIV_PAT_FX(l)]=-1;
+                  p->newData[k][DIV_PAT_FXVAL(l)]=-1;
                 }
-                // clear effect
-                p->newData[k][DIV_PAT_FX(l)]=-1;
-                p->newData[k][DIV_PAT_FXVAL(l)]=-1;
                 break;
               case 0xeb: // set sample bank
                 sampleBank=fxVal;
@@ -187,7 +294,7 @@ bool DivEngine::convertLegacySampleMode() {
             if (sampleMode==1) {
               initSampleInsIfNeeded();
               //p->newData[k][DIV_PAT_NOTE]=60+12*sampleBank+(p->newData[k][DIV_PAT_NOTE]%12);
-              p->newData[k][DIV_PAT_INS]=legacyInsInit;
+              p->newData[k][DIV_PAT_INS]=MIN(0xff,legacyInsInit+sampleBank);
             }
           } else if (p->newData[k][DIV_PAT_NOTE]==DIV_NOTE_OFF && noteOffDisablesSampleMode) {
             sampleMode=0;
