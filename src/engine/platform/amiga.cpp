@@ -995,7 +995,7 @@ size_t DivPlatformAmiga::getSampleMemUsage(int index) {
 
 bool DivPlatformAmiga::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -1006,8 +1006,8 @@ const DivMemoryComposition* DivPlatformAmiga::getMemCompo(int index) {
 
 void DivPlatformAmiga::renderSamples(int sysID) {
   memset(sampleMem,0,2097152);
-  memset(sampleOff,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOff,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="Chip Memory";
@@ -1081,4 +1081,15 @@ void DivPlatformAmiga::quit() {
   for (int i=0; i<4; i++) {
     delete oscBuf[i];
   }
+}
+
+// initialization of important arrays
+DivPlatformAmiga::DivPlatformAmiga() {
+  sampleOff=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
+DivPlatformAmiga::~DivPlatformAmiga() {
+  delete[] sampleOff;
+  delete[] sampleLoaded;
 }

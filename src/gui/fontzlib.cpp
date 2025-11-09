@@ -38,9 +38,21 @@ struct InflateBlock {
 };
 
 ImFont* FurnaceGUI::addFontZlib(const void* data, size_t len, float size_pixels, const ImFontConfig* font_cfg, const ImWchar* glyph_ranges) {
+  // find font in cache
+  logV("addFontZlib...");
+  for (FurnaceGUIUncompFont& i: fontCache) {
+    if (i.origPtr==data && i.origLen==len) {
+      logV("found in cache");
+      ImFontConfig fontConfig=(font_cfg==NULL)?ImFontConfig():(*font_cfg);
+      fontConfig.FontDataOwnedByAtlas=false;
+
+      return ImGui::GetIO().Fonts->AddFontFromMemoryTTF(i.data,i.len,size_pixels,&fontConfig,glyph_ranges);
+    }
+  }
+
   z_stream zl;
   memset(&zl,0,sizeof(z_stream));
-  logV("addFontZlib...");
+  logV("not found in cache - decompressing...");
 
   zl.avail_in=len;
   zl.next_in=(Bytef*)data;
@@ -109,17 +121,18 @@ ImFont* FurnaceGUI::addFontZlib(const void* data, size_t len, float size_pixels,
     blocks.clear();
     return NULL;
   }
-  unsigned char* finalData=new unsigned char[finalSize];
+  unsigned char* finalData=(unsigned char*)malloc(finalSize);
   for (InflateBlock* i: blocks) {
     memcpy(&finalData[curSeek],i->buf,i->blockSize);
     curSeek+=i->blockSize;
     delete i;
   }
   blocks.clear();
-  len=finalSize;
+
+  fontCache.push_back(FurnaceGUIUncompFont(data,len,finalData,finalSize));
 
   ImFontConfig fontConfig=(font_cfg==NULL)?ImFontConfig():(*font_cfg);
-  fontConfig.FontDataOwnedByAtlas=true;
+  fontConfig.FontDataOwnedByAtlas=false;
 
   return ImGui::GetIO().Fonts->AddFontFromMemoryTTF(finalData,finalSize,size_pixels,&fontConfig,glyph_ranges);
 }

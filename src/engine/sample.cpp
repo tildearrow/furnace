@@ -291,6 +291,9 @@ int DivSample::getSampleOffset(int offset, int length, DivSampleDepth depth) {
       case DIV_SAMPLE_DEPTH_16BIT:
         off=offset*2;
         break;
+      case DIV_SAMPLE_DEPTH_4BIT:
+        off=(offset+1)/2;
+        break;
       default:
         break;
     }
@@ -355,6 +358,10 @@ int DivSample::getSampleOffset(int offset, int length, DivSampleDepth depth) {
         off=((offset*3)+1)/2;
         len=((length*3)+1)/2;
         break;
+      case DIV_SAMPLE_DEPTH_4BIT:
+        off=(offset+1)/2;
+        len=(length+1)/2;
+        break;
       case DIV_SAMPLE_DEPTH_16BIT:
         off=offset*2;
         len=length*2;
@@ -418,6 +425,9 @@ int DivSample::getEndPosition(DivSampleDepth depth) {
       break;
     case DIV_SAMPLE_DEPTH_12BIT:
       off=length12;
+      break;
+    case DIV_SAMPLE_DEPTH_4BIT:
+      off=length4;
       break;
     case DIV_SAMPLE_DEPTH_16BIT:
       off=length16;
@@ -534,6 +544,10 @@ bool DivSample::saveRaw(const char* path) {
 
 // 16-bit memory is padded to 512, to make things easier for ADPCM-A/B.
 bool DivSample::initInternal(DivSampleDepth d, int count) {
+  if (count<0) {
+    logE("initInternal(%d,%d) - NEGATIVE!",(int)d,count);
+    return false;
+  }
   logV("initInternal(%d,%d)",(int)d,count);
   switch (d) {
     case DIV_SAMPLE_DEPTH_1BIT: // 1-bit
@@ -619,8 +633,14 @@ bool DivSample::initInternal(DivSampleDepth d, int count) {
     case DIV_SAMPLE_DEPTH_12BIT: // 12-bit PCM (MultiPCM)
       if (data12!=NULL) delete[] data12;
       length12=((count*3)+1)/2;
-      data12=new unsigned char[length12];
-      memset(data12,0,length12);
+      data12=new unsigned char[length12+8];
+      memset(data12,0,length12+8);
+      break;
+    case DIV_SAMPLE_DEPTH_4BIT:
+      if (data4!=NULL) delete[] data4;
+      length4=(count+1)/2;
+      data4=new unsigned char[length4];
+      memset(data4,0,length4);
       break;
     case DIV_SAMPLE_DEPTH_16BIT: // 16-bit
       if (data16!=NULL) delete[] data16;
@@ -634,7 +654,11 @@ bool DivSample::initInternal(DivSampleDepth d, int count) {
   return true;
 }
 
-bool DivSample::init(unsigned int count) {
+bool DivSample::init(int count) {
+  if (count<0 || count>16777215) {
+    logE("tried to init sample with length %d!",count);
+    return false;
+  }
   if (!initInternal(depth,count)) return false;
   setSampleCount(count);
   return true;
@@ -858,6 +882,9 @@ void DivSample::convert(DivSampleDepth newDepth, unsigned int formatMask) {
       setSampleCount(16*(lengthBRR/9));
       break;
     case DIV_SAMPLE_DEPTH_VOX: // VOX
+      setSampleCount((samples+1)&(~1));
+      break;
+    case DIV_SAMPLE_DEPTH_4BIT:
       setSampleCount((samples+1)&(~1));
       break;
     default:
@@ -1170,6 +1197,7 @@ bool DivSample::resampleSinc(double sRate, double tRate) {
 
 bool DivSample::resample(double sRate, double tRate, int filter) {
   if (depth!=DIV_SAMPLE_DEPTH_8BIT && depth!=DIV_SAMPLE_DEPTH_16BIT) return false;
+  if (tRate<100) return false;
   switch (filter) {
     case DIV_RESAMPLE_NONE:
       return resampleNone(sRate,tRate);
@@ -1317,6 +1345,18 @@ void DivSample::render(unsigned int formatMask) {
           }
         }
         break;
+      case DIV_SAMPLE_DEPTH_4BIT: {
+        unsigned short nibble=0;
+        for (unsigned int i=0; i<samples; i++) {
+          if (i&1) {
+            nibble=data4[i>>1]&0xf;
+          } else {
+            nibble=data4[i>>1]>>4;
+          }
+          data16[i]=((nibble<<12)|(nibble<<8)|(nibble<<4)|nibble)^0x8000;
+        }
+        break;
+      }
       default:
         return;
     }
@@ -1447,7 +1487,8 @@ void DivSample::render(unsigned int formatMask) {
     }
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_BRR)) { // BRR
-    int sampleCount=loop?loopEnd:samples;
+    int sampleCount=isLoopable()?loopEnd:samples;
+    if (sampleCount>(int)samples) sampleCount=samples;
     if (!initInternal(DIV_SAMPLE_DEPTH_BRR,sampleCount)) return;
     brrEncode(data16,dataBRR,sampleCount,loop?loopStart:-1,brrEmphasis,brrNoFilter);
   }
@@ -1513,7 +1554,23 @@ void DivSample::render(unsigned int formatMask) {
       data12[j+1]=((data16[i+0]>>4)&0xf)|(i+1<samples?(data16[i+1]>>4)&0xf:0);
       if (i+1<samples) {
         data12[j+2]=data16[i+1]>>8;
+      } else {
+        data12[j+2]=0;
       }
+    }
+  }
+  if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_4BIT)) {
+    if (!initInternal(DIV_SAMPLE_DEPTH_4BIT,samples)) return;
+    unsigned char _sample=0, sample4=0;
+    unsigned short* samplePtr = (unsigned short*)data16;
+    for (unsigned int i=0; i<samples; i+=2) {
+      _sample=(*samplePtr++^0x8000)>>12;
+      sample4=_sample<<4;
+      if (i+1<samples) {
+        _sample=(*samplePtr++^0x8000)>>12;
+        sample4|=_sample;
+      }
+      data4[i>>1]=sample4;
     }
   }
 }
@@ -1548,6 +1605,8 @@ void* DivSample::getCurBuf() {
       return dataIMA;
     case DIV_SAMPLE_DEPTH_12BIT:
       return data12;
+    case DIV_SAMPLE_DEPTH_4BIT:
+      return data4;
     case DIV_SAMPLE_DEPTH_16BIT:
       return data16;
     default:
@@ -1586,6 +1645,8 @@ unsigned int DivSample::getCurBufLen() {
       return lengthIMA;
     case DIV_SAMPLE_DEPTH_12BIT:
       return length12;
+    case DIV_SAMPLE_DEPTH_4BIT:
+      return length4;
     case DIV_SAMPLE_DEPTH_16BIT:
       return length16;
     default:
@@ -1701,4 +1762,5 @@ DivSample::~DivSample() {
   if (dataC219) delete[] dataC219;
   if (dataIMA) delete[] dataIMA;
   if (data12) delete[] data12;
+  if (data4) delete[] data4;
 }

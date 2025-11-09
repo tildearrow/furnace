@@ -71,6 +71,10 @@ enum DivDispatchCmds {
   DIV_CMD_HINT_PORTA, // (target, speed)
   DIV_CMD_HINT_LEGATO, // (note)
   DIV_CMD_HINT_VOL_SLIDE_TARGET, // (amount, target)
+  DIV_CMD_HINT_TREMOLO, // (speed/depth as a byte)
+  DIV_CMD_HINT_PANBRELLO, // (speed/depth as a byte)
+  DIV_CMD_HINT_PAN_SLIDE, // (speed)
+  DIV_CMD_HINT_PANNING, // (left, right)
 
   DIV_CMD_SAMPLE_MODE, // (enabled)
   DIV_CMD_SAMPLE_FREQ, // (frequency)
@@ -171,8 +175,8 @@ enum DivDispatchCmds {
   DIV_CMD_X1_010_AUTO_ENVELOPE,
   DIV_CMD_X1_010_SAMPLE_BANK_SLOT,
 
-  DIV_CMD_WS_SWEEP_TIME,
-  DIV_CMD_WS_SWEEP_AMOUNT,
+  DIV_CMD_WS_SWEEP_TIME, // (time)
+  DIV_CMD_WS_SWEEP_AMOUNT, // (value)
 
   DIV_CMD_N163_WAVE_POSITION,
   DIV_CMD_N163_WAVE_LENGTH,
@@ -309,6 +313,14 @@ enum DivDispatchCmds {
   DIV_CMD_SID3_CUTOFF_SCALING,
   DIV_CMD_SID3_RESONANCE_SCALING,
 
+  DIV_CMD_WS_GLOBAL_SPEAKER_VOLUME, // (multiplier)
+
+  DIV_CMD_FM_ALG,
+  DIV_CMD_FM_FMS,
+  DIV_CMD_FM_AMS,
+  DIV_CMD_FM_FMS2,
+  DIV_CMD_FM_AMS2,
+
   DIV_CMD_MAX
 };
 
@@ -437,7 +449,7 @@ struct DivDispatchOscBuffer {
   unsigned int needle;
   unsigned short readNeedle;
   //unsigned short lastSample;
-  bool follow;
+  bool follow, mustNotKillNeedle;
   short data[65536];
 
   inline void putSample(const size_t pos, const short val) {
@@ -464,6 +476,11 @@ struct DivDispatchOscBuffer {
     unsigned short start=needle>>16;
     unsigned short end=(needle+calc)>>16;
 
+    if (mustNotKillNeedle && start!=end) {
+      start++;
+      end++;
+    }
+
     //logD("C %d %d %d",len,calc,rate);
 
     if (end<start) {
@@ -479,12 +496,14 @@ struct DivDispatchOscBuffer {
   inline void end(size_t len) {
     size_t calc=len*rateMul;
     needle+=calc;
+    mustNotKillNeedle=needle&0xffff;//(data[needle>>16]!=-1);
     //data[needle>>16]=lastSample;
   }
   void reset() {
     memset(data,-1,65536*sizeof(short));
     needle=0;
     readNeedle=0;
+    mustNotKillNeedle=false;
     //lastSample=0;
   }
   void setRate(unsigned int r) {
@@ -499,7 +518,8 @@ struct DivDispatchOscBuffer {
     needle(0),
     readNeedle(0),
     //lastSample(0),
-    follow(true) {
+    follow(true),
+    mustNotKillNeedle(false) {
     memset(data,-1,65536*sizeof(short));
   }
 };
@@ -544,6 +564,8 @@ struct DivChannelModeHints {
   // - 18: inc linear
   // - 19: inc bent
   // - 20: direct
+  // - 21: warning
+  // - 22: error
   unsigned char type[4];
   // up to 4
   unsigned char count;
@@ -896,6 +918,16 @@ class DivDispatch {
     virtual void notifyWaveChange(int wave);
 
     /**
+     * notify sample change.
+     */
+    virtual void notifySampleChange(int sample);
+
+    /**
+     * notify addition of an instrument.
+     */
+    virtual void notifyInsAddition(int sysID);
+
+    /**
      * notify deletion of an instrument.
      */
     virtual void notifyInsDeletion(void* ins);
@@ -944,14 +976,14 @@ class DivDispatch {
      * @param index the memory index.
      * @return a pointer to sample memory, or NULL.
      */
-    virtual const void* getSampleMem(int index = 0);
+    virtual const void* getSampleMem(int index=0);
 
     /**
      * Get sample memory capacity.
      * @param index the memory index.
      * @return memory capacity in bytes, or 0 if memory doesn't exist.
      */
-    virtual size_t getSampleMemCapacity(int index = 0);
+    virtual size_t getSampleMemCapacity(int index=0);
 
     /**
      * get sample memory name.
@@ -961,11 +993,25 @@ class DivDispatch {
     virtual const char* getSampleMemName(int index=0);
 
     /**
+     * Get sample memory start offset.
+     * @param index the memory index.
+     * @return memory start offset in bytes.
+     */
+    virtual size_t getSampleMemOffset(int index = 0);
+
+    /**
      * Get sample memory usage.
      * @param index the memory index.
      * @return memory usage in bytes.
      */
-    virtual size_t getSampleMemUsage(int index = 0);
+    virtual size_t getSampleMemUsage(int index=0);
+
+    /**
+     * check whether chip has sample pointer header in sample memory.
+     * @param index the memory index.
+     * @return whether it did.
+     */
+    virtual bool hasSamplePtrHeader(int index=0);
 
     /**
      * check whether sample has been loaded in memory.
@@ -1052,7 +1098,7 @@ class DivDispatch {
   if ((x)<(xMin)) (x)=(xMin); \
   if ((x)>(xMax)) (x)=(xMax);
 
-#define NEW_ARP_STRAT (parent->song.linearPitch==2 && !parent->song.oldArpStrategy)
+#define NEW_ARP_STRAT (parent->song.linearPitch && !parent->song.oldArpStrategy)
 #define HACKY_LEGATO_MESS chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode && !NEW_ARP_STRAT
 
 #endif

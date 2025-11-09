@@ -173,20 +173,12 @@ void FurnaceGUIRenderGL1::clear(ImVec4 color) {
   C(glClear(GL_COLOR_BUFFER_BIT));
 }
 
-bool FurnaceGUIRenderGL1::newFrame() {
-  return ImGui_ImplOpenGL2_NewFrame();
+void FurnaceGUIRenderGL1::newFrame() {
+  ImGui_ImplOpenGL2_NewFrame();
 }
 
 bool FurnaceGUIRenderGL1::canVSync() {
   return swapIntervalSet;
-}
-
-void FurnaceGUIRenderGL1::createFontsTexture() {
-  ImGui_ImplOpenGL2_CreateFontsTexture();
-}
-
-void FurnaceGUIRenderGL1::destroyFontsTexture() {
-  ImGui_ImplOpenGL2_DestroyFontsTexture();
 }
 
 void FurnaceGUIRenderGL1::renderGUI() {
@@ -279,8 +271,10 @@ void FurnaceGUIRenderGL1::preInit(const DivConfig& conf) {
   SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE,conf.getInt("glAlphaSize",0));
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER,conf.getInt("glDoubleBuffer",1));
   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,conf.getInt("glDepthSize",24));
-  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE,conf.getInt("glStencilSize",0));
-  SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE,conf.getInt("glBufferSize",32));
+  if (conf.getInt("glSetBS",0)) {
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE,conf.getInt("glStencilSize",0));
+    SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE,conf.getInt("glBufferSize",32));
+  }
 }
 
 #define LOAD_PROC_MANDATORY(_v,_t,_s) \

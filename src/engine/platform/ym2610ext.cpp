@@ -30,6 +30,7 @@ void DivPlatformYM2610Ext::commitStateExt(int ch, DivInstrument* ins) {
     }
     chan[extChanOffs].state.fms=ins->fm.fms;
     chan[extChanOffs].state.ams=ins->fm.ams;
+    chan[extChanOffs].state.block=ins->fm.block;
     chan[extChanOffs].state.op[ordch]=ins->fm.op[ordch];
   }
   
@@ -161,7 +162,7 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      if (parent->song.linearPitch==2) {
+      if (parent->song.linearPitch) {
         int destFreq=NOTE_FREQUENCY(c.value2);
         bool return2=false;
         if (destFreq>opChan[ch].baseFreq) {
@@ -214,9 +215,25 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
       rWrite(0x22,lfoValue);
       break;
     }
+    case DIV_CMD_FM_ALG: {
+      chan[extChanOffs].state.alg=c.value&7;
+      // TODO: TL compensation?
+      rWrite(ADDR_FB_ALG+chanOffs[extChanOffs],(chan[extChanOffs].state.alg&7)|(chan[extChanOffs].state.fb<<3));
+      break;
+    }
     case DIV_CMD_FM_FB: {
       chan[extChanOffs].state.fb=c.value&7;
       rWrite(chanOffs[extChanOffs]+ADDR_FB_ALG,(chan[extChanOffs].state.alg&7)|(chan[extChanOffs].state.fb<<3));
+      break;
+    }
+    case DIV_CMD_FM_FMS: {
+      chan[extChanOffs].state.fms=c.value&7;
+      rWrite(chanOffs[extChanOffs]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch].pan<<6))|(chan[extChanOffs].state.fms&7)|((chan[extChanOffs].state.ams&3)<<4));
+      break;
+    }
+    case DIV_CMD_FM_AMS: {
+      chan[extChanOffs].state.ams=c.value&3;
+      rWrite(chanOffs[extChanOffs]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch].pan<<6))|(chan[extChanOffs].state.fms&7)|((chan[extChanOffs].state.ams&3)<<4));
       break;
     }
     case DIV_CMD_FM_MULT: {
@@ -463,7 +480,9 @@ void DivPlatformYM2610Ext::tick(bool sysTick) {
       }
     }
 
-    if (opChan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      opChan[i].handleArp();
+    } else if (opChan[i].std.arp.had) {
       if (!opChan[i].inPorta) {
         opChan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(opChan[i].note,opChan[i].std.arp.val),11,chan[extChanOffs].state.block);
       }
@@ -585,7 +604,7 @@ void DivPlatformYM2610Ext::tick(bool sysTick) {
   unsigned char hardResetMask=0;
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
-      if (parent->song.linearPitch==2) {
+      if (parent->song.linearPitch) {
         opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,4,opChan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[extChanOffs].state.block);
       } else {
         int fNum=parent->calcFreq(opChan[i].baseFreq&0x7ff,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,4,opChan[i].pitch2);

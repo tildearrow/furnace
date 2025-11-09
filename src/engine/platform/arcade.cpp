@@ -601,6 +601,26 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       rWrite(0x1b,c.value&3);
       break;
     }
+    case DIV_CMD_FM_ALG: {
+      chan[c.chan].state.alg=c.value&7;
+      if (isMuted[c.chan]) {
+        rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
+      } else {
+        rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3)|((chan[c.chan].chVolL&1)<<6)|((chan[c.chan].chVolR&1)<<7));
+      }
+      for (int i=0; i<4; i++) {
+        unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
+        DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
+        if (!op.enable) {
+          rWrite(baseAddr+ADDR_TL,127);
+        } else if (KVS(c.chan,i)) {
+          rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[c.chan].outVol&0x7f,127));
+        } else {
+          rWrite(baseAddr+ADDR_TL,op.tl);
+        }
+      }
+      break;
+    }
     case DIV_CMD_FM_FB: {
       chan[c.chan].state.fb=c.value&7;
       if (isMuted[c.chan]) {
@@ -608,6 +628,16 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       } else {
         rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3)|((chan[c.chan].chVolL&1)<<6)|((chan[c.chan].chVolR&1)<<7));
       }
+      break;
+    }
+    case DIV_CMD_FM_FMS: {
+      chan[c.chan].state.fms=c.value&7;
+      rWrite(chanOffs[c.chan]+ADDR_FMS_AMS,((chan[c.chan].state.fms&7)<<4)|(chan[c.chan].state.ams&3));
+      break;
+    }
+    case DIV_CMD_FM_AMS: {
+      chan[c.chan].state.ams=c.value&3;
+      rWrite(chanOffs[c.chan]+ADDR_FMS_AMS,((chan[c.chan].state.fms&7)<<4)|(chan[c.chan].state.ams&3));
       break;
     }
     case DIV_CMD_FM_MULT: {

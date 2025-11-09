@@ -315,7 +315,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=((c.value2+chan[c.chan].sampleNoteDelta)<<7);
       int newFreq;
-      int mul=(oldSlides || parent->song.linearPitch!=2)?8:1;
+      int mul=(oldSlides || !parent->song.linearPitch)?8:1;
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         newFreq=chan[c.chan].baseFreq+c.value*mul;
@@ -470,7 +470,7 @@ size_t DivPlatformSegaPCM::getSampleMemUsage(int index) {
 
 bool DivPlatformSegaPCM::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -509,9 +509,9 @@ void DivPlatformSegaPCM::renderSamples(int sysID) {
   size_t memPos=0;
 
   memset(sampleMem,0,2097152);
-  memset(sampleLoaded,0,256*sizeof(bool));
-  memset(sampleOffSegaPCM,0,256*sizeof(unsigned int));
-  memset(sampleEndSegaPCM,0,256);
+  memset(sampleLoaded,0,32768*sizeof(bool));
+  memset(sampleOffSegaPCM,0,32768*sizeof(unsigned int));
+  memset(sampleEndSegaPCM,0,32768);
 
   memCompo=DivMemoryComposition();
   memCompo.name="Sample ROM";
@@ -595,5 +595,15 @@ void DivPlatformSegaPCM::quit() {
   delete sampleMem;
 }
 
+// initialization of important arrays
+DivPlatformSegaPCM::DivPlatformSegaPCM() {
+  sampleOffSegaPCM=new unsigned int[32768];
+  sampleEndSegaPCM=new unsigned char[32768];
+  sampleLoaded=new bool[32768];
+}
+
 DivPlatformSegaPCM::~DivPlatformSegaPCM() {
+  delete[] sampleOffSegaPCM;
+  delete[] sampleEndSegaPCM;
+  delete[] sampleLoaded;
 }

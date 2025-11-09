@@ -126,6 +126,13 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
     w->writeText(fmt::sprintf("- type: %d\n",(int)ins->type));
 
     if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPM || ins->type==DIV_INS_ESFM) {
+      int opCount=4;
+      if (ins->type==DIV_INS_OPLL) {
+        opCount=2;
+      } else if (ins->type==DIV_INS_OPL) {
+        opCount=(ins->fm.ops==4)?4:2;
+      }
+
       w->writeText("- FM parameters:\n");
       w->writeText(fmt::sprintf("  - ALG: %d\n",ins->fm.alg));
       w->writeText(fmt::sprintf("  - FB: %d\n",ins->fm.fb));
@@ -133,14 +140,14 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
       w->writeText(fmt::sprintf("  - AMS: %d\n",ins->fm.ams));
       w->writeText(fmt::sprintf("  - FMS2: %d\n",ins->fm.fms2));
       w->writeText(fmt::sprintf("  - AMS2: %d\n",ins->fm.ams2));
-      w->writeText(fmt::sprintf("  - operators: %d\n",ins->fm.ops));
+      w->writeText(fmt::sprintf("  - operators: %d\n",opCount));
       w->writeText(fmt::sprintf("  - OPLL patch: %d\n",ins->fm.opllPreset));
       w->writeText(fmt::sprintf("  - fixed drum freq: %s\n",trueFalse[ins->fm.fixedDrums?1:0]));
       w->writeText(fmt::sprintf("  - kick freq: %.4X\n",ins->fm.kickFreq));
       w->writeText(fmt::sprintf("  - snare/hat freq: %.4X\n",ins->fm.snareHatFreq));
       w->writeText(fmt::sprintf("  - tom/top freq: %.4X\n",ins->fm.tomTopFreq));
       
-      for (int j=0; j<ins->fm.ops; j++) {
+      for (int j=0; j<opCount; j++) {
         DivInstrumentFM::Operator& op=ins->fm.op[j];
 
         w->writeText(fmt::sprintf("  - operator %d:\n",j));
@@ -173,7 +180,7 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
       w->writeText("- ESFM parameters:\n");
       w->writeText(fmt::sprintf("  - noise mode: %d\n",ins->esfm.noise));
 
-      for (int j=0; j<ins->fm.ops; j++) {
+      for (int j=0; j<4; j++) {
         DivInstrumentESFM::Operator& opE=ins->esfm.op[j];
 
         w->writeText(fmt::sprintf("  - operator %d:\n",j));
@@ -221,6 +228,8 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
     writeTextMacro(w,ins->std.ex6Macro,"ex6",header);
     writeTextMacro(w,ins->std.ex7Macro,"ex7",header);
     writeTextMacro(w,ins->std.ex8Macro,"ex8",header);
+    writeTextMacro(w,ins->std.ex9Macro,"ex9",header);
+    writeTextMacro(w,ins->std.ex10Macro,"ex10",header);
     writeTextMacro(w,ins->std.algMacro,"alg",header);
     writeTextMacro(w,ins->std.fbMacro,"fb",header);
     writeTextMacro(w,ins->std.fmsMacro,"fms",header);
@@ -235,7 +244,7 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
   for (int i=0; i<song.waveLen; i++) {
     DivWavetable* wave=song.wave[i];
 
-    w->writeText(fmt::sprintf("- %d (%dx%d):",i,wave->len+1,wave->max+1));
+    w->writeText(fmt::sprintf("- %d (%dx%d):",i,wave->len,wave->max+1));
     for (int j=0; j<=wave->len; j++) {
       w->writeText(fmt::sprintf(" %d",wave->data[j]));
     }
@@ -312,9 +321,8 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
 
           for (int l=0; l<chans; l++) {
             DivPattern* p=s->pat[l].getPattern(s->orders.ord[l][j],false);
-
-            int note=p->data[k][0];
-            int octave=p->data[k][1];
+            short note, octave;
+            noteToSplitNote(p->newData[k][DIV_PAT_NOTE],note,octave);
 
             if (note==0 && octave==0) {
               w->writeText("|... ");
@@ -335,28 +343,28 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
               w->writeText(fmt::sprintf("|%s%d ",(octave<0)?notesNegative[note]:notes[note],(octave<0)?(-octave):octave));
             }
 
-            if (p->data[k][2]==-1) {
+            if (p->newData[k][DIV_PAT_INS]==-1) {
               w->writeText(".. ");
             } else {
-              w->writeText(fmt::sprintf("%.2X ",p->data[k][2]&0xff));
+              w->writeText(fmt::sprintf("%.2X ",p->newData[k][DIV_PAT_INS]&0xff));
             }
 
-            if (p->data[k][3]==-1) {
+            if (p->newData[k][DIV_PAT_VOL]==-1) {
               w->writeText("..");
             } else {
-              w->writeText(fmt::sprintf("%.2X",p->data[k][3]&0xff));
+              w->writeText(fmt::sprintf("%.2X",p->newData[k][DIV_PAT_VOL]&0xff));
             }
 
             for (int m=0; m<s->pat[l].effectCols; m++) {
-              if (p->data[k][4+(m<<1)]==-1) {
+              if (p->newData[k][DIV_PAT_FX(m)]==-1) {
                 w->writeText(" ..");
               } else {
-                w->writeText(fmt::sprintf(" %.2X",p->data[k][4+(m<<1)]&0xff));
+                w->writeText(fmt::sprintf(" %.2X",p->newData[k][DIV_PAT_FX(m)]&0xff));
               }
-              if (p->data[k][5+(m<<1)]==-1) {
+              if (p->newData[k][DIV_PAT_FXVAL(m)]==-1) {
                 w->writeText("..");
               } else {
-                w->writeText(fmt::sprintf("%.2X",p->data[k][5+(m<<1)]&0xff));
+                w->writeText(fmt::sprintf("%.2X",p->newData[k][DIV_PAT_FXVAL(m)]&0xff));
               }
             }
           }

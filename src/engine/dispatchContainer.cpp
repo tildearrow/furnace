@@ -93,6 +93,7 @@
 #include "platform/bifurcator.h"
 #include "platform/sid2.h"
 #include "platform/sid3.h"
+#include "platform/multipcm.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
 #include "song.h"
@@ -194,27 +195,14 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) 
         }
       }
     }
-    if (lowQuality) {
-      for (int i=0; i<outs; i++) {
-        if (bbIn[i]==NULL) continue;
-        if (bb[i]==NULL) continue;
-        for (size_t j=0; j<runtotal; j++) {
-          if (bbIn[i][j]==temp[i]) continue;
-          temp[i]=bbIn[i][j];
-          blip_add_delta_fast(bb[i],j,temp[i]-prevSample[i]);
-          prevSample[i]=temp[i];
-        }
-      }
-    } else {
-      for (int i=0; i<outs; i++) {
-        if (bbIn[i]==NULL) continue;
-        if (bb[i]==NULL) continue;
-        for (size_t j=0; j<runtotal; j++) {
-          if (bbIn[i][j]==temp[i]) continue;
-          temp[i]=bbIn[i][j];
-          blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
-          prevSample[i]=temp[i];
-        }
+    for (int i=0; i<outs; i++) {
+      if (bbIn[i]==NULL) continue;
+      if (bb[i]==NULL) continue;
+      for (size_t j=0; j<runtotal; j++) {
+        if (bbIn[i][j]==temp[i]) continue;
+        temp[i]=bbIn[i][j];
+        blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
+        prevSample[i]=temp[i];
       }
     }
   }
@@ -619,6 +607,11 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_SWAN:
       dispatch=new DivPlatformSwan;
+      if (isRender) {
+        ((DivPlatformSwan*)dispatch)->setUseMdfn(eng->getConfInt("swanCoreRender",0));
+      } else {
+        ((DivPlatformSwan*)dispatch)->setUseMdfn(eng->getConfInt("swanCore",0));
+      }
       break;
     case DIV_SYSTEM_T6W28:
       dispatch=new DivPlatformT6W28;
@@ -794,6 +787,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       } else {
         ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl4Core",0));
       }
+      break;
+    case DIV_SYSTEM_MULTIPCM:
+      dispatch=new DivPlatformMultiPCM;
       break;
     case DIV_SYSTEM_DUMMY:
       dispatch=new DivPlatformDummy;

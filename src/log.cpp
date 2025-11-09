@@ -43,6 +43,7 @@ std::mutex logFileLock;
 std::mutex logFileLockI;
 std::condition_variable logFileNotify;
 std::atomic<bool> logFileAvail(false);
+std::atomic<bool> iAmReallyDead(false);
 
 std::atomic<unsigned short> logPosition;
 
@@ -99,7 +100,19 @@ int writeLog(int level, const char* msg, fmt::printf_args args) {
   int pos=(logPosition.fetch_add(1))&TA_LOG_MASK;
 
 #if FMT_VERSION >= 100100
+#ifdef _MSVC_LANG
+#if _MSVC_LANG >= 201703L
+  logEntries[pos].text.assign(fmt::vsprintf(std::basic_string_view(msg),args));
+#else
   logEntries[pos].text.assign(fmt::vsprintf(fmt::basic_string_view<char>(msg),args));
+#endif
+#else
+#if __cplusplus >= 201703L
+  logEntries[pos].text.assign(fmt::vsprintf(std::basic_string_view(msg),args));
+#else
+  logEntries[pos].text.assign(fmt::vsprintf(fmt::basic_string_view<char>(msg),args));
+#endif
+#endif
 #else
   logEntries[pos].text.assign(fmt::vsprintf(msg,args));
 #endif
@@ -188,6 +201,7 @@ void _logFileThread() {
       logFileNotify.wait(lock);
     }
   }
+  iAmReallyDead=true;
 }
 
 bool startLogFile(const char* path) {
@@ -235,10 +249,16 @@ bool finishLogFile() {
   if (!logFileAvail) return false;
 
   logFileAvail=false;
+  iAmReallyDead=false;
 
   // flush
   logFileLockI.lock();
-  logFileNotify.notify_one();
+  while (!iAmReallyDead) {
+    logFileNotify.notify_one();
+    std::this_thread::yield();
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  // this join is guaranteed to work
   logFileThread->join();
   logFileLockI.unlock();
 

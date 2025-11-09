@@ -73,6 +73,12 @@ these macros allow you to control several parameters of FM per tick.
 
 ## FM Macros
 
+- **Algorithm**,
+  **Feedback**,
+  **LFO > Freq**,
+  **LFO > Amp**,
+  **LFO2 > Freq**,
+  **LFO2 > Amp**: as described above.
 - **AM Depth**: amplitude modulation depth.
 - **PM Depth**: pitch modulation depth.
 - **LFO Speed**: LFO frequency.

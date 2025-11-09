@@ -509,23 +509,25 @@ void DivPlatformX1_010::tick(bool sysTick) {
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
     }
-    if (chan[i].env.slide!=0) {
-      chan[i].env.slidefrac+=chan[i].env.slide;
-      while (chan[i].env.slidefrac>0xf) {
-        chan[i].env.slidefrac-=0x10;
-        if (chan[i].env.period<0xff) {
-          chan[i].env.period++;
-          if (!chan[i].pcm) {
-            chWrite(i,4,chan[i].env.period);
+    if (sysTick) {
+      if (chan[i].env.slide!=0) {
+        chan[i].env.slidefrac+=chan[i].env.slide;
+        while (chan[i].env.slidefrac>0xf) {
+          chan[i].env.slidefrac-=0x10;
+          if (chan[i].env.period<0xff) {
+            chan[i].env.period++;
+            if (!chan[i].pcm) {
+              chWrite(i,4,chan[i].env.period);
+            }
           }
         }
-      }
-      while (chan[i].env.slidefrac<-0xf) {
-        chan[i].env.slidefrac+=0x10;
-        if (chan[i].env.period>0) {
-          chan[i].env.period--;
-          if (!chan[i].pcm) {
-            chWrite(i,4,chan[i].env.period);
+        while (chan[i].env.slidefrac<-0xf) {
+          chan[i].env.slidefrac+=0x10;
+          if (chan[i].env.period>0) {
+            chan[i].env.period--;
+            if (!chan[i].pcm) {
+              chWrite(i,4,chan[i].env.period);
+            }
           }
         }
       }
@@ -999,7 +1001,7 @@ size_t DivPlatformX1_010::getSampleMemUsage(int index) {
 
 bool DivPlatformX1_010::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -1010,8 +1012,8 @@ const DivMemoryComposition* DivPlatformX1_010::getMemCompo(int index) {
 
 void DivPlatformX1_010::renderSamples(int sysID) {
   memset(sampleMem,0,16777216);
-  memset(sampleOffX1,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOffX1,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="Sample ROM";
@@ -1079,5 +1081,16 @@ void DivPlatformX1_010::quit() {
   delete[] sampleMem;
 }
 
+// initialization of important arrays
+DivPlatformX1_010::DivPlatformX1_010():
+  DivDispatch(),
+  vgsound_emu_mem_intf(),
+  x1_010(*this) {
+  sampleOffX1=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
 DivPlatformX1_010::~DivPlatformX1_010() {
+  delete[] sampleOffX1;
+  delete[] sampleLoaded;
 }

@@ -1,6 +1,7 @@
 #ifndef YMF278_HH
 #define YMF278_HH
 
+#include <stdint.h>
 #include <vector>
 #include <string>
 #include <algorithm>
@@ -67,13 +68,13 @@ public:
 		uint16_t wave;		// wavetable number
 		uint16_t FN;		// f-number         TODO store 'FN | 1024'?
 		int8_t OCT;		// octave [-8..+7]
-		bool PRVB;		// pseudo-reverb
+		bool PRVB = false;		// pseudo-reverb
 		uint8_t TLdest;		// destination total level
 		uint8_t TL;		// total level  (goes towards TLdest)
 		uint8_t pan;		// panpot 0..15
-		bool ch;            // channel select
+		bool ch = false;            // channel select
 		bool keyon;		// slot keyed on
-		bool DAMP;
+		bool DAMP = false;
 		uint8_t lfo;            // LFO speed 0..7
 		uint8_t vib;		// vibrato 0..7
 		uint8_t AM;		// AM level 0..7

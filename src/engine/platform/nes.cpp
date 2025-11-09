@@ -352,9 +352,6 @@ void DivPlatformNES::tick(bool sysTick) {
     }
     if (chan[i].sweepChanged) {
       chan[i].sweepChanged=false;
-      if (i==0) {
-        // rWrite(16+i*5,chan[i].sweep);
-      }
     }
     if (i<3) if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
@@ -637,6 +634,13 @@ int DivPlatformNES::dispatch(DivCommand c) {
       } else if (!parent->song.brokenOutVol2) {
         rWrite(0x4000+c.chan*4,(chan[c.chan].envMode<<4)|chan[c.chan].vol|((chan[c.chan].duty&3)<<6));
       }
+      if (resetSweep && c.chan<2) {
+        if (chan[c.chan].sweep!=0x08 && !chan[c.chan].sweepChanged) {
+          chan[c.chan].sweep=0x08;
+          chan[c.chan].prevFreq=-1;
+          rWrite(0x4001+(c.chan*4),chan[c.chan].sweep);
+        }
+      }
       break;
     case DIV_CMD_NOTE_OFF:
       if (c.chan==4) {
@@ -724,6 +728,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
         }
       }
       rWrite(0x4001+(c.chan*4),chan[c.chan].sweep);
+      chan[c.chan].sweepChanged=true;
       break;
     case DIV_CMD_NES_ENV_MODE:
       chan[c.chan].envMode=c.value&3;
@@ -843,6 +848,13 @@ void DivPlatformNES::forceIns() {
   for (int i=0; i<5; i++) {
     chan[i].insChanged=true;
     chan[i].prevFreq=65535;
+    if (i<4) {
+      if (i==2) { // triangle
+        rWrite(0x4000+i*4,(chan[i].outVol==0 || !chan[i].active)?0:linearCount);
+      } else {
+        rWrite(0x4000+i*4,(chan[i].envMode<<4)|(chan[i].active?chan[i].outVol:0)|((chan[i].duty&3)<<6));
+      }
+    }
   }
   rWrite(0x4001,chan[0].sweep);
   rWrite(0x4005,chan[1].sweep);
@@ -921,6 +933,16 @@ void DivPlatformNES::reset() {
   rWrite(0x4001,chan[0].sweep);
   rWrite(0x4005,chan[1].sweep);
 
+  for (int i=0; i<4; i++) {
+    if (i<4) {
+      if (i==2) { // triangle
+        rWrite(0x4000+i*4,0);
+      } else {
+        rWrite(0x4000+i*4,(chan[i].envMode<<4)|0|((chan[i].duty&3)<<6));
+      }
+    }
+  }
+
   dacAntiClickOn=true;
   dacAntiClick=0;
 }
@@ -972,6 +994,7 @@ void DivPlatformNES::setFlags(const DivConfig& flags) {
   }
   
   dpcmModeDefault=flags.getBool("dpcmMode",true);
+  resetSweep=flags.getBool("resetSweep",false);
 }
 
 void DivPlatformNES::notifyInsDeletion(void* ins) {
@@ -1016,7 +1039,7 @@ size_t DivPlatformNES::getSampleMemUsage(int index) {
 
 bool DivPlatformNES::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -1027,7 +1050,8 @@ const DivMemoryComposition* DivPlatformNES::getMemCompo(int index) {
 
 void DivPlatformNES::renderSamples(int sysID) {
   memset(dpcmMem,0,getSampleMemCapacity(0));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOffDPCM,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="DPCM";
@@ -1133,5 +1157,13 @@ void DivPlatformNES::quit() {
   }
 }
 
+// initialization of important arrays
+DivPlatformNES::DivPlatformNES() {
+  sampleOffDPCM=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
 DivPlatformNES::~DivPlatformNES() {
+  delete[] sampleOffDPCM;
+  delete[] sampleLoaded;
 }

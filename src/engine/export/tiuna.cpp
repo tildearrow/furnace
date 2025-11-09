@@ -181,14 +181,14 @@ static void writeCmd(std::vector<TiunaBytes>& cmds, TiunaCmd& cmd, unsigned char
 }
 
 void DivExportTiuna::run() {
-  int loopOrder, loopOrderRow, loopEnd;
+  int loopOrder, loopOrderRow;
   int tick=0;
   SafeWriter* w;
   std::map<int,TiunaCmd> allCmds[2];
 
   // config
-  String baseLabel=conf.getString("baseLabel","song");
-  int firstBankSize=conf.getInt("firstBankSize",3072);
+  String baseLabel=conf.getString("baseLabel","twin");
+  int firstBankSize=conf.getInt("firstBankSize",1024);
   int otherBankSize=conf.getInt("otherBankSize",4096-48);
   int tiaIdx=conf.getInt("sysToExport",-1);
 
@@ -199,10 +199,9 @@ void DivExportTiuna::run() {
   e->synchronizedSoft([&]() {
     // determine loop point
     // bool stopped=false;
-    loopOrder=0;
-    loopOrderRow=0;
-    loopEnd=0;
-    e->walkSong(loopOrder,loopOrderRow,loopEnd);
+    e->calcSongTimestamps();
+    loopOrder=e->curSubSong->ts.loopStart.order;
+    loopOrderRow=e->curSubSong->ts.loopStart.row;
     logAppendf("loop point: %d %d",loopOrder,loopOrderRow);
 
     w=new SafeWriter;

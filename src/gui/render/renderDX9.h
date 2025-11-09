@@ -57,11 +57,9 @@ class FurnaceGUIRenderDX9: public FurnaceGUIRender {
     void setBlendMode(FurnaceGUIBlendMode mode);
     void resized(const SDL_Event& ev);
     void clear(ImVec4 color);
-    bool newFrame();
+    void newFrame();
     bool canVSync();
     bool areTexturesSquare();
-    void createFontsTexture();
-    void destroyFontsTexture();
     void renderGUI();
     void wipe(float alpha);
     void present();

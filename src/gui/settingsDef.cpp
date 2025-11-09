@@ -487,16 +487,6 @@ void FurnaceGUI::setupSettingsCategories() {
             SETTINGS_CHANGED;
           }
         }),
-        SETTING(_N("Use new pattern format when saving"),{
-          bool newPatternFormatB=settings.newPatternFormat;
-          if (ImGui::Checkbox(_("Use new pattern format when saving"),&newPatternFormatB)) {
-            settings.newPatternFormat=newPatternFormatB;
-            SETTINGS_CHANGED;
-          }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_("use a packed format which saves space when saving songs.\ndisable if you need compatibility with older Furnace and/or tools\nwhich do not support this format."));
-          }
-        }),
         SETTING(_N("Don't apply compatibility flags when loading .dmf"),{
           bool noDMFCompatB=settings.noDMFCompat;
           if (ImGui::Checkbox(_("Don't apply compatibility flags when loading .dmf"),&noDMFCompatB)) {
@@ -2584,66 +2574,6 @@ void FurnaceGUI::setupSettingsCategories() {
           }
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip(_("disable to save video memory."));
-          }
-        }),
-        SETTING(_N("Display Japanese characters"),{
-          bool loadJapaneseB=settings.loadJapanese;
-          if (ImGui::Checkbox(_("Display Japanese characters"),&loadJapaneseB)) {
-            settings.loadJapanese=loadJapaneseB;
-            SETTINGS_CHANGED;
-          }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_(
-              "Only toggle this option if you have enough graphics memory.\n"
-              "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
-              "このオプションは、十分なグラフィックメモリがある場合にのみ切り替えてください。\n"
-              "これは、Dear ImGuiにダイナミックフォントアトラスが実装されるまでの一時的な解決策です。"
-            ));
-          }
-        }),
-        SETTING(_N("Display Chinese (Simplified) characters"),{
-          bool loadChineseB=settings.loadChinese;
-          if (ImGui::Checkbox(_("Display Chinese (Simplified) characters"),&loadChineseB)) {
-            settings.loadChinese=loadChineseB;
-            SETTINGS_CHANGED;
-          }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_(
-              "Only toggle this option if you have enough graphics memory.\n"
-              "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
-              "请在确保你有足够的显存后再启动此设定\n"
-              "这是一个在ImGui实现动态字体加载之前的临时解决方案"
-            ));
-          }
-        }),
-        SETTING(_N("Display Chinese (Traditional) characters"),{
-          bool loadChineseTraditionalB=settings.loadChineseTraditional;
-          if (ImGui::Checkbox(_("Display Chinese (Traditional) characters"),&loadChineseTraditionalB)) {
-            settings.loadChineseTraditional=loadChineseTraditionalB;
-            SETTINGS_CHANGED;
-          }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_(
-              "Only toggle this option if you have enough graphics memory.\n"
-              "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
-              "請在確保你有足夠的顯存后再啟動此設定\n"
-              "這是一個在ImGui實現動態字體加載之前的臨時解決方案"
-            ));
-          }
-        }),
-        SETTING(_N("Display Korean characters"),{
-          bool loadKoreanB=settings.loadKorean;
-          if (ImGui::Checkbox(_("Display Korean characters"),&loadKoreanB)) {
-            settings.loadKorean=loadKoreanB;
-            SETTINGS_CHANGED;
-          }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(_(
-              "Only toggle this option if you have enough graphics memory.\n"
-              "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
-              "그래픽 메모리가 충분한 경우에만 이 옵션을 선택하십시오.\n"
-              "이 옵션은 Dear ImGui에 동적 글꼴 아틀라스가 구현될 때까지 임시 솔루션입니다."
-            ));
           }
         })
       }),

@@ -131,3 +131,11 @@ String utf16To8(const wchar_t* s) {
   }
   return ret;
 }
+
+WString utf8To16(String& in) {
+  return utf8To16(in.c_str());
+}
+
+String utf16To8(WString& in) {
+  return utf16To8(in.c_str());
+}

@@ -23,6 +23,7 @@
 #include "../pch.h"
 
 #include "defines.h"
+#include "../timeutils.h"
 #include "../ta-utils.h"
 #include "config.h"
 #include "orders.h"
@@ -167,6 +168,40 @@ struct DivGroovePattern {
     }
 };
 
+struct DivSongTimestamps {
+  // song duration (in seconds and microseconds)
+  TimeMicros totalTime;
+  int totalTicks;
+  int totalRows;
+
+  // loop region (order/row positions)
+  struct Position {
+    int order, row;
+    Position():
+      order(0), row(0) {}
+  } loopStart, loopEnd;
+  // set to true if a 0Bxx effect is found and it defines a loop region
+  bool isLoopDefined;
+  // set to false if FFxx is found
+  bool isLoopable;
+
+  // timestamp of a row
+  // DO NOT ACCESS DIRECTLY! use the functions instead.
+  // if seconds is -1, it means this row is not touched at all.
+  TimeMicros* orders[DIV_MAX_PATTERNS];
+  TimeMicros loopStartTime;
+
+  // the furthest row that the playhead goes through in an order.
+  unsigned char maxRow[DIV_MAX_PATTERNS];
+
+  // call this function to get the timestamp of a row.
+  TimeMicros getTimes(int order, int row);
+
+  DivSongTimestamps();
+  ~DivSongTimestamps();
+};
+
+
 struct DivSubSong {
   String name, notes;
   unsigned char hilightA, hilightB;
@@ -185,17 +220,16 @@ struct DivSubSong {
   String chanName[DIV_MAX_CHANS];
   String chanShortName[DIV_MAX_CHANS];
 
-  /**
-   * walk through the song and determine loop position.
-   */
-  bool walk(int& loopOrder, int& loopRow, int& loopEnd, int chans, int jumpTreatment, int ignoreJumpAtEnd, int firstPat=0);
+  // song timestamps
+  DivSongTimestamps ts;
 
   /**
-   * find song length in rows (up to specified loop point).
+   * calculate timestamps (loop position, song length and more).
    */
-  void findLength(int loopOrder, int loopRow, double fadeoutLen, int& rowsForFadeout, bool& hasFFxx, std::vector<int>& orders, std::vector<DivGroovePattern>& grooves, int& length, int chans, int jumpTreatment, int ignoreJumpAtEnd, int firstPat=0);
+  void calcTimestamps(int chans, std::vector<DivGroovePattern>& grooves, int jumpTreatment, int ignoreJumpAtEnd, int brokenSpeedSel, int delayBehavior, int firstPat=0);
 
   void clearData();
+  void removeUnusedPatterns();
   void optimizePatterns();
   void rearrangePatterns();
   void sortOrders();
@@ -280,9 +314,6 @@ struct DivSong {
   // compatibility flags
   bool limitSlides;
   // linear pitch
-  // 0: not linear
-  // 1: only pitch changes (04xy/E5xx) linear
-  // 2: full linear
   unsigned char linearPitch;
   unsigned char pitchSlideSpeed;
   // loop behavior
@@ -427,7 +458,7 @@ struct DivSong {
     masterVol(1.0f),
     tuning(440.0f),
     limitSlides(false),
-    linearPitch(2),
+    linearPitch(1),
     pitchSlideSpeed(4),
     loopModality(2),
     delayBehavior(2),

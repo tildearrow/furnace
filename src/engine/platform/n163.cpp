@@ -348,9 +348,6 @@ int DivPlatformN163::dispatch(DivCommand c) {
       chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
-      chan[c.chan].active=false;
-      chan[c.chan].keyOff=true;
-      chan[c.chan].keyOn=false;
       chan[c.chan].std.release();
       break;
     case DIV_CMD_ENV_RELEASE:
@@ -389,13 +386,13 @@ int DivPlatformN163::dispatch(DivCommand c) {
       int destFreq=destFreqD;
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
-        chan[c.chan].baseFreq+=c.value*((parent->song.linearPitch==2)?1:16);
+        chan[c.chan].baseFreq+=c.value*((parent->song.linearPitch)?1:16);
         if (chan[c.chan].baseFreq>=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
         }
       } else {
-        chan[c.chan].baseFreq-=c.value*((parent->song.linearPitch==2)?1:16);
+        chan[c.chan].baseFreq-=c.value*((parent->song.linearPitch)?1:16);
         if (chan[c.chan].baseFreq<=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;

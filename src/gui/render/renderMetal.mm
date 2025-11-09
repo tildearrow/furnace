@@ -56,7 +56,7 @@ class FurnaceMetalTexture: public FurnaceGUITexture {
 
 ImTextureID FurnaceGUIRenderMetal::getTextureID(FurnaceGUITexture* which) {
   FurnaceMetalTexture* t=(FurnaceMetalTexture*)which;
-  return t->tex;
+  return (ImTextureID)t->tex;
 }
 
 FurnaceGUITextureFormat FurnaceGUIRenderMetal::getTextureFormat(FurnaceGUITexture* which) {
@@ -150,20 +150,12 @@ void FurnaceGUIRenderMetal::clear(ImVec4 color) {
   priv->renderEncoder=[priv->cmdBuf renderCommandEncoderWithDescriptor:priv->renderPass];
 }
 
-bool FurnaceGUIRenderMetal::newFrame() {
-  return ImGui_ImplMetal_NewFrame(priv->renderPass);
+void FurnaceGUIRenderMetal::newFrame() {
+  ImGui_ImplMetal_NewFrame(priv->renderPass);
 }
 
 bool FurnaceGUIRenderMetal::canVSync() {
   return swapIntervalSet;
-}
-
-void FurnaceGUIRenderMetal::createFontsTexture() {
-  ImGui_ImplMetal_CreateFontsTexture(priv->context.device);
-}
-
-void FurnaceGUIRenderMetal::destroyFontsTexture() {
-  ImGui_ImplMetal_DestroyFontsTexture();
 }
 
 void FurnaceGUIRenderMetal::renderGUI() {

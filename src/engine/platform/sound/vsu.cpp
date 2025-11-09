@@ -51,6 +51,8 @@ void VSU::Power(void)
  SweepControl = 0;
  SweepModCounter = 0;
  SweepModClockDivider = 1;
+ ModState = 0;
+ ModLock = 0;
 
  for(int ch = 0; ch < 6; ch++)
  {
@@ -62,7 +64,9 @@ void VSU::Power(void)
   RAMAddress[ch] = 0;
 
   EffFreq[ch] = 0;
-  Envelope[ch] = 0;
+  EnvelopeReload[ch] = 0;
+  EnvelopeValue[ch] = 0;
+  EnvelopeModMask[ch] = 0;
   WavePos[ch] = 0;
   FreqCounter[ch] = 1;
   IntervalCounter[ch] = 0;
@@ -73,6 +77,9 @@ void VSU::Power(void)
   EnvelopeClockDivider[ch] = 4;
 
   LatcherClockDivider[ch] = 120;
+
+  for(int lr = 0; lr < 2; lr++)
+   last_output[ch][lr] = 0;
  }
 
  ModWavePos = 0;
@@ -99,6 +106,8 @@ void VSU::Write(int timestamp, unsigned int A, unsigned char V)
  A &= 0x7FF;
 
  Update(timestamp);
+
+ ModLock = 0;
 
  //printf("VSU Write: %d, %08x %02x\n", timestamp, A, V);
 
@@ -133,7 +142,6 @@ void VSU::Write(int timestamp, unsigned int A, unsigned char V)
 
 	     if(V & 0x80)
 	     {
-	      EffFreq[ch] = Frequency[ch];
 	      if(ch == 5)
 	       FreqCounter[ch] = 10 * (2048 - EffFreq[ch]);
 	      else
@@ -146,15 +154,20 @@ void VSU::Write(int timestamp, unsigned int A, unsigned char V)
 	       SweepModCounter = (SweepControl >> 4) & 7;
                SweepModClockDivider = (SweepControl & 0x80) ? 8 : 1;
                ModWavePos = 0;
+               ModState = 0;
 	      }
 
 	      WavePos[ch] = 0;
 
-	      if(ch == 5)	// Not sure if this is correct.
+	      if(ch == 5)	{ // Not sure if this is correct.
 	       lfsr = 1;
+        }
 
-	      //if(!(IntlControl[ch] & 0x80))
-	      // Envelope[ch] = (EnvControl[ch] >> 4) & 0xF;
+        EnvelopeModMask[ch] = 0;
+        if(!(EnvControl[ch] & 0x200) && (
+           (EnvelopeValue[ch] == 0 && !(EnvControl[ch] & 0x0008)) ||
+           (EnvelopeValue[ch] == 0xF && (EnvControl[ch] & 0x0008))))
+         EnvelopeModMask[ch] = 1;
 
 	      EffectsClockDivider[ch] = 4800;
 	      IntervalClockDivider[ch] = 4;
@@ -167,21 +180,27 @@ void VSU::Write(int timestamp, unsigned int A, unsigned char V)
 	     break;
 
    case 0x2: Frequency[ch] &= 0xFF00;
-	     Frequency[ch] |= V << 0;
-	     EffFreq[ch] &= 0xFF00;
+             Frequency[ch] |= V << 0;
+             EffFreq[ch] &= 0xFF00;
              EffFreq[ch] |= V << 0;
+             ModLock = 1;
 	     break;
 
    case 0x3: Frequency[ch] &= 0x00FF;
-	     Frequency[ch] |= (V & 0x7) << 8;
-	     EffFreq[ch] &= 0x00FF;
+             Frequency[ch] |= (V & 0x7) << 8;
+             EffFreq[ch] &= 0x00FF;
              EffFreq[ch] |= (V & 0x7) << 8;
+             ModLock = 2;
 	     break;
 
    case 0x4: EnvControl[ch] &= 0xFF00;
 	     EnvControl[ch] |= V << 0;
 
-	     Envelope[ch] = (V >> 4) & 0xF;
+	     EnvelopeReload[ch] = (V >> 4) & 0xF;
+	     EnvelopeValue[ch] = (V >> 4) & 0xF;
+
+       if(EnvelopeModMask[ch] == 1)
+        EnvelopeModMask[ch] = 2;
 	     break;
 
    case 0x5: EnvControl[ch] &= 0x00FF;
@@ -194,6 +213,12 @@ void VSU::Write(int timestamp, unsigned int A, unsigned char V)
 	     }
 	     else
 	      EnvControl[ch] |= (V & 0x03) << 8;
+
+       if(EnvelopeModMask[ch] == 0 && !(EnvControl[ch] & 0x200) && (
+          (EnvelopeValue[ch] == 0 && !(EnvControl[ch] & 0x0008)) ||
+          (EnvelopeValue[ch] == 0xF && (EnvControl[ch] & 0x0008))))
+        EnvelopeModMask[ch] = 1;
+       
 	     break;
 
    case 0x6: RAMAddress[ch] = V & 0xF;
@@ -228,14 +253,14 @@ inline void VSU::CalcCurrentOutput(int ch, int &left, int &right)
   else
    WD = WaveData[RAMAddress[ch]][WavePos[ch]];	// - 0x20;
  }
- l_ol = Envelope[ch] * LeftLevel[ch];
+ l_ol = EnvelopeValue[ch] * LeftLevel[ch];
  if(l_ol)
  {
   l_ol >>= 3;
   l_ol += 1;
  }
 
- r_ol = Envelope[ch] * RightLevel[ch];
+ r_ol = EnvelopeValue[ch] * RightLevel[ch];
  if(r_ol)
  {
   r_ol >>= 3;
@@ -260,11 +285,11 @@ void VSU::Update(int timestamp)
   CalcCurrentOutput(ch, left, right);
   if (left!=last_output[ch][0]) {
     blip_add_delta(bb[0],running_timestamp,left - last_output[ch][0]);
-    last_output[ch][0] = left;
+  last_output[ch][0] = left;
   }
   if (right!=last_output[ch][1]) {
     blip_add_delta(bb[1],running_timestamp,right - last_output[ch][1]);
-    last_output[ch][1] = right;
+  last_output[ch][1] = right;
   }
   oscBuf[ch]->putSample(running_timestamp,(left+right)*8);
 
@@ -355,23 +380,27 @@ void VSU::Update(int timestamp)
      {
       EnvelopeClockDivider[ch] += 4;
 
+      int new_envelope = EnvelopeValue[ch];
+      if(EnvelopeValue[ch] < 0xF && (EnvControl[ch] & 0x0008))
+       new_envelope++;
+      else if(EnvelopeValue[ch] > 0 && !(EnvControl[ch] & 0x0008))
+       new_envelope--;
+      else if((EnvControl[ch] & 0x200) && EnvelopeModMask[ch] != 2)
+       {
+        new_envelope = EnvelopeReload[ch];
+        EnvelopeModMask[ch] = 0;
+       }
+      else if(EnvelopeModMask[ch] == 0)
+       EnvelopeModMask[ch] = 1;
+
       if(EnvControl[ch] & 0x0100)	// Enveloping enabled?
       {
        EnvelopeCounter[ch]--;
        if(!EnvelopeCounter[ch])
        {
-	EnvelopeCounter[ch] = (EnvControl[ch] & 0x7) + 1;
-
-        if(EnvControl[ch] & 0x0008)	// Grow
-        {
-         if(Envelope[ch] < 0xF || (EnvControl[ch] & 0x200))
-	  Envelope[ch] = (Envelope[ch] + 1) & 0xF;
-        }
-        else				// Decay
-        {
-         if(Envelope[ch] > 0 || (EnvControl[ch] & 0x200))
-          Envelope[ch] = (Envelope[ch] - 1) & 0xF;
-        }
+        EnvelopeCounter[ch] = (EnvControl[ch] & 0x7) + 1;
+        if(EnvelopeModMask[ch] == 0)
+         EnvelopeValue[ch] = new_envelope;
        }
       }
 
@@ -380,6 +409,19 @@ void VSU::Update(int timestamp)
 
     if(ch == 4)
     {
+
+      // Calculate sweep early
+      int delta = EffFreq[ch] >> (SweepControl & 0x7);
+      int NewSweepFreq = EffFreq[ch] + ((SweepControl & 0x8) ? delta : -delta);
+
+      if(!(EnvControl[ch] & 0x1000))
+       {
+        if(NewSweepFreq < 0)
+         NewSweepFreq = 0;
+        else if(NewSweepFreq > 0x7FF)
+         IntlControl[ch] &= ~0x80;
+       }
+
      SweepModClockDivider--;
      while(SweepModClockDivider <= 0)
      {
@@ -394,33 +436,30 @@ void VSU::Update(int timestamp)
        {
         SweepModCounter = (SweepControl >> 4) & 0x7;
 
-        if(EnvControl[ch] & 0x1000)	// Modulation
+        if(EnvControl[ch] & 0x1000)        // Modulation
         {
-	 if(ModWavePos < 32 || (EnvControl[ch] & 0x2000))
-	 {
-          ModWavePos &= 0x1F;
+         if(ModState == 0 || (EnvControl[ch] & 0x2000))
+          EffFreq[ch] = (Frequency[ch] + (signed char)ModData[ModWavePos]) & 0x7FF;
+         if(ModState == 1)
+          ModState = 2;
 
-	  EffFreq[ch] = (Frequency[ch] + (signed char)ModData[ModWavePos]) & 0x7FF;
-	  ModWavePos++;
-	 }
+         // Hardware bug: writing to S5FQ* locks the relevant byte when modulating
+         if(ModLock == 1)
+          EffFreq[ch] = (EffFreq[ch] & 0x700) | (Frequency[ch] & 0xFF);
+         else if(ModLock == 2)
+          EffFreq[ch] = (EffFreq[ch] & 0xFF) | (Frequency[ch] & 0x700);
         }
-        else				// Sweep
+        else if(ModState < 2)               // Sweep
         {
-         int delta = EffFreq[ch] >> (SweepControl & 0x7);
-	 int NewFreq = EffFreq[ch] + ((SweepControl & 0x8) ? delta : -delta);
+          EffFreq[ch] = NewSweepFreq;
+        }
 
-	 //printf("Sweep(%d): Old: %d, New: %d\n", ch, EffFreq[ch], NewFreq);
-
-         if(NewFreq < 0)
-          EffFreq[ch] = 0;
-         else if(NewFreq > 0x7FF)
+        if(++ModWavePos >= 32)
          {
-          //EffFreq[ch] = 0x7FF;
-	  IntlControl[ch] &= ~0x80;
+          if(ModState == 0)
+           ModState = 1;
+          ModWavePos = 0;
          }
-         else
-          EffFreq[ch] = NewFreq;
-        }
        }
       }
      } // end while(SweepModClockDivider <= 0)
@@ -433,11 +472,11 @@ void VSU::Update(int timestamp)
    CalcCurrentOutput(ch, left, right);
    if (left!=last_output[ch][0]) {
      blip_add_delta(bb[0],running_timestamp,left - last_output[ch][0]);
-     last_output[ch][0] = left;
+   last_output[ch][0] = left;
    }
    if (right!=last_output[ch][1]) {
      blip_add_delta(bb[1],running_timestamp,right - last_output[ch][1]);
-     last_output[ch][1] = right;
+   last_output[ch][1] = right;
    }
    oscBuf[ch]->putSample(running_timestamp,(left+right)*8);
   }

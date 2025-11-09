@@ -343,7 +343,7 @@ void DivPlatformYM2610B::acquire_combo(short** buf, size_t len) {
           QueuedWrite& w=writes.front();
 
           if (w.addr==0xfffffffe) {
-            delay=w.val;
+            delay=w.val*24*2;
             writes.pop_front();
           } else if (w.addr<=0x1c || (w.addr>=0x100 && w.addr<=0x12d)) {
             // ymfm write
@@ -467,7 +467,7 @@ void DivPlatformYM2610B::acquire_ymfm(short** buf, size_t len) {
       if (--delay<1 && !(fm->read(0)&0x80)) {
         QueuedWrite& w=writes.front();
         if (w.addr==0xfffffffe) {
-          delay=w.val;
+          delay=w.val*2;
         } else {
           fm->write(0x0+((w.addr>>8)<<1),w.addr);
           fm->write(0x1+((w.addr>>8)<<1),w.val);
@@ -532,6 +532,16 @@ void DivPlatformYM2610B::acquire_lle(short** buf, size_t len) {
     bool have1=false;
     signed char subCycle=0;
     unsigned char subSubCycle=0;
+
+    // AY -> OPN
+    ay->runDAC();
+    ay->runTFX(rate);
+    ay->flushWrites();
+    for (DivRegWrite& i: ay->getRegisterWrites()) {
+      if (i.addr>15) continue;
+      immWrite(i.addr&15,i.val);
+    }
+    ay->getRegisterWrites().clear();
 
     for (int i=0; i<6; i++) {
       fmOut[i]=0;
@@ -686,6 +696,11 @@ void DivPlatformYM2610B::acquire_lle(short** buf, size_t len) {
     for (int i=0; i<6; i++) {
       if (rssOut[i]<-32768) rssOut[i]=-32768;
       if (rssOut[i]>32767) rssOut[i]=32767;
+      if (isMuted[adpcmAChanOffs+i]) {
+        oscBuf[9+i]->putSample(h,0);
+      } else {
+        oscBuf[9+i]->putSample(h,rssOut[i]);
+      }
       oscBuf[9+i]->putSample(h,rssOut[i]);
     }
     // ADPCM
@@ -890,7 +905,7 @@ void DivPlatformYM2610B::tick(bool sysTick) {
   for (int i=0; i<(psgChanOffs-isCSM); i++) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
-      if (parent->song.linearPitch==2) {
+      if (parent->song.linearPitch) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[i].state.block);
       } else {
         int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2);
@@ -1408,7 +1423,7 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
         }
         break;
       }
-      if (c.chan>=psgChanOffs || parent->song.linearPitch==2) { // PSG, ADPCM-B
+      if (c.chan>=psgChanOffs || parent->song.linearPitch) { // PSG, ADPCM-B
         int destFreq=NOTE_OPNB(c.chan,c.value2+chan[c.chan].sampleNoteDelta);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
@@ -1471,10 +1486,41 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
       rWrite(0x22,lfoValue);
       break;
     }
+    case DIV_CMD_FM_ALG: {
+      if (c.chan>=psgChanOffs) break;
+      chan[c.chan].state.alg=c.value&7;
+      rWrite(ADDR_FB_ALG+chanOffs[c.chan],(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
+      for (int i=0; i<4; i++) {
+        unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
+        DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
+        if (isMuted[c.chan] || !op.enable) {
+          rWrite(baseAddr+ADDR_TL,127);
+        } else {
+          if (KVS(c.chan,i)) {
+            rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[c.chan].outVol&0x7f,127));
+          } else {
+            rWrite(baseAddr+ADDR_TL,op.tl);
+          }
+        }
+      }
+      break;
+    }
     case DIV_CMD_FM_FB: {
       if (c.chan>=psgChanOffs) break;
       chan[c.chan].state.fb=c.value&7;
       rWrite(chanOffs[c.chan]+ADDR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
+      break;
+    }
+    case DIV_CMD_FM_FMS: {
+      if (c.chan>=psgChanOffs) break;
+      chan[c.chan].state.fms=c.value&7;
+      rWrite(chanOffs[c.chan]+ADDR_LRAF,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|(chan[c.chan].state.fms&7)|((chan[c.chan].state.ams&3)<<4));
+      break;
+    }
+    case DIV_CMD_FM_AMS: {
+      if (c.chan>=psgChanOffs) break;
+      chan[c.chan].state.ams=c.value&3;
+      rWrite(chanOffs[c.chan]+ADDR_LRAF,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|(chan[c.chan].state.fms&7)|((chan[c.chan].state.ams&3)<<4));
       break;
     }
     case DIV_CMD_FM_MULT: {

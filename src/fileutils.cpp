@@ -50,6 +50,27 @@ bool moveFiles(const char* src, const char* dest) {
 #endif
 }
 
+bool copyFiles(const char* src, const char* dest) {
+  FILE* f=ps_fopen(src,"rb");
+  if (f==NULL) return false;
+  
+  FILE* of=ps_fopen(dest,"wb");
+  if (of==NULL) {
+    fclose(f);
+    return false;
+  }
+
+  char block[2048];
+  while (!feof(f)) {
+    size_t readTotal=fread(block,1,2048,f);
+    if (readTotal) fwrite(block,1,readTotal,of);
+  }
+
+  fclose(of);
+  fclose(f);
+  return true;
+}
+
 bool deleteFile(const char* path) {
 #ifdef _WIN32
   return DeleteFileW(utf8To16(path).c_str());
@@ -96,7 +117,7 @@ bool dirExists(const char* what) {
 
 bool makeDir(const char* path) {
 #ifdef _WIN32
-  return (SHCreateDirectory(NULL,utf8To16(path).c_str())==ERROR_SUCCESS);
+  return (SHCreateDirectoryExW(NULL,utf8To16(path).c_str(),NULL)==ERROR_SUCCESS);
 #else
   return (mkdir(path,0755)==0);
 #endif

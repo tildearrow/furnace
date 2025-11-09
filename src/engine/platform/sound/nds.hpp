@@ -129,8 +129,6 @@ namespace nds_sound_emu
 				}
 				, m_control(0)
 				, m_bias(0)
-				, m_loutput(0)
-				, m_routput(0)
 				, m_lastts(0)
 			{
 			}
@@ -151,9 +149,6 @@ namespace nds_sound_emu
 
 			u8 read8(u32 addr);
 			void write8(u32 addr, u8 data);
-
-			s32 loutput() { return m_loutput; }
-			s32 routput() { return m_routput; }
 
 			// for debug
 			s32 chan_lout(u8 ch) { return m_channel[ch].loutput(); }
@@ -237,6 +232,7 @@ namespace nds_sound_emu
 					void write(u32 offset, u32 data, u32 mask = ~0);
 
 					void update(s32 cycle);
+          void setMasterVol(s32 masterVol);
 					void set_bb(blip_buffer_t* bbLeft, blip_buffer_t* bbRight) { m_bb[0] = bbLeft; m_bb[1] = bbRight; }
 					void set_oscbuf(DivDispatchOscBuffer* oscBuf) { m_oscBuf = oscBuf; }
 					void resetTS(u32 what) { m_lastts = what; }
@@ -277,6 +273,7 @@ namespace nds_sound_emu
 					void keyoff();
 					void fetch();
 					void advance();
+          void computeVol();
 
 					// interfaces
 					nds_sound_t &m_host; // host device
@@ -308,6 +305,8 @@ namespace nds_sound_emu
 
 					// internal states
 					bool m_playing         = false;   // playing flag
+          s32 m_final_volume     = 0;       // calculated volume
+          s32 m_master_volume    = 0;       // master volume cache
 					s32 m_adpcm_out        = 0;       // current ADPCM sample value
 					s32 m_adpcm_index      = 0;       // current ADPCM step
 					s32 m_prev_adpcm_out   = 0;       // previous ADPCM sample value
@@ -458,8 +457,6 @@ namespace nds_sound_emu
 
 			u32 m_control = 0; // global control
 			u32 m_bias = 0; // output bias
-			s32 m_loutput = 0; // left output
-			s32 m_routput = 0; // right output
 			u32 m_lastts = 0; // running timestamp
 	};
 }; // namespace nds_sound_emu

@@ -62,8 +62,6 @@ namespace nds_sound_emu
 
 		m_control = 0;
 		m_bias = 0;
-		m_loutput = 0;
-		m_routput = 0;
 	}
 
   s32 nds_sound_t::predict() {
@@ -96,7 +94,6 @@ namespace nds_sound_emu
 
 	void nds_sound_t::tick(s32 cycle)
 	{
-		m_loutput = m_routput = (m_bias & 0x3ff);
 		if (!enable())
 			return;
 
@@ -156,10 +153,6 @@ namespace nds_sound_emu
 		// adjust master volume
 		lmix = (lmix * mvol()) >> 13;
 		rmix = (rmix * mvol()) >> 13;
-
-		// add bias and clip output
-		m_loutput = clamp<s32>((lmix + (m_bias & 0x3ff)), 0, 0x3ff);
-		m_routput = clamp<s32>((rmix + (m_bias & 0x3ff)), 0, 0x3ff);
 	}
 
 	u8 nds_sound_t::read8(u32 addr)
@@ -232,6 +225,9 @@ namespace nds_sound_emu
 				{
 					case 0x00:
 						m_control = (m_control & ~mask) | (data & mask);
+            for (u8 i = 0; i < 16; i++) {
+		        	m_channel[i].setMasterVol(mvol());
+		        }
 						break;
 					case 0x04:
 						mask &= 0x3ff;
@@ -309,6 +305,7 @@ namespace nds_sound_emu
 				m_ctl_repeat = bitfield(m_control, 27, 2);
 				m_ctl_format = bitfield(m_control, 29, 2);
 				m_ctl_busy = bitfield(m_control, 31);
+        computeVol();
 
 				if (bitfield(old ^ m_control, 31))
 				{
@@ -321,6 +318,9 @@ namespace nds_sound_emu
 				if (!m_playing && !m_ctl_hold)
 				{
 					m_sample = m_lfsr_out = 0;
+                                        m_oscBuf->putSample(m_lastts,0);
+                                        blip_add_delta(m_bb[0],m_lastts,-m_loutput);
+                                        blip_add_delta(m_bb[1],m_lastts,-m_routput);
 					m_output = m_loutput = m_routput = 0;
 				}
 				break;
@@ -368,6 +368,9 @@ namespace nds_sound_emu
 			if (!m_ctl_hold)
 			{
 				m_sample = m_lfsr_out = 0;
+                                m_oscBuf->putSample(m_lastts,0);
+                                blip_add_delta(m_bb[0],m_lastts,-m_loutput);
+                                blip_add_delta(m_bb[1],m_lastts,-m_routput);
 				m_output = m_loutput = m_routput = 0;
 			}
 
@@ -394,21 +397,21 @@ namespace nds_sound_emu
 	  advance();
 	  m_counter += 0x10000 - m_freq;
 	}
-	m_output = (m_sample * m_ctl_volume) >> (7 + m_ctl_voldiv);
-	const s32 loutput = (m_output * lvol()) >> 7;
-	const s32 routput = (m_output * rvol()) >> 7;
+	m_output = (m_sample * m_final_volume) >> (14 + m_ctl_voldiv);
+	const s32 loutput = (m_output * lvol()) >> 8;
+	const s32 routput = (m_output * rvol()) >> 8;
 
         i+=cycle-1;
 
         if (m_loutput!=loutput || m_routput!=routput) {
-          m_oscBuf->putSample(i,(loutput+routput)>>1);
+          m_oscBuf->putSample(i,(loutput+routput));
         }
         if (m_loutput!=loutput) {
-          blip_add_delta(m_bb[0],i,m_loutput-loutput);
+          blip_add_delta(m_bb[0],i,loutput-m_loutput);
           m_loutput=loutput;
         }
         if (m_routput!=routput) {
-          blip_add_delta(m_bb[1],i,m_routput-routput);
+          blip_add_delta(m_bb[1],i,routput-m_routput);
           m_routput=routput;
         }
       }
@@ -559,6 +562,17 @@ namespace nds_sound_emu
 			}
 		}
 	}
+
+  void nds_sound_t::channel_t::computeVol()
+  {
+    m_final_volume = m_ctl_volume * m_master_volume;
+  }
+
+  void nds_sound_t::channel_t::setMasterVol(s32 masterVol)
+  {
+    m_master_volume = masterVol;
+    computeVol();
+  }
 
 	// capture
 	void nds_sound_t::capture_t::reset()

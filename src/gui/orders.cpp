@@ -90,30 +90,11 @@ void FurnaceGUI::drawMobileOrderSel() {
 
     // time
     if (e->isPlaying() && settings.playbackTime) {
-      int totalTicks=e->getTotalTicks();
-      int totalSeconds=e->getTotalSeconds();
-      String info="";
+      TimeMicros totalTime=e->getCurTime();
+      String info=totalTime.toString(2,TA_TIME_FORMAT_AUTO_MS_ZERO);
 
-      if (totalSeconds==0x7fffffff) {
+      if (totalTime.seconds==0x7fffffff) {
         info="∞";
-      } else {
-        if (totalSeconds>=86400) {
-          int totalDays=totalSeconds/86400;
-          int totalYears=totalDays/365;
-          totalDays%=365;
-          int totalMonths=totalDays/30;
-          totalDays%=30;
-
-          info+=fmt::sprintf("%dy",totalYears);
-          info+=fmt::sprintf("%dm",totalMonths);
-          info+=fmt::sprintf("%dd",totalDays);
-        }
-
-        if (totalSeconds>=3600) {
-          info+=fmt::sprintf("%.2d:",(totalSeconds/3600)%24);
-        }
-
-        info+=fmt::sprintf("%.2d:%.2d.%.2d",(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
       }
 
       ImVec2 textSize=ImGui::CalcTextSize(info.c_str());
@@ -310,6 +291,9 @@ void FurnaceGUI::drawOrders() {
       ImVec2 clipBegin=ImGui::GetCursorScreenPos();
       ImVec2 clipEnd=clipBegin+ImGui::GetContentRegionAvail();
       if (ImGui::BeginTable("OrdersTable",1+displayChans,(tooSmall?ImGuiTableFlags_SizingFixedFit:ImGuiTableFlags_SizingStretchSame)|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY)) {
+        if (tooSmall) {
+          // set up cell sizes? I don't know
+        }
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,prevSpacing);
         ImGui::TableSetupScrollFreeze(1,1);
         ImGui::TableNextRow(0,lineHeight);
@@ -341,7 +325,7 @@ void FurnaceGUI::drawOrders() {
             ImGui::PopClipRect();
           }
           ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_ORDER_ROW_INDEX]);
-          bool highlightLoop=(i>=loopOrder && i<=loopEnd);
+          bool highlightLoop=(i>=e->curSubSong->ts.loopStart.order && i<=e->curSubSong->ts.loopEnd.order && e->curSubSong->ts.isLoopDefined);
           if (highlightLoop) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(uiColors[GUI_COLOR_SONG_LOOP]));
           if (settings.orderRowsBase==1) {
             snprintf(selID,4096,"%.2X##O_S%.2x",i,i);
@@ -356,11 +340,18 @@ void FurnaceGUI::drawOrders() {
             if (orderEditMode==0) {
               handleUnimportant;
             }
+
+            if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y && cursor.order==selStart.order &&
+                cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y && cursor.order==selEnd.order) {
+              cursor.order=curOrder;
+              selStart=cursor;
+              selEnd=cursor;
+            }
           }
           ImGui::PopStyleColor();
           for (int j=0; j<e->getTotalChannelCount(); j++) {
             if (!e->curSubSong->chanShow[j]) continue;
-            ImGui::TableNextColumn();
+            if (!ImGui::TableNextColumn()) continue;
             DivPattern* pat=e->curPat[j].getPattern(e->curOrders->ord[j][i],false);
             /*if (!pat->name.empty()) {
               snprintf(selID,4096,"%s##O_%.2x_%.2x",pat->name.c_str(),j,i);
@@ -382,7 +373,6 @@ void FurnaceGUI::drawOrders() {
                       if (e->curOrders->ord[j][i]<(unsigned char)(DIV_MAX_PATTERNS-1)) e->curOrders->ord[j][i]++;
                     }
                   });
-                  e->walkSong(loopOrder,loopRow,loopEnd);
                   makeUndo(GUI_UNDO_CHANGE_ORDER);
                 } else {
                   orderCursor=j;
@@ -390,10 +380,17 @@ void FurnaceGUI::drawOrders() {
                 }
               } else {
                 setOrder(i);
-                e->walkSong(loopOrder,loopRow,loopEnd);
                 if (orderEditMode!=0) {
                   orderCursor=j;
                   curNibble=false;
+                }
+
+                // i wonder whether this is necessary
+                if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y && cursor.order==selStart.order &&
+                    cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y && cursor.order==selEnd.order) {
+                  cursor.order=curOrder;
+                  selStart=cursor;
+                  selEnd=cursor;
                 }
               }
 
@@ -410,6 +407,43 @@ void FurnaceGUI::drawOrders() {
             if (!pat->name.empty() && ImGui::IsItemHovered()) {
               ImGui::SetTooltip("%s",pat->name.c_str());
             }
+            bool findFreePat=ImGui::IsItemClicked(ImGuiMouseButton_Middle);
+            if (ImGui::IsItemHovered() && CHECK_LONG_HOLD) {
+              NOTIFY_LONG_HOLD;
+              findFreePat=true;
+            }
+            if (findFreePat) {
+              // find free pattern and assign it
+              prepareUndo(GUI_UNDO_CHANGE_ORDER);
+              e->lockSave([this,i,j]() {
+                bool foundOne=false;
+                bool available[DIV_MAX_PATTERNS];
+                memset(available,1,DIV_MAX_PATTERNS*sizeof(bool));
+                for (int k=0; k<e->curSubSong->ordersLen; k++) {
+                  available[e->curOrders->ord[j][k]]=false;
+                }
+                for (int k=0; k<DIV_MAX_PATTERNS; k++) {
+                  // don't accept a used pattern
+                  if (!available[k]) continue;
+                  // accept an unallocated pattern (guaranteed to be empty)
+                  if (e->curPat[j].data[k]==NULL) {
+                    e->curOrders->ord[j][i]=k;
+                    foundOne=true;
+                    break;
+                  } else {
+                    // check whether this pattern is empty and accept it if so
+                    DivPattern* p=e->curPat[j].getPattern(k,false);
+                    if (p->isEmpty()) {
+                      e->curOrders->ord[j][i]=k;
+                      foundOne=true;
+                      break;
+                    }
+                  }
+                }
+                if (!foundOne) showError(_("no free patterns available on this channel!"));
+              });
+              makeUndo(GUI_UNDO_CHANGE_ORDER);
+            }
             if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
               if (curOrder==i) {
                 if (orderEditMode==0) {
@@ -423,7 +457,6 @@ void FurnaceGUI::drawOrders() {
                       if (e->curOrders->ord[j][i]>0) e->curOrders->ord[j][i]--;
                     }
                   });
-                  e->walkSong(loopOrder,loopRow,loopEnd);
                   makeUndo(GUI_UNDO_CHANGE_ORDER);
                 } else {
                   orderCursor=j;
@@ -431,10 +464,16 @@ void FurnaceGUI::drawOrders() {
                 }
               } else {
                 setOrder(i);
-                e->walkSong(loopOrder,loopRow,loopEnd);
                 if (orderEditMode!=0) {
                   orderCursor=j;
                   curNibble=false;
+                }
+
+                if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y && cursor.order==selStart.order &&
+                    cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y && cursor.order==selEnd.order) {
+                  cursor.order=curOrder;
+                  selStart=cursor;
+                  selEnd=cursor;
                 }
               }
             }

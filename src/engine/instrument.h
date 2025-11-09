@@ -123,7 +123,9 @@ enum DivMacroType: unsigned char {
   DIV_MACRO_EX5,
   DIV_MACRO_EX6,
   DIV_MACRO_EX7,
-  DIV_MACRO_EX8
+  DIV_MACRO_EX8,
+  DIV_MACRO_EX9,
+  DIV_MACRO_EX10
 };
 
 enum DivMacroTypeOp: unsigned char {
@@ -301,6 +303,8 @@ struct DivInstrumentSTD {
   DivInstrumentMacro ex6Macro;
   DivInstrumentMacro ex7Macro;
   DivInstrumentMacro ex8Macro;
+  DivInstrumentMacro ex9Macro;
+  DivInstrumentMacro ex10Macro;
 
   struct OpMacro {
     // ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
@@ -354,7 +358,9 @@ struct DivInstrumentSTD {
     ex5Macro(DIV_MACRO_EX5),
     ex6Macro(DIV_MACRO_EX6),
     ex7Macro(DIV_MACRO_EX7),
-    ex8Macro(DIV_MACRO_EX8) {
+    ex8Macro(DIV_MACRO_EX8),
+    ex9Macro(DIV_MACRO_EX9),
+    ex10Macro(DIV_MACRO_EX10) {
     for (int i=0; i<4; i++) {
       opMacros[i].amMacro.macroType=DIV_MACRO_OP_AM+(i<<5);
       opMacros[i].arMacro.macroType=DIV_MACRO_OP_AR+(i<<5);
@@ -1091,8 +1097,8 @@ struct DivInstrument : DivInstrumentPOD {
   void writeFeatureN1(SafeWriter* w);
   void writeFeatureFD(SafeWriter* w);
   void writeFeatureWS(SafeWriter* w);
-  size_t writeFeatureSL(SafeWriter* w, std::vector<int>& list, const DivSong* song);
-  size_t writeFeatureWL(SafeWriter* w, std::vector<int>& list, const DivSong* song);
+  size_t writeFeatureLS(SafeWriter* w, std::vector<int>& list, const DivSong* song);
+  size_t writeFeatureLW(SafeWriter* w, std::vector<int>& list, const DivSong* song);
   void writeFeatureMP(SafeWriter* w);
   void writeFeatureSU(SafeWriter* w);
   void writeFeatureES(SafeWriter* w);
@@ -1117,6 +1123,8 @@ struct DivInstrument : DivInstrumentPOD {
   void readFeatureWS(SafeReader& reader, short version);
   void readFeatureSL(SafeReader& reader, DivSong* song, short version);
   void readFeatureWL(SafeReader& reader, DivSong* song, short version);
+  void readFeatureLS(SafeReader& reader, DivSong* song, short version);
+  void readFeatureLW(SafeReader& reader, DivSong* song, short version);
   void readFeatureMP(SafeReader& reader, short version);
   void readFeatureSU(SafeReader& reader, short version);
   void readFeatureES(SafeReader& reader, short version);

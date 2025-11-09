@@ -75,6 +75,7 @@ class DivMacroInt {
     DivMacroStruct duty, wave, pitch, ex1, ex2, ex3;
     DivMacroStruct alg, fb, fms, ams;
     DivMacroStruct panL, panR, phaseReset, ex4, ex5, ex6, ex7, ex8;
+    DivMacroStruct ex9, ex10;
   
     // FM operator macro
     struct IntOp {
@@ -180,6 +181,8 @@ class DivMacroInt {
       ex6(DIV_MACRO_EX6),
       ex7(DIV_MACRO_EX7),
       ex8(DIV_MACRO_EX8),
+      ex9(DIV_MACRO_EX9),
+      ex10(DIV_MACRO_EX10),
       hasRelease(false) {
       memset(macroList,0,128*sizeof(void*));
       memset(macroSource,0,128*sizeof(void*));

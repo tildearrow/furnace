@@ -1,6 +1,7 @@
 .vscode/
 build/
 clangbuild/
+oldwinbuild/
 nosdl/
 release/
 t/
@@ -23,6 +24,7 @@ android/.gradle/
 android/app/build/
 android/app/.cxx/
 .vs/
+.idea/
 CMakeSettings.json
 CMakePresets.json
 extern/imgui_patched/examples/
@@ -37,3 +39,8 @@ res/docpdf/.venv
 res/docpdf/htmldoc/
 res/fonts/compressed/
 res/furnace.appdata.xml
+src/asm/6502/*.o
+src/asm/6502/*.bin
+src/asm/6502/nes/test.nes
+src/asm/6502/nes/test.o
+src/asm/6502/nes/test.sym

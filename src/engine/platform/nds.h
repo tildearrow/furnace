@@ -21,7 +21,11 @@
 #define _NDS_H
 
 #include "../dispatch.h"
+#ifdef ORIG_NDS_CORE
+#include "sound/nds_unopt.hpp"
+#else
 #include "sound/nds.hpp"
+#endif
 
 using namespace nds_sound_emu;
 
@@ -50,8 +54,16 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
   bool isDSi;
   int globalVolume;
   int lastOut[2];
-  unsigned int sampleOff[256];
-  bool sampleLoaded[256];
+  unsigned int* sampleOff;
+  bool* sampleLoaded;
+  struct QueuedWrite {
+    unsigned short addr;
+    unsigned char size;
+    unsigned int val;
+    QueuedWrite(): addr(0), size(0), val(0) {}
+    QueuedWrite(unsigned short a, unsigned char s, unsigned int v): addr(a), size(s), val(v) {}
+  };
+  FixedQueue<QueuedWrite,2048> writes;
 
   unsigned char* sampleMem;
   size_t sampleMemLen;
@@ -65,8 +77,11 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
     virtual u8 read_byte(u32 addr) override;
     virtual void write_byte(u32 addr, u8 data) override;
 
+#ifdef ORIG_NDS_CORE
+    virtual void acquire(short** buf, size_t len) override;
+#else
     virtual void acquireDirect(blip_buffer_t** bb, size_t len) override;
-    virtual void postProcess(short* buf, int outIndex, size_t len, int sampleRate) override;
+#endif
     virtual int dispatch(DivCommand c) override;
     virtual void* getChanState(int chan) override;
     virtual DivMacroInt* getChanMacroInt(int ch) override;
@@ -96,10 +111,8 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
     virtual void setFlags(const DivConfig& flags) override;
     virtual int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) override;
     virtual void quit() override;
-    DivPlatformNDS():
-      DivDispatch(),
-      nds_sound_intf(),
-      nds(*this) {}
+    DivPlatformNDS();
+    ~DivPlatformNDS();
   private:
     void writeOutVol(int ch);
 };

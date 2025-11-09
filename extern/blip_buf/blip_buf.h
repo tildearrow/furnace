@@ -35,8 +35,11 @@ blip_max_ratio = 1 << 20 };
 /** Clears entire buffer. Afterwards, blip_samples_avail() == 0. */
 void blip_clear( blip_t* );
 
+/** (tildearrow) ability to change blip_add_delta at runtime */
+extern void (*blip_add_delta)( blip_t*, unsigned int, int );
+
 /** Adds positive/negative delta into buffer at specified clock time. */
-void blip_add_delta( blip_t*, unsigned int clock_time, int delta );
+void blip_add_delta_slow( blip_t*, unsigned int clock_time, int delta );
 
 /** Same as blip_add_delta(), but uses faster, lower-quality synthesis. */
 void blip_add_delta_fast( blip_t*, unsigned int clock_time, int delta );
