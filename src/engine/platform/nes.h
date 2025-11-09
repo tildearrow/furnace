@@ -30,7 +30,7 @@ class DivPlatformNES: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
     int prevFreq;
     unsigned char duty, sweep, envMode, len;
-    bool sweepChanged, furnaceDac, setPos;
+    bool sweepChanged, setPos;
     Channel():
       SharedChannel<signed char>(15),
       prevFreq(65535),
@@ -39,7 +39,6 @@ class DivPlatformNES: public DivDispatch {
       envMode(3),
       len(0x1f),
       sweepChanged(false),
-      furnaceDac(false),
       setPos(false) {}
   };
   Channel chan[5];

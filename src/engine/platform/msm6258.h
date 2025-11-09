@@ -27,12 +27,10 @@
 class DivPlatformMSM6258: public DivDispatch {
   protected:
     struct Channel: public SharedChannel<int> {
-      bool furnacePCM;
       int sample;
       unsigned char pan;
       Channel():
         SharedChannel<int>(8),
-        furnacePCM(false),
         sample(-1),
         pan(3) {}
     };

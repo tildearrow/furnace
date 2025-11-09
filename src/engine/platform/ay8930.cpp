@@ -402,7 +402,7 @@ void DivPlatformAY8930::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
-      if (chan[i].dac.furnaceDAC) {
+      if (chan[i].curPSGMode.val&8) {
         double off=1.0;
         if (chan[i].dac.sample>=0 && chan[i].dac.sample<parent->song.sampleLen) {
           DivSample* s=parent->getSample(chan[i].dac.sample);
@@ -507,52 +507,47 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AY8930);
       if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
         chan[c.chan].nextPSGMode.val|=8;
-      } else if (chan[c.chan].dac.furnaceDAC) {
+      } else {
         chan[c.chan].nextPSGMode.val&=~8;
       }
       if (chan[c.chan].nextPSGMode.val&8) {
         if (skipRegisterWrites) break;
-        if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].dac.sample=ins->amiga.getSample(c.value);
-            chan[c.chan].sampleNote=c.value;
-            c.value=ins->amiga.getFreq(c.value);
-            chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
-          } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
-            chan[c.chan].dac.sample=ins->amiga.getSample(chan[c.chan].sampleNote);
-            c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
-          }
-          if (chan[c.chan].dac.sample<0 || chan[c.chan].dac.sample>=parent->song.sampleLen) {
-            chan[c.chan].dac.sample=-1;
-            if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
-            break;
-          } else {
-            if (dumpWrites) {
-              rWrite(0x08+c.chan,0);
-              addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dac.sample);
-            }
-          }
-          if (chan[c.chan].dac.setPos) {
-            chan[c.chan].dac.setPos=false;
-          } else {
-            chan[c.chan].dac.pos=0;
-          }
-          chan[c.chan].dac.period=0;
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
-            chan[c.chan].freqChanged=true;
-            chan[c.chan].note=c.value;
-          }
-          chan[c.chan].active=true;
-          chan[c.chan].macroInit(ins);
-          if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
-            chan[c.chan].outVol=chan[c.chan].vol;
-          }
-          //chan[c.chan].keyOn=true;
-          chan[c.chan].dac.furnaceDAC=true;
-        } else {
-          assert(false && "LEGACY SAMPLE MODE!!!");
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].dac.sample=ins->amiga.getSample(c.value);
+          chan[c.chan].sampleNote=c.value;
+          c.value=ins->amiga.getFreq(c.value);
+          chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+        } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+          chan[c.chan].dac.sample=ins->amiga.getSample(chan[c.chan].sampleNote);
+          c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
         }
+        if (chan[c.chan].dac.sample<0 || chan[c.chan].dac.sample>=parent->song.sampleLen) {
+          chan[c.chan].dac.sample=-1;
+          if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
+          break;
+        } else {
+          if (dumpWrites) {
+            rWrite(0x08+c.chan,0);
+            addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dac.sample);
+          }
+        }
+        if (chan[c.chan].dac.setPos) {
+          chan[c.chan].dac.setPos=false;
+        } else {
+          chan[c.chan].dac.pos=0;
+        }
+        chan[c.chan].dac.period=0;
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+          chan[c.chan].freqChanged=true;
+          chan[c.chan].note=c.value;
+        }
+        chan[c.chan].active=true;
+        chan[c.chan].macroInit(ins);
+        if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+          chan[c.chan].outVol=chan[c.chan].vol;
+        }
+        //chan[c.chan].keyOn=true;
         chan[c.chan].curPSGMode.val&=~8;
         chan[c.chan].curPSGMode.val|=chan[c.chan].nextPSGMode.val&8;
         break;

@@ -59,7 +59,7 @@ class DivPlatformOPL: public DivDispatch {
       DivInstrumentFM state;
       unsigned int freqH, freqL;
       int sample, fixedFreq;
-      bool furnacePCM, fourOp, hardReset, writeCtrl;
+      bool fourOp, hardReset, writeCtrl;
       bool levelDirect, damp, pseudoReverb, lfoReset, ch;
       int lfo, vib, am, ar, d1r, d2r, dl, rc, rr;
       int pan;
@@ -70,7 +70,6 @@ class DivPlatformOPL: public DivDispatch {
         freqL(0),
         sample(-1),
         fixedFreq(0),
-        furnacePCM(false),
         fourOp(false),
         hardReset(false),
         writeCtrl(false),

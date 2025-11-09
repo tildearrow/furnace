@@ -278,7 +278,7 @@ void DivPlatformSwan::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
-      if (i==1 && pcm && furnaceDac) {
+      if (i==1 && pcm) {
         double off=1.0;
         if (dacSample>=0 && dacSample<parent->song.sampleLen) {
           DivSample* s=parent->getSample(dacSample);
@@ -355,7 +355,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
       if (c.chan==1) {
         if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
           pcm=true;
-        } else if (furnaceDac) {
+        } else {
           pcm=false;
           chan[c.chan].sampleNote=DIV_NOTE_NULL;
           chan[c.chan].sampleNoteDelta=0;
@@ -368,37 +368,32 @@ int DivPlatformSwan::dispatch(DivCommand c) {
             dacPos=0;
           }
           dacPeriod=0;
-          if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
-            if (c.value!=DIV_NOTE_NULL) {
-              dacSample=ins->amiga.getSample(c.value);
-              chan[c.chan].sampleNote=c.value;
-              c.value=ins->amiga.getFreq(c.value);
-              chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
-            } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
-              dacSample=ins->amiga.getSample(chan[c.chan].sampleNote);
-              c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
-            }
-            if (dacSample<0 || dacSample>=parent->song.sampleLen) {
-              dacSample=-1;
-              if (dumpWrites) postWrite(0xffff0002,0);
-              break;
-            } else {
-              if (dumpWrites) {
-                postWrite(0xffff0000,dacSample);
-              }
-            }
-            if (c.value!=DIV_NOTE_NULL) {
-              chan[1].baseFreq=NOTE_PERIODIC(c.value);
-              chan[1].freqChanged=true;
-              chan[1].note=c.value;
-            }
-            chan[1].active=true;
-            chan[1].keyOn=true;
-            chan[1].macroInit(ins);
-            furnaceDac=true;
-          } else {
-            assert(false && "LEGACY SAMPLE MODE!!!");
+          if (c.value!=DIV_NOTE_NULL) {
+            dacSample=ins->amiga.getSample(c.value);
+            chan[c.chan].sampleNote=c.value;
+            c.value=ins->amiga.getFreq(c.value);
+            chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+          } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+            dacSample=ins->amiga.getSample(chan[c.chan].sampleNote);
+            c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
           }
+          if (dacSample<0 || dacSample>=parent->song.sampleLen) {
+            dacSample=-1;
+            if (dumpWrites) postWrite(0xffff0002,0);
+            break;
+          } else {
+            if (dumpWrites) {
+              postWrite(0xffff0000,dacSample);
+            }
+          }
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[1].baseFreq=NOTE_PERIODIC(c.value);
+            chan[1].freqChanged=true;
+            chan[1].note=c.value;
+          }
+          chan[1].active=true;
+          chan[1].keyOn=true;
+          chan[1].macroInit(ins);
           break;
         }
       }
@@ -652,7 +647,6 @@ void DivPlatformSwan::reset() {
   swan_sound_init(&ws, true);
   pcm=false;
   sweep=false;
-  furnaceDac=false;
   setPos=false;
   noise=0;
   dacPeriod=0;

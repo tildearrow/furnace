@@ -27,11 +27,9 @@
 class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
   protected:
     struct Channel: public SharedChannel<int> {
-      bool furnacePCM;
       int sample;
       Channel():
         SharedChannel<int>(8),
-        furnacePCM(false),
         sample(-1) {}
     };
     Channel chan[4];

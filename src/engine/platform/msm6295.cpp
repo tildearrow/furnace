@@ -161,31 +161,22 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
-      if (ins->type==DIV_INS_MSM6295 || ins->type==DIV_INS_AMIGA) {
-        chan[c.chan].furnacePCM=true;
-      } else {
-        chan[c.chan].furnacePCM=false;
-      }
       if (skipRegisterWrites) break;
-      if (chan[c.chan].furnacePCM) {
-        chan[c.chan].macroInit(ins);
-        if (!chan[c.chan].std.vol.will) {
-          chan[c.chan].outVol=chan[c.chan].vol;
+      chan[c.chan].macroInit(ins);
+      if (!chan[c.chan].std.vol.will) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
+      if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
+      if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
+        //DivSample* s=parent->getSample(chan[c.chan].sample);
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].note=c.value;
         }
-        if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
-        if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
-          //DivSample* s=parent->getSample(chan[c.chan].sample);
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].note=c.value;
-          }
-          chan[c.chan].active=true;
-          chan[c.chan].keyOn=true;
-          rWriteDelay(0,(8<<c.chan),180); // turn off
-          setPhrase(c.chan);
-          rWrite(0,(16<<c.chan)|(8-chan[c.chan].outVol)); // turn on
-        } else {
-          break;
-        }
+        chan[c.chan].active=true;
+        chan[c.chan].keyOn=true;
+        rWriteDelay(0,(8<<c.chan),180); // turn off
+        setPhrase(c.chan);
+        rWrite(0,(16<<c.chan)|(8-chan[c.chan].outVol)); // turn on
       }
       break;
     }
