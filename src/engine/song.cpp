@@ -729,3 +729,9 @@ void DivSong::unload() {
   }
   subsong.clear();
 }
+
+// from this point onwards, a mess.
+
+void DivSong::convertLegacySampleMode() {
+
+}

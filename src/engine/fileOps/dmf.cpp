@@ -1166,6 +1166,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.systemFlags[0].set("brokenPitch",true);
     }
 
+    // always convert to normal sample mode (I have no idea how will I do export)
+    ds.convertLegacySampleMode();
+
     ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
 
     if (active) quitDispatch();

@@ -409,6 +409,11 @@ struct DivSong {
   void findSubSongs(int chans);
 
   /**
+   * try to convert usage of legacy sample mode into normal mode.
+   */
+   void convertLegacySampleMode();
+
+  /**
    * clear orders and patterns.
    */
   void clearSongData();
