@@ -819,7 +819,7 @@ void FurnaceGUI::drawEditControls() {
         pushToggleColors(scaleMode!=0);
         ImGui::Button(_("Scale"));
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("%s", scaleModeNames[scaleMode]);
+          ImGui::SetTooltip("%s",_(scaleModeNames[scaleMode]));
         }
         if (ImGui::BeginPopupContextItem("scaleSelect",ImGuiPopupFlags_MouseButtonLeft)) {
           for (int i=0; i<9; i++) {
@@ -982,7 +982,7 @@ void FurnaceGUI::drawEditControls() {
         pushToggleColors(scaleMode!=0);
         ImGui::Button(_("Scale"));
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("%s", scaleModeNames[scaleMode]);
+          ImGui::SetTooltip("%s",_(scaleModeNames[scaleMode]));
         }
         if (ImGui::BeginPopupContextItem("scaleSelect",ImGuiPopupFlags_MouseButtonLeft)) {
           for (int i=0; i<9; i++) {
@@ -1074,7 +1074,7 @@ void FurnaceGUI::drawEditControls() {
         pushToggleColors(scaleMode!=0);
         ImGui::Button("Scale",buttonSize);
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("%s", scaleModeNames[scaleMode]);
+          ImGui::SetTooltip("%s",_(scaleModeNames[scaleMode]));
         }
         if (ImGui::BeginPopupContextItem("scaleSelect",ImGuiPopupFlags_MouseButtonLeft)) {
           for (int i=0; i<9; i++) {
@@ -1269,7 +1269,7 @@ void FurnaceGUI::drawEditControls() {
         pushToggleColors(scaleMode!=0);
         ImGui::Button(_("Scale"));
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("%s", scaleModeNames[scaleMode]);
+          ImGui::SetTooltip("%s",_(scaleModeNames[scaleMode]));
         }
         if (ImGui::BeginPopupContextItem("scaleSelect",ImGuiPopupFlags_MouseButtonLeft)) {
           for (int i=0; i<9; i++) {
