@@ -130,8 +130,6 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return _("E9xy: Quick legato down (x: time; y: semitones)");
     case 0xea:
       return _("EAxx: Legato");
-    case 0xeb:
-      return _("EBxx: Set LEGACY sample mode bank");
     case 0xec:
       return _("ECxx: Note cut");
     case 0xed:
@@ -262,6 +260,19 @@ double DivEngine::benchmarkSeek() {
 
   printf("[RESULT] min %fs max %fs average %fs\n",tMin,tMax,tAvg);
   return tAvg;
+}
+
+double DivEngine::benchmarkWalk() {
+  std::chrono::high_resolution_clock::time_point timeStart=std::chrono::high_resolution_clock::now();
+
+  // benchmark
+  calcSongTimestamps();
+
+  std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
+
+  double t=(double)(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd-timeStart).count())/1000000.0;
+  printf("[RESULT] %fs\n",t);
+  return t;
 }
 
 void DivEngine::notifyInsChange(int ins) {

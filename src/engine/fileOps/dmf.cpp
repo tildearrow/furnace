@@ -934,10 +934,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         sample->name="";
       }
       logD("%d name %s (%d)",i,sample->name.c_str(),length);
-      sample->rate=22050;
+      sample->centerRate=22050;
       if (ds.version>=0x0b) {
-        sample->rate=fileToDivRate(reader.readC());
-        sample->centerRate=sample->rate;
+        sample->centerRate=fileToDivRate(reader.readC());
         pitch=reader.readC();
         vol=reader.readC();
 
@@ -947,8 +946,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         }
       }
       if (ds.version<=0x08) {
-        sample->rate=ymuSampleRate*400;
+        sample->centerRate=ymuSampleRate*400;
       }
+      sample->legacyRate=sample->centerRate;
       if (ds.version>0x15) {
         sample->depth=(DivSampleDepth)reader.readC();
         if (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT) {
@@ -1176,6 +1176,8 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     song=ds;
     changeSong(0);
     recalcChans();
+    // always convert to normal sample mode (I have no idea how will I do export)
+    convertLegacySampleMode();
     saveLock.unlock();
     BUSY_END;
     if (active) {
@@ -1644,8 +1646,140 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     short note, octave;
     w->writeC(curPat[i].effectCols);
 
+    bool convertSampleUsage=false;
+    bool alwaysConvert=false;
+
+    switch (sys) {
+      case DIV_SYSTEM_GENESIS:
+        if (i==5) convertSampleUsage=true;
+        break;
+      case DIV_SYSTEM_GENESIS_EXT:
+        if (i==8) convertSampleUsage=true;
+        break;
+      case DIV_SYSTEM_PCE:
+        convertSampleUsage=true;
+        break;
+      case DIV_SYSTEM_NES:
+        if (i==4) {
+          convertSampleUsage=true;
+          alwaysConvert=true;
+        }
+        break;
+      case DIV_SYSTEM_ARCADE:
+        if (i>=8) {
+          convertSampleUsage=true;
+          alwaysConvert=true;
+        }
+        break;
+      case DIV_SYSTEM_YM2610:
+        if (i>=7) {
+          convertSampleUsage=true;
+          alwaysConvert=true;
+        }
+        break;
+      case DIV_SYSTEM_YM2610_EXT:
+        if (i>=10) {
+          convertSampleUsage=true;
+          alwaysConvert=true;
+        }
+        break;
+      default:
+        break;
+    }
+
     for (int j=0; j<curSubSong->ordersLen; j++) {
-      DivPattern* pat=curPat[i].getPattern(curOrders->ord[i][j],false);
+      // we make a copy in order to convert Furnace sample mode to Defle one
+      DivPattern* origPat=curPat[i].getPattern(curOrders->ord[i][j],false);
+      DivPattern* pat=new DivPattern;
+      origPat->copyOn(pat);
+
+      if (convertSampleUsage) {
+        int convIns=-1;
+        bool isConverting=false;
+        for (int k=0; k<curSubSong->patLen; k++) {
+          int insert17xx=-1;
+          int insertEBxx=-1;
+
+          if (pat->newData[k][DIV_PAT_INS]!=-1) {
+            if (pat->newData[k][DIV_PAT_INS]>=0 && pat->newData[k][DIV_PAT_INS]<song.insLen) {
+              convIns=pat->newData[k][DIV_PAT_INS];
+            } else {
+              convIns=-1;
+            }
+
+            bool willBeConverting=false;
+            if (convIns>=0 && convIns<song.insLen) {
+              DivInstrument* convInsInst=song.ins[convIns];
+              if (convInsInst->type==DIV_INS_AMIGA ||
+                  convInsInst->type==DIV_INS_ADPCMA ||
+                  convInsInst->type==DIV_INS_SEGAPCM ||
+                  (convInsInst->type==DIV_INS_PCE && convInsInst->amiga.useSample)) {
+                willBeConverting=true;
+              }
+            }
+
+            if (isConverting!=willBeConverting) {
+              if (!alwaysConvert) {
+                if (willBeConverting) {
+                  insert17xx=1;
+                } else {
+                  insert17xx=0;
+                }
+              }
+              isConverting=willBeConverting;
+            }
+
+            if (isConverting || alwaysConvert) {
+              pat->newData[k][DIV_PAT_INS]=-1;
+            }
+          }
+
+          if (pat->newData[k][DIV_PAT_NOTE]!=-1 && pat->newData[k][DIV_PAT_NOTE]!=DIV_NOTE_OFF && pat->newData[k][DIV_PAT_NOTE]!=DIV_NOTE_REL && pat->newData[k][DIV_PAT_NOTE]!=DIV_MACRO_REL) {
+            if (isConverting || alwaysConvert) {
+              if (convIns>=0 && convIns<song.insLen) {
+                DivInstrument* convInsInst=song.ins[convIns];
+                if (convInsInst->amiga.useNoteMap) {
+                  int mapTarget=pat->newData[k][DIV_PAT_NOTE]-60;
+                  if (mapTarget<0) mapTarget=0;
+                  if (mapTarget>119) mapTarget=119;
+                  insertEBxx=convInsInst->amiga.noteMap[mapTarget].map/12;
+                  pat->newData[k][DIV_PAT_NOTE]=(12*(pat->newData[k][DIV_PAT_NOTE]/12))+(convInsInst->amiga.noteMap[mapTarget].map%12);
+                } else {
+                  insertEBxx=convInsInst->amiga.initSample/12;
+                  pat->newData[k][DIV_PAT_NOTE]=(12*(pat->newData[k][DIV_PAT_NOTE]/12))+(convInsInst->amiga.initSample%12);
+                }
+              }
+            }
+          }
+
+          if (insert17xx!=-1) {
+            int freeSlot=0;
+            logV("insert 17xx at %d:[%d]:%d (%d)",i,j,k,insert17xx);
+            for (int l=0; l<curPat[i].effectCols; l++) {
+              if (pat->newData[k][DIV_PAT_FX(l)]==-1) {
+                freeSlot=l;
+                break;
+              }
+            }
+
+            pat->newData[k][DIV_PAT_FX(freeSlot)]=0x17;
+            pat->newData[k][DIV_PAT_FXVAL(freeSlot)]=insert17xx;
+          }
+          if (insertEBxx!=-1) {
+            int freeSlot=1;
+            for (int l=0; l<curPat[i].effectCols; l++) {
+              if (pat->newData[k][DIV_PAT_FX(l)]==-1) {
+                freeSlot=l;
+                break;
+              }
+            }
+
+            pat->newData[k][DIV_PAT_FX(freeSlot)]=0xeb;
+            pat->newData[k][DIV_PAT_FXVAL(freeSlot)]=insertEBxx;
+          }
+        }
+      }
+
       for (int k=0; k<curSubSong->patLen; k++) {
         if (pat->newData[k][DIV_PAT_NOTE]==DIV_NOTE_REL || pat->newData[k][DIV_PAT_NOTE]==DIV_MACRO_REL) {
           w->writeS(100);
@@ -1669,6 +1803,8 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
 #endif
         w->writeS(pat->newData[k][DIV_PAT_INS]); // instrument
       }
+
+      delete pat;
     }
   }
 
@@ -1680,7 +1816,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   for (DivSample* i: song.sample) {
     w->writeI(i->samples);
     w->writeString(i->name,true);
-    w->writeC(divToFileRate(i->rate));
+    w->writeC(divToFileRate(i->centerRate));
     w->writeC(5);
     w->writeC(50);
     // i'm too lazy to deal with .dmf's weird way of storing 8-bit samples

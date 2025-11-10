@@ -1986,7 +1986,6 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
           DivSample* sample = ds.sample[index];
 
-          sample->rate = 33144;
           sample->centerRate = 33144;
           sample->depth = DIV_SAMPLE_DEPTH_1BIT_DPCM;
 

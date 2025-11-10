@@ -19,6 +19,7 @@
 
 #include "song.h"
 #include "../ta-log.h"
+#include <inttypes.h>
 #include <chrono>
 
 TimeMicros DivSongTimestamps::getTimes(int order, int row) {
@@ -347,22 +348,40 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
 
   // MAKE IT WORK
   while (!endOfSong) {
+    // heuristic
+    int advance=(curVirtualTempoD*ticks)/curVirtualTempoN;
+    for (int i=0; i<chans; i++) {
+      if (rowDelay[i]>0) {
+        if (rowDelay[i]<advance) advance=rowDelay[i];
+      }
+    }
+    if (advance<1) advance=1;
+
+    //logV("tick %" PRIu64 " advance: %d",ts.totalTicks,advance);
+
     // cycle channels to find a tick rate/tempo change effect after delay
     // (unfortunately Cxxx and F0xx are not pre-effects and obey EDxx)
     for (int i=0; i<chans; i++) {
       if (rowDelay[i]>0) {
-        if (--rowDelay[i]==0) {
+        rowDelay[i]-=advance;
+        if (rowDelay[i]==0) {
           tinyProcessRow(i,true);
         }
       }
     }
 
     // run virtual tempo
-    tempoAccum+=curVirtualTempoN;
+    tempoAccum+=curVirtualTempoN*advance;
     while (tempoAccum>=curVirtualTempoD) {
-      tempoAccum-=curVirtualTempoD;
+      int ticksToRun=tempoAccum/curVirtualTempoD;
+      tempoAccum%=curVirtualTempoD;
       // tick counter
-      if (--ticks<=0) {
+      ticks-=ticksToRun;
+      if (ticks<0) {
+        // if ticks is negative, we must call ticks back
+        tempoAccum+=-ticks*curVirtualTempoD;
+      }
+      if (ticks<=0) {
         if (shallStopSched) {
           shallStop=true;
           break;
@@ -400,8 +419,8 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
 
     if (!endOfSong) {
       // update playback time
-      double dt=divider;//*((double)virtualTempoN/(double)MAX(1,virtualTempoD));
-      ts.totalTicks++;
+      double dt=divider/(double)advance;//*((double)virtualTempoN/(double)MAX(1,virtualTempoD));
+      ts.totalTicks+=advance;
 
       ts.totalTime.micros+=1000000/dt;
       totalMicrosOff+=fmod(1000000.0,dt);
@@ -410,9 +429,10 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
         ts.totalTime.micros++;
       }
       if (ts.totalTime.micros>=1000000) {
-        ts.totalTime.micros-=1000000;
         // who's gonna play a song for 68 years?
-        if (ts.totalTime.seconds<0x7fffffff) ts.totalTime.seconds++;
+        ts.totalTime.seconds+=ts.totalTime.micros/1000000;
+        if (ts.totalTime.seconds<0) ts.totalTime.seconds=INT_MAX;
+        ts.totalTime.micros%=1000000;
       }
     }
     if (ts.maxRow[curOrder]<curRow) ts.maxRow[curOrder]=curRow;
@@ -425,6 +445,7 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
 
   std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
   logV("calcTimestamps() took %dµs",std::chrono::duration_cast<std::chrono::microseconds>(timeEnd-timeStart).count());
+  logV("song length: %s; %" PRIu64 " ticks",ts.totalTime.toString(6,TA_TIME_FORMAT_AUTO),ts.totalTicks);
 }
 
 void DivSubSong::clearData() {

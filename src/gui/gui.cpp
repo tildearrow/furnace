@@ -1126,6 +1126,11 @@ Pos=60,60\n\
 Size=395,171\n\
 Collapsed=0\n\
 \n\
+[Window][Tuner]\n\
+Pos=60,60\n\
+Size=395,171\n\
+Collapsed=0\n\
+\n\
 [Window][Warning##Export AudioFileDialogOverWriteDialog]\n\
 Pos=381,351\n\
 Size=500,71\n\
@@ -3885,6 +3890,8 @@ bool FurnaceGUI::loop() {
   DECLARE_METRIC(compatFlags)
   DECLARE_METRIC(piano)
   DECLARE_METRIC(notes)
+  DECLARE_METRIC(tuner)
+  DECLARE_METRIC(spectrum)
   DECLARE_METRIC(channels)
   DECLARE_METRIC(patManager)
   DECLARE_METRIC(sysManager)
@@ -4499,6 +4506,8 @@ bool FurnaceGUI::loop() {
         IMPORT_CLOSE(compatFlagsOpen);
         IMPORT_CLOSE(pianoOpen);
         IMPORT_CLOSE(notesOpen);
+        IMPORT_CLOSE(tunerOpen);
+        IMPORT_CLOSE(spectrumOpen);
         IMPORT_CLOSE(channelsOpen);
         IMPORT_CLOSE(regViewOpen);
         IMPORT_CLOSE(logOpen);
@@ -4869,6 +4878,8 @@ bool FurnaceGUI::loop() {
           if (ImGui::MenuItem(_("oscilloscope (per-channel)"),BIND_FOR(GUI_ACTION_WINDOW_CHAN_OSC),chanOscOpen)) chanOscOpen=!chanOscOpen;
           if (ImGui::MenuItem(_("oscilloscope (X-Y)"),BIND_FOR(GUI_ACTION_WINDOW_XY_OSC),xyOscOpen)) xyOscOpen=!xyOscOpen;
           if (ImGui::MenuItem(_("volume meter"),BIND_FOR(GUI_ACTION_WINDOW_VOL_METER),volMeterOpen)) volMeterOpen=!volMeterOpen;
+          if (ImGui::MenuItem(_("tuner"),BIND_FOR(GUI_ACTION_WINDOW_TUNER),tunerOpen)) tunerOpen=!tunerOpen;
+          if (ImGui::MenuItem(_("spectrum"),BIND_FOR(GUI_ACTION_WINDOW_SPECTRUM),spectrumOpen)) spectrumOpen=!spectrumOpen;
           ImGui::EndMenu();
         }
         if (ImGui::BeginMenu(_("tempo"))) {
@@ -4990,7 +5001,7 @@ bool FurnaceGUI::loop() {
               break;
             default: // effect
               if (cursor.xFine<DIV_MAX_COLS) {
-                if (p->newData[cursor.y][cursor.xFine]>-1) {
+                if (p->newData[cursor.y][(cursor.xFine-1)|1]>-1) {
                   info=e->getEffectDesc(p->newData[cursor.y][(cursor.xFine-1)|1],cursor.xCoarse,true);
                   hasInfo=true;
                 }
@@ -5093,7 +5104,8 @@ bool FurnaceGUI::loop() {
       MEASURE(refPlayer,drawRefPlayer());
       MEASURE(multiInsSetup,drawMultiInsSetup());
       MEASURE(patManager,drawPatManager());
-
+      MEASURE(tuner,drawTuner());
+      MEASURE(spectrum,drawSpectrum());
     } else {
       globalWinFlags=0;
       ImGui::DockSpaceOverViewport(0,NULL,lockLayout?(ImGuiDockNodeFlags_NoWindowMenuButton|ImGuiDockNodeFlags_NoMove|ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplit|ImGuiDockNodeFlags_NoDockingSplitOther):0);
@@ -5129,6 +5141,8 @@ bool FurnaceGUI::loop() {
       MEASURE(compatFlags,drawCompatFlags());
       MEASURE(piano,drawPiano());
       MEASURE(notes,drawNotes());
+      MEASURE(tuner,drawTuner());
+      MEASURE(spectrum,drawSpectrum());
       MEASURE(channels,drawChannels());
       MEASURE(patManager,drawPatManager());
       MEASURE(sysManager,drawSysManager());
@@ -8276,6 +8290,8 @@ void FurnaceGUI::syncState() {
   pianoOpen=e->getConfBool("pianoOpen",false);
 #endif
   notesOpen=e->getConfBool("notesOpen",false);
+  tunerOpen=e->getConfBool("tunerOpen",false);
+  spectrumOpen=e->getConfBool("spectrumOpen",false);
   channelsOpen=e->getConfBool("channelsOpen",false);
   patManagerOpen=e->getConfBool("patManagerOpen",false);
   sysManagerOpen=e->getConfBool("sysManagerOpen",false);
@@ -8325,6 +8341,8 @@ void FurnaceGUI::syncState() {
   orderLock=e->getConfBool("orderLock",false);
   followOrders=e->getConfBool("followOrders",true);
   followPattern=e->getConfBool("followPattern",true);
+  editStep=e->getConfInt("editStep",1);
+  editStepCoarse=e->getConfInt("editStepCoarse",16);
   noteInputMode=e->getConfInt("noteInputMode",GUI_NOTE_INPUT_POLY);
   if (noteInputMode!=GUI_NOTE_INPUT_MONO && noteInputMode!=GUI_NOTE_INPUT_POLY && noteInputMode!=GUI_NOTE_INPUT_CHORD) {
     noteInputMode=GUI_NOTE_INPUT_POLY;
@@ -8341,6 +8359,12 @@ void FurnaceGUI::syncState() {
   oscZoom=e->getConfFloat("oscZoom",0.5f);
   oscZoomSlider=e->getConfBool("oscZoomSlider",false);
   oscWindowSize=e->getConfFloat("oscWindowSize",20.0f);
+
+  spectrum.bins=e->getConfInt("spectrumBins",2048);
+  spectrum.xZoom=e->getConfFloat("spectrumxZoom",1.0f);
+  spectrum.xOffset=e->getConfFloat("spectrumxOffset",0);
+  spectrum.yOffset=e->getConfFloat("spectrumyOffset",0);
+  spectrum.mono=e->getConfBool("spectrumMono",false);
 
   pianoOctaves=e->getConfInt("pianoOctaves",pianoOctaves);
   pianoOctavesEdit=e->getConfInt("pianoOctavesEdit",pianoOctavesEdit);
@@ -8445,6 +8469,8 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("compatFlagsOpen",compatFlagsOpen);
   conf.set("pianoOpen",pianoOpen);
   conf.set("notesOpen",notesOpen);
+  conf.set("tunerOpen",tunerOpen);
+  conf.set("spectrumOpen",spectrumOpen);
   conf.set("channelsOpen",channelsOpen);
   conf.set("patManagerOpen",patManagerOpen);
   conf.set("sysManagerOpen",sysManagerOpen);
@@ -8489,6 +8515,8 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("orderLock",orderLock);
   conf.set("followOrders",followOrders);
   conf.set("followPattern",followPattern);
+  conf.set("editStep",editStep);
+  conf.set("editStepCoarse",editStepCoarse);
   conf.set("orderEditMode",orderEditMode);
   conf.set("noteInputMode",(int)noteInputMode);
   conf.set("filePlayerSync",filePlayerSync);
@@ -8501,6 +8529,13 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("oscZoom",oscZoom);
   conf.set("oscZoomSlider",oscZoomSlider);
   conf.set("oscWindowSize",oscWindowSize);
+
+  // commit spectrum state
+  conf.set("spectrumBins",spectrum.bins);
+  conf.set("spectrumxZoom",spectrum.xZoom);
+  conf.set("spectrumxOffset",spectrum.xOffset);
+  conf.set("spectrumyOffset",spectrum.yOffset);
+  conf.set("spectrumMono",spectrum.mono);
 
   // commit piano state
   conf.set("pianoOctaves",pianoOctaves);
@@ -8610,6 +8645,37 @@ bool FurnaceGUI::finish(bool saveConfig) {
 
   delete[] opTouched;
   opTouched=NULL;
+
+  if (tunerFFTInBuf) {
+    delete[] tunerFFTInBuf;
+    tunerFFTInBuf=NULL;
+  }
+  if (tunerFFTOutBuf) {
+    fftw_free(tunerFFTOutBuf);
+    tunerFFTOutBuf=NULL;
+  }
+  if (tunerPlan) {
+    fftw_free(tunerPlan);
+    tunerPlan=NULL;
+  }
+  for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+    if (spectrum.buffer[i]) {
+      fftw_free(spectrum.buffer[i]);
+      spectrum.buffer[i]=NULL;
+    }
+    if (spectrum.in[i]) {
+      delete[] spectrum.in[i];
+      spectrum.in[i]=NULL;
+    }
+    if (spectrum.plan[i]) {
+      fftw_free(spectrum.plan[i]);
+      spectrum.plan[i]=NULL;
+    }
+    if (spectrum.plot[i]) {
+      delete[] spectrum.plot[i];
+      spectrum.plot[i]=NULL;
+    }
+  }
 
   return true;
 }
@@ -8845,6 +8911,8 @@ FurnaceGUI::FurnaceGUI():
   compatFlagsOpen(false),
   pianoOpen(false),
   notesOpen(false),
+  tunerOpen(false),
+  spectrumOpen(false),
   channelsOpen(false),
   regViewOpen(false),
   logOpen(false),
@@ -9070,7 +9138,6 @@ FurnaceGUI::FurnaceGUI():
   sampleSelStart(-1),
   sampleSelEnd(-1),
   sampleInfo(true),
-  sampleCompatRate(false),
   sampleDragActive(false),
   sampleDragMode(false),
   sampleDrag16(false),
@@ -9150,6 +9217,9 @@ FurnaceGUI::FurnaceGUI():
   xyOscDecayTime(10.0f),
   xyOscIntensity(2.0f),
   xyOscThickness(2.0f),
+  tunerFFTInBuf(NULL),
+  tunerFFTOutBuf(NULL),
+  tunerPlan(NULL),
   fpCueInput(""),
   fpCueInputFailed(false),
   fpCueInputFailReason(""),

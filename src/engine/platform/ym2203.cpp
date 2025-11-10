@@ -1328,7 +1328,6 @@ void DivPlatformYM2203::reset() {
   }
 
   lastBusy=60;
-  sampleBank=0;
 
   delay=0;
 

@@ -54,7 +54,6 @@ class DivPlatformVRC6: public DivDispatch, public vrcvi_intf {
     QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,64> writes;
-  unsigned char sampleBank;
   vrcvi_core vrc6;
   int prevSample;
   unsigned char regPool[13];

@@ -24,22 +24,6 @@
 #include <fmt/printf.h>
 #include "IconsFontAwesome4.h"
 
-const float topKeyStarts[5]={
-  0.9f/7.0f, 2.1f/7.0f, 3.9f/7.0f, 5.0f/7.0f, 6.1f/7.0f
-};
-
-const int topKeyNotes[5]={
-  1, 3, 6, 8, 10
-};
-
-const int bottomKeyNotes[7]={
-  0, 2, 4, 5, 7, 9, 11
-};
-
-const bool isTopKey[12]={
-  false, true, false, true, false, false, true, false, true, false, true, false
-};
-
 #define VALUE_DIGIT(x,label) \
   if (ImGui::Button(label,buttonSize)) { \
     if (curWindow==GUI_WINDOW_ORDERS && orderEditMode>0) { \
