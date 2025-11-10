@@ -1072,7 +1072,7 @@ void FurnaceGUI::drawEditControls() {
         popToggleColors();
 
         pushToggleColors(scaleMode!=0);
-        ImGui::Button("Scale",buttonSize);
+        ImGui::Button(_("Scale"),buttonSize);
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("%s",_(scaleModeNames[scaleMode]));
         }
