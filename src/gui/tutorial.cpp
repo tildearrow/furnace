@@ -180,6 +180,9 @@ struct FurnaceCV {
   // this offset is applied to sprites.
   int viewX, viewY;
 
+  // other
+  char hiScoreText[512];
+
   // input
   unsigned char joyInputPrev;
   unsigned char joyPressed;
@@ -666,7 +669,11 @@ static const char* cvText[]={
 
   _N("GAME OVER"),
 
-  _N("High Score!"),
+  _N("           CONGREGURATION\n\n\n"
+  "YOU ARE GOOD PLAY AT GAME\n"
+  "PRESS ESCAPE TO RESET GAME\n\n"
+  "AND PLAY AGAIN AT ELEVATED DIFFICULTY\n\n\n"
+  "%d SCORES THIS GAME"),
 
   _N("Welcome to Combat Vehicle!\n\n"
   "Controls:\n"
@@ -1695,7 +1702,8 @@ void FurnaceCV::render(unsigned char joyIn) {
             }
             memset(tile0,0,80*56*sizeof(short));
             memset(tile1,0,80*56*sizeof(short));
-            startTyping(_(cvText[3]),2,3);
+            snprintf(hiScoreText,511,_(cvText[3]),hiScore);
+            startTyping(hiScoreText,2,3);
             e->setConf("cvHiScore",hiScore);
             e->saveConf();
             curText=4;

@@ -55,8 +55,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev238"
-#define DIV_ENGINE_VERSION 238
+#define DIV_VERSION "dev239"
+#define DIV_ENGINE_VERSION 239
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -694,6 +694,10 @@ class DivEngine {
 
   // change song (UNSAFE)
   void changeSong(size_t songIndex);
+
+  // convert legacy sample mode to normal
+  // returns whether conversion occurred
+  bool convertLegacySampleMode();
 
   void swapSystemUnsafe(int src, int dest, bool preserveOrder=true);
 

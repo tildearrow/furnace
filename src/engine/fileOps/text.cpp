@@ -262,7 +262,6 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
     w->writeText(fmt::sprintf("- data length: %d\n",sample->getCurBufLen()));
     w->writeText(fmt::sprintf("- samples: %d\n",sample->samples));
     w->writeText(fmt::sprintf("- rate: %d\n",sample->centerRate));
-    w->writeText(fmt::sprintf("- compat rate: %d\n",sample->rate));
     w->writeText(fmt::sprintf("- loop: %s\n",trueFalse[sample->loop?1:0]));
     if (sample->loop) {
       w->writeText(fmt::sprintf("  - start: %d\n",sample->loopStart));

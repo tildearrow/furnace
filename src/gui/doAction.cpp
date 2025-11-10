@@ -956,7 +956,6 @@ void FurnaceGUI::doAction(int what) {
             if (sample!=NULL) {
               DivWavetable* wave=e->song.wave[curWave];
               unsigned int waveLen=wave->len;
-              sample->rate=(int)round(261.625565301*waveLen); // c3
               sample->centerRate=(int)round(261.625565301*waveLen); // c3
               sample->loopStart=0;
               sample->loopEnd=waveLen;
@@ -1045,7 +1044,6 @@ void FurnaceGUI::doAction(int what) {
           e->lockEngine([this,prevSample]() {
             DivSample* sample=e->getSample(curSample);
             if (sample!=NULL) {
-              sample->rate=prevSample->rate;
               sample->centerRate=prevSample->centerRate;
               sample->name=prevSample->name;
               sample->loopStart=prevSample->loopStart;

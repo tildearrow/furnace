@@ -34,14 +34,12 @@ class DivPlatformOPLL: public DivDispatch {
       DivInstrumentFM state;
       unsigned char freqH, freqL;
       int fixedFreq;
-      bool furnaceDac;
       unsigned char pan;
       Channel():
         SharedChannel<int>(0),
         freqH(0),
         freqL(0),
         fixedFreq(0),
-        furnaceDac(false),
         pan(3) {}
     };
     Channel chan[11];

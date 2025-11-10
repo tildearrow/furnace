@@ -389,12 +389,6 @@ void DivPlatformSAA1099::reset() {
   }
 
   lastBusy=60;
-  dacMode=0;
-  dacPeriod=0;
-  dacPos=0;
-  dacRate=0;
-  dacSample=-1;
-  sampleBank=0;
   saaEnv[0]=0;
   saaEnv[1]=0;
   saaNoise[0]=0;

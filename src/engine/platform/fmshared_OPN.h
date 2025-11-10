@@ -120,7 +120,6 @@ class DivPlatformOPN: public DivPlatformFMBase {
 
     struct OPNChannel: public FMChannel {
       unsigned char psgMode, autoEnvNum, autoEnvDen;
-      bool furnacePCM;
       int sample, macroVolMul;
 
       OPNChannel():
@@ -128,7 +127,6 @@ class DivPlatformOPN: public DivPlatformFMBase {
         psgMode(1),
         autoEnvNum(0),
         autoEnvDen(0),
-        furnacePCM(false),
         sample(-1),
         macroVolMul(255) {}
     };

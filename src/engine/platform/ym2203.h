@@ -55,7 +55,6 @@ class DivPlatformYM2203: public DivPlatformOPN {
     bool lastS;
   
     DivPlatformAY8910* ay;
-    unsigned char sampleBank;
 
     bool extMode, noExtMacros;
     unsigned char prescale, nukedMult;
