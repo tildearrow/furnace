@@ -424,7 +424,7 @@ void DivPlatformNES::tick(bool sysTick) {
       DivSample* s=parent->getSample(dacSample);
       off=(double)s->centerRate/parent->getCenterRate();
     }
-    dacRate=MIN(chan[4].freq*off,32000);
+    dacRate=MIN(chan[4].freq*off,48000);
     if (chan[4].keyOn) {
       if (dpcmMode && !skipRegisterWrites && dacSample>=0 && dacSample<parent->song.sampleLen) {
         unsigned int dpcmAddr=sampleOffDPCM[dacSample]+(dacPos>>3);

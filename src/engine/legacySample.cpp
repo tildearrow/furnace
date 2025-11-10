@@ -133,6 +133,7 @@ bool DivEngine::convertLegacySampleMode() {
             continue;
           }
           sampleMode=1;
+          preferredInsType=DIV_INS_NES;
           break;
         case DIV_SYSTEM_MMC5:
           // MMC5 PCM channel
@@ -185,6 +186,22 @@ bool DivEngine::convertLegacySampleMode() {
           sampleMode=1;
           preferredInsType=DIV_INS_ADPCMA;
           preferredInsType2=DIV_INS_ADPCMB;
+          break;
+        case DIV_SYSTEM_YM2612_DUALPCM:
+          // DualPCM DAC
+          if (dispatchChanOfChan[i]<5) {
+            continue;
+          }
+          sampleMode=1;
+          hasLegacyToggle=true;
+          break;
+        case DIV_SYSTEM_YM2612_DUALPCM_EXT:
+          // DualPCM DAC
+          if (dispatchChanOfChan[i]<8 || dispatchChanOfChan[i]>9) {
+            continue;
+          }
+          sampleMode=1;
+          hasLegacyToggle=true;
           break;
         case DIV_SYSTEM_YM2610_CSM:
           // Neo Geo CD ADPCM channels
