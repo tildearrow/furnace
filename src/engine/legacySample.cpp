@@ -366,5 +366,7 @@ bool DivEngine::convertLegacySampleMode() {
     }
   }
 
+  delete[] isUsedByIns;
+
   return (legacyInsInit!=-1);
 }
