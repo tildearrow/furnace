@@ -118,7 +118,7 @@ size | description
   8  | reserved
 ```
 
-# song info (>=239) (DRAFT)
+# song info (>=240)
 
 ```
 size | description
@@ -344,7 +344,7 @@ reserved output portsets:
 - `FFE`: metronome
 - `FFF`: "null" portset
 
-# subsong (>=239)
+# subsong (>=240)
 
 ```
 size | description
@@ -386,7 +386,7 @@ size | description
      | - same as above
 ```
 
-# groove pattern (>=239)
+# groove pattern (>=240)
 
 ```
 size | description
@@ -518,8 +518,8 @@ size | description
   4  | "PATN" block ID
   4  | size of this block
   1  | subsong
-  1  | channel (<239)
-  2  | channel (>=239)
+  1  | channel (<240)
+  2  | channel (>=240)
      | - the channel index was 8-bit in previous versions.
      | - in order to accommodate higher channel counts, it has been extended to 16-bit.
   2  | pattern index
@@ -571,7 +571,7 @@ size | description
 
 these were present in previous versions of the Furnace file format.
 
-## old song info (<239)
+## old song info (<240)
 
 hic sunt dracones!
 
@@ -742,7 +742,7 @@ size | description
   4  | sample directories
 ```
 
-# old subsong (<239)
+# old subsong (<240)
 
 ```
 size | description
