@@ -264,6 +264,19 @@ double DivEngine::benchmarkSeek() {
   return tAvg;
 }
 
+double DivEngine::benchmarkWalk() {
+  std::chrono::high_resolution_clock::time_point timeStart=std::chrono::high_resolution_clock::now();
+
+  // benchmark
+  calcSongTimestamps();
+
+  std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
+
+  double t=(double)(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd-timeStart).count())/1000000.0;
+  printf("[RESULT] %fs\n",t);
+  return t;
+}
+
 void DivEngine::notifyInsChange(int ins) {
   BUSY_BEGIN;
   for (int i=0; i<song.systemLen; i++) {

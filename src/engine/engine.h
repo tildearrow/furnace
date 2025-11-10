@@ -821,6 +821,7 @@ class DivEngine {
     // benchmark (returns time in seconds)
     double benchmarkPlayback();
     double benchmarkSeek();
+    double benchmarkWalk();
 
     // returns the minimum VGM version which may carry the specified system, or 0 if none.
     int minVGMVersion(DivSystem which);
