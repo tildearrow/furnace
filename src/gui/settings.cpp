@@ -2268,6 +2268,9 @@ void FurnaceGUI::drawSettings() {
             drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_EFFECT_LIST);
             drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_DEBUG);
             drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_CS_PLAYER);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_REF_PLAYER);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_TUNER);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_SPECTRUM);
             drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_ABOUT);
             drawKeybindSettingsTableRow(GUI_ACTION_COLLAPSE_WINDOW);
             drawKeybindSettingsTableRow(GUI_ACTION_CLOSE_WINDOW);
@@ -4703,9 +4706,9 @@ void FurnaceGUI::drawSettings() {
         // "Debug" - toggles mobile UI
         // "Nice Amiga cover of the song!" - enables hidden systems (YMU759/Dummy)
         // "42 63" - enables all instrument types
-        // "4-bit FDS" - enables partial pitch linearity option
         // "Power of the Chip" - enables options for multi-threaded audio
         // "btcdbcb" - use modern UI padding
+        // "6-7" - OH PLEASE NO
         // "????" - enables stuff
         CONFIG_SECTION(_("Cheat Codes")) {
           // SUBSECTION ENTER CODE:
@@ -4747,6 +4750,22 @@ void FurnaceGUI::drawSettings() {
               sty.ItemSpacing=ImVec2(10.0f*dpiScale,10.0f*dpiScale);
               sty.ItemInnerSpacing=ImVec2(10.0f*dpiScale,10.0f*dpiScale);
               settingsOpen=false;
+            }
+            if (checker==0x2222225c && checker1==0x2d2) {
+              mmlString[30]=_("Oh my god... Kill me now so I don't have to go through that again!");
+              for (int i=0; i<e->getTotalChannelCount(); i++) {
+                for (int j=0; j<DIV_MAX_PATTERNS; j++) {
+                  if (e->curSubSong->pat[i].data[j]!=NULL) {
+                    DivPattern* p=e->curSubSong->pat[i].data[j];
+                    for (int k=0; k<DIV_MAX_ROWS; k++) {
+                      if (p->newData[k][DIV_PAT_NOTE]>=0 && p->newData[k][DIV_PAT_NOTE]<180) {
+                        int newNote=p->newData[k][DIV_PAT_NOTE]+(rand()%40)-18;
+                        p->newData[k][DIV_PAT_NOTE]=CLAMP(newNote,60,179);
+                      }
+                    }
+                  }
+                }
+              }
             }
 
             mmlString[31]="";

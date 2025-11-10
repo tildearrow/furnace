@@ -612,7 +612,6 @@ void DivPlatformSoundUnit::reset() {
   lastPan=0xff;
   cycles=0;
   curChan=-1;
-  sampleBank=0;
   lfoMode=0;
   lfoSpeed=255;
   delay=500;

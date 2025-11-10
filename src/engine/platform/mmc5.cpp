@@ -171,15 +171,13 @@ void DivPlatformMMC5::tick(bool sysTick) {
   // PCM
   if (chan[2].freqChanged) {
     chan[2].freq=parent->calcFreq(chan[2].baseFreq,chan[2].pitch,chan[2].fixedArp?chan[2].baseNoteOverride:chan[2].arpOff,chan[2].fixedArp,false,0,chan[2].pitch2,1,1);
-    if (chan[2].furnaceDac) {
-      double off=1.0;
-      if (dacSample>=0 && dacSample<parent->song.sampleLen) {
-        DivSample* s=parent->getSample(dacSample);
-        off=(double)s->centerRate/parent->getCenterRate();
-      }
-      dacRate=MIN(chan[2].freq*off,32000);
-      if (dumpWrites) addWrite(0xffff0001,dacRate);
+    double off=1.0;
+    if (dacSample>=0 && dacSample<parent->song.sampleLen) {
+      DivSample* s=parent->getSample(dacSample);
+      off=(double)s->centerRate/parent->getCenterRate();
     }
+    dacRate=MIN(chan[2].freq*off,32000);
+    if (dumpWrites) addWrite(0xffff0001,dacRate);
     chan[2].freqChanged=false;
   }
 }
@@ -189,59 +187,35 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON:
       if (c.chan==2) { // PCM
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_STD);
-        if (ins->type==DIV_INS_AMIGA) {
-          if (c.value!=DIV_NOTE_NULL) {
-            dacSample=ins->amiga.getSample(c.value);
-            chan[c.chan].sampleNote=c.value;
-            c.value=ins->amiga.getFreq(c.value);
-            chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
-          } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
-            dacSample=ins->amiga.getSample(chan[c.chan].sampleNote);
-            c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
-          }
-          if (dacSample<0 || dacSample>=parent->song.sampleLen) {
-            dacSample=-1;
-            if (dumpWrites) addWrite(0xffff0002,0);
-            break;
-          } else {
-            if (dumpWrites) addWrite(0xffff0000,dacSample);
-          }
-          if (chan[c.chan].setPos) {
-            chan[c.chan].setPos=false;
-          } else {
-            dacPos=0;
-          }
-          dacPeriod=0;
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
-            chan[c.chan].freqChanged=true;
-            chan[c.chan].note=c.value;
-          }
-          chan[c.chan].active=true;
-          chan[c.chan].keyOn=true;
-          chan[c.chan].furnaceDac=true;
-        } else {
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].note=c.value;
-          }
-          dacSample=12*sampleBank+chan[c.chan].note%12;
-          if (dacSample>=parent->song.sampleLen) {
-            dacSample=-1;
-            if (dumpWrites) addWrite(0xffff0002,0);
-            break;
-          } else {
-            if (dumpWrites) addWrite(0xffff0000,dacSample);
-          }
-          if (chan[c.chan].setPos) {
-            chan[c.chan].setPos=false;
-          } else {
-            dacPos=0;
-          }
-          dacPeriod=0;
-          dacRate=parent->getSample(dacSample)->rate;
-          if (dumpWrites) addWrite(0xffff0001,dacRate);
-          chan[c.chan].furnaceDac=false;
+        if (c.value!=DIV_NOTE_NULL) {
+          dacSample=ins->amiga.getSample(c.value);
+          chan[c.chan].sampleNote=c.value;
+          c.value=ins->amiga.getFreq(c.value);
+          chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+        } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+          dacSample=ins->amiga.getSample(chan[c.chan].sampleNote);
+          c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
         }
+        if (dacSample<0 || dacSample>=parent->song.sampleLen) {
+          dacSample=-1;
+          if (dumpWrites) addWrite(0xffff0002,0);
+          break;
+        } else {
+          if (dumpWrites) addWrite(0xffff0000,dacSample);
+        }
+        if (chan[c.chan].setPos) {
+          chan[c.chan].setPos=false;
+        } else {
+          dacPos=0;
+        }
+        dacPeriod=0;
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
+          chan[c.chan].freqChanged=true;
+          chan[c.chan].note=c.value;
+        }
+        chan[c.chan].active=true;
+        chan[c.chan].keyOn=true;
         break;
       } else {
         if (c.value!=DIV_NOTE_NULL) {
@@ -322,12 +296,6 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
     case DIV_CMD_STD_NOISE_MODE:
       chan[c.chan].duty=c.value;
       rWrite(0x5000+c.chan*4,0x30|(chan[c.chan].active?chan[c.chan].outVol:0)|((chan[c.chan].duty&3)<<6));
-      break;
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
       break;
     case DIV_CMD_SAMPLE_POS:
       if (c.chan!=2) break;
@@ -422,7 +390,6 @@ void DivPlatformMMC5::reset() {
   dacPos=0;
   dacRate=0;
   dacSample=-1;
-  sampleBank=0;
 
   map_init_MMC5(mmc5);
   memset(regPool,0,128);

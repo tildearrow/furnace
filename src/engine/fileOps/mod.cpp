@@ -112,8 +112,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
       if (slen==2) slen=0;
       signed char fineTune=reader.readC()&0x0f;
       if (fineTune>=8) fineTune-=16;
-      sample->rate=(int)(pow(2.0,(double)fineTune/96.0)*8363.0);
-      sample->centerRate=sample->rate;
+      sample->centerRate=(int)(pow(2.0,(double)fineTune/96.0)*8363.0);
       defaultVols[i]=reader.readC();
       int loopStart=reader.readS_BE()*2;
       int loopLen=reader.readS_BE()*2;

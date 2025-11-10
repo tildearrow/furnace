@@ -2657,7 +2657,7 @@ class FurnaceGUI {
   int resampleStrat;
   float amplifyVol, amplifyOff;
   int sampleSelStart, sampleSelEnd;
-  bool sampleInfo, sampleCompatRate;
+  bool sampleInfo;
   bool sampleDragActive, sampleDragMode, sampleDrag16, sampleZoomAuto;
   bool sampleCheckLoopStart, sampleCheckLoopEnd;
   // 0: start

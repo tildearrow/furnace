@@ -21,7 +21,7 @@
 #include "guiConst.h"
 #include "debug.h"
 #include "IconsFontAwesome4.h"
-#include <SDL_timer.h>
+#include <inttypes.h>
 #include <fmt/printf.h>
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -208,7 +208,7 @@ void FurnaceGUI::drawDebug() {
       DivSongTimestamps& ts=e->curSubSong->ts;
 
       String timeFormatted=ts.totalTime.toString(-1,TA_TIME_FORMAT_AUTO);
-      ImGui::Text("song duration: %s (%d ticks; %d rows)",timeFormatted.c_str(),ts.totalTicks,ts.totalRows);
+      ImGui::Text("song duration: %s (%" PRIu64 " ticks; %d rows)",timeFormatted.c_str(),ts.totalTicks,ts.totalRows);
       if (ts.isLoopDefined) {
         ImGui::Text("loop region is defined");
       } else {
@@ -243,7 +243,6 @@ void FurnaceGUI::drawDebug() {
           continue;
         }
         if (ImGui::TreeNode(fmt::sprintf("%d: %s",i,sample->name).c_str())) {
-          ImGui::Text("rate: %d",sample->rate);
           ImGui::Text("centerRate: %d",sample->centerRate);
           ImGui::Text("loopStart: %d",sample->loopStart);
           ImGui::Text("loopEnd: %d", sample->loopEnd);

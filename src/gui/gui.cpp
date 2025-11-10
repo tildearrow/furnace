@@ -5001,7 +5001,7 @@ bool FurnaceGUI::loop() {
               break;
             default: // effect
               if (cursor.xFine<DIV_MAX_COLS) {
-                if (p->newData[cursor.y][cursor.xFine]>-1) {
+                if (p->newData[cursor.y][(cursor.xFine-1)|1]>-1) {
                   info=e->getEffectDesc(p->newData[cursor.y][(cursor.xFine-1)|1],cursor.xCoarse,true);
                   hasInfo=true;
                 }
@@ -8341,6 +8341,8 @@ void FurnaceGUI::syncState() {
   orderLock=e->getConfBool("orderLock",false);
   followOrders=e->getConfBool("followOrders",true);
   followPattern=e->getConfBool("followPattern",true);
+  editStep=e->getConfInt("editStep",1);
+  editStepCoarse=e->getConfInt("editStepCoarse",16);
   noteInputMode=e->getConfInt("noteInputMode",GUI_NOTE_INPUT_POLY);
   if (noteInputMode!=GUI_NOTE_INPUT_MONO && noteInputMode!=GUI_NOTE_INPUT_POLY && noteInputMode!=GUI_NOTE_INPUT_CHORD) {
     noteInputMode=GUI_NOTE_INPUT_POLY;
@@ -8513,6 +8515,8 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("orderLock",orderLock);
   conf.set("followOrders",followOrders);
   conf.set("followPattern",followPattern);
+  conf.set("editStep",editStep);
+  conf.set("editStepCoarse",editStepCoarse);
   conf.set("orderEditMode",orderEditMode);
   conf.set("noteInputMode",(int)noteInputMode);
   conf.set("filePlayerSync",filePlayerSync);
@@ -9134,7 +9138,6 @@ FurnaceGUI::FurnaceGUI():
   sampleSelStart(-1),
   sampleSelEnd(-1),
   sampleInfo(true),
-  sampleCompatRate(false),
   sampleDragActive(false),
   sampleDragMode(false),
   sampleDrag16(false),
