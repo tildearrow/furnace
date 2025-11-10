@@ -1647,8 +1647,6 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     w->writeC(curPat[i].effectCols);
 
     bool convertSampleUsage=false;
-    int convIns=-1;
-    bool isConverting=false;
     bool alwaysConvert=false;
 
     switch (sys) {
@@ -1690,12 +1688,14 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     }
 
     for (int j=0; j<curSubSong->ordersLen; j++) {
-      // we make a copy in order to convertFurnace sample mode to Defle one
+      // we make a copy in order to convert Furnace sample mode to Defle one
       DivPattern* origPat=curPat[i].getPattern(curOrders->ord[i][j],false);
       DivPattern* pat=new DivPattern;
       origPat->copyOn(pat);
 
       if (convertSampleUsage) {
+        int convIns=-1;
+        bool isConverting=false;
         for (int k=0; k<curSubSong->patLen; k++) {
           int insert17xx=-1;
           int insertEBxx=-1;
@@ -1754,6 +1754,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
 
           if (insert17xx!=-1) {
             int freeSlot=0;
+            logV("insert 17xx at %d:[%d]:%d (%d)",i,j,k,insert17xx);
             for (int l=0; l<curPat[i].effectCols; l++) {
               if (pat->newData[k][DIV_PAT_FX(l)]==-1) {
                 freeSlot=l;
