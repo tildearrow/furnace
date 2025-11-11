@@ -63,58 +63,6 @@ struct PatToWrite {
     pat(p) {}
 };
 
-void DivEngine::putAssetDirData(SafeWriter* w, std::vector<DivAssetDir>& dir) {
-  size_t blockStartSeek, blockEndSeek;
-
-  w->write("ADIR",4);
-  blockStartSeek=w->tell();
-  w->writeI(0);
-
-  w->writeI(dir.size());
-
-  for (DivAssetDir& i: dir) {
-    w->writeString(i.name,false);
-    w->writeS(i.entries.size());
-    for (int j: i.entries) {
-      w->writeC(j);
-    }
-  }
-
-  blockEndSeek=w->tell();
-  w->seek(blockStartSeek,SEEK_SET);
-  w->writeI(blockEndSeek-blockStartSeek-4);
-  w->seek(0,SEEK_END);
-}
-
-DivDataErrors DivEngine::readAssetDirData(SafeReader& reader, std::vector<DivAssetDir>& dir) {
-  char magic[4];
-  reader.read(magic,4);
-  if (memcmp(magic,"ADIR",4)!=0) {
-    logV("header is invalid: %c%c%c%c",magic[0],magic[1],magic[2],magic[3]);
-    return DIV_DATA_INVALID_HEADER;
-  }
-  reader.readI(); // reserved
-
-  unsigned int numDirs=reader.readI();
-
-  dir.reserve(numDirs);
-  for (unsigned int i=0; i<numDirs; i++) {
-    DivAssetDir d;
-
-    d.name=reader.readString();
-    unsigned short numEntries=reader.readS();
-
-    d.entries.reserve(numEntries);
-    for (unsigned short j=0; j<numEntries; j++) {
-      d.entries.push_back(((unsigned char)reader.readC()));
-    }
-
-    dir.push_back(d);
-  }
-
-  return DIV_DATA_SUCCESS;
-}
-
 void DivEngine::convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivSystem sys) {
   newFlags.clear();
 

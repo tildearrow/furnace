@@ -745,7 +745,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
         if (dirToDelete!=-1) {
           e->lockEngine([this,dirToDelete]() {
             e->song.insDir.erase(e->song.insDir.begin()+dirToDelete);
-            e->checkAssetDir(e->song.insDir,e->song.ins.size());
+            checkAssetDir(e->song.insDir,e->song.ins.size());
           });
         }
       } else {
@@ -1402,7 +1402,7 @@ void FurnaceGUI::actualWaveList() {
     if (dirToDelete!=-1) {
       e->lockEngine([this,dirToDelete]() {
         e->song.waveDir.erase(e->song.waveDir.begin()+dirToDelete);
-        e->checkAssetDir(e->song.waveDir,e->song.wave.size());
+        checkAssetDir(e->song.waveDir,e->song.wave.size());
       });
     }
   } else {
@@ -1457,7 +1457,7 @@ void FurnaceGUI::actualSampleList() {
     if (dirToDelete!=-1) {
       e->lockEngine([this,dirToDelete]() {
         e->song.sampleDir.erase(e->song.sampleDir.begin()+dirToDelete);
-        e->checkAssetDir(e->song.sampleDir,e->song.sample.size());
+        checkAssetDir(e->song.sampleDir,e->song.sample.size());
       });
     }
   } else {

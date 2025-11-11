@@ -26,6 +26,7 @@
 #include "../timeutils.h"
 #include "../ta-utils.h"
 #include "config.h"
+#include "assetDir.h"
 #include "orders.h"
 #include "instrument.h"
 #include "pattern.h"
@@ -251,16 +252,6 @@ struct DivSubSong {
       chanCollapse[i]=0;
     }
   }
-};
-
-struct DivAssetDir {
-  String name;
-  std::vector<int> entries;
-
-  DivAssetDir():
-    name("New Directory") {}
-  DivAssetDir(String n):
-    name(n) {}
 };
 
 struct DivEffectStorage {
