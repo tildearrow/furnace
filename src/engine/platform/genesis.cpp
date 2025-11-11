@@ -681,7 +681,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
 
     if (chan[i].std.vol.had) {
       int inVol=chan[i].std.vol.val;
-      if (inVol>0) {
+      if (chan[i].dacMode && inVol>0) {
         inVol+=63;
       }
       chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].vol,MIN(127,inVol),127);
