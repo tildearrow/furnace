@@ -284,6 +284,7 @@ struct DivSong {
 
   // system
   DivSystem system[DIV_MAX_CHIPS];
+  unsigned short systemChans[DIV_MAX_CHIPS];
   unsigned char systemLen;
   float systemVol[DIV_MAX_CHIPS];
   float systemPan[DIV_MAX_CHIPS];
@@ -517,6 +518,7 @@ struct DivSong {
     oldCenterRate(true) {
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       system[i]=DIV_SYSTEM_NULL;
+      systemChans[i]=0;
       systemVol[i]=1.0;
       systemPan[i]=0.0;
       systemPanFR[i]=0.0;

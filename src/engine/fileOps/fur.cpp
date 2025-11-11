@@ -958,7 +958,8 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       unsigned char sysID=reader.readC();
       ds.system[i]=systemFromFileFur(sysID);
-      logD("- %d: %.2x (%s)",i,sysID,getSystemName(ds.system[i]));
+      ds.systemChans[i]=getChannelCount(ds.system[i]);
+      logD("- %d: %.2x (%s, %d channels)",i,sysID,getSystemName(ds.system[i]),ds.systemChans[i]);
       if (sysID!=0 && systemToFileFur(ds.system[i])==0) {
         logE("unrecognized system ID %.2x",sysID);
         lastError=fmt::sprintf("unrecognized system ID %.2x!",sysID);
@@ -969,7 +970,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
     }
     int tchans=0;
     for (int i=0; i<ds.systemLen; i++) {
-      tchans+=getChannelCount(ds.system[i]);
+      tchans+=ds.systemChans[i];
     }
     if (tchans>DIV_MAX_CHANS) {
       tchans=DIV_MAX_CHANS;
@@ -2170,7 +2171,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
             }
           }
         }
-        ch+=getChannelCount(ds.system[i]);
+        ch+=ds.systemChans[i];
       }
     }
 
@@ -2226,6 +2227,12 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   size_t subSongIndex=0;
   DivSubSong* subSong=song.subsong[subSongIndex];
   warnings="";
+
+  // please remove once INF2 is ready.
+  logE("do not save yet! I still am working on it!");
+  lastError="do not save yet! I still am working on it!";
+  saveLock.unlock();
+  return NULL;
 
   // fail if values are out of range
   /*
