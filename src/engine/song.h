@@ -400,6 +400,7 @@ struct DivSong {
 
   std::vector<DivEffectStorage> effects;
 
+  // INTERNAL STATE - do not modify.
   DivInstrument nullIns, nullInsOPLL, nullInsOPL, nullInsOPLDrums, nullInsQSound, nullInsESFM;
   DivWavetable nullWave;
   DivSample nullSample;

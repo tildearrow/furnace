@@ -2175,7 +2175,7 @@ void DivEngine::recalcChans() {
   int chanIndex=0;
   memset(isInsTypePossible,0,DIV_INS_MAX*sizeof(bool));
   for (int i=0; i<song.systemLen; i++) {
-    int chanCount=getChannelCount(song.system[i]);
+    int chanCount=song.systemChans[i];
     int firstChan=chans;
     chans+=chanCount;
     for (int j=0; j<chanCount; j++) {
