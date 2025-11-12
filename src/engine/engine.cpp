@@ -2091,46 +2091,6 @@ const char** DivEngine::getRegisterSheet(int sys) {
   return disCont[sys].dispatch->getRegisterSheet();
 }
 
-void DivEngine::recalcChans() {
-  bool isInsTypePossible[DIV_INS_MAX];
-  chans=0;
-  int chanIndex=0;
-  memset(isInsTypePossible,0,DIV_INS_MAX*sizeof(bool));
-  for (int i=0; i<song.systemLen; i++) {
-    int chanCount=song.systemChans[i];
-    int firstChan=chans;
-    chans+=chanCount;
-    for (int j=0; j<chanCount; j++) {
-      sysOfChan[chanIndex]=song.system[i];
-      dispatchOfChan[chanIndex]=i;
-      dispatchChanOfChan[chanIndex]=j;
-      dispatchFirstChan[chanIndex]=firstChan;
-      chanIndex++;
-
-      if (sysDefs[song.system[i]]!=NULL) {
-        if (sysDefs[song.system[i]]->chanInsType[j][0]!=DIV_INS_NULL) {
-          isInsTypePossible[sysDefs[song.system[i]]->chanInsType[j][0]]=true;
-        }
-
-        if (sysDefs[song.system[i]]->chanInsType[j][1]!=DIV_INS_NULL) {
-          isInsTypePossible[sysDefs[song.system[i]]->chanInsType[j][1]]=true;
-        }
-      }
-    }
-  }
-
-  possibleInsTypes.clear();
-  for (int i=0; i<DIV_INS_MAX; i++) {
-    if (isInsTypePossible[i]) possibleInsTypes.push_back((DivInstrumentType)i);
-  }
-
-  checkAssetDir(song.insDir,song.ins.size());
-  checkAssetDir(song.waveDir,song.wave.size());
-  checkAssetDir(song.sampleDir,song.sample.size());
-
-  hasLoadedSomething=true;
-}
-
 void DivEngine::reset() {
   if (output) if (output->midiOut!=NULL) {
     output->midiOut->send(TAMidiMessage(TA_MIDI_MACHINE_STOP,0,0));

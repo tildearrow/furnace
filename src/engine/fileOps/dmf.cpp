@@ -1168,6 +1168,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     }
 
     ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
+    ds.recalcChans();
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
@@ -1175,7 +1176,6 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     song.unload();
     song=ds;
     changeSong(0);
-    recalcChans();
     // always convert to normal sample mode (I have no idea how will I do export)
     convertLegacySampleMode();
     saveLock.unlock();
@@ -1289,7 +1289,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     lastError="maximum number of wavetables in .dmf is 64";
     return NULL;
   }
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     for (int j=0; j<curSubSong->ordersLen; j++) {
       if (curOrders->ord[i][j]>0x7f) {
         logE("order %d, %d is out of range (0-127)!",i,j);
@@ -1356,7 +1356,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   w->writeI(curSubSong->patLen);
   w->writeC(curSubSong->ordersLen);
 
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     for (int j=0; j<curSubSong->ordersLen; j++) {
       w->writeC(curOrders->ord[i][j]);
       if (version>=25) {

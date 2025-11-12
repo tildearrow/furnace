@@ -2129,6 +2129,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
     } else if (ds.version<237 && ds.linearPitch!=0) {
       addWarning("this song used partial pitch linearity, which has been removed from Furnace. you may have to adjust your song.");
     }
+    ds.recalcChans();
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
@@ -2136,7 +2137,6 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
     song.unload();
     song=ds;
     changeSong(0);
-    recalcChans();
     // removal of legacy sample mode
     if (song.version<239) {
       if (convertLegacySampleMode()) {
@@ -2242,7 +2242,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   // low short is pattern number
   std::vector<PatToWrite> patsToWrite;
   if (getConfInt("saveUnusedPatterns",0)==1) {
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       for (size_t j=0; j<song.subsong.size(); j++) {
         DivSubSong* subs=song.subsong[j];
         for (int k=0; k<DIV_MAX_PATTERNS; k++) {
@@ -2253,7 +2253,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     }
   } else {
     bool alreadyAdded[DIV_MAX_PATTERNS];
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       for (size_t j=0; j<song.subsong.size(); j++) {
         DivSubSong* subs=song.subsong[j];
         memset(alreadyAdded,0,DIV_MAX_PATTERNS*sizeof(bool));
@@ -2358,32 +2358,32 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     w->writeI(0);
   }
 
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     for (int j=0; j<subSong->ordersLen; j++) {
       w->writeC(subSong->orders.ord[i][j]);
     }
   }
 
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     w->writeC(subSong->pat[i].effectCols);
   }
 
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     w->writeC(
       (subSong->chanShow[i]?1:0)|
       (subSong->chanShowChanOsc[i]?2:0)
     );
   }
 
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     w->writeC(subSong->chanCollapse[i]);
   }
 
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     w->writeString(subSong->chanName[i],false);
   }
 
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     w->writeString(subSong->chanShortName[i],false);
   }
 
@@ -2518,32 +2518,32 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     w->writeString(subSong->name,false);
     w->writeString(subSong->notes,false);
 
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       for (int j=0; j<subSong->ordersLen; j++) {
         w->writeC(subSong->orders.ord[i][j]);
       }
     }
 
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       w->writeC(subSong->pat[i].effectCols);
     }
 
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       w->writeC(
         (subSong->chanShow[i]?1:0)|
         (subSong->chanShowChanOsc[i]?2:0)
       );
     }
 
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       w->writeC(subSong->chanCollapse[i]);
     }
 
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       w->writeString(subSong->chanName[i],false);
     }
 
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       w->writeString(subSong->chanShortName[i],false);
     }
 

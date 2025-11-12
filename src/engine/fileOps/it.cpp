@@ -1675,7 +1675,8 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     ds.systemName="PC";
 
     // find subsongs
-    ds.findSubSongs(maxChan);    
+    ds.recalcChans();
+    ds.findSubSongs();
 
     // populate subsongs with default panning values
     for (size_t i=0; i<ds.subsong.size(); i++) {
@@ -1708,7 +1709,6 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     song.unload();
     song=ds;
     changeSong(0);
-    recalcChans();
     saveLock.unlock();
     BUSY_END;
     if (active) {

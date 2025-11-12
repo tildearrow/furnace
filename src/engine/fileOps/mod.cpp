@@ -431,7 +431,8 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     ds.insLen=ds.ins.size();
 
     // find subsongs
-    ds.findSubSongs(chCount);
+    ds.recalcChans();
+    ds.findSubSongs();
     
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
@@ -439,7 +440,6 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     song.unload();
     song=ds;
     changeSong(0);
-    recalcChans();
     saveLock.unlock();
     BUSY_END;
     if (active) {

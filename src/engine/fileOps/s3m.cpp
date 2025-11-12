@@ -1179,7 +1179,8 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     }
 
     // find subsongs
-    ds.findSubSongs(DIV_MAX_CHANS);
+    ds.recalcChans();
+    ds.findSubSongs();
 
     // populate subsongs with default panning values
     if (masterVol&128) { // only in stereo mode
@@ -1215,7 +1216,6 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     song.unload();
     song=ds;
     changeSong(0);
-    recalcChans();
     saveLock.unlock();
     BUSY_END;
     if (active) {

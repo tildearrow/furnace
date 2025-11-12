@@ -274,6 +274,7 @@ struct DivSong {
   bool isDMF;
 
   // system
+  int chans;
   DivSystem system[DIV_MAX_CHIPS];
   unsigned short systemChans[DIV_MAX_CHIPS];
   unsigned char systemLen;
@@ -396,10 +397,17 @@ struct DivSong {
   DivWavetable nullWave;
   DivSample nullSample;
 
+  DivSystem sysOfChan[DIV_MAX_CHANS];
+  int dispatchOfChan[DIV_MAX_CHANS];
+  int dispatchChanOfChan[DIV_MAX_CHANS];
+  int dispatchFirstChan[DIV_MAX_CHANS];
+
+  std::vector<DivInstrumentType> possibleInsTypes;
+
   /**
    * find data past 0Bxx effects and place that into new sub-songs.
    */
-  void findSubSongs(int chans);
+  void findSubSongs();
 
   /**
    * clear orders and patterns.
@@ -422,6 +430,12 @@ struct DivSong {
   void clearSamples();
 
   /**
+   * recalculate channel count and internal state.
+   " call after editing system[] or systemChans[].
+   */
+  void recalcChans();
+
+  /**
    * unloads the song, freeing all memory associated with it.
    * use before destroying the object.
    */
@@ -430,6 +444,7 @@ struct DivSong {
   DivSong():
     version(0),
     isDMF(false),
+    chans(0),
     systemLen(2),
     name(""),
     author(""),
@@ -508,6 +523,11 @@ struct DivSong {
     oldAlwaysSetVolume(false),
     oldSampleOffset(false),
     oldCenterRate(true) {
+    memset(dispatchFirstChan,0,DIV_MAX_CHANS*sizeof(int));
+    memset(dispatchChanOfChan,0,DIV_MAX_CHANS*sizeof(int));
+    memset(dispatchOfChan,0,DIV_MAX_CHANS*sizeof(int));
+    memset(sysOfChan,0,DIV_MAX_CHANS*sizeof(int));
+
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemChans[i]=0;
@@ -654,6 +674,8 @@ struct DivSong {
     nullInsESFM.fm.op[3].sl=15;
     nullInsESFM.fm.op[3].rr=9;
     nullInsESFM.fm.op[3].mult=1;
+
+    recalcChans();
   }
 };
 

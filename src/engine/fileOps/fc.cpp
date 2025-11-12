@@ -664,6 +664,8 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     ds.subsong[0]->optimizePatterns();
     ds.subsong[0]->rearrangePatterns();
 
+    ds.recalcChans();
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();

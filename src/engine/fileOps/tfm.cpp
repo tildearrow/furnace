@@ -704,13 +704,14 @@ bool DivEngine::loadTFMv1(unsigned char* file, size_t len) {
     info.loopPos=loopPos;
     TFMParsePattern(info);
 
+    ds.recalcChans();
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
     song.unload();
     song=ds;
     changeSong(0);
-    recalcChans();
     saveLock.unlock();
     BUSY_END;
     if (active) {
@@ -904,13 +905,14 @@ bool DivEngine::loadTFMv2(unsigned char* file, size_t len) {
     info.loopPos=loopPos;
     TFMParsePattern(info);
 
+    ds.recalcChans();
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
     song.unload();
     song=ds;
     changeSong(0);
-    recalcChans();
     saveLock.unlock();
     BUSY_END;
     if (active) {

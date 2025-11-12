@@ -463,7 +463,6 @@ class DivEngine {
   TAAudioDesc want, got;
   String exportPath;
   std::thread* exportThread;
-  int chans;
   bool configLoaded;
   bool active;
   bool lowQuality;
@@ -546,7 +545,6 @@ class DivEngine {
   std::vector<String> midiIns;
   std::vector<String> midiOuts;
   std::vector<DivCommand> cmdStream;
-  std::vector<DivInstrumentType> possibleInsTypes;
   std::vector<DivEffectContainer> effectInst;
   std::vector<int> curChanMask;
   static DivSysDef* sysDefs[DIV_MAX_CHIP_DEFS];
@@ -625,7 +623,6 @@ class DivEngine {
   bool perSystemEffect(int ch, unsigned char effect, unsigned char effectVal);
   bool perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal);
   bool perSystemPreEffect(int ch, unsigned char effect, unsigned char effectVal);
-  void recalcChans();
   void reset();
   void playSub(bool preserveDrift, int goalRow=0);
   void runMidiClock(int totalCycles=1);
@@ -716,10 +713,6 @@ class DivEngine {
     DivChannelData* curPat;
     DivSubSong* curSubSong;
     DivInstrument* tempIns;
-    DivSystem sysOfChan[DIV_MAX_CHANS];
-    int dispatchOfChan[DIV_MAX_CHANS];
-    int dispatchChanOfChan[DIV_MAX_CHANS];
-    int dispatchFirstChan[DIV_MAX_CHANS];
     bool keyHit[DIV_MAX_CHANS];
     float* oscBuf[DIV_MAX_OUTPUTS];
     float oscSize;
@@ -953,7 +946,7 @@ class DivEngine {
     const char* getSystemNameJ(DivSystem sys);
 
     // get sys definition
-    const DivSysDef* getSystemDef(DivSystem sys);
+    static const DivSysDef* getSystemDef(DivSystem sys);
 
     // get ROM export definition
     const DivROMExportDef* getROMExportDef(DivROMExportOptions opt);
@@ -1456,7 +1449,6 @@ class DivEngine {
     DivEngine():
       output(NULL),
       exportThread(NULL),
-      chans(0),
       configLoaded(false),
       active(false),
       lowQuality(false),
@@ -1591,10 +1583,6 @@ class DivEngine {
       mu5ROM(NULL) {
       memset(isMuted,0,DIV_MAX_CHANS*sizeof(bool));
       memset(keyHit,0,DIV_MAX_CHANS*sizeof(bool));
-      memset(dispatchFirstChan,0,DIV_MAX_CHANS*sizeof(int));
-      memset(dispatchChanOfChan,0,DIV_MAX_CHANS*sizeof(int));
-      memset(dispatchOfChan,0,DIV_MAX_CHANS*sizeof(int));
-      memset(sysOfChan,0,DIV_MAX_CHANS*sizeof(int));
       memset(vibTable,0,64*sizeof(short));
       memset(tremTable,0,128*sizeof(short));
       memset(effectSlotMap,-1,4096*sizeof(short));

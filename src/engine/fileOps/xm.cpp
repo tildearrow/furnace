@@ -1377,7 +1377,8 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
     }
 
     // find subsongs
-    ds.findSubSongs(totalChans);
+    ds.recalcChans();
+    ds.findSubSongs();
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
@@ -1385,7 +1386,6 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
     song.unload();
     song=ds;
     changeSong(0);
-    recalcChans();
     saveLock.unlock();
     BUSY_END;
     if (active) {

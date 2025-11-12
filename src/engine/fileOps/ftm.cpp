@@ -2802,13 +2802,14 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
       }
     }
 
+    ds.recalcChans();
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
     song.unload();
     song=ds;
     changeSong(0);
-    recalcChans();
     saveLock.unlock();
     BUSY_END;
     if (active) {

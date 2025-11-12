@@ -574,7 +574,7 @@ void DivSubSong::makePatUnique() {
   }
 }
 
-void DivSong::findSubSongs(int chans) {
+void DivSong::findSubSongs() {
   std::vector<DivSubSong*> newSubSongs;
   for (DivSubSong* i: subsong) {
     std::vector<int> subSongStart;
@@ -689,8 +689,49 @@ void DivSong::findSubSongs(int chans) {
   for (DivSubSong* i: newSubSongs) {
     subsong.push_back(i);
   }
-
 }
+
+void DivSong::recalcChans() {
+  bool isInsTypePossible[DIV_INS_MAX];
+  chans=0;
+  int chanIndex=0;
+  memset(isInsTypePossible,0,DIV_INS_MAX*sizeof(bool));
+  for (int i=0; i<systemLen; i++) {
+    int chanCount=systemChans[i];
+    int firstChan=chans;
+    chans+=chanCount;
+    for (int j=0; j<chanCount; j++) {
+      sysOfChan[chanIndex]=system[i];
+      dispatchOfChan[chanIndex]=i;
+      dispatchChanOfChan[chanIndex]=j;
+      dispatchFirstChan[chanIndex]=firstChan;
+      chanIndex++;
+
+      DivSysDef* sysDef=DivEngine::getSystemDef(system[i]);
+      if (sysDef!=NULL) {
+        if (sysDef->chanInsType[j][0]!=DIV_INS_NULL) {
+          isInsTypePossible[sysDef->chanInsType[j][0]]=true;
+        }
+
+        if (sysDef->chanInsType[j][1]!=DIV_INS_NULL) {
+          isInsTypePossible[sysDef->chanInsType[j][1]]=true;
+        }
+      }
+    }
+  }
+
+  possibleInsTypes.clear();
+  for (int i=0; i<DIV_INS_MAX; i++) {
+    if (isInsTypePossible[i]) possibleInsTypes.push_back((DivInstrumentType)i);
+  }
+
+  checkAssetDir(insDir,ins.size());
+  checkAssetDir(waveDir,wave.size());
+  checkAssetDir(sampleDir,sample.size());
+
+  hasLoadedSomething=true;
+}
+
 
 void DivSong::clearSongData() {
   for (DivSubSong* i: subsong) {
