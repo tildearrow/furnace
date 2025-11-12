@@ -219,6 +219,7 @@ struct DivSubSong {
   unsigned char chanCollapse[DIV_MAX_CHANS];
   String chanName[DIV_MAX_CHANS];
   String chanShortName[DIV_MAX_CHANS];
+  unsigned int chanColor[DIV_MAX_CHANS];
 
   // song timestamps
   DivSongTimestamps ts;
@@ -249,6 +250,7 @@ struct DivSubSong {
       chanShow[i]=true;
       chanShowChanOsc[i]=true;
       chanCollapse[i]=0;
+      chanColor[i]=0;
     }
   }
 };

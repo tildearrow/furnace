@@ -942,7 +942,7 @@ ImVec4 FurnaceGUI::channelColor(int ch) {
       return uiColors[GUI_COLOR_CHANNEL_BG];
       break;
     case 1:
-      return uiColors[GUI_COLOR_CHANNEL_FM+e->getChannelType(ch)];
+      return e->curSubSong->chanColor[ch]?ImGui::ColorConvertU32ToFloat4(e->curSubSong->chanColor[ch]):uiColors[GUI_COLOR_CHANNEL_FM+e->getChannelType(ch)];
       break;
     case 2:
       return uiColors[GUI_COLOR_INSTR_STD+e->getPreferInsType(ch)];
