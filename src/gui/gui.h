@@ -3102,7 +3102,7 @@ class FurnaceGUI {
   bool importConfig(String path);
   bool exportConfig(String path);
 
-  float computeGradPos(int type, int chan);
+  float computeGradPos(int type, int chan, int totalChans);
 
   void resetColors();
   void resetKeybinds();

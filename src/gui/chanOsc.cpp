@@ -56,7 +56,7 @@ static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   }
 }
 
-float FurnaceGUI::computeGradPos(int type, int chan) {
+float FurnaceGUI::computeGradPos(int type, int chan, int totalChans) {
   switch (type) {
     case GUI_OSCREF_NONE:
       return 0.0f;
@@ -74,7 +74,7 @@ float FurnaceGUI::computeGradPos(int type, int chan) {
       return chanOscVol[chan];
       break;
     case GUI_OSCREF_CHANNEL:
-      return (float)chan/(float)(e->getTotalChannelCount()-1);
+      return (float)chan/(float)(totalChans-1);
       break;
     case GUI_OSCREF_BRIGHT:
       return chanOscBright[chan];
@@ -798,8 +798,8 @@ void FurnaceGUI::drawChanOsc() {
               }
               ImU32 color=ImGui::GetColorU32(chanOscUseChanColor?channelColor(oscChans[i]):chanOscColor);
               if (chanOscUseGrad) {
-                float xVal=computeGradPos(chanOscColorX,ch);
-                float yVal=computeGradPos(chanOscColorY,ch);
+                float xVal=computeGradPos(chanOscColorX,ch,oscBufs.size());
+                float yVal=computeGradPos(chanOscColorY,ch,oscBufs.size());
 
                 xVal=CLAMP(xVal,0.0f,1.0f);
                 yVal=CLAMP(yVal,0.0f,1.0f);
