@@ -988,6 +988,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
     }
 
+    // TODO: don't call this
+    ds.initDefaultSystemChans();
+
     ds.name=reader.readString();
     ds.author=reader.readString();
     logI("%s by %s",ds.name.c_str(),ds.author.c_str());
@@ -1947,7 +1950,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
     }
 
-    // SrgaPCM slide compat
+    // SegaPCM slide compat
     if (ds.version<153) {
       for (int i=0; i<ds.systemLen; i++) {
         if (ds.system[i]==DIV_SYSTEM_SEGAPCM || ds.system[i]==DIV_SYSTEM_SEGAPCM_COMPAT) {

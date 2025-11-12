@@ -999,7 +999,8 @@ bool DivEngine::changeSystem(int index, DivSystem which, bool preserveOrder) {
     lastError=_("invalid index");
     return false;
   }
-  if (song.chans-getChannelCount(song.system[index])+getChannelCount(which)>DIV_MAX_CHANS) {
+  unsigned short newChanCount=getChannelCount(which);
+  if (song.chans-song.systemChans[index]+newChanCount>DIV_MAX_CHANS) {
     lastError=fmt::sprintf(_("max number of total channels is %d"),DIV_MAX_CHANS);
     return false;
   }
@@ -1011,9 +1012,9 @@ bool DivEngine::changeSystem(int index, DivSystem which, bool preserveOrder) {
 
   if (!preserveOrder) {
     int firstChan=0;
-    int chanMovement=getChannelCount(which)-getChannelCount(song.system[index]);
+    int chanMovement=newChanCount-song.systemChans[index];
     while (song.dispatchOfChan[firstChan]!=index) firstChan++;
-    int lastChan=firstChan+getChannelCount(song.system[index]);
+    int lastChan=firstChan+song.systemChans[index];
     if (chanMovement!=0) {
       if (chanMovement>0) {
         // add channels
@@ -1036,7 +1037,7 @@ bool DivEngine::changeSystem(int index, DivSystem which, bool preserveOrder) {
   }
 
   song.system[index]=which;
-  song.systemChans[index]=getChannelCount(which);
+  song.systemChans[index]=newChanCount;
   song.systemFlags[index].clear();
   song.recalcChans();
   saveLock.unlock();
@@ -1110,7 +1111,7 @@ bool DivEngine::duplicateSystem(int index, bool pat, bool end) {
     lastError=fmt::sprintf(_("max number of systems is %d"),DIV_MAX_CHIPS);
     return false;
   }
-  if (song.chans+getChannelCount(song.system[index])>DIV_MAX_CHANS) {
+  if (song.chans+song.systemChans[index]>DIV_MAX_CHANS) {
     lastError=fmt::sprintf(_("max number of total channels is %d"),DIV_MAX_CHANS);
     return false;
   }
@@ -1155,13 +1156,13 @@ bool DivEngine::duplicateSystem(int index, bool pat, bool end) {
     int srcChan=0;
     int destChan=0;
     for (int i=0; i<index; i++) {
-      srcChan+=getChannelCount(song.system[i]);
+      srcChan+=song.systemChans[i];
     }
     for (int i=0; i<song.systemLen-1; i++) {
-      destChan+=getChannelCount(song.system[i]);
+      destChan+=song.systemChans[i];
     }
     for (DivSubSong* i: song.subsong) {
-      for (int j=0; j<getChannelCount(song.system[index]); j++) {
+      for (int j=0; j<song.systemChans[index]; j++) {
         i->pat[destChan+j].effectCols=i->pat[srcChan+j].effectCols;
         i->chanShow[destChan+j]=i->chanShow[srcChan+j];
         i->chanShowChanOsc[destChan+j]=i->chanShowChanOsc[srcChan+j];
@@ -1224,11 +1225,11 @@ bool DivEngine::removeSystem(int index, bool preserveOrder) {
   if (!preserveOrder) {
     int firstChan=0;
     while (song.dispatchOfChan[firstChan]!=index) firstChan++;
-    for (int i=0; i<getChannelCount(song.system[index]); i++) {
+    for (int i=0; i<song.systemChans[index]; i++) {
       stompChannel(i+firstChan);
     }
-    for (int i=firstChan+getChannelCount(song.system[index]); i<chanCount; i++) {
-      swapChannels(i,i-getChannelCount(song.system[index]));
+    for (int i=firstChan+song.systemChans[index]; i<chanCount; i++) {
+      swapChannels(i,i-song.systemChans[index]);
     }
   }
 
@@ -1272,7 +1273,7 @@ void DivEngine::swapSystemUnsafe(int src, int dest, bool preserveOrder) {
     int tchans=0;
 
     for (int i=0; i<song.systemLen; i++) {
-      tchans+=getChannelCount(song.system[i]);
+      tchans+=song.systemChans[i];
     }
 
     memset(unswappedChannels,0,DIV_MAX_CHANS);
@@ -1287,7 +1288,7 @@ void DivEngine::swapSystemUnsafe(int src, int dest, bool preserveOrder) {
     if (song.systemLen>0) swapList.reserve(song.systemLen);
     for (int i=0; i<song.systemLen; i++) {
       chanList.clear();
-      const int channelCount=getChannelCount(song.system[i]);
+      const int channelCount=song.systemChans[i];
       if (channelCount>0) chanList.reserve(channelCount);
       for (int j=0; j<channelCount; j++) {
         chanList.push_back(index);
@@ -3918,7 +3919,7 @@ void DivEngine::initDispatch(bool isRender) {
   }
 
   for (int i=0; i<song.systemLen; i++) {
-    disCont[i].init(song.system[i],this,getChannelCount(song.system[i]),got.rate,song.systemFlags[i],isRender);
+    disCont[i].init(song.system[i],this,song.systemChans[i],got.rate,song.systemFlags[i],isRender);
     disCont[i].setRates(got.rate);
     disCont[i].setQuality(lowQuality,dcHiPass);
   }
