@@ -360,7 +360,10 @@ void FurnaceGUI::drawChanOsc() {
         }
       } else {
         ImGui::SetNextItemWidth(400.0f*dpiScale);
+        ImGui::BeginDisabled(chanOscUseChanColor);
         ImGui::ColorPicker4(_("Color"),(float*)&chanOscColor);
+        ImGui::EndDisabled();
+        ImGui::Checkbox(_("Set to channel color"), &chanOscUseChanColor);
       }
 
       ImGui::AlignTextToFramePadding();
@@ -793,7 +796,7 @@ void FurnaceGUI::drawChanOsc() {
                   }
                 }
               }
-              ImU32 color=ImGui::GetColorU32(chanOscColor);
+              ImU32 color=ImGui::GetColorU32(chanOscUseChanColor?channelColor(oscChans[i]):chanOscColor);
               if (chanOscUseGrad) {
                 float xVal=computeGradPos(chanOscColorX,ch);
                 float yVal=computeGradPos(chanOscColorY,ch);
