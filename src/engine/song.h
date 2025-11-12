@@ -430,8 +430,14 @@ struct DivSong {
   void clearSamples();
 
   /**
+   * set systemChans[] to default values.
+   * call recalcChans() afterwards.
+   */
+  void initDefaultSystemChans();
+
+  /**
    * recalculate channel count and internal state.
-   " call after editing system[] or systemChans[].
+   * call after editing system[] or systemChans[].
    */
   void recalcChans();
 
@@ -538,6 +544,8 @@ struct DivSong {
     subsong.push_back(new DivSubSong);
     system[0]=DIV_SYSTEM_YM2612;
     system[1]=DIV_SYSTEM_SMS;
+    systemChans[0]=6;
+    systemChans[1]=4;
 
     // OPLL default instrument contest winner - piano_guitar_idk by Weeppiko
     nullInsOPLL.type=DIV_INS_OPLL;

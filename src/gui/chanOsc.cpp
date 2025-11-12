@@ -868,15 +868,15 @@ void FurnaceGUI::drawChanOsc() {
                         break;
                       }
                       case 's': {
-                        text+=e->getSystemName(e->sysOfChan[ch]);
+                        text+=e->getSystemName(e->song.sysOfChan[ch]);
                         break;
                       }
                       case 'p': {
-                        text+=FurnaceGUI::getSystemPartNumber(e->sysOfChan[ch],e->song.systemFlags[e->dispatchOfChan[ch]]);
+                        text+=FurnaceGUI::getSystemPartNumber(e->song.sysOfChan[ch],e->song.systemFlags[e->song.dispatchOfChan[ch]]);
                         break;
                       }
                       case 'S': {
-                        text+=fmt::sprintf("%d",e->dispatchOfChan[ch]);
+                        text+=fmt::sprintf("%d",e->song.dispatchOfChan[ch]);
                         break;
                       }
                       case 'v': {

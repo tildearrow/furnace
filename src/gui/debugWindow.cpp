@@ -118,11 +118,11 @@ void FurnaceGUI::drawDebug() {
       ImGui::Columns(e->getTotalChannelCount());
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         void* ch=e->getDispatchChanState(i);
-        ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],"Ch. %d: %d, %d",i,e->dispatchOfChan[i],e->dispatchChanOfChan[i]);
+        ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],"Ch. %d: %d, %d",i,e->song.dispatchOfChan[i],e->song.dispatchChanOfChan[i]);
         if (ch==NULL) {
           ImGui::Text("NULL");
         } else {
-          putDispatchChan(ch,e->dispatchChanOfChan[i],e->sysOfChan[i]);
+          putDispatchChan(ch,e->song.dispatchChanOfChan[i],e->song.sysOfChan[i]);
         }
         ImGui::NextColumn();
       }

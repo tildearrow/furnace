@@ -1458,7 +1458,7 @@ void FurnaceGUI::drawPattern() {
 
           for (int j=0; j<8; j++) {
             if (pair.pairs[j]==-1) continue;
-            int pairCh=e->dispatchFirstChan[i]+pair.pairs[j];
+            int pairCh=e->song.dispatchFirstChan[i]+pair.pairs[j];
             if (!e->curSubSong->chanShow[pairCh]) {
               continue;
             }
@@ -1514,7 +1514,7 @@ void FurnaceGUI::drawPattern() {
 
           for (int j=0; j<8; j++) {
             if (pair.pairs[j]==-1) continue;
-            int pairCh=e->dispatchFirstChan[i]+pair.pairs[j];
+            int pairCh=e->song.dispatchFirstChan[i]+pair.pairs[j];
             if (!e->curSubSong->chanShow[pairCh]) {
               continue;
             }

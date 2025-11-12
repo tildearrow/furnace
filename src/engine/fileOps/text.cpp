@@ -302,7 +302,7 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
 
     for (int j=0; j<s->ordersLen; j++) {
       w->writeText(fmt::sprintf("%.2X |",j));
-      for (int k=0; k<chans; k++) {
+      for (int k=0; k<song.chans; k++) {
         w->writeText(fmt::sprintf(" %.2X",s->orders.ord[k][j]));
       }
       w->writeText("\n");
@@ -318,7 +318,7 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
         for (int k=0; k<s->patLen; k++) {
           w->writeText(fmt::sprintf("%.2X ",k));
 
-          for (int l=0; l<chans; l++) {
+          for (int l=0; l<song.chans; l++) {
             DivPattern* p=s->pat[l].getPattern(s->orders.ord[l][j],false);
             short note, octave;
             noteToSplitNote(p->newData[k][DIV_PAT_NOTE],note,octave);

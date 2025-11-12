@@ -22,6 +22,7 @@
 #include "engine.h"
 #include <fmt/printf.h>
 
+// TODO: this function could be in DivSong instead
 bool DivEngine::convertLegacySampleMode() {
   logD("converting legacy sample mode...");
   int legacyInsInit=-1;
@@ -114,7 +115,7 @@ bool DivEngine::convertLegacySampleMode() {
   };
 
   for (DivSubSong* h: song.subsong) {
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       // 0: sample off
       // 1: legacy mode
       // 2: normal mode
@@ -125,11 +126,11 @@ bool DivEngine::convertLegacySampleMode() {
       bool noteOffDisablesSampleMode=false;
       bool hasLegacyToggle=false;
 
-      switch (sysOfChan[i]) {
+      switch (song.sysOfChan[i]) {
         case DIV_SYSTEM_NES:
         case DIV_SYSTEM_5E01:
           // NES PCM channel (on by default)
-          if (dispatchChanOfChan[i]!=4) {
+          if (song.dispatchChanOfChan[i]!=4) {
             continue;
           }
           sampleMode=1;
@@ -137,14 +138,14 @@ bool DivEngine::convertLegacySampleMode() {
           break;
         case DIV_SYSTEM_MMC5:
           // MMC5 PCM channel
-          if (dispatchChanOfChan[i]!=2) {
+          if (song.dispatchChanOfChan[i]!=2) {
             continue;
           }
           sampleMode=1;
           break;
         case DIV_SYSTEM_YM2612:
           // YM2612 DAC channel
-          if (dispatchChanOfChan[i]!=5) {
+          if (song.dispatchChanOfChan[i]!=5) {
             continue;
           }
           hasLegacyToggle=true;
@@ -152,7 +153,7 @@ bool DivEngine::convertLegacySampleMode() {
         case DIV_SYSTEM_YM2612_EXT:
         case DIV_SYSTEM_YM2612_CSM:
           // YM2612 DAC channel
-          if (dispatchChanOfChan[i]!=8) {
+          if (song.dispatchChanOfChan[i]!=8) {
             continue;
           }
           hasLegacyToggle=true;
@@ -170,7 +171,7 @@ bool DivEngine::convertLegacySampleMode() {
         case DIV_SYSTEM_YM2610:
         case DIV_SYSTEM_YM2610_FULL:
           // Neo Geo CD ADPCM channels
-          if (dispatchChanOfChan[i]<7) {
+          if (song.dispatchChanOfChan[i]<7) {
             continue;
           }
           sampleMode=1;
@@ -180,7 +181,7 @@ bool DivEngine::convertLegacySampleMode() {
         case DIV_SYSTEM_YM2610_EXT:
         case DIV_SYSTEM_YM2610_FULL_EXT:
           // Neo Geo CD ADPCM channels
-          if (dispatchChanOfChan[i]<10) {
+          if (song.dispatchChanOfChan[i]<10) {
             continue;
           }
           sampleMode=1;
@@ -189,7 +190,7 @@ bool DivEngine::convertLegacySampleMode() {
           break;
         case DIV_SYSTEM_YM2612_DUALPCM:
           // DualPCM DAC
-          if (dispatchChanOfChan[i]<5) {
+          if (song.dispatchChanOfChan[i]<5) {
             continue;
           }
           sampleMode=1;
@@ -197,7 +198,7 @@ bool DivEngine::convertLegacySampleMode() {
           break;
         case DIV_SYSTEM_YM2612_DUALPCM_EXT:
           // DualPCM DAC
-          if (dispatchChanOfChan[i]<8 || dispatchChanOfChan[i]>9) {
+          if (song.dispatchChanOfChan[i]<8 || song.dispatchChanOfChan[i]>9) {
             continue;
           }
           sampleMode=1;
@@ -205,7 +206,7 @@ bool DivEngine::convertLegacySampleMode() {
           break;
         case DIV_SYSTEM_YM2610_CSM:
           // Neo Geo CD ADPCM channels
-          if (dispatchChanOfChan[i]<11) {
+          if (song.dispatchChanOfChan[i]<11) {
             continue;
           }
           sampleMode=1;
@@ -214,7 +215,7 @@ bool DivEngine::convertLegacySampleMode() {
           break;
         case DIV_SYSTEM_YM2610B:
           // ADPCM channels
-          if (dispatchChanOfChan[i]<9) {
+          if (song.dispatchChanOfChan[i]<9) {
             continue;
           }
           sampleMode=1;
@@ -223,7 +224,7 @@ bool DivEngine::convertLegacySampleMode() {
           break;
         case DIV_SYSTEM_YM2610B_EXT:
           // ADPCM channels
-          if (dispatchChanOfChan[i]<12) {
+          if (song.dispatchChanOfChan[i]<12) {
             continue;
           }
           sampleMode=1;
@@ -232,7 +233,7 @@ bool DivEngine::convertLegacySampleMode() {
           break;
         case DIV_SYSTEM_YM2610B_CSM:
           // ADPCM channels
-          if (dispatchChanOfChan[i]<13) {
+          if (song.dispatchChanOfChan[i]<13) {
             continue;
           }
           sampleMode=1;
@@ -241,7 +242,7 @@ bool DivEngine::convertLegacySampleMode() {
           break;
         case DIV_SYSTEM_YM2608:
           // ADPCM channel
-          if (dispatchChanOfChan[i]!=15) {
+          if (song.dispatchChanOfChan[i]!=15) {
             continue;
           }
           sampleMode=1;
@@ -249,7 +250,7 @@ bool DivEngine::convertLegacySampleMode() {
           break;
         case DIV_SYSTEM_YM2608_EXT:
           // ADPCM channel
-          if (dispatchChanOfChan[i]!=18) {
+          if (song.dispatchChanOfChan[i]!=18) {
             continue;
           }
           sampleMode=1;
@@ -257,7 +258,7 @@ bool DivEngine::convertLegacySampleMode() {
           break;
         case DIV_SYSTEM_YM2608_CSM:
           // ADPCM channel
-          if (dispatchChanOfChan[i]!=19) {
+          if (song.dispatchChanOfChan[i]!=19) {
             continue;
           }
           sampleMode=1;
@@ -279,21 +280,21 @@ bool DivEngine::convertLegacySampleMode() {
           break;
         case DIV_SYSTEM_Y8950:
           // Y8950 ADPCM
-          if (dispatchChanOfChan[i]!=9) {
+          if (song.dispatchChanOfChan[i]!=9) {
             continue;
           }
           sampleMode=1;
           break;
         case DIV_SYSTEM_Y8950_DRUMS:
           // Y8950 ADPCM
-          if (dispatchChanOfChan[i]!=11) {
+          if (song.dispatchChanOfChan[i]!=11) {
             continue;
           }
           sampleMode=1;
           break;
         case DIV_SYSTEM_SWAN:
           // PCM channel
-          if (dispatchChanOfChan[i]!=1) {
+          if (song.dispatchChanOfChan[i]!=1) {
             continue;
           }
           noteOffDisablesSampleMode=true;
@@ -301,7 +302,7 @@ bool DivEngine::convertLegacySampleMode() {
           break;
         case DIV_SYSTEM_VRC6:
           // pulse DAC mode
-          if (dispatchChanOfChan[i]>=2) {
+          if (song.dispatchChanOfChan[i]>=2) {
             continue;
           }
           hasLegacyToggle=true;

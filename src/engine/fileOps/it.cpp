@@ -1675,6 +1675,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     ds.systemName="PC";
 
     // find subsongs
+    ds.initDefaultSystemChans();
     ds.recalcChans();
     ds.findSubSongs();
 
@@ -1708,6 +1709,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     saveLock.lock();
     song.unload();
     song=ds;
+    hasLoadedSomething=true;
     changeSong(0);
     saveLock.unlock();
     BUSY_END;

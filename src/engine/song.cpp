@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "song.h"
+#include "engine.h"
 #include "../ta-log.h"
 #include <inttypes.h>
 #include <chrono>
@@ -691,7 +691,20 @@ void DivSong::findSubSongs() {
   }
 }
 
+void DivSong::initDefaultSystemChans() {
+  for (int i=0; i<systemLen; i++) {
+    const DivSysDef* sysDef=DivEngine::getSystemDef(system[i]);
+    if (sysDef==NULL) {
+      systemChans[i]=0;
+    } else {
+      systemChans[i]=sysDef->channels;
+    }
+  }
+}
+
 void DivSong::recalcChans() {
+  logV("DivSong: recalcChans() called");
+
   bool isInsTypePossible[DIV_INS_MAX];
   chans=0;
   int chanIndex=0;
@@ -707,7 +720,7 @@ void DivSong::recalcChans() {
       dispatchFirstChan[chanIndex]=firstChan;
       chanIndex++;
 
-      DivSysDef* sysDef=DivEngine::getSystemDef(system[i]);
+      const DivSysDef* sysDef=DivEngine::getSystemDef(system[i]);
       if (sysDef!=NULL) {
         if (sysDef->chanInsType[j][0]!=DIV_INS_NULL) {
           isInsTypePossible[sysDef->chanInsType[j][0]]=true;
@@ -729,9 +742,8 @@ void DivSong::recalcChans() {
   checkAssetDir(waveDir,wave.size());
   checkAssetDir(sampleDir,sample.size());
 
-  hasLoadedSomething=true;
+  logV("%d channels (%d chips)",chans,systemLen);
 }
-
 
 void DivSong::clearSongData() {
   for (DivSubSong* i: subsong) {

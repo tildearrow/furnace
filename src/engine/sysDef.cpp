@@ -51,11 +51,11 @@ int DivEngine::getChannelCount(DivSystem sys) {
 }
 
 int DivEngine::getTotalChannelCount() {
-  return chans;
+  return song.chans;
 }
 
 std::vector<DivInstrumentType>& DivEngine::getPossibleInsTypes() {
-  return possibleInsTypes;
+  return song.possibleInsTypes;
 }
 
 // for pre-dev103 modules
@@ -311,41 +311,41 @@ bool DivEngine::isSTDSystem(DivSystem sys) {
 }
 
 const char* DivEngine::getChannelName(int chan) {
-  if (chan<0 || chan>chans) return "??";
+  if (chan<0 || chan>song.chans) return "??";
   if (!curSubSong->chanName[chan].empty()) return curSubSong->chanName[chan].c_str();
-  if (sysDefs[sysOfChan[chan]]==NULL) return "??";
+  if (sysDefs[song.sysOfChan[chan]]==NULL) return "??";
   
-  const char* ret=sysDefs[sysOfChan[chan]]->chanNames[dispatchChanOfChan[chan]];
+  const char* ret=sysDefs[song.sysOfChan[chan]]->chanNames[song.dispatchChanOfChan[chan]];
   if (ret==NULL) return "??";
   return ret;
 }
 
 const char* DivEngine::getChannelShortName(int chan) {
-  if (chan<0 || chan>chans) return "??";
+  if (chan<0 || chan>song.chans) return "??";
   if (!curSubSong->chanShortName[chan].empty()) return curSubSong->chanShortName[chan].c_str();
-  if (sysDefs[sysOfChan[chan]]==NULL) return "??";
+  if (sysDefs[song.sysOfChan[chan]]==NULL) return "??";
   
-  const char* ret=sysDefs[sysOfChan[chan]]->chanShortNames[dispatchChanOfChan[chan]];
+  const char* ret=sysDefs[song.sysOfChan[chan]]->chanShortNames[song.dispatchChanOfChan[chan]];
   if (ret==NULL) return "??";
   return ret;
 }
 
 int DivEngine::getChannelType(int chan) {
-  if (chan<0 || chan>chans) return DIV_CH_NOISE;
-  if (sysDefs[sysOfChan[chan]]==NULL) return DIV_CH_NOISE;
-  return sysDefs[sysOfChan[chan]]->chanTypes[dispatchChanOfChan[chan]];
+  if (chan<0 || chan>song.chans) return DIV_CH_NOISE;
+  if (sysDefs[song.sysOfChan[chan]]==NULL) return DIV_CH_NOISE;
+  return sysDefs[song.sysOfChan[chan]]->chanTypes[song.dispatchChanOfChan[chan]];
 }
 
 DivInstrumentType DivEngine::getPreferInsType(int chan) {
-  if (chan<0 || chan>chans) return DIV_INS_STD;
-  if (sysDefs[sysOfChan[chan]]==NULL) return DIV_INS_STD;
-  return sysDefs[sysOfChan[chan]]->chanInsType[dispatchChanOfChan[chan]][0];
+  if (chan<0 || chan>song.chans) return DIV_INS_STD;
+  if (sysDefs[song.sysOfChan[chan]]==NULL) return DIV_INS_STD;
+  return sysDefs[song.sysOfChan[chan]]->chanInsType[song.dispatchChanOfChan[chan]][0];
 }
 
 DivInstrumentType DivEngine::getPreferInsSecondType(int chan) {
-  if (chan<0 || chan>chans) return DIV_INS_NULL;
-  if (sysDefs[sysOfChan[chan]]==NULL) return DIV_INS_NULL;
-  return sysDefs[sysOfChan[chan]]->chanInsType[dispatchChanOfChan[chan]][1];
+  if (chan<0 || chan>song.chans) return DIV_INS_NULL;
+  if (sysDefs[song.sysOfChan[chan]]==NULL) return DIV_INS_NULL;
+  return sysDefs[song.sysOfChan[chan]]->chanInsType[song.dispatchChanOfChan[chan]][1];
 }
 
 int DivEngine::minVGMVersion(DivSystem which) {

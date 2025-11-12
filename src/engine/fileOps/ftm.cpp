@@ -2802,6 +2802,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
       }
     }
 
+    ds.initDefaultSystemChans();
     ds.recalcChans();
 
     if (active) quitDispatch();
@@ -2809,6 +2810,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
     saveLock.lock();
     song.unload();
     song=ds;
+    hasLoadedSomething=true;
     changeSong(0);
     saveLock.unlock();
     BUSY_END;

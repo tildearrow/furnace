@@ -1168,6 +1168,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     }
 
     ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
+    ds.initDefaultSystemChans();
     ds.recalcChans();
 
     if (active) quitDispatch();
@@ -1175,6 +1176,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     saveLock.lock();
     song.unload();
     song=ds;
+    hasLoadedSomething=true;
     changeSong(0);
     // always convert to normal sample mode (I have no idea how will I do export)
     convertLegacySampleMode();

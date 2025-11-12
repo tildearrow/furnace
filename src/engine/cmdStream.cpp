@@ -704,7 +704,7 @@ bool DivCSPlayer::init() {
 
   // initialize state
   for (int i=0; i<e->getTotalChannelCount(); i++) {
-    chan[i].volMax=(e->getDispatch(e->dispatchOfChan[i])->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,e->dispatchChanOfChan[i]))<<8)|0xff;
+    chan[i].volMax=(e->getDispatch(e->song.dispatchOfChan[i])->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,e->song.dispatchChanOfChan[i]))<<8)|0xff;
     chan[i].volume=chan[i].volMax;
   }
 

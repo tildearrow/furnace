@@ -2136,6 +2136,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
     saveLock.lock();
     song.unload();
     song=ds;
+    hasLoadedSomething=true;
     changeSong(0);
     // removal of legacy sample mode
     if (song.version<239) {

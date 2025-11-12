@@ -2689,8 +2689,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   bool alreadyWroteLoop=false;
   int ord=-1;
   int exportChans=0;
-  for (int i=0; i<chans; i++) {
-    if (!willExport[dispatchOfChan[i]]) continue;
+  for (int i=0; i<song.chans; i++) {
+    if (!willExport[song.dispatchOfChan[i]]) continue;
     exportChans++;
     chan[i].wentThroughNote=false;
     chan[i].goneThroughNote=false;
@@ -2710,8 +2710,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       if (trailing) beenOneLoopAlready=true;
       trailing=true;
       if (!loop) countDown=0;
-      for (int i=0; i<chans; i++) {
-        if (!willExport[dispatchOfChan[i]]) continue;
+      for (int i=0; i<song.chans; i++) {
+        if (!willExport[song.dispatchOfChan[i]]) continue;
         chan[i].wentThroughNote=false;
       }
     }
@@ -2719,8 +2719,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       switch (trailingTicks) {
         case -1: { // automatic
           bool stillHaveTo=false;
-          for (int i=0; i<chans; i++) {
-            if (!willExport[dispatchOfChan[i]]) continue;
+          for (int i=0; i<song.chans; i++) {
+            if (!willExport[song.dispatchOfChan[i]]) continue;
             if (!chan[i].goneThroughNote) continue;
             if (!chan[i].wentThroughNote) {
               stillHaveTo=true;
@@ -2777,8 +2777,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           w->writeC(0x01);
           w->writeC(prevOrder);
           w->writeC(prevRow);
-          for (int i=0; i<chans; i++) {
-            if (!willExport[dispatchOfChan[i]]) continue;
+          for (int i=0; i<song.chans; i++) {
+            if (!willExport[song.dispatchOfChan[i]]) continue;
             w->writeC(curSubSong->orders.ord[i][prevOrder]);
           }
         }

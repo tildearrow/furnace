@@ -498,16 +498,16 @@ int DivEngine::dispatchCmd(DivCommand c) {
 
   // map the channel to channel of chip
   // c.dis is a copy of c.chan because we'll use it in the next call
-  c.chan=dispatchChanOfChan[c.dis];
+  c.chan=song.dispatchChanOfChan[c.dis];
 
   // dispatch command to chip dispatch
-  return disCont[dispatchOfChan[c.dis]].dispatch->dispatch(c);
+  return disCont[song.dispatchOfChan[c.dis]].dispatch->dispatch(c);
 }
 
 // this function handles per-chip normal effects
 bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effectVal) {
   // don't process invalid chips
-  DivSysDef* sysDef=sysDefs[sysOfChan[ch]];
+  DivSysDef* sysDef=sysDefs[song.sysOfChan[ch]];
   if (sysDef==NULL) return false;
   // find the effect handler
   auto iter=sysDef->effectHandlers.find(effect);
@@ -530,7 +530,7 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
 // this handles per-chip post effects...
 bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal) {
   // don't process invalid chips
-  DivSysDef* sysDef=sysDefs[sysOfChan[ch]];
+  DivSysDef* sysDef=sysDefs[song.sysOfChan[ch]];
   if (sysDef==NULL) return false;
   // find the effect handler
   auto iter=sysDef->postEffectHandlers.find(effect);
@@ -552,7 +552,7 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
 
 // ...and this handles chip pre-effects
 bool DivEngine::perSystemPreEffect(int ch, unsigned char effect, unsigned char effectVal) {
-  DivSysDef* sysDef=sysDefs[sysOfChan[ch]];
+  DivSysDef* sysDef=sysDefs[song.sysOfChan[ch]];
   if (sysDef==NULL) return false;
   auto iter=sysDef->preEffectHandlers.find(effect);
   if (iter==sysDef->preEffectHandlers.end()) return false;
@@ -721,7 +721,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
               // this hack is disabled due to its dirtiness and the fact I
               // don't feel like being compatible with a buggy tracker any further
               if (effectVal==nextSpeed) {
-                //if (sysOfChan[i]!=DIV_SYSTEM_YM2610 && sysOfChan[i]!=DIV_SYSTEM_YM2610_EXT) chan[i].delayLocked=true;
+                //if (song.sysOfChan[i]!=DIV_SYSTEM_YM2610 && song.sysOfChan[i]!=DIV_SYSTEM_YM2610_EXT) chan[i].delayLocked=true;
               } else {
                 chan[i].delayLocked=false;
               }
@@ -784,12 +784,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].stopOnOff=false;
       }
       // depending on the system, portamento may still be disabled
-      if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
+      if (disCont[song.dispatchOfChan[i]].dispatch->keyOffAffectsPorta(song.dispatchChanOfChan[i])) {
         chan[i].portaNote=-1;
         chan[i].portaSpeed=-1;
         dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
         // this here is a now-disabled hack which makes the noise channel also stop when square 3 is
-        /*if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
+        /*if (i==2 && song.sysOfChan[i]==DIV_SYSTEM_SMS) {
           chan[i+1].portaNote=-1;
           chan[i+1].portaSpeed=-1;
         }*/
@@ -812,11 +812,11 @@ void DivEngine::processRow(int i, bool afterDelay) {
         dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
         chan[i].stopOnOff=false;
       }
-      if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
+      if (disCont[song.dispatchOfChan[i]].dispatch->keyOffAffectsPorta(song.dispatchChanOfChan[i])) {
         chan[i].portaNote=-1;
         chan[i].portaSpeed=-1;
         dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
-        /*if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
+        /*if (i==2 && song.sysOfChan[i]==DIV_SYSTEM_SMS) {
           chan[i+1].portaNote=-1;
           chan[i+1].portaSpeed=-1;
         }*/
@@ -839,7 +839,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     // ...unless there's a way to trigger keyOn twice
     if (!chan[i].keyOn) {
       // the behavior of arpeggio reset upon note off varies per system
-      if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsArp(dispatchChanOfChan[i])) {
+      if (disCont[song.dispatchOfChan[i]].dispatch->keyOffAffectsArp(song.dispatchChanOfChan[i])) {
         chan[i].arp=0;
         dispatchCmd(DivCommand(DIV_CMD_HINT_ARPEGGIO,i,chan[i].arp));
       }
@@ -876,7 +876,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     // COMPAT FLAG: legacy ALWAYS_SET_VOLUME behavior (oldAlwaysSetVolume)
     // - prior to its addition, volume changes wouldn't be effective depending on the system if the volume is the same as the current one
     // - afterwards, volume change is made regardless in order to set the bottom byte of volume ("subvolume")
-    if (!song.oldAlwaysSetVolume || disCont[dispatchOfChan[i]].dispatch->getLegacyAlwaysSetVolume() || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->newData[whatRow][DIV_PAT_VOL]) {
+    if (!song.oldAlwaysSetVolume || disCont[song.dispatchOfChan[i]].dispatch->getLegacyAlwaysSetVolume() || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->newData[whatRow][DIV_PAT_VOL]) {
       // here we let dispatchCmd() know we can do MIDI aftertouch if there isn't a note
       if (pat->newData[whatRow][DIV_PAT_NOTE]==-1) {
         chan[i].midiAftertouch=true;
@@ -1039,7 +1039,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           // COMPAT FLAG: limit slide range
           // - this confines pitch slides from dispatch->getPortaFloor to C-8 (I think)
           // - yep, the lowest portamento note depends on the system...
-          chan[i].portaNote=song.limitSlides?disCont[dispatchOfChan[i]].dispatch->getPortaFloor(dispatchChanOfChan[i]):-60;
+          chan[i].portaNote=song.limitSlides?disCont[song.dispatchOfChan[i]].dispatch->getPortaFloor(song.dispatchChanOfChan[i]):-60;
           chan[i].portaSpeed=effectVal;
           dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
           chan[i].portaStop=true;
@@ -1684,7 +1684,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
             chan[i].portaNote=song.limitSlides?0x60:255;
           } else {
             // COMPAT FLAG: limit slide range
-            chan[i].portaNote=song.limitSlides?disCont[dispatchOfChan[i]].dispatch->getPortaFloor(dispatchChanOfChan[i]):-60;
+            chan[i].portaNote=song.limitSlides?disCont[song.dispatchOfChan[i]].dispatch->getPortaFloor(song.dispatchChanOfChan[i]):-60;
           }
           chan[i].portaSpeed=effectVal;
           chan[i].portaStop=true;
@@ -1726,7 +1726,7 @@ void DivEngine::nextRow() {
   if (view==DIV_STATUS_PATTERN && !skipping) {
     strcpy(pb1,"");
     strcpy(pb3,"");
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       // orders
       snprintf(pb,4095," %.2x",curOrders->ord[i][curOrder]);
       strcat(pb1,pb);
@@ -1792,13 +1792,13 @@ void DivEngine::nextRow() {
   }
 
   // process row pre on all channels
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     // try to find pre effects
     processRowPre(i);
   }
 
   // process row on all channels
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     // COMPAT FLAG: cut/delay effect policy (delayBehavior)
     // - if not lax, reset the row delay timer so it never happens
     if (song.delayBehavior!=2) {
@@ -1895,7 +1895,7 @@ void DivEngine::nextRow() {
 
   // post row details
   // schedule pre-notes and delays (for C64 and/or a compat flag)
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     DivPattern* pat=curPat[i].getPattern(curOrders->ord[i][curOrder],false);
     if (pat->newData[curRow][DIV_PAT_NOTE]!=-1) {
       // if there is a note
@@ -1904,8 +1904,8 @@ void DivEngine::nextRow() {
         if (!chan[i].legato) {
           // check whether we should fire a pre-note event
           bool wantPreNote=false;
-          if (disCont[dispatchOfChan[i]].dispatch!=NULL) {
-            wantPreNote=disCont[dispatchOfChan[i]].dispatch->getWantPreNote();
+          if (disCont[song.dispatchOfChan[i]].dispatch!=NULL) {
+            wantPreNote=disCont[song.dispatchOfChan[i]].dispatch->getWantPreNote();
             if (wantPreNote) {
               bool doPreparePreNote=true;
               int addition=0;
@@ -2039,7 +2039,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     // this is a check that nullifies any note off event that right after a note on
     // it prevents a situation where some notes do not play
     for (int i=pendingNotes.size()-1; i>=0; i--) {
-      if (pendingNotes[i].channel<0 || pendingNotes[i].channel>=chans) continue;
+      if (pendingNotes[i].channel<0 || pendingNotes[i].channel>=song.chans) continue;
       if (pendingNotes[i].on) {
         isOn[pendingNotes[i].channel]=true;
       } else {
@@ -2058,7 +2058,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     // fetch event
     DivNoteEvent& note=pendingNotes.front();
     // don't if channel is out of bounds or event is canceled
-    if (note.nop || note.channel<0 || note.channel>=chans) {
+    if (note.nop || note.channel<0 || note.channel>=song.chans) {
       pendingNotes.pop_front();
       continue;
     }
@@ -2077,10 +2077,10 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       }
       // set volume as long as there's one associated with the event
       // and the chip has per-channel volume
-      if (note.volume>=0 && !disCont[dispatchOfChan[note.channel]].dispatch->isVolGlobal()) {
+      if (note.volume>=0 && !disCont[song.dispatchOfChan[note.channel]].dispatch->isVolGlobal()) {
         // map velocity to curve and then to equivalent chip volume
         float curvedVol=pow((float)note.volume/127.0f,midiVolExp);
-        int mappedVol=disCont[dispatchOfChan[note.channel]].dispatch->mapVelocity(dispatchChanOfChan[note.channel],curvedVol);
+        int mappedVol=disCont[song.dispatchOfChan[note.channel]].dispatch->mapVelocity(song.dispatchChanOfChan[note.channel],curvedVol);
         // fire command
         dispatchCmd(DivCommand(DIV_CMD_VOLUME,note.channel,mappedVol));
       }
@@ -2094,11 +2094,11 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       chan[note.channel].lastIns=note.ins;
     } else {
       // note off
-      DivMacroInt* macroInt=disCont[dispatchOfChan[note.channel]].dispatch->getChanMacroInt(dispatchChanOfChan[note.channel]);
+      DivMacroInt* macroInt=disCont[song.dispatchOfChan[note.channel]].dispatch->getChanMacroInt(song.dispatchChanOfChan[note.channel]);
       if (macroInt!=NULL) {
         // if the current instrument has a release point in any macros and
         // volume is per-channel, send a note release instead of a note off
-        if (macroInt->hasRelease && !disCont[dispatchOfChan[note.channel]].dispatch->isVolGlobal()) {
+        if (macroInt->hasRelease && !disCont[song.dispatchOfChan[note.channel]].dispatch->isVolGlobal()) {
           dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,note.channel));
         } else {
           dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
@@ -2123,7 +2123,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       // delayed row's state before it has a chance to do anything. a typical example would be
       // a delay scheduling a note-on to be simultaneous with the next row, and the next row also
       // containing a delayed note. if we don't apply the delayed row first, the world explodes.
-      for (int i=0; i<chans; i++) {
+      for (int i=0; i<song.chans; i++) {
         // delay effects
         if (chan[i].rowDelay>0) {
           if (--chan[i].rowDelay==0) {
@@ -2189,7 +2189,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       }
 
       // process stuff such as effects
-      if (!shallStop) for (int i=0; i<chans; i++) {
+      if (!shallStop) for (int i=0; i<song.chans; i++) {
         // retrigger
         if (chan[i].retrigSpeed) {
           if (--chan[i].retrigTick<0) {
@@ -2463,7 +2463,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
                   chan[i].stopOnOff=false;
                 }
                 // depending on the system, portamento may still be disabled
-                if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
+                if (disCont[song.dispatchOfChan[i]].dispatch->keyOffAffectsPorta(song.dispatchChanOfChan[i])) {
                   chan[i].portaNote=-1;
                   chan[i].portaSpeed=-1;
                   dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
@@ -2564,8 +2564,8 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     shallStop=false;
     shallStopSched=false;
     // reset all chan oscs
-    for (int i=0; i<chans; i++) {
-      DivDispatchOscBuffer* buf=disCont[dispatchOfChan[i]].dispatch->getOscBuffer(dispatchChanOfChan[i]);
+    for (int i=0; i<song.chans; i++) {
+      DivDispatchOscBuffer* buf=disCont[song.dispatchOfChan[i]].dispatch->getOscBuffer(song.dispatchChanOfChan[i]);
       if (buf!=NULL) {
         buf->reset();
       }
@@ -2858,7 +2858,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         case TA_MIDI_NOTE_OFF: {
           if (midiIsDirect) {
             // in direct mode, map the event directly to the channel
-            if (chan<0 || chan>=chans) break;
+            if (chan<0 || chan>=song.chans) break;
             pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false,false,true));
           } else {
             // find a suitable channel and add this event to the queue
@@ -2877,7 +2877,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           if (msg.data[1]==0) {
             if (midiIsDirect) {
               // in direct mode, map the event directly to the channel
-              if (chan<0 || chan>=chans) break;
+              if (chan<0 || chan>=song.chans) break;
               pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false,false,true));
             } else {
               // find a suitable channel and add this event to the queue
@@ -2886,7 +2886,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           } else {
             if (midiIsDirect) {
               // in direct mode, map the event directly to the channel
-              if (chan<0 || chan>=chans) break;
+              if (chan<0 || chan>=song.chans) break;
               pendingNotes.push_back(DivNoteEvent(chan,ins,msg.data[0]-12,msg.data[1],true,false,true));
             } else {
               // find a suitable channel and add this event to the queue

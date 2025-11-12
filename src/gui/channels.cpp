@@ -78,7 +78,7 @@ void FurnaceGUI::drawChannels() {
           ImGui::Button(ICON_FA_ARROWS "##ChanDrag");
           ImGui::EndDragDropSource();
         } else if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("%s #%d\n(drag to swap channels)\n(Shift-drag to copy channel contents)"),e->getSystemName(e->sysOfChan[i]),e->dispatchChanOfChan[i]);
+          ImGui::SetTooltip(_("%s #%d\n(drag to swap channels)\n(Shift-drag to copy channel contents)"),e->getSystemName(e->song.sysOfChan[i]),e->song.dispatchChanOfChan[i]);
         }
         if (ImGui::BeginDragDropTarget()) {
           const ImGuiPayload* dragItem=ImGui::AcceptDragDropPayload("FUR_CHAN");

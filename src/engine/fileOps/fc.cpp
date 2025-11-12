@@ -664,6 +664,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     ds.subsong[0]->optimizePatterns();
     ds.subsong[0]->rearrangePatterns();
 
+    ds.initDefaultSystemChans();
     ds.recalcChans();
 
     if (active) quitDispatch();
@@ -671,8 +672,8 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     saveLock.lock();
     song.unload();
     song=ds;
+    hasLoadedSomething=true;
     changeSong(0);
-    recalcChans();
     saveLock.unlock();
     BUSY_END;
     if (active) {
