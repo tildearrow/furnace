@@ -1036,6 +1036,7 @@ bool DivEngine::changeSystem(int index, DivSystem which, bool preserveOrder) {
   }
 
   song.system[index]=which;
+  song.systemChans[index]=getChannelCount(which);
   song.systemFlags[index].clear();
   song.recalcChans();
   saveLock.unlock();
@@ -1062,6 +1063,7 @@ bool DivEngine::addSystem(DivSystem which) {
   BUSY_BEGIN;
   saveLock.lock();
   song.system[song.systemLen]=which;
+  song.systemChans[song.systemLen]=getChannelCount(which);
   song.systemVol[song.systemLen]=1.0;
   song.systemPan[song.systemLen]=0;
   song.systemPanFR[song.systemLen]=0;
@@ -1116,6 +1118,7 @@ bool DivEngine::duplicateSystem(int index, bool pat, bool end) {
   BUSY_BEGIN;
   saveLock.lock();
   song.system[song.systemLen]=song.system[index];
+  song.systemChans[song.systemLen]=song.systemChans[index];
   song.systemVol[song.systemLen]=song.systemVol[index];
   song.systemPan[song.systemLen]=song.systemPan[index];
   song.systemPanFR[song.systemLen]=song.systemPanFR[index];
@@ -1241,6 +1244,7 @@ bool DivEngine::removeSystem(int index, bool preserveOrder) {
   song.systemLen--;
   for (int i=index; i<song.systemLen; i++) {
     song.system[i]=song.system[i+1];
+    song.systemChans[i]=song.systemChans[i+1];
     song.systemVol[i]=song.systemVol[i+1];
     song.systemPan[i]=song.systemPan[i+1];
     song.systemPanFR[i]=song.systemPanFR[i+1];
@@ -1347,12 +1351,16 @@ void DivEngine::swapSystemUnsafe(int src, int dest, bool preserveOrder) {
   }
 
   DivSystem srcSystem=song.system[src];
+  unsigned short srcSystemChans=song.systemChans[src];
   float srcVol=song.systemVol[src];
   float srcPan=song.systemPan[src];
   float srcPanFR=song.systemPanFR[src];
 
   song.system[src]=song.system[dest];
   song.system[dest]=srcSystem;
+
+  song.systemChans[src]=song.systemChans[dest];
+  song.systemChans[dest]=srcSystemChans;
 
   song.systemVol[src]=song.systemVol[dest];
   song.systemVol[dest]=srcVol;
