@@ -404,8 +404,6 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - for pixel or bitmap fonts, set this to **1x**.
 - **Load fallback font**: load an extra font that contains nearly all characters that can be used, in case the selected fonts lack them. uses much video memory
 - **Load fallback font (pattern)**: as "Load fallback font" above but for the pattern font.
-- **Display Japanese characters**, **Display Chinese (Simplified) characters**, **Display Chinese (Traditional) characters** and **Display Korean characters**: only toggle these options if you have enough graphics memory.
-  - these are a temporary solution until dynamic font atlas is implemented in Dear ImGui.
 
 ### Program
 
@@ -532,6 +530,7 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 - **Use standard OPL waveform names**
 - **FM parameter editor layout:**
   - **Modern**
+  - **Modern with more labels**
   - **Compact (2x2, classic)**
   - **Compact (1x4)**
   - **Compact (4x1)**
@@ -572,6 +571,10 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 ### Song Comments
 
 - **Wrap text**: visually breaks long lines at the width of the text box. does not affect the text itself.
+
+### Chip Manager
+
+- **Show channel indicators**: chooses whether to show the row "LED" channel indicators in the chip manager.
 
 ### Windows
 

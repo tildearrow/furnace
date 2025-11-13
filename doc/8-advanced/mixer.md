@@ -4,15 +4,24 @@ the "Mixer" dialog provides options for overall sound mixing.
 
 ## "Mixer" tab
 
-![mixer dialog on mixer tab](mixer-mixer.png)
+![mixer dialog on mixer tab](mixer-mixer.png) <!--new image(s) needed!-->
 
-"Master Volume" controls the overall mix.
+**Master Volume** controls the overall mix.
 
 each chip has several options:
 - **Invert**: flips the output wave.
 - **Volume**: controls the chip's volume relative to other chips.
 - **Panning**: left-right sound control.
 - **Front/Rear**: front-read sound control. only useful for setups with four or more speakers.
+
+### Mixer-specific settings <!--in settings-->
+- **Mixer layout**: how the mixer is shown.
+  - **Horizontal**: arranges the "chips"<!--reword!--> horizontally, with vertical volume sliders.
+  - **Vertical**: arranges the "chips"<!--ditto--> vertically, with horizontal volume sliders.
+- **Mixer style**:
+  - **No volume meters**: does not show per-chip volume meters.
+  - **Volume meters separate**: shows per-chip volume meters below or to the right (depending on the layout) of the volume slider.
+  - **Volume meters in volume sliders**: shows per-chip volume meters inside the volume sliders.
 
 ## "Patchbay" tab
 

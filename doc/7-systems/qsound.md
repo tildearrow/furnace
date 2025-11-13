@@ -23,6 +23,10 @@ there are also 3 ADPCM channels. ADPCM samples are fixed to 8012Hz.
 
 this chip uses the [QSound](../4-instrument/qsound.md) instrument editor.
 
+PCM sample loops must be no longer than 32767 samples and have a length limit of 65535 samples.
+
+ADPCM samples cannot loop and have a length limit of 131070 samples.
+
 ## chip config
 
 the following options are available in the Chip Manager window:

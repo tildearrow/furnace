@@ -60,6 +60,18 @@ const double timeMultipliers[13]={
     _x+=_text; \
   }
 
+// with sample pointer header in sample memory
+#define REFRESH_SAMPLE \
+  bool hasSamplePtr=false; \
+  for (int s=0; s<e->song.systemLen; s++) { \
+    if (e->getDispatch(s)->hasSamplePtrHeader()) { \
+      hasSamplePtr=true; \
+    } \
+  } \
+  if (hasSamplePtr) { \
+    e->renderSamplesP(curSample); \
+  }
+
 #define MAX_RATE(_name,_x) \
    if (e->isPreviewingSample()) { \
      if ((int)e->getSamplePreviewRate()>(int)(_x)) { \
@@ -285,6 +297,7 @@ void FurnaceGUI::drawSampleEdit() {
                 int tryWith=(sample->loopEnd-8)&(~127);
                 if (tryWith>(int)sample->samples) tryWith-=128;
                 tryWith+=8; // +1 bc of how sample length is treated: https://www.nesdev.org/wiki/APU_DMC
+                if (tryWith<8) tryWith=8;
                 String alignHint=fmt::sprintf(_("NES: loop end must be a multiple of 128 + 8 (try with %d)"),tryWith);
                 SAMPLE_WARN(warnLoopEnd,alignHint);
               }
@@ -564,6 +577,11 @@ void FurnaceGUI::drawSampleEdit() {
               SAMPLE_WARN(warnLength,_("ES5506: maximum sample length is 2097024"));
             }
             break;
+          case DIV_SYSTEM_MULTIPCM:
+            if (sample->samples>65535) {
+              SAMPLE_WARN(warnLength,_("MultiPCM: maximum sample length is 65535"));
+            }
+            break;
           default:
             break;
         }
@@ -594,7 +612,7 @@ void FurnaceGUI::drawSampleEdit() {
         if (isChipVisible[i]) selColumns++;
       }
 
-      int targetRate=sampleCompatRate?sample->rate:sample->centerRate;
+      int targetRate=sample->centerRate;
 
       if (ImGui::BeginTable("SampleProps",(selColumns>1)?4:3,ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_BordersV|ImGuiTableFlags_BordersOuterH)) {
         ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
@@ -605,20 +623,7 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::SameLine();
         ImGui::Text(_("Info"));
         ImGui::TableNextColumn();
-        pushToggleColors(!sampleCompatRate);
-        if (ImGui::Button(_("Rate"))) {
-          sampleCompatRate=false;
-        }
-        popToggleColors();
-        ImGui::SameLine();
-        pushToggleColors(sampleCompatRate);
-        if (ImGui::Button(_("Compat Rate"))) {
-          sampleCompatRate=true;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("used in DefleMask-compatible sample mode (17xx), in where samples are mapped to an octave."));
-        }
-        popToggleColors();
+        ImGui::Text(_("Rate"));
         ImGui::TableNextColumn();
         bool doLoop=(sample->loop);
         pushWarningColor(!warnLoop.empty());
@@ -639,9 +644,8 @@ void FurnaceGUI::drawSampleEdit() {
             sample->loopEnd=sample->samples;*/
           }
           updateSampleTex=true;
-          if (e->getSampleFormatMask()&(1U<<DIV_SAMPLE_DEPTH_BRR)) {
-            e->renderSamplesP(curSample);
-          }
+          notifySampleChange=true;
+          REFRESH_SAMPLE
         }
         popWarningColor();
         if (ImGui::IsItemHovered() && (!warnLoop.empty() || sample->depth==DIV_SAMPLE_DEPTH_BRR)) {
@@ -673,6 +677,7 @@ void FurnaceGUI::drawSampleEdit() {
                   e->renderSamples(curSample);
                 });
                 updateSampleTex=true;
+                notifySampleChange=true;
                 MARK_MODIFIED;
               }
             }
@@ -693,6 +698,7 @@ void FurnaceGUI::drawSampleEdit() {
               sample->brrEmphasis=be;
               e->renderSamplesP(curSample);
               updateSampleTex=true;
+              notifySampleChange=true;
               MARK_MODIFIED;
             }
             if (ImGui::IsItemHovered()) {
@@ -710,6 +716,7 @@ void FurnaceGUI::drawSampleEdit() {
               sample->brrNoFilter=bf;
               e->renderSamplesP(curSample);
               updateSampleTex=true;
+              notifySampleChange=true;
               MARK_MODIFIED;
             }
             if (ImGui::IsItemHovered()) {
@@ -723,6 +730,7 @@ void FurnaceGUI::drawSampleEdit() {
               sample->dither=di;
               e->renderSamplesP(curSample);
               updateSampleTex=true;
+              notifySampleChange=true;
               MARK_MODIFIED;
             }
             if (ImGui::IsItemHovered()) {
@@ -754,11 +762,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (targetRate<100) targetRate=100;
             if (targetRate>384000) targetRate=384000;
 
-            if (sampleCompatRate) {
-              sample->rate=targetRate;
-            } else {
-              sample->centerRate=targetRate;
-            }
+            sample->centerRate=targetRate;
           }
           
           ImGui::AlignTextToFramePadding();
@@ -798,11 +802,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (targetRate<100) targetRate=100;
             if (targetRate>384000) targetRate=384000;
 
-            if (sampleCompatRate) {
-              sample->rate=targetRate;
-            } else {
-              sample->centerRate=targetRate;
-            }
+            sample->centerRate=targetRate;
           }
 
           ImGui::AlignTextToFramePadding();
@@ -832,11 +832,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (targetRate<100) targetRate=100;
             if (targetRate>384000) targetRate=384000;
 
-            if (sampleCompatRate) {
-              sample->rate=targetRate;
-            } else {
-              sample->centerRate=targetRate;
-            }
+            sample->centerRate=targetRate;
           }
 
           ImGui::TableNextColumn();
@@ -855,6 +851,7 @@ void FurnaceGUI::drawSampleEdit() {
                 sample->loopMode=(DivSampleLoopMode)i;
                 e->renderSamplesP(curSample);
                 updateSampleTex=true;
+                notifySampleChange=true;
                 MARK_MODIFIED;
               }
             }
@@ -878,9 +875,8 @@ void FurnaceGUI::drawSampleEdit() {
               sample->loopStart=sample->loopEnd;
             }
             updateSampleTex=true;
-            if (e->getSampleFormatMask()&(1U<<DIV_SAMPLE_DEPTH_BRR)) {
-              e->renderSamplesP(curSample);
-            }
+            notifySampleChange=true;
+            REFRESH_SAMPLE
           }
           if (ImGui::IsItemActive()) {
             keepLoopAlive=true;
@@ -921,9 +917,8 @@ void FurnaceGUI::drawSampleEdit() {
               sample->loopEnd=sample->samples;
             }
             updateSampleTex=true;
-            if (e->getSampleFormatMask()&(1U<<DIV_SAMPLE_DEPTH_BRR)) {
-              e->renderSamplesP(curSample);
-            }
+            notifySampleChange=true;
+            REFRESH_SAMPLE
           }
           if (ImGui::IsItemActive()) {
             keepLoopAlive=true;
@@ -1097,6 +1092,7 @@ void FurnaceGUI::drawSampleEdit() {
             e->renderSamples(curSample);
           });
           updateSampleTex=true;
+          notifySampleChange=true;
           sampleSelStart=-1;
           sampleSelEnd=-1;
           MARK_MODIFIED;
@@ -1124,7 +1120,7 @@ void FurnaceGUI::drawSampleEdit() {
           if (resampleTarget>384000) resampleTarget=384000;
         }
         double factor=resampleTarget/(double)targetRate;
-        unsigned int targetLength=sample->samples*factor;
+        unsigned int targetLength=round(sample->samples*factor);
         if (ImGui::InputScalar("Length##SRLen",ImGuiDataType_U32,&targetLength, &_ONE, &_SIXTEEN)) {
           if (targetLength<1) targetLength=1;
           resampleTarget=targetRate*targetLength/(double)sample->samples;
@@ -1161,6 +1157,7 @@ void FurnaceGUI::drawSampleEdit() {
             e->renderSamples(curSample);
           });
           updateSampleTex=true;
+          notifySampleChange=true;
           sampleSelStart=-1;
           sampleSelEnd=-1;
           MARK_MODIFIED;
@@ -1191,7 +1188,7 @@ void FurnaceGUI::drawSampleEdit() {
       sameLineMaybe();
       ImGui::Button(ICON_FA_VOLUME_UP "##SAmplify");
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_("Amplify"));
+        ImGui::SetTooltip(_("Amplify/Offset"));
       }
       if (openSampleAmplifyOpt) {
         openSampleAmplifyOpt=false;
@@ -1205,6 +1202,11 @@ void FurnaceGUI::drawSampleEdit() {
         }
         ImGui::SameLine();
         ImGui::Text("(%.1fdB)",20.0*log10(amplifyVol/100.0f));
+        ImGui::Text(_("DC offset"));
+        if (ImGui::InputFloat("##Offset",&amplifyOff,-100.0,100.0,"%g%%")) {
+          if (amplifyOff<-100) amplifyOff=-100;
+          if (amplifyOff>100) amplifyOff=100;
+        }
         if (ImGui::Button(_("Apply"))) {
           sample->prepareUndo(true);
           e->lockEngine([this,sample]() {
@@ -1212,15 +1214,17 @@ void FurnaceGUI::drawSampleEdit() {
             float vol=amplifyVol/100.0f;
 
             if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
+              float off=32767.0f*(amplifyOff/100.0f);
               for (unsigned int i=start; i<end; i++) {
-                float val=sample->data16[i]*vol;
+                float val=off+sample->data16[i]*vol;
                 if (val<-32768) val=-32768;
                 if (val>32767) val=32767;
                 sample->data16[i]=val;
               }
             } else if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
+              float off=127.0f*(amplifyOff/100.0f);
               for (unsigned int i=start; i<end; i++) {
-                float val=sample->data8[i]*vol;
+                float val=off+sample->data8[i]*vol;
                 if (val<-128) val=-128;
                 if (val>127) val=127;
                 sample->data8[i]=val;
@@ -1228,6 +1232,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
 
             updateSampleTex=true;
+            notifySampleChange=true;
 
             e->renderSamples(curSample);
           });
@@ -1281,6 +1286,7 @@ void FurnaceGUI::drawSampleEdit() {
             e->renderSamples(curSample);
           });
           updateSampleTex=true;
+          notifySampleChange=true;
           sampleSelStart=pos;
           sampleSelEnd=pos+silenceSize;
           MARK_MODIFIED;
@@ -1456,6 +1462,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
 
             updateSampleTex=true;
+            notifySampleChange=true;
 
             e->renderSamples(curSample);
           });
@@ -1535,6 +1542,7 @@ void FurnaceGUI::drawSampleEdit() {
                 }
               }
               updateSampleTex=true;
+              notifySampleChange=true;
 
               e->renderSamples(curSample);
             });
@@ -1630,7 +1638,7 @@ void FurnaceGUI::drawSampleEdit() {
 
       ImGui::ItemSize(size,style.FramePadding.y);
       if (ImGui::ItemAdd(rect,ImGui::GetID("SETime"))) {
-        int targetRate=sampleCompatRate?sample->rate:sample->centerRate;
+        int targetRate=sample->centerRate;
         int curDivisorSel=0;
         int curMultiplierSel=0;
         double divisor=1000.0;
@@ -2497,6 +2505,7 @@ void FurnaceGUI::doUndoSample() {
     if (sample->undo()==2) {
       e->renderSamples(curSample);
       updateSampleTex=true;
+      notifySampleChange=true;
     }
   });
 }
@@ -2509,6 +2518,7 @@ void FurnaceGUI::doRedoSample() {
     if (sample->redo()==2) {
       e->renderSamples(curSample);
       updateSampleTex=true;
+      notifySampleChange=true;
     }
   });
 }

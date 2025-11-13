@@ -21,6 +21,7 @@
 #include "guiConst.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <fmt/printf.h>
+#include <imgui.h>
 
 const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
   switch (sys) {
@@ -296,21 +297,41 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
   }
 }
 
-void FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef) {
+float FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset, float tooltipWidth) {
   ImDrawList* dl=ImGui::GetWindowDrawList();
   const ImVec2 p=ImGui::GetCursorScreenPos();
-  float scaler=5.0f*dpiScale;
+  if (tooltipWidth<=0.0f) tooltipWidth=ImGui::GetContentRegionAvail().x;
+  ImVec2 sep=ImGui::GetStyle().ItemSpacing;
+  sep.x*=0.5f;
+  ImVec2 ledSize=ImVec2(
+    (tooltipWidth-sep.x*(whichDef->channels-1))/(float)whichDef->channels,
+    settings.iconSize*dpiScale
+  );
+  if (ledSize.x<8.0f*dpiScale) ledSize.x=8.0f*dpiScale;
   float x=p.x, y=p.y;
-  float tooltipWidth=MIN(scrW*dpiScale,400.0f*dpiScale);
   for (int i=0; i<whichDef->channels; i++) {
-    dl->AddRectFilled(ImVec2(x,y),ImVec2(x+1.5f*scaler,y+1.0f*scaler),ImGui::GetColorU32(uiColors[whichDef->chanTypes[i]+GUI_COLOR_CHANNEL_FM]),scaler);
-    x+=2.0f*scaler;
-     if ((x+1.5f*scaler)>tooltipWidth+p.x) {
+    if (x+ledSize.x-0.125>tooltipWidth+p.x) {
       x=p.x;
-      y+=1.5f*scaler;
+      y+=ledSize.y+sep.y;
     }
+    ImVec4 color=uiColors[whichDef->chanTypes[i]+GUI_COLOR_CHANNEL_FM];
+    if (keyHitOffset>=0) {
+      if (e->isChannelMuted(keyHitOffset+i)) {
+        color=uiColors[GUI_COLOR_CHANNEL_MUTED];
+        color.x*=MIN(1.0f,0.125f+keyHit1[keyHitOffset+i]*0.875f);
+        color.y*=MIN(1.0f,0.125f+keyHit1[keyHitOffset+i]*0.875f);
+        color.z*=MIN(1.0f,0.125f+keyHit1[keyHitOffset+i]*0.875f);
+      } else {
+        color.x*=MIN(1.0f,0.125f+keyHit1[keyHitOffset+i]*0.875f);
+        color.y*=MIN(1.0f,0.125f+keyHit1[keyHitOffset+i]*0.875f);
+        color.z*=MIN(1.0f,0.125f+keyHit1[keyHitOffset+i]*0.875f);
+      }
+    }
+    dl->AddRectFilled(ImVec2(x,y),ImVec2(x+ledSize.x,y+ledSize.y),ImGui::GetColorU32(color),ledSize.y);
+    x+=ledSize.x+sep.x;
   }
-  ImGui::Dummy(ImVec2(0,(y-p.y)+1.5f*scaler));
+  ImGui::Dummy(ImVec2(tooltipWidth,(y-p.y)+ledSize.y));
+  return (y-p.y)+ledSize.y;
 }
 
 void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {

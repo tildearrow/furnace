@@ -838,6 +838,22 @@ String macroSoundUnitWaves(int id, float val, void* u) {
   return fmt::sprintf("%d: %s",id,label);
 }
 
+String macroTFXModes(int id, float val, void* u) {
+  switch (((int)val)&3) {
+    case 0:
+      return _("Disabled");
+    case 1:
+      return _("PWM");
+    case 2:
+      return _("SyncBuzzer");
+    case 3:
+      return _("Reserved");
+    default:
+      return "???";
+  }
+  return "???";
+}
+
 String macroSID3SpecialWaves(int id, float val, void* u) {
   if ((int)val<0 || (int)val>=SID3_NUM_SPECIAL_WAVES) return "???";
 
@@ -1936,7 +1952,7 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
     ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
     
     float volY=1.0-((float)vol/15.0);
-    float lenPos=(sLen>62)?1.0:((float)sLen/384.0);
+    float lenPos=(sLen>63)?1.0:((float)sLen/384.0);
     float envEndPoint=((float)len/7.0)*((float)(dir?(15-vol):vol)/15.0);
 
     ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.0,volY));
@@ -1962,10 +1978,10 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
         pos2=ImLerp(rect.Min,rect.Max,ImVec2(lenPos,volY));
       }
     }
-    ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(lenPos,(len>0 || sLen<63)?((dir && sLen>62)?0.0:1.0):volY));
+    ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(lenPos,(len>0 || sLen<64)?((dir && sLen>62)?0.0:1.0):volY));
 
     addAALine(dl,pos1,pos2,color);
-    if (lenPos>=envEndPoint && sLen<63 && dir) {
+    if (lenPos>=envEndPoint && sLen<64 && dir) {
       pos3=ImLerp(rect.Min,rect.Max,ImVec2(lenPos,0.0));
       addAALine(dl,pos2,pos3,color);
       ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(lenPos,1.0));
@@ -2099,12 +2115,12 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
       }
     }
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
-
     if (MACRO_VZOOM<1) {
       if (i.macro->macroType==DIV_MACRO_ARP || i.isArp) {
         MACRO_VZOOM=24;
         MACRO_VSCROLL=120-12;
-      } else if (i.macro->macroType==DIV_MACRO_PITCH || i.isPitch) {
+      }
+      else if ((i.macro->macroType == DIV_MACRO_PITCH || i.isPitch) || (i.macro->macroType == DIV_MACRO_EX7 && i.isPitch)) {
         MACRO_VZOOM=128;
         MACRO_VSCROLL=2048-64;
       } else {
@@ -3465,6 +3481,7 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
         if (ImGui::InputInt(_("Sample bank slot##BANKSLOT"),&ins->x1_010.bankSlot,1,4)) { PARAMETER
           if (ins->x1_010.bankSlot<0) ins->x1_010.bankSlot=0;
           if (ins->x1_010.bankSlot>=7) ins->x1_010.bankSlot=7;
+          notifySampleChange=true;
         }
       }
     }
@@ -3478,6 +3495,7 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
         id=fmt::sprintf("%d: %s",i,e->song.sample[i]->name);
         if (ImGui::Selectable(id.c_str(),ins->amiga.initSample==i)) { PARAMETER
           ins->amiga.initSample=i;
+          notifySampleChange=true;
         }
       }
       ImGui::EndCombo();
@@ -3508,10 +3526,15 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
         }
       }
       ImGui::EndDisabled();
+    } else {
+      ins->amiga.useWave=false;
     }
     // Note map
     ImGui::BeginDisabled(ins->amiga.useWave);
     P(ImGui::Checkbox(_("Use sample map"),&ins->amiga.useNoteMap));
+    if ((ins->type==DIV_INS_MULTIPCM) && ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(_("Only for OPL4 PCM."));
+    }
     if (ins->amiga.useNoteMap) {
       if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) sampleMapFocused=false;
       if (curWindowLast!=GUI_WINDOW_INS_EDIT) sampleMapFocused=false;
@@ -4671,7 +4694,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 op.egt=egtOn;
               }
               if (egtOn) {
-                pushWarningColor(susOn && e->song.linearPitch!=2);
+                pushWarningColor(susOn && !e->song.linearPitch);
                 if (ImGui::Checkbox(_("Pitch control"),&susOn)) { PARAMETER
                   op.sus=susOn;
                   // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
@@ -4680,7 +4703,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 }
                 popWarningColor();
                 if (ImGui::IsItemHovered()) {
-                  if (susOn && e->song.linearPitch!=2) {
+                  if (susOn && !e->song.linearPitch) {
                     ImGui::SetTooltip(_("only works on linear pitch! go to Compatibility Flags > Pitch/Playback and set Pitch linearity to Full."));
                   } else {
                     ImGui::SetTooltip(_("use op's arpeggio and pitch macros control instead of block/f-num macros"));
@@ -5447,7 +5470,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                   P(CWSliderScalar("##FINE",ImGuiDataType_U8,&op.dvb,&_ZERO,&_FIFTEEN,tempID)); rightClickable
                 } else {
                   bool susOn=op.sus;
-                  pushWarningColor(susOn && e->song.linearPitch!=2);
+                  pushWarningColor(susOn && !e->song.linearPitch);
                   if (ImGui::Checkbox(_("Pitch control"),&susOn)) { PARAMETER
                     op.sus=susOn;
                     // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
@@ -5456,7 +5479,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                   }
                   popWarningColor();
                   if (ImGui::IsItemHovered()) {
-                    if (susOn && e->song.linearPitch!=2) {
+                    if (susOn && !e->song.linearPitch) {
                       ImGui::SetTooltip(_("only works on linear pitch! go to Compatibility Flags > Pitch/Playback and set Pitch linearity to Full."));
                     } else {
                       ImGui::SetTooltip(_("use op's arpeggio and pitch macros control instead of block/f-num macros"));
@@ -5770,7 +5793,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             bool susOn=op.sus;
             if (fixedOn) {
               ImGui::SameLine();
-              pushWarningColor(susOn && e->song.linearPitch!=2);
+              pushWarningColor(susOn && !e->song.linearPitch);
               if (ImGui::Checkbox(_("Pitch control"),&susOn)) { PARAMETER
                 op.sus=susOn;
                 // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
@@ -5779,7 +5802,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               }
               popWarningColor();
               if (ImGui::IsItemHovered()) {
-                if (susOn && e->song.linearPitch!=2) {
+                if (susOn && !e->song.linearPitch) {
                   ImGui::SetTooltip(_("only works on linear pitch! go to Compatibility Flags > Pitch/Playback and set Pitch linearity to Full."));
                 } else {
                   ImGui::SetTooltip(_("use op's arpeggio and pitch macros control instead of block/f-num macros"));
@@ -6424,7 +6447,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins) {
             "If this is disabled,filter cutoff will increase if you increase the pitch."));
           }
 
-          snprintf(buffer2,100,_("%s"),noteNameNormal(filt->bindCutoffToNoteCenter%12,(short)(filt->bindCutoffToNoteCenter / 12)-5));
+          snprintf(buffer2,100,_("%s"),noteNameNormal(filt->bindCutoffToNoteCenter));
           snprintf(buffer,100,_("Cutoff change center note##bindcutcenternote%d"),i+1);
           P(CWSliderScalar(buffer,ImGuiDataType_U8,&filt->bindCutoffToNoteCenter,&_ZERO,&_ONE_HUNDRED_SEVENTY_NINE,buffer2)); rightClickable
           if (ImGui::IsItemHovered()) {
@@ -6457,7 +6480,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins) {
             "If this is disabled,filter resonance will increase if you increase the pitch."));
           }
 
-          snprintf(buffer2,100,_("%s"),noteNameNormal(filt->bindResonanceToNoteCenter%12,(short)(filt->bindResonanceToNoteCenter / 12)-5));
+          snprintf(buffer2,100,_("%s"),noteNameNormal(filt->bindResonanceToNoteCenter));
           snprintf(buffer,100,_("Resonance change center note##bindrescenternote%d"),i+1);
           P(CWSliderScalar(buffer,ImGuiDataType_U8,&filt->bindResonanceToNoteCenter,&_ZERO,&_ONE_HUNDRED_SEVENTY_NINE,buffer2)); rightClickable
           if (ImGui::IsItemHovered()) {
@@ -6626,10 +6649,10 @@ void FurnaceGUI::drawInsEdit() {
             for (size_t i=0; i<e->song.ins.size(); i++) {
               name=fmt::sprintf("%.2X: %s##_INSS%d",i,e->song.ins[i]->name,i);
               if (ImGui::Selectable(name.c_str(),curIns==(int)i)) {
-                curIns=i;
+                setCurIns(i);
                 wavePreviewInit=true;
                 updateFMPreview=true;
-                ins = e->song.ins[curIns];
+                ins=e->song.ins[curIns];
               }
             }
             ImGui::EndCombo();
@@ -6677,7 +6700,7 @@ void FurnaceGUI::drawInsEdit() {
           for (size_t i=0; i<e->song.ins.size(); i++) {
             name=fmt::sprintf("%.2X: %s##_INSS%d",i,e->song.ins[i]->name,i);
             if (ImGui::Selectable(name.c_str(),curIns==(int)i)) {
-              curIns=i;
+              setCurIns(i);
               ins=e->song.ins[curIns];
               wavePreviewInit=true;
               updateFMPreview=true;
@@ -7697,7 +7720,7 @@ void FurnaceGUI::drawInsEdit() {
             modTableInt[i]=ins->fds.modTable[i];
           }
           ImVec2 modTableSize=ImVec2(ImGui::GetContentRegionAvail().x,96.0f*dpiScale);
-          PlotCustom("ModTable",modTable,32,0,NULL,-4,3,modTableSize,sizeof(float),ImVec4(1.0f,1.0f,1.0f,1.0f),0,NULL,NULL,true);
+          PlotCustom("##ModTable",modTable,32,0,NULL,-4,3,modTableSize,sizeof(float),ImVec4(1.0f,1.0f,1.0f,1.0f),0,NULL,NULL,true);
           if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
             macroDragStart=ImGui::GetItemRectMin();
             macroDragAreaSize=modTableSize;
@@ -7748,7 +7771,7 @@ void FurnaceGUI::drawInsEdit() {
             modTableInt[i]=modTableHex?((unsigned char)ins->fds.modTable[i]):ins->fds.modTable[i];
           }
           ImVec2 modTableSize=ImVec2(ImGui::GetContentRegionAvail().x,256.0f*dpiScale);
-          PlotCustom("ModTable",modTable,32,0,NULL,-128,127,modTableSize,sizeof(float),ImVec4(1.0f,1.0f,1.0f,1.0f),0,NULL,NULL,true);
+          PlotCustom("##ModTable",modTable,32,0,NULL,-128,127,modTableSize,sizeof(float),ImVec4(1.0f,1.0f,1.0f,1.0f),0,NULL,NULL,true);
           if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
             macroDragStart=ImGui::GetItemRectMin();
             macroDragAreaSize=modTableSize;
@@ -8755,16 +8778,12 @@ void FurnaceGUI::drawInsEdit() {
           {
             if (ImGui::BeginTabItem(_("Timer Macros")))
             {
-              ImGui::Text(_("warning: timer effects are not supported by VGM export!"));
-              macroList.push_back(FurnaceGUIMacroDesc(_("Timer FX"),&ins->std.ex6Macro,0,3,64,uiColors[GUI_COLOR_MACRO_OTHER]));
-              macroList.push_back(FurnaceGUIMacroDesc(_("TFX Offset"),&ins->std.ex7Macro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true));
+              ImGui::Text(_("warning: timer effects require direct stream mode to be enabled during VGM export!"));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Timer FX"),&ins->std.ex6Macro,0,2,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroTFXModes));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Timer Offset"),&ins->std.ex7Macro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode,NULL,false,NULL,false,NULL,false,true));
               macroList.push_back(FurnaceGUIMacroDesc(_("Timer Num"),&ins->std.ex8Macro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
               macroList.push_back(FurnaceGUIMacroDesc(_("Timer Den"),&ins->std.fmsMacro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
               macroList.push_back(FurnaceGUIMacroDesc(_("PWM Boundary"),&ins->std.amsMacro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
-              // workaround, because the gui will not set
-              // zoom or scroll if we're not in macros tab
-              ins->temp.vZoom[DIV_MACRO_EX7]=128;
-              ins->temp.vScroll[DIV_MACRO_EX7]=2048-64;
               drawMacros(macroList,macroEditStateMacros,ins);
               ImGui::EndTabItem();
             }

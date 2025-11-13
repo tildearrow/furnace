@@ -28,7 +28,7 @@
 class DivPlatformSegaPCM: public DivDispatch {
   protected:
     struct Channel: public SharedChannel<int> {
-      bool furnacePCM, isNewSegaPCM, setPos;
+      bool isNewSegaPCM, setPos;
       unsigned char chVolL, chVolR;
       unsigned char chPanL, chPanR;
       int macroVolMul;
@@ -37,12 +37,11 @@ class DivPlatformSegaPCM: public DivDispatch {
         int sample;
         unsigned int pos; // <<8
         unsigned short len;
-        unsigned char freq;
-        PCMChannel(): sample(-1), pos(0), len(0), freq(0) {}
+        short freq;
+        PCMChannel(): sample(-1), pos(0), len(0), freq(-1) {}
       } pcm;
       Channel():
         SharedChannel<int>(127),
-        furnacePCM(false),
         isNewSegaPCM(false),
         setPos(false),
         chVolL(127),
@@ -70,7 +69,6 @@ class DivPlatformSegaPCM: public DivDispatch {
     bool oldSlides, segaPCMIsDiscrete;
     unsigned int sampleMemSize;
     unsigned char bankShift, chMax;
-    unsigned char sampleBank;
     unsigned char lastBusy;
 
     unsigned char regPool[256];

@@ -321,7 +321,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
       }
 
       // fixed pitch
-      if (parent->song.linearPitch==2) {
+      if (parent->song.linearPitch) {
         bool freqChangeOp=false;
 
         if (op.egt) {

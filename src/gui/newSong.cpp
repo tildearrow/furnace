@@ -289,6 +289,8 @@ void FurnaceGUI::drawNewSong() {
     orderCursor=-1;
     samplePos=0;
     updateSampleTex=true;
+    notifySampleChange=true;
+    e->calcSongTimestamps();
     selStart=SelectionPoint();
     selEnd=SelectionPoint();
     cursor=SelectionPoint();

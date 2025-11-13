@@ -3764,19 +3764,19 @@ msgid "this is a system designed for testing purposes."
 msgstr ""
 
 #: src/engine/engine.cpp:52
-msgid "00xy: Arpeggio"
+msgid "00xy: Arpeggio (x: semitones; y: semitones)"
 msgstr ""
 
 #: src/engine/engine.cpp:54
-msgid "01xx: Pitch slide up"
+msgid "01xx: Pitch slide up (xx: speed)"
 msgstr ""
 
 #: src/engine/engine.cpp:56
-msgid "02xx: Pitch slide down"
+msgid "02xx: Pitch slide down (xx: speed)"
 msgstr ""
 
 #: src/engine/engine.cpp:58
-msgid "03xx: Portamento"
+msgid "03xx: Portamento (xx: speed)"
 msgstr ""
 
 #: src/engine/engine.cpp:60

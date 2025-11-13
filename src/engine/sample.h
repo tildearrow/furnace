@@ -66,16 +66,15 @@ struct DivSampleHistory {
   unsigned char* data;
   unsigned int length, samples;
   DivSampleDepth depth;
-  int rate, centerRate, loopStart, loopEnd;
+  int centerRate, loopStart, loopEnd;
   bool loop, brrEmphasis, brrNoFilter, dither;
   DivSampleLoopMode loopMode;
   bool hasSample;
-  DivSampleHistory(void* d, unsigned int l, unsigned int s, DivSampleDepth de, int r, int cr, int ls, int le, bool lp, bool be, bool bf, bool di, DivSampleLoopMode lm):
+  DivSampleHistory(void* d, unsigned int l, unsigned int s, DivSampleDepth de, int cr, int ls, int le, bool lp, bool be, bool bf, bool di, DivSampleLoopMode lm):
     data((unsigned char*)d),
     length(l),
     samples(s),
     depth(de),
-    rate(r),
     centerRate(cr),
     loopStart(ls),
     loopEnd(le),
@@ -85,12 +84,11 @@ struct DivSampleHistory {
     dither(di),
     loopMode(lm),
     hasSample(true) {}
-  DivSampleHistory(DivSampleDepth de, int r, int cr, int ls, int le, bool lp, bool be, bool bf, bool di, DivSampleLoopMode lm):
+  DivSampleHistory(DivSampleDepth de, int cr, int ls, int le, bool lp, bool be, bool bf, bool di, DivSampleLoopMode lm):
     data(NULL),
     length(0),
     samples(0),
     depth(de),
-    rate(r),
     centerRate(cr),
     loopStart(ls),
     loopEnd(le),
@@ -105,7 +103,8 @@ struct DivSampleHistory {
 
 struct DivSample {
   String name;
-  int rate, centerRate, loopStart, loopEnd;
+  int centerRate, loopStart, loopEnd;
+  int legacyRate;
   // valid values are:
   // - 0: ZX Spectrum overlay drum (1-bit)
   // - 1: 1-bit NES DPCM (1-bit)
@@ -243,7 +242,7 @@ struct DivSample {
    * @param count number of samples.
    * @return whether it was successful.
    */
-  bool init(unsigned int count);
+  bool init(int count);
 
   /**
    * resize sample data. make sure the sample has been initialized before doing so.
@@ -337,10 +336,10 @@ struct DivSample {
   int redo();
   DivSample():
     name(""),
-    rate(32000),
     centerRate(8363),
     loopStart(-1),
     loopEnd(-1),
+    legacyRate(32000),
     depth(DIV_SAMPLE_DEPTH_16BIT),
     loop(false),
     brrEmphasis(true),

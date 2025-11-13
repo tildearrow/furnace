@@ -112,8 +112,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
       if (slen==2) slen=0;
       signed char fineTune=reader.readC()&0x0f;
       if (fineTune>=8) fineTune-=16;
-      sample->rate=(int)(pow(2.0,(double)fineTune/96.0)*8363.0);
-      sample->centerRate=sample->rate;
+      sample->centerRate=(int)(pow(2.0,(double)fineTune/96.0)*8363.0);
       defaultVols[i]=reader.readC();
       int loopStart=reader.readS_BE()*2;
       int loopLen=reader.readS_BE()*2;
@@ -185,21 +184,20 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
       }
       for (int row=0; row<64; row++) {
         for (int ch=0; ch<chCount; ch++) {
-          short* dstrow=chpats[ch]->data[row];
+          short* dstrowN=chpats[ch]->newData[row];
           unsigned char data[4];
           reader.read(&data,4);
           // instrument
           short ins=(data[0]&0xf0)|(data[2]>>4);
           if (ins>0) {
-            dstrow[2]=ins-1;
-            dstrow[3]=defaultVols[ins-1];
+            dstrowN[DIV_PAT_INS]=ins-1;
+            dstrowN[DIV_PAT_VOL]=defaultVols[ins-1];
           }
           // note
           int period=data[1]+((data[0]&0x0f)<<8);
           if (period>0 && period<0x0fff) {
             short note=(short)round(log2(3424.0/period)*12);
-            dstrow[0]=((note+11)%12)+1;
-            dstrow[1]=(note-1)/12+1;
+            dstrowN[DIV_PAT_NOTE]=note+72;
             if (period<114) {
               bypassLimits=true;
             }
@@ -207,8 +205,8 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
           // effects are done later
           short fxtyp=data[2]&0x0f;
           short fxval=data[3];
-          dstrow[4]=fxtyp;
-          dstrow[5]=fxval;
+          dstrowN[DIV_PAT_FX(0)]=fxtyp;
+          dstrowN[DIV_PAT_FXVAL(0)]=fxval;
           switch (fxtyp) {
             case 0:
               if (fxval!=0) fxUsage[ch][0]=true;
@@ -256,7 +254,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     for (int ch=0; ch<=chCount; ch++) {
       unsigned char fxCols=1;
       for (int pat=0; pat<=patMax; pat++) {
-        auto* data=ds.subsong[0]->pat[ch].getPattern(pat,true)->data;
+        auto* newData=ds.subsong[0]->pat[ch].getPattern(pat,true)->newData;
         short lastPitchEffect=-1;
         short lastEffectState[5]={-1,-1,-1,-1,-1};
         short setEffectState[5]={-1,-1,-1,-1,-1};
@@ -264,11 +262,11 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
           const short fxUsageTyp[5]={0x00,0x01,0x04,0x07,0xFA};
           short effectState[5]={0,0,0,0,0};
           unsigned char curFxCol=0;
-          short fxTyp=data[row][4];
-          short fxVal=data[row][5];
-          auto writeFxCol=[data,row,&curFxCol](short typ, short val) {
-            data[row][4+curFxCol*2]=typ;
-            data[row][5+curFxCol*2]=val;
+          short fxTyp=newData[row][DIV_PAT_FX(0)];
+          short fxVal=newData[row][DIV_PAT_FXVAL(0)];
+          auto writeFxCol=[newData,row,&curFxCol](short typ, short val) {
+            newData[row][DIV_PAT_FX(curFxCol)]=typ;
+            newData[row][DIV_PAT_FXVAL(curFxCol)]=val;
             curFxCol++;
           };
           writeFxCol(-1,-1);
@@ -293,7 +291,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
               effectState[1]=fxVal;
               if ((effectState[1]!=lastEffectState[1]) ||
                   (fxTyp!=lastPitchEffect) ||
-                  (effectState[1]!=0 && data[row][0]>0)) {
+                  (effectState[1]!=0 && newData[row][DIV_PAT_NOTE]>-1)) {
                 writeFxCol(fxTyp,fxVal);
               }
               lastPitchEffect=fxTyp;
@@ -331,7 +329,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
               writeFxCol(fxTyp,fxVal);
               break;
             case 12: // set vol
-              data[row][3]=MIN(0x40,fxVal);
+              newData[row][DIV_PAT_VOL]=MIN(0x40,fxVal);
               break;
             case 13: // break to row (BCD)
               writeFxCol(fxTyp,((fxVal>>4)*10)+(fxVal&15));
@@ -356,6 +354,20 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
                 case 2: // single note slide down
                   writeFxCol(fxTyp-1+0xf1,fxVal);
                   break;
+                case 4: // vibrato waveform
+                  switch (fxVal&3) {
+                    case 0: // sine
+                      writeFxCol(0xe3,0x00);
+                      break;
+                    case 1: // ramp down
+                      writeFxCol(0xe3,0x05);
+                      break;
+                    case 2: // square
+                    case 3: 
+                      writeFxCol(0xe3,0x06);
+                      break;
+                  }
+                break;
                 case 9: // retrigger
                   writeFxCol(0x0c,fxVal);
                   break;
@@ -373,7 +385,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
           for (int i=0; i<5; i++) {
             // pitch slide and volume slide needs to be kept active on new note
             // even after target/max is reached
-            if (fxUsage[ch][i] && (effectState[i]!=lastEffectState[i] || (effectState[i]!=0 && i==4 && data[row][3]>=0))) {
+            if (fxUsage[ch][i] && (effectState[i]!=lastEffectState[i] || (effectState[i]!=0 && i==4 && newData[row][DIV_PAT_VOL]>=0))) {
               writeFxCol(fxUsageTyp[i],effectState[i]);
             }
           }

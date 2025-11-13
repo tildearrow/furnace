@@ -28,6 +28,8 @@ it features echo and up to 16 voices.
 
 this chip uses the [GBA DMA](../4-instrument/gbadma.md) and [GBA MinMod](../4-instrument/gbaminmod.md) instrument editors.
 
+when played via DMA, a sample's loop start point must be a multiple of 4, and the loop's length must be a multiple of 16. sample length is padded to a multiple of 16.
+
 ## chip config
 
 the following options are available in the Chip Manager window:

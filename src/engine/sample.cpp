@@ -51,7 +51,7 @@ void DivSample::putSampleData(SafeWriter* w) {
 
   w->writeString(name,false);
   w->writeI(samples);
-  w->writeI(rate);
+  w->writeI(centerRate);
   w->writeI(centerRate);
   w->writeC(depth);
   w->writeC(loopMode);
@@ -116,7 +116,9 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
   if (!isNewSample) {
     loopEnd=samples;
   }
-  rate=reader.readI();
+  // just in case it's not new sample, it's a very old version and we gotta read a rate.
+  centerRate=reader.readI();
+  legacyRate=centerRate;
 
   if (isNewSample) {
     centerRate=reader.readI();
@@ -544,6 +546,10 @@ bool DivSample::saveRaw(const char* path) {
 
 // 16-bit memory is padded to 512, to make things easier for ADPCM-A/B.
 bool DivSample::initInternal(DivSampleDepth d, int count) {
+  if (count<0) {
+    logE("initInternal(%d,%d) - NEGATIVE!",(int)d,count);
+    return false;
+  }
   logV("initInternal(%d,%d)",(int)d,count);
   switch (d) {
     case DIV_SAMPLE_DEPTH_1BIT: // 1-bit
@@ -650,7 +656,11 @@ bool DivSample::initInternal(DivSampleDepth d, int count) {
   return true;
 }
 
-bool DivSample::init(unsigned int count) {
+bool DivSample::init(int count) {
+  if (count<0 || count>16777215) {
+    logE("tried to init sample with length %d!",count);
+    return false;
+  }
   if (!initInternal(depth,count)) return false;
   setSampleCount(count);
   return true;
@@ -908,7 +918,6 @@ void DivSample::convert(DivSampleDepth newDepth, unsigned int formatMask) {
   if (loopStart>=0) loopStart=(double)loopStart*(tRate/sRate); \
   if (loopEnd>=0) loopEnd=(double)loopEnd*(tRate/sRate); \
   centerRate=(int)((double)centerRate*(tRate/sRate)); \
-  rate=(int)((double)rate*(tRate/sRate)); \
   samples=finalCount; \
   if (depth==DIV_SAMPLE_DEPTH_16BIT) { \
     delete[] oldData16; \
@@ -1479,7 +1488,8 @@ void DivSample::render(unsigned int formatMask) {
     }
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_BRR)) { // BRR
-    int sampleCount=loop?loopEnd:samples;
+    int sampleCount=isLoopable()?loopEnd:samples;
+    if (sampleCount>(int)samples) sampleCount=samples;
     if (!initInternal(DIV_SAMPLE_DEPTH_BRR,sampleCount)) return;
     brrEncode(data16,dataBRR,sampleCount,loop?loopStart:-1,brrEmphasis,brrNoFilter);
   }
@@ -1656,9 +1666,9 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
       duplicate=new unsigned char[getCurBufLen()];
       memcpy(duplicate,getCurBuf(),getCurBufLen());
     }
-    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,brrNoFilter,dither,loopMode);
+    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,centerRate,loopStart,loopEnd,loop,brrEmphasis,brrNoFilter,dither,loopMode);
   } else {
-    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,brrNoFilter,dither,loopMode);
+    h=new DivSampleHistory(depth,centerRate,loopStart,loopEnd,loop,brrEmphasis,brrNoFilter,dither,loopMode);
   }
   if (!doNotPush) {
     while (!redoHist.empty()) {
@@ -1686,7 +1696,6 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
       memcpy(buf,h->data,h->length); \
     } \
   } \
-  rate=h->rate; \
   centerRate=h->centerRate; \
   loopStart=h->loopStart; \
   loopEnd=h->loopEnd; \

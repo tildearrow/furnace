@@ -120,7 +120,6 @@ class DivPlatformOPN: public DivPlatformFMBase {
 
     struct OPNChannel: public FMChannel {
       unsigned char psgMode, autoEnvNum, autoEnvDen;
-      bool furnacePCM;
       int sample, macroVolMul;
 
       OPNChannel():
@@ -128,7 +127,6 @@ class DivPlatformOPN: public DivPlatformFMBase {
         psgMode(1),
         autoEnvNum(0),
         autoEnvDen(0),
-        furnacePCM(false),
         sample(-1),
         macroVolMul(255) {}
     };
@@ -214,6 +212,13 @@ class DivPlatformOPN: public DivPlatformFMBase {
       return DivPlatformFMBase::mapVelocity(ch,vel);
     }
     virtual float getGain(int ch, int vol) {
+      if (extSys) {
+        if (ch>=extChanOffs+4) {
+          ch-=4;
+        } else if (ch>=extChanOffs) {
+          ch=extChanOffs;
+        }
+      }
       if (vol==0) return 0;
       if (ch==csmChan) return 1;
       if (ch==adpcmBChanOffs) return (float)vol/255.0;

@@ -24,9 +24,9 @@
 #include "imgui_internal.h"
 #include "misc/cpp/imgui_stdlib.h"
 
-#define FURNACE_FFT_SIZE 4096
-#define FURNACE_FFT_RATE 80.0
-#define FURNACE_FFT_CUTOFF 0.1
+#define FURNACE_CHANOSC_FFT_SIZE 4096
+#define FURNACE_CHANOSC_FFT_RATE 80.0
+#define FURNACE_CHANOSC_FFT_CUTOFF 0.1
 
 const char* chanOscRefs[]={
   _N("None (0%)"),
@@ -442,11 +442,11 @@ void FurnaceGUI::drawChanOsc() {
             // check FFT status existence
             if (!fft_->ready) {
               logD(_("creating FFT plan for channel %d"),fft_->relatedCh);
-              fft_->inBuf=(double*)fftw_malloc(FURNACE_FFT_SIZE*sizeof(double));
-              fft_->outBuf=(fftw_complex*)fftw_malloc(FURNACE_FFT_SIZE*sizeof(fftw_complex));
-              fft_->corrBuf=(double*)fftw_malloc(FURNACE_FFT_SIZE*sizeof(double));
-              fft_->plan=fftw_plan_dft_r2c_1d(FURNACE_FFT_SIZE,fft_->inBuf,fft_->outBuf,FFTW_ESTIMATE);
-              fft_->planI=fftw_plan_dft_c2r_1d(FURNACE_FFT_SIZE,fft_->outBuf,fft_->corrBuf,FFTW_ESTIMATE);
+              fft_->inBuf=(double*)fftw_malloc(FURNACE_CHANOSC_FFT_SIZE*sizeof(double));
+              fft_->outBuf=(fftw_complex*)fftw_malloc(FURNACE_CHANOSC_FFT_SIZE*sizeof(fftw_complex));
+              fft_->corrBuf=(double*)fftw_malloc(FURNACE_CHANOSC_FFT_SIZE*sizeof(double));
+              fft_->plan=fftw_plan_dft_r2c_1d(FURNACE_CHANOSC_FFT_SIZE,fft_->inBuf,fft_->outBuf,FFTW_ESTIMATE);
+              fft_->planI=fftw_plan_dft_c2r_1d(FURNACE_CHANOSC_FFT_SIZE,fft_->outBuf,fft_->corrBuf,FFTW_ESTIMATE);
               if (fft_->plan==NULL) {
                 logE(_("failed to create plan!"));
               } else if (fft_->planI==NULL) {
@@ -485,24 +485,24 @@ void FurnaceGUI::drawChanOsc() {
                 // first FFT
                 int k=0;
                 short lastSample=0;
-                memset(fft->inBuf,0,FURNACE_FFT_SIZE*sizeof(double));
-                if (displaySize2<FURNACE_FFT_SIZE) {
-                  for (int j=-FURNACE_FFT_SIZE; j<FURNACE_FFT_SIZE; j++) {
-                    const short newData=buf->data[(unsigned short)(fft->needle-displaySize2+((j*displaySize2)/(FURNACE_FFT_SIZE)))];
+                memset(fft->inBuf,0,FURNACE_CHANOSC_FFT_SIZE*sizeof(double));
+                if (displaySize2<FURNACE_CHANOSC_FFT_SIZE) {
+                  for (int j=-FURNACE_CHANOSC_FFT_SIZE; j<FURNACE_CHANOSC_FFT_SIZE; j++) {
+                    const short newData=buf->data[(unsigned short)(fft->needle-displaySize2+((j*displaySize2)/(FURNACE_CHANOSC_FFT_SIZE)))];
                     if (newData!=-1) lastSample=newData;
                     if (j<0) continue;
                     fft->inBuf[j]=(double)lastSample/32768.0;
                     if (fft->inBuf[j]>0.001 || fft->inBuf[j]<-0.001) fft->loudEnough=true;
-                    fft->inBuf[j]*=0.55-0.45*cos(M_PI*(double)j/(double)(FURNACE_FFT_SIZE>>1));
+                    fft->inBuf[j]*=0.55-0.45*cos(M_PI*(double)j/(double)(FURNACE_CHANOSC_FFT_SIZE>>1));
                   }
                 } else {
                   for (unsigned short j=fft->needle-displaySize2; j!=fft->needle; j++, k++) {
-                    const int kIn=(k*FURNACE_FFT_SIZE)/displaySize2;
-                    if (kIn>=FURNACE_FFT_SIZE) break;
+                    const int kIn=(k*FURNACE_CHANOSC_FFT_SIZE)/displaySize2;
+                    if (kIn>=FURNACE_CHANOSC_FFT_SIZE) break;
                     if (buf->data[j]!=-1) lastSample=buf->data[j];
                     fft->inBuf[kIn]=(double)lastSample/32768.0;
                     if (fft->inBuf[kIn]>0.001 || fft->inBuf[kIn]<-0.001) fft->loudEnough=true;
-                    fft->inBuf[kIn]*=0.55-0.45*cos(M_PI*(double)kIn/(double)(FURNACE_FFT_SIZE>>1));
+                    fft->inBuf[kIn]*=0.55-0.45*cos(M_PI*(double)kIn/(double)(FURNACE_CHANOSC_FFT_SIZE>>1));
                   }
                 }
 
@@ -511,9 +511,9 @@ void FurnaceGUI::drawChanOsc() {
                   fftw_execute(fft->plan);
 
                   // auto-correlation and second FFT
-                  for (int j=0; j<FURNACE_FFT_SIZE; j++) {
-                    fft->outBuf[j][0]/=FURNACE_FFT_SIZE;
-                    fft->outBuf[j][1]/=FURNACE_FFT_SIZE;
+                  for (int j=0; j<FURNACE_CHANOSC_FFT_SIZE; j++) {
+                    fft->outBuf[j][0]/=FURNACE_CHANOSC_FFT_SIZE;
+                    fft->outBuf[j][1]/=FURNACE_CHANOSC_FFT_SIZE;
                     fft->outBuf[j][0]=fft->outBuf[j][0]*fft->outBuf[j][0]+fft->outBuf[j][1]*fft->outBuf[j][1];
                     fft->outBuf[j][1]=0;
                   }
@@ -524,19 +524,19 @@ void FurnaceGUI::drawChanOsc() {
                   fftw_execute(fft->planI);
 
                   // window
-                  for (int j=0; j<(FURNACE_FFT_SIZE>>1); j++) {
-                    fft->corrBuf[j]*=1.0-((double)j/(double)(FURNACE_FFT_SIZE<<1));
+                  for (int j=0; j<(FURNACE_CHANOSC_FFT_SIZE>>1); j++) {
+                    fft->corrBuf[j]*=1.0-((double)j/(double)(FURNACE_CHANOSC_FFT_SIZE<<1));
                   }
 
                   // find size of period
                   double waveLenCandL=DBL_MAX;
                   double waveLenCandH=DBL_MIN;
-                  fft->waveLen=FURNACE_FFT_SIZE-1;
+                  fft->waveLen=FURNACE_CHANOSC_FFT_SIZE-1;
                   fft->waveLenBottom=0;
                   fft->waveLenTop=0;
 
                   // find lowest point
-                  for (int j=(FURNACE_FFT_SIZE>>2); j>2; j--) {
+                  for (int j=(FURNACE_CHANOSC_FFT_SIZE>>2); j>2; j--) {
                     if (fft->corrBuf[j]<waveLenCandL) {
                       waveLenCandL=fft->corrBuf[j];
                       fft->waveLenBottom=j;
@@ -544,7 +544,7 @@ void FurnaceGUI::drawChanOsc() {
                   }
                   
                   // find highest point
-                  for (int j=(FURNACE_FFT_SIZE>>1)-1; j>fft->waveLenBottom; j--) {
+                  for (int j=(FURNACE_CHANOSC_FFT_SIZE>>1)-1; j>fft->waveLenBottom; j--) {
                     if (fft->corrBuf[j]>waveLenCandH) {
                       waveLenCandH=fft->corrBuf[j];
                       fft->waveLen=j;
@@ -553,11 +553,11 @@ void FurnaceGUI::drawChanOsc() {
                   fft->waveLenTop=fft->waveLen;
 
                   // did we find the period size?
-                  if (fft->waveLen<(FURNACE_FFT_SIZE-32)) {
+                  if (fft->waveLen<(FURNACE_CHANOSC_FFT_SIZE-32)) {
                     // we got pitch
-                    fft->pitch=pow(1.0-(fft->waveLen/(double)(FURNACE_FFT_SIZE>>1)),4.0);
+                    fft->pitch=pow(1.0-(fft->waveLen/(double)(FURNACE_CHANOSC_FFT_SIZE>>1)),4.0);
                     
-                    fft->waveLen*=(double)displaySize*2.0/(double)FURNACE_FFT_SIZE;
+                    fft->waveLen*=(double)displaySize*2.0/(double)FURNACE_CHANOSC_FFT_SIZE;
 
                     // DFT of one period (x_1)
                     double dft[2];
@@ -662,7 +662,7 @@ void FurnaceGUI::drawChanOsc() {
                 if (debugFFT) {
                   // FFT debug code!
                   double maxavg=0.0;
-                  for (unsigned short j=0; j<(FURNACE_FFT_SIZE>>1); j++) {
+                  for (unsigned short j=0; j<(FURNACE_CHANOSC_FFT_SIZE>>1); j++) {
                     if (fabs(fft->corrBuf[j]>maxavg)) {
                       maxavg=fabs(fft->corrBuf[j]);
                     }
@@ -673,9 +673,9 @@ void FurnaceGUI::drawChanOsc() {
                     for (unsigned short j=0; j<precision && j<2048; j++) {
                       float y;
                       if (j>=precision/2) {
-                        y=fft->inBuf[((j-(precision/2))*FURNACE_FFT_SIZE*2)/(precision)];
+                        y=fft->inBuf[((j-(precision/2))*FURNACE_CHANOSC_FFT_SIZE*2)/(precision)];
                       } else {
-                        y=fft->corrBuf[(j*FURNACE_FFT_SIZE)/precision]*maxavg;
+                        y=fft->corrBuf[(j*FURNACE_CHANOSC_FFT_SIZE)/precision]*maxavg;
                       }
                       fft->oscTex[j]=y*2.0;
                     }
@@ -684,25 +684,25 @@ void FurnaceGUI::drawChanOsc() {
                       float x=(float)j/(float)precision;
                       float y;
                       if (j>=precision/2) {
-                        y=fft->inBuf[((j-(precision/2))*FURNACE_FFT_SIZE*2)/(precision)];
+                        y=fft->inBuf[((j-(precision/2))*FURNACE_CHANOSC_FFT_SIZE*2)/(precision)];
                       } else {
-                        y=fft->corrBuf[(j*FURNACE_FFT_SIZE)/precision]*maxavg;
+                        y=fft->corrBuf[(j*FURNACE_CHANOSC_FFT_SIZE)/precision]*maxavg;
                       }
                       waveform[j]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
                     }
                   }
                   if (fft->loudEnough) {
-                    String cPhase=fmt::sprintf("\n%.1f (b: %d t: %d)\nSIZES: %d, %d, %d\nPHASE %f",fft->waveLen,fft->waveLenBottom,fft->waveLenTop,displaySize,displaySize2,FURNACE_FFT_SIZE,fft->debugPhase);
+                    String cPhase=fmt::sprintf("\n%.1f (b: %d t: %d)\nSIZES: %d, %d, %d\nPHASE %f",fft->waveLen,fft->waveLenBottom,fft->waveLenTop,displaySize,displaySize2,FURNACE_CHANOSC_FFT_SIZE,fft->debugPhase);
                     dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
 
                     dl->AddLine(
-                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)fft->waveLenBottom/(double)FURNACE_FFT_SIZE,0.0)),
-                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)fft->waveLenBottom/(double)FURNACE_FFT_SIZE,1.0)),
+                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)fft->waveLenBottom/(double)FURNACE_CHANOSC_FFT_SIZE,0.0)),
+                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)fft->waveLenBottom/(double)FURNACE_CHANOSC_FFT_SIZE,1.0)),
                       0xffffff00
                     );
                     dl->AddLine(
-                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)fft->waveLenTop/(double)FURNACE_FFT_SIZE,0.0)),
-                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)fft->waveLenTop/(double)FURNACE_FFT_SIZE,1.0)),
+                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)fft->waveLenTop/(double)FURNACE_CHANOSC_FFT_SIZE,0.0)),
+                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)fft->waveLenTop/(double)FURNACE_CHANOSC_FFT_SIZE,1.0)),
                       0xff00ff00
                     );
                     dl->AddLine(
@@ -902,10 +902,8 @@ void FurnaceGUI::drawChanOsc() {
                       case 'n': {
                         DivChannelState* chanState=e->getChanState(ch);
                         if (chanState==NULL || !(chanState->keyOn)) break;
-                        short tempNote=chanState->note; //all of this conversion is necessary because notes 100-102 are special chars
-                        short noteMod=tempNote%12+12; //also note 0 is a BUG, hence +12 on the note and -1 on the octave
-                        short oct=tempNote/12-1; 
-                        text+=fmt::sprintf("%s",noteName(noteMod,oct));
+                        // no more conversion necessary after the note/octave unification :>
+                        text+=fmt::sprintf("%s",noteName(chanState->note+60));
                         break;
                       }
                       case 'l': {
