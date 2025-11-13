@@ -8379,7 +8379,7 @@ void FurnaceGUI::syncState() {
   pianoLabelsMode=e->getConfInt("pianoLabelsMode",pianoLabelsMode);
 
   chanOscCols=e->getConfInt("chanOscCols",3);
-  chanOscAutoColsType=e->getConfInt("chanOscAutoColsType",0);
+  chanOscAutoCols=e->getConfBool("chanOscAutoColsType",0);
   chanOscColorX=e->getConfInt("chanOscColorX",GUI_OSCREF_CENTER);
   chanOscColorY=e->getConfInt("chanOscColorY",GUI_OSCREF_CENTER);
   chanOscCenterStrat=e->getConfInt("chanOscCenterStrat",1);
@@ -8553,7 +8553,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
 
   // commit per-chan osc state
   conf.set("chanOscCols",chanOscCols);
-  conf.set("chanOscAutoColsType",chanOscAutoColsType);
+  conf.set("chanOscAutoColsType",chanOscAutoCols);
   conf.set("chanOscColorX",chanOscColorX);
   conf.set("chanOscColorY",chanOscColorY);
   conf.set("chanOscCenterStrat",chanOscCenterStrat);
@@ -9187,7 +9187,6 @@ FurnaceGUI::FurnaceGUI():
   oscInput1(0.0f),
   oscZoomSlider(false),
   chanOscCols(3),
-  chanOscAutoColsType(0),
   chanOscColorX(GUI_OSCREF_CENTER),
   chanOscColorY(GUI_OSCREF_CENTER),
   chanOscCenterStrat(1),
@@ -9203,6 +9202,7 @@ FurnaceGUI::FurnaceGUI():
   chanOscNormalize(false),
   chanOscRandomPhase(false),
   chanOscUseChanColor(false),
+  chanOscAutoCols(false),
   chanOscTextFormat("%c"),
   chanOscColor(1.0f,1.0f,1.0f,1.0f),
   chanOscTextColor(1.0f,1.0f,1.0f,0.75f),

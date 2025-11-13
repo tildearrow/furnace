@@ -77,7 +77,7 @@ float FurnaceGUI::computeGradPos(int type, int chan, int totalChans) {
       return (float)chan/(float)(totalChans-1);
       break;
     case GUI_OSCREF_BRIGHT:
-      return chanOscBright[chan];
+      return chanOscBright[chan]; // this array is set to only 0 (???)
       break;
     case GUI_OSCREF_NOTE_TRIGGER:
       return keyHit1[chan];
@@ -143,10 +143,12 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::Text(_("Columns"));
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        ImGui::BeginDisabled(chanOscAutoCols);
         if (ImGui::InputInt("##COSColumns",&chanOscCols,1,3)) {
           if (chanOscCols<1) chanOscCols=1;
           if (chanOscCols>64) chanOscCols=64;
         }
+        ImGui::EndDisabled();
 
         ImGui::TableNextColumn();
         ImGui::Text(_("Size (ms)"));
@@ -160,18 +162,7 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Automatic columns"));
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        const char* previewColType=autoColsTypes[chanOscAutoColsType&3];
-        if (ImGui::BeginCombo("##AutoCols",previewColType)) {
-          for (int j=0; j<4; j++) {
-            const bool isSelected=(chanOscAutoColsType==j);
-            if (ImGui::Selectable(autoColsTypes[j],isSelected)) chanOscAutoColsType=j;
-            if (isSelected) ImGui::SetItemDefaultFocus();
-          }
-          ImGui::EndCombo();
-        }
+        ImGui::Checkbox(_("Automatic columns"),&chanOscAutoCols);
 
         ImGui::TableNextColumn();
         if (ImGui::Checkbox(_("Center waveform"),&chanOscWaveCorr)) {
@@ -423,7 +414,7 @@ void FurnaceGUI::drawChanOsc() {
         for (int i=0; i<chans; i++) {
           DivDispatchOscBuffer* buf=e->getOscBuffer(i);
           if (buf!=NULL && e->curSubSong->chanShowChanOsc[i]) {
-            oscBufs.push_back(buf);
+            oscBufs.push_back(buf); // isnt this odd how there are 3 vectors of the same size?
             oscFFTs.push_back(&chanOscChan[i]);
             oscChans.push_back(i);
           }
@@ -593,25 +584,11 @@ void FurnaceGUI::drawChanOsc() {
           }
         }
         chanOscWorkPool->wait();
-
-        // 0: none
-        // 1: sqrt(chans)
-        // 2: sqrt(chans+1)
-        // 3: sqrt(chans)+1
-        switch (chanOscAutoColsType) {
-          case 1:
-            chanOscCols=sqrt(oscChans.size());
-            break;
-          case 2:
-            chanOscCols=sqrt(oscChans.size()+1);
-            break;
-          case 3:
-            chanOscCols=sqrt(oscChans.size())+1;
-            break;
-        }
-        if (chanOscCols<1) chanOscCols=1;
-        if (chanOscCols>64) chanOscCols=64;
         
+        if (chanOscAutoCols) {
+          chanOscCols=sqrt(oscBufs.size());
+          if (chanOscCols>64) chanOscCols=64;
+        }
         int rows=(oscBufs.size()+(chanOscCols-1))/chanOscCols;
 
         // render
