@@ -496,6 +496,11 @@ int DivEngine::dispatchCmd(DivCommand c) {
     }
   }
 
+  // don't dispatch if the channel doesn't exist
+  if (song.dispatchChanOfChan[c.dis]<0) {
+    return 0;
+  }
+
   // map the channel to channel of chip
   // c.dis is a copy of c.chan because we'll use it in the next call
   c.chan=song.dispatchChanOfChan[c.dis];
@@ -784,15 +789,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].stopOnOff=false;
       }
       // depending on the system, portamento may still be disabled
-      if (disCont[song.dispatchOfChan[i]].dispatch->keyOffAffectsPorta(song.dispatchChanOfChan[i])) {
+      if (song.dispatchChanOfChan[i]>=0) if (disCont[song.dispatchOfChan[i]].dispatch->keyOffAffectsPorta(song.dispatchChanOfChan[i])) {
         chan[i].portaNote=-1;
         chan[i].portaSpeed=-1;
         dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
-        // this here is a now-disabled hack which makes the noise channel also stop when square 3 is
-        /*if (i==2 && song.sysOfChan[i]==DIV_SYSTEM_SMS) {
-          chan[i+1].portaNote=-1;
-          chan[i+1].portaSpeed=-1;
-        }*/
       }
       // another compatibility hack which schedules a second reset later just in case
       chan[i].scheduledSlideReset=true;
@@ -812,14 +812,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
         dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
         chan[i].stopOnOff=false;
       }
-      if (disCont[song.dispatchOfChan[i]].dispatch->keyOffAffectsPorta(song.dispatchChanOfChan[i])) {
+      if (song.dispatchChanOfChan[i]>=0) if (disCont[song.dispatchOfChan[i]].dispatch->keyOffAffectsPorta(song.dispatchChanOfChan[i])) {
         chan[i].portaNote=-1;
         chan[i].portaSpeed=-1;
         dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
-        /*if (i==2 && song.sysOfChan[i]==DIV_SYSTEM_SMS) {
-          chan[i+1].portaNote=-1;
-          chan[i+1].portaSpeed=-1;
-        }*/
       }
       chan[i].scheduledSlideReset=true;
     }
@@ -839,7 +835,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     // ...unless there's a way to trigger keyOn twice
     if (!chan[i].keyOn) {
       // the behavior of arpeggio reset upon note off varies per system
-      if (disCont[song.dispatchOfChan[i]].dispatch->keyOffAffectsArp(song.dispatchChanOfChan[i])) {
+      if (song.dispatchChanOfChan[i]>=0) if (disCont[song.dispatchOfChan[i]].dispatch->keyOffAffectsArp(song.dispatchChanOfChan[i])) {
         chan[i].arp=0;
         dispatchCmd(DivCommand(DIV_CMD_HINT_ARPEGGIO,i,chan[i].arp));
       }
@@ -1039,7 +1035,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           // COMPAT FLAG: limit slide range
           // - this confines pitch slides from dispatch->getPortaFloor to C-8 (I think)
           // - yep, the lowest portamento note depends on the system...
-          chan[i].portaNote=song.limitSlides?disCont[song.dispatchOfChan[i]].dispatch->getPortaFloor(song.dispatchChanOfChan[i]):-60;
+          chan[i].portaNote=(song.limitSlides && song.dispatchChanOfChan[i]>=0)?disCont[song.dispatchOfChan[i]].dispatch->getPortaFloor(song.dispatchChanOfChan[i]):-60;
           chan[i].portaSpeed=effectVal;
           dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
           chan[i].portaStop=true;
@@ -1684,7 +1680,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
             chan[i].portaNote=song.limitSlides?0x60:255;
           } else {
             // COMPAT FLAG: limit slide range
-            chan[i].portaNote=song.limitSlides?disCont[song.dispatchOfChan[i]].dispatch->getPortaFloor(song.dispatchChanOfChan[i]):-60;
+            chan[i].portaNote=(song.limitSlides && song.dispatchChanOfChan[i]>=0)?disCont[song.dispatchOfChan[i]].dispatch->getPortaFloor(song.dispatchChanOfChan[i]):-60;
           }
           chan[i].portaSpeed=effectVal;
           chan[i].portaStop=true;
@@ -2080,7 +2076,10 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       if (note.volume>=0 && !disCont[song.dispatchOfChan[note.channel]].dispatch->isVolGlobal()) {
         // map velocity to curve and then to equivalent chip volume
         float curvedVol=pow((float)note.volume/127.0f,midiVolExp);
-        int mappedVol=disCont[song.dispatchOfChan[note.channel]].dispatch->mapVelocity(song.dispatchChanOfChan[note.channel],curvedVol);
+        int mappedVol=0;
+        if (song.dispatchChanOfChan[note.channel]>=0) {
+          mappedVol=disCont[song.dispatchOfChan[note.channel]].dispatch->mapVelocity(song.dispatchChanOfChan[note.channel],curvedVol);
+        }
         // fire command
         dispatchCmd(DivCommand(DIV_CMD_VOLUME,note.channel,mappedVol));
       }
@@ -2094,7 +2093,10 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       chan[note.channel].lastIns=note.ins;
     } else {
       // note off
-      DivMacroInt* macroInt=disCont[song.dispatchOfChan[note.channel]].dispatch->getChanMacroInt(song.dispatchChanOfChan[note.channel]);
+      DivMacroInt* macroInt=NULL;
+      if (song.dispatchChanOfChan[note.channel]>=0) {
+        macroInt=disCont[song.dispatchOfChan[note.channel]].dispatch->getChanMacroInt(song.dispatchChanOfChan[note.channel]);
+      }
       if (macroInt!=NULL) {
         // if the current instrument has a release point in any macros and
         // volume is per-channel, send a note release instead of a note off
@@ -2463,7 +2465,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
                   chan[i].stopOnOff=false;
                 }
                 // depending on the system, portamento may still be disabled
-                if (disCont[song.dispatchOfChan[i]].dispatch->keyOffAffectsPorta(song.dispatchChanOfChan[i])) {
+                if (song.dispatchChanOfChan[i]>=0) if (disCont[song.dispatchOfChan[i]].dispatch->keyOffAffectsPorta(song.dispatchChanOfChan[i])) {
                   chan[i].portaNote=-1;
                   chan[i].portaSpeed=-1;
                   dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
@@ -2565,6 +2567,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     shallStopSched=false;
     // reset all chan oscs
     for (int i=0; i<song.chans; i++) {
+      if (song.dispatchChanOfChan[i]<0) continue;
       DivDispatchOscBuffer* buf=disCont[song.dispatchOfChan[i]].dispatch->getOscBuffer(song.dispatchChanOfChan[i]);
       if (buf!=NULL) {
         buf->reset();

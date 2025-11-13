@@ -710,17 +710,23 @@ void DivSong::recalcChans() {
   int chanIndex=0;
   memset(isInsTypePossible,0,DIV_INS_MAX*sizeof(bool));
   for (int i=0; i<systemLen; i++) {
+    const DivSysDef* sysDef=DivEngine::getSystemDef(system[i]);
     int chanCount=systemChans[i];
     int firstChan=chans;
     chans+=chanCount;
     for (int j=0; j<chanCount; j++) {
       sysOfChan[chanIndex]=system[i];
       dispatchOfChan[chanIndex]=i;
-      dispatchChanOfChan[chanIndex]=j;
+      if (sysDef==NULL) {
+        dispatchChanOfChan[chanIndex]=-1;
+      } else if (j<sysDef->maxChans) {
+        dispatchChanOfChan[chanIndex]=j;
+      } else {
+        dispatchChanOfChan[chanIndex]=-1;
+      }
       dispatchFirstChan[chanIndex]=firstChan;
       chanIndex++;
 
-      const DivSysDef* sysDef=DivEngine::getSystemDef(system[i]);
       if (sysDef!=NULL) {
         if (sysDef->chanInsType[j][0]!=DIV_INS_NULL) {
           isInsTypePossible[sysDef->chanInsType[j][0]]=true;

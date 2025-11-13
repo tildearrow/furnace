@@ -314,6 +314,7 @@ const char* DivEngine::getChannelName(int chan) {
   if (chan<0 || chan>song.chans) return "??";
   if (!curSubSong->chanName[chan].empty()) return curSubSong->chanName[chan].c_str();
   if (sysDefs[song.sysOfChan[chan]]==NULL) return "??";
+  if (song.dispatchChanOfChan[chan]<0) return "??";
   
   const char* ret=sysDefs[song.sysOfChan[chan]]->chanNames[song.dispatchChanOfChan[chan]];
   if (ret==NULL) return "??";
@@ -324,6 +325,7 @@ const char* DivEngine::getChannelShortName(int chan) {
   if (chan<0 || chan>song.chans) return "??";
   if (!curSubSong->chanShortName[chan].empty()) return curSubSong->chanShortName[chan].c_str();
   if (sysDefs[song.sysOfChan[chan]]==NULL) return "??";
+  if (song.dispatchChanOfChan[chan]<0) return "??";
   
   const char* ret=sysDefs[song.sysOfChan[chan]]->chanShortNames[song.dispatchChanOfChan[chan]];
   if (ret==NULL) return "??";
@@ -333,18 +335,21 @@ const char* DivEngine::getChannelShortName(int chan) {
 int DivEngine::getChannelType(int chan) {
   if (chan<0 || chan>song.chans) return DIV_CH_NOISE;
   if (sysDefs[song.sysOfChan[chan]]==NULL) return DIV_CH_NOISE;
+  if (song.dispatchChanOfChan[chan]<0) return DIV_CH_NOISE;
   return sysDefs[song.sysOfChan[chan]]->chanTypes[song.dispatchChanOfChan[chan]];
 }
 
 DivInstrumentType DivEngine::getPreferInsType(int chan) {
   if (chan<0 || chan>song.chans) return DIV_INS_STD;
   if (sysDefs[song.sysOfChan[chan]]==NULL) return DIV_INS_STD;
+  if (song.dispatchChanOfChan[chan]<0) return DIV_INS_STD;
   return sysDefs[song.sysOfChan[chan]]->chanInsType[song.dispatchChanOfChan[chan]][0];
 }
 
 DivInstrumentType DivEngine::getPreferInsSecondType(int chan) {
   if (chan<0 || chan>song.chans) return DIV_INS_NULL;
   if (sysDefs[song.sysOfChan[chan]]==NULL) return DIV_INS_NULL;
+  if (song.dispatchChanOfChan[chan]<0) return DIV_INS_NULL;
   return sysDefs[song.sysOfChan[chan]]->chanInsType[song.dispatchChanOfChan[chan]][1];
 }
 

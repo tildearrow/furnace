@@ -1536,21 +1536,25 @@ DivChannelState* DivEngine::getChanState(int ch) {
 
 unsigned short DivEngine::getChanPan(int ch) {
   if (ch<0 || ch>=song.chans) return 0;
+  if (song.dispatchChanOfChan[ch]<0) return 0;
   return disCont[song.dispatchOfChan[ch]].dispatch->getPan(song.dispatchChanOfChan[ch]);
 }
 
 void* DivEngine::getDispatchChanState(int ch) {
   if (ch<0 || ch>=song.chans) return NULL;
+  if (song.dispatchChanOfChan[ch]<0) return NULL;
   return disCont[song.dispatchOfChan[ch]].dispatch->getChanState(song.dispatchChanOfChan[ch]);
 }
 
 void DivEngine::getChanPaired(int ch, std::vector<DivChannelPair>& ret) {
   if (ch<0 || ch>=song.chans) return;
+  if (song.dispatchChanOfChan[ch]<0) return;
   disCont[song.dispatchOfChan[ch]].dispatch->getPaired(song.dispatchChanOfChan[ch],ret);
 }
 
 DivChannelModeHints DivEngine::getChanModeHints(int ch) {
   if (ch<0 || ch>=song.chans) return DivChannelModeHints();
+  if (song.dispatchChanOfChan[ch]<0) return DivChannelModeHints();
   return disCont[song.dispatchOfChan[ch]].dispatch->getModeHints(song.dispatchChanOfChan[ch]);
 }
 
@@ -1564,16 +1568,19 @@ unsigned char* DivEngine::getRegisterPool(int sys, int& size, int& depth) {
 
 DivMacroInt* DivEngine::getMacroInt(int chan) {
   if (chan<0 || chan>=song.chans) return NULL;
+  if (song.dispatchChanOfChan[chan]<0) return NULL;
   return disCont[song.dispatchOfChan[chan]].dispatch->getChanMacroInt(song.dispatchChanOfChan[chan]);
 }
 
 DivSamplePos DivEngine::getSamplePos(int chan) {
   if (chan<0 || chan>=song.chans) return DivSamplePos();
+  if (song.dispatchChanOfChan[chan]<0) return DivSamplePos();
   return disCont[song.dispatchOfChan[chan]].dispatch->getSamplePos(song.dispatchChanOfChan[chan]);
 }
 
 DivDispatchOscBuffer* DivEngine::getOscBuffer(int chan) {
   if (chan<0 || chan>=song.chans) return NULL;
+  if (song.dispatchChanOfChan[chan]<0) return NULL;
   return disCont[song.dispatchOfChan[chan]].dispatch->getOscBuffer(song.dispatchChanOfChan[chan]);
 }
 
@@ -2070,6 +2077,7 @@ void DivEngine::stop() {
 
   // reset all chan oscs
   for (int i=0; i<song.chans; i++) {
+    if (song.dispatchChanOfChan[i]<0) continue;
     DivDispatchOscBuffer* buf=disCont[song.dispatchOfChan[i]].dispatch->getOscBuffer(song.dispatchChanOfChan[i]);
     if (buf!=NULL) {
       buf->reset();
@@ -2118,7 +2126,9 @@ void DivEngine::reset() {
   }
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     chan[i]=DivChannelState();
-    if (i<song.chans) chan[i].volMax=(disCont[song.dispatchOfChan[i]].dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,song.dispatchChanOfChan[i]))<<8)|0xff;
+    if (i<song.chans && song.dispatchChanOfChan[i]>=0) {
+      chan[i].volMax=(disCont[song.dispatchOfChan[i]].dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,song.dispatchChanOfChan[i]))<<8)|0xff;
+    }
     chan[i].volume=chan[i].volMax;
     if (!song.linearPitch) chan[i].vibratoFine=4;
   }
@@ -2393,6 +2403,7 @@ int DivEngine::mapVelocity(int ch, float vel) {
   if (ch<0) return 0;
   if (ch>=song.chans) return 0;
   if (disCont[song.dispatchOfChan[ch]].dispatch==NULL) return 0;
+  if (song.dispatchChanOfChan[ch]<0) return 0;
   return disCont[song.dispatchOfChan[ch]].dispatch->mapVelocity(song.dispatchChanOfChan[ch],vel);
 }
 
@@ -2400,6 +2411,7 @@ float DivEngine::getGain(int ch, int vol) {
   if (ch<0) return 0;
   if (ch>=song.chans) return 0;
   if (disCont[song.dispatchOfChan[ch]].dispatch==NULL) return 0;
+  if (song.dispatchChanOfChan[ch]<0) return 0;
   return disCont[song.dispatchOfChan[ch]].dispatch->getGain(song.dispatchChanOfChan[ch],vol);
 }
 
@@ -2525,14 +2537,14 @@ void DivEngine::toggleSolo(int chan) {
   if (!solo) {
     for (int i=0; i<song.chans; i++) {
       isMuted[i]=(i!=chan);
-      if (disCont[song.dispatchOfChan[i]].dispatch!=NULL) {
+      if (disCont[song.dispatchOfChan[i]].dispatch!=NULL && song.dispatchChanOfChan[i]>=0) {
         disCont[song.dispatchOfChan[i]].dispatch->muteChannel(song.dispatchChanOfChan[i],isMuted[i]);
       }
     }
   } else {
     for (int i=0; i<song.chans; i++) {
       isMuted[i]=false;
-      if (disCont[song.dispatchOfChan[i]].dispatch!=NULL) {
+      if (disCont[song.dispatchOfChan[i]].dispatch!=NULL && song.dispatchChanOfChan[i]>=0) {
         disCont[song.dispatchOfChan[i]].dispatch->muteChannel(song.dispatchChanOfChan[i],isMuted[i]);
       }
     }
@@ -2543,7 +2555,7 @@ void DivEngine::toggleSolo(int chan) {
 void DivEngine::muteChannel(int chan, bool mute) {
   BUSY_BEGIN;
   isMuted[chan]=mute;
-  if (disCont[song.dispatchOfChan[chan]].dispatch!=NULL) {
+  if (disCont[song.dispatchOfChan[chan]].dispatch!=NULL && song.dispatchChanOfChan[chan]>=0) {
     disCont[song.dispatchOfChan[chan]].dispatch->muteChannel(song.dispatchChanOfChan[chan],isMuted[chan]);
   }
   BUSY_END;
@@ -2553,7 +2565,7 @@ void DivEngine::unmuteAll() {
   BUSY_BEGIN;
   for (int i=0; i<song.chans; i++) {
     isMuted[i]=false;
-    if (disCont[song.dispatchOfChan[i]].dispatch!=NULL) {
+    if (disCont[song.dispatchOfChan[i]].dispatch!=NULL && song.dispatchChanOfChan[i]>=0) {
       disCont[song.dispatchOfChan[i]].dispatch->muteChannel(song.dispatchChanOfChan[i],isMuted[i]);
     }
   }

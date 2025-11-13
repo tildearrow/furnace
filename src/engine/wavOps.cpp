@@ -487,7 +487,7 @@ void DivEngine::runExportThread() {
           }
         }
         for (int j=0; j<song.chans; j++) {
-          if (disCont[song.dispatchOfChan[j]].dispatch!=NULL) {
+          if (disCont[song.dispatchOfChan[j]].dispatch!=NULL && song.dispatchChanOfChan[j]>=0) {
             disCont[song.dispatchOfChan[j]].dispatch->muteChannel(song.dispatchChanOfChan[j],isMuted[j]);
           }
         }
@@ -566,7 +566,7 @@ void DivEngine::runExportThread() {
 
       for (int i=0; i<song.chans; i++) {
         isMuted[i]=false;
-        if (disCont[song.dispatchOfChan[i]].dispatch!=NULL) {
+        if (disCont[song.dispatchOfChan[i]].dispatch!=NULL && song.dispatchChanOfChan[i]>=0) {
           disCont[song.dispatchOfChan[i]].dispatch->muteChannel(song.dispatchChanOfChan[i],false);
         }
       }

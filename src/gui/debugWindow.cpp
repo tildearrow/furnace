@@ -121,6 +121,8 @@ void FurnaceGUI::drawDebug() {
         ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],"Ch. %d: %d, %d",i,e->song.dispatchOfChan[i],e->song.dispatchChanOfChan[i]);
         if (ch==NULL) {
           ImGui::Text("NULL");
+        } else if (e->song.dispatchChanOfChan[i]<0) {
+          ImGui::Text("---");
         } else {
           putDispatchChan(ch,e->song.dispatchChanOfChan[i],e->song.sysOfChan[i]);
         }
