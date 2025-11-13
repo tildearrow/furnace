@@ -59,6 +59,14 @@ unsigned char* DivCSPlayer::getFastDelays() {
   return fastDelays;
 }
 
+unsigned char* DivCSPlayer::getFastIns() {
+  return fastIns;
+}
+
+unsigned char* DivCSPlayer::getFastVols() {
+  return fastVols;
+}
+
 unsigned char* DivCSPlayer::getFastCmds() {
   return fastCmds;
 }
@@ -110,9 +118,6 @@ bool DivCSPlayer::tick() {
         e->dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,(int)next-60));
         chan[i].note=(int)next-60;
         chan[i].vibratoPos=0;
-      } else if (next>=0xe0 && next<=0xef) {
-        command=fastCmds[next&15];
-        bAccessTS[fastCmdsOff+(next&15)]=curTick;
       } else if (next>=0xf0) { // preset delay
         chan[i].waitTicks=fastDelays[next&15];
         chan[i].lastWaitLen=chan[i].waitTicks;
@@ -205,13 +210,18 @@ bool DivCSPlayer::tick() {
           e->dispatchCmd(DivCommand(DIV_CMD_PANNING,i,panL,panR));
           break;
         }
-        case 0xe0: case 0xe1: case 0xe2: case 0xe3:
-        case 0xe4: case 0xe5: case 0xe6: case 0xe7:
-        case 0xe8: case 0xe9: case 0xea: case 0xeb:
+        case 0xe0: case 0xe1: case 0xe2: case 0xe3: case 0xe4: case 0xe5:
+          e->dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,i,fastIns[next-0xe0]));
+          bAccessTS[fastInsOff+(next-0xe0)]=curTick;
+          break;
+        case 0xe6: case 0xe7: case 0xe8: case 0xe9: case 0xea: case 0xeb:
+          chan[i].volume=fastVols[next-0xe6]<<8;
+          bAccessTS[fastVolsOff+(next-0xe6)]=curTick;
+          sendVolume=true;
+          break;
         case 0xec: case 0xed: case 0xee: case 0xef:
-          // TODO: remove as it has no effect
-          command=fastCmds[next&15];
-          
+          command=fastCmds[next&3];
+          bAccessTS[fastCmdsOff+(next&3)]=curTick;
           break;
         case 0xd0: // placeholder
           stream.readC();
@@ -586,7 +596,7 @@ bool DivCSPlayer::tick() {
     }
 
     if (chan[i].portaSpeed) {
-      e->dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(e->song.linearPitch==2?e->song.pitchSlideSpeed:1),chan[i].portaTarget));
+      e->dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(e->song.linearPitch?e->song.pitchSlideSpeed:1),chan[i].portaTarget));
     }
     if (chan[i].arp && !chan[i].portaSpeed) {
       if (chan[i].arpTicks==0) {
@@ -644,8 +654,12 @@ bool DivCSPlayer::init() {
 
   fastDelaysOff=stream.tell();
   stream.read(fastDelays,16);
+  fastInsOff=stream.tell();
+  stream.read(fastIns,6);
+  fastVolsOff=stream.tell();
+  stream.read(fastVols,6);
   fastCmdsOff=stream.tell();
-  stream.read(fastCmds,16);
+  stream.read(fastCmds,4);
 
   if (longPointers) {
     for (unsigned int i=0; i<fileChans; i++) {

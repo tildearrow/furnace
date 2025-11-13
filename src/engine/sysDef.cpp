@@ -465,7 +465,6 @@ void DivEngine::registerSystems() {
 
   EffectHandlerMap fmOPN2EffectHandlerMap(fmEffectHandlerMap);
   fmOPN2EffectHandlerMap.insert({
-    {0x17, {DIV_CMD_SAMPLE_MODE, _("17xx: Toggle PCM mode (LEGACY)")}},
     {0xdf, {DIV_CMD_SAMPLE_DIR, _("DFxx: Set sample playback direction (0: normal; 1: reverse)")}},
   });
 
@@ -884,7 +883,6 @@ void DivEngine::registerSystems() {
       {0x11, {DIV_CMD_STD_NOISE_MODE, _("11xx: Toggle noise mode")}},
       {0x12, {DIV_CMD_PCE_LFO_MODE, _("12xx: Setup LFO (0: disabled; 1: 1x depth; 2: 16x depth; 3: 256x depth)")}},
       {0x13, {DIV_CMD_PCE_LFO_SPEED, _("13xx: Set LFO speed")}},
-      {0x17, {DIV_CMD_SAMPLE_MODE, _("17xx: Toggle PCM mode (LEGACY)")}}
     }
   );
 
@@ -1149,7 +1147,6 @@ void DivEngine::registerSystems() {
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_NULL},
     {
       {0x12, {DIV_CMD_STD_NOISE_MODE, _("12xx: Set duty cycle (pulse: 0 to 7)")}},
-      {0x17, {DIV_CMD_SAMPLE_MODE, _("17xx: Toggle PCM mode (LEGACY)")}},
     }
   );
 
@@ -1175,6 +1172,8 @@ void DivEngine::registerSystems() {
     {},
     {
       {0x10, {DIV_CMD_WAVE, _("10xx: Set waveform")}},
+    },
+    {
       {0x11, {DIV_CMD_FDS_MOD_DEPTH, _("11xx: Set modulation depth")}},
       {0x12, {DIV_CMD_FDS_MOD_HIGH, _("12xy: Set modulation speed high byte (x: enable; y: value)")}},
       {0x13, {DIV_CMD_FDS_MOD_LOW, _("13xx: Set modulation speed low byte")}},
@@ -1401,7 +1400,6 @@ void DivEngine::registerSystems() {
       {0x11, {DIV_CMD_STD_NOISE_MODE, _("11xx: Setup noise mode (0: disabled; 1-8: enabled/tap)")}},
       {0x12, {DIV_CMD_WS_SWEEP_TIME, _("12xx: Setup sweep period (0: disabled; 1-20: enabled/period)")}},
       {0x13, {DIV_CMD_WS_SWEEP_AMOUNT, _("13xx: Set sweep amount")}},
-      {0x17, {DIV_CMD_SAMPLE_MODE, _("17xx: Toggle PCM mode (LEGACY)")}},
     },
     {
       {0x20, {DIV_CMD_WS_GLOBAL_SPEAKER_VOLUME, _("20xx: Set internal speaker loudness (0-1: 100%, 2-3: 200%, 4-7: 400%, 8: 800%)")}},
@@ -1726,7 +1724,6 @@ void DivEngine::registerSystems() {
       {0x10, {DIV_CMD_WAVE, _("10xx: Set waveform")}},
       {0x11, {DIV_CMD_X1_010_ENVELOPE_SHAPE, _("11xx: Set envelope shape")}},
       {0x12, {DIV_CMD_X1_010_SAMPLE_BANK_SLOT, _("12xx: Set sample bank slot (0 to 7)")}},
-      {0x17, {DIV_CMD_SAMPLE_MODE, _("17xx: Toggle PCM mode (LEGACY)")}},
     },
     {
       {0x20, {DIV_CMD_SAMPLE_FREQ, _("20xx: Set PCM frequency (1 to FF)")}},

@@ -23,7 +23,7 @@
 #include <math.h>
 
 #define PITCH_OFFSET ((double)(16*2048*(chanMax+1)))
-#define NOTE_ES5506(c,note) ((amigaPitch && parent->song.linearPitch!=2)?parent->calcBaseFreq(COLOR_NTSC*16,chan[c].pcm.freqOffs,note,true):parent->calcBaseFreq(chipClock,chan[c].pcm.freqOffs,note,false))
+#define NOTE_ES5506(c,note) ((amigaPitch && !parent->song.linearPitch)?parent->calcBaseFreq(COLOR_NTSC*16,chan[c].pcm.freqOffs,note,true):parent->calcBaseFreq(chipClock,chan[c].pcm.freqOffs,note,false))
 
 #define rWrite(a,...) {if(!skipRegisterWrites) {hostIntf32.push_back(QueuedHostIntf(4,(a),__VA_ARGS__)); }}
 #define immWrite(a,...) {hostIntf32.push_back(QueuedHostIntf(4,(a),__VA_ARGS__));}
@@ -603,7 +603,7 @@ void DivPlatformES5506::tick(bool sysTick) {
             const unsigned int length=s->samples-1;
             const unsigned int end=start+(length<<11);
             const unsigned int nextBank=(offES5506>>22)&3;
-            const double nextFreqOffs=((amigaPitch && parent->song.linearPitch!=2)?16:PITCH_OFFSET)*off;
+            const double nextFreqOffs=((amigaPitch && !parent->song.linearPitch)?16:PITCH_OFFSET)*off;
             chan[i].pcm.loopMode=loopMode;
             chan[i].pcm.bank=nextBank;
             chan[i].pcm.start=start;
@@ -746,7 +746,7 @@ void DivPlatformES5506::tick(bool sysTick) {
       chan[i].pcm.nextPos=0;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      if (amigaPitch && parent->song.linearPitch!=2) {
+      if (amigaPitch && !parent->song.linearPitch) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch*16,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,2,chan[i].pitch2*16,16*COLOR_NTSC,chan[i].pcm.freqOffs);
         chan[i].freq=PITCH_OFFSET*(COLOR_NTSC/chan[i].freq)/(chipClock/16.0);
         chan[i].freq=CLAMP(chan[i].freq,0,0x1ffff);
@@ -767,7 +767,7 @@ void DivPlatformES5506::tick(bool sysTick) {
           }
           chan[i].pcm.loopStart=(chan[i].pcm.start+(s->loopStart<<11))&0xfffff800;
           chan[i].pcm.loopEnd=(chan[i].pcm.start+((s->loopEnd)<<11))&0xffffff80;
-          chan[i].pcm.freqOffs=((amigaPitch && parent->song.linearPitch!=2)?16:PITCH_OFFSET)*off;
+          chan[i].pcm.freqOffs=((amigaPitch && !parent->song.linearPitch)?16:PITCH_OFFSET)*off;
           unsigned int startPos=chan[i].pcm.direction?chan[i].pcm.end:chan[i].pcm.start;
           if (chan[i].pcm.nextPos) {
             const unsigned int start=chan[i].pcm.start;
@@ -1212,7 +1212,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       int nextFreq=chan[c.chan].baseFreq;
       int destFreq=NOTE_ES5506(c.chan,c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
-      if (amigaPitch && parent->song.linearPitch!=2) {
+      if (amigaPitch && !parent->song.linearPitch) {
         c.value*=16;
       }
       if (destFreq>nextFreq) {

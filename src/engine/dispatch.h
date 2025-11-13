@@ -918,6 +918,11 @@ class DivDispatch {
     virtual void notifyWaveChange(int wave);
 
     /**
+     * notify sample change.
+     */
+    virtual void notifySampleChange(int sample);
+
+    /**
      * notify addition of an instrument.
      */
     virtual void notifyInsAddition(int sysID);
@@ -1099,7 +1104,7 @@ class DivDispatch {
   if ((x)<(xMin)) (x)=(xMin); \
   if ((x)>(xMax)) (x)=(xMax);
 
-#define NEW_ARP_STRAT (parent->song.linearPitch==2 && !parent->song.oldArpStrategy)
+#define NEW_ARP_STRAT (parent->song.linearPitch && !parent->song.oldArpStrategy)
 #define HACKY_LEGATO_MESS chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode && !NEW_ARP_STRAT
 
 #endif

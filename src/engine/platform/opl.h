@@ -36,10 +36,9 @@ class DivOPLAInterface: public ymfm::ymfm_interface {
   public:
     unsigned char* adpcmBMem;
     unsigned char* pcmMem;
-    int sampleBank;
     uint8_t ymfm_external_read(ymfm::access_class type, uint32_t address);
     void ymfm_external_write(ymfm::access_class type, uint32_t address, uint8_t data);
-    DivOPLAInterface(): adpcmBMem(NULL), pcmMem(NULL), sampleBank(0) {}
+    DivOPLAInterface(): adpcmBMem(NULL), pcmMem(NULL) {}
 };
 
 class DivYMF278MemoryInterface: public MemoryInterface {
@@ -60,7 +59,7 @@ class DivPlatformOPL: public DivDispatch {
       DivInstrumentFM state;
       unsigned int freqH, freqL;
       int sample, fixedFreq;
-      bool furnacePCM, fourOp, hardReset, writeCtrl;
+      bool fourOp, hardReset, writeCtrl;
       bool levelDirect, damp, pseudoReverb, lfoReset, ch;
       int lfo, vib, am, ar, d1r, d2r, dl, rc, rr;
       int pan;
@@ -71,7 +70,6 @@ class DivPlatformOPL: public DivDispatch {
         freqL(0),
         sample(-1),
         fixedFreq(0),
-        furnacePCM(false),
         fourOp(false),
         hardReset(false),
         writeCtrl(false),
@@ -134,7 +132,7 @@ class DivPlatformOPL: public DivDispatch {
     const unsigned short* chanMap;
     const unsigned char* outChanMap;
     int chipFreqBase, chipRateBase;
-    int delay, chipType, oplType, chans, melodicChans, totalChans, adpcmChan=-1, pcmChanOffs=-1, sampleBank, totalOutputs, ramSize;
+    int delay, chipType, oplType, chans, melodicChans, totalChans, adpcmChan=-1, pcmChanOffs=-1, totalOutputs, ramSize;
     int fmMixL=7, fmMixR=7, pcmMixL=7, pcmMixR=7;
     unsigned char lastBusy;
     unsigned char drumState;
@@ -186,6 +184,8 @@ class DivPlatformOPL: public DivDispatch {
     void acquire_ymfm2(short** buf, size_t len);
     void acquire_ymfm1(short** buf, size_t len);
   
+    void renderInstruments();
+  
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
@@ -211,6 +211,7 @@ class DivPlatformOPL: public DivDispatch {
     void toggleRegisterDump(bool enable);
     void setFlags(const DivConfig& flags);
     void notifyInsChange(int ins);
+    void notifySampleChange(int sample);
     void notifyInsDeletion(void* ins);
     int getPortaFloor(int ch);
     void poke(unsigned int addr, unsigned short val);

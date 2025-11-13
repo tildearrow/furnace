@@ -95,7 +95,7 @@ void DivPlatformT6W28::writeOutVol(int ch) {
 double DivPlatformT6W28::NOTE_SN(int ch, int note) {
   double CHIP_DIVIDER=16;
   if (ch==3) CHIP_DIVIDER=15;
-  if (parent->song.linearPitch==2 || !easyNoise) {
+  if (parent->song.linearPitch || !easyNoise) {
     return NOTE_PERIODIC(note);
   }
   if (note>107) {
@@ -105,7 +105,7 @@ double DivPlatformT6W28::NOTE_SN(int ch, int note) {
 }
 
 int DivPlatformT6W28::snCalcFreq(int ch) {
-  if (parent->song.linearPitch==2 && easyNoise && chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2>(107<<7)) {
+  if (parent->song.linearPitch && easyNoise && chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2>(107<<7)) {
     int ret=(((13<<7)+0x40)-(chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2-(107<<7)))>>7;
     if (ret<0) ret=0;
     return ret;

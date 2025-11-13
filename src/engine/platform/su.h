@@ -100,7 +100,7 @@ class DivPlatformSoundUnit: public DivDispatch {
   int cycles, curChan, delay, sysIDCache;
   short tempL;
   short tempR;
-  unsigned char sampleBank, lfoMode, lfoSpeed;
+  unsigned char lfoMode, lfoSpeed;
   SoundUnit* su;
   unsigned char* sampleMem;
   size_t sampleMemLen;

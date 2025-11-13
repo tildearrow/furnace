@@ -287,7 +287,7 @@ int DivPlatformYMZ280B::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_FREQUENCY(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
-      int multiplier=(parent->song.linearPitch==2)?1:256;
+      int multiplier=(parent->song.linearPitch)?1:256;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value*multiplier;
         if (chan[c.chan].baseFreq>=destFreq) {

@@ -21,6 +21,8 @@ set(CMAKE_PROJECT_VERSION_PATCH 8)
 set(BUILD_GUI_DEFAULT ON)
 set(USE_SDL2_DEFAULT ON)
 set(USE_SNDFILE_DEFAULT ON)
+set(WITH_OGG_DEFAULT ON)
+set(WITH_MPEG_DEFAULT ON)
 set(SYSTEM_SDL2_DEFAULT OFF)
 
 include(CheckIncludeFile)
@@ -71,9 +73,11 @@ set(WITH_RENDER_OPENGL_DEFAULT ON)
 if (WIN32)
   set(WITH_RENDER_DX11_DEFAULT ON)
   set(WITH_RENDER_DX9_DEFAULT ON)
+  set(WITH_ASIO_DEFAULT ON)
 else()
   set(WITH_RENDER_DX11_DEFAULT OFF)
   set(WITH_RENDER_DX9_DEFAULT OFF)
+  set(WITH_ASIO_DEFAULT OFF)
 endif()
 if (APPLE)
   set(WITH_RENDER_METAL_DEFAULT ON)
@@ -111,7 +115,10 @@ option(USE_SDL2 "Build with SDL2. Required to build with GUI." ${USE_SDL2_DEFAUL
 option(USE_SNDFILE "Build with libsndfile. Required in order to work with audio files." ${USE_SNDFILE_DEFAULT})
 option(USE_BACKWARD "Use backward-cpp to print a backtrace on crash/abort." ${USE_BACKWARD_DEFAULT})
 option(USE_MOMO "Build a libintl implementation instead of using the system one." ${USE_MOMO_DEFAULT})
+option(WITH_OGG "Whether to build with Ogg and Vorbis support." ${WITH_OGG_DEFAULT})
+option(WITH_MPEG "Whether to build with MPEG audio support (including MP3)." ${WITH_MPEG_DEFAULT})
 option(WITH_JACK "Whether to build with JACK support. Auto-detects if JACK is available" ${WITH_JACK_DEFAULT})
+option(WITH_ASIO "Whether to build with ASIO support. Upgrades Furnace license to GPLv3." ${WITH_ASIO_DEFAULT})
 option(WITH_PORTAUDIO "Whether to build with PortAudio for audio output." ${WITH_PORTAUDIO_DEFAULT})
 option(WITH_RENDER_SDL "Whether to build with the SDL_Renderer render backend." ${WITH_RENDER_SDL_DEFAULT})
 option(WITH_RENDER_OPENGL "Whether to build with the OpenGL render backend." ${WITH_RENDER_OPENGL_DEFAULT})
@@ -278,6 +285,12 @@ if (BUILD_GUI AND USE_FREETYPE)
   list(APPEND DEPENDENCIES_DEFINES HAVE_FREETYPE)
 endif()
 
+# Opus is mandatory
+set(OPUS_X86_MAY_HAVE_AVX2 OFF CACHE BOOL "Enable AVX2 for Opus" FORCE)
+set(OPUS_FORTIFY_SOURCE OFF CACHE BOOL "Enable Fortify Source" FORCE)
+set(OPUS_STACK_PROTECTOR OFF CACHE BOOL "Enable Fortify Source" FORCE)
+add_subdirectory(extern/opus EXCLUDE_FROM_ALL)
+
 if (USE_SNDFILE)
   list(APPEND DEPENDENCIES_DEFINES HAVE_SNDFILE)
   if (SYSTEM_LIBSNDFILE)
@@ -291,11 +304,44 @@ if (USE_SNDFILE)
     list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${LIBSNDFILE_LDFLAGS})
     message(STATUS "Using system-installed libsndfile")
   else()
+    # Ogg, Vorbis, FLAC and MP3
+    if (WITH_OGG)
+      list(APPEND DEPENDENCIES_DEFINES HAVE_OGG)
+      set(OGG_INCLUDE_DIR extern/libogg/include CACHE STRING "Ogg include dir" FORCE)
+      set(OGG_LIBRARY Ogg::ogg CACHE STRING "Ogg library" FORCE)
+      set(Vorbis_Vorbis_INCLUDE_DIR extern/libvorbis/include CACHE STRING "Vorbis include dir" FORCE)
+      set(Vorbis_Enc_INCLUDE_DIR extern/libvorbis/include CACHE STRING "Vorbis enc include dir" FORCE)
+      set(Vorbis_File_INCLUDE_DIR extern/libvorbis/include CACHE STRING "Vorbis file include dir" FORCE)
+      set(Vorbis_Vorbis_LIBRARY Vorbis::vorbis CACHE STRING "Vorbis library" FORCE)
+      set(Vorbis_Enc_LIBRARY Vorbis::enc CACHE STRING "Vorbis enc library" FORCE)
+      set(Vorbis_File_LIBRARY Vorbis::file CACHE STRING "Vorbis file library" FORCE)
+      set(FLAC_INCLUDE_DIR extern/flac/include CACHE STRING "FLAC include dir" FORCE)
+      set(FLAC_LIBRARY FLAC CACHE STRING "FLAC library" FORCE)
+      set(OPUS_INCLUDE_DIR extern/opus/include CACHE STRING "Opus include dir" FORCE)
+      set(OPUS_LIBRARY opus CACHE STRING "Opus library" FORCE)
+      add_subdirectory(extern/libogg EXCLUDE_FROM_ALL)
+      add_subdirectory(extern/libvorbis EXCLUDE_FROM_ALL)
+      set(WITH_FORTIFY_SOURCE OFF CACHE BOOL "Enable Fortify Source" FORCE)
+      set(WITH_STACK_PROTECTOR OFF CACHE BOOL "Enable Fortify Source" FORCE)
+      add_subdirectory(extern/flac EXCLUDE_FROM_ALL)
+    endif()
+
+    if (WITH_MPEG)
+      list(APPEND DEPENDENCIES_DEFINES HAVE_MP3_EXPORT)
+      set(MP3LAME_INCLUDE_DIR extern/lame/include CACHE STRING "LAME include dir" FORCE)
+      set(MP3LAME_LIBRARY mp3lame CACHE STRING "LAME library" FORCE)
+      add_subdirectory(extern/lame EXCLUDE_FROM_ALL)
+      add_subdirectory(extern/mpg123 EXCLUDE_FROM_ALL)
+      set(mpg123_INCLUDE_DIR extern/mpg123/src/include CACHE STRING "mpg123 include dir" FORCE)
+      set(mpg123_LIBRARY mpg123 CACHE STRING "mpg123 library" FORCE)
+    endif()
+
+    # the rest
     set(BUILD_TESTING OFF CACHE BOOL "aaaaaa" FORCE)
     set(BUILD_PROGRAMS OFF CACHE BOOL "aaa" FORCE)
     set(BUILD_EXAMPLES OFF CACHE BOOL "a" FORCE)
-    set(ENABLE_EXTERNAL_LIBS OFF CACHE BOOL "come on" FORCE)
-    set(ENABLE_MPEG OFF CACHE BOOL "come on" FORCE)
+    set(ENABLE_EXTERNAL_LIBS ${WITH_OGG} CACHE BOOL "come on" FORCE)
+    set(ENABLE_MPEG ${WITH_MPEG} CACHE BOOL "come on" FORCE)
     add_subdirectory(extern/libsndfile-modified EXCLUDE_FROM_ALL)
     list(APPEND DEPENDENCIES_LIBRARIES sndfile)
     message(STATUS "Using vendored libsndfile")
@@ -469,6 +515,25 @@ else()
   message(STATUS "Building without JACK support")
 endif()
 
+if (WITH_ASIO)
+  if (NOT WIN32)
+    message(FATAL_ERROR "ASIO is only available on Windows!")
+  endif()
+  add_subdirectory(extern/asio)
+  list(APPEND DEPENDENCIES_DEFINES HAVE_ASIO)
+  list(APPEND DEPENDENCIES_DEFINES FURNACE_GPL3)
+  list(APPEND AUDIO_SOURCES src/audio/asio.cpp)
+  list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/asio/common extern/asio/host)
+  list(APPEND DEPENDENCIES_LIBRARIES ASIO)
+  message(STATUS "Building with ASIO support")
+  set(FURNACE_LICENSE "GPLv3")
+else()
+  if (WIN32)
+    message(STATUS "Building without ASIO support")
+  endif()
+  set(FURNACE_LICENSE "GPLv2")
+endif()
+
 if (WITH_PORTAUDIO)
   list(APPEND AUDIO_SOURCES src/audio/pa.cpp)
   message(STATUS "Building with PortAudio")
@@ -489,6 +554,7 @@ set(ENGINE_SOURCES
 src/log.cpp
 src/baseutils.cpp
 src/fileutils.cpp
+src/timeutils.cpp
 src/utfutils.cpp
 
 extern/itcompress/compression.c
@@ -726,8 +792,10 @@ src/engine/export.cpp
 src/engine/exportDef.cpp
 src/engine/fileOpsIns.cpp
 src/engine/fileOpsSample.cpp
+src/engine/filePlayer.cpp
 src/engine/filter.cpp
 src/engine/instrument.cpp
+src/engine/legacySample.cpp
 src/engine/macroInt.cpp
 src/engine/pattern.cpp
 src/engine/pitchTable.cpp
@@ -866,7 +934,6 @@ extern/imgui_patched/imgui_widgets.cpp
 extern/imgui_patched/backends/imgui_impl_sdl2.cpp
 extern/imgui_software_renderer/imgui_sw.cpp
 extern/imgui_patched/misc/cpp/imgui_stdlib.cpp
-extern/igfd/ImGuiFileDialog.cpp
 
 src/gui/plot_nolerp.cpp
 
@@ -894,6 +961,7 @@ src/gui/image.cpp
 
 src/gui/debug.cpp
 src/gui/fileDialog.cpp
+src/gui/newFilePicker.cpp
 
 src/gui/intConst.cpp
 src/gui/guiConst.cpp
@@ -902,6 +970,7 @@ src/gui/about.cpp
 src/gui/channels.cpp
 src/gui/chanOsc.cpp
 src/gui/clock.cpp
+src/gui/commandPalette.cpp
 src/gui/compatFlags.cpp
 src/gui/csPlayer.cpp
 src/gui/cursor.cpp
@@ -921,20 +990,22 @@ src/gui/log.cpp
 src/gui/memory.cpp
 src/gui/mixer.cpp
 src/gui/midiMap.cpp
+src/gui/multiInsSetup.cpp
 src/gui/newSong.cpp
-src/gui/commandPalette.cpp
 src/gui/orders.cpp
 src/gui/osc.cpp
 src/gui/patManager.cpp
 src/gui/pattern.cpp
 src/gui/piano.cpp
 src/gui/presets.cpp
+src/gui/refPlayer.cpp
 src/gui/regView.cpp
 src/gui/sampleEdit.cpp
 src/gui/scaling.cpp
 src/gui/settings.cpp
 src/gui/songInfo.cpp
 src/gui/songNotes.cpp
+src/gui/spectrum.cpp
 src/gui/speed.cpp
 src/gui/spoiler.cpp
 src/gui/stats.cpp
@@ -944,6 +1015,7 @@ src/gui/sysEx.cpp
 src/gui/sysManager.cpp
 src/gui/sysMiscInfo.cpp
 src/gui/sysPicker.cpp
+src/gui/tuner.cpp
 src/gui/tutorial.cpp
 src/gui/userPresets.cpp
 src/gui/util.cpp
@@ -1138,15 +1210,7 @@ if (USE_BACKWARD)
   list(APPEND USED_SOURCES src/backtrace.cpp)
   if (WIN32)
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-      include(CheckCXXCompilerFlag)
-      check_cxx_compiler_flag(-gcodeview GCC_CODEVIEW)
-      if (GCC_CODEVIEW OR FORCE_CODEVIEW)
-        set(CMAKE_EXE_LINKER_FLAGS "-Wl,--pdb= ")
-        add_compile_options(-gcodeview)
-        message(STATUS "Enabling -gcodeview flag for backward-cpp.")
-      else()
-        message(WARNING "Could not enable -gcodeview! backward-cpp will not work.")
-      endif()
+      message(WARNING "Could not enable -gcodeview! backward-cpp will not work.")
       list(APPEND DEPENDENCIES_LIBRARIES dbghelp psapi)
     endif()
   endif()
@@ -1165,7 +1229,6 @@ if (BUILD_GUI)
     extern/imgui_patched
     extern/imgui_patched/backends
     extern/imgui_software_renderer
-    extern/igfd
   )
   if (WIN32 OR APPLE)
     list(APPEND DEPENDENCIES_INCLUDE_DIRS
@@ -1300,7 +1363,11 @@ if (NOT ANDROID OR TERMUX)
     endif()
     install(DIRECTORY doc DESTINATION ${CMAKE_INSTALL_DOCDIR})
     install(DIRECTORY papers DESTINATION ${CMAKE_INSTALL_DOCDIR}/other)
-    install(FILES LICENSE DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/furnace)
+    if (FURNACE_LICENSE STREQUAL "GPLv3")
+      install(FILES LICENSE.GPLv3 DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/furnace RENAME LICENSE)
+    else()
+      install(FILES LICENSE.GPLv2 DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/furnace RENAME LICENSE)
+    endif()
     list(APPEND DEPENDENCIES_DEFINES LOCALE_DIR="${CMAKE_INSTALL_FULL_LOCALEDIR}")
     install(DIRECTORY po/locale/ DESTINATION ${CMAKE_INSTALL_LOCALEDIR})
     if (WITH_DEMOS OR WITH_INSTRUMENTS OR WITH_WAVETABLES)
@@ -1335,3 +1402,5 @@ if (NOT ANDROID OR TERMUX)
 endif()
 
 target_compile_definitions(${FURNACE} PRIVATE ${DEPENDENCIES_DEFINES})
+
+message(STATUS "License: ${FURNACE_LICENSE}")

@@ -277,7 +277,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     }
 
     if (flags&8) {
-      ds.linearPitch=2;
+      ds.linearPitch=1;
     } else {
       ds.linearPitch=0;
     }
@@ -1062,7 +1062,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
       int readRow=0;
       bool mustCommitInitial=true;
 
-      memset(effectCol,4,64);
+      memset(effectCol,0,64);
       memset(vibStatus,0,64);
       memset(vibStatusChanged,0,64*sizeof(bool));
       memset(vibing,0,64*sizeof(bool));
@@ -1139,86 +1139,86 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
           for (int j=0; j<64; j++) {
             DivPattern* p=ds.subsong[0]->pat[j].getPattern(i,true);
             if (vibing[j]!=vibingOld[j] || vibStatusChanged[j]) {
-              p->data[readRow][effectCol[j]++]=0x04;
-              p->data[readRow][effectCol[j]++]=vibing[j]?vibStatus[j]:0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0x04;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=vibing[j]?vibStatus[j]:0;
               doesVibrato[j]=true;
             } else if (doesVibrato[j] && mustCommitInitial) {
-              p->data[readRow][effectCol[j]++]=0x04;
-              p->data[readRow][effectCol[j]++]=0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0x04;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0;
             }
 
             if (volSliding[j]!=volSlidingOld[j] || volSlideStatusChanged[j]) {
               if (volSlideStatus[j]>=0xf1 && volSliding[j]) {
-                p->data[readRow][effectCol[j]++]=0xf9;
-                p->data[readRow][effectCol[j]++]=volSlideStatus[j]&15;
+                p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0xf9;
+                p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=volSlideStatus[j]&15;
                 volSliding[j]=false;
               } else if ((volSlideStatus[j]&15)==15 && volSlideStatus[j]>=0x10 && volSliding[j]) {
-                p->data[readRow][effectCol[j]++]=0xf8;
-                p->data[readRow][effectCol[j]++]=volSlideStatus[j]>>4;
+                p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0xf8;
+                p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=volSlideStatus[j]>>4;
                 volSliding[j]=false;
               } else {
-                p->data[readRow][effectCol[j]++]=0xfa;
-                p->data[readRow][effectCol[j]++]=volSliding[j]?volSlideStatus[j]:0;
+                p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0xfa;
+                p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=volSliding[j]?volSlideStatus[j]:0;
               }
               doesVolSlide[j]=true;
             } else if (doesVolSlide[j] && mustCommitInitial) {
-              p->data[readRow][effectCol[j]++]=0xfa;
-              p->data[readRow][effectCol[j]++]=0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0xfa;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0;
             }
 
             if (porting[j]!=portingOld[j] || portaStatusChanged[j]) {
               if (portaStatus[j]>=0xe0 && portaType[j]!=3 && porting[j]) {
-                p->data[readRow][effectCol[j]++]=portaType[j]|0xf0;
-                p->data[readRow][effectCol[j]++]=(portaStatus[j]&15)*((portaStatus[j]>=0xf0)?1:1);
+                p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=portaType[j]|0xf0;
+                p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=(portaStatus[j]&15)*((portaStatus[j]>=0xf0)?1:1);
                 porting[j]=false;
               } else {
-                p->data[readRow][effectCol[j]++]=portaType[j];
-                p->data[readRow][effectCol[j]++]=porting[j]?portaStatus[j]:0;
+                p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=portaType[j];
+                p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=porting[j]?portaStatus[j]:0;
               }
               doesPitchSlide[j]=true;
             } else if (doesPitchSlide[j] && mustCommitInitial) {
-              p->data[readRow][effectCol[j]++]=0x01;
-              p->data[readRow][effectCol[j]++]=0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0x01;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0;
             }
 
             if (arping[j]!=arpingOld[j] || arpStatusChanged[j]) {
-              p->data[readRow][effectCol[j]++]=0x00;
-              p->data[readRow][effectCol[j]++]=arping[j]?arpStatus[j]:0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0x00;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=arping[j]?arpStatus[j]:0;
               doesArp[j]=true;
             } else if (doesArp[j] && mustCommitInitial) {
-              p->data[readRow][effectCol[j]++]=0x00;
-              p->data[readRow][effectCol[j]++]=0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0x00;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0;
             }
 
             if (treming[j]!=tremingOld[j] || tremStatusChanged[j]) {
-              p->data[readRow][effectCol[j]++]=0x07;
-              p->data[readRow][effectCol[j]++]=treming[j]?tremStatus[j]:0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0x07;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=treming[j]?tremStatus[j]:0;
               doesTremolo[j]=true;
             } else if (doesTremolo[j] && mustCommitInitial) {
-              p->data[readRow][effectCol[j]++]=0x07;
-              p->data[readRow][effectCol[j]++]=0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0x07;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0;
             }
 
             if (panning[j]!=panningOld[j] || panStatusChanged[j]) {
-              p->data[readRow][effectCol[j]++]=0x84;
-              p->data[readRow][effectCol[j]++]=panning[j]?panStatus[j]:0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0x84;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=panning[j]?panStatus[j]:0;
               doesPanbrello[j]=true;
             } else if (doesPanbrello[j] && mustCommitInitial) {
-              p->data[readRow][effectCol[j]++]=0x84;
-              p->data[readRow][effectCol[j]++]=0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0x84;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0;
             }
 
             if (panSliding[j]!=panSlidingOld[j] || panSlideStatusChanged[j]) {
-              p->data[readRow][effectCol[j]++]=0x83;
-              p->data[readRow][effectCol[j]++]=panSliding[j]?panSlideStatus[j]:0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0x83;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=panSliding[j]?panSlideStatus[j]:0;
               doesPanSlide[j]=true;
             } else if (doesPanSlide[j] && mustCommitInitial) {
-              p->data[readRow][effectCol[j]++]=0x83;
-              p->data[readRow][effectCol[j]++]=0;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0x83;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[j]++]=0;
             }
 
-            if ((effectCol[j]>>1)-2>ds.subsong[0]->pat[j].effectCols) {
-              ds.subsong[0]->pat[j].effectCols=(effectCol[j]>>1)-1;
+            if ((effectCol[j]>>1)>=ds.subsong[0]->pat[j].effectCols) {
+              ds.subsong[0]->pat[j].effectCols=(effectCol[j]>>1)+1;
             }
           }
 
@@ -1250,16 +1250,16 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
             if (readRow>0) {
               // place end of pattern marker
               DivPattern* p=ds.subsong[0]->pat[0].getPattern(i,true);
-              p->data[readRow-1][effectCol[0]++]=0x0d;
-              p->data[readRow-1][effectCol[0]++]=0;
+              p->newData[readRow-1][DIV_PAT_FX(0)+effectCol[0]++]=0x0d;
+              p->newData[readRow-1][DIV_PAT_FX(0)+effectCol[0]++]=0;
 
-              if ((effectCol[0]>>1)-2>ds.subsong[0]->pat[0].effectCols) {
-                ds.subsong[0]->pat[0].effectCols=(effectCol[0]>>1)-1;
+              if ((effectCol[0]>>1)>=ds.subsong[0]->pat[0].effectCols) {
+                ds.subsong[0]->pat[0].effectCols=(effectCol[0]>>1)+1;
               }
             }
             break;
           }
-          memset(effectCol,4,64);
+          memset(effectCol,0,64);
           continue;
         }
 
@@ -1302,25 +1302,17 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
 
         if (hasNote) {
           if (note[chan]==255) { // note release
-            p->data[readRow][0]=101;
-            p->data[readRow][1]=0;
+            p->newData[readRow][DIV_PAT_NOTE]=DIV_NOTE_REL;
           } else if (note[chan]==254) { // note off
-            p->data[readRow][0]=100;
-            p->data[readRow][1]=0;
+            p->newData[readRow][DIV_PAT_NOTE]=DIV_NOTE_OFF;
           } else if (note[chan]<120) {
-            p->data[readRow][0]=note[chan]%12;
-            p->data[readRow][1]=note[chan]/12;
-            if (p->data[readRow][0]==0) {
-              p->data[readRow][0]=12;
-              p->data[readRow][1]--;
-            }
+            p->newData[readRow][DIV_PAT_NOTE]=note[chan]+60;
           } else { // note fade, but Furnace does not support that
-            p->data[readRow][0]=102;
-            p->data[readRow][1]=0;
+            p->newData[readRow][DIV_PAT_NOTE]=DIV_MACRO_REL;
           }
         }
         if (hasIns) {
-          p->data[readRow][2]=ins[chan]-1;
+          p->newData[readRow][DIV_PAT_INS]=ins[chan]-1;
           if ((note[chan]<120 || ds.insLen==0) && ins[chan]>0) {
             unsigned char targetPan=0;
             if (ds.insLen==0) {
@@ -1332,26 +1324,26 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
               }
             }
             if (targetPan&128) {
-              p->data[readRow][effectCol[chan]++]=0x80;
-              p->data[readRow][effectCol[chan]++]=CLAMP((targetPan&127)<<2,0,255);
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0x80;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=CLAMP((targetPan&127)<<2,0,255);
             }
           }
 
           if (hasNote && (note[chan]<120 || ds.insLen==0) && ins[chan]>0) {
             if (ds.insLen==0) {
-              p->data[readRow][3]=defVol[(ins[chan]-1)&255];
+              p->newData[readRow][DIV_PAT_VOL]=defVol[(ins[chan]-1)&255];
             } else {
-              p->data[readRow][3]=defVol[noteMap[(ins[chan]-1)&255][note[chan]]];
+              p->newData[readRow][DIV_PAT_VOL]=defVol[noteMap[(ins[chan]-1)&255][note[chan]]];
             }
           }
         }
         if (hasVol) {
           if (vol[chan]<=64) {
-            p->data[readRow][3]=vol[chan];
+            p->newData[readRow][DIV_PAT_VOL]=vol[chan];
           } else { // effects in volume column
             if (vol[chan]>=128 && vol[chan]<=192) { // panning
-              p->data[readRow][effectCol[chan]++]=0x80;
-              p->data[readRow][effectCol[chan]++]=CLAMP((vol[chan]-128)<<2,0,255);
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0x80;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=CLAMP((vol[chan]-128)<<2,0,255);
             } else if (vol[chan]>=65 && vol[chan]<=74) { // fine vol up
             } else if (vol[chan]>=75 && vol[chan]<=84) { // fine vol down
             } else if (vol[chan]>=85 && vol[chan]<=94) { // vol slide up
@@ -1398,16 +1390,16 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         if (hasEffect) {
           switch (effect[chan]+'A'-1) {
             case 'A': // speed
-              p->data[readRow][effectCol[chan]++]=0x0f;
-              p->data[readRow][effectCol[chan]++]=effectVal[chan];
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0x0f;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=effectVal[chan];
               break;
             case 'B': // go to order
-              p->data[readRow][effectCol[chan]++]=0x0b;
-              p->data[readRow][effectCol[chan]++]=orders[effectVal[chan]];
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0x0b;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=orders[effectVal[chan]];
               break;
             case 'C': // next order
-              p->data[readRow][effectCol[chan]++]=0x0d;
-              p->data[readRow][effectCol[chan]++]=effectVal[chan];
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0x0d;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=effectVal[chan];
               break;
             case 'D': // vol slide
               if (effectVal[chan]!=0) {
@@ -1490,8 +1482,8 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
             case 'N': // channel vol slide
               break;
             case 'O': // offset
-              p->data[readRow][effectCol[chan]++]=0x91;
-              p->data[readRow][effectCol[chan]++]=effectVal[chan];
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0x91;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=effectVal[chan];
               break;
             case 'P': // pan slide
               if (effectVal[chan]!=0) {
@@ -1504,8 +1496,8 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
               if (effectVal[chan]!=0) {
                 lastRetrig[chan]=effectVal[chan];
               }
-              p->data[readRow][effectCol[chan]++]=0x0c;
-              p->data[readRow][effectCol[chan]++]=lastRetrig[chan]&15;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0x0c;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=lastRetrig[chan]&15;
               break;
             case 'R': // tremolo
               if (effectVal[chan]!=0) {
@@ -1519,77 +1511,77 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
                 case 0x3: // vibrato waveform
                   switch (effectVal[chan]&3) {
                     case 0x0: // sine
-                      p->data[readRow][effectCol[chan]++]=0xe3;
-                      p->data[readRow][effectCol[chan]++]=0x00;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0xe3;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0x00;
                       break;
                     case 0x1: // ramp down
-                      p->data[readRow][effectCol[chan]++]=0xe3;
-                      p->data[readRow][effectCol[chan]++]=0x05;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0xe3;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0x05;
                       break;
                     case 0x2: // square
-                      p->data[readRow][effectCol[chan]++]=0xe3;
-                      p->data[readRow][effectCol[chan]++]=0x06;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0xe3;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0x06;
                       break;
                     case 0x3: // random
-                      p->data[readRow][effectCol[chan]++]=0xe3;
-                      p->data[readRow][effectCol[chan]++]=0x07;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0xe3;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0x07;
                       break;
                   }
                   break;
                 case 0x7:
                   switch (effectVal[chan]&15) {
                     case 0x7: // volume envelope off
-                      p->data[readRow][effectCol[chan]++]=0xf5;
-                      p->data[readRow][effectCol[chan]++]=0x00;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0xf5;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0x00;
                       break;
                     case 0x8: // volume envelope on
-                      p->data[readRow][effectCol[chan]++]=0xf6;
-                      p->data[readRow][effectCol[chan]++]=0x00;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0xf6;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0x00;
                       break;
                     case 0x9: // panning envelope off
-                      p->data[readRow][effectCol[chan]++]=0xf5;
-                      p->data[readRow][effectCol[chan]++]=0x0c;
-                      p->data[readRow][effectCol[chan]++]=0xf5;
-                      p->data[readRow][effectCol[chan]++]=0x0d;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0xf5;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0x0c;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0xf5;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0x0d;
                       break;
                     case 0xa: // panning envelope on
-                      p->data[readRow][effectCol[chan]++]=0xf6;
-                      p->data[readRow][effectCol[chan]++]=0x0c;
-                      p->data[readRow][effectCol[chan]++]=0xf6;
-                      p->data[readRow][effectCol[chan]++]=0x0d;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0xf6;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0x0c;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0xf6;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0x0d;
                       break;
                     case 0xb: // pitch envelope off
-                      p->data[readRow][effectCol[chan]++]=0xf5;
-                      p->data[readRow][effectCol[chan]++]=0x04;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0xf5;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0x04;
                       break;
                     case 0xc: //pitch envelope on
-                      p->data[readRow][effectCol[chan]++]=0xf6;
-                      p->data[readRow][effectCol[chan]++]=0x04;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0xf6;
+                      p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0x04;
                       break;
                   }
                   break;
                 case 0x8: // panning
-                  p->data[readRow][effectCol[chan]++]=0x80;
-                  p->data[readRow][effectCol[chan]++]=(effectVal[chan]&15)<<4;
+                  p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0x80;
+                  p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=(effectVal[chan]&15)<<4;
                   break;
                 case 0xa: // offset (high nibble)
-                  p->data[readRow][effectCol[chan]++]=0x92;
-                  p->data[readRow][effectCol[chan]++]=effectVal[chan]&15;
+                  p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0x92;
+                  p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=effectVal[chan]&15;
                   break;
                 case 0xc: // note cut
-                  p->data[readRow][effectCol[chan]++]=0xec;
-                  p->data[readRow][effectCol[chan]++]=effectVal[chan]&15;
+                  p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0xec;
+                  p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=effectVal[chan]&15;
                   break;
                 case 0xd: // note delay
-                  p->data[readRow][effectCol[chan]++]=0xed;
-                  p->data[readRow][effectCol[chan]++]=effectVal[chan]&15;
+                  p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0xed;
+                  p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=effectVal[chan]&15;
                   break;
               }
               break;
             case 'T': // tempo
               if (effectVal[chan]>=0x20) {
-                p->data[readRow][effectCol[chan]++]=0xf0;
-                p->data[readRow][effectCol[chan]++]=effectVal[chan];
+                p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0xf0;
+                p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=effectVal[chan];
               }
               break;
             case 'U': // fine vibrato
@@ -1604,8 +1596,8 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
             case 'W': // global volume slide (!)
               break;
             case 'X': // panning
-              p->data[readRow][effectCol[chan]++]=0x80;
-              p->data[readRow][effectCol[chan]++]=effectVal[chan];
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=0x80;
+              p->newData[readRow][DIV_PAT_FX(0)+effectCol[chan]++]=effectVal[chan];
               break;
             case 'Y': // panbrello
               if (effectVal[chan]!=0) {
@@ -1675,7 +1667,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     for (int i=0; i<(maxChan+32)>>5; i++) {
       ds.system[i]=DIV_SYSTEM_ES5506;
       ds.systemFlags[i].set("amigaVol",true);
-      if (ds.linearPitch!=2) {
+      if (!ds.linearPitch) {
         ds.systemFlags[i].set("amigaPitch",true);
       }
     }
@@ -1690,18 +1682,18 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
       for (int j=0; j<maxChan; j++) {
         DivPattern* p=ds.subsong[i]->pat[j].getPattern(ds.subsong[i]->orders.ord[j][0],true);
         for (int k=0; k<DIV_MAX_EFFECTS; k++) {
-          if (p->data[0][4+(k<<1)]==0x80) {
+          if (p->newData[0][DIV_PAT_FX(k)]==0x80) {
             // give up if there's a panning effect already
             break;
           }
-          if (p->data[0][4+(k<<1)]==-1) {
+          if (p->newData[0][DIV_PAT_FX(k)]==-1) {
             if ((chanPan[j]&127)==100) {
               // should be surround...
-              p->data[0][4+(k<<1)]=0x80;
-              p->data[0][5+(k<<1)]=0x80;
+              p->newData[0][DIV_PAT_FX(k)]=0x80;
+              p->newData[0][DIV_PAT_FXVAL(k)]=0x80;
             } else {
-              p->data[0][4+(k<<1)]=0x80;
-              p->data[0][5+(k<<1)]=CLAMP((chanPan[j]&127)<<2,0,255);
+              p->newData[0][DIV_PAT_FX(k)]=0x80;
+              p->newData[0][DIV_PAT_FXVAL(k)]=CLAMP((chanPan[j]&127)<<2,0,255);
             }
             if (ds.subsong[i]->pat[j].effectCols<=k) ds.subsong[i]->pat[j].effectCols=k+1;
             break;

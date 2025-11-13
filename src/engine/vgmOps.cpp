@@ -1272,10 +1272,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   double origRate=got.rate;
   got.rate=correctedRate;
   // determine loop point
-  int loopOrder=0;
-  int loopRow=0;
-  int loopEnd=0;
-  walkSong(loopOrder,loopRow,loopEnd);
+  calcSongTimestamps();
+  int loopOrder=curSubSong->ts.loopStart.order;
+  int loopRow=curSubSong->ts.loopStart.row;
   logI("loop point: %d %d",loopOrder,loopRow);
   warnings="";
 
@@ -1696,6 +1695,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_VRC7:
         if (!hasOPLL) {
           hasOPLL=disCont[i].dispatch->chipClock;
+          if (song.system[i]==DIV_SYSTEM_VRC7) hasOPLL|=0x80000000;
           CHIP_VOL(1,3.2);
           willExport[i]=true;
         } else if (!(hasOPLL&0x40000000)) {

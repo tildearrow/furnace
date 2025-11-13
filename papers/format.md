@@ -290,8 +290,9 @@ size | description
   1  | limit slides (>=36) or reserved
   1  | linear pitch (>=36) or reserved
      | - 0: non-linear
-     | - 1: only pitch change (04xy/E5xx) linear
-     | - 2: full linear (>=94)
+     | - 1: only pitch change (04xy/E5xx) linear (<237) - full linear (>=237)
+     |   - partial pitch linearity removed in 237
+     | - 2: full linear (>=94, <237)
   1  | loop modality (>=36) or reserved
   1  | proper noise layout (>=42) or reserved
   1  | wave duty is volume (>=42) or reserved
@@ -431,6 +432,7 @@ reserved input portsets:
 
 reserved output portsets:
 - `000` through `01F`: chip outputs
+- `FFC`: reference file/music player (>=238)
 - `FFD`: wave/sample preview
 - `FFE`: metronome
 - `FFF`: "null" portset
