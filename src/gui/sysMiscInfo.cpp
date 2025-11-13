@@ -296,24 +296,28 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
   }
 }
 
-float FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset, float tooltipWidth) {
+float FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset, float tooltipWidth, int chanCount) {
+  if (whichDef==NULL) return 0;
+  if (chanCount<1) chanCount=whichDef->channels;
+
   ImDrawList* dl=ImGui::GetWindowDrawList();
   const ImVec2 p=ImGui::GetCursorScreenPos();
   if (tooltipWidth<=0.0f) tooltipWidth=ImGui::GetContentRegionAvail().x;
   ImVec2 sep=ImGui::GetStyle().ItemSpacing;
   sep.x*=0.5f;
   ImVec2 ledSize=ImVec2(
-    (tooltipWidth-sep.x*(whichDef->channels-1))/(float)whichDef->channels,
+    (tooltipWidth-sep.x*(chanCount-1))/(float)chanCount,
     settings.iconSize*dpiScale
   );
   if (ledSize.x<8.0f*dpiScale) ledSize.x=8.0f*dpiScale;
   float x=p.x, y=p.y;
-  for (int i=0; i<whichDef->channels; i++) {
+  for (int i=0; i<chanCount; i++) {
     if (x+ledSize.x-0.125>tooltipWidth+p.x) {
       x=p.x;
       y+=ledSize.y+sep.y;
     }
-    ImVec4 color=uiColors[whichDef->chanTypes[i]+GUI_COLOR_CHANNEL_FM];
+    ImVec4 color=uiColors[GUI_COLOR_CHANNEL_BG];
+    if (i<whichDef->channels) color=uiColors[whichDef->chanTypes[i]+GUI_COLOR_CHANNEL_FM];
     if (keyHitOffset>=0) {
       if (e->isChannelMuted(keyHitOffset+i)) {
         color=uiColors[GUI_COLOR_CHANNEL_MUTED];

@@ -392,14 +392,24 @@ struct DivSong {
 
   std::vector<DivEffectStorage> effects;
 
-  // INTERNAL STATE - do not modify.
+  /**
+   * INTERNAL STATE - do not modify.
+   */
+  // default/"null" instruments (when instrument is none/-1)
   DivInstrument nullIns, nullInsOPLL, nullInsOPL, nullInsOPLDrums, nullInsQSound, nullInsESFM;
+  // default assets, returned by getWave()/getSample() in DivEngine
   DivWavetable nullWave;
   DivSample nullSample;
 
+  // channel information arrays.
+  // chip of a channel
   DivSystem sysOfChan[DIV_MAX_CHANS];
+  // dispatch (chip index) of a channel
   int dispatchOfChan[DIV_MAX_CHANS];
+  // tracker channel to chip channel mapping
+  // -1 means "nowhere".
   int dispatchChanOfChan[DIV_MAX_CHANS];
+  // the first channel of a chip, indexed per channel
   int dispatchFirstChan[DIV_MAX_CHANS];
 
   std::vector<DivInstrumentType> possibleInsTypes;
