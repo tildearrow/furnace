@@ -8402,7 +8402,7 @@ void FurnaceGUI::syncState() {
   chanOscTextColor.z=e->getConfFloat("chanOscTextColorB",1.0f);
   chanOscTextColor.w=e->getConfFloat("chanOscTextColorA",0.75f);
   chanOscUseGrad=e->getConfBool("chanOscUseGrad",false);
-  chanOscUseChanColor=e->getConfBool("chanOscUseChanColor", false);
+  chanOscColorMode=e->getConfInt("chanOscColorMode",0);
   chanOscGrad.fromString(e->getConfString("chanOscGrad",""));
   chanOscGrad.render();
 
@@ -8577,7 +8577,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("chanOscTextColorA",chanOscTextColor.w);
   conf.set("chanOscUseGrad",chanOscUseGrad);
   conf.set("chanOscGrad",chanOscGrad.toString());
-  conf.set("chanOscUseChanColor",chanOscUseChanColor);
+  conf.set("chanOscColorMode",chanOscColorMode);
 
   // commit x-y osc state
   conf.set("xyOscXChannel",xyOscXChannel);
@@ -9190,6 +9190,7 @@ FurnaceGUI::FurnaceGUI():
   chanOscColorX(GUI_OSCREF_CENTER),
   chanOscColorY(GUI_OSCREF_CENTER),
   chanOscCenterStrat(1),
+  chanOscColorMode(0),
   chanOscWindowSize(20.0f),
   chanOscTextX(0.0f),
   chanOscTextY(0.0f),
@@ -9201,7 +9202,6 @@ FurnaceGUI::FurnaceGUI():
   chanOscUseGrad(false),
   chanOscNormalize(false),
   chanOscRandomPhase(false),
-  chanOscUseChanColor(false),
   chanOscAutoCols(false),
   chanOscTextFormat("%c"),
   chanOscColor(1.0f,1.0f,1.0f,1.0f),

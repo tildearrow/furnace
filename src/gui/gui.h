@@ -2696,10 +2696,10 @@ class FurnaceGUI {
   bool oscZoomSlider;
 
   // per-channel oscilloscope
-  int chanOscCols, chanOscColorX, chanOscColorY, chanOscCenterStrat;
+  int chanOscCols, chanOscColorX, chanOscColorY, chanOscCenterStrat, chanOscColorMode;
   float chanOscWindowSize, chanOscTextX, chanOscTextY, chanOscAmplify, chanOscLineSize;
   bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad;
-  bool chanOscNormalize, chanOscRandomPhase, chanOscUseChanColor, chanOscAutoCols;
+  bool chanOscNormalize, chanOscRandomPhase, chanOscAutoCols;
   String chanOscTextFormat;
   ImVec4 chanOscColor, chanOscTextColor;
   Gradient2D chanOscGrad;

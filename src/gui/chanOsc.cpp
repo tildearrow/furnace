@@ -341,9 +341,30 @@ void FurnaceGUI::drawChanOsc() {
           }
 
           ImGui::TableNextColumn();
-          if (ImGui::ColorEdit4(_("Background"),(float*)&chanOscGrad.bgColor)) {
+          ImGui::Text(_("Background:"));
+          ImGui::Indent();
+          if (ImGui::RadioButton(_("Solid color"),chanOscColorMode==0)) {
+            chanOscColorMode=0;
             updateChanOscGradTex=true;
           }
+          if (chanOscColorMode==0) {
+            ImGui::Indent();
+            if (ImGui::ColorEdit4(_("Color"),(float*)&chanOscGrad.bgColor)) {
+              updateChanOscGradTex=true;
+            }
+            ImGui::Unindent();
+          }
+          if (ImGui::RadioButton(_("Channel color"),chanOscColorMode==1)) {
+            chanOscColorMode=1;
+            chanOscGrad.bgColor.x=0.0f;
+            chanOscGrad.bgColor.y=0.0f;
+            chanOscGrad.bgColor.z=0.0f;
+            chanOscGrad.bgColor.w=0.0f;
+            updateChanOscGradTex=true;
+          }
+          // in preparation of image texture
+          ImGui::Unindent();
+
           ImGui::Combo(_("X Axis##AxisX"),&chanOscColorX,LocalizedComboGetter,chanOscRefs,GUI_OSCREF_MAX);
           ImGui::Combo(_("Y Axis##AxisY"),&chanOscColorY,LocalizedComboGetter,chanOscRefs,GUI_OSCREF_MAX);
 
@@ -351,10 +372,13 @@ void FurnaceGUI::drawChanOsc() {
         }
       } else {
         ImGui::SetNextItemWidth(400.0f*dpiScale);
-        ImGui::BeginDisabled(chanOscUseChanColor);
-        ImGui::ColorPicker4(_("Color"),(float*)&chanOscColor);
+        bool chanOscColorModeB=chanOscColorMode;
+        ImGui::BeginDisabled(chanOscColorModeB);
+        ImGui::ColorEdit4(_("Color"),(float*)&chanOscColor);
         ImGui::EndDisabled();
-        ImGui::Checkbox(_("Set to channel color"), &chanOscUseChanColor);
+        if (ImGui::Checkbox(_("Set to channel color"), &chanOscColorModeB)) {
+          chanOscColorMode=chanOscColorModeB;
+        }
       }
 
       ImGui::AlignTextToFramePadding();
@@ -773,7 +797,15 @@ void FurnaceGUI::drawChanOsc() {
                   }
                 }
               }
-              ImU32 color=ImGui::GetColorU32(chanOscUseChanColor?channelColor(oscChans[i]):chanOscColor);
+              ImU32 color;
+              switch (chanOscColorMode) {
+                case 0:
+                  color=ImGui::GetColorU32(chanOscColor);
+                  break;
+                case 1:
+                  color=ImGui::GetColorU32(channelColor(oscChans[i]));
+                  break;
+              }
               if (chanOscUseGrad) {
                 float xVal=computeGradPos(chanOscColorX,ch,oscBufs.size());
                 float yVal=computeGradPos(chanOscColorY,ch,oscBufs.size());
@@ -781,7 +813,22 @@ void FurnaceGUI::drawChanOsc() {
                 xVal=CLAMP(xVal,0.0f,1.0f);
                 yVal=CLAMP(yVal,0.0f,1.0f);
 
-                color=chanOscGrad.get(xVal,1.0f-yVal);
+                switch (chanOscColorMode) {
+                  case 0:
+                    color=chanOscGrad.get(xVal,1.0f-yVal);
+                    break;
+                  case 1:
+                    color=ImAlphaBlendColors(color,chanOscGrad.get(xVal,1.0f-yVal));
+                    break;
+                }
+                // char buf[256];
+                // snprintf(buf, 256, "%f:%f",xVal,yVal);
+                // dl->AddText(inRect.Min,-1,buf);
+                // dl->AddCircleFilled(
+                //   ImVec2(
+                //     ImLerp(inRect.Min.x,inRect.Max.x,xVal),
+                //     ImLerp(inRect.Min.y,inRect.Max.y,1.0f-yVal)
+                //   ), 2, 0xffff0000);
               }
 
               if (rend->supportsDrawOsc() && settings.shaderOsc) {
@@ -886,10 +933,9 @@ void FurnaceGUI::drawChanOsc() {
                         text+=fmt::sprintf("%s",noteName(chanState->note+60));
                         break;
                       }
-                      case 'l': {
+                      case 'l':
                         text+='\n';
                         break;
-                      }
                       case '%':
                         text+='%';
                         break;
