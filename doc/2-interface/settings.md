@@ -87,6 +87,7 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 - **New instruments are blank**: when enabled, adding FM instruments will make them blank (rather than loading the default one).
 
 ### Configuration
+
 - **Import**: select an exported `.ini` config file to overwrite current settings.
 - **Export**: select an `.ini` file to save current settings.
 - **Factory Reset**: resets all settings to default and purges settings backups.
@@ -94,6 +95,7 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 ### Import
 
 - **Use OPL3 instead of OPL2 for S3M import**: changes which system is used for the import of S3M files that contain FM channels.
+- **Load sample fine tuning when importing a sample**: as it says. may result in glitches with some samples.
 
 ## Audio
 
@@ -103,6 +105,8 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
   - SDL: the default one.
   - JACK: the JACK Audio Connection Kit (low-latency audio server). only appears on Linux, or MacOS compiled with JACK support.
   - PortAudio: this may or may not perform better than the SDL backend.
+  - ASIO: Audio Stream Input/Output. extremely low latency, if your system has a driver for it. after selecting it, click "Apply" to see available devices.
+    - **Control Panel**: opens the ASIO driver's control panel. you must first select a device and click "Apply".
 - **Driver**: select a different audio driver if you're having problems with the default one.
   - only appears when Backend is SDL.
 - **Device**: audio device for playback.
@@ -575,6 +579,16 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 ### Chip Manager
 
 - **Show channel indicators**: chooses whether to show the row "LED" channel indicators in the chip manager.
+
+### Mixer
+
+- **Mixer layout:**
+  - **Horizontal**: a horizontal arrangement of tall mixer sliders.
+  - **Vertical**: a vertical stack of wide mixer sliders. default.
+- **Mixer style:**
+  - **No volume meters**
+  - **Volume meters separate**: default.
+  - **Volume meters in volume sliders**
 
 ### Windows
 
