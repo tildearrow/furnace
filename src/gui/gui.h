@@ -2090,6 +2090,7 @@ class FurnaceGUI {
     int sampleImportInstDetune;
     int mixerStyle;
     int mixerLayout;
+    float channelFeedbackGamma;
     String mainFontPath;
     String headFontPath;
     String patFontPath;
@@ -2344,6 +2345,7 @@ class FurnaceGUI {
       sampleImportInstDetune(0),
       mixerStyle(1),
       mixerLayout(0),
+      channelFeedbackGamma(1.0f),
       mainFontPath(""),
       headFontPath(""),
       patFontPath(""),
@@ -2839,7 +2841,11 @@ class FurnaceGUI {
 
   int pianoOctaves, pianoOctavesEdit;
   bool pianoOptions, pianoSharePosition, pianoOptionsSet;
-  float pianoKeyHit[180];
+  struct pianoKeyState {
+    float value;
+    int chan;
+  };
+  pianoKeyState pianoKeyHit[180];
   bool pianoKeyPressed[180];
   bool pianoReadonly;
   int pianoOffset, pianoOffsetEdit;

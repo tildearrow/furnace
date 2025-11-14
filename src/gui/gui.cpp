@@ -9385,7 +9385,7 @@ FurnaceGUI::FurnaceGUI():
 
   memset(lastAudioLoads,0,sizeof(float)*120);
 
-  memset(pianoKeyHit,0,sizeof(float)*180);
+  memset(pianoKeyHit,0,sizeof(pianoKeyState)*180); // posiblly repace with a for loop
   memset(pianoKeyPressed,0,sizeof(bool)*180);
 
   memset(queryReplaceEffectMode,0,sizeof(int)*8);
