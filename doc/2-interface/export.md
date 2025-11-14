@@ -7,16 +7,39 @@ Furnace allows you to export your song in several formats. this section deals wi
 this option allows you to export your song in .wav format. I know I know, no .mp3 or .ogg export yet, but you can use a converter.
 
 - **Export type**:
-  - **one file**: exports your song to one .wav file.
-  - **multiple files (one per chip)**: exports the output of each chip to .wav files.
-  - **multiple files (one per channel)**: exports the output of each channel to .wav files.
-    - useful for usage with a channel visualizer such as corrscope.
-- **Bit depth**: default is 16-bit integer.
-- **Sample rate**: affects the quality of the output file.
-  - default is 44100, "CD quality".
-  - lower sample rates lose fidelity as upper frequencies disappear.
-  - higher sample rates gain frequencies that can't be heard at the cost of file size and rendering time.
-- **Channels in file**: default is 2 (stereo). Set to 1 for mono.
+  - **one file**: exports your song to a single file.
+  - **multiple files (one per chip)**: exports the output of each chip to its own file.
+  - **multiple files (one per channel)**: exports the output of each channel to its own file.
+    - ideal for use with a channel visualizer such as [corrscope](https://github.com/corrscope/corrscope).
+- **File Format**: select the output format. each format has its own options.
+  - **Wave**: lossless uncompressed .wav format. largest file size but perfect quality. most useful for files that will need further editing.
+    - **Bit depth**: default is 16-bit integer.
+    - **Sample rate**: affects the quality of the output file.
+      - default is 44100, "CD quality".
+      - lower sample rates lose fidelity as upper frequencies disappear.
+      - higher sample rates gain frequencies that can't be heard at the cost of file size and rendering time.
+    - **Channels in file**: default is 2 (stereo). Set to 1 for mono.
+  - **Opus**: lossy compressed .opus format. smaller size than either MP3 or Vorbis for better quality sound, but less common support than other formats.
+    - **Channels in file**: default is 2 (stereo). Set to 1 for mono.
+    - **Bit rate**: higher numbers generate better quality sound and larger file size. default is 128000.
+  - **FLAC (Free Lossless Audio Codec)**: lossless compressed .flac format. good for archival or editing, as it preserves original sound data.
+    - **Sample rate**: affects the quality of the output file. see above.
+    - **Channels in file**: default is 2 (stereo). Set to 1 for mono.
+    - **Compression level**: higher levels take slightly longer to pack but yield much better compression. default is 6.0.
+  - **Vorbis**: lossy compressed .ogg format. better quality sound than MP3 with smaller file size. fairly common support
+    - **Sample rate**: affects the quality of the output file. see above.
+    - **Channels in file**: default is 2 (stereo). Set to 1 for mono.
+    - **Quality**: compression rate. higher numbers produce larger files of higher fidelity. default is 8.0.
+  - **MP3**: lossy compressed .mp3 format. it's the old standard; worst quality for the file size, but it sees the most widespread support and use.
+    - **Sample rate**: affects the quality of the output file. see above.
+    - **Channels in file**: default is 2 (stereo). Set to 1 for mono.
+    - **Bit rate mode**:
+      - **Constant**: fixed bit rate regardless of content. default.
+        - **Bit rate**: higher numbers generate better quality sound and larger file size. default is 128000.
+      - **Variable**: bit rate adapts to the content. generates smaller files for the same quality.
+        - **Quality**: higher numbers produce larger files of higher fidelity. default is 6.0.        
+      - **Average**: a compromise; the steady bit rate of "constant" with higher quality, but less efficiently compressed than "variable".
+        - **Bit rate**: higher numbers generate better quality sound and larger file size. default is 128000.
 - **Loops**: sets the number of times the song will loop.
   - does not have effect if the song ends with `FFxx` effect.
 - **Fade out (seconds)**: sets the fade out time when the song is over.

@@ -115,6 +115,8 @@ all these menu items show or hide their associated windows.
   - **[oscilloscope (per-channel)](../8-advanced/chanosc.md)**
   - **[oscilloscope (X-Y)](../8-advanced/xyosc.md)**
   - volume meter
+  - **[tuner](../8-advanced/tuner.md)**
+  - **[spectrum](../8-advanced/spectrum.md)**
 - tempo
   - **[clock](../8-advanced/clock.md)**
   - **[grooves](../8-advanced/grooves.md)**
@@ -127,6 +129,8 @@ all these menu items show or hide their associated windows.
 - **[effect list](../3-pattern/effects.md)**
 - **[play/edit controls](play-edit-controls.md)**
 - **[piano/input pad](../8-advanced/piano.md)**
+- **[reference music player](../8-advanced/refPlayer.md)**
+- **[multi-ins setup](../8-advanced/multi-ins.md)**
 
 ## help
 
