@@ -149,6 +149,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
+    size_t getSampleMemNum();
     const void* getSampleMem(int index = 0);
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);
