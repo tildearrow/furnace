@@ -5116,7 +5116,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.rackShowLEDs=conf.getInt("rackShowLEDs",1);
 
     settings.mixerStyle=conf.getInt("mixerStyle",1);
-    settings.mixerLayout=conf.getInt("mixerLayout",1);
+    settings.mixerLayout=conf.getInt("mixerLayout",0);
 
     settings.channelColors=conf.getInt("channelColors",1);
     settings.channelTextColors=conf.getInt("channelTextColors",0);
