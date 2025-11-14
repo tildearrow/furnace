@@ -142,6 +142,22 @@ void FurnaceGUI::doAction(int what) {
         failedNoteOn=false;
       }
       break;
+    case GUI_ACTION_PITCH_UP:
+      if (++scaleRoot>GUI_EDIT_PITCH_MAX) {
+        scaleRoot=GUI_EDIT_PITCH_MAX;
+      } else {
+        e->autoNoteOffAll();
+        failedNoteOn=false;
+      }
+      break;
+    case GUI_ACTION_PITCH_DOWN:
+      if (--scaleRoot<GUI_EDIT_PITCH_MIN) {
+        scaleRoot=GUI_EDIT_PITCH_MIN;
+      } else {
+        e->autoNoteOffAll();
+        failedNoteOn=false;
+      }
+      break;
     case GUI_ACTION_INS_UP:
       setCurIns(curIns-1);
       if (curIns<-1) {

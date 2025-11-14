@@ -27,6 +27,8 @@ the keys in the "Global hotkeys" section can be used in any window, although not
 | Step row                                               | `Ctrl-Return`    |
 | Octave up                                              | `Keypad *`       |
 | Octave down                                            | `Keypad /`       |
+| Pitch up                                               | —                |
+| Pitch down                                             | —                |
 | Previous instrument                                    | `Shift-Keypad /` |
 | Next instrument                                        | `Shift-Keypad *` |
 | Increase edit step                                     | `Ctrl-Keypad *`  |
