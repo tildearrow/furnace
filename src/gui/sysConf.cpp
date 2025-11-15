@@ -28,6 +28,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
   bool mustRender=false;
   bool restart=modifyOnChange;
   bool supportsCustomRate=true;
+  bool supportsChannelCount=(chan>=0);
 
   switch (type) {
     case DIV_SYSTEM_YM2612:
@@ -2775,8 +2776,38 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     }
   }
 
-  if (supportsCustomRate) {
+  bool separatedYet=false;
+  if (supportsChannelCount) {
     ImGui::Separator();
+    separatedYet=true;
+    const DivSysDef* sysDef=e->getSystemDef(type);
+    int chCount=e->song.systemChans[chan];
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted(_("Channels"));
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(120.0f*dpiScale);
+    ImGui::InputInt("##ChCount",&chCount,0,0);
+    if (ImGui::IsItemDeactivatedAfterEdit() && chCount!=e->song.systemChans[chan]) {
+      if (e->setSystemChans(chan,chCount,preserveChanPos)) {
+        MARK_MODIFIED;
+        recalcTimestamps=true;
+        if (e->song.autoSystem) {
+          autoDetectSystem();
+        }
+        updateWindowTitle();
+        updateROMExportAvail();
+      } else {
+        showError(fmt::sprintf(_("cannot change chip! (%s)"),e->getLastError()));
+      }
+    }
+    if (sysDef!=NULL) {
+      ImGui::SameLine();
+      ImGui::Text("(%d - %d)",sysDef->minChans,sysDef->maxChans);
+    }
+  }
+
+  if (supportsCustomRate) {
+    if (!separatedYet) ImGui::Separator();
     int customClock=flags.getInt("customClock",0);
     bool usingCustomClock=customClock>=MIN_CUSTOM_CLOCK;
 
