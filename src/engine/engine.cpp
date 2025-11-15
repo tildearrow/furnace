@@ -994,6 +994,10 @@ void DivEngine::delUnusedSamples() {
   BUSY_END;
 }
 
+bool DivEngine::sysChanCountChange(int firstChan, int before, int after) {
+
+}
+
 bool DivEngine::changeSystem(int index, DivSystem which, bool preserveOrder) {
   if (index<0 || index>=song.systemLen) {
     lastError=_("invalid index");

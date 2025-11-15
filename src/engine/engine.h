@@ -687,6 +687,7 @@ class DivEngine {
   void copyChannel(int src, int dest);
   void swapChannels(int src, int dest);
   void stompChannel(int ch);
+  bool sysChanCountChange(int firstChan, int before, int after);
 
   // recalculate patchbay (UNSAFE)
   void recalcPatchbay();
@@ -1337,6 +1338,9 @@ class DivEngine {
 
     // change system
     bool changeSystem(int index, DivSystem which, bool preserveOrder=true);
+
+    // set system channel count
+    bool setSystemChans(int index, int ch, bool preserveOrder=true);
 
     // add system
     bool addSystem(DivSystem which);
