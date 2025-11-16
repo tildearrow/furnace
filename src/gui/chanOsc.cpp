@@ -928,9 +928,16 @@ void FurnaceGUI::drawChanOsc() {
                       }
                       case 'n': {
                         DivChannelState* chanState=e->getChanState(ch);
-                        if (chanState==NULL || !(chanState->keyOn)) break;
-                        // no more conversion necessary after the note/octave unification :>
-                        text+=fmt::sprintf("%s",noteName(chanState->note+60));
+                        // ik its pretty hacky but it works
+                        // the templated stuff is after the member we need to access so it shouldnt matter
+                        // and no segfaults should occur
+                        SharedChannel<char>* chan=(SharedChannel<char>*)e->getDispatchChanState(ch);
+                        if (chanState==NULL || chan==NULL || !chan->active) {
+                          text+="---";
+                        } else {
+                          // no more conversion necessary after the note/octave unification :>
+                          text+=fmt::sprintf("%s",noteName(chanState->note+60));
+                        }
                         break;
                       }
                       case 'l':

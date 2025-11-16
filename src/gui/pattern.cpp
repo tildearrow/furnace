@@ -675,9 +675,9 @@ void FurnaceGUI::drawPattern() {
         }
         if (settings.channelFeedbackStyle==2 && e->isRunning()) {
           float amount=((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i));
-          if (!e->getChanState(i)->keyOn) amount=0.0f;
+          if (e->getChanState(i)->keyOff) amount=0.0f;
           keyHit[i]=amount*0.2f;
-          if (!muted) {
+          if (!muted && e->getChanState(i)->keyOn) {
             int note=e->getChanState(i)->note+60;
             if (note>=0 && note<180) {
               pianoKeyHit[note].value=amount;
@@ -696,9 +696,9 @@ void FurnaceGUI::drawPattern() {
           }
         } else if (settings.channelFeedbackStyle==4 && e->isRunning()) {
           float amount=powf(chanOscVol[i],settings.channelFeedbackGamma);
-          if (!e->getChanState(i)->keyOn) amount=0.0f;
+          if (e->getChanState(i)->keyOff) amount=0.0f;
           keyHit[i]=amount*0.2f;
-          if (!muted) {
+          if (!muted && e->getChanState(i)->keyOn) {
             int note=e->getChanState(i)->note+60;
             if (note>=0 && note<180) {
               pianoKeyHit[note].value=amount;
