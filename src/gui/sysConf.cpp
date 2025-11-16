@@ -2797,7 +2797,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         updateWindowTitle();
         updateROMExportAvail();
       } else {
-        showError(fmt::sprintf(_("cannot change chip! (%s)"),e->getLastError()));
+        showError(e->getLastError());
       }
     }
     if (sysDef!=NULL) {

@@ -1067,6 +1067,10 @@ bool DivEngine::setSystemChans(int index, int ch, bool preserveOrder) {
     lastError=_("invalid index");
     return false;
   }
+  if (ch<1) {
+    lastError=_("channel count should be at least 1");
+    return false;
+  }
   if (song.chans-song.systemChans[index]+ch>DIV_MAX_CHANS) {
     lastError=fmt::sprintf(_("max number of total channels is %d"),DIV_MAX_CHANS);
     return false;
