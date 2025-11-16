@@ -171,17 +171,22 @@ enum DivFileElementType: unsigned char {
   DIV_ELEMENT_PATTERN,
   DIV_ELEMENT_COMPAT_FLAGS,
   DIV_ELEMENT_COMMENTS,
-  DIV_ELEMENT_GROOVE
+  DIV_ELEMENT_GROOVE,
+
+  DIV_ELEMENT_MAX
 };
 
 struct DivGroovePattern {
-  unsigned char val[16];
-  unsigned char len;
+  unsigned short val[16];
+  unsigned short len;
+  bool readData(SafeReader& reader);
   void putData(SafeWriter* w);
   DivGroovePattern():
     len(1) {
-      memset(val,6,16);
+    for (int i=0; i<16; i++) {
+      val[i]=6;
     }
+  }
 };
 
 struct DivSongTimestamps {
@@ -243,6 +248,11 @@ struct DivSubSong {
    * calculate timestamps (loop position, song length and more).
    */
   void calcTimestamps(int chans, std::vector<DivGroovePattern>& grooves, int jumpTreatment, int ignoreJumpAtEnd, int brokenSpeedSel, int delayBehavior, int firstPat=0);
+
+  /**
+   * read sub-song data.
+   */
+  bool readData(SafeReader& reader, int version, int chans);
 
   /**
    * write sub-song block to a SafeWriter.

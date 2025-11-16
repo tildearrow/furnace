@@ -451,6 +451,142 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
   logV("song length: %s; %" PRIu64 " ticks",ts.totalTime.toString(6,TA_TIME_FORMAT_AUTO),ts.totalTicks);
 }
 
+bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
+  unsigned char magic[4];
+
+  reader.read(magic,4);
+
+  if (version>=240) {
+    if (memcmp(magic,"SNG2",4)!=0) {
+      logE("invalid subsong header!");
+      return false;
+    }
+    reader.readI();
+
+    hz=reader.readF();
+    arpLen=reader.readC();
+    timeBase=reader.readC();
+
+    patLen=reader.readS();
+    ordersLen=reader.readS();
+
+    hilightA=reader.readC();
+    hilightB=reader.readC();
+
+    virtualTempoN=reader.readS();
+    virtualTempoD=reader.readS();
+
+    speeds.len=reader.readC();
+    for (int i=0; i<16; i++) {
+      speeds.val[i]=reader.readS();
+    }
+
+    name=reader.readString();
+    notes=reader.readString();
+
+    logD("reading orders (%d)...",ordersLen);
+    for (int j=0; j<chans; j++) {
+      for (int k=0; k<ordersLen; k++) {
+        orders.ord[j][k]=reader.readC();
+      }
+    }
+
+    for (int i=0; i<chans; i++) {
+      pat[i].effectCols=reader.readC();
+    }
+
+    for (int i=0; i<chans; i++) {
+      unsigned char tempchar=reader.readC();
+      chanShow[i]=tempchar&1;
+      chanShowChanOsc[i]=tempchar&2;
+    }
+
+    for (int i=0; i<chans; i++) {
+      chanCollapse[i]=reader.readC();
+    }
+
+    for (int i=0; i<chans; i++) {
+      chanName[i]=reader.readString();
+    }
+
+    for (int i=0; i<chans; i++) {
+      chanShortName[i]=reader.readString();
+    }
+  } else {
+    if (memcmp(magic,"SONG",4)!=0) {
+      logE("invalid subsong header!");
+      return false;
+    }
+    reader.readI();
+
+    timeBase=reader.readC();
+    speeds.len=2;
+    speeds.val[0]=(unsigned char)reader.readC();
+    speeds.val[1]=(unsigned char)reader.readC();
+    arpLen=reader.readC();
+    hz=reader.readF();
+
+    patLen=reader.readS();
+    ordersLen=reader.readS();
+
+    hilightA=reader.readC();
+    hilightB=reader.readC();
+
+    if (version>=96) {
+      virtualTempoN=reader.readS();
+      virtualTempoD=reader.readS();
+    } else {
+      reader.readI();
+    }
+
+    name=reader.readString();
+    notes=reader.readString();
+
+    logD("reading orders (%d)...",ordersLen);
+    for (int j=0; j<chans; j++) {
+      for (int k=0; k<ordersLen; k++) {
+        orders.ord[j][k]=reader.readC();
+      }
+    }
+
+    for (int i=0; i<chans; i++) {
+      pat[i].effectCols=reader.readC();
+    }
+
+    for (int i=0; i<chans; i++) {
+      if (version<189) {
+        chanShow[i]=reader.readC();
+        chanShowChanOsc[i]=chanShow[i];
+      } else {
+        unsigned char tempchar=reader.readC();
+        chanShow[i]=tempchar&1;
+        chanShowChanOsc[i]=tempchar&2;
+      }
+    }
+
+    for (int i=0; i<chans; i++) {
+      chanCollapse[i]=reader.readC();
+    }
+
+    for (int i=0; i<chans; i++) {
+      chanName[i]=reader.readString();
+    }
+
+    for (int i=0; i<chans; i++) {
+      chanShortName[i]=reader.readString();
+    }
+
+    if (version>=139) {
+      speeds.len=reader.readC();
+      for (int i=0; i<16; i++) {
+        speeds.val[i]=(unsigned char)reader.readC();
+      }
+    }
+  }
+
+  return true;
+}
+
 void DivSubSong::putData(SafeWriter* w, int chans) {
   size_t blockStartSeek, blockEndSeek;
   w->write("SNG2",4);
@@ -468,7 +604,7 @@ void DivSubSong::putData(SafeWriter* w, int chans) {
   w->writeS(virtualTempoD);
 
   // speeds
-  w->writeS(speeds.len);
+  w->writeC(speeds.len);
   for (int i=0; i<16; i++) {
     w->writeS(speeds.val[i]);
   }
@@ -873,13 +1009,29 @@ void DivSong::unload() {
   subsong.clear();
 }
 
+bool DivGroovePattern::readData(SafeReader& reader) {
+  unsigned char magic[4];
+
+  reader.read(magic,4);
+
+  if (memcmp(magic,"GROV",4)!=0) {
+    logE("invalid groove header!");
+    return false;
+  }
+  reader.readI();
+
+  
+
+  return true;
+}
+
 void DivGroovePattern::putData(SafeWriter* w) {
   size_t blockStartSeek, blockEndSeek;
   w->write("GROV",4);
   blockStartSeek=w->tell();
   w->writeI(0);
 
-  w->writeS(len);
+  w->writeC(len);
   for (int i=0; i<16; i++) {
     w->writeS(val[i]);
   }

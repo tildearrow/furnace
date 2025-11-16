@@ -883,11 +883,19 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       ds.chans=(unsigned short)reader.readS();
       ds.systemLen=(unsigned short)reader.readS();
 
+      if (ds.systemLen<1) {
+        logE("zero chips!");
+        lastError="zero chips!";
+        delete[] file;
+        return false;
+      }
+
       // TODO: remove after implementing dynamic stuff
       for (int i=0; i<DIV_MAX_CHIPS; i++) {
         ds.system[i]=DIV_SYSTEM_NULL;
       }
       
+      logD("chips: (%d, %d channels)",ds.systemLen,ds.chans);
       for (int i=0; i<ds.systemLen; i++) {
         unsigned short sysID=reader.readS();
         if (sysID>0xff || sysID==0) {
@@ -923,6 +931,8 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
         ds.systemChans[i]=(unsigned short)reader.readS();
         tchans+=ds.systemChans[i];
 
+        logD("- %d: %.2x (%s, %d channels)",i,sysID,getSystemName(ds.system[i]),ds.systemChans[i]);
+
         if (ds.systemChans[i]<1) {
           logE("invalid channel count for chip");
           lastError=fmt::sprintf("invalid channel count for chip!");
@@ -952,13 +962,28 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
 
       // elements
       bool hasElement=true;
+      bool seenElement[DIV_ELEMENT_MAX];
+      memset(seenElement,0,DIV_ELEMENT_MAX*sizeof(bool));
+      logD("elements present in this song:");
       while (hasElement) {
         DivFileElementType elementType=(DivFileElementType)reader.readC();
+        if (elementType<DIV_ELEMENT_MAX) {
+          if (seenElement[elementType]) {
+            logE("duplicate element type!");
+            lastError="duplicate element type!";
+            delete[] file;
+            return false;
+          } else {
+            seenElement[elementType]=true;
+          }
+        }
         switch (elementType) {
           case DIV_ELEMENT_SUBSONG:
+            logD("- sub-songs");
             READ_ELEMENT_PTRS(subSongPtr);
             break;
           case DIV_ELEMENT_CHIP_FLAGS:
+            logD("- chip flags");
             READ_ELEMENT_PTRS(sysFlagsPtr);
             if (sysFlagsPtr.size()!=ds.systemLen) {
               logE("more chip flag pointers than there should be");
@@ -968,9 +993,11 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
             }
             break;
           case DIV_ELEMENT_ASSET_DIR:
+            logD("- asset dirs");
             READ_ELEMENT_PTRS(assetDirPtr);
             break;
           case DIV_ELEMENT_INSTRUMENT:
+            logD("- instruments");
             READ_ELEMENT_PTRS(insPtr);
             if (insPtr.size()>256) {
               logE("invalid instrument count!");
@@ -981,6 +1008,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
             ds.insLen=insPtr.size();
             break;
           case DIV_ELEMENT_WAVETABLE:
+            logD("- wavetables");
             READ_ELEMENT_PTRS(wavePtr);
             if (wavePtr.size()>32768) {
               logE("invalid wavetable count!");
@@ -991,6 +1019,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
             ds.waveLen=wavePtr.size();
             break;
           case DIV_ELEMENT_SAMPLE:
+            logD("- samples");
             READ_ELEMENT_PTRS(samplePtr);
             if (samplePtr.size()>32768) {
               logE("invalid sample count!");
@@ -1001,21 +1030,41 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
             ds.sampleLen=samplePtr.size();
             break;
           case DIV_ELEMENT_PATTERN:
+            logD("- patterns");
             READ_ELEMENT_PTRS(patPtr);
             break;
           case DIV_ELEMENT_COMPAT_FLAGS:
+            logD("- compat flags");
             READ_ELEMENT_UNIQUE(compatFlagPtr);
             break;
           case DIV_ELEMENT_COMMENTS:
+            logD("- song comments");
             READ_ELEMENT_UNIQUE(commentPtr);
             break;
           case DIV_ELEMENT_GROOVE:
+            logD("- grooves");
             READ_ELEMENT_PTRS(groovePtr);
             break;
           case DIV_ELEMENT_END:
             hasElement=false;
             break;
+          default: {
+            logD("- UNKNOWN");
+            // skip element
+            unsigned int numElements=reader.readI();
+            for (unsigned int i=0; i<numElements; i++) {
+              reader.readI();
+            }
+            break;
+          }
         }
+      }
+
+      if (subSongPtr.empty()) {
+        logE("song is empty!");
+        lastError="song is empty!";
+        delete[] file;
+        return false;
       }
     } else {
       // read header (OLD)
@@ -1030,8 +1079,8 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
 
       subSong->timeBase=reader.readC();
       subSong->speeds.len=2;
-      subSong->speeds.val[0]=reader.readC();
-      subSong->speeds.val[1]=reader.readC();
+      subSong->speeds.val[0]=(unsigned char)reader.readC();
+      subSong->speeds.val[1]=(unsigned char)reader.readC();
       subSong->arpLen=reader.readC();
       subSong->hz=reader.readF();
 
@@ -1048,7 +1097,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
 
       if (subSong->patLen<0) {
         logE("pattern length is negative!");
-        lastError="pattern lengrh is negative!";
+        lastError="pattern length is negative!";
         delete[] file;
         return false;
       }
@@ -1182,7 +1231,6 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
         }
       }
 
-      // TODO: don't call this
       ds.initDefaultSystemChans();
 
       ds.name=reader.readString();
@@ -1576,7 +1624,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       if (ds.version>=139) {
         subSong->speeds.len=reader.readC();
         for (int i=0; i<16; i++) {
-          subSong->speeds.val[i]=reader.readC();
+          subSong->speeds.val[i]=(unsigned char)reader.readC();
         }
 
         // grooves
@@ -1584,9 +1632,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
         ds.grooves.reserve(grooveCount);
         for (int i=0; i<grooveCount; i++) {
           DivGroovePattern gp;
-          gp.len=reader.readC();
+          gp.len=(unsigned char)reader.readC();
           for (int j=0; j<16; j++) {
-            gp.val[j]=reader.readC();
+            gp.val[j]=(unsigned char)reader.readC();
           }
 
           ds.grooves.push_back(gp);
@@ -1643,7 +1691,28 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       song.notes=reader.readString();
     }
 
-    // TODO: read grooves
+    // read grooves
+    ds.grooves.reserve(groovePtr.size());
+    for (size_t i=0; i<groovePtr.size(); i++) {
+      DivGroovePattern groove;
+      if (!reader.seek(groovePtr[i],SEEK_SET)) {
+        logE("couldn't seek to groove %d!",i);
+        lastError=fmt::sprintf("couldn't seek to groove %d!",i);
+        ds.unload();
+        delete[] file;
+        return false;
+      }
+
+      if (!groove.readData(reader)) {
+        logE("%d: invalid groove data!",i);
+        lastError="invalid groove data!";
+        ds.unload();
+        delete[] file;
+        return false;
+      }
+
+      ds.grooves.push_back(groove);
+    }
 
     // read system flags
     if (ds.version>=119) {
@@ -1736,7 +1805,8 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
     if (ds.version>=95) {
       ds.subsong.reserve(subSongPtr.size());
       for (size_t i=0; i<subSongPtr.size(); i++) {
-        ds.subsong.push_back(new DivSubSong);
+        subSong=new DivSubSong;
+        ds.subsong.push_back(subSong);
         if (!reader.seek(subSongPtr[i],SEEK_SET)) {
           logE("couldn't seek to subsong %d!",i+1);
           lastError=fmt::sprintf("couldn't seek to subsong %d!",i+1);
@@ -1745,79 +1815,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
           return false;
         }
 
-        reader.read(magic,4);
-        if (strcmp(magic,"SONG")!=0) {
-          logE("%d: invalid subsong header!",i);
-          lastError="invalid subsong header!";
+        if (!subSong->readData(reader,ds.version,ds.chans)) {
+          logE("%d: invalid subsong data!",i);
+          lastError="invalid subsong data!";
           ds.unload();
           delete[] file;
           return false;
-        }
-        reader.readI();
-
-        subSong=ds.subsong[i+1];
-        subSong->timeBase=reader.readC();
-        subSong->speeds.len=2;
-        subSong->speeds.val[0]=reader.readC();
-        subSong->speeds.val[1]=reader.readC();
-        subSong->arpLen=reader.readC();
-        subSong->hz=reader.readF();
-
-        subSong->patLen=reader.readS();
-        subSong->ordersLen=reader.readS();
-
-        subSong->hilightA=reader.readC();
-        subSong->hilightB=reader.readC();
-
-        if (ds.version>=96) {
-          subSong->virtualTempoN=reader.readS();
-          subSong->virtualTempoD=reader.readS();
-        } else {
-          reader.readI();
-        }
-
-        subSong->name=reader.readString();
-        subSong->notes=reader.readString();
-
-        logD("reading orders of subsong %d (%d)...",i+1,subSong->ordersLen);
-        for (int j=0; j<tchans; j++) {
-          for (int k=0; k<subSong->ordersLen; k++) {
-            subSong->orders.ord[j][k]=reader.readC();
-          }
-        }
-
-        for (int i=0; i<tchans; i++) {
-          subSong->pat[i].effectCols=reader.readC();
-        }
-
-        for (int i=0; i<tchans; i++) {
-          if (ds.version<189) {
-            subSong->chanShow[i]=reader.readC();
-            subSong->chanShowChanOsc[i]=subSong->chanShow[i];
-          } else {
-            unsigned char tempchar=reader.readC();
-            subSong->chanShow[i]=tempchar&1;
-            subSong->chanShowChanOsc[i]=tempchar&2;
-          }
-        }
-
-        for (int i=0; i<tchans; i++) {
-          subSong->chanCollapse[i]=reader.readC();
-        }
-
-        for (int i=0; i<tchans; i++) {
-          subSong->chanName[i]=reader.readString();
-        }
-
-        for (int i=0; i<tchans; i++) {
-          subSong->chanShortName[i]=reader.readString();
-        }
-
-        if (ds.version>=139) {
-          subSong->speeds.len=reader.readC();
-          for (int i=0; i<16; i++) {
-            subSong->speeds.val[i]=reader.readC();
-          }
         }
       }
     }
