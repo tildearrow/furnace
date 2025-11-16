@@ -1077,7 +1077,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
       reader.readI();
 
-      subSong->timeBase=reader.readC();
+      unsigned char oldTimeBase=reader.readC();
       subSong->speeds.len=2;
       subSong->speeds.val[0]=(unsigned char)reader.readC();
       subSong->speeds.val[1]=(unsigned char)reader.readC();
@@ -1639,6 +1639,10 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
 
           ds.grooves.push_back(gp);
         }
+      }
+
+      for (int i=0; i<16; i++) {
+        subSong->speeds.val[i]*=(oldTimeBase+1);
       }
 
       if (ds.version>=156) {

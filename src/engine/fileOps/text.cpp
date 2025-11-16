@@ -296,7 +296,6 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
     }
     w->writeText("\n");
     w->writeText(fmt::sprintf("- virtual tempo: %d/%d\n",s->virtualTempoN,s->virtualTempoD));
-    w->writeText(fmt::sprintf("- time base: %d\n",s->timeBase));
     w->writeText(fmt::sprintf("- pattern length: %d\n",s->patLen));
     w->writeText(fmt::sprintf("\norders:\n```\n"));
 

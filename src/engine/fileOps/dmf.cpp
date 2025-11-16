@@ -256,11 +256,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
 
     bool customTempo=false;
 
-    ds.subsong[0]->timeBase=reader.readC();
+    unsigned char oldTimeBase=reader.readC();
     ds.subsong[0]->speeds.len=2;
-    ds.subsong[0]->speeds.val[0]=reader.readC();
+    ds.subsong[0]->speeds.val[0]=(unsigned char)reader.readC();
     if (ds.version>0x07) {
-      ds.subsong[0]->speeds.val[1]=reader.readC();
+      ds.subsong[0]->speeds.val[1]=(unsigned char)reader.readC();
       bool pal=reader.readC();
       ds.subsong[0]->hz=pal?60:50;
       customTempo=reader.readC();
@@ -317,7 +317,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     }
 
     if (ds.system[0]==DIV_SYSTEM_YMU759) {
-      switch (ds.subsong[0]->timeBase) {
+      switch (oldTimeBase) {
         case 0:
           ds.subsong[0]->hz=248;
           break;
@@ -340,8 +340,10 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           ds.subsong[0]->hz=248;
           break;
       }
-      ds.subsong[0]->timeBase=0;
       addWarning("Yamaha YMU759 emulation is incomplete! please migrate your song to the OPL3 system.");
+    } else {
+      ds.subsong[0]->speeds.val[0]*=(oldTimeBase+1);
+      ds.subsong[0]->speeds.val[1]*=(oldTimeBase+1);
     }
 
     logV("%x",reader.tell());
@@ -1346,7 +1348,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
 
   int intHz=curSubSong->hz;
   
-  w->writeC(curSubSong->timeBase);
+  w->writeC(0);
   w->writeC(curSubSong->speeds.val[0]);
   w->writeC((curSubSong->speeds.len>=2)?curSubSong->speeds.val[1]:curSubSong->speeds.val[0]);
   w->writeC((intHz<=53)?0:1);

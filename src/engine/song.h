@@ -226,7 +226,7 @@ struct DivSongTimestamps {
 struct DivSubSong {
   String name, notes;
   unsigned char hilightA, hilightB;
-  unsigned char timeBase, arpLen;
+  unsigned char effectDivider, arpLen;
   DivGroovePattern speeds;
   short virtualTempoN, virtualTempoD;
   float hz;
@@ -269,7 +269,7 @@ struct DivSubSong {
   DivSubSong(): 
     hilightA(4),
     hilightB(16),
-    timeBase(0),
+    effectDivider(0),
     arpLen(1),
     virtualTempoN(150),
     virtualTempoD(150),

@@ -775,7 +775,7 @@ int DivEngine::duplicateSubSong(int index) {
   theCopy->notes=theOrig->notes;
   theCopy->hilightA=theOrig->hilightA;
   theCopy->hilightB=theOrig->hilightB;
-  theCopy->timeBase=theOrig->timeBase;
+  theCopy->effectDivider=theOrig->effectDivider;
   theCopy->arpLen=theOrig->arpLen;
   theCopy->speeds=theOrig->speeds;
   theCopy->virtualTempoN=theOrig->virtualTempoN;

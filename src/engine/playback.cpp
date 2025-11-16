@@ -705,12 +705,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
           if (effectVal!=0) {
             // COMPAT FLAG: cut/delay effect policy (delayBehavior)
             // - 0: strict
-            //   - delays equal or greater to the speed * timeBase are ignored
+            //   - delays equal or greater to the speed are ignored (formerly time base was involved but that has been removed now)
             // - 1: strict old
-            //   - delays equal or greater to the speed are ignored
+            //   - delays greater to the speed are ignored
             // - 2: lax (default)
             //   - no delay is ever ignored unless overridden by another
-            bool comparison=(song.compatFlags.delayBehavior==1)?(effectVal<=nextSpeed):(effectVal<(nextSpeed*(curSubSong->timeBase+1)));
+            bool comparison=(song.compatFlags.delayBehavior==1)?(effectVal<=nextSpeed):(effectVal<(nextSpeed));
             if (song.compatFlags.delayBehavior==2) comparison=true;
             if (comparison) {
               // set the delay row, order and timer
@@ -1868,16 +1868,16 @@ void DivEngine::nextRow() {
     
     // if the pattern length is odd and the current order is odd, use speed 2 for even rows and speed 1 for odd ones
     if ((curSubSong->patLen&1) && curOrder&1) {
-      ticks=((curRow&1)?speed2:speed1)*(curSubSong->timeBase+1);
+      ticks=((curRow&1)?speed2:speed1);
       nextSpeed=(curRow&1)?speed1:speed2;
     } else {
-      ticks=((curRow&1)?speed1:speed2)*(curSubSong->timeBase+1);
+      ticks=((curRow&1)?speed1:speed2);
       nextSpeed=(curRow&1)?speed2:speed1;
     }
   } else {
     // normal speed alternation
     // set the number of ticks and cycle to the next speed
-    ticks=speeds.val[curSpeed]*(curSubSong->timeBase+1);
+    ticks=speeds.val[curSpeed];
     curSpeed++;
     if (curSpeed>=speeds.len) curSpeed=0;
     // cache the next speed for future operations
@@ -2633,20 +2633,18 @@ void DivEngine::runMidiClock(int totalCycles) {
       output->midiOut->send(TAMidiMessage(TA_MIDI_CLOCK,0,0));
     }
 
-    // calculate tempo using highlight, timeBase, tick rate, speeds and virtual tempo
+    // calculate tempo using highlight, tick rate, speeds and virtual tempo
     double hl=curSubSong->hilightA;
     if (hl<=0.0) hl=4.0;
-    double timeBase=curSubSong->timeBase+1;
     double speedSum=0;
     double vD=virtualTempoD;
     for (int i=0; i<MIN(16,speeds.len); i++) {
       speedSum+=speeds.val[i];
     }
     speedSum/=MAX(1,speeds.len);
-    if (timeBase<1.0) timeBase=1.0;
     if (speedSum<1.0) speedSum=1.0;
     if (vD<1) vD=1;
-    double bpm=((24.0*divider)/(timeBase*hl*speedSum))*(double)virtualTempoN/vD;
+    double bpm=((24.0*divider)/(hl*speedSum))*(double)virtualTempoN/vD;
     // avoid a division by zer
     if (bpm<1.0) bpm=1.0;
     int increment=got.rate/(bpm);

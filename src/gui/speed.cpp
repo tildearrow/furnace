@@ -198,9 +198,11 @@ void FurnaceGUI::drawSpeed(bool asChild) {
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
+      /*
       ImGui::AlignTextToFramePadding();
-      ImGui::Text(_("Divider"));
+      ImGui::Text(_("Divider"));*/
       ImGui::TableNextColumn();
+      /*
       ImGui::SetNextItemWidth(halfAvail);
       unsigned char realTB=e->curSubSong->timeBase+1;
       if (ImGui::InputScalar("##TimeBase",ImGuiDataType_U8,&realTB,&_ONE,&_THREE)) { MARK_MODIFIED
@@ -210,6 +212,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         recalcTimestamps=true;
       }
       ImGui::SameLine();
+      */
       ImGui::Text("%.2f BPM",calcBPM(e->curSubSong->speeds,e->curSubSong->hz,e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD));
 
       ImGui::TableNextRow();

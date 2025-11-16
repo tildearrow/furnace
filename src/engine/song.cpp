@@ -197,12 +197,12 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
             if (effectVal!=0) {
               // COMPAT FLAG: cut/delay effect policy (delayBehavior)
               // - 0: strict
-              //   - delays equal or greater to the speed * timeBase are ignored
+              //   - delays equal or greater to the speed are ignored (formerly time base was involved but that has been removed now)
               // - 1: strict old
-              //   - delays equal or greater to the speed are ignored
+              //   - delays greater to the speed are ignored
               // - 2: lax (default)
               //   - no delay is ever ignored unless overridden by another
-              bool comparison=(delayBehavior==1)?(effectVal<=nextSpeed):(effectVal<(nextSpeed*(timeBase+1)));
+              bool comparison=(delayBehavior==1)?(effectVal<=nextSpeed):(effectVal<(nextSpeed));
               if (delayBehavior==2) comparison=true;
               if (comparison) {
                 // set the delay row, order and timer
@@ -327,16 +327,16 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
       // we subtract firstPat from curOrder as firstPat is used by a function which finds sub-songs
       // (the beginning of a new sub-song will be in order 0)
       if ((patLen&1) && (curOrder-firstPat)&1) {
-        ticks=((curRow&1)?speed2:speed1)*(timeBase+1);
+        ticks=((curRow&1)?speed2:speed1);
         nextSpeed=(curRow&1)?speed1:speed2;
       } else {
-        ticks=((curRow&1)?speed1:speed2)*(timeBase+1);
+        ticks=((curRow&1)?speed1:speed2);
         nextSpeed=(curRow&1)?speed2:speed1;
       }
     } else {
       // normal speed alternation
       // set the number of ticks and cycle to the next speed
-      ticks=curSpeeds.val[curSpeed]*(timeBase+1);
+      ticks=curSpeeds.val[curSpeed];
       curSpeed++;
       if (curSpeed>=curSpeeds.len) curSpeed=0;
       // cache the next speed for future operations
@@ -465,7 +465,7 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
 
     hz=reader.readF();
     arpLen=reader.readC();
-    timeBase=reader.readC();
+    effectDivider=reader.readC();
 
     patLen=reader.readS();
     ordersLen=reader.readS();
@@ -519,7 +519,7 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
     }
     reader.readI();
 
-    timeBase=reader.readC();
+    unsigned char oldTimeBase=reader.readC();
     speeds.len=2;
     speeds.val[0]=(unsigned char)reader.readC();
     speeds.val[1]=(unsigned char)reader.readC();
@@ -582,6 +582,10 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
         speeds.val[i]=(unsigned char)reader.readC();
       }
     }
+
+    for (int i=0; i<16; i++) {
+      speeds.val[i]*=(oldTimeBase+1);
+    }
   }
 
   return true;
@@ -595,7 +599,7 @@ void DivSubSong::putData(SafeWriter* w, int chans) {
 
   w->writeF(hz);
   w->writeC(arpLen);
-  w->writeC(timeBase);
+  w->writeC(effectDivider);
   w->writeS(patLen);
   w->writeS(ordersLen);
   w->writeC(hilightA);
@@ -819,7 +823,7 @@ void DivSong::findSubSongs() {
       theCopy->notes=i->notes;
       theCopy->hilightA=i->hilightA;
       theCopy->hilightB=i->hilightB;
-      theCopy->timeBase=i->timeBase;
+      theCopy->effectDivider=i->effectDivider;
       theCopy->arpLen=i->arpLen;
       theCopy->speeds=i->speeds;
       theCopy->virtualTempoN=i->virtualTempoN;

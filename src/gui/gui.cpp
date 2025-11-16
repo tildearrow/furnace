@@ -1295,16 +1295,14 @@ void FurnaceGUI::prepareLayout() {
 float FurnaceGUI::calcBPM(const DivGroovePattern& speeds, float hz, int vN, int vD) {
   float hl=e->curSubSong->hilightA;
   if (hl<=0.0f) hl=4.0f;
-  float timeBase=e->curSubSong->timeBase+1;
   float speedSum=0;
   for (int i=0; i<MIN(16,speeds.len); i++) {
     speedSum+=speeds.val[i];
   }
   speedSum/=MAX(1,speeds.len);
-  if (timeBase<1.0f) timeBase=1.0f;
   if (speedSum<1.0f) speedSum=1.0f;
   if (vD<1) vD=1;
-  return (60.0f*hz/(timeBase*hl*speedSum))*(float)vN/(float)vD;
+  return (60.0f*hz/(hl*speedSum))*(float)vN/(float)vD;
 }
 
 void FurnaceGUI::play(int row) {
