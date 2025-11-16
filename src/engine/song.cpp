@@ -20,6 +20,7 @@
 #include "engine.h"
 #include "../ta-log.h"
 #include <inttypes.h>
+#include <string.h>
 #include <chrono>
 
 static DivCompatFlags defaultFlags;
@@ -950,6 +951,23 @@ void DivCompatFlags::setDefaults() {
 
 bool DivCompatFlags::areDefaults() {
   return (*this==defaultFlags);
+}
+
+bool DivCompatFlags::readData(SafeReader& reader) {
+  DivConfig c;
+  unsigned char magic[4];
+
+  reader.read(magic,4);
+  if (memcmp(magic,"CFLG",4)!=0) {
+    return false;
+  }
+  reader.readI();
+
+  String data=reader.readString();
+  c.loadFromMemory(data.c_str());
+
+  // TODO: this
+  return true;
 }
 
 #define CHECK_AND_STORE_BOOL(_x) \

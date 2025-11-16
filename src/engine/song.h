@@ -160,6 +160,20 @@ enum DivEffectType: unsigned short {
   DIV_EFFECT_FILTER
 };
 
+enum DivFileElementType: unsigned char {
+  DIV_ELEMENT_END=0,
+  DIV_ELEMENT_SUBSONG,
+  DIV_ELEMENT_CHIP_FLAGS,
+  DIV_ELEMENT_ASSET_DIR,
+  DIV_ELEMENT_INSTRUMENT,
+  DIV_ELEMENT_WAVETABLE,
+  DIV_ELEMENT_SAMPLE,
+  DIV_ELEMENT_PATTERN,
+  DIV_ELEMENT_COMPAT_FLAGS,
+  DIV_ELEMENT_COMMENTS,
+  DIV_ELEMENT_GROOVE
+};
+
 struct DivGroovePattern {
   unsigned char val[16];
   unsigned char len;
@@ -349,6 +363,7 @@ struct DivCompatFlags {
 
   void setDefaults();
   bool areDefaults();
+  bool readData(SafeReader& reader);
   void putData(SafeWriter* w);
 
   bool operator==(const DivCompatFlags& other) {

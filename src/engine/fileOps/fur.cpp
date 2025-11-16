@@ -639,26 +639,46 @@ void DivEngine::convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivS
   }
 }
 
+#define READ_ELEMENT_PTRS(_p) { \
+  unsigned int numElements=reader.readI(); \
+  for (unsigned int i=0; i<numElements; i++) { \
+    _p.push_back(reader.readI()); \
+  } \
+}
+
+#define READ_ELEMENT_UNIQUE(_p) { \
+  unsigned int numElements=reader.readI(); \
+  if (numElements!=1) { \
+    logE("unique element is present more than once!"); \
+    lastError="unique element is present more than once!"; \
+    delete[] file; \
+    return false; \
+  } \
+  _p=reader.readI(); \
+}
+
 bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
   std::vector<unsigned int> insPtr;
   std::vector<unsigned int> wavePtr;
   std::vector<unsigned int> samplePtr;
-  unsigned int subSongPtr[256];
-  unsigned int sysFlagsPtr[DIV_MAX_CHIPS];
-  unsigned int assetDirPtr[3];
+  std::vector<unsigned int> subSongPtr;
+  std::vector<unsigned int> sysFlagsPtr;
+  std::vector<unsigned int> assetDirPtr;
+  unsigned int compatFlagPtr=0;
+  unsigned int commentPtr=0;
+  std::vector<unsigned int> groovePtr;
   std::vector<unsigned int> patPtr;
-  int numberOfSubSongs=0;
+  int tchans=0;
   char magic[5];
   memset(magic,0,5);
   SafeReader reader=SafeReader(file,len);
   warnings="";
-  assetDirPtr[0]=0;
-  assetDirPtr[1]=0;
-  assetDirPtr[2]=0;
+
   try {
     DivSong ds;
     DivSubSong* subSong=ds.subsong[0];
 
+    /// HEADER
     if (!reader.seek(16,SEEK_SET)) {
       logE("premature end of file!");
       lastError="incomplete file";
@@ -673,18 +693,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       addWarning("this module was created with a downstream version of Furnace. certain features may not be compatible.");
     }
 
-    if (ds.version>=240) {
-      logE("not yet! I am still working on it!");
-      lastError="not yet! I am still working on it!";
-      delete[] file;
-      return false;
-    }
-
     if (ds.version>DIV_ENGINE_VERSION) {
       logW("this module was created with a more recent version of Furnace!");
       addWarning("this module was created with a more recent version of Furnace!");
     }
 
+    // version-related compat flags
     if (ds.version<37) { // compat flags not stored back then
       ds.compatFlags.limitSlides=true;
       ds.compatFlags.linearPitch=1;
@@ -824,6 +838,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
     reader.readS(); // reserved
     int infoSeek=reader.readI();
 
+    /// SONG INFO
     if (!reader.seek(infoSeek,SEEK_SET)) {
       logE("couldn't seek to info header at %d!",infoSeek);
       lastError="couldn't seek to info header!";
@@ -831,510 +846,100 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       return false;
     }
 
-    // read header
-    reader.read(magic,4);
-    if (strcmp(magic,"INFO")!=0) {
-      logE("invalid info header!");
-      lastError="invalid info header!";
-      delete[] file;
-      return false;
-    }
-    reader.readI();
-
-    subSong->timeBase=reader.readC();
-    subSong->speeds.len=2;
-    subSong->speeds.val[0]=reader.readC();
-    subSong->speeds.val[1]=reader.readC();
-    subSong->arpLen=reader.readC();
-    subSong->hz=reader.readF();
-
-    subSong->patLen=reader.readS();
-    subSong->ordersLen=reader.readS();
-
-    subSong->hilightA=reader.readC();
-    subSong->hilightB=reader.readC();
-
-    ds.insLen=reader.readS();
-    ds.waveLen=reader.readS();
-    ds.sampleLen=reader.readS();
-    int numberOfPats=reader.readI();
-
-    if (subSong->patLen<0) {
-      logE("pattern length is negative!");
-      lastError="pattern lengrh is negative!";
-      delete[] file;
-      return false;
-    }
-    if (subSong->patLen>DIV_MAX_ROWS) {
-      logE("pattern length is too large!");
-      lastError="pattern length is too large!";
-      delete[] file;
-      return false;
-    }
-    if (subSong->ordersLen<0) {
-      logE("song length is negative!");
-      lastError="song length is negative!";
-      delete[] file;
-      return false;
-    }
-    if (subSong->ordersLen>DIV_MAX_PATTERNS) {
-      logE("song is too long!");
-      lastError="song is too long!";
-      delete[] file;
-      return false;
-    }
-    if (ds.insLen<0 || ds.insLen>256) {
-      logE("invalid instrument count!");
-      lastError="invalid instrument count!";
-      delete[] file;
-      return false;
-    }
-    if (ds.waveLen<0 || ds.waveLen>32768) {
-      logE("invalid wavetable count!");
-      lastError="invalid wavetable count!";
-      delete[] file;
-      return false;
-    }
-    if (ds.sampleLen<0 || ds.sampleLen>32768) {
-      logE("invalid sample count!");
-      lastError="invalid sample count!";
-      delete[] file;
-      return false;
-    }
-    if (numberOfPats<0) {
-      logE("invalid pattern count!");
-      lastError="invalid pattern count!";
-      delete[] file;
-      return false;
-    }
-
-    logD("systems:");
-    ds.systemLen=0;
-    for (int i=0; i<DIV_MAX_CHIPS; i++) {
-      unsigned char sysID=reader.readC();
-      ds.system[i]=systemFromFileFur(sysID);
-      ds.systemChans[i]=getChannelCount(ds.system[i]);
-      logD("- %d: %.2x (%s, %d channels)",i,sysID,getSystemName(ds.system[i]),ds.systemChans[i]);
-      if (sysID!=0 && systemToFileFur(ds.system[i])==0) {
-        logE("unrecognized system ID %.2x",sysID);
-        lastError=fmt::sprintf("unrecognized system ID %.2x!",sysID);
+    if (ds.version>=240) {
+      // read header (NEW)
+      reader.read(magic,4);
+      if (strcmp(magic,"INF2")!=0) {
+        logE("invalid info header! (new)");
+        lastError="invalid info header! (new)";
         delete[] file;
         return false;
       }
-      if (ds.system[i]!=DIV_SYSTEM_NULL) ds.systemLen=i+1;
-    }
-    int tchans=0;
-    for (int i=0; i<ds.systemLen; i++) {
-      tchans+=ds.systemChans[i];
-    }
-    if (tchans>DIV_MAX_CHANS) {
-      tchans=DIV_MAX_CHANS;
-      logW("too many channels!");
-    }
-    logV("system len: %d",ds.systemLen);
-    if (ds.systemLen<1) {
-      logE("zero chips!");
-      lastError="zero chips!";
-      delete[] file;
-      return false;
-    }
-
-    // system volume
-    for (int i=0; i<DIV_MAX_CHIPS; i++) {
-      signed char oldSysVol=reader.readC();
-      ds.systemVol[i]=(float)oldSysVol/64.0f;
-      if (ds.version<59 && ds.system[i]==DIV_SYSTEM_NES) {
-        ds.systemVol[i]/=4;
-      }
-    }
-
-    // system panning
-    for (int i=0; i<DIV_MAX_CHIPS; i++) {
-      signed char oldSysPan=reader.readC();
-      ds.systemPan[i]=(float)oldSysPan/127.0f;
-    }
-
-    // system props
-    for (int i=0; i<DIV_MAX_CHIPS; i++) {
-      sysFlagsPtr[i]=reader.readI();
-    }
-
-    // handle compound systems
-    for (int i=0; i<DIV_MAX_CHIPS; i++) {
-      if (ds.system[i]==DIV_SYSTEM_GENESIS ||
-          ds.system[i]==DIV_SYSTEM_GENESIS_EXT ||
-          ds.system[i]==DIV_SYSTEM_ARCADE) {
-        for (int j=31; j>i; j--) {
-          ds.system[j]=ds.system[j-1];
-          ds.systemVol[j]=ds.systemVol[j-1];
-          ds.systemPan[j]=ds.systemPan[j-1];
-        }
-        if (++ds.systemLen>DIV_MAX_CHIPS) ds.systemLen=DIV_MAX_CHIPS;
-
-        if (ds.system[i]==DIV_SYSTEM_GENESIS) {
-          ds.system[i]=DIV_SYSTEM_YM2612;
-          if (i<31) {
-            ds.system[i+1]=DIV_SYSTEM_SMS;
-            ds.systemVol[i+1]=ds.systemVol[i]*0.375f;
-          }
-        }
-        if (ds.system[i]==DIV_SYSTEM_GENESIS_EXT) {
-          ds.system[i]=DIV_SYSTEM_YM2612_EXT;
-          if (i<31) {
-            ds.system[i+1]=DIV_SYSTEM_SMS;
-            ds.systemVol[i+1]=ds.systemVol[i]*0.375f;
-          }
-        }
-        if (ds.system[i]==DIV_SYSTEM_ARCADE) {
-          ds.system[i]=DIV_SYSTEM_YM2151;
-          if (i<31) {
-            ds.system[i+1]=DIV_SYSTEM_SEGAPCM_COMPAT;
-          }
-        }
-        i++;
-      }
-    }
-
-    // TODO: don't call this
-    ds.initDefaultSystemChans();
-
-    ds.name=reader.readString();
-    ds.author=reader.readString();
-    logI("%s by %s",ds.name.c_str(),ds.author.c_str());
-
-    if (ds.version>=33) {
-      ds.tuning=reader.readF();
-    } else {
       reader.readI();
-    }
 
-    // compatibility flags
-    if (ds.version>=37) {
-      ds.compatFlags.limitSlides=reader.readC();
-      ds.compatFlags.linearPitch=reader.readC();
-      ds.compatFlags.loopModality=reader.readC();
-      if (ds.version>=43) {
-        ds.compatFlags.properNoiseLayout=reader.readC();
-      } else {
-        reader.readC();
+      // clear all sub-songs
+      for (DivSubSong* i: ds.subsong) {
+        delete i;
       }
-      if (ds.version>=43) {
-        ds.compatFlags.waveDutyIsVol=reader.readC();
-      } else {
-        reader.readC();
-      }
+      ds.subsong.clear();
+      subSong=NULL;
 
-      if (ds.version>=45) {
-        ds.compatFlags.resetMacroOnPorta=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=45) {
-        ds.compatFlags.legacyVolumeSlides=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=45) {
-        ds.compatFlags.compatibleArpeggio=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=45) {
-        ds.compatFlags.noteOffResetsSlides=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=45) {
-        ds.compatFlags.targetResetsSlides=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=47) {
-        ds.compatFlags.arpNonPorta=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=47) {
-        ds.compatFlags.algMacroBehavior=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=49) {
-        ds.compatFlags.brokenShortcutSlides=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=50) {
-        ds.compatFlags.ignoreDuplicateSlides=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=62) {
-        ds.compatFlags.stopPortaOnNoteOff=reader.readC();
-        ds.compatFlags.continuousVibrato=reader.readC();
-      } else {
-        reader.readC();
-        reader.readC();
-      }
-      if (ds.version>=64) {
-        ds.compatFlags.brokenDACMode=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=65) {
-        ds.compatFlags.oneTickCut=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=66) {
-        ds.compatFlags.newInsTriggersInPorta=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=69) {
-        ds.compatFlags.arp0Reset=reader.readC();
-      } else {
-        reader.readC();
-      }
-    } else {
-      for (int i=0; i<20; i++) reader.readC();
-    }
-
-    // pointers
-    insPtr.reserve(ds.insLen);
-    for (int i=0; i<ds.insLen; i++) {
-      insPtr.push_back(reader.readI());
-    }
-    wavePtr.reserve(ds.waveLen);
-    for (int i=0; i<ds.waveLen; i++) {
-      wavePtr.push_back(reader.readI());
-    }
-    samplePtr.reserve(ds.sampleLen);
-    for (int i=0; i<ds.sampleLen; i++) {
-      samplePtr.push_back(reader.readI());
-    }
-    patPtr.reserve(numberOfPats);
-    for (int i=0; i<numberOfPats; i++) patPtr.push_back(reader.readI());
-
-    logD("reading orders (%d)...",subSong->ordersLen);
-    for (int i=0; i<tchans; i++) {
-      for (int j=0; j<subSong->ordersLen; j++) {
-        subSong->orders.ord[i][j]=reader.readC();
-      }
-    }
-
-    for (int i=0; i<tchans; i++) {
-      subSong->pat[i].effectCols=reader.readC();
-      if (subSong->pat[i].effectCols<1 || subSong->pat[i].effectCols>DIV_MAX_EFFECTS) {
-        logE("channel %d has zero or too many effect columns! (%d)",i,subSong->pat[i].effectCols);
-        lastError=fmt::sprintf("channel %d has too many effect columns! (%d)",i,subSong->pat[i].effectCols);
-        delete[] file;
-        return false;
-      }
-    }
-
-    if (ds.version>=39) {
-      for (int i=0; i<tchans; i++) {
-        if (ds.version<189) {
-          subSong->chanShow[i]=reader.readC();
-          subSong->chanShowChanOsc[i]=subSong->chanShow[i];
-        } else {
-          unsigned char tempchar=reader.readC();
-          subSong->chanShow[i]=tempchar&1;
-          subSong->chanShowChanOsc[i]=(tempchar&2);
-        }
-      }
-
-      for (int i=0; i<tchans; i++) {
-        subSong->chanCollapse[i]=reader.readC();
-      }
-
-      if (ds.version<92) {
-        for (int i=0; i<tchans; i++) {
-          if (subSong->chanCollapse[i]>0) subSong->chanCollapse[i]=3;
-        }
-      }
-
-      for (int i=0; i<tchans; i++) {
-        subSong->chanName[i]=reader.readString();
-      }
-
-      for (int i=0; i<tchans; i++) {
-        subSong->chanShortName[i]=reader.readString();
-      }
-
-      ds.notes=reader.readString();
-    }
-
-    if (ds.version>=59) {
-      ds.masterVol=reader.readF();
-    } else {
-      ds.masterVol=2.0f;
-    }
-
-    if (ds.version>=70) {
-      // extended compat flags
-      ds.compatFlags.brokenSpeedSel=reader.readC();
-      if (ds.version>=71) {
-        ds.compatFlags.noSlidesOnFirstTick=reader.readC();
-        ds.compatFlags.rowResetsArpPos=reader.readC();
-        ds.compatFlags.ignoreJumpAtEnd=reader.readC();
-      } else {
-        reader.readC();
-        reader.readC();
-        reader.readC();
-      }
-      if (ds.version>=72) {
-        ds.compatFlags.buggyPortaAfterSlide=reader.readC();
-        ds.compatFlags.gbInsAffectsEnvelope=reader.readC();
-      } else {
-        reader.readC();
-        reader.readC();
-      }
-      if (ds.version>=78) {
-        ds.compatFlags.sharedExtStat=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=83) {
-        ds.compatFlags.ignoreDACModeOutsideIntendedChannel=reader.readC();
-        ds.compatFlags.e1e2AlsoTakePriority=reader.readC();
-      } else {
-        reader.readC();
-        reader.readC();
-      }
-      if (ds.version>=84) {
-        ds.compatFlags.newSegaPCM=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=85) {
-        ds.compatFlags.fbPortaPause=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=86) {
-        ds.compatFlags.snDutyReset=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=90) {
-        ds.compatFlags.pitchMacroIsLinear=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=94) {
-        ds.compatFlags.pitchSlideSpeed=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=97) {
-        ds.compatFlags.oldOctaveBoundary=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=98) {
-        ds.compatFlags.noOPN2Vol=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=99) {
-        ds.compatFlags.newVolumeScaling=reader.readC();
-        ds.compatFlags.volMacroLinger=reader.readC();
-        ds.compatFlags.brokenOutVol=reader.readC();
-      } else {
-        reader.readC();
-        reader.readC();
-        reader.readC();
-      }
-      if (ds.version>=100) {
-        ds.compatFlags.e1e2StopOnSameNote=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=101) {
-        ds.compatFlags.brokenPortaArp=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=108) {
-        ds.compatFlags.snNoLowPeriods=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=110) {
-        ds.compatFlags.delayBehavior=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=113) {
-        ds.compatFlags.jumpTreatment=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=115) {
-        ds.autoSystem=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=117) {
-        ds.compatFlags.disableSampleMacro=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=121) {
-        ds.compatFlags.brokenOutVol2=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=130) {
-        ds.compatFlags.oldArpStrategy=reader.readC();
-      } else {
-        reader.readC();
-      }
-    }
-
-    // first song virtual tempo
-    if (ds.version>=96) {
-      subSong->virtualTempoN=reader.readS();
-      subSong->virtualTempoD=reader.readS();
-    } else {
-      reader.readI();
-    }
-
-    // subsongs
-    if (ds.version>=95) {
-      subSong->name=reader.readString();
-      subSong->notes=reader.readString();
-      numberOfSubSongs=(unsigned char)reader.readC();
-      reader.readC(); // reserved
-      reader.readC();
-      reader.readC();
-      // pointers
-      for (int i=0; i<numberOfSubSongs; i++) {
-        subSongPtr[i]=reader.readI();
-      }
-    }
-
-    // additional metadata
-    if (ds.version>=103) {
+      // song information
+      ds.name=reader.readString();
+      ds.author=reader.readString();
       ds.systemName=reader.readString();
       ds.category=reader.readString();
       ds.nameJ=reader.readString();
       ds.authorJ=reader.readString();
       ds.systemNameJ=reader.readString();
       ds.categoryJ=reader.readString();
-    } else {
-      ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
-      ds.autoSystem=true;
-    }
+      logI("%s by %s",ds.name.c_str(),ds.author.c_str());
+      
+      ds.tuning=reader.readF();
+      ds.autoSystem=reader.readC();
 
-    // system output config
-    if (ds.version>=135) {
+      // system definition
+      ds.masterVol=reader.readF();
+      ds.chans=(unsigned short)reader.readS();
+      ds.systemLen=(unsigned short)reader.readS();
+
+      // TODO: remove after implementing dynamic stuff
+      for (int i=0; i<DIV_MAX_CHIPS; i++) {
+        ds.system[i]=DIV_SYSTEM_NULL;
+      }
+      
       for (int i=0; i<ds.systemLen; i++) {
+        unsigned short sysID=reader.readS();
+        if (sysID>0xff || sysID==0) {
+          logE("unrecognized system ID %.4x",sysID);
+          lastError=fmt::sprintf("unrecognized system ID %.4x!",sysID);
+          delete[] file;
+          return false;
+        }
+        ds.system[i]=systemFromFileFur(sysID);
+        if (ds.system[i]==DIV_SYSTEM_NULL) {
+          logE("unrecognized system ID %.4x",sysID);
+          lastError=fmt::sprintf("unrecognized system ID %.4x!",sysID);
+          delete[] file;
+          return false;
+        }
+
+        // reject compound systems
+        const DivSysDef* sysDef=getSystemDef(ds.system[i]);
+        if (sysDef==NULL) {
+          logE("no definition for system ID %.4x",sysID);
+          lastError=fmt::sprintf("no definition for system ID %.4x!",sysID);
+          delete[] file;
+          return false;
+        }
+
+        if (sysDef->isCompound) {
+          logE("system ID %.4x is compound",sysID);
+          lastError=fmt::sprintf("system ID %.4x is compound!",sysID);
+          delete[] file;
+          return false;
+        }
+
+        ds.systemChans[i]=(unsigned short)reader.readS();
+        tchans+=ds.systemChans[i];
+
+        if (ds.systemChans[i]<1) {
+          logE("invalid channel count for chip");
+          lastError=fmt::sprintf("invalid channel count for chip!");
+          delete[] file;
+          return false;
+        }
+
         ds.systemVol[i]=reader.readF();
         ds.systemPan[i]=reader.readF();
         ds.systemPanFR[i]=reader.readF();
+      }
+
+      if (ds.chans!=tchans) {
+        logE("chip channel counts and total channels do not match");
+        lastError=fmt::sprintf("chip channel counts and total channels do not match!");
+        delete[] file;
+        return false;
       }
 
       // patchbay
@@ -1343,79 +948,707 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       for (unsigned int i=0; i<conns; i++) {
         ds.patchbay.push_back((unsigned int)reader.readI());
       }
-    }
+      ds.patchbayAuto=reader.readC();
 
-    if (ds.version>=136) ds.patchbayAuto=reader.readC();
+      // elements
+      bool hasElement=true;
+      while (hasElement) {
+        DivFileElementType elementType=(DivFileElementType)reader.readC();
+        switch (elementType) {
+          case DIV_ELEMENT_SUBSONG:
+            READ_ELEMENT_PTRS(subSongPtr);
+            break;
+          case DIV_ELEMENT_CHIP_FLAGS:
+            READ_ELEMENT_PTRS(sysFlagsPtr);
+            if (sysFlagsPtr.size()!=ds.systemLen) {
+              logE("more chip flag pointers than there should be");
+              lastError=fmt::sprintf("more chip flag pointers than there should be!");
+              delete[] file;
+              return false;
+            }
+            break;
+          case DIV_ELEMENT_ASSET_DIR:
+            READ_ELEMENT_PTRS(assetDirPtr);
+            break;
+          case DIV_ELEMENT_INSTRUMENT:
+            READ_ELEMENT_PTRS(insPtr);
+            if (insPtr.size()>256) {
+              logE("invalid instrument count!");
+              lastError="invalid instrument count!";
+              delete[] file;
+              return false;
+            }
+            ds.insLen=insPtr.size();
+            break;
+          case DIV_ELEMENT_WAVETABLE:
+            READ_ELEMENT_PTRS(wavePtr);
+            if (wavePtr.size()>32768) {
+              logE("invalid wavetable count!");
+              lastError="invalid wavetable count!";
+              delete[] file;
+              return false;
+            }
+            ds.waveLen=wavePtr.size();
+            break;
+          case DIV_ELEMENT_SAMPLE:
+            READ_ELEMENT_PTRS(samplePtr);
+            if (samplePtr.size()>32768) {
+              logE("invalid sample count!");
+              lastError="invalid sample count!";
+              delete[] file;
+              return false;
+            }
+            ds.sampleLen=samplePtr.size();
+            break;
+          case DIV_ELEMENT_PATTERN:
+            READ_ELEMENT_PTRS(patPtr);
+            break;
+          case DIV_ELEMENT_COMPAT_FLAGS:
+            READ_ELEMENT_UNIQUE(compatFlagPtr);
+            break;
+          case DIV_ELEMENT_COMMENTS:
+            READ_ELEMENT_UNIQUE(commentPtr);
+            break;
+          case DIV_ELEMENT_GROOVE:
+            READ_ELEMENT_PTRS(groovePtr);
+            break;
+          case DIV_ELEMENT_END:
+            hasElement=false;
+            break;
+        }
+      }
+    } else {
+      // read header (OLD)
+      reader.read(magic,4);
+      if (strcmp(magic,"INFO")!=0) {
+        logE("invalid info header! (old)");
+        lastError="invalid info header! (old)";
+        delete[] file;
+        return false;
+      }
+      reader.readI();
 
-    if (ds.version>=138) {
-      ds.compatFlags.brokenPortaLegato=reader.readC();
-      if (ds.version>=155) {
-        ds.compatFlags.brokenFMOff=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=168) {
-        ds.compatFlags.preNoteNoEffect=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=183) {
-        ds.compatFlags.oldDPCM=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=184) {
-        ds.compatFlags.resetArpPhaseOnNewNote=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=188) {
-        ds.compatFlags.ceilVolumeScaling=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=191) {
-        ds.compatFlags.oldAlwaysSetVolume=reader.readC();
-      } else {
-        reader.readC();
-      }
-      if (ds.version>=200) {
-        ds.compatFlags.oldSampleOffset=reader.readC();
-      } else {
-        reader.readC();
-      }
-    }
+      subSong->timeBase=reader.readC();
+      subSong->speeds.len=2;
+      subSong->speeds.val[0]=reader.readC();
+      subSong->speeds.val[1]=reader.readC();
+      subSong->arpLen=reader.readC();
+      subSong->hz=reader.readF();
 
-    if (ds.version>=139) {
-      subSong->speeds.len=reader.readC();
-      for (int i=0; i<16; i++) {
-        subSong->speeds.val[i]=reader.readC();
+      subSong->patLen=reader.readS();
+      subSong->ordersLen=reader.readS();
+
+      subSong->hilightA=reader.readC();
+      subSong->hilightB=reader.readC();
+
+      ds.insLen=reader.readS();
+      ds.waveLen=reader.readS();
+      ds.sampleLen=reader.readS();
+      int numberOfPats=reader.readI();
+
+      if (subSong->patLen<0) {
+        logE("pattern length is negative!");
+        lastError="pattern lengrh is negative!";
+        delete[] file;
+        return false;
+      }
+      if (subSong->patLen>DIV_MAX_ROWS) {
+        logE("pattern length is too large!");
+        lastError="pattern length is too large!";
+        delete[] file;
+        return false;
+      }
+      if (subSong->ordersLen<0) {
+        logE("song length is negative!");
+        lastError="song length is negative!";
+        delete[] file;
+        return false;
+      }
+      if (subSong->ordersLen>DIV_MAX_PATTERNS) {
+        logE("song is too long!");
+        lastError="song is too long!";
+        delete[] file;
+        return false;
+      }
+      if (ds.insLen<0 || ds.insLen>256) {
+        logE("invalid instrument count!");
+        lastError="invalid instrument count!";
+        delete[] file;
+        return false;
+      }
+      if (ds.waveLen<0 || ds.waveLen>32768) {
+        logE("invalid wavetable count!");
+        lastError="invalid wavetable count!";
+        delete[] file;
+        return false;
+      }
+      if (ds.sampleLen<0 || ds.sampleLen>32768) {
+        logE("invalid sample count!");
+        lastError="invalid sample count!";
+        delete[] file;
+        return false;
+      }
+      if (numberOfPats<0) {
+        logE("invalid pattern count!");
+        lastError="invalid pattern count!";
+        delete[] file;
+        return false;
       }
 
-      // grooves
-      unsigned char grooveCount=reader.readC();
-      ds.grooves.reserve(grooveCount);
-      for (int i=0; i<grooveCount; i++) {
-        DivGroovePattern gp;
-        gp.len=reader.readC();
-        for (int j=0; j<16; j++) {
-          gp.val[j]=reader.readC();
+      logD("systems:");
+      ds.systemLen=0;
+      for (int i=0; i<DIV_MAX_CHIPS; i++) {
+        unsigned char sysID=reader.readC();
+        ds.system[i]=systemFromFileFur(sysID);
+        ds.systemChans[i]=getChannelCount(ds.system[i]);
+        logD("- %d: %.2x (%s, %d channels)",i,sysID,getSystemName(ds.system[i]),ds.systemChans[i]);
+        if (sysID!=0 && systemToFileFur(ds.system[i])==0) {
+          logE("unrecognized system ID %.2x",sysID);
+          lastError=fmt::sprintf("unrecognized system ID %.2x!",sysID);
+          delete[] file;
+          return false;
+        }
+        if (ds.system[i]!=DIV_SYSTEM_NULL) ds.systemLen=i+1;
+      }
+
+      for (int i=0; i<ds.systemLen; i++) {
+        tchans+=ds.systemChans[i];
+      }
+      if (tchans>DIV_MAX_CHANS) {
+        tchans=DIV_MAX_CHANS;
+        logW("too many channels!");
+      }
+      logV("system len: %d",ds.systemLen);
+      if (ds.systemLen<1) {
+        logE("zero chips!");
+        lastError="zero chips!";
+        delete[] file;
+        return false;
+      }
+
+      // system volume
+      for (int i=0; i<DIV_MAX_CHIPS; i++) {
+        signed char oldSysVol=reader.readC();
+        ds.systemVol[i]=(float)oldSysVol/64.0f;
+        if (ds.version<59 && ds.system[i]==DIV_SYSTEM_NES) {
+          ds.systemVol[i]/=4;
+        }
+      }
+
+      // system panning
+      for (int i=0; i<DIV_MAX_CHIPS; i++) {
+        signed char oldSysPan=reader.readC();
+        ds.systemPan[i]=(float)oldSysPan/127.0f;
+      }
+
+      // system props
+      for (int i=0; i<DIV_MAX_CHIPS; i++) {
+        sysFlagsPtr.push_back(reader.readI());
+      }
+
+      // handle compound systems
+      for (int i=0; i<DIV_MAX_CHIPS; i++) {
+        if (ds.system[i]==DIV_SYSTEM_GENESIS ||
+            ds.system[i]==DIV_SYSTEM_GENESIS_EXT ||
+            ds.system[i]==DIV_SYSTEM_ARCADE) {
+          for (int j=31; j>i; j--) {
+            ds.system[j]=ds.system[j-1];
+            ds.systemVol[j]=ds.systemVol[j-1];
+            ds.systemPan[j]=ds.systemPan[j-1];
+          }
+          if (++ds.systemLen>DIV_MAX_CHIPS) ds.systemLen=DIV_MAX_CHIPS;
+
+          if (ds.system[i]==DIV_SYSTEM_GENESIS) {
+            ds.system[i]=DIV_SYSTEM_YM2612;
+            if (i<31) {
+              ds.system[i+1]=DIV_SYSTEM_SMS;
+              ds.systemVol[i+1]=ds.systemVol[i]*0.375f;
+            }
+          }
+          if (ds.system[i]==DIV_SYSTEM_GENESIS_EXT) {
+            ds.system[i]=DIV_SYSTEM_YM2612_EXT;
+            if (i<31) {
+              ds.system[i+1]=DIV_SYSTEM_SMS;
+              ds.systemVol[i+1]=ds.systemVol[i]*0.375f;
+            }
+          }
+          if (ds.system[i]==DIV_SYSTEM_ARCADE) {
+            ds.system[i]=DIV_SYSTEM_YM2151;
+            if (i<31) {
+              ds.system[i+1]=DIV_SYSTEM_SEGAPCM_COMPAT;
+            }
+          }
+          i++;
+        }
+      }
+
+      // TODO: don't call this
+      ds.initDefaultSystemChans();
+
+      ds.name=reader.readString();
+      ds.author=reader.readString();
+      logI("%s by %s",ds.name.c_str(),ds.author.c_str());
+
+      if (ds.version>=33) {
+        ds.tuning=reader.readF();
+      } else {
+        reader.readI();
+      }
+
+      // compatibility flags
+      if (ds.version>=37) {
+        ds.compatFlags.limitSlides=reader.readC();
+        ds.compatFlags.linearPitch=reader.readC();
+        ds.compatFlags.loopModality=reader.readC();
+        if (ds.version>=43) {
+          ds.compatFlags.properNoiseLayout=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=43) {
+          ds.compatFlags.waveDutyIsVol=reader.readC();
+        } else {
+          reader.readC();
         }
 
-        ds.grooves.push_back(gp);
+        if (ds.version>=45) {
+          ds.compatFlags.resetMacroOnPorta=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=45) {
+          ds.compatFlags.legacyVolumeSlides=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=45) {
+          ds.compatFlags.compatibleArpeggio=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=45) {
+          ds.compatFlags.noteOffResetsSlides=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=45) {
+          ds.compatFlags.targetResetsSlides=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=47) {
+          ds.compatFlags.arpNonPorta=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=47) {
+          ds.compatFlags.algMacroBehavior=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=49) {
+          ds.compatFlags.brokenShortcutSlides=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=50) {
+          ds.compatFlags.ignoreDuplicateSlides=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=62) {
+          ds.compatFlags.stopPortaOnNoteOff=reader.readC();
+          ds.compatFlags.continuousVibrato=reader.readC();
+        } else {
+          reader.readC();
+          reader.readC();
+        }
+        if (ds.version>=64) {
+          ds.compatFlags.brokenDACMode=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=65) {
+          ds.compatFlags.oneTickCut=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=66) {
+          ds.compatFlags.newInsTriggersInPorta=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=69) {
+          ds.compatFlags.arp0Reset=reader.readC();
+        } else {
+          reader.readC();
+        }
+      } else {
+        for (int i=0; i<20; i++) reader.readC();
+      }
+
+      // pointers
+      insPtr.reserve(ds.insLen);
+      for (int i=0; i<ds.insLen; i++) {
+        insPtr.push_back(reader.readI());
+      }
+      wavePtr.reserve(ds.waveLen);
+      for (int i=0; i<ds.waveLen; i++) {
+        wavePtr.push_back(reader.readI());
+      }
+      samplePtr.reserve(ds.sampleLen);
+      for (int i=0; i<ds.sampleLen; i++) {
+        samplePtr.push_back(reader.readI());
+      }
+      patPtr.reserve(numberOfPats);
+      for (int i=0; i<numberOfPats; i++) patPtr.push_back(reader.readI());
+
+      logD("reading orders (%d)...",subSong->ordersLen);
+      for (int i=0; i<tchans; i++) {
+        for (int j=0; j<subSong->ordersLen; j++) {
+          subSong->orders.ord[i][j]=reader.readC();
+        }
+      }
+
+      for (int i=0; i<tchans; i++) {
+        subSong->pat[i].effectCols=reader.readC();
+        if (subSong->pat[i].effectCols<1 || subSong->pat[i].effectCols>DIV_MAX_EFFECTS) {
+          logE("channel %d has zero or too many effect columns! (%d)",i,subSong->pat[i].effectCols);
+          lastError=fmt::sprintf("channel %d has too many effect columns! (%d)",i,subSong->pat[i].effectCols);
+          delete[] file;
+          return false;
+        }
+      }
+
+      if (ds.version>=39) {
+        for (int i=0; i<tchans; i++) {
+          if (ds.version<189) {
+            subSong->chanShow[i]=reader.readC();
+            subSong->chanShowChanOsc[i]=subSong->chanShow[i];
+          } else {
+            unsigned char tempchar=reader.readC();
+            subSong->chanShow[i]=tempchar&1;
+            subSong->chanShowChanOsc[i]=(tempchar&2);
+          }
+        }
+
+        for (int i=0; i<tchans; i++) {
+          subSong->chanCollapse[i]=reader.readC();
+        }
+
+        if (ds.version<92) {
+          for (int i=0; i<tchans; i++) {
+            if (subSong->chanCollapse[i]>0) subSong->chanCollapse[i]=3;
+          }
+        }
+
+        for (int i=0; i<tchans; i++) {
+          subSong->chanName[i]=reader.readString();
+        }
+
+        for (int i=0; i<tchans; i++) {
+          subSong->chanShortName[i]=reader.readString();
+        }
+
+        ds.notes=reader.readString();
+      }
+
+      if (ds.version>=59) {
+        ds.masterVol=reader.readF();
+      } else {
+        ds.masterVol=2.0f;
+      }
+
+      if (ds.version>=70) {
+        // extended compat flags
+        ds.compatFlags.brokenSpeedSel=reader.readC();
+        if (ds.version>=71) {
+          ds.compatFlags.noSlidesOnFirstTick=reader.readC();
+          ds.compatFlags.rowResetsArpPos=reader.readC();
+          ds.compatFlags.ignoreJumpAtEnd=reader.readC();
+        } else {
+          reader.readC();
+          reader.readC();
+          reader.readC();
+        }
+        if (ds.version>=72) {
+          ds.compatFlags.buggyPortaAfterSlide=reader.readC();
+          ds.compatFlags.gbInsAffectsEnvelope=reader.readC();
+        } else {
+          reader.readC();
+          reader.readC();
+        }
+        if (ds.version>=78) {
+          ds.compatFlags.sharedExtStat=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=83) {
+          ds.compatFlags.ignoreDACModeOutsideIntendedChannel=reader.readC();
+          ds.compatFlags.e1e2AlsoTakePriority=reader.readC();
+        } else {
+          reader.readC();
+          reader.readC();
+        }
+        if (ds.version>=84) {
+          ds.compatFlags.newSegaPCM=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=85) {
+          ds.compatFlags.fbPortaPause=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=86) {
+          ds.compatFlags.snDutyReset=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=90) {
+          ds.compatFlags.pitchMacroIsLinear=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=94) {
+          ds.compatFlags.pitchSlideSpeed=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=97) {
+          ds.compatFlags.oldOctaveBoundary=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=98) {
+          ds.compatFlags.noOPN2Vol=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=99) {
+          ds.compatFlags.newVolumeScaling=reader.readC();
+          ds.compatFlags.volMacroLinger=reader.readC();
+          ds.compatFlags.brokenOutVol=reader.readC();
+        } else {
+          reader.readC();
+          reader.readC();
+          reader.readC();
+        }
+        if (ds.version>=100) {
+          ds.compatFlags.e1e2StopOnSameNote=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=101) {
+          ds.compatFlags.brokenPortaArp=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=108) {
+          ds.compatFlags.snNoLowPeriods=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=110) {
+          ds.compatFlags.delayBehavior=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=113) {
+          ds.compatFlags.jumpTreatment=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=115) {
+          ds.autoSystem=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=117) {
+          ds.compatFlags.disableSampleMacro=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=121) {
+          ds.compatFlags.brokenOutVol2=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=130) {
+          ds.compatFlags.oldArpStrategy=reader.readC();
+        } else {
+          reader.readC();
+        }
+      }
+
+      // first song virtual tempo
+      if (ds.version>=96) {
+        subSong->virtualTempoN=reader.readS();
+        subSong->virtualTempoD=reader.readS();
+      } else {
+        reader.readI();
+      }
+
+      // subsongs
+      if (ds.version>=95) {
+        subSong->name=reader.readString();
+        subSong->notes=reader.readString();
+        int numberOfSubSongs=(unsigned char)reader.readC();
+        reader.readC(); // reserved
+        reader.readC();
+        reader.readC();
+        // pointers
+        for (int i=0; i<numberOfSubSongs; i++) {
+          subSongPtr.push_back(reader.readI());
+        }
+      }
+
+      // additional metadata
+      if (ds.version>=103) {
+        ds.systemName=reader.readString();
+        ds.category=reader.readString();
+        ds.nameJ=reader.readString();
+        ds.authorJ=reader.readString();
+        ds.systemNameJ=reader.readString();
+        ds.categoryJ=reader.readString();
+      } else {
+        ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
+        ds.autoSystem=true;
+      }
+
+      // system output config
+      if (ds.version>=135) {
+        for (int i=0; i<ds.systemLen; i++) {
+          ds.systemVol[i]=reader.readF();
+          ds.systemPan[i]=reader.readF();
+          ds.systemPanFR[i]=reader.readF();
+        }
+
+        // patchbay
+        unsigned int conns=reader.readI();
+        if (conns>0) ds.patchbay.reserve(conns);
+        for (unsigned int i=0; i<conns; i++) {
+          ds.patchbay.push_back((unsigned int)reader.readI());
+        }
+      }
+
+      if (ds.version>=136) ds.patchbayAuto=reader.readC();
+
+      if (ds.version>=138) {
+        ds.compatFlags.brokenPortaLegato=reader.readC();
+        if (ds.version>=155) {
+          ds.compatFlags.brokenFMOff=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=168) {
+          ds.compatFlags.preNoteNoEffect=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=183) {
+          ds.compatFlags.oldDPCM=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=184) {
+          ds.compatFlags.resetArpPhaseOnNewNote=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=188) {
+          ds.compatFlags.ceilVolumeScaling=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=191) {
+          ds.compatFlags.oldAlwaysSetVolume=reader.readC();
+        } else {
+          reader.readC();
+        }
+        if (ds.version>=200) {
+          ds.compatFlags.oldSampleOffset=reader.readC();
+        } else {
+          reader.readC();
+        }
+      }
+
+      if (ds.version>=139) {
+        subSong->speeds.len=reader.readC();
+        for (int i=0; i<16; i++) {
+          subSong->speeds.val[i]=reader.readC();
+        }
+
+        // grooves
+        unsigned char grooveCount=reader.readC();
+        ds.grooves.reserve(grooveCount);
+        for (int i=0; i<grooveCount; i++) {
+          DivGroovePattern gp;
+          gp.len=reader.readC();
+          for (int j=0; j<16; j++) {
+            gp.val[j]=reader.readC();
+          }
+
+          ds.grooves.push_back(gp);
+        }
+      }
+
+      if (ds.version>=156) {
+        assetDirPtr.push_back(reader.readI());
+        assetDirPtr.push_back(reader.readI());
+        assetDirPtr.push_back(reader.readI());
       }
     }
 
-    if (ds.version>=156) {
-      assetDirPtr[0]=reader.readI();
-      assetDirPtr[1]=reader.readI();
-      assetDirPtr[2]=reader.readI();
+    // read compatibility flags
+    if (compatFlagPtr) {
+      DivConfig c;
+      if (!reader.seek(compatFlagPtr,SEEK_SET)) {
+        logE("couldn't seek to compat flags!");
+        lastError=fmt::sprintf("couldn't seek to compat flags!");
+        ds.unload();
+        delete[] file;
+        return false;
+      }
+
+      if (!song.compatFlags.readData(reader)) {
+        logE("invalid compat flag header!");
+        lastError="invalid compat flag header!";
+        ds.unload();
+        delete[] file;
+        return false;
+      }
     }
+
+    // read song comments
+    if (commentPtr) {
+      if (!reader.seek(commentPtr,SEEK_SET)) {
+        logE("couldn't seek to song comments!");
+        lastError=fmt::sprintf("couldn't seek to song comments!");
+        ds.unload();
+        delete[] file;
+        return false;
+      }
+
+      reader.read(magic,4);
+      if (strcmp(magic,"CMNT")!=0) {
+        logE("invalid comment header!");
+        lastError="invalid comment header!";
+        ds.unload();
+        delete[] file;
+        return false;
+      }
+      reader.readI();
+
+      song.notes=reader.readString();
+    }
+
+    // TODO: read grooves
 
     // read system flags
     if (ds.version>=119) {
       logD("reading chip flags...");
-      for (int i=0; i<DIV_MAX_CHIPS; i++) {
+      for (size_t i=0; i<sysFlagsPtr.size(); i++) {
         if (sysFlagsPtr[i]==0) continue;
 
         if (!reader.seek(sysFlagsPtr[i],SEEK_SET)) {
@@ -1450,53 +1683,59 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
     if (ds.version>=156) {
       logD("reading asset directories...");
 
-      if (!reader.seek(assetDirPtr[0],SEEK_SET)) {
-        logE("couldn't seek to ins dir!");
-        lastError=fmt::sprintf("couldn't read instrument directory");
-        ds.unload();
-        delete[] file;
-        return false;
-      }
-      if (readAssetDirData(reader,ds.insDir)!=DIV_DATA_SUCCESS) {
-        lastError="invalid instrument directory data!";
-        ds.unload();
-        delete[] file;
-        return false;
-      }
-
-      if (!reader.seek(assetDirPtr[1],SEEK_SET)) {
-        logE("couldn't seek to wave dir!");
-        lastError=fmt::sprintf("couldn't read wavetable directory");
-        ds.unload();
-        delete[] file;
-        return false;
-      }
-      if (readAssetDirData(reader,ds.waveDir)!=DIV_DATA_SUCCESS) {
-        lastError="invalid wavetable directory data!";
-        ds.unload();
-        delete[] file;
-        return false;
+      if (assetDirPtr.size()>0) {
+        if (!reader.seek(assetDirPtr[0],SEEK_SET)) {
+          logE("couldn't seek to ins dir!");
+          lastError=fmt::sprintf("couldn't read instrument directory");
+          ds.unload();
+          delete[] file;
+          return false;
+        }
+        if (readAssetDirData(reader,ds.insDir)!=DIV_DATA_SUCCESS) {
+          lastError="invalid instrument directory data!";
+          ds.unload();
+          delete[] file;
+          return false;
+        }
       }
 
-      if (!reader.seek(assetDirPtr[2],SEEK_SET)) {
-        logE("couldn't seek to sample dir!");
-        lastError=fmt::sprintf("couldn't read sample directory");
-        ds.unload();
-        delete[] file;
-        return false;
+      if (assetDirPtr.size()>1) {
+        if (!reader.seek(assetDirPtr[1],SEEK_SET)) {
+          logE("couldn't seek to wave dir!");
+          lastError=fmt::sprintf("couldn't read wavetable directory");
+          ds.unload();
+          delete[] file;
+          return false;
+        }
+        if (readAssetDirData(reader,ds.waveDir)!=DIV_DATA_SUCCESS) {
+          lastError="invalid wavetable directory data!";
+          ds.unload();
+          delete[] file;
+          return false;
+        }
       }
-      if (readAssetDirData(reader,ds.sampleDir)!=DIV_DATA_SUCCESS) {
-        lastError="invalid sample directory data!";
-        ds.unload();
-        delete[] file;
-        return false;
+
+      if (assetDirPtr.size()>2) {
+        if (!reader.seek(assetDirPtr[2],SEEK_SET)) {
+          logE("couldn't seek to sample dir!");
+          lastError=fmt::sprintf("couldn't read sample directory");
+          ds.unload();
+          delete[] file;
+          return false;
+        }
+        if (readAssetDirData(reader,ds.sampleDir)!=DIV_DATA_SUCCESS) {
+          lastError="invalid sample directory data!";
+          ds.unload();
+          delete[] file;
+          return false;
+        }
       }
     }
 
     // read subsongs
     if (ds.version>=95) {
-      ds.subsong.reserve(numberOfSubSongs);
-      for (int i=0; i<numberOfSubSongs; i++) {
+      ds.subsong.reserve(subSongPtr.size());
+      for (size_t i=0; i<subSongPtr.size(); i++) {
         ds.subsong.push_back(new DivSubSong);
         if (!reader.seek(subSongPtr[i],SEEK_SET)) {
           logE("couldn't seek to subsong %d!",i+1);
