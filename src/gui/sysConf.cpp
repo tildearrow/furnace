@@ -2777,10 +2777,36 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
   }
 
   bool separatedYet=false;
+  const DivSysDef* sysDef=e->getSystemDef(type);
+  if (sysDef!=NULL) {
+    if (sysDef->minChans==sysDef->maxChans && sysDef->channels==sysDef->minChans) {
+      supportsChannelCount=false;
+    }
+    if (!supportsChannelCount) {
+      if (e->song.systemChans[chan]!=sysDef->channels) {
+        ImGui::Separator();
+        separatedYet=true;
+
+        ImGui::TextUnformatted(_("irregular channel count detected!"));
+        if (ImGui::Button(_("click here to fix it."))) {
+          if (e->setSystemChans(chan,sysDef->channels,preserveChanPos)) {
+            MARK_MODIFIED;
+            recalcTimestamps=true;
+            if (e->song.autoSystem) {
+              autoDetectSystem();
+            }
+            updateWindowTitle();
+            updateROMExportAvail();
+          } else {
+            showError(e->getLastError());
+          }
+        }
+      }
+    }
+  }
   if (supportsChannelCount) {
     ImGui::Separator();
     separatedYet=true;
-    const DivSysDef* sysDef=e->getSystemDef(type);
     int chCount=e->song.systemChans[chan];
     ImGui::AlignTextToFramePadding();
     ImGui::TextUnformatted(_("Channels"));
