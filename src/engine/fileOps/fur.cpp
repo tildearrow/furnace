@@ -2599,7 +2599,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   // sub-songs
   if (sng2PtrSeek) {
     w->seek(sng2PtrSeek,SEEK_SET);
-    for (size_t i=0; i<=song.subsong.size(); i++) {
+    for (size_t i=0; i<song.subsong.size(); i++) {
       w->writeI(subSongPtr[i]);
     }
   }
