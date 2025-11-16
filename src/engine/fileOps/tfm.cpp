@@ -551,7 +551,7 @@ bool DivEngine::loadTFMv1(unsigned char* file, size_t len) {
     ds.systemLen=1;
 
     ds.system[0]=DIV_SYSTEM_YM2612;
-    ds.loopModality=1;
+    ds.compatFlags.loopModality=1;
 
     unsigned char speed=reader.readCNoRLE();
     unsigned char interleaveFactor=reader.readCNoRLE();
@@ -746,7 +746,7 @@ bool DivEngine::loadTFMv2(unsigned char* file, size_t len) {
     ds.systemLen=1;
 
     ds.system[0]=DIV_SYSTEM_YM2612;
-    ds.loopModality=1;
+    ds.compatFlags.loopModality=1;
 
     unsigned char magic[8]={0};
 

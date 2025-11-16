@@ -135,7 +135,9 @@ size | description
  STR | system name (Japanese)
  STR | album/category/game name (Japanese)
   4f | A-4 tuning
+  1  | automatic system name
  --- | **system definition**
+  4f | master volume, 1.0f=100%
   2  | total number of channels
   2  | number of chips
  --- | **chip definition (×numChips)**
@@ -149,11 +151,10 @@ size | description
  4?? | patchbay
      | - see next section for more details.
   1  | automatic patchbay
- --- | **song elements**
+ --- | **song elements (repeated until element type is 0)**
   1  | element type
- 4?? | pointers to elements
-     | - a zero pointer means "end of list".
-     | - if the element is unique, only a single pointer will be present.
+  4  | number of elements
+ 4?? | pointers to elements (×numElements)
 ```
 
 ## list of sound chips
@@ -313,7 +314,7 @@ the following element types are available:
  09 | CMNT | song comments*
  0a | GROV | groove pattern
 
-* element is unique (read only one pointer and assume the pointer list is over)
+* element is unique (number of elements shall be 1)
 
 ** first pointer is for instruments, second for wavetables and third for samples
 ```

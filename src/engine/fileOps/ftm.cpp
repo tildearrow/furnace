@@ -495,7 +495,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
     }
     ds.subsong.clear();
 
-    ds.linearPitch = 0;
+    ds.compatFlags.linearPitch = 0;
 
     unsigned int pal = 0;
 
@@ -2378,7 +2378,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         CHECK_BLOCK_VERSION(3);
         unsigned int linear_pitch = reader.readI();
 
-        ds.linearPitch = linear_pitch == 0 ? 0 : 1;
+        ds.compatFlags.linearPitch = linear_pitch == 0 ? 0 : 1;
 
         if (blockVersion >= 2) {
           int fineTuneCents = reader.readC() * 100;

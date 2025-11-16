@@ -365,7 +365,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       chan[0].active=true;
       chan[0].keyOn=true;
       chan[0].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[0].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[0].std.vol.will) {
         chan[0].envVol=64;
       }
       if (chan[0].useWave) {
@@ -446,7 +446,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
     }
     case DIV_CMD_PRE_PORTA:
       if (chan[0].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[0].macroInit(parent->getIns(chan[0].ins,DIV_INS_AMIGA));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[0].macroInit(parent->getIns(chan[0].ins,DIV_INS_AMIGA));
       }
       chan[0].inPorta=c.value;
       break;

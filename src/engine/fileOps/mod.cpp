@@ -41,11 +41,11 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     DivSong ds;
     ds.tuning=436.0;
     ds.version=DIV_VERSION_MOD;
-    ds.linearPitch=0;
-    ds.noSlidesOnFirstTick=true;
-    ds.rowResetsArpPos=true;
-    ds.ignoreJumpAtEnd=false;
-    ds.delayBehavior=0;
+    ds.compatFlags.linearPitch=0;
+    ds.compatFlags.noSlidesOnFirstTick=true;
+    ds.compatFlags.rowResetsArpPos=true;
+    ds.compatFlags.ignoreJumpAtEnd=false;
+    ds.compatFlags.delayBehavior=0;
 
     int insCount=31;
     bool bypassLimits=false;

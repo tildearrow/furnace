@@ -219,10 +219,10 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
   try {
     DivSong ds;
     ds.version=DIV_VERSION_IT;
-    ds.noSlidesOnFirstTick=true;
-    ds.rowResetsArpPos=true;
-    ds.ignoreJumpAtEnd=false;
-    ds.pitchSlideSpeed=8;
+    ds.compatFlags.noSlidesOnFirstTick=true;
+    ds.compatFlags.rowResetsArpPos=true;
+    ds.compatFlags.ignoreJumpAtEnd=false;
+    ds.compatFlags.pitchSlideSpeed=8;
 
     logV("Impulse Tracker module");
 
@@ -277,9 +277,9 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     }
 
     if (flags&8) {
-      ds.linearPitch=1;
+      ds.compatFlags.linearPitch=1;
     } else {
-      ds.linearPitch=0;
+      ds.compatFlags.linearPitch=0;
     }
 
     unsigned char globalVol=reader.readC();
@@ -1667,7 +1667,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     for (int i=0; i<(maxChan+32)>>5; i++) {
       ds.system[i]=DIV_SYSTEM_ES5506;
       ds.systemFlags[i].set("amigaVol",true);
-      if (!ds.linearPitch) {
+      if (!ds.compatFlags.linearPitch) {
         ds.systemFlags[i].set("amigaPitch",true);
       }
     }

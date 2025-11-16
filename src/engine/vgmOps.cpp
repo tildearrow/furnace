@@ -2736,7 +2736,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           countDown--;
           break;
       }
-      if (song.loopModality!=2) countDown=0;
+      if (song.compatFlags.loopModality!=2) countDown=0;
 
       if (countDown>0 && !beenOneLoopAlready) {
         loopTickSong++;

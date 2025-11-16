@@ -22,6 +22,8 @@
 #include <inttypes.h>
 #include <chrono>
 
+static DivCompatFlags defaultFlags;
+
 TimeMicros DivSongTimestamps::getTimes(int order, int row) {
   if (order<0 || order>=DIV_MAX_PATTERNS) return TimeMicros(-1,0);
   if (row<0 || row>=DIV_MAX_ROWS) return TimeMicros(-1,0);
@@ -448,6 +450,66 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
   logV("song length: %s; %" PRIu64 " ticks",ts.totalTime.toString(6,TA_TIME_FORMAT_AUTO),ts.totalTicks);
 }
 
+void DivSubSong::putData(SafeWriter* w, int chans) {
+  size_t blockStartSeek, blockEndSeek;
+  w->write("SNG2",4);
+  blockStartSeek=w->tell();
+  w->writeI(0);
+
+  w->writeF(hz);
+  w->writeC(arpLen);
+  w->writeC(timeBase);
+  w->writeS(patLen);
+  w->writeS(ordersLen);
+  w->writeC(hilightA);
+  w->writeC(hilightB);
+  w->writeS(virtualTempoN);
+  w->writeS(virtualTempoD);
+
+  // speeds
+  w->writeS(speeds.len);
+  for (int i=0; i<16; i++) {
+    w->writeS(speeds.val[i]);
+  }
+
+  w->writeString(name,false);
+  w->writeString(notes,false);
+
+  for (int i=0; i<chans; i++) {
+    for (int j=0; j<ordersLen; j++) {
+      w->writeC(orders.ord[i][j]);
+    }
+  }
+
+  for (int i=0; i<chans; i++) {
+    w->writeC(pat[i].effectCols);
+  }
+
+  for (int i=0; i<chans; i++) {
+    w->writeC(
+      (chanShow[i]?1:0)|
+      (chanShowChanOsc[i]?2:0)
+    );
+  }
+
+  for (int i=0; i<chans; i++) {
+    w->writeC(chanCollapse[i]);
+  }
+
+  for (int i=0; i<chans; i++) {
+    w->writeString(chanName[i],false);
+  }
+
+  for (int i=0; i<chans; i++) {
+    w->writeString(chanShortName[i],false);
+  }
+
+  blockEndSeek=w->tell();
+  w->seek(blockStartSeek,SEEK_SET);
+  w->writeI(blockEndSeek-blockStartSeek-4);
+  w->seek(0,SEEK_END);
+}
+
 void DivSubSong::clearData() {
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     pat[i].wipePatterns();
@@ -584,7 +646,7 @@ void DivSong::findSubSongs() {
     // find possible subsongs
     logD("finding subsongs...");
     while (++curStart<i->ordersLen) {
-      i->calcTimestamps(chans,grooves,jumpTreatment,ignoreJumpAtEnd,brokenSpeedSel,delayBehavior,curStart);
+      i->calcTimestamps(chans,grooves,compatFlags.jumpTreatment,compatFlags.ignoreJumpAtEnd,compatFlags.brokenSpeedSel,compatFlags.delayBehavior,curStart);
       if (!i->ts.isLoopable) break;
       
       // make sure we don't pick the same range twice
@@ -808,4 +870,168 @@ void DivSong::unload() {
     delete i;
   }
   subsong.clear();
+}
+
+void DivGroovePattern::putData(SafeWriter* w) {
+  size_t blockStartSeek, blockEndSeek;
+  w->write("GROV",4);
+  blockStartSeek=w->tell();
+  w->writeI(0);
+
+  w->writeS(len);
+  for (int i=0; i<16; i++) {
+    w->writeS(val[i]);
+  }
+
+  blockEndSeek=w->tell();
+  w->seek(blockStartSeek,SEEK_SET);
+  w->writeI(blockEndSeek-blockStartSeek-4);
+  w->seek(0,SEEK_END);
+}
+
+void DivCompatFlags::setDefaults() {
+  limitSlides=false;
+  linearPitch=1;
+  pitchSlideSpeed=4;
+  loopModality=2;
+  delayBehavior=2;
+  jumpTreatment=0;
+  properNoiseLayout=true;
+  waveDutyIsVol=false;
+  resetMacroOnPorta=false;
+  legacyVolumeSlides=false;
+  compatibleArpeggio=false;
+  noteOffResetsSlides=true;
+  targetResetsSlides=true;
+  arpNonPorta=false;
+  algMacroBehavior=false;
+  brokenShortcutSlides=false;
+  ignoreDuplicateSlides=false;
+  stopPortaOnNoteOff=false;
+  continuousVibrato=false;
+  brokenDACMode=false;
+  oneTickCut=false;
+  newInsTriggersInPorta=true;
+  arp0Reset=true;
+  brokenSpeedSel=false;
+  noSlidesOnFirstTick=false;
+  rowResetsArpPos=false;
+  ignoreJumpAtEnd=false;
+  buggyPortaAfterSlide=false;
+  gbInsAffectsEnvelope=true;
+  sharedExtStat=true;
+  ignoreDACModeOutsideIntendedChannel=false;
+  e1e2AlsoTakePriority=false;
+  newSegaPCM=true;
+  fbPortaPause=false;
+  snDutyReset=false;
+  pitchMacroIsLinear=true;
+  oldOctaveBoundary=false;
+  noOPN2Vol=false;
+  newVolumeScaling=true;
+  volMacroLinger=true;
+  brokenOutVol=false;
+  brokenOutVol2=false;
+  e1e2StopOnSameNote=false;
+  brokenPortaArp=false;
+  snNoLowPeriods=false;
+  disableSampleMacro=false;
+  oldArpStrategy=false;
+  brokenPortaLegato=false;
+  brokenFMOff=false;
+  preNoteNoEffect=false;
+  oldDPCM=false;
+  resetArpPhaseOnNewNote=false;
+  ceilVolumeScaling=false;
+  oldAlwaysSetVolume=false;
+  oldSampleOffset=false;
+  oldCenterRate=true;
+}
+
+bool DivCompatFlags::areDefaults() {
+  return (*this==defaultFlags);
+}
+
+#define CHECK_AND_STORE_BOOL(_x) \
+  if (_x!=defaultFlags._x) { \
+    c.set(#_x,_x); \
+  }
+
+#define CHECK_AND_STORE_UNSIGNED_CHAR(_x) \
+  if (_x!=defaultFlags._x) { \
+    c.set(#_x,(int)_x); \
+  }
+
+void DivCompatFlags::putData(SafeWriter* w) {
+  DivConfig c;
+  size_t blockStartSeek, blockEndSeek;
+
+  CHECK_AND_STORE_BOOL(limitSlides);
+  CHECK_AND_STORE_UNSIGNED_CHAR(linearPitch);
+  CHECK_AND_STORE_UNSIGNED_CHAR(pitchSlideSpeed);
+  CHECK_AND_STORE_UNSIGNED_CHAR(loopModality);
+  CHECK_AND_STORE_UNSIGNED_CHAR(delayBehavior);
+  CHECK_AND_STORE_UNSIGNED_CHAR(jumpTreatment);
+  CHECK_AND_STORE_BOOL(properNoiseLayout);
+  CHECK_AND_STORE_BOOL(waveDutyIsVol);
+  CHECK_AND_STORE_BOOL(resetMacroOnPorta);
+  CHECK_AND_STORE_BOOL(legacyVolumeSlides);
+  CHECK_AND_STORE_BOOL(compatibleArpeggio);
+  CHECK_AND_STORE_BOOL(noteOffResetsSlides);
+  CHECK_AND_STORE_BOOL(targetResetsSlides);
+  CHECK_AND_STORE_BOOL(arpNonPorta);
+  CHECK_AND_STORE_BOOL(algMacroBehavior);
+  CHECK_AND_STORE_BOOL(brokenShortcutSlides);
+  CHECK_AND_STORE_BOOL(ignoreDuplicateSlides);
+  CHECK_AND_STORE_BOOL(stopPortaOnNoteOff);
+  CHECK_AND_STORE_BOOL(continuousVibrato);
+  CHECK_AND_STORE_BOOL(brokenDACMode);
+  CHECK_AND_STORE_BOOL(oneTickCut);
+  CHECK_AND_STORE_BOOL(newInsTriggersInPorta);
+  CHECK_AND_STORE_BOOL(arp0Reset);
+  CHECK_AND_STORE_BOOL(brokenSpeedSel);
+  CHECK_AND_STORE_BOOL(noSlidesOnFirstTick);
+  CHECK_AND_STORE_BOOL(rowResetsArpPos);
+  CHECK_AND_STORE_BOOL(ignoreJumpAtEnd);
+  CHECK_AND_STORE_BOOL(buggyPortaAfterSlide);
+  CHECK_AND_STORE_BOOL(gbInsAffectsEnvelope);
+  CHECK_AND_STORE_BOOL(sharedExtStat);
+  CHECK_AND_STORE_BOOL(ignoreDACModeOutsideIntendedChannel);
+  CHECK_AND_STORE_BOOL(e1e2AlsoTakePriority);
+  CHECK_AND_STORE_BOOL(newSegaPCM);
+  CHECK_AND_STORE_BOOL(fbPortaPause);
+  CHECK_AND_STORE_BOOL(snDutyReset);
+  CHECK_AND_STORE_BOOL(pitchMacroIsLinear);
+  CHECK_AND_STORE_BOOL(oldOctaveBoundary);
+  CHECK_AND_STORE_BOOL(noOPN2Vol);
+  CHECK_AND_STORE_BOOL(newVolumeScaling);
+  CHECK_AND_STORE_BOOL(volMacroLinger);
+  CHECK_AND_STORE_BOOL(brokenOutVol);
+  CHECK_AND_STORE_BOOL(brokenOutVol2);
+  CHECK_AND_STORE_BOOL(e1e2StopOnSameNote);
+  CHECK_AND_STORE_BOOL(brokenPortaArp);
+  CHECK_AND_STORE_BOOL(snNoLowPeriods);
+  CHECK_AND_STORE_BOOL(disableSampleMacro);
+  CHECK_AND_STORE_BOOL(oldArpStrategy);
+  CHECK_AND_STORE_BOOL(brokenPortaLegato);
+  CHECK_AND_STORE_BOOL(brokenFMOff);
+  CHECK_AND_STORE_BOOL(preNoteNoEffect);
+  CHECK_AND_STORE_BOOL(oldDPCM);
+  CHECK_AND_STORE_BOOL(resetArpPhaseOnNewNote);
+  CHECK_AND_STORE_BOOL(ceilVolumeScaling);
+  CHECK_AND_STORE_BOOL(oldAlwaysSetVolume);
+  CHECK_AND_STORE_BOOL(oldSampleOffset);
+  CHECK_AND_STORE_BOOL(oldCenterRate);
+
+  String data=c.toString();
+  w->write("CFLG",4);
+  blockStartSeek=w->tell();
+  w->writeI(0);
+
+  w->writeString(data,false);
+
+  blockEndSeek=w->tell();
+  w->seek(blockStartSeek,SEEK_SET);
+  w->writeI(blockEndSeek-blockStartSeek-4);
+  w->seek(0,SEEK_END);
 }

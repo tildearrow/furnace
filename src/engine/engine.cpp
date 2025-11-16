@@ -168,7 +168,7 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return _("FFxx: Stop song");
     default:
       if ((effect&0xf0)==0x90) {
-        if (song.oldSampleOffset) {
+        if (song.compatFlags.oldSampleOffset) {
           return _("9xxx: Set sample offset*256");
         }
         switch (effect) {
@@ -205,7 +205,7 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
 
 void DivEngine::calcSongTimestamps() {
   if (curSubSong!=NULL) {
-    curSubSong->calcTimestamps(song.chans,song.grooves,song.jumpTreatment,song.ignoreJumpAtEnd,song.brokenSpeedSel,song.delayBehavior);
+    curSubSong->calcTimestamps(song.chans,song.grooves,song.compatFlags.jumpTreatment,song.compatFlags.ignoreJumpAtEnd,song.compatFlags.brokenSpeedSel,song.compatFlags.delayBehavior);
   }
 }
 
@@ -1813,7 +1813,7 @@ int DivEngine::calcBaseFreq(double clock, double divider, int note, bool period)
 }*/
 
 double DivEngine::calcBaseFreq(double clock, double divider, int note, bool period) {
-  if (song.linearPitch) { // linear
+  if (song.compatFlags.linearPitch) { // linear
     return (note<<7);
   }
   double base=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(note+3)/12.0);
@@ -1863,7 +1863,7 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
   return bf|((block)<<(bits));
 
 int DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int bits, int fixedBlock) {
-  if (song.linearPitch) { // linear
+  if (song.compatFlags.linearPitch) { // linear
     return (note<<7);
   }
   int bf=calcBaseFreq(clock,divider,note,false);
@@ -1876,10 +1876,10 @@ int DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int
 
 int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period, int octave, int pitch2, double clock, double divider, int blockBits, int fixedBlock) {
   // linear pitch
-  if (song.linearPitch) {
+  if (song.compatFlags.linearPitch) {
     // do frequency calculation here
     int nbase=base+pitch+pitch2;
-    if (!song.oldArpStrategy) {
+    if (!song.compatFlags.oldArpStrategy) {
       if (arpFixed) {
         nbase=(arp<<7)+pitch+pitch2;
       } else {
@@ -2178,7 +2178,7 @@ void DivEngine::reset() {
       chan[i].volMax=(disCont[song.dispatchOfChan[i]].dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,song.dispatchChanOfChan[i]))<<8)|0xff;
     }
     chan[i].volume=chan[i].volMax;
-    if (!song.linearPitch) chan[i].vibratoFine=4;
+    if (!song.compatFlags.linearPitch) chan[i].vibratoFine=4;
   }
   extValue=0;
   extValuePresent=0;
@@ -2436,7 +2436,7 @@ double DivEngine::getSamplePreviewRate() {
 }
 
 double DivEngine::getCenterRate() {
-  return song.oldCenterRate?8363.0:8372.0;
+  return song.compatFlags.oldCenterRate?8363.0:8372.0;
 }
 
 String DivEngine::getConfigPath() {

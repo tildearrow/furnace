@@ -122,7 +122,7 @@ void DivPlatformMSM6295::acquire(short** buf, size_t len) {
 
 void DivPlatformMSM6295::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
-    if (!parent->song.disableSampleMacro) {
+    if (!parent->song.compatFlags.disableSampleMacro) {
       chan[i].std.next();
       if (chan[i].std.vol.had) {
         chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].std.vol.val,chan[i].vol,8);

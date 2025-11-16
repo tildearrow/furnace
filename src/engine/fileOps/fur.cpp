@@ -673,144 +673,151 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       addWarning("this module was created with a downstream version of Furnace. certain features may not be compatible.");
     }
 
+    if (ds.version>=240) {
+      logE("not yet! I am still working on it!");
+      lastError="not yet! I am still working on it!";
+      delete[] file;
+      return false;
+    }
+
     if (ds.version>DIV_ENGINE_VERSION) {
       logW("this module was created with a more recent version of Furnace!");
       addWarning("this module was created with a more recent version of Furnace!");
     }
 
     if (ds.version<37) { // compat flags not stored back then
-      ds.limitSlides=true;
-      ds.linearPitch=1;
-      ds.loopModality=0;
+      ds.compatFlags.limitSlides=true;
+      ds.compatFlags.linearPitch=1;
+      ds.compatFlags.loopModality=0;
     }
     if (ds.version<43) {
-      ds.properNoiseLayout=false;
-      ds.waveDutyIsVol=false;
+      ds.compatFlags.properNoiseLayout=false;
+      ds.compatFlags.waveDutyIsVol=false;
     }
     if (ds.version<45) {
-      ds.resetMacroOnPorta=true;
-      ds.legacyVolumeSlides=true;
-      ds.compatibleArpeggio=true;
-      ds.noteOffResetsSlides=true;
-      ds.targetResetsSlides=true;
+      ds.compatFlags.resetMacroOnPorta=true;
+      ds.compatFlags.legacyVolumeSlides=true;
+      ds.compatFlags.compatibleArpeggio=true;
+      ds.compatFlags.noteOffResetsSlides=true;
+      ds.compatFlags.targetResetsSlides=true;
     }
     if (ds.version<46) {
-      ds.arpNonPorta=true;
-      ds.algMacroBehavior=true;
+      ds.compatFlags.arpNonPorta=true;
+      ds.compatFlags.algMacroBehavior=true;
     } else {
-      ds.arpNonPorta=false;
-      ds.algMacroBehavior=false;
+      ds.compatFlags.arpNonPorta=false;
+      ds.compatFlags.algMacroBehavior=false;
     }
     if (ds.version<49) {
-      ds.brokenShortcutSlides=true;
+      ds.compatFlags.brokenShortcutSlides=true;
     }
     if (ds.version<50) {
-      ds.ignoreDuplicateSlides=false;
+      ds.compatFlags.ignoreDuplicateSlides=false;
     }
     if (ds.version<62) {
-      ds.stopPortaOnNoteOff=true;
+      ds.compatFlags.stopPortaOnNoteOff=true;
     }
     if (ds.version<64) {
-      ds.brokenDACMode=false;
+      ds.compatFlags.brokenDACMode=false;
     }
     if (ds.version<65) {
-      ds.oneTickCut=false;
+      ds.compatFlags.oneTickCut=false;
     }
     if (ds.version<66) {
-      ds.newInsTriggersInPorta=false;
+      ds.compatFlags.newInsTriggersInPorta=false;
     }
     if (ds.version<69) {
-      ds.arp0Reset=false;
+      ds.compatFlags.arp0Reset=false;
     }
     if (ds.version<71) {
-      ds.noSlidesOnFirstTick=false;
-      ds.rowResetsArpPos=false;
-      ds.ignoreJumpAtEnd=true;
+      ds.compatFlags.noSlidesOnFirstTick=false;
+      ds.compatFlags.rowResetsArpPos=false;
+      ds.compatFlags.ignoreJumpAtEnd=true;
     }
     if (ds.version<72) {
-      ds.buggyPortaAfterSlide=true;
-      ds.gbInsAffectsEnvelope=false;
+      ds.compatFlags.buggyPortaAfterSlide=true;
+      ds.compatFlags.gbInsAffectsEnvelope=false;
     }
     if (ds.version<78) {
-      ds.sharedExtStat=false;
+      ds.compatFlags.sharedExtStat=false;
     }
     if (ds.version<83) {
-      ds.ignoreDACModeOutsideIntendedChannel=true;
-      ds.e1e2AlsoTakePriority=false;
+      ds.compatFlags.ignoreDACModeOutsideIntendedChannel=true;
+      ds.compatFlags.e1e2AlsoTakePriority=false;
     }
     if (ds.version<84) {
-      ds.newSegaPCM=false;
+      ds.compatFlags.newSegaPCM=false;
     }
     if (ds.version<85) {
-      ds.fbPortaPause=true;
+      ds.compatFlags.fbPortaPause=true;
     }
     if (ds.version<86) {
-      ds.snDutyReset=true;
+      ds.compatFlags.snDutyReset=true;
     }
     if (ds.version<90) {
-      ds.pitchMacroIsLinear=false;
+      ds.compatFlags.pitchMacroIsLinear=false;
     }
     if (ds.version<97) {
-      ds.oldOctaveBoundary=true;
+      ds.compatFlags.oldOctaveBoundary=true;
     }
     if (ds.version<97) { // actually should be 98 but yky uses this feature ahead of time
-      ds.noOPN2Vol=true;
+      ds.compatFlags.noOPN2Vol=true;
     }
     if (ds.version<99) {
-      ds.newVolumeScaling=false;
-      ds.volMacroLinger=false;
-      ds.brokenOutVol=true;
+      ds.compatFlags.newVolumeScaling=false;
+      ds.compatFlags.volMacroLinger=false;
+      ds.compatFlags.brokenOutVol=true;
     }
     if (ds.version<100) {
-      ds.e1e2StopOnSameNote=false;
+      ds.compatFlags.e1e2StopOnSameNote=false;
     }
     if (ds.version<101) {
-      ds.brokenPortaArp=true;
+      ds.compatFlags.brokenPortaArp=true;
     }
     if (ds.version<108) {
-      ds.snNoLowPeriods=true;
+      ds.compatFlags.snNoLowPeriods=true;
     }
     if (ds.version<110) {
-      ds.delayBehavior=1;
+      ds.compatFlags.delayBehavior=1;
     }
     if (ds.version<113) {
-      ds.jumpTreatment=1;
+      ds.compatFlags.jumpTreatment=1;
     }
     if (ds.version<115) {
       ds.autoSystem=false;
     }
     if (ds.version<117) {
-      ds.disableSampleMacro=true;
+      ds.compatFlags.disableSampleMacro=true;
     }
     if (ds.version<121) {
-      ds.brokenOutVol2=false;
+      ds.compatFlags.brokenOutVol2=false;
     }
     if (ds.version<130) {
-      ds.oldArpStrategy=true;
+      ds.compatFlags.oldArpStrategy=true;
     }
     if (ds.version<138) {
-      ds.brokenPortaLegato=true;
+      ds.compatFlags.brokenPortaLegato=true;
     }
     if (ds.version<155) {
-      ds.brokenFMOff=true;
+      ds.compatFlags.brokenFMOff=true;
     }
     if (ds.version<168) {
-      ds.preNoteNoEffect=true;
+      ds.compatFlags.preNoteNoEffect=true;
     }
     if (ds.version<183) {
-      ds.oldDPCM=true;
+      ds.compatFlags.oldDPCM=true;
     }
     if (ds.version<184) {
-      ds.resetArpPhaseOnNewNote=false;
+      ds.compatFlags.resetArpPhaseOnNewNote=false;
     }
     if (ds.version<188) {
-      ds.ceilVolumeScaling=false;
+      ds.compatFlags.ceilVolumeScaling=false;
     }
     if (ds.version<191) {
-      ds.oldAlwaysSetVolume=true;
+      ds.compatFlags.oldAlwaysSetVolume=true;
     }
     if (ds.version<200) {
-      ds.oldSampleOffset=true;
+      ds.compatFlags.oldSampleOffset=true;
     }
     ds.isDMF=false;
 
@@ -1003,89 +1010,89 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
 
     // compatibility flags
     if (ds.version>=37) {
-      ds.limitSlides=reader.readC();
-      ds.linearPitch=reader.readC();
-      ds.loopModality=reader.readC();
+      ds.compatFlags.limitSlides=reader.readC();
+      ds.compatFlags.linearPitch=reader.readC();
+      ds.compatFlags.loopModality=reader.readC();
       if (ds.version>=43) {
-        ds.properNoiseLayout=reader.readC();
+        ds.compatFlags.properNoiseLayout=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=43) {
-        ds.waveDutyIsVol=reader.readC();
+        ds.compatFlags.waveDutyIsVol=reader.readC();
       } else {
         reader.readC();
       }
 
       if (ds.version>=45) {
-        ds.resetMacroOnPorta=reader.readC();
+        ds.compatFlags.resetMacroOnPorta=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=45) {
-        ds.legacyVolumeSlides=reader.readC();
+        ds.compatFlags.legacyVolumeSlides=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=45) {
-        ds.compatibleArpeggio=reader.readC();
+        ds.compatFlags.compatibleArpeggio=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=45) {
-        ds.noteOffResetsSlides=reader.readC();
+        ds.compatFlags.noteOffResetsSlides=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=45) {
-        ds.targetResetsSlides=reader.readC();
+        ds.compatFlags.targetResetsSlides=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=47) {
-        ds.arpNonPorta=reader.readC();
+        ds.compatFlags.arpNonPorta=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=47) {
-        ds.algMacroBehavior=reader.readC();
+        ds.compatFlags.algMacroBehavior=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=49) {
-        ds.brokenShortcutSlides=reader.readC();
+        ds.compatFlags.brokenShortcutSlides=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=50) {
-        ds.ignoreDuplicateSlides=reader.readC();
+        ds.compatFlags.ignoreDuplicateSlides=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=62) {
-        ds.stopPortaOnNoteOff=reader.readC();
-        ds.continuousVibrato=reader.readC();
+        ds.compatFlags.stopPortaOnNoteOff=reader.readC();
+        ds.compatFlags.continuousVibrato=reader.readC();
       } else {
         reader.readC();
         reader.readC();
       }
       if (ds.version>=64) {
-        ds.brokenDACMode=reader.readC();
+        ds.compatFlags.brokenDACMode=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=65) {
-        ds.oneTickCut=reader.readC();
+        ds.compatFlags.oneTickCut=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=66) {
-        ds.newInsTriggersInPorta=reader.readC();
+        ds.compatFlags.newInsTriggersInPorta=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=69) {
-        ds.arp0Reset=reader.readC();
+        ds.compatFlags.arp0Reset=reader.readC();
       } else {
         reader.readC();
       }
@@ -1167,101 +1174,101 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
 
     if (ds.version>=70) {
       // extended compat flags
-      ds.brokenSpeedSel=reader.readC();
+      ds.compatFlags.brokenSpeedSel=reader.readC();
       if (ds.version>=71) {
-        ds.noSlidesOnFirstTick=reader.readC();
-        ds.rowResetsArpPos=reader.readC();
-        ds.ignoreJumpAtEnd=reader.readC();
+        ds.compatFlags.noSlidesOnFirstTick=reader.readC();
+        ds.compatFlags.rowResetsArpPos=reader.readC();
+        ds.compatFlags.ignoreJumpAtEnd=reader.readC();
       } else {
         reader.readC();
         reader.readC();
         reader.readC();
       }
       if (ds.version>=72) {
-        ds.buggyPortaAfterSlide=reader.readC();
-        ds.gbInsAffectsEnvelope=reader.readC();
+        ds.compatFlags.buggyPortaAfterSlide=reader.readC();
+        ds.compatFlags.gbInsAffectsEnvelope=reader.readC();
       } else {
         reader.readC();
         reader.readC();
       }
       if (ds.version>=78) {
-        ds.sharedExtStat=reader.readC();
+        ds.compatFlags.sharedExtStat=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=83) {
-        ds.ignoreDACModeOutsideIntendedChannel=reader.readC();
-        ds.e1e2AlsoTakePriority=reader.readC();
+        ds.compatFlags.ignoreDACModeOutsideIntendedChannel=reader.readC();
+        ds.compatFlags.e1e2AlsoTakePriority=reader.readC();
       } else {
         reader.readC();
         reader.readC();
       }
       if (ds.version>=84) {
-        ds.newSegaPCM=reader.readC();
+        ds.compatFlags.newSegaPCM=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=85) {
-        ds.fbPortaPause=reader.readC();
+        ds.compatFlags.fbPortaPause=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=86) {
-        ds.snDutyReset=reader.readC();
+        ds.compatFlags.snDutyReset=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=90) {
-        ds.pitchMacroIsLinear=reader.readC();
+        ds.compatFlags.pitchMacroIsLinear=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=94) {
-        ds.pitchSlideSpeed=reader.readC();
+        ds.compatFlags.pitchSlideSpeed=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=97) {
-        ds.oldOctaveBoundary=reader.readC();
+        ds.compatFlags.oldOctaveBoundary=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=98) {
-        ds.noOPN2Vol=reader.readC();
+        ds.compatFlags.noOPN2Vol=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=99) {
-        ds.newVolumeScaling=reader.readC();
-        ds.volMacroLinger=reader.readC();
-        ds.brokenOutVol=reader.readC();
+        ds.compatFlags.newVolumeScaling=reader.readC();
+        ds.compatFlags.volMacroLinger=reader.readC();
+        ds.compatFlags.brokenOutVol=reader.readC();
       } else {
         reader.readC();
         reader.readC();
         reader.readC();
       }
       if (ds.version>=100) {
-        ds.e1e2StopOnSameNote=reader.readC();
+        ds.compatFlags.e1e2StopOnSameNote=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=101) {
-        ds.brokenPortaArp=reader.readC();
+        ds.compatFlags.brokenPortaArp=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=108) {
-        ds.snNoLowPeriods=reader.readC();
+        ds.compatFlags.snNoLowPeriods=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=110) {
-        ds.delayBehavior=reader.readC();
+        ds.compatFlags.delayBehavior=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=113) {
-        ds.jumpTreatment=reader.readC();
+        ds.compatFlags.jumpTreatment=reader.readC();
       } else {
         reader.readC();
       }
@@ -1271,17 +1278,17 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
         reader.readC();
       }
       if (ds.version>=117) {
-        ds.disableSampleMacro=reader.readC();
+        ds.compatFlags.disableSampleMacro=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=121) {
-        ds.brokenOutVol2=reader.readC();
+        ds.compatFlags.brokenOutVol2=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=130) {
-        ds.oldArpStrategy=reader.readC();
+        ds.compatFlags.oldArpStrategy=reader.readC();
       } else {
         reader.readC();
       }
@@ -1341,39 +1348,39 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
     if (ds.version>=136) ds.patchbayAuto=reader.readC();
 
     if (ds.version>=138) {
-      ds.brokenPortaLegato=reader.readC();
+      ds.compatFlags.brokenPortaLegato=reader.readC();
       if (ds.version>=155) {
-        ds.brokenFMOff=reader.readC();
+        ds.compatFlags.brokenFMOff=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=168) {
-        ds.preNoteNoEffect=reader.readC();
+        ds.compatFlags.preNoteNoEffect=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=183) {
-        ds.oldDPCM=reader.readC();
+        ds.compatFlags.oldDPCM=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=184) {
-        ds.resetArpPhaseOnNewNote=reader.readC();
+        ds.compatFlags.resetArpPhaseOnNewNote=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=188) {
-        ds.ceilVolumeScaling=reader.readC();
+        ds.compatFlags.ceilVolumeScaling=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=191) {
-        ds.oldAlwaysSetVolume=reader.readC();
+        ds.compatFlags.oldAlwaysSetVolume=reader.readC();
       } else {
         reader.readC();
       }
       if (ds.version>=200) {
-        ds.oldSampleOffset=reader.readC();
+        ds.compatFlags.oldSampleOffset=reader.readC();
       } else {
         reader.readC();
       }
@@ -2127,9 +2134,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
     }
 
     // warn on partial pitch linearity
-    if (ds.linearPitch>1) {
-      ds.linearPitch=1;
-    } else if (ds.version<237 && ds.linearPitch!=0) {
+    if (ds.compatFlags.linearPitch>1) {
+      ds.compatFlags.linearPitch=1;
+    } else if (ds.version<237 && ds.compatFlags.linearPitch!=0) {
       addWarning("this song used partial pitch linearity, which has been removed from Furnace. you may have to adjust your song.");
     }
     ds.recalcChans();
@@ -2174,17 +2181,15 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   std::vector<int> wavePtr;
   std::vector<int> samplePtr;
   std::vector<int> patPtr;
+  std::vector<int> groovePtr;
   int assetDirPtr[3];
-  size_t ptrSeek, subSongPtrSeek, sysFlagsPtrSeek, blockStartSeek, blockEndSeek, assetDirPtrSeek;
-  size_t subSongIndex=0;
-  DivSubSong* subSong=song.subsong[subSongIndex];
-  warnings="";
+  int compatFlagPtr=0;
+  int commentPtr=0;
+  size_t blockStartSeek, blockEndSeek;
+  size_t sng2PtrSeek=0, flagPtrSeek=0, adirPtrSeek=0, ins2PtrSeek=0, wavePtrSeek=0, smp2PtrSeek=0, patnPtrSeek=0, cflgPtrSeek=0;
+  size_t cmntPtrSeek=0, grovPtrSeek=0;
 
-  // please remove once INF2 is ready.
-  logE("do not save yet! I still am working on it!");
-  lastError="do not save yet! I still am working on it!";
-  saveLock.unlock();
-  return NULL;
+  warnings="";
 
   // fail if values are out of range
   /*
@@ -2271,227 +2276,131 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   }
 
   /// SONG INFO
-  w->write("INFO",4);
+  w->write("INF2",4);
   blockStartSeek=w->tell();
   w->writeI(0);
 
-  w->writeC(subSong->timeBase);
-  // these are for compatibility
-  w->writeC(subSong->speeds.val[0]);
-  w->writeC((subSong->speeds.len>=2)?subSong->speeds.val[1]:subSong->speeds.val[0]);
-  w->writeC(subSong->arpLen);
-  w->writeF(subSong->hz);
-  w->writeS(subSong->patLen);
-  w->writeS(subSong->ordersLen);
-  w->writeC(subSong->hilightA);
-  w->writeC(subSong->hilightB);
-  w->writeS(song.insLen);
-  w->writeS(song.waveLen);
-  w->writeS(song.sampleLen);
-  w->writeI(patsToWrite.size());
-
-  for (int i=0; i<DIV_MAX_CHIPS; i++) {
-    if (i>=song.systemLen) {
-      w->writeC(0);
-    } else {
-      w->writeC(systemToFileFur(song.system[i]));
-    }
-  }
-
-  for (int i=0; i<DIV_MAX_CHIPS; i++) {
-    w->writeC(song.systemVol[i]*64.0f);
-  }
-
-  for (int i=0; i<DIV_MAX_CHIPS; i++) {
-    w->writeC(song.systemPan[i]*127.0f);
-  }
-
-  // chip flags (we'll seek here later)
-  sysFlagsPtrSeek=w->tell();
-  for (int i=0; i<DIV_MAX_CHIPS; i++) {
-    w->writeI(0);
-  }
-
-  // song name
+  // song information
   w->writeString(song.name,false);
-  // song author
   w->writeString(song.author,false);
-
-  w->writeF(song.tuning);
-  
-  // compatibility flags
-  w->writeC(song.limitSlides);
-  w->writeC(song.linearPitch);
-  w->writeC(song.loopModality);
-  w->writeC(song.properNoiseLayout);
-  w->writeC(song.waveDutyIsVol);
-  w->writeC(song.resetMacroOnPorta);
-  w->writeC(song.legacyVolumeSlides);
-  w->writeC(song.compatibleArpeggio);
-  w->writeC(song.noteOffResetsSlides);
-  w->writeC(song.targetResetsSlides);
-  w->writeC(song.arpNonPorta);
-  w->writeC(song.algMacroBehavior);
-  w->writeC(song.brokenShortcutSlides);
-  w->writeC(song.ignoreDuplicateSlides);
-  w->writeC(song.stopPortaOnNoteOff);
-  w->writeC(song.continuousVibrato);
-  w->writeC(song.brokenDACMode);
-  w->writeC(song.oneTickCut);
-  w->writeC(song.newInsTriggersInPorta);
-  w->writeC(song.arp0Reset);
-
-  ptrSeek=w->tell();
-  // instrument pointers (we'll seek here later)
-  for (int i=0; i<song.insLen; i++) {
-    w->writeI(0);
-  }
-
-  // wavetable pointers (we'll seek here later)
-  for (int i=0; i<song.waveLen; i++) {
-    w->writeI(0);
-  }
-
-  // sample pointers (we'll seek here later)
-  for (int i=0; i<song.sampleLen; i++) {
-    w->writeI(0);
-  }
-
-  // pattern pointers (we'll seek here later)
-  for (size_t i=0; i<patsToWrite.size(); i++) {
-    w->writeI(0);
-  }
-
-  for (int i=0; i<song.chans; i++) {
-    for (int j=0; j<subSong->ordersLen; j++) {
-      w->writeC(subSong->orders.ord[i][j]);
-    }
-  }
-
-  for (int i=0; i<song.chans; i++) {
-    w->writeC(subSong->pat[i].effectCols);
-  }
-
-  for (int i=0; i<song.chans; i++) {
-    w->writeC(
-      (subSong->chanShow[i]?1:0)|
-      (subSong->chanShowChanOsc[i]?2:0)
-    );
-  }
-
-  for (int i=0; i<song.chans; i++) {
-    w->writeC(subSong->chanCollapse[i]);
-  }
-
-  for (int i=0; i<song.chans; i++) {
-    w->writeString(subSong->chanName[i],false);
-  }
-
-  for (int i=0; i<song.chans; i++) {
-    w->writeString(subSong->chanShortName[i],false);
-  }
-
-  w->writeString(song.notes,false);
-
-  w->writeF(song.masterVol);
-
-  // extended compat flags
-  w->writeC(song.brokenSpeedSel);
-  w->writeC(song.noSlidesOnFirstTick);
-  w->writeC(song.rowResetsArpPos);
-  w->writeC(song.ignoreJumpAtEnd);
-  w->writeC(song.buggyPortaAfterSlide);
-  w->writeC(song.gbInsAffectsEnvelope);
-  w->writeC(song.sharedExtStat);
-  w->writeC(song.ignoreDACModeOutsideIntendedChannel);
-  w->writeC(song.e1e2AlsoTakePriority);
-  w->writeC(song.newSegaPCM);
-  w->writeC(song.fbPortaPause);
-  w->writeC(song.snDutyReset);
-  w->writeC(song.pitchMacroIsLinear);
-  w->writeC(song.pitchSlideSpeed);
-  w->writeC(song.oldOctaveBoundary);
-  w->writeC(song.noOPN2Vol);
-  w->writeC(song.newVolumeScaling);
-  w->writeC(song.volMacroLinger);
-  w->writeC(song.brokenOutVol);
-  w->writeC(song.e1e2StopOnSameNote);
-  w->writeC(song.brokenPortaArp);
-  w->writeC(song.snNoLowPeriods);
-  w->writeC(song.delayBehavior);
-  w->writeC(song.jumpTreatment);
-  w->writeC(song.autoSystem);
-  w->writeC(song.disableSampleMacro);
-  w->writeC(song.brokenOutVol2);
-  w->writeC(song.oldArpStrategy);
-
-  // first subsong virtual tempo
-  w->writeS(subSong->virtualTempoN);
-  w->writeS(subSong->virtualTempoD);
-  
-  // subsong list
-  w->writeString(subSong->name,false);
-  w->writeString(subSong->notes,false);
-  w->writeC((unsigned char)(song.subsong.size()-1));
-  w->writeC(0); // reserved
-  w->writeC(0);
-  w->writeC(0);
-  subSongPtrSeek=w->tell();
-  // subsong pointers (we'll seek here later)
-  for (size_t i=0; i<(song.subsong.size()-1); i++) {
-    w->writeI(0);
-  }
-
-  // additional metadata
   w->writeString(song.systemName,false);
   w->writeString(song.category,false);
   w->writeString(song.nameJ,false);
   w->writeString(song.authorJ,false);
   w->writeString(song.systemNameJ,false);
   w->writeString(song.categoryJ,false);
+  w->writeF(song.tuning);
+  w->writeC(song.autoSystem);
 
-  // system output config
+  // system definition
+  w->writeF(song.masterVol);
+  w->writeS(song.chans);
+  w->writeS(song.systemLen);
+
   for (int i=0; i<song.systemLen; i++) {
+    w->writeS(systemToFileFur(song.system[i]));
+    w->writeS(song.systemChans[i]);
     w->writeF(song.systemVol[i]);
     w->writeF(song.systemPan[i]);
     w->writeF(song.systemPanFR[i]);
   }
+
+  // patchbay
   w->writeI(song.patchbay.size());
   for (unsigned int i: song.patchbay) {
     w->writeI(i);
   }
   w->writeC(song.patchbayAuto);
 
-  // even more compat flags
-  w->writeC(song.brokenPortaLegato);
-  w->writeC(song.brokenFMOff);
-  w->writeC(song.preNoteNoEffect);
-  w->writeC(song.oldDPCM);
-  w->writeC(song.resetArpPhaseOnNewNote);
-  w->writeC(song.ceilVolumeScaling);
-  w->writeC(song.oldAlwaysSetVolume);
-  w->writeC(song.oldSampleOffset);
-
-  // speeds of first song
-  w->writeC(subSong->speeds.len);
-  for (int i=0; i<16; i++) {
-    w->writeC(subSong->speeds.val[i]);
-  }
-
-  // groove list
-  w->writeC((unsigned char)song.grooves.size());
-  for (const DivGroovePattern& i: song.grooves) {
-    w->writeC(i.len);
-    for (int j=0; j<16; j++) {
-      w->writeC(i.val[j]);
+  /// song elements
+  // sub-songs
+  if (!song.subsong.empty()) {
+    w->writeC(0x01);
+    w->writeI(song.subsong.size());
+    sng2PtrSeek=w->tell();
+    for (size_t i=0; i<song.subsong.size(); i++) {
+      w->writeI(0);
     }
   }
-
-  // asset dir pointers (we'll seek here later)
-  assetDirPtrSeek=w->tell();
-  w->writeI(0);
-  w->writeI(0);
-  w->writeI(0);
+  // chip flags
+  if (true) {
+    w->writeC(0x02);
+    w->writeI(song.systemLen);
+    flagPtrSeek=w->tell();
+    for (int i=0; i<song.systemLen; i++) {
+      w->writeI(0);
+    }
+  }
+  // asset directories
+  if (true) {
+    w->writeC(0x03);
+    w->writeI(3);
+    adirPtrSeek=w->tell();
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+  }
+  // instruments
+  if (!song.ins.empty()) {
+    w->writeC(0x04);
+    w->writeI(song.ins.size());
+    ins2PtrSeek=w->tell();
+    for (size_t i=0; i<song.ins.size(); i++) {
+      w->writeI(0);
+    }
+  }
+  // wavetables
+  if (!song.wave.empty()) {
+    w->writeC(0x05);
+    w->writeI(song.wave.size());
+    wavePtrSeek=w->tell();
+    for (size_t i=0; i<song.wave.size(); i++) {
+      w->writeI(0);
+    }
+  }
+  // samples
+  if (!song.sample.empty()) {
+    w->writeC(0x06);
+    w->writeI(song.sample.size());
+    smp2PtrSeek=w->tell();
+    for (size_t i=0; i<song.sample.size(); i++) {
+      w->writeI(0);
+    }
+  }
+  // patterns
+  if (!patsToWrite.empty()) {
+    w->writeC(0x07);
+    w->writeI(patsToWrite.size());
+    patnPtrSeek=w->tell();
+    for (size_t i=0; i<patsToWrite.size(); i++) {
+      w->writeI(0);
+    }
+  }
+  // compat flags
+  if (!song.compatFlags.areDefaults()) {
+    w->writeC(0x08);
+    w->writeI(1);
+    cflgPtrSeek=w->tell();
+    w->writeI(0);
+  }
+  // song comments
+  if (!song.notes.empty()) {
+    w->writeC(0x09);
+    w->writeI(1);
+    cmntPtrSeek=w->tell();
+    w->writeI(0);
+  }
+  // groove patterns
+  if (!song.grooves.empty()) {
+    w->writeC(0x0a);
+    w->writeI(song.grooves.size());
+    grovPtrSeek=w->tell();
+    for (size_t i=0; i<song.grooves.size(); i++) {
+      w->writeI(0);
+    }
+  }
+  
+  w->writeC(0);
 
   blockEndSeek=w->tell();
   w->seek(blockStartSeek,SEEK_SET);
@@ -2499,68 +2408,10 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->seek(0,SEEK_END);
 
   /// SUBSONGS
-  subSongPtr.reserve(song.subsong.size() - 1);
-  for (subSongIndex=1; subSongIndex<song.subsong.size(); subSongIndex++) {
-    subSong=song.subsong[subSongIndex];
+  subSongPtr.reserve(song.subsong.size());
+  for (size_t i=0; i<song.subsong.size(); i++) {
     subSongPtr.push_back(w->tell());
-    w->write("SONG",4);
-    blockStartSeek=w->tell();
-    w->writeI(0);
-
-    w->writeC(subSong->timeBase);
-    w->writeC(subSong->speeds.val[0]);
-    w->writeC((subSong->speeds.len>=2)?subSong->speeds.val[1]:subSong->speeds.val[0]);
-    w->writeC(subSong->arpLen);
-    w->writeF(subSong->hz);
-    w->writeS(subSong->patLen);
-    w->writeS(subSong->ordersLen);
-    w->writeC(subSong->hilightA);
-    w->writeC(subSong->hilightB);
-    w->writeS(subSong->virtualTempoN);
-    w->writeS(subSong->virtualTempoD);
-
-    w->writeString(subSong->name,false);
-    w->writeString(subSong->notes,false);
-
-    for (int i=0; i<song.chans; i++) {
-      for (int j=0; j<subSong->ordersLen; j++) {
-        w->writeC(subSong->orders.ord[i][j]);
-      }
-    }
-
-    for (int i=0; i<song.chans; i++) {
-      w->writeC(subSong->pat[i].effectCols);
-    }
-
-    for (int i=0; i<song.chans; i++) {
-      w->writeC(
-        (subSong->chanShow[i]?1:0)|
-        (subSong->chanShowChanOsc[i]?2:0)
-      );
-    }
-
-    for (int i=0; i<song.chans; i++) {
-      w->writeC(subSong->chanCollapse[i]);
-    }
-
-    for (int i=0; i<song.chans; i++) {
-      w->writeString(subSong->chanName[i],false);
-    }
-
-    for (int i=0; i<song.chans; i++) {
-      w->writeString(subSong->chanShortName[i],false);
-    }
-
-    // speeds
-    w->writeC(subSong->speeds.len);
-    for (int i=0; i<16; i++) {
-      w->writeC(subSong->speeds.val[i]);
-    }
-
-    blockEndSeek=w->tell();
-    w->seek(blockStartSeek,SEEK_SET);
-    w->writeI(blockEndSeek-blockStartSeek-4);
-    w->seek(0,SEEK_END);
+    song.subsong[i]->putData(w,song.chans);
   }
 
   /// CHIP FLAGS
@@ -2578,6 +2429,27 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     w->writeI(0);
 
     w->writeString(data,false);
+
+    blockEndSeek=w->tell();
+    w->seek(blockStartSeek,SEEK_SET);
+    w->writeI(blockEndSeek-blockStartSeek-4);
+    w->seek(0,SEEK_END);
+  }
+
+  /// COMPAT FLAGS
+  if (!song.compatFlags.areDefaults()) {
+    compatFlagPtr=w->tell();
+    song.compatFlags.putData(w);
+  }
+
+  /// SONG COMMENTS
+  if (!song.notes.empty()) {
+    commentPtr=w->tell();
+    w->write("CMNT",4);
+    blockStartSeek=w->tell();
+    w->writeI(0);
+
+    w->writeString(song.notes,false);
 
     blockEndSeek=w->tell();
     w->seek(blockStartSeek,SEEK_SET);
@@ -2724,43 +2596,71 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   }
 
   /// POINTERS
-  w->seek(ptrSeek,SEEK_SET);
-
-  for (int i=0; i<song.insLen; i++) {
-    w->writeI(insPtr[i]);
+  // sub-songs
+  if (sng2PtrSeek) {
+    w->seek(sng2PtrSeek,SEEK_SET);
+    for (size_t i=0; i<=song.subsong.size(); i++) {
+      w->writeI(subSongPtr[i]);
+    }
   }
-
-  // wavetable pointers
-  for (int i=0; i<song.waveLen; i++) {
-    w->writeI(wavePtr[i]);
+  // chip flags
+  if (flagPtrSeek) {
+    w->seek(flagPtrSeek,SEEK_SET);
+    for (int i=0; i<song.systemLen; i++) {
+      w->writeI(sysFlagsPtr[i]);
+    }
   }
-
-  // sample pointers
-  for (int i=0; i<song.sampleLen; i++) {
-    w->writeI(samplePtr[i]);
+  // asset directories
+  if (adirPtrSeek) {
+    w->seek(adirPtrSeek,SEEK_SET);
+    w->writeI(assetDirPtr[0]);
+    w->writeI(assetDirPtr[1]);
+    w->writeI(assetDirPtr[2]);
   }
-
-  // pattern pointers
-  for (int i: patPtr) {
-    w->writeI(i);
+  // instruments
+  if (ins2PtrSeek) {
+    w->seek(ins2PtrSeek,SEEK_SET);
+    for (int i: insPtr) {
+      w->writeI(i);
+    }
   }
-
-  // subsong pointers
-  w->seek(subSongPtrSeek,SEEK_SET);
-  for (size_t i=0; i<(song.subsong.size()-1); i++) {
-    w->writeI(subSongPtr[i]);
+  // wavetables
+  if (wavePtrSeek) {
+    w->seek(wavePtrSeek,SEEK_SET);
+    for (int i: wavePtr) {
+      w->writeI(i);
+    }
   }
-
-  // flag pointers
-  w->seek(sysFlagsPtrSeek,SEEK_SET);
-  for (size_t i=0; i<sysFlagsPtr.size(); i++) {
-    w->writeI(sysFlagsPtr[i]);
+  // samples
+  if (smp2PtrSeek) {
+    w->seek(smp2PtrSeek,SEEK_SET);
+    for (int i: samplePtr) {
+      w->writeI(i);
+    }
   }
-
-  // asset dir pointers
-  w->seek(assetDirPtrSeek,SEEK_SET);
-  for (size_t i=0; i<3; i++) {
-    w->writeI(assetDirPtr[i]);
+  // patterns
+  if (patnPtrSeek) {
+    w->seek(patnPtrSeek,SEEK_SET);
+    for (int i: patPtr) {
+      w->writeI(i);
+    }
+  }
+  // compat flags
+  if (cflgPtrSeek) {
+    w->seek(cflgPtrSeek,SEEK_SET);
+    w->writeI(compatFlagPtr);
+  }
+  // song comments
+  if (cmntPtrSeek) {
+    w->seek(cmntPtrSeek,SEEK_SET);
+    w->writeI(commentPtr);
+  }
+  // groove patterns
+  if (grovPtrSeek) {
+    w->seek(grovPtrSeek,SEEK_SET);
+    for (int i: groovePtr) {
+      w->writeI(i);
+    }
   }
 
   saveLock.unlock();

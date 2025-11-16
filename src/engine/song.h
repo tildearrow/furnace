@@ -163,6 +163,7 @@ enum DivEffectType: unsigned short {
 struct DivGroovePattern {
   unsigned char val[16];
   unsigned char len;
+  void putData(SafeWriter* w);
   DivGroovePattern():
     len(1) {
       memset(val,6,16);
@@ -229,6 +230,11 @@ struct DivSubSong {
    */
   void calcTimestamps(int chans, std::vector<DivGroovePattern>& grooves, int jumpTreatment, int ignoreJumpAtEnd, int brokenSpeedSel, int delayBehavior, int firstPat=0);
 
+  /**
+   * write sub-song block to a SafeWriter.
+   */
+  void putData(SafeWriter* w, int chans);
+
   void clearData();
   void removeUnusedPatterns();
   void optimizePatterns();
@@ -269,42 +275,7 @@ struct DivEffectStorage {
     storageLen(0) {}
 };
 
-struct DivSong {
-  unsigned short version;
-  bool isDMF;
-
-  // system
-  int chans;
-  DivSystem system[DIV_MAX_CHIPS];
-  unsigned short systemChans[DIV_MAX_CHIPS];
-  unsigned char systemLen;
-  float systemVol[DIV_MAX_CHIPS];
-  float systemPan[DIV_MAX_CHIPS];
-  float systemPanFR[DIV_MAX_CHIPS];
-  DivConfig systemFlags[DIV_MAX_CHIPS];
-
-  // song information
-  String name, author, systemName;
-
-  // legacy song information
-  // those will be stored in .fur and mapped to VGM as:
-  // category -> game name
-  // writer -> ripper
-  // createdDate -> year
-  String carrier, composer, vendor, category, writer, arranger, copyright, manGroup, manInfo, createdDate, revisionDate;
-
-  // more VGM specific stuff
-  String nameJ, authorJ, categoryJ, systemNameJ;
-
-  // other things
-  String notes;
-
-  // module details
-  int insLen, waveLen, sampleLen;
-  float masterVol;
-  float tuning;
-
-  // compatibility flags
+struct DivCompatFlags {
   bool limitSlides;
   // linear pitch
   unsigned char linearPitch;
@@ -364,9 +335,7 @@ struct DivSong {
   bool brokenPortaArp;
   bool snNoLowPeriods;
   bool disableSampleMacro;
-  bool autoSystem;
   bool oldArpStrategy;
-  bool patchbayAuto;
   bool brokenPortaLegato;
   bool brokenFMOff;
   bool preNoteNoEffect;
@@ -375,8 +344,66 @@ struct DivSong {
   bool ceilVolumeScaling;
   bool oldAlwaysSetVolume;
   bool oldSampleOffset;
-  // TODO: this flag is not saved to the file yet.
+  // new flags as of dev240
   bool oldCenterRate;
+
+  void setDefaults();
+  bool areDefaults();
+  void putData(SafeWriter* w);
+
+  bool operator==(const DivCompatFlags& other) {
+    return (memcmp(this,&other,sizeof(DivCompatFlags))==0);
+  }
+  bool operator!=(const DivCompatFlags& other) {
+    return (memcmp(this,&other,sizeof(DivCompatFlags))!=0);
+  }
+
+  DivCompatFlags() {
+    memset(this,0,sizeof(DivCompatFlags));
+    setDefaults();
+  }
+};
+
+struct DivSong {
+  unsigned short version;
+  bool isDMF;
+
+  // system
+  int chans;
+  DivSystem system[DIV_MAX_CHIPS];
+  unsigned short systemChans[DIV_MAX_CHIPS];
+  unsigned char systemLen;
+  float systemVol[DIV_MAX_CHIPS];
+  float systemPan[DIV_MAX_CHIPS];
+  float systemPanFR[DIV_MAX_CHIPS];
+  DivConfig systemFlags[DIV_MAX_CHIPS];
+
+  // song information
+  String name, author, systemName;
+
+  // legacy song information
+  // those will be stored in .fur and mapped to VGM as:
+  // category -> game name
+  // writer -> ripper
+  // createdDate -> year
+  String carrier, composer, vendor, category, writer, arranger, copyright, manGroup, manInfo, createdDate, revisionDate;
+
+  // more VGM specific stuff
+  String nameJ, authorJ, categoryJ, systemNameJ;
+
+  // other things
+  String notes;
+
+  // module details
+  int insLen, waveLen, sampleLen;
+  float masterVol;
+  float tuning;
+
+  bool autoSystem;
+  bool patchbayAuto;
+
+  // compatibility flags
+  DivCompatFlags compatFlags;
 
   std::vector<DivInstrument*> ins;
   std::vector<DivWavetable*> wave;
@@ -481,64 +508,8 @@ struct DivSong {
     sampleLen(0),
     masterVol(1.0f),
     tuning(440.0f),
-    limitSlides(false),
-    linearPitch(1),
-    pitchSlideSpeed(4),
-    loopModality(2),
-    delayBehavior(2),
-    jumpTreatment(0),
-    properNoiseLayout(true),
-    waveDutyIsVol(false),
-    resetMacroOnPorta(false),
-    legacyVolumeSlides(false),
-    compatibleArpeggio(false),
-    noteOffResetsSlides(true),
-    targetResetsSlides(true),
-    arpNonPorta(false),
-    algMacroBehavior(false),
-    brokenShortcutSlides(false),
-    ignoreDuplicateSlides(false),
-    stopPortaOnNoteOff(false),
-    continuousVibrato(false),
-    brokenDACMode(false),
-    oneTickCut(false),
-    newInsTriggersInPorta(true),
-    arp0Reset(true),
-    brokenSpeedSel(false),
-    noSlidesOnFirstTick(false),
-    rowResetsArpPos(false),
-    ignoreJumpAtEnd(false),
-    buggyPortaAfterSlide(false),
-    gbInsAffectsEnvelope(true),
-    sharedExtStat(true),
-    ignoreDACModeOutsideIntendedChannel(false),
-    e1e2AlsoTakePriority(false),
-    newSegaPCM(true),
-    fbPortaPause(false),
-    snDutyReset(false),
-    pitchMacroIsLinear(true),
-    oldOctaveBoundary(false),
-    noOPN2Vol(false),
-    newVolumeScaling(true),
-    volMacroLinger(true),
-    brokenOutVol(false),
-    brokenOutVol2(false),
-    e1e2StopOnSameNote(false),
-    brokenPortaArp(false),
-    snNoLowPeriods(false),
-    disableSampleMacro(false),
     autoSystem(true),
-    oldArpStrategy(false),
-    patchbayAuto(true),
-    brokenPortaLegato(false),
-    brokenFMOff(false),
-    preNoteNoEffect(false),
-    oldDPCM(false),
-    resetArpPhaseOnNewNote(false),
-    ceilVolumeScaling(false),
-    oldAlwaysSetVolume(false),
-    oldSampleOffset(false),
-    oldCenterRate(true) {
+    patchbayAuto(true) {
     memset(dispatchFirstChan,0,DIV_MAX_CHANS*sizeof(int));
     memset(dispatchChanOfChan,0,DIV_MAX_CHANS*sizeof(int));
     memset(dispatchOfChan,0,DIV_MAX_CHANS*sizeof(int));

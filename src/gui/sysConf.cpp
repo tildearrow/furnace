@@ -1322,11 +1322,11 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       if (ImGui::Checkbox(_("Amiga channel volumes (64)"),&amigaVol)) {
         altered=true;
       }
-      pushWarningColor(amigaPitch && e->song.linearPitch);
+      pushWarningColor(amigaPitch && e->song.compatFlags.linearPitch);
       if (ImGui::Checkbox(_("Amiga-like pitch (non-linear pitch only)"),&amigaPitch)) {
         altered=true;
       }
-      if (amigaPitch && e->song.linearPitch) {
+      if (amigaPitch && e->song.compatFlags.linearPitch) {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("pitch linearity is set to linear. this won't do anything!");
         }

@@ -172,56 +172,56 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
 
     // compatibility flags
     if (!getConfInt("noDMFCompat",0)) {
-      ds.limitSlides=true;
-      ds.linearPitch=1;
-      ds.loopModality=0;
-      ds.properNoiseLayout=false;
-      ds.waveDutyIsVol=false;
+      ds.compatFlags.limitSlides=true;
+      ds.compatFlags.linearPitch=1;
+      ds.compatFlags.loopModality=0;
+      ds.compatFlags.properNoiseLayout=false;
+      ds.compatFlags.waveDutyIsVol=false;
       // TODO: WHAT?! geodude.dmf fails when this is true
       // but isn't that how Defle behaves???
-      ds.resetMacroOnPorta=false;
-      ds.legacyVolumeSlides=true;
-      ds.compatibleArpeggio=true;
-      ds.noteOffResetsSlides=true;
-      ds.targetResetsSlides=true;
-      ds.arpNonPorta=false;
-      ds.algMacroBehavior=false;
-      ds.brokenShortcutSlides=false;
-      ds.ignoreDuplicateSlides=true;
-      ds.brokenDACMode=true;
-      ds.oneTickCut=false;
-      ds.newInsTriggersInPorta=true;
-      ds.arp0Reset=true;
-      ds.brokenSpeedSel=true;
-      ds.noSlidesOnFirstTick=false;
-      ds.rowResetsArpPos=false;
-      ds.ignoreJumpAtEnd=true;
-      ds.buggyPortaAfterSlide=true;
-      ds.gbInsAffectsEnvelope=true;
-      ds.ignoreDACModeOutsideIntendedChannel=false;
-      ds.e1e2AlsoTakePriority=true;
-      ds.fbPortaPause=true;
-      ds.snDutyReset=true;
-      ds.oldOctaveBoundary=false;
-      ds.noOPN2Vol=true;
-      ds.newVolumeScaling=false;
-      ds.volMacroLinger=false;
-      ds.brokenOutVol=true;
-      ds.brokenOutVol2=true;
-      ds.e1e2StopOnSameNote=true;
-      ds.brokenPortaArp=false;
-      ds.snNoLowPeriods=true;
-      ds.disableSampleMacro=true;
-      ds.preNoteNoEffect=true;
-      ds.oldDPCM=true;
-      ds.delayBehavior=0;
-      ds.jumpTreatment=2;
-      ds.oldAlwaysSetVolume=true;
+      ds.compatFlags.resetMacroOnPorta=false;
+      ds.compatFlags.legacyVolumeSlides=true;
+      ds.compatFlags.compatibleArpeggio=true;
+      ds.compatFlags.noteOffResetsSlides=true;
+      ds.compatFlags.targetResetsSlides=true;
+      ds.compatFlags.arpNonPorta=false;
+      ds.compatFlags.algMacroBehavior=false;
+      ds.compatFlags.brokenShortcutSlides=false;
+      ds.compatFlags.ignoreDuplicateSlides=true;
+      ds.compatFlags.brokenDACMode=true;
+      ds.compatFlags.oneTickCut=false;
+      ds.compatFlags.newInsTriggersInPorta=true;
+      ds.compatFlags.arp0Reset=true;
+      ds.compatFlags.brokenSpeedSel=true;
+      ds.compatFlags.noSlidesOnFirstTick=false;
+      ds.compatFlags.rowResetsArpPos=false;
+      ds.compatFlags.ignoreJumpAtEnd=true;
+      ds.compatFlags.buggyPortaAfterSlide=true;
+      ds.compatFlags.gbInsAffectsEnvelope=true;
+      ds.compatFlags.ignoreDACModeOutsideIntendedChannel=false;
+      ds.compatFlags.e1e2AlsoTakePriority=true;
+      ds.compatFlags.fbPortaPause=true;
+      ds.compatFlags.snDutyReset=true;
+      ds.compatFlags.oldOctaveBoundary=false;
+      ds.compatFlags.noOPN2Vol=true;
+      ds.compatFlags.newVolumeScaling=false;
+      ds.compatFlags.volMacroLinger=false;
+      ds.compatFlags.brokenOutVol=true;
+      ds.compatFlags.brokenOutVol2=true;
+      ds.compatFlags.e1e2StopOnSameNote=true;
+      ds.compatFlags.brokenPortaArp=false;
+      ds.compatFlags.snNoLowPeriods=true;
+      ds.compatFlags.disableSampleMacro=true;
+      ds.compatFlags.preNoteNoEffect=true;
+      ds.compatFlags.oldDPCM=true;
+      ds.compatFlags.delayBehavior=0;
+      ds.compatFlags.jumpTreatment=2;
+      ds.compatFlags.oldAlwaysSetVolume=true;
 
       // 1.1 compat flags
       if (ds.version>24) {
-        ds.waveDutyIsVol=true;
-        ds.legacyVolumeSlides=false;
+        ds.compatFlags.waveDutyIsVol=true;
+        ds.compatFlags.legacyVolumeSlides=false;
       }
 
       // Neo Geo detune is caused by Defle running Neo Geo at the wrong clock.

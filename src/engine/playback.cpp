@@ -664,9 +664,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
           // - 2: DefleMask (same as 1)
           // in the case of normal, the jump row (changePos) is not reset to 0
           // this means that you can do 0Dxx 0Byy and it'll work, taking you to row xx of order yy
-          if (changeOrd==-1 || song.jumpTreatment==0) {
+          if (changeOrd==-1 || song.compatFlags.jumpTreatment==0) {
             changeOrd=effectVal;
-            if (song.jumpTreatment==1 || song.jumpTreatment==2) {
+            if (song.compatFlags.jumpTreatment==1 || song.compatFlags.jumpTreatment==2) {
               changePos=0;
             }
           }
@@ -676,23 +676,23 @@ void DivEngine::processRow(int i, bool afterDelay) {
           // if there is a 0Dxx effect on the very last order, it is ignored
 
           // COMPAT FLAG: simultaneous jump treatment
-          if (song.jumpTreatment==2) {
+          if (song.compatFlags.jumpTreatment==2) {
             // - 2: DefleMask (jump to next order unless it is the last one and ignoreJumpAtEnd is on)
-            if ((curOrder<(curSubSong->ordersLen-1) || !song.ignoreJumpAtEnd)) {
+            if ((curOrder<(curSubSong->ordersLen-1) || !song.compatFlags.ignoreJumpAtEnd)) {
               // changeOrd -2 means increase order by 1
               // it overrides a previous 0Bxx effect
               changeOrd=-2;
               changePos=effectVal;
             }
-          } else if (song.jumpTreatment==1) {
+          } else if (song.compatFlags.jumpTreatment==1) {
             // - 1: old Furnace (same as 2 but ignored if 0Bxx is present)
-            if (changeOrd<0 && (curOrder<(curSubSong->ordersLen-1) || !song.ignoreJumpAtEnd)) {
+            if (changeOrd<0 && (curOrder<(curSubSong->ordersLen-1) || !song.compatFlags.ignoreJumpAtEnd)) {
               changeOrd=-2;
               changePos=effectVal;
             }
           } else {
             // - 0: normal
-            if (curOrder<(curSubSong->ordersLen-1) || !song.ignoreJumpAtEnd) {
+            if (curOrder<(curSubSong->ordersLen-1) || !song.compatFlags.ignoreJumpAtEnd) {
               // set the target order if not set, allowing you to use 0B and 0D regardless of position
               if (changeOrd<0) {
                 changeOrd=-2;
@@ -710,8 +710,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
             //   - delays equal or greater to the speed are ignored
             // - 2: lax (default)
             //   - no delay is ever ignored unless overridden by another
-            bool comparison=(song.delayBehavior==1)?(effectVal<=nextSpeed):(effectVal<(nextSpeed*(curSubSong->timeBase+1)));
-            if (song.delayBehavior==2) comparison=true;
+            bool comparison=(song.compatFlags.delayBehavior==1)?(effectVal<=nextSpeed):(effectVal<(nextSpeed*(curSubSong->timeBase+1)));
+            if (song.compatFlags.delayBehavior==2) comparison=true;
             if (comparison) {
               // set the delay row, order and timer
               chan[i].rowDelay=effectVal;
@@ -762,7 +762,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
       // COMPAT FLAG: legacy volume slides
       // - sets volume to max once a vol slide down has finished (thus setting volume to volMax+1)
-      if (song.legacyVolumeSlides && chan[i].volume==chan[i].volMax+1) {
+      if (song.compatFlags.legacyVolumeSlides && chan[i].volume==chan[i].volMax+1) {
         logV("forcing volume");
         chan[i].volume=chan[i].volMax;
         dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
@@ -780,7 +780,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     // COMPAT FLAG: reset slides on note off (inverted in the GUI)
     // - a portamento/pitch slide will be halted upon encountering note off
     // - this will not occur if the stopPortaOnNoteOff flag is on and this is a portamento
-    if (chan[i].inPorta && song.noteOffResetsSlides) {
+    if (chan[i].inPorta && song.compatFlags.noteOffResetsSlides) {
       // stopOnOff will be false if stopPortaOnNoteOff flag is off
       if (chan[i].stopOnOff) {
         chan[i].portaNote=-1;
@@ -805,7 +805,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     chan[i].keyOn=false;
     chan[i].keyOff=true;
     // same thing here regarding reset slide behavior
-    if (chan[i].inPorta && song.noteOffResetsSlides) {
+    if (chan[i].inPorta && song.compatFlags.noteOffResetsSlides) {
       if (chan[i].stopOnOff) {
         chan[i].portaNote=-1;
         chan[i].portaSpeed=-1;
@@ -843,7 +843,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     chan[i].doNote=true;
     // COMPAT FLAG: compatible arpeggio
     // - once a new note plays, arp will not be applied for this tick
-    if (chan[i].arp!=0 && song.compatibleArpeggio) {
+    if (chan[i].arp!=0 && song.compatFlags.compatibleArpeggio) {
       chan[i].arpYield=true;
     }
   }
@@ -872,7 +872,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     // COMPAT FLAG: legacy ALWAYS_SET_VOLUME behavior (oldAlwaysSetVolume)
     // - prior to its addition, volume changes wouldn't be effective depending on the system if the volume is the same as the current one
     // - afterwards, volume change is made regardless in order to set the bottom byte of volume ("subvolume")
-    if (!song.oldAlwaysSetVolume || disCont[song.dispatchOfChan[i]].dispatch->getLegacyAlwaysSetVolume() || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->newData[whatRow][DIV_PAT_VOL]) {
+    if (!song.compatFlags.oldAlwaysSetVolume || disCont[song.dispatchOfChan[i]].dispatch->getLegacyAlwaysSetVolume() || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->newData[whatRow][DIV_PAT_VOL]) {
       // here we let dispatchCmd() know we can do MIDI aftertouch if there isn't a note
       if (pat->newData[whatRow][DIV_PAT_NOTE]==-1) {
         chan[i].midiAftertouch=true;
@@ -982,7 +982,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         // - 02xx still works
         // - a previous portamento (03xx) will prevent this slide from occurring
         // - E1xy/E2xy also will if *another* flag is set
-        if (song.ignoreDuplicateSlides && (lastSlide==0x01 || lastSlide==0x1337)) break;
+        if (song.compatFlags.ignoreDuplicateSlides && (lastSlide==0x01 || lastSlide==0x1337)) break;
         lastSlide=0x01;
         if (effectVal==0) {
           chan[i].portaNote=-1;
@@ -994,12 +994,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
           // - this prompts dispatch to stop processing arp macros during a slide
           // - this only happens if pitch linearity is set to None
           // - if we don't let dispatch know, the slide will never occur as arp takes over
-          if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+          if (!song.compatFlags.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         } else {
           // COMPAT FLAG: limit slide range
           // - this confines pitch slides from dispatch->getPortaFloor to C-8 (I think)
           // - yep, the lowest portamento note depends on the system...
-          chan[i].portaNote=song.limitSlides?0x60:255;
+          chan[i].portaNote=song.compatFlags.limitSlides?0x60:255;
           chan[i].portaSpeed=effectVal;
           dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
           // most of these are used for compat flag handling
@@ -1013,7 +1013,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           // - this prompts dispatch to stop processing arp macros during a slide
           // - this only happens if pitch linearity is set to None
           // - if we don't let dispatch know, the slide will never occur as arp takes over
-          if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
+          if (!song.compatFlags.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
         }
         break;
       case 0x02: // pitch slide down
@@ -1022,7 +1022,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         // - 01xx still works
         // - a previous portamento (03xx) will prevent this slide from occurring
         // - E1xy/E2xy also will if *another* flag is set
-        if (song.ignoreDuplicateSlides && (lastSlide==0x02 || lastSlide==0x1337)) break;
+        if (song.compatFlags.ignoreDuplicateSlides && (lastSlide==0x02 || lastSlide==0x1337)) break;
         lastSlide=0x02;
         if (effectVal==0) {
           chan[i].portaNote=-1;
@@ -1030,12 +1030,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
           dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
           chan[i].inPorta=false;
           // COMPAT FLAG: arpeggio inhibits non-porta slides
-          if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+          if (!song.compatFlags.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         } else {
           // COMPAT FLAG: limit slide range
           // - this confines pitch slides from dispatch->getPortaFloor to C-8 (I think)
           // - yep, the lowest portamento note depends on the system...
-          chan[i].portaNote=(song.limitSlides && song.dispatchChanOfChan[i]>=0)?disCont[song.dispatchOfChan[i]].dispatch->getPortaFloor(song.dispatchChanOfChan[i]):-60;
+          chan[i].portaNote=(song.compatFlags.limitSlides && song.dispatchChanOfChan[i]>=0)?disCont[song.dispatchOfChan[i]].dispatch->getPortaFloor(song.dispatchChanOfChan[i]):-60;
           chan[i].portaSpeed=effectVal;
           dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
           chan[i].portaStop=true;
@@ -1044,7 +1044,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].wasShorthandPorta=false;
           chan[i].inPorta=false;
           // COMPAT FLAG: arpeggio inhibits non-porta slides
-          if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
+          if (!song.compatFlags.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
         }
         break;
       case 0x03: // portamento
@@ -1064,7 +1064,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           // COMPAT FLAG: buggy portamento after sliding
           // - you might want to slide up or down and then 03xx to return to the original note
           // - if a porta to the same note is attempted after slide, for some reason it does not occur
-          if (chan[i].note==chan[i].oldNote && !chan[i].inPorta && song.buggyPortaAfterSlide) {
+          if (chan[i].note==chan[i].oldNote && !chan[i].inPorta && song.compatFlags.buggyPortaAfterSlide) {
             chan[i].portaNote=chan[i].note;
             chan[i].portaSpeed=-1;
           } else {
@@ -1084,7 +1084,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           // COMPAT FLAG: stop portamento on note off
           // - if a portamento is called and then a note off occurs, stop portamento before the next note
           // - ...unless noteOffResetsSlides is disabled
-          chan[i].stopOnOff=song.stopPortaOnNoteOff; // what?!
+          chan[i].stopOnOff=song.compatFlags.stopPortaOnNoteOff; // what?!
           chan[i].scheduledSlideReset=false;
           dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,1));
           // this is used to inhibit any other slide commands if the respective compat flag is enabled
@@ -1144,7 +1144,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           calledPorta=true;
           // COMPAT FLAG: buggy portamento after sliding
           // yes, this also affects 06xy.
-          if (chan[i].note==chan[i].oldNote && !chan[i].inPorta && song.buggyPortaAfterSlide) {
+          if (chan[i].note==chan[i].oldNote && !chan[i].inPorta && song.compatFlags.buggyPortaAfterSlide) {
             chan[i].portaNote=chan[i].note;
             chan[i].portaSpeed=-1;
           } else {
@@ -1157,7 +1157,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           // this is the same as 03xx.
           chan[i].portaStop=true;
           if (chan[i].keyOn) chan[i].doNote=false;
-          chan[i].stopOnOff=song.stopPortaOnNoteOff; // what?!
+          chan[i].stopOnOff=song.compatFlags.stopPortaOnNoteOff; // what?!
           chan[i].scheduledSlideReset=false;
           dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,1));
           lastSlide=0x1337; // i hate this so much
@@ -1224,7 +1224,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].arp=effectVal;
         // COMPAT FLAG: reset note to base on arp stop (inverted in the GUI)
         // - a 0000 effect resets arpeggio position
-        if (chan[i].arp==0 && song.arp0Reset) {
+        if (chan[i].arp==0 && song.compatFlags.arp0Reset) {
           chan[i].resetArp=true;
         }
         dispatchCmd(DivCommand(DIV_CMD_HINT_ARPEGGIO,i,chan[i].arp));
@@ -1246,7 +1246,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         // COMPAT FLAG: old sample offset effect
         // - before 0.6.3 the sample offset effect was 9xxx, where `xxx` is multiplied by 256
         // - the effect was then changed to 90xx/91xx/92xx, allowing you to set the low, mid and high bytes of the offset respectively
-        if (song.oldSampleOffset) {
+        if (song.compatFlags.oldSampleOffset) {
           // send sample position now
           dispatchCmd(DivCommand(DIV_CMD_SAMPLE_POS,i,(((effect&0x0f)<<8)|effectVal)*256));
         } else {
@@ -1279,7 +1279,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         //   - ignore cut if equal or greater than speed
         // - 2: lax (default)
         //   - no cut is ever ignored unless overridden by another
-        if (effectVal>0 && (song.delayBehavior==2 || effectVal<nextSpeed)) {
+        if (effectVal>0 && (song.compatFlags.delayBehavior==2 || effectVal<nextSpeed)) {
           // the cut timer is ticked after nextRow(), so we set it one tick higher.
           chan[i].volCut=effectVal+1;
           chan[i].cutType=0;
@@ -1320,7 +1320,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         // these are for compatibility stuff
         chan[i].portaStop=true;
         // COMPAT FLAG: stop portamento on note off
-        chan[i].stopOnOff=song.stopPortaOnNoteOff; // what?!
+        chan[i].stopOnOff=song.compatFlags.stopPortaOnNoteOff; // what?!
         chan[i].scheduledSlideReset=false;
         // only enter portamento if the speed is set
         if ((effectVal&15)!=0) {
@@ -1331,14 +1331,14 @@ void DivEngine::processRow(int i, bool afterDelay) {
           // COMPAT FLAG: broken shortcut slides
           // - oddly enough, shortcut slides are not communicated to the dispatch
           // - this was fixed in 0.5.7
-          if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
+          if (!song.compatFlags.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
           // COMPAT FLAG: E1xy/E2xy also take priority over slides
           // - another Defle hack. it places shortcut slides above pitch slides.
-          if (song.e1e2AlsoTakePriority) lastSlide=0x1337; // ...
+          if (song.compatFlags.e1e2AlsoTakePriority) lastSlide=0x1337; // ...
         } else {
           chan[i].inPorta=false;
           // COMPAT FLAG: broken shortcut slides
-          if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+          if (!song.compatFlags.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         }
         break;
       case 0xe2: // portamento down
@@ -1348,7 +1348,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
         chan[i].portaStop=true;
         // COMPAT FLAG: stop portamento on note off
-        chan[i].stopOnOff=song.stopPortaOnNoteOff; // what?!
+        chan[i].stopOnOff=song.compatFlags.stopPortaOnNoteOff; // what?!
         chan[i].scheduledSlideReset=false;
         if ((effectVal&15)!=0) {
           chan[i].inPorta=true;
@@ -1356,13 +1356,13 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].shorthandPorta=true;
           chan[i].wasShorthandPorta=true;
           // COMPAT FLAG: broken shortcut slides
-          if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
+          if (!song.compatFlags.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
           // COMPAT FLAG: E1xy/E2xy also take priority over slides
-          if (song.e1e2AlsoTakePriority) lastSlide=0x1337; // ...
+          if (song.compatFlags.e1e2AlsoTakePriority) lastSlide=0x1337; // ...
         } else {
           chan[i].inPorta=false;
           // COMPAT FLAG: broken shortcut slides
-          if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+          if (!song.compatFlags.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         }
         break;
       case 0xe3: // vibrato shape
@@ -1404,7 +1404,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         // - 2: lax (default)
         //   - no cut is ever ignored unless overridden by another
         // "Bruh"
-        if (effectVal>0 && (song.delayBehavior==2 || effectVal<nextSpeed)) {
+        if (effectVal>0 && (song.compatFlags.delayBehavior==2 || effectVal<nextSpeed)) {
           // the cut timer is ticked after nextRow(), so we set it one tick higher.
           chan[i].cut=effectVal+1;
           chan[i].cutType=2;
@@ -1448,7 +1448,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         //   - ignore cut if equal or greater than speed
         // - 2: lax (default)
         //   - no cut is ever ignored unless overridden by another
-        if (effectVal>0 && (song.delayBehavior==2 || effectVal<nextSpeed)) {
+        if (effectVal>0 && (song.compatFlags.delayBehavior==2 || effectVal<nextSpeed)) {
           // the cut timer is ticked after nextRow(), so we set it one tick higher.
           chan[i].cut=effectVal+1;
           chan[i].cutType=0;
@@ -1539,7 +1539,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         //   - ignore cut if equal or greater than speed
         // - 2: lax (default)
         //   - no cut is ever ignored unless overridden by another
-        if (song.delayBehavior==2 || effectVal<nextSpeed) {
+        if (song.compatFlags.delayBehavior==2 || effectVal<nextSpeed) {
           // the cut timer is ticked after nextRow(), so we set it one tick higher.
           chan[i].cut=effectVal+1;
           chan[i].cutType=1;
@@ -1573,7 +1573,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
   // COMPAT FLAG: instrument changes triggee on portamento (inverted in the GUI)
   // - before 0.6pre1 it was not possible to change instrument during portamento
   // - now it is. this sends a "null" note to allow such change
-  if (insChanged && (chan[i].inPorta || calledPorta) && song.newInsTriggersInPorta) {
+  if (insChanged && (chan[i].inPorta || calledPorta) && song.compatFlags.newInsTriggersInPorta) {
     dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
   }
 
@@ -1581,7 +1581,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
   if (chan[i].doNote) {
     // COMPAT FLAG: continuous vibrato
     // - when enabled, the vibrato position is not reset on each note
-    if (!song.continuousVibrato) {
+    if (!song.compatFlags.continuousVibrato) {
       chan[i].vibratoPos=0;
     }
     // send pitch now (why? didn't we do that already?)
@@ -1590,7 +1590,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     // COMPAT FLAG: broken portamento during legato
     // - portamento would not occur if legato is on
     // - this was fixed in 0.6pre4
-    if (chan[i].legato && (!chan[i].inPorta || song.brokenPortaLegato)) {
+    if (chan[i].legato && (!chan[i].inPorta || song.compatFlags.brokenPortaLegato)) {
       dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
       dispatchCmd(DivCommand(DIV_CMD_HINT_LEGATO,i,chan[i].note));
     } else {
@@ -1599,13 +1599,13 @@ void DivEngine::processRow(int i, bool afterDelay) {
       if (chan[i].inPorta && chan[i].keyOn && !chan[i].shorthandPorta) {
         // COMPAT FLAG: E1xy/E2xy stop on same note
         // - if there was a shortcut slide, stop it
-        if (song.e1e2StopOnSameNote && chan[i].wasShorthandPorta) {
+        if (song.compatFlags.e1e2StopOnSameNote && chan[i].wasShorthandPorta) {
           chan[i].portaSpeed=-1;
           dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
           // COMPAT FLAG: broken shortcut slides
           // - oddly enough, shortcut slides are not communicated to the dispatch
           // - this was fixed in 0.5.7
-          if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+          if (!song.compatFlags.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
           chan[i].wasShorthandPorta=false;
           chan[i].inPorta=false;
         } else {
@@ -1620,7 +1620,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].releasing=false;
         // COMPAT FLAG: reset arp position on new note
         // - this does exactly what it says
-        if (song.resetArpPhaseOnNewNote) {
+        if (song.compatFlags.resetArpPhaseOnNewNote) {
            chan[i].arpStage=-1;
         }
         // these are used by VGM/ROM export to determine the duration of loop trail.
@@ -1677,10 +1677,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
         case 0xf2: // single pitch slide down
           if (effect==0xf1) {
             // COMPAT FLAG: limit slide range
-            chan[i].portaNote=song.limitSlides?0x60:255;
+            chan[i].portaNote=song.compatFlags.limitSlides?0x60:255;
           } else {
             // COMPAT FLAG: limit slide range
-            chan[i].portaNote=(song.limitSlides && song.dispatchChanOfChan[i]>=0)?disCont[song.dispatchOfChan[i]].dispatch->getPortaFloor(song.dispatchChanOfChan[i]):-60;
+            chan[i].portaNote=(song.compatFlags.limitSlides && song.dispatchChanOfChan[i]>=0)?disCont[song.dispatchOfChan[i]].dispatch->getPortaFloor(song.dispatchChanOfChan[i]):-60;
           }
           chan[i].portaSpeed=effectVal;
           chan[i].portaStop=true;
@@ -1688,13 +1688,13 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].scheduledSlideReset=false;
           chan[i].inPorta=false;
           // COMPAT FLAG: arpeggio inhibits non-porta slides
-          if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
-          dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch?song.pitchSlideSpeed:1),chan[i].portaNote));
+          if (!song.compatFlags.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
+          dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.compatFlags.linearPitch?song.compatFlags.pitchSlideSpeed:1),chan[i].portaNote));
           chan[i].portaNote=-1;
           chan[i].portaSpeed=-1;
           chan[i].inPorta=false;
           // COMPAT FLAG: arpeggio inhibits non-porta slides
-          if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+          if (!song.compatFlags.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
           break;
       }
     }
@@ -1797,7 +1797,7 @@ void DivEngine::nextRow() {
   for (int i=0; i<song.chans; i++) {
     // COMPAT FLAG: cut/delay effect policy (delayBehavior)
     // - if not lax, reset the row delay timer so it never happens
-    if (song.delayBehavior!=2) {
+    if (song.compatFlags.delayBehavior!=2) {
       chan[i].rowDelay=0;
     }
     processRow(i,false);
@@ -1862,7 +1862,7 @@ void DivEngine::nextRow() {
   // - DefleMask uses a mandatory two-speed system
   // - if the pattern length is odd, the speed to use is determined correctly...
   // - ...unless the order count is also odd! in that case the first row of order 0 will always use speed 1, even if the song looped and we should be using speed 2
-  if (song.brokenSpeedSel) {
+  if (song.compatFlags.brokenSpeedSel) {
     unsigned char speed2=(speeds.len>=2)?speeds.val[1]:speeds.val[0];
     unsigned char speed1=speeds.val[0];
     
@@ -1913,7 +1913,7 @@ void DivEngine::nextRow() {
                 // COMPAT FLAG: pre-note does not take effect into consideration
                 // - a bug which does not cancel pre-note before a portamento or during legato
                 // - fixed in 0.6pre9
-                if (!song.preNoteNoEffect) {
+                if (!song.compatFlags.preNoteNoEffect) {
                   // handle portamento
                   if (pat->newData[curRow][DIV_PAT_FX(j)]==0x03 && pat->newData[curRow][DIV_PAT_FXVAL(j)]!=0 && pat->newData[curRow][DIV_PAT_FXVAL(j)]!=-1) {
                     doPreparePreNote=false;
@@ -1947,7 +1947,7 @@ void DivEngine::nextRow() {
 
           // COMPAT FLAG: auto-insert one tick gap between notes
           // - simulates behavior of certain Amiga/C64 sound drivers where a one-tick cut occurred before another note
-          if (song.oneTickCut) {
+          if (song.compatFlags.oneTickCut) {
             bool doPrepareCut=true;
             int addition=0;
 
@@ -2158,7 +2158,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
               // - 0: reset channels. call playSub() to seek back to the loop position
               // - 1: soft-reset channels. same as 0 for now
               // - 2: don't reset
-              if (song.loopModality!=2) {
+              if (song.compatFlags.loopModality!=2) {
                 playSub(true);
               }
             }
@@ -2205,7 +2205,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         // volume slides and tremolo
         // COMPAT FLAG: don't slide on the first tick of a row
         // - Amiga/PC tracker behavior where slides and vibrato do not take course during the first tick of a row
-        if (!song.noSlidesOnFirstTick || !firstTick) {
+        if (!song.compatFlags.noSlidesOnFirstTick || !firstTick) {
           // volume slides
           if (chan[i].volSpeed!=0) {
             // the call to GET_VOLUME is part of a compatibility process
@@ -2255,7 +2255,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
               // COMPAT FLAG: legacy volume slides
               // - sets volume to max once a vol slide down has finished (thus setting volume to volMax+1)
               // - there is more to this, such as the first step of volume macro resulting in unpredictable behavior, but I don't feel like implementing THAT...
-              if (song.legacyVolumeSlides) {
+              if (song.compatFlags.legacyVolumeSlides) {
                 chan[i].volume=chan[i].volMax+1;
               } else {
                 chan[i].volume=0;
@@ -2418,7 +2418,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         // portamento and pitch slides
         // COMPAT FLAG: don't slide on the first tick of a row
         // - Amiga/PC tracker behavior where slides and vibrato do not take course during the first tick of a row
-        if (!song.noSlidesOnFirstTick || !firstTick) {
+        if (!song.compatFlags.noSlidesOnFirstTick || !firstTick) {
           // portamento only runs if the channel has been used and the porta speed is higher than 0
           if ((chan[i].keyOn || chan[i].keyOff) && chan[i].portaSpeed>0) {
             // send a portamento update command to the dispatch.
@@ -2428,7 +2428,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
             // - 1: full (pitch slides linear... we multiply the portamento speed by a user-defined multiplier)
             // COMPAT FLAG: reset pitch slide/portamento upon reaching target (inverted in the GUI)
             // - when disabled, portamento remains active after it has finished
-            if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch?song.pitchSlideSpeed:1),chan[i].portaNote))==2 && chan[i].portaStop && song.targetResetsSlides) {
+            if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.compatFlags.linearPitch?song.compatFlags.pitchSlideSpeed:1),chan[i].portaNote))==2 && chan[i].portaStop && song.compatFlags.targetResetsSlides) {
               // if we are here, it means we reached the target and shall stop
               chan[i].portaSpeed=0;
               dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
@@ -2454,7 +2454,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
               // COMPAT FLAG: reset slides on note off (inverted in the GUI)
               // - a portamento/pitch slide will be halted upon encountering note off
               // - this will not occur if the stopPortaOnNoteOff flag is on and this is a portamento
-              if (chan[i].inPorta && song.noteOffResetsSlides) {
+              if (chan[i].inPorta && song.compatFlags.noteOffResetsSlides) {
                 chan[i].keyOff=true;
                 chan[i].keyOn=false;
                 // stopOnOff will be false if stopPortaOnNoteOff flag is off
@@ -2503,7 +2503,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         }
         // COMPAT FLAG: reset arp position on row change
         // - simulates Amiga/PC tracker behavior where the next row resets arp pos
-        if (song.rowResetsArpPos && firstTick) {
+        if (song.compatFlags.rowResetsArpPos && firstTick) {
           chan[i].arpStage=-1;
         }
         // arpeggio (actually)
