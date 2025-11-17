@@ -2812,7 +2812,12 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     ImGui::TextUnformatted(_("Channels"));
     ImGui::SameLine();
     ImGui::SetNextItemWidth(120.0f*dpiScale);
-    ImGui::InputInt("##ChCount",&chCount,0,0);
+    if (ImGui::InputInt("##ChCount",&chCount,0,0)) {
+      if (sysDef!=NULL) {
+        if (chCount<sysDef->minChans) chCount=sysDef->minChans;
+        if (chCount>sysDef->maxChans) chCount=sysDef->maxChans;
+      }
+    }
     if (ImGui::IsItemDeactivatedAfterEdit() && chCount!=e->song.systemChans[chan]) {
       if (e->setSystemChans(chan,chCount,preserveChanPos)) {
         MARK_MODIFIED;
