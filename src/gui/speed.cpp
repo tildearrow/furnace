@@ -130,7 +130,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
 
         ImGui::SetNextItemWidth(avail);
         if (ImGui::InputText("##SpeedG",&grooveString)) {
-          decodeMMLStr(grooveString,intVersion,intVersionLen,ignoredLoop,1,255,ignoredRel);
+          decodeMMLStr(grooveString,intVersion,intVersionLen,ignoredLoop,1,65535,ignoredRel);
           if (intVersionLen<1) {
             intVersionLen=1;
             intVersion[0]=6;
@@ -153,7 +153,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         }
       } else {
         ImGui::SetNextItemWidth(halfAvail);
-        if (ImGui::InputScalar("##Speed1",ImGuiDataType_U8,&e->curSubSong->speeds.val[0],&_ONE,&_THREE)) { MARK_MODIFIED
+        if (ImGui::InputScalar("##Speed1",ImGuiDataType_U16,&e->curSubSong->speeds.val[0],&_ONE,&_THREE)) { MARK_MODIFIED
           if (e->curSubSong->speeds.val[0]<1) e->curSubSong->speeds.val[0]=1;
           if (e->isPlaying()) play();
           recalcTimestamps=true;
@@ -161,7 +161,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         if (e->curSubSong->speeds.len>1) {
           ImGui::SameLine();
           ImGui::SetNextItemWidth(halfAvail);
-          if (ImGui::InputScalar("##Speed2",ImGuiDataType_U8,&e->curSubSong->speeds.val[1],&_ONE,&_THREE)) { MARK_MODIFIED
+          if (ImGui::InputScalar("##Speed2",ImGuiDataType_U16,&e->curSubSong->speeds.val[1],&_ONE,&_THREE)) { MARK_MODIFIED
             if (e->curSubSong->speeds.val[1]<1) e->curSubSong->speeds.val[1]=1;
             if (e->isPlaying()) play();
             recalcTimestamps=true;
