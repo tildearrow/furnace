@@ -127,7 +127,7 @@ in there, you can modify certain data pertaining to your sample, such as the:
   - **Filter**: selects interpolation filter for resampling.
 - **Undo**: undoes previous edit.
 - **Redo**: redoes undone edit.
-- **Amplify/Offset**: pops up a dialog to enter amounts.
+- **Amplify/Offset**: allows you to change amplitude of selection or offset it.
   - **Volume**: amplifies selection.
   - **DC Offset**: shifts selection up (positive values) or down (negative values).
 - **Normalize**: adjusts amplitude of selection to maximum without clipping.
@@ -172,6 +172,6 @@ in the sample viewer:
   - **create wavetable from selection**: copies the selection into a new wavetable entry.
 
 in the bottom status bar:
-- **Select**: set selection start and end positions using the two numeric entry boxes. total selection length will be shown next to them.
+- **Select**: set selection start and end positions. total selection length will be shown next to them.
 - cursor position and sample value.
 - loop size in samples and bytes.

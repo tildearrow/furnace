@@ -95,7 +95,7 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 ### Import
 
 - **Use OPL3 instead of OPL2 for S3M import**: changes which system is used for the import of S3M files that contain FM channels.
-- **Load sample fine tuning when importing a sample**: as it says. may result in glitches with some samples.
+- **Load sample fine tuning when importing a sample**: if the file has note tuning information, it will be loaded. may result in glitches with some samples.
 
 ## Audio
 
@@ -105,7 +105,7 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
   - SDL: the default one.
   - JACK: the JACK Audio Connection Kit (low-latency audio server). only appears on Linux, or MacOS compiled with JACK support.
   - PortAudio: this may or may not perform better than the SDL backend.
-  - ASIO: Audio Stream Input/Output. extremely low latency, if your system has a driver for it. after selecting it, click "Apply" to see available devices.
+  - ASIO: Audio Stream Input/Output. low latency, if your system has a driver for it. after selecting it, click "Apply" to see available devices.
     - **Control Panel**: opens the ASIO driver's control panel. you must first select a device and click "Apply".
 - **Driver**: select a different audio driver if you're having problems with the default one.
   - only appears when Backend is SDL.

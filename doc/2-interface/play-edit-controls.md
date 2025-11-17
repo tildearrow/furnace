@@ -14,7 +14,7 @@ the "Play/Edit Controls" are used to control playback and change parameters of t
 - polyphony toggle: cycles through the following options.
   - **Mono**: monophony. preview one note at a time only.
   - **Poly**: polyphony. preview multiple notes at once, using other channels of the same type on the same chip. default.
-  - **Chord**: chord input. as polyphony, with the added feature that while keys are held, notes past the first are entered on the same row in adjacent channels.
+  - **Chord**: chord input. same as polyphony, with the added feature that while keys are held, notes past the first are entered on the same row in adjacent channels.
     - some keyboards have limits on the number of keys that can be held at the same time. this is not a Furnace issue.
 - **Octave**: sets current input octave.
 - **Edit Step**: sets edit step. if this is 1, entering a note or effect will move to the next row. if this is a larger number, rows will be skipped. if this is 0, the cursor will stay in place.
