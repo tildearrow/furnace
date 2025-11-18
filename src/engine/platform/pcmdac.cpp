@@ -49,6 +49,7 @@ void DivPlatformPCMDAC::acquire(short** buf, size_t len) {
     outSum[1]=0;
 
     for (int i=0; i<chans; i++) {
+      output=0;
       if (!chan[i].active) {
         oscBuf[i].putSample(h,0);
         continue;
