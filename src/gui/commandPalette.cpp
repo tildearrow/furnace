@@ -249,7 +249,7 @@ void FurnaceGUI::drawPalette() {
   ImVec2 avail=ImGui::GetContentRegionAvail();
   avail.y-=ImGui::GetFrameHeightWithSpacing();
 
-  if (ImGui::BeginChild("CommandPaletteList",avail,false,0)) {
+  if (ImGui::BeginChild("CommandPaletteList",avail,0,0)) {
       bool navigated=false;
       if (ImGui::IsKeyPressed(ImGuiKey_UpArrow) && curPaletteChoice>0) {
         curPaletteChoice-=1;
@@ -367,7 +367,7 @@ void FurnaceGUI::drawPalette() {
           openRecentFile(recentFile[i]);
           break;
         case CMDPAL_TYPE_INSTRUMENTS:
-          curIns=i-1;
+          setCurIns(i-1);
           break;
         case CMDPAL_TYPE_SAMPLES:
           curSample=i;
@@ -381,6 +381,7 @@ void FurnaceGUI::drawPalette() {
               showError("cannot add chip! ("+e->getLastError()+")");
             } else {
               MARK_MODIFIED;
+              recalcTimestamps=true;
             }
             ImGui::CloseCurrentPopup();
             if (e->song.autoSystem) {

@@ -261,13 +261,13 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       int destFreq=NOTE_PERIODIC(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
-        chan[c.chan].baseFreq+=c.value*((parent->song.linearPitch==2)?1:(8-chan[c.chan].freqH));
+        chan[c.chan].baseFreq+=c.value*((parent->song.linearPitch)?1:(8-chan[c.chan].freqH));
         if (chan[c.chan].baseFreq>=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
         }
       } else {
-        chan[c.chan].baseFreq-=c.value*((parent->song.linearPitch==2)?1:(8-chan[c.chan].freqH));
+        chan[c.chan].baseFreq-=c.value*((parent->song.linearPitch)?1:(8-chan[c.chan].freqH));
         if (chan[c.chan].baseFreq<=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
@@ -389,12 +389,6 @@ void DivPlatformSAA1099::reset() {
   }
 
   lastBusy=60;
-  dacMode=0;
-  dacPeriod=0;
-  dacPos=0;
-  dacRate=0;
-  dacSample=-1;
-  sampleBank=0;
   saaEnv[0]=0;
   saaEnv[1]=0;
   saaNoise[0]=0;
@@ -485,7 +479,7 @@ void DivPlatformSAA1099::setCoreQuality(unsigned char q) {
       coreQuality=8;
       break;
     case 5:
-      coreQuality=1;
+      coreQuality=4;
       break;
     default:
       coreQuality=32;

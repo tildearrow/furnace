@@ -28,7 +28,7 @@
 class DivPlatformSegaPCM: public DivDispatch {
   protected:
     struct Channel: public SharedChannel<int> {
-      bool furnacePCM, isNewSegaPCM, setPos;
+      bool isNewSegaPCM, setPos;
       unsigned char chVolL, chVolR;
       unsigned char chPanL, chPanR;
       int macroVolMul;
@@ -37,12 +37,11 @@ class DivPlatformSegaPCM: public DivDispatch {
         int sample;
         unsigned int pos; // <<8
         unsigned short len;
-        unsigned char freq;
-        PCMChannel(): sample(-1), pos(0), len(0), freq(0) {}
+        short freq;
+        PCMChannel(): sample(-1), pos(0), len(0), freq(-1) {}
       } pcm;
       Channel():
         SharedChannel<int>(127),
-        furnacePCM(false),
         isNewSegaPCM(false),
         setPos(false),
         chVolL(127),
@@ -68,7 +67,6 @@ class DivPlatformSegaPCM: public DivDispatch {
     int delay;
     int pcmL, pcmR, pcmCycles;
     bool oldSlides;
-    unsigned char sampleBank;
     unsigned char lastBusy;
 
     unsigned char regPool[256];
@@ -78,9 +76,9 @@ class DivPlatformSegaPCM: public DivDispatch {
     short oldWrites[256];
     short pendingWrites[256];
 
-    unsigned int sampleOffSegaPCM[256];
-    unsigned char sampleEndSegaPCM[256];
-    bool sampleLoaded[256];
+    unsigned int* sampleOffSegaPCM;
+    unsigned char* sampleEndSegaPCM;
+    bool* sampleLoaded;
 
     DivMemoryComposition memCompo;
   
@@ -116,6 +114,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     const DivMemoryComposition* getMemCompo(int index);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
+    DivPlatformSegaPCM();
     ~DivPlatformSegaPCM();
 };
 #endif

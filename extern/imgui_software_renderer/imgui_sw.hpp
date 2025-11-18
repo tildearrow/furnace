@@ -9,7 +9,7 @@
 //   The goal was to get something fast and decently accurate in not too many lines of code.
 // LIMITATIONS:
 //   * It is not pixel-perfect, but it is good enough for must use cases.
-//   * It does not support painting with any other texture than the default font texture.
+//   * It does not support texture scaling for the sake of performance.
 #pragma once
 #include "imgui.h"      // IMGUI_IMPL_API
 #ifndef IMGUI_DISABLE
@@ -38,6 +38,7 @@ struct SWTexture
     managed(true),
     isAlpha(a) {
     pixels=new uint32_t[width*height];
+    memset(pixels,0,width*height*sizeof(uint32_t));
   }
   ~SWTexture() {
     if (managed) delete[] pixels;
@@ -46,13 +47,14 @@ struct SWTexture
 
 IMGUI_IMPL_API bool     ImGui_ImplSW_Init(SDL_Window* win);
 IMGUI_IMPL_API void     ImGui_ImplSW_Shutdown();
-IMGUI_IMPL_API bool     ImGui_ImplSW_NewFrame();
+IMGUI_IMPL_API void     ImGui_ImplSW_NewFrame();
 IMGUI_IMPL_API void     ImGui_ImplSW_RenderDrawData(ImDrawData* draw_data);
 
 // Called by Init/NewFrame/Shutdown
-IMGUI_IMPL_API bool     ImGui_ImplSW_CreateFontsTexture();
-IMGUI_IMPL_API void     ImGui_ImplSW_DestroyFontsTexture();
 IMGUI_IMPL_API bool     ImGui_ImplSW_CreateDeviceObjects();
 IMGUI_IMPL_API void     ImGui_ImplSW_DestroyDeviceObjects();
+
+// for Dear ImGui 1.92+
+IMGUI_IMPL_API void     ImGui_ImplSW_UpdateTexture(ImTextureData* tex);
 
 #endif // #ifndef IMGUI_DISABLE

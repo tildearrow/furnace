@@ -419,79 +419,78 @@ void DivPlatformNES::tick(bool sysTick) {
   // PCM
   if (chan[4].freqChanged || chan[4].keyOn) {
     chan[4].freq=parent->calcFreq(chan[4].baseFreq,chan[4].pitch,chan[4].fixedArp?chan[4].baseNoteOverride:chan[4].arpOff,chan[4].fixedArp,false);
-    if (chan[4].furnaceDac) {
-      double off=1.0;
-      if (dacSample>=0 && dacSample<parent->song.sampleLen) {
-        DivSample* s=parent->getSample(dacSample);
-        off=(double)s->centerRate/parent->getCenterRate();
-      }
-      dacRate=MIN(chan[4].freq*off,32000);
-      if (chan[4].keyOn) {
-        if (dpcmMode && !skipRegisterWrites && dacSample>=0 && dacSample<parent->song.sampleLen) {
-          unsigned int dpcmAddr=sampleOffDPCM[dacSample]+(dacPos>>3);
-          int dpcmLen=(parent->getSample(dacSample)->lengthDPCM-(dacPos>>3))>>4;
-          if (dpcmLen<0) dpcmLen=0;
-          if (dpcmLen>255) dpcmLen=255;
-          goingToLoop=parent->getSample(dacSample)->isLoopable();
-          // write DPCM
-          rWrite(0x4015,15);
-          if (nextDPCMFreq>=0) {
-            rWrite(0x4010,nextDPCMFreq|(goingToLoop?0x40:0));
-            nextDPCMFreq=-1;
-          } else {
-            rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
-          }
-          if (nextDPCMDelta>=0) {
-            rWrite(0x4011,nextDPCMDelta);
-            nextDPCMDelta=-1;
-          }
-          rWrite(0x4012,(dpcmAddr>>6)&0xff);
-          rWrite(0x4013,dpcmLen&0xff);
-          rWrite(0x4015,31);
-          if (dpcmBank!=(dpcmAddr>>14)) {
-            dpcmBank=dpcmAddr>>14;
-            logV("switching bank to %d",dpcmBank);
-            if (dumpWrites) addWrite(0xffff0004,dpcmBank);
-          }
-
-          // sample custom loop point...
-          DivSample* lsamp=parent->getSample(dacSample);
-
-          // how it works:
-          // when the initial sample info is written (see above) and playback is launched,
-          // the parameters (start point in memory and length) are locked until sample end
-          // is reached.
-
-          // thus, if we write new data after just several APU clock cycles, it will be used only when
-          // sample finishes one full loop.
-
-          // thus we can write sample's loop point as "start address" and sample's looped part length
-          // as "full sample length".
-
-          // APU will play full sample once and then repeatedly cycle through the looped part.
-
-          // sources:
-          // https://www.nesdev.org/wiki/APU_DMC
-          // https://www.youtube.com/watch?v=vB4P8x2Am6Y
-
-          if (lsamp->loopEnd>lsamp->loopStart && goingToLoop) {
-            int loopStartAddr=sampleOffDPCM[dacSample]+(lsamp->loopStart>>3);
-            int loopLen=(lsamp->loopEnd-lsamp->loopStart)>>3;
-
-            rWrite(0x4012,(loopStartAddr>>6)&0xff);
-            rWrite(0x4013,(loopLen>>4)&0xff);
-          }
-        }
-      } else {
+    double off=1.0;
+    if (dacSample>=0 && dacSample<parent->song.sampleLen) {
+      DivSample* s=parent->getSample(dacSample);
+      off=(double)s->centerRate/parent->getCenterRate();
+    }
+    dacRate=MIN(chan[4].freq*off,48000);
+    if (chan[4].keyOn) {
+      if (dpcmMode && !skipRegisterWrites && dacSample>=0 && dacSample<parent->song.sampleLen) {
+        unsigned int dpcmAddr=sampleOffDPCM[dacSample]+(dacPos>>3);
+        int dpcmLen=(parent->getSample(dacSample)->lengthDPCM-(dacPos>>3))>>4;
+        if (dpcmLen<0) dpcmLen=0;
+        if (dpcmLen>255) dpcmLen=255;
+        goingToLoop=parent->getSample(dacSample)->isLoopable();
+        // write DPCM
+        rWrite(0x4015,15);
         if (nextDPCMFreq>=0) {
           rWrite(0x4010,nextDPCMFreq|(goingToLoop?0x40:0));
           nextDPCMFreq=-1;
         } else {
           rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
         }
+        if (nextDPCMDelta>=0) {
+          rWrite(0x4011,nextDPCMDelta);
+          nextDPCMDelta=-1;
+        }
+        rWrite(0x4012,(dpcmAddr>>6)&0xff);
+        rWrite(0x4013,dpcmLen&0xff);
+        rWrite(0x4015,31);
+        if (dpcmBank!=(dpcmAddr>>14)) {
+          dpcmBank=dpcmAddr>>14;
+          logV("switching bank to %d",dpcmBank);
+          if (dumpWrites) addWrite(0xffff0004,dpcmBank);
+        }
+
+        // sample custom loop point...
+        DivSample* lsamp=parent->getSample(dacSample);
+
+        // how it works:
+        // when the initial sample info is written (see above) and playback is launched,
+        // the parameters (start point in memory and length) are locked until sample end
+        // is reached.
+
+        // thus, if we write new data after just several APU clock cycles, it will be used only when
+        // sample finishes one full loop.
+
+        // thus we can write sample's loop point as "start address" and sample's looped part length
+        // as "full sample length".
+
+        // APU will play full sample once and then repeatedly cycle through the looped part.
+
+        // sources:
+        // https://www.nesdev.org/wiki/APU_DMC
+        // https://www.youtube.com/watch?v=vB4P8x2Am6Y
+
+        if (lsamp->loopEnd>lsamp->loopStart && goingToLoop) {
+          int loopStartAddr=sampleOffDPCM[dacSample]+(lsamp->loopStart>>3);
+          int loopLen=(lsamp->loopEnd-lsamp->loopStart)>>3;
+
+          rWrite(0x4012,(loopStartAddr>>6)&0xff);
+          rWrite(0x4013,(loopLen>>4)&0xff);
+        }
       }
-      if (dumpWrites && !dpcmMode) addWrite(0xffff0001,dacRate);
+    } else {
+      if (nextDPCMFreq>=0) {
+        rWrite(0x4010,nextDPCMFreq|(goingToLoop?0x40:0));
+        nextDPCMFreq=-1;
+      } else {
+        rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
+      }
     }
+    if (dumpWrites && !dpcmMode) addWrite(0xffff0001,dacRate);
+
     if (chan[4].keyOn) chan[4].keyOn=false;
     chan[4].freqChanged=false;
   }
@@ -504,111 +503,64 @@ int DivPlatformNES::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON:
       if (c.chan==4) { // PCM
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_NES);
-        if (ins->type==DIV_INS_AMIGA || (ins->type==DIV_INS_NES && !parent->song.oldDPCM)) {
-          if (ins->type==DIV_INS_NES) {
-            if (!dpcmMode) {
-              dpcmMode=true;
-              if (dumpWrites) addWrite(0xffff0002,0);
-              dacSample=-1;
-              rWrite(0x4015,15);
-              rWrite(0x4010,0);
-              rWrite(0x4012,0);
-              rWrite(0x4013,0);
-              rWrite(0x4015,31);
-            }
-
-            if (ins->amiga.useNoteMap) {
-              nextDPCMFreq=ins->amiga.getDPCMFreq(c.value);
-              if (nextDPCMFreq<0 || nextDPCMFreq>15) nextDPCMFreq=lastDPCMFreq;
-              lastDPCMFreq=nextDPCMFreq;
-              nextDPCMDelta=ins->amiga.getDPCMDelta(c.value);
-            } else {
-              if (c.value==DIV_NOTE_NULL) {
-                nextDPCMFreq=lastDPCMFreq;
-              } else {
-                nextDPCMFreq=c.value&15;
-              }
-            }
-          }
-          if (c.value!=DIV_NOTE_NULL) {
-            dacSample=(int)ins->amiga.getSample(c.value);
-            if (ins->type==DIV_INS_AMIGA) {
-              chan[c.chan].sampleNote=c.value;
-              c.value=ins->amiga.getFreq(c.value);
-              chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
-            }
-          } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
-            dacSample=(int)ins->amiga.getSample(chan[c.chan].sampleNote);
-            if (ins->type==DIV_INS_AMIGA) {
-              c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
-            }
-          }
-          if (dacSample<0 || dacSample>=parent->song.sampleLen) {
+        if (ins->type==DIV_INS_NES) {
+          if (!dpcmMode) {
+            dpcmMode=true;
+            if (dumpWrites) addWrite(0xffff0002,0);
             dacSample=-1;
-            if (dumpWrites && !dpcmMode) addWrite(0xffff0002,0);
-            break;
-          } else {
-            if (dumpWrites && !dpcmMode) addWrite(0xffff0000,dacSample);
-          }
-          if (chan[c.chan].setPos) {
-            chan[c.chan].setPos=false;
-          } else {
-            dacPos=0;
-          }
-          dacPeriod=0;
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
-            chan[c.chan].freqChanged=true;
-            chan[c.chan].note=c.value;
-          }
-          chan[c.chan].active=true;
-          chan[c.chan].keyOn=true;
-          chan[c.chan].furnaceDac=true;
-        } else {
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].note=c.value;
-          }
-          dacSample=12*sampleBank+chan[c.chan].note%12;
-          if (dacSample>=parent->song.sampleLen) {
-            dacSample=-1;
-            if (dumpWrites && !dpcmMode) addWrite(0xffff0002,0);
-            break;
-          } else {
-            if (dumpWrites && !dpcmMode) addWrite(0xffff0000,dacSample);
-          }
-          if (chan[c.chan].setPos) {
-            chan[c.chan].setPos=false;
-          } else {
-            dacPos=0;
-          }
-          dacPeriod=0;
-          dacRate=parent->getSample(dacSample)->rate;
-          if (dumpWrites && !dpcmMode) addWrite(0xffff0001,dacRate);
-          chan[c.chan].furnaceDac=false;
-          if (dpcmMode && !skipRegisterWrites) {
-            unsigned int dpcmAddr=sampleOffDPCM[dacSample]+(dacPos>>3);
-            int dpcmLen=(parent->getSample(dacSample)->lengthDPCM-(dacPos>>3))>>4;
-            if (dpcmLen<0) dpcmLen=0;
-            if (dpcmLen>255) dpcmLen=255;
-            goingToLoop=parent->getSample(dacSample)->isLoopable();
-            // write DPCM
             rWrite(0x4015,15);
-            if (nextDPCMFreq>=0) {
-              rWrite(0x4010,nextDPCMFreq|(goingToLoop?0x40:0));
-              nextDPCMFreq=-1;
-            } else {
-              rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
-            }
-            rWrite(0x4012,(dpcmAddr>>6)&0xff);
-            rWrite(0x4013,dpcmLen&0xff);
+            rWrite(0x4010,0);
+            rWrite(0x4012,0);
+            rWrite(0x4013,0);
             rWrite(0x4015,31);
-            if (dpcmBank!=(dpcmAddr>>14)) {
-              dpcmBank=dpcmAddr>>14;
-              logV("switching bank to %d",dpcmBank);
-              if (dumpWrites) addWrite(0xffff0004,dpcmBank);
+          }
+
+          if (ins->amiga.useNoteMap) {
+            nextDPCMFreq=ins->amiga.getDPCMFreq(c.value);
+            if (nextDPCMFreq<0 || nextDPCMFreq>15) nextDPCMFreq=lastDPCMFreq;
+            lastDPCMFreq=nextDPCMFreq;
+            nextDPCMDelta=ins->amiga.getDPCMDelta(c.value);
+          } else {
+            if (c.value==DIV_NOTE_NULL) {
+              nextDPCMFreq=lastDPCMFreq;
+            } else {
+              nextDPCMFreq=c.value&15;
             }
           }
         }
+        if (c.value!=DIV_NOTE_NULL) {
+          dacSample=(int)ins->amiga.getSample(c.value);
+          if (ins->type==DIV_INS_AMIGA) {
+            chan[c.chan].sampleNote=c.value;
+            c.value=ins->amiga.getFreq(c.value);
+            chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+          }
+        } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+          dacSample=(int)ins->amiga.getSample(chan[c.chan].sampleNote);
+          if (ins->type==DIV_INS_AMIGA) {
+            c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
+          }
+        }
+        if (dacSample<0 || dacSample>=parent->song.sampleLen) {
+          dacSample=-1;
+          if (dumpWrites && !dpcmMode) addWrite(0xffff0002,0);
+          break;
+        } else {
+          if (dumpWrites && !dpcmMode) addWrite(0xffff0000,dacSample);
+        }
+        if (chan[c.chan].setPos) {
+          chan[c.chan].setPos=false;
+        } else {
+          dacPos=0;
+        }
+        dacPeriod=0;
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
+          chan[c.chan].freqChanged=true;
+          chan[c.chan].note=c.value;
+        }
+        chan[c.chan].active=true;
+        chan[c.chan].keyOn=true;
         break;
       } else if (c.chan==3) { // noise
         if (c.value!=DIV_NOTE_NULL) {
@@ -779,12 +731,6 @@ int DivPlatformNES::dispatch(DivCommand c) {
       }
       break;
     }
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
-      break;
     case DIV_CMD_SAMPLE_POS:
       if (c.chan!=4) break;
       dacPos=c.value;
@@ -900,7 +846,6 @@ void DivPlatformNES::reset() {
   dpcmPos=0;
   dacRate=0;
   dacSample=-1;
-  sampleBank=0;
   dpcmBank=0;
   dpcmMode=dpcmModeDefault;
   goingToLoop=false;
@@ -1039,7 +984,7 @@ size_t DivPlatformNES::getSampleMemUsage(int index) {
 
 bool DivPlatformNES::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -1050,7 +995,8 @@ const DivMemoryComposition* DivPlatformNES::getMemCompo(int index) {
 
 void DivPlatformNES::renderSamples(int sysID) {
   memset(dpcmMem,0,getSampleMemCapacity(0));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOffDPCM,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="DPCM";
@@ -1156,5 +1102,13 @@ void DivPlatformNES::quit() {
   }
 }
 
+// initialization of important arrays
+DivPlatformNES::DivPlatformNES() {
+  sampleOffDPCM=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
 DivPlatformNES::~DivPlatformNES() {
+  delete[] sampleOffDPCM;
+  delete[] sampleLoaded;
 }

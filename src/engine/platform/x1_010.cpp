@@ -592,43 +592,15 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
           } else {
             chan[c.chan].macroInit(NULL);
             chan[c.chan].outVol=chan[c.chan].vol;
-            // huh?
-            if ((12*sampleBank+c.value%12)>=parent->song.sampleLen) {
-              chWrite(c.chan,0,0); // reset
-              chWrite(c.chan,1,0);
-              chWrite(c.chan,2,0);
-              chWrite(c.chan,4,0);
-              chWrite(c.chan,5,0);
-              break;
-            }
-          }
-        } else {
-          chan[c.chan].macroInit(NULL);
-          chan[c.chan].outVol=chan[c.chan].vol;
-          chan[c.chan].sample=12*sampleBank+c.value%12;
-          if (chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
+            // TODO: there was a check for legacy sample bank here. why?
             chWrite(c.chan,0,0); // reset
             chWrite(c.chan,1,0);
             chWrite(c.chan,2,0);
             chWrite(c.chan,4,0);
             chWrite(c.chan,5,0);
-            break;
           }
-          DivSample* s=parent->getSample(chan[c.chan].sample);
-          if (isBanked) {
-            bankSlot[chan[c.chan].bankSlot]=sampleOffX1[chan[c.chan].sample]>>17;
-            unsigned int bankedOffs=(chan[c.chan].bankSlot<<17)|(sampleOffX1[chan[c.chan].sample]&0x1ffff);
-            chWrite(c.chan,4,(bankedOffs>>12)&0xff);
-            int end=(bankedOffs+MIN(s->length8,0x1ffff)+0xfff)&~0xfff; // padded
-            chWrite(c.chan,5,(0x100-(end>>12))&0xff);
-          } else {
-            chWrite(c.chan,4,(sampleOffX1[chan[c.chan].sample]>>12)&0xff);
-            int end=(sampleOffX1[chan[c.chan].sample]+s->length8+0xfff)&~0xfff; // padded
-            chWrite(c.chan,5,(0x100-(end>>12))&0xff);
-          }
-          // ????
-          chan[c.chan].fixedFreq=(((unsigned int)s->rate)<<4)/(chipClock/512);
-          chan[c.chan].freqChanged=true;
+        } else {
+          assert(false && "LEGACY SAMPLE MODE!!!");
         }
       } else if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].note=c.value;
@@ -737,12 +709,6 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
         chan[c.chan].pcm=c.value&1;
         chan[c.chan].freqChanged=true;
         chan[c.chan].envChanged=true;
-      }
-      break;
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
       }
       break;
     case DIV_CMD_PANNING: {
@@ -919,7 +885,6 @@ void DivPlatformX1_010::reset() {
     chan[i].ws.init(NULL,128,255,false);
   }
   x1_010.reset();
-  sampleBank=0;
   // set per-channel initial panning
   for (int i=0; i<16; i++) {
     chWrite(i,0,0);
@@ -1001,7 +966,7 @@ size_t DivPlatformX1_010::getSampleMemUsage(int index) {
 
 bool DivPlatformX1_010::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -1012,8 +977,8 @@ const DivMemoryComposition* DivPlatformX1_010::getMemCompo(int index) {
 
 void DivPlatformX1_010::renderSamples(int sysID) {
   memset(sampleMem,0,16777216);
-  memset(sampleOffX1,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOffX1,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="Sample ROM";
@@ -1081,5 +1046,16 @@ void DivPlatformX1_010::quit() {
   delete[] sampleMem;
 }
 
+// initialization of important arrays
+DivPlatformX1_010::DivPlatformX1_010():
+  DivDispatch(),
+  vgsound_emu_mem_intf(),
+  x1_010(*this) {
+  sampleOffX1=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
 DivPlatformX1_010::~DivPlatformX1_010() {
+  delete[] sampleOffX1;
+  delete[] sampleLoaded;
 }

@@ -112,13 +112,12 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
   bool stereo=false;
   unsigned char* sampleMem;
   size_t sampleMemLen;
-  unsigned char sampleBank;
   x1_010_core x1_010;
 
   bool isBanked=false;
   unsigned int bankSlot[8];
-  unsigned int sampleOffX1[256];
-  bool sampleLoaded[256];
+  unsigned int* sampleOffX1;
+  bool* sampleLoaded;
 
   DivMemoryComposition memCompo;
 
@@ -159,10 +158,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     const char** getRegisterSheet();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
-    DivPlatformX1_010():
-      DivDispatch(),
-      vgsound_emu_mem_intf(),
-      x1_010(*this) {}
+    DivPlatformX1_010();
     ~DivPlatformX1_010();
 };
 

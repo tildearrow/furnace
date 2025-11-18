@@ -48,6 +48,10 @@
     tutorial.popupTimer=0; \
   }
 #else
+#ifndef _WIN32
+#include "../fileutils.h"
+#include <dirent.h>
+#endif
 #define CLICK_TO_OPEN(t) ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],t); if (ImGui::IsItemClicked()) SDL_OpenURL(t);
 #endif
 
@@ -175,6 +179,9 @@ struct FurnaceCV {
   std::vector<FurnaceCVObject*> sprite;
   // this offset is applied to sprites.
   int viewX, viewY;
+
+  // other
+  char hiScoreText[512];
 
   // input
   unsigned char joyInputPrev;
@@ -662,7 +669,11 @@ static const char* cvText[]={
 
   _N("GAME OVER"),
 
-  _N("High Score!"),
+  _N("           CONGREGURATION\n\n\n"
+  "YOU ARE GOOD PLAY AT GAME\n"
+  "PRESS ESCAPE TO RESET GAME\n\n"
+  "AND PLAY AGAIN AT ELEVATED DIFFICULTY\n\n\n"
+  "%d SCORES THIS GAME"),
 
   _N("Welcome to Combat Vehicle!\n\n"
   "Controls:\n"
@@ -880,6 +891,39 @@ void FurnaceGUI::drawTutorial() {
       ImGui::CloseCurrentPopup();
     }
 
+#ifdef IS_MOBILE
+    ImGui::SameLine();
+    if (ImGui::Button(_("My config was reset!"))) {
+#ifndef _WIN32
+      String configPath1=e->getConfigPath();
+      makeDir("/storage/emulated/0/failedConfig");
+      DIR* dir=opendir(configPath1.c_str());
+      if (dir==NULL) {
+        showError(fmt::sprintf("Current config path is %s\nERROR - ERROR - ERROR\n%s",configPath1,strerror(errno)));
+      } else {
+        struct dirent* de;
+        String inPath, outPath;
+        while ((de=readdir(dir))!=NULL) {
+          if (de->d_type==DT_REG) {
+            inPath=configPath1+"/"+de->d_name;
+            outPath=String("/storage/emulated/0/failedConfig/")+String(de->d_name);
+
+            logV("copying %s",de->d_name);
+            if (!copyFiles(inPath.c_str(),outPath.c_str())) {
+              logV("ERROR!!! %s",strerror(errno));
+            }
+          }
+        }
+        closedir(dir);
+
+        showError(fmt::sprintf("Current config path is %s\nNow exporting last config to storage. Check it out for bug diagnosis.",configPath1));
+      }
+      tutorial.protoWelcome=true;
+      ImGui::CloseCurrentPopup();
+#endif
+    }
+#endif
+
     ImGui::SetWindowPos(ImVec2(
       (canvasW-ImGui::GetWindowSize().x)*0.5,
       (canvasH-ImGui::GetWindowSize().y)*0.5
@@ -1045,7 +1089,7 @@ void FurnaceGUI::drawTutorial() {
         oneQuarter=(oneQuarter*e->curSubSong->virtualTempoN)/e->curSubSong->virtualTempoD;
         oneQuarter/=e->curSubSong->hz;
         oneQuarter/=4;
-        if (cv->playSongs && e->getTotalSeconds()>=oneQuarter) {
+        if (cv->playSongs && e->getCurTime().seconds>=oneQuarter) {
           if (loadRandomDemoSong()) {
             cv->loadInstruments();
             e->changeSongP(0);
@@ -1313,7 +1357,7 @@ void FurnaceCV::buildStage(int which) {
     curStage=NULL;
   }
 
-  if (which>19 || which==4 || which==7 || which==9 || which==11 || which==13 || which==16 || which==17) {
+  if (which>18 || which==4 || which==7 || which==9 || which==11 || which==13 || which==16 || which==17) {
     stageWidth=80;
     stageHeight=56;
   } else {
@@ -1346,26 +1390,7 @@ void FurnaceCV::buildStage(int which) {
   memset(busy,0,28*40*sizeof(bool));
 
   // special stages
-  if ((which%10)==9) {
-    // vortex
-    for (int i=0; i<20+(which>>2); i++) {
-      int tries=0;
-      while (tries<20) {
-        int x=rand()%(stageWidth>>1);
-        int y=rand()%(stageHeight>>1);
-        int finalX=x<<4;
-        int finalY=y<<4;
-        if (busy[y][x]) {
-          tries++;
-          continue;
-        }
-        createObject<FurnaceCVEnemyVortex>(finalX,finalY);
-        createObject<FurnaceCVFurBallMedium>(finalX-4,finalY-4);
-        busy[y][x]=true;
-        break;
-      }
-    }
-  } else if ((which%10)==19) {
+  if ((which%20)==19) {
     for (int i=0; i<20+(which>>2); i++) {
       int tries=0;
       while (tries<20) {
@@ -1384,6 +1409,25 @@ void FurnaceCV::buildStage(int which) {
         busy[y][x+1]=true;
         busy[y+1][x]=true;
         busy[y+1][x+1]=true;
+        break;
+      }
+    }
+  } else if ((which%10)==9) {
+    // vortex
+    for (int i=0; i<20+(which>>2); i++) {
+      int tries=0;
+      while (tries<20) {
+        int x=rand()%(stageWidth>>1);
+        int y=rand()%(stageHeight>>1);
+        int finalX=x<<4;
+        int finalY=y<<4;
+        if (busy[y][x]) {
+          tries++;
+          continue;
+        }
+        createObject<FurnaceCVEnemyVortex>(finalX,finalY);
+        createObject<FurnaceCVFurBallMedium>(finalX-4,finalY-4);
+        busy[y][x]=true;
         break;
       }
     }
@@ -1658,7 +1702,8 @@ void FurnaceCV::render(unsigned char joyIn) {
             }
             memset(tile0,0,80*56*sizeof(short));
             memset(tile1,0,80*56*sizeof(short));
-            startTyping(_(cvText[3]),2,3);
+            snprintf(hiScoreText,511,_(cvText[3]),hiScore);
+            startTyping(hiScoreText,2,3);
             e->setConf("cvHiScore",hiScore);
             e->saveConf();
             curText=4;
@@ -1675,6 +1720,7 @@ void FurnaceCV::render(unsigned char joyIn) {
       lives+=lifeBank;
       respawnTime=1;
       lifeBank=0;
+      score=0;
       gameOver=false;
     }
 

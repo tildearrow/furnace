@@ -3528,20 +3528,20 @@ msgid "this is a system designed for testing purposes."
 msgstr "테스트 목적으로 설계된 시스템입니다."
 
 #: src/engine/engine.cpp:51
-msgid "00xy: Arpeggio"
-msgstr "00xy: 아르페지오"
+msgid "00xy: Arpeggio (x: semitones; y: semitones)"
+msgstr "00xy: 아르페지오 (x: 반음 수; y: 반음 수)"
 
 #: src/engine/engine.cpp:53
-msgid "01xx: Pitch slide up"
-msgstr "01xx: 피치 슬라이드 업"
+msgid "01xx: Pitch slide up (xx: speed)"
+msgstr "01xx: 피치 슬라이드 업 (xx: 속도)"
 
 #: src/engine/engine.cpp:55
-msgid "02xx: Pitch slide down"
-msgstr "02xx: 피치 슬라이드 다운"
+msgid "02xx: Pitch slide down (xx: speed)"
+msgstr "02xx: 피치 슬라이드 다운 (xx: 속도)"
 
 #: src/engine/engine.cpp:57
-msgid "03xx: Portamento"
-msgstr "03xx: 포르타멘토"
+msgid "03xx: Portamento (xx: speed)"
+msgstr "03xx: 포르타멘토 (xx: 속도)"
 
 #: src/engine/engine.cpp:59
 msgid "04xy: Vibrato (x: speed; y: depth)"
@@ -6709,16 +6709,16 @@ msgid "DSi (16MB RAM)"
 msgstr "DSi (16MB 램)"
 
 #: src/gui/sysConf.cpp:2496
-msgid "V 0.3.1"
+msgid "Initial release"
 msgstr "V 0.3.1"
 
 #: src/gui/sysConf.cpp:2500
-msgid "V 47.0.0 (9-bit volume)"
-msgstr "V 47.0.0 (9-bit 볼륨)"
+msgid "V 47.0.2 (9-bit volume)"
+msgstr "V 47.0.2 (9-bit 볼륨)"
 
 #: src/gui/sysConf.cpp:2504
-msgid "V 47.0.2 (Tri/Saw PW XOR)"
-msgstr "V 47.0.2 (삼각파/톱니파 PW XOR)"
+msgid "V 48.0.1 (Tri/Saw PW XOR)"
+msgstr "V 48.0.1 (삼각파/톱니파 PW XOR)"
 
 #: src/gui/sysConf.cpp:2529 src/gui/settings.cpp:731
 msgid "nothing to configure"

@@ -26,7 +26,6 @@
 #include "util.h"
 #include "guiConst.h"
 #include "intConst.h"
-#include "ImGuiFileDialog.h"
 #include "IconsFontAwesome4.h"
 #include "furIcons.h"
 #include "misc/cpp/imgui_stdlib.h"
@@ -82,7 +81,7 @@ const char* locales[][3]={
   {"한국어 (25%)", "ko", "이 설정을 적용하려면 Furnace를 다시 시작해야 합니다."},
   //{"Nederlands (4%)", "nl", "start Furnace opnieuw op om deze instelling effectief te maken."},
   {"Polski (95%)", "pl", "aby to ustawienie było skuteczne, należy ponownie uruchomić program."},
-  {"Português (Brasil) (90%)", "pt_BR", "reinicie o Furnace para que essa configuração entre em vigor."},
+  {"Português (Brasil) (70%)", "pt_BR", "reinicie o Furnace para que essa configuração entre em vigor."},
   {"Русский", "ru", "перезапустите программу, чтобы эта настройка вступила в силу."},
   {"Slovenčina (15%)", "sk", "???"},
   {"Svenska", "sv", "starta om programmet för att denna inställning ska träda i kraft."},
@@ -131,7 +130,10 @@ const char* patFonts[]={
 const char* audioBackends[]={
   "JACK",
   "SDL",
-  "PortAudio"
+  "PortAudio",
+  // pipe (invalid choice in GUI)
+  "Uhh, can you explain to me what exactly you were trying to do?",
+  "ASIO"
 };
 
 const char* audioQualities[]={
@@ -334,7 +336,7 @@ const char* specificControls[18]={
     bool _subInit=false; \
     ImVec2 settingsViewSize=ImGui::GetContentRegionAvail(); \
     settingsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y; \
-    if (ImGui::BeginChild("SettingsView",settingsViewSize,false))
+    if (ImGui::BeginChild("SettingsView",settingsViewSize,0))
 
 #define END_SECTION } \
   ImGui::EndChild(); \
@@ -854,15 +856,6 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
-        bool newPatternFormatB=settings.newPatternFormat;
-        if (ImGui::Checkbox(_("Use new pattern format when saving"),&newPatternFormatB)) {
-          settings.newPatternFormat=newPatternFormatB;
-          settingsChanged=true;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("use a packed format which saves space when saving songs.\ndisable if you need compatibility with older Furnace and/or tools\nwhich do not support this format."));
-        }
-
         bool noDMFCompatB=settings.noDMFCompat;
         if (ImGui::Checkbox(_("Don't apply compatibility flags when loading .dmf"),&noDMFCompatB)) {
           settings.noDMFCompat=noDMFCompatB;
@@ -1162,8 +1155,9 @@ void FurnaceGUI::drawSettings() {
           settings.newSongBehavior=1;
           settingsChanged=true;
         }
-        if (ImGui::InputText(_("Default author name"), &settings.defaultAuthorName)) settingsChanged=true;
         ImGui::Unindent();
+
+        if (ImGui::InputText(_("Default author name"),&settings.defaultAuthorName)) settingsChanged=true;
 
         // SUBSECTION START-UP
         CONFIG_SUBSECTION(_("Start-up"));
@@ -1230,6 +1224,14 @@ void FurnaceGUI::drawSettings() {
           settings.s3mOPL3=s3mOPL3B;
           settingsChanged=true;
         }
+        bool sampleImportInstDetuneB=settings.sampleImportInstDetune;
+        if (ImGui::Checkbox(_("Load sample fine tuning when importing a sample"),&sampleImportInstDetuneB)) {
+          settings.sampleImportInstDetune=sampleImportInstDetuneB;
+          settingsChanged=true;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("this may result in glitches with some samples."));
+        }
 
 #ifdef ANDROID
         // SUBSECTION ANDROID
@@ -1249,7 +1251,7 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::BeginTable("##Output",2)) {
           ImGui::TableSetupColumn("##Label",ImGuiTableColumnFlags_WidthFixed);
           ImGui::TableSetupColumn("##Combo",ImGuiTableColumnFlags_WidthStretch);
-#if defined(HAVE_JACK) || defined(HAVE_PA)
+#if defined(HAVE_JACK) || defined(HAVE_PA) || defined(HAVE_ASIO)
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
@@ -1270,6 +1272,12 @@ void FurnaceGUI::drawSettings() {
 #ifdef HAVE_PA
             if (ImGui::Selectable("PortAudio",settings.audioEngine==DIV_AUDIO_PORTAUDIO)) {
               settings.audioEngine=DIV_AUDIO_PORTAUDIO;
+              settingsChanged=true;
+            }
+#endif
+#ifdef HAVE_ASIO
+            if (ImGui::Selectable("ASIO",settings.audioEngine==DIV_AUDIO_ASIO)) {
+              settings.audioEngine=DIV_AUDIO_ASIO;
               settingsChanged=true;
             }
 #endif
@@ -1336,6 +1344,15 @@ void FurnaceGUI::drawSettings() {
                 }
               }
               ImGui::EndCombo();
+            }
+          }
+
+          if (settings.audioEngine==DIV_AUDIO_ASIO) {
+            ImGui::SameLine();
+            if (ImGui::Button(_("Control panel"))) {
+              if (e->audioBackendCommand(TA_AUDIO_CMD_SETUP)!=1) {
+                showError(_("this driver doesn't have a control panel."));
+              }
             }
           }
 
@@ -2175,7 +2192,7 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::Button(_("Reset defaults"))) {
           showWarning(_("Are you sure you want to reset the keyboard settings?"),GUI_WARN_RESET_KEYBINDS);
         }
-        if (ImGui::BeginChild("##HotkeysList",ImVec2(0,0),false,ImGuiWindowFlags_HorizontalScrollbar)) {
+        if (ImGui::BeginChild("##HotkeysList",ImVec2(0,0),0,ImGuiWindowFlags_HorizontalScrollbar)) {
           if (ImGui::TreeNode(_("Global hotkeys"))) {
             KEYBIND_CONFIG_BEGIN("keysGlobal");
 
@@ -2251,6 +2268,9 @@ void FurnaceGUI::drawSettings() {
             drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_EFFECT_LIST);
             drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_DEBUG);
             drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_CS_PLAYER);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_REF_PLAYER);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_TUNER);
+            drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_SPECTRUM);
             drawKeybindSettingsTableRow(GUI_ACTION_WINDOW_ABOUT);
             drawKeybindSettingsTableRow(GUI_ACTION_COLLAPSE_WINDOW);
             drawKeybindSettingsTableRow(GUI_ACTION_CLOSE_WINDOW);
@@ -3183,62 +3203,6 @@ void FurnaceGUI::drawSettings() {
           ImGui::SetTooltip(_("disable to save video memory."));
         }
 
-        bool loadJapaneseB=settings.loadJapanese;
-        if (ImGui::Checkbox(_("Display Japanese characters"),&loadJapaneseB)) {
-          settings.loadJapanese=loadJapaneseB;
-          settingsChanged=true;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_(
-            "Only toggle this option if you have enough graphics memory.\n"
-            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
-            "このオプションは、十分なグラフィックメモリがある場合にのみ切り替えてください。\n"
-            "これは、Dear ImGuiにダイナミックフォントアトラスが実装されるまでの一時的な解決策です。"
-          ));
-        }
-
-        bool loadChineseB=settings.loadChinese;
-        if (ImGui::Checkbox(_("Display Chinese (Simplified) characters"),&loadChineseB)) {
-          settings.loadChinese=loadChineseB;
-          settingsChanged=true;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_(
-            "Only toggle this option if you have enough graphics memory.\n"
-            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
-            "请在确保你有足够的显存后再启动此设定\n"
-            "这是一个在ImGui实现动态字体加载之前的临时解决方案"
-          ));
-        }
-
-        bool loadChineseTraditionalB=settings.loadChineseTraditional;
-        if (ImGui::Checkbox(_("Display Chinese (Traditional) characters"),&loadChineseTraditionalB)) {
-          settings.loadChineseTraditional=loadChineseTraditionalB;
-          settingsChanged=true;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_(
-            "Only toggle this option if you have enough graphics memory.\n"
-            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
-            "請在確保你有足夠的顯存后再啟動此設定\n"
-            "這是一個在ImGui實現動態字體加載之前的臨時解決方案"
-          ));
-        }
-
-        bool loadKoreanB=settings.loadKorean;
-        if (ImGui::Checkbox(_("Display Korean characters"),&loadKoreanB)) {
-          settings.loadKorean=loadKoreanB;
-          settingsChanged=true;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_(
-            "Only toggle this option if you have enough graphics memory.\n"
-            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
-            "그래픽 메모리가 충분한 경우에만 이 옵션을 선택하십시오.\n"
-            "이 옵션은 Dear ImGui에 동적 글꼴 아틀라스가 구현될 때까지 임시 솔루션입니다."
-          ));
-        }
-
         // SUBSECTION PROGRAM
         CONFIG_SUBSECTION(_("Program"));
         ImGui::Text(_("Title bar:"));
@@ -3895,10 +3859,47 @@ void FurnaceGUI::drawSettings() {
         // SUBSECTION SONG COMMENTS
         CONFIG_SUBSECTION(_("Song Comments"));
         bool songNotesWrapB=settings.songNotesWrap;
-        if (ImGui::Checkbox(_("Wrap text"), &songNotesWrapB)) {
+        if (ImGui::Checkbox(_("Wrap text"),&songNotesWrapB)) {
           settings.songNotesWrap=songNotesWrapB;
           settingsChanged=true;
         }
+
+        // SUBSECTION CHIP MANAGER
+        CONFIG_SUBSECTION(_("Chip Manager"));
+        bool rackShowLEDsB=settings.rackShowLEDs;
+        if (ImGui::Checkbox(_("Show channel indicators"),&rackShowLEDsB)) {
+          settings.rackShowLEDs=rackShowLEDsB;
+          settingsChanged=true;
+        }
+
+        // SUBSECTION MIXER
+        CONFIG_SUBSECTION(_("Mixer"))
+        ImGui::Text(_("Mixer layout:"));
+        ImGui::Indent();
+        if (ImGui::RadioButton(_("Horizontal##mixl0"),settings.mixerLayout==0)) {
+          settings.mixerLayout=0;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton(_("Vertical##mixl1"),settings.mixerLayout==1)) {
+          settings.mixerLayout=1;
+          settingsChanged=true;
+        }
+        ImGui::Unindent();
+        ImGui::Text(_("Mixer style:"));
+        ImGui::Indent();
+        if (ImGui::RadioButton(_("No volume meters"),settings.mixerStyle==0)) {
+          settings.mixerStyle=0;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton(_("Volume meters separate"),settings.mixerStyle==1)) {
+          settings.mixerStyle=1;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton(_("Volume meters in volume sliders"),settings.mixerStyle==2)) {
+          settings.mixerStyle=2;
+          settingsChanged=true;
+        }
+        ImGui::Unindent();
 
         // SUBSECTION WINDOWS
         CONFIG_SUBSECTION(_("Windows"));
@@ -4005,8 +4006,10 @@ void FurnaceGUI::drawSettings() {
             UI_COLOR_CONFIG(GUI_COLOR_TAB,_("Tab"));
             UI_COLOR_CONFIG(GUI_COLOR_TAB_HOVER,_("Tab (hovered)"));
             UI_COLOR_CONFIG(GUI_COLOR_TAB_ACTIVE,_("Tab (active)"));
-            UI_COLOR_CONFIG(GUI_COLOR_TAB_UNFOCUSED,_("Tab (unfocused)"));
-            UI_COLOR_CONFIG(GUI_COLOR_TAB_UNFOCUSED_ACTIVE,_("Tab (unfocused and active)"));
+            UI_COLOR_CONFIG(GUI_COLOR_TAB_SELECTED_OVERLINE,_("Tab (active overline)"));
+            UI_COLOR_CONFIG(GUI_COLOR_TAB_UNFOCUSED,_("Tab (dimmed)"));
+            UI_COLOR_CONFIG(GUI_COLOR_TAB_UNFOCUSED_ACTIVE,_("Tab (dimmed and active)"));
+            UI_COLOR_CONFIG(GUI_COLOR_TAB_DIMMED_SELECTED_OVERLINE,_("Tab (dimmed and active overline)"));
             UI_COLOR_CONFIG(GUI_COLOR_IMGUI_HEADER,_("ImGui header"));
             UI_COLOR_CONFIG(GUI_COLOR_IMGUI_HEADER_HOVER,_("ImGui header (hovered)"));
             UI_COLOR_CONFIG(GUI_COLOR_IMGUI_HEADER_ACTIVE,_("ImGui header (active)"));
@@ -4020,7 +4023,9 @@ void FurnaceGUI::drawSettings() {
             UI_COLOR_CONFIG(GUI_COLOR_SLIDER_GRAB_ACTIVE,_("Slider grab (active)"));
             UI_COLOR_CONFIG(GUI_COLOR_TITLE_BACKGROUND_ACTIVE,_("Title background (active)"));
             UI_COLOR_CONFIG(GUI_COLOR_CHECK_MARK,_("Checkbox/radio button mark"));
+            UI_COLOR_CONFIG(GUI_COLOR_TEXT_LINK,_("Text link"));
             UI_COLOR_CONFIG(GUI_COLOR_TEXT_SELECTION,_("Text selection"));
+            UI_COLOR_CONFIG(GUI_COLOR_TREE_LINES,_("Tree lines"));
             UI_COLOR_CONFIG(GUI_COLOR_PLOT_LINES,_("Line plot"));
             UI_COLOR_CONFIG(GUI_COLOR_PLOT_LINES_HOVER,_("Line plot (hovered)"));
             UI_COLOR_CONFIG(GUI_COLOR_PLOT_HISTOGRAM,_("Histogram plot"));
@@ -4060,6 +4065,7 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_DRAG_DROP_TARGET,_("Drag and drop target"));
           UI_COLOR_CONFIG(GUI_COLOR_NAV_WIN_HIGHLIGHT,_("Window switcher (highlight)"));
           UI_COLOR_CONFIG(GUI_COLOR_NAV_WIN_BACKDROP,_("Window switcher backdrop"));
+          UI_COLOR_CONFIG(GUI_COLOR_INPUT_TEXT_CURSOR,_("Text input cursor"));
           ImGui::TreePop();
         }
         if (ImGui::TreeNode(_("Miscellaneous"))) {
@@ -4077,6 +4083,7 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_FILE_SONG_IMPORT,_("Song (import)"));
           UI_COLOR_CONFIG(GUI_COLOR_FILE_INSTR,_("Instrument"));
           UI_COLOR_CONFIG(GUI_COLOR_FILE_AUDIO,_("Audio"));
+          UI_COLOR_CONFIG(GUI_COLOR_FILE_AUDIO_COMPRESSED,_("Audio (compressed)"));
           UI_COLOR_CONFIG(GUI_COLOR_FILE_WAVE,_("Wavetable"));
           UI_COLOR_CONFIG(GUI_COLOR_FILE_VGM,_("VGM"));
           UI_COLOR_CONFIG(GUI_COLOR_FILE_ZSM,_("ZSM"));
@@ -4171,6 +4178,16 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_MACRO_GLOBAL,_("Global Parameter"));
           UI_COLOR_CONFIG(GUI_COLOR_MACRO_OTHER,_("Other"));
           UI_COLOR_CONFIG(GUI_COLOR_MACRO_HIGHLIGHT,_("Step Highlight"));
+          ImGui::TreePop();
+        }
+        if (ImGui::TreeNode(_("Multi-instrument Play"))) {
+          UI_COLOR_CONFIG(GUI_COLOR_MULTI_INS_1,_("Second instrument"));
+          UI_COLOR_CONFIG(GUI_COLOR_MULTI_INS_2,_("Third instrument"));
+          UI_COLOR_CONFIG(GUI_COLOR_MULTI_INS_3,_("Fourth instrument"));
+          UI_COLOR_CONFIG(GUI_COLOR_MULTI_INS_4,_("Fifth instrument"));
+          UI_COLOR_CONFIG(GUI_COLOR_MULTI_INS_5,_("Sixth instrument"));
+          UI_COLOR_CONFIG(GUI_COLOR_MULTI_INS_6,_("Seventh instrument"));
+          UI_COLOR_CONFIG(GUI_COLOR_MULTI_INS_7,_("Eighth instrument"));
           ImGui::TreePop();
         }
         if (ImGui::TreeNode(_("Instrument Types"))) {
@@ -4334,6 +4351,7 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_NEEDLE,_("Preview needle"));
           UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_NEEDLE_PLAYING,_("Playing needles"));
           UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_LOOP_POINT,_("Loop markers"));
+          UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_LOOP_HINT,_("Valid loop position hints"));
           UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_CHIP_DISABLED,_("Chip select: disabled"));
           UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_CHIP_ENABLED,_("Chip select: enabled"));
           UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_CHIP_WARNING,_("Chip select: enabled (failure)"));
@@ -4398,6 +4416,12 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_MEMORY_BANK6,_("Sample (bank 6)"));
           UI_COLOR_CONFIG(GUI_COLOR_MEMORY_BANK7,_("Sample (bank 7)"));
 
+          ImGui::TreePop();
+        }
+        if (ImGui::TreeNode(_("Tuner"))) {
+          UI_COLOR_CONFIG(GUI_COLOR_TUNER_NEEDLE,_("Needle##tuner"));
+          UI_COLOR_CONFIG(GUI_COLOR_TUNER_SCALE_LOW,_("Scale center"));
+          UI_COLOR_CONFIG(GUI_COLOR_TUNER_SCALE_HIGH,_("Scale edges"));
           ImGui::TreePop();
         }
         if (ImGui::TreeNode(_("Log Viewer"))) {
@@ -4682,9 +4706,9 @@ void FurnaceGUI::drawSettings() {
         // "Debug" - toggles mobile UI
         // "Nice Amiga cover of the song!" - enables hidden systems (YMU759/Dummy)
         // "42 63" - enables all instrument types
-        // "4-bit FDS" - enables partial pitch linearity option
         // "Power of the Chip" - enables options for multi-threaded audio
         // "btcdbcb" - use modern UI padding
+        // "6-7" - OH PLEASE NO
         // "????" - enables stuff
         CONFIG_SECTION(_("Cheat Codes")) {
           // SUBSECTION ENTER CODE:
@@ -4719,10 +4743,6 @@ void FurnaceGUI::drawSettings() {
               mmlString[30]=_("enabled all instrument types");
               settings.displayAllInsTypes=!settings.displayAllInsTypes;
             }
-            if (checker==0x3f88abcc && checker1==0xf4a6) {
-              mmlString[30]=_("OK, if I bring your Partial pitch linearity will you stop bothering me?");
-              settings.displayPartial=1;
-            }
             if (checker==0x94222d83 && checker1==0x6600) {
               mmlString[30]=_("enabled \"comfortable\" mode");
               ImGuiStyle& sty=ImGui::GetStyle();
@@ -4730,6 +4750,22 @@ void FurnaceGUI::drawSettings() {
               sty.ItemSpacing=ImVec2(10.0f*dpiScale,10.0f*dpiScale);
               sty.ItemInnerSpacing=ImVec2(10.0f*dpiScale,10.0f*dpiScale);
               settingsOpen=false;
+            }
+            if (checker==0x2222225c && checker1==0x2d2) {
+              mmlString[30]=_("Oh my god... Kill me now so I don't have to go through that again!");
+              for (int i=0; i<e->getTotalChannelCount(); i++) {
+                for (int j=0; j<DIV_MAX_PATTERNS; j++) {
+                  if (e->curSubSong->pat[i].data[j]!=NULL) {
+                    DivPattern* p=e->curSubSong->pat[i].data[j];
+                    for (int k=0; k<DIV_MAX_ROWS; k++) {
+                      if (p->newData[k][DIV_PAT_NOTE]>=0 && p->newData[k][DIV_PAT_NOTE]<180) {
+                        int newNote=p->newData[k][DIV_PAT_NOTE]+(rand()%40)-18;
+                        p->newData[k][DIV_PAT_NOTE]=CLAMP(newNote,60,179);
+                      }
+                    }
+                  }
+                }
+              }
             }
 
             mmlString[31]="";
@@ -4894,7 +4930,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.sysFileDialog=conf.getInt("sysFileDialog",SYS_FILE_DIALOG_DEFAULT);
 #endif
     settings.displayAllInsTypes=conf.getInt("displayAllInsTypes",0);
-    settings.displayPartial=conf.getInt("displayPartial",0);
 
     settings.blankIns=conf.getInt("blankIns",0);
 
@@ -4914,7 +4949,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.noMaximizeWorkaround=conf.getInt("noMaximizeWorkaround",0);
 
     settings.compress=conf.getInt("compress",1);
-    settings.newPatternFormat=conf.getInt("newPatternFormat",1);
     settings.newSongBehavior=conf.getInt("newSongBehavior",0);
     settings.playOnLoad=conf.getInt("playOnLoad",0);
     settings.centerPopup=conf.getInt("centerPopup",1);
@@ -4923,6 +4957,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.vibrationLength=conf.getInt("vibrationLength",20);
 
     settings.s3mOPL3=conf.getInt("s3mOPL3",1);
+    settings.sampleImportInstDetune=conf.getInt("sampleImportInstDetune",0);
 
     settings.backupEnable=conf.getInt("backupEnable",1);
     settings.backupInterval=conf.getInt("backupInterval",30);
@@ -4941,6 +4976,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
       settings.audioEngine=DIV_AUDIO_JACK;
     } else if (conf.getString("audioEngine","SDL")=="PortAudio") {
       settings.audioEngine=DIV_AUDIO_PORTAUDIO;
+    } else if (conf.getString("audioEngine","SDL")=="ASIO") {
+      settings.audioEngine=DIV_AUDIO_ASIO;
     } else {
       settings.audioEngine=DIV_AUDIO_SDL;
     }
@@ -5054,10 +5091,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.headFontPath=conf.getString("headFontPath","");
     settings.patFontPath=conf.getString("patFontPath","");
 
-    settings.loadJapanese=conf.getInt("loadJapanese",0);
-    settings.loadChinese=conf.getInt("loadChinese",0);
-    settings.loadChineseTraditional=conf.getInt("loadChineseTraditional",0);
-    settings.loadKorean=conf.getInt("loadKorean",0);
     settings.loadFallback=conf.getInt("loadFallback",1);
     settings.loadFallbackPat=conf.getInt("loadFallbackPat",1);
 
@@ -5078,7 +5111,12 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.oscAntiAlias=conf.getInt("oscAntiAlias",1);
     settings.oscLineSize=conf.getFloat("oscLineSize",1.0f);
 
-    settings.songNotesWrap=conf.getInt("songNotesWrap", 0);
+    settings.songNotesWrap=conf.getInt("songNotesWrap",0);
+
+    settings.rackShowLEDs=conf.getInt("rackShowLEDs",1);
+
+    settings.mixerStyle=conf.getInt("mixerStyle",1);
+    settings.mixerLayout=conf.getInt("mixerLayout",0);
 
     settings.channelColors=conf.getInt("channelColors",1);
     settings.channelTextColors=conf.getInt("channelTextColors",0);
@@ -5225,7 +5263,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.headFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
   clampSetting(settings.iconSize,2,48);
-  clampSetting(settings.audioEngine,0,2);
+  clampSetting(settings.audioEngine,0,4);
   clampSetting(settings.audioQuality,0,1);
   clampSetting(settings.audioHiPass,0,1);
   clampSetting(settings.audioBufSize,32,4096);
@@ -5311,10 +5349,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.roundedMenus,0,1);
   clampSetting(settings.roundedTabs,0,1);
   clampSetting(settings.roundedScrollbars,0,1);
-  clampSetting(settings.loadJapanese,0,1);
-  clampSetting(settings.loadChinese,0,1);
-  clampSetting(settings.loadChineseTraditional,0,1);
-  clampSetting(settings.loadKorean,0,1);
   clampSetting(settings.loadFallback,0,1);
   clampSetting(settings.loadFallbackPat,0,1);
   clampSetting(settings.fmLayout,0,7);
@@ -5347,7 +5381,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.noMultiSystem,0,1);
   clampSetting(settings.oldMacroVSlider,0,1);
   clampSetting(settings.displayAllInsTypes,0,1);
-  clampSetting(settings.displayPartial,0,1);
   clampSetting(settings.noteCellSpacing,0,32);
   clampSetting(settings.insCellSpacing,0,32);
   clampSetting(settings.volCellSpacing,0,32);
@@ -5387,7 +5420,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.iCannotWait,0,1);
   clampSetting(settings.orderButtonPos,0,2);
   clampSetting(settings.compress,0,1);
-  clampSetting(settings.newPatternFormat,0,1);
   clampSetting(settings.renderClearPos,0,1);
   clampSetting(settings.insertBehavior,0,1);
   clampSetting(settings.pullDeleteRow,0,1);
@@ -5420,7 +5452,10 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.playbackTime,0,1);
   clampSetting(settings.shaderOsc,0,1);
   clampSetting(settings.oscLineSize,0.25f,16.0f);
-  clampSetting(settings.songNotesWrap, 0, 1);
+  clampSetting(settings.songNotesWrap,0,1);
+  clampSetting(settings.rackShowLEDs,0,1);
+  clampSetting(settings.mixerStyle,0,2);
+  clampSetting(settings.mixerLayout,0,1);
   clampSetting(settings.cursorWheelStep,0,2);
   clampSetting(settings.vsync,0,4);
   clampSetting(settings.frameRateLimit,0,1000);
@@ -5443,6 +5478,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.autoFillSave,0,1);
   clampSetting(settings.autoMacroStepSize,0,2);
   clampSetting(settings.s3mOPL3,0,1);
+  clampSetting(settings.sampleImportInstDetune,0,1);
   clampSetting(settings.backgroundPlay,0,1);
   clampSetting(settings.noMaximizeWorkaround,0,1);
 
@@ -5496,7 +5532,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("sysFileDialog",settings.sysFileDialog);
 #endif
     conf.set("displayAllInsTypes",settings.displayAllInsTypes);
-    conf.set("displayPartial",settings.displayPartial);
 
     conf.set("blankIns",settings.blankIns);
 
@@ -5516,7 +5551,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("noMaximizeWorkaround",settings.noMaximizeWorkaround);
 
     conf.set("compress",settings.compress);
-    conf.set("newPatternFormat",settings.newPatternFormat);
     conf.set("newSongBehavior",settings.newSongBehavior);
     conf.set("playOnLoad",settings.playOnLoad);
     conf.set("centerPopup",settings.centerPopup);
@@ -5525,6 +5559,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("vibrationLength",settings.vibrationLength);
 
     conf.set("s3mOPL3",settings.s3mOPL3);
+    conf.set("sampleImportInstDetune",settings.sampleImportInstDetune);
 
     conf.set("backupEnable",settings.backupEnable);
     conf.set("backupInterval",settings.backupInterval);
@@ -5643,10 +5678,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("headFontPath",settings.headFontPath);
     conf.set("patFontPath",settings.patFontPath);
 
-    conf.set("loadJapanese",settings.loadJapanese);
-    conf.set("loadChinese",settings.loadChinese);
-    conf.set("loadChineseTraditional",settings.loadChineseTraditional);
-    conf.set("loadKorean",settings.loadKorean);
     conf.set("loadFallback",settings.loadFallback);
     conf.set("loadFallbackPat",settings.loadFallbackPat);
 
@@ -5669,6 +5700,11 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("oscLineSize",settings.oscLineSize);
 
     conf.set("songNotesWrap",settings.songNotesWrap);
+
+    conf.set("rackShowLEDs",settings.rackShowLEDs);
+
+    conf.set("mixerStyle",settings.mixerStyle);
+    conf.set("mixerLayout",settings.mixerLayout);
 
     conf.set("channelColors",settings.channelColors);
     conf.set("channelTextColors",settings.channelTextColors);
@@ -5892,35 +5928,6 @@ void FurnaceGUI::commitSettings() {
   ImGui::GetIO().Fonts->Clear();
 
   applyUISettings();
-
-  if (rend) {
-    rend->destroyFontsTexture();
-    if (rend->areTexturesSquare()) {
-      ImGui::GetIO().Fonts->Flags|=ImFontAtlasFlags_Square;
-    }
-  }
-  if (!ImGui::GetIO().Fonts->Build()) {
-    logE("error while building font atlas!");
-    showError(_("error while loading fonts! please check your settings."));
-    ImGui::GetIO().Fonts->Clear();
-    mainFont=ImGui::GetIO().Fonts->AddFontDefault();
-    patFont=mainFont;
-    bigFont=mainFont;
-    headFont=mainFont;
-    if (rend) {
-      rend->destroyFontsTexture();
-      if (rend->areTexturesSquare()) {
-        ImGui::GetIO().Fonts->Flags|=ImFontAtlasFlags_Square;
-      }
-    }
-    if (!ImGui::GetIO().Fonts->Build()) {
-      logE("error again while building font atlas!");
-    } else {
-      rend->createFontsTexture();
-    }
-  } else {
-    rend->createFontsTexture();
-  }
 
   audioEngineChanged=false;
 }
@@ -6257,8 +6264,6 @@ void FurnaceGUI::popWarningColor() {
   }
 }
 
-#define IGFD_FileStyleByExtension IGFD_FileStyleByExtention
-
 #ifdef _WIN32
 #define SYSTEM_FONT_PATH_1 "C:\\Windows\\Fonts\\segoeui.ttf"
 #define SYSTEM_FONT_PATH_2 "C:\\Windows\\Fonts\\tahoma.ttf"
@@ -6454,11 +6459,14 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   sty.Colors[ImGuiCol_TableBorderStrong]=uiColors[GUI_COLOR_TABLE_BORDER_HARD];
   sty.Colors[ImGuiCol_TableBorderLight]=uiColors[GUI_COLOR_TABLE_BORDER_SOFT];
   sty.Colors[ImGuiCol_DragDropTarget]=uiColors[GUI_COLOR_DRAG_DROP_TARGET];
-  sty.Colors[ImGuiCol_NavHighlight]=uiColors[GUI_COLOR_NAV_HIGHLIGHT];
+  sty.Colors[ImGuiCol_NavCursor]=uiColors[GUI_COLOR_NAV_HIGHLIGHT];
   sty.Colors[ImGuiCol_NavWindowingHighlight]=uiColors[GUI_COLOR_NAV_WIN_HIGHLIGHT];
   sty.Colors[ImGuiCol_NavWindowingDimBg]=uiColors[GUI_COLOR_NAV_WIN_BACKDROP];
   sty.Colors[ImGuiCol_Text]=uiColors[GUI_COLOR_TEXT];
   sty.Colors[ImGuiCol_TextDisabled]=uiColors[GUI_COLOR_TEXT_DISABLED];
+
+  // new stuff
+  sty.Colors[ImGuiCol_InputTextCursor]=uiColors[GUI_COLOR_INPUT_TEXT_CURSOR];
 
   if (settings.basicColors) {
     sty.Colors[ImGuiCol_Button]=primary;
@@ -6466,9 +6474,11 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.Colors[ImGuiCol_ButtonActive]=primaryActive;
     sty.Colors[ImGuiCol_Tab]=primary;
     sty.Colors[ImGuiCol_TabHovered]=secondaryHover;
-    sty.Colors[ImGuiCol_TabActive]=secondarySemiActive;
-    sty.Colors[ImGuiCol_TabUnfocused]=primary;
-    sty.Colors[ImGuiCol_TabUnfocusedActive]=primaryHover;
+    sty.Colors[ImGuiCol_TabSelected]=secondarySemiActive;
+    sty.Colors[ImGuiCol_TabSelectedOverline]=secondaryActive;
+    sty.Colors[ImGuiCol_TabDimmed]=primary;
+    sty.Colors[ImGuiCol_TabDimmedSelected]=primaryHover;
+    sty.Colors[ImGuiCol_TabDimmedSelectedOverline]=primaryActive;
     sty.Colors[ImGuiCol_Header]=secondary;
     sty.Colors[ImGuiCol_HeaderHovered]=secondaryHover;
     sty.Colors[ImGuiCol_HeaderActive]=secondaryActive;
@@ -6482,7 +6492,9 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.Colors[ImGuiCol_SliderGrabActive]=primaryActive;
     sty.Colors[ImGuiCol_TitleBgActive]=primary;
     sty.Colors[ImGuiCol_CheckMark]=primaryActive;
+    sty.Colors[ImGuiCol_TextLink]=secondaryActive;
     sty.Colors[ImGuiCol_TextSelectedBg]=secondaryHoverActual;
+    sty.Colors[ImGuiCol_TreeLines]=uiColors[GUI_COLOR_BORDER];
     sty.Colors[ImGuiCol_PlotHistogram]=uiColors[GUI_COLOR_MACRO_OTHER];
     sty.Colors[ImGuiCol_PlotHistogramHovered]=uiColors[GUI_COLOR_MACRO_OTHER];
   } else {
@@ -6491,9 +6503,11 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.Colors[ImGuiCol_ButtonActive]=uiColors[GUI_COLOR_BUTTON_ACTIVE];
     sty.Colors[ImGuiCol_Tab]=uiColors[GUI_COLOR_TAB];
     sty.Colors[ImGuiCol_TabHovered]=uiColors[GUI_COLOR_TAB_HOVER];
-    sty.Colors[ImGuiCol_TabActive]=uiColors[GUI_COLOR_TAB_ACTIVE];
-    sty.Colors[ImGuiCol_TabUnfocused]=uiColors[GUI_COLOR_TAB_UNFOCUSED];
-    sty.Colors[ImGuiCol_TabUnfocusedActive]=uiColors[GUI_COLOR_TAB_UNFOCUSED_ACTIVE];
+    sty.Colors[ImGuiCol_TabSelected]=uiColors[GUI_COLOR_TAB_ACTIVE];
+    sty.Colors[ImGuiCol_TabSelectedOverline]=uiColors[GUI_COLOR_TAB_SELECTED_OVERLINE];
+    sty.Colors[ImGuiCol_TabDimmed]=uiColors[GUI_COLOR_TAB_UNFOCUSED];
+    sty.Colors[ImGuiCol_TabDimmedSelected]=uiColors[GUI_COLOR_TAB_UNFOCUSED_ACTIVE];
+    sty.Colors[ImGuiCol_TabDimmedSelectedOverline]=uiColors[GUI_COLOR_TAB_DIMMED_SELECTED_OVERLINE];
     sty.Colors[ImGuiCol_Header]=uiColors[GUI_COLOR_IMGUI_HEADER];
     sty.Colors[ImGuiCol_HeaderHovered]=uiColors[GUI_COLOR_IMGUI_HEADER_HOVER];
     sty.Colors[ImGuiCol_HeaderActive]=uiColors[GUI_COLOR_IMGUI_HEADER_ACTIVE];
@@ -6507,7 +6521,9 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.Colors[ImGuiCol_SliderGrabActive]=uiColors[GUI_COLOR_SLIDER_GRAB_ACTIVE];
     sty.Colors[ImGuiCol_TitleBgActive]=uiColors[GUI_COLOR_TITLE_BACKGROUND_ACTIVE];
     sty.Colors[ImGuiCol_CheckMark]=uiColors[GUI_COLOR_CHECK_MARK];
+    sty.Colors[ImGuiCol_TextLink]=uiColors[GUI_COLOR_TEXT_LINK];
     sty.Colors[ImGuiCol_TextSelectedBg]=uiColors[GUI_COLOR_TEXT_SELECTION];
+    sty.Colors[ImGuiCol_TreeLines]=uiColors[GUI_COLOR_TREE_LINES];
     sty.Colors[ImGuiCol_PlotLines]=uiColors[GUI_COLOR_PLOT_LINES];
     sty.Colors[ImGuiCol_PlotLinesHovered]=uiColors[GUI_COLOR_PLOT_LINES_HOVER];
     sty.Colors[ImGuiCol_PlotHistogram]=uiColors[GUI_COLOR_PLOT_HISTOGRAM];
@@ -6609,274 +6625,51 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     // prepare
 #ifdef HAVE_FREETYPE
     if (settings.fontBackend==1) {
-      ImGui::GetIO().Fonts->FontBuilderIO=ImGuiFreeType::GetBuilderForFreeType();
-      ImGui::GetIO().Fonts->FontBuilderFlags&=~(
-        ImGuiFreeTypeBuilderFlags_NoHinting|
-        ImGuiFreeTypeBuilderFlags_NoAutoHint|
-        ImGuiFreeTypeBuilderFlags_ForceAutoHint|
-        ImGuiFreeTypeBuilderFlags_LightHinting|
-        ImGuiFreeTypeBuilderFlags_MonoHinting|
-        ImGuiFreeTypeBuilderFlags_Bold|
-        ImGuiFreeTypeBuilderFlags_Oblique|
-        ImGuiFreeTypeBuilderFlags_Monochrome|
-        ImGuiFreeTypeBuilderFlags_LoadColor|
-        ImGuiFreeTypeBuilderFlags_Bitmap
+      ImGui::GetIO().Fonts->SetFontLoader(ImGuiFreeType::GetFontLoader());
+      ImGui::GetIO().Fonts->FontLoaderFlags&=~(
+        ImGuiFreeTypeLoaderFlags_NoHinting|
+        ImGuiFreeTypeLoaderFlags_NoAutoHint|
+        ImGuiFreeTypeLoaderFlags_ForceAutoHint|
+        ImGuiFreeTypeLoaderFlags_LightHinting|
+        ImGuiFreeTypeLoaderFlags_MonoHinting|
+        ImGuiFreeTypeLoaderFlags_Bold|
+        ImGuiFreeTypeLoaderFlags_Oblique|
+        ImGuiFreeTypeLoaderFlags_Monochrome|
+        ImGuiFreeTypeLoaderFlags_LoadColor|
+        ImGuiFreeTypeLoaderFlags_Bitmap
       );
 
-      if (!settings.fontAntiAlias) ImGui::GetIO().Fonts->FontBuilderFlags|=ImGuiFreeTypeBuilderFlags_Monochrome;
-      if (settings.fontBitmap) ImGui::GetIO().Fonts->FontBuilderFlags|=ImGuiFreeTypeBuilderFlags_Bitmap;
+      if (!settings.fontAntiAlias) ImGui::GetIO().Fonts->FontLoaderFlags|=ImGuiFreeTypeLoaderFlags_Monochrome;
+      if (settings.fontBitmap) ImGui::GetIO().Fonts->FontLoaderFlags|=ImGuiFreeTypeLoaderFlags_Bitmap;
 
       switch (settings.fontHinting) {
         case 0: // off
-          ImGui::GetIO().Fonts->FontBuilderFlags|=ImGuiFreeTypeBuilderFlags_NoHinting;
+          ImGui::GetIO().Fonts->FontLoaderFlags|=ImGuiFreeTypeLoaderFlags_NoHinting;
           break;
         case 1: // slight
-          ImGui::GetIO().Fonts->FontBuilderFlags|=ImGuiFreeTypeBuilderFlags_LightHinting;
+          ImGui::GetIO().Fonts->FontLoaderFlags|=ImGuiFreeTypeLoaderFlags_LightHinting;
           break;
         case 2: // normal
           break;
         case 3: // full
-          ImGui::GetIO().Fonts->FontBuilderFlags|=ImGuiFreeTypeBuilderFlags_MonoHinting;
+          ImGui::GetIO().Fonts->FontLoaderFlags|=ImGuiFreeTypeLoaderFlags_MonoHinting;
           break;
       }
 
       switch (settings.fontAutoHint) {
         case 0: // off
-          ImGui::GetIO().Fonts->FontBuilderFlags|=ImGuiFreeTypeBuilderFlags_NoAutoHint;
+          ImGui::GetIO().Fonts->FontLoaderFlags|=ImGuiFreeTypeLoaderFlags_NoAutoHint;
           break;
         case 1: // on
           break;
         case 2: // force
-          ImGui::GetIO().Fonts->FontBuilderFlags|=ImGuiFreeTypeBuilderFlags_ForceAutoHint;
+          ImGui::GetIO().Fonts->FontLoaderFlags|=ImGuiFreeTypeLoaderFlags_ForceAutoHint;
           break;
       }
     } else {
-      ImGui::GetIO().Fonts->FontBuilderIO=ImFontAtlasGetBuilderForStbTruetype();
+      ImGui::GetIO().Fonts->SetFontLoader(ImFontAtlasGetFontLoaderForStbTruetype());
     }
 #endif
-
-
-    // set to 800 for now due to problems with unifont
-    static const ImWchar upTo800[]={
-      // base
-      0x20,0x7e,0xa0,0x800,
-      // for "Display characters" and language choices
-      0x107, 0x107,
-      0x10d, 0x10d,
-      0x131, 0x131,
-      0x142, 0x142,
-      0x15f, 0x15f,
-      0x17c, 0x17c,
-      0x420, 0x420,
-      0x423, 0x423,
-      0x430, 0x430,
-      0x431, 0x431,
-      0x432, 0x432,
-      0x433, 0x433,
-      0x435, 0x435,
-      0x437, 0x437,
-      0x438, 0x438,
-      0x439, 0x439,
-      0x43a, 0x43a,
-      0x43b, 0x43b,
-      0x43c, 0x43c,
-      0x43d, 0x43d,
-      0x43e, 0x43e,
-      0x43f, 0x43f,
-      0x440, 0x440,
-      0x441, 0x441,
-      0x442, 0x442,
-      0x443, 0x443,
-      0x446, 0x446,
-      0x447, 0x447,
-      0x448, 0x448,
-      0x449, 0x449,
-      0x44b, 0x44b,
-      0x44c, 0x44c,
-      0x44d, 0x44d,
-      0x44f, 0x44f,
-      0x456, 0x456,
-      0x457, 0x457,
-      0x540, 0x540,
-      0x561, 0x561,
-      0x565, 0x565,
-      0x575, 0x575,
-      0x576, 0x576,
-      0x580, 0x580,
-      0xe17, 0xe17,
-      0xe22, 0xe22,
-      0xe44, 0xe44,
-      0x3001, 0x3001,
-      0x3002, 0x3002,
-      0x3042, 0x3042,
-      0x3044, 0x3044,
-      0x3048, 0x3048,
-      0x304c, 0x304c,
-      0x304f, 0x304f,
-      0x3053, 0x3053,
-      0x3055, 0x3055,
-      0x3059, 0x3059,
-      0x3060, 0x3060,
-      0x3066, 0x3066,
-      0x3067, 0x3067,
-      0x306a, 0x306a,
-      0x306b, 0x306b,
-      0x306e, 0x306e,
-      0x306f, 0x306f,
-      0x307e, 0x307e,
-      0x307f, 0x307f,
-      0x308a, 0x308a,
-      0x308b, 0x308b,
-      0x308c, 0x308c,
-      0x30a2, 0x30a2,
-      0x30a3, 0x30a3,
-      0x30a4, 0x30a4,
-      0x30a9, 0x30a9,
-      0x30aa, 0x30aa,
-      0x30af, 0x30af,
-      0x30b0, 0x30b0,
-      0x30b7, 0x30b7,
-      0x30b9, 0x30b9,
-      0x30c0, 0x30c0,
-      0x30c3, 0x30c3,
-      0x30c8, 0x30c8,
-      0x30ca, 0x30ca,
-      0x30d5, 0x30d5,
-      0x30d7, 0x30d7,
-      0x30df, 0x30df,
-      0x30e1, 0x30e1,
-      0x30e2, 0x30e2,
-      0x30e7, 0x30e7,
-      0x30e9, 0x30e9,
-      0x30ea, 0x30ea,
-      0x30f3, 0x30f3,
-      0x4e00, 0x4e00,
-      0x4e2a, 0x4e2a,
-      0x4e34, 0x4e34,
-      0x4e4b, 0x4e4b,
-      0x4f53, 0x4f53,
-      0x4f60, 0x4f60,
-      0x4fdd, 0x4fdd,
-      0x500b, 0x500b,
-      0x518d, 0x518d,
-      0x51b3, 0x51b3,
-      0x5206, 0x5206,
-      0x5207, 0x5207,
-      0x524d, 0x524d,
-      0x52a0, 0x52a0,
-      0x52a8, 0x52a8,
-      0x52d5, 0x52d5,
-      0x5341, 0x5341,
-      0x5408, 0x5408,
-      0x540e, 0x540e,
-      0x542f, 0x542f,
-      0x555f, 0x555f,
-      0x5728, 0x5728,
-      0x5834, 0x5834,
-      0x591f, 0x591f,
-      0x5920, 0x5920,
-      0x5b57, 0x5b57,
-      0x5b58, 0x5b58,
-      0x5b9a, 0x5b9a,
-      0x5b9e, 0x5b9e,
-      0x5b9f, 0x5b9f,
-      0x5be6, 0x5be6,
-      0x6001, 0x6001,
-      0x614b, 0x614b,
-      0x65b9, 0x65b9,
-      0x65e5, 0x65e5,
-      0x65f6, 0x65f6,
-      0x662f, 0x662f,
-      0x663e, 0x663e,
-      0x6642, 0x6642,
-      0x66ff, 0x66ff,
-      0x6709, 0x6709,
-      0x672c, 0x672c,
-      0x6848, 0x6848,
-      0x6b64, 0x6b64,
-      0x6c7a, 0x6c7a,
-      0x73b0, 0x73b0,
-      0x73fe, 0x73fe,
-      0x7684, 0x7684,
-      0x786e, 0x786e,
-      0x78ba, 0x78ba,
-      0x7b56, 0x7b56,
-      0x81e8, 0x81e8,
-      0x88c5, 0x88c5,
-      0x89e3, 0x89e3,
-      0x8a2d, 0x8a2d,
-      0x8a9e, 0x8a9e,
-      0x8acb, 0x8acb,
-      0x8bbe, 0x8bbe,
-      0x8bf7, 0x8bf7,
-      0x8db3, 0x8db3,
-      0x8f09, 0x8f09,
-      0x8f7d, 0x8f7d,
-      0x8fd9, 0x8fd9,
-      0x9019, 0x9019,
-      0x986f, 0x986f,
-      0x9ad4, 0x9ad4,
-      0xac00, 0xac00,
-      0xacbd, 0xacbd,
-      0xad6c, 0xad6c,
-      0xad6d, 0xad6d,
-      0xadf8, 0xadf8,
-      0xae00, 0xae00,
-      0xae4c, 0xae4c,
-      0xaf34, 0xaf34,
-      0xb2c8, 0xb2c8,
-      0xb2e4, 0xb2e4,
-      0xb3d9, 0xb3d9,
-      0xb420, 0xb420,
-      0xb54c, 0xb54c,
-      0xb77c, 0xb77c,
-      0xb798, 0xb798,
-      0xb824, 0xb824,
-      0xb8e8, 0xb8e8,
-      0xb97c, 0xb97c,
-      0xb9ac, 0xb9ac,
-      0xb9cc, 0xb9cc,
-      0xba54, 0xba54,
-      0xba74, 0xba74,
-      0xbaa8, 0xbaa8,
-      0xbd84, 0xbd84,
-      0xc120, 0xc120,
-      0xc124, 0xc124,
-      0xc158, 0xc158,
-      0xc194, 0xc194,
-      0xc2a4, 0xc2a4,
-      0xc2dc, 0xc2dc,
-      0xc2ed, 0xc2ed,
-      0xc544, 0xc544,
-      0xc57c, 0xc57c,
-      0xc5b4, 0xc5b4,
-      0xc5d0, 0xc5d0,
-      0xc624, 0xc624,
-      0xc635, 0xc635,
-      0xc6a9, 0xc6a9,
-      0xc6b0, 0xc6b0,
-      0xc740, 0xc740,
-      0xc744, 0xc744,
-      0xc774, 0xc774,
-      0xc784, 0xc784,
-      0xc785, 0xc785,
-      0xc791, 0xc791,
-      0xc801, 0xc801,
-      0xc815, 0xc815,
-      0xc9c0, 0xc9c0,
-      0xcda9, 0xcda9,
-      0xd0dd, 0xd0dd,
-      0xd2c0, 0xd2c0,
-      0xd53d, 0xd53d,
-      0xd558, 0xd558,
-      0xd55c, 0xd55c,
-      0xd569, 0xd569,
-      0xd574, 0xd574,
-      0xd604, 0xd604,
-      0
-    };
-    ImFontGlyphRangesBuilder range;
-    ImVector<ImWchar> outRange;
 
     ImFontConfig fontConf;
     ImFontConfig fontConfP;
@@ -6906,32 +6699,10 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     //fontConf.RasterizerMultiply=1.5;
     //fontConfP.RasterizerMultiply=1.5;
 
-    range.AddRanges(upTo800);
-    if (settings.loadJapanese || localeRequiresJapanese) {
-      range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesJapanese());
-    }
-    if (settings.loadChinese || localeRequiresChinese) {
-      range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesChineseSimplifiedCommon());
-    }
-    if (settings.loadChineseTraditional || localeRequiresChineseTrad) {
-      range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
-    }
-    if (settings.loadKorean || localeRequiresKorean) {
-      range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesKorean());
-    }
-    if (!localeExtraRanges.empty()) {
-      range.AddRanges(localeExtraRanges.data());
-    }
-    // I'm terribly sorry
-    range.UsedChars[0x80>>5]=0;
-
-    range.BuildRanges(&outRange);
-    if (fontRange!=NULL) delete[] fontRange;
-    fontRange=new ImWchar[outRange.size()];
-    int index=0;
-    for (ImWchar& i: outRange) {
-      fontRange[index++]=i;
-    }
+    fontConf.PixelSnapH=0;
+    fontConfP.PixelSnapH=0;
+    fontConfB.PixelSnapH=0;
+    fontConfH.PixelSnapH=0;
 
     if (settings.mainFont<0 || settings.mainFont>6) settings.mainFont=0;
     if (settings.headFont<0 || settings.headFont>6) settings.headFont=0;
@@ -6957,21 +6728,21 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     fc1.OversampleV=1;
 
     if (settings.mainFont==6) { // custom font
-      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.mainFontPath.c_str(),MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf,fontRange))==NULL) {
+      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.mainFontPath.c_str(),MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf))==NULL) {
         logW("could not load UI font! reverting to default font");
         settings.mainFont=GUI_MAIN_FONT_DEFAULT;
-        if ((mainFont=addFontZlib(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf,fontRange))==NULL) {
+        if ((mainFont=addFontZlib(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf))==NULL) {
           logE("could not load UI font! falling back to Proggy Clean.");
           mainFont=ImGui::GetIO().Fonts->AddFontDefault();
         }
       }
     } else if (settings.mainFont==5) { // system font
-      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_1,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf,fontRange))==NULL) {
-        if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_2,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf,fontRange))==NULL) {
-          if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_3,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf,fontRange))==NULL) {
+      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_1,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf))==NULL) {
+        if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_2,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf))==NULL) {
+          if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_3,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf))==NULL) {
             logW("could not load UI font! reverting to default font");
             settings.mainFont=GUI_MAIN_FONT_DEFAULT;
-            if ((mainFont=addFontZlib(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf,fontRange))==NULL) {
+            if ((mainFont=addFontZlib(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf))==NULL) {
               logE("could not load UI font! falling back to Proggy Clean.");
               mainFont=ImGui::GetIO().Fonts->AddFontDefault();
             }
@@ -6979,26 +6750,18 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
         }
       }
     } else {
-      if ((mainFont=addFontZlib(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf,fontRange))==NULL) {
+      if ((mainFont=addFontZlib(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf))==NULL) {
         logE("could not load UI font! falling back to Proggy Clean.");
         mainFont=ImGui::GetIO().Fonts->AddFontDefault();
       }
     }
 
     // four fallback fonts
-    if (settings.loadJapanese ||
-        settings.loadChinese ||
-        settings.loadChineseTraditional ||
-        settings.loadKorean ||
-        localeRequiresJapanese ||
-        localeRequiresChinese ||
-        localeRequiresChineseTrad ||
-        localeRequiresKorean ||
-        settings.loadFallback) {
-      mainFont=addFontZlib(font_plexSans_compressed_data,font_plexSans_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
-      mainFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
-      mainFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
-      mainFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
+    if (settings.loadFallback) {
+      mainFont=addFontZlib(font_plexSans_compressed_data,font_plexSans_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1);
+      mainFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1);
+      mainFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1);
+      mainFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1);
     }
 
     ImFontConfig fc;
@@ -7007,13 +6770,11 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     fc.OversampleV=1;
     fc.PixelSnapH=true;
     fc.GlyphMinAdvanceX=e->getConfInt("iconSize",16)*dpiScale;
-    static const ImWchar fontRangeIcon[]={ICON_MIN_FA,ICON_MAX_FA,0};
-    if ((iconFont=addFontZlib(iconFont_compressed_data,iconFont_compressed_size,MAX(1,e->getConfInt("iconSize",16)*dpiScale),&fc,fontRangeIcon))==NULL) {
+    if ((iconFont=addFontZlib(iconFont_compressed_data,iconFont_compressed_size,MAX(1,e->getConfInt("iconSize",16)*dpiScale),&fc))==NULL) {
       logE("could not load icon font!");
     }
 
-    static const ImWchar fontRangeFurIcon[]={ICON_MIN_FUR,ICON_MAX_FUR,0};
-    if ((furIconFont=addFontZlib(furIcons_compressed_data,furIcons_compressed_size,MAX(1,e->getConfInt("iconSize",16)*dpiScale),&fc,fontRangeFurIcon))==NULL) {
+    if ((furIconFont=addFontZlib(furIcons_compressed_data,furIcons_compressed_size,MAX(1,e->getConfInt("iconSize",16)*dpiScale),&fc))==NULL) {
       logE("could not load Furnace icons font!");
     }
 
@@ -7022,21 +6783,21 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
       patFont=mainFont;
     } else {
       if (settings.patFont==6) { // custom font
-        if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.patFontPath.c_str(),MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP,upTo800))==NULL) {
+        if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.patFontPath.c_str(),MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP))==NULL) {
           logW("could not load pattern font! reverting to default font");
           settings.patFont=GUI_PAT_FONT_DEFAULT;
-          if ((patFont=addFontZlib(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP,upTo800))==NULL) {
+          if ((patFont=addFontZlib(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP))==NULL) {
             logE("could not load pattern font! falling back to Proggy Clean.");
             patFont=ImGui::GetIO().Fonts->AddFontDefault();
           }
         }
       } else if (settings.patFont==5) { // system font
-        if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_1,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP,upTo800))==NULL) {
-          if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_2,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP,upTo800))==NULL) {
-            if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_3,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP,upTo800))==NULL) {
+        if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_1,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP))==NULL) {
+          if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_2,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP))==NULL) {
+            if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_3,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP))==NULL) {
               logW("could not load pattern font! reverting to default font");
               settings.patFont=GUI_PAT_FONT_DEFAULT;
-              if ((patFont=addFontZlib(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP,upTo800))==NULL) {
+              if ((patFont=addFontZlib(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP))==NULL) {
                 logE("could not load pattern font! falling back to Proggy Clean.");
                 patFont=ImGui::GetIO().Fonts->AddFontDefault();
               }
@@ -7044,7 +6805,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
           }
         }
       } else {
-        if ((patFont=addFontZlib(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP,upTo800))==NULL) {
+        if ((patFont=addFontZlib(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP))==NULL) {
           logE("could not load pattern font!");
           patFont=ImGui::GetIO().Fonts->AddFontDefault();
         }
@@ -7052,58 +6813,28 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     }
 
     // four fallback fonts
-    if (settings.loadFallbackPat && (settings.loadJapanese ||
-        settings.loadChinese ||
-        settings.loadChineseTraditional ||
-        settings.loadKorean ||
+    if (settings.loadFallbackPat && (
         localeRequiresJapanese ||
         localeRequiresChinese ||
         localeRequiresChineseTrad ||
         localeRequiresKorean)) {
-      patFont=addFontZlib(font_plexMono_compressed_data,font_plexMono_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1,fontRange);
-      patFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1,fontRange);
-      patFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1,fontRange);
-      patFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1,fontRange);
+      patFont=addFontZlib(font_plexMono_compressed_data,font_plexMono_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1);
+      patFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1);
+      patFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1);
+      patFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1);
     }
 
-    // 0x39B = Λ
-    // Հայերեն
-    // 한국어
-    // Русский
-    // č
-    // ń
-    // ไทย
-    static const ImWchar bigFontRange[]={0x20,0xFF,0x39b,0x39b,0x10d,0x10d,0x144,0x144,0x420,0x420,0x423,0x423,0x430,0x430,0x438,0x438,0x439,0x439,0x43a,0x43a,0x43d,0x43d,0x440,0x440,0x441,0x441,0x443,0x443,0x44c,0x44c,0x457,0x457,0x540,0x540,0x561,0x561,0x565,0x565,0x575,0x575,0x576,0x576,0x580,0x580,0xe17,0xe17,0xe22,0xe22,0xe44,0xe44,0x65e5,0x65e5,0x672c,0x672c,0x8a9e,0x8a9e,0xad6d,0xad6d,0xc5b4,0xc5b4,0xd55c,0xd55c,0};
-
-    ImFontGlyphRangesBuilder bigFontRangeB;
-    ImVector<ImWchar> outRangeB;
-
-    bigFontRangeB.AddRanges(bigFontRange);
-    if (!localeExtraRanges.empty()) {
-      bigFontRangeB.AddRanges(localeExtraRanges.data());
-    }
-    // I'm terribly sorry
-    bigFontRangeB.UsedChars[0x80>>5]=0;
-
-    bigFontRangeB.BuildRanges(&outRangeB);
-    if (fontRangeB!=NULL) delete[] fontRangeB;
-    fontRangeB=new ImWchar[outRangeB.size()];
-    index=0;
-    for (ImWchar& i: outRangeB) {
-      fontRangeB[index++]=i;
-    }
-
-    if ((bigFont=addFontZlib(font_plexSans_compressed_data,font_plexSans_compressed_size,MAX(1,40*dpiScale),&fontConfB,fontRangeB))==NULL) {
+    if ((bigFont=addFontZlib(font_plexSans_compressed_data,font_plexSans_compressed_size,MAX(1,40*dpiScale),&fontConfB))==NULL) {
       logE("could not load big UI font!");
     }
     fontConfB.MergeMode=true;
-    if ((bigFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,40*dpiScale),&fontConfB,fontRangeB))==NULL) {
+    if ((bigFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,40*dpiScale),&fontConfB))==NULL) {
       logE("could not load big UI font (japanese)!");
     }
-    if ((bigFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,40*dpiScale),&fontConfB,fontRangeB))==NULL) {
+    if ((bigFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,40*dpiScale),&fontConfB))==NULL) {
       logE("could not load big UI font (korean)!");
     }
-    if ((bigFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,40*dpiScale),&fontConfB,fontRangeB))==NULL) {
+    if ((bigFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,40*dpiScale),&fontConfB))==NULL) {
       logE("could not load big UI font (fallback)!");
     }
 
@@ -7112,130 +6843,143 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
       headFont=mainFont;
     } else {
       if (settings.headFont==6) { // custom font
-        if ((headFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.headFontPath.c_str(),MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH,upTo800))==NULL) {
+        if ((headFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.headFontPath.c_str(),MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH))==NULL) {
           logW("could not load header font! reverting to default font");
           settings.headFont=0;
-          if ((headFont=addFontZlib(builtinFont[settings.headFont],builtinFontLen[settings.headFont],MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH,upTo800))==NULL) {
+          if ((headFont=addFontZlib(builtinFont[settings.headFont],builtinFontLen[settings.headFont],MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH))==NULL) {
             logE("could not load header font! falling back to IBM Plex Sans.");
             headFont=ImGui::GetIO().Fonts->AddFontDefault();
           }
         }
       } else if (settings.headFont==5) { // system font
-        if ((headFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_HEAD_FONT_PATH_1,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH,upTo800))==NULL) {
-          if ((headFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_HEAD_FONT_PATH_2,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH,upTo800))==NULL) {
-            if ((headFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_HEAD_FONT_PATH_3,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH,upTo800))==NULL) {
+        if ((headFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_HEAD_FONT_PATH_1,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH))==NULL) {
+          if ((headFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_HEAD_FONT_PATH_2,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH))==NULL) {
+            if ((headFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_HEAD_FONT_PATH_3,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH))==NULL) {
               logW("could not load header font! reverting to default font");
               settings.headFont=0;
-              if ((headFont=addFontZlib(builtinFont[settings.headFont],builtinFontLen[settings.headFont],MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH,upTo800))==NULL) {
-                logE("could not load header font! falling back to IBM Plex Sans.");
+              if ((headFont=addFontZlib(builtinFont[settings.headFont],builtinFontLen[settings.headFont],MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH))==NULL) {
+                logE("could not load header font! falling back to fallback. wahahaha, get it? fallback.");
                 headFont=ImGui::GetIO().Fonts->AddFontDefault();
               }
             }
           }
         }
       } else {
-        if ((headFont=addFontZlib(builtinFont[settings.headFont],builtinFontLen[settings.headFont],MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH,upTo800))==NULL) {
+        if ((headFont=addFontZlib(builtinFont[settings.headFont],builtinFontLen[settings.headFont],MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fontConfH))==NULL) {
           logE("could not load header font!");
           headFont=ImGui::GetIO().Fonts->AddFontDefault();
         }
       }
     }
 
-    mainFont->FallbackChar='?';
-    mainFont->EllipsisChar='.';
-    mainFont->EllipsisCharCount=3;
+    // four fallback fonts
+    if (settings.loadFallback) {
+      headFont=addFontZlib(font_plexSans_compressed_data,font_plexSans_compressed_size,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fc1);
+      headFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fc1);
+      headFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fc1);
+      headFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),&fc1);
+    }
+
+    //mainFont->FallbackChar='?';
+    //mainFont->EllipsisChar='.';
+    //mainFont->EllipsisCharCount=3;
   } else if (updateFonts) {
     // safe mode
     mainFont=ImGui::GetIO().Fonts->AddFontDefault();
     patFont=mainFont;
     bigFont=mainFont;
     headFont=mainFont;
-
-    mainFont->FallbackChar='?';
-    mainFont->EllipsisChar='.';
-    mainFont->EllipsisCharCount=3;
   }
 
+  // set built-in file picker up (NEW)
+  newFilePicker->clearTypes();
 
-    ImGuiFileDialog::Instance()->okButtonString=_("OK");
-    ImGuiFileDialog::Instance()->cancelButtonString=_("Cancel");
-    ImGuiFileDialog::Instance()->searchString=_("Search");
-    ImGuiFileDialog::Instance()->dirEntryString=_("[Dir]");
-    ImGuiFileDialog::Instance()->linkEntryString=_("[Link]");
-    ImGuiFileDialog::Instance()->fileEntryString=_("[File]");
-    ImGuiFileDialog::Instance()->fileNameString=_("Name:");
-    ImGuiFileDialog::Instance()->dirNameString=_("Path:");
-    ImGuiFileDialog::Instance()->buttonResetSearchString=_("Reset search");
-    ImGuiFileDialog::Instance()->buttonDriveString=_("Drives");
-    ImGuiFileDialog::Instance()->buttonEditPathString=_("Edit path\nYou can also right click on path buttons");
-    ImGuiFileDialog::Instance()->buttonResetPathString=_("Go to home directory");
-    ImGuiFileDialog::Instance()->buttonParentDirString=_("Go to parent directory");
-    ImGuiFileDialog::Instance()->buttonCreateDirString=_("Create Directory");
-    ImGuiFileDialog::Instance()->tableHeaderFileNameString=_("File name");
-    ImGuiFileDialog::Instance()->tableHeaderFileTypeString=_("Type");
-    ImGuiFileDialog::Instance()->tableHeaderFileSizeString=_("Size");
-    ImGuiFileDialog::Instance()->tableHeaderFileDateString=_("Date");
-    ImGuiFileDialog::Instance()->OverWriteDialogTitleString=_("Warning");
-    ImGuiFileDialog::Instance()->OverWriteDialogMessageString=_("The file you selected already exists! Would you like to overwrite it?");
-    ImGuiFileDialog::Instance()->OverWriteDialogConfirmButtonString=_("Yes");
-    ImGuiFileDialog::Instance()->OverWriteDialogCancelButtonString=_("No");
-    ImGuiFileDialog::Instance()->DateTimeFormat=_("%Y/%m/%d %H:%M");
+  newFilePicker->setTypeStyle(FP_TYPE_UNKNOWN,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_QUESTION);
+  newFilePicker->setTypeStyle(FP_TYPE_NORMAL,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_FILE_O);
+  newFilePicker->setTypeStyle(FP_TYPE_DIR,uiColors[GUI_COLOR_FILE_DIR],ICON_FA_FOLDER_O);
+  newFilePicker->setTypeStyle(FP_TYPE_LINK,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_EXTERNAL_LINK);
+  newFilePicker->setTypeStyle(FP_TYPE_PIPE,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_EXCHANGE);
+  newFilePicker->setTypeStyle(FP_TYPE_SOCKET,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_PLUG);
+  newFilePicker->setTypeStyle(FP_TYPE_CHARDEV,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_MICROCHIP);
+  newFilePicker->setTypeStyle(FP_TYPE_BLOCKDEV,uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_HDD_O);
 
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeDir,"",uiColors[GUI_COLOR_FILE_DIR],ICON_FA_FOLDER_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeFile,"",uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_FILE_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fur",uiColors[GUI_COLOR_FILE_SONG_NATIVE],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fui",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fuw",uiColors[GUI_COLOR_FILE_WAVE],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmp",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmw",uiColors[GUI_COLOR_FILE_WAVE],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".wav",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmc",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".brr",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".vgm",uiColors[GUI_COLOR_FILE_VGM],ICON_FA_FILE_AUDIO_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".zsm",uiColors[GUI_COLOR_FILE_ZSM],ICON_FA_FILE_AUDIO_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ttf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".otf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ttc",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dfont",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fon",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".pcf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".psf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
+  newFilePicker->registerType(".fur",uiColors[GUI_COLOR_FILE_SONG_NATIVE],ICON_FA_FILE);
+  newFilePicker->registerType(".fui",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".dmp",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".fuw",uiColors[GUI_COLOR_FILE_WAVE],ICON_FA_FILE);
+  newFilePicker->registerType(".dmw",uiColors[GUI_COLOR_FILE_WAVE],ICON_FA_FILE);
 
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmf",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".mod",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".s3m",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".xm",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".it",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fc13",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fc14",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fc",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".smod",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ftm",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".0cc",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dnm",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".eft",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".wav",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".dmc",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".aiff",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".aifc",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".au",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".caf",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".iff",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".mat",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".w64",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".wve",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".rf64",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
 
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fub",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".brr",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".flac",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".m1a",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".mp1",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".mp2",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".mp3",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".oga",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".ogg",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".opus",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".pvf",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".voc",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".vox",uiColors[GUI_COLOR_FILE_AUDIO_COMPRESSED],ICON_FA_FILE_AUDIO_O);
 
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".tfi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".vgi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".s3i",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".sbi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".opli",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".opni",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".y12",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".bnk",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fti",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".bti",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ff",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".opm",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".vgm",uiColors[GUI_COLOR_FILE_VGM],ICON_FA_FILE_AUDIO_O);
+  newFilePicker->registerType(".zsm",uiColors[GUI_COLOR_FILE_ZSM],ICON_FA_FILE_AUDIO_O);
+
+  newFilePicker->registerType(".ttf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
+  newFilePicker->registerType(".otf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
+  newFilePicker->registerType(".ttc",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
+  newFilePicker->registerType(".dfont",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
+  newFilePicker->registerType(".fon",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
+  newFilePicker->registerType(".pcf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
+  newFilePicker->registerType(".psf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
+
+  newFilePicker->registerType(".dmf",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".mod",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".s3m",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".xm",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".it",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".fc13",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".fc14",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".fc",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".smod",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".ftm",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".0cc",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".dnm",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  newFilePicker->registerType(".eft",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+
+  newFilePicker->registerType(".fub",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+
+  newFilePicker->registerType(".tfi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".vgi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".s3i",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".sbi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".opli",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".opni",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".y12",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".bnk",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".fti",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".bti",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".ff",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  newFilePicker->registerType(".opm",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
 
   if (updateFonts) {
     if (fileDialog!=NULL) delete fileDialog;
 #ifdef FLATPAK_WORKAROUNDS
-    fileDialog=new FurnaceGUIFileDialog(false);
+    fileDialog=new FurnaceGUIFileDialog(false,newFilePicker);
 #else
-    fileDialog=new FurnaceGUIFileDialog(settings.sysFileDialog);
+    fileDialog=new FurnaceGUIFileDialog(settings.sysFileDialog,newFilePicker);
 #endif
 
     fileDialog->mobileUI=mobileUI;

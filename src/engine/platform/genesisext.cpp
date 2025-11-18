@@ -169,7 +169,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      if (parent->song.linearPitch==2) {
+      if (parent->song.linearPitch) {
         int destFreq=NOTE_FREQUENCY(c.value2);
         bool return2=false;
         if (destFreq>opChan[ch].baseFreq) {
@@ -203,14 +203,6 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       }
       break;
     }
-    case DIV_CMD_SAMPLE_BANK:
-      if (!parent->song.ignoreDACModeOutsideIntendedChannel) {
-        chan[5].sampleBank=c.value;
-        if (chan[5].sampleBank>(parent->song.sample.size()/12)) {
-          chan[5].sampleBank=parent->song.sample.size()/12;
-        }
-      }
-      break;
     case DIV_CMD_LEGATO: {
       if (opChan[ch].insChanged) {
         DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
@@ -656,7 +648,7 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
   unsigned char hardResetMask=0;
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
-      if (parent->song.linearPitch==2) {
+      if (parent->song.linearPitch) {
         opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,2,opChan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[extChanOffs].state.block);
       } else {
         int fNum=parent->calcFreq(opChan[i].baseFreq&0x7ff,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,2,opChan[i].pitch2);

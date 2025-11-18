@@ -26,16 +26,15 @@
 class TriggerAnalog {
   float *chanBuf;
 
-  unsigned long int triggerIndex;
+  unsigned short triggerIndex;
 
   bool triggered;
-  const unsigned long int bufferSize;
 
   public:
-    bool trigger(unsigned long int windowSize, float level, bool edge);
+    bool trigger(unsigned short windowSize, unsigned short readPos, float level, bool edge);
     bool getTriggered();
-    unsigned long int getTriggerIndex();
-    TriggerAnalog(float* cb, const unsigned long int bufS);
+    unsigned short getTriggerIndex();
+    TriggerAnalog(float* cb);
     ~TriggerAnalog();
 };
 

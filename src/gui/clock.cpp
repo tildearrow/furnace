@@ -104,10 +104,9 @@ void FurnaceGUI::drawClock() {
       }
     }
     if (clockShowTime) {
-      int totalTicks=e->getTotalTicks();
-      int totalSeconds=e->getTotalSeconds();
+      String timeFormatted=e->getCurTime().toString(2,TA_TIME_FORMAT_MS_ZERO);
       ImGui::PushFont(bigFont);
-      ImGui::Text("%.2d:%.2d.%.2d",(totalSeconds/60),totalSeconds%60,totalTicks/10000);
+      ImGui::TextUnformatted(timeFormatted.c_str());
       ImGui::PopFont();
     }
   }

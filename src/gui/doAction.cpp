@@ -143,16 +143,18 @@ void FurnaceGUI::doAction(int what) {
       }
       break;
     case GUI_ACTION_INS_UP:
-      if (--curIns<-1) {
-        curIns=-1;
+      setCurIns(curIns-1);
+      if (curIns<-1) {
+        setCurIns(-1);
       }
       wavePreviewInit=true;
       wantScrollListIns=true;
       updateFMPreview=true;
       break;
     case GUI_ACTION_INS_DOWN:
-      if (++curIns>=(int)e->song.ins.size()) {
-        curIns=((int)e->song.ins.size())-1;
+      setCurIns(curIns+1);
+      if (curIns>=(int)e->song.ins.size()) {
+        setCurIns(((int)e->song.ins.size())-1);
       }
       wavePreviewInit=true;
       wantScrollListIns=true;
@@ -222,6 +224,9 @@ void FurnaceGUI::doAction(int what) {
       }
       break;
     }
+    case GUI_ACTION_OPEN_EDIT_MENU:
+      openEditMenu=true;
+      break;
     case GUI_ACTION_PANIC:
       e->syncReset();
       break;
@@ -315,6 +320,12 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_NOTES:
       nextWindow=GUI_WINDOW_NOTES;
       break;
+    case GUI_ACTION_WINDOW_TUNER:
+      nextWindow=GUI_WINDOW_TUNER;
+      break;
+    case GUI_ACTION_WINDOW_SPECTRUM:
+      nextWindow=GUI_WINDOW_SPECTRUM;
+      break;
     case GUI_ACTION_WINDOW_CHANNELS:
       nextWindow=GUI_WINDOW_CHANNELS;
       break;
@@ -353,6 +364,12 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_WINDOW_USER_PRESETS:
       nextWindow=GUI_WINDOW_USER_PRESETS;
+      break;
+    case GUI_ACTION_WINDOW_REF_PLAYER:
+      nextWindow=GUI_WINDOW_REF_PLAYER;
+      break;
+    case GUI_ACTION_WINDOW_MULTI_INS_SETUP:
+      nextWindow=GUI_WINDOW_MULTI_INS_SETUP;
       break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
@@ -461,6 +478,19 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_USER_PRESETS:
           userPresetsOpen=false;
+          break;
+        case GUI_WINDOW_REF_PLAYER:
+          refPlayerOpen=false;
+          break;
+        case GUI_WINDOW_MULTI_INS_SETUP:
+          multiInsSetupOpen=false;
+          break;
+        case GUI_WINDOW_TUNER:
+          tunerOpen=false;
+          break;
+        case GUI_WINDOW_SPECTRUM:
+          spectrumOpen=false;
+          break;
         default:
           break;
       }
@@ -694,10 +724,10 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_PAT_LATCH: {
       DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][cursor.order],true);
-      latchIns=pat->data[cursor.y][2];
-      latchVol=pat->data[cursor.y][3];
-      latchEffect=pat->data[cursor.y][4];
-      latchEffectVal=pat->data[cursor.y][5];
+      latchIns=pat->newData[cursor.y][DIV_PAT_INS];
+      latchVol=pat->newData[cursor.y][DIV_PAT_VOL];
+      latchEffect=pat->newData[cursor.y][DIV_PAT_FX(0)];
+      latchEffectVal=pat->newData[cursor.y][DIV_PAT_FXVAL(0)];
       latchTarget=0;
       latchNibble=false;
       break;
@@ -729,7 +759,7 @@ void FurnaceGUI::doAction(int what) {
           break;
         }
       }
-      curIns=e->addInstrument(cursor.xCoarse);
+      setCurIns(e->addInstrument(cursor.xCoarse));
       if (curIns==-1) {
         showError(_("too many instruments!"));
       } else {
@@ -758,7 +788,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_INS_LIST_DUPLICATE:
       if (curIns>=0 && curIns<(int)e->song.ins.size()) {
         int prevIns=curIns;
-        curIns=e->addInstrument(cursor.xCoarse);
+        setCurIns(e->addInstrument(cursor.xCoarse));
         if (curIns==-1) {
           showError(_("too many instruments!"));
         } else {
@@ -810,13 +840,15 @@ void FurnaceGUI::doAction(int what) {
       insEditOpen=true;
       break;
     case GUI_ACTION_INS_LIST_UP:
-      if (--curIns<0) curIns=0;
+      setCurIns(curIns-1);
+      if (curIns<0) setCurIns(0);
       wantScrollListIns=true;
       wavePreviewInit=true;
       updateFMPreview=true;
       break;
     case GUI_ACTION_INS_LIST_DOWN:
-      if (++curIns>=(int)e->song.ins.size()) curIns=((int)e->song.ins.size())-1;
+      setCurIns(curIns+1);
+      if (curIns>=(int)e->song.ins.size()) setCurIns(((int)e->song.ins.size())-1);
       wantScrollListIns=true;
       wavePreviewInit=true;
       updateFMPreview=true;
@@ -924,16 +956,15 @@ void FurnaceGUI::doAction(int what) {
             if (sample!=NULL) {
               DivWavetable* wave=e->song.wave[curWave];
               unsigned int waveLen=wave->len;
-              sample->rate=(int)round(261.625565301*waveLen); // c3
               sample->centerRate=(int)round(261.625565301*waveLen); // c3
               sample->loopStart=0;
               sample->loopEnd=waveLen;
               sample->loop=true;
               sample->loopMode=DIV_SAMPLE_LOOP_FORWARD;
-              sample->depth=DIV_SAMPLE_DEPTH_8BIT;
+              sample->depth=DIV_SAMPLE_DEPTH_16BIT;
               if (sample->init(waveLen)) {
                 for (unsigned short i=0; i<waveLen; i++) {
-                  sample->data8[i]=((wave->data[i]*256)/(wave->max+1))-128;
+                  sample->data16[i]=((wave->data[i]*65535.0f)/(wave->max))-32768;
                 }
               }
             }
@@ -943,6 +974,7 @@ void FurnaceGUI::doAction(int what) {
           MARK_MODIFIED;
         }
         updateSampleTex=true;
+        notifySampleChange=true;
       }
       break;
     case GUI_ACTION_WAVE_LIST_MOVE_UP:
@@ -1000,6 +1032,7 @@ void FurnaceGUI::doAction(int what) {
         MARK_MODIFIED;
       }
       updateSampleTex=true;
+      notifySampleChange=true;
       break;
     case GUI_ACTION_SAMPLE_LIST_DUPLICATE:
       if (curSample>=0 && curSample<(int)e->song.sample.size()) {
@@ -1011,7 +1044,6 @@ void FurnaceGUI::doAction(int what) {
           e->lockEngine([this,prevSample]() {
             DivSample* sample=e->getSample(curSample);
             if (sample!=NULL) {
-              sample->rate=prevSample->rate;
               sample->centerRate=prevSample->centerRate;
               sample->name=prevSample->name;
               sample->loopStart=prevSample->loopStart;
@@ -1034,6 +1066,7 @@ void FurnaceGUI::doAction(int what) {
           MARK_MODIFIED;
         }
         updateSampleTex=true;
+        notifySampleChange=true;
       }
       break;
     case GUI_ACTION_SAMPLE_LIST_OPEN:
@@ -1059,6 +1092,7 @@ void FurnaceGUI::doAction(int what) {
         curSample--;
         wantScrollListSample=true;
         updateSampleTex=true;
+        notifySampleChange=true;
         MARK_MODIFIED;
       }
       break;
@@ -1067,6 +1101,7 @@ void FurnaceGUI::doAction(int what) {
         curSample++;
         wantScrollListSample=true;
         updateSampleTex=true;
+        notifySampleChange=true;
         MARK_MODIFIED;
       }
       break;
@@ -1078,6 +1113,7 @@ void FurnaceGUI::doAction(int what) {
         curSample--;
       }
       updateSampleTex=true;
+      notifySampleChange=true;
       break;
     case GUI_ACTION_SAMPLE_LIST_EDIT:
       sampleEditOpen=true;
@@ -1086,11 +1122,13 @@ void FurnaceGUI::doAction(int what) {
       if (--curSample<0) curSample=0;
       wantScrollListSample=true;
       updateSampleTex=true;
+      notifySampleChange=true;
       break;
     case GUI_ACTION_SAMPLE_LIST_DOWN:
       if (++curSample>=(int)e->song.sample.size()) curSample=((int)e->song.sample.size())-1;
       wantScrollListSample=true;
       updateSampleTex=true;
+      notifySampleChange=true;
       break;
     case GUI_ACTION_SAMPLE_LIST_PREVIEW:
       e->previewSample(curSample);
@@ -1180,6 +1218,7 @@ void FurnaceGUI::doAction(int what) {
       e->lockEngine([this,sample,start,end]() {
         sample->strip(start,end);
         updateSampleTex=true;
+        notifySampleChange=true;
 
         e->renderSamples(curSample);
       });
@@ -1232,6 +1271,7 @@ void FurnaceGUI::doAction(int what) {
       sampleSelStart=pos;
       sampleSelEnd=pos+sampleClipboardLen;
       updateSampleTex=true;
+      notifySampleChange=true;
       MARK_MODIFIED;
       break;
     }
@@ -1263,6 +1303,7 @@ void FurnaceGUI::doAction(int what) {
       sampleSelEnd=pos+sampleClipboardLen;
       if (sampleSelEnd>(int)sample->samples) sampleSelEnd=sample->samples;
       updateSampleTex=true;
+      notifySampleChange=true;
       MARK_MODIFIED;
       break;
     }
@@ -1300,6 +1341,7 @@ void FurnaceGUI::doAction(int what) {
       sampleSelEnd=pos+sampleClipboardLen;
       if (sampleSelEnd>(int)sample->samples) sampleSelEnd=sample->samples;
       updateSampleTex=true;
+      notifySampleChange=true;
       MARK_MODIFIED;
       break;
     }
@@ -1365,6 +1407,7 @@ void FurnaceGUI::doAction(int what) {
         }
 
         updateSampleTex=true;
+        notifySampleChange=true;
 
         e->renderSamples(curSample);
       });
@@ -1396,6 +1439,7 @@ void FurnaceGUI::doAction(int what) {
         }
 
         updateSampleTex=true;
+        notifySampleChange=true;
 
         e->renderSamples(curSample);
       });
@@ -1427,6 +1471,7 @@ void FurnaceGUI::doAction(int what) {
         }
 
         updateSampleTex=true;
+        notifySampleChange=true;
 
         e->renderSamples(curSample);
       });
@@ -1456,6 +1501,7 @@ void FurnaceGUI::doAction(int what) {
         }
 
         updateSampleTex=true;
+        notifySampleChange=true;
 
         e->renderSamples(curSample);
       });
@@ -1472,6 +1518,7 @@ void FurnaceGUI::doAction(int what) {
 
         sample->strip(start,end);
         updateSampleTex=true;
+        notifySampleChange=true;
 
         e->renderSamples(curSample);
       });
@@ -1490,6 +1537,7 @@ void FurnaceGUI::doAction(int what) {
 
         sample->trim(start,end);
         updateSampleTex=true;
+        notifySampleChange=true;
 
         e->renderSamples(curSample);
       });
@@ -1525,6 +1573,7 @@ void FurnaceGUI::doAction(int what) {
         }
 
         updateSampleTex=true;
+        notifySampleChange=true;
 
         e->renderSamples(curSample);
       });
@@ -1552,6 +1601,7 @@ void FurnaceGUI::doAction(int what) {
         }
 
         updateSampleTex=true;
+        notifySampleChange=true;
 
         e->renderSamples(curSample);
       });
@@ -1577,6 +1627,7 @@ void FurnaceGUI::doAction(int what) {
         }
 
         updateSampleTex=true;
+        notifySampleChange=true;
 
         e->renderSamples(curSample);
       });
@@ -1684,7 +1735,7 @@ void FurnaceGUI::doAction(int what) {
       }
 
       DivSample* sample=e->song.sample[curSample];
-      curIns=e->addInstrument(cursor.xCoarse);
+      setCurIns(e->addInstrument(cursor.xCoarse));
       if (curIns==-1) {
         showError(_("too many instruments!"));
       } else {
@@ -1710,6 +1761,7 @@ void FurnaceGUI::doAction(int what) {
         sample->loopEnd=end;
         sample->loop=true;
         updateSampleTex=true;
+        notifySampleChange=true;
 
         e->renderSamples(curSample);
       });

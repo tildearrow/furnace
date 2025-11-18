@@ -151,8 +151,10 @@ the following feature codes are recognized:
 - `N1`: Namco 163 ins data
 - `FD`: FDS/Virtual Boy ins data
 - `WS`: wavetable synth data
-- `SL`: list of samples
-- `WL`: list of wavetables
+- `SL`: list of samples (<233)
+- `WL`: list of wavetables (<233)
+- `LS`: list of samples (>=233)
+- `LW`: list of wavetables (>=233)
 - `MP`: MultiPCM ins data
 - `SU`: Sound Unit ins data
 - `ES`: ES5506 ins data
@@ -555,7 +557,7 @@ size | description
   1  | parameter 4
 ```
 
-# list of samples (SL)
+# old list of samples (SL) (<233)
 
 ```
 size | description
@@ -566,13 +568,35 @@ size | description
      | - these use the Furnace sample format.
 ```
 
-# list of wavetables (WL)
+# old list of wavetables (WL) (<233)
 
 ```
 size | description
 -----|------------------------------------
   1  | number of wavetables
  1?? | wavetable indexes...
+ 4?? | pointers to wavetables...
+     | - these use the Furnace wavetable format.
+```
+
+# new list of samples (LS) (>=233)
+
+```
+size | description
+-----|------------------------------------
+  2  | number of samples
+ 2?? | sample indexes...
+ 4?? | pointers to samples...
+     | - these use the Furnace sample format.
+```
+
+# new list of wavetables (LW) (>=233)
+
+```
+size | description
+-----|------------------------------------
+  2  | number of wavetables
+ 2?? | wavetable indexes...
  4?? | pointers to wavetables...
      | - these use the Furnace wavetable format.
 ```

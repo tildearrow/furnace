@@ -26,14 +26,13 @@ class DivPlatformMMC5: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
     int prevFreq;
     unsigned char duty, sweep;
-    bool sweepChanged, furnaceDac, setPos;
+    bool sweepChanged, setPos;
     Channel():
       SharedChannel<signed char>(15),
       prevFreq(65535),
       duty(0),
       sweep(8),
       sweepChanged(false),
-      furnaceDac(false),
       setPos(false) {}
   };
   Channel chan[5];
@@ -49,7 +48,6 @@ class DivPlatformMMC5: public DivDispatch {
   int dacPeriod, dacRate;
   unsigned int dacPos;
   int dacSample;
-  unsigned char sampleBank;
   unsigned char writeOscBuf;
   struct _mmc5* mmc5;
   unsigned char regPool[128];

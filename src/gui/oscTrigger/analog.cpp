@@ -24,23 +24,20 @@
 
 #define CHECK_TRIGGERED foundTrigger=triggerLow&&triggerHigh
 
-TriggerAnalog::TriggerAnalog(float* cb, unsigned long int bufS):
+TriggerAnalog::TriggerAnalog(float* cb):
   chanBuf(cb),
-  bufferSize(bufS) {
-  triggerIndex = 0;
+  triggerIndex(0),
+  triggered(false) {}
 
-  triggered = true;
-}
-
-bool TriggerAnalog::trigger(unsigned long int windowSize, float level, bool edge) {
+bool TriggerAnalog::trigger(unsigned short windowSize, unsigned short readPos, float level, bool edge) {
   if (!chanBuf) return false;
   triggered = false;
   // locate trigger
   bool triggerHigh = false, triggerLow = false, foundTrigger = false;
-  triggerIndex = bufferSize - windowSize;
+  triggerIndex = 32768 - windowSize;
   while (triggerIndex) {
     triggerIndex--;
-    float cur = chanBuf[triggerIndex + windowSize/2];
+    float cur = chanBuf[(triggerIndex + windowSize/2 + readPos)&0x7fff];
     if (cur < level) {
       triggerLow = true;
       CHECK_TRIGGERED;
@@ -51,9 +48,9 @@ bool TriggerAnalog::trigger(unsigned long int windowSize, float level, bool edge
       CHECK_TRIGGERED;
       if (foundTrigger && edge) break;
     }
-    if (triggerIndex < bufferSize - 2 * windowSize) return false; // out of window
+    if (triggerIndex < 32768 - 2 * windowSize) return false; // out of window
   }
-
+  triggerIndex = (triggerIndex + readPos)&0x7fff;
   triggered = true;
   return true;
 }
@@ -62,7 +59,7 @@ bool TriggerAnalog::getTriggered() {
   return triggered;
 }
 
-unsigned long int TriggerAnalog::getTriggerIndex() {
+unsigned short TriggerAnalog::getTriggerIndex() {
   return triggerIndex;
 }
 

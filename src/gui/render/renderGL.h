@@ -66,10 +66,8 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
     void setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode);
     void setBlendMode(FurnaceGUIBlendMode mode);
     void clear(ImVec4 color);
-    bool newFrame();
+    void newFrame();
     bool canVSync();
-    void createFontsTexture();
-    void destroyFontsTexture();
     void renderGUI();
     void wipe(float alpha);
     void drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color, ImVec2 canvasSize, float lineWidth, float zoom);

@@ -87,3 +87,7 @@ std::string taDecodeBase64(const char* buf) {
 
   return data;
 }
+
+std::string taDecodeBase64(const std::string& str) {
+  return taDecodeBase64(str.c_str());
+}

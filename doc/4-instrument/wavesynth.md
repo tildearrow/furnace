@@ -14,7 +14,7 @@ input waveforms should match the size of the wavetable or unexpected results may
 - synthesizer type: selects the synthesis algorithm.
 - waveform displays.
 - **Wave 1**: selects input waveform.
-  - this will turn yellow to indicate that a Waveform macro is set.
+  - this will turn yellow and display a warning sign to indicate that a Waveform macro is set, which will override the wavesynth.
 - **Wave 2**: selects second input waveform. only appears when a dual-waveform synthesizer is selected.
 - **Pause preview**: toggles live waveform preview.
 - **Restart preview**: restarts preview from initial state.

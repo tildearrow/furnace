@@ -386,13 +386,13 @@ int DivPlatformN163::dispatch(DivCommand c) {
       int destFreq=destFreqD;
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
-        chan[c.chan].baseFreq+=c.value*((parent->song.linearPitch==2)?1:16);
+        chan[c.chan].baseFreq+=c.value*((parent->song.linearPitch)?1:16);
         if (chan[c.chan].baseFreq>=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
         }
       } else {
-        chan[c.chan].baseFreq-=c.value*((parent->song.linearPitch==2)?1:16);
+        chan[c.chan].baseFreq-=c.value*((parent->song.linearPitch)?1:16);
         if (chan[c.chan].baseFreq<=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;

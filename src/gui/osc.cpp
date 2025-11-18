@@ -57,13 +57,13 @@ void FurnaceGUI::readOsc() {
       oscValues[ch]=new float[2048];
     }
     if (trigger[ch]==NULL) {
-      trigger[ch]=new TriggerAnalog(e->oscBuf[ch], 32768);
+      trigger[ch]=new TriggerAnalog(e->oscBuf[ch]);
     }
     
-    if (triggerState>0 && trigger[ch]->trigger(winSize, triggerLevel, triggerState-1)) {
-      oscReadPos=trigger[ch]->getTriggerIndex()+2;
+    if (triggerState>0 && trigger[ch]->trigger(winSize,(writePos-winSize)&0x7fff,triggerLevel,triggerState-1)) {
+      oscReadPos=trigger[ch]->getTriggerIndex();
     } else {
-      oscReadPos=32767-winSize;
+      oscReadPos=(writePos-winSize)&0x7fff;
     }
     memset(oscValues[ch],0,2048*sizeof(float));
     float* sincITable=DivFilterTables::getSincIntegralSmallTable();
@@ -138,8 +138,8 @@ void FurnaceGUI::readOsc() {
       WAKE_UP;
     }
     float newPeak=peak[i];
-    for (int j=0; j<oscTotal; j++) {
-      int pos=(32768-oscTotal+j)&0x7fff;
+    for (int j=0; j<total; j++) {
+      int pos=(readPos+j)&0x7fff;
       if (fabs(e->oscBuf[i][pos])>newPeak) {
         newPeak=fabs(e->oscBuf[i][pos]);
       }
@@ -147,8 +147,8 @@ void FurnaceGUI::readOsc() {
     peak[i]+=(newPeak-peak[i])*0.9;
   }
 
-  // readPos=(readPos+total)&0x7fff;
-  e->oscReadPos=oscReadPos&0x7fff;
+  readPos=(readPos+total)&0x7fff;
+  e->oscReadPos=readPos;
 }
 
 PendingDrawOsc _do;
