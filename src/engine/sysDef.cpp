@@ -2431,9 +2431,8 @@ void DivEngine::registerSystems() {
     }
   );
 
-  // TODO: increase channel limit.
   sysDefs[DIV_SYSTEM_PCM_DAC]=new DivSysDef(
-    _("Generic PCM DAC"), NULL, 0xc0, 0, 1, 1, 1,
+    _("Generic PCM DAC"), NULL, 0xc0, 0, 1, 1, 128,
     false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_16BIT, 0, 256,
     _("as generic sample playback as it gets."),
     DivChanDefFunc(stockChanDef<DIV_CH_PCM,DIV_INS_AMIGA>),

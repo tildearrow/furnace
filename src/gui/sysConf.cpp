@@ -1953,6 +1953,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       int bitDepth=flags.getInt("outDepth",15)+1;
       int interpolation=flags.getInt("interpolation",0);
       int volMax=flags.getInt("volMax",255);
+      float volMult=flags.getFloat("volMult",1.0f);
       bool stereo=flags.getBool("stereo",false);
 
       ImGui::Text(_("Output rate:"));
@@ -1976,6 +1977,13 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       if (ImGui::Checkbox(_("Stereo"),&stereo)) {
         altered=true;
       }
+
+      ImGui::Text(_("Volume multiplier:"));
+      if (CWSliderFloat("##VolMult",&volMult,0.0f,1.0f)) {
+        if (volMult<0.0f) volMult=0.0f;
+        if (volMult>1.0f) volMult=1.0f;
+        altered=true;
+      } rightClickable
 
       ImGui::Text(_("Interpolation:"));
       ImGui::Indent();
@@ -2004,6 +2012,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           flags.set("stereo",stereo);
           flags.set("interpolation",interpolation);
           flags.set("volMax",volMax);
+          flags.set("volMult",volMult);
         });
       }
       break;

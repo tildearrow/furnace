@@ -319,7 +319,7 @@ float FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOff
       y+=ledSize.y+sep.y;
     }
     ImVec4 color=uiColors[GUI_COLOR_CHANNEL_BG];
-    if (i<whichDef->channels) color=uiColors[chanDef.type+GUI_COLOR_CHANNEL_FM];
+    if (i<whichDef->maxChans) color=uiColors[chanDef.type+GUI_COLOR_CHANNEL_FM];
     if (keyHitOffset>=0) {
       if (e->isChannelMuted(keyHitOffset+i)) {
         color=uiColors[GUI_COLOR_CHANNEL_MUTED];
