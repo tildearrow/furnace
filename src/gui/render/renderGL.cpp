@@ -103,6 +103,7 @@ const char* sh_oscRender_srcF=
   "uniform vec4 uColor;\n"
   "uniform vec2 uResolution;\n"
   "uniform float uLineWidth;\n"
+  "uniform float uZoom;\n" // ima stupid someone pls implement it
   "uniform sampler2D oscVal;\n"
   "varying vec2 fur_fragCoord;\n"
   "const float oneStep=1.0/2048.0;\n"
@@ -180,6 +181,7 @@ const char* sh_oscRender_srcF=
   "uniform vec4 uColor;\n"
   "uniform vec2 uResolution;\n"
   "uniform float uLineWidth;\n"
+  "uniform float uZoom;\n" // ima stupid someone pls implement it
   "uniform sampler1D oscVal;\n"
   "in vec2 fur_fragCoord;\n"
   "out vec4 fur_FragColor;\n"
@@ -432,7 +434,7 @@ void FurnaceGUIRenderGL::wipe(float alpha) {
   C(glDrawArrays(GL_TRIANGLE_STRIP,0,4));
 }
 
-void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color, ImVec2 canvasSize, float lineWidth) {
+void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color, ImVec2 canvasSize, float lineWidth, float zoom) {
   if (!sh_oscRender_have) return;
   if (!furUseProgram) return;
   if (!furUniform4fv) return;
@@ -519,6 +521,13 @@ void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 po
     C(furUniform1f(sh_oscRender_uLineWidth,lineWidth));
   } else {
     C(furUniform1f(sh_oscRender_uLineWidth,0.5+lineWidth*0.5));
+  }
+  if (zoom<0.5f) {
+    C(furUniform1f(sh_oscRender_uZoom,0.5f));
+  } else if (zoom>2.0f) {
+    C(furUniform1f(sh_oscRender_uZoom,2.0f));
+  } else {
+    C(furUniform1f(sh_oscRender_uZoom,zoom));
   }
   C(furUniform2f(sh_oscRender_uResolution,2048.0f,height));
   C(furUniform1i(sh_oscRender_oscVal,0));
@@ -744,6 +753,7 @@ bool FurnaceGUIRenderGL::init(SDL_Window* win, int swapInterval) {
   if ((sh_oscRender_have=createShader(sh_oscRender_srcV,sh_oscRender_srcF,sh_oscRender_vertex,sh_oscRender_fragment,sh_oscRender_program,sh_oscRender_attrib))==true) {
     sh_oscRender_uColor=furGetUniformLocation(sh_oscRender_program,"uColor");
     sh_oscRender_uLineWidth=furGetUniformLocation(sh_oscRender_program,"uLineWidth");
+    sh_oscRender_uZoom=furGetUniformLocation(sh_oscRender_program,"uZoom");
     sh_oscRender_uResolution=furGetUniformLocation(sh_oscRender_program,"uResolution");
     sh_oscRender_oscVal=furGetUniformLocation(sh_oscRender_program,"oscVal");
   }
@@ -756,6 +766,7 @@ bool FurnaceGUIRenderGL::init(SDL_Window* win, int swapInterval) {
     if ((sh_oscRender_have=createShader(sh_oscRender_srcV,sh_oscRender_srcF,sh_oscRender_vertex,sh_oscRender_fragment,sh_oscRender_program,sh_oscRender_attrib))==true) {
       sh_oscRender_uColor=furGetUniformLocation(sh_oscRender_program,"uColor");
       sh_oscRender_uLineWidth=furGetUniformLocation(sh_oscRender_program,"uLineWidth");
+      sh_oscRender_uZoom=furGetUniformLocation(sh_oscRender_program,"uZoom");
       sh_oscRender_uResolution=furGetUniformLocation(sh_oscRender_program,"uResolution");
       sh_oscRender_oscVal=furGetUniformLocation(sh_oscRender_program,"oscVal");
     }

@@ -42,6 +42,7 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
   int sh_oscRender_program;
   int sh_oscRender_uColor;
   int sh_oscRender_uLineWidth;
+  int sh_oscRender_uZoom;
   int sh_oscRender_uResolution;
   int sh_oscRender_oscVal;
   bool sh_oscRender_have;
@@ -71,7 +72,7 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
     void destroyFontsTexture();
     void renderGUI();
     void wipe(float alpha);
-    void drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color, ImVec2 canvasSize, float lineWidth);
+    void drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color, ImVec2 canvasSize, float lineWidth, float zoom);
     void present();
     bool getOutputSize(int& w, int& h);
     bool supportsDrawOsc();

@@ -162,7 +162,7 @@ static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
 }
 
 void FurnaceGUI::runPendingDrawOsc(PendingDrawOsc* which) {
-  rend->drawOsc(which->data,which->len,which->pos0,which->pos1,which->color,ImVec2(canvasW,canvasH),which->lineSize);
+  rend->drawOsc(which->data,which->len,which->pos0,which->pos1,which->color,ImVec2(canvasW,canvasH),which->lineSize,which->zoom);
 }
 
 void FurnaceGUI::drawOsc() {
@@ -354,13 +354,14 @@ void FurnaceGUI::drawOsc() {
             _do.pos1=inRect.Max;
             _do.color=isClipping?uiColors[GUI_COLOR_OSC_WAVE_PEAK]:uiColors[GUI_COLOR_OSC_WAVE];
             _do.lineSize=dpiScale*settings.oscLineSize;
+            _do.zoom=oscZoom;
 
             dl->AddCallback(_drawOsc,&_do);
             dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
           } else {
             for (int i=0; i<oscWidth; i++) {
               float x=(float)i/(float)(oscWidth);
-              float y=oscValuesAverage[i+12]*0.5f;
+              float y=oscValuesAverage[i+12]*0.5f*oscZoom;
               if (!settings.oscEscapesBoundary) {
                 if (y<-0.5f) y=-0.5f;
                 if (y>0.5f) y=0.5f;
@@ -390,13 +391,14 @@ void FurnaceGUI::drawOsc() {
               _do.pos1=inRect.Max;
               _do.color=isClipping?uiColors[GUI_COLOR_OSC_WAVE_PEAK]:uiColors[GUI_COLOR_OSC_WAVE_CH0+ch];
               _do.lineSize=dpiScale*settings.oscLineSize;
+              _do.zoom=oscZoom;
 
               dl->AddCallback(_drawOsc,&_do);
               dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
             } else {
               for (int i=0; i<oscWidth; i++) {
                 float x=(float)i/(float)(oscWidth);
-                float y=oscValues[ch][i+12]*0.5f;
+                float y=oscValues[ch][i+12]*0.5f*oscZoom;
                 if (!settings.oscEscapesBoundary) {
                   if (y<-0.5f) y=-0.5f;
                   if (y>0.5f) y=0.5f;
