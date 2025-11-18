@@ -2136,9 +2136,8 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       // advance tempo accumulator (for virtual tempo) unless we are step playing and waiting for the next step (stepPlay==2)
       // then advance tick counter and then call nextRow()
       if (stepPlay!=1) {
-        // fast-forward the accumulator if we are "skipping" (seeking to a position)
-        // otherwise increase accumulator by virtual tempo numerator
-        tempoAccum+=(skipping && virtualTempoN<virtualTempoD)?virtualTempoD:virtualTempoN;
+        // increase accumulator by virtual tempo numerator
+        tempoAccum+=virtualTempoN;
         // while accumulator is higher than virtual tempo denominator
         while (tempoAccum>=virtualTempoD) {
           // wrap the accumulator back
