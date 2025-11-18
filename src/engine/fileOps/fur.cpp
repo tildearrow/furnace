@@ -1232,6 +1232,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
 
       ds.initDefaultSystemChans();
+      ds.chans=tchans;
 
       ds.name=reader.readString();
       ds.author=reader.readString();
@@ -1819,6 +1820,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
           return false;
         }
 
+        logW("ds.chans: %d",ds.chans);
         if (!subSong->readData(reader,ds.version,ds.chans)) {
           logE("%d: invalid subsong data!",i);
           lastError="invalid subsong data!";
