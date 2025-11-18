@@ -59,7 +59,7 @@ void FurnaceGUI::readOsc() {
     if (trigger[ch]==NULL) {
       trigger[ch]=new TriggerAnalog(e->oscBuf[ch]);
     }
-    
+
     if (triggerState>0 && trigger[ch]->trigger(winSize,(writePos-winSize)&0x7fff,triggerLevel,triggerState-1)) {
       oscReadPos=trigger[ch]->getTriggerIndex();
     } else {
@@ -67,7 +67,7 @@ void FurnaceGUI::readOsc() {
     }
     memset(oscValues[ch],0,2048*sizeof(float));
     float* sincITable=DivFilterTables::getSincIntegralSmallTable();
-  
+
     float posFrac=0.0;
     float factor=(float)(oscWidth)/(float)winSize;
     int posInt=oscReadPos-(8.0f/factor);
@@ -210,7 +210,7 @@ void FurnaceGUI::drawOsc() {
       } rightClickable
       if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
         showLevel=true;
-        ImGui::SetTooltip(_("level: %.2f"), triggerLevel);
+        ImGui::SetTooltip(_("level: %.2f"),triggerLevel);
       }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
         triggerLevel=0.0f;
@@ -222,7 +222,7 @@ void FurnaceGUI::drawOsc() {
         if (triggerState>2) triggerState=2;
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("%s", _(triggerStates[triggerState]));
+        ImGui::SetTooltip("%s",_(triggerStates[triggerState]));
       }
       ImGui::SameLine();
     }

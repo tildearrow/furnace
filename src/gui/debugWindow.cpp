@@ -277,7 +277,7 @@ void FurnaceGUI::drawDebug() {
       ImVec2 size = ImVec2(ImGui::GetContentRegionAvail().x,240.0f);
       float peakMin=0.0f, peakMax=0.0f;
       int oscWidth=e->getAudioDescGot().rate*(oscWindowSize/1000.0);
-      if (ImGui::BeginChild("##scopePlotArea", size)) {
+      if (ImGui::BeginChild("##scopePlotArea",size)) {
         ImDrawList* dl=ImGui::GetWindowDrawList();
         ImVec2 origin=ImGui::GetWindowPos();
         ImVec2 plot[32768];
@@ -291,13 +291,13 @@ void FurnaceGUI::drawDebug() {
         dl->AddPolyline(plot,32768,ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_OSC_WAVE]),0,1.0f);
         if (!oscDebugApplyPos) {
           dl->AddLine(
-            origin+ImVec2(size.x*e->oscReadPos/32768.0f, 0.0f),
+            origin+ImVec2(size.x*e->oscReadPos/32768.0f,0.0f),
             origin+ImVec2(size.x*e->oscReadPos/32768.0f,size.y),
             ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_OSC_GUIDE])|IM_COL32_A_MASK,
             dpiScale
           );
           dl->AddRect(
-            origin+ImVec2(size.x*(e->oscReadPos)/32768.0f,0.25f*size.y), 
+            origin+ImVec2(size.x*(e->oscReadPos)/32768.0f,0.25f*size.y),
             origin+ImVec2(size.x*(e->oscReadPos+oscWidth)/32768.0f,0.75*size.y),
             ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_OSC_GUIDE])|IM_COL32_A_MASK,
             dpiScale
