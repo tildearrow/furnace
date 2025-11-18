@@ -2843,9 +2843,9 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
           char buf[256];
 
           if (macros[i].macro->len>0) {
-            snprintf(buf,255,"%s [%d]###%s",macros[i].displayName,macros[i].macro->len,macros[i].displayName);
+            snprintf(buf,255,"%s [%d]###%s_%d",macros[i].displayName,macros[i].macro->len,macros[i].displayName,(int)i);
           } else {
-            snprintf(buf,255,"%s",macros[i].displayName);
+            snprintf(buf,255,"%s###%s_%d",macros[i].displayName,macros[i].displayName,(int)i);
           }
 
           if (ImGui::Selectable(buf,state.selectedMacro==(int)i)) {

@@ -380,7 +380,7 @@ void FurnaceGUI::doDelete() {
         for (; j<e->curSubSong->patLen && (j<=selEnd.y || jOrder<selEnd.order); j++) {
           touch(jOrder,j);
           if (iFine==0) {
-            if (selStart.y==selEnd.y && selStart.order==selEnd.order) pat->newData[j][DIV_PAT_VOL]=-1;
+            if (selStart.y==selEnd.y && selStart.order==selEnd.order) pat->newData[j][DIV_PAT_INS]=-1;
           }
           pat->newData[j][iFine]=-1;
 
