@@ -1030,16 +1030,20 @@ void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String 
           // do nothing.
         } else {
           if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_INS_BG) || (pat->newData[j][DIV_PAT_NOTE]==-1)) {
+            logV("decodeNote(%s)",note);
             if (!decodeNote(note,pat->newData[j][DIV_PAT_NOTE])) {
+              logV("trying comparisons");
               if (strcmp(note, "^^^")==0) {
-                pat->newData[j][0]=DIV_NOTE_OFF;
+                pat->newData[j][DIV_PAT_NOTE]=DIV_NOTE_OFF;
               } else if (strcmp(note, "~~~")==0 || strcmp(note,"===")==0) {
-                pat->newData[j][0]=DIV_NOTE_REL;
+                pat->newData[j][DIV_PAT_NOTE]=DIV_NOTE_REL;
               } else {
+                logE("INVALID DATA");
                 invalidData=true;
+                break;
               }
-              break;
             } else {
+              logV("- %d",pat->newData[j][DIV_PAT_NOTE]);
               // MPT is one octave higher...
               if (pat->newData[j][DIV_PAT_NOTE]<12) {
                 pat->newData[j][DIV_PAT_NOTE]=0;
