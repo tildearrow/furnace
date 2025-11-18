@@ -283,6 +283,7 @@ bool DivEngine::convertLegacySampleMode() {
             continue;
           }
           sampleMode=1;
+          preferredInsType=DIV_INS_ADPCMB;
           break;
         case DIV_SYSTEM_Y8950_DRUMS:
           // Y8950 ADPCM
