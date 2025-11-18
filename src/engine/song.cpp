@@ -928,17 +928,20 @@ void DivSong::recalcChans() {
         dispatchChanOfChan[chanIndex]=-1;
       }
       dispatchFirstChan[chanIndex]=firstChan;
-      chanIndex++;
-
       if (sysDef!=NULL) {
-        if (sysDef->chanInsType[j][0]!=DIV_INS_NULL) {
-          isInsTypePossible[sysDef->chanInsType[j][0]]=true;
+        chanDef[chanIndex]=sysDef->getChanDef(j);
+        if (chanDef[chanIndex].insType[0]!=DIV_INS_NULL) {
+          isInsTypePossible[chanDef[chanIndex].insType[0]]=true;
         }
 
-        if (sysDef->chanInsType[j][1]!=DIV_INS_NULL) {
-          isInsTypePossible[sysDef->chanInsType[j][1]]=true;
+        if (chanDef[chanIndex].insType[1]!=DIV_INS_NULL) {
+          isInsTypePossible[chanDef[chanIndex].insType[1]]=true;
         }
+      } else {
+        chanDef[chanIndex]=DivChanDef();
       }
+
+      chanIndex++;
     }
   }
 

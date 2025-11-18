@@ -27,6 +27,7 @@
 #include "export.h"
 #include "dataErrors.h"
 #include "safeWriter.h"
+#include "sysDef.h"
 #include "cmdStream.h"
 #include "filePlayer.h"
 #include "../audio/taAudio.h"
@@ -330,131 +331,6 @@ struct DivEffectContainer {
     memset(in,0,DIV_MAX_OUTPUTS*sizeof(float*));
     memset(out,0,DIV_MAX_OUTPUTS*sizeof(float*));
   }
-};
-
-typedef int EffectValConversion(unsigned char,unsigned char);
-
-struct EffectHandler {
-  DivDispatchCmds dispatchCmd;
-  const char* description;
-  EffectValConversion* val;
-  EffectValConversion* val2;
-  EffectHandler(
-    DivDispatchCmds dispatchCmd_,
-    const char* description_,
-    EffectValConversion val_=NULL,
-    EffectValConversion val2_=NULL
-  ):
-  dispatchCmd(dispatchCmd_),
-  description(description_),
-  val(val_),
-  val2(val2_) {}
-};
-
-struct DivDoNotHandleEffect {
-};
-
-typedef std::unordered_map<unsigned char,const EffectHandler> EffectHandlerMap;
-
-struct DivSysDef {
-  const char* name;
-  const char* nameJ;
-  const char* description;
-  unsigned char id;
-  unsigned char id_DMF;
-  int channels, minChans, maxChans;
-  bool isFM, isSTD, isCompound;
-  // width 0: variable
-  // height 0: no wavetable support
-  unsigned short waveWidth, waveHeight;
-  unsigned int vgmVersion;
-  unsigned int sampleFormatMask;
-  const char* chanNames[DIV_MAX_CHANS];
-  const char* chanShortNames[DIV_MAX_CHANS];
-  int chanTypes[DIV_MAX_CHANS];
-  // 0: primary
-  // 1: alternate (usually PCM)
-  DivInstrumentType chanInsType[DIV_MAX_CHANS][2];
-  const EffectHandlerMap effectHandlers;
-  const EffectHandlerMap postEffectHandlers;
-  const EffectHandlerMap preEffectHandlers;
-  DivSysDef(
-    const char* sysName, const char* sysNameJ, unsigned char fileID, unsigned char fileID_DMF, int chans, int minCh, int maxCh,
-    bool isFMChip, bool isSTDChip, unsigned int vgmVer, bool compound, unsigned int formatMask, unsigned short waveWid, unsigned short waveHei,
-    const char* desc,
-    std::initializer_list<const char*> chNames,
-    std::initializer_list<const char*> chShortNames,
-    std::initializer_list<int> chTypes,
-    std::initializer_list<DivInstrumentType> chInsType1,
-    std::initializer_list<DivInstrumentType> chInsType2={},
-    const EffectHandlerMap fxHandlers_={},
-    const EffectHandlerMap postFxHandlers_={},
-    const EffectHandlerMap preFxHandlers_={}):
-    name(sysName),
-    nameJ(sysNameJ),
-    description(desc),
-    id(fileID),
-    id_DMF(fileID_DMF),
-    channels(chans),
-    minChans(minCh),
-    maxChans(maxCh),
-    isFM(isFMChip),
-    isSTD(isSTDChip),
-    isCompound(compound),
-    waveWidth(waveWid),
-    waveHeight(waveHei),
-    vgmVersion(vgmVer),
-    sampleFormatMask(formatMask),
-    effectHandlers(fxHandlers_),
-    postEffectHandlers(postFxHandlers_),
-    preEffectHandlers(preFxHandlers_) {
-    memset(chanNames,0,DIV_MAX_CHANS*sizeof(void*));
-    memset(chanShortNames,0,DIV_MAX_CHANS*sizeof(void*));
-    memset(chanTypes,0,DIV_MAX_CHANS*sizeof(int));
-    for (int i=0; i<DIV_MAX_CHANS; i++) {
-      chanInsType[i][0]=DIV_INS_NULL;
-      chanInsType[i][1]=DIV_INS_NULL;
-    }
-
-    int index=0;
-    for (const char* i: chNames) {
-      chanNames[index++]=i;
-      if (index>=DIV_MAX_CHANS) break;
-    }
-
-    index=0;
-    for (const char* i: chShortNames) {
-      chanShortNames[index++]=i;
-      if (index>=DIV_MAX_CHANS) break;
-    }
-
-    index=0;
-    for (int i: chTypes) {
-      chanTypes[index++]=i;
-      if (index>=DIV_MAX_CHANS) break;
-    }
-
-    index=0;
-    for (DivInstrumentType i: chInsType1) {
-      chanInsType[index++][0]=i;
-      if (index>=DIV_MAX_CHANS) break;
-    }
-
-    index=0;
-    for (DivInstrumentType i: chInsType2) {
-      chanInsType[index++][1]=i;
-      if (index>=DIV_MAX_CHANS) break;
-    }
-  }
-};
-
-enum DivChanTypes {
-  DIV_CH_FM=0,
-  DIV_CH_PULSE=1,
-  DIV_CH_NOISE=2,
-  DIV_CH_WAVE=3,
-  DIV_CH_PCM=4,
-  DIV_CH_OP=5
 };
 
 extern const char* cmdName[];
