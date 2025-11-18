@@ -60,7 +60,7 @@ void FurnaceGUI::readOsc() {
       trigger[ch]=new TriggerAnalog(e->oscBuf[ch], 32768);
     }
     
-    if (triggerState>0 && trigger[ch]->trigger(winSize, triggerLevel/2.0f, triggerState-1)) {
+    if (triggerState>0 && trigger[ch]->trigger(winSize, triggerLevel, triggerState-1)) {
       oscReadPos=trigger[ch]->getTriggerIndex()+2;
     } else {
       oscReadPos=32767-winSize;
@@ -122,7 +122,7 @@ void FurnaceGUI::readOsc() {
       avg+=oscValues[j][i];
     }
     avg/=e->getAudioDescGot().outChans;
-    oscValuesAverage[i]=avg*oscZoom*2.0f;
+    oscValuesAverage[i]=avg;
   }
 
   /*for (int i=0; i<oscWidth; i++) {
@@ -186,10 +186,10 @@ void FurnaceGUI::drawOsc() {
         if (oscZoom>2.0) oscZoom=2.0;
       } rightClickable
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_("zoom: %.2fx (%.1fdB)"),oscZoom,20.0*log10(oscZoom*2.0));
+        ImGui::SetTooltip(_("zoom: %.2fx (%.1fdB)"),oscZoom,20.0*log10(oscZoom));
       }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
-        oscZoom=0.5;
+        oscZoom=1.0f;
       }
       ImGui::SameLine();
       if (ImGui::VSliderFloat("##OscWinSize",ImVec2(20.0f*dpiScale,ImGui::GetContentRegionAvail().y),&oscWindowSize,5.0,100.0)) {
@@ -396,7 +396,7 @@ void FurnaceGUI::drawOsc() {
             } else {
               for (int i=0; i<oscWidth; i++) {
                 float x=(float)i/(float)(oscWidth);
-                float y=oscValues[ch][i+12]*oscZoom;
+                float y=oscValues[ch][i+12]*0.5f;
                 if (!settings.oscEscapesBoundary) {
                   if (y<-0.5f) y=-0.5f;
                   if (y>0.5f) y=0.5f;
