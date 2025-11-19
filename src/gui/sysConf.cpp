@@ -1276,12 +1276,17 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         altered=true;
       }
       ImGui::Unindent();
-      ImGui::Text(_("Initial channel limit:"));
-      if (CWSliderInt("##N163_InitialChannelLimit",&channels,1,8)) {
-        if (channels<1) channels=1;
-        if (channels>8) channels=8;
-        altered=true;
-      } rightClickable
+      if (chan>=0) {
+        if (channels!=e->song.systemChans[chan]) {
+          pushWarningColor(true);
+          ImGui::Text(_("the legacy channel limit is not equal to the channel count!\neither set the channel count to %d, or click the following button to fix it without changing the channel count."),channels);
+          if (ImGui::Button(_("Fix channel limit"))) {
+            channels=e->song.systemChans[chan];
+            altered=true;
+          }
+          popWarningColor();
+        }
+      }
       if (ImGui::Checkbox(_("Disable hissing"),&multiplex)) {
         altered=true;
       }
@@ -1310,12 +1315,25 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         minChans=e->song.systemChans[chan];
         if (minChans>32) minChans=32;
       }
-      ImGui::Text(_("Output rate:"));
-      if (CWSliderInt("##OTTO_InitialChannelLimit",&channels,minChans,32,"Label me please!")) {
+
+      DivDispatch* dispatch=e->getDispatch(chan);
+      double masterClock=16000000.0;
+      if (dispatch!=NULL) {
+        masterClock=dispatch->chipClock;
+      }
+      String outRateLabel=fmt::sprintf("/%d (%.0fHz)",channels,round(masterClock/(16.0*(double)channels)));
+
+      ImGui::Text(_("Output rate divider:"));
+      pushWarningColor(channels<minChans);
+      if (CWSliderInt("##OTTO_InitialChannelLimit",&channels,minChans,32,outRateLabel.c_str())) {
         if (channels<5) channels=5;
         if (channels>32) channels=32;
         altered=true;
       } rightClickable
+      if (ImGui::IsItemHovered() && channels<minChans) {
+        ImGui::SetTooltip(_("divider too low! certain channels will be disabled."));
+      }
+      popWarningColor();
 
       ImGui::Text(_("Volume scale:"));
 
@@ -2812,6 +2830,12 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
             }
             updateWindowTitle();
             updateROMExportAvail();
+
+            if (type==DIV_SYSTEM_N163) {
+              e->lockSave([&]() {
+                flags.set("channels",e->song.systemChans[chan]-1);
+              });
+            }
           } else {
             showError(e->getLastError());
           }
@@ -2842,6 +2866,12 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         }
         updateWindowTitle();
         updateROMExportAvail();
+
+        if (type==DIV_SYSTEM_N163) {
+          e->lockSave([&]() {
+            flags.set("channels",e->song.systemChans[chan]-1);
+          });
+        }
       } else {
         showError(e->getLastError());
       }
