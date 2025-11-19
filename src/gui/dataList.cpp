@@ -319,6 +319,9 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
       nextWindow=GUI_WINDOW_SAMPLE_EDIT;
     }
   }
+  if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+    ImGui::OpenPopup("SampleRightMenu");
+  }
   if (sampleListDir || (settings.unifiedDataView && insListDir)) {
     DIR_DRAG_SOURCE(dir,asset,"FUR_SDIR");
     DIR_DRAG_TARGET(dir,asset,e->song.sampleDir,"FUR_SDIR");
@@ -338,7 +341,7 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
     }
     ImGui::PopStyleColor();
   }
-  if (ImGui::BeginPopupContextItem("SampleRightMenu")) {
+  if (ImGui::BeginPopup("SampleRightMenu")) {
     curSample=i;
     samplePos=0;
     updateSampleTex=true;
