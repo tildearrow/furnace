@@ -87,10 +87,6 @@ float FurnaceGUI::computeGradPos(int type, int chan, int totalChans) {
 }
 
 void FurnaceGUI::calcChanOsc() {
-  std::vector<DivDispatchOscBuffer*> oscBufs;
-  std::vector<ChanOscStatus*> oscFFTs;
-  std::vector<int> oscChans;
-
   int chans=e->getTotalChannelCount();
   
   for (int i=0; i<chans; i++) {
@@ -419,9 +415,12 @@ void FurnaceGUI::drawChanOsc() {
       ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(0.0f,0.0f));
       float availY=ImGui::GetContentRegionAvail().y;
       if (ImGui::BeginTable("ChanOsc",chanOscCols,ImGuiTableFlags_Borders|ImGuiTableFlags_NoClip)) {
-        std::vector<DivDispatchOscBuffer*> oscBufs;
-        std::vector<ChanOscStatus*> oscFFTs;
-        std::vector<int> oscChans;
+        struct OscData {
+          DivDispatchOscBuffer* buf;
+          ChanOscStatus* fft;
+          int chan;
+        };
+        std::vector<OscData> oscData;
         int chans=e->getTotalChannelCount();
         ImGuiWindow* window=ImGui::GetCurrentWindow();
 
@@ -438,18 +437,16 @@ void FurnaceGUI::drawChanOsc() {
         for (int i=0; i<chans; i++) {
           DivDispatchOscBuffer* buf=e->getOscBuffer(i);
           if (buf!=NULL && e->curSubSong->chanShowChanOsc[i]) {
-            oscBufs.push_back(buf); // isnt this odd how there are 3 vectors of the same size?
-            oscFFTs.push_back(&chanOscChan[i]);
-            oscChans.push_back(i);
+            oscData.push_back({buf,&chanOscChan[i],i});
           }
         }
 
         // process
-        for (size_t i=0; i<oscBufs.size(); i++) {
-          ChanOscStatus* fft_=oscFFTs[i];
+        for (size_t i=0; i<oscData.size(); i++) {
+          ChanOscStatus* fft_=oscData[i].fft;
 
-          fft_->relatedBuf=oscBufs[i];
-          fft_->relatedCh=oscChans[i];
+          fft_->relatedBuf=oscData[i].buf;
+          fft_->relatedCh=oscData[i].chan;
 
           if (fft_->relatedBuf!=NULL) {
             // prepare
@@ -610,19 +607,19 @@ void FurnaceGUI::drawChanOsc() {
         chanOscWorkPool->wait();
         
         if (chanOscAutoCols) {
-          chanOscCols=sqrt(oscBufs.size());
+          chanOscCols=sqrt(oscData.size());
           if (chanOscCols>64) chanOscCols=64;
         }
-        int rows=(oscBufs.size()+(chanOscCols-1))/chanOscCols;
+        int rows=(oscData.size()+(chanOscCols-1))/chanOscCols;
 
         // render
-        for (size_t i=0; i<oscBufs.size(); i++) {
+        for (size_t i=0; i<oscData.size(); i++) {
           if (i%chanOscCols==0) ImGui::TableNextRow();
           ImGui::TableNextColumn();
 
-          DivDispatchOscBuffer* buf=oscBufs[i];
-          ChanOscStatus* fft=oscFFTs[i];
-          int ch=oscChans[i];
+          DivDispatchOscBuffer* buf=oscData[i].buf;
+          ChanOscStatus* fft=oscData[i].fft;
+          int ch=oscData[i].chan;
           if (buf==NULL) {
             ImGui::Text(_("Error!"));
           } else {
@@ -803,12 +800,12 @@ void FurnaceGUI::drawChanOsc() {
                   color=ImGui::GetColorU32(chanOscColor);
                   break;
                 case 1:
-                  color=ImGui::GetColorU32(channelColor(oscChans[i]));
+                  color=ImGui::GetColorU32(channelColor(oscData[i].chan));
                   break;
               }
               if (chanOscUseGrad) {
-                float xVal=computeGradPos(chanOscColorX,ch,oscBufs.size());
-                float yVal=computeGradPos(chanOscColorY,ch,oscBufs.size());
+                float xVal=computeGradPos(chanOscColorX,ch,oscData.size());
+                float yVal=computeGradPos(chanOscColorY,ch,oscData.size());
 
                 xVal=CLAMP(xVal,0.0f,1.0f);
                 yVal=CLAMP(yVal,0.0f,1.0f);
