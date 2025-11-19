@@ -1090,7 +1090,6 @@ bool DivEngine::setSystemChans(int index, int ch, bool preserveOrder) {
   }
 
   song.systemChans[index]=ch;
-  song.systemFlags[index].clear();
   song.recalcChans();
   saveLock.unlock();
   BUSY_END;
