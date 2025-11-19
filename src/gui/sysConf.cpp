@@ -1304,8 +1304,14 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       int volScale=flags.getInt("volScale",4095);
       bool amigaVol=flags.getBool("amigaVol",false);
       bool amigaPitch=flags.getBool("amigaPitch",false);
-      ImGui::Text(_("Initial channel limit:"));
-      if (CWSliderInt("##OTTO_InitialChannelLimit",&channels,5,32)) {
+
+      int minChans=5;
+      if (chan>=0) {
+        minChans=e->song.systemChans[chan];
+        if (minChans>32) minChans=32;
+      }
+      ImGui::Text(_("Output rate:"));
+      if (CWSliderInt("##OTTO_InitialChannelLimit",&channels,minChans,32,"Label me please!")) {
         if (channels<5) channels=5;
         if (channels>32) channels=32;
         altered=true;
