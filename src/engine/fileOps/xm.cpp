@@ -301,8 +301,11 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       }
     }
 
+    int chansToCount=totalChans;
     for (int i=0; i<(totalChans+31)>>5; i++) {
       ds.system[i]=DIV_SYSTEM_ES5506;
+      ds.systemChans[i]=MIN(32,chansToCount);
+      chansToCount-=ds.systemChans[i];
       ds.systemFlags[i].set("amigaVol",true);
       ds.systemFlags[i].set("amigaPitch",(ds.compatFlags.linearPitch==0));
       ds.systemFlags[i].set("volScale",3900);
@@ -1370,14 +1373,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       return false;
     }
 
-    // set channel visibility
-    for (int i=totalChans; i<((totalChans+32)&(~31)); i++) {
-      ds.subsong[0]->chanShow[i]=false;
-      ds.subsong[0]->chanShowChanOsc[i]=false;
-    }
-
     // find subsongs
-    ds.initDefaultSystemChans();
     ds.recalcChans();
     ds.findSubSongs();
 

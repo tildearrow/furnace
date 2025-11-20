@@ -1619,12 +1619,6 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
 
     logV("maxChan: %d",maxChan);
 
-    // set channel visibility
-    for (int i=maxChan; i<((maxChan+32)&(~31)); i++) {
-      ds.subsong[0]->chanShow[i]=false;
-      ds.subsong[0]->chanShowChanOsc[i]=false;
-    }
-
     // copy patterns to the rest of subsongs
     int copiesMade=0;
     for (size_t i=1; i<ds.subsong.size(); i++) {
@@ -1664,8 +1658,11 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     }
 
     // set systems
+    int chansToCount=maxChan;
     for (int i=0; i<(maxChan+32)>>5; i++) {
       ds.system[i]=DIV_SYSTEM_ES5506;
+      ds.systemChans[i]=MIN(32,chansToCount);
+      chansToCount-=ds.systemChans[i];
       ds.systemFlags[i].set("amigaVol",true);
       if (!ds.compatFlags.linearPitch) {
         ds.systemFlags[i].set("amigaPitch",true);
@@ -1675,7 +1672,6 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     ds.systemName="PC";
 
     // find subsongs
-    ds.initDefaultSystemChans();
     ds.recalcChans();
     ds.findSubSongs();
 

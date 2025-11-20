@@ -345,6 +345,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     ds.systemName="PC";
     if (hasPCM) {
       ds.system[ds.systemLen]=DIV_SYSTEM_ES5506;
+      ds.systemChans[ds.systemLen]=32; // for now
       ds.systemVol[ds.systemLen]=(float)globalVol/64.0;
       ds.systemPan[ds.systemLen]=0;
       ds.systemFlags[ds.systemLen].set("volScale",3900);
@@ -354,6 +355,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     }
     if (hasFM) {
       ds.system[ds.systemLen]=opl2 ? DIV_SYSTEM_OPL2 : DIV_SYSTEM_OPL3;
+      ds.systemChans[ds.systemLen]=opl2?9:18; // for now
       ds.systemVol[ds.systemLen]=1.0f;
       ds.systemPan[ds.systemLen]=0;
       ds.systemLen++;
@@ -1179,7 +1181,6 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     }
 
     // find subsongs
-    ds.initDefaultSystemChans();
     ds.recalcChans();
     ds.findSubSongs();
 
