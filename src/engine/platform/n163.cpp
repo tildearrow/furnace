@@ -593,7 +593,7 @@ void DivPlatformN163::setFlags(const DivConfig& flags) {
       break;
   }
   CHECK_CUSTOM_CLOCK;
-  initChanMax=chanMax=flags.getInt("channels",0)&7;
+  initChanMax=chanMax=flags.getInt("channels",7)&7;
   multiplex=!flags.getBool("multiplex",false); // not accurate in real hardware
   rate=chipClock;
   rate/=15;
@@ -602,6 +602,7 @@ void DivPlatformN163::setFlags(const DivConfig& flags) {
   for (int i=0; i<8; i++) {
     oscBuf[i]->setRate(rate);//=rate/(initChanMax+1);
   }
+  logV("N163: initChanMax: %d",initChanMax);
 
   lenCompensate=flags.getBool("lenCompensate",false);
 
@@ -617,6 +618,8 @@ int DivPlatformN163::init(DivEngine* p, int channels, int sugRate, const DivConf
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
+
+  logV("N163: init(%d)",channels);
 
   memCompo.used=0;
   memCompo.capacity=128;

@@ -1279,8 +1279,20 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       if (chan>=0) {
         if (channels!=e->song.systemChans[chan]) {
           pushWarningColor(true);
-          ImGui::Text(_("the legacy channel limit is not equal to the channel count!\neither set the channel count to %d, or click the following button to fix it without changing the channel count."),channels);
-          if (ImGui::Button(_("Fix channel limit"))) {
+          ImGui::Text(_("the legacy channel limit is not equal to the channel count!\neither set the channel count to %d, or click one of the following buttons:"),channels);
+          if (ImGui::Button(_("Fix channel count"))) {
+            if (e->setSystemChans(chan,channels,preserveChanPos)) {
+              MARK_MODIFIED;
+              recalcTimestamps=true;
+              if (e->song.autoSystem) {
+                autoDetectSystem();
+              }
+              updateWindowTitle();
+              updateROMExportAvail();
+              altered=true;
+            }
+          }
+          if (ImGui::Button(_("Give me more channels"))) {
             channels=e->song.systemChans[chan];
             altered=true;
           }
@@ -2835,6 +2847,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
               e->lockSave([&]() {
                 flags.set("channels",e->song.systemChans[chan]-1);
               });
+              altered=true;
             }
           } else {
             showError(e->getLastError());
@@ -2871,6 +2884,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           e->lockSave([&]() {
             flags.set("channels",e->song.systemChans[chan]-1);
           });
+          altered=true;
         }
       } else {
         showError(e->getLastError());
