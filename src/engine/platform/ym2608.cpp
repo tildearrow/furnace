@@ -794,7 +794,7 @@ void DivPlatformYM2608::tick(bool sysTick) {
     if (chan[i].std.alg.had) {
       chan[i].state.alg=chan[i].std.alg.val;
       rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
-      if (!parent->song.algMacroBehavior) for (int j=0; j<4; j++) {
+      if (!parent->song.compatFlags.algMacroBehavior) for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
         if (isMuted[i] || !op.enable) {
@@ -916,7 +916,7 @@ void DivPlatformYM2608::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
-      if (parent->song.linearPitch) {
+      if (parent->song.compatFlags.linearPitch) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[i].state.block);
       } else {
         int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2);
@@ -1238,7 +1238,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
-      if (parent->song.brokenFMOff) chan[c.chan].macroInit(NULL);
+      if (parent->song.compatFlags.brokenFMOff) chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       chan[c.chan].keyOff=true;
@@ -1340,7 +1340,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
         }
         break;
       }
-      if (c.chan>(5+isCSM) || parent->song.linearPitch) { // PSG, ADPCM-B
+      if (c.chan>(5+isCSM) || parent->song.compatFlags.linearPitch) { // PSG, ADPCM-B
         int destFreq=NOTE_OPNB(c.chan,c.value2+chan[c.chan].sampleNoteDelta);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
@@ -1651,7 +1651,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
     case DIV_CMD_PRE_PORTA:
       if (c.chan>5) {
         if (chan[c.chan].active && c.value2) {
-          if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_FM));
+          if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_FM));
         }
       }
       chan[c.chan].inPorta=c.value;

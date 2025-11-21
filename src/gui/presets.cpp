@@ -4057,17 +4057,17 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     _("Arcade (YM2151 and SegaPCM)"), {
       CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_SEGAPCM_COMPAT, 1.0f, 0, "")
+      CH(DIV_SYSTEM_SEGAPCM, 1.0f, 0, "")
     }
   );
   ENTRY(
-    _("Neo Geo CD"), {
-      CH(DIV_SYSTEM_YM2610, 1.0f, 0, "")
+    _("Neo Geo"), {
+      CH(DIV_SYSTEM_YM2610_FULL, 1.0f, 0, "")
     }
   );
   ENTRY(
-    _("Neo Geo CD (extended channel 2)"), {
-      CH(DIV_SYSTEM_YM2610_EXT, 1.0f, 0, "")
+    _("Neo Geo (extended channel 2)"), {
+      CH(DIV_SYSTEM_YM2610_FULL_EXT, 1.0f, 0, "")
     }
   );
   ENTRY(

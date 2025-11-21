@@ -326,7 +326,7 @@ void DivPlatformNES::tick(bool sysTick) {
     if (chan[i].std.duty.had) {
       chan[i].duty=chan[i].std.duty.val;
       if (i==3) {
-        if (parent->song.properNoiseLayout) {
+        if (parent->song.compatFlags.properNoiseLayout) {
           chan[i].duty&=1;
         } else if (chan[i].duty>1) {
           chan[i].duty=1;
@@ -372,7 +372,7 @@ void DivPlatformNES::tick(bool sysTick) {
         ntPos+=chan[i].pitch2;
         if (isE) {
           chan[i].freq=31-(ntPos&31);
-        } else if (parent->song.properNoiseLayout) {
+        } else if (parent->song.compatFlags.properNoiseLayout) {
           chan[i].freq=15-(ntPos&15);
         } else {
           if (ntPos<0) ntPos=0;
@@ -578,12 +578,12 @@ int DivPlatformNES::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_NES));
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       if (c.chan==2) {
         rWrite(0x4000+c.chan*4,linearCount);
-      } else if (!parent->song.brokenOutVol2) {
+      } else if (!parent->song.compatFlags.brokenOutVol2) {
         rWrite(0x4000+c.chan*4,(chan[c.chan].envMode<<4)|chan[c.chan].vol|((chan[c.chan].duty&3)<<6));
       }
       if (resetSweep && c.chan<2) {
@@ -752,9 +752,9 @@ int DivPlatformNES::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_NES));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_NES));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

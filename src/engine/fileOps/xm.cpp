@@ -207,12 +207,12 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
   try {
     DivSong ds;
     ds.version=DIV_VERSION_XM;
-    //ds.linearPitch=0;
-    //ds.pitchMacroIsLinear=false;
-    ds.noSlidesOnFirstTick=true;
-    ds.rowResetsArpPos=true;
-    ds.ignoreJumpAtEnd=false;
-    ds.pitchSlideSpeed=8;
+    //ds.compatFlags.linearPitch=0;
+    //ds.compatFlags.pitchMacroIsLinear=false;
+    ds.compatFlags.noSlidesOnFirstTick=true;
+    ds.compatFlags.rowResetsArpPos=true;
+    ds.compatFlags.ignoreJumpAtEnd=false;
+    ds.compatFlags.pitchSlideSpeed=8;
 
     logV("Extended Module");
 
@@ -251,7 +251,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
     unsigned short totalChans=reader.readS();
     unsigned short patCount=reader.readS();
     ds.insLen=(unsigned short)reader.readS();
-    ds.linearPitch=(reader.readS()&1)?1:0;
+    ds.compatFlags.linearPitch=(reader.readS()&1)?1:0;
     ds.subsong[0]->speeds.val[0]=reader.readS();
     ds.subsong[0]->speeds.len=1;
     double bpm=(unsigned short)reader.readS();
@@ -301,10 +301,13 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       }
     }
 
+    int chansToCount=totalChans;
     for (int i=0; i<(totalChans+31)>>5; i++) {
       ds.system[i]=DIV_SYSTEM_ES5506;
+      ds.systemChans[i]=MIN(32,chansToCount);
+      chansToCount-=ds.systemChans[i];
       ds.systemFlags[i].set("amigaVol",true);
-      ds.systemFlags[i].set("amigaPitch",(ds.linearPitch==0));
+      ds.systemFlags[i].set("amigaPitch",(ds.compatFlags.linearPitch==0));
       ds.systemFlags[i].set("volScale",3900);
     }
     ds.systemLen=(totalChans+31)>>5;
@@ -1370,22 +1373,17 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       return false;
     }
 
-    // set channel visibility
-    for (int i=totalChans; i<((totalChans+32)&(~31)); i++) {
-      ds.subsong[0]->chanShow[i]=false;
-      ds.subsong[0]->chanShowChanOsc[i]=false;
-    }
-
     // find subsongs
-    ds.findSubSongs(totalChans);
+    ds.recalcChans();
+    ds.findSubSongs();
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
     song.unload();
     song=ds;
+    hasLoadedSomething=true;
     changeSong(0);
-    recalcChans();
     saveLock.unlock();
     BUSY_END;
     if (active) {

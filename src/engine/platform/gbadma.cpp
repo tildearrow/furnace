@@ -237,7 +237,7 @@ int DivPlatformGBADMA::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].envVol=2;
       }
       if (chan[c.chan].useWave) {
@@ -321,7 +321,7 @@ int DivPlatformGBADMA::dispatch(DivCommand c) {
     }
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
       }
       chan[c.chan].inPorta=c.value;
       break;
@@ -378,6 +378,7 @@ DivDispatchOscBuffer* DivPlatformGBADMA::getOscBuffer(int ch) {
 }
 
 void DivPlatformGBADMA::reset() {
+  memset(wtMem,0,sizeof(wtMem));
   for (int i=0; i<2; i++) {
     chan[i]=DivPlatformGBADMA::Channel();
     chan[i].std.setEngine(parent);
