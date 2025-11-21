@@ -845,6 +845,7 @@ void DivSong::findSubSongs() {
       memcpy(theCopy->chanShow,i->chanShow,DIV_MAX_CHANS*sizeof(bool));
       memcpy(theCopy->chanShowChanOsc,i->chanShowChanOsc,DIV_MAX_CHANS*sizeof(bool));
       memcpy(theCopy->chanCollapse,i->chanCollapse,DIV_MAX_CHANS);
+      memcpy(theCopy->chanColor,i->chanColor,DIV_MAX_CHANS*sizeof(unsigned int));
 
       for (int k=0; k<DIV_MAX_CHANS; k++) {
         theCopy->chanName[k]=i->chanName[k];

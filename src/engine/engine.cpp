@@ -649,6 +649,7 @@ void DivEngine::copyChannel(int src, int dest) {
   curSubSong->chanShow[dest]=curSubSong->chanShow[src];
   curSubSong->chanShowChanOsc[dest]=curSubSong->chanShowChanOsc[src];
   curSubSong->chanCollapse[dest]=curSubSong->chanCollapse[src];
+  curSubSong->chanColor[dest]=curSubSong->chanColor[src];
 }
 
 void DivEngine::swapChannels(int src, int dest) {
@@ -677,17 +678,21 @@ void DivEngine::swapChannels(int src, int dest) {
   bool prevChanShow=curSubSong->chanShow[src];
   bool prevChanShowChanOsc=curSubSong->chanShowChanOsc[src];
   unsigned char prevChanCollapse=curSubSong->chanCollapse[src];
+  unsigned int prevChanColor=curSubSong->chanColor[src];
 
   curSubSong->chanName[src]=curSubSong->chanName[dest];
   curSubSong->chanShortName[src]=curSubSong->chanShortName[dest];
   curSubSong->chanShow[src]=curSubSong->chanShow[dest];
   curSubSong->chanShowChanOsc[src]=curSubSong->chanShowChanOsc[dest];
   curSubSong->chanCollapse[src]=curSubSong->chanCollapse[dest];
+  curSubSong->chanColor[src]=curSubSong->chanColor[dest];
+
   curSubSong->chanName[dest]=prevChanName;
   curSubSong->chanShortName[dest]=prevChanShortName;
   curSubSong->chanShow[dest]=prevChanShow;
   curSubSong->chanShowChanOsc[dest]=prevChanShowChanOsc;
   curSubSong->chanCollapse[dest]=prevChanCollapse;
+  curSubSong->chanColor[dest]=prevChanColor;
 }
 
 void DivEngine::stompChannel(int ch) {
@@ -702,6 +707,7 @@ void DivEngine::stompChannel(int ch) {
   curSubSong->chanShow[ch]=true;
   curSubSong->chanShowChanOsc[ch]=true;
   curSubSong->chanCollapse[ch]=false;
+  curSubSong->chanColor[ch]=0;
 }
 
 void DivEngine::changeSong(size_t songIndex) {
@@ -788,6 +794,8 @@ int DivEngine::duplicateSubSong(int index) {
   memcpy(theCopy->chanShow,theOrig->chanShow,DIV_MAX_CHANS*sizeof(bool));
   memcpy(theCopy->chanShowChanOsc,theOrig->chanShowChanOsc,DIV_MAX_CHANS*sizeof(bool));
   memcpy(theCopy->chanCollapse,theOrig->chanCollapse,DIV_MAX_CHANS);
+
+  memcpy(theCopy->chanColor,theOrig->chanColor,DIV_MAX_CHANS*sizeof(unsigned int));
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     theCopy->chanName[i]=theOrig->chanName[i];
@@ -1220,6 +1228,7 @@ bool DivEngine::duplicateSystem(int index, bool pat, bool end) {
         i->chanCollapse[destChan+j]=i->chanCollapse[srcChan+j];
         i->chanName[destChan+j]=i->chanName[srcChan+j];
         i->chanShortName[destChan+j]=i->chanShortName[srcChan+j];
+        i->chanColor[destChan+j]=i->chanColor[srcChan+j];
         for (int k=0; k<DIV_MAX_PATTERNS; k++) {
           if (i->pat[srcChan+j].data[k]!=NULL) {
             i->pat[srcChan+j].data[k]->copyOn(i->pat[destChan+j].getPattern(k,true));
@@ -1372,6 +1381,7 @@ void DivEngine::swapSystemUnsafe(int src, int dest, bool preserveOrder) {
       bool prevChanShow[DIV_MAX_CHANS];
       bool prevChanShowChanOsc[DIV_MAX_CHANS];
       unsigned char prevChanCollapse[DIV_MAX_CHANS];
+      unsigned int prevChanColor[DIV_MAX_CHANS];
 
       for (int j=0; j<tchans; j++) {
         for (int k=0; k<DIV_MAX_PATTERNS; k++) {
@@ -1384,6 +1394,7 @@ void DivEngine::swapSystemUnsafe(int src, int dest, bool preserveOrder) {
         prevChanShow[j]=song.subsong[i]->chanShow[j];
         prevChanShowChanOsc[j]=song.subsong[i]->chanShowChanOsc[j];
         prevChanCollapse[j]=song.subsong[i]->chanCollapse[j];
+        prevChanColor[j]=song.subsong[i]->chanColor[j];
       }
 
       for (int j=0; j<tchans; j++) {
@@ -1398,6 +1409,7 @@ void DivEngine::swapSystemUnsafe(int src, int dest, bool preserveOrder) {
         song.subsong[i]->chanShow[j]=prevChanShow[swappedChannels[j]];
         song.subsong[i]->chanShowChanOsc[j]=prevChanShowChanOsc[swappedChannels[j]];
         song.subsong[i]->chanCollapse[j]=prevChanCollapse[swappedChannels[j]];
+        song.subsong[i]->chanColor[j]=prevChanColor[swappedChannels[j]];
       }
     }
   }
