@@ -318,6 +318,8 @@ float FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOff
     ImVec4 color=uiColors[GUI_COLOR_CHANNEL_BG];
     if (i<whichDef->maxChans) color=uiColors[chanDef.type+GUI_COLOR_CHANNEL_FM];
     if (keyHitOffset>=0) {
+      if (e->curSubSong->chanColor[keyHitOffset+i])
+        color=ImGui::ColorConvertU32ToFloat4(e->curSubSong->chanColor[keyHitOffset+i]);
       if (e->isChannelMuted(keyHitOffset+i)) {
         color=uiColors[GUI_COLOR_CHANNEL_MUTED];
         color.x*=MIN(1.0f,0.125f+keyHit1[keyHitOffset+i]*0.875f);
