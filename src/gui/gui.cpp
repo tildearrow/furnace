@@ -1254,11 +1254,6 @@ Pos=771,384\n\
 Size=600,244\n\
 Collapsed=0\n\
 \n\
-[Window][Tuner]\n\
-Pos=725,230\n\
-Size=140,174\n\
-Collapsed=0\n\
-\n\
 [Window][Music Player]\n\
 Pos=704,243\n\
 Size=413,115\n\
