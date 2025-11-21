@@ -297,12 +297,12 @@ void FurnaceGUI::drawPiano() {
               int note=i+12*off;
               if (note<0) continue;
               if (note>=180) continue;
-              float pkh=pianoKeyHit[note];
+              float pkh=pianoKeyHit[note].value;
               ImVec4 color=isTopKey[i%12]?uiColors[GUI_COLOR_PIANO_KEY_TOP]:uiColors[GUI_COLOR_PIANO_KEY_BOTTOM];
               if (pianoKeyPressed[note]) {
                 color=isTopKey[i%12]?uiColors[GUI_COLOR_PIANO_KEY_TOP_ACTIVE]:uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE];
               } else {
-                ImVec4 colorHit=isTopKey[i%12]?uiColors[GUI_COLOR_PIANO_KEY_TOP_HIT]:uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_HIT];
+                ImVec4 colorHit=1?channelColor(pianoKeyHit[note].chan):(isTopKey[i%12]?uiColors[GUI_COLOR_PIANO_KEY_TOP_HIT]:uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_HIT]);
                 color.x+=(colorHit.x-color.x)*pkh;
                 color.y+=(colorHit.y-color.y)*pkh;
                 color.z+=(colorHit.z-color.z)*pkh;
@@ -355,12 +355,12 @@ void FurnaceGUI::drawPiano() {
               if (note<0) continue;
               if (note>=180) continue;
 
-              float pkh=pianoKeyHit[note];
+              float pkh=pianoKeyHit[note].value;
               ImVec4 color=uiColors[GUI_COLOR_PIANO_KEY_BOTTOM];
               if (pianoKeyPressed[note]) {
                 color=uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE];
               } else {
-                ImVec4 colorHit=uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_HIT];
+                ImVec4 colorHit=1?channelColor(pianoKeyHit[note].chan):uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_HIT];
                 color.x+=(colorHit.x-color.x)*pkh;
                 color.y+=(colorHit.y-color.y)*pkh;
                 color.z+=(colorHit.z-color.z)*pkh;
@@ -383,12 +383,12 @@ void FurnaceGUI::drawPiano() {
                 int note=topKeyNotes[j]+12*(i+off);
                 if (note<0) continue;
                 if (note>=180) continue;
-                float pkh=pianoKeyHit[note];
+                float pkh=pianoKeyHit[note].value;
                 ImVec4 color=uiColors[GUI_COLOR_PIANO_KEY_TOP];
                 if (pianoKeyPressed[note]) {
                   color=uiColors[GUI_COLOR_PIANO_KEY_TOP_ACTIVE];
                 } else {
-                  ImVec4 colorHit=uiColors[GUI_COLOR_PIANO_KEY_TOP_HIT];
+                  ImVec4 colorHit=1?channelColor(pianoKeyHit[note].chan):uiColors[GUI_COLOR_PIANO_KEY_TOP_HIT];
                   color.x+=(colorHit.x-color.x)*pkh;
                   color.y+=(colorHit.y-color.y)*pkh;
                   color.z+=(colorHit.z-color.z)*pkh;
@@ -407,8 +407,8 @@ void FurnaceGUI::drawPiano() {
 
           const float reduction=ImGui::GetIO().DeltaTime*60.0f*0.12;
           for (int i=0; i<180; i++) {
-            pianoKeyHit[i]-=reduction;
-            if (pianoKeyHit[i]<0) pianoKeyHit[i]=0;
+            pianoKeyHit[i].value-=reduction;
+            if (pianoKeyHit[i].value<0) pianoKeyHit[i].value=0;
           }
         }
 

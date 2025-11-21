@@ -2640,6 +2640,14 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
   } \
   popToggleColors(); \
 
+#define BUTTON_FOR_MACRO_MENU(buttonType) \
+  if (mobileUI) { \
+    if (buttonType(ICON_FA_PAGELINES "##IMacroMenu")) { \
+      lastMacroDesc=i; \
+      displayMacroMenu=true; \
+    } \
+  }
+
 void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state, DivInstrument* ins) {
   int index=0;
   int maxMacroLen=0;
@@ -2726,6 +2734,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
               ImGui::SameLine();
               BUTTON_TO_SET_RELEASE(ImGui::Button);
             }
+            BUTTON_FOR_MACRO_MENU(ImGui::Button);
             // do not change this!
             // anything other than a checkbox will look ugly!
             // if you really need more than two macro modes please tell me.
@@ -2811,6 +2820,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
               ImGui::SameLine();
               BUTTON_TO_SET_RELEASE(ImGui::Button);
             }
+            BUTTON_FOR_MACRO_MENU(ImGui::Button);
             if (i.modeName!=NULL) {
               bool modeVal=i.macro->mode;
               String modeName=fmt::sprintf("%s##IMacroMode",i.modeName);
@@ -2843,9 +2853,9 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
           char buf[256];
 
           if (macros[i].macro->len>0) {
-            snprintf(buf,255,"%s [%d]###%s",macros[i].displayName,macros[i].macro->len,macros[i].displayName);
+            snprintf(buf,255,"%s [%d]###%s_%d",macros[i].displayName,macros[i].macro->len,macros[i].displayName,(int)i);
           } else {
-            snprintf(buf,255,"%s",macros[i].displayName);
+            snprintf(buf,255,"%s###%s_%d",macros[i].displayName,macros[i].displayName,(int)i);
           }
 
           if (ImGui::Selectable(buf,state.selectedMacro==(int)i)) {
@@ -2963,6 +2973,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
                   ImGui::SameLine();
                   BUTTON_TO_SET_RELEASE(ImGui::Button);
                 }
+                BUTTON_FOR_MACRO_MENU(ImGui::Button);
               }
               if (m.modeName!=NULL) {
                 bool modeVal=m.macro->mode;
@@ -3448,10 +3459,10 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
   const char* sampleTabName=_("Sample");
   if (ins->type==DIV_INS_NES) sampleTabName=_("DPCM");
   if (ImGui::BeginTabItem(sampleTabName)) {
-    if (ins->type==DIV_INS_NES && e->song.oldDPCM) {
+    if (ins->type==DIV_INS_NES && e->song.compatFlags.oldDPCM) {
       ImGui::Text(_("new DPCM features disabled (compatibility)!"));
       if (ImGui::Button(_("click here to enable them."))) {
-        e->song.oldDPCM=false;
+        e->song.compatFlags.oldDPCM=false;
         MARK_MODIFIED;
       }
       ImGui::EndTabItem();
@@ -4694,7 +4705,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 op.egt=egtOn;
               }
               if (egtOn) {
-                pushWarningColor(susOn && !e->song.linearPitch);
+                pushWarningColor(susOn && !e->song.compatFlags.linearPitch);
                 if (ImGui::Checkbox(_("Pitch control"),&susOn)) { PARAMETER
                   op.sus=susOn;
                   // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
@@ -4703,7 +4714,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 }
                 popWarningColor();
                 if (ImGui::IsItemHovered()) {
-                  if (susOn && !e->song.linearPitch) {
+                  if (susOn && !e->song.compatFlags.linearPitch) {
                     ImGui::SetTooltip(_("only works on linear pitch! go to Compatibility Flags > Pitch/Playback and set Pitch linearity to Full."));
                   } else {
                     ImGui::SetTooltip(_("use op's arpeggio and pitch macros control instead of block/f-num macros"));
@@ -5470,7 +5481,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                   P(CWSliderScalar("##FINE",ImGuiDataType_U8,&op.dvb,&_ZERO,&_FIFTEEN,tempID)); rightClickable
                 } else {
                   bool susOn=op.sus;
-                  pushWarningColor(susOn && !e->song.linearPitch);
+                  pushWarningColor(susOn && !e->song.compatFlags.linearPitch);
                   if (ImGui::Checkbox(_("Pitch control"),&susOn)) { PARAMETER
                     op.sus=susOn;
                     // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
@@ -5479,7 +5490,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                   }
                   popWarningColor();
                   if (ImGui::IsItemHovered()) {
-                    if (susOn && !e->song.linearPitch) {
+                    if (susOn && !e->song.compatFlags.linearPitch) {
                       ImGui::SetTooltip(_("only works on linear pitch! go to Compatibility Flags > Pitch/Playback and set Pitch linearity to Full."));
                     } else {
                       ImGui::SetTooltip(_("use op's arpeggio and pitch macros control instead of block/f-num macros"));
@@ -5793,7 +5804,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             bool susOn=op.sus;
             if (fixedOn) {
               ImGui::SameLine();
-              pushWarningColor(susOn && !e->song.linearPitch);
+              pushWarningColor(susOn && !e->song.compatFlags.linearPitch);
               if (ImGui::Checkbox(_("Pitch control"),&susOn)) { PARAMETER
                 op.sus=susOn;
                 // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
@@ -5802,7 +5813,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               }
               popWarningColor();
               if (ImGui::IsItemHovered()) {
-                if (susOn && !e->song.linearPitch) {
+                if (susOn && !e->song.compatFlags.linearPitch) {
                   ImGui::SetTooltip(_("only works on linear pitch! go to Compatibility Flags > Pitch/Playback and set Pitch linearity to Full."));
                 } else {
                   ImGui::SetTooltip(_("use op's arpeggio and pitch macros control instead of block/f-num macros"));

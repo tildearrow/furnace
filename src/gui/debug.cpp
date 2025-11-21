@@ -278,8 +278,6 @@ void putDispatchChip(void* data, int type) {
       ImGui::TextColored(ch->extMode?colorOn:colorOff,">> ExtMode");
       break;
     }
-    case DIV_SYSTEM_YM2610:
-    case DIV_SYSTEM_YM2610_EXT:
     case DIV_SYSTEM_YM2610_FULL:
     case DIV_SYSTEM_YM2610_FULL_EXT: {
       DivPlatformYM2610* ch=(DivPlatformYM2610*)data;
@@ -363,7 +361,6 @@ void putDispatchChip(void* data, int type) {
       break;
     }
     case DIV_SYSTEM_SEGAPCM:
-    case DIV_SYSTEM_SEGAPCM_COMPAT:
     case DIV_SYSTEM_SEGAPCM_DISCRETE: {
       DivPlatformSegaPCM* ch=(DivPlatformSegaPCM*)data;
       ImGui::Text("> SegaPCM");
@@ -630,7 +627,6 @@ void putDispatchChan(void* data, int chanNum, int type) {
       }
       break;
     }
-    case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_FULL: {
       DivPlatformOPN::OPNChannelStereo* ch=(DivPlatformOPN::OPNChannelStereo*)data;
       ImGui::Text("> YM2610");
@@ -643,7 +639,6 @@ void putDispatchChan(void* data, int chanNum, int type) {
       OPNB_CHAN_DEBUG;
       break;
     }
-    case DIV_SYSTEM_YM2610_EXT:
     case DIV_SYSTEM_YM2610_FULL_EXT: {
       if (chanNum>=1 && chanNum<=4) {
         DivPlatformOPN::OPNOpChannelStereo* ch=(DivPlatformOPN::OPNOpChannelStereo*)data;
@@ -741,7 +736,6 @@ void putDispatchChan(void* data, int chanNum, int type) {
       break;
     }
     case DIV_SYSTEM_SEGAPCM:
-    case DIV_SYSTEM_SEGAPCM_COMPAT:
     case DIV_SYSTEM_SEGAPCM_DISCRETE: {
       DivPlatformSegaPCM::Channel* ch=(DivPlatformSegaPCM::Channel*)data;
       ImGui::Text("> SegaPCM");

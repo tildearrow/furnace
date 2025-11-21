@@ -33,6 +33,7 @@ the keys in the "Global hotkeys" section can be used in any window, although not
 | Decrease edit step                                     | `Ctrl-Keypad /`  |
 | Toggle edit mode                                       | `Space`          |
 | Metronome                                              | `Ctrl-M`         |
+| Toggle order lock                                      | —                |
 | Toggle repeat pattern                                  | —                |
 | Follow orders                                          | —                |
 | Follow pattern                                         | —                |
@@ -75,6 +76,9 @@ the keys in the "Global hotkeys" section can be used in any window, although not
 | Effect List                                            | —                |
 | Debug Menu                                             | `Ctrl-Shift-D`   |
 | Command Stream Player                                  | —                |
+| Reference Music Player                                 | —                |
+| Tuner                                                  | —                |
+| Spectrum                                               | —                |
 | About                                                  | —                |
 | Collapse/expand current window                         | —                |
 | Close current window                                   | `Shift-Escape`   |

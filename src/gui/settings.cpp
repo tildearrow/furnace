@@ -3505,6 +3505,19 @@ void FurnaceGUI::drawSettings() {
           settings.channelFeedbackStyle=3;
           settingsChanged=true;
         }
+        if (ImGui::RadioButton(_("Volume (Real)##CHF4"),settings.channelFeedbackStyle==4)) {
+          settings.channelFeedbackStyle=4;
+          settingsChanged=true;
+        }
+        if (settings.channelFeedbackStyle==4) {
+          ImGui::Indent();
+          if (ImGui::SliderFloat(_("Gamma##CHF"),&settings.channelFeedbackGamma,0.0f,2.0f)) {
+            if (settings.channelFeedbackGamma<0.0f) settings.channelFeedbackGamma=0.0f;
+            if (settings.channelFeedbackGamma>2.0f) settings.channelFeedbackGamma=2.0f;
+            settingsChanged=true;
+          }
+          ImGui::Unindent();
+        }
         ImGui::Unindent();
 
         ImGui::Text(_("Channel font:"));
@@ -4705,8 +4718,8 @@ void FurnaceGUI::drawSettings() {
         // these are the cheat codes:
         // "Debug" - toggles mobile UI
         // "Nice Amiga cover of the song!" - enables hidden systems (YMU759/Dummy)
+        // "this chat is gonna turn me into a chain barrel smoker" - enables "modified sine wave" toggle
         // "42 63" - enables all instrument types
-        // "Power of the Chip" - enables options for multi-threaded audio
         // "btcdbcb" - use modern UI padding
         // "6-7" - OH PLEASE NO
         // "????" - enables stuff
@@ -5116,13 +5129,14 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.rackShowLEDs=conf.getInt("rackShowLEDs",1);
 
     settings.mixerStyle=conf.getInt("mixerStyle",1);
-    settings.mixerLayout=conf.getInt("mixerLayout",1);
+    settings.mixerLayout=conf.getInt("mixerLayout",0);
 
     settings.channelColors=conf.getInt("channelColors",1);
     settings.channelTextColors=conf.getInt("channelTextColors",0);
     settings.channelStyle=conf.getInt("channelStyle",1);
     settings.channelVolStyle=conf.getInt("channelVolStyle",0);
     settings.channelFeedbackStyle=conf.getInt("channelFeedbackStyle",1);
+    settings.channelFeedbackGamma=conf.getFloat("channelFeedbackGamma",1.0f);
     settings.channelFont=conf.getInt("channelFont",1);
     settings.channelTextCenter=conf.getInt("channelTextCenter",1);
 
@@ -5399,7 +5413,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.channelTextColors,0,2);
   clampSetting(settings.channelStyle,0,5);
   clampSetting(settings.channelVolStyle,0,4);
-  clampSetting(settings.channelFeedbackStyle,0,3);
+  clampSetting(settings.channelFeedbackStyle,0,4);
+  clampSetting(settings.channelFeedbackGamma,0.0f,2.0f);
   clampSetting(settings.channelFont,0,1);
   clampSetting(settings.channelTextCenter,0,1);
   clampSetting(settings.maxRecentFile,0,30);
@@ -5711,6 +5726,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("channelStyle",settings.channelStyle);
     conf.set("channelVolStyle",settings.channelVolStyle);
     conf.set("channelFeedbackStyle",settings.channelFeedbackStyle);
+    conf.set("channelFeedbackGamma",settings.channelFeedbackGamma);
     conf.set("channelFont",settings.channelFont);
     conf.set("channelTextCenter",settings.channelTextCenter);
 

@@ -101,7 +101,7 @@ void DivPlatformMSM6258::acquire(short** buf, size_t len) {
 
 void DivPlatformMSM6258::tick(bool sysTick) {
   for (int i=0; i<1; i++) {
-    if (!parent->song.disableSampleMacro) {
+    if (!parent->song.compatFlags.disableSampleMacro) {
       chan[i].std.next();
       if (chan[i].std.duty.had) {
         if (rateSel!=(chan[i].std.duty.val&3)) {

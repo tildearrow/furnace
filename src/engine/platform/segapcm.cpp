@@ -68,7 +68,7 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
   for (int i=0; i<chMax; i++) {
     chan[i].std.next();
 
-    if (parent->song.newSegaPCM) {
+    if (parent->song.compatFlags.newSegaPCM) {
       if (chan[i].std.vol.had) {
         chan[i].outVol=(chan[i].vol*MIN(chan[i].macroVolMul,chan[i].std.vol.val))/chan[i].macroVolMul;
         chan[i].chVolL=(chan[i].outVol*chan[i].chPanL)/127;
@@ -91,13 +91,13 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
       chan[i].pcm.freq=-1;
     }
 
-    if (parent->song.newSegaPCM) if (chan[i].std.panL.had) {
+    if (parent->song.compatFlags.newSegaPCM) if (chan[i].std.panL.had) {
       chan[i].chPanL=chan[i].std.panL.val&127;
       chan[i].chVolL=(chan[i].outVol*chan[i].chPanL)/127;
       chWrite(i,2,chan[i].chVolL);
     }
 
-    if (parent->song.newSegaPCM) if (chan[i].std.panR.had) {
+    if (parent->song.compatFlags.newSegaPCM) if (chan[i].std.panR.had) {
       chan[i].chPanR=chan[i].std.panR.val&127;
       chan[i].chVolR=(chan[i].outVol*chan[i].chPanR)/127;
       chWrite(i,3,chan[i].chVolR);
@@ -122,7 +122,7 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=chan[i].baseFreq+(chan[i].pitch)-128+(oldSlides?0:chan[i].pitch2);
-      if (!parent->song.oldArpStrategy) {
+      if (!parent->song.compatFlags.oldArpStrategy) {
         if (chan[i].fixedArp) {
           chan[i].freq=(chan[i].baseNoteOverride<<7)+chan[i].pitch-128+(chan[i].pitch2<<(oldSlides?1:0));
         } else {
@@ -206,10 +206,10 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
         chan[c.chan].pcm.freq=-1;
       }
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
 
-        if (parent->song.newSegaPCM) {
+        if (parent->song.compatFlags.newSegaPCM) {
           chan[c.chan].chVolL=(chan[c.chan].outVol*chan[c.chan].chPanL)/127;
           chan[c.chan].chVolR=(chan[c.chan].outVol*chan[c.chan].chPanR)/127;
           chWrite(c.chan,2,chan[c.chan].chVolL);
@@ -242,7 +242,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       if (!chan[c.chan].std.vol.has) {
         chan[c.chan].outVol=c.value;
       }
-      if (parent->song.newSegaPCM) {
+      if (parent->song.compatFlags.newSegaPCM) {
         chan[c.chan].chVolL=(c.value*chan[c.chan].chPanL)/127;
         chan[c.chan].chVolR=(c.value*chan[c.chan].chPanR)/127;
       } else {
@@ -264,7 +264,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       chan[c.chan].ins=c.value;
       break;
     case DIV_CMD_PANNING: {
-      if (parent->song.newSegaPCM) {
+      if (parent->song.compatFlags.newSegaPCM) {
         chan[c.chan].chPanL=c.value>>1;
         chan[c.chan].chPanR=c.value2>>1;
         chan[c.chan].chVolL=(chan[c.chan].outVol*chan[c.chan].chPanL)/127;
@@ -286,7 +286,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=((c.value2+chan[c.chan].sampleNoteDelta)<<7);
       int newFreq;
-      int mul=(oldSlides || !parent->song.linearPitch)?8:1;
+      int mul=(oldSlides || !parent->song.compatFlags.linearPitch)?8:1;
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         newFreq=chan[c.chan].baseFreq+c.value*mul;
@@ -336,7 +336,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       return 127;
       break;
     case DIV_CMD_PRE_PORTA:
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=(chan[c.chan].note<<7);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=(chan[c.chan].note<<7);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:

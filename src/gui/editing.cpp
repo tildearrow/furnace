@@ -380,7 +380,7 @@ void FurnaceGUI::doDelete() {
         for (; j<e->curSubSong->patLen && (j<=selEnd.y || jOrder<selEnd.order); j++) {
           touch(jOrder,j);
           if (iFine==0) {
-            if (selStart.y==selEnd.y && selStart.order==selEnd.order) pat->newData[j][DIV_PAT_VOL]=-1;
+            if (selStart.y==selEnd.y && selStart.order==selEnd.order) pat->newData[j][DIV_PAT_INS]=-1;
           }
           pat->newData[j][iFine]=-1;
 
@@ -1032,14 +1032,14 @@ void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String 
           if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_INS_BG) || (pat->newData[j][DIV_PAT_NOTE]==-1)) {
             if (!decodeNote(note,pat->newData[j][DIV_PAT_NOTE])) {
               if (strcmp(note, "^^^")==0) {
-                pat->newData[j][0]=DIV_NOTE_OFF;
+                pat->newData[j][DIV_PAT_NOTE]=DIV_NOTE_OFF;
               } else if (strcmp(note, "~~~")==0 || strcmp(note,"===")==0) {
-                pat->newData[j][0]=DIV_NOTE_REL;
+                pat->newData[j][DIV_PAT_NOTE]=DIV_NOTE_REL;
               } else {
                 invalidData=true;
+                break;
               }
-              break;
-            } else {
+            } else if (pat->newData[j][DIV_PAT_NOTE]<180) {
               // MPT is one octave higher...
               if (pat->newData[j][DIV_PAT_NOTE]<12) {
                 pat->newData[j][DIV_PAT_NOTE]=0;

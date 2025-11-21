@@ -224,7 +224,7 @@ void DivPlatformGB::tick(bool sysTick) {
       if (i!=2) {
         rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(chan[i].soundLen&63)));
       } else if (!chan[i].softEnv) {
-        if (parent->song.waveDutyIsVol) {
+        if (parent->song.compatFlags.waveDutyIsVol) {
           rWrite(16+i*5+2,(model==GB_MODEL_AGB_NATIVE?gbVolMapEx:gbVolMap)[(chan[i].std.duty.val&3)<<2]);
         }
       }
@@ -439,7 +439,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
           chan[c.chan].outVol=chan[c.chan].envVol;
         }
       } else if (chan[c.chan].softEnv && c.chan!=2) {
-        if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+        if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
           chan[c.chan].outVol=chan[c.chan].vol;
           chan[c.chan].envVol=chan[c.chan].outVol;
         }
@@ -478,7 +478,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
             chan[c.chan].soundLen=ins->gb.soundLen;
             chan[c.chan].vol=chan[c.chan].envVol;
             chan[c.chan].outVol=chan[c.chan].vol;
-            if (parent->song.gbInsAffectsEnvelope) {
+            if (parent->song.compatFlags.gbInsAffectsEnvelope) {
               rWrite(16+c.chan*5+2,((chan[c.chan].vol<<4))|(chan[c.chan].envLen&7)|((chan[c.chan].envDir&1)<<3));
             }
           }
@@ -567,9 +567,9 @@ int DivPlatformGB::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_GB));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_GB));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GB_SWEEP_DIR:

@@ -189,7 +189,6 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       return "YM2414";
       break;
     case DIV_SYSTEM_SEGAPCM:
-    case DIV_SYSTEM_SEGAPCM_COMPAT:
     case DIV_SYSTEM_SEGAPCM_DISCRETE:
       return "SegaPCM";
       break;
@@ -208,9 +207,7 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
     case DIV_SYSTEM_SCC:
       return "SCC";
       break;
-    case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_CSM:
-    case DIV_SYSTEM_YM2610_EXT:
     case DIV_SYSTEM_YM2610_FULL:
     case DIV_SYSTEM_YM2610_FULL_EXT:
       return "YM2610";
@@ -297,25 +294,33 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
   }
 }
 
-float FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset, float tooltipWidth) {
+float FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset, float tooltipWidth, int chanCount) {
+  if (whichDef==NULL) return 0;
+  if (chanCount<1) chanCount=whichDef->channels;
+
   ImDrawList* dl=ImGui::GetWindowDrawList();
   const ImVec2 p=ImGui::GetCursorScreenPos();
   if (tooltipWidth<=0.0f) tooltipWidth=ImGui::GetContentRegionAvail().x;
   ImVec2 sep=ImGui::GetStyle().ItemSpacing;
   sep.x*=0.5f;
   ImVec2 ledSize=ImVec2(
-    (tooltipWidth-sep.x*(whichDef->channels-1))/(float)whichDef->channels,
+    (tooltipWidth-sep.x*(chanCount-1))/(float)chanCount,
     settings.iconSize*dpiScale
   );
   if (ledSize.x<8.0f*dpiScale) ledSize.x=8.0f*dpiScale;
   float x=p.x, y=p.y;
-  for (int i=0; i<whichDef->channels; i++) {
+  for (int i=0; i<chanCount; i++) {
+    DivChanDef chanDef=whichDef->getChanDef(i);
+
     if (x+ledSize.x-0.125>tooltipWidth+p.x) {
       x=p.x;
       y+=ledSize.y+sep.y;
     }
-    ImVec4 color=uiColors[whichDef->chanTypes[i]+GUI_COLOR_CHANNEL_FM];
+    ImVec4 color=uiColors[GUI_COLOR_CHANNEL_BG];
+    if (i<whichDef->maxChans) color=uiColors[chanDef.type+GUI_COLOR_CHANNEL_FM];
     if (keyHitOffset>=0) {
+      if (e->curSubSong->chanColor[keyHitOffset+i])
+        color=ImGui::ColorConvertU32ToFloat4(e->curSubSong->chanColor[keyHitOffset+i]);
       if (e->isChannelMuted(keyHitOffset+i)) {
         color=uiColors[GUI_COLOR_CHANNEL_MUTED];
         color.x*=MIN(1.0f,0.125f+keyHit1[keyHitOffset+i]*0.875f);
@@ -342,7 +347,8 @@ void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
   memset(chanCount,0,CHANNEL_TYPE_MAX);
   // count channel types
   for (int i=0; i<whichDef->channels; i++) {
-    switch (whichDef->chanInsType[i][0]) {
+    DivChanDef chanDef=whichDef->getChanDef(i);
+    switch (chanDef.insType[0]) {
       case DIV_INS_STD: // square
       case DIV_INS_BEEPER:
       case DIV_INS_TED:
@@ -357,17 +363,17 @@ void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
           chanCount[CHANNEL_TYPE_PULSE]++;
           break;
         }
-        if (whichDef->chanTypes[i]==DIV_CH_NOISE) { // sn/t6w noise
+        if (chanDef.type==DIV_CH_NOISE) { // sn/t6w noise
           chanCount[CHANNEL_TYPE_NOISE]++;
         } else { // DIV_CH_PULSE, any sqr chan
           chanCount[CHANNEL_TYPE_SQUARE]++;
         }
         break;
       case DIV_INS_NES:
-        if (whichDef->chanTypes[i]==DIV_CH_WAVE) {
+        if (chanDef.type==DIV_CH_WAVE) {
           chanCount[whichDef->id==0xf1?CHANNEL_TYPE_WAVE:CHANNEL_TYPE_TRIANGLE]++; // triangle, wave for 5E01
         } else {
-          chanCount[whichDef->chanTypes[i]]++;
+          chanCount[chanDef.type]++;
         }
         break;
       case DIV_INS_AY:
@@ -377,23 +383,23 @@ void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
       case DIV_INS_OPL_DRUMS:
       case DIV_INS_OPL:
       case DIV_INS_OPLL:
-        if (whichDef->chanTypes[i]==DIV_CH_OP) {
+        if (chanDef.type==DIV_CH_OP) {
           chanCount[CHANNEL_TYPE_FM]++; // opl3 4op
           break;
         }
-        if (whichDef->chanTypes[i]==DIV_CH_NOISE) {
+        if (chanDef.type==DIV_CH_NOISE) {
           chanCount[CHANNEL_TYPE_DRUMS]++; // drums
         } else {
-          chanCount[whichDef->chanTypes[i]]++;
+          chanCount[chanDef.type]++;
         }
         break;
       case DIV_INS_FM:
-        if (whichDef->chanTypes[i]==DIV_CH_OP) {
+        if (chanDef.type==DIV_CH_OP) {
           chanCount[CHANNEL_TYPE_OPERATOR]++; // ext. ops
-        } else if (whichDef->chanTypes[i]==DIV_CH_NOISE) {
+        } else if (chanDef.type==DIV_CH_NOISE) {
           break; // csm timer
         } else {
-          chanCount[whichDef->chanTypes[i]]++;
+          chanCount[chanDef.type]++;
         }
         break;
       case DIV_INS_ADPCMA:
@@ -410,33 +416,33 @@ void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
         chanCount[CHANNEL_TYPE_SAMPLE]++;
         break;
       case DIV_INS_NDS:
-        if (whichDef->chanTypes[i]!=DIV_CH_PCM) { // the psg chans can also play samples??
+        if (chanDef.type!=DIV_CH_PCM) { // the psg chans can also play samples??
           chanCount[CHANNEL_TYPE_SAMPLE]++;
         }
-        chanCount[whichDef->chanTypes[i]]++;
+        chanCount[chanDef.type]++;
         break;
       case DIV_INS_VERA:
-        if (whichDef->chanTypes[i]==DIV_CH_PULSE) {
+        if (chanDef.type==DIV_CH_PULSE) {
           chanCount[CHANNEL_TYPE_WAVE]++;
         } else { // sample chan
           chanCount[CHANNEL_TYPE_SAMPLE]++;
         }
         break;
       case DIV_INS_DAVE:
-        if (whichDef->chanTypes[i]==DIV_CH_WAVE) {
+        if (chanDef.type==DIV_CH_WAVE) {
           chanCount[CHANNEL_TYPE_OTHER]++;
         } else {
-          chanCount[whichDef->chanTypes[i]]++;
+          chanCount[chanDef.type]++;
         }
         break;
       case DIV_INS_SWAN:
-        if (whichDef->chanTypes[i]!=DIV_CH_WAVE) {
+        if (chanDef.type!=DIV_CH_WAVE) {
           chanCount[CHANNEL_TYPE_WAVETABLE]++;
         }
-        chanCount[whichDef->chanTypes[i]]++;
+        chanCount[chanDef.type]++;
         break;
       case DIV_INS_SID3:
-        if (whichDef->chanTypes[i]!=DIV_CH_WAVE) {
+        if (chanDef.type!=DIV_CH_WAVE) {
           chanCount[CHANNEL_TYPE_OTHER]++;
         } else {
           chanCount[CHANNEL_TYPE_WAVE]++;
@@ -453,7 +459,7 @@ void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
         chanCount[CHANNEL_TYPE_OTHER]++;
         break;
       default:
-        chanCount[whichDef->chanTypes[i]]++;
+        chanCount[chanDef.type]++;
         break;
     }
   }
