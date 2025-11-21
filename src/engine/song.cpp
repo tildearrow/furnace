@@ -512,6 +512,10 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
     for (int i=0; i<chans; i++) {
       chanShortName[i]=reader.readString();
     }
+
+    for (int i=0; i<chans; i++) {
+      chanColor[i]=reader.readI();
+    }
   } else {
     if (memcmp(magic,"SONG",4)!=0) {
       logE("invalid subsong header!");
@@ -643,6 +647,10 @@ void DivSubSong::putData(SafeWriter* w, int chans) {
 
   for (int i=0; i<chans; i++) {
     w->writeString(chanShortName[i],false);
+  }
+
+  for (int i=0; i<chans; i++) {
+    w->writeI(chanColor[i]);
   }
 
   blockEndSeek=w->tell();

@@ -164,24 +164,12 @@ the channel count is stored in the file in order to allow Furnace to load files 
 
 - 0x00: invalid (end of chips in previous versions)
 - 0x01: YMU759 - 17 channels
-- 0x02: Genesis - 10 channels (compound!)
-  - flatten to 0x83 + 0x03
-- 0x03: SMS (SN76489) - 4 channels
+- 0x03: SN76489/Sega PSG - 4 channels
 - 0x04: Game Boy - 4 channels
 - 0x05: PC Engine - 6 channels
 - 0x06: NES - 5 channels
 - 0x07: C64 (8580) - 3 channels
-- 0x08: Arcade (YM2151+SegaPCM) - 13 channels (compound!)
-  - flatten to 0x82 + 0xa9
-- 0x09: Neo Geo CD (YM2610) - 13 channels
-- 0x42: Genesis extended - 13 channels (compound!)
-  - flatten to 0xa0 + 0x03
-- 0x43: SMS (SN76489) + OPLL (YM2413) - 13 channels (compound!)
-  - flatten to 0x03 + 0x89
-- 0x46: NES + VRC7 - 11 channels (compound!)
-  - flatten to 0x06 + 0x9d
 - 0x47: C64 (6581) - 3 channels
-- 0x49: Neo Geo CD extended - 16 channels
 - 0x80: AY-3-8910 - 3 channels
 - 0x81: Amiga - 4 channels
 - 0x82: YM2151 - 8 channels
@@ -223,7 +211,6 @@ the channel count is stored in the file in order to allow Furnace to load files 
 - 0xa6: Neo Geo extended (YM2610) - 17 channels
 - 0xa7: OPLL drums (YM2413) - 11 channels
 - 0xa8: Atari Lynx - 4 channels
-- 0xa9: SegaPCM (for DefleMask compatibility) - 5 channels
 - 0xaa: MSM6295 - 4 channels
 - 0xab: MSM6258 - 1 channel
 - 0xac: Commander X16 (VERA) - 17 channels
@@ -292,8 +279,34 @@ the channel count is stored in the file in order to allow Furnace to load files 
 
 notes:
 
-- (compound!) means that the system is composed of two or more chips, and has to be flattened.
 - (UNAVAILABLE) means that the chip hasn't been implemented in Furnace yet.
+
+### special IDs
+
+the following is a list of legacy chip/system IDs.
+these must be either flattened (converted to two equivalent chips) or converted to another chip.
+
+those marked with `(compound!)` were from an era where two chips were part of a single system ID.
+
+these IDs will never be present in new song files (with the `INF2` info header). if you see them, reject the file.
+
+- 0x02: Genesis - 10 channels (compound!)
+  - flatten to 0x83 (YM2612) + 0x03 (SN76489/Sega PSG)
+- 0x08: Arcade (YM2151+SegaPCM) - 13 channels (compound!)
+  - flatten to 0x82 (YM2151) + 0x9b (SegaPCM)
+  - channel count of the latter shall be 5!
+- 0x09: Neo Geo CD (YM2610) - 13 channels
+  - convert to 0xa5 (YM2610 proper) and set channel count to 13
+- 0x42: Genesis extended - 13 channels (compound!)
+  - flatten to 0xa0 (YM2612 extended) + 0x03 (SN76489/Sega PSG)
+- 0x43: SMS (SN76489) + OPLL (YM2413) - 13 channels (compound!)
+  - flatten to 0x03 (SN76489/Sega PSG) + 0x89 (OPLL)
+- 0x46: NES + VRC7 - 11 channels (compound!)
+  - flatten to 0x06 (NES) + 0x9d (VRC7)
+- 0x49: Neo Geo CD extended - 16 channels
+  - convert to 0xa6 (YM2610 extended proper) and set channel count to 16
+- 0xa9: SegaPCM (for DefleMask compatibility) - 5 channels
+  - convert to 0x9b (SegaPCM) and set channel count to 5
 
 ## song elements
 
@@ -385,6 +398,9 @@ size | description
      | - a list of channelCount C strings
  S?? | channel short names
      | - same as above
+ 4?? | channel colors
+     | - read 4 values per color (RGBA)
+     | - if 0, use default color
 ```
 
 # groove pattern (>=240)
