@@ -399,7 +399,7 @@ size | description
  S?? | channel short names
      | - same as above
  4?? | channel colors
-     | - read 4 values per color (RGBA)
+     | - read 4 values per color (ABGR)
      | - if 0, use default color
 ```
 
