@@ -189,7 +189,6 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       return "YM2414";
       break;
     case DIV_SYSTEM_SEGAPCM:
-    case DIV_SYSTEM_SEGAPCM_COMPAT:
       return "SegaPCM";
       break;
     case DIV_SYSTEM_VRC7:
@@ -207,9 +206,7 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
     case DIV_SYSTEM_SCC:
       return "SCC";
       break;
-    case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_CSM:
-    case DIV_SYSTEM_YM2610_EXT:
     case DIV_SYSTEM_YM2610_FULL:
     case DIV_SYSTEM_YM2610_FULL_EXT:
       return "YM2610";

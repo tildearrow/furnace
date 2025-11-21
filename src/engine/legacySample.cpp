@@ -168,7 +168,6 @@ bool DivEngine::convertLegacySampleMode() {
         case DIV_SYSTEM_AY8930:
           // any channel can be DAC'd
           break;
-        case DIV_SYSTEM_YM2610:
         case DIV_SYSTEM_YM2610_FULL:
           // Neo Geo CD ADPCM channels
           if (song.dispatchChanOfChan[i]<7) {
@@ -178,7 +177,6 @@ bool DivEngine::convertLegacySampleMode() {
           preferredInsType=DIV_INS_ADPCMA;
           preferredInsType2=DIV_INS_ADPCMB;
           break;
-        case DIV_SYSTEM_YM2610_EXT:
         case DIV_SYSTEM_YM2610_FULL_EXT:
           // Neo Geo CD ADPCM channels
           if (song.dispatchChanOfChan[i]<10) {
@@ -265,7 +263,6 @@ bool DivEngine::convertLegacySampleMode() {
           preferredInsType=DIV_INS_ADPCMB;
           break;
         case DIV_SYSTEM_SEGAPCM:
-        case DIV_SYSTEM_SEGAPCM_COMPAT:
           // all channels can play back samples
           sampleMode=1;
           preferredInsType=DIV_INS_SEGAPCM;

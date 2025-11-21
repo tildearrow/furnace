@@ -172,9 +172,6 @@ String DivEngine::getSongSystemLegacyName(DivSong& ds, bool isMultiSystemAccepta
         return "Commodore 64 with dual 8580";
       }
 
-      if (ds.system[0]==DIV_SYSTEM_YM2151 && ds.system[1]==DIV_SYSTEM_SEGAPCM_COMPAT) {
-        return "YM2151 + SegaPCM Arcade (compatibility)";
-      }
       if (ds.system[0]==DIV_SYSTEM_YM2151 && ds.system[1]==DIV_SYSTEM_SEGAPCM) {
         return "YM2151 + SegaPCM Arcade";
       }
@@ -995,54 +992,18 @@ void DivEngine::registerSystems() {
     DivChanDefFunc()
   );
 
-  sysDefs[DIV_SYSTEM_YM2610]=new DivSysDef(
+  sysDefs[DIV_SYSTEM_YM2610_CRAP]=new DivSysDef(
     _("Neo Geo CD"), NULL, 0x09, 0x09, 13, 13, 13,
-    true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
-    _("like Neo Geo, but lacking the ADPCM-B channel since they couldn't connect the pins."),
-    DivChanDefFunc({
-      DivChanDef(_("FM 1")     , "F1", DIV_CH_FM   , DIV_INS_FM),
-      DivChanDef(_("FM 2")     , "F2", DIV_CH_FM   , DIV_INS_FM),
-      DivChanDef(_("FM 3")     , "F3", DIV_CH_FM   , DIV_INS_FM),
-      DivChanDef(_("FM 4")     , "F4", DIV_CH_FM   , DIV_INS_FM),
-      DivChanDef(_("PSG 1")    , "S1", DIV_CH_PULSE, DIV_INS_AY),
-      DivChanDef(_("PSG 2")    , "S2", DIV_CH_PULSE, DIV_INS_AY),
-      DivChanDef(_("PSG 3")    , "S3", DIV_CH_PULSE, DIV_INS_AY),
-      DivChanDef(_("ADPCM-A 1"), "P1", DIV_CH_PCM  , DIV_INS_ADPCMA, DIV_INS_AMIGA),
-      DivChanDef(_("ADPCM-A 2"), "P2", DIV_CH_PCM  , DIV_INS_ADPCMA, DIV_INS_AMIGA),
-      DivChanDef(_("ADPCM-A 3"), "P3", DIV_CH_PCM  , DIV_INS_ADPCMA, DIV_INS_AMIGA),
-      DivChanDef(_("ADPCM-A 4"), "P4", DIV_CH_PCM  , DIV_INS_ADPCMA, DIV_INS_AMIGA),
-      DivChanDef(_("ADPCM-A 5"), "P5", DIV_CH_PCM  , DIV_INS_ADPCMA, DIV_INS_AMIGA),
-      DivChanDef(_("ADPCM-A 6"), "P6", DIV_CH_PCM  , DIV_INS_ADPCMA, DIV_INS_AMIGA)
-    }),
-    fmEffectHandlerMap,
-    fmOPNAPostEffectHandlerMap
+    true, true, 0x151, true, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
+    "<COMPOUND SYSTEM!>",
+    DivChanDefFunc()
   );
 
-  sysDefs[DIV_SYSTEM_YM2610_EXT]=new DivSysDef(
+  sysDefs[DIV_SYSTEM_YM2610_CRAP_EXT]=new DivSysDef(
     _("Neo Geo CD Extended Channel 2"), NULL, 0x49, 0x49, 16, 16, 16,
-    true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
-    _("like Neo Geo, but lacking the ADPCM-B channel since they couldn't connect the pins.\nthis one is in Extended Channel mode, which turns the second FM channel into four operators with independent notes/frequencies."),
-    DivChanDefFunc({
-      DivChanDef(_("FM 1")     , "F1", DIV_CH_FM   , DIV_INS_FM),
-      DivChanDef(_("FM 2 OP1") , "O1", DIV_CH_OP   , DIV_INS_FM),
-      DivChanDef(_("FM 2 OP2") , "O2", DIV_CH_OP   , DIV_INS_FM),
-      DivChanDef(_("FM 2 OP3") , "O3", DIV_CH_OP   , DIV_INS_FM),
-      DivChanDef(_("FM 2 OP4") , "O4", DIV_CH_OP   , DIV_INS_FM),
-      DivChanDef(_("FM 3")     , "F3", DIV_CH_FM   , DIV_INS_FM),
-      DivChanDef(_("FM 4")     , "F4", DIV_CH_FM   , DIV_INS_FM),
-      DivChanDef(_("PSG 1")    , "S1", DIV_CH_PULSE, DIV_INS_AY),
-      DivChanDef(_("PSG 2")    , "S2", DIV_CH_PULSE, DIV_INS_AY),
-      DivChanDef(_("PSG 3")    , "S3", DIV_CH_PULSE, DIV_INS_AY),
-      DivChanDef(_("ADPCM-A 1"), "P1", DIV_CH_PCM  , DIV_INS_ADPCMA, DIV_INS_AMIGA),
-      DivChanDef(_("ADPCM-A 2"), "P2", DIV_CH_PCM  , DIV_INS_ADPCMA, DIV_INS_AMIGA),
-      DivChanDef(_("ADPCM-A 3"), "P3", DIV_CH_PCM  , DIV_INS_ADPCMA, DIV_INS_AMIGA),
-      DivChanDef(_("ADPCM-A 4"), "P4", DIV_CH_PCM  , DIV_INS_ADPCMA, DIV_INS_AMIGA),
-      DivChanDef(_("ADPCM-A 5"), "P5", DIV_CH_PCM  , DIV_INS_ADPCMA, DIV_INS_AMIGA),
-      DivChanDef(_("ADPCM-A 6"), "P6", DIV_CH_PCM  , DIV_INS_ADPCMA, DIV_INS_AMIGA)
-    }),
-    {},
-    fmOPNAPostEffectHandlerMap,
-    fmExtChEffectHandlerMap
+    true, true, 0x151, true, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
+    "<COMPOUND SYSTEM!>",
+    DivChanDefFunc()
   );
 
   sysDefs[DIV_SYSTEM_MSX2]=new DivSysDef(
@@ -2033,11 +1994,9 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_SEGAPCM_COMPAT]=new DivSysDef(
     _("SegaPCM (compatible 5-channel mode)"), NULL, 0xa9, 0, 5, 5, 5,
-    false, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
-    _("this is the same thing as SegaPCM, but only exposes 5 of the channels for compatibility with DefleMask."),
-    DivChanDefFunc(stockChanDef<DIV_CH_PCM,DIV_INS_SEGAPCM,DIV_INS_AMIGA>),
-    {},
-    segaPCMPostEffectHandlerMap
+    false, true, 0x151, true, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
+    "<COMPOUND SYSTEM!>",
+    DivChanDefFunc()
   );
 
   sysDefs[DIV_SYSTEM_X1_010]=new DivSysDef(

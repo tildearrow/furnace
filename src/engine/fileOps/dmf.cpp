@@ -397,7 +397,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       if (ds.system[0]==DIV_SYSTEM_C64_8580 || ds.system[0]==DIV_SYSTEM_C64_6581) {
         ins->type=DIV_INS_C64;
       }
-      if (ds.system[0]==DIV_SYSTEM_YM2610 || ds.system[0]==DIV_SYSTEM_YM2610_EXT
+      if (ds.system[0]==DIV_SYSTEM_YM2610_CRAP || ds.system[0]==DIV_SYSTEM_YM2610_CRAP_EXT
        || ds.system[0]==DIV_SYSTEM_YM2610_FULL || ds.system[0]==DIV_SYSTEM_YM2610_FULL_EXT
        || ds.system[0]==DIV_SYSTEM_YM2610B || ds.system[0]==DIV_SYSTEM_YM2610B_EXT) {
         if (!mode) {
@@ -629,7 +629,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           }
 
           // piece of crap offset by 1
-          if (ds.system[0]==DIV_SYSTEM_YM2610 || ds.system[0]==DIV_SYSTEM_YM2610_EXT) {
+          if (ds.system[0]==DIV_SYSTEM_YM2610_CRAP || ds.system[0]==DIV_SYSTEM_YM2610_CRAP_EXT) {
             ins->std.waveMacro.val[j]++;
           }
         }
@@ -1169,8 +1169,21 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.systemFlags[0].set("brokenPitch",true);
     }
 
-    ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
     ds.initDefaultSystemChans();
+
+    // flatten 5-channel SegaPCM and Neo Geo CD
+    for (int i=0; i<ds.systemLen; i++) {
+      if (ds.system[i]==DIV_SYSTEM_SEGAPCM_COMPAT) {
+        ds.system[i]=DIV_SYSTEM_SEGAPCM;
+      } else if (ds.system[i]==DIV_SYSTEM_YM2610_CRAP) {
+        ds.system[i]=DIV_SYSTEM_YM2610_FULL;
+      } else if (ds.system[i]==DIV_SYSTEM_YM2610_CRAP_EXT) {
+        ds.system[i]=DIV_SYSTEM_YM2610_FULL_EXT;
+      }
+    }
+
+    ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
+
     ds.recalcChans();
 
     if (active) quitDispatch();
@@ -1209,6 +1222,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     lastError="invalid version to save in! this is a bug!";
     return NULL;
   }
+  int actualChans=song.chans;
   // check whether system is compound
   bool isFlat=false;
   if (song.systemLen==2) {
@@ -1218,8 +1232,10 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     if (song.system[0]==DIV_SYSTEM_YM2612_EXT && song.system[1]==DIV_SYSTEM_SMS) {
       isFlat=true;
     }
-    if (song.system[0]==DIV_SYSTEM_YM2151 && song.system[1]==DIV_SYSTEM_SEGAPCM_COMPAT) {
+    if (song.system[0]==DIV_SYSTEM_YM2151 && song.system[1]==DIV_SYSTEM_SEGAPCM) {
       isFlat=true;
+      addWarning("only first 5 channels of SegaPCM.");
+      actualChans=13;
     }
     if (song.system[0]==DIV_SYSTEM_SMS && song.system[1]==DIV_SYSTEM_OPLL) {
       isFlat=true;
@@ -1234,6 +1250,10 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
       isFlat=true;
       addWarning("your song will sound different. I am not going to bother adding further compatibility.");
     }
+  }
+  if (song.system[0]==DIV_SYSTEM_YM2610_FULL || song.system[0]==DIV_SYSTEM_YM2610_FULL_EXT) {
+    addWarning("ADPCM-B not supported.");
+    actualChans--;
   }
   // fail if more than one system
   if (!isFlat && song.systemLen!=1) {
@@ -1293,7 +1313,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     lastError="maximum number of wavetables in .dmf is 64";
     return NULL;
   }
-  for (int i=0; i<song.chans; i++) {
+  for (int i=0; i<actualChans; i++) {
     for (int j=0; j<curSubSong->ordersLen; j++) {
       if (curOrders->ord[i][j]>0x7f) {
         logE("order %d, %d is out of range (0-127)!",i,j);
@@ -1320,7 +1340,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   } else if (song.system[0]==DIV_SYSTEM_YM2612_EXT && song.system[1]==DIV_SYSTEM_SMS) {
     w->writeC(systemToFileDMF(DIV_SYSTEM_GENESIS_EXT));
     sys=DIV_SYSTEM_GENESIS_EXT;
-  } else if (song.system[0]==DIV_SYSTEM_YM2151 && song.system[1]==DIV_SYSTEM_SEGAPCM_COMPAT) {
+  } else if (song.system[0]==DIV_SYSTEM_YM2151 && song.system[1]==DIV_SYSTEM_SEGAPCM) {
     w->writeC(systemToFileDMF(DIV_SYSTEM_ARCADE));
     sys=DIV_SYSTEM_ARCADE;
   } else if (song.system[0]==DIV_SYSTEM_SMS && song.system[1]==DIV_SYSTEM_OPLL) {
@@ -1335,6 +1355,12 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   } else if (song.system[0]==DIV_SYSTEM_AY8910 && song.system[1]==DIV_SYSTEM_SCC) {
     w->writeC(systemToFileDMF(DIV_SYSTEM_MSX2));
     sys=DIV_SYSTEM_MSX2;
+  } else if (song.system[0]==DIV_SYSTEM_YM2610_FULL) {
+    w->writeC(systemToFileDMF(DIV_SYSTEM_YM2610_CRAP));
+    sys=DIV_SYSTEM_YM2610_CRAP;
+  } else if (song.system[0]==DIV_SYSTEM_YM2610_FULL_EXT) {
+    w->writeC(systemToFileDMF(DIV_SYSTEM_YM2610_CRAP_EXT));
+    sys=DIV_SYSTEM_YM2610_CRAP_EXT;
   } else {
     w->writeC(systemToFileDMF(song.system[0]));
     sys=song.system[0];
@@ -1360,7 +1386,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   w->writeI(curSubSong->patLen);
   w->writeC(curSubSong->ordersLen);
 
-  for (int i=0; i<song.chans; i++) {
+  for (int i=0; i<actualChans; i++) {
     for (int j=0; j<curSubSong->ordersLen; j++) {
       w->writeC(curOrders->ord[i][j]);
       if (version>=25) {
@@ -1429,8 +1455,8 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
         case DIV_SYSTEM_PCE:
           i->type=DIV_INS_PCE;
           break;
-        case DIV_SYSTEM_YM2610:
-        case DIV_SYSTEM_YM2610_EXT:
+        case DIV_SYSTEM_YM2610_FULL:
+        case DIV_SYSTEM_YM2610_FULL_EXT:
           i->type=DIV_INS_AY;
           break;
         default:
@@ -1582,7 +1608,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
       w->writeC(realWaveMacroLen);
       for (int j=0; j<realWaveMacroLen; j++) {
         // piece of crap offset by 1
-        if (song.system[0]==DIV_SYSTEM_YM2610 || song.system[0]==DIV_SYSTEM_YM2610_EXT) {
+        if (song.system[0]==DIV_SYSTEM_YM2610_FULL || song.system[0]==DIV_SYSTEM_YM2610_FULL_EXT) {
           w->writeI(i->std.waveMacro.val[j]-1);
         } else {
           w->writeI(i->std.waveMacro.val[j]);
@@ -1646,7 +1672,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
 
   bool relWarning=false;
 
-  for (int i=0; i<getChannelCount(sys); i++) {
+  for (int i=0; i<actualChans; i++) {
     short note, octave;
     w->writeC(curPat[i].effectCols);
 
@@ -1675,13 +1701,13 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
           alwaysConvert=true;
         }
         break;
-      case DIV_SYSTEM_YM2610:
+      case DIV_SYSTEM_YM2610_CRAP:
         if (i>=7) {
           convertSampleUsage=true;
           alwaysConvert=true;
         }
         break;
-      case DIV_SYSTEM_YM2610_EXT:
+      case DIV_SYSTEM_YM2610_CRAP_EXT:
         if (i>=10) {
           convertSampleUsage=true;
           alwaysConvert=true;

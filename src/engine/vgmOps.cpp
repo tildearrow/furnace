@@ -168,7 +168,6 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         }
         break;
       case DIV_SYSTEM_SEGAPCM:
-      case DIV_SYSTEM_SEGAPCM_COMPAT:
         for (int i=0; i<16; i++) {
           w->writeC(0xc0);
           w->writeS((0x86|baseAddr2S)+(i<<3));
@@ -182,10 +181,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0);
         }
         break;
-      case DIV_SYSTEM_YM2610:
       case DIV_SYSTEM_YM2610_FULL:
       case DIV_SYSTEM_YM2610B:
-      case DIV_SYSTEM_YM2610_EXT:
       case DIV_SYSTEM_YM2610_FULL_EXT:
       case DIV_SYSTEM_YM2610B_EXT:
       case DIV_SYSTEM_YM2610_CSM:
@@ -979,7 +976,6 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC(write.val);
       break;
     case DIV_SYSTEM_SEGAPCM:
-    case DIV_SYSTEM_SEGAPCM_COMPAT:
       w->writeC(0xc0);
       w->writeS(baseAddr2S|(write.addr&0xffff));
       w->writeC(write.val);
@@ -989,10 +985,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeS_BE(baseAddr2S|(write.addr&0x1fff));
       w->writeC(write.val);
       break;
-    case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_FULL:
     case DIV_SYSTEM_YM2610B:
-    case DIV_SYSTEM_YM2610_EXT:
     case DIV_SYSTEM_YM2610_FULL_EXT:
     case DIV_SYSTEM_YM2610B_EXT:
     case DIV_SYSTEM_YM2610_CSM:
@@ -1507,7 +1501,6 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         }
         break;
       case DIV_SYSTEM_SEGAPCM:
-      case DIV_SYSTEM_SEGAPCM_COMPAT:
         if (!hasSegaPCM) {
           hasSegaPCM=4000000;
           CHIP_VOL(4,0.67);
@@ -1537,10 +1530,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           howManyChips++;
         }
         break;
-      case DIV_SYSTEM_YM2610:
       case DIV_SYSTEM_YM2610_FULL:
       case DIV_SYSTEM_YM2610B:
-      case DIV_SYSTEM_YM2610_EXT:
       case DIV_SYSTEM_YM2610_FULL_EXT:
       case DIV_SYSTEM_YM2610B_EXT:
       case DIV_SYSTEM_YM2610_CSM:

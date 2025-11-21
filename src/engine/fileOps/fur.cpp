@@ -166,8 +166,8 @@ void DivEngine::convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivS
           break;
       }
       break;
-    case DIV_SYSTEM_YM2610:
-    case DIV_SYSTEM_YM2610_EXT:
+    case DIV_SYSTEM_YM2610_CRAP:
+    case DIV_SYSTEM_YM2610_CRAP_EXT:
     case DIV_SYSTEM_YM2610_FULL:
     case DIV_SYSTEM_YM2610_FULL_EXT:
     case DIV_SYSTEM_YM2610B:
@@ -1234,6 +1234,17 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       ds.initDefaultSystemChans();
       ds.chans=tchans;
 
+      // flatten 5-channel SegaPCM and Neo Geo CD
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_SEGAPCM_COMPAT) {
+          ds.system[i]=DIV_SYSTEM_SEGAPCM;
+        } else if (ds.system[i]==DIV_SYSTEM_YM2610_CRAP) {
+          ds.system[i]=DIV_SYSTEM_YM2610_FULL;
+        } else if (ds.system[i]==DIV_SYSTEM_YM2610_CRAP_EXT) {
+          ds.system[i]=DIV_SYSTEM_YM2610_FULL_EXT;
+        }
+      }
+
       ds.name=reader.readString();
       ds.author=reader.readString();
       logI("%s by %s",ds.name.c_str(),ds.author.c_str());
@@ -2095,8 +2106,6 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
           case DIV_SYSTEM_OPZ:
             opmCount++;
             break;
-          case DIV_SYSTEM_YM2610:
-          case DIV_SYSTEM_YM2610_EXT:
           case DIV_SYSTEM_YM2610_FULL:
           case DIV_SYSTEM_YM2610_FULL_EXT:
           case DIV_SYSTEM_YM2610B:
@@ -2131,7 +2140,6 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
     for (int i=0; i<ds.systemLen; i++) {
       if (ds.system[i]==DIV_SYSTEM_YM2612_EXT ||
           ds.system[i]==DIV_SYSTEM_YM2612_DUALPCM_EXT ||
-          ds.system[i]==DIV_SYSTEM_YM2610_EXT ||
           ds.system[i]==DIV_SYSTEM_YM2610_FULL_EXT ||
           ds.system[i]==DIV_SYSTEM_YM2610B_EXT ||
           ds.system[i]==DIV_SYSTEM_YM2203_EXT ||
@@ -2208,7 +2216,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
     // SegaPCM slide compat
     if (ds.version<153) {
       for (int i=0; i<ds.systemLen; i++) {
-        if (ds.system[i]==DIV_SYSTEM_SEGAPCM || ds.system[i]==DIV_SYSTEM_SEGAPCM_COMPAT) {
+        if (ds.system[i]==DIV_SYSTEM_SEGAPCM) {
           ds.systemFlags[i].set("oldSlides",true);
         }
       }
