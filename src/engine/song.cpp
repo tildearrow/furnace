@@ -17,10 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "song.h"
+#include "engine.h"
 #include "../ta-log.h"
 #include <inttypes.h>
+#include <string.h>
 #include <chrono>
+
+static DivCompatFlags defaultFlags;
 
 TimeMicros DivSongTimestamps::getTimes(int order, int row) {
   if (order<0 || order>=DIV_MAX_PATTERNS) return TimeMicros(-1,0);
@@ -194,12 +197,12 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
             if (effectVal!=0) {
               // COMPAT FLAG: cut/delay effect policy (delayBehavior)
               // - 0: strict
-              //   - delays equal or greater to the speed * timeBase are ignored
+              //   - delays equal or greater to the speed are ignored (formerly time base was involved but that has been removed now)
               // - 1: strict old
-              //   - delays equal or greater to the speed are ignored
+              //   - delays greater to the speed are ignored
               // - 2: lax (default)
               //   - no delay is ever ignored unless overridden by another
-              bool comparison=(delayBehavior==1)?(effectVal<=nextSpeed):(effectVal<(nextSpeed*(timeBase+1)));
+              bool comparison=(delayBehavior==1)?(effectVal<=nextSpeed):(effectVal<(nextSpeed));
               if (delayBehavior==2) comparison=true;
               if (comparison) {
                 // set the delay row, order and timer
@@ -324,16 +327,16 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
       // we subtract firstPat from curOrder as firstPat is used by a function which finds sub-songs
       // (the beginning of a new sub-song will be in order 0)
       if ((patLen&1) && (curOrder-firstPat)&1) {
-        ticks=((curRow&1)?speed2:speed1)*(timeBase+1);
+        ticks=((curRow&1)?speed2:speed1);
         nextSpeed=(curRow&1)?speed1:speed2;
       } else {
-        ticks=((curRow&1)?speed1:speed2)*(timeBase+1);
+        ticks=((curRow&1)?speed1:speed2);
         nextSpeed=(curRow&1)?speed2:speed1;
       }
     } else {
       // normal speed alternation
       // set the number of ticks and cycle to the next speed
-      ticks=curSpeeds.val[curSpeed]*(timeBase+1);
+      ticks=curSpeeds.val[curSpeed];
       curSpeed++;
       if (curSpeed>=curSpeeds.len) curSpeed=0;
       // cache the next speed for future operations
@@ -446,6 +449,214 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
   std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
   logV("calcTimestamps() took %dµs",std::chrono::duration_cast<std::chrono::microseconds>(timeEnd-timeStart).count());
   logV("song length: %s; %" PRIu64 " ticks",ts.totalTime.toString(6,TA_TIME_FORMAT_AUTO),ts.totalTicks);
+}
+
+bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
+  unsigned char magic[4];
+
+  reader.read(magic,4);
+
+  if (version>=240) {
+    if (memcmp(magic,"SNG2",4)!=0) {
+      logE("invalid subsong header!");
+      return false;
+    }
+    reader.readI();
+
+    hz=reader.readF();
+    arpLen=reader.readC();
+    effectDivider=reader.readC();
+
+    patLen=reader.readS();
+    ordersLen=reader.readS();
+
+    hilightA=reader.readC();
+    hilightB=reader.readC();
+
+    virtualTempoN=reader.readS();
+    virtualTempoD=reader.readS();
+
+    speeds.len=reader.readC();
+    for (int i=0; i<16; i++) {
+      speeds.val[i]=reader.readS();
+    }
+
+    name=reader.readString();
+    notes=reader.readString();
+
+    logD("reading orders (%d)...",ordersLen);
+    for (int j=0; j<chans; j++) {
+      for (int k=0; k<ordersLen; k++) {
+        orders.ord[j][k]=reader.readC();
+      }
+    }
+
+    for (int i=0; i<chans; i++) {
+      pat[i].effectCols=reader.readC();
+    }
+
+    for (int i=0; i<chans; i++) {
+      unsigned char tempchar=reader.readC();
+      chanShow[i]=tempchar&1;
+      chanShowChanOsc[i]=tempchar&2;
+    }
+
+    for (int i=0; i<chans; i++) {
+      chanCollapse[i]=reader.readC();
+    }
+
+    for (int i=0; i<chans; i++) {
+      chanName[i]=reader.readString();
+    }
+
+    for (int i=0; i<chans; i++) {
+      chanShortName[i]=reader.readString();
+    }
+
+    for (int i=0; i<chans; i++) {
+      chanColor[i]=reader.readI();
+    }
+  } else {
+    if (memcmp(magic,"SONG",4)!=0) {
+      logE("invalid subsong header!");
+      return false;
+    }
+    reader.readI();
+
+    unsigned char oldTimeBase=reader.readC();
+    speeds.len=2;
+    speeds.val[0]=(unsigned char)reader.readC();
+    speeds.val[1]=(unsigned char)reader.readC();
+    arpLen=reader.readC();
+    hz=reader.readF();
+
+    patLen=reader.readS();
+    ordersLen=reader.readS();
+
+    hilightA=reader.readC();
+    hilightB=reader.readC();
+
+    if (version>=96) {
+      virtualTempoN=reader.readS();
+      virtualTempoD=reader.readS();
+    } else {
+      reader.readI();
+    }
+
+    name=reader.readString();
+    notes=reader.readString();
+
+    logD("reading orders (%d)...",ordersLen);
+    for (int j=0; j<chans; j++) {
+      for (int k=0; k<ordersLen; k++) {
+        orders.ord[j][k]=reader.readC();
+      }
+    }
+
+    for (int i=0; i<chans; i++) {
+      pat[i].effectCols=reader.readC();
+    }
+
+    for (int i=0; i<chans; i++) {
+      if (version<189) {
+        chanShow[i]=reader.readC();
+        chanShowChanOsc[i]=chanShow[i];
+      } else {
+        unsigned char tempchar=reader.readC();
+        chanShow[i]=tempchar&1;
+        chanShowChanOsc[i]=tempchar&2;
+      }
+    }
+
+    for (int i=0; i<chans; i++) {
+      chanCollapse[i]=reader.readC();
+    }
+
+    for (int i=0; i<chans; i++) {
+      chanName[i]=reader.readString();
+    }
+
+    for (int i=0; i<chans; i++) {
+      chanShortName[i]=reader.readString();
+    }
+
+    if (version>=139) {
+      speeds.len=reader.readC();
+      for (int i=0; i<16; i++) {
+        speeds.val[i]=(unsigned char)reader.readC();
+      }
+    }
+
+    for (int i=0; i<16; i++) {
+      speeds.val[i]*=(oldTimeBase+1);
+    }
+  }
+
+  return true;
+}
+
+void DivSubSong::putData(SafeWriter* w, int chans) {
+  size_t blockStartSeek, blockEndSeek;
+  w->write("SNG2",4);
+  blockStartSeek=w->tell();
+  w->writeI(0);
+
+  w->writeF(hz);
+  w->writeC(arpLen);
+  w->writeC(effectDivider);
+  w->writeS(patLen);
+  w->writeS(ordersLen);
+  w->writeC(hilightA);
+  w->writeC(hilightB);
+  w->writeS(virtualTempoN);
+  w->writeS(virtualTempoD);
+
+  // speeds
+  w->writeC(speeds.len);
+  for (int i=0; i<16; i++) {
+    w->writeS(speeds.val[i]);
+  }
+
+  w->writeString(name,false);
+  w->writeString(notes,false);
+
+  for (int i=0; i<chans; i++) {
+    for (int j=0; j<ordersLen; j++) {
+      w->writeC(orders.ord[i][j]);
+    }
+  }
+
+  for (int i=0; i<chans; i++) {
+    w->writeC(pat[i].effectCols);
+  }
+
+  for (int i=0; i<chans; i++) {
+    w->writeC(
+      (chanShow[i]?1:0)|
+      (chanShowChanOsc[i]?2:0)
+    );
+  }
+
+  for (int i=0; i<chans; i++) {
+    w->writeC(chanCollapse[i]);
+  }
+
+  for (int i=0; i<chans; i++) {
+    w->writeString(chanName[i],false);
+  }
+
+  for (int i=0; i<chans; i++) {
+    w->writeString(chanShortName[i],false);
+  }
+
+  for (int i=0; i<chans; i++) {
+    w->writeI(chanColor[i]);
+  }
+
+  blockEndSeek=w->tell();
+  w->seek(blockStartSeek,SEEK_SET);
+  w->writeI(blockEndSeek-blockStartSeek-4);
+  w->seek(0,SEEK_END);
 }
 
 void DivSubSong::clearData() {
@@ -574,7 +785,7 @@ void DivSubSong::makePatUnique() {
   }
 }
 
-void DivSong::findSubSongs(int chans) {
+void DivSong::findSubSongs() {
   std::vector<DivSubSong*> newSubSongs;
   for (DivSubSong* i: subsong) {
     std::vector<int> subSongStart;
@@ -584,7 +795,7 @@ void DivSong::findSubSongs(int chans) {
     // find possible subsongs
     logD("finding subsongs...");
     while (++curStart<i->ordersLen) {
-      i->calcTimestamps(chans,grooves,jumpTreatment,ignoreJumpAtEnd,brokenSpeedSel,delayBehavior,curStart);
+      i->calcTimestamps(chans,grooves,compatFlags.jumpTreatment,compatFlags.ignoreJumpAtEnd,compatFlags.brokenSpeedSel,compatFlags.delayBehavior,curStart);
       if (!i->ts.isLoopable) break;
       
       // make sure we don't pick the same range twice
@@ -620,7 +831,7 @@ void DivSong::findSubSongs(int chans) {
       theCopy->notes=i->notes;
       theCopy->hilightA=i->hilightA;
       theCopy->hilightB=i->hilightB;
-      theCopy->timeBase=i->timeBase;
+      theCopy->effectDivider=i->effectDivider;
       theCopy->arpLen=i->arpLen;
       theCopy->speeds=i->speeds;
       theCopy->virtualTempoN=i->virtualTempoN;
@@ -642,6 +853,7 @@ void DivSong::findSubSongs(int chans) {
       memcpy(theCopy->chanShow,i->chanShow,DIV_MAX_CHANS*sizeof(bool));
       memcpy(theCopy->chanShowChanOsc,i->chanShowChanOsc,DIV_MAX_CHANS*sizeof(bool));
       memcpy(theCopy->chanCollapse,i->chanCollapse,DIV_MAX_CHANS);
+      memcpy(theCopy->chanColor,i->chanColor,DIV_MAX_CHANS*sizeof(unsigned int));
 
       for (int k=0; k<DIV_MAX_CHANS; k++) {
         theCopy->chanName[k]=i->chanName[k];
@@ -689,7 +901,69 @@ void DivSong::findSubSongs(int chans) {
   for (DivSubSong* i: newSubSongs) {
     subsong.push_back(i);
   }
+}
 
+void DivSong::initDefaultSystemChans() {
+  for (int i=0; i<systemLen; i++) {
+    const DivSysDef* sysDef=DivEngine::getSystemDef(system[i]);
+    if (sysDef==NULL) {
+      systemChans[i]=0;
+    } else {
+      systemChans[i]=sysDef->channels;
+    }
+  }
+}
+
+void DivSong::recalcChans() {
+  logV("DivSong: recalcChans() called");
+
+  bool isInsTypePossible[DIV_INS_MAX];
+  chans=0;
+  int chanIndex=0;
+  memset(isInsTypePossible,0,DIV_INS_MAX*sizeof(bool));
+  for (int i=0; i<systemLen; i++) {
+    const DivSysDef* sysDef=DivEngine::getSystemDef(system[i]);
+    int chanCount=systemChans[i];
+    int firstChan=chans;
+    chans+=chanCount;
+    for (int j=0; j<chanCount; j++) {
+      sysOfChan[chanIndex]=system[i];
+      dispatchOfChan[chanIndex]=i;
+      if (sysDef==NULL) {
+        dispatchChanOfChan[chanIndex]=-1;
+      } else if (j<sysDef->maxChans) {
+        dispatchChanOfChan[chanIndex]=j;
+      } else {
+        dispatchChanOfChan[chanIndex]=-1;
+      }
+      dispatchFirstChan[chanIndex]=firstChan;
+      if (sysDef!=NULL) {
+        chanDef[chanIndex]=sysDef->getChanDef(j);
+        if (chanDef[chanIndex].insType[0]!=DIV_INS_NULL) {
+          isInsTypePossible[chanDef[chanIndex].insType[0]]=true;
+        }
+
+        if (chanDef[chanIndex].insType[1]!=DIV_INS_NULL) {
+          isInsTypePossible[chanDef[chanIndex].insType[1]]=true;
+        }
+      } else {
+        chanDef[chanIndex]=DivChanDef();
+      }
+
+      chanIndex++;
+    }
+  }
+
+  possibleInsTypes.clear();
+  for (int i=0; i<DIV_INS_MAX; i++) {
+    if (isInsTypePossible[i]) possibleInsTypes.push_back((DivInstrumentType)i);
+  }
+
+  checkAssetDir(insDir,ins.size());
+  checkAssetDir(waveDir,wave.size());
+  checkAssetDir(sampleDir,sample.size());
+
+  logV("%d channels (%d chips)",chans,systemLen);
 }
 
 void DivSong::clearSongData() {
@@ -749,4 +1023,201 @@ void DivSong::unload() {
     delete i;
   }
   subsong.clear();
+}
+
+bool DivGroovePattern::readData(SafeReader& reader) {
+  unsigned char magic[4];
+
+  reader.read(magic,4);
+
+  if (memcmp(magic,"GROV",4)!=0) {
+    logE("invalid groove header!");
+    return false;
+  }
+  reader.readI();
+
+  
+
+  return true;
+}
+
+void DivGroovePattern::putData(SafeWriter* w) {
+  size_t blockStartSeek, blockEndSeek;
+  w->write("GROV",4);
+  blockStartSeek=w->tell();
+  w->writeI(0);
+
+  w->writeC(len);
+  for (int i=0; i<16; i++) {
+    w->writeS(val[i]);
+  }
+
+  blockEndSeek=w->tell();
+  w->seek(blockStartSeek,SEEK_SET);
+  w->writeI(blockEndSeek-blockStartSeek-4);
+  w->seek(0,SEEK_END);
+}
+
+void DivCompatFlags::setDefaults() {
+  limitSlides=false;
+  linearPitch=1;
+  pitchSlideSpeed=4;
+  loopModality=2;
+  delayBehavior=2;
+  jumpTreatment=0;
+  properNoiseLayout=true;
+  waveDutyIsVol=false;
+  resetMacroOnPorta=false;
+  legacyVolumeSlides=false;
+  compatibleArpeggio=false;
+  noteOffResetsSlides=true;
+  targetResetsSlides=true;
+  arpNonPorta=false;
+  algMacroBehavior=false;
+  brokenShortcutSlides=false;
+  ignoreDuplicateSlides=false;
+  stopPortaOnNoteOff=false;
+  continuousVibrato=false;
+  brokenDACMode=false;
+  oneTickCut=false;
+  newInsTriggersInPorta=true;
+  arp0Reset=true;
+  brokenSpeedSel=false;
+  noSlidesOnFirstTick=false;
+  rowResetsArpPos=false;
+  ignoreJumpAtEnd=false;
+  buggyPortaAfterSlide=false;
+  gbInsAffectsEnvelope=true;
+  sharedExtStat=true;
+  ignoreDACModeOutsideIntendedChannel=false;
+  e1e2AlsoTakePriority=false;
+  newSegaPCM=true;
+  fbPortaPause=false;
+  snDutyReset=false;
+  pitchMacroIsLinear=true;
+  oldOctaveBoundary=false;
+  noOPN2Vol=false;
+  newVolumeScaling=true;
+  volMacroLinger=true;
+  brokenOutVol=false;
+  brokenOutVol2=false;
+  e1e2StopOnSameNote=false;
+  brokenPortaArp=false;
+  snNoLowPeriods=false;
+  disableSampleMacro=false;
+  oldArpStrategy=false;
+  brokenPortaLegato=false;
+  brokenFMOff=false;
+  preNoteNoEffect=false;
+  oldDPCM=false;
+  resetArpPhaseOnNewNote=false;
+  ceilVolumeScaling=false;
+  oldAlwaysSetVolume=false;
+  oldSampleOffset=false;
+  oldCenterRate=true;
+}
+
+bool DivCompatFlags::areDefaults() {
+  return (*this==defaultFlags);
+}
+
+bool DivCompatFlags::readData(SafeReader& reader) {
+  DivConfig c;
+  unsigned char magic[4];
+
+  reader.read(magic,4);
+  if (memcmp(magic,"CFLG",4)!=0) {
+    return false;
+  }
+  reader.readI();
+
+  String data=reader.readString();
+  c.loadFromMemory(data.c_str());
+
+  // TODO: this
+  return true;
+}
+
+#define CHECK_AND_STORE_BOOL(_x) \
+  if (_x!=defaultFlags._x) { \
+    c.set(#_x,_x); \
+  }
+
+#define CHECK_AND_STORE_UNSIGNED_CHAR(_x) \
+  if (_x!=defaultFlags._x) { \
+    c.set(#_x,(int)_x); \
+  }
+
+void DivCompatFlags::putData(SafeWriter* w) {
+  DivConfig c;
+  size_t blockStartSeek, blockEndSeek;
+
+  CHECK_AND_STORE_BOOL(limitSlides);
+  CHECK_AND_STORE_UNSIGNED_CHAR(linearPitch);
+  CHECK_AND_STORE_UNSIGNED_CHAR(pitchSlideSpeed);
+  CHECK_AND_STORE_UNSIGNED_CHAR(loopModality);
+  CHECK_AND_STORE_UNSIGNED_CHAR(delayBehavior);
+  CHECK_AND_STORE_UNSIGNED_CHAR(jumpTreatment);
+  CHECK_AND_STORE_BOOL(properNoiseLayout);
+  CHECK_AND_STORE_BOOL(waveDutyIsVol);
+  CHECK_AND_STORE_BOOL(resetMacroOnPorta);
+  CHECK_AND_STORE_BOOL(legacyVolumeSlides);
+  CHECK_AND_STORE_BOOL(compatibleArpeggio);
+  CHECK_AND_STORE_BOOL(noteOffResetsSlides);
+  CHECK_AND_STORE_BOOL(targetResetsSlides);
+  CHECK_AND_STORE_BOOL(arpNonPorta);
+  CHECK_AND_STORE_BOOL(algMacroBehavior);
+  CHECK_AND_STORE_BOOL(brokenShortcutSlides);
+  CHECK_AND_STORE_BOOL(ignoreDuplicateSlides);
+  CHECK_AND_STORE_BOOL(stopPortaOnNoteOff);
+  CHECK_AND_STORE_BOOL(continuousVibrato);
+  CHECK_AND_STORE_BOOL(brokenDACMode);
+  CHECK_AND_STORE_BOOL(oneTickCut);
+  CHECK_AND_STORE_BOOL(newInsTriggersInPorta);
+  CHECK_AND_STORE_BOOL(arp0Reset);
+  CHECK_AND_STORE_BOOL(brokenSpeedSel);
+  CHECK_AND_STORE_BOOL(noSlidesOnFirstTick);
+  CHECK_AND_STORE_BOOL(rowResetsArpPos);
+  CHECK_AND_STORE_BOOL(ignoreJumpAtEnd);
+  CHECK_AND_STORE_BOOL(buggyPortaAfterSlide);
+  CHECK_AND_STORE_BOOL(gbInsAffectsEnvelope);
+  CHECK_AND_STORE_BOOL(sharedExtStat);
+  CHECK_AND_STORE_BOOL(ignoreDACModeOutsideIntendedChannel);
+  CHECK_AND_STORE_BOOL(e1e2AlsoTakePriority);
+  CHECK_AND_STORE_BOOL(newSegaPCM);
+  CHECK_AND_STORE_BOOL(fbPortaPause);
+  CHECK_AND_STORE_BOOL(snDutyReset);
+  CHECK_AND_STORE_BOOL(pitchMacroIsLinear);
+  CHECK_AND_STORE_BOOL(oldOctaveBoundary);
+  CHECK_AND_STORE_BOOL(noOPN2Vol);
+  CHECK_AND_STORE_BOOL(newVolumeScaling);
+  CHECK_AND_STORE_BOOL(volMacroLinger);
+  CHECK_AND_STORE_BOOL(brokenOutVol);
+  CHECK_AND_STORE_BOOL(brokenOutVol2);
+  CHECK_AND_STORE_BOOL(e1e2StopOnSameNote);
+  CHECK_AND_STORE_BOOL(brokenPortaArp);
+  CHECK_AND_STORE_BOOL(snNoLowPeriods);
+  CHECK_AND_STORE_BOOL(disableSampleMacro);
+  CHECK_AND_STORE_BOOL(oldArpStrategy);
+  CHECK_AND_STORE_BOOL(brokenPortaLegato);
+  CHECK_AND_STORE_BOOL(brokenFMOff);
+  CHECK_AND_STORE_BOOL(preNoteNoEffect);
+  CHECK_AND_STORE_BOOL(oldDPCM);
+  CHECK_AND_STORE_BOOL(resetArpPhaseOnNewNote);
+  CHECK_AND_STORE_BOOL(ceilVolumeScaling);
+  CHECK_AND_STORE_BOOL(oldAlwaysSetVolume);
+  CHECK_AND_STORE_BOOL(oldSampleOffset);
+  CHECK_AND_STORE_BOOL(oldCenterRate);
+
+  String data=c.toString();
+  w->write("CFLG",4);
+  blockStartSeek=w->tell();
+  w->writeI(0);
+
+  w->writeString(data,false);
+
+  blockEndSeek=w->tell();
+  w->seek(blockStartSeek,SEEK_SET);
+  w->writeI(blockEndSeek-blockStartSeek-4);
+  w->seek(0,SEEK_END);
 }

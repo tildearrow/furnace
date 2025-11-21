@@ -596,7 +596,7 @@ bool DivCSPlayer::tick() {
     }
 
     if (chan[i].portaSpeed) {
-      e->dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(e->song.linearPitch?e->song.pitchSlideSpeed:1),chan[i].portaTarget));
+      e->dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(e->song.compatFlags.linearPitch?e->song.compatFlags.pitchSlideSpeed:1),chan[i].portaTarget));
     }
     if (chan[i].arp && !chan[i].portaSpeed) {
       if (chan[i].arpTicks==0) {
@@ -704,7 +704,12 @@ bool DivCSPlayer::init() {
 
   // initialize state
   for (int i=0; i<e->getTotalChannelCount(); i++) {
-    chan[i].volMax=(e->getDispatch(e->dispatchOfChan[i])->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,e->dispatchChanOfChan[i]))<<8)|0xff;
+    if (e->song.dispatchChanOfChan[i]>=0) {
+      chan[i].volMax=(e->getDispatch(e->song.dispatchOfChan[i])->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,e->song.dispatchChanOfChan[i]))<<8)|0xff;
+    } else {
+      // fallback
+      chan[i].volMax=0xfff;
+    }
     chan[i].volume=chan[i].volMax;
   }
 

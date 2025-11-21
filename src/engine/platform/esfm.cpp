@@ -337,7 +337,7 @@ void DivPlatformESFM::tick(bool sysTick) {
     if (chan[i].freqChanged) {
       int mul=2;
       int fixedBlock=chan[i].state.fm.block;
-      if (!parent->song.linearPitch) {
+      if (!parent->song.compatFlags.linearPitch) {
         mul=octave(chan[i].baseFreq,fixedBlock)*2;
       }
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,mul,chan[i].pitch2,chipClock,CHIP_FREQBASE);
@@ -569,7 +569,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       bool return2=false;
       int mul=1;
       int fixedBlock=0;
-      if (!parent->song.linearPitch) {
+      if (!parent->song.compatFlags.linearPitch) {
         fixedBlock=chan[c.chan].state.fm.block;
         mul=octave(chan[c.chan].baseFreq,fixedBlock);
       }
@@ -586,7 +586,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
           return2=true;
         }
       }
-      if (!chan[c.chan].portaPause && !parent->song.linearPitch) {
+      if (!chan[c.chan].portaPause && !parent->song.compatFlags.linearPitch) {
         if (mul!=octave(newFreq,fixedBlock)) {
           chan[c.chan].portaPause=true;
           break;
@@ -987,7 +987,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       return 63;
       break;
     case DIV_CMD_PRE_PORTA:
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
         chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       }
       chan[c.chan].inPorta=c.value;
