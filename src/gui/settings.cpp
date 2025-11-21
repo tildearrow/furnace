@@ -4705,8 +4705,8 @@ void FurnaceGUI::drawSettings() {
         // these are the cheat codes:
         // "Debug" - toggles mobile UI
         // "Nice Amiga cover of the song!" - enables hidden systems (YMU759/Dummy)
+        // "this chat is gonna turn me into a chain barrel smoker" - enables "modified sine wave" toggle
         // "42 63" - enables all instrument types
-        // "Power of the Chip" - enables options for multi-threaded audio
         // "btcdbcb" - use modern UI padding
         // "6-7" - OH PLEASE NO
         // "????" - enables stuff

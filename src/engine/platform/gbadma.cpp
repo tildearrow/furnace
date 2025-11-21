@@ -378,6 +378,7 @@ DivDispatchOscBuffer* DivPlatformGBADMA::getOscBuffer(int ch) {
 }
 
 void DivPlatformGBADMA::reset() {
+  memset(wtMem,0,sizeof(wtMem));
   for (int i=0; i<2; i++) {
     chan[i]=DivPlatformGBADMA::Channel();
     chan[i].std.setEngine(parent);
