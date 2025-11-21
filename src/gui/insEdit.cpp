@@ -2640,6 +2640,14 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
   } \
   popToggleColors(); \
 
+#define BUTTON_FOR_MACRO_MENU(buttonType) \
+  if (mobileUI) { \
+    if (buttonType(ICON_FA_PAGELINES "##IMacroMenu")) { \
+      lastMacroDesc=i; \
+      displayMacroMenu=true; \
+    } \
+  }
+
 void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state, DivInstrument* ins) {
   int index=0;
   int maxMacroLen=0;
@@ -2726,6 +2734,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
               ImGui::SameLine();
               BUTTON_TO_SET_RELEASE(ImGui::Button);
             }
+            BUTTON_FOR_MACRO_MENU(ImGui::Button);
             // do not change this!
             // anything other than a checkbox will look ugly!
             // if you really need more than two macro modes please tell me.
@@ -2811,6 +2820,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
               ImGui::SameLine();
               BUTTON_TO_SET_RELEASE(ImGui::Button);
             }
+            BUTTON_FOR_MACRO_MENU(ImGui::Button);
             if (i.modeName!=NULL) {
               bool modeVal=i.macro->mode;
               String modeName=fmt::sprintf("%s##IMacroMode",i.modeName);
@@ -2963,6 +2973,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
                   ImGui::SameLine();
                   BUTTON_TO_SET_RELEASE(ImGui::Button);
                 }
+                BUTTON_FOR_MACRO_MENU(ImGui::Button);
               }
               if (m.modeName!=NULL) {
                 bool modeVal=m.macro->mode;
