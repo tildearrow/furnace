@@ -794,7 +794,7 @@ void FurnaceGUI::drawChanOsc() {
                   }
                 }
               }
-              ImU32 color;
+              ImU32 color=0;
               switch (chanOscColorMode) {
                 case 0:
                   color=ImGui::GetColorU32(chanOscColor);
@@ -802,6 +802,7 @@ void FurnaceGUI::drawChanOsc() {
                 case 1:
                   color=ImGui::GetColorU32(channelColor(oscData[i].chan));
                   break;
+                default: break;
               }
               if (chanOscUseGrad) {
                 float xVal=computeGradPos(chanOscColorX,ch,oscData.size());
@@ -817,7 +818,9 @@ void FurnaceGUI::drawChanOsc() {
                   case 1:
                     color=ImAlphaBlendColors(color,chanOscGrad.get(xVal,1.0f-yVal));
                     break;
+                  default: break;
                 }
+                // gradient xy debug thing
                 // char buf[256];
                 // snprintf(buf, 256, "%f:%f",xVal,yVal);
                 // dl->AddText(inRect.Min,-1,buf);
