@@ -136,9 +136,11 @@ void FurnaceGUI::drawSpeed(bool asChild) {
             intVersion[0]=6;
           }
           if (intVersionLen>16) intVersionLen=16;
-          e->lockEngine([this,intVersion,intVersionLen]() {
+          e->lockEngine([this,&intVersion,intVersionLen]() {
             e->curSubSong->speeds.len=intVersionLen;
             for (int i=0; i<16; i++) {
+              if (intVersion[i]<1) intVersion[i]=1;
+              if (intVersion[i]>512) intVersion[i]=512;
               e->curSubSong->speeds.val[i]=intVersion[i];
             }
           });
@@ -155,6 +157,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         ImGui::SetNextItemWidth(halfAvail);
         if (ImGui::InputScalar("##Speed1",ImGuiDataType_U16,&e->curSubSong->speeds.val[0],&_ONE,&_THREE)) { MARK_MODIFIED
           if (e->curSubSong->speeds.val[0]<1) e->curSubSong->speeds.val[0]=1;
+          if (e->curSubSong->speeds.val[0]>512) e->curSubSong->speeds.val[0]=512;
           if (e->isPlaying()) play();
           recalcTimestamps=true;
         }
@@ -163,6 +166,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
           ImGui::SetNextItemWidth(halfAvail);
           if (ImGui::InputScalar("##Speed2",ImGuiDataType_U16,&e->curSubSong->speeds.val[1],&_ONE,&_THREE)) { MARK_MODIFIED
             if (e->curSubSong->speeds.val[1]<1) e->curSubSong->speeds.val[1]=1;
+            if (e->curSubSong->speeds.val[1]>512) e->curSubSong->speeds.val[1]=512;
             if (e->isPlaying()) play();
             recalcTimestamps=true;
           }
