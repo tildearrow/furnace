@@ -24,22 +24,6 @@
 #include <fmt/printf.h>
 #include "IconsFontAwesome4.h"
 
-const float topKeyStarts[5]={
-  0.9f/7.0f, 2.1f/7.0f, 3.9f/7.0f, 5.0f/7.0f, 6.1f/7.0f
-};
-
-const int topKeyNotes[5]={
-  1, 3, 6, 8, 10
-};
-
-const int bottomKeyNotes[7]={
-  0, 2, 4, 5, 7, 9, 11
-};
-
-const bool isTopKey[12]={
-  false, true, false, true, false, false, true, false, true, false, true, false
-};
-
 #define VALUE_DIGIT(x,label) \
   if (ImGui::Button(label,buttonSize)) { \
     if (curWindow==GUI_WINDOW_ORDERS && orderEditMode>0) { \
@@ -48,6 +32,46 @@ const bool isTopKey[12]={
       valueInput(x,false); \
     } \
   }
+
+void FurnaceGUI::pianoLabel(ImDrawList* dl, ImVec2& p0, ImVec2& p1, int note) {
+  switch (pianoLabelsMode) {
+    case PIANO_LABELS_OFF:
+      return;
+    case PIANO_LABELS_OCTAVE:
+    case PIANO_LABELS_OCTAVE_C:
+      if (note%12) return;
+  }
+  String label="";
+  float padding=0.0f;
+  switch (pianoLabelsMode) {
+    case PIANO_LABELS_OCTAVE:
+      label=fmt::sprintf("%d",(note-60)/12);
+      padding=ImGui::GetStyle().ItemSpacing.y;
+      break;
+    case PIANO_LABELS_NOTE:
+      label=noteNames[60+(note%12)][0];
+      padding=ImGui::GetStyle().ItemSpacing.y;
+      break;
+    case PIANO_LABELS_NOTE_C:
+      if ((note%12)==0) {
+        label+=fmt::sprintf("%d\nC",(note-60)/12);
+      } else {
+        label=noteNames[60+(note%12)][0];
+      }
+      break;
+    case PIANO_LABELS_OCTAVE_C:
+      label=fmt::sprintf("C\n%d",(note-60)/12);
+      break;
+    case PIANO_LABELS_OCTAVE_NOTE:
+      label=fmt::sprintf("%c\n%d",noteNames[60+(note%12)][0],(note-60)/12);
+      break;
+  }
+  ImVec2 pText=ImLerp(p0,p1,ImVec2(0.5f,1.0f));
+  ImVec2 labelSize=ImGui::CalcTextSize(label.c_str());
+  pText.x-=labelSize.x*0.5f;
+  pText.y-=labelSize.y+padding;
+  dl->AddText(pText,0xff404040,label.c_str());
+}
 
 void FurnaceGUI::drawPiano() {
   if (nextWindow==GUI_WINDOW_PIANO) {
@@ -128,6 +152,27 @@ void FurnaceGUI::drawPiano() {
           }
           if (ImGui::RadioButton(_("Split (always visible)"),pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_VISIBLE)) {
             pianoInputPadMode=PIANO_INPUT_PAD_SPLIT_VISIBLE;
+          }
+          ImGui::Unindent();
+          ImGui::Text(_("Key labels:"));
+          ImGui::Indent();
+          if (ImGui::RadioButton(_("Off##keyLabel0"),pianoLabelsMode==PIANO_LABELS_OFF)) {
+            pianoLabelsMode=PIANO_LABELS_OFF;
+          }
+          if (ImGui::RadioButton(_("Octaves##keyLabel1"),pianoLabelsMode==PIANO_LABELS_OCTAVE)) {
+            pianoLabelsMode=PIANO_LABELS_OCTAVE;
+          }
+          if (ImGui::RadioButton(_("Notes##keyLabel2"),pianoLabelsMode==PIANO_LABELS_NOTE)) {
+            pianoLabelsMode=PIANO_LABELS_NOTE;
+          }
+          if (ImGui::RadioButton(_("Notes (with octave)##keyLabel3"),pianoLabelsMode==PIANO_LABELS_NOTE_C)) {
+            pianoLabelsMode=PIANO_LABELS_NOTE_C;
+          }
+          if (ImGui::RadioButton(_("Octaves (with C)##keyLabel4"),pianoLabelsMode==PIANO_LABELS_OCTAVE_C)) {
+            pianoLabelsMode=PIANO_LABELS_OCTAVE_C;
+          }
+          if (ImGui::RadioButton(_("Notes + Octaves##keyLabel5"),pianoLabelsMode==PIANO_LABELS_OCTAVE_NOTE)) {
+            pianoLabelsMode=PIANO_LABELS_OCTAVE_NOTE;
           }
           ImGui::Unindent();
           ImGui::Checkbox(_("Share play/edit offset/range"),&pianoSharePosition);
@@ -252,12 +297,12 @@ void FurnaceGUI::drawPiano() {
               int note=i+12*off;
               if (note<0) continue;
               if (note>=180) continue;
-              float pkh=pianoKeyHit[note];
+              float pkh=pianoKeyHit[note].value;
               ImVec4 color=isTopKey[i%12]?uiColors[GUI_COLOR_PIANO_KEY_TOP]:uiColors[GUI_COLOR_PIANO_KEY_BOTTOM];
               if (pianoKeyPressed[note]) {
                 color=isTopKey[i%12]?uiColors[GUI_COLOR_PIANO_KEY_TOP_ACTIVE]:uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE];
               } else {
-                ImVec4 colorHit=isTopKey[i%12]?uiColors[GUI_COLOR_PIANO_KEY_TOP_HIT]:uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_HIT];
+                ImVec4 colorHit=1?channelColor(pianoKeyHit[note].chan):(isTopKey[i%12]?uiColors[GUI_COLOR_PIANO_KEY_TOP_HIT]:uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_HIT]);
                 color.x+=(colorHit.x-color.x)*pkh;
                 color.y+=(colorHit.y-color.y)*pkh;
                 color.z+=(colorHit.z-color.z)*pkh;
@@ -267,14 +312,7 @@ void FurnaceGUI::drawPiano() {
               ImVec2 p1=ImLerp(rect.Min,rect.Max,ImVec2((float)(i+1)/notes,1.0f));
               p1.x-=dpiScale;
               dl->AddRectFilled(p0,p1,ImGui::ColorConvertFloat4ToU32(color));
-              if ((i%12)==0) {
-                String label=fmt::sprintf("%d",(note-60)/12);
-                ImVec2 pText=ImLerp(p0,p1,ImVec2(0.5f,1.0f));
-                ImVec2 labelSize=ImGui::CalcTextSize(label.c_str());
-                pText.x-=labelSize.x*0.5f;
-                pText.y-=labelSize.y+ImGui::GetStyle().ItemSpacing.y;
-                dl->AddText(pText,0xff404040,label.c_str());
-              }
+              if (isTopKey[i%12]) pianoLabel(dl,p0,p1,note);
             }
           } else {
             int bottomNotes=7*oct;
@@ -317,12 +355,12 @@ void FurnaceGUI::drawPiano() {
               if (note<0) continue;
               if (note>=180) continue;
 
-              float pkh=pianoKeyHit[note];
+              float pkh=pianoKeyHit[note].value;
               ImVec4 color=uiColors[GUI_COLOR_PIANO_KEY_BOTTOM];
               if (pianoKeyPressed[note]) {
                 color=uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE];
               } else {
-                ImVec4 colorHit=uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_HIT];
+                ImVec4 colorHit=1?channelColor(pianoKeyHit[note].chan):uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_HIT];
                 color.x+=(colorHit.x-color.x)*pkh;
                 color.y+=(colorHit.y-color.y)*pkh;
                 color.z+=(colorHit.z-color.z)*pkh;
@@ -334,14 +372,7 @@ void FurnaceGUI::drawPiano() {
               p1.x-=dpiScale;
 
               dl->AddRectFilled(p0,p1,ImGui::ColorConvertFloat4ToU32(color));
-              if ((i%7)==0) {
-                String label=fmt::sprintf("%d",(note-60)/12);
-                ImVec2 pText=ImLerp(p0,p1,ImVec2(0.5f,1.0f));
-                ImVec2 labelSize=ImGui::CalcTextSize(label.c_str());
-                pText.x-=labelSize.x*0.5f;
-                pText.y-=labelSize.y+ImGui::GetStyle().ItemSpacing.y;
-                dl->AddText(pText,0xff404040,label.c_str());
-              }
+              pianoLabel(dl,p0,p1,note);
             }
 
             for (int i=0; i<oct; i++) {
@@ -352,12 +383,12 @@ void FurnaceGUI::drawPiano() {
                 int note=topKeyNotes[j]+12*(i+off);
                 if (note<0) continue;
                 if (note>=180) continue;
-                float pkh=pianoKeyHit[note];
+                float pkh=pianoKeyHit[note].value;
                 ImVec4 color=uiColors[GUI_COLOR_PIANO_KEY_TOP];
                 if (pianoKeyPressed[note]) {
                   color=uiColors[GUI_COLOR_PIANO_KEY_TOP_ACTIVE];
                 } else {
-                  ImVec4 colorHit=uiColors[GUI_COLOR_PIANO_KEY_TOP_HIT];
+                  ImVec4 colorHit=1?channelColor(pianoKeyHit[note].chan):uiColors[GUI_COLOR_PIANO_KEY_TOP_HIT];
                   color.x+=(colorHit.x-color.x)*pkh;
                   color.y+=(colorHit.y-color.y)*pkh;
                   color.z+=(colorHit.z-color.z)*pkh;
@@ -376,8 +407,8 @@ void FurnaceGUI::drawPiano() {
 
           const float reduction=ImGui::GetIO().DeltaTime*60.0f*0.12;
           for (int i=0; i<180; i++) {
-            pianoKeyHit[i]-=reduction;
-            if (pianoKeyHit[i]<0) pianoKeyHit[i]=0;
+            pianoKeyHit[i].value-=reduction;
+            if (pianoKeyHit[i].value<0) pianoKeyHit[i].value=0;
           }
         }
 
@@ -429,6 +460,11 @@ void FurnaceGUI::drawPiano() {
                   } else {
                     e->synchronized([this,note]() {
                       if (!e->autoNoteOn(-1,curIns,note)) failedNoteOn=true;
+                      for (int mi=0; mi<7; mi++) {
+                        if (multiIns[mi]!=-1) {
+                          e->autoNoteOn(-1,multiIns[mi],note,-1,multiInsTranspose[mi]);
+                        }
+                      }
                     });
                     if (edit && curWindow!=GUI_WINDOW_INS_LIST && curWindow!=GUI_WINDOW_INS_EDIT) noteInput(note,0);
                   }

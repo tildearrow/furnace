@@ -35,6 +35,8 @@ the default layout of Furnace is depicted below.
 - [oscilloscope](../8-advanced/osc.md)
 - [oscilloscope (per channel)](../8-advanced/chanosc.md)
 - [oscilloscope (X-Y)](../8-advanced/xyosc.md)
+- [tuner](../8-advanced/tuner.md)
+- [spectrum](../8-advanced/spectrum.md)
 - [clock](../8-advanced/clock.md)
 - [grooves](../8-advanced/grooves.md)
 - [log viewer](../8-advanced/log-viewer.md)
@@ -45,4 +47,6 @@ the default layout of Furnace is depicted below.
 ## other topics
 
 - [piano/input pad](../8-advanced/piano.md)
+- [reference music player](../8-advanced/refPlayer.md)
+- [multi-ins setup](../8-advanced/multi-ins.md)
 - [settings](settings.md)

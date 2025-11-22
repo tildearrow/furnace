@@ -341,7 +341,7 @@ void DivPlatformOPLL::tick(bool sysTick) {
     if (chan[i].freqChanged) {
       int mul=2;
       int fixedBlock=chan[i].state.block;
-      if (parent->song.linearPitch!=2) {
+      if (!parent->song.compatFlags.linearPitch) {
         mul=octave(chan[i].baseFreq,fixedBlock)*2;
       }
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,mul,chan[i].pitch2,chipClock,CHIP_FREQBASE);
@@ -684,7 +684,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       bool return2=false;
       int mul=1;
       int fixedBlock=0;
-      if (parent->song.linearPitch!=2) {
+      if (!parent->song.compatFlags.linearPitch) {
         fixedBlock=chan[c.chan].state.block;
         mul=octave(chan[c.chan].baseFreq,fixedBlock);
       }
@@ -956,7 +956,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (c.chan>=9 && !properDrums) return 0;
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:

@@ -52,9 +52,10 @@ class DivPlatformPCMDAC: public DivDispatch {
       setPos(false),
       envVol(64) {}
   };
-  Channel chan[1];
+  Channel* chan;
+  bool* isMuted;
+  int chans;
   DivDispatchOscBuffer* oscBuf;
-  bool isMuted;
   int outDepth;
   // valid values:
   // - 0: none
@@ -64,6 +65,7 @@ class DivPlatformPCMDAC: public DivDispatch {
   int interp;
   int volMax;
   bool outStereo;
+  float volMult;
 
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
@@ -87,6 +89,8 @@ class DivPlatformPCMDAC: public DivDispatch {
     void notifyInsDeletion(void* ins);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
+    DivPlatformPCMDAC():
+      chan(NULL), isMuted(NULL), chans(0) {}
 };
 
 #endif

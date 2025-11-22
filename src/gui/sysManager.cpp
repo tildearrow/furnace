@@ -110,6 +110,7 @@ void FurnaceGUI::drawSysManager() {
           if (picked!=DIV_SYSTEM_NULL) {
             if (e->changeSystem(i,picked,preserveChanPos)) {
               MARK_MODIFIED;
+              recalcTimestamps=true;
               if (e->song.autoSystem) {
                 autoDetectSystem();
               }
@@ -144,7 +145,7 @@ void FurnaceGUI::drawSysManager() {
         // channel LEDs and chip config button
         float height=0;
         if (settings.rackShowLEDs) {
-          height=drawSystemChannelInfo(sysDef,dispatchOff,ImGui::GetContentRegionAvail().x-(ImGui::CalcTextSize(ICON_FA_CHEVRON_DOWN).x+ImGui::GetStyle().ItemSpacing.x));
+          height=drawSystemChannelInfo(sysDef,dispatchOff,ImGui::GetContentRegionAvail().x-(ImGui::CalcTextSize(ICON_FA_CHEVRON_DOWN).x+ImGui::GetStyle().ItemSpacing.x),e->song.systemChans[i]);
         }
 
         ImGuiID openedID=ImGui::GetID("OpenSysConfig");
@@ -167,7 +168,7 @@ void FurnaceGUI::drawSysManager() {
       ImGui::EndChild();
       ImGui::PopID();
 
-      dispatchOff+=sysDef->channels;
+      dispatchOff+=e->song.systemChans[i];
     }
 
     if (e->song.systemLen<DIV_MAX_CHIPS) {
@@ -179,6 +180,7 @@ void FurnaceGUI::drawSysManager() {
             showError(fmt::sprintf(_("cannot add chip! (%s)"),e->getLastError()));
           } else {
             MARK_MODIFIED;
+            recalcTimestamps=true;
           }
           if (e->song.autoSystem) {
             autoDetectSystem();

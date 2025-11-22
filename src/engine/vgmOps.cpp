@@ -168,7 +168,6 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         }
         break;
       case DIV_SYSTEM_SEGAPCM:
-      case DIV_SYSTEM_SEGAPCM_COMPAT:
         for (int i=0; i<16; i++) {
           w->writeC(0xc0);
           w->writeS((0x86|baseAddr2S)+(i<<3));
@@ -182,10 +181,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0);
         }
         break;
-      case DIV_SYSTEM_YM2610:
       case DIV_SYSTEM_YM2610_FULL:
       case DIV_SYSTEM_YM2610B:
-      case DIV_SYSTEM_YM2610_EXT:
       case DIV_SYSTEM_YM2610_FULL_EXT:
       case DIV_SYSTEM_YM2610B_EXT:
       case DIV_SYSTEM_YM2610_CSM:
@@ -979,7 +976,6 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC(write.val);
       break;
     case DIV_SYSTEM_SEGAPCM:
-    case DIV_SYSTEM_SEGAPCM_COMPAT:
       w->writeC(0xc0);
       w->writeS(baseAddr2S|(write.addr&0xffff));
       w->writeC(write.val);
@@ -989,10 +985,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeS_BE(baseAddr2S|(write.addr&0x1fff));
       w->writeC(write.val);
       break;
-    case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_FULL:
     case DIV_SYSTEM_YM2610B:
-    case DIV_SYSTEM_YM2610_EXT:
     case DIV_SYSTEM_YM2610_FULL_EXT:
     case DIV_SYSTEM_YM2610B_EXT:
     case DIV_SYSTEM_YM2610_CSM:
@@ -1272,10 +1266,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   double origRate=got.rate;
   got.rate=correctedRate;
   // determine loop point
-  int loopOrder=0;
-  int loopRow=0;
-  int loopEnd=0;
-  walkSong(loopOrder,loopRow,loopEnd);
+  calcSongTimestamps();
+  int loopOrder=curSubSong->ts.loopStart.order;
+  int loopRow=curSubSong->ts.loopStart.row;
   logI("loop point: %d %d",loopOrder,loopRow);
   warnings="";
 
@@ -1508,7 +1501,6 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         }
         break;
       case DIV_SYSTEM_SEGAPCM:
-      case DIV_SYSTEM_SEGAPCM_COMPAT:
         if (!hasSegaPCM) {
           hasSegaPCM=4000000;
           CHIP_VOL(4,0.67);
@@ -1538,10 +1530,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           howManyChips++;
         }
         break;
-      case DIV_SYSTEM_YM2610:
       case DIV_SYSTEM_YM2610_FULL:
       case DIV_SYSTEM_YM2610B:
-      case DIV_SYSTEM_YM2610_EXT:
       case DIV_SYSTEM_YM2610_FULL_EXT:
       case DIV_SYSTEM_YM2610B_EXT:
       case DIV_SYSTEM_YM2610_CSM:
@@ -1696,6 +1686,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_VRC7:
         if (!hasOPLL) {
           hasOPLL=disCont[i].dispatch->chipClock;
+          if (song.system[i]==DIV_SYSTEM_VRC7) hasOPLL|=0x80000000;
           CHIP_VOL(1,3.2);
           willExport[i]=true;
         } else if (!(hasOPLL&0x40000000)) {
@@ -2689,8 +2680,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   bool alreadyWroteLoop=false;
   int ord=-1;
   int exportChans=0;
-  for (int i=0; i<chans; i++) {
-    if (!willExport[dispatchOfChan[i]]) continue;
+  for (int i=0; i<song.chans; i++) {
+    if (!willExport[song.dispatchOfChan[i]]) continue;
     exportChans++;
     chan[i].wentThroughNote=false;
     chan[i].goneThroughNote=false;
@@ -2710,8 +2701,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       if (trailing) beenOneLoopAlready=true;
       trailing=true;
       if (!loop) countDown=0;
-      for (int i=0; i<chans; i++) {
-        if (!willExport[dispatchOfChan[i]]) continue;
+      for (int i=0; i<song.chans; i++) {
+        if (!willExport[song.dispatchOfChan[i]]) continue;
         chan[i].wentThroughNote=false;
       }
     }
@@ -2719,8 +2710,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       switch (trailingTicks) {
         case -1: { // automatic
           bool stillHaveTo=false;
-          for (int i=0; i<chans; i++) {
-            if (!willExport[dispatchOfChan[i]]) continue;
+          for (int i=0; i<song.chans; i++) {
+            if (!willExport[song.dispatchOfChan[i]]) continue;
             if (!chan[i].goneThroughNote) continue;
             if (!chan[i].wentThroughNote) {
               stillHaveTo=true;
@@ -2736,7 +2727,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           countDown--;
           break;
       }
-      if (song.loopModality!=2) countDown=0;
+      if (song.compatFlags.loopModality!=2) countDown=0;
 
       if (countDown>0 && !beenOneLoopAlready) {
         loopTickSong++;
@@ -2777,8 +2768,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           w->writeC(0x01);
           w->writeC(prevOrder);
           w->writeC(prevRow);
-          for (int i=0; i<chans; i++) {
-            if (!willExport[dispatchOfChan[i]]) continue;
+          for (int i=0; i<song.chans; i++) {
+            if (!willExport[song.dispatchOfChan[i]]) continue;
             w->writeC(curSubSong->orders.ord[i][prevOrder]);
           }
         }

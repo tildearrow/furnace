@@ -8,7 +8,8 @@ along the top are the available channels. their abbreviations can be set in the 
 
 along the left are the order numbers. the highlighted row follows the order the pattern view cursor is in.
 
-each entry in the table is the pattern that will play during that order. these can be changed according to the order edit mode.
+each cell in the table is the pattern that will play during that order. these can be changed according to the order edit mode.
+middle-clicking on a cell will set it to a new, unique empty pattern.
 
 hovering over a pattern number will pop up a tooltip showing the name of that pattern, if it has one.
 

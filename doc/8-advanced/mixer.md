@@ -6,13 +6,15 @@ the "Mixer" dialog provides options for overall sound mixing.
 
 ![mixer dialog on mixer tab](mixer-mixer.png)
 
-"Master Volume" controls the overall mix.
+**Master Volume** controls the overall mix.
 
 each chip has several options:
-- **Invert**: flips the output wave.
-- **Volume**: controls the chip's volume relative to other chips.
-- **Panning**: left-right sound control.
-- **Front/Rear**: front-read sound control. only useful for setups with four or more speakers.
+- **invert**: inverts the output wave.
+- **volume**: controls the chip's volume relative to other chips.
+- **panning**: left-right balance.
+- **fade**: front-rear balance. only useful for setups with four or more speakers.
+
+settings for the mixer display can be found in Settings > Appearance near the bottom.
 
 ## "Patchbay" tab
 

@@ -166,7 +166,7 @@ Furnace 0.7 is expected to support exporting ROM for SNES, C64 and Game Boy. the
 
 ### can Furnace export MP3/OGG/FLAC files?
 
-not presently. for now, use an external converter such as FFmpeg.
+yes! see the [export documentation](../2-interface/export.md#audio) for more information.
 
 ## other
 

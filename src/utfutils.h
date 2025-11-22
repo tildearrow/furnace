@@ -33,4 +33,7 @@ char utf8csize(const unsigned char* c);
 WString utf8To16(const char* in);
 String utf16To8(const wchar_t* in);
 
+WString utf8To16(String& in);
+String utf16To8(WString& in);
+
 #endif

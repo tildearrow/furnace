@@ -148,7 +148,7 @@ for other operating systems, you may [build the source](#developer-info).
   - built-in sample editor
   - chip mixing settings
   - built-in visualizer in pattern view
-- open-source under GPLv2 or later.
+- open-source under GPLv2 or later/GPLv3. see [LICENSE](LICENSE).
 
 ---
 
