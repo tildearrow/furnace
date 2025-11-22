@@ -1658,7 +1658,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     }
 
     // set systems
-    int chansToCount=maxChan;
+    int chansToCount=maxChan+1;
     for (int i=0; i<(maxChan+32)>>5; i++) {
       ds.system[i]=DIV_SYSTEM_ES5506;
       ds.systemChans[i]=MIN(32,chansToCount);
