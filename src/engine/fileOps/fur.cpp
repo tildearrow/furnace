@@ -1712,6 +1712,11 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
     ds.grooves.reserve(groovePtr.size());
     for (size_t i=0; i<groovePtr.size(); i++) {
       DivGroovePattern groove;
+
+      if (groovePtr[i]==0) {
+        // could happen due to a bug in unstable Furnace
+        continue;
+      }
       if (!reader.seek(groovePtr[i],SEEK_SET)) {
         logE("couldn't seek to groove %d!",i);
         lastError=fmt::sprintf("couldn't seek to groove %d!",i);
