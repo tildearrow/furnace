@@ -928,11 +928,9 @@ void FurnaceGUI::drawChanOsc() {
                       }
                       case 'n': {
                         DivChannelState* chanState=e->getChanState(ch);
-                        // ik its pretty hacky but it works
-                        // the templated stuff is after the member we need to access so it shouldnt matter
-                        // and no segfaults should occur
-                        SharedChannel<char>* chan=(SharedChannel<char>*)e->getDispatchChanState(ch);
-                        if (chanState==NULL || chan==NULL || !chan->active) {
+                        if (chanState==NULL) {
+                          text+="---";
+                        } else if (!chanState->keyOn) {
                           text+="---";
                         } else {
                           // no more conversion necessary after the note/octave unification :>
