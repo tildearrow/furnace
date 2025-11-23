@@ -56,7 +56,7 @@ static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   }
 }
 
-float FurnaceGUI::computeGradPos(int type, int chan) {
+float FurnaceGUI::computeGradPos(int type, int chan, int totalChans) {
   switch (type) {
     case GUI_OSCREF_NONE:
       return 0.0f;
@@ -74,10 +74,10 @@ float FurnaceGUI::computeGradPos(int type, int chan) {
       return chanOscVol[chan];
       break;
     case GUI_OSCREF_CHANNEL:
-      return (float)chan/(float)(e->getTotalChannelCount()-1);
+      return (float)chan/(float)(totalChans-1);
       break;
     case GUI_OSCREF_BRIGHT:
-      return chanOscBright[chan];
+      return chanOscBright[chan]; // this array is set to only 0 (???)
       break;
     case GUI_OSCREF_NOTE_TRIGGER:
       return keyHit1[chan];
@@ -87,10 +87,6 @@ float FurnaceGUI::computeGradPos(int type, int chan) {
 }
 
 void FurnaceGUI::calcChanOsc() {
-  std::vector<DivDispatchOscBuffer*> oscBufs;
-  std::vector<ChanOscStatus*> oscFFTs;
-  std::vector<int> oscChans;
-
   int chans=e->getTotalChannelCount();
   
   for (int i=0; i<chans; i++) {
@@ -143,10 +139,12 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::Text(_("Columns"));
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        ImGui::BeginDisabled(chanOscAutoCols);
         if (ImGui::InputInt("##COSColumns",&chanOscCols,1,3)) {
           if (chanOscCols<1) chanOscCols=1;
           if (chanOscCols>64) chanOscCols=64;
         }
+        ImGui::EndDisabled();
 
         ImGui::TableNextColumn();
         ImGui::Text(_("Size (ms)"));
@@ -160,18 +158,7 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Automatic columns"));
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        const char* previewColType=autoColsTypes[chanOscAutoColsType&3];
-        if (ImGui::BeginCombo("##AutoCols",previewColType)) {
-          for (int j=0; j<4; j++) {
-            const bool isSelected=(chanOscAutoColsType==j);
-            if (ImGui::Selectable(autoColsTypes[j],isSelected)) chanOscAutoColsType=j;
-            if (isSelected) ImGui::SetItemDefaultFocus();
-          }
-          ImGui::EndCombo();
-        }
+        ImGui::Checkbox(_("Automatic columns"),&chanOscAutoCols);
 
         ImGui::TableNextColumn();
         if (ImGui::Checkbox(_("Center waveform"),&chanOscWaveCorr)) {
@@ -350,9 +337,30 @@ void FurnaceGUI::drawChanOsc() {
           }
 
           ImGui::TableNextColumn();
-          if (ImGui::ColorEdit4(_("Background"),(float*)&chanOscGrad.bgColor)) {
+          ImGui::Text(_("Background:"));
+          ImGui::Indent();
+          if (ImGui::RadioButton(_("Solid color"),chanOscColorMode==0)) {
+            chanOscColorMode=0;
             updateChanOscGradTex=true;
           }
+          if (chanOscColorMode==0) {
+            ImGui::Indent();
+            if (ImGui::ColorEdit4(_("Color"),(float*)&chanOscGrad.bgColor)) {
+              updateChanOscGradTex=true;
+            }
+            ImGui::Unindent();
+          }
+          if (ImGui::RadioButton(_("Channel color"),chanOscColorMode==1)) {
+            chanOscColorMode=1;
+            chanOscGrad.bgColor.x=0.0f;
+            chanOscGrad.bgColor.y=0.0f;
+            chanOscGrad.bgColor.z=0.0f;
+            chanOscGrad.bgColor.w=0.0f;
+            updateChanOscGradTex=true;
+          }
+          // in preparation of image texture
+          ImGui::Unindent();
+
           ImGui::Combo(_("X Axis##AxisX"),&chanOscColorX,LocalizedComboGetter,chanOscRefs,GUI_OSCREF_MAX);
           ImGui::Combo(_("Y Axis##AxisY"),&chanOscColorY,LocalizedComboGetter,chanOscRefs,GUI_OSCREF_MAX);
 
@@ -360,7 +368,13 @@ void FurnaceGUI::drawChanOsc() {
         }
       } else {
         ImGui::SetNextItemWidth(400.0f*dpiScale);
-        ImGui::ColorPicker4(_("Color"),(float*)&chanOscColor);
+        bool chanOscColorModeB=chanOscColorMode;
+        ImGui::BeginDisabled(chanOscColorModeB);
+        ImGui::ColorEdit4(_("Color"),(float*)&chanOscColor);
+        ImGui::EndDisabled();
+        if (ImGui::Checkbox(_("Set to channel color"), &chanOscColorModeB)) {
+          chanOscColorMode=chanOscColorModeB;
+        }
       }
 
       ImGui::AlignTextToFramePadding();
@@ -401,9 +415,12 @@ void FurnaceGUI::drawChanOsc() {
       ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(0.0f,0.0f));
       float availY=ImGui::GetContentRegionAvail().y;
       if (ImGui::BeginTable("ChanOsc",chanOscCols,ImGuiTableFlags_Borders|ImGuiTableFlags_NoClip)) {
-        std::vector<DivDispatchOscBuffer*> oscBufs;
-        std::vector<ChanOscStatus*> oscFFTs;
-        std::vector<int> oscChans;
+        struct OscData {
+          DivDispatchOscBuffer* buf;
+          ChanOscStatus* fft;
+          int chan;
+        };
+        std::vector<OscData> oscData;
         int chans=e->getTotalChannelCount();
         ImGuiWindow* window=ImGui::GetCurrentWindow();
 
@@ -420,18 +437,16 @@ void FurnaceGUI::drawChanOsc() {
         for (int i=0; i<chans; i++) {
           DivDispatchOscBuffer* buf=e->getOscBuffer(i);
           if (buf!=NULL && e->curSubSong->chanShowChanOsc[i]) {
-            oscBufs.push_back(buf);
-            oscFFTs.push_back(&chanOscChan[i]);
-            oscChans.push_back(i);
+            oscData.push_back({buf,&chanOscChan[i],i});
           }
         }
 
         // process
-        for (size_t i=0; i<oscBufs.size(); i++) {
-          ChanOscStatus* fft_=oscFFTs[i];
+        for (size_t i=0; i<oscData.size(); i++) {
+          ChanOscStatus* fft_=oscData[i].fft;
 
-          fft_->relatedBuf=oscBufs[i];
-          fft_->relatedCh=oscChans[i];
+          fft_->relatedBuf=oscData[i].buf;
+          fft_->relatedCh=oscData[i].chan;
 
           if (fft_->relatedBuf!=NULL) {
             // prepare
@@ -590,35 +605,21 @@ void FurnaceGUI::drawChanOsc() {
           }
         }
         chanOscWorkPool->wait();
-
-        // 0: none
-        // 1: sqrt(chans)
-        // 2: sqrt(chans+1)
-        // 3: sqrt(chans)+1
-        switch (chanOscAutoColsType) {
-          case 1:
-            chanOscCols=sqrt(oscChans.size());
-            break;
-          case 2:
-            chanOscCols=sqrt(oscChans.size()+1);
-            break;
-          case 3:
-            chanOscCols=sqrt(oscChans.size())+1;
-            break;
-        }
-        if (chanOscCols<1) chanOscCols=1;
-        if (chanOscCols>64) chanOscCols=64;
         
-        int rows=(oscBufs.size()+(chanOscCols-1))/chanOscCols;
+        if (chanOscAutoCols) {
+          chanOscCols=sqrt(oscData.size());
+          if (chanOscCols>64) chanOscCols=64;
+        }
+        int rows=(oscData.size()+(chanOscCols-1))/chanOscCols;
 
         // render
-        for (size_t i=0; i<oscBufs.size(); i++) {
+        for (size_t i=0; i<oscData.size(); i++) {
           if (i%chanOscCols==0) ImGui::TableNextRow();
           ImGui::TableNextColumn();
 
-          DivDispatchOscBuffer* buf=oscBufs[i];
-          ChanOscStatus* fft=oscFFTs[i];
-          int ch=oscChans[i];
+          DivDispatchOscBuffer* buf=oscData[i].buf;
+          ChanOscStatus* fft=oscData[i].fft;
+          int ch=oscData[i].chan;
           if (buf==NULL) {
             ImGui::Text(_("Error!"));
           } else {
@@ -793,15 +794,41 @@ void FurnaceGUI::drawChanOsc() {
                   }
                 }
               }
-              ImU32 color=ImGui::GetColorU32(chanOscColor);
+              ImU32 color=0;
+              switch (chanOscColorMode) {
+                case 0:
+                  color=ImGui::GetColorU32(chanOscColor);
+                  break;
+                case 1:
+                  color=ImGui::GetColorU32(channelColor(oscData[i].chan));
+                  break;
+                default: break;
+              }
               if (chanOscUseGrad) {
-                float xVal=computeGradPos(chanOscColorX,ch);
-                float yVal=computeGradPos(chanOscColorY,ch);
+                float xVal=computeGradPos(chanOscColorX,ch,oscData.size());
+                float yVal=computeGradPos(chanOscColorY,ch,oscData.size());
 
                 xVal=CLAMP(xVal,0.0f,1.0f);
                 yVal=CLAMP(yVal,0.0f,1.0f);
 
-                color=chanOscGrad.get(xVal,1.0f-yVal);
+                switch (chanOscColorMode) {
+                  case 0:
+                    color=chanOscGrad.get(xVal,1.0f-yVal);
+                    break;
+                  case 1:
+                    color=ImAlphaBlendColors(color,chanOscGrad.get(xVal,1.0f-yVal));
+                    break;
+                  default: break;
+                }
+                // gradient xy debug thing
+                // char buf[256];
+                // snprintf(buf, 256, "%f:%f",xVal,yVal);
+                // dl->AddText(inRect.Min,-1,buf);
+                // dl->AddCircleFilled(
+                //   ImVec2(
+                //     ImLerp(inRect.Min.x,inRect.Max.x,xVal),
+                //     ImLerp(inRect.Min.y,inRect.Max.y,1.0f-yVal)
+                //   ), 2, 0xffff0000);
               }
 
               if (rend->supportsDrawOsc() && settings.shaderOsc) {
@@ -868,15 +895,15 @@ void FurnaceGUI::drawChanOsc() {
                         break;
                       }
                       case 's': {
-                        text+=e->getSystemName(e->sysOfChan[ch]);
+                        text+=e->getSystemName(e->song.sysOfChan[ch]);
                         break;
                       }
                       case 'p': {
-                        text+=FurnaceGUI::getSystemPartNumber(e->sysOfChan[ch],e->song.systemFlags[e->dispatchOfChan[ch]]);
+                        text+=FurnaceGUI::getSystemPartNumber(e->song.sysOfChan[ch],e->song.systemFlags[e->song.dispatchOfChan[ch]]);
                         break;
                       }
                       case 'S': {
-                        text+=fmt::sprintf("%d",e->dispatchOfChan[ch]);
+                        text+=fmt::sprintf("%d",e->song.dispatchOfChan[ch]);
                         break;
                       }
                       case 'v': {
@@ -901,15 +928,19 @@ void FurnaceGUI::drawChanOsc() {
                       }
                       case 'n': {
                         DivChannelState* chanState=e->getChanState(ch);
-                        if (chanState==NULL || !(chanState->keyOn)) break;
-                        // no more conversion necessary after the note/octave unification :>
-                        text+=fmt::sprintf("%s",noteName(chanState->note+60));
+                        if (chanState==NULL) {
+                          text+="---";
+                        } else if (!chanState->keyOn) {
+                          text+="---";
+                        } else {
+                          // no more conversion necessary after the note/octave unification :>
+                          text+=fmt::sprintf("%s",noteName(chanState->note+60));
+                        }
                         break;
                       }
-                      case 'l': {
+                      case 'l':
                         text+='\n';
                         break;
-                      }
                       case '%':
                         text+='%';
                         break;

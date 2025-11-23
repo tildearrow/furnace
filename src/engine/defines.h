@@ -39,8 +39,8 @@
 #define DIV_PAT_FXVAL(_x) (4+((_x)<<1))
 
 // column type checks
-#define DIV_PAT_IS_EFFECT(_x) ((_x)>DIV_PAT_VOL && (!((_x)&1)))
-#define DIV_PAT_IS_EFFECT_VAL(_x) ((_x)>DIV_PAT_VOL && ((_x)&1))
+#define DIV_PAT_IS_EFFECT(_x) ((_x)>DIV_PAT_VOL && ((_x)&1))
+#define DIV_PAT_IS_EFFECT_VAL(_x) ((_x)>DIV_PAT_VOL && (!((_x)&1)))
 
 #define DIV_NOTE_NULL_PAT 252
 #define DIV_NOTE_OFF 253

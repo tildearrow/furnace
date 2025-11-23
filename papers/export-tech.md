@@ -27,8 +27,12 @@ size | description
   1  | reserved
  1?? | preset delays
      | - 16 values
+ 1?? | preset instruments
+     | - 6 values
+ 1?? | preset volumes
+     | - 6 values
  1?? | speed dial commands
-     | - 16 values
+     | - 4 values
  ??? | pointers to channel data
      | - pointers are short (2-byte) or long (4-byte), set in flags
  1?? | maximum stack size per channel
@@ -115,10 +119,22 @@ hex | description
  de | wait one tick
  df | stop
 ----|------------------------------------
- e0 | speed dial command 0
- e1 | speed dial command 1
- .. | ...
- ef | speed dial command 15
+ e0 | preset instrument 0
+ e1 | preset instrument 1
+ e2 | preset instrument 2
+ e3 | preset instrument 3
+ e4 | preset instrument 4
+ e5 | preset instrument 5
+ e6 | preset volume 0
+ e7 | preset volume 1
+ e8 | preset volume 2
+ e9 | preset volume 3
+ ea | preset volume 4
+ eb | preset volume 5
+ ec | speed dial command 0
+ ed | speed dial command 1
+ ee | speed dial command 2
+ ef | speed dial command 3
 ----|------------------------------------
  f0 | preset delay 0
  f1 | preset delay 1

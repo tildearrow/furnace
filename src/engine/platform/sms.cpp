@@ -190,7 +190,7 @@ void DivPlatformSMS::acquireDirect(blip_buffer_t** bb, size_t len) {
 double DivPlatformSMS::NOTE_SN(int ch, int note) {
   double CHIP_DIVIDER=toneDivider;
   if (ch==3) CHIP_DIVIDER=noiseDivider;
-  if (parent->song.linearPitch || !easyNoise) {
+  if (parent->song.compatFlags.linearPitch || !easyNoise) {
     return NOTE_PERIODIC(note);
   }
   int easyStartingPeriod=16;
@@ -210,7 +210,7 @@ int DivPlatformSMS::snCalcFreq(int ch) {
   if (chan[ch].fixedArp) {
     curFreq=chan[ch].baseNoteOverride<<7;
   }
-  if (parent->song.linearPitch && easyNoise && curFreq>easyThreshold) {
+  if (parent->song.compatFlags.linearPitch && easyNoise && curFreq>easyThreshold) {
     int ret=(((easyStartingPeriod<<7))-(curFreq-(easyThreshold)))>>7;
     if (ret<0) ret=0;
     return ret;
@@ -242,7 +242,7 @@ void DivPlatformSMS::tick(bool sysTick) {
     }
     if (i==3) {
       if (chan[i].std.duty.had) {
-        if (chan[i].std.duty.val!=snNoiseMode || parent->song.snDutyReset) {
+        if (chan[i].std.duty.val!=snNoiseMode || parent->song.compatFlags.snDutyReset) {
           snNoiseMode=chan[i].std.duty.val;
           if (chan[i].std.duty.val<2) {
             chan[3].freqChanged=false;
@@ -277,7 +277,7 @@ void DivPlatformSMS::tick(bool sysTick) {
     if (chan[i].freqChanged) {
       chan[i].freq=snCalcFreq(i);
       if (chan[i].freq>1023) chan[i].freq=1023;
-      if (parent->song.snNoLowPeriods) {
+      if (parent->song.compatFlags.snNoLowPeriods) {
         if (chan[i].freq<8) chan[i].freq=1;
       } else {
         if (chan[i].freq<0) chan[i].freq=0;
@@ -297,7 +297,7 @@ void DivPlatformSMS::tick(bool sysTick) {
     chan[3].freq=snCalcFreq(3);
     //parent->calcFreq(chan[3].baseFreq,chan[3].pitch,chan[3].fixedArp?chan[3].baseNoteOverride:chan[3].arpOff,chan[3].fixedArp,true,0,chan[3].pitch2,chipClock,noiseDivider);
     if (chan[3].freq>1023) chan[3].freq=1023;
-    if (parent->song.snNoLowPeriods) {
+    if (parent->song.compatFlags.snNoLowPeriods) {
       if (chan[3].actualNote>0x5d) chan[3].freq=0x01;
     }
     if (chan[3].freq<0) chan[3].freq=0;
@@ -359,13 +359,13 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOff=false;
-      //if (!parent->song.brokenOutVol2) {
+      //if (!parent->song.compatFlags.brokenOutVol2) {
         chan[c.chan].writeVol=true;
         chan[c.chan].outVol=chan[c.chan].vol;
         //rWrite(0,0x90|c.chan<<5|(isMuted[c.chan]?15:(15-(chan[c.chan].vol&15))));
       //}
       chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       break;
@@ -451,9 +451,9 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_SN(c.chan,chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_SN(c.chan,chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

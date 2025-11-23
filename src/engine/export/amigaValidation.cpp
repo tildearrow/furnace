@@ -91,7 +91,7 @@ void DivExportAmigaValidation::run() {
   size_t lastTick=0;
   //bool writeLoop=false;
   int loopPos=-1;
-  for (int i=0; i<e->chans; i++) {
+  for (int i=0; i<e->song.chans; i++) {
     e->chan[i].wentThroughNote=false;
     e->chan[i].goneThroughNote=false;
   }

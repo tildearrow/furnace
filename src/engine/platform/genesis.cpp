@@ -68,7 +68,7 @@ void DivPlatformGenesis::processDAC(int iRate) {
         if (chan[i].dacSample!=-1) {
           DivSample* s=parent->getSample(chan[i].dacSample);
           if (!isMuted[i] && s->samples>0 && chan[i].dacPos<s->samples) {
-            if (parent->song.noOPN2Vol) {
+            if (parent->song.compatFlags.noOPN2Vol) {
               chan[i].dacOutput=s->data8[chan[i].dacDirection?(s->samples-chan[i].dacPos-1):chan[i].dacPos];
             } else {
               chan[i].dacOutput=(s->data8[chan[i].dacDirection?(s->samples-chan[i].dacPos-1):chan[i].dacPos]*dacVolTable[chan[i].outVol])>>7;
@@ -110,7 +110,7 @@ void DivPlatformGenesis::processDAC(int iRate) {
         if (s->samples>0 && chan[5].dacPos<s->samples) {
           if (!isMuted[5]) {
             int sample;
-            if (parent->song.noOPN2Vol) {
+            if (parent->song.compatFlags.noOPN2Vol) {
               sample=s->data8[chan[5].dacDirection?(s->samples-chan[5].dacPos-1):chan[5].dacPos];
             } else {
               sample=(s->data8[chan[5].dacDirection?(s->samples-chan[5].dacPos-1):chan[5].dacPos]*dacVolTable[chan[5].outVol])>>7;
@@ -122,7 +122,7 @@ void DivPlatformGenesis::processDAC(int iRate) {
             chan[5].dacPos=s->loopStart;
           } else if (chan[5].dacPos>=s->samples) {
             chan[5].dacSample=-1;
-            if (parent->song.brokenDACMode) {
+            if (parent->song.compatFlags.brokenDACMode) {
               rWrite(0x2b,0);
             }
           }
@@ -681,7 +681,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
 
     if (chan[i].std.vol.had) {
       int inVol=chan[i].std.vol.val;
-      if (inVol>0) {
+      if (chan[i].dacMode && inVol>0) {
         inVol+=63;
       }
       chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].vol,MIN(127,inVol),127);
@@ -768,7 +768,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
     if (chan[i].std.alg.had) {
       chan[i].state.alg=chan[i].std.alg.val;
       rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
-      if (!parent->song.algMacroBehavior) for (int j=0; j<4; j++) {
+      if (!parent->song.compatFlags.algMacroBehavior) for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
         if (isMuted[i] || !op.enable) {
@@ -863,7 +863,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
 
   for (int i=0; i<512; i++) {
     if (pendingWrites[i]!=oldWrites[i]) {
-      if (i==0x2b && pendingWrites[i]!=0 && !parent->song.brokenDACMode) {
+      if (i==0x2b && pendingWrites[i]!=0 && !parent->song.compatFlags.brokenDACMode) {
         if (chan[5].keyOn) chan[5].keyOn=false;
         chan[5].keyOff=true;
       }
@@ -894,7 +894,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
   for (int i=0; i<csmChan; i++) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
-      if (parent->song.linearPitch) {
+      if (parent->song.compatFlags.linearPitch) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[i].state.block);
       } else {
         int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
@@ -1131,7 +1131,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       if (c.chan>=5 && c.chan<csmChan) {
         chan[c.chan].dacSample=-1;
         if (dumpWrites) addWrite(0xffff0002,0);
-        if (parent->song.brokenDACMode) {
+        if (parent->song.compatFlags.brokenDACMode) {
           rWrite(0x2b,0);
           if (chan[c.chan].dacMode) break;
         }
@@ -1200,7 +1200,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      if (parent->song.linearPitch) {
+      if (parent->song.compatFlags.linearPitch) {
         int destFreq=NOTE_FREQUENCY(c.value2+chan[c.chan].sampleNoteDelta);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {

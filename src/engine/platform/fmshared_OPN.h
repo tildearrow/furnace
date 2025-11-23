@@ -31,7 +31,7 @@
   int newFreq; \
   bool return2=false; \
   if (_targetChan.portaPause) { \
-    if (parent->song.oldOctaveBoundary) { \
+    if (parent->song.compatFlags.oldOctaveBoundary) { \
       if ((_targetChan.portaPauseFreq&0xf800)>(_targetChan.baseFreq&0xf800)) { \
         _targetChan.baseFreq=((_targetChan.baseFreq&0x7ff)>>1)|(_targetChan.portaPauseFreq&0xf800); \
       } else { \
@@ -59,7 +59,7 @@
   /* what the heck! */ \
   if (!_targetChan.portaPause) { \
     if ((newFreq&0x7ff)>boundaryTop && (newFreq&0xf800)<0x3800) { \
-      if (parent->song.fbPortaPause) { \
+      if (parent->song.compatFlags.fbPortaPause) { \
         _targetChan.portaPauseFreq=(boundaryBottom)|((newFreq+0x800)&0xf800); \
         _targetChan.portaPause=true; \
         break; \
@@ -68,7 +68,7 @@
       } \
     } \
     if ((newFreq&0x7ff)<boundaryBottom && (newFreq&0xf800)>0) { \
-      if (parent->song.fbPortaPause) { \
+      if (parent->song.compatFlags.fbPortaPause) { \
         _targetChan.portaPauseFreq=newFreq=(boundaryTop-1)|((newFreq-0x800)&0xf800); \
         _targetChan.portaPause=true; \
         break; \

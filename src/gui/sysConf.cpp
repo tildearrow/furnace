@@ -28,6 +28,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
   bool mustRender=false;
   bool restart=modifyOnChange;
   bool supportsCustomRate=true;
+  bool supportsChannelCount=(chan>=0);
 
   switch (type) {
     case DIV_SYSTEM_YM2612:
@@ -795,8 +796,6 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
-    case DIV_SYSTEM_YM2610:
-    case DIV_SYSTEM_YM2610_EXT:
     case DIV_SYSTEM_YM2610_CSM:
     case DIV_SYSTEM_YM2610_FULL:
     case DIV_SYSTEM_YM2610_FULL_EXT:
@@ -820,7 +819,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       ImGui::Unindent();
 
-      if (type==DIV_SYSTEM_YM2610_EXT || type==DIV_SYSTEM_YM2610_FULL_EXT || type==DIV_SYSTEM_YM2610B_EXT || type==DIV_SYSTEM_YM2610_CSM || type==DIV_SYSTEM_YM2610B_CSM) {
+      if (type==DIV_SYSTEM_YM2610_FULL_EXT || type==DIV_SYSTEM_YM2610B_EXT || type==DIV_SYSTEM_YM2610_CSM || type==DIV_SYSTEM_YM2610B_CSM) {
         if (ImGui::Checkbox(_("Disable ExtCh FM macros (compatibility)"),&noExtMacros)) {
           altered=true;
         }
@@ -1275,12 +1274,29 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         altered=true;
       }
       ImGui::Unindent();
-      ImGui::Text(_("Initial channel limit:"));
-      if (CWSliderInt("##N163_InitialChannelLimit",&channels,1,8)) {
-        if (channels<1) channels=1;
-        if (channels>8) channels=8;
-        altered=true;
-      } rightClickable
+      if (chan>=0) {
+        if (channels!=e->song.systemChans[chan]) {
+          pushWarningColor(true);
+          ImGui::Text(_("the legacy channel limit is not equal to the channel count!\neither set the channel count to %d, or click one of the following buttons:"),channels);
+          if (ImGui::Button(_("Fix channel count"))) {
+            if (e->setSystemChans(chan,channels,preserveChanPos)) {
+              MARK_MODIFIED;
+              recalcTimestamps=true;
+              if (e->song.autoSystem) {
+                autoDetectSystem();
+              }
+              updateWindowTitle();
+              updateROMExportAvail();
+              altered=true;
+            }
+          }
+          if (ImGui::Button(_("Give me more channels"))) {
+            channels=e->song.systemChans[chan];
+            altered=true;
+          }
+          popWarningColor();
+        }
+      }
       if (ImGui::Checkbox(_("Disable hissing"),&multiplex)) {
         altered=true;
       }
@@ -1303,12 +1319,31 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       int volScale=flags.getInt("volScale",4095);
       bool amigaVol=flags.getBool("amigaVol",false);
       bool amigaPitch=flags.getBool("amigaPitch",false);
-      ImGui::Text(_("Initial channel limit:"));
-      if (CWSliderInt("##OTTO_InitialChannelLimit",&channels,5,32)) {
+
+      int minChans=5;
+      if (chan>=0) {
+        minChans=e->song.systemChans[chan];
+        if (minChans>32) minChans=32;
+      }
+
+      DivDispatch* dispatch=e->getDispatch(chan);
+      double masterClock=16000000.0;
+      if (dispatch!=NULL) {
+        masterClock=dispatch->chipClock;
+      }
+      String outRateLabel=fmt::sprintf("/%d (%.0fHz)",channels,round(masterClock/(16.0*(double)channels)));
+
+      ImGui::Text(_("Output rate divider:"));
+      pushWarningColor(channels<minChans);
+      if (CWSliderInt("##OTTO_InitialChannelLimit",&channels,minChans,32,outRateLabel.c_str())) {
         if (channels<5) channels=5;
         if (channels>32) channels=32;
         altered=true;
       } rightClickable
+      if (ImGui::IsItemHovered() && channels<minChans) {
+        ImGui::SetTooltip(_("divider too low! certain channels will be disabled."));
+      }
+      popWarningColor();
 
       ImGui::Text(_("Volume scale:"));
 
@@ -1321,11 +1356,11 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       if (ImGui::Checkbox(_("Amiga channel volumes (64)"),&amigaVol)) {
         altered=true;
       }
-      pushWarningColor(amigaPitch && e->song.linearPitch);
+      pushWarningColor(amigaPitch && e->song.compatFlags.linearPitch);
       if (ImGui::Checkbox(_("Amiga-like pitch (non-linear pitch only)"),&amigaPitch)) {
         altered=true;
       }
-      if (amigaPitch && e->song.linearPitch) {
+      if (amigaPitch && e->song.compatFlags.linearPitch) {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("pitch linearity is set to linear. this won't do anything!");
         }
@@ -1952,6 +1987,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       int bitDepth=flags.getInt("outDepth",15)+1;
       int interpolation=flags.getInt("interpolation",0);
       int volMax=flags.getInt("volMax",255);
+      float volMult=flags.getFloat("volMult",1.0f);
       bool stereo=flags.getBool("stereo",false);
 
       ImGui::Text(_("Output rate:"));
@@ -1975,6 +2011,13 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       if (ImGui::Checkbox(_("Stereo"),&stereo)) {
         altered=true;
       }
+
+      ImGui::Text(_("Volume multiplier:"));
+      if (CWSliderFloat("##VolMult",&volMult,0.0f,1.0f)) {
+        if (volMult<0.0f) volMult=0.0f;
+        if (volMult>1.0f) volMult=1.0f;
+        altered=true;
+      } rightClickable
 
       ImGui::Text(_("Interpolation:"));
       ImGui::Indent();
@@ -2003,6 +2046,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           flags.set("stereo",stereo);
           flags.set("interpolation",interpolation);
           flags.set("volMax",volMax);
+          flags.set("volMult",volMult);
         });
       }
       break;
@@ -2374,8 +2418,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
-    case DIV_SYSTEM_SEGAPCM:
-    case DIV_SYSTEM_SEGAPCM_COMPAT: {
+    case DIV_SYSTEM_SEGAPCM: {
       bool oldSlides=flags.getBool("oldSlides",false);
 
       if (ImGui::Checkbox(_("Legacy slides and pitch (compatibility)"),&oldSlides)) {
@@ -2775,8 +2818,83 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     }
   }
 
-  if (supportsCustomRate) {
+  bool separatedYet=false;
+  const DivSysDef* sysDef=e->getSystemDef(type);
+  if (sysDef!=NULL) {
+    if (sysDef->minChans==sysDef->maxChans && sysDef->channels==sysDef->minChans) {
+      supportsChannelCount=false;
+    }
+    if (!supportsChannelCount) {
+      if (e->song.systemChans[chan]!=sysDef->channels) {
+        ImGui::Separator();
+        separatedYet=true;
+
+        ImGui::TextUnformatted(_("irregular channel count detected!"));
+        if (ImGui::Button(_("click here to fix it."))) {
+          if (e->setSystemChans(chan,sysDef->channels,preserveChanPos)) {
+            MARK_MODIFIED;
+            recalcTimestamps=true;
+            if (e->song.autoSystem) {
+              autoDetectSystem();
+            }
+            updateWindowTitle();
+            updateROMExportAvail();
+
+            if (type==DIV_SYSTEM_N163) {
+              e->lockSave([&]() {
+                flags.set("channels",e->song.systemChans[chan]-1);
+              });
+              altered=true;
+            }
+          } else {
+            showError(e->getLastError());
+          }
+        }
+      }
+    }
+  }
+  if (supportsChannelCount) {
     ImGui::Separator();
+    separatedYet=true;
+    int chCount=e->song.systemChans[chan];
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted(_("Channels"));
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(120.0f*dpiScale);
+    if (ImGui::InputInt("##ChCount",&chCount,0,0)) {
+      if (sysDef!=NULL) {
+        if (chCount<sysDef->minChans) chCount=sysDef->minChans;
+        if (chCount>sysDef->maxChans) chCount=sysDef->maxChans;
+      }
+    }
+    if (ImGui::IsItemDeactivatedAfterEdit() && chCount!=e->song.systemChans[chan]) {
+      if (e->setSystemChans(chan,chCount,preserveChanPos)) {
+        MARK_MODIFIED;
+        recalcTimestamps=true;
+        if (e->song.autoSystem) {
+          autoDetectSystem();
+        }
+        updateWindowTitle();
+        updateROMExportAvail();
+
+        if (type==DIV_SYSTEM_N163) {
+          e->lockSave([&]() {
+            flags.set("channels",e->song.systemChans[chan]-1);
+          });
+          altered=true;
+        }
+      } else {
+        showError(e->getLastError());
+      }
+    }
+    if (sysDef!=NULL) {
+      ImGui::SameLine();
+      ImGui::Text("(%d - %d)",sysDef->minChans,sysDef->maxChans);
+    }
+  }
+
+  if (supportsCustomRate) {
+    if (!separatedYet) ImGui::Separator();
     int customClock=flags.getInt("customClock",0);
     bool usingCustomClock=customClock>=MIN_CUSTOM_CLOCK;
 

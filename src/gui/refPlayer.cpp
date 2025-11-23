@@ -109,17 +109,20 @@ void FurnaceGUI::drawRefPlayer() {
       if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
         fp->setPos(0);
       }
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        TimeMicros cueTime=e->getFilePlayerCue();
+        fpCueInput=cueTime.toString(-1,TA_TIME_FORMAT_AUTO);
+      }
       if (ImGui::BeginPopupContextItem("Edit Cue Position",ImGuiPopupFlags_MouseButtonRight)) {
         ImGui::TextUnformatted(_("Set cue position at first order:"));
         TimeMicros cueTime=e->getFilePlayerCue();
         bool altered=false;
-        fpCueInput=cueTime.toString(-1,TA_TIME_FORMAT_AUTO);
         pushWarningColor(false,fpCueInputFailed);
         if (ImGui::InputText("##CuePos",&fpCueInput)) {
+          fpCueInputFailed=false;
           try {
             cueTime=TimeMicros::fromString(fpCueInput);
             altered=true;
-            fpCueInputFailed=false;
           } catch (std::invalid_argument& e) {
             fpCueInputFailed=true;
             fpCueInputFailReason=e.what();

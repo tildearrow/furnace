@@ -63,7 +63,7 @@ void DivEngine::getTotalAudioFiles(int &files) {
       break;
     }
     case DIV_EXPORT_MODE_MANY_CHAN: {
-      for (int i=0; i<chans; i++) {
+      for (int i=0; i<song.chans; i++) {
         if (!exportChannelMask[i]) continue;
 
         files++;
@@ -71,7 +71,7 @@ void DivEngine::getTotalAudioFiles(int &files) {
         if (getChannelType(i)==5) {
           i++;
           while (true) {
-            if (i>=chans) break;
+            if (i>=song.chans) break;
             if (getChannelType(i)!=5) break;
             i++;
           }
@@ -425,7 +425,7 @@ void DivEngine::runExportThread() {
 
       logI("rendering to files...");
       
-      for (int i=0; i<chans; i++) {
+      for (int i=0; i<song.chans; i++) {
         if (!exportChannelMask[i]) continue;
 
         SNDFILE* sf;
@@ -476,19 +476,19 @@ void DivEngine::runExportThread() {
 
         MAP_BITRATE;
 
-        for (int j=0; j<chans; j++) {
+        for (int j=0; j<song.chans; j++) {
           bool mute=(j!=i);
           isMuted[j]=mute;
         }
         if (getChannelType(i)==5) {
-          for (int j=i; j<chans; j++) {
+          for (int j=i; j<song.chans; j++) {
             if (getChannelType(j)!=5) break;
             isMuted[j]=false;
           }
         }
-        for (int j=0; j<chans; j++) {
-          if (disCont[dispatchOfChan[j]].dispatch!=NULL) {
-            disCont[dispatchOfChan[j]].dispatch->muteChannel(dispatchChanOfChan[j],isMuted[j]);
+        for (int j=0; j<song.chans; j++) {
+          if (disCont[song.dispatchOfChan[j]].dispatch!=NULL && song.dispatchChanOfChan[j]>=0) {
+            disCont[song.dispatchOfChan[j]].dispatch->muteChannel(song.dispatchChanOfChan[j],isMuted[j]);
           }
         }
         
@@ -549,7 +549,7 @@ void DivEngine::runExportThread() {
         if (getChannelType(i)==5) {
           i++;
           while (true) {
-            if (i>=chans) break;
+            if (i>=song.chans) break;
             if (getChannelType(i)!=5) break;
             i++;
           }
@@ -564,10 +564,10 @@ void DivEngine::runExportThread() {
         delete[] outBuf[i];
       }
 
-      for (int i=0; i<chans; i++) {
+      for (int i=0; i<song.chans; i++) {
         isMuted[i]=false;
-        if (disCont[dispatchOfChan[i]].dispatch!=NULL) {
-          disCont[dispatchOfChan[i]].dispatch->muteChannel(dispatchChanOfChan[i],false);
+        if (disCont[song.dispatchOfChan[i]].dispatch!=NULL && song.dispatchChanOfChan[i]>=0) {
+          disCont[song.dispatchOfChan[i]].dispatch->muteChannel(song.dispatchChanOfChan[i],false);
         }
       }
 
@@ -642,7 +642,7 @@ bool DivEngine::saveAudio(const char* path, DivAudioExportOptions options) {
     quitDispatch();
     initDispatch(true);
     renderSamplesP();
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       if (isMutedBefore[i]) {
         muteChannel(i,true);
       }
@@ -680,7 +680,7 @@ void DivEngine::finishAudioFile() {
     quitDispatch();
     initDispatch(false);
     renderSamplesP();
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       if (isMutedBefore[i]) {
         muteChannel(i,true);
       }
