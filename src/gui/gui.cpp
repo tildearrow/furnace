@@ -1128,7 +1128,7 @@ Collapsed=0\n\
 \n\
 [Window][Tuner]\n\
 Pos=60,60\n\
-Size=395,171\n\
+Size=160,170\n\
 Collapsed=0\n\
 \n\
 [Window][Warning##Export AudioFileDialogOverWriteDialog]\n\
@@ -1246,7 +1246,7 @@ Collapsed=0\n\
 \n\
 [Window][Multi-Ins Setup]\n\
 Pos=858,549\n\
-Size=193,129\n\
+Size=250,165\n\
 Collapsed=0\n\
 \n\
 [Window][Spectrum]\n\
