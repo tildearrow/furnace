@@ -1036,7 +1036,10 @@ bool DivGroovePattern::readData(SafeReader& reader) {
   }
   reader.readI();
 
-  
+  len=reader.readC();
+  for (int i=0; i<16; i++) {
+    val[i]=reader.readS();
+  }
 
   return true;
 }
@@ -1121,6 +1124,16 @@ bool DivCompatFlags::areDefaults() {
   return (*this==defaultFlags);
 }
 
+#define CHECK_AND_LOAD_BOOL(_x) \
+  if (c.has(#_x)) { \
+    _x=c.getBool(#_x,false); \
+  }
+
+#define CHECK_AND_LOAD_UNSIGNED_CHAR(_x) \
+  if (c.has(#_x)) { \
+    _x=(unsigned char)c.getInt(#_x,0); \
+  }
+
 bool DivCompatFlags::readData(SafeReader& reader) {
   DivConfig c;
   unsigned char magic[4];
@@ -1134,7 +1147,63 @@ bool DivCompatFlags::readData(SafeReader& reader) {
   String data=reader.readString();
   c.loadFromMemory(data.c_str());
 
-  // TODO: this
+  CHECK_AND_LOAD_BOOL(limitSlides);
+  CHECK_AND_LOAD_UNSIGNED_CHAR(linearPitch);
+  CHECK_AND_LOAD_UNSIGNED_CHAR(pitchSlideSpeed);
+  CHECK_AND_LOAD_UNSIGNED_CHAR(loopModality);
+  CHECK_AND_LOAD_UNSIGNED_CHAR(delayBehavior);
+  CHECK_AND_LOAD_UNSIGNED_CHAR(jumpTreatment);
+  CHECK_AND_LOAD_BOOL(properNoiseLayout);
+  CHECK_AND_LOAD_BOOL(waveDutyIsVol);
+  CHECK_AND_LOAD_BOOL(resetMacroOnPorta);
+  CHECK_AND_LOAD_BOOL(legacyVolumeSlides);
+  CHECK_AND_LOAD_BOOL(compatibleArpeggio);
+  CHECK_AND_LOAD_BOOL(noteOffResetsSlides);
+  CHECK_AND_LOAD_BOOL(targetResetsSlides);
+  CHECK_AND_LOAD_BOOL(arpNonPorta);
+  CHECK_AND_LOAD_BOOL(algMacroBehavior);
+  CHECK_AND_LOAD_BOOL(brokenShortcutSlides);
+  CHECK_AND_LOAD_BOOL(ignoreDuplicateSlides);
+  CHECK_AND_LOAD_BOOL(stopPortaOnNoteOff);
+  CHECK_AND_LOAD_BOOL(continuousVibrato);
+  CHECK_AND_LOAD_BOOL(brokenDACMode);
+  CHECK_AND_LOAD_BOOL(oneTickCut);
+  CHECK_AND_LOAD_BOOL(newInsTriggersInPorta);
+  CHECK_AND_LOAD_BOOL(arp0Reset);
+  CHECK_AND_LOAD_BOOL(brokenSpeedSel);
+  CHECK_AND_LOAD_BOOL(noSlidesOnFirstTick);
+  CHECK_AND_LOAD_BOOL(rowResetsArpPos);
+  CHECK_AND_LOAD_BOOL(ignoreJumpAtEnd);
+  CHECK_AND_LOAD_BOOL(buggyPortaAfterSlide);
+  CHECK_AND_LOAD_BOOL(gbInsAffectsEnvelope);
+  CHECK_AND_LOAD_BOOL(sharedExtStat);
+  CHECK_AND_LOAD_BOOL(ignoreDACModeOutsideIntendedChannel);
+  CHECK_AND_LOAD_BOOL(e1e2AlsoTakePriority);
+  CHECK_AND_LOAD_BOOL(newSegaPCM);
+  CHECK_AND_LOAD_BOOL(fbPortaPause);
+  CHECK_AND_LOAD_BOOL(snDutyReset);
+  CHECK_AND_LOAD_BOOL(pitchMacroIsLinear);
+  CHECK_AND_LOAD_BOOL(oldOctaveBoundary);
+  CHECK_AND_LOAD_BOOL(noOPN2Vol);
+  CHECK_AND_LOAD_BOOL(newVolumeScaling);
+  CHECK_AND_LOAD_BOOL(volMacroLinger);
+  CHECK_AND_LOAD_BOOL(brokenOutVol);
+  CHECK_AND_LOAD_BOOL(brokenOutVol2);
+  CHECK_AND_LOAD_BOOL(e1e2StopOnSameNote);
+  CHECK_AND_LOAD_BOOL(brokenPortaArp);
+  CHECK_AND_LOAD_BOOL(snNoLowPeriods);
+  CHECK_AND_LOAD_BOOL(disableSampleMacro);
+  CHECK_AND_LOAD_BOOL(oldArpStrategy);
+  CHECK_AND_LOAD_BOOL(brokenPortaLegato);
+  CHECK_AND_LOAD_BOOL(brokenFMOff);
+  CHECK_AND_LOAD_BOOL(preNoteNoEffect);
+  CHECK_AND_LOAD_BOOL(oldDPCM);
+  CHECK_AND_LOAD_BOOL(resetArpPhaseOnNewNote);
+  CHECK_AND_LOAD_BOOL(ceilVolumeScaling);
+  CHECK_AND_LOAD_BOOL(oldAlwaysSetVolume);
+  CHECK_AND_LOAD_BOOL(oldSampleOffset);
+  CHECK_AND_LOAD_BOOL(oldCenterRate);
+
   return true;
 }
 

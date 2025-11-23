@@ -1666,7 +1666,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
 
     // read compatibility flags
     if (compatFlagPtr) {
-      DivConfig c;
+      logD("reading compatibility flags...");
       if (!reader.seek(compatFlagPtr,SEEK_SET)) {
         logE("couldn't seek to compat flags!");
         lastError=fmt::sprintf("couldn't seek to compat flags!");
@@ -1675,7 +1675,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
         return false;
       }
 
-      if (!song.compatFlags.readData(reader)) {
+      if (!ds.compatFlags.readData(reader)) {
         logE("invalid compat flag header!");
         lastError="invalid compat flag header!";
         ds.unload();
@@ -1704,7 +1704,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
       reader.readI();
 
-      song.notes=reader.readString();
+      ds.notes=reader.readString();
     }
 
     // read grooves
