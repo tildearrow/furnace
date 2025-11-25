@@ -696,6 +696,7 @@ void FurnaceGUI::drawPattern() {
           }
         } else if (settings.channelFeedbackStyle==4 && e->isRunning()) {
           float amount=powf(chanOscVol[i],settings.channelFeedbackGamma);
+          if (isnan(amount)) amount=0; // how is it nan tho??
           if (e->getChanState(i)->keyOff) amount=0.0f;
           keyHit[i]=amount*0.2f;
           if (!muted && e->getChanState(i)->keyOn) {
