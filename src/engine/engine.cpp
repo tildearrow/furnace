@@ -516,9 +516,11 @@ void DivEngine::initSongWithDesc(const char* description, bool inBase64, bool ol
     if (song.system[index]==DIV_SYSTEM_NULL) {
       break;
     }
-    chanCount+=getChannelCount(song.system[index]);
-    if (chanCount>=DIV_MAX_CHANS) {
+    song.systemChans[index]=c.getInt(fmt::sprintf("chans%d",index),getChannelCount(song.system[index]));
+    chanCount+=song.systemChans[index];
+    if (chanCount>DIV_MAX_CHANS) {
       song.system[index]=DIV_SYSTEM_NULL;
+      song.systemChans[index]=1;
       break;
     }
     song.systemVol[index]=c.getFloat(fmt::sprintf("vol%d",index),1.0f);
@@ -535,7 +537,6 @@ void DivEngine::initSongWithDesc(const char* description, bool inBase64, bool ol
     song.systemFlags[index].loadFromBase64(flags.c_str());
   }
   song.systemLen=index;
-  song.initDefaultSystemChans();
   
   // extra attributes
   song.subsong[0]->hz=c.getDouble("tickRate",60.0);
@@ -543,7 +544,7 @@ void DivEngine::initSongWithDesc(const char* description, bool inBase64, bool ol
   if (song.subsong[0]->hz>999.0) song.subsong[0]->hz=999.0;
 
   curChanMask=c.getIntList("chanMask",{});
-  for (unsigned char i:curChanMask) {
+  for (unsigned char i: curChanMask) {
     int j=i-1;
     if (j<0) j=0;
     if (j>DIV_MAX_CHANS) j=DIV_MAX_CHANS-1;

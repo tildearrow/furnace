@@ -4025,6 +4025,9 @@ void FurnaceGUISysDef::bake() {
       index,
       taEncodeBase64(i.flags)
     );
+    if (i.chans>0) {
+      definition+=fmt::sprintf("chans%d=%d\n",index,i.chans);
+    }
     index++;
   }
   if (!extra.empty()) {
@@ -4063,8 +4066,11 @@ FurnaceGUISysDef::FurnaceGUISysDef(const char* n, const char* def, DivEngine* e)
     nextStr=fmt::sprintf("flags%d",i);
     String flags=taDecodeBase64(conf.getString(nextStr.c_str(),"").c_str());
     conf.remove(nextStr.c_str());
+    nextStr=fmt::sprintf("chans%d",i);
+    int chans=conf.getInt(nextStr.c_str(),0);
+    conf.remove(nextStr.c_str());
 
-    orig.push_back(FurnaceGUISysDefChip(e->systemFromFileFur(id),vol,pan,flags.c_str(),panFR));
+    orig.push_back(FurnaceGUISysDefChip(e->systemFromFileFur(id),vol,pan,flags.c_str(),panFR,chans));
   }
   // extract extra
   extra=conf.toString();
