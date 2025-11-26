@@ -3593,10 +3593,10 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
           ImGui::Text("%s",noteNames[60+i]);
           ImGui::TableNextColumn();
           if (sampleMap.map<0 || sampleMap.map>=e->song.sampleLen) {
-            sName=fmt::sprintf("---##SM%d",i);
+            sName=fmt::sprintf("-----##SM%d",i);
             sampleMap.map=-1;
           } else {
-            sName=fmt::sprintf("%3d##SM%d",sampleMap.map,i);
+            sName=fmt::sprintf("%5d##SM%d",sampleMap.map,i);
           }
           ImGui::PushFont(patFont);
           ImGui::AlignTextToFramePadding();
