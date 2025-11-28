@@ -886,7 +886,7 @@ size_t DivInstrument::writeFeatureLS(SafeWriter* w, std::vector<int>& list, cons
 
   if (list.empty()) return 0;
 
-  FEATURE_BEGIN("SL");
+  FEATURE_BEGIN("LS");
 
   w->writeS(list.size());
 
@@ -935,7 +935,7 @@ size_t DivInstrument::writeFeatureLW(SafeWriter* w, std::vector<int>& list, cons
 
   if (list.empty()) return 0;
 
-  FEATURE_BEGIN("WL");
+  FEATURE_BEGIN("LW");
 
   w->writeS(list.size());
 
@@ -2832,7 +2832,7 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
     } else if (memcmp(featCode,"S3",2)==0) { // SID3
       readFeatureS3(reader,version);
     } else {
-      if (song==NULL && (memcmp(featCode,"SL",2)==0 || (memcmp(featCode,"WL",2)==0))) {
+      if (song==NULL && (memcmp(featCode,"SL",2)==0 || (memcmp(featCode,"WL",2)==0) || (memcmp(featCode,"LS",2)==0) || (memcmp(featCode,"LW",2)==0))) {
         // nothing
       } else {
         logW("unknown feature code %c%c!",featCode[0],featCode[1]);

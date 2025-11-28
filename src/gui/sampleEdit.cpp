@@ -396,7 +396,6 @@ void FurnaceGUI::drawSampleEdit() {
             }
             break;
           case DIV_SYSTEM_SEGAPCM:
-          case DIV_SYSTEM_SEGAPCM_COMPAT:
             if (sample->samples>65280) {
               SAMPLE_WARN(warnLength,_("SegaPCM: maximum sample length is 65280"));
             }
@@ -611,7 +610,7 @@ void FurnaceGUI::drawSampleEdit() {
         if (isChipVisible[i]) selColumns++;
       }
 
-      int targetRate=sampleCompatRate?sample->rate:sample->centerRate;
+      int targetRate=sample->centerRate;
 
       if (ImGui::BeginTable("SampleProps",(selColumns>1)?4:3,ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_BordersV|ImGuiTableFlags_BordersOuterH)) {
         ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
@@ -622,20 +621,7 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::SameLine();
         ImGui::Text(_("Info"));
         ImGui::TableNextColumn();
-        pushToggleColors(!sampleCompatRate);
-        if (ImGui::Button(_("Rate"))) {
-          sampleCompatRate=false;
-        }
-        popToggleColors();
-        ImGui::SameLine();
-        pushToggleColors(sampleCompatRate);
-        if (ImGui::Button(_("Compat Rate"))) {
-          sampleCompatRate=true;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("used in DefleMask-compatible sample mode (17xx), in where samples are mapped to an octave."));
-        }
-        popToggleColors();
+        ImGui::Text(_("Rate"));
         ImGui::TableNextColumn();
         bool doLoop=(sample->loop);
         pushWarningColor(!warnLoop.empty());
@@ -774,11 +760,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (targetRate<100) targetRate=100;
             if (targetRate>384000) targetRate=384000;
 
-            if (sampleCompatRate) {
-              sample->rate=targetRate;
-            } else {
-              sample->centerRate=targetRate;
-            }
+            sample->centerRate=targetRate;
           }
           
           ImGui::AlignTextToFramePadding();
@@ -818,11 +800,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (targetRate<100) targetRate=100;
             if (targetRate>384000) targetRate=384000;
 
-            if (sampleCompatRate) {
-              sample->rate=targetRate;
-            } else {
-              sample->centerRate=targetRate;
-            }
+            sample->centerRate=targetRate;
           }
 
           ImGui::AlignTextToFramePadding();
@@ -852,11 +830,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (targetRate<100) targetRate=100;
             if (targetRate>384000) targetRate=384000;
 
-            if (sampleCompatRate) {
-              sample->rate=targetRate;
-            } else {
-              sample->centerRate=targetRate;
-            }
+            sample->centerRate=targetRate;
           }
 
           ImGui::TableNextColumn();
@@ -1144,7 +1118,7 @@ void FurnaceGUI::drawSampleEdit() {
           if (resampleTarget>384000) resampleTarget=384000;
         }
         double factor=resampleTarget/(double)targetRate;
-        unsigned int targetLength=sample->samples*factor;
+        unsigned int targetLength=round(sample->samples*factor);
         if (ImGui::InputScalar("Length##SRLen",ImGuiDataType_U32,&targetLength, &_ONE, &_SIXTEEN)) {
           if (targetLength<1) targetLength=1;
           resampleTarget=targetRate*targetLength/(double)sample->samples;
@@ -1212,7 +1186,7 @@ void FurnaceGUI::drawSampleEdit() {
       sameLineMaybe();
       ImGui::Button(ICON_FA_VOLUME_UP "##SAmplify");
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_("Amplify"));
+        ImGui::SetTooltip(_("Amplify/Offset"));
       }
       if (openSampleAmplifyOpt) {
         openSampleAmplifyOpt=false;
@@ -1226,6 +1200,11 @@ void FurnaceGUI::drawSampleEdit() {
         }
         ImGui::SameLine();
         ImGui::Text("(%.1fdB)",20.0*log10(amplifyVol/100.0f));
+        ImGui::Text(_("DC offset"));
+        if (ImGui::InputFloat("##Offset",&amplifyOff,-100.0,100.0,"%g%%")) {
+          if (amplifyOff<-100) amplifyOff=-100;
+          if (amplifyOff>100) amplifyOff=100;
+        }
         if (ImGui::Button(_("Apply"))) {
           sample->prepareUndo(true);
           e->lockEngine([this,sample]() {
@@ -1233,15 +1212,17 @@ void FurnaceGUI::drawSampleEdit() {
             float vol=amplifyVol/100.0f;
 
             if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
+              float off=32767.0f*(amplifyOff/100.0f);
               for (unsigned int i=start; i<end; i++) {
-                float val=sample->data16[i]*vol;
+                float val=off+sample->data16[i]*vol;
                 if (val<-32768) val=-32768;
                 if (val>32767) val=32767;
                 sample->data16[i]=val;
               }
             } else if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
+              float off=127.0f*(amplifyOff/100.0f);
               for (unsigned int i=start; i<end; i++) {
-                float val=sample->data8[i]*vol;
+                float val=off+sample->data8[i]*vol;
                 if (val<-128) val=-128;
                 if (val>127) val=127;
                 sample->data8[i]=val;
@@ -1655,7 +1636,7 @@ void FurnaceGUI::drawSampleEdit() {
 
       ImGui::ItemSize(size,style.FramePadding.y);
       if (ImGui::ItemAdd(rect,ImGui::GetID("SETime"))) {
-        int targetRate=sampleCompatRate?sample->rate:sample->centerRate;
+        int targetRate=sample->centerRate;
         int curDivisorSel=0;
         int curMultiplierSel=0;
         double divisor=1000.0;

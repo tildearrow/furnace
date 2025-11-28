@@ -183,12 +183,12 @@ _CF(getCurRow) {
 }
 
 _CF(getPlayTimeSec) {
-  lua_pushinteger(s,e->getTotalSeconds());
+  lua_pushinteger(s,e->getCurTime().seconds);
   return 1;
 }
 
 _CF(getPlayTimeMicro) {
-  lua_pushinteger(s,e->getTotalTicks());
+  lua_pushinteger(s,e->getCurTime().micros);
   return 1;
 }
 
@@ -578,39 +578,6 @@ _CF(setSongVirtualTempo) {
 
   sub->virtualTempoN=lua_tointeger(s,-2);
   sub->virtualTempoD=lua_tointeger(s,-1);
-  return 0;
-}
-
-_CF(getSongDivider) {
-  CHECK_ARGS_RANGE(0,1);
-
-  DivSubSong* sub=e->curSubSong;
-  if (lua_gettop(s)>0) {
-    int index=lua_tointeger(s,1);
-    if (index<0 || index>=(int)e->song.subsong.size()) {
-      SC_ERROR("invalid subsong index");
-    }
-    sub=e->song.subsong[index];
-  }
-
-  lua_pushinteger(s,sub->timeBase);
-  return 1;
-}
-
-_CF(setSongDivider) {
-  CHECK_ARGS_RANGE(1,2);
-  CHECK_TYPE_NUMBER(-1);
-
-  DivSubSong* sub=e->curSubSong;
-  if (lua_gettop(s)>1) {
-    int index=lua_tointeger(s,-2);
-    if (index<0 || index>=(int)e->song.subsong.size()) {
-      SC_ERROR("invalid subsong index");
-    }
-    sub=e->song.subsong[index];
-  }
-
-  sub->timeBase=lua_tointeger(s,-1);
   return 0;
 }
 
@@ -1209,45 +1176,6 @@ _CF(setSampleRate) {
   return 0;
 }
 
-_CF(getSampleCompatRate) {
-  CHECK_ARGS_RANGE(0,1);
-
-  int index=curSample;
-  if (lua_gettop(s)>0) {
-    CHECK_TYPE_NUMBER(1);
-    index=lua_tointeger(s,1);
-  }
-
-  if (index<0 || index>=e->song.sampleLen) {
-    lua_pushnil(s);
-  } else {
-    DivSample* sample=e->song.sample[index];
-    lua_pushinteger(s,sample->rate);
-  }
-
-  return 1;
-}
-
-_CF(setSampleCompatRate) {
-  CHECK_ARGS_RANGE(1,2);
-  CHECK_TYPE_NUMBER(-1);
-
-  int index=curSample;
-  if (lua_gettop(s)>1) {
-    CHECK_TYPE_NUMBER(-2);
-    index=lua_tointeger(s,-2);
-  }
-
-  if (index<0 || index>=e->song.sampleLen) {
-    SC_ERROR("invalid sample index");
-  } else {
-    DivSample* sample=e->song.sample[index];
-    sample->rate=lua_tointeger(s,-1);
-  }
-
-  return 0;
-}
-
 _CF(getSampleData) {
   CHECK_ARGS_RANGE(1,2);
   CHECK_TYPE_NUMBER(-1);
@@ -1460,22 +1388,22 @@ _CF(getPattern) {
   DivPattern* p=sub->pat[chan].getPattern(sub->orders.ord[chan][order],false);
 
   if (pos==0) { // map note/octave to a single value
-    if (p->data[row][0]==100) {
+    if (p->newData[row][DIV_PAT_NOTE]==DIV_NOTE_OFF) {
       lua_pushinteger(s,120);
-    } else if (p->data[row][0]==101) {
+    } else if (p->newData[row][DIV_PAT_NOTE]==DIV_NOTE_REL) {
       lua_pushinteger(s,121);
-    } else if (p->data[row][0]==102) {
+    } else if (p->newData[row][DIV_PAT_NOTE]==DIV_MACRO_REL) {
       lua_pushinteger(s,122);
-    } else if (p->data[row][0]==0 && p->data[row][1]==0) {
+    } else if (p->newData[row][DIV_PAT_NOTE]==0) {
       lua_pushnil(s);
     } else {
-      lua_pushinteger(s,p->data[row][0]+(((signed char)p->data[row][1])*12));
+      lua_pushinteger(s,p->newData[row][DIV_PAT_NOTE]-60);
     }
   } else {
-    if (p->data[row][pos+1]==-1) {
+    if (p->newData[row][pos]==-1) {
       lua_pushnil(s);
     } else {
-      lua_pushinteger(s,p->data[row][pos+1]);
+      lua_pushinteger(s,p->newData[row][pos]);
     }
   }
 
@@ -1524,12 +1452,7 @@ _CF(setPattern) {
 
   if (lua_isnil(s,-1)) {
     // clear out
-    if (pos==0) {
-      p->data[row][0]=0;
-      p->data[row][1]=0;
-    } else {
-      p->data[row][pos+1]=-1;
-    }
+    p->newData[row][pos]=-1;
   } else if (lua_isinteger(s,-1)) {
     int val=lua_tointeger(s,-1);
 
@@ -1537,24 +1460,12 @@ _CF(setPattern) {
       if (val<-60 || val>122) {
         SC_ERROR("value out of range (-60 to 122)");
       }
-      val+=60;
-      if (val>=180) {
-        p->data[row][0]=val-80;
-        p->data[row][1]=0;
-      } else {
-        if ((val%12)==0) {
-          p->data[row][0]=12;
-          p->data[row][1]=(unsigned char)((val/12)-6);
-        } else {
-          p->data[row][0]=(val%12);
-          p->data[row][1]=(unsigned char)((val/12)-5);
-        }
-      }
+      p->newData[row][DIV_PAT_NOTE]=val+60;
     } else {
       if (val<0 || val>255) {
         SC_ERROR("value out of range (0-255)");
       }
-      p->data[row][pos+1]=val;
+      p->newData[row][pos]=val;
     }
   } else {
     SC_ERROR("value is not a number or nil");
@@ -1601,22 +1512,22 @@ _CF(getPatternDirect) {
   DivPattern* p=sub->pat[chan].getPattern(pat,false);
 
   if (pos==0) { // map note/octave to a single value
-    if (p->data[row][0]==100) {
+    if (p->newData[row][DIV_PAT_NOTE]==DIV_NOTE_OFF) {
       lua_pushinteger(s,120);
-    } else if (p->data[row][0]==101) {
+    } else if (p->newData[row][DIV_PAT_NOTE]==DIV_NOTE_REL) {
       lua_pushinteger(s,121);
-    } else if (p->data[row][0]==102) {
+    } else if (p->newData[row][DIV_PAT_NOTE]==DIV_MACRO_REL) {
       lua_pushinteger(s,122);
-    } else if (p->data[row][0]==0 && p->data[row][1]==0) {
+    } else if (p->newData[row][DIV_PAT_NOTE]==0) {
       lua_pushnil(s);
     } else {
-      lua_pushinteger(s,p->data[row][0]+(((signed char)p->data[row][1])*12));
+      lua_pushinteger(s,p->newData[row][DIV_PAT_NOTE]-60);
     }
   } else {
-    if (p->data[row][pos+1]==-1) {
+    if (p->newData[row][pos]==-1) {
       lua_pushnil(s);
     } else {
-      lua_pushinteger(s,p->data[row][pos+1]);
+      lua_pushinteger(s,p->newData[row][pos]);
     }
   }
 
@@ -1662,12 +1573,7 @@ _CF(setPatternDirect) {
 
   if (lua_isnil(s,-1)) {
     // clear out
-    if (pos==0) {
-      p->data[row][0]=0;
-      p->data[row][1]=0;
-    } else {
-      p->data[row][pos+1]=-1;
-    }
+    p->newData[row][pos]=-1;
   } else if (lua_isinteger(s,-1)) {
     int val=lua_tointeger(s,-1);
 
@@ -1675,24 +1581,12 @@ _CF(setPatternDirect) {
       if (val<-60 || val>122) {
         SC_ERROR("value out of range (-60 to 122)");
       }
-      val+=60;
-      if (val>=180) {
-        p->data[row][0]=val-80;
-        p->data[row][1]=0;
-      } else {
-        if ((val%12)==0) {
-          p->data[row][0]=12;
-          p->data[row][1]=(unsigned char)((val/12)-6);
-        } else {
-          p->data[row][0]=(val%12);
-          p->data[row][1]=(unsigned char)((val/12)-5);
-        }
-      }
+      p->newData[row][DIV_PAT_NOTE]=val+60;
     } else {
       if (val<0 || val>255) {
         SC_ERROR("value out of range (0-255)");
       }
-      p->data[row][pos+1]=val;
+      p->newData[row][pos]=val;
     }
   } else {
     SC_ERROR("value is not a number or nil");
@@ -1791,8 +1685,6 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
   REG_FUNC(setSongRate);
   REG_FUNC(getSongVirtualTempo);
   REG_FUNC(setSongVirtualTempo);
-  REG_FUNC(getSongDivider);
-  REG_FUNC(setSongDivider);
   REG_FUNC(getSongHighlights);
   REG_FUNC(setSongHighlights);
   REG_FUNC(getSongSpeeds);
@@ -1822,8 +1714,6 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
   REG_FUNC(setSampleLoop);
   REG_FUNC(getSampleRate);
   REG_FUNC(setSampleRate);
-  REG_FUNC(getSampleCompatRate);
-  REG_FUNC(setSampleCompatRate);
   REG_FUNC(getSampleData);
   REG_FUNC(setSampleData);
   REG_FUNC(isSampleEditable);

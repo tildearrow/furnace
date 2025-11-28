@@ -1082,10 +1082,10 @@ class DivDispatch {
 #define NOTE_FNUM_BLOCK(x,bits,blk) parent->calcBaseFreqFNumBlock(chipClock,CHIP_FREQBASE,x,bits,blk)
 
 // this is for volume scaling calculation.
-#define VOL_SCALE_LINEAR(x,y,range) ((parent->song.ceilVolumeScaling)?((((x)*(y))+(range-1))/(range)):(((x)*(y))/(range)))
+#define VOL_SCALE_LINEAR(x,y,range) ((parent->song.compatFlags.ceilVolumeScaling)?((((x)*(y))+(range-1))/(range)):(((x)*(y))/(range)))
 #define VOL_SCALE_LOG(x,y,range) (CLAMP(((x)+(y))-(range),0,(range)))
-#define VOL_SCALE_LINEAR_BROKEN(x,y,range) ((parent->song.newVolumeScaling)?(VOL_SCALE_LINEAR(x,y,range)):(VOL_SCALE_LOG(x,y,range)))
-#define VOL_SCALE_LOG_BROKEN(x,y,range) ((parent->song.newVolumeScaling)?(VOL_SCALE_LOG(x,y,range)):(VOL_SCALE_LINEAR(x,y,range)))
+#define VOL_SCALE_LINEAR_BROKEN(x,y,range) ((parent->song.compatFlags.newVolumeScaling)?(VOL_SCALE_LINEAR(x,y,range)):(VOL_SCALE_LOG(x,y,range)))
+#define VOL_SCALE_LOG_BROKEN(x,y,range) ((parent->song.compatFlags.newVolumeScaling)?(VOL_SCALE_LOG(x,y,range)):(VOL_SCALE_LINEAR(x,y,range)))
 
 // these are here for convenience.
 // it is encouraged to use these, since you get an exact value this way.
@@ -1098,7 +1098,7 @@ class DivDispatch {
   if ((x)<(xMin)) (x)=(xMin); \
   if ((x)>(xMax)) (x)=(xMax);
 
-#define NEW_ARP_STRAT (parent->song.linearPitch==2 && !parent->song.oldArpStrategy)
+#define NEW_ARP_STRAT (parent->song.compatFlags.linearPitch && !parent->song.compatFlags.oldArpStrategy)
 #define HACKY_LEGATO_MESS chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode && !NEW_ARP_STRAT
 
 #endif

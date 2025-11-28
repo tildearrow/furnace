@@ -118,9 +118,22 @@ const char* aboutLine[]={
   _N("zlib by Jean-loup Gailly"),
   _N("and Mark Adler"),
   _N("libsndfile by Erik de Castro Lopo"),
+#ifdef HAVE_OGG
+  _N("libogg by Xiph.Org Foundation"),
+  _N("libvorbis by Xiph.Org Foundation"),
+  _N("FLAC library by Xiph.Org Foundation"),
+  _N("libopus by Xiph.Org and contributors"),
+#endif
+#ifdef HAVE_MP3_EXPORT
+  _N("libmpg123 by Michael Hipp, Thomas Orgis, Taihei Momma and contributors"),
+  _N("LAME by Mike Cheng, Mark Taylor and The LAME Project"),
+#endif
   _N("Portable File Dialogs by Sam Hocevar"),
   _N("Native File Dialog by Frogtoss Games"),
   "PortAudio",
+#ifdef HAVE_ASIO
+  _N("ASIO® by Steinberg Media Technologies"),
+#endif
   _N("Weak-JACK by x42"),
   _N("RtMidi by Gary P. Scavone"),
   _N("FFTW by Matteo Frigo and Steven G. Johnson"),
@@ -187,8 +200,13 @@ const char* aboutLine[]={
   "",
   _N("copyright © 2021-2025 tildearrow"),
   _N("(and contributors)."),
+#ifdef FURNACE_GPL3
+  _N("licensed under GPLv3! see"),
+  _N("LICENSE for more information."),
+#else
   _N("licensed under GPLv2+! see"),
   _N("LICENSE for more information."),
+#endif
   "",
   _N("help Furnace grow:"),
   "https://github.com/tildearrow/furnace",
@@ -204,6 +222,10 @@ const char* aboutLine[]={
   _N("the original program."),
   "",
   _N("it also comes with ABSOLUTELY NO WARRANTY."),
+#ifdef HAVE_ASIO
+  "",
+  _N("ASIO is a registered trademark of Steinberg Media Technologies GmbH."),
+#endif
   "",
   _N("thanks to all contributors/bug reporters!")
 };

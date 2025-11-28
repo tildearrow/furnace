@@ -38,6 +38,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
           if (ImGui::Selectable(id,i==e->getCurrentSubSong())) {
             makeCursorUndo();
             e->changeSongP(i);
+            recalcTimestamps=true;
             updateScroll(0);
             oldRow=0;
             cursor.xCoarse=0;
@@ -52,6 +53,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
           ImGui::PushID(i);
           if (ImGui::SmallButton(ICON_FA_ARROW_UP "##SubUp")) {
             e->moveSubSongUp(i);
+            MARK_MODIFIED;
           }
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip(_("Move up"));
@@ -59,6 +61,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
           ImGui::SameLine();
           if (ImGui::SmallButton(ICON_FA_ARROW_DOWN "##SubDown")) {
             e->moveSubSongDown(i);
+            MARK_MODIFIED;
           }
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip(_("Move down"));
@@ -76,6 +79,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
       } else {
         makeCursorUndo();
         e->changeSongP(e->song.subsong.size()-1);
+        recalcTimestamps=true;
         updateScroll(0);
         oldRow=0;
         cursor.xCoarse=0;
@@ -98,6 +102,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
       } else {
         makeCursorUndo();
         e->changeSongP(e->song.subsong.size()-1);
+        recalcTimestamps=true;
         updateScroll(0);
         oldRow=0;
         cursor.xCoarse=0;

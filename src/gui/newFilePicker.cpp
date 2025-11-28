@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <chrono>
 #include <imgui.h>
+#include <imgui_internal.h>
 #ifdef _WIN32
 #include <windows.h>
 #include <shlwapi.h>
@@ -977,7 +978,6 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
 
       // file list
       entryLock.lock();
-      int index=0;
       listClipper.Begin(filteredEntries.size(),rowHeight);
       while (listClipper.Step()) {
         for (int _i=listClipper.DisplayStart; _i<listClipper.DisplayEnd; _i++) {
@@ -1003,7 +1003,7 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
           // name
           ImGui::TableNextColumn();
           ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(style->color));
-          ImGui::PushID(index++);
+          ImGui::PushID(_i);
           if (ImGui::Selectable(style->icon.c_str(),i->isSelected,ImGuiSelectableFlags_AllowDoubleClick|ImGuiSelectableFlags_SpanAllColumns|ImGuiSelectableFlags_SpanAvailWidth)) {
             bool doNotAcknowledge=false;
             if ((ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) && multiSelect) {
@@ -1054,12 +1054,13 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
           ImGui::PopID();
           ImGui::SameLine();
           
-          ImGui::TextUnformatted(i->name.c_str());
+          // why? can't I just not format?
+          ImGui::TextNoHashHide("%s",i->name.c_str());
 
           // type
           if (displayType) {
             ImGui::TableNextColumn();
-            ImGui::TextUnformatted(i->ext.c_str());
+            ImGui::TextNoHashHide("%s",i->ext.c_str());
           }
 
           // size
@@ -1106,13 +1107,13 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
         lastScrollY=ImGui::GetScrollY();
       } else {
         ImGui::SetScrollY(lastScrollY);
+        if (ImGui::GetScrollMaxY()>=lastScrollY) {
+          enforceScrollY--;
+        }
       }
 
       ImGui::EndTable();
       entryLock.unlock();
-    }
-    if (enforceScrollY>0 && haveFiles) {
-      enforceScrollY--;
     }
   }
 }
@@ -1172,11 +1173,21 @@ void FurnaceFilePicker::drawBookmarks(ImVec2& tableSize, String& newDir) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::PushID(200000+index);
-      if (ImGui::Selectable(iName.c_str(),iPath==path)) {
+      if (ImGui::Selectable(iName.c_str(),iPath==path,ImGuiSelectableFlags_NoHashTextHide)) {
         newDir=iPath;
       }
       if (ImGui::BeginPopupContextItem("BookmarkOpts")) {
+        if (ImGui::MenuItem(_("edit"))) {
+
+          size_t separator=i.find('\n');
+          if (separator!=String::npos) {
+            editingBookmark=index;
+            newBookmarkName=i.substr(0,separator);
+            newBookmarkPath=i.substr(separator+1);
+          }
+        }
         if (ImGui::MenuItem(_("remove"))) {
+
           markedForRemoval=index;
           if (iPath==path) isPathBookmarked=false;
         }
@@ -1188,6 +1199,24 @@ void FurnaceFilePicker::drawBookmarks(ImVec2& tableSize, String& newDir) {
       bookmarks.erase(bookmarks.begin()+markedForRemoval);
     }
     ImGui::EndTable();
+  }
+
+  if (editingBookmark>=0 && editingBookmark<(int)bookmarks.size()) {
+    ImGui::OpenPopup("BookmarkEdit");
+  }
+  if (ImGui::BeginPopup("BookmarkEdit",ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+    ImGui::Text("Name:");
+    ImGui::InputText("##BookEditText",&newBookmarkName);
+    if (ImGui::Button("OK")) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+  if (!ImGui::IsPopupOpen("BookmarkEdit")) {
+    if (editingBookmark>=0 && editingBookmark<(int)bookmarks.size()) {
+      bookmarks[editingBookmark]=newBookmarkName+"\n"+newBookmarkPath;
+    }
+    editingBookmark=-1;
   }
 }
 
@@ -1395,7 +1424,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
           // create button
           ImGui::PushID(100000+pathLevel);
           ImGui::SameLine();
-          if (ImGui::Button(nextButton.c_str())) {
+          if (ImGui::ButtonEx(nextButton.c_str(),ImVec2(0,0),ImGuiButtonFlags_NoHashTextHide)) {
             newDir=pathAsOfNow;
           }
           pathLevel++;
@@ -1461,10 +1490,12 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_REPEAT "##ClearFilter")) {
+      filter="";
       if (isSearch) {
         newDir=path;
+      } else {
+        filterFiles();
       }
-      filter="";
     }
     ImGui::SetItemTooltip(_("Clear search query"));
     ImGui::SameLine();
@@ -1572,7 +1603,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     }
 
     // OK/Cancel buttons
-    ImGui::BeginDisabled(entryName.empty() && chosenEntries.empty());
+    ImGui::BeginDisabled(entryName.empty() && chosenEntries.empty() && !dirSelect);
     if (ImGui::Button(_("OK"))) {
       // accept entry
       acknowledged=true;
@@ -1726,6 +1757,20 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
               }
             }
           }
+        } else {
+          if (dirSelect) {
+            finalSelection.push_back(path);
+            curStatus=FP_STATUS_ACCEPTED;
+            if (noClose) {
+              for (FileEntry* j: chosenEntries) {
+                j->isSelected=false;
+              }
+              chosenEntries.clear();
+              updateEntryName();
+            } else {
+              isOpen=false;
+            }
+          }
         }
       }
     }
@@ -1782,8 +1827,8 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     if (readDirectory(newDir) || isSearch || (isSearchPrev!=isSearch)) {
       // scroll to top
       lastScrollY=0.0f;
-      enforceScrollY=2;
     }
+    enforceScrollY=2;
   }
   return (curStatus!=FP_STATUS_WAITING);
 }
@@ -1821,8 +1866,8 @@ bool FurnaceFilePicker::open(String name, String pa, String hint, int flags, con
     isSearch=false;
     if (readDirectory(pa)) {
       lastScrollY=0.0f;
-      enforceScrollY=2;
     }
+    enforceScrollY=2;
     windowName=name;
   }
   hint=entryNameHint;
@@ -1924,6 +1969,8 @@ FurnaceFilePicker::FurnaceFilePicker():
   isPathBookmarked(false),
   isSearch(false),
   scheduledSort(0),
+  imguiFlags(0),
+  editingBookmark(-1),
   curFilterType(0),
   lastScrollY(0.0f),
   enforceScrollY(0),

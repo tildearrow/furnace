@@ -184,7 +184,7 @@ void DivPlatformPOKEY::tick(bool sysTick) {
 
   for (int i=0; i<4; i++) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,parent->song.linearPitch?chan[i].pitch:0,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,parent->song.linearPitch?chan[i].pitch2:0,chipClock,CHIP_DIVIDER);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,parent->song.compatFlags.linearPitch?chan[i].pitch:0,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,parent->song.compatFlags.linearPitch?chan[i].pitch2:0,chipClock,CHIP_DIVIDER);
 
       if ((i==0 && !(audctl&64)) || (i==2 && !(audctl&32)) || i==1 || i==3) {
         chan[i].freq/=7;
@@ -223,7 +223,7 @@ void DivPlatformPOKEY::tick(bool sysTick) {
       }
 
       // non-linear pitch
-      if (parent->song.linearPitch==0) {
+      if (!parent->song.compatFlags.linearPitch) {
         chan[i].freq-=chan[i].pitch;
       }
 
@@ -297,7 +297,7 @@ int DivPlatformPOKEY::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
         chan[c.chan].ctlChanged=true;
       }
@@ -383,9 +383,9 @@ int DivPlatformPOKEY::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_POKEY));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_POKEY));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

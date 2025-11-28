@@ -22,6 +22,7 @@ this window allows one to create **subsongs** - multiple individual songs within
 ## speed
 
 there are multiple ways to set the tempo of a song.
+the effective BPM is displayed as well, taking all settings into account.
 
 **Base Tempo**: tempo in beats per minute (BPM). this is affected by the Highlight settings below.
 - clicking the Base Tempo button switches to the more technical Tick Rate.
@@ -40,9 +41,6 @@ there are multiple ways to set the tempo of a song.
 - the track will play at 200 BPM.
 - the ratio doesn't have to match BPM numbers. set the numerator to 4 and the denominator to 5, and the virtual BPM becomes 150 × 4/5 = 120.
 - another way to accomplish this with more control over the results is to use grooves. see the page on [grooves](../8-advanced/grooves.md) for details.
-
-**Divider**: changes the effective tick rate. a tick rate of 60Hz and a divisor of 6 will result in ticks lasting a tenth of a second each!
-- to the right, the effective BPM is listed, taking all settings into account.
 
 **Highlight**: sets the pattern row highlights:
 - the first value represents the number of rows per beat.

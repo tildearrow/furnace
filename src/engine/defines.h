@@ -31,6 +31,22 @@
 #define DIV_MAX_COLS 32
 #define DIV_MAX_EFFECTS 8
 
+// pattern fields
+#define DIV_PAT_NOTE 0
+#define DIV_PAT_INS 1
+#define DIV_PAT_VOL 2
+#define DIV_PAT_FX(_x) (3+((_x)<<1))
+#define DIV_PAT_FXVAL(_x) (4+((_x)<<1))
+
+// column type checks
+#define DIV_PAT_IS_EFFECT(_x) ((_x)>DIV_PAT_VOL && ((_x)&1))
+#define DIV_PAT_IS_EFFECT_VAL(_x) ((_x)>DIV_PAT_VOL && (!((_x)&1)))
+
+#define DIV_NOTE_NULL_PAT 252
+#define DIV_NOTE_OFF 253
+#define DIV_NOTE_REL 254
+#define DIV_MACRO_REL 255
+
 // sample related
 #define DIV_MAX_SAMPLE_TYPE 4
 

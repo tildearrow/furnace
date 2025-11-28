@@ -52,13 +52,6 @@ class DivPlatformSAA1099: public DivDispatch {
     CSAASound* saa_saaSound;
     unsigned char regPool[32];
     unsigned char lastBusy;
-  
-    bool dacMode;
-    int dacPeriod;
-    int dacRate;
-    int dacPos;
-    int dacSample;
-    unsigned char sampleBank;
 
     int delay;
 
