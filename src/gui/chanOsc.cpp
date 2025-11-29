@@ -609,6 +609,7 @@ void FurnaceGUI::drawChanOsc() {
         if (chanOscAutoCols) {
           chanOscCols=sqrt(oscData.size());
           if (chanOscCols>64) chanOscCols=64;
+          if (chanOscCols<1) chanOscCols=1;
         }
         int rows=(oscData.size()+(chanOscCols-1))/chanOscCols;
 
