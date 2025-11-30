@@ -22,10 +22,6 @@ what the files contain:
 
 ## known issues
 
-### Furnace doesn't keep track of which tabs are selected in tab groups.
-
-this is a limitation of the Dear ImGui graphical interface framework that Furnace uses.
-
 ### something's not working or is unavailable on Android.
 
 Android builds are unofficial and unsupported. there are many known issues, especially with the user interface. always test using a desktop version before reporting problems.
@@ -79,6 +75,8 @@ check in the "Emulation" tab of the "Settings" window to see if the chip has dif
 
 ### a window that should be visible, isn't.
 
+check to make sure it's not hidden behind another window!
+
 if you see a title bar but no window, it's in "collapsed" mode. double-click the bar to open the window.
 
 <!-- if it only happened within the last few sessions, try restoring from a backup. open the Settings window and select the Interface tab. the Layout section will have an "Import" button, which opens a file dialog. browse to the Furnace configuration directory and choose a previous layout file (for example, `layout.ini.4`). click "OK" to see the results. -->
@@ -86,7 +84,7 @@ if you see a title bar but no window, it's in "collapsed" mode. double-click the
 if it only disappeared within the last few sessions, try restoring the window layout from a backup:
 - close Furnace.
 - open the configuration directory.
-- delete (or rename) `layout.cfg`.
+- delete (or rename) `layout.ini`.
 - rename one of the numbered backup files to replace it. they're numbered in reverse chronological order; `.1` is the most recent.
 - start Furnace again to see if the window shows up.
 
@@ -98,8 +96,28 @@ if none of the backups help (or you're comfortable trying manual edits first):
 - save the file.
 - start Furnace; the window should appear in its original position.
 
-if none of this works, you can revert to Furnace's defaults:
+if none of this works, you can revert to Furnace's default layout:
 - select "reset layout" in the "settings" menu.
+
+### after changing a setting, Furnace crashes, is unresponsive, or is unreadable.
+
+try restoring configuration from a backup:
+- close Furnace.
+- open the configuration directory.
+- delete (or rename) `furnace.cfg`.
+- rename one of the numbered backup files to replace it. they're numbered in reverse chronological order; `.1` is the most recent.
+- start Furnace again to see if the issue clears up.
+
+if that doesn't work, try safe mode:
+- open a commandline in the directory where Furnace was unpacked or installed to.
+- enter the command `furnace -safemode`. this starts Furnace with disabled audio, software rendering mode, and default fonts.
+- revert whatever setting caused the issue and click "OK".
+- close Furnace, then restart it as normal.
+
+if that fails, clear the configuration:
+- close Furnace.
+- delete (or rename) `furnace.cfg`.
+- start Furnace as normal.
 
 ### when I try to open a `.fur` file, an error dialog pops up that says it has an "invalid info header".
 
