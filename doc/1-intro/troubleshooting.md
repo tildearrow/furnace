@@ -9,6 +9,7 @@ Furnace configuration file locations:
 - **Windows**: `%USERPROFILE%\AppData\Roaming\furnace`
 - **macOS**: `~/Library/Application Support/Furnace`
 - **Linux/other**: `~/.config/furnace`
+- **Linux (Flatpak)**: `~/.var/app/org.tildearrow.furnace`
 
 what the files contain:
 
