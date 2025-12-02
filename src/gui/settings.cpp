@@ -4764,7 +4764,8 @@ void FurnaceGUI::drawSettings() {
               sty.ItemInnerSpacing=ImVec2(10.0f*dpiScale,10.0f*dpiScale);
               settingsOpen=false;
             }
-            if (checker==0x2222225c && checker1==0x2d2) {
+            if ((checker==0x2222225c && checker1==0x2d2) ||
+                (checker==0x4444447e && checker1==0x146)) {
               mmlString[30]=_("Oh my god... Kill me now so I don't have to go through that again!");
               for (int i=0; i<e->getTotalChannelCount(); i++) {
                 for (int j=0; j<DIV_MAX_PATTERNS; j++) {
