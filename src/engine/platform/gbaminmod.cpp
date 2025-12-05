@@ -660,6 +660,10 @@ int DivPlatformGBAMinMod::getRegisterPoolDepth() {
   return 16;
 }
 
+size_t DivPlatformGBAMinMod::getSampleMemNum() {
+  return 1;
+}
+
 const void* DivPlatformGBAMinMod::getSampleMem(int index) {
   return index == 0 ? sampleMem : NULL;
 }
