@@ -300,7 +300,7 @@ void DivEngine::runExportThread() {
       String fname[DIV_MAX_CHIPS];
       SFWrapper sfWrap[DIV_MAX_CHIPS];
       for (int i=0; i<song.systemLen; i++) {
-        memset(&si[0],0,sizeof(SF_INFO));
+        memset(&si[i],0,sizeof(SF_INFO));
         sf[i]=NULL;
         si[i].samplerate=got.rate;
         si[i].channels=disCont[i].dispatch->getOutputCount();
