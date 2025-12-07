@@ -33,6 +33,28 @@
     } \
   }
 
+ImVec4 FurnaceGUI::pianoKeyColor(int chan, ImVec4 fallback) {
+  switch (pianoKeyColorMode) {
+    case PIANO_KEY_COLOR_CHANNEL:
+      return e->curSubSong->chanColor[chan]?ImGui::ColorConvertU32ToFloat4(e->curSubSong->chanColor[chan]):uiColors[GUI_COLOR_CHANNEL_FM+e->getChannelType(chan)];
+    case PIANO_KEY_COLOR_INSTRUMENT: {
+      DivChannelState* state=e->getChanState(chan);
+      if (state) {
+        int ins=state->lastIns;
+        if (ins>=0) {
+          int type=e->getIns(ins)->type;
+          if (type>DIV_INS_MAX) return uiColors[GUI_COLOR_INSTR_UNKNOWN];
+          else return uiColors[GUI_COLOR_INSTR_STD+type];
+        }
+      }
+    }
+    // intentional fallthrough
+    case PIANO_KEY_COLOR_SINGLE:
+    default:
+      return fallback;
+  }
+}
+
 void FurnaceGUI::pianoLabel(ImDrawList* dl, ImVec2& p0, ImVec2& p1, int note) {
   switch (pianoLabelsMode) {
     case PIANO_LABELS_OFF:
@@ -175,6 +197,18 @@ void FurnaceGUI::drawPiano() {
             pianoLabelsMode=PIANO_LABELS_OCTAVE_NOTE;
           }
           ImGui::Unindent();
+          ImGui::Text(_("Key colors:"));
+          ImGui::Indent();
+          if (ImGui::RadioButton(_("Single##keyColor0"),pianoKeyColorMode==PIANO_KEY_COLOR_SINGLE)) {
+            pianoKeyColorMode=PIANO_KEY_COLOR_SINGLE;
+          }
+          if (ImGui::RadioButton(_("Channel color##keyColor1"),pianoKeyColorMode==PIANO_KEY_COLOR_CHANNEL)) {
+            pianoKeyColorMode=PIANO_KEY_COLOR_CHANNEL;
+          }
+          if (ImGui::RadioButton(_("instrument color##keyColor2"),pianoKeyColorMode==PIANO_KEY_COLOR_INSTRUMENT)) {
+            pianoKeyColorMode=PIANO_KEY_COLOR_INSTRUMENT;
+          }
+          ImGui::Unindent();
           ImGui::Checkbox(_("Share play/edit offset/range"),&pianoSharePosition);
           ImGui::Checkbox(_("Read-only (can't input notes)"),&pianoReadonly);
           ImGui::EndPopup();
@@ -302,7 +336,7 @@ void FurnaceGUI::drawPiano() {
               if (pianoKeyPressed[note]) {
                 color=isTopKey[i%12]?uiColors[GUI_COLOR_PIANO_KEY_TOP_ACTIVE]:uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE];
               } else {
-                ImVec4 colorHit=1?channelColor(pianoKeyHit[note].chan):(isTopKey[i%12]?uiColors[GUI_COLOR_PIANO_KEY_TOP_HIT]:uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_HIT]);
+                ImVec4 colorHit=pianoKeyColor(pianoKeyHit[note].chan,uiColors[GUI_COLOR_PIANO_KEY_TOP_HIT]);
                 color.x+=(colorHit.x-color.x)*pkh;
                 color.y+=(colorHit.y-color.y)*pkh;
                 color.z+=(colorHit.z-color.z)*pkh;
@@ -360,7 +394,7 @@ void FurnaceGUI::drawPiano() {
               if (pianoKeyPressed[note]) {
                 color=uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE];
               } else {
-                ImVec4 colorHit=1?channelColor(pianoKeyHit[note].chan):uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_HIT];
+                ImVec4 colorHit=pianoKeyColor(pianoKeyHit[note].chan,uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_HIT]);
                 color.x+=(colorHit.x-color.x)*pkh;
                 color.y+=(colorHit.y-color.y)*pkh;
                 color.z+=(colorHit.z-color.z)*pkh;
@@ -388,7 +422,7 @@ void FurnaceGUI::drawPiano() {
                 if (pianoKeyPressed[note]) {
                   color=uiColors[GUI_COLOR_PIANO_KEY_TOP_ACTIVE];
                 } else {
-                  ImVec4 colorHit=1?channelColor(pianoKeyHit[note].chan):uiColors[GUI_COLOR_PIANO_KEY_TOP_HIT];
+                  ImVec4 colorHit=pianoKeyColor(pianoKeyHit[note].chan,uiColors[GUI_COLOR_PIANO_KEY_TOP_HIT]);
                   color.x+=(colorHit.x-color.x)*pkh;
                   color.y+=(colorHit.y-color.y)*pkh;
                   color.z+=(colorHit.z-color.z)*pkh;
