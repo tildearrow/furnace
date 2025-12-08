@@ -199,13 +199,13 @@ void FurnaceGUI::drawPiano() {
           ImGui::Unindent();
           ImGui::Text(_("Key colors:"));
           ImGui::Indent();
-          if (ImGui::RadioButton(_("Single##keyColor0"),pianoKeyColorMode==PIANO_KEY_COLOR_SINGLE)) {
+          if (ImGui::RadioButton(_("Single color##keyColor0"),pianoKeyColorMode==PIANO_KEY_COLOR_SINGLE)) {
             pianoKeyColorMode=PIANO_KEY_COLOR_SINGLE;
           }
           if (ImGui::RadioButton(_("Channel color##keyColor1"),pianoKeyColorMode==PIANO_KEY_COLOR_CHANNEL)) {
             pianoKeyColorMode=PIANO_KEY_COLOR_CHANNEL;
           }
-          if (ImGui::RadioButton(_("instrument color##keyColor2"),pianoKeyColorMode==PIANO_KEY_COLOR_INSTRUMENT)) {
+          if (ImGui::RadioButton(_("Instrument color##keyColor2"),pianoKeyColorMode==PIANO_KEY_COLOR_INSTRUMENT)) {
             pianoKeyColorMode=PIANO_KEY_COLOR_INSTRUMENT;
           }
           ImGui::Unindent();
