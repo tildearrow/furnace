@@ -994,6 +994,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_SAA1099: {
       int clockSel=flags.getInt("clockSel",0);
 
+      ImGui::Text(_("Clock rate:"));
       ImGui::Indent();
       if (ImGui::RadioButton(_("SAM Coupé (8MHz)"),clockSel==0)) {
         clockSel=0;
