@@ -3482,7 +3482,6 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
         ins->type==DIV_INS_SWAN ||
         ins->type==DIV_INS_AY ||
         ins->type==DIV_INS_AY8930 ||
-        ins->type==DIV_INS_VRC6 ||
         ins->type==DIV_INS_SU ||
         ins->type==DIV_INS_NDS ||
         ins->type==DIV_INS_SUPERVISION ||
@@ -8818,8 +8817,7 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_MIKEY ||
             ins->type==DIV_INS_PCE ||
             ins->type==DIV_INS_X1_010 ||
-            ins->type==DIV_INS_SWAN ||
-            ins->type==DIV_INS_VRC6) {
+            ins->type==DIV_INS_SWAN) {
           insTabSample(ins);
         }
         if (ins->type>=DIV_INS_MAX) {

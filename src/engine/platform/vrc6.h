@@ -27,22 +27,10 @@
 
 class DivPlatformVRC6: public DivDispatch, public vrcvi_intf {
   struct Channel: public SharedChannel<signed char> {
-    int dacPeriod, dacRate, dacOut;
-    unsigned int dacPos;
-    int dacSample;
     unsigned char duty;
-    bool pcm, furnaceDac, setPos;
     Channel():
       SharedChannel<signed char>(15),
-      dacPeriod(0),
-      dacRate(0),
-      dacOut(0),
-      dacPos(0),
-      dacSample(-1),
-      duty(0),
-      pcm(false),
-      furnaceDac(false),
-      setPos(false) {}
+      duty(0) {}
   };
   Channel chan[3];
   DivDispatchOscBuffer* oscBuf[3];

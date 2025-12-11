@@ -846,15 +846,8 @@ void putDispatchChan(void* data, int chanNum, int type) {
       DivPlatformVRC6::Channel* ch=(DivPlatformVRC6::Channel*)data;
       ImGui::Text("> VRC6");
       COMMON_CHAN_DEBUG;
-      ImGui::Text("* DAC:");
-      ImGui::Text(" - period: %d",ch->dacPeriod);
-      ImGui::Text(" - rate: %d",ch->dacRate);
-      ImGui::Text(" - out: %d",ch->dacOut);
-      ImGui::Text(" - pos: %d",ch->dacPos);
-      ImGui::Text(" - sample: %d",ch->dacSample);
       ImGui::Text("- duty: %d",ch->duty);
       COMMON_CHAN_DEBUG_BOOL;
-      ImGui::TextColored(ch->pcm?colorOn:colorOff,">> DAC");
       break;
     }
     case DIV_SYSTEM_ES5506: {

@@ -1173,8 +1173,8 @@ void DivEngine::registerSystems() {
     false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     _("an expansion chip for the Famicom, featuring a quirky sawtooth channel."),
     DivChanDefFunc({
-      DivChanDef(_("VRC6 1")  , "V1", DIV_CH_PULSE, DIV_INS_VRC6, DIV_INS_AMIGA),
-      DivChanDef(_("VRC6 2")  , "V2", DIV_CH_PULSE, DIV_INS_VRC6, DIV_INS_AMIGA),
+      DivChanDef(_("VRC6 1")  , "V1", DIV_CH_PULSE, DIV_INS_VRC6),
+      DivChanDef(_("VRC6 2")  , "V2", DIV_CH_PULSE, DIV_INS_VRC6),
       DivChanDef(_("VRC6 Saw"), "VS", DIV_CH_WAVE , DIV_INS_VRC6_SAW)
     }),
     {
