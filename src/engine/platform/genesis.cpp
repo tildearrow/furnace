@@ -1060,51 +1060,47 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       }
       if (c.chan>=5 && chan[c.chan].dacMode) {
         //if (skipRegisterWrites) break;
-        if (ins->type==DIV_INS_AMIGA) { // Furnace mode
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].dacSample=ins->amiga.getSample(c.value);
-            chan[c.chan].sampleNote=c.value;
-            c.value=ins->amiga.getFreq(c.value);
-            chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
-          } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
-            chan[c.chan].dacSample=ins->amiga.getSample(chan[c.chan].sampleNote);
-            c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
-          }
-          if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
-            chan[c.chan].dacSample=-1;
-            if (dumpWrites) addWrite(0xffff0002,0);
-            break;
-          } else {
-            rWrite(0x2b,1<<7);
-            if (dumpWrites) {
-              addWrite(0xffff0000,chan[c.chan].dacSample);
-              addWrite(0xffff0003,chan[c.chan].dacDirection);
-            }
-          }
-          if (chan[c.chan].setPos) {
-            chan[c.chan].setPos=false;
-          } else {
-            chan[c.chan].dacPos=0;
-          }
-          chan[c.chan].dacPeriod=0;
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
-            chan[c.chan].portaPause=false;
-            chan[c.chan].note=c.value;
-            chan[c.chan].freqChanged=true;
-          }
-
-          chan[c.chan].macroInit(ins);
-          if (!chan[c.chan].std.vol.will) {
-            chan[c.chan].outVol=chan[c.chan].vol;
-          }
-
-          // ???
-          //chan[c.chan].keyOn=true;
-          chan[c.chan].active=true;
-        } else { // compatible mode
-          assert(false && "LEGACY SAMPLE MODE!!!");
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].dacSample=ins->amiga.getSample(c.value);
+          chan[c.chan].sampleNote=c.value;
+          c.value=ins->amiga.getFreq(c.value);
+          chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+        } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+          chan[c.chan].dacSample=ins->amiga.getSample(chan[c.chan].sampleNote);
+          c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
         }
+        if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
+          chan[c.chan].dacSample=-1;
+          if (dumpWrites) addWrite(0xffff0002,0);
+          break;
+        } else {
+          rWrite(0x2b,1<<7);
+          if (dumpWrites) {
+            addWrite(0xffff0000,chan[c.chan].dacSample);
+            addWrite(0xffff0003,chan[c.chan].dacDirection);
+          }
+        }
+        if (chan[c.chan].setPos) {
+          chan[c.chan].setPos=false;
+        } else {
+          chan[c.chan].dacPos=0;
+        }
+        chan[c.chan].dacPeriod=0;
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
+          chan[c.chan].portaPause=false;
+          chan[c.chan].note=c.value;
+          chan[c.chan].freqChanged=true;
+        }
+
+        chan[c.chan].macroInit(ins);
+        if (!chan[c.chan].std.vol.will) {
+          chan[c.chan].outVol=chan[c.chan].vol;
+        }
+
+        // ???
+        //chan[c.chan].keyOn=true;
+        chan[c.chan].active=true;
         break;
       }
       if (c.chan>=6) break;

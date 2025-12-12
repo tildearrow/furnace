@@ -339,15 +339,13 @@ void DivPlatformX1_010::tick(bool sysTick) {
         chan[i].envChanged=true;
       }
     }
-    if ((!chan[i].pcm) || chan[i].furnacePCM) {
-      if (NEW_ARP_STRAT) {
-        chan[i].handleArp();
-      } else if (chan[i].std.arp.had) {
-        if (!chan[i].inPorta) {
-          chan[i].baseFreq=NoteX1_010(i,parent->calcArp(chan[i].note,chan[i].std.arp.val));
-        }
-        chan[i].freqChanged=true;
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
+      if (!chan[i].inPorta) {
+        chan[i].baseFreq=NoteX1_010(i,parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
+      chan[i].freqChanged=true;
     }
     if (chan[i].std.wave.had && !chan[i].pcm) {
       if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
@@ -543,10 +541,8 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:15;
       if ((ins->type==DIV_INS_AMIGA || ins->amiga.useSample) || chan[c.chan].pcm) {
         if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
-          chan[c.chan].furnacePCM=true;
           chan[c.chan].pcm=true;
         } else {
-          chan[c.chan].furnacePCM=false;
           chan[c.chan].pcm=false;
           chan[c.chan].sampleNote=DIV_NOTE_NULL;
           chan[c.chan].sampleNoteDelta=0;
@@ -560,47 +556,42 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       }
       if (chan[c.chan].pcm) {
         if (skipRegisterWrites) break;
-        if (chan[c.chan].furnacePCM) {
-          chan[c.chan].pcm=true;
-          chan[c.chan].macroInit(ins);
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].sample=ins->amiga.getSample(c.value);
-            chan[c.chan].sampleNote=c.value;
-            c.value=ins->amiga.getFreq(c.value);
-            chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
-          }
-          if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
-            DivSample* s=parent->getSample(chan[c.chan].sample);
-            if (isBanked) {
-              chan[c.chan].bankSlot=ins->x1_010.bankSlot;
-              bankSlot[chan[c.chan].bankSlot]=sampleOffX1[chan[c.chan].sample]>>17;
-              unsigned int bankedOffs=(chan[c.chan].bankSlot<<17)|(sampleOffX1[chan[c.chan].sample]&0x1ffff);
-              chWrite(c.chan,4,(bankedOffs>>12)&0xff);
-              int end=(bankedOffs+MIN(s->length8,0x1ffff)+0xfff)&~0xfff; // padded
-              chWrite(c.chan,5,(0x100-(end>>12))&0xff);
-            } else {
-              chWrite(c.chan,4,(sampleOffX1[chan[c.chan].sample]>>12)&0xff);
-              int end=(sampleOffX1[chan[c.chan].sample]+s->length8+0xfff)&~0xfff; // padded
-              chWrite(c.chan,5,(0x100-(end>>12))&0xff);
-            }
-            if (c.value!=DIV_NOTE_NULL) {
-              chan[c.chan].note=c.value;
-              chan[c.chan].baseFreq=NoteX1_010(c.chan,chan[c.chan].note);
-              chan[c.chan].fixedFreq=0;
-              chan[c.chan].freqChanged=true;
-            }
+        chan[c.chan].macroInit(ins);
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].sample=ins->amiga.getSample(c.value);
+          chan[c.chan].sampleNote=c.value;
+          c.value=ins->amiga.getFreq(c.value);
+          chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+        }
+        if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
+          DivSample* s=parent->getSample(chan[c.chan].sample);
+          if (isBanked) {
+            chan[c.chan].bankSlot=ins->x1_010.bankSlot;
+            bankSlot[chan[c.chan].bankSlot]=sampleOffX1[chan[c.chan].sample]>>17;
+            unsigned int bankedOffs=(chan[c.chan].bankSlot<<17)|(sampleOffX1[chan[c.chan].sample]&0x1ffff);
+            chWrite(c.chan,4,(bankedOffs>>12)&0xff);
+            int end=(bankedOffs+MIN(s->length8,0x1ffff)+0xfff)&~0xfff; // padded
+            chWrite(c.chan,5,(0x100-(end>>12))&0xff);
           } else {
-            chan[c.chan].macroInit(NULL);
-            chan[c.chan].outVol=chan[c.chan].vol;
-            // TODO: there was a check for legacy sample bank here. why?
-            chWrite(c.chan,0,0); // reset
-            chWrite(c.chan,1,0);
-            chWrite(c.chan,2,0);
-            chWrite(c.chan,4,0);
-            chWrite(c.chan,5,0);
+            chWrite(c.chan,4,(sampleOffX1[chan[c.chan].sample]>>12)&0xff);
+            int end=(sampleOffX1[chan[c.chan].sample]+s->length8+0xfff)&~0xfff; // padded
+            chWrite(c.chan,5,(0x100-(end>>12))&0xff);
+          }
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].note=c.value;
+            chan[c.chan].baseFreq=NoteX1_010(c.chan,chan[c.chan].note);
+            chan[c.chan].fixedFreq=0;
+            chan[c.chan].freqChanged=true;
           }
         } else {
-          assert(false && "LEGACY SAMPLE MODE!!!");
+          chan[c.chan].macroInit(NULL);
+          chan[c.chan].outVol=chan[c.chan].vol;
+          // TODO: there was a check for legacy sample bank here. why?
+          chWrite(c.chan,0,0); // reset
+          chWrite(c.chan,1,0);
+          chWrite(c.chan,2,0);
+          chWrite(c.chan,4,0);
+          chWrite(c.chan,5,0);
         }
       } else if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].note=c.value;
