@@ -540,6 +540,7 @@ void FurnaceGUI::drawDebug() {
       ImGui::Text("Canvas: %dx%d",canvasW,canvasH);
       ImGui::Text("Maximized: %d",scrMax);
       ImGui::Text("System Managed Scale: %d",sysManagedScale);
+      ImGui::Text("Input Scale: %f",ImGui::GetIO().InputScale);
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Audio Debug")) {
