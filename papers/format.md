@@ -148,8 +148,8 @@ size | description
   4f | chip front/rear balance
  --- | **patchbay**
   4  | patchbay connection count
- 4?? | patchbay
-     | - see next section for more details.
+ 4?? | patchbay connections (×numConnections)
+     | - see the patchbay section for more details.
   1  | automatic patchbay
  --- | **song elements (repeated until element type is 0)**
   1  | element type
@@ -733,8 +733,8 @@ size | description
   4f | chip front/rear balance
  --- | **patchbay** (>=135)
   4  | patchbay connection count
- 4?? | patchbay
-     | - see next section for more details.
+ 4?? | patchbay connections (×numConnections)
+     | - see the patchbay section for more details.
   1  | automatic patchbay (>=136)
  --- | **a couple more compat flags** (>=138)
   1  | broken portamento during legato
