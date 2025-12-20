@@ -146,7 +146,15 @@ void VGEParsePattern(struct VGEParsePatternInfo info) {
       logD("parsing volumes of pattern %d channel %d",i,j);
       for (int k=0; k<256; k++) {
         if (patDataBuf[k]==0) continue;
-        else pat->data[k][3]=0x60+patDataBuf[k];
+        else {
+          if (j <= 5) {
+            // fm
+            pat->data[k][3]=0x60+patDataBuf[k];
+          } else {
+            // psg
+            pat->data[k][3]=patDataBuf[k]>>1;
+          }
+        }
       }
 
       // instrument
