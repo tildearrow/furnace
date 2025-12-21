@@ -55,7 +55,7 @@ struct TimeMicros {
   }
 
   // operators
-  inline TimeMicros& operator+(TimeMicros& other) {
+  inline TimeMicros& operator+=(TimeMicros& other) {
     seconds+=other.seconds;
     micros+=other.micros;
     while (micros>=1000000) {
@@ -64,11 +64,11 @@ struct TimeMicros {
     }
     return *this;
   }
-  inline TimeMicros& operator+(int other) {
+  inline TimeMicros& operator+=(int other) {
     seconds+=other;
     return *this;
   }
-  inline TimeMicros& operator-(TimeMicros& other) {
+  inline TimeMicros& operator-=(TimeMicros& other) {
     seconds-=other.seconds;
     micros-=other.micros;
     while (micros<0) {
@@ -77,7 +77,7 @@ struct TimeMicros {
     }
     return *this;
   }
-  inline TimeMicros& operator-(int other) {
+  inline TimeMicros& operator-=(int other) {
     seconds-=other;
     return *this;
   }
@@ -123,5 +123,17 @@ struct TimeMicros {
   TimeMicros():
     seconds(0), micros(0) {}
 };
+
+inline TimeMicros operator+(TimeMicros& t1, TimeMicros t2) {
+  TimeMicros result=t1;
+  result+=t2;
+  return result;
+}
+
+inline TimeMicros operator-(TimeMicros& t1, TimeMicros t2) {
+  TimeMicros result=t1;
+  result-=t2;
+  return result;
+}
 
 #endif

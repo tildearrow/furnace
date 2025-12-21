@@ -262,7 +262,6 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
     w->writeText(fmt::sprintf("- data length: %d\n",sample->getCurBufLen()));
     w->writeText(fmt::sprintf("- samples: %d\n",sample->samples));
     w->writeText(fmt::sprintf("- rate: %d\n",sample->centerRate));
-    w->writeText(fmt::sprintf("- compat rate: %d\n",sample->rate));
     w->writeText(fmt::sprintf("- loop: %s\n",trueFalse[sample->loop?1:0]));
     if (sample->loop) {
       w->writeText(fmt::sprintf("  - start: %d\n",sample->loopStart));
@@ -297,13 +296,12 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
     }
     w->writeText("\n");
     w->writeText(fmt::sprintf("- virtual tempo: %d/%d\n",s->virtualTempoN,s->virtualTempoD));
-    w->writeText(fmt::sprintf("- time base: %d\n",s->timeBase));
     w->writeText(fmt::sprintf("- pattern length: %d\n",s->patLen));
     w->writeText(fmt::sprintf("\norders:\n```\n"));
 
     for (int j=0; j<s->ordersLen; j++) {
       w->writeText(fmt::sprintf("%.2X |",j));
-      for (int k=0; k<chans; k++) {
+      for (int k=0; k<song.chans; k++) {
         w->writeText(fmt::sprintf(" %.2X",s->orders.ord[k][j]));
       }
       w->writeText("\n");
@@ -319,7 +317,7 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
         for (int k=0; k<s->patLen; k++) {
           w->writeText(fmt::sprintf("%.2X ",k));
 
-          for (int l=0; l<chans; l++) {
+          for (int l=0; l<song.chans; l++) {
             DivPattern* p=s->pat[l].getPattern(s->orders.ord[l][j],false);
             short note, octave;
             noteToSplitNote(p->newData[k][DIV_PAT_NOTE],note,octave);

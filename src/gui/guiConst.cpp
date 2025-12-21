@@ -28,6 +28,22 @@ const int opOrder[4]={
   0, 2, 1, 3
 };
 
+const float topKeyStarts[5]={
+  0.9f/7.0f, 2.1f/7.0f, 3.9f/7.0f, 5.0f/7.0f, 6.1f/7.0f
+};
+
+const int topKeyNotes[5]={
+  1, 3, 6, 8, 10
+};
+
+const int bottomKeyNotes[7]={
+  0, 2, 4, 5, 7, 9, 11
+};
+
+const bool isTopKey[12]={
+  false, true, false, true, false, false, true, false, true, false, true, false
+};
+
 const char* noteNames[180]={
   "c_5", "c+5", "d_5", "d+5", "e_5", "f_5", "f+5", "g_5", "g+5", "a_5", "a+5", "b_5",
   "c_4", "c+4", "d_4", "d+4", "e_4", "f_4", "f+4", "g_4", "g+4", "a_4", "a+4", "b_4",
@@ -641,6 +657,8 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_COMPAT_FLAGS", _N("Compatibility Flags"), 0),
   D("WINDOW_PIANO", _N("Piano"), 0),
   D("WINDOW_NOTES", _N("Song Comments"), 0),
+  D("WINDOW_TUNER", _N("Tuner"), 0),
+  D("WINDOW_SPECTRUM", _N("Spectrum"), 0),
   D("WINDOW_CHANNELS", _N("Channels"), 0),
   D("WINDOW_PAT_MANAGER", _N("Pattern Manager"), 0),
   D("WINDOW_SYS_MANAGER", _N("Chip Manager"), 0),
@@ -1223,6 +1241,10 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_MEMORY_BANK6,"",ImVec4(0.5f,0.1f,1.0f,1.0f)),
   D(GUI_COLOR_MEMORY_BANK7,"",ImVec4(1.0f,0.1f,1.0f,1.0f)),
 
+  D(GUI_COLOR_TUNER_NEEDLE,"",ImVec4(0.1f,0.5f,0.9f,1.0f)),
+  D(GUI_COLOR_TUNER_SCALE_LOW,"",ImVec4(0.1f,1.0f,0.2f,1.0f)),
+  D(GUI_COLOR_TUNER_SCALE_HIGH,"",ImVec4(0.9f,0.1f,0.1f,1.0f)),
+
   D(GUI_COLOR_LOGLEVEL_ERROR,"",ImVec4(1.0f,0.2f,0.2f,1.0f)),
   D(GUI_COLOR_LOGLEVEL_WARNING,"",ImVec4(1.0f,1.0f,0.2f,1.0f)),
   D(GUI_COLOR_LOGLEVEL_INFO,"",ImVec4(0.4f,1.0f,0.4f,1.0f)),
@@ -1252,9 +1274,6 @@ const int availableSystems[]={
   DIV_SYSTEM_C64_PCM,
   DIV_SYSTEM_YM2151,
   DIV_SYSTEM_SEGAPCM,
-  DIV_SYSTEM_SEGAPCM_COMPAT,
-  DIV_SYSTEM_YM2610,
-  DIV_SYSTEM_YM2610_EXT,
   DIV_SYSTEM_YM2610_FULL,
   DIV_SYSTEM_YM2610_FULL_EXT,
   DIV_SYSTEM_YM2610_CSM,
@@ -1354,8 +1373,6 @@ const int chipsFM[]={
   DIV_SYSTEM_YM2612_DUALPCM,
   DIV_SYSTEM_YM2612_DUALPCM_EXT,
   DIV_SYSTEM_YM2151,
-  DIV_SYSTEM_YM2610,
-  DIV_SYSTEM_YM2610_EXT,
   DIV_SYSTEM_YM2610_FULL,
   DIV_SYSTEM_YM2610_FULL_EXT,
   DIV_SYSTEM_YM2610_CSM,
@@ -1454,7 +1471,6 @@ const int chipsSpecial[]={
 // sample
 const int chipsSample[]={
   DIV_SYSTEM_SEGAPCM,
-  DIV_SYSTEM_SEGAPCM_COMPAT,
   DIV_SYSTEM_AMIGA,
   DIV_SYSTEM_QSOUND,
   DIV_SYSTEM_X1_010,

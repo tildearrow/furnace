@@ -651,6 +651,13 @@ void FurnaceGUI::drawMobileControls() {
         if (ImGui::Button(_("RefPlayer"))) {
           refPlayerOpen=!refPlayerOpen;
         }
+        if (ImGui::Button(_("Tuner"))) {
+          tunerOpen=!tunerOpen;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("Spectrum"))) {
+          spectrumOpen=!spectrumOpen;
+        }
         if (ImGui::Button(_("Switch to Desktop Mode"))) {
           toggleMobileUI(!mobileUI);
         }

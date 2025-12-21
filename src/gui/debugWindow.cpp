@@ -21,7 +21,7 @@
 #include "guiConst.h"
 #include "debug.h"
 #include "IconsFontAwesome4.h"
-#include <SDL_timer.h>
+#include <inttypes.h>
 #include <fmt/printf.h>
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -118,11 +118,13 @@ void FurnaceGUI::drawDebug() {
       ImGui::Columns(e->getTotalChannelCount());
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         void* ch=e->getDispatchChanState(i);
-        ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],"Ch. %d: %d, %d",i,e->dispatchOfChan[i],e->dispatchChanOfChan[i]);
+        ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],"Ch. %d: %d, %d",i,e->song.dispatchOfChan[i],e->song.dispatchChanOfChan[i]);
         if (ch==NULL) {
           ImGui::Text("NULL");
+        } else if (e->song.dispatchChanOfChan[i]<0) {
+          ImGui::Text("---");
         } else {
-          putDispatchChan(ch,e->dispatchChanOfChan[i],e->sysOfChan[i]);
+          putDispatchChan(ch,e->song.dispatchChanOfChan[i],e->song.sysOfChan[i]);
         }
         ImGui::NextColumn();
       }
@@ -208,7 +210,7 @@ void FurnaceGUI::drawDebug() {
       DivSongTimestamps& ts=e->curSubSong->ts;
 
       String timeFormatted=ts.totalTime.toString(-1,TA_TIME_FORMAT_AUTO);
-      ImGui::Text("song duration: %s (%d ticks; %d rows)",timeFormatted.c_str(),ts.totalTicks,ts.totalRows);
+      ImGui::Text("song duration: %s (%" PRIu64 " ticks; %d rows)",timeFormatted.c_str(),ts.totalTicks,ts.totalRows);
       if (ts.isLoopDefined) {
         ImGui::Text("loop region is defined");
       } else {
@@ -243,7 +245,6 @@ void FurnaceGUI::drawDebug() {
           continue;
         }
         if (ImGui::TreeNode(fmt::sprintf("%d: %s",i,sample->name).c_str())) {
-          ImGui::Text("rate: %d",sample->rate);
           ImGui::Text("centerRate: %d",sample->centerRate);
           ImGui::Text("loopStart: %d",sample->loopStart);
           ImGui::Text("loopEnd: %d", sample->loopEnd);
@@ -539,6 +540,7 @@ void FurnaceGUI::drawDebug() {
       ImGui::Text("Canvas: %dx%d",canvasW,canvasH);
       ImGui::Text("Maximized: %d",scrMax);
       ImGui::Text("System Managed Scale: %d",sysManagedScale);
+      ImGui::Text("Input Scale: %f",ImGui::GetIO().InputScale);
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Audio Debug")) {

@@ -666,7 +666,8 @@ void FurnaceGUI::drawPattern() {
             if (!muted) {
               int note=e->getChanState(i)->note+60;
               if (note>=0 && note<180) {
-                pianoKeyHit[note]=1.0;
+                pianoKeyHit[note].value=1.0;
+                pianoKeyHit[note].chan=i;
               }
             }
           }
@@ -674,12 +675,13 @@ void FurnaceGUI::drawPattern() {
         }
         if (settings.channelFeedbackStyle==2 && e->isRunning()) {
           float amount=((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i));
-          if (!e->getChanState(i)->keyOn) amount=0.0f;
+          if (e->getChanState(i)->keyOff) amount=0.0f;
           keyHit[i]=amount*0.2f;
-          if (!muted) {
+          if (!muted && e->getChanState(i)->keyOn) {
             int note=e->getChanState(i)->note+60;
             if (note>=0 && note<180) {
-              pianoKeyHit[note]=amount;
+              pianoKeyHit[note].value=amount;
+              pianoKeyHit[note].chan=i;
             }
           }
         } else if (settings.channelFeedbackStyle==3 && e->isRunning()) {
@@ -688,7 +690,20 @@ void FurnaceGUI::drawPattern() {
           if (!muted) {
             int note=e->getChanState(i)->note+60;
             if (note>=0 && note<180) {
-              pianoKeyHit[note]=active?1.0f:0.0f;
+              pianoKeyHit[note].value=active?1.0f:0.0f;
+              pianoKeyHit[note].chan=i;
+            }
+          }
+        } else if (settings.channelFeedbackStyle==4 && e->isRunning()) {
+          float amount=powf(chanOscVol[i],settings.channelFeedbackGamma);
+          if (isnan(amount)) amount=0; // how is it nan tho??
+          if (e->getChanState(i)->keyOff) amount=0.0f;
+          keyHit[i]=amount*0.2f;
+          if (!muted && e->getChanState(i)->keyOn) {
+            int note=e->getChanState(i)->note+60;
+            if (note>=0 && note<180) {
+              pianoKeyHit[note].value=amount;
+              pianoKeyHit[note].chan=i;
             }
           }
         }
@@ -1458,7 +1473,7 @@ void FurnaceGUI::drawPattern() {
 
           for (int j=0; j<8; j++) {
             if (pair.pairs[j]==-1) continue;
-            int pairCh=e->dispatchFirstChan[i]+pair.pairs[j];
+            int pairCh=e->song.dispatchFirstChan[i]+pair.pairs[j];
             if (!e->curSubSong->chanShow[pairCh]) {
               continue;
             }
@@ -1514,7 +1529,7 @@ void FurnaceGUI::drawPattern() {
 
           for (int j=0; j<8; j++) {
             if (pair.pairs[j]==-1) continue;
-            int pairCh=e->dispatchFirstChan[i]+pair.pairs[j];
+            int pairCh=e->song.dispatchFirstChan[i]+pair.pairs[j];
             if (!e->curSubSong->chanShow[pairCh]) {
               continue;
             }

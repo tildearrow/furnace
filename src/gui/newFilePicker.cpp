@@ -1603,7 +1603,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     }
 
     // OK/Cancel buttons
-    ImGui::BeginDisabled(entryName.empty() && chosenEntries.empty());
+    ImGui::BeginDisabled(entryName.empty() && chosenEntries.empty() && !dirSelect);
     if (ImGui::Button(_("OK"))) {
       // accept entry
       acknowledged=true;
@@ -1741,6 +1741,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
 
             // return now unless we gotta confirm overwrite
             if (confirmOverwrite && (dirError==ENOTDIR || extCheck)) {
+              finalSelection.push_back(dirCheckPath);
               ImGui::OpenPopup(_("Warning###ConfirmOverwrite"));
               logV("confirm overwrite");
             } else {
@@ -1755,6 +1756,20 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
               } else {
                 isOpen=false;
               }
+            }
+          }
+        } else {
+          if (dirSelect) {
+            finalSelection.push_back(path);
+            curStatus=FP_STATUS_ACCEPTED;
+            if (noClose) {
+              for (FileEntry* j: chosenEntries) {
+                j->isSelected=false;
+              }
+              chosenEntries.clear();
+              updateEntryName();
+            } else {
+              isOpen=false;
             }
           }
         }
@@ -1779,6 +1794,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       }
       ImGui::SameLine();
       if (ImGui::Button(_("No")) || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+        finalSelection.clear();
         ImGui::CloseCurrentPopup();
       }
       ImGui::EndPopup();

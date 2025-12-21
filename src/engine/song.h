@@ -26,130 +26,13 @@
 #include "../timeutils.h"
 #include "../ta-utils.h"
 #include "config.h"
+#include "assetDir.h"
 #include "orders.h"
 #include "instrument.h"
 #include "pattern.h"
 #include "wavetable.h"
 #include "sample.h"
-
-enum DivSystem {
-  DIV_SYSTEM_NULL=0,
-  DIV_SYSTEM_YMU759,
-  DIV_SYSTEM_GENESIS, // ** COMPOUND SYSTEM - DO NOT USE! **
-  DIV_SYSTEM_GENESIS_EXT, // ** COMPOUND SYSTEM - DO NOT USE! **
-  DIV_SYSTEM_SMS,
-  DIV_SYSTEM_SMS_OPLL, // ** COMPOUND SYSTEM - DO NOT USE! **
-  DIV_SYSTEM_GB,
-  DIV_SYSTEM_PCE,
-  DIV_SYSTEM_NES,
-  DIV_SYSTEM_NES_VRC7, // ** COMPOUND SYSTEM - DO NOT USE! **
-  DIV_SYSTEM_NES_FDS, // ** COMPOUND SYSTEM - DO NOT USE! **
-  DIV_SYSTEM_C64_6581,
-  DIV_SYSTEM_C64_8580,
-  DIV_SYSTEM_ARCADE, // ** COMPOUND SYSTEM - DO NOT USE! **
-  DIV_SYSTEM_MSX2, // ** COMPOUND SYSTEM - DO NOT USE! **
-  DIV_SYSTEM_YM2610,
-  DIV_SYSTEM_YM2610_EXT,
-  
-  DIV_SYSTEM_AY8910,
-  DIV_SYSTEM_AMIGA,
-  DIV_SYSTEM_YM2151,
-  DIV_SYSTEM_YM2612,
-  DIV_SYSTEM_TIA,
-  DIV_SYSTEM_SAA1099,
-  DIV_SYSTEM_AY8930,
-  DIV_SYSTEM_VIC20,
-  DIV_SYSTEM_PET,
-  DIV_SYSTEM_SNES,
-  DIV_SYSTEM_VRC6,
-  DIV_SYSTEM_OPLL,
-  DIV_SYSTEM_FDS,
-  DIV_SYSTEM_MMC5,
-  DIV_SYSTEM_N163,
-  DIV_SYSTEM_YM2203,
-  DIV_SYSTEM_YM2203_EXT,
-  DIV_SYSTEM_YM2608,
-  DIV_SYSTEM_YM2608_EXT,
-  DIV_SYSTEM_OPL,
-  DIV_SYSTEM_OPL2,
-  DIV_SYSTEM_OPL3,
-  DIV_SYSTEM_MULTIPCM,
-  DIV_SYSTEM_PCSPKR,
-  DIV_SYSTEM_POKEY,
-  DIV_SYSTEM_RF5C68,
-  DIV_SYSTEM_SWAN,
-  DIV_SYSTEM_OPZ,
-  DIV_SYSTEM_POKEMINI,
-  DIV_SYSTEM_SEGAPCM,
-  DIV_SYSTEM_VBOY,
-  DIV_SYSTEM_VRC7,
-  DIV_SYSTEM_YM2610B,
-  DIV_SYSTEM_SFX_BEEPER,
-  DIV_SYSTEM_SFX_BEEPER_QUADTONE,
-  DIV_SYSTEM_YM2612_EXT,
-  DIV_SYSTEM_SCC,
-  DIV_SYSTEM_OPL_DRUMS,
-  DIV_SYSTEM_OPL2_DRUMS,
-  DIV_SYSTEM_OPL3_DRUMS,
-  DIV_SYSTEM_YM2610_FULL,
-  DIV_SYSTEM_YM2610_FULL_EXT,
-  DIV_SYSTEM_OPLL_DRUMS,
-  DIV_SYSTEM_LYNX,
-  DIV_SYSTEM_QSOUND,
-  DIV_SYSTEM_VERA,
-  DIV_SYSTEM_YM2610B_EXT,
-  DIV_SYSTEM_SEGAPCM_COMPAT,
-  DIV_SYSTEM_X1_010,
-  DIV_SYSTEM_BUBSYS_WSG,
-  DIV_SYSTEM_OPL4,
-  DIV_SYSTEM_OPL4_DRUMS,
-  DIV_SYSTEM_ES5506,
-  DIV_SYSTEM_Y8950,
-  DIV_SYSTEM_Y8950_DRUMS,
-  DIV_SYSTEM_SCC_PLUS,
-  DIV_SYSTEM_SOUND_UNIT,
-  DIV_SYSTEM_MSM6295,
-  DIV_SYSTEM_MSM6258,
-  DIV_SYSTEM_YMZ280B,
-  DIV_SYSTEM_NAMCO,
-  DIV_SYSTEM_NAMCO_15XX,
-  DIV_SYSTEM_NAMCO_CUS30,
-  DIV_SYSTEM_YM2612_DUALPCM,
-  DIV_SYSTEM_YM2612_DUALPCM_EXT,
-  DIV_SYSTEM_MSM5232,
-  DIV_SYSTEM_T6W28,
-  DIV_SYSTEM_K007232,
-  DIV_SYSTEM_GA20,
-  DIV_SYSTEM_PCM_DAC,
-  DIV_SYSTEM_PONG,
-  DIV_SYSTEM_DUMMY,
-  DIV_SYSTEM_YM2612_CSM,
-  DIV_SYSTEM_YM2610_CSM,
-  DIV_SYSTEM_YM2610B_CSM,
-  DIV_SYSTEM_YM2203_CSM,
-  DIV_SYSTEM_YM2608_CSM,
-  DIV_SYSTEM_SM8521,
-  DIV_SYSTEM_PV1000,
-  DIV_SYSTEM_K053260,
-  DIV_SYSTEM_TED,
-  DIV_SYSTEM_C140,
-  DIV_SYSTEM_C219,
-  DIV_SYSTEM_ESFM,
-  DIV_SYSTEM_POWERNOISE,
-  DIV_SYSTEM_DAVE,
-  DIV_SYSTEM_NDS,
-  DIV_SYSTEM_GBA_DMA,
-  DIV_SYSTEM_GBA_MINMOD,
-  DIV_SYSTEM_5E01,
-  DIV_SYSTEM_BIFURCATOR,
-  DIV_SYSTEM_SID2,
-  DIV_SYSTEM_SUPERVISION,
-  DIV_SYSTEM_UPD1771C,
-  DIV_SYSTEM_SID3,
-  DIV_SYSTEM_C64_PCM,
-
-  DIV_SYSTEM_MAX
-};
+#include "sysDef.h"
 
 enum DivEffectType: unsigned short {
   DIV_EFFECT_NULL=0,
@@ -159,19 +42,39 @@ enum DivEffectType: unsigned short {
   DIV_EFFECT_FILTER
 };
 
+enum DivFileElementType: unsigned char {
+  DIV_ELEMENT_END=0,
+  DIV_ELEMENT_SUBSONG,
+  DIV_ELEMENT_CHIP_FLAGS,
+  DIV_ELEMENT_ASSET_DIR,
+  DIV_ELEMENT_INSTRUMENT,
+  DIV_ELEMENT_WAVETABLE,
+  DIV_ELEMENT_SAMPLE,
+  DIV_ELEMENT_PATTERN,
+  DIV_ELEMENT_COMPAT_FLAGS,
+  DIV_ELEMENT_COMMENTS,
+  DIV_ELEMENT_GROOVE,
+
+  DIV_ELEMENT_MAX
+};
+
 struct DivGroovePattern {
-  unsigned char val[16];
-  unsigned char len;
+  unsigned short val[16];
+  unsigned short len;
+  bool readData(SafeReader& reader);
+  void putData(SafeWriter* w);
   DivGroovePattern():
     len(1) {
-      memset(val,6,16);
+    for (int i=0; i<16; i++) {
+      val[i]=6;
     }
+  }
 };
 
 struct DivSongTimestamps {
   // song duration (in seconds and microseconds)
   TimeMicros totalTime;
-  int totalTicks;
+  uint64_t totalTicks;
   int totalRows;
 
   // loop region (order/row positions)
@@ -205,7 +108,7 @@ struct DivSongTimestamps {
 struct DivSubSong {
   String name, notes;
   unsigned char hilightA, hilightB;
-  unsigned char timeBase, arpLen;
+  unsigned char effectDivider, arpLen;
   DivGroovePattern speeds;
   short virtualTempoN, virtualTempoD;
   float hz;
@@ -220,6 +123,7 @@ struct DivSubSong {
   unsigned char chanCollapse[DIV_MAX_CHANS];
   String chanName[DIV_MAX_CHANS];
   String chanShortName[DIV_MAX_CHANS];
+  unsigned int chanColor[DIV_MAX_CHANS];
 
   // song timestamps
   DivSongTimestamps ts;
@@ -228,6 +132,16 @@ struct DivSubSong {
    * calculate timestamps (loop position, song length and more).
    */
   void calcTimestamps(int chans, std::vector<DivGroovePattern>& grooves, int jumpTreatment, int ignoreJumpAtEnd, int brokenSpeedSel, int delayBehavior, int firstPat=0);
+
+  /**
+   * read sub-song data.
+   */
+  bool readData(SafeReader& reader, int version, int chans);
+
+  /**
+   * write sub-song block to a SafeWriter.
+   */
+  void putData(SafeWriter* w, int chans);
 
   void clearData();
   void removeUnusedPatterns();
@@ -239,7 +153,7 @@ struct DivSubSong {
   DivSubSong(): 
     hilightA(4),
     hilightB(16),
-    timeBase(0),
+    effectDivider(0),
     arpLen(1),
     virtualTempoN(150),
     virtualTempoD(150),
@@ -251,18 +165,9 @@ struct DivSubSong {
       chanShow[i]=true;
       chanShowChanOsc[i]=true;
       chanCollapse[i]=0;
+      chanColor[i]=0;
     }
   }
-};
-
-struct DivAssetDir {
-  String name;
-  std::vector<int> entries;
-
-  DivAssetDir():
-    name("New Directory") {}
-  DivAssetDir(String n):
-    name(n) {}
 };
 
 struct DivEffectStorage {
@@ -280,40 +185,7 @@ struct DivEffectStorage {
     storageLen(0) {}
 };
 
-struct DivSong {
-  unsigned short version;
-  bool isDMF;
-
-  // system
-  DivSystem system[DIV_MAX_CHIPS];
-  unsigned char systemLen;
-  float systemVol[DIV_MAX_CHIPS];
-  float systemPan[DIV_MAX_CHIPS];
-  float systemPanFR[DIV_MAX_CHIPS];
-  DivConfig systemFlags[DIV_MAX_CHIPS];
-
-  // song information
-  String name, author, systemName;
-
-  // legacy song information
-  // those will be stored in .fur and mapped to VGM as:
-  // category -> game name
-  // writer -> ripper
-  // createdDate -> year
-  String carrier, composer, vendor, category, writer, arranger, copyright, manGroup, manInfo, createdDate, revisionDate;
-
-  // more VGM specific stuff
-  String nameJ, authorJ, categoryJ, systemNameJ;
-
-  // other things
-  String notes;
-
-  // module details
-  int insLen, waveLen, sampleLen;
-  float masterVol;
-  float tuning;
-
-  // compatibility flags
+struct DivCompatFlags {
   bool limitSlides;
   // linear pitch
   unsigned char linearPitch;
@@ -373,9 +245,7 @@ struct DivSong {
   bool brokenPortaArp;
   bool snNoLowPeriods;
   bool disableSampleMacro;
-  bool autoSystem;
   bool oldArpStrategy;
-  bool patchbayAuto;
   bool brokenPortaLegato;
   bool brokenFMOff;
   bool preNoteNoEffect;
@@ -384,8 +254,67 @@ struct DivSong {
   bool ceilVolumeScaling;
   bool oldAlwaysSetVolume;
   bool oldSampleOffset;
-  // TODO: this flag is not saved to the file yet.
+  // new flags as of dev240
   bool oldCenterRate;
+
+  void setDefaults();
+  bool areDefaults();
+  bool readData(SafeReader& reader);
+  void putData(SafeWriter* w);
+
+  bool operator==(const DivCompatFlags& other) {
+    return (memcmp(this,&other,sizeof(DivCompatFlags))==0);
+  }
+  bool operator!=(const DivCompatFlags& other) {
+    return (memcmp(this,&other,sizeof(DivCompatFlags))!=0);
+  }
+
+  DivCompatFlags() {
+    memset(this,0,sizeof(DivCompatFlags));
+    setDefaults();
+  }
+};
+
+struct DivSong {
+  unsigned short version;
+  bool isDMF;
+
+  // system
+  int chans;
+  DivSystem system[DIV_MAX_CHIPS];
+  unsigned short systemChans[DIV_MAX_CHIPS];
+  unsigned char systemLen;
+  float systemVol[DIV_MAX_CHIPS];
+  float systemPan[DIV_MAX_CHIPS];
+  float systemPanFR[DIV_MAX_CHIPS];
+  DivConfig systemFlags[DIV_MAX_CHIPS];
+
+  // song information
+  String name, author, systemName;
+
+  // legacy song information
+  // those will be stored in .fur and mapped to VGM as:
+  // category -> game name
+  // writer -> ripper
+  // createdDate -> year
+  String carrier, composer, vendor, category, writer, arranger, copyright, manGroup, manInfo, createdDate, revisionDate;
+
+  // more VGM specific stuff
+  String nameJ, authorJ, categoryJ, systemNameJ;
+
+  // other things
+  String notes;
+
+  // module details
+  int insLen, waveLen, sampleLen;
+  float masterVol;
+  float tuning;
+
+  bool autoSystem;
+  bool patchbayAuto;
+
+  // compatibility flags
+  DivCompatFlags compatFlags;
 
   std::vector<DivInstrument*> ins;
   std::vector<DivWavetable*> wave;
@@ -401,14 +330,34 @@ struct DivSong {
 
   std::vector<DivEffectStorage> effects;
 
+  /**
+   * INTERNAL STATE - do not modify.
+   */
+  // default/"null" instruments (when instrument is none/-1)
   DivInstrument nullIns, nullInsOPLL, nullInsOPL, nullInsOPLDrums, nullInsQSound, nullInsESFM;
+  // default assets, returned by getWave()/getSample() in DivEngine
   DivWavetable nullWave;
   DivSample nullSample;
+
+  // channel information arrays.
+  // chip of a channel
+  DivSystem sysOfChan[DIV_MAX_CHANS];
+  // dispatch (chip index) of a channel
+  int dispatchOfChan[DIV_MAX_CHANS];
+  // tracker channel to chip channel mapping
+  // -1 means "nowhere".
+  int dispatchChanOfChan[DIV_MAX_CHANS];
+  // the first channel of a chip, indexed per channel
+  int dispatchFirstChan[DIV_MAX_CHANS];
+  // cached DivChanDef for each channel.
+  DivChanDef chanDef[DIV_MAX_CHANS];
+
+  std::vector<DivInstrumentType> possibleInsTypes;
 
   /**
    * find data past 0Bxx effects and place that into new sub-songs.
    */
-  void findSubSongs(int chans);
+  void findSubSongs();
 
   /**
    * clear orders and patterns.
@@ -431,6 +380,18 @@ struct DivSong {
   void clearSamples();
 
   /**
+   * set systemChans[] to default values.
+   * call recalcChans() afterwards.
+   */
+  void initDefaultSystemChans();
+
+  /**
+   * recalculate channel count and internal state.
+   * call after editing system[] or systemChans[].
+   */
+  void recalcChans();
+
+  /**
    * unloads the song, freeing all memory associated with it.
    * use before destroying the object.
    */
@@ -439,6 +400,7 @@ struct DivSong {
   DivSong():
     version(0),
     isDMF(false),
+    chans(0),
     systemLen(2),
     name(""),
     author(""),
@@ -459,66 +421,16 @@ struct DivSong {
     sampleLen(0),
     masterVol(1.0f),
     tuning(440.0f),
-    limitSlides(false),
-    linearPitch(1),
-    pitchSlideSpeed(4),
-    loopModality(2),
-    delayBehavior(2),
-    jumpTreatment(0),
-    properNoiseLayout(true),
-    waveDutyIsVol(false),
-    resetMacroOnPorta(false),
-    legacyVolumeSlides(false),
-    compatibleArpeggio(false),
-    noteOffResetsSlides(true),
-    targetResetsSlides(true),
-    arpNonPorta(false),
-    algMacroBehavior(false),
-    brokenShortcutSlides(false),
-    ignoreDuplicateSlides(false),
-    stopPortaOnNoteOff(false),
-    continuousVibrato(false),
-    brokenDACMode(false),
-    oneTickCut(false),
-    newInsTriggersInPorta(true),
-    arp0Reset(true),
-    brokenSpeedSel(false),
-    noSlidesOnFirstTick(false),
-    rowResetsArpPos(false),
-    ignoreJumpAtEnd(false),
-    buggyPortaAfterSlide(false),
-    gbInsAffectsEnvelope(true),
-    sharedExtStat(true),
-    ignoreDACModeOutsideIntendedChannel(false),
-    e1e2AlsoTakePriority(false),
-    newSegaPCM(true),
-    fbPortaPause(false),
-    snDutyReset(false),
-    pitchMacroIsLinear(true),
-    oldOctaveBoundary(false),
-    noOPN2Vol(false),
-    newVolumeScaling(true),
-    volMacroLinger(true),
-    brokenOutVol(false),
-    brokenOutVol2(false),
-    e1e2StopOnSameNote(false),
-    brokenPortaArp(false),
-    snNoLowPeriods(false),
-    disableSampleMacro(false),
     autoSystem(true),
-    oldArpStrategy(false),
-    patchbayAuto(true),
-    brokenPortaLegato(false),
-    brokenFMOff(false),
-    preNoteNoEffect(false),
-    oldDPCM(false),
-    resetArpPhaseOnNewNote(false),
-    ceilVolumeScaling(false),
-    oldAlwaysSetVolume(false),
-    oldSampleOffset(false),
-    oldCenterRate(true) {
+    patchbayAuto(true) {
+    memset(dispatchFirstChan,0,DIV_MAX_CHANS*sizeof(int));
+    memset(dispatchChanOfChan,0,DIV_MAX_CHANS*sizeof(int));
+    memset(dispatchOfChan,0,DIV_MAX_CHANS*sizeof(int));
+    memset(sysOfChan,0,DIV_MAX_CHANS*sizeof(int));
+
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       system[i]=DIV_SYSTEM_NULL;
+      systemChans[i]=0;
       systemVol[i]=1.0;
       systemPan[i]=0.0;
       systemPanFR[i]=0.0;
@@ -526,6 +438,8 @@ struct DivSong {
     subsong.push_back(new DivSubSong);
     system[0]=DIV_SYSTEM_YM2612;
     system[1]=DIV_SYSTEM_SMS;
+    systemChans[0]=6;
+    systemChans[1]=4;
 
     // OPLL default instrument contest winner - piano_guitar_idk by Weeppiko
     nullInsOPLL.type=DIV_INS_OPLL;
@@ -662,6 +576,8 @@ struct DivSong {
     nullInsESFM.fm.op[3].sl=15;
     nullInsESFM.fm.op[3].rr=9;
     nullInsESFM.fm.op[3].mult=1;
+
+    recalcChans();
   }
 };
 

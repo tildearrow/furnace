@@ -266,7 +266,7 @@ void FurnaceGUI::drawExportVGM(bool onWindow) {
     ImGui::EndCombo();
   }
   ImGui::Checkbox(_("loop"),&vgmExportLoop);
-  if (vgmExportLoop && e->song.loopModality==2) {
+  if (vgmExportLoop && e->song.compatFlags.loopModality==2) {
     ImGui::Text(_("loop trail:"));
     ImGui::Indent();
     if (ImGui::RadioButton(_("auto-detect"),vgmExportTrailingTicks==-1)) {
