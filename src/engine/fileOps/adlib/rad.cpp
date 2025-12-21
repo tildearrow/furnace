@@ -470,6 +470,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
         DivSubSong* s = ds.subsong[0];
         ds.systemLen = 1;
         ds.system[0] = DIV_SYSTEM_OPL2; //OPL2 by default
+        ds.systemChans[0] = 9;
 
         int version = 0;
         int shifted_version = 0;
@@ -502,6 +503,7 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
         if(version == 0x21)
         {
             ds.system[0] = DIV_SYSTEM_OPL3;
+            ds.systemChans[0] = 18;
 
             /*for(int i = 9; i < 18; i++)
             {
@@ -1914,9 +1916,9 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
 
         ds.insLen = ds.ins.size();
 
-        ds.linearPitch = 0;
-        ds.pitchMacroIsLinear = false;
-        ds.pitchSlideSpeed=8;
+        ds.compatFlags.linearPitch = 0;
+        ds.compatFlags.pitchMacroIsLinear = false;
+        ds.compatFlags.pitchSlideSpeed=8;
 
         for(int i = 0; i < (int)ds.subsong.size(); i++)
         {
@@ -1940,8 +1942,9 @@ bool DivEngine::loadRAD(unsigned char* file, size_t len)
         saveLock.lock();
         song.unload();
         song=ds;
+        hasLoadedSomething=true;
         changeSong(0);
-        recalcChans();
+        //recalcChans();
         saveLock.unlock();
         BUSY_END;
 

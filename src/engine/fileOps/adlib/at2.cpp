@@ -4074,10 +4074,12 @@ bool DivEngine::loadAT2M(unsigned char* file, size_t len)
         ds.waveLen = ds.wave.size();
 
         ds.systemName = _("OPL3");
+        ds.systemChans[0] = 18;
 
         if(songInfo->common_flag & 64)
         {
             ds.systemName = _("OPL3 in drums mode");
+            ds.systemChans[0] = 20;
         }
 
         for(int i = 0; i < sysDefs[ds.system[0]]->channels; i++)
@@ -4241,17 +4243,18 @@ bool DivEngine::loadAT2M(unsigned char* file, size_t len)
             }
         }
 
-        ds.linearPitch = 0;
-        ds.pitchMacroIsLinear = false;
-        ds.pitchSlideSpeed=8;
+        ds.compatFlags.linearPitch = 0;
+        ds.compatFlags.pitchMacroIsLinear = false;
+        ds.compatFlags.pitchSlideSpeed=8;
 
         if (active) quitDispatch();
         BUSY_BEGIN_SOFT;
         saveLock.lock();
         song.unload();
         song=ds;
+        hasLoadedSomething=true;
         changeSong(0);
-        recalcChans();
+        //recalcChans();
         saveLock.unlock();
         BUSY_END;
 
