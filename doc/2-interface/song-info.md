@@ -40,7 +40,10 @@ the effective BPM is displayed as well, taking all settings into account.
 - set the second virtual tempo number (denominator) to 150.
 - the track will play at 200 BPM.
 - the ratio doesn't have to match BPM numbers. set the numerator to 4 and the denominator to 5, and the virtual BPM becomes 150 × 4/5 = 120.
-- another way to accomplish this with more control over the results is to use grooves. see the page on [grooves](../8-advanced/grooves.md) for details.
+- depending on the tempo and tick rate, the results may sound uneven. another way to reach a specific tempo with more control over the results is to use grooves. see the page on [grooves](../8-advanced/grooves.md) for details.
+
+**BPM**: the track's initial tempo in beats per minute.
+- note: this uses the highlight values below in calculating beats.
 
 **Highlight**: sets the pattern row highlights:
 - the first value represents the number of rows per beat.
