@@ -1256,7 +1256,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     }
     case DIV_SYSTEM_N163: {
       int clockSel=flags.getInt("clockSel",0);
-      int channels=flags.getInt("channels",0)+1;
+      int channels=flags.getInt("channels",7)+1;
       bool multiplex=flags.getBool("multiplex",false);
       bool lenCompensate=flags.getBool("lenCompensate",false);
 
