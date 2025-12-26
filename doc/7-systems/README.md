@@ -36,8 +36,8 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612 or Y
 - **Capcom CPS-1**: [YM2151](ym2151.md), [MSM6295](msm6295.md)
 - **Capcom CPS-2 (QSound)**: [QSound](qsound.md)
 <!-- -->
-- **Neo Geo CD**: [YM2610](ym2610.md)
-- **Neo Geo CD (extended channel 2)**: [YM2610](ym2610.md)
+- **Neo Geo**: [YM2610](ym2610.md)
+- **Neo Geo (extended channel 2)**: [YM2610](ym2610.md)
 <!-- -->
 - **Neo Geo Pocket**: [T6W28](t6w28.md), [DAC](dac.md)
 <!-- -->

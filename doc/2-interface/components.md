@@ -30,7 +30,7 @@ sliders are used for controlling values in a quick manner by being dragged.
 
 using the scroll wheel while holding Ctrl will change the slider's value by small amounts.
 
-right-clicking or Ctrl-clicking or a slider (Command-click on macOS) will turn it into a number input field, allowing you to input precise values.
+right-clicking or Ctrl-clicking on a slider (Command-click on macOS) will turn it into a number input field, allowing you to input precise values.
 once you click away it will become a slider again.
 
 ## windows
