@@ -42,9 +42,14 @@
 // If you have no idea what this is, leave it alone!
 //#define IMGUI_IMPL_VULKAN_NO_PROTOTYPES
 
-// Convenience support for Volk
+// [Configuration] Convenience support for Volk
 // (you can also technically use IMGUI_IMPL_VULKAN_NO_PROTOTYPES + wrap Volk via ImGui_ImplVulkan_LoadFunctions().)
+// (When using Volk from directory outside your include directories list you can specify full path to the volk.h header,
+//  for example when using Volk from VulkanSDK and using include_directories(${Vulkan_INCLUDE_DIRS})' from 'find_package(Vulkan REQUIRED)')
 //#define IMGUI_IMPL_VULKAN_USE_VOLK
+//#define IMGUI_IMPL_VULKAN_VOLK_FILENAME    <Volk/volk.h>
+//#define IMGUI_IMPL_VULKAN_VOLK_FILENAME    <volk.h>       // Default
+// Reminder: make those changes in your imconfig.h file, not here!
 
 #if defined(IMGUI_IMPL_VULKAN_NO_PROTOTYPES) && !defined(VK_NO_PROTOTYPES)
 #define VK_NO_PROTOTYPES
@@ -55,7 +60,11 @@
 
 // Vulkan includes
 #ifdef IMGUI_IMPL_VULKAN_USE_VOLK
+#ifdef IMGUI_IMPL_VULKAN_VOLK_FILENAME
+#include IMGUI_IMPL_VULKAN_VOLK_FILENAME
+#else
 #include <volk.h>
+#endif
 #else
 #include <vulkan/vulkan.h>
 #endif
@@ -90,7 +99,7 @@ struct ImGui_ImplVulkan_PipelineInfo
 //     and must contain a pool size large enough to hold a small number of VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER descriptors.
 //   - As an convenience, by setting DescriptorPoolSize > 0 the backend will create one for you.
 // - About dynamic rendering:
-//   - When using dynamic rendering, set UseDynamicRendering=true and fill PipelineRenderingCreateInfo structure.
+//   - When using dynamic rendering, set UseDynamicRendering=true + fill PipelineInfoMain.PipelineRenderingCreateInfo structure.
 struct ImGui_ImplVulkan_InitInfo
 {
     uint32_t                        ApiVersion;                 // Fill with API version of Instance, e.g. VK_API_VERSION_1_3 or your value of VkApplicationInfo::apiVersion. May be lower than header version (VK_HEADER_VERSION_COMPLETE)
