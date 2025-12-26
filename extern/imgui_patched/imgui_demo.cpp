@@ -1,4 +1,4 @@
-// dear imgui, v1.92.3
+// dear imgui, v1.92.4
 // (demo code)
 
 // Help:
@@ -551,12 +551,12 @@ void ImGui::ShowDemoWindow(bool* p_open)
                 ImGui::Checkbox("io.ConfigViewportsNoAutoMerge", &io.ConfigViewportsNoAutoMerge);
                 ImGui::SameLine(); HelpMarker("Set to make all floating imgui windows always create their own viewport. Otherwise, they are merged into the main host viewports when overlapping it.");
                 ImGui::Checkbox("io.ConfigViewportsNoTaskBarIcon", &io.ConfigViewportsNoTaskBarIcon);
-                ImGui::SameLine(); HelpMarker("Toggling this at runtime is normally unsupported (most platform backends won't refresh the task bar icon state right away).");
+                ImGui::SameLine(); HelpMarker("(note: some platform backends may not reflect a change of this value for existing viewports, and may need the viewport to be recreated)");
                 ImGui::Checkbox("io.ConfigViewportsNoDecoration", &io.ConfigViewportsNoDecoration);
-                ImGui::SameLine(); HelpMarker("Toggling this at runtime is normally unsupported (most platform backends won't refresh the decoration right away).");
+                ImGui::SameLine(); HelpMarker("(note: some platform backends may not reflect a change of this value for existing viewports, and may need the viewport to be recreated)");
                 ImGui::Checkbox("io.ConfigViewportsNoDefaultParent", &io.ConfigViewportsNoDefaultParent);
-                ImGui::SameLine(); HelpMarker("Toggling this at runtime is normally unsupported (most platform backends won't refresh the parenting right away).");
-                ImGui::Checkbox("io.ConfigViewportPlatformFocusSetsImGuiFocus", &io.ConfigViewportPlatformFocusSetsImGuiFocus);
+                ImGui::SameLine(); HelpMarker("(note: some platform backends may not reflect a change of this value for existing viewports, and may need the viewport to be recreated)");
+                ImGui::Checkbox("io.ConfigViewportsPlatformFocusSetsImGuiFocus", &io.ConfigViewportsPlatformFocusSetsImGuiFocus);
                 ImGui::SameLine(); HelpMarker("When a platform window is focused (e.g. using Alt+Tab, clicking Platform Title Bar), apply corresponding focus on imgui windows (may clear focus/active id from imgui windows location in other platform windows). In principle this is better enabled but we provide an opt-out, because some Linux window managers tend to eagerly focus windows (e.g. on mouse hover, or even a simple window pos/size change).");
                 ImGui::Unindent();
             }
@@ -640,6 +640,7 @@ void ImGui::ShowDemoWindow(bool* p_open)
             ImGui::CheckboxFlags("io.BackendFlags: HasSetMousePos",         &io.BackendFlags, ImGuiBackendFlags_HasSetMousePos);
             ImGui::CheckboxFlags("io.BackendFlags: PlatformHasViewports",   &io.BackendFlags, ImGuiBackendFlags_PlatformHasViewports);
             ImGui::CheckboxFlags("io.BackendFlags: HasMouseHoveredViewport",&io.BackendFlags, ImGuiBackendFlags_HasMouseHoveredViewport);
+            ImGui::CheckboxFlags("io.BackendFlags: HasParentViewport",      &io.BackendFlags, ImGuiBackendFlags_HasParentViewport);
             ImGui::CheckboxFlags("io.BackendFlags: RendererHasVtxOffset",   &io.BackendFlags, ImGuiBackendFlags_RendererHasVtxOffset);
             ImGui::CheckboxFlags("io.BackendFlags: RendererHasTextures",    &io.BackendFlags, ImGuiBackendFlags_RendererHasTextures);
             ImGui::CheckboxFlags("io.BackendFlags: RendererHasViewports",   &io.BackendFlags, ImGuiBackendFlags_RendererHasViewports);
@@ -4878,15 +4879,18 @@ static void DemoWindowLayout()
 
         ImGui::Checkbox("Decoration", &enable_extra_decorations);
 
+        ImGui::PushItemWidth(ImGui::GetFontSize() * 10);
+        enable_track |= ImGui::DragInt("##item", &track_item, 0.25f, 0, 99, "Item = %d");
+        ImGui::SameLine();
         ImGui::Checkbox("Track", &enable_track);
-        ImGui::PushItemWidth(100);
-        ImGui::SameLine(140); enable_track |= ImGui::DragInt("##item", &track_item, 0.25f, 0, 99, "Item = %d");
 
-        bool scroll_to_off = ImGui::Button("Scroll Offset");
-        ImGui::SameLine(140); scroll_to_off |= ImGui::DragFloat("##off", &scroll_to_off_px, 1.00f, 0, FLT_MAX, "+%.0f px");
+        bool scroll_to_off = ImGui::DragFloat("##off", &scroll_to_off_px, 1.00f, 0, FLT_MAX, "+%.0f px");
+        ImGui::SameLine();
+        scroll_to_off |= ImGui::Button("Scroll Offset");
 
-        bool scroll_to_pos = ImGui::Button("Scroll To Pos");
-        ImGui::SameLine(140); scroll_to_pos |= ImGui::DragFloat("##pos", &scroll_to_pos_px, 1.00f, -10, FLT_MAX, "X/Y = %.0f px");
+        bool scroll_to_pos = ImGui::DragFloat("##pos", &scroll_to_pos_px, 1.00f, -10, FLT_MAX, "X/Y = %.0f px");
+        ImGui::SameLine();
+        scroll_to_pos |= ImGui::Button("Scroll To Pos");
         ImGui::PopItemWidth();
 
         if (scroll_to_off || scroll_to_pos)
@@ -8298,6 +8302,7 @@ void ImGui::ShowAboutWindow(bool* p_open)
         if (io.BackendFlags & ImGuiBackendFlags_HasSetMousePos)         ImGui::Text(" HasSetMousePos");
         if (io.BackendFlags & ImGuiBackendFlags_PlatformHasViewports)   ImGui::Text(" PlatformHasViewports");
         if (io.BackendFlags & ImGuiBackendFlags_HasMouseHoveredViewport)ImGui::Text(" HasMouseHoveredViewport");
+        if (io.BackendFlags & ImGuiBackendFlags_HasParentViewport)      ImGui::Text(" HasParentViewport");
         if (io.BackendFlags & ImGuiBackendFlags_RendererHasVtxOffset)   ImGui::Text(" RendererHasVtxOffset");
         if (io.BackendFlags & ImGuiBackendFlags_RendererHasTextures)    ImGui::Text(" RendererHasTextures");
         if (io.BackendFlags & ImGuiBackendFlags_RendererHasViewports)   ImGui::Text(" RendererHasViewports");
@@ -10243,37 +10248,27 @@ static void ShowExampleAppCustomRendering(bool* p_open)
 // [SECTION] Example App: Docking, DockSpace / ShowExampleAppDockSpace()
 //-----------------------------------------------------------------------------
 
-// Demonstrate using DockSpace() to create an explicit docking node within an existing window.
-// Note: You can use most Docking facilities without calling any API. You DO NOT need to call DockSpace() to use Docking!
-// - Drag from window title bar or their tab to dock/undock. Hold SHIFT to disable docking.
-// - Drag from window menu button (upper-left button) to undock an entire node (all windows).
-// - When io.ConfigDockingWithShift == true, you instead need to hold SHIFT to enable docking.
-// About dockspaces:
-// - Use DockSpace() to create an explicit dock node _within_ an existing window.
-// - Use DockSpaceOverViewport() to create an explicit dock node covering the screen or a specific viewport.
-//   This is often used with ImGuiDockNodeFlags_PassthruCentralNode.
-// - Important: Dockspaces need to be submitted _before_ any window they can host. Submit it early in your frame! (*)
-// - Important: Dockspaces need to be kept alive if hidden, otherwise windows docked into it will be undocked.
-//   e.g. if you have multiple tabs with a dockspace inside each tab: submit the non-visible dockspaces with ImGuiDockNodeFlags_KeepAliveOnly.
-// (*) because of this constraint, the implicit \"Debug\" window can not be docked into an explicit DockSpace() node,
-// because that window is submitted as part of the part of the NewFrame() call. An easy workaround is that you can create
-// your own implicit "Debug##2" window after calling DockSpace() and leave it in the window stack for anyone to use.
+// Demonstrate using DockSpace() to create an explicit docking node within an existing window, with various options.
+// THIS IS A DEMO FOR ADVANCED USAGE OF DockSpace().
+// MOST REGULAR APPLICATIONS WHO WANT TO ALLOW DOCKING WINDOWS ON THE EDGE OF YOUR SCREEN CAN SIMPLY USE:
+//    ImGui::NewFrame();
+//    ImGui::DockSpaceOverViewport(); // Create a dockspace in main viewport
+// OR:
+//    ImGui::NewFrame();
+//    ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode); // Create a dockspace in main viewport, where central node is transparent.
+// Read https://github.com/ocornut/imgui/wiki/Docking for details.
+// The reasons we do not use DockSpaceOverViewport() in this demo is because:
+// - (1) we allow the host window to be floating/moveable instead of filling the viewport (when opt_fullscreen == false)
+//       which is mostly to showcase the idea that DockSpace() may be submitted anywhere.
+// - (2) we allow the host window to have padding (when opt_padding == true)
+// - (3) we expose many flags and need a way to have them visible.
+// - (4) we have a local menu bar in the host window (vs. you could use BeginMainMenuBar() + DockSpaceOverViewport()
+//       in your code, but we don't here because we allow the window to be floating)
 void ShowExampleAppDockSpace(bool* p_open)
 {
-    // READ THIS !!!
     // TL;DR; this demo is more complicated than what most users you would normally use.
-    // If we remove all options we are showcasing, this demo would become:
-    //     void ShowExampleAppDockSpace()
-    //     {
-    //         ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
-    //     }
-    // In most cases you should be able to just call DockSpaceOverViewport() and ignore all the code below!
+    // If we remove all options we are showcasing, this demo would become a simple call to ImGui::DockSpaceOverViewport() !!
     // In this specific demo, we are not using DockSpaceOverViewport() because:
-    // - (1) we allow the host window to be floating/moveable instead of filling the viewport (when opt_fullscreen == false)
-    // - (2) we allow the host window to have padding (when opt_padding == true)
-    // - (3) we expose many flags and need a way to have them visible.
-    // - (4) we have a local menu bar in the host window (vs. you could use BeginMainMenuBar() + DockSpaceOverViewport()
-    //      in your code, but we don't here because we allow the window to be floating)
 
     static bool opt_fullscreen = true;
     static bool opt_padding = false;
@@ -10318,6 +10313,8 @@ void ShowExampleAppDockSpace(bool* p_open)
         ImGui::PopStyleVar(2);
 
     // Submit the DockSpace
+    // REMINDER: THIS IS A DEMO FOR ADVANCED USAGE OF DockSpace()!
+    // MOST REGULAR APPLICATIONS WILL SIMPLY WANT TO CALL DockSpaceOverViewport(). READ COMMENTS ABOVE.
     ImGuiIO& io = ImGui::GetIO();
     if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
     {
@@ -10329,6 +10326,7 @@ void ShowExampleAppDockSpace(bool* p_open)
         ShowDockingDisabledMessage();
     }
 
+    // Show demo options and help
     if (ImGui::BeginMenuBar())
     {
         if (ImGui::BeginMenu("Options"))
@@ -10351,16 +10349,23 @@ void ShowExampleAppDockSpace(bool* p_open)
                 *p_open = false;
             ImGui::EndMenu();
         }
-        HelpMarker(
-            "When docking is enabled, you can ALWAYS dock MOST window into another! Try it now!" "\n"
-            "- Drag from window title bar or their tab to dock/undock." "\n"
-            "- Drag from window menu button (upper-left button) to undock an entire node (all windows)." "\n"
-            "- Hold SHIFT to disable docking (if io.ConfigDockingWithShift == false, default)" "\n"
-            "- Hold SHIFT to enable docking (if io.ConfigDockingWithShift == true)" "\n"
-            "This demo app has nothing to do with enabling docking!" "\n\n"
-            "This demo app only demonstrate the use of ImGui::DockSpace() which allows you to manually create a docking node _within_ another window." "\n\n"
-            "Read comments in ShowExampleAppDockSpace() for more details.");
-
+        if (ImGui::BeginMenu("Help"))
+        {
+            ImGui::TextUnformatted(
+                "This demo has nothing to do with enabling docking!" "\n"
+                "This demo only demonstrate the use of ImGui::DockSpace() which allows you to manually\ncreate a docking node _within_ another window." "\n"
+                "Most application can simply call ImGui::DockSpaceOverViewport() and be done with it.");
+            ImGui::Separator();
+            ImGui::TextUnformatted("When docking is enabled, you can ALWAYS dock MOST window into another! Try it now!" "\n"
+                "- Drag from window title bar or their tab to dock/undock." "\n"
+                "- Drag from window menu button (upper-left button) to undock an entire node (all windows)." "\n"
+                "- Hold SHIFT to disable docking (if io.ConfigDockingWithShift == false, default)" "\n"
+                "- Hold SHIFT to enable docking (if io.ConfigDockingWithShift == true)");
+            ImGui::Separator();
+            ImGui::TextUnformatted("More details:"); ImGui::Bullet(); ImGui::SameLine(); ImGui::TextLinkOpenURL("Docking Wiki page", "https://github.com/ocornut/imgui/wiki/Docking");
+            ImGui::BulletText("Read comments in ShowExampleAppDockSpace()");
+            ImGui::EndMenu();
+        }
         ImGui::EndMenuBar();
     }
 

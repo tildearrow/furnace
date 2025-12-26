@@ -24,6 +24,8 @@
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
 //  2025-XX-XX: Platform: Added support for multiple windows via the ImGuiPlatformIO interface.
+//  2025-09-24: Skip using the SDL_GetGlobalMouseState() state when one of our window is hovered, as the SDL_EVENT_MOUSE_MOTION data is reliable. Fix macOS notch mouse coordinates issue in fullscreen mode + better perf on X11. (#7919, #7786)
+//  2025-09-18: Call platform_io.ClearPlatformHandlers() on shutdown.
 //  2025-09-15: Use SDL_GetWindowDisplayScale() on Mac to output DisplayFrameBufferScale. The function is more reliable during resolution changes e.g. going fullscreen. (#8703, #4414)
 //  2025-06-27: IME: avoid calling SDL_StartTextInput() again if already active. (#8727)
 //  2025-05-15: [Docking] Add Platform_GetWindowFramebufferScale() handler, to allow varying Retina display density on multiple monitors.
@@ -532,7 +534,8 @@ static bool ImGui_ImplSDL3_Init(SDL_Window* window, SDL_Renderer* renderer, void
     io.BackendPlatformName = bd->BackendPlatformName;
     io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;           // We can honor GetMouseCursor() values (optional)
     io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;            // We can honor io.WantSetMousePos requests (optional, rarely used)
-    // (ImGuiBackendFlags_PlatformHasViewports may be set just below)
+    // (ImGuiBackendFlags_PlatformHasViewports and ImGuiBackendFlags_HasParentViewport may be set just below)
+    // (ImGuiBackendFlags_HasMouseHoveredViewport is set dynamically in our _NewFrame function)
 
     bd->Window = window;
     bd->WindowID = SDL_GetWindowID(window);
@@ -558,7 +561,10 @@ static bool ImGui_ImplSDL3_Init(SDL_Window* window, SDL_Renderer* renderer, void
             bd->MouseCanUseGlobalState = bd->MouseCanUseCapture = true;
 #endif
     if (bd->MouseCanUseGlobalState)
+    {
         io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;  // We can create multi-viewports on the Platform side (optional)
+        io.BackendFlags |= ImGuiBackendFlags_HasParentViewport;     // We can honor viewport->ParentViewportId by applying the corresponding parent/child relationship at platform level (optional)
+    }
 
     ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
     platform_io.Platform_SetClipboardTextFn = ImGui_ImplSDL3_SetClipboardText;
@@ -662,9 +668,9 @@ void ImGui_ImplSDL3_Shutdown()
     ImGui_ImplSDL3_Data* bd = ImGui_ImplSDL3_GetBackendData();
     IM_ASSERT(bd != nullptr && "No platform backend to shutdown, or already shutdown?");
     ImGuiIO& io = ImGui::GetIO();
+    ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
 
     ImGui_ImplSDL3_ShutdownMultiViewportSupport();
-
     if (bd->ClipboardTextData)
         SDL_free(bd->ClipboardTextData);
     for (ImGuiMouseCursor cursor_n = 0; cursor_n < ImGuiMouseCursor_COUNT; cursor_n++)
@@ -673,7 +679,8 @@ void ImGui_ImplSDL3_Shutdown()
 
     io.BackendPlatformName = nullptr;
     io.BackendPlatformUserData = nullptr;
-    io.BackendFlags &= ~(ImGuiBackendFlags_HasMouseCursors | ImGuiBackendFlags_HasSetMousePos | ImGuiBackendFlags_HasGamepad | ImGuiBackendFlags_PlatformHasViewports | ImGuiBackendFlags_HasMouseHoveredViewport);
+    io.BackendFlags &= ~(ImGuiBackendFlags_HasMouseCursors | ImGuiBackendFlags_HasSetMousePos | ImGuiBackendFlags_HasGamepad | ImGuiBackendFlags_PlatformHasViewports | ImGuiBackendFlags_HasMouseHoveredViewport | ImGuiBackendFlags_HasParentViewport);
+    platform_io.ClearPlatformHandlers();
     IM_DELETE(bd);
 }
 
@@ -715,9 +722,11 @@ static void ImGui_ImplSDL3_UpdateMouseData()
                 SDL_WarpMouseInWindow(bd->Window, io.MousePos.x, io.MousePos.y);
         }
 
-        // (Optional) Fallback to provide mouse position when focused (SDL_EVENT_MOUSE_MOTION already provides this when hovered or captured)
+        // (Optional) Fallback to provide unclamped mouse position when focused but not hovered (SDL_EVENT_MOUSE_MOTION already provides this when hovered or captured)
+        // Note that SDL_GetGlobalMouseState() is in theory slow on X11, but this only runs on rather specific cases. If a problem we may provide a way to opt-out this feature.
+        SDL_Window* hovered_window = SDL_GetMouseFocus();
         const bool is_relative_mouse_mode = SDL_GetWindowRelativeMouseMode(bd->Window);
-        if (bd->MouseCanUseGlobalState && bd->MouseButtonsDown == 0 && !is_relative_mouse_mode)
+        if (hovered_window == NULL && bd->MouseCanUseGlobalState && bd->MouseButtonsDown == 0 && !is_relative_mouse_mode)
         {
             // Single-viewport mode: mouse position in client window coordinates (io.MousePos is (0,0) when the mouse is on the upper-left corner of the app window)
             // Multi-viewport mode: mouse position in OS absolute coordinates (io.MousePos is (0,0) when the mouse is on the upper-left of the primary monitor)
@@ -730,7 +739,7 @@ static void ImGui_ImplSDL3_UpdateMouseData()
                 mouse_x -= window_x;
                 mouse_y -= window_y;
             }
-            io.AddMousePosEvent((float)mouse_x, (float)mouse_y);
+            io.AddMousePosEvent(mouse_x, mouse_y);
         }
     }
 
@@ -999,14 +1008,13 @@ struct ImGui_ImplSDL3_ViewportData
     ~ImGui_ImplSDL3_ViewportData()  { IM_ASSERT(Window == nullptr && GLContext == nullptr); }
 };
 
-static SDL_Window* ImGui_ImplSDL3_GetSDLWindowFromViewportID(ImGuiID viewport_id)
+static SDL_Window* ImGui_ImplSDL3_GetSDLWindowFromViewport(ImGuiViewport* viewport)
 {
-    if (viewport_id != 0)
-        if (ImGuiViewport* viewport = ImGui::FindViewportByID(viewport_id))
-        {
-            SDL_WindowID window_id = (SDL_WindowID)(intptr_t)viewport->PlatformHandle;
-            return SDL_GetWindowFromID(window_id);
-        }
+    if (viewport != nullptr)
+    {
+        SDL_WindowID window_id = (SDL_WindowID)(intptr_t)viewport->PlatformHandle;
+        return SDL_GetWindowFromID(window_id);
+    }
     return nullptr;
 }
 
@@ -1016,7 +1024,7 @@ static void ImGui_ImplSDL3_CreateWindow(ImGuiViewport* viewport)
     ImGui_ImplSDL3_ViewportData* vd = IM_NEW(ImGui_ImplSDL3_ViewportData)();
     viewport->PlatformUserData = vd;
 
-    vd->ParentWindow = ImGui_ImplSDL3_GetSDLWindowFromViewportID(viewport->ParentViewportId);
+    vd->ParentWindow = ImGui_ImplSDL3_GetSDLWindowFromViewport(viewport->ParentViewport);
 
     ImGuiViewport* main_viewport = ImGui::GetMainViewport();
     ImGui_ImplSDL3_ViewportData* main_viewport_data = (ImGui_ImplSDL3_ViewportData*)main_viewport->PlatformUserData;
@@ -1105,7 +1113,7 @@ static void ImGui_ImplSDL3_UpdateWindow(ImGuiViewport* viewport)
 #ifndef __APPLE__ // On Mac, SDL3 Parenting appears to prevent viewport from appearing in another monitor
     // Update SDL3 parent if it changed _after_ creation.
     // This is for advanced apps that are manipulating ParentViewportID manually.
-    SDL_Window* new_parent = ImGui_ImplSDL3_GetSDLWindowFromViewportID(viewport->ParentViewportId);
+    SDL_Window* new_parent = ImGui_ImplSDL3_GetSDLWindowFromViewport(viewport->ParentViewport);
     if (new_parent != vd->ParentWindow)
     {
         vd->ParentWindow = new_parent;
