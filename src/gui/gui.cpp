@@ -9010,6 +9010,7 @@ FurnaceGUI::FurnaceGUI():
   wavePreviewHeight(255),
   wavePreviewInit(true),
   wavePreviewPaused(false),
+  wavePreviewAccum(0.0f),
   pgSys(0),
   pgAddr(0),
   pgVal(0),
