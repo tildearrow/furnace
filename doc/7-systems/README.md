@@ -89,6 +89,7 @@ this is the full list of chips that Furnace supports.
 - [MultiPCM](multipcm.md)
 - [Namco 163](n163.md)
 - [Namco C140](c140.md)
+- [Namco C219](c219.md)
 - [Namco WSG/C15/C30](namco.md)
 - [Nintendo DS](nds.md)
 - [HuC6280](pce.md)
