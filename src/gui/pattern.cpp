@@ -419,6 +419,11 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
 }
 
 void FurnaceGUI::drawPattern() {
+  if (newPatternRenderer) {
+    drawPatternNew();
+    return;
+  }
+
   //int delta0=SDL_GetPerformanceCounter();
   if (nextWindow==GUI_WINDOW_PATTERN) {
     patternOpen=true;

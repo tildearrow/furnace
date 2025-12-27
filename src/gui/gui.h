@@ -1747,6 +1747,7 @@ class FurnaceGUI {
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool displayPendingSamples, replacePendingSample;
   bool displayExportingROM, displayExportingCS;
+  bool newPatternRenderer;
   bool quitNoSave;
   bool changeCoarse;
   bool orderLock;
@@ -3058,6 +3059,7 @@ class FurnaceGUI {
   void drawGrooves();
   void drawOrders();
   void drawPattern();
+  void drawPatternNew();
   void drawInsList(bool asChild=false);
   void drawInsEdit();
   void drawInsSID3(DivInstrument* ins);

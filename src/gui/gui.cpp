@@ -4931,6 +4931,8 @@ bool FurnaceGUI::loop() {
         }
         ImGui::EndMenu();
       }
+      ImGui::Checkbox("New Pattern",&newPatternRenderer);
+      ImGui::SameLine();
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PLAYBACK_STAT]);
       if (e->isPlaying() && settings.playbackTime) {
         TimeMicros totalTime=e->getCurTime();
@@ -8765,6 +8767,7 @@ FurnaceGUI::FurnaceGUI():
   replacePendingSample(false),
   displayExportingROM(false),
   displayExportingCS(false),
+  newPatternRenderer(false),
   quitNoSave(false),
   changeCoarse(false),
   orderLock(false),
