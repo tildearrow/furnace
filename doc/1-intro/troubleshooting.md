@@ -21,12 +21,6 @@ what the files contain:
 - **`furnace.log`**: log of activity in the current or most recent Furnace session.
 - **filenames ending in numbers**: rolling backups. 1 is the most recent.
 
-## known issues
-
-### something's not working or is unavailable on Android.
-
-Android builds are unofficial and unsupported. there are many known issues, especially with the user interface. always test using a desktop version before reporting problems.
-
 ## common problems
 
 ### input notes aren't audible or sound different from the instrument, wavetable, or sample editor.
