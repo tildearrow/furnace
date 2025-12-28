@@ -90,9 +90,161 @@ void FurnaceGUI::drawPatternNew() {
       patWindowSize=ImGui::GetWindowSize();
     }
 
-    ImGui::Text("The pattern view goes here.");
+    ImDrawList* dl=ImGui::GetWindowDrawList();
+    char id[64];
+    int ord=curOrder;
+    int chans=e->getTotalChannelCount();
+    int displayChans=0;
+    const DivPattern* patCache[DIV_MAX_CHANS];
+    for (int i=0; i<chans; i++) {
+      if (e->curSubSong->chanShow[i]) displayChans++;
+    }
+
+    for (int i=0; i<chans; i++) {
+      patCache[i]=e->curSubSong->pat[i].getPattern(e->curOrders->ord[i][ord],true);
+    }
 
     ImGui::PushFont(patFont);
+    float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
+
+    // this could be moved somewhere else for performance...
+    float oneCharSize=ImGui::CalcTextSize("A").x;
+    fourChars=ImVec2(oneCharSize*4.0f,lineHeight);
+    threeChars=ImVec2(oneCharSize*3.0f,lineHeight);
+    twoChars=ImVec2(oneCharSize*2.0f,lineHeight);
+    oneChar=ImVec2(oneCharSize,lineHeight);
+
+    noteCellSize=threeChars;
+    noteCellSize.x+=(float)settings.noteCellSpacing*dpiScale;
+    insCellSize=twoChars;
+    insCellSize.x+=(float)settings.insCellSpacing*dpiScale;
+    volCellSize=twoChars;
+    volCellSize.x+=(float)settings.volCellSpacing*dpiScale;
+    effectCellSize=twoChars;
+    effectCellSize.x+=(float)settings.effectCellSpacing*dpiScale;
+    effectValCellSize=twoChars;
+    effectValCellSize.x+=(float)settings.effectValCellSpacing*dpiScale;
+
+    ImVec2 top=ImGui::GetCursorScreenPos();
+    ImVec2 pos=top;
+
+    ImU32 activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE]);
+    ImU32 inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE]);
+    ImU32 rowIndexColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
+
+    // row number
+    for (int j=0; j<e->curSubSong->patLen; j++) {
+      snprintf(id,63,"%3d",j);
+      dl->AddText(pos,rowIndexColor,id);
+      pos.y+=lineHeight;
+    }
+
+    top.x+=threeChars.x+oneChar.x;
+    pos=top;
+
+    // channels
+    for (int i=0; i<chans; i++) {
+      if (!e->curSubSong->chanShow[i]) continue;
+      int chanVolMax=e->getMaxVolumeChan(i);
+      if (chanVolMax<1) chanVolMax=1;
+
+      float thisChannelSize=noteCellSize.x;
+      if (e->curSubSong->chanCollapse[i]<3) thisChannelSize+=insCellSize.x;
+      if (e->curSubSong->chanCollapse[i]<2) thisChannelSize+=volCellSize.x;
+      if (e->curSubSong->chanCollapse[i]<1) thisChannelSize+=(effectCellSize.x+effectValCellSize.x)*e->curSubSong->pat[i].effectCols;
+
+      // rows
+      for (int j=0; j<e->curSubSong->patLen; j++) {
+        const DivPattern* pat=patCache[i];
+
+        // note
+        snprintf(id,63,"%.31s",noteName(pat->newData[j][DIV_PAT_NOTE]));
+        if (pat->newData[j][DIV_PAT_NOTE]==-1) {
+          dl->AddText(pos,inactiveColor,id);
+        } else {
+          dl->AddText(pos,activeColor,id);
+        }
+
+        // instrument
+        if (e->curSubSong->chanCollapse[i]<3) {
+          pos.x+=threeChars.x;
+          if (pat->newData[j][DIV_PAT_INS]==-1) {
+            dl->AddText(pos,inactiveColor,emptyLabel2);
+          } else {
+            snprintf(id,63,"%.2X",pat->newData[j][DIV_PAT_INS]);
+            if (pat->newData[j][DIV_PAT_INS]<0 || pat->newData[j][DIV_PAT_INS]>=e->song.insLen) {
+              dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS_ERROR]),id);
+            } else {
+              DivInstrumentType t=e->song.ins[pat->newData[j][DIV_PAT_INS]]->type;
+              if (t!=DIV_INS_AMIGA && t!=e->getPreferInsType(i)) {
+                dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS_WARN]),id);
+              } else {
+                dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS]),id);
+              }
+            }
+          }
+        }
+
+        // volume
+        if (e->curSubSong->chanCollapse[i]<2) {
+          pos.x+=twoChars.x;
+          if (pat->newData[j][DIV_PAT_VOL]==-1) {
+            dl->AddText(pos,inactiveColor,emptyLabel2);
+          } else {
+            int volColor=(pat->newData[j][DIV_PAT_VOL]*127)/chanVolMax;
+            if (volColor>127) volColor=127;
+            if (volColor<0) volColor=0;
+            snprintf(id,63,"%.2X",pat->newData[j][DIV_PAT_VOL]);
+            dl->AddText(pos,ImGui::GetColorU32(volColors[volColor]),id);
+          }
+        }
+
+        // effects
+        if (e->curSubSong->chanCollapse[i]<1) {
+          for (int k=0; k<e->curPat[i].effectCols; k++) {
+            int index=DIV_PAT_FX(k);
+            int indexVal=DIV_PAT_FXVAL(k);
+            ImU32 effectColor=inactiveColor;
+
+            // effect
+            pos.x+=twoChars.x;
+            if (pat->newData[j][index]==-1) {
+              dl->AddText(pos,inactiveColor,emptyLabel2);
+            } else {
+              if (pat->newData[j][index]>0xff) {
+                snprintf(id,63,"??");
+                effectColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+              } else {
+                const unsigned char data=pat->newData[j][index];
+                effectColor=ImGui::GetColorU32(uiColors[fxColors[data]]);
+                if (pat->newData[j][index]>=0x10 || settings.oneDigitEffects==0) {
+                  snprintf(id,63,"%.2X",data);
+                } else {
+                  snprintf(id,63," %.1X",data);
+                }
+              }
+              dl->AddText(pos,effectColor,id);
+            }
+
+            // effect value
+            pos.x+=twoChars.x;
+            if (pat->newData[j][indexVal]==-1) {
+              dl->AddText(pos,effectColor,emptyLabel2);
+            } else {
+              snprintf(id,63,"%.2X",pat->newData[j][indexVal]);
+              dl->AddText(pos,effectColor,id);
+            }
+          }
+        }
+
+        // go to next row
+        pos.x=top.x;
+        pos.y+=lineHeight;
+      }
+      top.x+=thisChannelSize;
+      pos=top;
+    }
+
     ImGui::PopFont();
   }
   ImGui::PopStyleVar();
