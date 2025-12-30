@@ -5,7 +5,8 @@
 // - Fix in stb_textedit_find_charpos to handle last line (see https://github.com/ocornut/imgui/issues/6000 + #6783)
 // - Added name to struct or it may be forward declared in our code.
 // - Added UTF-8 support (see https://github.com/nothings/stb/issues/188 + https://github.com/ocornut/imgui/pull/7925)
-// Grep for [DEAR IMGUI] to find the changes.
+// - Changed STB_TEXTEDIT_INSERTCHARS() to return inserted count (instead of 0/1 bool), allowing partial insertion.
+// Grep for [DEAR IMGUI] to find some changes.
 // - Also renamed macros used or defined outside of IMSTB_TEXTEDIT_IMPLEMENTATION block from STB_TEXTEDIT_* to IMSTB_TEXTEDIT_*
 
 // stb_textedit.h - v1.14  - public domain - Sean Barrett
@@ -39,6 +40,7 @@
 //
 // VERSION HISTORY
 //
+//   !!!! (2025-10-23) changed STB_TEXTEDIT_INSERTCHARS() to return inserted count (instead of 0/1 bool), allowing partial insertion.
 //   1.14 (2021-07-11) page up/down, various fixes
 //   1.13 (2019-02-07) fix bug in undo size management
 //   1.12 (2018-01-29) user can change STB_TEXTEDIT_KEYTYPE, fix redo to avoid crash
@@ -147,7 +149,8 @@
 //                                        as manually wordwrapping for end-of-line positioning
 //
 //    STB_TEXTEDIT_DELETECHARS(obj,i,n)      delete n characters starting at i
-//    STB_TEXTEDIT_INSERTCHARS(obj,i,c*,n)   insert n characters at i (pointed to by STB_TEXTEDIT_CHARTYPE*)
+//    STB_TEXTEDIT_INSERTCHARS(obj,i,c*,n)   try to insert n characters at i (pointed to by STB_TEXTEDIT_CHARTYPE*)
+//                                           returns number of characters actually inserted. [DEAR IMGUI]
 //
 //    STB_TEXTEDIT_K_SHIFT       a power of two that is or'd in to a keyboard input to represent the shift key
 //
@@ -775,7 +778,8 @@ static int stb_textedit_paste_internal(IMSTB_TEXTEDIT_STRING *str, STB_TexteditS
    stb_textedit_clamp(str, state);
    stb_textedit_delete_selection(str,state);
    // try to insert the characters
-   if (STB_TEXTEDIT_INSERTCHARS(str, state->cursor, text, len)) {
+   len = STB_TEXTEDIT_INSERTCHARS(str, state->cursor, text, len);
+   if (len) {
       stb_text_makeundo_insert(state, state->cursor, len);
       state->cursor += len;
       state->has_preferred_x = 0;
@@ -803,13 +807,15 @@ static void stb_textedit_text(IMSTB_TEXTEDIT_STRING* str, STB_TexteditState* sta
    if (state->insert_mode && !STB_TEXT_HAS_SELECTION(state) && state->cursor < STB_TEXTEDIT_STRINGLEN(str)) {
       stb_text_makeundo_replace(str, state, state->cursor, 1, 1);
       STB_TEXTEDIT_DELETECHARS(str, state->cursor, 1);
-      if (STB_TEXTEDIT_INSERTCHARS(str, state->cursor, text, text_len)) {
+      text_len = STB_TEXTEDIT_INSERTCHARS(str, state->cursor, text, text_len);
+      if (text_len) {
          state->cursor += text_len;
          state->has_preferred_x = 0;
       }
    } else {
       stb_textedit_delete_selection(str, state); // implicitly clamps
-      if (STB_TEXTEDIT_INSERTCHARS(str, state->cursor, text, text_len)) {
+      text_len = STB_TEXTEDIT_INSERTCHARS(str, state->cursor, text, text_len);
+      if (text_len) {
          stb_text_makeundo_insert(state, state->cursor, text_len);
          state->cursor += text_len;
          state->has_preferred_x = 0;
@@ -1358,22 +1364,28 @@ static void stb_text_undo(IMSTB_TEXTEDIT_STRING *str, STB_TexteditState *state)
       STB_TEXTEDIT_DELETECHARS(str, u.where, u.delete_length);
    }
 
-   bool steFailed=false;
+   // tildearrow: workaround
+   //bool steFailed=false;
 
    // check type of recorded action:
    if (u.insert_length) {
       // easy case: was a deletion, so we need to insert n characters
+      // tildearrow: this was patched for some reason. check whether we need this workaround?
+      /*
       if (!STB_TEXTEDIT_INSERTCHARS(str, u.where, &s->undo_char[u.char_storage], u.insert_length)) {
         printf("undo u.insert_length failed\n");
         state->cursor=0;
         steFailed=true;
-      }
+      }*/
+      u.insert_length = STB_TEXTEDIT_INSERTCHARS(str, u.where, &s->undo_char[u.char_storage], u.insert_length);
       s->undo_char_point -= u.insert_length;
    }
 
+   // tildearrow: workaround
+   /*
    if (!steFailed) {
      state->cursor = u.where + u.insert_length;
-   }
+   }*/
 
    s->undo_point--;
    s->redo_point--;
@@ -1418,21 +1430,26 @@ static void stb_text_redo(IMSTB_TEXTEDIT_STRING *str, STB_TexteditState *state)
       STB_TEXTEDIT_DELETECHARS(str, r.where, r.delete_length);
    }
 
-   bool steFailed=false;
+   // tildearrow: workaround
+   //bool steFailed=false;
 
    if (r.insert_length) {
       // easy case: need to insert n characters
+      // tildearrow: this was patched for some reason. check whether we need this workaround?
+      /*
       if (!STB_TEXTEDIT_INSERTCHARS(str, r.where, &s->undo_char[r.char_storage], r.insert_length)) {
         printf("redo insert char failed\n");
         state->cursor=0;
         steFailed=true;
-      }
+      }*/
+      r.insert_length = STB_TEXTEDIT_INSERTCHARS(str, r.where, &s->undo_char[r.char_storage], r.insert_length);
       s->redo_char_point += r.insert_length;
    }
 
-   if (!steFailed) {
+   // tildearrow: workaround
+   /*if (!steFailed) {
      state->cursor = r.where + r.insert_length;
-   }
+   }*/
 
    s->undo_point++;
    s->redo_point++;

@@ -3289,6 +3289,7 @@ void FurnaceGUI::insTabWavetable(DivInstrument* ins)
         DivWavetable* wave2=e->getWave(ins->ws.wave2);
         if (wavePreviewInit) {
           wavePreview.init(ins,wavePreviewLen,wavePreviewHeight,true);
+          wavePreviewAccum=0.0f;
           wavePreviewInit=false;
         }
         float wavePreview1[257];
@@ -3315,7 +3316,19 @@ void FurnaceGUI::insTabWavetable(DivInstrument* ins)
           wavePreview2[wave2->len]=wave2->data[wave2->len-1];
         }
         if (ins->ws.enabled && (!wavePreviewPaused || wavePreviewInit)) {
-          wavePreview.tick(true);
+          if (wavePreviewInit) {
+            wavePreview.tick(true);
+          } else {
+            wavePreviewAccum+=ImGui::GetIO().DeltaTime;
+            double accumRate=e->getCurHz();
+            if (accumRate<1.0) accumRate=1.0;
+            if (accumRate>1023.0) accumRate=1023.0;
+            accumRate=1.0/accumRate;
+            while (wavePreviewAccum>=accumRate) {
+              wavePreviewAccum-=accumRate;
+              wavePreview.tick(true);
+            }
+          }
           WAKE_UP;
         }
         for (int i=0; i<wavePreviewLen; i++) {
@@ -7052,7 +7065,7 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::EndTable();
           }
 
-          if (ImGui::BeginChild("HWSeq",ImGui::GetContentRegionAvail(),ImGuiChildFlags_Border,ImGuiWindowFlags_MenuBar)) {
+          if (ImGui::BeginChild("HWSeq",ImGui::GetContentRegionAvail(),ImGuiChildFlags_Borders,ImGuiWindowFlags_MenuBar)) {
             ImGui::BeginMenuBar();
             ImGui::Text(_("Hardware Sequence"));
             ImGui::EndMenuBar();
@@ -7390,7 +7403,7 @@ void FurnaceGUI::drawInsEdit() {
         }
         if (ins->type==DIV_INS_SU) if (ImGui::BeginTabItem("Sound Unit")) {
           P(ImGui::Checkbox(_("Switch roles of frequency and phase reset timer"),&ins->su.switchRoles));
-          if (ImGui::BeginChild("HWSeqSU",ImGui::GetContentRegionAvail(),ImGuiChildFlags_Border,ImGuiWindowFlags_MenuBar)) {
+          if (ImGui::BeginChild("HWSeqSU",ImGui::GetContentRegionAvail(),ImGuiChildFlags_Borders,ImGuiWindowFlags_MenuBar)) {
             ImGui::BeginMenuBar();
             ImGui::Text(_("Hardware Sequence"));
             ImGui::EndMenuBar();

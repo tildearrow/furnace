@@ -88,7 +88,7 @@ const char* sampleNote[12]={
         int target=i; \
         bool markModified=false; \
         if (_toMoveVar!=target) { \
-          if (ImGui::IsKeyDown(ImGuiKey_ModCtrl)) { \
+          if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl)) { \
             markModified=_swapFn(_toMoveVar,target); \
           } else { \
             while (_toMoveVar>target) { \
