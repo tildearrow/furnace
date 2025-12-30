@@ -39,6 +39,9 @@
   inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE]); \
   rowIndexColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
 
+// this is ImGui's TABLE_BORDER_SIZE.
+#define PAT_BORDER_SIZE 1.0f
+
 void FurnaceGUI::drawPatternNew() {
   if (nextWindow==GUI_WINDOW_PATTERN) {
     patternOpen=true;
@@ -144,10 +147,14 @@ void FurnaceGUI::drawPatternNew() {
     ImVec2 size=ImVec2(0.0f,lineHeight*totalRows);
 
     size.x+=threeChars.x+oneChar.x;
+    size.x+=PAT_BORDER_SIZE;
 
     // TODO: simplify
     for (int i=0; i<chans; i++) {
-      if (!e->curSubSong->chanShow[i]) continue;
+      patChanX[i]=size.x;
+      if (!e->curSubSong->chanShow[i]) {
+        continue;
+      }
       int chanVolMax=e->getMaxVolumeChan(i);
       if (chanVolMax<1) chanVolMax=1;
 
@@ -157,7 +164,11 @@ void FurnaceGUI::drawPatternNew() {
       if (e->curSubSong->chanCollapse[i]<1) thisChannelSize+=(effectCellSize.x+effectValCellSize.x)*e->curSubSong->pat[i].effectCols;
 
       size.x+=thisChannelSize;
+      size.x+=PAT_BORDER_SIZE;
     }
+    patChanX[chans]=size.x;
+
+    size.x+=oneChar.x;
 
     ImVec2 minArea=top;
     ImVec2 maxArea=ImVec2(
@@ -175,15 +186,39 @@ void FurnaceGUI::drawPatternNew() {
       float origAlpha=ImGui::GetStyle().Alpha;
       float disabledAlpha=ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha;
 
-      // row number
+      // row number and highlights
       {
         int ord=firstOrd;
         int row=firstRow;
+        bool isPlaying=e->isPlaying();
         SETUP_ORDER_ALPHA;
         for (int j=0; j<totalRows; j++) {
           if (ord>=0 && ord<e->curSubSong->ordersLen) {
             snprintf(id,63,"%3d",row);
             dl->AddText(pos,rowIndexColor,id);
+
+            ImU32 thisRowBg=0;
+            if (edit && cursor.y==row && cursor.order==ord && curWindowLast==GUI_WINDOW_PATTERN) {
+              if (editClone && !isPatUnique && secondTimer<0.5) {
+                thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING_CLONE]);
+              } else {
+                thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]);
+              }
+            } else if (isPlaying && oldRow==row && ord==playOrder) {
+              thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]);
+            } else if (e->curSubSong->hilightB>0 && !(row%e->curSubSong->hilightB)) {
+              thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]);
+            } else if (e->curSubSong->hilightA>0 && !(row%e->curSubSong->hilightA)) {
+              thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_1]);
+            }
+
+            if (thisRowBg) {
+              dl->AddRectFilled(
+                ImVec2(top.x+patChanX[0],pos.y),
+                ImVec2(top.x+patChanX[chans],pos.y+lineHeight),
+                thisRowBg
+              );
+            }
           }
           if (++row>=e->curSubSong->patLen) {
             row=0;
@@ -194,21 +229,24 @@ void FurnaceGUI::drawPatternNew() {
         }
       }
 
-      top.x+=threeChars.x+oneChar.x;
-      pos=top;
-
       // channels
       for (int i=0; i<chans; i++) {
         if (!e->curSubSong->chanShow[i]) continue;
+
+        ImVec2 thisTop=ImVec2(top.x+patChanX[i],top.y);
+        pos=thisTop;
+
+        dl->AddLine(
+          ImVec2(thisTop.x-PAT_BORDER_SIZE*0.5,thisTop.y),
+          ImVec2(thisTop.x-PAT_BORDER_SIZE*0.5,maxArea.y),
+          ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight]),
+          PAT_BORDER_SIZE
+        );
+
         int ord=firstOrd;
         int row=firstRow;
         int chanVolMax=e->getMaxVolumeChan(i);
         if (chanVolMax<1) chanVolMax=1;
-
-        float thisChannelSize=noteCellSize.x;
-        if (e->curSubSong->chanCollapse[i]<3) thisChannelSize+=insCellSize.x;
-        if (e->curSubSong->chanCollapse[i]<2) thisChannelSize+=volCellSize.x;
-        if (e->curSubSong->chanCollapse[i]<1) thisChannelSize+=(effectCellSize.x+effectValCellSize.x)*e->curSubSong->pat[i].effectCols;
 
         const DivPattern* pat=NULL;
         if (ord>=0 && ord<e->curSubSong->ordersLen) {
@@ -312,12 +350,17 @@ void FurnaceGUI::drawPatternNew() {
             }
             SETUP_ORDER_ALPHA;
           }
-          pos.x=top.x;
+          pos.x=thisTop.x;
           pos.y+=lineHeight;
         }
-        top.x+=thisChannelSize;
-        pos=top;
       }
+
+      dl->AddLine(
+        ImVec2(top.x+patChanX[chans]-PAT_BORDER_SIZE*0.5,top.y),
+        ImVec2(top.x+patChanX[chans]-PAT_BORDER_SIZE*0.5,maxArea.y),
+        ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight]),
+        PAT_BORDER_SIZE
+      );
 
       ImGui::GetStyle().Alpha=origAlpha;
     }
