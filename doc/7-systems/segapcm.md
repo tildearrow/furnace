@@ -8,7 +8,7 @@ a chip used in the Sega OutRun/X/Y arcade boards. eventually the MultiPCM surpas
 
 ## 5-channel SegaPCM
 
-Furnace also has a five channel version of this chip, but it only exists for DefleMask compatibility reasons (which doesn't expose the other channels for rather arbitrary reasons).
+Furnace previously had a five channel version of this chip, but it only existed for DefleMask compatibility reasons. when opening older Furnace files and all DefleMask files, the channel count can be corrected by opening the chip config window and clicking the "click here to fix it." button beneath "irregular channel count detected!"
 
 ## effects
 
