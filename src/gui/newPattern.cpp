@@ -97,6 +97,16 @@ void FurnaceGUI::drawPatternNew() {
     ImGui::SetNextWindowPos(patWindowPos);
     ImGui::SetNextWindowSize(patWindowSize);
   }
+
+  if (e->isPlaying() && followPattern && (!e->isStepping() || pendingStepUpdate)) updateScroll(oldRow);
+  if (--pendingStepUpdate<0) pendingStepUpdate=0;
+  if (nextScroll>-0.5f) {
+    ImGui::SetNextWindowScroll(ImVec2(-1.0f,nextScroll));
+    nextScroll=-1.0f;
+    nextAddScroll=0.0f;
+    nextAddScrollX=0.0f;
+  }
+
   if (ImGui::Begin("PatternNew",&patternOpen,globalWinFlags|ImGuiWindowFlags_HorizontalScrollbar|(settings.avoidRaisingPattern?ImGuiWindowFlags_NoBringToFrontOnFocus:0)|((settings.cursorFollowsWheel && !selecting)?ImGuiWindowFlags_NoScrollWithMouse:0),_("Pattern"))) {
     if (!mobileUI) {
       patWindowPos=ImGui::GetWindowPos();
@@ -117,7 +127,7 @@ void FurnaceGUI::drawPatternNew() {
     float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
     dummyRows=(ImGui::GetWindowSize().y/lineHeight)/2;
     int totalRows=e->curSubSong->patLen+dummyRows*2;
-    int firstRow=-dummyRows;
+    int firstRow=-dummyRows+1;
     while (firstRow<0) {
       firstRow+=e->curSubSong->patLen;
       firstOrd--;
@@ -149,7 +159,6 @@ void FurnaceGUI::drawPatternNew() {
     size.x+=threeChars.x+oneChar.x;
     size.x+=PAT_BORDER_SIZE;
 
-    // TODO: simplify
     for (int i=0; i<chans; i++) {
       patChanX[i]=size.x;
       if (!e->curSubSong->chanShow[i]) {
@@ -176,6 +185,7 @@ void FurnaceGUI::drawPatternNew() {
       minArea.y+size.y
     );
     ImRect rect=ImRect(minArea,maxArea);
+    ImRect winRect=ImRect(ImGui::GetWindowPos(),ImGui::GetWindowPos()+ImGui::GetWindowSize());
 
     // create the view
     ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
@@ -229,12 +239,19 @@ void FurnaceGUI::drawPatternNew() {
         }
       }
 
-      // channels
+      // selection/cursor background
+      // TODO
+
+      // channels and borders
       for (int i=0; i<chans; i++) {
         if (!e->curSubSong->chanShow[i]) continue;
 
         ImVec2 thisTop=ImVec2(top.x+patChanX[i],top.y);
         pos=thisTop;
+
+        // check bounds
+        if (thisTop.x>=winRect.Max.x) break;
+        if (top.x+patChanX[i+1]<winRect.Min.x) continue;
 
         dl->AddLine(
           ImVec2(thisTop.x-PAT_BORDER_SIZE*0.5,thisTop.y),
@@ -257,6 +274,7 @@ void FurnaceGUI::drawPatternNew() {
 
         // rows
         for (int j=0; j<totalRows; j++) {
+          if (pos.y>=winRect.Max.y) break;
           if (pat) {
             // note
             snprintf(id,63,"%.31s",noteName(pat->newData[row][DIV_PAT_NOTE]));
