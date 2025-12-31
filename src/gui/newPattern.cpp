@@ -43,8 +43,6 @@
 #define PAT_BORDER_SIZE 1.0f
 
 ImVec2 FurnaceGUI::mapSelPoint(const SelectionPoint& s, float lineHeight) {
-  int mappedXCoarse=s.xCoarse;
-  int mappedXFine=s.xFine;
   return ImVec2(0,0);
 }
 
@@ -249,7 +247,6 @@ void FurnaceGUI::drawPatternNew() {
       {
         int ord=firstOrd;
         int row=firstRow;
-        bool isPlaying=e->isPlaying();
         int curSelFindStage=0;
         ImRect selRect;
         SETUP_ORDER_ALPHA;
@@ -278,7 +275,7 @@ void FurnaceGUI::drawPatternNew() {
               selRect.Min,
               selRect.Max,
               ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_SELECTION])
-            )
+            );
             curSelFindStage=3;
             break;
           }
