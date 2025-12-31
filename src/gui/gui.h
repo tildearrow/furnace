@@ -3016,6 +3016,7 @@ class FurnaceGUI {
 
   float calcBPM(const DivGroovePattern& speeds, float hz, int vN, int vD);
 
+  ImVec2 mapSelPoint(const SelectionPoint& s, float lineHeight);
   void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache, bool inhibitSel);
 
   void drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float availableWidth, int index);

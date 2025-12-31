@@ -42,6 +42,12 @@
 // this is ImGui's TABLE_BORDER_SIZE.
 #define PAT_BORDER_SIZE 1.0f
 
+ImVec2 FurnaceGUI::mapSelPoint(const SelectionPoint& s, float lineHeight) {
+  int mappedXCoarse=s.xCoarse;
+  int mappedXFine=s.xFine;
+  return ImVec2(0,0);
+}
+
 void FurnaceGUI::drawPatternNew() {
   if (nextWindow==GUI_WINDOW_PATTERN) {
     patternOpen=true;
@@ -239,8 +245,52 @@ void FurnaceGUI::drawPatternNew() {
         }
       }
 
-      // selection/cursor background
-      // TODO
+      // selection background
+      {
+        int ord=firstOrd;
+        int row=firstRow;
+        bool isPlaying=e->isPlaying();
+        int curSelFindStage=0;
+        ImRect selRect;
+        SETUP_ORDER_ALPHA;
+        // we find the selection's Y position.
+        for (int j=0; j<totalRows; j++) {
+          // stage 1: find selection start
+          if (curSelFindStage==0) {
+            if (sel1.order==ord && sel1.y==row) {
+              selRect.Min.y=pos.y;
+              curSelFindStage=1;
+            }
+          }
+          // stage 2: find selection end
+          if (curSelFindStage==1) {
+            if (sel2.order==ord && sel2.y==row) {
+              selRect.Max.y=pos.y+lineHeight;
+              curSelFindStage=2;
+            }
+          }
+          // stage 3: draw selection rectangle
+          if (curSelFindStage==2) {
+            // TODO: find X positions
+            selRect.Min.x=patChanX[0];
+            selRect.Max.x=patChanX[chans];
+            dl->AddRectFilled(
+              selRect.Min,
+              selRect.Max,
+              ImGui::GetColorU32();
+            )
+            curSelFindStage=3;
+            break;
+          }
+
+          if (++row>=e->curSubSong->patLen) {
+            row=0;
+            ord++;
+            SETUP_ORDER_ALPHA;
+          }
+          pos.y+=lineHeight;
+        }
+      }
 
       // channels and borders
       for (int i=0; i<chans; i++) {
