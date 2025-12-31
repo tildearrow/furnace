@@ -277,7 +277,7 @@ void FurnaceGUI::drawPatternNew() {
             dl->AddRectFilled(
               selRect.Min,
               selRect.Max,
-              ImGui::GetColorU32();
+              ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_SELECTION])
             )
             curSelFindStage=3;
             break;
