@@ -118,6 +118,7 @@ void FurnaceGUI::drawPatternNew() {
     }
 
     ImDrawList* dl=ImGui::GetWindowDrawList();
+    float patFineOffsets[DIV_MAX_COLS];
     char id[64];
     int firstOrd=curOrder;
     int chans=e->getTotalChannelCount();
@@ -154,6 +155,21 @@ void FurnaceGUI::drawPatternNew() {
     effectCellSize.x+=(float)settings.effectCellSpacing*dpiScale;
     effectValCellSize=twoChars;
     effectValCellSize.x+=(float)settings.effectValCellSpacing*dpiScale;
+
+    float cellSizeAccum=0.0f;
+    patFineOffsets[DIV_PAT_NOTE]=cellSizeAccum;
+    cellSizeAccum+=noteCellSize.x;
+    patFineOffsets[DIV_PAT_INS]=cellSizeAccum;
+    cellSizeAccum+=insCellSize.x;
+    patFineOffsets[DIV_PAT_VOL]=cellSizeAccum;
+    cellSizeAccum+=volCellSize.x;
+    for (int i=0; i<DIV_MAX_EFFECTS; i++) {
+      patFineOffsets[DIV_PAT_FX(i)]=cellSizeAccum;
+      cellSizeAccum+=effectCellSize.x;
+      patFineOffsets[DIV_PAT_FXVAL(i)]=cellSizeAccum;
+      cellSizeAccum+=effectValCellSize.x;
+    }
+    patFineOffsets[DIV_PAT_FX(DIV_MAX_EFFECTS)]=cellSizeAccum;
 
     ImVec2 top=ImGui::GetCursorScreenPos();
     ImVec2 pos=top;
@@ -193,18 +209,96 @@ void FurnaceGUI::drawPatternNew() {
 
     // create the view
     ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
-    if (ImGui::ItemAdd(rect,ImGui::GetID("PatternView"))) {
+    if (ImGui::ItemAdd(rect,ImGui::GetID("PatternView1"),NULL,ImGuiItemFlags_AllowOverlap)) {
+      //bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID("PatternView1"),ImGuiItemFlags_AllowOverlap);
       ImU32 activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE]);
       ImU32 inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE]);
       ImU32 rowIndexColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
       float origAlpha=ImGui::GetStyle().Alpha;
       float disabledAlpha=ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha;
 
+      // calculate X and Y position of mouse cursor
+      SelectionPoint pointer=SelectionPoint(-1,0,-1,-1);
+      ImVec2 pointerPos=ImGui::GetMousePos()+ImVec2(ImGui::GetScrollX(),0);
+
+      // special value for row index
+      if (pointerPos.x>=top.x && pointerPos.x<patChanX[0]) {
+        pointer.xCoarse=-2;
+      }
+
+      for (int i=0; i<chans; i++) {
+        if (!e->curSubSong->chanShow[i]) continue;
+        if (pointerPos.x>=patChanX[i] && pointerPos.x<patChanX[i+1]) {
+          pointer.xCoarse=i;
+
+          // calculate xFine
+          float fineOffset=pointerPos.x-patChanX[i];
+          pointer.xFine=0;
+          if (fineOffset>=noteCellSize.x && e->curSubSong->chanCollapse[i]<3) {
+            pointer.xFine=1;
+            fineOffset-=noteCellSize.x;
+
+            if (fineOffset>=insCellSize.x && e->curSubSong->chanCollapse[i]<2) {
+              pointer.xFine=2;
+              fineOffset-=insCellSize.x;
+
+              if (fineOffset>=volCellSize.x && e->curSubSong->chanCollapse[i]<1) {
+                pointer.xFine=3;
+                fineOffset-=volCellSize.x;
+
+                for (int k=0; k<e->curPat[i].effectCols; k++) {
+                  if (fineOffset>=effectCellSize.x) {
+                    pointer.xFine++;
+                    fineOffset-=effectCellSize.x;
+                    if (fineOffset>=effectValCellSize.x) {
+                      pointer.xFine++;
+                      fineOffset-=effectValCellSize.x;
+                    } else {
+                      break;
+                    }
+                  } else {
+                    break;
+                  }
+                }
+
+                if (pointer.xFine>2+2*e->curPat[i].effectCols) pointer.xFine=2+2*e->curPat[i].effectCols;
+              }
+            }
+          }
+
+          break;
+        }
+      }
+
+      {
+        int ord=firstOrd;
+        int row=firstRow;
+        pos=top;
+        for (int j=0; j<totalRows; j++) {
+          if (ord>=0 && ord<e->curSubSong->ordersLen) {
+            if (pointerPos.y>=pos.y && pointerPos.y<(pos.y+lineHeight)) {
+              pointer.order=ord;
+              pointer.y=row;
+              break;
+            }
+          }
+          if (++row>=e->curSubSong->patLen) {
+            row=0;
+            ord++;
+          }
+          pos.y+=lineHeight;
+        }
+      }
+
+      String debugText=fmt::sprintf("CURSOR: %d:%d, %d/%d",pointer.xCoarse,pointer.xFine,pointer.order,pointer.y);
+      dl->AddText(top+ImGui::GetCurrentWindow()->Scroll,0xffffffff,debugText.c_str());
+
       // row number and highlights
       {
         int ord=firstOrd;
         int row=firstRow;
         bool isPlaying=e->isPlaying();
+        pos=top;
         SETUP_ORDER_ALPHA;
         for (int j=0; j<totalRows; j++) {
           if (ord>=0 && ord<e->curSubSong->ordersLen) {
@@ -244,11 +338,13 @@ void FurnaceGUI::drawPatternNew() {
       }
 
       // selection background
-      {
+      if (sel1.xCoarse>=0 && sel1.xCoarse<chans &&
+          sel2.xCoarse>=0 && sel2.xCoarse<chans) {
         int ord=firstOrd;
         int row=firstRow;
         int curSelFindStage=0;
         ImRect selRect;
+        pos=top;
         SETUP_ORDER_ALPHA;
         // we find the selection's Y position.
         for (int j=0; j<totalRows; j++) {
@@ -268,15 +364,39 @@ void FurnaceGUI::drawPatternNew() {
           }
           // stage 3: draw selection rectangle
           if (curSelFindStage==2) {
-            // TODO: find X positions
-            selRect.Min.x=patChanX[0];
-            selRect.Max.x=patChanX[chans];
+            selRect.Min.x=top.x+patChanX[sel1.xCoarse]+patFineOffsets[sel1.xFine&31];
+            selRect.Max.x=top.x+patChanX[sel2.xCoarse]+patFineOffsets[(1+sel2.xFine)&31];
             dl->AddRectFilled(
               selRect.Min,
               selRect.Max,
-              ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_SELECTION])
+              ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_SELECTION])
             );
             curSelFindStage=3;
+            break;
+          }
+
+          if (++row>=e->curSubSong->patLen) {
+            row=0;
+            ord++;
+            SETUP_ORDER_ALPHA;
+          }
+          pos.y+=lineHeight;
+        }
+      }
+
+      // cursor background
+      if (cursor.xCoarse>=0 && cursor.xCoarse<chans) {
+        int ord=firstOrd;
+        int row=firstRow;
+        pos=top;
+        SETUP_ORDER_ALPHA;
+        for (int j=0; j<totalRows; j++) {
+          if (cursor.order==ord && cursor.y==row) {
+            dl->AddRectFilled(
+              ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[cursor.xFine&31],pos.y),
+              ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[(1+cursor.xFine)&31],pos.y+lineHeight),
+              ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_CURSOR])
+            );
             break;
           }
 
@@ -428,6 +548,24 @@ void FurnaceGUI::drawPatternNew() {
       );
 
       ImGui::GetStyle().Alpha=origAlpha;
+
+      // test for selection
+      //if (pointer.
+      if (ImGui::IsWindowHovered(/*ImGuiHoveredFlags_AllowWhenBlockedByActiveItem*/)) {
+        if (ImRect(dl->GetClipRectMin(),dl->GetClipRectMax()).Contains(ImGui::GetMousePos())) {
+          dl->AddText(top+ImVec2(0,lineHeight),0xffffffff,"Hovered!!!!!!!");
+        }
+        //updateSelection(0,0,i,ord,true);
+      }
+      /*
+      if (ImGui::IsWindowClicked()) {
+        //startSelection(0,0,i,ord,true);
+      }
+      if (ImGui::IsWindowActive() && CHECK_LONG_HOLD) {
+        ImGui::InhibitInertialScroll();
+        NOTIFY_LONG_HOLD;
+        mobilePatSel=true;
+      }*/
     }
     ImGui::PopFont();
   }
