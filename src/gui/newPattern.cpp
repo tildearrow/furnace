@@ -138,6 +138,7 @@ void FurnaceGUI::drawPatternNew() {
       firstOrd--;
     }
 
+    // calculate sizes
     // this could be moved somewhere else for performance...
     float oneCharSize=ImGui::CalcTextSize("A").x;
     fourChars=ImVec2(oneCharSize*4.0f,lineHeight);
@@ -199,6 +200,39 @@ void FurnaceGUI::drawPatternNew() {
 
     size.x+=oneChar.x;
 
+    // add scroll if required
+    if (nextAddScroll!=0.0f) {
+      float newScroll=ImGui::GetScrollY()+nextAddScroll;
+      // wrap around and go to previous/next pattern if we're about to go beyond the view
+      if (newScroll<0.0f && curOrder>0) {
+        ImGui::SetScrollY(ImGui::GetScrollMaxY()+newScroll);
+        if (!e->isPlaying() || !followPattern) setOrder(curOrder-1);
+      } else if (newScroll>ImGui::GetScrollMaxY() && curOrder<(e->curSubSong->ordersLen-1)) {
+        ImGui::SetScrollY(newScroll-ImGui::GetScrollMaxY());
+        if (!e->isPlaying() || !followPattern) setOrder(curOrder+1);
+      } else {
+        ImGui::SetScrollY(newScroll);
+      }
+
+      // select in empty space
+      if (nextAddScroll>0.0f) {
+        updateSelection(selEnd.xCoarse,selEnd.xFine,bottomMostRow,bottomMostOrder);
+      } else {
+        updateSelection(selEnd.xCoarse,selEnd.xFine,topMostRow,topMostOrder);
+      }
+
+      nextScroll=-1.0f;
+      nextAddScroll=0.0f;
+    }
+    if (nextAddScrollX!=0.0f) {
+      ImGui::SetScrollX(ImGui::GetScrollX()+nextAddScrollX);
+      nextAddScrollX=0.0f;
+    }
+
+    topMostOrder=-1;
+    topMostRow=-1;
+
+    // prepare the view
     ImVec2 minArea=top;
     ImVec2 maxArea=ImVec2(
       minArea.x+size.x,
@@ -410,6 +444,7 @@ void FurnaceGUI::drawPatternNew() {
       }
 
       // channels and borders
+      bool isFirstChan=true;
       for (int i=0; i<chans; i++) {
         if (!e->curSubSong->chanShow[i]) continue;
 
@@ -442,7 +477,19 @@ void FurnaceGUI::drawPatternNew() {
         // rows
         for (int j=0; j<totalRows; j++) {
           if (pos.y>=winRect.Max.y) break;
-          if (pat) {
+          if (pat && pos.y+lineHeight>=winRect.Min.y) {
+            if (isFirstChan) {
+              // set the top-most and bottom-most Y positions
+              if (topMostOrder==-1) {
+                topMostOrder=ord;
+              }
+              if (topMostRow==-1) {
+                topMostRow=row;
+              }
+              bottomMostOrder=ord;
+              bottomMostRow=row;
+            }
+
             // note
             snprintf(id,63,"%.31s",noteName(pat->newData[row][DIV_PAT_NOTE]));
             if (pat->newData[row][DIV_PAT_NOTE]==-1) {
@@ -538,6 +585,8 @@ void FurnaceGUI::drawPatternNew() {
           pos.x=thisTop.x;
           pos.y+=lineHeight;
         }
+
+        isFirstChan=false;
       }
 
       dl->AddLine(
@@ -550,22 +599,24 @@ void FurnaceGUI::drawPatternNew() {
       ImGui::GetStyle().Alpha=origAlpha;
 
       // test for selection
-      //if (pointer.
-      if (ImGui::IsWindowHovered(/*ImGuiHoveredFlags_AllowWhenBlockedByActiveItem*/)) {
-        if (ImRect(dl->GetClipRectMin(),dl->GetClipRectMax()).Contains(ImGui::GetMousePos())) {
-          dl->AddText(top+ImVec2(0,lineHeight),0xffffffff,"Hovered!!!!!!!");
+      if (pointer.xCoarse>=0 && pointer.y>=0 && pointer.order>=0) {
+        if (ImGui::IsWindowHovered()) {
+          if (ImRect(dl->GetClipRectMin(),dl->GetClipRectMax()).Contains(ImGui::GetMousePos())) {
+            dl->AddText(top+ImVec2(0,lineHeight)+ImGui::GetCurrentWindow()->Scroll,0xffffffff,"Hovered!!!!!!!");
+            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+              startSelection(pointer.xCoarse,pointer.xFine,pointer.y,pointer.order);
+            }
+
+            updateSelection(pointer.xCoarse,pointer.xFine,pointer.y,pointer.order);
+
+            if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && CHECK_LONG_HOLD) {
+              ImGui::InhibitInertialScroll();
+              NOTIFY_LONG_HOLD;
+              mobilePatSel=true;
+            }
+          }
         }
-        //updateSelection(0,0,i,ord,true);
       }
-      /*
-      if (ImGui::IsWindowClicked()) {
-        //startSelection(0,0,i,ord,true);
-      }
-      if (ImGui::IsWindowActive() && CHECK_LONG_HOLD) {
-        ImGui::InhibitInertialScroll();
-        NOTIFY_LONG_HOLD;
-        mobilePatSel=true;
-      }*/
     }
     ImGui::PopFont();
   }
