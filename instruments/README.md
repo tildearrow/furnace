@@ -19,6 +19,7 @@ these are organized in the respective chip folders.
 - Laggy
 - LovelyA72
 - PacorexTheTrex
+- PotaJoe
 - paynspch
 - pedipanol
 - Ranedom
