@@ -172,6 +172,8 @@ void FurnaceGUI::drawPatternNew() {
     }
     patFineOffsets[DIV_PAT_FX(DIV_MAX_EFFECTS)]=cellSizeAccum;
 
+    ImGui::Dummy(ImVec2(1.0f,ImGui::GetFrameHeight()));
+
     ImVec2 top=ImGui::GetCursorScreenPos();
     ImVec2 topRows=top+ImVec2(ImGui::GetScrollX(),0);
     ImVec2 pos=top;
@@ -260,7 +262,6 @@ void FurnaceGUI::drawPatternNew() {
     ImGui::SetCursorScreenPos(top);
     ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
     if (ImGui::ItemAdd(rect,ImGui::GetID("PatternView1"),NULL,ImGuiItemFlags_AllowOverlap)) {
-
       // calculate X and Y position of mouse cursor
       SelectionPoint pointer=SelectionPoint(-1,0,-1,-1);
       ImVec2 pointerPos=ImGui::GetMousePos()-ImVec2(top.x,0);
