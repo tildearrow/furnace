@@ -37,7 +37,7 @@
   } \
   activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE]); \
   inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE]); \
-  //rowIndexColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
+  rowIndexColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
 
 // this is ImGui's TABLE_BORDER_SIZE.
 #define PAT_BORDER_SIZE 1.0f
@@ -249,14 +249,17 @@ void FurnaceGUI::drawPatternNew() {
     ImRect rect=ImRect(minArea,maxArea);
     ImRect winRect=ImRect(ImGui::GetWindowPos(),ImGui::GetWindowPos()+ImGui::GetWindowSize());
 
+    ImU32 activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE]);
+    ImU32 inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE]);
+    ImU32 rowIndexColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
+    float origAlpha=ImGui::GetStyle().Alpha;
+    float disabledAlpha=ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha;
+
     // create the view
+    dl->PushClipRect(topRows+ImVec2(sizeRows.x,0),winRect.Max,true);
+    ImGui::SetCursorScreenPos(top);
     ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
     if (ImGui::ItemAdd(rect,ImGui::GetID("PatternView1"),NULL,ImGuiItemFlags_AllowOverlap)) {
-      ImU32 activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE]);
-      ImU32 inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE]);
-      //ImU32 rowIndexColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
-      float origAlpha=ImGui::GetStyle().Alpha;
-      float disabledAlpha=ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha;
 
       // calculate X and Y position of mouse cursor
       SelectionPoint pointer=SelectionPoint(-1,0,-1,-1);
@@ -626,12 +629,38 @@ void FurnaceGUI::drawPatternNew() {
         }
       }
     }
+    dl->PopClipRect();
 
     // pattern rows (frozen in place)
     ImGui::SetCursorScreenPos(topRows);
     ImGui::ItemSize(sizeRows,ImGui::GetStyle().FramePadding.y);
     if (ImGui::ItemAdd(rectRows,ImGui::GetID("PatternRows"),NULL,ImGuiItemFlags_AllowOverlap)) {
-      dl->AddText(topRows+ImVec2(0,lineHeight*2.0),0xffffffff,"FUCK");
+      // pattern rows
+      int ord=firstOrd;
+      int row=firstRow;
+      pos=topRows;
+      SETUP_ORDER_ALPHA;
+      for (int j=0; j<totalRows; j++) {
+        if (ord>=0 && ord<e->curSubSong->ordersLen) {
+          snprintf(id,63,"%3d",row);
+          dl->AddText(pos,rowIndexColor,id);
+        }
+        if (++row>=e->curSubSong->patLen) {
+          row=0;
+          ord++;
+          SETUP_ORDER_ALPHA;
+        }
+        pos.y+=lineHeight;
+      }
+
+      ImGui::GetStyle().Alpha=origAlpha;
+
+      dl->AddLine(
+        ImVec2(maxAreaRows.x-PAT_BORDER_SIZE*0.5,topRows.y),
+        ImVec2(maxAreaRows.x-PAT_BORDER_SIZE*0.5,maxArea.y),
+        ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight]),
+        PAT_BORDER_SIZE
+      );
     }
 
     // channel headers (frozen in place)
