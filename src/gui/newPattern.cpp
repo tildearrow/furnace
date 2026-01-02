@@ -37,7 +37,7 @@
   } \
   activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE]); \
   inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE]); \
-  rowIndexColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
+  //rowIndexColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
 
 // this is ImGui's TABLE_BORDER_SIZE.
 #define PAT_BORDER_SIZE 1.0f
@@ -173,12 +173,10 @@ void FurnaceGUI::drawPatternNew() {
     patFineOffsets[DIV_PAT_FX(DIV_MAX_EFFECTS)]=cellSizeAccum;
 
     ImVec2 top=ImGui::GetCursorScreenPos();
+    ImVec2 topRows=top+ImVec2(ImGui::GetScrollX(),0);
     ImVec2 pos=top;
 
     ImVec2 size=ImVec2(0.0f,lineHeight*totalRows);
-
-    size.x+=threeChars.x+oneChar.x;
-    size.x+=PAT_BORDER_SIZE;
 
     for (int i=0; i<chans; i++) {
       patChanX[i]=size.x;
@@ -233,6 +231,16 @@ void FurnaceGUI::drawPatternNew() {
     topMostRow=-1;
 
     // prepare the view
+    ImVec2 sizeRows=ImVec2(threeChars.x+oneChar.x+PAT_BORDER_SIZE,lineHeight*totalRows);
+    ImVec2 minAreaRows=topRows;
+    ImVec2 maxAreaRows=ImVec2(
+      minAreaRows.x+sizeRows.x,
+      minAreaRows.y+sizeRows.y
+    );
+    ImRect rectRows=ImRect(minAreaRows,maxAreaRows);
+
+    top.x+=sizeRows.x;
+
     ImVec2 minArea=top;
     ImVec2 maxArea=ImVec2(
       minArea.x+size.x,
@@ -244,21 +252,22 @@ void FurnaceGUI::drawPatternNew() {
     // create the view
     ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
     if (ImGui::ItemAdd(rect,ImGui::GetID("PatternView1"),NULL,ImGuiItemFlags_AllowOverlap)) {
-      //bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID("PatternView1"),ImGuiItemFlags_AllowOverlap);
       ImU32 activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE]);
       ImU32 inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE]);
-      ImU32 rowIndexColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
+      //ImU32 rowIndexColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
       float origAlpha=ImGui::GetStyle().Alpha;
       float disabledAlpha=ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha;
 
       // calculate X and Y position of mouse cursor
       SelectionPoint pointer=SelectionPoint(-1,0,-1,-1);
-      ImVec2 pointerPos=ImGui::GetMousePos()+ImVec2(ImGui::GetScrollX(),0);
+      ImVec2 pointerPos=ImGui::GetMousePos()-ImVec2(top.x,0);
 
       // special value for row index
+      // TODO: just no. not ever.
+      /*
       if (pointerPos.x>=top.x && pointerPos.x<patChanX[0]) {
         pointer.xCoarse=-2;
-      }
+      }*/
 
       for (int i=0; i<chans; i++) {
         if (!e->curSubSong->chanShow[i]) continue;
@@ -327,7 +336,7 @@ void FurnaceGUI::drawPatternNew() {
       String debugText=fmt::sprintf("CURSOR: %d:%d, %d/%d",pointer.xCoarse,pointer.xFine,pointer.order,pointer.y);
       dl->AddText(top+ImGui::GetCurrentWindow()->Scroll,0xffffffff,debugText.c_str());
 
-      // row number and highlights
+      // row highlights
       {
         int ord=firstOrd;
         int row=firstRow;
@@ -336,9 +345,8 @@ void FurnaceGUI::drawPatternNew() {
         SETUP_ORDER_ALPHA;
         for (int j=0; j<totalRows; j++) {
           if (ord>=0 && ord<e->curSubSong->ordersLen) {
-            snprintf(id,63,"%3d",row);
-            dl->AddText(pos,rowIndexColor,id);
-
+            /*snprintf(id,63,"%3d",row);
+            dl->AddText(pos,rowIndexColor,id);*/
             ImU32 thisRowBg=0;
             if (edit && cursor.y==row && cursor.order==ord && curWindowLast==GUI_WINDOW_PATTERN) {
               if (editClone && !isPatUnique && secondTimer<0.5) {
@@ -618,6 +626,16 @@ void FurnaceGUI::drawPatternNew() {
         }
       }
     }
+
+    // pattern rows (frozen in place)
+    ImGui::SetCursorScreenPos(topRows);
+    ImGui::ItemSize(sizeRows,ImGui::GetStyle().FramePadding.y);
+    if (ImGui::ItemAdd(rectRows,ImGui::GetID("PatternRows"),NULL,ImGuiItemFlags_AllowOverlap)) {
+      dl->AddText(topRows+ImVec2(0,lineHeight*2.0),0xffffffff,"FUCK");
+    }
+
+    // channel headers (frozen in place)
+
     ImGui::PopFont();
   }
   ImGui::PopStyleVar();
