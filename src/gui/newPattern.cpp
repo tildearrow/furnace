@@ -235,13 +235,6 @@ void FurnaceGUI::drawPatternNew() {
 
     // prepare the view
     ImVec2 sizeRows=ImVec2(threeChars.x+oneChar.x+PAT_BORDER_SIZE,lineHeight*totalRows);
-    ImVec2 minAreaRows=topRows;
-    ImVec2 maxAreaRows=ImVec2(
-      minAreaRows.x+sizeRows.x,
-      minAreaRows.y+sizeRows.y
-    );
-    ImRect rectRows=ImRect(minAreaRows,maxAreaRows);
-
     ImVec2 sizeHeaders=ImVec2(size.x+sizeRows.x,ImGui::GetFrameHeight());
     ImVec2 minAreaHeaders=topHeaders;
     ImVec2 maxAreaHeaders=ImVec2(
@@ -251,15 +244,7 @@ void FurnaceGUI::drawPatternNew() {
     ImRect rectHeaders=ImRect(minAreaHeaders,maxAreaHeaders);
 
     top.x+=sizeRows.x;
-    top.y+=sizeHeaders.y;
-    topRows.y+=sizeHeaders.y;
 
-    ImVec2 minArea=top;
-    ImVec2 maxArea=ImVec2(
-      minArea.x+size.x,
-      minArea.y+size.y
-    );
-    ImRect rect=ImRect(minArea,maxArea);
     ImRect winRect=ImRect(ImGui::GetWindowPos(),ImGui::GetWindowPos()+ImGui::GetWindowSize());
 
     ImU32 activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE]);
@@ -268,418 +253,54 @@ void FurnaceGUI::drawPatternNew() {
     float origAlpha=ImGui::GetStyle().Alpha;
     float disabledAlpha=ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha;
 
-    // create the view
-    dl->PushClipRect(ImVec2(topRows.x+sizeRows.x,topHeaders.y+sizeHeaders.y),winRect.Max,true);
-    ImGui::SetCursorScreenPos(top);
-    ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
-    if (ImGui::ItemAdd(rect,ImGui::GetID("PatternView1"),NULL,ImGuiItemFlags_AllowOverlap)) {
-      // calculate X and Y position of mouse cursor
-      SelectionPoint pointer=SelectionPoint(-1,0,-1,-1);
-      ImVec2 pointerPos=ImGui::GetMousePos()-ImVec2(top.x,0);
-
-      // special value for row index
-      // TODO: just no. not ever.
-      /*
-      if (pointerPos.x>=top.x && pointerPos.x<patChanX[0]) {
-        pointer.xCoarse=-2;
-      }*/
-
-      for (int i=0; i<chans; i++) {
-        if (!e->curSubSong->chanShow[i]) continue;
-        if (pointerPos.x>=patChanX[i] && pointerPos.x<patChanX[i+1]) {
-          pointer.xCoarse=i;
-
-          // calculate xFine
-          float fineOffset=pointerPos.x-patChanX[i];
-          pointer.xFine=0;
-          if (fineOffset>=noteCellSize.x && e->curSubSong->chanCollapse[i]<3) {
-            pointer.xFine=1;
-            fineOffset-=noteCellSize.x;
-
-            if (fineOffset>=insCellSize.x && e->curSubSong->chanCollapse[i]<2) {
-              pointer.xFine=2;
-              fineOffset-=insCellSize.x;
-
-              if (fineOffset>=volCellSize.x && e->curSubSong->chanCollapse[i]<1) {
-                pointer.xFine=3;
-                fineOffset-=volCellSize.x;
-
-                for (int k=0; k<e->curPat[i].effectCols; k++) {
-                  if (fineOffset>=effectCellSize.x) {
-                    pointer.xFine++;
-                    fineOffset-=effectCellSize.x;
-                    if (fineOffset>=effectValCellSize.x) {
-                      pointer.xFine++;
-                      fineOffset-=effectValCellSize.x;
-                    } else {
-                      break;
-                    }
-                  } else {
-                    break;
-                  }
-                }
-
-                if (pointer.xFine>2+2*e->curPat[i].effectCols) pointer.xFine=2+2*e->curPat[i].effectCols;
-              }
-            }
-          }
-
-          break;
-        }
-      }
-
-      {
-        int ord=firstOrd;
-        int row=firstRow;
-        pos=top;
-        for (int j=0; j<totalRows; j++) {
-          if (ord>=0 && ord<e->curSubSong->ordersLen) {
-            if (pointerPos.y>=pos.y && pointerPos.y<(pos.y+lineHeight)) {
-              pointer.order=ord;
-              pointer.y=row;
-              break;
-            }
-          }
-          if (++row>=e->curSubSong->patLen) {
-            row=0;
-            ord++;
-          }
-          pos.y+=lineHeight;
-        }
-      }
-
-      String debugText=fmt::sprintf("CURSOR: %d:%d, %d/%d",pointer.xCoarse,pointer.xFine,pointer.order,pointer.y);
-      dl->AddText(top+ImGui::GetCurrentWindow()->Scroll,0xffffffff,debugText.c_str());
-
-      // row highlights
-      {
-        int ord=firstOrd;
-        int row=firstRow;
-        bool isPlaying=e->isPlaying();
-        pos=top;
-        SETUP_ORDER_ALPHA;
-        for (int j=0; j<totalRows; j++) {
-          if (ord>=0 && ord<e->curSubSong->ordersLen) {
-            /*snprintf(id,63,"%3d",row);
-            dl->AddText(pos,rowIndexColor,id);*/
-            ImU32 thisRowBg=0;
-            if (edit && cursor.y==row && cursor.order==ord && curWindowLast==GUI_WINDOW_PATTERN) {
-              if (editClone && !isPatUnique && secondTimer<0.5) {
-                thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING_CLONE]);
-              } else {
-                thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]);
-              }
-            } else if (isPlaying && oldRow==row && ord==playOrder) {
-              thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]);
-            } else if (e->curSubSong->hilightB>0 && !(row%e->curSubSong->hilightB)) {
-              thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]);
-            } else if (e->curSubSong->hilightA>0 && !(row%e->curSubSong->hilightA)) {
-              thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_1]);
-            }
-
-            if (thisRowBg) {
-              dl->AddRectFilled(
-                ImVec2(top.x+patChanX[0],pos.y),
-                ImVec2(top.x+patChanX[chans],pos.y+lineHeight),
-                thisRowBg
-              );
-            }
-          }
-          if (++row>=e->curSubSong->patLen) {
-            row=0;
-            ord++;
-            SETUP_ORDER_ALPHA;
-          }
-          pos.y+=lineHeight;
-        }
-      }
-
-      // selection background
-      if (sel1.xCoarse>=0 && sel1.xCoarse<chans &&
-          sel2.xCoarse>=0 && sel2.xCoarse<chans) {
-        int ord=firstOrd;
-        int row=firstRow;
-        int curSelFindStage=0;
-        ImRect selRect;
-        pos=top;
-        SETUP_ORDER_ALPHA;
-        // we find the selection's Y position.
-        for (int j=0; j<totalRows; j++) {
-          // stage 1: find selection start
-          if (curSelFindStage==0) {
-            if (sel1.order==ord && sel1.y==row) {
-              selRect.Min.y=pos.y;
-              curSelFindStage=1;
-            }
-          }
-          // stage 2: find selection end
-          if (curSelFindStage==1) {
-            if (sel2.order==ord && sel2.y==row) {
-              selRect.Max.y=pos.y+lineHeight;
-              curSelFindStage=2;
-            }
-          }
-          // stage 3: draw selection rectangle
-          if (curSelFindStage==2) {
-            selRect.Min.x=top.x+patChanX[sel1.xCoarse]+patFineOffsets[sel1.xFine&31];
-            selRect.Max.x=top.x+patChanX[sel2.xCoarse]+patFineOffsets[(1+sel2.xFine)&31];
-            dl->AddRectFilled(
-              selRect.Min,
-              selRect.Max,
-              ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_SELECTION])
-            );
-            curSelFindStage=3;
-            break;
-          }
-
-          if (++row>=e->curSubSong->patLen) {
-            row=0;
-            ord++;
-            SETUP_ORDER_ALPHA;
-          }
-          pos.y+=lineHeight;
-        }
-      }
-
-      // cursor background
-      if (cursor.xCoarse>=0 && cursor.xCoarse<chans) {
-        int ord=firstOrd;
-        int row=firstRow;
-        pos=top;
-        SETUP_ORDER_ALPHA;
-        for (int j=0; j<totalRows; j++) {
-          if (cursor.order==ord && cursor.y==row) {
-            dl->AddRectFilled(
-              ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[cursor.xFine&31],pos.y),
-              ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[(1+cursor.xFine)&31],pos.y+lineHeight),
-              ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_CURSOR])
-            );
-            break;
-          }
-
-          if (++row>=e->curSubSong->patLen) {
-            row=0;
-            ord++;
-            SETUP_ORDER_ALPHA;
-          }
-          pos.y+=lineHeight;
-        }
-      }
-
-      // channels and borders
-      bool isFirstChan=true;
-      for (int i=0; i<chans; i++) {
-        if (!e->curSubSong->chanShow[i]) continue;
-
-        ImVec2 thisTop=ImVec2(top.x+patChanX[i],top.y);
-        pos=thisTop;
-
-        // check bounds
-        if (thisTop.x>=winRect.Max.x) break;
-        if (top.x+patChanX[i+1]<winRect.Min.x) continue;
-
-        dl->AddLine(
-          ImVec2(thisTop.x-PAT_BORDER_SIZE*0.5,thisTop.y),
-          ImVec2(thisTop.x-PAT_BORDER_SIZE*0.5,maxArea.y),
-          ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight]),
-          PAT_BORDER_SIZE
-        );
-
-        int ord=firstOrd;
-        int row=firstRow;
-        int chanVolMax=e->getMaxVolumeChan(i);
-        if (chanVolMax<1) chanVolMax=1;
-
-        const DivPattern* pat=NULL;
-        if (ord>=0 && ord<e->curSubSong->ordersLen) {
-          pat=e->curSubSong->pat[i].getPattern(e->curOrders->ord[i][ord],true);
-        }
-
-        SETUP_ORDER_ALPHA;
-
-        // rows
-        for (int j=0; j<totalRows; j++) {
-          if (pos.y>=winRect.Max.y) break;
-          if (pat && pos.y+lineHeight>=winRect.Min.y) {
-            if (isFirstChan) {
-              // set the top-most and bottom-most Y positions
-              if (topMostOrder==-1) {
-                topMostOrder=ord;
-              }
-              if (topMostRow==-1) {
-                topMostRow=row;
-              }
-              bottomMostOrder=ord;
-              bottomMostRow=row;
-            }
-
-            // note
-            snprintf(id,63,"%.31s",noteName(pat->newData[row][DIV_PAT_NOTE]));
-            if (pat->newData[row][DIV_PAT_NOTE]==-1) {
-              dl->AddText(pos,inactiveColor,id);
-            } else {
-              dl->AddText(pos,activeColor,id);
-            }
-
-            // instrument
-            if (e->curSubSong->chanCollapse[i]<3) {
-              pos.x+=threeChars.x;
-              if (pat->newData[row][DIV_PAT_INS]==-1) {
-                dl->AddText(pos,inactiveColor,emptyLabel2);
-              } else {
-                snprintf(id,63,"%.2X",pat->newData[row][DIV_PAT_INS]);
-                if (pat->newData[row][DIV_PAT_INS]<0 || pat->newData[row][DIV_PAT_INS]>=e->song.insLen) {
-                  dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS_ERROR]),id);
-                } else {
-                  DivInstrumentType t=e->song.ins[pat->newData[row][DIV_PAT_INS]]->type;
-                  if (t!=DIV_INS_AMIGA && t!=e->getPreferInsType(i)) {
-                    dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS_WARN]),id);
-                  } else {
-                    dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS]),id);
-                  }
-                }
-              }
-            }
-
-            // volume
-            if (e->curSubSong->chanCollapse[i]<2) {
-              pos.x+=twoChars.x;
-              if (pat->newData[row][DIV_PAT_VOL]==-1) {
-                dl->AddText(pos,inactiveColor,emptyLabel2);
-              } else {
-                int volColor=(pat->newData[row][DIV_PAT_VOL]*127)/chanVolMax;
-                if (volColor>127) volColor=127;
-                if (volColor<0) volColor=0;
-                snprintf(id,63,"%.2X",pat->newData[row][DIV_PAT_VOL]);
-                dl->AddText(pos,ImGui::GetColorU32(volColors[volColor]),id);
-              }
-            }
-
-            // effects
-            if (e->curSubSong->chanCollapse[i]<1) {
-              for (int k=0; k<e->curPat[i].effectCols; k++) {
-                int index=DIV_PAT_FX(k);
-                int indexVal=DIV_PAT_FXVAL(k);
-                ImU32 effectColor=inactiveColor;
-
-                // effect
-                pos.x+=twoChars.x;
-                if (pat->newData[row][index]==-1) {
-                  dl->AddText(pos,inactiveColor,emptyLabel2);
-                } else {
-                  if (pat->newData[row][index]>0xff) {
-                    snprintf(id,63,"??");
-                    effectColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-                  } else {
-                    const unsigned char data=pat->newData[row][index];
-                    effectColor=ImGui::GetColorU32(uiColors[fxColors[data]]);
-                    if (pat->newData[row][index]>=0x10 || settings.oneDigitEffects==0) {
-                      snprintf(id,63,"%.2X",data);
-                    } else {
-                      snprintf(id,63," %.1X",data);
-                    }
-                  }
-                  dl->AddText(pos,effectColor,id);
-                }
-
-                // effect value
-                pos.x+=twoChars.x;
-                if (pat->newData[row][indexVal]==-1) {
-                  dl->AddText(pos,effectColor,emptyLabel2);
-                } else {
-                  snprintf(id,63,"%.2X",pat->newData[row][indexVal]);
-                  dl->AddText(pos,effectColor,id);
-                }
-              }
-            }
-          }
-
-          // go to next row
-          if (++row>=e->curSubSong->patLen) {
-            row=0;
-            ord++;
-            if (ord>=0 && ord<e->curSubSong->ordersLen) {
-              pat=e->curSubSong->pat[i].getPattern(e->curOrders->ord[i][ord],true);
-            } else {
-              pat=NULL;
-            }
-            SETUP_ORDER_ALPHA;
-          }
-          pos.x=thisTop.x;
-          pos.y+=lineHeight;
-        }
-
-        isFirstChan=false;
-      }
-
-      dl->AddLine(
-        ImVec2(top.x+patChanX[chans]-PAT_BORDER_SIZE*0.5,top.y),
-        ImVec2(top.x+patChanX[chans]-PAT_BORDER_SIZE*0.5,maxArea.y),
-        ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight]),
-        PAT_BORDER_SIZE
-      );
-
-      ImGui::GetStyle().Alpha=origAlpha;
-
-      // test for selection
-      if (pointer.xCoarse>=0 && pointer.y>=0 && pointer.order>=0) {
-        if (ImGui::IsWindowHovered()) {
-          if (ImRect(dl->GetClipRectMin(),dl->GetClipRectMax()).Contains(ImGui::GetMousePos())) {
-            dl->AddText(top+ImVec2(0,lineHeight)+ImGui::GetCurrentWindow()->Scroll,0xffffffff,"Hovered!!!!!!!");
-            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-              startSelection(pointer.xCoarse,pointer.xFine,pointer.y,pointer.order);
-            }
-
-            updateSelection(pointer.xCoarse,pointer.xFine,pointer.y,pointer.order);
-
-            if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && CHECK_LONG_HOLD) {
-              ImGui::InhibitInertialScroll();
-              NOTIFY_LONG_HOLD;
-              mobilePatSel=true;
-            }
-          }
-        }
-      }
+    // top left button
+    ImGui::SetCursorScreenPos(ImVec2(topRows.x,topHeaders.y));
+    if (ImGui::Selectable(" ++###ExtraChannelButtons",false,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(sizeRows.x,lineHeight+1.0f*dpiScale))) {
+      ImGui::OpenPopup("PatternOpt");
     }
-    dl->PopClipRect();
-
-    // pattern rows (frozen in place)
-    ImGui::SetCursorScreenPos(topRows);
-    dl->PushClipRect(ImVec2(topRows.x,topHeaders.y+sizeHeaders.y),winRect.Max,true);
-    ImGui::ItemSize(sizeRows,ImGui::GetStyle().FramePadding.y);
-    if (ImGui::ItemAdd(rectRows,ImGui::GetID("PatternRows"),NULL,ImGuiItemFlags_AllowOverlap)) {
-      // pattern rows
-      int ord=firstOrd;
-      int row=firstRow;
-      pos=topRows;
-      SETUP_ORDER_ALPHA;
-      for (int j=0; j<totalRows; j++) {
-        if (ord>=0 && ord<e->curSubSong->ordersLen) {
-          snprintf(id,63,"%3d",row);
-          dl->AddText(pos,rowIndexColor,id);
-        }
-        if (++row>=e->curSubSong->patLen) {
-          row=0;
-          ord++;
-          SETUP_ORDER_ALPHA;
-        }
-        pos.y+=lineHeight;
-      }
-
-      ImGui::GetStyle().Alpha=origAlpha;
-
-      dl->AddLine(
-        ImVec2(maxAreaRows.x-PAT_BORDER_SIZE*0.5,topRows.y),
-        ImVec2(maxAreaRows.x-PAT_BORDER_SIZE*0.5,maxArea.y),
-        ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight]),
-        PAT_BORDER_SIZE
-      );
+    if (ImGui::IsItemHovered() && !mobileUI) {
+      ImGui::SetTooltip(_("click for pattern options (effect columns/pattern names/visualizer)"));
     }
-    dl->PopClipRect();
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      fancyPattern=!fancyPattern;
+      inhibitMenu=true;
+      e->enableCommandStream(fancyPattern);
+      e->getCommandStream(cmdStream);
+      cmdStream.clear();
+    }
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,origWinPadding);
+    ImGui::PushFont(mainFont);
+    if (ImGui::BeginPopup("PatternOpt",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+      ImGui::Text(_("Options:"));
+      ImGui::Indent();
+      ImGui::Checkbox(_("Effect columns/collapse"),&patExtraButtons);
+      ImGui::Checkbox(_("Pattern names"),&patChannelNames);
+      ImGui::Checkbox(_("Channel group hints"),&patChannelPairs);
+      if (ImGui::Checkbox(_("Visualizer"),&fancyPattern)) {
+        inhibitMenu=true;
+        e->enableCommandStream(fancyPattern);
+        e->getCommandStream(cmdStream);
+        cmdStream.clear();
+      }
+      ImGui::Unindent();
+
+      ImGui::Text(_("Channel status:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("No###_PCS0"),patChannelHints==0)) {
+        patChannelHints=0;
+      }
+      if (ImGui::RadioButton(_("Yes###_PCS1"),patChannelHints==1)) {
+        patChannelHints=1;
+      }
+      ImGui::Unindent();
+      ImGui::EndPopup();
+    }
+    ImGui::PopFont();
+    ImGui::PopStyleVar();
 
     // channel headers (frozen in place)
     ImGui::SetCursorScreenPos(topHeaders);
-    dl->PushClipRect(ImVec2(topRows.x+sizeRows.x,topHeaders.y),winRect.Max,true);
+    ImGui::PushClipRect(ImVec2(topRows.x+sizeRows.x,topHeaders.y),winRect.Max,true);
     ImGui::ItemSize(sizeHeaders,ImGui::GetStyle().FramePadding.y);
     if (ImGui::ItemAdd(rectHeaders,ImGui::GetID("PatternHeaders"),NULL,ImGuiItemFlags_AllowOverlap)) {
       //// THE PREVIOUS MESS.
@@ -1278,7 +899,7 @@ void FurnaceGUI::drawPatternNew() {
             }
           }
         }
-        //chanHeadBottom=ImGui::GetCursorScreenPos().y-ImGui::GetStyle().ItemSpacing.y;
+        sizeHeaders.y=ImGui::GetCursorScreenPos().y-topHeaders.y;
         ImGui::EndGroup();
       }
 
@@ -1303,58 +924,439 @@ void FurnaceGUI::drawPatternNew() {
       }
 
       dl->AddLine(
-        ImVec2(minAreaHeaders.x,maxAreaHeaders.y-PAT_BORDER_SIZE*0.5),
-        ImVec2(maxAreaHeaders.x,maxAreaHeaders.y-PAT_BORDER_SIZE*0.5),
+        ImVec2(minAreaHeaders.x,minAreaHeaders.y+sizeHeaders.y-PAT_BORDER_SIZE*0.5),
+        ImVec2(maxAreaHeaders.x,minAreaHeaders.y+sizeHeaders.y-PAT_BORDER_SIZE*0.5),
+        ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight]),
+        PAT_BORDER_SIZE
+      );
+    }
+    ImGui::PopClipRect();
+
+    top.y+=sizeHeaders.y;
+    topRows.y+=sizeHeaders.y;
+
+    ImVec2 minAreaRows=topRows;
+    ImVec2 maxAreaRows=ImVec2(
+      minAreaRows.x+sizeRows.x,
+      minAreaRows.y+sizeRows.y
+    );
+    ImRect rectRows=ImRect(minAreaRows,maxAreaRows);
+
+    ImVec2 minArea=top;
+    ImVec2 maxArea=ImVec2(
+      minArea.x+size.x,
+      minArea.y+size.y
+    );
+    ImRect rect=ImRect(minArea,maxArea);
+
+    // pattern view
+    dl->PushClipRect(ImVec2(topRows.x+sizeRows.x,topHeaders.y+sizeHeaders.y),winRect.Max,true);
+    ImGui::SetCursorScreenPos(top);
+    ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
+    if (ImGui::ItemAdd(rect,ImGui::GetID("PatternView1"),NULL,ImGuiItemFlags_AllowOverlap)) {
+      // calculate X and Y position of mouse cursor
+      SelectionPoint pointer=SelectionPoint(-1,0,-1,-1);
+      ImVec2 pointerPos=ImGui::GetMousePos()-ImVec2(top.x,0);
+
+      // special value for row index
+      // TODO: just no. not ever.
+      /*
+      if (pointerPos.x>=top.x && pointerPos.x<patChanX[0]) {
+        pointer.xCoarse=-2;
+      }*/
+
+      for (int i=0; i<chans; i++) {
+        if (!e->curSubSong->chanShow[i]) continue;
+        if (pointerPos.x>=patChanX[i] && pointerPos.x<patChanX[i+1]) {
+          pointer.xCoarse=i;
+
+          // calculate xFine
+          float fineOffset=pointerPos.x-patChanX[i];
+          pointer.xFine=0;
+          if (fineOffset>=noteCellSize.x && e->curSubSong->chanCollapse[i]<3) {
+            pointer.xFine=1;
+            fineOffset-=noteCellSize.x;
+
+            if (fineOffset>=insCellSize.x && e->curSubSong->chanCollapse[i]<2) {
+              pointer.xFine=2;
+              fineOffset-=insCellSize.x;
+
+              if (fineOffset>=volCellSize.x && e->curSubSong->chanCollapse[i]<1) {
+                pointer.xFine=3;
+                fineOffset-=volCellSize.x;
+
+                for (int k=0; k<e->curPat[i].effectCols; k++) {
+                  if (fineOffset>=effectCellSize.x) {
+                    pointer.xFine++;
+                    fineOffset-=effectCellSize.x;
+                    if (fineOffset>=effectValCellSize.x) {
+                      pointer.xFine++;
+                      fineOffset-=effectValCellSize.x;
+                    } else {
+                      break;
+                    }
+                  } else {
+                    break;
+                  }
+                }
+
+                if (pointer.xFine>2+2*e->curPat[i].effectCols) pointer.xFine=2+2*e->curPat[i].effectCols;
+              }
+            }
+          }
+
+          break;
+        }
+      }
+
+      {
+        int ord=firstOrd;
+        int row=firstRow;
+        pos=top;
+        for (int j=0; j<totalRows; j++) {
+          if (ord>=0 && ord<e->curSubSong->ordersLen) {
+            if (pointerPos.y>=pos.y && pointerPos.y<(pos.y+lineHeight)) {
+              pointer.order=ord;
+              pointer.y=row;
+              break;
+            }
+          }
+          if (++row>=e->curSubSong->patLen) {
+            row=0;
+            ord++;
+          }
+          pos.y+=lineHeight;
+        }
+      }
+
+      String debugText=fmt::sprintf("CURSOR: %d:%d, %d/%d",pointer.xCoarse,pointer.xFine,pointer.order,pointer.y);
+      dl->AddText(top+ImGui::GetCurrentWindow()->Scroll,0xffffffff,debugText.c_str());
+
+      // row highlights
+      {
+        int ord=firstOrd;
+        int row=firstRow;
+        bool isPlaying=e->isPlaying();
+        pos=top;
+        SETUP_ORDER_ALPHA;
+        for (int j=0; j<totalRows; j++) {
+          if (ord>=0 && ord<e->curSubSong->ordersLen) {
+            /*snprintf(id,63,"%3d",row);
+            dl->AddText(pos,rowIndexColor,id);*/
+            ImU32 thisRowBg=0;
+            if (edit && cursor.y==row && cursor.order==ord && curWindowLast==GUI_WINDOW_PATTERN) {
+              if (editClone && !isPatUnique && secondTimer<0.5) {
+                thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING_CLONE]);
+              } else {
+                thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]);
+              }
+            } else if (isPlaying && oldRow==row && ord==playOrder) {
+              thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]);
+            } else if (e->curSubSong->hilightB>0 && !(row%e->curSubSong->hilightB)) {
+              thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]);
+            } else if (e->curSubSong->hilightA>0 && !(row%e->curSubSong->hilightA)) {
+              thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_1]);
+            }
+
+            if (thisRowBg) {
+              dl->AddRectFilled(
+                ImVec2(top.x+patChanX[0],pos.y),
+                ImVec2(top.x+patChanX[chans],pos.y+lineHeight),
+                thisRowBg
+              );
+            }
+          }
+          if (++row>=e->curSubSong->patLen) {
+            row=0;
+            ord++;
+            SETUP_ORDER_ALPHA;
+          }
+          pos.y+=lineHeight;
+        }
+      }
+
+      // selection background
+      if (sel1.xCoarse>=0 && sel1.xCoarse<chans &&
+          sel2.xCoarse>=0 && sel2.xCoarse<chans) {
+        int ord=firstOrd;
+        int row=firstRow;
+        int curSelFindStage=0;
+        ImRect selRect;
+        pos=top;
+        SETUP_ORDER_ALPHA;
+        // we find the selection's Y position.
+        for (int j=0; j<totalRows; j++) {
+          // stage 1: find selection start
+          if (curSelFindStage==0) {
+            if (sel1.order==ord && sel1.y==row) {
+              selRect.Min.y=pos.y;
+              curSelFindStage=1;
+            }
+          }
+          // stage 2: find selection end
+          if (curSelFindStage==1) {
+            if (sel2.order==ord && sel2.y==row) {
+              selRect.Max.y=pos.y+lineHeight;
+              curSelFindStage=2;
+            }
+          }
+          // stage 3: draw selection rectangle
+          if (curSelFindStage==2) {
+            selRect.Min.x=top.x+patChanX[sel1.xCoarse]+patFineOffsets[sel1.xFine&31];
+            selRect.Max.x=top.x+patChanX[sel2.xCoarse]+patFineOffsets[(1+sel2.xFine)&31];
+            dl->AddRectFilled(
+              selRect.Min,
+              selRect.Max,
+              ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_SELECTION])
+            );
+            curSelFindStage=3;
+            break;
+          }
+
+          if (++row>=e->curSubSong->patLen) {
+            row=0;
+            ord++;
+            SETUP_ORDER_ALPHA;
+          }
+          pos.y+=lineHeight;
+        }
+      }
+
+      // cursor background
+      if (cursor.xCoarse>=0 && cursor.xCoarse<chans) {
+        int ord=firstOrd;
+        int row=firstRow;
+        pos=top;
+        SETUP_ORDER_ALPHA;
+        for (int j=0; j<totalRows; j++) {
+          if (cursor.order==ord && cursor.y==row) {
+            dl->AddRectFilled(
+              ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[cursor.xFine&31],pos.y),
+              ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[(1+cursor.xFine)&31],pos.y+lineHeight),
+              ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_CURSOR])
+            );
+            break;
+          }
+
+          if (++row>=e->curSubSong->patLen) {
+            row=0;
+            ord++;
+            SETUP_ORDER_ALPHA;
+          }
+          pos.y+=lineHeight;
+        }
+      }
+
+      // channels and borders
+      bool isFirstChan=true;
+      for (int i=0; i<chans; i++) {
+        if (!e->curSubSong->chanShow[i]) continue;
+
+        ImVec2 thisTop=ImVec2(top.x+patChanX[i],top.y);
+        pos=thisTop;
+
+        // check bounds
+        if (thisTop.x>=winRect.Max.x) break;
+        if (top.x+patChanX[i+1]<winRect.Min.x) continue;
+
+        dl->AddLine(
+          ImVec2(thisTop.x-PAT_BORDER_SIZE*0.5,thisTop.y),
+          ImVec2(thisTop.x-PAT_BORDER_SIZE*0.5,maxArea.y),
+          ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight]),
+          PAT_BORDER_SIZE
+        );
+
+        int ord=firstOrd;
+        int row=firstRow;
+        int chanVolMax=e->getMaxVolumeChan(i);
+        if (chanVolMax<1) chanVolMax=1;
+
+        const DivPattern* pat=NULL;
+        if (ord>=0 && ord<e->curSubSong->ordersLen) {
+          pat=e->curSubSong->pat[i].getPattern(e->curOrders->ord[i][ord],true);
+        }
+
+        SETUP_ORDER_ALPHA;
+
+        // rows
+        for (int j=0; j<totalRows; j++) {
+          if (pos.y>=winRect.Max.y) break;
+          if (pat && pos.y+lineHeight>=winRect.Min.y) {
+            if (isFirstChan) {
+              // set the top-most and bottom-most Y positions
+              if (topMostOrder==-1) {
+                topMostOrder=ord;
+              }
+              if (topMostRow==-1) {
+                topMostRow=row;
+              }
+              bottomMostOrder=ord;
+              bottomMostRow=row;
+            }
+
+            // note
+            snprintf(id,63,"%.31s",noteName(pat->newData[row][DIV_PAT_NOTE]));
+            if (pat->newData[row][DIV_PAT_NOTE]==-1) {
+              dl->AddText(pos,inactiveColor,id);
+            } else {
+              dl->AddText(pos,activeColor,id);
+            }
+
+            // instrument
+            if (e->curSubSong->chanCollapse[i]<3) {
+              pos.x+=threeChars.x;
+              if (pat->newData[row][DIV_PAT_INS]==-1) {
+                dl->AddText(pos,inactiveColor,emptyLabel2);
+              } else {
+                snprintf(id,63,"%.2X",pat->newData[row][DIV_PAT_INS]);
+                if (pat->newData[row][DIV_PAT_INS]<0 || pat->newData[row][DIV_PAT_INS]>=e->song.insLen) {
+                  dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS_ERROR]),id);
+                } else {
+                  DivInstrumentType t=e->song.ins[pat->newData[row][DIV_PAT_INS]]->type;
+                  if (t!=DIV_INS_AMIGA && t!=e->getPreferInsType(i)) {
+                    dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS_WARN]),id);
+                  } else {
+                    dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS]),id);
+                  }
+                }
+              }
+            }
+
+            // volume
+            if (e->curSubSong->chanCollapse[i]<2) {
+              pos.x+=twoChars.x;
+              if (pat->newData[row][DIV_PAT_VOL]==-1) {
+                dl->AddText(pos,inactiveColor,emptyLabel2);
+              } else {
+                int volColor=(pat->newData[row][DIV_PAT_VOL]*127)/chanVolMax;
+                if (volColor>127) volColor=127;
+                if (volColor<0) volColor=0;
+                snprintf(id,63,"%.2X",pat->newData[row][DIV_PAT_VOL]);
+                dl->AddText(pos,ImGui::GetColorU32(volColors[volColor]),id);
+              }
+            }
+
+            // effects
+            if (e->curSubSong->chanCollapse[i]<1) {
+              for (int k=0; k<e->curPat[i].effectCols; k++) {
+                int index=DIV_PAT_FX(k);
+                int indexVal=DIV_PAT_FXVAL(k);
+                ImU32 effectColor=inactiveColor;
+
+                // effect
+                pos.x+=twoChars.x;
+                if (pat->newData[row][index]==-1) {
+                  dl->AddText(pos,inactiveColor,emptyLabel2);
+                } else {
+                  if (pat->newData[row][index]>0xff) {
+                    snprintf(id,63,"??");
+                    effectColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+                  } else {
+                    const unsigned char data=pat->newData[row][index];
+                    effectColor=ImGui::GetColorU32(uiColors[fxColors[data]]);
+                    if (pat->newData[row][index]>=0x10 || settings.oneDigitEffects==0) {
+                      snprintf(id,63,"%.2X",data);
+                    } else {
+                      snprintf(id,63," %.1X",data);
+                    }
+                  }
+                  dl->AddText(pos,effectColor,id);
+                }
+
+                // effect value
+                pos.x+=twoChars.x;
+                if (pat->newData[row][indexVal]==-1) {
+                  dl->AddText(pos,effectColor,emptyLabel2);
+                } else {
+                  snprintf(id,63,"%.2X",pat->newData[row][indexVal]);
+                  dl->AddText(pos,effectColor,id);
+                }
+              }
+            }
+          }
+
+          // go to next row
+          if (++row>=e->curSubSong->patLen) {
+            row=0;
+            ord++;
+            if (ord>=0 && ord<e->curSubSong->ordersLen) {
+              pat=e->curSubSong->pat[i].getPattern(e->curOrders->ord[i][ord],true);
+            } else {
+              pat=NULL;
+            }
+            SETUP_ORDER_ALPHA;
+          }
+          pos.x=thisTop.x;
+          pos.y+=lineHeight;
+        }
+
+        isFirstChan=false;
+      }
+
+      dl->AddLine(
+        ImVec2(top.x+patChanX[chans]-PAT_BORDER_SIZE*0.5,top.y),
+        ImVec2(top.x+patChanX[chans]-PAT_BORDER_SIZE*0.5,maxArea.y),
+        ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight]),
+        PAT_BORDER_SIZE
+      );
+
+      ImGui::GetStyle().Alpha=origAlpha;
+
+      // test for selection
+      if (pointer.xCoarse>=0 && pointer.y>=0 && pointer.order>=0) {
+        if (ImGui::IsWindowHovered()) {
+          if (ImRect(dl->GetClipRectMin(),dl->GetClipRectMax()).Contains(ImGui::GetMousePos())) {
+            dl->AddText(top+ImVec2(0,lineHeight)+ImGui::GetCurrentWindow()->Scroll,0xffffffff,"Hovered!!!!!!!");
+            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+              startSelection(pointer.xCoarse,pointer.xFine,pointer.y,pointer.order);
+            }
+
+            updateSelection(pointer.xCoarse,pointer.xFine,pointer.y,pointer.order);
+
+            if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && CHECK_LONG_HOLD) {
+              ImGui::InhibitInertialScroll();
+              NOTIFY_LONG_HOLD;
+              mobilePatSel=true;
+            }
+          }
+        }
+      }
+    }
+    dl->PopClipRect();
+
+    // pattern rows (frozen in place)
+    ImGui::SetCursorScreenPos(topRows);
+    dl->PushClipRect(ImVec2(topRows.x,topHeaders.y+sizeHeaders.y),winRect.Max,true);
+    ImGui::ItemSize(sizeRows,ImGui::GetStyle().FramePadding.y);
+    if (ImGui::ItemAdd(rectRows,ImGui::GetID("PatternRows"),NULL,ImGuiItemFlags_AllowOverlap)) {
+      // pattern rows
+      int ord=firstOrd;
+      int row=firstRow;
+      pos=topRows;
+      SETUP_ORDER_ALPHA;
+      for (int j=0; j<totalRows; j++) {
+        if (ord>=0 && ord<e->curSubSong->ordersLen) {
+          snprintf(id,63,"%3d",row);
+          dl->AddText(pos,rowIndexColor,id);
+        }
+        if (++row>=e->curSubSong->patLen) {
+          row=0;
+          ord++;
+          SETUP_ORDER_ALPHA;
+        }
+        pos.y+=lineHeight;
+      }
+
+      ImGui::GetStyle().Alpha=origAlpha;
+
+      dl->AddLine(
+        ImVec2(maxAreaRows.x-PAT_BORDER_SIZE*0.5,topRows.y),
+        ImVec2(maxAreaRows.x-PAT_BORDER_SIZE*0.5,maxArea.y),
         ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight]),
         PAT_BORDER_SIZE
       );
     }
     dl->PopClipRect();
-
-    // the final button
-    ImGui::SetCursorScreenPos(ImVec2(topRows.x,topHeaders.y));
-    if (ImGui::Selectable(" ++###ExtraChannelButtons",false,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(sizeRows.x,lineHeight+1.0f*dpiScale))) {
-      ImGui::OpenPopup("PatternOpt");
-    }
-    if (ImGui::IsItemHovered() && !mobileUI) {
-      ImGui::SetTooltip(_("click for pattern options (effect columns/pattern names/visualizer)"));
-    }
-    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-      fancyPattern=!fancyPattern;
-      inhibitMenu=true;
-      e->enableCommandStream(fancyPattern);
-      e->getCommandStream(cmdStream);
-      cmdStream.clear();
-    }
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,origWinPadding);
-    ImGui::PushFont(mainFont);
-    if (ImGui::BeginPopup("PatternOpt",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
-      ImGui::Text(_("Options:"));
-      ImGui::Indent();
-      ImGui::Checkbox(_("Effect columns/collapse"),&patExtraButtons);
-      ImGui::Checkbox(_("Pattern names"),&patChannelNames);
-      ImGui::Checkbox(_("Channel group hints"),&patChannelPairs);
-      if (ImGui::Checkbox(_("Visualizer"),&fancyPattern)) {
-        inhibitMenu=true;
-        e->enableCommandStream(fancyPattern);
-        e->getCommandStream(cmdStream);
-        cmdStream.clear();
-      }
-      ImGui::Unindent();
-
-      ImGui::Text(_("Channel status:"));
-      ImGui::Indent();
-      if (ImGui::RadioButton(_("No###_PCS0"),patChannelHints==0)) {
-        patChannelHints=0;
-      }
-      if (ImGui::RadioButton(_("Yes###_PCS1"),patChannelHints==1)) {
-        patChannelHints=1;
-      }
-      ImGui::Unindent();
-      ImGui::EndPopup();
-    }
-    ImGui::PopFont();
-    ImGui::PopStyleVar();
 
     ImGui::PopFont();
   }
