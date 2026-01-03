@@ -54,6 +54,8 @@ void FurnaceGUI::drawPatternNew() {
   }
   if (!patternOpen) return;
 
+  bool inhibitMenu=false;
+
   if (e->isPlaying() && followPattern) {
     if (oldRowChanged || !e->isStepping()) {
       if (e->isStepping()) pendingStepUpdate=1;
@@ -93,7 +95,7 @@ void FurnaceGUI::drawPatternNew() {
     sel2.xFine^=sel1.xFine;
   }
 
-  //ImVec2 origWinPadding=ImGui::GetStyle().WindowPadding;
+  ImVec2 origWinPadding=ImGui::GetStyle().WindowPadding;
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0.0f,0.0f));
   if (mobileUI) {
     patWindowPos=(portrait?ImVec2(0.0f,(mobileMenuPos*-0.65*canvasH)+(0.12*canvasW)):ImVec2((0.16*canvasH)+0.5*canvasW*mobileMenuPos,0.0f));
@@ -172,10 +174,9 @@ void FurnaceGUI::drawPatternNew() {
     }
     patFineOffsets[DIV_PAT_FX(DIV_MAX_EFFECTS)]=cellSizeAccum;
 
-    ImGui::Dummy(ImVec2(1.0f,ImGui::GetFrameHeight()));
-
     ImVec2 top=ImGui::GetCursorScreenPos();
     ImVec2 topRows=top+ImVec2(ImGui::GetScrollX(),0);
+    ImVec2 topHeaders=top+ImVec2(0,ImGui::GetScrollY());
     ImVec2 pos=top;
 
     ImVec2 size=ImVec2(0.0f,lineHeight*totalRows);
@@ -241,7 +242,17 @@ void FurnaceGUI::drawPatternNew() {
     );
     ImRect rectRows=ImRect(minAreaRows,maxAreaRows);
 
+    ImVec2 sizeHeaders=ImVec2(size.x+sizeRows.x,ImGui::GetFrameHeight());
+    ImVec2 minAreaHeaders=topHeaders;
+    ImVec2 maxAreaHeaders=ImVec2(
+      minAreaHeaders.x+sizeHeaders.x,
+      minAreaHeaders.y+sizeHeaders.y
+    );
+    ImRect rectHeaders=ImRect(minAreaHeaders,maxAreaHeaders);
+
     top.x+=sizeRows.x;
+    top.y+=sizeHeaders.y;
+    topRows.y+=sizeHeaders.y;
 
     ImVec2 minArea=top;
     ImVec2 maxArea=ImVec2(
@@ -258,7 +269,7 @@ void FurnaceGUI::drawPatternNew() {
     float disabledAlpha=ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha;
 
     // create the view
-    dl->PushClipRect(topRows+ImVec2(sizeRows.x,0),winRect.Max,true);
+    dl->PushClipRect(ImVec2(topRows.x+sizeRows.x,topHeaders.y+sizeHeaders.y),winRect.Max,true);
     ImGui::SetCursorScreenPos(top);
     ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
     if (ImGui::ItemAdd(rect,ImGui::GetID("PatternView1"),NULL,ImGuiItemFlags_AllowOverlap)) {
@@ -634,6 +645,7 @@ void FurnaceGUI::drawPatternNew() {
 
     // pattern rows (frozen in place)
     ImGui::SetCursorScreenPos(topRows);
+    dl->PushClipRect(ImVec2(topRows.x+sizeRows.x,topHeaders.y+sizeHeaders.y),winRect.Max,true);
     ImGui::ItemSize(sizeRows,ImGui::GetStyle().FramePadding.y);
     if (ImGui::ItemAdd(rectRows,ImGui::GetID("PatternRows"),NULL,ImGuiItemFlags_AllowOverlap)) {
       // pattern rows
@@ -663,12 +675,696 @@ void FurnaceGUI::drawPatternNew() {
         PAT_BORDER_SIZE
       );
     }
+    dl->PopClipRect();
 
     // channel headers (frozen in place)
+    ImGui::SetCursorScreenPos(topHeaders);
+    ImGui::ItemSize(sizeHeaders,ImGui::GetStyle().FramePadding.y);
+    if (ImGui::ItemAdd(rectHeaders,ImGui::GetID("PatternHeaders"),NULL,ImGuiItemFlags_AllowOverlap)) {
+      //// THE PREVIOUS MESS.
+      char chanID[2048];
+      // draw channel headers
+      for (int i=0; i<chans; i++) {
+        // skip hidden channels
+        if (!e->curSubSong->chanShow[i]) continue;
+        ImGui::SetCursorScreenPos(ImVec2(topHeaders.x+patChanX[i]+sizeRows.x,topHeaders.y));
+        bool displayTooltip=false;
+
+        // initialize some constants
+        bool muted=e->isChannelMuted(i);
+        ImVec4 chanHead=muted?uiColors[GUI_COLOR_CHANNEL_MUTED]:channelColor(i);
+        ImVec4 chanHeadActive=chanHead;
+        ImVec4 chanHeadHover=chanHead;
+        ImVec4 chanHeadBase=chanHead;
+
+        // update key hit
+        if (e->keyHit[i]) {
+          keyHit1[i]=1.0f;
+
+          if (chanOscRandomPhase) {
+            chanOscChan[i].phaseOff=(float)rand()/(float)RAND_MAX;
+          } else {
+            chanOscChan[i].phaseOff=0.0f;
+          }
+
+          if (settings.channelFeedbackStyle==1) {
+            keyHit[i]=0.2;
+            if (!muted) {
+              int note=e->getChanState(i)->note+60;
+              if (note>=0 && note<180) {
+                pianoKeyHit[note].value=1.0;
+                pianoKeyHit[note].chan=i;
+              }
+            }
+          }
+          e->keyHit[i]=false;
+        }
+        if (settings.channelFeedbackStyle==2 && e->isRunning()) {
+          float amount=((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i));
+          if (e->getChanState(i)->keyOff) amount=0.0f;
+          keyHit[i]=amount*0.2f;
+          if (!muted && e->getChanState(i)->keyOn) {
+            int note=e->getChanState(i)->note+60;
+            if (note>=0 && note<180) {
+              pianoKeyHit[note].value=amount;
+              pianoKeyHit[note].chan=i;
+            }
+          }
+        } else if (settings.channelFeedbackStyle==3 && e->isRunning()) {
+          bool active=e->getChanState(i)->keyOn;
+          keyHit[i]=active?0.2f:0.0f;
+          if (!muted) {
+            int note=e->getChanState(i)->note+60;
+            if (note>=0 && note<180) {
+              pianoKeyHit[note].value=active?1.0f:0.0f;
+              pianoKeyHit[note].chan=i;
+            }
+          }
+        } else if (settings.channelFeedbackStyle==4 && e->isRunning()) {
+          float amount=powf(chanOscVol[i],settings.channelFeedbackGamma);
+          if (isnan(amount)) amount=0; // how is it nan tho??
+          if (e->getChanState(i)->keyOff) amount=0.0f;
+          keyHit[i]=amount*0.2f;
+          if (!muted && e->getChanState(i)->keyOn) {
+            int note=e->getChanState(i)->note+60;
+            if (note>=0 && note<180) {
+              pianoKeyHit[note].value=amount;
+              pianoKeyHit[note].chan=i;
+            }
+          }
+        }
+        // set key hit colors
+        if (settings.guiColorsBase) {
+          chanHead.x*=1.0-keyHit[i]; chanHead.y*=1.0-keyHit[i]; chanHead.z*=1.0-keyHit[i];
+          chanHeadActive.x*=0.5; chanHeadActive.y*=0.5; chanHeadActive.z*=0.5;
+          chanHeadHover.x*=0.9-keyHit[i]; chanHeadHover.y*=0.9-keyHit[i]; chanHeadHover.z*=0.9-keyHit[i];
+        } else {
+          chanHead.x*=0.25+keyHit[i]; chanHead.y*=0.25+keyHit[i]; chanHead.z*=0.25+keyHit[i];
+          chanHeadActive.x*=0.8; chanHeadActive.y*=0.8; chanHeadActive.z*=0.8;
+          chanHeadHover.x*=0.4+keyHit[i]; chanHeadHover.y*=0.4+keyHit[i]; chanHeadHover.z*=0.4+keyHit[i];
+        }
+        keyHit[i]-=((settings.channelStyle==0)?0.02:0.01)*60.0*ImGui::GetIO().DeltaTime;
+        if (keyHit[i]<0) keyHit[i]=0;
+        // push colors
+        ImGui::PushStyleColor(ImGuiCol_Header,chanHead);
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive,chanHeadActive);
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered,chanHeadHover);
+        ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(channelTextColor(i)));
+        if (settings.channelStyle==0) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(chanHead));
+        if (muted) ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_CHANNEL_MUTED]);
+        if (settings.channelFont==0) ImGui::PushFont(mainFont);
+
+        // what the hell???
+        // we don't need this
+        ImGuiWindow* window=ImGui::GetCurrentWindow();
+        ImVec2 sizeHeader=ImVec2(
+          patChanX[i+1]-patChanX[i],
+          lineHeight+1.0f*dpiScale
+        );
+
+        if (settings.channelStyle!=0) {
+          sizeHeader.y+=6.0f*dpiScale;
+        }
+
+        if (settings.channelStyle==2) {
+          sizeHeader.y+=6.0f*dpiScale;
+        }
+        
+        ImVec2 minAreaHeader=window->DC.CursorPos;
+        ImVec2 maxAreaHeader=ImVec2(
+          minAreaHeader.x+sizeHeader.x,
+          minAreaHeader.y+sizeHeader.y
+        );
+        ImRect rectHeader=ImRect(minAreaHeader,maxAreaHeader);
+        float padding=ImGui::CalcTextSize("A").x;
+
+        ImVec2 minLabelArea=minAreaHeader;
+        ImVec2 maxLabelArea=maxAreaHeader;
+
+        if (e->curSubSong->chanCollapse[i]) {
+          const char* chName=e->getChannelShortName(i);
+          if (strlen(chName)>3) {
+            snprintf(chanID,2048,"...");
+          } else {
+            snprintf(chanID,2048,"%s",chName);
+          }
+          displayTooltip=true;
+        } else {
+          minLabelArea.x+=padding;
+          maxLabelArea.x-=padding;
+          if (settings.channelStyle==3) { // split button
+            maxLabelArea.x-=ImGui::GetFrameHeightWithSpacing();
+          }
+          const char* chName=e->getChannelName(i);
+          float chNameLimit=maxLabelArea.x-minLabelArea.x;
+          if (ImGui::CalcTextSize(chName).x>chNameLimit) {
+            String shortChName;
+            float totalAdvanced=0.0f;
+            float ellipsisSize=ImGui::CalcTextSize("...").x;
+            for (const char* j=chName; *j;) {
+              signed char l;
+              int ch=decodeUTF8((const unsigned char*)j,l);
+
+              // TODO: eliminate use of GetFontBaked()?
+              totalAdvanced+=ImGui::GetFontBaked()->GetCharAdvance(ch);
+              if (totalAdvanced>(chNameLimit-ellipsisSize)) break;
+
+              for (int k=0; k<l; k++) {
+                shortChName+=j[k];
+              }
+
+              j+=l;
+            }
+            shortChName+="...";
+            snprintf(chanID,2048,"%s",shortChName.c_str());
+            displayTooltip=true;
+          } else {
+            snprintf(chanID,2048,"%s",chName);
+          }
+        }
+
+        if (settings.channelTextCenter) {
+          minLabelArea.x+=0.5f*(maxLabelArea.x-minLabelArea.x-ImGui::CalcTextSize(chanID).x);
+        }
+
+        if ((!patExtraButtons && !patChannelNames && !patChannelHints) || settings.channelVolStyle!=0) ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0.0f,0.0f));
+
+        ImGui::PushID(2048+i);
+        switch (settings.channelStyle) {
+          case 0: // classic
+            ImGui::ItemSize(sizeHeader,ImGui::GetStyle().FramePadding.y);
+            if (ImGui::ItemAdd(rectHeader,ImGui::GetID(chanID))) {
+              bool hovered=ImGui::ItemHoverable(rectHeader,ImGui::GetID(chanID),0);
+              ImU32 col=(hovered || (mobileUI && ImGui::IsMouseDown(ImGuiMouseButton_Left)))?ImGui::GetColorU32(ImGuiCol_HeaderHovered):ImGui::GetColorU32(ImGuiCol_Header);
+              dl->AddRectFilled(rectHeader.Min,rectHeader.Max,col);
+              dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rectHeader.Min.y),ImGui::GetColorU32(channelTextColor(i)),chanID);
+            }
+            break;
+          case 1: { // line
+            ImGui::ItemSize(sizeHeader,ImGui::GetStyle().FramePadding.y);
+            if (ImGui::ItemAdd(rectHeader,ImGui::GetID(chanID))) {
+              bool hovered=ImGui::ItemHoverable(rectHeader,ImGui::GetID(chanID),0);
+              ImU32 fadeCol0=ImGui::GetColorU32(ImVec4(
+                chanHeadBase.x,
+                chanHeadBase.y,
+                chanHeadBase.z,
+                (hovered && (!mobileUI || ImGui::IsMouseDown(ImGuiMouseButton_Left)))?0.25f:0.0f
+              ));
+              ImU32 fadeCol=ImGui::GetColorU32(ImVec4(
+                chanHeadBase.x,
+                chanHeadBase.y,
+                chanHeadBase.z,
+                (hovered && (!mobileUI || ImGui::IsMouseDown(ImGuiMouseButton_Left)))?0.5f:MIN(1.0f,chanHeadBase.w*keyHit[i]*4.0f)
+              ));
+              dl->AddRectFilledMultiColor(rectHeader.Min,rectHeader.Max,fadeCol0,fadeCol0,fadeCol,fadeCol);
+              dl->AddLine(ImVec2(rectHeader.Min.x,rectHeader.Max.y),ImVec2(rectHeader.Max.x,rectHeader.Max.y),ImGui::GetColorU32(chanHeadBase),2.0f*dpiScale);
+              dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rectHeader.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
+            }
+            break;
+          }
+          case 2: { // round
+            ImGui::ItemSize(sizeHeader,ImGui::GetStyle().FramePadding.y);
+            if (ImGui::ItemAdd(rectHeader,ImGui::GetID(chanID))) {
+              bool hovered=ImGui::ItemHoverable(rectHeader,ImGui::GetID(chanID),0);
+              ImU32 fadeCol0=ImGui::GetColorU32(ImVec4(
+                chanHeadBase.x,
+                chanHeadBase.y,
+                chanHeadBase.z,
+                (hovered && (!mobileUI || ImGui::IsMouseDown(ImGuiMouseButton_Left)))?0.5f:MIN(1.0f,0.3f+chanHeadBase.w*keyHit[i]*1.5f)
+              ));
+              ImU32 fadeCol=ImGui::GetColorU32(ImVec4(
+                chanHeadBase.x,
+                chanHeadBase.y,
+                chanHeadBase.z,
+                (hovered && (!mobileUI || ImGui::IsMouseDown(ImGuiMouseButton_Left)))?0.3f:MIN(1.0f,0.2f+chanHeadBase.w*keyHit[i]*1.2f)
+              ));
+              ImVec2 rMin=rectHeader.Min;
+              ImVec2 rMax=rectHeader.Max;
+              rMin.x+=3.0f*dpiScale;
+              rMin.y+=6.0f*dpiScale;
+              rMax.x-=3.0f*dpiScale;
+              rMax.y-=6.0f*dpiScale;
+              dl->AddRectFilledMultiColor(rMin,rMax,fadeCol0,fadeCol0,fadeCol,fadeCol,4.0f*dpiScale);
+              dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rectHeader.Min.y+6.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
+            }
+            break;
+          }
+          case 3: // split button
+            ImGui::Dummy(ImVec2(1.0f,2.0f*dpiScale));
+            //ImGui::SetCursorPosX(minLabelArea.x);
+            ImGui::TextNoHashHide("%s",chanID);
+            ImGui::SameLine();
+            ImGui::PushFont(mainFont);
+            ImGui::SmallButton(muted?ICON_FA_VOLUME_OFF:ICON_FA_VOLUME_UP);
+            ImGui::PopFont();
+            break;
+          case 4: { // square border
+            ImGui::ItemSize(sizeHeader,ImGui::GetStyle().FramePadding.y);
+            if (ImGui::ItemAdd(rectHeader,ImGui::GetID(chanID))) {
+              bool hovered=ImGui::ItemHoverable(rectHeader,ImGui::GetID(chanID),0);
+              ImU32 fadeCol=ImGui::GetColorU32(ImVec4(
+                chanHeadBase.x,
+                chanHeadBase.y,
+                chanHeadBase.z,
+                (hovered && (!mobileUI || ImGui::IsMouseDown(ImGuiMouseButton_Left)))?1.0f:MIN(1.0f,0.2f+chanHeadBase.w*keyHit[i]*4.0f)
+              ));
+              ImVec2 rMin=rectHeader.Min;
+              ImVec2 rMax=rectHeader.Max;
+              rMin.x+=2.0f*dpiScale;
+              rMin.y+=3.0f*dpiScale;
+              rMax.x-=3.0f*dpiScale;
+              rMax.y-=3.0f*dpiScale;
+              dl->AddRect(rMin,rMax,fadeCol,0.0f,2.0*dpiScale);
+              dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rectHeader.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
+            }
+            break;
+          }
+          case 5: { // round border
+            ImGui::ItemSize(sizeHeader,ImGui::GetStyle().FramePadding.y);
+            if (ImGui::ItemAdd(rectHeader,ImGui::GetID(chanID))) {
+              bool hovered=ImGui::ItemHoverable(rectHeader,ImGui::GetID(chanID),0);
+              ImU32 fadeCol=ImGui::GetColorU32(ImVec4(
+                chanHeadBase.x,
+                chanHeadBase.y,
+                chanHeadBase.z,
+                (hovered && (!mobileUI || ImGui::IsMouseDown(ImGuiMouseButton_Left)))?1.0f:MIN(1.0f,0.2f+chanHeadBase.w*keyHit[i]*4.0f)
+              ));
+              ImVec2 rMin=rectHeader.Min;
+              ImVec2 rMax=rectHeader.Max;
+              rMin.x+=2.0f*dpiScale;
+              rMin.y+=3.0f*dpiScale;
+              rMax.x-=3.0f*dpiScale;
+              rMax.y-=3.0f*dpiScale;
+              dl->AddRect(rMin,rMax,fadeCol,4.0f*dpiScale,ImDrawFlags_RoundCornersAll,2.0*dpiScale);
+              dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rectHeader.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
+            }
+            break;
+          }
+        }
+        ImGui::PopID();
+
+        if ((!patExtraButtons && !patChannelNames && !patChannelHints) || settings.channelVolStyle!=0) ImGui::PopStyleVar();
+
+        if (displayTooltip && ImGui::IsItemHovered() && !mobileUI) {
+          ImGui::SetTooltip("%s",e->getChannelName(i));
+        }
+        if (settings.channelFont==0) ImGui::PopFont();
+        if (mobileUI) {
+          if (ImGui::IsItemHovered()) {
+            if (CHECK_LONG_HOLD) {
+              NOTIFY_LONG_HOLD;
+              e->toggleSolo(i);
+              soloChan=i;
+            }
+            if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && !ImGui::WasInertialScroll()) {
+              if (soloChan!=i) {
+                e->toggleMute(i);
+              } else {
+                soloChan=-1;
+              }
+            }
+          } 
+        } else {
+          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+            if (settings.soloAction!=1 && soloTimeout>0 && soloChan==i) {
+              e->toggleSolo(i);
+              soloTimeout=0;
+            } else {
+              e->toggleMute(i);
+              soloTimeout=settings.doubleClickTime;
+              soloChan=i;
+            }
+          }
+        }
+        if (muted) ImGui::PopStyleColor();
+        ImGui::PopStyleColor(4);
+        if (settings.soloAction!=2 && !mobileUI) if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+          inhibitMenu=true;
+          e->toggleSolo(i);
+        }
+
+        if (settings.channelStyle==3) {
+          ImGui::Dummy(ImVec2(1.0f,2.0f*dpiScale));
+        }
+
+        // volume bar
+        if (settings.channelVolStyle!=0) {
+          ImVec2 sizeV=ImVec2(
+            patChanX[i+1]-patChanX[i],
+            6.0*dpiScale
+          );
+          ImVec2 minAreaV=window->DC.CursorPos;
+          ImVec2 maxAreaV=ImVec2(
+            minAreaV.x+sizeV.x,
+            minAreaV.y+sizeV.y
+          );
+          ImRect rectV=ImRect(minAreaV,maxAreaV);
+          ImGui::ItemSize(sizeV,ImGui::GetStyle().FramePadding.y);
+          if (ImGui::ItemAdd(rectV,ImGui::GetID(chanID))) {
+            float xLeft=0.0f;
+            float xRight=1.0f;
+
+            if (e->keyHit[i]) {
+              keyHit1[i]=1.0f;
+              e->keyHit[i]=false;
+            }
+
+            if (e->isRunning()) {
+              DivChannelState* cs=e->getChanState(i);
+              unsigned short chanPan=e->getChanPan(i);
+              float stereoPan=(float)(e->convertPanSplitToLinear(chanPan,8,256)-128)/128.0;
+              switch (settings.channelVolStyle) {
+                case 1: // simple
+                  xRight=((float)(cs->volume>>8)/(float)e->getMaxVolumeChan(i))*0.9+(keyHit1[i]*0.1f);
+                  break;
+                case 2: { // stereo
+                  float amount=((float)(cs->volume>>8)/(float)e->getMaxVolumeChan(i))*0.4+(keyHit1[i]*0.1f);
+                  xRight=0.5+amount*(1.0+MIN(0.0,stereoPan));
+                  xLeft=0.5-amount*(1.0-MAX(0.0,stereoPan));
+                  break;
+                }
+                case 3: // real
+                  xRight=chanOscVol[i];
+                  break;
+                case 4: // real (stereo)
+                  xRight=0.5+chanOscVol[i]*0.5*(1.0+MIN(0.0,stereoPan));
+                  xLeft=0.5-chanOscVol[i]*0.5*(1.0-MAX(0.0,stereoPan));
+                  break;
+              }
+
+              if (xLeft<0.0f) xLeft=0.0f;
+              if (xLeft>1.0f) xLeft=1.0f;
+              if (xRight<0.0f) xRight=0.0f;
+              if (xRight>1.0f) xRight=1.0f;
+
+              dl->AddRectFilled(
+                ImLerp(rectV.Min,rectV.Max,ImVec2(xLeft,0.0f)),
+                ImLerp(rectV.Min,rectV.Max,ImVec2(xRight,1.0f)),
+                ImGui::GetColorU32(chanHeadBase)
+              );
+            }
+          }
+        }
+        
+        // extra buttons
+        if (patExtraButtons) {
+          snprintf(chanID,2048,"%c###_HCH%d",e->curSubSong->chanCollapse[i]?'+':'-',i);
+          ImGui::SetCursorPosX(ImGui::GetCursorPosX()+4.0f*dpiScale);
+          if (ImGui::SmallButton(chanID)) {
+            if (e->curSubSong->chanCollapse[i]==0) {
+              e->curSubSong->chanCollapse[i]=3;
+            } else if (e->curSubSong->chanCollapse[i]>0) {
+              e->curSubSong->chanCollapse[i]--;
+            }
+            finishSelection();
+          }
+          if (!e->curSubSong->chanCollapse[i]) {
+            ImGui::SameLine();
+            snprintf(chanID,2048,"<###_LCH%d",i);
+            ImGui::BeginDisabled(e->curPat[i].effectCols<=1);
+            if (ImGui::SmallButton(chanID)) {
+              e->curPat[i].effectCols--;
+              if (e->curPat[i].effectCols<1) e->curPat[i].effectCols=1;
+              finishSelection();
+            }
+            ImGui::EndDisabled();
+            ImGui::SameLine();
+            ImGui::BeginDisabled(e->curPat[i].effectCols>=DIV_MAX_EFFECTS);
+            snprintf(chanID,2048,">###_RCH%d",i);
+            if (ImGui::SmallButton(chanID)) {
+              e->curPat[i].effectCols++;
+              if (e->curPat[i].effectCols>DIV_MAX_EFFECTS) e->curPat[i].effectCols=DIV_MAX_EFFECTS;
+              finishSelection();
+            }
+            ImGui::EndDisabled();
+          }
+          ImGui::Spacing();
+        }
+
+        if (patChannelNames) {
+          DivPattern* pat=e->curPat[i].getPattern(e->curOrders->ord[i][curOrder],true);
+          ImGui::PushFont(mainFont);
+          snprintf(chanID,2048," %s###PatName%d",pat->name.c_str(),i);
+          if (ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
+            editStr(&pat->name);
+          }
+          ImGui::PopFont();
+        }
+
+        if (patChannelHints) {
+          ImGuiWindow* win=ImGui::GetCurrentWindow();
+          ImVec2 posMin=win->DC.CursorPos;
+          ImGui::Dummy(ImVec2(dpiScale,settings.iconSize*dpiScale));
+          ImVec2 posMax=ImVec2(win->WorkRect.Max.x,win->WorkRect.Max.y);
+          posMin.y-=ImGui::GetStyle().ItemSpacing.y*0.5;
+          ImDrawList* dl=ImGui::GetWindowDrawList();
+          ImVec2 iconPos[6];
+          DivChannelState* cs=e->getChanState(i);
+          if (cs!=NULL) {
+            DivChannelModeHints hints=e->getChanModeHints(i);
+            if (hints.count>4) hints.count=4;
+            int hintCount=3+hints.count;
+
+            // calculate icon size
+            for (int i=0; i<hintCount; i++) {
+              iconPos[i]=ImLerp(posMin,posMax,ImVec2((float)(2*i+1)/(float)(hintCount*2),0.0f));
+            }
+
+            // 1. ON/OFF
+            ImVec4 onOffColor;
+            if (cs->keyOn) {
+              if (cs->releasing) {
+                onOffColor=uiColors[GUI_COLOR_PATTERN_STATUS_REL_ON];
+              } else {
+                onOffColor=uiColors[GUI_COLOR_PATTERN_STATUS_ON];
+              }
+            } else {
+              if (cs->releasing) {
+                onOffColor=uiColors[GUI_COLOR_PATTERN_STATUS_REL];
+              } else {
+                onOffColor=uiColors[GUI_COLOR_PATTERN_STATUS_OFF];
+              }
+            }
+            iconPos[0].x-=mainFont->CalcTextSizeA(MAIN_FONT_SIZE,FLT_MAX,0.0f,ICON_FA_SQUARE).x*0.5f;
+            dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[0],ImGui::GetColorU32(onOffColor),ICON_FA_SQUARE);
+
+            // 2. PITCH SLIDE/VIBRATO
+            ImVec4 pitchColor;
+            const char* pitchIcon=ICON_FUR_SINE;
+            if (cs->inPorta) {
+              pitchIcon=ICON_FA_SHARE;
+              pitchColor=uiColors[GUI_COLOR_PATTERN_STATUS_PITCH];
+            } else if (cs->portaSpeed>0) {
+              if (cs->portaNote>=60) {
+                pitchIcon=ICON_FA_CHEVRON_UP;
+              } else {
+                pitchIcon=ICON_FA_CHEVRON_DOWN;
+              }
+              pitchColor=uiColors[GUI_COLOR_PATTERN_STATUS_PITCH];
+            } else if (cs->vibratoDepth>0) {
+              pitchIcon=ICON_FUR_SINE;
+              pitchColor=uiColors[GUI_COLOR_PATTERN_STATUS_PITCH];
+            } else if (cs->arp) {
+              pitchIcon=ICON_FA_BARS;
+              pitchColor=uiColors[GUI_COLOR_PATTERN_STATUS_NOTE];
+            } else {
+              pitchColor=uiColors[GUI_COLOR_PATTERN_STATUS_OFF];
+            }
+            iconPos[1].x-=mainFont->CalcTextSizeA(MAIN_FONT_SIZE,FLT_MAX,0.0f,pitchIcon).x*0.5f;
+            dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[1],ImGui::GetColorU32(pitchColor),pitchIcon);
+
+
+            // 3. VOLUME
+            ImVec4 volColor;
+            const char* volIcon=ICON_FA_MINUS;
+            if (cs->tremoloDepth>0) {
+              volIcon=ICON_FUR_SINE;
+              volColor=uiColors[GUI_COLOR_PATTERN_STATUS_VOLUME];
+            } else if (cs->volSpeed) {
+              if (cs->volSpeed>0) {
+                volIcon=ICON_FA_CHEVRON_UP;
+              } else {
+                volIcon=ICON_FA_CHEVRON_DOWN;
+              }
+              volColor=uiColors[GUI_COLOR_PATTERN_STATUS_VOLUME];
+            } else {
+              volColor=uiColors[GUI_COLOR_PATTERN_STATUS_OFF];
+            }
+            iconPos[2].x-=mainFont->CalcTextSizeA(MAIN_FONT_SIZE,FLT_MAX,0.0f,volIcon).x*0.5f;
+            dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[2],ImGui::GetColorU32(volColor),volIcon);
+
+            // 4. OTHER
+            for (int i=0; i<hints.count; i++) {
+              if (hints.hint[i]==NULL) continue;
+              ImVec4 hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_OFF];
+              switch (hints.type[i]) {
+                case 0:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_OFF];
+                  break;
+                case 1:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_VOLUME];
+                  break;
+                case 2:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_PITCH];
+                  break;
+                case 3:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_PANNING];
+                  break;
+                case 4:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_SYS1];
+                  break;
+                case 5:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_SYS2];
+                  break;
+                case 6:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_MIXING];
+                  break;
+                case 7:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_DSP];
+                  break;
+                case 8:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_NOTE];
+                  break;
+                case 9:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_MISC1];
+                  break;
+                case 10:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_MISC2];
+                  break;
+                case 11:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_MISC3];
+                  break;
+                case 12:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_ATTACK];
+                  break;
+                case 13:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_DECAY];
+                  break;
+                case 14:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_SUSTAIN];
+                  break;
+                case 15:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_RELEASE];
+                  break;
+                case 16:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_DEC_LINEAR];
+                  break;
+                case 17:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_DEC_EXP];
+                  break;
+                case 18:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_INC];
+                  break;
+                case 19:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_BENT];
+                  break;
+                case 20:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_DIRECT];
+                  break;
+                case 21:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_WARNING];
+                  break;
+                case 22:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_ERROR];
+                  break;
+                default:
+                  hintColor=uiColors[GUI_COLOR_TEXT];
+                  break;
+              }
+              iconPos[i+3].x-=mainFont->CalcTextSizeA(MAIN_FONT_SIZE,FLT_MAX,0.0f,hints.hint[i]).x*0.5f;
+              dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[i+3],ImGui::GetColorU32(hintColor),hints.hint[i]);
+            }
+          }
+        }
+        //chanHeadBottom=ImGui::GetCursorScreenPos().y-ImGui::GetStyle().ItemSpacing.y;
+      }
+
+      //lastPatternWidth=ImGui::GetCursorPosX()-lpwStart+ImGui::GetStyle().ScrollbarSize;
+      /*if (e->hasExtValue()) {
+        ImGui::TextColored(uiColors[GUI_COLOR_EE_VALUE]," %.2X",e->getExtValue());
+      }*/
+
+
+      //// NEW CODE.
+      for (int i=0; i<chans; i++) {
+        if (!e->curSubSong->chanShow[i]) continue;
+
+        pos=topHeaders+ImVec2(patChanX[i]+sizeRows.x,0);
+
+        dl->AddLine(
+          ImVec2(pos.x-PAT_BORDER_SIZE*0.5,pos.y),
+          ImVec2(pos.x-PAT_BORDER_SIZE*0.5,maxAreaHeaders.y),
+          ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight]),
+          PAT_BORDER_SIZE
+        );
+      }
+
+      dl->AddLine(
+        ImVec2(minAreaHeaders.x,maxAreaHeaders.y-PAT_BORDER_SIZE*0.5),
+        ImVec2(maxAreaHeaders.x,maxAreaHeaders.y-PAT_BORDER_SIZE*0.5),
+        ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight]),
+        PAT_BORDER_SIZE
+      );
+    }
+
+    // the final button
+    ImGui::SetCursorScreenPos(ImVec2(topRows.x,topHeaders.y));
+    if (ImGui::Selectable(" ++###ExtraChannelButtons",false,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(sizeRows.x,lineHeight+1.0f*dpiScale))) {
+      ImGui::OpenPopup("PatternOpt");
+    }
+    if (ImGui::IsItemHovered() && !mobileUI) {
+      ImGui::SetTooltip(_("click for pattern options (effect columns/pattern names/visualizer)"));
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      fancyPattern=!fancyPattern;
+      inhibitMenu=true;
+      e->enableCommandStream(fancyPattern);
+      e->getCommandStream(cmdStream);
+      cmdStream.clear();
+    }
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,origWinPadding);
+    ImGui::PushFont(mainFont);
+    if (ImGui::BeginPopup("PatternOpt",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+      ImGui::Text(_("Options:"));
+      ImGui::Indent();
+      ImGui::Checkbox(_("Effect columns/collapse"),&patExtraButtons);
+      ImGui::Checkbox(_("Pattern names"),&patChannelNames);
+      ImGui::Checkbox(_("Channel group hints"),&patChannelPairs);
+      if (ImGui::Checkbox(_("Visualizer"),&fancyPattern)) {
+        inhibitMenu=true;
+        e->enableCommandStream(fancyPattern);
+        e->getCommandStream(cmdStream);
+        cmdStream.clear();
+      }
+      ImGui::Unindent();
+
+      ImGui::Text(_("Channel status:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("No###_PCS0"),patChannelHints==0)) {
+        patChannelHints=0;
+      }
+      if (ImGui::RadioButton(_("Yes###_PCS1"),patChannelHints==1)) {
+        patChannelHints=1;
+      }
+      ImGui::Unindent();
+      ImGui::EndPopup();
+    }
+    ImGui::PopFont();
+    ImGui::PopStyleVar();
 
     ImGui::PopFont();
   }
   ImGui::PopStyleVar();
+
+  if (patternOpen) {
+    if (!inhibitMenu && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) ImGui::OpenPopup("patternActionMenu");
+    if (openEditMenu) ImGui::OpenPopup("patternActionMenu");
+    if (ImGui::BeginPopup("patternActionMenu",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+      editOptions(false);
+      ImGui::EndPopup();
+    }
+  }
+
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PATTERN;
   ImGui::End();
 }
