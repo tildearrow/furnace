@@ -645,7 +645,7 @@ void FurnaceGUI::drawPatternNew() {
 
     // pattern rows (frozen in place)
     ImGui::SetCursorScreenPos(topRows);
-    dl->PushClipRect(ImVec2(topRows.x+sizeRows.x,topHeaders.y+sizeHeaders.y),winRect.Max,true);
+    dl->PushClipRect(ImVec2(topRows.x,topHeaders.y+sizeHeaders.y),winRect.Max,true);
     ImGui::ItemSize(sizeRows,ImGui::GetStyle().FramePadding.y);
     if (ImGui::ItemAdd(rectRows,ImGui::GetID("PatternRows"),NULL,ImGuiItemFlags_AllowOverlap)) {
       // pattern rows
@@ -679,6 +679,7 @@ void FurnaceGUI::drawPatternNew() {
 
     // channel headers (frozen in place)
     ImGui::SetCursorScreenPos(topHeaders);
+    dl->PushClipRect(ImVec2(topRows.x+sizeRows.x,topHeaders.y),winRect.Max,true);
     ImGui::ItemSize(sizeHeaders,ImGui::GetStyle().FramePadding.y);
     if (ImGui::ItemAdd(rectHeaders,ImGui::GetID("PatternHeaders"),NULL,ImGuiItemFlags_AllowOverlap)) {
       //// THE PREVIOUS MESS.
@@ -688,6 +689,7 @@ void FurnaceGUI::drawPatternNew() {
         // skip hidden channels
         if (!e->curSubSong->chanShow[i]) continue;
         ImGui::SetCursorScreenPos(ImVec2(topHeaders.x+patChanX[i]+sizeRows.x,topHeaders.y));
+        ImGui::BeginGroup();
         bool displayTooltip=false;
 
         // initialize some constants
@@ -1105,7 +1107,7 @@ void FurnaceGUI::drawPatternNew() {
           DivPattern* pat=e->curPat[i].getPattern(e->curOrders->ord[i][curOrder],true);
           ImGui::PushFont(mainFont);
           snprintf(chanID,2048," %s###PatName%d",pat->name.c_str(),i);
-          if (ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
+          if (ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(sizeHeader.x,lineHeight+1.0f*dpiScale))) {
             editStr(&pat->name);
           }
           ImGui::PopFont();
@@ -1115,7 +1117,7 @@ void FurnaceGUI::drawPatternNew() {
           ImGuiWindow* win=ImGui::GetCurrentWindow();
           ImVec2 posMin=win->DC.CursorPos;
           ImGui::Dummy(ImVec2(dpiScale,settings.iconSize*dpiScale));
-          ImVec2 posMax=ImVec2(win->WorkRect.Max.x,win->WorkRect.Max.y);
+          ImVec2 posMax=posMin+sizeHeader;
           posMin.y-=ImGui::GetStyle().ItemSpacing.y*0.5;
           ImDrawList* dl=ImGui::GetWindowDrawList();
           ImVec2 iconPos[6];
@@ -1277,6 +1279,7 @@ void FurnaceGUI::drawPatternNew() {
           }
         }
         //chanHeadBottom=ImGui::GetCursorScreenPos().y-ImGui::GetStyle().ItemSpacing.y;
+        ImGui::EndGroup();
       }
 
       //lastPatternWidth=ImGui::GetCursorPosX()-lpwStart+ImGui::GetStyle().ScrollbarSize;
@@ -1306,6 +1309,7 @@ void FurnaceGUI::drawPatternNew() {
         PAT_BORDER_SIZE
       );
     }
+    dl->PopClipRect();
 
     // the final button
     ImGui::SetCursorScreenPos(ImVec2(topRows.x,topHeaders.y));
