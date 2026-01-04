@@ -1087,6 +1087,11 @@ void FurnaceGUI::drawPatternNew() {
               thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_1]);
             }
 
+            if (oldRow==row && ord==playOrder) {
+              // store playhead position
+              playheadY=pos.y;
+            }
+
             if (thisRowBg) {
               dl->AddRectFilled(
                 ImVec2(top.x+patChanX[0],pos.y),
@@ -1392,14 +1397,14 @@ void FurnaceGUI::drawPatternNew() {
     // TODO: particles
     if (fancyPattern) { // visualizer
       e->getCommandStream(cmdStream);
-      ImVec2 off=ImVec2(0.0f,0.0f);
+      ImVec2 off=ImVec2(top.x,topHeaders.y);
 
       ImVec2 winMin=ImGui::GetWindowPos();
       ImVec2 winMax=ImVec2(
         winMin.x+ImGui::GetWindowSize().x,
         winMin.y+ImGui::GetWindowSize().y
       );
-      
+
       // commands
       for (DivCommand& i: cmdStream) {
         if (i.cmd==DIV_CMD_PITCH) continue;
@@ -1525,7 +1530,7 @@ void FurnaceGUI::drawPatternNew() {
         for (int j=0; j<num; j++) {
           ImVec2 partPos=ImVec2(
             off.x+patChanX[i.chan]+fmod(rand(),width),
-            off.y+(playheadY)+randRange(0,PAT_FONT_SIZE)
+            (playheadY)+randRange(0,PAT_FONT_SIZE)
           );
 
           if (partPos.x<winMin.x || partPos.y<winMin.y || partPos.x>winMax.x || partPos.y>winMax.y) continue;
@@ -1577,7 +1582,7 @@ void FurnaceGUI::drawPatternNew() {
             ));
           }
 
-          if (width>0.1) for (float j=-patChanSlideY[i]; j<ImGui::GetWindowHeight(); j+=width*0.7) {
+          if (width>0.1) for (float j=-patChanSlideY[i]; j<ImGui::GetWindowPos().y+ImGui::GetWindowHeight(); j+=width*0.7) {
             ImVec2 tMin=ImVec2(off.x+patChanX[i],off.y+j);
             ImVec2 tMax=ImVec2(off.x+patChanX[i+1],off.y+j+width*0.6);
             if (ch->portaNote<=ch->note) {
@@ -1616,7 +1621,7 @@ void FurnaceGUI::drawPatternNew() {
 
           ImVec2 partPos=ImVec2(
             off.x+patChanX[i]+(width*0.5+0.5*sin(M_PI*(float)ch->vibratoPosGiant/64.0f)*width),
-            off.y+(ImGui::GetWindowHeight()*0.5f)+randRange(0,PAT_FONT_SIZE)
+            playheadY+randRange(lineHeight*0.5,lineHeight*1.5)
           );
 
           if (!(partPos.x<winMin.x || partPos.y<winMin.y || partPos.x>winMax.x || partPos.y>winMax.y)) {
