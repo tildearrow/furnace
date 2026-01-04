@@ -1392,10 +1392,329 @@ void FurnaceGUI::drawPatternNew() {
     }
     dl->PopClipRect();
 
-    // TODO: demandScrollX
+    if (demandScrollX) {
+      float finalX=-fourChars.x;
+      // manually calculate X scroll
+      for (int i=0; i<=cursor.xCoarse; i++) {
+        int fine=(i==cursor.xCoarse)?cursor.xFine:9999;
+        if (!e->curSubSong->chanShow[i]) continue;
 
-    // TODO: particles
-    if (fancyPattern) { // visualizer
+        finalX+=noteCellSize.x;
+        // ins
+        if (fine==0) break;
+        if (e->curSubSong->chanCollapse[i]<3) {
+          finalX+=insCellSize.x;
+        }
+        // vol
+        if (fine==1) break;
+        if (e->curSubSong->chanCollapse[i]<2) {
+          finalX+=volCellSize.x;
+        }
+        // effects
+        if (fine==2) break;
+        if (e->curSubSong->chanCollapse[i]<1) {
+          for (int j=0; j<MIN(fine-2,e->curPat[i].effectCols*2); j++) {
+            if (j&1) {
+              finalX+=effectValCellSize.x;
+            } else {
+              finalX+=effectCellSize.x;
+            }
+          }
+        }
+      }
+      float totalDemand=finalX-ImGui::GetScrollX();
+      float availWidth=ImGui::GetWindowWidth();
+      if (totalDemand<(availWidth*0.25f)) {
+        ImGui::SetScrollX(finalX-availWidth*0.25f);
+      } else if (totalDemand>(availWidth*0.7f)) {
+        ImGui::SetScrollX(finalX-availWidth*0.7f);
+      }
+      demandScrollX=false;
+    }
+
+    // cursor follows wheel
+    if (settings.cursorFollowsWheel && (!e->isPlaying() || !followPattern || selecting) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
+      if (wheelX!=0 || wheelY!=0) {
+        int xAmount=wheelX;
+        int yAmount=(settings.cursorFollowsWheel==2)?wheelY:-wheelY;
+        if (settings.cursorWheelStep==1) {
+          xAmount*=MAX(1,editStep);
+          yAmount*=MAX(1,editStep);
+        }
+        if (settings.cursorWheelStep==2) {
+          xAmount*=MAX(1,editStepCoarse);
+          yAmount*=MAX(1,editStepCoarse);
+        }
+        moveCursor(xAmount,yAmount,false);
+      }
+    }
+
+    // overflow changes order
+    if (--wheelCalmDown<0) wheelCalmDown=0;
+    if (settings.scrollChangesOrder && (!e->isPlaying() || !followPattern) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && !settings.cursorFollowsWheel && !wheelCalmDown) {
+      if (wheelY!=0) {
+        if (wheelY>0) {
+          if (ImGui::GetScrollY()<=0) {
+            if (haveHitBounds) {
+              if (curOrder>0) {
+                setOrder(curOrder-1);
+                ImGui::SetScrollY(ImGui::GetScrollMaxY());
+                updateScroll(e->curSubSong->patLen);
+                wheelCalmDown=2;
+              } else if (settings.scrollChangesOrder==2) {
+                setOrder(e->curSubSong->ordersLen-1);
+                ImGui::SetScrollY(ImGui::GetScrollMaxY());
+                updateScroll(e->curSubSong->patLen);
+                wheelCalmDown=2;
+              }
+              haveHitBounds=false;
+            } else {
+              haveHitBounds=true;
+            }
+          } else {
+            haveHitBounds=false;
+          }
+        } else {
+          if (ImGui::GetScrollY()>=ImGui::GetScrollMaxY()) {
+            if (haveHitBounds) {
+              if (curOrder<(e->curSubSong->ordersLen-1)) {
+                setOrder(curOrder+1);
+                ImGui::SetScrollY(0);
+                updateScroll(0);
+                wheelCalmDown=2;
+              } else if (settings.scrollChangesOrder==2) {
+                setOrder(0);
+                ImGui::SetScrollY(0);
+                updateScroll(0);
+                wheelCalmDown=2;
+              }
+              haveHitBounds=false;
+            } else {
+              haveHitBounds=true;
+            }
+          } else {
+            haveHitBounds=false;
+          }
+        }
+      }
+    }
+    // HACK: we need to capture the last scroll position in order to restore it during undo/redo
+    patScroll=ImGui::GetScrollY();
+
+    // channel pair hints
+    ImGui::PushFont(mainFont);
+    if (patChannelPairs && e->isRunning()) {
+      float chanPairPos=0.0f;
+      float chanPairPosCenter=0.0f;
+      float chanPairPosMin=FLT_MAX;
+      float chanPairPosMax=-FLT_MAX;
+      ImVec2 textSize;
+      unsigned int floors[4][4]; // bit array
+      std::vector<DelayedLabel> delayedLabels;
+
+      memset(floors,0,4*4*sizeof(unsigned int));
+
+      for (int i=0; i<chans; i++) {
+        std::vector<DivChannelPair> pairs;
+        e->getChanPaired(i,pairs);
+
+        for (DivChannelPair pair: pairs) {
+          bool isPaired=false;
+          int numPairs=0;
+          unsigned int pairMin=i;
+          unsigned int pairMax=i;
+          unsigned char curFloor=0;
+          if (!e->curSubSong->chanShow[i]) {
+            continue;
+          }
+
+          for (int j=0; j<8; j++) {
+            if (pair.pairs[j]==-1) continue;
+            int pairCh=e->song.dispatchFirstChan[i]+pair.pairs[j];
+            if (!e->curSubSong->chanShow[pairCh]) {
+              continue;
+            }
+            isPaired=true;
+            if ((unsigned int)pairCh<pairMin) pairMin=pairCh;
+            if ((unsigned int)pairCh>pairMax) pairMax=pairCh;
+          }
+
+          if (!isPaired) continue;
+
+          float chanPairPosY=topHeaders.y+sizeHeaders.y;
+
+          // find a free floor
+          while (curFloor<4) {
+            bool free=true;
+            for (unsigned int j=pairMin; j<=pairMax; j++) {
+              const unsigned int j0=j>>5;
+              const unsigned int j1=1U<<(j&31);
+              if (floors[curFloor][j0]&j1) {
+                free=false;
+                break;
+              }
+            }
+            if (free) break;
+            curFloor++;
+          }
+          if (curFloor<4) {
+            // occupy floor
+            floors[curFloor][pairMin>>5]|=1U<<(pairMin&31);
+            floors[curFloor][pairMax>>5]|=1U<<(pairMax&31);
+          }
+
+          chanPairPos=(patChanX[i+1]+patChanX[i])*0.5;
+          chanPairPosCenter=chanPairPos;
+          chanPairPosMin=chanPairPos;
+          chanPairPosMax=chanPairPos;
+          numPairs++;
+
+          if (pair.label==NULL) {
+            textSize=ImGui::CalcTextSize("???");
+          } else {
+            textSize=ImGui::CalcTextSize(pair.label);
+          }
+
+          chanPairPosY+=(textSize.y+ImGui::GetStyle().ItemSpacing.y)*curFloor;
+
+          dl->AddLine(
+            ImVec2(chanPairPos,topHeaders.y+sizeHeaders.y),
+            ImVec2(chanPairPos,chanPairPosY+textSize.y),
+            ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+            2.0f*dpiScale
+          );
+
+          for (int j=0; j<8; j++) {
+            if (pair.pairs[j]==-1) continue;
+            int pairCh=e->song.dispatchFirstChan[i]+pair.pairs[j];
+            if (!e->curSubSong->chanShow[pairCh]) {
+              continue;
+            }
+
+            chanPairPos=(patChanX[pairCh+1]+patChanX[pairCh])*0.5;
+            chanPairPosCenter+=chanPairPos;
+            numPairs++;
+            if (chanPairPos<chanPairPosMin) chanPairPosMin=chanPairPos;
+            if (chanPairPos>chanPairPosMax) chanPairPosMax=chanPairPos;
+            dl->AddLine(
+              ImVec2(chanPairPos,topHeaders.y+sizeHeaders.y),
+              ImVec2(chanPairPos,chanPairPosY+textSize.y),
+              ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+              2.0f*dpiScale
+            );
+          }
+
+          chanPairPosCenter/=numPairs;
+
+          if (pair.label==NULL) {
+            dl->AddLine(
+              ImVec2(chanPairPosMin,chanPairPosY+textSize.y),
+              ImVec2(chanPairPosMax,chanPairPosY+textSize.y),
+              ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+              2.0f*dpiScale
+            );
+          } else {
+            dl->AddLine(
+              ImVec2(chanPairPosMin,chanPairPosY+textSize.y),
+              ImVec2(chanPairPosCenter-textSize.x*0.5-6.0f*dpiScale,chanPairPosY+textSize.y),
+              ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+              2.0f*dpiScale
+            );
+            dl->AddLine(
+              ImVec2(chanPairPosCenter+textSize.x*0.5+6.0f*dpiScale,chanPairPosY+textSize.y),
+              ImVec2(chanPairPosMax,chanPairPosY+textSize.y),
+              ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+              2.0f*dpiScale
+            );
+
+            delayedLabels.push_back(DelayedLabel(chanPairPosCenter,chanPairPosY,textSize,pair.label));
+          }
+        }
+      }
+
+      for (DelayedLabel& i: delayedLabels) {
+        ImGui::RenderFrameDrawList(
+          dl,
+          ImVec2(i.posCenter-i.textSize.x*0.5-6.0f*dpiScale,i.posY+i.textSize.y*0.5-3.0f*dpiScale),
+          ImVec2(i.posCenter+i.textSize.x*0.5+6.0f*dpiScale,i.posY+i.textSize.y*1.5+3.0f*dpiScale),
+          ImGui::GetColorU32(ImGuiCol_FrameBg),
+          true,
+          ImGui::GetStyle().FrameRounding
+        );
+
+        dl->AddText(
+          ImVec2(i.posCenter-i.textSize.x*0.5,i.posY+i.textSize.y*0.5),
+          ImGui::GetColorU32(ImGuiCol_Text),
+          i.label
+        );
+      }
+    }
+
+    // let's draw a warning if the instrument cannot be previewed
+    if (failedNoteOn) {
+      ImVec2 winCenter=ImGui::GetWindowPos()+ImGui::GetWindowSize()*0.5f;
+      ImGui::PushFont(bigFont);
+      ImVec2 warnHeadSize=ImGui::CalcTextSize(_("WARNING!!"));
+      ImGui::PopFont();
+      ImVec2 warnTextSize1=ImGui::CalcTextSize(_("this instrument cannot be previewed because"));
+      ImVec2 warnTextSize2=ImGui::CalcTextSize(_("none of the chips can play it"));
+      ImVec2 warnTextSize3=ImGui::CalcTextSize(_("your instrument is in peril!! be careful..."));
+
+      float maxTextSize=warnHeadSize.x;
+      if (warnTextSize1.x>maxTextSize) maxTextSize=warnTextSize1.x;
+      if (warnTextSize2.x>maxTextSize) maxTextSize=warnTextSize2.x;
+      if (warnTextSize3.x>maxTextSize) maxTextSize=warnTextSize3.x;
+
+      ImVec2 sumOfAll=ImVec2(
+        maxTextSize,
+        warnHeadSize.y+warnTextSize1.y+warnTextSize2.y+warnTextSize3.y
+      );
+
+      ImGui::RenderFrameDrawList(
+        dl,
+        ImVec2(winCenter.x-sumOfAll.x*0.5-ImGui::GetStyle().ItemInnerSpacing.x,winCenter.y-sumOfAll.y*0.5-ImGui::GetStyle().ItemInnerSpacing.y),
+        ImVec2(winCenter.x+sumOfAll.x*0.5+ImGui::GetStyle().ItemInnerSpacing.x,winCenter.y+sumOfAll.y*0.5+ImGui::GetStyle().ItemInnerSpacing.y),
+        ImGui::GetColorU32(ImGuiCol_FrameBg),
+        true,
+        ImGui::GetStyle().FrameRounding
+      );
+
+      float whereY=winCenter.y-sumOfAll.y*0.5;
+
+      dl->AddText(
+        bigFont,
+        MAX(1,40*dpiScale),
+        ImVec2(winCenter.x-warnHeadSize.x*0.5,whereY),
+        ImGui::GetColorU32(ImGuiCol_Text),
+        _("WARNING!!")
+      );
+      whereY+=warnHeadSize.y;
+
+      dl->AddText(
+        ImVec2(winCenter.x-warnTextSize1.x*0.5,whereY),
+        ImGui::GetColorU32(ImGuiCol_Text),
+        _("this instrument cannot be previewed because")
+      );
+      whereY+=warnTextSize1.y;
+
+      dl->AddText(
+        ImVec2(winCenter.x-warnTextSize2.x*0.5,whereY),
+        ImGui::GetColorU32(ImGuiCol_Text),
+        _("none of the chips can play it")
+      );
+      whereY+=warnTextSize2.y;
+
+      dl->AddText(
+        ImVec2(winCenter.x-warnTextSize3.x*0.5,whereY),
+        ImGui::GetColorU32(ImGuiCol_Text),
+        _("your instrument is in peril!! be careful...")
+      );
+      whereY+=warnTextSize3.y;
+    }
+    ImGui::PopFont();
+    
+    // visualizer
+    if (fancyPattern) {
       e->getCommandStream(cmdStream);
       ImVec2 off=ImVec2(top.x,topHeaders.y);
 
